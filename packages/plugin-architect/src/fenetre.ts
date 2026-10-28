@@ -22,13 +22,13 @@ export const TAILLE_MINIMALE = { largeur: 560, hauteur: 480 } as const;
 export const CLE_DE_LA_FENETRE = 'ucm-explorateur/tailleFenetre';
 
 /** La taille d'ouverture du mode Composant, panneau des constats fermé. */
-export const TAILLE_ETROITE = { largeur: 520, hauteur: 760 } as const;
+export const TAILLE_ETROITE = { largeur: 500, hauteur: 760 } as const;
 
 /** La taille du mode Composant, panneau des constats ouvert. L'interface la demande par `resize` ; elle n'est pas rangée comme défaut. */
-export const TAILLE_COMPOSANT_PANNEAU_OUVERT = { largeur: 1040, hauteur: 760 } as const;
+export const TAILLE_COMPOSANT_PANNEAU_OUVERT = { largeur: 1144, hauteur: 760 } as const;
 
 /** En dessous, une ligne ne montre plus son nom à côté de sa valeur. */
-export const TAILLE_MINIMALE_ETROITE = { largeur: 320, hauteur: 420 } as const;
+export const TAILLE_MINIMALE_ETROITE = { largeur: 500, hauteur: 420 } as const;
 
 export const CLE_DE_LA_FENETRE_ETROITE = 'ucm-explorateur/tailleFenetreEtroite';
 

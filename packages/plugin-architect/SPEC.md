@@ -500,7 +500,7 @@ Chacune range sa taille sous sa propre clé.
 | Disposition | Mode | Ouverture | Minimum | Contenu sous la barre |
 |---|---|---|---|---|
 | Large | Tokens | 1360 × 800 | 560 × 480 | Arbre, table et barre latérale de 640 px : onglets Corrections, Questions, À faire dans Figma et Règles ; la fiche d'une variable s'ouvre en feuille sur la barre ; Actualiser dans la barre du haut |
-| Étroite | Composant | 520 × 760, 1040 × 760 panneau ouvert | 320 × 420 | La vue composant, sous une barre de 44 px ; le panneau des constats à droite, sommaire d'éléments et sections |
+| Étroite | Composant | 500 × 760, 1144 × 760 panneau ouvert | 500 × 420 | La vue composant, sous une barre de 44 px ; le panneau des constats à droite, sommaire d'éléments et sections |
 
 La recherche est dans l'arbre, sous son titre, et porte sur toutes les
 collections. Le centre ne montre que la table.

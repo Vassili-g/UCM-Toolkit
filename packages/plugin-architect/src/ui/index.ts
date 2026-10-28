@@ -196,8 +196,19 @@ const corps = document.createElement('div');
 corps.className = 'corps';
 corps.append(arbre.element, centre, lateral);
 
-/** La Configuration prend toute la fenêtre du mode Tokens : l'arbre, le tableau et le pied s'effacent. */
-nomenclature.coquille.surChangement(() => corps.classList.toggle('corps-configuration', nomenclature.coquille.etat().ecran === 'configuration'));
+/** La Configuration reprend la place de la vue ou du panneau du mode actif. */
+function placerLaConfiguration(): void {
+  const ouverte = nomenclature.coquille.etat().ecran === 'configuration';
+  corps.classList.toggle('corps-configuration', ouverte && etat.disposition === 'large');
+  racine.classList.toggle('application-configuration', ouverte);
+  if (ouverte && etat.disposition === 'etroite') corpsComposant.poserConfiguration(hoteDeNomenclature);
+  else {
+    corpsComposant.poserConfiguration(null);
+    if (hoteDeNomenclature.parentElement !== lateral) lateral.append(hoteDeNomenclature);
+  }
+  app.rendre(['barre']);
+}
+nomenclature.coquille.surChangement(placerLaConfiguration);
 
 const bulle = installerSurvol(app);
 const poignee = createResizeGrip(versSandbox);
@@ -210,6 +221,7 @@ function poserLaDisposition(disposition: Disposition): void {
   racine.classList.toggle('application-etroite', disposition === 'etroite');
   if (disposition === 'etroite') racine.replaceChildren(barre.element, corpsComposant.element, annonce, poignee, preparation.element);
   else racine.replaceChildren(barre.element, corps, pied, annonce, bulle, poignee, preparation.element);
+  placerLaConfiguration();
   app.rendre();
   corpsComposant.mettreAJour();
   vueComposant.activer();
@@ -261,6 +273,8 @@ branchements = {
   },
   montrerDansLaTable: (variable) => table.montrer(variable),
   ouvrirLaConfiguration: () => nomenclature.coquille.ouvrirLaConfiguration(),
+  fermerLaConfiguration: () => nomenclature.coquille.fermerLaConfiguration(),
+  configurationOuverte: () => nomenclature.coquille.etat().ecran === 'configuration',
   annoncer(texte, zoneDeSecours) {
     annonceTexte.textContent = texte;
     secours.hidden = zoneDeSecours === undefined;
@@ -360,6 +374,8 @@ function recevoir(message: PluginMessage): void {
       if (message.origine === 'plugin') return;
       vueComposant.poserLaSelectionDuPlugin([]);
       vueComposant.recevoirSelection(message.sujet, message.ignores);
+      // Analyser se grise quand la sélection ne contient aucun composant : la barre relit la sélection.
+      app.rendre(['barre']);
       return;
     case 'disposition':
       poserLaDisposition(message.disposition);

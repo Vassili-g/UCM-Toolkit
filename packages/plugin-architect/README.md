@@ -27,8 +27,9 @@ refuse.
 
 La bascule de la barre passe de **Tokens**, l'explorateur des collections, à
 **Composant**, la lecture du composant sélectionné. La fenêtre prend la taille
-rangée pour chaque mode : 1360 × 800 pour le premier, 520 × 760 pour le second
-(1040 × 760 avec le panneau des constats ouvert). Quand la sélection a un
+rangée pour chaque mode : 1360 × 800 pour le premier, 500 × 760 pour le second
+(1144 × 760 avec le panneau des constats ouvert).
+La fenêtre du mode Composant ne descend pas sous 500 px. Quand la sélection a un
 composant pour sujet, elle s'ouvre sur **Composant** ; sinon sur **Tokens**.
 
 ## Explorer les variables
@@ -95,8 +96,13 @@ couleur, forme, espacement, taille, texte.
   modèle : ses liaisons se proposent aux autres variants dans Corrections, et
   les cas douteux dans Questions. Le bouton est inactif quand l'analyse est
   périmée.
+- **Barre.** Elle n'a ni logo ni nom. Analyser est grisé tant que Figma ne
+  sélectionne aucun composant, et sa bulle le dit. Configuration s'ouvre dans
+  le mode actif : à la place de la vue, ou du panneau quand il est ouvert. Le
+  bouton est une bascule, et un second clic ferme la Configuration.
 - **Constats.** Le bouton ouvre le panneau des constats, à droite de la vue, et
-  la fenêtre passe à 1040 × 760 sans ranger cette taille. Sa pastille compte
+  la fenêtre passe à 1144 × 760 sans ranger cette taille : la vue garde ses
+  500 px, le panneau en prend 640. Sa pastille compte
   les constats de la dernière analyse, dans la couleur du plus grave. La
   frontière entre la vue et le panneau se tire à la souris ou aux flèches.
   Le panneau range l'analyse par élément du composant : Couleurs, Tailles et

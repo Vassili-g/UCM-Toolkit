@@ -55,6 +55,8 @@ export interface EtatDuComposant {
   apercu: ApercuRecu | null;
   /** Ce que la sélection de Figma désigne, d'après le dernier message `selection`. */
   selection: SujetSelectionne | null;
+  /** Vrai après le premier message `selection`, même si aucun composant n'y figure. */
+  selectionConnue: boolean;
   ignores: number;
   /** Ce que la réponse attendue fait du composant affiché : vrai l'empile, faux le remplace. */
   empiler: boolean;
@@ -135,10 +137,10 @@ export function etatInitial(): Etat {
     disposition: 'large',
     architecture: null,
     bibliotheque: null,
-    composant: { demande: 0, statut: 'vide', message: '', lecture: null, index: null, pile: [], portee: null, apercu: null, selection: null, ignores: 0, empiler: false, deLaSelection: true },
+    composant: { demande: 0, statut: 'vide', message: '', lecture: null, index: null, pile: [], portee: null, apercu: null, selection: null, selectionConnue: false, ignores: 0, empiler: false, deLaSelection: true },
     analyse: null,
     preparations: [],
-    panneau: { ouvert: false, largeurDeLaVue: 400, element: 'tout' },
+    panneau: { ouvert: false, largeurDeLaVue: 500, element: 'tout' },
     reference: null,
   };
 }

@@ -12,13 +12,13 @@ test('la fenêtre s’ouvre à 1360 × 800 et ne descend pas sous 560 × 480', (
   assert.deepEqual(tailleValide({ largeur: 900, hauteur: Number.NaN }), { largeur: 900, hauteur: 800 });
 });
 
-test('la fenêtre étroite s’ouvre à 520 × 760 (1040 × 760 panneau ouvert) et ne descend pas sous 320 × 420', () => {
-  assert.deepEqual(TAILLE_ETROITE, { largeur: 520, hauteur: 760 });
-  assert.deepEqual(TAILLE_COMPOSANT_PANNEAU_OUVERT, { largeur: 1040, hauteur: 760 });
-  assert.deepEqual(TAILLE_MINIMALE_ETROITE, { largeur: 320, hauteur: 420 });
+test('la fenêtre étroite s’ouvre à 500 × 760 (1144 × 760 panneau ouvert) et ne descend pas sous 500 × 420', () => {
+  assert.deepEqual(TAILLE_ETROITE, { largeur: 500, hauteur: 760 });
+  assert.deepEqual(TAILLE_COMPOSANT_PANNEAU_OUVERT, { largeur: 1144, hauteur: 760 });
+  assert.deepEqual(TAILLE_MINIMALE_ETROITE, { largeur: 500, hauteur: 420 });
   assert.deepEqual(tailleValide({ largeur: 100, hauteur: 100 }, 'etroite'), TAILLE_MINIMALE_ETROITE);
   assert.deepEqual(tailleValide(undefined, 'etroite'), TAILLE_ETROITE);
-  assert.deepEqual(tailleValide({ largeur: 480, hauteur: Number.NaN }, 'etroite'), { largeur: 480, hauteur: 760 });
+  assert.deepEqual(tailleValide({ largeur: 480, hauteur: Number.NaN }, 'etroite'), { largeur: 500, hauteur: 760 });
   assert.deepEqual(tailleValide({ largeur: 400, hauteur: 440 }, 'large'), { largeur: 560, hauteur: 480 });
 });
 

@@ -15,9 +15,9 @@
   font: 13px/1.5 system-ui, -apple-system, 'Segoe UI', sans-serif;
 }
 
-/* La fenêtre étroite ne descend pas sous sa largeur minimale. Sa barre fait 44 px : `TAILLE_ETROITE` les ajoute aux 680 px de la vue. */
+/* La fenêtre du mode Composant garde la largeur minimale de sa vue. */
 .application-etroite {
-  min-width: 320px;
+  min-width: 500px;
 }
 
 .application-etroite .barre {
@@ -25,7 +25,7 @@
   padding: 0 16px;
 }
 
-.application-etroite .barre:not(.barre-panneau-ouvert) .produit-nom {
+.application-etroite .barre .produit {
   display: none;
 }
 
@@ -543,8 +543,17 @@
   min-height: 0;
   flex: 1 1 auto;
 }
+.arch-zone-vue {
+  display: flex;
+  flex: 0 0 auto;
+  min-width: 0;
+  min-height: 0;
+}
+.arch-zone-vue.panneau-lateral > .container {
+  width: 100%;
+}
 
-.arch-corps-composant > .vc {
+.arch-zone-vue > .vc {
   overflow: auto;
   flex: 0 0 auto;
 }
@@ -782,4 +791,12 @@
 
 .non-lu-texte {
   color: var(--texte-second);
+}
+
+/* La Configuration à moins de 640 px (mode Composant, panneau fermé) a le repli que le socle donne sous 520 px : le nom après passe sous le nom actuel. */
+@media (max-width: 639px) {
+  .application-configuration .colonnes-tete { display: none; }
+  .application-configuration .diff.sans-case { grid-template-columns: minmax(0, 1fr); }
+  .application-configuration .diff.sans-case .chemin-apres { grid-column: auto; }
+  .application-configuration .diff .fleche-ligne { display: inline; color: var(--texte-second); }
 }

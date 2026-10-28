@@ -13,6 +13,7 @@ export const TEXTES_COMMUN = {
   analyser: 'Analyser',
   analyserAide: 'Lire le composant et contrôler ses liaisons',
   actualiserLAnalyseAide: 'Relire ce qui a changé depuis l’analyse. Maj+clic : tout relire depuis le début',
+  selectionnerUnComposant: 'Sélectionnez un composant dans Figma',
   constats: 'Constats',
   constatsOuvrir: 'Ouvrir le panneau des constats',
   constatsFermer: 'Fermer le panneau des constats',

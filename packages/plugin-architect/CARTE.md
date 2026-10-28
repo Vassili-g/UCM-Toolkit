@@ -5,7 +5,7 @@ Plugin UCM Architect : ucm-architect-plugin, privé, en lecture seule.
 ## ./
 - SPEC.md : ce que le plugin lit, résout et refuse de conclure
 - invariants/ : les invariants du paquet, un fichier par groupe
-- galerie/ : états de l'interface, à 1360 × 800, à 560 × 480 et à 520 × 760, un fichier d'états par domaine dans `etats/`, et comparaison à la maquette de la vue composant
+- galerie/ : états de l'interface, à 1360 × 800, à 560 × 480 et à 500 × 760, un fichier d'états par domaine dans `etats/`, et comparaison à la maquette de la vue composant
 - tests/ : dont les lois d'écriture (`loiDEcriture`, `loiDEcritureDesNoms`), les doubles de Figma, `outils/` (le monde fabriqué et le chargeur de capture de `capture.test.ts`), `nomenclature*.test.ts` pour le code de Nomenclature et `interface/` pour Chromium
 - galerie/composant/ : Alert à 11 variants et Button à 216, leurs analyses, et le fichier hors UCM de `t-hors`
 - galerie/nomenclature/ : données des états de Nomenclature, joués dans la galerie d'Architect (`etats/nomenclature.cjs`)

@@ -15,7 +15,7 @@ const IDENTITE = { sujet: 'Alert', generation: 1 };
 function monter() {
   const etat = etatInitial();
   etat.disposition = 'etroite';
-  const barre = creerBarre({ etat } as never);
+  const barre = creerBarre({ etat, configurationOuverte: () => false } as never);
   const analyser = (): ReturnType<typeof comme> => comme(comme(barre.element).querySelector('.btn-compact'));
   return { etat, barre, analyser };
 }

@@ -285,10 +285,10 @@ test('le bouton Constats ouvre le panneau, demande la taille ouverte sans la ran
   const { lecture, analyse } = jeuDeVariants();
   const page = await ouvrirComposant(lecture, { image: false });
   try {
-    await page.setViewportSize({ width: 1040, height: 760 });
+    await page.setViewportSize({ width: 1144, height: 760 });
     await page.getByRole('button', { name: 'Constats' }).click();
     await page.waitForFunction(() => window.demandes.some((demande) => demande.type === 'resize'));
-    assert.deepEqual(await page.evaluate(() => window.demandes.filter((demande) => demande.type === 'resize')), [{ type: 'resize', largeur: 1040, hauteur: 760, fin: false }]);
+    assert.deepEqual(await page.evaluate(() => window.demandes.filter((demande) => demande.type === 'resize')), [{ type: 'resize', largeur: 1144, hauteur: 760, fin: false }]);
     await page.locator('.arch-laterale').waitFor();
     assert.equal(await page.locator('.arch-laterale').isVisible(), true);
     assert.equal(await page.locator('.arch-resume .meta').textContent(), '5 variants, pas encore analysé');
@@ -306,14 +306,14 @@ test('la frontière se tire aux flèches et garde la largeur minimale de la vue'
   const { lecture } = jeuDeVariants();
   const page = await ouvrirComposant(lecture, { image: false });
   try {
-    await page.setViewportSize({ width: 1040, height: 760 });
+    await page.setViewportSize({ width: 1200, height: 760 });
     await page.getByRole('button', { name: 'Constats' }).click();
     const largeur = () => page.locator('.vc').evaluate((vue) => Math.round(vue.getBoundingClientRect().width));
-    assert.equal(await largeur(), 400);
+    assert.equal(await largeur(), 500);
     await page.locator('.arch-poignee').focus();
     await page.keyboard.press('ArrowRight');
-    assert.equal(await largeur(), 424);
+    assert.equal(await largeur(), 524);
     for (let fois = 0; fois < 10; fois += 1) await page.keyboard.press('ArrowLeft');
-    assert.equal(await largeur(), 320);
+    assert.equal(await largeur(), 500);
   } finally { await terminer(page); }
 });

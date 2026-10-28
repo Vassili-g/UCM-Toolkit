@@ -64,8 +64,10 @@ export interface Application {
   choisirMode(famille: string, mode: string): void;
   /** Retire le filtre que la collection choisie pose sur la barre latérale. */
   enleverLeFiltre(): void;
-  /** Ouvre la fenêtre de configuration de Nomenclature. */
+  /** Ouvre la Configuration, ou la ferme quand elle est ouverte ; le mode et la fenêtre ne changent pas. */
   ouvrirLaConfiguration(): void;
+  /** Vrai tant que la Configuration est ouverte. */
+  configurationOuverte(): boolean;
   /** Pose la recherche que le designer tape dans le champ de l'arbre. */
   rechercher(texte: string): void;
   /** Écrit une recherche dans le champ de l'arbre, comme si le designer l'avait tapée, et ferme la fiche. */
@@ -113,6 +115,9 @@ export interface Application {
 
 export interface Branchements {
   readonly ouvrirLaConfiguration: () => void;
+  /** Absents, la Configuration ne se ferme pas par le bouton de la barre et se lit fermée. */
+  readonly fermerLaConfiguration?: () => void;
+  readonly configurationOuverte?: () => boolean;
   readonly montrerDansLaTable: (variable: string) => void;
   readonly rendre: (zones: readonly Zone[]) => void;
   readonly annoncer: (texte: string, zoneDeSecours?: string) => void;
@@ -185,9 +190,12 @@ export function creerApplication(etat: Etat, branchements: () => Branchements): 
       app.rendre(['barre']);
     },
     ouvrirLaConfiguration() {
-      // La Configuration vit dans la barre latérale du mode Tokens : le mode Composant n'en a pas.
-      if (etat.disposition === 'etroite') app.changerDisposition('large');
-      branchements().ouvrirLaConfiguration();
+      const branchement = branchements();
+      if (branchement.configurationOuverte?.()) branchement.fermerLaConfiguration?.();
+      else branchement.ouvrirLaConfiguration();
+    },
+    configurationOuverte() {
+      return branchements().configurationOuverte?.() ?? false;
     },
     basculerRepli(cle) {
       if (etat.replies.has(cle)) etat.replies.delete(cle);

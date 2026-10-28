@@ -25,7 +25,7 @@ const etroits = ETATS.filter((etat) => etat.disposition === 'etroite');
 const GALERIES = [
   { racine, etats: larges, largeur: 1360, hauteur: 800 },
   { racine, etats: larges, largeur: 560, hauteur: 480, dossier: 'galerie-minimale' },
-  { racine, etats: etroits, largeur: 520, hauteur: 760, dossier: 'galerie-etroite' },
+  { racine, etats: etroits, largeur: 500, hauteur: 760, dossier: 'galerie-etroite' },
 ];
 
 /** La barre latérale couvre la fenêtre : tout le reste de l'application disparaît, et la place de ses bordures avec lui. */

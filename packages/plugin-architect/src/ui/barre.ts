@@ -2,9 +2,10 @@
  * La barre du haut : le produit, la bascule entre l'explorateur de tokens et
  * la vue composant, puis les gestes du mode. Le mode Tokens montre Actualiser,
  * Annuler et Configuration, qui portent sur le relevé et sur les noms des
- * variables. Le mode Composant montre Analyser (Actualiser après la première
- * analyse), le bouton Constats qui ouvre le panneau, et Configuration, sans son
- * mot tant que le panneau est fermé.
+ * variables. Le mode Composant n'a ni logo ni nom : il montre Analyser
+ * (Actualiser après la première analyse, grisé quand Figma ne sélectionne aucun
+ * composant), le bouton Constats qui ouvre le panneau, et Configuration, ces
+ * deux derniers sans leur mot. Configuration est une bascule.
  */
 import { creerPastilleDeCompte } from 'ucm-plugin-socle/src/ui/Alerte';
 import { createSettingsButton } from 'ucm-plugin-socle/src/ui/EnTete';
@@ -117,7 +118,7 @@ export function creerBarre(app: Application): Composant {
       const { etat } = app;
       for (const { disposition, bouton } of choix) bouton.setAttribute('aria-pressed', String(etat.disposition === disposition));
       const composant = etat.disposition === 'etroite';
-      element.classList.toggle('barre-panneau-ouvert', etat.panneau.ouvert);
+      produit.hidden = composant;
       const enCours = etat.lecture.statut === 'en-cours';
       actualiser.hidden = composant;
       annuler.hidden = composant || !enCours;
@@ -131,9 +132,11 @@ export function creerBarre(app: Application): Composant {
       analyser.classList.toggle('btn-primary', !dejaAnalyse);
       analyser.classList.toggle('btn-secondary', dejaAnalyse);
       analyserTexte.textContent = dejaAnalyse ? TEXTES.actualiser : TEXTES.analyser;
-      analyser.title = dejaAnalyse ? TEXTES.actualiserLAnalyseAide : TEXTES.analyserAide;
+      const sansComposant = etat.composant.selectionConnue && etat.composant.selection === null;
+      analyser.title = sansComposant ? TEXTES.selectionnerUnComposant : dejaAnalyse ? TEXTES.actualiserLAnalyseAide : TEXTES.analyserAide;
       // Pas de relance pendant une analyse ni pendant l'écriture d'un lot ; sans library choisie, l'analyse n'a rien à lire.
-      analyser.disabled = analyseEnCours || (analyse?.ecriture ?? null) !== null || (!dejaAnalyse && libraryAChoisir(etat));
+      analyser.disabled = sansComposant || analyseEnCours || (analyse?.ecriture ?? null) !== null || (!dejaAnalyse && libraryAChoisir(etat));
+      constatsTexte.hidden = composant;
       constats.setAttribute('aria-pressed', String(etat.panneau.ouvert));
       constats.title = etat.panneau.ouvert ? TEXTES.constatsFermer : TEXTES.constatsOuvrir;
       // La carte « sans tokens » compte comme un constat à corriger, la carte des liaisons préparées comme une information.
@@ -143,10 +146,10 @@ export function creerBarre(app: Application): Composant {
       pastille?.remove();
       pastille = nombre > 0 && ton ? creerPastilleDeCompte(nombre, ton) : null;
       if (pastille) constats.append(pastille);
-      const fermee = composant && !etat.panneau.ouvert;
       const motDeLaConfiguration = configuration.querySelector('span');
-      if (motDeLaConfiguration) motDeLaConfiguration.hidden = fermee;
+      if (motDeLaConfiguration) motDeLaConfiguration.hidden = composant;
       configuration.setAttribute('aria-label', TEXTES.configuration);
+      configuration.setAttribute('aria-pressed', String(app.configurationOuverte()));
     },
   };
 }

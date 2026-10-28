@@ -884,6 +884,7 @@ export function creerVueComposant(app: Application): VueComposant {
     },
     recevoirSelection(sujet, ignores) {
       c.selection = sujet;
+      c.selectionConnue = true;
       c.ignores = ignores;
       suivreLaSelection();
     },

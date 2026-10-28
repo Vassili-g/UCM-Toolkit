@@ -16,14 +16,26 @@ import type { Preparation } from '../preparation';
 import { TEXTES_PREPARATION } from '../textes/preparation';
 
 /** Les largeurs que la frontière laisse à la vue et au panneau, en pixels. */
-const LARGEUR_MINIMALE_DE_LA_VUE = 320;
-const LARGEUR_MINIMALE_DU_PANNEAU = 320;
+const LARGEUR_MINIMALE_DE_LA_VUE = 500;
+const LARGEUR_MINIMALE_DU_PANNEAU = 640;
 const PAS_AU_CLAVIER = 24;
 
-export function creerCorpsDuComposant(app: Application, vue: VueComposant, preparation: Preparation): Composant {
+/** Le corps du mode Composant, avec la place de la Configuration : l'hôte prend celle de la vue, ou celle du panneau quand il est ouvert. */
+export interface CorpsDuComposant extends Composant {
+  /** Pose l'hôte de la Configuration à la place du contenu, ou `null` pour rendre la vue et le panneau tels qu'ils étaient. */
+  poserConfiguration(hote: HTMLElement | null): void;
+}
+
+export function creerCorpsDuComposant(app: Application, vue: VueComposant, preparation: Preparation): CorpsDuComposant {
   const { etat } = app;
   const element = document.createElement('div');
   element.className = 'arch-corps-composant';
+  const zoneDeLaVue = document.createElement('div');
+  zoneDeLaVue.className = 'arch-zone-vue';
+  zoneDeLaVue.append(vue.element);
+  let hoteDeConfiguration: HTMLElement | null = null;
+  /** Le défilement que la vue et le panneau avaient avant la Configuration : un `display: none` le perd. */
+  let defilement: { vue: number; panneau: number } | null = null;
 
   const poignee = creerPoigneeDeSeparation(TEXTES.frontiereDuPanneau);
   poignee.title = TEXTES.frontiereDuPanneau;
@@ -47,17 +59,30 @@ export function creerCorpsDuComposant(app: Application, vue: VueComposant, prepa
   poignee.addEventListener('pointerdown', (evenement) => {
     if (evenement.button !== 0 || geste) return;
     evenement.preventDefault();
-    poignee.setPointerCapture(evenement.pointerId);
     geste = { pointeur: evenement.pointerId, depart: evenement.clientX, largeur: etat.panneau.largeurDeLaVue };
+    document.documentElement.classList.add('reglage-en-cours');
+    window.addEventListener('pointermove', bouger, true);
+    window.addEventListener('pointerup', relacher, true);
+    window.addEventListener('pointercancel', relacher, true);
+    document.addEventListener('pointerout', sortir, true);
   });
-  poignee.addEventListener('pointermove', (evenement) => {
+  const bouger = (evenement: PointerEvent): void => {
     if (geste?.pointeur === evenement.pointerId) app.poserLaLargeurDeLaVue(borner(geste.largeur + evenement.clientX - geste.depart));
-  });
-  const finir = (evenement: PointerEvent): void => {
-    if (geste?.pointeur === evenement.pointerId) geste = null;
   };
-  poignee.addEventListener('pointerup', finir);
-  poignee.addEventListener('pointercancel', finir);
+  const finir = (): void => {
+    geste = null;
+    document.documentElement.classList.remove('reglage-en-cours');
+    window.removeEventListener('pointermove', bouger, true);
+    window.removeEventListener('pointerup', relacher, true);
+    window.removeEventListener('pointercancel', relacher, true);
+    document.removeEventListener('pointerout', sortir, true);
+  };
+  const relacher = (evenement: PointerEvent): void => {
+    if (geste?.pointeur === evenement.pointerId) finir();
+  };
+  const sortir = (evenement: PointerEvent): void => {
+    if (geste?.pointeur === evenement.pointerId && evenement.relatedTarget === null) finir();
+  };
   poignee.addEventListener('keydown', (evenement) => {
     const sens = evenement.key === 'ArrowLeft' ? -1 : evenement.key === 'ArrowRight' ? 1 : 0;
     if (sens === 0) return;
@@ -142,15 +167,39 @@ export function creerCorpsDuComposant(app: Application, vue: VueComposant, prepa
   preparation.element.querySelector('.feuille-fermer')?.addEventListener('click', () => { constats.liste.hidden = false; });
   panneau.append(preparation.panneau, constats.element);
 
-  return {
+  const defilementDeLaVue = (): HTMLElement | null => vue.element.querySelector('.vc-corps');
+
+  const corps: CorpsDuComposant = {
     element,
+    poserConfiguration(hote) {
+      if (hote !== null && hoteDeConfiguration === null) {
+        defilement = { vue: defilementDeLaVue()?.scrollTop ?? 0, panneau: panneau.scrollTop };
+      }
+      const ferme = hote === null && hoteDeConfiguration !== null;
+      hoteDeConfiguration = hote;
+      corps.mettreAJour();
+      if (hote !== null) panneau.scrollTop = 0;
+      if (ferme && defilement !== null) {
+        const corpsDeLaVue = defilementDeLaVue();
+        if (corpsDeLaVue) corpsDeLaVue.scrollTop = defilement.vue;
+        panneau.scrollTop = defilement.panneau;
+        defilement = null;
+      }
+    },
     mettreAJour() {
       const { ouvert, largeurDeLaVue } = etat.panneau;
-      vue.element.style.width = ouvert ? `${largeurDeLaVue}px` : '100%';
-      const enfants = ouvert ? [vue.element, poignee, panneau] : [vue.element];
+      zoneDeLaVue.style.width = ouvert ? `${largeurDeLaVue}px` : '100%';
+      vue.element.style.width = '100%';
+      const configurationDansLaVue = hoteDeConfiguration !== null && !ouvert;
+      zoneDeLaVue.classList.toggle('panneau-lateral', configurationDansLaVue);
+      vue.element.style.display = configurationDansLaVue ? 'none' : '';
+      constats.element.style.display = hoteDeConfiguration !== null && ouvert ? 'none' : '';
+      preparation.panneau.style.display = hoteDeConfiguration !== null && ouvert ? 'none' : '';
+      if (hoteDeConfiguration !== null) (ouvert ? panneau : zoneDeLaVue).append(hoteDeConfiguration);
+      const enfants = ouvert ? [zoneDeLaVue, poignee, panneau] : [zoneDeLaVue];
       // Remettre la vue en place lui ferait perdre son défilement : la structure ne se refait que si elle change.
       if (element.children.length !== enfants.length || enfants.some((enfant, rang) => element.children[rang] !== enfant)) element.replaceChildren(...enfants);
-      if (ouvert) {
+      if (ouvert && hoteDeConfiguration === null) {
         constats.mettreAJour();
         ajusterResultatPreparation();
         ouvrirPreparation.hidden = !aPreparer(analyseDuComposant(etat, etat.composant.lecture));
@@ -158,7 +207,8 @@ export function creerCorpsDuComposant(app: Application, vue: VueComposant, prepa
         const ligneResume = resume?.querySelector('.arch-resume-ligne');
         if (ligneResume && !ligneResume.contains(ouvrirPreparation)) ligneResume.append(ouvrirPreparation);
       }
-      else constats.retirerLesLiaisonsDeLaVue();
+      else if (!ouvert) constats.retirerLesLiaisonsDeLaVue();
     },
   };
+  return corps;
 }
