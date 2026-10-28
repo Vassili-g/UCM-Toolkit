@@ -308,7 +308,21 @@ contrôles s'annoncent après `imbriques`, dans l'ordre où il les a rendues ; l
 provisoire part quand les contrôles ont fini, que le moteur ait fini ou non. Une demande Analyser reprend à la place le
 résultat du moteur de l'analyse complète précédente du même jeu quand
 `validerLEntree` l'accepte : relevé, catalogue, dépendances et règles relus
-égaux à ceux retenus, chaque instance ayant un maître local suivi du journal et sans instance propre, et chaque style se lisant par identifiant. Le message final range les constats comme avant : contrôles du kit,
+égaux à ceux retenus, chaque instance ayant un maître local suivi du journal et sans instance propre, et chaque style se lisant par identifiant.
+Sur cette demande, le relevé se relit en entier, puis se compare au relevé de
+l'entrée par tranches coopératives (`egalesExactementParEtapes`). Égal, l'objet
+retenu remplace celui qui vient d'être lu, et les comparaisons suivantes le
+trouvent identique sans le parcourir. Aucune part du relevé ne se juge au
+journal. Le relevé porte des valeurs résolues au moment de la lecture :
+peintures, boîtes, plages de texte, modes effectifs. Une valeur de variable, un
+mode, un style de library ou un ancêtre déplacé les changent sans `nodechange`
+démontré. Pendant ce relevé, `prelireLeReleve` demande en avance, huit en vol,
+les variables liées du relevé retenu et leurs collections, les cibles de ses
+surcharges et le maître de ses instances. Le relevé reprend ces réponses de la
+mémoire de la demande ; rien du relevé retenu n'y entre. Les compteurs
+`repriseDuReleve`, `nonRepriseDuReleve:different`, `msValidationDuReleve` et
+`prelecturesDuReleve` le disent dans la trace. Actualiser ne prélit ni ne
+compare rien. Le message final range les constats comme avant : contrôles du kit,
 règles, moteur. Une annulation pendant le catalogue ou les contrôles du kit
 n'envoie aucun provisoire ; le moteur lancé avec le catalogue reçoit le jeton et s'arrête avant que la demande rende la place. `analyse-provisoire` n'est
 pas un statut de `analyse` : seul `analyse` termine la demande. Seul un final

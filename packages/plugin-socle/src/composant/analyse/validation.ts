@@ -52,6 +52,52 @@ function listesEgales(a: readonly unknown[], b: readonly unknown[], enCours: Map
   return true;
 }
 
+/**
+ * `egalesExactement` conduite par étapes, mêmes règles : jusqu'à `profondeur` niveaux sous la racine, l'étape est un
+ * élément de liste, de `Map` ou de `Set`, ou une clé d'objet ; plus bas, la comparaison est d'un bloc. L'appelant cède
+ * entre deux étapes (`calculerParEtapes` d'Architect) : une sortie de plusieurs centaines de Ko ne tient pas le fil d'un
+ * seul bloc. Sur le relevé, quatre niveaux font d'un layer une étape. Un générateur par valeur ralentirait la comparaison
+ * cinq fois sous Node : les niveaux profonds et les comparaisons courtes gardent `egalesExactement`.
+ */
+export function* egalesExactementParEtapes(a: unknown, b: unknown, profondeur = 4): Generator<void, boolean> {
+  return yield* comparerParEtapes(a, b, new Map(), profondeur);
+}
+
+function* comparerParEtapes(a: unknown, b: unknown, enCours: Map<object, Set<object>>, profondeur: number): Generator<void, boolean> {
+  if (profondeur <= 0) return comparer(a, b, enCours);
+  if (Object.is(a, b)) return true;
+  if (typeof a !== 'object' || typeof b !== 'object' || a === null || b === null) return false;
+  const prototype = Object.getPrototypeOf(a) as unknown;
+  if (prototype !== Object.getPrototypeOf(b)) return false;
+  const paires = enCours.get(a) ?? new Set<object>();
+  if (paires.has(b)) return true;
+  enCours.set(a, paires.add(b));
+  if (Array.isArray(a)) return yield* listesEgalesParEtapes(a, b as unknown[], enCours, profondeur);
+  if (a instanceof Map) return yield* listesEgalesParEtapes([...a], [...(b as Map<unknown, unknown>)], enCours, profondeur);
+  if (a instanceof Set) return yield* listesEgalesParEtapes([...a], [...(b as Set<unknown>)], enCours, profondeur);
+  if (prototype !== Object.prototype && prototype !== null) return false;
+  const objetA = a as Record<string, unknown>;
+  const objetB = b as Record<string, unknown>;
+  const clesDeA = Object.keys(objetA);
+  const clesDeB = Object.keys(objetB);
+  if (clesDeA.length !== clesDeB.length) return false;
+  for (let rang = 0; rang < clesDeA.length; rang += 1) {
+    yield;
+    const cle = clesDeA[rang];
+    if (cle !== clesDeB[rang] || !(yield* comparerParEtapes(objetA[cle], objetB[cle], enCours, profondeur - 1))) return false;
+  }
+  return true;
+}
+
+function* listesEgalesParEtapes(a: readonly unknown[], b: readonly unknown[], enCours: Map<object, Set<object>>, profondeur: number): Generator<void, boolean> {
+  if (a.length !== b.length) return false;
+  for (let rang = 0; rang < a.length; rang += 1) {
+    yield;
+    if ((rang in a) !== (rang in b) || !(yield* comparerParEtapes(a[rang], b[rang], enCours, profondeur - 1))) return false;
+  }
+  return true;
+}
+
 /** Une sortie de lecteur : ce que l'entrée a retenu et ce que la demande courante vient de lire. */
 export interface SortieRelue<Nom extends string> {
   readonly nom: Nom;

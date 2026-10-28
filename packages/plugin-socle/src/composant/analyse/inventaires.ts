@@ -64,6 +64,12 @@ export interface InventairesDeLaDemande {
   libraries<T>(lire: () => Promise<T>): Promise<T>;
   /** Les noms de composant que `page` écrit, une lecture par page et par demande ; sans identifiant de page, chaque appel lit. */
   nomsDeLaPage<T>(page: { readonly id?: unknown }, lire: () => T): T;
+  /**
+   * Le nœud que `getNodeByIdAsync` rend pour `id`, une lecture par identifiant et par demande, refus compris : la prélecture
+   * du relevé d'Architect demande en avance les cibles de surcharges que le relevé demandera ensuite. Le nœud rendu se lit
+   * en direct ; un changement du document pendant la demande la périme déjà.
+   */
+  noeudParIdentifiant<T>(id: string, lire: () => Promise<T>): Promise<T>;
   /** Les variables, collections, styles et maîtres lus par identifiant, une fois chacun par demande ; absente sans options. */
   readonly ressources?: MemoireDeRessources;
   /** Les champs des nœuds, une lecture par nœud et par champ pour toute la demande. */
@@ -78,6 +84,7 @@ export interface OptionsDesInventaires {
 export function creerInventairesDeLaDemande(options: OptionsDesInventaires = {}): InventairesDeLaDemande {
   const lues = new Map<string, Promise<unknown>>();
   const nomsParPage = new Map<string, () => unknown>();
+  const noeuds = new Map<string, Promise<unknown>>();
 
   const unefois = <T>(cle: string, lire: () => Promise<T>): Promise<T> => {
     const deja = lues.get(cle);
@@ -96,6 +103,14 @@ export function creerInventairesDeLaDemande(options: OptionsDesInventaires = {})
     reglesDeLaPage: (page, composant, lire) =>
       typeof page.id === 'string' && typeof composant.id === 'string' ? unefois(`regles:${page.id}:${composant.id}`, lire) : lire(),
     libraries: (lire) => unefois('libraries', lire),
+    noeudParIdentifiant: <T>(id: string, lire: () => Promise<T>): Promise<T> => {
+      let lecture = noeuds.get(id) as Promise<T> | undefined;
+      if (!lecture) {
+        lecture = lire();
+        noeuds.set(id, lecture);
+      }
+      return lecture;
+    },
     nomsDeLaPage: <T>(page: { readonly id?: unknown }, lire: () => T): T => {
       if (typeof page.id !== 'string') return lire();
       const deja = nomsParPage.get(page.id);

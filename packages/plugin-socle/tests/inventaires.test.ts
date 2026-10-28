@@ -143,3 +143,20 @@ test('la mémoire de ressources n’existe que pour une demande qui en donne les
   await creerInventairesDeLaDemande({ ressources: options }).ressources!.variable('v');
   assert.deepEqual(appels, ['v', 'v'], 'la demande suivante relit');
 });
+
+test('un nœud se demande une fois par identifiant et par demande, refus compris ; la demande suivante le redemande', async () => {
+  const appels: string[] = [];
+  const lire = (id: string) => async () => {
+    appels.push(id);
+    if (id === 'I1;2') throw new Error('Nœud illisible');
+    return { id };
+  };
+  const inventaires = creerInventairesDeLaDemande();
+  const [premier, second] = await Promise.all([inventaires.noeudParIdentifiant('1:2', lire('1:2')), inventaires.noeudParIdentifiant('1:2', lire('1:2'))]);
+  assert.equal(premier, second, 'deux lecteurs simultanés reçoivent le même nœud');
+  await assert.rejects(inventaires.noeudParIdentifiant('I1;2', lire('I1;2')), /illisible/);
+  await assert.rejects(inventaires.noeudParIdentifiant('I1;2', lire('I1;2')), /illisible/, 'le refus se partage sans relire');
+  assert.deepEqual(appels, ['1:2', 'I1;2']);
+  await creerInventairesDeLaDemande().noeudParIdentifiant('1:2', lire('1:2'));
+  assert.deepEqual(appels, ['1:2', 'I1;2', '1:2']);
+});

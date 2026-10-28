@@ -49,7 +49,8 @@ import { BORNES_DE_RETENTION, type BornesDeRetention } from 'ucm-plugin-socle/sr
 import { creerLaSession, type EntreeDeSession, type RequeteRetenue, type SessionDAnalyse } from 'ucm-plugin-socle/src/composant/analyse/session';
 import { raisonsDInvalidation, type RaisonDInvalidation } from 'ucm-plugin-socle/src/composant/analyse/invalidations';
 import { ouvrirUneRevision, type RevisionDeTravail } from 'ucm-plugin-socle/src/composant/analyse/revisions';
-import { ecartsDesSorties, egalesExactement, type EcartDeSortie } from 'ucm-plugin-socle/src/composant/analyse/validation';
+import { ecartsDesSorties, egalesExactement, egalesExactementParEtapes, type EcartDeSortie } from 'ucm-plugin-socle/src/composant/analyse/validation';
+import { executerAuPlus } from 'ucm-plugin-socle/src/composant/analyse/limiteur';
 import { avecLesPagesNonEcoutees, inventaireDePeremption, lireLaTopologieDuJeu, type NoeudALire } from 'ucm-plugin-socle/src/composant/analyse/topologie';
 import { BUDGET_DE_LAYERS_PAR_DEFAUT } from 'ucm-plugin-socle/src/composant/contract/budget';
 import { analyserLeComposant, type ResultatSansPublication } from 'ucm-plugin-socle/src/composant/contract/exportComponent';
@@ -901,6 +902,11 @@ export interface Lecteurs {
   /** `inventaires` est celui de la demande : sa mémoire de ressources est celle que le moteur lit ensuite. */
   releve(sujet: SujetAAnalyser, jeton: JetonDAnnulation, contexte: Contexte, progresser?: (fait: number, total: number) => void, cooperation?: ContexteCooperatif, inventaires?: InventairesDeLaDemande): Promise<IssueDuReleve>;
   /**
+   * Demande en avance, dans `inventaires`, ce que le relevé `retenu` a lu par identifiant, pendant que le relevé se relit.
+   * Elle ne rend rien : le relevé relit tout, et la prélecture ne fait qu'avancer ses appels. Sans ce lecteur, rien n'est prélu.
+   */
+  prelecture?(retenu: ReleveDeComposant, sujet: SujetAAnalyser, contexte: Contexte, jeton: JetonDAnnulation, inventaires: InventairesDeLaDemande): Promise<number>;
+  /**
    * Les libraries activées, lues sans le relevé. L'analyse les lance avec le relevé et passe leur issue à `catalogue` ;
    * sans ce lecteur, `catalogue` les lit après le relevé.
    */
@@ -1305,9 +1311,84 @@ export async function dependancesDeFigma(sujet: SujetAAnalyser, { figma }: Conte
   };
 }
 
+/** Le port du relevé ; avec `inventaires`, chaque `getNodeByIdAsync` passe par la mémoire de la demande, que la prélecture remplit. */
+function portDuReleve(contexte: Contexte, inventaires?: InventairesDeLaDemande): PortDuComposant {
+  const port = portDuComposant(contexte);
+  if (!inventaires) return port;
+  return { ...port, getNodeByIdAsync: (id) => inventaires.noeudParIdentifiant(id, () => port.getNodeByIdAsync(id)) };
+}
+
+/** Un calque tel que la prélecture le parcourt : le chemin du relevé, jusqu'aux instances, qu'il ne descend pas. */
+type CalqueDuParcours = { readonly id: string; readonly type: string; getMainComponentAsync?(): Promise<object | null> };
+
+/**
+ * Les instances que le relevé lit sous le jeu : son parcours (`parcourir` de `releveDuComposant.ts`), variants puis
+ * calques, arrêté à chaque instance. `children` passe par la mémoire de champs de la demande, que le relevé relit.
+ */
+function instancesDuParcours(jeu: CalqueDuParcours, lire: LecteurDeChamp): CalqueDuParcours[] {
+  const enfants = (noeud: CalqueDuParcours) => lire<readonly CalqueDuParcours[] | undefined>(noeud, 'children') ?? [];
+  const variants = jeu.type === 'COMPONENT_SET' ? enfants(jeu).filter(({ type }) => type === 'COMPONENT') : [jeu];
+  const instances: CalqueDuParcours[] = [];
+  for (const variant of variants) {
+    const aVisiter = [...enfants(variant)];
+    while (aVisiter.length > 0) {
+      const noeud = aVisiter.pop() as CalqueDuParcours;
+      if (noeud.type === 'INSTANCE') instances.push(noeud);
+      else aVisiter.push(...enfants(noeud));
+    }
+  }
+  return instances;
+}
+
+/**
+ * Prélit dans la mémoire de la demande ce que le relevé `retenu` a lu par identifiant : ses variables liées et leurs
+ * collections, les cibles de ses surcharges (`getNodeByIdAsync`) et le maître de ses instances. Chaque liste passe par
+ * `executerAuPlus` (huit en vol) et s'arrête au jeton levé. Le relevé, lancé en même temps, relit tout par les mêmes
+ * mémoires : une ressource prélue lui donne la réponse de Figma plus tôt, une ressource que le retenu ne nomme pas se lit
+ * à son tour. Rien de l'entrée n'entre dans le relevé ; les identifiants n'orientent que l'ordre des appels. Une lecture
+ * qui échoue reste rangée dans la mémoire, comme si le relevé l'avait faite. Rend le nombre de ressources demandées.
+ */
+export async function prelireLeReleve(retenu: ReleveDeComposant, sujet: SujetAAnalyser, contexte: Contexte, jeton: JetonDAnnulation, inventaires: InventairesDeLaDemande): Promise<number> {
+  const { ressources } = inventaires;
+  if (!ressources) return 0;
+  const variables = new Set<string>();
+  const cibles = new Set<string>();
+  const instances = new Set<string>();
+  const noter = (liaisons: readonly LiaisonLue[]) => {
+    for (const { variable, illisible, surcharge } of liaisons) {
+      if (!illisible && variable.id !== '') variables.add(variable.id);
+      if (surcharge) cibles.add(surcharge.id);
+    }
+  };
+  for (const { layers } of retenu.variants) {
+    for (const layer of layers) {
+      noter(layer.liaisons);
+      for (const plage of layer.texte?.plages ?? []) noter(plage.liaisons);
+      if (layer.instanceDe) instances.add(layer.id);
+    }
+  }
+  const avant = () => !jeton.leve;
+  const collections = new Set<string>();
+  await executerAuPlus([...variables], async (id) => {
+    const { etat } = await ressources.variable(id);
+    const collection = etat.etat === 'acquis' ? etat.valeur.variableCollectionId : undefined;
+    if (collection?.etat === 'acquis' && collection.valeur !== '') collections.add(collection.valeur);
+  }, { avant });
+  await executerAuPlus([...collections], async (id) => { await ressources.collection(id); }, { avant });
+  const port = portDuComposant(contexte);
+  await executerAuPlus([...cibles], async (id) => { await inventaires.noeudParIdentifiant(id, () => port.getNodeByIdAsync(id)); }, { avant });
+  const lesInstances = instances.size === 0 ? [] : instancesDuParcours(sujet.noeud as unknown as CalqueDuParcours, inventaires.champs).filter(({ id }) => instances.has(id));
+  await executerAuPlus(lesInstances, async (instance) => {
+    const lu = await ressources.maitre(instance);
+    if (lu.etat === 'lu') await ressources.faitDuMaitre(instance.id, lu.natif);
+  }, { avant });
+  return variables.size + collections.size + cibles.size + lesInstances.length;
+}
+
 export const LECTEURS_DE_FIGMA: Lecteurs = {
   sujet: sujetDeFigma,
-  releve: (sujet, jeton, contexte, progresser, cooperation, inventaires) => lireLeReleve(portDuComposant(contexte), sujet.noeud, {
+  prelecture: prelireLeReleve,
+  releve: (sujet, jeton, contexte, progresser, cooperation, inventaires) => lireLeReleve(portDuReleve(contexte, inventaires), sujet.noeud, {
       budgetDeLayers: BUDGET_DE_LAYERS_PAR_DEFAUT,
       jeton,
       cooperation,
@@ -1403,7 +1484,7 @@ const ETAPES_MAX_ENTRE_DEUX_LECTURES = 4096;
  * redescend sinon. Une fenêtre dépasse donc le budget d'une étape au plus, à coût d'étape constant. Le jeton ne change
  * pas pendant une fenêtre synchrone : aucune étape n'attend celui qui se lève à la cession.
  */
-export async function calculerParEtapes<T>(calcul: Generator<void, T>, cooperation: ContexteCooperatif, phase: 'controles' | 'corrections' = 'controles'): Promise<T> {
+export async function calculerParEtapes<T>(calcul: Generator<void, T>, cooperation: ContexteCooperatif, phase: 'controles' | 'corrections' | 'validation-du-releve' = 'controles'): Promise<T> {
   let fenetre = 1;
   for (;;) {
     await cooperation.cederSiBesoin();
@@ -1600,10 +1681,28 @@ async function analyser(contexte: Contexte, lecteurs: Lecteurs, demande: Extract
         .then((lecture) => ({ lecture }), (erreur: unknown) => ({ erreur }))
         .finally(() => { librariesEnCours = false; });
     }
+    // Validation du relevé (16.15) : sur une entrée qui peut se valider, le relevé se relit en entier, ses appels par
+    // identifiant demandés en avance, puis se compare au retenu. Égal, l'objet retenu sert : les comparaisons suivantes
+    // (requêtes, validation de l'entrée) le trouvent identique sans le parcourir. Le relevé lu porte les valeurs résolues
+    // (peintures, boîtes, plages) au moment de la lecture : ce qui change sans événement, valeur de variable, mode ou
+    // style de library compris, se voit dans la relecture. Actualiser ne prend jamais ce chemin.
+    const entreeDuReleve = reutilisationPermise(demande) && lecteurs.dependances && etatDeLEntree(sujet.cle).etat === 'utilisable' ? session.entree(sujet.cle) : null;
+    const debutDeLaValidation = Date.now();
+    if (entreeDuReleve && lecteurs.prelecture) {
+      const prelire = lecteurs.prelecture;
+      void anticiper(() => attendrePourLaMesure(async () => compter('prelecturesDuReleve', await prelire(entreeDuReleve.sorties.releve, sujet, contexte, jeton, inventaires)), 'parallele', 'prelecture-du-releve'));
+    }
     const issue = await attendrePourLaMesure(() => lecteurs.releve(sujet, jeton, contexte, (fait, total) => courant.progresser?.('releve', fait, total), cooperation, inventaires), 'attente', 'releve');
     if (issue.statut === 'annule' || jeton.leve) return rendre('annulee', [], null);
     if (issue.statut === 'sans-sujet') return rendre('arretee', [bloquant('Aucun composant n’est sélectionné.')], null);
-    const { releve } = issue;
+    let { releve } = issue;
+    if (entreeDuReleve) {
+      const egal = await calculerParEtapes(egalesExactementParEtapes(entreeDuReleve.sorties.releve, releve), cooperation, 'validation-du-releve');
+      if (jeton.leve) return rendre('annulee', [], null);
+      if (egal) releve = entreeDuReleve.sorties.releve;
+      compter(egal ? 'repriseDuReleve' : 'nonRepriseDuReleve:different');
+      compter('msValidationDuReleve', Date.now() - debutDeLaValidation);
+    }
     courant.progresser('releve', releve.variants.length, releve.variants.length + releve.lecture.variantsNonLus.length);
 
     retenirLesLiaisons(liaisonsParCle(releve));

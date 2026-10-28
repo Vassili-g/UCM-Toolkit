@@ -775,3 +775,121 @@ test('la trace porte les maxima de la session au moment de la promotion', async 
   assert.equal(compteurs.entreesDuJournal, journalDesChangements()!.depuis(0).length);
   assert.ok((compteurs.entreesDuJournal ?? 0) >= 1);
 });
+
+// Validation du relevé (16.15) : sur une entrée `utilisable`, Analyser relit le relevé en entier et le compare au retenu ;
+// égal, l'objet retenu sert. Le relevé lu porte les valeurs résolues : une liaison, une variable, une valeur ou une cible
+// d'alias changées sans événement se voient dans la relecture.
+
+/** Une demande mesurée : ce qu'elle affiche, ce que sa trace dit du relevé, et l'entrée promue après elle. */
+async function demandeDuReleve(fichier: Fichier, appels: { moteur: number }, intention: 'analyser' | 'actualiser', surcharge: Partial<Lecteurs> = {}) {
+  const b = banc(fichier);
+  await traiterAvec({ ...lecteursDe(fichier, appels), ...surcharge })({ type: 'analyser', intention, demande: 1, mesurer: true }, b.contexte);
+  const final = b.envoyes.find((message) => message.type === 'analyse');
+  assert.ok(final && 'mesure' in final && typeof final.mesure === 'object', 'la trace de la demande est rendue');
+  const affiche = affichage(b);
+  return {
+    affiche: JSON.stringify({ ...affiche, messages: affiche.messages.map((message) => { const { mesure, ...reste } = message as PluginMessage & { mesure?: unknown }; return reste; }) }),
+    releve: Object.keys(final.mesure.compteurs).filter((nom) => nom === 'repriseDuReleve' || nom.startsWith('nonRepriseDuReleve:')).sort(),
+    mesure: final.mesure,
+    entree: sessionDesAnalyses().entree('Alert'),
+  };
+}
+
+test('un second Analyser sans changement relit le relevé, le trouve égal et sert l’objet retenu ; Actualiser ne le reprend jamais ; affichage égal', async () => {
+  const fichier = fichierDeDepart();
+  const appels = { moteur: 0 };
+  const premiere = await demandeDuReleve(fichier, appels, 'analyser');
+  assert.deepEqual(premiere.releve, [], 'sans entrée, rien à valider');
+  const seconde = await demandeDuReleve(fichier, appels, 'analyser');
+  assert.deepEqual(seconde.releve, ['repriseDuReleve']);
+  assert.equal(typeof seconde.mesure.compteurs.msValidationDuReleve, 'number');
+  assert.equal(seconde.entree?.sorties.releve, premiere.entree?.sorties.releve, 'l’entrée promue garde l’objet retenu');
+  assert.equal(appels.moteur, 1);
+  const actualisee = await demandeDuReleve(fichier, appels, 'actualiser');
+  assert.deepEqual(actualisee.releve, [], 'Actualiser ne compare rien');
+  assert.notEqual(actualisee.entree?.sorties.releve, seconde.entree?.sorties.releve, 'Actualiser retient le relevé qu’il vient de lire');
+  assert.equal(seconde.affiche, actualisee.affiche);
+});
+
+const SANS_EVENEMENT: ReadonlyArray<{ nom: string; muter(fichier: Fichier): void }> = [
+  { nom: 'liaison vers une variable de même valeur', muter: (f) => { f.layers[0] = base('fond', { id: 'VariableID:3', cle: 'k-rayon-bis', nom: 'alert/size/radius-bis' }); } },
+  { nom: 'liaison retirée', muter: (f) => { f.layers[1] = { ...f.layers[1], liaisons: [] }; } },
+  {
+    nom: 'liaison d’une plage de texte',
+    muter: (f) => {
+      const titre = f.layers[2];
+      const liaison = { champ: 'fontSize', plage: { debut: 0, fin: 5 }, porteur: 'titre', variable: { ...f.variable, collection: 'components', distante: false } };
+      f.layers[2] = { ...titre, liaisons: [...titre.liaisons, liaison], texte: { style: 'Body', plages: [{ debut: 0, fin: 5, fontSize: 14, fontWeight: 400, peintures: [], liaisons: [liaison] }] } };
+    },
+  },
+  { nom: 'nom d’une variable liée', muter: (f) => { f.layers = f.layers.map((layer) => ({ ...layer, liaisons: layer.liaisons.map((liaison) => ({ ...liaison, variable: { ...liaison.variable, nom: 'alert/size/rayon' } })) })); } },
+  // Le relevé lit la boîte résolue : une valeur liée qui change élargit le calque sans `nodechange` démontré.
+  { nom: 'valeur d’une variable liée, vue dans la boîte du calque', muter: (f) => { f.valeur = 14; f.layers[0] = { ...f.layers[0], dimensions: { x: 0, y: 0, largeur: 24, hauteur: 20 } }; } },
+  // Une cible d'alias changée change la couleur résolue de la peinture liée.
+  {
+    nom: 'cible d’alias changée, vue dans la couleur résolue',
+    muter: (f) => { f.layers[0] = { ...f.layers[0], peintures: [{ champ: 'fills', indice: 0, type: 'SOLID', visible: true, opacite: 1, blendMode: 'NORMAL', couleur: { r: 0, g: 0, b: 1, a: 1 } }] }; },
+  },
+  { nom: 'collection d’une variable liée renommée', muter: (f) => { f.layers[3] = { ...f.layers[3], liaisons: f.layers[3].liaisons.map((liaison) => ({ ...liaison, variable: { ...liaison.variable, collection: 'composants' } })) }; } },
+];
+
+for (const { nom, muter } of SANS_EVENEMENT) {
+  test(`relevé relu et non repris après un changement sans événement : ${nom} ; affichage égal à Actualiser`, async () => {
+    const fichier = fichierDeDepart();
+    const appels = { moteur: 0 };
+    const premiere = await demandeDuReleve(fichier, appels, 'analyser');
+    muter(fichier);
+    const analysee = await demandeDuReleve(fichier, appels, 'analyser');
+    assert.deepEqual(analysee.releve, ['nonRepriseDuReleve:different']);
+    assert.notEqual(analysee.entree?.sorties.releve, premiere.entree?.sorties.releve);
+    assert.equal(analysee.affiche, (await demandeDuReleve(fichier, appels, 'actualiser')).affiche);
+  });
+}
+
+test('un champ de nœud changé avec son nodechange invalide l’entrée : le relevé n’est pas validé, il se relit par le chemin complet', async () => {
+  const fichier = fichierDeDepart();
+  const appels = { moteur: 0 };
+  const prelectures: number[] = [];
+  const prelecture = async () => { prelectures.push(1); return 0; };
+  await demandeDuReleve(fichier, appels, 'analyser', { prelecture });
+  const mutation = MUTATIONS.find(({ nom }) => nom === 'nom d’un calque')!;
+  mutation.muter(fichier);
+  mutation.evenements?.(contexteDesEvenements(fichier));
+  assert.equal(etatDeLEntree('Alert').etat, 'invalide');
+  const analysee = await demandeDuReleve(fichier, appels, 'analyser', { prelecture });
+  assert.deepEqual(analysee.releve, [], 'aucune comparaison du relevé');
+  assert.deepEqual(prelectures, [], 'aucune prélecture sur une entrée invalide');
+  assert.equal(analysee.affiche, (await demandeDuReleve(fichier, appels, 'actualiser', { prelecture })).affiche);
+  assert.deepEqual(prelectures, [], 'ni sur Actualiser');
+});
+
+test('la prélecture reçoit le relevé retenu sur une entrée utilisable ; une prélecture qui échoue ne change rien', async () => {
+  const fichier = fichierDeDepart();
+  const appels = { moteur: 0 };
+  const recus: unknown[] = [];
+  await demandeDuReleve(fichier, appels, 'analyser', { prelecture: async (retenu) => { recus.push(retenu); return 0; } });
+  assert.equal(recus.length, 0, 'sans entrée, aucune prélecture');
+  const retenu = sessionDesAnalyses().entree('Alert')?.sorties.releve;
+  const seconde = await demandeDuReleve(fichier, appels, 'analyser', { prelecture: async (releve) => { recus.push(releve); throw new Error('Figma refuse'); } });
+  assert.equal(recus.length, 1);
+  assert.equal(recus[0], retenu);
+  assert.deepEqual(seconde.releve, ['repriseDuReleve']);
+  assert.equal(seconde.affiche, (await demandeDuReleve(fichier, appels, 'actualiser')).affiche);
+});
+
+test('un changement du jeu reçu pendant la relecture du relevé périme la demande, qui ne promeut rien', async () => {
+  const fichier = fichierDeDepart();
+  const appels = { moteur: 0 };
+  await demandeDuReleve(fichier, appels, 'analyser');
+  const retenue = sessionDesAnalyses().entree('Alert');
+  const b = banc(fichier);
+  await traiterAvec({
+    ...lecteursDe(fichier, appels),
+    async releve() {
+      surChangementDuDocument([noeud('PROPERTY_CHANGE', 'fond', ['v-Alert', 'jeu-Alert'], ['fills'])], b.contexte);
+      return { statut: 'lu', releve: releveDe(fichier) };
+    },
+  })({ type: 'analyser', demande: 1 }, b.contexte);
+  assert.deepEqual(b.envoyes.filter(({ type }) => type === 'perime').map((message) => ('cause' in message ? message.cause : null)), ['document']);
+  assert.equal(sessionDesAnalyses().entree('Alert'), retenue, 'l’entrée d’avant reste, rien n’est promu');
+});

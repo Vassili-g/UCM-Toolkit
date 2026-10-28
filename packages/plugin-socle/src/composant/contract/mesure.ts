@@ -52,6 +52,15 @@ export type Compteur =
   /** Le moteur d'une entrée de session repris par la validation, ou la raison pour laquelle il ne l'est pas : `nonReprise:different:releve`. */
   | 'repriseDuMoteur'
   | `nonReprise:${string}`
+  /**
+   * Le relevé relu à une demande Analyser sur une entrée `utilisable` : égal au relevé retenu (`repriseDuReleve`, l'objet
+   * retenu sert alors), ou différent (`nonRepriseDuReleve:different`). `msValidationDuReleve` : de la prélecture à la fin de
+   * la comparaison ; `prelecturesDuReleve` : les ressources demandées en avance.
+   */
+  | 'repriseDuReleve'
+  | `nonRepriseDuReleve:${string}`
+  | 'msValidationDuReleve'
+  | 'prelecturesDuReleve'
   | 'sujetsRetenus'
   | 'octetsRetenus'
   | 'aretesRetenues'
