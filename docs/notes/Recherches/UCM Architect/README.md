@@ -56,6 +56,7 @@ Tokens affiche Nomenclature à côté de l'arbre des variables.
 |---|---|
 | [ANALYSE-RECETTE-V2.md](./6%20Recette%20v2/ANALYSE-RECETTE-V2.md) | Les points de la recette Figma de Button, Alert et Stresstest : cause lue dans le code, proposition, questions R-11 à R-22 et ordre de travail |
 | [MAQUETTE-RECETTE-V2.html](./6%20Recette%20v2/MAQUETTE-RECETTE-V2.html) | Fenêtre à 300 px, changement de variant, langage des variants, bouton de modèle, choix du tableau, bouton Sélectionner et constats réécrits, sur les écrans réels figés |
+| [PLAN-IMPLEMENTATION-RECETTE-V2.md](./6%20Recette%20v2/PLAN-IMPLEMENTATION-RECETTE-V2.md) | Les sous-lots à cocher, leur agent (Codex ou Claude), leurs dépendances et les vagues parallèles |
 | [recette.css](./6%20Recette%20v2/recette.css) | La feuille des éléments nouveaux de la maquette |
 | `Mesures/extraire-galerie.mjs` | Fige les états de la galerie étroite dans `galerie/` |
 
