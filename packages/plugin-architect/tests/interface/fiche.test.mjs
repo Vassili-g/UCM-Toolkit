@@ -11,7 +11,7 @@ test('un clic sur le nom ouvre la fiche : le nom en titre, la chaîne d’alias 
   try {
     await avecReleve(page, cinqCollections());
     await page.locator('[data-focus="nom:bouton-fond"]').click();
-    assert.equal(await page.locator('.feuille-titre').textContent(), 'button/primary/bg');
+    assert.equal(await page.locator('.feuille-voile .feuille-titre').textContent(), 'button/primary/bg');
     assert.equal(await page.locator('.chaine-alias li:not(.terme)').count(), 5);
     assert.equal(await page.locator('.chaine-alias .terme').textContent(), '#E06666');
     assert.equal(await page.locator('.table-ligne.ligne-choisie').count(), 1);
@@ -36,7 +36,7 @@ test('changer de mode affiché garde la variable ouverte et recalcule sa chaîne
     await page.locator('[data-focus="nom:bouton-fond"]').click();
     assert.equal(await page.locator('.chaine-alias .terme').textContent(), '#E06666');
     await page.getByLabel('Mode de brand', { exact: true }).selectOption('marque:Beta');
-    assert.equal(await page.locator('.feuille-titre').textContent(), 'button/primary/bg');
+    assert.equal(await page.locator('.feuille-voile .feuille-titre').textContent(), 'button/primary/bg');
     assert.equal(await page.locator('.chaine-alias .terme').textContent(), '#2E9E5B');
   } finally { await fermer(page); }
 });

@@ -25,7 +25,8 @@ async function ouvrirLePanneau(messages = [], lecture = alertCorrections) {
   return page;
 }
 
-const lu = (statut, constats, lecture = null, lus = variants) => ({ type: 'analyse', analyse: IDENTITE, statut, constats, lecture, variants: lus });
+/** Un message final d'une analyse déjà finie est refusé (6be0db4d) : chaque état ensuite joué ouvre sa propre génération. */
+const lu = (statut, constats, lecture = null, lus = variants, generation = 1) => ({ type: 'analyse', analyse: { ...IDENTITE, generation }, statut, constats, lecture, variants: lus });
 const texteDuPanneau = (page) => page.locator('.arch-laterale').innerText();
 /** Les demandes de l'interface au sandbox : l'envoi se relève un instant après le geste. */
 const demandes = async (page, type) => {
@@ -46,25 +47,25 @@ test('le panneau annonce chaque état de l’analyse, et ne dit « aucun constat
     assert.equal(await page.getByRole('button', { name: 'Analyser' }).isDisabled(), true);
 
     const lecture = { layersLus: 2000, layersNonLus: 640, variantsNonLus: ['Severity=warning, Variant=standard'], manquees: [] };
-    for (const constats of [analyseCorrections.constats, []]) {
-      await envoyer(page, lu('partielle', constats, lecture));
+    for (const [rang, constats] of [analyseCorrections.constats, []].entries()) {
+      await envoyer(page, lu('partielle', constats, lecture, variants, 1 + rang));
       const texte = await texteDuPanneau(page);
       assert.match(texte, /Analyse partielle : 2 000 layers lus sur 2 640\./);
       assert.match(texte, /Les variants non lus ne sont pas contrôlés\./);
       assert.doesNotMatch(texte, /Aucun constat/);
     }
 
-    await envoyer(page, lu('annulee', [], null, []));
+    await envoyer(page, lu('annulee', [], null, [], 3));
     assert.match(await texteDuPanneau(page), /L’analyse a été annulée\./);
     assert.equal(await page.locator('.arch-laterale .alerte.ton-tenu').count(), 0);
 
     const arret = { id: 'C42:0', code: 'C42', type: 'bloquant', famille: 'export', variants: [], layers: [], faits: { message: 'deux variant properties s’écrivent de la même façon, State et state' } };
-    await envoyer(page, lu('arretee', [arret], null, []));
+    await envoyer(page, lu('arretee', [arret], null, [], 4));
     assert.match(await texteDuPanneau(page), /Message de l’exporteur : deux variant properties s’écrivent de la même façon, State et state, puis cliquez Actualiser\./);
     assert.match(await texteDuPanneau(page), /Aucun autre contrôle n’a été fait\./);
     assert.equal(await page.locator('.arch-laterale .alerte.ton-bloquant').count(), 1);
 
-    await envoyer(page, lu('complete', []));
+    await envoyer(page, lu('complete', [], null, variants, 5));
     assert.match(await texteDuPanneau(page), /Aucun constat sur les 11 variants d’Alert\./);
     assert.equal(await page.locator('.arch-laterale .alerte.ton-tenu').count(), 1);
     assert.equal(await page.locator('.sommaire-elements').count(), 0);
@@ -153,12 +154,12 @@ test('Préparer les tokens suit sansTokens : un constat d’état sans correctio
     assert.equal(await page.locator('.prep-ouvrir').isHidden(), true);
     assert.doesNotMatch(await texteDuPanneau(page), /n’a pas de tokens/);
 
-    await envoyer(page, { ...lu('complete', []), sansTokens: true });
+    await envoyer(page, { ...lu('complete', [], null, variants, 2), sansTokens: true });
     assert.equal(await page.locator('.prep-ouvrir').isVisible(), true);
     assert.match(await texteDuPanneau(page), /Alert n’a pas de tokens\. Ses couleurs sont en dur\./);
     assert.equal(await page.locator('.puce-element[data-element="tokens"] .nombre').textContent(), '1');
 
-    await envoyer(page, { type: 'perime', analyse: IDENTITE, cause: 'document' });
+    await envoyer(page, { type: 'perime', analyse: { ...IDENTITE, generation: 2 }, cause: 'document' });
     assert.equal(await page.locator('.prep-ouvrir').isHidden(), true);
     assert.doesNotMatch(await texteDuPanneau(page), /n’a pas de tokens/);
   } finally { await terminer(page); }

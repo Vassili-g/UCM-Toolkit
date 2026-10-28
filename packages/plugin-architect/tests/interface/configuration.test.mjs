@@ -20,7 +20,7 @@ async function ouvrirLaConfiguration(bilan = bilans.avecUnImport) {
   await avecReleve(page, { ...releveIntencial(), fichier: 'Intencial Tokens' });
   await envoyer(page, messages.initial(true));
   await envoyer(page, messages.bilan(1, bilan));
-  await page.locator('.icon-button').click();
+  await page.getByRole('button', { name: 'Configuration' }).click();
   await attendreLesDemandes(page, 'lire-configuration');
   await envoyer(page, configuration);
   return page;
@@ -33,7 +33,7 @@ test('la Configuration prend toute la fenêtre : ni arbre, ni tableau, ni pied, 
     assert.equal(await page.locator('.arbre').isVisible(), false);
     assert.equal(await page.locator('.centre').isVisible(), false);
     assert.equal(await page.locator('.pied').isVisible(), false);
-    const colonne = await page.locator('.panneau-lateral > .container').boundingBox();
+    const colonne = await page.locator('.panneau-lateral > .container:not([hidden])').boundingBox();
     assert.ok(colonne.width <= 720);
     await page.getByRole('button', { name: 'Retour' }).click();
     assert.equal(await page.locator('.corps.corps-configuration').count(), 0);
@@ -77,7 +77,7 @@ test('l’Historique garde la dernière création de variables et l’annule par
     await page.locator('[data-action="preparation-voir"]').click();
     await page.locator('[data-action="preparation-creer"]').click();
     await envoyer(page, creees);
-    await page.locator('.icon-button').click();
+    await page.getByRole('button', { name: 'Configuration' }).click();
     await page.locator('#onglet-historique').click();
     assert.match(await page.locator('.config-renommage', { hasText: 'variables de Tag' }).textContent(), /^15 variables de Tag, aujourd’hui à \d\d:\d\d$/);
     assert.equal(await page.getByText('Si la library est publiée, les layers liés à ces variables perdront leur liaison.').isVisible(), true);
@@ -101,7 +101,7 @@ test('une annulation qui laisse des variables en place dit pourquoi et reste pos
     await page.locator('[data-action="preparation-voir"]').click();
     await page.locator('[data-action="preparation-creer"]').click();
     await envoyer(page, creees);
-    await page.locator('.icon-button').click();
+    await page.getByRole('button', { name: 'Configuration' }).click();
     await page.locator('#onglet-historique').click();
     await page.locator('[data-action="annuler-creation"]').click();
     const [demande] = await attendreLesDemandes(page, 'annuler-structure');
@@ -124,7 +124,7 @@ test('un journal absent ou illisible dit qu’aucune structure ne s’annule', a
       await page.locator('[data-action="preparation-voir"]').click();
       await page.locator('[data-action="preparation-creer"]').click();
       await envoyer(page, creees);
-      await page.locator('.icon-button').click();
+      await page.getByRole('button', { name: 'Configuration' }).click();
       await page.locator('#onglet-historique').click();
       await page.locator('[data-action="annuler-creation"]').click();
       const [demande] = await attendreLesDemandes(page, 'annuler-structure');

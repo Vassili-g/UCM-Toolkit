@@ -80,7 +80,7 @@ test('la réponse du sandbox montre le résultat, ajoute la correction à sa sec
     assert.equal(await correctionsDuPanneau(page).count(), 4);
     const pointsDeCouleurs = await page.locator('.puce-element[data-element="couleurs"] .nombre').textContent();
     await envoyer(page, repondue());
-    assert.equal(await page.locator('.arch-laterale .resultat').innerText().then((texte) => texte.replace(/s+/g, ' ').trim()), '✓ title sera lié à colors/info/standard/title. Appliquez-le avec les corrections de cette section.');
+    assert.equal(await page.locator('.arch-laterale .resultat').innerText().then((texte) => texte.replace(/\s+/g, ' ').trim()), '✓ title sera lié à colors/info/standard/title. Appliquez-le avec les corrections de cette section.');
     assert.deepEqual(await page.locator('.resultat + .constat-actions .btn-texte').allInnerTexts(), ['Annuler la réponse']);
     assert.equal(await cartes(page).count(), 1);
     assert.equal(await correctionsDuPanneau(page).count(), 5);

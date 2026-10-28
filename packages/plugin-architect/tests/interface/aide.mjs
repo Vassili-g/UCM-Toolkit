@@ -41,14 +41,18 @@ const MESSAGES_DU_SANDBOX = new Set(['preferences', 'preferences-rangees', 'prog
   // L'analyse, les corrections, les questions, les ignorés et la configuration.
   'analyse-commencee', 'analyse-en-cours', 'analyse-provisoire', 'analyse', 'perime', 'occupe', 'corrections-appliquees', 'modele-propose', 'question-repondue', 'ignores', 'configuration', 'structure-annulee',
   // La préparation des tokens et la création de ses variables.
-  'plan-de-preparation', 'preparations', 'preparation-texte', 'texte-refuse', 'variables-creees', 'liaisons-preparees']);
+  'plan-de-preparation', 'preparations', 'preparation-texte', 'texte-refuse', 'variables-creees', 'liaisons-preparees',
+  // Le bilan de Nomenclature, que les tests jouent avant d'ouvrir la Configuration ou la préparation.
+  'initial', 'bilan']);
 
 /** Les demandes qu'un explorateur en lecture seule peut envoyer. */
 const DEMANDES_PERMISES = new Set(['lire-preferences', 'ranger-preferences', 'lire-releve', 'lire-structure', 'annuler', 'lire-composant', 'changer-disposition', 'resize',
   // L'analyse, les corrections, les questions, les ignorés et la configuration.
   'analyser', 'annuler-analyse', 'appliquer-corrections', 'selectionner', 'servir-de-modele', 'repondre', 'annuler-reponse', 'ignorer', 'ne-plus-ignorer', 'lire-configuration', 'ranger-library', 'ranger-niveau', 'annuler-structure',
   // La préparation des tokens et la création de ses variables.
-  'preparer', 'lire-preparations', 'lire-texte', 'creer-variables', 'abandonner-preparation', 'copier-preparation', 'lier-preparation']);
+  'preparer', 'lire-preparations', 'lire-texte', 'creer-variables', 'abandonner-preparation', 'copier-preparation', 'lier-preparation',
+  // La lecture des noms que Nomenclature demande dès que son bilan arrive : l'analyse, les lignes d'un groupe et les termes.
+  'noms-analyser', 'lignes', 'termes']);
 
 export async function ouvrir({ largeur = 1360, hauteur = 800, classe = '', presse = true } = {}) {
   const contexte = await navigateur.newContext({ viewport: { width: largeur, height: hauteur }, permissions: presse ? ['clipboard-read', 'clipboard-write'] : [] });

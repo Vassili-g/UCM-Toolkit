@@ -41,12 +41,12 @@ test('une préparation à créer annonce ses variables ; Voir ouvre la feuille, 
     const alerte = page.locator('.alerte', { hasText: '16 variables à créer pour Tag.' });
     assert.equal(await alerte.count(), 1);
     await page.locator('[data-action="preparation-voir"]').click();
-    assert.equal(await page.locator('.feuille-titre').textContent(), 'Variables à créer pour Tag');
-    assert.match(await page.locator('.feuille-entete .meta').textContent(), /^Préparées dans le fichier des composants, aujourd’hui à 14:20\.$/);
-    assert.equal(await page.locator('.feuille-contenu > p').first().textContent(), '15 variables à créer. 1 existe déjà.');
+    assert.equal(await page.locator('.feuille-voile .feuille-titre').textContent(), 'Variables à créer pour Tag');
+    assert.match(await page.locator('.feuille-voile .feuille-entete .meta').textContent(), /^Préparées dans le fichier des composants, aujourd’hui à 14:20\.$/);
+    assert.equal(await page.locator('.feuille-voile .feuille-contenu > p').first().textContent(), '15 variables à créer. 1 existe déjà.');
     const lignes = page.locator('.fiche-liste .diff');
     assert.equal(await lignes.count(), 4);
-    assert.equal(await lignes.nth(3).locator('.chemin-apres').textContent(), 'existe déjà, vise theme/info/vivid/surface/default gardée');
+    assert.equal(await lignes.nth(3).locator('.chemin-apres').innerText(), 'existe déjà, vise theme/info/vivid/surface/default\ngardée');
     await page.getByRole('button', { name: 'Afficher les 12 autres' }).click();
     assert.equal(await page.locator('.fiche-liste .diff').count(), 16);
     assert.equal(await page.locator('[data-action="preparation-creer"]').textContent(), 'Créer 15 variables');
@@ -71,9 +71,9 @@ test('une création réussie ferme la feuille, retire l’alerte et dit où publ
     await page.locator('[data-action="preparation-creer"]').click();
     await envoyer(page, creees());
     await envoyer(page, preparations((rang) => (rang === 15 ? 'existe-identique' : 'creee')));
-    assert.equal(await page.locator('.feuille-voile').count(), 0);
+    await page.locator('.feuille-voile').waitFor({ state: 'detached' });
     assert.equal(await page.locator('[data-action="preparation-voir"]').count(), 0);
-    const resultat = page.locator('.resultat');
+    const resultat = page.locator('.resultat:not([hidden])');
     assert.equal(await resultat.locator('.pile > span').first().textContent(), '✓ 15 variables créées pour Tag');
     assert.match(await resultat.textContent(), /Publiez Intencial Tokens : Assets, Libraries, puis Publish\./);
     assert.match(await resultat.textContent(), /Configuration › Historique annule la création\./);
@@ -88,7 +88,7 @@ test('un refus de la création garde la feuille ouverte et en dit la raison', as
     await envoyer(page, creees({ creees: 0, gardees: 0, refus: 'sans-destination' }));
     assert.match(await page.locator('.feuille-contenu .alerte').textContent(), /Ce fichier n’a pas de collection components où créer les variables\./);
     assert.equal(await page.locator('[data-action="preparation-creer"]').isDisabled(), false);
-    assert.equal(await page.locator('.resultat').count(), 0);
+    assert.equal(await page.locator('.resultat:not([hidden])').count(), 0);
   } finally { await fermer(page); }
 });
 
@@ -131,7 +131,7 @@ test('Abandonner la préparation demande son retrait au sandbox, et la feuille s
     const [demande] = await attendreLesDemandes(page, 'abandonner-preparation');
     assert.deepEqual(demande, { type: 'abandonner-preparation', preparation: 'prep-tag' });
     await envoyer(page, { type: 'preparations', preparations: [] });
-    assert.equal(await page.locator('.feuille-voile').count(), 0);
+    await page.locator('.feuille-voile').waitFor({ state: 'detached' });
     assert.equal(await page.locator('[data-action="preparation-voir"]').count(), 0);
   } finally { await fermer(page); }
 });

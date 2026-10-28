@@ -41,7 +41,7 @@ const copier = (page) => page.locator('[data-action="copier-les-liaisons"]');
 test('une mesure de contraste dit sa paire, son rapport sans arrondi, son seuil et ses modes', async () => {
   const page = await ouvrirLePanneau(alertCorrections, analyseDAlert.message);
   try {
-    assert.deepEqual(await page.locator('.puce-element').evaluateAll((puces) => puces.map((puce) => puce.dataset.element)), ['tout', 'a11y']);
+    assert.deepEqual(await page.locator('.puce-element').evaluateAll((puces) => puces.map((puce) => puce.dataset.element)), ['tout', 'couleurs', 'tailles', 'variants', 'regles', 'a11y']);
     const premiere = cartes(page).first();
     await premiere.locator('.bloc-bouton').click();
     assert.equal(await premiere.locator('.bloc-phrase').innerText(), 'Le texte de Severity=warning, Variant=standard manque de contraste en Dark.');
@@ -126,7 +126,7 @@ test('modele-propose range les constats du modèle dans l’analyse, sans rempla
     await envoyer(page, modelePropose);
     const apres = await comptes();
     assert.equal(apres[0], 1);
-    assert.match(await page.locator('.arch-laterale .liste .bloc:has(> .bloc-tete > input.case)').first().locator('.bloc-pile').innerText(), /Copier les liaisons des+Severity=info, Variant=standard/);
+    assert.match(await page.locator('.arch-laterale .liste .bloc:has(> .bloc-tete > input.case)').first().locator('.bloc-pile').innerText(), /Copier les liaisons de\s+Severity=info, Variant=standard/);
     // Six constats deviennent des questions et trois prennent une correction, donc quittent les constats à faire dans Figma ; deux constats à y faire s'ajoutent ; les autres restent.
     assert.equal(apres[1] - avant[1], 6);
     assert.equal(apres[2] - avant[2], 2 - 3 - 6);

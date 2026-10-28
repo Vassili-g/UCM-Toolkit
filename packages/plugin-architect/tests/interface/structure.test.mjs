@@ -65,7 +65,7 @@ test('Ouvrir la fiche montre la variable en cause dans l’explorateur', async (
     await page.locator('#onglet-a-faire').click();
     await page.locator('#panneau-a-faire .bloc-bouton').first().click();
     await page.locator('#panneau-a-faire .constat-actions .btn:visible').click();
-    assert.equal(await page.locator('.feuille-titre').textContent(), 'info/soft/page/border');
+    assert.equal(await page.locator('.feuille-voile .feuille-titre').textContent(), 'info/soft/page/border');
     assert.deepEqual(page.erreurs, []);
   } finally { await page.context().close(); }
 });
