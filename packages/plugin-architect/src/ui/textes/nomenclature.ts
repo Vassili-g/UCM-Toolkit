@@ -80,8 +80,8 @@ export const TEXTES = {
   choisirLEcritureDesNoms: 'Écriture des variables',
   suiventSurTotal: (suivent: number, total: number): string => `· ${suivent} sur ${total}`,
   collectionsReconnues: (reconnues: number, total: number): string => `· ${reconnues} sur ${total} reconnues`,
-  collectionsSuiventUcm: 'Elles portent les noms du référentiel UCM.',
-  nomsUcm: 'noms UCM',
+  collectionsSuiventUcm: 'Elles portent les noms du référentiel UCM, en PascalCase.',
+  nomsUcm: 'PascalCase',
 
   architectureDuFichier: 'Architecture du fichier',
   fichierUcm: 'Ce fichier suit l’architecture UCM',

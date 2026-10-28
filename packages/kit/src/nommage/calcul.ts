@@ -36,7 +36,14 @@ export const ecritureEffective = (regles: Pick<ReglesPourLeCalcul, 'ecriture'>, 
     groupes: lexique.detection.groupes.dominante ?? CONVENTION_NEUTRE,
     variables: lexique.detection.variables.dominante ?? CONVENTION_NEUTRE,
   };
-export const conventionsDe = (ecriture: EcritureChoisie): ConventionsParCategorie => ({ groupes: ecriture.groupes, variables: ecriture.variables });
+/** Décision UCM : les collections s'écrivent en PascalCase. */
+export const CONVENTION_DES_COLLECTIONS: Convention = { casse: 'PascalCase', separateur: 'camelCase' };
+
+export const conventionsDe = (ecriture: EcritureChoisie): ConventionsParCategorie => ({
+  groupes: ecriture.groupes,
+  variables: ecriture.variables,
+  collections: CONVENTION_DES_COLLECTIONS,
+});
 
 /** Les entrées que le calcul lit : celles des collections non exclues. */
 export function entreesRetenues(inventaire: Inventaire, collectionsExclues: readonly string[]): Inventaire['entrees'] {

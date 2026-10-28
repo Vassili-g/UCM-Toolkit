@@ -550,7 +550,7 @@ test('renommer une collection : une carte dans Renommages, l\'application la ren
   assert.ok(!bilan.questions.some((q) => q.cle === question.cle), 'la question n\'est plus posée');
   const groupe = bilan.groupes.find((g) => g.regle.sorte === 'collection');
   assert.ok(groupe);
-  assert.deepEqual([groupe.avant, groupe.apres, groupe.collections, groupe.variables], ['Zorglub', 'brands', 1, 0]);
+  assert.deepEqual([groupe.avant, groupe.apres, groupe.collections, groupe.variables], ['Zorglub', 'Brands', 1, 0]);
 
   // La réponse s'annule exactement : l'entrée disparaît et la question revient.
   await b.envoyer({ type: 'regle', geste: { type: 'annuler-reponse', question: question.cle } });
@@ -562,13 +562,13 @@ test('renommer une collection : une carte dans Renommages, l\'application la ren
   const avecRegle = b.dernierBilan();
   b.vider();
   await b.envoyer({ type: 'appliquer', generation: avecRegle.generation, selection: { groupes: avecRegle.groupes.map((g) => g.cle), exclus: [], inclus: [] } });
-  assert.equal(b.noms.get('c'), 'brands');
+  assert.equal(b.noms.get('c'), 'Brands');
   assert.equal(b.noms.get('v1'), 'fill/main');
   assert.equal(b.dernierBilan().groupes.some((g) => g.regle.sorte === 'collection'), false);
 });
 
 test('renommer une collection vers un nom déjà pris est un blocage, pas un renommage', async () => {
-  const b = banc({ collections: [['c', 'Zorglub'], ['d', 'brands']], variables: [['v1', 'fill/main', 'c'], ['v2', 'fill/alt', 'c'], ['v3', 'fg/main', 'd']] });
+  const b = banc({ collections: [['c', 'Zorglub'], ['d', 'Brands']], variables: [['v1', 'fill/main', 'c'], ['v2', 'fill/alt', 'c'], ['v3', 'fg/main', 'd']] });
   await b.envoyer({ type: 'noms-analyser' });
   await b.envoyer({ type: 'regle', geste: regleEcriture });
   const question = b.dernierBilan().questions.find((q) => q.type === 'collection');
@@ -576,7 +576,7 @@ test('renommer une collection vers un nom déjà pris est un blocage, pas un ren
   await b.envoyer({ type: 'noms-repondre', question: question.cle, reponse: { type: 'collection', cible: 'brands' } });
   const bilan = b.dernierBilan();
   assert.equal(bilan.groupes.some((g) => g.regle.sorte === 'collection'), false);
-  assert.deepEqual(bilan.bloques.map((x) => [x.avant, x.apres]), [['Zorglub', 'brands']]);
+  assert.deepEqual(bilan.bloques.map((x) => [x.avant, x.apres]), [['Zorglub', 'Brands']]);
 });
 
 test('AUD-E2b : renommer une collection à modes vers la clé d’axe d’une collection exclue est un blocage, et Appliquer n’écrit rien', async () => {
@@ -593,8 +593,8 @@ test('AUD-E2b : renommer une collection à modes vers la clé d’axe d’une co
   const bilan = b.dernierBilan();
   assert.equal(bilan.groupes.some((g) => g.regle.sorte === 'collection'), false);
   assert.deepEqual(bilan.bloques, [{
-    avant: 'Zorglub', apres: 'primitives', collection: '',
-    chemin: { motif: 'meme-axe', apres: 'primitives', autre: 'Primitives' },
+    avant: 'Zorglub', apres: 'Primitives', collection: '',
+    chemin: { motif: 'meme-axe', apres: 'Primitives', autre: 'Primitives' },
   }]);
   b.vider();
   await b.envoyer({ type: 'appliquer', generation: bilan.generation, selection: { groupes: bilan.groupes.map((g) => g.cle), exclus: [], inclus: [] } });
@@ -614,7 +614,7 @@ test('AUD-E2b : la même réponse sur des collections sans modes lus reste un re
   assert.ok(question);
   await b.envoyer({ type: 'noms-repondre', question: question.cle, reponse: { type: 'collection', cible: 'primitives' } });
   assert.deepEqual(b.dernierBilan().bloques, []);
-  assert.ok(b.dernierBilan().groupes.some((g) => g.regle.sorte === 'collection' && g.apres === 'primitives'));
+  assert.ok(b.dernierBilan().groupes.some((g) => g.regle.sorte === 'collection' && g.apres === 'Primitives'));
 });
 
 // Les courses pendant `ouvrir` (AI6, AI7, AC13) : la lecture d'écriture se termine après les contrôles de la session.

@@ -12,13 +12,13 @@
  * Le moteur vient du kit ; `Moteur` permet à un test de compter ses appels.
  */
 import {
-  COLLECTIONS, REGISTRES, REGISTRES_ARCHITECTURE, commencerLexique, decouperSegment, detecterParEtapes, indexerVocabulaire,
-  normaliserParEtapes, porteesTouchees,
+  COLLECTIONS, REGISTRES, REGISTRES_ARCHITECTURE, assembler, commencerLexique, decouperSegment, detecterParEtapes, indexerVocabulaire,
+  motsAvecCasse, normaliserParEtapes, porteesTouchees,
   type ConflitDeVocabulaire, type IndexDuVocabulaire, type Lexique, type Mots,
   type Collection, type Collision, type Question, type Renommage, type ResultatDesQuestions, type ResultatDuLexique,
 } from '@ucm-kit/core/referentiel';
 import {
-  avecLesCheminsPublies, conventionsDe, ecritureEffective, idsNonRenommables, inventaireSelonLaProtection, nomsSelonLesRegles, palettesLibres,
+  CONVENTION_DES_COLLECTIONS, avecLesCheminsPublies, conventionsDe, ecritureEffective, idsNonRenommables, inventaireSelonLaProtection, nomsSelonLesRegles, palettesLibres,
   type Inventaire,
 } from '@ucm-kit/core/nommage';
 import {
@@ -290,6 +290,10 @@ function* detecter(moteur: Moteur, lexique: Lexique, indexation: Indexation, reg
   return yield* moteur.detecterParEtapes(lexique, indexation.index, { ...dejaJugeDuFichier(regles), plusTard: [] }, { maximum: 10 + regles.plusTard.length });
 }
 
+/** Le nom d'une collection UCM écrit dans la convention des collections, comme le kit l'écrit pour un renommage proposé. */
+const nomDeCollection = (canonique: string): string =>
+  assembler(canonique, motsAvecCasse(decouperSegment(canonique), CONVENTION_DES_COLLECTIONS.casse), CONVENTION_DES_COLLECTIONS.separateur);
+
 /**
  * Ajoute un renommage par collection que le fichier renomme vers une collection UCM. Si une autre collection porte déjà
  * ce nom, après les renommages du kit et ceux déjà ajoutés, les deux forment une collision, comme dans le kit.
@@ -302,7 +306,8 @@ function avecLesCollectionsRenommees(lexique: Lexique, brut: ResultatDuLexique, 
   for (const renommage of brut.renommages) if (renommage.categorie === 'collections') noms.set(renommage.id, renommage.nouveauNom);
   const ajoutes: Renommage[] = [];
   const collisions: Collision[] = [];
-  for (const [id, cible] of renommees) {
+  for (const [id, choisie] of renommees) {
+    const cible = nomDeCollection(choisie);
     const ancien = lexique.noms.get(id)!.nom;
     if (ancien === cible) continue;
     const occupants = [...noms].filter(([autre, nom]) => autre !== id && nom === cible).map(([autre]) => autre);

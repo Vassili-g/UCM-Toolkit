@@ -53,7 +53,7 @@ function poserLeChemin(chemin: HTMLElement, exemple: LigneVue | null): void {
     chemin.replaceChildren();
     return;
   }
-  chemin.replaceChildren(...exemple.ancien.split('/').flatMap((segment, rang): (string | HTMLElement)[] => {
+  chemin.replaceChildren(...exemple.nouveau.split('/').flatMap((segment, rang): (string | HTMLElement)[] => {
     const separateur = rang > 0 ? ['/'] : [];
     if (!exemple.marques.includes(rang)) return [...separateur, segment];
     const concerne = document.createElement('mark');

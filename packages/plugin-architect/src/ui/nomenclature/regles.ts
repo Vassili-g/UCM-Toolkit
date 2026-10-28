@@ -120,7 +120,7 @@ function poserLeSpecimen(cible: LigneDuResume, textes: { readonly specimen: stri
 
 /** L'exemple d'une ligne : le nom réel, la partie concernée dans un `span`, le reste en gris. */
 function poserLExemple(cible: LigneDuResume, exemple: LigneVue | null): void {
-  cible.exemple.replaceChildren(...fusionnerLesTextes((exemple?.ancien.split('/') ?? []).flatMap((segment, rang): (string | HTMLElement)[] => {
+  cible.exemple.replaceChildren(...fusionnerLesTextes((exemple?.nouveau.split('/') ?? []).flatMap((segment, rang): (string | HTMLElement)[] => {
     const separateur = rang > 0 ? ['/'] : [];
     if (!exemple?.marques.includes(rang)) return [...separateur, segment];
     const concerne = document.createElement('span');

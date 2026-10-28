@@ -19,7 +19,7 @@ const variable = (id: string, nom: string, protegee = false): EntreeInventaire =
 const REGLES = lireReglesDeNommage([['ecriture', JSON.stringify({ version: 1, groupes: { casse: 'minuscules', separateur: 'tiret' }, variables: { casse: 'minuscules', separateur: 'tiret' } })]])!;
 
 const inventaire = (noms: readonly string[], protegees: readonly string[] = [], marque?: Inventaire['marque']): Inventaire => ({
-  entrees: [collection('c1', 'primitives'), ...noms.map((nom, rang) => variable(`v${rang}`, nom, protegees.includes(nom)))],
+  entrees: [collection('c1', 'Primitives'), ...noms.map((nom, rang) => variable(`v${rang}`, nom, protegees.includes(nom)))],
   ...(marque ? { marque } : {}),
 });
 
@@ -67,4 +67,11 @@ test('un renommage qui ferait disparaître un token de tokens.json est retiré d
   assert.equal(resultat.renommages.some((renommage) => renommage.nouveauNom === 'brand/primary'), false);
   const publie = inventairePublie(inventaire(['a', 'b']), (entree) => entree.nom.id);
   assert.deepEqual(cheminsEnConflit(publie, new Map([['variable:v1', 'a']])).map(({ id, motif }) => [id, motif]), [['variable:v1', 'meme-token']]);
+});
+
+test('les collections s’écrivent en PascalCase : Primitives et Theme restent, color-brands devient Brands', () => {
+  const propose = (noms: readonly string[]) => nomsSelonLesReglesSync({ entrees: noms.map((nom, rang) => collection(`k${rang}`, nom)) }, REGLES, []).resultat.renommages
+    .map(({ ancienNom, nouveauNom }) => [ancienNom, nouveauNom]);
+  assert.deepEqual(propose(['Primitives', 'Theme']), []);
+  assert.deepEqual(propose(['color-brands']), [['color-brands', 'Brands']]);
 });

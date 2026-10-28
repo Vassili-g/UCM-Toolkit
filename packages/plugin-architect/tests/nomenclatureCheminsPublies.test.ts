@@ -279,37 +279,37 @@ const INCHANGEE = { casse: 'inchangee', separateur: 'inchange' } as const;
 const ecritureInchangee: GesteSurLesRegles = { type: 'ecriture', ecriture: { groupes: INCHANGEE, variables: INCHANGEE } };
 
 test('AC1 : bg/primary à côté de Background/primary est bloqué avec le motif meme-token', async () => {
-  const s = session([['c', 'components']], [['v1', 'bg/primary'], ['v2', 'Background/primary']]);
+  const s = session([['c', 'Components']], [['v1', 'bg/primary'], ['v2', 'Background/primary']]);
   await s.envoyer({ type: 'noms-analyser' });
   await s.geste(ecritureInchangee);
   await s.geste({ type: 'remplacer-par', terme: 'bg', par: 'background' });
   const bilan = s.bilan();
   assert.deepEqual(bilan.bloques, [{
-    avant: 'bg/primary', apres: 'background/primary', collection: 'components',
-    chemin: { motif: 'meme-token', apres: 'components/background/primary', autre: 'components/Background/primary' },
+    avant: 'bg/primary', apres: 'background/primary', collection: 'Components',
+    chemin: { motif: 'meme-token', apres: 'Components/background/primary', autre: 'Components/Background/primary' },
   }]);
   assert.equal(bilan.groupes.some((groupe) => groupe.regle.sorte === 'terme'), false, 'plus aucun renommage de terme');
 });
 
 test('AC2 : colors renommé color à côté de color/primary est bloqué avec le motif token-et-groupe', async () => {
-  const s = session([['c', 'components']], [['v1', 'colors'], ['v2', 'color/primary']]);
+  const s = session([['c', 'Components']], [['v1', 'colors'], ['v2', 'color/primary']]);
   await s.envoyer({ type: 'noms-analyser' });
   await s.geste(ecritureInchangee);
   await s.geste({ type: 'remplacer-par', terme: 'colors', par: 'color' });
   assert.deepEqual(s.bilan().bloques, [{
-    avant: 'colors', apres: 'color', collection: 'components',
-    chemin: { motif: 'token-et-groupe', apres: 'components/color', autre: 'components/color/primary' },
+    avant: 'colors', apres: 'color', collection: 'Components',
+    chemin: { motif: 'token-et-groupe', apres: 'Components/color', autre: 'Components/color/primary' },
   }]);
 });
 
 test('AI10 : ink renommé paint à côté de paint/detail est bloqué', async () => {
-  const s = session([['c', 'components']], [['v1', 'ink'], ['v2', 'paint/detail']]);
+  const s = session([['c', 'Components']], [['v1', 'ink'], ['v2', 'paint/detail']]);
   await s.envoyer({ type: 'noms-analyser' });
   await s.geste(ecritureInchangee);
   await s.geste({ type: 'remplacer-par', terme: 'ink', par: 'paint' });
   const [bloque] = s.bilan().bloques;
   assert.equal(bloque?.avant, 'ink');
-  assert.deepEqual(bloque?.chemin, { motif: 'token-et-groupe', apres: 'components/paint', autre: 'components/paint/detail' });
+  assert.deepEqual(bloque?.chemin, { motif: 'token-et-groupe', apres: 'Components/paint', autre: 'Components/paint/detail' });
 });
 
 test('AI10 : une collection renommée theme à côté de ses variables theme/foo est bloquée', async () => {
