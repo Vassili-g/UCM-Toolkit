@@ -172,3 +172,24 @@ test('l\'interface pose ucmExperience et envoie un tic toutes les 16 ms entre le
   assert.equal(arrete, true);
   assert.equal(interface_.recevoir({ type: 'autre' }), false);
 });
+
+test('l\'interface du build d\'expériences prend les sorties du sandbox', () => {
+  const globale: Record<string, unknown> = {};
+  const interface_ = installerLesExperiences({ actif: true, envoyer: () => {}, globale });
+  assert.equal(interface_.recevoir({ type: 'experience-sortie', objet: { experience: 'E1', cles: 3 } }), true);
+  assert.equal(interface_.recevoir({ type: 'autre' }), false);
+});
+
+test('E1-froid importe un groupe de clés distinct par palier, du plus grand au plus petit', async () => {
+  const importees: string[] = [];
+  const { port, sorties } = creerLePort({
+    variablesDeLaSelection: async () => Array.from({ length: 10 }, (_v, i) => ({ id: `V:${i}`, key: `k${i}` })),
+    importerParCle: async (cle) => { importees.push(cle); return { id: `V:${cle.slice(1)}`, key: cle, valuesByMode: {} }; },
+  });
+  await jouer(creerLesExperiences(port), 'E1-froid');
+  const sortie = sorties[0] as { experience: string; essais: { enVol: number; cles: number }[] };
+  assert.equal(sortie.experience, 'E1-froid');
+  assert.deepEqual(sortie.essais.map((essai) => [essai.enVol, essai.cles]), [[32, 2], [16, 2], [8, 2], [4, 2], [1, 2]]);
+  assert.equal(new Set(importees).size, 10);
+  assert.equal(importees.length, 10);
+});

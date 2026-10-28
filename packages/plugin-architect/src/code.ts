@@ -61,11 +61,17 @@ const experiences = creerLesExperiences({
   actif: (globalThis as { UCM_ARCHITECT_EXPERIENCES?: unknown }).UCM_ARCHITECT_EXPERIENCES === true,
   maintenant: () => Date.now(),
   attendre: (ms) => new Promise((resolve) => setTimeout(resolve, ms)),
-  sortie: (objet) => console.log(JSON.stringify(objet)),
+  // La console du sandbox est difficile à trouver dans Figma : le panneau de l'interface affiche aussi chaque objet.
+  sortie: (objet) => { console.log(JSON.stringify(objet)); figma.ui.postMessage({ type: 'experience-sortie', objet }); },
   variablesDeLaSelection: () => variablesDeLaSelection(figma.currentPage.selection as unknown as readonly NoeudDeCollecte[], (id) => figma.variables.getVariableByIdAsync(id) as Promise<VariableDExperience | null>),
   getVariableByIdAsync: (id) => figma.variables.getVariableByIdAsync(id) as Promise<VariableDExperience | null>,
   importerParCle: (cle) => importerParCle(figma.variables as unknown as PortDeLecture, cle) as unknown as Promise<VariableDExperience>,
-  lireLesLibraries: () => figma.teamLibrary.getAvailableLibraryVariableCollectionsAsync(),
+  // Comme la vérification de l'analyse : la liste, puis les variables de chaque collection. La liste seule répond en 2 ms.
+  lireLesLibraries: async () => {
+    const collections = await figma.teamLibrary.getAvailableLibraryVariableCollectionsAsync();
+    await Promise.all(collections.map((collection) => figma.teamLibrary.getVariablesInLibraryCollectionAsync(collection.key).catch(() => null)));
+    return collections;
+  },
   page: {
     on: (type, rappel) => figma.currentPage.on(type, rappel as unknown as (evenement: NodeChangeEvent) => void),
     off: (type, rappel) => figma.currentPage.off(type, rappel as unknown as (evenement: NodeChangeEvent) => void),

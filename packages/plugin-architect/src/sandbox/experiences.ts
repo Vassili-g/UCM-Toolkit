@@ -41,6 +41,8 @@ export const estUnMessageDExperience = (brut: unknown): brut is MessageDExperien
 
 export const EN_VOL_DE_E1 = [1, 4, 8, 16, 32] as const;
 export const REPETITIONS_DE_E1 = 3;
+/** E1-froid : un groupe de clés distinct par palier, pour qu'aucun palier ne profite des imports d'un autre. */
+export const EN_VOL_DE_E1_FROID = [32, 16, 8, 4, 1] as const;
 export const APPELS_DE_E3 = 300;
 export const DELAIS_DE_E6_S = [0, 5, 10, 20, 30, 60] as const;
 export const SERIES_DE_E6 = 3;
@@ -89,6 +91,21 @@ export function creerLesExperiences(port: PortDExperiences): { traiter(message: 
       }
     }
     port.sortie({ experience: 'E1', cles: cles.length, essais });
+  }
+
+  async function e1Froid(): Promise<void> {
+    const cles = (await port.variablesDeLaSelection()).map((variable) => variable.key);
+    const essais: Record<string, unknown>[] = [];
+    for (const [rang, enVol] of EN_VOL_DE_E1_FROID.entries()) {
+      // Clés entrelacées : chaque groupe a la même part de clés déjà en mémoire chez Figma.
+      const groupe = cles.filter((_cle, indice) => indice % EN_VOL_DE_E1_FROID.length === rang);
+      const debut = port.maintenant();
+      let erreurs = 0;
+      await auPlus(groupe, enVol, (cle) => port.importerParCle(cle).catch(() => { erreurs += 1; }));
+      const ms = port.maintenant() - debut;
+      essais.push({ enVol, cles: groupe.length, ms, msParCle: groupe.length > 0 ? Math.round((ms / groupe.length) * 10) / 10 : null, erreurs });
+    }
+    port.sortie({ experience: 'E1-froid', cles: cles.length, essais });
   }
 
   async function e2(): Promise<void> {
@@ -168,7 +185,7 @@ export function creerLesExperiences(port: PortDExperiences): { traiter(message: 
   }
 
   const JOUEES: Readonly<Record<string, () => Promise<void> | void>> = {
-    E1: e1, E2: e2, E3: e3, E6: e6,
+    E1: e1, 'E1-froid': e1Froid, E2: e2, E3: e3, E6: e6,
     E4: () => commencerLEcoute('E4'), 'E4-fin': () => finirLEcoute('E4'),
     E5: () => commencerLEcoute('E5'), 'E5-fin': () => finirLEcoute('E5'),
   };

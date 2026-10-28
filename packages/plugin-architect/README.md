@@ -258,18 +258,19 @@ npx esbuild src/ui/index.ts --bundle --outfile=dist/ui.js --format=iife --platfo
 node scripts/build-ui.cjs
 ```
 
-Sélectionnez le jeu de variants du Button, ouvrez la console de développement, puis tapez `ucmExperience('E1')`. Les expériences lisent les variables liées à la sélection, ses descendants compris, et les cibles de leurs alias.
+Sélectionnez le jeu de variants du Button, puis cliquez un bouton du panneau posé en bas de la fenêtre ; l'infobulle de chaque bouton dit le geste attendu. Le panneau affiche l'expérience en cours et chaque objet reçu ; **Copier** les copie tous. `ucmExperience('E1')` dans la console de l'interface fait la même chose. Les expériences lisent les variables liées à la sélection, ses descendants compris, et les cibles de leurs alias.
 
 | Commande | Ce qu'elle fait |
 |---|---|
 | `ucmExperience('E1')` | importe les clés avec 1, 4, 8, 16 et 32 imports en vol, trois fois chacun |
+| `ucmExperience('E1-froid')` | importe un groupe de clés distinct par palier, avec 32, 16, 8, 4 puis 1 imports en vol, pour qu'aucun palier ne profite des imports d'un autre ; à lancer juste après l'ouverture du fichier |
 | `ucmExperience('E2')` | compare identifiant et `valuesByMode` entre `getVariableByIdAsync` et l'import, avec leurs durées ; à refaire après une mise à jour de library publiée non acceptée |
 | `ucmExperience('E3')` | l'interface envoie un message toutes les 16 ms pendant 300 `getVariableByIdAsync` à la suite ; le résultat donne les messages reçus et attendus |
 | `ucmExperience('E4')`, puis `ucmExperience('E4-fin')` | journalise les `nodechange` de la page pendant vos gestes ; la sortie de départ liste les six gestes |
 | `ucmExperience('E5')`, puis `ucmExperience('E5-fin')` | même écoute pendant que vous republiez l'icône d'un maître distant et acceptez la mise à jour |
-| `ucmExperience('E6')` | relit la liste des libraries 0, 5, 10, 20, 30 et 60 s après une lecture, trois séries (environ 7 minutes) |
+| `ucmExperience('E6')` | relit la liste des libraries et les variables de chaque collection 0, 5, 10, 20, 30 et 60 s après une lecture, trois séries (environ 7 minutes) |
 
-Aucune expérience n'écrit dans le document. E1 et E2 importent des variables de library par clé, ce que l'analyse fait déjà. Copiez chaque objet de la console dans `_local/vitesse-analyse/`, hors de git.
+Aucune expérience n'écrit dans le document. E1 et E2 importent des variables de library par clé, ce que l'analyse fait déjà. Collez les objets copiés dans `_local/vitesse-analyse/`, hors de git.
 
 ## Licence
 
