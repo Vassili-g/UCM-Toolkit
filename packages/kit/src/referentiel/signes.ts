@@ -180,6 +180,7 @@ export const SIGNES: readonly SigneDuLangage[] = [
     ['applique', 'appliqué', '<path d="m3 8.5 3.2 3.2L13 4.5"/>', 'L’écriture a réussi.'],
     ['defait', 'défait', '<path d="M5.5 3.5 2.5 6.5l3 3M2.5 6.5h7a4 4 0 0 1 0 8H7"/>', 'Le designer a fait Ctrl+Z.'],
     ['perime', 'analyse périmée', '<path d="M13 8a5 5 0 1 1-1.5-3.6M13 2.3v3h-3"/>', 'Le composant a changé depuis l’analyse.'],
+    ['information', 'information', '<path d="M3.5 2h6.5l2.5 2.5V14h-9z"/><path d="M5.8 7h4.4M5.8 9.5h4.4M5.8 12h2.6"/>', 'Ce que l’analyse n’a pas mesuré ; aucun geste attendu.'],
   ]),
   ...famille('accessibilite', [
     ['contraste', 'paire de contraste', '<rect x="2" y="2" width="8" height="8" rx="1" fill="currentColor"/><rect x="6" y="6" width="8" height="8" rx="1"/>', 'Un texte ou une icône sur son fond.'],

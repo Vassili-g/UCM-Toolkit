@@ -57,3 +57,9 @@ test('svgDuSigne rend un SVG de la taille demandée', () => {
 test('svgDuSigne lève une erreur claire pour un identifiant inconnu', () => {
   assert.throws(() => svgDuSigne('nexiste-pas'), /Signe inconnu : « nexiste-pas »/);
 });
+
+test('le signe information, une note, range ce que l’analyse dit sans geste attendu', () => {
+  const signe = SIGNES.find((candidat) => candidat.id === 'information');
+  assert.equal(signe?.famille, 'proposition');
+  assert.match(svgDuSigne('information'), /<path d="M3\.5 2h6\.5l2\.5 2\.5V14h-9z"\/>/);
+});
