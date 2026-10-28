@@ -11,7 +11,8 @@ R-11 à R-27. La section 10 les réunit avec leur état ; la maquette les repren
 en section 8.
 
 Le mainteneur a relu une première version de la maquette. Ses réponses sont
-reportées dans chaque section. Restent ouverts : R-17, R-21 et R-23 (section 10).
+reportées dans chaque section. Reste ouvert : R-21, le rapport de Button. R-28
+relève de Palettes.
 
 ## 1. Fenêtre, barre et panneau
 
@@ -377,7 +378,7 @@ test ne lui donnait un dossier écrit en mot entier.
    passer par `termePourCategorie`. Le prochain lecteur de la règle ne pourra
    pas l'oublier.
 
-R-17 confirme que la règle vaut pour toutes les collections.
+Décidé (R-17) : la règle vaut pour toutes les collections.
 
 ### 7.3 Le radius du layer `.Ring`, lié à un token de layout
 
@@ -596,6 +597,56 @@ Le mainteneur indique que les composants Outlined se posent sur
 `elevation/raised`. Un Button se pose aussi sur la page, dans un formulaire.
 Avis : les deux fonds.
 
+#### Ce que UCM Palettes garantit
+
+Le kit porte les sept garanties de contraste que Palettes tient pour chaque
+palette (`GARANTIES`, `packages/kit/src/emplois/garanties.ts`). Elles portent
+presque toutes sur la page, pas sur la carte :
+
+| Variable du thème | Seuil | Garantie sur la page | Garantie sur la carte |
+|---|---|---|---|
+| `solid/default` | 3:1 | Oui | Non |
+| `surface/foreground`, `surface/border` | 4,5:1, 3:1 | Oui, et sur les fonds `surface` | Non |
+| `page/foreground` | 4,5:1 | Oui | Non |
+| `page/border` | 3:1 | Oui | Non |
+| `ring` | 3:1 | Oui | Oui |
+
+Palettes prend donc en compte le contraste sur la page. C'est la carte qu'il ne
+garantit pas, sauf pour l'anneau.
+
+#### La règle retenue
+
+Décidé (R-23) : Architect mesure sur les deux fonds, et la sévérité suit la
+garantie de Palettes. Architect suit l'alias du token jusqu'à la variable du
+thème, puis cherche cette variable et ce fond dans `GARANTIES` :
+
+| Échec du contraste | Sévérité | Ce que dit la carte |
+|---|---|---|
+| Sur un fond que Palettes garantit pour cette variable | À corriger | Le fond, le mode et le contraste ; Palettes garantit ce contraste, donc la palette est hors garantie ou le token lié n'est pas le bon |
+| Sur un fond que Palettes ne garantit pas | À vérifier | Le fond, le mode et le contraste ; Palettes ne garantit pas ce fond pour cette variable ; vérifiez si le composant s'y pose |
+| Variable hors du thème UCM, ou fond de repli de la page Figma | À vérifier | Le fond mesuré, et qu'aucune garantie ne s'applique |
+
+Il n'y a donc pas de constat dur sur un usage que Palettes ne promet pas. La
+garantie est lue dans le kit, la même source que Palettes : une garantie
+ajoutée à Palettes change la sévérité d'Architect sans autre lot.
+
+Textes proposés (cadre 7f) :
+
+> **À corriger** Sur la page, `elevation/page`, le stroke a un contraste de
+> 2,4:1 en Dark, sous le seuil de 3:1. UCM Palettes garantit ce contraste pour
+> `page/border`. Vérifiez la palette dans UCM Palettes, ou le token lié.
+
+> **À vérifier** Sur une carte, `elevation/raised`, le stroke a un contraste de
+> 2,7:1 en Dark, sous le seuil de 3:1. UCM Palettes ne garantit pas ce
+> contraste sur une carte. Vérifiez si Button se pose sur une carte.
+
+#### Une question pour Palettes
+
+Les composants Outlined se posent sur une carte, et Palettes ne garantit pas
+leurs couleurs sur ce fond. Faut-il étendre les garanties 2, 5 et 6 à
+`elevation/raised` ? La question relève de Palettes, pas de cette recette
+(R-28).
+
 #### D'où vient la valeur de `elevation/raised`
 
 Le kit ne porte aucune palette d'un projet. Il porte seulement le nom et le
@@ -723,17 +774,18 @@ corrigé en R-1 : une valeur que Figma garde sans l'appliquer.
 | R-14 | Le bouton de modèle | | Décidé : une carte dans le panneau, par section concernée |
 | R-15 | Le tableau des variants | | Décidé : retiré |
 | R-16 | Le bouton Sélectionner | | Décidé : désactivé une fois les layers sélectionnés ; ouvrir une carte ne sélectionne plus ; bouton avant le chevron |
-| R-17 | Mots entiers dans les dossiers, abréviations dans les variables, dans toutes les collections | Oui, comme le plan de Nomenclature | Ouvert |
+| R-17 | Mots entiers dans les dossiers, abréviations dans les variables, dans toutes les collections | | Décidé : oui |
 | R-18 | `.Ring`, pièce partagée | | Décidé : option 1 ; la couleur reste surchargée par chaque hôte |
 | R-19 | Une section Informations en dernier, hors du compte des constats | | Décidé : oui ; l'alerte Information quitte les cartes |
 | R-20 | Le fond d'un variant sans fill | | Décidé : fond d'élévation du thème dans chaque mode, page Figma en repli |
 | R-21 | Envoyer le rapport téléchargeable de Button | Pour établir la cause de C45 et les cibles de C21 | Ouvert |
 | R-22 | « propriété » dans les phrases | | Décidé : oui ; les types de Figma restent en anglais |
-| R-23 | Un composant sans fond se pose-t-il toujours dans une carte (`elevation/raised` seul), ou aussi sur la page (les deux fonds) ? | Les deux fonds, la carte nomme celui qui échoue | Ouvert |
+| R-23 | Le fond d'un composant sans fond | | Décidé : la page et la carte ; À corriger si Palettes garantit ce fond pour la variable, À vérifier sinon ; la carte nomme le fond et la garantie |
 | R-24 | Un seuil de contraste propre aux variants désactivés | | Décidé : non |
 | R-25 | La Configuration prend la place du panneau quand il est ouvert, celle de la vue quand il est fermé | | Décidé : oui |
 | R-26 | Les quatre sortes de composant imbriqué dans le référentiel du kit, et le préfixe `.` ou `_` comme convention de la pièce partagée | | Décidé : oui, factorisé dans UCM Toolkit |
 | R-27 | Noms de variants | | Décidé : E, valeurs en puces, paire exacte au survol ; la property reste quand deux valeurs se confondent |
+| R-28 | Étendre les garanties 2, 5 et 6 de Palettes à `elevation/raised` | À traiter dans Palettes | Ouvert, hors de cette recette |
 
 ## 11. Ordre de travail proposé
 
@@ -743,9 +795,9 @@ en premier, dans une seule version du kit :
 | Lot | Contenu | Dépend de |
 |---|---|---|
 | K1 | C21 écarte une liaison qui porte les valeurs de son variant (7.1) | — |
-| K2 | C10 lit l'écriture des dossiers, et le test qui l'impose (7.2) | R-17 |
+| K2 | C10 lit l'écriture des dossiers, et le test qui l'impose (7.2) | — |
 | K3 | C17 admet `foreground` sur un stroke (8) | — |
-| K4 | Fond d'élévation du thème pour le contraste (7.5) | R-23 |
+| K4 | Contraste sur la page et la carte, sévérité selon les garanties de Palettes (7.5) | — |
 | K5 | Sortes de composant imbriqué dans le référentiel, et leur test (7.3) | — |
 | K6 | Pièce partagée : `theme` et `layout` admis dans son composant principal (7.3) | K5 |
 | S1 | Le socle exporte la règle des espacements sans effet ; relevé et vue la lisent (9) | — |
