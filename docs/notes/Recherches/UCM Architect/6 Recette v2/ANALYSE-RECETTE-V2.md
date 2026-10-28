@@ -880,27 +880,53 @@ tient presque toujours. En Dark, c'est elle qui contraint.
 | Couche | Changement |
 |---|---|
 | Kit, `packages/kit/src/emplois/garanties.ts` | `FOND_DE_LA_CARTE` rejoint les fonds de G2 à G6. Le kit monte de version : Palettes et Architect lisent `GARANTIES` |
-| Moteur, `packages/couleur/src/promesses.ts` et `jugement.ts` | Rien à écrire : il juge déjà chaque fond de la liste, et sait calculer la carte. Le nombre de promesses passe de 16 à 21 par mode et par intensité |
+| Moteur, `packages/couleur/src/promesses.ts`, `jugement.ts` et `limites.ts` | Rien à écrire pour les promesses et la limite dynamique : elles lisent la liste des fonds du kit, et le moteur sait calculer la carte. Le nombre de promesses passe de 16 à 21 par mode et par intensité |
+| Moteur, `packages/couleur/src/garantie.ts` | La garantie des courbes juge aussi contre la carte en Dark |
 | Palettes, interface | La carte des garanties et la réglette ont déjà deux colonnes, « sur la page » et « sur la carte », pour G7. Les garanties 2 à 6 les prennent aussi |
 | Palettes, planche et rapport | Les promesses sur la carte s'ajoutent. Les textes qui comptent les contrôles changent : 64 et 32 deviennent 84 et 42 |
 | Spécification de Palettes | Section 11.2 et `[VER-21]` réécrits. Le nombre de contrôles change |
 | Architect | Rien de plus que K4 : la sévérité suit `GARANTIES` |
 
-### Le risque : des palettes qui ne tiennent plus
+### Ce que la carte change dans le calcul des palettes
 
-La spécification a mesuré G2 à G7 sur 14 références et sur 864 références de
-toutes teintes : aucune n'échoue sur la page. Rien n'a été mesuré sur la carte
-en Dark. Le premier lot du chantier refait cette mesure avec la carte, avant
-toute écriture.
+Une palette ne casse pas ses garanties : Palettes les tient par construction,
+de deux façons.
 
-Si des palettes échouent sur la carte en Dark, trois réponses existent :
+- **La garantie des courbes** (`[ENT-10]`, `packages/couleur/src/garantie.ts`).
+  Toutes les palettes d'un mode partagent la même courbe de clartés. La courbe
+  est choisie pour que les garanties tiennent sur 360 teintes, pour les deux
+  profils et les deux modes. Une palette, quelle que soit sa teinte, hérite de
+  cette garantie.
+- **La limite dynamique** (`[DER-19]`, `packages/couleur/src/limites.ts`). Le
+  Color shift et le réglage global s'arrêtent avant qu'une promesse tenue au
+  départ ne manque. Le designer ne peut pas casser une garantie avec un
+  curseur.
 
-1. accepter : Palettes signale la garantie manquée, comme aujourd'hui sur la page, et propose « Ajuster la référence » ;
-2. changer un cran de la table des dossiers en Dark (`TABLE_DES_DOSSIERS`), pour la variable qui échoue ;
+Seule la référence exacte, ancrée sur un cran, peut manquer une garantie. Palettes
+le signale et propose « Ajuster la référence ».
+
+Ajouter la carte aux fonds garantis agit donc à deux endroits :
+
+| Endroit | Effet |
+|---|---|
+| Limite dynamique | Elle lit les promesses du kit : elle prend la carte sans changement de code. En Dark, les curseurs peuvent s'arrêter plus tôt |
+| Garantie des courbes | Elle juge aujourd'hui `page/foreground` et `ring` contre le cran le plus clair, et `solid/default` contre le texte des boutons. Elle doit aussi juger contre la carte, en Dark |
+
+Le risque n'est pas qu'une palette échoue. Le risque est que la courbe Dark par
+défaut ne tienne pas la carte pour certaines teintes. Ce serait alors à corriger
+une fois, dans la courbe, pas palette par palette.
+
+Le premier lot du chantier mesure, avant toute écriture :
+
+1. la garantie des courbes contre la carte en Dark, sur 360 teintes et les deux profils ;
+2. de combien la limite dynamique resserre les curseurs en Dark.
+
+Si la courbe Dark par défaut ne tient pas la carte, trois réponses existent
+(R-30) :
+
+1. éclaircir la courbe Dark sur les crans concernés ;
+2. changer le cran de la variable dans la table des dossiers en Dark (`TABLE_DES_DOSSIERS`) ;
 3. rapprocher la carte de la page en Dark (`[MOT-37]`).
-
-Le choix dépend du nombre de références touchées. R-30 le pose une fois la
-mesure faite.
 
 ## 11. Questions au mainteneur
 
@@ -925,7 +951,7 @@ mesure faite.
 | R-27 | Noms de variants | | Décidé : E, valeurs en puces, paire exacte au survol ; la property reste quand deux valeurs se confondent |
 | R-28 | Les garanties de Palettes sur la carte | | Décidé : dans cette recette ; partout où la page est un fond garanti, la carte l'est aussi (section 10) |
 | R-29 | Distinguer une sous-pièce d'une pièce partagée | | Décidé : non ; une seule sorte, « pièce interne », et une seule règle de liaison |
-| R-30 | Si des palettes ne tiennent plus sur la carte en Dark : accepter, changer un cran de la table, ou rapprocher la carte de la page | Selon la mesure du lot P0 | Ouvert, après la mesure |
+| R-30 | Si la courbe Dark par défaut ne tient pas la carte : éclaircir la courbe, changer un cran de la table, ou rapprocher la carte de la page | Selon la mesure du lot P0 | Ouvert, après la mesure |
 
 ## 12. Ordre de travail proposé
 
@@ -940,7 +966,7 @@ en premier, dans une seule version du kit :
 | K4 | Contraste sur la page et la carte, sévérité selon les garanties de Palettes (7.5) | — |
 | K5 | Sortes de composant imbriqué dans le référentiel, et leur test (7.3) | — |
 | K6 | Pièce interne : `theme` et `layout` admis dans son composant principal (7.3) | K5 |
-| P0 | Mesure des garanties G2 à G6 sur la carte, sur les références de la spécification (10) | — |
+| P0 | Mesure de la garantie des courbes contre la carte en Dark, et du resserrement des curseurs (10) | — |
 | P1 | Kit : la carte rejoint les fonds de G2 à G6 ; nouvelle version (10) | P0, R-30 |
 | P2 | Palettes : carte des garanties, réglette, planche, rapport et textes ; spécification (10) | P1 |
 | S1 | Le socle exporte la règle des espacements sans effet ; relevé et vue la lisent (9) | — |

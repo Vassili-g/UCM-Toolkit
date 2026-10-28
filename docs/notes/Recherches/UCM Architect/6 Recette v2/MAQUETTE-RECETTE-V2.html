@@ -328,11 +328,16 @@
   l'interface de Palettes a déjà les deux colonnes « sur la page » et « sur la carte » pour l'anneau. Les promesses passent de
   16 à 21 par mode et par intensité.</p>
   <div class="discussion">
-    <h4>Le risque, R-30 après mesure</h4>
-    <p>La spécification a mesuré les garanties sur 864 références : aucune n'échoue sur la page. Rien n'a été mesuré sur la
-    carte en Dark. Le premier lot refait cette mesure, avant toute écriture.</p>
-    <p>Si des palettes échouent : accepter et le signaler comme aujourd'hui, changer un cran de la table en Dark, ou rapprocher
-    la carte de la page. Le choix dépend du nombre de références touchées.</p>
+    <h4>Une palette ne casse pas ses garanties</h4>
+    <p>Palettes les tient par construction. Toutes les palettes d'un mode partagent la même courbe de clartés, choisie pour
+    tenir les garanties sur 360 teintes : c'est la garantie des courbes. Et les curseurs s'arrêtent avant qu'une promesse
+    tenue ne manque : c'est la limite dynamique.</p>
+    <p>La limite dynamique prend la carte sans changement : en Dark, les curseurs peuvent s'arrêter plus tôt. La garantie
+    des courbes doit, elle, juger aussi contre la carte en Dark.</p>
+    <p>Le risque n'est donc pas qu'une palette échoue, mais que la courbe Dark par défaut ne tienne pas la carte pour
+    certaines teintes. Ce serait à corriger une fois, dans la courbe. Le premier lot le mesure, avec le resserrement des
+    curseurs. R-30 suit la mesure : éclaircir la courbe Dark, changer un cran de la table, ou rapprocher la carte de la
+    page.</p>
   </div>
 
   <h2 id="questions">10. Questions au mainteneur</h2>
@@ -358,7 +363,7 @@
     <tr><td>R-27</td><td>Noms de variants</td><td></td><td><span class="decide">Décidé</span> E, valeurs en puces, paire exacte au survol</td></tr>
     <tr><td>R-28</td><td>Les garanties de Palettes sur la carte</td><td></td><td><span class="decide">Décidé</span> dans cette recette ; partout où la page est un fond garanti, la carte l'est aussi</td></tr>
     <tr><td>R-29</td><td>Distinguer une sous-pièce d'une pièce partagée</td><td></td><td><span class="decide">Décidé</span> non ; une seule sorte, « pièce interne »</td></tr>
-    <tr><td>R-30</td><td>Si des palettes ne tiennent plus sur la carte en Dark : accepter, changer un cran de la table, ou rapprocher la carte de la page</td><td>Selon la mesure</td><td><span class="ouvert">Ouvert, après la mesure</span></td></tr>
+    <tr><td>R-30</td><td>Si la courbe Dark par défaut ne tient pas la carte : éclaircir la courbe, changer un cran de la table, ou rapprocher la carte de la page</td><td>Selon la mesure</td><td><span class="ouvert">Ouvert, après la mesure</span></td></tr>
   </table>
 </main>
 
