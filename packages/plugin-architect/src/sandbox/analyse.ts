@@ -1449,6 +1449,13 @@ export const intentionDe = (demande: Extract<DemandeDAnalyse, { type: 'analyser'
  */
 export const reutilisationPermise = (demande: Extract<DemandeDAnalyse, { type: 'analyser' }>): boolean => intentionDe(demande) === 'analyser';
 
+/**
+ * Le calcul que l'analyse enchaîne entre deux cessions. Chaque cession coûte environ 7 ms dans Figma (trace 9.9) : 50 ms en
+ * divisent le nombre par deux et gardent la réponse à une entrée sous 100 ms. Une attente d'API ne rend pas la main à
+ * l'interface (E3, lot 16) : elle reste comptée dans le budget.
+ */
+export const BUDGET_DE_CALCUL_DE_L_ANALYSE_MS = 50;
+
 async function analyser(contexte: Contexte, lecteurs: Lecteurs, demande: Extract<DemandeDAnalyse, { type: 'analyser' }>, optionsDeCooperation: Omit<OptionsDeCooperation, 'jeton'>): Promise<void> {
   // Une analyse déjà périmée ne sert plus à personne : sa suite annulée, la nouvelle demande est servie. Une opération non périmée,
   // et toute écriture, gardent la réponse `occupe`.
@@ -1473,6 +1480,7 @@ async function analyser(contexte: Contexte, lecteurs: Lecteurs, demande: Extract
   // Un seul contexte par analyse : le relevé, le moteur et les contrôles se partagent son budget.
   const cooperation = creerContexteCooperatif({
     respirer: () => new Promise((resolve) => setTimeout(resolve, 0)),
+    budgetDeCalculMs: BUDGET_DE_CALCUL_DE_L_ANALYSE_MS,
     ...optionsDeCooperation,
     jeton: courant.jeton,
   });

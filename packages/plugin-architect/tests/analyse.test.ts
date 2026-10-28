@@ -22,7 +22,7 @@ import { rangerUnePreparation, type PreparationRangee } from '../src/preparation
 import { CLE_ARCHITECTURE_DU_FICHIER, ESPACE_ARCHITECT, texteDeLArchitectureDuFichier } from '@ucm-kit/core/referentiel';
 import { capturerLAnalyse, verifierLaPariteDeLAnalyse } from './parite';
 import type { IdentiteDAnalyse } from '../src/messages/commun';
-import { analyseCourante, catalogueDeFigma, commencerUneAnalyse, correctionsDeLAnalyse, etatDeLEntree, surChangementDeStyle, perimerApresUneEcriture, reinitialiserLAnalyse, sessionDesAnalyses, surChangementDuDocument, surSelection, traiterAvec, calculerParEtapes, type Lecteurs, type SujetAAnalyser } from '../src/sandbox/analyse';
+import { analyseCourante, catalogueDeFigma, commencerUneAnalyse, correctionsDeLAnalyse, etatDeLEntree, surChangementDeStyle, perimerApresUneEcriture, reinitialiserLAnalyse, sessionDesAnalyses, surChangementDuDocument, surSelection, traiterAvec, calculerParEtapes, BUDGET_DE_CALCUL_DE_L_ANALYSE_MS, type Lecteurs, type SujetAAnalyser } from '../src/sandbox/analyse';
 import { origineDeLaSelection, retenirLaSelectionDuPlugin } from '../src/sandbox/commun';
 import type { Contexte } from '../src/sandbox/contexte';
 import { collectionFigma, portDeTest, variableFigma } from './figmaDeTest';
@@ -203,6 +203,21 @@ test('le relevé et le moteur reçoivent le même budget ; les cessions conserve
     respirer: async () => { pauses += 1; },
   }));
   assert.ok(pauses >= 8);
+});
+
+test('l’analyse enchaîne 50 ms de calcul entre deux cessions, sauf budget imposé', async () => {
+  const restants: number[] = [];
+  const avec = (options: Parameters<typeof traiterAvec>[1]) => traiterAvec({
+    ...lecteurs(complete()),
+    releve: async (_sujet, _jeton, _contexte, _progresser, cooperation) => {
+      restants.push(cooperation!.restantMs());
+      return { statut: 'lu', releve: releveDeContraste('Alert') };
+    },
+  }, options);
+  await avec({ horloge: () => 0, respirer: async () => {} })({ type: 'analyser' }, banc().contexte);
+  await avec({ horloge: () => 0, respirer: async () => {}, budgetDeCalculMs: 5 })({ type: 'analyser' }, banc().contexte);
+  assert.equal(BUDGET_DE_CALCUL_DE_L_ANALYSE_MS, 50);
+  assert.deepEqual(restants, [50, 5]);
 });
 
 test('annuler pendant la construction des cibles de contraste abandonne les plages restantes', async () => {
@@ -1425,7 +1440,12 @@ test('chaque contrôle du kit ouvre son étape et porte l’avance de son seul c
       // La fusion lit `releve.variants` une fois, pour les identifiants de variants du moteur.
       assert.equal(etapes.at(-1)!.ms, 7);
       assert.ok(new Set(attendu.map(([, ms]) => ms)).size > 1 && attendu.some(([, ms]) => ms > 0), 'la fixture distingue les contrôles');
-      assert.deepEqual(avec.mesure!.phases!.map(({ nom }) => nom), ['sujet', 'releve', 'catalogue', 'moteur', 'controles', 'regles', 'controles', 'corrections', 'projection', 'projection']);
+      // Le moteur court pendant le catalogue et les contrôles (16.9) : sa phase s'ouvre à la première cession, que le budget place.
+      const phases = avec.mesure!.phases!.map(({ nom }) => nom);
+      assert.equal(phases.filter((nom) => nom === 'moteur').length, 1);
+      assert.ok(phases.indexOf('moteur') > phases.indexOf('catalogue'));
+      const sansMoteur = phases.filter((nom) => nom !== 'moteur');
+      assert.deepEqual(sansMoteur.filter((nom, rang) => nom !== sansMoteur[rang - 1]), ['sujet', 'releve', 'catalogue', 'controles', 'regles', 'controles', 'corrections', 'projection']);
       assert.deepEqual(avec.constats, sans.constats);
       assert.deepEqual(avec.lecture, sans.lecture);
       assert.deepEqual(avec.variants, sans.variants);
