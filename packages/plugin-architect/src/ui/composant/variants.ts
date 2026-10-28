@@ -105,6 +105,8 @@ export interface OptionsDeLaSection {
   readonly constats: readonly Constat[];
   /** Le nom du variant que la vue lit. */
   readonly affiche: string | undefined;
+  /** Le nom du variant demandé quand sa lecture court : les puces et les cellules le marquent choisi, et le prochain choix part de lui. Absent, c'est `affiche`. */
+  readonly choisi?: string;
   /** Les properties dont les valeurs sont toutes montrées. */
   readonly depliees: ReadonlySet<string>;
   /** `null` quand le tableau est fermé ; sinon les deux properties croisées. */
@@ -168,7 +170,7 @@ function ligneDeProperty(propriete: ProprieteDeVariants, options: OptionsDeLaSec
       puce.append(mention);
     }
     puce.addEventListener('click', () => {
-      const variant = variantApresLeChoix(options.variants, options.affiche, propriete.nom, valeur.valeur);
+      const variant = variantApresLeChoix(options.variants, options.choisi ?? options.affiche, propriete.nom, valeur.valeur);
       if (variant) options.choisir(variant);
     });
     valeurs.append(puce);
@@ -239,11 +241,11 @@ function tableauDe(proprietes: readonly ProprieteDeVariants[], croisement: { lig
     tete.textContent = ligne.valeur;
     grille.append(tete);
     for (const colonne of colonnes.valeurs) {
-      const variant = variantDeLaCellule(options.variants, options.affiche, [[lignes.nom, ligne.valeur], [colonnes.nom, colonne.valeur]]);
+      const variant = variantDeLaCellule(options.variants, options.choisi ?? options.affiche, [[lignes.nom, ligne.valeur], [colonnes.nom, colonne.valeur]]);
       const cellule = document.createElement('button');
       cellule.type = 'button';
       cellule.className = 'tableau-cellule';
-      if (variant && variant.nom === options.affiche) cellule.classList.add('choisie');
+      if (variant && variant.nom === (options.choisi ?? options.affiche)) cellule.classList.add('choisie');
       cellule.disabled = variant === null;
       if (variant) {
         const touches = constatsDuVariant(variant, options.constats);
@@ -262,7 +264,8 @@ function tableauDe(proprietes: readonly ProprieteDeVariants[], croisement: { lig
 export function creerSectionVariants(options: OptionsDeLaSection): HTMLElement | null {
   const proprietes = proprietesDe(options.variants, options.constats);
   if (options.variants.length < 2 || proprietes.length === 0) return null;
-  const affichees = new Map(options.affiche === undefined ? [] : pairesDuNom(options.affiche));
+  const choisi = options.choisi ?? options.affiche;
+  const choisies = new Map(choisi === undefined ? [] : pairesDuNom(choisi));
 
   const section = document.createElement('section');
   section.className = 'variants';
@@ -289,7 +292,7 @@ export function creerSectionVariants(options: OptionsDeLaSection): HTMLElement |
   else {
     const axes = document.createElement('div');
     axes.className = 'axes';
-    axes.append(...proprietes.map((propriete) => ligneDeProperty(propriete, options, affichees.get(propriete.nom))));
+    axes.append(...proprietes.map((propriete) => ligneDeProperty(propriete, options, choisies.get(propriete.nom))));
     corps.append(axes);
   }
 

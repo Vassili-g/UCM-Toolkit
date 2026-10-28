@@ -149,6 +149,36 @@
   color: var(--texte);
 }
 
+/* La lecture d'un autre variant court : l'ancien écran reste, une barre fine passe sous l'en-tête. */
+.lecture-fine {
+  height: 2px;
+  background: linear-gradient(90deg, transparent, var(--bordure-marque), transparent) 0 0 / 40% 100% no-repeat var(--filet);
+  animation: lecture-fine 1.2s ease-in-out infinite;
+}
+
+@keyframes lecture-fine {
+  from { background-position: -40% 0; }
+  to { background-position: 140% 0; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .lecture-fine {
+    animation: none;
+    background: var(--bordure-marque);
+  }
+}
+
+/* Une valeur que le changement de variant vient de modifier : un fond qui s'efface en 600 ms, sans mouvement. */
+.vient-de-changer {
+  border-radius: 3px;
+  animation: vient-de-changer 600ms ease-out;
+}
+
+@keyframes vient-de-changer {
+  from { background: var(--fond-selection); }
+  to { background: transparent; }
+}
+
 .vc-apercu {
   display: grid;
   overflow: hidden;
@@ -257,6 +287,7 @@
 
 .vc-section-tete .chevron-svg {
   flex: none;
+  margin-left: auto;
 }
 
 .vc-section-tete b {

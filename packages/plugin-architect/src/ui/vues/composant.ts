@@ -12,6 +12,12 @@
  * change la portée sans relecture ; un autre composant déclenche une lecture.
  * Ouvrir un composant imbriqué empile le composant quitté, que le fil
  * d'Ariane rend sans relecture.
+ *
+ * Un autre variant du même jeu ne remplace pas l'écran. L'ancienne lecture
+ * reste affichée sous une barre fine pendant la lecture ; à l'arrivée, l'en-tête,
+ * la section Variants et les lignes dont la clé existe encore gardent leurs
+ * nœuds, et seul leur contenu change. Les sections, le filtre et le défilement
+ * restent. Un nouveau composant garde l'écran « Lecture du composant… ».
  */
 import {
   SEUIL_DE_REPLI,
@@ -109,6 +115,30 @@ function trace(svg: SVGSVGElement, balise: 'path' | 'circle', attributs: Record<
   svg.append(forme);
 }
 
+/** Le nœud d'une ligne de token, qui survit aux dessins tant que la clé de la ligne existe. */
+interface EntreeDeLigne {
+  readonly token: HTMLElement;
+  readonly bouton: HTMLElement;
+  /** Le texte et l'aspect de la ligne au dernier remplissage : un dessin identique laisse les nœuds intérieurs en place. */
+  signature: string;
+  valeur: string;
+  fois: string;
+  /** Le même emplacement dans le composant, d'un variant à l'autre : nature, libellés et noms de layers. */
+  emplacement: string;
+}
+
+/** Remplit `ancien` du contenu de `frais` et le rend ; sans `ancien`, rend `frais`. */
+function garder(ancien: HTMLElement | null, frais: HTMLElement): HTMLElement {
+  if (!ancien) return frais;
+  ancien.className = frais.className;
+  ancien.replaceChildren(...Array.from(frais.childNodes));
+  return ancien;
+}
+
+/** Deux lectures d'un même jeu portent la même liste de variants, dans le même ordre. */
+const memeListeDeVariants = (a: LectureDeComposant, b: LectureDeComposant): boolean =>
+  a.sujet.variants.length > 1 && a.sujet.nom === b.sujet.nom && a.sujet.variants.length === b.sujet.variants.length && a.sujet.variants.every((variant, rang) => variant.id === b.sujet.variants[rang].id);
+
 export function creerVueComposant(app: Application): VueComposant {
   const { etat } = app;
   const espace = (): ReturnType<typeof espaceDuReleve> => etat.index ? espaceDuReleve(etat.index.releve) : 'srgb';
@@ -142,6 +172,22 @@ export function creerVueComposant(app: Application): VueComposant {
   let cadres: HTMLElement | null = null;
   let liste: HTMLElement | null = null;
 
+  // Ce que la vue garde d'un dessin à l'autre : ses nœuds, par clé, et ce qui sépare un changement de variant d'un nouveau composant.
+  /** Vrai quand la lecture attendue est celle d'un autre variant du jeu affiché : l'ancienne lecture reste à l'écran. */
+  let lectureDuJeu = false;
+  /** Le variant que le designer vient de choisir dans la section Variants, tant que sa lecture court. */
+  let variantDemande: { readonly id: string; readonly nom: string } | null = null;
+  /** Vrai pour le dessin qui suit l'arrivée d'un autre variant du même jeu : ce qui change dans une ligne est surligné. */
+  let changementDeVariant = false;
+  let teteAffichee: HTMLElement | null = null;
+  let variantsAffiches: HTMLElement | null = null;
+  let barreDeLecture: HTMLElement | null = null;
+  const entreesDeLignes = new Map<string, EntreeDeLigne>();
+  /** L'aperçu que la zone montre : la cible `c.apercu` le remplace une fois son image chargée. */
+  let zone: { readonly zone: HTMLElement; readonly echelle: HTMLElement; readonly image: HTMLImageElement } | null = null;
+  let apercuAffiche: ApercuRecu | null = null;
+  let prechargeEnCours: string | null = null;
+
   const visible = (): boolean => etat.disposition === 'etroite';
   const racineDe = (lecture: LectureDeComposant): string => lecture.calques[0]?.id ?? lecture.sujet.id;
 
@@ -157,6 +203,23 @@ export function creerVueComposant(app: Application): VueComposant {
     if (apercu) URL.revokeObjectURL(apercu.url);
   }
 
+  /** L'aperçu de la zone n'est plus le bon : il se libère s'il n'est plus `c.apercu`, et la zone se refait au prochain dessin. */
+  function oublierLApercuAffiche(): void {
+    if (apercuAffiche && apercuAffiche !== c.apercu) liberer(apercuAffiche);
+    apercuAffiche = null;
+    prechargeEnCours = null;
+    zone = null;
+  }
+
+  /** Rend la vue à zéro : aucun nœud ne passe d'un composant à l'autre. */
+  function oublierLesNoeuds(): void {
+    teteAffichee = null;
+    variantsAffiches = null;
+    liste = null;
+    entreesDeLignes.clear();
+    oublierLApercuAffiche();
+  }
+
   function viderLaPile(): void {
     for (const quitte of c.pile) liberer(quitte.apercu);
     c.pile = [];
@@ -166,13 +229,19 @@ export function creerVueComposant(app: Application): VueComposant {
     if (c.statut === 'en-cours') versSandbox({ type: 'annuler', demande: c.demande });
   }
 
-  /** Demande une lecture ; la précédente, si elle court encore, est annulée. */
-  function demander(calque: string | null, empiler: boolean): void {
+  /**
+   * Demande une lecture ; la précédente, si elle court encore, est annulée.
+   * `variant` nomme l'autre variant du jeu affiché que la section Variants
+   * vient de choisir : l'ancienne lecture reste alors à l'écran jusqu'à la réponse.
+   */
+  function demander(calque: string | null, empiler: boolean, variant: { readonly id: string; readonly nom: string } | null = null): void {
     annulerLaLectureEnCours();
     c.demande = app.nouvelleDemande();
     c.statut = 'en-cours';
     c.empiler = empiler;
     c.deLaSelection = calque === null;
+    lectureDuJeu = variant !== null && c.lecture !== null && c.index !== null && c.portee !== null && !empiler;
+    variantDemande = lectureDuJeu ? variant : null;
     versSandbox({ type: 'lire-composant', demande: c.demande, calque });
     rendre();
   }
@@ -180,6 +249,7 @@ export function creerVueComposant(app: Application): VueComposant {
   /** Revient au composant de rang `rang` dans la pile, sans relecture. */
   function depiler(rang: number): void {
     const retrouve = c.pile[rang];
+    oublierLesNoeuds();
     liberer(c.apercu);
     for (const quitte of c.pile.slice(rang + 1)) liberer(quitte.apercu);
     c.pile = c.pile.slice(0, rang);
@@ -197,6 +267,7 @@ export function creerVueComposant(app: Application): VueComposant {
     if (!sujet) {
       annulerLaLectureEnCours();
       viderLaPile();
+      oublierLesNoeuds();
       liberer(c.apercu);
       Object.assign(c, { statut: 'vide', lecture: null, index: null, portee: null, apercu: null });
       rendre();
@@ -207,6 +278,8 @@ export function creerVueComposant(app: Application): VueComposant {
     const affiche = c.lecture?.sujet.id === sujet.id;
     if ((affiche || rang !== -1) && c.lecture && c.statut !== 'echouee') {
       annulerLaLectureEnCours();
+      lectureDuJeu = false;
+      variantDemande = null;
       if (!affiche) depiler(rang);
       c.statut = 'lu';
       c.portee = c.lecture.calques.some((calque) => calque.id === sujet.portee) ? sujet.portee : racineDe(c.lecture);
@@ -350,7 +423,8 @@ export function creerVueComposant(app: Application): VueComposant {
 
   /** Les cadres des calques dont la boîte coupe l'image, réduits du même facteur qu'elle. */
   function poserLesCadres(calques: readonly string[], genre: 'survol' | 'portee' | 'selection'): void {
-    const { lecture, apercu } = c;
+    const { lecture } = c;
+    const apercu = apercuAffiche ?? c.apercu;
     if (!cadres || !lecture || !apercu) return;
     const facteur = Math.min(1, LARGEUR_DE_LAPERCU / apercu.largeur, HAUTEUR_DE_LAPERCU / apercu.hauteur);
     const voulus = new Set(calques);
@@ -376,28 +450,66 @@ export function creerVueComposant(app: Application): VueComposant {
     for (const cadre of Array.from(cadres.children)) if (cadre.classList.contains('vc-cadre') && !cadre.classList.contains('vc-cadre-portee') && !cadre.classList.contains('vc-cadre-selection')) cadre.remove();
   }
 
+  /** Montre `cible` à la place de l'aperçu affiché, et libère l'ancien. */
+  function afficherLApercu(cible: ApercuRecu): void {
+    const ancien = apercuAffiche;
+    apercuAffiche = cible;
+    prechargeEnCours = null;
+    if (ancien && ancien !== cible && ancien !== c.apercu) liberer(ancien);
+  }
+
+  /** L'image d'un autre aperçu se charge hors de la page ; la zone ne la montre qu'une fois chargée, pour garder l'ancienne entre-temps. */
+  function precharger(cible: ApercuRecu): void {
+    if (prechargeEnCours === cible.url) return;
+    if (typeof Image === 'undefined') {
+      afficherLApercu(cible);
+      return;
+    }
+    prechargeEnCours = cible.url;
+    const essai = new Image();
+    const fini = (): void => {
+      if (prechargeEnCours !== cible.url || c.apercu?.url !== cible.url) return;
+      afficherLApercu(cible);
+      rendre();
+    };
+    essai.onload = fini;
+    essai.onerror = fini;
+    essai.src = cible.url;
+  }
+
+  /** La zone d'aperçu garde son nœud d'un dessin à l'autre ; son image change quand la nouvelle est chargée. */
   function zoneDApercu(lecture: LectureDeComposant, portee: string): HTMLElement | null {
-    const apercu = c.apercu;
+    const cible = c.apercu;
     cadres = null;
-    if (!apercu || !(apercu.largeur > 0) || !(apercu.hauteur > 0)) return null;
-    const zone = document.createElement('div');
-    zone.className = 'vc-apercu';
-    zone.setAttribute('aria-label', T.apercu);
-    const facteur = Math.min(1, LARGEUR_DE_LAPERCU / apercu.largeur, HAUTEUR_DE_LAPERCU / apercu.hauteur);
-    const echelle = document.createElement('span');
-    echelle.className = 'vc-echelle';
-    echelle.style.width = `${apercu.largeur * facteur}px`;
-    echelle.style.height = `${apercu.hauteur * facteur}px`;
-    const image = document.createElement('img');
-    image.className = 'vc-image';
-    image.alt = '';
-    image.src = apercu.url;
-    echelle.append(image);
+    if (!cible || !(cible.largeur > 0) || !(cible.hauteur > 0)) {
+      oublierLApercuAffiche();
+      return null;
+    }
+    if (!zone || apercuAffiche === null) {
+      oublierLApercuAffiche();
+      const enveloppe = document.createElement('div');
+      enveloppe.className = 'vc-apercu';
+      enveloppe.setAttribute('aria-label', T.apercu);
+      const echelle = document.createElement('span');
+      echelle.className = 'vc-echelle';
+      const image = document.createElement('img');
+      image.className = 'vc-image';
+      image.alt = '';
+      zone = { zone: enveloppe, echelle, image };
+      enveloppe.append(echelle);
+      apercuAffiche = cible;
+    } else if (apercuAffiche.url !== cible.url) precharger(cible);
+    const montre = apercuAffiche ?? cible;
+    const facteur = Math.min(1, LARGEUR_DE_LAPERCU / montre.largeur, HAUTEUR_DE_LAPERCU / montre.hauteur);
+    const { zone: enveloppe, echelle, image } = zone;
+    echelle.style.width = `${montre.largeur * facteur}px`;
+    echelle.style.height = `${montre.hauteur * facteur}px`;
+    if (image.src !== montre.url) image.src = montre.url;
+    echelle.replaceChildren(image);
     cadres = echelle;
-    zone.append(echelle);
     if (portee !== racineDe(lecture)) poserLesCadres([portee], 'portee');
     poserLesCadres(selectionDuPlugin, 'selection');
-    return zone;
+    return enveloppe;
   }
 
   function sectionDesVariants(lecture: LectureDeComposant, portee: string): HTMLElement | null {
@@ -410,11 +522,12 @@ export function creerVueComposant(app: Application): VueComposant {
       constats: analyse.constats,
       nonLus: new Set(analyse.lecture?.variantsNonLus ?? []),
       affiche: affiche?.nom,
+      choisi: c.statut === 'en-cours' && variantDemande ? variantDemande.nom : undefined,
       depliees: proprietesDepliees,
       tableau,
       choisir: (variant) => {
         focusAttendu = null;
-        demander(variant.id, false);
+        demander(variant.id, false, variant);
       },
       deplier: (propriete) => {
         proprietesDepliees = new Set([...proprietesDepliees, propriete]);
@@ -608,15 +721,53 @@ export function creerVueComposant(app: Application): VueComposant {
     return apres.split('/').filter((segment, rang) => segment !== anciens[rang]);
   };
 
-  function ligneDe(lecture: LectureDeComposant, index: Index, ligne: LigneDeComposant): HTMLElement {
-    const ouvert = ouverts.has(ligne.cle);
+  /** Ce que le clic sur une ligne fait : suivre le lien d'un segment corrigé, sinon déplier ou replier la chaîne. Il lit l'état courant, car le nœud de la ligne survit aux dessins. */
+  function surLeClicDeLaLigne(cle: string, evenement: Event): void {
+    const ligne = lignes.find((candidate) => candidate.cle === cle);
+    if (!ligne) return;
+    const changee = correctionDe(ligne);
+    const segment = evenement.target instanceof Element ? evenement.target.closest('.ch-lien') : null;
+    if (segment && changee) {
+      auClicDeCorrection(changee.calques);
+      return;
+    }
+    if (ouverts.has(cle)) ouverts.delete(cle);
+    else ouverts.add(cle);
+    focusAttendu = `ligne:${cle}`;
+    rendreLaListe();
+  }
+
+  function entreeDeLigne(cle: string): EntreeDeLigne {
+    const connue = entreesDeLignes.get(cle);
+    if (connue) return connue;
     const token = document.createElement('div');
     token.className = 'vc-token';
     const bouton = document.createElement('button');
     bouton.type = 'button';
     bouton.className = 'vc-ligne';
-    bouton.dataset.cle = ligne.cle;
-    bouton.dataset.focus = `ligne:${ligne.cle}`;
+    bouton.dataset.cle = cle;
+    bouton.dataset.focus = `ligne:${cle}`;
+    bouton.addEventListener('click', (evenement) => surLeClicDeLaLigne(cle, evenement));
+    token.append(bouton);
+    const entree: EntreeDeLigne = { token, bouton, signature: '', valeur: '', fois: '', emplacement: '' };
+    entreesDeLignes.set(cle, entree);
+    return entree;
+  }
+
+  /** Où la ligne se range dans le composant, sans l'identité de ses layers : un autre variant les renomme en gardant leur nom. */
+  const emplacementDe = (lecture: LectureDeComposant, ligne: LigneDeComposant): string =>
+    [ligne.nature, ligne.libelles.join(','), ...ligne.calques.map((id) => lecture.calques.find((calque) => calque.id === id)?.nom ?? id).sort()].join('|');
+
+  /**
+   * La ligne d'un token. Son nœud et son bouton survivent tant que la clé existe ; le contenu se refait seulement quand son texte ou son aspect
+   * change. `orphelins` garde les valeurs d'avant des lignes qui n'ont plus de clé, par emplacement : une ligne neuve qui prend leur place
+   * est surlignée si sa valeur diffère.
+   */
+  function ligneDe(lecture: LectureDeComposant, index: Index, ligne: LigneDeComposant, orphelins: Map<string, Array<{ valeur: string; fois: string }>>): HTMLElement {
+    const connue = entreesDeLignes.has(ligne.cle);
+    const entree = entreeDeLigne(ligne.cle);
+    const { token, bouton } = entree;
+    const ouvert = ouverts.has(ligne.cle);
     bouton.setAttribute('aria-expanded', String(ouvert));
     bouton.title = `${libellesEnTexte(ligne)} · ${calquesEnTexte(lecture, ligne)}`;
 
@@ -626,6 +777,7 @@ export function creerVueComposant(app: Application): VueComposant {
     const sens = document.createElement('bdi');
     const changee = correctionDe(ligne);
     if (changee) bouton.classList.add('corrige');
+    else bouton.classList.remove('corrige');
     sens.append(changee ? creerChemin(nomApresCorrection(ligne, changee), { ajouts: segmentsChanges(ligne.nomComplet, changee.apres), lien: true }) : creerChemin(ligne.nomCourt));
     nom.append(sens);
     identite.append(nom);
@@ -659,20 +811,26 @@ export function creerVueComposant(app: Application): VueComposant {
     fois.className = 'vc-fois';
     if (ligne.calques.length > 1) fois.textContent = T.fois(ligne.calques.length);
 
-    bouton.append(signeDeLaLigne(lecture, ligne), identite, fin, fois);
-    bouton.addEventListener('click', (evenement) => {
-      const segment = evenement.target instanceof Element ? evenement.target.closest('.ch-lien') : null;
-      if (segment && changee) {
-        auClicDeCorrection(changee.calques);
-        return;
+    const signe = signeDeLaLigne(lecture, ligne);
+    const couleur = couleurDe(ligne.resultat);
+    const details = ouvert ? (ligne.genre === 'style' || !ligne.resultat ? champsDe(lecture, index, ligne) : chaineDe(lecture, index, ligne, ligne.resultat)) : [];
+    const signature = JSON.stringify([
+      ouvert, ligne.resultat?.etapes.length ?? 0, changee?.apres ?? null, bouton.title, valeur.title, signe.className, signe.innerHTML, couleur ? couleurCss(couleur, espace()) : null, identite.textContent, fin.textContent, fois.textContent, details.map((detail) => detail.textContent),
+    ]);
+    const emplacement = emplacementDe(lecture, ligne);
+    if (signature !== entree.signature) {
+      if (changementDeVariant) {
+        const avant = connue ? { valeur: entree.valeur, fois: entree.fois } : orphelins.get(emplacement)?.shift();
+        if (avant && avant.valeur !== (valeur.textContent ?? '')) valeur.classList.add('vient-de-changer');
+        if (avant && avant.fois !== (fois.textContent ?? '')) fois.classList.add('vient-de-changer');
       }
-      if (ouverts.has(ligne.cle)) ouverts.delete(ligne.cle);
-      else ouverts.add(ligne.cle);
-      focusAttendu = `ligne:${ligne.cle}`;
-      rendreLaListe();
-    });
-    token.append(bouton);
-    if (ouvert) token.append(...(ligne.genre === 'style' || !ligne.resultat ? champsDe(lecture, index, ligne) : chaineDe(lecture, index, ligne, ligne.resultat)));
+      bouton.replaceChildren(signe, identite, fin, fois);
+      token.replaceChildren(bouton, ...details);
+      entree.signature = signature;
+    }
+    entree.valeur = valeur.textContent ?? '';
+    entree.fois = fois.textContent ?? '';
+    entree.emplacement = emplacement;
     return token;
   }
 
@@ -709,9 +867,18 @@ export function creerVueComposant(app: Application): VueComposant {
 
   function elementsDeLaListe(lecture: LectureDeComposant, index: Index): HTMLElement[] {
     const elements: HTMLElement[] = [];
-    for (const section of sectionsDe(lignes)) {
-      const gardees: SectionDeComposant = { nature: section.nature, lignes: filtrer(section.lignes, filtre, motDeLibelle) };
-      if (gardees.lignes.length === 0) continue;
+    const gardees = sectionsDe(lignes)
+      .map((section): SectionDeComposant => ({ nature: section.nature, lignes: filtrer(section.lignes, filtre, motDeLibelle) }))
+      .filter((section) => section.lignes.length > 0);
+    // Une ligne dont la clé disparaît laisse son emplacement et sa valeur : la ligne neuve qui le prend sait ce qui change.
+    const montrees = new Set(gardees.filter((section) => sectionOuverte(section.nature)).flatMap((section) => section.lignes.map((ligne) => ligne.cle)));
+    const orphelins = new Map<string, Array<{ valeur: string; fois: string }>>();
+    for (const [cle, entree] of entreesDeLignes) {
+      if (montrees.has(cle)) continue;
+      if (changementDeVariant) orphelins.set(entree.emplacement, [...(orphelins.get(entree.emplacement) ?? []), { valeur: entree.valeur, fois: entree.fois }]);
+      entreesDeLignes.delete(cle);
+    }
+    for (const section of gardees) {
       const ouverte = sectionOuverte(section.nature);
       const tete = document.createElement('button');
       tete.type = 'button';
@@ -722,17 +889,17 @@ export function creerVueComposant(app: Application): VueComposant {
       const nom = document.createElement('span');
       nom.textContent = T.natures[section.nature];
       const compte = document.createElement('b');
-      compte.textContent = String(gardees.lignes.length);
-      tete.append(creerChevron(), nom, compte);
+      compte.textContent = String(section.lignes.length);
+      tete.append(nom, compte, creerChevron());
       tete.addEventListener('click', () => {
         sections.set(section.nature, !ouverte);
         focusAttendu = `section:${section.nature}`;
         rendreLaListe();
       });
       elements.push(tete);
-      if (ouverte) elements.push(...gardees.lignes.map((ligne) => ligneDe(lecture, index, ligne)));
+      if (ouverte) elements.push(...section.lignes.map((ligne) => ligneDe(lecture, index, ligne, orphelins)));
       else {
-        const resume = resumeDeLaSection(gardees);
+        const resume = resumeDeLaSection(section);
         if (resume) elements.push(resume);
       }
     }
@@ -821,36 +988,57 @@ export function creerVueComposant(app: Application): VueComposant {
     pied.replaceChildren(comptes, bascule);
   }
 
+  /** La barre fine sous l'en-tête : la lecture d'un autre variant court, l'écran affiche encore l'ancienne. */
+  function barreFine(): HTMLElement {
+    if (barreDeLecture) return barreDeLecture;
+    const barre = document.createElement('div');
+    barre.className = 'lecture-fine';
+    barre.setAttribute('role', 'progressbar');
+    barre.setAttribute('aria-label', T.lectureDuVariant);
+    barreDeLecture = barre;
+    return barre;
+  }
+
   function rendre(): void {
     const { lecture, index, portee } = c;
-    liste = null;
     cadres = null;
-    lignes = [];
-    if (c.statut !== 'lu' || !lecture || !index || portee === null) {
+    const enLecture = c.statut === 'en-cours' && lectureDuJeu;
+    if ((c.statut !== 'lu' && !enLecture) || !lecture || !index || portee === null) {
       // La maquette garde le pied, vide, sous un écran sans composant.
+      oublierLesNoeuds();
+      lignes = [];
       pied.replaceChildren();
       if (c.statut === 'en-cours') corps.replaceChildren(vide(T.lecture, false));
       else if (c.statut === 'echouee') corps.replaceChildren(vide(T.lectureEchouee(c.message), false));
       else corps.replaceChildren(vide(T.vide, true));
       return;
     }
+    const defilement = corps.scrollTop;
     const calques = porteeDe(lecture, portee);
     lignes = lignesDe(lecture, index, calques);
-    liste = document.createElement('div');
-    liste.className = 'vc-liste';
-    liste.append(...elementsDeLaListe(lecture, index));
+    if (!liste) {
+      liste = document.createElement('div');
+      liste.className = 'vc-liste';
+    }
+    liste.replaceChildren(...elementsDeLaListe(lecture, index));
+    teteAffichee = garder(teteAffichee, entete(lecture, index, portee));
+    const variants = sectionDesVariants(lecture, portee);
+    variantsAffiches = variants ? garder(variantsAffiches, variants) : null;
     const parties = [
       filDAriane(lecture, portee),
-      entete(lecture, index, portee),
+      teteAffichee,
+      enLecture ? barreFine() : null,
       zoneDApercu(lecture, portee),
-      sectionDesVariants(lecture, portee),
+      variantsAffiches,
       rangeeDesFrontieres(lecture, calques),
       filtreOuvert ? champDuFiltre() : null,
       liste,
       ...valeursSansToken(lecture, calques),
     ].filter((partie): partie is HTMLElement => partie !== null);
     corps.replaceChildren(...parties);
+    if (defilement > 0) corps.scrollTop = defilement;
     rendreLePied(lecture, calques);
+    changementDeVariant = false;
     rendreLeFocus();
   }
 
@@ -890,13 +1078,29 @@ export function creerVueComposant(app: Application): VueComposant {
     },
     recevoirLecture(demande, lecture) {
       if (c.statut !== 'en-cours' || demande !== c.demande) return;
+      // Lire un variant fait de lui le sujet : le jeu est le même quand la liste de ses variants l'est.
+      const memeJeu = lectureDuJeu && !c.empiler && c.lecture !== null && c.index !== null && lecture !== null && memeListeDeVariants(c.lecture, lecture);
+      lectureDuJeu = false;
+      variantDemande = null;
       if (!lecture) {
         viderLaPile();
+        oublierLApercuAffiche();
         liberer(c.apercu);
         Object.assign(c, { statut: 'vide', lecture: null, index: null, portee: null, apercu: null });
         rendre();
         return;
       }
+      if (memeJeu) {
+        // Un autre variant du même jeu : l'aperçu d'avant reste jusqu'à l'arrivée du nouveau, les choix du designer aussi.
+        c.lecture = lecture;
+        c.index = indexer(lecture.releve);
+        c.portee = racineDe(lecture);
+        c.statut = 'lu';
+        changementDeVariant = true;
+        rendre();
+        return;
+      }
+      oublierLesNoeuds();
       if (c.empiler && c.lecture && c.index && c.portee !== null) c.pile.push({ lecture: c.lecture, index: c.index, portee: c.portee, apercu: c.apercu });
       else liberer(c.apercu);
       if (c.lecture?.sujet.id !== lecture.sujet.id) {
@@ -914,13 +1118,17 @@ export function creerVueComposant(app: Application): VueComposant {
     },
     recevoirApercu(message) {
       if (c.statut !== 'lu' || message.demande !== c.demande || c.lecture?.sujet.id !== message.sujet) return;
-      liberer(c.apercu);
+      const ancien = c.apercu;
       const url = URL.createObjectURL(new Blob([new Uint8Array(message.octets)], { type: 'image/png' }));
       c.apercu = { sujet: message.sujet, url, largeur: message.largeur, hauteur: message.hauteur, origine: message.origine };
+      // L'image affichée reste en place jusqu'au chargement de la nouvelle, qui la libère alors.
+      if (ancien && ancien !== apercuAffiche) liberer(ancien);
       rendre();
     },
     recevoirEchec(demande, message) {
       if (c.statut !== 'en-cours' || demande !== c.demande) return false;
+      lectureDuJeu = false;
+      variantDemande = null;
       c.statut = 'echouee';
       c.message = message;
       rendre();

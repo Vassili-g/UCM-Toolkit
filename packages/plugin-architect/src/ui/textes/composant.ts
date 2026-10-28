@@ -16,6 +16,7 @@ export const TEXTES_COMPOSANT = {
   composant: {
     vide: 'Sélectionnez un composant',
     lecture: 'Lecture du composant…',
+    lectureDuVariant: 'Lecture du variant',
     lectureEchouee: (message: string) => `La lecture du composant a échoué : ${message}. Sélectionnez-le de nouveau dans Figma.`,
     filDAriane: 'Fil d’Ariane',
     apercu: 'Aperçu du composant lu',

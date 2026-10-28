@@ -1,5 +1,5 @@
 /** Les états de la vue Composant, dans la fenêtre étroite. */
-const { composantSansVariant, alertEnJeu, analyseAlert, analyseSansVariants, enButton, analyseButton } = require('../composant/donnees.cjs');
+const { composantSansVariant, alertEnJeu, alertEnErreur, analyseAlert, analyseSansVariants, enButton, analyseButton } = require('../composant/donnees.cjs');
 const { preferences, etroite, choisir, sansSelection, composant, apercu, ouvrir, ligne, calqueNomme, alert, stressTest, bouton, tag, avatar, alertAvecEcart } = require('./aide.cjs');
 
 const ETATS = [
@@ -13,8 +13,8 @@ const ETATS = [
   { id: 'composant-sans-token', titre: 'Composant sans token', quand: 'Avatar ne porte aucune variable.', regarder: '« Aucun token, valeurs directes », puis les trois valeurs ; aucun outil.', existe: true, atteinte: ouvrir(avatar) },
   { id: 'composant-ecart', titre: 'Écart avec Figma', quand: 'Figma rend une autre couleur que la chaîne du fond.', regarder: 'La ligne garde la valeur de la chaîne et porte la marque ; dépliée, elle donne les deux valeurs.', existe: true, atteinte: [...ouvrir(alertAvecEcart), ligne('components/alert/colors/info/standard/background')] },
   { id: 'composant-sans-apercu', titre: 'Aperçu absent', quand: 'L’export de l’image a échoué.', regarder: 'La zone d’aperçu disparaît ; la liste reste entière.', existe: true, atteinte: [preferences(), etroite, choisir(alert), composant(alert)] },
-  { id: 'composant-complexe', titre: 'Composant complexe replié', quand: 'StressTest est sélectionné : 52 lignes.', regarder: 'Cinq sections repliées avec leur résumé, sans défilement.', existe: true, atteinte: ouvrir(stressTest) },
-  { id: 'composant-section', titre: 'Section dépliée', quand: 'La section Couleur de StressTest est ouverte.', regarder: '18 lignes, le compte ×12 sur les tuiles.', existe: true, atteinte: [...ouvrir(stressTest), { clic: '[data-section="couleur"]' }] },
+  { id: 'composant-complexe', titre: 'Composant complexe replié', quand: 'StressTest est sélectionné : 52 lignes.', regarder: 'Cinq sections repliées avec leur résumé, sans défilement ; le chevron de chaque titre est à droite, après le nombre.', existe: true, atteinte: ouvrir(stressTest) },
+  { id: 'composant-section', titre: 'Section dépliée', quand: 'La section Couleur de StressTest est ouverte.', regarder: '18 lignes, le compte ×12 sur les tuiles ; le chevron de Couleur pointe vers le bas, à droite du nombre.', existe: true, atteinte: [...ouvrir(stressTest), { clic: '[data-section="couleur"]' }] },
   { id: 'composant-portee', titre: 'Portée d’un calque', quand: 'Le calque UserInput est sélectionné dans StressTest.', regarder: 'Le fil d’Ariane, le calque en titre, ses 14 tokens, son cadre dans l’aperçu.', existe: true, atteinte: [preferences(), etroite, choisir(stressTest, calqueNomme(stressTest, 'UserInput')), composant(stressTest), apercu(stressTest)] },
   { id: 'composant-frontiere', titre: 'Composant imbriqué ouvert', quand: 'Button est ouvert depuis StressTest.', regarder: 'Le fil d’Ariane ramène à StressTest ; les tokens sont ceux de Button.', existe: true, atteinte: [...ouvrir(stressTest), { clic: `[data-frontiere="${calqueNomme(stressTest, 'Button')}"]` }, composant(bouton, 3), apercu(bouton, 3)] },
   { id: 'composant-filtre', titre: 'Filtre', quand: 'Le designer filtre StressTest sur « radius ».', regarder: 'Les sections s’ouvrent sur les seules lignes gardées.', existe: true, atteinte: [...ouvrir(stressTest), { clic: '[data-focus="outil:filtre"]' }, { saisie: { dans: '.vc-filtre input', valeur: 'radius' } }] },
@@ -54,6 +54,16 @@ const ETATS = [
     id: 'u1-configuration-panneau', titre: 'Configuration, panneau ouvert', quand: 'Le designer ouvre la Configuration depuis le mode Composant, panneau des constats ouvert.',
     regarder: 'La vue reste à gauche ; la Configuration prend la place du panneau, à droite de la frontière ; le bouton Configuration est enfoncé.',
     existe: true, atteinte: [preferences(), etroite, choisir(alertEnJeu), composant(alertEnJeu), apercu(alertEnJeu), { clic: '.bouton-panneau' }, { clic: '.barre .icon-button', attendre: '.config-liste' }],
+  },
+  {
+    id: 'u2-variant-en-lecture', titre: 'Autre variant, pendant la lecture', quand: 'Alert est analysé et le designer choisit Severity « error » dans la section Variants ; la lecture n’a pas encore répondu.',
+    regarder: 'L’écran ne bouge pas : l’en-tête, l’aperçu, la section Variants et les lignes restent ; une barre fine passe sous l’en-tête ; la puce « error » est choisie, « Affiché » nomme encore le variant lu.',
+    existe: true, atteinte: [...ouvrir(alertEnJeu), { message: analyseAlert }, { clic: '.valeur-axe[data-propriete="Severity"][data-valeur="error"]' }],
+  },
+  {
+    id: 'u2-variant-lu', titre: 'Autre variant, lecture arrivée', quand: 'La lecture du variant « error » arrive, puis son aperçu.',
+    regarder: 'La barre fine a disparu ; « Affiché » nomme « error » ; les lignes gardent leur place et les valeurs changées (fond, icône) sont surlignées 600 ms ; l’aperçu garde son cadre.',
+    existe: true, atteinte: [...ouvrir(alertEnJeu), { message: analyseAlert }, { clic: '.valeur-axe[data-propriete="Severity"][data-valeur="error"]' }, composant(alertEnErreur(), 3), apercu(alertEnErreur(), 3)],
   },
   { id: 'composant-survol', titre: 'Survol d’une ligne', quand: 'Le pointeur est sur la couleur des tuiles de StressTest.', regarder: 'Douze cadres sur les tuiles de l’aperçu.', existe: true, atteinte: [...ouvrir(stressTest), { clic: '[data-section="couleur"]' }, { survol: "[data-focus^='ligne:components/stresstest/info/tilesgrid/colors/tile']" }] },
 ].map((etat) => ({ ...etat, disposition: 'etroite' }));

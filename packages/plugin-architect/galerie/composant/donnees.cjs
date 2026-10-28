@@ -114,6 +114,28 @@ function enButton() {
 }
 
 /**
+ * Alert lu dans son variant `error` : la racine prend l'identifiant du variant, le fond et l'icône changent de couleur. Le jeu et ses
+ * variants sont ceux de `alertEnJeu`, comme quand le designer choisit une autre valeur de Severity dans la section Variants.
+ */
+const LU_ERREUR = 'Severity=error, Variant=standard';
+function alertEnErreur() {
+  const { sujet, ...reste } = alertEnJeu;
+  const idDuVariant = VARIANTS_ALERT.find((variant) => variant.nom === LU_ERREUR).id;
+  const lecture = JSON.parse(JSON.stringify(reste).split(`"${alertEnJeu.calques[0].id}"`).join(JSON.stringify(idDuVariant)));
+  const attendues = [[couleur('#F0F9FF').couleur, { r: 254 / 255, g: 242 / 255, b: 242 / 255 }], [couleur('#0369A1').couleur, { r: 185 / 255, g: 28 / 255, b: 28 / 255 }]];
+  const repeindre = (noeud) => {
+    if (Array.isArray(noeud)) return noeud.forEach(repeindre);
+    if (noeud === null || typeof noeud !== 'object') return;
+    if (noeud.nature === 'couleur' && noeud.couleur) {
+      for (const [avant, apres] of attendues) if (memeCouleur(noeud.couleur, avant)) noeud.couleur = { ...noeud.couleur, ...apres };
+    }
+    Object.values(noeud).forEach(repeindre);
+  };
+  repeindre(lecture);
+  return { ...lecture, sujet: { ...sujet, id: idDuVariant, variant: LU_ERREUR } };
+}
+
+/**
  * Le fichier Intencial hors UCM de `t-hors` : cinq collections, dont Interface,
  * qui garde ses noms d'aujourd'hui. `brands` et `theme` ont deux modes. Les
  * nombres de variables sont ceux de l'arbre de la maquette ; ils se comparent
@@ -151,4 +173,4 @@ function releveHorsUcm() {
 /** Alert sans jeu de variants ni nom de variant : la vue n'a pas de section Variants. */
 const composantSansVariant = { ...alert, sujet: { ...alert.sujet, variant: null, variants: [] } };
 
-module.exports = { composantSansVariant, releveHorsUcm, alertEnJeu, analyseAlert, analyseSansVariants, enButton, analyseButton, IDENTITE, variantsDe, donnerDesIds };
+module.exports = { composantSansVariant, releveHorsUcm, alertEnJeu, alertEnErreur, analyseAlert, analyseSansVariants, enButton, analyseButton, IDENTITE, variantsDe, donnerDesIds };
