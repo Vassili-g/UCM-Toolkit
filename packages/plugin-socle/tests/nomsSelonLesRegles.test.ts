@@ -8,10 +8,10 @@ import { inventaireDeLectures, type ObjetNomme, type VariableLue } from '../src/
 
 const PALIERS = [50, 100, 200, 300, 400, 500, 600, 700, 800, 900, 950];
 const collections: ObjetNomme[] = [
-  { id: 'c1', name: 'primitives', remote: false },
-  { id: 'c2', name: 'components', remote: false },
-  { id: 'c3', name: 'theme', remote: false },
-  { id: 'c4', name: 'utility', remote: false },
+  { id: 'c1', name: 'Primitives', remote: false },
+  { id: 'c2', name: 'Components', remote: false },
+  { id: 'c3', name: 'Theme', remote: false },
+  { id: 'c4', name: 'Utility', remote: false },
 ];
 let compteur = 0;
 const variable = (collection: string, name: string): VariableLue => ({ id: `v${++compteur}`, name, variableCollectionId: collection, remote: false });

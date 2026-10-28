@@ -58,7 +58,7 @@ test('mener n\'abandonne pas un calcul qui tient dans une tranche, mais abandonn
 
 // Les gestes et les réponses
 
-function banc(variables: readonly (readonly [string, string])[], regles: Record<string, string> = {}, collection = 'components') {
+function banc(variables: readonly (readonly [string, string])[], regles: Record<string, string> = {}, collection = 'Components') {
   const noms = new Map(variables);
   const stock = new Map(Object.entries(regles));
   const messages: MessageDeNomenclature[] = [];
