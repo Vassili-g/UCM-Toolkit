@@ -322,7 +322,7 @@ Analyse 10, « Ce que le changement touche ». Dépend de P1 (V4). Agent : `impl
 - [ ] **O1.2** CONCEPT.md, section 2 : la pièce interne, en une phrase. FORMAT.md, « Composition et dépendances » : renvoi à `sorteDeLImbrique`. `packages/kit/invariants/referentiel.md` : la règle.
 - [ ] **O1.3** Architect : `SPEC.md`, `README.md`, `CARTE.md`, `invariants/explorateur.md`, d'après `npm run agents:diff`.
 - [ ] **O1.4** Spécification de Palettes, section 11.2, `[VER-21]`, `[ENT-10]` : les garanties sur la carte et les nouveaux nombres.
-- [ ] **O1.5** README du dossier `UCM Architect` : ligne de ce plan.
+- [x] (1471812d) **O1.5** README du dossier `UCM Architect` : ligne de ce plan.
 
 #### Jalons
 
