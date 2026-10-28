@@ -34,6 +34,12 @@ export interface ReleveDesRegles {
   readonly modele: ModeleDeRegles;
   /** Les propriétés que le contrat publie et que le template documenterait, telles que le contrat les nomme. */
   readonly proprietes: readonly string[];
+  /**
+   * Toutes les clés que le contrat publie pour ce composant, wrapper de
+   * dimensions compris, quel qu'en soit le type : le modèle n'écrit pas de règle
+   * pour un texte, mais une règle qui le vise vise une propriété réelle.
+   */
+  readonly publiees?: readonly string[];
   /** Les noms que les règles `@prop` et `@boolean` de l'instance visent, tels que le designer les a écrits. */
   readonly documentees: readonly string[];
 }
@@ -71,7 +77,7 @@ export function constatsDeRegles(releve: ReleveDesRegles | null): Constat[] {
     }];
   }
   const documentees = new Map(releve.documentees.map((nom) => [nomCompacte(nom), nom]));
-  const connues = new Set(releve.proprietes.map(nomCompacte));
+  const connues = new Set([...releve.proprietes, ...(releve.publiees ?? [])].map(nomCompacte));
   const constats: Constat[] = [];
   for (const propriete of releve.proprietes) {
     if (documentees.has(nomCompacte(propriete))) continue;
@@ -131,6 +137,22 @@ export function contratDesReglesDe(surface: Pick<SurfaceDuMoteur, 'props' | 'sta
 }
 
 /**
+ * Les clés que les règles du composant peuvent viser : ce que le jeu déclare,
+ * ce que les imbriqués rattachés au parent lui prêtent, et les props que le
+ * moteur a fusionnées depuis le wrapper de dimensions. `props` du résultat
+ * interne est déjà cette surface fusionnée, et le contrat publie ces props :
+ * les en retirer ferait signaler (C45) des règles qui visent des propriétés
+ * réelles. `null` quand les déclarations du jeu ne se lisent pas.
+ */
+export function surfaceDesRegles(
+  declarees: ReadonlySet<string> | null,
+  surfaceDuMoteur: Pick<SurfaceDuMoteur, 'props' | 'imbriques'>,
+): ReadonlySet<string> | null {
+  if (!declarees) return null;
+  return new Set([...declarees, ...surfaceDuMoteur.imbriques.auParent, ...Object.keys(surfaceDuMoteur.props)]);
+}
+
+/**
  * Lit les règles du composant sur la page qui le porte, avec la surface que
  * l'analyse du moteur vient de produire. Les `props` sont restreintes à ce que le
  * composant déclare, comme à la création : un composant imbriqué n'ajoute pas
@@ -147,13 +169,14 @@ export async function lireLesRegles(
   const lues = await (inventaires ? inventaires.reglesDeLaPage(page, composant, scanDesRegles) : scanDesRegles());
   const contrat = contratDesReglesDe(surfaceDuMoteur);
   const declarees = clesDeclarees(composant);
-  const surface = declarees ? new Set([...declarees, ...surfaceDuMoteur.imbriques.auParent]) : null;
+  const surface = surfaceDesRegles(declarees, surfaceDuMoteur);
   const modele = modeleDeRegles(composant.name, surface ? restreindreAuParent(contrat, surface) : contrat);
   return {
     composant: { id: composant.id, nom: composant.name },
     instancePresente: lues.releve.conteneurDuComposant,
     modele,
     proprietes: proprietesDuModele(modele),
+    publiees: Object.keys(surfaceDuMoteur.props),
     documentees: [...Object.keys(lues.propDescriptions), ...Object.keys(lues.booleanDescriptions)],
   };
 }

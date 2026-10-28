@@ -5,7 +5,8 @@ import test from 'node:test';
 import { modeleDeRegles } from 'ucm-plugin-socle/src/composant/template/modele';
 import type { ContratLu } from 'ucm-plugin-socle/src/composant/template/modele';
 
-import { constatsDeRegles, modelesDeLAnalyse, proprietesDuModele, retenirLesModeles } from '../src/regles';
+import { constatsDeRegles, modelesDeLAnalyse, proprietesDuModele, retenirLesModeles, surfaceDesRegles } from '../src/regles';
+import { restreindreAuParent } from 'ucm-plugin-socle/src/composant/template/modele';
 import type { ReleveDesRegles } from '../src/regles';
 
 const contrat: ContratLu = {
@@ -65,4 +66,23 @@ test('les modèles retenus suivent la dernière analyse', () => {
   assert.deepEqual([...modelesDeLAnalyse().keys()], ['regles:creer:1:2']);
   retenirLesModeles(releve({ instancePresente: true }));
   assert.equal(modelesDeLAnalyse().size, 0);
+});
+
+test('C45 : les props fusionnées du wrapper de dimensions ne sont pas retirées avant la comparaison', () => {
+  const enumDe = (...values: string[]) => ({ type: 'enum', values, default: values[0] });
+  const contratButton = {
+    props: {
+      color: enumDe('primary'), variant: enumDe('solid'), state: enumDe('default'),
+      size: enumDe('sm', 'md'), label: { type: 'string', default: '' },
+      iconLeft: { type: 'boolean', default: false }, iconRight: { type: 'boolean', default: false },
+    },
+  } as unknown as ContratLu;
+  const declarees = new Set(['color', 'variant', 'state']);
+  const surface = surfaceDesRegles(declarees, { props: contratButton.props as never, imbriques: { auParent: [], sansRegles: [], sansPorteur: [] } });
+  const modele = modeleDeRegles('Button', restreindreAuParent(contratButton, surface!));
+  const constats = constatsDeRegles({
+    composant: { id: '1:2', nom: 'Button' }, instancePresente: true, modele, proprietes: proprietesDuModele(modele), publiees: Object.keys(contratButton.props!),
+    documentees: ['color', 'variant', 'size', 'label', 'iconLeft', 'iconRight'],
+  });
+  assert.deepEqual(constats.map((c) => [c.faits.ecart, c.faits.propriete ?? c.faits.regle]), [['sans-regle', 'state']]);
 });
