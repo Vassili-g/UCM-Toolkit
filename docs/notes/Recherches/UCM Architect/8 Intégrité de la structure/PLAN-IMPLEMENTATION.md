@@ -79,7 +79,7 @@ Décisions sur D-30 :
 - Les textes destinés au designer sont fixés au §5 et validés par la maquette M1. L'agent les recopie mot pour mot.
 - Aucun lot ne migre le fichier Figma du mainteneur, ses composants ou UCM-Playground. Ces gestes lui reviennent.
 - Aucun fichier du mainteneur n'entre dans le dépôt. Les fixtures sont fabriquées, avec des noms de palettes génériques.
-- **Version du kit.** `tests/versionSuitLeContenu.test.mjs` refuse un commit qui change `packages/kit/src/` sans monter la version. Chaque lot qui touche le kit finit donc par un sous-lot `executant` **avant** son commit : il monte `packages/kit/package.json` (le premier en mineure, `0.14.0`, parce que des constats changent ; correctif ensuite), monte d'un correctif `packages/cli/package.json` et `packages/adapter-typescript/package.json` et y aligne leur épingle exacte de `@ucm-kit/core`, lance `npm install` pour le verrou, puis `npm run schema` si `packages/kit/src/format/types.ts` a changé. Le `verificateur` du lot lance ensuite `npm test` à la racine. Deux lots d'une même vague qui touchent le kit se commitent l'un après l'autre, chacun avec sa montée. Ce sous-lot vaut pour **chaque** lot qui touche le kit (I0 à I4, U1 à U6), même quand sa fiche ne l'écrit pas.
+- **Version du kit.** `tests/versionSuitLeContenu.test.mjs` refuse un commit qui change `packages/kit/src/` sans monter la version. Chaque lot qui touche le kit finit donc par un sous-lot `executant` **avant** son commit : il monte `packages/kit/package.json` (le premier en mineure, `0.14.0`, parce que des constats changent ; correctif ensuite), monte d'un correctif `packages/cli/package.json` et `packages/adapter-typescript/package.json` et y aligne leur épingle exacte de `@ucm-kit/core`, lance `npm install` pour le verrou, puis `npm run schema` si `packages/kit/src/format/types.ts` a changé. Le `verificateur` du lot lance ensuite `npm test` à la racine. `npm run test:paquet` n'admet pas `kit` : les tests du kit se lancent par `npm test` dans `packages/kit`. Deux lots d'une même vague qui touchent le kit se commitent l'un après l'autre, chacun avec sa montée. Ce sous-lot vaut pour **chaque** lot qui touche le kit (I0 à I4, U1 à U6), même quand sa fiche ne l'écrit pas.
 - `npm run test:ui` ne se lance jamais : le mainteneur teste l'interface. La galerie se construit par `npm run galerie:plugin -- architect`.
 
 ### Agents
@@ -138,7 +138,7 @@ Agent : conversation principale.
 
 - [ ] **P0.1** La publication du plan des crans clairs (lot R1 de [SUJETS IMPORTANTS à trancher/PLAN-IMPLEMENTATION.md](../../SUJETS%20IMPORTANTS%20à%20trancher/PLAN-IMPLEMENTATION.md)) est faite. Le kit ne doit pas changer de table pendant les lots I.
 - [ ] **P0.2** Le plan [Règles manquantes](../7%20Règles%20manquantes/PLAN-IMPLEMENTATION-REGLES-MANQUANTES.md) est commité : il modifie `src/ui/ignores/modele.ts`, `src/ui/textes/ignores.ts` et `src/ui/corrections/`, que I7 et I8 touchent aussi.
-- [ ] **P0.3** `git status` propre sur les chemins de la vague 1. Noter ici la version du kit de départ (0.13.36 à l'écriture du plan).
+- [ ] **P0.3** `git status` propre sur les chemins de la vague 1. Noter ici la version du kit de départ (0.13.36 à l'écriture du plan ; 0.14.2 après les quickwins).
 
 ---
 
@@ -208,7 +208,7 @@ Fichiers : `packages/kit/src/emplois/dossiers.ts`, `packages/kit/src/emplois/ind
   3. `solid/hover` 800 et `page/foreground` 800 en Light → `ambigu` ;
   4. seulement `surface/default` et `surface/subtle` → `inconnu`.
 - [ ] **I0.3** · `executant` · Exporter les nouveaux noms par `packages/kit/src/emplois/index.ts` s'il ne réexporte pas tout `dossiers.ts`.
-- [ ] **I0.4** · `verificateur` · `npm run test:paquet -- kit`, puis `npm run typecheck`.
+- [ ] **I0.4** · `verificateur` · `npm test` dans `packages/kit`, puis `npm run typecheck`.
 
 ---
 
@@ -229,7 +229,7 @@ Fichiers : `packages/kit/src/referentiel/reconnaissance.ts`, `packages/kit/src/r
 - [ ] **U1.4** · `implementeur-exigeant` (même appel) · D-23 côté kit : `modeUcmDepuisNom` de `theme.ts` disparaît au profit de `modeDuThemeReconnu` (sans index : sortie identique).
 - [ ] **U1.5** · `implementeur` · Lignes de la loi racine : `cleDuTheme` refusé partout ; `.map(formeReconnue).join('/')` refusé hors `reconnaissance.ts` ; `mode.name.trim().toLowerCase()` et `mode.nom.trim().toLowerCase()` refusés dans `packages/*/src/`, avec trois exceptions nommées, `packages/plugin-palettes/src/ecriture/variables.ts`, `packages/plugin-palettes/src/variables/lot.ts` et `packages/plugin-palettes/src/variables/detection.ts`, raison « levée par U7 ».
 - [ ] **U1.6** · `executant` · Montée de version (§2).
-- [ ] **U1.7** · `verificateur` · `npm run test:paquet -- kit`, `npm run test:paquet -- architect`, `npm test` racine, `npm run typecheck`.
+- [ ] **U1.7** · `verificateur` · `npm test` dans `packages/kit`, `npm run test:paquet -- architect`, `npm test` racine, `npm run typecheck`.
 
 ---
 
@@ -320,7 +320,7 @@ Fichiers : `packages/kit/src/controles/constat.ts`, `packages/kit/src/controles/
   9. un groupe `tertiary` sans aucun alias : `sans-jumelle` ;
   10. un catalogue de 3 700 variables : le contrôle prend moins de 150 ms sous Node (mesure, pas de limite stricte en CI si la machine varie : un `console.log` du temps et une borne à 1 s).
 - [ ] **I1.4** · `executant` · Exporter `controlerLIntegriteUcm`, `OptionsDIntegrite` et `CreationDeVariable` par `packages/kit/src/controles/index.ts`.
-- [ ] **I1.5** · `verificateur` · `npm run test:paquet -- kit`, `npm run typecheck`.
+- [ ] **I1.5** · `verificateur` · `npm test` dans `packages/kit`, `npm run typecheck`.
 
 ---
 
@@ -328,7 +328,7 @@ Fichiers : `packages/kit/src/controles/constat.ts`, `packages/kit/src/controles/
 
 Fichiers : `packages/kit/src/controles/{nommage,mapping,oublis,corrections,accessibilite,preparation,structure}.ts`, `packages/kit/src/referentiel/{vocabulaire,architecture}.ts`, `packages/plugin-socle/src/composant/analyse/proprietesEtEtats.ts`, `packages/plugin-architect/src/sandbox/projectionsDesControles.ts`, tests listés.
 
-- [ ] **U2.1** · `implementeur-exigeant` · D-01 et D-19. Dans `nommage.ts`, à côté de `segmentDAxe` :
+- [x] **U2.1** (68695799) · `implementeur-exigeant` · D-01 et D-19. Dans `nommage.ts`, à côté de `segmentDAxe` :
 
   ```ts
   export function registreDeLAxe(axe: AxeDuComposant): Registre | undefined;
@@ -339,12 +339,14 @@ Fichiers : `packages/kit/src/controles/{nommage,mapping,oublis,corrections,acces
   ```
 
   `memeValeurDAxe` reprend le corps de `corrections.ts:206`. Remplacer les copies : `mapping.ts:27`, `oublis.ts:9`, la comparaison en ligne de `nommage.ts:226-228`, `corrections.ts:206`. `estDuComposant` remplace `nommage.ts:136-153`, `corrections.ts:109`, `mapping.ts:215`, `preparation.ts:124`. Test `packages/kit/tests/valeurDAxeUnique.test.ts`, table de l'audit : palette `Danger`/`Error` vrai ; état `Pressed`/`press` vrai ; état `Zorglub`/`Bidule` faux ; taille `Big`/`Huge` faux. Test de régression : un jeu `Color=Error` lié à `Color/Danger/…` ne rend plus de C7, C17, C18, C32 ni C33.
+
+  Fait : `preparation.ts:124` reste, l'audit l'avait listé à tort (la ligne écrit des noms, elle ne teste pas une appartenance). Une cinquième copie, dans la couverture de C12 et C13, passe aussi par `memeValeurDAxe`.
 - [ ] **U2.2** · `implementeur-exigeant` (même appel) · D-03, Q-03. Dans `vocabulaire.ts` : `etat` devient une forme tolérée de `REGISTRE_AXES_ETAT` ; `export function estLAxeDEtats(nom: string): boolean` par `termeReconnu` ; `STATE_AXIS_NAMES` devient `[id, ...toleres]` du registre. `AXE_D_ETAT` de `accessibilite.ts` disparaît, et `corrections.ts:444` (`formeReconnue(propriete.nom) === 'state'`) appelle aussi `estLAxeDEtats`. `axeDePropriete` (`nommage.ts`) et `isStateProperty` (socle) appellent `estLAxeDEtats`. Tests : `State`, `States`, `Status`, `État`, `Etat` sont l'axe d'états pour les trois lecteurs ; un test du socle : un jeu `État=Défaut|Survol` publie un `stateModel`.
-- [ ] **U2.3** · `implementeur-exigeant` (même appel) · D-04 et D-18. Ajouter à `nommage.ts` `export function etatReconnu(valeur: string): string | undefined` (`termeReconnu(REGISTRE_ETATS, valeur)?.id`). `estInteractif` et `etatDuVariant` l'appellent ; `corrections.ts:277`, `:450` et `:454` aussi, à la place de leurs littéraux `'hover'` et `'default'`. Ajouter `export function estLaFamilleCouleur(segment: string): boolean` à `architecture.ts` (`termeReconnu(FAMILLES_PRIMITIVES, segment)?.id === 'color'`) ; `corrections.ts:110` et `structure.ts:102` l'appellent. Tests : un bouton `Default`/`Hovered`/`Press` reçoit le contrôle de cible tactile ; `Button/Colors/Primary/background` reçoit des corrections de couleur.
+- [x] **U2.3** (33073fcb) · `implementeur-exigeant` (même appel) · D-04 et D-18. Ajouter à `nommage.ts` `export function etatReconnu(valeur: string): string | undefined` (`termeReconnu(REGISTRE_ETATS, valeur)?.id`). `estInteractif` et `etatDuVariant` l'appellent ; `corrections.ts:277`, `:450` et `:454` aussi, à la place de leurs littéraux `'hover'` et `'default'`. Ajouter `export function estLaFamilleCouleur(segment: string): boolean` à `architecture.ts` (`termeReconnu(FAMILLES_PRIMITIVES, segment)?.id === 'color'`) ; `corrections.ts:110` et `structure.ts:102` l'appellent. Tests : un bouton `Default`/`Hovered`/`Press` reçoit le contrôle de cible tactile ; `Button/Colors/Primary/background` reçoit des corrections de couleur.
 - [ ] **U2.4** · `implementeur` · Q-01. Lire `packages/plugin-architect/src/sandbox/projectionsDesControles.ts` et son test. Si une session reprise garde des constats calculés par une autre version du kit, ranger la version du kit avec la session et recalculer quand elle diffère. Test : une session rangée avec une version antérieure recalcule ses constats. Si la reprise recalcule déjà, l'écrire dans le rapport et ne rien changer.
 - [ ] **U2.5** · `implementeur` · Lignes de la loi racine : D-01 (`axe === 'etat' ? REGISTRE_` et `termeReconnu(REGISTRE_TAILLES` hors `nommage.ts` ; `termeReconnu(REGISTRE_ETATS` hors `nommage.ts`, exception nommée `preparation.ts`, raison « lit un état, pas une valeur d'axe ») ; D-03 (une expression régulière qui cite `state` ou `etat` comme nom d'axe, `STATE_AXIS_NAMES.includes`, `=== 'state'`, hors `vocabulaire.ts`) ; D-04 (`ETATS` importé de `emplois/dossiers.js` dans `controles/` hors `theme.ts`, `preparation.ts`, `structure.ts`, `integrite.ts` ; `formeReconnue(…) === '<état>'` pour les seuls littéraux `'default'`, `'hover'`, `'pressed'`, `'focus'`, `'disabled'`, dans `controles/`) ; D-18 (`formeReconnue(…) === 'color'` dans `controles/`) ; D-19 (`formeReconnue(variable.nom.split('/')[0])` hors `nommage.ts`). Lancer la loi sur l'arbre : chaque occurrence restante est corrigée ou nommée en exception avec sa raison.
 - [ ] **U2.6** · `executant` · Montée de version (§2).
-- [ ] **U2.7** · `verificateur` · `npm run test:paquet -- kit`, `-- socle`, `-- architect`, `-- exporter`, `npm test` racine, `npm run typecheck`.
+- [ ] **U2.7** · `verificateur` · `npm test` dans `packages/kit`, `npm run test:paquet -- socle`, `-- architect`, `-- exporter`, `npm test` racine, `npm run typecheck`.
 
 ---
 
@@ -373,7 +375,7 @@ Fichiers : `packages/kit/src/controles/integrite.ts`, `packages/kit/tests/integr
   | `disabled/background` en light | `neutral/100` | `neutral/200` |
 
   Plus : un groupe aux votes contraires rend une question à deux candidats ; un alias vers la mauvaise branche de mode ne rend pas de C82 (C60 le rend).
-- [ ] **I2.2** · `verificateur` · `npm run test:paquet -- kit`, `npm run typecheck`.
+- [ ] **I2.2** · `verificateur` · `npm test` dans `packages/kit`, `npm run typecheck`.
 
 ---
 
@@ -381,7 +383,7 @@ Fichiers : `packages/kit/src/controles/integrite.ts`, `packages/kit/tests/integr
 
 Fichiers : `packages/kit/src/controles/{releve,accessibilite,preparation}.ts`, `packages/kit/src/emplois/{contraste,couleur}.ts` (`couleur.ts` nouveau), `packages/kit/src/lecteurs/diagnostic-contrastes.mjs`, `packages/couleur/src/contraste.ts`, `packages/plugin-architect/src/{releveDuComposant,lectureDuComposant,modele,contraste}.ts`, `packages/plugin-architect/src/ui/ignores/modele.ts`, `packages/plugin-socle/src/composant/contract/extractSlotTokens.ts`, `packages/plugin-palettes/src/{variables/releve,lecture,i18n/nombres}.ts`.
 
-- [ ] **U3.1** · `implementeur-exigeant` · D-20, Q-08. Dans `controles/releve.ts` :
+- [x] **U3.1** (33073fcb) · `implementeur-exigeant` · D-20, Q-08. Dans `controles/releve.ts` :
 
   ```ts
   /** Une peinture se voit quand elle n'est pas masquée et que son opacité n'est pas nulle. */
@@ -389,11 +391,13 @@ Fichiers : `packages/kit/src/controles/{releve,accessibilite,preparation}.ts`, `
   ```
 
   Appelants : `aUnePeintureVisible` (`accessibilite.ts:192`), `releveDuComposant.ts:109` et `:171`, `lectureDuComposant.ts:158`, `extractSlotTokens.ts:158`. Le fond de la page (`catalogue.ts:331`) répond à une autre question (l'opacité devient l'alpha) et reste. Vérifier que le socle importe déjà `@ucm-kit/core` ; sinon, écrire le blocage dans le rapport. Test : un contour `SOLID` visible d'opacité 0 ne produit plus de C50.
+
+  Fait : `estLaFamilleCouleur` est dans `controles/nommage.ts`, pas dans `architecture.ts` (cycle d'import). `estInteractif` exclut `default` et `disabled` : `focus` et `selected` rendent un jeu interactif. Le relevé d'Architect marque `visible: false` une peinture d'opacité nulle ; `anneauxDuVariant` suit aussi la règle.
 - [ ] **U3.2** · `implementeur-exigeant` (même appel) · D-24. `emplois/couleur.ts` : `versRgb8(c)` (borné à 0..255) et `hexaDeFigma(c, { alpha?: boolean })`, en majuscules. Remplacer `accessibilite.ts:581` et `:625`, `preparation.ts:93`, Architect `modele.ts:177`, Palettes `variables/releve.ts:44` et `:52`, Palettes `lecture.ts:352`. Mettre à jour les tests et les états de galerie qui attendaient un hexa en minuscules. Test : une composante à 1,002 rend `FF`.
 - [ ] **U3.3** · `implementeur-exigeant` (même appel) · D-08. `emplois/contraste.ts` : `contrasteTronque(x, decimales = 2): number` et `ecrireContraste(x, separateur = ','): string`, par `aDixDecimales`. `ucm-couleur` garde ses noms en réexport. Remplacer `ratioAffiche` (Architect `contraste.ts:30`), `contrasteEcrit` (`diagnostic-contrastes.mjs:204`), `sansArrondi` (`accessibilite.ts:629`), `rapportEnTexte` (Architect `ui/ignores/modele.ts:160`), `contraste` (Palettes `i18n/nombres.ts:15`). Test : 4,499999999999 s'écrit `4,50` partout ; le fait `rapport` d'un constat vaut le nombre que Palettes affiche.
 - [ ] **U3.4** · `implementeur` · Lignes de la loi racine : D-20 (`.visible !== false && ` suivi de `opacity` hors `releve.ts`, exception nommée `packages/plugin-palettes/src/lecture.ts`, raison « juge une peinture opaque, autre question ») ; D-24 (`Math.round(` … `* 255)` hors `emplois/couleur.ts` et `packages/couleur/src/conversions.ts`, exceptions nommées `packages/plugin-architect/src/contraste.ts` et `src/ui/valeurs.ts`, raison « composantes contrôlées avant, sans hexa ») ; D-08 (`aDixDecimales(…).split('.')`, `aDixDecimales(…).replace(`, `Math.floor(` … `* 100) / 100` hors `emplois/contraste.ts`).
 - [ ] **U3.5** · `executant` · Montée de version (§2).
-- [ ] **U3.6** · `verificateur` · `npm run test:paquet -- kit`, `-- couleur`, `-- architect`, `-- palettes`, `-- socle`, `npm test` racine, `npm run typecheck`.
+- [ ] **U3.6** · `verificateur` · `npm test` dans `packages/kit`, `npm run test:paquet -- couleur`, `-- architect`, `-- palettes`, `-- socle`, `npm test` racine, `npm run typecheck`.
 
 ---
 
@@ -412,7 +416,7 @@ Fichiers : `packages/kit/src/controles/integrite.ts`, `packages/kit/tests/integr
   Tous rendent `code: 'C82'`. Les identifiants suivent le schéma de I1 : `C82:<genre>:<clé de la variable>`, plus `:<id du mode>` pour un fait par mode ; `C82:mode-du-theme:<clé de theme>:<manque>` pour E. Les limites du profil (`role-inconnu`, `cible-sans-couche`…) ne se portent pas : Nomenclature juge déjà les noms.
 
   Tests : un cas par genre, et chaque cas de `integrationsUcm.test.ts` pour `couche`, `valeur-directe` et `portee` rend le même verdict.
-- [ ] **I3.2** · `verificateur` · `npm run test:paquet -- kit`, `npm run typecheck`.
+- [ ] **I3.2** · `verificateur` · `npm test` dans `packages/kit`, `npm run typecheck`.
 
 ---
 
@@ -420,8 +424,8 @@ Fichiers : `packages/kit/src/controles/integrite.ts`, `packages/kit/tests/integr
 
 Fichiers : `packages/plugin-architect/src/lecture.ts`, ses appelants `src/lectureDuComposant.ts`, `src/preparations.ts`, `src/sandbox/analyse.ts`, `src/sandbox/preparation.ts`, `src/sandbox/structure.ts`, `src/catalogue.ts`, `src/ui/textes/structure.ts`, tests listés. Palettes et l'Exporter ne changent pas ici.
 
-- [ ] **U9.0** · `verificateur` · Avant tout code : `node packages/plugin-architect/scripts/mesurer.mjs`, temps rangés comme référence.
-- [ ] **U9.1** · `implementeur-exigeant` · Dans `lecture.ts`, à côté de `lireLesVariables` :
+- [x] **U9.0** (1596dd1a) · `verificateur` · Avant tout code : `node packages/plugin-architect/scripts/mesurer.mjs`, temps rangés comme référence.
+- [x] **U9.1** (1596dd1a) · `implementeur-exigeant` · Dans `lecture.ts`, à côté de `lireLesVariables` :
 
   ```ts
   /** Une variable est supprimée quand elle n'est pas distante et que son identifiant n'est pas parmi les variables locales. */
@@ -429,10 +433,12 @@ Fichiers : `packages/plugin-architect/src/lecture.ts`, ses appelants `src/lectur
   ```
 
   `lireLesVariables` reçoit un paramètre nouveau, `idsLocaux: () => Promise<ReadonlySet<string>>`, appelé au plus une fois par lecture et seulement quand une variable lue par `getVariableByIdAsync` n'est pas distante. Les six appelants le fournissent : `sandbox/structure.ts` (`ACCES_DE_FIGMA.catalogue`) passe l'ensemble des `locales` qu'il vient de lire ; `lireLeReleve` (`lecture.ts:471`) passe celles qu'il a déjà ; les autres lisent `getLocalVariablesAsync` à la demande.
-- [ ] **U9.2** · `implementeur-exigeant` (même appel) · Une variable lue et supprimée selon U9.1 va dans `manquees` avec l'issue nouvelle `supprimee` (à côté de `introuvable` et `refusee`), jamais dans `variables`. Cela vaut pour une cible d'alias comme pour une variable liée à un layer. `catalogueDuFichier` ne la marque donc jamais `presente`, et `controlerLesAliasesManquants` du kit rend C63 `alias-supprime` en mode Tokens.
-- [ ] **U9.3** · `implementeur-exigeant` (même appel) · Tests de régression : un port double où `getVariableByIdAsync` rend une variable `remote: false` absente de `getLocalVariablesAsync` ; la lecture la range en `manquees` (`supprimee`) ; `lire-structure` rend C63 `alias-supprime`. Témoin : une cible `remote: true` reste valide. Un test compte les appels à `getLocalVariablesAsync` en mode Tokens : un seul par lecture.
-- [ ] **U9.4** · `verificateur` · `npm run test:paquet -- architect`, `npm run typecheck`. Puis `node packages/plugin-architect/scripts/mesurer.mjs`, comparé à la mesure de référence de U9.0. L'écart va dans le rapport.
-- [ ] **U9.5** · `executant` · Q-13, mode Tokens seulement : dans `packages/plugin-architect/src/ui/textes/structure.ts`, `aliasSupprime` devient « Cette variable vise une variable introuvable. » et `viseUneVariableSupprimee` devient « vise une variable introuvable ». Mettre à jour les tests et les états de galerie qui citent l'ancien texte. Les textes des ignorés (`ui/textes/ignores.ts`, `ui/ignores/modele.ts`) attendent I7.4.
+- [x] **U9.2** (1596dd1a) · `implementeur-exigeant` (même appel) · Une variable lue et supprimée selon U9.1 va dans `manquees` avec l'issue nouvelle `supprimee` (à côté de `introuvable` et `refusee`), jamais dans `variables`. Cela vaut pour une cible d'alias comme pour une variable liée à un layer. `catalogueDuFichier` ne la marque donc jamais `presente`, et `controlerLesAliasesManquants` du kit rend C63 `alias-supprime` en mode Tokens.
+- [x] **U9.3** (1596dd1a) · `implementeur-exigeant` (même appel) · Tests de régression : un port double où `getVariableByIdAsync` rend une variable `remote: false` absente de `getLocalVariablesAsync` ; la lecture la range en `manquees` (`supprimee`) ; `lire-structure` rend C63 `alias-supprime`. Témoin : une cible `remote: true` reste valide. Un test compte les appels à `getLocalVariablesAsync` en mode Tokens : un seul par lecture.
+- [x] **U9.4** (1596dd1a) · `verificateur` · `npm run test:paquet -- architect`, `npm run typecheck`. Puis `node packages/plugin-architect/scripts/mesurer.mjs`, comparé à la mesure de référence de U9.0. L'écart va dans le rapport.
+- [x] **U9.5** (1596dd1a) · `executant` · Q-13, mode Tokens seulement : dans `packages/plugin-architect/src/ui/textes/structure.ts`, `aliasSupprime` devient « Cette variable vise une variable introuvable. » et `viseUneVariableSupprimee` devient « vise une variable introuvable ». Mettre à jour les tests et les états de galerie qui citent l'ancien texte. Les textes des ignorés (`ui/textes/ignores.ts`, `ui/ignores/modele.ts`) attendent I7.4.
+
+Fait : cinq appelants, pas six (`preparations.ts` a un homonyme sans rapport). `idsLocaux` est le quatrième paramètre, obligatoire. Reste hors du lot : le relevé riche du mode Composant (`releveDuComposant.ts`) lit ses liaisons sans passer par `lireLesVariables` ; une liaison vers une variable supprimée y reste lue comme une variable ordinaire.
 
 ---
 
@@ -452,7 +458,7 @@ Fichiers : `packages/kit/src/controles/preparation.ts`, `packages/kit/tests/prep
 
 - [ ] **I4.1** · `implementeur` · `CouleurSansCible` gagne `raison: 'sans-regle' | 'absente-du-theme'` et `cible?: string`. Autour de `preparation.ts:330` : quand la variable calculée est dans `VARIABLES_DU_THEME` et que `themeAvec(cible)` ne rend rien, la couleur entre dans `couleursSansCible` avec `raison: 'absente-du-theme'` et `cible` ; les autres reçoivent `sans-regle`. Test : un composant dont une couleur vise `theme/primary/surface/subtle`, absente, rend `absente-du-theme` et le nom.
 - [ ] **I4.2** · `implementeur` (même appel) · La feuille de préparation montre, pour `absente-du-theme`, les deux phrases du §5.6 à la place de « laissée en dur ». Test d'interface sur le modèle des tests voisins de la préparation.
-- [ ] **I4.3** · `verificateur` · `npm run test:paquet -- kit`, `-- architect`, `npm run typecheck`.
+- [ ] **I4.3** · `verificateur` · `npm test` dans `packages/kit`, `npm run test:paquet -- architect`, `npm run typecheck`.
 
 ---
 
@@ -462,7 +468,7 @@ Fichiers : `packages/kit/src/referentiel/` (domicile par `agents:domicile`), `pa
 
 - [ ] **U4.1** · `implementeur-exigeant` · Ajouter au référentiel `CHAMPS_DE_TYPOGRAPHIE` (les huit champs Figma liables d'un texte que liste `POLICES` d'Architect, `composant.ts:87`) et `natureDuChamp(champ: string, type: string): 'couleur' | 'typographie' | 'dimension'`. Remplacer `natureDeLaLiaison` et `estUneProprieteDeTexte` (`couche.ts`), `sorteDeLaLiaison` (`propagation.ts:84`), `CHAMPS_DE_TYPOGRAPHIE` de `typographie.ts:17`, `POLICES`, `CHAMPS_DE_TEXTE` (`consommateurs.ts:126`). Pour `typographie.ts`, qui n'a que six champs : vérifier que l'ajout de `paragraphSpacing` et `paragraphIndent` ne change pas ses sorties sur les tests existants ; sinon, garder une sous-liste dérivée de la liste du référentiel et le noter. Les lecteurs `.mjs` du contrat ne changent pas. Tests : `lineHeight` est de nature `typographie` ; `textRangeFills` n'est pas de la typographie ; C80 sur une liaison `lineHeight` change de nature (test de régression).
 - [ ] **U4.2** · `implementeur` · Ligne de la loi racine : une expression régulière qui contient `font` et `text`, et une liste littérale contenant `'letterSpacing'`, refusées dans `packages/*/src/` hors du propriétaire et de `packages/plugin-socle/src/` (le socle porte le contrat).
-- [ ] **U4.3** · `verificateur` · `npm run test:paquet -- kit`, `-- architect`, `npm run typecheck`.
+- [ ] **U4.3** · `verificateur` · `npm test` dans `packages/kit`, `npm run test:paquet -- architect`, `npm run typecheck`.
 
 ---
 
@@ -513,12 +519,12 @@ Fichiers : `packages/plugin-architect/src/ecriture/{structure,variables}.ts`, `p
 
 Fichiers : `packages/kit/src/format/{names,version,tokens}.ts`, `packages/kit/src/lecteurs/{version-contrat,modes-tokens,typography-token-types}.mjs`, `packages/kit/src/referentiel/vocabulaire.ts`, `packages/kit/tests/version-contrat.test.mjs`, `packages/plugin-exporter/src/tokens/exportTokens.ts`, `packages/cli/src/{tokens-css,init}.mjs`, `packages/adapter-typescript/src/generation.mjs`, `tests/referentielUnique.test.ts`.
 
-- [ ] **U5.1** · `implementeur` · D-28 : `VERSION_CONTRAT_MAXIMALE` vaut `CONTRACT_VERSION`, importé de `format/version.ts` ; `VERSION_CONTRAT_MINIMALE` se déclare à côté. Test : égalité des deux ; le littéral `"14.0"` du test disparaît.
+- [x] **U5.1** (22032e53) · `implementeur` · D-28 : `VERSION_CONTRAT_MAXIMALE` vaut `CONTRACT_VERSION`, importé de `format/version.ts` ; `VERSION_CONTRAT_MINIMALE` se déclare à côté. Test : égalité des deux ; le littéral `"14.0"` du test disparaît.
 - [ ] **U5.2** · `implementeur` (même appel) · D-29 : `format/tokens.ts` exporte `EXTENSION_MODES_TOKENS = 'com.ucm.modes'`, `EXTENSION_SURCHARGES_TOKENS = 'com.ucm.extensions'`, `MODE_DE_BASE = 'base'`. Remplacer les littéraux de `exportTokens.ts:365-368` et `:792-795`, `modes-tokens.mjs:22-25` et `:56-70`, `typography-token-types.mjs:47-49`, `tokens-css.mjs:246-248`, `:295`, `:353-396`, `init.mjs:374`. Sortie identique : les tests du CLI et de l'exporteur passent sans retouche.
 - [ ] **U5.3** · `implementeur` (même appel) · D-05 : `estUneValeurDesactivee` devient `termeReconnu(REGISTRE_ETATS, valeur)?.id === 'disabled'`. Lire d'abord `packages/kit/invariants/` : si `format/` ne peut pas importer `referentiel/`, s'arrêter et le dire. Test d'égalité sur les termes et tolérés du registre. D-06, Q-04 : `tiny` toléré de `xs`, `huge` toléré de `xl` dans `REGISTRE_TAILLES` ; `SIZE_VALUES` devient la projection du registre ; `tests/referentielUnique.test.ts` vérifie cette projection. Le contrat d'un axe `Size=Tiny|Huge` reste `size`.
 - [ ] **U5.4** · `implementeur` · D-13 : `pascal` de `generation.mjs` disparaît au profit de `codeIdentifier`. Tests : une prop `libellé` donne un type qui contient `Libelle` ; noter dans le rapport le nom rendu pour une prop `2xl`, que la conversation principale juge avant commit. L'adaptateur monte en mineure.
 - [ ] **U5.5** · `implementeur` · Lignes de la loi racine : D-29 (littéraux `'com.ucm.` et `"com.ucm.` hors `format/tokens.ts`) ; D-13 (une fonction `pascal`, ou `toUpperCase()` après `[^a-zA-Z0-9]`, dans `packages/adapter-typescript/src/` et `packages/cli/src/`).
-- [ ] **U5.6** · `verificateur` · `npm run test:paquet -- kit`, `-- cli`, `-- adapter`, `-- exporter`, `npm test` racine, `npm run typecheck`, `npm run build`.
+- [ ] **U5.6** · `verificateur` · `npm test` dans `packages/kit`, `npm run test:paquet -- cli`, `-- adapter`, `-- exporter`, `npm test` racine, `npm run typecheck`, `npm run build`.
 
 ---
 
@@ -568,7 +574,7 @@ Fichiers : `packages/kit/src/emplois/{garanties,contraste,dossiers}.ts`, `packag
 - [ ] **U6.3** · `implementeur` (même appel) · D-27 : `variablesDuDossier(dossier): readonly VariableDePalette[]` dans `emplois/dossiers.ts` ; remplace les littéraux de `planche/modele.ts:361-363` et `presentation.ts:285-292`.
 - [ ] **U6.4** · `implementeur` · D-09, Q-06 : `generer-planche.ts` injecte dans la page le corps de `contraste` et d'`encreLisible` du kit (texte de la fonction compilée), à la place des copies de `page.js:6-19`. Les tests du navigateur de Palettes (`interface.test.mjs:263`, `:5497`, `roueDesTeintes.test.ts:98`) gardent leur copie ; un test compare chaque copie au kit sur une grille de couleurs.
 - [ ] **U6.5** · `implementeur` · Lignes de la loi racine : D-11 (`endsWith('/hover')`, `endsWith('/pressed')`) ; D-10 (`contraste(…, [0, 0, 0]) >= contraste(…, [255, 255, 255])` et l'inverse) ; D-27 (`'solid/default', 'solid/hover'` et `'page/foreground', 'page/border'` hors domiciles) ; D-09 (`0.2126` hors `emplois/contraste.ts`, exceptions nommées pour les copies de test de U6.4).
-- [ ] **U6.6** · `verificateur` · `npm run vues`, puis `npm run test:paquet -- kit`, `-- palettes`, `-- hub`, `-- couleur`, `npm run typecheck`.
+- [ ] **U6.6** · `verificateur` · `npm run vues`, puis `npm test` dans `packages/kit`, `npm run test:paquet -- palettes`, `-- hub`, `-- couleur`, `npm run typecheck`.
 
 ---
 
