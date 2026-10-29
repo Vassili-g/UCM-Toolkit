@@ -26,7 +26,7 @@ Moteur de couleur d'UCM Palettes : ucm-couleur, privé, lu en source.
 - ajustement.ts : proposition d'un ajustement de la référence, par pas de luminosité
 - promesses.ts : sept garanties du kit, jugées par palette, par mode, dans la table du sens du thème, et par intensité présente, contre la page et la carte que le fond de la page détermine (`couleurDeLaCarte`)
 - alertes.ts : alertes de conception, cinq fonds que « Profils confondus » juge (`confusionsDe`), palettes trop proches (`pairesTropProches`) et notice
-- garantie.ts : garantie des courbes : `page/foreground` et `ring` contre le cran le plus clair, gris, puis `solid/default` contre le texte des boutons, sur 360 teintes
+- garantie.ts : garantie des courbes : `page/foreground` et `ring` contre le cran le plus clair, gris, et en Dark contre la carte, puis `solid/default` contre le texte des boutons, sur 360 teintes
 - limites.ts : limite dynamique d'un réglage et cause de chaque borne, balayée un pas à la fois
 - constats.ts : sévérités et leur ordre d'affichage
 - index.ts : porte du paquet, qui republie `@ucm-kit/core/emplois`

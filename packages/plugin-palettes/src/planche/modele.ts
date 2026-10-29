@@ -473,7 +473,7 @@ function garantiesDeLaTranche(contexte: Contexte, tranche: Tranche): LigneDeGara
       const ligne = { nom, seuil: garantie.seuil, promesse };
       if (membre === undefined) return [{ ...ligne, cellule: premier, sens: sur('variable' in fond ? fond.variable : 'fondDeLaCarte' in fond ? laCarte : laPage) }];
       if ('variable' in fond) return [{ ...ligne, cellule: fond.variable, sens: dessus(membre) }];
-      return [{ ...ligne, cellule: 'surface/default', sens: `${membre} ${sur(laPage)}` }];
+      return [{ ...ligne, cellule: 'surface/default', sens: `${membre} ${sur('fondDeLaCarte' in fond ? laCarte : laPage)}` }];
     });
   });
 }

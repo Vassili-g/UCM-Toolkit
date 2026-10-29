@@ -28,18 +28,18 @@ test('[VER-01] chaque palette donne, par mode et par profil, chaque cran avec so
 
 test('[VER-01] chaque promesse nomme sa garantie par ses variables, avec son contraste et son verdict ; chaque alerte, sa mesure', () => {
   const [bleu, jaune] = rapportDeLaRecette(RECETTE, null, 'SRGB', null).palettes;
-  // Seize contrôles par mode et par intensité : 3 + 1 + 4 + 4 + 1 + 1 + 2.
-  assert.equal(bleu.promesses.length, 64);
+  // Vingt et un contrôles par mode et par intensité : 3 + 2 + 5 + 5 + 2 + 2 + 2.
+  assert.equal(bleu.promesses.length, 84);
   assert.ok(bleu.promesses.every((promesse) => typeof promesse.contraste === 'number' && ['tenue', 'manquee'].includes(promesse.verdict)), JSON.stringify(bleu.promesses[0]));
   const premiere = bleu.promesses[0];
   assert.deepEqual(premiere.garantie, { premier: 'solid/foreground', fond: 'solid/default', seuil: 'texte' });
   const fonds = bleu.promesses.filter((promesse) => promesse.mode === 'light' && promesse.profil === 'vivid').map(({ garantie }) => `${garantie.premier} sur ${garantie.fond}`);
   assert.deepEqual(fonds, [
     'solid/foreground sur solid/default', 'solid/foreground sur solid/hover', 'solid/foreground sur solid/pressed',
-    'solid/default sur elevation/page',
-    'surface/foreground sur surface/default', 'surface/foreground sur surface/hover', 'surface/foreground sur surface/pressed', 'surface/foreground sur elevation/page',
-    'surface/border sur surface/default', 'surface/border sur surface/hover', 'surface/border sur surface/pressed', 'surface/border sur elevation/page',
-    'page/foreground sur elevation/page', 'page/border sur elevation/page',
+    'solid/default sur elevation/page', 'solid/default sur elevation/raised',
+    'surface/foreground sur surface/default', 'surface/foreground sur surface/hover', 'surface/foreground sur surface/pressed', 'surface/foreground sur elevation/page', 'surface/foreground sur elevation/raised',
+    'surface/border sur surface/default', 'surface/border sur surface/hover', 'surface/border sur surface/pressed', 'surface/border sur elevation/page', 'surface/border sur elevation/raised',
+    'page/foreground sur elevation/page', 'page/foreground sur elevation/raised', 'page/border sur elevation/page', 'page/border sur elevation/raised',
     'ring sur elevation/page', 'ring sur elevation/raised',
   ]);
   assert.ok(bleu.promesses.every((promesse) => !('paire' in promesse) && !('numero' in promesse.garantie)), 'aucun numéro de garantie ni paire d’emplois');

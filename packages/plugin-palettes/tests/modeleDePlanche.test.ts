@@ -254,14 +254,15 @@ test('S7 : la planche lit les promesses du moteur sans rien rejuger, dans le sen
     assert.ok(!tous(modele.racine).some((noeud) => /garantie \d|\bG[1-7]\b/.test(noeud.nom) || (noeud.type === 'texte' && /\bG[1-7]\b/.test(noeud.contenu))), 'aucun numéro de garantie');
   }
   const lignes = (nom: string) => garantiesLues(trouver(variablesDe(MODELE.racine, 'light', 'vivid'), nom)).map((noeud) => noeud.contenu);
-  assert.deepEqual(lignes('solid default'), ['✓ solid/foreground dessus : 6,11:1 · AA', '✓ sur la page : 5,70:1 · AA']);
+  assert.deepEqual(lignes('solid default'), ['✓ solid/foreground dessus : 6,11:1 · AA', '✓ sur la page : 5,70:1 · AA', '✓ sur la carte : 6,11:1 · AA']);
   assert.deepEqual(lignes('solid pressed'), ['✓ solid/foreground dessus : 12,04:1 · AAA']);
   assert.deepEqual(lignes('surface default'), [
-    '✓ texte dessus : 7,14:1 · AAA', '✓ texte sur la page : 8,06:1 · AAA', '✓ contour dessus : 7,14:1 · AA', '✓ contour sur la page : 8,06:1 · AA',
+    '✓ texte dessus : 7,14:1 · AAA', '✓ texte sur la page : 8,06:1 · AAA', '✓ texte sur la carte : 8,64:1 · AAA',
+    '✓ contour dessus : 7,14:1 · AA', '✓ contour sur la page : 8,06:1 · AA', '✓ contour sur la carte : 8,64:1 · AA',
   ]);
   assert.deepEqual(lignes('surface hover'), ['✓ texte dessus : 6,25:1 · AA', '✓ contour dessus : 6,25:1 · AA']);
-  assert.deepEqual(lignes('page foreground'), ['✓ sur la page : 5,70:1 · AA']);
-  assert.deepEqual(lignes('page border'), ['✓ sur la page : 5,70:1 · AA']);
+  assert.deepEqual(lignes('page foreground'), ['✓ sur la page : 5,70:1 · AA', '✓ sur la carte : 6,11:1 · AA']);
+  assert.deepEqual(lignes('page border'), ['✓ sur la page : 5,70:1 · AA', '✓ sur la carte : 6,11:1 · AA']);
   assert.deepEqual(lignes('ring'), ['✓ sur la page : 4,52:1 · AA', '✓ sur la carte : 4,84:1 · AA']);
   assert.deepEqual(lignes('page divider'), []);
   const echec = garantiesLues(trouver(modeleDeCadre(RECETTE_EN_ECHEC, BLEU, 'SRGB').racine, 'thème light')).find((noeud) => noeud.contenu.startsWith('✗'))!;
@@ -297,7 +298,7 @@ test('P7 : une liste sans 50 garde les trois dossiers et ses garanties ; sans 90
   };
   const sans50 = variablesDe(modeleDeCadre(sans(50), BLEU, 'SRGB').racine, 'light', 'vivid');
   assert.deepEqual(sans50.enfants.filter((noeud) => noeud.nom.startsWith('dossier ')).map((noeud) => noeud.nom), ['dossier solid', 'dossier surface', 'dossier page']);
-  assert.equal(garantiesLues(sans50).length, 16);
+  assert.equal(garantiesLues(sans50).length, 21);
   const sans900 = variablesDe(modeleDeCadre(sans(900), BLEU, 'SRGB').racine, 'light', 'vivid');
   const noms = cadres(sans900).map((noeud) => noeud.nom);
   assert.equal(noms.includes('solid pressed'), false);
@@ -482,7 +483,7 @@ test('[PLA-28] Y5.5 : chaque partie retirée disparaît du modèle et change l�
 });
 
 test('[PLA-24] Y5.4 : les calques du cadre de Bleu, toutes parties dessinées, à une et à deux intensités', () => {
-  // Trois états par dossier : 1 770 calques à deux intensités, 914 à une.
-  assert.equal(compterCalques(AVEC_GRILLE.racine), 1770);
-  assert.equal(compterCalques(modeleDeCadre(RECETTE_SEULE, BLEU_SEUL, 'SRGB').racine), 914);
+  // Trois états par dossier : 1 790 calques à deux intensités, 924 à une.
+  assert.equal(compterCalques(AVEC_GRILLE.racine), 1790);
+  assert.equal(compterCalques(modeleDeCadre(RECETTE_SEULE, BLEU_SEUL, 'SRGB').racine), 924);
 });

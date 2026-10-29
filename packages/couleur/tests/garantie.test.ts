@@ -50,10 +50,29 @@ test('[ENT-10] un cran 700 clair remonté à 0,56 ne tient plus ni 4,5 contre le
   }
 });
 
-test('[ENT-10] un cran 600 sombre descendu vers le fond ne tient plus 3 : c’est le cran de ring', () => {
+test('[ENT-10] un cran 600 sombre descendu vers le fond ne tient plus 3 : c’est le cran de ring, contre la nuance la plus claire puis contre la carte', () => {
   const manques = garantieDesCourbes(avecClarte(NORMAL, 'dark', 600, 0.48));
-  assert.deepEqual(manques.map(({ mode, cran, profil, contre }) => `${mode} ${cran} ${profil} ${contre}`), ['dark 600 soft cranLeger', 'dark 600 vivid cranLeger']);
+  assert.deepEqual(manques.map(({ mode, cran, profil, contre }) => `${mode} ${cran} ${profil} ${contre}`), [
+    'dark 600 soft cranLeger',
+    'dark 600 vivid cranLeger',
+    'dark 600 soft carte',
+    'dark 600 vivid carte',
+  ]);
   assert.equal(manques[0].seuil, 3);
+});
+
+test('[ENT-10] la carte Dark, plus claire que le fond, est jugée seule quand le cran tient la nuance la plus claire', () => {
+  const ring = garantieDesCourbes(avecClarte(NORMAL, 'dark', 600, 0.51));
+  assert.deepEqual(ring.map(({ cran, profil, contre }) => `${cran} ${profil} ${contre}`), ['600 soft carte', '600 vivid carte']);
+  assert.equal(ring[0].seuil, 3);
+  assert.ok(ring.every(({ contraste }) => contraste < 3));
+  const texte = garantieDesCourbes(avecClarte(NORMAL, 'dark', 700, 0.6));
+  assert.deepEqual(texte.map(({ cran, profil, contre }) => `${cran} ${profil} ${contre}`), ['700 soft carte', '700 vivid carte']);
+  assert.equal(texte[0].seuil, 4.5);
+});
+
+test('[ENT-10] en Light la carte est blanche et la garantie ne la juge pas', () => {
+  assert.deepEqual(decrire(avecClarte(NORMAL, 'light', 600, 0.6)).filter((ligne) => ligne.endsWith('carte')), []);
 });
 
 test('[ENT-10] la table du sens du mode choisit les crans : le 800 est garanti en Light inversé, pas en Light normal', () => {

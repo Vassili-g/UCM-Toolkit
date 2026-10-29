@@ -16,16 +16,16 @@ export interface Garantie {
 const FOND_DE_LA_PAGE = { fondDeLaPage: true } as const;
 const FOND_DE_LA_CARTE = { fondDeLaCarte: true } as const;
 const FONDS_SURFACE: readonly FondDeGarantie[] = [
-  { variable: 'surface/default' }, { variable: 'surface/hover' }, { variable: 'surface/pressed' }, FOND_DE_LA_PAGE,
+  { variable: 'surface/default' }, { variable: 'surface/hover' }, { variable: 'surface/pressed' }, FOND_DE_LA_PAGE, FOND_DE_LA_CARTE,
 ];
 
 export const GARANTIES: readonly Garantie[] = [
   { numero: 1, premier: { variable: 'solid/foreground' }, fonds: [{ variable: 'solid/default' }, { variable: 'solid/hover' }, { variable: 'solid/pressed' }], seuil: 'texte' },
-  { numero: 2, premier: { variable: 'solid/default' }, fonds: [FOND_DE_LA_PAGE], seuil: 'nonTexte' },
+  { numero: 2, premier: { variable: 'solid/default' }, fonds: [FOND_DE_LA_PAGE, FOND_DE_LA_CARTE], seuil: 'nonTexte' },
   { numero: 3, premier: { variable: 'surface/foreground' }, fonds: FONDS_SURFACE, seuil: 'texte' },
   { numero: 4, premier: { variable: 'surface/border' }, fonds: FONDS_SURFACE, seuil: 'nonTexte' },
-  { numero: 5, premier: { variable: 'page/foreground' }, fonds: [FOND_DE_LA_PAGE], seuil: 'texte' },
-  { numero: 6, premier: { variable: 'page/border' }, fonds: [FOND_DE_LA_PAGE], seuil: 'nonTexte' },
+  { numero: 5, premier: { variable: 'page/foreground' }, fonds: [FOND_DE_LA_PAGE, FOND_DE_LA_CARTE], seuil: 'texte' },
+  { numero: 6, premier: { variable: 'page/border' }, fonds: [FOND_DE_LA_PAGE, FOND_DE_LA_CARTE], seuil: 'nonTexte' },
   { numero: 7, premier: { variable: 'ring' }, fonds: [FOND_DE_LA_PAGE, FOND_DE_LA_CARTE], seuil: 'nonTexte' },
 ];
 

@@ -3,7 +3,9 @@
  * le cran de `page/foreground` tient le seuil textuel et le cran de
  * `ring` le seuil non textuel contre le cran le plus léger de la même
  * courbe, gris, pour toute teinte, les deux profils et les deux modes, sur
- * les couleurs à 8 bits. Elle ajoute un contrôle : le cran de `solid/default`
+ * les couleurs à 8 bits. En Dark, ils le tiennent aussi contre la carte, plus
+ * claire que ce cran (Light : la carte est blanche, la page porte déjà le
+ * cas). Elle ajoute un contrôle : le cran de `solid/default`
  * tient le seuil textuel contre le texte des boutons du mode. Une courbe
  * éditée qui ne la tient plus sonne « courbe hors garantie ». L'alerte
  * n'empêche ni le rangement ni le dessin.
@@ -19,6 +21,7 @@ import {
 } from '@ucm-kit/core/emplois';
 
 import { lireHexa, type Rgb8 } from './conversions';
+import { couleurDeLaCarte } from './jugement';
 import { enveloppeDe } from './palette';
 import { fabriquerCran, MODES, PROFILS, type Mode, type Profil } from './rampe';
 import type { Recette } from './recette';
@@ -32,14 +35,16 @@ export interface ManqueDeGarantie {
   readonly teinte: number;
   readonly contraste: number;
   readonly seuil: number;
-  /** Ce que le cran est jugé contre : le cran le plus léger de la liste, ou le texte des boutons du mode. */
-  readonly contre: 'cranLeger' | 'texteDesBoutons';
+  /** Ce que le cran est jugé contre : le cran le plus léger de la liste, la carte du mode Dark, ou le texte des boutons du mode. */
+  readonly contre: 'cranLeger' | 'carte' | 'texteDesBoutons';
 }
 
 /** Les variables garanties, le seuil que chacune tient, et ce qu'elle est jugée contre. */
 const VARIABLES_GARANTIES: readonly { variable: VariableDePalette; seuil: 'texte' | 'nonTexte'; contre: ManqueDeGarantie['contre'] }[] = [
   { variable: 'page/foreground', seuil: 'texte', contre: 'cranLeger' },
+  { variable: 'page/foreground', seuil: 'texte', contre: 'carte' },
   { variable: 'ring', seuil: 'nonTexte', contre: 'cranLeger' },
+  { variable: 'ring', seuil: 'nonTexte', contre: 'carte' },
   { variable: 'solid/default', seuil: 'texte', contre: 'texteDesBoutons' },
 ];
 
@@ -57,9 +62,11 @@ export function garantieDesCourbes(recette: Recette): ManqueDeGarantie[] {
     const cranLeger = fabriquerCran(courbe[rangDuCranLeger(recette.crans)], 0, 0, recette.gamut).couleur;
     const opposants: { [C in ManqueDeGarantie['contre']]: Rgb8 } = {
       cranLeger,
+      carte: couleurDeLaCarte(recette, mode),
       texteDesBoutons: lireHexa(COULEUR_DU_TEXTE_DES_BOUTONS[texte])!,
     };
     for (const { variable, seuil: nom, contre } of VARIABLES_GARANTIES) {
+      if (contre === 'carte' && mode === 'light') continue;
       const cran = table[variable];
       if (typeof cran !== 'number') continue;
       const rang = recette.crans.indexOf(cran);

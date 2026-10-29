@@ -47,11 +47,11 @@ test('[UI-09] une garantie qui ne vise pas un fond laisse sa case vide', () => {
   const colonnes = Object.fromEntries(lignes.map((ligne) => [ligne.garantie.numero, colonnesDe(ligne)]));
   assert.deepEqual(colonnes, {
     1: 'default hover pressed',
-    2: 'page',
-    3: 'page default hover pressed',
-    4: 'page default hover pressed',
-    5: 'page',
-    6: 'page',
+    2: 'page carte',
+    3: 'page carte default hover pressed',
+    4: 'page carte default hover pressed',
+    5: 'page carte',
+    6: 'page carte',
     7: 'page carte',
   });
 });
@@ -91,19 +91,20 @@ test('[UI-09] [VER-21] une ligne nomme ses fonds : les trois états d’un dossi
   const nom = (cibles: CibleDeGarantie[]) => cibles.map((cible) => ('page' in cible ? 'la page' : 'carte' in cible ? 'la carte' : cible.code));
   assert.deepEqual(GARANTIES.map((garantie) => nom(ciblesDeLaGarantie(garantie))), [
     ['solid/*'],
-    ['la page'],
-    ['surface/*', 'la page'],
-    ['surface/*', 'la page'],
-    ['la page'],
-    ['la page'],
+    ['la page', 'la carte'],
+    ['surface/*', 'la page', 'la carte'],
+    ['surface/*', 'la page', 'la carte'],
+    ['la page', 'la carte'],
+    ['la page', 'la carte'],
     ['la page', 'la carte'],
   ]);
   assert.deepEqual(GARANTIES.flatMap((garantie) => garantie.fonds.map(colonneDuFond)), [
     'default', 'hover', 'pressed',
-    'page',
-    'default', 'hover', 'pressed', 'page',
-    'default', 'hover', 'pressed', 'page',
-    'page', 'page',
+    'page', 'carte',
+    'default', 'hover', 'pressed', 'page', 'carte',
+    'default', 'hover', 'pressed', 'page', 'carte',
+    'page', 'carte',
+    'page', 'carte',
     'page', 'carte',
   ]);
 });

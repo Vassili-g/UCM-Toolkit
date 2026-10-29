@@ -6,11 +6,11 @@ import { GARANTIES, garantieJugeable, type ModeDuTheme, type SensDuTheme } from 
 test('les sept garanties ont leurs membres, fonds et seuil', () => {
   assert.deepEqual(GARANTIES, [
     { numero: 1, premier: { variable: 'solid/foreground' }, fonds: [{ variable: 'solid/default' }, { variable: 'solid/hover' }, { variable: 'solid/pressed' }], seuil: 'texte' },
-    { numero: 2, premier: { variable: 'solid/default' }, fonds: [{ fondDeLaPage: true }], seuil: 'nonTexte' },
-    { numero: 3, premier: { variable: 'surface/foreground' }, fonds: [{ variable: 'surface/default' }, { variable: 'surface/hover' }, { variable: 'surface/pressed' }, { fondDeLaPage: true }], seuil: 'texte' },
-    { numero: 4, premier: { variable: 'surface/border' }, fonds: [{ variable: 'surface/default' }, { variable: 'surface/hover' }, { variable: 'surface/pressed' }, { fondDeLaPage: true }], seuil: 'nonTexte' },
-    { numero: 5, premier: { variable: 'page/foreground' }, fonds: [{ fondDeLaPage: true }], seuil: 'texte' },
-    { numero: 6, premier: { variable: 'page/border' }, fonds: [{ fondDeLaPage: true }], seuil: 'nonTexte' },
+    { numero: 2, premier: { variable: 'solid/default' }, fonds: [{ fondDeLaPage: true }, { fondDeLaCarte: true }], seuil: 'nonTexte' },
+    { numero: 3, premier: { variable: 'surface/foreground' }, fonds: [{ variable: 'surface/default' }, { variable: 'surface/hover' }, { variable: 'surface/pressed' }, { fondDeLaPage: true }, { fondDeLaCarte: true }], seuil: 'texte' },
+    { numero: 4, premier: { variable: 'surface/border' }, fonds: [{ variable: 'surface/default' }, { variable: 'surface/hover' }, { variable: 'surface/pressed' }, { fondDeLaPage: true }, { fondDeLaCarte: true }], seuil: 'nonTexte' },
+    { numero: 5, premier: { variable: 'page/foreground' }, fonds: [{ fondDeLaPage: true }, { fondDeLaCarte: true }], seuil: 'texte' },
+    { numero: 6, premier: { variable: 'page/border' }, fonds: [{ fondDeLaPage: true }, { fondDeLaCarte: true }], seuil: 'nonTexte' },
     { numero: 7, premier: { variable: 'ring' }, fonds: [{ fondDeLaPage: true }, { fondDeLaCarte: true }], seuil: 'nonTexte' },
   ]);
 });
@@ -57,5 +57,15 @@ test('G7 juge l’anneau contre deux fonds extérieurs à la palette, la page pu
     for (const sens of ['normal', 'inverse'] as const) {
       assert.equal(garantieJugeable(g7, sens === 'normal' ? [600] : [700], mode, sens), true, `${mode} ${sens}`);
     }
+  }
+});
+
+test('la carte rejoint la page comme fond de G2 à G7, et G1 ne juge que les boutons', () => {
+  const avecCarte = GARANTIES.filter((garantie) => garantie.fonds.some((fond) => 'fondDeLaCarte' in fond)).map((garantie) => garantie.numero);
+  assert.deepEqual(avecCarte, [2, 3, 4, 5, 6, 7]);
+  for (const garantie of GARANTIES) {
+    const page = garantie.fonds.some((fond) => 'fondDeLaPage' in fond);
+    const carte = garantie.fonds.some((fond) => 'fondDeLaCarte' in fond);
+    assert.equal(carte, page, `G${garantie.numero}`);
   }
 });

@@ -831,7 +831,7 @@ function varianteAvecTrait(cleLiee: string, nombreDeTraits = 1): VariantLu {
 }
 const sur = (constats: ReturnType<typeof cc>, fond: string) => parCode(constats, 'C50').filter((c) => c.faits.fondNomme === fond);
 
-test('C50 : page/border à 2,7:1 sur la page en Dark est à corriger, sur la carte à vérifier', () => {
+test('C50 : page/border à 2,7:1 sur la page en Dark est à corriger, sur la carte aussi (G6 porte la carte)', () => {
   const trait = grisAuRapport(0.1, 2.7);
   const catalogue = themeAvecFonds('page/border', trait, { fondsDElevation: FONDS_SOMBRES });
   const constats = cc(releve([varianteAvecTrait('jeton')]), 'AA', catalogue);
@@ -844,8 +844,8 @@ test('C50 : page/border à 2,7:1 sur la page en Dark est à corriger, sur la car
   assert.ok(Number(page[0].faits.rapport) >= 2.6 && Number(page[0].faits.rapport) < 3);
   const carte = sur(constats, 'carte');
   assert.equal(carte.length, 1);
-  assert.equal(carte[0].type, 'verifier');
-  assert.equal(carte[0].faits.garanti, 'non');
+  assert.equal(carte[0].type, 'corriger');
+  assert.equal(carte[0].faits.garanti, 'oui');
   assert.equal(constats.find((c) => c.limite && c.faits.cause === 'fond-indetermine'), undefined);
 });
 

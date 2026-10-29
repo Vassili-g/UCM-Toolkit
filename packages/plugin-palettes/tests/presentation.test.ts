@@ -52,19 +52,19 @@ test('[VER-06] deux profils en échec sur le même fond font un groupe, et compt
   const recette = recetteAMoitieRatee();
   const promesses = verifierPromesses(recette, BLEU);
   const groupes = groupesManques(promesses);
-  assert.deepEqual(groupes.map((groupe) => `${groupe.garantie.premier.variable} ${groupe.mode} ${nomDuFond(groupe.fond)} ${groupe.manquees}`), ['solid/foreground light solid/default 2', 'page/foreground light page 2']);
+  assert.deepEqual(groupes.map((groupe) => `${groupe.garantie.premier.variable} ${groupe.mode} ${nomDuFond(groupe.fond)} ${groupe.manquees}`), ['solid/foreground light solid/default 2', 'page/foreground light page 2', 'page/foreground light carte 2']);
   assert.equal(groupes.reduce((total, groupe) => total + groupe.manquees, 0), promesses.filter((promesse) => promesse.verdict === 'manquee').length);
   assert.deepEqual(groupes[0].resultats.map((promesse) => promesse.profil), ['soft', 'vivid']);
-  assert.deepEqual(groupes.map((groupe) => groupe.garantie.numero), [1, 5]);
+  assert.deepEqual(groupes.map((groupe) => groupe.garantie.numero), [1, 5, 5]);
 });
 
-test('[VER-06] un groupe nomme un seul fond de sa garantie : trois fonds manqués font trois groupes, dans l’ordre des fonds', () => {
+test('[VER-06] un groupe nomme un seul fond de sa garantie : chaque fond manqué fait son groupe, dans l’ordre des fonds', () => {
   const promesses = verifierPromesses({ ...DEFAUT, palettes: [BLEU] }, BLEU).map((promesse) =>
     (promesse.mode === 'dark' && promesse.profil === 'vivid' && promesse.garantie.numero === 3 ? { ...promesse, verdict: 'manquee' as const } : promesse));
   const groupes = groupesManques(promesses);
-  assert.deepEqual(groupes.map((groupe) => `${groupe.mode} ${nomDuFond(groupe.fond)} ${groupe.manquees}/${groupe.resultats.length}`), ['dark surface/default 1/2', 'dark surface/hover 1/2', 'dark surface/pressed 1/2', 'dark page 1/2']);
+  assert.deepEqual(groupes.map((groupe) => `${groupe.mode} ${nomDuFond(groupe.fond)} ${groupe.manquees}/${groupe.resultats.length}`), ['dark surface/default 1/2', 'dark surface/hover 1/2', 'dark surface/pressed 1/2', 'dark page 1/2', 'dark carte 1/2']);
   assert.ok(groupes.every((groupe) => groupe.garantie.numero === 3));
-  assert.deepEqual(groupes.map((groupe) => groupe.resultats.length), [2, 2, 2, 2]);
+  assert.deepEqual(groupes.map((groupe) => groupe.resultats.length), [2, 2, 2, 2, 2]);
 });
 
 test('[VER-06] un groupe garde le résultat du profil qui tient sa promesse', () => {
@@ -109,13 +109,13 @@ test('[UI-10] [I5] les garanties d\u2019une variable : une par fond quand elle e
   const promesses = verifierPromesses({ ...DEFAUT, palettes: [BLEU] }, BLEU);
   const lire = (variable: VariableDuTheme) => garantiesDeLaVariable(promesses, 'light', 'vivid', variable).map(({ promesse, role, partenaire }) => `${promesse.garantie.numero} ${role} ${partenaire}`);
   assert.deepEqual(lire('solid/foreground'), ['1 premier solid/default', '1 premier solid/hover', '1 premier solid/pressed']);
-  assert.deepEqual(lire('solid/default'), ['1 fond solid/foreground', '2 premier elevation/page']);
+  assert.deepEqual(lire('solid/default'), ['1 fond solid/foreground', '2 premier elevation/page', '2 premier elevation/raised']);
   assert.deepEqual(lire('surface/default'), ['3 fond surface/foreground', '4 fond surface/border']);
   assert.deepEqual(lire('ring'), ['7 premier elevation/page', '7 premier elevation/raised']);
-  assert.deepEqual(lire('page/foreground'), ['5 premier elevation/page']);
+  assert.deepEqual(lire('page/foreground'), ['5 premier elevation/page', '5 premier elevation/raised']);
   assert.deepEqual(lire('page/divider'), [], 'le filet n\u2019a pas de minimum');
-  assert.deepEqual(garantiesDeLaVariable(promesses, 'light', 'soft', 'solid/default').map(({ promesse }) => promesse.profil), ['soft', 'soft'], 'une intensité à la fois');
-  assert.deepEqual(garantiesDeLaVariable(promesses, 'dark', 'vivid', 'page/border').map(({ promesse }) => promesse.mode), ['dark'], 'un thème à la fois');
+  assert.deepEqual(garantiesDeLaVariable(promesses, 'light', 'soft', 'solid/default').map(({ promesse }) => promesse.profil), ['soft', 'soft', 'soft'], 'une intensité à la fois');
+  assert.deepEqual(garantiesDeLaVariable(promesses, 'dark', 'vivid', 'page/border').map(({ promesse }) => promesse.mode), ['dark', 'dark'], 'un thème à la fois, la page puis la carte');
 });
 
 test('[UI-10] [I5] dans le sens inversé, le bouton survolé est la 600 : sa garantie est celle du texte des boutons sur solid/hover', () => {
