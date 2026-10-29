@@ -216,7 +216,7 @@ Fichiers : `packages/kit/src/emplois/dossiers.ts`, `packages/kit/src/emplois/ind
 
 Fichiers : `packages/kit/src/referentiel/reconnaissance.ts`, `packages/kit/src/referentiel/index.ts`, `packages/kit/src/controles/{theme,structure,mapping,accessibilite,index}.ts`, `packages/plugin-architect/src/catalogue.ts`, `packages/kit/tests/formeDuChemin.test.ts` (nouveau), `packages/kit/tests/themeReconnu.test.ts`, `tests/reglesUniques.test.ts`.
 
-- [ ] **U1.1** · `implementeur-exigeant` · Ajouter à `reconnaissance.ts` et exporter par le référentiel :
+- [x] **U1.1** (36c7b1ab) · `implementeur-exigeant` · Ajouter à `reconnaissance.ts` et exporter par le référentiel :
 
   ```ts
   /** La forme de chemin d'un nom : chaque segment passe par `formeReconnue`, les segments se rejoignent par `/`. */
@@ -224,12 +224,12 @@ Fichiers : `packages/kit/src/referentiel/reconnaissance.ts`, `packages/kit/src/r
   ```
 
   Tests : `Primary/Solid/Default` et `primary/solid/default` ont la même forme ; un tableau de segments donne la même forme que le nom joint ; un nom d'un segment.
-- [ ] **U1.2** · `implementeur-exigeant` (même appel) · Remplacer les copies de D-17, sortie identique : `signatureDeCible` (`mapping.ts`), les deux signatures de `structure.ts` (dans `controlerLesValeursVides` et `signatureSansPalette`), `formeDuNom` et `formeDuNomRemplace` (`theme.ts`). `remplacerSegment` garde sa recherche par forme. Les tests existants passent sans retouche.
-- [ ] **U1.3** · `implementeur-exigeant` (même appel) · Q-02 : retirer `cleDuTheme` de `theme.ts` et de l'export du kit. Chaque appelant passe à `variableDuThemeReconnue` : `theme.ts`, `structure.ts`, `accessibilite.ts` (rôle du fond mesuré), Architect `src/catalogue.ts` (fonds de la page et de la carte). `grep -rn cleDuTheme packages` ne rend plus rien hors `dist/`.
-- [ ] **U1.4** · `implementeur-exigeant` (même appel) · D-23 côté kit : `modeUcmDepuisNom` de `theme.ts` disparaît au profit de `modeDuThemeReconnu` (sans index : sortie identique).
-- [ ] **U1.5** · `implementeur` · Lignes de la loi racine : `cleDuTheme` refusé partout ; `.map(formeReconnue).join('/')` refusé hors `reconnaissance.ts` ; `mode.name.trim().toLowerCase()` et `mode.nom.trim().toLowerCase()` refusés dans `packages/*/src/`, avec trois exceptions nommées, `packages/plugin-palettes/src/ecriture/variables.ts`, `packages/plugin-palettes/src/variables/lot.ts` et `packages/plugin-palettes/src/variables/detection.ts`, raison « levée par U7 ».
-- [ ] **U1.6** · `executant` · Montée de version (§2).
-- [ ] **U1.7** · `verificateur` · `npm test` dans `packages/kit`, `npm run test:paquet -- architect`, `npm test` racine, `npm run typecheck`.
+- [x] **U1.2** (36c7b1ab) · `implementeur-exigeant` (même appel) · Remplacer les copies de D-17, sortie identique : `signatureDeCible` (`mapping.ts`), les deux signatures de `structure.ts` (dans `controlerLesValeursVides` et `signatureSansPalette`), `formeDuNom` et `formeDuNomRemplace` (`theme.ts`). `remplacerSegment` garde sa recherche par forme. Les tests existants passent sans retouche.
+- [x] **U1.3** (36c7b1ab) · `implementeur-exigeant` (même appel) · Q-02 : retirer `cleDuTheme` de `theme.ts` et de l'export du kit. Chaque appelant passe à `variableDuThemeReconnue` : `theme.ts`, `structure.ts`, `accessibilite.ts` (rôle du fond mesuré), Architect `src/catalogue.ts` (fonds de la page et de la carte). `grep -rn cleDuTheme packages` ne rend plus rien hors `dist/`.
+- [x] **U1.4** (36c7b1ab) · `implementeur-exigeant` (même appel) · D-23 côté kit : `modeUcmDepuisNom` de `theme.ts` disparaît au profit de `modeDuThemeReconnu` (sans index : sortie identique).
+- [x] **U1.5** (36c7b1ab) · `implementeur` · Lignes de la loi racine : `cleDuTheme` refusé partout ; `.map(formeReconnue).join('/')` refusé hors `reconnaissance.ts` ; `mode.name.trim().toLowerCase()` et `mode.nom.trim().toLowerCase()` refusés dans `packages/*/src/`, avec trois exceptions nommées, `packages/plugin-palettes/src/ecriture/variables.ts`, `packages/plugin-palettes/src/variables/lot.ts` et `packages/plugin-palettes/src/variables/detection.ts`, raison « levée par U7 ».
+- [x] **U1.6** (36c7b1ab) · `executant` · Montée de version (§2).
+- [x] **U1.7** (36c7b1ab) · `verificateur` · `npm test` dans `packages/kit`, `npm run test:paquet -- architect`, `npm test` racine, `npm run typecheck`.
 
 ---
 
@@ -245,8 +245,8 @@ Agent : conversation principale. Vague 2, en parallèle de U1.
   - le bouton « Tout désélectionner » de l'onglet Corrections (Q-14), et des cartes de crans dont les lignes arrivent décochées ;
   - la feuille de préparation du mode Composant avec la raison de Q9.
 - [x] **M1.2** Textes du §5 posés mot pour mot. Lancer le contrôle de style des maquettes ([Maquettes en phrases simples]) et `galerie/comparer-maquette.cjs`.
-- [ ] **M1.3** ([MAQUETTE-INTEGRITE.html](./MAQUETTE-INTEGRITE.html), questions M-1 à M-4) Terminer la maquette par un tableau de questions. **Validation du mainteneur** : I7 et I8 ne partent pas avant.
-- [ ] **M1.4** Reporter au §5 les textes changés pendant la validation.
+- [x] **M1.3** ([MAQUETTE-INTEGRITE.html](./MAQUETTE-INTEGRITE.html), e6d56203). Validée par le mainteneur, avec les recommandations de M-1 à M-4 : « Tout désélectionner » en tête de l'onglet ; un menu à deux choix sous Ignorer ; une carte de crans par rôle et par mode ; pas d'exemple en Pascal. Pour la préparation (Q9), le contenu est validé, pas la mise en page du cadre 4 : I4.2 suit la ligne existante de la feuille. Terminer la maquette par un tableau de questions. **Validation du mainteneur** : I7 et I8 ne partent pas avant.
+- [x] **M1.4** Aucun texte changé. Reporter au §5 les textes changés pendant la validation.
 
 ---
 
@@ -457,7 +457,7 @@ Fichiers : `packages/plugin-exporter/src/tokens/exportTokens.ts`, tests de l'exp
 Fichiers : `packages/kit/src/controles/preparation.ts`, `packages/kit/tests/preparation.test.ts`, `packages/plugin-architect/src/ui/textes/preparation.ts`, la feuille de préparation d'Architect (`src/ui/` ; domicile par `npm run agents:domicile`), `packages/plugin-architect/tests/preparation.test.ts`.
 
 - [ ] **I4.1** · `implementeur` · `CouleurSansCible` gagne `raison: 'sans-regle' | 'absente-du-theme'` et `cible?: string`. Autour de `preparation.ts:330` : quand la variable calculée est dans `VARIABLES_DU_THEME` et que `themeAvec(cible)` ne rend rien, la couleur entre dans `couleursSansCible` avec `raison: 'absente-du-theme'` et `cible` ; les autres reçoivent `sans-regle`. Test : un composant dont une couleur vise `theme/primary/surface/subtle`, absente, rend `absente-du-theme` et le nom.
-- [ ] **I4.2** · `implementeur` (même appel) · La feuille de préparation montre, pour `absente-du-theme`, les deux phrases du §5.6 à la place de « laissée en dur ». Test d'interface sur le modèle des tests voisins de la préparation.
+- [ ] **I4.2** · `implementeur` (même appel) · La feuille de préparation montre, pour `absente-du-theme`, les deux phrases du §5.6 à la place de la phrase « aucun token du thème ne vaut … : reste en dur » (`preparationCouleurEnDur`), dans la même ligne et la même mise en forme que cette phrase. Le cadre 4 de la maquette ne fixe que le contenu. Test d'interface sur le modèle des tests voisins de la préparation.
 - [ ] **I4.3** · `verificateur` · `npm test` dans `packages/kit`, `npm run test:paquet -- architect`, `npm run typecheck`.
 
 ---
