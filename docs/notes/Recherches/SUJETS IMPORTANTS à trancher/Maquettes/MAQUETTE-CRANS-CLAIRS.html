@@ -231,6 +231,16 @@
     <li>Un texte et un contour communs à <code>page</code> et <code>surface</code>. Le fond de survol reste à traiter.</li>
   </ul>
 
+  <h3>Le même composant en Light et en Dark</h3>
+  <ul class="faits">
+    <li>Trois composants sont conçus sur la page : un bouton texte, un bouton outlined au focus et un lien. Ils prennent <code>page/foreground</code>, <code>page/border</code> et <code>ring</code>.</li>
+    <li>Première ligne : posés sur la page. Deuxième ligne : posés tels quels dans une alerte teintée. Troisième ligne : la variante « sur fond teinté », qui prend <code>surface/foreground</code> et <code>surface/border</code>, et <code>surface/border</code> pour l'anneau.</li>
+    <li>Chaque pastille juge une couleur contre le fond qui est juste derrière : la page ou le fond de l'alerte.</li>
+    <li>La table Dark est celle que tu gardes : fond teinté au 300, texte de <code>surface</code> au 950.</li>
+    <li>Les pastilles portent sur la palette choisie en haut. Sur toutes tes palettes, le pire cas de la deuxième ligne en Dark vaut 3,39 pour le texte et 2,38 pour l'anneau. Choisis Poppy pour le voir.</li>
+  </ul>
+  <div class="grille" id="contexteModes" style="grid-template-columns:repeat(auto-fill,minmax(min(100%,420px),1fr))"></div>
+
   <!-- 7 -->
   <h2 id="s7">7. Le contraste à l'appui</h2>
   <blockquote><p>« c'est pas possible que des éléments ne passent pas les textes actuellement, le plugin vérifie absolument tout ça et valide tout »</p></blockquote>
@@ -243,6 +253,15 @@
     <li>Toutes les rampes passent 3:1, au survol comme à l'appui.</li>
     <li>La garantie 3 du kit juge le texte au survol. Avec le texte 700, elle échouerait sur ces 5 rampes.</li>
     <li>Retirer l'appui demande de retirer <code>surface/pressed</code> des garanties 3 et 4.</li>
+  </ul>
+  <h3>Piste : l'appui jugé à 3:1</h3>
+  <blockquote class="position"><p>« et on peut pas avoir la garantie 3:1 pour le press surface ? »</p></blockquote>
+  <ul class="faits">
+    <li>Oui. Sur 360 teintes, le texte 700 corrigé passe 3:1 sur le 300, à 3,70 au minimum.</li>
+    <li>Sans la correction du 700, le minimum vaut 3,60. Le Dark passe à 5,77 : texte 950 sur le 500.</li>
+    <li>La garantie 4 juge déjà le contour à 3:1. Elle ne change pas.</li>
+    <li>Dans le kit, une garantie n'a qu'un seuil. La garantie 3 deviendrait deux garanties : 4,5 au repos, au survol, sur la page et sur la carte ; 3 à l'appui.</li>
+    <li>3:1 reste un choix d'UCM. WCAG ne prévoit pas de seuil propre à l'appui.</li>
   </ul>
   <h3>Ce que vaut 3:1</h3>
   <ul class="faits">
@@ -399,7 +418,7 @@
     <tr><td>Quelle clarté pour un fond léger ?</td><td>Le 50, à 0,975</td></tr>
     <tr><td>Le texte de <code>surface</code> reste-t-il à 800 ?</td><td>Non, 700</td></tr>
     <tr><td>Quelle table pour <code>surface</code> ?</td><td>100, 200 et 300</td></tr>
-    <tr><td>L'appui sort-il des garanties 3 et 4 ?</td><td>Oui</td></tr>
+    <tr><td>L'appui de <code>solid</code> reste-t-il dans la garantie 1 ?</td><td>Oui, à 4,5:1 : il passe toujours</td></tr>
     <tr><td>Le survol garde-t-il 4,5:1 ?</td><td>Oui, sans assouplir la garantie 3</td></tr>
     <tr><td>Comment le survol tient-il 4,5:1 ?</td><td>Le moteur fonce le 700 des seules teintes qui échouent</td></tr>
     <tr><td>Quelle organisation des noms ?</td><td>B, les noms actuels, avec <code>surface/subtle</code> et <code>surface/divider</code></td></tr>
@@ -412,7 +431,7 @@
   <h3>À prendre</h3>
   <div class="defile"><table class="mesures">
     <tr><th>Question</th><th>Fait</th><th>Recommandation</th></tr>
-    <tr><td>4. L'appui de <code>solid</code> dans la garantie 1</td><td>La garantie 1 juge le texte des boutons sur les trois fonds de <code>solid</code>, au seuil de 4,5:1. Ce n'est pas 3:1. L'appui y passe toujours : 11,33 au minimum en Light, 7,06 en Dark inversé</td><td>La garder telle quelle : elle ne peut pas échouer</td></tr>
+    <tr><td>4. L'appui de <code>surface</code> : hors des garanties, ou jugé à 3:1</td><td>Le texte 700 passe 3:1 sur le 300 pour les 360 teintes, à 3,70 au minimum. Le Dark passe à 5,77.</td><td>Le juger à 3:1 : la garantie reste vérifiable et ne peut pas échouer.</td></tr>
     <tr><td>6. Un composant de la page posé dans un fond teinté, en Dark</td><td>Le texte et l'anneau de la page échouent sur le fond teinté 300 en Dark. Voir le README, décision 6.</td><td>Une variante « sur fond teinté » des composants concernés</td></tr>
   </table></div>
   <p class="note">Les thèmes inversés en Light ne sont pas mesurés. Cette mesure ne demande pas de décision.</p>
@@ -794,6 +813,35 @@ function rendrePalettes700() {
   $('palettes700').innerHTML = cas.map(({ p, i, c, r }) => carteAvantApres(`${p.nom}${i === 'unique' ? '' : ' ' + (i === 'soft' ? 'Soft' : 'Vivid')}`, r[D.crans.indexOf(200)], r[D.crans.indexOf(700)], c.hexa, c.delta, c.surLaReference ? ' Référence au 700.' : '')).join('');
 }
 
+// Un composant de la page, puis le même dans une alerte teintée, puis sa variante « sur fond teinté ». Crans de la configuration du mainteneur.
+const CRANS_DU_CONTEXTE = {
+  light: { page: () => etat.page, surface: 100, pageTexte: 700, pageContour: 700, anneau: 600, surfaceTexte: 700, surfaceContour: 700 },
+  dark: { page: () => '#121212', surface: 300, pageTexte: 800, pageContour: 800, anneau: 700, surfaceTexte: 950, surfaceContour: 950 },
+};
+function rendreContexteModes() {
+  const cas = [
+    { titre: 'Sur la page', dansAlerte: false, variante: false },
+    { titre: 'Tel quel dans une alerte teintée', dansAlerte: true, variante: false },
+    { titre: 'Variante « sur fond teinté » dans l\'alerte', dansAlerte: true, variante: true },
+  ];
+  const pastille = (nom, avant, fond, seuil) => { const r = contraste(avant, fond); return `<span style="display:inline-flex;gap:4px;align-items:center;margin-right:8px">${nom} <span class="badge ${r >= seuil ? 'ok' : r >= 3 ? 'moyen' : 'ko'}">${virgule(r)}:1</span></span>`; };
+  $('contexteModes').innerHTML = cas.flatMap((k) => ['light', 'dark'].map((mode) => {
+    const t = CRANS_DU_CONTEXTE[mode], c = (n) => cran(n, palette(), mode);
+    const page = t.page(), fond = k.dansAlerte ? c(t.surface) : page;
+    const texte = c(k.variante ? t.surfaceTexte : t.pageTexte), contour = c(k.variante ? t.surfaceContour : t.pageContour), anneau = k.variante ? c(t.surfaceContour) : c(t.anneau);
+    const noms = k.variante ? ['surface/foreground', 'surface/border', 'surface/border'] : ['page/foreground', 'page/border', 'ring'];
+    const contenu = `<div style="display:flex;flex-wrap:wrap;gap:12px;align-items:center">
+        <span style="color:${texte};font-weight:600;padding:6px 4px">Modifier</span>
+        <span style="color:${texte};font-weight:600;padding:6px 12px;border:1px solid ${contour};border-radius:6px;outline:2px solid ${anneau};outline-offset:2px">Annuler</span>
+        <span style="color:${texte};text-decoration:underline">En savoir plus</span></div>`;
+    const sombre = mode === 'dark';
+    return `<div class="page" style="background:${page}"><h4 style="${sombre ? 'color:#eee' : ''}">${k.titre} · ${sombre ? 'Dark' : 'Light'}</h4>
+      ${k.dansAlerte ? `<div class="alerte" style="background:${fond};display:block"><strong style="color:${c(t.surfaceTexte)}">Votre dossier est incomplet.</strong><div style="margin-top:10px">${contenu}</div></div>` : `<div style="padding:12px 0">${contenu}</div>`}
+      <p class="note" style="${sombre ? 'color:#bbb' : ''}">${pastille('Texte', texte, fond, 4.5)}${pastille('Contour', contour, fond, 3)}${pastille('Anneau', anneau, fond, 3)}</p>
+      <p class="note" style="${sombre ? 'color:#999' : ''}"><code>${noms.join('</code>, <code>')}</code></p></div>`;
+  })).join('');
+}
+
 function rendreDark() {
   $('dark').innerHTML = Object.values(TABLES_DARK).map((t) => {
     const f = [cran(t.repos, palette(), 'dark'), cran(t.survol, palette(), 'dark'), cran(t.appui, palette(), 'dark')], encre = cran(t.texte, palette(), 'dark');
@@ -809,7 +857,7 @@ function rendre() {
   ['vueHarmonie', 'contexteTable', 'regle', 'niveau700'].forEach((id) => marquer($(id), etat[id]));
   document.querySelectorAll('[data-cle="lissage"] button').forEach((x) => { x.disabled = !D.courbes[etat.courbe + 'Lissee']; });
   $('palette').value = etat.palette;
-  rendreRampes(); rendreHarmonie(); rendreTextes(); rendreBoutonsTexte(); rendreAlertes(); rendreContextes();
+  rendreRampes(); rendreHarmonie(); rendreTextes(); rendreBoutonsTexte(); rendreAlertes(); rendreContextes(); rendreContexteModes();
   rendreContrastes(); rendreSansSurvol(); rendreCourbe700(); rendreInspecteur700(); rendrePalettes700(); rendreManques(); rendreNoms(); rendreDark();
   garder();
 }

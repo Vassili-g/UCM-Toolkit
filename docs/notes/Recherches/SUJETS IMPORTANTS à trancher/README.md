@@ -8,7 +8,7 @@ ensemble.
 
 **État.** Réflexion ouverte. Le mainteneur a pris position sur la clarté des
 crans clairs, la table de `surface`, son texte, la correction du 700 au survol,
-le nom des variables, leurs scopes et la table Dark. Deux décisions restent.
+le nom des variables, leurs scopes, la table Dark et la garantie 1. Deux décisions restent.
 Rien n'est implémenté.
 
 | Document | Contenu |
@@ -311,7 +311,23 @@ L'appui reste hors de la piste. Pour tenir 4,5 sur le 300, le 700 d'Emerald
 Soft devrait foncer de 0,049, presque jusqu'au 800.
 
 Retirer l'appui demande de retirer `surface/pressed` des garanties 3 et 4. La
-question se pose aussi pour `solid/pressed` dans la garantie 1.
+garantie 1 garde `solid/pressed` : le texte des boutons y passe toujours 4,5.
+
+**Piste : l'appui jugé à 3:1.** Le mainteneur demande si l'appui de `surface`
+peut garder une garantie à 3:1 plutôt que sortir des vérifications. La mesure
+dit oui :
+
+| Mesure | Minimum |
+|---|---|
+| Texte 700 corrigé sur le 300, 360 teintes | 3,70 |
+| Texte 700 sans correction sur le 300, 360 teintes | 3,60 |
+| Texte 950 sur le 500, Dark, palettes du mainteneur | 5,77 |
+
+Aucune rampe ne passe sous 3. La garantie 4 juge déjà le contour à 3:1 et ne
+change pas. Dans le kit, une garantie n'a qu'un seuil : la garantie 3 devient
+deux garanties, l'une à 4,5 sur le repos, le survol, la page et la carte,
+l'autre à 3 sur l'appui. Palettes affiche alors l'appui avec son propre seuil.
+3:1 reste un choix d'UCM : WCAG ne prévoit pas de seuil propre à l'appui.
 
 ## 8. Les éléments sans survol
 
@@ -530,7 +546,7 @@ Les thèmes inversés en Light ne sont pas mesurés.
 | Quelle clarté pour un fond léger ? | Le 50, à 0,975 |
 | Le texte de `surface` reste-t-il à 800 ? | Non, 700 |
 | Quelle table pour `surface` ? | 100, 200 et 300 |
-| L'appui sort-il des garanties 3 et 4 ? | Oui |
+| L'appui de `solid` reste-t-il dans la garantie 1 ? | Oui, à 4,5:1 : il passe toujours |
 | Le survol garde-t-il 4,5:1 ? | Oui, sans assouplir la garantie 3 |
 | Comment le survol tient-il 4,5:1 ? | Le moteur fonce le 700 des seules teintes qui échouent |
 | Quelle organisation des noms ? | B, les noms actuels, avec `surface/subtle` et `surface/divider` |
@@ -544,7 +560,7 @@ Les thèmes inversés en Light ne sont pas mesurés.
 
 | Question | Fait | Recommandation |
 |---|---|---|
-| 4. L'appui de `solid` dans la garantie 1 | La garantie 1 juge le texte des boutons sur les trois fonds de `solid`, au seuil de 4,5:1. Ce n'est pas 3:1. L'appui y passe toujours : 11,33 au minimum en Light, 7,06 en Dark inversé | La garder telle quelle : elle ne peut pas échouer |
+| 4. L'appui de `surface` : hors des garanties, ou jugé à 3:1 | Le texte 700 passe 3:1 sur le 300 pour les 360 teintes, à 3,70 au minimum. Le Dark passe à 5,77 | Le juger à 3:1 : la garantie reste vérifiable et ne peut pas échouer |
 | 6. Un composant de la page posé dans un fond teinté, en Dark | Voir ci-dessous | Une variante « sur fond teinté » des composants concernés |
 
 ### La décision 6

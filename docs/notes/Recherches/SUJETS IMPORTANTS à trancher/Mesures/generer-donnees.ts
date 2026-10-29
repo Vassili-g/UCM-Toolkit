@@ -85,7 +85,7 @@ function septCentsCorriges(rampe: readonly string[], porteLaReference: boolean) 
   return { ...corrige, surLaReference: porteLaReference && corrige.delta > 0 };
 }
 
-/** Une ligne par teinte, niveau de référence et intensité : [niveau, teinte, vivid, contraste avant, delta, sur la référence, 700, 700 corrigé, 200, 100]. */
+/** Une ligne par teinte, niveau de référence et intensité : [niveau, teinte, vivid, contraste avant, delta, sur la référence, 700, 700 corrigé, 200, 100, 300]. */
 function balayer() {
   const lignes: (string | number)[][] = [];
   const courbe = RECETTE.courbes.light;
@@ -101,7 +101,7 @@ function balayer() {
         const r = cransCommuns(rampe!.light, courbe, ancre);
         const c = septCentsCorriges(r, ancre === rangDe(700));
         lignes.push([niveau, teinte, intensite === 'vivid' ? 1 : 0, +contrasteHexa(r[rangDe(700)], r[rangDe(200)]).toFixed(3), c.delta, c.surLaReference ? 1 : 0,
-          r[rangDe(700)], c.hexa, r[rangDe(200)], r[rangDe(100)]]);
+          r[rangDe(700)], c.hexa, r[rangDe(200)], r[rangDe(100)], r[rangDe(300)]]);
       }
     }
   }
