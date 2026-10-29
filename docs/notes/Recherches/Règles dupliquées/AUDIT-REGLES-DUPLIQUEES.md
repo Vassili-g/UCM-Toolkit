@@ -1,7 +1,5 @@
 # Audit des règles dupliquées
 
-Reste : `packages/couleur`, `packages/kit/src/lecteurs/`, documents en contradiction, ordre proposé.
-
 Une règle est dupliquée quand au moins deux endroits la décident chacun de leur côté. Chaque fiche nomme les copies, prouve la divergence quand elle existe, propose un propriétaire et une loi anticopie. Une divergence « exécutée » vient d'un script lancé avec `tsx` sur les fonctions exportées du kit, ou sur le corps recopié de `HEAD` quand la fonction est privée. Une divergence « lue » vient de la lecture du code.
 
 ## Méthode
@@ -47,6 +45,9 @@ Sur chaque paquet, hors `dist/`, `node_modules/` et `_local/` :
 | `packages/hub` | 5 sur 5 | idem |
 | `scripts/` | 4 sur 11 | idem |
 | `tests/` racine | 7 sur 26 | idem |
+| `packages/couleur/` | `src/` : 22 fichiers par motifs, 14 lus en partie ; `planche/` : 2 ; `scripts/` : 5 ; `tests/` : 33 par motifs | balayage `Explore`, puis vérification directe |
+| `packages/kit/src/lecteurs/` | 27 par motifs, 9 lus en partie | idem |
+| `packages/kit/scripts/` | 3 lus | idem ; aucune règle locale |
 
 Le balayage `Explore` a lu les fichiers où les motifs donnaient un résultat. Les fichiers sans occurrence n'ont pas été ouverts.
 
@@ -81,6 +82,8 @@ Le balayage `Explore` a lu les fichiers où les motifs donnaient un résultat. L
 | [D-25](#d-25) | Les mots d'un texte tapé dans Nomenclature | normalisation | 3 | oui, lue | moyenne |
 | [D-26](#d-26) | Le nom `identity` d'une palette du thème | termes | 2 | partielle, lue | basse |
 | [D-27](#d-27) | Les variables du thème rangées par dossier | garanties | 3 | non | basse |
+| [D-28](#d-28) | La version du contrat que le kit lit au plus | format | 3 | non, latente | moyenne |
+| [D-29](#d-29) | Les noms réservés du format des tokens | format | 6 | non | moyenne |
 
 ## Fiches
 
@@ -155,7 +158,7 @@ export function memeValeurDAxe(axe: AxeDuComposant, segment: string, valeur: str
 
 **Migration.** Correction, déjà en cours. Les fichiers écrits en Pascal ou en camel gagnent C59, C60 et les fonds de garantie qu'ils perdaient.
 
-**Risques.** `formeDuNom` de `controles/theme.ts` est une deuxième forme de chemin, voisine de `signatureDeCible` (`mapping.ts:68`) et de `structure.ts:167` et `:320` (D-17, à rédiger).
+**Risques.** `formeDuNom` de `controles/theme.ts` est une deuxième forme de chemin, voisine de `signatureDeCible` (`mapping.ts:68`) et de `structure.ts:167` et `:316` ([D-17](#d-17)).
 
 ### D-03
 
@@ -258,10 +261,14 @@ export function memeValeurDAxe(axe: AxeDuComposant, segment: string, valeur: str
 | `packages/kit/src/controles/typographie.ts:17` | `CHAMPS_DE_TYPOGRAPHIE` | six champs, sans `paragraphSpacing` ni `paragraphIndent` |
 | `packages/plugin-architect/src/composant.ts:87` | `POLICES` | huit champs |
 | `packages/plugin-architect/src/consommateurs.ts:126` | `CHAMPS_DE_TEXTE` | les mêmes huit |
+| `packages/kit/src/lecteurs/typography-token-types.mjs:17` | `TYPES_TYPOGRAPHIQUES` | sept champs du contrat et leurs types de token |
+| `packages/kit/src/lecteurs/validation-contrat.mjs:560-569` | `CHAMPS_TYPOGRAPHIQUES`, `TOKENS_TYPOGRAPHIQUES_130` | les mêmes sept champs |
 
 **Divergence lue.** `lineHeight` : `natureDeLaLiaison` rend `dimension`, les cinq autres le rangent en typographie. Le commentaire de `estUneProprieteDeTexte` constate l'écart et le compense pour C80. `paragraphSpacing` : absent de `CHAMPS_DE_TYPOGRAPHIE`, présent ailleurs. L'expression régulière accepte aussi un champ inconnu qui contient `text` (`textRangeFills`, lu ailleurs comme une peinture par `consommateurs.ts:125`).
 
 **Lecteurs touchés.** C80 (`couche.ts`), propositions de propagation (`propagation.ts`), contrôles de typographie, natures affichées par Architect.
+
+Les deux lecteurs `.mjs` lisent les champs du contrat, pas les champs Figma. Leurs noms coïncident, et `types.ts` en est l'autorité.
 
 **Propriétaire proposé.** `packages/kit/src/referentiel/` ou `controles/releve.ts` : une liste `CHAMPS_DE_TYPOGRAPHIE` des champs Figma liables d'un texte, et `natureDuChamp(champ: string, type: string): 'couleur' | 'typographie' | 'dimension'`. Architect importe la liste.
 
@@ -367,6 +374,7 @@ export function memeValeurDAxe(axe: AxeDuComposant, segment: string, valeur: str
 | `packages/couleur/src/palette.ts:140` | `estPaletteGrise` : R, G et B égaux sur toutes les rampes |
 | `packages/hub/src/modele/modele.ts:112` | `CHROMA_DES_GRIS = 0.05` |
 | `packages/hub/src/modele/modele.ts:418` | `familleTailwindProche` : `C < 0.04` |
+| `packages/hub/src/modele/modele.ts:411`, `packages/couleur/planche/generer-planche.ts:39` | `FAMILLES_GRISES`, les cinq familles grises de Tailwind recopiées |
 
 **Divergence lue.** Une référence de chroma 0,045 est grise pour `modele.ts:211` et colorée pour `familleTailwindProche`. Le hub la range avec les gris et lui cherche une famille Tailwind colorée.
 
@@ -437,6 +445,9 @@ export function memeValeurDAxe(axe: AxeDuComposant, segment: string, valeur: str
 | `tests/fabriquesDeFichiers.ts:194` | cinq variables du thème en littéral |
 | `tests/nomsDePalettes.test.ts:32` | les onze crans en littéral |
 | `tests/referentielUnique.test.ts:23` | `ETATS`, sept mots en littéral |
+| `packages/couleur/tests/` (`architecture`, `enveloppe`, `proprietes`, `rampe`, `recette`, `vecteurs`), `packages/couleur/scripts/mesurer-temps.mjs:22` | les onze crans en littéral, au lieu de `CRANS` |
+| `packages/couleur/tests/promesses.test.ts:177` | `COULEUR_DU_TEXTE_DES_BOUTONS` recopiée |
+| `packages/couleur/tests/base.test.ts:177`, `ancrage.test.ts:134`, `intensites.test.ts:62`, `reconstruction.test.ts:68` | `ecrireHexa` recopiée |
 
 **Divergence lue.** `toLowerCase()` ne reconnaît pas `foregroundMain` comme `foreground-main`. Une loi entre produits qui compare ainsi passe sur des fixtures en minuscules et ne dit rien d'un fichier en camel.
 
@@ -601,6 +612,8 @@ export function memeValeurDAxe(axe: AxeDuComposant, segment: string, valeur: str
 | `packages/plugin-architect/src/contraste.ts:25` | `enOctets` | sans objet | non, gamut contrôlé avant | non |
 | `packages/plugin-architect/src/ui/valeurs.ts:20` | `canal`, vers `rgba()` | sans objet | non, composantes contrôlées avant | non |
 
+Trois lecteurs d'un hexa acceptent des formes différentes. `lireHexa` (`packages/couleur/src/conversions.ts:37`) lit `#RGB` et `#RRGGBB` sans alpha, sur une saisie du designer. `packages/kit/src/lecteurs/comparaison-dtcg.mjs:43` lit `#RRGGBB` et un alpha ; `packages/kit/src/lecteurs/diagnostic-contrastes.mjs:58` lit `#rrggbb` seul. Les deux lecteurs du kit lisent la valeur publiée, dont `FORMAT.md` fixe la forme : ils partagent une question, que `lireHexa` ne pose pas.
+
 **Divergence lue.** Le fait `premierPlan` d'un constat de contraste s'écrit `#1a2b3c` ; la même couleur s'écrit `#1A2B3C` dans Architect et Palettes. `lecture.ts:352` sans borne rendrait `100` pour une composante à 1,002.
 
 **Propriétaire proposé.** `packages/kit/src/emplois/contraste.ts` ou un module `emplois/couleur.ts` : `versRgb8(c: { r: number; g: number; b: number }): Rgb8` (borné) et `hexaDeFigma(c, { alpha?: boolean }): string` en majuscules. `ucm-couleur` garde `lireHexa` et `ecrireHexa` sur `Rgb8`.
@@ -664,6 +677,47 @@ export function memeValeurDAxe(axe: AxeDuComposant, segment: string, valeur: str
 
 **Migration.** Sortie identique.
 
+### D-28
+
+**La version du contrat que le kit lit au plus.**
+
+| Copie | Valeur |
+|---|---|
+| `packages/kit/src/format/version.ts:16` | `CONTRACT_VERSION = '14.0'`, la version écrite |
+| `packages/kit/src/lecteurs/version-contrat.mjs:14` | `VERSION_CONTRAT_MAXIMALE = "14.0"`, la version lue au plus |
+| `packages/kit/tests/version-contrat.test.mjs:32` | `"14.0"` en littéral |
+
+**Divergence latente, lue.** Aucun test ne lie les deux constantes. Une montée de `CONTRACT_VERSION` à `15.0` sans celle de la fenêtre ferait juger `recent` les contrats que l'exporteur du même kit écrit, et `ucm check` les refuserait.
+
+**Propriétaire proposé.** `format/version.ts`. `VERSION_CONTRAT_MAXIMALE` vaut `CONTRACT_VERSION`, et `VERSION_CONTRAT_MINIMALE` se déclare à côté.
+
+**Loi proposée.** Un test du kit : `VERSION_CONTRAT_MAXIMALE === CONTRACT_VERSION`. Le littéral du test disparaît.
+
+**Migration.** Sortie identique.
+
+**Risques.** Les lecteurs sont des `.mjs` publiés. Ils importent déjà `@ucm-kit/core/emplois` ; l'import de `format` est du même ordre.
+
+### D-29
+
+**Les noms réservés du format des tokens.** Les clés `com.ucm.modes` et `com.ucm.extensions` de `$extensions`, et le nom `base` de la collection elle-même.
+
+| Copie | Rôle |
+|---|---|
+| `packages/kit/src/format/tokens.ts:84-98` | `EXTENSION_AXES_TOKENS`, pour `com.ucm.axes` seulement |
+| `packages/plugin-exporter/src/tokens/exportTokens.ts:365-368`, `:792-795` | écrit les deux clés en littéral |
+| `packages/kit/src/lecteurs/modes-tokens.mjs:22-25`, `:56-70` | constantes locales ; `base` en littéral |
+| `packages/kit/src/lecteurs/typography-token-types.mjs:47-49` | les deux clés en littéral |
+| `packages/cli/src/tokens-css.mjs:246-248`, `:295`, `:353-396` | les deux clés et `base` en littéral |
+| `packages/cli/src/init.mjs:374` | `com.ucm.axes` en littéral, au lieu de `EXTENSION_AXES_TOKENS` |
+
+**Divergence.** Aucune aujourd'hui. Un renommage dans l'exporteur produirait des tokens que le CLI ne lit plus, sans erreur de compilation.
+
+**Propriétaire proposé.** `packages/kit/src/format/tokens.ts` : `EXTENSION_MODES_TOKENS`, `EXTENSION_SURCHARGES_TOKENS` et `MODE_DE_BASE`, à côté de `EXTENSION_AXES_TOKENS`.
+
+**Loi proposée.** Refuser les littéraux `'com.ucm.` et `"com.ucm.` dans `packages/*/src/` hors de `format/tokens.ts`.
+
+**Migration.** Sortie identique.
+
 ## Non-doublons
 
 | Apparence | Raison |
@@ -676,13 +730,20 @@ export function memeValeurDAxe(axe: AxeDuComposant, segment: string, valeur: str
 | `identifiantDansLeMaitre` (`plugin-architect/src/imbriquesDuReleve.ts:67`) et `finCommune` (`plugin-socle/src/composant/contract/compactVariants.ts:149`) | Le premier traduit un identifiant `I<instance>;<calque>` vers le maître ; le second cherche la fin commune de plusieurs identifiants. Deux questions |
 | `GABARITS` de `plugin-architect/src/sandbox/projectionsDesControles.ts` | Recopie ce que chaque famille du kit lit. `tests/projectionsDesControles.test.ts` garde la copie par l'enregistrement des accès. Chaque correction des fiches qui fait lire un champ de plus à une famille doit y ajouter ce champ |
 | `porteLeNom` (`plugin-socle/src/composant/contract/extractRules.ts:171`) et les noms de layer du kit (`formeReconnue(layer.nom) === 'title'`) | Le socle cherche un calque nommé par une règle du contrat ; le kit reconnaît un rôle. La comparaison du kit relève de D-04 |
-| `forgeDuRepository` du CLI et `HOTES` de l'exporteur | déjà listé : deux périmètres réseau |
+| `VARIABLES_GARANTIES` (`packages/couleur/src/garantie.ts:43`) et `GARANTIES` du kit | La garantie des courbes ([ENT-10]) juge un cran contre le cran le plus léger de la même courbe ; `GARANTIES` juge des variables contre la page et la carte. Les membres se recoupent, la question diffère |
+| `CHROMA_SANS_TEINTE` (`1e-4`) et les seuils `1e-3` de `packages/couleur/src/reconstruction.ts` | Le premier annule une teinte indéfinie ; les seconds bornent un ajustement numérique |
+| `estObjet`, redéfini dans une douzaine de lecteurs `.mjs` | Prédicat de forme JavaScript, sans décision du produit |
 
 ## Documents en contradiction
 
-| Document | Passage | Règle contredite |
+Aucun document ne répète une de ces règles en la contredisant. Cinq passages d'autorité énoncent une règle que du code enfreint. Ils désignent le propriétaire du correctif.
+
+| Document | Passage | Code qui s'en écarte |
 |---|---|---|
-| (à compléter avec les paquets restants) | | |
+| `packages/kit/invariants/referentiel.md:3` | « Une définition UCM (… états, … garanties …) se modifie dans `src/referentiel/`, jamais dans un paquet » | `AXE_D_ETAT` (D-03), `estInteractif` (D-04), `SIZE_VALUES` (D-06), dossiers de la planche (D-27) |
+| `docs/format/FORMAT.md:91`, `docs/guides/POUR-LES-DESIGNERS.md:252`, `packages/plugin-exporter/invariants/portee-du-contrat.md:12` | « un axe `State`, `States` ou `Status` » | `AXE_D_ETAT` lit `État` et ignore `States` et `Status` (D-03) |
+| `docs/format/FORMAT.md:183`, `packages/plugin-exporter/invariants/couleurs.md:10` | un paint d'opacité nulle ne produit aucun constat | `aUnePeintureVisible` compte une peinture d'opacité nulle (D-20) |
+| `packages/plugin-exporter/invariants/tokens-et-variables.md:7` | « Projection recopiée ailleurs = faute » | `pascal` de l'adaptateur (D-13) |
 
 ## Questions au mainteneur
 
@@ -706,6 +767,19 @@ export function memeValeurDAxe(axe: AxeDuComposant, segment: string, valeur: str
 
 **Q-10.** Un terme que le designer tape dans Nomenclature se découpe-t-il en camel (`foregroundMain` en deux mots) ? Recommandation : oui, comme les noms du fichier.
 
+**Q-11.** Une seule loi racine, ou une loi par fiche ? Options : `tests/reglesUniques.test.ts` porte une table (motif refusé, propriétaire, exceptions nommées), sur le modèle de `referentielUnique.test.ts` ; ou une loi par fiche, comme `imbriquesParLeKit.test.ts`. Recommandation : la table racine, parce que les motifs traversent les paquets. Une loi locale reste pour une fonction privée d'un paquet.
+
 ## Ordre proposé
 
-(à compléter quand tous les paquets sont balayés)
+Les chantiers suivent la gravité, puis les dépendances. Chacun monte la version du kit quand il touche `packages/kit/src/`.
+
+| Chantier | Fiches | Raison de l'ordre |
+|---|---|---|
+| 1. Termes des axes du composant | D-01, D-03, D-04, D-18, D-19 | Faux constats prouvés. D-01, D-04 et D-18 partagent la loi contre les littéraux de termes ; D-03 attend Q-03 |
+| 2. Variable du thème | D-02, D-26 | Correctif en cours dans une autre session ; la loi anticopie se pose après son commit |
+| 3. Peinture et couleur Figma | D-20, D-24, D-08 | Faits des constats de contraste. Les trois changent des faits lus par la reprise d'Architect : un seul passage sur `projectionsDesControles.ts` |
+| 4. Champs de typographie | D-07 | Attend Q-05 ; change la nature de C80 |
+| 5. Format et contrat | D-28, D-29, D-05, D-06, D-13 | D-06 attend Q-04 ; D-13 monte l'adaptateur |
+| 6. Copies identiques du kit | D-17, D-11, D-10, D-27, D-09 | Sortie identique ; avec la loi racine (Q-11) |
+| 7. Plugins et hub | D-21, D-22, D-23, D-25, D-12, D-14, D-15 | D-21 attend Q-09, D-25 attend Q-10, D-14 attend Q-07 |
+| 8. Tests | D-16 | Après les propriétaires des chantiers 1 à 6, que les tests importeront |
