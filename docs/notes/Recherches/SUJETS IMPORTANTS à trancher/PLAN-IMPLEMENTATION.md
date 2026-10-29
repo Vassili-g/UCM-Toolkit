@@ -330,6 +330,65 @@ Fin : `controle-style` conforme ; aucun document ne décrit l'ancienne table.
 
 Fait : `5d1567fa`, et la part de Palettes dans le commit de P1.
 
+## Piste A : le survol du bouton texte en Dark
+
+Décision du mainteneur, 29 octobre, sur la section 11 de la maquette. En Dark,
+le texte de la page posé sur `surface/hover` (400) restait à 3,4:1 environ pour
+toutes les palettes. Le câblage des composants ne change pas : la table et le
+moteur changent.
+
+- Table Dark de `surface`, normal et inversé : repos 200, survol 300, appui 400.
+  `surface/subtle` passe au 100 en Dark. `surface/divider` garde 500.
+- La garantie 9 juge `page/foreground` sur `surface/default` et sur
+  `surface/hover`.
+- Dark normal : une référence posée sur le cran de `page/foreground` (700) qui
+  manque la garantie 9 glisse au cran plus sombre (600), couleur exacte gardée.
+  Le 700 libéré se corrige par teinte (C2). Le 400 et le 500 se relèvent d'un
+  tiers et de deux tiers de leur écart à un espacement régulier entre le 300 et
+  la référence. Mesure : `Mesures/mesurer-ancrage-deplace.ts`.
+- Dark inversé : rien de plus. Une référence posée sur le 800 garde sa place, et
+  la garantie 9 manque pour elle (Poppy Vivid, Irene Vivid). Avec un texte de
+  boutons blanc, aucun cran ne la porte sans casser la garantie 1.
+
+```
+K2 → C3 → P2 → D2 → V1 → R1
+```
+
+### K2. Table et garantie 9 dans le kit
+
+Agent : `implementeur-exigeant`.
+
+- [ ] `TABLE_DES_DOSSIERS`, Dark normal et inversé : `surface/default` 200,
+      `surface/hover` 300, `surface/pressed` 400, `surface/subtle` 100.
+- [ ] Garantie 9 : fonds `surface/default` et `surface/hover`.
+- [ ] Tests du kit, de `couleur` et du hub qui lisent la table Dark ou la
+      garantie 9 ; version du kit ; tests racine.
+
+### C3. Ancrage déplacé en Dark normal
+
+Agent : `implementeur-exigeant`.
+
+- [ ] Dans l'ancrage du moteur, en Dark normal seulement : la règle de la
+      piste A, avec la formule de `Mesures/ancrage-deplace.ts`.
+- [ ] Tests : Poppy Vivid et Irene Vivid passent la garantie 9 en Dark normal
+      (texte 700 à 0,704 et 0,710, 4,51:1 sur le 300) ; leur référence reste
+      au 800 en Dark inversé et la garantie 9 y manque ; sur 360 teintes,
+      l'ordre des nuances tient et aucun texte ne reste sous 4,5:1.
+
+### P2. Palettes
+
+Agent : `implementeur`.
+
+- [ ] Tests qui figent la table Dark de `surface` ou les couleurs du Dark.
+- [ ] L'écran qui dit où se pose la référence montre le cran déplacé.
+
+### D2. Documents
+
+Agent : `implementeur`.
+
+- [ ] Spécification de Palettes, invariants du moteur et du kit, README du
+      dossier, section « Décisions ».
+
 ## V1. Vérification
 
 Agent : `verificateur`.
