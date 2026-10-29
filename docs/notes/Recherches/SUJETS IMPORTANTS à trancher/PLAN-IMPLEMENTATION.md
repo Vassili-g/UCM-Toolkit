@@ -358,22 +358,27 @@ K2 → C3 → P2 → D2 → V1 → R1
 
 Agent : `implementeur-exigeant`.
 
-- [ ] `TABLE_DES_DOSSIERS`, Dark normal et inversé : `surface/default` 200,
+- [x] `TABLE_DES_DOSSIERS`, Dark normal et inversé : `surface/default` 200,
       `surface/hover` 300, `surface/pressed` 400, `surface/subtle` 100.
-- [ ] Garantie 9 : fonds `surface/default` et `surface/hover`.
-- [ ] Tests du kit, de `couleur` et du hub qui lisent la table Dark ou la
+- [x] Garantie 9 : fonds `surface/default` et `surface/hover`.
+- [x] Tests du kit, de `couleur` et du hub qui lisent la table Dark ou la
       garantie 9 ; version du kit ; tests racine.
 
 ### C3. Ancrage déplacé en Dark normal
 
 Agent : `implementeur-exigeant`.
 
-- [ ] Dans l'ancrage du moteur, en Dark normal seulement : la règle de la
+- [x] Dans l'ancrage du moteur, en Dark normal seulement : la règle de la
       piste A, avec la formule de `Mesures/ancrage-deplace.ts`.
-- [ ] Tests : Poppy Vivid et Irene Vivid passent la garantie 9 en Dark normal
+- [x] Tests : Poppy Vivid et Irene Vivid passent la garantie 9 en Dark normal
       (texte 700 à 0,704 et 0,710, 4,51:1 sur le 300) ; leur référence reste
       au 800 en Dark inversé et la garantie 9 y manque ; sur 360 teintes,
       l'ordre des nuances tient et aucun texte ne reste sous 4,5:1.
+
+Fait (K2 et C3) : `d644ef7a`, kit 0.13.35. Décisions du mainteneur sur les
+points ouverts : le cran de la référence en Dark peut changer d'un cran pendant
+un geste de Color shift ; l'ordre des nuances reste jugé avant le glissement ;
+la reconstruction de la palette 28 reçoit un budget de 120 s.
 
 ### P2. Palettes
 
