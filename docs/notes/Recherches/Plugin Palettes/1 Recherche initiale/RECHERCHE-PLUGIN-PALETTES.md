@@ -993,13 +993,15 @@ composant du socle la porte (`[UI-02]`).
 - `[ENT-10]` La configuration mesure la garantie des courbes. Dans la table
   du sens de chaque mode, le cran de `page/foreground` tient le seuil `texte`
   et le cran de `ring` le seuil `nonTexte` contre le cran le plus clair
-  de la liste, de la même courbe, gris. Le cran de `solid/default` tient le
+  de la liste, de la même courbe, gris. En Dark, ces deux crans tiennent aussi
+  leur seuil contre la carte (`[MOT-37]`), plus claire que la page ; en Light,
+  la carte est blanche et la page porte déjà le cas. Le cran de `solid/default` tient le
   seuil `texte` contre le texte des boutons du mode, blanc ou noir purs. Le
   contrôle porte sur 360 teintes, les deux profils et les deux modes, sur les
   couleurs à 8 bits. Une courbe qui ne le tient plus produit l'alerte « courbe
   hors garantie », qui nomme le cran, le mode, le profil, la teinte du pire
-  cas, son contraste et ce contre quoi il est jugé : le cran le plus clair ou
-  le texte des boutons. L'alerte n'empêche ni le rangement ni le dessin. Les
+  cas, son contraste et ce contre quoi il est jugé : le cran le plus clair, la
+  carte ou le texte des boutons. L'alerte n'empêche ni le rangement ni le dessin. Les
   courbes par défaut des quatre combinaisons de texte des boutons tiennent la
   garantie. Elle juge les courbes communes et n'établit pas les promesses
   d'une palette, dont la référence exacte remplace un cran (`[MOT-17]`) :
@@ -1353,9 +1355,10 @@ référence de la recette.
 
 Pour chaque palette, chaque mode et chaque intensité présente, sept garanties
 G1 à G7 se jugent dans la table des dossiers du sens du thème, contre le fond
-de la page, le réglage « Fond » du thème, `elevation/page`. G7 se juge aussi
-contre la carte, `elevation/raised`, qui n'a pas de réglage dans le plugin : le
-moteur la déduit du fond de la page (`[MOT-37]`). L'[architecture, section 4](../../Archi%20Tokens%20Multi-marques/VUE-ILLUSTREE-MULTIMARQUES.html)
+de la page, le réglage « Fond » du thème, `elevation/page`. Partout où la page
+est un fond garanti, la carte l'est aussi : G2 à G7 se jugent aussi contre la
+carte, `elevation/raised`, qui n'a pas de réglage dans le plugin. Le moteur la
+déduit du fond de la page (`[MOT-37]`). L'[architecture, section 4](../../Archi%20Tokens%20Multi-marques/VUE-ILLUSTREE-MULTIMARQUES.html)
 explique le choix de cette table.
 
 Le sens d'un thème vient de son texte des boutons, blanc (`#FFFFFF`) ou noir
@@ -1379,7 +1382,7 @@ trois variables `disabled/*`. Aucune de ces variables n'a de garantie.
 
 - `[MOT-37]` La carte est le fond qu'une surface élevée pose sur la page. Aucun
   champ de la recette ne la porte : `couleurDeLaCarte(recette, mode)`
-  (`packages/couleur/src/promesses.ts`) la déduit. Light : le blanc `#FFFFFF`.
+  (`packages/couleur/src/jugement.ts`) la déduit. Light : le blanc `#FFFFFF`.
   Dark : le moteur lit le fond Dark de la recette en OKLCH, cherche sur la
   courbe Dark le rang dont la clarté est la plus proche de la sienne, prend la
   clarté du rang suivant (le dernier rang, s'il n'y en a pas), et rend la
@@ -1406,18 +1409,22 @@ thèmes, G1 n'échoue que sur la nuance où la référence est ancrée, G2 à G7
 n'échouent jamais. Sur 864 références de toutes teintes, chromas et clartés,
 G1 hors nuance ancrée tient dans les quatre thèmes.
 
-Une palette à deux intensités compte 64 contrôles : seize par mode et par
-profil. Une palette à une intensité en compte 32. Les deux profils partagent
+Une palette à deux intensités compte 84 contrôles : vingt et un par mode et
+par profil. Une palette à une intensité en compte 42. Les deux profils partagent
 leurs clartés, mais pas leur chroma : leurs contrastes diffèrent un peu, et
 les composants citent l'un comme l'autre. L'interface et la planche nomment une
 garantie par ses variables et son libellé, jamais par son numéro.
 
-- `[VER-21]` G7 juge l'anneau contre la page et contre la carte : deux
-  promesses, que la carte des garanties range dans deux colonnes, « sur la
-  page » puis « sur la carte », et que la réglette montre par deux cases,
-  « page » et « carte », avant celle des boutons. L'anneau peut tenir l'une et
-  manquer l'autre ; la carte, plus claire que la page en Dark, est la plus
-  exigeante. G7 ne vise plus `surface/default`.
+- `[VER-21]` G2 à G7 jugent leur premier membre contre la page et contre la
+  carte : deux promesses, que la carte des garanties range dans deux colonnes,
+  « sur la page » puis « sur la carte », et que la réglette montre par deux
+  cases, « page » et « carte ». Une variable peut tenir l'une et manquer
+  l'autre. La carte, plus claire que la page en Dark, y est la plus exigeante ;
+  en Light, la page l'est. G7 ne vise plus `surface/default`. La mesure de la
+  recette v2 d'Architect a montré que les courbes Dark par défaut tiennent la
+  carte sur 360 teintes, les deux profils et les quatre combinaisons de texte
+  des boutons ; seule la course du réglage global de luminosité se resserre,
+  jusqu'à la moitié pour `#16A34A` (R-30).
 - `[VER-06]` Une promesse manquée nomme ses deux variables, d'abord par leur
   libellé puis par leur nom (`surface/foreground` sur `surface/hover`), le
   mode, le profil pour une palette à deux intensités, son contraste mesuré et
