@@ -123,6 +123,13 @@ avertissement demandera un geste, il le survolera aussi.
 Un constat qui ne nomme aucun geste ne s’écrit donc pas. La forme unitaire
 ci-dessous est ce qui distingue les deux.
 
+Une seule exception : la section Informations d’UCM Architect. Elle vient en
+dernier dans le panneau des constats et arrive repliée. Elle range ce que
+l’analyse n’a pas mesuré, comme un contraste sur un variant désactivé. Ses
+lignes ne comptent dans aucun nombre. Une ligne n’est pas une carte : ni
+sévérité, ni chevron. Une information sans geste va dans cette section,
+jamais dans une carte.
+
 `meta.diagnostics` est l’unique représentation publiée dans le contrat. Son
 `code` répond à une seule question, celle de savoir si la projection portable a
 perdu quelque chose : `UCM_PORTABLE_PROJECTION_WARNING` pour une perte de
@@ -189,8 +196,11 @@ pas « marges intérieures ».
 
 Cette règle vaut pour l’interface de chaque plugin, pas seulement pour les
 messages de l’export. Un réglage de variable garde son nom Figma : un scope
-reste un scope, jamais une « portée ». Un variant s’écrit comme Figma le
-nomme : `Severity=info, Variant=standard`.
+reste un scope, jamais une « portée ». Dans un message de l’export, un variant
+s’écrit comme Figma le nomme : `Severity=info, Variant=standard`. Dans UCM
+Architect, il s’écrit en puces de valeur : `info` `standard`. La paire exacte
+de Figma s’affiche au survol. La propriété reste dans la puce quand deux
+propriétés du jeu partagent la valeur.
 
 Les termes du modèle UCM restent aussi tels quels : `solid`, `surface`, `page`,
 `soft`, `vivid`, `background`, `foreground`. Une description en français peut
@@ -207,6 +217,10 @@ suivre le terme, jamais le remplacer : `surface`, le fond teinté.
 | `prop BOOLEAN` | boolean property | | `fontSize`, `lineHeight` | font size, line height |
 | `Component Set` | component set | | `feuille` / `groupe` | token / groupe de tokens |
 | `layoutWrap` | wrap | | `counterAxisSpacing` | vertical gap |
+
+Dans une phrase française, « property » s’écrit « propriété » : « la propriété
+`Size` ». Le type de Figma garde son nom anglais : `Instance swap`, variant
+property.
 
 `fieldLabel()` dans `src/contract/nodeBindings.ts` tient cette table pour les
 propriétés Figma citées dans un message ; les libellés passés à `resolveField()`
@@ -260,6 +274,11 @@ Quatre bornes, sans quoi la table ne tient pas :
   est ouvert**, dans tous les plugins. Le socle porte la règle
   (`socle.css`, `creerChevron`) ; un plugin ne la redéfinit pas. Une liste
   déroulante (`aria-haspopup`) garde la flèche vers le bas ;
+- **une carte de constat d’UCM Architect garde son chevron en haut à droite,
+  sur la ligne de la sévérité, et ses boutons dans une ligne d’actions en bas,**
+  alignés à gauche sous le texte. Sélectionner y rejoint les autres gestes.
+  Une carte de correction garde son Appliquer dans l’en-tête, et Sélectionner
+  dans son corps déplié. Ouvrir une carte ne sélectionne rien ;
 - **le compte rendu d’UCM Exporter se range par famille de point.** Les points
   bloquants (`severite: 'danger'`) viennent en tête, hors de toute section, et
   seuls portent une pastille. Les autres vont sous une ligne de total (« À
