@@ -48,7 +48,7 @@ export const GABARITS: Readonly<Record<NomDeFamille, Gabarit>> = {
   'controle-nommage': [
     'releve.jeu.nom', 'releve.jeu.cle', ...PROPRIETES,
     ...sous('releve.variants.*', 'id', 'valeurs'),
-    ...COLLECTIONS, ...sous('catalogue.variables.*', 'nom', 'collection'),
+    ...COLLECTIONS, ...sous('catalogue.variables.*', 'cle', 'nom', 'collection'),
   ],
   'controle-mapping': [
     'releve.jeu.nom', ...PROPRIETES,
@@ -58,10 +58,11 @@ export const GABARITS: Readonly<Record<NomDeFamille, Gabarit>> = {
     ...COLLECTIONS, ...sous('catalogue.variables.*', 'cle', 'nom', 'collection', 'scopes', ALIAS),
   ],
   'controle-couches': [
-    'releve.variants.*.id',
-    ...sous(LAYERS, 'id', 'nom'),
-    ...sous(LIAISONS_DU_LAYER, 'champ', 'indice', 'surcharge.id', 'surcharge.nom', 'variable.cle'),
-    ...COLLECTIONS, ...sous('catalogue.variables.*', 'cle', 'nom', 'collection', 'type', ALIAS),
+    'releve.jeu.nom', ...PROPRIETES,
+    ...sous('releve.variants.*', 'id', 'nom', 'valeurs'),
+    ...sous(LAYERS, 'id', 'nom', 'parent', 'sorte', 'peintures'),
+    ...sous(LIAISONS_DU_LAYER, 'champ', 'indice', 'plage', 'provenance', 'surcharge.id', 'surcharge.nom', 'variable.cle', 'variable.nom'),
+    ...COLLECTIONS, ...sous('catalogue.variables.*', 'cle', 'nom', 'collection', 'type', 'etat', ALIAS),
   ],
   'controle-oublis': [
     'releve.jeu.nom', 'releve.lecture.variantsNonLus', 'releve.lecture.layersNonLus', ...PROPRIETES,
@@ -75,7 +76,8 @@ export const GABARITS: Readonly<Record<NomDeFamille, Gabarit>> = {
     ...sous(LAYERS, 'id', 'nom', 'type', 'parent', 'visible', 'opacite', 'strokeWeight', 'dimensions.largeur', 'dimensions.hauteur', 'peintures'),
     ...liaisons(['champ', 'indice', 'surcharge.id', 'illisible', 'variable.cle'], ['champ', 'indice', 'illisible', 'variable.cle']),
     ...sous(`${LAYERS}.texte.plages.*`, 'debut', 'fin', 'fontSize', 'fontWeight', 'peintures'),
-    ...sous('catalogue.collections.*', 'cle', 'nom', 'etat', 'modes'), ...sous('catalogue.variables.*', 'cle', 'nom', 'collection', 'etat', 'valeurs'),
+    ...sous('catalogue.collections.*', 'cle', 'nom', 'role', 'etat', 'modes'), ...sous('catalogue.variables.*', 'cle', 'nom', 'collection', 'etat', 'valeurs'),
+    'catalogue.fondsDElevation', 'catalogue.fondDeLaPageFigma',
   ],
   'controle-typographie': [
     ...sous('releve.proprietes.*', 'nom', 'type'), 'releve.variants.*.nom',
