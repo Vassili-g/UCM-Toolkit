@@ -6,7 +6,7 @@ Une règle est dupliquée quand au moins deux endroits la décident chacun de le
 
 ### Arbre de travail
 
-L'audit lit `HEAD` (`abb21b6f`). D'autres sessions modifient le kit, Architect et Palettes pendant l'audit. Quand une fiche porte sur un fichier modifié, elle décrit `HEAD` et signale ce que l'arbre de travail change.
+L'audit lit `HEAD` (`abb21b6f`). D'autres sessions ont modifié le kit, Architect et Palettes pendant l'audit. Quand une fiche porte sur un fichier modifié, elle décrit `abb21b6f` et signale ce que le correctif change. Les correctifs de D-01 (wrappers) et de D-02 sont commités depuis.
 
 ### Carte de ce qui est déjà unique
 
@@ -111,7 +111,7 @@ La copie de `nommage.ts` compare `termeReconnu(…)?.id` des deux côtés sans e
 
 **Lecteurs touchés.** C7 (`nommage.ts`), C17 et C18 (`mapping.ts`, `porteLesValeursDeSonVariant`), C32 et C33 (`oublis.ts`), les corrections de taille (`corrections.ts`, `tokensDeTailleDuLayer`). Les 57 faux constats C32, C33 et C7 d'un jeu `Color=Error` lié à `Color/Danger/…` viennent des trois copies sans l'axe palette.
 
-**Arbre de travail.** `oublis.ts` appelle maintenant `memeValeur` aussi pour les axes des wrappers. La copie reste ; le correctif en cours en ajoute un appelant.
+**Correctif voisin.** `oublis.ts` appelle maintenant `memeValeur` aussi pour les axes des wrappers. La copie reste, avec un appelant de plus.
 
 **Propriétaire proposé.** `packages/kit/src/controles/nommage.ts`, à côté de `segmentDAxe` :
 
@@ -150,13 +150,13 @@ export function memeValeurDAxe(axe: AxeDuComposant, segment: string, valeur: str
 
 **Lecteurs touchés.** `controles/theme.ts` (C59, C60, `estFondDeSurface`), `controles/structure.ts` (scopes du thème), `controles/accessibilite.ts:564` (rôle du fond mesuré), `plugin-architect/src/catalogue.ts:286` et `:315` (fonds de la page et de la carte).
 
-**Arbre de travail.** La copie privée de `structure.ts` disparaît ; `cleDuTheme` devient un alias de `variableDuThemeReconnue`. `controles/theme.ts` compare aussi les noms de cibles par `formeDuNom`, une forme de chemin segment par segment. Le test `themeReconnu.test.ts` vérifie l'égalité des deux fonctions sous chaque convention.
+**Correctif commité.** La copie privée de `structure.ts` disparaît ; `cleDuTheme` devient un alias de `variableDuThemeReconnue`. `controles/theme.ts` compare aussi les noms de cibles par `formeDuNom`, une forme de chemin segment par segment. Le test `themeReconnu.test.ts` vérifie l'égalité des deux fonctions sous chaque convention.
 
 **Propriétaire proposé.** `variableDuThemeReconnue`, déjà dans `referentiel/theme.ts`. `cleDuTheme` reste un alias exporté tant qu'Architect l'importe, ou disparaît (Q-02).
 
 **Loi proposée.** `packages/kit/tests/themeParLeReferentiel.test.ts` : aucun fichier de `packages/*/src/` ne contient `VARIABLES_DU_THEME` suivi de `.find(`, `.sort(` ou `endsWith(`, hors `referentiel/theme.ts` et `emplois/dossiers.ts`. Le motif `endsWith(\`/${` est refusé dans `controles/`. L'égalité `cleDuTheme === variableDuThemeReconnue` sous chaque convention, déjà écrite dans l'arbre, reste.
 
-**Migration.** Correction, déjà en cours. Les fichiers écrits en Pascal ou en camel gagnent C59, C60 et les fonds de garantie qu'ils perdaient.
+**Migration.** Correction, commitée ; la loi anticopie reste à poser. Les fichiers écrits en Pascal ou en camel gagnent C59, C60 et les fonds de garantie qu'ils perdaient.
 
 **Risques.** `formeDuNom` de `controles/theme.ts` est une deuxième forme de chemin, voisine de `signatureDeCible` (`mapping.ts:68`) et de `structure.ts:167` et `:316` ([D-17](#d-17)).
 
@@ -467,7 +467,7 @@ Les deux lecteurs `.mjs` lisent les champs du contrat, pas les champs Figma. Leu
 | `packages/kit/src/controles/structure.ts:167` | signature d'un token, palette remplacée par `*` |
 | `packages/kit/src/controles/structure.ts:316` | `signatureSansPalette`, même calcul que la ligne 167 |
 | `packages/kit/src/controles/structure.ts:322` | `remplacerSegment`, segment cherché par forme |
-| `packages/kit/src/controles/theme.ts` (arbre de travail) | `formeDuNom`, `formeDuNomRemplace` |
+| `packages/kit/src/controles/theme.ts` (depuis le correctif de D-02) | `formeDuNom`, `formeDuNomRemplace` |
 
 **Divergence.** Aucune : même calcul. `structure.ts` le porte deux fois dans le même fichier.
 
@@ -776,7 +776,7 @@ Les chantiers suivent la gravité, puis les dépendances. Chacun monte la versio
 | Chantier | Fiches | Raison de l'ordre |
 |---|---|---|
 | 1. Termes des axes du composant | D-01, D-03, D-04, D-18, D-19 | Faux constats prouvés. D-01, D-04 et D-18 partagent la loi contre les littéraux de termes ; D-03 attend Q-03 |
-| 2. Variable du thème | D-02, D-26 | Correctif en cours dans une autre session ; la loi anticopie se pose après son commit |
+| 2. Variable du thème | D-02, D-26 | Le correctif de D-02 est commité ; il reste la loi anticopie et Q-02 |
 | 3. Peinture et couleur Figma | D-20, D-24, D-08 | Faits des constats de contraste. Les trois changent des faits lus par la reprise d'Architect : un seul passage sur `projectionsDesControles.ts` |
 | 4. Champs de typographie | D-07 | Attend Q-05 ; change la nature de C80 |
 | 5. Format et contrat | D-28, D-29, D-05, D-06, D-13 | D-06 attend Q-04 ; D-13 monte l'adaptateur |

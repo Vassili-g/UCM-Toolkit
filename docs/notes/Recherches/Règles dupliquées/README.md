@@ -17,7 +17,7 @@ décisions du mainteneur.
 
 ## Questions au mainteneur
 
-L'audit relève vingt-neuf règles dupliquées. Sept sont de gravité haute : D-01, D-02, D-03, D-04, D-07, D-18 et D-20. D-02 a un correctif en cours dans une autre session. L'[audit](./AUDIT-REGLES-DUPLIQUEES.md#questions-au-mainteneur) détaille chaque question.
+L'audit relève vingt-neuf règles dupliquées. Sept sont de gravité haute : D-01, D-02, D-03, D-04, D-07, D-18 et D-20. Le correctif de D-02 est commité ; sa loi anticopie manque. L'[audit](./AUDIT-REGLES-DUPLIQUEES.md#questions-au-mainteneur) détaille chaque question.
 
 | Question | Sujet | Fiches | État |
 |---|---|---|---|
