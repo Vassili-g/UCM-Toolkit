@@ -1,5 +1,5 @@
 /** Porte des faits et des résultats portables des contrôles de composants. */
-export type { ReleveDeComposant, VariantLu, LayerLu, PeintureLue, LiaisonLue } from './releve.js';
+export type { ReleveDeComposant, VariantLu, LayerLu, PeintureLue, LiaisonLue, WrapperLu } from './releve.js';
 export { lectureManquee, layersVisiblesDuVariant } from './releve.js';
 export type { CatalogueDeReference, CollectionDuCatalogue, CouleurResolue, VariableDuCatalogue } from './catalogue.js';
 export { cheminDansLaCollection, collectionsDeReference, variableDuCatalogue, collectionDuCatalogue } from './catalogue.js';
@@ -11,7 +11,7 @@ export {
   CIBLE_MINIMALE_PX, CIBLE_TACTILE_PX, TEXTE_MINIMAL_PX,
 } from './accessibilite.js';
 export { controlerLaTypographie, controlerLaTypographieParEtapes } from './typographie.js';
-export { axeDePropriete, axesDuReleve, axesDuReleveParEtapes, tokensDuComposant, tokensDuComposantParEtapes, segmentDAxe, controlerNommage, controlerNommageParEtapes } from './nommage.js';
+export { axeDePropriete, axesDesProprietes, axesDuReleve, axesDuReleveParEtapes, tokensDuComposant, tokensDuComposantParEtapes, segmentDAxe, controlerNommage, controlerNommageParEtapes } from './nommage.js';
 export type { AxeDuComposant, TokenDuComposant } from './nommage.js';
 export { controlerMapping, controlerMappingParEtapes } from './mapping.js';
 export { controlerCouches, controlerCouchesParEtapes } from './couche.js';

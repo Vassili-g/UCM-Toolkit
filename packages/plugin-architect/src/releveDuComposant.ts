@@ -15,12 +15,16 @@
  * un constat : une variable liée qui ne se lit pas reste une liaison
  * (`illisible`), et une boîte illisible ne donne aucune valeur en dur de taille.
  *
+ * Le wrapper de dimensions d'un variant fait partie du composant : quand le relevé en rencontre un qui est le variant
+ * d'un jeu, il lit tout ce jeu après les variants de l'hôte, liaisons seules (`ReleveDeComposant.wrappers`). Ces layers
+ * comptent dans le budget ; un jeu qui le dépasse ou ne se lit pas est une manquée `wrapper`, et le relevé s'en passe.
+ *
  * Une liaison se découpe en `champ`, `indice` et `plage` : `fills[0]` donne
  * le champ `fills` et l'indice 0 ; `fills[0].gradientStops[1].color` donne
  * `fills.gradientStops[1].color` et l'indice 0. Une liaison de texte garde sa
  * plage et figure à la fois dans `layer.liaisons` et dans `texte.plages`.
  */
-import type { LayerLu, LiaisonLue, PeintureLue, ReleveDeComposant, VariantLu } from '@ucm-kit/core/controles';
+import type { LayerLu, LiaisonLue, PeintureLue, ReleveDeComposant, VariantLu, WrapperLu } from '@ucm-kit/core/controles';
 import { copierLaMiseEnPage, copierLesPeinturesParEtapes, lectureNative, lireLesPeinturesParEtapes, lireLesSegmentsCooperatif, lireLesSegmentsParEtapes, type ChampDeMiseEnPage, type ChampsDeMiseEnPage, type EtatDesSegments, type LecteurDeChamp, type PlageLue } from 'ucm-plugin-socle/src/composant/analyse/acquisition';
 import { champDe, type ChampDeSegment, type EtatEcrit, type MaitreLu, type ModeDeCollectionLu, type PeintureLue as PeintureCopiee, type TableDesChamps } from 'ucm-plugin-socle/src/composant/analyse/faits';
 import { creerMemoireDeRessources, type MemoireDeRessources } from 'ucm-plugin-socle/src/composant/analyse/ressources';
@@ -198,6 +202,9 @@ class Lecteur {
   private readonly ressources: MemoireDeRessources;
   /** Les liaisons des composants principaux, que la provenance d'une liaison d'instance compare à la sienne. */
   readonly maitres: LiaisonsDesMaitres;
+  /** Les jeux des wrappers de dimensions rencontrés dans les variants de l'hôte. */
+  readonly jeuxDeWrappers = new Map<string, NoeudLu>();
+  readonly maitresDeWrappersLus = new Set<string>();
   /** Vrai d'un maître dont le composant a ses règles : l'instance est alors une dépendance. Jugé une fois par maître. */
   readonly reglesTrouvees: (maitre: NoeudLu) => boolean;
 
@@ -521,6 +528,60 @@ async function proprietesDe(jeu: NoeudLu, manquees: Manquee[], cooperation: Cont
   return proprietes;
 }
 
+/** Le jeu d'un wrapper de dimensions : ses axes, et les liaisons de chacun de ses variants. `null` quand il dépasse le budget restant. */
+async function lireUnWrapper(jeu: NoeudLu, lecteur: Lecteur, budgetRestant: number, manquees: Manquee[]): Promise<{ wrapper: WrapperLu; layers: number } | null> {
+  const { cooperation, lire } = lecteur;
+  const manqueesDuJeu: Manquee[] = [];
+  const proprietes = await proprietesDe(jeu, manqueesDuJeu, cooperation, lire);
+  if (manqueesDuJeu.length > 0) throw new Error(manqueesDuJeu[0].motif);
+  const composants: NoeudLu[] = [];
+  for (const enfant of lire<readonly NoeudLu[] | undefined>(jeu, 'children') ?? []) {
+    await cooperation.cederSiBesoin();
+    if (enfant.type === 'COMPONENT') composants.push(enfant);
+  }
+  const parcours: Etape[][] = [];
+  let layers = 0;
+  for (const composant of composants) {
+    const etapes = await parcourir(composant, cooperation, lire);
+    parcours.push(etapes);
+    layers += etapes.length;
+  }
+  if (layers > budgetRestant) {
+    manquees.push({ layer: jeu.id, champ: 'wrapper', motif: `le jeu dépasse le budget de layers (${layers} layers pour ${Math.max(budgetRestant, 0)} restants)` });
+    return null;
+  }
+  const variants: WrapperLu['variants'] = [];
+  for (const [rang, composant] of composants.entries()) {
+    const liaisons: LiaisonLue[] = [];
+    for (const { noeud } of parcours[rang]) {
+      await cooperation.cederSiBesoin();
+      liaisons.push(...await lecteur.liaisons(await liaisonsDuNoeudCooperatives(noeud, cooperation, undefined, undefined, lire), noeud.id));
+    }
+    variants.push({ id: composant.id, nom: composant.name, valeurs: await valeursDuVariant(composant, cooperation, lire), liaisons });
+  }
+  return { wrapper: { id: jeu.id, cle: String(champLu(jeu, 'key') ?? ''), nom: jeu.name, proprietes, variants }, layers };
+}
+
+/** Les wrappers que les variants de l'hôte instancient, dans l'ordre où le relevé les a rencontrés. */
+async function lireLesWrappers(lecteur: Lecteur, hote: NoeudLu, budget: number, dejaLus: number, manquees: Manquee[]): Promise<{ wrappers: WrapperLu[]; layers: number }> {
+  const wrappers: WrapperLu[] = [];
+  let layers = 0;
+  for (const jeu of lecteur.jeuxDeWrappers.values()) {
+    await lecteur.cooperation.cederSiBesoin();
+    if (jeu.id === hote.id) continue;
+    try {
+      const lu = await lireUnWrapper(jeu, lecteur, budget - dejaLus - layers, manquees);
+      if (!lu) continue;
+      wrappers.push(lu.wrapper);
+      layers += lu.layers;
+    } catch (erreur) {
+      if (erreur instanceof AnalyseAnnulee) throw erreur;
+      manquees.push({ layer: jeu.id, champ: 'wrapper', motif: messageDErreur(erreur) });
+    }
+  }
+  return { wrappers, layers };
+}
+
 /**
  * Le relevé du jeu de variants qui contient `depart`. Un composant seul se
  * lit comme un jeu d'un variant. Une annulation ne rend aucun résultat partiel.
@@ -597,6 +658,8 @@ async function lireLeReleveInterruptible(port: PortDuComposant, depart: NoeudLu,
   }
 
   const proprietes = await proprietesDe(jeu, manquees, cooperation, lire);
+  const wrappers = coupe ? { wrappers: [], layers: 0 } : await lireLesWrappers(lecteur, jeu, budget, layersLus, manquees);
+  layersLus += wrappers.layers;
   cooperation.verifier();
 
   return {
@@ -606,6 +669,7 @@ async function lireLeReleveInterruptible(port: PortDuComposant, depart: NoeudLu,
       jeu: { cle: String(champLu(jeu, 'key') ?? ''), id: jeu.id, nom: jeu.name },
       proprietes,
       variants,
+      ...(wrappers.wrappers.length > 0 ? { wrappers: wrappers.wrappers } : {}),
       lecture: { layersLus, layersNonLus, variantsNonLus, manquees },
       espaceDeCouleur: options.espaceDeCouleur ?? 'srgb',
     },

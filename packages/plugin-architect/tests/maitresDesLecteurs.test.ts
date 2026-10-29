@@ -105,3 +105,24 @@ test('la mémoire copie un maître une seule fois pour toutes ses instances, ref
   assert.equal(lectures.cles.get('maitre-m'), 1, 'la clé du maître n’est lue qu’une fois');
   assert.deepEqual(copies.slice(2), [{ etat: 'refuse', raison: 'introuvable' }, { etat: 'refuse', raison: 'leve', message: 'maître illisible' }]);
 });
+
+test('un maître de wrapper de dimensions posé par plusieurs instances ne fait lister les variants de son jeu qu’une fois', async () => {
+  const a = atelierDeCalques();
+  const lectures = { enfants: 0 };
+  const alias = { type: 'VARIABLE_ALIAS', id: 'rayon' };
+  const moyen = a.calque('wrapper-m', 'COMPONENT', { name: 'Size=M', key: 'cle-wrapper-m', remote: false, absoluteBoundingBox: boite });
+  const jeuDuWrapper = a.calque('jeu-wrapper', 'COMPONENT_SET', {
+    name: '.sizeWrapper', key: 'cle-jeu-wrapper',
+    componentPropertyDefinitions: { Size: { type: 'VARIANT', defaultValue: 'M', variantOptions: ['M'] } },
+    get children(): NoeudLu[] { lectures.enfants += 1; return [moyen]; },
+  }, [moyen]);
+  const instances = ['un', 'deux', 'trois'].map((id) => a.calque(id, 'INSTANCE', { absoluteBoundingBox: boite, boundVariables: { cornerRadius: alias }, getMainComponentAsync: async () => moyen }));
+  const variants = ['Repos', 'Survol'].map((etat, rang) => a.calque(`variant-${etat}`, 'COMPONENT', { name: `Etat=${etat}`, absoluteBoundingBox: boite }, rang === 0 ? instances : []));
+  const jeu = a.calque('jeu', 'COMPONENT_SET', { name: 'Button', key: 'cle-jeu', defaultVariant: variants[0], componentPropertyDefinitions: {} }, variants);
+  const { port } = portDeTest([], []);
+  const issue = await lireLeReleve(a.port(port), jeu);
+  assert.equal(issue.statut, 'lu');
+  if (issue.statut !== 'lu') return;
+  assert.equal(issue.releve.wrappers?.length, 1);
+  assert.equal(lectures.enfants, 1, 'trois instances du même maître, un seul jeu lu');
+});

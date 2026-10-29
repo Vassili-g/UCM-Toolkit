@@ -45,7 +45,8 @@ const regles = (id: string, nom: string) => noeud(id, 'INSTANCE', { name: '.comp
 /**
  * La variable de library liée aux marges du variant `Taille=Large` de l'enveloppe, et sa collection. Le moteur lit les
  * tailles sur les variants de l'enveloppe (`findWrapperReference`, `extractSizes`) et tire le nom du token de ces deux
- * lectures ; le relevé ne lit que l'instance `Small` du jeu.
+ * lectures ; le relevé lit aussi les variants du jeu de l'enveloppe, pour les tokens de taille que l'hôte ne lie pas, et voit
+ * donc le renommage.
  */
 const ESPACEMENT = 'VariableID:cle-espacement/1:1';
 /** La variable de library que porte l'instance de l'enveloppe dans le jeu, lue aussi par le relevé. */
@@ -203,10 +204,10 @@ test('une variable de library liée sous un maître imbriqué, renommée sans é
   assert.deepEqual((await demander(monde, 'analyser')).moteur, ['repriseDuMoteur']);
   monde.etat.espacement = 'gap/large';
   const renommee = await demander(monde, 'analyser');
-  assert.deepEqual(renommee.moteur, ['nonReprise:different:dependances']);
+  assert.deepEqual(renommee.moteur, ['nonReprise:different:dependances', 'nonReprise:different:releve']);
   assert.equal(renommee.affiche, (await demander(monde, 'actualiser')).affiche);
   monde.etat.collection = 'espacements';
   const collectionRenommee = await demander(monde, 'analyser');
-  assert.deepEqual(collectionRenommee.moteur, ['nonReprise:different:dependances'], 'la collection renommée aussi');
+  assert.deepEqual(collectionRenommee.moteur, ['nonReprise:different:dependances', 'nonReprise:different:releve'], 'la collection renommée aussi');
   assert.equal(collectionRenommee.affiche, (await demander(monde, 'actualiser')).affiche);
 });

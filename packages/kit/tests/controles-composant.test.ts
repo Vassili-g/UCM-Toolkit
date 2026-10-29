@@ -2,9 +2,9 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import { liaisonsDuReleve } from '../src/controles/mapping.js';
 import {
-  axeDePropriete, axesDuReleve, axesDuReleveParEtapes, tokensDuComposant, tokensDuComposantParEtapes,
+  axeDePropriete, axesDesProprietes, axesDuReleve, axesDuReleveParEtapes, tokensDuComposant, tokensDuComposantParEtapes,
   controlerNommage, controlerNommageParEtapes, controlerMapping, controlerMappingParEtapes, controlerCouches, controlerCouchesParEtapes, controlerOublis, controlerOublisParEtapes,
-  type CatalogueDeReference, type ReleveDeComposant, type VariantLu,
+  type CatalogueDeReference, type ReleveDeComposant, type VariantLu, type WrapperLu,
 } from '../src/controles/index.js';
 
 function releve(nom: string, proprietes: ReleveDeComposant['proprietes'] = []): ReleveDeComposant {
@@ -490,6 +490,80 @@ test('C32 trouve un token inutilisé et un frère non chargé, sans exiger ses v
     variable: { id: 'v2', cle: 'v2', nom: 'alert/color/info/icon', collection: 'components', distante: false },
   });
   assert.equal(controlerOublis(r, c).filter(({ code, faits }) => code === 'C32' && faits.motif === 'inutilise').length, 0);
+});
+
+function wrapper(nom: string, proprietes: WrapperLu['proprietes'], variants: [Record<string, string>, string[]][]): WrapperLu {
+  return {
+    id: `${nom}-id`, cle: `${nom}-cle`, nom, proprietes,
+    variants: variants.map(([valeurs, cles], rang) => ({
+      id: `${nom}-${rang}`, nom: Object.values(valeurs).join(','), valeurs,
+      liaisons: cles.map((cle) => ({ champ: 'itemSpacing', porteur: `${nom}-${rang}`, variable: { id: cle, cle, nom: cle, collection: 'components', distante: false } })),
+    })),
+  };
+}
+
+const tailles = (...liaisons: [string, string[]][]): WrapperLu => wrapper('.sizeWrapperButton', [axe('Size', liaisons.map(([taille]) => taille))], liaisons.map(([taille, cles]) => [{ Size: taille }, cles]));
+
+/** Un composant à l'axe State, dont les variants lient `hote` et dont les tailles vivent dans un wrapper. */
+function composantAvecWrapper(...wrappers: WrapperLu[]): ReleveDeComposant {
+  const r = releve('Button', [axe('State', ['default', 'hover'])]);
+  r.variants = [variante('default', { State: 'default' }, 'hote'), variante('hover', { State: 'hover' }, 'hote')];
+  if (wrappers.length) r.wrappers = wrappers;
+  return r;
+}
+
+const c32 = (r: ReleveDeComposant, c: CatalogueDeReference): [unknown, unknown][] =>
+  controlerOublis(r, c).filter(({ code }) => code === 'C32').map(({ faits }) => [faits.token, faits.motif]);
+
+const CATALOGUE_DES_TAILLES = (): CatalogueDeReference => catalogue('Button/Size/Large/gap', 'Button/Size/Small/gap', 'Button/Size/XL/gap');
+
+test('axesDesProprietes lit les axes d’un wrapper et partage la mémoire d’axesDuReleve', () => {
+  const r = composantAvecWrapper(tailles(['Small', []], ['Large', []]));
+  assert.deepEqual(Object.keys(axesDesProprietes(r.wrappers![0].proprietes)), ['taille']);
+  assert.equal(axesDesProprietes(r.proprietes), axesDuReleve(r));
+});
+
+test('C32 : un token de taille lié seulement dans un variant du wrapper est utilisé', () => {
+  const r = composantAvecWrapper(tailles(['Small', ['v1']], ['Large', ['v0']], ['Medium', []]));
+  assert.deepEqual(c32(r, catalogue('Button/Size/Large/gap', 'Button/Size/Small/gap')), []);
+});
+
+test('C32 : un token de taille lié nulle part reste inutilisé, wrapper lu ou non', () => {
+  const r = composantAvecWrapper(tailles(['Small', []], ['Large', []]));
+  const attendu = [['Button/Size/Large/gap', 'inutilise'], ['Button/Size/Small/gap', 'inutilise']];
+  assert.deepEqual(c32(r, catalogue('Button/Size/Large/gap', 'Button/Size/Small/gap')), attendu);
+  delete r.wrappers;
+  assert.deepEqual(c32(r, catalogue('Button/Size/Large/gap', 'Button/Size/Small/gap')), attendu);
+});
+
+test('C32 : sans wrappers, un token de taille lié dans le wrapper reste inutilisé comme avant', () => {
+  const r = composantAvecWrapper();
+  assert.deepEqual(c32(r, catalogue('Button/Size/Large/gap')), [['Button/Size/Large/gap', 'inutilise']]);
+});
+
+test('C32 : une taille qu’aucun variant du wrapper ne porte est sans variant', () => {
+  const r = composantAvecWrapper(tailles(['Small', ['v1']], ['Large', ['v0']]));
+  assert.deepEqual(c32(r, CATALOGUE_DES_TAILLES()), [['Button/Size/XL/gap', 'sans-variant']]);
+});
+
+test('C32 : un token sans segment de taille lié seulement dans le wrapper reste inutilisé', () => {
+  const r = composantAvecWrapper(tailles(['Small', ['v0']], ['Large', []]));
+  r.variants[0].layers[0].liaisons = [];
+  r.variants[1].layers[0].liaisons = [];
+  assert.deepEqual(c32(r, catalogue('Button/Color/default/background')).map(([, motif]) => motif), ['inutilise']);
+});
+
+test('C32 : un wrapper sans axe nouveau, comme un anneau, ne change rien', () => {
+  const anneau = wrapper('.Ring', [axe('Property 1', ['Default', 'Focus'])], [[{ 'Property 1': 'Default' }, ['v1']], [{ 'Property 1': 'Focus' }, ['v1']]]);
+  const r = composantAvecWrapper(anneau);
+  assert.deepEqual(c32(r, catalogue('Button/Size/Large/gap')), [['Button/Size/Large/gap', 'inutilise']]);
+});
+
+test('C32 : quand l’hôte et le wrapper portent tous deux Size, l’hôte l’emporte', () => {
+  const r = releve('Button', [axe('Size', ['Small', 'Large'])]);
+  r.variants = [variante('small', { Size: 'Small' }, 'v0'), variante('large', { Size: 'Large' }, 'v0')];
+  r.wrappers = [tailles(['Small', ['v1']], ['Large', ['v1']])];
+  assert.deepEqual(c32(r, catalogue('Button/Size/Large/gap', 'Button/Size/Small/gap')), [['Button/Size/Small/gap', 'inutilise']]);
 });
 
 test('les oublis par étapes conservent les identifiants, faits et ordre de C31 à C33', () => {

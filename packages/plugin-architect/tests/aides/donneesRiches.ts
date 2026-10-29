@@ -91,6 +91,28 @@ export function releveRiche(): ReleveDeComposant {
   };
 }
 
+/**
+ * Le relevé riche dont l'hôte n'a plus d'axe de taille : un wrapper de dimensions le porte, et les tokens de taille du
+ * catalogue se lient dans ses variants.
+ */
+export function releveRicheAvecWrapper(): ReleveDeComposant {
+  const releve = releveRiche();
+  releve.proprietes = releve.proprietes.map((propriete) => (propriete.nom === 'Size' ? { ...propriete, nom: 'Density' } : propriete));
+  for (const variante of releve.variants) {
+    const { Size: densite, ...autres } = variante.valeurs;
+    variante.valeurs = { ...autres, Density: densite };
+  }
+  releve.wrappers = [{
+    id: 'jeu-sizeWrapper', cle: 'cle-sizeWrapper', nom: '.sizeWrapperButton',
+    proprietes: [{ nom: 'Size', type: 'VARIANT', valeurs: ['small', 'medium'], defaut: 'medium' }],
+    variants: [
+      { id: 'w-small', nom: 'Size=small', valeurs: { Size: 'small' }, liaisons: [liaison('height', 'w-small', variable('b-hauteur', 'Button/size/small/height', 'components'))] },
+      { id: 'w-medium', nom: 'Size=medium', valeurs: { Size: 'medium' }, liaisons: [liaison('fills', 'w-medium', variable('b-fond-moyen', 'Button/color/primary/contained/medium/default/background', 'components'), { indice: 0 })] },
+    ],
+  }];
+  return releve;
+}
+
 const modes = (...noms: string[]) => noms.map((nom) => ({ id: nom.slice(0, 1).toLowerCase(), nom }));
 const couleur = (v: number) => ({ valeur: { r: v, g: v, b: v, a: 1 } });
 

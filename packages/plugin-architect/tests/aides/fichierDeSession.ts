@@ -21,6 +21,8 @@ export interface Fichier {
   style: { nom: string; taille: number; remote: boolean };
   /** Une variable du catalogue que Figma refuse de lire : l'entrée retenue est à relire. */
   catalogueIncomplet?: boolean;
+  /** Les jeux de wrappers de dimensions que le relevé lit en plus des variants de l'hôte. */
+  wrappers?: ReleveDeComposant['wrappers'];
 }
 
 export const base = (id: string, variable: Fichier['variable'], extra: Partial<LayerLu> = {}): LayerLu => ({
@@ -57,6 +59,7 @@ export const releveDe = (fichier: Fichier): ReleveDeComposant => structuredClone
   jeu: { cle: 'Alert', id: 'jeu-Alert', nom: 'Alert' },
   proprietes: [],
   variants: [{ id: 'v-Alert', nom: 'Alert défaut', valeurs: {}, layers: fichier.layers, modesEffectifs: {} }],
+  ...(fichier.wrappers ? { wrappers: fichier.wrappers } : {}),
   lecture: { layersLus: fichier.layers.length, layersNonLus: 0, variantsNonLus: [], manquees: [] },
   espaceDeCouleur: 'srgb' as const,
 });

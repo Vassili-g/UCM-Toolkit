@@ -590,3 +590,153 @@ test('un composant principal se lit une fois par demande, quel que soit le nombr
   assert.ok(issue.releve.variants.every(({ layers }) => layers[1].liaisons.every((liaison) => liaison.provenance === 'composant-principal')));
   assert.deepEqual(lectures, { maitre: 1, point: 1 });
 });
+
+interface WrapperDeTest {
+  id: string;
+  tailles: string[];
+  /** Le maître de l'instance n'est pas un variant d'un jeu. */
+  seul?: boolean;
+  distant?: boolean;
+  /** La lecture des variants du jeu lève. */
+  illisible?: boolean;
+  /** Ajoute des champs au variant `Medium`, que l'instance a pour maître. */
+  champsDuMaitre?: Record<string, unknown>;
+}
+
+/** Un hôte à deux variants, qui posent chacun une instance de chaque wrapper : son rayon lié en fait un wrapper de dimensions. */
+function hoteAvecWrappers(wrappers: WrapperDeTest[]) {
+  const a = atelierDeCalques();
+  const identifiants = ['rayon'];
+  const maitres = wrappers.map((wrapper) => {
+    const variants = wrapper.tailles.map((taille) => {
+      const identifiant = `gap-${wrapper.id}-${taille}`;
+      identifiants.push(identifiant);
+      const contenu = a.calque(`${wrapper.id}-${taille}-contenu`, 'FRAME', { absoluteBoundingBox: boite(0, 0, 10, 10), boundVariables: { itemSpacing: alias(identifiant) } });
+      return a.calque(`${wrapper.id}-${taille}`, 'COMPONENT', {
+        name: `Size=${taille}`, key: `cle-${wrapper.id}-${taille}`, remote: wrapper.distant === true, absoluteBoundingBox: boite(0, 0, 10, 10),
+        ...(taille === 'Medium' ? wrapper.champsDuMaitre : {}),
+      }, [contenu]);
+    });
+    const maitre = variants[Math.min(1, variants.length - 1)];
+    if (!wrapper.seul) {
+      const champs: Record<string, unknown> = {
+        name: `.${wrapper.id}`, key: `cle-${wrapper.id}`,
+        componentPropertyDefinitions: { Size: { type: 'VARIANT', defaultValue: wrapper.tailles[0], variantOptions: wrapper.tailles } },
+      };
+      if (wrapper.illisible) Object.defineProperty(champs, 'children', { enumerable: true, get() { throw new Error('jeu illisible'); } });
+      a.calque(`jeu-${wrapper.id}`, 'COMPONENT_SET', champs, variants);
+    }
+    return maitre;
+  });
+  const variantsDeLHote = ['Repos', 'Survol'].map((etat) => a.calque(`hote-${etat}`, 'COMPONENT', { name: `Etat=${etat}`, absoluteBoundingBox: boite(0, 0, 100, 40) },
+    wrappers.map((wrapper, rang) => a.calque(`inst-${wrapper.id}-${etat}`, 'INSTANCE', {
+      absoluteBoundingBox: boite(0, 0, 16, 16),
+      boundVariables: { cornerRadius: alias('rayon') },
+      getMainComponentAsync: async () => maitres[rang],
+    }))));
+  const jeu = a.calque('hote', 'COMPONENT_SET', {
+    name: 'Button', key: 'cle-button', defaultVariant: variantsDeLHote[0],
+    componentPropertyDefinitions: { Etat: { type: 'VARIANT', defaultValue: 'Repos', variantOptions: ['Repos', 'Survol'] } },
+  }, variantsDeLHote);
+  const { port } = portDeTest(
+    [collectionFigma('c', 'Composants', ['Valeur'], identifiants)],
+    identifiants.map((identifiant) => variableFigma(identifiant, 'c', identifiant === 'rayon' ? 'Button/radius' : `Button/Size/${identifiant.split('-').pop()}/gap`, 'FLOAT', { 'c:Valeur': 4 })),
+  );
+  return { jeu, port: a.port(port) };
+}
+
+async function releveAvecWrappers(wrappers: WrapperDeTest[], options: Parameters<typeof lireLeReleve>[2] = {}) {
+  const { jeu, port } = hoteAvecWrappers(wrappers);
+  const issue = await lireLeReleve(port, jeu, options);
+  assert.equal(issue.statut, 'lu');
+  if (issue.statut !== 'lu') throw new Error('relevé attendu');
+  return issue.releve;
+}
+
+const liaisonsDuWrapper = (releve: Awaited<ReturnType<typeof releveAvecWrappers>>, rang = 0) =>
+  releve.wrappers?.[rang].variants.map(({ valeurs, liaisons }) => [valeurs.Size, liaisons.map(({ champ, variable }) => `${champ}:${variable.nom}`)]);
+
+test('un wrapper de dimensions posé dans les variants est lu en entier : axes, variants, liaisons des layers', async () => {
+  const releve = await releveAvecWrappers([{ id: 'sizeWrapper', tailles: ['Small', 'Medium', 'Large'] }]);
+  assert.equal(releve.wrappers?.length, 1);
+  const wrapper = releve.wrappers![0];
+  assert.deepEqual([wrapper.id, wrapper.cle, wrapper.nom], ['jeu-sizeWrapper', 'cle-sizeWrapper', '.sizeWrapper']);
+  assert.deepEqual(wrapper.proprietes, [{ nom: 'Size', type: 'VARIANT', valeurs: ['Small', 'Medium', 'Large'], defaut: 'Small' }]);
+  assert.deepEqual(liaisonsDuWrapper(releve), [
+    ['Small', ['itemSpacing:Button/Size/Small/gap']],
+    ['Medium', ['itemSpacing:Button/Size/Medium/gap']],
+    ['Large', ['itemSpacing:Button/Size/Large/gap']],
+  ]);
+  assert.deepEqual(wrapper.variants.map(({ id }) => id), ['sizeWrapper-Small', 'sizeWrapper-Medium', 'sizeWrapper-Large']);
+  assert.equal(releve.variants.length, 2);
+  assert.deepEqual(releve.lecture.manquees, []);
+});
+
+test('les layers d’un wrapper comptent dans layersLus', async () => {
+  const sans = await releveAvecWrappers([]);
+  const avec = await releveAvecWrappers([{ id: 'sizeWrapper', tailles: ['Small', 'Medium', 'Large'] }]);
+  assert.equal(avec.lecture.layersLus - sans.lecture.layersLus, 2 + 6, 'deux instances de plus dans les variants de l’hôte, six layers de wrapper');
+});
+
+test('un wrapper dont le maître n’est pas le variant d’un jeu n’est pas lu', async () => {
+  const releve = await releveAvecWrappers([{ id: 'sizeWrapper', tailles: ['Medium'], seul: true }]);
+  assert.equal(releve.wrappers, undefined);
+  assert.deepEqual(releve.lecture.manquees, []);
+});
+
+test('un wrapper distant se lit comme un wrapper local', async () => {
+  const releve = await releveAvecWrappers([{ id: 'sizeWrapper', tailles: ['Small', 'Medium'], distant: true }]);
+  assert.deepEqual(liaisonsDuWrapper(releve)?.map(([taille]) => taille), ['Small', 'Medium']);
+});
+
+test('deux wrappers de jeux différents sont lus dans l’ordre de première rencontre, une fois chacun', async () => {
+  const releve = await releveAvecWrappers([{ id: 'sizeWrapper', tailles: ['Small', 'Medium'] }, { id: 'tallWrapper', tailles: ['Tall', 'Medium'] }]);
+  assert.deepEqual(releve.wrappers?.map(({ nom }) => nom), ['.sizeWrapper', '.tallWrapper']);
+  assert.deepEqual(liaisonsDuWrapper(releve, 1)?.map(([taille]) => taille), ['Tall', 'Medium']);
+});
+
+test('un jeu qui dépasse le budget de layers est retiré avec une lecture manquée, et le relevé de l’hôte reste entier', async () => {
+  const wrappers = [{ id: 'sizeWrapper', tailles: ['Small', 'Medium', 'Large'] }];
+  const complet = await releveAvecWrappers(wrappers);
+  const hote = complet.lecture.layersLus - 6;
+  const serre = await releveAvecWrappers(wrappers, { budgetDeLayers: hote + 5 });
+  assert.equal(serre.wrappers, undefined);
+  assert.equal(serre.lecture.layersLus, hote);
+  assert.equal(serre.variants.length, 2);
+  assert.equal(serre.lecture.manquees.length, 1);
+  assert.deepEqual([serre.lecture.manquees[0].layer, serre.lecture.manquees[0].champ], ['jeu-sizeWrapper', 'wrapper']);
+  assert.match(serre.lecture.manquees[0].motif, /budget/);
+  const juste = await releveAvecWrappers(wrappers, { budgetDeLayers: hote + 6 });
+  assert.equal(juste.wrappers?.length, 1);
+  assert.equal(juste.lecture.layersLus, hote + 6);
+});
+
+test('un jeu de wrapper dont la lecture lève est retiré avec une lecture manquée ; les autres restent', async () => {
+  const releve = await releveAvecWrappers([{ id: 'sizeWrapper', tailles: ['Small', 'Medium'], illisible: true }, { id: 'tallWrapper', tailles: ['Tall', 'Medium'] }]);
+  assert.deepEqual(releve.wrappers?.map(({ nom }) => nom), ['.tallWrapper']);
+  assert.deepEqual(releve.lecture.manquees, [{ layer: 'jeu-sizeWrapper', champ: 'wrapper', motif: 'jeu illisible' }]);
+});
+
+test('un relevé dont l’hôte est coupé par le budget ne lit aucun wrapper', async () => {
+  const releve = await releveAvecWrappers([{ id: 'sizeWrapper', tailles: ['Small', 'Medium'] }], { budgetDeLayers: 2 });
+  assert.deepEqual(releve.lecture.variantsNonLus, ['Etat=Survol']);
+  assert.equal(releve.wrappers, undefined);
+  assert.deepEqual(releve.lecture.manquees, []);
+});
+
+test('une annulation pendant la lecture d’un wrapper rend « annulé », jamais une lecture manquée', async () => {
+  let dansLeWrapper = false;
+  const paires = Array.from({ length: 128 }, (_, rang) => `Axe${rang}=${rang}`).join(', ');
+  const { jeu, port } = hoteAvecWrappers([{
+    id: 'sizeWrapper', tailles: ['Small', 'Medium'],
+    champsDuMaitre: { name: paires, get variantProperties() { dansLeWrapper = true; return undefined; } },
+  }]);
+  let horloge = 0;
+  const jeton = { leve: false };
+  const issue = await lireLeReleve(port, jeu, {
+    jeton,
+    cooperation: creerContexteCooperatif({ jeton, horloge: () => (dansLeWrapper ? horloge++ : 0), budgetDeCalculMs: 25, respirer: async () => { jeton.leve = true; } }),
+  });
+  assert.deepEqual(issue, { statut: 'annule' });
+  assert.ok(horloge > 0);
+});

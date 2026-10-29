@@ -7,6 +7,8 @@
  * calque que l'hôte ne surcharge pas n'est donc pas reconnu comme tel ; la liaison se juge alors comme celle d'un layer de
  * l'hôte, ce que fait aussi une instance sans sorte.
  *
+ * Un wrapper de dimensions note aussi son jeu de variants, que le relevé lit ensuite en entier.
+ *
  * Une liaison vient du composant principal quand le layer homologue du maître lie le même champ à la même variable. Le
  * layer homologue d'un calque que la surcharge vise se retrouve par son identifiant : `I<instance>;<calque du maître>`
  * dans l'hôte, `<calque du maître>` dans le maître, et `I<calque>;<sous-calque>` sous une instance du maître.
@@ -129,9 +131,28 @@ export class LiaisonsDesMaitres {
 /** Ce que le marquage lit du relevé en cours. */
 export interface LecteurDesImbriques {
   readonly cooperation: ContexteCooperatif;
+  readonly lire: LecteurDeChamp;
   readonly maitres: LiaisonsDesMaitres;
+  /** Les jeux de variants des wrappers de dimensions rencontrés, un par identifiant, dans l'ordre de première rencontre. */
+  readonly jeuxDeWrappers: Map<string, NoeudLu>;
+  /** Les maîtres de wrapper dont le parent est déjà lu : un wrapper posé dans 90 variants se lit une fois. */
+  readonly maitresDeWrappersLus: Set<string>;
   /** Vrai quand un conteneur de règles nomme le composant de ce maître sur sa page. */
   readonly reglesTrouvees: (maitre: NoeudLu) => boolean;
+}
+
+/** Un wrapper qui est un variant d'un jeu fait partie du composant avec tout son jeu ; un composant seul n'a pas de jeu à lire. */
+function noterLeJeuDuWrapper(layer: LayerLu, maitre: NoeudLu, lecteur: LecteurDesImbriques, manquees: ReleveDeComposant['lecture']['manquees']): void {
+  if (lecteur.maitresDeWrappersLus.has(maitre.id)) return;
+  lecteur.maitresDeWrappersLus.add(maitre.id);
+  try {
+    compter('proprietesDuReleve');
+    const jeu = lecteur.lire<NoeudLu | null>(maitre, 'parent');
+    if (jeu?.type === 'COMPONENT_SET' && !lecteur.jeuxDeWrappers.has(jeu.id)) lecteur.jeuxDeWrappers.set(jeu.id, jeu);
+  } catch (erreur) {
+    if (erreur instanceof AnalyseAnnulee) throw erreur;
+    manquees.push({ layer: layer.id, champ: 'wrapper', motif: erreur instanceof Error ? erreur.message : String(erreur) });
+  }
 }
 
 /**
@@ -151,6 +172,7 @@ export async function marquerLImbrique(layer: LayerLu, nom: string, maitre: Noeu
   }
   const sorte = sorteDeLImbrique({ nom, reglesTrouvees, dimensionsLiees: reglesTrouvees ? 0 : await dimensionsLiees(layer.liaisons, lecteur.cooperation) });
   layer.sorte = sorte;
+  if (sorte === 'wrapper-de-dimensions') noterLeJeuDuWrapper(layer, maitre, lecteur, manquees);
   if (reglesTrouvees) return;
   for (const liaison of layer.liaisons) {
     await lecteur.cooperation.cederSiBesoin();

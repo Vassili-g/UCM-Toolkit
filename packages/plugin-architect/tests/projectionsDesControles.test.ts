@@ -21,7 +21,7 @@ import { egalesExactement } from 'ucm-plugin-socle/src/composant/analyse/validat
 import { creerLesRequetes, type EntreeDeSessionDAnalyse } from '../src/sandbox/analyse';
 import { FAMILLES_DE_CONTROLES, GABARITS, PROJECTIONS, projeter, type Gabarit, type NomDeFamille } from '../src/sandbox/projectionsDesControles';
 import { enregistrerLesAcces, type Chemin } from './aides/accesEnregistres';
-import { catalogueRiche, releveRiche } from './aides/donneesRiches';
+import { catalogueRiche, releveRiche, releveRicheAvecWrapper } from './aides/donneesRiches';
 import { catalogueDe, fichierDeDepart, releveDe } from './aides/fichierDeSession';
 
 type Niveau = 'AA' | 'AAA';
@@ -50,7 +50,9 @@ interface Jeu { nom: string; neuf(): Donnees }
 const JEUX: readonly Jeu[] = [
   { nom: 'relevé riche', neuf: () => ({ releve: releveRiche(), catalogue: catalogueRiche() }) },
   { nom: 'fixture du banc de session', neuf: () => ({ releve: releveDe(fichierDeDepart()), catalogue: catalogueDe(fichierDeDepart()) }) },
+  { nom: 'relevé riche à wrapper de dimensions', neuf: () => ({ releve: releveRicheAvecWrapper(), catalogue: catalogueRiche() }) },
 ];
+const JEU_A_WRAPPER = 2;
 
 /* ---------- Les chemins couverts ---------- */
 
@@ -175,6 +177,8 @@ interface Scenario {
   projections: NomDeFamille[];
   /** Parmi elles, celles dont les constats changent au moins sur le relevé riche : la modification est lue, pas seulement copiée. */
   constatsAuMoins: NomDeFamille[];
+  /** Le jeu de données de départ ; le relevé riche par défaut. */
+  jeu?: number;
 }
 
 const premierLayer = (donnees: Donnees, nom: string) => donnees.releve.variants[0].layers.find((layer) => layer.nom === nom)!;
@@ -242,13 +246,17 @@ const SCENARIOS: readonly Scenario[] = [
     modifier: ({ releve }) => { releve.lecture.variantsNonLus = ['v-inconnu']; },
   },
   {
+    nom: 'la liaison d’un variant de wrapper', projections: ['controle-oublis'], constatsAuMoins: ['controle-oublis'], jeu: JEU_A_WRAPPER,
+    modifier: ({ releve }) => { releve.wrappers![0].variants[0].liaisons[0].variable.cle = 'b-rayon'; },
+  },
+  {
     nom: 'l’espace de couleur du relevé', projections: [], constatsAuMoins: [],
     modifier: ({ releve }) => { releve.espaceDeCouleur = 'display-p3'; },
   },
 ];
 
-function etat(modifier?: Modification) {
-  const donnees = JEUX[0].neuf();
+function etat(modifier?: Modification, jeu = 0) {
+  const donnees = JEUX[jeu].neuf();
   const niveau: { valeur: Niveau } = { valeur: 'AAA' };
   modifier?.(donnees, niveau);
   return { donnees, niveau: niveau.valeur };
@@ -256,8 +264,8 @@ function etat(modifier?: Modification) {
 
 for (const scenario of SCENARIOS) {
   test(`changer ${scenario.nom} ne change que les projections qui le lisent`, () => {
-    const avant = etat();
-    const apres = etat(scenario.modifier);
+    const avant = etat(undefined, scenario.jeu);
+    const apres = etat(scenario.modifier, scenario.jeu);
     const projectionsChangees: NomDeFamille[] = [];
     const constatsChanges: NomDeFamille[] = [];
     for (const famille of FAMILLES_DE_CONTROLES) {

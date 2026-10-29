@@ -38,22 +38,31 @@ type AxesDuReleve = Partial<Record<AxeDuComposant, ProprieteDAxe>>;
 const axesMemorises = new WeakMap<ReleveDeComposant['proprietes'], { longueur: number; axes: AxesDuReleve }>();
 
 export function axesDuReleve(releve: ReleveDeComposant): AxesDuReleve {
-  return epuiser(axesDuReleveParEtapes(releve));
+  return axesDesProprietes(releve.proprietes);
+}
+
+/** Les axes d'un tableau de propriétés : celui du composant, ou celui d'un wrapper de dimensions. */
+export function axesDesProprietes(proprietes: ReleveDeComposant['proprietes']): AxesDuReleve {
+  return epuiser(axesDesProprietesParEtapes(proprietes));
+}
+
+export function* axesDuReleveParEtapes(releve: ReleveDeComposant): Generator<void, AxesDuReleve> {
+  return yield* axesDesProprietesParEtapes(releve.proprietes);
 }
 
 /** Rend l'entrée mémorisée s'il en existe une ; sinon cède entre les propriétés et ne range le résultat qu'une fois le calcul fini. */
-export function* axesDuReleveParEtapes(releve: ReleveDeComposant): Generator<void, AxesDuReleve> {
-  const connus = axesMemorises.get(releve.proprietes);
-  if (connus && connus.longueur === releve.proprietes.length) return connus.axes;
+function* axesDesProprietesParEtapes(proprietes: ReleveDeComposant['proprietes']): Generator<void, AxesDuReleve> {
+  const connus = axesMemorises.get(proprietes);
+  if (connus && connus.longueur === proprietes.length) return connus.axes;
   const axes: AxesDuReleve = {};
-  for (const propriete of releve.proprietes) {
+  for (const propriete of proprietes) {
     yield;
     if (propriete.type !== 'VARIANT') continue;
     const axe = axeDePropriete(propriete.nom);
     if (axe && !axes[axe]) axes[axe] = propriete;
   }
   Object.freeze(axes);
-  axesMemorises.set(releve.proprietes, { longueur: releve.proprietes.length, axes });
+  axesMemorises.set(proprietes, { longueur: proprietes.length, axes });
   return axes;
 }
 

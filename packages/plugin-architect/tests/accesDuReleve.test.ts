@@ -14,8 +14,8 @@ import { fabriquerLeMonde } from './outils/mondeFabrique';
 
 const globale = globalThis as { figma?: unknown };
 
-async function capturer(): Promise<CaptureArchitect> {
-  const monde = fabriquerLeMonde();
+async function capturer(options: Parameters<typeof fabriquerLeMonde>[0] = {}): Promise<CaptureArchitect> {
+  const monde = fabriquerLeMonde(options);
   // Une peinture mixte est une manquée, et une entrée qui en porte est à relire : le texte du monde reçoit des peintures lisibles.
   const texte = monde.texte as unknown as Record<string, unknown> & { getStyledTextSegments: (champs: string[]) => Record<string, unknown>[] };
   Object.defineProperty(texte, 'fills', { value: [], configurable: true, enumerable: true });
@@ -41,6 +41,15 @@ test('la validation du relevé relit chaque couple nœud et champ et chaque appe
   for (const champ of ['boundVariables', 'fills', 'strokes', 'absoluteBoundingBox', 'opacity', 'visible', 'strokeWeight', 'resolvedVariableModes', 'overrides', 'getStyledTextSegments', 'getVariableByIdAsync', 'getVariableCollectionByIdAsync', 'getMainComponentAsync', 'getNodeByIdAsync', 'getStyleByIdAsync']) {
     assert.ok((bilan.champs[champ] ?? 0) > 0, `le monde fait lire ${champ} au relevé`);
   }
+});
+
+test('le jeu d’un wrapper de dimensions posé dans le composant est relu par la validation, comme le reste du relevé', async () => {
+  const sans = await enregistrerLesAccesDuReleve(await capturer());
+  const avec = await enregistrerLesAccesDuReleve(await capturer({ avecWrapper: true }));
+  assert.deepEqual(avec.releve, ['repriseDuReleve']);
+  assert.deepEqual(avec.horsCouverture, []);
+  assert.ok(avec.lus > sans.lus, `${avec.lus} couples lus contre ${sans.lus}`);
+  assert.ok((avec.champs.boundVariables ?? 0) >= (sans.champs.boundVariables ?? 0) + 3, 'l’instance et les deux variants du wrapper lisent leurs liaisons');
 });
 
 test('une validation qui reprend le relevé sans le relire laisse ses lectures de nœuds hors couverture, la prélecture n’en relit que les ressources', async () => {

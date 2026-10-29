@@ -3,8 +3,8 @@ import { formeReconnue, termeReconnu } from '../referentiel/reconnaissance.js';
 import { REGISTRE_ETATS, REGISTRE_TAILLES } from '../referentiel/vocabulaire.js';
 import type { CatalogueDeReference } from './catalogue.js';
 import type { Constat } from './constat.js';
-import { axesDuReleve, axesDuReleveParEtapes, constatDuComposant, tokensDuComposantParEtapes, type AxeDuComposant, type TokenDuComposant } from './nommage.js';
-import type { ReleveDeComposant, VariantLu } from './releve.js';
+import { axesDesProprietes, axesDuReleve, axesDuReleveParEtapes, constatDuComposant, tokensDuComposantParEtapes, type AxeDuComposant, type TokenDuComposant } from './nommage.js';
+import type { ReleveDeComposant, VariantLu, WrapperLu } from './releve.js';
 
 function memeValeur(axe: AxeDuComposant, gauche: string, droite: string): boolean {
   const registre = axe === 'etat' ? REGISTRE_ETATS : axe === 'taille' ? REGISTRE_TAILLES : null;
@@ -29,6 +29,28 @@ function* tokenDuVariant(
     if (segment && !(variant.valeurs[propriete.nom] && memeValeur(axe, segment, variant.valeurs[propriete.nom]))) return false;
   }
   return true;
+}
+
+/** Un axe qu'un wrapper de dimensions porte et que l'hôte ne porte pas : les tokens qui ont un segment de ce rôle se lient dans ce wrapper. */
+interface AxeDeWrapper {
+  wrapper: WrapperLu;
+  propriete: NonNullable<ReturnType<typeof axesDuReleve>[AxeDuComposant]>;
+}
+
+/** Le rôle d'un axe de wrapper que l'hôte porte aussi reste à l'hôte. */
+function* axesDesWrappers(releve: ReleveDeComposant, axes: ReturnType<typeof axesDuReleve>): Generator<void, Map<AxeDuComposant, AxeDeWrapper[]>> {
+  const portes = new Map<AxeDuComposant, AxeDeWrapper[]>();
+  for (const wrapper of releve.wrappers ?? []) {
+    yield;
+    for (const [role, propriete] of Object.entries(axesDesProprietes(wrapper.proprietes)) as [AxeDuComposant, AxeDeWrapper['propriete']][]) {
+      yield;
+      if (axes[role]) continue;
+      const groupe = portes.get(role) ?? [];
+      groupe.push({ wrapper, propriete });
+      portes.set(role, groupe);
+    }
+  }
+  return portes;
 }
 
 function* combinaisons(axes: ReleveDeComposant['proprietes']): Generator<void, Record<string, string>[]> {
@@ -117,6 +139,8 @@ export function* controlerOublisParEtapes(releve: ReleveDeComposant, catalogue: 
       }
     }
   }
+  const portes = yield* axesDesWrappers(releve, axes);
+  const liaisonsDuWrapper = new Map<WrapperLu, Set<string>>();
   for (const token of tokens) {
     yield;
     if (!token.lecture.length) continue;
@@ -127,7 +151,46 @@ export function* controlerOublisParEtapes(releve: ReleveDeComposant, catalogue: 
       sansVariant = false;
       break;
     }
-    if (!sansVariant && liees.has(token.variable.cle)) continue;
+    // Les rôles que l'hôte n'a pas, un wrapper les porte : le token ne vaut que si un variant du wrapper a ce segment.
+    const wrappersDuToken = new Set<WrapperLu>();
+    const rolesVus = new Set<string>();
+    for (const [rang, segment] of token.lecture.entries()) {
+      yield;
+      const porteurs = portes.get(segment.role as AxeDuComposant);
+      if (!porteurs || rolesVus.has(segment.role)) continue;
+      rolesVus.add(segment.role);
+      let porte = false;
+      for (const { wrapper, propriete } of porteurs) {
+        yield;
+        wrappersDuToken.add(wrapper);
+        for (const variant of wrapper.variants) {
+          yield;
+          const valeur = variant.valeurs[propriete.nom];
+          if (!valeur || !memeValeur(segment.role as AxeDuComposant, token.segments[rang], valeur)) continue;
+          porte = true;
+          break;
+        }
+      }
+      if (!porte) sansVariant = true;
+    }
+    let liee = liees.has(token.variable.cle);
+    for (const wrapper of wrappersDuToken) {
+      if (liee) break;
+      let liaisons = liaisonsDuWrapper.get(wrapper);
+      if (!liaisons) {
+        liaisons = new Set();
+        for (const variant of wrapper.variants) {
+          yield;
+          for (const liaison of variant.liaisons) {
+            yield;
+            liaisons.add(liaison.variable.cle);
+          }
+        }
+        liaisonsDuWrapper.set(wrapper, liaisons);
+      }
+      liee = liaisons.has(token.variable.cle);
+    }
+    if (!sansVariant && liee) continue;
     constats.push(constatDuComposant('C32', 'tokens', 'verifier', token.variable.cle, {
       token: token.variable.nom, motif: sansVariant ? 'sans-variant' : 'inutilise',
     }));

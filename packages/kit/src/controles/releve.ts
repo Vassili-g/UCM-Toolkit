@@ -58,11 +58,26 @@ export interface VariantLu {
   modesEffectifs: Record<string, string>;
 }
 
+/**
+ * Un jeu de variants de dimensions que le composant instancie : ses axes et les liaisons de ses variants, sans le
+ * reste des layers. Le wrapper fait partie du composant : les tokens de ses tailles se lient dans ses variants, pas dans
+ * ceux de l'hôte.
+ */
+export interface WrapperLu {
+  id: string;
+  cle: string;
+  nom: string;
+  proprietes: ReleveDeComposant['proprietes'];
+  variants: { id: string; nom: string; valeurs: Record<string, string>; liaisons: LiaisonLue[] }[];
+}
+
 export interface ReleveDeComposant {
   version: 1;
   jeu: { cle: string; id: string; nom: string };
   proprietes: { nom: string; type: 'VARIANT' | 'BOOLEAN' | 'TEXT' | 'INSTANCE_SWAP'; valeurs?: string[]; defaut: string | boolean }[];
   variants: VariantLu[];
+  /** Absent d'un relevé qui ne lit pas les wrappers : il reste lisible, sans leurs liaisons. */
+  wrappers?: WrapperLu[];
   lecture: {
     layersLus: number;
     layersNonLus: number | 'inconnu';

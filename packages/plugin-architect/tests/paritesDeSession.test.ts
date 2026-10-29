@@ -849,6 +849,28 @@ for (const { nom, muter } of SANS_EVENEMENT) {
   });
 }
 
+test('une liaison changée dans un variant de wrapper que l’hôte n’instancie pas, sans événement, rend le relevé différent ; affichage égal à Actualiser', async () => {
+  const fichier = fichierDeDepart();
+  const liaison = (cle: string) => ({ champ: 'itemSpacing', porteur: 'w-large', variable: { id: `id-${cle}`, cle, nom: `alert/size/large/${cle}`, collection: 'components', distante: false } });
+  fichier.wrappers = [{
+    id: 'jeu-wrapper', cle: 'cle-wrapper', nom: '.sizeWrapperAlert',
+    proprietes: [{ nom: 'Size', type: 'VARIANT', valeurs: ['Medium', 'Large'], defaut: 'Medium' }],
+    variants: [
+      { id: 'w-medium', nom: 'Size=Medium', valeurs: { Size: 'Medium' }, liaisons: [] },
+      { id: 'w-large', nom: 'Size=Large', valeurs: { Size: 'Large' }, liaisons: [liaison('gap')] },
+    ],
+  }];
+  const appels = { moteur: 0 };
+  const premiere = await demandeDuReleve(fichier, appels, 'analyser');
+  const identique = await demandeDuReleve(fichier, appels, 'analyser');
+  assert.deepEqual(identique.releve, ['repriseDuReleve'], 'le relevé d’un wrapper inchangé est repris');
+  fichier.wrappers[0].variants[1].liaisons = [liaison('padding')];
+  const analysee = await demandeDuReleve(fichier, appels, 'analyser');
+  assert.deepEqual(analysee.releve, ['nonRepriseDuReleve:different']);
+  assert.notEqual(analysee.entree?.sorties.releve, premiere.entree?.sorties.releve);
+  assert.equal(analysee.affiche, (await demandeDuReleve(fichier, appels, 'actualiser')).affiche);
+});
+
 test('un champ de nœud changé avec son nodechange invalide l’entrée : le relevé n’est pas validé, il se relit par le chemin complet', async () => {
   const fichier = fichierDeDepart();
   const appels = { moteur: 0 };

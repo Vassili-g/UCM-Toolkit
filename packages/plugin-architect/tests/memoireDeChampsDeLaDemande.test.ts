@@ -26,8 +26,8 @@ const globale = globalThis as { figma?: unknown };
 const CHAMPS_SUIVIS = ['name', 'fills', 'strokes', 'boundVariables', 'visible', 'children', 'parent', 'strokeWeight', 'componentPropertyReferences', 'textStyleId', 'type'] as const;
 
 /** Le monde fabriqué dont chaque lecture d'un champ suivi sur un calque se compte, par calque et champ. */
-function monterLeMondeCompte() {
-  const monde = fabriquerLeMonde();
+function monterLeMondeCompte(options: Parameters<typeof fabriquerLeMonde>[0] = {}) {
+  const monde = fabriquerLeMonde(options);
   const lectures = new Map<string, number>();
   const suivre = (calque: NoeudFabrique): void => {
     for (const champ of CHAMPS_SUIVIS) {
@@ -54,6 +54,7 @@ function monterLeMondeCompte() {
     for (const enfant of calque.children ?? []) parcourir(enfant);
   };
   parcourir(monde.jeu);
+  if (monde.jeuDeWrapper) parcourir(monde.jeuDeWrapper);
   return { monde, lectures };
 }
 
@@ -69,8 +70,8 @@ const LECTEURS_SANS_MEMOIRE_DE_CHAMPS: Lecteurs = (() => {
 })();
 
 /** Une analyse sur le monde compté ; `demandes` en enchaîne plusieurs (la première complète, les suivantes par Actualiser). */
-async function analyser(lecteurs: Lecteurs, demandes = 1) {
-  const { monde, lectures } = monterLeMondeCompte();
+async function analyser(lecteurs: Lecteurs, demandes = 1, options: Parameters<typeof fabriquerLeMonde>[0] = {}) {
+  const { monde, lectures } = monterLeMondeCompte(options);
   const precedent = globale.figma;
   globale.figma = monde.figma;
   const envoyes: PluginMessage[] = [];
@@ -101,6 +102,15 @@ test('une demande lit les champs d’un calque une fois pour le relevé, les dé
   for (const cle of Object.keys(apres.parDemande[0])) assert.ok(apres.parDemande[0][cle] <= (avant.parDemande[0][cle] ?? 0), `${cle} ne se lit jamais plus qu’avant`);
   assert.equal(apres.sortie, avant.sortie);
   assert.ok(JSON.parse(apres.sortie).constats.length > 0);
+});
+
+test('le jeu d’un wrapper de dimensions se lit une fois pour le relevé et le moteur, et la sortie reste celle d’avant', async () => {
+  const avant = await analyser(LECTEURS_SANS_MEMOIRE_DE_CHAMPS, 1, { avecWrapper: true });
+  const apres = await analyser(LECTEURS_DE_FIGMA, 1, { avecWrapper: true });
+  for (const cle of ['wrapper-Small.boundVariables', 'wrapper-Large.boundVariables', 'enveloppe.boundVariables']) assert.equal(apres.parDemande[0][cle], 1, `${cle} est lu une fois pour toute la demande`);
+  assert.equal(avant.parDemande[0]['wrapper-Large.boundVariables'], 2, 'sans la mémoire, le relevé et le moteur lisent chacun le variant du wrapper');
+  for (const cle of Object.keys(apres.parDemande[0])) assert.ok(apres.parDemande[0][cle] <= (avant.parDemande[0][cle] ?? 0), `${cle} ne se lit jamais plus qu’avant`);
+  assert.equal(apres.sortie, avant.sortie);
 });
 
 test('la demande suivante relit tout : la mémoire de champs meurt avec sa demande', async () => {

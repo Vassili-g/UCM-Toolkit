@@ -68,6 +68,8 @@ export const GABARITS: Readonly<Record<NomDeFamille, Gabarit>> = {
     'releve.jeu.nom', 'releve.lecture.variantsNonLus', 'releve.lecture.layersNonLus', ...PROPRIETES,
     ...sous('releve.variants.*', 'id', 'nom', 'valeurs'),
     `${LIAISONS_DU_LAYER}.variable.cle`,
+    ...sous('releve.wrappers.*.proprietes.*', 'nom', 'type', 'valeurs'),
+    'releve.wrappers.*.variants.*.valeurs', 'releve.wrappers.*.variants.*.liaisons.*.variable.cle',
     ...COLLECTIONS, 'catalogue.collections.*.etat', ...sous('catalogue.variables.*', 'cle', 'nom', 'collection'),
   ],
   'controle-accessibilite': [

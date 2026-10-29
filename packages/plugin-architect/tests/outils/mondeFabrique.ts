@@ -2,7 +2,8 @@
  * Un document Figma fabriqué pour la capture : un jeu `Button` de trois variants, une instance dont le maître est distant,
  * un texte à plages et à valeur mixte, une lecture qui lève, une variable de library qu'un import rend, les règles d'usage
  * sur la page. Les nœuds sont des objets ordinaires avec des accesseurs : le monde ne passe ni par la capture ni par son
- * chargeur, et sert d'original à l'aller-retour.
+ * chargeur, et sert d'original à l'aller-retour. Avec `avecWrapper`, le variant `Repos` pose une instance d'un wrapper de
+ * dimensions dont le jeu, hors de `Button`, lie ses espacements dans deux variants.
  */
 import { CLE_ARCHITECTURE_DU_FICHIER, ESPACE_ARCHITECT, texteDeLArchitectureDuFichier } from '@ucm-kit/core/referentiel';
 
@@ -44,7 +45,7 @@ function segmentsDuTexte(champs: string[]): Champs[] {
   return valeurs.map((valeur) => Object.fromEntries(['start', 'end', ...champs].map((champ) => [champ, valeur[champ]])));
 }
 
-export function fabriquerLeMonde() {
+export function fabriquerLeMonde({ avecWrapper = false }: { avecWrapper?: boolean } = {}) {
   let libraryImportee = false;
 
   const vecteur = noeud('vecteur', 'VECTOR', { absoluteBoundingBox: boite(0, 0, 12, 12), fills: [{ type: 'SOLID', color: noir }] });
@@ -75,7 +76,21 @@ export function fabriquerLeMonde() {
     getMainComponentAsync: async () => maitre,
   }, [interne]);
   const masque = noeud('masque', 'FRAME', { visible: false, absoluteBoundingBox: boite(0, 0, 4, 4) }, []);
-  const repos = variant('repos', 'Repos', {}, [texte, instance, masque]);
+  const tailleDeWrapper = (taille: string) => noeud(`wrapper-${taille}`, 'COMPONENT', {
+    name: `Size=${taille}`, key: `cle-wrapper-${taille}`, remote: false, variantProperties: { Size: taille }, visible: true, absoluteBoundingBox: boite(0, 0, 20, 20),
+    boundVariables: { itemSpacing: alias('espace') },
+  }, []);
+  const petit = tailleDeWrapper('Small');
+  const jeuDeWrapper = noeud('jeu-wrapper', 'COMPONENT_SET', {
+    name: '.sizeWrapperButton', key: 'cle-jeu-wrapper', remote: false, defaultVariant: petit,
+    componentPropertyDefinitions: { Size: { type: 'VARIANT', defaultValue: 'Small', variantOptions: ['Small', 'Large'] } },
+  }, [petit, tailleDeWrapper('Large')]);
+  const enveloppe = noeud('enveloppe', 'INSTANCE', {
+    name: '.sizeWrapperButton', absoluteBoundingBox: boite(0, 0, 20, 20), visible: true,
+    boundVariables: { itemSpacing: alias('espace') }, overrides: [], componentProperties: {}, componentPropertyReferences: null,
+    getMainComponentAsync: async () => petit,
+  }, []);
+  const repos = variant('repos', 'Repos', {}, [texte, instance, masque, ...(avecWrapper ? [enveloppe] : [])]);
   const survol = variant('survol', 'Survol', { layoutMode: 'NONE' }, [
     noeud('texte-survol', 'TEXT', { absoluteBoundingBox: boite(0, 0, 10, 10), characters: 'Aide', fontSize: 12, textStyleId: '', fills: [], getStyledTextSegments: (champs: string[]) => segmentsDuTexte(champs).slice(0, 1) }),
     noeud('cadre', 'FRAME', { absoluteBoundingBox: boite(0, 0, 10, 10) }, []),
@@ -93,7 +108,7 @@ export function fabriquerLeMonde() {
     noeud('nom-wrap', 'FRAME', {}, [noeud('nom', 'TEXT', { name: 'component-name', characters: 'Button' })]),
   ]);
   const autre = noeud('autre-texte', 'TEXT', { name: 'Titre', characters: 'Page' });
-  const page = noeud('page', 'PAGE', { name: 'Composants', selection: [jeu], loadAsync: async () => {}, on() {}, off() {} }, [jeu, jeuDIcone, regles, autre]);
+  const page = noeud('page', 'PAGE', { name: 'Composants', selection: [jeu], loadAsync: async () => {}, on() {}, off() {} }, [jeu, jeuDIcone, regles, autre, ...(avecWrapper ? [jeuDeWrapper] : [])]);
   const racine = noeud('0:0', 'DOCUMENT', { name: 'Fichier fabriqué', documentColorProfile: 'SRGB' }, [page]);
   page.parent = racine;
   const horsArbre = noeud('hors-arbre', 'FRAME', {}, []);
@@ -108,7 +123,7 @@ export function fabriquerLeMonde() {
 
   const style = { id: 'S:titre', name: 'Titre/M', type: 'TEXT', boundVariables: { fontSize: alias('taille') }, fontName: { family: 'Inter', style: 'Regular' }, textCase: 'ORIGINAL', textDecoration: 'NONE', paragraphSpacing: 0, paragraphIndent: 0 };
 
-  const tous = new Map<string, NoeudFabrique>([jeuDIcone, regles, autre, page, horsArbre, jeu, ...descendants(jeu), ...descendants(jeuDIcone), ...descendants(regles)].map((n) => [n.id, n]));
+  const tous = new Map<string, NoeudFabrique>([jeuDIcone, regles, autre, page, horsArbre, jeu, ...descendants(jeu), ...descendants(jeuDIcone), ...descendants(regles), ...(avecWrapper ? [jeuDeWrapper, ...descendants(jeuDeWrapper)] : [])].map((n) => [n.id, n]));
   const figma = {
     mixed: MIXTE,
     fileKey: 'cle-de-fichier',
@@ -140,5 +155,5 @@ export function fabriquerLeMonde() {
       },
     },
   };
-  return { figma, jeu, repos, texte, instance, page };
+  return { figma, jeu, repos, texte, instance, page, jeuDeWrapper: avecWrapper ? jeuDeWrapper : null };
 }
