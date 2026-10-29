@@ -233,11 +233,12 @@
 
   <h3>Le même composant en Light et en Dark</h3>
   <ul class="faits">
-    <li>Quatre éléments sont conçus sur la page : un bouton texte au repos, le même survolé, un bouton outlined au focus et un lien. Ils prennent <code>page/foreground</code>, <code>surface/hover</code> pour le survol, <code>page/border</code> et <code>ring</code>.</li>
-    <li>Les deux premières lignes montrent la table d'aujourd'hui. En Dark, le survol échoue déjà sur la page : le texte 800 sur le survol 400.</li>
-    <li>Les deux dernières montrent la piste « fonds discrets en Dark » : le fond teinté passe au 100, le survol au 200, l'appui au 300. Les textes ne changent pas : 800 pour la page, 950 pour l'alerte.</li>
-    <li>Chaque pastille juge une couleur contre le fond qui est juste derrière : la page, le fond de l'alerte ou le survol.</li>
-    <li>Choisis Poppy ou Irene pour voir les deux rampes qui échouent encore au survol : leur 800 Dark est leur référence, plus foncée que la courbe.</li>
+    <li>Les éléments sont conçus sur la page : un bouton texte au repos, survolé et appuyé, un bouton outlined au focus et un lien.</li>
+    <li>Les deux premières lignes montrent la table d'aujourd'hui. En Dark, le survol du bouton texte échoue déjà sur la page : texte 800 sur le 400.</li>
+    <li>Les deux dernières montrent la piste. Le bouton texte survole sur <code>surface/subtle</code> et s'appuie sur <code>surface/default</code>. En Dark, le 800 est éclairci par teinte, de 0,009 au plus, et l'anneau monte au 800.</li>
+    <li>Les fonds teintés et les textes de l'alerte ne changent pas.</li>
+    <li>Chaque pastille juge le texte contre le fond qui est juste derrière. L'appui est jugé à 3:1.</li>
+    <li>Choisis Poppy ou Irene en Vivid : leur 800 Dark est leur référence, il n'est pas corrigé, et Palettes proposerait « Ajuster la référence ».</li>
   </ul>
   <div class="grille" id="contexteModes" style="grid-template-columns:repeat(auto-fill,minmax(min(100%,420px),1fr))"></div>
 
@@ -432,7 +433,7 @@
   <div class="defile"><table class="mesures">
     <tr><th>Question</th><th>Fait</th><th>Recommandation</th></tr>
     <tr><td>4. L'appui de <code>surface</code> : hors des garanties, ou jugé à 3:1</td><td>Le texte 700 passe 3:1 sur le 300 pour les 360 teintes, à 3,70 au minimum. Le Dark passe à 5,77.</td><td>Le juger à 3:1 : la garantie reste vérifiable et ne peut pas échouer.</td></tr>
-    <tr><td>6. Un composant de la page posé dans un fond teinté, en Dark</td><td>Le texte et l'anneau de la page échouent sur le fond teinté 300 en Dark. Voir le README, décision 6.</td><td>Fonds teintés Dark plus discrets : 100, 200, 300. Reprend la décision 5. Voir la section 6.</td></tr>
+    <tr><td>6. Un composant de la page posé dans un fond teinté, en Dark</td><td>Le texte et l'anneau de la page échouent sur le fond teinté 300 en Dark. Voir le README, décision 6.</td><td>800 Dark corrigé par teinte, survol du bouton texte sur <code>surface/subtle</code>, <code>ring</code> au 800 en Dark. Voir la section 6.</td></tr>
   </table></div>
   <p class="note">Les thèmes inversés en Light ne sont pas mesurés. Cette mesure ne demande pas de décision.</p>
 </main>
@@ -815,33 +816,44 @@ function rendrePalettes700() {
 
 // Un composant de la page, puis le même dans une alerte teintée, puis sa variante « sur fond teinté ». Crans de la configuration du mainteneur.
 const CRANS_DU_CONTEXTE = {
-  light: { page: () => etat.page, surface: 100, survol: 200, pageTexte: 700, pageContour: 700, anneau: 600, surfaceTexte: 700 },
-  dark: { page: () => '#121212', surface: 300, survol: 400, pageTexte: 800, pageContour: 800, anneau: 700, surfaceTexte: 950 },
+  light: { page: () => etat.page, surface: 100, survol: 200, appui: 300, pageTexte: 700, pageContour: 700, anneau: 600, surfaceTexte: 700 },
+  dark: { page: () => '#121212', surface: 300, survol: 400, appui: 500, pageTexte: 800, pageContour: 800, anneau: 700, surfaceTexte: 950 },
 };
-// La piste : en Dark, les fonds teintés descendent au 100, 200 et 300, plus près de la page. Les textes ne changent pas.
-const FONDS_DISCRETS_EN_DARK = { surface: 100, survol: 200 };
+// La piste : le bouton texte survole sur surface/subtle et s'appuie sur surface/default ; en Dark, le 800 est corrigé par teinte et l'anneau monte au 800.
+const PISTE_6 = { light: { survol: 50, appui: 100 }, dark: { survol: 200, appui: 300, anneau: 800, corrige: true } };
+
+/** Le 800 Dark éclairci par pas de 0,001 jusqu'à 4,5 sur le fond teinté, sauf quand il est la référence de la palette. */
+function texteCorrige(texte, fond, p) {
+  if (texte.toUpperCase() === p.reference.toUpperCase()) return texte;
+  const o = oklch(texte), part = o.C / Math.max(plafond(o.L, o.H), 1e-4);
+  let L = o.L, h = texte;
+  while (contraste(h, fond) < 4.5 && L < 0.99) { L += 0.001; h = versHexa(L, Math.min(1, part) * plafond(L, o.H), o.H); }
+  return h;
+}
+
 function rendreContexteModes() {
   const cas = [
     { titre: "Aujourd'hui, sur la page", dansAlerte: false },
     { titre: "Aujourd'hui, dans une alerte teintée", dansAlerte: true },
-    { titre: 'Fonds discrets en Dark, sur la page', dansAlerte: false, discrets: true },
-    { titre: 'Fonds discrets en Dark, dans une alerte teintée', dansAlerte: true, discrets: true },
+    { titre: 'Piste, sur la page', dansAlerte: false, piste: true },
+    { titre: 'Piste, dans une alerte teintée', dansAlerte: true, piste: true },
   ];
   const pastille = (nom, avant, fond, seuil) => { const r = contraste(avant, fond); return `<span style="display:inline-flex;gap:4px;align-items:center;margin-right:8px">${nom} <span class="badge ${r >= seuil ? 'ok' : r >= 3 ? 'moyen' : 'ko'}">${virgule(r)}:1</span></span>`; };
   $('contexteModes').innerHTML = cas.flatMap((k) => ['light', 'dark'].map((mode) => {
-    const t = { ...CRANS_DU_CONTEXTE[mode], ...(k.discrets && mode === 'dark' ? FONDS_DISCRETS_EN_DARK : {}) }, c = (n) => cran(n, palette(), mode);
-    const page = t.page(), fond = k.dansAlerte ? c(t.surface) : page, survol = c(t.survol);
-    const texte = c(t.pageTexte), contour = c(t.pageContour), anneau = c(t.anneau);
-    const contenu = `<div style="display:flex;flex-wrap:wrap;gap:10px;align-items:center">
-        <span style="color:${texte};font-weight:600;padding:6px 8px">Modifier</span>
-        <span style="color:${texte};font-weight:600;padding:6px 8px;background:${survol};border-radius:6px">Modifier, survolé</span>
+    const t = { ...CRANS_DU_CONTEXTE[mode], ...(k.piste ? PISTE_6[mode] : {}) }, p = palette(), c = (n) => cran(n, p, mode);
+    const page = t.page(), fond = k.dansAlerte ? c(t.surface) : page, survol = c(t.survol), appui = c(t.appui);
+    const texte = t.corrige ? texteCorrige(c(t.pageTexte), c(CRANS_DU_CONTEXTE.dark.surface), p) : c(t.pageTexte);
+    const contour = t.corrige ? texte : c(t.pageContour), anneau = c(t.anneau);
+    const bouton = (fondDuBouton, libelle) => `<span style="color:${texte};font-weight:600;padding:6px 8px;border-radius:6px;${fondDuBouton ? 'background:' + fondDuBouton : ''}">${libelle}</span>`;
+    const contenu = `<div style="display:flex;flex-wrap:wrap;gap:8px;align-items:center">${bouton(null, 'Modifier')}${bouton(survol, 'survolé')}${bouton(appui, 'appuyé')}
         <span style="color:${texte};font-weight:600;padding:6px 12px;border:1px solid ${contour};border-radius:6px;outline:2px solid ${anneau};outline-offset:2px">Annuler</span>
         <span style="color:${texte};text-decoration:underline">En savoir plus</span></div>`;
     const sombre = mode === 'dark';
+    const noms = k.piste ? `survol <code>surface/subtle</code> (${t.survol}), appui <code>surface/default</code> (${t.appui})` : `survol <code>surface/hover</code> (${t.survol}), appui <code>surface/pressed</code> (${t.appui})`;
     return `<div class="page" style="background:${page}"><h4 style="${sombre ? 'color:#eee' : ''}">${k.titre} · ${sombre ? 'Dark' : 'Light'}</h4>
       ${k.dansAlerte ? `<div class="alerte" style="background:${fond};display:block"><strong style="color:${c(t.surfaceTexte)}">Votre dossier est incomplet.</strong><div style="margin-top:10px">${contenu}</div></div>` : `<div style="padding:12px 0">${contenu}</div>`}
-      <p class="note" style="${sombre ? 'color:#bbb' : ''}">${pastille('Texte', texte, fond, 4.5)}${pastille('Survol', texte, survol, 4.5)}${pastille('Contour', contour, fond, 3)}${pastille('Anneau', anneau, fond, 3)}</p>
-      <p class="note" style="${sombre ? 'color:#999' : ''}">Fond teinté ${t.surface}, survol ${t.survol}. Texte de la page ${t.pageTexte}, texte de l'alerte ${t.surfaceTexte}.</p></div>`;
+      <p class="note" style="${sombre ? 'color:#bbb' : ''}">${pastille('Texte', texte, fond, 4.5)}${pastille('Survol', texte, survol, 4.5)}${pastille('Appui', texte, appui, 3)}${pastille('Anneau', anneau, fond, 3)}</p>
+      <p class="note" style="${sombre ? 'color:#999' : ''}">Bouton texte : ${noms}. Texte de la page ${t.pageTexte}${t.corrige ? ' corrigé par teinte' : ''}, anneau ${t.anneau}.</p></div>`;
   })).join('');
 }
 

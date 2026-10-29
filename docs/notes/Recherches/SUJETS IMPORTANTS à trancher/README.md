@@ -561,7 +561,7 @@ Les thèmes inversés en Light ne sont pas mesurés.
 | Question | Fait | Recommandation |
 |---|---|---|
 | 4. L'appui de `surface` : hors des garanties, ou jugé à 3:1 | Le texte 700 passe 3:1 sur le 300 pour les 360 teintes, à 3,70 au minimum. Le Dark passe à 5,77 | Le juger à 3:1 : la garantie reste vérifiable et ne peut pas échouer |
-| 6. Un composant de la page posé dans un fond teinté, en Dark | Voir ci-dessous | Fonds teintés Dark plus discrets : 100, 200, 300. Reprend la décision 5 |
+| 6. Un composant de la page posé dans un fond teinté, en Dark | Voir ci-dessous | 800 Dark corrigé par teinte, survol du bouton texte sur `surface/subtle`, `ring` au 800 en Dark |
 
 ### La décision 6
 
@@ -653,7 +653,55 @@ Coûts :
   même cran que `surface/default`.
 - La décision 5, qui garde la table Dark d'aujourd'hui, serait à reprendre.
 
-La section 6 de la maquette montre les deux tables, avec le bouton texte survolé.
+**Position du mainteneur.** Les fonds discrets le sont beaucoup trop. Piste
+demandée : éclaircir le texte de `page` en Dark sur les seules teintes qui
+échouent, comme le 700 en Light.
+
+| Fond sous le texte de page 800, Dark | Correction du 800 nécessaire |
+|---|---|
+| Fond teinté au repos, 300 | 0,009 au plus, sauf Poppy Vivid (0,066) et Irene Vivid (0,056) |
+| Survol du bouton texte, 400 | 0,074 en médiane, sur presque toutes les rampes |
+| Appui du bouton texte, 500, à 3:1 | 0,020 en médiane |
+
+La correction par teinte règle le repos. Le survol demande la moitié du chemin
+vers le 900 : ce n'est plus une correction par teinte. Le blocage vient du fond
+de survol du bouton texte.
+
+**Piste : correction par teinte et survol du bouton texte sur `surface/subtle`.**
+
+1. En Dark, le moteur éclaircit le 800 des seules rampes qui manquent 4,5 sur le
+   fond teinté 300, de 0,009 au plus.
+2. Le bouton texte survole sur `surface/subtle` et s'appuie sur
+   `surface/default`. Ses tokens de composant gardent leurs noms d'état :
+   `button/text/background-hover` vise `surface/subtle`. Les variables de
+   `theme` gardent leurs noms de niveau.
+3. `ring` monte au 800 en Dark.
+
+| Mesure, rampes hors références | Light | Dark |
+|---|---|---|
+| Texte de page sur le fond teinté | 4,95 | 4,50 |
+| Sur le survol, `surface/subtle` | 5,33, sur le 50 | 5,28, sur le 200 |
+| Sur l'appui, `surface/default`, à 3:1 | 4,95, sur le 100 | 4,50, sur le 300 |
+| Sur la page | 5,69 | 5,63 |
+
+Les fonds teintés, les textes de l'alerte, les noms et la table de `surface` ne
+changent pas. Le survol du bouton texte devient plus léger en Light, du 200 au
+50. C'est le survol de la table décalée, que le mainteneur trouvait subtil et
+beau (sujet 8).
+
+Limites :
+
+- Dans une alerte teintée, l'appui du bouton texte a la couleur du fond de
+  l'alerte : il ne se voit pas. Le survol se voit : plus clair que l'alerte en
+  Light, plus sombre en Dark.
+- Six rampes Vivid ont leur référence au 800 Dark : Sky, Poppy, Orange, Grass,
+  Emerald et Irene. Le moteur ne les corrige pas. Poppy Vivid (3,39) et Irene
+  Vivid (3,59) manquent 4,5 au repos. Comme à la décision 1, Palettes
+  proposerait « Ajuster la référence » : leur couleur de marque s'éclaircirait
+  de 0,056 à 0,066.
+
+La section 6 de la maquette montre la piste, avec le bouton texte au repos,
+survolé et appuyé.
 
 
 Les thèmes inversés en Light ne sont pas mesurés. La mesure ne demande pas de
