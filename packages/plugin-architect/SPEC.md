@@ -93,7 +93,11 @@ chevron replie l'arbre sans changer la table.
 
 Une cible que ni la lecture ni l'import ne rendent reste « introuvable » ;
 elle reste « refusée », avec son message, quand la lecture a levé. Ni l'une
-ni l'autre ne prouve une suppression. Les listes de `figma.teamLibrary` ne
+ni l'autre ne prouve une suppression. Une variable que `getVariableByIdAsync`
+rend encore parce qu'un alias ou un calque la cite, et qui n'est ni distante ni
+parmi les variables locales, est « supprimée » : la lecture la range dans les
+cibles manquées, jamais dans les variables, et le mode Tokens signale l'alias
+qui la vise (C63, `alias-supprime`). Les listes de `figma.teamLibrary` ne
 donnent ni valeur ni chaîne : le relevé d'un fichier qui a des variables
 locales ne s'en sert pas.
 

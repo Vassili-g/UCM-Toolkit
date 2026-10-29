@@ -21,7 +21,7 @@ import { lireLesLibraries, type PortDeBibliotheque } from 'ucm-plugin-socle/src/
 import { catalogueDuFichier, chargerLesValeurs, lireLeCatalogueDeLibrary } from '../catalogue';
 import { lireLaLibraryRangee } from '../ecriture/configuration';
 import { creerLesVariables, type OptionsDeCreation, type ResultatDeCreation } from '../ecriture/variables';
-import { lireLesVariables } from '../lecture';
+import { idsDesLocales, lireLesVariables } from '../lecture';
 import type { ApercusDePreparation, CibleApercue, DemandeDePreparation, MessageDePreparation, PreparationVue } from '../messages/preparation';
 import { hexaDeCouleur } from '../modele';
 import {
@@ -89,7 +89,7 @@ const ACCES_DE_FIGMA: Acces = {
     // Sans library, le fichier ouvert porte lui-même theme, layout et components.
     const port = portDeLecture(figma);
     const locales = await port.getLocalVariablesAsync();
-    const lues = await lireLesVariables(port, locales.map((variable) => variable.id), { annulee: () => false });
+    const lues = await lireLesVariables(port, locales.map((variable) => variable.id), { annulee: () => false }, idsDesLocales(locales));
     if (!lues) return null;
     return catalogueDuFichier({ collections: [...lues.collections.values()], variables: [...lues.variables.values()] }, lireLaDeclaration(figma) === 'ucm' ? 'ucm' : 'libre');
   },

@@ -70,7 +70,7 @@ import { AnalyseAnnulee, creerContexteCooperatif, type ContexteCooperatif, type 
 import { avecLesFondsDElevation, catalogueDuFichier, chargerLesValeurs, clesDesFondsDElevation, fondDeLaPageFigma, lireLeCatalogueDeLibrary, type OptionsDeCatalogue } from '../catalogue';
 import type { NoeudLu } from '../consommateurs';
 import { constatsDuMoteur } from '../constatsDuMoteur';
-import { enregistrerLesImports, lireLesVariables } from '../lecture';
+import { enregistrerLesImports, idsDesLocales, lireLesVariables } from '../lecture';
 import { sujetDe, type PortDuComposant } from '../lectureDuComposant';
 import { lireLaLibraryRangee } from '../ecriture/configuration';
 import { lireLesIgnores, separerLesIgnores } from '../ecriture/ignores';
@@ -1061,7 +1061,7 @@ async function catalogueSansFonds(releve: ReleveDeComposant, jeton: JetonDAnnula
   }
   const port = portDeLecture(figma);
   const locales = await (inventaires ? inventaires.variablesLocales(() => port.getLocalVariablesAsync()) : port.getLocalVariablesAsync());
-  const lues = await lireLesVariables(port, locales.map((variable) => variable.id), { annulee: () => jeton.leve }, {
+  const lues = await lireLesVariables(port, locales.map((variable) => variable.id), { annulee: () => jeton.leve }, idsDesLocales(locales), {
     sansImport: options.sansImport,
     importEvite: () => options.importsEvites?.(1),
   });

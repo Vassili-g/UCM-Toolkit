@@ -27,7 +27,7 @@ export const TEXTES_STRUCTURE = {
   groupeCouches: 'Couches',
   groupeScopes: 'Scopes',
   // Phrases des constats
-  aliasSupprime: 'Cette variable vise une variable supprimée.',
+  aliasSupprime: 'Cette variable vise une variable introuvable.',
   libraryInactive: 'Sa cible est dans une library non activée.',
   sansValeurEnMode: (mode: string): string => `Cette variable n’a pas de valeur en ${mode}.`,
   valeurVide: 'Cette variable est vide. Ses voisines ont une valeur.',
@@ -41,7 +41,7 @@ export const TEXTES_STRUCTURE = {
   lierALaCouleur: 'Liez-la à une couleur de brands dans la fenêtre Variables',
   // Faits d'un constat ouvert
   enMode: (mode: string): string => `En ${mode}`,
-  viseUneVariableSupprimee: 'vise une variable supprimée',
+  viseUneVariableSupprimee: 'vise une variable introuvable',
   sesVoisines: 'Ses voisines',
   vise: ' vise ',
   et: ' et ',

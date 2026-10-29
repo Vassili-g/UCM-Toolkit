@@ -12,7 +12,7 @@ import { controlerLeCatalogue, type CatalogueDeReference, type Correction } from
 
 import { catalogueDuFichier } from '../catalogue';
 import { ecrireLaStructure, type ResultatDEcritureDeStructure } from '../ecriture/structure';
-import { lireLesVariables } from '../lecture';
+import { idsDesLocales, lireLesVariables } from '../lecture';
 import type { DemandeDeStructure } from '../messages/structure';
 import { perimerApresUneEcriture, prendreLaPlaceDUneEcriture } from './analyse';
 import { lireLaDeclaration } from './commun';
@@ -33,7 +33,7 @@ const ACCES_DE_FIGMA: Acces = {
     if (lireLaDeclaration(figma) !== 'ucm') return null;
     const port = portDeLecture(figma);
     const locales = await port.getLocalVariablesAsync();
-    const lues = await lireLesVariables(port, locales.map((variable) => variable.id), { annulee: () => false });
+    const lues = await lireLesVariables(port, locales.map((variable) => variable.id), { annulee: () => false }, idsDesLocales(locales));
     if (!lues) return null;
     return catalogueDuFichier({ collections: [...lues.collections.values()], variables: [...lues.variables.values()] }, 'ucm');
   },

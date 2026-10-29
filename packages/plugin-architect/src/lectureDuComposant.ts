@@ -326,7 +326,7 @@ export async function lireLeComposant(port: PortDuComposant, depart: NoeudLu, su
 
   // Les variables de départ sont gardées telles que Figma les rend : `resolveForConsumer` se lit sur elles.
   const brutes = new Map<string, VariableFigma>();
-  const lues = await lireLesVariables(port.variables, departs, suivi, { auDepart: (id, variable) => brutes.set(id, variable) });
+  const lues = await lireLesVariables(port.variables, departs, suivi, async () => new Set((await port.variables.getLocalVariablesAsync()).map((variable) => variable.id)), { auDepart: (id, variable) => brutes.set(id, variable) });
   if (!lues || suivi.annulee()) return { statut: 'annule' };
   const table = separerLesModes(lues.collections, lues.variables);
 

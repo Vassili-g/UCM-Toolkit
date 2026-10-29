@@ -88,12 +88,13 @@ export interface VariableRelevee {
 /**
  * Une cible demandée que la lecture n'a pas obtenue. `introuvable` dit que
  * Figma a rendu `null` ; `refusee`, que la lecture a levé. Aucune des deux ne
- * prouve une suppression.
+ * prouve une suppression. `supprimee` dit que Figma a rendu une variable non
+ * distante que le fichier ne porte plus : un alias ou un calque la cite encore.
  */
 export interface LectureManquee {
   readonly id: string;
   readonly genre: 'variable' | 'collection';
-  readonly issue: 'introuvable' | 'refusee';
+  readonly issue: 'introuvable' | 'refusee' | 'supprimee';
   readonly message: string;
   /** La variable dont une valeur pointait cette cible, quand elle est connue. */
   readonly depuis?: string;

@@ -20,6 +20,9 @@
  *
  * Une cible que ni la lecture ni l'import ne rendent reste « introuvable »,
  * ou « refusée » quand la lecture a levé : elle n'est pas déclarée supprimée.
+ * Seule une variable que Figma rend encore, parce qu'un alias ou un calque la
+ * cite, est « supprimée » : elle n'est ni distante ni parmi les variables
+ * locales du fichier (`estSupprimee`).
  */
 import { executerAuPlus, REQUETES_EN_VOL } from 'ucm-plugin-socle/src/composant/analyse/limiteur';
 import { attendrePourLaMesure } from 'ucm-plugin-socle/src/composant/contract/mesure';
@@ -63,6 +66,16 @@ export interface VariableFigma {
   readonly valuesByMode: Readonly<Record<string, unknown>>;
   /** La valeur que Figma rend sur un calque ; la vue composant la compare à sa chaîne. */
   resolveForConsumer?(consommateur: never): { value: unknown };
+}
+
+/** Une variable est supprimée quand elle n'est pas distante et que son identifiant n'est pas parmi les variables locales. */
+export function estSupprimee(variable: { readonly id: string; readonly remote?: boolean }, idsLocaux: ReadonlySet<string>): boolean {
+  return !variable.remote && !idsLocaux.has(variable.id);
+}
+
+/** Les identifiants des variables locales que l'appelant vient de lire, au format que `lireLesVariables` demande. */
+export function idsDesLocales(locales: readonly { readonly id: string }[]): () => Promise<ReadonlySet<string>> {
+  return async () => new Set(locales.map((variable) => variable.id));
 }
 
 /** Ce que la lecture lit d'une collection Figma, étendue ou non. */
@@ -305,11 +318,23 @@ export interface OptionsDeLecture {
  * une variable liée à un calque ne s'importe jamais. Une cible d'alias que
  * cette lecture ne rend pas s'importe par la clé de son identifiant.
  *
+ * `idsLocaux` rend les identifiants des variables locales du fichier. Il est appelé au plus une fois par lecture, et seulement
+ * quand une variable que `getVariableByIdAsync` rend n'est pas distante : une telle variable absente des locales est supprimée.
+ * Elle entre dans `manquees` avec l'issue `supprimee`, jamais dans `variables`.
+ *
  * Rend `null` quand la lecture est annulée.
  */
-export async function lireLesVariables(port: PortDeLecture, departs: readonly string[], suivi: SuiviDeLecture, options: OptionsDeLecture = {}): Promise<VariablesLues | null> {
+export async function lireLesVariables(
+  port: PortDeLecture,
+  departs: readonly string[],
+  suivi: SuiviDeLecture,
+  idsLocaux: () => Promise<ReadonlySet<string>>,
+  options: OptionsDeLecture = {},
+): Promise<VariablesLues | null> {
   const lues: VariablesLues = options.lues ?? { collections: new Map(), variables: new Map(), manquees: new Map(), ecartees: new Set() };
   const { collections, variables, manquees, ecartees } = lues;
+  let locaux: Promise<ReadonlySet<string>> | null = null;
+  const locauxDeLaLecture = (): Promise<ReadonlySet<string>> => (locaux ??= idsLocaux());
 
   // Les identifiants à lire : cibles d'alias absentes du lot, et membres de collection quand ils sont demandés.
   const demandes = new Set<string>();
@@ -360,6 +385,10 @@ export async function lireLesVariables(port: PortDeLecture, departs: readonly st
       variable = await port.getVariableByIdAsync(id);
     } catch (erreur) {
       refus = messageDErreur(erreur);
+    }
+    if (variable && !variable.remote && estSupprimee(variable, await locauxDeLaLecture())) {
+      manquees.set(id, { id, genre: 'variable', issue: 'supprimee', message: '', ...(depuis ? { depuis } : {}) });
+      return;
     }
     if (importable) {
       if (variable === null) {
@@ -468,14 +497,15 @@ export async function lireLeReleve(port: PortDeLecture, fichier: string, revisio
   if (suivi.annulee()) return { statut: 'annule' };
 
   suivi.progression?.('variables', 0, 1);
-  for (const variable of await port.getLocalVariablesAsync()) {
+  const locales = await port.getLocalVariablesAsync();
+  for (const variable of locales) {
     const convertie = convertirVariable(variable);
     if (convertie) variables.set(convertie.id, convertie);
     else ecartees.add(variable.id);
   }
   if (suivi.annulee()) return { statut: 'annule' };
 
-  if (!(await lireLesVariables(port, [], suivi, { lues, membres: true }))) return { statut: 'annule' };
+  if (!(await lireLesVariables(port, [], suivi, idsDesLocales(locales), { lues, membres: true }))) return { statut: 'annule' };
   await lireLesBasesDesExtensions(port, lues);
   if (suivi.annulee()) return { statut: 'annule' };
 

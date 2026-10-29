@@ -200,7 +200,7 @@ test('la lecture de la vue Composant lit ces champs dans cet ordre et en tire ce
     'repos:strokes[0]=#FF0000', 'repos:cornerRadius=4', 'repos:strokeWeight=1', 'repos:itemSpacing=6', 'repos:paddingRight=8', 'repos:paddingTop=4', 'repos:paddingBottom=4', 'texte:fills[0]=#000000', 'sous-titre:fontSize=12',
   ]);
   assert.deepEqual([lecture.calquesNonLus, lecture.erreurs], [0, []]);
-  assert.deepEqual([...appels.entries()], [['taille', 1], ['fond', 1], ['collection:c', 2]]);
+  assert.deepEqual([...appels.entries()], [['taille', 1], ['fond', 1], ['local:variables', 1], ['collection:c', 2]]);
 });
 
 test('les fonctions de consommateurs lisent ces champs sur un texte, un composant et un style', () => {
