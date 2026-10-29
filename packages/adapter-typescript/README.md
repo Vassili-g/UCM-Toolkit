@@ -7,7 +7,7 @@ contracts. It lives outside
 depends on the TypeScript compiler, a 23 MB dependency.
 
 ```sh
-npm install --save-dev @ucm-kit/adapter-typescript@0.1.121 @ucm-kit/cli@0.1.128
+npm install --save-dev @ucm-kit/adapter-typescript@0.1.122 @ucm-kit/cli@0.1.129
 npx ucm-typescript          # generates the types from the contracts
 npx --no-install ucm check  # checks the contracts, parity included
 ```
