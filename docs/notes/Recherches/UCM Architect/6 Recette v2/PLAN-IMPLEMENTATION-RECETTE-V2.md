@@ -205,8 +205,8 @@ Analyse 9. Agent : `implementeur-exigeant` (trois lecteurs d'une règle). Nature
 
 Dépend de K5 (V2). Agent : `implementeur-exigeant`. Nature : déplacement à sortie identique.
 
-- [~ Claude 2] **S2.1** Dans `packages/plugin-socle/src/composant/contract/`, la reconnaissance du wrapper de dimensions et des dépendances relève les faits de `FaitsDImbrique` et appelle `sorteDeLImbrique`. Les contrats des fixtures restent identiques à l'octet.
-- [~ Claude 2] **S2.2** Test dans le socle : aucune reconnaissance d'imbriqué hors de `sorteDeLImbrique`. La même loi côté Architect arrive avec B3.
+- [x] (f20b4c5d) **S2.1** Dans `packages/plugin-socle/src/composant/contract/`, la reconnaissance du wrapper de dimensions et des dépendances relève les faits de `FaitsDImbrique` et appelle `sorteDeLImbrique`. Les contrats des fixtures restent identiques à l'octet.
+- [x] (f20b4c5d) **S2.2** Test dans le socle : aucune reconnaissance d'imbriqué hors de `sorteDeLImbrique`. La même loi côté Architect arrive avec B3.
 
 ### Piste B · sandbox d'Architect (Claude 2)
 
@@ -222,23 +222,23 @@ Analyse 7.6. Agent : `implementeur`. Nature : correction d'un défaut.
 Analyse 4. Dépend de K8 (V2). Agent : `implementeur`. Nature : code nouveau.
 
 - [x] (bc472e9f) **B4.1** ~~`src/sandbox/analyse.ts` : ajouter les C81 de `candidatsDeModele` aux constats de l'analyse~~. K8 émet C81 dans `controlerCouchesParEtapes`, que l'analyse appelle déjà. Rien à changer dans le sandbox.
-- [ ] **B4.2** `servir-de-modele` (`src/sandbox/corrections.ts:83`) accepte le variant des faits de C81. Le message `modele-propose` (`src/messages/corrections.ts`) reçoit un champ `retires`, les identifiants des constats qu'il remplace : le C81 d'origine. Test dans `corrections.test.ts`.
+- [x] (e16ffeb4) **B4.2** `servir-de-modele` (`src/sandbox/corrections.ts:83`) accepte le variant des faits de C81. Le message `modele-propose` (`src/messages/corrections.ts`) reçoit un champ `retires`, les identifiants des constats qu'il remplace : le C81 d'origine. Test dans `corrections.test.ts`.
 
 #### B2 · Les fonds au catalogue
 
 Analyse 7.5, « D'où vient la valeur ». Dépend de K4 (V3). Agent : `implementeur`. Nature : code nouveau.
 
-- [ ] **B2.1** `src/catalogue.ts` : trouver `elevation/page` et `elevation/raised` par leur nom dans la collection de rôle `theme`, importer leurs valeurs par mode en suivant les alias, remplir `fondsDElevation`. Deux imports par analyse au plus.
-- [ ] **B2.2** Toujours dans `src/catalogue.ts` : remplir `fondDeLaPageFigma` par `figma.currentPage.backgrounds`. Tests dans `catalogue.test.ts`.
+- [x] (c8acfc30) **B2.1** `src/catalogue.ts` : trouver `elevation/page` et `elevation/raised` par leur nom dans la collection de rôle `theme`, importer leurs valeurs par mode en suivant les alias, remplir `fondsDElevation`. Deux imports par analyse au plus.
+- [x] (c8acfc30) **B2.2** Toujours dans `src/catalogue.ts` : remplir `fondDeLaPageFigma` par `figma.currentPage.backgrounds`. Tests dans `catalogue.test.ts`.
 
 #### B3 · La provenance des liaisons d'un imbriqué
 
 Analyse 7.3. Dépend de K5, K6 (V3) et S2. Agent : `implementeur-exigeant`. Nature : correction d'un défaut.
 
-- [ ] **B3.1** `src/releveDuComposant.ts` : pour un layer d'instance imbriquée, relever `FaitsDImbrique` et la `sorte` par `sorteDeLImbrique`.
-- [ ] **B3.2** Marquer chaque liaison `provenance: 'composant-principal'` ou `'instance'`, en comparant à la liaison du layer homologue dans le composant principal, lu une fois par composant principal et par demande. Test dans `releveDuComposant.test.ts`.
-- [ ] **B3.3** Loi dans `plugin-architect/tests/` : aucune reconnaissance d'imbriqué hors de `sorteDeLImbrique`.
-- [ ] **B3.4** Mesurer le coût sur la capture de Button (`scripts/rejouer-la-capture.ts`). Au-delà de 5 % du relevé, le dire avant de commiter.
+- [x] (7aeecb61) **B3.1** `src/releveDuComposant.ts` : pour un layer d'instance imbriquée, relever `FaitsDImbrique` et la `sorte` par `sorteDeLImbrique`.
+- [x] (7aeecb61) **B3.2** Marquer chaque liaison `provenance: 'composant-principal'` ou `'instance'`, en comparant à la liaison du layer homologue dans le composant principal, lu une fois par composant principal et par demande. Test dans `releveDuComposant.test.ts`.
+- [x] (7aeecb61) **B3.3** Loi dans `plugin-architect/tests/` : aucune reconnaissance d'imbriqué hors de `sorteDeLImbrique`.
+- [x] (7aeecb61) **B3.4** Mesurer le coût sur la capture de Button (`scripts/rejouer-la-capture.ts`). Au-delà de 5 % du relevé, le dire avant de commiter.
 
 ### Piste U · interface d'Architect (Claude 1, `implementeur-exigeant`)
 
@@ -290,9 +290,9 @@ Analyse 4 et 6. Nature : écran nouveau.
 
 Analyse 7.4. Dépend de K7, K9 et K4 (V3). Nature : écran nouveau.
 
-- [~ Claude 1] **U5.1** `src/ui/panneau/elements.ts` : un constat `info` sort des éléments, des nombres, de « Tout », du sommaire et de la pastille de Constats.
-- [~ Claude 1] **U5.2** `src/ui/panneau/rendu.ts` : section Informations en dernier, signe `information`, repliée à l'arrivée ; une ligne par information, avec sa ligne de lieu et Sélectionner quand elle vise des layers.
-- [~ Claude 1] **U5.3** Textes des lignes, dans `src/ui/textes/` :
+- [x] (98bf022c) **U5.1** `src/ui/panneau/elements.ts` : un constat `info` sort des éléments, des nombres, de « Tout », du sommaire et de la pastille de Constats.
+- [x] (98bf022c) **U5.2** `src/ui/panneau/rendu.ts` : section Informations en dernier, signe `information`, repliée à l'arrivée ; une ligne par information, avec sa ligne de lieu et Sélectionner quand elle vise des layers.
+- [x] (98bf022c) **U5.3** Textes des lignes, dans `src/ui/textes/` :
   - C53 : « Contraste non mesuré sur `Disabled`, que WCAG exempte. »
   - C49 et C50 avec limite : « Contraste non mesuré : » suivi de la cause, avec les phrases de cause existantes (`CAUSES_DE_LIMITE`).
   - C49 borne : « {n} paires de couleurs non mesurées sur {total}. »
@@ -306,17 +306,17 @@ Analyse 7.4. Dépend de K7, K9 et K4 (V3). Nature : écran nouveau.
 
 Analyse 4. Dépend de B4 et U4. Nature : écran nouveau.
 
-- [ ] **U6.1** Carte C81 dans la section de sa sorte : « 4 layers ont une couleur en dur dans 215 variants. » ; ligne de lieu « Un variant les lie déjà : » et les puces du modèle ; action « Proposer les liaisons ».
-- [ ] **U6.2** Le chevron déplie la liste des layers et de leur token dans le modèle (cadre 4f).
-- [ ] **U6.3** Le clic envoie `servir-de-modele` avec le variant des faits. À la réponse, `src/ui/composant/analyse.ts` retire les constats de `retires` et ajoute les corrections dans la même section, ouverte. Test DOM.
+- [x] (1edcdc8c, 81b2edfa) **U6.1** Carte C81 dans la section de sa sorte : « 4 layers ont une couleur en dur dans 215 variants. » ; ligne de lieu « Un variant les lie déjà : » et les puces du modèle ; action « Proposer les liaisons ».
+- [x] (1edcdc8c, 81b2edfa) **U6.2** Le chevron déplie la liste des layers et de leur token dans le modèle (cadre 4f).
+- [x] (1edcdc8c, 81b2edfa) **U6.3** Le clic envoie `servir-de-modele` avec le variant des faits. À la réponse, `src/ui/composant/analyse.ts` retire les constats de `retires` et ajoute les corrections dans la même section, ouverte. Test DOM.
 
 #### U7 · Les textes des constats
 
 Analyse 7.5, 7.6. Dépend de K4 (V3) et B1. Agent : `implementeur`, puis `executant` pour U7.3.
 
-- [ ] **U7.1** Contraste (`src/ui/textes/ignores.ts`) : deux phrases, fond garanti et fond non garanti, d'après l'analyse 7.5 ; elles nomment le fond, le mode, le contraste, le seuil et la garantie.
-- [ ] **U7.2** C45 : « La règle `label` ne correspond à aucune propriété de Button. » ; action « Donnez-lui le nom exact de la propriété, ou supprimez-la ».
-- [ ] **U7.3** « property » devient « propriété » dans toutes les phrases de `src/ui/textes/`, trouvées par `grep -n "property" src/ui/textes/` (aujourd'hui `ignores.ts:141`, `:143`, `:144`, `:160`) ; les noms de types de Figma, comme `Instance swap`, restent. `tests/loiDuVocabulaire.test.ts` admet « propriété ».
+- [x] (6bec0305) **U7.1** Contraste (`src/ui/textes/ignores.ts`) : deux phrases, fond garanti et fond non garanti, d'après l'analyse 7.5 ; elles nomment le fond, le mode, le contraste, le seuil et la garantie.
+- [x] (6bec0305) **U7.2** C45 : « La règle `label` ne correspond à aucune propriété de Button. » ; action « Donnez-lui le nom exact de la propriété, ou supprimez-la ».
+- [x] (6bec0305) **U7.3** « property » devient « propriété » dans toutes les phrases de `src/ui/textes/`, trouvées par `grep -n "property" src/ui/textes/` (aujourd'hui `ignores.ts:141`, `:143`, `:144`, `:160`) ; les noms de types de Figma, comme `Instance swap`, restent. `tests/loiDuVocabulaire.test.ts` admet « propriété ».
 
 ### Piste P · Palettes (Claude 2)
 
@@ -342,15 +342,15 @@ Analyse 10, « Ce que le changement touche ». Dépend de P1 (V4). Agent : `impl
 #### V · Versions
 
 - [x] (c8cb3ae5) **V1** Kit 0.13.31, CLI 0.1.128, adaptateur 0.1.121 : K1 à K9, hors P1. V2 et V3 n'ont plus d'objet ; V4 suit P1.
-- [x] **V2** ~~Vague 2~~, comprise dans V1.
+- [x] (f3bde749) **V2** Kit 0.13.32, CLI 0.1.129, adaptateur 0.1.122 : export de `cleDuTheme` (B2), `faits.lignes` de C81 (U6).
 - [x] **V3** ~~Vague 3~~, comprise dans V1.
 - [ ] **V4** Vague 4.
 
 #### O1 · Documents
 
-- [ ] **O1.1** CONTRIBUTING.md : un variant s'écrit en puces de valeur, la paire exacte au survol ; « propriété » dans la table des termes ; la section Informations, seule exception à la règle « aucun constat sans geste » ; la ligne d'actions d'une carte de constat.
-- [ ] **O1.2** CONCEPT.md, section 2 : la pièce interne, en une phrase. FORMAT.md, « Composition et dépendances » : renvoi à `sorteDeLImbrique`. `packages/kit/invariants/referentiel.md` : la règle.
-- [ ] **O1.3** Architect : `SPEC.md`, `README.md`, `CARTE.md`, `invariants/explorateur.md` (C81), d'après `npm run agents:diff`.
+- [x] (07411e74) **O1.1** CONTRIBUTING.md : un variant s'écrit en puces de valeur, la paire exacte au survol ; « propriété » dans la table des termes ; la section Informations, seule exception à la règle « aucun constat sans geste » ; la ligne d'actions d'une carte de constat.
+- [x] (af6aae4d) **O1.2** CONCEPT.md, section 2 : la pièce interne, en une phrase. FORMAT.md, « Composition et dépendances » : renvoi à `sorteDeLImbrique`. `packages/kit/invariants/referentiel.md` : la règle.
+- [x] (93d6f373 et les commits des sous-lots U) **O1.3** Architect : `SPEC.md`, `README.md`, `CARTE.md`, `invariants/explorateur.md` (C81), d'après `npm run agents:diff`.
 - [ ] **O1.4** Spécification de Palettes, une fois O0.4 levé : section 11.2, `[VER-21]`, `[ENT-10]`, le nombre de contrôles (ligne 1409 aujourd'hui) ; `[MOT-37]` place `couleurDeLaCarte` dans `jugement.ts`, pas dans `promesses.ts`.
 - [x] (1471812d) **O1.5** README du dossier `UCM Architect` : ligne de ce plan.
 
