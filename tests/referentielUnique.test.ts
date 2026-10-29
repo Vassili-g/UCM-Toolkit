@@ -117,22 +117,22 @@ const EXCEPTIONS: { fichier: string; extrait: string; raison: string }[] = [
   },
   {
     fichier: 'packages/plugin-palettes/src/i18n/en.ts',
-    extrait: '{ page: "on the page", carte: "on the card", default:',
+    extrait: '{ page: "on the page", carte: "on the card", subtle:',
     raison: "Les textes d'un écran de Palettes, indexés par état et par fond : une table d'affichage, pas la liste des états.",
   },
   {
     fichier: 'packages/plugin-palettes/src/i18n/en.ts',
-    extrait: "'page' | 'carte' | 'default' | 'hover' | 'pressed'",
-    raison: "Le type du fond d'un écran de Palettes, qui mêle deux fonds et trois états : un choix de l'écran, pas la liste des états.",
+    extrait: "'page' | 'carte' | 'subtle' | 'default' | 'hover' | 'pressed'",
+    raison: "Le type du fond d'un écran de Palettes, qui mêle trois fonds et trois états : un choix de l'écran, pas la liste des états.",
   },
   {
     fichier: 'packages/plugin-palettes/src/i18n/fr.ts',
-    extrait: "'page' | 'carte' | 'default' | 'hover' | 'pressed'",
-    raison: "Le type du fond d'un écran de Palettes, qui mêle deux fonds et trois états : un choix de l'écran, pas la liste des états.",
+    extrait: "'page' | 'carte' | 'subtle' | 'default' | 'hover' | 'pressed'",
+    raison: "Le type du fond d'un écran de Palettes, qui mêle trois fonds et trois états : un choix de l'écran, pas la liste des états.",
   },
   {
     fichier: 'packages/plugin-palettes/src/i18n/fr.ts',
-    extrait: "{ page: 'sur la page', carte: 'sur la carte', default:",
+    extrait: "{ page: 'sur la page', carte: 'sur la carte', subtle:",
     raison: "Les textes d'un écran de Palettes, indexés par état et par fond : une table d'affichage, pas la liste des états.",
   },
   {
