@@ -561,7 +561,7 @@ Les thèmes inversés en Light ne sont pas mesurés.
 | Question | Fait | Recommandation |
 |---|---|---|
 | 4. L'appui de `surface` : hors des garanties, ou jugé à 3:1 | Le texte 700 passe 3:1 sur le 300 pour les 360 teintes, à 3,70 au minimum. Le Dark passe à 5,77 | Le juger à 3:1 : la garantie reste vérifiable et ne peut pas échouer |
-| 6. Un composant de la page posé dans un fond teinté, en Dark | Voir ci-dessous | Éclaircir `page` en Dark : texte et contour au 900, anneau au 800 |
+| 6. Un composant de la page posé dans un fond teinté, en Dark | Voir ci-dessous | Un seul cran de texte en Dark : `page` et `surface` au 900, anneau au 800 |
 
 ### La décision 6
 
@@ -582,25 +582,35 @@ L'anneau n'est qu'un cas de ce problème : le texte échoue aussi.
 variante ne change pas avec le mode : en Light, elle serait identique à la
 version de la page, et rien ne pousserait le designer à la choisir.
 
-**Piste : éclaircir `page` en Dark.** En Dark seulement, `page/foreground` et
-`page/border` passent du 800 au 900, et `ring` du 700 au 800. Les noms, le Light
-et la table de `surface` ne changent pas. Un composant conçu sur la page reste
+**Position du mainteneur.** Tous les textes d'un même mode prennent le même
+cran, comme en Light : le titre de l'alerte, ses boutons et ses liens ont la
+même couleur.
+
+**Piste : un seul cran de texte en Dark, le 900.** En Dark, `page/foreground`,
+`page/border`, `surface/foreground` et `surface/border` prennent tous le 900.
+`ring` passe du 700 au 800. La table des fonds de `surface` reste 300, 400 et
+500. Les noms et le Light ne changent pas. Un composant conçu sur la page reste
 alors lisible dans un fond teinté, sans variante ni geste du designer.
 
-| Couleur, crans proposés en Dark | Sur la page | Sur la carte | Sur le fond teinté 300 | Sur le survol 400 | Sur l'appui 500 |
-|---|---|---|---|---|---|
-| Texte et contour de `page`, 900 | 9,29 | 8,45 | 6,44 | 4,94 | 3,99 |
-| Anneau, 800 | 5,01 | 4,56 | 3,39 | | |
+| Couleur, cran proposé en Dark | Page | Carte | `surface/subtle` 200 | Fond teinté 300 | Survol 400 | Appui 500 |
+|---|---|---|---|---|---|---|
+| Texte et contour, 900 | 9,29 | 8,45 | 7,82 | 6,44 | 4,94 | 3,99 |
+| Anneau, 800 | 5,01 | 4,56 | 4,03 | 3,39 | | |
 
 Minimums sur les palettes du mainteneur, en Dark inversé. Le texte passe 4,5
-au repos et au survol du fond teinté, et 3:1 à l'appui. Le texte de `page`
-vaut alors 900 et celui de `surface` 950 : les deux se rapprochent en Dark,
-comme ils sont égaux en Light.
+partout sauf à l'appui, où il passe 3:1. Si l'appui restait jugé à 4,5, Sun
+Vivid y échouerait.
 
-Coût : le texte coloré sur la page Dark devient plus clair et un peu moins
-saturé, de 0,70 à 0,85 de clarté. La section 6 de la maquette le montre.
-Restent à mesurer : le Dark normal, avec un texte des boutons noir, et les 360
-teintes.
+| Mode | Cran unique du texte et du contour |
+|---|---|
+| Light normal | 700 |
+| Dark inversé, configuration du mainteneur | 900 |
+| Light inversé, Dark normal | Non mesurés |
+
+Coût : en Dark, le texte coloré de la page devient plus clair et un peu moins
+saturé, de 0,70 à 0,85 de clarté. Le texte de `surface` devient un peu plus
+foncé, de 0,93 à 0,85. La section 6 de la maquette le montre. Restent à
+mesurer : le Dark normal, le Light inversé et les 360 teintes.
 
 | Autre réponse | Mécanisme | Coût |
 |---|---|---|
