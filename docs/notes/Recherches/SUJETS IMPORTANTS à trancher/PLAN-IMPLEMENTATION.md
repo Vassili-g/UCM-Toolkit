@@ -263,21 +263,29 @@ Fichiers : `packages/plugin-palettes/src/i18n/fr.ts`, `en.ts`,
 `src/planche/modele.ts`, `src/presentation.ts`, `src/ui/garanties.ts`,
 `src/ui/modeleDesGaranties.ts`, `src/ui/nuancier.ts`, tests du paquet.
 
-- [ ] Libellés et textes des garanties 8 et 9 (fr et en), au format des
+- [x] Libellés et textes des garanties 8 et 9 (fr et en), au format des
       garanties voisines : « Texte des fonds teintés à l'appui » / « Tinted fill
       text, pressed » ; « Texte de la page sur un fond teinté » / « Page text on
       a tinted fill ».
-- [ ] Nombre de contrôles affiché : suivre le nouveau total de promesses.
-- [ ] Les deux nouvelles variables apparaissent dans l'aperçu, la planche et le
+- [x] Nombre de contrôles affiché : suivre le nouveau total de promesses.
+- [x] Les deux nouvelles variables apparaissent dans l'aperçu, la planche et le
       rapport. Le nuancier range `surface/subtle` avec les fonds teintés et
       `surface/divider` avec les contours.
-- [ ] Les garanties 3 et 9 qui manquent sur une référence mènent à « Ajuster
+- [x] Les garanties 3 et 9 qui manquent sur une référence mènent à « Ajuster
       la référence ». Ajouter les tests.
-- [ ] Avant de commiter, chercher dans `src/ui` les noms et valeurs des
+- [x] Avant de commiter, chercher dans `src/ui` les noms et valeurs des
       fixtures : aucune donnée de maquette ne doit y entrer.
 
 Fin : `npm run test:paquet -- palettes` passe ; `npm run build:plugin -- palettes`
 passe.
+
+Fait : `0cd805b3`. `surface/divider` partage l'accolade des fonds teintés : il vise
+toujours le cran de `surface/pressed`. La carte des garanties passe à six
+colonnes. Le bouton contour de l'interface de test garde `page/border`. Ouvert :
+une référence posée sur le cran du texte en Dark ne se répare pas par
+« Ajuster la référence » (voir la section 11 de la maquette, ancrage déplacé).
+`tests/interface/interface.test.mjs`, d'une autre session, attend encore cinq
+colonnes et sept lignes.
 
 ## A1. UCM Architect
 
@@ -306,19 +314,21 @@ Fait : `7c9678d6`. Le code d'Architect lisait déjà la table du kit : seuls les
 
 Agent : `implementeur`.
 
-- [ ] `npm run agents:diff`, puis relire chaque document listé.
-- [ ] Spécification de Palettes
+- [x] `npm run agents:diff`, puis relire chaque document listé.
+- [x] Spécification de Palettes
       (`docs/notes/Recherches/Plugin Palettes/1 Recherche initiale/RECHERCHE-PLUGIN-PALETTES.md`) :
       section 11.2, garanties 3, 4, 8 et 9 ; clarté commune et correction des
       textes par teinte, en regard de `[MOT-38]`.
-- [ ] `packages/couleur/invariants/moteur-de-couleur.md` et les invariants du
+- [x] `packages/couleur/invariants/moteur-de-couleur.md` et les invariants du
       kit qui citent la table, les garanties ou les portées.
-- [ ] `docs/format/FORMAT.md` et `docs/format/CHANGELOG-FORMAT.md` si la liste
+- [x] `docs/format/FORMAT.md` et `docs/format/CHANGELOG-FORMAT.md` si la liste
       des variables de `theme` ou leurs portées font partie du format publié.
-- [ ] Charger `rediger-sans-tics-ia` avant d'écrire. Lancer
+- [x] Charger `rediger-sans-tics-ia` avant d'écrire. Lancer
       `node scripts/controle-style.mjs <fichiers>`.
 
 Fin : `controle-style` conforme ; aucun document ne décrit l'ancienne table.
+
+Fait : `5d1567fa`, et la part de Palettes dans le commit de P1.
 
 ## V1. Vérification
 
