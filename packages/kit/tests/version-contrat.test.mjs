@@ -9,6 +9,8 @@
  */
 import test from "node:test";
 import assert from "node:assert/strict";
+import { readFileSync } from "node:fs";
+import { CONTRACT_VERSION } from "@ucm-kit/core/format";
 import {
   VERSION_CONTRAT_MAXIMALE,
   VERSION_CONTRAT_MINIMALE,
@@ -29,11 +31,18 @@ test("la fenêtre porte la version courante et la précédente", () => {
   // précédente réelle, et se referme d'un cran à chaque montée. La laisser
   // vieillir ferait rentrer en silence un schéma que plus personne n'adapte.
   assert.equal(VERSION_CONTRAT_MINIMALE, "13.0");
-  assert.equal(VERSION_CONTRAT_MAXIMALE, "14.0");
-  assert.equal(verdictDeVersion("14.0"), "ok");
+  assert.equal(VERSION_CONTRAT_MAXIMALE, CONTRACT_VERSION);
+  assert.equal(verdictDeVersion(CONTRACT_VERSION), "ok");
   assert.equal(verdictDeVersion("13.0"), "ok");
   // Un cran plus bas que la fenêtre reste un réexport à demander.
   assert.equal(verdictDeVersion("12.0"), "ancien");
+});
+
+test("la borne haute n'est pas une seconde écriture de la version du contrat", () => {
+  // Deux littéraux égaux aujourd'hui divergeraient à la première montée oubliée.
+  const source = readFileSync(new URL("../src/lecteurs/version-contrat.mjs", import.meta.url), "utf8");
+  assert.doesNotMatch(source, /VERSION_CONTRAT_MAXIMALE\s*=\s*["'`]/);
+  assert.match(source, /VERSION_CONTRAT_MAXIMALE\s*=\s*CONTRACT_VERSION/);
 });
 
 test("une version antérieure est un contrat trop ancien", () => {
@@ -50,8 +59,9 @@ test("une version antérieure est un contrat trop ancien", () => {
 
 test("une version postérieure, même mineure, attend une adaptation", () => {
   // Aucun réexport n'y changera rien : c'est le repository qui doit rattraper.
-  assert.equal(verdictDeVersion("14.1"), "recent");
-  assert.equal(verdictDeVersion("15.0"), "recent");
+  const [majeure, mineure] = CONTRACT_VERSION.split(".").map(Number);
+  assert.equal(verdictDeVersion(`${majeure}.${mineure + 1}`), "recent");
+  assert.equal(verdictDeVersion(`${majeure + 1}.0`), "recent");
 });
 
 test("une plage ouverte reste utilisable pendant une migration", () => {

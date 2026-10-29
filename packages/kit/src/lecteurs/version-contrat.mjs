@@ -9,9 +9,16 @@
  * le repo qui doit rattraper. Le verdict distingue donc les deux.
  */
 
-/** Fenêtre explicite : le kit lit la version courante du contrat et la précédente. */
+import { CONTRACT_VERSION } from "@ucm-kit/core/format";
+
+/**
+ * Fenêtre explicite : le kit lit la version courante du contrat et la précédente.
+ * La borne haute est la version que le kit écrit, pour qu'une montée de
+ * `CONTRACT_VERSION` ne laisse jamais `ucm check` refuser les contrats du même
+ * kit. La borne basse se déclare ici et se referme d'un cran à chaque montée.
+ */
 export const VERSION_CONTRAT_MINIMALE = "13.0";
-export const VERSION_CONTRAT_MAXIMALE = "14.0";
+export const VERSION_CONTRAT_MAXIMALE = CONTRACT_VERSION;
 
 /** Parse strictement une version de schéma `majeure.mineure`. */
 function lireVersion(version) {
