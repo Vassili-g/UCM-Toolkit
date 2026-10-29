@@ -42,13 +42,15 @@ function assertMemesRampes(figee: PaletteFigee, palette: Palette): void {
 
 const RAPIDES_SANS_REFERENCE = [6, 7, 11, 17, 20, 21];
 const RAPIDES_AVEC_REFERENCE = [12, 28];
+// La palette 28 demande environ 93 s depuis la correction des textes par teinte (C2) : le mainteneur a porté son budget à 120 s le 29/10.
+const BUDGETS: Readonly<Record<number, number>> = { 28: 120_000 };
 
 for (const numero of [...RAPIDES_SANS_REFERENCE, ...RAPIDES_AVEC_REFERENCE]) {
   const avecReference = RAPIDES_AVEC_REFERENCE.includes(numero);
   test(`reconstruction : la palette ${numero} de la mesure se retrouve à l'hexa près${avecReference ? ', référence connue' : ''}`, async () => {
     const complete = figerLaPalette(RECETTE, tirage(numero).palette);
     const figee: PaletteFigee = avecReference ? complete : { crans: complete.crans, figees: complete.figees };
-    const resultat = await reconstruireLesReglages(RECETTE, figee, { graine: graineDeRecherche(numero) });
+    const resultat = await reconstruireLesReglages(RECETTE, figee, { graine: graineDeRecherche(numero), ...(BUDGETS[numero] ? { budgetMs: BUDGETS[numero] } : {}) });
     assert.ok(resultat, 'aucune piste');
     assert.equal(resultat.ecart, 0);
     assert.equal(resultat.differentes, 0);
