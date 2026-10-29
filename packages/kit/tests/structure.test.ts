@@ -156,3 +156,14 @@ test('le catalogue relève une couleur sans alias et se tait pour un alias', () 
   c.variables[0].valeurs = { light: { alias: 'target' } };
   assert.equal(controlerLeCatalogue(c).some(({ faits }) => faits.genre === 'couleur-sans-alias'), false);
 });
+
+test('C63 compare les scopes d’un nom du thème écrit en majuscules ou avec une autre casse', () => {
+  const c = cat([collection('theme', 'theme')], [
+    { ...variable('default', 'Success/Surface/Default', 'theme'), scopes: ['TEXT_FILL'] },
+    { ...variable('foreground', 'SUCCESS/SURFACE/FOREGROUND', 'theme'), scopes: ['FRAME_FILL'] },
+    { ...variable('inconnue', 'Success/Surface/inconnue', 'theme'), scopes: ['TEXT_FILL'] },
+  ]);
+  const resultats = controlerLaStructure(releve(), c).filter((constat) => constat.correction?.sorte === 'scope');
+  assert.deepEqual(resultats.map(({ id }) => id).sort(), ['C63:default:scopes', 'C63:foreground:scopes']);
+  assert.equal(resultats.find(({ id }) => id.startsWith('C63:default'))?.correction?.apres.nom, 'FRAME_FILL,SHAPE_FILL');
+});

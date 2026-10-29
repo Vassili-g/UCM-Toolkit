@@ -1,6 +1,7 @@
 /** Le thème se reconnaît quelle que soit l'écriture de ses noms et de ses modes. */
 import assert from 'node:assert/strict';
 import test from 'node:test';
+import { cleDuTheme } from '../src/controles/index.js';
 import {
   NIVEAUX_D_ELEVATION_DU_THEME, SUPPORT_DES_VARIABLES, VARIABLES_DE_PALETTE, VARIABLES_DU_NEUTRE, VARIABLES_GLOBALES, VARIABLES_DU_THEME,
   type ModeDuTheme,
@@ -80,4 +81,17 @@ test('un terme personnalisé s’applique aussi aux segments d’un nom de varia
   const index = indexerVocabulaire({ personnalises: [{ terme: ['solid'], remplace: [['plein']] }], ecartsUcm: [] }).index;
   assert.equal(variableDuThemeReconnue('Primary/Plein/default', index), 'solid/default');
   assert.equal(variableDuThemeReconnue('Primary/Plein/default'), undefined);
+});
+
+test('cleDuTheme est variableDuThemeReconnue : le thème se reconnaît sous chaque convention d’écriture', () => {
+  for (const choix of CONVENTIONS) for (const variable of VARIABLES_DU_THEME) {
+    const nom = ecritSelon(choix.convention, `primary/${variable}`);
+    assert.equal(cleDuTheme(nom), variableDuThemeReconnue(nom), `${choix.id} : ${nom}`);
+    assert.equal(cleDuTheme(nom), variable, `${choix.id} : ${nom}`);
+  }
+  assert.equal(cleDuTheme('Elevation/Raised'), 'elevation/raised');
+  assert.equal(cleDuTheme('Primary/Surface/foreground'), 'surface/foreground');
+  assert.equal(cleDuTheme('Disabled/border'), 'disabled/border');
+  assert.equal(cleDuTheme('Elevation/pages'), undefined);
+  assert.equal(cleDuTheme('Primary/Identity'), undefined);
 });

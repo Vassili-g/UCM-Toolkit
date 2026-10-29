@@ -131,6 +131,48 @@ test('C60 pose une question si l’alias mode boucle ou si la cible calculée ma
   assert.deepEqual(resultat?.question?.candidats, []);
 });
 
+test('C59 reconnaît surface/foreground quelle que soit l’écriture et propose la variable du fichier', () => {
+  const r = releve(layer('text', null, 'message', { key: 'fg-surface', name: 'Success/Surface/foreground', collection: 'themes' }));
+  const c = cat([collection('themes', 'theme')], [
+    { cle: 'fg-surface', nom: 'Success/Surface/foreground', collection: 'themes', type: 'COLOR', etat: 'presente' },
+    { cle: 'fg-page', nom: 'Success/Page/foreground', collection: 'themes', type: 'COLOR', etat: 'presente' },
+    { cle: 'fg-page-autre', nom: 'Danger/Page/foreground', collection: 'themes', type: 'COLOR', etat: 'presente' },
+  ]);
+  const resultat = controlerLeTheme(r, c).find(({ code }) => code === 'C59');
+  assert.equal(resultat?.correction?.avant, 'Success/Surface/foreground');
+  assert.deepEqual(resultat?.correction?.apres, { cle: 'fg-page', nom: 'Success/Page/foreground' });
+});
+
+test('C59 reconnaît un nom en majuscules et sa cible écrite autrement', () => {
+  const r = releve(layer('text', null, 'message', { key: 'fg-surface', name: 'SUCCESS/SURFACE/FOREGROUND', collection: 'themes' }));
+  const c = cat([collection('themes', 'theme')], [
+    { cle: 'fg-surface', nom: 'SUCCESS/SURFACE/FOREGROUND', collection: 'themes', type: 'COLOR', etat: 'presente' },
+    { cle: 'fg-page', nom: 'success/page/foreground', collection: 'themes', type: 'COLOR', etat: 'presente' },
+  ]);
+  assert.equal(controlerLeTheme(r, c).find(({ code }) => code === 'C59')?.correction?.apres.cle, 'fg-page');
+});
+
+test('C59 ne corrige jamais une variable vers elle-même : sans cible, il pose une question sans candidat', () => {
+  const r = releve(layer('text', null, 'message', { key: 'fg-surface', name: 'Success/Surface/Foreground', collection: 'themes' }));
+  const c = cat([collection('themes', 'theme')], [
+    { cle: 'fg-surface', nom: 'Success/Surface/Foreground', collection: 'themes', type: 'COLOR', etat: 'presente' },
+  ]);
+  const resultat = controlerLeTheme(r, c).find(({ code }) => code === 'C59');
+  assert.equal(resultat?.correction, undefined);
+  assert.deepEqual(resultat?.question?.candidats, []);
+});
+
+test('C60 reconnaît un nom en majuscules et écrit le mode visé comme la collection cible', () => {
+  const c = cat([collection('themes', 'theme'), collection('brands', 'brands')], [
+    { cle: 'theme-ring', nom: 'Success/Vivid/Ring', collection: 'themes', type: 'COLOR', etat: 'presente', valeurs: { light: { alias: 'brand-light' }, dark: { alias: 'brand-light' } } },
+    { cle: 'brand-light', nom: 'Success/Vivid/Light/700', collection: 'brands', type: 'COLOR', etat: 'presente', valeurs: { light: { valeur: '#000000' }, dark: { valeur: '#000000' } } },
+    { cle: 'brand-dark', nom: 'Success/Vivid/Dark/700', collection: 'brands', type: 'COLOR', etat: 'presente', valeurs: { light: { valeur: '#000000' }, dark: { valeur: '#000000' } } },
+  ]);
+  const resultat = controlerLeTheme(releve(layer('text', null, 'message')), c).find(({ code }) => code === 'C60');
+  assert.equal(resultat?.correction?.avant, 'brand-light');
+  assert.deepEqual(resultat?.correction?.apres, { cle: 'brand-dark', nom: 'Success/Vivid/Dark/700' });
+});
+
 test('C59 ne juge pas un texte posé sur un fond lié à une variable illisible', () => {
   const fond: LayerLu = {
     ...layer('fond', null, 'container'), type: 'FRAME',

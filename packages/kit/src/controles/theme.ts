@@ -1,9 +1,7 @@
 /** Contrôles des rôles peints et des alias de mode du thème UCM. */
 import { formeReconnue } from '../referentiel/reconnaissance.js';
-import {
-  TABLE_DES_DOSSIERS, VARIABLES_DU_THEME,
-  type ModeDuTheme, type SensDuTheme,
-} from '../emplois/dossiers.js';
+import { TABLE_DES_DOSSIERS, type ModeDuTheme, type SensDuTheme, type VariableDuTheme } from '../emplois/dossiers.js';
+import { variableDuThemeReconnue } from '../referentiel/theme.js';
 import { collectionParCle, variableParCle, type CatalogueDeReference, type VariableDuCatalogue } from './catalogue.js';
 import type { Constat, Correction, Question } from './constat.js';
 import type { LayerLu, LiaisonLue, ReleveDeComposant, VariantLu } from './releve.js';
@@ -44,13 +42,13 @@ export function* controlerLeThemeParEtapes(releve: ReleveDeComposant, catalogue:
             ...(liaison.plage ? { plageDebut: liaison.plage.debut, plageFin: liaison.plage.fin } : {}),
           },
         };
-        const cibleNom = remplacerSuffixe(variable.nom, 'surface/foreground', 'page/foreground');
+        const cibleForme = formeDuNomRemplace(variable.nom, 'surface/foreground', 'page/foreground');
         const candidats: VariableDuCatalogue[] = [];
         let parcourues = 0;
         for (const entree of catalogue.variables) {
           parcourues += 1;
           if (parcourues % 256 === 0) yield;
-          if (entree.nom === cibleNom && entree.collection === variable.collection && entree.etat === 'presente') candidats.push(entree);
+          if (entree.collection === variable.collection && entree.etat === 'presente' && formeDuNom(entree.nom) === cibleForme) candidats.push(entree);
         }
         if (candidats.length === 1) constat.correction = correctionDeLiaison(constat, layer, liaison, variable, candidats[0], 'Un texte lié à surface/foreground doit être posé sur un fond de surface visible.');
         else {
@@ -118,8 +116,8 @@ export function controlerLesModes(catalogue: CatalogueDeReference): Constat[] {
         const id = `C60:${variable.cle}:${mode.id}`;
         const constat: Constat = { id, code: 'C60', type: 'corriger', famille: 'liaisons', variants: [], layers: [], faits: { variable: variable.nom, mode: mode.nom, cible: cible.nom } };
         const cycle = aliasEnBoucle(catalogue, cible.cle, modeCible.nom);
-        const nomsCibles = cycle ? [] : nomsDeCiblesAttendues(cible, modeCible.nom, modeUcm, cleTheme, collectionCible.modes);
-        const candidats = catalogue.variables.filter((entree) => entree.collection === cible.collection && entree.etat === 'presente' && nomsCibles.includes(entree.nom));
+        const formesCibles = cycle ? [] : formesDeCiblesAttendues(cible, modeCible.nom, modeUcm, cleTheme, collectionCible.modes);
+        const candidats = catalogue.variables.filter((entree) => entree.collection === cible.collection && entree.etat === 'presente' && formesCibles.includes(formeDuNom(entree.nom)));
         if (candidats.length === 1 && !cycle && !aliasEnBoucle(catalogue, candidats[0].cle, mode.nom, variable.cle)) {
           constat.correction = {
             id, sorte: 'alias-de-mode', cible: { variable: variable.cle, mode: mode.id }, avant: valeur.alias,
@@ -134,22 +132,23 @@ export function controlerLesModes(catalogue: CatalogueDeReference): Constat[] {
   return resultats;
 }
 
-function nomsDeCiblesAttendues(cible: VariableDuCatalogue, modeActuel: string, modeVise: ModeDuTheme, cle: string, modes: readonly { id: string; nom: string }[]): string[] {
+/** Les formes reconnues des noms attendus : comme la reconnaissance du fichier, elles ne dépendent pas de la casse ni du séparateur. */
+function formesDeCiblesAttendues(cible: VariableDuCatalogue, modeActuel: string, modeVise: ModeDuTheme, cle: string, modes: readonly { id: string; nom: string }[]): string[] {
   const cranActuel = Number(cible.nom.split('/').at(-1));
   if (!Number.isFinite(cranActuel)) return [];
   const sensPossibles = (['normal', 'inverse'] as const).filter((sens) => TABLE_DES_DOSSIERS[modeUcmDepuisNom(modeActuel) ?? 'light'][sens][cle as keyof typeof TABLE_DES_DOSSIERS.light.normal] === cranActuel);
   const rangMode = cible.nom.split('/').findIndex((segment) => modes.some((mode) => formeReconnue(mode.nom) === formeReconnue(segment)));
   if (rangMode < 0) return [];
-  const noms = new Set<string>();
+  const formes = new Set<string>();
   for (const sens of sensPossibles) {
     const cran = valeurDuDossier(modeVise, sens, cle);
     if (typeof cran !== 'number') continue;
-    const segments = cible.nom.split('/');
+    const segments = cible.nom.split('/').map(formeReconnue);
     segments[rangMode] = modeVise;
     segments[segments.length - 1] = String(cran);
-    noms.add(segments.join('/'));
+    formes.add(segments.join('/'));
   }
-  return [...noms];
+  return [...formes];
 }
 
 function valeurDuDossier(mode: ModeDuTheme, sens: SensDuTheme, cle: string): number | 'texteDesBoutons' | undefined {
@@ -198,11 +197,16 @@ function* liaisonsDuLayer(layer: LayerLu): Generator<LiaisonLue | undefined> {
     yield* plage.liaisons;
   }
 }
-export function cleDuTheme(nom: string): string | undefined {
-  return [...VARIABLES_DU_THEME].sort((a, b) => b.length - a.length).find((cle) => nom === cle || nom.endsWith(`/${cle}`));
+export function cleDuTheme(nom: string): VariableDuTheme | undefined {
+  return variableDuThemeReconnue(nom);
 }
-function remplacerSuffixe(nom: string, suffixe: string, remplacement: string): string {
-  return nom.endsWith(suffixe) ? `${nom.slice(0, -suffixe.length)}${remplacement}` : nom;
+function formeDuNom(nom: string): string {
+  return nom.split('/').map(formeReconnue).join('/');
+}
+/** La forme de `nom` dont la fin `suffixe` devient `remplacement`. */
+function formeDuNomRemplace(nom: string, suffixe: string, remplacement: string): string {
+  const prefixe = nom.split('/').slice(0, -suffixe.split('/').length).map(formeReconnue);
+  return [...prefixe, remplacement].join('/');
 }
 function collection(catalogue: CatalogueDeReference, variable: VariableDuCatalogue) { return collectionParCle(catalogue, variable.collection); }
 function question(constat: Constat, candidats: readonly VariableDuCatalogue[]): Question { return { id: constat.id, candidats: candidats.map(({ cle, nom }) => ({ cle, nom })) }; }

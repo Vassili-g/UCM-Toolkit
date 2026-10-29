@@ -1,9 +1,9 @@
 /** Contrôles des scopes et des structures UCM du catalogue. */
 import { formeReconnue } from '../referentiel/reconnaissance.js';
-import { SUPPORT_DES_VARIABLES, VARIABLES_DU_THEME } from '../emplois/dossiers.js';
+import { SUPPORT_DES_VARIABLES } from '../emplois/dossiers.js';
 import { cheminDansLaCollection, collectionParCle, type CatalogueDeReference, type VariableDuCatalogue } from './catalogue.js';
 import type { Constat, Correction, Question } from './constat.js';
-import { controlerLesModes } from './theme.js';
+import { cleDuTheme, controlerLesModes } from './theme.js';
 import { segmentDAxe, tokensDuComposantParEtapes, type TokenDuComposant } from './nommage.js';
 import type { ReleveDeComposant } from './releve.js';
 
@@ -329,9 +329,6 @@ function nombre(texte: string): number | undefined {
   if (!/^\d+(?:[.,]\d+)?$/.test(texte)) return undefined;
   const resultat = Number(texte.replace(',', '.'));
   return Number.isFinite(resultat) ? resultat : undefined;
-}
-function cleDuTheme(nom: string): keyof typeof SUPPORT_DES_VARIABLES | undefined {
-  return [...VARIABLES_DU_THEME].sort((a, b) => b.length - a.length).find((cle) => nom === cle || nom.endsWith(`/${cle}`)) as keyof typeof SUPPORT_DES_VARIABLES | undefined;
 }
 function roleCollection(catalogue: CatalogueDeReference, variable: VariableDuCatalogue) { return collectionParCle(catalogue, variable.collection)?.role; }
 function memeEnsemble(gauche: readonly string[], droite: readonly string[]): boolean {

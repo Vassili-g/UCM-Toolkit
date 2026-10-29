@@ -264,3 +264,27 @@ test('fond de la page Figma : le premier fond SOLID visible, sinon absent', () =
   assert.equal(fondDeLaPageFigma({ backgrounds: [{ type: 'IMAGE' }] }), undefined);
   assert.equal(fondDeLaPageFigma(undefined), undefined);
 });
+
+test('fonds d’élévation : les noms du thème se reconnaissent quelle que soit l’écriture', async () => {
+  const lecture = await lireLeCatalogueDeLibrary({
+    teamLibrary: teamLibrary([
+      { key: 'ct', name: 'Theme', libraryName: 'Intencial', variables: [
+        { key: 'k-page', name: 'Elevation/page', resolvedType: 'COLOR' },
+        { key: 'k-raised', name: 'Elevation/Raised', resolvedType: 'COLOR' },
+        { key: 'k-pages', name: 'Elevation/pages', resolvedType: 'COLOR' },
+      ] },
+    ]),
+  }, 'Intencial');
+  if (lecture.etat !== 'lu') throw new Error('lecture attendue');
+  assert.deepEqual(clesDesFondsDElevation(lecture.catalogue), ['k-page', 'k-raised']);
+  const couleur = (c: number) => ({ valeur: { r: c, g: c, b: c } });
+  const catalogue = {
+    version: 1 as const, library: null,
+    collections: [{ cle: 'ct', nom: 'Theme', role: 'theme' as const, modes: [{ id: 'a', nom: 'Light' }], etat: 'lue' as const }],
+    variables: [
+      { cle: 'p', nom: 'Elevation/page', collection: 'ct', type: 'COLOR' as const, etat: 'presente' as const, valeurs: { a: couleur(1) } },
+      { cle: 'r', nom: 'Elevation/Raised', collection: 'ct', type: 'COLOR' as const, etat: 'presente' as const, valeurs: { a: couleur(0.5) } },
+    ],
+  };
+  assert.deepEqual(avecLesFondsDElevation(catalogue).fondsDElevation, { a: { page: { r: 1, g: 1, b: 1, a: 1 }, carte: { r: 0.5, g: 0.5, b: 0.5, a: 1 } } });
+});
