@@ -6,6 +6,8 @@
  */
 import { normalizePropKey, normalizePropValue } from './parsers';
 import type { FigmaVariantLabels } from '@ucm-kit/core/format';
+import { sorteDeLImbrique } from '@ucm-kit/core/referentiel';
+import type { FaitsDImbrique } from '@ucm-kit/core/referentiel';
 import { getAllNodes } from './exportableNodes';
 import { maitreDe } from './porteeDAnalyse';
 import { pousserSansNode } from './localisation';
@@ -362,18 +364,66 @@ function hasComponentProperties(instance: InstanceNode): boolean {
   }
 }
 
+/** Les faits d'une instance imbriquée, avec ce que leur relevé a lu en chemin. */
+export type ReleveDeFaits = {
+  faits: FaitsDImbrique;
+  /** Composant principal de l'instance ; null s'il est illisible, ou si l'instance est une dépendance. */
+  maitre: ComponentNode | null;
+  /** Component Set du maître, quand il en a un. */
+  componentSet: ComponentSetNode | null;
+};
+
+/**
+ * Relève les faits qui classent une instance imbriquée : le nom de son
+ * composant, la présence de règles et le nombre de dimensions liées. La sorte
+ * se décide ensuite par `sorteDeLImbrique`, jamais ici.
+ *
+ * Les règles se lisent dans `composed`, le relevé de `scanComposedInstances` :
+ * une instance qu'il contient a trouvé son `.componentRules`. Son sous-arbre
+ * appartient alors à son propre contrat, donc ses dimensions ne sont pas
+ * comptées et son maître n'est pas relu ; `nom` y garde le nom du calque.
+ *
+ * Les avertissements sont ceux du parcours des calques de l'instance.
+ */
+export async function releverLesFaitsDUnImbrique(
+  instance: InstanceNode,
+  warnings: string[],
+  composed: ComposedInstances,
+): Promise<ReleveDeFaits> {
+  if (composed.has(instance.id)) {
+    return {
+      faits: { nom: instance.name, reglesTrouvees: true, dimensionsLiees: 0 },
+      maitre: null,
+      componentSet: null,
+    };
+  }
+  const maitre = await maitreDe(instance);
+  const parent = maitre?.parent;
+  const componentSet = parent?.type === 'COMPONENT_SET' ? parent : null;
+  return {
+    faits: {
+      nom: componentSet?.name ?? maitre?.name ?? instance.name,
+      reglesTrouvees: false,
+      dimensionsLiees: countLayoutBindings(instance, warnings, composed),
+    },
+    maitre,
+    componentSet,
+  };
+}
+
 /**
  * Note une instance candidate au rôle de wrapper de dimensions.
- * Le critère principal est le nombre de tokens de layout qu'elle porte
- * (c'est ce qui définit un wrapper), le nom n'est qu'un léger bonus.
- * Score nul si elle ne porte aucune dimension liée.
+ * Est candidate une instance que `sorteDeLImbrique` range parmi les wrappers de
+ * dimensions ; le critère principal de l'élection est alors le nombre de
+ * tokens de layout qu'elle porte, le nom n'est qu'un léger bonus.
+ * Score nul si elle n'est pas candidate.
  *
  * Score nul, aussi, si son composant maître est illisible. Un wrapper n'est
  * élu qu'une fois, sur la référence, et les autres variants retrouvent leur
  * instance du même maître par son id : une instance orpheline n'est appariable
  * nulle part, et l'élire ferait décrire à la référence un arbre que plus aucun
- * variant ne décrit. C'est la garde qu'applique déjà `!composed.has(node.id)` :
- * un candidat qu'on ne saura pas suivre n'est pas un candidat.
+ * variant ne décrit. Un candidat qu'on ne saura pas suivre n'est pas un
+ * candidat.
  */
 async function scoreWrapper(
   instance: InstanceNode,
@@ -383,18 +433,14 @@ async function scoreWrapper(
   score: number;
   componentSet: ComponentSetNode | null;
 }> {
-  const mainComponent = await maitreDe(instance);
-  const parent = mainComponent?.parent;
-  const componentSet = parent?.type === 'COMPONENT_SET' ? parent : null;
-  const searchableName = `${instance.name} ${mainComponent?.name ?? ''} ${componentSet?.name ?? ''}`.toLowerCase();
+  const { faits, maitre, componentSet } = await releverLesFaitsDUnImbrique(instance, warnings, composed);
+  if (sorteDeLImbrique(faits) !== 'wrapper-de-dimensions' || maitre === null) return { score: 0, componentSet };
 
-  const layoutBindings = countLayoutBindings(instance, warnings, composed);
-  let score = layoutBindings * 10;
+  const searchableName = `${instance.name} ${maitre.name} ${componentSet?.name ?? ''}`.toLowerCase();
+  let score = faits.dimensionsLiees * 10;
   if (searchableName.includes('wrapper')) score += 5;
   if (componentSet && hasComponentProperties(instance)) score += 3;
-
-  const suivable = mainComponent !== null;
-  return { score: layoutBindings > 0 && suivable ? score : 0, componentSet };
+  return { score, componentSet };
 }
 
 /**
@@ -413,7 +459,7 @@ export async function findWrapperReference(
   composed: ComposedInstances = new Map(),
 ): Promise<WrapperReference | null> {
   const instances = getAllNodes(root, warnings, composed)
-    .filter((node): node is InstanceNode => node.type === 'INSTANCE' && !composed.has(node.id));
+    .filter((node): node is InstanceNode => node.type === 'INSTANCE');
   const scored = await Promise.all(
     instances.map(async (instance) => ({
       instance,

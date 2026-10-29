@@ -12,6 +12,7 @@
  * Le module est synchrone : les maîtres viennent de `scanComposedMatrix`, qui
  * les a lus une fois pour toute la matrice.
  */
+import { sorteDeLImbrique } from '@ucm-kit/core/referentiel';
 import { estContracte } from './composedComponents';
 import { getAllNodes } from './exportableNodes';
 import type { ComposedInstances } from './exportableNodes';
@@ -53,10 +54,13 @@ export type ReleveDesImbriques = {
  * publiée, ou sur une copie de travail, l'API dit tout le monde non publié, et
  * le vrai défaut (un composant à part entière absorbé faute de règles) passerait
  * alors sous silence.
+ *
+ * La question posée est celle du nom seul : les règles et les dimensions sont
+ * jugées ailleurs (`estContracte`, `findWrapperReference`), aussi les faits
+ * passés au kit n'en portent-ils aucune.
  */
 export function estUnePieceInterne(nom: string): boolean {
-  const premier = nom.trimStart().charAt(0);
-  return premier === '.' || premier === '_';
+  return sorteDeLImbrique({ nom: nom.trimStart(), reglesTrouvees: false, dimensionsLiees: 0 }) === 'piece-interne';
 }
 
 /**
