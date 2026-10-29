@@ -63,6 +63,7 @@
   --texte-groupe: var(--texte-groupe-sombre);
   --fond-variable: var(--fond-variable-sombre);
   --texte-variable: var(--texte-variable-sombre);
+  --texte-terme-figma: var(--texte-terme-figma-sombre);
   --teinte-tailles: var(--teinte-tailles-sombre);
   --teinte-texte: var(--teinte-texte-sombre);
   --teinte-tokens: var(--teinte-tokens-sombre);
