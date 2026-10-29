@@ -67,6 +67,7 @@ Les tests du monorepo lui-même.
 - portesDocumentees.test.mjs : chaque porte publique du kit est décrite dans son README
 - pluginsSepares.test.ts : aucun des quatre plugins n'importe un autre
 - referentielUnique.test.ts : aucune liste littérale ne recopie une donnée du référentiel
+- reglesUniques.test.ts : une règle que porte une fonction unique n'est recopiée nulle part
 - vueIllustree.test.ts : vue illustrée montre le référentiel d'aujourd'hui
 - corpusUcm.test.ts : noms, registres et empreintes du corpus UCM suivent leurs sources
 - manifestsDesPlugins.test.ts : chaque plugin a son propre `id` de manifest
