@@ -32,10 +32,10 @@ const avec = (...palettes: Palette[]): Recette => ({ ...DEFAUT, palettes });
 /** La recette dont le texte des boutons est noir en Light, avec ces palettes. */
 const avecLeNoir = (...palettes: Palette[]): Recette => ({ ...NOIR_EN_LIGHT.recette, palettes });
 
-/** La courbe claire place le cran 700 à 0,55 : text sur surface manque 4,5 en Light. */
+/** La courbe claire place le cran 800 à 0,60 : le texte des boutons manque 4,5 sur `solid/hover` en Light. */
 function recetteRatee(...palettes: Palette[]): Recette {
   const light = [...DEFAUT.courbes.light];
-  light[7] = 0.55;
+  light[8] = 0.6;
   return { ...avec(...palettes), courbes: { ...DEFAUT.courbes, light } };
 }
 

@@ -361,6 +361,21 @@ test('[UI-09] le résultat d’un profil se lit en signe et en mots', () => {
   assert.equal(TEXTES_DES_GARANTIES.echec('page', 4.1, 4.5), 'Sur la page : 4,10:1 pour un minimum de 4,5:1');
   assert.equal(TEXTES_DES_GARANTIES.noteDuTexteDesBoutons('light', 'blanc'), ' suit le réglage « Texte des boutons » du thème Light : blanc.');
   assert.equal(TEXTES_DES_GARANTIES.filet(300), ' 300 · filet, sans minimum de contraste');
+  assert.equal(TEXTES_DES_GARANTIES.echec('subtle', 4.1, 4.5), 'Sur le fond teinté léger : 4,10:1 pour un minimum de 4,5:1');
+  assert.equal(anglais.TEXTES_DES_GARANTIES.echec('subtle', 4.1, 4.5), 'On the subtle tinted fill: 4.10:1 against a minimum of 4.5:1');
+});
+
+test('[UI-09] les garanties 8 et 9 ont leur libellé, dans les deux langues', () => {
+  assert.equal(TEXTES_DES_GARANTIES.texteALAppui, 'Texte des fonds teintés à l’appui');
+  assert.equal(TEXTES_DES_GARANTIES.texteDeLaPageSurUnFondTeinte, 'Texte de la page sur un fond teinté');
+  assert.equal(anglais.TEXTES_DES_GARANTIES.texteALAppui, 'Tinted fill text, pressed');
+  assert.equal(anglais.TEXTES_DES_GARANTIES.texteDeLaPageSurUnFondTeinte, 'Page text on a tinted fill');
+  assert.deepEqual(Object.keys(TEXTES_DES_GARANTIES.colonnes), ['page', 'carte', 'subtle', 'default', 'hover', 'pressed']);
+  assert.deepEqual(Object.keys(anglais.TEXTES_DES_GARANTIES.colonnes), ['page', 'carte', 'subtle', 'default', 'hover', 'pressed']);
+  for (const catalogue of [francais, anglais]) {
+    assert.ok(catalogue.LIBELLE_DE_LA_VARIABLE['surface/subtle'] && catalogue.LIBELLE_DE_LA_VARIABLE['surface/divider'], 'le lexique du kit nomme les deux variables');
+    assert.ok(catalogue.TEXTES_DE_L_APERCU.noms.leger, 'le nom sous le code de surface/subtle');
+  }
 });
 
 test('V12.2 : l’écart d’import nomme les valeurs modifiées, la nature de l’effet et la conséquence sur la planche', () => {

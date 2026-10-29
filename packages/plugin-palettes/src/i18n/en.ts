@@ -257,7 +257,7 @@ export const TEXTES_DE_LA_VERIFICATION = {
   versCreation: "Back to Create",
 } as const;
 
-/** Le verdict de l'onglet Vérification : « 76 guarantees met », « 2 of 76 guarantees unmet ». */
+/** Le verdict de l'onglet Vérification : « 96 guarantees met », « 2 of 96 guarantees unmet ». */
 export function verdictDesGaranties(garanties: number, manquees: number): string {
   if (manquees === 0) return `${garanties} ${garanties === 1 ? "guarantee met" : "guarantees met"}`;
   return `${manquees} of ${garanties} ${garanties === 1 ? "guarantee" : "guarantees"} unmet`;
@@ -270,8 +270,8 @@ export function pointsDuVerdict(nombre: number): string {
 }
 
 /**
- * Le bilan du pied ([UI-18]) : « 76 guarantees met · no alerts »,
- * « 2 of 76 guarantees unmet · 1 alert », « Free palette · 2 alerts ».
+ * Le bilan du pied ([UI-18]) : « 96 guarantees met · no alerts »,
+ * « 2 of 96 guarantees unmet · 1 alert », « Free palette · 2 alerts ».
  */
 export function bilanDuPied(garanties: number, manquees: number, alertes: number, libre: boolean): string {
   const lesAlertes = alertes === 0 ? "no alerts" : alertes === 1 ? "1 alert" : `${alertes} alerts`;
@@ -873,13 +873,16 @@ export const TEXTES_DES_GARANTIES = {
   et: "and",
   laPage: "the page",
   laCarte: "the card",
-  // Les cinq colonnes de fonds : la page, la carte, puis les trois états de `solid` et de `surface` (S3).
-  colonnes: { page: "on the page", carte: "on the card", default: "default", hover: "hover", pressed: "pressed" },
+  // Les six colonnes de fonds : la page, la carte, `surface/subtle`, puis les trois états de `solid` et de `surface` (S3).
+  colonnes: { page: "on the page", carte: "on the card", subtle: "subtle", default: "default", hover: "hover", pressed: "pressed" },
+  // Les libellés des garanties 8 et 9, dont le premier membre est celui d'une garantie voisine.
+  texteALAppui: "Tinted fill text, pressed",
+  texteDeLaPageSurUnFondTeinte: "Page text on a tinted fill",
   // Les trois cases de la réglette avant la première nuance.
   casePage: "page",
   caseCarte: "card",
   caseBoutons: "buttons",
-  legende: "Solid: default · dashed: hover · dotted: pressed · dash-dot: the page · long dashes: the card. The text keeps its shade in every state: only the background changes.",
+  legende: "Solid: default · dashed: hover · dotted: pressed · dash and two dots: subtle · dash-dot: the page · long dashes: the card. The text keeps its shade in every state: only the background changes.",
   // Dite sous `solid/foreground`, dont le code s'écrit avant elle.
   noteDuTexteDesBoutons: (mode: Mode, texte: TexteDesBoutons) => ` follows the “Button text” setting of the ${NOM_DU_MODE[mode]} theme: ${NOM_DU_TEXTE_DES_BOUTONS[texte]}.`,
   // Dite sous `page/divider`, dont le code s'écrit avant elle.
@@ -890,8 +893,8 @@ export const TEXTES_DES_GARANTIES = {
     ? `${NOM_DU_MODE[mode]} theme: 1 unmet guarantee`
     : `${NOM_DU_MODE[mode]} theme: ${nombre} unmet guarantees`),
   voirLeTheme: (mode: Mode) => `View ${NOM_DU_MODE[mode]} theme`,
-  echec: (fond: 'page' | 'carte' | 'default' | 'hover' | 'pressed', contraste: number, seuil: number) =>
-    `${fond === 'page' ? 'On the page' : fond === 'carte' ? 'On the card' : `State ${fond}`}: ${contrasteEcrit(contraste)} against a minimum of ${seuilEcrit(seuil)}:1`,
+  echec: (fond: 'page' | 'carte' | 'subtle' | 'default' | 'hover' | 'pressed', contraste: number, seuil: number) =>
+    `${fond === 'page' ? 'On the page' : fond === 'carte' ? 'On the card' : fond === 'subtle' ? 'On the subtle tinted fill' : `State ${fond}`}: ${contrasteEcrit(contraste)} against a minimum of ${seuilEcrit(seuil)}:1`,
   numeros: (premier: string, second: string) => `${premier} / ${second}`,
   resultat: (tenue: boolean, contraste: number) => `${tenue ? '✓' : '✗'} ${ecrireContraste(contraste)}`,
 } as const;
@@ -978,6 +981,7 @@ export const TEXTES_DE_L_APERCU = {
     texteSecondaire: "secondary text",
     contour: "border",
     texteDesBoutons: "button text",
+    leger: "subtle",
     filet: "divider",
     anneauDeFocus: "focus ring",
   },
@@ -1624,7 +1628,6 @@ export const TEXTES_DE_L_INTERFACE_DE_TEST = {
     pastille: "knob",
     separateur: "divider",
     fondAuSurvol: "fill on hover",
-    fondEtContour: "fill and outline",
   },
   equipe: {
     organisation: 'Studio Nord',

@@ -34,7 +34,7 @@ type Etat = (typeof ETATS)[number];
 type EtatMontre = Etat | 'focus';
 
 /** Ce qu'une variable peint sur l'écran : les mots de la bulle. */
-export const PROPRIETES = ['fond', 'texte', 'contour', 'anneau', 'coche', 'icone', 'pastille', 'separateur', 'fondAuSurvol', 'fondEtContour'] as const;
+export const PROPRIETES = ['fond', 'texte', 'contour', 'anneau', 'coche', 'icone', 'pastille', 'separateur', 'fondAuSurvol'] as const;
 export type Propriete = (typeof PROPRIETES)[number];
 
 /** Ce que la table de S4 doit dire d'une variable pour qu'elle peigne cette propriété. */
@@ -48,7 +48,6 @@ export const PEINT_PAR_PROPRIETE: Readonly<Record<Propriete, readonly SupportDeV
   pastille: ['foreground'],
   separateur: ['border'],
   fondAuSurvol: ['background'],
-  fondEtContour: ['background', 'border'],
 };
 
 /** Vrai quand la table de S4 laisse la variable peindre cette propriété. */
@@ -357,8 +356,6 @@ function construireVues(i18n: Localisation) {
       readonly fond?: VariableDePalette;
       readonly texte: VariableDePalette;
       readonly contour?: VariableDePalette;
-      /** Le fond porte aussi le contour (bouton contour survolé). */
-      readonly fondEtContour?: boolean;
     }
     /** Un spécimen ; `focus` ajoute l'anneau, séparé du spécimen par un jour de la couleur du thème. */
     const specimen = (texte: Texte, etat: EtatMontre, reglage: Reglage): HTMLSpanElement => {
@@ -368,11 +365,8 @@ function construireVues(i18n: Localisation) {
       element.style.color = c(reglage.texte);
       if (reglage.contour) element.style.borderColor = c(reglage.contour);
       const paires: [Propriete, VariableDePalette][] = [];
-      if (reglage.fondEtContour && reglage.fond) paires.push(['fondEtContour', reglage.fond]);
-      else {
-        if (reglage.fond) paires.push(['fond', reglage.fond]);
-        if (reglage.contour) paires.push(['contour', reglage.contour]);
-      }
+      if (reglage.fond) paires.push(['fond', reglage.fond]);
+      if (reglage.contour) paires.push(['contour', reglage.contour]);
       paires.push(['texte', reglage.texte]);
       if (etat === 'focus') {
         element.style.boxShadow = `0 0 0 2px ${couleurs.fond}, 0 0 0 4px ${c('ring')}`;
@@ -389,9 +383,10 @@ function construireVues(i18n: Localisation) {
     const forme = (etat: EtatMontre): Etat => (etat === 'focus' ? 'default' : etat);
     const plein = (etat: EtatMontre) => specimen(t.action, etat, { fond: `solid/${forme(etat)}`, texte: 'solid/foreground' });
     const soft = (etat: EtatMontre) => specimen(t.action, etat, { fond: `surface/${forme(etat)}`, texte: 'surface/foreground' });
+    /** Le fond d'un plein ne porte pas de contour (scope `STROKE_COLOR` absent) : le bouton contour garde `page/border` aux quatre états. */
     const contour = (etat: EtatMontre) => (forme(etat) === 'default'
       ? specimen(t.action, etat, { texte: 'page/foreground', contour: 'page/border' })
-      : specimen(t.action, etat, { fond: `solid/${forme(etat)}`, texte: 'solid/foreground', contour: `solid/${forme(etat)}`, fondEtContour: true }));
+      : specimen(t.action, etat, { fond: `solid/${forme(etat)}`, texte: 'solid/foreground', contour: 'page/border' }));
     const sansFond = (etat: EtatMontre) => (forme(etat) === 'default'
       ? specimen(t.action, etat, { texte: 'surface/foreground' })
       : specimen(t.action, etat, { fond: `surface/${forme(etat)}`, texte: 'surface/foreground' }));

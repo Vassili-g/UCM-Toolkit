@@ -93,7 +93,7 @@ test('une palette en alerte donne son alerte ; la paire précède l’alerte, co
 
 test('une garantie manquée l’emporte sur une paire trop proche : les deux palettes restent à corriger', () => {
   const light = [...DEFAUT.courbes.light];
-  light[7] = 0.55;
+  light[8] = 0.6;
   const ratee: Recette = { ...avec(CYAN, VOISIN), courbes: { ...DEFAUT.courbes, light } };
   assert.deepEqual(etats(ratee), [[CYAN.id, 'rouge'], [VOISIN.id, 'rouge']]);
   assert.deepEqual(bilanDesPalettes(ratee).comptes, { rouge: 2, ambre: 0, conforme: 0 });

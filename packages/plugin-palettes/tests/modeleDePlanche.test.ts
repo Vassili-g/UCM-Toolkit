@@ -24,8 +24,8 @@ const VIDE = recetteAuxPartsDe045();
 const BLEU = { ...nouvellePalette(VIDE, 'p-0000000a', '#1E6FD9', 2)!, nom: 'Bleu' };
 const avec = (...palettes: Palette[]): Recette => palettes.reduce(ajouter, VIDE);
 const RECETTE = avec(BLEU);
-/** La courbe claire monte à 0,6 au cran 700 : le texte des boutons et le texte coloré manquent 4,5:1 en clair, dans les deux profils. */
-const RECETTE_EN_ECHEC: Recette = { ...RECETTE, courbes: { ...RECETTE.courbes, light: RECETTE.courbes.light.map((clarte, rang) => (rang === 7 ? 0.6 : clarte)) } };
+/** La courbe claire monte à 0,6 au cran 800 : le texte des boutons manque 4,5:1 sur `solid/hover` en clair, dans les deux profils. */
+const RECETTE_EN_ECHEC: Recette = { ...RECETTE, courbes: { ...RECETTE.courbes, light: RECETTE.courbes.light.map((clarte, rang) => (rang === 8 ? 0.6 : clarte)) } };
 /** La recette, sans les grilles de contrastes sur la planche ([PLA-28]). */
 const SANS_GRILLES: Recette = { ...RECETTE, contenuDesPlanches: { ...RECETTE.contenuDesPlanches, grilles: false } };
 const MODELE = modeleDeCadre(SANS_GRILLES, BLEU, 'SRGB');
@@ -144,15 +144,20 @@ test('[PLA-18] M2 : les variables de chaque profil, Soft puis Vivid, une ligne p
   assert.equal((variables.enfants[0] as NoeudTexte).contenu, 'Quelle nuance pour quelle variable · Vivid');
   assert.deepEqual(textes(trouver(variables, 'états')).map((noeud) => noeud.contenu), ['default', 'hover', 'pressed']);
   const lignes = variables.enfants.filter((noeud): noeud is NoeudCadre => noeud.nom.startsWith('dossier '));
-  assert.deepEqual(lignes.map((noeud) => [noeud.nom, noeud.enfants.length - 1]), [['dossier solid', 3], ['dossier surface', 3], ['dossier page', 1]]);
+  assert.deepEqual(lignes.map((noeud) => [noeud.nom, noeud.enfants.length - 1]), [['dossier solid', 3], ['dossier surface', 1], ['dossier page', 1]]);
+  const teintees = trouver(variables, 'variables teintées');
+  assert.deepEqual(teintees.enfants.map((noeud) => [noeud.nom, noeud.type === 'cadre' ? noeud.enfants.map((enfant) => enfant.nom) : []]), [
+    ['états teintés', ['surface default', 'surface hover', 'surface pressed']],
+    ['sans état', ['surface subtle', 'surface divider']],
+  ], 'surface/subtle et surface/divider, sans état, se rangent sous les trois états');
   assert.deepEqual(trouver(variables, 'variables').enfants.map((noeud) => noeud.nom), ['page foreground', 'page border', 'page divider']);
   const legendes = (ligne: string) => textes(trouver(trouver(variables, ligne), 'libellés')).map((noeud) => noeud.contenu);
   assert.deepEqual(legendes('dossier solid'), ['Fond plein', 'solid', 'bouton principal, badge plein', 'texte : solid/foreground, blanc']);
-  assert.deepEqual(legendes('dossier surface'), ['Fond teinté', 'surface', 'alerte, badge doux, ligne sélectionnée', 'texte et contour : surface/foreground, surface/border · 800']);
+  assert.deepEqual(legendes('dossier surface'), ['Fond teinté', 'surface', 'alerte, badge doux, ligne sélectionnée', 'texte et contour : surface/foreground, surface/border · 700']);
   assert.deepEqual(legendes('dossier page'), ['Sur la page', 'page', 'lien, champ, filet']);
   const nom = (cellule: string) => textes(trouver(variables, cellule)).find((noeud) => noeud.nom === 'variable')!.contenu;
-  assert.deepEqual(['solid default', 'solid hover', 'solid pressed', 'surface default', 'surface hover', 'surface pressed', 'page foreground', 'page border', 'ring', 'page divider'].map(nom), [
-    'solid/default · 700', 'solid/hover · 800', 'solid/pressed · 900', 'surface/default · 100', 'surface/hover · 200', 'surface/pressed · 300',
+  assert.deepEqual(['solid default', 'solid hover', 'solid pressed', 'surface default', 'surface hover', 'surface pressed', 'surface subtle', 'surface divider', 'page foreground', 'page border', 'ring', 'page divider'].map(nom), [
+    'solid/default · 700', 'solid/hover · 800', 'solid/pressed · 900', 'surface/default · 100', 'surface/hover · 200', 'surface/pressed · 300', 'surface/subtle · 50', 'surface/divider · 300',
     'page/foreground · 700', 'page/border · 700', 'ring · 600', 'page/divider · 300',
   ]);
   const peint = (cran: number) => MODELE.peints.find(({ nom: calque }) => calque === `vivid/light/${cran}`)?.hexa;
@@ -160,8 +165,14 @@ test('[PLA-18] M2 : les variables de chaque profil, Soft puis Vivid, une ligne p
   assert.equal(specimen('solid hover').fond?.hexa, peint(800));
   assert.equal((specimen('solid hover').enfants[0] as NoeudTexte).couleur.hexa, '#FFFFFF', 'le texte des boutons, blanc pur');
   assert.equal(specimen('surface pressed').fond?.hexa, peint(300));
-  assert.equal((specimen('surface pressed').enfants[0] as NoeudTexte).couleur.hexa, peint(800), 'le texte de surface');
-  assert.equal(specimen('surface pressed').trait?.couleur.hexa, peint(800), 'le contour de surface');
+  assert.equal((specimen('surface pressed').enfants[0] as NoeudTexte).couleur.hexa, peint(700), 'le texte de surface');
+  assert.equal(specimen('surface pressed').trait?.couleur.hexa, peint(700), 'le contour de surface');
+  assert.equal(specimen('surface subtle').fond?.hexa, peint(50), 'le fond teinté léger');
+  assert.equal((specimen('surface subtle').enfants[0] as NoeudTexte).couleur.hexa, peint(700), 'son texte est celui de surface');
+  assert.equal(specimen('surface subtle').trait?.couleur.hexa, peint(700), 'et son contour');
+  assert.equal(specimen('surface divider').fond, null, 'le filet sur fond teinté est un trait, sans fond');
+  assert.equal((specimen('surface divider').enfants[0] as NoeudCadre).fond?.hexa, peint(300));
+  assert.equal(textes(trouver(variables, 'surface divider')).some((noeud) => noeud.contenu === 'sans minimum de contraste'), true);
   assert.equal((specimen('page foreground').enfants[0] as NoeudTexte).couleur.hexa, peint(700));
   assert.equal(specimen('ring').trait?.couleur.hexa, peint(600));
   assert.equal(specimen('page divider').fond, null);
@@ -193,8 +204,8 @@ test('[PLA-30] ring est une rangée de la palette, hors du dossier page', () => 
 });
 
 test('S1 S2 I6 : la planche se dessine dans le sens de chaque mode, dans les quatre combinaisons de texte des boutons', () => {
-  const NORMAL = { solid: [700, 800, 900], surface: [100, 200, 300], texte: 800, page: [700, 700, 300], ring: 600 };
-  const INVERSE = { solid: [700, 600, 500], surface: [100, 200, 300], texte: 900, page: [800, 800, 300], ring: 700 };
+  const NORMAL = { solid: [700, 800, 900], surface: [100, 200, 300], subtle: 50, filet: 300, texte: 700, page: [700, 700, 300], ring: 600 };
+  const INVERSE = { solid: [700, 600, 500], surface: [100, 200, 300], subtle: 50, filet: 300, texte: 900, page: [800, 800, 300], ring: 700 };
   const PURS = { blanc: '#FFFFFF', noir: '#000000' };
   for (const [light, dark] of COMBINAISONS) {
     const recette = recetteAvecLesTextes(light, dark);
@@ -202,8 +213,8 @@ test('S1 S2 I6 : la planche se dessine dans le sens de chaque mode, dans les qua
     for (const [mode, texteDesBoutons] of [['light', light], ['dark', dark]] as const) {
       const contexte = `Light ${light}, Dark ${dark}, ${mode}`;
       const sens = texteDesBoutons === (mode === 'light' ? 'blanc' : 'noir') ? NORMAL : INVERSE;
-      // Le Dark pose ses surfaces aux crans 300 à 500 et leur texte au 950.
-      const table = mode === 'dark' ? { ...sens, surface: [300, 400, 500], texte: 950 } : sens;
+      // Le Dark pose ses surfaces aux crans 300 à 500, le fond léger au 200, le filet au 500 et le texte au 950 ; l'anneau du Dark inversé monte au 800.
+      const table = mode === 'dark' ? { ...sens, surface: [300, 400, 500], subtle: 200, filet: 500, texte: 950, ring: sens === INVERSE ? 800 : sens.ring } : sens;
       const theme = trouver(modele.racine, `thème ${mode}`);
       assert.equal(textes(trouver(theme, 'en-tête'))[0].contenu, `${mode === 'light' ? 'Thème Light' : 'Thème Dark'} · fond de la page ${recette.fonds[mode]} · texte des boutons ${texteDesBoutons}`, contexte);
       const variables = variablesDe(modele.racine, mode, 'vivid');
@@ -222,6 +233,10 @@ test('S1 S2 I6 : la planche se dessine dans le sens de chaque mode, dans les qua
         assert.equal((specimen.enfants[0] as NoeudTexte).couleur.hexa, peint(table.texte), `${contexte} ${nom} : texte`);
         assert.equal(specimen.trait?.couleur.hexa, peint(table.texte), `${contexte} ${nom} : contour`);
       });
+      assert.equal(nuance('surface subtle'), String(table.subtle), `${contexte} surface subtle`);
+      assert.equal(trouver(cellule('surface subtle'), 'spécimen').fond?.hexa, peint(table.subtle), `${contexte} surface subtle`);
+      assert.equal(nuance('surface divider'), String(table.filet), `${contexte} surface divider`);
+      assert.equal(trouver(cellule('surface divider'), 'spécimen').enfants[0].type === 'cadre' && (trouver(cellule('surface divider'), 'spécimen').enfants[0] as NoeudCadre).fond?.hexa, peint(table.filet), `${contexte} surface divider`);
       ['page foreground', 'page border', 'page divider'].forEach((nom, rang) => assert.equal(nuance(nom), String(table.page[rang]), `${contexte} ${nom}`));
       assert.equal(nuance('ring'), String(table.ring), `${contexte} ring`);
       const dites = cadres(variables).filter((noeud) => noeud.nom === 'libellés').flatMap(textes).map((noeud) => noeud.contenu);
@@ -257,11 +272,14 @@ test('S7 : la planche lit les promesses du moteur sans rien rejuger, dans le sen
   assert.deepEqual(lignes('solid default'), ['✓ solid/foreground dessus : 6,11:1 · AA', '✓ sur la page : 5,70:1 · AA', '✓ sur la carte : 6,11:1 · AA']);
   assert.deepEqual(lignes('solid pressed'), ['✓ solid/foreground dessus : 12,04:1 · AAA']);
   assert.deepEqual(lignes('surface default'), [
-    '✓ texte dessus : 7,14:1 · AAA', '✓ texte sur la page : 8,06:1 · AAA', '✓ texte sur la carte : 8,64:1 · AAA',
-    '✓ contour dessus : 7,14:1 · AA', '✓ contour sur la page : 8,06:1 · AA', '✓ contour sur la carte : 8,64:1 · AA',
+    '✓ texte dessus : 5,29:1 · AA', '✓ texte sur la page : 5,70:1 · AA', '✓ texte sur la carte : 6,11:1 · AA',
+    '✓ contour dessus : 5,29:1 · AA', '✓ contour sur la page : 5,70:1 · AA', '✓ contour sur la carte : 6,11:1 · AA',
   ]);
-  assert.deepEqual(lignes('surface hover'), ['✓ texte dessus : 6,25:1 · AA', '✓ contour dessus : 6,25:1 · AA']);
-  assert.deepEqual(lignes('page foreground'), ['✓ sur la page : 5,70:1 · AA', '✓ sur la carte : 6,11:1 · AA']);
+  assert.deepEqual(lignes('surface subtle'), ['✓ texte dessus : 5,70:1 · AA', '✓ contour dessus : 5,70:1 · AA']);
+  assert.deepEqual(lignes('surface hover'), ['✓ texte dessus : 4,61:1 · AA', '✓ contour dessus : 4,61:1 · AA']);
+  assert.deepEqual(lignes('surface pressed'), ['✓ contour dessus : 3,78:1 · AA', '✓ texte dessus : 3,78:1 · AA'], 'le texte jugé à 3:1 sous l’appui, après le contour');
+  assert.deepEqual(lignes('surface divider'), []);
+  assert.deepEqual(lignes('page foreground'), ['✓ sur la page : 5,70:1 · AA', '✓ sur la carte : 6,11:1 · AA', '✓ sur surface/default : 5,29:1 · AA']);
   assert.deepEqual(lignes('page border'), ['✓ sur la page : 5,70:1 · AA', '✓ sur la carte : 6,11:1 · AA']);
   assert.deepEqual(lignes('ring'), ['✓ sur la page : 4,52:1 · AA', '✓ sur la carte : 4,84:1 · AA']);
   assert.deepEqual(lignes('page divider'), []);
@@ -271,20 +289,20 @@ test('S7 : la planche lit les promesses du moteur sans rien rejuger, dans le sen
 });
 
 test('S7 : une promesse manquée sur la carte seule se lit « ✗ sur la carte », en danger, à côté de « ✓ sur la page », et compte au verdict du thème', () => {
-  // La 700 de la courbe Dark à 0,60 : le texte coloré tient la page, pas la carte plus claire.
-  const dark = RECETTE.courbes.dark.map((clarte, rang) => (RECETTE.crans[rang] === 700 ? 0.6 : clarte));
+  // La 600 de la courbe Dark à 0,50 : l'anneau de Soft tient la page, pas la carte plus claire.
+  const dark = RECETTE.courbes.dark.map((clarte, rang) => (RECETTE.crans[rang] === 600 ? 0.5 : clarte));
   const recette: Recette = { ...RECETTE, courbes: { ...RECETTE.courbes, dark } };
-  const manquees = verifierPromesses(recette, BLEU).filter((promesse) => promesse.mode === 'dark' && promesse.profil === 'vivid' && promesse.verdict === 'manquee');
-  assert.deepEqual(manquees.map((promesse) => [promesse.garantie.premier.variable, promesse.second.nature === 'fond' ? promesse.second.fond : promesse.second.nature]), [['page/foreground', 'carte']], 'le moteur ne manque que la carte');
+  const manquees = verifierPromesses(recette, BLEU).filter((promesse) => promesse.mode === 'dark' && promesse.profil === 'soft' && promesse.verdict === 'manquee');
+  assert.deepEqual(manquees.map((promesse) => [promesse.garantie.premier.variable, promesse.second.nature === 'fond' ? promesse.second.fond : promesse.second.nature]), [['ring', 'carte']], 'le moteur ne manque que la carte');
   const modele = modeleDeCadre(recette, BLEU, 'SRGB');
-  const lues = garantiesLues(trouver(variablesDe(modele.racine, 'dark', 'vivid'), 'page foreground'));
+  const lues = garantiesLues(trouver(variablesDe(modele.racine, 'dark', 'soft'), 'ring'));
   assert.deepEqual(lues.map((noeud) => noeud.contenu.replace(/\d+,\d\d:1/, 'R')), ['✓ sur la page : R · AA', '✗ sur la carte : R · AA ✗']);
-  assert.deepEqual(lues.map((noeud) => noeud.nom), ['garantie page/foreground sur page', 'garantie page/foreground sur carte']);
+  assert.deepEqual(lues.map((noeud) => noeud.nom), ['garantie ring sur page', 'garantie ring sur carte']);
   assert.ok(lues[1].contenu.includes(contrasteEcrit(manquees[0].contraste)));
   assert.deepEqual(lues.map((noeud) => noeud.style), ['note', 'chiffre'], 'la ligne manquée est appuyée');
   assert.equal(lues[1].couleur.hexa, COULEURS_DE_LA_PLANCHE.dangerClair, 'et en danger, lisible sur le fond Dark');
   const verdict = textes(trouver(trouver(modele.racine, 'thème dark'), 'verdict'))[0];
-  assert.match(verdict.contenu, /^2 garanties manquées$/, 'Soft et Vivid manquent la carte');
+  assert.equal(verdict.contenu, '1 garantie manquée', 'Soft manque la carte');
 });
 
 test('P9 : changer le texte des boutons d’un mode change l’empreinte, et lui seul', () => {
@@ -307,7 +325,7 @@ test('S2 : la palette du neutre ajoute la note de son corps de texte à la ligne
   assert.ok(!libelles(MODELE).includes(note));
 });
 
-test('P7 : une liste sans 50 garde les trois dossiers et ses garanties ; sans 900, la variable dont le cran manque n’est pas dessinée ni jugée', () => {
+test('P7 : une liste sans 50 garde les trois dossiers sans `surface/subtle` ni ses garanties ; sans 900, la variable dont le cran manque n’est pas dessinée ni jugée', () => {
   const sans = (cran: number): Recette => {
     const rang = RECETTE.crans.indexOf(cran);
     const sauf = <T,>(liste: readonly T[]) => liste.filter((_, i) => i !== rang);
@@ -315,7 +333,10 @@ test('P7 : une liste sans 50 garde les trois dossiers et ses garanties ; sans 90
   };
   const sans50 = variablesDe(modeleDeCadre(sans(50), BLEU, 'SRGB').racine, 'light', 'vivid');
   assert.deepEqual(sans50.enfants.filter((noeud) => noeud.nom.startsWith('dossier ')).map((noeud) => noeud.nom), ['dossier solid', 'dossier surface', 'dossier page']);
-  assert.equal(garantiesLues(sans50).length, 21);
+  // Vingt-quatre garanties moins les onze qui jugent `surface/subtle`, la 3 et la 4.
+  assert.equal(garantiesLues(sans50).length, 13);
+  assert.equal(cadres(sans50).some((noeud) => noeud.nom === 'surface subtle'), false);
+  assert.equal(cadres(sans50).some((noeud) => noeud.nom === 'surface divider'), true, 'le filet garde son cran 300');
   const sans900 = variablesDe(modeleDeCadre(sans(900), BLEU, 'SRGB').racine, 'light', 'vivid');
   const noms = cadres(sans900).map((noeud) => noeud.nom);
   assert.equal(noms.includes('solid pressed'), false);
@@ -335,7 +356,7 @@ test('[PLA-16] [VER-13] : une grille par thème et profil, alignée sur les ramp
   const valeur = (lisible.enfants[0] as NoeudTexte);
   assert.equal(valeur.couleur.hexa, hexa(100));
   assert.equal(valeur.style, 'chiffre');
-  assert.equal(valeur.contenu, '9,94 AAA');
+  assert.equal(valeur.contenu, '10,42 AAA');
   const aa = cadres(grille).find((noeud) => /^\d+\/\d+$/.test(noeud.nom) && (noeud.enfants[0] as NoeudTexte | undefined)?.contenu.endsWith(' AA'));
   assert.ok(aa, 'une paire entre 4,5:1 et 7:1 porte AA');
   const sansNiveau = cadres(grille).filter((noeud) => /^\d+\/\d+$/.test(noeud.nom) && noeud.enfants.length > 0).map((noeud) => (noeud.enfants[0] as NoeudTexte).contenu).filter((contenu) => !/ AAA?$/.test(contenu));
@@ -500,7 +521,7 @@ test('[PLA-28] Y5.5 : chaque partie retirée disparaît du modèle et change l�
 });
 
 test('[PLA-24] Y5.4 : les calques du cadre de Bleu, toutes parties dessinées, à une et à deux intensités', () => {
-  // Trois états par dossier : 1 790 calques à deux intensités, 924 à une.
-  assert.equal(compterCalques(AVEC_GRILLE.racine), 1790);
-  assert.equal(compterCalques(modeleDeCadre(RECETTE_SEULE, BLEU_SEUL, 'SRGB').racine), 924);
+  // Trois états par dossier, `surface/subtle` et `surface/divider` en plus : 1 858 calques à deux intensités, 958 à une.
+  assert.equal(compterCalques(AVEC_GRILLE.racine), 1858);
+  assert.equal(compterCalques(modeleDeCadre(RECETTE_SEULE, BLEU_SEUL, 'SRGB').racine), 958);
 });

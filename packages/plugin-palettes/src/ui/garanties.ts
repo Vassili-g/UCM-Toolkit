@@ -5,10 +5,10 @@
  * choix « Afficher » Soft/Vivid, dont chaque segment porte le résultat de
  * son profil ; viennent ensuite une réglette des nuances où la garantie
  * choisie se trace en éventail, sa légende, puis un encadré par minimum : les
- * cinq colonnes de fonds nommées une fois en tête (la page, la carte,
- * `default`, `hover`, `pressed`), une ligne par garantie, chaque fond dans sa colonne,
+ * six colonnes de fonds nommées une fois en tête (la page, la carte,
+ * `subtle`, `default`, `hover`, `pressed`), une ligne par garantie, chaque fond dans sa colonne,
  * son ratio avec son niveau WCAG sur une seule ligne ([VER-13]). Une garantie
- * qui ne vise pas un fond laisse sa case vide. Sous 900 px, le spécimen passe
+ * qui ne vise pas un fond laisse sa case vide. Sous 1100 px, le spécimen passe
  * au-dessus des numéros. Une ligne en échec porte le fond fautif et les
  * réglages qui peuvent agir ([VER-06], [VER-15]).
  *
@@ -109,8 +109,8 @@ function construireVues(i18n: Localisation) {
 
   const PIXELS_PAR_UNITE = 451 / 491.5;
 
-  /** Le trait de l'arc de chaque colonne : plein, tireté, pointillé, tiret-point pour la page, longs tirets pour la carte. */
-  const TIRETS: Record<Colonne, string> = { default: '', hover: '4 3', pressed: '1.5 2.5', page: '6 2 1.5 2', carte: '10 3' };
+  /** Le trait de l'arc de chaque colonne : plein, tireté, pointillé, tiret et deux points pour `subtle`, tiret-point pour la page, longs tirets pour la carte. */
+  const TIRETS: Record<Colonne, string> = { default: '', hover: '4 3', pressed: '1.5 2.5', subtle: '8 2 1 2 1 2', page: '6 2 1.5 2', carte: '10 3' };
 
   function element<K extends keyof SVGElementTagNameMap>(nom: K, attributs: Record<string, string | number>): SVGElementTagNameMap[K] {
     const noeud = document.createElementNS(SVG, nom);
@@ -162,9 +162,17 @@ function construireVues(i18n: Localisation) {
     return specimenDuRole('border', premier.couleur, second.couleur);
   }
 
-  /** Le libellé du lexique sous les variables d'une ligne ; le texte des boutons dit sur quoi il se pose. */
+  /**
+   * Le libellé du lexique sous les variables d'une ligne ; le texte des boutons dit sur quoi il se pose.
+   * Les garanties 8 et 9 ont le premier membre des garanties 3 et 5 : leur fond seul les distingue, et leur libellé le dit.
+   */
   function libelleDeLaLigne(ligne: LigneDeGarantie): Texte {
     const variable = ligne.garantie.premier.variable;
+    const [fond, ...autres] = ligne.garantie.fonds;
+    if (autres.length === 0 && 'variable' in fond) {
+      if (variable === 'surface/foreground') return TEXTES_DES_GARANTIES.texteALAppui;
+      if (variable === 'page/foreground') return TEXTES_DES_GARANTIES.texteDeLaPageSurUnFondTeinte;
+    }
     if (variable === 'solid/foreground') return i18n.composer`${LIBELLE_DE_LA_VARIABLE[variable]} ${TEXTES_DES_GARANTIES.sur} ${LIBELLE_DE_LA_VARIABLE['solid/default']}`;
     return LIBELLE_DE_LA_VARIABLE[variable];
   }

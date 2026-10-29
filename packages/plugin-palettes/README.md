@@ -56,13 +56,17 @@ inversée, après confirmation si le designer les a réglées.
 ## Vérifier une palette
 
 **Vérification** montre le verdict de la palette ouverte, ses messages et la
-carte des garanties de contraste : sept garanties, chacune sur ses fonds
-`default`, `hover` et `pressed`. Toutes, sauf celle du texte des boutons, se
-jugent aussi sur la page et sur la carte, en deux colonnes. Le lien d'un message nomme le geste et
+carte des garanties de contraste : neuf garanties, chacune sur ses fonds,
+dans six colonnes : la page, la carte, `subtle`, `default`, `hover` et
+`pressed`. Le texte des boutons se juge sur les trois états de `solid`, le
+texte de `surface` sur `subtle`, `default`, `hover`, la page et la carte, et
+son appui sur `pressed` à part, à 3:1. Le contour de `surface` se juge sur
+les quatre fonds teintés, la page et la carte. Le texte coloré de la page se
+juge sur la page, la carte et `surface/default`. Le lien d'un message nomme le geste et
 ouvre le réglage où il se fait. Le sélecteur porte le verdict de chaque
 palette.
 
-Les contrastes portent sur les sept garanties affichées. Ils ne constituent pas
+Les contrastes portent sur les neuf garanties affichées. Ils ne constituent pas
 un audit d'accessibilité de l'interface qui utilisera ces couleurs.
 
 ## Écrire dans Figma : deux sorties

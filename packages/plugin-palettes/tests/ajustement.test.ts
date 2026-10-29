@@ -6,7 +6,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { recetteAvecTexteDesBoutons, validerRecette, type Palette } from 'ucm-couleur';
+import { recetteAvecTexteDesBoutons, validerRecette, verifierPromesses, type Palette } from 'ucm-couleur';
 
 import {
   changementAuPasVoisin,
@@ -19,6 +19,7 @@ import {
   propositionAuPas,
 } from '../src/ajustementDeLaReference';
 import { ajouter, changerReference, nouvellePalette, revenirALOriginale } from '../src/edition';
+import { ciblesDeLaPromesse, groupesManques } from '../src/presentation';
 import { recetteAuxPartsDe045 } from './recetteAuxPartsDe045';
 
 const RECETTE = recetteAuxPartsDe045();
@@ -31,8 +32,8 @@ test('W7.2 : sans pas, la proposition est l’originale elle-même ; un pas somb
   assert.equal(propositionAuPas(RECETTE, VERT, -1), '#0DA047');
   assert.ok(propositionAuPas(RECETTE, VERT, -10));
   assert.equal(propositionAuPas(RECETTE, VERT, -11), null, 'au-delà de −0,10, aucun pas');
-  assert.ok(propositionAuPas(RECETTE, VERT, 4));
-  assert.equal(propositionAuPas(RECETTE, VERT, 5), null, 'à +0,05, les nuances 50 et 100 du thème Light se confondraient');
+  assert.ok(propositionAuPas(RECETTE, VERT, 10));
+  assert.equal(propositionAuPas(RECETTE, VERT, 11), null, 'au-delà de +0,10, aucun pas : les crans clairs du Light ne suivent plus la luminosité, rien ne les confond avant la borne');
 });
 
 test('[DER-19] une palette dont l’ordre des nuances ne tient pas à l’ouverture garde tous les pas des bornes', () => {
@@ -69,8 +70,8 @@ test('W7.5 : un code saisi dans la configuration est une nouvelle référence, q
 });
 
 test('R1 : un pas de luminosité ne change plus le numéro de la référence', () => {
-  for (let pas = -10; pas < 4; pas += 1) assert.deepEqual(changementAuPasVoisin(RECETTE, VERT, pas, 1), [], `pas ${pas}`);
-  assert.equal(changementAuPasVoisin(RECETTE, VERT, 4, 1), null, 'au-delà du dernier pas');
+  for (let pas = -10; pas < 10; pas += 1) assert.deepEqual(changementAuPasVoisin(RECETTE, VERT, pas, 1), [], `pas ${pas}`);
+  assert.equal(changementAuPasVoisin(RECETTE, VERT, 10, 1), null, 'au-delà du dernier pas');
 });
 
 test('W7.2 : les garanties se comparent avant et après : #1E6FD9 en manque en Light, texte des boutons noir, et un pas plus clair les tient', () => {
@@ -113,4 +114,32 @@ test('W7.2 : un code saisi dans la modale prend le pas dont la proposition lui r
   assert.equal(pasLePlusProche(RECETTE, VERT, '#0DA047'), -1);
   assert.equal(pasLePlusProche(RECETTE, VERT, '#16A34A'), 0);
   assert.equal(pasLePlusProche(RECETTE, VERT, '#000000'), -10, 'le pas extrême le plus proche');
+});
+
+test('[VER-15] G3 : une référence au 700 que le moteur ne corrige pas manque le texte sur fond teinté, le groupe mène à « Ajuster la référence », et un pas plus sombre la tient', () => {
+  // #217700 est le 700 Light de Vivid : le moteur n'éloigne jamais le cran de la référence des fonds teintés.
+  const verte: Palette = { ...nouvellePalette(RECETTE, 'p-0000000e', '#217700', 2)!, nom: 'Verte' };
+  const recette = ajouter(RECETTE, verte);
+  const groupes = groupesManques(verifierPromesses(recette, verte));
+  assert.deepEqual(groupes.map((groupe) => [groupe.garantie.numero, groupe.mode, 'variable' in groupe.fond ? groupe.fond.variable : '']), [[3, 'light', 'surface/hover']]);
+  assert.ok(ciblesDeLaPromesse().includes('ajuster-reference'), 'toute promesse manquée mène à « Ajuster la référence »');
+  assert.deepEqual(manqueesParIntensite(recette, verte).map(({ intensite, manquees }) => `${intensite} ${manquees}`), ['soft 0', 'vivid 1']);
+  const ajustee = paletteAuPas(recette, verte, -1)!;
+  assert.deepEqual(manqueesParIntensite(recette, ajustee).map(({ intensite, manquees }) => `${intensite} ${manquees}`), ['soft 0', 'vivid 0']);
+  const [comparee, ...autres] = garantiesComparees(recette, verte, ajustee);
+  assert.equal(autres.length, 0);
+  assert.deepEqual([comparee.avant.garantie.numero, comparee.avant.verdict, comparee.apres.verdict], [3, 'manquee', 'tenue']);
+});
+
+test('[VER-15] G9 : en Dark inversé, une référence au 800 que le moteur ne corrige pas manque le texte de la page sur le fond teinté, et le groupe mène à « Ajuster la référence »', () => {
+  const inversee = recetteAvecTexteDesBoutons(RECETTE, 'dark', 'blanc');
+  assert.ok('recette' in inversee);
+  // #B17EFF est le 800 Dark de Vivid.
+  const violette: Palette = { ...nouvellePalette(inversee.recette, 'p-0000000f', '#B17EFF', 2)!, nom: 'Violette' };
+  const recette = ajouter(inversee.recette, violette);
+  const groupes = groupesManques(verifierPromesses(recette, violette));
+  assert.deepEqual(groupes.map((groupe) => [groupe.garantie.numero, groupe.mode, 'variable' in groupe.fond ? groupe.fond.variable : '']), [[9, 'dark', 'surface/default']]);
+  assert.equal(groupes[0].garantie.premier.variable, 'page/foreground');
+  assert.ok(ciblesDeLaPromesse().includes('ajuster-reference'));
+  assert.deepEqual(manqueesParIntensite(recette, violette).map(({ intensite, manquees }) => `${intensite} ${manquees}`), ['soft 0', 'vivid 1']);
 });

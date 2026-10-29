@@ -1161,7 +1161,8 @@ contrastes nuance par nuance ; la recette dit quelles parties se dessinent
 │ Fond plein         [Bouton]          [Bouton]          [Bouton]            │
 │ solid              solid/default · 700   …  solid/foreground dessus : ✓ …  │
 │ Fond teinté        [Fond teinté]     [Fond teinté]     [Fond teinté]       │
-│ surface            surface/default · 100 …  texte et contour : 800         │
+│ surface            surface/default · 100 …  texte et contour : 700         │
+│                    surface/subtle · 50   surface/divider · 300             │
 │ Sur la page        [Lien coloré]  [Champ]  [Anneau]  [Filet]               │
 │ page               page/foreground · 700 …  page/divider · 300             │
 │ Contrastes, nuance par nuance        une grille Soft, une grille Vivid     │
@@ -1229,7 +1230,7 @@ page »). Une ligne dont aucune variable n'est présente est omise. Chaque ligne
 donne à gauche le rôle du dossier, son nom en police de code et des exemples
 d'emploi. Sous `solid`, elle dit aussi `solid/foreground` et le texte des
 boutons du thème ; sous `surface`, `surface/foreground` et `surface/border`
-avec leur nuance, dites une fois. La palette neutre ajoute sous `page` une note
+avec leur nuance, dites une fois. `surface/subtle` et `surface/divider`, qui n'ont pas d'état, se rangent dans une seconde rangée de `surface`, sous `default` et `hover`. La palette neutre ajoute sous `page` une note
 sur `page/foreground-main`, corps de texte noir ou blanc purs hors de la
 rampe. Une colonne par état, `default`, `hover` et `pressed`, dans cet ordre
 dans les deux sens du thème ; la nuance de chaque variable vient de la table du
@@ -1241,7 +1242,8 @@ colonnes.
 | Variable | Spécimen |
 |---|---|
 | `solid/default`, `solid/hover`, `solid/pressed` | un bouton « Bouton » plein, écrit de `solid/foreground` |
-| `surface/default`, `surface/hover`, `surface/pressed` | un aplat « Fond teinté », écrit de `surface/foreground` et bordé de `surface/border` |
+| `surface/default`, `surface/hover`, `surface/pressed`, `surface/subtle` | un aplat « Fond teinté », écrit de `surface/foreground` et bordé de `surface/border` |
+| `surface/divider` | un filet |
 | `page/foreground` | « Lien coloré » |
 | `page/border` | un champ bordé |
 | `ring` | un champ cerclé de l'anneau |
@@ -1252,24 +1254,25 @@ colonnes.
   `page`, avec son rôle, son nom et ses exemples comme une ligne de dossier ;
   sa cellule s'aligne sous la première colonne d'états et garde la largeur de
   l'anneau, 104 px, et ses garanties.
-- `[PLA-17]` Les sept garanties du moteur sont représentées, dans chaque
+- `[PLA-17]` Les neuf garanties du moteur sont représentées, dans chaque
   thème, lues dans les promesses du moteur : la planche ne juge rien. Une
   garantie dont le premier membre a une cellule se lit dans cette cellule,
-  « sur » son fond. Sinon elle se lit sous le fond qu'elle juge, « dessus » :
+  « sur » son fond : `page/foreground` y lit aussi son jugement sur
+  `surface/default`. Sinon elle se lit sous le fond qu'elle juge, « dessus » :
   `solid/foreground` sous chacun des trois fonds de `solid`, `surface/foreground`
-  et `surface/border` sous chacun des fonds de `surface` ; leur jugement contre
-  la page se lit sous `surface/default`. Chaque ligne donne ✓ ou ✗, le
+  et `surface/border` sous chacun des fonds de `surface`, `surface/subtle` compris ;
+  leur jugement contre la page se lit sous `surface/default`. Chaque ligne donne ✓ ou ✗, le
   contraste mesuré et son niveau WCAG (`[VER-13]`), dans le même texte. Une
   garantie manquée prend la couleur de danger, et son échec compte dans le
-  verdict du thème. `page/divider` n'a aucune garantie : sa cellule dit « sans
-  minimum de contraste ». Une garantie dont un cran manque à la liste n'a
+  verdict du thème. `page/divider` et `surface/divider` n'ont aucune garantie :
+  leur cellule dit « sans minimum de contraste ». Une garantie dont un cran manque à la liste n'a
   pas de ligne.
 - `[PLA-18]` Une palette à deux intensités a une section de variables par
   profil, « · Soft » puis « · Vivid », quel que soit le porteur : deux
   palettes de même configuration donnent deux cadres de même structure,
   quelle que soit la saturation de leur référence. Une palette à une
   intensité a une section, sans nom de profil. Le cadre de Bleu compte
-  1 778 calques à deux intensités et 914 à une, toutes parties dessinées.
+  1 858 calques à deux intensités et 958 à une, toutes parties dessinées.
 - `[PLA-28]` `contenuDesPlanches` choisit les parties qu'un cadre dessine :
   la note sous les rampes, les trois lignes de dossiers (clé `usages`), les
   grilles de contrastes, et chaque thème, un au moins. L'en-tête et les rampes se dessinent toujours : leurs
@@ -1949,7 +1952,7 @@ Onglet Création, une palette ouverte :
 │ ┌ › ◆ Color shift ──────────────────────────────────── Par défaut ┐   │
 │ ┌ › Interface de test ─────────────────────── Thème Light · Vivid ─┐ │
 ├──────────────────────────────────────────────────────────────────────┤
-│ ✗ 2 garanties manquées sur 76 · 1 alerte · text 700 / …  [Vérifier] │
+│ ✗ 2 garanties manquées sur 96 · 1 alerte · text 700 / …  [Vérifier] │
 └──────────────────────────────────────────────────────────────────────┘
 ```
 
@@ -2074,29 +2077,33 @@ palette » gardent leurs libellés au-dessus des champs.
   minimale. La garantie choisie s'y trace en éventail : un arc part d'un seul
   point, la nuance de son premier membre, ou la case des boutons pour
   `solid/foreground`, vers chacun de ses fonds, un arc par colonne. Le trait
-  est plein pour `default`, tireté pour `hover`, pointillé pour `pressed` et
-  tiret-point pour la page. Un arc en échec prend la couleur de danger, et une
-  légende d'une ligne nomme les quatre traits et rappelle que le texte garde
+  est plein pour `default`, tireté pour `hover`, pointillé pour `pressed`,
+  tiret et deux points pour `subtle` et tiret-point pour la page. Un arc en échec prend la couleur de danger, et une
+  légende d'une ligne nomme les traits et rappelle que le texte garde
   sa nuance dans tous les états : seul le fond change.
   La liste donne une ligne par garantie de la section 11.2, nommée par ses
   variables et son libellé, jamais par son numéro. Les garanties se rangent
   dans deux encadrés : « Textes lisibles » au minimum texte, « Éléments
   visibles » au minimum non textuel, chacun avec son titre en bandeau et son
-  minimum lu dans la recette. Sous le bandeau, les quatre colonnes de fonds,
-  « sur la page », `default`, `hover` et `pressed`, se nomment une fois. Une
-  ligne porte la relation (« `surface/foreground` sur `surface/*` et la
-  page »), où `surface/*` désigne les trois états du dossier, et le libellé de
-  son premier membre (« texte sur fond teinté »). La ligne de
+  minimum lu dans la recette. Sous le bandeau, les six colonnes de fonds,
+  « sur la page », « sur la carte », `subtle`, `default`, `hover` et `pressed`, se nomment une fois. Une
+  ligne porte la relation (« `surface/border` sur `surface/*`, la page et la
+  carte »), où `surface/*` désigne les quatre fonds teintés, `subtle` et les
+  trois états ; la garantie du texte de `surface` nomme ses fonds un à un, sans
+  l'appui, que la garantie 8 juge à 3:1 sous le libellé « Texte des fonds
+  teintés à l'appui ». La garantie du texte de la page sur `surface/default`
+  porte le libellé « Texte de la page sur un fond teinté ». Chaque ligne
+  porte aussi le libellé de son premier membre (« texte sur fond teinté »). La ligne de
   `solid/foreground` ajoute que ce texte suit le réglage « Texte des boutons »
   du thème. Chaque fond jugé s'écrit dans sa colonne : le spécimen à gauche, les deux
   numéros comparés (« 700 / 100 », « Blanc / 700 », « 700 / page »), puis le ratio avec ✓
   ou ✗ et son badge de niveau (`[VER-13]`) sur une seule ligne, « ✗ 21,00 » et
   « AA ✗ » compris. Une garantie qui ne vise pas un fond laisse sa case vide.
-  Sous 900 px de fenêtre, la relation passe au-dessus des quatre cases, qui se
+  Sous 1 100 px de fenêtre, la relation passe au-dessus des six cases, qui se
   partagent la largeur, le spécimen passe au-dessus des numéros et du ratio,
   et le nom de chaque colonne se centre sur elle. La ligne choisie prend le
   fond de survol et une barre de 3 px écartée du texte. Une ligne en échec
-  porte le fond fautif (« Sur la page » ou « État hover »), son ratio et le
+  porte le fond fautif (« Sur la page », « Sur le fond teinté léger » ou « État hover »), son ratio et le
   minimum, puis les liens vers les réglages qui peuvent agir (`[VER-15]`),
   « Ajuster la référence » (`[UI-15]`) en dernier. La liste se termine par
   `page/divider`, le filet : une phrase dit sa nuance et qu'il n'a pas de
@@ -2279,8 +2286,8 @@ palette » gardent leurs libellés au-dessus des champs.
   élément. `src/ui/ligneFixe.ts` en est le composant.
 - `[UI-18]` Sous le contenu défilant de l'onglet Création, un pied fixe
   d'une ligne porte le bilan de la palette ouverte : une icône de sévérité,
-  le compte des garanties et des alertes, « 76 garanties tenues · aucune
-  alerte » ou « 2 garanties manquées sur 76 · 1 alerte », le premier
+  le compte des garanties et des alertes, « 96 garanties tenues · aucune
+  alerte » ou « 2 garanties manquées sur 96 · 1 alerte », le premier
   message, et « Vérifier ». Il est fixé au bas de la fenêtre : il reste visible
   à toute position de défilement, pendant un geste compris, et quand le
   contenu est plus court que la fenêtre. « Vérifier » ouvre l'onglet
@@ -2488,7 +2495,7 @@ Onglet Vérification :
 ┌──────────────────────────────────────────────────────────────────────┐
 │ [● Bleu marque            ✗ ▾] [Nouvelle palette] [⋯]                 │
 │ Palette Bleu marque                          Aperçu [Light|Dark]      │
-│ ┌ ✗ 2 garanties manquées sur 76 · 1 point à vérifier ──────────────┐ │
+│ ┌ ✗ 2 garanties manquées sur 96 · 1 point à vérifier ──────────────┐ │
 │ Garanties à corriger (2)                                              │
 │ │ où · quoi · geste                          [Ajuster le Color shift] │
 │ Points à vérifier (1)                                                 │
@@ -2497,7 +2504,7 @@ Onglet Vérification :
 │ │                                   Afficher  [Soft ✓ | Vivid ✗ 2] │  │
 │ │ réglette : page, boutons, onze nuances, éventail de la garantie  │  │
 │ │ Textes lisibles                                 minimum 4,5:1   │  │
-│ │   text sur surface     700 / 100   800 / 200   900 / 300        │  │
+│ │   text sur surface     700 / 50   700 / 100   700 / 200   …     │  │
 │ │ Éléments visibles                                 minimum 3:1   │  │
 │ └─────────────────────────────────────────────────────────────────┘  │
 │ Corrigez la palette dans Création, ou écrivez-la …  [Retour à Création] │

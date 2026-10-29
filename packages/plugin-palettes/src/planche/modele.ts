@@ -363,6 +363,11 @@ const VARIABLES_DU_DOSSIER: Readonly<Record<Dossier, readonly VariableDePalette[
   page: ['page/foreground', 'page/border', 'page/divider'],
 };
 
+/** Les variables d'un dossier qui n'ont pas d'état : `surface` les range sous ses trois états, dans une seconde rangée. */
+const VARIABLES_SANS_ETAT: Readonly<Partial<Record<Dossier, readonly VariableDePalette[]>>> = {
+  surface: ['surface/subtle', 'surface/divider'],
+};
+
 /**
  * La largeur d'une cellule de `page`, et celle de `ring`, que son anneau élargit
  * de la trame. Les trois cellules de `page` tiennent dans les trois colonnes
@@ -413,7 +418,8 @@ function specimen(contexte: Contexte, tranche: Tranche, variable: VariableDePale
       return cadre('spécimen', 'HORIZONTAL', [texte('libellé', a.solid, 'role', peindre('solid/foreground'))], { ...boite, fond: peindre(variable), alignement: CENTRE });
     case 'surface/default':
     case 'surface/hover':
-    case 'surface/pressed': {
+    case 'surface/pressed':
+    case 'surface/subtle': {
       const trait = contour('surface/border');
       const encre = estPresente(contexte, tranche, 'surface/foreground') ? peindre('surface/foreground') : peinture(encres.fond, contexte.profil);
       return cadre('spécimen', 'HORIZONTAL', [texte('libellé', a.surface, 'role', encre)], {
@@ -492,7 +498,7 @@ function cellule(contexte: Contexte, tranche: Tranche, variable: VariableDePalet
       texte('variable', `${variable} · ${cran}`, 'chiffre', encres.encre, largeur),
       ...lignes,
       // Le filet ne promet aucun contraste : la cellule le dit, au lieu de rester muette.
-      ...(variable === 'page/divider' ? [texte('sans minimum', TEXTES_DES_DOSSIERS_DE_LA_PLANCHE.sansMinimum, 'note', encres.seconde, largeur)] : []),
+      ...(variable === 'page/divider' || variable === 'surface/divider' ? [texte('sans minimum', TEXTES_DES_DOSSIERS_DE_LA_PLANCHE.sansMinimum, 'note', encres.seconde, largeur)] : []),
     ], { espacement: 0 }),
   ], { largeur });
 }
@@ -501,6 +507,7 @@ function cellule(contexte: Contexte, tranche: Tranche, variable: VariableDePalet
  * La ligne d'un dossier : son rôle, son code et ses exemples, le texte et le
  * contour qu'il porte dits une fois, puis une cellule par état. `page` n'a
  * pas d'états : ses trois variables se suivent sous les colonnes d'états.
+ * `surface` range `surface/subtle` et `surface/divider` sous ses trois états.
  */
 function ligneDeDossier(contexte: Contexte, tranche: Tranche, dossier: Dossier, encres: Encres, garanties: readonly LigneDeGarantie[]): NoeudCadre | null {
   const variables = VARIABLES_DU_DOSSIER[dossier];
@@ -517,6 +524,10 @@ function ligneDeDossier(contexte: Contexte, tranche: Tranche, dossier: Dossier, 
     estPresente(contexte, tranche, variable)
       ? cellule(contexte, tranche, variable, encres, garanties, largeurDe(variable))
       : espace(largeurDe(variable), 1));
+  const sansEtat = (VARIABLES_SANS_ETAT[dossier] ?? []).filter((variable) => estPresente(contexte, tranche, variable));
+  const dessous = sansEtat.length === 0
+    ? []
+    : [cadre('sans état', 'HORIZONTAL', sansEtat.map((variable) => cellule(contexte, tranche, variable, encres, garanties, largeurDe(variable))), { espacement: 2 * TRAME })];
   return cadre(`dossier ${dossier}`, 'HORIZONTAL', [
     cadre('libellés', 'VERTICAL', [
       texte('rôle', t.dossiers[dossier].role, 'role', encres.encre, USAGE.libelle),
@@ -525,7 +536,9 @@ function ligneDeDossier(contexte: Contexte, tranche: Tranche, dossier: Dossier, 
       ...dites.map((dite) => texte('encres', dite, 'note', encres.encre, USAGE.libelle)),
       ...(neutre ? [texte('neutre', t.noteDuNeutre, 'note', encres.seconde, USAGE.libelle)] : []),
     ], { espacement: 0, largeur: USAGE.libelle }),
-    ...(dossier === 'page' ? [cadre('variables', 'HORIZONTAL', cellules, { espacement: TRAME })] : cellules),
+    ...(dossier === 'page'
+      ? [cadre('variables', 'HORIZONTAL', cellules, { espacement: TRAME })]
+      : dessous.length > 0 ? [cadre('variables teintées', 'VERTICAL', [cadre('états teintés', 'HORIZONTAL', cellules, { espacement: 2 * TRAME }), ...dessous], { espacement: 2 * TRAME })] : cellules),
   ], { espacement: 2 * TRAME });
 }
 

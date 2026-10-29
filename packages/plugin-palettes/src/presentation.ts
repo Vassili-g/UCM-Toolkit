@@ -116,7 +116,7 @@ export interface GroupeDePromesses {
 
 /**
  * Les groupes de promesses manquées, par mode, puis dans l'ordre des garanties
- * G1 à G7, puis dans l'ordre des fonds de chaque garantie. Deux intensités en
+ * G1 à G9, puis dans l'ordre des fonds de chaque garantie. Deux intensités en
  * échec sur le même fond font un groupe et comptent deux contrôles.
  *
  * Le moteur rend, pour un mode, une intensité et une garantie, une promesse
@@ -246,7 +246,7 @@ export function ciblesDeLAlerte(alerte: Alerte): CibleDAction[] {
 export type Dossier = (typeof DOSSIERS)[number];
 
 /** Le nom français sous un code : la clé de `TEXTES_DE_L_APERCU.noms`. */
-export type NomDeCode = 'repos' | 'survol' | 'appui' | 'texte' | 'texteSecondaire' | 'contour' | 'texteDesBoutons' | 'filet' | 'anneauDeFocus';
+export type NomDeCode = 'repos' | 'survol' | 'appui' | 'leger' | 'texte' | 'texteSecondaire' | 'contour' | 'texteDesBoutons' | 'filet' | 'anneauDeFocus';
 
 /** Un code sous une accolade : la variable qu'il désigne, la fin de son nom, et son nom français. */
 export interface CodeDeBande {
@@ -284,7 +284,7 @@ function groupesDuDossier(dossier: Dossier, neutre: boolean): Membre[][] {
     case 'solid':
       return [[['solid/foreground', 'texteDesBoutons']], etats];
     case 'surface':
-      return [etats, [['surface/foreground', 'texte'], ['surface/border', 'contour']]];
+      return [[['surface/subtle', 'leger'], ...etats], [['surface/divider', 'filet']], [['surface/foreground', 'texte'], ['surface/border', 'contour']]];
     case 'page':
       return [
         [['page/divider', 'filet']],
@@ -301,6 +301,35 @@ interface Groupe {
   readonly codes: readonly CodeDeBande[];
   readonly debut: number;
   readonly fin: number;
+}
+
+/** Une variable présente dans la liste : son code, son cran (0 pour le texte des boutons) et sa colonne. */
+interface Present {
+  readonly code: CodeDeBande;
+  readonly cran: number;
+  readonly rang: number;
+}
+
+/**
+ * Réunit les groupes dont les colonnes se recouvrent : une colonne n'a qu'une accolade. Deux variables
+ * qui visent le même cran, `surface/divider` et `surface/pressed`, ou `ring` et le texte en Dark inversé,
+ * s'écrivent sous la même rayure, dans l'ordre de leurs nuances.
+ */
+function fusionner(listes: readonly (readonly Present[])[]): Groupe[] {
+  const etendues = listes
+    .map((presents) => ({ presents: [...presents], debut: Math.min(...presents.map((present) => present.rang)), fin: Math.max(...presents.map((present) => present.rang)) }))
+    .sort((a, b) => a.debut - b.debut);
+  const fusionnes: typeof etendues = [];
+  for (const etendue of etendues) {
+    const dernier = fusionnes[fusionnes.length - 1];
+    if (dernier && etendue.debut <= dernier.fin) {
+      dernier.presents.push(...etendue.presents);
+      dernier.fin = Math.max(dernier.fin, etendue.fin);
+    } else {
+      fusionnes.push(etendue);
+    }
+  }
+  return fusionnes.map(({ presents, debut, fin }) => ({ codes: presents.sort((a, b) => a.cran - b.cran).map((present) => present.code), debut, fin }));
 }
 
 /**
@@ -343,20 +372,17 @@ export function etaler(groupes: readonly Groupe[], nombreDeCrans: number): Accol
  */
 export function bandesDe(crans: readonly number[], mode: Mode, sens: SensDuTheme, neutre: boolean): Bande[] {
   return DOSSIERS.map((dossier): Bande => {
-    const groupes = groupesDuDossier(dossier, neutre).flatMap((membres): Groupe[] => {
-      const presents = membres.flatMap(([variable, nom]) => {
+    const listes = groupesDuDossier(dossier, neutre).flatMap((membres): Present[][] => {
+      const presents = membres.flatMap(([variable, nom]): Present[] => {
         const cran = cranDeLaVariable(variable, mode, sens);
         if (cran === undefined) return [];
         const rang = typeof cran === 'number' ? crans.indexOf(cran) : -1;
         if (typeof cran === 'number' && rang < 0) return [];
         return [{ code: { variable, code: codeDe(variable), nom }, cran: typeof cran === 'number' ? cran : 0, rang }];
       });
-      if (presents.length === 0) return [];
-      presents.sort((a, b) => a.cran - b.cran);
-      const rangs = presents.map((present) => present.rang);
-      return [{ codes: presents.map((present) => present.code), debut: Math.min(...rangs), fin: Math.max(...rangs) }];
+      return presents.length === 0 ? [] : [presents];
     });
-    return { dossier, accolades: etaler(groupes, crans.length) };
+    return { dossier, accolades: etaler(fusionner(listes), crans.length) };
   });
 }
 

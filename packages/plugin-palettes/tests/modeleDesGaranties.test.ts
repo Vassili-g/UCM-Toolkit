@@ -1,4 +1,4 @@
-/** Ce que la carte des garanties montre avant son dessin : sept lignes, cinq colonnes de fonds, un départ d'éventail ([UI-09], M1). */
+/** Ce que la carte des garanties montre avant son dessin : neuf lignes, six colonnes de fonds, un départ d'éventail ([UI-09], M1). */
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
@@ -33,13 +33,13 @@ function avecTexte(mode: Mode, texte: TexteDesBoutons): Recette {
 const lignesDe = (recette: Recette, mode: Mode) =>
   lignesDesGaranties(verifierPromesses(recette, BLEU).filter((promesse) => promesse.mode === mode && promesse.profil === 'vivid'));
 
-/** Les colonnes remplies d'une ligne, dans l'ordre : `page`, `carte`, `default`, `hover`, `pressed`. */
+/** Les colonnes remplies d'une ligne, dans l'ordre : `page`, `carte`, `subtle`, `default`, `hover`, `pressed`. */
 const colonnesDe = (ligne: ReturnType<typeof lignesDe>[number]) => ligne.cases.map((cas) => cas.colonne).join(' ');
 
-test('[UI-09] une ligne par garantie : sept lignes, dans deux blocs, textes lisibles puis éléments visibles', () => {
+test('[UI-09] une ligne par garantie : neuf lignes, dans deux blocs, textes lisibles puis éléments visibles', () => {
   const lignes = lignesDe({ ...DEFAUT, palettes: [BLEU] }, 'light');
-  assert.deepEqual(lignes.map((ligne) => ligne.garantie.numero), [1, 2, 3, 4, 5, 6, 7]);
-  assert.deepEqual(blocsDeGaranties(lignes).map((bloc) => [bloc.seuil, bloc.lignes.map((ligne) => ligne.garantie.numero)]), [['texte', [1, 3, 5]], ['nonTexte', [2, 4, 6, 7]]]);
+  assert.deepEqual(lignes.map((ligne) => ligne.garantie.numero), [1, 2, 3, 4, 5, 6, 7, 8, 9]);
+  assert.deepEqual(blocsDeGaranties(lignes).map((bloc) => [bloc.seuil, bloc.lignes.map((ligne) => ligne.garantie.numero)]), [['texte', [1, 3, 5, 9]], ['nonTexte', [2, 4, 6, 7, 8]]]);
 });
 
 test('[UI-09] une garantie qui ne vise pas un fond laisse sa case vide', () => {
@@ -48,17 +48,19 @@ test('[UI-09] une garantie qui ne vise pas un fond laisse sa case vide', () => {
   assert.deepEqual(colonnes, {
     1: 'default hover pressed',
     2: 'page carte',
-    3: 'page carte default hover pressed',
-    4: 'page carte default hover pressed',
+    3: 'page carte subtle default hover',
+    4: 'page carte subtle default hover pressed',
     5: 'page carte',
     6: 'page carte',
     7: 'page carte',
+    8: 'pressed',
+    9: 'default',
   });
 });
 
 test('[UI-09] l’éventail part d’un seul point : la nuance du premier membre, la case « boutons » pour le texte des boutons', () => {
   const lignes = lignesDe({ ...DEFAUT, palettes: [BLEU] }, 'light');
-  assert.deepEqual(lignes.map((ligne) => ligne.depart), ['boutons', 700, 800, 800, 700, 700, 600]);
+  assert.deepEqual(lignes.map((ligne) => ligne.depart), ['boutons', 700, 700, 700, 700, 700, 600, 700, 700]);
   const [g1, , , , , , g7] = lignes;
   assert.deepEqual(g1.cases.map((cas) => caseDeLaReglette(cas.promesse.second)), [700, 800, 900]);
   assert.deepEqual(g7.cases.map((cas) => caseDeLaReglette(cas.promesse.second)), ['page', 'carte']);
@@ -67,12 +69,12 @@ test('[UI-09] l’éventail part d’un seul point : la nuance du premier membre
 test('[UI-09] les crans suivent la table du sens du thème affiché, et le texte des boutons de ce thème', () => {
   const inverse = avecTexte('light', 'noir');
   const lignes = lignesDe(inverse, 'light');
-  assert.deepEqual(lignes.map((ligne) => ligne.depart), ['boutons', 700, 900, 900, 800, 800, 700]);
+  assert.deepEqual(lignes.map((ligne) => ligne.depart), ['boutons', 700, 900, 900, 800, 800, 700, 900, 800]);
   assert.deepEqual(lignes[0].cases.map((cas) => caseDeLaReglette(cas.promesse.second)), [700, 600, 500], 'solid/hover et solid/pressed vont vers la page');
   assert.equal(lignes[0].cases[0].promesse.premier.nature, 'texteDesBoutons');
   assert.deepEqual(lignes[0].cases[0].promesse.premier.couleur, [0, 0, 0], 'noir pur');
   // L'autre thème garde sa table : Dark reste normal, avec ses surfaces plus hautes (texte au 950).
-  assert.deepEqual(lignesDe(inverse, 'dark').map((ligne) => ligne.depart), ['boutons', 700, 950, 950, 700, 700, 600]);
+  assert.deepEqual(lignesDe(inverse, 'dark').map((ligne) => ligne.depart), ['boutons', 700, 950, 950, 700, 700, 600, 950, 700]);
 });
 
 test('[UI-09] la garantie choisie à l’ouverture est la première ligne manquée de la carte, sinon le texte sur fond teinté', () => {
@@ -92,27 +94,44 @@ test('[UI-09] [VER-21] une ligne nomme ses fonds : les trois états d’un dossi
   assert.deepEqual(GARANTIES.map((garantie) => nom(ciblesDeLaGarantie(garantie))), [
     ['solid/*'],
     ['la page', 'la carte'],
+    ['surface/subtle', 'surface/default', 'surface/hover', 'la page', 'la carte'],
     ['surface/*', 'la page', 'la carte'],
-    ['surface/*', 'la page', 'la carte'],
     ['la page', 'la carte'],
     ['la page', 'la carte'],
     ['la page', 'la carte'],
+    ['surface/pressed'],
+    ['surface/default'],
   ]);
   assert.deepEqual(GARANTIES.flatMap((garantie) => garantie.fonds.map(colonneDuFond)), [
     'default', 'hover', 'pressed',
     'page', 'carte',
-    'default', 'hover', 'pressed', 'page', 'carte',
-    'default', 'hover', 'pressed', 'page', 'carte',
+    'subtle', 'default', 'hover', 'page', 'carte',
+    'subtle', 'default', 'hover', 'pressed', 'page', 'carte',
     'page', 'carte',
     'page', 'carte',
     'page', 'carte',
+    'pressed',
+    'default',
   ]);
 });
 
 test('[UI-09] une garantie dont un cran manque à la liste n’a pas de ligne', () => {
   const sans700 = { ...DEFAUT, palettes: [BLEU], crans: DEFAUT.crans.filter((cran) => cran !== 700), courbes: { light: DEFAUT.courbes.light.filter((_, rang) => DEFAUT.crans[rang] !== 700), dark: DEFAUT.courbes.dark.filter((_, rang) => DEFAUT.crans[rang] !== 700) } };
   const lignes = lignesDe(sans700, 'light');
-  assert.deepEqual(lignes.map((ligne) => ligne.garantie.numero), [3, 4, 7]);
+  assert.deepEqual(lignes.map((ligne) => ligne.garantie.numero), [7]);
+});
+
+test('[UI-09] une liste sans 50 laisse sans ligne les garanties qui jugent `surface/subtle`', () => {
+  const sans50 = { ...DEFAUT, palettes: [BLEU], crans: DEFAUT.crans.filter((cran) => cran !== 50), courbes: { light: DEFAUT.courbes.light.slice(1), dark: DEFAUT.courbes.dark.slice(1) } };
+  assert.deepEqual(lignesDe(sans50, 'light').map((ligne) => ligne.garantie.numero), [1, 2, 5, 6, 7, 8, 9], 'les garanties 3 et 4 manquent, la 8 ne juge que `surface/pressed`');
+});
+
+test('[UI-09] les garanties 8 et 9 ont chacune un fond, sous les colonnes `pressed` et `default`', () => {
+  const lignes = lignesDe({ ...DEFAUT, palettes: [BLEU] }, 'dark');
+  const [g8, g9] = [8, 9].map((numero) => lignes.find((ligne) => ligne.garantie.numero === numero)!);
+  assert.deepEqual([g8.garantie.premier.variable, g8.garantie.seuil, colonnesDe(g8)], ['surface/foreground', 'nonTexte', 'pressed']);
+  assert.deepEqual([g9.garantie.premier.variable, g9.garantie.seuil, colonnesDe(g9)], ['page/foreground', 'texte', 'default']);
+  assert.equal(caseDeLaReglette(g9.cases[0].promesse.second), 300, 'surface/default en Dark');
 });
 
 /** La recette par défaut où la nuance `cran` de la courbe Dark vaut `luminosite`. */
@@ -122,16 +141,15 @@ function avecLaCourbeDark(cran: number, luminosite: number): Recette {
   return { ...DEFAUT, palettes: [BLEU], courbes: { ...DEFAUT.courbes, dark } };
 }
 
-test('[UI-09] une promesse manquée sur la carte seule se range dans sa colonne, pour G5 comme pour G7', () => {
+test('[UI-09] une promesse manquée sur la carte seule se range dans sa colonne', () => {
   const verdicts = (lignes: ReturnType<typeof lignesDe>, numero: number) =>
     lignes.find((ligne) => ligne.garantie.numero === numero)!.cases.map((cas) => `${cas.colonne} ${cas.promesse.verdict}`);
-  const texte = lignesDe(avecLaCourbeDark(700, 0.6), 'dark');
-  assert.deepEqual(verdicts(texte, 5), ['page tenue', 'carte manquee'], 'la 700 à 0,60 tient la page, pas la carte');
-  assert.equal(garantieParDefaut(texte), 5);
-  assert.equal(caseDeLaReglette(texte.find((ligne) => ligne.garantie.numero === 5)!.cases[1].promesse.second), 'carte');
+  // Le moteur éloigne le texte coloré des fonds teintés : à 0,60, la 700 du Dark tient la page et la carte.
+  assert.deepEqual(verdicts(lignesDe(avecLaCourbeDark(700, 0.6), 'dark'), 5), ['page tenue', 'carte tenue']);
   // La 600 à 0,50 ne manque la carte qu'en Soft : l'anneau reste tenu en Vivid.
   const recette = avecLaCourbeDark(600, 0.5);
   const anneau = lignesDesGaranties(verifierPromesses(recette, BLEU).filter((promesse) => promesse.mode === 'dark' && promesse.profil === 'soft'));
   assert.deepEqual(verdicts(anneau, 7), ['page tenue', 'carte manquee']);
   assert.equal(garantieParDefaut(anneau), 7);
+  assert.equal(caseDeLaReglette(anneau.find((ligne) => ligne.garantie.numero === 7)!.cases[1].promesse.second), 'carte');
 });

@@ -257,7 +257,7 @@ export const TEXTES_DE_LA_VERIFICATION = {
   versCreation: 'Retour à Création',
 } as const;
 
-/** Le verdict de l'onglet Vérification : « 76 garanties tenues », « 2 garanties manquées sur 76 ». */
+/** Le verdict de l'onglet Vérification : « 96 garanties tenues », « 2 garanties manquées sur 96 ». */
 export function verdictDesGaranties(garanties: number, manquees: number): string {
   if (manquees === 0) return `${garanties} ${garanties === 1 ? 'garantie tenue' : 'garanties tenues'}`;
   return `${manquees} ${manquees === 1 ? 'garantie manquée' : 'garanties manquées'} sur ${garanties}`;
@@ -270,8 +270,8 @@ export function pointsDuVerdict(nombre: number): string {
 }
 
 /**
- * Le bilan du pied ([UI-18]) : « 76 garanties tenues · aucune alerte »,
- * « 2 garanties manquées sur 76 · 1 alerte », « Palette libre · 2 alertes ».
+ * Le bilan du pied ([UI-18]) : « 96 garanties tenues · aucune alerte »,
+ * « 2 garanties manquées sur 96 · 1 alerte », « Palette libre · 2 alertes ».
  */
 export function bilanDuPied(garanties: number, manquees: number, alertes: number, libre: boolean): string {
   const lesAlertes = alertes === 0 ? 'aucune alerte' : alertes === 1 ? '1 alerte' : `${alertes} alertes`;
@@ -875,13 +875,16 @@ export const TEXTES_DES_GARANTIES = {
   et: 'et',
   laPage: 'la page',
   laCarte: 'la carte',
-  // Les cinq colonnes de fonds : la page, la carte, puis les trois états de `solid` et de `surface` (S3).
-  colonnes: { page: 'sur la page', carte: 'sur la carte', default: 'default', hover: 'hover', pressed: 'pressed' },
+  // Les six colonnes de fonds : la page, la carte, `surface/subtle`, puis les trois états de `solid` et de `surface` (S3).
+  colonnes: { page: 'sur la page', carte: 'sur la carte', subtle: 'subtle', default: 'default', hover: 'hover', pressed: 'pressed' },
+  // Les libellés des garanties 8 et 9, dont le premier membre est celui d'une garantie voisine.
+  texteALAppui: 'Texte des fonds teintés à l’appui',
+  texteDeLaPageSurUnFondTeinte: 'Texte de la page sur un fond teinté',
   // Les trois cases de la réglette avant la première nuance.
   casePage: 'page',
   caseCarte: 'carte',
   caseBoutons: 'boutons',
-  legende: "Trait plein : default · tireté : hover · pointillé : pressed · tiret-point : la page · longs tirets : la carte. Le texte garde sa nuance dans tous les états : seul le fond change.",
+  legende: "Trait plein : default · tireté : hover · pointillé : pressed · tiret et deux points : subtle · tiret-point : la page · longs tirets : la carte. Le texte garde sa nuance dans tous les états : seul le fond change.",
   // Dite sous `solid/foreground`, dont le code s'écrit avant elle.
   noteDuTexteDesBoutons: (mode: Mode, texte: TexteDesBoutons) => ` suit le réglage « Texte des boutons » du thème ${NOM_DU_MODE[mode]} : ${NOM_DU_TEXTE_DES_BOUTONS[texte]}.`,
   // Dite sous `page/divider`, dont le code s'écrit avant elle.
@@ -892,8 +895,8 @@ export const TEXTES_DES_GARANTIES = {
     ? `Thème ${NOM_DU_MODE[mode]} : 1 garantie manquée`
     : `Thème ${NOM_DU_MODE[mode]} : ${nombre} garanties manquées`),
   voirLeTheme: (mode: Mode) => `Voir le thème ${NOM_DU_MODE[mode]}`,
-  echec: (fond: 'page' | 'carte' | 'default' | 'hover' | 'pressed', contraste: number, seuil: number) =>
-    `${fond === 'page' ? 'Sur la page' : fond === 'carte' ? 'Sur la carte' : `État ${fond}`} : ${contrasteEcrit(contraste)} pour un minimum de ${seuilEcrit(seuil)}:1`,
+  echec: (fond: 'page' | 'carte' | 'subtle' | 'default' | 'hover' | 'pressed', contraste: number, seuil: number) =>
+    `${fond === 'page' ? 'Sur la page' : fond === 'carte' ? 'Sur la carte' : fond === 'subtle' ? 'Sur le fond teinté léger' : `État ${fond}`} : ${contrasteEcrit(contraste)} pour un minimum de ${seuilEcrit(seuil)}:1`,
   numeros: (premier: string, second: string) => `${premier} / ${second}`,
   resultat: (tenue: boolean, contraste: number) => `${tenue ? '✓' : '✗'} ${ecrireContraste(contraste)}`,
 } as const;
@@ -980,6 +983,7 @@ export const TEXTES_DE_L_APERCU = {
     texteSecondaire: 'texte secondaire',
     contour: 'contour',
     texteDesBoutons: 'texte des boutons',
+    leger: 'léger',
     filet: 'filet',
     anneauDeFocus: 'anneau de focus',
   },
@@ -1622,7 +1626,6 @@ export const TEXTES_DE_L_INTERFACE_DE_TEST = {
     pastille: 'pastille',
     separateur: 'séparateur',
     fondAuSurvol: 'fond au survol',
-    fondEtContour: 'fond et contour',
   },
   equipe: {
     organisation: 'Studio Nord',

@@ -28,8 +28,8 @@ test('[VER-01] chaque palette donne, par mode et par profil, chaque cran avec so
 
 test('[VER-01] chaque promesse nomme sa garantie par ses variables, avec son contraste et son verdict ; chaque alerte, sa mesure', () => {
   const [bleu, jaune] = rapportDeLaRecette(RECETTE, null, 'SRGB', null).palettes;
-  // Vingt et un contrôles par mode et par intensité : 3 + 2 + 5 + 5 + 2 + 2 + 2.
-  assert.equal(bleu.promesses.length, 84);
+  // Vingt-quatre contrôles par mode et par intensité : 3 + 2 + 5 + 6 + 2 + 2 + 2 + 1 + 1.
+  assert.equal(bleu.promesses.length, 96);
   assert.ok(bleu.promesses.every((promesse) => typeof promesse.contraste === 'number' && ['tenue', 'manquee'].includes(promesse.verdict)), JSON.stringify(bleu.promesses[0]));
   const premiere = bleu.promesses[0];
   assert.deepEqual(premiere.garantie, { premier: 'solid/foreground', fond: 'solid/default', seuil: 'texte' });
@@ -37,10 +37,12 @@ test('[VER-01] chaque promesse nomme sa garantie par ses variables, avec son con
   assert.deepEqual(fonds, [
     'solid/foreground sur solid/default', 'solid/foreground sur solid/hover', 'solid/foreground sur solid/pressed',
     'solid/default sur elevation/page', 'solid/default sur elevation/raised',
-    'surface/foreground sur surface/default', 'surface/foreground sur surface/hover', 'surface/foreground sur surface/pressed', 'surface/foreground sur elevation/page', 'surface/foreground sur elevation/raised',
-    'surface/border sur surface/default', 'surface/border sur surface/hover', 'surface/border sur surface/pressed', 'surface/border sur elevation/page', 'surface/border sur elevation/raised',
+    'surface/foreground sur surface/subtle', 'surface/foreground sur surface/default', 'surface/foreground sur surface/hover', 'surface/foreground sur elevation/page', 'surface/foreground sur elevation/raised',
+    'surface/border sur surface/subtle', 'surface/border sur surface/default', 'surface/border sur surface/hover', 'surface/border sur surface/pressed', 'surface/border sur elevation/page', 'surface/border sur elevation/raised',
     'page/foreground sur elevation/page', 'page/foreground sur elevation/raised', 'page/border sur elevation/page', 'page/border sur elevation/raised',
     'ring sur elevation/page', 'ring sur elevation/raised',
+    'surface/foreground sur surface/pressed',
+    'page/foreground sur surface/default',
   ]);
   assert.ok(bleu.promesses.every((promesse) => !('paire' in promesse) && !('numero' in promesse.garantie)), 'aucun numéro de garantie ni paire d’emplois');
   const vive = jaune.alertes.find((alerte) => alerte.code === 'reference-plus-vive');
@@ -48,9 +50,10 @@ test('[VER-01] chaque promesse nomme sa garantie par ses variables, avec son con
 });
 
 test('[VER-01] une promesse manquée sur la carte seule porte `elevation/raised`, et la même sur la page reste tenue', () => {
-  const dark = VIDE.courbes.dark.map((clarte, rang) => (VIDE.crans[rang] === 700 ? 0.6 : clarte));
+  // L'anneau Dark à 0,50 au cran 600 : Soft le manque sur la carte seule.
+  const dark = VIDE.courbes.dark.map((clarte, rang) => (VIDE.crans[rang] === 600 ? 0.5 : clarte));
   const [bleu] = rapportDeLaRecette({ ...RECETTE, courbes: { ...RECETTE.courbes, dark } }, null, 'SRGB', null).palettes;
-  const lues = bleu.promesses.filter((promesse) => promesse.mode === 'dark' && promesse.profil === 'vivid' && promesse.garantie.premier === 'page/foreground');
+  const lues = bleu.promesses.filter((promesse) => promesse.mode === 'dark' && promesse.profil === 'soft' && promesse.garantie.premier === 'ring');
   assert.deepEqual(lues.map((promesse) => [promesse.garantie.fond, promesse.verdict]), [['elevation/page', 'tenue'], ['elevation/raised', 'manquee']]);
   assert.deepEqual(lues.map((promesse) => promesse.second.nature === 'fond' && promesse.second.fond), ['page', 'carte']);
 });

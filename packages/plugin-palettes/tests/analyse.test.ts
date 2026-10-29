@@ -27,10 +27,10 @@ const codes = (recette: Recette) => analyserPalette(recette, recette.palettes[0]
 test('[VER-07] une palette compte ses promesses manquées', () => {
   assert.equal(analyserPalette(avec(BLEU), BLEU).manquees, 0);
   const light = [...DEFAUT.courbes.light];
-  // La 700 de Light à 0,6 : `solid/foreground` sur `solid/default` (G1), `page/foreground` sur la page et sur la carte (G5) manquent, dans les deux profils.
-  light[7] = 0.6;
+  // La 800 de Light à 0,6 : `solid/foreground` sur `solid/hover` (G1) manque, dans les deux profils. La 700 ne sert plus à faire manquer : le moteur éloigne son texte des fonds teintés.
+  light[8] = 0.6;
   const recette = { ...avec(BLEU), courbes: { ...DEFAUT.courbes, light } };
-  assert.equal(analyserPalette(recette, BLEU).manquees, 6);
+  assert.equal(analyserPalette(recette, BLEU).manquees, 2);
 });
 
 test('[VER-16] l’analyse garde toutes les alertes du moteur, même celles que l’onglet montre ailleurs', () => {
