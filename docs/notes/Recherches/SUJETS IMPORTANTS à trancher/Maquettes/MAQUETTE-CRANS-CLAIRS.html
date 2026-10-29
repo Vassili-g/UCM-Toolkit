@@ -111,6 +111,8 @@
   .sel-g { color: #999; padding: 8px 12px 2px; }
   .sel-v { display: flex; align-items: center; gap: 8px; padding: 3px 12px 3px 20px; }
   @media (max-width: 640px) { .fx-corps { grid-template-columns: 1fr; } .fx-cote { border-right: 0; border-bottom: 1px solid #444; } }
+  .fx-portees { font: 11px ui-monospace, Consolas, monospace; color: #bbb; }
+  .bulle { position: absolute; top: 8px; width: 200px; background: #111; border: 1px solid #444; border-radius: 6px; padding: 6px 9px; font-size: 12px; pointer-events: none; }
   .arbre { font: 12.5px/1.6 ui-monospace, Consolas, monospace; }
   .arbre .v { display: flex; align-items: center; gap: 8px; }
   .arbre .pastille { width: 14px; height: 14px; border-radius: 3px; border: 1px solid #fff2; flex: 0 0 auto; }
@@ -267,6 +269,22 @@
     <tr><td>Sky Soft</td><td class="ko">4,49</td><td>0,501</td><td>0,499</td></tr>
   </table></div>
   <p class="note">La courbe « Actuelle, 200 à 0,92 » de la barre du haut reste pour comparer. Elle éclaircit le 200 de toutes les palettes.</p>
+  <h3>Sur 360 teintes</h3>
+  <ul class="faits">
+    <li>Le balayage passe par le moteur : 360 teintes, Soft et Vivid, références ancrées au 500, au 600 et au 700. Il couvre 2160 rampes.</li>
+    <li>709 rampes manquent 4,5 au survol. Elles vont des teintes 108 à 249 : verts, cyans et bleus.</li>
+    <li>La correction va jusqu'à 0,011 en Soft et 0,008 en Vivid.</li>
+    <li>Après correction, le 700 reste au moins à 0,068 du 800. Les deux crans restent distincts.</li>
+    <li>105 rampes Vivid ont leur référence au 700 et manquent 4,5. Le moteur ne peut pas foncer ce 700 sans changer la référence.</li>
+    <li>Pour ces rampes, deux réponses existent. Le moteur éclaircit le 200 de cette palette, de 0,013 au plus. Ou Palettes signale la référence et propose « Ajuster la référence », comme il le fait déjà quand une référence exacte manque une garantie.</li>
+  </ul>
+  <div class="carte" id="courbe700"></div>
+  <div class="local">Teinte <input type="range" id="teinte700" min="0" max="359" step="1"> <b id="valeurTeinte700"></b>
+    Référence au <span class="bascule" id="niveau700"><button data-v="500">500</button><button data-v="600">600</button><button data-v="700">700</button></span></div>
+  <div class="page grille" id="inspecteur700"></div>
+  <h3>Sur tes palettes</h3>
+  <p class="note">Le bouton teinté est figé au survol : fond 200, texte 700. Seules les cinq rampes corrigées sont montrées. Les seize autres tiennent déjà 4,5.</p>
+  <div class="page grille" id="palettes700"></div>
   <div class="local">Règle à l'appui <span class="bascule" id="regle"><button data-v="ignore">Non vérifié</button><button data-v="trois">3:1</button><button data-v="stricte">4,5:1</button></span></div>
   <div id="contrastes"></div>
   <p class="note">Contraste minimum du texte de <code>surface</code> sur chaque fond, et nombre de rampes sous le seuil, sur tes 12 palettes : 21 rampes, Soft et Vivid. Le fond léger est le 50.</p>
@@ -283,7 +301,7 @@
   <!-- 9 -->
   <h2 id="s9">9. L'organisation et les noms des variables</h2>
   <blockquote><p>« default, hover, pressed : désigne des états. Pratique pour pas se tromper mais c'est pas harmonisé avec les autres termes. »</p><p>« un contour est soit posé sur une surface et il se trouve donc sur /surface soit il est posé sur la page donc il se trouve dans page. »</p></blockquote>
-  <blockquote class="position"><p>29 octobre, sur la forme C : « intéressant mais il manque plein de variables, comment on fait un fond encore plus clair ? ou sont les divider ? »</p></blockquote>
+  <blockquote class="position"><p>29 octobre, sur la forme C : « intéressant mais il manque plein de variables, comment on fait un fond encore plus clair ? ou sont les divider ? »</p><p>Puis : « je crois que je vais rester sur les noms actuels avec les deux variables en plus et pour distinguer l'usage des variables c'est vrai que les noms pourraient être mieux mais aussi c'est à ça que servent les scope. »</p></blockquote>
   <h3>Les règles déjà posées</h3>
   <ul class="faits">
     <li>Une couleur appartient au fond qui est juste derrière elle : <code>solid</code>, <code>surface</code> ou <code>page</code>.</li>
@@ -343,11 +361,16 @@
     <li>L'effet de ce regroupement sur le choix du designer reste à vérifier dans Figma.</li>
     <li>Atlassian et Primer mettent l'élément d'abord. Material 3 et shadcn mettent le contexte d'abord, comme A.</li>
   </ul>
-  <div class="carte"><h4>Recommandation : la forme A</h4>
-    <p>Elle garde la règle du fond juste derrière dans le dossier. Palettes affiche ce dossier, et les garanties 3 et 4 le suivent.</p>
-    <p>Elle sépare le niveau et l'état par leur place dans le nom.</p>
-    <p>Elle coûte six renommages par palette. C en coûte douze.</p>
-    <p>C devient le meilleur choix si l'essai dans Figma montre que le regroupement par portée aide le designer.</p></div>
+  <div class="carte"><h4>Choix du mainteneur : la forme B</h4>
+    <p>Les noms actuels restent. <code>surface/subtle</code> et <code>surface/divider</code> s'ajoutent.</p>
+    <p>Les portées distinguent l'usage des variables : le sélecteur de Figma ne propose que les variables dont la portée accepte la propriété.</p></div>
+  <h3>Les portées dans le kit</h3>
+  <ul class="faits">
+    <li>Le kit porte déjà la portée de chaque variable de <code>theme</code> : <code>SUPPORT_DES_VARIABLES</code>, dans <code>packages/kit/src/emplois/dossiers.ts</code>.</li>
+    <li>UCM Architect compare les portées lues dans Figma à cette table. Un écart devient un constat <code>portee</code>.</li>
+    <li>La colonne « Portées » du panneau ci-dessus donne ces valeurs. Les deux nouvelles variables prennent celles de leur famille : fond pour <code>surface/subtle</code>, trait pour <code>surface/divider</code>.</li>
+    <li>Un écart reste avec la règle des contours. Le kit donne aux trois fonds de <code>solid</code> la portée <code>STROKE_COLOR</code>, alors que <code>solid</code> n'a pas de contour.</li>
+  </ul>
 
   <!-- 10 -->
   <h2 id="s10">10. Le thème Dark</h2>
@@ -372,10 +395,12 @@
     <tr><td>Le texte de <code>surface</code> reste-t-il à 800 ?</td><td class="ok">Non, 700</td></tr>
     <tr><td>Quelle table pour <code>surface</code> ?</td><td class="ok">100, 200 et 300</td></tr>
     <tr><td>Le survol garde-t-il 4,5:1 ?</td><td class="ok">Oui, sans assouplir la garantie 3</td></tr>
-    <tr><td>Le moteur fonce-t-il le 700 des seules teintes qui échouent au survol ?</td><td class="change">Ouvert, à mesurer sur 360 teintes</td></tr>
+    <tr><td>Le moteur fonce-t-il le 700 des seules teintes qui échouent au survol ?</td><td class="change">Ouvert, mesuré sur 360 teintes</td></tr>
+    <tr><td>Quand le 700 est la référence : 200 éclairci, ou « Ajuster la référence » ?</td><td class="change">Ouvert</td></tr>
     <tr><td>L'appui sort-il aussi de la garantie 1, pour <code>solid/pressed</code> ?</td><td class="change">Ouvert</td></tr>
-    <tr><td>Quelle organisation des noms : A, B ou C ?</td><td class="change">Ouvert, A recommandée</td></tr>
-    <tr><td><code>surface/divider</code> entre-t-il dans le thème ?</td><td class="change">Ouvert</td></tr>
+    <tr><td>Quelle organisation des noms : A, B ou C ?</td><td class="ok">B, les noms actuels, avec <code>surface/subtle</code> et <code>surface/divider</code></td></tr>
+    <tr><td>Les fonds de <code>solid</code> perdent-ils la portée <code>STROKE_COLOR</code> ?</td><td class="change">Ouvert</td></tr>
+    <tr><td><code>surface/divider</code> entre-t-il dans le thème ?</td><td class="ok">Oui</td></tr>
     <tr><td>L'anneau de focus a-t-il une variante sur fond teinté, ou la table Dark change-t-elle ?</td><td class="change">Ouvert</td></tr>
     <tr><td>Quelle table pour le thème Dark ?</td><td class="change">Ouvert</td></tr>
     <tr><td>Que deviennent les thèmes inversés en Light ?</td><td class="info">Non mesuré</td></tr>
@@ -397,7 +422,7 @@ const TABLES_DARK = {
   proposee: { nom: 'Hypothèse : 100, 200, 300, texte de page', repos: 100, survol: 200, appui: 300, texte: 800 },
 };
 const etat = { palette: 'Ocean', intensite: 'vivid', courbe: 'actuelle', lissage: 'non', moteur: 'commune', page: '#FFFFFF',
-  vueHarmonie: 'couleur', clarteLegere: 0.985, contexteTable: 'aujourdhui', regle: 'ignore', forme: 'A', vuePanneau: 'toutes', groupe: 'primary' };
+  vueHarmonie: 'couleur', clarteLegere: 0.985, contexteTable: 'aujourdhui', regle: 'ignore', forme: 'B', vuePanneau: 'toutes', groupe: 'primary', teinte700: 150, niveau700: '600' };
 try { Object.assign(etat, JSON.parse(localStorage.getItem('crans-clairs-3') || '{}')); } catch (e) {}
 const garder = () => { try { localStorage.setItem('crans-clairs-3', JSON.stringify(etat)); } catch (e) {} };
 
@@ -604,6 +629,7 @@ const ORGANISATION = [
   { besoin: 'Filet sur la page', light: 300, dark: 300, A: 'page/divider', B: 'page/divider', C: 'divider/on-page' },
   { besoin: 'Anneau de focus', light: 600, dark: 700, A: 'ring', B: 'ring', C: 'ring' },
 ];
+const PORTEES = { fond: ['FRAME_FILL', 'SHAPE_FILL'], texte: ['TEXT_FILL', 'SHAPE_FILL'], trait: ['STROKE_COLOR'] };
 const peintDe = (v) => (v.besoin.startsWith('Fond') ? 'fond' : v.besoin.startsWith('Texte') ? 'texte' : 'trait');
 const HORS_PALETTE = [
   { A: 'elevation/page', B: 'elevation/page', C: 'background/page', peint: 'fond', light: '#FFFFFF', dark: '#121212' },
@@ -626,6 +652,7 @@ function variablesDuTheme(forme) {
   const ligne = (groupe, p, v, peint) => {
     const chemin = groupe ? `${groupe}/${v[forme]}` : v[forme];
     return { chemin, dossier: chemin.split('/').slice(0, -1).join('/'), nom: chemin.split('/').pop(), peint, nouveau: v.nouveau,
+      portees: peint ? PORTEES[peint] : [], solide: Boolean(v.besoin && v.besoin.startsWith('Fond plein')),
       light: valeur(v.light, groupe || 'neutral', p, 'light'), dark: valeur(v.dark, groupe || 'neutral', p, 'dark') };
   };
   const dePalette = (groupe, p, propres = []) => [
@@ -653,9 +680,9 @@ function rendreNoms() {
   if (etat.vuePanneau === 'toutes') {
     const choisies = toutes.filter((v) => v.chemin.split('/')[0] === etat.groupe);
     const dossiers = [...new Set(choisies.map((v) => v.dossier))];
-    const corps = dossiers.map((d) => `<tr class="fx-g"><td colspan="3">${d || etat.groupe}</td></tr>${choisies.filter((v) => v.dossier === d).map((v) =>
-      `<tr><td class="fx-nom">${v.nom}${v.nouveau ? ' <span class="badge moyen">nouveau</span>' : ''}</td><td>${pilule(v.light)}</td><td>${pilule(v.dark)}</td></tr>`).join('')}`).join('');
-    $('noms').innerHTML = `<div class="fx-corps">${cote}<div class="fx-main"><table><tr><th>Nom</th><th>light</th><th>dark</th></tr>${corps}</table></div></div>`;
+    const corps = dossiers.map((d) => `<tr class="fx-g"><td colspan="4">${d || etat.groupe}</td></tr>${choisies.filter((v) => v.dossier === d).map((v) =>
+      `<tr><td class="fx-nom">${v.nom}${v.nouveau ? ' <span class="badge moyen">nouveau</span>' : ''}</td><td>${pilule(v.light)}</td><td>${pilule(v.dark)}</td><td class="fx-portees">${v.portees.length ? v.portees.join(' ') : 'aucune'}${v.solide ? ' <span class="badge moyen">le kit ajoute STROKE_COLOR</span>' : ''}</td></tr>`).join('')}`).join('');
+    $('noms').innerHTML = `<div class="fx-corps">${cote}<div class="fx-main"><table><tr><th>Nom</th><th>light</th><th>dark</th><th>Portées</th></tr>${corps}</table></div></div>`;
     return;
   }
   const passent = toutes.filter((v) => v.peint === etat.vuePanneau);
@@ -684,6 +711,75 @@ function rendreManques() {
   }).join('');
 }
 
+// La piste du 700 corrigé. Colonnes du balayage : niveau, teinte, vivid, contraste avant, delta, sur la référence, 700, 700 corrigé, 200, 100.
+const SERIES_700 = [{ vivid: 0, nom: 'Soft', couleur: '#b57c14' }, { vivid: 1, nom: 'Vivid', couleur: '#3d8fe6' }];
+const balayage700 = (niveau = Number(etat.niveau700)) => D.balayage.filter((l) => l[0] === niveau);
+
+function rendreCourbe700() {
+  const lignes = balayage700(), W = 720, H = 250, g = 46, d = 16, h = 18, b = 62, max = 0.012;
+  const x = (t) => g + (t / 359) * (W - g - d), y = (v) => h + (1 - v / max) * (H - h - b);
+  const grille = [0, 0.004, 0.008, 0.012].map((v) => `<line x1="${g}" x2="${W - d}" y1="${y(v)}" y2="${y(v)}" stroke="#333"/><text x="${g - 6}" y="${y(v) + 4}" text-anchor="end" fill="#9a9a9a" font-size="11">${virgule(v, 3)}</text>`).join('');
+  const surRef = lignes.filter((l) => l[5]).map((l) => l[1]);
+  const plages = []; surRef.forEach((t) => { const p = plages[plages.length - 1]; if (p && t === p[1] + 1) p[1] = t; else plages.push([t, t]); });
+  const zones = plages.map(([a, z]) => `<rect x="${x(a)}" y="${h}" width="${Math.max(1, x(z) - x(a))}" height="${H - h - b}" fill="#ffffff10"/>`).join('');
+  const series = SERIES_700.map((s) => {
+    const pts = lignes.filter((l) => l[2] === s.vivid).sort((p, q) => p[1] - q[1]);
+    const pic = pts.reduce((m, l) => (l[4] > m[4] ? l : m), pts[0]);
+    return `<path d="${pts.map((l, i) => `${i ? 'L' : 'M'}${x(l[1]).toFixed(1)},${y(l[4]).toFixed(1)}`).join('')}" fill="none" stroke="${s.couleur}" stroke-width="2" stroke-linejoin="round"/>
+      <text x="${x(pic[1]) + 6}" y="${y(pic[4]) - 6}" fill="#eee" font-size="11">${s.nom} ${virgule(pic[4], 3)}</text>`;
+  }).join('');
+  const vivids = lignes.filter((l) => l[2] === 1).sort((p, q) => p[1] - q[1]);
+  const bande = vivids.map((l) => `<rect x="${x(l[1])}" y="${H - b + 8}" width="${(W - g - d) / 359 + 0.6}" height="12" fill="${l[7]}"/>`).join('');
+  const axe = [0, 60, 120, 180, 240, 300, 359].map((t) => `<text x="${x(t)}" y="${H - b + 36}" text-anchor="middle" fill="#9a9a9a" font-size="11">${t}</text>`).join('');
+  const legende = SERIES_700.map((s) => `<span style="display:inline-flex;align-items:center;gap:6px;margin-right:14px"><span style="width:14px;height:2px;background:${s.couleur}"></span>${s.nom}</span>`).join('');
+  $('courbe700').innerHTML = `<h4>Clarté retirée au 700 pour tenir 4,5 sur le 200, selon la teinte</h4>
+    <div class="note" style="margin:0 0 6px">${legende}${surRef.length ? '<span style="display:inline-flex;align-items:center;gap:6px"><span style="width:14px;height:10px;background:#ffffff22"></span>référence au 700, non corrigeable</span>' : ''}</div>
+    <div style="position:relative"><svg viewBox="0 0 ${W} ${H}" width="100%" role="img" aria-label="Correction du 700 selon la teinte">${zones}${grille}
+      <line x1="${g}" x2="${W - d}" y1="${y(0.009)}" y2="${y(0.009)}" stroke="#9a9a9a" stroke-dasharray="4 4"/><text x="${W - d}" y="${y(0.009) - 5}" text-anchor="end" fill="#9a9a9a" font-size="11">écart du 700 entre tes palettes, 0,009</text>
+      ${series}${bande}${axe}<text x="${(W + g) / 2}" y="${H - 6}" text-anchor="middle" fill="#9a9a9a" font-size="11">Teinte de la référence, en degrés. La bande montre le 700 corrigé en Vivid.</text>
+      <line id="curseur700" y1="${h}" y2="${H - b}" stroke="#eee" stroke-width="1" visibility="hidden"/>
+      <rect id="zone700" x="${g}" y="${h}" width="${W - g - d}" height="${H - b - h + 22}" fill="transparent" style="cursor:crosshair"/></svg>
+    <div id="bulle700" class="bulle" hidden></div></div>`;
+  const svg = $('courbe700').querySelector('svg');
+  const teinteSous = (e) => { const r = svg.getBoundingClientRect(); const vx = ((e.clientX - r.left) / r.width) * W; return Math.max(0, Math.min(359, Math.round(((vx - g) / (W - g - d)) * 359))); };
+  $('zone700').addEventListener('mousemove', (e) => {
+    const t = teinteSous(e), ici = lignes.filter((l) => l[1] === t), r = svg.getBoundingClientRect();
+    $('curseur700').setAttribute('x1', x(t)); $('curseur700').setAttribute('x2', x(t)); $('curseur700').setAttribute('visibility', 'visible');
+    $('bulle700').hidden = false;
+    $('bulle700').style.left = `${Math.min(r.width - 210, (x(t) / W) * r.width + 12)}px`;
+    $('bulle700').innerHTML = `<b>Teinte ${t}</b>${SERIES_700.map((s) => { const l = ici.find((k) => k[2] === s.vivid); return l ? `<div>${s.nom} : ${virgule(l[3])}:1, retrait ${virgule(l[4], 3)}${l[5] ? ', référence au 700' : ''}</div>` : ''; }).join('')}<div class="note" style="margin:2px 0 0">Cliquer pour l'inspecter.</div>`;
+  });
+  $('zone700').addEventListener('mouseleave', () => { $('bulle700').hidden = true; $('curseur700').setAttribute('visibility', 'hidden'); });
+  $('zone700').addEventListener('click', (e) => { etat.teinte700 = teinteSous(e); rendreInspecteur700(); garder(); });
+}
+
+function carteAvantApres(titre, fond, avant, apres, delta, note = '') {
+  const bouton = (encre) => `<div class="faux" style="background:${fond};color:${encre};border-radius:6px;padding:7px 10px;font-weight:600">Action</div>`;
+  return `<div><h4>${titre}</h4>
+    <div class="pastilles"><span class="nuance" style="background:${avant};color:#fff;min-height:0;padding:6px 10px">700 ${avant}</span><span class="nuance" style="background:${apres};color:#fff;min-height:0;padding:6px 10px">corrigé ${apres}</span></div>
+    <div class="etats" style="grid-template-columns:1fr 1fr"><div class="etat">${bouton(avant)}Avant · ${badge(contraste(avant, fond))}</div><div class="etat">${bouton(apres)}Après · ${badge(contraste(apres, fond))}</div></div>
+    <p class="note">${delta === null ? 'Aucune correction possible.' : `Clarté retirée : <b>${virgule(delta, 3)}</b>.`}${note}</p></div>`;
+}
+
+function rendreInspecteur700() {
+  $('teinte700').value = etat.teinte700;
+  $('valeurTeinte700').textContent = `${etat.teinte700}°`;
+  $('inspecteur700').style.background = etat.page;
+  $('inspecteur700').innerHTML = SERIES_700.map((s) => {
+    const l = balayage700().find((k) => k[1] === Number(etat.teinte700) && k[2] === s.vivid);
+    if (!l) return '';
+    const note = l[5] ? ' Ce 700 est la référence. Le moteur éclaircirait le 200, ou Palettes proposerait « Ajuster la référence ».' : l[4] === 0 ? ' La rampe tient déjà 4,5.' : '';
+    return carteAvantApres(`${s.nom}, survol sur le 200`, l[8], l[6], l[5] ? l[6] : l[7], l[5] ? null : l[4], note);
+  }).join('');
+}
+
+function rendrePalettes700() {
+  const cas = D.palettes.flatMap((p) => Object.entries(p.corrections || {}).map(([i, c]) => ({ p, i, c, r: p.light.actuelle.commune[i] })))
+    .filter((k) => k.c.delta > 0).sort((a, z) => z.c.delta - a.c.delta);
+  $('palettes700').style.background = etat.page;
+  $('palettes700').innerHTML = cas.map(({ p, i, c, r }) => carteAvantApres(`${p.nom}${i === 'unique' ? '' : ' ' + (i === 'soft' ? 'Soft' : 'Vivid')}`, r[D.crans.indexOf(200)], r[D.crans.indexOf(700)], c.hexa, c.delta, c.surLaReference ? ' Référence au 700.' : '')).join('');
+}
+
 function rendreDark() {
   $('dark').innerHTML = Object.values(TABLES_DARK).map((t) => {
     const f = [cran(t.repos, palette(), 'dark'), cran(t.survol, palette(), 'dark'), cran(t.appui, palette(), 'dark')], encre = cran(t.texte, palette(), 'dark');
@@ -696,19 +792,20 @@ function rendreDark() {
 function marquer(conteneur, valeur) { conteneur.querySelectorAll('button').forEach((x) => x.setAttribute('aria-pressed', String(valeur === x.dataset.v))); }
 function rendre() {
   document.querySelectorAll('.bascule[data-cle]').forEach((b) => marquer(b, etat[b.dataset.cle]));
-  ['vueHarmonie', 'contexteTable', 'regle'].forEach((id) => marquer($(id), etat[id]));
+  ['vueHarmonie', 'contexteTable', 'regle', 'niveau700'].forEach((id) => marquer($(id), etat[id]));
   document.querySelectorAll('[data-cle="lissage"] button').forEach((x) => { x.disabled = !D.courbes[etat.courbe + 'Lissee']; });
   $('palette').value = etat.palette;
   rendreRampes(); rendreHarmonie(); rendreTextes(); rendreBoutonsTexte(); rendreAlertes(); rendreContextes();
-  rendreContrastes(); rendreSansSurvol(); rendreManques(); rendreNoms(); rendreDark();
+  rendreContrastes(); rendreSansSurvol(); rendreCourbe700(); rendreInspecteur700(); rendrePalettes700(); rendreManques(); rendreNoms(); rendreDark();
   garder();
 }
 
 $('palette').innerHTML = D.palettes.map((p) => `<option>${p.nom}</option>`).join('');
 $('palette').addEventListener('change', (e) => { etat.palette = e.target.value; rendre(); });
 document.querySelectorAll('.bascule[data-cle]').forEach((b) => b.addEventListener('click', (e) => { const v = e.target.dataset.v; if (v && !e.target.disabled) { etat[b.dataset.cle] = v; rendre(); } }));
-['vueHarmonie', 'contexteTable', 'regle', 'forme', 'vuePanneau'].forEach((id) => $(id).addEventListener('click', (e) => { const v = e.target.dataset.v; if (v) { etat[id] = v; rendre(); } }));
+['vueHarmonie', 'contexteTable', 'regle', 'forme', 'vuePanneau', 'niveau700'].forEach((id) => $(id).addEventListener('click', (e) => { const v = e.target.dataset.v; if (v) { etat[id] = v; rendre(); } }));
 $('noms').addEventListener('click', (e) => { const b = e.target.closest('[data-groupe]'); if (b) { etat.groupe = b.dataset.groupe; rendreNoms(); garder(); } });
+$('teinte700').addEventListener('input', (e) => { etat.teinte700 = Number(e.target.value); rendreInspecteur700(); garder(); });
 $('clarteLegere').addEventListener('input', (e) => { etat.clarteLegere = Number(e.target.value); rendreAlertes(); garder(); });
 rendre();
 </script>

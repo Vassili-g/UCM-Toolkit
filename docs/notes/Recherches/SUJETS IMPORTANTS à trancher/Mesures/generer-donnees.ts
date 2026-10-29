@@ -9,6 +9,11 @@
  * en prennent les deux tiers et le tiers. La part de chroma de chaque cran est gardée. Le cran
  * d'ancrage de la référence n'est pas touché.
  *
+ * La piste du 700 corrigé fonce le 700 d'une rampe commune juste assez pour que le texte 700
+ * tienne le seuil textuel sur le 200, part de chroma et teinte gardées. Elle est calculée sur les
+ * palettes du mainteneur et sur un balayage de 360 teintes, références ancrées au 500, au 600 et
+ * au 700, sous la courbe actuelle.
+ *
  * Depuis ce dossier : `npx tsx generer-donnees.ts > ../Maquettes/donnees-crans.js`
  */
 import * as M from '../../../../../packages/couleur/src/index';
@@ -58,9 +63,55 @@ function cransCommuns(crans: readonly M.Cran[], courbe: readonly number[], rangA
   });
 }
 
+const rangDe = (cran: number) => RECETTE.crans.indexOf(cran);
+const contrasteHexa = (a: string, b: string) => M.contraste(M.lireHexa(a)!, M.lireHexa(b)!);
+
+/** Le texte foncé par pas de 0,001 de clarté jusqu'au seuil textuel sur `fond` ; `delta` est la clarté retirée. */
+function foncerJusquAuSeuil(texte: string, fond: string): { hexa: string; delta: number } {
+  const o = M.rgb8VersOklch(M.lireHexa(texte)!);
+  const part = o.C / Math.max(M.plafond(o.L, o.H, RECETTE.gamut), 1e-4);
+  let L = o.L;
+  let resultat = texte;
+  while (contrasteHexa(resultat, fond) < RECETTE.seuils.texte && L > 0.3) {
+    L -= 0.001;
+    resultat = hexa(L, Math.min(1, part) * M.plafond(L, o.H, RECETTE.gamut), o.H);
+  }
+  return { hexa: resultat, delta: +(o.L - L).toFixed(3) };
+}
+
+/** Le 700 corrigé d'une rampe commune ; `surLaReference` quand le 700 porte la référence et ne peut changer. */
+function septCentsCorriges(rampe: readonly string[], porteLaReference: boolean) {
+  const corrige = foncerJusquAuSeuil(rampe[rangDe(700)], rampe[rangDe(200)]);
+  return { ...corrige, surLaReference: porteLaReference && corrige.delta > 0 };
+}
+
+/** Une ligne par teinte, niveau de référence et intensité : [niveau, teinte, vivid, contraste avant, delta, sur la référence, 700, 700 corrigé, 200, 100]. */
+function balayer() {
+  const lignes: (string | number)[][] = [];
+  const courbe = RECETTE.courbes.light;
+  for (const niveau of [500, 600, 700]) {
+    for (let teinte = 0; teinte < 360; teinte += 1) {
+      const reference = M.ecrireHexa(M.fabriquerCran(courbe[rangDe(niveau)], teinte, 1, RECETTE.gamut).couleur);
+      const derive = M.prereglageTailwind(M.rgb8VersOklch(M.lireHexa(reference)!), M.boutsDe(RECETTE));
+      const palette: Palette = { id: `t${teinte}`, reference, derive: { lien: true, soft: { ...derive, origine: 'tailwind' }, vivid: { ...derive, origine: 'tailwind' } } };
+      const recette = { ...RECETTE, palettes: [palette] };
+      const ancrage = M.ancrageDe(recette, palette);
+      for (const [intensite, rampe] of Object.entries(M.rampesDe(recette, palette))) {
+        const ancre = intensite === ancrage.profil ? ancrage.rangs.light : undefined;
+        const r = cransCommuns(rampe!.light, courbe, ancre);
+        const c = septCentsCorriges(r, ancre === rangDe(700));
+        lignes.push([niveau, teinte, intensite === 'vivid' ? 1 : 0, +contrasteHexa(r[rangDe(700)], r[rangDe(200)]).toFixed(3), c.delta, c.surLaReference ? 1 : 0,
+          r[rangDe(700)], c.hexa, r[rangDe(200)], r[rangDe(100)]]);
+      }
+    }
+  }
+  return lignes;
+}
+
 function donneesDe(palette: Palette) {
   const lumieres: Record<string, Record<string, Record<string, string[]>>> = {};
   const ancres: Record<string, number> = {};
+  const corrections: Record<string, ReturnType<typeof septCentsCorriges>> = {};
   let sombres: Record<string, string[]> = {};
   for (const cle of Object.keys(COURBES)) {
     const recette = recetteAvec(cle);
@@ -71,12 +122,15 @@ function donneesDe(palette: Palette) {
     for (const [intensite, rampe] of Object.entries(rampes)) {
       lumieres[cle].actuel[intensite] = rampe!.light.map((c) => c.hexa);
       lumieres[cle].commune[intensite] = cransCommuns(rampe!.light, recette.courbes.light, intensite === ancrage.profil ? ancrage.rangs.light : undefined);
+      if (cle === 'actuelle') {
+        corrections[intensite] = septCentsCorriges(lumieres[cle].commune[intensite], intensite === ancrage.profil && ancrage.rangs.light === rangDe(700));
+      }
     }
     if (cle === 'actuelle') sombres = Object.fromEntries(Object.entries(rampes).map(([i, r]) => [i, r!.dark.map((c) => c.hexa)]));
   }
   return {
     nom: palette.nom, reference: palette.reference, reglages: palette.reglages ?? null,
-    ancres, light: lumieres, dark: sombres,
+    ancres, light: lumieres, dark: sombres, corrections,
   };
 }
 
@@ -85,6 +139,7 @@ const donnees = {
   fonds: RECETTE.fonds,
   courbes: COURBES,
   palettes: RECETTE.palettes.map(donneesDe),
+  balayage: balayer(),
 };
 
 process.stdout.write(`// Généré par Mesures/generer-donnees.ts ; ne pas modifier à la main.\nwindow.CRANS = ${JSON.stringify(donnees)};\n`);

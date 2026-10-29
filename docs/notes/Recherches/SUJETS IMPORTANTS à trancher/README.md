@@ -7,8 +7,9 @@ des tokens. Le mainteneur juge ces sujets liés : une solution doit les traiter
 ensemble.
 
 **État.** Réflexion ouverte. Le mainteneur a pris position sur la clarté des
-crans clairs, la table de `surface` et son texte. Le nom et l'organisation des
-variables restent ouverts, comme le thème Dark. Rien n'est implémenté.
+crans clairs, la table de `surface`, son texte et le nom des variables. La
+correction du 700 au survol et le thème Dark restent ouverts. Rien n'est
+implémenté.
 
 | Document | Contenu |
 |---|---|
@@ -51,7 +52,8 @@ Le code concerné :
 | 5. Fond léger | Ce n'est plus un problème : le 50 de la clarté commune est très léger. Il reste à pouvoir l'employer dans un composant |
 | 6. Composant posé dans une alerte | Ce n'est plus un sujet si `page` et `surface` ont le même texte |
 | 8. Éléments sans survol | Un fond 100 et un texte 700 conviennent |
-| 9. Noms des variables | La forme C, l'élément d'abord, est intéressante, mais il y manque des variables |
+| 7. Contraste au survol | Pas d'assouplissement des garanties |
+| 9. Noms des variables | Les noms actuels, avec `surface/subtle` et `surface/divider` en plus. Les portées distinguent l'usage |
 
 La table de `surface` reste donc 100, 200 et 300, avec un texte 700.
 
@@ -281,7 +283,29 @@ sujet 2 ramène à un écart de 0,002.
 Le moteur n'a pas ce mécanisme. Sa clarté selon la teinte (`clarteSelonLaTeinteGardee`)
 réduit son décalage quand une promesse tenue sans lui manquerait. Elle ne
 corrige pas une promesse qui manque même sans décalage. La piste demande ce
-mécanisme, puis une mesure de la plus forte correction sur 360 teintes.
+mécanisme.
+
+**Mesure sur 360 teintes.** `generer-donnees.ts` passe par le moteur : 360
+teintes, Soft et Vivid, références ancrées au 500, au 600 et au 700, courbe
+actuelle, clarté commune. Le balayage couvre 2160 rampes.
+
+| Mesure | Résultat |
+|---|---|
+| Rampes sous 4,5 au survol | 709 sur 2160, teintes 108 à 249 : verts, cyans, bleus |
+| Correction la plus forte | 0,011 en Soft, 0,008 en Vivid |
+| Écart entre le 700 corrigé et le 800 | 0,068 au moins |
+| Texte 700 sur le 100, sans correction | 4,89 au moins |
+| Rampes dont le 700 est la référence et manque 4,5 | 105, toutes en Vivid, teintes 117 à 238 |
+
+Le moteur ne peut pas foncer un 700 qui porte la référence : le cran de la
+référence ne change pas. Deux réponses existent pour ces 105 rampes :
+
+- le moteur éclaircit le 200 de cette seule palette, de 0,013 au plus ;
+- Palettes signale la référence et propose « Ajuster la référence ». Il le
+  fait déjà quand une référence exacte manque une garantie.
+
+La maquette montre la correction selon la teinte, un inspecteur par teinte et
+l'avant-après sur les palettes du mainteneur.
 
 L'appui reste hors de la piste. Pour tenir 4,5 sur le 300, le 700 d'Emerald
 Soft devrait foncer de 0,049, presque jusqu'au 800.
@@ -423,11 +447,35 @@ Primer (`bgColor-accent-muted`, `fgColor-accent`) mettent l'élément d'abord.
 Material 3 (`primary-container`, `on-primary-container`) et shadcn
 (`--primary`, `--primary-foreground`) mettent le contexte d'abord, comme A.
 
-**Recommandation.** La forme A. Elle garde la règle 1 dans le dossier, que
-Palettes affiche et que les garanties 3 et 4 suivent. Elle sépare le niveau et
-l'état par leur place dans le nom. Elle coûte six renommages par palette contre
-douze pour C. La forme C reste la bonne réponse si l'essai dans Figma montre
-que le regroupement par portée aide le designer à choisir.
+**Position du mainteneur.** La forme B : les noms actuels restent, et
+`surface/subtle` et `surface/divider` s'ajoutent. Les portées distinguent
+l'usage des variables, puisque le sélecteur de Figma ne propose que les
+variables dont la portée accepte la propriété.
+
+### Les portées dans le kit
+
+Le kit porte déjà la portée de chaque variable de `theme` :
+`SUPPORT_DES_VARIABLES`, dans `packages/kit/src/emplois/dossiers.ts`. UCM
+Architect compare les portées lues dans Figma à cette table, et un écart devient
+un constat `portee` (`packages/plugin-architect/src/integrations/profilUcm.ts`).
+
+| Variables | Portées du kit |
+|---|---|
+| `solid/default`, `solid/hover`, `solid/pressed` | `FRAME_FILL`, `SHAPE_FILL`, `STROKE_COLOR` |
+| `surface/default`, `surface/hover`, `surface/pressed`, `disabled/background`, `elevation/*` | `FRAME_FILL`, `SHAPE_FILL` |
+| Toutes les variables `foreground` | `TEXT_FILL`, `SHAPE_FILL` |
+| `surface/border`, `page/border`, `page/divider`, `disabled/border`, `ring` | `STROKE_COLOR` |
+| `scale/*` | aucune |
+
+Les deux nouvelles variables prendraient les portées de leur famille :
+`FRAME_FILL` et `SHAPE_FILL` pour `surface/subtle`, `STROKE_COLOR` pour
+`surface/divider`. Les fonds de `solid` gardent `STROKE_COLOR`, contre la règle 3
+des contours : retirer cette portée reste à décider.
+
+Ajouter les deux variables touche, dans le kit : `VARIABLES_DE_PALETTE`,
+`TABLE_DES_DOSSIERS` pour les quatre thèmes, `SUPPORT_DES_VARIABLES`, les
+libellés de `referentiel/theme.ts` et les garanties qui les jugent. Le kit
+change alors de version, et Palettes et Architect lisent la nouvelle table.
 
 ## 10. Le thème Dark et les thèmes inversés
 
@@ -463,10 +511,12 @@ Les thèmes inversés en Light ne sont pas mesurés.
 | Le texte de `surface` reste-t-il à 800 ? | Non, 700 |
 | Quelle table pour `surface` ? | 100, 200 et 300 |
 | Le survol garde-t-il 4,5:1 ? | Oui, sans assouplir la garantie 3 |
-| Le moteur fonce-t-il le 700 des seules teintes qui échouent au survol ? | Ouvert, à mesurer sur 360 teintes |
+| Le moteur fonce-t-il le 700 des seules teintes qui échouent au survol ? | Ouvert, mesuré sur 360 teintes |
+| Quand le 700 est la référence : 200 éclairci, ou « Ajuster la référence » ? | Ouvert |
 | L'appui sort-il aussi de la garantie 1, pour `solid/pressed` ? | Ouvert |
-| Quelle organisation des noms : A, B ou C ? | Ouvert, A recommandée |
-| `surface/divider` entre-t-il dans le thème ? | Ouvert |
+| Quelle organisation des noms : A, B ou C ? | B, avec `surface/subtle` et `surface/divider` |
+| `surface/divider` entre-t-il dans le thème ? | Oui |
+| Les fonds de `solid` perdent-ils la portée `STROKE_COLOR` ? | Ouvert |
 | L'anneau de focus a-t-il une variante sur fond teinté, ou la table Dark change-t-elle ? | Ouvert |
 | Quelle table pour le thème Dark ? | Ouvert |
 | Que deviennent les thèmes inversés en Light ? | Non mesuré |
