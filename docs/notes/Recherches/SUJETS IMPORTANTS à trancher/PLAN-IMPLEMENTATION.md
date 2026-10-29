@@ -35,28 +35,36 @@ mainteneur.
 - Lire d'abord la sortie de `npm run agents:lire -- <fichiers du lot>`.
 - Ajouter un test de régression pour chaque règle nouvelle.
 - Ne pas lancer `test:ui`. Le mainteneur teste l'interface.
-- Commiter par chemins explicites, sur `main`, sans pousser. Message en
-  français, au format des commits voisins.
-- Rendre : le diff résumé, les tests lancés et leur résultat, les écarts au lot.
-- La conversation principale relit le diff, fait relancer les vérifications par
-  un `verificateur`, coche le lot avec son commit.
+- L'agent ne commite pas. Il rend : le diff résumé, les tests lancés et leur
+  résultat, les écarts au lot.
+- La conversation principale relit le diff, fait lancer `npm test` par un
+  `verificateur`, commite par chemins explicites sur `main` et coche le lot avec
+  son commit. Un échec qui revient à un lot suivant (fixture de Palettes, du hub
+  ou d'Architect) se note dans ce lot, sans être corrigé avant lui.
 
 ## Ordre
 
 ```
-K1 → K2 → C1 → C2 → P1 ┐
-                  A1 ──┤→ D1 → V1 → R1
+K → C1 → C2 → P1 ┐
+            A1 ──┤→ D1 → V1 → R1
 ```
 
 P1 et A1 peuvent partir ensemble après C2. Au plus deux agents à la fois.
 
-## K1. Variables, crans et scopes dans le kit
+## K. Variables, crans, scopes et garanties dans le kit
 
-Agent : `implementeur-exigeant` (plusieurs lecteurs de `TABLE_DES_DOSSIERS`).
+Agent : `implementeur-exigeant` (plusieurs lecteurs de `TABLE_DES_DOSSIERS` et
+de `GARANTIES`). Un seul lot, une seule version du kit : la garantie 3 lit
+`surface/subtle`, que la table crée.
 
 Fichiers : `packages/kit/src/emplois/dossiers.ts`,
-`packages/kit/src/referentiel/theme.ts`, `packages/kit/tests/`, `tests/` à la
-racine.
+`packages/kit/src/referentiel/theme.ts`, `packages/kit/src/emplois/garanties.ts`,
+`packages/kit/src/controles/accessibilite.ts`, `packages/couleur/src/promesses.ts`,
+`packages/couleur/src/jugement.ts`, `packages/couleur/src/garantie.ts`,
+`packages/couleur/src/recette.ts` (commentaire des crans requis),
+`packages/hub/src/modele/modele.ts`, leurs tests, `tests/` à la racine.
+
+### Variables, crans et scopes
 
 - [ ] `VARIABLES_DE_PALETTE` : ajouter `surface/subtle` après
       `surface/pressed`, et `surface/divider` après `surface/border`.
@@ -86,25 +94,17 @@ racine.
     passe de dix-sept à dix-neuf.
 - [ ] `TABLE_DES_DOSSIERS`, Dark inversé : `ring` passe de 700 à 800. Le
       Dark normal ne change pas : il n'est pas mesuré.
+- [ ] Le 50 devient requis. Les crans requis sont la réunion des crans de la
+      table (`cransRequis`, `[REC-13]`) : `surface/subtle` y fait entrer le 50.
+      Les deux préréglages le portent déjà. Une recette sans 50 est refusée
+      (`crans-emplois`). Corriger le commentaire de `validerRecette` (« seul 50
+      est facultatif ») et ajouter un test du refus.
 - [ ] Mettre à jour les tests du kit qui comptent les variables, lisent la table
       ou les portées. Ajouter un test par règle nouvelle : crans des deux
       variables dans les quatre tables, portées de `FILET`, `TEXTE` et des fonds
       de `solid`.
-- [ ] Changer la version du kit (`packages/kit/package.json`), puis faire passer
-      `tests/` à la racine (`versionSuitLeContenu`).
 
-Fin : `node packages/kit/scripts/run-tests.cjs` et les tests racine passent ;
-`npm run typecheck` passe.
-
-## K2. Garanties de contraste
-
-Agent : `implementeur-exigeant` (lecteurs : kit, moteur, hub, Palettes).
-
-Fichiers : `packages/kit/src/emplois/garanties.ts`,
-`packages/kit/src/controles/accessibilite.ts`,
-`packages/couleur/src/promesses.ts`, `packages/couleur/src/jugement.ts`,
-`packages/couleur/src/garantie.ts`, `packages/hub/src/modele/modele.ts`, et
-leurs tests.
+### Garanties de contraste
 
 - [ ] Garantie 3 : `surface/foreground` au seuil `texte` sur `surface/subtle`,
       `surface/default`, `surface/hover`, la page et la carte. Retirer
@@ -125,9 +125,12 @@ leurs tests.
 - [ ] Tests : la garantie 8 juge à 3:1 ; la garantie 9 juge
       `page/foreground` sur `surface/default` ; la garantie 3 ne contient plus
       l'appui ; `garantieJugeable` traite `surface/subtle`.
+- [ ] Changer la version du kit (`packages/kit/package.json`), puis faire passer
+      `tests/` à la racine (`versionSuitLeContenu`).
 
-Fin : tests du kit, de `couleur` (`npm run test:paquet -- couleur`) et du hub
-passent ; `npm run typecheck` passe.
+Fin : `node packages/kit/scripts/run-tests.cjs`, les tests racine,
+`npm run test:paquet -- couleur` et `npm run test:paquet -- hub` passent ;
+`npm run typecheck` passe.
 
 ## C1. Clarté commune des crans clairs
 
@@ -210,6 +213,11 @@ clair en Dark.
 - [ ] Mesurer la plus forte correction du 800 Dark sur 360 teintes, références
       au 500, au 600 et au 700. Rendre le résultat dans le rendu du lot : le
       mainteneur a validé 0,009 au plus sur ses palettes.
+- [ ] La règle vaut aussi pour le Light inversé et le Dark normal, qui ne sont
+      pas mesurés : la garantie 9 y juge le 800 Light et le 700 Dark sur le
+      fond teinté. Rendre, sur la configuration du mainteneur et sur 360
+      teintes, la plus forte correction de ces deux sens. Ne pas les exclure de
+      la règle sans le dire dans le rendu.
 
 Fin : `npm run test:paquet -- couleur` passe ; `npm run typecheck` passe.
 
