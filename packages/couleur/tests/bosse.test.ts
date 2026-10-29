@@ -93,7 +93,7 @@ test('[MOT-39] une référence moins vive que sa rampe ne change rien : elle ne 
   const visees: ViseeDeCran[] = [0.9, 0.7, 0.5, 0.3, 0.1].map((L) => ({ L, Lc: L, H: 250, C: 0.1, part: 1, plafond: 0.3 }));
   assert.equal(bosseDeChroma(visees, 2, 'light', { L: 0.5, C: 0.1, H: 250 }, false), null, 'à égalité');
   assert.equal(bosseDeChroma(visees, 2, 'dark', { L: 0.5, C: 0.07, H: 250 }, true), null);
-  const { recette, palette } = neuve('#8896B0');
+  const { recette, palette } = neuve('#949FB2');
   assert.deepEqual(chaines(recette, palette).bosses, { light: null, dark: null });
   const rampes = rampesDe(recette, palette);
   const { commune } = chaines(recette, palette);

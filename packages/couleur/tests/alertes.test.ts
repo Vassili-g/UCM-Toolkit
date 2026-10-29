@@ -63,10 +63,10 @@ const nuancesConfondues = (palette: Palette) => confusionsDe(recetteAvec(palette
 
 test('[VER-11] profils confondus : ne juge que les fonds, trois Dark (surface default, hover, pressed) et deux Light (hover, pressed)', () => {
   // Un bleu aux parts voisines confond tous ses crans : seuls les cinq fonds sont rendus, jamais le fond Light de surface/default (cran 100).
-  assert.deepEqual(nuancesConfondues(auxParts('#1E6FD9', 0.3, 0.31)), ['light 200', 'light 300', 'dark 300', 'dark 400', 'dark 500']);
+  assert.deepEqual(nuancesConfondues(auxParts('#1E6FD9', 0.3, 0.31)), ['light 200', 'light 300', 'dark 200', 'dark 300', 'dark 400']);
   assert.equal(cranDeLaVariable('surface/hover', 'light', 'normal'), 200);
   assert.equal(cranDeLaVariable('surface/pressed', 'light', 'normal'), 300);
-  assert.deepEqual(['default', 'hover', 'pressed'].map((etat) => cranDeLaVariable(`surface/${etat}` as 'surface/default', 'dark', 'normal')), [300, 400, 500]);
+  assert.deepEqual(['default', 'hover', 'pressed'].map((etat) => cranDeLaVariable(`surface/${etat}` as 'surface/default', 'dark', 'normal')), [200, 300, 400]);
 });
 
 test('[VER-11] [PLA-15] profils confondus, thème Light : le repère ≈ marque le fond hover et ne suffit pas à l’alerte', () => {
@@ -82,13 +82,13 @@ test('[VER-11] [PLA-15] profils confondus, thème Light : le repère ≈ marque 
 
 test('[VER-11] profils confondus, thème Dark : trois fonds Dark confondus suffisent à l’alerte, sans exemption des fonds atténués', () => {
   const palette = auxParts('#14B8A6', 0.2, 0.4);
-  assert.deepEqual(nuancesConfondues(palette), ['dark 300', 'dark 400', 'dark 500']);
+  assert.deepEqual(nuancesConfondues(palette), ['dark 200', 'dark 300', 'dark 400']);
   const alerte = dePalette(palette).find((a) => a.code === 'profils-confondus');
   assert.ok(alerte && alerte.code === 'profils-confondus');
   assert.deepEqual(alerte.crans.map(({ mode, cran }) => `${mode} ${cran}`), nuancesConfondues(palette));
   // Deux fonds Dark seulement : le repère reste, l’alerte se tait.
-  const deux = paletteTailwind('p-0000000b', '#14B8A6');
-  assert.deepEqual(nuancesConfondues(deux), ['dark 300', 'dark 400']);
+  const deux = paletteTailwind('p-0000000b', '#06B6D4');
+  assert.deepEqual(nuancesConfondues(deux), ['dark 200', 'dark 300']);
   assert.ok(!codes(dePalette(deux)).includes('profils-confondus'));
 });
 
@@ -96,11 +96,11 @@ test('[VER-11] profils confondus : les deux thèmes se comptent ensemble, avec l
   const palette = auxParts('#1E6FD9', 0.1, 0.105);
   const alerte = dePalette(palette).find((a) => a.code === 'profils-confondus');
   assert.ok(alerte && alerte.code === 'profils-confondus');
-  assert.deepEqual(alerte.crans.map(({ mode, cran }) => `${mode} ${cran}`), ['light 200', 'light 300', 'dark 300', 'dark 400', 'dark 500']);
+  assert.deepEqual(alerte.crans.map(({ mode, cran }) => `${mode} ${cran}`), ['light 200', 'light 300', 'dark 200', 'dark 300', 'dark 400']);
   for (const confusion of alerte.crans) assert.ok(confusion.distance < alerte.seuil);
-  // Un Light et deux Dark font trois nuances.
+  // Deux Light et deux Dark font quatre nuances.
   const mixte = recetteAuxPartsDe045(paletteTailwind('p-0000000b', '#BC6262'));
-  assert.deepEqual(confusionsDe(mixte, mixte.palettes[0]).map(({ mode, cran }) => `${mode} ${cran}`), ['light 200', 'light 300', 'dark 300']);
+  assert.deepEqual(confusionsDe(mixte, mixte.palettes[0]).map(({ mode, cran }) => `${mode} ${cran}`), ['light 200', 'light 300', 'dark 200', 'dark 300']);
   assert.ok(alertesDePalette(mixte, mixte.palettes[0]).some((a) => a.code === 'profils-confondus'));
 });
 
@@ -113,7 +113,8 @@ test('[VER-11] profils confondus : des pleins et des textes confondus ne déclen
     const rang = recette.crans.indexOf(cran);
     assert.ok(distanceOk(rampeDe(rampes, 'soft').light[rang].couleur, rampeDe(rampes, 'vivid').light[rang].couleur) < recette.seuils.profilsConfondus, String(cran));
   }
-  assert.deepEqual(confusionsDe(recette, palette), []);
+  // Seul le fond Dark 200 se rend, jamais un 700 ou un 800 ; un fond seul ne suffit pas à l'alerte.
+  assert.deepEqual(confusionsDe(recette, palette).map(({ mode, cran }) => `${mode} ${cran}`), ['dark 200']);
   assert.ok(!codes(dePalette(palette)).includes('profils-confondus'));
 });
 
@@ -127,7 +128,7 @@ test('[ENT-09] profils confondus : se tait pour des profils ternes par construct
   const choisies = { ...terne, parts: { soft: 0.088, vivid: 0.185, origine: 'designer' as const } };
   assert.ok(!aDesProfilsTernes(recetteAvec(choisies), choisies));
   assert.ok(codes(dePalette(choisies)).includes('profils-confondus'));
-  assert.deepEqual(nuancesConfondues(choisies), ['light 200', 'dark 300', 'dark 400', 'dark 500']);
+  assert.deepEqual(nuancesConfondues(choisies), ['light 200', 'dark 200', 'dark 300', 'dark 400']);
 });
 
 test('[VER-08] aucune alerte pour un gris, un noir, un blanc ou une référence hors de l’étendue', () => {
@@ -194,8 +195,8 @@ function seuilDeLaLecture(recette: Recette, [variable]: Lecture): number {
 
 test('[VER-22] le plein et le fond teinté, en Light et en Dark, au plus petit rapport distance sur seuil', () => {
   const cas = [
-    { refs: ['#D92626', '#D92926'], role: 'plein', lecture: LECTURES[0] },
-    { refs: ['#AD1F1F', '#AD231F'], role: 'plein', lecture: LECTURES[1] },
+    { refs: ['#D92626', '#D92A26'], role: 'plein', lecture: LECTURES[0] },
+    { refs: ['#AD1F1F', '#AD271F'], role: 'plein', lecture: LECTURES[1] },
     { refs: ['#AD1F1F', '#AD1F22'], role: 'fond', lecture: LECTURES[2] },
   ] as const;
   for (const { refs, role, lecture } of cas) {
@@ -298,10 +299,10 @@ test('[VER-22] une palette libre ou figée ne se compare pas', () => {
 
 test("[VER-22] sans l'un des crans que les rôles lisent, une paire ne se compare pas", () => {
   const voisin = paletteTailwind('p-0000000b', '#1D6DDB');
-  // Le plein vise le 700 dans les deux thèmes, le fond teinté le 100 en Light et le 300 en Dark : sans l'un d'eux, la paire n'a plus de proximité.
+  // Le plein vise le 700 dans les deux thèmes, le fond teinté le 100 en Light et le 200 en Dark : sans l'un d'eux, la paire n'a plus de proximité.
   const recette = recetteAvec(BLEU, voisin);
   assert.ok(proximiteDePalettes(recette, BLEU, voisin));
-  for (const manquant of [100, 300, 700]) {
+  for (const manquant of [100, 200, 700]) {
     const sans = { ...recette, crans: recette.crans.filter((cran) => cran !== manquant) };
     assert.equal(proximiteDePalettes(sans, BLEU, voisin), null, String(manquant));
   }

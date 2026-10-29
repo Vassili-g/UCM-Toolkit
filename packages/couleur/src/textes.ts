@@ -2,7 +2,7 @@
  * La correction des textes par teinte : le cran de `surface/foreground` doit
  * tenir le seuil `texte` sur `surface/subtle`, `surface/default` et
  * `surface/hover` (garantie 3), et celui de `page/foreground` sur
- * `surface/default` (garantie 9). Quand une teinte les manque, le moteur
+ * `surface/default` et `surface/hover` (garantie 9). Quand une teinte les manque, le moteur
  * éloigne le cran de ces fonds, par pas de 0,001 de clarté OKLCH, part de
  * chroma et teinte gardées : plus foncé en Light, plus clair en Dark.
  *
@@ -40,7 +40,7 @@ export interface CorrectionDeTexte {
 }
 
 /** Pour chaque rang de texte à garder, les rangs des fonds de la palette qu'il doit tenir, dans le mode et le sens du texte des boutons. */
-function fondsDesTextes(recette: Recette, mode: Mode): Map<number, Set<number>> {
+export function fondsDesTextes(recette: Recette, mode: Mode): Map<number, Set<number>> {
   const sens = sensDuTheme(mode, recette.texteDesBoutons[mode]);
   const table = TABLE_DES_DOSSIERS[mode][sens];
   const fonds = new Map<number, Set<number>>();

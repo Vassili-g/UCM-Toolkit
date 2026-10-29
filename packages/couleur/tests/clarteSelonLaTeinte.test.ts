@@ -25,6 +25,7 @@ import {
   poidsA,
   rampesDe,
   rampesSansCorrection,
+  rangPorteur,
   rgb8VersOklch,
   recetteParDefaut,
   verifierPromesses,
@@ -134,6 +135,8 @@ test('[MOT-38] clartesDe et rampesDe lisent la même fraction, mémorisée par r
       for (const mode of MODES) {
         rampes[intensite]![mode].forEach((cran, rang) => {
           if (intensite === ancrage.profil && rang === ancrage.rangs[mode]) return;
+          // Une référence glissée en Dark change le 400, le 500 et le 700 de son profil, que `clartesDe` laisse à la clarté fabriquée (`ancrageDeplace.test.ts`).
+          if (intensite === ancrage.profil && mode === 'dark' && ancrage.rangs.dark !== rangPorteur(recette.courbes.dark, rgb8VersOklch(lireHexa(reference)!).L) && rang >= 4 && rang <= 7) return;
           // L'arrondi à 8 bits d'une teinte vive déplace la clarté de moins de 0,01.
           assert.ok(Math.abs(cran.L - clartes[intensite]![mode][rang]) < 0.01, `${reference} ${intensite} ${mode} ${recette.crans[rang]}`);
         });

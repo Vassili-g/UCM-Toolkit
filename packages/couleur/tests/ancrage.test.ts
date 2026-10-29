@@ -132,6 +132,7 @@ test('[MOT-17] sur deux mille références, le profil porteur contient les octet
   const tirer = generateur(20260924);
   const recette = recetteParDefaut();
   const fautes: string[] = [];
+  let glissees = 0;
   for (let essai = 0; essai < 2000; essai += 1) {
     const octets: Rgb8 = [Math.floor(tirer() * 256), Math.floor(tirer() * 256), Math.floor(tirer() * 256)];
     const hexa = `#${octets.map((octet) => octet.toString(16).padStart(2, '0')).join('').toUpperCase()}`;
@@ -161,23 +162,30 @@ test('[MOT-17] sur deux mille références, le profil porteur contient les octet
     });
     const commune = (profil: 'soft' | 'vivid', mode: 'light' | 'dark') => fabriquerRampe(parametres(profil, mode));
     // La bosse agit dans l'intensité porteuse quand la référence est plus vive que la chroma visée à son cran.
-    const aLaBosse = (mode: 'light' | 'dark') => {
+    const aLaBosse = (mode: 'light' | 'dark', rang: number) => {
       const visees = viseesDeLaRampe(parametres(ancrage.profil as 'soft' | 'vivid', mode));
-      return rgb8VersOklch(octets).C > visees[ancrage.rangs[mode]].C;
+      return rgb8VersOklch(octets).C > visees[rang].C;
     };
     const L = rgb8VersOklch(octets).L;
     for (const mode of MODES) {
-      const rang = ancrage.rangs[mode];
       const courbe = r.courbes[mode];
-      if (courbe.some((valeur, autre) => Math.abs(valeur - L) < Math.abs(courbe[rang] - L) || (autre < rang && Math.abs(valeur - L) === Math.abs(courbe[rang] - L)))) {
-        fautes.push(`${hexa} ${mode} : le rang ${rang} n’est pas le plus proche`);
+      const plusProche = courbe.findIndex((valeur, autre) => courbe.every((v, k) => Math.abs(valeur - L) < Math.abs(v - L) || (Math.abs(valeur - L) === Math.abs(v - L) && autre <= k)));
+      // Dark normal : une référence posée sur le 700 qui manque la garantie 9 glisse au 600 (`ancrageDeplace.test.ts`).
+      const glisse = mode === 'dark' && ancrage.rangs.dark === plusProche - 1;
+      if (glisse) {
+        glissees += 1;
+        if (r.crans[plusProche] !== 700) fautes.push(`${hexa} : glissée depuis le ${r.crans[plusProche]}`);
       }
+      const rang = ancrage.rangs[mode];
+      if (rang !== plusProche && !glisse) fautes.push(`${hexa} ${mode} : le rang ${rang} n’est pas le plus proche`);
       if (ancrage.crans[mode] !== r.crans[rang]) fautes.push(`${hexa} ${mode} : numéro ${ancrage.crans[mode]}`);
       for (const profil of PROFILS) {
         const communes = commune(profil, mode);
-        const bosse = profil === ancrage.profil && aLaBosse(mode);
+        const bosse = profil === ancrage.profil && aLaBosse(mode, glisse ? plusProche : rang);
         rampes[profil]![mode].forEach((cran, autre) => {
           const ancre = profil === ancrage.profil && autre === rang;
+          // Une référence glissée change aussi le 400, le 500 et le 700 de son profil (`ancrageDeplace.test.ts`).
+          if (glisse && profil === ancrage.profil && !ancre && autre >= 4 && autre <= 7) return;
           if (bosse && !ancre) return;
           const attendu = ancre ? hexa : communes[autre].hexa;
           if (cran.hexa !== attendu) fautes.push(`${hexa} ${profil} ${mode} ${r.crans[autre]} : ${cran.hexa} pour ${attendu}`);
@@ -187,10 +195,11 @@ test('[MOT-17] sur deux mille références, le profil porteur contient les octet
       }
     }
   }
+  assert.ok(glissees > 0, 'le tirage porte des références qui glissent en Dark');
   assert.deepEqual(fautes.slice(0, 5), []);
 });
 
-test('[MOT-17] [MOT-30] sous vingt mille Color shift tirés au hasard, le cran porteur garde les octets de la référence, et l’ancrage ne bouge pas', () => {
+test('[MOT-17] [MOT-30] sous vingt mille Color shift tirés au hasard, le cran porteur garde les octets de la référence, et l’ancrage ne bouge pas, sauf le glissement en Dark', () => {
   const tirer = generateur(20261001);
   const references = ['#1E6FD9', '#16A34A', '#DC2626', '#EAB308', '#A0B599', '#6B7280', '#B00100', '#7C717B', '#000000', '#FFFCF5'];
   const fautes: string[] = [];
@@ -203,7 +212,10 @@ test('[MOT-17] [MOT-30] sous vingt mille Color shift tirés au hasard, le cran p
     const synchronisee: Palette = palette.derive.lien ? { ...palette, derive: { ...palette.derive, soft: palette.derive.vivid } } : palette;
     const recette = { ...recetteParDefaut(), palettes: [synchronisee] };
     const ancrage = ancrageDe(recette, synchronisee);
-    if (JSON.stringify(ancrage) !== JSON.stringify(ancrageDe({ ...recetteParDefaut(), palettes: [sans] }, sans))) fautes.push(`${hexa} : l’ancrage a bougé`);
+    // Le profil et le Light ne bougent pas. Le Dark peut glisser d'un cran : le glissement lit les fonds 200 et 300, que le Color shift de Dark déplace.
+    const sansReglage = ancrageDe({ ...recetteParDefaut(), palettes: [sans] }, sans);
+    if (JSON.stringify([ancrage.profil, ancrage.rangs.light, ancrage.crans.light]) !== JSON.stringify([sansReglage.profil, sansReglage.rangs.light, sansReglage.crans.light])) fautes.push(`${hexa} : l’ancrage a bougé`);
+    if (Math.abs(sansReglage.rangs.dark - ancrage.rangs.dark) > 1) fautes.push(`${hexa} : le Dark a bougé de plus d'un cran`);
     const rampes = rampesDe(recette, synchronisee);
     for (const mode of MODES) {
       const cran = rampes[ancrage.profil]![mode][ancrage.rangs[mode]];

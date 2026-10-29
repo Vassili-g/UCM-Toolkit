@@ -120,15 +120,15 @@ test('[DER-20] un pas au-delà d’une borne à cause, la cause manque : une pro
   assert.deepEqual(fautes, []);
   // La correction des textes rend G3 et G9 aux teintes qui les manquaient : elles ne bornent plus un réglage que là où
   // le cran corrigé bute sur son voisin. Le 700 du Dark, texte de la page, s'éclaircit de 0,06 vers le 800 pour tenir
-  // G9 sur le fond teinté 300 ; un peu plus de luminosité sombre en haut, ou de luminosité claire en bas pour Bleu et
+  // G9 sur le fond teinté 200 ; un peu plus de luminosité sombre en haut, ou de luminosité claire en bas pour Bleu et
   // Rouge, et il atteint le 800 sans tenir le seuil.
   assert.deepEqual(causes, [
-    'Bleu clarte clair bas : dark/soft/9/300',
-    'Bleu clarte sombre haut : dark/soft/9/300',
-    'Rouge clarte clair bas : dark/vivid/9/300',
-    'Rouge clarte sombre haut : dark/soft/9/300',
-    'Jaune clarte sombre haut : dark/soft/9/300',
-    'Sauge clarte sombre haut : dark/vivid/9/300',
+    'Bleu clarte clair bas : dark/soft/9/200',
+    'Bleu clarte sombre haut : dark/soft/9/200',
+    'Rouge clarte clair bas : dark/vivid/9/200',
+    'Rouge clarte sombre haut : dark/soft/9/200',
+    'Jaune clarte sombre haut : dark/soft/9/200',
+    'Sauge clarte sombre haut : dark/vivid/9/200',
   ]);
 });
 

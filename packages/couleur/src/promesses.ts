@@ -20,8 +20,8 @@ export { cleDeLaPromesse, couleurDeLaCarte, jugerLesRampes, type Designation, ty
 
 /**
  * Les promesses d'une palette, rangées par mode, puis par intensité, puis
- * dans l'ordre des garanties G1 à G9 et de leurs fonds : vingt-quatre par mode
- * et par intensité, soit quatre-vingt-seize pour deux intensités et quarante-huit
+ * dans l'ordre des garanties G1 à G9 et de leurs fonds : vingt-cinq par mode
+ * et par intensité, soit cent pour deux intensités et cinquante
  * pour une, quand la liste porte tous les crans requis. Une garantie dont un
  * cran manque ne se juge pas.
  */

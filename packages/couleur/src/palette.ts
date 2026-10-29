@@ -4,6 +4,7 @@
  *
  * Chaque fonction reçoit une recette déjà validée ([REC-05]).
  */
+import { deplacerLaReference, texteSurveille, tientLeTexte, type TexteSurveille } from './ancrageDeplace';
 import { bosseDeChroma } from './bosse';
 import { CHROMA_SANS_TEINTE, ecrireHexa, lireHexa, normaliserTeinte, rgb8VersOklch, type Oklch, type Rgb8 } from './conversions';
 import { cleDeLaPromesse, jugerLesRampes } from './jugement';
@@ -286,11 +287,10 @@ export interface Ancrage {
 }
 
 /**
- * L'ancrage de la référence d'une palette ([MOT-17]), l'unique désignation
- * que toutes les vues lisent, sur la grille de la palette : la liste commune,
- * ou sa liste libre.
+ * L'ancrage de la référence d'une palette sur sa grille, avant tout déplacement
+ * en Dark : la liste commune, ou sa liste libre.
  */
-export function ancrageDe(recette: Recette, palette: Palette): Ancrage {
+function ancrageDeLaGrille(recette: Recette, palette: Palette): Ancrage {
   if (estFigee(palette)) {
     // Une palette figée ne calcule rien : la référence est la nuance qui en porte la couleur, dans l'intensité porteuse, la première de sa liste sinon.
     const profil = intensitePorteuse(recette, palette);
@@ -306,6 +306,36 @@ export function ancrageDe(recette: Recette, palette: Palette): Ancrage {
     rangs,
     crans: { light: crans[rangs.light], dark: crans[rangs.dark] },
   };
+}
+
+/**
+ * Vrai quand la référence glisse d'un cran vers le sombre en Dark normal : elle
+ * se pose sur le cran du texte de la page et manque le seuil `texte` sur les
+ * fonds de la garantie 9 (`ancrageDeplace.ts`). Les fonds se lisent sur la rampe
+ * que les réglages donnent, sans la bosse de chroma ni la clarté selon la teinte :
+ * ni l'une ni l'autre n'atteint un cran plus sombre que la référence.
+ */
+function ancrageGlisse(recette: Recette, palette: Palette, base: Ancrage): boolean {
+  if (estFigee(palette) || estLibre(palette)) return false;
+  const surveille = texteSurveille(recette);
+  if (!surveille || base.rangs.dark !== surveille.rang) return false;
+  const visees = viseesDeLaRampe(parametresDesRampes(recette, palette, 0, base)(base.profil, 'dark'));
+  const fonds = surveille.fonds.map((rang) => cranDeLaVisee(visees[rang]).couleur);
+  return !tientLeTexte(recette, referenceDe(palette), fonds);
+}
+
+/**
+ * L'ancrage de la référence d'une palette ([MOT-17]), l'unique désignation
+ * que toutes les vues lisent, sur la grille de la palette : la liste commune,
+ * ou sa liste libre. En Dark normal, une référence qui se pose sur le cran du
+ * texte de la page et manque la garantie 9 glisse au cran plus sombre voisin :
+ * `rangs.dark` et `crans.dark` rendent ce cran.
+ */
+export function ancrageDe(recette: Recette, palette: Palette): Ancrage {
+  const base = ancrageDeLaGrille(recette, palette);
+  if (!ancrageGlisse(recette, palette, base)) return base;
+  const rang = base.rangs.dark - 1;
+  return { ...base, rangs: { ...base.rangs, dark: rang }, crans: { ...base.crans, dark: grilleDe(recette, palette).crans[rang] } };
 }
 
 /** Le cran que la référence devient : ses octets tels quels, et L, C, H lus sur eux ([MOT-11]). */
@@ -447,7 +477,8 @@ export function clarteSelonLaTeinteGardee(recette: Recette, palette: Palette): C
  * référence quand elle est plus vive que la chroma visée à son cran. Elle se
  * garde mode par mode, Light puis Dark : sa force est la plus grande, par
  * dichotomie, qui ne fait manquer à ce mode et à cette intensité aucune
- * promesse tenue sans elle.
+ * promesse tenue sans elle. En Dark normal, `deplacement` glisse ensuite la
+ * référence au cran plus sombre (`deplacerLaReference`).
  */
 function rampeDeLIntensitePorteuse(
   recette: Recette,
@@ -457,6 +488,7 @@ function rampeDeLIntensitePorteuse(
   reference: Rgb8,
   visees: { readonly [M in Mode]: readonly ViseeDeCran[] },
   corriger: Correction,
+  deplacement?: Deplacement,
 ): RampeParMode {
   const lue = rgb8VersOklch(reference);
   const bosses = {
@@ -465,9 +497,10 @@ function rampeDeLIntensitePorteuse(
   };
   const rampe = (mode: Mode, force: number): Cran[] => {
     const bosse = bosses[mode];
-    return corriger(mode, visees[mode].map((visee, rang) => (rang === ancrage.rangs[mode]
+    const fabriquee = corriger(mode, visees[mode].map((visee, rang) => (rang === ancrage.rangs[mode]
       ? cranDeLaReference(reference)
       : cranDeLaVisee({ L: visee.L, H: visee.H, C: bosse ? visee.C + (bosse[rang] - visee.C) * force : visee.C }))), ancrage.rangs[mode]);
+    return mode === 'dark' && deplacement ? deplacerLaReference(recette, fabriquee, deplacement.surveille, deplacement.clarteDeLaCourbe, deplacement.corriger) : fabriquee;
   };
   const forces = { light: 0, dark: 0 };
   for (const mode of MODES) {
@@ -492,6 +525,13 @@ function rampeDeLIntensitePorteuse(
   return { light: rampe('light', forces.light), dark: rampe('dark', forces.dark) };
 }
 
+/** Le déplacement de la référence en Dark normal : le cran du texte qu'elle quitte, la clarté de la courbe qu'il reprend, et si la correction des textes l'éclaircit. */
+interface Deplacement {
+  readonly surveille: TexteSurveille;
+  readonly clarteDeLaCourbe: number;
+  readonly corriger: boolean;
+}
+
 /** La correction des textes d'une rampe fabriquée : la rampe du mode, et le rang de la référence qu'elle porte, s'il y en a un. */
 type Correction = (mode: Mode, rampe: Cran[], rangDeLaReference: number | undefined) => Cran[];
 
@@ -507,14 +547,16 @@ function correctionDesTextes(recette: Recette, palette: Palette, corriger: boole
 /** Les rampes d'une palette non figée sous un décalage de clarté donné : la chaîne que `rampesDe` retient et que la garde de la clarté essaie. */
 function rampesAvecLeDecalage(recette: Recette, palette: Palette, decalageDeClarte: number, corriger = true): Rampes {
   const reference = referenceDe(palette);
-  const ancrage = ancrageDe(recette, palette);
+  const ancrage = ancrageDeLaGrille(recette, palette);
   const parametres = parametresDesRampes(recette, palette, decalageDeClarte, ancrage);
   const corrigee = correctionDesTextes(recette, palette, corriger);
+  const surveille = ancrageGlisse(recette, palette, ancrage) ? texteSurveille(recette) : undefined;
   const rampes: { [I in Intensite]?: RampeParMode } = {};
   for (const intensite of intensitesDe(palette)) {
     const visees = { light: viseesDeLaRampe(parametres(intensite, 'light')), dark: viseesDeLaRampe(parametres(intensite, 'dark')) };
     if (intensite === ancrage.profil) {
-      rampes[intensite] = rampeDeLIntensitePorteuse(recette, palette, intensite, ancrage, reference, visees, corrigee);
+      const deplacement = surveille && { surveille, clarteDeLaCourbe: grilleDe(recette, palette).courbes.dark[surveille.rang] + decalageDe(palette, intensite), corriger };
+      rampes[intensite] = rampeDeLIntensitePorteuse(recette, palette, intensite, ancrage, reference, visees, corrigee, deplacement);
       continue;
     }
     rampes[intensite] = {
@@ -532,6 +574,7 @@ function rampesAvecLeDecalage(recette: Recette, palette: Palette, decalageDeClar
  * autres crans gardent le calcul commun, sauf ceux de l'intensité porteuse que
  * la bosse de chroma monte vers la référence, et les textes que la table
  * éloigne des fonds teintés quand la teinte les y manque (`corrigerLesTextes`).
+ * En Dark normal, la référence qui manque G9 sur le 700 se pose au 600 (`ancrageDe`).
  * Promesses, alertes, planche et rapport lisent ces rampes-ci.
  */
 export function rampesDe(recette: Recette, palette: Palette): Rampes {
@@ -562,7 +605,8 @@ export type { ClartesParMode };
 /** Les clartés de la chaîne sous un décalage de clarté donné. */
 function clartesAvecLeDecalage(recette: Recette, palette: Palette, decalageDeClarte: number): { readonly [I in Intensite]?: ClartesParMode } {
   const L = rgb8VersOklch(referenceDe(palette)).L;
-  const ancrage = ancrageDe(recette, palette);
+  // L'ordre se juge avant le glissement de la référence en Dark (`ancrageDeLaGrille`) : le glissement ne touche pas le Light, et la garde de la clarté selon la teinte n'en dépend pas.
+  const ancrage = ancrageDeLaGrille(recette, palette);
   const parametres = parametresDesRampes(recette, palette, decalageDeClarte, ancrage);
   const clartes: { [I in Intensite]?: ClartesParMode } = {};
   for (const intensite of intensitesDe(palette)) {
@@ -577,7 +621,8 @@ function clartesAvecLeDecalage(recette: Recette, palette: Palette, decalageDeCla
  * Les clartés auxquelles les crans d'une palette se fabriquent, par intensité
  * présente, la clarté de la référence à son cran ([MOT-17]). L'ordre des
  * nuances se juge sur elles ([DER-19]). Elles portent la même clarté selon la
- * teinte que `rampesDe`.
+ * teinte que `rampesDe`, et ignorent le glissement de la référence en Dark
+ * normal (`ancrageDe`).
  */
 export function clartesDe(recette: Recette, palette: Palette): { readonly [I in Intensite]?: ClartesParMode } {
   return clartesAvecLeDecalage(recette, palette, clarteSelonLaTeinteGardee(recette, palette).decalage);

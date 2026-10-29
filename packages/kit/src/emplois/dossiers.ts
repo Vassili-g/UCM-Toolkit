@@ -34,7 +34,7 @@ export const VARIABLES_DU_THEME: readonly VariableDuTheme[] = [
   ...NIVEAUX_D_ELEVATION_DU_THEME.map((niveau): VariableDuTheme => `elevation/${niveau}`),
 ];
 
-/** Une table par thème et par sens : en Dark, les surfaces montent aux crans 300 à 500 et leur texte au 950. */
+/** Une table par thème et par sens : en Dark, les fonds de `surface` vont du 100 au 400 (le filet au 500) et leur texte au 950. */
 export const TABLE_DES_DOSSIERS = {
   light: {
     normal: {
@@ -51,12 +51,12 @@ export const TABLE_DES_DOSSIERS = {
   dark: {
     normal: {
       'solid/default': 700, 'solid/hover': 800, 'solid/pressed': 900, 'solid/foreground': 'texteDesBoutons',
-      'surface/default': 300, 'surface/hover': 400, 'surface/pressed': 500, 'surface/subtle': 200, 'surface/foreground': 950, 'surface/border': 950, 'surface/divider': 500,
+      'surface/default': 200, 'surface/hover': 300, 'surface/pressed': 400, 'surface/subtle': 100, 'surface/foreground': 950, 'surface/border': 950, 'surface/divider': 500,
       'page/foreground': 700, 'page/border': 700, 'page/divider': 300, 'ring': 600,
     },
     inverse: {
       'solid/default': 700, 'solid/hover': 600, 'solid/pressed': 500, 'solid/foreground': 'texteDesBoutons',
-      'surface/default': 300, 'surface/hover': 400, 'surface/pressed': 500, 'surface/subtle': 200, 'surface/foreground': 950, 'surface/border': 950, 'surface/divider': 500,
+      'surface/default': 200, 'surface/hover': 300, 'surface/pressed': 400, 'surface/subtle': 100, 'surface/foreground': 950, 'surface/border': 950, 'surface/divider': 500,
       'page/foreground': 800, 'page/border': 800, 'page/divider': 300, 'ring': 800,
     },
   },

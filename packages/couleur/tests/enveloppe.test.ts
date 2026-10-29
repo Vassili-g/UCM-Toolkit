@@ -216,7 +216,8 @@ const DU_PROTOTYPE: Record<string, Rampes> = {
     },
     vivid: {
       light: ['#E4FFED', '#CEFCDD', '#A8F4C2', '#76E99F', '#20D370', '#19B356', '#16A34A', '#0D7738', '#085D2D', '#044420', '#022F16'],
-      dark: ['#070B08', '#112015', '#152E1D', '#153F24', '#07572A', '#0D7437', '#139244', '#16A34A', '#20D470', '#72EEA0', '#C5FBD6'],
+      // Dark normal : le 700 de la courbe ne tient pas 4,5:1 sur le 300, la référence glisse au 600 (`ancrageDeplace.test.ts`) ; le 400 et le 500 se relèvent, le 700 reprend la clarté de la courbe.
+      dark: ['#070B08', '#112015', '#152E1D', '#153F24', '#075A2C', '#0F7C3B', '#16A34A', '#19B252', '#20D470', '#72EEA0', '#C5FBD6'],
     },
   },
   // Rouge #B15152 à une intensité

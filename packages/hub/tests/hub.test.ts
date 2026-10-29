@@ -33,7 +33,7 @@ test('surface/divider et surface/subtle viennent de la table du kit, une seule f
   assert.equal(VARIABLES_DU_BANC.filter((variable) => variable === 'surface/divider').length, 1);
   assert.equal(VARIABLES_DU_BANC.filter((variable) => variable === 'surface/subtle').length, 1);
   assert.deepEqual([modele.table.light['surface/divider'], modele.table.dark['surface/divider']], [300, 500]);
-  assert.deepEqual([modele.table.light['surface/subtle'], modele.table.dark['surface/subtle']], [50, 200]);
+  assert.deepEqual([modele.table.light['surface/subtle'], modele.table.dark['surface/subtle']], [50, 100]);
   const jeu = modele.jeux.find((autre) => autre.palette.aDesDossiers && autre.mode === 'light')!;
   assert.equal(jeu.v['surface/subtle']?.cran, 50);
   assert.equal(jeu.v['surface/divider']?.cran, 300);
@@ -45,7 +45,8 @@ test('les garanties 8 et 9 se jugent dans le banc, avec les fonds de la palette'
   const g9 = mesures.filter((mesure) => mesure.regle === 'G9');
   assert.ok(g8.length > 0 && g9.length > 0);
   assert.ok(g8.every((mesure) => mesure.premier.nom === 'surface/foreground' && mesure.second.nom === 'surface/pressed'));
-  assert.ok(g9.every((mesure) => mesure.premier.nom === 'page/foreground' && mesure.second.nom === 'surface/default'));
+  assert.ok(g9.every((mesure) => mesure.premier.nom === 'page/foreground' && ['surface/default', 'surface/hover'].includes(mesure.second.nom)));
+  assert.deepEqual([...new Set(g9.map((mesure) => mesure.second.nom))].sort(), ['surface/default', 'surface/hover']);
 });
 
 test('sans les fonds appuyés, aucune garantie ne se juge contre solid/pressed ni surface/pressed', () => {

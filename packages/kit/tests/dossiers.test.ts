@@ -14,8 +14,8 @@ type Cran = number | 'texteDesBoutons';
 const ATTENDUS: [VariableDePalette, Cran, Cran, Cran, Cran][] = [
   ['solid/default', 700, 700, 700, 700], ['solid/hover', 800, 600, 800, 600], ['solid/pressed', 900, 500, 900, 500],
   ['solid/foreground', 'texteDesBoutons', 'texteDesBoutons', 'texteDesBoutons', 'texteDesBoutons'],
-  ['surface/default', 100, 100, 300, 300], ['surface/hover', 200, 200, 400, 400], ['surface/pressed', 300, 300, 500, 500],
-  ['surface/subtle', 50, 50, 200, 200], ['surface/foreground', 700, 900, 950, 950], ['surface/border', 700, 900, 950, 950],
+  ['surface/default', 100, 100, 200, 200], ['surface/hover', 200, 200, 300, 300], ['surface/pressed', 300, 300, 400, 400],
+  ['surface/subtle', 50, 50, 100, 100], ['surface/foreground', 700, 900, 950, 950], ['surface/border', 700, 900, 950, 950],
   ['surface/divider', 300, 300, 500, 500],
   ['page/foreground', 700, 800, 700, 800], ['page/border', 700, 800, 700, 800], ['page/divider', 300, 300, 300, 300], ['ring', 600, 700, 600, 800],
 ];
@@ -57,10 +57,10 @@ test('le texte et le contour de surface sont au 700 en Light normal, au 900 en L
   }
 });
 
-test('surface/subtle vaut 50 en Light et 200 en Dark, surface/divider 300 en Light et 500 en Dark, dans les deux sens', () => {
+test('surface/subtle vaut 50 en Light et 100 en Dark, surface/divider 300 en Light et 500 en Dark, dans les deux sens', () => {
   for (const sens of ['normal', 'inverse'] as const) {
     assert.equal(cranDeLaVariable('surface/subtle', 'light', sens), 50);
-    assert.equal(cranDeLaVariable('surface/subtle', 'dark', sens), 200);
+    assert.equal(cranDeLaVariable('surface/subtle', 'dark', sens), 100);
     assert.equal(cranDeLaVariable('surface/divider', 'light', sens), 300);
     assert.equal(cranDeLaVariable('surface/divider', 'dark', sens), 500);
   }
@@ -71,11 +71,11 @@ test('l’anneau du Dark inversé est au 800, celui du Dark normal reste au 600'
   assert.equal(TABLE_DES_DOSSIERS.dark.normal.ring, 600);
 });
 
-test('les crans requis réunissent ceux de la table : le 50 en Light, le 200 en Dark, jamais le 400 en Light ; 500 dépend du sens', () => {
+test('les crans requis réunissent ceux de la table : le 50 en Light, le 100 en Dark, jamais le 400 en Light ; 500 dépend du sens', () => {
   assert.deepEqual(cransRequis('light', 'normal'), [50, 100, 200, 300, 600, 700, 800, 900]);
   assert.deepEqual(cransRequis('light', 'inverse'), [50, 100, 200, 300, 500, 600, 700, 800, 900]);
-  assert.deepEqual(cransRequis('dark', 'normal'), [200, 300, 400, 500, 600, 700, 800, 900, 950]);
-  assert.deepEqual(cransRequis('dark', 'inverse'), [200, 300, 400, 500, 600, 700, 800, 950]);
+  assert.deepEqual(cransRequis('dark', 'normal'), [100, 200, 300, 400, 500, 600, 700, 800, 900, 950]);
+  assert.deepEqual(cransRequis('dark', 'inverse'), [100, 200, 300, 400, 500, 600, 700, 800, 950]);
 });
 
 test('chaque variable numérique exige son cran, les couleurs pures et les élévations restent présentes', () => {
@@ -112,16 +112,17 @@ test('les variables du cran respectent les indices, le thème, le sens et le sup
   assert.deepEqual(variables(700, 'light', 'normal'), ['solid/default', 'surface/foreground', 'surface/border', 'page/foreground', 'page/border']);
   assert.deepEqual(variables(50, 'light', 'normal'), ['surface/subtle']);
   assert.deepEqual(variables(300, 'light', 'normal'), ['surface/pressed', 'surface/divider', 'page/divider']);
-  assert.deepEqual(variables(200, 'dark', 'normal'), ['surface/subtle']);
+  assert.deepEqual(variables(100, 'dark', 'normal'), ['surface/subtle']);
+  assert.deepEqual(variables(200, 'dark', 'normal'), ['surface/default']);
   assert.deepEqual(variables(600, 'light', 'inverse'), ['solid/hover']);
   assert.deepEqual(variables(700, 'light', 'normal', true), ['solid/default', 'surface/foreground', 'surface/border', 'page/foreground', 'page/border', 'page/foreground-subtle']);
   assert.deepEqual(variables(500, 'light', 'normal', true), ['disabled/foreground', 'disabled/border']);
   assert.deepEqual(variables(500, 'light', 'inverse', true), ['solid/pressed', 'disabled/foreground', 'disabled/border']);
   assert.deepEqual(variables(200, 'light', 'inverse', true), ['surface/hover', 'disabled/background']);
   assert.deepEqual(variables(800, 'light', 'inverse', true), ['page/foreground', 'page/border', 'page/foreground-subtle']);
-  assert.deepEqual(variables(300, 'dark', 'normal'), ['surface/default', 'page/divider']);
-  assert.deepEqual(variables(400, 'dark', 'normal'), ['surface/hover']);
-  assert.deepEqual(variables(500, 'dark', 'inverse', true), ['solid/pressed', 'surface/pressed', 'surface/divider', 'disabled/foreground', 'disabled/border']);
+  assert.deepEqual(variables(300, 'dark', 'normal'), ['surface/hover', 'page/divider']);
+  assert.deepEqual(variables(400, 'dark', 'normal'), ['surface/pressed']);
+  assert.deepEqual(variables(500, 'dark', 'inverse', true), ['solid/pressed', 'surface/divider', 'disabled/foreground', 'disabled/border']);
   assert.deepEqual(variables(950, 'dark', 'normal'), ['surface/foreground', 'surface/border']);
   assert.deepEqual(variables(950, 'light', 'normal'), []);
   for (const rang of [-1, CRANS.length, 0.5, NaN]) assert.deepEqual(variablesDuCran(CRANS, rang, 'light', 'normal', true), []);

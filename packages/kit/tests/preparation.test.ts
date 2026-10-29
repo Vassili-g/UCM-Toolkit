@@ -66,7 +66,7 @@ test('Alert rend ses variables de couleur et de taille une fois le dossier répo
     ['components/alert/color/danger/soft/foreground', 'COLOR', 'theme/danger/soft/surface/foreground', 'a-creer', []],
     ['components/alert/size/padding-x', 'FLOAT', 'layout/sizing/2', 'a-creer', []],
   ]);
-  assert.deepEqual(resultat.variables[0].vise?.crans, { light: 100, dark: 300 });
+  assert.deepEqual(resultat.variables[0].vise?.crans, { light: 100, dark: 200 });
 });
 
 test('sans réponse, le dossier est une question sans candidat coché et la variable attend', () => {

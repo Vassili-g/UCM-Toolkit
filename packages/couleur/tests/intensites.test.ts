@@ -82,10 +82,10 @@ test('[ENT-14] sur cinq cents références, la rampe unique est celle du profil 
   assert.deepEqual(fautes.slice(0, 5), []);
 });
 
-test('[ENT-14] une palette à une intensité juge quarante-huit promesses, sans seconde série, et son verdict ne compte qu’elles', () => {
+test('[ENT-14] une palette à une intensité juge cinquante promesses, sans seconde série, et son verdict ne compte qu’elles', () => {
   const bleu = unique('p-000000c3', '#1E6FD9');
   const promesses = verifierPromesses(recetteAvec(bleu), bleu);
-  assert.equal(promesses.length, 48);
+  assert.equal(promesses.length, 50);
   assert.deepEqual([...new Set(promesses.map((promesse) => promesse.profil))], ['unique']);
   // Un fond de page gris moyen : des garanties manquent en clair, et seules les promesses de la rampe unique comptent.
   // Un 700 plus clair ne ferait manquer ni G3 ni G9 : la correction des textes le fonce.

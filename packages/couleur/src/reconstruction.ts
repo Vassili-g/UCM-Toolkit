@@ -27,6 +27,7 @@
  * `setTimeout` s'ils existent. C'est le seul endroit du moteur qui dépend du
  * temps, et le résultat n'en dépend que si le budget s'épuise.
  */
+import { texteSurveille } from './ancrageDeplace';
 import { ecrireHexa, encoder, lireHexa, normaliserTeinte, oklchVersLineaire, rgb8VersOklch, type Rgb8 } from './conversions';
 import { bosseDeChroma } from './bosse';
 import { boutsDe, grilleDe } from './nuances';
@@ -859,8 +860,11 @@ function etudier(c: Cadre, s: Suivi, valider: (p: Palette) => boolean, k: Candid
   };
   const tous: number[] = [];
   for (const cle of c.cles) for (let i = 1; i < 1 + NOMS.length; i += 1) tous.push(indice(cle, NOMS[i - 1]));
+  // Dark normal : une référence qui manque la garantie 9 glisse d'un cran sous celui que sa clarté désigne (`ancrageDe`).
+  const rangDuTexte = c.commune ? texteSurveille(c.recette)?.rang : undefined;
   const rangsOk = (L: number): boolean =>
-    rangPorteur(c.courbes.light, L) === k.rl && (k.rd < 0 || rangPorteur(c.courbes.dark, L) === k.rd);
+    rangPorteur(c.courbes.light, L) === k.rl
+    && (k.rd < 0 || rangPorteur(c.courbes.dark, L) === k.rd || (k.rd + 1 === rangDuTexte && rangPorteur(c.courbes.dark, L) === rangDuTexte));
   const departDeReference = k.couleur;
 
   const lancer = async (variante: 'estimee' | 'nulle', iterations: number): Promise<number[]> => {

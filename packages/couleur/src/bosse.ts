@@ -18,7 +18,7 @@ const lisse = (x: number): number => {
 
 /**
  * La part de la zone des fonds à la clarté de courbe `Lc`, dans `[0 ; 1]` :
- * les tons clairs du thème Light, les fonds 300 à 500 du thème Dark. La bosse
+ * les tons clairs du thème Light, les crans sombres du thème Dark (fonds 100 à 400, filet 500). La bosse
  * n'y entre pas.
  */
 function zoneDesFonds(Lc: number, mode: Mode): number {

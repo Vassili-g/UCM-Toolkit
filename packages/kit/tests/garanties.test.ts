@@ -13,19 +13,19 @@ test('les neuf garanties ont leurs membres, fonds et seuil', () => {
     { numero: 6, premier: { variable: 'page/border' }, fonds: [{ fondDeLaPage: true }, { fondDeLaCarte: true }], seuil: 'nonTexte' },
     { numero: 7, premier: { variable: 'ring' }, fonds: [{ fondDeLaPage: true }, { fondDeLaCarte: true }], seuil: 'nonTexte' },
     { numero: 8, premier: { variable: 'surface/foreground' }, fonds: [{ variable: 'surface/pressed' }], seuil: 'nonTexte' },
-    { numero: 9, premier: { variable: 'page/foreground' }, fonds: [{ variable: 'surface/default' }], seuil: 'texte' },
+    { numero: 9, premier: { variable: 'page/foreground' }, fonds: [{ variable: 'surface/default' }, { variable: 'surface/hover' }], seuil: 'texte' },
   ]);
 });
 
 test('chaque membre numérique et chaque fond doit être présent dans le thème et le sens jugés', () => {
   const attendus: Record<ModeDuTheme, Record<SensDuTheme, number[][]>> = {
     light: {
-      normal: [[700, 800, 900], [700], [50, 100, 200, 700], [50, 100, 200, 300, 700], [700], [700], [600], [300, 700], [100, 700]],
-      inverse: [[500, 600, 700], [700], [50, 100, 200, 900], [50, 100, 200, 300, 900], [800], [800], [700], [300, 900], [100, 800]],
+      normal: [[700, 800, 900], [700], [50, 100, 200, 700], [50, 100, 200, 300, 700], [700], [700], [600], [300, 700], [100, 200, 700]],
+      inverse: [[500, 600, 700], [700], [50, 100, 200, 900], [50, 100, 200, 300, 900], [800], [800], [700], [300, 900], [100, 200, 800]],
     },
     dark: {
-      normal: [[700, 800, 900], [700], [200, 300, 400, 950], [200, 300, 400, 500, 950], [700], [700], [600], [500, 950], [300, 700]],
-      inverse: [[500, 600, 700], [700], [200, 300, 400, 950], [200, 300, 400, 500, 950], [800], [800], [800], [500, 950], [300, 800]],
+      normal: [[700, 800, 900], [700], [100, 200, 300, 950], [100, 200, 300, 400, 950], [700], [700], [600], [400, 950], [200, 300, 700]],
+      inverse: [[500, 600, 700], [700], [100, 200, 300, 950], [100, 200, 300, 400, 950], [800], [800], [800], [400, 950], [200, 300, 800]],
     },
   };
   for (const mode of ['light', 'dark'] as const) {
@@ -84,11 +84,11 @@ test('G4 garde l’appui et ajoute le fond léger à ses fonds', () => {
   assert.deepEqual(variables, ['surface/subtle', 'surface/default', 'surface/hover', 'surface/pressed']);
 });
 
-test('G8 juge le texte de surface sur l’appui au seuil non textuel, G9 le texte coloré sur le repos au seuil textuel', () => {
+test('G8 juge le texte de surface sur l’appui au seuil non textuel, G9 le texte coloré sur le repos et le survol au seuil textuel', () => {
   const g8 = GARANTIES.find((garantie) => garantie.numero === 8)!;
   assert.deepEqual([g8.premier, g8.fonds, g8.seuil], [{ variable: 'surface/foreground' }, [{ variable: 'surface/pressed' }], 'nonTexte']);
   const g9 = GARANTIES.find((garantie) => garantie.numero === 9)!;
-  assert.deepEqual([g9.premier, g9.fonds, g9.seuil], [{ variable: 'page/foreground' }, [{ variable: 'surface/default' }], 'texte']);
+  assert.deepEqual([g9.premier, g9.fonds, g9.seuil], [{ variable: 'page/foreground' }, [{ variable: 'surface/default' }, { variable: 'surface/hover' }], 'texte']);
 });
 
 test('surface/divider n’entre dans aucune garantie', () => {
@@ -98,10 +98,10 @@ test('surface/divider n’entre dans aucune garantie', () => {
   }
 });
 
-test('garantieJugeable traite surface/subtle : G3 attend le 50 en Light et le 200 en Dark', () => {
+test('garantieJugeable traite surface/subtle : G3 attend le 50 en Light et le 100 en Dark', () => {
   const g3 = GARANTIES[2];
   assert.equal(garantieJugeable(g3, [100, 200, 700], 'light', 'normal'), false);
   assert.equal(garantieJugeable(g3, [50, 100, 200, 700], 'light', 'normal'), true);
-  assert.equal(garantieJugeable(g3, [300, 400, 950], 'dark', 'normal'), false);
-  assert.equal(garantieJugeable(g3, [200, 300, 400, 950], 'dark', 'normal'), true);
+  assert.equal(garantieJugeable(g3, [200, 300, 950], 'dark', 'normal'), false);
+  assert.equal(garantieJugeable(g3, [100, 200, 300, 950], 'dark', 'normal'), true);
 });

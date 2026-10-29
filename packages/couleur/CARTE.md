@@ -15,9 +15,10 @@ Moteur de couleur d'UCM Palettes : ucm-couleur, privé, lu en source.
 - recette.ts : forme de la recette au format 12 (parts, `clairs` et enveloppe de chroma par profil, relevé `derives`), sa validation, son classement à la lecture : les formats 8 à 11 se lisent en format 12, une étape par format, aucun format antérieur ne se convertit
 - protocole.ts : espace et clé partagés de la recette, qu'UCM Palettes écrit et que l'explorateur lit
 - empreinte.ts : JSON canonique, encodeur UTF-8 et FNV-1a
-- palette.ts : une palette lue contre sa recette : intensités, parts, gris pur et palette grise, départ et pivot de ses réglages, ancrage de sa référence, rampes ancrées et rampes avant la correction des textes (`rampesSansCorrection`), enveloppe de chroma de chaque intensité, clartés de leurs crans, bornes des fonds du thème Dark, clarté selon la teinte et sa garde (`clarteSelonLaTeinte`, `clarteSelonLaTeinteGardee`), garde de la bosse de chroma
+- palette.ts : une palette lue contre sa recette : intensités, parts, gris pur et palette grise, départ et pivot de ses réglages, ancrage de sa référence et son glissement d'un cran en Dark normal (`ancrageDe`), rampes ancrées et rampes avant la correction des textes (`rampesSansCorrection`), enveloppe de chroma de chaque intensité, clartés de leurs crans, bornes des fonds du thème Dark, clarté selon la teinte et sa garde (`clarteSelonLaTeinte`, `clarteSelonLaTeinteGardee`), garde de la bosse de chroma
 - bosse.ts : bosse de chroma qui monte les voisines de la référence porteuse (`bosseDeChroma`)
 - textes.ts : correction des textes par teinte : le cran de `surface/foreground` et celui de `page/foreground` éloignés des fonds teintés jusqu'au seuil `texte` (`corrigerLesTextes`)
+- ancrageDeplace.ts : ancrage déplacé en Dark normal : la référence qui manque G9 sur le 700 glisse au 600, le 700 est libéré et le 400 et le 500 se relèvent (`texteSurveille`, `deplacerLaReference`)
 - jugement.ts : jugement des promesses sur des rampes données (`jugerLesRampes`), que la garde de la clarté et celle de la bosse appellent
 - ordre.ts : ordre des clartés de la chaîne (`ordreDesClartesTenu`)
 - reconstruction.ts : réglages d'une palette figée retrouvés depuis ses couleurs : recherche asynchrone, bornée, interruptible, à écart en hexa
