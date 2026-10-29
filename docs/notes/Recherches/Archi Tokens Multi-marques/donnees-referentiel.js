@@ -125,8 +125,8 @@ window.REFERENTIEL = {
    "crans": {
     "light-normal": "100",
     "light-inverse": "100",
-    "dark-normal": "300",
-    "dark-inverse": "300"
+    "dark-normal": "200",
+    "dark-inverse": "200"
    }
   },
   {
@@ -137,8 +137,8 @@ window.REFERENTIEL = {
    "crans": {
     "light-normal": "200",
     "light-inverse": "200",
-    "dark-normal": "400",
-    "dark-inverse": "400"
+    "dark-normal": "300",
+    "dark-inverse": "300"
    }
   },
   {
@@ -149,8 +149,20 @@ window.REFERENTIEL = {
    "crans": {
     "light-normal": "300",
     "light-inverse": "300",
-    "dark-normal": "500",
-    "dark-inverse": "500"
+    "dark-normal": "400",
+    "dark-inverse": "400"
+   }
+  },
+  {
+   "id": "surface/subtle",
+   "libelle": "fond teinté léger",
+   "definition": "Fond teinté très léger, sans état.",
+   "garanties": [],
+   "crans": {
+    "light-normal": "50",
+    "light-inverse": "50",
+    "dark-normal": "100",
+    "dark-inverse": "100"
    }
   },
   {
@@ -158,10 +170,11 @@ window.REFERENTIEL = {
    "libelle": "texte sur fond teinté",
    "definition": "Texte et icônes sur un fond teinté.",
    "garanties": [
-    3
+    3,
+    8
    ],
    "crans": {
-    "light-normal": "800",
+    "light-normal": "700",
     "light-inverse": "900",
     "dark-normal": "950",
     "dark-inverse": "950"
@@ -175,10 +188,22 @@ window.REFERENTIEL = {
     4
    ],
    "crans": {
-    "light-normal": "800",
+    "light-normal": "700",
     "light-inverse": "900",
     "dark-normal": "950",
     "dark-inverse": "950"
+   }
+  },
+  {
+   "id": "surface/divider",
+   "libelle": "filet sur fond teinté",
+   "definition": "Trait de séparation sur un fond teinté.",
+   "garanties": [],
+   "crans": {
+    "light-normal": "300",
+    "light-inverse": "300",
+    "dark-normal": "500",
+    "dark-inverse": "500"
    }
   },
   {
@@ -186,7 +211,8 @@ window.REFERENTIEL = {
    "libelle": "texte coloré",
    "definition": "Texte et icônes colorés sur le fond de la page.",
    "garanties": [
-    5
+    5,
+    9
    ],
    "crans": {
     "light-normal": "700",
@@ -232,7 +258,7 @@ window.REFERENTIEL = {
     "light-normal": "600",
     "light-inverse": "700",
     "dark-normal": "600",
-    "dark-inverse": "700"
+    "dark-inverse": "800"
    }
   },
   {
@@ -372,6 +398,14 @@ window.REFERENTIEL = {
   {
    "numero": 7,
    "seuil": "nonTexte"
+  },
+  {
+   "numero": 8,
+   "seuil": "nonTexte"
+  },
+  {
+   "numero": 9,
+   "seuil": "texte"
   }
  ],
  "recommandations": [
