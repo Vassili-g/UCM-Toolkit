@@ -74,6 +74,61 @@ export function cranDeLaVariable(variable: VariableDuTheme, mode: ModeDuTheme, s
   return undefined;
 }
 
+/** Les couleurs absolues de `utility/neutral`, par l'identifiant du registre `REGISTRE_COULEURS_ABSOLUES`. */
+export type CouleurAbsolue = 'white' | 'black';
+
+/** Les variables du neutre qui visent une couleur absolue, par mode. */
+export const CIBLES_ABSOLUES_DU_NEUTRE = {
+  'scale/0': { light: 'white', dark: 'black' },
+  'scale/1000': { light: 'black', dark: 'white' },
+  'page/foreground-main': { light: 'black', dark: 'white' },
+} as const;
+
+/** Le texte des boutons qu'un sens donne : l'inverse de `sensDuTheme`. */
+export function texteDesBoutonsDuSens(mode: ModeDuTheme, sens: SensDuTheme): TexteDesBoutons {
+  const parDefaut = TEXTE_DES_BOUTONS_PAR_DEFAUT[mode];
+  if (sens === 'normal') return parDefaut;
+  return parDefaut === 'blanc' ? 'noir' : 'blanc';
+}
+
+/** Ce qu'une variable du thème vise : un cran de sa rampe, ou une couleur absolue du neutre. */
+export type CibleDeVariable = { readonly cran: number } | { readonly absolue: CouleurAbsolue };
+
+export function cibleDeLaVariable(variable: VariableDuTheme, mode: ModeDuTheme, sens: SensDuTheme): CibleDeVariable | undefined {
+  const cran = cranDeLaVariable(variable, mode, sens);
+  if (typeof cran === 'number') return { cran };
+  if (cran === 'texteDesBoutons') return { absolue: texteDesBoutonsDuSens(mode, sens) === 'blanc' ? 'white' : 'black' };
+  if (variable in CIBLES_ABSOLUES_DU_NEUTRE) return { absolue: CIBLES_ABSOLUES_DU_NEUTRE[variable as keyof typeof CIBLES_ABSOLUES_DU_NEUTRE][mode] };
+  return undefined;
+}
+
+export type SensDeduit = SensDuTheme | 'ambigu' | 'inconnu';
+
+/**
+ * Le sens d'une palette dans un mode, d'après ce que visent ses variables. Une variable dont le cran diffère entre les deux
+ * tables vote pour le sens dont la table donne son cran ; une variable qui ne correspond à aucune table ne vote pas.
+ * `solid/foreground` vote par sa couleur absolue. Un vote au moins et tous d'accord : ce sens. Des votes contraires : `ambigu`.
+ */
+export function sensDeLaPalette(
+  mode: ModeDuTheme,
+  vise: Partial<Record<VariableDePalette, CibleDeVariable>>,
+): SensDeduit {
+  const votes = new Set<SensDuTheme>();
+  for (const [variable, cible] of Object.entries(vise) as [VariableDePalette, CibleDeVariable][]) {
+    if ('absolue' in cible) {
+      if (variable === 'solid/foreground') votes.add(sensDuTheme(mode, cible.absolue === 'white' ? 'blanc' : 'noir'));
+      continue;
+    }
+    const normal = cranDeLaVariable(variable, mode, 'normal');
+    const inverse = cranDeLaVariable(variable, mode, 'inverse');
+    if (normal === inverse) continue;
+    if (cible.cran === normal) votes.add('normal');
+    else if (cible.cran === inverse) votes.add('inverse');
+  }
+  if (votes.size === 0) return 'inconnu';
+  return votes.size === 1 ? [...votes][0] : 'ambigu';
+}
+
 export function cransRequis(mode: ModeDuTheme, sens: SensDuTheme): number[] {
   const crans = Object.values(TABLE_DES_DOSSIERS[mode][sens]).filter((cran) => typeof cran === 'number');
   return [...new Set(crans)].sort((a, b) => a - b);
