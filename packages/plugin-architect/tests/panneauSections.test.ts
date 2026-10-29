@@ -23,14 +23,14 @@ const IDENTITE = { sujet: 'Alert', generation: 1 };
 interface Banc {
   panneau: PanneauDesConstats;
   etat: { analyse: AnalyseRecue; panneau: { ouvert: boolean; largeurDeLaVue: number; element: ElementChoisi } };
-  envois: { appliquer: Array<{ ids: readonly string[]; liaisons: number }>; annulees: string[] };
+  envois: { appliquer: Array<{ ids: readonly string[]; liaisons: number }>; annulees: string[]; selections: Array<readonly string[]> };
   racine: ElementDeTest;
   /** Relit l'état : une nouvelle analyse, ou un changement du panneau, puis redessine comme l'application le fait. */
   actualiser(surcharge?: Partial<AnalyseRecue>): void;
 }
 
 function monter(constats: readonly Constat[] = constatsAlert, surcharge: Partial<AnalyseRecue> = {}): Banc {
-  const envois: Banc['envois'] = { appliquer: [], annulees: [] };
+  const envois: Banc['envois'] = { appliquer: [], annulees: [], selections: [] };
   const analyse = {
     identite: IDENTITE, statut: 'complete', constats, tous: constats, ignores: [], repondues: {}, variants: alertCorrections.sujet.variants, lecture: null, sansTokens: false,
     progression: null, perimee: false, cause: null, ecriture: null, lot: null, appliquees: [], liaisons: null, liaisonsDemandees: false, recueA: 0, ...surcharge,
@@ -39,7 +39,7 @@ function monter(constats: readonly Constat[] = constatsAlert, surcharge: Partial
   const app = {
     etat,
     appliquer: (ids: readonly string[], liaisons: number) => envois.appliquer.push({ ids, liaisons }),
-    selectionner() {}, ignorerLaProposition() {}, repondre() {}, ignorer() {}, nePlusIgnorer() {}, ouvrirLaConfiguration() {}, rendre() {},
+    selectionner: (layers: readonly string[]) => envois.selections.push(layers), ignorerLaProposition() {}, repondre() {}, ignorer() {}, nePlusIgnorer() {}, ouvrirLaConfiguration() {}, rendre() {},
     annulerLaReponse: (question: string) => envois.annulees.push(question),
   };
   const vue = { poserLaSelectionDuPlugin() {}, poserLesCorrections() {} };
@@ -529,4 +529,109 @@ test('une péremption pendant en-cours remplace la progression par l’alerte p�
   assert.equal(banc.racine.querySelector('.progression-analyse'), null);
   assert.match(banc.racine.textContent, /Le composant a changé depuis l’analyse\./);
   assert.doesNotMatch(banc.racine.textContent, /Annuler|s’afficheront à la fin/);
+});
+
+/* ---------- La section Informations (U5) ---------- */
+
+const LAYER = (alertCorrections as unknown as { calques: Array<{ id: string; nom: string }> }).calques[0];
+const NOM_DES_VARIANTS = alertCorrections.sujet.variants.map((variant) => variant.nom);
+const informations = (): Constat[] => [
+  { id: 'C53', code: 'C53', type: 'info', famille: 'contraste', variants: [NOM_DES_VARIANTS[0]], layers: [], faits: { variantsExclus: 1 } },
+  { id: 'C49:degrade', code: 'C49', type: 'info', famille: 'contraste', variants: NOM_DES_VARIANTS.slice(0, 2), layers: [LAYER.id], limite: true, faits: { cause: 'degrade', champ: 'fills', usage: 'texte', calque: LAYER.nom } },
+  { id: 'C49:borne', code: 'C49', type: 'info', famille: 'contraste', variants: [], layers: [], limite: true, faits: { borne: 5000, combinaisonsMesurees: 5000, combinaisonsNonMesurees: 12 } },
+];
+const sectionDesInformations = (banc: Banc): ElementDeTest => comme(banc.racine.querySelector('.section-informations'));
+const lignes = (banc: Banc): ElementDeTest[] => sectionDesInformations(banc).querySelectorAll('.info-ligne');
+
+test('la section Informations vient en dernier, repliée, avec son nombre et un signe gris', () => {
+  const banc = monter([...constatsAlert, ...informations()]);
+  const toutes = sections(banc);
+  assert.equal(toutes[toutes.length - 1], sectionDesInformations(banc));
+  const laBande = bande(sectionDesInformations(banc));
+  assert.equal(laBande.tagName, 'BUTTON');
+  assert.equal(laBande.getAttribute('aria-expanded'), 'false');
+  assert.equal(comme(laBande.querySelector('.titre')).textContent, 'Informations');
+  assert.equal(nombre(laBande), '3');
+  assert.ok(laBande.querySelector('.chevron-svg'));
+  const signe = comme(laBande.querySelector('.signe'));
+  assert.ok(signe.classes.has('signe-24'));
+  assert.equal(signe.classes.has('signe-informe'), false);
+  // Repliée, elle ne dessine pas ses lignes.
+  assert.equal(lignes(banc).length, 0);
+});
+
+test('une information ne compte ni dans « Tout », ni dans le sommaire, ni dans le résumé, ni dans les cartes', () => {
+  const banc = monter([...constatsAlert, ...informations()]);
+  assert.deepEqual(puces(banc).map((puce) => [puce.dataset.element, comme(puce.querySelector('.nombre')).textContent]), [['tout', '24'], ['couleurs', '18'], ['tailles', '2'], ['tokens', '3'], ['regles', '1']]);
+  assert.match(comme(banc.racine.querySelector('.arch-resume-titre')).textContent, /24 points/);
+  bande(sectionDesInformations(banc)).clic();
+  assert.equal(banc.racine.querySelectorAll('.bloc.ton-info').length, 0);
+  assert.equal(banc.racine.querySelectorAll('.bloc.muette').length, 0);
+});
+
+test('ouverte, la section montre une ligne par information : phrase, lieu, sans liseré ni mot de sévérité ni chevron', () => {
+  const banc = monter([...constatsAlert, ...informations()]);
+  bande(sectionDesInformations(banc)).clic();
+  assert.equal(bande(sectionDesInformations(banc)).getAttribute('aria-expanded'), 'true');
+  const toutes = lignes(banc);
+  assert.equal(toutes.length, 3);
+  assert.match(toutes[0].textContent, /^Contraste non mesuré sur Disabled, que WCAG exempte\./);
+  assert.match(toutes[1].textContent, new RegExp(`^Contraste non mesuré : le fill du layer ${LAYER.nom} est un dégradé\.`));
+  assert.match(toutes[2].textContent, /^12 paires de couleurs non mesurées sur 5012\.$/);
+  assert.ok(toutes[0].querySelector('.info-lieu'));
+  assert.equal(toutes[2].querySelector('.info-lieu'), null);
+  for (const ligne of toutes) {
+    assert.equal(ligne.classes.has('bloc'), false);
+    assert.equal(ligne.querySelector('.ico'), null);
+    assert.equal(ligne.querySelector('.chevron-svg'), null);
+    assert.equal(ligne.querySelector('.bloc-replier'), null);
+  }
+});
+
+test('Sélectionner n’existe que sur une information qui vise des layers, et sélectionne ces layers', () => {
+  const banc = monter([...constatsAlert, ...informations()]);
+  bande(sectionDesInformations(banc)).clic();
+  const [exclus, degrade, borne] = lignes(banc);
+  assert.equal(exclus.querySelector('.bouton-selectionner'), null);
+  assert.equal(borne.querySelector('.bouton-selectionner'), null);
+  const bouton = comme(degrade.querySelector('.bouton-selectionner'));
+  assert.equal(bouton.textContent.trim(), 'Sélectionner');
+  bouton.clic();
+  assert.deepEqual(banc.envois.selections, [[LAYER.id]]);
+  // Les layers sont sélectionnés par le plugin : le bouton le dit, et la section reste ouverte.
+  const apres = comme(lignes(banc)[1].querySelector('.bouton-selectionner'));
+  assert.equal(apres.textContent.trim(), 'Sélectionnés');
+  assert.equal(apres.disabled, true);
+  assert.equal(bande(sectionDesInformations(banc)).getAttribute('aria-expanded'), 'true');
+});
+
+test('la section Informations reste ouverte à une nouvelle analyse du même sujet et se replie quand le sujet change', () => {
+  const banc = monter([...constatsAlert, ...informations()]);
+  bande(sectionDesInformations(banc)).clic();
+  banc.actualiser({ identite: { sujet: 'Alert', generation: 2 } });
+  assert.equal(bande(sectionDesInformations(banc)).getAttribute('aria-expanded'), 'true');
+  banc.actualiser({ identite: { sujet: 'Button', generation: 3 } });
+  assert.equal(bande(sectionDesInformations(banc)).getAttribute('aria-expanded'), 'false');
+});
+
+test('sans information, la section n’existe pas ; une puce d’élément ne la montre pas', () => {
+  const banc = monter();
+  assert.equal(banc.racine.querySelector('.section-informations'), null);
+  const avec = monter([...constatsAlert, ...informations()]);
+  choisir(avec, 'tailles');
+  assert.equal(avec.racine.querySelector('.section-informations'), null);
+});
+
+test('des informations seules : tous les éléments sont tenus, la section Informations suit, le sommaire est vide', () => {
+  const banc = monter(informations());
+  assert.equal(banc.racine.querySelector('.sommaire-elements'), null);
+  assert.deepEqual(sections(banc).map((section) => section.dataset.element), ['couleurs', 'tailles', 'texte', 'tokens', 'variants', 'regles', 'a11y', 'informations']);
+  assert.equal(nombre(bande(sectionDesInformations(banc))), '3');
+});
+
+test('un constat info déjà ignoré n’apparaît pas sous « Ignorés »', () => {
+  const infos = informations();
+  const banc = monter(constatsAlert, { tous: [...constatsAlert, ...infos], ignores: [infos[0].id] });
+  assert.equal(banc.racine.querySelectorAll('.intertitre-structure').length, 0);
+  assert.equal(banc.racine.querySelector('.section-informations'), null);
 });

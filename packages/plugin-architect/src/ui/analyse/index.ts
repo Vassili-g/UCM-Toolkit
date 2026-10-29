@@ -8,6 +8,9 @@
  * (`ignores/`). « Tout » montre les Bloquants en tête, les sections, puis les éléments tenus ; une puce choisie ne montre que son élément.
  * Une section s'ouvre d'elle-même jusqu'à cinq points, ou quand elle est seule ; le choix du designer survit à une nouvelle analyse du
  * même sujet et tombe quand le sujet change.
+ *
+ * Les constats `info` ne sont pas des points : ils forment la section Informations, après les éléments tenus de « Tout », repliée à
+ * l'arrivée. Ils ne comptent ni dans le résumé, ni dans le sommaire.
  */
 import { creerAlerte } from 'ucm-plugin-socle/src/ui/Alerte';
 import { createButton } from 'ucm-plugin-socle/src/ui/Button';
@@ -15,14 +18,15 @@ import { createButton } from 'ucm-plugin-socle/src/ui/Button';
 import type { LectureDeComposant } from '../../composant';
 import type { Constat } from '../../messages/commun';
 import type { Application } from '../application';
-import { calculEnCours, demandeDAnalyseEnCours, analyseDuComposant, aDesLiaisonsPreparees, aPreparer, libraryAChoisir, type AnalyseRecue } from '../composant/analyse';
+import { analyseApplicable, calculEnCours, demandeDAnalyseEnCours, analyseDuComposant, aDesLiaisonsPreparees, aPreparer, libraryAChoisir, type AnalyseRecue } from '../composant/analyse';
 import { monterLesCorrections, noteDeLEcriture, resultatApresPeremption } from '../corrections';
 import { carteDesLiaisonsPreparees } from '../corrections/liaisons';
 import type { CarteDeCorrections, ContexteDeCartes } from '../corrections/modele';
 import type { ElementChoisi } from '../etat';
 import { monterAFaire } from '../ignores';
-import { elementDuConstat, elementsDuPanneau, sansLesBloquants, type ElementDuPanneau, type IdDElement, type PanneauParElements } from '../panneau/elements';
-import { creerEnTeteDesBloquants, creerSection, creerSectionTenue, creerSommaire } from '../panneau/rendu';
+import { elementDuConstat, elementsDuPanneau, estUneInformation, sansLesBloquants, type ElementDuPanneau, type IdDElement, type PanneauParElements } from '../panneau/elements';
+import { ligneDInformation } from '../panneau/informations';
+import { creerEnTeteDesBloquants, creerLigneDInformation, creerSection, creerSectionInformations, creerSectionTenue, creerSommaire } from '../panneau/rendu';
 import { monterLesQuestions } from '../questions';
 import { TEXTES } from '../textes';
 import { telecharger } from '../telechargement';
@@ -58,6 +62,7 @@ interface Rendu {
   /** Les cartes de corrections de tout le panneau, visibles ou non : le pied les compte toutes. */
   readonly cartes: readonly CarteDeCorrections[];
   readonly ignores: readonly Constat[];
+  readonly contexte: ContexteDeCartes;
 }
 
 function bouton(libelle: string, onClick: () => void): HTMLElement {
@@ -88,6 +93,8 @@ export function monterLePanneau(app: Application, vue: VueComposant, options: Op
   let rendu: Rendu | null = null;
   /** Les sections que le designer a ouvertes ou fermées, pour le sujet `sujetDesChoix`. */
   const choixDeSections = new Map<IdDElement, boolean>();
+  /** La section Informations arrive repliée ; le designer l'ouvre pour le sujet `sujetDesChoix`. */
+  let informationsOuvertes = false;
   let sujetDesChoix = '';
   /** Le rapport : au repos, en préparation chez le sandbox, ou échoué. */
   let etatDuRapport: 'repos' | 'prepare' | 'echoue' = 'repos';
@@ -200,13 +207,14 @@ export function monterLePanneau(app: Application, vue: VueComposant, options: Op
     if (sujet !== sujetDesChoix) {
       sujetDesChoix = sujet;
       choixDeSections.clear();
+      informationsOuvertes = false;
       etatDuRapport = 'repos';
     }
     const contexte = contexteDe(lecture, analyse);
     const preparee = analyse.liaisons === null ? null : carteDesLiaisonsPreparees(analyse.liaisons, analyse.appliquees, contexte);
     const panneau = elementsDuPanneau(constatsAMontrer(analyse), contexte, { reponses: analyse.repondues, preparee, sansTokens: aPreparer(analyse) });
     const cartes = panneau.elements.flatMap(correctionsDe);
-    rendu = { analyse, panneau, cartes, ignores: analyse.tous.filter((constat) => analyse.ignores.includes(constat.id)) };
+    rendu = { analyse, panneau, cartes, contexte, ignores: analyse.tous.filter((constat) => analyse.ignores.includes(constat.id) && !estUneInformation(constat)) };
     corrections.poser({ analyse, contexte, cartes });
     questions.poser(analyse);
     aFaire.poser({ analyse, contexte });
@@ -278,9 +286,26 @@ export function monterLePanneau(app: Application, vue: VueComposant, options: Op
     });
   }
 
+  /** La section Informations, en dernier : une ligne par information, avec Sélectionner quand elle vise des layers. */
+  function sectionDesInformations(analyse: AnalyseRecue, panneau: PanneauParElements, contexte: ContexteDeCartes): HTMLElement {
+    return creerSectionInformations({
+      ouverte: informationsOuvertes,
+      nombre: panneau.informations.length,
+      basculer: (suite) => {
+        informationsOuvertes = suite;
+        dessiner();
+        // Le dessin remplace la bande : le clavier reprend là où il était.
+        for (const section of Array.from(listeHote.querySelectorAll<HTMLElement>('.section-element'))) if (section.dataset.element === 'informations') section.querySelector<HTMLElement>('.bande-element')?.focus();
+      },
+      lignes: () => panneau.informations.map((constat) => creerLigneDInformation(ligneDInformation(constat, contexte), {
+        variants: contexte.variants, selectionnes: selectionnes(), inactif: !analyseApplicable(analyse), selectionner,
+      })),
+    });
+  }
+
   function dessiner(): void {
     if (!rendu) return;
-    const { analyse, panneau, cartes, ignores } = rendu;
+    const { analyse, panneau, cartes, ignores, contexte } = rendu;
     corrections.commencer();
     if (analyse.perimee && analyse.statut !== 'provisoire') {
       sommaireHote.replaceChildren();
@@ -314,10 +339,11 @@ export function monterLePanneau(app: Application, vue: VueComposant, options: Op
     // Une section tenue dirait que le moteur a tout contrôlé : elle attend le résultat final.
     const provisoire = analyse.statut === 'provisoire';
     const tenus = tout && !provisoire ? panneau.tenus.map(creerSectionTenue) : [];
+    const informations = tout && panneau.informations.length > 0 ? [sectionDesInformations(analyse, panneau, contexte)] : [];
     const ignoresMontres = tout ? ignores : ignores.filter((constat) => elementDuConstat(constat) === choisi);
     const visible = tout ? null : { cartes: montres.flatMap(correctionsDe), element: TEXTES.elementsDuPanneau.libelles[choisi] };
     sommaireHote.replaceChildren(...(panneau.elements.length > 0 ? [creerSommaire(panneau.elements, choisi, choisir)] : []));
-    listeHote.replaceChildren(...enTete, ...sections, ...tenus, ...aFaire.ignores(ignoresMontres), ...(cartes.length > 0 && !provisoire ? [corrections.pied(visible)] : []), ...(!provisoire && analyse.constats.length > 0 ? [pied(analyse)] : []));
+    listeHote.replaceChildren(...enTete, ...sections, ...tenus, ...informations, ...aFaire.ignores(ignoresMontres), ...(cartes.length > 0 && !provisoire ? [corrections.pied(visible)] : []), ...(!provisoire && analyse.constats.length > 0 ? [pied(analyse)] : []));
   }
 
   /** Le sommaire et la liste d'une analyse rendue. */

@@ -13,6 +13,7 @@ import type { Disposition } from '../fenetre';
 import type { Constat } from '../messages/commun';
 import type { Application, Composant } from './application';
 import { aDesLiaisonsPreparees, calculEnCours, aPreparer, libraryAChoisir, selectionSurLAnalyse, tonLePlusGrave } from './composant/analyse';
+import { estUneInformation } from './panneau/elements';
 import { TEXTES } from './textes';
 import { estHorsUcm } from './vues/horsUcm';
 
@@ -139,8 +140,8 @@ export function creerBarre(app: Application): Composant {
       constatsTexte.hidden = composant;
       constats.setAttribute('aria-pressed', String(etat.panneau.ouvert));
       constats.title = etat.panneau.ouvert ? TEXTES.constatsFermer : TEXTES.constatsOuvrir;
-      // La carte « sans tokens » compte comme un constat à corriger, la carte des liaisons préparées comme une information.
-      const constatsDuPanneau: Array<Pick<Constat, 'type'>> = analyse === null ? [] : [...analyse.constats, ...(aPreparer(analyse) ? [{ type: 'corriger' as const }] : []), ...(aDesLiaisonsPreparees(analyse) ? [{ type: 'info' as const }] : [])];
+      // La carte « sans tokens » compte comme un constat à corriger, la carte des liaisons préparées comme une information. Les lignes de la section Informations ne comptent pas.
+      const constatsDuPanneau: Array<Pick<Constat, 'type'>> = analyse === null ? [] : [...analyse.constats.filter((constat) => !estUneInformation(constat)), ...(aPreparer(analyse) ? [{ type: 'corriger' as const }] : []), ...(aDesLiaisonsPreparees(analyse) ? [{ type: 'info' as const }] : [])];
       const nombre = analyse && !analyseEnCours ? constatsDuPanneau.length : 0;
       const ton = analyse ? tonLePlusGrave(constatsDuPanneau) : null;
       pastille?.remove();

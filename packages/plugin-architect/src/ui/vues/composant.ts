@@ -47,6 +47,7 @@ import type { Application, Composant } from '../application';
 import { constatDeResultat } from '../chaine';
 import { analyseDe } from '../composant/analyse';
 import { signeDeLigne, signeDuTitre } from '../composant/signes';
+import { estUneInformation } from '../panneau/elements';
 import { creerSectionVariants } from '../composant/variants';
 import type { ApercuRecu } from '../etat';
 import { versSandbox } from '../pont';
@@ -518,7 +519,7 @@ export function creerVueComposant(app: Application): VueComposant {
     const affiche = lecture.sujet.variants.find((variant) => variant.id === lu);
     return creerSectionVariants({
       variants: lecture.sujet.variants,
-      constats: analyse.constats,
+      constats: analyse.constats.filter((constat) => !estUneInformation(constat)),
       nonLus: new Set(analyse.lecture?.variantsNonLus ?? []),
       affiche: affiche?.nom,
       choisi: c.statut === 'en-cours' && variantDemande ? variantDemande.nom : undefined,

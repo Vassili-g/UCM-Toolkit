@@ -90,15 +90,25 @@ const analyseDAlert = message(variantsAlert, constatsDAlert);
 const analyseDeButton = message(variantsButton, [...questionsButton, ...accessibiliteButton]);
 const analyseDeButtonDefaut = message(variantsButtonDefaut, accessibiliteButtonDefaut);
 
+/* Les informations de Button : ce que l'analyse n'a pas mesuré. Aucune ne devient une carte. */
+const ICON_BUTTON = button.calques[1].id;
+const informationsButton = [
+  constat('C49:degrade-icon', 'C49', 'info', 'contraste', { cause: 'degrade', champ: 'fills', usage: 'icone', calque: 'icon' }, avec('Style=text', 'State=default'), [ICON_BUTTON], { limite: true }),
+  constat('fond-de-repli', 'C50', 'info', 'contraste', { cause: 'fond-de-repli', fond: '#eef2f6' }, avec('Style=outlined', 'State=default'), [CONTAINER_BUTTON], { limite: true }),
+  constat('C49:borne', 'C49', 'info', 'contraste', { borne: 5000, combinaisonsMesurees: 5000, combinaisonsNonMesurees: 412 }, [], [], { limite: true }),
+  constat('C67:icone', 'C67', 'info', 'regles', { calque: 'icon', cause: 'icone-non-pilotee' }, avec('Style=text'), [ICON_BUTTON], { limite: true }),
+];
+const analyseDeButtonEtInformations = message(variantsButton, [...questionsButton, ...accessibiliteButton, ...informationsButton]);
+
 const ETATS = [
   {
     id: 'x-alert', titre: 'Contraste d’Alert', quand: 'Alert est analysé ; le designer choisit la puce Accessibilité, puis ouvre la première carte du contraste.',
-    regarder: 'La section Accessibilité seule, sous sa bande ; aucune phrase ne nomme de variant : la ligne grise donne leur nombre, puis les puces des seules paires qu’ils partagent (le texte de warning et standard, le stroke de 4 variants outlined) ; la première carte ouverte montre la Mesure : le rapport en gras, puis le seuil et le mode ; le stroke dit son rapport au lieu du seuil dans sa ligne grise ; le dégradé est une information qui dit « n’a pas été mesuré » ; une note dit que ces mesures portent sur le dessin.',
+    regarder: 'La section Accessibilité seule, sous sa bande ; aucune phrase ne nomme de variant : la ligne grise donne leur nombre, puis les puces des seules paires qu’ils partagent (le texte de warning et standard, le stroke de 4 variants outlined) ; la première carte ouverte montre la Mesure : le rapport en gras, puis le seuil et le mode ; le stroke dit son rapport au lieu du seuil dans sa ligne grise ; le dégradé n’a plus de carte : il est une ligne de la section Informations, que la puce Accessibilité ne montre pas ; une note dit que ces mesures portent sur le dessin.',
     existe: true, atteinte: [...ouvrirLePanneau(alertCorrections, analyseDAlert), puceAccessibilite, premiereCarte],
   },
   {
     id: 'x-button', titre: 'Accessibilité de Button', quand: 'Button est analysé à 216 variants ; le designer choisit la puce Accessibilité.',
-    regarder: 'Sept cartes dans la section Accessibilité : l’anneau, la zone cliquable et le texte sous 12 px ; les recommandations disent « Recommandation » ; les 54 variants désactivés sont une information, jamais un manquement, et leur ligne grise dit « 54 variants » suivi de la puce disabled, sans phrase « Tous les variants désactivés ».',
+    regarder: 'Six cartes dans la section Accessibilité : l’anneau, la zone cliquable et le texte sous 12 px ; les recommandations disent « Recommandation » ; les 54 variants désactivés n’ont pas de carte : ils sont une ligne de la section Informations (état u5-informations).',
     existe: true, atteinte: [...ouvrirLePanneau(button, analyseDeButton), puceAccessibilite],
   },
   {
@@ -110,6 +120,11 @@ const ETATS = [
     id: 'u3-valeurs-partagees', titre: 'Valeurs partagées par deux properties', quand: 'Button est analysé avec une taille « default » et un état « default » ; le designer choisit la puce Accessibilité.',
     regarder: 'Deux cartes : la première dit « 72 variants » et une puce qui garde sa property, Size=default, parce que State porte aussi « default » ; la seconde dit « 18 variants » et deux puces qui gardent leur property, State=default et Size=default ; la property est en gris, la valeur en clair ; la bulle d’une puce donne la paire exacte de Figma.',
     existe: true, atteinte: [...ouvrirLePanneau(buttonDefaut, analyseDeButtonDefaut), puceAccessibilite],
+  },
+  {
+    id: 'u5-informations', titre: 'Section Informations de Button', quand: 'Button est analysé ; « Tout » est choisi ; le designer ouvre la section Informations, en dernière place.',
+    regarder: 'La section Informations vient après les éléments tenus, avec un signe gris de note et le nombre 5 ; elle arrive repliée, et le geste de l’état l’ouvre. Ses cinq lignes n’ont ni liseré, ni mot de sévérité, ni chevron : les 54 variants désactivés, le dégradé de l’icône, le fond lu sur la page Figma, les 412 paires non mesurées sur 5412, l’icône que les règles ne pilotent pas. Chaque ligne qui vise des layers a son bouton Sélectionner sous la phrase. Les nombres de « Tout » et de la pastille de Constats ne les comptent pas.',
+    existe: true, atteinte: [...ouvrirLePanneau(button, analyseDeButtonEtInformations), { clic: '.section-informations .bande-element' }],
   },
 ].map((etat) => ({ ...etat, disposition: 'etroite' }));
 

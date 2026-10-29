@@ -56,28 +56,33 @@ test('une mesure de contraste dit sa paire, son rapport sans arrondi, son seuil 
   } finally { await terminer(page); }
 });
 
-test('une limite de lecture le dit sans verdict et n’a pas de bouton Ignorer ; la note borne ce que les mesures prouvent', async () => {
+test('une limite de lecture est une ligne de la section Informations, sans verdict ni carte', async () => {
   const page = await ouvrirLePanneau(alertCorrections, analyseDAlert.message);
   try {
-    const limite = cartes(page).nth(2);
-    assert.equal(await limite.locator('.bloc-phrase').innerText(), 'Le fill est un dégradé. Le contraste n’a pas été mesuré.');
-    assert.equal(await limite.locator('.gravite').textContent(), 'Information');
-    assert.equal(await limite.locator('.bloc-bouton[aria-expanded]').count(), 0);
-    assert.equal(await note(page).textContent(), 'Ces mesures portent sur le dessin du composant dans Figma. Elles ne prouvent pas la conformité de l’interface livrée.');
+    assert.equal(await cartes(page).count(), 2);
+    const section = page.locator('.section-informations');
+    const ligne = section.locator('.info-ligne');
+    assert.equal(await ligne.count(), 1);
+    assert.equal(await ligne.locator('.info-texte').innerText(), 'Contraste non mesuré : le fill du layer container est un dégradé.');
+    assert.equal(await ligne.locator('.gravite').count(), 0);
+    assert.equal(await ligne.locator('.bloc-bouton').count(), 0);
+    assert.equal(await note(page).textContent(), 'Ces mesures portent sur le dessin du composant dans Figma.');
   } finally { await terminer(page); }
 });
 
 test('la cible, l’anneau et le texte sous 12 px sont des recommandations ; les variants désactivés ne sont pas un manquement', async () => {
   const page = await ouvrirLePanneau(button, analyseDeButton.message);
   try {
-    assert.equal(await cartes(page).count(), 7);
+    assert.equal(await cartes(page).count(), 6);
     const statuts = await cartes(page).locator('.constat-statut').allTextContents();
     assert.deepEqual(statuts, ['Réglez le token ring dans UCM Palettes', 'Ajoutez l’anneau dans Figma', 'Recommandation', 'Agrandissez la zone dans Figma', 'Recommandation', 'Recommandation']);
-    assert.deepEqual(await cartes(page).locator('.gravite').allTextContents(), ['À corriger', 'À corriger', 'À vérifier', 'À corriger', 'À vérifier', 'À vérifier', 'Information']);
+    assert.deepEqual(await cartes(page).locator('.gravite').allTextContents(), ['À corriger', 'À corriger', 'À vérifier', 'À corriger', 'À vérifier', 'À vérifier']);
     assert.equal(await cartes(page).nth(3).locator('.bloc-phrase').innerText(), 'La zone cliquable mesure 20 × 20 px. Elle doit mesurer au moins 24 × 24 px.');
     assert.equal(await cartes(page).nth(3).locator('.constat-lieu').textContent(), '72 variantssmall');
-    assert.equal(await cartes(page).nth(6).locator('.bloc-phrase').innerText(), 'Ces variants ne sont pas mesurés. WCAG ne leur demande pas de contraste.');
-    assert.equal(await cartes(page).nth(6).locator('.constat-lieu').textContent(), '54 variantsdisabled');
+    const section = page.locator('.section-informations');
+    assert.equal(await section.locator('.bande-element .nombre').textContent(), '1');
+    assert.equal(await section.locator('.info-texte').innerText(), 'Contraste non mesuré sur disabled, que WCAG exempte.');
+    assert.equal(await section.locator('.info-lieu').textContent(), '54 variantsdisabled');
     assert.equal(await note(page).textContent(), 'Ces mesures portent sur le dessin du composant dans Figma.');
   } finally { await terminer(page); }
 });

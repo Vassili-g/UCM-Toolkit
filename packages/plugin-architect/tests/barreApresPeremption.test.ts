@@ -32,3 +32,16 @@ test('Analyser est inactif pendant en-cours et pendant le provisoire, actif une 
     assert.equal(analyser().disabled, false, `périmée${provisoire ? ' après provisoire' : ''}`);
   }
 });
+
+test('la pastille de Constats ne compte pas les informations', () => {
+  const constat = (id: string, type: 'corriger' | 'info') => ({ id, code: 'C49', type, famille: 'contraste' as const, variants: [], layers: [], faits: {} });
+  const { etat, barre } = monter();
+  etat.composant.selection = { id: 'l:1', nom: 'Alert' } as never;
+  recevoirUneAnalyse(etat, { type: 'analyse', analyse: IDENTITE, statut: 'complete', constats: [constat('a', 'corriger'), constat('b', 'info'), constat('c', 'info')], lecture: null, variants: [], sansTokens: false } as never);
+  barre.mettreAJour?.();
+  const pastille = comme(comme(barre.element).querySelector('.pastille-compte'));
+  assert.equal(pastille.textContent, '1');
+  recevoirUneAnalyse(etat, { type: 'analyse', analyse: { sujet: 'Alert', generation: 2 }, statut: 'complete', constats: [constat('b', 'info')], lecture: null, variants: [], sansTokens: false } as never);
+  barre.mettreAJour?.();
+  assert.equal(comme(barre.element).querySelector('.pastille-compte'), null);
+});

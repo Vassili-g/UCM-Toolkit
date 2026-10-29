@@ -39,15 +39,15 @@ const demandes = async (page, type) => {
   return page.evaluate((cherche) => window.demandes.filter((demande) => demande.type === cherche), type);
 };
 
-test('douze constats à faire, chacun de son type, le Bloquant en tête hors des sections, et les constats ignorés en bas', async () => {
+test('onze constats à faire, chacun de son type, le Bloquant en tête hors des sections, et les constats ignorés en bas', async () => {
   const page = await ouvrirAFaire();
   try {
     assert.deepEqual(await page.locator('.arch-laterale .intertitre-structure h2').allTextContents(), ['Ignorés']);
-    assert.equal(await cartes(page).count(), 12);
-    assert.equal(await points(page), '23');
+    assert.equal(await cartes(page).count(), 11);
+    assert.equal(await points(page), '22');
     const types = await cartes(page).locator('.gravite').allTextContents();
     const nombre = (type) => types.filter((candidat) => candidat === type).length;
-    assert.deepEqual(['Bloquant', 'À corriger', 'À vérifier', 'Information'].map(nombre), [1, 4, 6, 1]);
+    assert.deepEqual(['Bloquant', 'À corriger', 'À vérifier', 'Information'].map(nombre), [1, 4, 6, 0]);
     assert.equal(await page.locator('.arch-laterale .bloc.a-ton.ton-bloquant').count(), 1);
     assert.equal(await enTete(page).count(), 1);
     assert.equal(await page.locator('.section-element .bloc.ton-bloquant').count(), 0);
@@ -84,10 +84,10 @@ test('Ignorer envoie ignorer sous l’identité de l’analyse, et le message ig
     await page.getByRole('button', { name: /^Ignorer :/ }).click();
     const [envoi] = await attendreLesDemandes(page, 'ignorer');
     assert.deepEqual({ analyse: envoi.analyse, constat: envoi.constat, portee: envoi.portee }, { analyse: IDENTITE, constat: 'C44:rangement', portee: 'constat' });
-    assert.equal(await cartes(page).count(), 12);
-    await envoyer(page, ignores([ignore.id, 'C44:rangement']));
     assert.equal(await cartes(page).count(), 11);
-    assert.equal(await points(page), '22');
+    await envoyer(page, ignores([ignore.id, 'C44:rangement']));
+    assert.equal(await cartes(page).count(), 10);
+    assert.equal(await points(page), '21');
     assert.equal(await page.locator('.arch-laterale .bloc.muette').count(), 2);
   } finally { await terminer(page); }
 });
@@ -100,19 +100,21 @@ test('Ne plus ignorer envoie ne-plus-ignorer et le message ignores rend le const
     assert.deepEqual({ analyse: envoi.analyse, constat: envoi.constat }, { analyse: IDENTITE, constat: ignore.id });
     await envoyer(page, ignores([]));
     assert.equal(await page.locator('.arch-laterale .bloc.muette').count(), 0);
-    assert.equal(await cartes(page).count(), 13);
-    assert.equal(await points(page), '24');
+    assert.equal(await cartes(page).count(), 12);
+    assert.equal(await points(page), '23');
     assert.equal(await page.locator('.arch-laterale .intertitre-structure h2').count(), 0);
   } finally { await terminer(page); }
 });
 
-test('une limite de lecture n’a pas de bouton Ignorer', async () => {
+test('une limite de lecture est une ligne de la section Informations, sans carte et sans bouton Ignorer', async () => {
   const page = await ouvrirAFaire();
   try {
-    const limite = cartes(page).filter({ has: page.locator('.gravite', { hasText: 'Information' }) });
-    assert.equal(await limite.locator('.gravite').innerText(), 'Information');
-    assert.equal(await limite.locator('button').count(), 0);
-    assert.equal(await page.getByRole('button', { name: /^Ignorer : Le fill/ }).count(), 0);
+    const section = page.locator('.section-informations');
+    const ligne = section.locator('.info-ligne');
+    assert.equal(await ligne.count(), 1);
+    assert.equal(await ligne.locator('.gravite').count(), 0);
+    assert.equal(await ligne.locator('button').count(), 0);
+    assert.equal(await page.getByRole('button', { name: /^Ignorer : Contraste non mesuré/ }).count(), 0);
   } finally { await terminer(page); }
 });
 
@@ -169,7 +171,7 @@ test('un message d’une autre identité d’analyse est ignoré', async () => {
     await envoyer(page, ignores([], { sujet: IDENTITE.sujet, generation: IDENTITE.generation + 1 }));
     await envoyer(page, ignores([], { sujet: 'autre', generation: IDENTITE.generation }));
     assert.equal(await page.locator('.arch-laterale .bloc.muette').count(), 1);
-    assert.equal(await points(page), '23');
+    assert.equal(await points(page), '22');
   } finally { await terminer(page); }
 });
 

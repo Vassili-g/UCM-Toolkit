@@ -7,10 +7,10 @@
  * Les codes du kit dont les faits donnent une phrase précise ont leur phrase ici. Un constat du moteur de l'exporteur dit lui-même ce
  * qu'il y a à faire (`titre`, `action`, `calque`, `elements`) ; un autre garde une phrase générique.
  *
- * Contraste et accessibilité (C49 à C53) : le rapport garde les décimales du kit, sans arrondi ; une mesure s'écrit « 3,9:1 » et son
- * seuil « 4,5:1 ». Une recommandation (cible, anneau, texte sous 12 px) le dit dans son statut, jamais comme un manquement. Une
- * limite de lecture (fond indéterminé, dégradé, peinture superposée, mode illisible, borne des combinaisons) dit ce que le plugin n'a
- * pas pu calculer, sans verdict.
+ * Contraste et accessibilité (C49 à C52) : le rapport garde les décimales du kit, sans arrondi ; une mesure s'écrit « 3,9:1 » et son
+ * seuil « 4,5:1 ». Une recommandation (cible, anneau, texte sous 12 px) le dit dans son statut, jamais comme un manquement. Ce que
+ * le plugin n'a pas pu mesurer (limite de lecture, borne des combinaisons, variants désactivés) est une information, pas une carte :
+ * `../panneau/informations.ts` l'écrit.
  *
  * Trois faits que le kit ne rend pas encore complètent une mesure de texte ou d'icône : `premierPlan` et `fond` (la paire mesurée,
  * deux couleurs hexadécimales, le fond déjà composé) et `rapports` (les autres modes mesurés, un texte JSON de paires
@@ -98,7 +98,7 @@ function sansPrefixe(nom: string, composant: string): string {
   return nom.toLowerCase().startsWith(prefixe) ? nom.slice(prefixe.length) : nom;
 }
 
-function nomsDesVariants(constat: Constat, contexte: ContexteDAFaire): string[] {
+export function nomsDesVariants(constat: Constat, contexte: ContexteDAFaire): string[] {
   return constat.variants.map((variant) => contexte.variants.find((candidat) => candidat.id === variant)?.nom ?? variant);
 }
 
@@ -117,7 +117,7 @@ function calqueDe(constat: Constat, contexte: ContexteDAFaire): string | null {
 }
 
 /** Le lieu : les variants (sauf si la phrase les cite), le layer, puis ce que le constat désigne d'autre. */
-function lieuDe(constat: Constat, contexte: ContexteDAFaire, options: { readonly variantsDansLaPhrase?: boolean; readonly apres?: readonly string[]; readonly sansLayer?: boolean } = {}): MorceauDeLieu[] {
+export function lieuDe(constat: Constat, contexte: ContexteDAFaire, options: { readonly variantsDansLaPhrase?: boolean; readonly apres?: readonly string[]; readonly sansLayer?: boolean } = {}): MorceauDeLieu[] {
   const parties: MorceauDeLieu[][] = [];
   const noms = nomsDesVariants(constat, contexte);
   if (options.variantsDansLaPhrase !== true) parties.push(lieuDesVariants(noms));
@@ -154,12 +154,6 @@ function lignesDesAutresModes(valeur: string | null): string[] {
 function contraste(constat: Constat, contexte: ContexteDAFaire): Contenu {
   const noms = nomsDesVariants(constat, contexte);
   const { faits } = constat;
-  if (constat.limite && faits.borne !== undefined) {
-    return { phrase: T.combinaisonsNonMesurees(nombre(faits.combinaisonsMesurees) ?? 0, texte(faits.combinaisonsNonMesurees) ?? '0'), lieu: '', statut: null };
-  }
-  if (constat.limite) {
-    return { phrase: T.contrasteNonMesure(texte(faits.champ) ?? 'fills', texte(faits.cause) ?? ''), lieu: lieuDe(constat, contexte), statut: null };
-  }
   if (faits.anneauVisible === 0) {
     return { phrase: T.sansAnneau(noms.length > 1), lieu: lieuDe(constat, contexte), statut: T.sansAnneauStatut };
   }
@@ -187,7 +181,7 @@ function contraste(constat: Constat, contexte: ContexteDAFaire): Contenu {
   return { phrase, lieu: lieuDe(constat, contexte), statut: T.manqueDeContrasteStatut, faits: detail };
 }
 
-/** Ce que l'accessibilité dit d'autre qu'un rapport : le texte sous 12 px (C49), l'anneau (C51), la cible (C52) et les variants exclus (C53). */
+/** Ce que l'accessibilité dit d'autre qu'un rapport : le texte sous 12 px (C49), l'anneau (C51) et la cible (C52). */
 function accessibilite(constat: Constat, contexte: ContexteDAFaire): Contenu | null {
   const { faits } = constat;
   const noms = nomsDesVariants(constat, contexte);
@@ -216,9 +210,6 @@ function accessibilite(constat: Constat, contexte: ContexteDAFaire): Contenu | n
         ? { phrase: T.zoneTropPetite(largeur, hauteur, seuil), lieu, statut: T.zoneTropPetiteStatut }
         : { phrase: T.cibleTactile(Math.min(largeur, hauteur), hauteur <= largeur, seuil, noms.length > 1), lieu, statut: T.recommandation };
     }
-    case 'C53':
-      if (faits.variantsExclus === undefined) return null;
-      return { phrase: T.variantsExclus(nombre(faits.variantsExclus) ?? noms.length), lieu: lieuDe(constat, contexte, { sansLayer: true }), statut: null };
     default:
       return null;
   }
@@ -252,7 +243,6 @@ function precise(constat: Constat, contexte: ContexteDAFaire): Contenu | null {
       return accessibilite(constat, contexte) ?? contraste(constat, contexte);
     case 'C51':
     case 'C52':
-    case 'C53':
       return accessibilite(constat, contexte);
     case 'C64':
       return {

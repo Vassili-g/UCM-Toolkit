@@ -157,3 +157,44 @@
 .note-rapport {
   margin-left: 8px;
 }
+
+/* La section Informations : des lignes, pas des cartes. Ni liseré, ni sévérité, ni chevron de ligne. */
+.section-informations {
+  gap: 0;
+}
+
+.section-informations > .bande-element {
+  margin-bottom: var(--espace-serre);
+}
+
+.info-ligne {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--espace-serre) var(--espace-bloc);
+  padding: var(--espace-controle) 10px;
+  border-bottom: 1px solid var(--bordure);
+  color: var(--texte-second);
+  font-size: var(--libelle);
+  line-height: var(--libelle-interligne);
+}
+
+.info-ligne:last-child {
+  border-bottom: 0;
+}
+
+.info-lieu {
+  color: var(--texte-second);
+}
+
+/* Sélectionner passe sous la phrase, sur toute la largeur de la ligne. */
+.info-ligne .info-actions {
+  flex-basis: 100%;
+  padding: 0;
+}
+
+.info-texte {
+  min-width: 0;
+  flex: 1 1 auto;
+}

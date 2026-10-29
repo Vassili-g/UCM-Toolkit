@@ -17,6 +17,9 @@
  * `constats` sont les constats visibles : ni ignorés, ni appliqués, et une question répondue y porte déjà sa correction. Une question
  * répondue garde sa ligne de réponse dans `questions`, rangée avec les questions de son élément : `reponses` dit lesquelles.
  *
+ * Un constat `info` n'est pas un point : il ne devient ni carte, ni nombre, ni puce, et n'entre pas dans « Tout ». Il se lit dans
+ * `informations`, pour la dernière section du panneau, qui réunit ce que l'analyse n'a pas mesuré.
+ *
  * Deux cartes ne viennent d'aucun constat : les liaisons d'une préparation et le composant sans token. Elles sont des points de
  * l'élément `tokens`, un chacune, et ne comptent pas dans `constats`.
  */
@@ -71,6 +74,8 @@ export interface PanneauParElements {
   readonly enTete: Pick<ElementDuPanneau, 'corrections' | 'questions' | 'aFaire'>;
   /** Les éléments sans constat, dans l'ordre du panneau. */
   readonly tenus: readonly IdDElement[];
+  /** Les constats `info`, dans l'ordre des constats : les lignes de la section Informations. */
+  readonly informations: readonly Constat[];
 }
 
 const ELEMENT_DE_LA_FAMILLE: Readonly<Record<Constat['famille'], IdDElement>> = {
@@ -91,13 +96,16 @@ export function elementDuConstat(constat: Constat): IdDElement {
 }
 
 const estBloquant = (constat: Constat): boolean => constat.type === 'bloquant';
+/** Une information : ce que l'analyse n'a pas pu ou pas voulu mesurer. Aucun geste n'est attendu, aucune carte ne la porte. */
+export const estUneInformation = (constat: Pick<Constat, 'type'>): boolean => constat.type === 'info';
 /** Une entrée reste dans sa section sauf si tous ses constats sont Bloquant. */
 const garde = (constats: readonly Constat[]): boolean => !constats.every(estBloquant);
 
 /** Les constats que porte une entrée : ceux d'une carte de corrections, d'un groupe de questions ou d'un constat à faire. */
 type Entree = { readonly constats: readonly Constat[] };
 
-export function elementsDuPanneau(constats: readonly Constat[], contexte: ContexteDeCartes, { reponses = {}, preparee = null, sansTokens = false }: AjoutsAuPanneau = {}): PanneauParElements {
+export function elementsDuPanneau(tous: readonly Constat[], contexte: ContexteDeCartes, { reponses = {}, preparee = null, sansTokens = false }: AjoutsAuPanneau = {}): PanneauParElements {
+  const constats = tous.filter((constat) => !estUneInformation(constat));
   const corrections: Array<Entree & { carte: CarteDeCorrections }> = cartesDeCorrections(constats, { ...contexte, constats }).map((carte) => ({ carte, constats: carte.constats }));
   const repondue = (constat: Constat): boolean => constat.question !== undefined && reponses[constat.question.id] !== undefined;
   const cartesDeQuestions = constats.filter((constat) => estUneQuestion(constat) || repondue(constat)).flatMap((constat) => carteDeQuestion(constat, contexte) ?? []);
@@ -128,6 +136,7 @@ export function elementsDuPanneau(constats: readonly Constat[], contexte: Contex
       aFaire: elements.flatMap((element) => element.aFaire.filter((carte) => !garde([carte.constat]))),
     },
     tenus: elements.filter((element) => element.points === 0).map((element) => element.id),
+    informations: tous.filter(estUneInformation),
   };
 }
 

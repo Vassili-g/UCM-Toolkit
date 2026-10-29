@@ -16,6 +16,7 @@ import { creerPuceDeValeur, creerPuces, creerSectionVariants, lieuDesVariants, p
 import { monterLesCorrections } from '../src/ui/corrections';
 import { cartesDeCorrections, type ContexteDeCartes } from '../src/ui/corrections/modele';
 import { carteDAFaire, type ContexteDAFaire } from '../src/ui/ignores/modele';
+import { ligneDInformation } from '../src/ui/panneau/informations';
 import { monterLesQuestions } from '../src/ui/questions';
 import { carteDeQuestion, type ContexteDeQuestions } from '../src/ui/questions/modele';
 
@@ -70,14 +71,10 @@ test('la phrase d’un constat ne nomme plus le variant : la ligne de lieu le do
   const petit = carteDAFaire(constat('p', 'C49', 'contraste', { calque: 'label', fontSize: 11, seuil: 12 }, ['v3']), CONTEXTE_A_FAIRE);
   assert.equal(petit.phrase, 'Le libellé a un font size de 11 px. UCM recommande au moins 12 px.');
   assert.deepEqual(petit.lieu, ['1 variant', { puces: [['State', 'Default'], ['Size', 'Large']] }, ', ', 'layer label']);
-
-  const gelee = carteDAFaire(constat('g', 'C49', 'contraste', { cause: 'degrade', champ: 'fills', usage: 'texte' }, ['v1'], { type: 'info', limite: true }), CONTEXTE_A_FAIRE);
-  assert.equal(gelee.phrase, 'Le fill est un dégradé. Le contraste n’a pas été mesuré.');
 });
 
 test('les variants exclus du contraste n’ont plus de lieu « Tous les variants désactivés »', () => {
-  const carte = carteDAFaire(constat('x', 'C53', 'contraste', { variantsExclus: 2 }, ['v1', 'v3'], { type: 'info' }), CONTEXTE_A_FAIRE);
-  assert.equal(carte.phrase, 'Ces variants ne sont pas mesurés. WCAG ne leur demande pas de contraste.');
+  const carte = ligneDInformation(constat('x', 'C53', 'contraste', { variantsExclus: 2 }, ['v1', 'v3'], { type: 'info' }), CONTEXTE_A_FAIRE);
   assert.deepEqual(carte.lieu, ['2 variants', { puces: [['State', 'Default']] }]);
   assert.equal(JSON.stringify(carte).includes('désactivés'), false);
 });

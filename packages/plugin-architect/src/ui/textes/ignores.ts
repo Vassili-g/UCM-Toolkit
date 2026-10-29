@@ -30,7 +30,21 @@ const PROPRIETES_DE_FIGMA: Readonly<Record<string, string>> = {
 /** Le nom d'un layer dans une phrase : le layer `label` s'appelle « libellé » dans la maquette. */
 const NOMS_DE_LAYER_EN_PHRASE: Readonly<Record<string, string>> = { label: 'libellé' };
 
+/** Le champ peint d'un contraste non mesuré, dans une phrase. */
+const CHAMPS_DE_CONTRASTE: Readonly<Record<string, string>> = { fills: 'fill', strokes: 'stroke' };
+
 export const TEXTES_IGNORES = {
+  // La section Informations : ce que l'analyse n'a pas mesuré. Ses lignes ne sont pas des constats.
+  informationsDuPanneau: {
+    titre: 'Informations',
+    variantsExclus: (etat: string): string => `Contraste non mesuré sur \`${etat}\`, que WCAG exempte.`,
+    contrasteNonMesure: (champ: string, layer: string | null, cause: string): string =>
+      `Contraste non mesuré : le ${CHAMPS_DE_CONTRASTE[champ] ?? 'fill'}${layer === null ? '' : ` du layer \`${layer}\``} ${CAUSES_DE_LIMITE[cause] ?? 'n’a pas pu être lu'}.`,
+    fondDeRepli: 'Fond lu sur la page Figma : `elevation/raised` est introuvable.',
+    pairesNonMesurees: (nonMesurees: string, total: string): string => `${nonMesurees} ${nonMesurees === '1' ? 'paire' : 'paires'} de couleurs non mesurée${nonMesurees === '1' ? '' : 's'} sur ${total}.`,
+    iconeNonPilotee: (layer: string): string => `L’icône du layer \`${layer}\` n’est pilotée par aucune propriété : ses icônes ne sont pas contrôlées.`,
+    iconesPermisesNonLues: (propriete: string): string => `Les icônes permises par \`${propriete}\` n’ont pas pu être lues : ses icônes ne sont pas contrôlées.`,
+  },
   aFaireDuComposant: {
     ignores: 'Ignorés',
     ignorer: 'Ignorer',
@@ -74,20 +88,15 @@ export const TEXTES_IGNORES = {
     seuilEtModes: (seuil: string, modes: string): string => (modes === '' ? `seuil ${seuil}` : `seuil ${seuil}, ${modes}`),
     sansAnneau: (pluriel: boolean): string => (pluriel ? 'Les variants n’ont pas d’anneau visible.' : 'Le variant n’a pas d’anneau visible.'),
     sansAnneauStatut: 'Ajoutez l’anneau dans Figma',
-    // C49 (borne), C51, C52, C53 : l'accessibilité, hors rapport.
-    combinaisonsNonMesurees: (mesurees: number, nonMesurees: string): string => `Le contraste n’a été mesuré que sur ${mesurees} combinaisons de modes. ${nonMesurees} autres n’ont pas été mesurées.`,
+    // C49, C51, C52 : l'accessibilité, hors rapport.
     recommandation: 'Recommandation',
     texteTropPetit: (layer: string, taille: number, seuil: number): string => `Le ${NOMS_DE_LAYER_EN_PHRASE[layer] ?? layer} a un font size de ${taille} px. UCM recommande au moins ${seuil} px.`,
     anneauTropFin: (poids: number, espace: number, trait: number): string => `L’anneau a un stroke weight de ${poids} px. UCM recommande ${espace} px d’écart et ${trait} px de trait.`,
     zoneTropPetite: (largeur: number, hauteur: number, seuil: number): string => `La zone cliquable mesure ${largeur} × ${hauteur} px. Elle doit mesurer au moins ${seuil} × ${seuil} px.`,
     zoneTropPetiteStatut: 'Agrandissez la zone dans Figma',
     cibleTactile: (taille: number, enHauteur: boolean, seuil: number, pluriel: boolean): string => `${pluriel ? 'Les variants mesurent' : 'Le variant mesure'} ${taille} px de ${enHauteur ? 'haut' : 'large'}. UCM recommande ${seuil} px pour le tactile.`,
-    variantsExclus: (nombre: number): string => (nombre === 1
-      ? 'Ce variant n’est pas mesuré. WCAG ne lui demande pas de contraste.'
-      : 'Ces variants ne sont pas mesurés. WCAG ne leur demande pas de contraste.'),
     noteDeMesure: 'Ces mesures portent sur le dessin du composant dans Figma.',
     noteDeMesureAvecLimite: 'Ces mesures portent sur le dessin du composant dans Figma. Elles ne prouvent pas la conformité de l’interface livrée.',
-    contrasteNonMesure: (champ: string, cause: string): string => `Le ${champ === 'strokes' ? 'stroke' : 'fill'} ${CAUSES_DE_LIMITE[cause] ?? 'n’a pas pu être lu'}. Le contraste n’a pas été mesuré.`,
     proprieteDeFigma: (champ: string): string => PROPRIETES_DE_FIGMA[champ] ?? champ,
     // C7 à C10 : les noms des tokens du composant, dans le fichier des tokens.
     valeurSansToken: (paire: string): string => `Aucun token du composant ne prévoit ${paire}.`,

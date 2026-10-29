@@ -7,7 +7,8 @@ import type { Constat } from '@ucm-kit/core/controles';
 import { SIGNES } from '@ucm-kit/core/referentiel';
 
 import type { CarteDeCorrections } from '../src/ui/corrections/modele';
-import { ELEMENTS_DU_PANNEAU, SIGNE_DE_L_ELEMENT, elementDuConstat, elementsDuPanneau, sansLesBloquants, type IdDElement } from '../src/ui/panneau/elements';
+import { ELEMENTS_DU_PANNEAU, SIGNE_DE_L_ELEMENT, elementDuConstat, elementsDuPanneau, estUneInformation, sansLesBloquants, type IdDElement } from '../src/ui/panneau/elements';
+import { ligneDInformation } from '../src/ui/panneau/informations';
 
 const { constatsAlert, alertCorrections } = require('../galerie/etats/corrections.cjs') as { constatsAlert: Constat[]; alertCorrections: { sujet: { nom: string; variants: Array<{ id: string; nom: string }> }; calques: Array<{ id: string; nom: string }> } };
 
@@ -133,7 +134,7 @@ test('un Bloquant seul fait de son élément le seul élément, les autres sont 
 
 test('sans constat, tous les éléments sont tenus', () => {
   const vide = elementsDuPanneau([], { ...contexte, constats: [] });
-  assert.deepEqual(vide, { elements: [], bloquants: [], enTete: { corrections: [], questions: [], aFaire: [] }, tenus: [...ELEMENTS_DU_PANNEAU] });
+  assert.deepEqual(vide, { elements: [], bloquants: [], enTete: { corrections: [], questions: [], aFaire: [] }, tenus: [...ELEMENTS_DU_PANNEAU], informations: [] });
 });
 
 test('chaque élément a un signe du kit', () => {
@@ -170,4 +171,76 @@ test('la préparation et le composant sans token sont des points de « Tokens du
   assert.equal(sansTokens.elements.filter((element) => element.id !== 'tokens').some((element) => element.preparee !== null || element.sansTokens), false);
   assert.equal(sansLesBloquants(tokens).sansTokens, true);
   assert.equal(sansLesBloquants(tokens).points, 5);
+});
+
+/* ---------- La section Informations (U5) ---------- */
+
+const information = (extra: Partial<Constat>): Constat => constatBrut({ type: 'info', famille: 'contraste', limite: true, ...extra });
+const VARIANTS_DU_JEU = [
+  { id: 'v:1', nom: 'State=Default, Size=Small' },
+  { id: 'v:2', nom: 'State=Disabled, Size=Small' },
+  { id: 'v:3', nom: 'State=Disabled, Size=Large' },
+];
+const contexteDeLigne = { composant: 'Button', variants: VARIANTS_DU_JEU, layers: new Map([['l:icon', 'icon']]) };
+
+test('un constat info sort des éléments, des nombres et de « Tout » : il se lit dans les informations', () => {
+  const exclus = constatBrut({ id: 'C53', code: 'C53', type: 'info', famille: 'contraste', faits: { variantsExclus: 2 } });
+  const degrade = information({ id: 'C49:degrade', code: 'C49', faits: { cause: 'degrade', champ: 'fills', usage: 'texte', calque: 'icon' } });
+  const jeu = [...constatsAlert, exclus, degrade];
+  const panneau = elementsDuPanneau(jeu, { ...contexte, constats: jeu });
+  assert.deepEqual(panneau.informations.map((constat) => constat.id), ['C53', 'C49:degrade']);
+  assert.equal(panneau.elements.reduce((somme, element) => somme + element.points, 0), constatsAlert.length);
+  assert.deepEqual(panneau.elements.map((element) => [element.id, element.points]), [['couleurs', 18], ['tailles', 2], ['tokens', 3], ['regles', 1]]);
+  assert.deepEqual(panneau.tenus, ['texte', 'variants', 'a11y']);
+  assert.equal(panneau.elements.flatMap((element) => element.constats).some(estUneInformation), false);
+  assert.equal(panneau.elements.flatMap((element) => element.aFaire).some((carte) => carte.constat.type === 'info'), false);
+  assert.deepEqual(panneau.bloquants, []);
+});
+
+test('des informations seules ne font aucun point : tous les éléments sont tenus', () => {
+  const seule = information({ id: 'C49:borne', code: 'C49', variants: [], faits: { borne: 5000, combinaisonsMesurees: 5000, combinaisonsNonMesurees: 12 } });
+  const panneau = elementsDuPanneau([seule], { ...contexte, constats: [seule] });
+  assert.deepEqual(panneau.elements, []);
+  assert.deepEqual(panneau.tenus, [...ELEMENTS_DU_PANNEAU]);
+  assert.deepEqual(panneau.informations, [seule]);
+});
+
+test('C53 : le contraste non mesuré sur l’état exclu, avec sa ligne de lieu', () => {
+  const ligne = ligneDInformation(constatBrut({ id: 'C53', code: 'C53', type: 'info', famille: 'contraste', variants: ['v:2', 'v:3'], faits: { variantsExclus: 2 } }), contexteDeLigne);
+  assert.equal(ligne.phrase, 'Contraste non mesuré sur `Disabled`, que WCAG exempte.');
+  assert.deepEqual(ligne.lieu, ['2 variants', { puces: [['State', 'Disabled']] }]);
+});
+
+test('C49 et C50 avec limite : « Contraste non mesuré : » suivi de la cause', () => {
+  const limite = (cause: string, champ: string, code: 'C49' | 'C50' = 'C49'): string => ligneDInformation(information({ id: `${code}:${cause}`, code, variants: ['v:1'], layers: ['l:icon'], faits: { cause, champ, usage: 'texte', calque: 'icon' } }), contexteDeLigne).phrase;
+  assert.equal(limite('degrade', 'fills'), 'Contraste non mesuré : le fill du layer `icon` est un dégradé.');
+  assert.equal(limite('image', 'strokes', 'C50'), 'Contraste non mesuré : le stroke du layer `icon` est une image.');
+  assert.equal(limite('peinture-superposee', 'fills'), 'Contraste non mesuré : le fill du layer `icon` superpose plusieurs peintures.');
+  assert.equal(limite('fond-indetermine', 'strokes', 'C50'), 'Contraste non mesuré : le stroke du layer `icon` est posé sur un fond que le plugin ne détermine pas.');
+  assert.equal(limite('inconnue', 'fills'), 'Contraste non mesuré : le fill du layer `icon` n’a pas pu être lu.');
+  // Le layer est dans la phrase : la ligne de lieu ne le répète pas.
+  const lieu = ligneDInformation(information({ id: 'x', code: 'C49', variants: ['v:1'], layers: ['l:icon'], faits: { cause: 'degrade', champ: 'fills', calque: 'icon' } }), contexteDeLigne).lieu;
+  assert.equal(JSON.stringify(lieu).includes('layer'), false);
+});
+
+test('C49 borne : les paires non mesurées sur le total, même au-delà de 2^53', () => {
+  const borne = (mesurees: number, nonMesurees: string | number): string => ligneDInformation(information({
+    id: 'C49:borne', code: 'C49', variants: [], faits: { borne: 5000, combinaisonsMesurees: mesurees, combinaisonsNonMesurees: nonMesurees },
+  }), contexteDeLigne).phrase;
+  assert.equal(borne(400, 12), '12 paires de couleurs non mesurées sur 412.');
+  assert.equal(borne(5000, '16677181699661569'), '16677181699661569 paires de couleurs non mesurées sur 16677181699666569.');
+  assert.equal(borne(5000, 1), '1 paire de couleurs non mesurée sur 5001.');
+  assert.deepEqual(ligneDInformation(information({ id: 'b', code: 'C49', variants: [], faits: { borne: 5000, combinaisonsMesurees: 1, combinaisonsNonMesurees: 2 } }), contexteDeLigne).lieu, []);
+});
+
+test('C67 : une icône que les règles ne contrôlent pas', () => {
+  const nonPilotee = information({ id: 'C67:a', code: 'C67', famille: 'regles', variants: ['v:1'], layers: ['l:icon'], faits: { calque: 'icon', cause: 'icone-non-pilotee' } });
+  assert.equal(ligneDInformation(nonPilotee, contexteDeLigne).phrase, 'L’icône du layer `icon` n’est pilotée par aucune propriété : ses icônes ne sont pas contrôlées.');
+  const nonLues = information({ id: 'C67:b', code: 'C67', famille: 'regles', variants: ['v:1'], layers: ['l:icon'], faits: { calque: 'icon', cause: 'icones-permises-non-lues', propriete: 'icon' } });
+  assert.equal(ligneDInformation(nonLues, contexteDeLigne).phrase, 'Les icônes permises par `icon` n’ont pas pu être lues : ses icônes ne sont pas contrôlées.');
+});
+
+test('le fond lu sur la page Figma est une information qui nomme elevation/raised', () => {
+  const repli = information({ id: 'fond-de-repli', code: 'C50', variants: ['v:1'], layers: ['l:icon'], faits: { cause: 'fond-de-repli', fond: '#eef2f6' } });
+  assert.equal(ligneDInformation(repli, contexteDeLigne).phrase, 'Fond lu sur la page Figma : `elevation/raised` est introuvable.');
 });
