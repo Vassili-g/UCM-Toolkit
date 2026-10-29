@@ -94,7 +94,7 @@ test('une réponse, un modèle ou des liaisons préparées qui arrivent avant le
   const etat = analyseEn('provisoire');
   const correction = { id: 'c', sorte: 'liaison', cible: { layer: 'l', champ: 'fills' }, avant: null, apres: { cle: 'k', nom: 'n' }, aRelire: { regle: 'r', avant: null } } as never;
   recevoirUneAnalyse(etat, { type: 'question-repondue', analyse: IDENTITE, question: 'q', correction });
-  recevoirUneAnalyse(etat, { type: 'modele-propose', analyse: IDENTITE, variant: 'v', constats: [constatsAlert[0]] });
+  recevoirUneAnalyse(etat, { type: 'modele-propose', analyse: IDENTITE, variant: 'v', constats: [constatsAlert[0]], retires: [] });
   recevoirUneAnalyse(etat, { type: 'liaisons-preparees', analyse: IDENTITE, preparation: 'p', corrections: [correction], enAttente: [], ecartees: 0, refus: null });
   assert.deepEqual(etat.analyse?.repondues, {});
   assert.equal(etat.analyse?.tous.length, constatsAlert.length);

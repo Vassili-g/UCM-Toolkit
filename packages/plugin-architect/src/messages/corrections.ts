@@ -11,5 +11,8 @@ export type DemandeDeCorrections =
 export type MessageDeCorrections =
   /** `resume` est la ligne de réussite : elle compte les corrections sautées et dit pourquoi. */
   | { type: 'corrections-appliquees'; analyse: IdentiteDAnalyse; ecrites: number; sautees: readonly { id: string; motif: string }[]; resume: string }
-  /** Les constats C24 du modèle ; leurs corrections sont retenues dans l'analyse courante. Vide quand l'analyse est périmée. */
-  | { type: 'modele-propose'; analyse: IdentiteDAnalyse; variant: string; constats: readonly Constat[] };
+  /**
+   * Les constats C24 du modèle ; leurs corrections sont retenues dans l'analyse courante. Vide quand l'analyse est périmée.
+   * `retires` : les C81 de ce modèle, que ces constats remplacent dans le panneau.
+   */
+  | { type: 'modele-propose'; analyse: IdentiteDAnalyse; variant: string; constats: readonly Constat[]; retires: readonly string[] };

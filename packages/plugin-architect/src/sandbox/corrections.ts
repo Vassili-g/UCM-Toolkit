@@ -12,7 +12,8 @@
  *
  * `servir-de-modele` rend `modele-propose` : les constats C24 de `proposerLaPropagation`
  * du kit, dont les corrections sont retenues dans l'analyse courante pour
- * `appliquer-corrections`. Analyse périmée : aucun constat. Rien ne s'écrit.
+ * `appliquer-corrections`, et `retires`, les C81 de ce modèle. Le variant vient
+ * de la section Variants ou des faits d'un C81. Analyse périmée : aucun constat. Rien ne s'écrit.
  *
  * `selectionner` et `servir-de-modele` ignorent une identité qui n'est pas celle de l'analyse courante.
  */
@@ -22,7 +23,7 @@ import { ecrireLeLot, type ResultatDUnLot } from '../ecriture/liaisons';
 import { selectionnerLesLayers } from '../ecriture/selection';
 import type { DemandeDeCorrections } from '../messages/corrections';
 import {
-  analyseCourante, catalogueDeLAnalyse, correctionsDeLAnalyse, perimerApresUneEcriture, prendreLaPlaceDUneEcriture, releveDeLAnalyse, retenirLaPropagation,
+  analyseCourante, catalogueDeLAnalyse, constatDeLAnalyse, correctionsDeLAnalyse, perimerApresUneEcriture, prendreLaPlaceDUneEcriture, releveDeLAnalyse, retenirLaPropagation,
 } from './analyse';
 import { retenirLaSelectionDuPlugin } from './commun';
 import type { Contexte, Traiter } from './contexte';
@@ -101,7 +102,11 @@ async function servirDeModele(demande: Extract<DemandeDeCorrections, { type: 'se
     const catalogue = catalogueDeLAnalyse(demande.analyse);
     const constats = releve && catalogue ? proposerLaPropagation(releve, catalogue, demande.variant) : [];
     const retenu = retenirLaPropagation(demande.analyse, constats);
-    contexte.envoyer({ type: 'modele-propose', analyse: demande.analyse, variant: demande.variant, constats: retenu ? constats : [] });
+    // Les deux C81 qu'un modèle peut porter, couleurs et tailles : la propagation les remplace tous deux.
+    const retires = retenu
+      ? ['couleurs', 'tailles'].map((sorte) => `C81:${sorte}:${demande.variant}`).filter((id) => constatDeLAnalyse(demande.analyse, id) !== null)
+      : [];
+    contexte.envoyer({ type: 'modele-propose', analyse: demande.analyse, variant: demande.variant, constats: retenu ? constats : [], retires });
   } finally {
     place.liberer();
   }

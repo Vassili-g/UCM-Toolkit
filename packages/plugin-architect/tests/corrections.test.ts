@@ -313,6 +313,22 @@ test('servir-de-modele rend modele-propose, puis appliquer-corrections accepte s
   assert.equal(deType(b.envoyes, 'corrections-appliquees')[0].ecrites, 1);
 });
 
+test('servir-de-modele depuis un C81 rend ses propositions et retire les C81 de ce modèle', async () => {
+  const b = banc();
+  const e = ecritures();
+  const analyse = commencerUneAnalyse('Alert', ['jeu', 'm', 'v'], b.contexte);
+  const c81 = (sorte: string, modele: string): Constat => ({
+    id: `C81:${sorte}:${modele}`, code: 'C81', type: 'corriger', famille: sorte === 'couleurs' ? 'liaisons' : 'tailles',
+    variants: [modele], layers: ['m-1'], faits: { modele, layers: 1, variants: 1, liaisons: 1 },
+  });
+  const constats = [c81('couleurs', 'm'), c81('tailles', 'v')];
+  retenirLesCorrections(analyse, constats, releveDuModele, constats, catalogueDuModele);
+  await traiterAvec(e.doubles)({ type: 'servir-de-modele', analyse, variant: constats[0].faits.modele as string }, b.contexte);
+  const [propose] = deType(b.envoyes, 'modele-propose');
+  assert.deepEqual(propose.constats.map((constat) => constat.id), ['C24:modele:v:v-1:fills:0']);
+  assert.deepEqual(propose.retires, ['C81:couleurs:m'], 'le C81 d’un autre modèle reste');
+});
+
 test('servir-de-modele : une autre identité est ignorée, une analyse périmée ne rend aucun constat', async () => {
   const b = banc();
   const e = ecritures();
