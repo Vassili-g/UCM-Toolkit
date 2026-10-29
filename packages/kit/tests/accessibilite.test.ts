@@ -792,3 +792,108 @@ test('les layers visibles se calculent une fois par variant pour tous les contr�
   cc(releve([variant('a', layers)]));
   assert.ok(lectures <= 2 * layers.length, `${lectures} lectures de visibilité pour ${layers.length} layers`);
 });
+
+/* ---------- Fonds d'élévation et sévérité selon les garanties (K4) ---------- */
+
+const luminance = (x: number) => (x <= 0.04045 ? x / 12.92 : ((x + 0.055) / 1.055) ** 2.4);
+/** Le gris, plus clair que `fond`, dont le rapport sur `fond` atteint tout juste `cible`. */
+function grisAuRapport(fond: number, cible: number): number {
+  let v = fond;
+  while ((luminance(v) + 0.05) / (luminance(fond) + 0.05) < cible) v += 0.0001;
+  return v;
+}
+
+function themeAvecFonds(variableDuTheme: string, trait: number, fonds: Partial<CatalogueDeReference> = {}): CatalogueDeReference {
+  return {
+    version: 1, library: null,
+    collections: [
+      { cle: 'ck', nom: 'theme', role: 'theme', etat: 'lue', modes: [{ id: 'l', nom: 'Light' }, { id: 'd', nom: 'Dark' }] },
+      { cle: 'cc', nom: 'components', role: 'components', etat: 'lue', modes: [{ id: 'm', nom: 'Mode 1' }] },
+    ],
+    variables: [
+      { cle: 'tv', nom: variableDuTheme, collection: 'ck', type: 'COLOR', etat: 'presente', valeurs: { l: { valeur: gris(0) }, d: { valeur: gris(trait) } } },
+      { cle: 'jeton', nom: 'button/border', collection: 'cc', type: 'COLOR', etat: 'presente', valeurs: { m: { alias: 'tv' } } },
+    ],
+    ...fonds,
+  };
+}
+const FONDS_SOMBRES = { l: { page: gris(1), carte: gris(1) }, d: { page: gris(0.1), carte: gris(0.2) } };
+
+function varianteAvecTrait(cleLiee: string, nombreDeTraits = 1): VariantLu {
+  const traits: LayerLu[] = Array.from({ length: nombreDeTraits }, (_, i) => ({
+    id: `b${i}`, nom: `Border ${i}`, type: 'RECTANGLE', parent: 'r', visible: true, opacite: 1, dimensions: dims(), peintures: [solide('strokes', gris(0))],
+    strokeWeight: 1, valeursEnDur: [],
+    liaisons: [{ champ: 'strokes', indice: 0, porteur: `b${i}`, variable: { id: 'v', cle: cleLiee, nom: 'x', collection: 'c', distante: false } }],
+  }));
+  const v = variant('a', [racine([]), ...traits]);
+  v.modesEffectifs = { ck: 'd' };
+  return v;
+}
+const sur = (constats: ReturnType<typeof cc>, fond: string) => parCode(constats, 'C50').filter((c) => c.faits.fondNomme === fond);
+
+test('C50 : page/border à 2,7:1 sur la page en Dark est à corriger, sur la carte à vérifier', () => {
+  const trait = grisAuRapport(0.1, 2.7);
+  const catalogue = themeAvecFonds('page/border', trait, { fondsDElevation: FONDS_SOMBRES });
+  const constats = cc(releve([varianteAvecTrait('jeton')]), 'AA', catalogue);
+  const page = sur(constats, 'page');
+  assert.equal(page.length, 1);
+  assert.equal(page[0].type, 'corriger');
+  assert.equal(page[0].faits.variableDuTheme, 'page/border');
+  assert.equal(page[0].faits.garanti, 'oui');
+  assert.match(String(page[0].faits.mode), /theme en Dark/);
+  assert.ok(Number(page[0].faits.rapport) >= 2.6 && Number(page[0].faits.rapport) < 3);
+  const carte = sur(constats, 'carte');
+  assert.equal(carte.length, 1);
+  assert.equal(carte[0].type, 'verifier');
+  assert.equal(carte[0].faits.garanti, 'non');
+  assert.equal(constats.find((c) => c.limite && c.faits.cause === 'fond-indetermine'), undefined);
+});
+
+test('C50 : page/divider à 2,4:1 sur la carte en Dark est à vérifier, aucune garantie ne le couvre', () => {
+  const trait = grisAuRapport(0.2, 2.4);
+  const catalogue = themeAvecFonds('page/divider', trait, { fondsDElevation: FONDS_SOMBRES });
+  const constats = cc(releve([varianteAvecTrait('tv')]), 'AA', catalogue);
+  const carte = sur(constats, 'carte');
+  assert.equal(carte.length, 1);
+  assert.equal(carte[0].type, 'verifier');
+  assert.equal(carte[0].faits.variableDuTheme, 'page/divider');
+  assert.equal(carte[0].faits.garanti, 'non');
+  assert.ok(Number(carte[0].faits.rapport) >= 2.3 && Number(carte[0].faits.rapport) < 2.5);
+  for (const c of parCode(constats, 'C50')) assert.equal(c.type, 'verifier');
+});
+
+test('C50 : une variable hors du thème se vérifie, même sur la page', () => {
+  const trait = grisAuRapport(0.1, 2.7);
+  const catalogue = themeAvecFonds('page/border', trait, { fondsDElevation: FONDS_SOMBRES });
+  catalogue.variables.push({ cle: 'libre', nom: 'trait', collection: 'cc', type: 'COLOR', etat: 'presente', valeurs: { m: { valeur: gris(trait) } } });
+  const constats = cc(releve([varianteAvecTrait('libre')]), 'AA', catalogue);
+  const page = sur(constats, 'page');
+  assert.equal(page.length, 1);
+  assert.equal(page[0].type, 'verifier');
+  assert.equal(page[0].faits.variableDuTheme, '');
+});
+
+test('C50 : sans fonds d\'élévation, la page Figma sert de repli, à vérifier, avec un seul constat fond-de-repli', () => {
+  const trait = grisAuRapport(0.1, 2.7);
+  const catalogue = themeAvecFonds('page/border', trait, { fondDeLaPageFigma: gris(0.1) });
+  const constats = cc(releve([varianteAvecTrait('jeton', 2)]), 'AA', catalogue);
+  const mesures = parCode(constats, 'C50');
+  assert.equal(mesures.length, 2);
+  for (const c of mesures) {
+    assert.equal(c.type, 'verifier');
+    assert.equal(c.faits.fondNomme, 'page-figma');
+    assert.equal(c.faits.garanti, 'non');
+  }
+  const replis = constats.filter((c) => c.limite && c.faits.cause === 'fond-de-repli');
+  assert.equal(replis.length, 1);
+  assert.equal(replis[0].type, 'info');
+  assert.deepEqual(replis[0].layers.sort(), ['b0', 'b1']);
+});
+
+test('C50 : sans fonds d\'élévation ni page Figma, le fond reste indéterminé et rien n\'est mesuré', () => {
+  const catalogue = themeAvecFonds('page/border', grisAuRapport(0.1, 2.7));
+  const constats = cc(releve([varianteAvecTrait('jeton')]), 'AA', catalogue);
+  assert.equal(parCode(constats, 'C50').length, 0);
+  assert.ok(constats.find((c) => c.limite && c.faits.cause === 'fond-indetermine'));
+  assert.equal(constats.find((c) => c.faits.cause === 'fond-de-repli'), undefined);
+});

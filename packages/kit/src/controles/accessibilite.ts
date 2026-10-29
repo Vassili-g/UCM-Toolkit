@@ -6,10 +6,12 @@
  * ne permet pas de calculer rend une limite, jamais un verdict.
  */
 import { ETATS } from '../emplois/dossiers.js';
+import { GARANTIES } from '../emplois/garanties.js';
 import { atteintLeSeuil, contraste, type Rgb8 } from '../emplois/contraste.js';
 import { RECOMMANDATIONS } from '../referentiel/recommandations.js';
-import type { CatalogueDeReference, CollectionDuCatalogue, VariableDuCatalogue } from './catalogue.js';
+import type { CatalogueDeReference, CollectionDuCatalogue, CouleurResolue, VariableDuCatalogue } from './catalogue.js';
 import { collectionDuCatalogue, variableDuCatalogue } from './catalogue.js';
+import { cleDuTheme } from './theme.js';
 import type { Constat } from './constat.js';
 import { layersVisiblesDuVariant, lectureManquee, liaisonsPropres, type LayerLu, type LiaisonLue, type PeintureLue, type ReleveDeComposant, type VariantLu } from './releve.js';
 
@@ -90,7 +92,7 @@ export const CIBLE_MINIMALE_PX = 24;
 export const CIBLE_TACTILE_PX = 44;
 export const TEXTE_MINIMAL_PX = 12;
 
-export type Cause = 'fond-indetermine' | 'degrade' | 'image' | 'peinture-superposee' | 'mode-illisible' | 'couleur-absente';
+export type Cause = 'fond-indetermine' | 'degrade' | 'image' | 'peinture-superposee' | 'mode-illisible' | 'couleur-absente' | 'fond-de-repli';
 export type Rgba = { r: number; g: number; b: number; a: number };
 export type Combinaison = { modes: Map<string, string>; etiquette: string };
 export type Pile = { couches: Rgba[] } | { limite: Cause };
@@ -494,6 +496,15 @@ export function fondEffectif(
 function calculerLeFond(
   variant: VariantLu, parId: ReadonlyMap<string, LayerLu>, depart: string, catalogue: CatalogueDeReference, combinaison: Combinaison,
 ): Rgba | { limite: Cause } {
+  const pile = couchesDesAncetres(variant, parId, depart, catalogue, combinaison);
+  if ('limite' in pile) return pile;
+  return composer(pile.couches, null) ?? { limite: 'fond-indetermine' };
+}
+
+/** Les couches des ancêtres, de la plus haute à la première opaque comprise. */
+function couchesDesAncetres(
+  variant: VariantLu, parId: ReadonlyMap<string, LayerLu>, depart: string, catalogue: CatalogueDeReference, combinaison: Combinaison,
+): Pile {
   const couches: Rgba[] = [];
   let courant = depart ? parId.get(depart) : undefined;
   while (courant) {
@@ -506,7 +517,65 @@ function calculerLeFond(
     }
     courant = courant.parent ? parId.get(courant.parent) : undefined;
   }
-  return composer(couches, null) ?? { limite: 'fond-indetermine' };
+  return { couches };
+}
+
+type NomDeFond = 'page' | 'carte' | 'page-figma';
+/** Un fond de mesure : `nom` est absent quand le fond vient des fills du variant. */
+type FondDeMesure = { nom?: NomDeFond; couleur: Rgba };
+
+const enOpaque = (c: CouleurResolue): Rgba => ({ r: c.r, g: c.g, b: c.b, a: 1 });
+
+/** Les fonds que le thème ou la page Figma offrent à un layer sans fond opaque, ou `null` quand le catalogue n'en donne aucun. */
+function fondsDeRepli(catalogue: CatalogueDeReference, variant: VariantLu, combinaison: Combinaison): FondDeMesure[] | null {
+  const theme = catalogue.collections.find((c) => c.role === 'theme' && c.etat === 'lue');
+  const mode = theme ? modeDeLaCollection(variant, combinaison, theme) : undefined;
+  const elevation = mode !== undefined ? catalogue.fondsDElevation?.[mode] : undefined;
+  if (elevation) return [{ nom: 'page', couleur: enOpaque(elevation.page) }, { nom: 'carte', couleur: enOpaque(elevation.carte) }];
+  if (catalogue.fondDeLaPageFigma) return [{ nom: 'page-figma', couleur: enOpaque(catalogue.fondDeLaPageFigma) }];
+  return null;
+}
+
+/**
+ * Les fonds sur lesquels mesurer un layer : celui des fills du variant s'il est opaque, sinon la page et la carte du thème dans le
+ * mode de la combinaison, sinon la page Figma. Les couches translucides des ancêtres se composent sur chacun.
+ */
+function fondsDeMesure(
+  variant: VariantLu, layer: LayerLu, catalogue: CatalogueDeReference, combinaison: Combinaison,
+): { fonds: FondDeMesure[] } | { limite: Cause } {
+  const fond = fondEffectif(variant, layer, catalogue, combinaison);
+  if (!('limite' in fond)) return { fonds: [{ couleur: fond }] };
+  if (fond.limite !== 'fond-indetermine') return fond;
+  const bases = fondsDeRepli(catalogue, variant, combinaison);
+  if (!bases) return fond;
+  const pile = couchesDesAncetres(variant, memoireDuVariant(variant).parId, layer.parent || '', catalogue, combinaison);
+  const couches = 'couches' in pile ? pile.couches : [];
+  return { fonds: bases.map((base) => ({ nom: base.nom, couleur: composer(couches, base.couleur) ?? base.couleur })) };
+}
+
+/** La variable du thème que l'alias du premier plan atteint, dans le mode de la combinaison. */
+function variableDuThemeAtteinte(
+  catalogue: CatalogueDeReference, variant: VariantLu, combinaison: Combinaison, cle: string,
+): string | null {
+  for (let profondeur = 0; profondeur <= 10; profondeur++) {
+    const variable = variableDuCatalogue(catalogue, cle);
+    if (variable === 'absente') return null;
+    const collection = collectionDuCatalogue(catalogue, variable.collection);
+    if (collection !== 'absente' && collection.role === 'theme') return cleDuTheme(variable.nom) ?? null;
+    if (collection === 'absente') return null;
+    const mode = modeDeLaCollection(variant, combinaison, collection);
+    const valeur = mode !== undefined ? variable.valeurs?.[mode] : undefined;
+    if (!valeur || !('alias' in valeur)) return null;
+    cle = valeur.alias;
+  }
+  return null;
+}
+
+/** Garanti seulement quand la garantie de la variable du thème nomme ce fond ; la page Figma n'est jamais garantie. */
+function estGaranti(variableDuTheme: string | null, fond: NomDeFond): boolean {
+  if (!variableDuTheme || fond === 'page-figma') return false;
+  return GARANTIES.some((g) => g.premier.variable === variableDuTheme
+    && g.fonds.some((f) => (fond === 'page' ? 'fondDeLaPage' in f : 'fondDeLaCarte' in f)));
 }
 
 function versRgb8(c: Rgba): Rgb8 {
@@ -566,23 +635,42 @@ function* mesurerLeVariant(
   const cibles = yield* ciblesDeContraste(variant, niveau);
   for (const cible of cibles) {
     yield;
-    let pire: { rapport: number; etiquette: string; premierPlan: string; fond: string } | null = null;
-    let echecs = 0;
-    const rapports: [string, number][] = [];
+    type Mesure = { pire: { rapport: number; etiquette: string; premierPlan: string; fond: string; combinaison: Combinaison } | null; echecs: number; rapports: [string, number][] };
+    const mesures = new Map<NomDeFond | '', Mesure>();
     const causes = new Set<Cause>();
+    let enRepli = false;
     for (const combinaison of combinaisons) {
       yield;
-      const fond = fondEffectif(variant, cible.layer, catalogue, combinaison);
-      if ('limite' in fond) { causes.add(fond.limite); continue; }
+      const choisis = fondsDeMesure(variant, cible.layer, catalogue, combinaison);
+      if ('limite' in choisis) { causes.add(choisis.limite); continue; }
       const pile = pileDePeintures(cible.peintures, cible.liaisons, cible.layer.opacite, catalogue, variant, combinaison);
       if ('limite' in pile) { causes.add(pile.limite); continue; }
-      const premier = composer(pile.couches, fond);
-      if (!premier) continue;
-      const rapport = contraste(versRgb8(premier), versRgb8(fond));
-      rapports.push([combinaison.etiquette, sansArrondi(rapport)]);
-      if (atteintLeSeuil(rapport, cible.seuil)) continue;
-      echecs++;
-      if (!pire || rapport < pire.rapport) pire = { rapport, etiquette: combinaison.etiquette, premierPlan: hexa(premier), fond: hexa(fond) };
+      for (const fond of choisis.fonds) {
+        const premier = composer(pile.couches, fond.couleur);
+        if (!premier) continue;
+        if (fond.nom === 'page-figma') enRepli = true;
+        const rapport = contraste(versRgb8(premier), versRgb8(fond.couleur));
+        const mesure = mesures.get(fond.nom ?? '') ?? { pire: null, echecs: 0, rapports: [] };
+        mesures.set(fond.nom ?? '', mesure);
+        mesure.rapports.push([combinaison.etiquette, sansArrondi(rapport)]);
+        if (atteintLeSeuil(rapport, cible.seuil)) continue;
+        mesure.echecs++;
+        if (!mesure.pire || rapport < mesure.pire.rapport) {
+          mesure.pire = { rapport, etiquette: combinaison.etiquette, premierPlan: hexa(premier), fond: hexa(fond.couleur), combinaison };
+        }
+      }
+    }
+    if (enRepli) {
+      const existant = limites.get('fond-de-repli');
+      if (existant) {
+        if (!existant.variants.includes(variant.nom)) existant.variants.push(variant.nom);
+        if (!existant.layers.includes(cible.layer.id)) existant.layers.push(cible.layer.id);
+      } else {
+        limites.set('fond-de-repli', {
+          id: 'fond-de-repli', code: cible.code, type: 'info', famille: 'contraste', variants: [variant.nom], layers: [cible.layer.id],
+          faits: { cause: 'fond-de-repli', fond: hexa(enOpaque(catalogue.fondDeLaPageFigma!)) }, limite: true,
+        });
+      }
     }
     const base = `${cible.code}:${cible.layer.nom}:${cible.usage}${cible.plage ? `:${cible.plage.debut}-${cible.plage.fin}` : ''}`;
     for (const cause of causes) {
@@ -598,32 +686,54 @@ function* mesurerLeVariant(
         });
       }
     }
-    if (!pire) continue;
-    const cle = `${base}:${cible.seuil}:${niveau}`;
-    const existant = groupes.get(cle);
-    if (existant) {
-      if (!existant.constat.variants.includes(variant.nom)) existant.constat.variants.push(variant.nom);
-      if (!existant.constat.layers.includes(cible.layer.id)) existant.constat.layers.push(cible.layer.id);
-      if (pire.rapport >= existant.pire) continue;
-      existant.pire = pire.rapport;
-      existant.constat.faits = faitsDeContraste(cible, niveau, pire, echecs, rapports);
-      continue;
+    for (const [nom, { pire, echecs, rapports }] of mesures) {
+      if (!pire) continue;
+      const cle = `${base}:${cible.seuil}:${niveau}${nom ? `:${nom}` : ''}`;
+      const existant = groupes.get(cle);
+      const sur = nom ? surUnFondNomme(cible, nom, catalogue, variant, pire.combinaison) : null;
+      if (existant) {
+        if (!existant.constat.variants.includes(variant.nom)) existant.constat.variants.push(variant.nom);
+        if (!existant.constat.layers.includes(cible.layer.id)) existant.constat.layers.push(cible.layer.id);
+        if (pire.rapport >= existant.pire) continue;
+        existant.pire = pire.rapport;
+        existant.constat.faits = faitsDeContraste(cible, niveau, pire, echecs, rapports, sur?.faits);
+        existant.constat.type = sur?.type ?? 'corriger';
+        continue;
+      }
+      groupes.set(cle, {
+        pire: pire.rapport,
+        constat: {
+          id: cle, code: cible.code, type: sur?.type ?? 'corriger', famille: 'contraste', variants: [variant.nom], layers: [cible.layer.id],
+          faits: faitsDeContraste(cible, niveau, pire, echecs, rapports, sur?.faits),
+        },
+      });
     }
-    groupes.set(cle, {
-      pire: pire.rapport,
-      constat: {
-        id: cle, code: cible.code, type: 'corriger', famille: 'contraste', variants: [variant.nom], layers: [cible.layer.id],
-        faits: faitsDeContraste(cible, niveau, pire, echecs, rapports),
-      },
-    });
   }
+}
+
+/** Sévérité et faits d'un échec sur la page, la carte ou la page Figma : le garanti se corrige, le reste se vérifie. */
+function surUnFondNomme(
+  cible: Cible, fond: NomDeFond, catalogue: CatalogueDeReference, variant: VariantLu, combinaison: Combinaison,
+): { type: 'corriger' | 'verifier'; faits: Record<string, string> } {
+  let variableDuTheme: string | null = null;
+  for (const liaison of cible.liaisons) {
+    if (liaison.champ !== cible.champ) continue;
+    variableDuTheme = variableDuThemeAtteinte(catalogue, variant, combinaison, liaison.variable.cle);
+    if (variableDuTheme) break;
+  }
+  const garanti = estGaranti(variableDuTheme, fond);
+  return {
+    type: garanti ? 'corriger' : 'verifier',
+    faits: { fondNomme: fond, variableDuTheme: variableDuTheme ?? '', garanti: garanti ? 'oui' : 'non' },
+  };
 }
 
 function faitsDeContraste(
   cible: Cible, niveau: NiveauWcag, pire: { rapport: number; etiquette: string; premierPlan: string; fond: string },
-  echecs: number, rapports: [string, number][],
+  echecs: number, rapports: [string, number][], sur: Record<string, string> = {},
 ): Constat['faits'] {
   return {
+    ...sur,
     usage: cible.usage, champ: cible.champ, calque: cible.layer.nom, rapport: sansArrondi(pire.rapport),
     seuil: cible.seuil, niveau, mode: pire.etiquette, autresModes: echecs - 1,
     premierPlan: pire.premierPlan, fond: pire.fond, rapports: JSON.stringify(rapports),

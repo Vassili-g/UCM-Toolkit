@@ -20,11 +20,21 @@ export interface VariableDuCatalogue {
   valeurs?: Record<string, { alias: string } | { valeur: unknown }>;
 }
 
+/** Une couleur résolue, composantes de 0 à 1 ; `a` vaut 1 quand il manque. */
+export interface CouleurResolue { r: number; g: number; b: number; a?: number }
+
 export interface CatalogueDeReference {
   version: 1;
   library: { nom: string; cle: string } | null;
   collections: CollectionDuCatalogue[];
   variables: VariableDuCatalogue[];
+  /**
+   * Les fonds d'élévation du thème (`elevation/page`, `elevation/raised`), par identifiant de mode de la collection `theme`.
+   * Sans lui, ou sans entrée pour le mode mesuré, un layer sans fond opaque se mesure sur `fondDeLaPageFigma`.
+   */
+  fondsDElevation?: Record<string, { page: CouleurResolue; carte: CouleurResolue }>;
+  /** Le fond de la page Figma (`figma.currentPage.backgrounds`) : une seule valeur, sans mode ; repli sans thème UCM. */
+  fondDeLaPageFigma?: CouleurResolue;
 }
 
 /** Déduit le rôle des collections du nom seulement si le fichier est déclaré UCM. */

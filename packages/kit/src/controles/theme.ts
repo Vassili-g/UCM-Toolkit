@@ -198,7 +198,7 @@ function* liaisonsDuLayer(layer: LayerLu): Generator<LiaisonLue | undefined> {
     yield* plage.liaisons;
   }
 }
-function cleDuTheme(nom: string): string | undefined {
+export function cleDuTheme(nom: string): string | undefined {
   return [...VARIABLES_DU_THEME].sort((a, b) => b.length - a.length).find((cle) => nom === cle || nom.endsWith(`/${cle}`));
 }
 function remplacerSuffixe(nom: string, suffixe: string, remplacement: string): string {
