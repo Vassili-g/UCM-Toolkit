@@ -15,7 +15,7 @@ du référentiel.
 | Dossiers, états, variables de `theme`, cran de chaque variable dans les deux sens | `DOSSIERS`, `ETATS`, `VARIABLES_DE_PALETTE`, `TABLE_DES_DOSSIERS`, [dossiers.ts](../../../../../../packages/kit/src/emplois/dossiers.ts) | Identifiants anglais, sans libellé | Palettes, explorateur, `ucm check` |
 | Ce que chaque variable de `theme` peint, et ses portées Figma | `SUPPORT_DES_VARIABLES`, même fichier | Sans libellé | Palettes, explorateur |
 | L'état du fond selon l'interaction (repos, survol, appui, focus, désactivé) | `ETAT_DU_FOND`, même fichier | Clés françaises, valeurs anglaises | Palettes |
-| Les sept garanties | `GARANTIES`, [garanties.ts](../../../../../../packages/kit/src/emplois/garanties.ts) | Sans libellé | Palettes, `ucm check` |
+| Les neuf garanties | `GARANTIES`, [garanties.ts](../../../../../../packages/kit/src/emplois/garanties.ts) | Sans libellé | Palettes, `ucm check` |
 | Libellé de chaque variable de `theme` (`solid/default` : « bouton ») | `LIBELLE_DE_LA_VARIABLE`, catalogues `fr.ts` et `en.ts` de Palettes | Français et anglais | Palettes seul |
 | États reconnus dans un composant et leur sélecteur CSS | `STATE_SELECTORS`, [semantics.ts](../../../../../../packages/plugin-socle/src/composant/contract/semantics.ts) | Identifiants anglais | Exporteur seul |
 | Noms d'axe d'état (`state`, `states`, `status`) | `STATE_AXIS_NAMES`, même fichier | Anglais | Exporteur seul |

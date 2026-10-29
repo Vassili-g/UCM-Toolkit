@@ -72,7 +72,7 @@ vocabulaire. Chaque définition est écrite là où un produit en a eu besoin.
 | Définition | Où elle s'écrit | Où un designer la lit |
 |---|---|---|
 | Dossiers `solid`, `surface`, `page`, états `default`, `hover`, `pressed`, variables de `theme` et leur cran | [dossiers.ts](../../../../../packages/kit/src/emplois/dossiers.ts) | Aperçu de Palettes, spécification Palettes |
-| Les sept garanties de contraste | [garanties.ts](../../../../../packages/kit/src/emplois/garanties.ts) | Carte des garanties de Palettes |
+| Les neuf garanties de contraste | [garanties.ts](../../../../../packages/kit/src/emplois/garanties.ts) | Carte des garanties de Palettes |
 | États reconnus et leurs variantes (`hover`/`hovered`, `press`/`pressed`) | `STATE_SELECTORS`, [semantics.ts](../../../../../packages/plugin-socle/src/composant/contract/semantics.ts) | Nulle part |
 | Tailles reconnues (`small` lu comme `sm`) | `SIZE_VALUES`, même fichier | Nulle part |
 | Les cinq couches et les alias permis entre elles | `COUCHES` et `CIBLES_DES_COUCHES`, [profilUcm.ts](../../../../../packages/plugin-architect/src/integrations/profilUcm.ts) | Onglet Intégrations |
@@ -165,7 +165,7 @@ de la section 2.1 par une source unique.
 
 | Domaine | Contenu |
 |---|---|
-| Couleurs du thème | Dossiers, états, variables de `theme`, cran de chaque variable dans les deux sens du thème, sept garanties |
+| Couleurs du thème | Dossiers, états, variables de `theme`, cran de chaque variable dans les deux sens du thème, neuf garanties |
 | Architecture des collections | Les cinq couches, les alias permis entre elles, les portées attendues par couche |
 | Composants | Une variable par propriété, la collection `components` et sa grammaire (`{composant}/colors/{palette}/{variante}/{état}/{rôle}`, `{composant}/sizes/{taille}/{mesure}`), les états reconnus |
 | Nomenclature par défaut | Casse, termes retenus et termes qu'ils remplacent, en partant des termes que le kit fixe déjà (`pressed`, `disabled`, `foreground`, `border`, `focus`) |

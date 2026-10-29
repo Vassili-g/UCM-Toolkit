@@ -54,7 +54,7 @@ Le référentiel regroupe l'actuel `packages/kit/src/emplois/` dans
 |---|---|---|
 | `crans.ts` | Crans 50 à 950, modes `light` et `dark`, profils `soft` et `vivid` | Listes écrites en dur dans Palettes et `couleur` |
 | `theme.ts` | Table des dossiers `solid`, `surface`, `page` et de `ring`, sens du thème, texte des boutons, crans requis, élévation, variables `disabled` | `dossiers.ts` |
-| `garanties.ts`, `contraste.ts` | G1 à G7 et contraste WCAG 2, une seule autorité | Kit et `couleur/src/promesses.ts` |
+| `garanties.ts`, `contraste.ts` | G1 à G9 et contraste WCAG 2, une seule autorité | Kit et `couleur/src/promesses.ts` |
 | `collections.ts` | Les sept collections de la référence, leur ordre, les alias permis, la forme des chemins, les axes de modes | `COUCHES` de l'explorateur, vue illustrée |
 | `vocabulaire.ts` | États reconnus et variantes tolérées, tailles, statuts, rôles `foreground`, `border`, `divider`, `ring` | `STATE_SELECTORS` et `SIZE_VALUES` de l'exporteur |
 | `produits.ts` | Chaque plugin et paquet : ce qu'il écrit, ce qu'il lit, où il écrit | Six documents |

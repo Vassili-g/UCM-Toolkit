@@ -60,7 +60,7 @@ implémentées des pistes conservées.
 | Recette | Tous les nombres qui fabriquent les palettes du fichier |
 | Planche | Les cadres que le plugin dessine dans Figma |
 | Profil porteur | Le profil dont les rampes contiennent la couleur de référence exacte, dans les deux modes (`[MOT-17]`). Une palette à une intensité n'en a pas : sa rampe unique contient la référence |
-| Promesse | Une des sept garanties G1 à G7 entre deux variables du thème, `solid/foreground` sur `solid/default` par exemple, que son contraste mesuré vérifie contre un minimum. Le code garde ce nom (`promesses.ts`) |
+| Promesse | Une des neuf garanties G1 à G9 entre deux variables du thème, `solid/foreground` sur `solid/default` par exemple, que son contraste mesuré vérifie contre un minimum. Le code garde ce nom (`promesses.ts`) |
 
 L'interface et la planche emploient le vocabulaire d'affichage de
 l'[inventaire des textes](../Textes et langues/INVENTAIRE-TEXTES-ET-PROPOSITIONS.md#vocabulaire-retenu) :
@@ -80,7 +80,7 @@ aussi.
 | D4 | Le Color shift règle la teinte, la saturation et la luminosité aux deux bouts, autour de la couleur de référence | La couleur de référence reste fixe ; les autres crans suivent le réglage en direct, dans des limites qui gardent les garanties tenues ([section 12](#12-le-color-shift)) |
 | D5 | Un préréglage « Tailwind » calcule les deux dérives de teinte depuis le relevé des rampes Tailwind | Reproduire le comportement de Tailwind tient en un clic. La saturation et la luminosité n'ont pas de préréglage |
 | D6 | Le plugin n'a aucun accès réseau | La recette exportée se range à la main dans un dépôt |
-| D7 | Le moteur de couleur est un module pur, rangé dans le paquet privé `packages/couleur`, nom `ucm-couleur`, servi en source. Le vocabulaire qu'UCM Palettes, l'architecture et `ucm check` partagent, la table en dossiers, ses deux sens, les sept garanties et le contraste WCAG 2, est dans le point d'entrée `@ucm-kit/core/emplois` du kit publié | Le plugin, ses tests et `ucm check` jugent sur la même table et le même arrondi. `ucm-couleur` importe ce vocabulaire ; la fabrication des palettes, la recette et ses formats restent hors du kit |
+| D7 | Le moteur de couleur est un module pur, rangé dans le paquet privé `packages/couleur`, nom `ucm-couleur`, servi en source. Le vocabulaire qu'UCM Palettes, l'architecture et `ucm check` partagent, la table en dossiers, ses deux sens, les neuf garanties et le contraste WCAG 2, est dans le point d'entrée `@ucm-kit/core/emplois` du kit publié | Le plugin, ses tests et `ucm check` jugent sur la même table et le même arrondi. `ucm-couleur` importe ce vocabulaire ; la fabrication des palettes, la recette et ses formats restent hors du kit |
 | D8 | Les contrastes se mesurent contre deux fonds de référence saisis, un clair et un sombre | Le plugin ne fabrique pas de rampe neutre |
 | D9 | Les variables de dossier forment une table fixe, celle de l'architecture, commune à toutes les palettes. Le texte des boutons de chaque thème en choisit le sens | Le designer voit quel cran sert à quelle variable et si la garantie tient. Aucune palette ne relie une variable à un autre cran, et la recette ne porte aucun câblage |
 | D10 | La recette rangée dans le fichier Figma fait autorité ; le JSON exporté en est une copie | Un import de JSON est un geste explicite, précédé de l'écart |
@@ -117,7 +117,7 @@ Le plugin fait :
 - fabriquer, pour chaque palette, ses quatre rampes ;
 - régler le Color shift aux deux bouts, avec un aperçu en direct et des limites qui gardent les garanties tenues ;
 - mesurer les contrastes de chaque cran contre les fonds de référence ;
-- vérifier les sept garanties de la table en dossiers ;
+- vérifier les neuf garanties de la table en dossiers ;
 - signaler les alertes ;
 - dessiner un cadre par palette, et le redessiner quand la recette change ;
 - écrire chaque palette dans les variables de couleur de la destination que
@@ -191,6 +191,7 @@ w  = poids(L)                       section 6.4
 H  = teinte(L)                      section 6.4
 Lf = clamp(L + clarte[p] + clarté(w), 0, 1)              [MOT-29], [MOT-30], [MOT-38]
 Le = Lf sans le décalage de [MOT-38] (cran clair), sinon Lf
+Lf = L × c + Lf × (1 − c)   en Light, c = poids du numéro        [MOT-40]
 q  = clamp(part(intensité) × (1 + saturation(w)), 0, 1)  [MOT-30]
 C  = clairs(L) × min(q × facteur(mode, L) × plafond(Lf, H, gamut),
          p0 × min(a × marge(H) × (1 − Le), b × Le))      [MOT-28], [MOT-35]
@@ -444,9 +445,45 @@ trouve, et non la teinte de son cran 50.
   deux profils ; l'enveloppe de `[MOT-35]` se lit sans lui. Il se réduit,
   par douze dichotomies, jusqu'à garder l'ordre des nuances (`[DER-19]`) et
   toutes les promesses que la palette tient sans lui. Le décalage gardé est
-  mémorisé par recette et par palette. `clarteSelonLaTeinte` et
-  `clarteSelonLaTeinteGardee` (`packages/couleur/src/palette.ts`) et
-  `clarteSelonLaTeinteDuReleve` (`tailwind.ts`) en sont l'autorité.
+  mémorisé par recette et par palette. En Light, `[MOT-40]` ramène ensuite
+  les crans clairs vers la courbe : le décalage n'atteint plus le 50, le 100
+  ni le 200, et le 300 et le 400 n'en gardent que le tiers et les deux tiers.
+  `clarteSelonLaTeinte` et `clarteSelonLaTeinteGardee`
+  (`packages/couleur/src/palette.ts`) et `clarteSelonLaTeinteDuReleve`
+  (`tailwind.ts`) en sont l'autorité.
+- `[MOT-40]` En Light, un même numéro de cran clair a la même clarté dans
+  toutes les palettes. Le 50, le 100 et le 200 prennent la clarté de la
+  courbe, sans le réglage de luminosité de la carte, la luminosité du Color
+  shift ni le décalage de `[MOT-38]`. Le 300 prend les deux tiers de l'écart
+  qui le sépare de la courbe, le 400 le tiers ; le 500 et les crans suivants
+  gardent leur clarté. La règle se lit par numéro
+  (`POIDS_DES_CRANS_COMMUNS`), jamais par rang : le 150 d'une palette libre
+  garde sa clarté. La teinte et la part de chroma du cran restent celles que
+  les réglages lui donnaient, enveloppe comprise ; la chroma vaut cette part
+  fois le plafond de l'écran à la clarté obtenue, et un cran près du blanc,
+  où le plafond est nul, prend la part du cran suivant. Le cran qui porte la
+  référence exacte garde sa clarté et ses octets. Le Dark ne change pas. Les
+  promesses et la limite dynamique se calculent sur ces crans. L'écart de
+  clarté entre palettes se mesure sur la clarté fabriquée : les octets
+  l'arrondissent à 0,002 près. `viseesDeLaRampe`, `clarteDuCran` et
+  `poidsCommun` (`packages/couleur/src/rampe.ts`) en sont l'autorité.
+- `[MOT-41]` Le moteur corrige les crans de texte teinte par teinte. Pour
+  chaque mode, chaque sens du texte des boutons et chaque intensité, le cran
+  de `surface/foreground` doit tenir le seuil `texte` sur `surface/subtle`,
+  `surface/default` et `surface/hover` (G3), et celui de `page/foreground` sur
+  `surface/default` (G9). Quand il échoue, le moteur l'éloigne de ces fonds
+  par pas de 0,001 de clarté OKLCH, teinte et part de chroma gardées : plus
+  foncé en Light, plus clair en Dark. Un cran corrigé ne passe jamais la
+  clarté de son voisin le plus foncé en Light, le plus clair en Dark ; s'il y
+  bute avant le seuil, il reste tel quel et la garantie manque. Le cran qui
+  porte la référence ne se corrige pas : la garantie manque, et le message
+  propose « Ajuster la référence ». Le cran corrigé reste le même pour toutes
+  les variables que la table lui donne : en Light normal, le 700 porte aussi
+  `page/foreground`, `page/border` et `solid/default`. La correction se pose
+  sur chaque rampe fabriquée, bosse comprise, avant tout jugement : promesses,
+  alertes et limite dynamique lisent les rampes corrigées. Une palette libre
+  n'a pas de correction. `corrigerLesTextes`
+  (`packages/couleur/src/textes.ts`) en est l'autorité.
 - `[MOT-27]` Un angle et un décalage de saturation se rangent au centième,
   une part de chroma et un décalage de luminosité au millième, arrondis au
   moment où ils sont posés :
@@ -548,7 +585,7 @@ Deux outils qui la lisent produisent les mêmes hexas.
 | Clé | Contenu | Portée |
 |---|---|---|
 | `formatVersion` | Entier positif, version de la forme de la recette | Fichier |
-| `crans` | `[50, 100, …, 950]` : la réunion des crans que la table de chaque thème exige dans son sens (`[VER-05]`, `[REC-13]`), 50 seul facultatif | Toutes les rampes |
+| `crans` | `[50, 100, …, 950]` : la réunion des crans que la table de chaque thème exige dans son sens (`[VER-05]`, `[REC-13]`), le 50 est requis | Toutes les rampes |
 | `courbes` | `light` et `dark`, une clarté par cran | Toutes les rampes |
 | `profils` | `soft` et `vivid`, chacun avec sa `part` commune de chroma, son facteur `clairs` des tons clairs du Light et son `enveloppe`, tous obligatoires (`[REC-12]`, `[REC-14]`) | Toutes les palettes, sauf surcharge |
 | `gamut` | `"srgb"` | Fichier |
@@ -771,9 +808,11 @@ du paquet porte les dix-sept rampes de onze crans.
   changent pas à la lecture. `classerRecette` (`packages/couleur/src/recette.ts`) en est
   l'autorité.
 - `[REC-13]` Les crans requis sont la réunion de ceux que la table de chaque
-  thème exige, chacun dans le sens de son texte des boutons ; seul 50 est
-  facultatif. Avec les textes par défaut, ce sont 100 à 900 et 950. La lecture
-  d'une recette 10 ajoute les crans 400, 500 et 950 absents, avec dans chaque
+  thème exige, chacun dans le sens de son texte des boutons. Le 50 est requis,
+  `surface/subtle` le vise. Avec les textes par défaut, ce sont 50 à 900 et
+  950. La lecture d'une recette de n'importe quel format qui n'a pas de 50
+  l'ajoute, avec la clarté que `luminositeAuNumero` lui donne sur sa grille.
+  La lecture d'une recette 10 ajoute les crans 400, 500 et 950 absents, avec dans chaque
   thème la clarté que `luminositeAuNumero` donne sur l'ancienne grille, au
   même rang. Une recette 11 ou 12 à qui il en manque un est refusée par la règle
   `crans-emplois`.
@@ -1348,16 +1387,17 @@ référence de la recette.
 - `[VER-03]` Chaque cran de chaque rampe reçoit son contraste contre le fond de
   référence de son mode, contre le blanc et contre le noir, et le seuil tenu
   contre le fond.
-- `[VER-04]` Un cran n'a pas de verdict : seule une des sept garanties de la
+- `[VER-04]` Un cran n'a pas de verdict : seule une des neuf garanties de la
   section 11.2 promet un contraste.
 
 ### 11.2 Promesses des emplois
 
-Pour chaque palette, chaque mode et chaque intensité présente, sept garanties
-G1 à G7 se jugent dans la table des dossiers du sens du thème, contre le fond
-de la page, le réglage « Fond » du thème, `elevation/page`. Partout où la page
-est un fond garanti, la carte l'est aussi : G2 à G7 se jugent aussi contre la
-carte, `elevation/raised`, qui n'a pas de réglage dans le plugin. Le moteur la
+Pour chaque palette, chaque mode et chaque intensité présente, neuf garanties
+G1 à G9 se jugent dans la table des dossiers du sens du thème. G2 à G7 se
+jugent contre le fond de la page, le réglage « Fond » du thème,
+`elevation/page`, et G3 et G4 aussi contre des fonds de `surface`. Partout où
+la page est un fond garanti, la carte l'est aussi : G2 à G7 se jugent aussi
+contre la carte, `elevation/raised`, qui n'a pas de réglage dans le plugin. Le moteur la
 déduit du fond de la page (`[MOT-37]`). L'[architecture, section 4](../../Archi%20Tokens%20Multi-marques/VUE-ILLUSTREE-MULTIMARQUES.html)
 explique le choix de cette table.
 
@@ -1374,6 +1414,24 @@ sont inversés (`sensDuTheme`). Le kit porte la suite :
 
 `ring` est une variable à la racine de la palette, hors des dossiers `solid`,
 `surface` et `page`. `solid/foreground` prend le texte des boutons du thème.
+
+Les neuf garanties sont :
+
+| Garantie | Premier membre | Fonds | Seuil |
+|---|---|---|---|
+| G1 | `solid/foreground` | `solid/default`, `solid/hover`, `solid/pressed` | `texte` |
+| G2 | `solid/default` | page, carte | `nonTexte` |
+| G3 | `surface/foreground` | `surface/subtle`, `surface/default`, `surface/hover`, page, carte | `texte` |
+| G4 | `surface/border` | `surface/subtle`, `surface/default`, `surface/hover`, `surface/pressed`, page, carte | `nonTexte` |
+| G5 | `page/foreground` | page, carte | `texte` |
+| G6 | `page/border` | page, carte | `nonTexte` |
+| G7 | `ring` | page, carte | `nonTexte` |
+| G8 | `surface/foreground` | `surface/pressed` | `nonTexte` |
+| G9 | `page/foreground` | `surface/default` | `texte` |
+
+G8 juge le texte de surface à l'appui à 3:1 : l'appui sort de G3. G9 juge un
+composant de la page, posé dans un fond teinté au repos. `surface/divider`,
+le filet sur fond teinté, n'entre dans aucune garantie.
 
 Le neutre ajoute `page/foreground-main` (noir pur en Light, blanc pur en Dark,
 dans les deux sens), `page/foreground-subtle` (le cran de `page/foreground`),
@@ -1395,7 +1453,7 @@ trois variables `disabled/*`. Aucune de ces variables n'a de garantie.
 - `[VER-05]` Les seuils `texte` (4,5 par défaut) et `nonTexte` (3) viennent de
   la recette. Chaque garantie se juge par palette ; aucune ne croise deux
   palettes. Les crans requis d'un thème sont ceux que `cransRequis` tire de la
-  table de son sens ; seul le cran 50 est facultatif. `[REC-05]` refuse une
+  table de son sens ; le cran 50 est requis, `surface/subtle` le vise. `[REC-05]` refuse une
   recette dont `crans` n'a pas les crans requis du sens de l'un de ses thèmes.
   Une variable dont le cran manque n'est pas présente, et une garantie qui la nomme n'est pas
   jugeable, comme un contrôle qui n'a pas lieu.
@@ -1403,14 +1461,16 @@ trois variables `disabled/*`. Aucune de ces variables n'a de garantie.
 `solid/foreground` vaut le blanc ou le noir purs du thème, dans
 les deux sens. G2 juge le bouton au repos dans les deux sens. Une référence
 qui ne porte pas le texte des boutons reste ancrée, et le message de la
-garantie manquée propose « Ajuster la référence ». Sur les quatorze
-références de la recherche, à une et deux intensités et dans les quatre
-thèmes, G1 n'échoue que sur la nuance où la référence est ancrée, G2 à G7
-n'échouent jamais. Sur 864 références de toutes teintes, chromas et clartés,
+garantie manquée propose « Ajuster la référence ». Il en va de même pour
+G3 et G9 quand la référence est ancrée au cran de texte que `[MOT-41]` ne
+corrige pas. Sur les quatorze références de la recherche, à une et deux
+intensités et dans les quatre thèmes, G1 n'échoue que sur la nuance où la
+référence est ancrée ; cette mesure date d'avant G8 et G9 et du changement
+de G3 et G4. Sur 864 références de toutes teintes, chromas et clartés,
 G1 hors nuance ancrée tient dans les quatre thèmes.
 
-Une palette à deux intensités compte 84 contrôles : vingt et un par mode et
-par profil. Une palette à une intensité en compte 42. Les deux profils partagent
+Une palette à deux intensités compte 96 contrôles : vingt-quatre par mode et
+par profil. Une palette à une intensité en compte 48. Les deux profils partagent
 leurs clartés, mais pas leur chroma : leurs contrastes diffèrent un peu, et
 les composants citent l'un comme l'autre. L'interface et la planche nomment une
 garantie par ses variables et son libellé, jamais par son numéro.
@@ -1424,7 +1484,8 @@ garantie par ses variables et son libellé, jamais par son numéro.
   recette v2 d'Architect a montré que les courbes Dark par défaut tiennent la
   carte sur 360 teintes, les deux profils et les quatre combinaisons de texte
   des boutons ; seule la course du réglage global de luminosité se resserre,
-  jusqu'à la moitié pour `#16A34A` (R-30).
+  jusqu'à la moitié pour `#16A34A` (R-30). G1, G8 et G9 ne jugent que des
+  fonds de la palette : ni la page ni la carte.
 - `[VER-06]` Une promesse manquée nomme ses deux variables, d'abord par leur
   libellé puis par leur nom (`surface/foreground` sur `surface/hover`), le
   mode, le profil pour une palette à deux intensités, son contraste mesuré et
@@ -1537,7 +1598,7 @@ garantie par ses variables et son libellé, jamais par son numéro.
 | Sévérité | Emploi | Rang dans l'interface |
 |---|---|---|
 | Blocage | Le plugin ne peut ni enregistrer ni générer : recette illisible ou future, enregistrement refusé, police absente, génération interrompue | Premier, avant toute autre ligne |
-| Promesse à corriger | Une des sept garanties n'atteint pas son minimum | Ensuite, signal de danger |
+| Promesse à corriger | Une des neuf garanties n'atteint pas son minimum | Ensuite, signal de danger |
 | Point à vérifier | Une mesure franchit un seuil de conception, ou la planche peint une couleur différente de l'aperçu | Ensuite, signal d'avertissement |
 | Information | Cadre orphelin, copie de cadre, couleur ramenée dans le gamut sRGB, document Display P3 | Dernier, en couleur secondaire |
 
@@ -2983,7 +3044,7 @@ qui le créera.
 
 ```text
 packages/kit/src/emplois/        @ucm-kit/core/emplois, publié         [ARC-01]
-                                   table en dossiers et ses deux sens, sept garanties, contraste WCAG
+                                   table en dossiers et ses deux sens, neuf garanties, contraste WCAG
 
 packages/couleur/                ucm-couleur, privé, le moteur pur    [ARC-01]
   src/conversions.ts               hexa, sRGB, linéaire, Oklab, OKLCH, P3
@@ -2991,7 +3052,7 @@ packages/couleur/                ucm-couleur, privé, le moteur pur    [ARC-01]
   src/rampe.ts                     cran, teinte pivotée, rampe entière
   src/tailwind.ts                  le préréglage et son relevé
   src/contraste.ts                 contraste WCAG, ΔEok, part de chroma
-  src/promesses.ts                 le jugement des sept garanties sur les rampes
+  src/promesses.ts                 le jugement des neuf garanties sur les rampes
   src/limites.ts                   la limite dynamique d'un réglage et sa cause
   src/alertes.ts                   les alertes de la section 11.3
   src/recette.ts                   forme, validation, classement, recette par défaut
@@ -3034,7 +3095,7 @@ packages/plugin-palettes/        le plugin UCM Palettes              [ARC-03]
   son `package.json` exporte `./src/index.ts`, qu'esbuild, tsx et tsc en
   résolution `Bundler` lisent tels quels. Il ne dépend que de `@ucm-kit/core`,
   dont il lit le point d'entrée `./emplois` : la table en dossiers et ses
-  deux sens, les sept garanties et le contraste WCAG 2, que `ucm check` lit
+  deux sens, les neuf garanties et le contraste WCAG 2, que `ucm check` lit
   aussi. Le kit n'importe rien d'`ucm-couleur`. Sa compilation cible ES2020
   sans types d'environnement : `figma`, `document`, `window` et
   `performance` y sont des erreurs. Un changement de ce vocabulaire monte la

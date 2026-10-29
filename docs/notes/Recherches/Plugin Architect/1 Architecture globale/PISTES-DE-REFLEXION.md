@@ -326,7 +326,7 @@ de l'explorateur interdit toute alerte d'absence d'UCM.
 
 | Produit | Agnostique | Full UCM |
 |---|---|---|
-| UCM Palettes | Rampes, contrastes, palettes libres, destination libre | Table en dossiers, sept garanties, destination `primitives`, courbes de l'architecture |
+| UCM Palettes | Rampes, contrastes, palettes libres, destination libre | Table en dossiers, neuf garanties, destination `primitives`, courbes de l'architecture |
 | UCM Architecte | Vérifier les règles que le designer déclare ; construire dans la structure qu'il déclare | Vérifier contre l'architecture UCM ; poser `color-brands`, `color-utilities`, `theme`, `components` |
 | UCM Token Explorer | Seul périmètre : la lecture, sans opinion | Aucun mode propre, ou les libellés du référentiel à côté des noms |
 | UCM Contract Exporter | Export et constats actuels | Constats en plus : propriété liée hors de `components`, rôle employé sur le mauvais support ; publication de la déclaration |
@@ -376,7 +376,7 @@ option du dépôt ?
 | Rampes, Color shift, réglage global | Non | Gardés |
 | Contraste WCAG d'une nuance contre un fond | Non : règle universelle | Gardé, ou désactivable à la demande du mainteneur |
 | Table en dossiers, bandes `solid`, `surface`, `page` de l'aperçu | Oui | Retirés |
-| Les sept garanties et leurs alertes | Oui : elles dépendent de la table | Retirées |
+| Les neuf garanties et leurs alertes | Oui : elles dépendent de la table | Retirées |
 | Texte des boutons et sens du thème | Oui | Retirés |
 | Planche « Quelle nuance pour quelle variable » | Oui | Planche réduite aux rampes |
 | Destination `primitives` / `colors` | Défaut UCM | Destination libre, déjà possible |

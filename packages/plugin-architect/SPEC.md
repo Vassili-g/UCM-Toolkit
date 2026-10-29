@@ -466,14 +466,14 @@ couche. Le profil contrôle quatre règles, en information :
 |---|---|
 | `couche` | Un alias vise une couche que sa couche ne peut pas viser |
 | `valeur-directe` | Une couleur hors de `primitives` n'est pas un alias |
-| `portee` | Une variable de `primitives`, `brands` ou `utility` porte une portée ; une variable de dossier de `theme` n'a pas les portées de sa ligne de la table |
+| `portee` | Une variable de `primitives`, `brands` ou `utility` porte un scope ; une variable de dossier de `theme` n'a pas les scopes de sa ligne de la table |
 | `nuance` | Une variable de dossier de `theme` ne vise pas, dans un mode `light` ou `dark`, le cran que la table donne dans le sens de ce mode |
 
 Les variables de dossier (`solid/default`, `surface/border`, `ring`),
-leurs crans et leurs portées viennent de `@ucm-kit/core/emplois` ; le sens du
+leurs crans et leurs scopes viennent de `@ucm-kit/core/emplois` ; le sens du
 mode vient de `texteDesBoutons` dans la recette associée. `scale/0`,
 `scale/1000`, `elevation/*` ne visent aucun cran et ne se jugent pas par
-nuance ; les deux premières ne portent aucune portée. Une collection sans
+nuance ; les deux premières ne portent aucun scope. Une collection sans
 couche n'est pas contrôlée, et le designer peut ignorer un écart pour ce
 fichier.
 
