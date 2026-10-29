@@ -156,31 +156,43 @@ Règle, mode Light seulement :
 | 400 | Un tiers de l'écart à la courbe corrigé |
 | 500 et au-delà | Inchangé |
 
-- [ ] Appliquer la règle par numéro de cran, pas par rang : une palette libre
+- [x] Appliquer la règle par numéro de cran, pas par rang : une palette libre
       (`palette.crans`) peut avoir une autre liste.
-- [ ] Garder la teinte et la part de chroma de chaque cran : la chroma suit le
+- [x] Garder la teinte et la part de chroma de chaque cran : la chroma suit le
       plafond à la nouvelle clarté, à part égale.
-- [ ] Ne jamais toucher le cran qui porte la référence.
-- [ ] Le Dark ne change pas.
-- [ ] La référence de la simulation est
+- [x] Ne jamais toucher le cran qui porte la référence.
+- [x] Le Dark ne change pas.
+- [x] La référence de la simulation est
       `docs/notes/Recherches/SUJETS IMPORTANTS à trancher/Mesures/generer-donnees.ts`,
       fonction `cransCommuns` (poids `[1, 1, 1, 2/3, 1/3]`).
-- [ ] Les promesses et la limite dynamique se calculent sur les crans communs.
-- [ ] Tests : sur la configuration
+- [x] Les promesses et la limite dynamique se calculent sur les crans communs.
+- [x] Tests : sur la configuration
       `Mesures/palettes-et-reglages.json` copiée dans les fixtures de `couleur`,
       l'écart de clarté entre palettes vaut 0,002 au plus sur le 50, le 100 et
       le 200 ; Ocean Vivid (réglage de luminosité −0,06) a son 50 à 0,975 ; le
       50 de Sun garde une chroma non nulle.
-- [ ] Mettre à jour les tests qui figent des couleurs claires. Ne pas assouplir
+- [x] Mettre à jour les tests qui figent des couleurs claires. Ne pas assouplir
       un test de promesse : signaler tout échec nouveau dans le rendu.
-- [ ] Lecture : une recette du format 10 ou 11 sans 50 reçoit le 50, avec la
+- [x] Lecture : une recette du format 10 ou 11 sans 50 reçoit le 50, avec la
       luminosité que `luminositeAuNumero` donne sur sa grille, comme le 400, le
       500 et le 950 du format 10 (`[REC-13]`). Sans cela, le lot K la rend
       illisible. Test de régression.
-- [ ] `alertes.ts` : corriger le commentaire « Les crans facultatifs 50, 400 et
+- [x] `alertes.ts` : corriger le commentaire « Les crans facultatifs 50, 400 et
       950 n'y sont pas », faux depuis K.
 
 Fin : `npm run test:paquet -- couleur` passe ; `npm run typecheck` passe.
+
+Fait : `45c110aa`. La chroma suit `cransCommuns` : la part que les réglages
+donnaient au cran, enveloppe comprise, fois le plafond à la nouvelle clarté.
+Le 50 s'ajoute à toute recette lue, format courant compris. Restent rouges
+pour C2 : G9 en Dark, G3 au survol (`#16A34A`, `#06B6D4` Soft), `[ENT-14]`,
+`[DER-20]` ; pour V1 : relevé figé et planche.
+
+À trancher par le mainteneur, effet de C1 : les fonds Light se rapprochent
+entre palettes, et l'alerte « palettes proches » dit « presque identiques »
+de `#1E6FD9` et `#3B82F6` (distance 0,002 à 0,003, seuil 0,01). Le 300 Light
+confond plus vite Soft et Vivid. La luminosité du bout clair n'a plus de
+limite dynamique sur Bleu, Rouge, Jaune et Sauge.
 
 ## C2. Correction des textes par teinte
 
