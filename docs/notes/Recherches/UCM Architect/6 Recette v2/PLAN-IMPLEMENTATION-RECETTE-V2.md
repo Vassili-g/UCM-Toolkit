@@ -186,11 +186,11 @@ d'une instance. Le nouveau champ prend un autre nom pour ne pas s'y confondre.
 
 Analyse 10. Dépend de P0 et R-30. Nature : code nouveau.
 
-- [ ] **P1.1** `packages/kit/src/emplois/garanties.ts` : `FOND_DE_LA_CARTE` rejoint les fonds de G2 à G6. Tests `garanties.test.ts`.
-- [ ] **P1.2** `packages/couleur/src/garantie.ts` : la garantie des courbes juge aussi contre la carte en Dark (`couleurDeLaCarte`, `packages/couleur/src/jugement.ts:66`). Tests `garantie.test.ts`.
-- [ ] **P1.3** `packages/couleur/tests/promesses.test.ts:200-243` et `limites.test.ts` : 21 promesses par mode et par intensité, 84 et 42 par palette ; la limite dynamique prend la carte.
-- [ ] **P1.4** Si R-30 change la courbe Dark, la table des dossiers ou la carte : la case suit R-30, avec ses tests. Sinon, case barrée.
-- [ ] **P1.5** À la synchronisation qui apporte P1, par `executant` dans l'arbre partagé : `packages/plugin-palettes/tests/rapport.test.ts:32` (64 devient 84) et `tests/modeleDePlanche.test.ts:300` (16 devient 21). Codex ne lance pas ces tests ; ils échouent entre P1 et P1.5.
+- [~ Claude 2] **P1.1** `packages/kit/src/emplois/garanties.ts` : `FOND_DE_LA_CARTE` rejoint les fonds de G2 à G6. Tests `garanties.test.ts`.
+- [~ Claude 2] **P1.2** `packages/couleur/src/garantie.ts` : la garantie des courbes juge aussi contre la carte en Dark (`couleurDeLaCarte`, `packages/couleur/src/jugement.ts:66`). Tests `garantie.test.ts`.
+- [~ Claude 2] **P1.3** `packages/couleur/tests/promesses.test.ts:200-243` et `limites.test.ts` : 21 promesses par mode et par intensité, 84 et 42 par palette ; la limite dynamique prend la carte.
+- [x] **P1.4** ~~Si R-30 change la courbe Dark, la table des dossiers ou la carte~~ : R-30 accepté le 29/10, rien ne change.
+- [~ Claude 2] **P1.5** À la synchronisation qui apporte P1, par `executant` dans l'arbre partagé : `packages/plugin-palettes/tests/rapport.test.ts:32` (64 devient 84) et `tests/modeleDePlanche.test.ts:300` (16 devient 21). Codex ne lance pas ces tests ; ils échouent entre P1 et P1.5.
 
 ### Piste S · socle (Claude 2)
 
@@ -369,4 +369,4 @@ Analyse 10, « Ce que le changement touche ». Dépend de P1 (V4). Agent : `impl
 
 | N° | Question | Quand |
 |---|---|---|
-| R-30 | Si la courbe Dark par défaut ne tient pas la carte : éclaircir la courbe, changer un cran de la table, ou rapprocher la carte de la page | Après P0 |
+| R-30 | Si la courbe Dark par défaut ne tient pas la carte : éclaircir la courbe, changer un cran de la table, ou rapprocher la carte de la page | Décidé le 29/10 : accepté, la courbe ne change pas |

@@ -969,7 +969,7 @@ global. Le Color shift ne change pas.
 | `#8B8178` | 0,105 | 0,100 |
 
 La courbe Dark par défaut tient la carte : aucune des trois réponses de R-30
-n'est nécessaire. Le seul effet visible est la course de la luminosité du
+n'est nécessaire. Décidé (R-30) : le resserrement du curseur est accepté. Le seul effet visible est la course de la luminosité du
 vert `#16A34A`, réduite de moitié.
 
 ## 11. Questions au mainteneur
@@ -995,7 +995,7 @@ vert `#16A34A`, réduite de moitié.
 | R-27 | Noms de variants | | Décidé : E, valeurs en puces, paire exacte au survol ; la property reste quand deux valeurs se confondent |
 | R-28 | Les garanties de Palettes sur la carte | | Décidé : dans cette recette ; partout où la page est un fond garanti, la carte l'est aussi (section 10) |
 | R-29 | Distinguer une sous-pièce d'une pièce partagée | | Décidé : non ; une seule sorte, « pièce interne », et une seule règle de liaison |
-| R-30 | Si la courbe Dark par défaut ne tient pas la carte : éclaircir la courbe, changer un cran de la table, ou rapprocher la carte de la page | Aucune des trois : la courbe tient la carte sur 360 teintes (section 10, « La mesure du lot P0 ») ; la luminosité du vert `#16A34A` perd la moitié de sa course | Ouvert, mesure faite |
+| R-30 | Si la courbe Dark par défaut ne tient pas la carte : éclaircir la courbe, changer un cran de la table, ou rapprocher la carte de la page | Aucune des trois : la courbe tient la carte sur 360 teintes (section 10, « La mesure du lot P0 ») ; la luminosité du vert `#16A34A` perd la moitié de sa course | Décidé le 29/10 : accepté, sur la maquette `MAQUETTE-R30.html` ; la courbe ne change pas |
 
 ## 12. Ordre de travail proposé
 
