@@ -147,7 +147,7 @@
     <a href="#s1">1. Crans clairs foncés</a><a href="#s2">2. Même cran, même clarté</a><a href="#s3">3. Texte de surface</a>
     <a href="#s4">4. Bouton texte</a><a href="#s5">5. Fond léger</a><a href="#s6">6. Changement de contexte</a>
     <a href="#s7">7. Contraste à l'appui</a><a href="#s8">8. Éléments sans survol</a><a href="#s9">9. Organisation des variables</a>
-    <a href="#s10">10. Thème Dark</a><a href="#s11">11. Dark normal</a><a href="#questions">Décisions</a>
+    <a href="#s10">10. Thème Dark</a><a href="#s11">11. Survol en Dark</a><a href="#questions">Décisions</a>
   </nav>
 
   <!-- 1 -->
@@ -409,16 +409,18 @@
   <div class="page grille" id="dark" style="background:#121212"></div>
   <div id="contrastesDark"></div>
 
-  <h2 id="s11">11. Le Dark normal, texte des boutons noir</h2>
+  <h2 id="s11">11. Le survol du bouton texte en Dark</h2>
   <ul class="faits">
-    <li>Le Dark normal est le Dark par défaut du produit. Ta configuration utilise le Dark inversé.</li>
-    <li>Ici, tes palettes passent en Dark normal, avec la courbe Dark par défaut de ce sens. Le 700 y vaut 0,67 et le 800 0,76.</li>
-    <li>En Dark normal, le 700 sert le texte de la page, son contour et le fond du bouton plein, à texte noir.</li>
-    <li>La garantie 9 juge ce texte sur le fond teinté au repos, le 300.</li>
-    <li>Colonne 1 : le moteur sans la correction par teinte. Colonne 2 : le moteur avec la correction, lot C2. Colonne 3 : le 700 de la courbe relevé à 0,70, puis la correction.</li>
-    <li>Un 700 qui porte la référence de la palette n'est jamais corrigé. La garantie 9 manque alors.</li>
-    <li>Les couleurs viennent du moteur réel, par <code>Mesures/generer-dark-normal.ts</code>.</li>
+    <li>En Dark, le bouton texte survolé pose le texte de la page sur <code>surface/hover</code>, le 400. Il passe à 3,4:1 environ, pour toutes les palettes.</li>
+    <li>Le câblage du composant ne change pas. Seule la table de <code>surface</code> change.</li>
+    <li>Sans correction : le moteur d'avant C2. C2 : le moteur d'aujourd'hui, avec la table actuelle, 300, 400 et 500.</li>
+    <li>Piste A : les fonds teintés descendent d'un cran, 200, 300 et 400. <code>surface/subtle</code> passe au 100.</li>
+    <li>Piste B : le repos reste au 300 ; le survol fonce au 200 et l'appui au 100.</li>
+    <li>Dark normal : texte des boutons noir et courbe par défaut, texte de la page au 700. Dark inversé : ta configuration, texte de la page au 800.</li>
+    <li>L'appui est jugé à 3:1. Les autres pastilles sont jugées à 4,5:1.</li>
+    <li>Poppy Vivid et Irene Vivid ont leur référence sur le cran du texte : le moteur ne la corrige pas.</li>
   </ul>
+  <div class="local">Thème <span class="bascule" id="sensDark"><button data-v="normal">Dark normal</button><button data-v="inverse">Dark inversé</button></span></div>
   <div class="grille" id="darkNormal" style="grid-template-columns:1fr"></div>
 
   <h2 id="questions">Décisions</h2>
@@ -466,7 +468,7 @@ const TABLES_DARK = {
   proposee: { nom: 'Hypothèse : 100, 200, 300, texte de page', repos: 100, survol: 200, appui: 300, texte: 800 },
 };
 const etat = { palette: 'Ocean', intensite: 'vivid', courbe: 'actuelle', lissage: 'non', moteur: 'commune', page: '#FFFFFF',
-  vueHarmonie: 'couleur', clarteLegere: 0.985, contexteTable: 'aujourdhui', regle: 'ignore', forme: 'B', vuePanneau: 'toutes', groupe: 'primary', teinte700: 150, niveau700: '600' };
+  vueHarmonie: 'couleur', clarteLegere: 0.985, contexteTable: 'aujourdhui', regle: 'ignore', forme: 'B', vuePanneau: 'toutes', groupe: 'primary', teinte700: 150, niveau700: '600', sensDark: 'normal' };
 try { Object.assign(etat, JSON.parse(localStorage.getItem('crans-clairs-3') || '{}')); } catch (e) {}
 const garder = () => { try { localStorage.setItem('crans-clairs-3', JSON.stringify(etat)); } catch (e) {} };
 
@@ -879,41 +881,46 @@ function rendreDark() {
   }).join('');
 }
 
-// Section 11 : chaque palette en Dark normal, sous les trois versions du moteur.
-const VERSIONS_DARK_NORMAL = [['aujourdhui', 'Sans correction'], ['correction', 'Correction par teinte'], ['courbe', '700 relevé à 0,70']];
+// Section 11 : le survol du bouton texte en Dark, sous quatre versions. Le texte de la page vise le 700 en Dark normal, le 800 en Dark inversé.
+const VERSIONS_DARK = [
+  { titre: 'Sans correction', rampe: 'aujourdhui', repos: 300, survol: 400, appui: 500 },
+  { titre: 'C2, table actuelle', rampe: 'correction', repos: 300, survol: 400, appui: 500 },
+  { titre: 'Piste A : 200, 300, 400', rampe: 'correction', repos: 200, survol: 300, appui: 400 },
+  { titre: 'Piste B : 300, 200, 100', rampe: 'correction', repos: 300, survol: 200, appui: 100 },
+];
 function rendreDarkNormal() {
   const N = window.DARK_NORMAL;
   if (!N) return;
-  const page = N.page;
-  const colonne = (v, base, titre) => {
-    const t = v[700].hexa, fond = v[300].hexa, survol = v[400].hexa, titreAlerte = v[950].hexa;
-    const ecart = v[700].L - base[700].L;
-    return `<div class="page" style="background:${page};padding:12px;border-radius:8px">
-      <h4 style="color:#eee">${titre}</h4>
-      <p class="note" style="color:#aaa;margin:0 0 8px">700 à ${virgule(v[700].L, 3)}${ecart > 0.0005 ? ` (+${virgule(ecart, 3)})` : ''}</p>
-      <div style="display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-bottom:10px">
-        <span style="background:${t};color:#000;font-weight:600;padding:6px 12px;border-radius:6px">Valider</span>
-        <span style="color:${t};font-weight:600;padding:6px 8px">Modifier</span>
-        <span style="color:${t};text-decoration:underline">En savoir plus</span>
+  const sens = N.sens[etat.sensDark] ? etat.sensDark : 'normal';
+  const cranTexte = sens === 'normal' ? 700 : 800, encrePlein = sens === 'normal' ? '#000000' : '#FFFFFF';
+  const colonne = (rampe, v) => {
+    const t = rampe[cranTexte].hexa, titre = rampe[950].hexa, plein = rampe[700].hexa;
+    const [repos, survol, appui] = [v.repos, v.survol, v.appui].map((c) => rampe[c].hexa);
+    const bouton = (fond, libelle) => `<span style="color:${t};font-weight:600;padding:5px 8px;border-radius:6px;${fond ? 'background:' + fond : ''}">${libelle}</span>`;
+    return `<div class="page" style="background:${N.page};padding:12px;border-radius:8px">
+      <h4 style="color:#eee">${v.titre}</h4>
+      <p class="note" style="color:#aaa;margin:0 0 8px">Texte ${cranTexte} à ${virgule(rampe[cranTexte].L, 3)} · fonds ${v.repos}, ${v.survol}, ${v.appui}</p>
+      <div style="display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin-bottom:10px">
+        <span style="background:${plein};color:${encrePlein};font-weight:600;padding:5px 12px;border-radius:6px">Valider</span>${bouton(null, 'Modifier')}${bouton(rampe[v.survol].hexa, 'survolé')}${bouton(rampe[v.appui].hexa, 'appuyé')}
       </div>
-      <div class="alerte" style="background:${fond};display:block;border-radius:6px;padding:10px">
-        <strong style="color:${titreAlerte}">Votre dossier est incomplet.</strong>
-        <div style="margin-top:8px;display:flex;gap:8px;align-items:center"><span style="color:${t};font-weight:600;padding:4px 6px">Modifier</span><span style="color:${t};font-weight:600;padding:4px 6px;border-radius:6px;background:${survol}">survolé</span></div>
+      <div class="alerte" style="background:${repos};display:block;border-radius:6px;padding:10px">
+        <strong style="color:${titre}">Votre dossier est incomplet.</strong>
+        <div style="margin-top:8px;display:flex;flex-wrap:wrap;gap:6px;align-items:center">${bouton(null, 'Modifier')}${bouton(survol, 'survolé')}${bouton(appui, 'appuyé')}</div>
       </div>
-      <p class="note" style="color:#bbb;margin-top:8px">Page ${badge(contraste(t, page))} · Fond teinté ${badge(contraste(t, fond))} · Survol ${badge(contraste(t, survol))} · Bouton plein ${badge(contraste('#000000', t))}</p>
+      <p class="note" style="color:#bbb;margin-top:8px">Repos ${badge(contraste(t, repos))} · Survol ${badge(contraste(t, survol))} · Appui <span class="badge ${contraste(t, appui) >= 3 ? 'ok' : 'ko'}">${virgule(contraste(t, appui))}:1</span> · Page ${badge(contraste(t, N.page))}</p>
     </div>`;
   };
-  $('darkNormal').innerHTML = N.palettes.flatMap((p) => Object.entries(p.intensites).map(([i, versions]) => {
+  $('darkNormal').innerHTML = N.sens[sens].palettes.flatMap((p) => Object.entries(p.intensites).map(([i, rampes]) => {
     const nom = `${p.nom}${i === 'unique' ? '' : ' ' + (i === 'soft' ? 'Soft' : 'Vivid')}`;
     return `<div><h4>${nom} <span class="note">référence ${p.reference}</span></h4>
-      <div style="display:grid;gap:10px;grid-template-columns:repeat(auto-fit,minmax(min(100%,300px),1fr))">${VERSIONS_DARK_NORMAL.map(([cle, titre]) => colonne(versions[cle], versions.aujourdhui, titre)).join('')}</div></div>`;
+      <div style="display:grid;gap:10px;grid-template-columns:repeat(auto-fit,minmax(min(100%,250px),1fr))">${VERSIONS_DARK.map((v) => colonne(rampes[v.rampe], v)).join('')}</div></div>`;
   })).join('');
 }
 
 function marquer(conteneur, valeur) { conteneur.querySelectorAll('button').forEach((x) => x.setAttribute('aria-pressed', String(valeur === x.dataset.v))); }
 function rendre() {
   document.querySelectorAll('.bascule[data-cle]').forEach((b) => marquer(b, etat[b.dataset.cle]));
-  ['vueHarmonie', 'contexteTable', 'regle', 'niveau700'].forEach((id) => marquer($(id), etat[id]));
+  ['vueHarmonie', 'contexteTable', 'regle', 'niveau700', 'sensDark'].forEach((id) => marquer($(id), etat[id]));
   document.querySelectorAll('[data-cle="lissage"] button').forEach((x) => { x.disabled = !D.courbes[etat.courbe + 'Lissee']; });
   $('palette').value = etat.palette;
   rendreRampes(); rendreHarmonie(); rendreTextes(); rendreBoutonsTexte(); rendreAlertes(); rendreContextes(); rendreContexteModes();
@@ -924,7 +931,7 @@ function rendre() {
 $('palette').innerHTML = D.palettes.map((p) => `<option>${p.nom}</option>`).join('');
 $('palette').addEventListener('change', (e) => { etat.palette = e.target.value; rendre(); });
 document.querySelectorAll('.bascule[data-cle]').forEach((b) => b.addEventListener('click', (e) => { const v = e.target.dataset.v; if (v && !e.target.disabled) { etat[b.dataset.cle] = v; rendre(); } }));
-['vueHarmonie', 'contexteTable', 'regle', 'forme', 'vuePanneau', 'niveau700'].forEach((id) => $(id).addEventListener('click', (e) => { const v = e.target.dataset.v; if (v) { etat[id] = v; rendre(); } }));
+['vueHarmonie', 'contexteTable', 'regle', 'forme', 'vuePanneau', 'niveau700', 'sensDark'].forEach((id) => $(id).addEventListener('click', (e) => { const v = e.target.dataset.v; if (v) { etat[id] = v; rendre(); } }));
 $('noms').addEventListener('click', (e) => { const b = e.target.closest('[data-groupe]'); if (b) { etat.groupe = b.dataset.groupe; rendreNoms(); garder(); } });
 $('teinte700').addEventListener('input', (e) => { etat.teinte700 = Number(e.target.value); rendreInspecteur700(); garder(); });
 $('clarteLegere').addEventListener('input', (e) => { etat.clarteLegere = Number(e.target.value); rendreAlertes(); garder(); });
