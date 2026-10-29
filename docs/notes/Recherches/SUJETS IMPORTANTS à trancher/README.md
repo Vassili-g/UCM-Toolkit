@@ -32,7 +32,7 @@ Le code concerné :
 
 - la table des crans : `TABLE_DES_DOSSIERS` dans
   `packages/kit/src/emplois/dossiers.ts` ;
-- les portées des variables : `SUPPORT_DES_VARIABLES`, même fichier ;
+- les scopes des variables : `SUPPORT_DES_VARIABLES`, même fichier ;
 - les garanties de contraste : `GARANTIES` dans
   `packages/kit/src/emplois/garanties.ts` ;
 - les libellés des variables : `packages/kit/src/referentiel/theme.ts` ;
@@ -53,7 +53,7 @@ Le code concerné :
 | 6. Composant posé dans une alerte | Ce n'est plus un sujet si `page` et `surface` ont le même texte |
 | 8. Éléments sans survol | Un fond 100 et un texte 700 conviennent |
 | 7. Contraste au survol | Pas d'assouplissement des garanties |
-| 9. Noms des variables | Les noms actuels, avec `surface/subtle` et `surface/divider` en plus. Les portées distinguent l'usage |
+| 9. Noms des variables | Les noms actuels, avec `surface/subtle` et `surface/divider` en plus. Les scopes distinguent l'usage |
 
 La table de `surface` reste donc 100, 200 et 300, avec un texte 700.
 
@@ -344,7 +344,7 @@ clarté commune.
    `surface` ou `page`.
 2. Le texte et le contour ne changent pas avec l'état.
 3. `solid` n'a pas de contour. Le kit donne pourtant aux trois fonds de `solid`
-   la portée `STROKE_COLOR` et l'emploi `border`.
+   le scope `STROKE_COLOR` et l'emploi `border`.
 4. `page` n'a pas de fond par palette. Le fond de la page est `elevation/page`,
    commun à toutes les palettes.
 5. Un état qui change la sorte de fond change de dossier, comme la sélection.
@@ -433,10 +433,10 @@ un niveau. Le survol de `background-base` s'écrirait `background-base-hover` ou
 | Un état et un élément dans le même dossier | Non | Oui : `default` côtoie `foreground` | Non |
 | Où lire ce qui est juste derrière | Le dossier | Le dossier | La fin du nom |
 | Ce qu'il faut dans une alerte teintée | Tout est dans `surface/` | Tout est dans `surface/` | Réparti dans quatre dossiers |
-| Portée Figma par dossier | Mêlée : fond, texte et trait | Mêlée | Une seule famille : `background` en remplissage, `foreground` en texte, `border` et `divider` en trait |
+| Scopes par dossier | Mêlée : fond, texte et trait | Mêlée | Une seule famille : `background` en remplissage, `foreground` en texte, `border` et `divider` en trait |
 | `DOSSIERS` du kit, dossiers affichés par Palettes | Inchangés | Inchangés | Les dossiers deviennent les éléments |
 
-Le sélecteur de variables de Figma filtre par portée. Avec C, les variables
+Le sélecteur de variables de Figma filtre par scope. Avec C, les variables
 compatibles d'un calque tiennent dans un seul groupe. Avec A, elles se
 répartissent entre les dossiers. L'effet sur le choix du designer reste à
 vérifier dans Figma.
@@ -448,34 +448,51 @@ Material 3 (`primary-container`, `on-primary-container`) et shadcn
 (`--primary`, `--primary-foreground`) mettent le contexte d'abord, comme A.
 
 **Position du mainteneur.** La forme B : les noms actuels restent, et
-`surface/subtle` et `surface/divider` s'ajoutent. Les portées distinguent
+`surface/subtle` et `surface/divider` s'ajoutent. Les scopes distinguent
 l'usage des variables, puisque le sélecteur de Figma ne propose que les
-variables dont la portée accepte la propriété.
+variables dont le scope accepte la propriété.
 
-### Les portées dans le kit
+### Les scopes dans le kit
 
-Le kit porte déjà la portée de chaque variable de `theme` :
+Le kit porte déjà le scope de chaque variable de `theme` : le champ `portees` de
 `SUPPORT_DES_VARIABLES`, dans `packages/kit/src/emplois/dossiers.ts`. UCM
-Architect compare les portées lues dans Figma à cette table, et un écart devient
+Architect compare les scopes lus dans Figma à cette table, et un écart devient
 un constat `portee` (`packages/plugin-architect/src/integrations/profilUcm.ts`).
+Le champ `peint` de la même table dit ce que la variable colore : fond, texte,
+icône, contour ou anneau. Le nuancier de Palettes le lit pour classer les
+variables.
 
-| Variables | Portées du kit |
-|---|---|
-| `solid/default`, `solid/hover`, `solid/pressed` | `FRAME_FILL`, `SHAPE_FILL`, `STROKE_COLOR` |
-| `surface/default`, `surface/hover`, `surface/pressed`, `disabled/background`, `elevation/*` | `FRAME_FILL`, `SHAPE_FILL` |
-| Toutes les variables `foreground` | `TEXT_FILL`, `SHAPE_FILL` |
-| `surface/border`, `page/border`, `page/divider`, `disabled/border`, `ring` | `STROKE_COLOR` |
-| `scale/*` | aucune |
+**Position du mainteneur.** `STROKE_COLOR` sert aux textes et aux contours, pas
+aux fonds. Un filet peut être un trait, ou un cadre ou une forme d'un pixel de
+haut : il prend aussi les scopes de remplissage.
 
-Les deux nouvelles variables prendraient les portées de leur famille :
-`FRAME_FILL` et `SHAPE_FILL` pour `surface/subtle`, `STROKE_COLOR` pour
-`surface/divider`. Les fonds de `solid` gardent `STROKE_COLOR`, contre la règle 3
-des contours : retirer cette portée reste à décider.
+| Variables | Scopes du kit aujourd'hui | Scopes proposés |
+|---|---|---|
+| `solid/default`, `solid/hover`, `solid/pressed` | `FRAME_FILL`, `SHAPE_FILL`, `STROKE_COLOR` | `FRAME_FILL`, `SHAPE_FILL` |
+| `surface/subtle`, `surface/default`, `surface/hover`, `surface/pressed`, `disabled/background`, `elevation/*` | `FRAME_FILL`, `SHAPE_FILL` | Inchangés |
+| Toutes les variables `foreground` | `TEXT_FILL`, `SHAPE_FILL` | `TEXT_FILL`, `SHAPE_FILL`, `STROKE_COLOR` |
+| `surface/border`, `page/border`, `disabled/border`, `ring` | `STROKE_COLOR` | Inchangés |
+| `page/divider`, `surface/divider` | `STROKE_COLOR` | `STROKE_COLOR`, `FRAME_FILL`, `SHAPE_FILL` |
+| `scale/*` | Aucun | Inchangé |
 
-Ajouter les deux variables touche, dans le kit : `VARIABLES_DE_PALETTE`,
-`TABLE_DES_DOSSIERS` pour les quatre thèmes, `SUPPORT_DES_VARIABLES`, les
-libellés de `referentiel/theme.ts` et les garanties qui les jugent. Le kit
-change alors de version, et Palettes et Architect lisent la nouvelle table.
+`STROKE_COLOR` sur un `foreground` sert aux icônes dessinées au trait : leur
+tracé est un contour, pas un remplissage.
+
+Conséquences :
+
+- Le champ `peint` des fonds de `solid` perd `border`, comme leurs scopes.
+- Dans Figma, un scope ne retire pas une liaison existante. Un composant qui
+  lie encore un contour à `solid/default` garde cette liaison. Il faut le
+  relier à `page/border`.
+- Architect compare les scopes du fichier à la nouvelle table. Un fichier
+  réglé sur l'ancienne table reçoit un constat `portee` sur les fonds de
+  `solid`, les `foreground` et les filets.
+
+Ajouter les deux variables et changer les scopes touche, dans le kit :
+`VARIABLES_DE_PALETTE`, `TABLE_DES_DOSSIERS` pour les quatre thèmes,
+`SUPPORT_DES_VARIABLES`, les libellés de `referentiel/theme.ts` et les
+garanties qui les jugent. Le kit change alors de version, et Palettes et
+Architect lisent la nouvelle table.
 
 ## 10. Le thème Dark et les thèmes inversés
 
@@ -516,7 +533,7 @@ Les thèmes inversés en Light ne sont pas mesurés.
 | L'appui sort-il aussi de la garantie 1, pour `solid/pressed` ? | Ouvert |
 | Quelle organisation des noms : A, B ou C ? | B, avec `surface/subtle` et `surface/divider` |
 | `surface/divider` entre-t-il dans le thème ? | Oui |
-| Les fonds de `solid` perdent-ils la portée `STROKE_COLOR` ? | Ouvert |
+| Les scopes proposés : fonds sans `STROKE_COLOR`, `foreground` avec, filets avec les remplissages ? | Proposé par le mainteneur |
 | L'anneau de focus a-t-il une variante sur fond teinté, ou la table Dark change-t-elle ? | Ouvert |
 | Quelle table pour le thème Dark ? | Ouvert |
 | Que deviennent les thèmes inversés en Light ? | Non mesuré |

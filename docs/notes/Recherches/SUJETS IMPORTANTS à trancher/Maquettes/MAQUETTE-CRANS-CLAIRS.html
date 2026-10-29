@@ -306,7 +306,7 @@
   <ul class="faits">
     <li>Une couleur appartient au fond qui est juste derrière elle : <code>solid</code>, <code>surface</code> ou <code>page</code>.</li>
     <li>Le texte et le contour ne changent pas avec l'état.</li>
-    <li><code>solid</code> n'a pas de contour. Le kit donne pourtant aux fonds de <code>solid</code> la portée des traits.</li>
+    <li><code>solid</code> n'a pas de contour. Le kit donne pourtant aux fonds de <code>solid</code> le scope <code>STROKE_COLOR</code>.</li>
     <li><code>page</code> n'a pas de fond par palette. Le fond de la page est <code>elevation/page</code>, commun à toutes les palettes.</li>
     <li>Un état qui change la sorte de fond change de dossier, comme la sélection.</li>
   </ul>
@@ -325,7 +325,7 @@
     <li>Chaque forme porte quinze variables par palette : les treize d'aujourd'hui, le fond très léger et le filet sur fond teinté.</li>
     <li><code>primary</code> prend la palette choisie en haut. <code>neutral</code> prend Titanium.</li>
     <li>Le Dark est celui de ta configuration, avec le texte des boutons blanc.</li>
-    <li>Les vues « Sélecteur » simulent la liste qu'offre Figma quand on choisit une couleur. Elles gardent les variables dont la portée accepte la propriété. Les crans de <code>scale</code> n'ont aucune portée : ils n'y apparaissent pas.</li>
+    <li>Les vues « Sélecteur » simulent la liste qu'offre Figma quand on choisit une couleur. Elles gardent les variables dont le scope accepte la propriété. Les crans de <code>scale</code> n'ont aucun scope : ils n'y apparaissent pas.</li>
   </ul>
   <div class="local">Organisation <span class="bascule" id="forme"><button data-v="A">A. Dossier, élément, niveau, état</button><button data-v="B">B. Noms actuels</button><button data-v="C">C. Élément, puis contexte</button></span></div>
   <div class="local">Vue <span class="bascule" id="vuePanneau"><button data-v="toutes">Toutes les variables</button><button data-v="fond">Sélecteur : remplissage d'un cadre</button><button data-v="texte">Sélecteur : couleur d'un texte</button><button data-v="trait">Sélecteur : trait</button></span></div>
@@ -353,23 +353,27 @@
     <tr><td>Un état et un élément dans le même dossier</td><td class="ok">Non</td><td class="ko">Oui</td><td class="ok">Non</td></tr>
     <tr><td>Où lire ce qui est juste derrière</td><td>Le dossier</td><td>Le dossier</td><td>La fin du nom</td></tr>
     <tr><td>Ce qu'il faut dans une alerte teintée</td><td class="ok">Tout dans <code>surface/</code></td><td class="ok">Tout dans <code>surface/</code></td><td>Réparti dans quatre dossiers</td></tr>
-    <tr><td>Portée Figma par dossier</td><td>Mêlée</td><td>Mêlée</td><td class="ok">Une seule famille</td></tr>
+    <tr><td>Scopes par dossier</td><td>Mêlée</td><td>Mêlée</td><td class="ok">Une seule famille</td></tr>
     <tr><td>Dossiers du kit et de Palettes</td><td>Inchangés</td><td>Inchangés</td><td>Deviennent les éléments</td></tr>
   </table></div>
   <ul class="faits">
-    <li>Le sélecteur de variables de Figma filtre par portée. Avec C, les variables compatibles d'un calque tiennent dans un seul groupe.</li>
+    <li>Le sélecteur de variables de Figma filtre par scope. Avec C, les variables compatibles d'un calque tiennent dans un seul groupe.</li>
     <li>L'effet de ce regroupement sur le choix du designer reste à vérifier dans Figma.</li>
     <li>Atlassian et Primer mettent l'élément d'abord. Material 3 et shadcn mettent le contexte d'abord, comme A.</li>
   </ul>
   <div class="carte"><h4>Choix du mainteneur : la forme B</h4>
     <p>Les noms actuels restent. <code>surface/subtle</code> et <code>surface/divider</code> s'ajoutent.</p>
-    <p>Les portées distinguent l'usage des variables : le sélecteur de Figma ne propose que les variables dont la portée accepte la propriété.</p></div>
-  <h3>Les portées dans le kit</h3>
+    <p>Les scopes distinguent l'usage des variables : le sélecteur de Figma ne propose que les variables dont le scope accepte la propriété.</p></div>
+  <h3>Les scopes dans le kit</h3>
+  <blockquote class="position"><p>« stoke_color c'est pour foreground et border par pour des default/hover/press et divider ça peut aussi être un shape/frame fill car on peut avoir un divider créé avec un frame ou shape »</p></blockquote>
   <ul class="faits">
-    <li>Le kit porte déjà la portée de chaque variable de <code>theme</code> : <code>SUPPORT_DES_VARIABLES</code>, dans <code>packages/kit/src/emplois/dossiers.ts</code>.</li>
-    <li>UCM Architect compare les portées lues dans Figma à cette table. Un écart devient un constat <code>portee</code>.</li>
-    <li>La colonne « Portées » du panneau ci-dessus donne ces valeurs. Les deux nouvelles variables prennent celles de leur famille : fond pour <code>surface/subtle</code>, trait pour <code>surface/divider</code>.</li>
-    <li>Un écart reste avec la règle des contours. Le kit donne aux trois fonds de <code>solid</code> la portée <code>STROKE_COLOR</code>, alors que <code>solid</code> n'a pas de contour.</li>
+    <li>Le kit porte déjà le scope de chaque variable de <code>theme</code> : <code>SUPPORT_DES_VARIABLES</code>, dans <code>packages/kit/src/emplois/dossiers.ts</code>.</li>
+    <li>UCM Architect compare les scopes lus dans Figma à cette table. Un écart devient un constat <code>portee</code>.</li>
+    <li>La colonne « Scopes » du panneau montre la table du kit. Une pastille signale chaque scope que ta proposition change.</li>
+    <li>Les fonds de <code>solid</code> perdent <code>STROKE_COLOR</code>.</li>
+    <li>Les <code>foreground</code> gagnent <code>STROKE_COLOR</code>, pour les icônes dessinées au trait.</li>
+    <li>Les filets gagnent <code>FRAME_FILL</code> et <code>SHAPE_FILL</code>, pour un filet fait d'un cadre ou d'une forme.</li>
+    <li>Dans Figma, un scope ne retire pas une liaison existante. Un contour encore lié à <code>solid/default</code> doit être relié à <code>page/border</code>.</li>
   </ul>
 
   <!-- 10 -->
@@ -399,7 +403,7 @@
     <tr><td>Quand le 700 est la référence : 200 éclairci, ou « Ajuster la référence » ?</td><td class="change">Ouvert</td></tr>
     <tr><td>L'appui sort-il aussi de la garantie 1, pour <code>solid/pressed</code> ?</td><td class="change">Ouvert</td></tr>
     <tr><td>Quelle organisation des noms : A, B ou C ?</td><td class="ok">B, les noms actuels, avec <code>surface/subtle</code> et <code>surface/divider</code></td></tr>
-    <tr><td>Les fonds de <code>solid</code> perdent-ils la portée <code>STROKE_COLOR</code> ?</td><td class="change">Ouvert</td></tr>
+    <tr><td>Les scopes proposés : fonds sans <code>STROKE_COLOR</code>, <code>foreground</code> avec, filets avec les remplissages ?</td><td class="ok">Proposé par le mainteneur</td></tr>
     <tr><td><code>surface/divider</code> entre-t-il dans le thème ?</td><td class="ok">Oui</td></tr>
     <tr><td>L'anneau de focus a-t-il une variante sur fond teinté, ou la table Dark change-t-elle ?</td><td class="change">Ouvert</td></tr>
     <tr><td>Quelle table pour le thème Dark ?</td><td class="change">Ouvert</td></tr>
@@ -630,6 +634,8 @@ const ORGANISATION = [
   { besoin: 'Anneau de focus', light: 600, dark: 700, A: 'ring', B: 'ring', C: 'ring' },
 ];
 const PORTEES = { fond: ['FRAME_FILL', 'SHAPE_FILL'], texte: ['TEXT_FILL', 'SHAPE_FILL'], trait: ['STROKE_COLOR'] };
+// Les scopes que le mainteneur propose d'ajouter (+) ou de retirer (−) à la table du kit.
+const CHANGEMENTS_DE_SCOPE = { solide: [['−', 'STROKE_COLOR']], texte: [['+', 'STROKE_COLOR']], filet: [['+', 'FRAME_FILL'], ['+', 'SHAPE_FILL']] };
 const peintDe = (v) => (v.besoin.startsWith('Fond') ? 'fond' : v.besoin.startsWith('Texte') ? 'texte' : 'trait');
 const HORS_PALETTE = [
   { A: 'elevation/page', B: 'elevation/page', C: 'background/page', peint: 'fond', light: '#FFFFFF', dark: '#121212' },
@@ -653,6 +659,7 @@ function variablesDuTheme(forme) {
     const chemin = groupe ? `${groupe}/${v[forme]}` : v[forme];
     return { chemin, dossier: chemin.split('/').slice(0, -1).join('/'), nom: chemin.split('/').pop(), peint, nouveau: v.nouveau,
       portees: peint ? PORTEES[peint] : [], solide: Boolean(v.besoin && v.besoin.startsWith('Fond plein')),
+      filet: /divider/.test(chemin),
       light: valeur(v.light, groupe || 'neutral', p, 'light'), dark: valeur(v.dark, groupe || 'neutral', p, 'dark') };
   };
   const dePalette = (groupe, p, propres = []) => [
@@ -681,15 +688,15 @@ function rendreNoms() {
     const choisies = toutes.filter((v) => v.chemin.split('/')[0] === etat.groupe);
     const dossiers = [...new Set(choisies.map((v) => v.dossier))];
     const corps = dossiers.map((d) => `<tr class="fx-g"><td colspan="4">${d || etat.groupe}</td></tr>${choisies.filter((v) => v.dossier === d).map((v) =>
-      `<tr><td class="fx-nom">${v.nom}${v.nouveau ? ' <span class="badge moyen">nouveau</span>' : ''}</td><td>${pilule(v.light)}</td><td>${pilule(v.dark)}</td><td class="fx-portees">${v.portees.length ? v.portees.join(' ') : 'aucune'}${v.solide ? ' <span class="badge moyen">le kit ajoute STROKE_COLOR</span>' : ''}</td></tr>`).join('')}`).join('');
-    $('noms').innerHTML = `<div class="fx-corps">${cote}<div class="fx-main"><table><tr><th>Nom</th><th>light</th><th>dark</th><th>Portées</th></tr>${corps}</table></div></div>`;
+      `<tr><td class="fx-nom">${v.nom}${v.nouveau ? ' <span class="badge moyen">nouveau</span>' : ''}</td><td>${pilule(v.light)}</td><td>${pilule(v.dark)}</td><td class="fx-portees">${[...v.portees, ...(v.solide ? ['STROKE_COLOR'] : [])].join(' ') || 'aucun'}${(CHANGEMENTS_DE_SCOPE[v.solide ? 'solide' : v.filet ? 'filet' : v.peint] || []).map(([s, p]) => ` <span class="badge moyen">${s} ${p}</span>`).join('')}</td></tr>`).join('')}`).join('');
+    $('noms').innerHTML = `<div class="fx-corps">${cote}<div class="fx-main"><table><tr><th>Nom</th><th>light</th><th>dark</th><th>Scopes</th></tr>${corps}</table></div></div>`;
     return;
   }
   const passent = toutes.filter((v) => v.peint === etat.vuePanneau);
   const dossiers = [...new Set(passent.map((v) => v.dossier))];
   const liste = dossiers.map((d) => `<div class="sel-g">${d}</div>${passent.filter((v) => v.dossier === d).map((v) => `<div class="sel-v">${carre(v.light.couleur)}${v.nom}</div>`).join('')}`).join('');
   const propriete = { fond: "le remplissage d'un cadre", texte: "la couleur d'un texte", trait: 'un trait' }[etat.vuePanneau];
-  $('noms').innerHTML = `<div class="fx-corps"><div class="fx-cote"><p>Le designer choisit ${propriete}.</p><p><b>${passent.length}</b> variables passent la portée.</p><p>Elles se rangent dans <b>${dossiers.length}</b> dossiers.</p></div>
+  $('noms').innerHTML = `<div class="fx-corps"><div class="fx-cote"><p>Le designer choisit ${propriete}.</p><p><b>${passent.length}</b> variables passent le scope.</p><p>Elles se rangent dans <b>${dossiers.length}</b> dossiers.</p></div>
     <div class="fx-main"><div class="selecteur"><div class="sel-t">theme</div>${liste}</div></div></div>`;
 }
 
