@@ -7,9 +7,9 @@ des tokens. Le mainteneur juge ces sujets liés : une solution doit les traiter
 ensemble.
 
 **État.** Réflexion ouverte. Le mainteneur a pris position sur la clarté des
-crans clairs, la table de `surface`, son texte et le nom des variables. La
-correction du 700 au survol et le thème Dark restent ouverts. Rien n'est
-implémenté.
+crans clairs, la table de `surface`, son texte, la correction du 700 au survol,
+le nom des variables et leurs scopes. Six décisions restent, dont le thème Dark.
+Rien n'est implémenté.
 
 | Document | Contenu |
 |---|---|
@@ -52,7 +52,7 @@ Le code concerné :
 | 5. Fond léger | Ce n'est plus un problème : le 50 de la clarté commune est très léger. Il reste à pouvoir l'employer dans un composant |
 | 6. Composant posé dans une alerte | Ce n'est plus un sujet si `page` et `surface` ont le même texte |
 | 8. Éléments sans survol | Un fond 100 et un texte 700 conviennent |
-| 7. Contraste au survol | Pas d'assouplissement des garanties |
+| 7. Contraste au survol | Pas d'assouplissement des garanties. Le moteur fonce le 700 des seules teintes qui échouent au survol |
 | 9. Noms des variables | Les noms actuels, avec `surface/subtle` et `surface/divider` en plus. Les scopes distinguent l'usage |
 
 La table de `surface` reste donc 100, 200 et 300, avec un texte 700.
@@ -475,8 +475,9 @@ haut : il prend aussi les scopes de remplissage.
 | `page/divider`, `surface/divider` | `STROKE_COLOR` | `STROKE_COLOR`, `FRAME_FILL`, `SHAPE_FILL` |
 | `scale/*` | Aucun | Inchangé |
 
-`STROKE_COLOR` sur un `foreground` sert aux icônes dessinées au trait : leur
-tracé est un contour, pas un remplissage.
+`STROKE_COLOR` sur un `foreground` sert quand un composant donne la même couleur
+à son texte, au remplissage de son icône et à son contour. Une seule variable
+colore alors les trois propriétés, au lieu de trois variables de même couleur.
 
 Conséquences :
 
@@ -517,9 +518,11 @@ l'anneau de focus (2,38 au minimum).
 
 Les thèmes inversés en Light ne sont pas mesurés.
 
-## Questions ouvertes
+## Décisions
 
-| Question | État |
+### Prises
+
+| Question | Décision |
 |---|---|
 | Le réglage de luminosité d'une palette épargne-t-il les crans clairs ? | Oui, avec la clarté commune |
 | Le 50, le 100 et le 200 prennent-ils une clarté commune ? | Oui |
@@ -527,13 +530,22 @@ Les thèmes inversés en Light ne sont pas mesurés.
 | Quelle clarté pour un fond léger ? | Le 50, à 0,975 |
 | Le texte de `surface` reste-t-il à 800 ? | Non, 700 |
 | Quelle table pour `surface` ? | 100, 200 et 300 |
+| L'appui sort-il des garanties 3 et 4 ? | Oui |
 | Le survol garde-t-il 4,5:1 ? | Oui, sans assouplir la garantie 3 |
-| Le moteur fonce-t-il le 700 des seules teintes qui échouent au survol ? | Ouvert, mesuré sur 360 teintes |
-| Quand le 700 est la référence : 200 éclairci, ou « Ajuster la référence » ? | Ouvert |
-| L'appui sort-il aussi de la garantie 1, pour `solid/pressed` ? | Ouvert |
-| Quelle organisation des noms : A, B ou C ? | B, avec `surface/subtle` et `surface/divider` |
-| `surface/divider` entre-t-il dans le thème ? | Oui |
-| Les scopes proposés : fonds sans `STROKE_COLOR`, `foreground` avec, filets avec les remplissages ? | Proposé par le mainteneur |
-| L'anneau de focus a-t-il une variante sur fond teinté, ou la table Dark change-t-elle ? | Ouvert |
-| Quelle table pour le thème Dark ? | Ouvert |
-| Que deviennent les thèmes inversés en Light ? | Non mesuré |
+| Comment le survol tient-il 4,5:1 ? | Le moteur fonce le 700 des seules teintes qui échouent |
+| Quelle organisation des noms ? | B, les noms actuels, avec `surface/subtle` et `surface/divider` |
+| Quels scopes ? | Fonds sans `STROKE_COLOR`, `foreground` avec, filets avec `FRAME_FILL` et `SHAPE_FILL` |
+
+### À prendre
+
+| Question | Options | Recommandation |
+|---|---|---|
+| 1. Quand le 700 est la référence et manque 4,5 au survol | Éclaircir le 200 de cette palette, de 0,013 au plus ; ou proposer « Ajuster la référence » | « Ajuster la référence » : la clarté commune reste sans exception, et Palettes traite déjà ainsi une référence qui manque une garantie. Aucune palette du mainteneur n'est concernée |
+| 2. Les crans des deux nouvelles variables hors du Light normal | `surface/subtle` au 200 en Dark, `surface/divider` au 500 en Dark ; 50 et 300 en Light inversé | Ces valeurs. Le texte 950 passe à 11,27 sur le 200 Dark ; le filet 500 reste visible sur le 300 Dark |
+| 3. Les garanties des nouvelles variables | `surface/subtle` rejoint les fonds des garanties 3 et 4 ; `surface/divider` sans garantie, comme `page/divider` | Les deux. Le texte 700 passe à 5,33 au minimum sur le 50 |
+| 4. L'appui de `solid` dans la garantie 1 | Le garder ou le retirer, comme `surface/pressed` | Le garder. Le texte des boutons s'y écarte le plus du fond : 11,33 au minimum en Light, 7,06 en Dark inversé. La garantie ne peut pas y échouer |
+| 5. La table Dark de `surface` | Garder 300, 400, 500 avec un texte 950 ; ou 100, 200, 300 avec le texte 800 de `page` | À trancher. La seconde règle le composant de la page posé dans une alerte, mais son survol manque 4,5 sur deux rampes |
+| 6. L'anneau de focus sur un fond teinté en Dark | Une variable `surface/ring` ; ou une table Dark qui le rend lisible | Dépend de la décision 5 : l'anneau 700 tombe à 2,38 sur le fond 300 |
+
+Les thèmes inversés en Light ne sont pas mesurés. La mesure ne demande pas de
+décision.

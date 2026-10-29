@@ -147,7 +147,7 @@
     <a href="#s1">1. Crans clairs foncés</a><a href="#s2">2. Même cran, même clarté</a><a href="#s3">3. Texte de surface</a>
     <a href="#s4">4. Bouton texte</a><a href="#s5">5. Fond léger</a><a href="#s6">6. Changement de contexte</a>
     <a href="#s7">7. Contraste à l'appui</a><a href="#s8">8. Éléments sans survol</a><a href="#s9">9. Organisation des variables</a>
-    <a href="#s10">10. Thème Dark</a><a href="#questions">Questions</a>
+    <a href="#s10">10. Thème Dark</a><a href="#questions">Décisions</a>
   </nav>
 
   <!-- 1 -->
@@ -371,7 +371,7 @@
     <li>UCM Architect compare les scopes lus dans Figma à cette table. Un écart devient un constat <code>portee</code>.</li>
     <li>La colonne « Scopes » du panneau montre la table du kit. Une pastille signale chaque scope que ta proposition change.</li>
     <li>Les fonds de <code>solid</code> perdent <code>STROKE_COLOR</code>.</li>
-    <li>Les <code>foreground</code> gagnent <code>STROKE_COLOR</code>, pour les icônes dessinées au trait.</li>
+    <li>Les <code>foreground</code> gagnent <code>STROKE_COLOR</code>. Un composant qui donne la même couleur à son texte, à son icône et à son contour emploie alors une seule variable.</li>
     <li>Les filets gagnent <code>FRAME_FILL</code> et <code>SHAPE_FILL</code>, pour un filet fait d'un cadre ou d'une forme.</li>
     <li>Dans Figma, un scope ne retire pas une liaison existante. Un contour encore lié à <code>solid/default</code> doit être relié à <code>page/border</code>.</li>
   </ul>
@@ -389,26 +389,33 @@
   <div class="page grille" id="dark" style="background:#121212"></div>
   <div id="contrastesDark"></div>
 
-  <h2 id="questions">Questions ouvertes</h2>
+  <h2 id="questions">Décisions</h2>
+  <h3>Prises</h3>
   <div class="defile"><table class="mesures">
-    <tr><th>Question</th><th>État</th></tr>
-    <tr><td>Le réglage de luminosité d'une palette épargne-t-il les crans clairs ?</td><td class="ok">Oui, avec la clarté commune</td></tr>
-    <tr><td>Le 50, le 100 et le 200 prennent-ils une clarté commune ?</td><td class="ok">Oui</td></tr>
-    <tr><td>Quelle courbe du bas, avec ou sans lissage ?</td><td class="ok">La courbe actuelle, sans lissage</td></tr>
-    <tr><td>Quelle clarté pour un fond léger ?</td><td class="ok">Le 50, à 0,975</td></tr>
-    <tr><td>Le texte de <code>surface</code> reste-t-il à 800 ?</td><td class="ok">Non, 700</td></tr>
-    <tr><td>Quelle table pour <code>surface</code> ?</td><td class="ok">100, 200 et 300</td></tr>
-    <tr><td>Le survol garde-t-il 4,5:1 ?</td><td class="ok">Oui, sans assouplir la garantie 3</td></tr>
-    <tr><td>Le moteur fonce-t-il le 700 des seules teintes qui échouent au survol ?</td><td class="change">Ouvert, mesuré sur 360 teintes</td></tr>
-    <tr><td>Quand le 700 est la référence : 200 éclairci, ou « Ajuster la référence » ?</td><td class="change">Ouvert</td></tr>
-    <tr><td>L'appui sort-il aussi de la garantie 1, pour <code>solid/pressed</code> ?</td><td class="change">Ouvert</td></tr>
-    <tr><td>Quelle organisation des noms : A, B ou C ?</td><td class="ok">B, les noms actuels, avec <code>surface/subtle</code> et <code>surface/divider</code></td></tr>
-    <tr><td>Les scopes proposés : fonds sans <code>STROKE_COLOR</code>, <code>foreground</code> avec, filets avec les remplissages ?</td><td class="ok">Proposé par le mainteneur</td></tr>
-    <tr><td><code>surface/divider</code> entre-t-il dans le thème ?</td><td class="ok">Oui</td></tr>
-    <tr><td>L'anneau de focus a-t-il une variante sur fond teinté, ou la table Dark change-t-elle ?</td><td class="change">Ouvert</td></tr>
-    <tr><td>Quelle table pour le thème Dark ?</td><td class="change">Ouvert</td></tr>
-    <tr><td>Que deviennent les thèmes inversés en Light ?</td><td class="info">Non mesuré</td></tr>
+    <tr><th>Question</th><th>Décision</th></tr>
+    <tr><td>Le réglage de luminosité d'une palette épargne-t-il les crans clairs ?</td><td>Oui, avec la clarté commune</td></tr>
+    <tr><td>Le 50, le 100 et le 200 prennent-ils une clarté commune ?</td><td>Oui</td></tr>
+    <tr><td>Quelle courbe du bas, avec ou sans lissage ?</td><td>La courbe actuelle, sans lissage</td></tr>
+    <tr><td>Quelle clarté pour un fond léger ?</td><td>Le 50, à 0,975</td></tr>
+    <tr><td>Le texte de <code>surface</code> reste-t-il à 800 ?</td><td>Non, 700</td></tr>
+    <tr><td>Quelle table pour <code>surface</code> ?</td><td>100, 200 et 300</td></tr>
+    <tr><td>L'appui sort-il des garanties 3 et 4 ?</td><td>Oui</td></tr>
+    <tr><td>Le survol garde-t-il 4,5:1 ?</td><td>Oui, sans assouplir la garantie 3</td></tr>
+    <tr><td>Comment le survol tient-il 4,5:1 ?</td><td>Le moteur fonce le 700 des seules teintes qui échouent</td></tr>
+    <tr><td>Quelle organisation des noms ?</td><td>B, les noms actuels, avec <code>surface/subtle</code> et <code>surface/divider</code></td></tr>
+    <tr><td>Quels scopes ?</td><td>Fonds sans <code>STROKE_COLOR</code>, <code>foreground</code> avec, filets avec <code>FRAME_FILL</code> et <code>SHAPE_FILL</code></td></tr>
   </table></div>
+  <h3>À prendre</h3>
+  <div class="defile"><table class="mesures">
+    <tr><th>Question</th><th>Options</th><th>Recommandation</th></tr>
+    <tr><td>1. Quand le 700 est la référence et manque 4,5 au survol</td><td>Éclaircir le 200 de cette palette, de 0,013 au plus. Ou proposer « Ajuster la référence ».</td><td>« Ajuster la référence ». La clarté commune reste sans exception. Aucune de tes palettes n'est concernée.</td></tr>
+    <tr><td>2. Les crans des deux nouvelles variables hors du Light normal</td><td><code>surface/subtle</code> au 200 en Dark, <code>surface/divider</code> au 500 en Dark. 50 et 300 en Light inversé.</td><td>Ces valeurs. Le texte 950 passe à 11,27 sur le 200 Dark.</td></tr>
+    <tr><td>3. Les garanties des nouvelles variables</td><td><code>surface/subtle</code> rejoint les fonds des garanties 3 et 4. <code>surface/divider</code> reste sans garantie, comme <code>page/divider</code>.</td><td>Les deux. Le texte 700 passe à 5,33 au minimum sur le 50.</td></tr>
+    <tr><td>4. L'appui de <code>solid</code> dans la garantie 1</td><td>Le garder, ou le retirer comme <code>surface/pressed</code>.</td><td>Le garder. Il passe toujours : 11,33 au minimum en Light, 7,06 en Dark inversé.</td></tr>
+    <tr><td>5. La table Dark de <code>surface</code></td><td>Garder 300, 400, 500 avec un texte 950. Ou 100, 200, 300 avec le texte 800 de <code>page</code>.</td><td>À trancher. La seconde règle la section 6 en Dark, mais son survol manque 4,5 sur deux rampes.</td></tr>
+    <tr><td>6. L'anneau de focus sur un fond teinté en Dark</td><td>Une variable <code>surface/ring</code>. Ou une table Dark qui le rend lisible.</td><td>Dépend de la décision 5. L'anneau 700 tombe à 2,38 sur le fond 300.</td></tr>
+  </table></div>
+  <p class="note">Les thèmes inversés en Light ne sont pas mesurés. Cette mesure ne demande pas de décision.</p>
 </main>
 
 <script src="donnees-crans.js"></script>
