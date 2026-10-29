@@ -561,7 +561,7 @@ Les thèmes inversés en Light ne sont pas mesurés.
 | Question | Fait | Recommandation |
 |---|---|---|
 | 4. L'appui de `surface` : hors des garanties, ou jugé à 3:1 | Le texte 700 passe 3:1 sur le 300 pour les 360 teintes, à 3,70 au minimum. Le Dark passe à 5,77 | Le juger à 3:1 : la garantie reste vérifiable et ne peut pas échouer |
-| 6. Un composant de la page posé dans un fond teinté, en Dark | Voir ci-dessous | Ouvert : en Dark, le texte de `page` ne tient sur aucun fond de `surface` |
+| 6. Un composant de la page posé dans un fond teinté, en Dark | Voir ci-dessous | Fonds teintés Dark plus discrets : 100, 200, 300. Reprend la décision 5 |
 
 ### La décision 6
 
@@ -622,6 +622,38 @@ Poppy Vivid et Irene Vivid échouent parce que leur 800 Dark est la référence
 elle-même : `#EF4733` à 0,638 de clarté et `#DA51C2` à 0,655, au lieu de 0,70.
 Elles relèvent de la décision 1, « Ajuster la référence ». Cette correction ne
 règle pas le survol : sur le 400, le 800 manque 4,5 sur les 21 rampes.
+
+**Question du mainteneur : bouger les fonds teintés en Dark, avec un texte de
+`surface` différent de celui de `page`.** Le texte de `surface` reste 950 et
+celui de `page` 800, comme aujourd'hui.
+
+| Fonds teintés Dark | Texte de page sur le repos | Sur le survol | Sur l'appui | Texte de surface, au pire | Anneau 700 sur le repos |
+|---|---|---|---|---|---|
+| Aujourd'hui : 300, 400, 500 | 3,39 | 2,61, 21 rampes sous 4,5 | 2,12 | 5,77 | 2,38 |
+| Plus clairs : 400, 500, 600 | 2,61 | 2,12 | 1,72 | 4,66 | |
+| Plus discrets : 100, 200, 300 | 4,61 | 4,03, 2 rampes sous 4,5 | 3,39 | 9,47 | 3,24 |
+
+Éclaircir les fonds rapproche leur clarté de celle du texte de `page` : le
+contraste baisse encore. Rapprocher les fonds de la page fait l'inverse.
+
+Avec les fonds discrets, tout passe : le texte de `page` au repos et au
+survol, l'appui à 3:1, l'anneau sans changement. Seules Poppy Vivid et Irene
+Vivid manquent 4,5 au survol, parce que leur 800 Dark est leur référence : elles
+relèvent de la décision 1. Le bouton texte passe alors sur la page, et un
+composant de la page passe dans une alerte teintée, sans variante, sans mode et
+sans changer un texte.
+
+Coûts :
+
+- Les fonds teintés Dark se rapprochent de la page : le 100 contraste de 1,03 à
+  1,10 avec `#121212`, contre 1,24 à 1,58 pour le 300 d'aujourd'hui. Ils se
+  distinguent par leur teinte plus que par leur clarté.
+- `surface/subtle` n'a plus de place en Dark : le 50 a la clarté de la page
+  (1,00 à 1,08). Il prendrait le 50, teinté mais aussi sombre que la page, ou le
+  même cran que `surface/default`.
+- La décision 5, qui garde la table Dark d'aujourd'hui, serait à reprendre.
+
+La section 6 de la maquette montre les deux tables, avec le bouton texte survolé.
 
 
 Les thèmes inversés en Light ne sont pas mesurés. La mesure ne demande pas de

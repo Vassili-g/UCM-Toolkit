@@ -233,14 +233,11 @@
 
   <h3>Le même composant en Light et en Dark</h3>
   <ul class="faits">
-    <li>Trois composants sont conçus sur la page : un bouton texte, un bouton outlined au focus et un lien. Ils prennent <code>page/foreground</code>, <code>page/border</code> et <code>ring</code>.</li>
-    <li>Les deux premières lignes montrent la table d'aujourd'hui : sur la page, puis tels quels dans une alerte teintée.</li>
-    <li>La troisième ligne montre la piste « actions portées par l'alerte ». Les boutons et le lien de l'alerte font partie du composant Alerte. Comme tout calque, ils prennent les tokens de leur composant : <code>alert/action/foreground</code>, <code>alert/action/border</code> et <code>alert/action/ring</code>. Ces tokens visent <code>surface</code>, le fond qui est juste derrière. Le Button garde ses tokens de la page.</li>
-    <li>Les deux dernières montrent la piste « un seul cran de texte en Dark », écartée : le Dark change trop, surtout sur Poppy. En Dark, le texte et le contour de <code>page</code> et de <code>surface</code> prennent tous le 900, comme ils prennent tous le 700 en Light. L'anneau passe du 700 au 800. Le titre de l'alerte et les boutons ont alors la même couleur. Les noms et le Light ne changent pas.</li>
-    <li>Chaque pastille juge une couleur contre le fond qui est juste derrière : la page ou le fond de l'alerte.</li>
-    <li>La table Dark est celle que tu gardes : fond teinté au 300, texte de <code>surface</code> au 950.</li>
-    <li>Une variante « sur fond teinté » est écartée : une variante ne change pas avec le mode. En Light, elle serait identique à la version de la page, et rien ne pousserait le designer à la choisir.</li>
-    <li>Les pastilles portent sur la palette choisie en haut. Sur toutes tes palettes, le pire cas de la deuxième ligne en Dark vaut 3,39 pour le texte et 2,38 pour l'anneau. Choisis Poppy pour le voir.</li>
+    <li>Quatre éléments sont conçus sur la page : un bouton texte au repos, le même survolé, un bouton outlined au focus et un lien. Ils prennent <code>page/foreground</code>, <code>surface/hover</code> pour le survol, <code>page/border</code> et <code>ring</code>.</li>
+    <li>Les deux premières lignes montrent la table d'aujourd'hui. En Dark, le survol échoue déjà sur la page : le texte 800 sur le survol 400.</li>
+    <li>Les deux dernières montrent la piste « fonds discrets en Dark » : le fond teinté passe au 100, le survol au 200, l'appui au 300. Les textes ne changent pas : 800 pour la page, 950 pour l'alerte.</li>
+    <li>Chaque pastille juge une couleur contre le fond qui est juste derrière : la page, le fond de l'alerte ou le survol.</li>
+    <li>Choisis Poppy ou Irene pour voir les deux rampes qui échouent encore au survol : leur 800 Dark est leur référence, plus foncée que la courbe.</li>
   </ul>
   <div class="grille" id="contexteModes" style="grid-template-columns:repeat(auto-fill,minmax(min(100%,420px),1fr))"></div>
 
@@ -435,7 +432,7 @@
   <div class="defile"><table class="mesures">
     <tr><th>Question</th><th>Fait</th><th>Recommandation</th></tr>
     <tr><td>4. L'appui de <code>surface</code> : hors des garanties, ou jugé à 3:1</td><td>Le texte 700 passe 3:1 sur le 300 pour les 360 teintes, à 3,70 au minimum. Le Dark passe à 5,77.</td><td>Le juger à 3:1 : la garantie reste vérifiable et ne peut pas échouer.</td></tr>
-    <tr><td>6. Un composant de la page posé dans un fond teinté, en Dark</td><td>Le texte et l'anneau de la page échouent sur le fond teinté 300 en Dark. Voir le README, décision 6.</td><td>Ouvert. En Dark, le texte de <code>page</code> ne tient sur aucun fond de <code>surface</code>, même le survol du bouton texte sur la page. Voir le README, décision 6.</td></tr>
+    <tr><td>6. Un composant de la page posé dans un fond teinté, en Dark</td><td>Le texte et l'anneau de la page échouent sur le fond teinté 300 en Dark. Voir le README, décision 6.</td><td>Fonds teintés Dark plus discrets : 100, 200, 300. Reprend la décision 5. Voir la section 6.</td></tr>
   </table></div>
   <p class="note">Les thèmes inversés en Light ne sont pas mesurés. Cette mesure ne demande pas de décision.</p>
 </main>
@@ -818,34 +815,33 @@ function rendrePalettes700() {
 
 // Un composant de la page, puis le même dans une alerte teintée, puis sa variante « sur fond teinté ». Crans de la configuration du mainteneur.
 const CRANS_DU_CONTEXTE = {
-  light: { page: () => etat.page, surface: 100, pageTexte: 700, pageContour: 700, anneau: 600, surfaceTexte: 700, surfaceContour: 700 },
-  dark: { page: () => '#121212', surface: 300, pageTexte: 800, pageContour: 800, anneau: 700, surfaceTexte: 950, surfaceContour: 950 },
+  light: { page: () => etat.page, surface: 100, survol: 200, pageTexte: 700, pageContour: 700, anneau: 600, surfaceTexte: 700 },
+  dark: { page: () => '#121212', surface: 300, survol: 400, pageTexte: 800, pageContour: 800, anneau: 700, surfaceTexte: 950 },
 };
-// La piste : en Dark, un seul cran de texte et de contour, le 900, pour `page` et `surface`, comme le 700 en Light. L'anneau monte au 800.
-const PAGE_ECLAIRCIE_EN_DARK = { pageTexte: 900, pageContour: 900, anneau: 800, surfaceTexte: 900, surfaceContour: 900 };
+// La piste : en Dark, les fonds teintés descendent au 100, 200 et 300, plus près de la page. Les textes ne changent pas.
+const FONDS_DISCRETS_EN_DARK = { surface: 100, survol: 200 };
 function rendreContexteModes() {
   const cas = [
-    { titre: 'Sur la page', dansAlerte: false, variante: false },
-    { titre: 'Tel quel dans une alerte teintée', dansAlerte: true, variante: false },
-    { titre: "Écartée : actions portées par l'alerte", dansAlerte: true, variante: true },
-    { titre: 'Écartée : un seul cran de texte en Dark, sur la page', dansAlerte: false, eclaircie: true },
-    { titre: 'Écartée : un seul cran de texte en Dark, dans l\'alerte', dansAlerte: true, eclaircie: true },
+    { titre: "Aujourd'hui, sur la page", dansAlerte: false },
+    { titre: "Aujourd'hui, dans une alerte teintée", dansAlerte: true },
+    { titre: 'Fonds discrets en Dark, sur la page', dansAlerte: false, discrets: true },
+    { titre: 'Fonds discrets en Dark, dans une alerte teintée', dansAlerte: true, discrets: true },
   ];
   const pastille = (nom, avant, fond, seuil) => { const r = contraste(avant, fond); return `<span style="display:inline-flex;gap:4px;align-items:center;margin-right:8px">${nom} <span class="badge ${r >= seuil ? 'ok' : r >= 3 ? 'moyen' : 'ko'}">${virgule(r)}:1</span></span>`; };
   $('contexteModes').innerHTML = cas.flatMap((k) => ['light', 'dark'].map((mode) => {
-    const t = { ...CRANS_DU_CONTEXTE[mode], ...(k.eclaircie && mode === 'dark' ? PAGE_ECLAIRCIE_EN_DARK : {}) }, c = (n) => cran(n, palette(), mode);
-    const page = t.page(), fond = k.dansAlerte ? c(t.surface) : page;
-    const texte = c(k.variante ? t.surfaceTexte : t.pageTexte), contour = c(k.variante ? t.surfaceContour : t.pageContour), anneau = k.variante ? c(t.surfaceContour) : c(t.anneau);
-    const noms = k.variante ? ['alert/action/foreground → surface/foreground', 'alert/action/border → surface/border', 'alert/action/ring → surface/border'] : [`page/foreground ${t.pageTexte}`, `page/border ${t.pageContour}`, `ring ${t.anneau}`];
-    const contenu = `<div style="display:flex;flex-wrap:wrap;gap:12px;align-items:center">
-        <span style="color:${texte};font-weight:600;padding:6px 4px">Modifier</span>
+    const t = { ...CRANS_DU_CONTEXTE[mode], ...(k.discrets && mode === 'dark' ? FONDS_DISCRETS_EN_DARK : {}) }, c = (n) => cran(n, palette(), mode);
+    const page = t.page(), fond = k.dansAlerte ? c(t.surface) : page, survol = c(t.survol);
+    const texte = c(t.pageTexte), contour = c(t.pageContour), anneau = c(t.anneau);
+    const contenu = `<div style="display:flex;flex-wrap:wrap;gap:10px;align-items:center">
+        <span style="color:${texte};font-weight:600;padding:6px 8px">Modifier</span>
+        <span style="color:${texte};font-weight:600;padding:6px 8px;background:${survol};border-radius:6px">Modifier, survolé</span>
         <span style="color:${texte};font-weight:600;padding:6px 12px;border:1px solid ${contour};border-radius:6px;outline:2px solid ${anneau};outline-offset:2px">Annuler</span>
         <span style="color:${texte};text-decoration:underline">En savoir plus</span></div>`;
     const sombre = mode === 'dark';
     return `<div class="page" style="background:${page}"><h4 style="${sombre ? 'color:#eee' : ''}">${k.titre} · ${sombre ? 'Dark' : 'Light'}</h4>
       ${k.dansAlerte ? `<div class="alerte" style="background:${fond};display:block"><strong style="color:${c(t.surfaceTexte)}">Votre dossier est incomplet.</strong><div style="margin-top:10px">${contenu}</div></div>` : `<div style="padding:12px 0">${contenu}</div>`}
-      <p class="note" style="${sombre ? 'color:#bbb' : ''}">${pastille('Texte', texte, fond, 4.5)}${pastille('Contour', contour, fond, 3)}${pastille('Anneau', anneau, fond, 3)}</p>
-      <p class="note" style="${sombre ? 'color:#999' : ''}"><code>${noms.join('</code>, <code>')}</code></p></div>`;
+      <p class="note" style="${sombre ? 'color:#bbb' : ''}">${pastille('Texte', texte, fond, 4.5)}${pastille('Survol', texte, survol, 4.5)}${pastille('Contour', contour, fond, 3)}${pastille('Anneau', anneau, fond, 3)}</p>
+      <p class="note" style="${sombre ? 'color:#999' : ''}">Fond teinté ${t.surface}, survol ${t.survol}. Texte de la page ${t.pageTexte}, texte de l'alerte ${t.surfaceTexte}.</p></div>`;
   })).join('');
 }
 
