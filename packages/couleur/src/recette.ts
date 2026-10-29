@@ -744,8 +744,8 @@ export function validerRecette(entree: unknown): { recette: Recette } | { refus:
   if (entree.formatVersion !== FORMAT_RECETTE) releve.refuser('forme', 'formatVersion', entree.formatVersion as number);
   const crans = validerCrans(releve, entree.crans);
   // Les crans requis sont la réunion des crans de la table de chaque thème, dans son sens (S2, P7,
-  // [REC-13]) : seul 50 est facultatif. Un texte illisible est déjà refusé plus bas ; sans texte
-  // lisible, le thème se juge dans le sens normal.
+  // [REC-13]) : le 50 y entre par `surface/subtle`, aucun cran n'est facultatif. Un texte illisible est
+  // déjà refusé plus bas ; sans texte lisible, le thème se juge dans le sens normal.
   const sens: Record<Mode, SensDuTheme> = { light: 'normal', dark: 'normal' };
   if (releve.objet(entree.texteDesBoutons, 'texteDesBoutons', MODES)) {
     for (const mode of MODES) {

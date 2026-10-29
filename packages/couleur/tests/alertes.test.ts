@@ -11,6 +11,7 @@ import {
   alertesDePalette,
   alertesDeRecette,
   confusionsDe,
+  courbesParDefaut,
   distanceOk,
   lireHexa,
   pairesTropProches,
@@ -46,14 +47,14 @@ test('[VER-08] profils confondus : sonne à partir de trois nuances, avec la mes
 test('[VER-11] profils confondus : ne regarde que les crans que les variables de palette visent, dans le sens de chaque mode', () => {
   const recette = recetteParDefaut();
   const crans = (r: typeof recette) => rangsDesVariables(r).map((rang) => r.crans[rang]);
-  // Le 50 n'est visé par aucune variable, et les profils s'y confondent comme à la 50. Le Dark vise le 400 et le 950 (surfaces), le Light non.
-  const tous = [100, 200, 300, 400, 500, 600, 700, 800, 900, 950];
+  // Le 50 est visé par surface/subtle, le 400 et le 950 par les surfaces du Dark.
+  const tous = [50, 100, 200, 300, 400, 500, 600, 700, 800, 900, 950];
   assert.deepEqual(crans(recette), tous);
   assert.deepEqual(crans({ ...recette, texteDesBoutons: { light: 'noir', dark: 'noir' } }), tous);
   assert.deepEqual(crans({ ...recette, texteDesBoutons: { light: 'blanc', dark: 'blanc' } }), tous);
   // Une liste sans 500 n'en a pas.
   const sans500 = { ...recette, texteDesBoutons: { light: 'noir' as const, dark: 'noir' as const }, crans: recette.crans.filter((cran) => cran !== 500) };
-  assert.deepEqual(crans(sans500), [100, 200, 300, 400, 600, 700, 800, 900, 950]);
+  assert.deepEqual(crans(sans500), [50, 100, 200, 300, 400, 600, 700, 800, 900, 950]);
 });
 
 /** Une palette de cette référence aux parts du designer, dans la recette par défaut. */
@@ -226,8 +227,11 @@ test('[VER-22] une paire dont seuls les fonds Light sont sous 0,010 est signalé
 });
 
 test('[VER-22] une paire dont seul le texte sur fond teinté était trop proche n’est plus signalée', () => {
-  // Teal et cyan Tailwind : texte Light à 0,045 (ancien verdict : signalée), fonds à 0,018 et 0,032, pleins au-dessus de 0,05.
-  const { recette, pa, pb, proximite } = paire('#14b8a6', '#06b6d4');
+  // Teal et cyan Tailwind, texte des boutons noir en Light : le texte de surface est au 900, à 0,039 (ancien verdict : signalée), le plein à 0,062. Avec le texte blanc, le texte de surface est au 700 comme le plein : il ne peut plus être seul sous le seuil.
+  const texte = { light: 'noir', dark: 'noir' } as const;
+  const [pa, pb] = [paletteTailwind('p-0000000a', '#14b8a6'), paletteTailwind('p-0000000b', '#06b6d4')];
+  const recette = { ...recetteParDefaut(), texteDesBoutons: texte, courbes: courbesParDefaut(11, texte), palettes: [pa, pb] };
+  const proximite = proximiteDePalettes(recette, pa, pb);
   assert.ok(distanceSurLaVariable(recette, pa, pb, ['surface/foreground', 'light']) < recette.seuils.palettesProches, 'le texte Light est sous le seuil');
   assert.ok(proximite && !proximite.tropProche, JSON.stringify(proximite));
   assert.deepEqual(pairesTropProches(recette), []);
@@ -311,7 +315,7 @@ test('[VER-22] les paires trop proches se rendent par rapport distance sur seuil
   ];
   const recette = recetteAvec(a, b, c, ambre);
   const paires = pairesTropProches(recette);
-  assert.deepEqual(paires.map((paire) => paire.palettes), [[a.id, c.id], [a.id, b.id], [b.id, c.id]]);
+  assert.deepEqual(paires.map((paire) => paire.palettes), [[a.id, c.id], [b.id, c.id], [a.id, b.id]]);
   const rapports = paires.map((paire) => paire.proximite.distance / paire.proximite.seuil);
   assert.deepEqual(rapports, [...rapports].sort((x, y) => x - y));
   assert.deepEqual(alertesDeRecette(recette).flatMap((alerte) => (alerte.code === 'palettes-proches' ? [alerte.palettes] : [])), paires.map((paire) => paire.palettes));

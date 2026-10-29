@@ -405,10 +405,10 @@ test('[REC-13] la lecture ajoute 400 et 950 au témoin du format 10', () => {
       assert.equal(courbes[mode][rang], attendue, `${mode} ${cran}`);
     });
   }
-  // Le cran 50, facultatif, n'est jamais ajouté.
+  // Le cran 50, requis depuis surface/subtle, n'est pas ajouté : un témoin qui n'en a pas est refusé.
   const lueSans50 = classerRecette(JSON.stringify(sansLeCran(ancienne, 50)));
-  assert.ok(lueSans50.etat === 'courante');
-  assert.ok(!lueSans50.recette.crans.includes(50));
+  assert.ok(lueSans50.etat === 'illisible');
+  assert.deepEqual(lueSans50.refus, [{ regle: 'crans-emplois', chemin: 'crans', valeur: 50 }]);
 });
 
 test("[REC-13] la lecture ajoute aussi 500 quand le format 10 l'a laissé de côté", () => {
@@ -421,21 +421,25 @@ test("[REC-13] la lecture ajoute aussi 500 quand le format 10 l'a laissé de cô
   assert.equal(lue.recette.courbes.dark[rang], Math.round(luminositeAuNumero(sans500, 'dark', 500) * 1000) / 1000);
 });
 
+test('[REC-13] une recette sans 50 est refusée : surface/subtle le vise en Light', () => {
+  const resultat = validerRecette(sansLeCran(valide(), 50));
+  assert.ok('refus' in resultat);
+  assert.deepEqual(resultat.refus, [{ regle: 'crans-emplois', chemin: 'crans', valeur: 50 }]);
+});
+
 test('[REC-13] une recette 11 sans 950 est refusée', () => {
   const resultat = validerRecette(sansLeCran(valide(), 950));
   assert.ok('refus' in resultat);
   assert.deepEqual(resultat.refus, [{ regle: 'crans-emplois', chemin: 'crans', valeur: 950 }]);
 });
 
-test('[REC-13] les crans requis réunissent ceux des deux thèmes, chacun dans son sens ; seul 50 est facultatif', () => {
+test('[REC-13] les crans requis réunissent ceux des deux thèmes, chacun dans son sens ; le 50 en fait partie par surface/subtle', () => {
   for (const light of ['blanc', 'noir'] as const) {
     for (const dark of ['blanc', 'noir'] as const) {
       const texteDesBoutons = { light, dark };
       const requis = requisDe(texteDesBoutons);
-      assert.ok(!requis.includes(50), `${light}/${dark}`);
-      assert.ok(requis.includes(400) && requis.includes(500) && requis.includes(950), `${light}/${dark}`);
+      assert.ok(requis.includes(50) && requis.includes(400) && requis.includes(500) && requis.includes(950), `${light}/${dark}`);
       const complete = { ...valide(), texteDesBoutons };
-      assert.ok('recette' in validerRecette(sansLeCran(complete, 50)), `sans 50 en ${light}/${dark}`);
       for (const cran of requis) {
         const resultat = validerRecette(sansLeCran(complete, cran));
         assert.ok('refus' in resultat, `sans ${cran} en ${light}/${dark}`);

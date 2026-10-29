@@ -14,7 +14,7 @@ export const DOSSIERS = ['solid', 'surface', 'page'] as const;
 export const ETATS = ['default', 'hover', 'pressed'] as const;
 export const VARIABLES_DE_PALETTE = [
   'solid/default', 'solid/hover', 'solid/pressed', 'solid/foreground',
-  'surface/default', 'surface/hover', 'surface/pressed', 'surface/foreground', 'surface/border',
+  'surface/default', 'surface/hover', 'surface/pressed', 'surface/subtle', 'surface/foreground', 'surface/border', 'surface/divider',
   'page/foreground', 'page/border', 'page/divider', 'ring',
 ] as const;
 export const VARIABLES_DU_NEUTRE = ['page/foreground-main', 'page/foreground-subtle', 'scale/0', 'scale/1000'] as const;
@@ -39,25 +39,25 @@ export const TABLE_DES_DOSSIERS = {
   light: {
     normal: {
       'solid/default': 700, 'solid/hover': 800, 'solid/pressed': 900, 'solid/foreground': 'texteDesBoutons',
-      'surface/default': 100, 'surface/hover': 200, 'surface/pressed': 300, 'surface/foreground': 800, 'surface/border': 800,
+      'surface/default': 100, 'surface/hover': 200, 'surface/pressed': 300, 'surface/subtle': 50, 'surface/foreground': 700, 'surface/border': 700, 'surface/divider': 300,
       'page/foreground': 700, 'page/border': 700, 'page/divider': 300, 'ring': 600,
     },
     inverse: {
       'solid/default': 700, 'solid/hover': 600, 'solid/pressed': 500, 'solid/foreground': 'texteDesBoutons',
-      'surface/default': 100, 'surface/hover': 200, 'surface/pressed': 300, 'surface/foreground': 900, 'surface/border': 900,
+      'surface/default': 100, 'surface/hover': 200, 'surface/pressed': 300, 'surface/subtle': 50, 'surface/foreground': 900, 'surface/border': 900, 'surface/divider': 300,
       'page/foreground': 800, 'page/border': 800, 'page/divider': 300, 'ring': 700,
     },
   },
   dark: {
     normal: {
       'solid/default': 700, 'solid/hover': 800, 'solid/pressed': 900, 'solid/foreground': 'texteDesBoutons',
-      'surface/default': 300, 'surface/hover': 400, 'surface/pressed': 500, 'surface/foreground': 950, 'surface/border': 950,
+      'surface/default': 300, 'surface/hover': 400, 'surface/pressed': 500, 'surface/subtle': 200, 'surface/foreground': 950, 'surface/border': 950, 'surface/divider': 500,
       'page/foreground': 700, 'page/border': 700, 'page/divider': 300, 'ring': 600,
     },
     inverse: {
       'solid/default': 700, 'solid/hover': 600, 'solid/pressed': 500, 'solid/foreground': 'texteDesBoutons',
-      'surface/default': 300, 'surface/hover': 400, 'surface/pressed': 500, 'surface/foreground': 950, 'surface/border': 950,
-      'page/foreground': 800, 'page/border': 800, 'page/divider': 300, 'ring': 700,
+      'surface/default': 300, 'surface/hover': 400, 'surface/pressed': 500, 'surface/subtle': 200, 'surface/foreground': 950, 'surface/border': 950, 'surface/divider': 500,
+      'page/foreground': 800, 'page/border': 800, 'page/divider': 300, 'ring': 800,
     },
   },
 } as const satisfies Record<ModeDuTheme, Record<SensDuTheme, Record<VariableDePalette, number | 'texteDesBoutons'>>>;
@@ -120,17 +120,17 @@ export interface SupportDeVariable {
   readonly portees: readonly ('FRAME_FILL' | 'SHAPE_FILL' | 'TEXT_FILL' | 'STROKE_COLOR')[];
 }
 
-const SOLID: SupportDeVariable = { peint: ['background', 'border'], portees: ['FRAME_FILL', 'SHAPE_FILL', 'STROKE_COLOR'] };
 const FOND: SupportDeVariable = { peint: ['background'], portees: ['FRAME_FILL', 'SHAPE_FILL'] };
-const TEXTE: SupportDeVariable = { peint: ['foreground', 'icon'], portees: ['TEXT_FILL', 'SHAPE_FILL'] };
+const TEXTE: SupportDeVariable = { peint: ['foreground', 'icon'], portees: ['TEXT_FILL', 'SHAPE_FILL', 'STROKE_COLOR'] };
+const FILET: SupportDeVariable = { peint: ['border'], portees: ['STROKE_COLOR', 'FRAME_FILL', 'SHAPE_FILL'] };
 const CONTOUR: SupportDeVariable = { peint: ['border'], portees: ['STROKE_COLOR'] };
 const ANNEAU: SupportDeVariable = { peint: ['ring'], portees: ['STROKE_COLOR'] };
 const ECHELLE: SupportDeVariable = { peint: [], portees: [] };
 
 export const SUPPORT_DES_VARIABLES: Readonly<Record<VariableDuTheme, SupportDeVariable>> = {
-  'solid/default': SOLID, 'solid/hover': SOLID, 'solid/pressed': SOLID, 'solid/foreground': TEXTE,
-  'surface/default': FOND, 'surface/hover': FOND, 'surface/pressed': FOND, 'surface/foreground': TEXTE, 'surface/border': CONTOUR,
-  'page/foreground': TEXTE, 'page/border': CONTOUR, 'page/divider': CONTOUR, 'ring': ANNEAU,
+  'solid/default': FOND, 'solid/hover': FOND, 'solid/pressed': FOND, 'solid/foreground': TEXTE,
+  'surface/default': FOND, 'surface/hover': FOND, 'surface/pressed': FOND, 'surface/subtle': FOND, 'surface/foreground': TEXTE, 'surface/border': CONTOUR, 'surface/divider': FILET,
+  'page/foreground': TEXTE, 'page/border': CONTOUR, 'page/divider': FILET, 'ring': ANNEAU,
   'page/foreground-main': TEXTE, 'page/foreground-subtle': TEXTE, 'scale/0': ECHELLE, 'scale/1000': ECHELLE,
   'disabled/background': FOND, 'disabled/foreground': TEXTE, 'disabled/border': CONTOUR,
   'elevation/page': FOND, 'elevation/raised': FOND,

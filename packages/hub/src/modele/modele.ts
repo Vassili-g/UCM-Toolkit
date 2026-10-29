@@ -5,9 +5,9 @@
  * les tests le lisent dans Node.
  *
  * Le banc essaie des règles que le kit n'a pas : une table des dossiers
- * modifiée, `surface/divider`, des garanties qui ignorent les fonds survolés ou
- * appuyés. Sans réglage, la table et les garanties sont celles du kit, et les
- * promesses jugées égalent `verifierPromesses`.
+ * modifiée, des garanties qui ignorent les fonds survolés ou appuyés. Sans
+ * réglage, la table et les garanties sont celles du kit, et les promesses
+ * jugées égalent `verifierPromesses`.
  */
 import {
   COULEUR_DU_TEXTE_DES_BOUTONS,
@@ -46,11 +46,10 @@ import {
   type VariableGlobale,
 } from 'ucm-couleur';
 
-/** La variable à l'essai de la piste 7.1 de `PISTES-EVOLUTION.md` : un contour discret sur fond teinté. */
-export const CONTOUR_DISCRET = 'surface/divider';
-export type VariableDuBanc = VariableDePalette | typeof CONTOUR_DISCRET | VariableGlobale;
-export const VARIABLES_DU_BANC: readonly VariableDuBanc[] = [...VARIABLES_DE_PALETTE, CONTOUR_DISCRET, ...VARIABLES_GLOBALES];
-export const CRANS_DU_CONTOUR_DISCRET: Readonly<Record<Mode, number>> = { light: 300, dark: 500 };
+/** Le contour discret sur fond teinté : une variable du kit, à la table comme les autres. */
+export const CONTOUR_DISCRET = 'surface/divider' satisfies VariableDePalette;
+export type VariableDuBanc = VariableDePalette | VariableGlobale;
+export const VARIABLES_DU_BANC: readonly VariableDuBanc[] = [...VARIABLES_DE_PALETTE, ...VARIABLES_GLOBALES];
 
 export type CranDeTable = number | 'texteDesBoutons';
 export type TableDuBanc = Readonly<Record<Mode, Readonly<Record<VariableDuBanc, CranDeTable>>>>;
@@ -71,13 +70,13 @@ export interface Essai {
 }
 export const ESSAI_VIDE: Essai = { table: {}, exigences: EXIGENCES_DU_KIT };
 
-/** La table du kit dans le sens que le texte des boutons donne à chaque mode, avec le contour discret et les couleurs désactivées, puis les crans modifiés. */
+/** La table du kit dans le sens que le texte des boutons donne à chaque mode, avec les couleurs désactivées, puis les crans modifiés. */
 export function tableDuBanc(recette: Recette, modifiee: TableModifiee = {}): TableDuBanc {
   const table = {} as Record<Mode, Record<VariableDuBanc, CranDeTable>>;
   for (const mode of MODES) {
     const sens = sensDuTheme(mode, recette.texteDesBoutons[mode]);
     const globales = Object.fromEntries(VARIABLES_GLOBALES.map((variable) => [variable, cranDeLaVariable(variable, mode, sens) as number]));
-    table[mode] = { ...TABLE_DES_DOSSIERS[mode][sens], [CONTOUR_DISCRET]: CRANS_DU_CONTOUR_DISCRET[mode], ...globales, ...modifiee[mode] } as Record<VariableDuBanc, CranDeTable>;
+    table[mode] = { ...TABLE_DES_DOSSIERS[mode][sens], ...globales, ...modifiee[mode] } as Record<VariableDuBanc, CranDeTable>;
   }
   return table;
 }
@@ -134,7 +133,7 @@ export interface Neutre {
 export type Fond = 'page' | 'carte' | VariableDuBanc;
 
 /**
- * Un contraste mesuré. `regle` vaut `G1` à `G7` pour une garantie du kit, `U…`
+ * Un contraste mesuré. `regle` vaut `G1` à `G9` pour une garantie du kit, `U…`
  * pour un usage que les composants posent sans garantie. `seuil` absent : la
  * mesure informe et n'a pas de verdict.
  */

@@ -1,6 +1,6 @@
 /**
  * Le jugement des promesses du thème sur des rampes données : les garanties
- * G1 à G7 de `@ucm-kit/core/emplois`, par mode et par intensité ([VER-03] à
+ * G1 à G9 de `@ucm-kit/core/emplois`, par mode et par intensité ([VER-03] à
  * [VER-07], section 11.2 de la spécification). Le module ne calcule aucune
  * rampe : `promesses.ts` lui passe celles de `rampesDe`, et `palette.ts`, qui
  * ne peut pas lire `promesses.ts`, celles d'une chaîne candidate.
@@ -152,7 +152,7 @@ export interface Lieu {
 
 /**
  * Les promesses de rampes données, rangées par mode, puis par intensité, puis
- * dans l'ordre des garanties G1 à G7 et de leurs fonds. Une garantie dont un
+ * dans l'ordre des garanties G1 à G9 et de leurs fonds. Une garantie dont un
  * cran manque à la liste ne se juge pas. `seulement` ne juge que ce mode et
  * cette intensité, dont les rampes suffisent alors.
  */

@@ -12,7 +12,7 @@ Page locale et autonome qui montre ce que le kit et le moteur de couleur produis
 - generer.ts : `genererHub`, la page autonome que compile esbuild, et `CHEMIN_DU_HUB` (`npm run hub`)
 
 ## src/modele/
-- modele.ts : modèle pur : jeux de couleurs par palette, intensité et mode, mesures des garanties et des usages, `surface/divider` à l'essai, lecture d'une recette
+- modele.ts : modèle pur : jeux de couleurs par palette, intensité et mode, mesures des garanties et des usages, lecture d'une recette
 
 ## src/vues/
 - page.ts : la page dans le navigateur ; seul fichier du paquet qui lit le DOM

@@ -113,7 +113,7 @@ test('C60 corrige un alias Dark vers Light selon TABLE_DES_DOSSIERS', () => {
   const c = cat([collection('themes', 'theme'), collection('brands', 'brands')], [
     { cle: 'theme-ring', nom: 'success/vivid/ring', collection: 'themes', type: 'COLOR', etat: 'presente', valeurs: { light: { alias: 'brand-light' }, dark: { alias: 'brand-light' } } },
     { cle: 'brand-light', nom: 'success/vivid/light/700', collection: 'brands', type: 'COLOR', etat: 'presente', valeurs: { light: { valeur: '#000000' }, dark: { valeur: '#000000' } } },
-    { cle: 'brand-dark', nom: 'success/vivid/dark/700', collection: 'brands', type: 'COLOR', etat: 'presente', valeurs: { light: { valeur: '#000000' }, dark: { valeur: '#000000' } } },
+    { cle: 'brand-dark', nom: 'success/vivid/dark/800', collection: 'brands', type: 'COLOR', etat: 'presente', valeurs: { light: { valeur: '#000000' }, dark: { valeur: '#000000' } } },
   ]);
   const resultat = controlerLeTheme(releve(layer('text', null, 'message')), c).find(({ code }) => code === 'C60');
   assert.equal(resultat?.correction?.avant, 'brand-light');
@@ -166,11 +166,11 @@ test('C60 reconnaît un nom en majuscules et écrit le mode visé comme la colle
   const c = cat([collection('themes', 'theme'), collection('brands', 'brands')], [
     { cle: 'theme-ring', nom: 'Success/Vivid/Ring', collection: 'themes', type: 'COLOR', etat: 'presente', valeurs: { light: { alias: 'brand-light' }, dark: { alias: 'brand-light' } } },
     { cle: 'brand-light', nom: 'Success/Vivid/Light/700', collection: 'brands', type: 'COLOR', etat: 'presente', valeurs: { light: { valeur: '#000000' }, dark: { valeur: '#000000' } } },
-    { cle: 'brand-dark', nom: 'Success/Vivid/Dark/700', collection: 'brands', type: 'COLOR', etat: 'presente', valeurs: { light: { valeur: '#000000' }, dark: { valeur: '#000000' } } },
+    { cle: 'brand-dark', nom: 'Success/Vivid/Dark/800', collection: 'brands', type: 'COLOR', etat: 'presente', valeurs: { light: { valeur: '#000000' }, dark: { valeur: '#000000' } } },
   ]);
   const resultat = controlerLeTheme(releve(layer('text', null, 'message')), c).find(({ code }) => code === 'C60');
   assert.equal(resultat?.correction?.avant, 'brand-light');
-  assert.deepEqual(resultat?.correction?.apres, { cle: 'brand-dark', nom: 'Success/Vivid/Dark/700' });
+  assert.deepEqual(resultat?.correction?.apres, { cle: 'brand-dark', nom: 'Success/Vivid/Dark/800' });
 });
 
 test('C59 ne juge pas un texte posé sur un fond lié à une variable illisible', () => {

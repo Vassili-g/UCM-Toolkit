@@ -13,7 +13,7 @@ source TypeScript par le plugin. Il n'est pas publié sur npm.
 | Modèles de nuances, courbes par défaut selon le texte des boutons de chaque thème, intensités, gris et ancrage de la référence | `nuances.ts`, `palette.ts` |
 | Réglage global et limites dynamiques du Color shift | `reglages.ts`, `limites.ts` |
 | Proposition d'ajustement de la référence | `ajustement.ts` |
-| Contrastes WCAG 2 et les sept garanties de la table en dossiers | `contraste.ts`, `promesses.ts` ; la table et les garanties sont dans `@ucm-kit/core/emplois` |
+| Contrastes WCAG 2 et les neuf garanties de la table en dossiers | `contraste.ts`, `promesses.ts` ; la table et les garanties sont dans `@ucm-kit/core/emplois` |
 | Alertes de conception et garantie des courbes | `alertes.ts`, `garantie.ts`, `constats.ts` |
 | Recette, validation, classement et empreinte | `recette.ts`, `empreinte.ts` |
 | Réglages retrouvés d'une palette figée, asynchrone, interruptible et bornée en temps | `reconstruction.ts` |

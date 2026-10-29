@@ -1,5 +1,5 @@
 /**
- * Les promesses du thème : les garanties G1 à G7 de `@ucm-kit/core/emplois`,
+ * Les promesses du thème : les garanties G1 à G9 de `@ucm-kit/core/emplois`,
  * jugées par palette, par mode et par intensité présente ([VER-03] à
  * [VER-07], section 11.2 de la spécification). Chaque garantie se juge dans
  * la table du sens du thème (`sensDuTheme`), contre les fonds de la palette
@@ -18,8 +18,8 @@ export { cleDeLaPromesse, couleurDeLaCarte, jugerLesRampes, type Designation, ty
 
 /**
  * Les promesses d'une palette, rangées par mode, puis par intensité, puis
- * dans l'ordre des garanties G1 à G7 et de leurs fonds : seize par mode et
- * par intensité, soit soixante-quatre pour deux intensités et trente-deux
+ * dans l'ordre des garanties G1 à G9 et de leurs fonds : vingt-quatre par mode
+ * et par intensité, soit quatre-vingt-seize pour deux intensités et quarante-huit
  * pour une, quand la liste porte tous les crans requis. Une garantie dont un
  * cran manque ne se juge pas.
  */

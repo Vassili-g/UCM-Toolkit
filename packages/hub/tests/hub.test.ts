@@ -4,7 +4,7 @@ import { readFileSync } from 'node:fs';
 import test from 'node:test';
 
 import { verifierPromesses } from 'ucm-couleur';
-import { construireModele, harmonisation, lireRecette, recetteDeDemonstration } from '../src/modele/modele';
+import { VARIABLES_DU_BANC, construireModele, harmonisation, lireRecette, recetteDeDemonstration } from '../src/modele/modele';
 import { CHEMIN_DU_HUB, genererHub } from '../src/generer';
 
 const sansRetourChariot = (texte: string): string => texte.replace(/\r\n/g, '\n');
@@ -26,6 +26,26 @@ test('un cran modifié dans la table change la couleur que la garantie juge', ()
   const g4 = modele.mesures.filter((mesure) => mesure.regle === 'G4' && mesure.mode === 'light');
   assert.ok(g4.length > 0);
   assert.ok(g4.every((mesure) => mesure.premier.teinte.cran === 700));
+});
+
+test('surface/divider et surface/subtle viennent de la table du kit, une seule fois chacun', () => {
+  const modele = construireModele(recetteDeDemonstration());
+  assert.equal(VARIABLES_DU_BANC.filter((variable) => variable === 'surface/divider').length, 1);
+  assert.equal(VARIABLES_DU_BANC.filter((variable) => variable === 'surface/subtle').length, 1);
+  assert.deepEqual([modele.table.light['surface/divider'], modele.table.dark['surface/divider']], [300, 500]);
+  assert.deepEqual([modele.table.light['surface/subtle'], modele.table.dark['surface/subtle']], [50, 200]);
+  const jeu = modele.jeux.find((autre) => autre.palette.aDesDossiers && autre.mode === 'light')!;
+  assert.equal(jeu.v['surface/subtle']?.cran, 50);
+  assert.equal(jeu.v['surface/divider']?.cran, 300);
+});
+
+test('les garanties 8 et 9 se jugent dans le banc, avec les fonds de la palette', () => {
+  const mesures = construireModele(recetteDeDemonstration()).mesures;
+  const g8 = mesures.filter((mesure) => mesure.regle === 'G8');
+  const g9 = mesures.filter((mesure) => mesure.regle === 'G9');
+  assert.ok(g8.length > 0 && g9.length > 0);
+  assert.ok(g8.every((mesure) => mesure.premier.nom === 'surface/foreground' && mesure.second.nom === 'surface/pressed'));
+  assert.ok(g9.every((mesure) => mesure.premier.nom === 'page/foreground' && mesure.second.nom === 'surface/default'));
 });
 
 test('sans les fonds appuyés, aucune garantie ne se juge contre solid/pressed ni surface/pressed', () => {

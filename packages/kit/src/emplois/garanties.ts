@@ -1,4 +1,4 @@
-/** Les sept garanties de contraste du thème, jugées par palette : membres, fonds et seuils. */
+/** Les neuf garanties de contraste du thème, jugées par palette : membres, fonds et seuils. */
 import { variablePresente, type ModeDuTheme, type SensDuTheme, type VariableDePalette } from './dossiers.js';
 
 export type FondDeGarantie =
@@ -15,18 +15,23 @@ export interface Garantie {
 
 const FOND_DE_LA_PAGE = { fondDeLaPage: true } as const;
 const FOND_DE_LA_CARTE = { fondDeLaCarte: true } as const;
-const FONDS_SURFACE: readonly FondDeGarantie[] = [
-  { variable: 'surface/default' }, { variable: 'surface/hover' }, { variable: 'surface/pressed' }, FOND_DE_LA_PAGE, FOND_DE_LA_CARTE,
+const FONDS_DU_TEXTE_DE_SURFACE: readonly FondDeGarantie[] = [
+  { variable: 'surface/subtle' }, { variable: 'surface/default' }, { variable: 'surface/hover' }, FOND_DE_LA_PAGE, FOND_DE_LA_CARTE,
+];
+const FONDS_DU_CONTOUR_DE_SURFACE: readonly FondDeGarantie[] = [
+  { variable: 'surface/subtle' }, { variable: 'surface/default' }, { variable: 'surface/hover' }, { variable: 'surface/pressed' }, FOND_DE_LA_PAGE, FOND_DE_LA_CARTE,
 ];
 
 export const GARANTIES: readonly Garantie[] = [
   { numero: 1, premier: { variable: 'solid/foreground' }, fonds: [{ variable: 'solid/default' }, { variable: 'solid/hover' }, { variable: 'solid/pressed' }], seuil: 'texte' },
   { numero: 2, premier: { variable: 'solid/default' }, fonds: [FOND_DE_LA_PAGE, FOND_DE_LA_CARTE], seuil: 'nonTexte' },
-  { numero: 3, premier: { variable: 'surface/foreground' }, fonds: FONDS_SURFACE, seuil: 'texte' },
-  { numero: 4, premier: { variable: 'surface/border' }, fonds: FONDS_SURFACE, seuil: 'nonTexte' },
+  { numero: 3, premier: { variable: 'surface/foreground' }, fonds: FONDS_DU_TEXTE_DE_SURFACE, seuil: 'texte' },
+  { numero: 4, premier: { variable: 'surface/border' }, fonds: FONDS_DU_CONTOUR_DE_SURFACE, seuil: 'nonTexte' },
   { numero: 5, premier: { variable: 'page/foreground' }, fonds: [FOND_DE_LA_PAGE, FOND_DE_LA_CARTE], seuil: 'texte' },
   { numero: 6, premier: { variable: 'page/border' }, fonds: [FOND_DE_LA_PAGE, FOND_DE_LA_CARTE], seuil: 'nonTexte' },
   { numero: 7, premier: { variable: 'ring' }, fonds: [FOND_DE_LA_PAGE, FOND_DE_LA_CARTE], seuil: 'nonTexte' },
+  { numero: 8, premier: { variable: 'surface/foreground' }, fonds: [{ variable: 'surface/pressed' }], seuil: 'nonTexte' },
+  { numero: 9, premier: { variable: 'page/foreground' }, fonds: [{ variable: 'surface/default' }], seuil: 'texte' },
 ];
 
 /** Une garantie se juge quand la liste porte le cran de chacun de ses membres. */

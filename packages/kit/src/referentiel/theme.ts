@@ -22,8 +22,10 @@ const TEXTES_DES_VARIABLES = {
   "surface/default": { libelle: { fr: "fond teinté", en: "tinted fill" }, definition: { fr: "Fond teinté au repos.", en: "Tinted background at rest." } },
   "surface/hover": { libelle: { fr: "fond teinté survolé", en: "tinted fill, hovered" }, definition: { fr: "Fond teinté sous le pointeur.", en: "Tinted background under the pointer." } },
   "surface/pressed": { libelle: { fr: "fond teinté appuyé", en: "tinted fill, pressed" }, definition: { fr: "Fond teinté pendant la pression.", en: "Tinted background while pressed." } },
+  "surface/subtle": { libelle: { fr: "fond teinté léger", en: "subtle tinted fill" }, definition: { fr: "Fond teinté très léger, sans état.", en: "Very light tinted background, with no state." } },
   "surface/foreground": { libelle: { fr: "texte sur fond teinté", en: "text on tinted fill" }, definition: { fr: "Texte et icônes sur un fond teinté.", en: "Text and icons on a tinted background." } },
   "surface/border": { libelle: { fr: "contour sur fond teinté", en: "border on tinted fill" }, definition: { fr: "Contour sur un fond teinté.", en: "Border on a tinted background." } },
+  "surface/divider": { libelle: { fr: "filet sur fond teinté", en: "divider on tinted fill" }, definition: { fr: "Trait de séparation sur un fond teinté.", en: "Dividing line on a tinted background." } },
   "page/foreground": { libelle: { fr: "texte coloré", en: "colored text" }, definition: { fr: "Texte et icônes colorés sur le fond de la page.", en: "Colored text and icons on the page background." } },
   "page/border": { libelle: { fr: "contour", en: "border" }, definition: { fr: "Contour des éléments sur le fond de la page.", en: "Element borders on the page background." } },
   "page/divider": { libelle: { fr: "filet", en: "divider" }, definition: { fr: "Trait de séparation sur le fond de la page.", en: "Dividing line on the page background." } },
@@ -93,7 +95,7 @@ export function modeDuThemeReconnu(nom: string, index?: IndexDuVocabulaire): Mod
   return MODES.find((mode) => mode === forme);
 }
 
-/** Projette les dix-sept libellés affichés par Palettes, sans les variables globales ni les bornes de la rampe. */
+/** Projette les dix-neuf libellés affichés par Palettes, sans les variables globales ni les bornes de la rampe. */
 export function libellesDesVariables(langue: keyof Langues): Record<VariableLibellee, string> {
   const variables: readonly VariableLibellee[] = [...VARIABLES_DE_PALETTE, 'page/foreground-main', 'page/foreground-subtle', 'elevation/page', 'elevation/raised'];
   return Object.fromEntries(variables.map((variable) => [variable, TEXTES_DES_VARIABLES[variable].libelle[langue]])) as Record<VariableLibellee, string>;

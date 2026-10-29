@@ -72,7 +72,7 @@ test('C63 compare les scopes au chemin complet du thème', () => {
   const resultats = controlerLaStructure(releve(), c).filter((constat) => constat.correction?.sorte === 'scope');
   assert.equal(resultats.length, 2);
   assert.equal(resultats.find(({ id }) => id.startsWith('C63:default'))?.correction?.apres.nom, 'FRAME_FILL,SHAPE_FILL');
-  assert.equal(resultats.find(({ id }) => id.startsWith('C63:foreground'))?.correction?.apres.nom, 'SHAPE_FILL,TEXT_FILL');
+  assert.equal(resultats.find(({ id }) => id.startsWith('C63:foreground'))?.correction?.apres.nom, 'SHAPE_FILL,STROKE_COLOR,TEXT_FILL');
 });
 
 test('C63 questionne une valeur vide si deux palettes sœurs sont renseignées', () => {

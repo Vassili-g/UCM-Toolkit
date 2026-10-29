@@ -24,14 +24,14 @@ test('chaque variable du thème a une définition et reprend son support sans le
   assert.equal(REGLE_SCALE.support, SUPPORT_DES_VARIABLES['scale/0']);
 });
 
-test('les dix-sept libellés gardent les textes validés dans les deux langues', () => {
+test('les dix-neuf libellés gardent les textes validés dans les deux langues', () => {
   const attendus = {
-    fr: ['bouton', 'bouton survolé', 'bouton appuyé', 'texte des boutons', 'fond teinté', 'fond teinté survolé', 'fond teinté appuyé', 'texte sur fond teinté', 'contour sur fond teinté', 'texte coloré', 'contour', 'filet', 'anneau de focus', 'corps de texte', 'texte secondaire', 'fond de la page', 'fond de la carte'],
-    en: ['button', 'button, hovered', 'button, pressed', 'button text', 'tinted fill', 'tinted fill, hovered', 'tinted fill, pressed', 'text on tinted fill', 'border on tinted fill', 'colored text', 'border', 'divider', 'focus ring', 'body text', 'secondary text', 'page background', 'card background'],
+    fr: ['bouton', 'bouton survolé', 'bouton appuyé', 'texte des boutons', 'fond teinté', 'fond teinté survolé', 'fond teinté appuyé', 'fond teinté léger', 'texte sur fond teinté', 'contour sur fond teinté', 'filet sur fond teinté', 'texte coloré', 'contour', 'filet', 'anneau de focus', 'corps de texte', 'texte secondaire', 'fond de la page', 'fond de la carte'],
+    en: ['button', 'button, hovered', 'button, pressed', 'button text', 'tinted fill', 'tinted fill, hovered', 'tinted fill, pressed', 'subtle tinted fill', 'text on tinted fill', 'border on tinted fill', 'divider on tinted fill', 'colored text', 'border', 'divider', 'focus ring', 'body text', 'secondary text', 'page background', 'card background'],
   };
   for (const langue of ['fr', 'en'] as const) {
     const projection: Record<VariableLibellee, string> = libellesDesVariables(langue);
-    assert.equal(Object.keys(projection).length, 17);
+    assert.equal(Object.keys(projection).length, 19);
     assert.deepEqual(Object.values(projection), attendus[langue]);
     assert.deepEqual(Object.keys(projection), [...VARIABLES_DE_PALETTE, 'page/foreground-main', 'page/foreground-subtle', 'elevation/page', 'elevation/raised']);
   }
