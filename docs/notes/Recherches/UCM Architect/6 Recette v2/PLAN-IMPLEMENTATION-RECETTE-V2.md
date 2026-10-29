@@ -152,9 +152,9 @@ Analyse 7.3, « Factoriser et documenter la notion ». Nature : code nouveau.
 
 Analyse 4, « La carte ». Nature : code nouveau.
 
-- [~ Claude 2] **K8.1** `packages/kit/src/controles/propagation.ts` : `candidatsDeModele(releve, catalogue)` rend, par sorte (`couleurs`, `tailles`), le variant qui porte le plus de liaisons de cette sorte, à égalité le premier du jeu ; les layers en dur ailleurs ; le nombre de liaisons que `proposerLaPropagation` proposerait. Rien si ce nombre vaut zéro.
-- [~ Claude 2] **K8.2** Constat `C81`, famille `liaisons` ou `tailles`, type `corriger`, faits `{ modele, layers, variants, liaisons }`, sans correction. `C81` est libre ; l'ajouter au registre des codes de `packages/plugin-architect/invariants/explorateur.md`, où C80 est décrit (l'orchestrateur le fait à la synchronisation : fichier hors de la piste K).
-- [~ Claude 2] **K8.3** Tests dans `propagation.test.ts` : un variant lié et 3 en dur donnent un C81 ; tous liés, aucun ; aucun lié, aucun.
+- [x] (bc472e9f) **K8.1** `packages/kit/src/controles/propagation.ts` : `candidatsDeModele(releve, catalogue)` rend, par sorte (`couleurs`, `tailles`), le variant qui porte le plus de liaisons de cette sorte, à égalité le premier du jeu ; les layers en dur ailleurs ; le nombre de liaisons que `proposerLaPropagation` proposerait. Rien si ce nombre vaut zéro.
+- [x] (bc472e9f) **K8.2** Constat `C81`, famille `liaisons` ou `tailles`, type `corriger`, faits `{ modele, layers, variants, liaisons }`, sans correction. `C81` est libre ; l'ajouter au registre des codes de `packages/plugin-architect/invariants/explorateur.md`, où C80 est décrit (l'orchestrateur le fait à la synchronisation : fichier hors de la piste K).
+- [x] (bc472e9f) **K8.3** Tests dans `propagation.test.ts` : un variant lié et 3 en dur donnent un C81 ; tous liés, aucun ; aucun lié, aucun.
 
 #### K9 · Le signe de la section Informations
 
@@ -166,10 +166,10 @@ Analyse 7.4. Nature : code nouveau.
 
 Analyse 7.5. Nature : correction d'un défaut.
 
-- [ ] **K4.1** Type du catalogue (`controles/catalogue.ts`) : champ facultatif `fondsDElevation`, par mode du thème, `{ page, carte }` en couleur résolue ; champ facultatif `fondDeLaPageFigma`, une couleur. Aucun lecteur ne change encore.
-- [ ] **K4.2** `fondEffectif` et `calculerLeFond` (`controles/accessibilite.ts:474`) : sans fill opaque dans le variant, mesurer contre la page et contre la carte, dans chaque mode. Sans `fondsDElevation`, mesurer contre `fondDeLaPageFigma`.
-- [ ] **K4.3** Sévérité : suivre l'alias du premier plan jusqu'à la variable du thème, chercher la variable et le fond dans `GARANTIES` (`emplois/garanties.ts`). Garanti : `corriger`. Non garanti, variable hors thème, ou fond de la page Figma : `verifier`. Faits : `fond` (`page`, `carte` ou `page-figma`), `mode`, `variableDuTheme`, `garanti`. Au repli sur la page Figma, émettre aussi un constat `info`, une fois par analyse, cause `fond-de-repli`.
-- [ ] **K4.4** Tests dans `accessibilite.test.ts`, valables avant et après P1 : stroke `page/border` à 2,7:1 sur la page en Dark, `corriger` (garanti sur la page dès aujourd'hui) ; stroke `page/divider` à 2,4:1 sur la carte en Dark, `verifier` (aucune garantie, ni avant ni après P1) ; sans `fondsDElevation`, `verifier` avec `fond: 'page-figma'` et un constat `info` `fond-de-repli` ; ancien cas `fond-indetermine` remplacé.
+- [x] (6a6d4ac9) **K4.1** Type du catalogue (`controles/catalogue.ts`) : champ facultatif `fondsDElevation`, par mode du thème, `{ page, carte }` en couleur résolue ; champ facultatif `fondDeLaPageFigma`, une couleur. Aucun lecteur ne change encore.
+- [x] (6a6d4ac9) **K4.2** `fondEffectif` et `calculerLeFond` (`controles/accessibilite.ts:474`) : sans fill opaque dans le variant, mesurer contre la page et contre la carte, dans chaque mode. Sans `fondsDElevation`, mesurer contre `fondDeLaPageFigma`.
+- [x] (6a6d4ac9) **K4.3** Sévérité : suivre l'alias du premier plan jusqu'à la variable du thème, chercher la variable et le fond dans `GARANTIES` (`emplois/garanties.ts`). Garanti : `corriger`. Non garanti, variable hors thème, ou fond de la page Figma : `verifier`. Faits : `fondNomme` (`page`, `carte` ou `page-figma` ; `fond` garde la couleur que l'interface lit), `mode`, `variableDuTheme`, `garanti`. Au repli sur la page Figma, émettre aussi un constat `info`, une fois par analyse, cause `fond-de-repli`.
+- [x] (6a6d4ac9) **K4.4** Tests dans `accessibilite.test.ts`, valables avant et après P1 : stroke `page/border` à 2,7:1 sur la page en Dark, `corriger` (garanti sur la page dès aujourd'hui) ; stroke `page/divider` à 2,4:1 sur la carte en Dark, `verifier` (aucune garantie, ni avant ni après P1) ; sans `fondsDElevation`, `verifier` avec `fond: 'page-figma'` et un constat `info` `fond-de-repli` ; ancien cas `fond-indetermine` remplacé.
 
 #### K6 · La pièce interne dans C80
 
@@ -178,9 +178,9 @@ Analyse 7.3, « Décision ». Dépend de K5. Nature : correction d'un défaut.
 `LiaisonLue` porte déjà `surcharge?: { id, nom, type }`, le layer intérieur
 d'une instance. Le nouveau champ prend un autre nom pour ne pas s'y confondre.
 
-- [ ] **K6.1** `controles/releve.ts` : `LiaisonLue` reçoit `provenance?: 'composant-principal' | 'instance'` ; le layer imbriqué reçoit `sorte?: SorteDImbrique`. Champs facultatifs : un relevé ancien reste lisible.
-- [ ] **K6.2** `controlerCouches` (`controles/couche.ts:60`) : une liaison de provenance `composant-principal` d'une `piece-interne` ou d'un `wrapper-de-dimensions` vers `theme` ou `layout` ne donne pas C80. Une liaison de provenance `instance` reste jugée comme un layer de l'hôte.
-- [ ] **K6.3** Tests dans `controles-composant.test.ts` : radius de `.Ring` lié à `Radius/lg` dans le composant principal, aucun C80 ; couleur posée sur l'instance par un token de Button, aucun ; couleur posée sur l'instance par `layout`, C80.
+- [x] (63f21dc9) **K6.1** `controles/releve.ts` : `LiaisonLue` reçoit `provenance?: 'composant-principal' | 'instance'` ; le layer imbriqué reçoit `sorte?: SorteDImbrique`. Champs facultatifs : un relevé ancien reste lisible.
+- [x] (63f21dc9) **K6.2** `controlerCouches` (`controles/couche.ts:60`) : une liaison de provenance `composant-principal` d'une `piece-interne` ou d'un `wrapper-de-dimensions` vers `theme` ou `layout` ne donne pas C80. Une liaison de provenance `instance` reste jugée comme un layer de l'hôte.
+- [x] (63f21dc9) **K6.3** Tests dans `controles-composant.test.ts` : radius de `.Ring` lié à `Radius/lg` dans le composant principal, aucun C80 ; couleur posée sur l'instance par un token de Button, aucun ; couleur posée sur l'instance par `layout`, C80.
 
 #### P1 · Les garanties sur la carte
 
@@ -205,8 +205,8 @@ Analyse 9. Agent : `implementeur-exigeant` (trois lecteurs d'une règle). Nature
 
 Dépend de K5 (V2). Agent : `implementeur-exigeant`. Nature : déplacement à sortie identique.
 
-- [ ] **S2.1** Dans `packages/plugin-socle/src/composant/contract/`, la reconnaissance du wrapper de dimensions et des dépendances relève les faits de `FaitsDImbrique` et appelle `sorteDeLImbrique`. Les contrats des fixtures restent identiques à l'octet.
-- [ ] **S2.2** Test dans le socle : aucune reconnaissance d'imbriqué hors de `sorteDeLImbrique`. La même loi côté Architect arrive avec B3.
+- [~ Claude 2] **S2.1** Dans `packages/plugin-socle/src/composant/contract/`, la reconnaissance du wrapper de dimensions et des dépendances relève les faits de `FaitsDImbrique` et appelle `sorteDeLImbrique`. Les contrats des fixtures restent identiques à l'octet.
+- [~ Claude 2] **S2.2** Test dans le socle : aucune reconnaissance d'imbriqué hors de `sorteDeLImbrique`. La même loi côté Architect arrive avec B3.
 
 ### Piste B · sandbox d'Architect (Claude 2)
 
@@ -221,7 +221,7 @@ Analyse 7.6. Agent : `implementeur`. Nature : correction d'un défaut.
 
 Analyse 4. Dépend de K8 (V2). Agent : `implementeur`. Nature : code nouveau.
 
-- [ ] **B4.1** `src/sandbox/analyse.ts` : ajouter les C81 de `candidatsDeModele` aux constats de l'analyse, après `proposerLesCorrections`.
+- [x] (bc472e9f) **B4.1** ~~`src/sandbox/analyse.ts` : ajouter les C81 de `candidatsDeModele` aux constats de l'analyse~~. K8 émet C81 dans `controlerCouchesParEtapes`, que l'analyse appelle déjà. Rien à changer dans le sandbox.
 - [ ] **B4.2** `servir-de-modele` (`src/sandbox/corrections.ts:83`) accepte le variant des faits de C81. Le message `modele-propose` (`src/messages/corrections.ts`) reçoit un champ `retires`, les identifiants des constats qu'il remplace : le C81 d'origine. Test dans `corrections.test.ts`.
 
 #### B2 · Les fonds au catalogue
@@ -282,17 +282,17 @@ Analyse 3 et 5. Nature : écran nouveau.
 
 Analyse 4 et 6. Nature : écran nouveau.
 
-- [~ Claude 1] **U4.1** Carte de constat et de question : chevron en haut à droite, sur la ligne de la sévérité ; ligne d'actions en bas, sous le texte (`src/ui/ignores/index.ts`, `src/ui/questions/index.ts`).
-- [~ Claude 1] **U4.2** Bouton Sélectionner, signe `selection` du kit, sur toute carte qui vise des layers. Après le clic, « Sélectionnés », désactivé jusqu'au prochain message `selection` du sandbox. Une carte de correction le porte dans son corps déplié.
-- [~ Claude 1] **U4.3** Ouvrir une carte ne sélectionne plus rien : retirer les appels de `src/ui/corrections/index.ts:400`, `:464` et `src/ui/ignores/index.ts:158`. Tests `ignores.test.ts`, `corrections.test.ts`.
+- [x] (a7e43ae1) **U4.1** Carte de constat et de question : chevron en haut à droite, sur la ligne de la sévérité ; ligne d'actions en bas, sous le texte (`src/ui/ignores/index.ts`, `src/ui/questions/index.ts`).
+- [x] (a7e43ae1) **U4.2** Bouton Sélectionner, signe `selection` du kit, sur toute carte qui vise des layers. Après le clic, « Sélectionnés », désactivé jusqu'au prochain message `selection` du sandbox. Une carte de correction le porte dans son corps déplié.
+- [x] (a7e43ae1) **U4.3** Ouvrir une carte ne sélectionne plus rien : retirer les appels de `src/ui/corrections/index.ts:400`, `:464` et `src/ui/ignores/index.ts:158`. Tests `ignores.test.ts`, `corrections.test.ts`.
 
 #### U5 · La section Informations
 
 Analyse 7.4. Dépend de K7, K9 et K4 (V3). Nature : écran nouveau.
 
-- [ ] **U5.1** `src/ui/panneau/elements.ts` : un constat `info` sort des éléments, des nombres, de « Tout », du sommaire et de la pastille de Constats.
-- [ ] **U5.2** `src/ui/panneau/rendu.ts` : section Informations en dernier, signe `information`, repliée à l'arrivée ; une ligne par information, avec sa ligne de lieu et Sélectionner quand elle vise des layers.
-- [ ] **U5.3** Textes des lignes, dans `src/ui/textes/` :
+- [~ Claude 1] **U5.1** `src/ui/panneau/elements.ts` : un constat `info` sort des éléments, des nombres, de « Tout », du sommaire et de la pastille de Constats.
+- [~ Claude 1] **U5.2** `src/ui/panneau/rendu.ts` : section Informations en dernier, signe `information`, repliée à l'arrivée ; une ligne par information, avec sa ligne de lieu et Sélectionner quand elle vise des layers.
+- [~ Claude 1] **U5.3** Textes des lignes, dans `src/ui/textes/` :
   - C53 : « Contraste non mesuré sur `Disabled`, que WCAG exempte. »
   - C49 et C50 avec limite : « Contraste non mesuré : » suivi de la cause, avec les phrases de cause existantes (`CAUSES_DE_LIMITE`).
   - C49 borne : « {n} paires de couleurs non mesurées sur {total}. »
@@ -341,9 +341,9 @@ Analyse 10, « Ce que le changement touche ». Dépend de P1 (V4). Agent : `impl
 
 #### V · Versions
 
-- [ ] **V1** Après la synchronisation de la vague 1, une fois O0.4 levé : kit, CLI et adaptateur montés, pins, READMEs, lock.
-- [ ] **V2** Vague 2.
-- [ ] **V3** Vague 3.
+- [x] (c8cb3ae5) **V1** Kit 0.13.31, CLI 0.1.128, adaptateur 0.1.121 : K1 à K9, hors P1. V2 et V3 n'ont plus d'objet ; V4 suit P1.
+- [x] **V2** ~~Vague 2~~, comprise dans V1.
+- [x] **V3** ~~Vague 3~~, comprise dans V1.
 - [ ] **V4** Vague 4.
 
 #### O1 · Documents
