@@ -265,19 +265,21 @@ Agent : `implementeur`.
 Fichiers : `packages/plugin-architect/src/integrations/profilUcm.ts`, fixtures
 de `packages/plugin-architect/tests/`, messages qui citent les portées.
 
-- [ ] Les constats `portee` suivent la nouvelle table : fonds de `solid` sans
+- [x] Les constats `portee` suivent la nouvelle table : fonds de `solid` sans
       `STROKE_COLOR`, `foreground` avec, filets avec `FRAME_FILL` et
       `SHAPE_FILL`.
-- [ ] `surface/subtle` et `surface/divider` sont reconnus par
+- [x] `surface/subtle` et `surface/divider` sont reconnus par
       `variableDuThemeReconnue`. Ajouter les tests.
-- [ ] Mettre à jour les fixtures qui donnent `STROKE_COLOR` aux fonds de
+- [x] Mettre à jour les fixtures qui donnent `STROKE_COLOR` aux fonds de
       `solid` ou qui comptent les variables de `theme`.
-- [ ] Dans les textes destinés au designer, écrire « scope » et non
+- [x] Dans les textes destinés au designer, écrire « scope » et non
       « portée ». Charger la skill `rediger-diagnostics-ucm` avant d'écrire un
       message.
 
 Fin : `npm run test:paquet -- architect` passe ;
 `npm run build:plugin -- architect` passe.
+
+Fait : `7c9678d6`. Le code d'Architect lisait déjà la table du kit : seuls les tests changent.
 
 ## D1. Documents
 
