@@ -10,6 +10,7 @@ import { atteintLeSeuil, contraste, type Rgb8 } from '../emplois/contraste.js';
 import { RECOMMANDATIONS } from '../referentiel/recommandations.js';
 import type { CatalogueDeReference, CollectionDuCatalogue, CouleurResolue, VariableDuCatalogue } from './catalogue.js';
 import { collectionDuCatalogue, variableDuCatalogue } from './catalogue.js';
+import { estLAxeDEtats } from '../referentiel/reconnaissance.js';
 import { variableDuThemeReconnue } from '../referentiel/theme.js';
 import { etatReconnu } from './nommage.js';
 import type { Constat } from './constat.js';
@@ -102,7 +103,6 @@ type Cible = {
 };
 
 const OPAQUE = 1 - 1e-9;
-const AXE_D_ETAT = /^(state|etat|état)$/i;
 /**
  * Un anneau se reconnaît à son nom seul, `ring` ou `focus-ring` (note P : le nom tranche). Un point ou un tiret bas en tête,
  * la marque Figma d'un layer privé (`.Ring`), ne change pas le nom.
@@ -165,12 +165,12 @@ export function* controlerLAccessibiliteParEtapes(
 }
 
 function etatDuVariant(variant: VariantLu): string | null {
-  for (const [axe, valeur] of Object.entries(variant.valeurs)) if (AXE_D_ETAT.test(axe)) return etatReconnu(valeur) ?? valeur.toLowerCase();
+  for (const [axe, valeur] of Object.entries(variant.valeurs)) if (estLAxeDEtats(axe)) return etatReconnu(valeur) ?? valeur.toLowerCase();
   return null;
 }
 
 function estInteractif(releve: ReleveDeComposant): boolean {
-  return releve.proprietes.some((p) => p.type === 'VARIANT' && AXE_D_ETAT.test(p.nom)
+  return releve.proprietes.some((p) => p.type === 'VARIANT' && estLAxeDEtats(p.nom)
     && (p.valeurs ?? []).some((v) => {
       const etat = etatReconnu(v);
       return etat !== undefined && etat !== 'default' && etat !== 'disabled';

@@ -16,6 +16,7 @@ import {
   STATE_AXIS_NAMES as AXES_ETAT,
   STATE_PRECEDENCE,
   STATE_SELECTORS,
+  estLAxeDEtats,
   termeRetenu,
 } from '@ucm-kit/core/referentiel';
 import { pousserSansNode } from '../contract/localisation';
@@ -30,19 +31,19 @@ import type { ContractProp, StateDescriptor, StateModel } from '@ucm-kit/core/fo
 export const DEPENDANCES_DE_PROPRIETES_ET_ETATS = {
   modeleDeProprietes: {
     entrees: ['componentPropertyDefinitions'],
-    referentiel: ['SIZE_VALUES', 'STATE_AXIS_NAMES'],
+    referentiel: ['SIZE_VALUES', 'REGISTRE_AXES_ETAT'],
   },
   modeleDEtats: {
     entrees: ['axes de la matrice', 'valeurs de chaque variant de la matrice'],
-    referentiel: ['REGISTRE_ETATS', 'STATE_AXIS_NAMES', 'STATE_PRECEDENCE', 'STATE_SELECTORS'],
+    referentiel: ['REGISTRE_ETATS', 'REGISTRE_AXES_ETAT', 'STATE_PRECEDENCE', 'STATE_SELECTORS'],
   },
 } as const;
 
 /**
- * Les noms, une fois normalisés, d'un axe d'états : `State`, `States` ou
- * `Status` dans Figma. Unique liste : `isStateProperty` en retire l'axe des
- * props, `lireLeModeleDEtats` le publie, et les deux lectures ne peuvent pas
- * diverger.
+ * Les noms, une fois normalisés, d'un axe d'états : `State`, `States`, `Status`,
+ * `État` ou `Etat` dans Figma. Le registre du kit les possède ; `isStateProperty`
+ * en retire l'axe des props et `lireLeModeleDEtats` le publie par la même
+ * fonction, donc les deux lectures ne peuvent pas diverger.
  */
 export const STATE_AXIS_NAMES: readonly string[] = AXES_ETAT;
 
@@ -120,7 +121,7 @@ export function definePropOn(
  * qu'aucun message ne la nomme.
  */
 export function isStateProperty(key: string): boolean {
-  return STATE_AXIS_NAMES.includes(key);
+  return estLAxeDEtats(key);
 }
 
 /**

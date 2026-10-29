@@ -1,11 +1,11 @@
 /** Comparaison des axes du composant avec les noms de ses variables de référence. */
 import { reconnaitreLeChemin, type SegmentReconnu } from '../referentiel/grammaire.js';
-import { formeReconnue, termeReconnu } from '../referentiel/reconnaissance.js';
+import { estLAxeDEtats, formeReconnue, termeReconnu } from '../referentiel/reconnaissance.js';
 import type { NomANormaliser } from '../referentiel/conventions.js';
 import { categorieDuSegment } from '../referentiel/ecriture-des-mots.js';
 import { termePourCategorie, type Registre } from '../referentiel/termes.js';
 import { FAMILLES_PRIMITIVES, REGISTRE_PALETTES_COMPOSANT, REGISTRE_STYLES_COMPOSANT } from '../referentiel/architecture.js';
-import { REGISTRE_ETATS, REGISTRE_TAILLES, STATE_AXIS_NAMES } from '../referentiel/vocabulaire.js';
+import { REGISTRE_ETATS, REGISTRE_TAILLES } from '../referentiel/vocabulaire.js';
 import { collectionParCle, type CatalogueDeReference, type VariableDuCatalogue } from './catalogue.js';
 import type { Constat } from './constat.js';
 import type { ReleveDeComposant } from './releve.js';
@@ -20,7 +20,7 @@ export interface TokenDuComposant {
 
 export function axeDePropriete(nom: string): AxeDuComposant | undefined {
   const forme = formeReconnue(nom);
-  if (STATE_AXIS_NAMES.some((nomDAxe) => forme === formeReconnue(nomDAxe))) return 'etat';
+  if (estLAxeDEtats(nom)) return 'etat';
   if (['size', 'sizes', 'taille'].includes(forme)) return 'taille';
   if (['palette', 'severity', 'intent', 'color'].includes(forme)) return 'palette';
   if (['style', 'variant', 'appearance'].includes(forme)) return 'style';

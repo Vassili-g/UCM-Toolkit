@@ -637,6 +637,41 @@ test('les termes d’état tolérés donnent des notices sans rendre la projecti
   }
 });
 
+test('un axe État publie un stateModel et ne figure pas dans les props', async () => {
+  const figmaFaux = monterFigma({ avecRegles: false });
+  const valeurs = ['Default', 'Hover'];
+  const variants = valeurs.map((valeur) => node('COMPONENT', `État=${valeur}`, [], {
+    variantProperties: { 'État': valeur },
+    layoutMode: 'HORIZONTAL',
+    itemSpacing: 0,
+    paddingLeft: 0,
+    paddingRight: 0,
+    paddingTop: 0,
+    paddingBottom: 0,
+    cornerRadius: 0,
+  }));
+  const componentSet = node('COMPONENT_SET', 'Bouton', variants, {
+    key: 'etat-key',
+    componentPropertyDefinitions: {
+      'État': { type: 'VARIANT', variantOptions: valeurs, defaultValue: 'Default' },
+    },
+    defaultVariant: variants[0],
+  });
+  (globalThis as any).figma.currentPage.selection = [componentSet];
+  try {
+    const contrat = JSON.parse((await handleExportComponent()).content);
+
+    assert.deepEqual(contrat.stateModel, {
+      axis: 'état',
+      states: { default: {}, hover: { selector: ':hover' } },
+      precedence: ['hover', 'default'],
+    });
+    assert.equal(contrat.props?.['état'], undefined);
+  } finally {
+    figmaFaux.restaurer();
+  }
+});
+
 test('une piste FIXED de grille est publiée en pixels, sans un mot au designer', async () => {
   // Le réflexe du designer devant un message est de retourner dans Figma. Ici la
   // valeur est dans le contrat et rien n'y manque : le dire enverrait chercher

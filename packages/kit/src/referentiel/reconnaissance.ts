@@ -5,6 +5,7 @@
  */
 import { decouperSegment } from './ecriture-des-mots.js';
 import type { Registre, Terme } from './termes.js';
+import { REGISTRE_AXES_ETAT } from './vocabulaire.js';
 
 const FORMES_MEMORISEES_MAX = 20_000;
 const formes = new Map<string, string>();
@@ -70,4 +71,12 @@ export function termeReconnu(registre: Registre, segment: string): Terme | undef
   const forme = formeReconnue(segment);
   if (!forme) return undefined;
   return indexDuRegistre(registre).parForme.get(forme);
+}
+
+/**
+ * Vrai quand le nom d'une propriété de variant est l'axe d'états (`State`, `States`, `Status`, `État`, `Etat`).
+ * Vit ici et non dans `vocabulaire.ts` : `vocabulaire.ts` importerait ce module, dont la chaîne revient à `architecture.ts`, qui lit `vocabulaire.ts` au chargement.
+ */
+export function estLAxeDEtats(nom: string): boolean {
+  return termeReconnu(REGISTRE_AXES_ETAT, nom) !== undefined;
 }

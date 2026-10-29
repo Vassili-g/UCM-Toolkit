@@ -37,7 +37,6 @@ export const STATE_PRECEDENCE = [
   'disable', 'disabled', 'press', 'pressed', 'selected-true', 'selected', 'focus', 'focused', 'hover', 'hovered',
   'default', 'rest', 'resting', 'normal', 'selected-false', 'unselected',
 ] as const;
-export const STATE_AXIS_NAMES = ['state', 'states', 'status'] as const;
 /** Les tailles que l'exporteur accepte sans que `REGISTRE_TAILLES` les reconnaisse : une compatibilité voulue. */
 export const TAILLES_DE_COMPATIBILITE = ['tiny', 'huge'] as const;
 export const SIZE_VALUES: ReadonlySet<string> = new Set([
@@ -116,9 +115,12 @@ export const REGISTRE_ETATS: Registre = {
 export const REGISTRE_AXES_ETAT: Registre = {
   id: 'axes-etat', extensible: false,
   termes: [
-    { id: 'state', toleres: ['states', 'status'], libelle: { fr: 'État', en: 'State' }, definition: { fr: 'Axe qui décrit les états du composant.', en: 'Axis describing component states.' } },
+    { id: 'state', toleres: ['states', 'status', 'etat', 'état'], libelle: { fr: 'État', en: 'State' }, definition: { fr: 'Axe qui décrit les états du composant.', en: 'Axis describing component states.' } },
   ],
 };
+
+/** Les écritures d'un axe d'états, telles que le registre les donne ; `estLAxeDEtats` (`reconnaissance.ts`) les compare par forme. */
+export const STATE_AXIS_NAMES: readonly string[] = REGISTRE_AXES_ETAT.termes.flatMap((terme) => [terme.id, ...(terme.toleres ?? [])]);
 
 /** Les dossiers gardent les tailles en mots entiers ; les variables emploient les abréviations. */
 const TAILLES_RETENUES: readonly (readonly [string, readonly string[]])[] = [

@@ -12,6 +12,7 @@ import {
   DEPENDANCES_DE_PROPRIETES_ET_ETATS,
   buildStateModel,
   extractContractPropertyModel,
+  isStateProperty,
   lireLeModeleDEtats,
   lireLeModeleDeProprietes,
   pousserLesPoints,
@@ -72,6 +73,32 @@ test('le modèle d’états sépare les avertissements des termes tolérés, dan
     ['avertissements', 'l\'état « loading » n\'est pas reconnu.'],
     ['notices', 'l’état « hovered » s’écrit « hover » dans le vocabulaire UCM.'],
   ]);
+});
+
+test('un axe État ou Etat est l’axe d’états : il quitte les props et le modèle d’états le publie', () => {
+  for (const nom of ['State', 'States', 'Status', 'État', 'Etat']) {
+    const { modele } = lireLeModeleDeProprietes(definitions({
+      [`${nom}#1:1`]: { type: 'VARIANT', defaultValue: 'Default', variantOptions: ['Default', 'Hover'] },
+    }));
+    const cle = [...modele.publicVariantKeyByRawKey.keys()][0];
+    assert.deepEqual(Object.keys(modele.props), [], nom);
+    assert.equal(isStateProperty(cle), true, nom);
+
+    const etats = lireLeModeleDEtats([cle], [{ [cle]: 'default' }, { [cle]: 'hover' }]);
+    assert.deepEqual(etats.modele, { axis: cle, states: { default: {}, hover: { selector: ':hover' } }, precedence: ['hover', 'default'] }, nom);
+  }
+});
+
+test('un jeu État=Défaut|Survol publie un modèle d’états, et signale ses valeurs inconnues', () => {
+  const { modele } = lireLeModeleDeProprietes(definitions({
+    'État#1:1': { type: 'VARIANT', defaultValue: 'Défaut', variantOptions: ['Défaut', 'Survol'] },
+  }));
+  const axe = [...modele.publicVariantKeyByRawKey.values()][0];
+  const { modele: etats, points } = lireLeModeleDEtats([axe], [{ [axe]: 'défaut' }, { [axe]: 'survol' }]);
+
+  assert.equal(etats?.axis, 'état');
+  assert.deepEqual(Object.keys(etats?.states ?? {}), ['défaut', 'survol']);
+  assert.deepEqual(points.map((point) => point.canal), ['avertissements', 'avertissements']);
 });
 
 test('sans axe d’états, le modèle d’états est nul et ne signale rien', () => {

@@ -70,6 +70,83 @@ export const REGLES: Regle[] = [
       { fichier: 'packages/plugin-palettes/src/variables/detection.ts', raison: 'levée par U7' },
     ],
   },
+  {
+    fiche: 'D-01',
+    raison: "Le registre d'un axe se choisit par `registreDeLAxe`, pas par une chaîne de `axe === 'etat' ? REGISTRE_…` écrite en ligne.",
+    motif: /\baxe === 'etat' \? REGISTRE_/,
+    proprietaires: ['packages/kit/src/controles/nommage.ts'],
+    exceptions: [],
+  },
+  {
+    fiche: 'D-01',
+    raison: "Une valeur de taille ne se compare pas par un `termeReconnu(REGISTRE_TAILLES, …)` écrit en ligne : `memeValeurDAxe('taille', …)`.",
+    motif: /\btermeReconnu\(\s*REGISTRE_TAILLES\b/,
+    proprietaires: ['packages/kit/src/controles/nommage.ts'],
+    exceptions: [
+      { fichier: 'packages/kit/src/controles/preparation.ts', raison: 'écrit un nom, ne compare pas une valeur d\'axe' },
+    ],
+  },
+  {
+    fiche: 'D-01',
+    raison: "Une valeur d'état se lit par `etatReconnu` et se compare par `memeValeurDAxe('etat', …)`, pas par un `termeReconnu(REGISTRE_ETATS, …)` écrit en ligne.",
+    motif: /\btermeReconnu\(\s*REGISTRE_ETATS\b/,
+    proprietaires: ['packages/kit/src/controles/nommage.ts'],
+    exceptions: [
+      { fichier: 'packages/kit/src/controles/preparation.ts', raison: 'écrit un nom, ne compare pas une valeur d\'axe' },
+    ],
+  },
+  {
+    fiche: 'D-03',
+    raison: "L'axe d'états se reconnaît par `estLAxeDEtats`, pas par `STATE_AXIS_NAMES` parcouru à la main.",
+    motif: /\bSTATE_AXIS_NAMES\s*\.\s*(?:includes|some|every|find|indexOf)\(/,
+    proprietaires: ['packages/kit/src/referentiel/vocabulaire.ts'],
+    exceptions: [],
+  },
+  {
+    fiche: 'D-03',
+    raison: "Un nom de propriété ne se compare pas au littéral `'state'` : `estLAxeDEtats` reconnaît aussi `States`, `Status`, `État` et `Etat`.",
+    motif: /[!=]==\s*(['"])state\1/,
+    proprietaires: ['packages/kit/src/referentiel/vocabulaire.ts'],
+    exceptions: [],
+  },
+  {
+    fiche: 'D-03',
+    raison: "Une expression régulière ne cite pas `state`, `etat` ou `état` comme nom d'axe : `estLAxeDEtats`.",
+    motif: /\/\^\(?(?:state|states|status|etat|état)\b[^/\n]*\$\//i,
+    proprietaires: ['packages/kit/src/referentiel/vocabulaire.ts'],
+    exceptions: [],
+  },
+  {
+    fiche: 'D-04',
+    raison: "Les contrôles lisent un état par `etatReconnu`, pas par `ETATS` de `emplois/dossiers.ts`, qui nomme les dossiers du thème.",
+    motif: /\bimport\s*\{[^}]*\bETATS\b[^}]*\}\s*from\s*(['"])[^'"]*emplois\/dossiers\.js\1/,
+    dossiers: ['packages/kit/src/controles/**'],
+    proprietaires: ['packages/kit/src/controles/preparation.ts'],
+    exceptions: [],
+  },
+  {
+    fiche: 'D-04',
+    raison: "Un état se compare par `etatReconnu(…) === '<état>'`, pas par `formeReconnue(…)` contre un littéral d'état : `Hovered` et `Press` seraient manqués.",
+    motif: /\bformeReconnue\((?:[^()]|\([^()]*\))*\)\s*[!=]==\s*(['"])(?:default|hover|pressed|focus|disabled)\1/,
+    dossiers: ['packages/kit/src/controles/**'],
+    proprietaires: [],
+    exceptions: [],
+  },
+  {
+    fiche: 'D-18',
+    raison: "La famille `color` se reconnaît par `estLaFamilleCouleur`, pas par `formeReconnue(…) === 'color'` : `Colors` et `colour` seraient manqués.",
+    motif: /\bformeReconnue\((?:[^()]|\([^()]*\))*\)\s*[!=]==\s*(['"])color\1/,
+    dossiers: ['packages/kit/src/controles/**'],
+    proprietaires: ['packages/kit/src/controles/nommage.ts'],
+    exceptions: [],
+  },
+  {
+    fiche: 'D-19',
+    raison: "Un token appartient au composant par `estDuComposant`, pas par la forme de son premier segment comparée à celle du jeu.",
+    motif: /\bformeReconnue\(\s*[\w.]+\.nom\.split\(\s*(['"])\/\1\s*\)\s*\[0\]\s*\)/,
+    proprietaires: ['packages/kit/src/controles/nommage.ts'],
+    exceptions: [],
+  },
 ];
 
 /** Remplace les commentaires par des blancs, sans toucher aux chaînes ni aux numéros de ligne. */

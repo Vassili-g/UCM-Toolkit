@@ -98,7 +98,7 @@ test('les états tolérés gardent le déclencheur et la priorité de l’export
     'disable', 'disabled', 'press', 'pressed', 'selected-true', 'selected', 'focus', 'focused', 'hover', 'hovered',
     'default', 'rest', 'resting', 'normal', 'selected-false', 'unselected',
   ]);
-  assert.deepEqual(STATE_AXIS_NAMES, ['state', 'states', 'status']);
+  assert.deepEqual(STATE_AXIS_NAMES, ['state', 'states', 'status', 'etat', 'état']);
   assert.equal(termeRetenu(REGISTRE_ETATS, 'active'), undefined);
   assert.equal(termeRetenu(REGISTRE_ETATS, 'HOVER'), undefined);
 });

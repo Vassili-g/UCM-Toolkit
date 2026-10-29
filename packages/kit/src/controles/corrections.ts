@@ -1,6 +1,6 @@
 /** Propositions fondées sur une règle écrite et des faits relus. */
 import type { Collection } from '../referentiel/architecture.js';
-import { formeReconnue } from '../referentiel/reconnaissance.js';
+import { estLAxeDEtats, formeReconnue } from '../referentiel/reconnaissance.js';
 import { collectionParCle, type CatalogueDeReference, type VariableDuCatalogue } from './catalogue.js';
 import { candidatDeLongueurParEtapes, classerLesCandidatsParEtapes, type CandidatDeLongueur } from './candidatsDeLongueur.js';
 import type { Constat, Correction } from './constat.js';
@@ -433,7 +433,7 @@ function axesDuVariant(constat: Constat, index: IndexDeCorrection): Record<strin
 function chaine(valeur: unknown): string | undefined { return typeof valeur === 'string' && valeur.length > 0 ? valeur : undefined; }
 
 function indiceHover(releve: ReleveDeComposant, index: IndexDeCorrection, layer: LayerLu, variantId: string): string {
-  const state = Object.values(index.axes()).find((propriete) => formeReconnue(propriete.nom) === 'state');
+  const state = Object.values(index.axes()).find((propriete) => estLAxeDEtats(propriete.nom));
   if (!state) return 'Aucun autre variant State=hover n’a été lu.';
   let total = 0;
   let avecTokenHover = 0;
