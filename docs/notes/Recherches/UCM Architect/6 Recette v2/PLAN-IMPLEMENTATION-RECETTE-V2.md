@@ -344,7 +344,7 @@ Analyse 10, « Ce que le changement touche ». Dépend de P1 (V4). Agent : `impl
 - [x] (c8cb3ae5) **V1** Kit 0.13.31, CLI 0.1.128, adaptateur 0.1.121 : K1 à K9, hors P1. V2 et V3 n'ont plus d'objet ; V4 suit P1.
 - [x] (f3bde749) **V2** Kit 0.13.32, CLI 0.1.129, adaptateur 0.1.122 : export de `cleDuTheme` (B2), `faits.lignes` de C81 (U6).
 - [x] **V3** ~~Vague 3~~, comprise dans V1.
-- [ ] **V4** Vague 4.
+- [x] (9d9ec699) **V4** Kit 0.13.33, CLI 0.1.130, adaptateur 0.1.123 : P1, et les correctifs du rapport Button du 29/10 : wrappers de dimensions (9de1021c), variables du thème quelle que soit l'écriture (9432cae8), première analyse qui ouvre le panneau (6bc08128).
 
 #### O1 · Documents
 
@@ -358,7 +358,7 @@ Analyse 10, « Ce que le changement touche ». Dépend de P1 (V4). Agent : `impl
 
 - [x] **J1** ~~Après V1~~ : compris dans J3.
 - [x] (3ca9ba2f) **J3** Après V2 : npm test (seul échec : vue du hub périmée, régénérée en 3ca9ba2f), typecheck, build, build:plugin architect verts.
-- [ ] **J5** Même vérification après O1, puis `npm run build:plugin -- architect` et `npm run build:plugin -- palettes`.
+- [x] **J5** Après V4 : npm test, typecheck, build verts ; build:plugin palettes et architect le 29/10 à 10:28.
 
 #### Z · Clôture
 
