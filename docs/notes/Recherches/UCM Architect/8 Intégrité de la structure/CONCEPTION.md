@@ -297,3 +297,21 @@ Le contrôle d'intégrité fait la distinction. Une couleur sans cible UCM reste
 | Q11 | Un mode attendu qui manque dans `theme` (E) se signale-t-il ? Le plugin ne l'ajoute pas | (a) constat « À faire dans Figma » ; (b) silence | (a), seulement quand `theme` n'a ni `light` ni `dark` reconnu |
 | Q12 | Que fait-on du profil sans écran (`profilUcm.ts`) ? Ses règles `couche`, `valeur-directe` et `portee` recoupent C et D | (a) laisser tel quel ; (b) porter ces trois règles dans la fonction du kit et retirer les doublons du plugin | (b), dans un second temps. `nuance` reste l'objet de Q8 |
 | Q13 | Quel code porte le nouveau contrôle ? | (a) un code neuf (C82) avec des genres ; (b) des genres de plus sous C63 | (a). C63 mélange déjà neuf cas |
+
+### Décisions
+
+| N° | Décision |
+|---|---|
+| Q1 | (a) : la déclaration UCM du fichier suffit |
+| Q2 | (b) : dans la lecture de structure du mode Tokens |
+| Q3 | (a) : Architect crée des variables dans `theme`, en corrections cochables, avec journal et annulation |
+| Q4 | (a) : le sens se déduit d'une jumelle quand une seule jumelle le tranche ; sinon, une question |
+| Q5 | (c) : le nom suit la convention de variables de Nomenclature |
+| Q6 | (b) et (c) : ignorer une variable pour un groupe, ou un rôle pour tout le fichier |
+| Q7 | (b) : le kit porte une cible pour chacune. `scale/0` : blanc en Light, noir en Dark. `scale/1000` et `page/foreground-main` : noir en Light, blanc en Dark. `solid/foreground` : blanc en Light et noir en Dark dans le sens `normal`, l'inverse dans le sens `inverse` |
+| Q8 | (a) : le cran visé entre dans le contrôle. Correction quand le cran est exact (sens sans effet ou déduit par Q4), sinon une question |
+| Q9 | (a) : raison propre dans la feuille de préparation |
+| Q10 | (a) : la ligne de réussite demande de publier la library |
+| Q11 | (a) : constat « À faire dans Figma » quand `theme` n'a ni `light` ni `dark` reconnu |
+| Q12 | (b) : `couche`, `valeur-directe` et `portee` passent dans la fonction du kit ; les doublons du plugin sont retirés |
+| Q13 | (a) : un code neuf, C82 |
