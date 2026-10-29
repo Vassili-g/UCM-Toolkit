@@ -3,16 +3,20 @@
  * liseré, l'icône et le mot de la carte disent le type ; la phrase dit le problème, la ligne grise dit où il est et où le régler. Rien
  * ne s'écrit d'ici : le geste se fait dans Figma. Ouvrir une carte ne change pas la sélection : le bouton Sélectionner, dans la ligne
  * d'actions en bas d'une carte qui vise des layers, la change. Ignorer écarte le constat de la liste, Ne plus ignorer le rend ; une
- * limite de lecture n'a pas de bouton Ignorer. Le panneau choisit les cartes à montrer ; ce module les dessine.
+ * limite de lecture n'a pas de bouton Ignorer. La carte d'un modèle (C81) passe aussi par ce module, avec « Proposer les liaisons » à la
+ * place d'Ignorer et la liste des layers du modèle dans son corps. Le panneau choisit les cartes à montrer ; ce module les dessine.
  */
 import { creerGravite, marquerDuTon } from 'ucm-plugin-socle/src/ui/Alerte';
+import { createButton } from 'ucm-plugin-socle/src/ui/Button';
+import { creerColonnes, creerLigneDeDiff } from 'ucm-plugin-socle/src/ui/Changement';
+import { creerCheminEnPhrase } from 'ucm-plugin-socle/src/ui/Chemin';
 
 import type { Constat } from '../../messages/commun';
 import { analyseApplicable, type AnalyseRecue } from '../composant/analyse';
-import { creerBoutonSelectionner, creerCarte, creerIntertitre, creerLigneDActions } from '../structure/carte';
+import { creerBoutonSelectionner, creerCarte, creerIntertitre, creerLigneDActions, creerMotCite } from '../structure/carte';
 import { TEXTES } from '../textes';
 import { TEXTES_PREPARATION } from '../textes/preparation';
-import { cartesDAFaire, type CarteDAFaire, type ContexteDAFaire, type FaitDeCarte, type MesureDeCarte } from './modele';
+import { cartesDAFaire, type CarteDAFaire, type ContexteDAFaire, type FaitDeCarte, type MesureDeCarte, type ModeleDeCarte } from './modele';
 import { poserLeLieuEnrichi, poserLeTexteEnrichi } from './texte';
 
 const T = TEXTES.aFaireDuComposant;
@@ -22,6 +26,8 @@ export interface OptionsDeAFaire {
   readonly selectionner: (layers: readonly string[]) => void;
   /** Les layers que le plugin a sélectionnés depuis le dernier changement de sélection de Figma ; aucun par défaut. */
   readonly selectionnes?: () => readonly string[];
+  /** Demande les liaisons du variant modèle d'un constat C81 : le sandbox les calcule sans rien écrire. */
+  readonly proposer: (constat: Constat, variant: string) => void;
   readonly ignorer: (constat: Constat) => void;
   readonly nePlusIgnorer: (constat: Constat) => void;
   /** Appelée quand une carte s'ouvre ou se ferme : le panneau se redessine. */
@@ -117,8 +123,20 @@ export function monterAFaire(options: OptionsDeAFaire): AFaire {
     return ligne;
   }
 
+  /** La liste d'un modèle : chaque layer avec son champ, et le token qu'il porte dans le variant modèle. */
+  function creerLaListeDuModele(modele: ModeleDeCarte): HTMLElement {
+    const liste = document.createElement('div');
+    liste.append(creerColonnes(T.modeleLayer, T.modeleToken, { avecCase: false }));
+    for (const ligne of modele.lignes) {
+      const layer = document.createDocumentFragment();
+      layer.append(creerMotCite(ligne.layer), ` ${ligne.champ}`);
+      liste.append(creerLigneDeDiff(layer, creerCheminEnPhrase(ligne.token), { coche: null }));
+    }
+    return liste;
+  }
+
   function creerLaCarte(carte: CarteDAFaire, inactif: boolean): HTMLElement {
-    const { constat } = carte;
+    const { constat, modele } = carte;
     const lieu = document.createElement('span');
     lieu.className = 'constat-lieu';
     poserLeLieuEnrichi(lieu, carte.lieu, entree?.contexte.variants ?? []);
@@ -130,7 +148,9 @@ export function monterAFaire(options: OptionsDeAFaire): AFaire {
       meta.push(...(meta.length > 0 ? [document.createElement('br')] : []), statut);
     }
     let corps: HTMLElement | null = null;
-    if (constat.limite !== true) {
+    if (modele) {
+      if (modele.lignes.length > 0) corps = creerLaListeDuModele(modele);
+    } else if (constat.limite !== true) {
       corps = document.createElement('div');
       if (carte.faits.length > 0) corps.append(creerLesFaits(carte.faits));
       const actions = document.createElement('div');
@@ -149,7 +169,16 @@ export function monterAFaire(options: OptionsDeAFaire): AFaire {
         options.redessiner();
       },
     });
-    const actions = creerLigneDActions([creerBoutonSelectionner({
+    let proposer: HTMLButtonElement | null = null;
+    if (modele) {
+      proposer = createButton({ label: T.proposerLesLiaisons, variant: 'secondary', compact: true, disabled: inactif, onClick: () => {
+        // Le sandbox calcule, puis la carte est remplacée : un second clic n'a rien à demander.
+        if (proposer) proposer.disabled = true;
+        options.proposer(constat, modele.variant);
+      } });
+      proposer.setAttribute('aria-label', T.proposerLesLiaisonsDe(carte.phrase.replace(/`/g, '')));
+    }
+    const actions = creerLigneDActions([proposer, creerBoutonSelectionner({
       layers: constat.layers,
       selectionnes: options.selectionnes?.() ?? [],
       phrase: carte.phrase.replace(/`/g, ''),

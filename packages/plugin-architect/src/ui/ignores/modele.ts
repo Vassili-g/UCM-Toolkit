@@ -17,10 +17,21 @@
  * `[étiquette du mode, rapport]`). Sans eux la mesure s'écrit sans échantillon, et les autres modes se réduisent à leur nombre.
  */
 import type { Constat } from '../../messages/commun';
-import { lieuDesVariants, pairesCommunes, paireDeFigma, type MorceauDeLieu } from '../composant/variants';
+import { lieuDesVariants, pairesCommunes, pairesDuNom, paireDeFigma, type MorceauDeLieu } from '../composant/variants';
 import { TEXTES } from '../textes';
 
 const T = TEXTES.aFaireDuComposant;
+
+/** La sorte de liaisons que porte une carte de modèle (C81) : les couleurs ou les tailles. */
+export type SorteDeModele = 'couleurs' | 'tailles';
+
+/** Une liaison du variant affiché : le layer par son identifiant, le champ de Figma, la sorte du champ et le nom du token. */
+export interface LiaisonDuVariantAffiche {
+  readonly layer: string;
+  readonly champ: string;
+  readonly sorte: SorteDeModele;
+  readonly token: string;
+}
 
 export type SectionDAFaire = 'tokens' | 'variants' | 'contraste' | 'typographie' | 'visibilite';
 
@@ -40,6 +51,8 @@ export interface ContexteDAFaire {
   readonly variants: ReadonlyArray<{ readonly id: string; readonly nom: string }>;
   /** Le nom d'un layer par son identifiant. */
   readonly layers: ReadonlyMap<string, string>;
+  /** Les liaisons du variant que la vue lit : la carte d'un modèle (C81) en tire les layers et le token de chacun. Absent, la carte n'a pas de liste. */
+  readonly liaisons?: readonly LiaisonDuVariantAffiche[];
 }
 
 /** Une ligne de faits sous une carte ouverte : un libellé, puis un texte ou la paire mesurée (rapport, seuil, modes). */
@@ -56,6 +69,19 @@ export type FaitDeCarte =
   | { readonly libelle: string; readonly lignes: readonly string[] }
   | { readonly libelle: string; readonly mesure: MesureDeCarte };
 
+/** Une ligne de la liste d'un modèle : un layer, son champ et son token dans le variant modèle, sans le préfixe du composant. */
+export interface LigneDeModele {
+  readonly layer: string;
+  readonly champ: string;
+  readonly token: string;
+}
+
+/** Ce que porte la carte d'un modèle (C81) : le variant à envoyer au sandbox et la liste de ses liaisons, vide quand la vue ne lit pas ce variant. */
+export interface ModeleDeCarte {
+  readonly variant: string;
+  readonly lignes: readonly LigneDeModele[];
+}
+
 export interface CarteDAFaire {
   readonly constat: Constat;
   readonly section: SectionDAFaire;
@@ -64,6 +90,8 @@ export interface CarteDAFaire {
   readonly lieu: readonly MorceauDeLieu[];
   readonly statut: string | null;
   readonly faits: readonly FaitDeCarte[];
+  /** Présent pour C81 : la carte propose les liaisons d'un variant modèle au lieu de décrire un geste dans Figma. */
+  readonly modele?: ModeleDeCarte;
 }
 
 type Contenu = Omit<CarteDAFaire, 'constat' | 'section' | 'faits' | 'lieu'> & { readonly lieu: string | readonly MorceauDeLieu[]; readonly faits?: readonly FaitDeCarte[] };
@@ -278,6 +306,8 @@ function precise(constat: Constat, contexte: ContexteDAFaire): Contenu | null {
     case 'C51':
     case 'C52':
       return accessibilite(constat, contexte);
+    case 'C81':
+      return modeleDeLiaisons(constat, contexte);
     case 'C64':
       return {
         phrase: T.sansTextStyle(calqueDe(constat, contexte) ?? ''),
@@ -289,6 +319,30 @@ function precise(constat: Constat, contexte: ContexteDAFaire): Contenu | null {
     default:
       return liaisonOuNom(constat, contexte);
   }
+}
+
+/**
+ * C81 : un variant lie déjà des layers que d'autres variants gardent en dur. `faits.modele` est l'identifiant de ce variant ; la ligne
+ * de lieu le montre en puces. La liste n'a des lignes que pour les layers que la vue lit, c'est-à-dire ceux du variant affiché : le
+ * message de l'analyse ne porte ni le nom ni le token des layers d'un autre variant.
+ */
+function modeleDeLiaisons(constat: Constat, contexte: ContexteDAFaire): Contenu {
+  const { faits } = constat;
+  const sorte: SorteDeModele = constat.famille === 'tailles' ? 'tailles' : 'couleurs';
+  const layers = nombre(faits.layers) ?? constat.layers.length;
+  const variant = texte(faits.modele) ?? constat.variants[0] ?? '';
+  const nom = contexte.variants.find((candidat) => candidat.id === variant)?.nom ?? variant;
+  const paires = pairesDuNom(nom);
+  const liaisons = contexte.liaisons ?? [];
+  const lignes = constat.layers.flatMap((layer) => liaisons
+    .filter((liaison) => liaison.sorte === sorte && liaison.layer === layer)
+    .map((liaison) => ({ layer: contexte.layers.get(layer) ?? layer, champ: T.proprieteDeFigma(liaison.champ), token: sansPrefixe(liaison.token, contexte.composant) })));
+  return {
+    phrase: T.modeleEnDur(layers, sorte, nombre(faits.variants) ?? 0),
+    lieu: [T.modeleLie(layers), paires.length > 0 ? { puces: paires } : `\`${nom}\``],
+    statut: null,
+    modele: { variant, lignes },
+  };
 }
 
 /** C66 : l'icône d'un variant, par motif. */

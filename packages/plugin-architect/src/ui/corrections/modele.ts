@@ -9,7 +9,9 @@
  * Les noms de variables s'affichent sans le préfixe du composant
  * (`alert/colors/...` devient `colors/...`), comme la vue Composant les montre.
  */
+import { natureDe } from '../../composant';
 import type { Constat, Correction } from '../../messages/commun';
+import type { ContexteDAFaire } from '../ignores/modele';
 import { TEXTES } from '../textes';
 import { lieuDesVariants, pairesDuNom, type MorceauDeLieu, type PaireDeVariant } from '../composant/variants';
 
@@ -97,6 +99,8 @@ export interface ContexteDeCartes {
   readonly library?: string | null;
   /** Tous les constats visibles, pour compter les cas d'un modèle qui sont des questions. */
   readonly constats: readonly Constat[];
+  /** Les liaisons du variant que la vue lit : la carte d'un modèle à proposer (C81) en tire ses layers. */
+  readonly liaisons?: ContexteDAFaire['liaisons'];
 }
 
 type Genre = 'modele' | 'regles' | 'nom' | 'tailles' | 'texte' | 'jetons' | 'lier';
@@ -119,8 +123,19 @@ function segmentUnique(avant: string, apres: string): [number, string, string] |
   return rangs.length === 1 ? [rangs[0], a[rangs[0]], b[rangs[0]]] : null;
 }
 
+/**
+ * La sorte d'un constat du modèle : une couleur ou une taille, `null` quand le constat ne nomme aucun champ. Le panneau range une
+ * carte dans l'élément de son premier constat, donc les couleurs et les tailles d'un même modèle font deux cartes, chacune dans la
+ * section de sa sorte.
+ */
+function sorteDuModele(constat: Constat): 'couleurs' | 'tailles' | null {
+  const champ = constat.correction?.cible.champ ?? constat.faits.champ;
+  if (typeof champ !== 'string' || champ === '') return null;
+  return natureDe(champ, '').nature === 'couleur' ? 'couleurs' : 'tailles';
+}
+
 function genreDe(constat: Constat, correction: Correction, contexte: ContexteDeCartes): { cle: string; genre: Genre; section: SectionDeCorrections } {
-  if (texte(constat.faits.modele) !== null) return { cle: `modele:${constat.faits.modele}`, genre: 'modele', section: 'liaisons' };
+  if (texte(constat.faits.modele) !== null) return { cle: `modele:${constat.faits.modele}:${sorteDuModele(constat) ?? ''}`, genre: 'modele', section: 'liaisons' };
   if (correction.sorte === 'regles') return { cle: `regles:${correction.id}`, genre: 'regles', section: 'regles' };
   if (correction.sorte === 'nom-de-valeur') return { cle: `nom:${correction.cible.champ ?? ''}:${correction.avant ?? ''}:${correction.apres.nom}`, genre: 'nom', section: 'noms' };
   if (constat.code === 'C59') return { cle: `texte:${constat.code}`, genre: 'texte', section: 'liaisons' };
@@ -207,7 +222,8 @@ function carteDe(cle: string, genre: Genre, section: SectionDeCorrections, ligne
     meta = [T.reglesMeta(Number(faitsPremiers.regles ?? 0), texte(faitsPremiers.proprietes) ?? '')];
   } else if (genre === 'modele') {
     const modele = String(faitsPremiers.modele);
-    const questions = contexte.constats.filter((constat) => constat.question !== undefined && constat.faits.modele === modele).length;
+    const sorte = constats[0] === undefined ? null : sorteDuModele(constats[0]);
+    const questions = contexte.constats.filter((constat) => constat.question !== undefined && constat.faits.modele === modele && (sorte === null || sorteDuModele(constat) === sorte)).length;
     phrase = [T.copier, { variant: modele }];
     meta = [T.copieMeta(nomsDeVariants.length, lignes.length, questions)];
   } else if (genre === 'nom') {

@@ -92,7 +92,23 @@ const dEntree = [5, 14, 13];
 const constatsAvantLeModele = [...dEntree.map((rang) => analyseAlert.constats[rang]), ...analyseAlert.constats.filter((_, rang) => !dEntree.includes(rang))];
 const analyseAvantLeModele = { type: 'analyse', analyse: IDENTITE, statut: 'complete', constats: constatsAvantLeModele, lecture: null, variants: variantsDuModele };
 /** Ce que le sandbox rend à `servir-de-modele` : les constats du modèle que `constatsDuModele` a changés ou ajoutés. */
-const modelePropose = { type: 'modele-propose', analyse: IDENTITE, variant: 'alert:0', constats: constatsDuModele().filter((constat) => constat.correction || constat.question || constat.id.startsWith('C40:')) };
+const modelePropose = { type: 'modele-propose', analyse: IDENTITE, variant: 'alert:0', constats: constatsDuModele().filter((constat) => constat.correction || constat.question || constat.id.startsWith('C40:')), retires: [] };
+
+/**
+ * La carte du modèle (C81) : le variant `alert:0` (info et standard) lie déjà des layers que dix autres variants gardent en dur. Une carte
+ * par sorte, dans la section de sa sorte. Les layers sont ceux de la lecture, donc le variant affiché est le modèle et la carte peut
+ * lister ses layers ; `ailleurs` pose les layers d'un variant que la vue ne lit pas.
+ */
+const c81 = (sorte, layers, faits) => ({
+  id: `C81:${sorte}:alert:0`, code: 'C81', type: 'corriger', famille: sorte === 'couleurs' ? 'liaisons' : 'tailles', variants: ['alert:0'], layers, faits: { modele: 'alert:0', ...faits },
+});
+const constatsCarteDuModele = [c81('couleurs', [CONTAINER, ICON, MESSAGE], { layers: 3, variants: 10, liaisons: 3 }), c81('tailles', [CONTAINER], { layers: 1, variants: 10, liaisons: 4 })];
+const analyseCarteDuModele = { type: 'analyse', analyse: IDENTITE, statut: 'complete', constats: constatsCarteDuModele, lecture: null, variants: variantsDuModele };
+const analyseModeleAilleurs = { ...analyseCarteDuModele, constats: [c81('couleurs', ['alert:v:ailleurs:container', 'alert:v:ailleurs:icon'], { layers: 2, variants: 10, liaisons: 2 })] };
+/** Ce que le sandbox rend au clic : les deux C81 quittent l'analyse, les corrections du modèle arrivent. */
+const modeleProposeApresLaCarte = { ...modelePropose, retires: constatsCarteDuModele.map((constat) => constat.id), constats: modelePropose.constats.filter((constat) => constat.correction) };
+const panneauDuModele = (analyse) => [preferences(), etroite, choisir(alertModele), composant(alertModele), apercu(alertModele), { message: analyse }, { message: aucunIgnore }, { clic: '.bouton-panneau' }];
+const proposer = { clic: '.bloc-actions .btn:not(.bouton-selectionner)' };
 const aucunIgnore = { type: 'ignores', analyse: IDENTITE, constats: [] };
 const lesIds = constatsAlert.flatMap((constat) => (constat.correction ? [constat.correction.id] : []));
 
@@ -109,9 +125,29 @@ const ETATS = [
     existe: true, atteinte: [preferences(), etroite, choisir(alertTexteSuccess), composant(alertTexteSuccess), apercu(alertTexteSuccess), ...panneauOuvert.slice(5)],
   },
   {
-    id: 'c-modele', titre: 'Liaisons copiées depuis un variant', quand: 'Le sandbox propose les liaisons du variant info et standard aux autres variants. Aucun bouton de la section Variants ne le demande plus : la carte qui le fera est le lot U6.',
+    id: 'c-modele', titre: 'Liaisons copiées depuis un variant', quand: 'Le sandbox propose les liaisons du variant info et standard aux autres variants, sans carte de modèle avant : l’analyse d’avant ne porte que des constats ordinaires.',
     regarder: 'Une carte « Copier les liaisons de Severity=info, Variant=standard » ; le variant copié s’écrit comme Figma le nomme ; le segment qui change d’un variant à l’autre est en vert ; la ligne qui lie une couleur en dur dit d’abord « couleur en dur », puis le variant en puces de valeurs seules ; le pied compte les liaisons cochées ; les constats d’avant la proposition restent.',
     existe: true, atteinte: [preferences(), etroite, choisir(alertModele), composant(alertModele), apercu(alertModele), { message: analyseAvantLeModele }, { message: aucunIgnore }, { message: modelePropose }, { clic: '.bouton-panneau' }],
+  },
+  {
+    id: 'c-carte-modele', titre: 'La carte du modèle', quand: 'Alert est analysé : le variant info et standard lie déjà des layers que dix autres variants gardent en dur. Le designer ouvre le panneau.',
+    regarder: 'Une carte À corriger dans Couleurs : « 3 layers ont une couleur en dur dans 10 variants. » ; la ligne grise « Un variant les lie déjà : » suivie des puces info et standard ; en bas de la carte, « Proposer les liaisons » puis Sélectionner ; le chevron reste en haut à droite. Une seconde carte dans Tailles et forme : « 1 layer a une taille en dur dans 10 variants. »',
+    existe: true, atteinte: panneauDuModele(analyseCarteDuModele),
+  },
+  {
+    id: 'c-carte-modele-ouverte', titre: 'La carte du modèle, dépliée', quand: 'Le designer ouvre la carte des couleurs par son chevron. Ouvrir une carte ne sélectionne rien dans Figma.',
+    regarder: 'Deux colonnes, Layer et Token dans le modèle ; une ligne par layer lié du modèle : container fill, icon fill, message fill, chacune avec son token sans le préfixe du composant ; la ligne d’actions reste sous la liste.',
+    existe: true, atteinte: [...panneauDuModele(analyseCarteDuModele), { clic: '.bloc-constat .bloc-bouton' }],
+  },
+  {
+    id: 'c-carte-modele-proposee', titre: 'Après « Proposer les liaisons »', quand: 'Le designer clique « Proposer les liaisons » : le sandbox calcule sans rien écrire, puis rend les corrections du modèle et les deux cartes qu’elles remplacent.',
+    regarder: 'Les deux cartes du modèle ont quitté le panneau ; Couleurs reste ouverte et porte la carte « Copier les liaisons de » avec ses lignes cochées et son Appliquer ; Tailles et forme n’a plus de point et passe en section tenue.',
+    existe: true, atteinte: [...panneauDuModele(analyseCarteDuModele), proposer, { message: modeleProposeApresLaCarte }],
+  },
+  {
+    id: 'c-carte-modele-ailleurs', titre: 'La carte d’un modèle que la vue ne lit pas', quand: 'Le variant modèle n’est pas celui que la vue affiche : le message de l’analyse ne donne ni le nom ni le token de ses layers.',
+    regarder: 'La carte garde sa phrase, sa ligne grise, « Proposer les liaisons » et Sélectionner ; elle n’a pas de chevron, faute de liste à montrer.',
+    existe: true, atteinte: panneauDuModele(analyseModeleAilleurs),
   },
   {
     id: 'c-clic', titre: 'Un constat cliqué', quand: 'Le designer choisit la puce Couleurs et ouvre la carte « info devient success ». Ouvrir une carte ne sélectionne rien dans Figma.',
@@ -146,4 +182,4 @@ const ETATS = [
   },
 ].map((etat) => ({ ...etat, disposition: 'etroite' }));
 
-module.exports = { ETATS, alertCorrections, alertModele, analyseModele, analyseAvantLeModele, modelePropose, constatsAlert, analyseCorrections, aucunIgnore, panneauOuvert, appliquer, lot, perime, lesIds, nomDeVariant, CONTAINER, ICON, MESSAGE };
+module.exports = { ETATS, alertCorrections, alertModele, analyseModele, analyseAvantLeModele, modelePropose, constatsCarteDuModele, modeleProposeApresLaCarte, constatsAlert, analyseCorrections, aucunIgnore, panneauOuvert, appliquer, lot, perime, lesIds, nomDeVariant, CONTAINER, ICON, MESSAGE };

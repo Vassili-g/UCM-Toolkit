@@ -160,6 +160,14 @@ export const TEXTES_IGNORES = {
     liaisonHorsDuComposant: (propriete: string, layer: string, token: string, couche: string): string =>
       `Le ${propriete} du layer ${layer} est lié à \`${token}\`, un token de ${couche}.`,
     liaisonHorsDuComposantStatut: 'Liez-le à un token du composant',
+    // C81 : un variant lie déjà des layers que d'autres variants gardent en dur. La carte propose de reprendre ses liaisons.
+    modeleEnDur: (layers: number, sorte: 'couleurs' | 'tailles', variants: number): string =>
+      `${layers} layer${layers > 1 ? 's' : ''} ${layers > 1 ? 'ont' : 'a'} ${sorte === 'tailles' ? 'une taille' : 'une couleur'} en dur dans ${variants} variant${variants > 1 ? 's' : ''}.`,
+    modeleLie: (layers: number): string => (layers > 1 ? 'Un variant les lie déjà : ' : 'Un variant le lie déjà : '),
+    proposerLesLiaisons: 'Proposer les liaisons',
+    proposerLesLiaisonsDe: (phrase: string): string => `Proposer les liaisons : ${phrase}`,
+    modeleLayer: 'Layer',
+    modeleToken: 'Token dans le modèle',
     // C43, C45 : l'instance de règles.
     sansRegles: 'Le composant n’a pas d’instance de règles.',
     sansReglesStatut: 'Créez l’instance de règles',

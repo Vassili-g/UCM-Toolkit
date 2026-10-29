@@ -91,7 +91,7 @@ export interface Application {
   repondre(question: string, reponse: string): void;
   /** Retire la réponse à une question : la correction qu'elle avait tirée quitte Corrections. */
   annulerLaReponse(question: string): void;
-  /** Le variant affiché (son identifiant) sert de modèle : le sandbox propose ses liaisons aux autres variants. Sans effet sur une analyse périmée. */
+  /** Ce variant (son identifiant, celui des faits d'un constat C81) sert de modèle : le sandbox propose ses liaisons aux autres variants. Sans effet sur une analyse périmée. */
   servirDeModele(variant: string): void;
   /** Écarte ce constat de À faire dans Figma. Sans effet sur une analyse périmée ou sur une limite de lecture. */
   ignorer(constat: Constat): void;

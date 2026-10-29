@@ -152,9 +152,11 @@ export function recevoirUneAnalyse(etat: Etat, message: MessageRecuDeLAnalyse): 
     }
     case 'modele-propose': {
       if (!analyseApplicable(courante)) return;
-      // Les constats du modèle prennent la place de ceux qui portent le même identifiant ; les autres restent.
+      // Les constats que la proposition remplace (`retires`, les C81 du modèle) quittent l'analyse. Ceux du modèle prennent la place de ceux qui portent le même identifiant ; les autres restent.
+      const retires = new Set(message.retires);
+      const restants = courante.tous.filter((constat) => !retires.has(constat.id));
       const nouveaux = new Map(message.constats.map((constat) => [constat.id, constat]));
-      const tous = [...courante.tous.map((constat) => nouveaux.get(constat.id) ?? constat), ...message.constats.filter((constat) => !courante.tous.some((connu) => connu.id === constat.id))];
+      const tous = [...restants.map((constat) => nouveaux.get(constat.id) ?? constat), ...message.constats.filter((constat) => !restants.some((connu) => connu.id === constat.id))];
       etat.analyse = { ...courante, tous, constats: visibles(tous, courante.ignores) };
       return;
     }

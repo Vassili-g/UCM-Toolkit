@@ -15,7 +15,7 @@
 import { creerAlerte } from 'ucm-plugin-socle/src/ui/Alerte';
 import { createButton } from 'ucm-plugin-socle/src/ui/Button';
 
-import type { LectureDeComposant } from '../../composant';
+import { champDe, natureDe, type LectureDeComposant } from '../../composant';
 import type { Constat } from '../../messages/commun';
 import type { Application } from '../application';
 import { analyseApplicable, calculEnCours, demandeDAnalyseEnCours, analyseDuComposant, aDesLiaisonsPreparees, aPreparer, libraryAChoisir, type AnalyseRecue } from '../composant/analyse';
@@ -24,6 +24,7 @@ import { carteDesLiaisonsPreparees } from '../corrections/liaisons';
 import type { CarteDeCorrections, ContexteDeCartes } from '../corrections/modele';
 import type { ElementChoisi } from '../etat';
 import { monterAFaire } from '../ignores';
+import type { LiaisonDuVariantAffiche } from '../ignores/modele';
 import { elementDuConstat, elementsDuPanneau, estUneInformation, sansLesBloquants, type ElementDuPanneau, type IdDElement, type PanneauParElements } from '../panneau/elements';
 import { ligneDInformation } from '../panneau/informations';
 import { creerEnTeteDesBloquants, creerLigneDInformation, creerSection, creerSectionInformations, creerSectionTenue, creerSommaire } from '../panneau/rendu';
@@ -128,6 +129,11 @@ export function monterLePanneau(app: Application, vue: VueComposant, options: Op
   const aFaire = monterAFaire({
     selectionner,
     selectionnes,
+    proposer: (constat, variant) => {
+      // Les corrections arrivent dans la section du constat, dont le nombre de points peut la replier : elle reste ouverte.
+      for (const autre of rendu?.analyse.constats ?? []) if (autre.code === 'C81' && autre.faits.modele === constat.faits.modele) choixDeSections.set(elementDuConstat(autre), true);
+      app.servirDeModele(variant);
+    },
     ignorer: (constat) => app.ignorer(constat),
     nePlusIgnorer: (constat) => app.nePlusIgnorer(constat),
     redessiner: () => dessiner(),
@@ -177,6 +183,16 @@ export function monterLePanneau(app: Application, vue: VueComposant, options: Op
     app.ouvrirLaConfiguration();
   }
 
+  /** Les couleurs et les tailles que le variant lu lie à un token : de quoi lister, sur la carte d'un modèle, ce que le modèle lie. */
+  function liaisonsDuVariantLu(lecture: LectureDeComposant): LiaisonDuVariantAffiche[] {
+    return lecture.liaisons.flatMap((liaison) => {
+      const { nature } = natureDe(liaison.propriete, '');
+      const sorte = nature === 'couleur' ? 'couleurs' : nature === 'forme' || nature === 'espacement' || nature === 'taille' ? 'tailles' : null;
+      if (sorte === null) return [];
+      return [{ layer: liaison.calque, champ: champDe(liaison.propriete).champ, sorte, token: etat.composant.index?.variables.get(liaison.variable)?.nom ?? liaison.variable }];
+    });
+  }
+
   function contexteDe(lecture: LectureDeComposant, analyse: AnalyseRecue): ContexteDeCartes {
     return {
       composant: lecture.sujet.nom,
@@ -184,6 +200,7 @@ export function monterLePanneau(app: Application, vue: VueComposant, options: Op
       layers: new Map(lecture.calques.map((calque) => [calque.id, calque.nom])),
       library: etat.reference?.nom ?? null,
       constats: analyse.constats,
+      liaisons: liaisonsDuVariantLu(lecture),
     };
   }
 
