@@ -240,15 +240,51 @@ cyans ont la plus forte luminance à clarté égale : ils perdent le plus.
 À l'appui, seule Ocean Vivid passe 4,5. Toutes les rampes passent 3:1, au
 survol comme à l'appui. Le contour 700 passe donc 3:1 sur les trois fonds.
 
+**Ce que vaut 3:1.** WCAG 2.2 fixe 3:1 dans deux cas. Le critère 1.4.3 l'admet
+pour le grand texte : 24 px en graisse normale, ou 18,66 px en gras. Le critère
+1.4.11 le demande pour un contour, une icône ou un anneau de focus. Un libellé
+de bouton de 14 ou 16 px relève du 4,5:1. Le kit applique cette règle : le seuil
+`texte` vaut 4,5, le seuil `nonTexte` vaut 3, et les garanties 4, 6 et 7 jugent
+des traits.
+
 **Conséquence sur les garanties.** La garantie 3 juge `surface/foreground` sur
 `surface/hover`. Avec le texte 700, elle échouerait sur les cinq rampes
-ci-dessus. Trois réponses existent :
+ci-dessus.
 
-| Réponse | Effet mesuré |
-|---|---|
-| Éclaircir le seul 200, de 0,905 à 0,92 | Le survol passe 4,5 sur les 21 rampes, au minimum 4,55. À 0,915, une rampe reste sous 4,5. L'écart de clarté entre le repos et le survol passe de 0,045 à 0,03. Aucune référence ne change de cran. Non mesuré sur 360 teintes. |
-| Juger le survol à 3:1 | Toutes les rampes passent. Le texte du survol n'est plus garanti à 4,5. |
-| Sortir le survol de la garantie 3 | Comme l'appui. Le texte du survol n'est plus vérifié. |
+**Position du mainteneur.** Pas d'assouplissement : le plugin perd son intérêt
+si ses garanties prennent des libertés. Le survol à 3:1 et le survol hors de la
+garantie 3 sont écartés. Éclaircir le 200 de toutes les palettes, de 0,905 à
+0,92, ne le convainc pas non plus.
+
+**Piste : foncer le 700 des seules teintes qui échouent.** Le moteur fonce le 700
+d'une palette juste assez pour que la garantie 3 tienne au survol. Le 50, le 100
+et le 200 gardent leur clarté commune.
+
+| Rampe | Texte 700 sur 200 | Clarté du 700 | Corrigée |
+|---|---|---|---|
+| Emerald Soft | 4,34 | 0,501 | 0,493 |
+| Grass Soft | 4,39 | 0,499 | 0,494 |
+| Grass Vivid | 4,41 | 0,501 | 0,496 |
+| Emerald Vivid | 4,42 | 0,500 | 0,495 |
+| Sky Soft | 4,49 | 0,501 | 0,499 |
+
+La correction va jusqu'à 0,008. Sans réglage de luminosité, le 700 des
+palettes s'étale déjà de 0,492 à 0,501 : les 700 corrigés restent dans cet
+écart. Un 700 plus foncé contraste davantage avec la page et avec le texte
+blanc des boutons. Les autres garanties qui le visent ne peuvent donc pas
+échouer.
+
+Corriger le 200 de ces seules rampes marcherait aussi, avec un éclaircissement
+jusqu'à 0,012. Cette correction casserait la clarté commune du 200, que le
+sujet 2 ramène à un écart de 0,002.
+
+Le moteur n'a pas ce mécanisme. Sa clarté selon la teinte (`clarteSelonLaTeinteGardee`)
+réduit son décalage quand une promesse tenue sans lui manquerait. Elle ne
+corrige pas une promesse qui manque même sans décalage. La piste demande ce
+mécanisme, puis une mesure de la plus forte correction sur 360 teintes.
+
+L'appui reste hors de la piste. Pour tenir 4,5 sur le 300, le 700 d'Emerald
+Soft devrait foncer de 0,049, presque jusqu'au 800.
 
 Retirer l'appui demande de retirer `surface/pressed` des garanties 3 et 4. La
 question se pose aussi pour `solid/pressed` dans la garantie 1.
@@ -314,7 +350,15 @@ sont sous 3. Ce défaut existe déjà avec la table d'aujourd'hui.
 
 Les trois formes portent les mêmes quinze variables par palette : les treize
 d'aujourd'hui, le fond très léger et le filet sur fond teinté. Les crans sont
-ceux de la configuration du mainteneur.
+ceux de la configuration du mainteneur. La section 9 de la maquette montre
+chaque forme dans un panneau de variables comme celui de Figma, et la liste
+qu'offre le sélecteur pour un remplissage, un texte ou un trait.
+
+| Sélecteur | Variables | Dossiers avec A | Dossiers avec C |
+|---|---|---|---|
+| Remplissage d'un cadre | 17 | 6 | 4 |
+| Couleur d'un texte | 9 | 7 | 3 |
+| Trait | 11 | 7 | 7 |
 
 | Besoin | Light | Dark | A. Dossier, élément, niveau, état | B. Noms actuels | C. Élément, puis contexte |
 |---|---|---|---|---|---|
@@ -418,7 +462,8 @@ Les thèmes inversés en Light ne sont pas mesurés.
 | Quelle clarté pour un fond léger ? | Le 50, à 0,975 |
 | Le texte de `surface` reste-t-il à 800 ? | Non, 700 |
 | Quelle table pour `surface` ? | 100, 200 et 300 |
-| Le survol garde-t-il 4,5:1 : 200 à 0,92, survol à 3:1, ou survol hors de la garantie 3 ? | Ouvert |
+| Le survol garde-t-il 4,5:1 ? | Oui, sans assouplir la garantie 3 |
+| Le moteur fonce-t-il le 700 des seules teintes qui échouent au survol ? | Ouvert, à mesurer sur 360 teintes |
 | L'appui sort-il aussi de la garantie 1, pour `solid/pressed` ? | Ouvert |
 | Quelle organisation des noms : A, B ou C ? | Ouvert, A recommandée |
 | `surface/divider` entre-t-il dans le thème ? | Ouvert |

@@ -87,6 +87,30 @@
   .tag { font-size: 12px; padding: 3px 8px; border-radius: 6px; border: 1px solid; }
 
   .mesures .pastille { display: inline-block; width: 14px; height: 14px; border-radius: 3px; border: 1px solid #fff3; vertical-align: -2px; margin-right: 6px; }
+  .fx { background: #2c2c2c; border: 1px solid #444; border-radius: 10px; overflow: hidden; color: #e6e6e6; font-size: 12px; margin-top: 10px; }
+  .fx-corps { display: grid; grid-template-columns: 200px 1fr; min-height: 380px; }
+  .fx-cote { border-right: 1px solid #444; padding: 10px 8px; display: flex; flex-direction: column; gap: 2px; }
+  .fx-cote p { margin: 4px 6px 8px; color: #bbb; }
+  .fx-collection { font-weight: 600; padding: 2px 8px 10px; }
+  .fx-collection span { color: #999; font-weight: 400; margin-left: 6px; }
+  .fx-cote button { all: unset; cursor: pointer; padding: 5px 8px; border-radius: 4px; }
+  .fx-cote button:hover { background: #383838; }
+  .fx-cote button[aria-current='true'] { background: #0d99ff40; }
+  .fx-sous { padding: 3px 8px 3px 22px; color: #aaa; }
+  .fx-main { min-width: 0; overflow-x: auto; padding: 4px 0; }
+  .fx-main table { border-collapse: collapse; width: 100%; min-width: 480px; }
+  .fx-main th { text-align: left; font-weight: 500; color: #999; padding: 8px 12px; border-bottom: 1px solid #444; }
+  .fx-main td { padding: 5px 12px; border-bottom: 1px solid #383838; white-space: nowrap; }
+  .fx-g td { color: #999; font-weight: 600; padding-top: 12px; }
+  .fx-nom { padding-left: 24px !important; }
+  .alias { display: inline-flex; align-items: center; gap: 6px; background: #383838; border-radius: 4px; padding: 2px 7px; }
+  .alias.brut { background: none; padding-left: 0; }
+  .sq { width: 12px; height: 12px; border-radius: 2px; border: 1px solid #ffffff2e; flex: 0 0 auto; display: inline-block; }
+  .selecteur { width: 260px; max-width: 100%; margin: 10px 14px; background: #1e1e1e; border: 1px solid #444; border-radius: 8px; padding: 6px 0; max-height: 520px; overflow-y: auto; }
+  .sel-t { font-weight: 600; padding: 4px 12px 6px; }
+  .sel-g { color: #999; padding: 8px 12px 2px; }
+  .sel-v { display: flex; align-items: center; gap: 8px; padding: 3px 12px 3px 20px; }
+  @media (max-width: 640px) { .fx-corps { grid-template-columns: 1fr; } .fx-cote { border-right: 0; border-bottom: 1px solid #444; } }
   .arbre { font: 12.5px/1.6 ui-monospace, Consolas, monospace; }
   .arbre .v { display: flex; align-items: center; gap: 8px; }
   .arbre .pastille { width: 14px; height: 14px; border-radius: 3px; border: 1px solid #fff2; flex: 0 0 auto; }
@@ -216,11 +240,33 @@
     <li>À l'appui, sur le 300, 20 rampes sur 21 sont sous 4,5. Le minimum vaut 3,65.</li>
     <li>Toutes les rampes passent 3:1, au survol comme à l'appui.</li>
     <li>La garantie 3 du kit juge le texte au survol. Avec le texte 700, elle échouerait sur ces 5 rampes.</li>
-    <li>Éclaircir le seul 200, de 0,905 à 0,92, fait passer le survol sur les 21 rampes. Choisissez « Actuelle, 200 à 0,92 » en haut pour le voir.</li>
-    <li>Avec ce 200, l'écart de clarté entre le repos et le survol passe de 0,045 à 0,03. Aucune référence ne change de cran.</li>
-    <li>Deux autres réponses existent : juger le survol à 3:1, ou le sortir de la garantie 3 comme l'appui.</li>
     <li>Retirer l'appui demande de retirer <code>surface/pressed</code> des garanties 3 et 4.</li>
   </ul>
+  <h3>Ce que vaut 3:1</h3>
+  <ul class="faits">
+    <li>WCAG admet 3:1 pour le grand texte : 24 px en graisse normale, ou 18,66 px en gras. C'est le critère 1.4.3.</li>
+    <li>WCAG demande 3:1 pour un contour, une icône ou un anneau de focus. C'est le critère 1.4.11.</li>
+    <li>Un libellé de bouton de 14 ou 16 px demande 4,5:1. Le kit suit cette règle : ses garanties de texte jugent à 4,5, ses garanties de trait à 3.</li>
+  </ul>
+  <blockquote class="position"><p>« évidemment ça me donne envie de baisser les garanties mais le plugin n'a plus trop d'intéret si toutes les garanties prennent des libertés »</p></blockquote>
+  <h3>Piste : foncer le 700 des seules teintes qui échouent</h3>
+  <ul class="faits">
+    <li>Le moteur fonce le 700 d'une palette juste assez pour tenir 4,5 au survol. Le 50, le 100 et le 200 gardent leur clarté commune.</li>
+    <li>Sur tes palettes, cinq rampes sont concernées. La correction va jusqu'à 0,008, pour Emerald Soft.</li>
+    <li>Sans réglage de luminosité, ton 700 s'étale déjà de 0,492 à 0,501. Les 700 corrigés restent dans cet écart.</li>
+    <li>Un 700 plus foncé contraste davantage avec la page et avec le texte blanc des boutons.</li>
+    <li>Le moteur n'a pas encore ce mécanisme. Il faudrait aussi mesurer la plus forte correction sur 360 teintes.</li>
+    <li>L'appui reste hors de la piste. Pour tenir 4,5 sur le 300, le 700 d'Emerald Soft devrait foncer de 0,049.</li>
+  </ul>
+  <div class="defile"><table class="mesures">
+    <tr><th>Rampe</th><th>Texte 700 sur 200</th><th>Clarté du 700</th><th>Corrigée</th></tr>
+    <tr><td>Emerald Soft</td><td class="ko">4,34</td><td>0,501</td><td>0,493</td></tr>
+    <tr><td>Grass Soft</td><td class="ko">4,39</td><td>0,499</td><td>0,494</td></tr>
+    <tr><td>Grass Vivid</td><td class="ko">4,41</td><td>0,501</td><td>0,496</td></tr>
+    <tr><td>Emerald Vivid</td><td class="ko">4,42</td><td>0,500</td><td>0,495</td></tr>
+    <tr><td>Sky Soft</td><td class="ko">4,49</td><td>0,501</td><td>0,499</td></tr>
+  </table></div>
+  <p class="note">La courbe « Actuelle, 200 à 0,92 » de la barre du haut reste pour comparer. Elle éclaircit le 200 de toutes les palettes.</p>
   <div class="local">Règle à l'appui <span class="bascule" id="regle"><button data-v="ignore">Non vérifié</button><button data-v="trois">3:1</button><button data-v="stricte">4,5:1</button></span></div>
   <div id="contrastes"></div>
   <p class="note">Contraste minimum du texte de <code>surface</code> sur chaque fond, et nombre de rampes sous le seuil, sur tes 12 palettes : 21 rampes, Soft et Vivid. Le fond léger est le 50.</p>
@@ -256,9 +302,16 @@
     <li>L'anneau de focus sur un fond teinté. En Dark, l'anneau 700 tombe à 2,38 au minimum sur le fond 300. Ce défaut existe déjà aujourd'hui.</li>
   </ul>
   <div class="grille" id="manques"></div>
-  <h3>Trois organisations complètes, quinze variables par palette</h3>
-  <p class="note">Les pastilles sont les couleurs de la palette choisie en haut. Le Dark est celui de ta configuration, avec le texte des boutons blanc.</p>
-  <div class="defile" id="noms"></div>
+  <h3>Le panneau des variables de <code>theme</code>, dans chaque organisation</h3>
+  <ul class="faits">
+    <li>Chaque forme porte quinze variables par palette : les treize d'aujourd'hui, le fond très léger et le filet sur fond teinté.</li>
+    <li><code>primary</code> prend la palette choisie en haut. <code>neutral</code> prend Titanium.</li>
+    <li>Le Dark est celui de ta configuration, avec le texte des boutons blanc.</li>
+    <li>Les vues « Sélecteur » simulent la liste qu'offre Figma quand on choisit une couleur. Elles gardent les variables dont la portée accepte la propriété. Les crans de <code>scale</code> n'ont aucune portée : ils n'y apparaissent pas.</li>
+  </ul>
+  <div class="local">Organisation <span class="bascule" id="forme"><button data-v="A">A. Dossier, élément, niveau, état</button><button data-v="B">B. Noms actuels</button><button data-v="C">C. Élément, puis contexte</button></span></div>
+  <div class="local">Vue <span class="bascule" id="vuePanneau"><button data-v="toutes">Toutes les variables</button><button data-v="fond">Sélecteur : remplissage d'un cadre</button><button data-v="texte">Sélecteur : couleur d'un texte</button><button data-v="trait">Sélecteur : trait</button></span></div>
+  <div class="fx" id="noms"></div>
   <h3>Hors des palettes</h3>
   <div class="defile"><table class="mesures">
     <tr><th>Besoin</th><th>A et B</th><th>C</th></tr>
@@ -318,7 +371,8 @@
     <tr><td>Quelle clarté pour un fond léger ?</td><td class="ok">Le 50, à 0,975</td></tr>
     <tr><td>Le texte de <code>surface</code> reste-t-il à 800 ?</td><td class="ok">Non, 700</td></tr>
     <tr><td>Quelle table pour <code>surface</code> ?</td><td class="ok">100, 200 et 300</td></tr>
-    <tr><td>Le survol garde-t-il 4,5:1 : 200 à 0,92, survol à 3:1, ou survol hors de la garantie 3 ?</td><td class="change">Ouvert</td></tr>
+    <tr><td>Le survol garde-t-il 4,5:1 ?</td><td class="ok">Oui, sans assouplir la garantie 3</td></tr>
+    <tr><td>Le moteur fonce-t-il le 700 des seules teintes qui échouent au survol ?</td><td class="change">Ouvert, à mesurer sur 360 teintes</td></tr>
     <tr><td>L'appui sort-il aussi de la garantie 1, pour <code>solid/pressed</code> ?</td><td class="change">Ouvert</td></tr>
     <tr><td>Quelle organisation des noms : A, B ou C ?</td><td class="change">Ouvert, A recommandée</td></tr>
     <tr><td><code>surface/divider</code> entre-t-il dans le thème ?</td><td class="change">Ouvert</td></tr>
@@ -343,7 +397,7 @@ const TABLES_DARK = {
   proposee: { nom: 'Hypothèse : 100, 200, 300, texte de page', repos: 100, survol: 200, appui: 300, texte: 800 },
 };
 const etat = { palette: 'Ocean', intensite: 'vivid', courbe: 'actuelle', lissage: 'non', moteur: 'commune', page: '#FFFFFF',
-  vueHarmonie: 'couleur', clarteLegere: 0.985, contexteTable: 'aujourdhui', regle: 'ignore' };
+  vueHarmonie: 'couleur', clarteLegere: 0.985, contexteTable: 'aujourdhui', regle: 'ignore', forme: 'A', vuePanneau: 'toutes', groupe: 'primary' };
 try { Object.assign(etat, JSON.parse(localStorage.getItem('crans-clairs-3') || '{}')); } catch (e) {}
 const garder = () => { try { localStorage.setItem('crans-clairs-3', JSON.stringify(etat)); } catch (e) {} };
 
@@ -550,12 +604,66 @@ const ORGANISATION = [
   { besoin: 'Filet sur la page', light: 300, dark: 300, A: 'page/divider', B: 'page/divider', C: 'divider/on-page' },
   { besoin: 'Anneau de focus', light: 600, dark: 700, A: 'ring', B: 'ring', C: 'ring' },
 ];
-const teinte = (n, mode) => (n === 'blanc' ? '#FFFFFF' : cran(n, palette(), mode));
-const pastille = (n, mode) => `<span class="pastille" style="background:${teinte(n, mode)}"></span>${n}`;
+const peintDe = (v) => (v.besoin.startsWith('Fond') ? 'fond' : v.besoin.startsWith('Texte') ? 'texte' : 'trait');
+const HORS_PALETTE = [
+  { A: 'elevation/page', B: 'elevation/page', C: 'background/page', peint: 'fond', light: '#FFFFFF', dark: '#121212' },
+  { A: 'elevation/raised', B: 'elevation/raised', C: 'background/raised', peint: 'fond', light: '#FFFFFF', dark: '#1C1C1C' },
+  { A: 'disabled/background', B: 'disabled/background', C: 'disabled/background', peint: 'fond', light: 200, dark: 200 },
+  { A: 'disabled/foreground', B: 'disabled/foreground', C: 'disabled/foreground', peint: 'texte', light: 500, dark: 500 },
+  { A: 'disabled/border', B: 'disabled/border', C: 'disabled/border', peint: 'trait', light: 500, dark: 500 },
+];
+const PROPRES_AU_NEUTRE = [
+  { A: 'page/foreground-main', B: 'page/foreground-main', C: 'foreground/on-page-main', peint: 'texte', light: '#000000', dark: '#FFFFFF' },
+  { A: 'page/foreground-subtle', B: 'page/foreground-subtle', C: 'foreground/on-page-subtle', peint: 'texte', light: 700, dark: 800 },
+];
+
+/** Les variables de `theme` d'une forme, avec leur alias et leur couleur dans chaque mode. */
+function variablesDuTheme(forme) {
+  const neutre = D.palettes.find((p) => p.nom === 'Titanium') || palette();
+  const valeur = (n, groupe, p, mode) => (n === 'blanc' ? { alias: 'neutral/light/white', couleur: '#FFFFFF' }
+    : typeof n === 'string' ? { alias: n === '#FFFFFF' || n === '#000000' ? `neutral/${mode}/${n === '#FFFFFF' ? 'white' : 'black'}` : null, couleur: n }
+    : { alias: `${groupe}/${mode}/${n}`, couleur: cran(n, p, mode) });
+  const ligne = (groupe, p, v, peint) => {
+    const chemin = groupe ? `${groupe}/${v[forme]}` : v[forme];
+    return { chemin, dossier: chemin.split('/').slice(0, -1).join('/'), nom: chemin.split('/').pop(), peint, nouveau: v.nouveau,
+      light: valeur(v.light, groupe || 'neutral', p, 'light'), dark: valeur(v.dark, groupe || 'neutral', p, 'dark') };
+  };
+  const dePalette = (groupe, p, propres = []) => [
+    ...ORGANISATION.map((v) => ligne(groupe, p, v, peintDe(v))),
+    ...propres.map((v) => ligne(groupe, p, v, v.peint)),
+    ...D.crans.map((n) => ligne(groupe, p, { A: `scale/${n}`, B: `scale/${n}`, C: `scale/${n}`, light: n, dark: n }, null)),
+  ];
+  return [...dePalette('primary', palette()), ...dePalette('neutral', neutre, PROPRES_AU_NEUTRE), ...HORS_PALETTE.map((v) => ligne('', neutre, v, v.peint))];
+}
+
+const carre = (c) => `<span class="sq" style="background:${c}"></span>`;
+const pilule = (v) => (v.alias ? `<span class="alias">${carre(v.couleur)}${v.alias}</span>` : `<span class="alias brut">${carre(v.couleur)}${v.couleur}</span>`);
 
 function rendreNoms() {
-  const lignes = ORGANISATION.map((v) => `<tr><td>${v.besoin}${v.nouveau ? ' <span class="badge moyen">nouveau</span>' : ''}</td><td>${pastille(v.light, 'light')}</td><td>${pastille(v.dark, 'dark')}</td>${['A', 'B', 'C'].map((f) => `<td><code>${v[f]}</code></td>`).join('')}</tr>`).join('');
-  $('noms').innerHTML = `<table class="mesures"><tr><th>Besoin</th><th>Light</th><th>Dark</th><th>A. Dossier, élément, niveau, état</th><th>B. Noms actuels</th><th>C. Élément, puis contexte</th></tr>${lignes}</table>`;
+  marquer($('forme'), etat.forme);
+  marquer($('vuePanneau'), etat.vuePanneau);
+  const toutes = variablesDuTheme(etat.forme);
+  const racines = [...new Set(toutes.map((v) => v.chemin.split('/')[0]))];
+  if (!racines.includes(etat.groupe)) etat.groupe = 'primary';
+  const cote = `<div class="fx-cote"><div class="fx-collection">theme <span>2 modes</span></div>${racines.map((r) => {
+    const sous = [...new Set(toutes.filter((v) => v.chemin.startsWith(r + '/') && v.dossier.includes('/')).map((v) => v.dossier.split('/')[1]))];
+    return `<button data-groupe="${r}" aria-current="${r === etat.groupe}">${r}</button>${r === etat.groupe ? sous.map((s) => `<span class="fx-sous">${s}</span>`).join('') : ''}`;
+  }).join('')}</div>`;
+
+  if (etat.vuePanneau === 'toutes') {
+    const choisies = toutes.filter((v) => v.chemin.split('/')[0] === etat.groupe);
+    const dossiers = [...new Set(choisies.map((v) => v.dossier))];
+    const corps = dossiers.map((d) => `<tr class="fx-g"><td colspan="3">${d || etat.groupe}</td></tr>${choisies.filter((v) => v.dossier === d).map((v) =>
+      `<tr><td class="fx-nom">${v.nom}${v.nouveau ? ' <span class="badge moyen">nouveau</span>' : ''}</td><td>${pilule(v.light)}</td><td>${pilule(v.dark)}</td></tr>`).join('')}`).join('');
+    $('noms').innerHTML = `<div class="fx-corps">${cote}<div class="fx-main"><table><tr><th>Nom</th><th>light</th><th>dark</th></tr>${corps}</table></div></div>`;
+    return;
+  }
+  const passent = toutes.filter((v) => v.peint === etat.vuePanneau);
+  const dossiers = [...new Set(passent.map((v) => v.dossier))];
+  const liste = dossiers.map((d) => `<div class="sel-g">${d}</div>${passent.filter((v) => v.dossier === d).map((v) => `<div class="sel-v">${carre(v.light.couleur)}${v.nom}</div>`).join('')}`).join('');
+  const propriete = { fond: "le remplissage d'un cadre", texte: "la couleur d'un texte", trait: 'un trait' }[etat.vuePanneau];
+  $('noms').innerHTML = `<div class="fx-corps"><div class="fx-cote"><p>Le designer choisit ${propriete}.</p><p><b>${passent.length}</b> variables passent la portée.</p><p>Elles se rangent dans <b>${dossiers.length}</b> dossiers.</p></div>
+    <div class="fx-main"><div class="selecteur"><div class="sel-t">theme</div>${liste}</div></div></div>`;
 }
 
 // Une alerte très légère et une alerte teintée, avec les deux filets et l'anneau de focus, dans chaque mode.
@@ -599,7 +707,8 @@ function rendre() {
 $('palette').innerHTML = D.palettes.map((p) => `<option>${p.nom}</option>`).join('');
 $('palette').addEventListener('change', (e) => { etat.palette = e.target.value; rendre(); });
 document.querySelectorAll('.bascule[data-cle]').forEach((b) => b.addEventListener('click', (e) => { const v = e.target.dataset.v; if (v && !e.target.disabled) { etat[b.dataset.cle] = v; rendre(); } }));
-['vueHarmonie', 'contexteTable', 'regle'].forEach((id) => $(id).addEventListener('click', (e) => { const v = e.target.dataset.v; if (v) { etat[id] = v; rendre(); } }));
+['vueHarmonie', 'contexteTable', 'regle', 'forme', 'vuePanneau'].forEach((id) => $(id).addEventListener('click', (e) => { const v = e.target.dataset.v; if (v) { etat[id] = v; rendre(); } }));
+$('noms').addEventListener('click', (e) => { const b = e.target.closest('[data-groupe]'); if (b) { etat.groupe = b.dataset.groupe; rendreNoms(); garder(); } });
 $('clarteLegere').addEventListener('input', (e) => { etat.clarteLegere = Number(e.target.value); rendreAlertes(); garder(); });
 rendre();
 </script>
