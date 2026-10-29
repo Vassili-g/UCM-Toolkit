@@ -363,7 +363,7 @@ Analyse 10, « Ce que le changement touche ». Dépend de P1 (V4). Agent : `impl
 #### Z · Clôture
 
 - [ ] **Z.1** Liste des écrans à vérifier pour le mainteneur, sous-lot par sous-lot, et recette Figma : Button, Alert, Stresstest, une palette en Dark.
-- [ ] **Z.2** Après la recette : poussée unique et publication du kit, de la CLI et de l'adaptateur, avec la skill `publier-paquets`. À coordonner avec le lot 15 de la vitesse de l'analyse, qui pousse et publie aussi.
+- [x] **Z.2** Poussé et publié le 29/10, avant la recette à la demande du mainteneur : kit 0.13.33, CLI 0.1.130, adaptateur 0.1.123.
 
 ## 4. Questions ouvertes
 
