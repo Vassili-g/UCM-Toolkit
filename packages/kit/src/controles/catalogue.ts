@@ -16,6 +16,8 @@ export interface VariableDuCatalogue {
   collection: string;
   type: 'COLOR' | 'FLOAT' | 'STRING' | 'BOOLEAN';
   etat: 'presente' | 'non-chargee' | 'inaccessible';
+  /** Vrai pour une variable de library : une écriture locale ne la trouve pas. */
+  distante?: true;
   scopes?: string[];
   valeurs?: Record<string, { alias: string } | { valeur: unknown }>;
 }

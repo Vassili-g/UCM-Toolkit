@@ -74,6 +74,7 @@ Ce qui juge un contrat écrit ; `ajv` et `node:fs`.
 
 ## src/controles/
 - candidatsDeLongueur.ts : valeur en pixels d'une variable, alias suivis (`candidatDeLongueur`), classement exact ou proche (`classerLesCandidats`, C29 seul) ; `candidatsDeLongueur` cherche dans `layout`, par index de catalogue, pour `preparerLesTokens` ; C29 classe les tokens `components` du composant
+- integrite.ts : `controlerLIntegriteUcm` (C82) : les variables que le thème prévoit et que `theme` n'a pas, avec la création exacte (`Correction.creation`) quand la règle et les variables jumelles donnent une seule cible ; un cran absent d'une rampe est un constat de rampe
 - oublis.ts : C31 (combinaison d'axes absente), C32 (token inutilisé ou sans variant) et C33 ; C32 lit aussi les variants des wrappers de dimensions (`ReleveDeComposant.wrappers`) pour les tokens dont un segment joue un rôle d'axe que seul un wrapper porte
 - preparation.ts : `preparerLesTokens` : variables de `components` à créer pour un composant, ce qu'elles visent dans `theme` et `layout`, questions ouvertes
 - propagation.ts : `proposerLaPropagation` (C24) : liaisons d'un variant modèle reportées sur les autres variants par substitution des segments d'axe, en correction exacte ou en question ; `candidatsDeModele` et `constatsDeModele` (C81) : par sorte, couleurs ou tailles, le variant le plus lié que les autres variants pourraient suivre, émis par `controlerCouchesParEtapes`

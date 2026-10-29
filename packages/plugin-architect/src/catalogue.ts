@@ -66,6 +66,7 @@ export function catalogueDuFichier(releve: Pick<Releve, 'collections' | 'variabl
     collection: v.collection,
     type: v.type as VariableDuCatalogue['type'],
     etat: 'presente',
+    ...(v.distante ? { distante: true as const } : {}),
     scopes: [...v.portees],
     valeurs: Object.fromEntries(Object.entries(v.valeurs).map(([mode, valeur]) => [mode, valeurDuCatalogue(valeur, false, cles)])),
   }));

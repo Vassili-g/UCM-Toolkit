@@ -3,7 +3,7 @@ export type { ReleveDeComposant, VariantLu, LayerLu, PeintureLue, LiaisonLue, Wr
 export { lectureManquee, layersVisiblesDuVariant, peintureVisible } from './releve.js';
 export type { CatalogueDeReference, CollectionDuCatalogue, CouleurResolue, VariableDuCatalogue } from './catalogue.js';
 export { cheminDansLaCollection, collectionsDeReference, variableDuCatalogue, collectionDuCatalogue } from './catalogue.js';
-export type { Constat, Correction, Question } from './constat.js';
+export type { Constat, Correction, CreationDeVariable, Question } from './constat.js';
 export type { TypeDAlerte } from '../referentiel/signaux.js';
 export type { NiveauWcag } from './accessibilite.js';
 export {
@@ -22,3 +22,5 @@ export { clesDesTokensDeTailleAttendus, proposerLesCorrections, proposerLesCorre
 export { candidatsDeModele, constatsDeModele, proposerLaPropagation, type CandidatDeModele, type SorteDeModele } from './propagation.js';
 export { controlerLeTheme, controlerLeThemeParEtapes, controlerLesModes } from './theme.js';
 export { controlerLaStructure, controlerLaStructureParEtapes, controlerLeCatalogue } from './structure.js';
+export { controlerLIntegriteUcm } from './integrite.js';
+export type { OptionsDIntegrite } from './integrite.js';
