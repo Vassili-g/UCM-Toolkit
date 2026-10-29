@@ -8,7 +8,9 @@ ensemble.
 
 **État.** Réflexion ouverte. Le mainteneur a pris position sur la clarté des
 crans clairs, la table de `surface`, son texte, la correction du 700 au survol,
-le nom des variables, leurs scopes, la table Dark et la garantie 1. Deux décisions restent.
+le nom des variables, leurs scopes, la table Dark, la garantie 1 et l'appui à 3:1.
+Le survol du bouton texte en Dark reste ouvert. Le plan d'implémentation
+applique le reste.
 Rien n'est implémenté.
 
 | Document | Contenu |
@@ -17,6 +19,7 @@ Rien n'est implémenté.
 | [Mesures/palettes-et-reglages.json](./Mesures/palettes-et-reglages.json) | La configuration d'UCM Palettes du mainteneur : douze palettes et leurs réglages |
 | [Mesures/generer-donnees.ts](./Mesures/generer-donnees.ts) | Calcule les rampes de cette configuration sous huit courbes : depuis `Mesures/`, `npx tsx generer-donnees.ts > ../Maquettes/donnees-crans.js` |
 | [Maquettes/donnees-crans.js](./Maquettes/donnees-crans.js) | Les rampes calculées, lues par la maquette |
+| [PLAN-IMPLEMENTATION.md](./PLAN-IMPLEMENTATION.md) | Les lots qui appliquent les décisions prises, un agent par lot |
 
 Les mesures portent sur les douze palettes du mainteneur, soit 21 rampes en
 Soft et en Vivid. Elles portent sur le thème Light normal, sauf mention
@@ -551,6 +554,9 @@ Les thèmes inversés en Light ne sont pas mesurés.
 | Comment le survol tient-il 4,5:1 ? | Le moteur fonce le 700 des seules teintes qui échouent |
 | Quelle organisation des noms ? | B, les noms actuels, avec `surface/subtle` et `surface/divider` |
 | Quels scopes ? | Fonds sans `STROKE_COLOR`, `foreground` avec, filets avec `FRAME_FILL` et `SHAPE_FILL` |
+| L'appui de `surface` : hors des garanties, ou jugé à 3:1 ? | Jugé à 3:1, dans une garantie 8 |
+| L'anneau sur un fond teinté en Dark | `ring` au 800 en Dark |
+| Le texte de `page` sur le fond teinté au repos, en Dark | Le moteur éclaircit le 800 des seules teintes qui échouent, de 0,009 au plus sur les palettes du mainteneur |
 | Quand le 700 est la référence et manque 4,5 au survol | Palettes propose « Ajuster la référence » |
 | Les crans des deux nouvelles variables hors du Light normal | `surface/subtle` au 200 et `surface/divider` au 500 en Dark ; 50 et 300 en Light inversé |
 | Les garanties des nouvelles variables | `surface/subtle` rejoint les fonds des garanties 3 et 4 ; `surface/divider` reste sans garantie |
@@ -560,8 +566,7 @@ Les thèmes inversés en Light ne sont pas mesurés.
 
 | Question | Fait | Recommandation |
 |---|---|---|
-| 4. L'appui de `surface` : hors des garanties, ou jugé à 3:1 | Le texte 700 passe 3:1 sur le 300 pour les 360 teintes, à 3,70 au minimum. Le Dark passe à 5,77 | Le juger à 3:1 : la garantie reste vérifiable et ne peut pas échouer |
-| 6. Un composant de la page posé dans un fond teinté, en Dark | Voir ci-dessous | 800 Dark corrigé par teinte, survol du bouton texte sur `surface/subtle`, `ring` au 800 en Dark |
+| 6. Le survol et l'appui du bouton texte en Dark | Le texte de `page` manque 4,5 sur `surface/hover` (400) sur les 21 rampes. Le survol sur `surface/subtle` est écarté : chaque état garde la variable de son nom | À trouver |
 
 ### La décision 6
 
