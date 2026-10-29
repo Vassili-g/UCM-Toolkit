@@ -61,7 +61,7 @@ import { creerMemoireDeRessources, type LecturesDeRessources } from 'ucm-plugin-
 import { avecLesPagesNonEcoutees, inventaireDePeremption, lireLaTopologieDuJeu, type NoeudALire } from 'ucm-plugin-socle/src/composant/analyse/topologie';
 import { BUDGET_DE_LAYERS_PAR_DEFAUT } from 'ucm-plugin-socle/src/composant/contract/budget';
 import { analyserLeComposant, type ResultatSansPublication } from 'ucm-plugin-socle/src/composant/contract/exportComponent';
-import { nomsDeLaPage } from 'ucm-plugin-socle/src/composant/contract/composedComponents';
+import { estContracte, nomsDeLaPage } from 'ucm-plugin-socle/src/composant/contract/composedComponents';
 import { extractRules, type ExtractedRules } from 'ucm-plugin-socle/src/composant/contract/extractRules';
 import type { ResultatInterne } from 'ucm-plugin-socle/src/composant/analyse/resultat';
 import { ouvrirLaMesure, fermerLaMesure, etape, compter, retenirLeMaximum, attendrePourLaMesure, mesurerLeCalcul, mesurerSousCompteur, type Compteur, type TraceDeMesure } from 'ucm-plugin-socle/src/composant/contract/mesure';
@@ -1201,6 +1201,21 @@ async function decrireLeMaitre(maitre: NoeudDeDependance, inventaires?: Inventai
   }
 }
 
+/**
+ * Vrai quand le composant du maître a ses règles : un conteneur de règles le nomme sur la page de son maître, comme
+ * `estContracte` le juge pour le moteur. Un maître distant n'en a jamais ; sans page, aucune règle n'est trouvée.
+ */
+function composantAvecRegles(maitre: NoeudDeDependance, inventaires?: InventairesDeLaDemande): boolean {
+  const lire = inventaires?.champs ?? lectureNative;
+  if (lire(maitre, 'remote') === true) return false;
+  const page = pageDuNoeud<PageNode | null>(maitre as { type?: string; parent?: unknown }, null);
+  if (!page) return false;
+  const noms = inventaires ? inventaires.nomsDeLaPage(page, () => nomsDeLaPage(page)) : nomsDeLaPage(page);
+  const parent = lire<NoeudDeDependance | null | undefined>(maitre, 'parent');
+  const proprietaire = parent?.type === 'COMPONENT_SET' ? parent : maitre;
+  return estContracte(proprietaire as unknown as ComponentSetNode, noms, maitre as unknown as ComponentNode);
+}
+
 /** Le maître d'une instance, `null` quand il ne se lit pas ; l'annulation de l'analyse passe. */
 async function maitreDeLInstance(instance: NoeudDeDependance, inventaires?: InventairesDeLaDemande): Promise<NoeudDeDependance | null> {
   try {
@@ -1469,6 +1484,7 @@ export const LECTEURS_DE_FIGMA: Lecteurs = {
       cooperation,
       ressources: inventaires?.ressources,
       champs: inventaires?.champs,
+      reglesTrouvees: (maitre) => composantAvecRegles(maitre as unknown as NoeudDeDependance, inventaires),
     progresser,
     espaceDeCouleur: contexte.figma.root.documentColorProfile === 'DISPLAY_P3' ? 'display-p3' : 'srgb',
   }),

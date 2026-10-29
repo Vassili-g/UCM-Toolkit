@@ -468,3 +468,125 @@ for (const nombre of [128, 256]) for (const passe of ['alias', 'arrêts', 'effet
     assert.ok(travail >= 25 && travail < nombre, `${passe}: ${travail}`);
   });
 }
+
+/** Un composant `.Ring` (le maître), et l'hôte qui en pose une instance : l'anneau, son épaisseur et deux points. */
+function anneauDansUnHote(options: { nom?: string; maitre?: 'lu' | 'perdu'; rayon?: boolean } = {}) {
+  const a = atelierDeCalques();
+  const solide = (variable: string) => [{ type: 'SOLID', color: { r: 0, g: 0, b: 0 }, boundVariables: { color: alias(variable) } }];
+  const rayon = options.rayon ? { cornerRadius: alias('rayon') } : {};
+  const cadre = a.calque('point', 'ELLIPSE', { boundVariables: { strokeWeight: alias('epaisseur') } });
+  const autre = a.calque('autre-point', 'ELLIPSE', { boundVariables: { strokeWeight: alias('epaisseur') } });
+  const maitre = a.calque('ring', 'COMPONENT', {
+    name: options.nom ?? '.Ring', key: 'cle-ring', remote: false,
+    boundVariables: { strokeWeight: alias('epaisseur'), ...rayon },
+    fills: solide('couleur-ring'),
+  }, [cadre, autre]);
+  a.calque('Iring-inst;point', 'ELLIPSE', { boundVariables: { strokeWeight: alias('epaisseur') } });
+  a.calque('Iring-inst;autre-point', 'ELLIPSE', { boundVariables: { strokeWeight: alias('epaisseur-hote') } });
+  const instance = a.calque('ring-inst', 'INSTANCE', {
+    name: 'Anneau',
+    absoluteBoundingBox: boite(0, 0, 16, 16),
+    boundVariables: { strokeWeight: alias('epaisseur'), ...rayon },
+    fills: solide('couleur-hote'),
+    overrides: [
+      { id: 'ring-inst', overriddenFields: ['fills'] },
+      { id: 'Iring-inst;point', overriddenFields: ['boundVariables'] },
+      { id: 'Iring-inst;autre-point', overriddenFields: ['boundVariables'] },
+    ],
+    getMainComponentAsync: async () => (options.maitre === 'perdu' ? null : maitre),
+  });
+  const variant = a.calque('v', 'COMPONENT', { name: 'Etat=Repos', absoluteBoundingBox: boite(0, 0, 40, 40) }, [instance]);
+  const jeu = a.calque('jeu', 'COMPONENT_SET', { name: 'Avatar', key: 'cle-avatar', defaultVariant: variant, componentPropertyDefinitions: { Etat: { type: 'VARIANT', defaultValue: 'Repos', variantOptions: ['Repos'] } } }, [variant]);
+  const { port } = portDeTest(
+    [collectionFigma('c', 'layout', ['Valeur'], ['epaisseur', 'epaisseur-hote', 'rayon', 'couleur-ring', 'couleur-hote'])],
+    ['epaisseur', 'epaisseur-hote', 'rayon'].map((id) => variableFigma(id, 'c', `ring/${id}`, 'FLOAT', { 'c:Valeur': 2 }))
+      .concat(['couleur-ring', 'couleur-hote'].map((id) => variableFigma(id, 'c', `couleur/${id}`, 'COLOR', { 'c:Valeur': { r: 1, g: 0, b: 0, a: 1 } }))),
+  );
+  return { a, jeu, port: a.port(port) };
+}
+
+async function layerDeLAnneau(options: Parameters<typeof anneauDansUnHote>[0] = {}, reglesTrouvees?: () => boolean) {
+  const { jeu, port } = anneauDansUnHote(options);
+  const issue = await lireLeReleve(port, jeu, reglesTrouvees ? { reglesTrouvees } : {});
+  assert.equal(issue.statut, 'lu');
+  if (issue.statut !== 'lu') throw new Error('relevé attendu');
+  assert.deepEqual(issue.releve.lecture.manquees, []);
+  const layer = issue.releve.variants[0].layers.find(({ id }) => id === 'ring-inst');
+  if (!layer) throw new Error('layer attendu');
+  return layer;
+}
+
+const provenances = (layer: { liaisons: ReadonlyArray<{ champ: string; surcharge?: { id: string }; provenance?: string }> }) =>
+  layer.liaisons.map((liaison) => [liaison.surcharge?.id ?? null, liaison.champ, liaison.provenance]);
+
+test('une pièce interne est une pièce interne ; ses liaisons viennent du composant principal, sauf la couleur que l’hôte surcharge', async () => {
+  const layer = await layerDeLAnneau();
+  assert.equal(layer.sorte, 'piece-interne');
+  assert.deepEqual(provenances(layer), [
+    [null, 'strokeWeight', 'composant-principal'],
+    [null, 'fills', 'instance'],
+    ['Iring-inst;point', 'strokeWeight', 'composant-principal'],
+    ['Iring-inst;autre-point', 'strokeWeight', 'instance'],
+  ]);
+});
+
+test('une pièce interne dont le rayon est lié est un wrapper de dimensions : la sorte suit le kit, la provenance reste lue', async () => {
+  const layer = await layerDeLAnneau({ rayon: true });
+  assert.equal(layer.sorte, 'wrapper-de-dimensions');
+  assert.deepEqual(provenances(layer).filter(([, champ]) => champ === 'cornerRadius'), [[null, 'cornerRadius', 'composant-principal']]);
+});
+
+test('une instance dont le composant a ses règles est une dépendance, et ses liaisons ne sont pas comparées à son maître', async () => {
+  const layer = await layerDeLAnneau({ nom: 'Avatar' }, () => true);
+  assert.equal(layer.sorte, 'dependance');
+  assert.ok(layer.liaisons.length > 0);
+  assert.ok(layer.liaisons.every((liaison) => liaison.provenance === undefined));
+});
+
+test('un composant sans préfixe ni règles est un détail', async () => {
+  assert.equal((await layerDeLAnneau({ nom: 'Icone' })).sorte, 'detail');
+});
+
+test('un maître qui ne se lit pas ne donne ni sorte ni provenance', async () => {
+  const { jeu, port } = anneauDansUnHote({ maitre: 'perdu' });
+  const issue = await lireLeReleve(port, jeu);
+  assert.equal(issue.statut, 'lu');
+  if (issue.statut !== 'lu') return;
+  const layer = issue.releve.variants[0].layers.find(({ id }) => id === 'ring-inst');
+  assert.equal(layer?.sorte, undefined);
+  assert.ok(layer?.liaisons.every((liaison) => liaison.provenance === undefined));
+});
+
+test('une règle qui ne se lit pas reste une lecture manquée : l’instance garde ses liaisons sans sorte', async () => {
+  const { jeu, port } = anneauDansUnHote();
+  const issue = await lireLeReleve(port, jeu, { reglesTrouvees: () => { throw new Error('page illisible'); } });
+  assert.equal(issue.statut, 'lu');
+  if (issue.statut !== 'lu') return;
+  const layer = issue.releve.variants[0].layers.find(({ id }) => id === 'ring-inst');
+  assert.equal(layer?.sorte, undefined);
+  assert.deepEqual(issue.releve.lecture.manquees, [{ layer: 'ring-inst', champ: 'sorte', motif: 'page illisible' }]);
+});
+
+test('un composant principal se lit une fois par demande, quel que soit le nombre de variants qui le posent', async () => {
+  const a = atelierDeCalques();
+  const lectures = { maitre: 0, point: 0 };
+  const point = a.calque('point', 'ELLIPSE', { get boundVariables() { lectures.point += 1; return { strokeWeight: alias('epaisseur') }; } });
+  const maitre = a.calque('ring', 'COMPONENT', { name: '.Ring', key: 'cle-ring', remote: false, get boundVariables() { lectures.maitre += 1; return { strokeWeight: alias('epaisseur') }; } }, [point]);
+  const variants = [0, 1, 2].map((rang) => {
+    a.calque(`Iinst-${rang};point`, 'ELLIPSE', { boundVariables: { strokeWeight: alias('epaisseur') } });
+    const instance = a.calque(`inst-${rang}`, 'INSTANCE', {
+      absoluteBoundingBox: boite(0, 0, 16, 16),
+      boundVariables: { strokeWeight: alias('epaisseur') },
+      overrides: [{ id: `Iinst-${rang};point`, overriddenFields: ['boundVariables'] }],
+      getMainComponentAsync: async () => maitre,
+    });
+    return a.calque(`v-${rang}`, 'COMPONENT', { name: `Taille=${rang}`, absoluteBoundingBox: boite(0, 0, 40, 40) }, [instance]);
+  });
+  const jeu = a.calque('jeu', 'COMPONENT_SET', { name: 'Avatar', key: 'cle-avatar', defaultVariant: variants[0] }, variants);
+  const { port } = portDeTest([], []);
+  const issue = await lireLeReleve(a.port(port), jeu);
+  assert.equal(issue.statut, 'lu');
+  if (issue.statut !== 'lu') return;
+  assert.ok(issue.releve.variants.every(({ layers }) => layers[1].liaisons.every((liaison) => liaison.provenance === 'composant-principal')));
+  assert.deepEqual(lectures, { maitre: 1, point: 1 });
+});

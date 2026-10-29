@@ -30,6 +30,7 @@ import { compter } from 'ucm-plugin-socle/src/composant/contract/mesure';
 import { AnalyseAnnulee, creerContexteCooperatif, type ContexteCooperatif, type JetonDAnnulation } from 'ucm-plugin-socle/src/composant/contract/porteeDAnalyse';
 
 import { liaisonsDuNoeudCooperatives, type NoeudLu, type SegmentsPartages } from './consommateurs';
+import { decouper, LiaisonsDesMaitres, marquerLImbrique } from './imbriquesDuReleve';
 import { liaisonsDesSurcharges, type PortDuComposant } from './lectureDuComposant';
 import type { EspaceDuReleve } from './modele';
 
@@ -46,6 +47,8 @@ export interface OptionsDuReleve {
   readonly ressources?: MemoireDeRessources;
   /** La mémoire de champs de la demande (`name`, `parent`, `children`, `fills`, `strokes`, `boundVariables`…), que les dépendances et le moteur lisent aussi ; sans elle, chaque lecture est directe. */
   readonly champs?: LecteurDeChamp;
+  /** Vrai quand un conteneur de règles nomme le composant de ce maître sur sa page : l'instance est une dépendance. Sans lui, aucune instance n'en est une. */
+  readonly reglesTrouvees?: (maitre: NoeudLu) => boolean;
 }
 
 export type IssueDuReleve =
@@ -84,20 +87,6 @@ async function parcourir(racine: NoeudLu, cooperation: ContexteCooperatif, lire:
     }
   }
   return etapes;
-}
-
-/** Une liaison par son chemin : champ sans indice de tête, indice, plage de texte. */
-function decouper(propriete: string): { champ: string; indice?: number; plage?: { debut: number; fin: number } } {
-  let reste = propriete;
-  let plage: { debut: number; fin: number } | undefined;
-  const dansUnTexte = /^texte\[(\d+)–(\d+)\]\.(.*)$/.exec(reste);
-  if (dansUnTexte) {
-    plage = { debut: Number(dansUnTexte[1]), fin: Number(dansUnTexte[2]) };
-    reste = dansUnTexte[3];
-  }
-  const indexe = /^([A-Za-z]+)\[(\d+)\](.*)$/.exec(reste);
-  if (indexe) return { champ: `${indexe[1]}${indexe[3]}`, indice: Number(indexe[2]), ...(plage ? { plage } : {}) };
-  return { champ: reste, ...(plage ? { plage } : {}) };
 }
 
 /**
@@ -207,6 +196,10 @@ class Lecteur {
   private readonly demandees = new Set<string>();
   private readonly styles = new Map<string, string | null>();
   private readonly ressources: MemoireDeRessources;
+  /** Les liaisons des composants principaux, que la provenance d'une liaison d'instance compare à la sienne. */
+  readonly maitres: LiaisonsDesMaitres;
+  /** Vrai d'un maître dont le composant a ses règles : l'instance est alors une dépendance. Jugé une fois par maître. */
+  readonly reglesTrouvees: (maitre: NoeudLu) => boolean;
 
   constructor(
     private readonly port: PortDuComposant,
@@ -215,7 +208,18 @@ class Lecteur {
     ressources?: MemoireDeRessources,
     /** Ce qui lit un champ de nœud : la mémoire de la demande, ou l'accès direct. */
     readonly lire: LecteurDeChamp = lectureNative,
+    reglesTrouvees: (maitre: NoeudLu) => boolean = () => false,
   ) {
+    const jugees = new Map<string, boolean>();
+    this.reglesTrouvees = (maitre) => {
+      let trouvees = jugees.get(maitre.id);
+      if (trouvees === undefined) {
+        trouvees = reglesTrouvees(maitre);
+        jugees.set(maitre.id, trouvees);
+      }
+      return trouvees;
+    };
+    this.maitres = new LiaisonsDesMaitres(cooperation, lire);
     this.ressources = ressources ?? creerMemoireDeRessources({
       lectures: () => ({
         getVariableByIdAsync: (id) => this.port.variables.getVariableByIdAsync(id),
@@ -287,12 +291,12 @@ class Lecteur {
     return this.styles.get(id) ?? null;
   }
 
-  /** Le maître de l'instance et son jeu ; un refus rend la phrase de la manquée `instanceDe`. */
-  async maitre(instance: NoeudLu): Promise<{ maitre: MaitreLu } | { motif: string }> {
+  /** Le maître de l'instance, son jeu et le nœud natif ; un refus rend la phrase de la manquée `instanceDe`. */
+  async maitre(instance: NoeudLu): Promise<{ maitre: MaitreLu; natif: NoeudLu } | { motif: string }> {
     const lu = await this.ressources.maitre(instance as { id: string; getMainComponentAsync?(): Promise<object | null> });
     if (lu.etat === 'refuse') return { motif: lu.raison === 'leve' ? lu.message ?? '' : 'composant source introuvable' };
     const fait = await this.ressources.faitDuMaitre(instance.id, lu.natif);
-    if (fait.etat.etat === 'acquis') return { maitre: fait.etat.valeur };
+    if (fait.etat.etat === 'acquis') return { maitre: fait.etat.valeur, natif: lu.natif as NoeudLu };
     return { motif: fait.etat.etat === 'refuse' && fait.etat.raison === 'leve' ? fait.etat.message ?? '' : 'composant source introuvable' };
   }
 
@@ -383,7 +387,7 @@ async function texteDe(lecteur: Lecteur, noeud: NoeudLu, liaisons: readonly Liai
   };
 }
 
-async function instanceDe(noeud: NoeudLu, lecteur: Lecteur, manquees: Manquee[]): Promise<LayerLu['instanceDe'] | undefined> {
+async function instanceDe(noeud: NoeudLu, lecteur: Lecteur, manquees: Manquee[]): Promise<{ instanceDe: NonNullable<LayerLu['instanceDe']>; natif: NoeudLu } | undefined> {
   const lu = await lecteur.maitre(noeud);
   if ('motif' in lu) {
     manquees.push({ layer: noeud.id, champ: 'instanceDe', motif: lu.motif });
@@ -393,7 +397,7 @@ async function instanceDe(noeud: NoeudLu, lecteur: Lecteur, manquees: Manquee[])
     const references = champLu(noeud, 'componentPropertyReferences', lecteur.lire);
     const pilotee = estUnObjet(references) && typeof references.mainComponent === 'string' ? references.mainComponent : null;
     const publie = lu.maitre.jeu ?? lu.maitre;
-    return { cle: publie.key, nom: publie.nom, distante: lu.maitre.remote, pilotee };
+    return { instanceDe: { cle: publie.key, nom: publie.nom, distante: lu.maitre.remote, pilotee }, natif: lu.natif };
   } catch (erreur) {
     manquees.push({ layer: noeud.id, champ: 'instanceDe', motif: messageDErreur(erreur) });
     return undefined;
@@ -448,7 +452,10 @@ async function lireLeLayer(port: PortDuComposant, lecteur: Lecteur, etape: Etape
         if (!connues.has(cle(liaison))) layer.liaisons.push(liaison);
       }
       const instance = await instanceDe(noeud, lecteur, manquees);
-      if (instance) layer.instanceDe = instance;
+      if (instance) {
+        layer.instanceDe = instance.instanceDe;
+        await marquerLImbrique(layer, instance.instanceDe.nom, instance.natif, lecteur, manquees);
+      }
     }
   } catch (erreur) {
     if (erreur instanceof AnalyseAnnulee) throw erreur;
@@ -556,7 +563,7 @@ async function lireLeReleveInterruptible(port: PortDuComposant, depart: NoeudLu,
   if (annule()) return { statut: 'annule' };
 
   const manquees: Manquee[] = [];
-  const lecteur = new Lecteur(port, manquees, cooperation, options.ressources, lire);
+  const lecteur = new Lecteur(port, manquees, cooperation, options.ressources, lire, options.reglesTrouvees);
   const variants: VariantLu[] = [];
   const variantsNonLus: string[] = [];
   let layersLus = 0;

@@ -6,7 +6,7 @@ Plugin UCM Architect : ucm-architect-plugin, privé, en lecture seule.
 - SPEC.md : ce que le plugin lit, résout et refuse de conclure
 - invariants/ : les invariants du paquet, un fichier par groupe
 - galerie/ : états de l'interface, à 1360 × 800, à 560 × 480 et à 500 × 760, un fichier d'états par domaine dans `etats/`, et comparaison à la maquette de la vue composant
-- tests/ : dont les lois d'écriture (`loiDEcriture`, `loiDEcritureDesNoms`), les doubles de Figma, `outils/` (le monde fabriqué et le chargeur de capture de `capture.test.ts`), `nomenclature*.test.ts` pour le code de Nomenclature et `interface/` pour Chromium
+- tests/ : dont les lois d'écriture (`loiDEcriture`, `loiDEcritureDesNoms`), la loi des imbriqués (`imbriquesParLeKit`), les doubles de Figma, `outils/` (le monde fabriqué et le chargeur de capture de `capture.test.ts`), `nomenclature*.test.ts` pour le code de Nomenclature et `interface/` pour Chromium
 - galerie/composant/ : Alert à 11 variants et Button à 216, leurs analyses, et le fichier hors UCM de `t-hors`
 - galerie/nomenclature/ : données des états de Nomenclature, joués dans la galerie d'Architect (`etats/nomenclature.cjs`)
 - galerie/recherche/ : fichier d'exemple des états de recherche et de fiche (`t-questions`, `t-terme`, `t-fiche`)
@@ -28,6 +28,7 @@ Plugin UCM Architect : ucm-architect-plugin, privé, en lecture seule.
 - composant.ts : modèle pur de la vue composant : natures, lignes, sections, résumés, portée, préfixe
 - lectureDuComposant.ts : sujet d'une sélection, ses calques, ses frontières, ses liaisons, ses styles de texte
 - releveDuComposant.ts : relevé complet d'un jeu de variants pour les contrôles du kit (`ReleveDeComposant`), borné par le budget de layers de S3 ; lit la mise en page scalaire, les peintures et les segments de texte (un appel pour les liaisons de plage et les plages) par `acquisition.ts` du socle, et variables, collections, styles et maîtres par `ressources.ts` ; ses champs de nœud (`name`, `parent`, `children`, `fills`…) par la mémoire de champs de la demande
+- imbriquesDuReleve.ts : sorte (`sorteDeLImbrique` du kit) du layer d'une instance imbriquée et provenance de ses liaisons, comparées au layer homologue du composant principal, lu une fois par maître et par demande
 - constatsDuMoteur.ts : points à corriger du moteur de l'exporteur traduits en `Constat` du kit, par une table explicite (C30, C34, C35, C41, C42, C44)
 - regles.ts : règles d'usage d'un composant en lecture : C43 (pas d'instance de règles, avec sa correction de sorte `regles`) et C45 (propriété sans règle, règle sans propriété) ; lit les `props`, le `stateModel` et les imbriqués du résultat interne du moteur, élidés comme le contrat (`contratDesReglesDe`) ; retient le modèle de chaque correction
 - apercu.ts : image du sujet, exportée en mémoire, et boîte de chaque calque
