@@ -124,9 +124,9 @@ le compte de la majorité ; elles ne reçoivent simplement jamais C21.
 
 Analyse 7.2. Nature : correction d'un défaut.
 
-- [ ] **K2.1** Tests rouges dans `packages/kit/tests/nommageCalcul.test.ts` : `Size/Large/radius` tenu ; `Size/radius/Large` donne C10 attendu `lg` ; `Size/lg/radius` donne C10 attendu `Large`.
-- [ ] **K2.2** `packages/kit/src/controles/nommage.ts:225` : l'écriture attendue vient de `termePourCategorie(terme, categorieDuSegment(nom, rang))` (`referentiel/termes.ts`, `referentiel/ecriture-des-mots.ts`).
-- [ ] **K2.3** Loi dans `packages/kit/tests/` : aucun fichier de `src/controles/` ne compare un segment à `terme.id` hors de `termePourCategorie`.
+- [x] (91fe6c14) **K2.1** Tests rouges dans `packages/kit/tests/nommageCalcul.test.ts` : `Size/Large/radius` tenu ; `Size/radius/Large` donne C10 attendu `lg` ; `Size/lg/radius` donne C10 attendu `Large`.
+- [x] (91fe6c14) **K2.2** `packages/kit/src/controles/nommage.ts:225` : l'écriture attendue vient de `termePourCategorie(terme, categorieDuSegment(nom, rang))` (`referentiel/termes.ts`, `referentiel/ecriture-des-mots.ts`).
+- [x] (91fe6c14) **K2.3** Loi dans `packages/kit/tests/` : aucun fichier de `src/controles/` ne compare un segment à `terme.id` hors de `termePourCategorie`.
 
 #### K3 · C17 admet `foreground` sur un stroke
 
@@ -145,16 +145,16 @@ Analyse 7.4. Nature : correction d'un défaut.
 
 Analyse 7.3, « Factoriser et documenter la notion ». Nature : code nouveau.
 
-- [ ] **K5.1** `packages/kit/src/referentiel/composition.ts` : sortes `dependance`, `wrapper-de-dimensions`, `piece-interne`, `detail` ; type `FaitsDImbrique` (nom, règles d'utilisation trouvées, dimensions liées) ; `sorteDeLImbrique(faits)`, testée dans l'ordre de l'analyse. Export par `referentiel/index.ts` et la porte documentée de `packages/kit/README.md`.
-- [ ] **K5.2** Tests `packages/kit/tests/composition.test.ts` : `.sizeWrapperButton` avec dimensions liées donne `wrapper-de-dimensions` ; `.Ring` donne `piece-interne` ; un set nommé par `.componentRules` donne `dependance` ; un imbriqué sans préfixe ni règles donne `detail`.
+- [x] (ce515caa) **K5.1** `packages/kit/src/referentiel/composition.ts` : sortes `dependance`, `wrapper-de-dimensions`, `piece-interne`, `detail` ; type `FaitsDImbrique` (nom, règles d'utilisation trouvées, dimensions liées) ; `sorteDeLImbrique(faits)`, testée dans l'ordre de l'analyse. Export par `referentiel/index.ts` et la porte documentée de `packages/kit/README.md`.
+- [x] (ce515caa) **K5.2** Tests `packages/kit/tests/composition.test.ts` : `.sizeWrapperButton` avec dimensions liées donne `wrapper-de-dimensions` ; `.Ring` donne `piece-interne` ; un set nommé par `.componentRules` donne `dependance` ; un imbriqué sans préfixe ni règles donne `detail`.
 
 #### K8 · Détection du modèle de liaisons
 
 Analyse 4, « La carte ». Nature : code nouveau.
 
-- [ ] **K8.1** `packages/kit/src/controles/propagation.ts` : `candidatsDeModele(releve, catalogue)` rend, par sorte (`couleurs`, `tailles`), le variant qui porte le plus de liaisons de cette sorte, à égalité le premier du jeu ; les layers en dur ailleurs ; le nombre de liaisons que `proposerLaPropagation` proposerait. Rien si ce nombre vaut zéro.
-- [ ] **K8.2** Constat `C81`, famille `liaisons` ou `tailles`, type `corriger`, faits `{ modele, layers, variants, liaisons }`, sans correction. `C81` est libre ; l'ajouter au registre des codes de `packages/plugin-architect/invariants/explorateur.md`, où C80 est décrit (l'orchestrateur le fait à la synchronisation : fichier hors de la piste K).
-- [ ] **K8.3** Tests dans `propagation.test.ts` : un variant lié et 3 en dur donnent un C81 ; tous liés, aucun ; aucun lié, aucun.
+- [~ Claude 2] **K8.1** `packages/kit/src/controles/propagation.ts` : `candidatsDeModele(releve, catalogue)` rend, par sorte (`couleurs`, `tailles`), le variant qui porte le plus de liaisons de cette sorte, à égalité le premier du jeu ; les layers en dur ailleurs ; le nombre de liaisons que `proposerLaPropagation` proposerait. Rien si ce nombre vaut zéro.
+- [~ Claude 2] **K8.2** Constat `C81`, famille `liaisons` ou `tailles`, type `corriger`, faits `{ modele, layers, variants, liaisons }`, sans correction. `C81` est libre ; l'ajouter au registre des codes de `packages/plugin-architect/invariants/explorateur.md`, où C80 est décrit (l'orchestrateur le fait à la synchronisation : fichier hors de la piste K).
+- [~ Claude 2] **K8.3** Tests dans `propagation.test.ts` : un variant lié et 3 en dur donnent un C81 ; tous liés, aucun ; aucun lié, aucun.
 
 #### K9 · Le signe de la section Informations
 
@@ -272,19 +272,19 @@ Analyse 2. Nature : correction d'un défaut.
 
 Analyse 3 et 5. Nature : écran nouveau.
 
-- [ ] **U3.1** Puce de valeur : la valeur seule, la paire exacte de Figma en `title` ; la property reste dans la puce quand deux properties du jeu partagent cette valeur. Une fonction, dans `src/ui/composant/`, que tous les écrans emploient.
-- [ ] **U3.2** Section Variants (`src/ui/composant/variants.ts`) : retirer la ligne Affiché (ligne 296), le bouton Tableau, `basculerLeTableau` (`src/ui/vues/composant.ts:423`), le rendu croisé (ligne 213), le bouton de copie et leurs textes.
-- [ ] **U3.3** Constats (`src/ui/ignores/modele.ts:101`, `src/ui/corrections/modele.ts`, `src/ui/corrections/index.ts`, `src/ui/questions/index.ts`) : la phrase ne nomme plus le variant ; la ligne de lieu donne le nombre de variants, puis les puces des seules paires partagées. « Tous les variants désactivés » disparaît.
-- [ ] **U3.4** Liste avant / après d'une carte de correction : la valeur en dur d'abord, puis le variant en puces.
-- [ ] **U3.5** États de galerie mis à jour ; ceux du tableau retirés.
+- [x] (553bef4c) **U3.1** Puce de valeur : la valeur seule, la paire exacte de Figma en `title` ; la property reste dans la puce quand deux properties du jeu partagent cette valeur. Une fonction, dans `src/ui/composant/`, que tous les écrans emploient.
+- [x] (553bef4c) **U3.2** Section Variants (`src/ui/composant/variants.ts`) : retirer la ligne Affiché (ligne 296), le bouton Tableau, `basculerLeTableau` (`src/ui/vues/composant.ts:423`), le rendu croisé (ligne 213), le bouton de copie et leurs textes.
+- [x] (553bef4c) **U3.3** Constats (`src/ui/ignores/modele.ts:101`, `src/ui/corrections/modele.ts`, `src/ui/corrections/index.ts`, `src/ui/questions/index.ts`) : la phrase ne nomme plus le variant ; la ligne de lieu donne le nombre de variants, puis les puces des seules paires partagées. « Tous les variants désactivés » disparaît.
+- [x] (553bef4c) **U3.4** Liste avant / après d'une carte de correction : la valeur en dur d'abord, puis le variant en puces.
+- [x] (553bef4c) **U3.5** États de galerie mis à jour ; ceux du tableau retirés.
 
 #### U4 · Ligne d'actions et Sélectionner
 
 Analyse 4 et 6. Nature : écran nouveau.
 
-- [ ] **U4.1** Carte de constat et de question : chevron en haut à droite, sur la ligne de la sévérité ; ligne d'actions en bas, sous le texte (`src/ui/ignores/index.ts`, `src/ui/questions/index.ts`).
-- [ ] **U4.2** Bouton Sélectionner, signe `selection` du kit, sur toute carte qui vise des layers. Après le clic, « Sélectionnés », désactivé jusqu'au prochain message `selection` du sandbox. Une carte de correction le porte dans son corps déplié.
-- [ ] **U4.3** Ouvrir une carte ne sélectionne plus rien : retirer les appels de `src/ui/corrections/index.ts:400`, `:464` et `src/ui/ignores/index.ts:158`. Tests `ignores.test.ts`, `corrections.test.ts`.
+- [~ Claude 1] **U4.1** Carte de constat et de question : chevron en haut à droite, sur la ligne de la sévérité ; ligne d'actions en bas, sous le texte (`src/ui/ignores/index.ts`, `src/ui/questions/index.ts`).
+- [~ Claude 1] **U4.2** Bouton Sélectionner, signe `selection` du kit, sur toute carte qui vise des layers. Après le clic, « Sélectionnés », désactivé jusqu'au prochain message `selection` du sandbox. Une carte de correction le porte dans son corps déplié.
+- [~ Claude 1] **U4.3** Ouvrir une carte ne sélectionne plus rien : retirer les appels de `src/ui/corrections/index.ts:400`, `:464` et `src/ui/ignores/index.ts:158`. Tests `ignores.test.ts`, `corrections.test.ts`.
 
 #### U5 · La section Informations
 
