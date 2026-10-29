@@ -561,7 +561,7 @@ Les thèmes inversés en Light ne sont pas mesurés.
 | Question | Fait | Recommandation |
 |---|---|---|
 | 4. L'appui de `surface` : hors des garanties, ou jugé à 3:1 | Le texte 700 passe 3:1 sur le 300 pour les 360 teintes, à 3,70 au minimum. Le Dark passe à 5,77 | Le juger à 3:1 : la garantie reste vérifiable et ne peut pas échouer |
-| 6. Un composant de la page posé dans un fond teinté, en Dark | Voir ci-dessous | Les actions appartiennent au conteneur : `alert/action/*` vise `surface` |
+| 6. Un composant de la page posé dans un fond teinté, en Dark | Voir ci-dessous | Ouvert : en Dark, le texte de `page` ne tient sur aucun fond de `surface` |
 
 ### La décision 6
 
@@ -595,43 +595,34 @@ peut pas passer 4,5 sur le fond teinté 300 sans que l'un des deux change.
 sur la carte (4,56). L'anneau prend alors le cran du texte de la page. Le texte
 du composant reste à 3,39 sur le fond teinté.
 
-**Position du mainteneur.** Pas de mode de conteneur. La solution doit être
-simple.
+**Positions du mainteneur.** Pas de mode de conteneur : la solution doit être
+simple. Pas non plus d'actions portées par le conteneur, avec des tokens
+`alert/action/*` qui visent `surface`.
 
-**Piste : les actions appartiennent au conteneur.** Deux règles déjà posées
-suffisent :
+**Constat : en Dark, le survol du bouton texte échoue déjà sur la page.** Le
+bouton texte prend `page/foreground` pour son texte et `surface/hover` pour
+son survol. En Dark, le texte 800 sur le survol 400 vaut de 2,61 à 4,49 : les
+21 rampes sont sous 4,5, et 2 sous 3. À l'appui, sur le 500, 19 rampes sont
+sous 3. Aucune garantie ne juge ce couple : la garantie 5 juge
+`page/foreground` sur la page et la carte seulement. Le problème du sujet 6
+ne tient donc pas à l'alerte. En Dark, le texte de `page` ne tient sur aucun
+fond de `surface`. En Light, il tient sur tous, avec la correction du 700.
 
-1. Une couleur appartient au fond qui est juste derrière elle (règle 1 du
-   sujet 9).
-2. Un calque prend les tokens de son propre composant, dans la collection
-   `components`.
+**Mesure : une correction teinte par teinte du 800 en Dark.** Comme pour le 700
+en Light, le moteur éclaircirait le 800 Dark des seules rampes qui manquent 4,5
+sur le fond teinté 300.
 
-Les boutons et le lien d'une alerte sont des calques du composant Alerte. Ils
-prennent donc les tokens de l'Alerte : `alert/action/foreground`,
-`alert/action/border` et `alert/action/ring`. Ces tokens visent le fond qui
-est juste derrière : `surface/foreground`, `surface/border` et
-`surface/border`. Le Button garde ses propres tokens, qui visent `page`.
-
-| | Light | Dark |
+| Rampes | Contraste du 800 sur le 300 | Correction du 800 |
 |---|---|---|
-| Texte et contour des actions, sur le fond teinté | 700, comme `page` | 950, 9,47 au minimum |
-| Anneau des actions | 700, 4,95 au minimum | 950, 9,47 au minimum |
+| 9 rampes, dont Titanium, Terracota, Deep, Ocean, Iris | 4,37 à 4,49 | 0,009 au plus |
+| Poppy Vivid | 3,39 | 0,066 |
+| Irene Vivid | 3,59 | 0,056 |
 
-Aucune variable de `theme`, aucune variante, aucun mode et aucune couleur ne
-change. Dans l'alerte, le titre et les actions ont la même couleur, en Light
-comme en Dark. Un composant teinté qui porte des actions, comme une bannière ou
-un encart, fait de même.
+Poppy Vivid et Irene Vivid échouent parce que leur 800 Dark est la référence
+elle-même : `#EF4733` à 0,638 de clarté et `#DA51C2` à 0,655, au lieu de 0,70.
+Elles relèvent de la décision 1, « Ajuster la référence ». Cette correction ne
+règle pas le survol : sur le 400, le 800 manque 4,5 sur les 21 rampes.
 
-Coût : un Button posé librement dans une alerte garde ses tokens de la page et
-échoue en Dark. Architect peut le signaler : un calque lié à `page` sur un
-fond lié à `surface` enfreint la règle 1. Si l'Alerte imbrique une instance
-de Button, elle remplace les liaisons de couleur de cette instance par ses
-propres tokens. Comment Architect traite ces remplacements reste à vérifier.
-
-| Autre réponse | Raison de l'écarter |
-|---|---|
-| Mode du conteneur | Écarté par le mainteneur, qui veut une solution simple |
-| Règle seule | La piste ci-dessus applique déjà la règle, et donne au designer les tokens pour la suivre |
 
 Les thèmes inversés en Light ne sont pas mesurés. La mesure ne demande pas de
 décision.

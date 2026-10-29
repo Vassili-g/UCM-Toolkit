@@ -435,7 +435,7 @@
   <div class="defile"><table class="mesures">
     <tr><th>Question</th><th>Fait</th><th>Recommandation</th></tr>
     <tr><td>4. L'appui de <code>surface</code> : hors des garanties, ou jugé à 3:1</td><td>Le texte 700 passe 3:1 sur le 300 pour les 360 teintes, à 3,70 au minimum. Le Dark passe à 5,77.</td><td>Le juger à 3:1 : la garantie reste vérifiable et ne peut pas échouer.</td></tr>
-    <tr><td>6. Un composant de la page posé dans un fond teinté, en Dark</td><td>Le texte et l'anneau de la page échouent sur le fond teinté 300 en Dark. Voir le README, décision 6.</td><td>Les actions de l'alerte font partie du composant Alerte et visent <code>surface</code>. Voir la section 6.</td></tr>
+    <tr><td>6. Un composant de la page posé dans un fond teinté, en Dark</td><td>Le texte et l'anneau de la page échouent sur le fond teinté 300 en Dark. Voir le README, décision 6.</td><td>Ouvert. En Dark, le texte de <code>page</code> ne tient sur aucun fond de <code>surface</code>, même le survol du bouton texte sur la page. Voir le README, décision 6.</td></tr>
   </table></div>
   <p class="note">Les thèmes inversés en Light ne sont pas mesurés. Cette mesure ne demande pas de décision.</p>
 </main>
@@ -827,7 +827,7 @@ function rendreContexteModes() {
   const cas = [
     { titre: 'Sur la page', dansAlerte: false, variante: false },
     { titre: 'Tel quel dans une alerte teintée', dansAlerte: true, variante: false },
-    { titre: "Actions portées par l'alerte", dansAlerte: true, variante: true },
+    { titre: "Écartée : actions portées par l'alerte", dansAlerte: true, variante: true },
     { titre: 'Écartée : un seul cran de texte en Dark, sur la page', dansAlerte: false, eclaircie: true },
     { titre: 'Écartée : un seul cran de texte en Dark, dans l\'alerte', dansAlerte: true, eclaircie: true },
   ];
