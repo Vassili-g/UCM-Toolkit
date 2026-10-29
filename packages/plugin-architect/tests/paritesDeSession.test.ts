@@ -435,7 +435,7 @@ test('une entrée invalidée rejoue le moteur et ne rejoue que les requêtes don
   assert.equal(JSON.stringify(analysee.affiche), JSON.stringify(actualisee.affiche));
 });
 
-test('une peinture changée sur une entrée invalidée ne rejoue que l’accessibilité, et les corrections et la projection qui la suivent', async () => {
+test('une peinture changée sur une entrée invalidée ne rejoue que l’accessibilité, les couches (C81 lit quels champs sont peints), et les corrections et la projection qui les suivent', async () => {
   const fichier = fichierDeDepart();
   const appels = { moteur: 0 };
   await mesuree(fichier, appels, 'analyser');
@@ -446,7 +446,7 @@ test('une peinture changée sur une entrée invalidée ne rejoue que l’accessi
   const analysee = await mesuree(fichier, appels, 'analyser');
   assert.equal(appels.moteur, 2, 'le moteur est rejoué');
   // Le moteur de la fixture nomme le nombre de peintures : ses constats changent, donc les corrections et la projection aussi.
-  assert.deepEqual(analysee.reprises, { non: 5, rejouees: 3 });
+  assert.deepEqual(analysee.reprises, { non: 4, rejouees: 4 });
   const actualisee = await mesuree(fichier, appels, 'actualiser');
   assert.deepEqual(actualisee.reprises, { non: 0, rejouees: 8 });
   assert.equal(JSON.stringify(analysee.affiche), JSON.stringify(actualisee.affiche));
@@ -457,7 +457,8 @@ const REQUETES = ['controle-accessibilite', 'controle-couches', 'controle-mappin
 
 /** Le banc des mutations locales d'un calque, sur une entrée invalidée par le journal : chaque requête est comptée sous son nom, reprise ou rejouée. */
 const MUTATIONS_LOCALES: ReadonlyArray<{ nom: string; mutation: string; rejouees: string[] }> = [
-  { nom: 'peinture', mutation: 'peinture d’un calque', rejouees: ['controle-accessibilite', 'corrections', 'projection'] },
+  // C81 juge un layer en dur par ses peintures : en ajouter une rejoue les couches.
+  { nom: 'peinture', mutation: 'peinture d’un calque', rejouees: ['controle-accessibilite', 'controle-couches', 'corrections', 'projection'] },
   { nom: 'taille du texte', mutation: 'texte d’un calque', rejouees: ['controle-accessibilite', 'corrections', 'projection'] },
   // Les constats de contraste nomment la plage de texte (`0-5`) : sa fin change leurs identifiants, donc les corrections et la projection.
   { nom: 'contenu du texte', mutation: 'contenu d’un texte', rejouees: ['controle-accessibilite', 'corrections', 'projection'] },

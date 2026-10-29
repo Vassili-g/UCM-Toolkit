@@ -60,7 +60,7 @@ export const GABARITS: Readonly<Record<NomDeFamille, Gabarit>> = {
   'controle-couches': [
     'releve.jeu.nom', ...PROPRIETES,
     ...sous('releve.variants.*', 'id', 'nom', 'valeurs'),
-    ...sous(LAYERS, 'id', 'nom', 'parent', 'sorte', 'peintures'),
+    ...sous(LAYERS, 'id', 'nom', 'parent', 'sorte', 'peintures.*.champ', 'peintures.*.indice'),
     ...sous(LIAISONS_DU_LAYER, 'champ', 'indice', 'plage', 'provenance', 'surcharge.id', 'surcharge.nom', 'variable.cle', 'variable.nom'),
     ...COLLECTIONS, ...sous('catalogue.variables.*', 'cle', 'nom', 'collection', 'type', 'etat', ALIAS),
   ],
