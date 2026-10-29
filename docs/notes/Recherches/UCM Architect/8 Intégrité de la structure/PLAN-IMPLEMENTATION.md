@@ -25,7 +25,7 @@ Les décisions sont celles de CONCEPTION.md, section « Décisions ». Rappel de
 | Q8 | Le cran visé (B) entre dans le contrôle : correction quand le cran est exact, question sinon |
 | Q9 | La préparation d'un composant dit qu'une cible prévue manque dans `theme` |
 | Q10 | La ligne de réussite d'une création demande de publier la library |
-| Q11 | `theme` sans mode Light ou sans mode Dark reconnu : constat dans À faire dans Figma. La décision écrite dit « ni `light` ni `dark` » ; le plan retient « ou », qui couvre aussi un thème à un seul mode. À confirmer par le mainteneur avant I3 |
+| Q11 | `theme` signalé dans À faire dans Figma dans les deux cas : aucun mode reconnu Light ni Dark (un seul constat), ou l'un des deux manque |
 | Q12 | `couche`, `valeur-directe` et `portee` passent dans le kit ; `src/integrations/` d'Architect disparaît |
 | Q13 | Code neuf C82, avec un fait `genre` |
 | Q-14 | Une correction de cran change une couleur visible : sa ligne arrive décochée. L'onglet Corrections a un bouton « Tout désélectionner » |
@@ -409,7 +409,7 @@ Fichiers : `packages/kit/src/controles/integrite.ts`, `packages/kit/tests/integr
   - **C, `genre: 'couche'`.** Une couleur dont l'alias vise une collection hors de `ciblesAdmises(collection, 'couleur')`. `type: 'corriger'`, sans correction. Une variable de `components` qui vise `brands` est jugée ici aussi : en mode Tokens, C63 ne la voit pas (`controlerLesContournements` ne tourne qu'avec un composant) ;
   - **valeur directe, `genre: 'valeur-directe'`.** Une couleur sans alias hors de `primitives` et de `components` (C63 traite `components`). Sans correction ;
   - **D, `genre: 'scopes'`.** Une variable de `COLLECTIONS_SANS_PORTEE` qui porte des scopes. Correction `sorte: 'scope'`, `apres.nom: ''` (ensemble vide). `ALL_SCOPES` compte comme un scope posé ;
-  - **E, Q11, `genre: 'mode-du-theme'`.** `theme` sans mode reconnu `light`, ou sans mode reconnu `dark` (`modeDuThemeReconnu`). Fait `manque`. Sans correction ;
+  - **E, Q11, `genre: 'mode-du-theme'`.** `theme` sans mode reconnu `light`, ou sans mode reconnu `dark` (`modeDuThemeReconnu`). Fait `manque` : `light`, `dark`, ou `les-deux` quand aucun n'est reconnu (un seul constat dans ce cas). Sans correction ;
   - **F, `genre: 'type'`.** Une variable de `theme` reconnue dont le type n'est pas `COLOR`. Sans correction ;
   - **G, `genre: 'mal-rangee'`.** Une variable reconnue comme variable de palette à deux segments au moins (`surface/default`) dans `brands`, `utility`, `primitives`, `layout` ou `typography`. Fait `collection`. Sans correction.
 
@@ -684,6 +684,7 @@ Agent : le mainteneur. Préparation par la conversation principale : `npm run bu
 | `couche` | Cette couleur vise {collection}. UCM attend {attendues}. | Choisissez une cible dans {attendues} dans la fenêtre Variables |
 | `valeur-directe` | Cette couleur n'est pas un alias. | Liez-la à une couleur de {attendues} dans la fenêtre Variables |
 | `mode-du-theme` | La collection theme n'a pas de mode {mode}. | Ajoutez un mode {mode} à theme dans la fenêtre Variables |
+| `mode-du-theme`, `les-deux` | La collection theme n'a ni mode Light ni mode Dark. | Nommez ses modes Light et Dark dans la fenêtre Variables |
 | `type` | Cette variable du thème n'est pas une couleur. | Recréez-la en couleur dans la fenêtre Variables |
 | `mal-rangee` | Cette variable du thème est rangée dans {collection}. | Déplacez-la dans theme dans la fenêtre Variables |
 

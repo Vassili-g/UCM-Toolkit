@@ -312,6 +312,6 @@ Le contrôle d'intégrité fait la distinction. Une couleur sans cible UCM reste
 | Q8 | (a) : le cran visé entre dans le contrôle. Correction quand le cran est exact (sens sans effet ou déduit par Q4), sinon une question |
 | Q9 | (a) : raison propre dans la feuille de préparation |
 | Q10 | (a) : la ligne de réussite demande de publier la library |
-| Q11 | (a) : constat « À faire dans Figma » quand `theme` n'a ni `light` ni `dark` reconnu |
+| Q11 | (a) : constat « À faire dans Figma » quand `theme` n'a ni `light` ni `dark` reconnu, et quand l'un des deux manque |
 | Q12 | (b) : `couche`, `valeur-directe` et `portee` passent dans la fonction du kit ; les doublons du plugin sont retirés |
 | Q13 | (a) : un code neuf, C82 |
