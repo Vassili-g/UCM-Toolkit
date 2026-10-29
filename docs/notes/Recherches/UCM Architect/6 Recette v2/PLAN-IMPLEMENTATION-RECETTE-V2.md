@@ -362,10 +362,60 @@ Analyse 10, « Ce que le changement touche ». Dépend de P1 (V4). Agent : `impl
 
 #### Z · Clôture
 
-- [ ] **Z.1** Liste des écrans à vérifier pour le mainteneur, sous-lot par sous-lot, et recette Figma : Button, Alert, Stresstest, une palette en Dark.
+- [x] **Z.1a** Liste des écrans à vérifier : §4.
+- [ ] **Z.1b** Recette Figma par le mainteneur : Button, Alert, Stresstest, une palette en Dark.
 - [x] **Z.2** Poussé et publié le 29/10, avant la recette à la demande du mainteneur : kit 0.13.33, CLI 0.1.130, adaptateur 0.1.123.
 
-## 4. Questions ouvertes
+## 4. Écrans à vérifier
+
+Le mainteneur rejoue ces gestes dans Figma. Avant la recette, reconstruire
+les deux plugins : `npm run build:plugin -- architect`, puis
+`npm run build:plugin -- palettes`. Le build du 29/10 à 10:28 précède les
+commits du plan des crans clairs, qui changent aussi Palettes en Dark.
+
+La colonne Galerie nomme les états qui montrent le même écran hors de Figma
+(`npm run galerie:plugin -- architect` ou `-- palettes`).
+
+### Architect, interface
+
+| Sous-lot | Geste dans Figma | Attendu | Galerie |
+|---|---|---|---|
+| U1.1 | Ouvrir Architect, puis ouvrir et fermer le panneau des constats | 500 px à l'ouverture et au minimum ; 1144 px panneau ouvert, panneau de 640 px | `composant-vide` |
+| U1.2 | Lire Alert, puis tout désélectionner dans Figma | Barre sans logo ni nom ; Analyser avec son libellé, grisé, bulle « Sélectionnez un composant dans Figma » ; Constats en icône et pastille ; engrenage seul | `u1-sans-composant`, `c-bouton-texte` |
+| U1.3 | Glisser la frontière vue / panneau et relâcher hors de la fenêtre | La frontière suit le pointeur et s'arrête au relâchement | — |
+| U1.4 | Ouvrir la Configuration depuis le mode Composant, panneau fermé puis ouvert ; cliquer une seconde fois | Même mode ; la Configuration remplace la vue ou le panneau ; le second clic rend l'écran précédent | `u1-configuration-vue`, `u1-configuration-panneau` |
+| 6bc08128 | Analyser un composant jamais analysé, panneau fermé ; puis Analyser de nouveau | Le panneau s'ouvre à la première analyse ; la seconde n'y touche pas | — |
+| U2 | Alert lu : choisir Severity « error » dans la section Variants | L'ancienne lecture reste sous une barre fine ; sections ouvertes, filtre et défilement gardés ; valeurs changées surlignées un instant ; chevrons des sections à droite | `u2-variant-en-lecture`, `u2-variant-lu`, `composant-section` |
+| U3 | Survoler une puce de variant d'Alert ; analyser Button | La puce porte la valeur seule, la bulle la paire de Figma ; sur Button, `default` garde sa property ; ni ligne Affiché ni bouton Tableau ; une carte donne le nombre de variants puis les puces partagées ; la liste avant / après commence par la valeur en dur | `composant-variants`, `u3-valeurs-partagees` |
+| U4 | Ouvrir une carte, puis cliquer Sélectionner ; changer la sélection dans Figma | Ouvrir ne sélectionne rien ; Sélectionner sélectionne les layers, puis « Sélectionnés » grisé jusqu'au changement de sélection | `c-clic`, `u4-selectionner`, `u4-selectionnes`, `u4-reactive` |
+| U5 | Analyser Button, choisir « Tout » | Section Informations en dernier, repliée ; la ligne C53 de `Disabled` n'entre ni dans les nombres ni dans la pastille | `u5-informations` |
+| U6 | Analyser un composant dont un seul variant lie ses layers, ouvrir la carte, cliquer « Proposer les liaisons » | Carte À corriger dans Couleurs ou Tailles et forme ; le chevron liste layers et tokens ; la carte disparaît, les corrections arrivent dans sa section, ouverte ; rien n'est écrit avant Appliquer | `c-carte-modele`, `c-carte-modele-ouverte`, `c-carte-modele-proposee` |
+| U7 | Analyser Button et Alert | Une carte de contraste nomme le fond, le mode, le contraste, le seuil et la garantie ; « propriété » dans les phrases | `x-alert`, `x-button` |
+
+### Architect, constats
+
+| Sous-lot | Composant | Attendu |
+|---|---|---|
+| K1 | Button | Aucun C21 « lié autrement dans 12 autres variants » sur l'anneau des variants Focus |
+| K2 | Button | Aucun C10 « 4 tokens écrivent Large » quand le dossier écrit `Large` |
+| K3 | Alert | Le stroke d'Outlined lié à `foreground` ne donne plus C17 |
+| K4, B2 | Button | Contraste mesuré sur `elevation/page` et `elevation/raised`, par mode ; À corriger sur un fond garanti, À vérifier sinon ; dans un fichier sans `elevation/raised`, l'information « Fond lu sur la page Figma » |
+| K5, K6, B3 | Button | Le radius de `.Ring` lié à `Radius/lg` dans son composant principal ne donne plus C80 ; la couleur de l'anneau posée par un token de Button non plus |
+| K7 | composant à C67 `propriete-absente` | Carte À corriger, plus À vérifier |
+| B1 | Button | Aucun C45 pour `size`, `label`, `iconLeft`, `iconRight` ; `State` sans règle garde le sien |
+| S1 | Stresstest | Un gap Auto (`SPACE_BETWEEN`) n'est plus une valeur en dur |
+| S2 | Button, par l'Exporter | Contrat réexporté identique au précédent |
+| 9de1021c | Button | Les tokens `Size/*` liés dans `.sizeWrapperButton` ne sont plus inutilisés (C32) |
+| 9432cae8 | fichier où le thème écrit `Elevation/page` | Variable du thème reconnue, aucun constat nouveau |
+
+### Palettes, une palette en Dark
+
+| Sous-lot | Geste | Attendu | Galerie |
+|---|---|---|---|
+| P1, P2 | Ouvrir la carte des garanties et la réglette d'une palette en Dark | G2 à G6 ont une colonne « sur la page » et une colonne « sur la carte » ; planche et rapport comptent les promesses sur la carte | `courbe-hors-garantie-sur-la-carte`, `garantie-sur-la-carte-en-echec` |
+| R-30 | Déplacer le réglage global de luminosité en Dark | La course est plus courte qu'avant P1 : décision acceptée, pas un défaut | — |
+
+## 5. Questions ouvertes
 
 | N° | Question | Quand |
 |---|---|---|
