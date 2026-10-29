@@ -254,7 +254,7 @@ Agent : conversation principale. Vague 2, en parallèle de U1.
 
 Fichiers : `packages/kit/src/controles/constat.ts`, `packages/kit/src/controles/integrite.ts` (nouveau), `packages/kit/src/controles/index.ts`, `packages/kit/tests/integrite.absentes.test.ts` (nouveau), `packages/kit/tests/fixtures/catalogueDeStructure.ts` (nouveau).
 
-- [ ] **I1.1** · `implementeur-exigeant` · Étendre `Correction` (lue par le sandbox, l'écriture et l'interface d'Architect) :
+- [x] **I1.1** (77c6cc8e) · `implementeur-exigeant` · Étendre `Correction` (lue par le sandbox, l'écriture et l'interface d'Architect) :
 
   ```ts
   /** Ce qu'une correction `variable` crée : une couleur de `theme`, un alias par mode, ses scopes. */
@@ -273,14 +273,14 @@ Fichiers : `packages/kit/src/controles/constat.ts`, `packages/kit/src/controles/
   Une correction `sorte: 'variable'` porte `creation`, `cible: {}`, `avant: null`, `apres: { nom, collection }`.
 
   `VariableDuCatalogue` (`controles/catalogue.ts`) gagne `distante?: true`. `catalogueDuFichier` d'Architect le pose pour une variable `remote`.
-- [ ] **I1.2** · `implementeur-exigeant` (même appel) · Fixture `catalogueDeStructure.ts`, fabriquée, toutes variables locales :
+- [x] **I1.2** (77c6cc8e) · `implementeur-exigeant` (même appel) · Fixture `catalogueDeStructure.ts`, fabriquée, toutes variables locales :
   - collections : `theme` (modes `light`, `dark`), `brands` (deux modes de marque), `utility` (un mode), `primitives` (un mode) ;
   - `brands` : `primary/<light|dark>/<cran>` et `secondary/<light|dark>/<cran>`, onze crans de 50 à 950 ;
   - `utility` : `neutral/<light|dark>/<cran>`, `neutral/<light|dark>/white`, `neutral/<light|dark>/black`, `elevation/<light|dark>/page`, `elevation/<light|dark>/raised`, et `<statut>/<soft|vivid>/<light|dark>/<cran>` pour `success`, `warning`, `danger`, `info` ;
   - `theme`, groupes `primary`, `secondary`, `neutral`, `success/soft`, `success/vivid`, `warning/soft`, `warning/vivid`, `danger/soft`, `danger/vivid`, `info/soft`, `info/vivid`. Chaque groupe porte les 15 variables de palette sauf `surface/subtle` et `surface/divider`. `neutral` porte en plus `page/foreground-main`, `page/foreground-subtle`, `scale/0`, `scale/1000`, et **pas** `page/foreground` (comme le fichier du mainteneur). `theme` porte aussi `disabled/background`, `disabled/foreground`, `disabled/border`, `elevation/page`, `elevation/raised` ;
   - crans visés : ceux du tableau de I2, colonne « Lu », pour les variables qu'il cite ; la table `normal` en Light et `inverse` en Dark pour les autres ; `solid/foreground` vise `white` dans les deux modes ;
   - une fonction `avecEcriture(casse, separateur)` rend une `EcritureChoisie` dont `groupes` et `variables` portent cette convention. Casses admises : `PascalCase`, `camelCase`, `initiale`, `inchangee` ; séparateurs : `tiret`, `tiret-bas`, `espace`, `soude`, `camelCase`, `inchange` (`referentiel/conventions.ts`).
-- [ ] **I1.3** · `implementeur-exigeant` (même appel) · `integrite.ts` :
+- [x] **I1.3** (77c6cc8e) · `implementeur-exigeant` (même appel) · `integrite.ts` :
 
   ```ts
   export interface OptionsDIntegrite {
@@ -319,8 +319,10 @@ Fichiers : `packages/kit/src/controles/constat.ts`, `packages/kit/src/controles/
   12. une rampe de `brands` distante : constat sans correction, `raison: 'cible-de-library'`.
   9. un groupe `tertiary` sans aucun alias : `sans-jumelle` ;
   10. un catalogue de 3 700 variables : le contrôle prend moins de 150 ms sous Node (mesure, pas de limite stricte en CI si la machine varie : un `console.log` du temps et une borne à 1 s).
-- [ ] **I1.4** · `executant` · Exporter `controlerLIntegriteUcm`, `OptionsDIntegrite` et `CreationDeVariable` par `packages/kit/src/controles/index.ts`.
-- [ ] **I1.5** · `verificateur` · `npm test` dans `packages/kit`, `npm run typecheck`.
+- [x] **I1.4** (77c6cc8e) · `executant` · Exporter `controlerLIntegriteUcm`, `OptionsDIntegrite` et `CreationDeVariable` par `packages/kit/src/controles/index.ts`.
+- [x] **I1.5** (77c6cc8e) · `verificateur` · `npm test` dans `packages/kit`, `npm run typecheck`.
+
+  Fait : une jumelle est une variable dont la cible finit par un cran (`solid/foreground`, qui vise `white`, n'en est pas une). Un cran absent de la rampe remplace le constat `variable-absente` par le constat de rampe. Raisons ajoutées : `cible-introuvable`, `cible-ambigue`, `mode-sans-cible`. Le nom créé garde la collection que le fichier redit (`theme/primary/surface/subtle`). 70 ms pour 3 726 variables.
 
 ---
 
@@ -341,12 +343,14 @@ Fichiers : `packages/kit/src/controles/{nommage,mapping,oublis,corrections,acces
   `memeValeurDAxe` reprend le corps de `corrections.ts:206`. Remplacer les copies : `mapping.ts:27`, `oublis.ts:9`, la comparaison en ligne de `nommage.ts:226-228`, `corrections.ts:206`. `estDuComposant` remplace `nommage.ts:136-153`, `corrections.ts:109`, `mapping.ts:215`, `preparation.ts:124`. Test `packages/kit/tests/valeurDAxeUnique.test.ts`, table de l'audit : palette `Danger`/`Error` vrai ; état `Pressed`/`press` vrai ; état `Zorglub`/`Bidule` faux ; taille `Big`/`Huge` faux. Test de régression : un jeu `Color=Error` lié à `Color/Danger/…` ne rend plus de C7, C17, C18, C32 ni C33.
 
   Fait : `preparation.ts:124` reste, l'audit l'avait listé à tort (la ligne écrit des noms, elle ne teste pas une appartenance). Une cinquième copie, dans la couverture de C12 et C13, passe aussi par `memeValeurDAxe`.
-- [ ] **U2.2** · `implementeur-exigeant` (même appel) · D-03, Q-03. Dans `vocabulaire.ts` : `etat` devient une forme tolérée de `REGISTRE_AXES_ETAT` ; `export function estLAxeDEtats(nom: string): boolean` par `termeReconnu` ; `STATE_AXIS_NAMES` devient `[id, ...toleres]` du registre. `AXE_D_ETAT` de `accessibilite.ts` disparaît, et `corrections.ts:444` (`formeReconnue(propriete.nom) === 'state'`) appelle aussi `estLAxeDEtats`. `axeDePropriete` (`nommage.ts`) et `isStateProperty` (socle) appellent `estLAxeDEtats`. Tests : `State`, `States`, `Status`, `État`, `Etat` sont l'axe d'états pour les trois lecteurs ; un test du socle : un jeu `État=Défaut|Survol` publie un `stateModel`.
+- [x] **U2.2** (a31fd850) · `implementeur-exigeant` (même appel) · D-03, Q-03. Dans `vocabulaire.ts` : `etat` devient une forme tolérée de `REGISTRE_AXES_ETAT` ; `export function estLAxeDEtats(nom: string): boolean` par `termeReconnu` ; `STATE_AXIS_NAMES` devient `[id, ...toleres]` du registre. `AXE_D_ETAT` de `accessibilite.ts` disparaît, et `corrections.ts:444` (`formeReconnue(propriete.nom) === 'state'`) appelle aussi `estLAxeDEtats`. `axeDePropriete` (`nommage.ts`) et `isStateProperty` (socle) appellent `estLAxeDEtats`. Tests : `State`, `States`, `Status`, `État`, `Etat` sont l'axe d'états pour les trois lecteurs ; un test du socle : un jeu `État=Défaut|Survol` publie un `stateModel`.
 - [x] **U2.3** (33073fcb) · `implementeur-exigeant` (même appel) · D-04 et D-18. Ajouter à `nommage.ts` `export function etatReconnu(valeur: string): string | undefined` (`termeReconnu(REGISTRE_ETATS, valeur)?.id`). `estInteractif` et `etatDuVariant` l'appellent ; `corrections.ts:277`, `:450` et `:454` aussi, à la place de leurs littéraux `'hover'` et `'default'`. Ajouter `export function estLaFamilleCouleur(segment: string): boolean` à `architecture.ts` (`termeReconnu(FAMILLES_PRIMITIVES, segment)?.id === 'color'`) ; `corrections.ts:110` et `structure.ts:102` l'appellent. Tests : un bouton `Default`/`Hovered`/`Press` reçoit le contrôle de cible tactile ; `Button/Colors/Primary/background` reçoit des corrections de couleur.
-- [ ] **U2.4** · `implementeur` · Q-01. Lire `packages/plugin-architect/src/sandbox/projectionsDesControles.ts` et son test. Si une session reprise garde des constats calculés par une autre version du kit, ranger la version du kit avec la session et recalculer quand elle diffère. Test : une session rangée avec une version antérieure recalcule ses constats. Si la reprise recalcule déjà, l'écrire dans le rapport et ne rien changer.
-- [ ] **U2.5** · `implementeur` · Lignes de la loi racine : D-01 (`axe === 'etat' ? REGISTRE_` et `termeReconnu(REGISTRE_TAILLES` hors `nommage.ts` ; `termeReconnu(REGISTRE_ETATS` hors `nommage.ts`, exception nommée `preparation.ts`, raison « lit un état, pas une valeur d'axe ») ; D-03 (une expression régulière qui cite `state` ou `etat` comme nom d'axe, `STATE_AXIS_NAMES.includes`, `=== 'state'`, hors `vocabulaire.ts`) ; D-04 (`ETATS` importé de `emplois/dossiers.js` dans `controles/` hors `theme.ts`, `preparation.ts`, `structure.ts`, `integrite.ts` ; `formeReconnue(…) === '<état>'` pour les seuls littéraux `'default'`, `'hover'`, `'pressed'`, `'focus'`, `'disabled'`, dans `controles/`) ; D-18 (`formeReconnue(…) === 'color'` dans `controles/`) ; D-19 (`formeReconnue(variable.nom.split('/')[0])` hors `nommage.ts`). Lancer la loi sur l'arbre : chaque occurrence restante est corrigée ou nommée en exception avec sa raison.
-- [ ] **U2.6** · `executant` · Montée de version (§2).
-- [ ] **U2.7** · `verificateur` · `npm test` dans `packages/kit`, `npm run test:paquet -- socle`, `-- architect`, `-- exporter`, `npm test` racine, `npm run typecheck`.
+- [x] **U2.4** (a31fd850) · `implementeur` · Q-01. Lire `packages/plugin-architect/src/sandbox/projectionsDesControles.ts` et son test. Si une session reprise garde des constats calculés par une autre version du kit, ranger la version du kit avec la session et recalculer quand elle diffère. Test : une session rangée avec une version antérieure recalcule ses constats. Si la reprise recalcule déjà, l'écrire dans le rapport et ne rien changer.
+- [x] **U2.5** (a31fd850) · `implementeur` · Lignes de la loi racine : D-01 (`axe === 'etat' ? REGISTRE_` et `termeReconnu(REGISTRE_TAILLES` hors `nommage.ts` ; `termeReconnu(REGISTRE_ETATS` hors `nommage.ts`, exception nommée `preparation.ts`, raison « lit un état, pas une valeur d'axe ») ; D-03 (une expression régulière qui cite `state` ou `etat` comme nom d'axe, `STATE_AXIS_NAMES.includes`, `=== 'state'`, hors `vocabulaire.ts`) ; D-04 (`ETATS` importé de `emplois/dossiers.js` dans `controles/` hors `theme.ts`, `preparation.ts`, `structure.ts`, `integrite.ts` ; `formeReconnue(…) === '<état>'` pour les seuls littéraux `'default'`, `'hover'`, `'pressed'`, `'focus'`, `'disabled'`, dans `controles/`) ; D-18 (`formeReconnue(…) === 'color'` dans `controles/`) ; D-19 (`formeReconnue(variable.nom.split('/')[0])` hors `nommage.ts`). Lancer la loi sur l'arbre : chaque occurrence restante est corrigée ou nommée en exception avec sa raison.
+- [x] **U2.6** (a31fd850) · `executant` · Montée de version (§2).
+- [x] **U2.7** (a31fd850) · `verificateur` · `npm test` dans `packages/kit`, `npm run test:paquet -- socle`, `-- architect`, `-- exporter`, `npm test` racine, `npm run typecheck`.
+
+  Fait : `estLAxeDEtats` est dans `referentiel/reconnaissance.ts` (cycle d'import depuis `vocabulaire.ts`). Les tolérés sont `etat` et `état`. Un jeu `État=…` publie `stateModel`, clé `état`. Q-01 : la session d'Architect vit en mémoire, jamais rangée ; rien à changer. Restent pour le lot D : FORMAT.md (lignes 91, 99, 347, 902) et `portee-du-contrat.md` ligne 12. À décider : les valeurs d'état en français (`Défaut`, `Survol`) ne sont pas des termes du registre ; Nomenclature propose désormais `État` → `State`.
 
 ---
 
