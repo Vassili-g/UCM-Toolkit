@@ -213,38 +213,47 @@ S'il échoue, le moteur l'éloigne de ces fonds par pas de 0,001 de clarté OKLC
 part de chroma et teinte gardées, jusqu'au seuil : plus foncé en Light, plus
 clair en Dark.
 
-- [ ] Ne jamais corriger le cran qui porte la référence. La garantie échoue
+- [x] Ne jamais corriger le cran qui porte la référence. La garantie échoue
       alors, et Palettes propose « Ajuster la référence » par le chemin qui
       existe pour une référence exacte.
-- [ ] Ne jamais faire franchir au cran corrigé la clarté du cran voisin le plus
+- [x] Ne jamais faire franchir au cran corrigé la clarté du cran voisin le plus
       foncé (Light) ou le plus clair (Dark).
-- [ ] Le cran corrigé reste le même cran pour toutes les variables qui le
+- [x] Le cran corrigé reste le même cran pour toutes les variables qui le
       visent : en Light normal, le 700 porte aussi `page/foreground`,
       `page/border` et `solid/default`.
-- [ ] La limite dynamique lit les rampes corrigées.
-- [ ] Tests, sur la configuration du mainteneur : Emerald Soft passe de 0,501 à
+- [x] La limite dynamique lit les rampes corrigées.
+- [x] Tests, sur la configuration du mainteneur : Emerald Soft passe de 0,501 à
       0,493, Grass Soft à 0,494, Grass Vivid à 0,496, Emerald Vivid à 0,495, Sky
       Soft à 0,499 ; texte 700 sur le 200 ≥ 4,5 pour les 21 rampes.
-- [ ] Test de balayage, teintes 108 à 249 par pas de 10, références au 600 :
+- [x] Test de balayage, teintes 108 à 249 par pas de 10, références au 600 :
       correction ≤ 0,011 en Soft et ≤ 0,008 en Vivid. Référence de mesure :
       `balayer()` dans `Mesures/generer-donnees.ts`.
-- [ ] Test : une référence ancrée au 700 qui manque 4,5 n'est pas corrigée, et
+- [x] Test : une référence ancrée au 700 qui manque 4,5 n'est pas corrigée, et
       la garantie 3 manque pour cette palette.
-- [ ] Tests, Dark inversé de la configuration du mainteneur : le 800 de Titanium,
+- [x] Tests, Dark inversé de la configuration du mainteneur : le 800 de Titanium,
       Terracota, Deep, Poppy Soft, Ocean, Iris et Irene Soft s'éclaircit de
       0,009 au plus et passe 4,5 sur le 300. Poppy Vivid et Irene Vivid ont leur
       référence au 800 Dark : elles ne sont pas corrigées et la garantie 9
       manque.
-- [ ] Mesurer la plus forte correction du 800 Dark sur 360 teintes, références
+- [x] Mesurer la plus forte correction du 800 Dark sur 360 teintes, références
       au 500, au 600 et au 700. Rendre le résultat dans le rendu du lot : le
       mainteneur a validé 0,009 au plus sur ses palettes.
-- [ ] La règle vaut aussi pour le Light inversé et le Dark normal, qui ne sont
+- [x] La règle vaut aussi pour le Light inversé et le Dark normal, qui ne sont
       pas mesurés : la garantie 9 y juge le 800 Light et le 700 Dark sur le
       fond teinté. Rendre, sur la configuration du mainteneur et sur 360
       teintes, la plus forte correction de ces deux sens. Ne pas les exclure de
       la règle sans le dire dans le rendu.
 
 Fin : `npm run test:paquet -- couleur` passe ; `npm run typecheck` passe.
+
+Fait : `c388e9a3`. Mesures : Light normal 0,011 au plus sur 360 teintes ;
+Dark inversé 0,009 sur tes palettes, 0,019 sur 360 teintes ; Light inversé
+aucune correction. Dark normal, le Dark par défaut : 83 % des rampes
+corrigées, 0,024 en médiane, 0,049 au plus, et les Vivid dont la référence
+tombe au 700 manquent la garantie 9. La maquette, section 11, compare la
+correction et un 700 de courbe relevé à 0,70 : à trancher par le mainteneur.
+`reconstruction.ts` lit les crans de texte corrigés, sinon la reconstruction
+dépasse son budget.
 
 ## P1. UCM Palettes
 
