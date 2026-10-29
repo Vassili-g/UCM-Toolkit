@@ -165,6 +165,8 @@ export interface CarteDeScopes {
   readonly sorte: 'scopes';
   readonly cle: string;
   readonly dossier: string;
+  /** Les rôles de la carte, dossier et nom (`Disabled/border`), dans l'ordre où ils viennent : le scope dépend du rôle, pas du dossier. */
+  readonly roles: readonly string[];
   readonly avant: readonly string[];
   readonly apres: readonly string[];
   readonly lignes: readonly LigneDeCorrection[];
@@ -189,7 +191,7 @@ function scopesDe(liste: string | null): string[] {
 /** Les corrections de modes (une carte chacune) et de scopes (une carte par dossier, par scope voulu et par scope actuel). */
 export function lireLesCorrections(corrections: readonly Correction[], noms: Noms): { readonly modes: readonly CarteDeModes[]; readonly scopes: readonly CarteDeScopes[] } {
   const modes: CarteDeModes[] = [];
-  const scopes = new Map<string, { dossier: string; avant: string[]; apres: string[]; lignes: LigneDeCorrection[] }>();
+  const scopes = new Map<string, { dossier: string; roles: string[]; avant: string[]; apres: string[]; lignes: LigneDeCorrection[] }>();
   for (const correction of corrections) {
     const cle = correction.cible.variable;
     const nom = (cle ? noms.nom(cle) : null) ?? cle ?? '';
@@ -209,7 +211,9 @@ export function lireLesCorrections(corrections: readonly Correction[], noms: Nom
       const apres = scopesDe(correction.apres.nom);
       const dossier = segments(nom).at(-2) ?? '';
       const regroupe = `${dossier}|${apres.join(',')}|${avant.join(',')}`;
-      const carte = scopes.get(regroupe) ?? { dossier, avant, apres, lignes: [] };
+      const carte = scopes.get(regroupe) ?? { dossier, roles: [], avant, apres, lignes: [] };
+      const role = segments(nom).slice(-2).join('/');
+      if (!carte.roles.includes(role)) carte.roles.push(role);
       carte.lignes.push({ id: correction.id, avant: nom, apres: nom });
       scopes.set(regroupe, carte);
     }

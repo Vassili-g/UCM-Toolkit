@@ -92,7 +92,7 @@ test('Corrections ajoute les modes et les scopes aux renommages, avec les mots d
     assert.deepEqual(await corrections.locator('.intertitre-structure h2').allTextContents(), ['Modes', 'Scopes']);
     await corrections.locator('.bloc-bouton').nth(1).click();
     assert.equal(await corrections.locator('.bloc').nth(1).locator('.colonnes-tete').textContent(), 'Aujourd’huiAprès l’application');
-    assert.deepEqual(await corrections.locator('.bloc').nth(1).locator('.meta').allTextContents().then((textes) => textes.slice(0, 1)), ['UCM réserve le dossier surface aux fonds. Aujourd’hui, leur scope est Show in all.']);
+    assert.deepEqual(await corrections.locator('.bloc').nth(1).locator('.meta').allTextContents().then((textes) => textes.slice(0, 1)), ['UCM réserve ces variables aux fonds. Aujourd’hui, leur scope est Show in all.']);
     assert.deepEqual(await corrections.locator('.bloc').nth(1).locator('.chemin-apres .ch-ajout').allTextContents(), ['Frame fill, Shape fill', 'Frame fill, Shape fill', 'Frame fill, Shape fill']);
     assert.equal(await page.locator('#onglet-a-appliquer .compte').textContent(), '89');
     assert.match(await page.locator('.structure-pied').textContent(), /^Appliquer écrit 4 corrections de modes et de scopes\.Appliquer$/);

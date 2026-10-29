@@ -4,10 +4,10 @@
  * leurs identifiants, que le sandbox relit avant d'écrire. Le designer voit le scope tel que la fenêtre Edit variable de Figma le nomme.
  */
 import { createButton } from 'ucm-plugin-socle/src/ui/Button';
-import { creerChemin, creerSegmentAncien, creerSegmentNouveau } from 'ucm-plugin-socle/src/ui/Chemin';
+import { creerChemin, creerCheminEnPhrase, creerSegmentAncien, creerSegmentNouveau } from 'ucm-plugin-socle/src/ui/Chemin';
 import { creerColonnes, creerLigneDeDiff, creerResultat } from 'ucm-plugin-socle/src/ui/Changement';
 import { TEXTES } from '../textes';
-import { creerCarte, creerIntertitre, creerMotCite, poserLesMorceaux } from './carte';
+import { creerCarte, creerIntertitre, poserLesMorceaux } from './carte';
 import { segmentsQuiChangent, type CarteDeModes, type CarteDeScopes, type LigneDeCorrection } from './lecture';
 
 export interface CorrectionsDeStructure {
@@ -167,11 +167,16 @@ export function monterLesCorrections({ element, auChangement, appliquer }: Optio
     }
     const action = document.createElement('span');
     action.className = 'bloc-phrase';
-    action.append(TEXTES.regler(carte.lignes.length), creerMotCite(carte.dossier), TEXTES.sur + TEXTES.listeDeScopes(carte.apres.map(TEXTES.scopeDeFigma)));
+    action.append(TEXTES.regler(carte.lignes.length));
+    carte.roles.forEach((role, rang) => {
+      if (rang > 0) action.append(rang === carte.roles.length - 1 ? TEXTES.et : TEXTES.virgule);
+      action.append(creerCheminEnPhrase(role));
+    });
+    action.append(TEXTES.sur + TEXTES.listeDeScopes(carte.apres.map(TEXTES.scopeDeFigma)));
     const fonds = carte.apres.length === 2 && carte.apres.includes('FRAME_FILL') && carte.apres.includes('SHAPE_FILL');
-    const motif = [TEXTES.reserve, creerMotCite(carte.dossier), `${fonds ? TEXTES.auxFonds : TEXTES.auxScopes(carte.apres.map(TEXTES.scopeDeFigma))} ${TEXTES.aujourdhui(carte.avant.map(TEXTES.scopeDeFigma))}`];
+    const motif = [`${TEXTES.reserve(carte.lignes.length)}${fonds ? TEXTES.auxFonds : TEXTES.auxScopes(carte.apres.map(TEXTES.scopeDeFigma))} ${TEXTES.aujourdhui(carte.avant.map(TEXTES.scopeDeFigma), carte.lignes.length)}`];
     const ids = carte.lignes.map(({ id }) => id);
-    const caseDeCarte = creerLaCase(TEXTES.caseDeCarte(carte.dossier), ids);
+    const caseDeCarte = creerLaCase(TEXTES.caseDeCarte(carte.roles.join(', ')), ids);
     casesDeCarte.push({ element: caseDeCarte, ids });
     return creerCarte({
       tete: [action],
