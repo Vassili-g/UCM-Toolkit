@@ -1,0 +1,219 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>R-30 · Palettes Dark sur la carte</title>
+<style>
+  :root {
+    --fond: #111214; --panneau: #1a1b1e; --trait: #2c2e33; --texte: #e6e7ea; --doux: #9a9ca3;
+    --tenu: #4ade80; --tenu-fond: #11281a; --manque: #f87171; --manque-fond: #2c1414;
+    --accent: #e8a0bf;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--fond); color: var(--texte); font: 14px/1.5 Inter, system-ui, sans-serif; }
+  main { max-width: 1080px; margin: 0 auto; padding: 32px 16px 64px; }
+  h1 { font-size: 22px; margin: 0 0 12px; }
+  h2 { font-size: 16px; margin: 0; }
+  h3 { font-size: 13px; margin: 0 0 8px; color: var(--doux); font-weight: 500; }
+  p { margin: 0 0 6px; }
+  code { font: 12px ui-monospace, Menlo, monospace; background: #24262b; padding: 1px 5px; border-radius: 4px; }
+  .intro { color: var(--doux); margin-bottom: 20px; }
+  .intro p { margin: 0 0 4px; }
+
+  .bascule { position: sticky; top: 0; z-index: 2; background: var(--fond); padding: 12px 0; display: flex; gap: 16px; align-items: center; border-bottom: 1px solid var(--trait); margin-bottom: 20px; }
+  .segments { display: inline-flex; background: var(--panneau); border: 1px solid var(--trait); border-radius: 8px; padding: 3px; }
+  .segments button { all: unset; cursor: pointer; padding: 6px 18px; border-radius: 6px; color: var(--doux); font-weight: 500; }
+  .segments button[aria-pressed="true"] { background: #33353b; color: var(--texte); }
+  .segments button:focus-visible { outline: 2px solid var(--accent); }
+  .legende { color: var(--doux); }
+
+  .palette { background: var(--panneau); border: 1px solid var(--trait); border-radius: 12px; padding: 20px; margin-bottom: 20px; }
+  .tete { display: flex; align-items: center; gap: 10px; margin-bottom: 16px; flex-wrap: wrap; }
+  .pastille { width: 18px; height: 18px; border-radius: 50%; border: 1px solid #ffffff22; }
+  .etiquette { margin-left: auto; font-size: 12px; padding: 2px 8px; border-radius: 999px; background: #24262b; color: var(--doux); }
+  .etiquette.change { background: #3a2a33; color: var(--accent); }
+
+  .ligne { display: grid; grid-template-columns: 170px 1fr; gap: 16px; align-items: center; margin-bottom: 14px; }
+  .ligne > .nom { color: var(--doux); font-size: 13px; }
+  @media (max-width: 720px) { .ligne { grid-template-columns: 1fr; gap: 6px; } }
+
+  .rampe { display: grid; grid-template-columns: repeat(11, 1fr); gap: 3px; }
+  .cran { height: 34px; border-radius: 4px; position: relative; }
+  .cran span { position: absolute; bottom: -16px; left: 0; right: 0; text-align: center; font-size: 10px; color: var(--doux); }
+  .cran.vise { outline: 2px solid var(--texte); outline-offset: 1px; }
+  .rampe-bloc { padding-bottom: 16px; }
+
+  .curseur { position: relative; height: 28px; }
+  .piste { position: absolute; top: 12px; left: 0; right: 0; height: 4px; border-radius: 2px; background: #2c2e33; }
+  .zone { position: absolute; top: 12px; height: 4px; border-radius: 2px; background: #8b8e96; transition: left .25s, width .25s; }
+  .perdue { position: absolute; top: 10px; height: 8px; border-radius: 2px; background: repeating-linear-gradient(45deg, #f8717155 0 4px, transparent 4px 8px); transition: left .25s, width .25s; }
+  .pouce { position: absolute; top: 6px; width: 16px; height: 16px; margin-left: -8px; border-radius: 50%; background: #fff; box-shadow: 0 0 0 3px #111214; transition: left .25s; }
+  .zero { position: absolute; top: 6px; width: 1px; height: 16px; background: #555; }
+  .valeurs { display: flex; justify-content: space-between; font-size: 12px; color: var(--doux); margin-top: 2px; }
+
+  .apercus { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  @media (max-width: 720px) { .apercus { grid-template-columns: 1fr; } }
+  .apercu { border-radius: 10px; padding: 16px; border: 1px solid #ffffff10; }
+  .apercu .lieu { font-size: 11px; text-transform: uppercase; letter-spacing: .05em; color: #8a8a8a; margin-bottom: 10px; }
+  .apercu .corps { color: #e5e5e5; margin-bottom: 4px; }
+  .apercu .lien { font-weight: 600; margin-bottom: 12px; }
+  .apercu .actions { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; margin-bottom: 12px; }
+  .bouton { font: inherit; font-weight: 600; border-radius: 6px; padding: 6px 14px; border: 1.5px solid transparent; }
+  .badge { font-size: 12px; font-weight: 600; border-radius: 999px; padding: 2px 10px; border: 1px solid; }
+  .mesure { display: flex; align-items: center; gap: 8px; font-size: 12px; padding: 6px 8px; border-radius: 6px; }
+  .mesure.tenu { background: var(--tenu-fond); color: var(--tenu); }
+  .mesure.manque { background: var(--manque-fond); color: var(--manque); }
+  .mesure svg { flex: none; }
+
+  .defaut { color: var(--doux); font-size: 12px; }
+  table { width: 100%; border-collapse: collapse; margin-top: 8px; font-size: 13px; }
+  th, td { text-align: left; padding: 8px 10px; border-bottom: 1px solid var(--trait); vertical-align: top; }
+  th { color: var(--doux); font-weight: 500; }
+  section.bloc { margin-top: 32px; }
+  .options { margin: 0; padding-left: 18px; }
+  .options li { margin-bottom: 4px; }
+  .recommande { color: var(--accent); font-weight: 600; }
+</style>
+</head>
+<body>
+<main>
+  <h1>R-30 · Les palettes Dark sur la carte</h1>
+  <div class="intro">
+    <p>UCM Palettes garantit les contrastes de G2 à G6 sur la page. Le chantier les garantit aussi sur la carte.</p>
+    <p>En Dark, la carte est plus claire que la page. Un texte clair y perd du contraste.</p>
+    <p>La courbe Dark ne change pas. Au réglage par défaut, chaque palette garde les mêmes couleurs.</p>
+    <p>Seul le curseur de luminosité du réglage global change. Vers le sombre, il s'arrête plus tôt.</p>
+    <p>Mode Dark. Texte des boutons noir. Page <code>#0A0A0A</code>, carte <code>#1C1C1C</code>.</p>
+  </div>
+
+  <div class="bascule">
+    <div class="segments" role="group" aria-label="Avant ou après le chantier">
+      <button type="button" data-etat="avant" aria-pressed="true">Avant</button>
+      <button type="button" data-etat="apres" aria-pressed="false">Après</button>
+    </div>
+    <span class="legende" id="legende"></span>
+  </div>
+
+  <div id="palettes"></div>
+
+  <section class="bloc">
+    <h2>Les 14 références de la spécification</h2>
+    <p class="defaut">9 curseurs sur 126 se resserrent, tous sur la luminosité du réglage global. Le Color shift ne change pas.</p>
+    <table>
+      <thead><tr><th>Référence</th><th>Course de la luminosité avant</th><th>Après</th></tr></thead>
+      <tbody>
+        <tr><td><code>#16A34A</code></td><td>0,070</td><td>0,035</td></tr>
+        <tr><td><code>#D94635</code></td><td>0,105</td><td>0,090</td></tr>
+        <tr><td><code>#EAB308</code></td><td>0,100</td><td>0,090</td></tr>
+        <tr><td><code>#808080</code>, <code>#F5F5F5</code>, <code>#171717</code></td><td>0,105</td><td>0,095</td></tr>
+        <tr><td><code>#FACC15</code></td><td>0,100</td><td>0,095</td></tr>
+        <tr><td><code>#06B6D4</code></td><td>0,110</td><td>0,105</td></tr>
+        <tr><td><code>#8B8178</code></td><td>0,105</td><td>0,100</td></tr>
+        <tr><td>Les 5 autres</td><td colspan="2">Inchangée</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section class="bloc">
+    <h2>Question</h2>
+    <table>
+      <thead><tr><th>N°</th><th>Question</th><th>Réponses possibles</th><th>État</th></tr></thead>
+      <tbody>
+        <tr>
+          <td>R-30</td>
+          <td>Le curseur de luminosité s'arrête plus tôt en Dark. Acceptez-vous ce resserrement ?</td>
+          <td>
+            <ol class="options">
+              <li><span class="recommande">Accepter (recommandé).</span> La courbe Dark tient déjà la carte sur 360 teintes. Rien d'autre ne change.</li>
+              <li>Éclaircir la courbe Dark sur les crans concernés. Le vert regagne sa course. Toutes les palettes Dark changent.</li>
+              <li>Changer le cran de <code>page/foreground</code> en Dark. Le texte devient plus clair dans toutes les palettes.</li>
+              <li>Rapprocher la carte de la page en Dark. La carte se distingue moins de la page.</li>
+            </ol>
+          </td>
+          <td>À trancher</td>
+        </tr>
+      </tbody>
+    </table>
+  </section>
+</main>
+
+<script>
+const DONNEES = [{"reference":"#16A34A","page":"#0A0A0A","carte":"#1C1C1C","basAvant":-0.065,"basApres":-0.03,"defaut":{"rampe":[{"cran":50,"hex":"#070B08"},{"cran":100,"hex":"#112015"},{"cran":200,"hex":"#152E1D"},{"cran":300,"hex":"#153F24"},{"cran":400,"hex":"#07572A"},{"cran":500,"hex":"#0D7437"},{"cran":600,"hex":"#139244"},{"cran":700,"hex":"#16A34A"},{"cran":800,"hex":"#20D470"},{"cran":900,"hex":"#72EEA0"},{"cran":950,"hex":"#C5FBD6"}],"variables":{"solid/default":"#16A34A","solid/hover":"#20D470","solid/pressed":"#72EEA0","solid/foreground":"#000000","surface/default":"#153F24","surface/hover":"#07572A","surface/pressed":"#0D7437","surface/foreground":"#C5FBD6","surface/border":"#C5FBD6","page/foreground":"#16A34A","page/border":"#16A34A","page/divider":"#153F24","ring":"#139244"},"mesures":[{"variable":"page/foreground","page":6.01,"carte":5.17},{"variable":"page/border","page":6.01,"carte":5.17},{"variable":"solid/default","page":6.01,"carte":5.17},{"variable":"surface/foreground","page":17.11,"carte":14.72}],"manquees":[]},"auBasAvant":{"rampe":[{"cran":50,"hex":"#010201"},{"cran":100,"hex":"#061009"},{"cran":200,"hex":"#0A1D10"},{"cran":300,"hex":"#0B2D17"},{"cran":400,"hex":"#00431D"},{"cran":500,"hex":"#005F2A"},{"cran":600,"hex":"#007D36"},{"cran":700,"hex":"#008D3C"},{"cran":800,"hex":"#00BD60"},{"cran":900,"hex":"#00DF7B"},{"cran":950,"hex":"#82F1AD"}],"variables":{"solid/default":"#008D3C","solid/hover":"#00BD60","solid/pressed":"#00DF7B","solid/foreground":"#000000","surface/default":"#0B2D17","surface/hover":"#00431D","surface/pressed":"#005F2A","surface/foreground":"#82F1AD","surface/border":"#82F1AD","page/foreground":"#008D3C","page/border":"#008D3C","page/divider":"#0B2D17","ring":"#007D36"},"mesures":[{"variable":"page/foreground","page":4.6,"carte":3.96},{"variable":"page/border","page":4.6,"carte":3.96},{"variable":"solid/default","page":4.6,"carte":3.96},{"variable":"surface/foreground","page":14.27,"carte":12.28}],"manquees":[{"garantie":5,"variable":"page/foreground","fond":"carte","contraste":3.96,"seuil":4.5}]},"auBasApres":{"rampe":[{"cran":50,"hex":"#030604"},{"cran":100,"hex":"#0B180F"},{"cran":200,"hex":"#0F2617"},{"cran":300,"hex":"#0F371E"},{"cran":400,"hex":"#004E23"},{"cran":500,"hex":"#006A30"},{"cran":600,"hex":"#00893C"},{"cran":700,"hex":"#009942"},{"cran":800,"hex":"#00CA67"},{"cran":900,"hex":"#43E98B"},{"cran":950,"hex":"#A8F7C4"}],"variables":{"solid/default":"#009942","solid/hover":"#00CA67","solid/pressed":"#43E98B","solid/foreground":"#000000","surface/default":"#0F371E","surface/hover":"#004E23","surface/pressed":"#006A30","surface/foreground":"#A8F7C4","surface/border":"#A8F7C4","page/foreground":"#009942","page/border":"#009942","page/divider":"#0F371E","ring":"#00893C"},"mesures":[{"variable":"page/foreground","page":5.31,"carte":4.57},{"variable":"page/border","page":5.31,"carte":4.57},{"variable":"solid/default","page":5.31,"carte":4.57},{"variable":"surface/foreground","page":15.81,"carte":13.61}],"manquees":[]},"haut":0.005},{"reference":"#D94635","page":"#0A0A0A","carte":"#1C1C1C","basAvant":-0.055,"basApres":-0.04,"defaut":{"rampe":[{"cran":50,"hex":"#0F0807"},{"cran":100,"hex":"#2B1512"},{"cran":200,"hex":"#3F1B17"},{"cran":300,"hex":"#59211A"},{"cran":400,"hex":"#792920"},{"cran":500,"hex":"#A0392D"},{"cran":600,"hex":"#D94635"},{"cran":700,"hex":"#EA6451"},{"cran":800,"hex":"#EF9383"},{"cran":900,"hex":"#F4BCB0"},{"cran":950,"hex":"#F9DDD7"}],"variables":{"solid/default":"#EA6451","solid/hover":"#EF9383","solid/pressed":"#F4BCB0","solid/foreground":"#000000","surface/default":"#59211A","surface/hover":"#792920","surface/pressed":"#A0392D","surface/foreground":"#F9DDD7","surface/border":"#F9DDD7","page/foreground":"#EA6451","page/border":"#EA6451","page/divider":"#59211A","ring":"#D94635"},"mesures":[{"variable":"page/foreground","page":6.07,"carte":5.23},{"variable":"page/border","page":6.07,"carte":5.23},{"variable":"solid/default","page":6.07,"carte":5.23},{"variable":"surface/foreground","page":15.42,"carte":13.27}],"manquees":[]},"auBasAvant":{"rampe":[{"cran":50,"hex":"#040202"},{"cran":100,"hex":"#1B0A08"},{"cran":200,"hex":"#2E100C"},{"cran":300,"hex":"#461510"},{"cran":400,"hex":"#632019"},{"cran":500,"hex":"#882F25"},{"cran":600,"hex":"#C53223"},{"cran":700,"hex":"#DD4B38"},{"cran":800,"hex":"#F3715D"},{"cran":900,"hex":"#F6A08F"},{"cran":950,"hex":"#F9C4B9"}],"variables":{"solid/default":"#DD4B38","solid/hover":"#F3715D","solid/pressed":"#F6A08F","solid/foreground":"#000000","surface/default":"#461510","surface/hover":"#632019","surface/pressed":"#882F25","surface/foreground":"#F9C4B9","surface/border":"#F9C4B9","page/foreground":"#DD4B38","page/border":"#DD4B38","page/divider":"#461510","ring":"#C53223"},"mesures":[{"variable":"page/foreground","page":4.84,"carte":4.17},{"variable":"page/border","page":4.84,"carte":4.17},{"variable":"solid/default","page":4.84,"carte":4.17},{"variable":"surface/foreground","page":12.84,"carte":11.06}],"manquees":[{"garantie":5,"variable":"page/foreground","fond":"carte","contraste":4.39,"seuil":4.5},{"garantie":5,"variable":"page/foreground","fond":"carte","contraste":4.17,"seuil":4.5}]},"auBasApres":{"rampe":[{"cran":50,"hex":"#060303"},{"cran":100,"hex":"#1F0D0A"},{"cran":200,"hex":"#33130F"},{"cran":300,"hex":"#4C1812"},{"cran":400,"hex":"#69221B"},{"cran":500,"hex":"#8F3227"},{"cran":600,"hex":"#CB3828"},{"cran":700,"hex":"#E15441"},{"cran":800,"hex":"#F27E6A"},{"cran":900,"hex":"#F5AB9C"},{"cran":950,"hex":"#F9CFC6"}],"variables":{"solid/default":"#E15441","solid/hover":"#F27E6A","solid/pressed":"#F5AB9C","solid/foreground":"#000000","surface/default":"#4C1812","surface/hover":"#69221B","surface/pressed":"#8F3227","surface/foreground":"#F9CFC6","surface/border":"#F9CFC6","page/foreground":"#E15441","page/border":"#E15441","page/divider":"#4C1812","ring":"#CB3828"},"mesures":[{"variable":"page/foreground","page":5.23,"carte":4.5},{"variable":"page/border","page":5.23,"carte":4.5},{"variable":"solid/default","page":5.23,"carte":4.5},{"variable":"surface/foreground","page":13.92,"carte":11.99}],"manquees":[]},"haut":0.05},{"reference":"#2563EB","page":"#0A0A0A","carte":"#1C1C1C","basAvant":-0.02,"basApres":-0.02,"defaut":{"rampe":[{"cran":50,"hex":"#060A15"},{"cran":100,"hex":"#0F1939"},{"cran":200,"hex":"#17244E"},{"cran":300,"hex":"#1F3165"},{"cran":400,"hex":"#2A4384"},{"cran":500,"hex":"#365BAF"},{"cran":600,"hex":"#2563EB"},{"cran":700,"hex":"#5A91F0"},{"cran":800,"hex":"#82AFF4"},{"cran":900,"hex":"#ACCBF7"},{"cran":950,"hex":"#D2E3FB"}],"variables":{"solid/default":"#5A91F0","solid/hover":"#82AFF4","solid/pressed":"#ACCBF7","solid/foreground":"#000000","surface/default":"#1F3165","surface/hover":"#2A4384","surface/pressed":"#365BAF","surface/foreground":"#D2E3FB","surface/border":"#D2E3FB","page/foreground":"#5A91F0","page/border":"#5A91F0","page/divider":"#1F3165","ring":"#2563EB"},"mesures":[{"variable":"page/foreground","page":6.36,"carte":5.47},{"variable":"page/border","page":6.36,"carte":5.47},{"variable":"solid/default","page":6.36,"carte":5.47},{"variable":"surface/foreground","page":15.2,"carte":13.08}],"manquees":[]},"auBasAvant":{"rampe":[{"cran":50,"hex":"#04060E"},{"cran":100,"hex":"#0C1531"},{"cran":200,"hex":"#142045"},{"cran":300,"hex":"#1C2D5C"},{"cran":400,"hex":"#263E7B"},{"cran":500,"hex":"#3356A5"},{"cran":600,"hex":"#1F5CE4"},{"cran":700,"hex":"#538BEB"},{"cran":800,"hex":"#7BA9F0"},{"cran":900,"hex":"#A3C5F4"},{"cran":950,"hex":"#C8DDF9"}],"variables":{"solid/default":"#538BEB","solid/hover":"#7BA9F0","solid/pressed":"#A3C5F4","solid/foreground":"#000000","surface/default":"#1C2D5C","surface/hover":"#263E7B","surface/pressed":"#3356A5","surface/foreground":"#C8DDF9","surface/border":"#C8DDF9","page/foreground":"#538BEB","page/border":"#538BEB","page/divider":"#1C2D5C","ring":"#1F5CE4"},"mesures":[{"variable":"page/foreground","page":5.9,"carte":5.08},{"variable":"page/border","page":5.9,"carte":5.08},{"variable":"solid/default","page":5.9,"carte":5.08},{"variable":"surface/foreground","page":14.3,"carte":12.31}],"manquees":[]},"auBasApres":{"rampe":[{"cran":50,"hex":"#04060E"},{"cran":100,"hex":"#0C1531"},{"cran":200,"hex":"#142045"},{"cran":300,"hex":"#1C2D5C"},{"cran":400,"hex":"#263E7B"},{"cran":500,"hex":"#3356A5"},{"cran":600,"hex":"#1F5CE4"},{"cran":700,"hex":"#538BEB"},{"cran":800,"hex":"#7BA9F0"},{"cran":900,"hex":"#A3C5F4"},{"cran":950,"hex":"#C8DDF9"}],"variables":{"solid/default":"#538BEB","solid/hover":"#7BA9F0","solid/pressed":"#A3C5F4","solid/foreground":"#000000","surface/default":"#1C2D5C","surface/hover":"#263E7B","surface/pressed":"#3356A5","surface/foreground":"#C8DDF9","surface/border":"#C8DDF9","page/foreground":"#538BEB","page/border":"#538BEB","page/divider":"#1C2D5C","ring":"#1F5CE4"},"mesures":[{"variable":"page/foreground","page":5.9,"carte":5.08},{"variable":"page/border","page":5.9,"carte":5.08},{"variable":"solid/default","page":5.9,"carte":5.08},{"variable":"surface/foreground","page":14.3,"carte":12.31}],"manquees":[]},"haut":0.05}];
+const NOMS = { '#16A34A': 'Vert', '#D94635': 'Rouge', '#2563EB': 'Bleu' };
+const BORNES = { bas: -0.1, haut: 0.1 };
+const SEUIL_TEXTE = 4.5;
+const virgule = (n, d = 3) => n.toFixed(d).replace('.', ',').replace('-', '−');
+const ratio = (n) => n.toFixed(2).replace('.', ',') + ':1';
+const pct = (v) => ((v - BORNES.bas) / (BORNES.haut - BORNES.bas)) * 100;
+
+const ICONE_TENU = '<svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 8.5l3 3 7-7"/></svg>';
+const ICONE_MANQUE = '<svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4l8 8M12 4l-8 8"/></svg>';
+
+function rampe(etat, vises) {
+  return `<div class="rampe-bloc"><div class="rampe">${etat.rampe.map(({ cran, hex }) =>
+    `<div class="cran${vises.includes(cran) ? ' vise' : ''}" style="background:${hex}" title="${cran} · ${hex}"><span>${cran}</span></div>`).join('')}</div></div>`;
+}
+
+function apercu(lieu, fond, v, contraste) {
+  const tenu = contraste >= SEUIL_TEXTE;
+  return `<div class="apercu" style="background:${fond}">
+    <div class="lieu">${lieu} · <code>${fond}</code></div>
+    <p class="corps">Commande n° 1042 expédiée.</p>
+    <p class="lien" style="color:${v['page/foreground']}">Suivre le colis</p>
+    <div class="actions">
+      <button class="bouton" style="background:${v['solid/default']};color:${v['solid/foreground']}">Valider</button>
+      <button class="bouton" style="background:transparent;border-color:${v['page/border']};color:${v['page/foreground']}">Annuler</button>
+      <span class="badge" style="background:${v['surface/default']};color:${v['surface/foreground']};border-color:${v['surface/border']}">Livrée</span>
+    </div>
+    <div class="mesure ${tenu ? 'tenu' : 'manque'}">${tenu ? ICONE_TENU : ICONE_MANQUE}
+      <span><code>page/foreground</code> ${ratio(contraste)} · ${tenu ? 'tenu' : 'sous le seuil de 4,5:1'}</span></div>
+  </div>`;
+}
+
+function curseur(s, etat) {
+  const bas = etat === 'avant' ? s.basAvant : s.basApres;
+  const haut = s.haut;
+  const perdue = s.basApres - s.basAvant;
+  return `<div class="curseur">
+      <div class="piste"></div>
+      <div class="zero" style="left:${pct(0)}%"></div>
+      ${perdue > 0 && etat === 'apres' ? `<div class="perdue" style="left:${pct(s.basAvant)}%;width:${pct(s.basApres) - pct(s.basAvant)}%" title="Course retirée"></div>` : ''}
+      <div class="zone" style="left:${pct(bas)}%;width:${pct(haut) - pct(bas)}%"></div>
+      <div class="pouce" style="left:${pct(bas)}%"></div>
+    </div>
+    <div class="valeurs"><span>Au plus sombre : ${virgule(bas)}</span><span>Course : ${virgule(haut - bas)}</span><span>Au plus clair : ${virgule(haut)}</span></div>`;
+}
+
+function rendre(etat) {
+  document.querySelectorAll('.segments button').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.etat === etat)));
+  document.getElementById('legende').textContent = etat === 'avant'
+    ? 'Avant : Palettes juge G2 à G6 sur la page seule.'
+    : 'Après : Palettes juge G2 à G6 sur la page et sur la carte.';
+  document.getElementById('palettes').innerHTML = DONNEES.map((s) => {
+    const auBas = etat === 'avant' ? s.auBasAvant : s.auBasApres;
+    const mesure = auBas.mesures.find((m) => m.variable === 'page/foreground');
+    const change = s.basAvant !== s.basApres;
+    const vises = [700, 300, 950];
+    return `<article class="palette">
+      <div class="tete">
+        <span class="pastille" style="background:${s.reference}"></span>
+        <h2>${NOMS[s.reference]} <code>${s.reference}</code></h2>
+        <span class="etiquette${change ? ' change' : ''}">${change ? 'Course resserrée' : 'Inchangée'}</span>
+      </div>
+      <div class="ligne"><div class="nom">Réglage par défaut</div><div>${rampe(s.defaut, vises)}<p class="defaut">Identique avant et après. Sur la carte, <code>page/foreground</code> a ${ratio(s.defaut.mesures[0].carte)}.</p></div></div>
+      <div class="ligne"><div class="nom">Curseur de luminosité</div><div>${curseur(s, etat)}</div></div>
+      <div class="ligne"><div class="nom">Curseur au plus sombre (${virgule(etat === 'avant' ? s.basAvant : s.basApres)})</div><div>${rampe(auBas, vises)}</div></div>
+      <div class="apercus">
+        ${apercu('Sur la page', s.page, auBas.variables, mesure.page)}
+        ${apercu('Sur une carte', s.carte, auBas.variables, mesure.carte)}
+      </div>
+    </article>`;
+  }).join('');
+}
+
+document.querySelectorAll('.segments button').forEach((b) => b.addEventListener('click', () => rendre(b.dataset.etat)));
+rendre('avant');
+</script>
+</body>
+</html>
