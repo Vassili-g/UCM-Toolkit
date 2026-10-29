@@ -30,11 +30,6 @@
   font-weight: 600;
 }
 
-/* « Sélectionnés dans Figma. » : la phrase que la carte ciblée ajoute à sa ligne grise. */
-.constat-selection {
-  color: var(--texte-second);
-}
-
 .liste .diff.preparation-liaison .chemin-apres {
   font-family: "JetBrains Mono", Consolas, monospace;
   font-size: 11px;

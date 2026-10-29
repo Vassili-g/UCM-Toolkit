@@ -108,25 +108,34 @@ test('la vue Composant montre en vert les liaisons cochées et les reprend quand
   } finally { await terminer(page); }
 });
 
-test('ouvrir une carte sélectionne ses layers dans Figma et les entoure d’un trait de 1 px dans l’aperçu, jusqu’à la sélection suivante', async () => {
+test('ouvrir une carte ne sélectionne rien ; Sélectionner, dans son corps, sélectionne ses layers et les entoure d’un trait de 1 px dans l’aperçu, jusqu’à la sélection suivante', async () => {
   const page = await ouvrirLePanneau();
   try {
     assert.equal(await page.locator('.vc-cadre-selection').count(), 0);
     const premiere = cartes(page).first().locator('.bloc-bouton');
     await premiere.click();
     await premiere.click();
+    assert.deepEqual(await demandes(page, 'selectionner'), []);
+    assert.equal(await page.locator('.vc-cadre-selection').count(), 0);
+    assert.equal(await page.locator('.constat-selection').count(), 0);
+    const bouton = cartes(page).first().locator('.bloc-corps .bouton-selectionner');
+    assert.equal(await bouton.innerText(), 'Sélectionner');
+    await bouton.click();
     const envoyees = await demandes(page, 'selectionner');
     assert.equal(envoyees.length, 1);
     assert.deepEqual(envoyees[0].analyse, IDENTITE);
     assert.deepEqual([...envoyees[0].layers].sort(), [ICON, CONTAINER].sort());
-    assert.match(await page.locator('.constat-selection').textContent(), /Sélectionnés dans Figma\./);
+    assert.equal(await bouton.innerText(), 'Sélectionnés');
+    assert.equal(await bouton.isDisabled(), true);
     assert.equal(await page.locator('.vc-cadre-selection').count(), 2);
     assert.equal(await page.locator('.vc-cadre-selection').first().evaluate((cadre) => getComputedStyle(cadre).outlineWidth), '1px');
-    // L'écho du sandbox ne change pas la vue ; la sélection du designer dans Figma retire les cadres.
+    // L'écho du sandbox ne change pas la vue ; la sélection du designer dans Figma retire les cadres et réactive le bouton.
     await envoyer(page, { type: 'selection', sujet: { id: alertCorrections.sujet.id, portee: ICON }, ignores: 1, origine: 'plugin' });
     assert.equal(await page.locator('.vc-cadre-selection').count(), 2);
+    assert.equal(await bouton.isDisabled(), true);
     await envoyer(page, { type: 'selection', sujet: { id: alertCorrections.sujet.id, portee: alertCorrections.sujet.id }, ignores: 0, origine: 'figma' });
     assert.equal(await page.locator('.vc-cadre-selection').count(), 0);
+    assert.equal(await bouton.isDisabled(), false);
   } finally { await terminer(page); }
 });
 

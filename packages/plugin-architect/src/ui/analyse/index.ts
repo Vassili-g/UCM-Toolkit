@@ -45,6 +45,8 @@ export interface PanneauDesConstats {
   /** Les sections, le pied et les constats ignorés : hôte durable, masqué de même. */
   readonly liste: HTMLElement;
   mettreAJour(): void;
+  /** La sélection de Figma a changé : les boutons « Sélectionnés » redeviennent Sélectionner au prochain dessin. */
+  oublierLaSelection(): void;
   /** Le panneau se ferme : la vue ne montre plus les liaisons à venir. */
   retirerLesLiaisonsDeLaVue(): void;
 }
@@ -89,14 +91,22 @@ export function monterLePanneau(app: Application, vue: VueComposant, options: Op
   let sujetDesChoix = '';
   /** Le rapport : au repos, en préparation chez le sandbox, ou échoué. */
   let etatDuRapport: 'repos' | 'prepare' | 'echoue' = 'repos';
+  /** Les layers que le plugin a sélectionnés depuis le dernier changement de sélection de Figma. */
+  let selectionDuPlugin: readonly string[] = [];
+
+  function selectionner(layers: readonly string[]): void {
+    selectionDuPlugin = layers;
+    vue.poserLaSelectionDuPlugin(layers);
+    app.selectionner(layers);
+    dessiner();
+  }
+  const selectionnes = (): readonly string[] => selectionDuPlugin;
 
   /** Quand le designer coche ou décoche, la vue Composant montre les liaisons à venir. */
   const corrections = monterLesCorrections({
     appliquer: (ids, liaisons) => app.appliquer(ids, liaisons),
-    selectionner: (layers) => {
-      vue.poserLaSelectionDuPlugin(layers);
-      app.selectionner(layers);
-    },
+    selectionner,
+    selectionnes,
     ignorer: (constats) => app.ignorerLaProposition(constats),
     auChangement: () => poserLesLiaisonsDansLaVue(),
     redessiner: () => dessiner(),
@@ -104,13 +114,13 @@ export function monterLePanneau(app: Application, vue: VueComposant, options: Op
   const questions = monterLesQuestions({
     repondre: (question, reponse) => app.repondre(question, reponse),
     annuler: (question) => app.annulerLaReponse(question),
+    selectionner,
+    selectionnes,
     redessiner: () => dessiner(),
   });
   const aFaire = monterAFaire({
-    selectionner: (layers) => {
-      vue.poserLaSelectionDuPlugin(layers);
-      app.selectionner(layers);
-    },
+    selectionner,
+    selectionnes,
     ignorer: (constat) => app.ignorer(constat),
     nePlusIgnorer: (constat) => app.nePlusIgnorer(constat),
     redessiner: () => dessiner(),
@@ -390,6 +400,9 @@ export function monterLePanneau(app: Application, vue: VueComposant, options: Op
     element: colonne,
     sommaire: sommaireHote,
     liste: listeHote,
+    oublierLaSelection() {
+      selectionDuPlugin = [];
+    },
     retirerLesLiaisonsDeLaVue() {
       if (dansLaVue === '[]') return;
       dansLaVue = '[]';

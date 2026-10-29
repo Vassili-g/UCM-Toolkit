@@ -115,8 +115,10 @@ couleur, forme, espacement, taille, texte.
   puis ses questions, puis ses constats à faire dans Figma. Appliquer, sur une
   carte, écrit les lignes cochées de cette carte ; Appliquer tout, dans le
   pied, écrit toutes les lignes cochées, un seul lot que Ctrl+Z défait dans
-  Figma. Ouvrir une carte
-  sélectionne ses layers dans Figma et les entoure dans l'aperçu. Une question
+  Figma. Le bouton
+  Sélectionner d'une carte qui vise des layers les sélectionne dans Figma et les
+  entoure dans l'aperçu ; il dit ensuite Sélectionnés, jusqu'à ce que la
+  sélection de Figma change. Ouvrir une carte ne sélectionne rien. Une question
   du moteur a sa carte : le titre cite le premier candidat,
   les autres ont leur bouton, et rien n'est choisi avant le clic ; la réponse
   devient une carte de corrections de la section, et Annuler la réponse la

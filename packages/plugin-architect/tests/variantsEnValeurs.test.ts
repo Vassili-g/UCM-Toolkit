@@ -137,7 +137,7 @@ test('la ligne de lieu d’une question donne le nombre de variants et leurs puc
   assert.deepEqual(carte.lieu, ['2 variants', { puces: [['State', 'Default']] }]);
   assert.equal(carte.meta, 'layer label sans variable. ');
 
-  const questions = monterLesQuestions({ repondre() {}, annuler() {}, redessiner() {} });
+  const questions = monterLesQuestions({ repondre() {}, annuler() {}, selectionner() {}, redessiner() {} });
   questions.poser({ identite: { sujet: 'Button', generation: 1 }, statut: 'complete', perimee: false, repondues: {}, variants: JEU } as never);
   const [element] = questions.cartes([{ carte, cartes: [carte] }]).map(comme);
   assert.equal(comme(element.querySelector('.meta')).textContent, '2 variantsState=Default, layer label sans variable. ');

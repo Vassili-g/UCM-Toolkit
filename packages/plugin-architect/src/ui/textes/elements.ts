@@ -25,6 +25,10 @@ export const TEXTES_ELEMENTS = {
     nomDeLaBande: (libelle: string, nombre: number): string => `${libelle}, ${nombre} point${pluriel(nombre)}`,
     nomDeLaBandeTenue: (libelle: string, tenu: string): string => `${libelle}, ${tenu}`,
     deplierLaCarte: 'Déplier la carte',
+    selectionner: 'Sélectionner',
+    selectionnes: 'Sélectionnés',
+    selectionnerLesLayers: (phrase: string): string => `Sélectionner : ${phrase}`,
+    layersSelectionnes: (phrase: string): string => `Sélectionnés : ${phrase}`,
     enTeteDesBloquants: 'Bloquants',
   },
 };

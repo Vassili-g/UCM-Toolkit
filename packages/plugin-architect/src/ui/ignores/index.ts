@@ -1,15 +1,15 @@
 /**
  * Les constats à faire dans Figma du panneau des constats : un constat par carte, puis les constats ignorés sous leur intertitre. Le
  * liseré, l'icône et le mot de la carte disent le type ; la phrase dit le problème, la ligne grise dit où il est et où le régler. Rien
- * ne s'écrit d'ici : le geste se fait dans Figma. Le clic sur une carte qui s'ouvre sélectionne ses layers. Ignorer écarte le constat de
- * la liste, Ne plus ignorer le rend ; une limite de lecture n'a pas de bouton Ignorer. Le panneau choisit les cartes à montrer ; ce module
- * les dessine.
+ * ne s'écrit d'ici : le geste se fait dans Figma. Ouvrir une carte ne change pas la sélection : le bouton Sélectionner, dans la ligne
+ * d'actions en bas d'une carte qui vise des layers, la change. Ignorer écarte le constat de la liste, Ne plus ignorer le rend ; une
+ * limite de lecture n'a pas de bouton Ignorer. Le panneau choisit les cartes à montrer ; ce module les dessine.
  */
 import { creerGravite, marquerDuTon } from 'ucm-plugin-socle/src/ui/Alerte';
 
 import type { Constat } from '../../messages/commun';
 import { analyseApplicable, type AnalyseRecue } from '../composant/analyse';
-import { creerCarte, creerIntertitre } from '../structure/carte';
+import { creerBoutonSelectionner, creerCarte, creerIntertitre, creerLigneDActions } from '../structure/carte';
 import { TEXTES } from '../textes';
 import { TEXTES_PREPARATION } from '../textes/preparation';
 import { cartesDAFaire, type CarteDAFaire, type ContexteDAFaire, type FaitDeCarte, type MesureDeCarte } from './modele';
@@ -20,6 +20,8 @@ const T = TEXTES.aFaireDuComposant;
 export interface OptionsDeAFaire {
   /** Sélectionne ces layers dans Figma. */
   readonly selectionner: (layers: readonly string[]) => void;
+  /** Les layers que le plugin a sélectionnés depuis le dernier changement de sélection de Figma ; aucun par défaut. */
+  readonly selectionnes?: () => readonly string[];
   readonly ignorer: (constat: Constat) => void;
   readonly nePlusIgnorer: (constat: Constat) => void;
   /** Appelée quand une carte s'ouvre ou se ferme : le panneau se redessine. */
@@ -56,8 +58,6 @@ function boutonTexte(libelle: string, nomAccessible: string, auClic: () => void,
 export function monterAFaire(options: OptionsDeAFaire): AFaire {
   let identite = '';
   let entree: EntreeDeAFaire | null = null;
-  /** La carte que le designer vient d'ouvrir : le plugin a sélectionné ses layers. */
-  let cible: string | null = null;
   const ouvertes = new Set<string>();
 
   /** La mesure d'un contraste : le rapport en gras, puis le seuil et les modes en gris. */
@@ -119,18 +119,10 @@ export function monterAFaire(options: OptionsDeAFaire): AFaire {
 
   function creerLaCarte(carte: CarteDAFaire, inactif: boolean): HTMLElement {
     const { constat } = carte;
-    const ciblee = cible === constat.id && constat.layers.length > 0;
     const lieu = document.createElement('span');
     lieu.className = 'constat-lieu';
     poserLeLieuEnrichi(lieu, carte.lieu, entree?.contexte.variants ?? []);
-    if (ciblee) {
-      if (carte.lieu.length > 0) lieu.append('. ');
-      const marque = document.createElement('span');
-      marque.className = 'constat-selection';
-      marque.textContent = TEXTES.correctionsDuComposant.ciblee;
-      lieu.append(marque);
-    }
-    const meta: Node[] = carte.lieu.length === 0 && !ciblee ? [] : [lieu];
+    const meta: Node[] = carte.lieu.length === 0 ? [] : [lieu];
     if (carte.statut !== null) {
       const statut = document.createElement('span');
       statut.className = 'constat-statut';
@@ -152,14 +144,19 @@ export function monterAFaire(options: OptionsDeAFaire): AFaire {
       corps,
       deplie: ouvertes.has(constat.id),
       auBasculement: (ouvert) => {
-        if (ouvert) {
-          ouvertes.add(constat.id);
-          cible = constat.id;
-          if (constat.layers.length > 0) options.selectionner(constat.layers);
-        } else ouvertes.delete(constat.id);
+        if (ouvert) ouvertes.add(constat.id);
+        else ouvertes.delete(constat.id);
         options.redessiner();
       },
     });
+    const actions = creerLigneDActions([creerBoutonSelectionner({
+      layers: constat.layers,
+      selectionnes: options.selectionnes?.() ?? [],
+      phrase: carte.phrase.replace(/`/g, ''),
+      inactif,
+      selectionner: options.selectionner,
+    })]);
+    if (actions) element.append(actions);
     element.classList.add('bloc-constat');
     marquerDuTon(element, constat.type);
     return element;
@@ -199,7 +196,6 @@ export function monterAFaire(options: OptionsDeAFaire): AFaire {
       if (nouvelle !== identite) {
         identite = nouvelle;
         ouvertes.clear();
-        cible = null;
       }
       entree = suivante;
     },

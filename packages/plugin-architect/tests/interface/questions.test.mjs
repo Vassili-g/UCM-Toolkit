@@ -49,7 +49,7 @@ test('une carte par question, au modèle d’À trancher ; aucun candidat n’es
     assert.equal(await cartes(page).count(), 2);
     const premiere = cartes(page).first();
     assert.equal(await premiere.locator('.question-titre').innerText(), 'Lier title à colors/info/standard/title ?');
-    assert.deepEqual(await premiere.locator('.question-pied button').allInnerTexts(), ['Lier', 'Lier à …/foreground', 'Plus tard']);
+    assert.deepEqual(await premiere.locator('.question-pied button').allInnerTexts(), ['Lier', 'Lier à …/foreground', 'Sélectionner', 'Plus tard']);
     assert.equal(await cartes(page).nth(1).locator('.question-titre').innerText(), 'Renommer Outlined en outline ?');
     assert.equal(await cartes(page).nth(1).locator('.origine').innerText(), 'Variant');
     assert.deepEqual(await demandes(page, 'repondre'), []);
@@ -161,7 +161,7 @@ test('une question de token proche : un bouton de même poids par candidat, une 
   try {
     assert.equal(await cartes(page).count(), 1);
     assert.equal(await cartes(page).locator('.question-titre').innerText(), 'Le radius de container vaut 13 px. Aucun token radius ne vaut cette valeur.');
-    assert.deepEqual(await cartes(page).locator('.question-pied button').allInnerTexts(), ['Adopter 12 px (−1 px)', 'Adopter 14 px (+1 px)', 'Plus tard']);
+    assert.deepEqual(await cartes(page).locator('.question-pied button').allInnerTexts(), ['Adopter 12 px (−1 px)', 'Adopter 14 px (+1 px)', 'Sélectionner', 'Plus tard']);
     assert.deepEqual(await cartes(page).locator('.question-candidat-token').allInnerTexts(), ['radius/12', 'radius/14']);
     assert.match(await cartes(page).innerText(), /Répondre pour les 2 variants/);
     await cartes(page).getByRole('button', { name: /^Adopter 14 px/ }).click();

@@ -4,9 +4,9 @@
  * les sections ; ce module les dessine et garde ce que le designer a coché ou ouvert.
  *
  * Appliquer, sur une carte, n'envoie que les lignes cochées de cette carte. « Appliquer tout », dans le pied, envoie toutes les lignes
- * cochées, de toutes les cartes du panneau, qu'une section les montre ou non. Le clic sur une carte qui s'ouvre sélectionne ses layers
- * dans Figma et dit « Sélectionnés dans Figma » ; l'écran ne change jamais la sélection ailleurs. Ce que le designer a coché ou ouvert
- * tombe quand une nouvelle analyse arrive.
+ * cochées, de toutes les cartes du panneau, qu'une section les montre ou non. Ouvrir une carte ne change pas la sélection de Figma : le
+ * bouton Sélectionner, dans le corps déplié d'une carte qui vise des layers, la change, et l'écran ne la change jamais ailleurs. Ce que
+ * le designer a coché ou ouvert tombe quand une nouvelle analyse arrive.
  */
 import { createButton } from 'ucm-plugin-socle/src/ui/Button';
 import { creerAlerte } from 'ucm-plugin-socle/src/ui/Alerte';
@@ -19,7 +19,7 @@ import { analyseApplicable, type AnalyseRecue } from '../composant/analyse';
 import { creerPuces, pairesDuNom, type VariantDuJeu } from '../composant/variants';
 import { TEXTES } from '../textes';
 import { TEXTES_PREPARATION } from '../textes/preparation';
-import { creerCarte } from '../structure/carte';
+import { creerBoutonSelectionner, creerCarte } from '../structure/carte';
 import { variablesNonPublieesDeLaListe } from './liaisons';
 import type { CarteDeCorrections, ContexteDeCartes, GroupeDeTaille, LigneDeCarte, LigneEnAttente, Morceau } from './modele';
 
@@ -30,6 +30,8 @@ export interface OptionsDesCorrections {
   readonly appliquer: (ids: readonly string[], liaisons: number) => void;
   /** Sélectionne ces layers dans Figma. */
   readonly selectionner: (layers: readonly string[]) => void;
+  /** Les layers que le plugin a sélectionnés depuis le dernier changement de sélection de Figma ; aucun par défaut. */
+  readonly selectionnes?: () => readonly string[];
   /** Range le choix de ne plus proposer ces corrections. */
   readonly ignorer: (constats: readonly Constat[]) => void;
   /** Appelée quand ce qui est coché change, pour que la vue Composant montre les liaisons à venir. */
@@ -69,7 +71,7 @@ export interface Corrections {
   pied(visible: PartVisible | null, inactif?: boolean): HTMLElement;
   /** Les liaisons que les corrections cochées vont changer. */
   liaisonsAVenir(): readonly LiaisonAVenir[];
-  /** Ouvre la carte qui change ces layers et sélectionne ses layers ; rend la carte, ou `null` quand aucune ne les change. Le panneau se redessine ensuite. */
+  /** Ouvre la carte qui change ces layers ; rend la carte, ou `null` quand aucune ne les change. Le panneau se redessine ensuite. */
   ouvrirPourLesCalques(calques: readonly string[]): CarteDeCorrections | null;
 }
 
@@ -105,15 +107,14 @@ function poserLesMorceaux(parent: Element | DocumentFragment, morceaux: readonly
     vider();
     if ('puces' in morceau) parent.append(creerPuces(morceau.puces, jeu));
     else if ('variant' in morceau) parent.append(creerVariantEnPhrase(morceau.variant));
-    else if ('chemin' in morceau) parent.append(creerCheminEnPhrase(morceau.chemin));
-    else {
-      const marque = document.createElement('span');
-      marque.className = 'constat-selection';
-      marque.textContent = morceau.selection;
-      parent.append(marque);
-    }
+    else parent.append(creerCheminEnPhrase(morceau.chemin));
   }
   vider();
+}
+
+/** La phrase d'une carte en texte brut, pour le nom accessible de ses boutons. */
+function texteDeLaPhrase(morceaux: readonly Morceau[]): string {
+  return morceaux.map((morceau) => (typeof morceau === 'string' ? morceau : 'variant' in morceau ? morceau.variant : 'chemin' in morceau ? morceau.chemin : '')).join('');
 }
 
 /** Un chemin écrit en texte, dont les segments marqués prennent la couleur de leur colonne. */
@@ -226,18 +227,32 @@ export function monterLesCorrections(options: OptionsDesCorrections): Correction
       }
       blocs.push(faits);
     }
-    if (carte.constats.length === 0) return blocs;
-    const actions = document.createElement('div');
-    actions.className = 'constat-actions';
-    const lien = document.createElement('button');
-    lien.type = 'button';
-    lien.className = 'btn-texte';
-    lien.textContent = T.nePlusProposer(carte.layers.length);
-    lien.disabled = !applicable();
-    lien.addEventListener('click', () => options.ignorer(carte.constats));
-    actions.append(lien);
-    blocs.push(actions);
     return blocs;
+  }
+
+  /** Les gestes du corps déplié : Sélectionner pour une carte qui vise des layers, puis « Ne plus proposer » sur la carte ouverte par un clic. */
+  function actionsDeLaCarte(carte: CarteDeCorrections, ciblee: boolean): HTMLElement | null {
+    const selectionner = creerBoutonSelectionner({
+      layers: carte.layers,
+      selectionnes: options.selectionnes?.() ?? [],
+      phrase: texteDeLaPhrase(carte.phrase) || carte.lignes[0]?.apres || '',
+      inactif: !applicable(),
+      selectionner: options.selectionner,
+    });
+    let nePlusProposer: HTMLButtonElement | null = null;
+    if (ciblee && carte.constats.length > 0) {
+      nePlusProposer = document.createElement('button');
+      nePlusProposer.type = 'button';
+      nePlusProposer.className = 'btn-texte';
+      nePlusProposer.textContent = T.nePlusProposer(carte.layers.length);
+      nePlusProposer.disabled = !applicable();
+      nePlusProposer.addEventListener('click', () => options.ignorer(carte.constats));
+    }
+    if (selectionner === null && nePlusProposer === null) return null;
+    const ligne = document.createElement('div');
+    ligne.className = 'constat-actions';
+    ligne.append(...[selectionner, nePlusProposer].filter((bouton): bouton is HTMLButtonElement => bouton !== null));
+    return ligne;
   }
 
   /** Une liaison dont la variable n'est pas publiée : le layer et le variant comme Figma les nomme, aucune case, et pourquoi sous le chemin. */
@@ -345,6 +360,8 @@ export function monterLesCorrections(options: OptionsDesCorrections): Correction
     }
     const ciblee = cible === carte.cle;
     if (ciblee) corps.append(...faitsEtActions(carte));
+    const actions = actionsDeLaCarte(carte, ciblee);
+    if (actions) corps.append(actions);
 
     let tete: Node[];
     if (carte.jetons) tete = creerRenommage(carte.jetons[0], carte.jetons[1]);
@@ -355,9 +372,8 @@ export function monterLesCorrections(options: OptionsDesCorrections): Correction
       tete = [phrase];
     }
     const meta: Node[] = [];
-    const morceauxDeLaMeta: Morceau[] = ciblee ? [...carte.meta, '. ', { selection: T.ciblee }] : [...carte.meta];
     const conteneur = document.createDocumentFragment();
-    poserLesMorceaux(conteneur, morceauxDeLaMeta, jeuDuComposant());
+    poserLesMorceaux(conteneur, carte.meta, jeuDuComposant());
     meta.push(...Array.from(conteneur.childNodes));
 
     const ids = carte.lignes.map((ligne) => ligne.id);
@@ -403,10 +419,7 @@ export function monterLesCorrections(options: OptionsDesCorrections): Correction
       deplie: estOuverte(carte),
       auBasculement: (ouvert) => {
         ouvertes.set(carte.cle, ouvert);
-        if (ouvert) {
-          cible = carte.cle;
-          if (carte.layers.length > 0) options.selectionner(carte.layers);
-        }
+        if (ouvert) cible = carte.cle;
         options.redessiner();
       },
     }).element;
@@ -469,7 +482,6 @@ export function monterLesCorrections(options: OptionsDesCorrections): Correction
       if (!carte) return null;
       ouvertes.set(carte.cle, true);
       cible = carte.cle;
-      if (carte.layers.length > 0) options.selectionner(carte.layers);
       return carte;
     },
   };

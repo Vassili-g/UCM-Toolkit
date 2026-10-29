@@ -68,7 +68,7 @@ const repondue = { message: { type: 'question-repondue', analyse: IDENTITE, ques
 const ETATS = [
   {
     id: 'c-questions', titre: 'Questions du composant', quand: 'Alert est analysé ; le designer choisit la puce Couleurs.',
-    regarder: 'Une carte par question : le layer title en olive, le chemin proposé en gris, le segment nouveau en vert ; un seul bouton bordé, les autres candidats en liens, Plus tard à droite ; rien n’est choisi avant le clic.',
+    regarder: 'Une carte par question : le layer title en olive, le chemin proposé en gris, le segment nouveau en vert ; un seul bouton bordé pour répondre, les autres candidats en liens ; à droite, Sélectionner avec le signe de la sélection de Figma (la question du layer title vise un layer), puis Plus tard ; rien n’est choisi avant le clic.',
     existe: true, atteinte: [...ouvrirLePanneau, puceCouleurs],
   },
   {

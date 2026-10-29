@@ -114,9 +114,9 @@ const ETATS = [
     existe: true, atteinte: [preferences(), etroite, choisir(alertModele), composant(alertModele), apercu(alertModele), { message: analyseAvantLeModele }, { message: aucunIgnore }, { message: modelePropose }, { clic: '.bouton-panneau' }],
   },
   {
-    id: 'c-clic', titre: 'Un constat cliqué', quand: 'Le designer choisit la puce Couleurs et ouvre la carte « info devient success » : le plugin sélectionne ses deux layers dans Figma.',
-    regarder: 'La ligne grise de la carte ajoute « Sélectionnés dans Figma. » ; la carte montre la propriété, la règle et « Ne plus proposer pour ces 2 layers » ; l’aperçu entoure le layer sélectionné.',
-    existe: true, atteinte: [preferences(), etroite, choisir(alertTexteSuccess), composant(alertTexteSuccess), apercu(alertTexteSuccess), ...panneauOuvert.slice(5), { clic: '.puce-element[data-element="couleurs"]' }, { clic: '.bloc-bouton' }, { clic: '.bloc-bouton' }, { message: { type: 'selection', sujet: { id: alertCorrections.sujet.id, portee: CONTAINER }, ignores: 1, origine: 'plugin' } }],
+    id: 'c-clic', titre: 'Un constat cliqué', quand: 'Le designer choisit la puce Couleurs et ouvre la carte « info devient success ». Ouvrir une carte ne sélectionne rien dans Figma.',
+    regarder: 'Le corps déplié montre la propriété, la règle, puis une ligne d’actions : Sélectionner, avec le signe de la sélection de Figma, et « Ne plus proposer pour ces 2 layers » ; la ligne grise de la carte ne dit rien de la sélection ; l’aperçu n’entoure aucun layer.',
+    existe: true, atteinte: [preferences(), etroite, choisir(alertTexteSuccess), composant(alertTexteSuccess), apercu(alertTexteSuccess), ...panneauOuvert.slice(5), { clic: '.puce-element[data-element="couleurs"]' }, { clic: '.bloc-bouton' }, { clic: '.bloc-bouton' }],
   },
   {
     id: 'c-apres', titre: 'Après Appliquer', quand: 'Le designer applique les 4 corrections : le sandbox écrit, rend la ligne de réussite, puis périme l’analyse.',

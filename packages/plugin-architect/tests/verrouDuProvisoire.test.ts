@@ -124,7 +124,7 @@ function monterLesModules(phase: Phase) {
   const corrections = monterLesCorrections({ appliquer() {}, selectionner() {}, ignorer() {}, auChangement() {}, redessiner() {} });
   corrections.poser({ analyse: analyse!, contexte, cartes });
   corrections.commencer();
-  const questions = monterLesQuestions({ repondre() {}, annuler() {}, redessiner() {} });
+  const questions = monterLesQuestions({ repondre() {}, annuler() {}, selectionner() {}, redessiner() {} });
   questions.poser(analyse!);
   const aFaire = monterAFaire({ selectionner() {}, ignorer() {}, nePlusIgnorer() {}, redessiner() {} });
   aFaire.poser({ analyse: analyse!, contexte });

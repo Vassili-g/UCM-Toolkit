@@ -3,7 +3,8 @@
  * premier candidat, chaque autre candidat a son bouton, et rien n'est choisi avant le clic. Une réponse remplace la carte par sa ligne
  * verte (la correction qu'elle tire est une carte de corrections, dans la même section), avec un geste : annuler la réponse. « Plus tard »
  * range la carte en fin de liste jusqu'à la prochaine analyse. Les questions identiques de plusieurs variants se montrent en une carte, qui
- * envoie une réponse par question du groupe. Le panneau choisit les groupes à montrer ; ce module les dessine.
+ * envoie une réponse par question du groupe. Une question qui vise des layers porte un bouton Sélectionner, dans sa ligne d'actions.
+ * Le panneau choisit les groupes à montrer ; ce module les dessine.
  */
 import { createButton } from 'ucm-plugin-socle/src/ui/Button';
 import { creerResultat } from 'ucm-plugin-socle/src/ui/Changement';
@@ -11,6 +12,7 @@ import { creerCheminEnPhrase, creerVariantEnPhrase } from 'ucm-plugin-socle/src/
 
 import { analyseApplicable, type AnalyseRecue } from '../composant/analyse';
 import { poserLeLieuEnrichi, poserLeTexteEnrichi } from '../ignores/texte';
+import { creerBoutonSelectionner } from '../structure/carte';
 import { TEXTES } from '../textes';
 import { reponsesDuGroupe, type CarteDeQuestion, type GroupeDeQuestions, type MorceauDEffet, type MorceauDeTitre, type ReponseProposee } from './modele';
 
@@ -21,6 +23,10 @@ export interface OptionsDesQuestions {
   readonly repondre: (question: string, reponse: string) => void;
   /** Retire la réponse : la question revient à trancher. */
   readonly annuler: (question: string) => void;
+  /** Sélectionne ces layers dans Figma. */
+  readonly selectionner: (layers: readonly string[]) => void;
+  /** Les layers que le plugin a sélectionnés depuis le dernier changement de sélection de Figma ; aucun par défaut. */
+  readonly selectionnes?: () => readonly string[];
   /** Appelée quand « Plus tard » change l'ordre des cartes : le panneau se redessine. */
   readonly redessiner: () => void;
 }
@@ -153,6 +159,14 @@ export function monterLesQuestions(options: OptionsDesQuestions): Questions {
     }
     const droite = document.createElement('span');
     droite.className = 'question-actions';
+    const bouton = creerBoutonSelectionner({
+      layers: [...new Set(groupe.cartes.flatMap((membre) => membre.constat.layers))],
+      selectionnes: options.selectionnes?.() ?? [],
+      phrase: carte.titreEnTexte,
+      inactif,
+      selectionner: options.selectionner,
+    });
+    if (bouton) droite.append(bouton);
     droite.append(boutonTexte(T.plusTard, T.plusTardPour(carte.titreEnTexte), () => {
       for (const membre of groupe.cartes) plusTard.add(membre.id);
       options.redessiner();

@@ -1,5 +1,5 @@
 /**
- * Les interactions du domaine `ignores` : les constats à faire dans Figma, Ignorer, Ne plus ignorer et le clic sur une carte. Le panneau
+ * Les interactions du domaine `ignores` : les constats à faire dans Figma, Ignorer, Ne plus ignorer et Sélectionner. Le panneau
  * n'écrit rien : il envoie `ignorer`, `ne-plus-ignorer` et `selectionner`, et sépare les constats ignorés de ceux de l'analyse
  * selon le message `ignores`. Ces tests jouent des messages et des demandes que `fermer` ne connaît pas : ils vérifient eux-mêmes
  * les erreurs de la page.
@@ -116,14 +116,50 @@ test('une limite de lecture n’a pas de bouton Ignorer', async () => {
   } finally { await terminer(page); }
 });
 
-test('ouvrir une carte qui porte des layers les sélectionne dans Figma et le dit sur la ligne grise', async () => {
-  const avecLayers = { ...analyseDeQuestions, constats: constatsDeQuestions.map((constat) => (constat.id === 'C41:bordure' ? { ...constat, layers: ['alert:l:container'] } : constat)) };
+const avecLayers = { ...analyseDeQuestions, constats: constatsDeQuestions.map((constat) => (constat.id === 'C41:bordure' ? { ...constat, layers: ['alert:l:container'] } : constat)) };
+const selection = (origine) => ({ type: 'selection', sujet: { id: alertCorrections.sujet.id, portee: alertCorrections.sujet.id }, ignores: 0, origine });
+
+test('ouvrir une carte qui porte des layers ne sélectionne rien', async () => {
   const page = await ouvrirAFaire(avecLayers);
   try {
     await enTete(page).locator('.bloc-bouton').click();
+    assert.equal(await enTete(page).locator('.bloc-bouton').getAttribute('aria-expanded'), 'true');
+    assert.deepEqual(await demandes(page, 'selectionner'), []);
+    assert.equal(await page.locator('.constat-selection').count(), 0);
+  } finally { await terminer(page); }
+});
+
+test('Sélectionner est sous le texte, le chevron reste en haut à droite ; le clic envoie les layers, puis le bouton dit Sélectionnés jusqu’à la sélection suivante de Figma', async () => {
+  const page = await ouvrirAFaire(avecLayers);
+  try {
+    const carte = enTete(page);
+    const bouton = carte.locator('.bloc-actions .bouton-selectionner');
+    assert.equal(await bouton.innerText(), 'Sélectionner');
+    assert.equal(await bouton.locator('.signe').count(), 1);
+    const chevron = await carte.locator('.chevron-svg').boundingBox();
+    const texte = await carte.locator('.bloc-phrase').boundingBox();
+    const ligne = await bouton.boundingBox();
+    assert.ok(chevron.y < texte.y + texte.height, 'le chevron est sur la ligne de la sévérité, en haut');
+    assert.ok(ligne.y > texte.y + texte.height, 'le bouton est sous le texte');
+    assert.ok(chevron.x > ligne.x + ligne.width, 'le chevron est à droite du bouton');
+    await bouton.click();
     const [envoi] = await attendreLesDemandes(page, 'selectionner');
     assert.deepEqual({ analyse: envoi.analyse, layers: envoi.layers }, { analyse: IDENTITE, layers: ['alert:l:container'] });
-    assert.match(await enTete(page).locator('.constat-lieu').innerText(), /Sélectionnés dans Figma\.$/);
+    assert.equal(await bouton.innerText(), 'Sélectionnés');
+    assert.equal(await bouton.isDisabled(), true);
+    // L'écho du plugin laisse le bouton désactivé ; la sélection du designer dans Figma le réactive.
+    await envoyer(page, selection('plugin'));
+    assert.equal(await bouton.isDisabled(), true);
+    await envoyer(page, selection('figma'));
+    assert.equal(await bouton.innerText(), 'Sélectionner');
+    assert.equal(await bouton.isDisabled(), false);
+  } finally { await terminer(page); }
+});
+
+test('une carte qui ne vise aucun layer n’a pas de bouton Sélectionner', async () => {
+  const page = await ouvrirAFaire();
+  try {
+    assert.equal(await page.locator('.arch-laterale .bloc-constat .bouton-selectionner').count(), 0);
   } finally { await terminer(page); }
 });
 

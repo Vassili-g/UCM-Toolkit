@@ -373,6 +373,7 @@ function recevoir(message: PluginMessage): void {
       // La sélection que le plugin pose au clic sur un constat garde la vue où elle est : l'aperçu entoure déjà les layers.
       if (message.origine === 'plugin') return;
       vueComposant.poserLaSelectionDuPlugin([]);
+      corpsComposant.oublierLaSelection();
       vueComposant.recevoirSelection(message.sujet, message.ignores);
       // Analyser se grise quand la sélection ne contient aucun composant : la barre relit la sélection.
       app.rendre(['barre']);

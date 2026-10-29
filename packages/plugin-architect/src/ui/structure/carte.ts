@@ -2,8 +2,11 @@
  * Les pièces que « À faire dans Figma » et les corrections de modes et de scopes se partagent : la carte qui se déplie, l'intertitre, la
  * ligne de chemin et le texte qui mêle des mots et des chemins. Les feuilles de ces classes sont dans `styles/structure.css`.
  */
+import { createButton } from 'ucm-plugin-socle/src/ui/Button';
 import { creerChevron } from 'ucm-plugin-socle/src/ui/Chevron';
 import { creerCheminEnPhrase } from 'ucm-plugin-socle/src/ui/Chemin';
+import { creerSigne } from 'ucm-plugin-socle/src/ui/Signe';
+import { TEXTES } from '../textes';
 import type { Morceau } from './lecture';
 
 /** Du texte et des chemins en phrase, dans un seul conteneur. */
@@ -26,6 +29,42 @@ export function creerIntertitre(texte: string): HTMLElement {
   titre.textContent = texte;
   intertitre.append(titre);
   return intertitre;
+}
+
+export interface OptionsDuBoutonSelectionner {
+  /** Les layers que la carte vise ; sans layer, la carte n'a pas de bouton. */
+  readonly layers: readonly string[];
+  /** Les layers que le plugin a sélectionnés depuis le dernier changement de sélection de Figma. */
+  readonly selectionnes: readonly string[];
+  /** La phrase de la carte, pour le nom accessible du bouton. */
+  readonly phrase: string;
+  readonly inactif: boolean;
+  readonly selectionner: (layers: readonly string[]) => void;
+}
+
+/**
+ * Le bouton Sélectionner d'une carte qui vise des layers, avec le signe de la sélection de Figma. Une fois les layers sélectionnés par
+ * le plugin il dit « Sélectionnés » et se désactive, jusqu'à ce que la sélection de Figma change. `null` quand la carte ne vise aucun layer.
+ */
+export function creerBoutonSelectionner({ layers, selectionnes, phrase, inactif, selectionner }: OptionsDuBoutonSelectionner): HTMLButtonElement | null {
+  if (layers.length === 0) return null;
+  const fait = layers.every((layer) => selectionnes.includes(layer));
+  const T = TEXTES.elementsDuPanneau;
+  const bouton = createButton({ label: fait ? T.selectionnes : T.selectionner, variant: 'secondary', compact: true, disabled: inactif || fait, onClick: () => selectionner(layers) });
+  bouton.replaceChildren(creerSigne('selection', { taille: 14 }), ...Array.from(bouton.childNodes));
+  bouton.setAttribute('aria-label', fait ? T.layersSelectionnes(phrase) : T.selectionnerLesLayers(phrase));
+  bouton.classList.add('bouton-selectionner');
+  return bouton;
+}
+
+/** La ligne d'actions d'une carte de constat : sous le texte, alignée à gauche, hors du corps qui se déplie. `null` sans bouton. */
+export function creerLigneDActions(boutons: readonly (HTMLElement | null)[]): HTMLElement | null {
+  const presents = boutons.filter((bouton): bouton is HTMLElement => bouton !== null);
+  if (presents.length === 0) return null;
+  const ligne = document.createElement('div');
+  ligne.className = 'bloc-actions';
+  ligne.append(...presents);
+  return ligne;
 }
 
 export interface OptionsDeCarte {

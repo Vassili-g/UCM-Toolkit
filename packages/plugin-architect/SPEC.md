@@ -43,8 +43,8 @@ que Figma ne rend pas par son identifiant, et la cible d'une liaison qu'il
 locale. Aucun composant ni aucun style n'est importé.
 
 Le plugin ne change ni la page courante ni la vue du designer. Il change la
-sélection à un seul moment : au clic sur un constat, il sélectionne ses layers
-de la page courante. L'aperçu d'un composant s'exporte en mémoire par
+sélection à un seul moment : au clic sur le bouton Sélectionner d'une carte, il
+sélectionne ses layers de la page courante. Ouvrir une carte ne sélectionne rien. L'aperçu d'un composant s'exporte en mémoire par
 `exportAsync`. `figma.clientStorage` reçoit la taille de la fenêtre, une par
 disposition, les préférences de l'interface, le niveau d'accessibilité (AA ou
 AAA) et les préparations de tokens.
@@ -180,7 +180,7 @@ du relevé du fichier, et fonctionne dans un fichier sans variable locale.
 | Nature | Couleur, forme, espacement, taille, texte, d'après la propriété liée ; toute autre propriété va dans « Autre » |
 | Portée | Un calque sélectionné sous le sujet déjà lu restreint la vue à ce calque et à ses descendants, sans relecture |
 | Valeur sans token | Peinture unie visible, rayon, épaisseur d'un contour visible, écart et marges d'un auto-layout, taille d'un texte sans style, quand aucune variable ne lie la propriété |
-| Panneau des constats | Une analyse porte son identité (jeu, génération) ; l'interface ignore un message d'une autre identité. Après une écriture, un changement du jeu analysé (un Ctrl+Z en est un) ou la sélection d'un autre jeu, l'analyse est périmée : le panneau garde ses constats et attend Actualiser ou Analyser. Une analyse partielle, annulée ou arrêtée ne conclut jamais « aucun constat ». Un clic sur une carte sélectionne ses layers dans Figma, seul geste du plugin qui change la sélection |
+| Panneau des constats | Une analyse porte son identité (jeu, génération) ; l'interface ignore un message d'une autre identité. Après une écriture, un changement du jeu analysé (un Ctrl+Z en est un) ou la sélection d'un autre jeu, l'analyse est périmée : le panneau garde ses constats et attend Actualiser ou Analyser. Une analyse partielle, annulée ou arrêtée ne conclut jamais « aucun constat ». Le bouton Sélectionner d'une carte sélectionne ses layers dans Figma, seul geste du plugin qui change la sélection ; ouvrir une carte ne la change pas |
 
 Au-delà de 12 lignes dans la portée, chaque section s'ouvre repliée sur un
 résumé : une pastille par couleur, les valeurs distinctes des nombres, les

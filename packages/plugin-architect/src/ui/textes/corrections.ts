@@ -62,7 +62,6 @@ export const TEXTES_CORRECTIONS = {
     champDeFigma: (champ: string): string => CHAMPS[champ] ?? champ,
     famille: (champ: string): string => (/padding/i.test(champ) ? 'padding' : /spacing|gap/i.test(champ) ? 'gap' : /radius/i.test(champ) ? 'radius' : /stroke|borderWidth/i.test(champ) ? 'stroke weight' : /width/i.test(champ) ? 'width' : /height/i.test(champ) ? 'height' : 'taille'),
     enDur: (champ: string): string => (champ === 'fills' || champ === 'strokes' ? 'couleur en dur' : 'valeur en dur'),
-    ciblee: 'Sélectionnés dans Figma.',
     propriete: 'Propriété',
     regle: 'Règle',
     duLayer: (champ: string, layer: string): string => `${champ} du layer ${layer}`,

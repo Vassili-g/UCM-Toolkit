@@ -153,8 +153,8 @@ test('dans une section : les cartes de corrections, puis les questions, puis ce 
   assert.equal(lecture.indexOf('question') > lecture.lastIndexOf('correction'), true);
   assert.equal(lecture.indexOf('a-faire') > lecture.lastIndexOf('question'), true);
   assert.deepEqual(['correction', 'question', 'a-faire'].map((sorte) => lecture.filter((vue) => vue === sorte).length), [2, 3, 9]);
-  // Les cartes n'ajoutent aucun signe : un seul par bande, rien dans les cartes.
-  assert.equal(sectionDe(banc, 'couleurs').querySelectorAll('.signe').length, 1);
+  // Les cartes n'ajoutent aucun signe de sorte : un seul par bande. Le bouton Sélectionner porte le signe de la sélection de Figma.
+  assert.equal(sectionDe(banc, 'couleurs').querySelectorAll('.signe').filter((signe) => !comme(signe.parent).classes.has('bouton-selectionner')).length, 1);
 });
 
 test('une puce choisie ne montre que son élément ; « Tout » le rend', () => {

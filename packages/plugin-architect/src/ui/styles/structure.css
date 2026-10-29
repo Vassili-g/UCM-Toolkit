@@ -96,6 +96,20 @@ button.bloc-bouton {
   border-top: 1px solid var(--bordure);
 }
 
+/* La ligne d'actions d'une carte de constat : sous le texte, alignée à gauche, hors du corps qui se déplie. */
+.bloc-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--espace-controle);
+  padding: 0 var(--espace-bloc) var(--espace-controle);
+}
+
+/* Sélectionner : le signe et le libellé restent sur une ligne. */
+.bouton-selectionner {
+  white-space: nowrap;
+}
+
 /* Un constat : le type, puis la phrase, sous un seul bouton qui reste en haut de la carte. */
 .bloc-constat .bloc-bouton {
   align-items: flex-start;

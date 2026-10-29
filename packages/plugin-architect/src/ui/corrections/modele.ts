@@ -15,8 +15,8 @@ import { lieuDesVariants, pairesDuNom, type MorceauDeLieu, type PaireDeVariant }
 
 const T = TEXTES.correctionsDuComposant;
 
-/** Du texte, un variant écrit comme Figma le nomme, un chemin dans une phrase, la marque d'une sélection, ou les puces des paires d'un lieu. */
-export type Morceau = MorceauDeLieu | { readonly variant: string } | { readonly chemin: string } | { readonly selection: string };
+/** Du texte, un variant écrit comme Figma le nomme, un chemin dans une phrase, ou les puces des paires d'un lieu. */
+export type Morceau = MorceauDeLieu | { readonly variant: string } | { readonly chemin: string };
 
 export type SectionDeCorrections = 'liaisons' | 'tailles' | 'regles' | 'noms';
 

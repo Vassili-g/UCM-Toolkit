@@ -24,6 +24,8 @@ const PAS_AU_CLAVIER = 24;
 export interface CorpsDuComposant extends Composant {
   /** Pose l'hôte de la Configuration à la place du contenu, ou `null` pour rendre la vue et le panneau tels qu'ils étaient. */
   poserConfiguration(hote: HTMLElement | null): void;
+  /** La sélection de Figma a changé : le panneau des constats ne tient plus ses layers pour sélectionnés. */
+  oublierLaSelection(): void;
 }
 
 export function creerCorpsDuComposant(app: Application, vue: VueComposant, preparation: Preparation): CorpsDuComposant {
@@ -186,6 +188,7 @@ export function creerCorpsDuComposant(app: Application, vue: VueComposant, prepa
         defilement = null;
       }
     },
+    oublierLaSelection: () => constats.oublierLaSelection(),
     mettreAJour() {
       const { ouvert, largeurDeLaVue } = etat.panneau;
       zoneDeLaVue.style.width = ouvert ? `${largeurDeLaVue}px` : '100%';
