@@ -100,7 +100,7 @@ const attendus = new Map<string, { releve: unknown; moteur: unknown }>([
     moteur: { paints: [], strokes: [], libres: [], nonPortees: [], lectures: { fills: 1, strokes: 1 } },
   }],
   ['SOLID transparente et liée', {
-    releve: { peintures: ['fills0:SOLID:0:NORMAL#0001'], liaisons: ['fills0=couleur/fond'], enDur: [], epaisseur: 1, manquees: [], lectures: { fills: 1, strokes: 1 } },
+    releve: { peintures: ['fills0:SOLID:masquee:0:NORMAL#0001'], liaisons: ['fills0=couleur/fond'], enDur: [], epaisseur: 1, manquees: [], lectures: { fills: 1, strokes: 1 } },
     moteur: { paints: [], strokes: [], libres: [], nonPortees: [], lectures: { fills: 1, strokes: 1 } },
   }],
   ['dégradé dont un arrêt est lié', {

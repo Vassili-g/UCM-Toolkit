@@ -329,3 +329,10 @@ test('C29 suit l’alias d’un token du composant vers layout pour trouver sa v
   ], true);
   assert.equal(c29DuCatalogue(r, c)?.correction?.apres.cle, 'bw');
 });
+
+test('C25 propose le token d’un jeu dont la famille s’écrit Colors', () => {
+  const r = releve({ Palette: 'Primary' }, layer({ name: 'title', type: 'TEXT', painted: true }));
+  const c = catalogue([{ cle: 'texte', nom: 'Alert/Colors/Primary/foreground', collection: 'components', type: 'COLOR', etat: 'presente' }]);
+  const constat = proposerLesCorrections(r, c, []).find((x) => x.code === 'C25');
+  assert.equal(constat?.correction?.apres.cle, 'texte');
+});

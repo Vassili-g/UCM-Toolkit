@@ -146,7 +146,7 @@ function* calculerLesTokensParEtapes(releve: ReleveDeComposant, catalogue: Catal
     yield;
     const segments = nom.split('/');
     const pourLaGrammaire = [...segments];
-    if (segments.length > 1 && termeReconnu(FAMILLES_PRIMITIVES, segments[1])?.id === 'color') pourLaGrammaire[1] = 'color';
+    if (segments.length > 1 && estLaFamilleCouleur(segments[1])) pourLaGrammaire[1] = 'color';
     const lire = (axesSupplementaires: Record<string, readonly string[]> = {}) => reconnaitreLeChemin('components', pourLaGrammaire, {
       themes: 'chemin',
       axes: { ...valeursDAxes, ...axesSupplementaires },
@@ -197,6 +197,16 @@ export function memeValeurDAxe(axe: AxeDuComposant, segment: string, valeur: str
   const registre = registreDeLAxe(axe);
   const terme = registre && termeReconnu(registre, segment)?.id;
   return !!terme && terme === termeReconnu(registre, valeur)?.id;
+}
+
+/** L'identifiant du terme d'état que la valeur écrit (`Hovered` donne `hover`), ou `undefined` si elle n'en écrit aucun. */
+export function etatReconnu(valeur: string): string | undefined {
+  return termeReconnu(REGISTRE_ETATS, valeur)?.id;
+}
+
+/** Vrai quand le segment écrit la famille `color`, sous l'une de ses formes tolérées (`Colors`, `colour`). */
+export function estLaFamilleCouleur(segment: string): boolean {
+  return termeReconnu(FAMILLES_PRIMITIVES, segment)?.id === 'color';
 }
 
 /** Un token appartient au jeu quand son premier segment a la forme du nom du jeu. */
@@ -257,7 +267,7 @@ export function* controlerNommageParEtapes(releve: ReleveDeComposant, catalogue:
   for (const token of tokens) {
     yield;
     const { segments, lecture, variable } = token;
-    if (segments.length > 1 && termeReconnu(FAMILLES_PRIMITIVES, segments[1])?.id === 'color' && formeReconnue(segments[1]) !== 'color') {
+    if (segments.length > 1 && estLaFamilleCouleur(segments[1]) && formeReconnue(segments[1]) !== 'color') {
       formeToleree('C8', segments[1], 'color', variable.nom);
     }
     for (const [rang, reconnu] of lecture.entries()) {

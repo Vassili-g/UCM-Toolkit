@@ -24,7 +24,7 @@
  * `fills.gradientStops[1].color` et l'indice 0. Une liaison de texte garde sa
  * plage et figure à la fois dans `layer.liaisons` et dans `texte.plages`.
  */
-import type { LayerLu, LiaisonLue, PeintureLue, ReleveDeComposant, VariantLu, WrapperLu } from '@ucm-kit/core/controles';
+import { peintureVisible, type LayerLu, type LiaisonLue, type PeintureLue, type ReleveDeComposant, type VariantLu, type WrapperLu } from '@ucm-kit/core/controles';
 import { copierLaMiseEnPage, copierLesPeinturesParEtapes, lectureNative, lireLesPeinturesParEtapes, lireLesSegmentsCooperatif, lireLesSegmentsParEtapes, type ChampDeMiseEnPage, type ChampsDeMiseEnPage, type EtatDesSegments, type LecteurDeChamp, type PlageLue } from 'ucm-plugin-socle/src/composant/analyse/acquisition';
 import { champDe, type ChampDeSegment, type EtatEcrit, type MaitreLu, type ModeDeCollectionLu, type PeintureLue as PeintureCopiee, type TableDesChamps } from 'ucm-plugin-socle/src/composant/analyse/faits';
 import { creerMemoireDeRessources, type MemoireDeRessources } from 'ucm-plugin-socle/src/composant/analyse/ressources';
@@ -110,7 +110,7 @@ async function peinturesDe(champ: 'fills' | 'strokes', copie: EtatEcrit<readonly
       champ,
       indice,
       type: peinture.type,
-      visible: peinture.visible !== false,
+      visible: peintureVisible(peinture),
       opacite: estUnNombre(peinture.opacity) ? peinture.opacity : 1,
       blendMode: peinture.blendMode ?? 'NORMAL',
     };
@@ -168,7 +168,7 @@ async function valeursEnDur(noeud: NoeudLu, liaisons: readonly LiaisonLue[], dim
   let contourVisible = false;
   if (contours.etat === 'acquis') for (const peinture of contours.valeur) {
     await cooperation.cederSiBesoin();
-    if (peinture.visible !== false && peinture.opacity !== 0) {
+    if (peintureVisible(peinture)) {
       contourVisible = true;
       break;
     }

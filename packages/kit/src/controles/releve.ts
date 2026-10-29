@@ -87,6 +87,11 @@ export interface ReleveDeComposant {
   espaceDeCouleur: 'srgb' | 'display-p3';
 }
 
+/** Une peinture se voit quand elle n'est pas masquée et que son opacité n'est pas nulle. */
+export function peintureVisible(p: { readonly visible?: boolean; readonly opacity?: number; readonly opacite?: number }): boolean {
+  return p.visible !== false && (p.opacity ?? p.opacite ?? 1) > 0;
+}
+
 /** Les liaisons que le layer porte sur ses propres champs : sans celles qu'une surcharge pose dans son instance. */
 export function liaisonsPropres(layer: Pick<LayerLu, 'liaisons'>): LiaisonLue[] {
   return layer.liaisons.filter((liaison) => !liaison.surcharge);

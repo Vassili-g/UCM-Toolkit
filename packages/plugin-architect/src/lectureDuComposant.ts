@@ -15,6 +15,7 @@
  * Une variable liée à un calque se lit par son identifiant et ne s'importe
  * jamais. Les cibles de ses alias suivent la règle de `lecture.ts`.
  */
+import { peintureVisible } from '@ucm-kit/core/controles';
 import { boiteDe } from './apercu';
 import { champDe, natureDe, type CalqueDuComposant, type LectureDeComposant, type LiaisonDuComposant, type StyleDeTexte } from './composant';
 import { liaisonsDuNoeudCooperatives, liaisonsDuNoeud, liaisonsDuStyle, modesDuNoeud, type NoeudLu, type StyleLu } from './consommateurs';
@@ -154,8 +155,8 @@ function stylesDeTexteDe(noeud: NoeudLu): string[] {
   return [...new Set(ids)];
 }
 
-const peintureVisible = (peinture: unknown): peinture is Record<string, unknown> =>
-  estUnObjet(peinture) && peinture.type === 'SOLID' && peinture.visible !== false && peinture.opacity !== 0 && estUnObjet(peinture.color);
+const aplatVisible = (peinture: unknown): peinture is Record<string, unknown> =>
+  estUnObjet(peinture) && peinture.type === 'SOLID' && peintureVisible(peinture as { visible?: boolean; opacity?: number }) && estUnObjet(peinture.color);
 
 function hexaDePeinture(peinture: Record<string, unknown>): string {
   const { r, g, b } = peinture.color as { r: number; g: number; b: number };
@@ -177,12 +178,12 @@ function valeursSansToken(noeud: NoeudLu, liaisons: ReadonlyArray<{ propriete: s
 
   if (Array.isArray(noeud.fills)) {
     noeud.fills.forEach((peinture, rang) => {
-      if (peintureVisible(peinture) && !liee(`fills[${rang}]`)) directes.push({ propriete: `fills[${rang}]`, valeur: hexaDePeinture(peinture) });
+      if (aplatVisible(peinture) && !liee(`fills[${rang}]`)) directes.push({ propriete: `fills[${rang}]`, valeur: hexaDePeinture(peinture) });
     });
   }
   const contours = Array.isArray(noeud.strokes) && noeud.strokeWeight !== 0 ? noeud.strokes : [];
   contours.forEach((peinture, rang) => {
-    if (peintureVisible(peinture) && !liee(`strokes[${rang}]`)) directes.push({ propriete: `strokes[${rang}]`, valeur: hexaDePeinture(peinture) });
+    if (aplatVisible(peinture) && !liee(`strokes[${rang}]`)) directes.push({ propriete: `strokes[${rang}]`, valeur: hexaDePeinture(peinture) });
   });
 
   if (estUnNombre(noeud.cornerRadius)) {
@@ -193,7 +194,7 @@ function valeursSansToken(noeud: NoeudLu, liaisons: ReadonlyArray<{ propriete: s
       if (estUnNombre(rayon) && rayon !== 0 && !liee(coin, 'cornerRadius')) directes.push({ propriete: coin, valeur: String(rayon) });
     }
   }
-  if (estUnNombre(noeud.strokeWeight) && noeud.strokeWeight !== 0 && contours.some(peintureVisible) && !liee(...EPAISSEURS)) {
+  if (estUnNombre(noeud.strokeWeight) && noeud.strokeWeight !== 0 && contours.some(aplatVisible) && !liee(...EPAISSEURS)) {
     directes.push({ propriete: 'strokeWeight', valeur: String(noeud.strokeWeight) });
   }
   if (typeof noeud.layoutMode === 'string' && noeud.layoutMode !== 'NONE') {

@@ -6,6 +6,7 @@
  * autorité, et la décide sur toute la matrice, une clé lue variant par variant
  * changerait d'un état à l'autre.
  */
+import { peintureVisible } from '@ucm-kit/core/controles';
 import { toRef } from '@ucm-kit/core/format';
 import type { PeintureLue } from '../analyse/faits';
 import { variableAliases } from '../variables';
@@ -155,7 +156,7 @@ function colorRole(
  * le geste demandé ici n'existerait pas.
  */
 function peint(paint: PeintureLue): boolean {
-  return paint.type === 'SOLID' && paint.visible !== false && (paint.opacity ?? 1) > 0;
+  return paint.type === 'SOLID' && peintureVisible(paint);
 }
 
 /** La variable qu'une peinture porte elle-même, ou `null`. */

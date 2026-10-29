@@ -4,7 +4,7 @@ import { formeReconnue } from '../referentiel/reconnaissance.js';
 import { collectionParCle, type CatalogueDeReference, type VariableDuCatalogue } from './catalogue.js';
 import { candidatDeLongueurParEtapes, classerLesCandidatsParEtapes, type CandidatDeLongueur } from './candidatsDeLongueur.js';
 import type { Constat, Correction } from './constat.js';
-import { axesDuReleve, axesDuReleveParEtapes, estDuComposant, memeValeurDAxe, segmentDAxe, tokensDuComposant, tokensDuComposantParEtapes, type AxeDuComposant, type TokenDuComposant } from './nommage.js';
+import { axesDuReleve, axesDuReleveParEtapes, estDuComposant, estLaFamilleCouleur, etatReconnu, memeValeurDAxe, segmentDAxe, tokensDuComposant, tokensDuComposantParEtapes, type AxeDuComposant, type TokenDuComposant } from './nommage.js';
 import { layersVisiblesDuVariant, lectureManquee, type LayerLu, type LiaisonLue, type ReleveDeComposant, type VariantLu } from './releve.js';
 
 /**
@@ -106,7 +106,7 @@ function* indexerLeReleve(releve: ReleveDeComposant, catalogue: CatalogueDeRefer
           if (variable.etat === 'presente' && variable.type === 'COLOR'
             && collectionParCle(catalogue, variable.collection)?.role === 'components'
             && estDuComposant(variable.nom, releve.jeu.nom)
-            && formeReconnue(variable.nom.split('/')[1] ?? '') === 'color') lues.push(variable);
+            && estLaFamilleCouleur(variable.nom.split('/')[1] ?? '')) lues.push(variable);
         }
         couleurs = lues;
       }
@@ -266,7 +266,7 @@ function* corrigerAxe(constat: Constat, releve: ReleveDeComposant, catalogue: Ca
   segments[rang] = valeur;
   const nomCible = segments.join('/');
   const candidats = presentesDeLaCollection(index, nomCible, liaison.variable.collection);
-  const etatHover = axe[0] === 'etat' && formeReconnue(valeur) === 'hover' && formeReconnue(segmentActuel) === 'default';
+  const etatHover = axe[0] === 'etat' && etatReconnu(valeur) === 'hover' && etatReconnu(segmentActuel) === 'default';
   if (constat.code === 'C16' && etatHover) {
     return { question: { id: constat.id, candidats: candidats.map(({ cle, nom }) => ({ cle, nom })), indice: indiceHover(releve, index, layer, variant.id) } };
   }
@@ -439,11 +439,11 @@ function indiceHover(releve: ReleveDeComposant, index: IndexDeCorrection, layer:
   let avecTokenHover = 0;
   for (const variant of releve.variants) {
     if (variant.id === variantId) continue;
-    if (formeReconnue(variant.valeurs[state.nom] ?? '') !== 'hover') continue;
+    if (etatReconnu(variant.valeurs[state.nom] ?? '') !== 'hover') continue;
     const homonyme = variant.layers.find((candidate) => formeReconnue(candidate.nom) === formeReconnue(layer.nom));
     if (!homonyme) continue;
     total += 1;
-    if (homonyme.liaisons.some((liaison) => liaison.variable.nom.split('/').some((segment) => formeReconnue(segment) === 'hover'))) avecTokenHover += 1;
+    if (homonyme.liaisons.some((liaison) => liaison.variable.nom.split('/').some((segment) => etatReconnu(segment) === 'hover'))) avecTokenHover += 1;
   }
   return `${avecTokenHover} des ${total} variants State=hover emploient un token hover.`;
 }

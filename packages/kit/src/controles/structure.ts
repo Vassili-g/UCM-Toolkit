@@ -4,7 +4,7 @@ import { SUPPORT_DES_VARIABLES } from '../emplois/dossiers.js';
 import { cheminDansLaCollection, collectionParCle, type CatalogueDeReference, type VariableDuCatalogue } from './catalogue.js';
 import type { Constat, Correction, Question } from './constat.js';
 import { cleDuTheme, controlerLesModes } from './theme.js';
-import { segmentDAxe, tokensDuComposantParEtapes, type TokenDuComposant } from './nommage.js';
+import { estLaFamilleCouleur, segmentDAxe, tokensDuComposantParEtapes, type TokenDuComposant } from './nommage.js';
 import type { ReleveDeComposant } from './releve.js';
 
 /** Les règles de structure qui lisent un composant : valeurs vides et contournements du thème. */
@@ -99,7 +99,7 @@ function controlerLesModesSansValeur(catalogue: CatalogueDeReference): Constat[]
 function controlerLesCouleursSansAlias(catalogue: CatalogueDeReference): Constat[] {
   return catalogue.variables.flatMap((variable) => {
     if (variable.etat !== 'presente' || variable.type !== 'COLOR' || roleCollection(catalogue, variable) !== 'components'
-      || !variable.nom.split('/').some((segment) => formeReconnue(segment) === 'color')) return [];
+      || !variable.nom.split('/').some(estLaFamilleCouleur)) return [];
     const collection = collectionDuCatalogue(catalogue, variable.collection);
     if (!collection) return [];
     return collection.modes.flatMap((mode) => {

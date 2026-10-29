@@ -5,15 +5,15 @@
  * dessin ne prouve pas la cible réelle. Un fond ou une couleur que le relevé
  * ne permet pas de calculer rend une limite, jamais un verdict.
  */
-import { ETATS } from '../emplois/dossiers.js';
 import { GARANTIES } from '../emplois/garanties.js';
 import { atteintLeSeuil, contraste, type Rgb8 } from '../emplois/contraste.js';
 import { RECOMMANDATIONS } from '../referentiel/recommandations.js';
 import type { CatalogueDeReference, CollectionDuCatalogue, CouleurResolue, VariableDuCatalogue } from './catalogue.js';
 import { collectionDuCatalogue, variableDuCatalogue } from './catalogue.js';
 import { cleDuTheme } from './theme.js';
+import { etatReconnu } from './nommage.js';
 import type { Constat } from './constat.js';
-import { layersVisiblesDuVariant, lectureManquee, liaisonsPropres, type LayerLu, type LiaisonLue, type PeintureLue, type ReleveDeComposant, type VariantLu } from './releve.js';
+import { layersVisiblesDuVariant, lectureManquee, liaisonsPropres, peintureVisible, type LayerLu, type LiaisonLue, type PeintureLue, type ReleveDeComposant, type VariantLu } from './releve.js';
 
 export type NiveauWcag = 'AA' | 'AAA';
 
@@ -165,13 +165,16 @@ export function* controlerLAccessibiliteParEtapes(
 }
 
 function etatDuVariant(variant: VariantLu): string | null {
-  for (const [axe, valeur] of Object.entries(variant.valeurs)) if (AXE_D_ETAT.test(axe)) return valeur.toLowerCase();
+  for (const [axe, valeur] of Object.entries(variant.valeurs)) if (AXE_D_ETAT.test(axe)) return etatReconnu(valeur) ?? valeur.toLowerCase();
   return null;
 }
 
 function estInteractif(releve: ReleveDeComposant): boolean {
   return releve.proprietes.some((p) => p.type === 'VARIANT' && AXE_D_ETAT.test(p.nom)
-    && (p.valeurs ?? []).some((v) => v.toLowerCase() !== 'default' && (ETATS as readonly string[]).includes(v.toLowerCase())));
+    && (p.valeurs ?? []).some((v) => {
+      const etat = etatReconnu(v);
+      return etat !== undefined && etat !== 'default' && etat !== 'disabled';
+    }));
 }
 
 /** Les layers visibles d'un variant, calculés une fois pour tous les contrôles d'accessibilité ; la liste est gelée. */
@@ -190,7 +193,7 @@ function estIcone(layer: LayerLu): boolean {
 }
 
 function aUnePeintureVisible(layer: LayerLu, champ: 'fills' | 'strokes'): boolean {
-  return layer.peintures.some((p) => p.champ === champ && p.visible);
+  return layer.peintures.some((p) => p.champ === champ && peintureVisible(p));
 }
 
 /* ---------- Couleurs et modes ---------- */
@@ -358,7 +361,7 @@ export function pileDePeintures(
   const couches: Rgba[] = [];
   for (let i = peintures.length - 1; i >= 0; i--) {
     const p = peintures[i];
-    if (!p.visible || p.opacite === 0) continue;
+    if (!peintureVisible(p)) continue;
     if (p.type !== 'SOLID') {
       if (couches.length > 0) return { limite: 'peinture-superposee' };
       return { limite: p.type.startsWith('GRADIENT') ? 'degrade' : p.type === 'IMAGE' || p.type === 'VIDEO' ? 'image' : 'peinture-superposee' };
@@ -750,7 +753,7 @@ function* anneauxDuVariant(variant: VariantLu): Generator<void, LayerLu[]> {
   const anneaux: LayerLu[] = [];
   for (const layer of layersVisibles(variant)) {
     yield;
-    if (NOM_D_ANNEAU.test(layer.nom) && layer.type !== 'TEXT' && layer.peintures.some((p) => p.visible)) anneaux.push(layer);
+    if (NOM_D_ANNEAU.test(layer.nom) && layer.type !== 'TEXT' && layer.peintures.some(peintureVisible)) anneaux.push(layer);
   }
   return anneaux;
 }

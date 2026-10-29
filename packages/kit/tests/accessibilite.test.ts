@@ -897,3 +897,30 @@ test('C50 : sans fonds d\'élévation ni page Figma, le fond reste indéterminé
   assert.ok(constats.find((c) => c.limite && c.faits.cause === 'fond-indetermine'));
   assert.equal(constats.find((c) => c.faits.cause === 'fond-de-repli'), undefined);
 });
+
+test('C52 : un jeu dont les états s’écrivent Default, Hovered et Press est interactif', () => {
+  const v = variant('petit', [racine([solide('fills', gris(1))], dims(20, 20))], { State: 'Default' });
+  const constats = parCode(cc(releve([v], ['Default', 'Hovered', 'Press'])), 'C52');
+  assert.equal(constats.length, 1);
+  assert.equal(constats[0].faits.seuil, 24);
+  assert.equal(parCode(cc(releve([v], ['Default', 'Disabled'])), 'C52').length, 0);
+});
+
+test('C50 : un contour SOLID visible d’opacité nulle ne se mesure pas', () => {
+  const bord = (opacite: number): LayerLu => ({
+    id: 'b', nom: 'Border', type: 'RECTANGLE', parent: 'r', visible: true, opacite: 1, dimensions: dims(), peintures: [solide('strokes', gris(0.85), opacite)],
+    strokeWeight: 1, liaisons: [], valeursEnDur: [],
+  });
+  assert.equal(parCode(cc(releve([variant('a', [racine(), bord(1)])])), 'C50').length, 1);
+  assert.equal(parCode(cc(releve([variant('a', [racine(), bord(0)])])), 'C50').length, 0);
+});
+
+test('C50 : un anneau dont le contour est d’opacité nulle ne compte pas comme anneau visible', () => {
+  const anneau = (opacite: number): LayerLu => ({
+    id: 'f', nom: 'Focus ring', type: 'RECTANGLE', parent: 'r', visible: true, opacite: 1, dimensions: dims(), peintures: [solide('strokes', gris(0), opacite)],
+    strokeWeight: 2, liaisons: [], valeursEnDur: [],
+  });
+  const sansAnneau = (opacite: number) => cc(releve([variant('f', [racine(), anneau(opacite)], { State: 'focus' })], ['default', 'focus'])).find((c) => c.id === 'C50:sans-anneau');
+  assert.equal(sansAnneau(1), undefined);
+  assert.ok(sansAnneau(0));
+});
