@@ -10,7 +10,7 @@ the repository that implements the component. The plugin and the readers both
 import the format from this package.
 
 ```sh
-npm install @ucm-kit/core@0.13.33
+npm install @ucm-kit/core@0.13.35
 ```
 
 Most repositories never call this package directly. They run
