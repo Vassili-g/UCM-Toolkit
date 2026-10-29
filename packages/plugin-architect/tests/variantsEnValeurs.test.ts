@@ -73,6 +73,35 @@ test('la phrase d’un constat ne nomme plus le variant : la ligne de lieu le do
   assert.deepEqual(petit.lieu, ['1 variant', { puces: [['State', 'Default'], ['Size', 'Large']] }, ', ', 'layer label']);
 });
 
+const SUR_UN_FOND = { usage: 'stroke', champ: 'strokes', calque: 'container', rapport: 2.7, seuil: 3, mode: 'components en Mode 1, theme en Dark' };
+
+test('un échec sur la page dont la variable est garantie nomme le fond, le mode, la mesure et la garantie', () => {
+  const carte = carteDAFaire(constat('g', 'C50', 'contraste', { ...SUR_UN_FOND, fondNomme: 'page', variableDuTheme: 'page/border', garanti: 'oui' }, ['v1'], { type: 'corriger' }), CONTEXTE_A_FAIRE);
+  assert.equal(carte.phrase, 'Sur la page, `elevation/page`, le stroke a un contraste de 2,7:1 en Mode 1, Dark, sous le seuil de 3:1. UCM Palettes garantit ce contraste pour `page/border`.');
+  assert.equal(carte.statut, 'Vérifiez la palette dans UCM Palettes, ou le token lié');
+});
+
+test('un échec sur une carte non garantie demande de vérifier la pose du composant', () => {
+  const carte = carteDAFaire(constat('n', 'C50', 'contraste', { ...SUR_UN_FOND, rapport: 2.4, fondNomme: 'carte', variableDuTheme: 'page/border', garanti: 'non' }, ['v1'], { type: 'verifier' }), CONTEXTE_A_FAIRE);
+  assert.equal(carte.phrase, 'Sur une carte, `elevation/raised`, le stroke a un contraste de 2,4:1 en Mode 1, Dark, sous le seuil de 3:1. UCM Palettes ne garantit pas ce contraste sur une carte.');
+  assert.equal(carte.statut, 'Vérifiez si Button se pose sur une carte');
+});
+
+test('la page Figma et une variable hors du thème disent qu’aucune garantie ne s’applique', () => {
+  const figma = carteDAFaire(constat('f', 'C50', 'contraste', { ...SUR_UN_FOND, fondNomme: 'page-figma', variableDuTheme: '', garanti: 'non' }, ['v1'], { type: 'verifier' }), CONTEXTE_A_FAIRE);
+  assert.equal(figma.phrase, 'Sur le fond de la page Figma, le stroke a un contraste de 2,7:1 en Mode 1, Dark, sous le seuil de 3:1. Aucune garantie d’UCM Palettes ne s’applique au fond de la page Figma.');
+  const horsTheme = carteDAFaire(constat('h', 'C50', 'contraste', { ...SUR_UN_FOND, fondNomme: 'page', variableDuTheme: '', garanti: 'non' }, ['v1'], { type: 'verifier' }), CONTEXTE_A_FAIRE);
+  assert.match(horsTheme.phrase, /^Sur la page, `elevation\/page`, le stroke .* Aucune garantie d’UCM Palettes ne s’applique : la couleur liée n’est pas une variable du thème UCM\.$/);
+});
+
+test('C45 : une règle sans propriété nomme la règle et le composant', () => {
+  const carte = carteDAFaire(constat('r', 'C45', 'regles', { composant: 'Button', regle: 'label', ecart: 'sans-propriete' }, []), CONTEXTE_A_FAIRE);
+  assert.equal(carte.phrase, 'La règle `label` ne correspond à aucune propriété de Button.');
+  assert.equal(carte.statut, 'Donnez-lui le nom exact de la propriété, ou supprimez-la');
+  const inverse = carteDAFaire(constat('s', 'C45', 'regles', { composant: 'Button', propriete: 'disabled', ecart: 'sans-regle' }, []), CONTEXTE_A_FAIRE);
+  assert.equal(inverse.phrase, 'La propriété `disabled` n’a pas de règle dans l’instance de règles.');
+});
+
 test('les variants exclus du contraste n’ont plus de lieu « Tous les variants désactivés »', () => {
   const carte = ligneDInformation(constat('x', 'C53', 'contraste', { variantsExclus: 2 }, ['v1', 'v3'], { type: 'info' }), CONTEXTE_A_FAIRE);
   assert.deepEqual(carte.lieu, ['2 variants', { puces: [['State', 'Default']] }]);

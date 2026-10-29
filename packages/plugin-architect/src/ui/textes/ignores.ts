@@ -18,6 +18,16 @@ const SUJETS_DE_CONTRASTE: Readonly<Record<string, string>> = {
   anneau: 'L’anneau de focus',
 };
 
+/** Le fond nommé par le kit, en tête de phrase. */
+const NOMS_DE_FOND: Readonly<Record<string, string>> = {
+  page: 'Sur la page, `elevation/page`',
+  carte: 'Sur une carte, `elevation/raised`',
+  'page-figma': 'Sur le fond de la page Figma',
+};
+
+/** Le même fond après « sur » ou « se pose ». */
+const GARANTIE_PAR_FOND: Readonly<Record<string, string>> = { page: 'sur la page', carte: 'sur une carte', 'page-figma': 'sur la page Figma' };
+
 /** Les champs de Figma dans une phrase, par leur nom dans l'API : les mots du panneau Design, en anglais. */
 const PROPRIETES_DE_FIGMA: Readonly<Record<string, string>> = {
   fills: 'fill', strokes: 'stroke', paddingLeft: 'padding left', paddingRight: 'padding right', paddingTop: 'padding top',
@@ -76,6 +86,18 @@ export const TEXTES_IGNORES = {
       const suite = modes !== null ? ` en ${modes}` : usage === 'anneau' ? '' : ' sur la page';
       return `${SUJETS_DE_CONTRASTE[usage] ?? 'Le texte'} manque de contraste${suite}.`;
     },
+    // Un échec mesuré sur un fond nommé : la phrase dit le fond, le mode, la mesure et la garantie de Palettes.
+    contrasteSurUnFond: (fond: string, usage: string, rapport: string, seuil: string, modes: string | null): string => {
+      const sujet = SUJETS_DE_CONTRASTE[usage] ?? 'Le texte';
+      return `${NOMS_DE_FOND[fond] ?? fond}, ${sujet.charAt(0).toLowerCase()}${sujet.slice(1)} a un contraste de ${rapport}${modes !== null ? ` en ${modes}` : ''}, sous le seuil de ${seuil}.`;
+    },
+    garantiePourLaVariable: (variable: string): string => `UCM Palettes garantit ce contraste pour \`${variable}\`.`,
+    garantiePourLaVariableStatut: 'Vérifiez la palette dans UCM Palettes, ou le token lié',
+    sansGarantieSurLeFond: (fond: string): string => `UCM Palettes ne garantit pas ce contraste ${GARANTIE_PAR_FOND[fond] ?? 'sur ce fond'}.`,
+    sansGarantieSurLeFondStatut: (composant: string, fond: string): string => `Vérifiez si ${composant} se pose ${GARANTIE_PAR_FOND[fond] ?? 'sur ce fond'}`,
+    aucuneGarantieHorsDuTheme: 'Aucune garantie d’UCM Palettes ne s’applique : la couleur liée n’est pas une variable du thème UCM.',
+    aucuneGarantiePageFigma: 'Aucune garantie d’UCM Palettes ne s’applique au fond de la page Figma.',
+    aucuneGarantieStatut: (composant: string): string => `Vérifiez le fond sur lequel ${composant} se pose`,
     manqueDeContrasteStatut: 'Réglez la palette dans UCM Palettes',
     manqueDeContrasteDuStrokeStatut: 'Réglez le token de border dans le fichier des tokens',
     manqueDeContrasteDeLAnneauStatut: (layer: string): string => `Réglez le token ${layer} dans UCM Palettes`,
@@ -141,10 +163,10 @@ export const TEXTES_IGNORES = {
     // C43, C45 : l'instance de règles.
     sansRegles: 'Le composant n’a pas d’instance de règles.',
     sansReglesStatut: 'Créez l’instance de règles',
-    proprieteSansRegle: (propriete: string): string => `La property \`${propriete}\` n’a pas de règle dans l’instance de règles.`,
+    proprieteSansRegle: (propriete: string): string => `La propriété \`${propriete}\` n’a pas de règle dans l’instance de règles.`,
     proprieteSansRegleStatut: 'Ajoutez sa règle @prop ou @boolean',
-    regleSansPropriete: (regle: string): string => `La règle de \`${regle}\` vise une property que le composant n’a pas.`,
-    regleSansProprieteStatut: 'Reprenez le nom de la property dans la règle',
+    regleSansPropriete: (regle: string, composant: string): string => `La règle \`${regle}\` ne correspond à aucune propriété de ${composant}.`,
+    regleSansProprieteStatut: 'Donnez-lui le nom exact de la propriété, ou supprimez-la',
     // C59, C60, C63 : le thème et la structure des variables.
     texteSansSurface: (layer: string, token: string): string => `Le layer ${layer} est lié à \`${token}\`, mais aucune surface n’est posée dessous.`,
     texteSansSurfaceStatut: 'Posez-le sur une surface, ou liez-le à un foreground de page',
@@ -160,7 +182,7 @@ export const TEXTES_IGNORES = {
     typoSansLiaison: (layer: string, propriete: string): string => `Le ${propriete} du layer ${layer} n’a pas de variable, contrairement aux autres variants.`,
     typoSansLiaisonStatut: 'Liez-le à une variable de typography',
     iconeSansProperty: (propriete: string): string => `L’icône est pilotée par \`${propriete}\`, que le composant ne déclare pas.`,
-    iconeSansPropertyStatut: 'Ajoutez la property Instance swap au composant',
+    iconeSansPropertyStatut: 'Ajoutez la propriété Instance swap au composant',
     // C64, C66 : le texte et les icônes.
     sansTextStyle: (layer: string): string => `Le ${layer} n’a pas le text style des autres variants.`,
     styleAttendu: (style: string): string => `${style} attendu`,

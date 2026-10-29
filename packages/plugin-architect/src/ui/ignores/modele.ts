@@ -151,6 +151,38 @@ function lignesDesAutresModes(valeur: string | null): string[] {
   }
 }
 
+/**
+ * Un échec mesuré sur la page, une carte ou la page Figma. La phrase porte la mesure et la garantie de Palettes : le mode s'écrit sans
+ * le nom de sa collection, comme dans les autres phrases de contraste. Le statut dit ce qui reste à vérifier.
+ */
+function contrasteSurUnFond(constat: Constat, contexte: ContexteDAFaire, fond: string, usage: string, mesure: { rapport: string; seuil: string }): Contenu {
+  const { faits } = constat;
+  const variable = texte(faits.variableDuTheme);
+  const base = T.contrasteSurUnFond(fond, usage, mesure.rapport, mesure.seuil, modesEnPhrase(texte(faits.mode)));
+  let garantie: string;
+  let statut: string;
+  if (fond === 'page-figma') {
+    garantie = T.aucuneGarantiePageFigma;
+    statut = T.aucuneGarantieStatut(contexte.composant);
+  } else if (variable === null) {
+    garantie = T.aucuneGarantieHorsDuTheme;
+    statut = T.aucuneGarantieStatut(contexte.composant);
+  } else if (faits.garanti === 'oui') {
+    garantie = T.garantiePourLaVariable(variable);
+    statut = T.garantiePourLaVariableStatut;
+  } else {
+    garantie = T.sansGarantieSurLeFond(fond);
+    statut = T.sansGarantieSurLeFondStatut(contexte.composant, fond);
+  }
+  const premierPlan = texte(faits.premierPlan);
+  const couleurDuFond = texte(faits.fond);
+  const echantillon = premierPlan !== null && couleurDuFond !== null ? { premierPlan, fond: couleurDuFond } : null;
+  const detail: FaitDeCarte[] = usage === 'stroke' || usage === 'anneau' ? [] : [{ libelle: T.mesure, mesure: { ...mesure, modes: texte(faits.mode) ?? '', echantillon } }];
+  const lignes = lignesDesAutresModes(texte(faits.rapports));
+  if (detail.length > 0 && lignes.length > 0) detail.push({ libelle: T.autresModes, lignes });
+  return { phrase: `${base} ${garantie}`, lieu: lieuDe(constat, contexte), statut, faits: detail };
+}
+
 function contraste(constat: Constat, contexte: ContexteDAFaire): Contenu {
   const noms = nomsDesVariants(constat, contexte);
   const { faits } = constat;
@@ -161,6 +193,8 @@ function contraste(constat: Constat, contexte: ContexteDAFaire): Contenu {
   const rapport = nombre(faits.rapport);
   const seuil = nombre(faits.seuil);
   const mesure = rapport !== null && seuil !== null ? { rapport: rapportEnTexte(rapport), seuil: rapportEnTexte(seuil) } : null;
+  const fondNomme = texte(faits.fondNomme);
+  if (fondNomme !== null && mesure !== null) return contrasteSurUnFond(constat, contexte, fondNomme, usage, mesure);
   const phrase = T.manqueDeContraste(usage, modesEnPhrase(texte(faits.mode)));
   if (usage === 'stroke' || usage === 'anneau') {
     const calque = texte(faits.calque) ?? 'ring';
@@ -346,7 +380,7 @@ function liaisonOuNom(constat: Constat, contexte: ContexteDAFaire): Contenu | nu
       return { phrase: T.sansRegles, lieu: TEXTES.variants.tous, statut: T.sansReglesStatut };
     case 'C45':
       return faits.ecart === 'sans-propriete'
-        ? { phrase: T.regleSansPropriete(texte(faits.regle) ?? ''), lieu: TEXTES.variants.tous, statut: T.regleSansProprieteStatut }
+        ? { phrase: T.regleSansPropriete(texte(faits.regle) ?? '', texte(faits.composant) ?? contexte.composant), lieu: TEXTES.variants.tous, statut: T.regleSansProprieteStatut }
         : { phrase: T.proprieteSansRegle(texte(faits.propriete) ?? ''), lieu: TEXTES.variants.tous, statut: T.proprieteSansRegleStatut };
     case 'C59':
       return { phrase: T.texteSansSurface(calqueDe(constat, contexte) ?? '', token(faits.variable)), lieu: sansLayer, statut: T.texteSansSurfaceStatut };
