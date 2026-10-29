@@ -8,7 +8,7 @@ ensemble.
 
 **État.** Réflexion ouverte. Le mainteneur a pris position sur la clarté des
 crans clairs, la table de `surface`, son texte, la correction du 700 au survol,
-le nom des variables et leurs scopes. Six décisions restent, dont le thème Dark.
+le nom des variables, leurs scopes et la table Dark. Deux décisions restent.
 Rien n'est implémenté.
 
 | Document | Contenu |
@@ -535,17 +535,44 @@ Les thèmes inversés en Light ne sont pas mesurés.
 | Comment le survol tient-il 4,5:1 ? | Le moteur fonce le 700 des seules teintes qui échouent |
 | Quelle organisation des noms ? | B, les noms actuels, avec `surface/subtle` et `surface/divider` |
 | Quels scopes ? | Fonds sans `STROKE_COLOR`, `foreground` avec, filets avec `FRAME_FILL` et `SHAPE_FILL` |
+| Quand le 700 est la référence et manque 4,5 au survol | Palettes propose « Ajuster la référence » |
+| Les crans des deux nouvelles variables hors du Light normal | `surface/subtle` au 200 et `surface/divider` au 500 en Dark ; 50 et 300 en Light inversé |
+| Les garanties des nouvelles variables | `surface/subtle` rejoint les fonds des garanties 3 et 4 ; `surface/divider` reste sans garantie |
+| La table Dark de `surface` | Inchangée : 300, 400, 500, avec un texte 950 |
 
 ### À prendre
 
-| Question | Options | Recommandation |
+| Question | Fait | Recommandation |
 |---|---|---|
-| 1. Quand le 700 est la référence et manque 4,5 au survol | Éclaircir le 200 de cette palette, de 0,013 au plus ; ou proposer « Ajuster la référence » | « Ajuster la référence » : la clarté commune reste sans exception, et Palettes traite déjà ainsi une référence qui manque une garantie. Aucune palette du mainteneur n'est concernée |
-| 2. Les crans des deux nouvelles variables hors du Light normal | `surface/subtle` au 200 en Dark, `surface/divider` au 500 en Dark ; 50 et 300 en Light inversé | Ces valeurs. Le texte 950 passe à 11,27 sur le 200 Dark ; le filet 500 reste visible sur le 300 Dark |
-| 3. Les garanties des nouvelles variables | `surface/subtle` rejoint les fonds des garanties 3 et 4 ; `surface/divider` sans garantie, comme `page/divider` | Les deux. Le texte 700 passe à 5,33 au minimum sur le 50 |
-| 4. L'appui de `solid` dans la garantie 1 | Le garder ou le retirer, comme `surface/pressed` | Le garder. Le texte des boutons s'y écarte le plus du fond : 11,33 au minimum en Light, 7,06 en Dark inversé. La garantie ne peut pas y échouer |
-| 5. La table Dark de `surface` | Garder 300, 400, 500 avec un texte 950 ; ou 100, 200, 300 avec le texte 800 de `page` | À trancher. La seconde règle le composant de la page posé dans une alerte, mais son survol manque 4,5 sur deux rampes |
-| 6. L'anneau de focus sur un fond teinté en Dark | Une variable `surface/ring` ; ou une table Dark qui le rend lisible | Dépend de la décision 5 : l'anneau 700 tombe à 2,38 sur le fond 300 |
+| 4. L'appui de `solid` dans la garantie 1 | La garantie 1 juge le texte des boutons sur les trois fonds de `solid`, au seuil de 4,5:1. Ce n'est pas 3:1. L'appui y passe toujours : 11,33 au minimum en Light, 7,06 en Dark inversé | La garder telle quelle : elle ne peut pas échouer |
+| 6. Un composant de la page posé dans un fond teinté, en Dark | Voir ci-dessous | Une variante « sur fond teinté » des composants concernés |
+
+### La décision 6
+
+La table Dark reste 300, 400, 500. Un composant conçu sur la page garde donc ses
+couleurs de `page` quand il est posé dans une alerte teintée. En Light, elles
+passent. En Dark, deux échouent sur le fond teinté 300 :
+
+| Couleur du composant | Cran Dark | Sur le fond teinté 300 |
+|---|---|---|
+| Texte, `page/foreground` | 800 | 3,39 au minimum, 11 rampes sur 21 sous 4,5 |
+| Contour, `page/border` | 800 | 3,39 au minimum, passe 3:1 |
+| Anneau de focus, `ring` | 700 | 2,38 au minimum, 20 rampes sur 21 sous 3 |
+| Texte et contour de `surface`, pour comparer | 950 | 9,47 au minimum |
+
+L'anneau n'est qu'un cas de ce problème : le texte échoue aussi. Trois réponses
+existent :
+
+| Réponse | Mécanisme | Coût |
+|---|---|---|
+| Variante « sur fond teinté » | Le composant a une variante qui prend `surface/foreground` et `surface/border`, et `surface/border` pour son anneau. Le designer la choisit dans une alerte | Une variante de plus par composant concerné : bouton texte, bouton outlined, lien |
+| Mode du conteneur | Une collection donne aux variables de `page` les valeurs de `surface` dans un mode « sur fond teinté ». L'alerte pose ce mode sur son cadre, une fois, dans son composant | Une collection ou des modes de plus. Le nombre de modes dépend du plan Figma. À discuter avant toute conception |
+| Règle et contrôle | Un composant de la page ne se pose pas dans un fond teinté en Dark. Architect le signale | Le designer doit refaire le composant dans l'alerte |
+
+**Recommandation.** La variante. Elle n'ajoute aucune variable : `surface/border`
+sert d'anneau, à 950 en Dark et 700 en Light, et passe 3:1 sur les trois fonds
+de `surface`. Peu de composants sont concernés. Le mode du conteneur
+supprimerait les variantes, mais il change l'architecture des collections.
 
 Les thèmes inversés en Light ne sont pas mesurés. La mesure ne demande pas de
 décision.

@@ -404,16 +404,16 @@
     <tr><td>Comment le survol tient-il 4,5:1 ?</td><td>Le moteur fonce le 700 des seules teintes qui échouent</td></tr>
     <tr><td>Quelle organisation des noms ?</td><td>B, les noms actuels, avec <code>surface/subtle</code> et <code>surface/divider</code></td></tr>
     <tr><td>Quels scopes ?</td><td>Fonds sans <code>STROKE_COLOR</code>, <code>foreground</code> avec, filets avec <code>FRAME_FILL</code> et <code>SHAPE_FILL</code></td></tr>
+    <tr><td>Quand le 700 est la référence et manque 4,5 au survol</td><td>Palettes propose « Ajuster la référence »</td></tr>
+    <tr><td>Les crans des deux nouvelles variables hors du Light normal</td><td><code>surface/subtle</code> au 200 et <code>surface/divider</code> au 500 en Dark ; 50 et 300 en Light inversé</td></tr>
+    <tr><td>Les garanties des nouvelles variables</td><td><code>surface/subtle</code> rejoint les fonds des garanties 3 et 4 ; <code>surface/divider</code> reste sans garantie</td></tr>
+    <tr><td>La table Dark de <code>surface</code></td><td>Inchangée : 300, 400, 500, avec un texte 950</td></tr>
   </table></div>
   <h3>À prendre</h3>
   <div class="defile"><table class="mesures">
-    <tr><th>Question</th><th>Options</th><th>Recommandation</th></tr>
-    <tr><td>1. Quand le 700 est la référence et manque 4,5 au survol</td><td>Éclaircir le 200 de cette palette, de 0,013 au plus. Ou proposer « Ajuster la référence ».</td><td>« Ajuster la référence ». La clarté commune reste sans exception. Aucune de tes palettes n'est concernée.</td></tr>
-    <tr><td>2. Les crans des deux nouvelles variables hors du Light normal</td><td><code>surface/subtle</code> au 200 en Dark, <code>surface/divider</code> au 500 en Dark. 50 et 300 en Light inversé.</td><td>Ces valeurs. Le texte 950 passe à 11,27 sur le 200 Dark.</td></tr>
-    <tr><td>3. Les garanties des nouvelles variables</td><td><code>surface/subtle</code> rejoint les fonds des garanties 3 et 4. <code>surface/divider</code> reste sans garantie, comme <code>page/divider</code>.</td><td>Les deux. Le texte 700 passe à 5,33 au minimum sur le 50.</td></tr>
-    <tr><td>4. L'appui de <code>solid</code> dans la garantie 1</td><td>Le garder, ou le retirer comme <code>surface/pressed</code>.</td><td>Le garder. Il passe toujours : 11,33 au minimum en Light, 7,06 en Dark inversé.</td></tr>
-    <tr><td>5. La table Dark de <code>surface</code></td><td>Garder 300, 400, 500 avec un texte 950. Ou 100, 200, 300 avec le texte 800 de <code>page</code>.</td><td>À trancher. La seconde règle la section 6 en Dark, mais son survol manque 4,5 sur deux rampes.</td></tr>
-    <tr><td>6. L'anneau de focus sur un fond teinté en Dark</td><td>Une variable <code>surface/ring</code>. Ou une table Dark qui le rend lisible.</td><td>Dépend de la décision 5. L'anneau 700 tombe à 2,38 sur le fond 300.</td></tr>
+    <tr><th>Question</th><th>Fait</th><th>Recommandation</th></tr>
+    <tr><td>4. L'appui de <code>solid</code> dans la garantie 1</td><td>La garantie 1 juge le texte des boutons sur les trois fonds de <code>solid</code>, au seuil de 4,5:1. Ce n'est pas 3:1. L'appui y passe toujours : 11,33 au minimum en Light, 7,06 en Dark inversé</td><td>La garder telle quelle : elle ne peut pas échouer</td></tr>
+    <tr><td>6. Un composant de la page posé dans un fond teinté, en Dark</td><td>Le texte et l'anneau de la page échouent sur le fond teinté 300 en Dark. Voir le README, décision 6.</td><td>Une variante « sur fond teinté » des composants concernés</td></tr>
   </table></div>
   <p class="note">Les thèmes inversés en Light ne sont pas mesurés. Cette mesure ne demande pas de décision.</p>
 </main>
