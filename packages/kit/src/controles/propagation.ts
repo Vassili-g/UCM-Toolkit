@@ -6,7 +6,7 @@
  */
 import type { CatalogueDeReference, VariableDuCatalogue } from './catalogue.js';
 import type { Constat, Correction } from './constat.js';
-import { axesDuReleve, tokensDuComposant, type AxeDuComposant, type TokenDuComposant } from './nommage.js';
+import { axesDuReleve, constatDuComposant, tokensDuComposant, type AxeDuComposant, type TokenDuComposant } from './nommage.js';
 import { liaisonsPropres, type LayerLu, type LiaisonLue, type ReleveDeComposant, type VariantLu } from './releve.js';
 
 /** Les noms des ancêtres depuis la racine du variant, puis celui du layer. */
@@ -52,12 +52,12 @@ function nomVise(nom: string, token: TokenDuComposant | undefined, axes: Partial
   return segments.join('/');
 }
 
-export function proposerLaPropagation(releve: ReleveDeComposant, catalogue: CatalogueDeReference, variant: string): Constat[] {
-  const modele = releve.variants.find(({ id }) => id === variant);
-  if (!modele) return [];
+interface Proposition { layer: LayerLu; liaison: LiaisonLue; constat: Constat }
+
+function propositions(releve: ReleveDeComposant, catalogue: CatalogueDeReference, modele: VariantLu): Proposition[] {
   const axes = axesDuReleve(releve);
   const tokens = tokensDuComposant(releve, catalogue);
-  const constats: Constat[] = [];
+  const trouvees: Proposition[] = [];
   for (const layer of modele.layers) {
     for (const liaison of liaisonsPropres(layer)) {
       const source = catalogue.variables.find(({ cle }) => cle === liaison.variable.cle);
@@ -66,11 +66,76 @@ export function proposerLaPropagation(releve: ReleveDeComposant, catalogue: Cata
       for (const vise of releve.variants) {
         if (vise.id === modele.id) continue;
         const constat = constatDeLaPropagation(releve, catalogue, modele, layer, liaison, source, token, axes, vise);
-        if (constat) constats.push(constat);
+        if (constat) trouvees.push({ layer, liaison, constat });
       }
     }
   }
-  return constats;
+  return trouvees;
+}
+
+export function proposerLaPropagation(releve: ReleveDeComposant, catalogue: CatalogueDeReference, variant: string): Constat[] {
+  const modele = releve.variants.find(({ id }) => id === variant);
+  return modele ? propositions(releve, catalogue, modele).map(({ constat }) => constat) : [];
+}
+
+export type SorteDeModele = 'couleurs' | 'tailles';
+
+/** Même partage que C80 (couche.ts) : une peinture ou une variable COLOR est une couleur, une variable FLOAT hors texte est une taille. */
+function sorteDeLaLiaison(champ: string, type: string): SorteDeModele | null {
+  if (champ === 'fills' || champ === 'strokes' || type === 'COLOR') return 'couleurs';
+  if (type === 'FLOAT' && !/font|text|lineHeight|letterSpacing|paragraph/i.test(champ)) return 'tailles';
+  return null;
+}
+
+/** Un variant modèle possible pour une sorte de liaison : `layers` sont ceux du modèle (ids), `variants` ceux où ils sont en dur (ids). */
+export interface CandidatDeModele { sorte: SorteDeModele; modele: string; layers: string[]; variants: string[]; liaisons: number }
+
+/**
+ * Par sorte, le variant qui porte le plus de liaisons de cette sorte (à égalité le premier du jeu), les layers du modèle
+ * dont un homologue est en dur ailleurs, ces autres variants, et le nombre de liaisons que `proposerLaPropagation` proposerait.
+ * Une sorte sans liaison proposable n'est pas rendue.
+ */
+export function candidatsDeModele(releve: ReleveDeComposant, catalogue: CatalogueDeReference): CandidatDeModele[] {
+  const sorteDe = (liaison: LiaisonLue): SorteDeModele | null => {
+    const variable = catalogue.variables.find(({ cle }) => cle === liaison.variable.cle);
+    return variable && variable.etat === 'presente' ? sorteDeLaLiaison(liaison.champ, variable.type) : null;
+  };
+  const candidats: CandidatDeModele[] = [];
+  // Les deux sortes élisent souvent le même modèle : ses propositions ne se calculent qu'une fois.
+  const parModele = new Map<string, Proposition[]>();
+  for (const sorte of ['couleurs', 'tailles'] as const) {
+    let modele: VariantLu | undefined;
+    let max = 0;
+    for (const variant of releve.variants) {
+      const nombre = variant.layers.reduce((somme, layer) => somme + liaisonsPropres(layer).filter((liaison) => sorteDe(liaison) === sorte).length, 0);
+      if (nombre > max) { max = nombre; modele = variant; }
+    }
+    if (!modele) continue;
+    const layers = new Set<string>();
+    const variants = new Set<string>();
+    let liaisons = 0;
+    if (!parModele.has(modele.id)) parModele.set(modele.id, propositions(releve, catalogue, modele));
+    for (const { layer, liaison, constat } of parModele.get(modele.id)!) {
+      if (sorteDe(liaison) !== sorte || !constat.correction || constat.correction.avant !== null) continue;
+      layers.add(layer.id);
+      constat.variants.forEach((id) => variants.add(id));
+      liaisons++;
+    }
+    if (liaisons > 0) candidats.push({ sorte, modele: modele.id, layers: [...layers], variants: [...variants], liaisons });
+  }
+  return candidats;
+}
+
+/**
+ * C81 : un variant lie déjà des layers que d'autres variants gardent en dur. Une carte par section : `liaisons` pour les couleurs,
+ * `tailles` pour les tailles. Le constat n'a pas de correction ; `layers` porte les layers du modèle et `variants` le modèle seul.
+ */
+export function constatsDeModele(releve: ReleveDeComposant, catalogue: CatalogueDeReference): Constat[] {
+  return candidatsDeModele(releve, catalogue).map((candidat) => constatDuComposant(
+    'C81', candidat.sorte === 'couleurs' ? 'liaisons' : 'tailles', 'corriger', `${candidat.sorte}:${candidat.modele}`,
+    { modele: candidat.modele, layers: candidat.layers.length, variants: candidat.variants.length, liaisons: candidat.liaisons },
+    [candidat.modele], candidat.layers,
+  ));
 }
 
 function constatDeLaPropagation(

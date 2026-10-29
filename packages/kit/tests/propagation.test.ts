@@ -1,7 +1,7 @@
 /** La propagation depuis un variant modèle (C24) : exacte ou en question. */
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { proposerLaPropagation, type CatalogueDeReference, type LayerLu, type ReleveDeComposant, type VariantLu } from '../src/controles/index.js';
+import { candidatsDeModele, controlerCouches, proposerLaPropagation, type CatalogueDeReference, type LayerLu, type ReleveDeComposant, type VariantLu } from '../src/controles/index.js';
 
 const NOMS = {
   infoStandard: 'alert/colors/info/standard/background',
@@ -123,4 +123,47 @@ test('une liaison sans segment d’axe vise la même variable', () => {
 
 test('un variant modèle inconnu ne donne rien', () => {
   assert.deepEqual(proposerLaPropagation(releve([MODELE]), CATALOGUE, 'inconnu'), []);
+});
+
+const enDur = (n: number) => Array.from({ length: n }, (_, i) => variant(`v${i}`, { Severity: 'error', Variant: 'outlined' }, [layer(`v${i}-1`, 'container', null)]));
+
+test('C81 : un variant lié et trois en dur donnent un constat par la section des couleurs', () => {
+  const r = releve([MODELE, ...enDur(3)]);
+  assert.deepEqual(candidatsDeModele(r, CATALOGUE), [{ sorte: 'couleurs', modele: 'm', layers: ['m-1'], variants: ['v0', 'v1', 'v2'], liaisons: 3 }]);
+  const [constat, ...autres] = controlerCouches(r, CATALOGUE).filter(({ code }) => code === 'C81');
+  assert.equal(autres.length, 0);
+  assert.equal(constat.famille, 'liaisons');
+  assert.equal(constat.type, 'corriger');
+  assert.deepEqual(constat.faits, { modele: 'm', layers: 1, variants: 3, liaisons: 3 });
+  assert.deepEqual(constat.variants, ['m']);
+  assert.deepEqual(constat.layers, ['m-1']);
+  assert.equal(constat.correction, undefined);
+});
+
+test('C81 : le modèle est le variant qui porte le plus de liaisons, à égalité le premier', () => {
+  const deux = variant('deux', { Severity: 'info', Variant: 'standard' }, [
+    layer('d-1', 'a', null, { cle: 'k-info', nom: NOMS.infoStandard }), layer('d-2', 'b', null, { cle: 'k-info', nom: NOMS.infoStandard }),
+  ]);
+  const vise = variant('vise', { Severity: 'error', Variant: 'outlined' }, [layer('x-1', 'a', null), layer('x-2', 'b', null)]);
+  assert.equal(candidatsDeModele(releve([MODELE, deux, vise]), CATALOGUE)[0].modele, 'deux');
+  const autre = variant('autre', { Severity: 'info', Variant: 'standard' }, [layer('o-1', 'a', null, { cle: 'k-info', nom: NOMS.infoStandard })]);
+  assert.equal(candidatsDeModele(releve([autre, MODELE, vise]), CATALOGUE)[0].modele, 'autre');
+});
+
+test('C81 : tous les variants liés ne donnent aucun constat', () => {
+  const lies = Array.from({ length: 3 }, (_, i) => variant(`v${i}`, { Severity: 'error', Variant: 'outlined' }, [layer(`v${i}-1`, 'container', null, { cle: 'k-error', nom: NOMS.errorOutlined })]));
+  const r = releve([MODELE, ...lies]);
+  assert.deepEqual(candidatsDeModele(r, CATALOGUE), []);
+  assert.deepEqual(controlerCouches(r, CATALOGUE).filter(({ code }) => code === 'C81'), []);
+});
+
+test('C81 : aucun variant lié ne donne aucun constat', () => {
+  const r = releve(enDur(3));
+  assert.deepEqual(candidatsDeModele(r, CATALOGUE), []);
+  assert.deepEqual(controlerCouches(r, CATALOGUE).filter(({ code }) => code === 'C81'), []);
+});
+
+test('C81 : sans liaison proposable, aucun constat', () => {
+  const r = releve([MODELE, ...enDur(2)]);
+  assert.deepEqual(candidatsDeModele(r, catalogue([variable('k-info', NOMS.infoStandard)])), []);
 });

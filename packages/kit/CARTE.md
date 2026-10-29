@@ -75,7 +75,7 @@ Ce qui juge un contrat écrit ; `ajv` et `node:fs`.
 ## src/controles/
 - candidatsDeLongueur.ts : valeur en pixels d'une variable, alias suivis (`candidatDeLongueur`), classement exact ou proche (`classerLesCandidats`, C29 seul) ; `candidatsDeLongueur` cherche dans `layout`, par index de catalogue, pour `preparerLesTokens` ; C29 classe les tokens `components` du composant
 - preparation.ts : `preparerLesTokens` : variables de `components` à créer pour un composant, ce qu'elles visent dans `theme` et `layout`, questions ouvertes
-- propagation.ts : `proposerLaPropagation` (C24) : liaisons d'un variant modèle reportées sur les autres variants par substitution des segments d'axe, en correction exacte ou en question
+- propagation.ts : `proposerLaPropagation` (C24) : liaisons d'un variant modèle reportées sur les autres variants par substitution des segments d'axe, en correction exacte ou en question ; `candidatsDeModele` et `constatsDeModele` (C81) : par sorte, couleurs ou tailles, le variant le plus lié que les autres variants pourraient suivre, émis par `controlerCouchesParEtapes`
 
 ## src/referentiel/
 - composition.ts : les quatre sortes de composant imbriqué et `sorteDeLImbrique(faits)`, depuis nom, règles trouvées et dimensions liées

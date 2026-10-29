@@ -9,6 +9,7 @@ import { ciblesAdmises, type NatureDeCible } from '../referentiel/architecture.j
 import { collectionParCle, variableDuCatalogue, type CatalogueDeReference, type VariableDuCatalogue } from './catalogue.js';
 import type { Constat } from './constat.js';
 import { constatDuComposant } from './nommage.js';
+import { constatsDeModele } from './propagation.js';
 import type { ReleveDeComposant } from './releve.js';
 
 function natureDeLaLiaison(champ: string, type: string): NatureDeCible {
@@ -75,5 +76,7 @@ export function* controlerCouchesParEtapes(releve: ReleveDeComposant, catalogue:
       }
     }
   }
+  yield;
+  constats.push(...constatsDeModele(releve, catalogue));
   return constats;
 }
