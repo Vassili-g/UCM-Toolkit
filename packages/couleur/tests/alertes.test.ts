@@ -70,7 +70,8 @@ test('[VER-11] profils confondus : ne juge que les fonds, trois Dark (surface de
 });
 
 test('[VER-11] [PLA-15] profils confondus, thème Light : le repère ≈ marque le fond hover et ne suffit pas à l’alerte', () => {
-  const palette = auxParts('#D92626', 0.9, 0.91);
+  // Le 300 Light, plus clair depuis la clarté commune des crans clairs, confond ses profils pour des parts plus proches que 0,05.
+  const palette = auxParts('#D92626', 0.86, 0.91);
   assert.deepEqual(nuancesConfondues(palette), ['light 200']);
   assert.ok(!codes(dePalette(palette)).includes('profils-confondus'));
   // Les deux fonds Light de la liste ne font que deux nuances : il en faut trois.
@@ -126,7 +127,7 @@ test('[ENT-09] profils confondus : se tait pour des profils ternes par construct
   const choisies = { ...terne, parts: { soft: 0.088, vivid: 0.185, origine: 'designer' as const } };
   assert.ok(!aDesProfilsTernes(recetteAvec(choisies), choisies));
   assert.ok(codes(dePalette(choisies)).includes('profils-confondus'));
-  assert.deepEqual(nuancesConfondues(choisies), ['light 200', 'light 300', 'dark 300', 'dark 400', 'dark 500']);
+  assert.deepEqual(nuancesConfondues(choisies), ['light 200', 'dark 300', 'dark 400', 'dark 500']);
 });
 
 test('[VER-08] aucune alerte pour un gris, un noir, un blanc ou une référence hors de l’étendue', () => {
@@ -262,7 +263,7 @@ test('[VER-22] deux neutres ne se comparent pas', () => {
 test('[VER-22] presque identiques sous 0,01', () => {
   const presque = paire('#1E6FD9', '#2575D6').proximite;
   assert.ok(presque && presque.distance < 0.01 && presque.presqueIdentiques, JSON.stringify(presque));
-  const proche = paire('#1E6FD9', '#3A80C8').proximite;
+  const proche = paire('#1E6FD9', '#6B8FC0').proximite;
   assert.ok(proche && proche.distance >= 0.01 && proche.distance < 0.05 && !proche.presqueIdentiques, JSON.stringify(proche));
 });
 
@@ -315,7 +316,7 @@ test('[VER-22] les paires trop proches se rendent par rapport distance sur seuil
   ];
   const recette = recetteAvec(a, b, c, ambre);
   const paires = pairesTropProches(recette);
-  assert.deepEqual(paires.map((paire) => paire.palettes), [[a.id, c.id], [b.id, c.id], [a.id, b.id]]);
+  assert.deepEqual(paires.map((paire) => paire.palettes), [[a.id, c.id], [a.id, b.id], [b.id, c.id]]);
   const rapports = paires.map((paire) => paire.proximite.distance / paire.proximite.seuil);
   assert.deepEqual(rapports, [...rapports].sort((x, y) => x - y));
   assert.deepEqual(alertesDeRecette(recette).flatMap((alerte) => (alerte.code === 'palettes-proches' ? [alerte.palettes] : [])), paires.map((paire) => paire.palettes));

@@ -10,6 +10,7 @@ import {
   CLARTE_SELON_LA_TEINTE_MAXIMALE,
   MODES,
   ancrageDe,
+  boutsDe,
   cleDeLaPromesse,
   clarteSelonLaTeinte,
   clarteSelonLaTeinteGardee,
@@ -17,10 +18,13 @@ import {
   courbesParDefaut,
   ecrireHexa,
   lineaireVersRgb8,
+  lireHexa,
   oklchVersLineaire,
   ordreTenu,
   plafond,
+  poidsA,
   rampesDe,
+  rgb8VersOklch,
   recetteParDefaut,
   verifierPromesses,
   type Palette,
@@ -35,6 +39,16 @@ const neuve = (reference: string, autres: Partial<Palette> = {}, recette: Recett
 
 /** La recette dont toutes les rampes du relevé sont celle de la première : aucun écart de clarté, donc aucun décalage. */
 const sansDecalage = (recette: Recette): Recette => ({ ...recette, derives: recette.derives.map((rampe) => ({ ...recette.derives[0], nom: rampe.nom })) });
+
+const RANG_500 = 5;
+
+/** Le poids du 500 vers le bout clair pour l'indigo : la part du décalage selon la teinte qu'il reçoit. */
+function poidsDu500(recette: Recette): number {
+  const indigo = rgb8VersOklch(lireHexa('#6366F1')!);
+  const { bout, poids } = poidsA(recette.courbes.light[RANG_500], indigo, boutsDe(recette));
+  assert.equal(bout, 'clair');
+  return poids;
+}
 
 const AVEC_TEXTE_BLANC: Recette = { ...recetteParDefaut(), texteDesBoutons: { light: 'blanc', dark: 'blanc' }, courbes: courbesParDefaut(11, { light: 'blanc', dark: 'blanc' }) };
 
@@ -71,10 +85,12 @@ test('[MOT-38] une palette libre n’a pas de décalage, une palette à une inte
   const libre = neuve('#EAB308', { crans: [100, 200, 400, 600, 800, 900] });
   assert.equal(clarteSelonLaTeinte(libre.recette, libre.palette).clair, 0);
   assert.deepEqual(clarteSelonLaTeinteGardee(libre.recette, libre.palette), { fraction: 1, decalage: 0 });
-  // Le cran 50 pèse 1 vers le bout clair : sa clarté fabriquée est celle de la courbe, plus le décalage de l'indigo.
+  // Le 50 prend la clarté de la courbe : le décalage de l'indigo n'y entre plus. Le 500 le reçoit au poids de son bout.
   const unique = neuve('#6366F1', { intensites: 1 });
   assert.equal(clarteSelonLaTeinteGardee(unique.recette, unique.palette).decalage, -0.023);
-  assert.ok(Math.abs(clartesDe(unique.recette, unique.palette).unique!.light[0] - (unique.recette.courbes.light[0] - 0.023)) < 1e-9);
+  const clartes = clartesDe(unique.recette, unique.palette).unique!.light;
+  assert.equal(clartes[0], unique.recette.courbes.light[0]);
+  assert.ok(Math.abs(clartes[RANG_500] - (unique.recette.courbes.light[RANG_500] - 0.023 * poidsDu500(unique.recette))) < 1e-9);
 });
 
 test('[MOT-38] le décalage s’ajoute à la luminosité du Color shift rangée, qui reste telle qu’elle a été rangée', () => {
@@ -92,9 +108,13 @@ test('[MOT-38] le décalage s’ajoute à la luminosité du Color shift rangée,
   const avec = clartesDe(rangee, reglee);
   const decalage = clarteSelonLaTeinteGardee(rangee, reglee).decalage;
   assert.ok(decalage < 0 && decalage >= -0.023, `${decalage}`);
+  const poids = poidsDu500(recette);
   for (const intensite of ['soft', 'vivid'] as const) {
-    assert.ok(Math.abs(sans[intensite]!.light[0] - (recette.courbes.light[0] - 0.023)) < 1e-9, intensite);
-    assert.ok(Math.abs(avec[intensite]!.light[0] - (recette.courbes.light[0] - 0.02 + decalage)) < 1e-9, intensite);
+    assert.ok(Math.abs(sans[intensite]!.light[RANG_500] - (recette.courbes.light[RANG_500] - 0.023 * poids)) < 1e-9, intensite);
+    assert.ok(Math.abs(avec[intensite]!.light[RANG_500] - (recette.courbes.light[RANG_500] + (-0.02 + decalage) * poids)) < 1e-9, intensite);
+    // Le 50 garde la clarté de la courbe, avec ou sans luminosité rangée.
+    assert.equal(sans[intensite]!.light[0], recette.courbes.light[0], intensite);
+    assert.equal(avec[intensite]!.light[0], recette.courbes.light[0], intensite);
   }
   assert.deepEqual(reglee.derive.vivid.clarte, { clair: -0.02, sombre: 0.01 });
   assert.equal(palette.derive.vivid.clarte, undefined);

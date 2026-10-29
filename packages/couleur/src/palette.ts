@@ -331,10 +331,13 @@ export function enveloppeDe(recette: Recette, intensite: Intensite, mode: Mode):
  * de sa référence ([ENT-14]). `decalageDeClarte`, celui que
  * `clarteSelonLaTeinteGardee` retient ou celui d'un candidat, s'ajoute à la
  * luminosité du Color shift au bout clair, et l'enveloppe de chroma se lit
- * sans lui.
+ * sans lui. En Light, le 50, le 100 et le 200 prennent la clarté de la
+ * courbe, le 300 et le 400 s'en rapprochent : ni cette luminosité, ni la
+ * luminosité réglée de la carte ne les écartent de la courbe (`numeros`),
+ * sauf au cran qui porte la référence (`rangDeLaReference`).
  */
-function parametresDesRampes(recette: Recette, palette: Palette, decalageDeClarte: number): (intensite: Intensite, mode: Mode) => ParametresRampe {
-  const { courbes } = grilleDe(recette, palette);
+function parametresDesRampes(recette: Recette, palette: Palette, decalageDeClarte: number, ancrage: Ancrage): (intensite: Intensite, mode: Mode) => ParametresRampe {
+  const { crans, courbes } = grilleDe(recette, palette);
   const bouts = boutsDe(recette);
   const parts = partsDe(recette, palette);
   const sombre = fondsSombresDe(recette);
@@ -356,6 +359,8 @@ function parametresDesRampes(recette: Recette, palette: Palette, decalageDeClart
     enveloppe: enveloppeDe(recette, intensite, mode),
     clairs: mode === 'light' ? recette.profils[intensite === 'soft' ? 'soft' : 'vivid'].clairs : 1,
     decalageDeClarteGarde: decalageDeClarte,
+    numeros: mode === 'light' ? crans : undefined,
+    rangDeLaReference: mode === 'light' && intensite === ancrage.profil ? ancrage.rangs.light : undefined,
   });
 }
 
@@ -489,7 +494,7 @@ function rampeDeLIntensitePorteuse(
 function rampesAvecLeDecalage(recette: Recette, palette: Palette, decalageDeClarte: number): Rampes {
   const reference = referenceDe(palette);
   const ancrage = ancrageDe(recette, palette);
-  const parametres = parametresDesRampes(recette, palette, decalageDeClarte);
+  const parametres = parametresDesRampes(recette, palette, decalageDeClarte, ancrage);
   const rampes: { [I in Intensite]?: RampeParMode } = {};
   for (const intensite of intensitesDe(palette)) {
     const visees = { light: viseesDeLaRampe(parametres(intensite, 'light')), dark: viseesDeLaRampe(parametres(intensite, 'dark')) };
@@ -529,7 +534,7 @@ export type { ClartesParMode };
 function clartesAvecLeDecalage(recette: Recette, palette: Palette, decalageDeClarte: number): { readonly [I in Intensite]?: ClartesParMode } {
   const L = rgb8VersOklch(referenceDe(palette)).L;
   const ancrage = ancrageDe(recette, palette);
-  const parametres = parametresDesRampes(recette, palette, decalageDeClarte);
+  const parametres = parametresDesRampes(recette, palette, decalageDeClarte, ancrage);
   const clartes: { [I in Intensite]?: ClartesParMode } = {};
   for (const intensite of intensitesDe(palette)) {
     const parMode = (mode: Mode): number[] => clartesVisees(parametres(intensite, mode))

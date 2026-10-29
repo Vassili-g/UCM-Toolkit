@@ -405,10 +405,39 @@ test('[REC-13] la lecture ajoute 400 et 950 au témoin du format 10', () => {
       assert.equal(courbes[mode][rang], attendue, `${mode} ${cran}`);
     });
   }
-  // Le cran 50, requis depuis surface/subtle, n'est pas ajouté : un témoin qui n'en a pas est refusé.
-  const lueSans50 = classerRecette(JSON.stringify(sansLeCran(ancienne, 50)));
-  assert.ok(lueSans50.etat === 'illisible');
-  assert.deepEqual(lueSans50.refus, [{ regle: 'crans-emplois', chemin: 'crans', valeur: 50 }]);
+});
+
+test('[REC-13] la lecture ajoute aussi le 50 que surface/subtle exige, au témoin du format 10, à une recette 11 et à une recette courante', () => {
+  const ancienne = sansLeCran(JSON.parse(temoin('format-10')), 50);
+  const format11 = (): any => {
+    const recette = copie(recetteParDefaut());
+    recette.formatVersion = 11;
+    for (const nom of ['soft', 'vivid']) {
+      delete recette.profils[nom].clairs;
+      for (const mode of ['light', 'dark']) delete recette.profils[nom].enveloppe[mode].cyans;
+    }
+    return sansLeCran(recette, 50);
+  };
+  const courante = sansLeCran(copie(recetteParDefaut()), 50);
+  for (const [nom, sans50] of [['format 10', ancienne], ['format 11', format11()], ['format courant', courante]] as const) {
+    assert.ok(!sans50.crans.includes(50), nom);
+    const lue = classerRecette(JSON.stringify(sans50));
+    assert.ok(lue.etat === 'courante', nom);
+    const { crans, courbes } = lue.recette;
+    const rang = crans.indexOf(50);
+    assert.equal(rang, 0, nom);
+    // La luminosité du 50 est celle que luminositeAuNumero donne sur la grille d'origine, au millième.
+    for (const mode of ['light', 'dark'] as const) {
+      assert.equal(courbes[mode][rang], Math.round(luminositeAuNumero(sans50, mode, 50) * 1000) / 1000, `${nom} ${mode}`);
+      assert.equal(courbes[mode].length, crans.length, `${nom} ${mode}`);
+    }
+    assert.ok(courbes.light[0] > courbes.light[1] && courbes.dark[0] < courbes.dark[1], `${nom} : les courbes restent monotones`);
+  }
+  // Un 50 que la recette porte déjà ne bouge pas.
+  const avec50 = JSON.parse(temoin('format-10'));
+  const lue = classerRecette(JSON.stringify(avec50));
+  assert.ok(lue.etat === 'courante');
+  assert.deepEqual(lue.recette.courbes.light.slice(0, 3), avec50.courbes.light.slice(0, 3));
 });
 
 test("[REC-13] la lecture ajoute aussi 500 quand le format 10 l'a laissé de côté", () => {

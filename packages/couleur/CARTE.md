@@ -9,7 +9,7 @@ Moteur de couleur d'UCM Palettes : ucm-couleur, privé, lu en source.
 ## src/
 - conversions.ts : hexa, sRGB, linéaire, Oklab, OKLCH et Display P3
 - plafond.ts : plus grande chroma que sRGB porte, mémorisée
-- rampe.ts : un cran et enveloppe de chroma qui le borne (`cranVise`, bosses des jaunes et des cyans), facteur `clairs` des tons clairs du Light, poids d'une nuance, teinte pivotée, Color shift, facteur des fonds du thème Dark, rampes des deux profils
+- rampe.ts : un cran et enveloppe de chroma qui le borne (`cranVise`, bosses des jaunes et des cyans), facteur `clairs` des tons clairs du Light, clarté commune des crans clairs du Light (`POIDS_DES_CRANS_COMMUNS`), poids d'une nuance, teinte pivotée, Color shift, facteur des fonds du thème Dark, rampes des deux profils
 - tailwind.ts : relevé des dix-sept rampes colorées de Tailwind (teinte et clarté de chaque cran), préréglage de dérive lu à la clarté de la référence, décalage de clarté selon la teinte (`clarteSelonLaTeinteDuReleve`)
 - contraste.ts : niveaux WCAG, ΔEok, part de chroma, écriture à virgule ; le contraste vient du kit
 - recette.ts : forme de la recette au format 12 (parts, `clairs` et enveloppe de chroma par profil, relevé `derives`), sa validation, son classement à la lecture : les formats 8 à 11 se lisent en format 12, une étape par format, aucun format antérieur ne se convertit

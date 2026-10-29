@@ -183,67 +183,68 @@ const PALETTES: Record<string, Palette> = {
  * variantes.ts, dossier de la recette critique de qualité), relevées une fois ; les rampes Soft du thème Dark
  * suivent la borne `b` 0,15 du format 12, et les rampes Light le `clairs` 0,7 de Soft et le `cyans` −0,2 de Vivid, relevés sur le moteur.
  * Les valeurs suivent aussi la clarté selon la teinte et la bosse de chroma de l'intensité porteuse, relevées sur le moteur.
+ * Les crans 50 à 400 de Light, hors celui de la référence, suivent la clarté commune des crans clairs, relevée sur le moteur.
  */
 const DU_PROTOTYPE: Record<string, Rampes> = {
   // Bleu #3B82F6
   bleu: {
     soft: {
-      light: ['#ECF0F6', '#E0E9F4', '#CCDCF0', '#B1CAED', '#82B0F3', '#5993EF', '#3375E9', '#2E5DBE', '#264796', '#1D3270', '#142250'],
+      light: ['#F5F7FA', '#E9EFF7', '#D4E1F2', '#B5CDEE', '#84B1F3', '#5993EF', '#3375E9', '#2E5DBE', '#264796', '#1D3270', '#142250'],
       dark: ['#070A12', '#161B29', '#202739', '#2B354B', '#3A4764', '#4E6084', '#617BA6', '#7596C9', '#88B0EC', '#ACCCF7', '#D2E4FB'],
     },
     vivid: {
-      light: ['#E7F1FE', '#DAEAFD', '#C4DCFC', '#A7CAFB', '#7EB0F9', '#5393F7', '#3B82F6', '#0F52E0', '#153DB3', '#132B86', '#0E1C61'],
+      light: ['#F2F7FE', '#E5F0FE', '#CDE2FD', '#ACCDFB', '#80B1F9', '#5393F7', '#3B82F6', '#0F52E0', '#153DB3', '#132B86', '#0E1C61'],
       dark: ['#060915', '#0F1939', '#17244E', '#1F3165', '#294384', '#345CAF', '#3B82F6', '#5393F7', '#7EB0F9', '#AACCFB', '#D1E4FD'],
     },
   },
   // Jaune #EAB308
   jaune: {
     soft: {
-      light: ['#FFFFFF', '#FBF7DC', '#F1E5B3', '#E9CC79', '#D9A93F', '#BD8B33', '#A17129', '#86581F', '#6C4216', '#522E0E', '#3C1D07'],
+      light: ['#FBF9DB', '#F7F0C1', '#EFE0A4', '#E7CA78', '#D9A93F', '#BD8B33', '#A17129', '#86581F', '#6C4216', '#522E0E', '#3C1D07'],
       dark: ['#0D0907', '#251911', '#352317', '#46301F', '#5C412A', '#785A39', '#957347', '#B28F57', '#CEAC67', '#EACE7A', '#F9F0BD'],
     },
     vivid: {
-      light: ['#FFFFFF', '#FFF8C5', '#FFE574', '#F9C80A', '#EAB308', '#C38905', '#A76E03', '#8B5502', '#713F01', '#562B01', '#3F1B00'],
+      light: ['#FFFAC3', '#FFF197', '#FFDF4E', '#F7C70A', '#EAB308', '#C38905', '#A76E03', '#8B5502', '#713F01', '#562B01', '#3F1B00'],
       dark: ['#0E0906', '#27180E', '#392111', '#4D2C10', '#6A3A01', '#885202', '#A66D03', '#C38905', '#EAB308', '#F7CB35', '#FAF0B6'],
     },
   },
   // Vert #16A34A
   vert: {
     soft: {
-      light: ['#F6FDF8', '#E9F6ED', '#D2EAD9', '#B0DBBC', '#72C98B', '#3BB05F', '#2F924C', '#24753F', '#1A5B31', '#114324', '#092E18'],
+      light: ['#EEFBF2', '#E3F3E8', '#CDE8D5', '#AFD9BB', '#72C88B', '#3BB05F', '#2F924C', '#24753F', '#1A5B31', '#114324', '#092E18'],
       dark: ['#070B08', '#121F16', '#1A2D1F', '#243C2B', '#32503A', '#466B4E', '#5A8763', '#6FA57A', '#83C594', '#97E5AF', '#C9F9D9'],
     },
     vivid: {
-      light: ['#F1FFF6', '#DAFCE5', '#B2F5C8', '#77EBA0', '#20D470', '#19B356', '#16A34A', '#0D7738', '#085D2D', '#044420', '#022F16'],
+      light: ['#E4FFED', '#CEFCDD', '#A8F4C2', '#76E99F', '#20D370', '#19B356', '#16A34A', '#0D7738', '#085D2D', '#044420', '#022F16'],
       dark: ['#070B08', '#112015', '#152E1D', '#153F24', '#07572A', '#0D7437', '#139244', '#16A34A', '#20D470', '#72EEA0', '#C5FBD6'],
     },
   },
   // Rouge #B15152 à une intensité
   unique: {
     unique: {
-      light: ['#FAF0F0', '#F6E6E7', '#F0D4D5', '#E9BCBE', '#DF9A9B', '#D67275', '#B15152', '#994547', '#783537', '#592528', '#3F181B'],
+      light: ['#FBF5F5', '#F8EBEB', '#F2D9D9', '#EABFC0', '#DF9B9C', '#D67275', '#B15152', '#994547', '#783537', '#592528', '#3F181B'],
       dark: ['#0E0909', '#271717', '#391F20', '#502829', '#703134', '#954345', '#B15152', '#D67275', '#DF9A9B', '#E9BEC0', '#F3DEDF'],
     },
   },
   // Bleu #3B82F6, teinte +8° et luminosité −0,02
   reglee: {
     soft: {
-      light: ['#E3E9F4', '#D9E2F3', '#C7D4EE', '#ADC2EB', '#85A6F2', '#6388EF', '#4B6AE0', '#3E53B4', '#323E8C', '#242B66', '#181B47'],
+      light: ['#F5F7FB', '#EAEFF8', '#D6E0F2', '#B7C9ED', '#89A9F3', '#6388EF', '#4B6AE0', '#3E53B4', '#323E8C', '#242B66', '#181B47'],
       dark: ['#05060C', '#141623', '#1E2133', '#2A2F44', '#3A415C', '#4E597D', '#63739F', '#788DC2', '#8CA7E4', '#AAC3F6', '#CCDCFA'],
     },
     vivid: {
-      light: ['#DFEAFD', '#D4E2FD', '#C0D4FC', '#A6C1FA', '#82A6F9', '#5F86F7', '#3B82F6', '#3645D6', '#2D33A7', '#22227B', '#171456'],
+      light: ['#F3F7FE', '#E7EFFE', '#D1E0FD', '#B0C9FB', '#86A9F9', '#5F86F7', '#3B82F6', '#3645D6', '#2D33A7', '#22227B', '#171456'],
       dark: ['#05060F', '#111331', '#1A1E45', '#242A5C', '#303B7B', '#4053A5', '#3B82F6', '#5F86F7', '#82A6F9', '#A8C3FB', '#CBDCFC'],
     },
   },
   // Jaune #EAB308, parts propres 0,6 et 1
   propres: {
     soft: {
-      light: ['#FFFFFF', '#F9F7E2', '#EFE5BA', '#E3CD90', '#CDAC6A', '#B18F58', '#977548', '#7C5C39', '#63462B', '#4B311E', '#362113'],
+      light: ['#FAF8E1', '#F5F0CC', '#ECE0AD', '#E1CB8F', '#CDAC6A', '#B18F58', '#977548', '#7C5C39', '#63462B', '#4B311E', '#362113'],
       dark: ['#0C0908', '#221A14', '#32241B', '#453021', '#5C412A', '#785A39', '#957347', '#B18F58', '#CDAC6A', '#EACE7D', '#F8EFC1'],
     },
     vivid: {
-      light: ['#FFFFFF', '#FFF8C5', '#FFE573', '#F9C800', '#EAB308', '#C38900', '#A86E00', '#8B5500', '#713F00', '#562B00', '#3F1B00'],
+      light: ['#FFFAC2', '#FFF196', '#FFDF4C', '#F7C700', '#EAB308', '#C38900', '#A86E00', '#8B5500', '#713F00', '#562B00', '#3F1B00'],
       dark: ['#0E0906', '#27180E', '#392111', '#4E2C10', '#6A3A00', '#885200', '#A66D00', '#C38900', '#EAB308', '#F7CB36', '#FAF0B7'],
     },
   },

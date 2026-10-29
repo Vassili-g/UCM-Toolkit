@@ -344,6 +344,7 @@ const nomDe = (i: number): Nom => NOMS[(i - 1) % NOMS.length];
  */
 function rampeFlottante(c: Cadre, x: readonly number[], profil: Profil, mode: Mode, k: Candidat): number[][] {
   const lire = (nom: Nom): number => x[indice(profil, nom)];
+  const rangAncre = profil === k.cle ? (mode === 'light' ? k.rl : k.rd) : -1;
   const visees = viseesDeLaRampe({
     courbe: c.courbes[mode],
     bouts: c.bouts,
@@ -361,9 +362,10 @@ function rampeFlottante(c: Cadre, x: readonly number[], profil: Profil, mode: Mo
     enveloppe: enveloppeDe(c.recette, profil, mode),
     clairs: mode === 'light' ? c.recette.profils[profil].clairs : 1,
     decalageDeClarteGarde: k.decalage,
+    numeros: mode === 'light' ? c.crans : undefined,
+    rangDeLaReference: mode === 'light' && rangAncre >= 0 ? rangAncre : undefined,
   });
-  const rang = profil === k.cle ? (mode === 'light' ? k.rl : k.rd) : -1;
-  const bosse = rang >= 0 ? bosseDeChroma(visees, rang, mode, k, profil !== 'soft') : null;
+  const bosse = rangAncre >= 0 ? bosseDeChroma(visees, rangAncre, mode, k, profil !== 'soft') : null;
   return visees.map((visee, i) => oklchVersLineaire(bosse ? { ...visee, C: bosse[i] } : visee).map((v) => 255 * encoder(borner(v))));
 }
 

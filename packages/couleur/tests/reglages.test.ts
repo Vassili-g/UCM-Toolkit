@@ -7,6 +7,7 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 
 import {
+  POIDS_DES_CRANS_COMMUNS,
   ancrageDe,
   classerRecette,
   ecrireHexa,
@@ -127,8 +128,11 @@ test('Z10.5 un décalage de clarté translate la rampe sans changer la teinte de
   const avant = rampesDe(recette, base).vivid!.light;
   const apres = rampesDe(recette, decalee).vivid!.light;
   let juges = 0;
+  // Le 50, le 100 et le 200 de Light restent sur la courbe ; le 300 et le 400 ne descendent que de deux tiers et d'un tiers de moins.
+  const part = (cran: number): number => POIDS_DES_CRANS_COMMUNS[cran] ?? 0;
   apres.forEach((cran, rang) => {
-    assert.ok(Math.abs(cran.L - avant[rang].L + 0.05) < 0.01, `rang ${rang} : la clarté descend de 0,05`);
+    const descente = 0.05 * (1 - part(recette.crans[rang]));
+    assert.ok(Math.abs(cran.L - avant[rang].L + descente) < 0.01, `rang ${rang} : la clarté descend de ${descente.toFixed(3)}`);
     if (cran.C < 0.08 || avant[rang].C < 0.08) return;
     juges += 1;
     const ecart = Math.abs(((cran.H - avant[rang].H + 540) % 360) - 180);

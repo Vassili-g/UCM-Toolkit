@@ -137,7 +137,8 @@ test('[MOT-17] sur deux mille références, le profil porteur contient les octet
     const rampes = rampesDe(r, palette);
     const parts = partsDe(r, palette) as { soft: number; vivid: number };
     // Les rampes communes : la référence pour pivot, l'enveloppe de chaque profil dans chaque thème ([MOT-35]),
-    // et la clarté selon la teinte que la palette applique, la chroma gardée.
+    // la clarté selon la teinte que la palette applique, la chroma gardée, et en Light la clarté commune des
+    // crans clairs, sauf au cran qui porte la référence.
     const decalage = clarteSelonLaTeinteGardee(r, palette).decalage;
     const parametres = (profil: 'soft' | 'vivid', mode: 'light' | 'dark') => ({
       courbe: r.courbes[mode],
@@ -150,6 +151,8 @@ test('[MOT-17] sur deux mille références, le profil porteur contient les octet
       enveloppe: enveloppeDe(r, profil, mode),
       clairs: mode === 'light' ? r.profils[profil].clairs : 1,
       decalageDeClarteGarde: decalage,
+      numeros: mode === 'light' ? r.crans : undefined,
+      rangDeLaReference: mode === 'light' && profil === ancrage.profil ? ancrage.rangs.light : undefined,
     });
     const commune = (profil: 'soft' | 'vivid', mode: 'light' | 'dark') => fabriquerRampe(parametres(profil, mode));
     // La bosse agit dans l'intensité porteuse quand la référence est plus vive que la chroma visée à son cran.

@@ -68,6 +68,8 @@ function chaines(recette: Recette, palette: Palette): { commune: Rampes; pleine:
       enveloppe: enveloppeDe(recette, intensite, mode),
       clairs: mode === 'light' ? recette.profils[intensite === 'soft' ? 'soft' : 'vivid'].clairs : 1,
       decalageDeClarteGarde: decalage,
+      numeros: mode === 'light' ? recette.crans : undefined,
+      rangDeLaReference: mode === 'light' ? ancrage.rangs.light : undefined,
     });
     bosses[mode] = bosseDeChroma(visees[mode], ancrage.rangs[mode], mode, lue, intensite !== 'soft');
   }

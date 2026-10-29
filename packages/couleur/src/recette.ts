@@ -893,30 +893,41 @@ function copierLesProfilsDuFormat11(): Objet {
 const CRANS_AJOUTES_AU_FORMAT_11 = [400, 500, 950];
 
 /**
+ * Le cran que `surface/subtle` exige depuis le kit 0.13.34, sans changement de
+ * format : une recette de tout format peut ne pas le porter ([REC-13]).
+ */
+const CRANS_DU_FOND_LEGER = [50];
+
+/**
+ * Les crans de `ajoutes` que la liste de l'objet ne porte pas s'y ajoutent,
+ * triés, avec la luminosité que `luminositeAuNumero` donne sur la grille
+ * d'origine, au millième comme `grilleAuPrereglage` ([REC-13]). Une grille
+ * illisible reste telle quelle : la validation en refuse la forme.
+ */
+function avecLesCransAjoutes(objet: Objet, ajoutes: readonly number[]): Objet {
+  const grille = grilleLisible(objet);
+  const manquants = grille ? ajoutes.filter((cran) => !grille.crans.includes(cran)) : [];
+  if (!grille || manquants.length === 0) return objet;
+  const crans = [...grille.crans, ...manquants].sort((a, b) => a - b);
+  const courbe = (mode: Mode): number[] => crans.map((cran) => {
+    const rang = grille.crans.indexOf(cran);
+    return rang >= 0 ? grille.courbes[mode][rang] : Math.round(luminositeAuNumero(grille, mode, cran) * 1000) / 1000;
+  });
+  return { ...objet, crans, courbes: { light: courbe('light'), dark: courbe('dark') } };
+}
+
+/**
  * Le format 11 : les profils et le relevé `derives` du paquet ([REC-12]). Les
- * crans 400, 500 et 950 manquants s'ajoutent à la liste, triée, avec la
- * luminosité que `luminositeAuNumero` donne sur la grille d'origine, au
- * millième comme `grilleAuPrereglage` ([REC-13]). Le reste est tel quel.
+ * crans 400, 500 et 950 manquants s'ajoutent à la liste ([REC-13]). Le reste
+ * est tel quel.
  */
 function depuisLeFormat10(objet: Objet): Objet {
-  const grille = grilleLisible(objet);
-  const manquants = grille ? CRANS_AJOUTES_AU_FORMAT_11.filter((cran) => !grille.crans.includes(cran)) : [];
-  const suivant: Objet = {
-    ...objet,
+  return {
+    ...avecLesCransAjoutes(objet, CRANS_AJOUTES_AU_FORMAT_11),
     formatVersion: 11,
     profils: copierLesProfilsDuFormat11(),
     derives: copierLeReleve(RELEVE_TAILWIND),
   };
-  if (grille && manquants.length > 0) {
-    const crans = [...grille.crans, ...manquants].sort((a, b) => a - b);
-    const courbe = (mode: Mode): number[] => crans.map((cran) => {
-      const rang = grille.crans.indexOf(cran);
-      return rang >= 0 ? grille.courbes[mode][rang] : Math.round(luminositeAuNumero(grille, mode, cran) * 1000) / 1000;
-    });
-    suivant.crans = crans;
-    suivant.courbes = { light: courbe('light'), dark: courbe('dark') };
-  }
-  return suivant;
 }
 
 /** Vrai quand les deux bornes d'un thème portent les mêmes `a`, `b` et `jaunes`. */
@@ -963,8 +974,9 @@ function depuisLeFormat11(objet: Objet): Objet {
  * ([REC-03]). Absent ou vide, la recette par défaut est proposée. Une version
  * supérieure est `future`, une version inférieure à 8 est illisible. Les
  * formats 8 à 11 se lisent en format 12, une étape par format ; une forme
- * ancienne qui ne se convertit pas est illisible ([REC-12]). La lecture
- * laisse la recette rangée intacte ([REC-04]).
+ * ancienne qui ne se convertit pas est illisible ([REC-12]). Le 50 manquant
+ * s'ajoute à toute recette, courante comme ancienne. La lecture laisse la
+ * recette rangée intacte ([REC-04]).
  */
 export function classerRecette(texte: string | undefined): Classement {
   const enveloppe = classerLEnveloppeDeLaRecette(texte);
@@ -998,6 +1010,7 @@ export function classerRecette(texte: string | undefined): Classement {
     if (version <= 10) lue = depuisLeFormat10(lue);
     lue = depuisLeFormat11(lue);
   }
+  lue = avecLesCransAjoutes(lue, CRANS_DU_FOND_LEGER);
 
   const validee = validerRecette(lue);
   return 'refus' in validee ? { etat: 'illisible', refus: validee.refus } : { etat: 'courante', recette: validee.recette };

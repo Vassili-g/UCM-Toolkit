@@ -33,10 +33,10 @@ export const TOLERANCE_FOND = 0.005;
 /**
  * Les rangs des crans que les variables de palette visent dans `crans`, dans
  * le sens de chaque mode de la recette, les deux modes réunis ([VER-11]).
- * `solid/foreground` n'en vise aucun : il vaut le texte des boutons. Les crans
- * facultatifs 50, 400 et 950 n'y sont pas : aucune variable ne les vise, et
- * les deux profils s'y confondent sur la plupart des teintes sans qu'aucun
- * réglage les sépare.
+ * `solid/foreground` n'en vise aucun : il vaut le texte des boutons. Le 50 est
+ * visé par `surface/subtle`, le 400 et le 950 par les surfaces du Dark : aucun
+ * cran de la liste commune n'échappe aux variables. Un numéro que la liste de
+ * la recette ne porte pas n'a pas de rang.
  */
 export function rangsDesVariables(recette: Recette): number[] {
   const rangs = new Set<number>();

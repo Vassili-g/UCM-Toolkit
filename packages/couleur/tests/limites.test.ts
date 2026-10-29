@@ -150,12 +150,17 @@ test('[DER-19] une promesse manquée au départ ne borne rien : Bleu, texte des 
 });
 
 test('[DER-19] une palette libre n’a pas de promesse : seul l’ordre des nuances borne sa luminosité', () => {
-  const palette = paletteTailwind('p-000000c2', '#1E6FD9', { crans: [50, 200, 500, 800, 950] });
+  // Le 150 n'est pas dans la table des crans clairs : il garde la luminosité du réglage, alors que le 100 prend la clarté de la courbe.
+  const palette = paletteTailwind('p-000000c2', '#1E6FD9', { crans: [100, 150, 300, 500, 800, 950] });
   const recette = recetteAvec(palette);
   assert.deepEqual(verifierPromesses(recette, palette), []);
   const { bas, haut } = limite(recette, palette, 'clarte', 'clair');
   assert.equal(haut.cause?.nature, 'ordre');
   assert.equal(bas.cause?.nature ?? 'fixe', bas.valeur === -0.15 ? 'fixe' : 'ordre');
+  // Une liste dont les crans clairs sont tous dans la table garde l'ordre sous toute luminosité : les deux bornes sont fixes.
+  const dansLaTable = paletteTailwind('p-000000c3', '#1E6FD9', { crans: [50, 200, 500, 800, 950] });
+  const limiteDeLaTable = limite(recetteAvec(dansLaTable), dansLaTable, 'clarte', 'clair');
+  assert.deepEqual([limiteDeLaTable.bas, limiteDeLaTable.haut], [{ valeur: -0.15, cause: null }, { valeur: 0.15, cause: null }]);
 });
 
 test('[DER-20] le balayage rend la main après chaque candidate et rend la même limite que le calcul d’un trait', () => {
@@ -176,9 +181,10 @@ test('[DER-20] le balayage rend la main après chaque candidate et rend la même
     rendus += 1;
     pas = balayage.next();
   }
-  // −0,045 à +0,055 : neuf pas vers le bas, onze vers le haut, chacun suivi d'une main rendue. En Dark, le texte de
-  // `surface` au 950 sur le 500 de `surface/pressed` arrête le bas, et l'ordre des nuances arrête le haut.
-  assert.equal(rendus, 20);
+  // −0,15 à +0,15 : trente pas dans chaque sens, chacun suivi d'une main rendue. Le 50, le 100 et le 200 de Light
+  // ignorent la luminosité, le 300 et le 400 n'en gardent que deux tiers et un tiers : ni l'ordre des nuances ni
+  // aucune promesse de Bleu n'arrêtent le bout clair.
+  assert.equal(rendus, 60);
   assert.deepEqual(pas.value, limiteDynamique(demande));
 });
 

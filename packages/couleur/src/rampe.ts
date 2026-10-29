@@ -245,6 +245,15 @@ export interface ParametresRampe {
    * absent, 0. L'enveloppe se lit alors plus bas que la clarté fabriquée.
    */
   readonly decalageDeClarteGarde?: number;
+  /**
+   * Les numéros des crans de la courbe, pour une rampe du thème Light ; absents, la rampe
+   * garde la clarté que ses réglages lui donnent (thème Dark). Présents, les crans clairs
+   * de `POIDS_DES_CRANS_COMMUNS` se rapprochent de la clarté de la courbe, sans
+   * le réglage de luminosité ni le décalage selon la teinte qui les en écartent.
+   */
+  readonly numeros?: readonly number[];
+  /** Le rang du cran qui porte la référence exacte ; il garde la clarté de ses réglages, quel que soit son numéro. */
+  readonly rangDeLaReference?: number;
 }
 
 /** Les clartés de courbe sous lesquelles `clairs` n'agit plus, et au-dessus desquelles il agit en entier. */
@@ -253,9 +262,26 @@ const CLAIRS_NUL = 0.78;
 
 const borner = (x: number): number => Math.min(1, Math.max(0, x));
 
-/** La clarté à laquelle un cran de clarté de courbe `L` se fabrique, bornée à [0, 1] ([MOT-29], [MOT-30]). */
-function clarteDuCran(L: number, { bout, poids }: Poids, parametres: ParametresRampe): number {
-  return borner(L + (parametres.decalage ?? 0) + (parametres.derive.clarte?.[bout] ?? 0) * poids);
+/**
+ * La part de l'écart à la courbe que le thème Light corrige à chaque numéro clair : le 50, le 100 et le 200 prennent
+ * la clarté de la courbe, le 300 les deux tiers du chemin, le 400 le tiers. Les autres numéros gardent leur clarté.
+ */
+export const POIDS_DES_CRANS_COMMUNS: Readonly<Record<number, number>> = { 50: 1, 100: 1, 200: 1, 300: 2 / 3, 400: 1 / 3 };
+
+/** Le poids du cran de rang `rang` dans la clarté commune : 0 pour un thème Dark, pour un numéro absent de la table et pour le cran de la référence. */
+function poidsCommun(parametres: ParametresRampe, rang: number): number {
+  if (!parametres.numeros || rang === parametres.rangDeLaReference) return 0;
+  return POIDS_DES_CRANS_COMMUNS[parametres.numeros[rang]] ?? 0;
+}
+
+/**
+ * La clarté à laquelle le cran de rang `rang` et de clarté de courbe `L` se fabrique, bornée à [0, 1] ([MOT-29], [MOT-30]).
+ * Les réglages la donnent ; avec `commune`, la clarté commune la rapproche ensuite de `L` selon `poidsCommun`.
+ */
+function clarteDuCran(L: number, { bout, poids }: Poids, parametres: ParametresRampe, rang: number, commune: boolean): number {
+  const reglee = borner(L + (parametres.decalage ?? 0) + (parametres.derive.clarte?.[bout] ?? 0) * poids);
+  const commun = commune ? poidsCommun(parametres, rang) : 0;
+  return commun === 0 ? reglee : L * commun + reglee * (1 - commun);
 }
 
 /**
@@ -264,7 +290,8 @@ function clarteDuCran(L: number, { bout, poids }: Poids, parametres: ParametresR
  * décale ensuite la part et la clarté de chaque cran selon son poids
  * ([MOT-30]). Le poids, la teinte et le facteur des fonds se lisent sur la
  * clarté de la courbe ; la couleur se fabrique à la clarté décalée, et la part
- * décalée, bornées à [0, 1].
+ * décalée, bornées à [0, 1]. En Light, les crans clairs de
+ * `POIDS_DES_CRANS_COMMUNS` reviennent ensuite vers la courbe (`numeros`).
  */
 export function fabriquerRampe(parametres: ParametresRampe): Cran[] {
   return couleursViseesDeLaRampe(parametres).map(cranDeLaVisee);
@@ -285,26 +312,36 @@ export interface ViseeDeCran extends Oklch {
  * Les cibles de `fabriquerRampe`, avant l'arrondi à 8 bits. Le facteur
  * `clairs` multiplie la chroma après l'enveloppe, et l'enveloppe d'un cran
  * clair se lit à la clarté fabriquée moins `decalageDeClarteGarde × poids`.
+ *
+ * Un cran de la clarté commune garde sa teinte et la part de chroma que ses
+ * réglages lui donnent, enveloppe, `clairs` et décalage selon la teinte compris :
+ * sa chroma vaut cette part × le plafond de l'écran à la clarté obtenue. Près
+ * du blanc, où le plafond est nul, il prend la part du cran suivant.
  */
 export function viseesDeLaRampe(parametres: ParametresRampe): ViseeDeCran[] {
-  const { derive, sombre, clairs = 1, decalageDeClarteGarde = 0 } = parametres;
-  return parametres.courbe.map((Lc) => {
+  const { derive, sombre, clairs = 1, decalageDeClarteGarde = 0, gamut } = parametres;
+  const crans = parametres.courbe.map((Lc, rang) => {
     const poids = poidsA(Lc, parametres.reference, parametres.bouts);
     const part = borner(parametres.part * (1 + (derive.saturation?.[poids.bout] ?? 0) * poids.poids));
-    const clarte = clarteDuCran(Lc, poids, parametres);
-    const clarteDeLEnveloppe = poids.bout === 'clair' ? borner(clarte - decalageDeClarteGarde * poids.poids) : clarte;
     const partDuCran = sombre ? part * facteurSombre(Lc, sombre) : part;
-    const visee = cranVise(
-      clarte,
-      teinteA(Lc, parametres.reference, derive, parametres.bouts),
-      partDuCran,
-      parametres.gamut,
-      parametres.enveloppe,
-      clarteDeLEnveloppe,
-    );
+    const H = teinteA(Lc, parametres.reference, derive, parametres.bouts);
+    const clarte = clarteDuCran(Lc, poids, parametres, rang, false);
+    const clarteDeLEnveloppe = poids.bout === 'clair' ? borner(clarte - decalageDeClarteGarde * poids.poids) : clarte;
+    const visee = cranVise(clarte, H, partDuCran, gamut, parametres.enveloppe, clarteDeLEnveloppe);
     const x = borner((CLAIRS_PLEIN - Lc) / (CLAIRS_PLEIN - CLAIRS_NUL));
     const t = 1 - x * x * (3 - 2 * x);
-    return { ...visee, C: visee.C * (1 - (1 - clairs) * t), Lc, part: partDuCran, plafond: plafond(visee.L, visee.H, parametres.gamut) };
+    return { ...visee, C: visee.C * (1 - (1 - clairs) * t), Lc, part: partDuCran };
+  });
+  const partsDeChroma = parametres.numeros ? crans.map((cran) => {
+    const maximum = plafond(cran.L, cran.H, gamut);
+    return maximum > 1e-4 && cran.C > 1e-4 ? cran.C / maximum : undefined;
+  }) : [];
+  for (let rang = partsDeChroma.length - 2; rang >= 0; rang -= 1) partsDeChroma[rang] ??= partsDeChroma[rang + 1];
+  return crans.map((cran, rang) => {
+    if (poidsCommun(parametres, rang) === 0) return { ...cran, plafond: plafond(cran.L, cran.H, gamut) };
+    const L = clarteDuCran(cran.Lc, poidsA(cran.Lc, parametres.reference, parametres.bouts), parametres, rang, true);
+    const maximum = plafond(L, cran.H, gamut);
+    return { ...cran, L, C: (partsDeChroma[rang] ?? 0) * maximum, plafond: maximum };
   });
 }
 
@@ -318,7 +355,7 @@ export function couleursViseesDeLaRampe(parametres: ParametresRampe): Oklch[] {
  * à 8 bits. L'ordre des nuances se juge sur elles ([DER-19]).
  */
 export function clartesVisees(parametres: ParametresRampe): number[] {
-  return parametres.courbe.map((L) => clarteDuCran(L, poidsA(L, parametres.reference, parametres.bouts), parametres));
+  return parametres.courbe.map((L, rang) => clarteDuCran(L, poidsA(L, parametres.reference, parametres.bouts), parametres, rang, true));
 }
 
 /** Une part de chroma par profil. */
