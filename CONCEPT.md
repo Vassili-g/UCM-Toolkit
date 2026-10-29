@@ -44,7 +44,10 @@ sien).
 
 Un composant **simple** consomme des tokens et rend ses propres calques. Un
 composant **composé** réutilise aussi d’autres composants unifiés. Son contrat
-déclare ces dépendances sans recopier leurs détails internes.
+déclare ces dépendances sans recopier leurs détails internes. Une **pièce
+interne**, dont le nom commence par `.` ou `_`, ne sert jamais seule : elle n'a
+ni contrat ni collection, et chaque composant qui l'embarque publie ce qu'elle
+dessine.
 
 ## 3. Une information, un propriétaire
 
