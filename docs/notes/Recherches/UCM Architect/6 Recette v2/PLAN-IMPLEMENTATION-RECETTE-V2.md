@@ -363,8 +363,8 @@ Analyse 10, « Ce que le changement touche ». Dépend de P1 (V4). Agent : `impl
 #### Z · Clôture
 
 - [x] **Z.1a** Liste des écrans à vérifier : §4.
-- [ ] **Z.1b** Recette Figma par le mainteneur : Button, Alert, Stresstest, une palette en Dark.
-- [x] **Z.2** Poussé et publié le 29/10, avant la recette à la demande du mainteneur : kit 0.13.33, CLI 0.1.130, adaptateur 0.1.123.
+- [x] **Z.1b** Recette Figma par le mainteneur : Button, Alert, Stresstest, une palette en Dark. Validée le 29/10.
+- [x] **Z.2** Poussé et publié le 29/10, avant la recette à la demande du mainteneur : kit 0.13.33, CLI 0.1.130, adaptateur 0.1.123. Après la recette, avec les crans clairs : kit 0.13.36, CLI 0.1.132, adaptateur 0.1.125 (73e8b15b).
 
 ## 4. Écrans à vérifier
 
