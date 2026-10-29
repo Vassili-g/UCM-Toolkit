@@ -1,3 +1,5 @@
+import type { SorteDImbrique } from '../referentiel/composition.js';
+
 /** Les faits lus dans Figma avant tout jugement sur un composant. */
 
 export interface PeintureLue {
@@ -17,6 +19,11 @@ export interface LiaisonLue {
   porteur: string;
   /** Le layer de l'instance que la surcharge lie, quand ce n'est pas l'instance elle-même : `porteur` reste l'instance, seule lue. */
   surcharge?: { id: string; nom: string; type: string };
+  /**
+   * `composant-principal` : la liaison vient du composant principal de l'instance, sans changement. `instance` : l'hôte la pose ou la change.
+   * Absente : l'origine n'est pas lue, la liaison se juge comme celle d'un layer de l'hôte.
+   */
+  provenance?: 'composant-principal' | 'instance';
   /** La variable liée ne s'est pas lue : seul `variable.id` est sûr, `cle`, `nom` et `collection` sont vides. */
   illisible?: true;
   variable: { id: string; cle: string; nom: string; collection: string; distante: boolean };
@@ -38,6 +45,8 @@ export interface LayerLu {
     style: string | null;
     plages: { debut: number; fin: number; fontSize: number; fontWeight: number; peintures: PeintureLue[]; liaisons: LiaisonLue[] }[];
   };
+  /** Posée sur le layer d'une instance de composant imbriqué ; les liaisons de ses descendants se jugent avec la sorte de l'instance la plus proche. */
+  sorte?: SorteDImbrique;
   instanceDe?: { cle: string; nom: string; distante: boolean; pilotee: string | null };
 }
 

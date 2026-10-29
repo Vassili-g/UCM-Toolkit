@@ -381,6 +381,39 @@ test('C80 nomme le layer peint par une surcharge d’instance, pas l’instance'
   assert.ok(constat.id.includes('>dedans'));
 });
 
+test('C80 : la liaison tenue du composant principal d’une pièce interne passe, celle de l’instance reste jugée', () => {
+  const ring = (provenance: 'composant-principal' | 'instance' | undefined, champ: string) => {
+    const r = releve('Button');
+    r.variants = [variante('default', {}, 'v0', { champ, nom: '.Ring', type: 'INSTANCE' })];
+    r.variants[0].layers[0].sorte = 'piece-interne';
+    if (provenance) r.variants[0].layers[0].liaisons[0].provenance = provenance;
+    return r;
+  };
+  const layout = catalogueEtendu({ nom: 'Radius/lg', collection: 'layout', type: 'FLOAT' });
+  assert.deepEqual(codes(controlerCouches(ring('composant-principal', 'topLeftRadius'), layout)), []);
+  assert.deepEqual(codes(controlerCouches(ring(undefined, 'topLeftRadius'), layout)), ['C80']);
+  assert.deepEqual(codes(controlerCouches(ring('instance', 'topLeftRadius'), layout)), ['C80']);
+  const couleurLayout = catalogueEtendu({ nom: 'Color/ring', collection: 'layout' });
+  assert.deepEqual(codes(controlerCouches(ring('instance', 'fills'), couleurLayout)), ['C80']);
+  const couleurBouton = catalogueEtendu({ nom: 'Button/Color/Focus/ring', collection: 'components' });
+  assert.deepEqual(codes(controlerCouches(ring('instance', 'fills'), couleurBouton)), []);
+  // Une primitive reste jugée, et un détail d'implémentation ne profite pas de l'exception.
+  assert.deepEqual(codes(controlerCouches(ring('composant-principal', 'topLeftRadius'), catalogueEtendu({ nom: 'dimension/8', collection: 'primitives', type: 'FLOAT' }))), ['C80']);
+  const detail = ring('composant-principal', 'topLeftRadius');
+  detail.variants[0].layers[0].sorte = 'detail';
+  assert.deepEqual(codes(controlerCouches(detail, layout)), ['C80']);
+});
+
+test('C80 : un layer descendant d’une pièce interne prend la sorte de l’instance la plus proche', () => {
+  const r = releve('Button');
+  r.variants = [variante('default', {}, 'v0', { champ: 'topLeftRadius' })];
+  const [racine] = r.variants[0].layers;
+  racine.sorte = 'piece-interne';
+  r.variants[0].layers.push({ ...racine, id: 'enfant', parent: racine.id, sorte: undefined, liaisons: [{ ...racine.liaisons[0], provenance: 'composant-principal' }] });
+  racine.liaisons = [];
+  assert.deepEqual(codes(controlerCouches(r, catalogueEtendu({ nom: 'Radius/lg', collection: 'layout', type: 'FLOAT' }))), []);
+});
+
 test('C80 ne juge pas la typographie : fontSize lié à typography, comme lineHeight, ne donne rien', () => {
   const r = releve('Button');
   const lie = (champ: string) => { r.variants = [variante('default', {}, 'v0', { champ, nom: 'label', type: 'TEXT' })]; };
