@@ -234,9 +234,11 @@
   <h3>Le même composant en Light et en Dark</h3>
   <ul class="faits">
     <li>Trois composants sont conçus sur la page : un bouton texte, un bouton outlined au focus et un lien. Ils prennent <code>page/foreground</code>, <code>page/border</code> et <code>ring</code>.</li>
-    <li>Première ligne : posés sur la page. Deuxième ligne : posés tels quels dans une alerte teintée. Troisième ligne : la variante « sur fond teinté », qui prend <code>surface/foreground</code> et <code>surface/border</code>, et <code>surface/border</code> pour l'anneau.</li>
+    <li>Les deux premières lignes montrent la table d'aujourd'hui : sur la page, puis tels quels dans une alerte teintée.</li>
+    <li>Les deux dernières montrent la piste « page éclaircie en Dark » : en Dark seulement, le texte et le contour de <code>page</code> passent du 800 au 900, l'anneau du 700 au 800. Les noms et le Light ne changent pas.</li>
     <li>Chaque pastille juge une couleur contre le fond qui est juste derrière : la page ou le fond de l'alerte.</li>
     <li>La table Dark est celle que tu gardes : fond teinté au 300, texte de <code>surface</code> au 950.</li>
+    <li>Une variante « sur fond teinté » est écartée : une variante ne change pas avec le mode. En Light, elle serait identique à la version de la page, et rien ne pousserait le designer à la choisir.</li>
     <li>Les pastilles portent sur la palette choisie en haut. Sur toutes tes palettes, le pire cas de la deuxième ligne en Dark vaut 3,39 pour le texte et 2,38 pour l'anneau. Choisis Poppy pour le voir.</li>
   </ul>
   <div class="grille" id="contexteModes" style="grid-template-columns:repeat(auto-fill,minmax(min(100%,420px),1fr))"></div>
@@ -432,7 +434,7 @@
   <div class="defile"><table class="mesures">
     <tr><th>Question</th><th>Fait</th><th>Recommandation</th></tr>
     <tr><td>4. L'appui de <code>surface</code> : hors des garanties, ou jugé à 3:1</td><td>Le texte 700 passe 3:1 sur le 300 pour les 360 teintes, à 3,70 au minimum. Le Dark passe à 5,77.</td><td>Le juger à 3:1 : la garantie reste vérifiable et ne peut pas échouer.</td></tr>
-    <tr><td>6. Un composant de la page posé dans un fond teinté, en Dark</td><td>Le texte et l'anneau de la page échouent sur le fond teinté 300 en Dark. Voir le README, décision 6.</td><td>Une variante « sur fond teinté » des composants concernés</td></tr>
+    <tr><td>6. Un composant de la page posé dans un fond teinté, en Dark</td><td>Le texte et l'anneau de la page échouent sur le fond teinté 300 en Dark. Voir le README, décision 6.</td><td>Éclaircir <code>page</code> en Dark : texte et contour au 900, anneau au 800. Voir la section 6.</td></tr>
   </table></div>
   <p class="note">Les thèmes inversés en Light ne sont pas mesurés. Cette mesure ne demande pas de décision.</p>
 </main>
@@ -818,18 +820,21 @@ const CRANS_DU_CONTEXTE = {
   light: { page: () => etat.page, surface: 100, pageTexte: 700, pageContour: 700, anneau: 600, surfaceTexte: 700, surfaceContour: 700 },
   dark: { page: () => '#121212', surface: 300, pageTexte: 800, pageContour: 800, anneau: 700, surfaceTexte: 950, surfaceContour: 950 },
 };
+// La piste : en Dark, le texte et le contour de `page` montent au 900, l'anneau au 800. Le Light ne change pas.
+const PAGE_ECLAIRCIE_EN_DARK = { pageTexte: 900, pageContour: 900, anneau: 800 };
 function rendreContexteModes() {
   const cas = [
     { titre: 'Sur la page', dansAlerte: false, variante: false },
     { titre: 'Tel quel dans une alerte teintée', dansAlerte: true, variante: false },
-    { titre: 'Variante « sur fond teinté » dans l\'alerte', dansAlerte: true, variante: true },
+    { titre: 'Page éclaircie en Dark, sur la page', dansAlerte: false, eclaircie: true },
+    { titre: 'Page éclaircie en Dark, dans l\'alerte', dansAlerte: true, eclaircie: true },
   ];
   const pastille = (nom, avant, fond, seuil) => { const r = contraste(avant, fond); return `<span style="display:inline-flex;gap:4px;align-items:center;margin-right:8px">${nom} <span class="badge ${r >= seuil ? 'ok' : r >= 3 ? 'moyen' : 'ko'}">${virgule(r)}:1</span></span>`; };
   $('contexteModes').innerHTML = cas.flatMap((k) => ['light', 'dark'].map((mode) => {
-    const t = CRANS_DU_CONTEXTE[mode], c = (n) => cran(n, palette(), mode);
+    const t = { ...CRANS_DU_CONTEXTE[mode], ...(k.eclaircie && mode === 'dark' ? PAGE_ECLAIRCIE_EN_DARK : {}) }, c = (n) => cran(n, palette(), mode);
     const page = t.page(), fond = k.dansAlerte ? c(t.surface) : page;
     const texte = c(k.variante ? t.surfaceTexte : t.pageTexte), contour = c(k.variante ? t.surfaceContour : t.pageContour), anneau = k.variante ? c(t.surfaceContour) : c(t.anneau);
-    const noms = k.variante ? ['surface/foreground', 'surface/border', 'surface/border'] : ['page/foreground', 'page/border', 'ring'];
+    const noms = k.variante ? ['surface/foreground', 'surface/border', 'surface/border'] : [`page/foreground ${t.pageTexte}`, `page/border ${t.pageContour}`, `ring ${t.anneau}`];
     const contenu = `<div style="display:flex;flex-wrap:wrap;gap:12px;align-items:center">
         <span style="color:${texte};font-weight:600;padding:6px 4px">Modifier</span>
         <span style="color:${texte};font-weight:600;padding:6px 12px;border:1px solid ${contour};border-radius:6px;outline:2px solid ${anneau};outline-offset:2px">Annuler</span>

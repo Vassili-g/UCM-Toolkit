@@ -561,7 +561,7 @@ Les thèmes inversés en Light ne sont pas mesurés.
 | Question | Fait | Recommandation |
 |---|---|---|
 | 4. L'appui de `surface` : hors des garanties, ou jugé à 3:1 | Le texte 700 passe 3:1 sur le 300 pour les 360 teintes, à 3,70 au minimum. Le Dark passe à 5,77 | Le juger à 3:1 : la garantie reste vérifiable et ne peut pas échouer |
-| 6. Un composant de la page posé dans un fond teinté, en Dark | Voir ci-dessous | Une variante « sur fond teinté » des composants concernés |
+| 6. Un composant de la page posé dans un fond teinté, en Dark | Voir ci-dessous | Éclaircir `page` en Dark : texte et contour au 900, anneau au 800 |
 
 ### La décision 6
 
@@ -576,19 +576,36 @@ passent. En Dark, deux échouent sur le fond teinté 300 :
 | Anneau de focus, `ring` | 700 | 2,38 au minimum, 20 rampes sur 21 sous 3 |
 | Texte et contour de `surface`, pour comparer | 950 | 9,47 au minimum |
 
-L'anneau n'est qu'un cas de ce problème : le texte échoue aussi. Trois réponses
-existent :
+L'anneau n'est qu'un cas de ce problème : le texte échoue aussi.
 
-| Réponse | Mécanisme | Coût |
+**Position du mainteneur.** Une variante « sur fond teinté » est impossible. Une
+variante ne change pas avec le mode : en Light, elle serait identique à la
+version de la page, et rien ne pousserait le designer à la choisir.
+
+**Piste : éclaircir `page` en Dark.** En Dark seulement, `page/foreground` et
+`page/border` passent du 800 au 900, et `ring` du 700 au 800. Les noms, le Light
+et la table de `surface` ne changent pas. Un composant conçu sur la page reste
+alors lisible dans un fond teinté, sans variante ni geste du designer.
+
+| Couleur, crans proposés en Dark | Sur la page | Sur la carte | Sur le fond teinté 300 | Sur le survol 400 | Sur l'appui 500 |
+|---|---|---|---|---|---|
+| Texte et contour de `page`, 900 | 9,29 | 8,45 | 6,44 | 4,94 | 3,99 |
+| Anneau, 800 | 5,01 | 4,56 | 3,39 | | |
+
+Minimums sur les palettes du mainteneur, en Dark inversé. Le texte passe 4,5
+au repos et au survol du fond teinté, et 3:1 à l'appui. Le texte de `page`
+vaut alors 900 et celui de `surface` 950 : les deux se rapprochent en Dark,
+comme ils sont égaux en Light.
+
+Coût : le texte coloré sur la page Dark devient plus clair et un peu moins
+saturé, de 0,70 à 0,85 de clarté. La section 6 de la maquette le montre.
+Restent à mesurer : le Dark normal, avec un texte des boutons noir, et les 360
+teintes.
+
+| Autre réponse | Mécanisme | Coût |
 |---|---|---|
-| Variante « sur fond teinté » | Le composant a une variante qui prend `surface/foreground` et `surface/border`, et `surface/border` pour son anneau. Le designer la choisit dans une alerte | Une variante de plus par composant concerné : bouton texte, bouton outlined, lien |
 | Mode du conteneur | Une collection donne aux variables de `page` les valeurs de `surface` dans un mode « sur fond teinté ». L'alerte pose ce mode sur son cadre, une fois, dans son composant | Une collection ou des modes de plus. Le nombre de modes dépend du plan Figma. À discuter avant toute conception |
 | Règle et contrôle | Un composant de la page ne se pose pas dans un fond teinté en Dark. Architect le signale | Le designer doit refaire le composant dans l'alerte |
-
-**Recommandation.** La variante. Elle n'ajoute aucune variable : `surface/border`
-sert d'anneau, à 950 en Dark et 700 en Light, et passe 3:1 sur les trois fonds
-de `surface`. Peu de composants sont concernés. Le mode du conteneur
-supprimerait les variantes, mais il change l'architecture des collections.
 
 Les thèmes inversés en Light ne sont pas mesurés. La mesure ne demande pas de
 décision.
