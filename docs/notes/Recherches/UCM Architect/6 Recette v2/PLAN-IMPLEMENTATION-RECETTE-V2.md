@@ -186,11 +186,11 @@ d'une instance. Le nouveau champ prend un autre nom pour ne pas s'y confondre.
 
 Analyse 10. Dépend de P0 et R-30. Nature : code nouveau.
 
-- [~ Claude 2] **P1.1** `packages/kit/src/emplois/garanties.ts` : `FOND_DE_LA_CARTE` rejoint les fonds de G2 à G6. Tests `garanties.test.ts`.
-- [~ Claude 2] **P1.2** `packages/couleur/src/garantie.ts` : la garantie des courbes juge aussi contre la carte en Dark (`couleurDeLaCarte`, `packages/couleur/src/jugement.ts:66`). Tests `garantie.test.ts`.
-- [~ Claude 2] **P1.3** `packages/couleur/tests/promesses.test.ts:200-243` et `limites.test.ts` : 21 promesses par mode et par intensité, 84 et 42 par palette ; la limite dynamique prend la carte.
+- [x] (e44583fc) **P1.1** `packages/kit/src/emplois/garanties.ts` : `FOND_DE_LA_CARTE` rejoint les fonds de G2 à G6. Tests `garanties.test.ts`.
+- [x] (e44583fc) **P1.2** `packages/couleur/src/garantie.ts` : la garantie des courbes juge aussi contre la carte en Dark (`couleurDeLaCarte`, `packages/couleur/src/jugement.ts:66`). Tests `garantie.test.ts`.
+- [x] (e44583fc) **P1.3** `packages/couleur/tests/promesses.test.ts:200-243` et `limites.test.ts` : 21 promesses par mode et par intensité, 84 et 42 par palette ; la limite dynamique prend la carte.
 - [x] **P1.4** ~~Si R-30 change la courbe Dark, la table des dossiers ou la carte~~ : R-30 accepté le 29/10, rien ne change.
-- [~ Claude 2] **P1.5** À la synchronisation qui apporte P1, par `executant` dans l'arbre partagé : `packages/plugin-palettes/tests/rapport.test.ts:32` (64 devient 84) et `tests/modeleDePlanche.test.ts:300` (16 devient 21). Codex ne lance pas ces tests ; ils échouent entre P1 et P1.5.
+- [x] (e44583fc) **P1.5** À la synchronisation qui apporte P1, par `executant` dans l'arbre partagé : `packages/plugin-palettes/tests/rapport.test.ts:32` (64 devient 84) et `tests/modeleDePlanche.test.ts:300` (16 devient 21). Codex ne lance pas ces tests ; ils échouent entre P1 et P1.5.
 
 ### Piste S · socle (Claude 2)
 
@@ -332,10 +332,10 @@ Analyse 10, « Ce que la carte change ». Agent : `implementeur`. Nature : mesur
 
 Analyse 10, « Ce que le changement touche ». Dépend de P1 (V4). Agent : `implementeur-exigeant`.
 
-- [ ] **P2.1** Carte des garanties et réglette (`src/ui/modeleDesGaranties.ts`, réglette) : les colonnes « sur la page » et « sur la carte » de G7 servent à G2 à G6. Tests `modeleDesGaranties.test.ts`.
-- [ ] **P2.2** Planche (`src/planche/modele.ts`) et rapport (`src/rapport.ts`) : les promesses sur la carte s'ajoutent. Tests `modeleDePlanche.test.ts`, `rapport.test.ts`, au-delà des comptes déjà mis à jour en P1.5.
-- [ ] **P2.3** Textes (`src/i18n/fr.ts`, `en.ts`) : aucun nombre de contrôles à changer. Vérifier que les libellés de G7, « sur la page » et « sur la carte », valent pour les autres garanties ; sinon `TODO(texte)`.
-- [ ] **P2.4** États de galerie de Palettes mis à jour.
+- [x] (a2e8ddf6) **P2.1** Carte des garanties et réglette (`src/ui/modeleDesGaranties.ts`, réglette) : les colonnes « sur la page » et « sur la carte » de G7 servent à G2 à G6. Tests `modeleDesGaranties.test.ts`.
+- [x] (a2e8ddf6) **P2.2** Planche (`src/planche/modele.ts`) et rapport (`src/rapport.ts`) : les promesses sur la carte s'ajoutent. Tests `modeleDePlanche.test.ts`, `rapport.test.ts`, au-delà des comptes déjà mis à jour en P1.5.
+- [x] (a2e8ddf6) **P2.3** Textes (`src/i18n/fr.ts`, `en.ts`) : aucun nombre de contrôles à changer. Vérifier que les libellés de G7, « sur la page » et « sur la carte », valent pour les autres garanties ; sinon `TODO(texte)`.
+- [x] (a2e8ddf6) **P2.4** États de galerie de Palettes mis à jour.
 
 ### Lots de l'orchestrateur
 
@@ -351,7 +351,7 @@ Analyse 10, « Ce que le changement touche ». Dépend de P1 (V4). Agent : `impl
 - [x] (07411e74) **O1.1** CONTRIBUTING.md : un variant s'écrit en puces de valeur, la paire exacte au survol ; « propriété » dans la table des termes ; la section Informations, seule exception à la règle « aucun constat sans geste » ; la ligne d'actions d'une carte de constat.
 - [x] (af6aae4d) **O1.2** CONCEPT.md, section 2 : la pièce interne, en une phrase. FORMAT.md, « Composition et dépendances » : renvoi à `sorteDeLImbrique`. `packages/kit/invariants/referentiel.md` : la règle.
 - [x] (93d6f373 et les commits des sous-lots U) **O1.3** Architect : `SPEC.md`, `README.md`, `CARTE.md`, `invariants/explorateur.md` (C81), d'après `npm run agents:diff`.
-- [ ] **O1.4** Spécification de Palettes, une fois O0.4 levé : section 11.2, `[VER-21]`, `[ENT-10]`, le nombre de contrôles (ligne 1409 aujourd'hui) ; `[MOT-37]` place `couleurDeLaCarte` dans `jugement.ts`, pas dans `promesses.ts`.
+- [x] (72a198c2) **O1.4** Spécification de Palettes, une fois O0.4 levé : section 11.2, `[VER-21]`, `[ENT-10]`, le nombre de contrôles (ligne 1409 aujourd'hui) ; `[MOT-37]` place `couleurDeLaCarte` dans `jugement.ts`, pas dans `promesses.ts`.
 - [x] (1471812d) **O1.5** README du dossier `UCM Architect` : ligne de ce plan.
 
 #### Jalons
