@@ -47,6 +47,14 @@ test('[VER-01] chaque promesse nomme sa garantie par ses variables, avec son con
   assert.ok(vive && vive.code === 'reference-plus-vive' && vive.part > vive.partVivid, JSON.stringify(jaune.alertes));
 });
 
+test('[VER-01] une promesse manquée sur la carte seule porte `elevation/raised`, et la même sur la page reste tenue', () => {
+  const dark = VIDE.courbes.dark.map((clarte, rang) => (VIDE.crans[rang] === 700 ? 0.6 : clarte));
+  const [bleu] = rapportDeLaRecette({ ...RECETTE, courbes: { ...RECETTE.courbes, dark } }, null, 'SRGB', null).palettes;
+  const lues = bleu.promesses.filter((promesse) => promesse.mode === 'dark' && promesse.profil === 'vivid' && promesse.garantie.premier === 'page/foreground');
+  assert.deepEqual(lues.map((promesse) => [promesse.garantie.fond, promesse.verdict]), [['elevation/page', 'tenue'], ['elevation/raised', 'manquee']]);
+  assert.deepEqual(lues.map((promesse) => promesse.second.nature === 'fond' && promesse.second.fond), ['page', 'carte']);
+});
+
 test('[VER-08] le rapport garde la proximité (distance, rôle, thème) et le minimum, que l’interface ne montre plus', () => {
   // Deux bleus voisins : « palettes proches » sonne sur chacun.
   const voisin = nouvellePalette(VIDE, 'p-0000000c', '#1E70DA', 2)!;

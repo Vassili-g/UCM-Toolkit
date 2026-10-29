@@ -270,6 +270,23 @@ test('S7 : la planche lit les promesses du moteur sans rien rejuger, dans le sen
   assert.equal(echec.couleur.hexa, COULEURS_DE_LA_PLANCHE.dangerSombre);
 });
 
+test('S7 : une promesse manquée sur la carte seule se lit « ✗ sur la carte », en danger, à côté de « ✓ sur la page », et compte au verdict du thème', () => {
+  // La 700 de la courbe Dark à 0,60 : le texte coloré tient la page, pas la carte plus claire.
+  const dark = RECETTE.courbes.dark.map((clarte, rang) => (RECETTE.crans[rang] === 700 ? 0.6 : clarte));
+  const recette: Recette = { ...RECETTE, courbes: { ...RECETTE.courbes, dark } };
+  const manquees = verifierPromesses(recette, BLEU).filter((promesse) => promesse.mode === 'dark' && promesse.profil === 'vivid' && promesse.verdict === 'manquee');
+  assert.deepEqual(manquees.map((promesse) => [promesse.garantie.premier.variable, promesse.second.nature === 'fond' ? promesse.second.fond : promesse.second.nature]), [['page/foreground', 'carte']], 'le moteur ne manque que la carte');
+  const modele = modeleDeCadre(recette, BLEU, 'SRGB');
+  const lues = garantiesLues(trouver(variablesDe(modele.racine, 'dark', 'vivid'), 'page foreground'));
+  assert.deepEqual(lues.map((noeud) => noeud.contenu.replace(/\d+,\d\d:1/, 'R')), ['✓ sur la page : R · AA', '✗ sur la carte : R · AA ✗']);
+  assert.deepEqual(lues.map((noeud) => noeud.nom), ['garantie page/foreground sur page', 'garantie page/foreground sur carte']);
+  assert.ok(lues[1].contenu.includes(contrasteEcrit(manquees[0].contraste)));
+  assert.deepEqual(lues.map((noeud) => noeud.style), ['note', 'chiffre'], 'la ligne manquée est appuyée');
+  assert.equal(lues[1].couleur.hexa, COULEURS_DE_LA_PLANCHE.dangerClair, 'et en danger, lisible sur le fond Dark');
+  const verdict = textes(trouver(trouver(modele.racine, 'thème dark'), 'verdict'))[0];
+  assert.match(verdict.contenu, /^2 garanties manquées$/, 'Soft et Vivid manquent la carte');
+});
+
 test('P9 : changer le texte des boutons d’un mode change l’empreinte, et lui seul', () => {
   const dark = recetteAvecLesTextes('blanc', 'blanc');
   assert.notEqual(modeleDeCadre(dark, BLEU, 'SRGB').empreinte, AVEC_GRILLE.empreinte, 'Dark blanc');

@@ -56,8 +56,9 @@ inversée, après confirmation si le designer les a réglées.
 ## Vérifier une palette
 
 **Vérification** montre le verdict de la palette ouverte, ses messages et la
-carte des garanties de contraste : sept garanties, jugées contre le fond de la
-page, chacune sur ses fonds `default`, `hover` et `pressed`. Le lien d'un message nomme le geste et
+carte des garanties de contraste : sept garanties, chacune sur ses fonds
+`default`, `hover` et `pressed`. Toutes, sauf celle du texte des boutons, se
+jugent aussi sur la page et sur la carte, en deux colonnes. Le lien d'un message nomme le geste et
 ouvre le réglage où il se fait. Le sélecteur porte le verdict de chaque
 palette.
 

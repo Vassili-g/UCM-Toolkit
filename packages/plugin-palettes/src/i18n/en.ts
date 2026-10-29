@@ -499,10 +499,11 @@ export function constatDeGarantie(manque: ManqueDeGarantie, texteDesBoutons: Tex
     };
   }
   const variable = TABLE_DES_DOSSIERS[manque.mode][sensDuTheme(manque.mode, texteDesBoutons)]['page/foreground'] === manque.cran ? 'page/foreground' : 'ring';
+  const opposant = manque.contre === 'carte' ? 'the card' : 'the lightest shade';
   return {
     ou: `${theme}, shade ${manque.cran} (${variable}), profile ${manque.profil}`,
-    quoi: `Contrast against the lightest shade: ${contrasteEcrit(manque.contraste)}, minimum ${seuilEcrit(manque.seuil)}:1. Hue: ${manque.teinte}°.`,
-    geste: `Move shade ${manque.cran} further from the lightest shade in lightness.`,
+    quoi: `Contrast against ${opposant}: ${contrasteEcrit(manque.contraste)}, minimum ${seuilEcrit(manque.seuil)}:1. Hue: ${manque.teinte}°.`,
+    geste: `Move shade ${manque.cran} further from ${opposant} in lightness.`,
   };
 }
 

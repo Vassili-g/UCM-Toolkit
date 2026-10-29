@@ -114,3 +114,24 @@ test('[UI-09] une garantie dont un cran manque à la liste n’a pas de ligne', 
   const lignes = lignesDe(sans700, 'light');
   assert.deepEqual(lignes.map((ligne) => ligne.garantie.numero), [3, 4, 7]);
 });
+
+/** La recette par défaut où la nuance `cran` de la courbe Dark vaut `luminosite`. */
+function avecLaCourbeDark(cran: number, luminosite: number): Recette {
+  const dark = [...DEFAUT.courbes.dark];
+  dark[DEFAUT.crans.indexOf(cran)] = luminosite;
+  return { ...DEFAUT, palettes: [BLEU], courbes: { ...DEFAUT.courbes, dark } };
+}
+
+test('[UI-09] une promesse manquée sur la carte seule se range dans sa colonne, pour G5 comme pour G7', () => {
+  const verdicts = (lignes: ReturnType<typeof lignesDe>, numero: number) =>
+    lignes.find((ligne) => ligne.garantie.numero === numero)!.cases.map((cas) => `${cas.colonne} ${cas.promesse.verdict}`);
+  const texte = lignesDe(avecLaCourbeDark(700, 0.6), 'dark');
+  assert.deepEqual(verdicts(texte, 5), ['page tenue', 'carte manquee'], 'la 700 à 0,60 tient la page, pas la carte');
+  assert.equal(garantieParDefaut(texte), 5);
+  assert.equal(caseDeLaReglette(texte.find((ligne) => ligne.garantie.numero === 5)!.cases[1].promesse.second), 'carte');
+  // La 600 à 0,50 ne manque la carte qu'en Soft : l'anneau reste tenu en Vivid.
+  const recette = avecLaCourbeDark(600, 0.5);
+  const anneau = lignesDesGaranties(verifierPromesses(recette, BLEU).filter((promesse) => promesse.mode === 'dark' && promesse.profil === 'soft'));
+  assert.deepEqual(verdicts(anneau, 7), ['page tenue', 'carte manquee']);
+  assert.equal(garantieParDefaut(anneau), 7);
+});

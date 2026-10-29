@@ -484,6 +484,12 @@ function recetteCassee() {
   return JSON.stringify({ ...recette, courbes: { ...recette.courbes, light }, fonds: { ...recette.fonds, dark: '#12121' } });
 }
 
+/** La recette où la nuance 700 de la courbe Dark vaut `luminosite`. */
+const avecLa700DarkA = (luminosite) => (recette) => ({
+  ...recette,
+  courbes: { ...recette.courbes, dark: recette.courbes.dark.map((clarte, rang) => (recette.crans[rang] === 700 ? luminosite : clarte)) },
+});
+
 const ETATS = [
   {
     id: 'sans-palette-choisie',
@@ -509,7 +515,7 @@ const ETATS = [
     id: 'garanties-refaites',
     titre: 'Garanties de contraste, refaites',
     quand: 'Bleu, deux intensités, une garantie en échec choisie, dans l’onglet Vérification.',
-    regarder: 'Un encadré par minimum, les états nommés une fois, les badges sur la ligne de leur ratio, les codes des rôles lisibles, la rangée choisie marquée d’une barre écartée du texte. Sous 700 px, le spécimen au-dessus des numéros, chaque rangée sur une ligne.',
+    regarder: 'Un encadré par minimum, les cinq colonnes de fonds nommées une fois (« sur la page », « sur la carte », default, hover, pressed), les badges sur la ligne de leur ratio, les codes des rôles lisibles, la rangée choisie marquée d’une barre écartée du texte. Chaque garantie qui juge la page, des deux encadrés, porte un résultat sous « sur la page » et un sous « sur la carte » ; seule la garantie du texte des boutons n’en a pas. Sous 700 px, le spécimen au-dessus des numéros, chaque rangée sur une ligne.',
     existe: true,
     atteinte: [etatDuFichier(rangee([BLEU, JAUNE], texteNoirEnLight)), ouvrirLaVerification],
   },
@@ -677,6 +683,18 @@ const ETATS = [
       etatDuFichier(rangee(TROIS_PALETTES)),
       ouvrirLaConfiguration,
       { saisie: { dans: '[data-mode="light"][data-rang="7"]', valeur: '0,56' } },
+    ],
+  },
+  {
+    id: 'courbe-hors-garantie-sur-la-carte',
+    titre: 'Courbe hors garantie, sur la carte',
+    quand: 'Le designer remonte le cran 700 sombre à 0,60 : il tient 4,5 contre la nuance la plus claire, mais plus contre la carte du thème Dark.',
+    regarder: 'Les deux alertes sous la table, soft et vivid, qui disent « Contraste avec la carte » au lieu de « Contraste avec la nuance la plus claire », avec la teinte du pire cas et son contraste.',
+    existe: true,
+    atteinte: [
+      etatDuFichier(rangee(TROIS_PALETTES)),
+      ouvrirLaConfiguration,
+      { saisie: { dans: '[data-mode="dark"][data-rang="7"]', valeur: '0,6' } },
     ],
   },
   {
@@ -1484,6 +1502,14 @@ const ETATS = [
     regarder: 'La réglette montre trois cases avant les nuances, « page », « carte » et « boutons » ; la ligne de l’anneau est choisie et trace deux arcs depuis la nuance de l’anneau, l’un vers « page », l’autre vers « carte », dont les numéros sont en évidence ; sous les colonnes « sur la page » et « sur la carte », la ligne porte deux résultats tenus.',
     existe: true,
     atteinte: [etatDuFichier(rangee([BLEU])), ouvrirLaVerification, { clic: '#panneau-verification .garantie[data-garantie="7"]' }],
+  },
+  {
+    id: 'garantie-sur-la-carte-en-echec',
+    titre: 'Garantie en échec sur la carte seule',
+    quand: 'La courbe Dark de Bleu met la 700 à 0,60 : le texte coloré tient la page, pas la carte, plus claire. Dans Vérification, le thème Dark.',
+    regarder: 'La ligne du texte coloré sur la page (page/foreground) choisie d’office ; « sur la page » porte un résultat tenu, « sur la carte » un résultat en échec, et son arc vers « carte » est de la couleur de danger. Sous la ligne, un seul bloc d’échec : « Sur la carte : … pour un minimum de 4,5:1 », avec les liens vers les réglages.',
+    existe: true,
+    atteinte: [etatDuFichier(rangee([BLEU], avecLa700DarkA(0.6))), montrerLeThemeDark, ouvrirLaVerification],
   },
   {
     id: 'garantie-en-echec',

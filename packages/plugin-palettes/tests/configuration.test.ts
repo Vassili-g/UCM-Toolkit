@@ -93,6 +93,26 @@ test('[ENT-10] la 700 qui ne porte pas le texte des boutons le dit, et le geste 
   assert.equal(constatEn({ ...manque, cran: 600, contre: 'cranLeger' }, 'noir').ou, 'Dark theme, shade 600 (ring), profile vivid');
 });
 
+test('[ENT-10] une courbe Dark qui tient la nuance la plus claire sans tenir la carte nomme la carte', () => {
+  const manque = { mode: 'dark' as const, cran: 700, profil: 'soft' as const, teinte: 60, contraste: 4.129, seuil: 4.5, contre: 'carte' as const };
+  const fr = constatDeGarantie(manque, 'noir');
+  assert.equal(fr.ou, 'Thème Dark, nuance 700 (page/foreground), profil soft');
+  assert.equal(fr.quoi, 'Contraste avec la carte : 4,12:1, minimum 4,5:1. Teinte : 60°.');
+  assert.equal(fr.geste, 'Éloignez la luminosité de la nuance 700 de celle de la carte.');
+  const en = constatEn(manque, 'noir');
+  assert.equal(en.quoi, 'Contrast against the card: 4.12:1, minimum 4.5:1. Hue: 60°.');
+  assert.equal(en.geste, 'Move shade 700 further from the card in lightness.');
+  // Le texte coloré à 0,60 tient le cran le plus léger, mais plus la carte : le moteur ne rend que ce manque.
+  const dark = [...DEFAUT.courbes.dark];
+  dark[DEFAUT.crans.indexOf(700)] = 0.6;
+  const recette: Recette = { ...DEFAUT, courbes: { ...DEFAUT.courbes, dark } };
+  const manques = garantieDesCourbes(recette);
+  assert.deepEqual(manques.map((candidat) => [candidat.mode, candidat.cran, candidat.contre]), [['dark', 700, 'carte'], ['dark', 700, 'carte']]);
+  const reel = constatDeGarantie(manques[0], recette.texteDesBoutons.dark);
+  assert.match(reel.quoi, /^Contraste avec la carte : \d,\d\d:1, minimum 4,5:1\. Teinte : \d+°\.$/);
+  assert.ok(!/nuance la plus claire/.test(JSON.stringify(reel)));
+});
+
 test('[ENT-05] un fond se saisit en hexa, s’écrit en majuscules, et une saisie qui n’est pas une couleur se refuse', () => {
   assert.deepEqual(poserFond(DEFAUT, 'dark', '#1a1a1a')?.fonds, { light: DEFAUT.fonds.light, dark: '#1A1A1A' });
   assert.equal(poserFond(DEFAUT, 'light', 'gris'), null);
