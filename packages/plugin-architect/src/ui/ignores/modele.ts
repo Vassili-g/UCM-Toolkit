@@ -321,10 +321,25 @@ function precise(constat: Constat, contexte: ContexteDAFaire): Contenu | null {
   }
 }
 
+/** Les lignes que le kit range dans `faits.lignes` (texte JSON) ; vide quand le fait manque ou n'est pas lisible. */
+function lignesDuKit(valeur: string | number | undefined, composant: string): LigneDeModele[] {
+  if (typeof valeur !== 'string') return [];
+  try {
+    const lignes: unknown = JSON.parse(valeur);
+    if (!Array.isArray(lignes)) return [];
+    return lignes.flatMap((ligne: unknown) => {
+      const { layer, champ, token } = (ligne ?? {}) as Record<string, unknown>;
+      return typeof layer === 'string' && typeof champ === 'string' && typeof token === 'string' ? [{ layer, champ: T.proprieteDeFigma(champ), token: sansPrefixe(token, composant) }] : [];
+    });
+  } catch {
+    return [];
+  }
+}
+
 /**
  * C81 : un variant lie déjà des layers que d'autres variants gardent en dur. `faits.modele` est l'identifiant de ce variant ; la ligne
- * de lieu le montre en puces. La liste n'a des lignes que pour les layers que la vue lit, c'est-à-dire ceux du variant affiché : le
- * message de l'analyse ne porte ni le nom ni le token des layers d'un autre variant.
+ * de lieu le montre en puces. La liste vient de `faits.lignes`. Un relevé ancien n'en porte pas : la liste se tire alors des liaisons
+ * du variant que la vue lit, et reste vide si le modèle n'est pas celui-là.
  */
 function modeleDeLiaisons(constat: Constat, contexte: ContexteDAFaire): Contenu {
   const { faits } = constat;
@@ -334,14 +349,15 @@ function modeleDeLiaisons(constat: Constat, contexte: ContexteDAFaire): Contenu 
   const nom = contexte.variants.find((candidat) => candidat.id === variant)?.nom ?? variant;
   const paires = pairesDuNom(nom);
   const liaisons = contexte.liaisons ?? [];
-  const lignes = constat.layers.flatMap((layer) => liaisons
+  const duKit = lignesDuKit(faits.lignes, contexte.composant);
+  const duVariantLu = constat.layers.flatMap((layer) => liaisons
     .filter((liaison) => liaison.sorte === sorte && liaison.layer === layer)
     .map((liaison) => ({ layer: contexte.layers.get(layer) ?? layer, champ: T.proprieteDeFigma(liaison.champ), token: sansPrefixe(liaison.token, contexte.composant) })));
   return {
     phrase: T.modeleEnDur(layers, sorte, nombre(faits.variants) ?? 0),
     lieu: [T.modeleLie(layers), paires.length > 0 ? { puces: paires } : `\`${nom}\``],
     statut: null,
-    modele: { variant, lignes },
+    modele: { variant, lignes: duKit.length > 0 ? duKit : duVariantLu },
   };
 }
 

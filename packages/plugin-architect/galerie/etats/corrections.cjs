@@ -96,15 +96,18 @@ const modelePropose = { type: 'modele-propose', analyse: IDENTITE, variant: 'ale
 
 /**
  * La carte du modèle (C81) : le variant `alert:0` (info et standard) lie déjà des layers que dix autres variants gardent en dur. Une carte
- * par sorte, dans la section de sa sorte. Les layers sont ceux de la lecture, donc le variant affiché est le modèle et la carte peut
- * lister ses layers ; `ailleurs` pose les layers d'un variant que la vue ne lit pas.
+ * par sorte, dans la section de sa sorte. `faits.lignes` est le texte JSON que le kit range : un layer, son champ et le token du modèle.
+ * Les layers de `constatsCarteDuModele` sont ceux de la lecture ; `ailleurs` pose ceux d'un variant que la vue ne lit pas.
  */
+const lignes = (...entrees) => JSON.stringify(entrees.map(([layer, champ, token]) => ({ layer, champ, token })));
+const LIGNES_DES_COULEURS = lignes(['container', 'fills', 'alert/colors/info/standard/background'], ['icon', 'fills', 'alert/colors/info/standard/icon'], ['message', 'fills', 'alert/colors/info/standard/foreground']);
+const LIGNES_DES_TAILLES = lignes(['container', 'itemSpacing', 'alert/sizes/gap'], ['container', 'paddingLeft', 'alert/sizes/padding-x'], ['container', 'paddingTop', 'alert/sizes/padding-y'], ['container', 'topLeftRadius', 'alert/sizes/border-radius']);
 const c81 = (sorte, layers, faits) => ({
   id: `C81:${sorte}:alert:0`, code: 'C81', type: 'corriger', famille: sorte === 'couleurs' ? 'liaisons' : 'tailles', variants: ['alert:0'], layers, faits: { modele: 'alert:0', ...faits },
 });
-const constatsCarteDuModele = [c81('couleurs', [CONTAINER, ICON, MESSAGE], { layers: 3, variants: 10, liaisons: 3 }), c81('tailles', [CONTAINER], { layers: 1, variants: 10, liaisons: 4 })];
+const constatsCarteDuModele = [c81('couleurs', [CONTAINER, ICON, MESSAGE], { layers: 3, variants: 10, liaisons: 3, lignes: LIGNES_DES_COULEURS }), c81('tailles', [CONTAINER], { layers: 1, variants: 10, liaisons: 4, lignes: LIGNES_DES_TAILLES })];
 const analyseCarteDuModele = { type: 'analyse', analyse: IDENTITE, statut: 'complete', constats: constatsCarteDuModele, lecture: null, variants: variantsDuModele };
-const analyseModeleAilleurs = { ...analyseCarteDuModele, constats: [c81('couleurs', ['alert:v:ailleurs:container', 'alert:v:ailleurs:icon'], { layers: 2, variants: 10, liaisons: 2 })] };
+const analyseModeleAilleurs = { ...analyseCarteDuModele, constats: [c81('couleurs', ['alert:v:ailleurs:container', 'alert:v:ailleurs:icon'], { layers: 2, variants: 10, liaisons: 2, lignes: lignes(['container', 'fills', 'alert/colors/error/outlined/background'], ['icon', 'fills', 'alert/colors/error/outlined/icon']) })] };
 /** Ce que le sandbox rend au clic : les deux C81 quittent l'analyse, les corrections du modèle arrivent. */
 const modeleProposeApresLaCarte = { ...modelePropose, retires: constatsCarteDuModele.map((constat) => constat.id), constats: modelePropose.constats.filter((constat) => constat.correction) };
 const panneauDuModele = (analyse) => [preferences(), etroite, choisir(alertModele), composant(alertModele), apercu(alertModele), { message: analyse }, { message: aucunIgnore }, { clic: '.bouton-panneau' }];
@@ -145,9 +148,9 @@ const ETATS = [
     existe: true, atteinte: [...panneauDuModele(analyseCarteDuModele), proposer, { message: modeleProposeApresLaCarte }],
   },
   {
-    id: 'c-carte-modele-ailleurs', titre: 'La carte d’un modèle que la vue ne lit pas', quand: 'Le variant modèle n’est pas celui que la vue affiche : le message de l’analyse ne donne ni le nom ni le token de ses layers.',
-    regarder: 'La carte garde sa phrase, sa ligne grise, « Proposer les liaisons » et Sélectionner ; elle n’a pas de chevron, faute de liste à montrer.',
-    existe: true, atteinte: panneauDuModele(analyseModeleAilleurs),
+    id: 'c-carte-modele-ailleurs', titre: 'La carte d’un modèle que la vue ne lit pas', quand: 'Le variant modèle n’est pas celui que la vue affiche : ses layers sont absents de la lecture. Le designer ouvre le panneau, puis la carte par son chevron.',
+    regarder: 'La carte a son chevron ; la liste donne les layers et les tokens du modèle error et outlined, tirés du constat et non de la vue : container fill et icon fill.',
+    existe: true, atteinte: [...panneauDuModele(analyseModeleAilleurs), { clic: '.bloc-constat .bloc-bouton' }],
   },
   {
     id: 'c-clic', titre: 'Un constat cliqué', quand: 'Le designer choisit la puce Couleurs et ouvre la carte « info devient success ». Ouvrir une carte ne sélectionne rien dans Figma.',

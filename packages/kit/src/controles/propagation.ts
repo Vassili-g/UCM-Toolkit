@@ -87,8 +87,14 @@ function sorteDeLaLiaison(champ: string, type: string): SorteDeModele | null {
   return null;
 }
 
-/** Un variant modèle possible pour une sorte de liaison : `layers` sont ceux du modèle (ids), `variants` ceux où ils sont en dur (ids). */
-export interface CandidatDeModele { sorte: SorteDeModele; modele: string; layers: string[]; variants: string[]; liaisons: number }
+/** Un layer du modèle, le champ qu'il lie et le nom de la variable qu'il porte dans le modèle. */
+export interface LigneDeModele { layer: string; champ: string; token: string }
+
+/**
+ * Un variant modèle possible pour une sorte de liaison : `layers` sont ceux du modèle (ids), `variants` ceux où ils sont en dur (ids).
+ * `lignes` a une entrée par couple (layer, champ) des liaisons proposables, dans l'ordre des layers du modèle.
+ */
+export interface CandidatDeModele { sorte: SorteDeModele; modele: string; layers: string[]; variants: string[]; liaisons: number; lignes: LigneDeModele[] }
 
 /**
  * Par sorte, le variant qui porte le plus de liaisons de cette sorte (à égalité le premier du jeu), les layers du modèle
@@ -113,6 +119,7 @@ export function candidatsDeModele(releve: ReleveDeComposant, catalogue: Catalogu
     if (!modele) continue;
     const layers = new Set<string>();
     const variants = new Set<string>();
+    const lignes = new Map<string, LigneDeModele>();
     let liaisons = 0;
     if (!parModele.has(modele.id)) parModele.set(modele.id, propositions(releve, catalogue, modele));
     for (const { layer, liaison, constat } of parModele.get(modele.id)!) {
@@ -120,8 +127,10 @@ export function candidatsDeModele(releve: ReleveDeComposant, catalogue: Catalogu
       layers.add(layer.id);
       constat.variants.forEach((id) => variants.add(id));
       liaisons++;
+      const cle = JSON.stringify([layer.id, liaison.champ]);
+      if (!lignes.has(cle)) lignes.set(cle, { layer: layer.nom, champ: liaison.champ, token: catalogue.variables.find(({ cle: variable }) => variable === liaison.variable.cle)?.nom ?? liaison.variable.nom });
     }
-    if (liaisons > 0) candidats.push({ sorte, modele: modele.id, layers: [...layers], variants: [...variants], liaisons });
+    if (liaisons > 0) candidats.push({ sorte, modele: modele.id, layers: [...layers], variants: [...variants], liaisons, lignes: [...lignes.values()] });
   }
   return candidats;
 }
@@ -129,11 +138,12 @@ export function candidatsDeModele(releve: ReleveDeComposant, catalogue: Catalogu
 /**
  * C81 : un variant lie déjà des layers que d'autres variants gardent en dur. Une carte par section : `liaisons` pour les couleurs,
  * `tailles` pour les tailles. Le constat n'a pas de correction ; `layers` porte les layers du modèle et `variants` le modèle seul.
+ * `faits.lignes` est le texte JSON de `CandidatDeModele.lignes` : les faits n'admettent que du texte et des nombres.
  */
 export function constatsDeModele(releve: ReleveDeComposant, catalogue: CatalogueDeReference): Constat[] {
   return candidatsDeModele(releve, catalogue).map((candidat) => constatDuComposant(
     'C81', candidat.sorte === 'couleurs' ? 'liaisons' : 'tailles', 'corriger', `${candidat.sorte}:${candidat.modele}`,
-    { modele: candidat.modele, layers: candidat.layers.length, variants: candidat.variants.length, liaisons: candidat.liaisons },
+    { modele: candidat.modele, layers: candidat.layers.length, variants: candidat.variants.length, liaisons: candidat.liaisons, lignes: JSON.stringify(candidat.lignes) },
     [candidat.modele], candidat.layers,
   ));
 }

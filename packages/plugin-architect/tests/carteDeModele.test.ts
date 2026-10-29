@@ -134,12 +134,30 @@ test('ouvrir la carte ne sélectionne rien ; Sélectionner envoie les layers du 
   assert.deepEqual(banc.selections, [COULEURS.layers]);
 });
 
-test('un modèle que la vue ne lit pas garde sa carte sans chevron, faute de liste', () => {
-  const ailleurs: Constat = { ...COULEURS, layers: ['alert:v:ailleurs:container', 'alert:v:ailleurs:icon'] };
+const lignesDesCouleurs = (constat: Constat) => comme(carteDe(monter([constat]), 'couleurs').querySelector('.bloc-corps')).querySelectorAll('.diff').map((ligne) => [comme(ligne.querySelector('.chemin')).textContent, comme(ligne.querySelector('.chemin-apres')).textContent.replace('→ ', '')]);
+
+test('la liste vient de faits.lignes : un modèle que la vue ne lit pas a son chevron et ses lignes', () => {
+  const ailleurs: Constat = {
+    ...COULEURS, layers: ['alert:v:ailleurs:container'],
+    faits: { ...COULEURS.faits, lignes: JSON.stringify([{ layer: 'container', champ: 'fills', token: 'alert/colors/error/outlined/background' }, { layer: 'container', champ: 'strokes', token: 'alert/colors/error/outlined/border' }]) },
+  };
+  const carte = carteDe(monter([ailleurs]), 'couleurs');
+  assert.ok(carte.querySelector('.bloc-tete .chevron-svg'));
+  assert.deepEqual(lignesDesCouleurs(ailleurs), [['container fill', 'colors/error/outlined/background'], ['container stroke', 'colors/error/outlined/border']]);
+});
+
+test('sans faits.lignes (relevé ancien), la liste se tire du variant lu ; un modèle que la vue ne lit pas n’a ni chevron ni liste', () => {
+  const { lignes: _, ...sansLignes } = COULEURS.faits;
+  assert.deepEqual(lignesDesCouleurs({ ...COULEURS, faits: sansLignes }).map(([layer]) => layer), ['container fill', 'icon fill', 'message fill']);
+  const ailleurs: Constat = { ...COULEURS, layers: ['alert:v:ailleurs:container'], faits: sansLignes };
   const carte = carteDe(monter([ailleurs]), 'couleurs');
   assert.equal(carte.querySelector('.bloc-corps'), null);
   assert.equal(carte.querySelector('.chevron-svg'), null);
   assert.ok(proposer(carte), 'le bouton reste');
+});
+
+test('un fait lignes illisible est ignoré', () => {
+  assert.equal(carteDe(monter([{ ...COULEURS, layers: ['x'], faits: { ...COULEURS.faits, lignes: '{pas du json' } }]), 'couleurs').querySelector('.bloc-corps'), null);
 });
 
 test('le clic sur « Proposer les liaisons » envoie le variant des faits, un identifiant, une seule fois', () => {

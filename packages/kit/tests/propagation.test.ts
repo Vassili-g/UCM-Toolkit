@@ -129,12 +129,12 @@ const enDur = (n: number) => Array.from({ length: n }, (_, i) => variant(`v${i}`
 
 test('C81 : un variant lié et trois en dur donnent un constat par la section des couleurs', () => {
   const r = releve([MODELE, ...enDur(3)]);
-  assert.deepEqual(candidatsDeModele(r, CATALOGUE), [{ sorte: 'couleurs', modele: 'm', layers: ['m-1'], variants: ['v0', 'v1', 'v2'], liaisons: 3 }]);
+  assert.deepEqual(candidatsDeModele(r, CATALOGUE), [{ sorte: 'couleurs', modele: 'm', layers: ['m-1'], variants: ['v0', 'v1', 'v2'], liaisons: 3, lignes: [{ layer: 'container', champ: 'fills', token: NOMS.infoStandard }] }]);
   const [constat, ...autres] = controlerCouches(r, CATALOGUE).filter(({ code }) => code === 'C81');
   assert.equal(autres.length, 0);
   assert.equal(constat.famille, 'liaisons');
   assert.equal(constat.type, 'corriger');
-  assert.deepEqual(constat.faits, { modele: 'm', layers: 1, variants: 3, liaisons: 3 });
+  assert.deepEqual(constat.faits, { modele: 'm', layers: 1, variants: 3, liaisons: 3, lignes: JSON.stringify([{ layer: 'container', champ: 'fills', token: NOMS.infoStandard }]) });
   assert.deepEqual(constat.variants, ['m']);
   assert.deepEqual(constat.layers, ['m-1']);
   assert.equal(constat.correction, undefined);
@@ -166,4 +166,15 @@ test('C81 : aucun variant lié ne donne aucun constat', () => {
 test('C81 : sans liaison proposable, aucun constat', () => {
   const r = releve([MODELE, ...enDur(2)]);
   assert.deepEqual(candidatsDeModele(r, catalogue([variable('k-info', NOMS.infoStandard)])), []);
+});
+
+test('C81 : `lignes` liste un layer et son champ une fois, dans l’ordre des layers du modèle, avec le token du modèle', () => {
+  const modele = variant('deux', { Severity: 'info', Variant: 'standard' }, [
+    layer('d-1', 'icon', null, { cle: 'k-info', nom: NOMS.infoStandard }), layer('d-2', 'container', null, { cle: 'k-info', nom: NOMS.infoStandard }),
+  ]);
+  const vise = variant('vise', { Severity: 'error', Variant: 'outlined' }, [layer('x-1', 'icon', null), layer('x-2', 'container', null)]);
+  const [candidat] = candidatsDeModele(releve([modele, vise]), CATALOGUE);
+  assert.deepEqual(candidat.lignes, [{ layer: 'icon', champ: 'fills', token: NOMS.infoStandard }, { layer: 'container', champ: 'fills', token: NOMS.infoStandard }]);
+  const [constat] = controlerCouches(releve([modele, vise]), CATALOGUE).filter(({ code }) => code === 'C81');
+  assert.deepEqual(JSON.parse(String(constat.faits.lignes)), candidat.lignes);
 });
