@@ -54,7 +54,7 @@ test('[UI-09] une garantie qui ne vise pas un fond laisse sa case vide', () => {
     6: 'page carte',
     7: 'page carte',
     8: 'pressed',
-    9: 'default',
+    9: 'default hover',
   });
 });
 
@@ -100,7 +100,7 @@ test('[UI-09] [VER-21] une ligne nomme ses fonds : les trois états d’un dossi
     ['la page', 'la carte'],
     ['la page', 'la carte'],
     ['surface/pressed'],
-    ['surface/default'],
+    ['surface/default', 'surface/hover'],
   ]);
   assert.deepEqual(GARANTIES.flatMap((garantie) => garantie.fonds.map(colonneDuFond)), [
     'default', 'hover', 'pressed',
@@ -111,7 +111,7 @@ test('[UI-09] [VER-21] une ligne nomme ses fonds : les trois états d’un dossi
     'page', 'carte',
     'page', 'carte',
     'pressed',
-    'default',
+    'default', 'hover',
   ]);
 });
 
@@ -126,12 +126,12 @@ test('[UI-09] une liste sans 50 laisse sans ligne les garanties qui jugent `surf
   assert.deepEqual(lignesDe(sans50, 'light').map((ligne) => ligne.garantie.numero), [1, 2, 5, 6, 7, 8, 9], 'les garanties 3 et 4 manquent, la 8 ne juge que `surface/pressed`');
 });
 
-test('[UI-09] les garanties 8 et 9 ont chacune un fond, sous les colonnes `pressed` et `default`', () => {
+test('[UI-09] les garanties 8 et 9 ont un ou deux fonds, sous les colonnes `pressed` pour la 8, `default` et `hover` pour la 9', () => {
   const lignes = lignesDe({ ...DEFAUT, palettes: [BLEU] }, 'dark');
   const [g8, g9] = [8, 9].map((numero) => lignes.find((ligne) => ligne.garantie.numero === numero)!);
   assert.deepEqual([g8.garantie.premier.variable, g8.garantie.seuil, colonnesDe(g8)], ['surface/foreground', 'nonTexte', 'pressed']);
-  assert.deepEqual([g9.garantie.premier.variable, g9.garantie.seuil, colonnesDe(g9)], ['page/foreground', 'texte', 'default']);
-  assert.equal(caseDeLaReglette(g9.cases[0].promesse.second), 300, 'surface/default en Dark');
+  assert.deepEqual([g9.garantie.premier.variable, g9.garantie.seuil, colonnesDe(g9)], ['page/foreground', 'texte', 'default hover']);
+  assert.deepEqual(g9.cases.map((cas) => caseDeLaReglette(cas.promesse.second)), [200, 300], 'surface/default et surface/hover en Dark');
 });
 
 /** La recette par défaut où la nuance `cran` de la courbe Dark vaut `luminosite`. */

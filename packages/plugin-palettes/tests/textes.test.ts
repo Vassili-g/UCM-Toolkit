@@ -420,7 +420,7 @@ test('[DER-22] la butée nomme les deux variables que la garantie oppose, sans n
   const bleu = nouvellePalette(recette, 'p-0000000a', '#1E6FD9', 2)!;
   const promesses = verifierPromesses({ ...recette, palettes: [bleu] }, bleu);
   const pourPage = promesses.find((promesse) => promesse.garantie.numero === 5 && promesse.mode === 'light' && promesse.profil === 'vivid')!;
-  const pourSurface = promesses.find((promesse) => promesse.garantie.numero === 3 && promesse.mode === 'dark' && promesse.profil === 'soft' && promesse.second.nature === 'cran' && promesse.second.cran === 400)!;
+  const pourSurface = promesses.find((promesse) => promesse.garantie.numero === 3 && promesse.mode === 'dark' && promesse.profil === 'soft' && promesse.second.nature === 'cran' && promesse.second.cran === 300)!;
   const butee = (catalogue: Catalogue, promesse: Promesse) => catalogue.buteeDuColorShift('clarte', 'clair', 0.04, { nature: 'promesse', promesse });
   assert.match(butee(francais, pourPage), /Au-delà, page\/foreground sur elevation\/page \(Vivid, Light\) tomberait à \d+,\d\d:1, sous 4,5:1\.$/);
   assert.match(butee(francais, pourSurface), /Au-delà, surface\/foreground sur surface\/hover \(Soft, Dark\) tomberait à /);

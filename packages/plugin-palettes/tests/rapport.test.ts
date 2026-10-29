@@ -28,8 +28,8 @@ test('[VER-01] chaque palette donne, par mode et par profil, chaque cran avec so
 
 test('[VER-01] chaque promesse nomme sa garantie par ses variables, avec son contraste et son verdict ; chaque alerte, sa mesure', () => {
   const [bleu, jaune] = rapportDeLaRecette(RECETTE, null, 'SRGB', null).palettes;
-  // Vingt-quatre contrôles par mode et par intensité : 3 + 2 + 5 + 6 + 2 + 2 + 2 + 1 + 1.
-  assert.equal(bleu.promesses.length, 96);
+  // Vingt-cinq contrôles par mode et par intensité : 3 + 2 + 5 + 6 + 2 + 2 + 2 + 1 + 2.
+  assert.equal(bleu.promesses.length, 100);
   assert.ok(bleu.promesses.every((promesse) => typeof promesse.contraste === 'number' && ['tenue', 'manquee'].includes(promesse.verdict)), JSON.stringify(bleu.promesses[0]));
   const premiere = bleu.promesses[0];
   assert.deepEqual(premiere.garantie, { premier: 'solid/foreground', fond: 'solid/default', seuil: 'texte' });
@@ -42,7 +42,7 @@ test('[VER-01] chaque promesse nomme sa garantie par ses variables, avec son con
     'page/foreground sur elevation/page', 'page/foreground sur elevation/raised', 'page/border sur elevation/page', 'page/border sur elevation/raised',
     'ring sur elevation/page', 'ring sur elevation/raised',
     'surface/foreground sur surface/pressed',
-    'page/foreground sur surface/default',
+    'page/foreground sur surface/default', 'page/foreground sur surface/hover',
   ]);
   assert.ok(bleu.promesses.every((promesse) => !('paire' in promesse) && !('numero' in promesse.garantie)), 'aucun numéro de garantie ni paire d’emplois');
   const vive = jaune.alertes.find((alerte) => alerte.code === 'reference-plus-vive');

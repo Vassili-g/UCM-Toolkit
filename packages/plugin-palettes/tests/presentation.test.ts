@@ -118,7 +118,7 @@ test('[UI-10] [I5] les garanties d\u2019une variable : une par fond quand elle e
   assert.deepEqual(lire('surface/pressed'), ['4 fond surface/border', '8 fond surface/foreground'], 'l’appui n’est plus un fond de la garantie 3 : la garantie 8 le juge à 3:1');
   assert.deepEqual(lire('surface/divider'), [], 'le filet sur fond teinté n’a pas de minimum');
   assert.deepEqual(lire('ring'), ['7 premier elevation/page', '7 premier elevation/raised']);
-  assert.deepEqual(lire('page/foreground'), ['5 premier elevation/page', '5 premier elevation/raised', '9 premier surface/default'], 'et la garantie 9 le juge sur le fond teinté au repos');
+  assert.deepEqual(lire('page/foreground'), ['5 premier elevation/page', '5 premier elevation/raised', '9 premier surface/default', '9 premier surface/hover'], 'et la garantie 9 le juge sur le fond teinté au repos et au survol');
   assert.deepEqual(lire('page/divider'), [], 'le filet n\u2019a pas de minimum');
   assert.deepEqual(garantiesDeLaVariable(promesses, 'light', 'soft', 'solid/default').map(({ promesse }) => promesse.profil), ['soft', 'soft', 'soft'], 'une intensité à la fois');
   assert.deepEqual(garantiesDeLaVariable(promesses, 'dark', 'vivid', 'page/border').map(({ promesse }) => promesse.mode), ['dark', 'dark'], 'un thème à la fois, la page puis la carte');
@@ -169,8 +169,8 @@ const BANDES_INVERSEES = {
   page: 'divider 3-3 [2-4 center] | ring 7-7 [5-7 end colle] | foreground·border 8-8 [8-10 start]',
 };
 
-/** La bande `surface` du Dark, dans les deux sens : les fonds teintés aux crans 200 à 500, leur texte et leur contour au 950. */
-const SURFACE_DARK = 'subtle·default·hover·pressed·divider 2-5 [0-7 center] | foreground·border 10-10 [8-10 end]';
+/** La bande `surface` du Dark, dans les deux sens : les fonds teintés aux crans 100 à 400, le filet au 500, leur texte et leur contour au 950. */
+const SURFACE_DARK = 'subtle·default·hover·pressed 1-4 [-1-4 end colle] | divider 5-5 [5-7 start] | foreground·border 10-10 [8-10 end]';
 
 /** La bande `page` du Dark inversé : l'anneau monte au 800 et partage la colonne du texte et du contour, qui n'ont qu'une accolade. */
 const PAGE_DARK_INVERSE = 'divider 3-3 [1-5 center] | ring·foreground·border 8-8 [6-10 center]';
@@ -230,12 +230,18 @@ test('[UI-04] [I2] deux variables qui visent le même cran s’écrivent sous un
   assert.deepEqual(page.accolades[1].codes.map((code) => code.variable), ['ring', 'page/foreground', 'page/border'], 'l’anneau du Dark inversé est au 800, comme le texte et le contour');
 });
 
-test('[UI-04] [I2] surface/divider vise le cran de surface/pressed dans les quatre tables : une accolade par cran, il rejoint celle des fonds teintés', () => {
+test('[UI-04] [I2] surface/divider vise le cran de surface/pressed en Light et le 500 en Dark : une accolade par cran, il rejoint celle des fonds teintés seulement quand le cran est commun', () => {
   for (const mode of ['light', 'dark'] as const) {
     for (const sens of ['normal', 'inverse'] as const) {
-      assert.equal(cranDeLaVariable('surface/divider', mode, sens), cranDeLaVariable('surface/pressed', mode, sens), `${mode} ${sens}`);
-      const accolade = bandesDe(DEFAUT.crans, mode, sens, false)[1].accolades[0];
-      assert.deepEqual(accolade.codes.map((code) => code.variable), ['surface/subtle', 'surface/default', 'surface/hover', 'surface/pressed', 'surface/divider'], `${mode} ${sens}`);
+      const accolades = bandesDe(DEFAUT.crans, mode, sens, false)[1].accolades.map((accolade) => accolade.codes.map((code) => code.variable));
+      if (mode === 'light') {
+        assert.equal(cranDeLaVariable('surface/divider', mode, sens), cranDeLaVariable('surface/pressed', mode, sens), `${mode} ${sens}`);
+        assert.deepEqual(accolades[0], ['surface/subtle', 'surface/default', 'surface/hover', 'surface/pressed', 'surface/divider'], `${mode} ${sens}`);
+      } else {
+        assert.equal(cranDeLaVariable('surface/pressed', mode, sens), 400, `${mode} ${sens}`);
+        assert.equal(cranDeLaVariable('surface/divider', mode, sens), 500, `${mode} ${sens}`);
+        assert.deepEqual(accolades.slice(0, 2), [['surface/subtle', 'surface/default', 'surface/hover', 'surface/pressed'], ['surface/divider']], `${mode} ${sens}`);
+      }
     }
   }
 });
@@ -292,8 +298,10 @@ test('[UI-04] [I13] survoler ou focaliser une pastille surligne chaque variable 
   assert.equal(surligne(cran(600), 'light', 'normal'), '600 | ring | -');
   assert.equal(surligne(cran(300), 'light', 'normal'), '300 | surface/pressed,surface/divider,page/divider | -');
   assert.equal(surligne(cran(50), 'light', 'normal'), '50 | surface/subtle | -', 'le 50 a une variable');
-  assert.equal(surligne(cran(200), 'dark', 'normal'), '200 | surface/subtle | -', 'et le 200 en Dark');
-  assert.equal(surligne(cran(500), 'dark', 'normal'), '500 | surface/pressed,surface/divider | -');
+  assert.equal(surligne(cran(100), 'dark', 'normal'), '100 | surface/subtle | -', 'et le 100 en Dark');
+  assert.equal(surligne(cran(200), 'dark', 'normal'), '200 | surface/default | -');
+  assert.equal(surligne(cran(400), 'dark', 'normal'), '400 | surface/pressed | -');
+  assert.equal(surligne(cran(500), 'dark', 'normal'), '500 | surface/divider | -', 'le filet ne partage plus le cran de l’appui en Dark');
   assert.equal(surligne(cran(900), 'light', 'normal'), '900 | solid/pressed | -');
   assert.equal(surligne(cran(700), 'light', 'inverse'), '700 | solid/default,ring | -');
   assert.equal(surligne(cran(600), 'light', 'inverse'), '600 | solid/hover | -');
@@ -318,7 +326,7 @@ test('[UI-04] [I13] survoler un code surligne ses pastilles et ses petites pasti
   assert.equal(surligne(code('solid/hover'), 'light', 'normal'), '800 | solid/hover | -');
   assert.equal(surligne(code('solid/hover'), 'light', 'inverse'), '600 | solid/hover | -', 'le surlignage suit la table du nouveau sens');
   assert.equal(surligne(code('surface/border'), 'light', 'inverse'), '900 | surface/border | -');
-  assert.equal(surligne(code('surface/subtle'), 'dark', 'normal'), '200 | surface/subtle | -');
+  assert.equal(surligne(code('surface/subtle'), 'dark', 'normal'), '100 | surface/subtle | -');
   assert.equal(surligne(code('surface/divider'), 'light', 'normal'), '300 | surface/divider | -');
   assert.equal(surligne(code('solid/foreground'), 'light', 'normal'), ' | solid/foreground | -');
   assert.equal(surligne(code('page/foreground-subtle'), 'light', 'inverse', true), '800 | page/foreground-subtle | -');

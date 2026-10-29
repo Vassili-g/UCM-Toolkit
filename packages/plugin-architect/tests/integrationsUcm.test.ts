@@ -43,7 +43,9 @@ test('les variables d’un cran viennent de la table des dossiers, dans le sens 
   const inverse = variablesDeLAssociation({ ...recette, texteDesBoutons: { light: 'noir', dark: 'noir' } }, { palette: 'p0', intensite: 'soft', theme: 'light', cran: 700 });
   assert.deepEqual(inverse, ['solid/default', 'ring']);
   const neutre = variablesDeLAssociation(recette, { palette: 'p1', intensite: 'soft', theme: 'dark', cran: 500 });
-  assert.deepEqual(neutre, ['surface/pressed', 'surface/divider', 'disabled/foreground', 'disabled/border'], 'en Dark, surface/pressed et surface/divider visent le 500');
+  assert.deepEqual(neutre, ['surface/divider', 'disabled/foreground', 'disabled/border'], 'en Dark, surface/divider vise le 500');
+  const appui = variablesDeLAssociation(recette, { palette: 'p1', intensite: 'soft', theme: 'dark', cran: 400 });
+  assert.deepEqual(appui, ['surface/pressed'], 'en Dark, surface/pressed vise le 400');
   const neutreLight = variablesDeLAssociation(recette, { palette: 'p1', intensite: 'soft', theme: 'light', cran: 500 });
   assert.deepEqual(neutreLight, ['disabled/foreground', 'disabled/border']);
 });

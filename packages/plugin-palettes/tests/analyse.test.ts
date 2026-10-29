@@ -6,6 +6,7 @@ import { alertesDePalette, ancrageDe, rampesDe, type Recette } from 'ucm-couleur
 
 import { analyserPalette } from '../src/analyse';
 import { changerReference } from '../src/edition';
+import { ligneDeLaReference } from '../src/i18n/fr';
 import { recetteAuxPartsDe045 } from './recetteAuxPartsDe045';
 
 const DEFAUT = recetteAuxPartsDe045();
@@ -54,4 +55,16 @@ test('[MOT-17] l’analyse porte la part de la référence, celles des profils, 
   assert.deepEqual(analyse.ancrage.crans, { light: 600, dark: 600 });
   assert.deepEqual(analyse.rampes, rampesDe(avec(BLEU), BLEU));
   assert.ok(analyse.part > 0.8 && analyse.part < 0.95);
+});
+
+test('[MOT-17] [MOT-42] en Dark normal, l’analyse dit le cran où la référence a glissé : le 600, et non le 700 que sa clarté visait', () => {
+  // #FF4492 est le 500 de Light ; sa clarté, 0,68, vise le 700 de Dark (0,67), qui manque 4,5:1 sur le 200 et le 300.
+  const rose = nouvelle('p-0000000c', '#FF4492');
+  const recette = avec(rose);
+  const analyse = analyserPalette(recette, rose);
+  assert.deepEqual(analyse.ancrage.crans, { light: 500, dark: 600 });
+  assert.equal(analyse.ancrage.rangs.dark, DEFAUT.crans.indexOf(600));
+  assert.equal(analyse.rampes[analyse.ancrage.profil as 'vivid']!.dark[analyse.ancrage.rangs.dark].hexa, rose.reference, 'le 600 de Dark porte les octets de la référence');
+  assert.equal(ligneDeLaReference(analyse.ancrage, 'dark'), 'Référence : Vivid · nuance 600');
+  assert.equal(analyse.manquees, 0, 'et le texte de la page tient les deux fonds teintés');
 });

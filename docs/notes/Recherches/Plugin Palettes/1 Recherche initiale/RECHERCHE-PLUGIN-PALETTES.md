@@ -471,7 +471,7 @@ trouve, et non la teinte de son cran 50.
   chaque mode, chaque sens du texte des boutons et chaque intensité, le cran
   de `surface/foreground` doit tenir le seuil `texte` sur `surface/subtle`,
   `surface/default` et `surface/hover` (G3), et celui de `page/foreground` sur
-  `surface/default` (G9). Quand il échoue, le moteur l'éloigne de ces fonds
+  `surface/default` et `surface/hover` (G9). Quand il échoue, le moteur l'éloigne de ces fonds
   par pas de 0,001 de clarté OKLCH, teinte et part de chroma gardées : plus
   foncé en Light, plus clair en Dark. Un cran corrigé ne passe jamais la
   clarté de son voisin le plus foncé en Light, le plus clair en Dark ; s'il y
@@ -484,6 +484,27 @@ trouve, et non la teinte de son cran 50.
   alertes et limite dynamique lisent les rampes corrigées. Une palette libre
   n'a pas de correction. `corrigerLesTextes`
   (`packages/couleur/src/textes.ts`) en est l'autorité.
+- `[MOT-42]` En Dark normal, une référence posée sur le 700, le cran de
+  `page/foreground`, qui manque le seuil `texte` sur `surface/default` (200) ou
+  sur `surface/hover` (300) glisse au 600 : le 600 porte ses octets, et
+  `ancrageDe` rend le 600 pour le Dark (`rangs.dark`, `crans.dark`). Le 700
+  libéré part de la clarté de la courbe, avec la teinte et la part de chroma de
+  la référence, puis `[MOT-41]` l'éclaircit jusqu'au seuil. Le 400 et le 500
+  prennent un tiers et deux tiers de leur écart à un espacement régulier entre
+  le 300 et la référence ; un cran déjà au-dessus de cet espacement ne bouge
+  pas. Promesses, alertes, planche, rapport et limite dynamique lisent ces
+  rampes ; l'écran qui dit où se pose la référence lit l'ancrage et montre le
+  600. La décision lit les rampes sans la bosse de chroma que le Color shift du
+  Dark déplace : pendant un geste, le cran de la référence peut changer d'un
+  cran. L'ordre des nuances de la limite dynamique se juge avant le
+  glissement. Le Light, le Dark inversé, une palette figée et une palette libre
+  ne glissent pas. En Dark inversé, une référence posée sur le 800 garde sa
+  place et G9 manque pour elle : avec un texte des boutons blanc, aucun cran
+  libre ne la porte sans casser G1. Palettes propose alors « Ajuster la
+  référence » (Poppy Vivid et Irene Vivid de la configuration du mainteneur).
+  `deplacerLaReference` et `texteSurveille`
+  (`packages/couleur/src/ancrageDeplace.ts`) en sont l'autorité, `ancrageDe`
+  (`palette.ts`) décide.
 - `[MOT-27]` Un angle et un décalage de saturation se rangent au centième,
   une part de chroma et un décalage de luminosité au millième, arrondis au
   moment où ils sont posés :
@@ -1258,7 +1279,7 @@ colonnes.
   thème, lues dans les promesses du moteur : la planche ne juge rien. Une
   garantie dont le premier membre a une cellule se lit dans cette cellule,
   « sur » son fond : `page/foreground` y lit aussi son jugement sur
-  `surface/default`. Sinon elle se lit sous le fond qu'elle juge, « dessus » :
+  `surface/default` et sur `surface/hover`. Sinon elle se lit sous le fond qu'elle juge, « dessus » :
   `solid/foreground` sous chacun des trois fonds de `solid`, `surface/foreground`
   et `surface/border` sous chacun des fonds de `surface`, `surface/subtle` compris ;
   leur jugement contre la page se lit sous `surface/default`. Chaque ligne donne ✓ ou ✗, le
@@ -1272,7 +1293,7 @@ colonnes.
   palettes de même configuration donnent deux cadres de même structure,
   quelle que soit la saturation de leur référence. Une palette à une
   intensité a une section, sans nom de profil. Le cadre de Bleu compte
-  1 858 calques à deux intensités et 958 à une, toutes parties dessinées.
+  1 862 calques à deux intensités et 960 à une, toutes parties dessinées.
 - `[PLA-28]` `contenuDesPlanches` choisit les parties qu'un cadre dessine :
   la note sous les rampes, les trois lignes de dossiers (clé `usages`), les
   grilles de contrastes, et chaque thème, un au moins. L'en-tête et les rampes se dessinent toujours : leurs
@@ -1418,6 +1439,10 @@ sont inversés (`sensDuTheme`). Le kit porte la suite :
 `ring` est une variable à la racine de la palette, hors des dossiers `solid`,
 `surface` et `page`. `solid/foreground` prend le texte des boutons du thème.
 
+En Dark, dans les deux sens, `surface/subtle`, `surface/default`,
+`surface/hover` et `surface/pressed` prennent les crans 100, 200, 300 et 400,
+`surface/divider` le 500, `surface/foreground` et `surface/border` le 950.
+
 Les neuf garanties sont :
 
 | Garantie | Premier membre | Fonds | Seuil |
@@ -1430,10 +1455,10 @@ Les neuf garanties sont :
 | G6 | `page/border` | page, carte | `nonTexte` |
 | G7 | `ring` | page, carte | `nonTexte` |
 | G8 | `surface/foreground` | `surface/pressed` | `nonTexte` |
-| G9 | `page/foreground` | `surface/default` | `texte` |
+| G9 | `page/foreground` | `surface/default`, `surface/hover` | `texte` |
 
 G8 juge le texte de surface à l'appui à 3:1 : l'appui sort de G3. G9 juge un
-composant de la page, posé dans un fond teinté au repos. `surface/divider`,
+composant de la page, posé dans un fond teinté au repos ou survolé. `surface/divider`,
 le filet sur fond teinté, n'entre dans aucune garantie.
 
 Le neutre ajoute `page/foreground-main` (noir pur en Light, blanc pur en Dark,
@@ -1466,14 +1491,15 @@ les deux sens. G2 juge le bouton au repos dans les deux sens. Une référence
 qui ne porte pas le texte des boutons reste ancrée, et le message de la
 garantie manquée propose « Ajuster la référence ». Il en va de même pour
 G3 et G9 quand la référence est ancrée au cran de texte que `[MOT-41]` ne
-corrige pas. Sur les quatorze références de la recherche, à une et deux
+corrige pas, sauf pour G9 en Dark normal, où `[MOT-42]` la fait glisser au 600.
+En Dark inversé, une référence au 800 manque G9. Sur les quatorze références de la recherche, à une et deux
 intensités et dans les quatre thèmes, G1 n'échoue que sur la nuance où la
 référence est ancrée ; cette mesure date d'avant G8 et G9 et du changement
 de G3 et G4. Sur 864 références de toutes teintes, chromas et clartés,
 G1 hors nuance ancrée tient dans les quatre thèmes.
 
-Une palette à deux intensités compte 96 contrôles : vingt-quatre par mode et
-par profil. Une palette à une intensité en compte 48. Les deux profils partagent
+Une palette à deux intensités compte 100 contrôles : vingt-cinq par mode et
+par profil. Une palette à une intensité en compte 50. Les deux profils partagent
 leurs clartés, mais pas leur chroma : leurs contrastes diffèrent un peu, et
 les composants citent l'un comme l'autre. L'interface et la planche nomment une
 garantie par ses variables et son libellé, jamais par son numéro.
@@ -1952,7 +1978,7 @@ Onglet Création, une palette ouverte :
 │ ┌ › ◆ Color shift ──────────────────────────────────── Par défaut ┐   │
 │ ┌ › Interface de test ─────────────────────── Thème Light · Vivid ─┐ │
 ├──────────────────────────────────────────────────────────────────────┤
-│ ✗ 2 garanties manquées sur 96 · 1 alerte · text 700 / …  [Vérifier] │
+│ ✗ 2 garanties manquées sur 100 · 1 alerte · text 700 / …  [Vérifier] │
 └──────────────────────────────────────────────────────────────────────┘
 ```
 
@@ -2286,8 +2312,8 @@ palette » gardent leurs libellés au-dessus des champs.
   élément. `src/ui/ligneFixe.ts` en est le composant.
 - `[UI-18]` Sous le contenu défilant de l'onglet Création, un pied fixe
   d'une ligne porte le bilan de la palette ouverte : une icône de sévérité,
-  le compte des garanties et des alertes, « 96 garanties tenues · aucune
-  alerte » ou « 2 garanties manquées sur 96 · 1 alerte », le premier
+  le compte des garanties et des alertes, « 100 garanties tenues · aucune
+  alerte » ou « 2 garanties manquées sur 100 · 1 alerte », le premier
   message, et « Vérifier ». Il est fixé au bas de la fenêtre : il reste visible
   à toute position de défilement, pendant un geste compris, et quand le
   contenu est plus court que la fenêtre. « Vérifier » ouvre l'onglet
@@ -2495,7 +2521,7 @@ Onglet Vérification :
 ┌──────────────────────────────────────────────────────────────────────┐
 │ [● Bleu marque            ✗ ▾] [Nouvelle palette] [⋯]                 │
 │ Palette Bleu marque                          Aperçu [Light|Dark]      │
-│ ┌ ✗ 2 garanties manquées sur 96 · 1 point à vérifier ──────────────┐ │
+│ ┌ ✗ 2 garanties manquées sur 100 · 1 point à vérifier ──────────────┐ │
 │ Garanties à corriger (2)                                              │
 │ │ où · quoi · geste                          [Ajuster le Color shift] │
 │ Points à vérifier (1)                                                 │

@@ -558,17 +558,20 @@ Les thèmes inversés en Light ne sont pas mesurés.
 | L'anneau sur un fond teinté en Dark | `ring` au 800 en Dark |
 | Le texte de `page` sur le fond teinté au repos, en Dark | Le moteur éclaircit le 800 des seules teintes qui échouent, de 0,009 au plus sur les palettes du mainteneur |
 | Quand le 700 est la référence et manque 4,5 au survol | Palettes propose « Ajuster la référence » |
-| Les crans des deux nouvelles variables hors du Light normal | `surface/subtle` au 200 et `surface/divider` au 500 en Dark ; 50 et 300 en Light inversé |
+| Les crans des deux nouvelles variables hors du Light normal | `surface/subtle` au 100 (piste A ; 200 avant) et `surface/divider` au 500 en Dark ; 50 et 300 en Light inversé |
 | Les garanties des nouvelles variables | `surface/subtle` rejoint les fonds des garanties 3 et 4 ; `surface/divider` reste sans garantie |
-| La table Dark de `surface` | Inchangée : 300, 400, 500, avec un texte 950 |
+| La table Dark de `surface` | 200, 300, 400 au repos, au survol et à l'appui, `surface/subtle` au 100 et `surface/divider` au 500, texte 950 (piste A, 29 octobre). Avant : 300, 400, 500 |
+| Le survol et l'appui du bouton texte en Dark (décision 6) | Piste A. Les fonds teintés Dark descendent d'un cran. La garantie 9 juge `page/foreground` sur `surface/default` et `surface/hover`. Les tokens du bouton texte gardent leurs noms et visent les mêmes variables |
+| Une référence au 700 qui manque la garantie 9 en Dark normal | Elle glisse au 600, couleur exacte gardée. Le 700 libéré se corrige par teinte ; le 400 et le 500 se relèvent d'un tiers et de deux tiers de leur écart à un espacement régulier entre le 300 et la référence |
+| Une référence au 800 en Dark inversé (Poppy Vivid, Irene Vivid) | Elle garde sa place et la garantie 9 manque : avec un texte des boutons blanc, aucun cran libre ne la porte sans casser la garantie 1. Palettes propose « Ajuster la référence » |
 
 ### À prendre
 
-| Question | Fait | Recommandation |
-|---|---|---|
-| 6. Le survol et l'appui du bouton texte en Dark | Le texte de `page` manque 4,5 sur `surface/hover` (400) sur les 21 rampes. Le survol sur `surface/subtle` est écarté : chaque état garde la variable de son nom | À trouver |
+Rien : la décision 6 est prise (piste A).
 
 ### La décision 6
+
+Le mainteneur a retenu la piste A le 29 octobre (voir « Prises »). Ce qui suit garde les mesures qui l'ont précédée ; la table Dark de ces mesures est celle d'avant.
 
 La table Dark reste 300, 400, 500. Un composant conçu sur la page garde donc ses
 couleurs de `page` quand il est posé dans une alerte teintée. En Light, elles

@@ -117,18 +117,17 @@ test('W7.2 : un code saisi dans la modale prend le pas dont la proposition lui r
 });
 
 test('[VER-15] G3 : une référence au 700 que le moteur ne corrige pas manque le texte sur fond teinté, le groupe mène à « Ajuster la référence », et un pas plus sombre la tient', () => {
-  // #217700 est le 700 Light de Vivid : le moteur n'éloigne jamais le cran de la référence des fonds teintés.
+  // #217700 est le 700 Light de Vivid : le moteur n'éloigne jamais le cran de la référence des fonds teintés ; sur surface/hover, il manque la garantie 3 et la 9.
   const verte: Palette = { ...nouvellePalette(RECETTE, 'p-0000000e', '#217700', 2)!, nom: 'Verte' };
   const recette = ajouter(RECETTE, verte);
   const groupes = groupesManques(verifierPromesses(recette, verte));
-  assert.deepEqual(groupes.map((groupe) => [groupe.garantie.numero, groupe.mode, 'variable' in groupe.fond ? groupe.fond.variable : '']), [[3, 'light', 'surface/hover']]);
+  assert.deepEqual(groupes.map((groupe) => [groupe.garantie.numero, groupe.mode, 'variable' in groupe.fond ? groupe.fond.variable : '']), [[3, 'light', 'surface/hover'], [9, 'light', 'surface/hover']]);
   assert.ok(ciblesDeLaPromesse().includes('ajuster-reference'), 'toute promesse manquée mène à « Ajuster la référence »');
-  assert.deepEqual(manqueesParIntensite(recette, verte).map(({ intensite, manquees }) => `${intensite} ${manquees}`), ['soft 0', 'vivid 1']);
+  assert.deepEqual(manqueesParIntensite(recette, verte).map(({ intensite, manquees }) => `${intensite} ${manquees}`), ['soft 0', 'vivid 2']);
   const ajustee = paletteAuPas(recette, verte, -1)!;
   assert.deepEqual(manqueesParIntensite(recette, ajustee).map(({ intensite, manquees }) => `${intensite} ${manquees}`), ['soft 0', 'vivid 0']);
   const [comparee, ...autres] = garantiesComparees(recette, verte, ajustee);
-  assert.equal(autres.length, 0);
-  assert.deepEqual([comparee.avant.garantie.numero, comparee.avant.verdict, comparee.apres.verdict], [3, 'manquee', 'tenue']);
+  assert.deepEqual([comparee, ...autres].map((c) => [c.avant.garantie.numero, c.avant.verdict, c.apres.verdict]), [[3, 'manquee', 'tenue'], [9, 'manquee', 'tenue']]);
 });
 
 test('[VER-15] G9 : en Dark inversé, une référence au 800 que le moteur ne corrige pas manque le texte de la page sur le fond teinté, et le groupe mène à « Ajuster la référence »', () => {
@@ -138,7 +137,7 @@ test('[VER-15] G9 : en Dark inversé, une référence au 800 que le moteur ne co
   const violette: Palette = { ...nouvellePalette(inversee.recette, 'p-0000000f', '#B17EFF', 2)!, nom: 'Violette' };
   const recette = ajouter(inversee.recette, violette);
   const groupes = groupesManques(verifierPromesses(recette, violette));
-  assert.deepEqual(groupes.map((groupe) => [groupe.garantie.numero, groupe.mode, 'variable' in groupe.fond ? groupe.fond.variable : '']), [[9, 'dark', 'surface/default']]);
+  assert.deepEqual(groupes.map((groupe) => [groupe.garantie.numero, groupe.mode, 'variable' in groupe.fond ? groupe.fond.variable : '']), [[9, 'dark', 'surface/hover']]);
   assert.equal(groupes[0].garantie.premier.variable, 'page/foreground');
   assert.ok(ciblesDeLaPromesse().includes('ajuster-reference'));
   assert.deepEqual(manqueesParIntensite(recette, violette).map(({ intensite, manquees }) => `${intensite} ${manquees}`), ['soft 0', 'vivid 1']);

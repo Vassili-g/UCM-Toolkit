@@ -213,8 +213,8 @@ test('S1 S2 I6 : la planche se dessine dans le sens de chaque mode, dans les qua
     for (const [mode, texteDesBoutons] of [['light', light], ['dark', dark]] as const) {
       const contexte = `Light ${light}, Dark ${dark}, ${mode}`;
       const sens = texteDesBoutons === (mode === 'light' ? 'blanc' : 'noir') ? NORMAL : INVERSE;
-      // Le Dark pose ses surfaces aux crans 300 à 500, le fond léger au 200, le filet au 500 et le texte au 950 ; l'anneau du Dark inversé monte au 800.
-      const table = mode === 'dark' ? { ...sens, surface: [300, 400, 500], subtle: 200, filet: 500, texte: 950, ring: sens === INVERSE ? 800 : sens.ring } : sens;
+      // Le Dark pose ses surfaces aux crans 200 à 400, le fond léger au 100, le filet au 500 et le texte au 950 ; l'anneau du Dark inversé monte au 800.
+      const table = mode === 'dark' ? { ...sens, surface: [200, 300, 400], subtle: 100, filet: 500, texte: 950, ring: sens === INVERSE ? 800 : sens.ring } : sens;
       const theme = trouver(modele.racine, `thème ${mode}`);
       assert.equal(textes(trouver(theme, 'en-tête'))[0].contenu, `${mode === 'light' ? 'Thème Light' : 'Thème Dark'} · fond de la page ${recette.fonds[mode]} · texte des boutons ${texteDesBoutons}`, contexte);
       const variables = variablesDe(modele.racine, mode, 'vivid');
@@ -279,7 +279,7 @@ test('S7 : la planche lit les promesses du moteur sans rien rejuger, dans le sen
   assert.deepEqual(lignes('surface hover'), ['✓ texte dessus : 4,61:1 · AA', '✓ contour dessus : 4,61:1 · AA']);
   assert.deepEqual(lignes('surface pressed'), ['✓ contour dessus : 3,78:1 · AA', '✓ texte dessus : 3,78:1 · AA'], 'le texte jugé à 3:1 sous l’appui, après le contour');
   assert.deepEqual(lignes('surface divider'), []);
-  assert.deepEqual(lignes('page foreground'), ['✓ sur la page : 5,70:1 · AA', '✓ sur la carte : 6,11:1 · AA', '✓ sur surface/default : 5,29:1 · AA']);
+  assert.deepEqual(lignes('page foreground'), ['✓ sur la page : 5,70:1 · AA', '✓ sur la carte : 6,11:1 · AA', '✓ sur surface/default : 5,29:1 · AA', '✓ sur surface/hover : 4,61:1 · AA']);
   assert.deepEqual(lignes('page border'), ['✓ sur la page : 5,70:1 · AA', '✓ sur la carte : 6,11:1 · AA']);
   assert.deepEqual(lignes('ring'), ['✓ sur la page : 4,52:1 · AA', '✓ sur la carte : 4,84:1 · AA']);
   assert.deepEqual(lignes('page divider'), []);
@@ -333,8 +333,8 @@ test('P7 : une liste sans 50 garde les trois dossiers sans `surface/subtle` ni s
   };
   const sans50 = variablesDe(modeleDeCadre(sans(50), BLEU, 'SRGB').racine, 'light', 'vivid');
   assert.deepEqual(sans50.enfants.filter((noeud) => noeud.nom.startsWith('dossier ')).map((noeud) => noeud.nom), ['dossier solid', 'dossier surface', 'dossier page']);
-  // Vingt-quatre garanties moins les onze qui jugent `surface/subtle`, la 3 et la 4.
-  assert.equal(garantiesLues(sans50).length, 13);
+  // Vingt-cinq garanties moins les onze qui jugent `surface/subtle`, la 3 et la 4.
+  assert.equal(garantiesLues(sans50).length, 14);
   assert.equal(cadres(sans50).some((noeud) => noeud.nom === 'surface subtle'), false);
   assert.equal(cadres(sans50).some((noeud) => noeud.nom === 'surface divider'), true, 'le filet garde son cran 300');
   const sans900 = variablesDe(modeleDeCadre(sans(900), BLEU, 'SRGB').racine, 'light', 'vivid');
@@ -521,7 +521,7 @@ test('[PLA-28] Y5.5 : chaque partie retirée disparaît du modèle et change l�
 });
 
 test('[PLA-24] Y5.4 : les calques du cadre de Bleu, toutes parties dessinées, à une et à deux intensités', () => {
-  // Trois états par dossier, `surface/subtle` et `surface/divider` en plus : 1 858 calques à deux intensités, 958 à une.
-  assert.equal(compterCalques(AVEC_GRILLE.racine), 1858);
-  assert.equal(compterCalques(modeleDeCadre(RECETTE_SEULE, BLEU_SEUL, 'SRGB').racine), 958);
+  // Trois états par dossier, `surface/subtle` et `surface/divider` en plus : 1 862 calques à deux intensités, 960 à une.
+  assert.equal(compterCalques(AVEC_GRILLE.racine), 1862);
+  assert.equal(compterCalques(modeleDeCadre(RECETTE_SEULE, BLEU_SEUL, 'SRGB').racine), 960);
 });

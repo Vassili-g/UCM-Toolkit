@@ -257,7 +257,7 @@ export const TEXTES_DE_LA_VERIFICATION = {
   versCreation: "Back to Create",
 } as const;
 
-/** Le verdict de l'onglet Vérification : « 96 guarantees met », « 2 of 96 guarantees unmet ». */
+/** Le verdict de l'onglet Vérification : « 100 guarantees met », « 2 of 100 guarantees unmet ». */
 export function verdictDesGaranties(garanties: number, manquees: number): string {
   if (manquees === 0) return `${garanties} ${garanties === 1 ? "guarantee met" : "guarantees met"}`;
   return `${manquees} of ${garanties} ${garanties === 1 ? "guarantee" : "guarantees"} unmet`;
@@ -270,8 +270,8 @@ export function pointsDuVerdict(nombre: number): string {
 }
 
 /**
- * Le bilan du pied ([UI-18]) : « 96 guarantees met · no alerts »,
- * « 2 of 96 guarantees unmet · 1 alert », « Free palette · 2 alerts ».
+ * Le bilan du pied ([UI-18]) : « 100 guarantees met · no alerts »,
+ * « 2 of 100 guarantees unmet · 1 alert », « Free palette · 2 alerts ».
  */
 export function bilanDuPied(garanties: number, manquees: number, alertes: number, libre: boolean): string {
   const lesAlertes = alertes === 0 ? "no alerts" : alertes === 1 ? "1 alert" : `${alertes} alerts`;

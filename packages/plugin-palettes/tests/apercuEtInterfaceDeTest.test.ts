@@ -32,8 +32,8 @@ test('[UI-04] le même clic sur la même nuance la relâche ; une autre nuance, 
 const CRANS_NORMAL = { 'solid/default': 700, 'solid/hover': 800, 'solid/pressed': 900, 'surface/default': 100, 'surface/hover': 200, 'surface/pressed': 300, 'surface/subtle': 50, 'surface/foreground': 700, 'surface/border': 700, 'surface/divider': 300, 'page/foreground': 700, 'page/border': 700, 'page/divider': 300, 'ring': 600 } as const;
 const CRANS_INVERSE = { ...CRANS_NORMAL, 'solid/hover': 600, 'solid/pressed': 500, 'surface/foreground': 900, 'surface/border': 900, 'page/foreground': 800, 'page/border': 800, 'ring': 700 } as const;
 
-/** Le Dark pose ses surfaces aux crans 200 à 500 et leur texte au 950 ; le reste suit le Light. */
-const EN_DARK = { 'surface/default': 300, 'surface/hover': 400, 'surface/pressed': 500, 'surface/subtle': 200, 'surface/foreground': 950, 'surface/border': 950, 'surface/divider': 500 } as const;
+/** Le Dark pose ses surfaces aux crans 100 à 500 et leur texte au 950 ; le reste suit le Light. */
+const EN_DARK = { 'surface/default': 200, 'surface/hover': 300, 'surface/pressed': 400, 'surface/subtle': 100, 'surface/foreground': 950, 'surface/border': 950, 'surface/divider': 500 } as const;
 /** L'anneau du Dark inversé monte au 800 pour tenir 3:1 sur le fond teinté. */
 const RING_DARK_INVERSE = 800;
 
