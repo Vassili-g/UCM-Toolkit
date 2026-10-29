@@ -1,0 +1,267 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Intégrité de la structure</title>
+<style>
+  :root { --fond: #1e1e1e; --panneau: #252525; --bordure: #3a3a3a; --texte: #e6e6e6; --second: #a8a8a8; --accent: #e8a0bf; --olive: #b5c46a; }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--fond); color: var(--texte); font: 14px/1.5 Inter, system-ui, sans-serif; }
+  main { max-width: 1400px; margin: 0 auto; padding: 32px 16px 64px; }
+  h1 { font-size: 22px; margin: 0 0 8px; }
+  h2 { font-size: 18px; margin: 40px 0 6px; padding-top: 16px; border-top: 1px solid var(--bordure); }
+  p { margin: 6px 0; max-width: 900px; }
+  .intro { color: var(--second); }
+  code { font-family: Consolas, monospace; font-size: 13px; background: #2a2a2a; padding: 0 4px; border-radius: 3px; }
+  nav.sommaire { display: flex; flex-wrap: wrap; gap: 6px 16px; margin: 16px 0; font-size: 13px; }
+  a { color: #9fcfff; }
+  .colonnes { display: flex; flex-wrap: wrap; gap: 28px; align-items: flex-start; margin-top: 16px; }
+  .colonne { flex: 0 0 auto; max-width: 100%; }
+  .cadre { border: 1px solid var(--bordure); border-radius: 8px; overflow: auto; background: #141414; width: fit-content; max-width: 100%; }
+  .cadre iframe { display: block; border: 0; }
+  .legendes { margin: 10px 0 0; padding: 0; list-style: none; max-width: 640px; }
+  .legendes li { display: flex; gap: 8px; margin: 4px 0; font-size: 13px; color: var(--second); }
+  .legendes b { flex: 0 0 auto; display: inline-flex; width: 20px; height: 20px; border-radius: 50%; background: var(--accent); color: #1e1e1e; align-items: center; justify-content: center; font-size: 12px; }
+  table { border-collapse: collapse; margin-top: 12px; width: 100%; max-width: 1100px; font-size: 13px; }
+  th, td { text-align: left; vertical-align: top; padding: 8px 10px; border-bottom: 1px solid var(--bordure); }
+  th { color: var(--second); font-weight: 600; }
+  .avant { color: #f2a5a5; }
+  .apres { color: var(--olive); }
+  .comparaison { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; max-width: 900px; margin-top: 12px; }
+  .comparaison > div { background: var(--panneau); border: 1px solid var(--bordure); border-radius: 8px; padding: 12px 14px; }
+  .comparaison h3 { margin: 0 0 6px; font-size: 13px; color: var(--second); }
+  @media (max-width: 720px) { .comparaison { grid-template-columns: 1fr; } }
+</style>
+</head>
+<body>
+<main>
+  <h1>Intégrité de la structure : le mode Tokens</h1>
+  <p class="intro">Chaque cadre part d'un écran réel de la galerie d'Architect, en sombre, figé par <code>Mesures/extraire-galerie.mjs</code>. Les ajouts reprennent les cartes de modes et de scopes déjà construites, à leur largeur. Les textes sont ceux du §5 du plan.</p>
+  <p class="intro">Les données suivent le fichier du mainteneur : 11 palettes dans <code>theme</code>, sans <code>surface/subtle</code> ni <code>surface/divider</code> ; <code>neutral</code> sans <code>page/foreground</code> ; des crans de <code>surface</code> en Dark à l'ancienne table.</p>
+  <nav class="sommaire">
+    <a href="#corrections">1. Corrections</a>
+    <a href="#a-faire">2. À faire dans Figma</a>
+    <a href="#application">3. Après l'application</a>
+    <a href="#preparation">4. Préparation d'un composant</a>
+    <a href="#questions">5. Questions</a>
+  </nav>
+
+  <h2 id="corrections">1. Corrections</h2>
+  <p>Deux intertitres nouveaux, avant Modes et Scopes. Les variables manquantes arrivent cochées. Les crans arrivent décochés : ils changent une couleur affichée.</p>
+  <div class="colonnes">
+    <div class="colonne">
+      <div class="cadre" id="cadre-corrections"></div>
+      <ol class="legendes" id="legendes-corrections"></ol>
+    </div>
+    <div class="colonne">
+      <div class="cadre" id="cadre-crans"></div>
+      <ol class="legendes" id="legendes-crans"></ol>
+    </div>
+  </div>
+
+  <h2 id="a-faire">2. À faire dans Figma</h2>
+  <p>Ce que le plugin ne corrige pas lui-même. Chaque carte dit le problème, cite les variables et dit où le régler.</p>
+  <div class="colonnes">
+    <div class="colonne">
+      <div class="cadre" id="cadre-a-faire"></div>
+      <ol class="legendes" id="legendes-a-faire"></ol>
+    </div>
+  </div>
+
+  <h2 id="application">3. Après l'application</h2>
+  <p>La ligne verte compte les corrections écrites. Une phrase s'ajoute quand une variable a été créée.</p>
+  <div class="colonnes">
+    <div class="colonne">
+      <div class="cadre" id="cadre-application"></div>
+      <ol class="legendes" id="legendes-application"></ol>
+    </div>
+  </div>
+
+  <h2 id="preparation">4. Préparation d'un composant (mode Composant)</h2>
+  <p>Aucun état de la galerie ne montre aujourd'hui une couleur laissée en dur dans la feuille de préparation. La phrase change seulement quand UCM prévoit la variable et que le thème ne l'a pas.</p>
+  <div class="comparaison">
+    <div><h3>Aujourd'hui</h3><p class="avant">aucun token du thème ne vaut #FDF2F2 : reste en dur</p></div>
+    <div><h3>Après</h3><p class="apres"><code>theme/primary/surface/subtle</code> manque dans le thème.</p><p class="apres">Créez-la depuis le mode Tokens.</p></div>
+  </div>
+  <p class="intro">Une couleur qu'aucune variable d'UCM ne prévoit garde la phrase d'aujourd'hui.</p>
+
+  <h2 id="questions">5. Questions</h2>
+  <table>
+    <tr><th>N°</th><th>Question</th><th>Options</th><th>Recommandation</th></tr>
+    <tr><td>M-1</td><td>Où se place « Tout désélectionner » ?</td><td>(a) en tête de l'onglet Corrections, au-dessus de tous les intertitres ; (b) dans chaque pied</td><td>(a) : un seul geste pour les deux listes</td></tr>
+    <tr><td>M-2</td><td>Comment choisir la portée d'un Ignorer ?</td><td>(a) un menu à deux choix sous le bouton Ignorer ; (b) deux boutons côte à côte</td><td>(a) : la carte garde un seul bouton</td></tr>
+    <tr><td>M-3</td><td>Une carte de crans regroupe quoi ?</td><td>(a) un rôle et un mode (« surface/default en Dark », 11 lignes) ; (b) un rôle, les deux modes ; (c) une palette</td><td>(a) : une phrase dit un seul cran attendu</td></tr>
+    <tr><td>M-4</td><td>Les noms créés suivent l'écriture de Nomenclature. Le cadre montre <code>subtle</code> en minuscules. Faut-il montrer un cas où l'écriture change le nom ?</td><td>(a) non ; (b) oui, une ligne d'exemple en Pascal</td><td>(a) : le fichier du mainteneur est en minuscules</td></tr>
+  </table>
+</main>
+
+<script src="galerie/etats.js"></script>
+<script>
+const G = window.GALERIE;
+const PALETTES = ['primary', 'secondary', 'neutral', 'success/soft', 'success/vivid', 'warning/soft', 'warning/vivid', 'danger/soft', 'danger/vivid', 'info/soft', 'info/vivid'];
+
+// ---------- Morceaux de l'interface réelle ----------
+const CHEVRON = '<svg class="chevron-svg" viewBox="0 0 12 12" width="12" height="12" aria-hidden="true"><path d="M3 4.5 6 7.5 9 4.5"></path></svg>';
+/** Un chemin aux segments gris et à la variable en blanc, comme `creerChemin`. */
+const ch = (nom, inline = false) => {
+  const s = nom.split('/');
+  return `<span class="ch${inline ? ' ch-inline' : ''}">${s.slice(0, -1).map((g) => `<span class="ch-groupe">${g}</span><span class="ch-groupe">/</span>`).join('')}<span class="ch-variable">${s.at(-1)}</span></span>`;
+};
+const intertitre = (texte) => `<div class="intertitre-structure"><h2>${texte}</h2></div>`;
+const case_ = (coche, label) => `<input type="checkbox" class="case" aria-label="${label}"${coche ? ' checked=""' : ''}>`;
+function carte({ coche, phrase, meta, ouverte = false, lignes = '' }) {
+  return `<div class="bloc"><div class="bloc-tete">${case_(coche, 'Corriger')}<button class="bloc-bouton" type="button" aria-expanded="${ouverte}"><div class="bloc-pile"><span class="bloc-ligne"><span class="bloc-phrase">${phrase}</span></span><span class="meta">${meta}</span></div><span class="bloc-droite">${CHEVRON}</span></button></div>${ouverte ? `<div class="bloc-corps"><div class="colonnes-tete"><span></span><span>Aujourd’hui</span><span>Après l’application</span></div>${lignes}</div>` : ''}</div>`;
+}
+const ligneCreation = (palette, role, light, dark, scopes) => `<div class="diff">${case_(true, 'Créer')}<span class="chemin"><span>${ch(`theme/${palette}/${role}`)}<br><span class="meta">absente</span></span></span><span class="chemin-apres"><span class="fleche-ligne">→ </span><span>${ch(`theme/${palette}/${role}`)}<br><span class="ch-ajout">Light : ${light}</span><br><span class="ch-ajout">Dark : ${dark}</span><br><span class="ch-ajout">Scopes : ${scopes}</span></span></span></div>`;
+const rampe = (palette, mode) => {
+  if (palette === 'neutral') return `utility/neutral/${mode}`;
+  if (palette === 'primary' || palette === 'secondary') return `brands/${palette}/${mode}`;
+  return `utility/${palette}/${mode}`;
+};
+const ligneCran = (palette, role, lu, attendu) => `<div class="diff">${case_(false, 'Corriger')}<span class="chemin">${rampe(palette, 'dark')}/<span class="seg-ancien">${lu}</span><br><span class="meta">${ch(`theme/${palette}/${role}`, true)}</span></span><span class="chemin-apres"><span class="fleche-ligne">→ </span>${rampe(palette, 'dark')}/<span class="seg-nouveau">${attendu}</span></span></div>`;
+
+/** Une carte de constat de « À faire dans Figma », comme `aFaire.ts`. */
+const ICONE = '<span class="ico ton-corriger" aria-hidden="true"><svg viewBox="0 0 12 12"><path d="M6 .6l5.6 10.4H.4z" fill="currentColor"></path><path d="M6 4.2v3.3" stroke-width="1.4" style="stroke:var(--texte-sur-ton);fill:none"></path><circle cx="6" cy="9.1" r=".8" style="fill:var(--texte-sur-ton)"></circle></svg></span>';
+function constat({ phrase, lieu, statut, ouverte = false, faits = [], ignorer = false }) {
+  const corps = ouverte ? `<div class="bloc-corps">${faits.length ? `<div class="constat-faits">${faits.map(([e, v]) => `<div class="constat-fait"><span>${e}</span><span>${v}</span></div>`).join('')}</div>` : ''}<div class="constat-actions"><button type="button" class="btn btn-secondary btn-compact"><span>Ouvrir la fiche</span></button>${ignorer ? `<span class="ignorer-hote"><button type="button" class="btn btn-secondary btn-compact" aria-expanded="true"><span>Ignorer</span></button><span class="menu-ignorer" role="menu"><button type="button" role="menuitem">Pour cette palette</button><button type="button" role="menuitem">Dans tout le fichier</button></span></span>` : ''}</div></div>` : '';
+  return `<div class="bloc bloc-constat a-ton ton-corriger"><div class="bloc-tete sans-coche"><button class="bloc-bouton" type="button" aria-expanded="${ouverte}"><div class="bloc-pile"><span class="bloc-ligne"><span class="constat-entete"><span class="gravite ton-corriger">${ICONE}À corriger</span><span class="bloc-phrase">${phrase}</span></span></span><span class="meta"><span class="constat-lieu">${lieu}</span><br><span class="constat-statut">${statut}</span></span></div><span class="bloc-droite">${CHEVRON}</span></button></div>${corps}</div>`;
+}
+
+// Les ajouts qui n'existent pas encore dans la feuille du plugin, dans ses propres couleurs.
+const AJOUTS = `<style>
+.tout-deselectionner { display: flex; justify-content: flex-end; padding: 0 0 4px; }
+.ignorer-hote { position: relative; display: inline-block; }
+.menu-ignorer { position: absolute; top: calc(100% + 4px); left: 0; z-index: 3; display: flex; flex-direction: column; min-width: 180px; padding: 4px; border: 1px solid var(--figma-color-border, #444); border-radius: 6px; background: var(--figma-color-bg, #2c2c2c); box-shadow: 0 4px 12px #0006; }
+.menu-ignorer button { all: unset; cursor: pointer; padding: 6px 10px; border-radius: 4px; font-size: 12px; color: var(--figma-color-text, #fff); }
+.menu-ignorer button:hover, .menu-ignorer button:first-child { background: var(--figma-color-bg-hover, #383838); }
+.resultat-publier { display: block; margin-top: 2px; color: var(--figma-color-text-secondary, #b3b3b3); font-weight: 400; }
+</style>`;
+const STYLE_SEUL = `<style>
+.corps > :not(.panneau-lateral) { display: none !important; }
+.corps { display: block !important; }
+.panneau-lateral { width: 640px !important; max-width: none !important; border-left: 0 !important; }
+.barre, .pied { display: none !important; }
+</style>`;
+
+// ---------- Cadres ----------
+function srcdoc(etat) {
+  const e = G[etat];
+  return `<!doctype html><html lang="fr" class="${e.classe}"><head><meta charset="utf-8"><link rel="stylesheet" href="galerie/plugin.css">${STYLE_SEUL}${AJOUTS}</head><body>${e.corps}</body></html>`;
+}
+function cadre(hote, { etat, hauteur, modifier, legendes }) {
+  const f = document.createElement('iframe');
+  f.style.width = '640px';
+  f.style.height = `${hauteur}px`;
+  f.srcdoc = srcdoc(etat);
+  f.addEventListener('load', () => { modifier(f.contentDocument); });
+  document.getElementById(hote).append(f);
+  document.getElementById(`legendes-${hote.replace('cadre-', '')}`).innerHTML = legendes.map((texte, i) => `<li><b>${i + 1}</b><span>${texte}</span></li>`).join('');
+}
+/** Montre l'onglet Corrections ; cache les renommages de Nomenclature pour laisser voir la structure, sauf `avecNoms`. */
+function ongletCorrections(doc, { avecNoms = false } = {}) {
+  const panneau = doc.getElementById('panneau-a-appliquer');
+  if (!avecNoms) panneau.querySelector(':scope > .page-stack:first-child').style.display = 'none';
+  return panneau.querySelector('.structure-liste');
+}
+
+const MANQUANTES = () => intertitre('Variables manquantes')
+  + carte({ coche: true, ouverte: true,
+    phrase: `Créer ${ch('surface/subtle', true)} dans 11 palettes de theme`,
+    meta: 'UCM prévoit cette variable dans chaque palette. En Light elle vise le cran 50, en Dark le cran 100.',
+    lignes: ['primary', 'secondary', 'neutral'].map((p) => ligneCreation(p, 'surface/subtle', `${rampe(p, 'light')}/50`, `${rampe(p, 'dark')}/100`, 'Frame fill, Shape fill')).join('') })
+  + carte({ coche: true,
+    phrase: `Créer ${ch('surface/divider', true)} dans 11 palettes de theme`,
+    meta: 'UCM prévoit cette variable dans chaque palette. En Light elle vise le cran 300, en Dark le cran 500.' })
+  + carte({ coche: true,
+    phrase: `Créer ${ch('page/foreground', true)} dans 1 palette de theme`,
+    meta: 'UCM prévoit cette variable dans chaque palette. En Light elle vise le cran 700, en Dark le cran 800.' });
+
+const CRANS = () => intertitre('Crans')
+  + carte({ coche: false, ouverte: true,
+    phrase: `Viser le cran 200 pour ${ch('surface/default', true)} en Dark`,
+    meta: 'En Dark, UCM attend le cran 200. Aujourd’hui elle vise le cran 300. Cette correction change la couleur affichée.',
+    lignes: ['primary', 'secondary', 'neutral'].map((p) => ligneCran(p, 'surface/default', 300, 200)).join('') })
+  + carte({ coche: false,
+    phrase: `Viser le cran 300 pour ${ch('surface/hover', true)} en Dark`,
+    meta: 'En Dark, UCM attend le cran 300. Aujourd’hui elle vise le cran 400. Cette correction change la couleur affichée.' })
+  + carte({ coche: false,
+    phrase: `Viser le cran 700 pour ${ch('surface/foreground', true)} en Light`,
+    meta: 'En Light, UCM attend le cran 700. Aujourd’hui elle vise le cran 800. Cette correction change la couleur affichée.' });
+
+cadre('cadre-corrections', {
+  etat: 't-portees', hauteur: 780,
+  legendes: [
+    '« Tout désélectionner » décoche toutes les lignes de l’onglet, renommages compris (Q-14).',
+    'Les variables manquantes : une carte par rôle, cochée. La phrase dit les crans visés en Light et en Dark.',
+    'Une ligne par palette : la variable absente aujourd’hui, puis ses deux alias et ses scopes.',
+    'Le pied compte les lignes cochées : 23 variables, 1 mode, 3 scopes. Il dit « de structure ».',
+  ],
+  modifier(doc) {
+    const liste = ongletCorrections(doc);
+    liste.insertAdjacentHTML('beforebegin', '<div class="tout-deselectionner"><button type="button" class="btn btn-secondary btn-compact"><span>Tout désélectionner</span></button></div>');
+    liste.insertAdjacentHTML('afterbegin', MANQUANTES());
+    doc.querySelector('.structure-resume').innerHTML = 'Appliquer écrit <b>27 corrections</b> de structure.';
+  },
+});
+
+cadre('cadre-crans', {
+  etat: 't-portees', hauteur: 780,
+  legendes: [
+    'Les crans : une carte par rôle et par mode, décochée. La dernière phrase dit que la couleur change.',
+    'Le segment qui change prend la couleur de sa colonne, comme dans les cartes de modes.',
+    'Le sens de la palette a été déduit de ses autres variables : la carte ne pose pas de question.',
+  ],
+  modifier(doc) {
+    const liste = ongletCorrections(doc);
+    liste.insertAdjacentHTML('beforebegin', '<div class="tout-deselectionner"><button type="button" class="btn btn-secondary btn-compact"><span>Tout désélectionner</span></button></div>');
+    liste.insertAdjacentHTML('afterbegin', CRANS());
+    doc.querySelector('.structure-resume').innerHTML = 'Appliquer écrit <b>4 corrections</b> de structure.';
+  },
+});
+
+cadre('cadre-a-faire', {
+  etat: 't-structure', hauteur: 900,
+  legendes: [
+    'Une palette sans alias : le plugin ne devine pas sa rampe. Il dit où créer la variable.',
+    'Le menu Ignorer : pour cette palette, ou dans tout le fichier (Q6).',
+    'Un cran absent de la rampe relève de UCM Palettes, pas d’Architect.',
+    'Les modes de theme : les deux cas de Q11.',
+    'Type et rangement : constats sans correction possible.',
+  ],
+  modifier(doc) {
+    const liste = doc.querySelector('#panneau-a-faire .structure-liste');
+    liste.insertAdjacentHTML('afterbegin',
+      intertitre('Variables manquantes')
+      + constat({ ouverte: true, ignorer: true,
+        phrase: `Cette palette n’a pas ${ch('surface/subtle', true)}. Aucune de ses variables n’a d’alias vers brands ou utility.`,
+        lieu: ch('theme/tertiary', true), statut: 'Créez surface/subtle dans la fenêtre Variables' })
+      + constat({ phrase: `La rampe ${ch('brands/primary/light', true)} n’a pas le cran 50.`,
+        lieu: `${ch('theme/primary/surface/subtle', true)}`, statut: 'Ajoutez ce cran avec UCM Palettes' })
+      + intertitre('Modes')
+      + constat({ phrase: 'La collection theme n’a pas de mode Dark.', lieu: ch('theme', true), statut: 'Ajoutez un mode Dark à theme dans la fenêtre Variables' })
+      + constat({ phrase: 'La collection theme n’a ni mode Light ni mode Dark.', lieu: ch('theme', true), statut: 'Nommez ses modes Light et Dark dans la fenêtre Variables' })
+      + intertitre('Types')
+      + constat({ phrase: 'Cette variable du thème n’est pas une couleur.', lieu: ch('theme/primary/ring', true), statut: 'Recréez-la en couleur dans la fenêtre Variables' })
+      + intertitre('Rangement')
+      + constat({ phrase: 'Cette variable du thème est rangée dans brands.', lieu: ch('brands/primary/surface/default', true), statut: 'Déplacez-la dans theme dans la fenêtre Variables' }));
+    // Les constats existants de la galerie restent dessous, repliés.
+    liste.querySelectorAll('.bloc-constat .bloc-corps').forEach((c, i) => { if (i > 0) c.remove(); });
+  },
+});
+
+cadre('cadre-application', {
+  etat: 't-portees', hauteur: 360,
+  legendes: [
+    'La ligne verte compte les corrections écrites.',
+    'Après une création, elle demande de publier la library (Q10). Le plugin ne publie pas.',
+  ],
+  modifier(doc) {
+    const liste = ongletCorrections(doc);
+    liste.innerHTML = '<div class="resultat" role="status"><div class="resultat-corps"><span>27 corrections écrites.<span class="resultat-publier">Publiez la library pour voir ces variables dans les fichiers de composants.</span></span></div></div>';
+    doc.querySelector('.structure-pied')?.remove();
+  },
+});
+</script>
+</body>
+</html>

@@ -146,12 +146,12 @@ Agent : conversation principale.
 
 Fichiers : `tests/reglesUniques.test.ts` (nouveau).
 
-- [ ] **U0.1** · `implementeur` · Écrire `tests/reglesUniques.test.ts` sur le modèle de `tests/referentielUnique.test.ts`.
+- [x] **U0.1** (509c0445) · `implementeur` · Écrire `tests/reglesUniques.test.ts` sur le modèle de `tests/referentielUnique.test.ts`.
   - Une table `REGLES` exportée par le fichier de test. Chaque entrée : `fiche` (`'D-02'`…), `motif` (`RegExp`), `dossiers` (globs balayés, par défaut `packages/*/src/**`), `proprietaires` (fichiers où le motif est admis), `exceptions` (`{ fichier, raison }[]`).
   - Balayage hors `dist/`, `node_modules/`, `_local/`. Un échec liste `fichier:ligne`, la fiche et la raison de la règle.
   - Une fonction `chercherLesCopies(texte, regle)` exportée et testée seule : un texte qui contient le motif rend une occurrence ; le même texte dans un fichier propriétaire n'en rend aucune.
   - Lignes initiales, qui doivent passer sur l'arbre actuel (D-02, correctif commité) : `VARIABLES_DU_THEME` suivi de `.find(`, `.sort(` ou `.endsWith(` hors de `packages/kit/src/referentiel/theme.ts` et `packages/kit/src/emplois/dossiers.ts` ; ``endsWith(`/${`` dans `packages/kit/src/controles/`.
-- [ ] **U0.2** · `verificateur` · `npm test` à la racine. Critère : `reglesUniques` passe, aucun autre test ne change.
+- [x] **U0.2** (509c0445) · `verificateur` · `npm test` à la racine. Critère : `reglesUniques` passe, aucun autre test ne change.
 
 ---
 
@@ -159,7 +159,7 @@ Fichiers : `tests/reglesUniques.test.ts` (nouveau).
 
 Fichiers : `packages/kit/src/emplois/dossiers.ts`, `packages/kit/src/emplois/index.ts`, `packages/kit/tests/ciblesDuTheme.test.ts` (nouveau).
 
-- [ ] **I0.1** · `implementeur` · Tests rouges, puis ajouts à `dossiers.ts`, sans changer `cranDeLaVariable` ni `TABLE_DES_DOSSIERS` :
+- [x] **I0.1** (e2d7f5a8) · `implementeur` · Tests rouges, puis ajouts à `dossiers.ts`, sans changer `cranDeLaVariable` ni `TABLE_DES_DOSSIERS` :
 
   ```ts
   /** Les couleurs absolues de `utility/neutral`, par l'identifiant du registre `REGISTRE_COULEURS_ABSOLUES`. */
@@ -187,7 +187,7 @@ Fichiers : `packages/kit/src/emplois/dossiers.ts`, `packages/kit/src/emplois/ind
   2. pour chaque mode et chaque sens, `sensDuTheme(mode, texteDesBoutonsDuSens(mode, sens)) === sens` ;
   3. `cibleDeLaVariable` sur chaque variable de `VARIABLES_DU_THEME`, chaque mode, chaque sens : jamais `undefined` hors `elevation/*` ;
   4. les clés `white` et `black` égalent les identifiants de `REGISTRE_COULEURS_ABSOLUES`.
-- [ ] **I0.2** · `implementeur` (même appel) · Ajouter la déduction du sens (Q4) :
+- [x] **I0.2** (e2d7f5a8) · `implementeur` (même appel) · Ajouter la déduction du sens (Q4) :
 
   ```ts
   export type SensDeduit = SensDuTheme | 'ambigu' | 'inconnu';
@@ -207,8 +207,8 @@ Fichiers : `packages/kit/src/emplois/dossiers.ts`, `packages/kit/src/emplois/ind
   2. Dark : `solid/hover` 600, `page/foreground` 800, `ring` 700, `solid/foreground` white → `inverse` (`ring` 700 ne vote pas) ;
   3. `solid/hover` 800 et `page/foreground` 800 en Light → `ambigu` ;
   4. seulement `surface/default` et `surface/subtle` → `inconnu`.
-- [ ] **I0.3** · `executant` · Exporter les nouveaux noms par `packages/kit/src/emplois/index.ts` s'il ne réexporte pas tout `dossiers.ts`.
-- [ ] **I0.4** · `verificateur` · `npm test` dans `packages/kit`, puis `npm run typecheck`.
+- [x] **I0.3** (e2d7f5a8) · `executant` · Exporter les nouveaux noms par `packages/kit/src/emplois/index.ts` s'il ne réexporte pas tout `dossiers.ts`.
+- [x] **I0.4** (e2d7f5a8) · `verificateur` · `npm test` dans `packages/kit`, puis `npm run typecheck`.
 
 ---
 
@@ -237,15 +237,15 @@ Fichiers : `packages/kit/src/referentiel/reconnaissance.ts`, `packages/kit/src/r
 
 Agent : conversation principale. Vague 2, en parallèle de U1.
 
-- [ ] **M1.1** Figer l'état sombre de la galerie `packages/plugin-architect/galerie/etats/structure.cjs` et modifier son DOM ([Maquettes sur la galerie réelle]). Reprendre les cartes de modes et de scopes déjà construites à leur largeur (barre latérale de 640 px). Montrer :
+- [x] **M1.1** Figer l'état sombre de la galerie `packages/plugin-architect/galerie/etats/structure.cjs` et modifier son DOM ([Maquettes sur la galerie réelle]). Reprendre les cartes de modes et de scopes déjà construites à leur largeur (barre latérale de 640 px). Montrer :
   - onglet Corrections : intertitres « Variables manquantes » (une carte par rôle, ses lignes par palette, colonnes Aujourd'hui / Après l'application) et « Crans » (une carte par rôle et par mode), puis Modes et Scopes ;
   - onglet À faire dans Figma : intertitres « Variables manquantes », « Couches », « Modes », « Types », « Rangement » ;
   - le menu Ignorer d'une carte de variable manquante : « Pour cette palette » et « Dans tout le fichier » ;
   - le pied et la ligne de réussite après une création, avec la phrase de Q10 ;
   - le bouton « Tout désélectionner » de l'onglet Corrections (Q-14), et des cartes de crans dont les lignes arrivent décochées ;
   - la feuille de préparation du mode Composant avec la raison de Q9.
-- [ ] **M1.2** Textes du §5 posés mot pour mot. Lancer le contrôle de style des maquettes ([Maquettes en phrases simples]) et `galerie/comparer-maquette.cjs`.
-- [ ] **M1.3** Terminer la maquette par un tableau de questions. **Validation du mainteneur** : I7 et I8 ne partent pas avant.
+- [x] **M1.2** Textes du §5 posés mot pour mot. Lancer le contrôle de style des maquettes ([Maquettes en phrases simples]) et `galerie/comparer-maquette.cjs`.
+- [ ] **M1.3** ([MAQUETTE-INTEGRITE.html](./MAQUETTE-INTEGRITE.html), questions M-1 à M-4) Terminer la maquette par un tableau de questions. **Validation du mainteneur** : I7 et I8 ne partent pas avant.
 - [ ] **M1.4** Reporter au §5 les textes changés pendant la validation.
 
 ---
