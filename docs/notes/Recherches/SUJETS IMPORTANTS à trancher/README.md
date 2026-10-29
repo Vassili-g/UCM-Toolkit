@@ -561,7 +561,7 @@ Les thèmes inversés en Light ne sont pas mesurés.
 | Question | Fait | Recommandation |
 |---|---|---|
 | 4. L'appui de `surface` : hors des garanties, ou jugé à 3:1 | Le texte 700 passe 3:1 sur le 300 pour les 360 teintes, à 3,70 au minimum. Le Dark passe à 5,77 | Le juger à 3:1 : la garantie reste vérifiable et ne peut pas échouer |
-| 6. Un composant de la page posé dans un fond teinté, en Dark | Voir ci-dessous | `ring` au 800 en Dark pour l'anneau. Pour le texte, concevoir le mode du conteneur avant de choisir |
+| 6. Un composant de la page posé dans un fond teinté, en Dark | Voir ci-dessous | Les actions appartiennent au conteneur : `alert/action/*` vise `surface` |
 
 ### La décision 6
 
@@ -595,14 +595,43 @@ peut pas passer 4,5 sur le fond teinté 300 sans que l'un des deux change.
 sur la carte (4,56). L'anneau prend alors le cran du texte de la page. Le texte
 du composant reste à 3,39 sur le fond teinté.
 
-**Restent deux réponses pour le texte.**
+**Position du mainteneur.** Pas de mode de conteneur. La solution doit être
+simple.
 
-| Réponse | Mécanisme | Coût |
+**Piste : les actions appartiennent au conteneur.** Deux règles déjà posées
+suffisent :
+
+1. Une couleur appartient au fond qui est juste derrière elle (règle 1 du
+   sujet 9).
+2. Un calque prend les tokens de son propre composant, dans la collection
+   `components`.
+
+Les boutons et le lien d'une alerte sont des calques du composant Alerte. Ils
+prennent donc les tokens de l'Alerte : `alert/action/foreground`,
+`alert/action/border` et `alert/action/ring`. Ces tokens visent le fond qui
+est juste derrière : `surface/foreground`, `surface/border` et
+`surface/border`. Le Button garde ses propres tokens, qui visent `page`.
+
+| | Light | Dark |
 |---|---|---|
-| Mode du conteneur | Une collection `contexte`, entre `theme` et les tokens de composant, a deux modes : `page` et `surface`. Sa variable `{palette}/foreground` vaut `page/foreground` dans le mode `page` et `surface/foreground` dans le mode `surface`, de même pour le contour et l'anneau. Les tokens du bouton visent `contexte`. Le composant Alerte pose le mode `surface` sur son contenu, une fois. Un bouton posé dedans hérite de ce mode et prend les couleurs de `surface`, en Light comme en Dark. En code, l'alerte pose `data-contexte="surface"` | Une collection de plus, à deux modes. Les tokens de composant changent de cible. L'architecture des collections, Palettes, Architect et l'exporteur sont touchés. À concevoir et discuter avant toute décision |
-| Règle et contrôle | Un composant de la page ne se pose pas dans un fond teinté. Architect le signale | Le designer refait le composant dans l'alerte. Le défaut reste visible tant qu'il ne le fait pas |
+| Texte et contour des actions, sur le fond teinté | 700, comme `page` | 950, 9,47 au minimum |
+| Anneau des actions | 700, 4,95 au minimum | 950, 9,47 au minimum |
 
-Le mode du conteneur règle le problème sans changer une couleur.
+Aucune variable de `theme`, aucune variante, aucun mode et aucune couleur ne
+change. Dans l'alerte, le titre et les actions ont la même couleur, en Light
+comme en Dark. Un composant teinté qui porte des actions, comme une bannière ou
+un encart, fait de même.
+
+Coût : un Button posé librement dans une alerte garde ses tokens de la page et
+échoue en Dark. Architect peut le signaler : un calque lié à `page` sur un
+fond lié à `surface` enfreint la règle 1. Si l'Alerte imbrique une instance
+de Button, elle remplace les liaisons de couleur de cette instance par ses
+propres tokens. Comment Architect traite ces remplacements reste à vérifier.
+
+| Autre réponse | Raison de l'écarter |
+|---|---|
+| Mode du conteneur | Écarté par le mainteneur, qui veut une solution simple |
+| Règle seule | La piste ci-dessus applique déjà la règle, et donne au designer les tokens pour la suivre |
 
 Les thèmes inversés en Light ne sont pas mesurés. La mesure ne demande pas de
 décision.
