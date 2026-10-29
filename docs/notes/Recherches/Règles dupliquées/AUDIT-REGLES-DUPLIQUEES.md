@@ -1,20 +1,467 @@
 # Audit des règles dupliquées
 
-Reste : balayage de tous les paquets.
+Reste : `packages/couleur`, `packages/plugin-socle`, `packages/plugin-exporter`, `packages/plugin-palettes`, `packages/plugin-architect` ; dans le kit, `controles/` hors des familles 1, 4 et 6, et `lecteurs/`.
+
+Une règle est dupliquée quand au moins deux endroits la décident chacun de leur côté. Chaque fiche nomme les copies, prouve la divergence quand elle existe, propose un propriétaire et une loi anticopie. Une divergence « exécutée » vient d'un script lancé avec `tsx` sur les fonctions exportées du kit, ou sur le corps recopié de `HEAD` quand la fonction est privée. Une divergence « lue » vient de la lecture du code.
 
 ## Méthode
+
+### Arbre de travail
+
+L'audit lit `HEAD` (`abb21b6f`). D'autres sessions modifient le kit, Architect et Palettes pendant l'audit. Quand une fiche porte sur un fichier modifié, elle décrit `HEAD` et signale ce que l'arbre de travail change.
+
+### Carte de ce qui est déjà unique
+
+| Source | Contenu |
+|---|---|
+| `packages/kit/src/referentiel/index.ts` | registres de termes, `formeReconnue`, `termeReconnu`, `termePourCategorie`, `variableDuThemeReconnue`, `modeDuThemeReconnu`, `collectionUcmReconnue`, `sorteDeLImbrique` |
+| `packages/kit/src/emplois/` | `VARIABLES_DU_THEME`, `TABLE_DES_DOSSIERS`, `cranDeLaVariable`, `GARANTIES`, `contraste`, `aDixDecimales`, `atteintLeSeuil` |
+| `packages/kit/src/format/names.ts` | `normalizeName`, `codeIdentifier`, `estUneValeurDesactivee` |
+| `packages/couleur/src/index.ts` | réexporte `@ucm-kit/core/emplois` ; `ecrireContraste`, `ecrireTronque`, `estPaletteGrise`, conversions |
+| Lois existantes | `tests/referentielUnique.test.ts` (listes du référentiel), `packages/kit/tests/controlesSansTermeId.test.ts` (segment comparé à `terme.id`), `packages/plugin-socle/tests/imbriquesParLeKit.test.ts` et `packages/plugin-architect/tests/imbriquesParLeKit.test.ts` (sorte d'un imbriqué) |
+
+### Motifs lancés
+
+Sur chaque paquet, hors `dist/`, `node_modules/` et `_local/` :
+
+- termes : `toLowerCase\(\)`, `localeCompare`, `formeReconnue`, `termeReconnu`, `memeValeur`, littéraux `'(Pressed|press|Disabled|disable|hover|Hovered|Danger|error)'` ;
+- noms : `split\('/'\)`, `endsWith\(\`/`, `VARIABLES_DU_THEME`, `cleDuTheme`, `STATE_AXIS_NAMES`, `AXE_D_ETAT`, `SIZE_VALUES` ;
+- normalisation : `normalizePropKey`, `normalizePropValue`, `normalizeName`, `codeIdentifier`, `normalize\('NFKD'\)` ;
+- classifications : `/font\|text`, `lineHeight\|letterSpacing\|paragraph`, `estUneProprieteDeTexte`, `estUneValeurDesactivee`, `disabled` ;
+- couleur : `0\.2126`, `0\.03928`, `0\.04045`, `\+ 0\.05\)`, `contraste\(`, `aDixDecimales`, `toFixed`, `:1`, `Math\.floor\(.*100`, `C < 0\.0`, `CHROMA_` ;
+- garanties : `GARANTIES`, `endsWith\('/hover'\)`, `ETATS\.find`.
+
+### Fichiers lus par paquet
+
+| Paquet | Fichiers lus | Mode |
+|---|---|---|
+| `packages/kit/src/controles/` | `corrections.ts`, `mapping.ts`, `oublis.ts`, `nommage.ts`, `theme.ts`, `structure.ts`, `accessibilite.ts`, `couche.ts`, `propagation.ts`, `typographie.ts` (extraits) | audit direct |
+| `packages/kit/src/referentiel/`, `emplois/`, `format/names.ts` | `reconnaissance.ts`, `vocabulaire.ts`, `architecture.ts`, `theme.ts`, `normalisation.ts`, `dossiers.ts`, `garanties.ts`, `contraste.ts`, `names.ts` | audit direct |
+| `packages/cli` | 12 sur 25 | balayage `Explore`, puis vérification directe des candidats |
+| `packages/adapter-typescript` | 4 sur 24 | idem |
+| `packages/hub` | 5 sur 5 | idem |
+| `scripts/` | 4 sur 11 | idem |
+| `tests/` racine | 7 sur 26 | idem |
+
+Le balayage `Explore` a lu les fichiers où les motifs donnaient un résultat. Les fichiers sans occurrence n'ont pas été ouverts.
 
 ## Inventaire
 
 | Fiche | Règle | Famille | Copies | Divergence | Gravité |
 |---|---|---|---|---|---|
+| [D-01](#d-01) | Une valeur d'axe d'un variant correspond à un segment de token | termes | 4 | oui, exécutée | haute |
+| [D-02](#d-02) | Une fin de nom de `theme` désigne une variable du thème | noms | 2 à `HEAD`, 1 dans l'arbre | oui, exécutée | haute |
+| [D-03](#d-03) | Une propriété de variant est l'axe d'états | termes | 4 | oui, exécutée | haute |
+| [D-04](#d-04) | Une valeur d'état est interactive | termes | 2 | oui, exécutée | haute |
+| [D-05](#d-05) | Une valeur d'état est `disabled` | termes | 2 | partielle, exécutée | basse |
+| [D-06](#d-06) | Une valeur d'axe est une taille | termes | 2 | oui, exécutée | moyenne |
+| [D-07](#d-07) | Un champ lié est une propriété de typographie | classifications | 6 | oui, lue | haute |
+| [D-08](#d-08) | Un contraste s'affiche tronqué à deux décimales | couleur | 6 | oui, exécutée | moyenne |
+| [D-09](#d-09) | Luminance relative et contraste WCAG | couleur | 1 hors tests, 4 dans les tests | non | basse |
+| [D-10](#d-10) | L'encre lisible sur un fond, noir ou blanc | couleur | 5 | partielle, lue | basse |
+| [D-11](#d-11) | Un fond de garantie porte un état | garanties | 2 | non | basse |
+| [D-12](#d-12) | Une couleur de référence est un gris | couleur | 3 | oui, lue | moyenne |
+| [D-13](#d-13) | Le nom TypeScript d'un nom libre, en Pascal | normalisation | 2 | oui, exécutée | moyenne |
+| [D-14](#d-14) | Un nom de palette désigne un rôle de statut | termes | 2 | oui, lue | basse |
+| [D-15](#d-15) | Libellés des états | termes | 2 | oui, lue | basse |
+| [D-16](#d-16) | Règles recopiées dans les tests racine | tests | 4 | partielle, lue | moyenne |
 
 ## Fiches
 
+### D-01
+
+**Une valeur d'axe d'un variant correspond à un segment de token.** `Color=Error` d'un variant correspond au segment `Danger` d'un token, parce que `error` est une forme tolérée de `danger` dans `REGISTRE_PALETTES_COMPOSANT`.
+
+| Copie | Fonction | Axes reconnus par terme |
+|---|---|---|
+| `packages/kit/src/controles/corrections.ts:206` | `memeValeurDAxe` | état, taille, palette |
+| `packages/kit/src/controles/mapping.ts:27` | `memeValeur` | état, taille |
+| `packages/kit/src/controles/oublis.ts:9` | `memeValeur` | état, taille |
+| `packages/kit/src/controles/nommage.ts:226-228` | en ligne, dans `controlerNommageParEtapes` | état, taille ; deux valeurs inconnues sont égales |
+
+**Divergence exécutée.** Corps recopiés de `HEAD`, registres du kit :
+
+| Entrée | `corrections` | `mapping`, `oublis` | `nommage` (C7) |
+|---|---|---|---|
+| palette `Danger` / `Error` | vrai | faux | faux |
+| état `Pressed` / `press` | vrai | vrai | vrai |
+| état `Zorglub` / `Bidule` | faux | faux | vrai |
+| taille `Big` / `Huge` | faux | faux | faux |
+
+La copie de `nommage.ts` compare `termeReconnu(…)?.id` des deux côtés sans exiger un terme reconnu. Deux valeurs absentes du registre rendent `undefined === undefined`. Une valeur d'état inconnue du registre est donc couverte dès qu'un token porte un segment d'état inconnu, et C7 se tait.
+
+**Lecteurs touchés.** C7 (`nommage.ts`), C17 et C18 (`mapping.ts`, `porteLesValeursDeSonVariant`), C32 et C33 (`oublis.ts`), les corrections de taille (`corrections.ts`, `tokensDeTailleDuLayer`). Les 57 faux constats C32, C33 et C7 d'un jeu `Color=Error` lié à `Color/Danger/…` viennent des trois copies sans l'axe palette.
+
+**Arbre de travail.** `oublis.ts` appelle maintenant `memeValeur` aussi pour les axes des wrappers. La copie reste ; le correctif en cours en ajoute un appelant.
+
+**Propriétaire proposé.** `packages/kit/src/controles/nommage.ts`, à côté de `segmentDAxe` :
+
+```ts
+export function registreDeLAxe(axe: AxeDuComposant): Registre | undefined;
+export function memeValeurDAxe(axe: AxeDuComposant, segment: string, valeur: string): boolean;
+```
+
+`memeValeurDAxe` reprend le corps de `corrections.ts` : égalité de `formeReconnue`, puis même terme reconnu des deux côtés. `registreDeLAxe` rend le registre d'un axe (`REGISTRE_ETATS`, `REGISTRE_TAILLES`, `REGISTRE_PALETTES_COMPOSANT`, `REGISTRE_STYLES_COMPOSANT`).
+
+**Loi proposée.** `packages/kit/tests/valeurDAxeUnique.test.ts`, sur le modèle de `imbriquesParLeKit.test.ts` : aucun fichier de `packages/kit/src/controles/` hors de `nommage.ts` ne contient `termeReconnu(REGISTRE_ETATS`, `termeReconnu(REGISTRE_TAILLES` ni `axe === 'etat' ? REGISTRE_`. Un second test fixe la table ci-dessus sur `memeValeurDAxe`.
+
+**Migration.** Correction. C7, C17, C18, C32 et C33 disparaissent sur les jeux dont l'axe palette écrit une forme tolérée. C7 apparaît sur les valeurs d'état inconnues que la copie de `nommage.ts` taisait.
+
+**Risques.** Les constats changent : montée de version du kit. `projectionsDesControles.ts` reprend une session d'Architect avec des constats calculés par l'ancien kit ; la reprise doit recalculer ou accepter l'écart. Le format publié n'est pas touché.
+
+### D-02
+
+**Une fin de nom de `theme` désigne une variable du thème.** `Primary/Solid/Default` porte `solid/default`, quelle que soit l'écriture.
+
+| Copie à `HEAD` | Fonction | Écriture |
+|---|---|---|
+| `packages/kit/src/referentiel/theme.ts:82` | `variableDuThemeReconnue` | toute écriture, par `formeReconnue` |
+| `packages/kit/src/controles/theme.ts:201` | `cleDuTheme`, exportée | casse et séparateurs exacts |
+| `packages/kit/src/controles/structure.ts:333` | `cleDuTheme`, privée | casse et séparateurs exacts |
+
+**Divergence exécutée.**
+
+| Nom | `cleDuTheme` de `HEAD` | `variableDuThemeReconnue` |
+|---|---|---|
+| `primary/solid/default` | `solid/default` | `solid/default` |
+| `Primary/Solid/Default` | `undefined` | `solid/default` |
+| `Primary/Surface/Foreground` | `undefined` | `surface/foreground` |
+| `neutral/page/foregroundMain` | `undefined` | `page/foreground-main` |
+| `Elevation/Raised` | `undefined` | `elevation/raised` |
+
+**Lecteurs touchés.** `controles/theme.ts` (C59, C60, `estFondDeSurface`), `controles/structure.ts` (scopes du thème), `controles/accessibilite.ts:564` (rôle du fond mesuré), `plugin-architect/src/catalogue.ts:286` et `:315` (fonds de la page et de la carte).
+
+**Arbre de travail.** La copie privée de `structure.ts` disparaît ; `cleDuTheme` devient un alias de `variableDuThemeReconnue`. `controles/theme.ts` compare aussi les noms de cibles par `formeDuNom`, une forme de chemin segment par segment. Le test `themeReconnu.test.ts` vérifie l'égalité des deux fonctions sous chaque convention.
+
+**Propriétaire proposé.** `variableDuThemeReconnue`, déjà dans `referentiel/theme.ts`. `cleDuTheme` reste un alias exporté tant qu'Architect l'importe, ou disparaît (Q-02).
+
+**Loi proposée.** `packages/kit/tests/themeParLeReferentiel.test.ts` : aucun fichier de `packages/*/src/` ne contient `VARIABLES_DU_THEME` suivi de `.find(`, `.sort(` ou `endsWith(`, hors `referentiel/theme.ts` et `emplois/dossiers.ts`. Le motif `endsWith(\`/${` est refusé dans `controles/`. L'égalité `cleDuTheme === variableDuThemeReconnue` sous chaque convention, déjà écrite dans l'arbre, reste.
+
+**Migration.** Correction, déjà en cours. Les fichiers écrits en Pascal ou en camel gagnent C59, C60 et les fonds de garantie qu'ils perdaient.
+
+**Risques.** `formeDuNom` de `controles/theme.ts` est une deuxième forme de chemin, voisine de `signatureDeCible` (`mapping.ts:68`) et de `structure.ts:167` et `:320` (D-17, à rédiger).
+
+### D-03
+
+**Une propriété de variant est l'axe d'états.**
+
+| Copie | Fonction | Noms reconnus |
+|---|---|---|
+| `packages/kit/src/referentiel/vocabulaire.ts:40` | `STATE_AXIS_NAMES` | `state`, `states`, `status` |
+| `packages/kit/src/referentiel/vocabulaire.ts:116` | `REGISTRE_AXES_ETAT` | `state`, tolérés `states`, `status` |
+| `packages/kit/src/controles/nommage.ts:21` | `axeDePropriete` | `STATE_AXIS_NAMES` par `formeReconnue` |
+| `packages/kit/src/controles/accessibilite.ts:105` | `AXE_D_ETAT` | `/^(state\|etat\|état)$/i` |
+| `packages/plugin-socle/src/composant/analyse/proprietesEtEtats.ts:122` | `isStateProperty` | `STATE_AXIS_NAMES` sur `normalizePropKey` |
+
+**Divergence exécutée.**
+
+| Nom d'axe | `axeDePropriete` | `AXE_D_ETAT` | `isStateProperty(normalizePropKey)` |
+|---|---|---|---|
+| `States` | état | faux | vrai |
+| `Status` | état | faux | vrai |
+| `État` | aucun | vrai | faux |
+
+**Lecteurs touchés.** Avec `Status`, les contrôles d'accessibilité ne lisent aucun état : `estInteractif` rend faux et la cible tactile n'est pas contrôlée, alors que le nommage lit l'axe d'états. Avec `État`, l'accessibilité lit l'axe et le contrat publié n'en fait pas un `stateModel`.
+
+**Propriétaire proposé.** `REGISTRE_AXES_ETAT` et une fonction `estLAxeDEtats(nom: string): boolean` dans `referentiel/vocabulaire.ts`, par `termeReconnu`. `STATE_AXIS_NAMES` devient une projection du registre (`[id, ...toleres]`) ou disparaît.
+
+**Loi proposée.** `tests/axeDEtatsUnique.test.ts` à la racine : aucun fichier de `packages/*/src/` ne contient une expression régulière qui cite `state` ou `etat` comme nom d'axe, ni `STATE_AXIS_NAMES.includes`, hors `referentiel/vocabulaire.ts`.
+
+**Migration.** Correction pour l'accessibilité (constats ajoutés sur les jeux `Status` et `States`). Pour le socle, la sortie reste identique tant que la liste ne change pas. Ajouter `etat` aux tolérés changerait le contrat publié : Q-03.
+
+**Risques.** Le socle écrit le contrat. Un axe reconnu en plus déplace des props vers `stateModel` : champ publié, version du format.
+
+### D-04
+
+**Une valeur d'état est interactive.** Un jeu dont l'axe d'états porte autre chose que `default` est interactif, et la taille de sa cible se contrôle.
+
+| Copie | Fonction | Valeurs reconnues |
+|---|---|---|
+| `packages/kit/src/controles/accessibilite.ts:171` | `estInteractif` | `hover`, `pressed`, en minuscules exactes (`ETATS` de `emplois/dossiers.ts`) |
+| `packages/kit/src/controles/accessibilite.ts:166` | `etatDuVariant` | `toLowerCase()` de la valeur |
+| `packages/kit/src/referentiel/vocabulaire.ts:104` | `REGISTRE_ETATS` | six termes et leurs formes tolérées |
+| `packages/kit/src/controles/corrections.ts:277`, `:450` | littéraux `'hover'`, `'default'` | `formeReconnue` exacte |
+
+**Divergence exécutée.** `Hovered`, `Press` et `Focus` : `estInteractif` rend faux, `REGISTRE_ETATS` reconnaît `hover`, `pressed` et `focus`. Un bouton dont les variants sont `Default`, `Hovered`, `Press` n'a pas de contrôle de cible tactile. `ETATS` sert ailleurs aux dossiers du thème (`default`, `hover`, `pressed`) ; l'accessibilité l'emprunte pour une autre question.
+
+**Propriétaire proposé.** `termeReconnu(REGISTRE_ETATS, valeur)?.id` pour lire un état, partout. `estInteractif` lit le terme et le compare à `default`.
+
+**Loi proposée.** Dans `controles/`, refuser `ETATS` importé de `emplois/dossiers.js` hors de `theme.ts`, `preparation.ts` et `structure.ts`, et refuser la comparaison de `formeReconnue(…)` à un littéral d'état (`'hover'`, `'pressed'`, `'default'`, `'disabled'`, `'focus'`).
+
+**Migration.** Correction : contrôles de cible ajoutés sur les jeux à états tolérés. `corrections.ts:277` et `:450` reconnaissent `Hovered`.
+
+### D-05
+
+**Une valeur d'état est `disabled`.**
+
+| Copie | Fonction |
+|---|---|
+| `packages/kit/src/format/names.ts:119` | `estUneValeurDesactivee`, `/^disabl(?:e\|ed)$/i` |
+| `packages/kit/src/referentiel/vocabulaire.ts:104` | terme `disabled` de `REGISTRE_ETATS`, toléré `disable` |
+
+**Divergence exécutée.** `Disabled`, `disable`, `DISABLED ` : les deux répondent oui. `Is Disabled`, `disabled-true` : les deux répondent non. Aucune entrée trouvée ne les sépare. Une forme tolérée ajoutée au registre ne passerait pas dans le format.
+
+**Lecteurs touchés.** Socle (`proprietesEtEtats.ts`, `extractSamples.ts`, `template/modele.ts`) : la prop `disabled` du contrat. Hub : `ETATS_DU_BOUTON` (`page.ts:187`) écrit `disabled` en littéral pour la démonstration.
+
+**Propriétaire proposé.** `estUneValeurDesactivee` reste dans `format/names.ts`, autorité du format. Son corps devient `termeReconnu(REGISTRE_ETATS, valeur)?.id === 'disabled'`.
+
+**Loi proposée.** Un test du kit fixe l'égalité des deux sur les termes et tolérés de `REGISTRE_ETATS` et sur une liste d'entrées. Pas de loi anticopie de fichier : une seule copie existe hors du registre.
+
+**Migration.** Sortie identique.
+
+**Risques.** `format/` importerait `referentiel/` : vérifier que le sens d'import est admis par `packages/kit/invariants/`.
+
+### D-06
+
+**Une valeur d'axe est une taille.**
+
+| Copie | Fonction | Valeurs |
+|---|---|---|
+| `packages/kit/src/referentiel/vocabulaire.ts:43` | `SIZE_VALUES` | `tiny`, `huge`, `big`, `xxl`… et les abréviations |
+| `packages/kit/src/referentiel/vocabulaire.ts:131` | `REGISTRE_TAILLES` | abréviations ; tolérés `small`, `medium`, `large`, `big`, `xxl`, `xxxl` |
+| `packages/plugin-socle/src/composant/analyse/proprietesEtEtats.ts:131` | `semanticEnumName` | `SIZE_VALUES` sur `normalizePropValue` |
+| `packages/kit/src/controles/nommage.ts:24` | `axeDePropriete` | noms d'axe `size`, `sizes`, `taille` |
+
+**Divergence exécutée.** `Huge` et `tiny` : `SIZE_VALUES` vrai, `REGISTRE_TAILLES` aucun terme. Un axe `Size=Tiny|Huge` devient `size` dans le contrat, et le contrôle de nommage ne reconnaît aucune de ses valeurs comme taille.
+
+**Propriétaire proposé.** `REGISTRE_TAILLES`. `SIZE_VALUES` devient une projection du registre (ids et tolérés), ou le registre reçoit `tiny` et `huge` (Q-04).
+
+**Loi proposée.** `tests/referentielUnique.test.ts` reçoit `SIZE_VALUES` : la liste doit égaler la projection du registre.
+
+**Migration.** Selon Q-04 : sortie du contrat identique si le registre s'élargit ; contrat changé si `SIZE_VALUES` se réduit.
+
+### D-07
+
+**Un champ lié est une propriété de typographie.**
+
+| Copie | Fonction | Champs |
+|---|---|---|
+| `packages/kit/src/controles/couche.ts:17` | `natureDeLaLiaison` | `/font\|text/i` : `lineHeight`, `letterSpacing`, `paragraphSpacing` tombent en dimension |
+| `packages/kit/src/controles/couche.ts:24` | `estUneProprieteDeTexte` | `/font\|text\|lineHeight\|letterSpacing\|paragraph/i` |
+| `packages/kit/src/controles/propagation.ts:84` | `sorteDeLaLiaison` | même expression que `estUneProprieteDeTexte`, recopiée |
+| `packages/kit/src/controles/typographie.ts:17` | `CHAMPS_DE_TYPOGRAPHIE` | six champs, sans `paragraphSpacing` ni `paragraphIndent` |
+| `packages/plugin-architect/src/composant.ts:87` | `POLICES` | huit champs |
+| `packages/plugin-architect/src/consommateurs.ts:126` | `CHAMPS_DE_TEXTE` | les mêmes huit |
+
+**Divergence lue.** `lineHeight` : `natureDeLaLiaison` rend `dimension`, les cinq autres le rangent en typographie. Le commentaire de `estUneProprieteDeTexte` constate l'écart et le compense pour C80. `paragraphSpacing` : absent de `CHAMPS_DE_TYPOGRAPHIE`, présent ailleurs. L'expression régulière accepte aussi un champ inconnu qui contient `text` (`textRangeFills`, lu ailleurs comme une peinture par `consommateurs.ts:125`).
+
+**Lecteurs touchés.** C80 (`couche.ts`), propositions de propagation (`propagation.ts`), contrôles de typographie, natures affichées par Architect.
+
+**Propriétaire proposé.** `packages/kit/src/referentiel/` ou `controles/releve.ts` : une liste `CHAMPS_DE_TYPOGRAPHIE` des champs Figma liables d'un texte, et `natureDuChamp(champ: string, type: string): 'couleur' | 'typographie' | 'dimension'`. Architect importe la liste.
+
+**Loi proposée.** Refuser, dans `packages/*/src/`, une expression régulière qui contient `font` et `text`, et toute liste littérale contenant `'letterSpacing'` hors du propriétaire et du socle (le socle porte le contrat, Q-05).
+
+**Migration.** Correction : `natureDeLaLiaison` range `lineHeight` en typographie, ce qui change la nature de C80 sur ces liaisons. Le reste est à sortie identique.
+
+### D-08
+
+**Un contraste s'affiche tronqué à deux décimales.** 4,499 s'affiche `4,49` et n'atteint pas 4,5 ([MOT-22]).
+
+| Copie | Fonction | Calcul |
+|---|---|---|
+| `packages/couleur/src/contraste.ts:28` | `ecrireTronque`, `ecrireContraste` | `aDixDecimales`, coupe, virgule |
+| `packages/plugin-architect/src/contraste.ts:30` | `ratioAffiche` | même calcul, recopié |
+| `packages/kit/src/lecteurs/diagnostic-contrastes.mjs:204` | `contrasteEcrit` | même calcul par expression régulière |
+| `packages/kit/src/controles/accessibilite.ts:629` | `sansArrondi` | `Math.floor(rapport * 100) / 100` |
+| `packages/plugin-architect/src/ui/ignores/modele.ts:160` | `rapportEnTexte` | `String(valeur)` et virgule, sans troncature |
+| `packages/plugin-palettes/src/i18n/nombres.ts:15` | `contraste` | appelle `ecrireContraste`, change le séparateur |
+
+**Divergence exécutée.**
+
+| Ratio | `aDixDecimales` tronqué | `Math.floor(r * 100) / 100` | `String(r)` |
+|---|---|---|---|
+| 4.35 | `4,35` | 4.34 | `4,35` |
+| 4.499999999999 | `4,50` | 4.49 | `4,499999999999` |
+
+`sansArrondi` reproduit l'erreur que `aDixDecimales` évite. Le fait `rapport` du constat de contraste vaut donc parfois un centième de moins que l'affichage de Palettes pour la même paire. `rapportEnTexte` affiche le fait tel quel : il hérite de l'écart de `sansArrondi`, et afficherait toutes les décimales d'un fait non tronqué.
+
+**Lecteurs touchés.** Constats d'accessibilité (fait `rapport`, `rapports`), panneau des constats ignorés d'Architect, diagnostic des contrastes du CLI.
+
+**Propriétaire proposé.** `packages/kit/src/emplois/contraste.ts` : `contrasteTronque(x: number, decimales = 2): number` et `ecrireContraste(x: number, separateur = ','): string`. `ucm-couleur` les réexporte déjà par `emplois`.
+
+**Loi proposée.** Refuser, hors de `emplois/contraste.ts`, `aDixDecimales(…).split('.')`, `aDixDecimales(…).replace(` et `Math.floor(… * 100) / 100` dans `packages/*/src/`.
+
+**Migration.** Correction pour `sansArrondi` : quelques faits `rapport` gagnent un centième. Sortie identique pour les autres.
+
+**Risques.** `rapport` est un fait de constat, lu par Architect et par la reprise de session (`projectionsDesControles.ts`).
+
+### D-09
+
+**Luminance relative et contraste WCAG.** Le kit les porte une fois (`emplois/contraste.ts:15-40`), et `ucm-couleur`, Architect et le hub l'importent.
+
+| Copie | Rôle |
+|---|---|
+| `packages/couleur/planche/page.js:6-18` | script de la planche, copié tel quel dans la page HTML |
+| `packages/plugin-palettes/tests/interface/interface.test.mjs:263`, `:5497` | contrôle dans le navigateur |
+| `packages/plugin-palettes/tests/roueDesTeintes.test.ts:98` | test |
+| `packages/kit/tests/accessibilite.test.ts:157`, `:170`, `:798` | fabrique de couleurs au contraste voulu |
+
+**Divergence.** Aucune : mêmes constantes, même formule.
+
+**Propriétaire.** `emplois/contraste.ts`, inchangé. `page.js` tourne dans la page générée, sans import : `generer-planche.ts` peut y injecter le corps de `contraste` comme il injecte les données (Q-06). Les tests du navigateur ont la même contrainte.
+
+**Loi proposée.** Refuser `0.2126` hors de `emplois/contraste.ts`, sauf dans une liste d'exceptions qui nomme chaque fichier et sa raison.
+
+**Migration.** Sortie identique.
+
+### D-10
+
+**L'encre lisible sur un fond, noir ou blanc.**
+
+| Copie | Fonction | À égalité |
+|---|---|---|
+| `packages/hub/src/vues/page.ts:127` | `encreSur` | blanc |
+| `packages/couleur/planche/page.js:19` | `encreSur` | noir |
+| `packages/plugin-palettes/src/planche/modele.ts:204` | sans nom | noir |
+| `packages/plugin-palettes/src/ui/nuancier.ts:827` | pastille | noir |
+| `packages/plugin-palettes/src/ui/nuancier.ts:113` | `sombre` | compare `[30,30,30]` et `[245,245,245]` |
+
+**Divergence lue.** L'égalité exacte n'arrive pas sur des octets : l'écart est théorique. `nuancier.ts:113` pose une autre question, avec d'autres encres ; ce n'est pas la même règle.
+
+**Propriétaire proposé.** `emplois/contraste.ts` : `encreLisible(fond: Rgb8): 'noir' | 'blanc'`.
+
+**Loi proposée.** Refuser `contraste(…, [0, 0, 0]) >= contraste(…, [255, 255, 255])` et l'inverse hors du propriétaire.
+
+**Migration.** Sortie identique.
+
+### D-11
+
+**Un fond de garantie porte un état.** `surface/hover` est le fond de l'état `hover`.
+
+| Copie | Fonction |
+|---|---|
+| `packages/plugin-palettes/src/ui/modeleDesGaranties.ts:24` | `colonneDuFond`, `ETATS.find(… endsWith)` |
+| `packages/hub/src/modele/modele.ts:258` | `fondsGardes`, `endsWith('/hover')`, `endsWith('/pressed')` |
+| `packages/kit/src/controles/theme.ts:93` | `estFondDeSurface`, `/^surface\/(default\|hover\|pressed)$/` |
+
+**Divergence.** Aucune aujourd'hui : les noms viennent de `GARANTIES`, en minuscules.
+
+**Propriétaire proposé.** `emplois/garanties.ts` : `etatDuFond(fond: FondDeGarantie): Etat | 'page' | 'carte'`.
+
+**Loi proposée.** Refuser `endsWith('/hover')` et `endsWith('/pressed')` dans `packages/*/src/`.
+
+**Migration.** Sortie identique.
+
+### D-12
+
+**Une couleur de référence est un gris.**
+
+| Copie | Seuil |
+|---|---|
+| `packages/couleur/src/palette.ts:140` | `estPaletteGrise` : R, G et B égaux sur toutes les rampes |
+| `packages/hub/src/modele/modele.ts:112` | `CHROMA_DES_GRIS = 0.05` |
+| `packages/hub/src/modele/modele.ts:418` | `familleTailwindProche` : `C < 0.04` |
+
+**Divergence lue.** Une référence de chroma 0,045 est grise pour `modele.ts:211` et colorée pour `familleTailwindProche`. Le hub la range avec les gris et lui cherche une famille Tailwind colorée.
+
+**Propriétaire proposé.** `ucm-couleur` : `estReferenceGrise(reference: Rgb8): boolean`, un seul seuil. `estPaletteGrise` répond à une autre question (rampes déjà calculées) et reste.
+
+**Loi proposée.** Refuser `.C < 0.0` dans `packages/hub/src/` et `packages/plugin-*/src/`.
+
+**Migration.** Correction dans le hub seulement.
+
+### D-13
+
+**Le nom TypeScript d'un nom libre, en Pascal.**
+
+| Copie | Fonction |
+|---|---|
+| `packages/kit/src/format/names.ts:12` | `codeIdentifier` |
+| `packages/adapter-typescript/src/generation.mjs:11` | `pascal` |
+
+**Divergence exécutée.** `libellé` : `pascal` rend `Libell`, `codeIdentifier` rend `Libelle`. `2xl` : `pascal` rend `2xl`, un identifiant TypeScript invalide ; `codeIdentifier` rend `Component2xl`.
+
+**Lecteurs touchés.** Noms des types d'enum générés par l'adaptateur (`${composant}${pascal(prop)}`).
+
+**Propriétaire proposé.** `codeIdentifier`, autorité du format.
+
+**Loi proposée.** Refuser une fonction `pascal` ou `toUpperCase()` après `[^a-zA-Z0-9]` dans `packages/adapter-typescript/src/` et `packages/cli/src/`.
+
+**Migration.** Correction : un type d'enum nommé depuis une prop accentuée change de nom dans le code généré. Le paquet adaptateur monte de version.
+
+### D-14
+
+**Un nom de palette désigne un rôle de statut.**
+
+| Copie | Fonction |
+|---|---|
+| `packages/kit/src/referentiel/architecture.ts` | `REGISTRE_STATUTS`, tolérés comme `error` |
+| `packages/hub/src/vues/page.ts:61` | `ROLES`, expressions régulières par teinte (`red`, `poppy`, `crimson`…) |
+
+**Divergence lue.** Le hub reconnaît par teinte, le registre par terme. `Poppy` est `danger` pour le hub et inconnu du registre. Le hub est une page de démonstration ; le rôle n'y produit aucun constat.
+
+**Propriétaire proposé.** Le registre pour les termes. Les teintes restent au hub si le mainteneur garde cette devinette de démonstration (Q-07).
+
+**Migration.** Sortie identique si les termes passent par le registre et les teintes restent au hub.
+
+### D-15
+
+**Libellés des états.**
+
+| Copie | Libellés |
+|---|---|
+| `packages/kit/src/referentiel/vocabulaire.ts:104` | Par défaut, Survol, Focus, Pressé, Désactivé |
+| `packages/hub/src/vues/page.ts:187` | Repos, Survol, Focus, Appui, Désactivé |
+
+**Divergence lue.** Deux libellés sur cinq diffèrent.
+
+**Propriétaire proposé.** `libelle.fr` de `REGISTRE_ETATS`.
+
+**Loi proposée.** `tests/referentielUnique.test.ts` couvre déjà les listes de termes ; y ajouter les libellés.
+
+**Migration.** Texte du hub changé.
+
+### D-16
+
+**Règles recopiées dans les tests racine.**
+
+| Copie | Règle |
+|---|---|
+| `tests/loisEntreProduits.test.ts:51`, `:99`, `:206-208`, `:260`, `:297`, `:402` | égalité de noms par `toLowerCase()`, à la place de `formeReconnue` |
+| `tests/fabriquesDeFichiers.ts:194` | cinq variables du thème en littéral |
+| `tests/nomsDePalettes.test.ts:32` | les onze crans en littéral |
+| `tests/referentielUnique.test.ts:23` | `ETATS`, sept mots en littéral |
+
+**Divergence lue.** `toLowerCase()` ne reconnaît pas `foregroundMain` comme `foreground-main`. Une loi entre produits qui compare ainsi passe sur des fixtures en minuscules et ne dit rien d'un fichier en camel.
+
+**Propriétaire proposé.** Les tests importent `formeReconnue`, `VARIABLES_DU_THEME` et `CRANS`.
+
+**Loi proposée.** Étendre `tests/referentielUnique.test.ts` aux fichiers de `tests/` racine, avec une liste d'exceptions nommées (le détecteur lui-même).
+
+**Migration.** Tests seulement.
+
 ## Non-doublons
+
+| Apparence | Raison |
+|---|---|
+| Forge du CLI (`packages/cli/src/init.mjs:166`) et hôtes de l'exporteur (`packages/plugin-exporter/src/config.ts:85`) | Le CLI accepte une instance GitLab auto-hébergée ; le réseau du plugin se limite à `gitlab.com`. Deux règles différentes |
+| Pin du CLI (`packages/cli/src/guide.mjs:195`) et pins servis (`scripts/pins-servis.mjs:37`) | Le premier lit le numéro de `@ucm-kit/cli` dans un repository consommateur ; le second relève tous les pins des documents de ce dépôt |
+| `normalizePropKey` (socle) et `formeReconnue` (kit) | Le premier produit la clé camel publiée dans le contrat, le second une forme de reconnaissance. Ils ne répondent pas à la même question ; D-03 traite le seul cas où l'un remplace l'autre |
+| `estPaletteGrise` et le seuil de chroma du hub | Rampes calculées contre couleur de référence (D-12 garde le seul seuil du hub) |
+| `nuancier.ts:113` et l'encre lisible | Autres encres, autre question (D-10) |
 
 ## Documents en contradiction
 
+| Document | Passage | Règle contredite |
+|---|---|---|
+| (à compléter avec les paquets restants) | | |
+
 ## Questions au mainteneur
 
+**Q-01.** Les constats C7, C17, C18, C32 et C33 changent avec D-01. Monter le kit en mineure et laisser la reprise de session d'Architect recalculer, ou garder les anciens constats d'une session reprise ? Recommandation : recalculer ; `projectionsDesControles.ts` relit déjà le relevé.
+
+**Q-02.** `cleDuTheme` reste-t-il un nom exporté du kit ? Options : alias permanent ; retrait au profit de `variableDuThemeReconnue`, Architect migré dans le même lot. Recommandation : retrait, un nom par règle.
+
+**Q-03.** L'axe d'états reconnaît-il `État` et `Etat` ? Options : oui, toléré dans `REGISTRE_AXES_ETAT`, et le contrat publie `stateModel` pour ces jeux ; non, et l'accessibilité cesse de les lire. Recommandation : oui, les fichiers français existent et l'accessibilité les lit déjà.
+
+**Q-04.** `tiny` et `huge` sont-ils des tailles UCM ? Options : tolérés de `xs` et `xl` (ou termes à part) ; retirés de `SIZE_VALUES`, et le contrat cesse de nommer `size` ces axes. Recommandation : termes tolérés, pour garder le contrat publié.
+
+**Q-05.** La liste des champs de typographie appartient-elle au socle (contrat) ou au kit (contrôles) ? Recommandation : au kit, dans le référentiel ; le socle et Architect l'importent.
+
+**Q-06.** La planche et les tests du navigateur recalculent le contraste sans import. Injecter le corps du kit à la génération, ou garder ces copies sous une loi qui les compare au kit ? Recommandation : injection pour la planche, comparaison pour les tests.
+
+**Q-07.** Le hub devine le rôle d'une palette par sa teinte. Garder cette devinette, propre à la démonstration ?
+
 ## Ordre proposé
+
+(à compléter quand tous les paquets sont balayés)
