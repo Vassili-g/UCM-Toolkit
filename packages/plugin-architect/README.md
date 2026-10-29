@@ -97,8 +97,9 @@ couleur, forme, espacement, taille, texte.
   sélectionne aucun composant, et sa bulle le dit. Configuration s'ouvre dans
   le mode actif : à la place de la vue, ou du panneau quand il est ouvert. Le
   bouton est une bascule, et un second clic ferme la Configuration.
-- **Constats.** Le bouton ouvre le panneau des constats, à droite de la vue, et
-  la fenêtre passe à 1144 × 760 sans ranger cette taille : la vue garde ses
+- **Constats.** Le bouton ouvre le panneau des constats, à droite de la vue ; la
+  première analyse d'un composant l'ouvre aussi. La
+  fenêtre passe à 1144 × 760 sans ranger cette taille : la vue garde ses
   500 px, le panneau en prend 640. Sa pastille compte
   les constats de la dernière analyse, dans la couleur du plus grave. La
   frontière entre la vue et le panneau se tire à la souris ou aux flèches.

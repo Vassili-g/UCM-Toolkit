@@ -95,7 +95,7 @@ const nomenclature = monterNomenclature(hoteDeNomenclature, versSandbox, {
   rechercherLeTerme: (mot, formes) => app.rechercherLeTerme(mot, formes),
   collerUnePreparation: () => {
     app.changerDisposition('etroite');
-    // La zone de texte vit dans le panneau des constats, que le mode Composant garde fermé à l'ouverture.
+    // La zone de texte vit dans le panneau des constats, que le mode Composant garde fermé jusqu'à la première analyse.
     if (!etat.panneau.ouvert) app.basculerLePanneau();
     preparation.ouvrirPourColler();
   },

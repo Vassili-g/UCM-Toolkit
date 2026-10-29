@@ -10,7 +10,7 @@ import { contexteDeColonne, type Resultat } from '../resolution';
 import type { IntentionDAnalyse } from '../messages/analyse';
 import type { Constat } from '../messages/commun';
 import type { MessageDeRapport } from '../messages/rapport';
-import { analyseApplicable, calculEnCours, noterLEnvoi, noterLaDemandeDAnalyse, demandeDAnalyseEnCours } from './composant/analyse';
+import { analyseApplicable, calculEnCours, noterLEnvoi, noterLaDemandeDAnalyse, demandeDAnalyseEnCours, selectionSurLAnalyse } from './composant/analyse';
 import type { Etat, Filtres } from './etat';
 import { PREFIXE_TERME, retenirLesFormes } from './recherche/requete';
 import { versSandbox } from './pont';
@@ -233,6 +233,9 @@ export function creerApplication(etat: Etat, branchements: () => Branchements): 
     },
     analyser(intention = 'analyser') {
       if (demandeDAnalyseEnCours(etat) !== null) return;
+      // La première analyse d'un composant ouvre le panneau des constats ; Actualiser et une nouvelle analyse du même composant le laissent tel quel.
+      const premiere = etat.analyse === null || !selectionSurLAnalyse(etat.analyse, etat.composant.selection?.id ?? null);
+      if (premiere && etat.disposition === 'etroite' && !etat.panneau.ouvert) app.basculerLePanneau();
       const demande = app.nouvelleDemande();
       const mesurer = (globalThis as typeof globalThis & { UCM_ARCHITECT_MESURER?: boolean }).UCM_ARCHITECT_MESURER === true;
       noterLaDemandeDAnalyse(etat, demande, mesurer);

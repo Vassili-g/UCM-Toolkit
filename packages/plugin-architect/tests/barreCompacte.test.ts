@@ -1,7 +1,7 @@
 /**
  * La barre du mode Composant : sans logo ni nom, Analyser avec son libellé, Constats et Configuration en icône. Analyser se grise
  * quand Figma dit qu'aucun composant n'est sélectionné, et reste actif tant que la sélection est inconnue. Configuration est une bascule.
- * Analyser ne touche pas au panneau des constats.
+ * La première analyse d’un composant ouvre le panneau des constats ; une nouvelle analyse du même composant n’y touche pas.
  */
 import assert from 'node:assert/strict';
 import test from 'node:test';
@@ -13,6 +13,7 @@ poserLeDom();
 import type { UiRequest } from '../src/messages';
 import { creerApplication } from '../src/ui/application';
 import { creerBarre } from '../src/ui/barre';
+import { recevoirUneAnalyse } from '../src/ui/composant/analyse';
 import { etatInitial } from '../src/ui/etat';
 import { TEXTES } from '../src/ui/textes';
 
@@ -88,16 +89,26 @@ test('un clic sur Analyser grisé n’envoie rien', () => {
   assert.equal(envois.some((message) => message.type === 'analyser'), false);
 });
 
-test('Analyser ne change pas l’état du panneau des constats (U1.5)', () => {
+test('la première analyse d’un composant ouvre le panneau des constats et la fenêtre à 1144 px ; un panneau ouvert le reste', () => {
   for (const ouvert of [false, true]) {
     const { etat, analyser, relire, envois } = monter();
     etat.panneau = { ...etat.panneau, ouvert };
-    const avant = { ...etat.panneau };
     relire();
     analyser.clic();
     assert.equal(envois.some((message) => message.type === 'analyser'), true, 'la demande est partie');
-    assert.deepEqual(etat.panneau, avant);
+    assert.equal(etat.panneau.ouvert, true);
+    assert.equal(envois.filter((message) => message.type === 'resize').length, ouvert ? 0 : 1);
   }
+});
+
+test('une nouvelle analyse du même composant laisse le panneau fermé', () => {
+  const { etat, analyser, relire, envois } = monter();
+  recevoirUneAnalyse(etat, { type: 'analyse', analyse: { sujet: 'Alert', generation: 1 }, statut: 'complete', constats: [], lecture: null, variants: [], sansTokens: false });
+  relire();
+  analyser.clic();
+  assert.equal(envois.some((message) => message.type === 'analyser'), true, 'la demande est partie');
+  assert.equal(etat.panneau.ouvert, false);
+  assert.equal(envois.some((message) => message.type === 'resize'), false);
 });
 
 test('Configuration est une bascule : aria-pressed suit l’ouverture, le second clic ferme', () => {
