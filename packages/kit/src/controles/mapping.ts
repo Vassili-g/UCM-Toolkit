@@ -1,9 +1,9 @@
 /** Écarts entre les liaisons lues et les axes, rôles et portées du composant. */
 import { formeReconnue, termeReconnu } from '../referentiel/reconnaissance.js';
-import { REGISTRE_ETATS, REGISTRE_ROLES, REGISTRE_TAILLES } from '../referentiel/vocabulaire.js';
+import { REGISTRE_ROLES } from '../referentiel/vocabulaire.js';
 import { collectionParCle, variableDuCatalogue, type CatalogueDeReference, type VariableDuCatalogue } from './catalogue.js';
 import type { Constat } from './constat.js';
-import { axesDuReleveParEtapes, constatDuComposant, segmentDAxe, tokensDuComposantParEtapes, type AxeDuComposant, type ProprieteDAxe, type TokenDuComposant } from './nommage.js';
+import { axesDuReleveParEtapes, constatDuComposant, estDuComposant, memeValeurDAxe, segmentDAxe, tokensDuComposantParEtapes, type AxeDuComposant, type ProprieteDAxe, type TokenDuComposant } from './nommage.js';
 import type { LayerLu, LiaisonLue, ReleveDeComposant, VariantLu } from './releve.js';
 
 export interface LiaisonDuComposant { variant: VariantLu; layer: LayerLu; liaison: LiaisonLue }
@@ -22,13 +22,6 @@ function* parcourirLesLiaisons(releve: ReleveDeComposant): Generator<LiaisonDuCo
       for (const liaison of layer.liaisons) yield { variant, layer, liaison };
     }
   }
-}
-
-function memeValeur(axe: AxeDuComposant, gauche: string, droite: string): boolean {
-  const registre = axe === 'etat' ? REGISTRE_ETATS : axe === 'taille' ? REGISTRE_TAILLES : null;
-  const termeGauche = registre && termeReconnu(registre, gauche)?.id;
-  const termeDroite = registre && termeReconnu(registre, droite)?.id;
-  return !!(termeGauche && termeDroite && termeGauche === termeDroite) || formeReconnue(gauche) === formeReconnue(droite);
 }
 
 /** Le layer que la liaison peint : celui de l'instance qu'une surcharge lie, sinon le layer lu. */
@@ -100,7 +93,7 @@ function* porteLesValeursDeSonVariant(
     const dansLeToken = segmentDAxe(token, axe);
     const dansLeVariant = variant.valeurs[propriete.nom];
     if (!dansLeToken || !dansLeVariant) continue;
-    if (!memeValeur(axe, dansLeToken, dansLeVariant)) return false;
+    if (!memeValeurDAxe(axe, dansLeToken, dansLeVariant)) return false;
     lus += 1;
   }
   return lus > 0;
@@ -183,11 +176,11 @@ export function* controlerMappingParEtapes(releve: ReleveDeComposant, catalogue:
         yield;
         const dansLeToken = segmentDAxe(token, axe);
         const dansLeVariant = variant.valeurs[propriete.nom];
-        if (!dansLeToken || !dansLeVariant || memeValeur(axe, dansLeToken, dansLeVariant)) continue;
+        if (!dansLeToken || !dansLeVariant || memeValeurDAxe(axe, dansLeToken, dansLeVariant)) continue;
         let appartientALAxe = false;
         for (const valeur of propriete.valeurs ?? []) {
           yield;
-          if (memeValeur(axe, valeur, dansLeToken)) { appartientALAxe = true; break; }
+          if (memeValeurDAxe(axe, valeur, dansLeToken)) { appartientALAxe = true; break; }
         }
         if (!appartientALAxe) continue;
         const code = axe === 'etat' ? 'C16' : 'C15';
@@ -212,7 +205,7 @@ export function* controlerMappingParEtapes(releve: ReleveDeComposant, catalogue:
       }
     } else {
       const collection = collectionParCle(catalogue, variable.collection);
-      if (collection?.role === 'components' && formeReconnue(variable.nom.split('/')[0]) !== formeReconnue(releve.jeu.nom)) {
+      if (collection?.role === 'components' && !estDuComposant(variable.nom, releve.jeu.nom)) {
         constats.push(constatDuComposant('C19', 'liaisons', 'corriger', lieu, { token: variable.nom, composant: releve.jeu.nom }, [variant.id], [layer.id]));
       }
     }

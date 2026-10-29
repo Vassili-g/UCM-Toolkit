@@ -1,17 +1,8 @@
 /** Matrice des variants et couverture des tokens du catalogue. */
-import { formeReconnue, termeReconnu } from '../referentiel/reconnaissance.js';
-import { REGISTRE_ETATS, REGISTRE_TAILLES } from '../referentiel/vocabulaire.js';
 import type { CatalogueDeReference } from './catalogue.js';
 import type { Constat } from './constat.js';
-import { axesDesProprietes, axesDuReleve, axesDuReleveParEtapes, constatDuComposant, tokensDuComposantParEtapes, type AxeDuComposant, type TokenDuComposant } from './nommage.js';
+import { axesDesProprietes, axesDuReleve, axesDuReleveParEtapes, constatDuComposant, memeValeurDAxe, tokensDuComposantParEtapes, type AxeDuComposant, type TokenDuComposant } from './nommage.js';
 import type { ReleveDeComposant, VariantLu, WrapperLu } from './releve.js';
-
-function memeValeur(axe: AxeDuComposant, gauche: string, droite: string): boolean {
-  const registre = axe === 'etat' ? REGISTRE_ETATS : axe === 'taille' ? REGISTRE_TAILLES : null;
-  const premier = registre && termeReconnu(registre, gauche)?.id;
-  const second = registre && termeReconnu(registre, droite)?.id;
-  return !!(premier && second && premier === second) || formeReconnue(gauche) === formeReconnue(droite);
-}
 
 function* tokenDuVariant(
   token: TokenDuComposant, variant: VariantLu,
@@ -26,7 +17,7 @@ function* tokenDuVariant(
       segment = token.segments[rang];
       break;
     }
-    if (segment && !(variant.valeurs[propriete.nom] && memeValeur(axe, segment, variant.valeurs[propriete.nom]))) return false;
+    if (segment && !(variant.valeurs[propriete.nom] && memeValeurDAxe(axe, segment, variant.valeurs[propriete.nom]))) return false;
   }
   return true;
 }
@@ -166,7 +157,7 @@ export function* controlerOublisParEtapes(releve: ReleveDeComposant, catalogue: 
         for (const variant of wrapper.variants) {
           yield;
           const valeur = variant.valeurs[propriete.nom];
-          if (!valeur || !memeValeur(segment.role as AxeDuComposant, token.segments[rang], valeur)) continue;
+          if (!valeur || !memeValeurDAxe(segment.role as AxeDuComposant, token.segments[rang], valeur)) continue;
           porte = true;
           break;
         }

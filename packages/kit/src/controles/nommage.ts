@@ -3,8 +3,8 @@ import { reconnaitreLeChemin, type SegmentReconnu } from '../referentiel/grammai
 import { formeReconnue, termeReconnu } from '../referentiel/reconnaissance.js';
 import type { NomANormaliser } from '../referentiel/conventions.js';
 import { categorieDuSegment } from '../referentiel/ecriture-des-mots.js';
-import { termePourCategorie } from '../referentiel/termes.js';
-import { FAMILLES_PRIMITIVES, REGISTRE_PALETTES_COMPOSANT } from '../referentiel/architecture.js';
+import { termePourCategorie, type Registre } from '../referentiel/termes.js';
+import { FAMILLES_PRIMITIVES, REGISTRE_PALETTES_COMPOSANT, REGISTRE_STYLES_COMPOSANT } from '../referentiel/architecture.js';
 import { REGISTRE_ETATS, REGISTRE_TAILLES, STATE_AXIS_NAMES } from '../referentiel/vocabulaire.js';
 import { collectionParCle, type CatalogueDeReference, type VariableDuCatalogue } from './catalogue.js';
 import type { Constat } from './constat.js';
@@ -133,8 +133,6 @@ function figer(tokens: TokenDuComposant[]): TokenDuComposant[] {
  */
 function* calculerLesTokensParEtapes(releve: ReleveDeComposant, catalogue: CatalogueDeReference, nomDuJeu: string, types?: readonly VariableDuCatalogue['type'][]): Generator<void, TokenDuComposant[]> {
   const axes = yield* axesDuReleveParEtapes(releve);
-  const formeDuJeu = formeReconnue(nomDuJeu);
-  const formesDesPremiersSegments = new Map<string, string>();
   const valeursDAxes = Object.fromEntries(Object.entries(axes).map(([axe, propriete]) => [axe, propriete.valeurs ?? []]));
   const tokens: TokenDuComposant[] = [];
   let parcourues = 0;
@@ -144,14 +142,7 @@ function* calculerLesTokensParEtapes(releve: ReleveDeComposant, catalogue: Catal
     if (types && !types.includes(variable.type)) continue;
     if (collectionParCle(catalogue, variable.collection)?.role !== 'components') continue;
     const nom = variable.nom;
-    const finDuPremier = nom.indexOf('/');
-    const premier = finDuPremier < 0 ? nom : nom.slice(0, finDuPremier);
-    let forme = formesDesPremiersSegments.get(premier);
-    if (forme === undefined) {
-      forme = formeReconnue(premier);
-      formesDesPremiersSegments.set(premier, forme);
-    }
-    if (forme !== formeDuJeu) continue;
+    if (!estDuComposant(nom, nomDuJeu)) continue;
     yield;
     const segments = nom.split('/');
     const pourLaGrammaire = [...segments];
@@ -192,6 +183,28 @@ export function segmentDAxe(token: TokenDuComposant, axe: AxeDuComposant): strin
   return rang < 0 ? undefined : token.segments[rang];
 }
 
+/** Le registre dont les termes nomment les valeurs de l'axe ; les styles n'ont aucun terme canonique. */
+export function registreDeLAxe(axe: AxeDuComposant): Registre | undefined {
+  if (axe === 'etat') return REGISTRE_ETATS;
+  if (axe === 'taille') return REGISTRE_TAILLES;
+  if (axe === 'palette') return REGISTRE_PALETTES_COMPOSANT;
+  return REGISTRE_STYLES_COMPOSANT;
+}
+
+/** Égalité de forme, puis même terme reconnu des deux côtés ; deux valeurs inconnues ne sont pas égales. */
+export function memeValeurDAxe(axe: AxeDuComposant, segment: string, valeur: string): boolean {
+  if (formeReconnue(segment) === formeReconnue(valeur)) return true;
+  const registre = registreDeLAxe(axe);
+  const terme = registre && termeReconnu(registre, segment)?.id;
+  return !!terme && terme === termeReconnu(registre, valeur)?.id;
+}
+
+/** Un token appartient au jeu quand son premier segment a la forme du nom du jeu. */
+export function estDuComposant(nom: string, jeu: string): boolean {
+  const fin = nom.indexOf('/');
+  return formeReconnue(fin < 0 ? nom : nom.slice(0, fin)) === formeReconnue(jeu);
+}
+
 export function constatDuComposant(
   code: `C${number}`, famille: Constat['famille'], type: Constat['type'],
   identifiant: string, faits: Constat['faits'], variants: string[] = [], layers: string[] = [],
@@ -223,9 +236,7 @@ export function* controlerNommageParEtapes(releve: ReleveDeComposant, catalogue:
     if (!segments.length) continue;
     for (const valeur of propriete.valeurs ?? []) {
       yield;
-      if (yield* contientUnSegment(segments, (segment) => formeReconnue(segment) === formeReconnue(valeur))) continue;
-      const registre = axe === 'etat' ? REGISTRE_ETATS : axe === 'taille' ? REGISTRE_TAILLES : null;
-      if (registre && (yield* contientUnSegment(segments, (segment) => termeReconnu(registre, segment)?.id === termeReconnu(registre, valeur)?.id))) continue;
+      if (yield* contientUnSegment(segments, (segment) => memeValeurDAxe(axe, segment, valeur))) continue;
       constats.push(constatDuComposant('C7', 'variants', 'verifier', `${axe}:${valeur}`, { axe: propriete.nom, valeur }));
     }
   }
@@ -306,9 +317,7 @@ export function* controlerNommageParEtapes(releve: ReleveDeComposant, catalogue:
           for (const token of groupe) {
             yield;
             const segment = segmentDAxe(token, axe)!;
-            const termeActuel = termeCanoniqueDeLAxe(axe, ancienne);
-            const termeDuToken = termeCanoniqueDeLAxe(axe, segment);
-            if (formeReconnue(segment) === formeReconnue(ancienne) || (!!termeActuel && termeActuel.id === termeDuToken?.id)) {
+            if (memeValeurDAxe(axe, segment, ancienne)) {
               couverte = true;
               break;
             }
@@ -365,14 +374,6 @@ function* contientUnSegment(segments: readonly string[], predicat: (segment: str
     if (predicat(segment)) return true;
   }
   return false;
-}
-
-function termeCanoniqueDeLAxe(axe: AxeDuComposant, valeur: string) {
-  const registre = axe === 'etat' ? REGISTRE_ETATS
-    : axe === 'taille' ? REGISTRE_TAILLES
-      : axe === 'palette' ? REGISTRE_PALETTES_COMPOSANT
-        : undefined;
-  return registre ? termeReconnu(registre, valeur) : undefined;
 }
 
 function correspondAuxAutresAxes(

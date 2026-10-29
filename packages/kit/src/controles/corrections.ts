@@ -1,11 +1,10 @@
 /** Propositions fondées sur une règle écrite et des faits relus. */
-import { REGISTRE_PALETTES_COMPOSANT, type Collection } from '../referentiel/architecture.js';
-import { formeReconnue, termeReconnu } from '../referentiel/reconnaissance.js';
-import { REGISTRE_ETATS, REGISTRE_TAILLES } from '../referentiel/vocabulaire.js';
+import type { Collection } from '../referentiel/architecture.js';
+import { formeReconnue } from '../referentiel/reconnaissance.js';
 import { collectionParCle, type CatalogueDeReference, type VariableDuCatalogue } from './catalogue.js';
 import { candidatDeLongueurParEtapes, classerLesCandidatsParEtapes, type CandidatDeLongueur } from './candidatsDeLongueur.js';
 import type { Constat, Correction } from './constat.js';
-import { axesDuReleve, axesDuReleveParEtapes, segmentDAxe, tokensDuComposant, tokensDuComposantParEtapes, type AxeDuComposant, type TokenDuComposant } from './nommage.js';
+import { axesDuReleve, axesDuReleveParEtapes, estDuComposant, memeValeurDAxe, segmentDAxe, tokensDuComposant, tokensDuComposantParEtapes, type AxeDuComposant, type TokenDuComposant } from './nommage.js';
 import { layersVisiblesDuVariant, lectureManquee, type LayerLu, type LiaisonLue, type ReleveDeComposant, type VariantLu } from './releve.js';
 
 /**
@@ -106,7 +105,7 @@ function* indexerLeReleve(releve: ReleveDeComposant, catalogue: CatalogueDeRefer
           if (parcourues % 256 === 0) yield;
           if (variable.etat === 'presente' && variable.type === 'COLOR'
             && collectionParCle(catalogue, variable.collection)?.role === 'components'
-            && formeReconnue(variable.nom.split('/')[0]) === formeReconnue(releve.jeu.nom)
+            && estDuComposant(variable.nom, releve.jeu.nom)
             && formeReconnue(variable.nom.split('/')[1] ?? '') === 'color') lues.push(variable);
         }
         couleurs = lues;
@@ -201,13 +200,6 @@ export function proprietesDeComposantDuChamp(champ: string): readonly string[] {
 function collectionDesComposantsLue(catalogue: CatalogueDeReference): boolean {
   const collections = catalogue.collections.filter((collection) => collection.role === 'components');
   return collections.length > 0 && collections.every((collection) => collection.etat !== 'inaccessible');
-}
-
-function memeValeurDAxe(axe: AxeDuComposant, segment: string, valeur: string): boolean {
-  if (formeReconnue(segment) === formeReconnue(valeur)) return true;
-  const registre = axe === 'etat' ? REGISTRE_ETATS : axe === 'taille' ? REGISTRE_TAILLES : axe === 'palette' ? REGISTRE_PALETTES_COMPOSANT : undefined;
-  const terme = registre && termeReconnu(registre, segment)?.id;
-  return !!terme && terme === termeReconnu(registre, valeur)?.id;
 }
 
 /**
