@@ -66,14 +66,14 @@ Fichiers : `packages/kit/src/emplois/dossiers.ts`,
 
 ### Variables, crans et scopes
 
-- [ ] `VARIABLES_DE_PALETTE` : ajouter `surface/subtle` après
+- [x] `VARIABLES_DE_PALETTE` : ajouter `surface/subtle` après
       `surface/pressed`, et `surface/divider` après `surface/border`.
-- [ ] `TABLE_DES_DOSSIERS`, Light normal : `surface/foreground` et
+- [x] `TABLE_DES_DOSSIERS`, Light normal : `surface/foreground` et
       `surface/border` passent de 800 à 700.
-- [ ] `TABLE_DES_DOSSIERS`, les quatre tables : `surface/subtle` vaut 50 en
+- [x] `TABLE_DES_DOSSIERS`, les quatre tables : `surface/subtle` vaut 50 en
       Light (normal et inversé) et 200 en Dark (normal et inversé).
       `surface/divider` vaut 300 en Light et 500 en Dark.
-- [ ] `SUPPORT_DES_VARIABLES` :
+- [x] `SUPPORT_DES_VARIABLES` :
   - `solid/default`, `solid/hover`, `solid/pressed` : support `FOND`
     (`peint: ['background']`, `FRAME_FILL`, `SHAPE_FILL`). Supprimer la
     constante `SOLID` si plus rien ne la lit.
@@ -83,7 +83,7 @@ Fichiers : `packages/kit/src/emplois/dossiers.ts`,
     `FRAME_FILL`, `SHAPE_FILL`. Le donner à `page/divider` et
     `surface/divider`.
   - `surface/subtle` : `FOND`.
-- [ ] `theme.ts`, `TEXTES_DES_VARIABLES` :
+- [x] `theme.ts`, `TEXTES_DES_VARIABLES` :
   - `surface/subtle` : libellé « fond teinté léger » / « subtle tinted fill » ;
     définition « Fond teinté très léger, sans état. » / « Very light tinted
     background, with no state. ».
@@ -92,45 +92,52 @@ Fichiers : `packages/kit/src/emplois/dossiers.ts`,
     « Dividing line on a tinted background. ».
   - Corriger le commentaire de `libellesDesVariables` : le nombre de libellés
     passe de dix-sept à dix-neuf.
-- [ ] `TABLE_DES_DOSSIERS`, Dark inversé : `ring` passe de 700 à 800. Le
+- [x] `TABLE_DES_DOSSIERS`, Dark inversé : `ring` passe de 700 à 800. Le
       Dark normal ne change pas : il n'est pas mesuré.
-- [ ] Le 50 devient requis. Les crans requis sont la réunion des crans de la
+- [x] Le 50 devient requis. Les crans requis sont la réunion des crans de la
       table (`cransRequis`, `[REC-13]`) : `surface/subtle` y fait entrer le 50.
       Les deux préréglages le portent déjà. Une recette sans 50 est refusée
       (`crans-emplois`). Corriger le commentaire de `validerRecette` (« seul 50
       est facultatif ») et ajouter un test du refus.
-- [ ] Mettre à jour les tests du kit qui comptent les variables, lisent la table
+- [x] Mettre à jour les tests du kit qui comptent les variables, lisent la table
       ou les portées. Ajouter un test par règle nouvelle : crans des deux
       variables dans les quatre tables, portées de `FILET`, `TEXTE` et des fonds
       de `solid`.
 
 ### Garanties de contraste
 
-- [ ] Garantie 3 : `surface/foreground` au seuil `texte` sur `surface/subtle`,
+- [x] Garantie 3 : `surface/foreground` au seuil `texte` sur `surface/subtle`,
       `surface/default`, `surface/hover`, la page et la carte. Retirer
       `surface/pressed`.
-- [ ] Nouvelle garantie 8 : `surface/foreground` au seuil `nonTexte` sur
+- [x] Nouvelle garantie 8 : `surface/foreground` au seuil `nonTexte` sur
       `surface/pressed`. Le numéro 8 évite de renuméroter les garanties 1 à 7
       que les documents citent.
-- [ ] Garantie 4 : ajouter `surface/subtle` à ses fonds ; garder
+- [x] Garantie 4 : ajouter `surface/subtle` à ses fonds ; garder
       `surface/pressed`.
-- [ ] Nouvelle garantie 9 : `page/foreground` au seuil `texte` sur
+- [x] Nouvelle garantie 9 : `page/foreground` au seuil `texte` sur
       `surface/default`. Elle dit qu'un composant de la page reste lisible
       dans un fond teinté au repos.
-- [ ] `surface/divider` n'entre dans aucune garantie.
-- [ ] Mettre à jour le nombre de promesses par mode et par intensité partout où
+- [x] `surface/divider` n'entre dans aucune garantie.
+- [x] Mettre à jour le nombre de promesses par mode et par intensité partout où
       il est écrit (commentaires de `promesses.ts`, tests, hub).
-- [ ] `garantie.ts` (garantie des courbes) : vérifier qu'elle ne lit pas
+- [x] `garantie.ts` (garantie des courbes) : vérifier qu'elle ne lit pas
       `surface/pressed` comme fond textuel. Ne rien changer d'autre.
-- [ ] Tests : la garantie 8 juge à 3:1 ; la garantie 9 juge
+- [x] Tests : la garantie 8 juge à 3:1 ; la garantie 9 juge
       `page/foreground` sur `surface/default` ; la garantie 3 ne contient plus
       l'appui ; `garantieJugeable` traite `surface/subtle`.
-- [ ] Changer la version du kit (`packages/kit/package.json`), puis faire passer
+- [x] Changer la version du kit (`packages/kit/package.json`), puis faire passer
       `tests/` à la racine (`versionSuitLeContenu`).
 
 Fin : `node packages/kit/scripts/run-tests.cjs`, les tests racine,
 `npm run test:paquet -- couleur` et `npm run test:paquet -- hub` passent ;
 `npm run typecheck` passe.
+
+Fait : `071c20b2`, kit 0.13.34. Restent rouges, pour les lots suivants : le
+relevé figé des rampes et les tests qui figent des hexa (les gardes de
+`rampesDe` lisent les nouvelles garanties : C1, C2, puis régénération en V1) ;
+G9 en Dark et G3 au survol sur trois références (C2) ; les vues, le corpus des
+registres et les pins de la CLI et de l'adaptateur (V1, R1) ; Palettes (P1) ;
+Architect (A1).
 
 ## C1. Clarté commune des crans clairs
 
@@ -166,6 +173,12 @@ Règle, mode Light seulement :
       50 de Sun garde une chroma non nulle.
 - [ ] Mettre à jour les tests qui figent des couleurs claires. Ne pas assouplir
       un test de promesse : signaler tout échec nouveau dans le rendu.
+- [ ] Lecture : une recette du format 10 ou 11 sans 50 reçoit le 50, avec la
+      luminosité que `luminositeAuNumero` donne sur sa grille, comme le 400, le
+      500 et le 950 du format 10 (`[REC-13]`). Sans cela, le lot K la rend
+      illisible. Test de régression.
+- [ ] `alertes.ts` : corriger le commentaire « Les crans facultatifs 50, 400 et
+      950 n'y sont pas », faux depuis K.
 
 Fin : `npm run test:paquet -- couleur` passe ; `npm run typecheck` passe.
 
