@@ -561,7 +561,7 @@ Les thèmes inversés en Light ne sont pas mesurés.
 | Question | Fait | Recommandation |
 |---|---|---|
 | 4. L'appui de `surface` : hors des garanties, ou jugé à 3:1 | Le texte 700 passe 3:1 sur le 300 pour les 360 teintes, à 3,70 au minimum. Le Dark passe à 5,77 | Le juger à 3:1 : la garantie reste vérifiable et ne peut pas échouer |
-| 6. Un composant de la page posé dans un fond teinté, en Dark | Voir ci-dessous | Un seul cran de texte en Dark : `page` et `surface` au 900, anneau au 800 |
+| 6. Un composant de la page posé dans un fond teinté, en Dark | Voir ci-dessous | `ring` au 800 en Dark pour l'anneau. Pour le texte, concevoir le mode du conteneur avant de choisir |
 
 ### La décision 6
 
@@ -578,44 +578,31 @@ passent. En Dark, deux échouent sur le fond teinté 300 :
 
 L'anneau n'est qu'un cas de ce problème : le texte échoue aussi.
 
-**Position du mainteneur.** Une variante « sur fond teinté » est impossible. Une
-variante ne change pas avec le mode : en Light, elle serait identique à la
-version de la page, et rien ne pousserait le designer à la choisir.
+**Pistes écartées par le mainteneur.**
 
-**Position du mainteneur.** Tous les textes d'un même mode prennent le même
-cran, comme en Light : le titre de l'alerte, ses boutons et ses liens ont la
-même couleur.
-
-**Piste : un seul cran de texte en Dark, le 900.** En Dark, `page/foreground`,
-`page/border`, `surface/foreground` et `surface/border` prennent tous le 900.
-`ring` passe du 700 au 800. La table des fonds de `surface` reste 300, 400 et
-500. Les noms et le Light ne changent pas. Un composant conçu sur la page reste
-alors lisible dans un fond teinté, sans variante ni geste du designer.
-
-| Couleur, cran proposé en Dark | Page | Carte | `surface/subtle` 200 | Fond teinté 300 | Survol 400 | Appui 500 |
-|---|---|---|---|---|---|---|
-| Texte et contour, 900 | 9,29 | 8,45 | 7,82 | 6,44 | 4,94 | 3,99 |
-| Anneau, 800 | 5,01 | 4,56 | 4,03 | 3,39 | | |
-
-Minimums sur les palettes du mainteneur, en Dark inversé. Le texte passe 4,5
-partout sauf à l'appui, où il passe 3:1. Si l'appui restait jugé à 4,5, Sun
-Vivid y échouerait.
-
-| Mode | Cran unique du texte et du contour |
+| Piste | Raison |
 |---|---|
-| Light normal | 700 |
-| Dark inversé, configuration du mainteneur | 900 |
-| Light inversé, Dark normal | Non mesurés |
+| Variante « sur fond teinté » | Une variante ne change pas avec le mode. En Light, elle serait identique à la version de la page, et rien ne pousserait le designer à la choisir |
+| Texte de `page` au 900 en Dark | Le texte coloré de la page devient pastel |
+| Un seul cran de texte en Dark, le 900, pour `page` et `surface` | Le Dark change trop. Sur Poppy, l'écart est flagrant |
+| Fonds teintés plus foncés en Dark | La table Dark actuelle, 300, 400, 500, convient au mainteneur |
 
-Coût : en Dark, le texte coloré de la page devient plus clair et un peu moins
-saturé, de 0,70 à 0,85 de clarté. Le texte de `surface` devient un peu plus
-foncé, de 0,93 à 0,85. La section 6 de la maquette le montre. Restent à
-mesurer : le Dark normal, le Light inversé et les 360 teintes.
+Ces refus ferment toute solution par les couleurs : le texte 800 de `page` ne
+peut pas passer 4,5 sur le fond teinté 300 sans que l'un des deux change.
 
-| Autre réponse | Mécanisme | Coût |
+**Seul l'anneau se règle par les couleurs.** `ring` au 800 en Dark, au lieu du
+700, passe 3:1 sur le fond teinté 300 (3,39 au minimum), sur la page (5,01) et
+sur la carte (4,56). L'anneau prend alors le cran du texte de la page. Le texte
+du composant reste à 3,39 sur le fond teinté.
+
+**Restent deux réponses pour le texte.**
+
+| Réponse | Mécanisme | Coût |
 |---|---|---|
-| Mode du conteneur | Une collection donne aux variables de `page` les valeurs de `surface` dans un mode « sur fond teinté ». L'alerte pose ce mode sur son cadre, une fois, dans son composant | Une collection ou des modes de plus. Le nombre de modes dépend du plan Figma. À discuter avant toute conception |
-| Règle et contrôle | Un composant de la page ne se pose pas dans un fond teinté en Dark. Architect le signale | Le designer doit refaire le composant dans l'alerte |
+| Mode du conteneur | Une collection `contexte`, entre `theme` et les tokens de composant, a deux modes : `page` et `surface`. Sa variable `{palette}/foreground` vaut `page/foreground` dans le mode `page` et `surface/foreground` dans le mode `surface`, de même pour le contour et l'anneau. Les tokens du bouton visent `contexte`. Le composant Alerte pose le mode `surface` sur son contenu, une fois. Un bouton posé dedans hérite de ce mode et prend les couleurs de `surface`, en Light comme en Dark. En code, l'alerte pose `data-contexte="surface"` | Une collection de plus, à deux modes. Les tokens de composant changent de cible. L'architecture des collections, Palettes, Architect et l'exporteur sont touchés. À concevoir et discuter avant toute décision |
+| Règle et contrôle | Un composant de la page ne se pose pas dans un fond teinté. Architect le signale | Le designer refait le composant dans l'alerte. Le défaut reste visible tant qu'il ne le fait pas |
+
+Le mode du conteneur règle le problème sans changer une couleur.
 
 Les thèmes inversés en Light ne sont pas mesurés. La mesure ne demande pas de
 décision.

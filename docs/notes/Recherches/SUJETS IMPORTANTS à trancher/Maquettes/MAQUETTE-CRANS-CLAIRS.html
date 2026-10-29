@@ -235,7 +235,7 @@
   <ul class="faits">
     <li>Trois composants sont conçus sur la page : un bouton texte, un bouton outlined au focus et un lien. Ils prennent <code>page/foreground</code>, <code>page/border</code> et <code>ring</code>.</li>
     <li>Les deux premières lignes montrent la table d'aujourd'hui : sur la page, puis tels quels dans une alerte teintée.</li>
-    <li>Les deux dernières montrent la piste « un seul cran de texte en Dark ». En Dark, le texte et le contour de <code>page</code> et de <code>surface</code> prennent tous le 900, comme ils prennent tous le 700 en Light. L'anneau passe du 700 au 800. Le titre de l'alerte et les boutons ont alors la même couleur. Les noms et le Light ne changent pas.</li>
+    <li>Les deux dernières montrent la piste « un seul cran de texte en Dark », écartée : le Dark change trop, surtout sur Poppy. En Dark, le texte et le contour de <code>page</code> et de <code>surface</code> prennent tous le 900, comme ils prennent tous le 700 en Light. L'anneau passe du 700 au 800. Le titre de l'alerte et les boutons ont alors la même couleur. Les noms et le Light ne changent pas.</li>
     <li>Chaque pastille juge une couleur contre le fond qui est juste derrière : la page ou le fond de l'alerte.</li>
     <li>La table Dark est celle que tu gardes : fond teinté au 300, texte de <code>surface</code> au 950.</li>
     <li>Une variante « sur fond teinté » est écartée : une variante ne change pas avec le mode. En Light, elle serait identique à la version de la page, et rien ne pousserait le designer à la choisir.</li>
@@ -434,7 +434,7 @@
   <div class="defile"><table class="mesures">
     <tr><th>Question</th><th>Fait</th><th>Recommandation</th></tr>
     <tr><td>4. L'appui de <code>surface</code> : hors des garanties, ou jugé à 3:1</td><td>Le texte 700 passe 3:1 sur le 300 pour les 360 teintes, à 3,70 au minimum. Le Dark passe à 5,77.</td><td>Le juger à 3:1 : la garantie reste vérifiable et ne peut pas échouer.</td></tr>
-    <tr><td>6. Un composant de la page posé dans un fond teinté, en Dark</td><td>Le texte et l'anneau de la page échouent sur le fond teinté 300 en Dark. Voir le README, décision 6.</td><td>Un seul cran de texte en Dark : texte et contour de <code>page</code> et de <code>surface</code> au 900, anneau au 800. Voir la section 6.</td></tr>
+    <tr><td>6. Un composant de la page posé dans un fond teinté, en Dark</td><td>Le texte et l'anneau de la page échouent sur le fond teinté 300 en Dark. Voir le README, décision 6.</td><td><code>ring</code> au 800 en Dark pour l'anneau. Pour le texte, concevoir le mode du conteneur avant de choisir. Voir le README, décision 6.</td></tr>
   </table></div>
   <p class="note">Les thèmes inversés en Light ne sont pas mesurés. Cette mesure ne demande pas de décision.</p>
 </main>
@@ -826,8 +826,8 @@ function rendreContexteModes() {
   const cas = [
     { titre: 'Sur la page', dansAlerte: false, variante: false },
     { titre: 'Tel quel dans une alerte teintée', dansAlerte: true, variante: false },
-    { titre: 'Un seul cran de texte en Dark, sur la page', dansAlerte: false, eclaircie: true },
-    { titre: 'Un seul cran de texte en Dark, dans l\'alerte', dansAlerte: true, eclaircie: true },
+    { titre: 'Écartée : un seul cran de texte en Dark, sur la page', dansAlerte: false, eclaircie: true },
+    { titre: 'Écartée : un seul cran de texte en Dark, dans l\'alerte', dansAlerte: true, eclaircie: true },
   ];
   const pastille = (nom, avant, fond, seuil) => { const r = contraste(avant, fond); return `<span style="display:inline-flex;gap:4px;align-items:center;margin-right:8px">${nom} <span class="badge ${r >= seuil ? 'ok' : r >= 3 ? 'moyen' : 'ko'}">${virgule(r)}:1</span></span>`; };
   $('contexteModes').innerHTML = cas.flatMap((k) => ['light', 'dark'].map((mode) => {
