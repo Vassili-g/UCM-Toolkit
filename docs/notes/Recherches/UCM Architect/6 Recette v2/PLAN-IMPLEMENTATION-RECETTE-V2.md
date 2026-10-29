@@ -356,8 +356,8 @@ Analyse 10, « Ce que le changement touche ». Dépend de P1 (V4). Agent : `impl
 
 #### Jalons
 
-- [ ] **J1** `verificateur` : `npm test`, `npm run typecheck`, `npm run build`, sur l'arbre après V1.
-- [ ] **J3** Même vérification après V3.
+- [x] **J1** ~~Après V1~~ : compris dans J3.
+- [x] (3ca9ba2f) **J3** Après V2 : npm test (seul échec : vue du hub périmée, régénérée en 3ca9ba2f), typecheck, build, build:plugin architect verts.
 - [ ] **J5** Même vérification après O1, puis `npm run build:plugin -- architect` et `npm run build:plugin -- palettes`.
 
 #### Z · Clôture
