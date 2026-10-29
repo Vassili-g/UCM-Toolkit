@@ -89,13 +89,10 @@ couleur, forme, espacement, taille, texte.
   et à ses descendants.
 - **Aperçu.** Survoler une ligne entoure ses calques dans l'image.
 - **Variants.** Après une analyse, un jeu de variants montre sous l'aperçu une
-  ligne par property : une puce pour la valeur affichée et pour chaque valeur
+  ligne par propriété : une puce pour la valeur affichée et pour chaque valeur
   qui porte un constat, « +N » pour les autres. Une puce relit le variant qui
-  garde le plus de valeurs affichées ; **Tableau** croise deux properties.
-  **Copier ses liaisons aux autres variants** prend le variant affiché pour
-  modèle : ses liaisons se proposent aux autres variants dans Corrections, et
-  les cas douteux dans Questions. Le bouton est inactif quand l'analyse est
-  périmée.
+  garde le plus de valeurs affichées. Partout, un variant s'écrit en puces de
+  valeur ; la paire exacte de Figma s'affiche au survol.
 - **Barre.** Elle n'a ni logo ni nom. Analyser est grisé tant que Figma ne
   sélectionne aucun composant, et sa bulle le dit. Configuration s'ouvre dans
   le mode actif : à la place de la vue, ou du panneau quand il est ouvert. Le
@@ -122,13 +119,21 @@ couleur, forme, espacement, taille, texte.
   du moteur a sa carte : le titre cite le premier candidat,
   les autres ont leur bouton, et rien n'est choisi avant le clic ; la réponse
   devient une carte de corrections de la section, et Annuler la réponse la
-  retire. Un constat à faire dans Figma porte le type de son alerte. Sous Contraste et accessibilité, une carte de
-  contraste ouverte donne le rapport mesuré sans arrondi, son seuil (AA ou AAA,
-  lu dans la Configuration) et le mode ; la zone cliquable, l'anneau de focus
-  et le texte sous 12 px sont des recommandations, les variants State=disabled
-  une information, et un fond ou une peinture que le plugin ne sait pas lire
-  une limite, jamais un verdict. Ignorer en écarte un, sauf une limite de
-  lecture, et les constats ignorés restent sous Ignorés, avec Ne plus ignorer. Après
+  retire. Un constat à faire dans Figma porte le type de son alerte : il garde
+  son chevron en haut à droite et ses boutons dans une ligne d'actions en bas.
+  Quand un variant lie des layers que d'autres variants gardent en dur, une
+  carte de modèle le nomme dans Couleurs ou Tailles et forme ; **Proposer les
+  liaisons** la remplace par les cartes de corrections de chaque layer. Sous
+  Contraste et accessibilité, une carte de contraste ouverte donne le rapport
+  mesuré sans arrondi, son seuil (AA ou AAA, lu dans la Configuration) et le
+  mode ; la zone cliquable, l'anneau de focus et le texte sous 12 px sont des
+  recommandations. Un layer sans fond se mesure sur la page et sur la carte du
+  thème, dans chaque mode, ou sur la page Figma sans thème ; l'échec est À
+  corriger quand UCM Palettes garantit ce fond pour la variable, À vérifier
+  sinon. La section Informations, en dernier et repliée, range ce que
+  l'analyse n'a pas mesuré : les variants désactivés, un fond ou une peinture
+  illisible. Ses lignes ne comptent dans aucun nombre. Ignorer écarte un
+  constat, et les constats ignorés restent sous Ignorés, avec Ne plus ignorer. Après
   l'écriture, ou un changement du composant, le panneau garde ses constats et
   attend Actualiser ou Analyser. Une analyse partielle, annulée ou arrêtée ne
   conclut jamais « aucun constat ».
