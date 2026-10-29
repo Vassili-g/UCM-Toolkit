@@ -1,6 +1,6 @@
 # Audit des règles dupliquées
 
-Reste : `packages/couleur`, `packages/plugin-socle`, `packages/plugin-exporter`, `packages/plugin-palettes`, `packages/plugin-architect` ; dans le kit, `controles/` hors des familles 1, 4 et 6, et `lecteurs/`.
+Reste : `packages/couleur`, `packages/kit/src/lecteurs/`, documents en contradiction, ordre proposé.
 
 Une règle est dupliquée quand au moins deux endroits la décident chacun de leur côté. Chaque fiche nomme les copies, prouve la divergence quand elle existe, propose un propriétaire et une loi anticopie. Une divergence « exécutée » vient d'un script lancé avec `tsx` sur les fonctions exportées du kit, ou sur le corps recopié de `HEAD` quand la fonction est privée. Une divergence « lue » vient de la lecture du code.
 
@@ -36,6 +36,11 @@ Sur chaque paquet, hors `dist/`, `node_modules/` et `_local/` :
 | Paquet | Fichiers lus | Mode |
 |---|---|---|
 | `packages/kit/src/controles/` | `corrections.ts`, `mapping.ts`, `oublis.ts`, `nommage.ts`, `theme.ts`, `structure.ts`, `accessibilite.ts`, `couche.ts`, `propagation.ts`, `typographie.ts` (extraits) | audit direct |
+| `packages/kit/src/controles/` (suite) | `preparation.ts`, `releve.ts`, `catalogue.ts`, `candidatsDeLongueur.ts` (extraits sur les motifs) | audit direct |
+| `packages/plugin-socle/src/` | `composant/analyse/proprietesEtEtats.ts`, `composant/contract/nodeBindings.ts`, `componentTree.ts`, `extractSlotTokens.ts`, `extractRules.ts`, `compactVariants.ts`, `template/ecriture.ts` (extraits) | audit direct, motifs sur tout `src/` |
+| `packages/plugin-architect/src/` | `imbriquesDuReleve.ts`, `releveDuComposant.ts`, `lectureDuComposant.ts`, `catalogue.ts`, `composant.ts`, `consommateurs.ts`, `contraste.ts`, `modele.ts`, `ui/valeurs.ts`, `ui/ignores/modele.ts`, `integrations/profilUcm.ts`, `nomenclature/session.ts`, `nomenclature/projection.ts`, `sandbox/projectionsDesControles.ts`, `sandbox/analyse.ts` (extraits) | audit direct, motifs sur tout `src/` |
+| `packages/plugin-palettes/src/` | `ui/modeleDesGaranties.ts`, `ui/nuancier.ts`, `planche/modele.ts`, `presentation.ts`, `i18n/nombres.ts`, `variables/*.ts`, `ecriture/variables.ts`, `lecture.ts` (extraits) | audit direct, motifs sur tout `src/` hors `i18n/` |
+| `packages/plugin-exporter/src/` | 31 fichiers parcourus par les motifs ; `config.ts` lu | audit direct ; l'exporteur délègue ses lectures au socle |
 | `packages/kit/src/referentiel/`, `emplois/`, `format/names.ts` | `reconnaissance.ts`, `vocabulaire.ts`, `architecture.ts`, `theme.ts`, `normalisation.ts`, `dossiers.ts`, `garanties.ts`, `contraste.ts`, `names.ts` | audit direct |
 | `packages/cli` | 12 sur 25 | balayage `Explore`, puis vérification directe des candidats |
 | `packages/adapter-typescript` | 4 sur 24 | idem |
@@ -65,6 +70,17 @@ Le balayage `Explore` a lu les fichiers où les motifs donnaient un résultat. L
 | [D-14](#d-14) | Un nom de palette désigne un rôle de statut | termes | 2 | oui, lue | basse |
 | [D-15](#d-15) | Libellés des états | termes | 2 | oui, lue | basse |
 | [D-16](#d-16) | Règles recopiées dans les tests racine | tests | 4 | partielle, lue | moyenne |
+| [D-17](#d-17) | Un nom de variable se compare par sa forme de chemin | noms | 5 | non | basse |
+| [D-18](#d-18) | Le deuxième segment d'un token de composant est la famille `color` | noms | 3 | oui, lue | haute |
+| [D-19](#d-19) | Un token appartient au composant par son premier segment | noms | 4 | non | basse |
+| [D-20](#d-20) | Une peinture est visible | classifications | 6 | oui, lue | haute |
+| [D-21](#d-21) | Une instance imbriquée a des dimensions de layout liées | liaisons | 2 | oui, documentée | moyenne |
+| [D-22](#d-22) | Deux noms de variable sont le même nom dans Figma | noms | 8 | non | basse |
+| [D-23](#d-23) | Un nom de mode désigne `light` ou `dark` | termes | 4 | partielle, lue | basse |
+| [D-24](#d-24) | L'hexa à 8 bits d'une couleur Figma | couleur | 7 | oui, lue | moyenne |
+| [D-25](#d-25) | Les mots d'un texte tapé dans Nomenclature | normalisation | 3 | oui, lue | moyenne |
+| [D-26](#d-26) | Le nom `identity` d'une palette du thème | termes | 2 | partielle, lue | basse |
+| [D-27](#d-27) | Les variables du thème rangées par dossier | garanties | 3 | non | basse |
 
 ## Fiches
 
@@ -430,6 +446,224 @@ export function memeValeurDAxe(axe: AxeDuComposant, segment: string, valeur: str
 
 **Migration.** Tests seulement.
 
+### D-17
+
+**Un nom de variable se compare par sa forme de chemin.** Chaque segment passe par `formeReconnue`, puis les segments se rejoignent par `/`.
+
+| Copie | Fonction |
+|---|---|
+| `packages/kit/src/controles/mapping.ts:68` | `signatureDeCible` (sans le premier segment pour `theme`) |
+| `packages/kit/src/controles/structure.ts:167` | signature d'un token, palette remplacée par `*` |
+| `packages/kit/src/controles/structure.ts:316` | `signatureSansPalette`, même calcul que la ligne 167 |
+| `packages/kit/src/controles/structure.ts:322` | `remplacerSegment`, segment cherché par forme |
+| `packages/kit/src/controles/theme.ts` (arbre de travail) | `formeDuNom`, `formeDuNomRemplace` |
+
+**Divergence.** Aucune : même calcul. `structure.ts` le porte deux fois dans le même fichier.
+
+**Propriétaire proposé.** `packages/kit/src/referentiel/reconnaissance.ts` : `formeDuChemin(nom: string | readonly string[]): string`.
+
+**Loi proposée.** Refuser `.map(formeReconnue).join('/')` hors de `reconnaissance.ts`.
+
+**Migration.** Sortie identique.
+
+### D-18
+
+**Le deuxième segment d'un token de composant est la famille `color`.**
+
+| Copie | Fonction | Formes reconnues |
+|---|---|---|
+| `packages/kit/src/controles/nommage.ts:158`, `:249` | `calculerLesTokensParEtapes`, C8 | `termeReconnu(FAMILLES_PRIMITIVES, …)` : `color`, `colors`, `colour` |
+| `packages/kit/src/controles/corrections.ts:110` | `couleursDuComposant` | `formeReconnue(…) === 'color'` |
+| `packages/kit/src/controles/structure.ts:102` | un segment quelconque vaut `color` | `formeReconnue(…) === 'color'` |
+
+**Divergence lue.** `Button/Colors/Primary/background` : le nommage lit `Colors` comme la famille `color` et propose C8 (forme tolérée). `couleursDuComposant` écarte le token, et les corrections de couleur ne le proposent pas comme cible. `formeReconnue('Colors')` vaut `colors`.
+
+**Lecteurs touchés.** Corrections de liaisons de couleur (C16, C22, C24), contrôle de structure.
+
+**Propriétaire proposé.** `termeReconnu(FAMILLES_PRIMITIVES, segment)?.id === 'color'`, sous un nom : `estLaFamilleCouleur(segment: string): boolean` dans `referentiel/architecture.ts`.
+
+**Loi proposée.** La loi de D-04 (refus de `formeReconnue(…) === '<littéral>'` dans `controles/`) couvre aussi ce cas.
+
+**Migration.** Correction : les jeux écrits `Colors` reçoivent des corrections de couleur.
+
+### D-19
+
+**Un token appartient au composant quand son premier segment a la forme du nom du jeu.**
+
+| Copie | Fonction |
+|---|---|
+| `packages/kit/src/controles/nommage.ts:136-153` | `calculerLesTokensParEtapes` |
+| `packages/kit/src/controles/corrections.ts:109` | `couleursDuComposant` |
+| `packages/kit/src/controles/mapping.ts:215` | C19 |
+| `packages/kit/src/controles/preparation.ts:124` | `segmentDe(releve.jeu.nom)` |
+
+**Divergence.** Aucune : même comparaison par `formeReconnue`.
+
+**Propriétaire proposé.** `packages/kit/src/controles/nommage.ts` : `estDuComposant(nom: string, jeu: string): boolean`, employé par `calculerLesTokensParEtapes`.
+
+**Loi proposée.** Refuser `formeReconnue(variable.nom.split('/')[0])` hors de `nommage.ts`.
+
+**Migration.** Sortie identique.
+
+### D-20
+
+**Une peinture est visible.**
+
+| Copie | Fonction | Opacité nulle |
+|---|---|---|
+| `packages/plugin-architect/src/releveDuComposant.ts:109` (`HEAD`) | `PeintureLue.visible` du relevé | visible |
+| `packages/kit/src/controles/accessibilite.ts:192` | `aUnePeintureVisible`, lit `p.visible` | visible |
+| `packages/plugin-architect/src/releveDuComposant.ts:171` | contour visible | invisible |
+| `packages/plugin-architect/src/lectureDuComposant.ts:158` | `peintureVisible` | invisible |
+| `packages/plugin-socle/src/composant/contract/extractSlotTokens.ts:158` | `peint` | invisible |
+| `packages/plugin-architect/src/catalogue.ts:331` | fond de la page | visible, l'opacité devient l'alpha |
+
+**Divergence lue.** Un contour `SOLID` visible d'opacité 0 : le relevé le marque `visible: true` et garde `opacite: 0` à part. `aUnePeintureVisible` le compte, et l'accessibilité mesure un contour que le designer ne voit pas. `releveDuComposant.ts:171` le juge invisible et n'écrit pas l'épaisseur.
+
+**Lecteurs touchés.** C50 (contour et anneau, `accessibilite.ts:613`), contraste d'une icône peinte (`accessibilite.ts:607`), épaisseurs de contour du relevé, slots du contrat.
+
+**Propriétaire proposé.** `packages/kit/src/controles/releve.ts` : `peintureVisible(p: PeintureLue): boolean` (`visible && opacite > 0`). Le socle garde sa version sur les objets Figma bruts, ou importe une variante `peintureFigmaVisible` du kit (Q-08).
+
+**Loi proposée.** Refuser `.visible !== false && ` suivi de `opacity` hors du propriétaire.
+
+**Migration.** Correction : moins de constats de contraste sur des peintures d'opacité nulle.
+
+**Risques.** Les tests qui comptent les accès Figma d'Architect ne changent pas : la règle porte sur des données déjà lues.
+
+### D-21
+
+**Une instance imbriquée a des dimensions de layout liées.**
+
+| Copie | Fonction | Calques lus |
+|---|---|---|
+| `packages/plugin-socle/src/composant/contract/componentTree.ts:333-353` | `LAYOUT_BINDING_PATTERNS`, `countLayoutBindings` | tout le sous-arbre rendable |
+| `packages/plugin-architect/src/imbriquesDuReleve.ts:26`, `:46` | `DIMENSIONS_DE_LAYOUT`, `dimensionsLiees` | l'instance et les calques que sa surcharge vise |
+
+**Divergence lue, documentée.** L'en-tête de `imbriquesDuReleve.ts` la décrit : un wrapper dont les liaisons de layout vivent sur un calque non surchargé est un wrapper pour le contrat et une instance sans sorte pour Architect. La liste des quatre motifs est recopiée telle quelle.
+
+**Propriétaire proposé.** La liste : `packages/plugin-socle/src/composant/contract/nodeBindings.ts`, `DIMENSIONS_DE_LAYOUT` exportée. Le comptage reste double tant qu'Architect ne parcourt pas les calques (Q-09).
+
+**Loi proposée.** Étendre `packages/plugin-architect/tests/imbriquesParLeKit.test.ts` : refuser `BINDING_PATTERNS.gap, BINDING_PATTERNS.paddingX` hors de `nodeBindings.ts`.
+
+**Migration.** Sortie identique pour la liste.
+
+### D-22
+
+**Deux noms de variable sont le même nom dans Figma.** Palettes compare par `toLowerCase()`.
+
+| Copie |
+|---|
+| `packages/plugin-palettes/src/ecriture/variables.ts:165` |
+| `packages/plugin-palettes/src/variables/lot.ts:308` |
+| `packages/plugin-palettes/src/variables/conversion.ts:69` |
+| `packages/plugin-palettes/src/variables/etat.ts:146` |
+| `packages/plugin-palettes/src/variables/plan.ts:91`, `:96`, `:199` |
+| `packages/plugin-palettes/src/variables/reprise.ts:271` |
+
+**Divergence.** Aucune entre les copies. La règle diffère de `formeReconnue` par choix : elle porte sur l'identité d'un nom dans Figma, pas sur la reconnaissance d'un terme.
+
+**Propriétaire proposé.** `packages/plugin-palettes/src/variables/` : `memeNomFigma(a: string, b: string): boolean`.
+
+**Loi proposée.** Refuser `.toLowerCase() === ` et `.toLowerCase() !== ` sur `nom` ou `name` dans `packages/plugin-palettes/src/variables/` et `src/ecriture/`, hors du propriétaire.
+
+**Migration.** Sortie identique.
+
+### D-23
+
+**Un nom de mode désigne `light` ou `dark`.**
+
+| Copie | Fonction |
+|---|---|
+| `packages/kit/src/referentiel/theme.ts:92` | `modeDuThemeReconnu`, par `formeReconnue` et l'index du vocabulaire |
+| `packages/plugin-palettes/src/ecriture/variables.ts:107` | `trim().toLowerCase() ===` |
+| `packages/plugin-palettes/src/variables/lot.ts:169` | idem |
+| `packages/kit/src/controles/theme.ts:159` | `modeUcmDepuisNom`, `formeReconnue` sans index |
+
+**Divergence lue.** Un mode renommé par le vocabulaire du fichier (un terme ordinaire de Nomenclature qui remplace `dark`) : `modeDuThemeReconnu` le reconnaît avec l'index, Palettes non. Sans index, aucune entrée trouvée ne les sépare. `modeUcmDepuisNom` est une troisième copie, sans index.
+
+**Propriétaire proposé.** `modeDuThemeReconnu`.
+
+**Loi proposée.** Refuser `mode.name.trim().toLowerCase()` et `mode.nom.trim().toLowerCase()` dans `packages/*/src/`.
+
+**Migration.** Sortie identique sans vocabulaire du fichier.
+
+### D-24
+
+**L'hexa à 8 bits d'une couleur Figma, composantes de 0 à 1.**
+
+| Copie | Fonction | Casse | Borne | Alpha |
+|---|---|---|---|---|
+| `packages/kit/src/controles/accessibilite.ts:581`, `:625` | `versRgb8`, `hexa` | minuscules | oui | non |
+| `packages/kit/src/controles/preparation.ts:93` | `hexaDe` | majuscules | oui | non |
+| `packages/plugin-architect/src/modele.ts:177` | `hexaDeCouleur` | majuscules | oui, signalée | oui |
+| `packages/plugin-palettes/src/variables/releve.ts:44`, `:52` | `octet`, `hexaDeFigma` | majuscules | oui | oui |
+| `packages/plugin-palettes/src/lecture.ts:352` | en ligne | selon `ecrireHexa` | non | non |
+| `packages/plugin-architect/src/contraste.ts:25` | `enOctets` | sans objet | non, gamut contrôlé avant | non |
+| `packages/plugin-architect/src/ui/valeurs.ts:20` | `canal`, vers `rgba()` | sans objet | non, composantes contrôlées avant | non |
+
+**Divergence lue.** Le fait `premierPlan` d'un constat de contraste s'écrit `#1a2b3c` ; la même couleur s'écrit `#1A2B3C` dans Architect et Palettes. `lecture.ts:352` sans borne rendrait `100` pour une composante à 1,002.
+
+**Propriétaire proposé.** `packages/kit/src/emplois/contraste.ts` ou un module `emplois/couleur.ts` : `versRgb8(c: { r: number; g: number; b: number }): Rgb8` (borné) et `hexaDeFigma(c, { alpha?: boolean }): string` en majuscules. `ucm-couleur` garde `lireHexa` et `ecrireHexa` sur `Rgb8`.
+
+**Loi proposée.** Refuser `Math.round(… * 255)` hors du propriétaire et de `packages/couleur/src/conversions.ts`.
+
+**Migration.** Correction de casse sur les faits `premierPlan` et `fond` des constats de contraste.
+
+**Risques.** Les faits sont lus par la reprise d'Architect et par ses états de galerie.
+
+### D-25
+
+**Les mots d'un texte que le designer tape dans Nomenclature.**
+
+| Copie | Fonction | Découpe |
+|---|---|---|
+| `packages/kit/src/referentiel/ecriture-des-mots.ts:20` | `decouperSegment` | séparateurs, casse camel, chiffres |
+| `packages/plugin-architect/src/nomenclature/session.ts:92` | `motsDe` | espaces et tirets seulement, en minuscules |
+| `packages/plugin-architect/src/nomenclature/session.ts:95` | `motsDuTermeUcm` | parcourt `REGISTRES` pour retrouver un terme par `id.toLowerCase()` |
+
+**Divergence lue.** Le designer tape `foregroundMain` : `motsDe` rend un mot, `decouperSegment` en rend deux. Le lexique du fichier, découpé par `decouperSegment`, ne contient pas la suite d'un seul mot, et `employe` rend faux. `motsDuTermeUcm` refait la recherche de terme que `termeReconnu` indexe déjà.
+
+**Propriétaire proposé.** `decouperSegment` pour les mots ; `termeReconnu` sur `REGISTRES` pour retrouver un terme.
+
+**Loi proposée.** Refuser `.split(/[\s-]+/` dans `packages/plugin-architect/src/nomenclature/`.
+
+**Migration.** Correction, à confirmer par le mainteneur : un terme saisi en camel change de découpe (Q-10).
+
+### D-26
+
+**Le nom `identity` d'une palette du thème.**
+
+| Copie | Fonction |
+|---|---|
+| `packages/kit/src/referentiel/architecture.ts:67` | terme `identity` de `FAMILLES_BRANDS` |
+| `packages/plugin-architect/src/integrations/profilUcm.ts:124` | `estIdentite`, `toLowerCase() === 'identity'` |
+
+**Divergence lue.** `Primary/Identity-color` ou un vocabulaire du fichier qui renomme `identity` : le registre peut les reconnaître, `estIdentite` non.
+
+**Propriétaire proposé.** `termeReconnu(FAMILLES_BRANDS, segment)?.id === 'identity'`.
+
+**Loi proposée.** Celle de D-04 étendue à `packages/plugin-architect/src/` : pas de `toLowerCase() === '<terme>'`.
+
+**Migration.** Sortie identique sur les noms trouvés.
+
+### D-27
+
+**Les variables du thème rangées par dossier.**
+
+| Copie | Contenu |
+|---|---|
+| `packages/kit/src/emplois/dossiers.ts:13-18` | `DOSSIERS`, `ETATS`, `VARIABLES_DE_PALETTE` |
+| `packages/plugin-palettes/src/planche/modele.ts:361-363` | `solid`, `surface`, `page` et leurs variables, en littéral |
+| `packages/plugin-palettes/src/presentation.ts:285-292` | groupes de la carte, en littéral |
+
+**Divergence.** Aucune aujourd'hui. Une variable ajoutée au dossier `page` ne paraîtrait pas sur la planche.
+
+**Propriétaire proposé.** `emplois/dossiers.ts` : `variablesDuDossier(dossier): readonly VariableDePalette[]`.
+
+**Loi proposée.** `tests/referentielUnique.test.ts` refuse déjà les listes recopiées ; y ajouter le motif `'solid/default', 'solid/hover'` et `'page/foreground', 'page/border'` hors des domiciles.
+
+**Migration.** Sortie identique.
+
 ## Non-doublons
 
 | Apparence | Raison |
@@ -439,6 +673,10 @@ export function memeValeurDAxe(axe: AxeDuComposant, segment: string, valeur: str
 | `normalizePropKey` (socle) et `formeReconnue` (kit) | Le premier produit la clé camel publiée dans le contrat, le second une forme de reconnaissance. Ils ne répondent pas à la même question ; D-03 traite le seul cas où l'un remplace l'autre |
 | `estPaletteGrise` et le seuil de chroma du hub | Rampes calculées contre couleur de référence (D-12 garde le seul seuil du hub) |
 | `nuancier.ts:113` et l'encre lisible | Autres encres, autre question (D-10) |
+| `identifiantDansLeMaitre` (`plugin-architect/src/imbriquesDuReleve.ts:67`) et `finCommune` (`plugin-socle/src/composant/contract/compactVariants.ts:149`) | Le premier traduit un identifiant `I<instance>;<calque>` vers le maître ; le second cherche la fin commune de plusieurs identifiants. Deux questions |
+| `GABARITS` de `plugin-architect/src/sandbox/projectionsDesControles.ts` | Recopie ce que chaque famille du kit lit. `tests/projectionsDesControles.test.ts` garde la copie par l'enregistrement des accès. Chaque correction des fiches qui fait lire un champ de plus à une famille doit y ajouter ce champ |
+| `porteLeNom` (`plugin-socle/src/composant/contract/extractRules.ts:171`) et les noms de layer du kit (`formeReconnue(layer.nom) === 'title'`) | Le socle cherche un calque nommé par une règle du contrat ; le kit reconnaît un rôle. La comparaison du kit relève de D-04 |
+| `forgeDuRepository` du CLI et `HOTES` de l'exporteur | déjà listé : deux périmètres réseau |
 
 ## Documents en contradiction
 
@@ -461,6 +699,12 @@ export function memeValeurDAxe(axe: AxeDuComposant, segment: string, valeur: str
 **Q-06.** La planche et les tests du navigateur recalculent le contraste sans import. Injecter le corps du kit à la génération, ou garder ces copies sous une loi qui les compare au kit ? Recommandation : injection pour la planche, comparaison pour les tests.
 
 **Q-07.** Le hub devine le rôle d'une palette par sa teinte. Garder cette devinette, propre à la démonstration ?
+
+**Q-08.** Le socle lit des peintures Figma brutes ; le kit lit `PeintureLue`. Une règle pour les deux formes, dans le kit, ou une par forme sous une loi qui les compare ? Recommandation : une fonction du kit sur `{ visible?: boolean; opacity?: number }`, que les deux appellent.
+
+**Q-09.** Architect doit-il compter les liaisons de layout de tout le sous-arbre d'un imbriqué, comme le socle ? Le parcours coûte des accès Figma que la vitesse de l'analyse a retirés. Recommandation : garder l'écart documenté, et partager seulement la liste des motifs.
+
+**Q-10.** Un terme que le designer tape dans Nomenclature se découpe-t-il en camel (`foregroundMain` en deux mots) ? Recommandation : oui, comme les noms du fichier.
 
 ## Ordre proposé
 
