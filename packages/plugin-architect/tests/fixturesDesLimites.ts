@@ -60,7 +60,7 @@ export function tokensDesLimitesDExport(): string {
   });
 }
 
-const SOLIDE = ['FRAME_FILL', 'SHAPE_FILL', 'STROKE_COLOR'];
+const SOLIDE = ['FRAME_FILL', 'SHAPE_FILL'];
 
 /**
  * Un fichier associé au profil qui ne rend aucun écart et quatre contrôles

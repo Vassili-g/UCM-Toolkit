@@ -39,11 +39,11 @@ test('une association se refuse hors d’une variable de couleur, d’une palett
 test('les variables d’un cran viennent de la table des dossiers, dans le sens du thème ; le neutre ajoute les siennes', () => {
   const recette = recetteAvec('primary', 'neutral');
   const normal = variablesDeLAssociation(recette, { palette: 'p0', intensite: 'soft', theme: 'light', cran: 700 });
-  assert.deepEqual(normal, ['solid/default', 'page/foreground', 'page/border']);
+  assert.deepEqual(normal, ['solid/default', 'surface/foreground', 'surface/border', 'page/foreground', 'page/border'], 'en Light normal, la surface lit le 700');
   const inverse = variablesDeLAssociation({ ...recette, texteDesBoutons: { light: 'noir', dark: 'noir' } }, { palette: 'p0', intensite: 'soft', theme: 'light', cran: 700 });
   assert.deepEqual(inverse, ['solid/default', 'ring']);
   const neutre = variablesDeLAssociation(recette, { palette: 'p1', intensite: 'soft', theme: 'dark', cran: 500 });
-  assert.deepEqual(neutre, ['surface/pressed', 'disabled/foreground', 'disabled/border'], 'en Dark, surface/pressed vise le 500');
+  assert.deepEqual(neutre, ['surface/pressed', 'surface/divider', 'disabled/foreground', 'disabled/border'], 'en Dark, surface/pressed et surface/divider visent le 500');
   const neutreLight = variablesDeLAssociation(recette, { palette: 'p1', intensite: 'soft', theme: 'light', cran: 500 });
   assert.deepEqual(neutreLight, ['disabled/foreground', 'disabled/border']);
 });
@@ -66,7 +66,7 @@ test('un nom de theme porte sa variable de dossier quelle que soit son écriture
   assert.equal(nuanceAttendue('Primary/Solid/Hover', 'light', recetteAvec('primary')), 800);
 });
 
-const SOLID = ['FRAME_FILL', 'SHAPE_FILL', 'STROKE_COLOR'];
+const SOLID = ['FRAME_FILL', 'SHAPE_FILL'];
 
 /** Un fichier remappé : `theme` en deux modes, aliasé vers `brands` et `utility`. `ecrire` change l'écriture des noms de `theme`. */
 function fichierRemappe(aliasDeHover = 'b-800', portees: string[] = SOLID, ecrire: (nom: string) => string = (nom) => nom) {
@@ -151,7 +151,7 @@ test('en Dark inversé, la 600 est attendue pour solid/hover', () => {
 
 test('une variable de dossier sans portée rend un constat de portée, avec les portées de la table', () => {
   const constats = controlerLeProfil(fichierRemappe('b-800', []), COUCHES_REMAPPEES).constats;
-  assert.deepEqual(constats.map((constat) => `${constat.regle}:${constat.variable}:${constat.attendue}`), ['portee:t-hover:FRAME_FILL, SHAPE_FILL, STROKE_COLOR']);
+  assert.deepEqual(constats.map((constat) => `${constat.regle}:${constat.variable}:${constat.attendue}`), ['portee:t-hover:FRAME_FILL, SHAPE_FILL']);
 });
 
 const RESUME = (constats: ReturnType<typeof controlerLeProfil>['constats']) => constats.map((constat) => `${constat.regle}:${constat.variable}:${constat.attendue}`);
@@ -163,7 +163,7 @@ test('un thème renommé selon chaque convention rend les mêmes constats de por
     return propositions[0]?.nouveauNom ?? nom;
   };
   const attendus = RESUME(controlerLeProfil(fichierRemappe('b-700', []), COUCHES_REMAPPEES, { recette }).constats);
-  assert.deepEqual(attendus, ['nuance:t-hover:800', 'portee:t-hover:FRAME_FILL, SHAPE_FILL, STROKE_COLOR']);
+  assert.deepEqual(attendus, ['nuance:t-hover:800', 'portee:t-hover:FRAME_FILL, SHAPE_FILL']);
   for (const choix of CONVENTIONS) {
     const index = fichierRemappe('b-700', [], ecrire(choix.convention));
     assert.deepEqual(RESUME(controlerLeProfil(index, COUCHES_REMAPPEES, { recette }).constats), attendus, choix.id);
@@ -236,6 +236,26 @@ test('une valeur absente d’un mode, et un alias vers une collection sans couch
   ]);
 });
 
+/** Un thème d'une variable, aux noms libres, pour juger ses scopes. */
+function themeAvecScopes(nom: string, portees: string[]) {
+  const c = constructeur('Scopes');
+  c.collection('t', 'Thème', ['Light']);
+  c.variable('v', 't', nom, 'COLOR', { Light: couleur('#000000') }, { portees });
+  return indexer(c.releve());
+}
+
+const SCOPES_ATTENDUS = (nom: string, portees: string[]) => controlerLeProfil(themeAvecScopes(nom, portees), { t: 'theme' }).constats.filter(({ regle }) => regle === 'portee').map(({ attendue }) => attendue);
+
+test('les scopes suivent la table : fonds de solid sans STROKE_COLOR, foreground avec, filets avec FRAME_FILL et SHAPE_FILL', () => {
+  assert.deepEqual(SCOPES_ATTENDUS('primary/solid/default', ['FRAME_FILL', 'SHAPE_FILL', 'STROKE_COLOR']), ['FRAME_FILL, SHAPE_FILL']);
+  assert.deepEqual(SCOPES_ATTENDUS('primary/solid/default', ['FRAME_FILL', 'SHAPE_FILL']), []);
+  assert.deepEqual(SCOPES_ATTENDUS('primary/page/foreground', ['TEXT_FILL', 'SHAPE_FILL']), ['TEXT_FILL, SHAPE_FILL, STROKE_COLOR']);
+  assert.deepEqual(SCOPES_ATTENDUS('primary/page/foreground', ['TEXT_FILL', 'SHAPE_FILL', 'STROKE_COLOR']), []);
+  assert.deepEqual(SCOPES_ATTENDUS('primary/surface/divider', ['STROKE_COLOR', 'FRAME_FILL', 'SHAPE_FILL']), []);
+  assert.equal(variableDuNom('primary/surface/subtle')?.variable, 'surface/subtle');
+  assert.equal(variableDuNom('primary/surface/divider')?.variable, 'surface/divider');
+});
+
 test('une exception du designer retire un constat, jamais une limite', () => {
   const index = indexer(releveDuProfilAvecLimites());
   const exceptions = new Set(['role-inconnu:mystere', 'mode-sans-valeur:defaut:theme:Jour', 'cible-sans-couche:bordure:composants:Valeur']);
@@ -286,7 +306,7 @@ function fichierAssocie() {
   c.collection('p', 'Catalogue', ['M']);
   c.variable('bouton', 'c', 'button/bg', 'COLOR', { M: alias('t-solid') });
   c.variable('saut', 'c', 'button/border', 'COLOR', { M: alias('cat') });
-  c.variable('t-solid', 't', 'primary/solid/default', 'COLOR', { M: alias('b-700') }, { portees: ['FRAME_FILL', 'SHAPE_FILL', 'STROKE_COLOR'] });
+  c.variable('t-solid', 't', 'primary/solid/default', 'COLOR', { M: alias('b-700') }, { portees: SOLID });
   c.variable('t-texte', 't', 'primary/page/foreground', 'COLOR', { M: couleur('#000000') }, { portees: ['ALL_SCOPES'] });
   c.variable('b-700', 'b', 'primary/light/700', 'COLOR', { M: alias('cat') }, { portees: [] });
   c.variable('cat', 'p', 'colors/blue/700', 'COLOR', { M: couleur('#1E40AF') }, { portees: ['ALL_SCOPES'] });
