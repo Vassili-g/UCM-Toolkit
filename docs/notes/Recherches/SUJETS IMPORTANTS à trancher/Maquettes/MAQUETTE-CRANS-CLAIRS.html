@@ -147,7 +147,7 @@
     <a href="#s1">1. Crans clairs foncés</a><a href="#s2">2. Même cran, même clarté</a><a href="#s3">3. Texte de surface</a>
     <a href="#s4">4. Bouton texte</a><a href="#s5">5. Fond léger</a><a href="#s6">6. Changement de contexte</a>
     <a href="#s7">7. Contraste à l'appui</a><a href="#s8">8. Éléments sans survol</a><a href="#s9">9. Organisation des variables</a>
-    <a href="#s10">10. Thème Dark</a><a href="#questions">Décisions</a>
+    <a href="#s10">10. Thème Dark</a><a href="#s11">11. Dark normal</a><a href="#questions">Décisions</a>
   </nav>
 
   <!-- 1 -->
@@ -409,6 +409,18 @@
   <div class="page grille" id="dark" style="background:#121212"></div>
   <div id="contrastesDark"></div>
 
+  <h2 id="s11">11. Le Dark normal, texte des boutons noir</h2>
+  <ul class="faits">
+    <li>Le Dark normal est le Dark par défaut du produit. Ta configuration utilise le Dark inversé.</li>
+    <li>Ici, tes palettes passent en Dark normal, avec la courbe Dark par défaut de ce sens. Le 700 y vaut 0,67 et le 800 0,76.</li>
+    <li>En Dark normal, le 700 sert le texte de la page, son contour et le fond du bouton plein, à texte noir.</li>
+    <li>La garantie 9 juge ce texte sur le fond teinté au repos, le 300.</li>
+    <li>Colonne 1 : le moteur sans la correction par teinte. Colonne 2 : le moteur avec la correction, lot C2. Colonne 3 : le 700 de la courbe relevé à 0,70, puis la correction.</li>
+    <li>Un 700 qui porte la référence de la palette n'est jamais corrigé. La garantie 9 manque alors.</li>
+    <li>Les couleurs viennent du moteur réel, par <code>Mesures/generer-dark-normal.ts</code>.</li>
+  </ul>
+  <div class="grille" id="darkNormal" style="grid-template-columns:1fr"></div>
+
   <h2 id="questions">Décisions</h2>
   <h3>Prises</h3>
   <div class="defile"><table class="mesures">
@@ -439,6 +451,7 @@
 </main>
 
 <script src="donnees-crans.js"></script>
+<script src="donnees-dark-normal.js"></script>
 <script>
 const D = window.CRANS;
 const TABLES = {
@@ -866,6 +879,37 @@ function rendreDark() {
   }).join('');
 }
 
+// Section 11 : chaque palette en Dark normal, sous les trois versions du moteur.
+const VERSIONS_DARK_NORMAL = [['aujourdhui', 'Sans correction'], ['correction', 'Correction par teinte'], ['courbe', '700 relevé à 0,70']];
+function rendreDarkNormal() {
+  const N = window.DARK_NORMAL;
+  if (!N) return;
+  const page = N.page;
+  const colonne = (v, base, titre) => {
+    const t = v[700].hexa, fond = v[300].hexa, survol = v[400].hexa, titreAlerte = v[950].hexa;
+    const ecart = v[700].L - base[700].L;
+    return `<div class="page" style="background:${page};padding:12px;border-radius:8px">
+      <h4 style="color:#eee">${titre}</h4>
+      <p class="note" style="color:#aaa;margin:0 0 8px">700 à ${virgule(v[700].L, 3)}${ecart > 0.0005 ? ` (+${virgule(ecart, 3)})` : ''}</p>
+      <div style="display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-bottom:10px">
+        <span style="background:${t};color:#000;font-weight:600;padding:6px 12px;border-radius:6px">Valider</span>
+        <span style="color:${t};font-weight:600;padding:6px 8px">Modifier</span>
+        <span style="color:${t};text-decoration:underline">En savoir plus</span>
+      </div>
+      <div class="alerte" style="background:${fond};display:block;border-radius:6px;padding:10px">
+        <strong style="color:${titreAlerte}">Votre dossier est incomplet.</strong>
+        <div style="margin-top:8px;display:flex;gap:8px;align-items:center"><span style="color:${t};font-weight:600;padding:4px 6px">Modifier</span><span style="color:${t};font-weight:600;padding:4px 6px;border-radius:6px;background:${survol}">survolé</span></div>
+      </div>
+      <p class="note" style="color:#bbb;margin-top:8px">Page ${badge(contraste(t, page))} · Fond teinté ${badge(contraste(t, fond))} · Survol ${badge(contraste(t, survol))} · Bouton plein ${badge(contraste('#000000', t))}</p>
+    </div>`;
+  };
+  $('darkNormal').innerHTML = N.palettes.flatMap((p) => Object.entries(p.intensites).map(([i, versions]) => {
+    const nom = `${p.nom}${i === 'unique' ? '' : ' ' + (i === 'soft' ? 'Soft' : 'Vivid')}`;
+    return `<div><h4>${nom} <span class="note">référence ${p.reference}</span></h4>
+      <div style="display:grid;gap:10px;grid-template-columns:repeat(auto-fit,minmax(min(100%,300px),1fr))">${VERSIONS_DARK_NORMAL.map(([cle, titre]) => colonne(versions[cle], versions.aujourdhui, titre)).join('')}</div></div>`;
+  })).join('');
+}
+
 function marquer(conteneur, valeur) { conteneur.querySelectorAll('button').forEach((x) => x.setAttribute('aria-pressed', String(valeur === x.dataset.v))); }
 function rendre() {
   document.querySelectorAll('.bascule[data-cle]').forEach((b) => marquer(b, etat[b.dataset.cle]));
@@ -873,7 +917,7 @@ function rendre() {
   document.querySelectorAll('[data-cle="lissage"] button').forEach((x) => { x.disabled = !D.courbes[etat.courbe + 'Lissee']; });
   $('palette').value = etat.palette;
   rendreRampes(); rendreHarmonie(); rendreTextes(); rendreBoutonsTexte(); rendreAlertes(); rendreContextes(); rendreContexteModes();
-  rendreContrastes(); rendreSansSurvol(); rendreCourbe700(); rendreInspecteur700(); rendrePalettes700(); rendreManques(); rendreNoms(); rendreDark();
+  rendreContrastes(); rendreSansSurvol(); rendreCourbe700(); rendreInspecteur700(); rendrePalettes700(); rendreManques(); rendreNoms(); rendreDark(); rendreDarkNormal();
   garder();
 }
 

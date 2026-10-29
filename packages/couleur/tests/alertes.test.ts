@@ -196,7 +196,7 @@ test('[VER-22] le plein et le fond teinté, en Light et en Dark, au plus petit r
   const cas = [
     { refs: ['#D92626', '#D92926'], role: 'plein', lecture: LECTURES[0] },
     { refs: ['#AD1F1F', '#AD231F'], role: 'plein', lecture: LECTURES[1] },
-    { refs: ['#AD1F1F', '#AD211F'], role: 'fond', lecture: LECTURES[2] },
+    { refs: ['#AD1F1F', '#AD1F22'], role: 'fond', lecture: LECTURES[2] },
   ] as const;
   for (const { refs, role, lecture } of cas) {
     const { recette, pa, pb, proximite } = paire(refs[0], refs[1]);

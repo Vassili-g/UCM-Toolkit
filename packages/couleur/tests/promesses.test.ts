@@ -11,11 +11,13 @@ import {
   couleurDeLaCarte,
   ecrireHexa,
   intensitesDe,
+  jugerLesRampes,
   lineaireVersRgb8,
   lireHexa,
   mesurerCran,
   oklchVersLineaire,
   rampesDe,
+  rampesSansCorrection,
   recetteParDefaut,
   rgb8VersOklch,
   verifierPromesses,
@@ -124,6 +126,18 @@ function promesse(r: Recette, palette: Palette, numero: number, fond: Cible, mod
 }
 
 /**
+ * La même promesse jugée sur les rampes avant la correction des textes. Les recettes de `recettePourEchouer`
+ * font rejoindre deux membres ; le 700, texte de G3 et de G9, serait éloigné des fonds teintés par la correction
+ * et la promesse serait rendue. Le jugement de la garantie se prouve donc sur les rampes que la correction n'a pas touchées.
+ */
+function promesseAvantCorrection(r: Recette, palette: Palette, numero: number, fond: Cible, mode: Mode, profil: Profil): Promesse {
+  const trouvee = jugerLesRampes(r, intensitesDe(palette), rampesSansCorrection(r, palette))
+    .find((p) => p.garantie.numero === numero && cibleDe(p.second) === fond && p.mode === mode && p.profil === profil);
+  assert.ok(trouvee, `garantie ${numero} contre ${fond} absente en ${mode}, ${profil}`);
+  return trouvee;
+}
+
+/**
  * Une recette où la promesse échoue pour ce mode et ce profil : un fond de la
  * page prend la couleur du premier membre ; un second cran prend la clarté du
  * texte des boutons (1 pour le blanc, 0 pour le noir) ou celle du premier
@@ -153,7 +167,7 @@ for (const { numero, light, dark } of TABLE_S7) {
         for (const fond of (mode === 'light' ? light : dark).normal.fonds) {
           const p = promesse(recette, BLEU, numero, fond, mode, profil);
           assert.equal(p.verdict, 'tenue', `défaut, ${mode}, contre ${fond} : ${p.contraste}`);
-          const echec = promesse(recettePourEchouer(recette, p), BLEU, numero, fond, mode, profil);
+          const echec = promesseAvantCorrection(recettePourEchouer(recette, p), BLEU, numero, fond, mode, profil);
           assert.equal(echec.verdict, 'manquee', `${mode}, contre ${fond} : ${echec.contraste}`);
         }
       }
@@ -398,8 +412,17 @@ test('[VER-03] oracles S8 : en Light inversé, cinq références ancrées manque
 test('[VER-03] oracles S8 : G2 à G7 ne manquent jamais sur les quatorze références, dans les quatre combinaisons', () => {
   // G7 se jugeait contre `surface/default` et manquait sur #16A34A en Vivid, Light ; contre la page et la carte, elle tient partout.
   for (const texte of COMBINAISONS) {
-    const manquees = promessesDesReferences(texte).filter(({ p }) => p.garantie.numero >= 2 && p.verdict === 'manquee');
+    const manquees = promessesDesReferences(texte).filter(({ p }) => p.garantie.numero >= 2 && p.garantie.numero <= 7 && p.verdict === 'manquee');
     assert.deepEqual(manquees.map(({ reference, p }) => `${reference} ${p.mode} ${p.profil} G${p.garantie.numero}`), [], `texte ${texte.light}/${texte.dark}`);
+  }
+});
+
+test('[VER-03] oracles S8 : sur les quatorze références, G3, G8 et G9 ne manquent que quand leur texte est le cran de la référence, dans les quatre combinaisons', () => {
+  for (const texte of COMBINAISONS) {
+    const manquees = promessesDesReferences(texte).filter(({ p }) => [3, 8, 9].includes(p.garantie.numero) && p.verdict === 'manquee');
+    // Le cran de la référence ne se corrige pas (`corrigerLesTextes`) : Palettes propose alors d'ajuster la référence.
+    const horsAncrage = manquees.filter(({ p, surLAncre }) => !surLAncre(p.premier)).map(({ reference, p }) => `${reference} ${p.mode} ${p.profil} G${p.garantie.numero} ${p.contraste}`);
+    assert.deepEqual(horsAncrage, [], `texte ${texte.light}/${texte.dark}`);
   }
 });
 

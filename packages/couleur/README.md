@@ -12,6 +12,7 @@ source TypeScript par le plugin. Il n'est pas publié sur npm.
 | Limite de chroma sRGB, rampes, dérive de teinte et fonds Dark | `plafond.ts`, `rampe.ts` |
 | Modèles de nuances, courbes par défaut selon le texte des boutons de chaque thème, intensités, gris et ancrage de la référence | `nuances.ts`, `palette.ts` |
 | Réglage global et limites dynamiques du Color shift | `reglages.ts`, `limites.ts` |
+| Correction des textes de `surface` et de `page` par teinte, jusqu'au seuil `texte` sur les fonds teintés | `textes.ts` |
 | Proposition d'ajustement de la référence | `ajustement.ts` |
 | Contrastes WCAG 2 et les neuf garanties de la table en dossiers | `contraste.ts`, `promesses.ts` ; la table et les garanties sont dans `@ucm-kit/core/emplois` |
 | Alertes de conception et garantie des courbes | `alertes.ts`, `garantie.ts`, `constats.ts` |

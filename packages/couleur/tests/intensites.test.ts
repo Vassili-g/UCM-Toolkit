@@ -87,14 +87,13 @@ test('[ENT-14] une palette à une intensité juge quarante-huit promesses, sans 
   const promesses = verifierPromesses(recetteAvec(bleu), bleu);
   assert.equal(promesses.length, 48);
   assert.deepEqual([...new Set(promesses.map((promesse) => promesse.profil))], ['unique']);
-  // La courbe claire place le 700 à 0,60 : des garanties manquent en clair, et seules les promesses de la rampe unique comptent.
+  // Un fond de page gris moyen : des garanties manquent en clair, et seules les promesses de la rampe unique comptent.
+  // Un 700 plus clair ne ferait manquer ni G3 ni G9 : la correction des textes le fonce.
   const recette = recetteAvec(bleu);
-  const light = [...recette.courbes.light];
-  light[7] = 0.6;
-  const plusClair: Recette = { ...recette, courbes: { ...recette.courbes, light } };
+  const pageGrise: Recette = { ...recette, fonds: { ...recette.fonds, light: '#808080' } };
   const deux = paletteTailwind('p-000000c3', '#1E6FD9');
-  const manqueesUne = compterManquees(verifierPromesses(plusClair, bleu));
-  const manqueesDeux = verifierPromesses(plusClair, deux);
+  const manqueesUne = compterManquees(verifierPromesses(pageGrise, bleu));
+  const manqueesDeux = verifierPromesses(pageGrise, deux);
   assert.ok(manqueesUne > 0);
   assert.equal(manqueesUne, manqueesDeux.filter((promesse) => promesse.profil === 'vivid' && promesse.verdict === 'manquee').length, 'la rampe unique de #1E6FD9 est sa rampe Vivid');
   assert.ok(compterManquees(manqueesDeux) > manqueesUne);

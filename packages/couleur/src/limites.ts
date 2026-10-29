@@ -4,7 +4,9 @@
  * deux nuances voisines gardent leur écart de clarté.
  *
  * Le balayage ne lit aucun réglage : le Color shift et le réglage global lui
- * passent chacun la palette que leur geste donnerait pour une valeur.
+ * passent chacun la palette que leur geste donnerait pour une valeur. Il juge
+ * les rampes corrigées (`corrigerLesTextes`) : G3 et G9 ne bornent un réglage
+ * que là où le cran du texte bute sur son voisin ou porte la référence.
  */
 import { ECART_MINIMAL_DES_CLARTES, ordreDesClartesTenu } from './ordre';
 import { clartesDe } from './palette';

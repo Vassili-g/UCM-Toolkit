@@ -5,7 +5,9 @@
  * la table du sens du thème (`sensDuTheme`), contre les fonds de la palette
  * et, hors de la palette, contre la page (le réglage « Fond » du thème) et la
  * carte, qui s'en déduit ([MOT-37]). Une garantie dont un cran manque à la
- * liste ne se juge pas.
+ * liste ne se juge pas. Les rampes jugées sont celles de `rampesDe`, textes
+ * corrigés (`corrigerLesTextes`) : G3 et G9 manquent seulement quand le cran
+ * du texte porte la référence ou bute sur son voisin.
  */
 import { atteintLeSeuil, contraste } from '@ucm-kit/core/emplois';
 

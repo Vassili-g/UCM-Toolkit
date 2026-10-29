@@ -20,6 +20,7 @@ import {
   partsDe,
   profilPorteur,
   rampesDe,
+  rampesSansCorrection,
   rangPorteur,
   recetteParDefaut,
   rgb8VersOklch,
@@ -111,8 +112,10 @@ test('[MOT-17] [ENT-11] #1E6FD9 est le 600 de vivid dans les deux modes ; ses vo
   assert.equal(rampes.vivid!.dark[6].hexa, '#1E6FD9');
   // À la part commune de vivid, 0,95, ils valaient #0E5DC6 et #4596FA.
   assert.equal(rampes.vivid!.light[7].hexa, '#185FC0');
-  // Le 800 sombre est plus clair que la référence : la clarté selon la teinte du bleu (−0,021) le baisse, #4B96F4 sans elle.
-  assert.equal(rampes.vivid!.dark[7].hexa, '#4895F4');
+  // Le 700 sombre est plus clair que la référence : la clarté selon la teinte du bleu (−0,021) le baisse, #4B96F4 sans elle,
+  // puis la correction des textes l'éclaircit pour que `page/foreground` tienne 4,5:1 sur le fond teinté.
+  assert.equal(rampesSansCorrection(recetteAuxPartsDe045(bleu), bleu).vivid!.dark[7].hexa, '#4895F4');
+  assert.equal(rampes.vivid!.dark[7].hexa, '#5A9FF5');
   assert.notEqual(rampes.soft!.light[6].hexa, '#1E6FD9');
 });
 
@@ -134,7 +137,9 @@ test('[MOT-17] sur deux mille références, le profil porteur contient les octet
     const hexa = `#${octets.map((octet) => octet.toString(16).padStart(2, '0')).join('').toUpperCase()}`;
     const { recette: r, palette } = neuve(hexa, recette);
     const ancrage = ancrageDe(r, palette);
-    const rampes = rampesDe(r, palette);
+    // La correction des textes éloigne le 700 des fonds teintés : on compare les rampes avant elle, et on vérifie après elle que la référence garde ses octets.
+    const rampes = rampesSansCorrection(r, palette);
+    const finales = rampesDe(r, palette);
     const parts = partsDe(r, palette) as { soft: number; vivid: number };
     // Les rampes communes : la référence pour pivot, l'enveloppe de chaque profil dans chaque thème ([MOT-35]),
     // la clarté selon la teinte que la palette applique, la chroma gardée, et en Light la clarté commune des
@@ -177,6 +182,7 @@ test('[MOT-17] sur deux mille références, le profil porteur contient les octet
           const attendu = ancre ? hexa : communes[autre].hexa;
           if (cran.hexa !== attendu) fautes.push(`${hexa} ${profil} ${mode} ${r.crans[autre]} : ${cran.hexa} pour ${attendu}`);
           if (ancre && cran.couleur.some((octet, canal) => octet !== octets[canal])) fautes.push(`${hexa} : octets ${cran.couleur}`);
+          if (ancre && finales[profil]![mode][autre].couleur.some((octet, canal) => octet !== octets[canal])) fautes.push(`${hexa} : octets corrigés ${finales[profil]![mode][autre].couleur}`);
         });
       }
     }

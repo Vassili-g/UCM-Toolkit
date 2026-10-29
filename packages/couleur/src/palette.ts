@@ -35,6 +35,7 @@ import {
 } from './rampe';
 import { figeesParIntensite, type CouleursFigees, type CouleursFigeesParIntensite, type Palette, type Recette } from './recette';
 import { clarteSelonLaTeinteDuReleve } from './tailwind';
+import { corrigerLesTextes } from './textes';
 
 /** Vrai pour une palette à une intensité ([ENT-14]). */
 export function aUneIntensite(palette: Palette): boolean {
@@ -455,6 +456,7 @@ function rampeDeLIntensitePorteuse(
   ancrage: Ancrage,
   reference: Rgb8,
   visees: { readonly [M in Mode]: readonly ViseeDeCran[] },
+  corriger: Correction,
 ): RampeParMode {
   const lue = rgb8VersOklch(reference);
   const bosses = {
@@ -463,9 +465,9 @@ function rampeDeLIntensitePorteuse(
   };
   const rampe = (mode: Mode, force: number): Cran[] => {
     const bosse = bosses[mode];
-    return visees[mode].map((visee, rang) => (rang === ancrage.rangs[mode]
+    return corriger(mode, visees[mode].map((visee, rang) => (rang === ancrage.rangs[mode]
       ? cranDeLaReference(reference)
-      : cranDeLaVisee({ L: visee.L, H: visee.H, C: bosse ? visee.C + (bosse[rang] - visee.C) * force : visee.C })));
+      : cranDeLaVisee({ L: visee.L, H: visee.H, C: bosse ? visee.C + (bosse[rang] - visee.C) * force : visee.C }))), ancrage.rangs[mode]);
   };
   const forces = { light: 0, dark: 0 };
   for (const mode of MODES) {
@@ -490,19 +492,35 @@ function rampeDeLIntensitePorteuse(
   return { light: rampe('light', forces.light), dark: rampe('dark', forces.dark) };
 }
 
+/** La correction des textes d'une rampe fabriquée : la rampe du mode, et le rang de la référence qu'elle porte, s'il y en a un. */
+type Correction = (mode: Mode, rampe: Cran[], rangDeLaReference: number | undefined) => Cran[];
+
+/**
+ * Les textes d'une rampe ramenés au seuil `texte` (`corrigerLesTextes`). Une
+ * palette libre n'a pas de promesses ni de table : ses rampes restent telles
+ * quelles, comme celles que `rampesSansCorrection` rend.
+ */
+function correctionDesTextes(recette: Recette, palette: Palette, corriger: boolean): Correction {
+  return (mode, rampe, rangDeLaReference) => (corriger && !estLibre(palette) ? corrigerLesTextes(recette, mode, rampe, rangDeLaReference).rampe : rampe);
+}
+
 /** Les rampes d'une palette non figée sous un décalage de clarté donné : la chaîne que `rampesDe` retient et que la garde de la clarté essaie. */
-function rampesAvecLeDecalage(recette: Recette, palette: Palette, decalageDeClarte: number): Rampes {
+function rampesAvecLeDecalage(recette: Recette, palette: Palette, decalageDeClarte: number, corriger = true): Rampes {
   const reference = referenceDe(palette);
   const ancrage = ancrageDe(recette, palette);
   const parametres = parametresDesRampes(recette, palette, decalageDeClarte, ancrage);
+  const corrigee = correctionDesTextes(recette, palette, corriger);
   const rampes: { [I in Intensite]?: RampeParMode } = {};
   for (const intensite of intensitesDe(palette)) {
     const visees = { light: viseesDeLaRampe(parametres(intensite, 'light')), dark: viseesDeLaRampe(parametres(intensite, 'dark')) };
     if (intensite === ancrage.profil) {
-      rampes[intensite] = rampeDeLIntensitePorteuse(recette, palette, intensite, ancrage, reference, visees);
+      rampes[intensite] = rampeDeLIntensitePorteuse(recette, palette, intensite, ancrage, reference, visees, corrigee);
       continue;
     }
-    rampes[intensite] = { light: visees.light.map(cranDeLaVisee), dark: visees.dark.map(cranDeLaVisee) };
+    rampes[intensite] = {
+      light: corrigee('light', visees.light.map(cranDeLaVisee), undefined),
+      dark: corrigee('dark', visees.dark.map(cranDeLaVisee), undefined),
+    };
   }
   return rampes;
 }
@@ -512,8 +530,9 @@ function rampesAvecLeDecalage(recette: Recette, palette: Palette, decalageDeClar
  * ([MOT-17]) : dans l'intensité porteuse, le cran de l'ancrage de chaque mode
  * prend les octets exacts de la référence, fonds du thème Dark compris. Les
  * autres crans gardent le calcul commun, sauf ceux de l'intensité porteuse que
- * la bosse de chroma monte vers la référence. Promesses, alertes, planche et
- * rapport lisent ces rampes-ci.
+ * la bosse de chroma monte vers la référence, et les textes que la table
+ * éloigne des fonds teintés quand la teinte les y manque (`corrigerLesTextes`).
+ * Promesses, alertes, planche et rapport lisent ces rampes-ci.
  */
 export function rampesDe(recette: Recette, palette: Palette): Rampes {
   if (estFigee(palette)) {
@@ -526,6 +545,16 @@ export function rampesDe(recette: Recette, palette: Palette): Rampes {
       : { unique: parMode(palette.figees) };
   }
   return rampesAvecLeDecalage(recette, palette, clarteSelonLaTeinteGardee(recette, palette).decalage);
+}
+
+/**
+ * Les rampes de `rampesDe` avant la correction des textes (`corrigerLesTextes`),
+ * sous le même décalage de clarté. Les mesures et les tests y lisent ce que la
+ * correction a déplacé ; aucune vue ne les affiche.
+ */
+export function rampesSansCorrection(recette: Recette, palette: Palette): Rampes {
+  if (estFigee(palette)) return rampesDe(recette, palette);
+  return rampesAvecLeDecalage(recette, palette, clarteSelonLaTeinteGardee(recette, palette).decalage, false);
 }
 
 export type { ClartesParMode };

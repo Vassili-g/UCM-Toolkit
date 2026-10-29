@@ -91,7 +91,7 @@ test('[DER-19] toute valeur de la limite, au pas du réglage, garde les promesse
 
 test('[DER-20] un pas au-delà d’une borne à cause, la cause manque : une promesse tenue au départ, ou l’ordre', () => {
   const fautes: string[] = [];
-  let causes = 0;
+  const causes: string[] = [];
   for (const [nom, hexa] of Object.entries(REFERENCES)) {
     const { recette, palette } = neuve(hexa);
     const tenues = tenuesDe(recette, palette);
@@ -103,7 +103,7 @@ test('[DER-20] un pas au-delà d’une borne à cause, la cause manque : une pro
             if (Math.abs(borne.valeur) !== BORNES_DU_COLOR_SHIFT[grandeur]) fautes.push(`${nom} ${grandeur} ${bout} : borne ${borne.valeur} sans cause`);
             continue;
           }
-          causes += 1;
+          causes.push(`${nom} ${grandeur} ${bout} ${sens < 0 ? 'bas' : 'haut'} : ${borne.cause.nature === 'ordre' ? 'ordre' : cle(borne.cause.promesse)}`);
           const auDela = avec(palette, grandeur, bout, arrondir(borne.valeur + sens * PAS_DU_COLOR_SHIFT[grandeur], 3));
           if (borne.cause.nature === 'ordre') {
             if (ordreTenu(recette, auDela)) fautes.push(`${nom} ${grandeur} ${bout} : l’ordre tient au-delà de ${borne.valeur}`);
@@ -118,8 +118,18 @@ test('[DER-20] un pas au-delà d’une borne à cause, la cause manque : une pro
     }
   }
   assert.deepEqual(fautes, []);
-  // Trois bornes à cause par référence au moins : la luminosité claire en bas et en haut, la sombre en haut.
-  assert.ok(causes >= 4 * 3, `${causes} bornes à cause`);
+  // La correction des textes rend G3 et G9 aux teintes qui les manquaient : elles ne bornent plus un réglage que là où
+  // le cran corrigé bute sur son voisin. Le 700 du Dark, texte de la page, s'éclaircit de 0,06 vers le 800 pour tenir
+  // G9 sur le fond teinté 300 ; un peu plus de luminosité sombre en haut, ou de luminosité claire en bas pour Bleu et
+  // Rouge, et il atteint le 800 sans tenir le seuil.
+  assert.deepEqual(causes, [
+    'Bleu clarte clair bas : dark/soft/9/300',
+    'Bleu clarte sombre haut : dark/soft/9/300',
+    'Rouge clarte clair bas : dark/vivid/9/300',
+    'Rouge clarte sombre haut : dark/soft/9/300',
+    'Jaune clarte sombre haut : dark/soft/9/300',
+    'Sauge clarte sombre haut : dark/vivid/9/300',
+  ]);
 });
 
 test('[DER-20] les limites se croisent : la luminosité sombre posée en butée haute resserre la teinte du même bout', () => {
@@ -130,12 +140,12 @@ test('[DER-20] les limites se croisent : la luminosité sombre posée en butée 
     const { bas, haut } = limite(recette, avec(palette, 'clarte', 'sombre', butee), 'teinte', 'sombre');
     teintes[nom] = [bas.valeur, haut.valeur];
   }
-  // Mesure du moteur aux garanties G1 à G7, G7 jugée contre la page et la carte : à la butée haute de la luminosité
-  // sombre, l'anneau Dark touche le seuil de la carte. Aux parts communes 0,85 et 0,95 et à l'enveloppe par défaut
-  // ([MOT-35]), à la dérive de [MOT-36] et à la clarté selon la teinte, Bleu se resserre entre +4,28° et +5°, Rouge entre
-  // −90° et 0°, Jaune ne monte plus au-dessus de −32,24°, et Sauge, portée par Vivid avec sa référence exacte, se
-  // resserre entre −3° et +1,66°.
-  assert.deepEqual(teintes, { Bleu: [4.28, 5], Rouge: [-90, 0], Jaune: [-90, -32.24], Sauge: [-3, 1.66] });
+  // Mesure du moteur aux garanties G1 à G9, textes corrigés (`corrigerLesTextes`) : à la butée haute de la luminosité
+  // sombre, le 700 du Dark touche déjà le 800 pour tenir G9 sur le fond teinté 300, et la teinte du Dark se resserre
+  // jusqu'à ce que G9 manque. Aux parts communes 0,85 et 0,95, à l'enveloppe par défaut ([MOT-35]), à la dérive de
+  // [MOT-36] et à la clarté selon la teinte, Bleu se resserre entre −3° et +90°, Rouge entre −90° et +24°, Jaune
+  // entre −40° et −20°, et Sauge, portée par Vivid avec sa référence exacte, garde toute la plage.
+  assert.deepEqual(teintes, { Bleu: [-3, 90], Rouge: [-90, 24], Jaune: [-40, -20], Sauge: [-90, 90] });
 });
 
 test('[DER-19] une promesse manquée au départ ne borne rien : Bleu, texte des boutons noir, la laisse manquer sur toute la plage de teinte', () => {
@@ -181,10 +191,12 @@ test('[DER-20] le balayage rend la main après chaque candidate et rend la même
     rendus += 1;
     pas = balayage.next();
   }
-  // −0,15 à +0,15 : trente pas dans chaque sens, chacun suivi d'une main rendue. Le 50, le 100 et le 200 de Light
+  // −0,15 à +0,15 : trente pas vers le haut, chacun suivi d'une main rendue. Le 50, le 100 et le 200 de Light
   // ignorent la luminosité, le 300 et le 400 n'en gardent que deux tiers et un tiers : ni l'ordre des nuances ni
-  // aucune promesse de Bleu n'arrêtent le bout clair.
-  assert.equal(rendus, 60);
+  // aucune promesse de Bleu n'arrête le haut. Vers le bas, le 700 du Dark, corrigé jusque sous le 800, ne tient plus
+  // G9 à −0,13 : vingt-cinq pas.
+  assert.equal(rendus, 55);
+  assert.equal(pas.value.bas.valeur, -0.125);
   assert.deepEqual(pas.value, limiteDynamique(demande));
 });
 

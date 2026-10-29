@@ -24,6 +24,7 @@ import {
   plafond,
   poidsA,
   rampesDe,
+  rampesSansCorrection,
   rgb8VersOklch,
   recetteParDefaut,
   verifierPromesses,
@@ -126,7 +127,8 @@ test('[MOT-38] clartesDe et rampesDe lisent la même fraction, mémorisée par r
     const gardee = clarteSelonLaTeinteGardee(recette, palette);
     assert.equal(clarteSelonLaTeinteGardee(recette, palette), gardee, 'le même objet, sans recalcul');
     const clartes = clartesDe(recette, palette);
-    const rampes = rampesDe(recette, palette);
+    // La correction des textes déplace le 700 de plus que l'arrondi à 8 bits : on lit les rampes avant elle.
+    const rampes = rampesSansCorrection(recette, palette);
     const ancrage = ancrageDe(recette, palette);
     for (const intensite of ['soft', 'vivid'] as const) {
       for (const mode of MODES) {

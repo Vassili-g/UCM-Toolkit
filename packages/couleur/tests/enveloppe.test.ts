@@ -13,7 +13,7 @@ import {
   enveloppeDe,
   fabriquerRampe,
   plafond,
-  rampesDe,
+  rampesSansCorrection,
   recetteParDefaut,
   type Enveloppe,
   type Intensite,
@@ -252,7 +252,8 @@ const DU_PROTOTYPE: Record<string, Rampes> = {
 
 for (const [nom, palette] of Object.entries(PALETTES)) {
   test(`[MOT-35] les rampes suivent le prototype : ${palette.reference}, ${nom}`, () => {
-    const rampes = rampesDe(recetteAvec(palette), palette);
+    // Le prototype ignore la correction des textes, que `rampesDe` applique ensuite : on lit les rampes avant elle.
+    const rampes = rampesSansCorrection(recetteAvec(palette), palette);
     const obtenues: Rampes = {};
     for (const intensite of Object.keys(rampes) as Intensite[]) {
       const rampe = rampes[intensite]!;

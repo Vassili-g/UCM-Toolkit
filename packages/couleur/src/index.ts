@@ -14,6 +14,7 @@ export * from './recette';
 export * from './protocole';
 export * from './empreinte';
 export * from './palette';
+export * from './textes';
 export * from './reglages';
 export * from './promesses';
 export * from './alertes';

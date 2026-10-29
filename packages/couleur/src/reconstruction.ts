@@ -46,6 +46,7 @@ import {
 } from './rampe';
 import { figeesParIntensite, validerRecette, type CouleursFigees, type Palette, type Recette } from './recette';
 import { prereglageTailwind } from './tailwind';
+import { rangsDesTextes } from './textes';
 
 /** La palette figée qu'on cherche à régler : sa liste de nuances et ses couleurs, une ou deux intensités. */
 export interface PaletteFigee {
@@ -152,6 +153,8 @@ interface Cadre {
   readonly oklch: { [P in Profil]?: { [M in Mode]?: ReturnType<typeof rgb8VersOklch>[] } };
   /** Les thèmes dont la palette figée porte des couleurs : un Dark absent ne se juge pas. */
   readonly presents: { [P in Profil]?: { [M in Mode]: boolean } };
+  /** Les rangs de texte que la correction des textes déplace dans `rampesDe` ; vide pour une liste libre, qui n'a pas de correction. */
+  readonly textes: Readonly<Record<Mode, ReadonlySet<number>>>;
   readonly reference: string | undefined;
 }
 
@@ -222,10 +225,12 @@ function bati(recette: Recette, figee: PaletteFigee): Cadre | null {
       oklch[cle]![mode] = octets[cle]![mode]!.map(rgb8VersOklch);
     }
   }
+  const commune = figee.crans.length === recette.crans.length && figee.crans.every((numero, rang) => numero === recette.crans[rang]);
+  const sansTexte: ReadonlySet<number> = new Set();
   return {
     recette,
     crans: figee.crans,
-    commune: figee.crans.length === recette.crans.length && figee.crans.every((numero, rang) => numero === recette.crans[rang]),
+    commune,
     courbes: grille.courbes,
     bouts: boutsDe(recette),
     sombre: fondsSombresDe(recette),
@@ -236,6 +241,7 @@ function bati(recette: Recette, figee: PaletteFigee): Cadre | null {
     octets,
     oklch,
     presents,
+    textes: { light: commune ? rangsDesTextes(recette, 'light') : sansTexte, dark: commune ? rangsDesTextes(recette, 'dark') : sansTexte },
     reference: figee.reference ? hexa(lireHexa(figee.reference) ?? [0, 0, 0]) : undefined,
   };
 }
@@ -340,9 +346,11 @@ const nomDe = (i: number): Nom => NOMS[(i - 1) % NOMS.length];
  * l'intensité porteuse à pleine force. La clarté selon la teinte du candidat
  * s'ajoute à la luminosité `lc` du bout clair, et l'enveloppe se lit sans elle,
  * comme dans le moteur. La garde de la bosse et celle de la clarté ne sont pas
- * modélisées : `rampesDe` les applique à chaque palette essayée.
+ * modélisées : `rampesDe` les applique à chaque palette essayée. La correction
+ * des textes non plus : un cran de texte (`projetes`) se lit à la clarté observée,
+ * que la correction déplace, avec la teinte et la part de chroma du modèle.
  */
-function rampeFlottante(c: Cadre, x: readonly number[], profil: Profil, mode: Mode, k: Candidat): number[][] {
+function rampeFlottante(c: Cadre, x: readonly number[], profil: Profil, mode: Mode, k: Candidat, projetes?: ReadonlyMap<number, number>): number[][] {
   const lire = (nom: Nom): number => x[indice(profil, nom)];
   const rangAncre = profil === k.cle ? (mode === 'light' ? k.rl : k.rd) : -1;
   const visees = viseesDeLaRampe({
@@ -366,7 +374,14 @@ function rampeFlottante(c: Cadre, x: readonly number[], profil: Profil, mode: Mo
     rangDeLaReference: mode === 'light' && rangAncre >= 0 ? rangAncre : undefined,
   });
   const bosse = rangAncre >= 0 ? bosseDeChroma(visees, rangAncre, mode, k, profil !== 'soft') : null;
-  return visees.map((visee, i) => oklchVersLineaire(bosse ? { ...visee, C: bosse[i] } : visee).map((v) => 255 * encoder(borner(v))));
+  return visees.map((visee, i) => {
+    const modele = bosse ? { ...visee, C: bosse[i] } : visee;
+    const clarte = projetes?.get(i);
+    const lu = clarte === undefined
+      ? modele
+      : { L: clarte, H: modele.H, C: modele.C / Math.max(plafond(modele.L, modele.H, c.recette.gamut), 1e-4) * plafond(clarte, modele.H, c.recette.gamut) };
+    return oklchVersLineaire(lu).map((v) => 255 * encoder(borner(v)));
+  });
 }
 
 /** Ce que l'ajustement compare : les nuances observées, hors ancrages. */
@@ -389,7 +404,8 @@ function residus(c: Cadre, x: readonly number[], k: Candidat): number[] {
   for (const cle of c.cles) {
     for (const mode of MODES) {
       if (!c.presents[cle]![mode]) continue;
-      const modele = rampeFlottante(c, x, cle, mode, k);
+      const projetes = new Map([...c.textes[mode]].map((rang) => [rang, c.oklch[cle]![mode]![rang].L] as const));
+      const modele = rampeFlottante(c, x, cle, mode, k, projetes);
       const lus = c.octets[cle]![mode]!;
       modele.forEach((canaux, rang) => {
         if (k.ancres.has(`${cle}/${mode}/${rang}`)) return;

@@ -21,6 +21,7 @@ import {
   intensitesDe,
   partsDe,
   rampesDe,
+  rampesSansCorrection,
   recetteParDefaut,
   rgb8VersOklch,
   lireHexa,
@@ -67,7 +68,8 @@ test('[MOT-28] le thème Light est identique à l’octet, et en Dark les nuance
   const avant = sansAttenuation(recette);
   for (const palette of PALETTES) {
     for (const intensite of intensitesDe(palette)) {
-      const [apres, sans] = [rampesDe(recette, palette)[intensite]!, rampesDe(avant, palette)[intensite]!];
+      // La correction des textes dépend des fonds teintés : on compare les rampes avant elle.
+      const [apres, sans] = [rampesSansCorrection(recette, palette)[intensite]!, rampesSansCorrection(avant, palette)[intensite]!];
       assert.deepEqual(apres.light, sans.light, `${palette.reference} ${intensite} light`);
       recette.crans.forEach((cran, rang) => {
         if (cran >= 400) assert.deepEqual(apres.dark[rang], sans.dark[rang], `${palette.reference} ${intensite} dark ${cran}`);
