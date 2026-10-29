@@ -41,6 +41,10 @@
   --fond-variable-sombre: rgb(58 62 28);
   --texte-variable-sombre: rgb(222 228 150);
 
+  /* Un terme de Figma cité dans une phrase (un scope) : presque l'encre du texte, d'une teinte froide. */
+  --texte-terme-figma: #39466b;
+  --texte-terme-figma-sombre: #cdd8f5;
+
   /*
    * La couleur de famille d'un signe qui porte une information. Les valeurs claires
    * sont les sombres, assombries à teinte égale : 4,9:1 au moins sur #ffffff, 3,7:1
@@ -86,6 +90,7 @@
   --texte-groupe: var(--texte-groupe-sombre);
   --fond-variable: var(--fond-variable-sombre);
   --texte-variable: var(--texte-variable-sombre);
+  --texte-terme-figma: var(--texte-terme-figma-sombre);
   --teinte-tailles: var(--teinte-tailles-sombre);
   --teinte-texte: var(--teinte-texte-sombre);
   --teinte-tokens: var(--teinte-tokens-sombre);
@@ -139,6 +144,8 @@
 .jeton-variable { background: var(--fond-variable); color: var(--texte-variable); }
 .mot-groupe { color: var(--texte-groupe); }
 .mot-variable { color: var(--texte-variable); }
+/* Un libellé de Figma gardé en anglais (`terme-figma`) : en italique, pour qu'il ne se lise ni comme un chemin ni comme la phrase. */
+.terme-figma { font-style: italic; color: var(--texte-terme-figma); }
 .jeton.petit { font-size: var(--corps); line-height: var(--corps-interligne); }
 .seg-ancien { color: var(--texte-danger); font-weight: 600; text-decoration: line-through; text-decoration-thickness: 1px; }
 .seg-nouveau { color: var(--texte-succes); font-weight: 600; }

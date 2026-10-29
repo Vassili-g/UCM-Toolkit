@@ -52,11 +52,10 @@ export const TEXTES_STRUCTURE = {
   // Corrections de scopes
   regler: (nombre: number): string => `Régler le scope de ${variables(nombre)} `,
   sur: ' sur ',
-  listeDeScopes: liste,
   reserve: (nombre: number): string => (nombre > 1 ? 'UCM réserve ces variables' : 'UCM réserve cette variable'),
   auxFonds: ' aux fonds.',
-  auxScopes: (scopes: readonly string[]): string => ` à ces scopes : ${liste(scopes)}.`,
-  aujourdhui: (scopes: readonly string[], nombre: number): string => `Aujourd’hui, ${nombre > 1 ? 'leur' : 'son'} ${scopes.length > 1 ? 'scopes sont' : 'scope est'} ${liste(scopes)}.`,
+  aCesScopes: ' à ces scopes : ',
+  aujourdhuiSujet: (scopes: number, variables: number): string => `Aujourd’hui, ${variables > 1 ? 'leur' : 'son'} ${scopes > 1 ? 'scopes sont' : 'scope est'} `,
   virgule: ', ',
   legendeAujourdhui: 'Aujourd’hui',
   legendeApres: 'Après l’application',

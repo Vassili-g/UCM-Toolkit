@@ -81,6 +81,7 @@ Ce que les plugins partagent : ucm-plugin-socle, privé, lu en source.
 - langage.css : le langage visuel commun, après `socle.css` : rôles `--ton-*`, `--teinte-*` et de place, classes de chemin, jeton, alerte, changement, filtre, signe ; sa loi est dans `lois/styles.ts`
 - Chemin.ts : chemin de token, chemin ou variant dans une phrase, segment qui part ou arrive, pastille de couleur
 - Jeton.ts : jeton d'un renommage, flèche, mot de place
+- Terme.ts : terme de Figma cité dans une phrase, comme un scope (`terme-figma`)
 - Alerte.ts : les cinq types d'alerte, tirés de `TYPES_D_ALERTE` du kit : icône, gravité, alerte, liseré, pastille de compte, lien externe
 - Changement.ts : colonnes et ligne de diff, ligne de réussite, carte ciblée
 - Filtre.ts : puce de filtre et recherche active

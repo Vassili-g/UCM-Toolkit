@@ -4,6 +4,7 @@
  * leurs identifiants, que le sandbox relit avant d'écrire. Le designer voit le scope tel que la fenêtre Edit variable de Figma le nomme.
  */
 import { createButton } from 'ucm-plugin-socle/src/ui/Button';
+import { creerTermeFigma } from 'ucm-plugin-socle/src/ui/Terme';
 import { creerChemin, creerCheminEnPhrase, creerSegmentAncien, creerSegmentNouveau } from 'ucm-plugin-socle/src/ui/Chemin';
 import { creerColonnes, creerLigneDeDiff, creerResultat } from 'ucm-plugin-socle/src/ui/Changement';
 import { TEXTES } from '../textes';
@@ -149,6 +150,14 @@ export function monterLesCorrections({ element, auChangement, appliquer }: Optio
     }).element;
   }
 
+  /** Les scopes d'une phrase, chacun en terme de Figma, joints par des virgules et un « et ». */
+  function scopesEnPhrase(scopes: readonly string[]): (string | Node)[] {
+    return scopes.flatMap((scope, rang) => [
+      ...(rang === 0 ? [] : [rang === scopes.length - 1 ? TEXTES.et : TEXTES.virgule]),
+      creerTermeFigma(TEXTES.scopeDeFigma(scope)),
+    ]);
+  }
+
   function carteDeScopes(carte: CarteDeScopes): HTMLElement {
     const corps = document.createElement('div');
     corps.append(creerColonnes(TEXTES.legendeAujourdhui, TEXTES.legendeApres));
@@ -172,9 +181,12 @@ export function monterLesCorrections({ element, auChangement, appliquer }: Optio
       if (rang > 0) action.append(rang === carte.roles.length - 1 ? TEXTES.et : TEXTES.virgule);
       action.append(creerCheminEnPhrase(role));
     });
-    action.append(TEXTES.sur + TEXTES.listeDeScopes(carte.apres.map(TEXTES.scopeDeFigma)));
+    action.append(TEXTES.sur, ...scopesEnPhrase(carte.apres));
     const fonds = carte.apres.length === 2 && carte.apres.includes('FRAME_FILL') && carte.apres.includes('SHAPE_FILL');
-    const motif = [`${TEXTES.reserve(carte.lignes.length)}${fonds ? TEXTES.auxFonds : TEXTES.auxScopes(carte.apres.map(TEXTES.scopeDeFigma))} ${TEXTES.aujourdhui(carte.avant.map(TEXTES.scopeDeFigma), carte.lignes.length)}`];
+    const motif: (string | Node)[] = [TEXTES.reserve(carte.lignes.length)];
+    if (fonds) motif.push(TEXTES.auxFonds);
+    else motif.push(TEXTES.aCesScopes, ...scopesEnPhrase(carte.apres), '.');
+    motif.push(' ', TEXTES.aujourdhuiSujet(carte.avant.length, carte.lignes.length), ...scopesEnPhrase(carte.avant), '.');
     const ids = carte.lignes.map(({ id }) => id);
     const caseDeCarte = creerLaCase(TEXTES.caseDeCarte(carte.roles.join(', ')), ids);
     casesDeCarte.push({ element: caseDeCarte, ids });
