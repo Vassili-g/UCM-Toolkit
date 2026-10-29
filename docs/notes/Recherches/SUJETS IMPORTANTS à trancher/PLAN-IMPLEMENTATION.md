@@ -384,15 +384,17 @@ la reconstruction de la palette 28 reçoit un budget de 120 s.
 
 Agent : `implementeur`.
 
-- [ ] Tests qui figent la table Dark de `surface` ou les couleurs du Dark.
-- [ ] L'écran qui dit où se pose la référence montre le cran déplacé.
+- [x] Tests qui figent la table Dark de `surface` ou les couleurs du Dark.
+- [x] L'écran qui dit où se pose la référence montre le cran déplacé.
 
 ### D2. Documents
 
 Agent : `implementeur`.
 
-- [ ] Spécification de Palettes, invariants du moteur et du kit, README du
+- [x] Spécification de Palettes, invariants du moteur et du kit, README du
       dossier, section « Décisions ».
+
+Fait (P2 et D2) : `80d62c58`. La spécification reçoit `[MOT-42]`.
 
 ## V1. Vérification
 
