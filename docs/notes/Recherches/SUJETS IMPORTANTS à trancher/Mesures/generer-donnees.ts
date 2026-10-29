@@ -1,6 +1,6 @@
 /**
  * Les données de la maquette des crans clairs, calculées sur la configuration du mainteneur
- * (`palettes-et-reglages.json`) : les rampes de chaque palette sous sept variantes du bas de la
+ * (`palettes-et-reglages.json`) : les rampes de chaque palette sous huit variantes du bas de la
  * courbe Light, avec ou sans lissage du 400 et du 500.
  *
  * Chaque rampe existe en deux versions des crans clairs. « actuel » est la sortie du moteur.
@@ -21,6 +21,7 @@ const RECETTE = validee.recette;
 
 const COURBES: Record<string, { nom: string; bas: number[]; milieu?: number[] }> = {
   actuelle: { nom: 'Actuelle', bas: [0.975, 0.95, 0.905, 0.845] },
+  actuelle920: { nom: 'Actuelle, 200 à 0,92', bas: [0.975, 0.95, 0.92, 0.845] },
   legere: { nom: 'Légère', bas: [0.98, 0.96, 0.925, 0.875] },
   legereLissee: { nom: 'Légère lissée', bas: [0.98, 0.96, 0.925, 0.875], milieu: [0.79, 0.695] },
   moyenne: { nom: 'Moyenne', bas: [0.983, 0.965, 0.935, 0.89] },

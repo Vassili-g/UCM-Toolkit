@@ -86,6 +86,7 @@
   .etiquette { font-size: 12px; font-weight: 600; padding: 2px 8px; border-radius: 10px; }
   .tag { font-size: 12px; padding: 3px 8px; border-radius: 6px; border: 1px solid; }
 
+  .mesures .pastille { display: inline-block; width: 14px; height: 14px; border-radius: 3px; border: 1px solid #fff3; vertical-align: -2px; margin-right: 6px; }
   .arbre { font: 12.5px/1.6 ui-monospace, Consolas, monospace; }
   .arbre .v { display: flex; align-items: center; gap: 8px; }
   .arbre .pastille { width: 14px; height: 14px; border-radius: 3px; border: 1px solid #fff2; flex: 0 0 auto; }
@@ -105,7 +106,7 @@
 <div class="barre"><div class="dedans">
   <label>Palette <select id="palette"></select></label>
   <label>Intensité <span class="bascule" data-cle="intensite"><button data-v="soft">Soft</button><button data-v="vivid">Vivid</button></span></label>
-  <label>Bas de la courbe <span class="bascule" data-cle="courbe"><button data-v="actuelle">Actuelle</button><button data-v="legere">Légère</button><button data-v="moyenne">Moyenne</button><button data-v="forte">Forte</button></span></label>
+  <label>Bas de la courbe <span class="bascule" data-cle="courbe"><button data-v="actuelle">Actuelle</button><button data-v="actuelle920">Actuelle, 200 à 0,92</button><button data-v="legere">Légère</button><button data-v="moyenne">Moyenne</button><button data-v="forte">Forte</button></span></label>
   <label>Lissage 400 et 500 <span class="bascule" data-cle="lissage"><button data-v="non">Non</button><button data-v="oui">Oui</button></span></label>
   <label>Crans clairs <span class="bascule" data-cle="moteur"><button data-v="actuel">Moteur actuel</button><button data-v="commune">Clarté commune</button></span></label>
   <label>Fond de page <span class="bascule" data-cle="page"><button data-v="#FFFFFF">Blanc</button><button data-v="#F7F7F7">#F7F7F7</button></span></label>
@@ -113,19 +114,20 @@
 <main>
   <h1>Crans clairs des palettes</h1>
   <p class="intro">Le mainteneur a testé ses palettes sur ses composants. Ses remarques touchent le moteur de couleur, la table des crans, le nom des variables et l'architecture des tokens.</p>
-  <p class="intro">Les couleurs viennent de sa configuration, <code>palettes-et-reglages.json</code>, calculée par le moteur actuel. Aucune solution n'est décidée.</p>
+  <p class="intro">Les couleurs viennent de sa configuration, <code>palettes-et-reglages.json</code>, calculée par le moteur du 29 octobre. Rien n'est implémenté.</p>
+  <p class="intro">Le mainteneur a retenu la clarté commune, le bas de la courbe actuelle, et la table 100, 200, 300 de <code>surface</code> avec un texte 700. La maquette s'ouvre sur ces choix. L'organisation des noms et le thème Dark restent ouverts.</p>
   <p class="intro">La barre du haut change la palette, l'intensité, la courbe et la façon de produire les crans clairs. « Clarté commune » est une simulation hors du moteur, décrite à la section 2. Les boutons sont réels : survolez-les et appuyez dessus.</p>
   <nav class="sommaire">
     <a href="#s1">1. Crans clairs foncés</a><a href="#s2">2. Même cran, même clarté</a><a href="#s3">3. Texte de surface</a>
     <a href="#s4">4. Bouton texte</a><a href="#s5">5. Fond léger</a><a href="#s6">6. Changement de contexte</a>
-    <a href="#s7">7. Contraste à l'appui</a><a href="#s8">8. Éléments sans survol</a><a href="#s9">9. Noms des variables</a>
+    <a href="#s7">7. Contraste à l'appui</a><a href="#s8">8. Éléments sans survol</a><a href="#s9">9. Organisation des variables</a>
     <a href="#s10">10. Thème Dark</a><a href="#questions">Questions</a>
   </nav>
 
   <!-- 1 -->
   <h2 id="s1">1. Les crans clairs paraissent foncés</h2>
   <blockquote><p>« default (ou background-base) vise le cran 100, qui est quand même assez foncé. »</p><p>« Regarde la palette "ocean", elle est par défaut, sans modif. les crans clairs en vivid sont super foncés par rapport aux autres palettes. très bizarre non ? »</p></blockquote>
-  <blockquote class="position"><p>« impossible de diminuer la saturation, c'est trop fade là »</p><p>« il faudrait lisser pour pas avoir la cassure entre 300 et 400 (quels impacts?) »</p></blockquote>
+  <blockquote class="position"><p>« impossible de diminuer la saturation, c'est trop fade là »</p><p>« il faudrait lisser pour pas avoir la cassure entre 300 et 400 (quels impacts?) »</p><p>29 octobre : « le modèle "clareté commune" + base de la courte "actuelle" semble bon »</p></blockquote>
   <ul class="faits">
     <li>La configuration d'Ocean porte un réglage de luminosité de −0,06 en Vivid. C'est le curseur « Luminosité » de la carte.</li>
     <li>Ce réglage décale toute la rampe Vivid, crans clairs compris. Le 50 d'Ocean Vivid tombe à 0,895. Sans ce réglage, il serait à 0,953.</li>
@@ -157,22 +159,25 @@
   <!-- 3 -->
   <h2 id="s3">3. Le texte de surface à 800</h2>
   <blockquote><p>« j'aimerais beaucoup que le texte de /surface soit aussi à 700 pour toutes les couleurs. »</p></blockquote>
-  <blockquote class="position"><p>« je pense qu'il faut laisser tomber les checks de contraste sur le fond pressed 300, j'estime que c'est pas utile, tant pis pour les normes »</p><p>« d'un côté le texte 800 rend bien aussi. Même sur un fond 100, mais ton fond 100 est plus clair que mon fond ocean 100. »</p></blockquote>
+  <blockquote class="position"><p>« je pense qu'il faut laisser tomber les checks de contraste sur le fond pressed 300, j'estime que c'est pas utile, tant pis pour les normes »</p><p>« d'un côté le texte 800 rend bien aussi. Même sur un fond 100, mais ton fond 100 est plus clair que mon fond ocean 100. »</p><p>29 octobre : « avec clareté commune, passer du 800 au 700 semble bien pour les textes de surface, comme ça surface et page seraient harmonisés »</p></blockquote>
   <ul class="faits">
     <li>Le fond 100 d'Ocean Vivid est plus foncé à cause du réglage de luminosité de la section 1.</li>
     <li>Choisissez Ocean puis « Clarté commune » pour voir son 100 sans ce réglage.</li>
+    <li><code>surface/foreground</code> et <code>page/foreground</code> restent deux variables. Elles ont le même cran en Light normal seulement.</li>
+    <li>En Light inversé, elles valent 900 et 800. En Dark inversé, ta configuration, elles valent 950 et 800.</li>
   </ul>
   <div class="grille" id="textes"></div>
 
   <!-- 4 -->
   <h2 id="s4">4. Le bouton texte : son survol part du blanc</h2>
   <blockquote><p>« En hover on lui affecte un surface/hover (logique) mais c'est hyper foncé alors qu'on partait du fond blanc, c'est beaucoup plus beau de partir de surface/default mais ça casserait la logique. »</p></blockquote>
+  <blockquote class="position"><p>29 octobre : « je pense que c'est plus un probleme maintenant avec la clareté commune, l'état hover est bien plus clair qu'avant »</p></blockquote>
   <div class="page" id="boutonsTexte"></div>
 
   <!-- 5 -->
   <h2 id="s5">5. Un fond vraiment léger</h2>
   <blockquote><p>« j'aimerais qu'il y ait un fond de couleur très très léger » sur les alertes outlined.</p></blockquote>
-  <blockquote class="position"><p>« je trouve que tous les fonds proposés sont trop foncés pour un fond "léger"... il y'a bien un problème de logique global, tous les sujets sont connectés, il faut trouver la bonne solution »</p></blockquote>
+  <blockquote class="position"><p>« je trouve que tous les fonds proposés sont trop foncés pour un fond "léger"... il y'a bien un problème de logique global, tous les sujets sont connectés, il faut trouver la bonne solution »</p><p>29 octobre : « le cran 50 est très léger, il faut juste pouvoir utiliser ce cran dans les composants mais c'est un sujet qui vient ensuite »</p></blockquote>
   <ul class="faits">
     <li>Le curseur fixe la clarté du fond léger pour toutes les palettes à la fois.</li>
     <li>Chaque fond garde la teinte et la part de saturation du 50 de sa palette.</li>
@@ -184,6 +189,12 @@
   <!-- 6 -->
   <h2 id="s6">6. Un composant conçu sur la page, posé dans une alerte</h2>
   <blockquote><p>« le bouton text est posé sur une page, donc quand il est dans une alert teinte il a toujours ce problème qu'il devient posé sur un contexte différent de celui sur lequel il a été conçu. C'est un autre problème à résoudre. »</p></blockquote>
+  <blockquote class="position"><p>29 octobre : « si page et surface ont les mêmes crans 700 pour le texte, ce n'est plus un sujet »</p></blockquote>
+  <ul class="faits">
+    <li>En Light normal, le texte du bouton vaut 700, comme celui de l'alerte. Il passe à 4,95 au minimum sur le fond 100.</li>
+    <li>En Dark, le problème reste. Dans ta configuration, <code>page/foreground</code> vaut 800 et le fond teinté vaut 300.</li>
+    <li>Sur ce fond, le texte du bouton passe à 3,39 au minimum. 11 rampes sur 21 sont sous 4,5. La section 10 le montre.</li>
+  </ul>
   <div class="local">Survol et appui du bouton <span class="bascule" id="contexteTable"><button data-v="aujourdhui">Aujourd'hui : 200 et 300</button><button data-v="decalee700">Décalée : 100 et 200</button></span></div>
   <div class="page grille" id="contextes"></div>
   <h3>Pistes relevées</h3>
@@ -197,11 +208,18 @@
   <!-- 7 -->
   <h2 id="s7">7. Le contraste à l'appui</h2>
   <blockquote><p>« c'est pas possible que des éléments ne passent pas les textes actuellement, le plugin vérifie absolument tout ça et valide tout »</p></blockquote>
+  <blockquote class="position"><p>29 octobre : « donc si je comprend bien, avec la table actuelle mais les textes à 700, ça ne passe pas les contrastes en survol et en appui ? »</p></blockquote>
   <ul class="faits">
-    <li>La table d'aujourd'hui passe partout : texte 800 sur les fonds 100, 200 et 300.</li>
-    <li>Le plugin le vérifie par sa garantie 3. Elle contrôle <code>surface/foreground</code> sur les trois fonds de <code>surface</code> et sur la page.</li>
-    <li>Les lignes « Hypothèse » ne sont pas en place. Elles mesurent un texte 700 ou des fonds décalés.</li>
-    <li>Le mainteneur veut retirer l'appui de la vérification. Il faudrait retirer <code>surface/pressed</code> des garanties 3 et 4 du kit.</li>
+    <li>Oui, en partie. Les mesures portent sur la clarté commune et la courbe actuelle.</li>
+    <li>Au repos, sur le 100, le texte 700 passe 4,5 sur les 21 rampes. Le minimum vaut 4,95.</li>
+    <li>Au survol, sur le 200, 5 rampes sur 21 sont sous 4,5. Le minimum vaut 4,34, sur Emerald Soft. Ce sont les verts et Sky Soft.</li>
+    <li>À l'appui, sur le 300, 20 rampes sur 21 sont sous 4,5. Le minimum vaut 3,65.</li>
+    <li>Toutes les rampes passent 3:1, au survol comme à l'appui.</li>
+    <li>La garantie 3 du kit juge le texte au survol. Avec le texte 700, elle échouerait sur ces 5 rampes.</li>
+    <li>Éclaircir le seul 200, de 0,905 à 0,92, fait passer le survol sur les 21 rampes. Choisissez « Actuelle, 200 à 0,92 » en haut pour le voir.</li>
+    <li>Avec ce 200, l'écart de clarté entre le repos et le survol passe de 0,045 à 0,03. Aucune référence ne change de cran.</li>
+    <li>Deux autres réponses existent : juger le survol à 3:1, ou le sortir de la garantie 3 comme l'appui.</li>
+    <li>Retirer l'appui demande de retirer <code>surface/pressed</code> des garanties 3 et 4.</li>
   </ul>
   <div class="local">Règle à l'appui <span class="bascule" id="regle"><button data-v="ignore">Non vérifié</button><button data-v="trois">3:1</button><button data-v="stricte">4,5:1</button></span></div>
   <div id="contrastes"></div>
@@ -209,7 +227,7 @@
 
   <!-- 8 -->
   <h2 id="s8">8. Les éléments sans survol</h2>
-  <blockquote class="position"><p>« c'est très beau en version décalé, c'est subtile Mais le brief parlait d'éléments sans survols. »</p></blockquote>
+  <blockquote class="position"><p>« c'est très beau en version décalé, c'est subtile Mais le brief parlait d'éléments sans survols. »</p><p>29 octobre : « 100 en bg et 700 en texte sont très bien avec la clareté commune »</p></blockquote>
   <ul class="faits">
     <li>Une étiquette, un tag ou un encart n'ont pas de survol. Seul leur fond au repos compte.</li>
     <li>Le bouton teinté reste affiché pour comparer.</li>
@@ -217,40 +235,97 @@
   <div class="page grille" id="sansSurvol"></div>
 
   <!-- 9 -->
-  <h2 id="s9">9. Les noms des variables</h2>
-  <blockquote class="position"><p>« il faut encore que je réfléchisse, c'est lié à tous les autres sujets... »</p></blockquote>
+  <h2 id="s9">9. L'organisation et les noms des variables</h2>
+  <blockquote><p>« default, hover, pressed : désigne des états. Pratique pour pas se tromper mais c'est pas harmonisé avec les autres termes. »</p><p>« un contour est soit posé sur une surface et il se trouve donc sur /surface soit il est posé sur la page donc il se trouve dans page. »</p></blockquote>
+  <blockquote class="position"><p>29 octobre, sur la forme C : « intéressant mais il manque plein de variables, comment on fait un fond encore plus clair ? ou sont les divider ? »</p></blockquote>
+  <h3>Les règles déjà posées</h3>
   <ul class="faits">
-    <li>Dans un dossier, trois noms disent un état et deux noms disent un élément.</li>
-    <li>Un contour appartient au dossier du fond sur lequel il est posé. <code>solid</code> n'a donc pas de contour.</li>
-    <li><code>page</code> n'a pas de fond. Lui en donner rend floue sa différence avec <code>surface</code>.</li>
-    <li>Le fond léger est un niveau. Les noms <code>default</code>, <code>hover</code> et <code>pressed</code> sont des états.</li>
+    <li>Une couleur appartient au fond qui est juste derrière elle : <code>solid</code>, <code>surface</code> ou <code>page</code>.</li>
+    <li>Le texte et le contour ne changent pas avec l'état.</li>
+    <li><code>solid</code> n'a pas de contour. Le kit donne pourtant aux fonds de <code>solid</code> la portée des traits.</li>
+    <li><code>page</code> n'a pas de fond par palette. Le fond de la page est <code>elevation/page</code>, commun à toutes les palettes.</li>
+    <li>Un état qui change la sorte de fond change de dossier, comme la sélection.</li>
   </ul>
-  <div class="local">Table des crans <span class="bascule" id="nomsTable"></span></div>
-  <div class="grille" id="noms"></div>
+  <h3>Ce qui manque à la table d'aujourd'hui</h3>
+  <ul class="faits">
+    <li>Le fond très léger. Le 50 n'a pas de variable.</li>
+    <li>Son texte et son contour sont ceux de <code>surface</code> dans les quatre thèmes. C'est donc un niveau de <code>surface</code>, pas un nouveau dossier.</li>
+    <li>En Dark, ce fond viserait le 200. Le texte 950 y passe à 11,27 au minimum.</li>
+    <li>Le filet sur un fond teinté. En Dark, <code>page/divider</code> et le fond teinté valent tous deux 300 : le filet disparaît.</li>
+    <li><code>surface/divider</code> viserait le 300 en Light et le 500 en Dark.</li>
+    <li>L'anneau de focus sur un fond teinté. En Dark, l'anneau 700 tombe à 2,38 au minimum sur le fond 300. Ce défaut existe déjà aujourd'hui.</li>
+  </ul>
+  <div class="grille" id="manques"></div>
+  <h3>Trois organisations complètes, quinze variables par palette</h3>
+  <p class="note">Les pastilles sont les couleurs de la palette choisie en haut. Le Dark est celui de ta configuration, avec le texte des boutons blanc.</p>
+  <div class="defile" id="noms"></div>
+  <h3>Hors des palettes</h3>
+  <div class="defile"><table class="mesures">
+    <tr><th>Besoin</th><th>A et B</th><th>C</th></tr>
+    <tr><td>Fond de la page, fond de la carte</td><td><code>elevation/page</code>, <code>elevation/raised</code></td><td><code>background/page</code>, <code>background/raised</code></td></tr>
+    <tr><td>Corps de texte, texte secondaire du neutre</td><td><code>neutral/page/foreground-main</code>, <code>-subtle</code></td><td><code>neutral/foreground/on-page-main</code>, <code>-subtle</code></td></tr>
+    <tr><td>Désactivé</td><td colspan="2"><code>disabled/background</code>, <code>disabled/foreground</code>, <code>disabled/border</code></td></tr>
+  </table></div>
+  <h3>La grammaire de chaque forme</h3>
+  <ul class="faits">
+    <li>A : <code>{dossier}/{élément}[-{niveau}][-{état}]</code>. Le dossier dit ce qui est juste derrière.</li>
+    <li>Dans A, l'élément vaut <code>background</code>, <code>foreground</code>, <code>border</code> ou <code>divider</code>. Le niveau vaut <code>subtle</code>. L'état vaut <code>hover</code> ou <code>pressed</code>.</li>
+    <li>Dans A, le repos n'a pas de suffixe. Chaque suffixe a une place fixe.</li>
+    <li>C : <code>{élément}/{contexte}[-{niveau}][-{état}]</code> pour un fond, <code>{élément}/on-{contexte}</code> pour le reste.</li>
+    <li>Sans <code>on-</code>, <code>background/surface</code> et <code>foreground/surface</code> se lisent pareil. Material 3 emploie <code>on-surface</code> pour le texte posé sur la surface.</li>
+    <li>A bis, <code>background-base</code> : avec un niveau <code>subtle</code>, <code>base</code> se lit aussi comme un niveau.</li>
+  </ul>
+  <h3>Comparaison</h3>
+  <div class="defile"><table class="mesures">
+    <tr><th>Critère</th><th>A</th><th>B</th><th>C</th></tr>
+    <tr><td>Renommages par palette</td><td>6</td><td>0</td><td>12, et les variables hors des palettes</td></tr>
+    <tr><td>Un état et un élément dans le même dossier</td><td class="ok">Non</td><td class="ko">Oui</td><td class="ok">Non</td></tr>
+    <tr><td>Où lire ce qui est juste derrière</td><td>Le dossier</td><td>Le dossier</td><td>La fin du nom</td></tr>
+    <tr><td>Ce qu'il faut dans une alerte teintée</td><td class="ok">Tout dans <code>surface/</code></td><td class="ok">Tout dans <code>surface/</code></td><td>Réparti dans quatre dossiers</td></tr>
+    <tr><td>Portée Figma par dossier</td><td>Mêlée</td><td>Mêlée</td><td class="ok">Une seule famille</td></tr>
+    <tr><td>Dossiers du kit et de Palettes</td><td>Inchangés</td><td>Inchangés</td><td>Deviennent les éléments</td></tr>
+  </table></div>
+  <ul class="faits">
+    <li>Le sélecteur de variables de Figma filtre par portée. Avec C, les variables compatibles d'un calque tiennent dans un seul groupe.</li>
+    <li>L'effet de ce regroupement sur le choix du designer reste à vérifier dans Figma.</li>
+    <li>Atlassian et Primer mettent l'élément d'abord. Material 3 et shadcn mettent le contexte d'abord, comme A.</li>
+  </ul>
+  <div class="carte"><h4>Recommandation : la forme A</h4>
+    <p>Elle garde la règle du fond juste derrière dans le dossier. Palettes affiche ce dossier, et les garanties 3 et 4 le suivent.</p>
+    <p>Elle sépare le niveau et l'état par leur place dans le nom.</p>
+    <p>Elle coûte six renommages par palette. C en coûte douze.</p>
+    <p>C devient le meilleur choix si l'essai dans Figma montre que le regroupement par portée aide le designer.</p></div>
 
   <!-- 10 -->
   <h2 id="s10">10. Le thème Dark</h2>
   <ul class="faits">
     <li>La courbe Dark est celle de ta configuration. Elle ne change pas ici.</li>
     <li>Le fond de page est <code>#121212</code>, celui de ta configuration.</li>
-    <li>Les thèmes inversés ne sont pas mesurés.</li>
+    <li>Ta configuration met un texte blanc sur les boutons en Dark. La table appliquée est donc la table Dark inversée : <code>page/foreground</code> y vaut 800.</li>
+    <li>La dernière table donne à <code>surface</code> le texte 800 de <code>page</code>. La section 6 serait alors réglée en Dark aussi. Son survol manque 4,5 sur deux rampes.</li>
+    <li>Avec la table actuelle, le texte de <code>page</code> passe à 3,39 au minimum sur le fond teinté 300.</li>
+    <li>Les thèmes inversés en Light ne sont pas mesurés.</li>
   </ul>
   <div class="page grille" id="dark" style="background:#121212"></div>
   <div id="contrastesDark"></div>
 
   <h2 id="questions">Questions ouvertes</h2>
-  <ol class="questions">
-    <li>Le réglage de luminosité d'une palette doit-il épargner les crans clairs ?</li>
-    <li>Le 50, le 100 et le 200 prennent-ils une clarté commune à toutes les palettes ?</li>
-    <li>Quelle courbe du bas retenir, et avec ou sans lissage du 400 et du 500 ?</li>
-    <li>Quelle clarté pour un fond léger ?</li>
-    <li>Le texte de <code>surface</code> reste-t-il à 800 ou passe-t-il à 700 ?</li>
-    <li>Quelle table pour <code>surface</code> : 100, 200 et 300, ou 50, 100 et 200 ?</li>
-    <li>L'appui sort-il des garanties de contraste ?</li>
-    <li>Quel nom pour le fond léger, et quelle grammaire pour les noms ?</li>
-    <li>Comment traiter un composant conçu sur la page et posé dans une alerte teintée ?</li>
-    <li>Quelle table pour le thème Dark, et que deviennent les thèmes inversés ?</li>
-  </ol>
+  <div class="defile"><table class="mesures">
+    <tr><th>Question</th><th>État</th></tr>
+    <tr><td>Le réglage de luminosité d'une palette épargne-t-il les crans clairs ?</td><td class="ok">Oui, avec la clarté commune</td></tr>
+    <tr><td>Le 50, le 100 et le 200 prennent-ils une clarté commune ?</td><td class="ok">Oui</td></tr>
+    <tr><td>Quelle courbe du bas, avec ou sans lissage ?</td><td class="ok">La courbe actuelle, sans lissage</td></tr>
+    <tr><td>Quelle clarté pour un fond léger ?</td><td class="ok">Le 50, à 0,975</td></tr>
+    <tr><td>Le texte de <code>surface</code> reste-t-il à 800 ?</td><td class="ok">Non, 700</td></tr>
+    <tr><td>Quelle table pour <code>surface</code> ?</td><td class="ok">100, 200 et 300</td></tr>
+    <tr><td>Le survol garde-t-il 4,5:1 : 200 à 0,92, survol à 3:1, ou survol hors de la garantie 3 ?</td><td class="change">Ouvert</td></tr>
+    <tr><td>L'appui sort-il aussi de la garantie 1, pour <code>solid/pressed</code> ?</td><td class="change">Ouvert</td></tr>
+    <tr><td>Quelle organisation des noms : A, B ou C ?</td><td class="change">Ouvert, A recommandée</td></tr>
+    <tr><td><code>surface/divider</code> entre-t-il dans le thème ?</td><td class="change">Ouvert</td></tr>
+    <tr><td>L'anneau de focus a-t-il une variante sur fond teinté, ou la table Dark change-t-elle ?</td><td class="change">Ouvert</td></tr>
+    <tr><td>Quelle table pour le thème Dark ?</td><td class="change">Ouvert</td></tr>
+    <tr><td>Que deviennent les thèmes inversés en Light ?</td><td class="info">Non mesuré</td></tr>
+  </table></div>
 </main>
 
 <script src="donnees-crans.js"></script>
@@ -258,19 +333,19 @@
 const D = window.CRANS;
 const TABLES = {
   aujourdhui: { nom: "Aujourd'hui", repos: 100, survol: 200, appui: 300, texte: 800 },
-  texte700: { nom: 'Hypothèse : texte 700', repos: 100, survol: 200, appui: 300, texte: 700 },
+  texte700: { nom: 'Retenue : texte 700', repos: 100, survol: 200, appui: 300, texte: 700 },
   decalee800: { nom: 'Hypothèse : décalée, texte 800', repos: 50, survol: 100, appui: 200, texte: 800 },
   decalee700: { nom: 'Hypothèse : décalée, texte 700', repos: 50, survol: 100, appui: 200, texte: 700 },
 };
 const TABLES_DARK = {
   actuelle: { nom: "Aujourd'hui", repos: 300, survol: 400, appui: 500, texte: 950 },
   intermediaire: { nom: 'Hypothèse : 200, 300, 400', repos: 200, survol: 300, appui: 400, texte: 900 },
-  proposee: { nom: 'Hypothèse : 100, 200, 300', repos: 100, survol: 200, appui: 300, texte: 800 },
+  proposee: { nom: 'Hypothèse : 100, 200, 300, texte de page', repos: 100, survol: 200, appui: 300, texte: 800 },
 };
-const etat = { palette: 'Ocean', intensite: 'vivid', courbe: 'actuelle', lissage: 'non', moteur: 'actuel', page: '#FFFFFF',
-  vueHarmonie: 'couleur', clarteLegere: 0.985, contexteTable: 'aujourdhui', regle: 'ignore', nomsTable: 'aujourdhui' };
-try { Object.assign(etat, JSON.parse(localStorage.getItem('crans-clairs-2') || '{}')); } catch (e) {}
-const garder = () => { try { localStorage.setItem('crans-clairs-2', JSON.stringify(etat)); } catch (e) {} };
+const etat = { palette: 'Ocean', intensite: 'vivid', courbe: 'actuelle', lissage: 'non', moteur: 'commune', page: '#FFFFFF',
+  vueHarmonie: 'couleur', clarteLegere: 0.985, contexteTable: 'aujourdhui', regle: 'ignore' };
+try { Object.assign(etat, JSON.parse(localStorage.getItem('crans-clairs-3') || '{}')); } catch (e) {}
+const garder = () => { try { localStorage.setItem('crans-clairs-3', JSON.stringify(etat)); } catch (e) {} };
 
 // Couleur : WCAG et OKLCH.
 const $ = (id) => document.getElementById(id);
@@ -306,7 +381,7 @@ const gris = (h) => { const L = oklch(h).L; return versHexa(L, 0, 0); };
 const badge = (ratio) => `<span class="badge ${ratio >= 4.5 ? 'ok' : ratio >= 3 ? 'moyen' : 'ko'}">${virgule(ratio)}:1</span>`;
 
 // Données.
-const cleCourbe = (base = etat.courbe, lissage = etat.lissage) => (lissage === 'oui' && base !== 'actuelle' ? base + 'Lissee' : base);
+const cleCourbe = (base = etat.courbe, lissage = etat.lissage) => (lissage === 'oui' && D.courbes[base + 'Lissee'] ? base + 'Lissee' : base);
 const palette = (nom = etat.palette) => D.palettes.find((p) => p.nom === nom) || D.palettes[0];
 const intensiteDe = (p, i = etat.intensite) => (p.light.actuelle.actuel.unique ? 'unique' : i);
 const rampeLight = (p = palette(), courbe = cleCourbe(), moteur = etat.moteur, i) => p.light[courbe][moteur][intensiteDe(p, i)];
@@ -321,7 +396,7 @@ const boutonVivant = (repos, survol, appui, encre, libelle = 'Bouton texte') => 
 
 function rendreRampes() {
   const p = palette();
-  const lignes = ['actuelle', 'legere', 'moyenne', 'forte'].map((base) => {
+  const lignes = ['actuelle', 'actuelle920', 'legere', 'moyenne', 'forte'].map((base) => {
     const cle = cleCourbe(base);
     const r = rampeLight(p, cle);
     const ancre = p.ancres[cle];
@@ -332,7 +407,7 @@ function rendreRampes() {
   });
   $('rampes').innerHTML = `<div class="page" style="background:${etat.page}">${lignes.join('')}</div>`;
 
-  const base = etat.courbe === 'actuelle' ? 'moyenne' : etat.courbe;
+  const base = D.courbes[etat.courbe + 'Lissee'] ? etat.courbe : 'moyenne';
   const sans = base, avec = base + 'Lissee';
   const lignesLissage = D.palettes.map((q) => {
     const i = intensiteDe(q);
@@ -345,7 +420,7 @@ function rendreRampes() {
     <ul class="faits"><li>Une référence peut changer de cran. Sa couleur reste la même, son numéro change.</li><li>Le 400 et le 500 perdent du contraste sur le blanc. Ils ne portent aucune variable du thème Light. Un designer qui les emploie en primitive les verra plus clairs.</li><li>Le 600, l'anneau de focus et les crans 700 à 950 ne changent pas.</li></ul>`;
 
   const paires = [[null, 50], [50, 100], [100, 200], [200, 300], [300, 400], [400, 500], [500, 600]];
-  const lignesEcarts = ['actuelle', 'legere', 'legereLissee', 'moyenne', 'moyenneLissee', 'forte', 'forteLissee'].map((cle) => {
+  const lignesEcarts = ['actuelle', 'actuelle920', 'legere', 'legereLissee', 'moyenne', 'moyenneLissee', 'forte', 'forteLissee'].map((cle) => {
     const rs = toutesLesRampes(cle);
     const L = (r, n) => (n === null ? 1 : oklch(r[D.crans.indexOf(n)]).L);
     return `<tr class="${cle === cleCourbe() ? 'choisie' : ''}"><td>${D.courbes[cle].nom}</td>${paires.map(([a, b]) => `<td>${virgule(mediane(rs.map((r) => L(r, a) - L(r, b))), 3)}</td>`).join('')}</tr>`;
@@ -435,7 +510,7 @@ function cellule(b, regle, n) {
 }
 function rendreContrastes() {
   let lignes = '';
-  for (const base of ['actuelle', 'legere', 'moyenne', 'forte']) {
+  for (const base of ['actuelle', 'actuelle920', 'legere', 'moyenne', 'forte']) {
     const cle = cleCourbe(base), rampes = toutesLesRampes(cle), b = bilan(TABLES, 'light', rampes);
     for (const [cleT, t] of Object.entries(TABLES)) {
       lignes += `<tr class="${base === etat.courbe ? 'choisie' : ''}"><td>${D.courbes[cle].nom}</td><td>${t.nom} · ${t.repos}, ${t.survol}, ${t.appui} · texte ${t.texte}</td>${cellule(b[cleT].repos, 'stricte', rampes.length)}${cellule(b[cleT].survol, 'stricte', rampes.length)}${cellule(b[cleT].appui, etat.regle, rampes.length)}${cellule(b[cleT].leger, 'stricte', rampes.length)}</tr>`;
@@ -457,28 +532,48 @@ function rendreSansSurvol() {
   }).join('');
 }
 
+// Les quinze variables par palette dans les trois formes. Crans : Light normal et Dark inversé, la configuration du mainteneur.
+const ORGANISATION = [
+  { besoin: 'Fond plein au repos', light: 700, dark: 700, A: 'solid/background', B: 'solid/default', C: 'background/solid' },
+  { besoin: 'Fond plein survolé', light: 800, dark: 600, A: 'solid/background-hover', B: 'solid/hover', C: 'background/solid-hover' },
+  { besoin: 'Fond plein appuyé', light: 900, dark: 500, A: 'solid/background-pressed', B: 'solid/pressed', C: 'background/solid-pressed' },
+  { besoin: 'Texte sur fond plein', light: 'blanc', dark: 'blanc', A: 'solid/foreground', B: 'solid/foreground', C: 'foreground/on-solid' },
+  { besoin: 'Fond très léger', nouveau: true, light: 50, dark: 200, A: 'surface/background-subtle', B: 'surface/subtle', C: 'background/surface-subtle' },
+  { besoin: 'Fond teinté au repos', light: 100, dark: 300, A: 'surface/background', B: 'surface/default', C: 'background/surface' },
+  { besoin: 'Fond teinté survolé', light: 200, dark: 400, A: 'surface/background-hover', B: 'surface/hover', C: 'background/surface-hover' },
+  { besoin: 'Fond teinté appuyé', light: 300, dark: 500, A: 'surface/background-pressed', B: 'surface/pressed', C: 'background/surface-pressed' },
+  { besoin: 'Texte sur fond teinté', light: 700, dark: 950, A: 'surface/foreground', B: 'surface/foreground', C: 'foreground/on-surface' },
+  { besoin: 'Contour sur fond teinté', light: 700, dark: 950, A: 'surface/border', B: 'surface/border', C: 'border/on-surface' },
+  { besoin: 'Filet sur fond teinté', nouveau: true, light: 300, dark: 500, A: 'surface/divider', B: 'surface/divider', C: 'divider/on-surface' },
+  { besoin: 'Texte coloré sur la page', light: 700, dark: 800, A: 'page/foreground', B: 'page/foreground', C: 'foreground/on-page' },
+  { besoin: 'Contour sur la page', light: 700, dark: 800, A: 'page/border', B: 'page/border', C: 'border/on-page' },
+  { besoin: 'Filet sur la page', light: 300, dark: 300, A: 'page/divider', B: 'page/divider', C: 'divider/on-page' },
+  { besoin: 'Anneau de focus', light: 600, dark: 700, A: 'ring', B: 'ring', C: 'ring' },
+];
+const teinte = (n, mode) => (n === 'blanc' ? '#FFFFFF' : cran(n, palette(), mode));
+const pastille = (n, mode) => `<span class="pastille" style="background:${teinte(n, mode)}"></span>${n}`;
+
 function rendreNoms() {
-  const t = TABLES[etat.nomsTable];
-  const v = (nom, n, note = '') => `<div class="v"><span class="pastille" style="background:${n === null ? 'transparent' : cran(n)}"></span>${nom}<span class="cran">${n === null ? '' : n}${note}</span></div>`;
-  const dossier = (nom) => `<div class="dossier">${nom}/</div>`;
-  const options = [
-    { titre: 'A. Élément puis état', sous: "Le repos s'écrit sans suffixe.", lignes: [
-      dossier('solid'), v('background', 700), v('background-hover', 800), v('background-pressed', 900), v('foreground', null, ' blanc'),
-      dossier('surface'), v('background', t.repos), v('background-hover', t.survol), v('background-pressed', t.appui), v('background-subtle ?', 50), v('foreground', t.texte), v('border', t.texte),
-      dossier('page'), v('foreground', 700), v('border', 700), v('divider', 300)] },
-    { titre: 'A bis. Idée du mainteneur', sous: 'Le repos porte le suffixe base.', lignes: [
-      dossier('surface'), v('background-base', t.repos), v('background-hover', t.survol), v('background-pressed', t.appui), v('foreground', t.texte), v('border', t.texte)] },
-    { titre: 'B. Noms actuels', sous: 'Les états restent seuls. La règle des dossiers se documente.', lignes: [
-      dossier('solid'), v('default', 700), v('hover', 800), v('pressed', 900), v('foreground', null, ' blanc'),
-      dossier('surface'), v('default', t.repos), v('hover', t.survol), v('pressed', t.appui), v('subtle ?', 50), v('foreground', t.texte), v('border', t.texte),
-      dossier('page'), v('foreground', 700), v('border', 700), v('divider', 300)] },
-    { titre: "C. Élément d'abord", sous: 'Le dossier passe en second.', lignes: [
-      dossier('background'), v('solid', 700), v('solid-hover', 800), v('solid-pressed', 900), v('surface', t.repos), v('surface-hover', t.survol), v('surface-pressed', t.appui),
-      dossier('foreground'), v('solid', null, ' blanc'), v('surface', t.texte), v('page', 700),
-      dossier('border'), v('surface', t.texte), v('page', 700)] },
+  const lignes = ORGANISATION.map((v) => `<tr><td>${v.besoin}${v.nouveau ? ' <span class="badge moyen">nouveau</span>' : ''}</td><td>${pastille(v.light, 'light')}</td><td>${pastille(v.dark, 'dark')}</td>${['A', 'B', 'C'].map((f) => `<td><code>${v[f]}</code></td>`).join('')}</tr>`).join('');
+  $('noms').innerHTML = `<table class="mesures"><tr><th>Besoin</th><th>Light</th><th>Dark</th><th>A. Dossier, élément, niveau, état</th><th>B. Noms actuels</th><th>C. Élément, puis contexte</th></tr>${lignes}</table>`;
+}
+
+// Une alerte très légère et une alerte teintée, avec les deux filets et l'anneau de focus, dans chaque mode.
+function rendreManques() {
+  const modes = [
+    { titre: 'Light', mode: 'light', page: etat.page, fond: 100, leger: 50, texte: 700, filetPage: 300, filetSurface: 300, anneau: 600 },
+    { titre: 'Dark', mode: 'dark', page: '#121212', fond: 300, leger: 200, texte: 950, filetPage: 300, filetSurface: 500, anneau: 700 },
   ];
-  $('noms').innerHTML = options.map((o) => `<div class="carte"><h4>${o.titre}</h4><p class="sous">${o.sous}</p><div class="arbre">${o.lignes.join('')}</div></div>`).join('')
-    + `<div class="carte"><h4>Règle des contours</h4><p class="sous">Un contour appartient au dossier du fond sur lequel il est posé.</p><div class="arbre">${dossier('solid')}${v('aucun contour', null)}${dossier('surface')}${v('border', t.texte)}${dossier('page')}${v('border', 700)}</div><p class="note">Le bouton outlined prend <code>page/border</code>.</p></div>`;
+  $('manques').innerHTML = modes.map((m) => {
+    const c = (n) => cran(n, palette(), m.mode), fond = c(m.fond), encre = c(m.texte);
+    const filet = (n, nom) => `<div style="border-top:1px solid ${c(n)};margin:10px 0 4px"></div><p style="font-size:11px;color:${encre}">${nom}, ${n} : ${virgule(contraste(c(n), fond))}:1 sur le fond</p>`;
+    return `<div class="page" style="background:${m.page}"><h4 style="${m.mode === 'dark' ? 'color:#eee' : ''}">${m.titre}</h4>
+      <div class="alerte" style="background:${c(m.leger)};border:1px solid ${encre};display:block;margin-bottom:10px"><strong style="color:${encre}">Fond très léger, ${m.leger}</strong><p style="color:${encre}">Texte et contour ${m.texte}. ${badge(contraste(encre, c(m.leger)))}</p></div>
+      <div class="alerte" style="background:${fond};display:block"><strong style="color:${encre}">Fond teinté, ${m.fond}</strong>
+        ${filet(m.filetPage, 'page/divider')}${filet(m.filetSurface, 'surface/divider')}
+        <div style="margin-top:10px"><button class="bouton" style="--repos:transparent;--survol:transparent;--appui:transparent;--encre:${encre};outline:2px solid ${c(m.anneau)};outline-offset:2px">Bouton au focus</button></div>
+        <p style="color:${encre};margin-top:8px">Anneau ${m.anneau} sur le fond : ${badge(contraste(c(m.anneau), fond))}</p></div></div>`;
+  }).join('');
 }
 
 function rendreDark() {
@@ -493,19 +588,18 @@ function rendreDark() {
 function marquer(conteneur, valeur) { conteneur.querySelectorAll('button').forEach((x) => x.setAttribute('aria-pressed', String(valeur === x.dataset.v))); }
 function rendre() {
   document.querySelectorAll('.bascule[data-cle]').forEach((b) => marquer(b, etat[b.dataset.cle]));
-  ['vueHarmonie', 'contexteTable', 'regle', 'nomsTable'].forEach((id) => marquer($(id), etat[id]));
-  document.querySelectorAll('[data-cle="lissage"] button').forEach((x) => { x.disabled = etat.courbe === 'actuelle'; });
+  ['vueHarmonie', 'contexteTable', 'regle'].forEach((id) => marquer($(id), etat[id]));
+  document.querySelectorAll('[data-cle="lissage"] button').forEach((x) => { x.disabled = !D.courbes[etat.courbe + 'Lissee']; });
   $('palette').value = etat.palette;
   rendreRampes(); rendreHarmonie(); rendreTextes(); rendreBoutonsTexte(); rendreAlertes(); rendreContextes();
-  rendreContrastes(); rendreSansSurvol(); rendreNoms(); rendreDark();
+  rendreContrastes(); rendreSansSurvol(); rendreManques(); rendreNoms(); rendreDark();
   garder();
 }
 
 $('palette').innerHTML = D.palettes.map((p) => `<option>${p.nom}</option>`).join('');
 $('palette').addEventListener('change', (e) => { etat.palette = e.target.value; rendre(); });
-$('nomsTable').innerHTML = Object.entries(TABLES).map(([c, t]) => `<button data-v="${c}">${t.nom}</button>`).join('');
 document.querySelectorAll('.bascule[data-cle]').forEach((b) => b.addEventListener('click', (e) => { const v = e.target.dataset.v; if (v && !e.target.disabled) { etat[b.dataset.cle] = v; rendre(); } }));
-['vueHarmonie', 'contexteTable', 'regle', 'nomsTable'].forEach((id) => $(id).addEventListener('click', (e) => { const v = e.target.dataset.v; if (v) { etat[id] = v; rendre(); } }));
+['vueHarmonie', 'contexteTable', 'regle'].forEach((id) => $(id).addEventListener('click', (e) => { const v = e.target.dataset.v; if (v) { etat[id] = v; rendre(); } }));
 $('clarteLegere').addEventListener('input', (e) => { etat.clarteLegere = Number(e.target.value); rendreAlertes(); garder(); });
 rendre();
 </script>
