@@ -10,7 +10,7 @@ import { atteintLeSeuil, contraste, type Rgb8 } from '../emplois/contraste.js';
 import { RECOMMANDATIONS } from '../referentiel/recommandations.js';
 import type { CatalogueDeReference, CollectionDuCatalogue, CouleurResolue, VariableDuCatalogue } from './catalogue.js';
 import { collectionDuCatalogue, variableDuCatalogue } from './catalogue.js';
-import { cleDuTheme } from './theme.js';
+import { variableDuThemeReconnue } from '../referentiel/theme.js';
 import { etatReconnu } from './nommage.js';
 import type { Constat } from './constat.js';
 import { layersVisiblesDuVariant, lectureManquee, liaisonsPropres, peintureVisible, type LayerLu, type LiaisonLue, type PeintureLue, type ReleveDeComposant, type VariantLu } from './releve.js';
@@ -564,7 +564,7 @@ function variableDuThemeAtteinte(
     const variable = variableDuCatalogue(catalogue, cle);
     if (variable === 'absente') return null;
     const collection = collectionDuCatalogue(catalogue, variable.collection);
-    if (collection !== 'absente' && collection.role === 'theme') return cleDuTheme(variable.nom) ?? null;
+    if (collection !== 'absente' && collection.role === 'theme') return variableDuThemeReconnue(variable.nom) ?? null;
     if (collection === 'absente') return null;
     const mode = modeDeLaCollection(variant, combinaison, collection);
     const valeur = mode !== undefined ? variable.valeurs?.[mode] : undefined;

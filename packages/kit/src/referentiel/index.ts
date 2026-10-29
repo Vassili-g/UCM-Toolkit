@@ -5,7 +5,7 @@
  */
 export * from '../emplois/index.js';
 export * from './termes.js';
-export { formeReconnue, termeReconnu } from './reconnaissance.js';
+export { formeDuChemin, formeReconnue, termeReconnu } from './reconnaissance.js';
 export * from './vocabulaire.js';
 export * from './architecture.js';
 export * from './grammaire.js';

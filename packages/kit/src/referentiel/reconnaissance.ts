@@ -37,6 +37,12 @@ export function formeReconnue(texte: string): string {
   return forme;
 }
 
+/** La forme de chemin d'un nom : chaque segment passe par `formeReconnue`, les segments se rejoignent par `/`. */
+export function formeDuChemin(nom: string | readonly string[]): string {
+  const segments = typeof nom === 'string' ? nom.split('/') : nom;
+  return segments.map((segment) => formeReconnue(segment)).join('/');
+}
+
 type IndexDuRegistre = { nombreDeTermes: number; parForme: Map<string, Terme> };
 const indexParRegistre = new WeakMap<Registre, IndexDuRegistre>();
 

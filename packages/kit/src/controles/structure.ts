@@ -1,9 +1,10 @@
 /** Contrôles des scopes et des structures UCM du catalogue. */
-import { formeReconnue } from '../referentiel/reconnaissance.js';
+import { formeDuChemin, formeReconnue } from '../referentiel/reconnaissance.js';
+import { variableDuThemeReconnue } from '../referentiel/theme.js';
 import { SUPPORT_DES_VARIABLES } from '../emplois/dossiers.js';
 import { cheminDansLaCollection, collectionParCle, type CatalogueDeReference, type VariableDuCatalogue } from './catalogue.js';
 import type { Constat, Correction, Question } from './constat.js';
-import { cleDuTheme, controlerLesModes } from './theme.js';
+import { controlerLesModes } from './theme.js';
 import { estLaFamilleCouleur, segmentDAxe, tokensDuComposantParEtapes, type TokenDuComposant } from './nommage.js';
 import type { ReleveDeComposant } from './releve.js';
 
@@ -120,7 +121,7 @@ function controlerLesScopes(catalogue: CatalogueDeReference): Constat[] {
   const resultats: Constat[] = [];
   for (const variable of catalogue.variables) {
     if (variable.etat !== 'presente' || variable.scopes === undefined || roleCollection(catalogue, variable) !== 'theme') continue;
-    const cle = cleDuTheme(variable.nom);
+    const cle = variableDuThemeReconnue(variable.nom);
     if (!cle) continue;
     const attendues = SUPPORT_DES_VARIABLES[cle].portees;
     if (memeEnsemble(variable.scopes, attendues)) continue;
@@ -164,7 +165,7 @@ function* controlerLesValeursVides(releve: ReleveDeComposant, catalogue: Catalog
       const parties = [...token.segments];
       const palette = parties[indexPalette];
       parties[indexPalette] = '*';
-      const signature = parties.map(formeReconnue).join('/');
+      const signature = formeDuChemin(parties);
       const groupe = signatures.get(signature) ?? [];
       groupe.push({ variable, palette, indices: [indexPalette] });
       signatures.set(signature, groupe);
@@ -317,7 +318,7 @@ function signatureSansPalette(token: TokenDuComposant): string {
   const segments = [...token.segments];
   const rang = token.lecture.findIndex((segment) => segment.role === 'palette');
   if (rang >= 0 && rang < segments.length) segments[rang] = '*';
-  return segments.map(formeReconnue).join('/');
+  return formeDuChemin(segments);
 }
 function remplacerSegment(nom: string, ancien: string, nouveau: string): string {
   const segments = nom.split('/');

@@ -1,5 +1,5 @@
 /** Écarts entre les liaisons lues et les axes, rôles et portées du composant. */
-import { formeReconnue, termeReconnu } from '../referentiel/reconnaissance.js';
+import { formeDuChemin, formeReconnue, termeReconnu } from '../referentiel/reconnaissance.js';
 import { REGISTRE_ROLES } from '../referentiel/vocabulaire.js';
 import { collectionParCle, variableDuCatalogue, type CatalogueDeReference, type VariableDuCatalogue } from './catalogue.js';
 import type { Constat } from './constat.js';
@@ -61,8 +61,8 @@ function porteeCompatible(scopes: readonly string[], attendue: string): boolean 
 function signatureDeCible(retenue: VariableDuCatalogue, catalogue: CatalogueDeReference): string {
   const collection = collectionParCle(catalogue, retenue.collection);
   const segments = retenue.nom.split('/');
-  if (collection?.role === 'theme' && segments.length > 1) return `${collection.role}:${segments.slice(1).map(formeReconnue).join('/')}`;
-  return `${collection?.role ?? retenue.collection}:${segments.map(formeReconnue).join('/')}`;
+  if (collection?.role === 'theme' && segments.length > 1) return `${collection.role}:${formeDuChemin(segments.slice(1))}`;
+  return `${collection?.role ?? retenue.collection}:${formeDuChemin(segments)}`;
 }
 
 /** Réunit la cible de chaque mode, triée : l'écart d'un seul mode change la signature, l'ordre des modes ne la change pas. */

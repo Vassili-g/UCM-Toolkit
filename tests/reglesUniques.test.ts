@@ -45,6 +45,31 @@ export const REGLES: Regle[] = [
     proprietaires: [],
     exceptions: [],
   },
+  {
+    fiche: 'D-02',
+    raison: "Un nom du thème se reconnaît par `variableDuThemeReconnue` ; `cleDuTheme` n'existe plus.",
+    motif: /\bcleDuTheme\b/,
+    proprietaires: [],
+    exceptions: [],
+  },
+  {
+    fiche: 'D-17',
+    raison: "La forme de chemin d'un nom vient de `formeDuChemin`, pas d'un `.map(formeReconnue).join('/')`.",
+    motif: /\.map\(\s*formeReconnue\s*\)\s*\.join\(\s*(['"])\/\1\s*\)/,
+    proprietaires: ['packages/kit/src/referentiel/reconnaissance.ts'],
+    exceptions: [],
+  },
+  {
+    fiche: 'D-23',
+    raison: "Le mode d'une collection se compare par la forme reconnue (`modeDuThemeReconnu`, `formeReconnue`), pas par `trim().toLowerCase()` sur son nom.",
+    motif: /\bmode\.(?:name|nom)\.trim\(\)\.toLowerCase\(\)/,
+    proprietaires: [],
+    exceptions: [
+      { fichier: 'packages/plugin-palettes/src/ecriture/variables.ts', raison: 'levée par U7' },
+      { fichier: 'packages/plugin-palettes/src/variables/lot.ts', raison: 'levée par U7' },
+      { fichier: 'packages/plugin-palettes/src/variables/detection.ts', raison: 'levée par U7' },
+    ],
+  },
 ];
 
 /** Remplace les commentaires par des blancs, sans toucher aux chaînes ni aux numéros de ligne. */

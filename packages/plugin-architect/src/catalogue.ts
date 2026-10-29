@@ -3,8 +3,8 @@
  * mode Tokens. Les noms viennent d'abord (library) ou d'un relevé (fichier) ; les valeurs s'importent par clé à la demande
  * des contrôles, par `importerLesValeurs`, seul chemin vers l'import par clé.
  */
-import { cleDuTheme, collectionsDeReference, type CatalogueDeReference, type CouleurResolue, type VariableDuCatalogue } from '@ucm-kit/core/controles';
-import { CIBLES_DES_COLLECTIONS, CIBLES_DES_COULEURS_DE_COMPOSANT, type Collection } from '@ucm-kit/core/referentiel';
+import { collectionsDeReference, type CatalogueDeReference, type CouleurResolue, type VariableDuCatalogue } from '@ucm-kit/core/controles';
+import { CIBLES_DES_COLLECTIONS, CIBLES_DES_COULEURS_DE_COMPOSANT, variableDuThemeReconnue, type Collection } from '@ucm-kit/core/referentiel';
 import { lireLesLibraries, type LectureDesLibraries, type PortDeBibliotheque } from 'ucm-plugin-socle/src/bibliotheque';
 import { executerAuPlus } from 'ucm-plugin-socle/src/composant/analyse/limiteur';
 import { cleDeBibliotheque, convertirVariable, importerLesValeurs, type PortDeLecture, type ValeurDeLibrary } from './lecture';
@@ -283,7 +283,7 @@ export function clesDesFondsDElevation(catalogue: CatalogueDeReference): string[
   const theme = collectionTheme(catalogue);
   if (!theme) return [];
   return Object.values(FONDS_DU_THEME).flatMap((nom) => {
-    const trouvee = catalogue.variables.find((v) => v.collection === theme.cle && v.type === 'COLOR' && cleDuTheme(v.nom) === nom);
+    const trouvee = catalogue.variables.find((v) => v.collection === theme.cle && v.type === 'COLOR' && variableDuThemeReconnue(v.nom) === nom);
     return trouvee ? [trouvee.cle] : [];
   });
 }
@@ -312,7 +312,7 @@ function resoudre(catalogue: CatalogueDeReference, cle: string, mode: string, pr
 export function avecLesFondsDElevation(catalogue: CatalogueDeReference): CatalogueDeReference {
   const theme = collectionTheme(catalogue);
   if (!theme) return catalogue;
-  const [page, carte] = [FONDS_DU_THEME.page, FONDS_DU_THEME.carte].map((nom) => catalogue.variables.find((v) => v.collection === theme.cle && cleDuTheme(v.nom) === nom));
+  const [page, carte] = [FONDS_DU_THEME.page, FONDS_DU_THEME.carte].map((nom) => catalogue.variables.find((v) => v.collection === theme.cle && variableDuThemeReconnue(v.nom) === nom));
   if (!page || !carte) return catalogue;
   const fonds: NonNullable<CatalogueDeReference['fondsDElevation']> = {};
   for (const mode of theme.modes) {
