@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 
 import { variableDuCatalogue, collectionDuCatalogue } from '@ucm-kit/core/controles';
-import { catalogueDuFichier, chargerLesValeurs, lireLeCatalogueDeLibrary } from '../src/catalogue';
+import { avecLesFondsDElevation, catalogueDuFichier, chargerLesValeurs, clesDesFondsDElevation, fondDeLaPageFigma, lireLeCatalogueDeLibrary } from '../src/catalogue';
 import { convertirCollection, convertirVariable } from '../src/lecture';
 import { collectionFigma, portDeTest, variableFigma } from './figmaDeTest';
 
@@ -203,4 +203,64 @@ test('les cibles hors du catalogue se lisent plusieurs à la fois, dans l’ordr
   const { catalogue: rendu } = await chargerLesValeurs(lecture.port, catalogue, ['v-fond']);
   assert.ok(lecture.pic() > 1, 'plusieurs lectures en vol');
   assert.deepEqual(rendu.variables.slice(-4).map((v) => v.cle), ['k-a', 'k-b', 'k-c', 'k-d']);
+});
+
+const libraryDuThemeElevation = {
+  teamLibrary: teamLibrary([
+    { key: 'ct', name: 'theme', libraryName: 'Intencial', variables: [
+      { key: 'k-page', name: 'elevation/page', resolvedType: 'COLOR' },
+      { key: 'k-raised', name: 'elevation/raised', resolvedType: 'COLOR' },
+      { key: 'k-autre', name: 'surface/default', resolvedType: 'COLOR' },
+    ] },
+  ]),
+};
+
+function alias(cle: string) { return { type: 'VARIABLE_ALIAS', id: `VariableID:${cle}/9:9` }; }
+
+test('fonds d’élévation : les deux variables du thème, aliasées vers des primitives, se résolvent par mode', async () => {
+  const lecture = await lireLeCatalogueDeLibrary(libraryDuThemeElevation, 'Intencial');
+  if (lecture.etat !== 'lu') throw new Error('lecture attendue');
+  assert.deepEqual(clesDesFondsDElevation(lecture.catalogue), ['k-page', 'k-raised']);
+  const page = { ...variableFigma('v1', 'c1', 'elevation/page', 'COLOR', { 'c1:clair': alias('k-blanc'), 'c1:sombre': alias('k-noir') }), key: 'k-page' };
+  const carte = { ...variableFigma('v2', 'c1', 'elevation/raised', 'COLOR', { 'c1:clair': alias('k-blanc'), 'c1:sombre': alias('k-gris') }), key: 'k-raised' };
+  const prim = (id: string, cle: string, couleur: { r: number; g: number; b: number; a: number }) => ({ ...variableFigma(id, 'c2', cle, 'COLOR', { 'c2:base': couleur }), key: cle });
+  const { port, appels } = portDeTest(
+    [collectionFigma('c1', 'theme', ['clair', 'sombre'], ['v1', 'v2']), collectionFigma('c2', 'primitives', ['base'], ['p1', 'p2', 'p3'])], [], [], [],
+    { importables: [page, carte, prim('p1', 'k-blanc', { r: 1, g: 1, b: 1, a: 1 }), prim('p2', 'k-noir', { r: 0, g: 0, b: 0, a: 1 }), prim('p3', 'k-gris', { r: 0.2, g: 0.2, b: 0.2, a: 1 })] },
+  );
+  const { catalogue } = await chargerLesValeurs(port, lecture.catalogue, clesDesFondsDElevation(lecture.catalogue));
+  assert.equal([...appels.keys()].filter((a) => a === 'import:k-page' || a === 'import:k-raised').length, 2);
+  const complet = avecLesFondsDElevation(catalogue);
+  assert.deepEqual(complet.fondsDElevation, {
+    'c1:clair': { page: { r: 1, g: 1, b: 1, a: 1 }, carte: { r: 1, g: 1, b: 1, a: 1 } },
+    'c1:sombre': { page: { r: 0, g: 0, b: 0, a: 1 }, carte: { r: 0.2, g: 0.2, b: 0.2, a: 1 } },
+  });
+});
+
+test('fonds d’élévation : un mode dont une valeur ne se résout pas n’a pas d’entrée', async () => {
+  const catalogue = {
+    version: 1 as const, library: null,
+    collections: [{ cle: 'ct', nom: 'theme', role: 'theme' as const, modes: [{ id: 'a', nom: 'a' }, { id: 'b', nom: 'b' }], etat: 'lue' as const }],
+    variables: [
+      { cle: 'p', nom: 'elevation/page', collection: 'ct', type: 'COLOR' as const, etat: 'presente' as const, valeurs: { a: { valeur: { r: 1, g: 1, b: 1 } }, b: { alias: 'inconnue' } } },
+      { cle: 'r', nom: 'dossier/elevation/raised', collection: 'ct', type: 'COLOR' as const, etat: 'presente' as const, valeurs: { a: { valeur: { r: 0, g: 0, b: 0 } }, b: { valeur: { r: 0, g: 0, b: 0 } } } },
+    ],
+  };
+  assert.deepEqual(avecLesFondsDElevation(catalogue).fondsDElevation, { a: { page: { r: 1, g: 1, b: 1, a: 1 }, carte: { r: 0, g: 0, b: 0, a: 1 } } });
+});
+
+test('fonds d’élévation : sans les variables, le catalogue est rendu tel quel', async () => {
+  const lecture = await lireLeCatalogueDeLibrary(figma, 'Intencial');
+  if (lecture.etat !== 'lu') throw new Error('lecture attendue');
+  assert.deepEqual(clesDesFondsDElevation(lecture.catalogue), []);
+  assert.equal(avecLesFondsDElevation(lecture.catalogue), lecture.catalogue);
+  assert.equal('fondsDElevation' in avecLesFondsDElevation(lecture.catalogue), false);
+});
+
+test('fond de la page Figma : le premier fond SOLID visible, sinon absent', () => {
+  const solide = (r: number, extra: object = {}) => ({ type: 'SOLID', visible: true, color: { r, g: 0, b: 0 }, ...extra });
+  assert.deepEqual(fondDeLaPageFigma({ backgrounds: [{ type: 'GRADIENT_LINEAR' }, solide(0.1, { visible: false }), solide(0.5, { opacity: 0.5 }), solide(0.9)] }), { r: 0.5, g: 0, b: 0, a: 0.5 });
+  assert.equal(fondDeLaPageFigma({ backgrounds: [] }), undefined);
+  assert.equal(fondDeLaPageFigma({ backgrounds: [{ type: 'IMAGE' }] }), undefined);
+  assert.equal(fondDeLaPageFigma(undefined), undefined);
 });

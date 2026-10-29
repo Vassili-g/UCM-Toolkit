@@ -3,8 +3,8 @@
  * mode Tokens. Les noms viennent d'abord (library) ou d'un relevé (fichier) ; les valeurs s'importent par clé à la demande
  * des contrôles, par `importerLesValeurs`, seul chemin vers l'import par clé.
  */
-import { collectionsDeReference, type CatalogueDeReference, type VariableDuCatalogue } from '@ucm-kit/core/controles';
-import { CIBLES_DES_COLLECTIONS, type Collection } from '@ucm-kit/core/referentiel';
+import { cleDuTheme, collectionsDeReference, type CatalogueDeReference, type CouleurResolue, type VariableDuCatalogue } from '@ucm-kit/core/controles';
+import { CIBLES_DES_COLLECTIONS, CIBLES_DES_COULEURS_DE_COMPOSANT, type Collection } from '@ucm-kit/core/referentiel';
 import { lireLesLibraries, type LectureDesLibraries, type PortDeBibliotheque } from 'ucm-plugin-socle/src/bibliotheque';
 import { executerAuPlus } from 'ucm-plugin-socle/src/composant/analyse/limiteur';
 import { cleDeBibliotheque, convertirVariable, importerLesValeurs, type PortDeLecture, type ValeurDeLibrary } from './lecture';
@@ -265,4 +265,73 @@ async function lireLesModes(
     }
   }, { avant: () => !annulee() });
   return rendus;
+}
+
+/** Les variables de fond que la mesure du contraste lit sur le thème, par leur nom dans la collection `theme`. */
+const FONDS_DU_THEME = { page: 'elevation/page', carte: 'elevation/raised' } as const;
+
+/** La couche que les couleurs d'un composant visent : le thème. */
+const [ROLE_DU_THEME] = CIBLES_DES_COULEURS_DE_COMPOSANT;
+
+/** La première collection `theme` lue du catalogue : celle dont le kit lit les modes. */
+function collectionTheme(catalogue: CatalogueDeReference) {
+  return catalogue.collections.find((c) => c.role === ROLE_DU_THEME && c.etat === 'lue');
+}
+
+/** Les clés de `elevation/page` et `elevation/raised` dans la collection `theme`, à charger avec les valeurs : deux au plus. */
+export function clesDesFondsDElevation(catalogue: CatalogueDeReference): string[] {
+  const theme = collectionTheme(catalogue);
+  if (!theme) return [];
+  return Object.values(FONDS_DU_THEME).flatMap((nom) => {
+    const trouvee = catalogue.variables.find((v) => v.collection === theme.cle && v.type === 'COLOR' && cleDuTheme(v.nom) === nom);
+    return trouvee ? [trouvee.cle] : [];
+  });
+}
+
+function couleurDe(valeur: unknown): CouleurResolue | null {
+  const c = valeur as Partial<CouleurResolue> | null;
+  if (!c || typeof c !== 'object' || typeof c.r !== 'number' || typeof c.g !== 'number' || typeof c.b !== 'number') return null;
+  return { r: c.r, g: c.g, b: c.b, a: typeof c.a === 'number' ? c.a : 1 };
+}
+
+/** La couleur d'une variable dans un mode, alias suivis ; une cible d'une autre collection se lit dans le même mode, sinon dans son premier. */
+function resoudre(catalogue: CatalogueDeReference, cle: string, mode: string, profondeur = 0): CouleurResolue | null {
+  if (profondeur > PROFONDEUR_D_ALIAS) return null;
+  const variable = catalogue.variables.find((v) => v.cle === cle);
+  if (!variable || variable.etat !== 'presente' || !variable.valeurs) return null;
+  const modes = catalogue.collections.find((c) => c.cle === variable.collection)?.modes ?? [];
+  const lu = variable.valeurs[mode] ?? variable.valeurs[modes[0]?.id ?? ''] ?? Object.values(variable.valeurs)[0];
+  if (!lu) return null;
+  return 'alias' in lu ? resoudre(catalogue, lu.alias, mode, profondeur + 1) : couleurDe(lu.valeur);
+}
+
+/**
+ * Le catalogue avec les fonds d'élévation du thème, par mode de la première collection `theme` lue. Un mode n'a d'entrée que si
+ * les deux valeurs se résolvent en couleur ; sans entrée, la mesure retombe sur le fond de la page Figma.
+ */
+export function avecLesFondsDElevation(catalogue: CatalogueDeReference): CatalogueDeReference {
+  const theme = collectionTheme(catalogue);
+  if (!theme) return catalogue;
+  const [page, carte] = [FONDS_DU_THEME.page, FONDS_DU_THEME.carte].map((nom) => catalogue.variables.find((v) => v.collection === theme.cle && cleDuTheme(v.nom) === nom));
+  if (!page || !carte) return catalogue;
+  const fonds: NonNullable<CatalogueDeReference['fondsDElevation']> = {};
+  for (const mode of theme.modes) {
+    const couleurPage = resoudre(catalogue, page.cle, mode.id);
+    const couleurCarte = resoudre(catalogue, carte.cle, mode.id);
+    if (couleurPage && couleurCarte) fonds[mode.id] = { page: couleurPage, carte: couleurCarte };
+  }
+  return Object.keys(fonds).length > 0 ? { ...catalogue, fondsDElevation: fonds } : catalogue;
+}
+
+/** Le premier fond SOLID visible de la page ; absent quand la page n'en a pas ou que Figma refuse de le lire. */
+export function fondDeLaPageFigma(page: { readonly backgrounds?: unknown } | null | undefined): CouleurResolue | undefined {
+  try {
+    const fonds = page?.backgrounds;
+    if (!Array.isArray(fonds)) return undefined;
+    const solide = fonds.find((p: { type?: string; visible?: boolean }) => p?.type === 'SOLID' && p.visible !== false) as { color?: unknown; opacity?: number } | undefined;
+    const couleur = couleurDe(solide?.color);
+    return couleur ? { ...couleur, a: typeof solide?.opacity === 'number' ? solide.opacity : 1 } : undefined;
+  } catch {
+    return undefined;
+  }
 }

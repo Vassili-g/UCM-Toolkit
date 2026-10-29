@@ -67,7 +67,7 @@ import type { ResultatInterne } from 'ucm-plugin-socle/src/composant/analyse/res
 import { ouvrirLaMesure, fermerLaMesure, etape, compter, retenirLeMaximum, attendrePourLaMesure, mesurerLeCalcul, mesurerSousCompteur, type Compteur, type TraceDeMesure } from 'ucm-plugin-socle/src/composant/contract/mesure';
 import { AnalyseAnnulee, creerContexteCooperatif, type ContexteCooperatif, type JetonDAnnulation, type OptionsDeCooperation } from 'ucm-plugin-socle/src/composant/contract/porteeDAnalyse';
 
-import { catalogueDuFichier, chargerLesValeurs, lireLeCatalogueDeLibrary, type OptionsDeCatalogue } from '../catalogue';
+import { avecLesFondsDElevation, catalogueDuFichier, chargerLesValeurs, clesDesFondsDElevation, fondDeLaPageFigma, lireLeCatalogueDeLibrary, type OptionsDeCatalogue } from '../catalogue';
 import type { NoeudLu } from '../consommateurs';
 import { constatsDuMoteur } from '../constatsDuMoteur';
 import { enregistrerLesImports, lireLesVariables } from '../lecture';
@@ -1019,6 +1019,12 @@ function identifiantsParCle(releve: ReleveDeComposant): Map<string, string> {
  * demande les a faites, sont reprises.
  */
 export async function catalogueDeFigma(releve: ReleveDeComposant, jeton: JetonDAnnulation, contexte: Contexte, cooperation?: ContexteCooperatif, libraries?: LibrariesEnAvance, inventaires?: InventairesDeLaDemande, options: OptionsDeCatalogue = {}): Promise<CatalogueDeReference> {
+  const catalogue = avecLesFondsDElevation(await catalogueSansFonds(releve, jeton, contexte, cooperation, libraries, inventaires, options));
+  const page = fondDeLaPageFigma(contexte.figma.currentPage);
+  return page ? { ...catalogue, fondDeLaPageFigma: page } : catalogue;
+}
+
+async function catalogueSansFonds(releve: ReleveDeComposant, jeton: JetonDAnnulation, contexte: Contexte, cooperation?: ContexteCooperatif, libraries?: LibrariesEnAvance, inventaires?: InventairesDeLaDemande, options: OptionsDeCatalogue = {}): Promise<CatalogueDeReference> {
   const { figma } = contexte;
   const liaisons = liaisonsParCle(releve);
   try {
@@ -1042,7 +1048,7 @@ export async function catalogueDeFigma(releve: ReleveDeComposant, jeton: JetonDA
           // C29 compare les valeurs en dur aux tokens de taille du composant : on charge celles-là, et chargerLesValeurs suit leurs alias.
           const tailles = mesurerSousCompteur('msTokensDeTailleCatalogue', () => clesDesTokensDeTailleAttendus(releve, catalogue.catalogue));
           return (await chargerLesValeurs(
-            portDeLecture(figma), catalogue.catalogue, [...liaisons.keys(), ...tailles], identifiantsParCle(releve),
+            portDeLecture(figma), catalogue.catalogue, [...liaisons.keys(), ...tailles, ...clesDesFondsDElevation(catalogue.catalogue)], identifiantsParCle(releve),
             (nom, n) => compter(nom === 'imports' ? 'catalogueImports' : 'catalogueParIdentifiant', n),
             { ...options, annulee: () => jeton.leve },
           )).catalogue;
