@@ -396,6 +396,31 @@ Agent : `implementeur`.
 
 Fait (P2 et D2) : `80d62c58`. La spécification reçoit `[MOT-42]`.
 
+## X1. Palettes trop proches : toute la rampe, pondérée
+
+Décision du mainteneur, 29 octobre. Depuis la clarté commune et la piste A, les
+fonds teintés clairs du Light et sombres du Dark se rapprochent d'une palette à
+l'autre, et l'alerte sonnait pour eux seuls (Terracota et Poppy, Sky et Ocean).
+Mesure : `Mesures/mesurer-proximite-ponderee.ts`.
+
+Agent : `implementeur-exigeant`.
+
+- [ ] La proximité de deux palettes compare toute la rampe, Vivid ou l'unique
+      intensité, en Light et en Dark : pour chaque cran, la distance OKLab sur le
+      seuil `palettesProches`. Le score est la moyenne pondérée de ces rapports,
+      avec les poids « cloche douce », les mêmes dans les deux thèmes : 50 : 0,1 ;
+      100 : 0,1 ; 200 : 0,2 ; 300 : 0,5 ; 400 à 700 : 1 ; 800 : 0,6 ; 900 : 0,3 ;
+      950 : 0,2. Trop proches sous 1, presque identiques sous 0,2.
+- [ ] Deux palettes ne sont jamais trop proches quand l'une est nettement plus
+      terne : la chroma moyenne de ses crans 400 à 700, Light et Dark, vaut 75 %
+      ou moins de celle de l'autre.
+- [ ] Le rôle « fond » et sa part de seuil disparaissent. Le message de Palettes
+      devient « Rampes trop proches » ; le bouton Comparer reste.
+- [ ] Tests : sur la configuration du mainteneur, aucune paire ne sonne ;
+      Terracota et Poppy sont distinctes par le critère de chroma ; une paire
+      fabriquée de même teinte et de même saturation sonne.
+- [ ] Spécification `[VER-22]`, invariant du moteur.
+
 ## V1. Vérification
 
 Agent : `verificateur`.
