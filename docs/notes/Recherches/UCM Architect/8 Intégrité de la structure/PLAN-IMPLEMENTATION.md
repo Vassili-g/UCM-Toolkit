@@ -691,6 +691,8 @@ Agent : le mainteneur. Préparation faite sur cebd66a1, codes 0 : build de Palet
 
 La chaîne est arrêtée à la demande du mainteneur. Aucune autre publication ni aucun nouveau push avant la fin du plan. Les prochaines montées de version se font à cette étape finale. Ne pas republier le noyau 0.14.10, déjà servi. Les changements des plans restent locaux jusque-là.
 
+Ordre de reprise : retour du mainteneur sur T1 à T5, X1 de Palettes et T1 des règles manquantes ; C1 pour les écarts signalés ; vérifications finales après les derniers changements ; Z1 puis Z2. Sans ce retour, T reste ouvert et la publication finale attend. Le bilan vide de Nomenclature est retiré (9cd7caaf) ; les décisions de recette restantes portent sur `3,90:1`, les questions de crans sous « Alias » et le résultat d'une création dont le journal n'a pas pu être réécrit.
+
 ## 5. Textes destinés au designer
 
 À valider par M1. Une phrase, un fait. Les noms gardent l'écriture de Figma et d'UCM : `theme`, `brands`, `Light`, `Dark`, `Frame fill`. On écrit « scope », jamais « portée ».

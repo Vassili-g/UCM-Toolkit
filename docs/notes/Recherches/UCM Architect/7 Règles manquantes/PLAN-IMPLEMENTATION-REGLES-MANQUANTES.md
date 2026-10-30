@@ -1,6 +1,6 @@
 # Ajouter les règles manquantes d'une instance remplie
 
-UCM Architect signale C45 quand l'instance de règles d'un composant ne documente pas une de ses propriétés. Ce plan ajoute une correction qui pose les règles manquantes dans l'instance existante, sans toucher aux règles déjà écrites. Les règles posées portent le marqueur `[À compléter]` : l'analyse suivante les signale par C44, « à rédiger ».
+UCM Architect signale C45 quand l'instance de règles d'un composant ne documente pas une de ses propriétés. La correction ajoute les règles manquantes en conservant les textes et l'ordre des règles présentes. Elle reconstruit la section concernée hors de l'arbre, puis remplace l'ancienne à sa place. Les règles posées portent le marqueur `[À compléter]` : l'analyse suivante les signale par C44, « à rédiger ».
 
 Le cas était hors du plan d'Architect (§10, C47, « sonde S-3 avant »). Le mainteneur lève la sonde : la recette se fait directement dans le plugin.
 
@@ -8,7 +8,7 @@ Le cas était hors du plan d'Architect (§10, C47, « sonde S-3 avant »). Le ma
 
 | Id | Décision |
 |---|---|
-| D1 | Les règles ajoutées vont dans une **section neuve**, remplie hors de l'arbre, puis rangée d'un geste dans le slot `Sections-Wrapper` du conteneur, juste après la dernière section du même tag. Aucune règle ne s'ajoute dans le slot d'une section déjà rangée : ce geste laisse une coquille qui fait lever tout parcours du conteneur (`plugin-exporter/SPEC.md`, « Comment l'écriture range une règle »). |
+| D1 | Selon C1.2, une section du même tag est reconstruite hors de l'arbre avec les textes relus et les règles manquantes, puis remplace l'ancienne à son index dans `Sections-Wrapper`. Sans section du tag, la section neuve suit l'ordre `usage`, `prop`, `boolean`, `icons`. Aucune règle ne s'ajoute dans le slot d'une section déjà rangée : ce geste laisse une coquille qui fait lever tout parcours du conteneur (`plugin-exporter/SPEC.md`, « Comment l'écriture range une règle »). La mise en forme interne des textes ne se recopie pas. |
 | D2 | Aucun retrait. Une règle qui vise une propriété absente (C45 `sans-propriete`) garde son constat sans correction. |
 | D3 | Une valeur absente d'un axe déjà documenté compte : C45 gagne l'écart `sans-valeur`, une ligne par axe. |
 | D4 | L'Exporter ne change pas. Son offre de création reste nulle quand le conteneur existe. |
@@ -237,7 +237,7 @@ Agent : `verificateur` (Haiku). Après A2 et U1.
 Le mainteneur, dès T0 tenu. Fichier de test : Button, qui a déjà son instance de règles sans règle pour `state`.
 
 - [ ] **T1.1** Recharger UCM Architect. Analyser Button. La carte « Ajouter les règles manquantes de Button » liste `state`. Appliquer.
-- [ ] **T1.2** Dans Figma : une section `@prop` neuve, juste après la section `@prop` existante. Ses règles visent `state.<valeur>` et portent `[À compléter]`. Les règles d'avant gardent leur texte et leur place.
+- [ ] **T1.2** Dans Figma : la section `@prop` reconstruite occupe la place de l'ancienne. Les règles déjà présentes gardent leurs cibles, leurs descriptions et leur ordre ; les règles ajoutées visent `state.<valeur>` et portent `[À compléter]`. Une valeur manquante suit les autres valeurs du même axe ; un axe absent s'ajoute à la fin, précédé d'un divider. La mise en forme interne (gras, lien) ne se recopie pas.
 - [ ] **T1.3** Ctrl+Z défait l'ajout d'un coup. Ctrl+Shift+Z le refait.
 - [ ] **T1.4** Actualiser : plus de C45 sur `state`. C44 signale les règles à rédiger.
 - [ ] **T1.5** Supprimer une des règles ajoutées, actualiser : C45 `sans-valeur` nomme cette seule valeur. Appliquer : une seule règle ajoutée.
@@ -296,13 +296,13 @@ Puis T1 se rejoue sur les étapes 2, 3, 5 et 6 (section complétée, Ctrl+Z d'un
 
 Seulement si T1 échoue. La conversation principale lit le retour, cherche la cause et écrit la fiche du correctif dans ce plan. Puis elle confie le correctif à l'agent du lot fautif : S3 pour un geste d'écriture, A1 ou A2 pour un constat ou un double, U1 pour la carte. T0 et T1 se rejouent ensuite sur les étapes en échec.
 
-Repli prévu si T1.6 lève, c'est-à-dire si `insertChild` laisse une coquille : ranger la section neuve par `appendChild`, à la fin du slot, le seul geste déjà mesuré. D1 tombe alors : la section n'est plus « juste après la dernière du même tag ».
+Repli prévu si T1.6 lève, c'est-à-dire si `insertChild` laisse une coquille : ranger la section neuve par `appendChild`, à la fin du slot, le seul geste déjà mesuré. La décision D1 et l'attendu T1.2 devront alors décrire cette position.
 
 ### D1 · Documents
 
 Agent : `executant` (Haiku). Après T1 tenu. Remplacements exacts, rien d'autre.
 
-- [x] **D1.1** (52869579) `packages/plugin-architect/invariants/explorateur.md`, ligne de « Une liaison s'écrit après relecture » : après « `ecrireLeLot` n'écrit rien, ni liaison ni instance de règles, si le fichier ne déclare plus UCM ; », ajouter « une correction `regles` / `ajouter` pose les règles manquantes dans une section neuve, rangée après la dernière du même tag, et un second passage ne pose rien (`src/ecriture/regles.ts`) ; `retirer` saute `instance-remplie` ; ».
+- [x] **D1.1** (52869579) `packages/plugin-architect/invariants/explorateur.md` décrit l'ajout selon C1.2 : section du tag reconstruite à sa place, textes conservés sans leur mise en forme interne ; sans section du tag, insertion dans l'ordre des tags ; second passage sans ajout ; `retirer` saute `instance-remplie` (`src/ecriture/regles.ts`).
 - [x] **D1.2** (52869579) `packages/plugin-exporter/invariants/ecriture-dans-le-document.md` : rien à changer, vérifier seulement que la phrase sur `ecriture.ts` reste vraie.
 - [x] **D1.3** (52869579) `docs/notes/Recherches/UCM Architect/3 Plan/PLAN-IMPLEMENTATION.md`, §10 : supprimer la ligne « C47 : compléter une instance de règles remplie ». Au §7, remplacer « **S-3 · Slot rempli**, hors de ce plan : avant C47. » par « **S-3 · Slot rempli** : levée par le mainteneur le 29/10, voir `7 Règles manquantes/`. ».
 - [x] **D1.4** (52869579) `packages/plugin-architect/SPEC.md` : chercher le passage qui décrit C43 et C45. Ajouter, après lui, le paragraphe du §7.3.

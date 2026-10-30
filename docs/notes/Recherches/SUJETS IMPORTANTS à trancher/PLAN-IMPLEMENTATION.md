@@ -435,6 +435,12 @@ régénérées.
 
 Fait : les suites des paquets ne manquent initialement que les vues périmées ; les tests de fraîcheur passent après régénération. Les contrôles racine sont ensuite joués : renvois, ancre de spec et exception de validation du protocole corrigés en cebd66a1, 22 contrôles ciblés verts. Typecheck et build globaux : codes 0. Les attentes du bilan de galerie suivent le modèle pur ; la suite UI reste au mainteneur.
 
+## T1. Recette du mainteneur dans Figma
+
+- [ ] Recharger les builds de Palettes et d'Architect. Vérifier les variables, les alias et les scopes avec T1 à T5 du [plan Intégrité de la structure](../UCM%20Architect/8%20Intégrité%20de%20la%20structure/PLAN-IMPLEMENTATION.md#t--recette-du-mainteneur-dans-figma).
+- [ ] X1 : aucune paire de la configuration du mainteneur ne déclenche l'alerte ; deux palettes synthétiques identiques déclenchent « Rampes trop proches » ; « Comparer » ouvre la paire attendue.
+- [ ] Rendre les étapes tenues et les écarts observés. Corriger les écarts avant les vérifications finales et R1.
+
 ## R1. Publication
 
 Agent : `executant`, avec la skill `publier-paquets`.
@@ -447,9 +453,6 @@ Publication partielle : le noyau 0.14.10 répond déjà sur npm (workflow 410360
 
 Fin : les versions publiées répondent sur le registre.
 
-## Après le plan
-
-Le mainteneur ajoute `surface/subtle` et `surface/divider` à son fichier Figma,
-règle les scopes, puis fait la recette dans Figma avec UCM Palettes et UCM
-Architect. Avant, il lance `npm run build` : la galerie ne reconstruit que
-`ui.html`.
+La recette T1 précède R1. Les builds complets sont prêts sur cebd66a1 ; après
+une correction, `npm run build` les reconstruit avant l'essai. La galerie ne
+reconstruit que `ui.html`.
