@@ -1,8 +1,11 @@
 /**
  * Le domaine `structure` de l'interface : il demande au sandbox les constats et les corrections de structure, ignore une réponse dont la
- * demande est remplacée, puis monte « À faire dans Figma » dans son onglet et les corrections de modes et de scopes à la suite des
- * renommages dans l'onglet Corrections. Les comptes des deux onglets passent par la coquille.
+ * demande est remplacée, puis monte « À faire dans Figma » dans son onglet et les corrections de variables manquantes, de crans, de
+ * modes et de scopes à la suite des renommages dans l'onglet Corrections. « Tout désélectionner » ouvre cet onglet : il décoche les
+ * renommages de Nomenclature et les corrections de structure d'un seul geste. Les comptes des deux onglets passent par la coquille.
  */
+import { createButton } from 'ucm-plugin-socle/src/ui/Button';
+import { TEXTES } from '../textes';
 import type { DemandeDeStructure, MessageDeStructure } from '../../messages/structure';
 import type { Constat, Correction } from '../../messages/commun';
 import type { Coquille } from '../nomenclature/coquille';
@@ -40,6 +43,21 @@ export function monterStructure(coquille: Coquille, { envoyer, noms, ouvrirLaFic
   hoteDesCorrections.className = 'page-stack';
   coquille.panneaux.aAppliquer.element.append(hoteDesCorrections);
   let afficheLesComptes = (): void => {};
+  const toutDeselectionner = document.createElement('div');
+  toutDeselectionner.className = 'tout-deselectionner';
+  toutDeselectionner.hidden = true;
+  toutDeselectionner.append(
+    createButton({
+      label: TEXTES.toutDeselectionner,
+      variant: 'secondary',
+      compact: true,
+      onClick: () => {
+        coquille.toutDecocher();
+        corrections.toutDecocher();
+      },
+    }),
+  );
+  coquille.panneaux.aAppliquer.element.prepend(toutDeselectionner);
   const corrections = monterLesCorrections({
     element: hoteDesCorrections,
     auChangement: () => afficheLesComptes(),
@@ -51,13 +69,16 @@ export function monterStructure(coquille: Coquille, { envoyer, noms, ouvrirLaFic
   });
 
   let constatsLus = 0;
-  afficheLesComptes = () => coquille.poserLesComptesDeStructure({ aFaire: constatsLus, corrections: corrections.nombre() });
+  afficheLesComptes = () => {
+    toutDeselectionner.hidden = corrections.nombre() === 0;
+    coquille.poserLesComptesDeStructure({ aFaire: constatsLus, corrections: corrections.nombre() });
+  };
 
   function rendre(): void {
     const constats = recu ? lireLesConstats(recu.constats, noms) : null;
     constatsLus = constats?.length ?? 0;
     aFaire.poser(constats);
-    corrections.poser(recu ? lireLesCorrections(recu.corrections, noms) : null);
+    corrections.poser(recu ? lireLesCorrections(recu.corrections, noms, recu.constats) : null);
   }
 
   function demander(): void {
@@ -77,7 +98,7 @@ export function monterStructure(coquille: Coquille, { envoyer, noms, ouvrirLaFic
       if (message.demande !== demandeDApplication) return;
       demandeDApplication = null;
       corrections.attendre(false);
-      corrections.appliquee(message.ecrites, message.sautees.length);
+      corrections.appliquee(message.ecrites, message.sautees);
       demander();
     },
   };

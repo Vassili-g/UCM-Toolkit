@@ -1,5 +1,5 @@
 /**
- * Les interactions du domaine `structure` : « À faire dans Figma » et les corrections de modes et de scopes. Le sandbox du domaine
+ * Les interactions du domaine `structure` : « À faire dans Figma » et les corrections de structure. Le sandbox du domaine
  * n'existe pas encore : le test joue ses réponses, à la forme de `messages/structure.ts`.
  */
 import assert from 'node:assert/strict';
@@ -95,7 +95,7 @@ test('Corrections ajoute les modes et les scopes aux renommages, avec les mots d
     assert.deepEqual(await corrections.locator('.bloc').nth(1).locator('.meta').allTextContents().then((textes) => textes.slice(0, 1)), ['UCM réserve ces variables aux fonds. Aujourd’hui, leur scope est Show in all.']);
     assert.deepEqual(await corrections.locator('.bloc').nth(1).locator('.chemin-apres .ch-ajout').allTextContents(), ['Frame fill, Shape fill', 'Frame fill, Shape fill', 'Frame fill, Shape fill']);
     assert.equal(await page.locator('#onglet-a-appliquer .compte').textContent(), '89');
-    assert.match(await page.locator('.structure-pied').textContent(), /^Appliquer écrit 4 corrections de modes et de scopes\.Appliquer$/);
+    assert.match(await page.locator('.structure-pied').textContent(), /^Appliquer écrit 4 corrections de structure\.Appliquer$/);
     assert.deepEqual(page.erreurs, []);
   } finally { await page.context().close(); }
 });
@@ -106,7 +106,7 @@ test('Appliquer n’envoie que les lignes cochées, et la réponse dit ce qui s�
     const corrections = page.locator('#panneau-a-appliquer .structure-liste');
     await corrections.locator('.bloc-bouton').nth(1).click();
     await corrections.locator('.bloc').nth(1).locator('.diff .case').first().uncheck();
-    assert.match(await page.locator('.structure-pied .structure-resume').textContent(), /^Appliquer écrit 3 corrections de modes et de scopes\.$/);
+    assert.match(await page.locator('.structure-pied .structure-resume').textContent(), /^Appliquer écrit 3 corrections de structure\.$/);
     await page.locator('.structure-pied .btn-primary').click();
     await page.waitForFunction(() => window.demandes.some((demande) => demande.type === 'appliquer-structure'));
     const [envoi] = await demandesDe(page, 'appliquer-structure');

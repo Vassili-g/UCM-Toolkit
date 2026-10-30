@@ -10,10 +10,13 @@ import { creerCarte, creerIntertitre, poserLesMorceaux } from './carte';
 import { GROUPES, type ConstatAFaire, type GroupeDeConstat } from './lecture';
 
 const INTERTITRES: Readonly<Record<GroupeDeConstat, string>> = {
+  manquantes: TEXTES.groupeVariablesManquantes,
   alias: TEXTES.groupeAlias,
   modes: TEXTES.groupeModes,
   valeurs: TEXTES.groupeValeurs,
   couches: TEXTES.groupeCouches,
+  types: TEXTES.groupeTypes,
+  rangement: TEXTES.groupeRangement,
 };
 
 export interface AFaire {
@@ -66,7 +69,7 @@ export function monterAFaire(contenu: HTMLElement, ouvrirLaFiche: (variable: { n
     entete.className = 'constat-entete';
     const phrase = document.createElement('span');
     phrase.className = 'bloc-phrase';
-    phrase.textContent = constat.phrase;
+    poserLesMorceaux(phrase, constat.phrase);
     entete.append(creerGravite(constat.type), phrase);
     const lieu = document.createElement('span');
     lieu.className = 'constat-lieu';

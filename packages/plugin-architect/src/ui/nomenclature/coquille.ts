@@ -67,6 +67,10 @@ export interface Coquille {
   demanderUneCarte(cle: string): void;
   /** Branche le dépliage d'une carte de À appliquer. */
   surCarteDemandee(rappel: (cle: string) => void): void;
+  /** Décoche tous les renommages de À appliquer, groupes et noms. */
+  toutDecocher(): void;
+  /** Branche le geste de `toutDecocher` : À appliquer décoche ses groupes. */
+  surToutDecocher(rappel: () => void): void;
   /** Écrit un texte dans la recherche de l'arbre, comme une recherche tapée. Sans hôte qui la porte, ne fait rien. */
   rechercher(texte: string): void;
   /** Filtre le tableau sur un terme, avec les formes que la fiche du terme énumère. */
@@ -110,6 +114,7 @@ export function creerCoquille(app: HTMLElement, envoyer: (message: UiMessage) =>
   let reglesRecues = 0;
   let libraryAffichee = false;
   let deplierUneCarte: (cle: string) => void = () => {};
+  let decocherLesRenommages: () => void = () => {};
 
   function appliquerLEtat(suivant: EtatDeLEcran): boolean {
     if (suivant === etat) return false;
@@ -328,6 +333,10 @@ export function creerCoquille(app: HTMLElement, envoyer: (message: UiMessage) =>
     },
     surCarteDemandee(rappel) {
       deplierUneCarte = rappel;
+    },
+    toutDecocher: () => decocherLesRenommages(),
+    surToutDecocher(rappel) {
+      decocherLesRenommages = rappel;
     },
     rechercher: (texte) => options.rechercher?.(texte),
     rechercherLeTerme: (mot, formes) => options.rechercherLeTerme?.(mot, formes),

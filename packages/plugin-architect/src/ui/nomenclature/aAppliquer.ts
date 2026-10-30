@@ -879,6 +879,10 @@ export function monterAAppliquer(coquille: Coquille, { appartient }: OptionsDeCo
   });
 
   coquille.surCarteDemandee((cle) => cartes.find((carte) => carte.groupe.cle === cle)?.deplier());
+  coquille.surToutDecocher(() => {
+    for (const cle of modele.ordre) modele = cocherGroupe(modele, cle, false);
+    synchroniser();
+  });
 
   /** La carte qu'un clic dans la table ou « Voir dans Corrections » vient d'ouvrir prend la bordure et le fond bleus. */
   function cibler(): void {

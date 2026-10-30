@@ -178,3 +178,17 @@ button.bloc-bouton {
   font-size: 11px;
   font-weight: 600;
 }
+
+/* « Tout désélectionner » ouvre l'onglet Corrections, calé à droite au-dessus de tous les intertitres. */
+.tout-deselectionner {
+  display: flex;
+  justify-content: flex-end;
+}
+
+/* Une phrase sous la ligne verte du résultat : la publication de la library, ou une création sautée. */
+.resultat-suite {
+  display: block;
+  margin-top: 2px;
+  color: var(--texte-second);
+  font-weight: 400;
+}

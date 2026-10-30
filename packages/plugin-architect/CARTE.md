@@ -10,7 +10,7 @@ Plugin UCM Architect : ucm-architect-plugin, privé, en lecture seule.
 - galerie/composant/ : Alert à 11 variants et Button à 216, leurs analyses, et le fichier hors UCM de `t-hors`
 - galerie/nomenclature/ : données des états de Nomenclature, joués dans la galerie d'Architect (`etats/nomenclature.cjs`)
 - galerie/recherche/ : fichier d'exemple des états de recherche et de fiche (`t-questions`, `t-terme`, `t-fiche`)
-- galerie/structure/ : relevé et message `structure` des états `t-structure` et `t-portees`
+- galerie/structure/ : relevé et message `structure` des états `t-structure` et `t-portees` ; `integrite.cjs` joue le vrai C82 du kit sur sa fixture pour les états `t-variables-manquantes`, `t-crans`, `t-sans-ecriture`, `t-sens-inconnu`, `t-integrite-a-faire`, `t-apres-creation`, `t-creation-sautee`
 - galerie/bibliotheque/ : noms et valeurs de la library Intencial Tokens des états `t-bibliotheque`
 
 ## src/
@@ -99,7 +99,7 @@ Plugin UCM Architect : ucm-architect-plugin, privé, en lecture seule.
 - styles/ : feuilles, une par domaine, chargées dans l'ordre de `FEUILLES_DES_DOMAINES` (`scripts/build-ui.cjs`)
 - recherche/ : lecture du champ de l'arbre (texte, `terme:`, `vise:`), variables trouvées et lignes de la recherche
 - fiche/ : fiche d'une variable, à la place de l'inspecteur : chaîne d'alias, renommage à appliquer, « Utilisée par »
-- structure/ : onglet À faire dans Figma du mode Tokens (constats typés, chemins en phrase) et cartes de modes et de scopes en deux colonnes, sous Corrections
+- structure/ : onglet À faire dans Figma du mode Tokens (constats typés, chemins en phrase) et cartes de variables manquantes, de crans, de modes et de scopes en deux colonnes, sous Corrections ; `Tout désélectionner` en tête de l'onglet
 - preparation/ : dialogue de préparation des tokens, texte partagé, création et liaisons au composant
 - capture.ts : reçoit `capture-architect` du sandbox et le télécharge, seulement si `UCM_ARCHITECT_CAPTURER` vaut `true`
 
