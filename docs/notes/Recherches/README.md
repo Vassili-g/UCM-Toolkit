@@ -19,7 +19,7 @@ produit, partir des références de [docs/README.md](../../README.md) et du code
 | [Diff sémantique][diff] | Comparer deux ensembles de contrats et de tokens pour identifier les changements et les composants touchés. | Proposé, non implémenté ; périmètre de l'expérimentation à valider. |
 | [Conformité du rendu][rendu] | Comparer le rendu d'une implémentation aux obligations visuelles de son contrat. | Recherche proposée, non implémentée ; choix de réalisation ouverts. |
 | [Implémenteur de contrats][implementeur] | Produire et mettre à jour le code d'un composant à partir du contrat, avec moins de travail génératif. | Non réalisé. Le plan propose un compilateur ; sa revue recommande d'abord une preuve limitée et un contrôle de rendu autonome. Orientation à trancher. |
-| [Réduction du coût du chemin agent][reduction] | Réduire les lectures et les générations répétées lorsqu'un agent reconstruit un composant. | Plan partiellement remplacé par l'implémenteur. Les propositions de harnais et de guide restent distinctes du compilateur. |
+| [Réduction du coût du chemin agent][reduction] | Réduire les lectures et les générations répétées lorsqu'un agent reconstruit un composant. | Plan partiellement remplacé par l'implémenteur. Le guide d'un agent est couvert par `ucm guide` et la skill `consommer-contrat`. |
 | [Évolutions globales][evolutions] | Choisir les prochains usages des contrats et des tokens à partir des besoins des équipes. | Catalogue de propositions, dont certaines fonctions sont déjà livrées. Les autres essais ne sont pas des lots approuvés. |
 
 La [spécification de Palettes][spec-palettes] demeure la référence de son
@@ -30,31 +30,13 @@ comportement, même si elle est encore rangée dans le dossier de recherche.
 Ce tableau rassemble les décisions encore attendues et les propositions à
 arbitrer. Les recettes à exécuter et les tâches de code déjà décidées restent
 dans les plans. Les questions anciennes tranchées par un plan plus récent ne
-sont pas reprises comme des choix ouverts. Les questions d'un sujet implémenté
-passent en premier ; celles d'un sujet en attente attendront sa reprise.
+sont pas reprises comme des choix ouverts. Les questions d'un sujet en attente
+restent dans son dossier jusqu'à sa reprise.
 
 | Sujet | Sujet implémenté | Questions ouvertes et décisions attendues |
 |---|---|---|
 | [Préparation dans Architect][architect] | Non | Les noms Figma doivent-ils commencer par la collection ? Si non, adapter les noms créés et la recherche des cibles pour éviter un dossier de collection supplémentaire. |
 | [Catalogue d'Architect][architect] | Non | Autoriser plusieurs collections reconnues comme `theme` ou `layout` ? Si oui, les parcourir toutes ; sinon, signaler cette entrée. |
-| [Diff sémantique][diff] | Non | Valider le périmètre local proposé et lancer l'expérimentation ? Le rapport obtenu aide-t-il à décider des changements à traiter ? |
-| [Adressage du rendu][rendu] | Non | Adopter `data-ucm-slot` pour retrouver les éléments observés ? Garder cet attribut en production ? |
-| [Preuves du rendu][rendu] | Non | Comment prouver l'identité des tokens, et quelles clauses minimales peuvent produire un verdict de conformité ? |
-| [Périmètre du rendu][rendu] | Non | Couvrir les états d'interaction ? Comment traiter un composant qui ne peut pas être affiché seul ? |
-| [Contrôles dans le workflow][rendu] | Non | Quels contrôles dans l'éditeur et au push ? Qui répond d'un blocage de fusion, dans quel délai, et faut-il commencer par une période d'observation ? |
-| [Orientation de l'implémenteur][revue-implementeur] | Non | Suspendre le programme complet au profit d'une preuve limitée ? Fixer sa dépense maximale et son horizon de rentabilité. |
-| [Contrôle autonome avant génération][revue-implementeur] | Non | Livrer d'abord un contrôle de rendu sur le code maintenu par l'équipe ? Quel sous-ensemble d'obligations couvrir ? |
-| [Sortie du générateur][revue-implementeur] | Non | Produire des données, une feuille CSS ou une coque de composant après comparaison sur un réexport réel ? |
-| [Politiques locales du générateur][revue-implementeur] | Non | Quels choix deviennent des politiques typées ? Où se trouve leur seule valeur exécutable ? |
-| [Props des dépendances][revue-implementeur] | Non | Qui choisit les props fixes, dérivées ou exposées ? Comment confirmer une suggestion issue des échantillons ? |
-| [Comportement et états visuels][revue-implementeur] | Non | Quel raccord relie les signaux applicatifs, les états visuels et les changements de structure ? |
-| [Validité des décisions de génération][revue-implementeur] | Non | Quels événements invalident une décision même lorsqu'elle reste valide pour son type ? |
-| [Propriété du code généré][revue-implementeur] | Non | Choisir des fichiers générés séparés ou des régions identifiées dans les fichiers ? Quel refus appliquer en cas de conflit hors ligne ? |
-| [Acceptation du code généré][revue-implementeur] | Non | Quel protocole d'observation et quelles mutations permettent de distinguer un résultat conforme d'un résultat incorrect ? |
-| [Fournisseur et mémoire partagée][revue-implementeur] | Non | Retirer le port fournisseur et la mémoire mutualisée jusqu'à quel constat de charge humaine ? |
-| [Intégration du générateur][revue-implementeur] | Non | Quel parcours de fusion retenir ? Qui prend en charge les prérequis de tokens et de CI chez le consommateur ? |
-| [Guide du chemin agent][reduction] | Non | Quel gabarit neutre en technologie peut guider une reconstruction sans imposer une stack ? |
-| [Choix des évolutions globales][evolutions] | Non | Quel besoin observé justifie le prochain essai : contrats et export, usages applicatifs, contrôle des écarts, aide à l'implémentation ou partage ? Désigner son responsable, son corpus et son budget. |
 
 Les autres sujets du tableau n'ont pas de décision de conception ouverte
 identifiée dans leur plan d'exécution. Les avis des revues restent des
@@ -132,7 +114,6 @@ leurs plans.
 [diff]: ./Diff%20Sémantique/PLAN-DIFF-SEMANTIQUE.md
 [rendu]: ./Linter%20Dev/PLAN-CONFORMITE-RENDU.md
 [implementeur]: ./Optimisation%20Tokens/README.md
-[revue-implementeur]: ./Optimisation%20Tokens/review/review-plan-codex-astra.md#8-décisions-ouvertes-par-cette-revue
 [reduction]: ./Optimisation%20Tokens/Recherches/PLAN-REDUCTION-TOKENS.md
 [concurrence]: ./Plugin%20Palettes/1%20Recherche%20initiale/RECHERCHE-CONCURRENCE-PALETTES.md
 [evolutions]: ./Evolutions%20globales/PISTES-EVOLUTION.md
