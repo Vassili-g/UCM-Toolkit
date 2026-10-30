@@ -10,12 +10,50 @@
   },
   {
     "systeme": "atlassian",
+    "url": "https://cdn.jsdelivr.net/npm/@atlaskit/tokens@20.6.1/dist/cjs/artifacts/themes/atlassian-dark.js",
+    "version": "@atlaskit/tokens@20.6.1",
+    "originalPath": "dist/cjs/artifacts/themes/atlassian-dark.js",
+    "localFile": "atlassian/sources/dist__cjs__artifacts__themes__atlassian-dark.js.txt",
+    "sha256": "b03c0f92958d6eb6791bc52dda2829282a66641cf715295a2aa5cb84fec19bf4",
+    "licence": "Apache-2.0"
+  },
+  {
+    "systeme": "atlassian",
+    "url": "https://cdn.jsdelivr.net/npm/@atlaskit/tokens@20.6.1/dist/cjs/artifacts/themes/atlassian-light.js",
+    "version": "@atlaskit/tokens@20.6.1",
+    "originalPath": "dist/cjs/artifacts/themes/atlassian-light.js",
+    "localFile": "atlassian/sources/dist__cjs__artifacts__themes__atlassian-light.js.txt",
+    "sha256": "d753c99812867548eb34b6b3871d50e6677ae953a4bab08c7184cb8a90d3a763",
+    "licence": "Apache-2.0"
+  },
+  {
+    "systeme": "atlassian",
     "url": "https://cdn.jsdelivr.net/npm/@atlaskit/tokens@20.6.1/dist/cjs/artifacts/token-names.js",
     "version": "@atlaskit/tokens@20.6.1",
     "originalPath": "dist/cjs/artifacts/token-names.js",
     "localFile": "atlassian/sources/dist__cjs__artifacts__token-names.js.txt",
     "sha256": "0a14cbb441853bdd04e127c918d263c37640b0261c280fca3be3d2460fc65bdd",
     "licence": "Apache-2.0"
+  },
+  {
+    "systeme": "atlassian",
+    "url": "https://cdn.jsdelivr.net/npm/@atlaskit/button@25.4.7/LICENSE",
+    "version": "@atlaskit/button@25.4.7",
+    "originalPath": "LICENSE",
+    "localFile": "atlassian/sources/composant__atlaskit-button__LICENSE.txt",
+    "sha256": "10c2833305d17f4bd40203cdfc8125c36d58bd1cb5fb51fd1b3f62b59029b4e8",
+    "licence": "Apache-2.0",
+    "usage": "composant"
+  },
+  {
+    "systeme": "atlassian",
+    "url": "https://cdn.jsdelivr.net/npm/@atlaskit/button@25.4.7/dist/esm/new-button/variants/shared/button-base.compiled.css",
+    "version": "@atlaskit/button@25.4.7",
+    "originalPath": "dist/esm/new-button/variants/shared/button-base.compiled.css",
+    "localFile": "atlassian/sources/composant__atlaskit-button__dist__esm__new-button__variants__shared__button-base.compiled.css.txt",
+    "sha256": "75192ee67d76d442e34f80bfc49ab9c722086f1ca90890a7f184848456e2eb41",
+    "licence": "Apache-2.0",
+    "usage": "composant"
   },
   {
     "systeme": "carbon",
@@ -316,6 +354,15 @@
   },
   {
     "systeme": "primer",
+    "url": "https://cdn.jsdelivr.net/npm/@primer/primitives@11.10.0/dist/css/functional/themes/dark.css",
+    "version": "@primer/primitives@11.10.0",
+    "originalPath": "dist/css/functional/themes/dark.css",
+    "localFile": "primer/sources/dist__css__functional__themes__dark.css.txt",
+    "sha256": "d70cf0d4f3b2b1056030b40fcf1cd65b1d74d07dbbec002ad300e08266188d89",
+    "licence": "MIT"
+  },
+  {
+    "systeme": "primer",
     "url": "https://cdn.jsdelivr.net/npm/@primer/primitives@11.10.0/dist/css/functional/themes/light.css",
     "version": "@primer/primitives@11.10.0",
     "originalPath": "dist/css/functional/themes/light.css",
@@ -331,6 +378,26 @@
     "localFile": "primer/sources/dist__css__functional__typography__typography.css.txt",
     "sha256": "62646c35ab2c5f73e7e8127307b1f8834a67a5f7e5cdfb3701cec70c0a147b82",
     "licence": "MIT"
+  },
+  {
+    "systeme": "primer",
+    "url": "https://cdn.jsdelivr.net/npm/@primer/react@38.40.1/dist/Button/ButtonBase-014fae23.css",
+    "version": "@primer/react@38.40.1",
+    "originalPath": "dist/Button/ButtonBase-014fae23.css",
+    "localFile": "primer/sources/composant__primer-react__dist__Button__ButtonBase-014fae23.css.txt",
+    "sha256": "a4711497fae2455c40393be2fce556e273a68ce35794a6065e3d7d7aeac207a9",
+    "licence": "MIT",
+    "usage": "composant"
+  },
+  {
+    "systeme": "primer",
+    "url": "https://cdn.jsdelivr.net/npm/@primer/react@38.40.1/package.json",
+    "version": "@primer/react@38.40.1",
+    "originalPath": "package.json",
+    "localFile": "primer/sources/composant__primer-react__package.json.txt",
+    "sha256": "24ef25a7a8a7e879db7effff18ac9da6bdac36a279bdcd47cd709fe22ed3376f",
+    "licence": "MIT",
+    "usage": "composant"
   },
   {
     "systeme": "polaris",
@@ -1198,6 +1265,24 @@
   },
   {
     "systeme": "fluent-2",
+    "url": "https://cdn.jsdelivr.net/npm/@fluentui/tokens@1.0.0-alpha.24/lib/alias/darkColor.js",
+    "version": "@fluentui/tokens@1.0.0-alpha.24",
+    "originalPath": "lib/alias/darkColor.js",
+    "localFile": "fluent-2/sources/lib__alias__darkColor.js.txt",
+    "sha256": "bcff717c006279025ed9325f02ce6e831226bca2bc320a1499d0fa821e2cfc18",
+    "licence": "MIT"
+  },
+  {
+    "systeme": "fluent-2",
+    "url": "https://cdn.jsdelivr.net/npm/@fluentui/tokens@1.0.0-alpha.24/lib/alias/darkColorPalette.js",
+    "version": "@fluentui/tokens@1.0.0-alpha.24",
+    "originalPath": "lib/alias/darkColorPalette.js",
+    "localFile": "fluent-2/sources/lib__alias__darkColorPalette.js.txt",
+    "sha256": "f034e258bf0517fdfd39e9eec2d5f0f54e32eaa426e2d69cf066571221a88337",
+    "licence": "MIT"
+  },
+  {
+    "systeme": "fluent-2",
     "url": "https://cdn.jsdelivr.net/npm/@fluentui/tokens@1.0.0-alpha.24/lib/alias/lightColor.js",
     "version": "@fluentui/tokens@1.0.0-alpha.24",
     "originalPath": "lib/alias/lightColor.js",
@@ -1305,6 +1390,26 @@
     "licence": "MIT"
   },
   {
+    "systeme": "fluent-2",
+    "url": "https://cdn.jsdelivr.net/npm/@fluentui/react-button@9.11.1/LICENSE",
+    "version": "@fluentui/react-button@9.11.1",
+    "originalPath": "LICENSE",
+    "localFile": "fluent-2/sources/composant__fluentui-react-button__LICENSE.txt",
+    "sha256": "2dc0463ff32ad517905415f5545975dc8b9fb0f7e585bcbad68209b8e576f35c",
+    "licence": "MIT",
+    "usage": "composant"
+  },
+  {
+    "systeme": "fluent-2",
+    "url": "https://cdn.jsdelivr.net/npm/@fluentui/react-button@9.11.1/lib/components/Button/useButtonStyles.styles.raw.js",
+    "version": "@fluentui/react-button@9.11.1",
+    "originalPath": "lib/components/Button/useButtonStyles.styles.raw.js",
+    "localFile": "fluent-2/sources/composant__fluentui-react-button__lib__components__Button__useButtonStyles.styles.raw.js.txt",
+    "sha256": "266f0391004f52a6f0f3bf33e8e4071680447ba10129252cab18b86592c42c3e",
+    "licence": "MIT",
+    "usage": "composant"
+  },
+  {
     "systeme": "figma-sds",
     "url": "https://raw.githubusercontent.com/figma/sds/05525f75192a3aa5d5690c5e41277ebd19d2efe1/src/theme.css",
     "version": "figma/sds@05525f75192a3aa5d5690c5e41277ebd19d2efe1",
@@ -1338,6 +1443,145 @@
     "originalPath": "tokens.css",
     "localFile": "radix/sources/tokens.css.txt",
     "sha256": "0d081df2e6d4f2d25041aebe546d90a81bce81d26017f62a81bebcd4be1c5248",
+    "licence": "MIT"
+  },
+  {
+    "systeme": "radix",
+    "url": "https://cdn.jsdelivr.net/npm/@radix-ui/themes@3.3.0/LICENSE",
+    "version": "@radix-ui/themes@3.3.0",
+    "originalPath": "LICENSE",
+    "localFile": "radix/sources/composant__radix-ui-themes__LICENSE.txt",
+    "sha256": "89e4ae7d91c640c6e8a3ca90ba578d799eb2491b766ed65e0725ba36499d56ba",
+    "licence": "MIT",
+    "usage": "composant"
+  },
+  {
+    "systeme": "radix",
+    "url": "https://cdn.jsdelivr.net/npm/@radix-ui/themes@3.3.0/src/components/_internal/base-button.css",
+    "version": "@radix-ui/themes@3.3.0",
+    "originalPath": "src/components/_internal/base-button.css",
+    "localFile": "radix/sources/composant__radix-ui-themes__src__components___internal__base-button.css.txt",
+    "sha256": "b1d99aafad784cb0e02b42890fd5bcab0ee09bbd734e965d59ed8e3c293f2400",
+    "licence": "MIT",
+    "usage": "composant"
+  },
+  {
+    "systeme": "mui",
+    "url": "https://cdn.jsdelivr.net/npm/@mui/material@9.5.0/Button/Button.js",
+    "version": "@mui/material@9.5.0",
+    "originalPath": "Button/Button.js",
+    "localFile": "mui/sources/composant__mui-material__Button__Button.js.txt",
+    "sha256": "ff23554ae2eac98863f24c29ec04ab07c7903bc489ffbaf81a31f5979149a515",
+    "licence": "MIT",
+    "usage": "composant"
+  },
+  {
+    "systeme": "mui",
+    "url": "https://cdn.jsdelivr.net/npm/@mui/material@9.5.0/LICENSE",
+    "version": "@mui/material@9.5.0",
+    "originalPath": "LICENSE",
+    "localFile": "mui/sources/composant__mui-material__LICENSE.txt",
+    "sha256": "4c57cedbef546270e5648786682f633b2e6ae62c8862a45797bcb6d0bffda98d",
+    "licence": "MIT",
+    "usage": "composant"
+  },
+  {
+    "systeme": "ant-design",
+    "url": "https://cdn.jsdelivr.net/npm/antd@6.6.8/LICENSE",
+    "version": "antd@6.6.8",
+    "originalPath": "LICENSE",
+    "localFile": "ant-design/sources/LICENSE.txt",
+    "sha256": "3c82654bb472ebbcacc4c1ff00f94aa8c60c4b7ee011b16bafcbacecc3703458",
+    "licence": "MIT"
+  },
+  {
+    "systeme": "ant-design",
+    "url": "https://cdn.jsdelivr.net/npm/antd@6.6.8/es/version/token-meta.json",
+    "version": "antd@6.6.8",
+    "originalPath": "es/version/token-meta.json",
+    "localFile": "ant-design/sources/es__version__token-meta.json.txt",
+    "sha256": "856d381853abd109d97f4c9d6f69b5235d9c8374ccf2c740ea06428765187318",
+    "licence": "MIT"
+  },
+  {
+    "systeme": "ant-design",
+    "url": "https://cdn.jsdelivr.net/npm/antd@6.6.8/es/version/token.json",
+    "version": "antd@6.6.8",
+    "originalPath": "es/version/token.json",
+    "localFile": "ant-design/sources/es__version__token.json.txt",
+    "sha256": "7aa01539da15b488725fd0003d9f2a0d04478da07710880ff0e58583f1951d2d",
+    "licence": "MIT"
+  },
+  {
+    "systeme": "govuk",
+    "url": "https://cdn.jsdelivr.net/npm/govuk-frontend@6.6.0/dist/govuk/settings/_colours-functional.scss",
+    "version": "govuk-frontend@6.6.0",
+    "originalPath": "dist/govuk/settings/_colours-functional.scss",
+    "localFile": "govuk/sources/dist__govuk__settings___colours-functional.scss.txt",
+    "sha256": "6928ae08912a8da738fe3120f2e5231befa2c8558b92cf984ec8ef3ca41dc724",
+    "licence": "MIT"
+  },
+  {
+    "systeme": "govuk",
+    "url": "https://cdn.jsdelivr.net/npm/govuk-frontend@6.6.0/dist/govuk/settings/_colours-palette--internal.scss",
+    "version": "govuk-frontend@6.6.0",
+    "originalPath": "dist/govuk/settings/_colours-palette--internal.scss",
+    "localFile": "govuk/sources/dist__govuk__settings___colours-palette--internal.scss.txt",
+    "sha256": "b0c66432cf6e1e38bedcd7eb5358ecb5162c1d9f9789ac3299f67c895df5dd52",
+    "licence": "MIT"
+  },
+  {
+    "systeme": "govuk",
+    "url": "https://cdn.jsdelivr.net/npm/govuk-frontend@6.6.0/dist/govuk/settings/_links.scss",
+    "version": "govuk-frontend@6.6.0",
+    "originalPath": "dist/govuk/settings/_links.scss",
+    "localFile": "govuk/sources/dist__govuk__settings___links.scss.txt",
+    "sha256": "13d37fcc06f8aa78e2c0eaf60ff6d0c25d98bbb59ea30628c235966f88ac113b",
+    "licence": "MIT"
+  },
+  {
+    "systeme": "govuk",
+    "url": "https://cdn.jsdelivr.net/npm/govuk-frontend@6.6.0/dist/govuk/settings/_measurements.scss",
+    "version": "govuk-frontend@6.6.0",
+    "originalPath": "dist/govuk/settings/_measurements.scss",
+    "localFile": "govuk/sources/dist__govuk__settings___measurements.scss.txt",
+    "sha256": "e811935cc1f7908ad8bccdf8fe49db1cf581274304b629afcd9ddb66c8b585c2",
+    "licence": "MIT"
+  },
+  {
+    "systeme": "govuk",
+    "url": "https://cdn.jsdelivr.net/npm/govuk-frontend@6.6.0/dist/govuk/settings/_spacing.scss",
+    "version": "govuk-frontend@6.6.0",
+    "originalPath": "dist/govuk/settings/_spacing.scss",
+    "localFile": "govuk/sources/dist__govuk__settings___spacing.scss.txt",
+    "sha256": "acfe14afacab9bf7f988e2a6d5831b8994aabc64a6896f41c18f350d05cb8938",
+    "licence": "MIT"
+  },
+  {
+    "systeme": "govuk",
+    "url": "https://cdn.jsdelivr.net/npm/govuk-frontend@6.6.0/dist/govuk/settings/_typography-font.scss",
+    "version": "govuk-frontend@6.6.0",
+    "originalPath": "dist/govuk/settings/_typography-font.scss",
+    "localFile": "govuk/sources/dist__govuk__settings___typography-font.scss.txt",
+    "sha256": "691af368d8ee5b1de85a503fb20fb7eeb9934fc81d03092e04f7c96962719a52",
+    "licence": "MIT"
+  },
+  {
+    "systeme": "govuk",
+    "url": "https://cdn.jsdelivr.net/npm/govuk-frontend@6.6.0/dist/govuk/settings/_typography-responsive.scss",
+    "version": "govuk-frontend@6.6.0",
+    "originalPath": "dist/govuk/settings/_typography-responsive.scss",
+    "localFile": "govuk/sources/dist__govuk__settings___typography-responsive.scss.txt",
+    "sha256": "bdf517d9263f1e31551265fd1b653b50116f856c767368e3a5b160de17446da3",
+    "licence": "MIT"
+  },
+  {
+    "systeme": "govuk",
+    "url": "https://cdn.jsdelivr.net/npm/govuk-frontend@6.6.0/package.json",
+    "version": "govuk-frontend@6.6.0",
+    "originalPath": "package.json",
+    "localFile": "govuk/sources/package.json.txt",
+    "sha256": "ab3eaee71597a303c97f456285d2164738f49b3ba96cb3dd1bb1e08aa08d98a8",
     "licence": "MIT"
   },
   {

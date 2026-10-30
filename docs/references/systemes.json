@@ -1,0 +1,228 @@
+[
+  {
+    "id": "atlassian",
+    "nom": "Atlassian Design System",
+    "editeur": "Atlassian",
+    "roles": ["tokens", "composants", "redaction"],
+    "tokens": "design-systems/atlassian",
+    "documentation": "https://atlassian.design/components",
+    "licences": { "code": "Apache-2.0", "documentation": "non vérifiée" },
+    "modes": {
+      "light": { "nom": "light", "page": "elevation.surface" },
+      "dark": { "nom": "dark", "page": "elevation.surface" }
+    }
+  },
+  {
+    "id": "carbon",
+    "nom": "Carbon",
+    "editeur": "IBM",
+    "roles": ["tokens", "composants", "redaction"],
+    "tokens": "design-systems/carbon",
+    "tableDeTokens": true,
+    "documentation": "https://carbondesignsystem.com/components/overview/components/",
+    "licences": { "code": "Apache-2.0", "documentation": "non vérifiée" },
+    "modes": {
+      "light": { "nom": "white", "page": "background" },
+      "dark": { "nom": "g100", "page": "background" }
+    }
+  },
+  {
+    "id": "spectrum",
+    "nom": "Spectrum",
+    "editeur": "Adobe",
+    "roles": ["tokens", "composants"],
+    "tokens": "design-systems/spectrum",
+    "tableDeTokens": true,
+    "documentation": "https://spectrum.adobe.com/",
+    "licences": { "code": "Apache-2.0", "documentation": "non vérifiée" },
+    "modes": {
+      "light": { "nom": "light", "page": "background-base-color" },
+      "dark": { "nom": "dark", "page": "background-base-color" }
+    }
+  },
+  {
+    "id": "primer",
+    "nom": "Primer",
+    "editeur": "GitHub",
+    "roles": ["tokens"],
+    "tokens": "design-systems/primer",
+    "documentation": "https://primer.style/product/components/",
+    "licences": { "code": "MIT", "documentation": "non vérifiée" },
+    "modes": {
+      "light": { "nom": "light", "page": "--bgColor-default" },
+      "dark": { "nom": "dark", "page": "--bgColor-default" }
+    }
+  },
+  {
+    "id": "polaris",
+    "nom": "Polaris",
+    "editeur": "Shopify",
+    "roles": ["tokens", "composants", "redaction"],
+    "tokens": "design-systems/polaris",
+    "documentation": "https://polaris-react.shopify.com/components",
+    "licences": { "code": "MIT", "documentation": "non vérifiée" },
+    "modes": {
+      "light": { "nom": "light", "page": "--p-color-bg" },
+      "dark": { "nom": "dark", "page": "--p-color-bg" }
+    }
+  },
+  {
+    "id": "material-3",
+    "nom": "Material Design 3",
+    "editeur": "Google",
+    "roles": ["tokens", "composants"],
+    "tokens": "design-systems/material-3",
+    "tableDeTokens": true,
+    "documentation": "https://m3.material.io/components",
+    "licences": { "code": "Apache-2.0", "documentation": "non vérifiée" },
+    "modes": {
+      "light": { "nom": "light", "page": "md.sys.color.surface" },
+      "dark": { "nom": "dark", "page": "md.sys.color.surface" }
+    }
+  },
+  {
+    "id": "fluent-2",
+    "nom": "Fluent 2",
+    "editeur": "Microsoft",
+    "roles": ["tokens", "composants"],
+    "tokens": "design-systems/fluent-2",
+    "documentation": "https://fluent2.microsoft.design/components/web/react/",
+    "licences": { "code": "MIT", "documentation": "non vérifiée" },
+    "modes": {
+      "light": { "nom": "light", "page": "colorNeutralBackground1" },
+      "dark": { "nom": "dark", "page": "colorNeutralBackground1" }
+    }
+  },
+  {
+    "id": "figma-sds",
+    "nom": "Simple Design System",
+    "editeur": "Figma",
+    "roles": ["tokens"],
+    "tokens": "design-systems/figma-sds",
+    "documentation": "https://github.com/figma/sds",
+    "licences": { "code": "MIT", "documentation": "non vérifiée" },
+    "modes": {
+      "light": { "nom": "light", "page": "--sds-color-background-default-default" },
+      "dark": { "nom": "dark", "page": "--sds-color-background-default-default" }
+    }
+  },
+  {
+    "id": "radix",
+    "nom": "Radix Themes",
+    "editeur": "Radix UI",
+    "roles": ["tokens", "composants"],
+    "tokens": "design-systems/radix",
+    "documentation": "https://www.radix-ui.com/themes/docs/components",
+    "licences": { "code": "MIT", "documentation": "non vérifiée" },
+    "modes": {
+      "light": { "nom": "light", "page": "--color-background" },
+      "dark": { "nom": "dark", "page": "--color-background" }
+    }
+  },
+  {
+    "id": "tailwind",
+    "nom": "Tailwind CSS",
+    "editeur": "Tailwind Labs",
+    "roles": ["tokens"],
+    "tokens": "design-systems/tailwind",
+    "documentation": "https://tailwindcss.com/docs/theme",
+    "licences": { "code": "MIT", "documentation": "non vérifiée" },
+    "modes": null
+  },
+  {
+    "id": "shadcn",
+    "nom": "shadcn/ui",
+    "editeur": "shadcn",
+    "roles": ["tokens"],
+    "tokens": "design-systems/shadcn",
+    "documentation": "https://ui.shadcn.com/docs/components",
+    "licences": { "code": "MIT", "documentation": "non vérifiée" },
+    "modes": {
+      "light": { "nom": "light", "page": "--background" },
+      "dark": { "nom": "dark", "page": "--background" }
+    }
+  },
+  {
+    "id": "mui",
+    "nom": "Material UI",
+    "editeur": "MUI",
+    "roles": ["tokens"],
+    "tokens": "design-systems/mui",
+    "documentation": "https://mui.com/material-ui/all-components/",
+    "licences": { "code": "MIT", "documentation": "non vérifiée" },
+    "modes": {
+      "light": { "nom": null, "page": "palette.background.default" },
+      "dark": null
+    }
+  },
+  {
+    "id": "untitled-ui",
+    "nom": "Untitled UI",
+    "editeur": "Untitled UI",
+    "roles": ["tokens"],
+    "tokens": "design-systems/untitled-ui",
+    "documentation": "https://www.untitledui.com/react/components",
+    "licences": { "code": "MIT", "documentation": "non vérifiée" },
+    "modes": {
+      "light": { "nom": "light", "page": "--color-bg-primary" },
+      "dark": { "nom": "dark", "page": "--color-bg-primary" }
+    }
+  },
+  {
+    "id": "ant-design",
+    "nom": "Ant Design",
+    "editeur": "Ant Group",
+    "roles": ["tokens", "composants"],
+    "tokens": "design-systems/ant-design",
+    "tableDeTokens": true,
+    "documentation": "https://ant.design/components/overview",
+    "licences": { "code": "MIT", "documentation": "non vérifiée" },
+    "modes": {
+      "light": { "nom": null, "page": null },
+      "dark": null
+    }
+  },
+  {
+    "id": "govuk",
+    "nom": "GOV.UK Design System",
+    "editeur": "Government Digital Service",
+    "roles": ["tokens", "comportement", "redaction"],
+    "tokens": "design-systems/govuk",
+    "documentation": "https://design-system.service.gov.uk/components/",
+    "licences": { "code": "MIT", "documentation": "Open Government Licence v3.0" },
+    "modes": {
+      "light": { "nom": null, "page": "$govuk-default-functional-colours.body-background" },
+      "dark": null
+    }
+  },
+  {
+    "id": "wai-aria-apg",
+    "nom": "WAI-ARIA Authoring Practices Guide",
+    "editeur": "W3C",
+    "roles": ["comportement"],
+    "tokens": null,
+    "documentation": "https://www.w3.org/WAI/ARIA/apg/patterns/",
+    "licences": { "code": "W3C Software and Document License", "documentation": "W3C Software and Document License" },
+    "modes": null
+  },
+  {
+    "id": "react-aria",
+    "nom": "React Aria Components",
+    "editeur": "Adobe",
+    "roles": ["comportement"],
+    "tokens": null,
+    "documentation": "https://react-spectrum.adobe.com/react-aria/components.html",
+    "licences": { "code": "Apache-2.0", "documentation": "non vérifiée" },
+    "modes": null
+  },
+  {
+    "id": "open-ui",
+    "nom": "Open UI",
+    "editeur": "Open UI Community Group (W3C)",
+    "roles": ["nommage"],
+    "tokens": null,
+    "documentation": "https://open-ui.org/",
+    "licences": { "code": "non vérifiée", "documentation": "W3C Software and Document License" },
+    "modes": null
+  }
+]

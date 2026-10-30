@@ -66,6 +66,7 @@ chaque chantier et les sources qui attestent son implémentation.
 | Coût de génération et projet d'implémenteur | [Études et plan](./notes/Recherches/Optimisation%20Tokens/README.md) |
 | Identité graphique | [Marque UCM](./marque/README.md), issue de la [recherche optique](https://github.com/Vassili-g/UCM-Toolkit/blob/202f46e/docs/notes/Recherches/Direction%20artistique/Optique/README.md) |
 | Noms de tokens des design systems du marché | [Nomenclatures de référence](./references/design-systems/README.md) |
+| Guides de composants d'après les design systems du marché | [Références de composants](./references/README.md) |
 | Diff sémantique, contrôle du rendu et autres pistes | [Évolutions globales](./notes/Recherches/Evolutions%20globales/PISTES-EVOLUTION.md) |
 
 Une recette Figma non consignée est une validation restante. Elle ne suffit

@@ -8,7 +8,10 @@ La documentation classée par sujet.
 - guides/ : geste du designer et recette externe
 
 ## docs/references/
-- design-systems/ : noms de tokens de 13 systèmes du marché, figés par SHA-256, et ceux d'UCM
+- README.md : trois couches, licences, fraîcheur et commandes des guides de composants
+- systemes.json : registre des 18 références, rôles et modes
+- design-systems/ : noms et valeurs des tokens de 15 systèmes du marché, figés par SHA-256, et noms d'UCM
+- _outils/ : `guide.ts` (`etat`, `relever`, `verifier`, `rendre`), schémas de l'index, des fiches et des guides, gabarit HTML
 
 ## docs/notes/
 - Archives/ : notes archivées
@@ -22,6 +25,7 @@ La documentation classée par sujet.
 Procédures qu'un agent charge à la demande.
 
 - consommer-contrat/ : reconstruire un composant depuis son seul contrat
+- guide-composant/ : écrire le guide d'un composant d'après les design systems du marché
 - publier-paquets/ : publier les paquets du kit après une montée de version
 - rediger-diagnostics-ucm/ : écrire un message que le designer peut suivre
 - rediger-pour-agents/ : écrire les fichiers lus par les agents dans la forme compacte du dépôt
@@ -58,6 +62,7 @@ Les tests du monorepo lui-même.
 - inventaireInvariants.test.ts : accord des fichiers d'invariants avec le code, dans les deux sens
 - textesEcrits.test.mjs : aucun catalogue de textes des plugins ne porte `TODO(texte)`
 - cartes.test.ts : chaque chemin des cartes existe, et la section `tests/` liste exactement les tests de `tests/`
+- referencesComposants.test.ts : registre des systèmes, extraction des noms et valeurs, schémas, guide d'essai et données réelles de `docs/references/`
 - styleDocumentaire.test.ts : tics de rédaction, interdits sans exemption
 - pinDocumente.test.mjs : versions montrées par une commande copiable
 - registrePortableDocuments.test.ts : aucun document portable ne promet une stack

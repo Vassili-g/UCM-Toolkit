@@ -12,6 +12,7 @@ Quotas limités ; coût : Opus > Sonnet > Haiku. La conversation principale gard
 |---|---|
 | Synthèse, décision, direction, conception d'une maquette, texte destiné au designer | conversation principale |
 | Une question de recherche sourcée | `chercheur` (Sonnet), un par question, en parallèle |
+| Les fiches d'un composant pour un guide (skill `guide-composant`, étape 4) | `releveur` (Sonnet), deux au plus, chacun avec la moitié des systèmes |
 | Un lot d'un plan d'implémentation validé | `implementeur` (Sonnet), un lot par appel ; `implementeur-exigeant` si le lot touche plusieurs lecteurs d'une même règle, une interface au pixel près ou une réécriture sans perte |
 | Une modification mécanique listée par un plan | `executant` (Haiku) |
 | Une commande dont la sortie est longue : tests, build, `test:ui` sur demande du mainteneur, scripts de mesure et de vérification, contrôles de style | `verificateur` (Haiku) |

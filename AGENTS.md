@@ -21,6 +21,7 @@ Skills, dans `.agents/skills/`, à charger :
 | créer ou modifier un message destiné au designer | [`rediger-diagnostics-ucm`](./.agents/skills/rediger-diagnostics-ucm/SKILL.md) |
 | reconstruire à froid un composant depuis son contrat (geste de recette du repository consommateur) | [`consommer-contrat`](./.agents/skills/consommer-contrat/SKILL.md) ; rangée ici, savoir du format : le repository de recette ne doit rien apprendre du produit |
 | publier `@ucm-kit/core`, `@ucm-kit/cli` ou `@ucm-kit/adapter-typescript` | [`publier-paquets`](./.agents/skills/publier-paquets/SKILL.md) |
+| écrire le guide d'un composant à créer, d'après les design systems du marché (« je veux créer un composant X, génère-moi un guide ») | [`guide-composant`](./.agents/skills/guide-composant/SKILL.md) |
 
 Un commentaire se justifie seulement par un fait absent du code : décision, précondition, conséquence, limite. Six contrôles refusent le reste ; [CONTRIBUTING.md](./CONTRIBUTING.md#rédiger-un-document) les énumère.
 
