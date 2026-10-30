@@ -40,10 +40,6 @@ passent en premier ; celles d'un sujet en attente attendront sa reprise.
 | [Palettes en Dark][qualite-archive] | Oui | Distinguer la carte du fond par une ombre ou par un contour ? |
 | [Constats de Comparaison][qualite-archive] | Oui | Quels seuils retenir pour signaler les écarts de saturation et de luminosité, encore décrits comme des valeurs d'essai ? |
 | [Harmonisation d'un groupe de palettes][harmonisation-archive] | Oui | Faut-il aligner automatiquement leur luminosité ? Quel critère commun retenir et quelles références préserver ? |
-| [États dans Architect][integrite] | Oui | Reconnaître des valeurs d'état françaises comme `Défaut` et `Survol`, en plus de la reconnaissance des noms d'axes `État` et `Etat` ? |
-| [Affichage des contrastes][integrite] | Oui | Conserver deux décimales dans `3,90:1` ou afficher `3,9:1` ? |
-| [Questions de crans][integrite] | Oui | Les laisser dans la section « Alias » ou leur donner un rangement distinct ? |
-| [Historique des créations][integrite] | Oui | Quel retour afficher et quelle annulation proposer lorsque la réécriture du journal échoue après une création ? |
 | [Pistes d'architecture globale][revue-architecture] | Oui | Quels apports reprendre au-delà de la version minimale : adoption partielle, état de publication, périmètre du bilan et parcours d'une équipe ? Réexaminer ces propositions avec le concept courant. |
 | [Nuancier de Palettes][palettes-v10-dossier] | Non | Adopter un accueil partagé entre Création et Vérification pour remplacer les hauteurs ajustées séparément ? |
 | [Préparation dans Architect][architect] | Non | Les noms Figma doivent-ils commencer par la collection ? Si non, adapter les noms créés et la recherche des cibles pour éviter un dossier de collection supplémentaire. |

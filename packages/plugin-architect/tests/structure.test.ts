@@ -76,7 +76,7 @@ function monde(options: OptionsDeLEcriture = {}, refuser?: (cle: string) => bool
 
 test('scope : les scopes attendus s’écrivent, le journal garde les scopes d’avant, un seul point d’annulation', async () => {
   const m = monde();
-  assert.deepEqual(await m.ecrire([scope()]), { ecrites: ['C63:k-defaut:scopes'], sautees: [] });
+  assert.deepEqual(await m.ecrire([scope()]), { ecrites: ['C63:k-defaut:scopes'], sautees: [], sansAnnulation: [] });
   assert.deepEqual(m.a.variable('V:1')!.scopes, ['FRAME_FILL', 'SHAPE_FILL']);
   assert.deepEqual(m.ecritures(), ['scopes:V:1:FRAME_FILL,SHAPE_FILL']);
   assert.deepEqual(lireLeJournalDeStructure(m.port)?.lignes, [{ sorte: 'scopes', variable: 'V:1', nom: 'success/surface/default', avant: ['TEXT_FILL'], apres: ['FRAME_FILL', 'SHAPE_FILL'] }]);
@@ -85,7 +85,7 @@ test('scope : les scopes attendus s’écrivent, le journal garde les scopes d�
 
 test('scope : des scopes qui ont changé depuis l’analyse sont sautés en fait-faux, sans écriture ni journal', async () => {
   const m = monde({ locales: [{ ...defaut(), scopes: ['ALL_SCOPES'] }, clair(), sombre()] });
-  assert.deepEqual(await m.ecrire([scope()]), { ecrites: [], sautees: [{ id: 'C63:k-defaut:scopes', motif: 'fait-faux' }] });
+  assert.deepEqual(await m.ecrire([scope()]), { ecrites: [], sautees: [{ id: 'C63:k-defaut:scopes', motif: 'fait-faux' }], sansAnnulation: [] });
   assert.deepEqual(m.ecritures(), []);
   assert.equal(m.points(), 0);
   assert.deepEqual(m.port.cles(), []);
@@ -102,7 +102,7 @@ test('scope : une écriture que Figma refuse saute erreur, les autres s’écriv
   const autre: VariableDEcriture = { id: 'V:5', key: 'k-autre', name: 'success/surface/foreground', scopes: ['TEXT_FILL'], valuesByMode: {}, collection: COLLECTION };
   const m = monde({ locales: [defaut(), autre], refusees: new Set(['V:1']) });
   const rendu = await m.ecrire([scope(), scope({ id: 'C63:k-autre:scopes', cible: { variable: 'k-autre' } })]);
-  assert.deepEqual(rendu, { ecrites: ['C63:k-autre:scopes'], sautees: [{ id: 'C63:k-defaut:scopes', motif: 'erreur' }] });
+  assert.deepEqual(rendu, { ecrites: ['C63:k-autre:scopes'], sautees: [{ id: 'C63:k-defaut:scopes', motif: 'erreur' }], sansAnnulation: [] });
   assert.deepEqual(lireLeJournalDeStructure(m.port)?.lignes.map((ligne) => ligne.variable), ['V:5']);
   assert.equal(m.points(), 1);
 });
@@ -120,7 +120,7 @@ test('scope : sans écriture, le journal précédent reste en place et aucun poi
 
 test('alias-de-mode : le mode pointe vers la nouvelle cible, le journal garde l’ancienne', async () => {
   const m = monde();
-  assert.deepEqual(await m.ecrire([versLeSombre()]), { ecrites: [`C60:k-defaut:${SOMBRE}`], sautees: [] });
+  assert.deepEqual(await m.ecrire([versLeSombre()]), { ecrites: [`C60:k-defaut:${SOMBRE}`], sautees: [], sansAnnulation: [] });
   assert.deepEqual(m.a.variable('V:1')!.valuesByMode[SOMBRE], alias('V:11'));
   assert.deepEqual(m.a.variable('V:1')!.valuesByMode[CLAIR], alias('V:10'), 'l’autre mode ne bouge pas');
   assert.deepEqual(m.ecritures(), [`mode:V:1:${SOMBRE}:V:11`]);
@@ -161,7 +161,7 @@ test('hors UCM, rien ne s’écrit : chaque correction saute non-ucm', async () 
 test('un fichier qui ne peut pas garder le journal : aucune écriture, journal-impossible', async () => {
   const m = monde({}, () => true);
   const rendu = await m.ecrire([scope(), versLeSombre()]);
-  assert.deepEqual(rendu, { ecrites: [], sautees: [{ id: 'C63:k-defaut:scopes', motif: 'journal-impossible' }, { id: `C60:k-defaut:${SOMBRE}`, motif: 'journal-impossible' }] });
+  assert.deepEqual(rendu, { ecrites: [], sautees: [{ id: 'C63:k-defaut:scopes', motif: 'journal-impossible' }, { id: `C60:k-defaut:${SOMBRE}`, motif: 'journal-impossible' }], sansAnnulation: [] });
   assert.deepEqual(m.ecritures(), []);
   assert.equal(m.points(), 0);
 });
@@ -350,7 +350,7 @@ const catalogueAvecUnScopeFaux = (): CatalogueDeReference => ({
 type Reglages = Awaited<ReturnType<Acces['reglages']>>;
 
 function acces(
-  catalogue: CatalogueDeReference | null, ecrire: Acces['ecrire'] = async () => ({ ecrites: [], sautees: [] }), reglages: Reglages = { ecriture: null, cles: [] },
+  catalogue: CatalogueDeReference | null, ecrire: Acces['ecrire'] = async () => ({ ecrites: [], sautees: [], sansAnnulation: [] }), reglages: Reglages = { ecriture: null, cles: [] },
 ): Acces & { appels: Correction[][] } {
   const appels: Correction[][] = [];
   return {
@@ -381,16 +381,24 @@ test('lire-structure rend les constats du kit et leurs corrections ; hors UCM, d
 
 test('appliquer-structure n’écrit que les corrections du dernier constat lu, puis les oublie', async () => {
   const { contexte, envoyes } = contexteDeTest();
-  const double = acces(catalogueAvecUnScopeFaux(), async (corrections) => ({ ecrites: corrections.map(({ id }) => id), sautees: [] }));
+  const double = acces(catalogueAvecUnScopeFaux(), async (corrections) => ({ ecrites: corrections.map(({ id }) => id), sautees: [], sansAnnulation: [] }));
   const traiter = traiterAvec(double);
   await traiter({ type: 'lire-structure', demande: 1 }, contexte);
   await traiter({ type: 'appliquer-structure', demande: 2, ids: ['C63:k-defaut:scopes', 'inconnue', 'C63:k-defaut:scopes'] }, contexte);
-  assert.deepEqual(envoyes[1], { type: 'structure-appliquee', demande: 2, ecrites: 1, sautees: [{ id: 'inconnue', motif: 'correction-inconnue' }] });
+  assert.deepEqual(envoyes[1], { type: 'structure-appliquee', demande: 2, ecrites: 1, sautees: [{ id: 'inconnue', motif: 'correction-inconnue' }], sansAnnulation: [] });
   assert.equal(double.appels.length, 1);
   assert.deepEqual(double.appels[0]!.map(({ id }) => id), ['C63:k-defaut:scopes']);
   await traiter({ type: 'appliquer-structure', demande: 3, ids: ['C63:k-defaut:scopes'] }, contexte);
-  assert.deepEqual(envoyes[2], { type: 'structure-appliquee', demande: 3, ecrites: 0, sautees: [{ id: 'C63:k-defaut:scopes', motif: 'correction-inconnue' }] });
+  assert.deepEqual(envoyes[2], { type: 'structure-appliquee', demande: 3, ecrites: 0, sautees: [{ id: 'C63:k-defaut:scopes', motif: 'correction-inconnue' }], sansAnnulation: [] });
   assert.equal(double.appels.length, 1, 'une correction oubliée n’est pas écrite');
+});
+
+test('appliquer-structure porte les noms des variables créées que l’Historique ne pourra pas annuler', async () => {
+  const { contexte, envoyes } = contexteDeTest();
+  const traiter = traiterAvec(acces(catalogueAvecUnScopeFaux(), async (corrections) => ({ ecrites: corrections.map(({ id }) => id), sautees: [], sansAnnulation: ['primary/surface/subtle'] })));
+  await traiter({ type: 'lire-structure', demande: 1 }, contexte);
+  await traiter({ type: 'appliquer-structure', demande: 2, ids: ['C63:k-defaut:scopes'] }, contexte);
+  assert.deepEqual(envoyes[1], { type: 'structure-appliquee', demande: 2, ecrites: 1, sautees: [], sansAnnulation: ['primary/surface/subtle'] });
 });
 
 test('appliquer-structure : une écriture qui lève saute tout en erreur, une opération en cours rend occupe', async () => {
@@ -398,20 +406,20 @@ test('appliquer-structure : une écriture qui lève saute tout en erreur, une op
   const traiter = traiterAvec(acces(catalogueAvecUnScopeFaux(), async () => { throw new Error('Figma'); }));
   await traiter({ type: 'lire-structure', demande: 1 }, contexte);
   await traiter({ type: 'appliquer-structure', demande: 2, ids: ['C63:k-defaut:scopes'] }, contexte);
-  assert.deepEqual(envoyes[1], { type: 'structure-appliquee', demande: 2, ecrites: 0, sautees: [{ id: 'C63:k-defaut:scopes', motif: 'erreur' }] });
+  assert.deepEqual(envoyes[1], { type: 'structure-appliquee', demande: 2, ecrites: 0, sautees: [{ id: 'C63:k-defaut:scopes', motif: 'erreur' }], sansAnnulation: [] });
 
   await traiter({ type: 'lire-structure', demande: 3 }, contexte);
   const place = await prendreLaPlaceDUneEcriture({ sujet: 'autre', generation: 1 });
   assert.ok('liberer' in place);
   await traiter({ type: 'appliquer-structure', demande: 4, ids: ['C63:k-defaut:scopes'] }, contexte);
-  assert.deepEqual(envoyes.at(-1), { type: 'structure-appliquee', demande: 4, ecrites: 0, sautees: [{ id: 'C63:k-defaut:scopes', motif: 'occupe' }] });
+  assert.deepEqual(envoyes.at(-1), { type: 'structure-appliquee', demande: 4, ecrites: 0, sautees: [{ id: 'C63:k-defaut:scopes', motif: 'occupe' }], sansAnnulation: [] });
   place.liberer();
 });
 
 test('appliquer-structure périme l’analyse du composant quand une correction s’écrit', async () => {
   reinitialiserLAnalyse();
   const { contexte, envoyes } = contexteDeTest();
-  const traiter = traiterAvec(acces(catalogueAvecUnScopeFaux(), async (corrections) => ({ ecrites: corrections.map(({ id }) => id), sautees: [] })));
+  const traiter = traiterAvec(acces(catalogueAvecUnScopeFaux(), async (corrections) => ({ ecrites: corrections.map(({ id }) => id), sautees: [], sansAnnulation: [] })));
   commencerUneAnalyse('jeu', ['1:1'], contexte);
   await traiter({ type: 'lire-structure', demande: 1 }, contexte);
   await traiter({ type: 'appliquer-structure', demande: 2, ids: ['C63:k-defaut:scopes'] }, contexte);
@@ -482,7 +490,7 @@ test('lire-structure : sans écriture choisie, le C82 est rendu sans correction'
 
 test('lire-structure : un constat ignoré par identifiant n’est pas envoyé, sa correction n’est pas retenue', async () => {
   const { contexte, envoyes } = contexteDeTest();
-  const double = acces(catalogueSansSubtle(), async (corrections) => ({ ecrites: corrections.map(({ id }) => id), sautees: [] }), { ecriture: ECRITURE, cles: [ID_SUBTLE] });
+  const double = acces(catalogueSansSubtle(), async (corrections) => ({ ecrites: corrections.map(({ id }) => id), sautees: [], sansAnnulation: [] }), { ecriture: ECRITURE, cles: [ID_SUBTLE] });
   const traiter = traiterAvec(double);
   await traiter({ type: 'lire-structure', demande: 1 }, contexte);
   const message = envoyes[0] as Extract<PluginMessage, { type: 'structure' }>;
@@ -490,7 +498,7 @@ test('lire-structure : un constat ignoré par identifiant n’est pas envoyé, s
   assert.ok(!message.corrections.some(({ id }) => id === ID_SUBTLE));
   assert.ok(message.constats.some(({ id }) => id === ID_DIVIDER), 'les autres constats restent');
   await traiter({ type: 'appliquer-structure', demande: 2, ids: [ID_SUBTLE] }, contexte);
-  assert.deepEqual(envoyes[1], { type: 'structure-appliquee', demande: 2, ecrites: 0, sautees: [{ id: ID_SUBTLE, motif: 'correction-inconnue' }] });
+  assert.deepEqual(envoyes[1], { type: 'structure-appliquee', demande: 2, ecrites: 0, sautees: [{ id: ID_SUBTLE, motif: 'correction-inconnue' }], sansAnnulation: [] });
 });
 
 test('lire-structure : « ne plus proposer » garde le constat et retire sa correction', async () => {
@@ -505,11 +513,11 @@ test('lire-structure : « ne plus proposer » garde le constat et retire sa corr
 
 test('appliquer-structure : une correction variable retenue part à l’écriture', async () => {
   const { contexte, envoyes } = contexteDeTest();
-  const double = acces(catalogueSansSubtle(), async (corrections) => ({ ecrites: corrections.map(({ id }) => id), sautees: [] }), { ecriture: ECRITURE, cles: [] });
+  const double = acces(catalogueSansSubtle(), async (corrections) => ({ ecrites: corrections.map(({ id }) => id), sautees: [], sansAnnulation: [] }), { ecriture: ECRITURE, cles: [] });
   const traiter = traiterAvec(double);
   await traiter({ type: 'lire-structure', demande: 1 }, contexte);
   await traiter({ type: 'appliquer-structure', demande: 2, ids: [ID_SUBTLE, ID_DIVIDER] }, contexte);
-  assert.deepEqual(envoyes[1], { type: 'structure-appliquee', demande: 2, ecrites: 2, sautees: [] });
+  assert.deepEqual(envoyes[1], { type: 'structure-appliquee', demande: 2, ecrites: 2, sautees: [], sansAnnulation: [] });
   assert.deepEqual(double.appels[0]!.map(({ id, sorte }) => [id, sorte]), [[ID_SUBTLE, 'variable'], [ID_DIVIDER, 'variable']]);
 });
 

@@ -21,4 +21,6 @@ export interface IgnoresDeStructure {
 
 export type MessageDeStructure =
   | { type: 'structure'; demande: number; constats: readonly Constat[]; corrections: readonly Correction[]; ignores: IgnoresDeStructure }
-  | { type: 'structure-appliquee'; demande: number; ecrites: number; sautees: readonly { id: string; motif: string }[] };
+  | { type: 'structure-appliquee'; demande: number; ecrites: number; sautees: readonly { id: string; motif: string }[];
+    /** Les noms des variables créées que l'Historique ne pourra pas annuler ; vide sinon. */
+    sansAnnulation: readonly string[] };

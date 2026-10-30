@@ -767,4 +767,12 @@ Intertitres : « Variables manquantes », « Couches », « Modes », « Types �
 
 ## 6. Questions ouvertes
 
-Aucune. Q-12, Q-13 et Q-14 sont tranchées au §1.
+Aucune. Q-12, Q-13 et Q-14 sont tranchées au §1. Le mainteneur a tranché
+les quatre choix laissés à la recette :
+
+| Choix | Décision |
+|---|---|
+| Rapport de contraste | « 3,90:1 » reste, avec deux décimales. Une décimale afficherait « 4,5:1 » pour un rapport qui échoue. |
+| Crans à question | Ils sont rangés avec les cartes « Crans », plus sous « Alias ». |
+| Valeurs d'état françaises | Elles ne sont pas reconnues. `Défaut` ou `Survol` restent signalées, et Architect propose le renommage. |
+| Journal non réécrit après une création | Une alerte « À vérifier » nomme les variables que l'Historique ne pourra pas annuler. Elle n'a aucun bouton. |

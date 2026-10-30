@@ -92,12 +92,12 @@ test('une couche dit les collections attendues de la collection de la variable ;
   assert.equal(texte(directe.phrase), 'Cette couleur n’est pas un alias.');
 });
 
-test('un cran à question devient une carte avec ses deux candidats, sous Alias', () => {
+test('un cran à question devient une carte avec ses deux candidats, sous Crans', () => {
   const question = { id: 'C82:cran:theme|primary/surface/default:m-light', candidats: [{ cle: 'brands|primary/dark/200', nom: 'primary/dark/200' }, { cle: 'brands|primary/dark/300', nom: 'primary/dark/300' }] };
   const faits = { genre: 'cran', variable: 'primary/surface/default', mode: 'light', avant: 800, attendu: '200 ou 300' };
   const lus = lireLesConstats([c82(question.id, faits, { question })], noms);
   assert.equal(lus.length, 1);
-  assert.equal(lus[0].groupe, 'alias');
+  assert.equal(lus[0].groupe, 'crans');
   assert.equal(texte(lus[0].phrase), 'UCM ne sait pas si cette palette met un texte blanc ou noir sur ses boutons.');
   assert.equal(lus[0].faits[0].etiquette, 'En Light');
   assert.equal(texte(lus[0].faits[0].valeur), '`brands/primary/dark/200` ou `brands/primary/dark/300`');

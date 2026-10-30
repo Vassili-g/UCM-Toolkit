@@ -46,7 +46,7 @@ const CARTES_DE_CORRECTION = '#panneau-a-appliquer .structure-liste .bloc';
 const CARTES_A_FAIRE = '#panneau-a-faire .structure-liste .bloc';
 const premiereCarte = { clic: '#panneau-a-appliquer .structure-liste .bloc-bouton' };
 const appliquerLaStructure = { clic: '#panneau-a-appliquer .structure-pied .btn-primary' };
-const creation = (ecrites, sautees) => ({ message: { type: 'structure-appliquee', demande: 2, ecrites, sautees }, attendre: '#panneau-a-appliquer .resultat:not([hidden])' });
+const creation = (ecrites, sautees, sansAnnulation = []) => ({ message: { type: 'structure-appliquee', demande: 2, ecrites, sautees, sansAnnulation }, attendre: '#panneau-a-appliquer .resultat:not([hidden])' });
 const relecture = { message: integrite.reponse([], 3) };
 
 ETATS.push(
@@ -70,13 +70,13 @@ ETATS.push(
   },
   {
     id: 't-sens-inconnu', titre: 'Tokens, sens de la palette inconnu', quand: 'Une palette vise des crans contraires : UCM ne sait pas quel texte elle met sur ses boutons.',
-    regarder: 'Une carte à vérifier dans À faire dans Figma, dépliée : la phrase de la question, la variable en lieu, les deux cibles possibles en Light.',
+    regarder: 'Une carte à vérifier dans À faire dans Figma, sous « Crans », dépliée : la phrase de la question, la variable en lieu, les deux cibles possibles en Light.',
     existe: true,
     atteinte: [...ouvertIntegrite(integrite.releveAuxEcarts(), integrite.sensInconnu, CARTES_A_FAIRE), { clic: '#onglet-a-faire' }, { clic: '#panneau-a-faire .bloc-bouton' }],
   },
   {
     id: 't-integrite-a-faire', titre: 'Tokens, À faire dans Figma, intégrité', quand: 'Un fichier aux écarts de toute sorte : un groupe sans alias, une rampe sans cran, un theme sans Dark, un type, un rangement, des couches.',
-    regarder: 'Les intertitres « Variables manquantes », « Alias », « Modes », « Valeurs », « Couches », « Types » et « Rangement » ; chaque carte dit le problème, cite la variable et dit où le régler ; seules les cartes qui nomment une variable se déplient.',
+    regarder: 'Les intertitres « Variables manquantes », « Crans », « Modes », « Valeurs », « Couches », « Types » et « Rangement » ; chaque carte dit le problème, cite la variable et dit où le régler ; seules les cartes qui nomment une variable se déplient.',
     existe: true,
     atteinte: [...ouvertIntegrite(integrite.releveAuxEcarts(), integrite.aFaire, CARTES_A_FAIRE), { clic: '#onglet-a-faire' }],
   },
@@ -93,6 +93,15 @@ ETATS.push(
     atteinte: [
       ...ouvertIntegrite(integrite.releveDeBase(), integrite.manquantes, CARTES_DE_CORRECTION), appliquerLaStructure,
       creation(21, [{ id: integrite.idsDeCreation[0], motif: 'deja-la' }, { id: integrite.idsDeCreation[1], motif: 'existe-divergente' }]), relecture,
+    ],
+  },
+  {
+    id: 't-creation-sans-annulation', titre: 'Tokens, création sans trace', quand: 'Le sandbox a créé trois variables, mais le fichier n’a pas gardé le journal réécrit : l’Historique ne pourra pas les annuler.',
+    regarder: 'La ligne verte « 23 corrections écrites. », puis une alerte « À vérifier » : « UCM n’a pas pu garder la trace de ces créations. », les trois noms, puis « L’Historique ne pourra pas les annuler. Supprimez-les dans la fenêtre Variables si vous voulez revenir en arrière. » ; aucun bouton.',
+    existe: true,
+    atteinte: [
+      ...ouvertIntegrite(integrite.releveDeBase(), integrite.manquantes, CARTES_DE_CORRECTION), appliquerLaStructure,
+      creation(23, [], ['theme/primary/surface/subtle', 'theme/secondary/surface/subtle', 'theme/neutral/page/foreground']), relecture,
     ],
   },
 );

@@ -54,9 +54,6 @@ const GENRES_DECLARES: readonly GenreDeConstat[] = [
   'variable-absente', 'cran-absent', 'cran', 'couche', 'valeur-directe', 'mode-du-theme', 'type', 'mal-rangee',
 ];
 
-/** Un cran sans question ni correction (cible de library) a son intertitre ; avec une question il reste sous Alias. */
-const groupeDe = (genre: GenreDeConstat, constat: Constat): GroupeDeConstat => (genre === 'cran' && !constat.question ? 'crans' : GROUPE_DU_GENRE[genre]);
-
 const GROUPE_DU_GENRE: Readonly<Record<GenreDeConstat, GroupeDeConstat>> = {
   'alias-supprime': 'alias',
   'library-inactive': 'alias',
@@ -66,7 +63,7 @@ const GROUPE_DU_GENRE: Readonly<Record<GenreDeConstat, GroupeDeConstat>> = {
   'couleur-sans-alias': 'couches',
   'variable-absente': 'manquantes',
   'cran-absent': 'manquantes',
-  cran: 'alias',
+  cran: 'crans',
   couche: 'couches',
   'valeur-directe': 'couches',
   'mode-du-theme': 'modes',
@@ -287,7 +284,7 @@ export function lireLesConstats(constats: readonly Constat[], noms: Noms): reado
     lus.push({
       id: constat.id,
       type: constat.type,
-      groupe: groupeDe(genre, constat),
+      groupe: GROUPE_DU_GENRE[genre],
       phrase: phraseDe(genre, lecture),
       lieu: lieuDe(genre, lecture),
       statut: statutDe(genre, lecture),

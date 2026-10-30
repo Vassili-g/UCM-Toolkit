@@ -5,6 +5,7 @@
  * relit avant d'écrire. Les lignes de crans arrivent décochées : elles changent une couleur affichée. Le designer voit le scope tel
  * que la fenêtre Edit variable de Figma le nomme.
  */
+import { creerAlerte } from 'ucm-plugin-socle/src/ui/Alerte';
 import { createButton } from 'ucm-plugin-socle/src/ui/Button';
 import { creerTermeFigma } from 'ucm-plugin-socle/src/ui/Terme';
 import { creerChemin, creerCheminEnPhrase, creerSegmentAncien, creerSegmentNouveau } from 'ucm-plugin-socle/src/ui/Chemin';
@@ -32,8 +33,9 @@ export interface CorrectionsDeStructure {
   /**
    * L'application est revenue : la ligne verte dit ce qui s'est écrit. Elle demande de publier la library quand une des lignes
    * envoyées créait une variable que le sandbox n'a pas sautée, et nomme les créations sautées parce que la variable existait déjà.
+   * Une alerte à vérifier nomme les variables créées que l'Historique ne pourra pas annuler.
    */
-  appliquee(ecrites: number, sautees: readonly { readonly id: string; readonly motif: string }[]): void;
+  appliquee(ecrites: number, sautees: readonly { readonly id: string; readonly motif: string }[], sansAnnulation: readonly string[]): void;
   /** L'application est en cours : Appliquer reste inactif. */
   attendre(enCours: boolean): void;
 }
@@ -350,7 +352,7 @@ export function monterLesCorrections({ element, auChangement, appliquer }: Optio
       for (const id of ids) decochees.add(id);
       rafraichir();
     },
-    appliquee(ecrites, sautees) {
+    appliquee(ecrites, sautees, sansAnnulation) {
       const sautee = new Set(sautees.map(({ id }) => id));
       const texte = document.createDocumentFragment();
       texte.append(TEXTES.ecrites(ecrites, sautees.length));
@@ -364,6 +366,7 @@ export function monterLesCorrections({ element, auChangement, appliquer }: Optio
       if (envoyees.some((id) => creations.has(id) && !sautee.has(id))) suites.push(suiteDuResultat(TEXTES.publierLaLibrary));
       texte.append(...suites);
       resultat.replaceChildren(creerResultat(texte));
+      if (sansAnnulation.length > 0) resultat.append(avertissementSansAnnulation(sansAnnulation));
       resultat.hidden = false;
       element.hidden = false;
     },
@@ -372,6 +375,17 @@ export function monterLesCorrections({ element, auChangement, appliquer }: Optio
       rafraichir();
     },
   };
+}
+
+/** L'alerte des créations que l'Historique ne pourra pas annuler : les noms, sans bouton. */
+function avertissementSansAnnulation(noms: readonly string[]): HTMLElement {
+  const T = TEXTES.sansAnnulation;
+  const liste = document.createElement('div');
+  noms.forEach((nom, rang) => {
+    if (rang > 0) liste.append(document.createElement('br'));
+    liste.append(creerCheminEnPhrase(nom));
+  });
+  return creerAlerte('verifier', { titre: T.titre, texte: liste, meta: T.suite });
 }
 
 /** Une phrase sous la ligne verte du résultat, en gris. */

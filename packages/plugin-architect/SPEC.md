@@ -478,7 +478,12 @@ modes et les cibles. Une variable déjà présente avec les mêmes alias est
 sautée ; une variable divergente de même nom reste intacte. L'Historique
 refuse de supprimer une variable créée qui a gagné un usage dans le fichier.
 Si la réécriture du journal échoue après une création, l'Historique ne peut
-pas défaire ces variables ; les usages dans d'autres fichiers lui échappent.
+pas défaire ces variables : le résultat de l'écriture en rend les noms
+(`sansAnnulation`), `structure-appliquee` les transporte et l'onglet
+Corrections les dit dans une alerte à vérifier, sans bouton. Les usages dans
+d'autres fichiers échappent à l'Historique. À faire dans Figma range sous
+« Crans » tout constat de cran, question comprise ; « Alias » garde les
+cibles supprimées et les libraries non activées.
 
 ## Interface
 

@@ -108,7 +108,7 @@ export function monterStructure(coquille: Coquille, { envoyer, noms, ouvrirLaFic
       if (message.demande !== demandeDApplication) return;
       demandeDApplication = null;
       corrections.attendre(false);
-      corrections.appliquee(message.ecrites, message.sautees);
+      corrections.appliquee(message.ecrites, message.sautees, message.sansAnnulation);
       demander();
     },
   };

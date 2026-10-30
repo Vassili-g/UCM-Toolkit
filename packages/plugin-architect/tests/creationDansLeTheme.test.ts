@@ -33,20 +33,24 @@ const creation = (nom: string, extras: Partial<Correction> = {}): Correction => 
 const subtle = (): Correction => creation('primary/surface/subtle');
 const divider = (): Correction => creation('primary/surface/divider');
 
-function stockageEnMemoire() {
+/** Un stockage en mémoire ; `refuser` fait lever l'écriture des clés qu'il retient. */
+function stockageEnMemoire(refuser: (cle: string) => boolean = () => false) {
   const donnees = new Map<string, string>();
   const port: PortDeRegles = {
     cles: () => [...donnees.keys()],
     lire: (cle) => donnees.get(cle) ?? '',
-    ecrire: (cle, texte) => { donnees.set(cle, texte); },
+    ecrire: (cle, texte) => {
+      if (refuser(cle)) throw new Error('Figma refuse');
+      donnees.set(cle, texte);
+    },
     effacer: (cle) => { donnees.delete(cle); },
   };
   return { donnees, port };
 }
 
-function monde(options: OptionsDeLEcriture = {}) {
+function monde(options: OptionsDeLEcriture = {}, refuser?: (cle: string) => boolean) {
   const a = atelierDEcriture({ locales: [clair(), sombre()], collections, ...options });
-  const { port } = stockageEnMemoire();
+  const { port } = stockageEnMemoire(refuser);
   const api = a.api as unknown as ApiDeStructure;
   let rang = 0;
   const choix = { api, stockage: port, heure: () => 'h', lot: () => `lot${rang++}` };
@@ -62,7 +66,7 @@ function monde(options: OptionsDeLEcriture = {}) {
 test('deux corrections créent deux variables : un alias par mode, les scopes de la correction, un seul point d’annulation', async () => {
   const m = monde();
   const rendu = await m.ecrire([subtle(), divider()]);
-  assert.deepEqual(rendu, { ecrites: [subtle().id, divider().id], sautees: [] });
+  assert.deepEqual(rendu, { ecrites: [subtle().id, divider().id], sautees: [], sansAnnulation: [] });
   const [premiere, seconde] = m.a.locales().slice(2);
   assert.equal(premiere?.name, 'primary/surface/subtle');
   assert.equal(seconde?.name, 'primary/surface/divider');
@@ -79,6 +83,21 @@ test('deux corrections créent deux variables : un alias par mode, les scopes de
     { sorte: 'creation', variable: 'V:neuve-1', nom: 'primary/surface/subtle', collection: THEME },
     { sorte: 'creation', variable: 'V:neuve-2', nom: 'primary/surface/divider', collection: THEME },
   ]);
+});
+
+test('une réécriture du journal qui échoue après une création rend le nom de la variable créée', async () => {
+  // Le journal prévu (lot0) tient ; sa réécriture avec les identifiants réels (lot1) est refusée.
+  const m = monde({}, (cle) => cle.includes('lot1'));
+  const rendu = await m.ecrire([subtle(), divider()]);
+  assert.deepEqual(rendu.ecrites, [subtle().id, divider().id]);
+  assert.deepEqual(rendu.sansAnnulation, ['primary/surface/subtle', 'primary/surface/divider']);
+  assert.equal(m.points(), 1);
+  assert.deepEqual(lireLeJournalDeStructure(m.port)?.lignes.map(({ variable }) => variable), ['VariableID:0000:00000', 'VariableID:0000:00000'], 'le journal prévu reste');
+});
+
+test('une réécriture qui tient ne rend aucun nom', async () => {
+  const m = monde();
+  assert.deepEqual((await m.ecrire([subtle()])).sansAnnulation, []);
 });
 
 test('une création, un alias et des scopes dans un même lot posent un seul point d’annulation', async () => {
@@ -103,7 +122,7 @@ test('un second Appliquer saute en deja-la : même nom, mêmes alias, rien ne s�
   const avant = m.ecritures().length;
   const points = m.points();
   const rendu = await m.ecrire([subtle()]);
-  assert.deepEqual(rendu, { ecrites: [], sautees: [{ id: subtle().id, motif: 'deja-la' }] });
+  assert.deepEqual(rendu, { ecrites: [], sautees: [{ id: subtle().id, motif: 'deja-la' }], sansAnnulation: [] });
   assert.equal(m.ecritures().length, avant);
   assert.equal(m.points(), points);
 });
@@ -114,7 +133,7 @@ test('une variable de même nom et d’autres alias saute en existe-divergente, 
   };
   const m = monde({ locales: [clair(), sombre(), voisine] });
   const rendu = await m.ecrire([subtle()]);
-  assert.deepEqual(rendu, { ecrites: [], sautees: [{ id: subtle().id, motif: 'existe-divergente' }] });
+  assert.deepEqual(rendu, { ecrites: [], sautees: [{ id: subtle().id, motif: 'existe-divergente' }], sansAnnulation: [] });
   assert.deepEqual(m.ecritures(), []);
   assert.equal(m.points(), 0);
   assert.deepEqual(m.port.cles(), []);
@@ -138,7 +157,7 @@ test('une cible disparue entre la lecture et l’écriture saute en cible-introu
   const m = monde({ locales: [clair()] });
   const seule: Correction = { ...divider(), creation: { ...divider().creation!, alias: { [CLAIR]: { cle: 'k-b1', nom: 'primary/light/50' } } } };
   const rendu = await m.ecrire([subtle(), seule]);
-  assert.deepEqual(rendu, { ecrites: [seule.id], sautees: [{ id: subtle().id, motif: 'cible-introuvable' }] });
+  assert.deepEqual(rendu, { ecrites: [seule.id], sautees: [{ id: subtle().id, motif: 'cible-introuvable' }], sansAnnulation: [] });
   assert.deepEqual(m.ecritures().filter((ligne) => ligne.startsWith('creer:')), ['creer:primary/surface/divider']);
 });
 

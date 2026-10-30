@@ -8,7 +8,7 @@
  * rendu, ni sa correction ; une proposition retirée garde le constat sans correction. Hors UCM, ou quand la lecture échoue, les
  * listes sont vides. Le sandbox retient ces corrections, par identifiant : `appliquer-structure` n'écrit que celles-là
  * (`ecriture/structure.ts`), une opération à la fois, analyse comprise (une demande reçue pendant ce temps saute tout en
- * `occupe`). Le lot écrit, `structure-appliquee` part, les corrections retenues sont oubliées et l'analyse d'un composant
+ * `occupe`). Le lot écrit, `structure-appliquee` part (avec les noms des variables créées que l'Historique ne pourra pas annuler), les corrections retenues sont oubliées et l'analyse d'un composant
  * éventuelle est périmée.
  *
  * Ignorer (Q6) : `ignorer-constat-de-structure` range un constat du dernier `structure` envoyé, pour sa palette ;
@@ -156,7 +156,7 @@ async function appliquer(demande: Extract<DemandeDeStructure, { type: 'appliquer
   const ids = [...new Set(demande.ids)];
   const place = await prendreLaPlaceDUneEcriture({ sujet: 'structure', generation: 0 });
   if ('occupe' in place) {
-    contexte.envoyer({ type: 'structure-appliquee', demande: demande.demande, ecrites: 0, sautees: ids.map((id) => ({ id, motif: 'occupe' })) });
+    contexte.envoyer({ type: 'structure-appliquee', demande: demande.demande, ecrites: 0, sautees: ids.map((id) => ({ id, motif: 'occupe' })), sansAnnulation: [] });
     return;
   }
   try {
@@ -170,12 +170,14 @@ async function appliquer(demande: Extract<DemandeDeStructure, { type: 'appliquer
     }
     let ecrit = false;
     let ecrites = 0;
+    let sansAnnulation: readonly string[] = [];
     if (aEcrire.length > 0) {
       try {
         const lot = await acces.ecrire(aEcrire);
         ecrites = lot.ecrites.length;
         ecrit = ecrites > 0;
         sautees.push(...lot.sautees);
+        sansAnnulation = lot.sansAnnulation;
       } catch {
         // Le lot a pu écrire avant de lever : l'analyse se périme dans tous les cas.
         ecrit = true;
@@ -183,7 +185,7 @@ async function appliquer(demande: Extract<DemandeDeStructure, { type: 'appliquer
       }
     }
     retenues = new Map();
-    contexte.envoyer({ type: 'structure-appliquee', demande: demande.demande, ecrites, sautees });
+    contexte.envoyer({ type: 'structure-appliquee', demande: demande.demande, ecrites, sautees, sansAnnulation });
     if (ecrit) perimerApresUneEcriture(contexte);
   } finally {
     place.liberer();

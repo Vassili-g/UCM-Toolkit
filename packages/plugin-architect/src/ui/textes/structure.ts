@@ -122,6 +122,10 @@ export const TEXTES_STRUCTURE = {
   caseDeCorrection: (nom: string): string => `Corriger ${nom}`,
   caseDeCarte: (action: string): string => `Corriger : ${action}`,
   ecrites: (ecrites: number, sautees: number): string => `${corrections(ecrites)} écrite${ecrites > 1 ? 's' : ''}${sautees > 0 ? `, ${sautees} sautée${sautees > 1 ? 's' : ''}` : ''}.`,
+  sansAnnulation: {
+    titre: 'UCM n’a pas pu garder la trace de ces créations.',
+    suite: 'L’Historique ne pourra pas les annuler. Supprimez-les dans la fenêtre Variables si vous voulez revenir en arrière.',
+  },
   publierLaLibrary: 'Publiez la library pour voir ces variables dans les fichiers de composants.',
   motifDeSaut: {
     'deja-la': 'Cette variable existe déjà, avec les mêmes alias.',

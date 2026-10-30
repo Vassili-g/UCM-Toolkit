@@ -15,7 +15,8 @@
  * Le journal de structure est rangé avant la première écriture, sur les écritures prévues : s'il ne tient pas, rien ne s'écrit
  * (`journal-impossible`). Une variable à créer n'a pas encore d'identifiant : le journal prévu en garde la place avec `ID_A_CREER`.
  * Une fois les écritures faites, il est réécrit avec ce qui a changé et les identifiants réels des variables créées ; si cette
- * réécriture échoue, le journal prévu reste et l'Historique ne défait pas les variables créées. Sans écriture, le journal
+ * réécriture échoue, le journal prévu reste et l'Historique ne défait pas les variables créées : le résultat en rend les noms
+ * (`sansAnnulation`) et l'écran les dit au designer. Sans écriture, le journal
  * précédent reste. Un lot pose un seul point d'annulation, après toutes les écritures.
  *
  * L'annulation remet, ligne par ligne et dans l'ordre inverse de l'écriture, l'état que le journal a gardé. Une ligne dont l'objet a
@@ -44,6 +45,8 @@ export interface ResultatDEcritureDeStructure {
   /** Les identifiants des corrections écrites. */
   readonly ecrites: string[];
   readonly sautees: StructureSautee[];
+  /** Les noms des variables créées que l'Historique ne pourra pas défaire, faute de journal réécrit ; vide sinon. */
+  readonly sansAnnulation: string[];
 }
 
 /** Une variable locale telle que l'écriture la lit et l'écrit. */
@@ -205,9 +208,9 @@ export async function ecrireLaStructure(corrections: readonly Correction[], opti
   const aEcrire = corrections.filter((correction) => correction.sorte === 'scope' || correction.sorte === 'alias-de-mode' || correction.sorte === 'variable');
   const ecrites: string[] = [];
   const sautees: StructureSautee[] = [];
-  if (aEcrire.length === 0) return { ecrites, sautees };
+  if (aEcrire.length === 0) return { ecrites, sautees, sansAnnulation: [] };
   if (lireLArchitectureDuFichier(api.root.getSharedPluginData(ESPACE_ARCHITECT, CLE_ARCHITECTURE_DU_FICHIER)) !== 'ucm') {
-    return { ecrites, sautees: aEcrire.map(({ id }) => ({ id, motif: 'non-ucm' })) };
+    return { ecrites, sautees: aEcrire.map(({ id }) => ({ id, motif: 'non-ucm' })), sansAnnulation: [] };
   }
   const stockage = options.stockage ?? creerPortDeRegles(figma);
   const nouveauLot = options.lot ?? identifiantDeLot;
@@ -224,12 +227,12 @@ export async function ecrireLaStructure(corrections: readonly Correction[], opti
       else plans.push(plan);
     }
   } catch {
-    return { ecrites, sautees: aEcrire.map(({ id }) => ({ id, motif: 'erreur' })) };
+    return { ecrites, sautees: aEcrire.map(({ id }) => ({ id, motif: 'erreur' })), sansAnnulation: [] };
   }
-  if (plans.length === 0) return { ecrites, sautees };
+  if (plans.length === 0) return { ecrites, sautees, sansAnnulation: [] };
 
   const prevu = rangerLeJournalDeStructure(stockage, { heure, lignes: plans.map(({ ligne }) => ligne) }, nouveauLot());
-  if (!prevu) return { ecrites, sautees: [...sautees, ...plans.map(({ correction }) => ({ id: correction.id, motif: 'journal-impossible' as const }))] };
+  if (!prevu) return { ecrites, sautees: [...sautees, ...plans.map(({ correction }) => ({ id: correction.id, motif: 'journal-impossible' as const }))], sansAnnulation: [] };
 
   const faites: LigneDeStructure[] = [];
   for (const plan of plans) {
@@ -243,18 +246,19 @@ export async function ecrireLaStructure(corrections: readonly Correction[], opti
   }
   if (faites.length === 0) {
     retirer(stockage, prevu);
-    return { ecrites, sautees };
+    return { ecrites, sautees, sansAnnulation: [] };
   }
   // Si la réécriture échoue, le journal prévu reste valide : l'annulation reconnaît une ligne jamais écrite à son état d'avant.
   const identiques = faites.length === plans.length && faites.every((ligne, rang) => ligne === plans[rang]?.ligne);
   const reecrit = identiques ? undefined : rangerLeJournalDeStructure(stockage, { heure, lignes: faites }, nouveauLot());
+  const sansAnnulation = identiques || reecrit ? [] : faites.flatMap((ligne) => (ligne.sorte === 'creation' ? [ligne.nom] : []));
   nettoyerLeJournalDeStructure(stockage, (reecrit ?? prevu).cles);
   try {
     api.commitUndo();
   } catch {
     // Les écritures sont faites : un point d'annulation refusé ne les retire pas.
   }
-  return { ecrites, sautees };
+  return { ecrites, sautees, sansAnnulation };
 }
 
 // L'annulation
