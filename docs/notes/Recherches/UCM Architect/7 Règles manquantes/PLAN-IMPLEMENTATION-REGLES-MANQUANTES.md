@@ -234,7 +234,7 @@ Agent : `verificateur` (Haiku). Après A2 et U1.
 
 ### T1 · Essai du mainteneur dans Figma
 
-Le mainteneur, dès T0 tenu. Fichier de test : Button, qui a déjà son instance de règles sans règle pour `state`.
+Le mainteneur, dès T0 tenu. Fichier de test : Button, qui a déjà son instance de règles sans règle pour `state`. Le mainteneur reporte cet essai et demande de poursuivre la clôture ; les cases restent non validées. Une correction C1 attend son retour ultérieur.
 
 - [ ] **T1.1** Recharger UCM Architect. Analyser Button. La carte « Ajouter les règles manquantes de Button » liste `state`. Appliquer.
 - [ ] **T1.2** Dans Figma : la section `@prop` reconstruite occupe la place de l'ancienne. Les règles déjà présentes gardent leurs cibles, leurs descriptions et leur ordre ; les règles ajoutées visent `state.<valeur>` et portent `[À compléter]`. Une valeur manquante suit les autres valeurs du même axe ; un axe absent s'ajoute à la fin, précédé d'un divider. La mise en forme interne (gras, lien) ne se recopie pas.

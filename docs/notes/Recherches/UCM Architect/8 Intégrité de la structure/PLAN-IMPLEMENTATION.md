@@ -689,9 +689,7 @@ Agent : le mainteneur. Préparation faite sur cebd66a1, codes 0 : build de Palet
 
 État de publication : `main` a déjà reçu cebd66a1. `@ucm-kit/core@0.14.10` est servi sur npm ; sa publication a eu lieu avant la fin de la recette. Le [workflow 41036066317](https://github.com/Vassili-g/UCM-Toolkit/actions/runs/41036066317) a passé les tests et publié le noyau, puis a échoué sur les pins des deux paquets encore absents. Le registre sert toujours CLI 0.1.132 et adaptateur 0.1.125 ; les versions locales 0.1.143 et 0.2.1 restent à publier.
 
-La chaîne est arrêtée à la demande du mainteneur. Aucune autre publication ni aucun nouveau push avant la fin du plan. Les prochaines montées de version se font à cette étape finale. Ne pas republier le noyau 0.14.10, déjà servi. Les changements des plans restent locaux jusque-là.
-
-Ordre de reprise : retour du mainteneur sur T1 à T5, X1 de Palettes et T1 des règles manquantes ; C1 pour les écarts signalés ; vérifications finales après les derniers changements ; Z1 puis Z2. Sans ce retour, T reste ouvert et la publication finale attend. Le bilan vide de Nomenclature est retiré (9cd7caaf) ; les décisions de recette restantes portent sur `3,90:1`, les questions de crans sous « Alias » et le résultat d'une création dont le journal n'a pas pu être réécrit.
+Le mainteneur reporte la recette Figma et demande de poursuivre la clôture. T1 à T5, X1 et T1 des règles manquantes restent non validés ; aucun résultat de recette n'est présumé. C1 attend un éventuel retour ultérieur. Les preuves de vérification sur cebd66a1 restent acquises, le code n'ayant pas changé. La reprise passe à Z1 puis Z2, sans nouvelle montée de version ni republication du noyau 0.14.10 déjà servi. Le bilan vide de Nomenclature est retiré (9cd7caaf) ; les décisions de recette restantes portent sur `3,90:1`, les questions de crans sous « Alias » et le résultat d'une création dont le journal n'a pas pu être réécrit.
 
 ## 5. Textes destinés au designer
 

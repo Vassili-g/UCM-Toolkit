@@ -437,6 +437,8 @@ Fait : les suites des paquets ne manquent initialement que les vues périmées ;
 
 ## T1. Recette du mainteneur dans Figma
 
+Recette reportée à la demande du mainteneur. Les cases restent ouvertes ; ce report autorise la clôture et R1 sans présumer leur réussite.
+
 - [ ] Recharger les builds de Palettes et d'Architect. Vérifier les variables, les alias et les scopes avec T1 à T5 du [plan Intégrité de la structure](../UCM%20Architect/8%20Intégrité%20de%20la%20structure/PLAN-IMPLEMENTATION.md#t--recette-du-mainteneur-dans-figma).
 - [ ] X1 : aucune paire de la configuration du mainteneur ne déclenche l'alerte ; deux palettes synthétiques identiques déclenchent « Rampes trop proches » ; « Comparer » ouvre la paire attendue.
 - [ ] Rendre les étapes tenues et les écarts observés. Corriger les écarts avant les vérifications finales et R1.
@@ -449,10 +451,10 @@ Agent : `executant`, avec la skill `publier-paquets`.
       `@ucm-kit/adapter-typescript` si la skill le demande.
 - [ ] Pousser `main`.
 
-Publication partielle : le noyau 0.14.10 répond déjà sur npm (workflow 41036066317). La CLI locale 0.1.143 et l'adaptateur local 0.2.1 ne sont pas publiés ; le registre sert encore 0.1.132 et 0.1.125. `main` est déjà à cebd66a1. Aucun nouvel incrément, push ou lancement de publication avant la fin du plan, à la demande du mainteneur. La recette X1 dans Figma reste à faire.
+Publication partielle : le noyau 0.14.10 répond déjà sur npm (workflow 41036066317). La CLI locale 0.1.143 et l'adaptateur local 0.2.1 ne sont pas publiés ; le registre sert encore 0.1.132 et 0.1.125. `main` est déjà à cebd66a1. Le mainteneur reporte la recette et demande de poursuivre R1. Les versions locales sont conservées ; le noyau déjà servi ne se republie pas. La recette X1 reste à faire.
 
 Fin : les versions publiées répondent sur le registre.
 
-La recette T1 précède R1. Les builds complets sont prêts sur cebd66a1 ; après
+La recette T1 est reportée. Les builds complets sont prêts sur cebd66a1 ; après
 une correction, `npm run build` les reconstruit avant l'essai. La galerie ne
 reconstruit que `ui.html`.
