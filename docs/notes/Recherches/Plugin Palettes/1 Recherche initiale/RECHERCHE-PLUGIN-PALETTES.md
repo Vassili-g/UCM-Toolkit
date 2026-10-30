@@ -1396,7 +1396,7 @@ toutes les nuances : ses cases ne sont pas des promesses.
   garantie de chaque promesse par ses variables (`garantie.premier`,
   `garantie.fond`, `garantie.seuil`), sans numéro, et ajoute `texteDesBoutons`.
   La version 5 remplace la `distance` de l'alerte `palettes-proches` par sa
-  `proximite` : la distance, le rôle, le thème et `presqueIdentiques`
+  `proximite` : le score pondéré, le rapport de chroma, le seuil, le thème et `presqueIdentiques`
   (`[VER-22]`).
   Le rapport garde toutes les alertes du moteur, y compris celles que l'interface montre ailleurs que dans
   la liste des messages.
@@ -1566,30 +1566,32 @@ garantie par ses variables et son libellé, jamais par son numéro.
 | Alerte | Mesure | Seuil | Portée |
 |---|---|---|---|
 | Profils confondus | ΔEok entre `soft` et `vivid`, même cran et même mode, sur les cinq fonds que juge `[VER-11]`, dans le sens de chaque thème ; l'alerte sonne à trois | `profilsConfondus` | chaque palette du modèle à deux intensités, sauf des profils ternes par construction (`[ENT-09]`) |
-| Palettes proches | le plus petit rapport entre la ΔEok de deux palettes et le seuil de son rôle, sur le plein et le fond teinté, en Light et en Dark (`[VER-22]`) | `palettesProches` | chaque paire de palettes colorées, ni libres ni figées |
+| Palettes proches | la moyenne pondérée des rapports entre la ΔEok de chaque cran et le seuil, sur toute la rampe en Light et en Dark (`[VER-22]`) | `palettesProches` | chaque paire de palettes colorées, ni libres ni figées |
 | Référence plus terne que `soft` | part de la référence inférieure à la part de `soft` | sans seuil | chaque palette à deux intensités aux parts du designer |
 | Fond hors de la courbe | [section 8.2](#82-les-fonds-de-référence) | sans seuil | chaque fond |
 
 - `[VER-17]` « Palettes proches » lit une palette à deux intensités dans
   Vivid, et une palette à une intensité dans sa rampe unique (`[VER-22]`).
   Soft n'entre pas dans la comparaison.
-- `[VER-22]` « Palettes proches » compare deux palettes colorées sur quatre
-  couleurs : `solid/default` (rôle `plein`) et `surface/default` (rôle `fond`),
-  chacun en Light et en Dark. Chaque cran vient de la table des rôles, dans le
-  sens de chaque thème (`cranDeLaVariable`), lu dans la liste de la palette.
-  Le texte des fonds teintés n'entre pas dans la comparaison. Une palette est
-  colorée quand la chroma OKLCH de sa référence dépasse 0,05
-  (`CHROMA_DES_PALETTES_COLOREES`). Une paire est comparée seulement si les
-  deux palettes sont colorées, ni libres (liste de numéros propre) ni figées,
-  et portent ces crans. Les fonds teintés, pâles, se comparent à
-  `PART_DU_SEUIL_DES_FONDS` (0,2) du seuil `palettesProches`, soit 0,010 par
-  défaut ; les pleins se comparent au seuil entier (`seuilDeProximite`). Le
-  constat garde, parmi les quatre couleurs, celle dont le rapport distance sur
-  seuil est le plus petit (la première à égalité, dans l'ordre plein Light,
-  plein Dark, fond Light, fond Dark), avec son rôle, son thème et son seuil.
-  La paire est trop proche quand la distance est sous le seuil du rôle retenu
-  (`tropProche`), et presque identique sous 20 % de ce seuil. Le seuil des
-  fonds n'a pas de champ dans la recette.
+- `[VER-22]` « Palettes proches » compare toute la rampe de deux palettes
+  colorées en Light et en Dark, dans Vivid ou leur intensité unique.
+  Une palette est colorée quand la chroma OKLCH de sa référence dépasse 0,05
+  (`CHROMA_DES_PALETTES_COLOREES`). Les palettes libres et figées restent
+  hors de la comparaison. Le score est la moyenne pondérée des distances
+  OKLab de chaque cran divisées par `palettesProches`. Les poids sont les
+  mêmes dans les deux thèmes : 50 et 100 à 0,1 ; 200 à 0,2 ; 300 à 0,5 ;
+  400 à 700 à 1 ; 800 à 0,6 ; 900 à 0,3 ; 950 à 0,2
+  (`POIDS_DES_CRANS_DE_PROXIMITE`). Un numéro absent de cette table prend
+  le poids du numéro le plus proche, le plus petit à égalité.
+  Les extrémités des rampes se rapprochent souvent sans que leurs couleurs
+  du milieu se confondent ; leur poids reste donc plus faible.
+  Une paire est trop proche sous un score de 1 et presque identique sous
+  0,2. Elle se distingue toutefois si la chroma moyenne des crans 400 à 700,
+  sur les deux thèmes, d'une palette vaut au plus 75 % de celle de l'autre
+  (`PART_DE_CHROMA_QUI_DISTINGUE`). Sans ces crans, le score décide seul.
+  Le constat conserve le score, le seuil et le rapport de chroma ; son thème
+  est celui de la plus petite moyenne pondérée, Light à égalité.
+  L'interface dit « Rampes trop proches » et garde le lien « Comparer ».
 - `[VER-08]` Une alerte n'empêche rien. Elle dit ce qui ressemble, manque ou
   change, et mène au réglage qui la lève. Son message ne porte aucune ligne
   de mesure : la valeur et le seuil se lisent dans le rapport
@@ -2593,11 +2595,11 @@ Onglet Comparaison :
   l'en-tête et le compteur sont dans `src/ui/ongletHarmonisation.ts`.
 
 - `[UI-40]` La carte « Palettes trop proches » paraît s'il existe une paire :
-  une rangée par paire de `pairesTropProches`, par rapport distance sur seuil
+  une rangée par paire de `pairesTropProches`, par score
   croissant (`[VER-22]`), avec deux pastilles « Aa » sur le fond de page du
-  thème du constat (plein et son texte, ou fond teinté et son texte, en Vivid
-  ou l'unique intensité), les deux noms, le constat (« Boutons pleins trop
-  proches » ou « Fonds teintés trop proches », avec le thème) et « Comparer ».
+  thème où les rampes se ressemblent le plus (plein et son texte, en Vivid
+  ou l'unique intensité), les deux noms, le constat (« Rampes trop proches »)
+  et « Comparer ».
   Une paire que le réglage sépare garde sa rangée jusqu'à la sortie de
   l'onglet : la rangée s'atténue et son texte devient « Se distinguent
   maintenant », en ton de succès, et « Comparer » reste. Les rangées suivent

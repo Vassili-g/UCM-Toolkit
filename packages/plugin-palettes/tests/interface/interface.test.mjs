@@ -141,7 +141,7 @@ test('[UI-39] la galerie d’arrivée garde son en-tête sur une ligne aux deux 
   }
 });
 
-/** Ouvre Harmonisation sur le fichier de vingt palettes de la galerie, dont huit paires sont trop proches. */
+/** Ouvre Harmonisation sur le fichier de vingt palettes de la galerie, dont sept paires sont trop proches. */
 async function ouvrirHarmonisationSurVingtPalettes(langue = 'fr') {
   const page = await ouvrir(MINIMALE, langue);
   await page.evaluate((message) => window.postMessage({ pluginMessage: message }, '*'), messageDe('harmonisation-paire'));
@@ -150,28 +150,28 @@ async function ouvrirHarmonisationSurVingtPalettes(langue = 'fr') {
 }
 const cochees = (page) => page.locator('#panneau-harmonisation .liste .case-a-cocher:checked').evaluateAll((cases) => cases.map((coche) => coche.getAttribute('aria-label')));
 
-test('[UI-40] la carte des paires range les huit paires par distance, avec leurs pastilles, leur constat et « Comparer »', async () => {
+test('[UI-40] la carte des paires range les sept paires par score, avec leurs pastilles, leur constat et « Comparer »', async () => {
   const page = await ouvrirHarmonisationSurVingtPalettes();
   try {
     const carte = page.locator('#panneau-harmonisation .carte[aria-label="Palettes trop proches"]');
-    assert.equal(await carte.locator('.carte-resume').textContent(), '8 paires');
+    assert.equal(await carte.locator('.carte-resume').textContent(), '7 paires');
     assert.equal(await carte.locator('.carte-resume').isVisible(), false, 'ouverte, la carte ne montre pas son résumé');
     assert.equal(await carte.locator('.carte-sous-titre').textContent(), 'Difficiles à distinguer dans vos composants');
     const rangees = carte.locator('.paire');
-    assert.equal(await rangees.count(), 8);
+    assert.equal(await rangees.count(), 7);
     assert.deepEqual(await rangees.locator('.paire-texte b').allTextContents(), [
-      'Vert et Feuille', 'Bleu et Azur', 'Indigo et Marine', 'Marine et Azur', 'Bleu et Marine', 'Violet et Pourpre',
-      'Fuchsia et Grenat', 'Jaune et Cuivre',
+      'Vert et Feuille', 'Bleu et Azur', 'Violet et Pourpre', 'Marine et Azur', 'Indigo et Marine', 'Bleu et Marine',
+      'Jaune et Cuivre',
     ]);
     const constats = await rangees.locator('.paire-texte span').allTextContents();
-    assert.equal(constats[0], 'Fonds teintés trop proches, en Light · presque identiques');
-    assert.equal(constats[1], 'Boutons pleins trop proches, en Light · presque identiques');
-    assert.equal(constats[6], 'Fonds teintés trop proches, en Light');
-    assert.equal(constats[2], 'Boutons pleins trop proches, en Dark');
+    assert.equal(constats[0], 'Rampes trop proches · presque identiques');
+    assert.equal(constats[1], 'Rampes trop proches · presque identiques');
+    assert.equal(constats[6], 'Rampes trop proches');
+    assert.equal(constats[2], 'Rampes trop proches');
     const premiere = rangees.first();
     assert.equal(await premiere.locator('.paire-couleurs i').count(), 2);
     assert.equal(await premiere.locator('.paire-couleurs i').first().textContent(), 'Aa');
-    assert.equal(await premiere.locator('.paire-couleurs').evaluate((element) => getComputedStyle(element).backgroundColor), 'rgb(247, 247, 247)');
+    assert.equal(await premiere.locator('.paire-couleurs').evaluate((element) => getComputedStyle(element).backgroundColor), 'rgb(10, 10, 10)');
     // Dans le thème du constat : la paire Dark se peint sur le fond Dark de la recette.
     assert.notEqual(await rangees.nth(2).locator('.paire-couleurs').evaluate((element) => getComputedStyle(element).backgroundColor), 'rgb(247, 247, 247)');
     assert.equal(await premiere.locator('.bilan-verifier').textContent(), 'Comparer');
@@ -198,7 +198,7 @@ test('[UI-40] « Comparer » coche la paire seule, passe au thème du constat et
     assert.equal(await panneau.locator('.carte[aria-label="Vos palettes"] .carte-sous-titre').textContent(), 'Les nuances de 50 à 950, en Dark');
     await panneau.getByRole('button', { name: 'Comparer Vert et Feuille', exact: true }).click();
     assert.deepEqual(await cochees(page), ['Vert', 'Feuille']);
-    assert.deepEqual(await panneau.locator('.tete-de-la-palette [aria-pressed="true"]').allTextContents(), ['Soft', 'Light']);
+    assert.deepEqual(await panneau.locator('.tete-de-la-palette [aria-pressed="true"]').allTextContents(), ['Soft', 'Dark']);
     assert.equal(await panneau.locator('.liste .ligne-de-palette[data-cochee="true"]').count(), 2);
   } finally { await page.close(); }
 });
@@ -226,7 +226,7 @@ test('[UI-40] la liste coche par la rangée ou la case, refuse la cinquième et 
     assert.deepEqual(await cochees(page), []);
     assert.equal(await panneau.locator('.pied-de-carte .ligne-secondaire').textContent(), 'Aucune palette cochée');
     // Le rond d'une palette d'une paire la nomme ; plusieurs paires, plusieurs noms.
-    assert.equal(await liste.locator('.signal').count(), 12);
+    assert.equal(await liste.locator('.signal').count(), 10);
     const titres = await liste.locator('.signal').evaluateAll((signaux) => signaux.map((signal) => [signal.closest('label').querySelector('.nom').textContent, signal.title]));
     assert.equal(titres.find(([nom]) => nom === 'Bleu')[1], 'Trop proche d’Azur et Marine');
     assert.equal(titres.find(([nom]) => nom === 'Jaune')[1], 'Trop proche de Cuivre');
@@ -240,7 +240,7 @@ test('[UI-40] les deux cartes se replient et se traduisent', async () => {
     const paires = panneau.locator('.carte[aria-label="Palettes too close"]');
     assert.equal(await paires.locator('.carte-sous-titre').textContent(), 'Hard to tell apart in your components');
     assert.equal(await paires.locator('.paire-texte b').first().textContent(), 'Vert and Feuille');
-    assert.equal(await paires.locator('.paire-texte span').first().textContent(), 'Tinted fills too close, in Light · nearly identical');
+    assert.equal(await paires.locator('.paire-texte span').first().textContent(), 'Ramps too close · nearly identical');
     assert.equal(await paires.locator('.bilan-verifier').first().textContent(), 'Compare');
     const liste = panneau.locator('.carte[aria-label="Your palettes"]');
     assert.equal(await liste.locator('.carte-sous-titre').textContent(), 'Shades 50 to 950, in Light');
@@ -252,7 +252,7 @@ test('[UI-40] les deux cartes se replient et se traduisent', async () => {
       assert.equal(await carte.getAttribute('data-ouverte'), 'false');
       assert.equal(await carte.locator('.carte-corps').isVisible(), false);
     }
-    assert.equal(await paires.locator('.carte-resume').textContent(), '8 pairs');
+    assert.equal(await paires.locator('.carte-resume').textContent(), '7 pairs');
     assert.equal(await liste.locator('.carte-resume').textContent(), '20 palettes');
   } finally { await page.close(); }
 });
@@ -368,15 +368,15 @@ test('[UI-41] les constats disent la paire trop proche, ou que les palettes se d
     const panneau = page.locator('#panneau-harmonisation');
     const carte = carteComparaison(page);
     const constats = () => carte.locator('.constat-de-comparaison').evaluateAll((lignes) => lignes.map((ligne) => ({ ton: ligne.dataset.ton, icone: ligne.querySelector('i').textContent, texte: ligne.querySelector('span').textContent, gras: [...ligne.querySelectorAll('b')].map((b) => b.textContent) })));
-    await panneau.getByRole('button', { name: 'Comparer Indigo et Azur', exact: true }).click();
+    await panneau.getByRole('button', { name: 'Comparer Bleu et Azur', exact: true }).click();
     assert.equal(await carte.locator('.constats-de-comparaison').getAttribute('role'), 'status');
     // Une paire que des teintes séparent : le constat renvoie à la zone hachurée.
     const [paire] = await constats();
-    assert.deepEqual([paire.ton, paire.icone, paire.gras], ['avertissement', '!', ['Indigo et Azur']]);
-    assert.equal(paire.texte, 'Indigo et Azur : fonds teintés trop proches en Light. Sortez la teinte de l’une d’elles de la zone hachurée, dans Réglages.');
+    assert.deepEqual([paire.ton, paire.icone, paire.gras], ['avertissement', '!', ['Bleu et Azur']]);
+    assert.equal(paire.texte, 'Bleu et Azur : rampes trop proches. Sortez la teinte de l’une d’elles de la zone hachurée, dans Réglages.');
     // Une paire qu'aucune teinte ne sépare : le constat de PR6.
     await panneau.getByRole('button', { name: 'Comparer Vert et Feuille', exact: true }).click();
-    assert.equal((await constats())[0].texte, 'Vert et Feuille : boutons pleins trop proches en Light. Aucune teinte de la course ne les sépare : changez la saturation ou la luminosité de l’une d’elles.');
+    assert.equal((await constats())[0].texte, 'Vert et Feuille : rampes trop proches. Aucune teinte de la course ne les sépare : changez la saturation ou la luminosité de l’une d’elles.');
     // Des palettes éloignées : elles se distinguent.
     await panneau.getByRole('button', { name: 'Tout décocher', exact: true }).click();
     for (const nom of ['Ardoise', 'Rose']) await coche(panneau, nom);
@@ -405,14 +405,14 @@ test('[UI-41] une palette libre dit qu’elle n’a pas de composants ; une pale
   try {
     const lu = structuredClone(messageDe('harmonisation-paire'));
     const palettes = lu.classement.recette.palettes;
-    palettes.find(({ nom }) => nom === 'Indigo').crans = [100, 300, 500, 700];
+    palettes.find(({ nom }) => nom === 'Bleu').crans = [100, 300, 500, 700];
     palettes.find(({ nom }) => nom === 'Azur').intensites = 1;
     await envoyer(page, lu);
     await page.locator('#onglet-harmonisation').click();
     const panneau = page.locator('#panneau-harmonisation');
-    for (const nom of ['Indigo', 'Azur']) await coche(panneau, nom);
+    for (const nom of ['Bleu', 'Azur']) await coche(panneau, nom);
     const carte = carteComparaison(page);
-    assert.deepEqual(await carte.locator('.composants b').allTextContents(), ['Azur', 'Indigo']);
+    assert.deepEqual(await carte.locator('.composants b').allTextContents(), ['Bleu', 'Azur']);
     assert.equal(await carte.locator('.composants .composants-libre').textContent(), 'Palette libre : pas de composants');
     assert.equal(await carte.locator('.composants .btn-c').count(), 2);
     assert.equal(await carte.locator('.composants .message').count(), 1);
@@ -437,7 +437,7 @@ test('[UI-41] la carte Comparaison se replie, se traduit et tient dans la fenêt
     assert.deepEqual(await carte.locator('.carte-choix .bascule-option').allTextContents(), ['Colors', 'Grayscale']);
     assert.deepEqual(await carte.locator('.composants .btn-c').allTextContents(), ['Confirm', 'Cancel', 'Confirm', 'Cancel', 'Confirm', 'Cancel', 'Confirm', 'Cancel']);
     const textes = await carte.locator('.constat-de-comparaison > span').allTextContents();
-    assert.equal(textes[0], 'Vert and Feuille: filled buttons too close in Light. No hue in the range separates them: change the saturation or lightness of one of them.');
+    assert.equal(textes[0], 'Vert and Feuille: ramps too close. No hue in the range separates them: change the saturation or lightness of one of them.');
     assert.equal(textes[1], 'In Vivid, Rose is the dullest and Feuille the most vivid.');
     assert.equal(textes[2], 'In Vivid, Feuille is lighter than the others.');
     assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth), true);
@@ -450,11 +450,11 @@ test('[UI-41] la carte Comparaison se replie, se traduit et tient dans la fenêt
 
 const carteReglages = (page, nom = 'Réglages') => page.locator(`#panneau-harmonisation .carte[aria-label="${nom}"]`);
 const reglettesDe = (carte) => carte.locator('.reglette.reglage-de-la-palette');
-/** Le fichier de la galerie réduit à Indigo, Azur et Ardoise : Indigo et Azur forment la seule paire trop proche. */
+/** Le fichier de la galerie réduit à Bleu, Azur et Ardoise : Bleu et Azur forment la seule paire trop proche. */
 async function ouvrirHarmonisationSurTroisPalettes() {
   const page = await ouvrir(MINIMALE);
   const lu = structuredClone(messageDe('harmonisation-paire'));
-  lu.classement.recette.palettes = lu.classement.recette.palettes.filter(({ nom }) => ['Indigo', 'Azur', 'Ardoise'].includes(nom));
+  lu.classement.recette.palettes = lu.classement.recette.palettes.filter(({ nom }) => ['Bleu', 'Azur', 'Ardoise'].includes(nom));
   await envoyer(page, lu);
   await page.locator('#onglet-harmonisation').click();
   return page;
@@ -486,26 +486,26 @@ test('[UI-42] la carte Réglages paraît dès deux palettes cochées : trois ré
     assert.equal(await carte.isVisible(), false);
     await coche(panneau, 'Rose');
     assert.equal(await carte.isVisible(), false);
-    await panneau.getByRole('button', { name: 'Comparer Indigo et Azur', exact: true }).click();
+    await panneau.getByRole('button', { name: 'Comparer Bleu et Azur', exact: true }).click();
     await limitesCalculees(carte);
     assert.equal(await carte.locator('.carte-sous-titre').textContent(), 'Teinte, saturation et luminosité de chaque palette');
     assert.equal(await carte.locator('.carte-resume').textContent(), 'Vivid');
-    assert.deepEqual(await carte.locator('.carte-choix .bascule-option').allTextContents(), ['Azur', 'Indigo']);
-    assert.deepEqual(await carte.locator('.carte-choix [aria-pressed="true"]').allTextContents(), ['Indigo']);
+    assert.deepEqual(await carte.locator('.carte-choix .bascule-option').allTextContents(), ['Bleu', 'Azur']);
+    assert.deepEqual(await carte.locator('.carte-choix [aria-pressed="true"]').allTextContents(), ['Bleu']);
     assert.equal(await carte.locator('.choix-libelle').textContent(), 'Régler');
-    assert.equal(await carte.locator('.tete-des-reglages').isVisible(), false, 'rien n’est modifié : pas d’annulation');
+    assert.equal(await carte.getByRole('button', { name: 'Annuler les modifications', exact: true }).isDisabled(), true, 'rien n’est modifié : l’annulation est inactive');
     const reglettes = reglettesDe(carte);
     assert.deepEqual(await reglettes.locator('.field-label').allTextContents(), ['Teinte', 'Saturation', 'Luminosité']);
     assert.deepEqual(await reglettes.evaluateAll((lignes) => lignes.map((ligne) => ligne.classList.contains('avec-legende'))), [true, true, true]);
     const teinte = reglettes.nth(0);
-    assert.equal(await teinte.locator('.absolu-du-reglage').textContent(), '277°');
-    assert.deepEqual(await teinte.locator('.reglette-bout').allTextContents(), ['plus bleu', 'plus violet']);
-    // Indigo est trop proche d'Azur de −30° à 0° : la zone couvre la moitié gauche de la piste, et le champ, à 0°, porte son cerne.
+    assert.equal(await teinte.locator('.absolu-du-reglage').textContent(), '257°');
+    assert.deepEqual(await teinte.locator('.reglette-bout').allTextContents(), ['plus turquoise', 'plus violet']);
+    // Bleu est trop proche d’Azur de −18° à +19° : la zone couvre le milieu de la piste (38° sur 60°, à 0,5° près de chaque côté), et le champ, à 0°, porte son cerne.
     const zone = teinte.locator('.reglette-proche');
     assert.equal(await zone.count(), 1);
     assert.equal(await zone.getAttribute('title'), 'Trop proche d’Azur');
     const [boiteZone, boiteCourse] = await Promise.all([zone.boundingBox(), teinte.locator('.reglette-course').boundingBox()]);
-    assert.ok(Math.abs(boiteZone.x - boiteCourse.x) < 1 && Math.abs(boiteZone.width - (boiteCourse.width / 2 + boiteCourse.width / 120)) < 2, 'la zone va de −30° à 0,5°');
+    assert.ok(Math.abs(boiteZone.x - (boiteCourse.x + (boiteCourse.width * 11.5) / 60)) < 2 && Math.abs(boiteZone.width - (boiteCourse.width * 38) / 60) < 2, 'la zone va de −18,5° à +19,5°');
     assert.equal(await teinte.locator('.champ-nombre').evaluate((champ) => champ.classList.contains('champ-proche')), true);
     assert.match(await teinte.locator('[role="slider"]').getAttribute('aria-valuetext'), /, trop proche d’Azur$/);
     // Saturation et luminosité : un point par autre palette cochée, sans zone.
@@ -518,13 +518,13 @@ test('[UI-42] la carte Réglages paraît dès deux palettes cochées : trois ré
     assert.equal(await reglettes.nth(1).locator('.marque-palette').getAttribute('title'), 'Azur : 88 %');
     assert.equal(await reglettes.nth(2).locator('.marque-palette').getAttribute('title'), 'Azur : 0');
     assert.equal(await teinte.locator('.marque-palette').count(), 0);
-    assert.deepEqual(await reglettes.evaluateAll((lignes) => lignes.map((ligne) => ligne.querySelector('.reglette-defaut').getAttribute('title'))), ['Valeur par défaut : 0°', 'Valeur par défaut : 83 %', 'Valeur par défaut : 0']);
-    // Choisir Azur règle Azur : sa saturation est celle du point d'Indigo.
+    assert.deepEqual(await reglettes.evaluateAll((lignes) => lignes.map((ligne) => ligne.querySelector('.reglette-defaut').getAttribute('title'))), ['Valeur par défaut : 0°', 'Valeur par défaut : 89 %', 'Valeur par défaut : 0']);
+    // Choisir Azur règle Azur : sa saturation est celle du point de Bleu.
     await carte.getByRole('button', { name: 'Azur', exact: true }).click();
-    assert.equal(await reglettes.nth(1).locator('.marque-palette').getAttribute('title'), 'Indigo : 55 %');
+    assert.equal(await reglettes.nth(1).locator('.marque-palette').getAttribute('title'), 'Bleu : 89 %');
     // Une palette cochée s'ajoute à « Régler ».
     await coche(panneau, 'Rose');
-    assert.deepEqual(await carte.locator('.carte-choix .bascule-option').allTextContents(), ['Azur', 'Indigo', 'Rose']);
+    assert.deepEqual(await carte.locator('.carte-choix .bascule-option').allTextContents(), ['Bleu', 'Azur', 'Rose']);
     // Quatre noms dans « Régler », à 480 px : le sous-titre passe à la ligne au lieu de se couper.
     await page.setViewportSize({ width: 480, height: 520 });
     await coche(panneau, 'Vert');
@@ -539,7 +539,7 @@ test('[UI-42] glisser la teinte hors de la zone éteint le constat et le compteu
     const panneau = page.locator('#panneau-harmonisation');
     const compteur = page.locator('#onglet-harmonisation .compteur-de-verification');
     assert.equal(await compteur.textContent(), '1');
-    await panneau.getByRole('button', { name: 'Comparer Indigo et Azur', exact: true }).click();
+    await panneau.getByRole('button', { name: 'Comparer Bleu et Azur', exact: true }).click();
     const carte = carteReglages(page);
     await limitesCalculees(carte);
     const constat = carteComparaison(page).locator('.constat-de-comparaison').first();
@@ -548,7 +548,7 @@ test('[UI-42] glisser la teinte hors de la zone éteint le constat et le compteu
     const depart = await abscisseDe(page, 0);
     await page.mouse.move(depart.x, depart.y);
     await page.mouse.down();
-    const arrivee = await abscisseDe(page, 10);
+    const arrivee = await abscisseDe(page, 25);
     await page.mouse.move(arrivee.x, arrivee.y, { steps: 5 });
     // Pendant le glisser : le constat passe au vert, le compteur et la ligne fixe s'éteignent, rien n'est encore rangé.
     await carteComparaison(page).locator('.constat-de-comparaison[data-ton="succes"]').waitFor();
@@ -559,16 +559,16 @@ test('[UI-42] glisser la teinte hors de la zone éteint le constat et le compteu
     await page.mouse.up();
     const demande = await prochaine(page, avant);
     assert.equal(demande.type, 'ranger-recette');
-    const [indigo, azur] = ['Indigo', 'Azur'].map((nom) => demande.recette.palettes.find((palette) => palette.nom === nom));
-    assert.deepEqual(indigo.reglages.teinte, { soft: 10, vivid: 10 });
+    const [bleu, azur] = ['Bleu', 'Azur'].map((nom) => demande.recette.palettes.find((palette) => palette.nom === nom));
+    assert.deepEqual(bleu.reglages.teinte, { soft: 25, vivid: 25 });
     assert.equal(azur.reglages?.teinte, undefined);
     await envoyer(page, rangee(demande.demande));
-    // Rangée, la palette est modifiée et distinguée : plus de zone, le champ perd son cerne, l'annulation paraît.
+    // Rangée, la palette est modifiée et distinguée : la zone reste hachurée, le champ perd son cerne, l’annulation s’active.
     assert.equal(await compteur.count(), 0);
-    assert.equal(await reglettesDe(carte).first().locator('.reglette-proche').count(), 0);
-    assert.equal(await reglettesDe(carte).first().locator('.champ-nombre').inputValue(), '+10°');
+    assert.equal(await reglettesDe(carte).first().locator('.reglette-proche').count(), 1);
+    assert.equal(await reglettesDe(carte).first().locator('.champ-nombre').inputValue(), '+25°');
     assert.equal(await reglettesDe(carte).first().locator('.champ-nombre').evaluate((champ) => champ.classList.contains('champ-proche')), false);
-    assert.equal(await carte.getByRole('button', { name: 'Annuler les modifications', exact: true }).isVisible(), true);
+    assert.equal(await carte.getByRole('button', { name: 'Annuler les modifications', exact: true }).isEnabled(), true);
     assert.equal(await carte.locator('.carte-choix .bascule-option').last().locator('.pastille-reglee').count(), 1);
     assert.equal(await carte.locator('.carte-choix .bascule-option').first().locator('.pastille-reglee').count(), 0);
     // Revenir dans la zone rallume le constat et le compteur.
@@ -587,7 +587,7 @@ test('[UI-42] Échap pendant un glisser rend la palette d’avant, son constat, 
   const page = await ouvrirHarmonisationSurTroisPalettes();
   try {
     const panneau = page.locator('#panneau-harmonisation');
-    await panneau.getByRole('button', { name: 'Comparer Indigo et Azur', exact: true }).click();
+    await panneau.getByRole('button', { name: 'Comparer Bleu et Azur', exact: true }).click();
     const carte = carteReglages(page);
     await limitesCalculees(carte);
     const avant = await compte(page);
@@ -595,7 +595,7 @@ test('[UI-42] Échap pendant un glisser rend la palette d’avant, son constat, 
     const depart = await abscisseDe(page, 0);
     await page.mouse.move(depart.x, depart.y);
     await page.mouse.down();
-    const arrivee = await abscisseDe(page, 10);
+    const arrivee = await abscisseDe(page, 25);
     await page.mouse.move(arrivee.x, arrivee.y, { steps: 5 });
     await carteComparaison(page).locator('.constat-de-comparaison[data-ton="succes"]').waitFor();
     await page.keyboard.press('Escape');
@@ -603,7 +603,7 @@ test('[UI-42] Échap pendant un glisser rend la palette d’avant, son constat, 
     await carteComparaison(page).locator('.constat-de-comparaison[data-ton="avertissement"]').waitFor();
     assert.equal(await page.locator('#onglet-harmonisation .compteur-de-verification').textContent(), '1');
     assert.equal(await curseur.getAttribute('aria-valuenow'), '0');
-    assert.equal(await carte.locator('.tete-des-reglages').isVisible(), false);
+    assert.equal(await carte.getByRole('button', { name: 'Annuler les modifications', exact: true }).isDisabled(), true);
     assert.equal(await compte(page), avant, 'rien n’a été rangé');
   } finally { await page.close(); }
 });
@@ -611,10 +611,10 @@ test('[UI-42] Échap pendant un glisser rend la palette d’avant, son constat, 
 test('[UI-42] « Annuler les modifications » rend la palette choisie à son départ dans l’onglet, sans défaire Création ni la seconde palette', async () => {
   const page = await ouvrirHarmonisationSurTroisPalettes();
   try {
-    // Création : la luminosité d'Indigo, avant l'entrée dans Harmonisation.
+    // Création : la luminosité de Bleu, avant l'entrée dans Harmonisation.
     await page.locator('#onglet-creation').click();
     await page.locator('#panneau-creation .accueil-de-creation:visible, .selecteur-bouton:visible').first().waitFor();
-    await page.locator('#panneau-creation .accueil-de-creation .nuancier-carte', { hasText: 'Indigo' }).click();
+    await page.locator('#panneau-creation .accueil-de-creation .nuancier-carte', { hasText: 'Bleu' }).click();
     await deplierLaCarte(page, CARTE_DES_REGLAGES);
     const luminositeDeCreation = carteDeLOnglet(page, CARTE_DES_REGLAGES).locator('.reglette').nth(2).locator('[role="slider"]');
     for (let pas = 0; pas < 2; pas += 1) {
@@ -625,29 +625,29 @@ test('[UI-42] « Annuler les modifications » rend la palette choisie à son dé
     await page.locator('#onglet-harmonisation').click();
     const panneau = page.locator('#panneau-harmonisation');
     const carte = carteReglages(page);
-    for (const nom of ['Indigo', 'Azur']) await coche(panneau, nom);
-    assert.equal(await carte.locator('.carte-choix [aria-pressed="true"]').textContent(), 'Indigo');
-    assert.equal(await carte.locator('.tete-des-reglages').isVisible(), false, 'le changement de Création n’est pas une modification de l’onglet');
+    for (const nom of ['Bleu', 'Azur']) await coche(panneau, nom);
+    assert.equal(await carte.locator('.carte-choix [aria-pressed="true"]').textContent(), 'Bleu');
+    assert.equal(await carte.getByRole('button', { name: 'Annuler les modifications', exact: true }).isDisabled(), true, 'le changement de Création n’est pas une modification de l’onglet');
     await limitesCalculees(carte);
     await toucherEtRanger(page, 0, 'Shift+ArrowRight');
     await carte.getByRole('button', { name: 'Azur', exact: true }).click();
     await limitesCalculees(carte);
     const reglageDAzur = await toucherEtRanger(page, 2, 'ArrowRight');
     assert.equal(reglageDAzur.recette.palettes.find((palette) => palette.nom === 'Azur').reglages.clarte.vivid, 0.005);
-    await carte.getByRole('button', { name: /^Indigo/ }).click();
+    await carte.getByRole('button', { name: /^Bleu/ }).click();
     const annuler = carte.getByRole('button', { name: 'Annuler les modifications', exact: true });
-    assert.equal(await annuler.isVisible(), true);
+    assert.equal(await annuler.isEnabled(), true);
     const avant = await compte(page);
     await annuler.click();
     const demande = await prochaine(page, avant);
     assert.equal(demande.type, 'ranger-recette');
-    const [indigo, azur, ardoise] = ['Indigo', 'Azur', 'Ardoise'].map((nom) => demande.recette.palettes.find((palette) => palette.nom === nom));
-    assert.equal(indigo.reglages.teinte, undefined, 'la teinte de l’onglet est défaite');
-    assert.deepEqual(indigo.reglages.clarte, { soft: 0.01 }, 'le changement de Création reste');
+    const [bleu, azur, ardoise] = ['Bleu', 'Azur', 'Ardoise'].map((nom) => demande.recette.palettes.find((palette) => palette.nom === nom));
+    assert.equal(bleu.reglages.teinte, undefined, 'la teinte de l’onglet est défaite');
+    assert.deepEqual(bleu.reglages.clarte, { soft: 0.01 }, 'le changement de Création reste');
     assert.deepEqual(azur.reglages, reglageDAzur.recette.palettes.find((palette) => palette.nom === 'Azur').reglages, 'la seconde palette garde son réglage');
     assert.equal(ardoise.reglages, undefined);
     await envoyer(page, rangee(demande.demande));
-    assert.equal(await annuler.isVisible(), false);
+    assert.equal(await annuler.isDisabled(), true);
     assert.equal(await carte.locator('.carte-choix .pastille-reglee').count(), 1, 'Azur reste marquée modifiée');
   } finally { await page.close(); }
 });
@@ -656,7 +656,7 @@ test('[UI-42] un rangement que le sandbox refuse rend la recette et le point de 
   const page = await ouvrirHarmonisationSurTroisPalettes();
   try {
     const panneau = page.locator('#panneau-harmonisation');
-    await panneau.getByRole('button', { name: 'Comparer Indigo et Azur', exact: true }).click();
+    await panneau.getByRole('button', { name: 'Comparer Bleu et Azur', exact: true }).click();
     const carte = carteReglages(page);
     await limitesCalculees(carte);
     const avant = await compte(page);
@@ -664,10 +664,10 @@ test('[UI-42] un rangement que le sandbox refuse rend la recette et le point de 
     const demande = await prochaine(page, avant);
     // Avant la réponse, la palette est réglée et modifiée.
     assert.equal(await reglettesDe(carte).first().locator('.champ-nombre').inputValue(), '+5°');
-    assert.equal(await carte.locator('.tete-des-reglages').isVisible(), true);
+    assert.equal(await carte.getByRole('button', { name: 'Annuler les modifications', exact: true }).isEnabled(), true);
     await envoyer(page, { type: 'rangement', demande: demande.demande, issue: { issue: 'invalide', refus: [{ regle: 'courbes-bornes', chemin: 'courbes.light[0]', valeur: 1.2 }] } });
     assert.equal(await reglettesDe(carte).first().locator('.champ-nombre').inputValue(), '0°');
-    assert.equal(await carte.locator('.tete-des-reglages').isVisible(), false);
+    assert.equal(await carte.getByRole('button', { name: 'Annuler les modifications', exact: true }).isDisabled(), true);
     assert.equal(await carte.locator('.carte-choix .pastille-reglee').count(), 0);
     assert.equal(await page.locator('#onglet-harmonisation .compteur-de-verification').textContent(), '1');
     // Le conflit d'enregistrement garde le brouillon : rien ne se rend.
@@ -687,7 +687,7 @@ test('[UI-42] une palette figée dit qu’elle ne se règle pas, à la place des
     await envoyer(page, lu);
     await page.locator('#onglet-harmonisation').click();
     const panneau = page.locator('#panneau-harmonisation');
-    for (const nom of ['Indigo', 'Azur']) await coche(panneau, nom);
+    for (const nom of ['Bleu', 'Azur']) await coche(panneau, nom);
     const carte = carteReglages(page);
     assert.equal(await reglettesDe(carte).first().isVisible(), true);
     await carte.getByRole('button', { name: 'Azur', exact: true }).click();
@@ -702,7 +702,7 @@ test('[UI-42] la carte Réglages se traduit, se replie et tient dans la fenêtre
   const page = await ouvrirHarmonisationSurVingtPalettes('en');
   try {
     const panneau = page.locator('#panneau-harmonisation');
-    await panneau.getByRole('button', { name: 'Compare Indigo and Azur', exact: true }).click();
+    await panneau.getByRole('button', { name: 'Compare Bleu and Azur', exact: true }).click();
     const carte = carteReglages(page, 'Adjustments');
     await limitesCalculees(carte);
     assert.equal(await carte.locator('.carte-sous-titre').textContent(), 'Hue, saturation and lightness of each palette');
@@ -727,23 +727,25 @@ async function deplierLaRoue(page, nom = 'Roue des teintes') {
   await carte.locator('> .carte-tete > .carte-bascule').click();
   await carte.locator('circle[role="slider"]').first().waitFor();
 }
-/** La place du point `nom` dans la fenêtre, tournée de `degres` autour du centre de la roue : la carte défile d'abord jusqu'à lui. */
+/** La place du point `nom` dans la fenêtre, tournée de `degres` autour du centre de la roue, dont la plaque suit la largeur de la carte : la carte défile d'abord jusqu'à lui. */
 async function placeDuPoint(page, nom, degres = 0) {
   const point = pointDeLaRoue(page, nom);
   await point.scrollIntoViewIfNeeded();
   return point.evaluate((cercle, tour) => {
-    const cadre = cercle.ownerSVGElement.getBoundingClientRect();
-    const [cx, cy] = [Number(cercle.getAttribute('cx')) - 210, Number(cercle.getAttribute('cy')) - 128];
+    const plaque = cercle.ownerSVGElement;
+    const cadre = plaque.getBoundingClientRect();
+    const { width: largeur, height: hauteur } = plaque.viewBox.baseVal;
+    const [cx, cy] = [Number(cercle.getAttribute('cx')) - largeur / 2, Number(cercle.getAttribute('cy')) - hauteur / 2];
     const angle = Math.atan2(cy, cx) + (tour * Math.PI) / 180;
     const rayon = Math.hypot(cx, cy);
-    return { x: cadre.left + ((210 + rayon * Math.cos(angle)) * cadre.width) / 420, y: cadre.top + ((128 + rayon * Math.sin(angle)) * cadre.height) / 256 };
+    return { x: cadre.left + ((largeur / 2 + rayon * Math.cos(angle)) * cadre.width) / largeur, y: cadre.top + ((hauteur / 2 + rayon * Math.sin(angle)) * cadre.height) / hauteur };
   }, degres);
 }
 
-test('[UI-43] la carte Roue des teintes est repliée avec son résumé, puis dessine le cercle, ses familles, un point par palette colorée et un arc par paire trop proche', async () => {
+test('[UI-43] la carte Roue des teintes est repliée avec son résumé, puis dessine l’anneau, un point par palette colorée et un arc par paire trop proche', async () => {
   const page = await ouvrirHarmonisationSurVingtPalettes();
   try {
-    await page.locator('#panneau-harmonisation').getByRole('button', { name: 'Comparer Indigo et Azur', exact: true }).click();
+    await page.locator('#panneau-harmonisation').getByRole('button', { name: 'Comparer Bleu et Azur', exact: true }).click();
     const carte = carteRoue(page);
     assert.equal(await carte.locator('.carte-resume').textContent(), 'Vision normale');
     assert.equal(await carte.locator('.carte-sous-titre').textContent(), 'Glissez un point pour régler la teinte de sa palette');
@@ -755,27 +757,31 @@ test('[UI-43] la carte Roue des teintes est repliée avec son résumé, puis des
     assert.equal(await carte.getByRole('combobox', { name: 'Vision des couleurs' }).inputValue(), 'normale');
     const plaque = carte.locator('svg.roue.plaque');
     const boite = await plaque.boundingBox();
-    assert.deepEqual([boite.width, boite.height], [420, 256]);
-    assert.deepEqual(await plaque.locator('text.roue-famille').allTextContents(), ['rose', 'rouge', 'orange', 'jaune', 'vert', 'turquoise', 'bleu', 'violet']);
+    // La plaque prend la largeur du corps de la carte ; son rayon laisse 88 px aux noms de chaque côté, et sa hauteur vaut deux rayons et 48 px.
+    const largeurDuCorps = await carte.locator('.carte-corps').evaluate((corps) => { const style = getComputedStyle(corps); return corps.clientWidth - Number.parseFloat(style.paddingLeft) - Number.parseFloat(style.paddingRight); });
+    assert.deepEqual([boite.width, boite.height], [largeurDuCorps, 2 * Math.floor(largeurDuCorps / 2 - 88) + 48]);
+    assert.equal(await plaque.locator('text.roue-famille').count(), 0, 'la roue ne nomme plus les familles de teinte');
+    assert.equal(await plaque.locator('path[stroke-width="16"]').count(), 90, 'un anneau de 90 arcs');
     const points = plaque.locator('circle[role="slider"]');
     const noms = await points.evaluateAll((cercles) => cercles.map((cercle) => cercle.getAttribute('aria-label')));
-    assert.ok(noms.includes('Teinte de Indigo') && noms.includes('Teinte de Azur'));
+    assert.ok(noms.includes('Teinte de Bleu') && noms.includes('Teinte de Azur'));
     assert.equal(noms.includes('Teinte de Ardoise'), false, 'une palette grise reste hors de la roue');
     assert.ok(noms.length > 8, 'plus de huit palettes colorées : les noms se limitent aux cochées et aux paires');
-    // Les deux cochées ont le gros point ; les autres 5 px.
-    assert.equal(await pointDeLaRoue(page, 'Indigo').getAttribute('r'), '7');
-    assert.equal(await pointDeLaRoue(page, 'Rose').getAttribute('r'), '5');
+    // Les deux cochées ont le gros point ; les autres 7 px.
+    assert.equal(await pointDeLaRoue(page, 'Bleu').getAttribute('r'), '9');
+    assert.equal(await pointDeLaRoue(page, 'Rose').getAttribute('r'), '7');
     assert.equal(await pointDeLaRoue(page, 'Rose').getAttribute('tabindex'), '0');
-    assert.equal(await pointDeLaRoue(page, 'Indigo').locator('title').textContent(), 'Indigo');
-    assert.equal(await plaque.locator('path[stroke-linecap="round"]').count(), 11);
-    assert.equal(await plaque.locator('path[stroke-linecap="round"] title', { hasText: 'Indigo et Azur : trop proches' }).count(), 1);
-    // La palette à régler montre sa course en gris et la zone trop proche d'Azur en tirets.
-    assert.equal(await plaque.locator('path[opacity="0.12"]').count(), 1);
-    assert.ok((await plaque.locator('path[stroke-dasharray="2 2"]').count()) >= 1);
-    // Au-delà de huit palettes colorées, seules les cochées et celles d'une paire portent un nom.
-    const nommees = await plaque.locator('text:not(.roue-famille)').allTextContents();
-    const attendues = await points.evaluateAll((cercles) => cercles.filter((cercle) => cercle.getAttribute('r') === '7' || cercle.getAttribute('stroke') === '#C77A00').map((cercle) => cercle.querySelector('title').textContent));
+    assert.equal(await pointDeLaRoue(page, 'Bleu').locator('title').textContent(), 'Bleu');
+    assert.equal(await plaque.locator('path[stroke-opacity="0.75"]').count(), 7, 'un arc par paire trop proche');
+    assert.equal(await plaque.locator('path[stroke-opacity="0.75"] title', { hasText: 'Bleu et Azur : trop proches' }).count(), 1);
+    // La palette à régler montre sa course en gris et la zone trop proche d’Azur hachurée.
+    assert.equal(await plaque.locator('path[stroke-opacity="0.18"]').count(), 1);
+    assert.ok((await plaque.locator('path[stroke="url(#roue-hachures)"]').count()) >= 1);
+    // Les colonnes de noms tiennent dans la plaque : chaque palette colorée porte son nom, reliée à son point par un trait.
+    const nommees = await plaque.locator('text').allTextContents();
+    const attendues = await points.evaluateAll((cercles) => cercles.map((cercle) => cercle.querySelector('title').textContent));
     assert.deepEqual([...nommees].sort(), [...attendues].sort());
+    assert.equal(await plaque.locator('polyline').count(), attendues.length);
     assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth), true);
     await carte.locator('> .carte-tete > .carte-bascule').click();
     assert.equal(await carte.getAttribute('data-ouverte'), 'false');
@@ -790,15 +796,15 @@ test('[UI-43] la vision repeint les points, le résumé la nomme, et aucune aler
     const remplissages = () => carte.locator('circle[role="slider"]').evaluateAll((cercles) => cercles.map((cercle) => cercle.getAttribute('fill')));
     const avant = await remplissages();
     const compteur = page.locator('#onglet-harmonisation .compteur-de-verification');
-    assert.equal(await compteur.textContent(), '11');
+    assert.equal(await compteur.textContent(), '8');
     const choix = carte.getByRole('combobox', { name: 'Vision des couleurs' });
     const vues = {};
     for (const vision of ['deuteranopie', 'protanopie', 'tritanomalie']) {
       await choix.selectOption(vision);
       vues[vision] = await remplissages();
       assert.notDeepEqual(vues[vision], avant, vision);
-      assert.equal(await compteur.textContent(), '11');
-      assert.equal(await page.locator('#panneau-harmonisation .ligne-fixe-texte').textContent(), '8 paires de palettes trop proches');
+      assert.equal(await compteur.textContent(), '8');
+      assert.equal(await page.locator('#panneau-harmonisation .ligne-fixe-texte').textContent(), '7 paires de palettes trop proches');
     }
     assert.notDeepEqual(vues.deuteranopie, vues.protanopie);
     await choix.selectOption('normale');
@@ -815,18 +821,18 @@ test('[UI-43] glisser un point règle sa palette, la met dans « Régler » et l
   const page = await ouvrirHarmonisationSurVingtPalettes();
   try {
     const panneau = page.locator('#panneau-harmonisation');
-    await panneau.getByRole('button', { name: 'Comparer Indigo et Azur', exact: true }).click();
+    await panneau.getByRole('button', { name: 'Comparer Bleu et Azur', exact: true }).click();
     await deplierLaRoue(page);
     const reglages = carteReglages(page);
     await limitesCalculees(reglages);
-    assert.deepEqual(await cochees(page), ['Azur', 'Indigo']);
+    assert.deepEqual(await cochees(page), ['Bleu', 'Azur']);
     // Rose n'est pas cochée : la saisir la coche et la règle.
     const avant = await compte(page);
     const depart = await placeDuPoint(page, 'Rose');
     await page.mouse.move(depart.x, depart.y);
     await page.mouse.down();
-    assert.deepEqual(await cochees(page), ['Azur', 'Indigo', 'Rose'], 'la liste suit l’ordre des teintes');
-    assert.deepEqual(await reglages.locator('.carte-choix .bascule-option').allTextContents(), ['Azur', 'Indigo', 'Rose']);
+    assert.deepEqual(await cochees(page), ['Bleu', 'Azur', 'Rose'], 'la liste suit l’ordre des teintes');
+    assert.deepEqual(await reglages.locator('.carte-choix .bascule-option').allTextContents(), ['Bleu', 'Azur', 'Rose']);
     assert.deepEqual(await reglages.locator('.carte-choix [aria-pressed="true"]').allTextContents(), ['Rose']);
     // La troisième palette agrandit les cartes au-dessus de la roue : la roue se pose avant de viser.
     await page.waitForTimeout(300);
@@ -856,20 +862,20 @@ test('[UI-43] glisser un point règle sa palette, la met dans « Régler » et l
   } finally { await page.close(); }
 });
 
-test('[UI-43] glisser Indigo hors de la zone éteint le constat et le compteur ; Échap rend la palette d’avant', async () => {
+test('[UI-43] glisser Bleu hors de la zone éteint le constat et le compteur ; Échap rend la palette d’avant', async () => {
   const page = await ouvrirHarmonisationSurTroisPalettes();
   try {
     const panneau = page.locator('#panneau-harmonisation');
-    await panneau.getByRole('button', { name: 'Comparer Indigo et Azur', exact: true }).click();
+    await panneau.getByRole('button', { name: 'Comparer Bleu et Azur', exact: true }).click();
     await limitesCalculees(carteReglages(page));
     await deplierLaRoue(page);
     const compteur = page.locator('#onglet-harmonisation .compteur-de-verification');
     assert.equal(await compteur.textContent(), '1');
     const avant = await compte(page);
-    const depart = await placeDuPoint(page, 'Indigo');
+    const depart = await placeDuPoint(page, 'Bleu');
     await page.mouse.move(depart.x, depart.y);
     await page.mouse.down();
-    const arrivee = await placeDuPoint(page, 'Indigo', 12);
+    const arrivee = await placeDuPoint(page, 'Bleu', 25);
     await page.mouse.move(arrivee.x, arrivee.y, { steps: 6 });
     await carteComparaison(page).locator('.constat-de-comparaison[data-ton="succes"]').waitFor();
     assert.equal(await compteur.count(), 0);
@@ -878,7 +884,7 @@ test('[UI-43] glisser Indigo hors de la zone éteint le constat et le compteur ;
     await page.mouse.up();
     await carteComparaison(page).locator('.constat-de-comparaison[data-ton="avertissement"]').waitFor();
     assert.equal(await compteur.textContent(), '1');
-    assert.equal(await pointDeLaRoue(page, 'Indigo').getAttribute('aria-valuenow'), '0');
+    assert.equal(await pointDeLaRoue(page, 'Bleu').getAttribute('aria-valuenow'), '0');
     assert.equal(await compte(page), avant, 'rien n’a été rangé');
   } finally { await page.close(); }
 });
@@ -900,19 +906,17 @@ test('[UI-44] pendant un glisser de la roue, aucune carte ne change de hauteur ;
   const page = await ouvrirHarmonisationSurTroisPalettes();
   try {
     const panneau = page.locator('#panneau-harmonisation');
-    await panneau.getByRole('button', { name: 'Comparer Indigo et Azur', exact: true }).click();
+    await panneau.getByRole('button', { name: 'Comparer Bleu et Azur', exact: true }).click();
     await limitesCalculees(carteReglages(page));
     await deplierLaRoue(page);
-    const constats = carteComparaison(page).locator('.constat-de-comparaison');
-    const avertissement = await constats.first().evaluate((constat) => constat.getBoundingClientRect().height);
     const repos = await miseEnPage(page);
     assert.equal(repos.figee, false);
     const avant = await compte(page);
-    const depart = await placeDuPoint(page, 'Indigo');
+    const depart = await placeDuPoint(page, 'Bleu');
     await page.mouse.move(depart.x, depart.y);
     await page.mouse.down();
     // Sortir de la zone éteint le constat : la roue ne bouge pas, les cartes gardent leur hauteur.
-    const arrivee = await placeDuPoint(page, 'Indigo', 12);
+    const arrivee = await placeDuPoint(page, 'Bleu', 25);
     await page.mouse.move(arrivee.x, arrivee.y, { steps: 6 });
     await carteComparaison(page).locator('.constat-de-comparaison[data-ton="succes"]').waitFor();
     const enGeste = await miseEnPage(page);
@@ -928,18 +932,17 @@ test('[UI-44] pendant un glisser de la roue, aucune carte ne change de hauteur ;
     await page.mouse.up();
     const demande = await prochaine(page, avant);
     await envoyer(page, rangee(demande.demande));
-    // Rangée, la hauteur se libère : la carte Aperçu a la hauteur de son nouveau constat, et la roue la suit.
+    // Rangée, la zone des constats garde sa plus grande hauteur depuis l'entrée : la carte Aperçu et la roue ne bougent pas.
     const fin = await miseEnPage(page);
     assert.equal(fin.figee, false);
     assert.equal(await carteComparaison(page).evaluate((carte) => carte.style.height), '');
-    const succes = await constats.first().evaluate((constat) => constat.getBoundingClientRect().height);
-    assert.ok(succes < avertissement, 'le constat de succès est plus court que l’avertissement');
-    assert.ok(fin.roue < repos.roue, 'la roue remonte avec la carte Aperçu');
+    assert.deepEqual(fin.hauteurs, repos.hauteurs);
+    assert.equal(fin.roue, repos.roue);
     // Échap libère aussi la hauteur.
-    const depart2 = await placeDuPoint(page, 'Indigo');
+    const depart2 = await placeDuPoint(page, 'Bleu');
     await page.mouse.move(depart2.x, depart2.y);
     await page.mouse.down();
-    const loin = await placeDuPoint(page, 'Indigo', -12);
+    const loin = await placeDuPoint(page, 'Bleu', 15);
     await page.mouse.move(loin.x, loin.y, { steps: 6 });
     await carteComparaison(page).locator('.constat-de-comparaison[data-ton="avertissement"]').waitFor();
     assert.equal((await miseEnPage(page)).figee, true);
@@ -950,21 +953,21 @@ test('[UI-44] pendant un glisser de la roue, aucune carte ne change de hauteur ;
   } finally { await page.close(); }
 });
 
-test('[UI-44] pendant un glisser d’une réglette, ni les réglettes ni la roue ne bougent quand « Annuler les modifications » paraît ou qu’un constat change', async () => {
+test('[UI-44] pendant un glisser d’une réglette, ni les réglettes ni la roue ne bougent quand « Annuler les modifications » s’active ou qu’un constat change', async () => {
   const page = await ouvrirHarmonisationSurTroisPalettes();
   try {
     const panneau = page.locator('#panneau-harmonisation');
-    await panneau.getByRole('button', { name: 'Comparer Indigo et Azur', exact: true }).click();
+    await panneau.getByRole('button', { name: 'Comparer Bleu et Azur', exact: true }).click();
     const carte = carteReglages(page);
     await limitesCalculees(carte);
     await deplierLaRoue(page);
-    assert.equal(await carte.locator('.tete-des-reglages').isVisible(), false);
+    assert.equal(await carte.getByRole('button', { name: 'Annuler les modifications', exact: true }).isDisabled(), true);
     const repos = await miseEnPage(page);
     const avant = await compte(page);
     const depart = await abscisseDe(page, 0);
     await page.mouse.move(depart.x, depart.y);
     await page.mouse.down();
-    const arrivee = await abscisseDe(page, 10);
+    const arrivee = await abscisseDe(page, 25);
     await page.mouse.move(arrivee.x, arrivee.y, { steps: 5 });
     await carteComparaison(page).locator('.constat-de-comparaison[data-ton="succes"]').waitFor();
     const enGeste = await miseEnPage(page);
@@ -974,12 +977,12 @@ test('[UI-44] pendant un glisser d’une réglette, ni les réglettes ni la roue
     await page.mouse.up();
     const demande = await prochaine(page, avant);
     await envoyer(page, rangee(demande.demande));
-    // Le geste fini, le bouton paraît et la mise en page suit.
-    assert.equal(await carte.locator('.tete-des-reglages').isVisible(), true);
+    // Le geste fini, le bouton s’active et la mise en page suit.
+    assert.equal(await carte.getByRole('button', { name: 'Annuler les modifications', exact: true }).isEnabled(), true);
     const fin = await miseEnPage(page);
     assert.equal(fin.figee, false);
     const hauteurDeReglages = (page) => carteReglages(page).evaluate((element) => element.getBoundingClientRect().height);
-    assert.ok(await hauteurDeReglages(page) > repos.hauteurs[3], 'la carte Réglages grandit du bouton qui paraît');
+    assert.equal(await hauteurDeReglages(page), repos.hauteurs[3], 'la carte Réglages garde sa hauteur : le bouton était déjà là');
   } finally { await page.close(); }
 });
 
@@ -987,7 +990,7 @@ test('[UI-43] sans place pour une cinquième palette rien ne se saisit ; une pal
   const page = await ouvrirHarmonisationSurVingtPalettes();
   try {
     const panneau = page.locator('#panneau-harmonisation');
-    await panneau.getByRole('button', { name: 'Comparer Indigo et Azur', exact: true }).click();
+    await panneau.getByRole('button', { name: 'Comparer Bleu et Azur', exact: true }).click();
     for (const nom of ['Rose', 'Vert']) await coche(panneau, nom);
     await deplierLaRoue(page);
     const avant = await compte(page);
@@ -996,7 +999,7 @@ test('[UI-43] sans place pour une cinquième palette rien ne se saisit ; une pal
     await page.mouse.down();
     await page.mouse.up();
     assert.equal(await panneau.locator('.pied-de-carte .ligne-secondaire').textContent(), 'Quatre palettes au plus : décochez-en une.');
-    assert.deepEqual(await cochees(page), ['Vert', 'Azur', 'Indigo', 'Rose']);
+    assert.deepEqual(await cochees(page), ['Vert', 'Bleu', 'Azur', 'Rose']);
     await pointDeLaRoue(page, 'Jaune').focus();
     await page.keyboard.press('ArrowRight');
     assert.equal(await compte(page), avant, 'le clavier ne saisit pas non plus');
@@ -1004,14 +1007,14 @@ test('[UI-43] sans place pour une cinquième palette rien ne se saisit ; une pal
   const figee = await ouvrir(MINIMALE);
   try {
     const lu = structuredClone(messageDe('harmonisation-paire'));
-    const [azur, indigo] = ['Azur', 'Indigo'].map((nom) => lu.classement.recette.palettes.find((palette) => palette.nom === nom));
+    const [azur, bleu] = ['Azur', 'Bleu'].map((nom) => lu.classement.recette.palettes.find((palette) => palette.nom === nom));
     Object.assign(azur, { intensites: 1, crans: lu.classement.recette.crans, figees: { light: ['#F0F6FF', '#DCE9FF', '#B9D2FF', '#8FB4F5', '#5E90E8', '#3B72D6', '#2259B8', '#1B4690', '#173A73', '#142F5C', '#0E2142'] } });
-    Object.assign(indigo, { crans: [100, 300, 500, 700, 900] });
+    Object.assign(bleu, { crans: [100, 300, 500, 700, 900] });
     await envoyer(figee, lu);
     await figee.locator('#onglet-harmonisation').click();
-    for (const nom of ['Indigo', 'Azur']) await coche(figee.locator('#panneau-harmonisation'), nom);
+    for (const nom of ['Bleu', 'Azur']) await coche(figee.locator('#panneau-harmonisation'), nom);
     await deplierLaRoue(figee);
-    assert.equal(await pointDeLaRoue(figee, 'Indigo').getAttribute('aria-disabled'), 'false', 'une palette libre paraît comme les autres');
+    assert.equal(await pointDeLaRoue(figee, 'Bleu').getAttribute('aria-disabled'), 'false', 'une palette libre paraît comme les autres');
     assert.equal(await pointDeLaRoue(figee, 'Azur').getAttribute('aria-disabled'), 'true');
     assert.equal(await pointDeLaRoue(figee, 'Azur').getAttribute('tabindex'), '-1');
     const avantFigee = await compte(figee);
@@ -1023,7 +1026,7 @@ test('[UI-43] sans place pour une cinquième palette rien ne se saisit ; une pal
     await figee.mouse.up();
     await figee.evaluate(() => new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve))));
     assert.equal(await compte(figee), avantFigee);
-    assert.equal(await carteReglages(figee).locator('.carte-choix [aria-pressed="true"]').textContent(), 'Indigo', 'la palette à régler ne change pas');
+    assert.equal(await carteReglages(figee).locator('.carte-choix [aria-pressed="true"]').textContent(), 'Bleu', 'la palette à régler ne change pas');
   } finally { await figee.close(); }
 });
 
@@ -1036,9 +1039,9 @@ test('[UI-43] la roue se traduit en anglais et tient dans la fenêtre minimale',
     await deplierLaRoue(page, 'Hue wheel');
     assert.equal(await carte.locator('.choix-libelle').textContent(), 'Vision');
     assert.deepEqual(await carte.locator('select.input option').allTextContents(), ['Normal', 'Deuteranopia', 'Protanopia', 'Tritanomaly']);
-    assert.deepEqual(await carte.locator('text.roue-famille').allTextContents(), ['pink', 'red', 'orange', 'yellow', 'green', 'turquoise', 'blue', 'purple']);
-    assert.equal(await pointDeLaRoue(page, 'Indigo', 'Hue of').getAttribute('aria-label'), 'Hue of Indigo');
-    assert.equal(await carte.locator('path title', { hasText: 'Indigo and Azur: too close' }).count(), 1);
+    assert.equal(await carte.locator('text.roue-famille').count(), 0);
+    assert.equal(await pointDeLaRoue(page, 'Bleu', 'Hue of').getAttribute('aria-label'), 'Hue of Bleu');
+    assert.equal(await carte.locator('path title', { hasText: 'Bleu and Azur: too close' }).count(), 1);
     assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth), true);
   } finally { await page.close(); }
 });
@@ -1047,14 +1050,14 @@ test('[UI-44] un point se règle au clavier : flèches de 1°, Maj de 10°, nom 
   const page = await ouvrirHarmonisationSurTroisPalettes();
   try {
     const panneau = page.locator('#panneau-harmonisation');
-    await panneau.getByRole('button', { name: 'Comparer Indigo et Azur', exact: true }).click();
+    await panneau.getByRole('button', { name: 'Comparer Bleu et Azur', exact: true }).click();
     await limitesCalculees(carteReglages(page));
     await deplierLaRoue(page);
-    const indigo = pointDeLaRoue(page, 'Indigo');
-    assert.equal(await indigo.getAttribute('role'), 'slider');
-    assert.equal(await indigo.getAttribute('tabindex'), '0');
-    assert.deepEqual([await indigo.getAttribute('aria-valuemin'), await indigo.getAttribute('aria-valuemax'), await indigo.getAttribute('aria-valuenow')], ['-30', '30', '0']);
-    await indigo.focus();
+    const bleu = pointDeLaRoue(page, 'Bleu');
+    assert.equal(await bleu.getAttribute('role'), 'slider');
+    assert.equal(await bleu.getAttribute('tabindex'), '0');
+    assert.deepEqual([await bleu.getAttribute('aria-valuemin'), await bleu.getAttribute('aria-valuemax'), await bleu.getAttribute('aria-valuenow')], ['-30', '30', '0']);
+    await bleu.focus();
     /** Une touche sur le point focalisé : la demande de rangement reçoit sa réponse, et le focus reste sur le point. */
     async function toucher(touche) {
       const rang = await compte(page);
@@ -1062,12 +1065,12 @@ test('[UI-44] un point se règle au clavier : flèches de 1°, Maj de 10°, nom 
       const demande = await prochaine(page, rang);
       assert.equal(demande.type, 'ranger-recette');
       await envoyer(page, rangee(demande.demande));
-      assert.equal(await page.evaluate(() => document.activeElement?.getAttribute('aria-label')), 'Teinte de Indigo', 'le focus reste sur le point');
-      return demande.recette.palettes.find((palette) => palette.nom === 'Indigo').reglages?.teinte;
+      assert.equal(await page.evaluate(() => document.activeElement?.getAttribute('aria-label')), 'Teinte de Bleu', 'le focus reste sur le point');
+      return demande.recette.palettes.find((palette) => palette.nom === 'Bleu').reglages?.teinte;
     }
     assert.deepEqual(await toucher('ArrowRight'), { soft: 1, vivid: 1 });
-    assert.equal(await indigo.getAttribute('aria-valuenow'), '1');
-    assert.equal(await indigo.getAttribute('aria-valuetext'), '+1°');
+    assert.equal(await bleu.getAttribute('aria-valuenow'), '1');
+    assert.equal(await bleu.getAttribute('aria-valuetext'), '+1°');
     assert.deepEqual(await toucher('Shift+ArrowRight'), { soft: 11, vivid: 11 });
     assert.deepEqual(await toucher('ArrowDown'), { soft: 10, vivid: 10 });
     assert.equal(await toucher('Shift+ArrowLeft'), undefined, 'revenu à 0°, la palette n’a plus de réglage de teinte');
@@ -1078,14 +1081,14 @@ test('[UI-44] un point se règle au clavier : flèches de 1°, Maj de 10°, nom 
 test('[UI-44] un point saisi au clavier coche sa palette et la met dans « Régler »', async () => {
   const page = await ouvrirHarmonisationSurVingtPalettes();
   try {
-    await page.locator('#panneau-harmonisation').getByRole('button', { name: 'Comparer Indigo et Azur', exact: true }).click();
+    await page.locator('#panneau-harmonisation').getByRole('button', { name: 'Comparer Bleu et Azur', exact: true }).click();
     await deplierLaRoue(page);
     const avant = await compte(page);
     await pointDeLaRoue(page, 'Rose').focus();
     await page.keyboard.press('ArrowRight');
     const demande = await prochaine(page, avant);
     assert.deepEqual(demande.recette.palettes.find((palette) => palette.nom === 'Rose').reglages.teinte, { soft: 1, vivid: 1 });
-    assert.deepEqual(await cochees(page), ['Azur', 'Indigo', 'Rose']);
+    assert.deepEqual(await cochees(page), ['Bleu', 'Azur', 'Rose']);
     assert.deepEqual(await carteReglages(page).locator('.carte-choix [aria-pressed="true"]').allTextContents(), ['Rose']);
   } finally { await page.close(); }
 });
@@ -1110,7 +1113,7 @@ test('[UI-44] l’onglet nomme ses cases par la palette, groupe ses bascules en 
     await rangees.filter({ hasText: 'Rose' }).locator('.nom').click();
     assert.equal(await panneau.locator('.liste').getByRole('checkbox', { name: 'Rose', exact: true }).isChecked(), true);
     // Bascules : un seul segment pressé par groupe, annoncé par aria-pressed.
-    await panneau.getByRole('button', { name: 'Comparer Indigo et Azur', exact: true }).click();
+    await panneau.getByRole('button', { name: 'Comparer Bleu et Azur', exact: true }).click();
     const groupes = panneau.locator('[role="group"]:visible:has(.bascule-option)');
     assert.equal(await groupes.count(), 4, 'intensité, thème, affichage et palette à régler');
     for (const groupe of await groupes.all()) {
@@ -1178,7 +1181,7 @@ test('[VAR-08] une palette dont le plan prend le nom d’une autre palette annon
     await ouvrirLaPlanche(page);
     const fiche = page.locator('.palette-depliable[data-palette="p-5c1d0e77"]');
     const ligne = fiche.locator('.sortie[data-sortie="tokens"]');
-    assert.equal(await ligne.locator('.pastille-d-etat').textContent(), 'Jamais écrits');
+    assert.equal(await ligne.locator('.pastille-d-etat').textContent(), 'Pas encore écrits');
     assert.equal(await ligne.locator('.sortie-detail').textContent(), 'Noms déjà pris par Jaune');
     assert.equal(await ligne.locator('[data-geste]').count(), 0);
     assert.match(await fiche.textContent(), /Tokens non écrits : Ardoise/);
@@ -1615,7 +1618,7 @@ test('[UI-30] S-A simule les chemins sans couleur et suit le groupe et les thèm
     assert.equal(await simulation.locator('.chemin-cree').count(), 4);
     assert.deepEqual(await simulation.locator('.chemin-compte').allTextContents(), ['11', '11', '11', '11']);
     assert.match(await simulation.textContent(), /44 variables · 1 mode/);
-    assert.match(await simulation.locator('.chemin-cree').first().textContent(), /colors \/ Bleu \/ soft \/ light \/ 50 … 950/);
+    assert.match(await simulation.locator('.chemin-cree').first().textContent(), /color \/ Bleu \/ soft \/ light \/ 50 … 950/);
     assert.equal(await simulation.locator('.valeur, [style*="background"]').count(), 0);
     await page.getByRole('button', { name: 'En modes', exact: true }).click();
     assert.equal(await simulation.locator('.chemin-cree').count(), 2);
@@ -1628,17 +1631,21 @@ test('[UI-30] S-A simule les chemins sans couleur et suit le groupe et les thèm
   } finally { await page.close(); }
 });
 
-/** Choisit la première palette de la liste, comme le designer : l'onglet Création n'en ouvre aucune de lui-même ([UI-06]). */
-async function ouvrirLaPremierePalette(page) {
+/**
+ * Choisit la première palette de la recette du message, comme le designer : l'onglet Création n'en ouvre aucune de lui-même ([UI-06]).
+ * Par son identifiant : Création range les palettes par teinte, et la première carte n'est pas la première de la recette.
+ */
+async function ouvrirLaPremierePalette(page, message) {
+  const id = message.classement.recette.palettes[0].id;
   // Par son identifiant : l'onglet se nomme « Create » en anglais.
   await page.locator('#onglet-creation').click();
-  // Sur l'accueil, la barre est masquée : la première carte du nuancier ouvre la première palette.
+  // Sur l'accueil, la barre est masquée : la carte du nuancier ouvre la palette.
   const accueil = page.locator('#panneau-creation .accueil-de-creation');
   await page.locator('#panneau-creation .accueil-de-creation:visible, .selecteur-bouton:visible').first().waitFor();
-  if (await accueil.isVisible()) await accueil.locator('.nuancier-carte').first().click();
+  if (await accueil.isVisible()) await accueil.locator(`.nuancier-carte[data-palette="${id}"]`).click();
   else {
     await page.locator('.selecteur-bouton').click();
-    await page.locator('.selecteur-option').first().click();
+    await page.locator(`#option-${id}`).click();
   }
   await page.locator('#panneau-creation .tete-de-la-palette .titre-de-premier-rang').waitFor();
 }
@@ -1653,7 +1660,7 @@ async function ouvrirSur(id, viewport, { sansPalette = false } = {}) {
   if (sansPalette) {
     await page.getByRole('tab', { name: 'Création', exact: true }).click();
     await page.locator('#panneau-creation .accueil-de-creation:visible, .selecteur-bouton:visible').first().waitFor();
-  } else await ouvrirLaPremierePalette(page);
+  } else await ouvrirLaPremierePalette(page, messageDe(id));
   return page;
 }
 
@@ -2617,7 +2624,8 @@ test('l’en-tête de l’aperçu et celui de la carte des garanties n’ont auc
       assert.equal(await enTete.locator('.bascule, .bascule-option').count(), 0);
       assert.equal(await enTete.getByRole('button', { name: /^Thème (Light|Dark)$/ }).count(), 0);
     };
-    await sansBoutonDeTheme(page.locator('[aria-label="Aperçu"]'));
+    // Harmonisation a aussi une carte « Aperçu » : celle de Création seulement.
+    await sansBoutonDeTheme(carteDeLOnglet(page, 'Aperçu'));
     await ouvrirLaVerification(page);
     await sansBoutonDeTheme(carteDesGaranties(page));
   } finally {
@@ -3051,7 +3059,7 @@ test('[UI-03] un nom de palette long ne pousse ni les gestes ni le champ du nom 
     const message = structuredClone(messageDe('alertes-seules'));
     message.classement.recette.palettes[0].nom = 'Jaune principal de la marque, déclinaison institutionnelle';
     await envoyer(page, message);
-    await ouvrirLaPremierePalette(page);
+    await ouvrirLaPremierePalette(page, message);
     // Le bord droit du contenu est celui de l'en-tête : il est hors des grilles de l'onglet.
     const enTete = await page.locator('.header').boundingBox();
     const largeur = enTete.x + enTete.width;
@@ -3071,7 +3079,7 @@ test('[UI-06] à 500 px, la liste prend la largeur libre, les deux gestes ont sa
     const message = structuredClone(messageDe('alertes-seules'));
     message.classement.recette.palettes[0].nom = 'Jaune principal de la marque, déclinaison institutionnelle';
     await envoyer(page, message);
-    await ouvrirLaPremierePalette(page);
+    await ouvrirLaPremierePalette(page, message);
     const liste = await page.locator('.selecteur-bouton').boundingBox();
     const nouvelle = await page.getByRole('button', { name: 'Nouvelle palette', exact: true }).boundingBox();
     const menu = await page.getByRole('button', { name: 'Actions sur la palette' }).boundingBox();
@@ -3380,7 +3388,7 @@ test('[UI-11] [VER-15] un message de Vérification qui mène à la référence d
     // Une copie de Jaune à une nuance près : l’alerte « palettes proches » mène à la couleur de référence.
     lu.classement.recette.palettes.push({ ...lu.classement.recette.palettes[0], id: 'p-0cc0ffee', nom: 'Jaune bis', reference: '#FACC16' });
     await envoyer(page, lu);
-    await ouvrirLaPremierePalette(page);
+    await ouvrirLaPremierePalette(page, lu);
     await bascule(page, 'Configuration de la palette').click();
     assert.equal((await etatDeLaConfiguration(page)).ouverte, 'false');
     await ouvrirLaVerification(page);
@@ -3876,7 +3884,7 @@ test('[DER-05] deux profils déliés tracent deux lignes, et les poignées porte
   const page = await ouvrir();
   try {
     await envoyer(page, messageDe('derive-deliee-libre'));
-    await ouvrirLaPremierePalette(page);
+    await ouvrirLaPremierePalette(page, messageDe('derive-deliee-libre'));
     await deplier(page);
     assert.deepEqual(await page.evaluate(() => [...document.querySelectorAll('.derive-trait')].map((trait) => trait.getAttribute('class'))), [
       'derive-trait derive-trait-soft',
@@ -3892,7 +3900,7 @@ test('[DER-14] une référence plus sombre que le bout sombre masque la poignée
   const page = await ouvrir();
   try {
     await envoyer(page, messageDe('reference-hors-rampe'));
-    await ouvrirLaPremierePalette(page);
+    await ouvrirLaPremierePalette(page, messageDe('reference-hors-rampe'));
     await deplier(page);
     assert.deepEqual(await page.evaluate(() => [...document.querySelectorAll('.derive-poignee')].map((poignee) => poignee.dataset.bout)), ['clair']);
     // La référence exacte porte la dernière nuance claire : le pivot tombe dans cette colonne ([DER-02]).
@@ -4145,7 +4153,7 @@ test('[DER-03] à ±90°, les poignées et leurs étiquettes restent dans le cad
       const message = structuredClone(messageDe('derive-deliee-libre'));
       message.classement.recette.palettes[0].derive.vivid = { clair, sombre, origine: 'libre' };
       await envoyer(page, message);
-      await ouvrirLaPremierePalette(page);
+      await ouvrirLaPremierePalette(page, message);
       await deplier(page);
       const dehors = await page.evaluate(() => {
         const cadre = document.querySelector('.derive-graphe').getBoundingClientRect();
@@ -5512,10 +5520,11 @@ test('Z1.5 : « À jour » a le fond de succès, distinct de celui des notes ; �
   try {
     await ouvrirLaPlanche(page);
     const pastilles = pastilleDeLaPlanche(page.locator('.palette-depliable[data-palette]'));
-    assert.deepEqual(await pastilles.allTextContents(), ['À jour', 'À actualiser', 'Pas encore créée', 'Introuvable', 'Lecture impossible']);
+    // Gestion range les fiches par nom.
+    assert.deepEqual(await pastilles.allTextContents(), ['Pas encore créée', 'À jour', 'À actualiser', 'Introuvable', 'Lecture impossible']);
     for (const theme of ['clair', 'sombre']) {
       if (theme === 'sombre') await page.evaluate(() => document.documentElement.classList.add('figma-dark'));
-      const [aJour, perimee, jamais, introuvable, illisible] = await pastilles.evaluateAll((elements, source) => elements.map(new Function(`return ${source}`)()), couleursCalculees.toString());
+      const [jamais, aJour, perimee, introuvable, illisible] =await pastilles.evaluateAll((elements, source) => elements.map(new Function(`return ${source}`)()), couleursCalculees.toString());
       const roles = aJour.roles;
       assert.equal(aJour.fond, roles['--fond-succes'], `thème ${theme} : « À jour » sur le fond de succès`);
       assert.notEqual(aJour.fond, roles['--fond-note'], `thème ${theme} : « À jour » distinct du fond des notes`);
@@ -5581,7 +5590,8 @@ const vueDeLaCreation = (page) => page.evaluate(() => {
   };
 });
 
-const ACCUEIL = ['Nouvelle palette', 'Partez d’une couleur de référence.', 'Vos palettes', '3', 'Bleu', 'Jaune', 'Ardoise'];
+// Les cartes par teinte : Jaune avant Bleu, Ardoise sans teinte à la fin.
+const ACCUEIL = ['Nouvelle palette', 'Partez d’une couleur de référence.', 'Vos palettes', '3', 'Jaune', 'Bleu', 'Ardoise'];
 
 test('Z2.5 [UI-06] à l’ouverture, aucune palette n’est choisie : l’accueil, sans barre, sans menu ni palette', async () => {
   const page = await ouvrirSur('sans-palette-choisie', PAR_DEFAUT, { sansPalette: true });
@@ -5631,7 +5641,7 @@ test('Z2.5 [UI-06] la palette choisie disparue, par un import ou une autre sessi
     await envoyer(page, { ...sansBleu, demande: 2 });
     assert.deepEqual(await vueDeLaCreation(page), { selecteur: 'Sélectionner une palette', accueil: ['Nouvelle palette', 'Partez d’une couleur de référence.', 'Vos palettes', '2', 'Jaune', 'Ardoise'], menu: false, nouvelle: false, palette: false });
 
-    await ouvrirLaPremierePalette(page);
+    await ouvrirLaPremierePalette(page, sansBleu);
     assert.equal(await page.locator('.selecteur-nom').textContent(), 'Jaune');
     await page.getByRole('button', { name: 'Actions sur la palette' }).click();
     await page.getByRole('menuitem', { name: 'Supprimer la palette' }).click();
@@ -6708,7 +6718,7 @@ test('Z10.6 [ENT-14] une palette à une intensité a la carte, sans choix de pro
 async function ouvrirSurEn(id, viewport, langue) {
   const page = await ouvrir(viewport, langue);
   await page.evaluate((message) => window.postMessage({ pluginMessage: message }, '*'), messageDe(id));
-  await ouvrirLaPremierePalette(page);
+  await ouvrirLaPremierePalette(page, messageDe(id));
   return page;
 }
 
@@ -8041,7 +8051,7 @@ test('[VAR-13] « Retrouver les réglages » : un écart nul range la palette sa
       for (const mode of ['light', 'dark']) assert.deepEqual(hexasDe(rampes, profil, mode), figee.figees[profil][mode], `${profil} ${mode}`);
     }
     assert.equal(await retour(page).textContent(), 'Réglages retrouvés. Aucune couleur ne change.');
-    assert.equal(await page.locator('#panneau-creation [data-encart="reprise"]').isHidden(), true, 'les tokens sont à jour : l’encart se masque');
+    assert.equal(await page.locator('#panneau-creation [data-encart="reprise"]').isVisible(), true, 'l’encart reste pour une palette reprise : il porte « Passer au format du plugin »');
   } finally { await page.close(); }
 });
 
@@ -8073,7 +8083,7 @@ test('[VAR-13] « Retrouver les réglages » sans Dark à l’origine : Light ex
     const lu = structuredClone(messageDe('reprise-figee-deux-intensites'));
     lu.classement.recette.palettes[0] = SAUGE.palette('light');
     await envoyer(page, lu);
-    await ouvrirLaPremierePalette(page);
+    await ouvrirLaPremierePalette(page, lu);
     const avant = await compte(page);
     await page.locator('#panneau-creation [data-geste="retrouver"]').click();
     const demande = await prochaineDuType(page, 'ranger-recette', avant);
@@ -8172,30 +8182,31 @@ const vueDuBilan = (page) => page.evaluate(() => {
   };
 });
 
-const NOMS_DES_VINGT = ['Bleu', 'Jaune', 'Rouge', 'Violet', 'Cyan', 'Ardoise', 'Rose', 'Indigo', 'Lime', 'Teal', 'Fuchsia', 'Pourpre', 'Sable', 'Marine', 'Cuivre', 'Moutarde', 'Vert', 'Grenat', 'Azur', 'Feuille'];
-const ETATS_DES_CARTES = { Violet: 'rouge', Vert: 'rouge', Feuille: 'rouge', Bleu: 'ambre', Jaune: 'ambre', Rouge: 'ambre', Cyan: 'ambre', Rose: 'ambre', Indigo: 'ambre', Teal: 'ambre', Pourpre: 'ambre', Marine: 'ambre', Cuivre: 'ambre', Azur: 'ambre' };
-const NOMS_A_VERIFIER = ['Bleu', 'Jaune', 'Rouge', 'Cyan', 'Rose', 'Indigo', 'Teal', 'Pourpre', 'Marine', 'Cuivre', 'Azur'];
-const NOMS_CONFORMES = ['Ardoise', 'Lime', 'Fuchsia', 'Sable', 'Moutarde', 'Grenat'];
-const CONSTATS_A_VERIFIER = ['trop proche d’Azur', 'trop proche de Cuivre', 'trop proche de Cuivre', 'trop proche de Teal', 'Soft et Vivid sont presque identiques sur ces fonds teintés.', 'trop proche de Marine', 'trop proche de Cyan', 'trop proche de Violet', 'trop proche d’Azur', 'trop proche de Jaune', 'trop proche de Bleu'];
+// Par teinte, du rouge au rose, puis les palettes sans teinte : l'ordre du nuancier et du détail.
+const NOMS_DES_VINGT = ['Rouge', 'Cuivre', 'Jaune', 'Moutarde', 'Lime', 'Vert', 'Feuille', 'Teal', 'Cyan', 'Bleu', 'Azur', 'Marine', 'Indigo', 'Violet', 'Pourpre', 'Fuchsia', 'Grenat', 'Rose', 'Ardoise', 'Sable'];
+const ETATS_DES_CARTES = { Cuivre: 'ambre', Jaune: 'ambre', Vert: 'ambre', Feuille: 'ambre', Bleu: 'ambre', Azur: 'ambre', Marine: 'ambre', Indigo: 'ambre', Violet: 'rouge', Pourpre: 'ambre', Grenat: 'rouge', Rose: 'ambre' };
+const NOMS_A_VERIFIER = ['Cuivre', 'Jaune', 'Vert', 'Feuille', 'Bleu', 'Azur', 'Marine', 'Indigo', 'Pourpre', 'Rose'];
+const NOMS_CONFORMES = ['Rouge', 'Moutarde', 'Lime', 'Teal', 'Cyan', 'Fuchsia', 'Ardoise', 'Sable'];
+const CONSTATS_A_VERIFIER = ['trop proche de Jaune', 'trop proche de Cuivre', 'trop proche de Feuille', 'trop proche de Vert', 'trop proche d’Azur', 'trop proche de Bleu', 'trop proche d’Azur', 'trop proche de Marine', 'trop proche de Violet', 'Soft et Vivid sont presque identiques sur ces fonds teintés.'];
 const nomsDesCartes = (vue, filtre) => vue.cartes.filter(filtre).map((carte) => carte.nom);
 
 test('V3a [VER-18] sans palette ouverte, Vérification montre le bilan : « À corriger » actif, ses cartes en couleur, les autres atténuées, une ligne de détail par palette à corriger', async () => {
   const page = await ouvrirLeBilan('verification-bilan-a-corriger');
   try {
     const vue = await vueDuBilan(page);
-    assert.deepEqual(vue.onglets, [['rouge', 'À corriger', '3', 'true', true], ['ambre', 'À vérifier', '11', 'false', true], ['conforme', 'Conformes', '6', 'false', false]]);
-    assert.deepEqual(vue.cartes.map((carte) => carte.nom), NOMS_DES_VINGT, 'toutes les palettes, dans l’ordre de la recette');
+    assert.deepEqual(vue.onglets, [['rouge', 'À corriger', '2', 'true', true], ['ambre', 'À vérifier', '10', 'false', true], ['conforme', 'Conformes', '8', 'false', false]]);
+    assert.deepEqual(vue.cartes.map((carte) => carte.nom), NOMS_DES_VINGT, 'toutes les palettes, par teinte');
     assert.deepEqual(Object.fromEntries(vue.cartes.filter((carte) => carte.etat).map((carte) => [carte.nom, carte.etat])), ETATS_DES_CARTES);
-    assert.deepEqual(nomsDesCartes(vue, (carte) => !carte.attenuee), ['Violet', 'Vert', 'Feuille']);
-    assert.equal(vue.cartes.filter((carte) => carte.attenuee).length, 17);
+    assert.deepEqual(nomsDesCartes(vue, (carte) => !carte.attenuee), ['Violet', 'Grenat']);
+    assert.equal(vue.cartes.filter((carte) => carte.attenuee).length, 18);
     assert.equal(vue.cartes.find((carte) => carte.nom === 'Violet').nomAccessible, 'Violet, à corriger');
     assert.equal(vue.cartes.find((carte) => carte.nom === 'Bleu').nomAccessible, 'Bleu, à vérifier');
     assert.equal(vue.cartes.find((carte) => carte.nom === 'Ardoise').nomAccessible, 'Ardoise');
-    assert.deepEqual(vue.detail.map((ligne) => [ligne.nom, ligne.bouton, ligne.nomDuBouton, ligne.aplats]), [['Violet', 'Vérifier', 'Vérifier Violet', 3], ['Vert', 'Vérifier', 'Vérifier Vert', 3], ['Feuille', 'Vérifier', 'Vérifier Feuille', 3]]);
-    assert.deepEqual(vue.detail.map((ligne) => ligne.constat), ['Dark · anneau de focus, 2,99:1', 'Light · texte coloré, 4,40:1', 'Light · texte coloré, 4,40:1']);
+    assert.deepEqual(vue.detail.map((ligne) => [ligne.nom, ligne.bouton, ligne.nomDuBouton, ligne.aplats]), [['Violet', 'Vérifier', 'Vérifier Violet', 3], ['Grenat', 'Vérifier', 'Vérifier Grenat', 3]]);
+    assert.deepEqual(vue.detail.map((ligne) => ligne.constat), ['Light · texte sur fond teinté, 4,25:1', 'Light · texte sur fond teinté, 4,14:1']);
     assert.equal(vue.toutConforme, null);
     // Un nom accessible qui dit le compte : « À corriger 2 ».
-    assert.equal(await page.getByRole('button', { name: 'À corriger 3', exact: true }).isVisible(), true);
+    assert.equal(await page.getByRole('button', { name: 'À corriger 2', exact: true }).isVisible(), true);
     // La barre du sélecteur reste en haut, l'invitation a laissé la place.
     assert.equal(await page.locator('#panneau-verification .barre-de-palette').isVisible(), true);
     assert.equal(await page.locator('#panneau-verification .selecteur-nom').textContent(), 'Sélectionner une palette');
@@ -8233,10 +8244,10 @@ test('V3a [VER-18] changer d’onglet atténue les autres cartes et change le d�
     let vue = await vueDuBilan(page);
     assert.deepEqual(vue.onglets.map(([etat, , , presse]) => [etat, presse]), [['rouge', 'false'], ['ambre', 'true'], ['conforme', 'false']]);
     assert.deepEqual(nomsDesCartes(vue, (carte) => !carte.attenuee), NOMS_A_VERIFIER);
-    assert.equal(vue.cartes.filter((carte) => carte.attenuee).length, 9);
+    assert.equal(vue.cartes.filter((carte) => carte.attenuee).length, 10);
     assert.deepEqual(Object.fromEntries(vue.cartes.filter((carte) => carte.etat).map((carte) => [carte.nom, carte.etat])), ETATS_DES_CARTES, 'les points ne changent pas avec l’onglet');
     assert.deepEqual(vue.detail.map((ligne) => ligne.nom), NOMS_A_VERIFIER);
-    assert.deepEqual(vue.detail.map((ligne) => ligne.constat), CONSTATS_A_VERIFIER, 'une paire trop proche met ses deux palettes à vérifier, et la plus proche est nommée en premier');
+    assert.deepEqual(vue.detail.map((ligne) => ligne.constat), CONSTATS_A_VERIFIER, 'une paire trop proche met ses deux palettes à vérifier ; Pourpre nomme Violet, à corriger');
     assert.equal(await page.evaluate(() => document.activeElement.dataset.onglet), 'ambre', 'le clavier garde sa place sur l’onglet');
 
     await page.locator('.bilan-onglets [data-onglet="conforme"]').click();
@@ -8247,7 +8258,7 @@ test('V3a [VER-18] changer d’onglet atténue les autres cartes et change le d�
     assert.equal(await page.locator('#panneau-verification .bilan-ligne').count(), 0);
 
     await page.locator('.bilan-onglets [data-onglet="rouge"]').click();
-    assert.deepEqual((await vueDuBilan(page)).detail.map((ligne) => ligne.nom), ['Violet', 'Vert', 'Feuille']);
+    assert.deepEqual((await vueDuBilan(page)).detail.map((ligne) => ligne.nom), ['Violet', 'Grenat']);
   } finally { await page.close(); }
 });
 
@@ -8256,7 +8267,7 @@ test('V3a [VER-18] le choix du designer se retient tant que son onglet existe ; 
   try {
     const complet = messageDe('verification-bilan-a-corriger');
     const sansLesRouges = structuredClone(complet);
-    sansLesRouges.classement.recette.palettes = sansLesRouges.classement.recette.palettes.filter(({ nom }) => !['Violet', 'Vert', 'Feuille'].includes(nom));
+    sansLesRouges.classement.recette.palettes = sansLesRouges.classement.recette.palettes.filter(({ nom }) => !['Violet', 'Grenat'].includes(nom));
     const actifs = async () => (await vueDuBilan(page)).onglets.filter(([, , , presse]) => presse === 'true').map(([etat]) => etat);
 
     await page.locator('.bilan-onglets [data-onglet="ambre"]').click();
@@ -8266,9 +8277,9 @@ test('V3a [VER-18] le choix du designer se retient tant que son onglet existe ; 
     // Plus de garantie manquée : l'onglet « À corriger » disparaît, « À vérifier » reste actif.
     await envoyer(page, { ...sansLesRouges, demande: 3 });
     let vue = await vueDuBilan(page);
-    assert.deepEqual(vue.onglets.map(([etat, libelle, compte]) => [etat, libelle, compte]), [['ambre', 'À vérifier', '10'], ['conforme', 'Conformes', '7']]);
+    assert.deepEqual(vue.onglets.map(([etat, libelle, compte]) => [etat, libelle, compte]), [['ambre', 'À vérifier', '9'], ['conforme', 'Conformes', '9']]);
     assert.deepEqual(await actifs(), ['ambre']);
-    assert.equal(vue.cartes.length, 17);
+    assert.equal(vue.cartes.length, 18);
 
     // « Conformes » choisi, puis les garanties manquées reviennent : le choix tient.
     await page.locator('.bilan-onglets [data-onglet="conforme"]').click();
@@ -8283,7 +8294,7 @@ test('V3a [VER-18] le choix du designer se retient tant que son onglet existe ; 
     await envoyer(page, { ...complet, demande: 6 });
     assert.deepEqual(await actifs(), ['rouge'], 'À corriger redevient l’onglet par défaut');
     vue = await vueDuBilan(page);
-    assert.deepEqual(nomsDesCartes(vue, (carte) => !carte.attenuee), ['Violet', 'Vert', 'Feuille']);
+    assert.deepEqual(nomsDesCartes(vue, (carte) => !carte.attenuee), ['Violet', 'Grenat']);
   } finally { await page.close(); }
 });
 
@@ -8291,7 +8302,7 @@ test('V3a [VER-18] à l’ouverture sans garantie manquée, « À vérifier » e
   const page = await ouvrir(MINIMALE);
   try {
     const sansLesRouges = structuredClone(messageDe('verification-bilan-a-corriger'));
-    sansLesRouges.classement.recette.palettes = sansLesRouges.classement.recette.palettes.filter(({ nom }) => !['Violet', 'Vert', 'Feuille'].includes(nom));
+    sansLesRouges.classement.recette.palettes = sansLesRouges.classement.recette.palettes.filter(({ nom }) => !['Violet', 'Grenat'].includes(nom));
     await envoyer(page, sansLesRouges);
     await page.locator('#onglet-verification').click();
     await page.locator('#panneau-verification .bilan-des-palettes').waitFor();
@@ -8310,7 +8321,7 @@ test('V3a [VER-23] sur une palette trop proche, le lien dit « Comparer » et ou
     const lignes = page.locator('#panneau-verification .bilan-ligne');
     // Rose n’a pas de voisine : son constat compare Soft et Vivid, son lien reste « Vérifier ».
     assert.deepEqual(await lignes.locator('.bilan-verifier').allTextContents(), NOMS_A_VERIFIER.map((nom) => (nom === 'Rose' ? 'Vérifier' : 'Comparer')));
-    // Bleu est trop proche d’Azur et d’Indigo : la paire cochée est la plus proche, celle que le constat nomme.
+    // Bleu est trop proche d’Azur : la paire cochée est celle que le constat nomme.
     const bleu = lignes.filter({ hasText: 'Bleu' }).first();
     assert.equal(await bleu.locator('.bilan-ligne-constat').textContent(), 'trop proche d’Azur');
     await bleu.getByRole('button', { name: 'Comparer Bleu et Azur', exact: true }).click();
@@ -8326,18 +8337,18 @@ test('V3a [VER-18] une carte, au clic ou au clavier, et « Vérifier » ouvrent 
     const page = await ouvrirLeBilan('verification-bilan-a-corriger');
     try {
       const avant = await compte(page);
-      const nom = geste === 'verifier' ? 'Feuille' : 'Ardoise';
+      const nom = geste === 'verifier' ? 'Grenat' : 'Ardoise';
       if (geste === 'carte') await page.locator('#panneau-verification .nuancier-carte[title="Ardoise"]').click();
       else if (geste === 'clavier') {
         await page.locator('#panneau-verification .nuancier-carte[title="Ardoise"]').focus();
         await page.keyboard.press('Enter');
-      } else await page.locator('#panneau-verification .bilan-ligne').filter({ hasText: 'Feuille' }).getByRole('button', { name: 'Vérifier Feuille' }).click();
+      } else await page.locator('#panneau-verification .bilan-ligne').filter({ hasText: 'Grenat' }).getByRole('button', { name: 'Vérifier Grenat' }).click();
       await page.locator('#panneau-verification .tete-de-la-palette .titre-de-premier-rang').waitFor();
       assert.equal(await page.locator('#panneau-verification .tete-de-la-palette .titre-de-premier-rang').textContent(), `Palette ${nom}`, geste);
       assert.equal(await page.locator('#panneau-verification .bilan-des-palettes').isVisible(), false);
       assert.equal(await page.locator('#panneau-verification .selecteur-nom').textContent(), nom);
       assert.equal(await page.locator('#onglet-verification').getAttribute('aria-selected'), 'true', 'on reste dans Vérification');
-      assert.equal(await page.locator('#panneau-verification .verdict').getAttribute('data-ton'), nom === 'Feuille' ? 'danger' : 'succes');
+      assert.equal(await page.locator('#panneau-verification .verdict').getAttribute('data-ton'), nom === 'Grenat' ? 'danger' : 'succes');
       // Création ouvre la même palette que le sélecteur aurait ouverte.
       await page.locator('#onglet-creation').click();
       assert.equal(await page.locator('#panneau-creation .tete-de-la-palette .titre-de-premier-rang').textContent(), `Palette ${nom}`);
@@ -8369,16 +8380,16 @@ test('V3a [VER-18] le bilan suit la langue : onglets, nom accessible des cartes,
   const page = await ouvrirLeBilan('verification-bilan-a-corriger', { langue: 'en' });
   try {
     let vue = await vueDuBilan(page);
-    assert.deepEqual(vue.onglets.map(([etat, libelle, compte]) => [etat, libelle, compte]), [['rouge', 'To fix', '3'], ['ambre', 'To check', '11'], ['conforme', 'Passing', '6']]);
+    assert.deepEqual(vue.onglets.map(([etat, libelle, compte]) => [etat, libelle, compte]), [['rouge', 'To fix', '3'], ['ambre', 'To check', '10'], ['conforme', 'Passing', '7']]);
     assert.equal(vue.cartes.find((carte) => carte.nom === 'Violet').nomAccessible, 'Violet, to fix');
-    assert.equal(vue.detail[0].constat, 'Dark · focus ring, 2.99:1');
-    assert.match(vue.detail[1].constat, /^Light · .+, 4\.40:1$/);
-    assert.equal(vue.detail[0].nomDuBouton, 'Verify Violet');
+    assert.equal(vue.detail[2].constat, 'Dark · focus ring, 2.99:1');
+    assert.match(vue.detail[0].constat, /^Light · .+, 4\.40:1$/);
+    assert.equal(vue.detail[0].nomDuBouton, 'Verify Vert');
     assert.equal(vue.detail[0].bouton, 'Verify');
     await page.locator('.bilan-onglets [data-onglet="ambre"]').click();
     vue = await vueDuBilan(page);
-    assert.match(vue.detail[0].constat, /^too close to Azur$/);
-    assert.equal(vue.detail[4].constat, 'Soft and Vivid are almost identical on these tinted backgrounds.');
+    assert.match(vue.detail[0].constat, /^too close to Jaune$/);
+    assert.equal(vue.detail[9].constat, 'Soft and Vivid are almost identical on these tinted backgrounds.');
     // Le changement de langue en cours de route retraduit sans redessiner.
     await page.getByRole('button', { name: 'Settings', exact: true }).click();
     await page.getByRole('tab', { name: 'General', exact: true }).click();
@@ -8386,7 +8397,7 @@ test('V3a [VER-18] le bilan suit la langue : onglets, nom accessible des cartes,
     await page.getByRole('button', { name: 'Retour aux palettes' }).click();
     vue = await vueDuBilan(page);
     assert.deepEqual(vue.onglets.map(([etat, libelle]) => [etat, libelle]), [['rouge', 'À corriger'], ['ambre', 'À vérifier'], ['conforme', 'Conformes']]);
-    assert.match(vue.detail[0].constat, /^trop proche d’Azur$/);
+    assert.match(vue.detail[0].constat, /^trop proche de Jaune$/);
   } finally { await page.close(); }
   const conforme = await ouvrirLeBilan('verification-bilan-tout-conforme', { langue: 'en' });
   try {

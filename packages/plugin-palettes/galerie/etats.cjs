@@ -2025,14 +2025,6 @@ const REFERENCES_TOUT_CONFORME = {
 const identifiantDuBilan = (rang) => `p-b11a0${rang.toString(16).padStart(3, '0')}`;
 const PARTS_PRESQUE_EGALES = { soft: 0.5, vivid: 0.55, origine: 'designer' };
 
-/**
- * Les mêmes vingt palettes, trois remplacées : Vert et Feuille, dont la
- * clarté est relevée de 0,04 (CLARTE_FAUTIVE), manquent en Light le texte de
- * la page (G5, 4,40:1 pour 4,5:1 en Vivid) ; Azur et Bleu forment une paire
- * trop proche, et Indigo et Rose ont Soft et Vivid presque identiques
- * (à vérifier). Avec la règle des rôles, ce jeu compte huit paires trop proches
- * (dont Vert et Feuille, Bleu et Azur) ; sept palettes restent conformes.
- */
 const REMPLACEES_PAR_LE_BILAN = { Sapin: ['Vert', '#16A34A'], Mauve: ['Feuille', '#15A34B'], Brume: ['Azur', '#2272DD'] };
 const CLARTE_FAUTIVE = { soft: 0.04, vivid: 0.04 };
 const VINGT_PALETTES_A_VERIFIER = VINGT_PALETTES_CONFORMES.map(([nom, reference], rang) => {
@@ -2046,8 +2038,8 @@ ETATS.push(
   {
     id: 'verification-bilan-a-corriger',
     titre: 'Vérification sans palette ouverte, à corriger',
-    quand: 'Le fichier porte vingt palettes ; trois manquent une garantie (Violet en Dark, Vert et Feuille en Light), huit paires sont trop proches (Vert et Feuille, Bleu et Azur, Indigo et Marine, Marine et Azur, Bleu et Marine, Violet et Pourpre, Fuchsia et Grenat, Jaune et Cuivre), et Rose a Soft et Vivid presque identiques. Le designer ouvre l’onglet Vérification sans palette ouverte.',
-    regarder: 'La barre du sélecteur reste en haut. Les onglets du bilan « À corriger 3 », « À vérifier 10 » et « Conformes 7 », le premier actif ; les vingt cartes du nuancier à sept par rangée, un point rouge sur Violet, Vert et Feuille, un point ambre sur Bleu, Jaune, Rose, Indigo, Fuchsia, Pourpre, Marine, Grenat, Cuivre et Azur, les trois cartes à corriger en couleur et les dix-sept autres atténuées ; sous le nuancier, une ligne par palette à corriger : sa mini-carte, son nom, son constat en texte secondaire (« Dark · anneau de focus, 2,99:1 » pour Violet, « Light · texte coloré, 4,40:1 » pour Vert et pour Feuille), et « Vérifier ». La ligne fixe et le compteur disent 8 paires.',
+    quand: 'Le fichier porte vingt palettes ; deux manquent une garantie de texte sur fond teinté en Light (Violet et Grenat), sept paires sont trop proches (Vert et Feuille, Bleu et Azur, Indigo et Marine, Marine et Azur, Bleu et Marine, Violet et Pourpre, Jaune et Cuivre), et Rose a Soft et Vivid presque identiques. Le designer ouvre l’onglet Vérification sans palette ouverte.',
+    regarder: 'La barre du sélecteur reste en haut. Les onglets du bilan « À corriger 2 », « À vérifier 10 » et « Conformes 8 », le premier actif ; les vingt cartes du nuancier à sept par rangée, un point rouge sur Violet et Grenat, un point ambre sur Bleu, Jaune, Rose, Indigo, Vert, Pourpre, Marine, Feuille, Cuivre et Azur, les deux cartes à corriger en couleur et les dix-huit autres atténuées ; sous le nuancier, une ligne par palette à corriger : sa mini-carte, son nom, son constat en texte secondaire (« Light · texte sur fond teinté, 4,25:1 » pour Violet, « Light · texte sur fond teinté, 4,14:1 » pour Grenat), et « Vérifier ». La ligne fixe et le compteur disent 7 paires.',
     existe: true,
     sansPaletteChoisie: true,
     atteinte: [etatDuFichier(rangee(VINGT_PALETTES_A_VERIFIER)), ouvrirLaVerification],
@@ -2056,7 +2048,7 @@ ETATS.push(
     id: 'verification-bilan-a-verifier',
     titre: 'Vérification sans palette ouverte, à vérifier',
     quand: 'Même fichier ; le designer passe à l’onglet « À vérifier ».',
-    regarder: 'L’onglet « À vérifier 10 » actif. Cuivre, Jaune, Bleu, Azur, Marine, Indigo, Pourpre, Fuchsia, Grenat et Rose en couleur, les dix autres atténuées mais toujours cliquables. Le détail compte dix lignes, sans ΔEok : « trop proche de Jaune » pour Cuivre, « trop proche de Cuivre » pour Jaune, « trop proche d’Azur » pour Bleu, « trop proche de Bleu » pour Azur, « trop proche d’Indigo » pour Marine, « trop proche de Marine » pour Indigo, « trop proche de Violet » pour Pourpre, « trop proche de Grenat » pour Fuchsia, « trop proche de Fuchsia » pour Grenat, et pour Rose la phrase « Soft et Vivid sont presque identiques sur ces fonds teintés. ». Le lien des neuf lignes de paire dit « Comparer », celui de Rose « Vérifier ».',
+    regarder: 'L’onglet « À vérifier 10 » actif. Cuivre, Jaune, Vert, Feuille, Bleu, Azur, Marine, Indigo, Pourpre et Rose en couleur, les dix autres atténuées mais toujours cliquables. Le détail compte dix lignes, sans ΔEok : « trop proche de Jaune » pour Cuivre, « trop proche de Cuivre » pour Jaune, « trop proche d’Azur » pour Bleu, « trop proche de Bleu » pour Azur, « trop proche d’Azur » pour Marine, « trop proche de Marine » pour Indigo, « trop proche de Violet » pour Pourpre, « trop proche de Feuille » pour Vert, « trop proche de Vert » pour Feuille, et pour Rose la phrase « Soft et Vivid sont presque identiques sur ces fonds teintés. ». Le lien des neuf lignes de paire dit « Comparer », celui de Rose « Vérifier ».',
     existe: true,
     sansPaletteChoisie: true,
     atteinte: [etatDuFichier(rangee(VINGT_PALETTES_A_VERIFIER)), ouvrirLaVerification, { clic: '.bilan-onglets [data-onglet="ambre"]' }],
@@ -2095,8 +2087,8 @@ const ONGLET_HARMONISATION = { clic: '[role="tab"][aria-controls="panneau-harmon
 ETATS.push({
   id: 'harmonisation-paire',
   titre: 'Une paire comparée dans Comparaison',
-  quand: 'Le fichier porte vingt palettes dont huit paires sont trop proches ; le designer ouvre Comparaison et clique « Comparer » sur la paire Bleu et Azur.',
-  regarder: 'Le compteur « 8 » sur l’onglet, la ligne fixe « 8 paires de palettes trop proches », puis la carte « Palettes trop proches » : huit rangées, chacune avec ses deux pastilles « Aa » sur le fond de page du thème du constat, ses deux noms, son constat (« Boutons pleins trop proches, en Light », « Fonds teintés trop proches, en Light ») et « Comparer » : Vert et Feuille, Bleu et Azur, Indigo et Marine, Marine et Azur, Bleu et Marine, Violet et Pourpre, Fuchsia et Grenat, Jaune et Cuivre. Dans « Vos palettes », Bleu et Azur sont cochées et surlignées, le pied dit « 2 cochées, 4 au plus » avec « Tout décocher » à droite ; les vingt palettes portent leurs nuances de 50 à 950 en Light, et un rond ambre « ! » marque les douze palettes qui appartiennent à une paire trop proche. Sous elles, la carte « Aperçu » (résumé « 2 palettes », bascule « Couleurs | Niveaux de gris » sur Couleurs) pose Bleu et Azur sur le fond de page Light : les nuances alignées sous les numéros 50 à 950, puis deux colonnes de composants (Valider, Annuler, Message enregistré, En savoir plus) peints des rôles de la table du kit ; en bas, un constat ambre sur la paire (« Bleu et Azur : boutons pleins trop proches en Light. Sortez la teinte de l’une d’elles de la zone hachurée, dans Réglages. »).',
+  quand: 'Le fichier porte vingt palettes dont sept paires sont trop proches ; le designer ouvre Comparaison et clique « Comparer » sur la paire Bleu et Azur.',
+  regarder: 'Le compteur « 7 » sur l’onglet, la ligne fixe « 7 paires de palettes trop proches », puis la carte « Palettes trop proches » : sept rangées, chacune avec ses deux pastilles « Aa » sur le fond de page du thème du constat, ses deux noms, son constat (« Rampes trop proches ») et « Comparer » : Vert et Feuille, Bleu et Azur, Violet et Pourpre, Marine et Azur, Indigo et Marine, Bleu et Marine, Jaune et Cuivre. Dans « Vos palettes », Bleu et Azur sont cochées et surlignées, le pied dit « 2 cochées, 4 au plus » avec « Tout décocher » à droite ; les vingt palettes portent leurs nuances de 50 à 950 en Dark, et un rond ambre « ! » marque les dix palettes qui appartiennent à une paire trop proche. Sous elles, la carte « Aperçu » (résumé « 2 palettes », bascule « Couleurs | Niveaux de gris » sur Couleurs) pose Bleu et Azur sur le fond de page Dark : les nuances alignées sous les numéros 50 à 950, puis deux colonnes de composants (Valider, Annuler, Message enregistré, En savoir plus) peints des rôles de la table du kit ; en bas, un constat ambre sur la paire (« Bleu et Azur : rampes trop proches. Sortez la teinte de l’une d’elles de la zone hachurée, dans Réglages. »).',
   existe: true,
   sansPaletteChoisie: true,
   atteinte: [etatDuFichier(rangee(VINGT_PALETTES_A_VERIFIER)), ONGLET_HARMONISATION, { clic: `.paire[data-paire="${identifiantDuBilan(0)} ${identifiantDuBilan(18)}"] .bilan-verifier` }],
@@ -2121,8 +2113,8 @@ const CASE_DE_HARMONISATION = (rang) => ({ clic: `#panneau-harmonisation .case-a
 ETATS.push({
   id: 'harmonisation-niveaux-de-gris',
   titre: 'Comparer la clarté de quatre palettes en niveaux de gris',
-  quand: 'Le fichier porte vingt palettes dont huit paires sont trop proches ; le designer ouvre Comparaison, coche Rose, Indigo, Vert et Feuille, puis choisit « Niveaux de gris » dans la carte « Aperçu », en Vivid et en Light.',
-  regarder: 'La carte « Aperçu » (résumé « 4 palettes ») : les nuances et les composants des quatre palettes sont des gris, un gris par couleur de même clarté OKLab ; le texte des boutons pleins reste blanc. La liste « Vos palettes », au-dessus, garde ses couleurs. Sous la surface, trois constats : celui de la paire Vert et Feuille (ambre, « fonds teintés trop proches en Light »), puis deux d’information (bleu) sur la saturation et la luminosité en Vivid.',
+  quand: 'Le fichier porte vingt palettes dont sept paires sont trop proches ; le designer ouvre Comparaison, coche Rose, Indigo, Vert et Feuille, puis choisit « Niveaux de gris » dans la carte « Aperçu », en Vivid et en Light.',
+  regarder: 'La carte « Aperçu » (résumé « 4 palettes ») : les nuances et les composants des quatre palettes sont des gris, un gris par couleur de même clarté OKLab ; le texte des boutons pleins reste blanc. La liste « Vos palettes », au-dessus, garde ses couleurs. Sous la surface, trois constats : celui de la paire Vert et Feuille (ambre, « Rampes trop proches · presque identiques »), puis deux d’information (bleu) sur la saturation et la luminosité en Vivid.',
   existe: true,
   sansPaletteChoisie: true,
   atteinte: [
@@ -2135,8 +2127,8 @@ ETATS.push({
 ETATS.push({
   id: 'harmonisation-distinguee',
   titre: 'Une paire distinguée par la teinte dans Comparaison',
-  quand: 'Le fichier porte vingt palettes dont huit paires sont trop proches ; le designer clique « Comparer » sur la paire Bleu et Azur, puis pousse la teinte de Bleu à la limite de la réglette, à +30°, hors de la zone hachurée.',
-  regarder: 'Le compteur de l’onglet et la ligne fixe restent à 8 paires : Bleu ne forme plus de paire avec Azur ni avec Marine, mais en forme une avec Violet (fonds teintés, Dark) et une avec Indigo (boutons pleins, Dark). Dans « Aperçu », le constat de la paire est devenu vert (« Bleu et Azur se distinguent maintenant. »). La carte « Réglages » (résumé « Vivid ») porte, sous « Régler Bleu | Azur », « Annuler les modifications » à gauche, et un point bleu après « Bleu » dans « Régler ». La réglette Teinte lit « +30° », la marque « par défaut » est à 0° ; la saturation de Bleu passe de 89 % à 69 % et sa luminosité garde 0.',
+  quand: 'Le fichier porte vingt palettes dont sept paires sont trop proches ; le designer clique « Comparer » sur la paire Bleu et Azur, puis pousse la teinte de Bleu à la limite de la réglette, à +30°, hors de la zone hachurée.',
+  regarder: 'Le compteur de l’onglet et la ligne fixe reflètent les paires recalculées sur toute la rampe. Bleu ne forme plus de paire avec Azur. Dans « Aperçu », le constat de la paire est devenu vert (« Bleu et Azur se distinguent maintenant. »). La carte « Réglages » (résumé « Vivid ») porte, sous « Régler Bleu | Azur », « Annuler les modifications » à gauche, et un point bleu après « Bleu » dans « Régler ». La réglette Teinte lit « +30° », la marque « par défaut » est à 0° ; la saturation de Bleu passe de 89 % à 69 % et sa luminosité garde 0.',
   existe: true,
   sansPaletteChoisie: true,
   atteinte: [
@@ -2149,7 +2141,7 @@ ETATS.push({
 ETATS.push({
   id: 'harmonisation-roue',
   titre: 'La roue des teintes dans Comparaison',
-  quand: 'Le fichier porte vingt palettes dont huit paires sont trop proches ; le designer clique « Comparer » sur la paire Bleu et Azur, puis déplie la carte « Roue des teintes » (repliée à l’arrivée, résumé « Vision normale »).',
+  quand: 'Le fichier porte vingt palettes dont sept paires sont trop proches ; le designer clique « Comparer » sur la paire Bleu et Azur, puis déplie la carte « Roue des teintes » (repliée à l’arrivée, résumé « Vision normale »).',
   regarder: 'La carte « Roue des teintes », dépliée : le choix « Vision » à droite du titre, un anneau coloré de 16 px dans un SVG à la largeur de la carte, sur le fond de page de l’aperçu. À 400 px de fenêtre, le rayon vaut 87 px et la plaque mesure 351 × 222 px. Chaque palette colorée porte un point, plus gros et cerné d’encre pour Bleu et Azur (cochées). Les paires trop proches portent des arcs ambre à l’extérieur ; les autres points de ces paires ont un contour ambre. Les noms à 11 px se rangent en deux colonnes, à 15 px des bords, reliés aux points par des traits ; si une colonne manque de place, seules les cochées et les paires sont nommées. À l’intérieur, Bleu montre sa course translucide et ses zones trop proches hachurées en ambre.',
   existe: true,
   sansPaletteChoisie: true,

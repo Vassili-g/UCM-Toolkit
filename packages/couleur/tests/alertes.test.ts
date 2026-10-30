@@ -1,11 +1,14 @@
 /** Les alertes de la section 11.3 ([VER-08], [VER-10], [VER-11], [VER-22], [ENT-06], [ENT-09]). */
 import assert from 'node:assert/strict';
+import { readFileSync } from 'node:fs';
 import test from 'node:test';
 
-import { cranDeLaVariable, sensDuTheme } from '@ucm-kit/core/emplois';
+import { cranDeLaVariable } from '@ucm-kit/core/emplois';
 
 import {
   CHROMA_DES_PALETTES_COLOREES,
+  PART_DE_CHROMA_QUI_DISTINGUE,
+  POIDS_DES_CRANS_DE_PROXIMITE,
   aDesProfilsTernes,
   aUneIntensite,
   alertesDePalette,
@@ -13,16 +16,18 @@ import {
   confusionsDe,
   courbesParDefaut,
   distanceOk,
+  grilleAuPrereglage,
   lireHexa,
   pairesTropProches,
+  poidsDeProximite,
   proximiteDePalettes,
   rampeDe,
   rampesDe,
   rangsDesVariables,
   recetteParDefaut,
   rgb8VersOklch,
-  seuilDeProximite,
   severiteDeLAlerte,
+  validerRecette,
   type Alerte,
   type Palette,
   type Recette,
@@ -66,7 +71,7 @@ test('[VER-11] profils confondus : ne juge que les fonds, trois Dark (surface de
   assert.deepEqual(nuancesConfondues(auxParts('#1E6FD9', 0.3, 0.31)), ['light 200', 'light 300', 'dark 200', 'dark 300', 'dark 400']);
   assert.equal(cranDeLaVariable('surface/hover', 'light', 'normal'), 200);
   assert.equal(cranDeLaVariable('surface/pressed', 'light', 'normal'), 300);
-  assert.deepEqual(['default', 'hover', 'pressed'].map((etat) => cranDeLaVariable(`surface/${etat}` as 'surface/default', 'dark', 'normal')), [200, 300, 400]);
+  assert.deepEqual((['surface/default', 'surface/hover', 'surface/pressed'] as const).map((variable) => cranDeLaVariable(variable, 'dark', 'normal')), [200, 300, 400]);
 });
 
 test('[VER-11] [PLA-15] profils confondus, thème Light : le repère ≈ marque le fond hover et ne suffit pas à l’alerte', () => {
@@ -162,9 +167,9 @@ test('[VER-08] palettes proches : sonne pour deux bleus voisins, se tait pour un
   const alerte = alertesDeRecette(recetteAvec(BLEU, voisin, ambre)).find((a) => a.code === 'palettes-proches');
   assert.ok(alerte && alerte.code === 'palettes-proches');
   assert.deepEqual(alerte.palettes, [BLEU.id, voisin.id]);
-  assert.ok(alerte.proximite.distance < alerte.seuil);
+  assert.ok(alerte.proximite.score < 1);
   assert.equal(alerte.seuil, alerte.proximite.seuil);
-  assert.equal(alerte.seuil, seuilDeProximite(recetteParDefaut().seuils.palettesProches, alerte.proximite.role));
+  assert.equal(alerte.seuil, recetteParDefaut().seuils.palettesProches);
   assert.ok(alerte.proximite.tropProche);
   assert.equal(alertesDeRecette(recetteAvec(BLEU, voisin, ambre)).filter((a) => a.code === 'palettes-proches').length, 1);
 });
@@ -176,78 +181,132 @@ function paire(a: string, b: string) {
   return { recette, pa, pb, proximite: proximiteDePalettes(recette, pa, pb) };
 }
 
-type Lecture = readonly ['solid/default' | 'surface/default' | 'surface/foreground', 'light' | 'dark'];
+/** Les poids « cloche douce », écrits en clair : ils sont l'attendu des tests, pas une copie de la table du moteur. */
+const POIDS: Readonly<Record<number, number>> = { 50: 0.1, 100: 0.1, 200: 0.2, 300: 0.5, 400: 1, 500: 1, 600: 1, 700: 1, 800: 0.6, 900: 0.3, 950: 0.2 };
 
-/** La distance de deux palettes sur une variable, dans un mode, au cran que la table des rôles lui donne ; Vivid, ou la rampe unique. */
-function distanceSurLaVariable(recette: Recette, a: Palette, b: Palette, [variable, mode]: Lecture): number {
-  const cran = cranDeLaVariable(variable, mode, sensDuTheme(mode, recette.texteDesBoutons[mode]));
-  const rang = recette.crans.indexOf(cran as number);
-  const lire = (palette: Palette) => rampeDe(rampesDe(recette, palette), aUneIntensite(palette) ? 'unique' : 'vivid')[mode][rang].couleur;
-  return distanceOk(lire(a), lire(b));
+/** Le score et la chroma de deux palettes, recalculés cran par cran sur Vivid (ou la rampe unique), en Light et en Dark. */
+function mesureIndependante(recette: Recette, a: Palette, b: Palette) {
+  const lire = (palette: Palette) => rampeDe(rampesDe(recette, palette), aUneIntensite(palette) ? 'unique' : 'vivid');
+  const [ra, rb] = [lire(a), lire(b)];
+  const somme = { light: 0, dark: 0 };
+  let poids = 0;
+  const chroma = (rampe: typeof ra) => {
+    const valeurs = (['light', 'dark'] as const).flatMap((mode) => recette.crans.flatMap((cran, rang) => (cran >= 400 && cran <= 700 ? [rgb8VersOklch(rampe[mode][rang].couleur).C] : [])));
+    return valeurs.reduce((total, valeur) => total + valeur, 0) / valeurs.length;
+  };
+  recette.crans.forEach((cran, rang) => {
+    const w = POIDS[cran] ?? POIDS[950];
+    poids += w;
+    for (const mode of ['light', 'dark'] as const) somme[mode] += w * (distanceOk(ra[mode][rang].couleur, rb[mode][rang].couleur) / recette.seuils.palettesProches);
+  });
+  const [ca, cb] = [chroma(ra), chroma(rb)];
+  return { score: (somme.light + somme.dark) / (2 * poids), mode: somme.dark < somme.light ? 'dark' : 'light', rapportDeChroma: Math.min(ca, cb) / Math.max(ca, cb) };
 }
 
-const LECTURES: readonly Lecture[] = [['solid/default', 'light'], ['solid/default', 'dark'], ['surface/default', 'light'], ['surface/default', 'dark']];
-
-/** Le seuil du rôle que lit une lecture. */
-function seuilDeLaLecture(recette: Recette, [variable]: Lecture): number {
-  return seuilDeProximite(recette.seuils.palettesProches, variable === 'solid/default' ? 'plein' : 'fond');
-}
-
-test('[VER-22] le plein et le fond teinté, en Light et en Dark, au plus petit rapport distance sur seuil', () => {
-  const cas = [
-    { refs: ['#D92626', '#D92A26'], role: 'plein', lecture: LECTURES[0] },
-    { refs: ['#AD1F1F', '#AD271F'], role: 'plein', lecture: LECTURES[1] },
-    { refs: ['#AD1F1F', '#AD1F22'], role: 'fond', lecture: LECTURES[2] },
-  ] as const;
-  for (const { refs, role, lecture } of cas) {
-    const { recette, pa, pb, proximite } = paire(refs[0], refs[1]);
-    assert.ok(proximite, refs.join(' '));
-    assert.deepEqual([proximite.role, proximite.mode], [role, lecture[1]], refs.join(' '));
-    assert.equal(proximite.distance, distanceSurLaVariable(recette, pa, pb, lecture), refs.join(' '));
-    assert.equal(proximite.seuil, seuilDeLaLecture(recette, lecture), refs.join(' '));
-    const rapport = proximite.distance / proximite.seuil;
-    for (const autre of LECTURES) assert.ok(rapport <= distanceSurLaVariable(recette, pa, pb, autre) / seuilDeLaLecture(recette, autre), `${refs.join(' ')} ${autre.join(' ')}`);
-    assert.ok(proximite.tropProche);
+test('[VER-22] le score est la moyenne pondérée, sur toute la rampe et les deux thèmes, de la ΔEok de chaque cran sur palettesProches', () => {
+  for (const [a, b] of [['#1E6FD9', '#2A78D0'], ['#D92626', '#D94026'], ['#22C55E', '#16A34A']]) {
+    const { recette, pa, pb, proximite } = paire(a, b);
+    assert.ok(proximite, `${a} ${b}`);
+    const attendu = mesureIndependante(recette, pa, pb);
+    assert.ok(Math.abs(proximite.score - attendu.score) < 1e-12, `${a} ${b} : ${proximite.score} contre ${attendu.score}`);
+    assert.ok(Math.abs(proximite.rapportDeChroma! - attendu.rapportDeChroma) < 1e-12, `${a} ${b}`);
+    assert.equal(proximite.mode, attendu.mode, `${a} ${b}`);
+    assert.equal(proximite.seuil, recette.seuils.palettesProches);
     assert.deepEqual(proximiteDePalettes(recette, pb, pa), proximite, 'la mesure est symétrique');
   }
 });
 
-test('[VER-22] le seuil du fond vaut 20 % de palettesProches, celui du plein palettesProches', () => {
-  assert.ok(Math.abs(seuilDeProximite(0.05, 'fond') - 0.01) < 1e-12);
-  assert.equal(seuilDeProximite(0.08, 'plein'), 0.08);
+test('[VER-22] le seuil par cran suit palettesProches de la recette : le doubler divise le score par deux', () => {
+  const { recette, pa, pb, proximite } = paire('#1E6FD9', '#2A78D0');
+  const large = { ...recette, seuils: { ...recette.seuils, palettesProches: 2 * recette.seuils.palettesProches } };
+  assert.ok(Math.abs(proximiteDePalettes(large, pa, pb)!.score - proximite!.score / 2) < 1e-12);
 });
 
-test('[VER-22] une paire dont seuls les fonds Light sont sous 0,010 est signalée, rôle fond', () => {
-  // Purple et fuchsia Tailwind : fond Light à 0,0084, pleins au-dessus de 0,05.
-  const { recette, pa, pb, proximite } = paire('#a855f7', '#d946ef');
+test('[VER-22] la table des poids : la cloche douce par numéro de cran, le poids du numéro le plus proche hors table', () => {
+  assert.deepEqual(POIDS_DES_CRANS_DE_PROXIMITE, POIDS);
+  for (const [numero, poids] of Object.entries(POIDS)) assert.equal(poidsDeProximite(Number(numero)), poids, numero);
+  // Treize nuances : 1000 et 1050 prennent le poids du 950.
+  assert.equal(poidsDeProximite(1000), POIDS[950]);
+  assert.equal(poidsDeProximite(1050), POIDS[950]);
+  // À égale distance de deux numéros, le plus petit : 350 entre 300 et 400.
+  assert.equal(poidsDeProximite(350), POIDS[300]);
+});
+
+test('[VER-22] treize nuances : 1000 et 1050 entrent dans le score avec le poids du 950', () => {
+  const [pa, pb] = [paletteTailwind('p-0000000a', '#1E6FD9'), paletteTailwind('p-0000000b', '#2A78D0')];
+  const base = recetteAvec(pa, pb);
+  const { crans, courbes } = grilleAuPrereglage({ crans: base.crans, courbes: base.courbes }, 13);
+  const recette: Recette = { ...base, crans: [...crans], courbes };
+  assert.deepEqual(recette.crans.slice(-3), [950, 1000, 1050]);
+  const proximite = proximiteDePalettes(recette, pa, pb)!;
+  const attendu = mesureIndependante(recette, pa, pb);
+  assert.ok(Math.abs(proximite.score - attendu.score) < 1e-12, `${proximite.score} contre ${attendu.score}`);
+});
+
+/** La configuration du mainteneur : vingt palettes colorées ou neutres, réglées par lui. */
+const brute: unknown = JSON.parse(readFileSync(new URL('./fixtures/palettes-et-reglages.json', import.meta.url), 'utf8'));
+const validee = validerRecette(brute);
+if (!('recette' in validee)) throw new Error(`Recette du mainteneur refusée : ${JSON.stringify(validee.refus)}`);
+const MAINTENEUR: Recette = validee.recette;
+const duMainteneur = (nom: string): Palette => {
+  const trouvee = MAINTENEUR.palettes.find((palette) => palette.nom === nom);
+  if (!trouvee) throw new Error(`Palette ${nom} absente de la configuration.`);
+  return trouvee;
+};
+
+test('[VER-22] sur la configuration du mainteneur, aucune paire ne sonne', () => {
+  assert.deepEqual(pairesTropProches(MAINTENEUR), []);
+  assert.ok(!codes(alertesDeRecette(MAINTENEUR)).includes('palettes-proches'));
+});
+
+test('[VER-22] Terracota et Poppy se distinguent par la chroma, leur score pondéré seul étant sous 1', () => {
+  const proximite = proximiteDePalettes(MAINTENEUR, duMainteneur('Terracota'), duMainteneur('Poppy'));
   assert.ok(proximite);
-  assert.deepEqual([proximite.role, proximite.mode, proximite.tropProche], ['fond', 'light', true]);
-  assert.ok(proximite.distance < 0.01);
-  for (const lecture of [LECTURES[0], LECTURES[1]]) assert.ok(distanceSurLaVariable(recette, pa, pb, lecture) > 0.05, lecture.join(' '));
-  assert.equal(pairesTropProches(recette).length, 1);
-  assert.ok(codes(alertesDeRecette(recette)).includes('palettes-proches'));
+  assert.ok(Math.abs(proximite.score - 0.98) < 0.005, `score ${proximite.score}`);
+  assert.ok(proximite.rapportDeChroma! <= PART_DE_CHROMA_QUI_DISTINGUE, `chroma ${proximite.rapportDeChroma}`);
+  assert.ok(!proximite.tropProche && !proximite.presqueIdentiques);
 });
 
-test('[VER-22] une paire dont seul le texte sur fond teinté était trop proche n’est plus signalée', () => {
-  // Teal et cyan Tailwind, texte des boutons noir en Light : le texte de surface est au 900, à 0,039 (ancien verdict : signalée), le plein à 0,062. Avec le texte blanc, le texte de surface est au 700 comme le plein : il ne peut plus être seul sous le seuil.
-  const texte = { light: 'noir', dark: 'noir' } as const;
-  const [pa, pb] = [paletteTailwind('p-0000000a', '#14b8a6'), paletteTailwind('p-0000000b', '#06b6d4')];
-  const recette = { ...recetteParDefaut(), texteDesBoutons: texte, courbes: courbesParDefaut(11, texte), palettes: [pa, pb] };
-  const proximite = proximiteDePalettes(recette, pa, pb);
-  assert.ok(distanceSurLaVariable(recette, pa, pb, ['surface/foreground', 'light']) < recette.seuils.palettesProches, 'le texte Light est sous le seuil');
-  assert.ok(proximite && !proximite.tropProche, JSON.stringify(proximite));
-  assert.deepEqual(pairesTropProches(recette), []);
-  assert.ok(!codes(alertesDeRecette(recette)).includes('palettes-proches'));
+test('[VER-22] une palette nettement plus terne se distingue ; à plus de 75 % de la chroma, le score décide', () => {
+  const vive = paletteTailwind('p-0000000a', '#C2410C');
+  // Un brun de même famille : score sous 1, mais sa chroma moyenne vaut 72 % de celle de l'orange.
+  const terne = paletteTailwind('p-0000000b', '#B5603A');
+  const separee = proximiteDePalettes(recetteAvec(vive, terne), vive, terne)!;
+  assert.ok(separee.score < 1, `score ${separee.score}`);
+  assert.ok(separee.rapportDeChroma! <= PART_DE_CHROMA_QUI_DISTINGUE, `chroma ${separee.rapportDeChroma}`);
+  assert.ok(!separee.tropProche && !separee.presqueIdentiques);
+  assert.deepEqual(pairesTropProches(recetteAvec(vive, terne)), []);
+  // Un orange voisin garde plus de 75 % de la chroma : le score décide.
+  const voisine = paletteTailwind('p-0000000c', '#C04A12');
+  const proche = proximiteDePalettes(recetteAvec(vive, voisine), vive, voisine)!;
+  assert.ok(proche.rapportDeChroma! > PART_DE_CHROMA_QUI_DISTINGUE, `chroma ${proche.rapportDeChroma}`);
+  assert.ok(proche.score < 1 && proche.tropProche);
 });
 
-test("[VER-22] le texte Dark n'entre pas", () => {
-  // Au cran 950 de Dark, un orange et un jaune sont à 0,03 l'un de l'autre, sous le seuil : ils ne forment pas une paire.
-  const { recette, pa, pb, proximite } = paire('#D98026', '#D9D926');
-  assert.equal(cranDeLaVariable('surface/foreground', 'dark', sensDuTheme('dark', recette.texteDesBoutons.dark)), 950);
-  assert.ok(distanceSurLaVariable(recette, pa, pb, ['surface/foreground', 'dark']) < recette.seuils.palettesProches, 'le texte Dark serait sous le seuil');
-  assert.ok(proximite && proximite.distance >= recette.seuils.palettesProches, JSON.stringify(proximite));
+test('[VER-22] deux palettes de même teinte et de même saturation sonnent, « presque identiques » sous 0,2', () => {
+  const identique = paire('#1E6FD9', '#1E6FD9').proximite!;
+  assert.equal(identique.score, 0);
+  assert.equal(identique.rapportDeChroma, 1);
+  assert.ok(identique.tropProche && identique.presqueIdentiques);
+  const voisin = paire('#1E6FD9', '#2A78D0').proximite!;
+  assert.ok(voisin.tropProche && voisin.score >= 0.2 && !voisin.presqueIdentiques, JSON.stringify(voisin));
+  assert.ok(voisin.rapportDeChroma! > PART_DE_CHROMA_QUI_DISTINGUE);
+  const presque = paire('#1E6FD9', '#2070D8').proximite!;
+  assert.ok(presque.tropProche && presque.score < 0.2 && presque.presqueIdentiques, JSON.stringify(presque));
+  const eloignee = paire('#1E6FD9', '#F2A900').proximite!;
+  assert.ok(!eloignee.tropProche && !eloignee.presqueIdentiques && eloignee.score >= 1, JSON.stringify(eloignee));
+});
+
+test('[VER-22] les fonds teintés et les crans des extrémités seuls ne font plus sonner une paire', () => {
+  // Purple et fuchsia Tailwind : fond Light à 0,0084 (ancien verdict : signalée), mais les pleins à plus de 0,05.
+  const { recette, proximite } = paire('#a855f7', '#d946ef');
+  assert.ok(proximite && proximite.score >= 1 && !proximite.tropProche, JSON.stringify(proximite));
   assert.deepEqual(pairesTropProches(recette), []);
   assert.ok(!codes(alertesDeRecette(recette)).includes('palettes-proches'));
+  // Orange et jaune : le cran 950 de Dark est à 0,03 l'un de l'autre, mais pèse 0,2.
+  const jaune = paire('#D98026', '#D9D926');
+  assert.ok(jaune.proximite && jaune.proximite.score >= 1, JSON.stringify(jaune.proximite));
+  assert.deepEqual(pairesTropProches(jaune.recette), []);
 });
 
 test('[VER-22] deux neutres ne se comparent pas', () => {
@@ -261,25 +320,16 @@ test('[VER-22] deux neutres ne se comparent pas', () => {
   assert.ok(rgb8VersOklch(lireHexa('#1E6FD9')!).C > CHROMA_DES_PALETTES_COLOREES);
 });
 
-test('[VER-22] presque identiques sous 0,01', () => {
-  const presque = paire('#1E6FD9', '#2575D6').proximite;
-  assert.ok(presque && presque.distance < 0.01 && presque.presqueIdentiques, JSON.stringify(presque));
-  const proche = paire('#1E6FD9', '#6B8FC0').proximite;
-  assert.ok(proche && proche.distance >= 0.01 && proche.distance < 0.05 && !proche.presqueIdentiques, JSON.stringify(proche));
-});
-
 test('[VER-22] une palette à une intensité se compare sur sa rampe', () => {
   const unique = (id: string, reference: string): Palette => ({ ...paletteTailwind(id, reference), intensites: 1 });
   const [seule, deux, autre] = [unique('p-0000000a', '#1E6FD9'), paletteTailwind('p-0000000b', '#2A78D0'), unique('p-0000000c', '#3A80C8')];
   const recette = recetteAvec(seule, deux, autre);
-  const plus = (a: Palette, b: Palette) => {
-    const rapports = LECTURES.map((lecture) => ({ distance: distanceSurLaVariable(recette, a, b, lecture), seuil: seuilDeLaLecture(recette, lecture) }));
-    return rapports.reduce((petit, courant) => (courant.distance / courant.seuil < petit.distance / petit.seuil ? courant : petit)).distance;
-  };
-  // Au plus petit rapport distance sur seuil. La rampe unique contre Vivid d'une palette à deux intensités, et contre une autre rampe unique.
-  assert.equal(proximiteDePalettes(recette, seule, deux)!.distance, plus(seule, deux));
-  assert.equal(proximiteDePalettes(recette, seule, autre)!.distance, plus(seule, autre));
-  assert.equal(proximiteDePalettes(recette, deux, seule)!.distance, plus(seule, deux), 'la mesure est symétrique');
+  // La rampe unique contre Vivid d'une palette à deux intensités, et contre une autre rampe unique.
+  for (const [a, b] of [[seule, deux], [seule, autre]]) {
+    const attendu = mesureIndependante(recette, a, b);
+    assert.ok(Math.abs(proximiteDePalettes(recette, a, b)!.score - attendu.score) < 1e-12);
+  }
+  assert.deepEqual(proximiteDePalettes(recette, deux, seule), proximiteDePalettes(recette, seule, deux), 'la mesure est symétrique');
 });
 
 test('[VER-22] une palette libre ou figée ne se compare pas', () => {
@@ -297,18 +347,7 @@ test('[VER-22] une palette libre ou figée ne se compare pas', () => {
   }
 });
 
-test("[VER-22] sans l'un des crans que les rôles lisent, une paire ne se compare pas", () => {
-  const voisin = paletteTailwind('p-0000000b', '#1D6DDB');
-  // Le plein vise le 700 dans les deux thèmes, le fond teinté le 100 en Light et le 200 en Dark : sans l'un d'eux, la paire n'a plus de proximité.
-  const recette = recetteAvec(BLEU, voisin);
-  assert.ok(proximiteDePalettes(recette, BLEU, voisin));
-  for (const manquant of [100, 200, 700]) {
-    const sans = { ...recette, crans: recette.crans.filter((cran) => cran !== manquant) };
-    assert.equal(proximiteDePalettes(sans, BLEU, voisin), null, String(manquant));
-  }
-});
-
-test('[VER-22] les paires trop proches se rendent par rapport distance sur seuil croissant, avec les identifiants des palettes', () => {
+test('[VER-22] les paires trop proches se rendent par score croissant, avec les identifiants des palettes', () => {
   const [a, b, c, ambre] = [
     paletteTailwind('p-0000000a', '#1E6FD9'),
     paletteTailwind('p-0000000b', '#2873D0'),
@@ -318,8 +357,8 @@ test('[VER-22] les paires trop proches se rendent par rapport distance sur seuil
   const recette = recetteAvec(a, b, c, ambre);
   const paires = pairesTropProches(recette);
   assert.deepEqual(paires.map((paire) => paire.palettes), [[a.id, c.id], [a.id, b.id], [b.id, c.id]]);
-  const rapports = paires.map((paire) => paire.proximite.distance / paire.proximite.seuil);
-  assert.deepEqual(rapports, [...rapports].sort((x, y) => x - y));
+  const scores = paires.map((paire) => paire.proximite.score);
+  assert.deepEqual(scores, [...scores].sort((x, y) => x - y));
   assert.deepEqual(alertesDeRecette(recette).flatMap((alerte) => (alerte.code === 'palettes-proches' ? [alerte.palettes] : [])), paires.map((paire) => paire.palettes));
 });
 

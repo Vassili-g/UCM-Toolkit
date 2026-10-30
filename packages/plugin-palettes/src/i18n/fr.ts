@@ -31,7 +31,6 @@ import {
   type Profil,
   type Recette,
   type Refus,
-  type RoleDeProximite,
   type RegleRecette,
   type TexteDesBoutons,
   type VariableDePalette,
@@ -167,8 +166,7 @@ export const TEXTES_DE_L_HARMONISATION = {
     sousTitre: 'Difficiles à distinguer dans vos composants',
     resume: (nombre: number) => `${nombre} ${nombre === 1 ? 'paire' : 'paires'}`,
     noms: (a: string, b: string) => `${a} et ${b}`,
-    constat: (role: RoleDeProximite, mode: Mode, presqueIdentiques: boolean) =>
-      `${role === 'plein' ? 'Boutons pleins' : 'Fonds teintés'} trop proches, en ${NOM_DU_MODE[mode]}${presqueIdentiques ? ' · presque identiques' : ''}`,
+    constat: (presqueIdentiques: boolean) => `Rampes trop proches${presqueIdentiques ? ' · presque identiques' : ''}`,
     comparer: 'Comparer',
     separee: 'Se distinguent maintenant',
     comparerLaPaire: (a: string, b: string) => `Comparer ${a} et ${b}`,
@@ -205,9 +203,9 @@ export const TEXTES_DE_L_HARMONISATION = {
     lien: 'En savoir plus',
     libre: 'Palette libre : pas de composants',
     constats: {
-      paire: (a: string, b: string, role: RoleDeProximite, mode: Mode, sansSortie: boolean) => [
+      paire: (a: string, b: string, sansSortie: boolean) => [
         '', `${a} et ${b}`,
-        ` : ${role === 'plein' ? 'boutons pleins' : 'fonds teintés'} trop proches en ${NOM_DU_MODE[mode]}. ${sansSortie
+        ` : rampes trop proches. ${sansSortie
           ? 'Aucune teinte de la course ne les sépare : changez la saturation ou la luminosité de l’une d’elles.'
           : 'Sortez la teinte de l’une d’elles de la zone hachurée, dans Réglages.'}`,
       ],
@@ -1062,9 +1060,6 @@ export function constatDeGroupe(groupe: GroupeDePromesses, nom: string): Constat
   };
 }
 
-/** Ce que deux palettes trop proches ont de semblable, par rôle ([VER-22]). */
-const SUJET_DE_PROXIMITE = { plein: 'Boutons pleins', fond: 'Fonds teintés' } as const;
-
 /** Ce que la mise en mots d'une alerte lit de la recette. */
 export interface ContexteDAlerte {
   readonly recette: Recette;
@@ -1077,8 +1072,7 @@ const referenceLue = (contexte: ContexteDAlerte, id: string): string =>
 /**
  * Une alerte de la section 11.3 : où, quoi et le geste, qui cite la carte que
  * son lien ouvre ([VER-15]). Une proximité ne donne pas sa mesure en ΔEok :
- * le rapport exporté la garde ([VER-08]). Elle nomme le rôle et le thème de
- * sa plus petite distance ([VER-22]).
+ * le rapport exporté la garde ([VER-08]).
  */
 export function constatDAlerte(alerte: Alerte, contexte: ContexteDAlerte): ConstatIllustre {
   switch (alerte.code) {
@@ -1093,7 +1087,7 @@ export function constatDAlerte(alerte: Alerte, contexte: ContexteDAlerte): Const
     case 'palettes-proches':
       return {
         ou: `Palettes à comparer : ${contexte.nomDe(alerte.palettes[0])} et ${contexte.nomDe(alerte.palettes[1])}`,
-        quoi: `${SUJET_DE_PROXIMITE[alerte.proximite.role]} ${alerte.proximite.presqueIdentiques ? 'presque identiques' : 'trop proches'}, en ${NOM_DU_MODE[alerte.proximite.mode]}.`,
+        quoi: `Rampes ${alerte.proximite.presqueIdentiques ? 'presque identiques' : 'trop proches'}.`,
         geste: 'Changez une couleur de référence ou supprimez la palette en double.',
       };
     case 'reference-plus-terne':

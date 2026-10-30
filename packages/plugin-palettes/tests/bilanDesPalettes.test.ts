@@ -84,9 +84,10 @@ test('une palette en alerte donne son alerte ; la paire précède l’alerte, co
   assert.ok(seule.constat && seule.constat.nature === 'alerte');
   assert.equal(seule.constat.alerte.code, 'profils-confondus');
   const voisinConfondu = { ...VOISIN, parts: { soft: 0.5, vivid: 0.55, origine: 'designer' as const } };
-  const codes = alertesDeRecette(avec(CYAN, voisinConfondu)).map((alerte) => alerte.code);
+  const cyanConfondu = { ...CYAN, parts: voisinConfondu.parts };
+  const codes = alertesDeRecette(avec(cyanConfondu, voisinConfondu)).map((alerte) => alerte.code);
   assert.ok(codes.includes('profils-confondus') && codes.includes('palettes-proches'), `les deux alertes existent : ${codes.join(', ')}`);
-  const dans = bilanDesPalettes(avec(CYAN, voisinConfondu)).lignes[1];
+  const dans = bilanDesPalettes(avec(cyanConfondu, voisinConfondu)).lignes[1];
   assert.equal(dans.etat, 'ambre');
   assert.equal(dans.constat?.nature, 'proche');
 });

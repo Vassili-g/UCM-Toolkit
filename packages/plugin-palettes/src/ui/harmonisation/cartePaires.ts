@@ -1,8 +1,9 @@
 /**
  * La carte « Palettes trop proches » d'Harmonisation ([UI-40]) : une rangée par
  * paire que `pairesTropProches` juge sous le seuil, la plus proche d'abord. La
- * rangée montre les deux couleurs en cause, dans le thème du constat et en
- * Vivid (ou l'unique intensité), puis les deux noms et le constat. « Comparer »
+ * rangée montre le plein des deux palettes, dans le thème où elles se
+ * ressemblent le plus et en Vivid (ou l'unique intensité), puis les deux noms
+ * et le constat. « Comparer »
  * confie la paire à l'onglet. La carte est cachée quand aucune paire ne se
  * ressemble trop.
  */
@@ -36,9 +37,9 @@ function construireVues(i18n: Localisation) {
     carte.corps.append(liste);
     let dessinee: { readonly recette: Recette; readonly paires: readonly PaireTropProche[]; readonly visite: readonly PaireTropProche[] } | null = null;
 
-    /** Les deux pastilles d'une paire : le plein et son texte, ou le fond teinté et son texte, du thème du constat. */
+    /** Les deux pastilles d'une paire : le plein et son texte, dans le thème où les rampes se ressemblent le plus. */
     function pastilles(recette: Recette, paire: PaireTropProche): HTMLSpanElement {
-      const [fond, encre] = paire.proximite.role === 'plein' ? (['solid/default', 'solid/foreground'] as const) : (['surface/default', 'surface/foreground'] as const);
+      const [fond, encre] = ['solid/default', 'solid/foreground'] as const;
       const { mode } = paire.proximite;
       const element = document.createElement('span');
       element.className = 'paire-couleurs';
@@ -66,7 +67,7 @@ function construireVues(i18n: Localisation) {
       const noms = document.createElement('b');
       const constat = document.createElement('span');
       const nomsEcrits = TEXTES.noms(a, b);
-      const constatEcrit = separee ? TEXTES.separee : TEXTES.constat(paire.proximite.role, paire.proximite.mode, paire.proximite.presqueIdentiques);
+      const constatEcrit = separee ? TEXTES.separee : TEXTES.constat(paire.proximite.presqueIdentiques);
       i18n.lier(noms, 'textContent', nomsEcrits);
       i18n.lier(noms, 'title', nomsEcrits);
       i18n.lier(constat, 'textContent', constatEcrit);

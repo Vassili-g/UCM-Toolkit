@@ -776,9 +776,9 @@ function construireVues(i18n: Localisation) {
     }
 
     /**
-     * L'encart reste tant que les tokens de la palette ne sont pas « À
-     * jour » ; une palette figée le garde, seul endroit où revenir aux
-     * couleurs recalculées.
+     * L'encart d'une palette reprise, même à tokens « À jour » ; pour une
+     * palette figée, c'est le seul endroit où revenir aux couleurs
+     * recalculées.
      */
     function rendreLaReprise(courante: Palette, lue: Recette): void {
       const suivie = lienDeReprise(courante);

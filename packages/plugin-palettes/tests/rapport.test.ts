@@ -58,14 +58,16 @@ test('[VER-01] une promesse manquée sur la carte seule porte `elevation/raised`
   assert.deepEqual(lues.map((promesse) => promesse.second.nature === 'fond' && promesse.second.fond), ['page', 'carte']);
 });
 
-test('[VER-08] le rapport garde la proximité (distance, rôle, thème) et le minimum, que l’interface ne montre plus', () => {
+test('[VER-08] le rapport garde le score pondéré, la chroma et le seuil de proximité', () => {
   // Deux bleus voisins : « palettes proches » sonne sur chacun.
   const voisin = nouvellePalette(VIDE, 'p-0000000c', '#1E70DA', 2)!;
   const [bleu] = rapportDeLaRecette([BLEU, voisin].reduce(ajouter, VIDE), null, 'SRGB', null).palettes;
   const proches = bleu.alertes.find((alerte) => alerte.code === 'palettes-proches');
   assert.ok(proches && proches.code === 'palettes-proches', JSON.stringify(bleu.alertes));
   assert.ok(proches.proximite.tropProche && proches.seuil === proches.proximite.seuil, JSON.stringify(proches));
-  assert.deepEqual([proches.proximite.role, proches.proximite.mode], ['plein', 'light']);
+  assert.ok(proches.proximite.score < 1);
+  assert.ok(proches.proximite.rapportDeChroma! > 0.75);
+  assert.equal(proches.proximite.mode, 'dark');
 });
 
 test('[MOT-17] le rapport nomme l’ancrage de chaque palette, le même que l’analyse, et le profil du document', () => {

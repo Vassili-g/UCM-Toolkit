@@ -106,7 +106,8 @@ test('[UI-40] « Comparer » règle la palette qui sort de la zone par le plus p
 });
 
 test('[UI-40] une paire qu’aucune teinte de la course ne sépare règle la palette A et le dit', () => {
-  const recette = recetteAvec(BLEU, { ...BLEU, id: 'p-000000a2' });
+  const stable = paletteTailwind(BLEU.id, '#14B8A6');
+  const recette = recetteAvec(stable, { ...stable, id: 'p-000000a2' });
   const large = { ...recette, seuils: { ...recette.seuils, palettesProches: 2 } };
   assert.deepEqual(paletteARegler(large, [BLEU.id, 'p-000000a2']), { id: BLEU.id, sansSortie: true });
   assert.deepEqual(paletteARegler(large, ['p-000000a2', BLEU.id]), { id: 'p-000000a2', sansSortie: true });
@@ -145,7 +146,7 @@ test('[UI-41] une paire cochée trop proche donne une ligne d’avertissement, e
   const paires = pairesTropProches(proches);
   assert.equal(paires.length, 1);
   const [constat] = constatsDeLaComparaison(proches, cochees(proches, BLEU.id, 'p-000000a2'), paires);
-  assert.deepEqual(constat, { ton: 'avertissement', genre: 'paire', palettes: paires[0].palettes, role: paires[0].proximite.role, mode: paires[0].proximite.mode, sansSortie: false });
+  assert.deepEqual(constat, { ton: 'avertissement', genre: 'paire', palettes: paires[0].palettes, sansSortie: false });
   assert.deepEqual(constatsDeLaComparaison(proches, cochees(proches, BLEU.id, ROUGE.id), paires), [{ ton: 'succes', genre: 'distinctes' }]);
   assert.deepEqual(constatsDeLaComparaison(proches, cochees(proches, BLEU.id), paires), []);
   assert.deepEqual(constatsDeLaComparaison(proches, harmonisationInitiale(), paires), []);
@@ -182,7 +183,8 @@ test('[UI-41] entrer en Harmonisation vide les paires de la visite', () => {
 });
 
 test('[UI-41] une paire qu’aucune teinte de la course ne sépare le dit, parmi les constats de la carte', () => {
-  const recette = recetteAvec(BLEU, { ...BLEU, id: 'p-000000a2' });
+  const stable = paletteTailwind(BLEU.id, '#14B8A6');
+  const recette = recetteAvec(stable, { ...stable, id: 'p-000000a2' });
   const large = { ...recette, seuils: { ...recette.seuils, palettesProches: 2 } };
   const [constat] = constatsDeLaComparaison(large, cochees(large, BLEU.id, 'p-000000a2'), pairesTropProches(large));
   assert.equal(constat.genre === 'paire' && constat.sansSortie, true);

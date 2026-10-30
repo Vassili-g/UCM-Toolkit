@@ -1,5 +1,5 @@
 /** La sélection d'Harmonisation suit les identifiants de la recette, sans DOM ni rangement. */
-import { aUneIntensite, arrondir, CHROMA_DES_PALETTES_COLOREES, estLibre, PROFILS, partsDe, referenceDe, rgb8VersOklch, sortieLaPlusProche, validerRecette, type Mode, type Palette, type PaireTropProche, type Profil, type Recette, type Refus, type RoleDeProximite } from 'ucm-couleur';
+import { aUneIntensite, arrondir, CHROMA_DES_PALETTES_COLOREES, estLibre, PROFILS, partsDe, referenceDe, rgb8VersOklch, sortieLaPlusProche, validerRecette, type Mode, type Palette, type PaireTropProche, type Profil, type Recette, type Refus } from 'ucm-couleur';
 
 import { remplacerPalette } from './edition';
 import { GRANDEURS, valeursDesProfils, type Grandeur } from './reglagesParDefaut';
@@ -199,8 +199,8 @@ export function paletteARegler(recette: Recette, [idA, idB]: readonly [string, s
 }
 
 /**
- * « Comparer » une paire : elle seule est cochée, l'aperçu passe au thème du
- * constat et `regler` reçoit `paletteARegler`. L'intensité, l'affichage et les
+ * « Comparer » une paire : elle seule est cochée, l'aperçu passe au thème où
+ * leurs rampes se ressemblent le plus (`Proximite.mode`) et `regler` reçoit `paletteARegler`. L'intensité, l'affichage et les
  * réglages restent.
  */
 export function comparerLaPaire(etat: EtatHarmonisation, recette: Recette, paire: PaireTropProche): EtatHarmonisation {
@@ -222,7 +222,7 @@ export const ECART_DE_LUMINOSITE_DIT = 0.01;
 
 /** Ce que la carte Comparaison dit des palettes cochées, avec le ton qui l'affiche. */
 export type ConstatDeComparaison =
-  | { readonly ton: 'avertissement'; readonly genre: 'paire'; readonly palettes: readonly [string, string]; readonly role: RoleDeProximite; readonly mode: Mode; readonly sansSortie: boolean }
+  | { readonly ton: 'avertissement'; readonly genre: 'paire'; readonly palettes: readonly [string, string]; readonly sansSortie: boolean }
   | { readonly ton: 'succes'; readonly genre: 'separee'; readonly palettes: readonly [string, string] }
   | { readonly ton: 'succes'; readonly genre: 'distinctes' }
   | { readonly ton: 'info'; readonly genre: 'saturation'; readonly intensite: Profil; readonly terne: string; readonly vive: string }
@@ -259,7 +259,7 @@ export function constatsDeLaComparaison(recette: Recette, etat: EtatHarmonisatio
   cochees.forEach((a, rang) => {
     for (const b of cochees.slice(rang + 1)) {
       const paire = paires.find(({ palettes }) => palettes.includes(a.id) && palettes.includes(b.id));
-      if (paire) constats.push({ ton: 'avertissement', genre: 'paire', palettes: paire.palettes, role: paire.proximite.role, mode: paire.proximite.mode, sansSortie: paireSansSortie(recette, paire) });
+      if (paire) constats.push({ ton: 'avertissement', genre: 'paire', palettes: paire.palettes, sansSortie: paireSansSortie(recette, paire) });
       else if (etat.pairesDeLaVisite.some(({ palettes }) => palettes.includes(a.id) && palettes.includes(b.id))) constats.push({ ton: 'succes', genre: 'separee', palettes: [a.id, b.id] });
     }
   });

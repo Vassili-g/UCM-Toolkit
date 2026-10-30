@@ -119,7 +119,7 @@ test('une paire éloignée n’a aucune zone et sa sortie vaut zéro', () => {
   assert.equal(sortieLaPlusProche(recette, BLEU, VERTE), 0);
 });
 
-test('chaque degré de zone suit la proximité des rôles et la sortie est le plus petit écart permis', () => {
+test('chaque degré de zone suit le score de proximité et la sortie est le plus petit écart permis', () => {
   const recette = sansLimiteDeContraste(BLEU, AUTRE_BLEU);
   const zones = zonesTropProches(recette, BLEU, AUTRE_BLEU, 'vivid');
   const sorties: number[] = [];
@@ -154,10 +154,12 @@ test('[UI-42] sortieLaPlusProche rend 0 pour une paire séparée à la position 
 });
 
 test('une paire sans sortie rend null', () => {
-  const recette = sansLimiteDeContraste(BLEU, AUTRE_BLEU);
+  const a = paletteTailwind(BLEU.id, '#14B8A6');
+  const b = { ...a, id: AUTRE_BLEU.id };
+  const recette = sansLimiteDeContraste(a, b);
   const large = { ...recette, seuils: { ...recette.seuils, palettesProches: 2 } };
-  assert.deepEqual(zonesTropProches(large, BLEU, AUTRE_BLEU), [{ debut: -30, fin: 30 }]);
-  assert.equal(sortieLaPlusProche(large, BLEU, AUTRE_BLEU), null);
+  assert.deepEqual(zonesTropProches(large, a, b), [{ debut: -30, fin: 30 }]);
+  assert.equal(sortieLaPlusProche(large, a, b), null);
 });
 
 test('la course garde exactement les limites des garanties tenues au départ', () => {
@@ -191,7 +193,7 @@ test('une intensité ignore le profil affiché et ne règle que vivid', () => {
   assert.deepEqual(zonesTropProches(recette, reglee, autre, 'soft'), zonesTropProches(recette, reglee, autre, 'vivid'));
 });
 
-test('une palette libre se règle mais n’entre pas dans les zones de rôles', () => {
+test('une palette libre se règle mais n’entre pas dans les zones de proximité', () => {
   const libre: Palette = { ...BLEU, crans: [100, 300, 600, 950] };
   const recette = recetteAvec(libre, AUTRE_BLEU);
   assert.notEqual(candidatDeTeinte(recette, libre, 8).reference, libre.reference);

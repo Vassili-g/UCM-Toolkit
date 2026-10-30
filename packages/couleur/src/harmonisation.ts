@@ -137,7 +137,7 @@ function positionsDeLaPaire(recette: Recette, palette: Palette, autre: Palette):
 /**
  * Les suites de degrés trop proches, en valeurs du `profilAffiche` (le
  * porteur par défaut). L'écart commun reste la coordonnée du balayage.
- * Une palette libre, figée ou terne n'entre pas dans cette alerte de rôles.
+ * Une palette libre, figée ou terne n'entre pas dans l'alerte « Palettes proches ».
  * Les zones se calculent même quand la paire est séparée à la position
  * actuelle, pour que la réglette les montre avant que le curseur y entre
  * ([UI-42]). Les rampes de l'autre palette se calculent une fois par appel.

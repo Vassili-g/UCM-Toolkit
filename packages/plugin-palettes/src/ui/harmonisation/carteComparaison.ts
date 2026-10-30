@@ -140,7 +140,7 @@ function construireVues(i18n: Localisation) {
     /** Les segments d'un constat : les rangs impairs sont des noms de palettes, en gras. */
     function segments(recette: Recette, constat: ConstatDeComparaison): readonly Texte[] {
       switch (constat.genre) {
-        case 'paire': return TEXTES.constats.paire(nom(recette, constat.palettes[0]), nom(recette, constat.palettes[1]), constat.role, constat.mode, constat.sansSortie);
+        case 'paire': return TEXTES.constats.paire(nom(recette, constat.palettes[0]), nom(recette, constat.palettes[1]), constat.sansSortie);
         case 'separee': return TEXTES.constats.separee(nom(recette, constat.palettes[0]), nom(recette, constat.palettes[1]));
         case 'distinctes': return [TEXTES.constats.distinctes];
         case 'saturation': return TEXTES.constats.saturation(constat.intensite, nom(recette, constat.terne), nom(recette, constat.vive));

@@ -130,48 +130,71 @@ export function alertesDePalette(recette: Recette, palette: Palette): Alerte[] {
 /** La chroma OKLCH que la référence d'une palette dépasse pour que la palette soit colorée ([VER-22]). */
 export const CHROMA_DES_PALETTES_COLOREES = 0.05;
 
-/** Les fonds teintés, pâles, se comparent à cette part du seuil `palettesProches` ([VER-22]). */
-export const PART_DU_SEUIL_DES_FONDS = 0.2;
+/**
+ * Le poids de chaque numéro de cran dans le score de proximité ([VER-22]),
+ * le même dans les deux thèmes : en Dark aussi, les petits numéros sont les
+ * crans proches de la page. Les crans du milieu pèsent le plus ; les extrémités,
+ * pâles en Light et sombres en Dark, se rapprochent d'une palette à l'autre
+ * sans que le designer les confonde.
+ */
+export const POIDS_DES_CRANS_DE_PROXIMITE: Readonly<Record<number, number>> = {
+  50: 0.1, 100: 0.1, 200: 0.2, 300: 0.5, 400: 1, 500: 1, 600: 1, 700: 1, 800: 0.6, 900: 0.3, 950: 0.2,
+};
 
-/** Sous cette part du seuil de leur rôle, deux palettes sont presque identiques ([VER-22]). */
-const PART_PRESQUE_IDENTIQUES = 0.2;
-
-/** Le rôle où deux palettes se ressemblent : le plein des boutons, ou le fond teinté. */
-export type RoleDeProximite = 'plein' | 'fond';
-
-/** Le seuil d'un rôle : `palettesProches` pour le plein, sa part pour le fond. */
-export function seuilDeProximite(palettesProches: number, role: RoleDeProximite): number {
-  return role === 'plein' ? palettesProches : palettesProches * PART_DU_SEUIL_DES_FONDS;
+/**
+ * Le poids d'un numéro de cran. Un numéro hors de la table, comme 1000 ou
+ * 1050 du préréglage à treize nuances, prend le poids du numéro le plus
+ * proche (950 pour ces deux-là) ; à égale distance, du plus petit.
+ */
+export function poidsDeProximite(numero: number): number {
+  const numeros = Object.keys(POIDS_DES_CRANS_DE_PROXIMITE).map(Number).sort((a, b) => a - b);
+  const plusProche = numeros.reduce((retenu, candidat) => (Math.abs(candidat - numero) < Math.abs(retenu - numero) ? candidat : retenu));
+  return POIDS_DES_CRANS_DE_PROXIMITE[plusProche];
 }
 
-/** Le plus petit rapport distance sur seuil entre deux palettes, avec le rôle et le thème qui le portent ([VER-22]). */
+/** Les crans dont la chroma moyenne dit si une palette est nettement plus terne qu'une autre ([VER-22]). */
+const CRANS_DE_LA_CHROMA = { de: 400, a: 700 } as const;
+
+/** Sous cette part de la chroma de l'autre, une palette est nettement plus terne : la paire se distingue ([VER-22]). */
+export const PART_DE_CHROMA_QUI_DISTINGUE = 0.75;
+
+/** Sous cette part du seuil, deux palettes sont presque identiques ([VER-22]). */
+const PART_PRESQUE_IDENTIQUES = 0.2;
+
+/**
+ * La proximité de deux palettes ([VER-22]) : `score` est la moyenne pondérée,
+ * sur toute la rampe et les deux thèmes, du rapport entre la ΔEok d'un cran et
+ * le seuil `palettesProches`.
+ */
 export interface Proximite {
-  readonly distance: number;
-  readonly role: RoleDeProximite;
+  readonly score: number;
+  /** Le thème où la moyenne pondérée des rapports est la plus petite (Light à égalité). */
   readonly mode: Mode;
-  /** Le seuil du rôle retenu. */
+  /** Le seuil `palettesProches` de la recette, appliqué à chaque cran. */
   readonly seuil: number;
-  /** `distance < seuil`. */
+  /**
+   * La chroma moyenne des crans 400 à 700, Light et Dark, de la palette la
+   * plus terne divisée par celle de l'autre ; `null` si l'une des listes n'a
+   * aucun de ces crans.
+   */
+  readonly rapportDeChroma: number | null;
+  /** `score < 1`, sauf quand `rapportDeChroma` est au plus `PART_DE_CHROMA_QUI_DISTINGUE`. */
   readonly tropProche: boolean;
+  /** `tropProche` et `score` sous 0,2. */
   readonly presqueIdentiques: boolean;
 }
 
-/** Les quatre couleurs que deux palettes se disputent : le plein et le fond teinté, dans les deux thèmes. */
-const MESURES_DE_PROXIMITE = [
-  { role: 'plein', variable: 'solid/default', mode: 'light' },
-  { role: 'plein', variable: 'solid/default', mode: 'dark' },
-  { role: 'fond', variable: 'surface/default', mode: 'light' },
-  { role: 'fond', variable: 'surface/default', mode: 'dark' },
-] as const;
-
-export type NuancesDeProximite = readonly { readonly role: RoleDeProximite; readonly mode: Mode; readonly couleur: Rgb8 }[];
+/** Une palette colorée telle que la comparaison la lit : chaque cran et son poids, et la chroma de son milieu. */
+export interface NuancesDeProximite {
+  readonly crans: readonly { readonly poids: number; readonly couleurs: { readonly [M in Mode]: Rgb8 } }[];
+  readonly chroma: number | null;
+}
 
 /**
- * Les quatre couleurs d'une palette que la comparaison lit, dans l'intensité
- * Vivid ou l'unique intensité de la palette ; `null` si la palette n'entre pas
- * dans la comparaison : libre ou figée, terne, ou sans l'un de ces crans.
- * `rampes` remplace les rampes de la palette quand l'appelant les a déjà
- * calculées.
+ * Les couleurs d'une palette que la comparaison lit : chaque cran de sa liste
+ * dans Vivid ou l'unique intensité, Light et Dark ; `null` si la palette
+ * n'entre pas dans la comparaison : libre ou figée, ou terne. `rampes`
+ * remplace les rampes de la palette quand l'appelant les a déjà calculées.
  */
 export function nuancesDeProximite(recette: Recette, palette: Palette, rampes: Rampes = rampesDe(recette, palette)): NuancesDeProximite | null {
   if (estLibre(palette)) return null;
@@ -179,36 +202,35 @@ export function nuancesDeProximite(recette: Recette, palette: Palette, rampes: R
   if (!reference || rgb8VersOklch(reference).C <= CHROMA_DES_PALETTES_COLOREES) return null;
   const { crans } = grilleDe(recette, palette);
   const rampe = rampeDe(rampes, aUneIntensite(palette) ? 'unique' : 'vivid');
-  const nuances: { role: RoleDeProximite; mode: Mode; couleur: Rgb8 }[] = [];
-  for (const { role, variable, mode } of MESURES_DE_PROXIMITE) {
-    const cran = cranDeLaVariable(variable, mode, sensDuTheme(mode, recette.texteDesBoutons[mode]));
-    const rang = typeof cran === 'number' ? crans.indexOf(cran) : -1;
-    if (rang < 0) return null;
-    nuances.push({ role, mode, couleur: rampe[mode][rang].couleur });
-  }
-  return nuances;
+  const du = (mode: Mode, rang: number): Rgb8 => rampe[mode][rang].couleur;
+  const chromas = crans.flatMap((numero, rang) => (
+    numero >= CRANS_DE_LA_CHROMA.de && numero <= CRANS_DE_LA_CHROMA.a ? MODES.map((mode) => rgb8VersOklch(du(mode, rang)).C) : []
+  ));
+  return {
+    crans: crans.map((numero, rang) => ({ poids: poidsDeProximite(numero), couleurs: { light: du('light', rang), dark: du('dark', rang) } })),
+    chroma: chromas.length === 0 ? null : chromas.reduce((somme, chroma) => somme + chroma, 0) / chromas.length,
+  };
 }
 
-/** Le plus petit rapport distance sur seuil entre deux jeux de nuances comparées, avec le rôle et le thème qui le portent. */
+/** La proximité de deux jeux de nuances, de même liste de crans. */
 export function proximiteDeNuances(a: NuancesDeProximite, b: NuancesDeProximite, palettesProches: number): Proximite {
-  let plus = { distance: Infinity, seuil: 1, rapport: Infinity, rang: 0 };
-  a.forEach((nuance, rang) => {
-    const distance = distanceOk(nuance.couleur, b[rang].couleur);
-    const seuil = seuilDeProximite(palettesProches, nuance.role);
-    const rapport = distance / seuil;
-    if (rapport < plus.rapport) plus = { distance, seuil, rapport, rang };
+  const sommes = { light: 0, dark: 0 };
+  let poids = 0;
+  a.crans.forEach((cran, rang) => {
+    poids += cran.poids;
+    for (const mode of MODES) sommes[mode] += cran.poids * (distanceOk(cran.couleurs[mode], b.crans[rang].couleurs[mode]) / palettesProches);
   });
-  const { role, mode } = a[plus.rang];
-  const { distance, seuil } = plus;
-  return { distance, role, mode, seuil, tropProche: distance < seuil, presqueIdentiques: distance < PART_PRESQUE_IDENTIQUES * seuil };
+  const score = (sommes.light + sommes.dark) / (2 * poids);
+  const mode: Mode = sommes.dark < sommes.light ? 'dark' : 'light';
+  const [plus, moins] = a.chroma !== null && b.chroma !== null ? [Math.max(a.chroma, b.chroma), Math.min(a.chroma, b.chroma)] : [0, 0];
+  const rapportDeChroma = plus > 0 ? moins / plus : null;
+  const tropProche = score < 1 && !(rapportDeChroma !== null && rapportDeChroma <= PART_DE_CHROMA_QUI_DISTINGUE);
+  return { score, mode, seuil: palettesProches, rapportDeChroma, tropProche, presqueIdentiques: tropProche && score < PART_PRESQUE_IDENTIQUES };
 }
 
 /**
- * La proximité de deux palettes colorées ([VER-22]) : le plus petit rapport
- * distance sur seuil parmi leur plein et leur fond teinté, en Light et en
- * Dark, chaque couleur lue au cran que la table des rôles lui donne dans la
- * grille de la palette. `null` si l'une des palettes est libre, figée ou
- * terne, ou manque d'un de ces crans.
+ * La proximité de deux palettes colorées ([VER-22]) : toute la rampe, pondérée
+ * par numéro de cran. `null` si l'une des palettes est libre, figée ou terne.
  */
 export function proximiteDePalettes(recette: Recette, a: Palette, b: Palette): Proximite | null {
   const [nuancesA, nuancesB] = [nuancesDeProximite(recette, a), nuancesDeProximite(recette, b)];
@@ -221,7 +243,7 @@ export interface PaireTropProche {
   readonly proximite: Proximite;
 }
 
-/** Toutes les paires de la recette sous le seuil de leur rôle, par rapport distance sur seuil croissant ; à rapport égal, l'ordre de la recette. */
+/** Toutes les paires de la recette dont le score est sous 1, par score croissant ; à score égal, l'ordre de la recette. */
 export function pairesTropProches(recette: Recette): PaireTropProche[] {
   const nuances = recette.palettes.map((palette) => nuancesDeProximite(recette, palette));
   const paires: PaireTropProche[] = [];
@@ -235,7 +257,7 @@ export function pairesTropProches(recette: Recette): PaireTropProche[] {
       if (proximite.tropProche) paires.push({ palettes: [a.id, recette.palettes[autre].id], proximite });
     }
   });
-  return paires.sort((x, y) => x.proximite.distance / x.proximite.seuil - y.proximite.distance / y.proximite.seuil);
+  return paires.sort((x, y) => x.proximite.score - y.proximite.score);
 }
 
 /** Un fond plus sombre que le cran le plus léger de la courbe claire, ou plus clair que celui de la courbe sombre, à 0,005 près ([ENT-06]). */
@@ -254,7 +276,7 @@ export function alertesDesFonds(recette: Recette): Alerte[] {
 
 /**
  * Toutes les alertes d'une recette : ses fonds, chaque palette dans l'ordre de
- * la recette, puis chaque paire de palettes proches, par rapport distance sur seuil croissant.
+ * la recette, puis chaque paire de palettes proches, par score croissant.
  */
 export function alertesDeRecette(recette: Recette): Alerte[] {
   const alertes = alertesDesFonds(recette);
