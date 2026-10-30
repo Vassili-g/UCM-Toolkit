@@ -2,7 +2,7 @@
 
 @AGENTS.md
 
-Ce fichier ajoute seulement les règles propres à Claude Code. Le guide d'un paquet se charge à la lecture d'un de ses fichiers, par son `CLAUDE.md` (`@AGENTS.md`).
+Le guide d'un paquet se charge à la lecture d'un de ses fichiers, par son `CLAUDE.md` (`@AGENTS.md`).
 
 ## Délégation aux sous-agents
 

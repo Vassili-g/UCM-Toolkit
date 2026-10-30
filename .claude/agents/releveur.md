@@ -27,7 +27,7 @@ les fiches.
 2. Écris `docs/references/composants/<id>/<système>.json` :
    - `composant`, `systeme` ; `lu` = date du jour, `AAAA-MM-JJ` ;
    - `pages` : chaque URL ouverte et utilisée ;
-   - `variantes`, `tailles` (nom local → hauteur), `anatomie`, `etats`, `clavier`, `regles`, `redaction`, `particularites` ; liste vide quand la page ne dit rien.
+   - `variantes`, `tailles` (nom local et hauteur), `anatomie`, `etats`, `clavier`, `regles`, `redaction`, `particularites` ; liste vide quand la page ne dit rien.
 3. Table `tokens` : seulement si le système porte `tableDeTokens` dans
    `systemes.json`. Une ligne par token : `variante` (nom local), `etat`, `role`,
    `token` (nom exact de `noms.json`, pris dans `tokens.json` ou par `Grep` dans

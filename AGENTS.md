@@ -2,7 +2,7 @@
 
 Monorepo UCM : trois plugins Figma (exporteur de contrats et de tokens DTCG, Palettes, UCM Architect), le kit `@ucm-kit/core`, la CLI `@ucm-kit/cli`, l'adaptateur `@ucm-kit/adapter-typescript`, le moteur de couleur `ucm-couleur`, le Hub UCM et le socle des plugins.
 
-Ce guide dit **ce que le produit garantit** et où le lire. [CONTRIBUTING.md](./CONTRIBUTING.md) dit **comment travailler**. Règle du produit → un fichier d'invariants ; règle de travail → `CONTRIBUTING.md`.
+Ce guide dit **ce que le produit garantit** et où le lire. [CONTRIBUTING.md](./CONTRIBUTING.md) dit **comment travailler**.
 
 ## Écrire
 
@@ -29,7 +29,7 @@ Exemples tirés des corrections du mainteneur :
 
 1. `npm run agents:lire -- <chemins touchés>` : les fichiers à lire, et seulement eux. Lire le groupe que la tâche touche, pas les autres.
 2. [CONCEPT.md](./CONCEPT.md) : responsabilités du modèle.
-3. Forme publiée → [FORMAT.md](./docs/format/FORMAT.md) ; lecture de Figma par l'exporteur → [SPEC.md](./packages/plugin-exporter/SPEC.md) ; ce que les versions précédentes publiaient → [CHANGELOG-FORMAT.md](./docs/format/CHANGELOG-FORMAT.md), dès qu'une tâche touche à la compatibilité.
+3. Forme publiée : [FORMAT.md](./docs/format/FORMAT.md) ; lecture de Figma par l'exporteur : [SPEC.md](./packages/plugin-exporter/SPEC.md) ; ce que les versions précédentes publiaient : [CHANGELOG-FORMAT.md](./docs/format/CHANGELOG-FORMAT.md), dès qu'une tâche touche à la compatibilité.
 4. [CONTRIBUTING.md](./CONTRIBUTING.md) : règles de code et de test ; [Travailler avec des agents](./CONTRIBUTING.md#travailler-avec-des-agents) : `git status`, lots, vérifications.
 5. `packages/kit/src/format/types.ts` et les tests voisins : forme concrète.
 
@@ -108,7 +108,7 @@ npm run test:paquet -- socle          # les trois plugins, socle, couleur, hub, 
 
 - Chaque paquet a son `scripts/run-tests.cjs` (`build/run-tests.cjs` dans le socle), qui découvre `tests/*.test.ts` et `tests/*.test.mjs` de son dossier. Tout bug corrigé reçoit un test de régression.
 - `npm run cascade` charge la feuille des tokens dans Chromium, Firefox et WebKit, hors de `npm test`. Moteurs : `npx playwright install chromium firefox webkit` ; le job `cascade` de `ci.yml` le lance.
-- `packages/kit/src/format/types.ts` changé → `npm run schema` : le schéma commité en est dérivé, et `packages/kit/tests/schema.test.ts` refuse une version périmée en la régénérant.
+- `packages/kit/src/format/types.ts` changé : lancer `npm run schema`, le schéma commité en est dérivé, et `packages/kit/tests/schema.test.ts` refuse une version périmée en la régénérant.
 - `npm run vues` : reconstruit le kit si son empreinte a changé, puis régénère le hub, la planche du moteur et les données de la vue illustrée ; écrit seulement ce qui change. Le test de fraîcheur de chaque page échoue avec « La vue n'est plus à jour » tant qu'elle est périmée.
 - `npm run agents:diff` : domiciles et documents liés à relire, vérifications à lancer, documents qui citent un chemin supprimé ou renommé.
 

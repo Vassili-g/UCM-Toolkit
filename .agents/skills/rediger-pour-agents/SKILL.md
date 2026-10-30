@@ -29,12 +29,13 @@ Ici, une proposition au plus, et seulement si elle change le geste de l'agent.
 ```text
 - **<Règle : phrase complète, au présent.>** <Précisions, en fragments.>
   Borne : <limite ou exception>. Autorité : `fichier.ts` `fonction`.
-  Tests : `a.test.ts`, `[UI-20]`. → [§ancre]
+  Tests : `a.test.ts`, `[UI-20]`. Spec : [§ancre]
 ```
 
 - Titre en gras : phrase complète. Suite : fragments admis.
-- Étiquettes fixes, dans cet ordre : `Borne :`, `Autorité :`, `Tests :`. Étiquette vide : omise.
-- `Autorité :` vaut « en est l'unique autorité ». `Tests :` vaut « le tient ».
+- Étiquettes fixes, dans cet ordre : `Borne :`, `Autorité :`, `Tests :`, `Spec :`. Étiquette vide : omise.
+- `Autorité :` vaut « en est l'unique autorité ». `Tests :` vaut « le tient ». `Spec :` donne le renvoi à la spec.
+- Pas de flèche `→` en prose : écrire le verbe (« renvoie à », « devient », « donne ») ou une étiquette.
 - Une puce = une règle. Deux règles = deux puces.
 
 ### Fichier d'invariants
@@ -90,8 +91,7 @@ Liste fermée. Un raccourci absent de la table s'écrit en toutes lettres.
 | chemin d'un autre paquet, `packages/couleur/src/rampe.ts` | `couleur/src/rampe.ts` |
 | chemin de la racine du dépôt, dans un fichier de paquet : `tests/x.test.ts` à la racine | `/tests/x.test.ts` |
 | la fonction `f` du fichier `x.ts` | `x.ts` `f` |
-| lien vers une spec, répété | lien de référence `→ [§6.3]` |
-| implique, donne, mène à, renvoie à | `→` |
+| lien vers une spec, répété | lien de référence, derrière `Spec :` |
 | égal à, différent de, au plus, au moins | `=`, `≠`, `≤`, `≥` |
 | UCM Palettes, UCM Architect | Palettes, l'explorateur |
 | la spécification | la spec |
@@ -110,7 +110,7 @@ Liste fermée. Un raccourci absent de la table s'écrit en toutes lettres.
 - Chaque négation et chaque condition : jamais, aucun, sauf, seulement, sans, sous, au-delà, tant que.
 - Chaque borne, chaque exception, chaque renvoi à la spec.
 
-Un mot de cette liste ne change que pour un équivalent exact : « ne … que » → « seulement ».
+Un mot de cette liste ne change que pour un équivalent exact : « ne … que » devient « seulement ».
 
 Une règle qui paraît fausse ou périmée ne se corrige pas en réécrivant : la
 rendre en question. Seuls les écarts déjà relevés par le plan se corrigent.

@@ -590,7 +590,7 @@ Les contrôles ci-dessous existent parce que la documentation avait pris les tic
 modèles de langage, mesurables et reconnaissables : la densité de tiret cadratin
 atteignait cinquante fois celle d’un texte humain.
 
-`tests/styleDocumentaire.test.ts` joue les contrôles sur les documents, les commentaires de code, le texte des maquettes `.html` et les chaînes des `fr.ts`. Il refuse dix tournures : tiret cadratin en incise, capitales d’emphase, opposition en deux temps, qualificatif que rien n’établit, date posée sur une décision, « afin de », mot de liaison sans fait, formule d’ouverture ou de clôture, interjection en tête de phrase, emoji de statut. Un onzième contrôle refuse qu’un document d’autorité recopie d’un autre un passage de vingt-cinq mots. Quatre autres motifs sont des signaux, que le test laisse passer : « permet de », l’opposition à deux-points, deux deux-points dans une phrase, la flèche. `scripts/controle-style.mjs` porte ces règles.
+`tests/styleDocumentaire.test.ts` joue les contrôles sur les documents, les commentaires de code, le texte des maquettes `.html` et les chaînes des `fr.ts`. Il refuse dix tournures : tiret cadratin en incise, capitales d’emphase, opposition en deux temps, qualificatif que rien n’établit, date posée sur une décision, « afin de », mot de liaison sans fait, formule d’ouverture ou de clôture, interjection en tête de phrase, emoji de statut. Un onzième contrôle refuse qu’un document d’autorité recopie d’un autre un passage de vingt-cinq mots. La flèche dans une phrase est un refus dans les fichiers d’agents, hors `AGENTS_A_CONVERTIR`, et un signal ailleurs. Trois autres motifs sont des signaux, que le test laisse passer : « permet de », l’opposition à deux-points, deux deux-points dans une phrase. `scripts/controle-style.mjs` porte ces règles.
 
 Trois moments les appliquent. Le test est la barrière que rien ne franchit. Le hook `PostToolUse` de `.claude/settings.json` rejoue le contrôle sur le fichier qu’un agent écrit : un refus sort en code 2, un signal revient à l’agent, qui revoit la phrase et la garde si le fait l’exige. Les hooks `Stop` et `SubagentStop` (`scripts/hook-reponse.mjs`) appliquent aux réponses et aux rapports les motifs refusés partout, et demandent une réécriture. Un mot en capitales qui est un sigle, un type de l’API Figma ou un nom de document s’ajoute à `ACRONYMES`, dans le même commit. Un fichier que le contrôle ne peut pas juger encore s’inscrit dans `EXCLUS_DU_CONTROLE`, avec sa raison.
 
@@ -635,7 +635,7 @@ designer, appartient à `SPEC.md`. Une règle qui fait les deux se range du côt
 de ce qu’un consommateur doit savoir pour lire l’artefact, et l’autre document y
 renvoie : c’est le consommateur qui n’a pas accès au code.
 
-La table ci-dessus ne dit pas où une règle atterrira : elle dit où elle est.
+La table donne l’endroit où chaque règle est écrite.
 
 Ailleurs, un lien. Une mention d’une phrase à une autre altitude, comme le
 `README` qui résume ou la `ROADMAP` qui date une étape, n’est pas une

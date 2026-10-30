@@ -11,7 +11,7 @@ Le plugin : routage, configuration, forges et interface. Le moteur d'extraction 
 - tests/ : tests du paquet
 
 ## src/
-- code.ts : routage UI → commandes
+- code.ts : routage de l'UI vers les commandes
 - base64.ts : encodage UTF-8/Base64 sans dépendance au sandbox
 - config.ts : configuration locale (dépôts, dépôt actif, clé de destination, reprise des anciennes clés)
 - fenetre.ts : bornes et clé de la fenêtre ; le socle la lit et la range

@@ -14,6 +14,7 @@ import path from 'node:path';
 import test from 'node:test';
 
 import {
+  AGENTS_A_CONVERTIR,
   estExclu,
   fautesDeReponse,
   fautesDuFichier,
@@ -117,9 +118,14 @@ test('deux deux-points dans une phrase font un signal, sauf fichiers d’agents 
   assert.deepEqual(regles('docs/maquette.html', `<p>${texte}</p>`, 'signal'), []);
 });
 
-test('la flèche dans une phrase est un signal partout, une ligne de tableau est écartée', () => {
+test('la flèche dans une phrase est un refus dans les fichiers d’agents et un signal ailleurs, une ligne de tableau est écartée', () => {
   assert.deepEqual(regles(DOCUMENT, 'Le contrat → le code.', 'signal'), ['fleche']);
-  assert.deepEqual(regles('AGENTS.md', 'Le contrat → le code.', 'signal'), ['fleche']);
+  assert.deepEqual(regles('AGENTS.md', 'Le contrat → le code.', 'refus'), ['fleche']);
+  assert.deepEqual(regles('AGENTS.md', 'Le contrat → le code.', 'signal'), []);
+  for (const chemin of AGENTS_A_CONVERTIR) {
+    assert.deepEqual(regles(chemin, 'Le contrat → le code.', 'signal'), ['fleche']);
+    assert.deepEqual(regles(chemin, 'Le contrat → le code.', 'refus'), []);
+  }
   assert.deepEqual(regles('docs/maquette.html', '<p>Le contrat → le code.</p>', 'signal'), ['fleche']);
   accepte('| Contrat | Code |\n|---|---|\n| a → b | c |');
   accepte('Le contrat `a → b` produit le code.');

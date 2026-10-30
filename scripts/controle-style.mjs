@@ -164,15 +164,25 @@ export const MOTIFS_DE_REFUS_PARTOUT = [
  * motif de la catégorie. Un motif passe de signal à refus en changeant sa
  * valeur ici, sans toucher à sa détection.
  *
- * La flèche reste un signal partout ; elle deviendra un refus dans les
- * fichiers d'agents une fois leurs flèches converties en verbes.
+ * La flèche est un refus dans les fichiers d'agents, sauf ceux de
+ * `AGENTS_A_CONVERTIR`, et un signal ailleurs.
  */
 export const NIVEAUX_DES_SIGNAUX = {
   'permet-de': { agent: 'signal', html: 'signal', autre: 'signal' },
   'opposition-deux-points': { agent: 'signal', html: 'signal', autre: 'signal' },
   'deux-points-multiples': { agent: null, html: null, autre: 'signal' },
-  fleche: { agent: 'signal', html: 'signal', autre: 'signal' },
+  fleche: { agent: 'refus', html: 'signal', autre: 'signal' },
 };
+
+/**
+ * Fichiers d'agents dont les flèches gardent le niveau signal : une autre
+ * session les modifie. À retirer de cette liste, et à convertir, quand elle
+ * aura commité.
+ */
+export const AGENTS_A_CONVERTIR = [
+  'packages/couleur/invariants/moteur-de-couleur.md',
+  'packages/plugin-palettes/CARTE.md',
+];
 
 const PERMET_DE = new RegExp(`${MOT}permet(?:tent)?\\s+(?:de${FIN_DE_MOT}|d['’])`, 'gi');
 const OPPOSITION_A_DEUX_POINTS = /\b(?:ne|n['’])\s?[^.:;!?]{0,80}?\b(?:pas|plus|jamais|rien)\b[^.:;!?]{0,80}?\s:\s+(?:il|elle|ils|elles|on|c['’]est|ce|celui|celle|cela)\b/gi;
@@ -442,7 +452,10 @@ function paragraphesDe(lignes) {
 /** Les signaux d'une suite de lignes, selon la catégorie du fichier. */
 function signauxDesLignes(chemin, categorie, lignes) {
   const fautes = [];
-  const niveauDe = (regle) => NIVEAUX_DES_SIGNAUX[regle][categorie] ?? null;
+  const niveauDe = (regle) => {
+    if (regle === 'fleche' && AGENTS_A_CONVERTIR.includes(chemin)) return 'signal';
+    return NIVEAUX_DES_SIGNAUX[regle][categorie] ?? null;
+  };
   const signaler = (regle, paragraphe, index, phrase) => {
     const niveau = niveauDe(regle);
     if (niveau === null) return;
