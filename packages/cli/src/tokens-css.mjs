@@ -15,6 +15,9 @@ import { existsSync, mkdirSync, readFileSync, renameSync, rmSync, statSync, writ
 import { dirname, join, relative, resolve } from "node:path";
 
 import {
+  EXTENSION_MODES_TOKENS,
+  EXTENSION_SURCHARGES_TOKENS,
+  MODE_DE_BASE,
   NOM_CONFIGURATION,
   PREFIXE_DES_INTERMEDIAIRES,
   attributDeMode,
@@ -243,9 +246,9 @@ export function refusDuGrapheDesTokens(document, axes = []) {
       juger(chemin, feuille, feuille.$value);
       continue;
     }
-    const modes = feuille.$extensions["com.ucm.modes"];
+    const modes = feuille.$extensions[EXTENSION_MODES_TOKENS];
     for (const mode of axe.modes) juger(chemin, feuille, modes[mode], mode);
-    const surcharges = feuille.$extensions["com.ucm.extensions"] ?? {};
+    const surcharges = feuille.$extensions[EXTENSION_SURCHARGES_TOKENS] ?? {};
     for (const extension of Object.keys(axe.extensions ?? {})) {
       if (!possede(surcharges, extension)) continue;
       for (const mode of axe.modes) {
@@ -292,7 +295,7 @@ export function feuilleDesTokens(document, { axes = [], attributs = new Map(), r
     const parProjection = new Map();
     for (const extension of Object.keys(axe.extensions ?? {})) {
       const projection = tokenCssVariable(extension).slice(2);
-      if (projection === "" || projection === "base") {
+      if (projection === "" || projection === MODE_DE_BASE) {
         refus.push(projection === ""
           ? `L'extension « ${extension} » de l'axe « ${axe.nom} » ne donne aucun nom CSS.`
           : `L'extension « ${extension} » de l'axe « ${axe.nom} » donne le nom CSS « base », réservé à la collection elle-même.`);
@@ -350,11 +353,11 @@ export function feuilleDesTokens(document, { axes = [], attributs = new Map(), r
       variables.push({ nom, axe: null, valeur: texteDe(chemin, feuille, feuille.$value) });
       continue;
     }
-    const modes = feuille.$extensions["com.ucm.modes"];
+    const modes = feuille.$extensions[EXTENSION_MODES_TOKENS];
     const parMode = (valeurDuMode, extension) => new Map(axe.modes.map((mode) => (
       [mode, valeurDuMode(mode, extension)]
     )));
-    const surcharges = feuille.$extensions["com.ucm.extensions"] ?? {};
+    const surcharges = feuille.$extensions[EXTENSION_SURCHARGES_TOKENS] ?? {};
     const extensions = Object.keys(axe.extensions ?? {});
     if (extensions.length === 0 || Object.keys(surcharges).length === 0) {
       variables.push({ nom, axe: axe.nom, valeurs: parMode((mode) => texteDe(chemin, feuille, modes[mode], mode)) });
@@ -364,14 +367,14 @@ export function feuilleDesTokens(document, { axes = [], attributs = new Map(), r
     const suffixe = nom.slice(2);
     const intermediaire = (extension) => `${PREFIXE_DES_INTERMEDIAIRES}${tokenCssVariable(extension).slice(2)}--${suffixe}`;
     const plusProche = (extension) => {
-      for (let courante = extension; courante !== undefined && courante !== "base"; courante = axe.extensions[courante]?.parent) {
+      for (let courante = extension; courante !== undefined && courante !== MODE_DE_BASE; courante = axe.extensions[courante]?.parent) {
         if (possede(surcharges, courante)) return courante;
       }
-      return "base";
+      return MODE_DE_BASE;
     };
 
     variables.push({
-      nom: intermediaire("base"),
+      nom: intermediaire(MODE_DE_BASE),
       axe: axe.nom,
       valeurs: parMode((mode) => texteDe(chemin, feuille, modes[mode], mode)),
     });
@@ -391,9 +394,9 @@ export function feuilleDesTokens(document, { axes = [], attributs = new Map(), r
     const propres = new Map();
     for (const extension of extensions) {
       const proche = plusProche(extension);
-      if (proche !== "base") propres.set(extension, `var(${intermediaire(proche)})`);
+      if (proche !== MODE_DE_BASE) propres.set(extension, `var(${intermediaire(proche)})`);
     }
-    variables.push({ nom, axe: axeDesExtensions(axe.nom), base: `var(${intermediaire("base")})`, propres });
+    variables.push({ nom, axe: axeDesExtensions(axe.nom), base: `var(${intermediaire(MODE_DE_BASE)})`, propres });
   }
 
   refus.push(...refusDuGrapheDesTokens(document, axes));

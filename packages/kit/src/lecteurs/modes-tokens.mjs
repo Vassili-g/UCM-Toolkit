@@ -14,15 +14,17 @@
  * étendue se nomme `axeDesExtensions(axe)` et vaut `base` par défaut, `base`
  * désignant la collection elle-même.
  */
-import { axeDesExtensions } from "@ucm-kit/core/format";
+import {
+  EXTENSION_AXE_TOKENS,
+  EXTENSION_AXES_TOKENS,
+  EXTENSION_MODES_TOKENS,
+  EXTENSION_SURCHARGES_TOKENS,
+  MODE_DE_BASE,
+  axeDesExtensions,
+} from "@ucm-kit/core/format";
 
 import { collecterReferences, sansEchantillon } from "./references-token.mjs";
 import { cheminDeReference, indexerTokensDtcg } from "./tokens-dtcg.mjs";
-
-const AXES = "com.ucm.axes";
-const AXE = "com.ucm.axis";
-const MODES = "com.ucm.modes";
-const SURCHARGES = "com.ucm.extensions";
 
 /** Le nombre de cycles énumérés au-delà duquel `cyclesActifs` s'arrête sur un refus. */
 export const BORNE_DES_CYCLES = 10_000;
@@ -35,7 +37,7 @@ const possede = (objet, cle) => Object.prototype.hasOwnProperty.call(objet, cle)
 const extensionsDe = (feuille) => (estObjet(feuille?.$extensions) ? feuille.$extensions : {});
 
 const surchargesDe = (feuille) => {
-  const surcharges = extensionsDe(feuille)[SURCHARGES];
+  const surcharges = extensionsDe(feuille)[EXTENSION_SURCHARGES_TOKENS];
   return estObjet(surcharges) ? surcharges : {};
 };
 
@@ -53,8 +55,8 @@ export function contextesDesAxes(document, axes) {
     if (extensions.length === 0) return [axe];
     return [axe, {
       nom: axeDesExtensions(axe.nom),
-      modes: ["base", ...extensions],
-      defaut: "base",
+      modes: [MODE_DE_BASE, ...extensions],
+      defaut: MODE_DE_BASE,
       extensions: {},
       feuilles: axe.feuilles.filter((chemin) => Object.keys(surchargesDe(index.get(chemin))).length > 0),
       parent: axe.nom,
@@ -67,10 +69,10 @@ export function contextesDesAxes(document, axes) {
  * feuille, ou `base`. La chaîne de parentes a été validée par `axesDeTokens`.
  */
 function surchargeLaPlusProche(axe, surcharges, extension) {
-  for (let courante = extension; courante !== undefined && courante !== "base"; courante = axe.extensions[courante]?.parent) {
+  for (let courante = extension; courante !== undefined && courante !== MODE_DE_BASE; courante = axe.extensions[courante]?.parent) {
     if (possede(surcharges, courante)) return courante;
   }
-  return "base";
+  return MODE_DE_BASE;
 }
 
 /**
@@ -108,16 +110,16 @@ function defautDeDeclaration(declaration) {
   const { extensions } = declaration;
   if (!estObjet(extensions)) return "déclare des extensions qui ne sont pas un objet";
   for (const [nom, extension] of Object.entries(extensions)) {
-    if (nom === "base") return "déclare une extension nommée « base », qui désigne la collection elle-même";
+    if (nom === MODE_DE_BASE) return "déclare une extension nommée « base », qui désigne la collection elle-même";
     if (!estObjet(extension)) return `extension ${nom} invalide`;
     const parent = extension.parent;
-    if (parent !== "base" && !possede(extensions, parent)) {
+    if (parent !== MODE_DE_BASE && !possede(extensions, parent)) {
       return `déclare l'extension « ${nom} » avec une parente inconnue`;
     }
   }
   for (const nom of Object.keys(extensions)) {
     const vues = new Set();
-    for (let courante = nom; courante !== "base"; courante = extensions[courante].parent) {
+    for (let courante = nom; courante !== MODE_DE_BASE; courante = extensions[courante].parent) {
       if (vues.has(courante)) return `déclare une chaîne de parentes qui boucle sur « ${nom} »`;
       vues.add(courante);
     }
@@ -127,8 +129,8 @@ function defautDeDeclaration(declaration) {
 
 /** Ce qui rend les surcharges d'une feuille illisibles pour son axe, ou `null`. */
 function defautDeSurcharges(extensions, axe) {
-  if (!possede(extensions, SURCHARGES)) return null;
-  const surcharges = extensions[SURCHARGES];
+  if (!possede(extensions, EXTENSION_SURCHARGES_TOKENS)) return null;
+  const surcharges = extensions[EXTENSION_SURCHARGES_TOKENS];
   if (!estObjet(surcharges)) return "ne sont pas un objet";
   for (const [extension, parMode] of Object.entries(surcharges)) {
     if (!possede(axe.extensions, extension)) return `nomment l'extension « ${extension} », que l'axe ne déclare pas`;
@@ -160,13 +162,13 @@ export function axesDeTokens(document) {
   const index = indexDe(document);
   const feuilles = [...index];
   // Une clé écrite mais illisible se juge feuille par feuille, plus bas.
-  const nommeDesModes = ([, feuille]) => possede(extensionsDe(feuille), MODES) || possede(extensionsDe(feuille), AXE);
+  const nommeDesModes = ([, feuille]) => possede(extensionsDe(feuille), EXTENSION_MODES_TOKENS) || possede(extensionsDe(feuille), EXTENSION_AXE_TOKENS);
   if (!feuilles.some(nommeDesModes)) {
     return { etat: "sans-modes", axes: [], constats: [] };
   }
 
   const racine = estObjet(document.$extensions) ? document.$extensions : {};
-  if (!possede(racine, AXES) && feuilles.some(([, feuille]) => estObjet(extensionsDe(feuille)[MODES]))) {
+  if (!possede(racine, EXTENSION_AXES_TOKENS) && feuilles.some(([, feuille]) => estObjet(extensionsDe(feuille)[EXTENSION_MODES_TOKENS]))) {
     return {
       etat: "anterieur",
       axes: [],
@@ -180,10 +182,10 @@ export function axesDeTokens(document) {
 
   const constats = [];
   const axes = new Map();
-  if (possede(racine, AXES) && !estObjet(racine[AXES])) {
+  if (possede(racine, EXTENSION_AXES_TOKENS) && !estObjet(racine[EXTENSION_AXES_TOKENS])) {
     constats.push({ code: "axes-illisibles", message: "La déclaration des axes n'est pas un objet." });
-  } else if (estObjet(racine[AXES])) {
-    for (const [nom, declaration] of Object.entries(racine[AXES])) {
+  } else if (estObjet(racine[EXTENSION_AXES_TOKENS])) {
+    for (const [nom, declaration] of Object.entries(racine[EXTENSION_AXES_TOKENS])) {
       const defaut = defautDeDeclaration(declaration);
       if (defaut) {
         constats.push({ code: "axe-illisible", axe: nom, message: `L'axe « ${nom} » ${defaut}.` });
@@ -202,8 +204,8 @@ export function axesDeTokens(document) {
   const ecartees = [];
   for (const [chemin, feuille] of feuilles) {
     const extensions = extensionsDe(feuille);
-    const aDesModes = estObjet(extensions[MODES]);
-    if (possede(extensions, MODES) && !aDesModes) {
+    const aDesModes = estObjet(extensions[EXTENSION_MODES_TOKENS]);
+    if (possede(extensions, EXTENSION_MODES_TOKENS) && !aDesModes) {
       constats.push({
         code: "modes-illisibles",
         chemin,
@@ -211,14 +213,14 @@ export function axesDeTokens(document) {
       });
       continue;
     }
-    if (!possede(extensions, AXE)) {
+    if (!possede(extensions, EXTENSION_AXE_TOKENS)) {
       if (aDesModes) ecartees.push(chemin);
       continue;
     }
-    const nom = extensions[AXE];
+    const nom = extensions[EXTENSION_AXE_TOKENS];
     const axe = typeof nom === "string" ? axes.get(nom) : undefined;
     if (!axe) {
-      if (typeof nom === "string" && estObjet(racine[AXES]) && possede(racine[AXES], nom)) continue;
+      if (typeof nom === "string" && estObjet(racine[EXTENSION_AXES_TOKENS]) && possede(racine[EXTENSION_AXES_TOKENS], nom)) continue;
       constats.push({
         code: "axe-inconnu",
         chemin,
@@ -235,7 +237,7 @@ export function axesDeTokens(document) {
       });
       continue;
     }
-    if (!memesModes(Object.keys(extensions[MODES]), axe.modes)) {
+    if (!memesModes(Object.keys(extensions[EXTENSION_MODES_TOKENS]), axe.modes)) {
       constats.push({
         code: "modes-divergents",
         chemin,
@@ -288,9 +290,9 @@ export function valeurDansLeContexte(document, chemin, contexte = {}) {
   const feuille = indexDe(document).get(chemin);
   if (!feuille) return undefined;
   const extensions = extensionsDe(feuille);
-  const nomAxe = extensions[AXE];
-  const modes = extensions[MODES];
-  const declarations = estObjet(document.$extensions?.[AXES]) ? document.$extensions[AXES] : {};
+  const nomAxe = extensions[EXTENSION_AXE_TOKENS];
+  const modes = extensions[EXTENSION_MODES_TOKENS];
+  const declarations = estObjet(document.$extensions?.[EXTENSION_AXES_TOKENS]) ? document.$extensions[EXTENSION_AXES_TOKENS] : {};
   if (typeof nomAxe !== "string" || !estObjet(modes) || !possede(declarations, nomAxe)) return feuille.$value;
 
   const declaration = declarations[nomAxe];
@@ -298,11 +300,11 @@ export function valeurDansLeContexte(document, chemin, contexte = {}) {
   const mode = valeurDuContexte(contexte, nomAxe) ?? declaration.default;
   if (typeof mode !== "string" || !possede(modes, mode)) return undefined;
 
-  const surcharges = estObjet(extensions[SURCHARGES]) ? extensions[SURCHARGES] : {};
+  const surcharges = estObjet(extensions[EXTENSION_SURCHARGES_TOKENS]) ? extensions[EXTENSION_SURCHARGES_TOKENS] : {};
   const parentes = estObjet(declaration.extensions) ? declaration.extensions : {};
   const vues = new Set();
-  let extension = valeurDuContexte(contexte, axeDesExtensions(nomAxe)) ?? "base";
-  while (extension !== "base") {
+  let extension = valeurDuContexte(contexte, axeDesExtensions(nomAxe)) ?? MODE_DE_BASE;
+  while (extension !== MODE_DE_BASE) {
     if (vues.has(extension) || !possede(parentes, extension)) return undefined;
     vues.add(extension);
     const parMode = possede(surcharges, extension) ? surcharges[extension] : undefined;
@@ -316,9 +318,9 @@ export function valeurDansLeContexte(document, chemin, contexte = {}) {
 function valeursDe(feuille) {
   const extensions = extensionsDe(feuille);
   const valeurs = [feuille.$value];
-  if (estObjet(extensions[MODES])) valeurs.push(...Object.values(extensions[MODES]));
-  if (estObjet(extensions[SURCHARGES])) {
-    for (const parMode of Object.values(extensions[SURCHARGES])) {
+  if (estObjet(extensions[EXTENSION_MODES_TOKENS])) valeurs.push(...Object.values(extensions[EXTENSION_MODES_TOKENS]));
+  if (estObjet(extensions[EXTENSION_SURCHARGES_TOKENS])) {
+    for (const parMode of Object.values(extensions[EXTENSION_SURCHARGES_TOKENS])) {
       if (estObjet(parMode)) valeurs.push(...Object.values(parMode));
     }
   }
@@ -633,7 +635,7 @@ export function cyclesActifs(document, axes) {
 
   for (const [chemin, feuille] of index) {
     const axe = parChemin.get(chemin);
-    const modes = extensionsDe(feuille)[MODES];
+    const modes = extensionsDe(feuille)[EXTENSION_MODES_TOKENS];
     if (!axe || !estObjet(modes)) {
       vers(chemin, feuille.$value, null);
       continue;
@@ -654,11 +656,11 @@ export function cyclesActifs(document, axes) {
       return intermediaires.get(extension);
     };
     proprietaire.set(chemin, axeDesExtensions(axe.nom));
-    for (const contexte of ["base", ...extensions]) {
+    for (const contexte of [MODE_DE_BASE, ...extensions]) {
       ajouter(chemin, noeud(surchargeLaPlusProche(axe, surcharges, contexte)), contexte);
     }
-    proprietaire.set(noeud("base"), axe.nom);
-    for (const [mode, valeur] of Object.entries(modes)) vers(noeud("base"), valeur, mode);
+    proprietaire.set(noeud(MODE_DE_BASE), axe.nom);
+    for (const [mode, valeur] of Object.entries(modes)) vers(noeud(MODE_DE_BASE), valeur, mode);
     for (const extension of Object.keys(surcharges)) {
       if (!possede(axe.extensions, extension)) continue;
       const parMode = estObjet(surcharges[extension]) ? surcharges[extension] : {};

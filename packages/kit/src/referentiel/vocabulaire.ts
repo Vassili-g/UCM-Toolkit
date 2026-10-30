@@ -37,14 +37,6 @@ export const STATE_PRECEDENCE = [
   'disable', 'disabled', 'press', 'pressed', 'selected-true', 'selected', 'focus', 'focused', 'hover', 'hovered',
   'default', 'rest', 'resting', 'normal', 'selected-false', 'unselected',
 ] as const;
-/** Les tailles que l'exporteur accepte sans que `REGISTRE_TAILLES` les reconnaisse : une compatibilité voulue. */
-export const TAILLES_DE_COMPATIBILITE = ['tiny', 'huge'] as const;
-export const SIZE_VALUES: ReadonlySet<string> = new Set([
-  'tiny', 'small', 'medium', 'large', 'big', 'huge',
-  '9xs', '8xs', '7xs', '6xs', '5xs', '4xs', '3xs', '2xs', 'xs', 'sm', 'md', 'lg', 'xl', 'xxl', 'xxxl', '2xl', '3xl', '4xl',
-  '5xl', '6xl', '7xl', '8xl', '9xl',
-]);
-
 export const SYNONYMES_COURANTS = [
   ['danger', 'error', 'negative', 'critical'],
   ['warning', 'attention', 'notice'],
@@ -125,8 +117,8 @@ export const STATE_AXIS_NAMES: readonly string[] = REGISTRE_AXES_ETAT.termes.fla
 /** Les dossiers gardent les tailles en mots entiers ; les variables emploient les abréviations. */
 const TAILLES_RETENUES: readonly (readonly [string, readonly string[]])[] = [
   ['9xs', []], ['8xs', []], ['7xs', []], ['6xs', []], ['5xs', []],
-  ['4xs', []], ['3xs', []], ['2xs', []], ['xs', []], ['sm', ['small']], ['md', ['medium']], ['lg', ['large', 'big']],
-  ['xl', []], ['2xl', ['xxl']], ['3xl', ['xxxl']], ['4xl', []],
+  ['4xs', []], ['3xs', []], ['2xs', []], ['xs', ['tiny']], ['sm', ['small']], ['md', ['medium']], ['lg', ['large', 'big']],
+  ['xl', ['huge']], ['2xl', ['xxl']], ['3xl', ['xxxl']], ['4xl', []],
   ['5xl', []], ['6xl', []], ['7xl', []], ['8xl', []], ['9xl', []],
 ];
 
@@ -143,6 +135,12 @@ export const REGISTRE_TAILLES: Registre = {
     };
   }),
 };
+
+/**
+ * Les écritures d'une taille que l'exporteur reconnaît : chaque identifiant de `REGISTRE_TAILLES` et chaque forme tolérée.
+ * Un axe dont toutes les valeurs y figurent se publie sous la prop `size`.
+ */
+export const SIZE_VALUES: ReadonlySet<string> = new Set(REGISTRE_TAILLES.termes.flatMap((terme) => [terme.id, ...(terme.toleres ?? [])]));
 
 export const REGISTRE_STATUTS: Registre = {
   id: 'statuts', extensible: true,

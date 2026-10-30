@@ -1,4 +1,7 @@
 
+import { termeReconnu } from '../referentiel/reconnaissance.js';
+import { REGISTRE_ETATS } from '../referentiel/vocabulaire.js';
+
 /** Normalise un chemin Figma en token : `/` → `.`, espaces → `-`, minuscules. */
 export function normalizeName(name: string): string {
   return name
@@ -109,6 +112,9 @@ export const PREFIXE_DES_INTERMEDIAIRES = '--ucm-x-';
 /**
  * Vrai pour la valeur d'axe d'états qui devient la prop publique `disabled`.
  *
+ * La lecture est celle du registre des états (`REGISTRE_ETATS`) : son identifiant et ses formes tolérées, comparés par forme
+ * reconnue comme partout ailleurs. Aucun module de `referentiel/` n'importe `names.ts` : l'import ne forme pas de cycle.
+ *
  * Unique autorité sur cette orthographe : le modèle des props la consulte pour
  * fabriquer la prop, l'échantillon pour dire qu'une dépendance la porte, et le
  * modèle des règles pour ne pas documenter deux fois le même fait. Deux
@@ -117,5 +123,5 @@ export const PREFIXE_DES_INTERMEDIAIRES = '--ucm-x-';
  * jamais.
  */
 export function estUneValeurDesactivee(valeur: unknown): boolean {
-  return /^disabl(?:e|ed)$/i.test(String(valeur).trim());
+  return termeReconnu(REGISTRE_ETATS, String(valeur))?.id === 'disabled';
 }

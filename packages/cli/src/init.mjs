@@ -29,6 +29,7 @@ import { dirname, join } from "node:path";
 
 import {
   CONFIGURATION_PAR_DEFAUT,
+  EXTENSION_AXES_TOKENS,
   MOTIF_IMPLEMENTATION_PAR_DEFAUT,
   NOM_CONFIGURATION,
   estCheminDuRepository,
@@ -371,7 +372,7 @@ function lignesRestantes(racine, version, configuration) {
   }
   if (configuration && configuration.modes === undefined) {
     try {
-      const axes = JSON.parse(readFileSync(join(racine, configuration.tokens), "utf8"))?.$extensions?.["com.ucm.axes"];
+      const axes = JSON.parse(readFileSync(join(racine, configuration.tokens), "utf8"))?.$extensions?.[EXTENSION_AXES_TOKENS];
       if (axes && typeof axes === "object" && Object.keys(axes).length > 0) {
         lignes.push({
           fichier: NOM_CONFIGURATION,

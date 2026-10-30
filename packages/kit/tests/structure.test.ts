@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { controlerLaStructure as structureDuComposant, controlerLaStructureParEtapes, controlerLeCatalogue, type CatalogueDeReference, type ReleveDeComposant } from '../src/controles/index.js';
+import { controlerLaStructure as structureDuComposant, controlerLaStructureParEtapes, controlerLeCatalogue, controlerLesAliasesManquants, type CatalogueDeReference, type ReleveDeComposant } from '../src/controles/index.js';
 
 const modes = [{ id: 'light', nom: 'Light' }, { id: 'dark', nom: 'Dark' }];
 const collection = (cle: string, role: 'theme' | 'components' | 'layout' | 'brands') => ({ cle, nom: cle, role, modes, etat: 'lue' as const });
@@ -166,4 +166,26 @@ test('C63 compare les scopes d’un nom du thème écrit en majuscules ou avec u
   const resultats = controlerLaStructure(releve(), c).filter((constat) => constat.correction?.sorte === 'scope');
   assert.deepEqual(resultats.map(({ id }) => id).sort(), ['C63:default:scopes', 'C63:foreground:scopes']);
   assert.equal(resultats.find(({ id }) => id.startsWith('C63:default'))?.correction?.apres.nom, 'FRAME_FILL,SHAPE_FILL');
+});
+
+test('controlerLesAliasesManquants rend un constat par mode dont la cible manque, et rien d’autre', () => {
+  const c = cat([collection('theme', 'theme')], [
+    variable('source', 'success/surface/default', 'theme', { light: { alias: 'removed' }, dark: { alias: 'removed' } }),
+    variable('sans-valeur', 'success/surface/hover', 'theme', { light: { valeur: '#fff' } }),
+  ]);
+  const constats = controlerLesAliasesManquants(c);
+  assert.deepEqual(constats.map(({ faits }) => [faits.genre, faits.cle, faits.mode]), [
+    ['alias-supprime', 'source', 'Light'],
+    ['alias-supprime', 'source', 'Dark'],
+  ]);
+  c.variables.push(variable('removed', 'primitives/color/blue/500', 'theme'));
+  assert.deepEqual(controlerLesAliasesManquants(c), []);
+});
+
+test('une variable dont la collection manque au catalogue ne fait pas lever les contrôles du catalogue', () => {
+  const c = cat([collection('theme', 'theme')], [
+    variable('orpheline', 'success/surface/default', 'disparue', { light: { alias: 'removed' } }),
+  ]);
+  assert.deepEqual(controlerLesAliasesManquants(c), []);
+  assert.doesNotThrow(() => controlerLeCatalogue(c));
 });

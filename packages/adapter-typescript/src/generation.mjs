@@ -7,14 +7,6 @@ import { libelleNombre, lireConfiguration, trouverContrats } from "@ucm-kit/core
 
 import { nomsEnumsDeVariantes, typeVariantesExactes } from "./types-variants.mjs";
 
-/** « iconLeft » devient « IconLeft », en restant un identifiant TypeScript. */
-function pascal(nom) {
-  return nom
-    .replace(/[^a-zA-Z0-9]+(.)/g, (_, lettre) => lettre.toUpperCase())
-    .replace(/[^a-zA-Z0-9]/g, "")
-    .replace(/^./, (lettre) => lettre.toUpperCase());
-}
-
 /** Contenu d'un fichier dérivé d'un contrat, ou `null` s'il n'a aucun enum. */
 export function typesDuContrat(contrat) {
   const composant = codeIdentifier(String(contrat?.name ?? ""));
@@ -30,7 +22,7 @@ export function typesDuContrat(contrat) {
 
   const types = enums.map(([nom, prop]) => {
     const union = prop.values.map((valeur) => JSON.stringify(valeur)).join(" | ");
-    return `/** Valeurs de la prop « ${nom} » du contrat. */\nexport type ${composant}${pascal(nom)} = ${union};`;
+    return `/** Valeurs de la prop « ${nom} » du contrat. */\nexport type ${codeIdentifier(`${composant} ${nom}`)} = ${union};`;
   });
   const nomsAxes = nomsEnumsDeVariantes(
     enums.map(([nom]) => nom),

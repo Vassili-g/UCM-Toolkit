@@ -81,11 +81,11 @@ export interface TokenDeDocument {
     | 'string'
     | 'boolean';
   $extensions?: {
-    'com.ucm.modes'?: Record<string, ValeurDeToken>;
+    [EXTENSION_MODES_TOKENS]?: Record<string, ValeurDeToken>;
     /** L'axe propriétaire, écrit quand l'export a retenu la collection de la feuille. */
-    'com.ucm.axis'?: string;
+    [EXTENSION_AXE_TOKENS]?: string;
     /** Les surcharges d'une collection étendue, par extension puis par mode, creuses. */
-    'com.ucm.extensions'?: Record<string, Record<string, ValeurDeToken>>;
+    [EXTENSION_SURCHARGES_TOKENS]?: Record<string, Record<string, ValeurDeToken>>;
   };
 }
 
@@ -96,6 +96,22 @@ export interface GroupeDeTokens {
 
 /** La clé de `$extensions`, à la racine du document, qui déclare les axes de modes. */
 export const EXTENSION_AXES_TOKENS = 'com.ucm.axes';
+
+/** La clé de `$extensions`, sur une feuille, qui nomme son axe propriétaire. */
+export const EXTENSION_AXE_TOKENS = 'com.ucm.axis';
+
+/** La clé de `$extensions`, sur une feuille, qui porte la valeur de chaque mode. */
+export const EXTENSION_MODES_TOKENS = 'com.ucm.modes';
+
+/** La clé de `$extensions`, sur une feuille, qui porte les surcharges des collections étendues. */
+export const EXTENSION_SURCHARGES_TOKENS = 'com.ucm.extensions';
+
+/**
+ * Le nom qui désigne la collection elle-même parmi ses extensions : contexte
+ * par défaut d'un axe d'extension, et parente d'une extension qui ne dérive
+ * d'aucune autre.
+ */
+export const MODE_DE_BASE = 'base';
 
 /**
  * Un axe : une collection Figma à plusieurs modes ou étendue, sous la clé que

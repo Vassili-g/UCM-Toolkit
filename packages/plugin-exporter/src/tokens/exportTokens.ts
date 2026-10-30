@@ -10,8 +10,12 @@
  * de version à la racine. docs/format/FORMAT.md en décrit la forme.
  */
 import {
+  EXTENSION_AXE_TOKENS,
   EXTENSION_AXES_TOKENS,
+  EXTENSION_MODES_TOKENS,
+  EXTENSION_SURCHARGES_TOKENS,
   EXTENSION_VERSION_TOKENS,
+  MODE_DE_BASE,
   PREFIXE_DES_INTERMEDIAIRES,
   TOKENS_FORMAT_VERSION,
   deciderAxesDesCollections,
@@ -33,6 +37,8 @@ import type {
   DimensionDeToken,
   EspaceColorimetrique,
 } from '@ucm-kit/core/format';
+import { collectionsDeReference, controlerLesAliasesManquants } from '@ucm-kit/core/controles';
+import type { VariableDuCatalogue } from '@ucm-kit/core/controles';
 import {
   collisionWarnings,
   firstVariableAlias,
@@ -194,6 +200,10 @@ export function formatValue(
  * l'espace colorimétrique du document, lu une fois par export, et les deux
  * ensembles de variables `STRING` décidés avant la première feuille :
  * `graissesNumeriques` puis `famillesDeTokens`, dans cet ordre.
+ *
+ * Une cible d'alias absente de `pathById` donne `$value: null`. Le diagnostic
+ * n'est pas posé ici : `constaterLesAliasesManquants` le pose une fois par
+ * variable, avant l'arbre.
  */
 export type ExportContext = {
   collectionById: Map<string, VariableCollection>;
@@ -202,8 +212,6 @@ export type ExportContext = {
   espace: EspaceColorimetrique;
   graisses: ReadonlySet<string>;
   familles: ReadonlySet<string>;
-  /** Variables `EASING` retirées du fichier, par identifiant, avec leur nom Figma. */
-  easingsEcartees: ReadonlyMap<string, string>;
   /** Les axes que l'export retient, par identifiant de collection. */
   axes: ReadonlyMap<string, AxeDeCollection>;
 };
@@ -293,25 +301,6 @@ export function buildLeaf(
     const alias = firstVariableAlias(raw);
     if (alias) {
       const target = pathById.get(alias.id);
-      // Une cible écartée pour son easing existe encore dans Figma : dire
-      // qu'elle est introuvable enverrait le designer chercher une variable
-      // supprimée, au lieu de la corriger là où elle est.
-      const ecartee = ctx.easingsEcartees.get(alias.id);
-      if (!target && ecartee !== undefined) {
-        pousserSansNode(warnings, `Variable « ${variable.name} »`, {
-          famille: 'fichier',
-          manque: `elle cite la variable « ${ecartee} », que le fichier de tokens ne publie pas.`,
-          impact: 'Le développeur n’aura pas sa valeur.',
-          action: `Choisissez Linear ou Custom bezier pour « ${ecartee} », puis réexportez.`,
-        });
-      } else if (!target) {
-        pousserSansNode(warnings, `Variable « ${variable.name} »`, {
-          famille: 'fichier',
-          manque: 'elle cite une variable introuvable.',
-          impact: 'Le développeur n’aura pas sa valeur.',
-          action: 'Remplacez sa référence par une variable accessible dans Figma, puis réexportez.',
-        });
-      }
       return target ? `{${target}}` : null;
     }
     // Chaque littéral d'une graisse décidée `number` est un nom que la table
@@ -361,11 +350,11 @@ export function buildLeaf(
     const surcharges = axe ? surchargesDeLaVariable(variable, axe, formaterSurcharge) : null;
     leaf.$extensions = axe
       ? {
-        'com.ucm.axis': axe.cle,
-        'com.ucm.modes': Object.fromEntries(modes),
-        ...(surcharges ? { 'com.ucm.extensions': surcharges } : {}),
+        [EXTENSION_AXE_TOKENS]: axe.cle,
+        [EXTENSION_MODES_TOKENS]: Object.fromEntries(modes),
+        ...(surcharges ? { [EXTENSION_SURCHARGES_TOKENS]: surcharges } : {}),
       }
-      : { 'com.ucm.modes': Object.fromEntries(modes) };
+      : { [EXTENSION_MODES_TOKENS]: Object.fromEntries(modes) };
   }
 
   return leaf;
@@ -564,7 +553,7 @@ function extensionsDeLaCollection(
       action: 'Donnez à la collection étendue un nom qui contient une lettre ou un chiffre, puis réexportez.',
     }));
   }
-  for (const collection of etendues.filter((candidate) => nomCssDExtension(candidate) === 'base')) {
+  for (const collection of etendues.filter((candidate) => nomCssDExtension(candidate) === MODE_DE_BASE)) {
     ecartees = true;
     points.push(pointDe(`Collection « ${collection.name} »`, {
       famille: 'fichier',
@@ -576,7 +565,7 @@ function extensionsDeLaCollection(
   const parNom = new Map<string, ExtendedVariableCollection[]>();
   for (const collection of etendues) {
     const nom = nomCssDExtension(collection);
-    if (nom === '' || nom === 'base') continue;
+    if (nom === '' || nom === MODE_DE_BASE) continue;
     parNom.set(nom, [...(parNom.get(nom) ?? []), collection]);
   }
   for (const [nom, porteurs] of parNom) {
@@ -619,7 +608,7 @@ function extensionsDeLaCollection(
   return etendues.map((collection) => ({
     nom: nomDExtension(collection),
     parent: collection.parentVariableCollectionId === racine.id
-      ? 'base'
+      ? MODE_DE_BASE
       : nomDExtension(parId.get(collection.parentVariableCollectionId) as ExtendedVariableCollection),
     collection,
     modeRacine: new Map(collection.modes.flatMap((mode) => {
@@ -789,10 +778,10 @@ function constatsDeTypesParMode(
       });
     };
 
-    const modes = (leaf.$extensions?.['com.ucm.modes'] ?? {}) as Record<string, unknown>;
+    const modes = (leaf.$extensions?.[EXTENSION_MODES_TOKENS] ?? {}) as Record<string, unknown>;
     for (const mode of collection.modes) constater(modes[normalizeName(mode.name)], `le mode « ${mode.name} »`);
 
-    const surcharges = (leaf.$extensions?.['com.ucm.extensions'] ?? {}) as Record<string, Record<string, unknown>>;
+    const surcharges = (leaf.$extensions?.[EXTENSION_SURCHARGES_TOKENS] ?? {}) as Record<string, Record<string, unknown>>;
     for (const extension of axes.get(collection.id)?.extensions ?? []) {
       const parMode = Object.prototype.hasOwnProperty.call(surcharges, extension.nom) ? surcharges[extension.nom] : {};
       for (const mode of collection.modes) {
@@ -1056,6 +1045,109 @@ function ecarterLesEasingsSansCourbe(
   return ecartees;
 }
 
+/**
+ * Dit au designer chaque variable dont un alias vise une variable que le fichier
+ * de tokens ne publie pas : supprimée, de library, écartée pour collision. Le
+ * kit juge (`controlerLesAliasesManquants`) sur un catalogue des seules
+ * variables locales publiées, avec leurs alias ; l'Exporter ne teste plus
+ * lui-même l'appartenance d'une cible.
+ *
+ * Le kit rend un constat par variable et par mode. Une variable n'est dite
+ * qu'une fois, sauf si deux de ses alias visent des easings écartées
+ * différentes : chacune se nomme, pour que le designer corrige la bonne.
+ * Les surcharges d'une extension entrent au catalogue comme une variable de
+ * plus, sous une clé propre à l'extension, dans la collection étendue.
+ */
+function constaterLesAliasesManquants(
+  collections: readonly VariableCollection[],
+  collectionById: ReadonlyMap<string, VariableCollection>,
+  publiees: Iterable<Variable>,
+  axes: ReadonlyMap<string, AxeDeCollection>,
+  easingsEcartees: ReadonlyMap<string, string>,
+  warnings: string[],
+): void {
+  const entrees: VariableDuCatalogue[] = [];
+  const variableDeLEntree = new Map<string, Variable>();
+  /** L'identifiant de la cible d'un alias, par entrée et par nom de mode : le constat nomme l'un et l'autre. */
+  const cibles = new Map<string, string>();
+  const cleDeCible = (cle: string, nomDuMode: string | undefined) => `${cle}\u0000${nomDuMode ?? ''}`;
+
+  const ajouter = (cle: string, variable: Variable, collection: Pick<VariableCollection, 'id' | 'modes'>, valeurs: Record<string, VariableValue>) => {
+    const nomsDesModes = new Map(collection.modes.map((mode) => [mode.modeId, mode.name]));
+    entrees.push({
+      cle,
+      nom: variable.name,
+      collection: collection.id,
+      type: variable.resolvedType as VariableDuCatalogue['type'],
+      etat: 'presente',
+      valeurs: Object.fromEntries(Object.entries(valeurs).map(([modeId, brut]) => {
+        const cible = firstVariableAlias(brut);
+        if (!cible) return [modeId, { valeur: brut }];
+        cibles.set(cleDeCible(cle, nomsDesModes.get(modeId)), cible.id);
+        return [modeId, { alias: cible.id }];
+      })),
+    });
+    variableDeLEntree.set(cle, variable);
+  };
+
+  for (const variable of publiees) {
+    const collection = collectionById.get(variable.variableCollectionId);
+    if (!collection) continue;
+    ajouter(variable.id, variable, collection, variable.valuesByMode);
+    for (const extension of axes.get(collection.id)?.extensions ?? []) {
+      const surcharges = Object.prototype.hasOwnProperty.call(extension.collection.variableOverrides, variable.id)
+        ? extension.collection.variableOverrides[variable.id]
+        : undefined;
+      if (!surcharges) continue;
+      const valeurs = Object.fromEntries(Object.entries(surcharges).filter(([modeId]) => extension.modeRacine.has(modeId)));
+      ajouter(`${variable.id}@${extension.collection.id}`, variable, extension.collection, valeurs);
+    }
+  }
+
+  const constats = controlerLesAliasesManquants({
+    version: 1,
+    library: null,
+    collections: collectionsDeReference(
+      collections.map((collection) => ({
+        cle: collection.id,
+        nom: collection.name,
+        modes: collection.modes.map((mode) => ({ id: mode.modeId, nom: mode.name })),
+        etat: 'lue' as const,
+      })),
+      'libre',
+    ),
+    variables: entrees,
+  });
+
+  const dits = new Set<string>();
+  for (const constat of constats) {
+    const cle = String(constat.faits.cle);
+    const variable = variableDeLEntree.get(cle);
+    const cible = cibles.get(cleDeCible(cle, String(constat.faits.mode)));
+    if (!variable || cible === undefined) continue;
+    // Une cible écartée pour son easing existe encore dans Figma : dire
+    // qu'elle est introuvable enverrait le designer chercher une variable
+    // supprimée, au lieu de la corriger là où elle est.
+    const ecartee = easingsEcartees.get(cible);
+    const deja = `${variable.id}\u0000${ecartee === undefined ? '' : cible}`;
+    if (dits.has(deja)) continue;
+    dits.add(deja);
+    pousserSansNode(warnings, `Variable « ${variable.name} »`, ecartee !== undefined
+      ? {
+        famille: 'fichier',
+        manque: `elle cite la variable « ${ecartee} », que le fichier de tokens ne publie pas.`,
+        impact: 'Le développeur n’aura pas sa valeur.',
+        action: `Choisissez Linear ou Custom bezier pour « ${ecartee} », puis réexportez.`,
+      }
+      : {
+        famille: 'fichier',
+        manque: 'elle cite une variable introuvable.',
+        impact: 'Le développeur n’aura pas sa valeur.',
+        action: 'Remplacez sa référence par une variable accessible dans Figma, puis réexportez.',
+      });
+  }
+}
+
 /** Nomme au designer les familles que l'export n'a pas pu typer. */
 function constatsDesFamilles(
   decision: { ambigues: string[]; probables: string[] },
@@ -1140,9 +1232,9 @@ export async function handleExportTokens(annoncer: Annonce = () => {}): Promise<
     espace: espaceDuProfil(figma.root.documentColorProfile),
     graisses,
     familles: familles.familles,
-    easingsEcartees,
     axes,
   };
+  constaterLesAliasesManquants(collections, collectionById, variableByPath.values(), axes, easingsEcartees, warnings);
 
   // Parcourir l'index plutôt que la liste brute : une variable écartée pour
   // collision n'y figure pas, et chaque chemin est déjà calculé.

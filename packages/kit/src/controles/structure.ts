@@ -2,7 +2,7 @@
 import { formeDuChemin, formeReconnue } from '../referentiel/reconnaissance.js';
 import { variableDuThemeReconnue } from '../referentiel/theme.js';
 import { SUPPORT_DES_VARIABLES } from '../emplois/dossiers.js';
-import { cheminDansLaCollection, collectionParCle, type CatalogueDeReference, type VariableDuCatalogue } from './catalogue.js';
+import { cheminDansLaCollection, collectionParCle, variableParCle, type CatalogueDeReference, type VariableDuCatalogue } from './catalogue.js';
 import type { Constat, Correction, Question } from './constat.js';
 import { controlerLesModes } from './theme.js';
 import { estLaFamilleCouleur, segmentDAxe, tokensDuComposantParEtapes, type TokenDuComposant } from './nommage.js';
@@ -36,7 +36,11 @@ export function controlerLeCatalogue(catalogue: CatalogueDeReference): Constat[]
   ];
 }
 
-function controlerLesAliasesManquants(catalogue: CatalogueDeReference): Constat[] {
+/**
+ * Les alias dont la cible n'est pas dans le catalogue : un constat `alias-supprime` par variable présente et par mode. L'Exporter la
+ * lance seule, sur un catalogue qui ne porte que les variables locales du fichier.
+ */
+export function controlerLesAliasesManquants(catalogue: CatalogueDeReference): Constat[] {
   const resultat: Constat[] = [];
   const derniers = new Map<string, string | undefined>();
   const dernierSegment = (nom: string) => {
@@ -49,8 +53,7 @@ function controlerLesAliasesManquants(catalogue: CatalogueDeReference): Constat[
     for (const mode of collection.modes) {
       const valeur = variable.valeurs?.[mode.id];
       if (!valeur || !('alias' in valeur)) continue;
-      const cible = catalogue.variables.find(({ cle }) => cle === valeur.alias);
-      if (cible) continue;
+      if (variableParCle(catalogue, valeur.alias)) continue;
       const voisine = catalogue.variables.find((entree) => entree.cle !== variable.cle && entree.collection === variable.collection
         && dernierSegment(entree.nom) === dernierSegment(variable.nom)
         && entree.valeurs?.[mode.id] && 'alias' in entree.valeurs[mode.id]

@@ -35,8 +35,12 @@
 export type * from './types.js';
 export { CONTRACT_VERSION, versionDeContrat } from './version.js';
 export {
+  EXTENSION_AXE_TOKENS,
   EXTENSION_AXES_TOKENS,
+  EXTENSION_MODES_TOKENS,
+  EXTENSION_SURCHARGES_TOKENS,
   EXTENSION_VERSION_TOKENS,
+  MODE_DE_BASE,
   TOKENS_FORMAT_VERSION,
   VERSIONS_DE_TOKENS_LUES,
   etatDuFormatDeTokens,

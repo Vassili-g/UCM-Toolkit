@@ -9,19 +9,21 @@
  * recopie l'une de ces données. Une liste légitime, propre à un écran, entre
  * dans `EXCEPTIONS` avec sa raison.
  *
- * Hors du contrôle : `tests/` et les `tests/` des paquets, qui écrivent leurs
- * attendus en clair à dessein. Les catalogues `i18n` sont lus comme le reste.
+ * Le dossier `tests/` de la racine est balayé aussi, sauf ce fichier, qui porte
+ * le détecteur et ses exemples. Hors du contrôle : les `tests/` des paquets, qui
+ * écrivent leurs attendus en clair à dessein. Les catalogues `i18n` sont lus
+ * comme le reste.
  */
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
 import test from 'node:test';
-import { NUMEROS_DE_PALETTE } from '../packages/kit/src/referentiel/vocabulaire';
+import { NUMEROS_DE_PALETTE, REGISTRE_ETATS, REGISTRE_TAILLES, SIZE_VALUES } from '../packages/kit/src/referentiel/vocabulaire';
 
 const racine = path.resolve(__dirname, '..');
 
 const CRANS = new Set<number>(NUMEROS_DE_PALETTE);
-const ETATS = ['default', 'hover', 'pressed', 'press', 'disabled', 'disable', 'focus'];
+const ETATS = REGISTRE_ETATS.termes.flatMap((terme) => [terme.id, ...(terme.toleres ?? [])]);
 
 /** Les noms de `COLLECTIONS` et les tags de `TAGS_DES_REGLES`, lus dans le référentiel. */
 function lireListe(fichier: string, nom: string): string[] {
@@ -65,6 +67,11 @@ const REGLES: Regle[] = [
  * Un extrait qui ne correspond plus à aucune liste trouvée fait échouer le test.
  */
 const EXCEPTIONS: { fichier: string; extrait: string; raison: string }[] = [
+  {
+    fichier: 'tests/fabriquesDeFichiers.ts',
+    extrait: "'light' | 'dark'",
+    raison: "Le type du mode dans les fabriques de fichiers de test : un attendu en clair, qui ne suit pas le référentiel.",
+  },
   {
     fichier: 'packages/couleur/src/nuances.ts',
     extrait: '[500, 600, 700, 800]',
@@ -147,6 +154,9 @@ const EXCEPTIONS: { fichier: string; extrait: string; raison: string }[] = [
   },
 ];
 
+/** Les fichiers de `tests/` que le balayage saute : le détecteur lui-même, dont les exemples recopient exprès. */
+const DETECTEURS = ['tests/referentielUnique.test.ts'];
+
 /** Remplace les commentaires par des blancs, sans toucher aux chaînes ni aux numéros de ligne. */
 function sansCommentaires(source: string): string {
   let sortie = '';
@@ -195,6 +205,10 @@ function fichiersControles(): string[] {
       if (rel.startsWith('packages/kit/src/referentiel/') || rel.startsWith('packages/kit/src/emplois/')) continue;
       relatifs.push(rel);
     }
+  }
+  for (const fichier of fichiersDeSource(path.join(racine, 'tests'))) {
+    const rel = path.relative(racine, fichier).split(path.sep).join('/');
+    if (!DETECTEURS.includes(rel)) relatifs.push(rel);
   }
   return relatifs;
 }
@@ -292,4 +306,12 @@ test('le contrôle voit une copie des crans, des modes, des profils, des états,
   ].join('\n');
   const noms = recopiesDuTexte('exemple.ts', exemple).map((t) => `${t.ligne}:${t.regle.nom}`);
   assert.deepEqual(noms, ['1:crans', '2:modes', '3:profils', '4:états', '5:collections', "6:tags des règles d'usage", '16:crans', '10:états', '13:modes', '14:collections', '11:états', '15:modes']);
+});
+
+test("SIZE_VALUES est la projection de REGISTRE_TAILLES : ses identifiants et ses formes tolérées, rien d’autre", () => {
+  const duRegistre = REGISTRE_TAILLES.termes.flatMap((terme) => [terme.id, ...(terme.toleres ?? [])]);
+  assert.deepEqual([...SIZE_VALUES].sort(), [...new Set(duRegistre)].sort());
+  const terme = (ecriture: string) => REGISTRE_TAILLES.termes.find((candidat) => candidat.id === ecriture || candidat.toleres?.includes(ecriture))?.id;
+  assert.equal(terme('tiny'), 'xs');
+  assert.equal(terme('huge'), 'xl');
 });

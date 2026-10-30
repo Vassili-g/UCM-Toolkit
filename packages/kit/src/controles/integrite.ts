@@ -17,6 +17,7 @@ import { COLLECTIONS_SANS_PORTEE, FAMILLES_UTILITY, REGISTRE_COULEURS_ABSOLUES, 
 import type { Convention } from '../referentiel/conventions.js';
 import { assembler, decouperSegment, motsAvecCasse } from '../referentiel/ecriture-des-mots.js';
 import { formeDuChemin, formeReconnue, termeReconnu } from '../referentiel/reconnaissance.js';
+import { MODES } from '../referentiel/vocabulaire.js';
 import { modeDuThemeReconnu, variableDuThemeReconnue } from '../referentiel/theme.js';
 import { cheminDansLaCollection, collectionParCle, variableParCle, type CatalogueDeReference, type CollectionDuCatalogue, type VariableDuCatalogue } from './catalogue.js';
 import type { Constat, Correction } from './constat.js';
@@ -413,7 +414,7 @@ function controlerLaStructure(catalogue: CatalogueDeReference, themes: readonly 
   const constats: Constat[] = [];
   for (const theme of themes) {
     const reconnus = new Set(theme.modes.map(({ nom }) => modeDuThemeReconnu(nom)));
-    const manques = (['light', 'dark'] as const).filter((mode) => !reconnus.has(mode));
+    const manques = MODES.filter((mode) => !reconnus.has(mode));
     const manque = manques.length === 2 ? ['les-deux'] : manques;
     for (const m of manque) constats.push(constatDeStructure('mode-du-theme', `${theme.cle}:${m}`, { collection: theme.nom, manque: m }));
   }

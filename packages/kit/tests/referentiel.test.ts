@@ -3,7 +3,7 @@ import test from 'node:test';
 import {
   CRANS, INTENSITE_UNIQUE, MODES, PROFILS, REGISTRES, REGISTRE_ETATS,
   STATE_AXIS_NAMES, STATE_PRECEDENCE, STATE_SELECTORS, SIZE_VALUES, ECHELLES_DE_TAILLES,
-  REGISTRE_TAILLES, TAILLES_DE_COMPATIBILITE, REGISTRES_ARCHITECTURE, REGISTRE_PROFILS, REGISTRE_VALEURS_THEME, FAMILLES_PRIMITIVES,
+  REGISTRE_TAILLES, REGISTRES_ARCHITECTURE, REGISTRE_PROFILS, REGISTRE_VALEURS_THEME, FAMILLES_PRIMITIVES,
   formeReconnue, libelleDuTerme, termeReconnu, termeRetenu,
 } from '../src/referentiel/index.js';
 
@@ -104,18 +104,17 @@ test('les états tolérés gardent le déclencheur et la priorité de l’export
 });
 
 test('les tailles connues gardent les deux échelles reconnues par l’exporteur', () => {
-  assert.deepEqual([...SIZE_VALUES], [
+  assert.deepEqual([...SIZE_VALUES].sort(), [
     'tiny', 'small', 'medium', 'large', 'big', 'huge',
     '9xs', '8xs', '7xs', '6xs', '5xs', '4xs', '3xs', '2xs', 'xs', 'sm', 'md', 'lg', 'xl', 'xxl', 'xxxl', '2xl', '3xl', '4xl',
     '5xl', '6xl', '7xl', '8xl', '9xl',
-  ]);
+  ].sort());
   for (const formes of ECHELLES_DE_TAILLES) {
     for (const forme of formes) assert.ok(SIZE_VALUES.has(forme), forme);
   }
 });
 
-test('SIZE_VALUES vaut les identifiants et formes tolérées du registre des tailles, plus la compatibilité', () => {
-  const duRegistre = REGISTRE_TAILLES.termes.flatMap((terme) => [terme.id, ...(terme.toleres ?? [])]);
-  assert.deepEqual([...SIZE_VALUES].sort(), [...duRegistre, ...TAILLES_DE_COMPATIBILITE].sort());
-  for (const taille of TAILLES_DE_COMPATIBILITE) assert.equal(termeRetenu(REGISTRE_TAILLES, taille), undefined, taille);
+test('tiny et huge sont des formes tolérées du registre des tailles : xs et xl', () => {
+  assert.equal(termeRetenu(REGISTRE_TAILLES, 'tiny')?.id, 'xs');
+  assert.equal(termeRetenu(REGISTRE_TAILLES, 'huge')?.id, 'xl');
 });

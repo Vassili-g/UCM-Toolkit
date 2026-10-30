@@ -96,6 +96,7 @@ export const REGLES: Regle[] = [
     proprietaires: ['packages/kit/src/controles/nommage.ts'],
     exceptions: [
       { fichier: 'packages/kit/src/controles/preparation.ts', raison: 'écrit un nom, ne compare pas une valeur d\'axe' },
+      { fichier: 'packages/kit/src/format/names.ts', raison: "`estUneValeurDesactivee` lit le registre à la source : `format/` ne peut pas importer `controles/nommage.ts`, où vit `etatReconnu`" },
     ],
   },
   {
@@ -213,6 +214,21 @@ export const REGLES: Regle[] = [
       { fichier: 'packages/plugin-architect/src/sandbox/capture.ts', raison: 'inventorie les propriétés Figma lues par la capture, dont les champs de texte, sans décider de leur nature' },
       { fichier: 'packages/plugin-architect/src/composant.ts', raison: 'le noyau n’importe pas le kit ; consommateurs.test.ts compare sa liste à celle du référentiel' },
     ],
+  },
+  {
+    fiche: 'D-29',
+    raison: "Une clé `com.ucm.…` de `tokens.json` s'écrit par la constante de `format/tokens.ts` (`EXTENSION_…_TOKENS`), pas par un littéral.",
+    motif: /['"]com\.ucm\./,
+    proprietaires: ['packages/kit/src/format/tokens.ts'],
+    exceptions: [],
+  },
+  {
+    fiche: 'D-13',
+    raison: "Un nom Figma devient un identifiant de code par `codeIdentifier` de `format/names.ts`, pas par une fonction `pascal` ni par un `toUpperCase()` après `[^a-zA-Z0-9]`.",
+    motif: /\bfunction\s+pascal\b|\[\^a-zA-Z0-9\][^;]*?toUpperCase\(\)/,
+    dossiers: ['packages/adapter-typescript/src/**', 'packages/cli/src/**'],
+    proprietaires: [],
+    exceptions: [],
   },
 ];
 

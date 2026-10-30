@@ -23,7 +23,7 @@ import type { ExportContext } from '../src/tokens/exportTokens';
 import { collisionWarnings, indexVariables, VariableNameResolver } from 'ucm-plugin-socle/src/composant/variables';
 import { phraseDe } from 'ucm-plugin-socle/src/composant/contract/localisation';
 import { serializeJson } from 'ucm-plugin-socle/src/composant/contract/serializeJson';
-import { collection, exporterLeFichier, fichierDeVariables, variable } from './fichierDeVariables';
+import { alias, collection, exporterLeFichier, extension, fichierDeVariables, rgba, variable } from './fichierDeVariables';
 import type { ProfilColorimetrique } from './fichierDeVariables';
 
 test('dtcgType mappe les types Figma, dimension vs number selon le groupe', () => {
@@ -180,7 +180,6 @@ test('buildLeaf garde le premier mode quand deux noms se normalisent pareil', ()
     espace: 'srgb',
     graisses: new Set(),
     familles: new Set(),
-    easingsEcartees: new Map(),
     axes: new Map(),
   }, []);
 
@@ -216,7 +215,6 @@ test('buildLeaf type un lineheight aliasé sur spacing comme dimension (racine),
     espace: 'srgb',
     graisses: new Set(),
     familles: new Set(),
-    easingsEcartees: new Map(),
     axes: new Map(),
   };
 
@@ -269,7 +267,6 @@ test('un mode homonyme d’Object.prototype reste une marque exportée', () => {
     espace: 'srgb',
     graisses: new Set(),
     familles: new Set(),
-    easingsEcartees: new Map(),
     axes: new Map(),
   }, warnings);
 
@@ -752,4 +749,75 @@ test('le type d’une graisse ne dépend ni de l’ordre des variables, ni des c
   for (const [cle, axe] of Object.entries(axesDeReference as Record<string, { modes: string[]; default: string }>)) {
     assert.deepEqual(axes[cle], { modes: [...axe.modes].reverse(), default: axe.default }, cle);
   }
+});
+
+/** La phrase que « Export tokens » dit d'une variable dont un alias vise une variable que le fichier ne publie pas. */
+const phraseDeLAliasManquant = (nom: string) =>
+  `Variable « ${nom} » : elle cite une variable introuvable. Le développeur n’aura pas sa valeur. `
+  + 'Remplacez sa référence par une variable accessible dans Figma, puis réexportez.';
+
+test('un alias vers une variable absente du fichier est dit une fois, avec la phrase de toujours', async () => {
+  const { exporte, tokens } = await documentExporte();
+
+  assert.deepEqual(typeEtValeurs(tokens.semantic.broken.color), ['color', null]);
+  for (const nom of ['broken/color', 'fontweight/broken']) {
+    assert.equal(exporte.warnings.filter((message) => message === phraseDeLAliasManquant(nom)).length, 1, nom);
+  }
+});
+
+test('une variable à deux modes qui vise une variable supprimée n’est dite qu’une fois', async () => {
+  const fichier = fichierDeVariables();
+  fichier.variables.push(variable(fichier.collections[1], 'orpheline-a-deux-modes', 'surface/orphan', 'COLOR', [alias('supprimee'), alias('supprimee')]));
+  const { exporte, tokens } = await documentExporte({ fichier });
+
+  assert.deepEqual(typeEtValeurs(tokens['brand-tokens'].surface.orphan), ['color', null, null, null]);
+  assert.equal(exporte.warnings.filter((message) => message === phraseDeLAliasManquant('surface/orphan')).length, 1);
+});
+
+test('un alias vers une variable que le fichier ne publie pas, de library ou écartée pour collision, est dit comme une suppression', async () => {
+  const fichier = fichierDeVariables();
+  const semantique = fichier.collections[2];
+  // Deux variables au même chemin : la seconde est écartée de l'index, donc non publiée.
+  fichier.variables.push(
+    variable(semantique, 'doublon-a', 'collision/same', 'COLOR', [rgba(1, 0, 0, 1)]),
+    variable(semantique, 'doublon-b', 'collision/same', 'COLOR', [rgba(0, 1, 0, 1)]),
+    variable(semantique, 'vers-le-doublon', 'collision/pointer', 'COLOR', [alias('doublon-b')]),
+    variable(semantique, 'vers-la-library', 'library/pointer', 'COLOR', [alias('VariableID:abc/1:2')]),
+  );
+  const { exporte } = await documentExporte({ fichier });
+
+  for (const nom of ['collision/pointer', 'library/pointer']) {
+    assert.equal(exporte.warnings.filter((message) => message === phraseDeLAliasManquant(nom)).length, 1, nom);
+  }
+});
+
+test('une surcharge d’extension qui vise une variable supprimée est dite comme un mode', async () => {
+  const couleur = collection('couleur', 'Color', ['Light', 'Dark']);
+  const variables = [variable(couleur, 'fond', 'surface', 'COLOR', [rgba(1, 1, 1, 1), rgba(0, 0, 0, 1)])];
+  const marque = extension('marque', 'Marque B', couleur, couleur, { fond: { 1: alias('supprimee') } });
+  const exporte = await exporterLeFichier({ fichier: { collections: [couleur, marque], variables, textStyles: [] } });
+
+  assert.deepEqual(JSON.parse(exporte.content).color.surface.$extensions['com.ucm.extensions'], { 'marque-b': { dark: null } });
+  assert.deepEqual(exporte.warnings, [phraseDeLAliasManquant('surface')]);
+});
+
+test('buildLeaf n’avertit plus d’un alias dont la cible manque : l’export le fait une fois par le kit', () => {
+  const orpheline = {
+    id: 'o', name: 'broken/color', variableCollectionId: 'c', resolvedType: 'COLOR', scopes: [],
+    valuesByMode: { m: { type: 'VARIABLE_ALIAS', id: 'absente' } },
+  } as unknown as Variable;
+  const col = { id: 'c', name: 'Semantic', defaultModeId: 'm', modes: [{ modeId: 'm', name: 'Mode' }] } as unknown as VariableCollection;
+  const ctx: ExportContext = {
+    collectionById: new Map([['c', col]]),
+    variableById: new Map([['o', orpheline]]),
+    pathById: new Map([['o', 'semantic.broken.color']]),
+    espace: 'srgb',
+    graisses: new Set(),
+    familles: new Set(),
+    axes: new Map(),
+  };
+  const warnings: string[] = [];
+
+  assert.deepEqual(buildLeaf(orpheline, col, ctx, warnings), { $value: null, $type: 'color' });
+  assert.deepEqual(warnings, []);
 });

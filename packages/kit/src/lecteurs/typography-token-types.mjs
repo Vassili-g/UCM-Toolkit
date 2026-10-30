@@ -9,6 +9,8 @@
  * différents à partir du même fichier.
  */
 
+import { EXTENSION_MODES_TOKENS, EXTENSION_SURCHARGES_TOKENS } from "@ucm-kit/core/format";
+
 import {
   indexerTokensDtcg,
   cheminDeReference,
@@ -44,9 +46,9 @@ function estObjet(valeur) {
  */
 function valeursContextuelles(feuille) {
   const valeurs = [];
-  const modes = feuille.$extensions?.["com.ucm.modes"];
+  const modes = feuille.$extensions?.[EXTENSION_MODES_TOKENS];
   for (const [mode, valeur] of Object.entries(estObjet(modes) ? modes : {})) valeurs.push({ mode, valeur });
-  const surcharges = feuille.$extensions?.["com.ucm.extensions"];
+  const surcharges = feuille.$extensions?.[EXTENSION_SURCHARGES_TOKENS];
   for (const [extension, parMode] of Object.entries(estObjet(surcharges) ? surcharges : {})) {
     for (const [mode, valeur] of Object.entries(estObjet(parMode) ? parMode : {})) valeurs.push({ mode, extension, valeur });
   }

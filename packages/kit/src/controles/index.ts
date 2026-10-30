@@ -21,6 +21,6 @@ export type { PreparationDesTokens, VariableAPreparer, ViseDePreparation, LieuDe
 export { clesDesTokensDeTailleAttendus, proposerLesCorrections, proposerLesCorrectionsParEtapes } from './corrections.js';
 export { candidatsDeModele, constatsDeModele, proposerLaPropagation, type CandidatDeModele, type SorteDeModele } from './propagation.js';
 export { controlerLeTheme, controlerLeThemeParEtapes, controlerLesModes } from './theme.js';
-export { controlerLaStructure, controlerLaStructureParEtapes, controlerLeCatalogue } from './structure.js';
+export { controlerLaStructure, controlerLaStructureParEtapes, controlerLeCatalogue, controlerLesAliasesManquants } from './structure.js';
 export { controlerLIntegriteUcm } from './integrite.js';
 export type { OptionsDIntegrite } from './integrite.js';
