@@ -6,6 +6,7 @@
  * dégradé, les effets, les grilles, les segments de texte et les propriétés
  * d'instance.
  */
+import { CHAMPS_DE_TYPOGRAPHIE } from '@ucm-kit/core/referentiel';
 import { lectureNative, projeterLesPlagesParEtapes, type EtatDesSegments, type LecteurDeChamp } from 'ucm-plugin-socle/src/composant/analyse/acquisition';
 import type { EtatEcrit, PeintureLue as PeintureCopiee } from 'ucm-plugin-socle/src/composant/analyse/faits';
 import type { ContexteCooperatif } from 'ucm-plugin-socle/src/composant/contract/porteeDAnalyse';
@@ -123,7 +124,7 @@ function* liaisonsDesElements(elements: unknown, prefixe: string): Generator<Lia
 
 /** Les champs de `boundVariables` lus ailleurs : par les peintures, les effets, les grilles ou les segments de texte. */
 const LUS_PAR_LEURS_OBJETS = new Set(['fills', 'strokes', 'effects', 'layoutGrids', 'textRangeFills']);
-const CHAMPS_DE_TEXTE = new Set(['fontFamily', 'fontSize', 'fontStyle', 'fontWeight', 'letterSpacing', 'lineHeight', 'paragraphSpacing', 'paragraphIndent']);
+const CHAMPS_DE_TEXTE = new Set(CHAMPS_DE_TYPOGRAPHIE);
 
 const valeurSiAcquise = <V>(etat: EtatEcrit<V>): V | undefined => (etat.etat === 'acquis' ? etat.valeur : undefined);
 

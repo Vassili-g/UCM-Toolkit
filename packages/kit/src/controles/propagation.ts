@@ -4,6 +4,7 @@
  * Une liaison n'est exacte que si le layer visé est unique et le nom visé a un seul candidat au
  * catalogue ; sinon le constat porte une question sans réponse cochée.
  */
+import { natureDuChamp } from '../referentiel/architecture.js';
 import type { CatalogueDeReference, VariableDuCatalogue } from './catalogue.js';
 import type { Constat, Correction } from './constat.js';
 import { axesDuReleve, constatDuComposant, tokensDuComposant, type AxeDuComposant, type TokenDuComposant } from './nommage.js';
@@ -82,9 +83,9 @@ export type SorteDeModele = 'couleurs' | 'tailles';
 
 /** Même partage que C80 (couche.ts) : une peinture ou une variable COLOR est une couleur, une variable FLOAT hors texte est une taille. */
 function sorteDeLaLiaison(champ: string, type: string): SorteDeModele | null {
-  if (champ === 'fills' || champ === 'strokes' || type === 'COLOR') return 'couleurs';
-  if (type === 'FLOAT' && !/font|text|lineHeight|letterSpacing|paragraph/i.test(champ)) return 'tailles';
-  return null;
+  const nature = natureDuChamp(champ, type);
+  if (nature === 'couleur') return 'couleurs';
+  return type === 'FLOAT' && nature === 'dimension' ? 'tailles' : null;
 }
 
 /** Un layer du modèle, le champ qu'il lie et le nom de la variable qu'il porte dans le modèle. */

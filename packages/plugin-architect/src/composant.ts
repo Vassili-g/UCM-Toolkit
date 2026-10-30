@@ -84,6 +84,7 @@ const EPAISSEURS = new Set(['strokeWeight', 'strokeTopWeight', 'strokeRightWeigh
 const ECARTS = new Set(['itemSpacing', 'counterAxisSpacing', 'gridRowGap', 'gridColumnGap']);
 const MARGES = new Set(['paddingLeft', 'paddingRight', 'paddingTop', 'paddingBottom']);
 const TAILLES = new Set(['width', 'height', 'minWidth', 'maxWidth', 'minHeight', 'maxHeight']);
+/** Le noyau n'importe pas le kit (`loiDEcriture.test.ts`) : cette liste reprend `CHAMPS_DE_TYPOGRAPHIE` du référentiel, et `consommateurs.test.ts` les compare. */
 const POLICES = new Set(['fontFamily', 'fontSize', 'fontStyle', 'fontWeight', 'lineHeight', 'letterSpacing', 'paragraphSpacing', 'paragraphIndent']);
 
 /** Le chemin d'une propriété sans ses indices, et s'il vient d'un segment de texte. */

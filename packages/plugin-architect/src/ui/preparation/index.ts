@@ -29,9 +29,9 @@ export const demandeUneSaisie = (question: Question): boolean => question.id.sta
 export const reponseSaisie = (texte: string): string | null => (texte.trim() === '' ? null : texte.trim());
 
 /** Les couleurs en dur, une ligne par nom et par hexadécimal : plusieurs lieux de même valeur n'en font qu'une. */
-export function couleursEnDur(couleurs: NonNullable<PreparationDesTokens['couleursSansCible']>): { nom: string; hexa: string }[] {
-  const lignes = new Map<string, { nom: string; hexa: string }>();
-  for (const { nom, hexa } of couleurs) lignes.set(`${nom}|${hexa}`, { nom, hexa });
+export function couleursEnDur(couleurs: NonNullable<PreparationDesTokens['couleursSansCible']>): { nom: string; hexa: string; absente?: string }[] {
+  const lignes = new Map<string, { nom: string; hexa: string; absente?: string }>();
+  for (const { nom, hexa, raison, cible } of couleurs) lignes.set(`${nom}|${hexa}`, { nom, hexa, ...(raison === 'absente-du-theme' && cible ? { absente: cible } : {}) });
   return [...lignes.values()];
 }
 
@@ -221,7 +221,12 @@ export function monterPreparation(etat: Etat): Preparation {
           const ligne = document.createElement('div'); ligne.className = 'diff sans-case'; ligne.dataset.preparationCouleurEnDur = 'oui';
           const libelle = document.createElement('span'); libelle.className = 'chemin'; chemin(couleur.nom.replace(/^components\//, ''), libelle);
           const cible = document.createElement('span'); cible.className = 'chemin-apres';
-          const note = document.createElement('span'); note.className = 'meta'; note.textContent = T.preparationCouleurEnDur(couleur.hexa);
+          const note = document.createElement('span'); note.className = 'meta'; if (couleur.absente) {
+            note.replaceChildren(...T.absenteDuTheme(couleur.absente).split('`').map((morceau, rang) => {
+              if (rang % 2 === 0) return document.createTextNode(morceau);
+              const code = document.createElement('code'); code.className = 'mot-cite'; code.textContent = morceau; return code;
+            }), ` ${T.creerDepuisTokens}`);
+          } else note.textContent = T.preparationCouleurEnDur(couleur.hexa);
           cible.append(note); ligne.append(libelle, cible); liste.append(ligne);
         }
         couleurs.append(liste);

@@ -33,6 +33,9 @@ export const TEXTES_PREPARATION = {
   preparationTailleChoisi: 'votre choix',
   preparationTailleEnDur: (famille: string, valeur: number) => `aucun token de ${famille} ne vaut ${valeur} px : reste en dur`,
   preparationCouleurEnDur: (hexa: string) => `aucun token du thème ne vaut ${hexa} : reste en dur`,
+  /** Les accents graves entourent le nom : la feuille le met en code. */
+  absenteDuTheme: (nom: string) => `\`${nom}\` manque dans le thème.`,
+  creerDepuisTokens: 'Créez-la depuis le mode Tokens.',
   preparationResteEnDur: (nombre: number) => (nombre === 1
     ? '1 valeur reste en dur : Architect ne crée pas de token dans theme ni dans layout. Elle reste dans À faire dans Figma.'
     : `${nombre} valeurs restent en dur : Architect ne crée pas de token dans theme ni dans layout. Elles restent dans À faire dans Figma.`),

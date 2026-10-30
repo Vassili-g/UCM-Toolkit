@@ -6,24 +6,13 @@
  * Une liaison que l'instance d'une pièce interne ou d'un wrapper de dimensions tient de son composant principal peut viser `theme` ou `layout`.
  * La typographie reste hors de cette règle : sa variable se juge sur sa collection, comme un token de `components`.
  */
-import { ciblesAdmises, type NatureDeCible } from '../referentiel/architecture.js';
+import { ciblesAdmises, natureDuChamp } from '../referentiel/architecture.js';
 import { collectionParCle, variableDuCatalogue, type CatalogueDeReference, type VariableDuCatalogue } from './catalogue.js';
 import type { Constat } from './constat.js';
 import { constatDuComposant } from './nommage.js';
 import { constatsDeModele } from './propagation.js';
 import type { SorteDImbrique } from '../referentiel/composition.js';
 import type { LayerLu, ReleveDeComposant } from './releve.js';
-
-function natureDeLaLiaison(champ: string, type: string): NatureDeCible {
-  if (type === 'COLOR' || champ === 'fills' || champ === 'strokes') return 'couleur';
-  if (/font|text/i.test(champ)) return 'typographie';
-  return 'dimension';
-}
-
-/** Le champ d'une propriété de texte, y compris celles que `natureDeLaLiaison` range avec les dimensions. */
-function estUneProprieteDeTexte(champ: string): boolean {
-  return /font|text|lineHeight|letterSpacing|paragraph/i.test(champ);
-}
 
 /** Les cibles distinctes des alias d'une variable, dans tous ses modes ; une cible absente du catalogue n'est pas jugée. */
 function* ciblesDesAlias(catalogue: CatalogueDeReference, variable: VariableDuCatalogue): Generator<void, VariableDuCatalogue[]> {
@@ -69,12 +58,12 @@ export function* controlerCouchesParEtapes(releve: ReleveDeComposant, catalogue:
         if (variable === 'absente') continue;
         const collection = roleDe(variable);
         if (!collection?.role) continue;
-        const nature = natureDeLaLiaison(liaison.champ, variable.type);
+        const nature = natureDuChamp(liaison.champ, variable.type);
         const sorte = liaison.provenance === 'composant-principal' ? sorteDeLInstance(layer, parId) : undefined;
         const heriteDeLaPiece = (sorte === 'piece-interne' || sorte === 'wrapper-de-dimensions') && (collection.role === 'theme' || collection.role === 'layout');
         if (heriteDeLaPiece) continue;
         const lieuDeBase = `${variant.id}:${layer.id}${liaison.surcharge ? `>${liaison.surcharge.id}` : ''}:${liaison.champ}:${liaison.indice ?? ''}`;
-        if (collection.role !== 'components' && nature !== 'typographie' && !estUneProprieteDeTexte(liaison.champ) && (variable.type === 'COLOR' || variable.type === 'FLOAT')) {
+        if (collection.role !== 'components' && nature !== 'typographie' && (variable.type === 'COLOR' || variable.type === 'FLOAT')) {
           const faits = { token: variable.nom, couche: collection.nom, champ: liaison.champ, calque: (liaison.surcharge ?? layer).nom };
           constats.push(constatDuComposant('C80', nature === 'couleur' ? 'liaisons' : 'tailles', 'corriger', lieuDeBase, faits, [variant.id], [layer.id]));
           continue;

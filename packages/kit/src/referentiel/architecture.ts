@@ -25,6 +25,17 @@ export const CIBLES_DES_COLLECTIONS: Readonly<Record<Collection, readonly Collec
 export const CIBLES_DES_COULEURS_DE_COMPOSANT = ['theme'] as const;
 export type NatureDeCible = 'couleur' | 'dimension' | 'typographie';
 
+/** Les huit champs d'un texte que Figma laisse lier à une variable. */
+export const CHAMPS_DE_TYPOGRAPHIE: readonly string[] = [
+  'fontFamily', 'fontSize', 'fontStyle', 'fontWeight', 'lineHeight', 'letterSpacing', 'paragraphSpacing', 'paragraphIndent',
+];
+
+/** La nature de ce qu'un champ lié reçoit : une peinture ou une variable COLOR est une couleur, un champ de texte de la typographie, le reste une dimension. */
+export function natureDuChamp(champ: string, type: string): NatureDeCible {
+  if (type === 'COLOR' || champ === 'fills' || champ === 'strokes') return 'couleur';
+  return CHAMPS_DE_TYPOGRAPHIE.includes(champ) ? 'typographie' : 'dimension';
+}
+
 /** Les couleurs des composants visent le thème ; les autres natures suivent les cibles de leur collection. */
 export function ciblesAdmises(collection: Collection, nature: NatureDeCible): readonly Collection[] {
   return collection === 'components' && nature === 'couleur' ? CIBLES_DES_COULEURS_DE_COMPOSANT : CIBLES_DES_COLLECTIONS[collection];

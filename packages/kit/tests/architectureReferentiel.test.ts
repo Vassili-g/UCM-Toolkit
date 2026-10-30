@@ -5,7 +5,7 @@ import vm from 'node:vm';
 import {
   AXES_DES_COLLECTIONS, CONVENTIONS, CIBLES_DES_COLLECTIONS, CIBLES_DES_COULEURS_DE_COMPOSANT,
   COLLECTIONS, COLLECTIONS_SANS_PORTEE, DESTINATION_DES_PALETTES, FORMES_ANCIENNES_DES_COLLECTIONS, FORMES_DES_CHEMINS,
-  REGISTRES, REGISTRES_ARCHITECTURE, cheminConforme, ciblesAdmises, estNeutre, normaliserLesNoms, type Collection,
+  CHAMPS_DE_TYPOGRAPHIE, REGISTRES, REGISTRES_ARCHITECTURE, cheminConforme, ciblesAdmises, natureDuChamp, estNeutre, normaliserLesNoms, type Collection,
 } from '../src/referentiel/index.js';
 
 test('seules les couleurs des composants restreignent leurs cibles au thème', () => {
@@ -18,6 +18,17 @@ test('seules les couleurs des composants restreignent leurs cibles au thème', (
       assert.deepEqual(ciblesAdmises(collection, nature), CIBLES_DES_COLLECTIONS[collection]);
     }
   }
+});
+
+test('natureDuChamp range lineHeight avec la typographie et textRangeFills avec les couleurs', () => {
+  assert.equal(natureDuChamp('lineHeight', 'FLOAT'), 'typographie');
+  assert.equal(natureDuChamp('paragraphSpacing', 'FLOAT'), 'typographie');
+  assert.equal(natureDuChamp('fontFamily', 'STRING'), 'typographie');
+  assert.equal(natureDuChamp('textRangeFills', 'COLOR'), 'couleur');
+  assert.notEqual(natureDuChamp('textRangeFills', 'COLOR'), 'typographie');
+  assert.equal(natureDuChamp('fills', 'COLOR'), 'couleur');
+  assert.equal(natureDuChamp('paddingLeft', 'FLOAT'), 'dimension');
+  assert.equal(CHAMPS_DE_TYPOGRAPHIE.length, 8);
 });
 
 test('les collections suivent l’ordre de la vue et séparent les cibles de couleur des composants', () => {

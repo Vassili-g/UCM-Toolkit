@@ -2,6 +2,8 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
+import { CHAMPS_DE_TYPOGRAPHIE } from '@ucm-kit/core/referentiel';
+import { natureDe } from '../src/composant';
 import { liaisonsDuNoeud, modesDuNoeud, type NoeudLu } from '../src/consommateurs';
 import { enLectureSeule, MutationInterdite } from './figmaDeTest';
 
@@ -58,4 +60,9 @@ test('le double lève sur toute mutation : la loi s’éprouve elle-même', () =
   const double = enLectureSeule({ name: 'x', setValueForMode() {} });
   assert.throws(() => { (double as { name: string }).name = 'y'; }, MutationInterdite);
   assert.throws(() => double.setValueForMode(), MutationInterdite);
+});
+
+test('la liste des champs de texte du noyau reprend celle du référentiel', () => {
+  assert.deepEqual(CHAMPS_DE_TYPOGRAPHIE.filter((champ) => natureDe(champ, 'TEXT').nature !== 'texte'), []);
+  assert.equal(natureDe('textRangeFills', 'TEXT').nature, 'autre');
 });

@@ -225,6 +225,13 @@ test('une couleur dont aucun token du thème est la cible reste en dur : ni vari
   assert.ok(resultat.variables.every(({ vise, attend }) => vise !== null && attend.length === 0));
 });
 
+test('une couleur dont la cible prévue manque au thème en rend la raison et le nom', () => {
+  const resultat = preparerLesTokens(alert(), sansFond(), reponses);
+  assert.deepEqual(resultat.couleursSansCible?.map(({ raison, cible }) => [raison, cible]), [['absente-du-theme', 'theme/danger/soft/surface/default']]);
+  const sansRegle = preparerLesTokens(alert(), catalogue(...complet('soft')), {});
+  assert.ok(sansRegle.couleursSansCible?.every(({ raison, cible }) => raison === 'sans-regle' && cible === undefined));
+});
+
 test('une préparation où ne restent que des valeurs en dur n’a plus de question', () => {
   const resultat = preparerLesTokens(alert({ rayon: 13 }), catalogue(...theme('soft').filter(({ nom }) => !nom.endsWith('surface/default')), ...sizing(['2', 8]), ...rayons(['14', 14])), reponses);
   assert.deepEqual(resultat.questions, []);

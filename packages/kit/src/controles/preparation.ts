@@ -61,6 +61,10 @@ export interface CouleurSansCible {
   /** L'hexadécimal de la peinture, en majuscules. */
   hexa: string;
   lieu: LieuDePreparation;
+  /** `absente-du-theme` : la règle vise une variable du thème que le fichier n'a pas ; `sans-regle` : aucune règle ne vise de variable. */
+  raison: 'sans-regle' | 'absente-du-theme';
+  /** Pour `absente-du-theme` : le nom de la variable visée. */
+  cible?: string;
 }
 
 export interface PreparationDesTokens {
@@ -89,6 +93,8 @@ interface Brouillon {
   taille?: Omit<TailleSansCible, 'lieu' | 'nom'>;
   /** Pour une couleur : l'hexadécimal de la peinture. */
   hexa?: string;
+  /** Pour une couleur : la variable du thème prévue, quand le fichier ne l'a pas. */
+  absente?: string;
 }
 
 function hexaDe(couleur: PeintureLue['couleur']): string {
@@ -334,6 +340,7 @@ export function preparerLesTokens(
     brouillons.push({
       nom, type: 'COLOR', choix, attend: attendus, concerne: { variant: variant.id, layer: layer.id, champ: peinture.champ, indice: peinture.indice },
       ordre: 'couleur', hexa: hexaDe(peinture.couleur),
+      absente: cible !== undefined && !existe && VARIABLES_DU_THEME.includes(variable as VariableDuTheme) ? cible : undefined,
     });
   }
 
@@ -381,7 +388,12 @@ export function preparerLesTokens(
     }
     // Une couleur dont aucun token du thème n'est la cible n'a pas de réponse possible : elle reste en dur.
     if (groupe[0].ordre === 'couleur' && groupe.every((brouillon) => brouillon.choix.length === 0 && brouillon.attend.length === 0)) {
-      for (const brouillon of groupe) couleursSansCible.push({ nom, champ: brouillon.concerne.champ, hexa: brouillon.hexa ?? '', lieu: brouillon.concerne });
+      for (const brouillon of groupe) {
+        couleursSansCible.push({
+          nom, champ: brouillon.concerne.champ, hexa: brouillon.hexa ?? '', lieu: brouillon.concerne,
+          raison: brouillon.absente ? 'absente-du-theme' : 'sans-regle', ...(brouillon.absente ? { cible: brouillon.absente } : {}),
+        });
+      }
       continue;
     }
     const type = groupe[0].type;

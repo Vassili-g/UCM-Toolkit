@@ -6,6 +6,7 @@
  * ressemblance. Une variable que le catalogue ne permet pas de situer n'est
  * jamais jugée.
  */
+import { CHAMPS_DE_TYPOGRAPHIE } from '../referentiel/architecture.js';
 import type { CatalogueDeReference } from './catalogue.js';
 import { collectionDuCatalogue, variableDuCatalogue } from './catalogue.js';
 import type { Constat } from './constat.js';
@@ -14,7 +15,6 @@ import { layersVisiblesDuVariant } from './releve.js';
 
 /** Champs Figma de la taille et de la graisse d'un texte. */
 const CHAMPS_DE_TEXTE = ['fontSize', 'fontWeight'] as const;
-const CHAMPS_DE_TYPOGRAPHIE = ['fontSize', 'fontWeight', 'fontFamily', 'lineHeight', 'letterSpacing', 'fontStyle'];
 const CHAMPS_DE_TAILLE = ['width', 'height'];
 /** Au moins deux autres variants, pour qu'un « autre » ne soit pas simplement l'unique voisin. */
 const AUTRES_MINIMUM = 2;

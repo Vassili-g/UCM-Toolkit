@@ -305,14 +305,18 @@ test('une question de nom sans candidat montre un champ ; une couleur sans cible
       ...messageDuPlan,
       plan: {
         ...plan, questions: [{ id: 'nom:Frame 12', candidats: [], indice: 'Le layer Frame 12 : quel nom ?' }], sansCible: [],
-        couleursSansCible: [{ nom: 'components/tag/color/background', champ: 'fills', hexa: '#FF0000', lieu: { variant: 'tag:variant:1', layer: 'tag:1', champ: 'fills' } }],
+        couleursSansCible: [{ nom: 'components/tag/color/background', champ: 'fills', hexa: '#FF0000', lieu: { variant: 'tag:variant:1', layer: 'tag:1', champ: 'fills' }, raison: 'sans-regle' },
+          { nom: 'components/tag/color/foreground', champ: 'fills', hexa: '#00FF00', lieu: { variant: 'tag:variant:1', layer: 'tag:1', champ: 'fills' }, raison: 'absente-du-theme', cible: 'theme/primary/surface/subtle' }],
       },
     });
     const saisie = page.locator('[data-preparation-question="nom:Frame 12"] [data-preparation-saisie]');
     assert.equal(await saisie.locator('input').count(), 1);
     assert.equal(await saisie.locator('button').innerText(), 'Retenir ce nom');
-    assert.match(await page.locator('[data-preparation-couleur-en-dur]').innerText(), /aucun token du thème ne vaut #FF0000 : reste en dur/);
-    assert.match(await page.locator('[data-preparation-reste-en-dur]').innerText(), /^1 valeur reste en dur/);
+    assert.match(await page.locator('[data-preparation-couleur-en-dur]').first().innerText(), /aucun token du thème ne vaut #FF0000 : reste en dur/);
+    const absente = page.locator('[data-preparation-couleur-en-dur]').nth(1);
+    assert.match(await absente.innerText(), /theme\/primary\/surface\/subtle manque dans le thème\. Créez-la depuis le mode Tokens\./);
+    assert.equal(await absente.locator('code').innerText(), 'theme/primary/surface/subtle');
+    assert.match(await page.locator('[data-preparation-reste-en-dur]').innerText(), /^2 valeurs restent en dur/);
   } finally { await fermer(page); }
 });
 

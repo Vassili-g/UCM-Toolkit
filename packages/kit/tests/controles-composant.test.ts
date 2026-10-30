@@ -359,6 +359,13 @@ test('C80 signale une taille liée directement à une primitive ou à layout, sa
   assert.deepEqual(versLayout[0].faits, { token: 'sizing/14', couche: 'layout', champ: 'paddingLeft', calque: 'container' });
 });
 
+test('une liaison lineHeight est de la typographie : C80 ne la juge pas comme une taille', () => {
+  const r = releve('Button');
+  r.variants = [variante('default', {}, 'v0', { champ: 'lineHeight' })];
+  const verslayout = controlerCouches(r, catalogueEtendu({ nom: 'sizing/14', collection: 'layout', type: 'FLOAT' }));
+  assert.deepEqual(codes(verslayout), []);
+});
+
 test('C80 signale une couleur liée directement à theme ou à une primitive, en famille liaisons', () => {
   const r = releve('Button');
   r.variants = [variante('default', {}, 'v0')];

@@ -29,6 +29,9 @@ export type Copie = { fichier: string; ligne: number; extrait: string };
 
 const DOSSIERS_PAR_DEFAUT = ['packages/*/src/**'];
 
+/** Le socle porte le contrat des plugins : il reste hors des lois sur les champs de texte. */
+const DOSSIERS_HORS_SOCLE = ['kit', 'cli', 'adapter-typescript', 'couleur', 'hub', 'plugin-exporter', 'plugin-palettes', 'plugin-architect'].map((paquet) => `packages/${paquet}/src/**`);
+
 export const REGLES: Regle[] = [
   {
     fiche: 'D-02',
@@ -190,6 +193,25 @@ export const REGLES: Regle[] = [
     exceptions: [
       { fichier: 'packages/plugin-architect/src/ui/ignores/modele.ts', raison: 'levée par I7, fichier en cours dans le plan Règles manquantes' },
       { fichier: 'packages/kit/src/lecteurs/diagnostic-contrastes.mjs', raison: 'écrit un seuil sans décimale inutile (4,5 et 3), pas un contraste tronqué' },
+    ],
+  },
+  {
+    fiche: 'D-07',
+    raison: "Un champ de texte se reconnaît par `natureDuChamp` du référentiel, pas par une expression régulière sur `font` et `text`.",
+    motif: /\/(?=[^/\n]*font)(?=[^/\n]*text)[^/\n]+\/[a-z]*/i,
+    dossiers: DOSSIERS_HORS_SOCLE,
+    proprietaires: [],
+    exceptions: [],
+  },
+  {
+    fiche: 'D-07',
+    raison: "Les champs liables d'un texte se listent une fois, dans `CHAMPS_DE_TYPOGRAPHIE` du référentiel, pas dans une liste littérale qui contient `'letterSpacing'`.",
+    motif: /\[[^\]]*'letterSpacing'[^\]]*\]/,
+    dossiers: DOSSIERS_HORS_SOCLE,
+    proprietaires: ['packages/kit/src/referentiel/architecture.ts'],
+    exceptions: [
+      { fichier: 'packages/plugin-architect/src/sandbox/capture.ts', raison: 'inventorie les propriétés Figma lues par la capture, dont les champs de texte, sans décider de leur nature' },
+      { fichier: 'packages/plugin-architect/src/composant.ts', raison: 'le noyau n’importe pas le kit ; consommateurs.test.ts compare sa liste à celle du référentiel' },
     ],
   },
 ];

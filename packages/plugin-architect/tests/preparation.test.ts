@@ -325,12 +325,15 @@ test('une question de nom sans candidat demande une saisie, et un texte vide n�
 test('les couleurs en dur se comptent une fois par nom et par hexadécimal', () => {
   const lieu = (layer: string) => ({ variant: 'v', layer, champ: 'fills' });
   const lignes = couleursEnDur([
-    { nom: 'components/alert/color/background', champ: 'fills', hexa: '#FF0000', lieu: lieu('a') },
-    { nom: 'components/alert/color/background', champ: 'fills', hexa: '#FF0000', lieu: lieu('b') },
-    { nom: 'components/alert/color/foreground', champ: 'fills', hexa: '#00FF00', lieu: lieu('c') },
+    { nom: 'components/alert/color/background', champ: 'fills', hexa: '#FF0000', lieu: lieu('a'), raison: 'sans-regle' as const },
+    { nom: 'components/alert/color/background', champ: 'fills', hexa: '#FF0000', lieu: lieu('b'), raison: 'sans-regle' as const },
+    { nom: 'components/alert/color/foreground', champ: 'fills', hexa: '#00FF00', lieu: lieu('c'), raison: 'absente-du-theme' as const, cible: 'theme/primary/surface/subtle' },
   ]);
   assert.equal(lignes.length, 2);
+  assert.equal(lignes[1].absente, 'theme/primary/surface/subtle');
   assert.equal(TEXTES_PREPARATION.preparationCouleurEnDur('#FF0000'), 'aucun token du thème ne vaut #FF0000 : reste en dur');
+  assert.equal(TEXTES_PREPARATION.absenteDuTheme('theme/primary/surface/subtle'), '`theme/primary/surface/subtle` manque dans le thème.');
+  assert.equal(TEXTES_PREPARATION.creerDepuisTokens, 'Créez-la depuis le mode Tokens.');
   assert.equal(TEXTES_PREPARATION.preparationResteEnDur(1), '1 valeur reste en dur : Architect ne crée pas de token dans theme ni dans layout. Elle reste dans À faire dans Figma.');
   assert.match(TEXTES_PREPARATION.preparationResteEnDur(3), /^3 valeurs restent en dur .* Elles restent/);
 });
