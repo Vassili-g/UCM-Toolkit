@@ -1695,7 +1695,7 @@ Un lot du kit monte sa version dans son commit (script du lot V).
   C29 n'avait jamais de candidat : seules les variables liées étaient
   chargées. L'analyse charge les familles de `layout` dont un C29 a besoin ;
   sans lecture complète, C29 dit « non vérifié », sans question.
-- [x] **G7 · Noms de la préparation dans la convention de Figma** (Q-88 :
+- [x] (c341e46e) **G7 · Noms de la préparation dans la convention de Figma** (Q-88 :
   non). La préparation bâtit `components/<composant>/…` et vise
   `theme/<palette>/…` ; l'écriture retrouve ses cibles par ce nom exact.
   Fait : la préparation garde le chemin complet, collection en tête, pour
