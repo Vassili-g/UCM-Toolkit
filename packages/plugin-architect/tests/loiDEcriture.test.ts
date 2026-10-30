@@ -63,7 +63,6 @@ function fichiers(dossier: string, avecInterface = false): string[] {
 test('hors de src/ecriture/, aucun fichier du sandbox ni du noyau n’écrit dans le document', () => {
   const balayes = fichiers(SOURCE);
   assert.ok(balayes.some((fichier) => fichier.endsWith('code.ts')), 'src/code.ts n’est plus balayé');
-  assert.ok(balayes.some((fichier) => fichier.endsWith(path.join('integrations', 'palettes.ts'))), 'src/integrations/ n’est plus balayé');
   const fautes: string[] = [];
   for (const fichier of balayes) {
     fs.readFileSync(fichier, 'utf8').split('\n').forEach((ligne, rang) => {
@@ -125,13 +124,13 @@ test('le noyau ne lit ni Figma, ni le DOM, ni UCM', () => {
     const texte = fs.readFileSync(path.join(SOURCE, nom), 'utf8').replace(/\/\*[\s\S]*?\*\//g, '').replace(/\/\/.*$/gm, '');
     if (/\bfigma\./.test(texte)) fautes.push(`${nom} lit figma`);
     if (/\b(document|window)\./.test(texte)) fautes.push(`${nom} lit le DOM`);
-    if (/from '(@ucm-kit|ucm-couleur|\.\/integrations)/.test(texte)) fautes.push(`${nom} importe une intégration UCM`);
+    if (/from '(@ucm-kit|ucm-couleur)/.test(texte)) fautes.push(`${nom} importe une intégration UCM`);
   }
   assert.deepEqual(fautes, []);
 });
 
 test('aucune règle ne dépend d’un nom de collection réservé', () => {
-  const noyau = fichiers(SOURCE).filter((fichier) => !fichier.includes(`${path.sep}integrations${path.sep}`));
+  const noyau = fichiers(SOURCE);
   const fautes = noyau.filter((fichier) => /['"](usage|theme|brand|brands|primitives|color-brands|color-utilities|utility|layout|layouts|components)['"]/.test(fs.readFileSync(fichier, 'utf8')));
   assert.deepEqual(fautes.map((fichier) => path.relative(racine, fichier)), []);
 });

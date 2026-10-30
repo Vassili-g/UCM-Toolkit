@@ -6,7 +6,8 @@
  */
 import assert from 'node:assert/strict';
 
-import { CLE_NOMMAGE_DE_PALETTES, CONVENTIONS, ESPACE_ARCHITECT, assembler, decouperSegment, motsAvecCasse, type Convention } from '@ucm-kit/core/referentiel';
+import { SUPPORT_DES_VARIABLES, cibleDeLaVariable, sensDuTheme } from '@ucm-kit/core/emplois';
+import { CLE_NOMMAGE_DE_PALETTES, CONVENTIONS, ESPACE_ARCHITECT, assembler, decouperSegment, motsAvecCasse, variableDuThemeReconnue, type Convention } from '@ucm-kit/core/referentiel';
 import { texteDeLaMarque } from '@ucm-kit/core/protocoles';
 import { fnv1a, grilleAuPrereglage, jsonCanonique, lireHexa, octetsUtf8, recetteParDefaut, type Palette, type Recette } from 'ucm-couleur';
 
@@ -17,7 +18,6 @@ import { palettesDuFichier } from '../packages/plugin-palettes/src/variables/det
 import { texteDuSuivi, variablesSuivies } from '../packages/plugin-palettes/src/variables/suivi';
 import { FauxFigma } from '../packages/plugin-palettes/tests/figmaDeTest';
 import { alias, constructeur, couleur } from './releveDeTest';
-import { nuanceAttendue, variableDuNom } from '../packages/plugin-architect/src/integrations/profilUcm';
 import type { Releve } from '../packages/plugin-architect/src/modele';
 
 export { CONVENTIONS, type Convention };
@@ -226,13 +226,14 @@ export function themeSelonLaConvention(fichier: FichierDeTest, convention: Conve
   theme.renameMode(theme.defaultModeId, 'Light');
   for (const nom of VARIABLES_DU_THEME) {
     const variable = figma.variables.createVariable(nomSelonLaConvention(nom, convention), theme, 'COLOR');
+    const variableLue = variableDuThemeReconnue(nom);
     const visee = (mode: 'light' | 'dark'): string => {
-      const attendue = nuanceAttendue(nom, mode, fichier.recette) ?? 500;
+      const cible = variableLue && cibleDeLaVariable(variableLue, mode, sensDuTheme(mode, fichier.recette.texteDesBoutons[mode]));
+      const attendue = cible && 'cran' in cible ? cible.cran : 500;
       const decale = nom === 'primary/solid/hover' && mode === 'light';
       return deMarque(mode, decale ? (fichier.recette.crans.find((candidate) => candidate !== attendue) ?? attendue) : attendue);
     };
-    const lue = variableDuNom(nom);
-    if (lue) variable.scopes = [...lue.support.portees];
+    if (variableLue) variable.scopes = [...SUPPORT_DES_VARIABLES[variableLue].portees];
     variable.setValueForMode(theme.defaultModeId, { type: 'VARIABLE_ALIAS', id: visee('light') });
     variable.setValueForMode(dark, { type: 'VARIABLE_ALIAS', id: visee('dark') });
   }

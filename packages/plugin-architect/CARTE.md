@@ -36,7 +36,6 @@ Plugin UCM Architect : ucm-architect-plugin, privé, en lecture seule.
 - preparations.ts : forme d'une préparation, texte échangé (`ucm-preparation`, jugé format, version, champs) et liste rangée dans `clientStorage` sous `CLE_DES_PREPARATIONS` ; couches du catalogue tirées du kit
 - preferences.ts : vue compacte et largeurs réglées, dans clientStorage
 - espace.ts : couleurs d'un document Display P3 ramenées en sRGB, pour le contraste et la copie hexadécimale ; conversion de Palettes (`p3VersRgb8` de `ucm-couleur`), hors du noyau, qui n'importe pas `ucm-couleur`
-- integrations/ : recette UCM Palettes, profil d'architecture UCM (les sept couches de `COLLECTIONS`)
 - ui/ : barre et sa bascule de mode, arbre et sa recherche, table, panneau latéral, bulle de chaîne et poignée des largeurs
 - ui/composant/ : analyse retenue (constats, pastille ; `modele-propose` y retire les C81 de `retires` et range les constats d'un modèle), section Variants, `signes.ts` (signe de chaque ligne et du titre de la colonne de gauche), corps du mode Composant (vue, frontière tirable, panneau)
 - ui/analyse/ : panneau des constats : le sommaire d'éléments, les sections, l'en-tête des Bloquants et le pied, l'écran de chaque état de l'analyse (vide, en cours, aucun constat, partielle, annulée, arrêtée, périmée, library à choisir, hors UCM), `rapport.ts` (nom et contenu du rapport téléchargeable, lien sous la liste)

@@ -13,14 +13,14 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { DESTINATION_DES_PALETTES, formeReconnue, porteeDeLaGrammaire, reconnaitreLeChemin, type IdentifiantDeForme, type RoleDeSegment } from '@ucm-kit/core/referentiel';
+import { DESTINATION_DES_PALETTES, formeReconnue, porteeDeLaGrammaire, reconnaitreLeChemin, variableDuThemeReconnue, type IdentifiantDeForme, type RoleDeSegment } from '@ucm-kit/core/referentiel';
+import { controlerLIntegriteUcm } from '@ucm-kit/core/controles';
 import { idsNonRenommables, nomsSelonLesReglesSync, palettesLibres } from '@ucm-kit/core/nommage';
 import { lireReglesDeNommage } from '@ucm-kit/core/protocoles';
 import { jsonCanonique, type Recette } from 'ucm-couleur';
 
 import { appliquerLesRenommages, creerPortDeRegles, creerPortEcriture, type RenommageDemande } from '../packages/plugin-architect/src/ecriture/noms';
-import { indexer } from '../packages/plugin-architect/src/indexation';
-import { controlerLeProfil, variableDuNom, type AssociationDesCouches } from '../packages/plugin-architect/src/integrations/profilUcm';
+import { catalogueDuFichier } from '../packages/plugin-architect/src/catalogue';
 import { changerReference, choisirLesIntensites } from '../packages/plugin-palettes/src/edition';
 import { convertirLaReprise, ecrireLesVariables, type IssueDeLaPalette } from '../packages/plugin-palettes/src/ecriture/variables';
 import { lireLesVariablesDuFichier, type VariablesDuFichier } from '../packages/plugin-palettes/src/lectureDesVariables';
@@ -377,38 +377,45 @@ for (const sortie of SORTIES_LIBRES) {
     const segments = segmentsDuGroupe(sortie.groupe)!;
     assert.equal(porteeDeLaGrammaire(sortie.collection, segments), 'libre', 'la grammaire ne juge pas cette sortie');
     assert.equal((await jetons(fichier)).etat, 'a-jour');
-    // L'explorateur ne juge que ce que le designer a associé à une couche. Associée à `primitives`, la sortie n'a aucun constat ni limite.
-    const index = indexer(releveDuFichier(fichier.figma));
-    const libre: AssociationDesCouches = {};
-    assert.deepEqual(controlerLeProfil(index, libre, { recette: fichier.recette }), { constats: [], limites: [] });
-    const associee: AssociationDesCouches = { c0: 'primitives' };
-    assert.deepEqual(controlerLeProfil(index, associee, { recette: fichier.recette }), { constats: [], limites: [] });
+    // Le contrôle d'intégrité UCM juge `theme` et les couches reconnues : aucun constat C82 ne cite les variables de la sortie libre.
+    const catalogue = catalogueDuFichier(releveDuFichier(fichier.figma), 'ucm');
+    const sortieLibre = catalogue.variables.filter((variable) => catalogue.collections.find((collection) => collection.cle === variable.collection)?.nom === sortie.collection);
+    assert.ok(sortieLibre.length > 0, 'la sortie libre porte des variables');
+    const cites = controlerLIntegriteUcm(catalogue).filter((constat) => sortieLibre.some((variable) => constat.id.includes(variable.cle) || Object.values(constat.faits).includes(variable.nom)));
+    assert.deepEqual(cites.map((constat) => constat.id), []);
   });
 }
 
-// Loi 7. Explorateur : sur des variables du thème nommées selon la convention, le profil reconnaît la couche et le rôle, et rend les mêmes constats et limites qu'en minuscules.
+// Loi 7. Explorateur : sur des variables du thème nommées selon la convention, le rôle se reconnaît et le contrôle d'intégrité rend les mêmes constats qu'en minuscules.
 const EN_MINUSCULES: Convention = CONVENTIONS[0].convention;
-const controleDuProfil = async (forme: FormeDePalette) => {
+const controleDeLIntegrite = async (forme: FormeDePalette) => {
   const fichier = await fichierDePalettes(forme, { regles: true });
   themeSelonLaConvention(fichier, forme.convention);
-  // Dans l'ordre de création : Primitives, Components, brands, theme.
-  const couches: AssociationDesCouches = { c0: 'primitives', c2: 'brands', c3: 'theme' };
-  return { fichier, controle: controlerLeProfil(indexer(releveDuFichier(fichier.figma)), couches, { recette: fichier.recette }) };
+  const constats = controlerLIntegriteUcm(catalogueDuFichier(releveDuFichier(fichier.figma), 'ucm')).filter((constat) => constat.code === 'C82');
+  // Comparés par genre, variable reconnue et mode : ni l'identifiant ni le nom écrit ne portent la convention.
+  const resume = constats.map((constat) => {
+    const { genre, variable, mode } = constat.faits;
+    return JSON.stringify({ genre, variable: typeof variable === 'string' ? (variableDuThemeReconnue(variable) ?? variable) : variable, mode });
+  }).sort();
+  return { fichier, constats, resume };
 };
-const baseDeReference = new Map<string, ReturnType<typeof controleDuProfil>>();
+const baseDeReference = new Map<string, ReturnType<typeof controleDeLIntegrite>>();
 
 pourChaqueForme('7 explorateur', croiser(DIAGONALE), async (forme) => {
-  const { fichier, controle } = await controleDuProfil(forme);
+  const { fichier, constats, resume } = await controleDeLIntegrite(forme);
   const cle = JSON.stringify({ ...forme, convention: null });
-  if (!baseDeReference.has(cle)) baseDeReference.set(cle, controleDuProfil({ ...forme, convention: EN_MINUSCULES }));
+  if (!baseDeReference.has(cle)) baseDeReference.set(cle, controleDeLIntegrite({ ...forme, convention: EN_MINUSCULES }));
   const reference = await baseDeReference.get(cle)!;
-  assert.deepEqual(reference.controle.constats.map((constat) => constat.regle), ['nuance'], 'le témoin : une seule variable du thème vise une mauvaise nuance');
-  assert.deepEqual(controle, reference.controle);
+  // Le témoin : `solid/hover` (du groupe `primary`) vise une mauvaise nuance en Light. `page/foreground-main` vise un cran là où le kit attend
+  // le noir ou le blanc : la fabrique n'a pas de variable de `utility` à viser, elle retombe sur 500 et le kit le signale dans les deux modes.
+  const crans = reference.constats.filter((constat) => constat.faits.genre === 'cran').map((constat) => `${variableDuThemeReconnue(String(constat.faits.variable))} ${constat.faits.mode}`);
+  assert.deepEqual(crans.sort(), ['page/foreground-main Dark', 'page/foreground-main Light', 'solid/hover Light']);
+  assert.deepEqual(resume, reference.resume);
   // Le rôle de chaque variable du thème se reconnaît, quelle que soit la convention.
   const noms = [...fichier.figma.locales.values()].filter((variable) => formeReconnue(variable.collection.name) === 'theme').map((variable) => variable.name);
   assert.equal(noms.length, 5);
-  assert.equal(noms.filter((nom) => variableDuNom(nom) !== null).length, 4, `le rôle se lit dans ${noms.join(' | ')}`);
-  assert.deepEqual(controle.limites.filter((limite) => limite.cause === 'role-inconnu'), []);
+  assert.equal(noms.filter((nom) => variableDuThemeReconnue(nom) !== undefined).length, 4, `le rôle se lit dans ${noms.join(' | ')}`);
+  assert.ok(constats.length > 0);
 });
 
 // Loi 8. Lot entier : deux palettes dont les noms convergent sous la convention. L'annonce, l'issue de l'écriture et les mutations du double concordent.
