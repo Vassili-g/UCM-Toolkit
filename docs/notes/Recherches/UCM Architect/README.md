@@ -35,10 +35,10 @@ Tokens affiche Nomenclature à côté de l'arbre des variables.
 
 | Document | Contenu |
 |---|---|
-| [ANALYSE-RECETTE-V1.md](./4%20Recette%20v1/ANALYSE-RECETTE-V1.md) | La carte du stroke d'Alert (faux constat C29 sur les layers sans contour), le rangement du panneau par élément, la liste des signes des sortes d'objets, et les décisions R-1 à R-10 |
-| [MAQUETTE-RECETTE-V1.html](./4%20Recette%20v1/MAQUETTE-RECETTE-V1.html) | Les propositions sur les écrans réels figés de la galerie d'Architect, et la planche des signes |
-| [recette.css](./4%20Recette%20v1/recette.css) | La feuille des éléments nouveaux de la maquette |
-| [PLAN-IMPLEMENTATION-RECETTE-V1.md](./4%20Recette%20v1/PLAN-IMPLEMENTATION-RECETTE-V1.md) | Les lots K1 à G1, chacun avec son agent et son commit, et ce qui reste ouvert |
+| [ANALYSE-RECETTE-V1.md](https://github.com/Vassili-g/UCM-Toolkit/blob/da7f465d/docs/notes/Recherches/UCM%20Architect/4%20Recette%20v1/ANALYSE-RECETTE-V1.md) | La carte du stroke d'Alert (faux constat C29 sur les layers sans contour), le rangement du panneau par élément, la liste des signes des sortes d'objets, et les décisions R-1 à R-10 |
+| [MAQUETTE-RECETTE-V1.html](https://github.com/Vassili-g/UCM-Toolkit/blob/da7f465d/docs/notes/Recherches/UCM%20Architect/4%20Recette%20v1/MAQUETTE-RECETTE-V1.html) | Les propositions sur les écrans réels figés de la galerie d'Architect, et la planche des signes |
+| [recette.css](https://github.com/Vassili-g/UCM-Toolkit/blob/da7f465d/docs/notes/Recherches/UCM%20Architect/4%20Recette%20v1/recette.css) | La feuille des éléments nouveaux de la maquette |
+| [PLAN-IMPLEMENTATION-RECETTE-V1.md](https://github.com/Vassili-g/UCM-Toolkit/blob/da7f465d/docs/notes/Recherches/UCM%20Architect/4%20Recette%20v1/PLAN-IMPLEMENTATION-RECETTE-V1.md) | Les lots K1 à G1, chacun avec son agent et son commit, et ce qui reste ouvert |
 | `Mesures/extraire-galerie.mjs` | Fige les états du mode Composant dans `galerie/` |
 | `Mesures/capturer.mjs` | Capture une page ou un élément, et rend les erreurs de la console |
 
@@ -54,10 +54,10 @@ Tokens affiche Nomenclature à côté de l'arbre des variables.
 
 | Document | Contenu |
 |---|---|
-| [ANALYSE-RECETTE-V2.md](./6%20Recette%20v2/ANALYSE-RECETTE-V2.md) | Les points de la recette Figma de Button, Alert et Stresstest : cause lue dans le code, proposition, questions R-11 à R-22 et ordre de travail |
-| [MAQUETTE-RECETTE-V2.html](./6%20Recette%20v2/MAQUETTE-RECETTE-V2.html) | Fenêtre à 300 px, changement de variant, langage des variants, bouton de modèle, choix du tableau, bouton Sélectionner et constats réécrits, sur les écrans réels figés |
-| [PLAN-IMPLEMENTATION-RECETTE-V2.md](./6%20Recette%20v2/PLAN-IMPLEMENTATION-RECETTE-V2.md) | Les sous-lots à cocher, leur agent (Codex ou Claude), leurs dépendances et les vagues parallèles |
-| [recette.css](./6%20Recette%20v2/recette.css) | La feuille des éléments nouveaux de la maquette |
+| [ANALYSE-RECETTE-V2.md](https://github.com/Vassili-g/UCM-Toolkit/blob/da7f465d/docs/notes/Recherches/UCM%20Architect/6%20Recette%20v2/ANALYSE-RECETTE-V2.md) | Les points de la recette Figma de Button, Alert et Stresstest : cause lue dans le code, proposition, questions R-11 à R-22 et ordre de travail |
+| [MAQUETTE-RECETTE-V2.html](https://github.com/Vassili-g/UCM-Toolkit/blob/da7f465d/docs/notes/Recherches/UCM%20Architect/6%20Recette%20v2/MAQUETTE-RECETTE-V2.html) | Fenêtre à 300 px, changement de variant, langage des variants, bouton de modèle, choix du tableau, bouton Sélectionner et constats réécrits, sur les écrans réels figés |
+| [PLAN-IMPLEMENTATION-RECETTE-V2.md](https://github.com/Vassili-g/UCM-Toolkit/blob/da7f465d/docs/notes/Recherches/UCM%20Architect/6%20Recette%20v2/PLAN-IMPLEMENTATION-RECETTE-V2.md) | Les sous-lots à cocher, leur agent (Codex ou Claude), leurs dépendances et les vagues parallèles |
+| [recette.css](https://github.com/Vassili-g/UCM-Toolkit/blob/da7f465d/docs/notes/Recherches/UCM%20Architect/6%20Recette%20v2/recette.css) | La feuille des éléments nouveaux de la maquette |
 | `Mesures/extraire-galerie.mjs` | Fige les états de la galerie étroite dans `galerie/` |
 
 Les recherches antérieures sur Nomenclature et sur le contrôle de structure des
@@ -71,4 +71,4 @@ Le plan de la recette v1 est implémenté : panneau du mode Composant sans ongle
 
 | Document | Contenu |
 |---|---|
-| [PLAN-IMPLEMENTATION-REGLES-MANQUANTES.md](./7%20R%C3%A8gles%20manquantes/PLAN-IMPLEMENTATION-REGLES-MANQUANTES.md) | La correction de C45 qui ajoute les règles manquantes dans une instance remplie : décisions, lots à cocher avec leur agent, textes et recette |
+| [PLAN-IMPLEMENTATION-REGLES-MANQUANTES.md](https://github.com/Vassili-g/UCM-Toolkit/blob/da7f465d/docs/notes/Recherches/UCM%20Architect/7%20R%C3%A8gles%20manquantes/PLAN-IMPLEMENTATION-REGLES-MANQUANTES.md) | La correction de C45 qui ajoute les règles manquantes dans une instance remplie : décisions, lots à cocher avec leur agent, textes et recette |

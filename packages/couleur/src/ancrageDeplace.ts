@@ -15,7 +15,7 @@
  *
  * Le Dark inversé et le Light n'en relèvent pas : une référence posée sur le 800 garde
  * sa place et la garantie 9 manque pour elle. Le module ne lit aucune palette :
- * `palette.ts` lui passe les couleurs. Mesure : `docs/notes/Recherches/SUJETS IMPORTANTS à trancher/Mesures/ancrage-deplace.ts`.
+ * `palette.ts` lui passe les couleurs. Mesure : `docs/notes/Archives/SUJETS IMPORTANTS à trancher/Mesures/ancrage-deplace.ts`.
  */
 import { TABLE_DES_DOSSIERS, atteintLeSeuil, contraste, sensDuTheme } from '@ucm-kit/core/emplois';
 

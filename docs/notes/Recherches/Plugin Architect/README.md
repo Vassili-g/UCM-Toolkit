@@ -9,19 +9,19 @@ comme une matière à trier.
 
 Le code de la v1 vit dans [packages/plugin-architect](../../../../packages/plugin-architect/).
 Le référentiel dont l'Architect lit les définitions a son propre dossier,
-[Référentiel UCM](../Référentiel%20UCM/README.md).
+[Référentiel UCM](https://github.com/Vassili-g/UCM-Toolkit/blob/da7f465d/docs/notes/Recherches/R%C3%A9f%C3%A9rentiel%20UCM/README.md).
 
 ## Où en est le sujet
 
 | Étape | État |
 |---|---|
 | Architecture globale UCM | Recherche close. La [version minimale](./1%20Architecture%20globale/VERSION-MINIMALE.md) avait retenu « aucun nouveau plugin » et rangé l'Architect en piste |
-| Architect v1 | Construit pendant la phase 2 du [plan du référentiel](../Référentiel%20UCM/PLAN-IMPLEMENTATION.md#phase-2--ucm-architect-v1--normaliser-les-noms), lots 14 à 18 : il normalise la casse et les séparateurs des noms, et remplace en option les termes tolérés (`press` en `pressed`) |
+| Architect v1 | Construit pendant la phase 2 du [plan du référentiel](https://github.com/Vassili-g/UCM-Toolkit/blob/da7f465d/docs/notes/Recherches/R%C3%A9f%C3%A9rentiel%20UCM/PLAN-IMPLEMENTATION.md#phase-2--ucm-architect-v1--normaliser-les-noms), lots 14 à 18 : il normalise la casse et les séparateurs des noms, et remplace en option les termes tolérés (`press` en `pressed`) |
 | Recette de la v1 | Lot 19 : recette dans Figma par le mainteneur, puis export des tokens du fichier renommé |
 | Suite de l'Architect | Explorée sans décision : versions v1.1, v1.2 et v2, quatre questions ouvertes |
-| Refonte | [Conception](./3%20Refonte/CONCEPTION.md) revue par un agent spécialiste de l'UX, et [maquettes](./3%20Refonte/MAQUETTES-ARCHITECT.html) ; attend la validation du mainteneur |
+| Refonte | [Conception](https://github.com/Vassili-g/UCM-Toolkit/blob/da7f465d/docs/notes/Recherches/Plugin%20Architect/3%20Refonte/CONCEPTION.md) revue par un agent spécialiste de l'UX, et [maquettes](https://github.com/Vassili-g/UCM-Toolkit/blob/da7f465d/docs/notes/Recherches/Plugin%20Architect/3%20Refonte/MAQUETTES-ARCHITECT.html) ; attend la validation du mainteneur |
 | Contrôle de structure | [Recherche](./6%20Contrôle%20de%20structure/RECHERCHE-CONTROLE-DE-STRUCTURE.md) : signaler les erreurs simples de la structure des tokens (mode qui vise la branche d'un autre mode, sœurs divergentes, échelles) ; attend quatre décisions |
-| Recette de la refonte | [Dossier](./5%20Recette/DOSSIER-RECETTE-ARCHITECT.md) et [maquettes](./5%20Recette/Maquettes/MAQUETTE-RECETTE-ARCHITECT.html) : langage visuel commun, avant et après dans À appliquer, cartes de À trancher, fiche d'un terme, question des tailles retirée ; attend les décisions D1 à D10 |
+| Recette de la refonte | [Dossier](https://github.com/Vassili-g/UCM-Toolkit/blob/da7f465d/docs/notes/Recherches/Plugin%20Architect/5%20Recette/DOSSIER-RECETTE-ARCHITECT.md) et [maquettes](https://github.com/Vassili-g/UCM-Toolkit/blob/da7f465d/docs/notes/Recherches/Plugin%20Architect/5%20Recette/Maquettes/MAQUETTE-RECETTE-ARCHITECT.html) : langage visuel commun, avant et après dans À appliquer, cartes de À trancher, fiche d'un terme, question des tailles retirée ; attend les décisions D1 à D10 |
 
 La v1 contredit la version minimale : le mainteneur a demandé l'Architect
 quand les renommages de son fichier sont devenus trop nombreux pour être faits
@@ -32,11 +32,11 @@ noms et l'harmonisation des mots.
 
 | Maquette | Contenu |
 |---|---|
-| [Recette de la refonte](./5%20Recette/Maquettes/MAQUETTE-RECETTE-ARCHITECT.html) | Les écrans réels figés, puis les propositions : langage visuel, Règles, À appliquer en deux colonnes, trois formes de cartes pour À trancher, fiche d'un terme animée |
-| [Refonte](./3%20Refonte/MAQUETTES-ARCHITECT.html) | Troisième version, variables seulement, sur la feuille de style commune des plugins : le plan de navigation, quatorze écrans dont les feuilles des termes, la planche des cartes et des états |
+| [Recette de la refonte](https://github.com/Vassili-g/UCM-Toolkit/blob/da7f465d/docs/notes/Recherches/Plugin%20Architect/5%20Recette/Maquettes/MAQUETTE-RECETTE-ARCHITECT.html) | Les écrans réels figés, puis les propositions : langage visuel, Règles, À appliquer en deux colonnes, trois formes de cartes pour À trancher, fiche d'un terme animée |
+| [Refonte](https://github.com/Vassili-g/UCM-Toolkit/blob/da7f465d/docs/notes/Recherches/Plugin%20Architect/3%20Refonte/MAQUETTES-ARCHITECT.html) | Troisième version, variables seulement, sur la feuille de style commune des plugins : le plan de navigation, quatorze écrans dont les feuilles des termes, la planche des cartes et des états |
 | [Exploration du plugin d'architecture](./1%20Architecture%20globale/Maquettes/MAQUETTE-ARCHITECTE.html) | La première exploration : le flux en six étapes (premier lancement, accueil, vérifier, conventions, construire, publier) et seize écrans, thème sombre |
-| [Écran de la v1](./2%20Architect%20v1/MAQUETTE-ARCHITECT.html) | L'écran unique validé avant la construction : écriture des noms et liste des renommages à cocher |
-| [Exploration après la v1](./2%20Architect%20v1/EXPLORATION-UX-ARCHITECT.html) | Le parcours de la première exploration confronté au plugin construit : le flux en sept étapes, douze écrans marqués construit, v1.1, v1.2, v2 ou plus tard, les cas d'usage couverts et quatre questions |
+| [Écran de la v1](https://github.com/Vassili-g/UCM-Toolkit/blob/da7f465d/docs/notes/Recherches/Plugin%20Architect/2%20Architect%20v1/MAQUETTE-ARCHITECT.html) | L'écran unique validé avant la construction : écriture des noms et liste des renommages à cocher |
+| [Exploration après la v1](https://github.com/Vassili-g/UCM-Toolkit/blob/da7f465d/docs/notes/Recherches/Plugin%20Architect/2%20Architect%20v1/EXPLORATION-UX-ARCHITECT.html) | Le parcours de la première exploration confronté au plugin construit : le flux en sept étapes, douze écrans marqués construit, v1.1, v1.2, v2 ou plus tard, les cas d'usage couverts et quatre questions |
 | [Vue d'ensemble de l'architecture globale](./1%20Architecture%20globale/VUE-D-ENSEMBLE.html) | La présentation visuelle de toute la recherche : rôle des produits, propriétaire de chaque information, nomenclature, référentiel, revue externe et pistes |
 
 La galerie du plugin construit montre ses états réels :
@@ -53,7 +53,7 @@ La galerie du plugin construit montre ses états réels :
 | [REVUE-CONCEPTUELLE-ET-FONCTIONNELLE.md](./1%20Architecture%20globale/REVUE-CONCEPTUELLE-ET-FONCTIONNELLE.md) | La revue externe ; section 6 sur le besoin d'un quatrième plugin, section 7 sur les limites de la normalisation |
 | [PLAN-DE-RECHERCHE.md](./1%20Architecture%20globale/PLAN-DE-RECHERCHE.md) | Les sujets R1 à R13, dont R5 sur le plugin d'architecture et R6 sur le bilan du fichier |
 | [SUIVI.md](./1%20Architecture%20globale/SUIVI.md) | L'état de chaque sujet de l'architecture globale à sa clôture |
-| [RECHERCHE-API-ARCHITECT.md](./2%20Architect%20v1/RECHERCHE-API-ARCHITECT.md) | Ce que l'API Plugin de Figma permet pour renommer : variantes, propriétés, variables, annulation, coût |
+| [RECHERCHE-API-ARCHITECT.md](https://github.com/Vassili-g/UCM-Toolkit/blob/da7f465d/docs/notes/Recherches/Plugin%20Architect/2%20Architect%20v1/RECHERCHE-API-ARCHITECT.md) | Ce que l'API Plugin de Figma permet pour renommer : variantes, propriétés, variables, annulation, coût |
 
 ## Les recherches sourcées
 

@@ -6,7 +6,7 @@ le moteur actuel avec des données synthétiques. Le plugin n'a pas été modifi
 Lecteur : le mainteneur qui doit corriger les blocages pendant l'analyse et le
 choix d'une convention. La revue couvre la v1 construite dans
 [`packages/plugin-architect`](../../../../packages/plugin-architect/). La
-[conception de la refonte](./3%20Refonte/CONCEPTION.md) reste une proposition
+[conception de la refonte](https://github.com/Vassili-g/UCM-Toolkit/blob/da7f465d/docs/notes/Recherches/Plugin%20Architect/3%20Refonte/CONCEPTION.md) reste une proposition
 distincte ; ses détecteurs de synonymes ne sont pas présents dans ce code.
 
 ## 1. Solution proposée
@@ -544,7 +544,7 @@ Sources : [Variable](https://developers.figma.com/docs/plugins/api/Variable/),
 La relecture avant écriture, les contrôles de collision, la validation des
 combinaisons de variantes, le rapport d'échec partiel et la délimitation de
 l'annulation doivent rester. Leurs limites sont décrites dans la
-[recherche API de la v1](./2%20Architect%20v1/RECHERCHE-API-ARCHITECT.md).
+[recherche API de la v1](https://github.com/Vassili-g/UCM-Toolkit/blob/da7f465d/docs/notes/Recherches/Plugin%20Architect/2%20Architect%20v1/RECHERCHE-API-ARCHITECT.md).
 Un cache de prévisualisation ne constitue pas une preuve de fraîcheur du
 document au moment d'appliquer.
 

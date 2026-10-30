@@ -648,7 +648,7 @@ finale.
 
 ## Sources
 
-[vue]: ../Archi%20Tokens%20Multi-marques/VUE-ILLUSTREE-MULTIMARQUES.html
+[vue]: https://github.com/Vassili-g/UCM-Toolkit/blob/da7f465d/docs/notes/Recherches/Archi%20Tokens%20Multi-marques/VUE-ILLUSTREE-MULTIMARQUES.html
 [names]: ../../../../packages/kit/src/format/names.ts
 [parsers]: ../../../../packages/plugin-socle/src/composant/contract/parsers.ts
 [detection]: ../../../../packages/plugin-palettes/src/variables/detection.ts

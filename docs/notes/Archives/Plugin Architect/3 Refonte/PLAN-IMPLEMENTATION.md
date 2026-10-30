@@ -8,7 +8,7 @@ Formule à respecter pour tous les agents:
 
 Ce plan construit la refonte décrite dans la [conception](./CONCEPTION.md) et
 dessinée dans les [maquettes](./MAQUETTES-ARCHITECT.html), avec les
-optimisations de [OPTIMISATION-LECTURE-ET-AFFICHAGE.md](../OPTIMISATION-LECTURE-ET-AFFICHAGE.md)
+optimisations de [OPTIMISATION-LECTURE-ET-AFFICHAGE.md](https://github.com/Vassili-g/UCM-Toolkit/blob/da7f465d/docs/notes/Recherches/Plugin%20Architect/OPTIMISATION-LECTURE-ET-AFFICHAGE.md)
 qui restent utiles une fois le périmètre réduit aux variables. Une revue l'a
 relu avant son lancement ; la section « Revue du plan » dit ce qu'elle a
 changé.

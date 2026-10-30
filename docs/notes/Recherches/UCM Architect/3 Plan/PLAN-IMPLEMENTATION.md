@@ -1100,7 +1100,7 @@ Sondes, lancées par le mainteneur au lancement :
   manifeste, puis lire `figma.fileKey`. Hypothèse : `undefined`. Si la clé est
   servie, B3 ajoute le drapeau au manifeste et le lien de `t-bibliotheque`
   marche.
-- **S-3 · Slot rempli** : levée par le mainteneur ; voir [Règles manquantes](../7%20Règles%20manquantes/PLAN-IMPLEMENTATION-REGLES-MANQUANTES.md#c1--correction-après-lessai).
+- **S-3 · Slot rempli** : levée par le mainteneur ; voir [Règles manquantes](https://github.com/Vassili-g/UCM-Toolkit/blob/da7f465d/docs/notes/Recherches/UCM%20Architect/7%20R%C3%A8gles%20manquantes/PLAN-IMPLEMENTATION-REGLES-MANQUANTES.md#c1--correction-après-lessai).
 
 ## 8. Jalons
 

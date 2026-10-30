@@ -245,7 +245,7 @@ face à face `sm md lg`, employé dans des noms de variables (`Radius/sm`), et
 **Constat.**
 
 - La règle par position est la décision T06 et S02 du
-  [plan de la nomenclature](../4%20Nomenclature/PLAN-IMPLEMENTATION.md). Son
+  [plan de la nomenclature](https://github.com/Vassili-g/UCM-Toolkit/blob/da7f465d/docs/notes/Recherches/Plugin%20Architect/4%20Nomenclature/PLAN-IMPLEMENTATION.md). Son
   renommage par catégorie est en cours dans la copie de travail, non commité :
   `termePourCategorie` dans `referentiel/termes.ts`,
   `identifiantParCategorie` dans `referentiel/vocabulaire.ts`, et leurs

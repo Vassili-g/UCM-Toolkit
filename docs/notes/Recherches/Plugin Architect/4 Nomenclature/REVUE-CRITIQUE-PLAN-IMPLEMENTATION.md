@@ -16,7 +16,7 @@ mainteneur ni les règles publiées du produit.
 
 ## 1. Portée et preuves de la revue
 
-La revue confronte le plan à la [conception de la refonte](../3%20Refonte/CONCEPTION.md),
+La revue confronte le plan à la [conception de la refonte](https://github.com/Vassili-g/UCM-Toolkit/blob/da7f465d/docs/notes/Recherches/Plugin%20Architect/3%20Refonte/CONCEPTION.md),
 aux [recherches sur la nomenclature](../1%20Architecture%20globale/Recherches/R3-NOMENCLATURE.md),
 au référentiel du kit, à la session d'Architect et aux outils du
 [corpus de référence](../../../../references/design-systems/README.md).

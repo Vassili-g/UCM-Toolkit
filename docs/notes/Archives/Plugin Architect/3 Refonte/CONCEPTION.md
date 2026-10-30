@@ -179,7 +179,7 @@ règles.
 
 ## 7. La détection
 
-La [recherche R3](../1%20Architecture%20globale/Recherches/R3-NOMENCLATURE.md)
+La [recherche R3](https://github.com/Vassili-g/UCM-Toolkit/blob/da7f465d/docs/notes/Recherches/Plugin%20Architect/1%20Architecture%20globale/Recherches/R3-NOMENCLATURE.md)
 a mesuré la précision de chaque relevé sur deux fichiers réels. La détection
 en tire trois principes.
 
