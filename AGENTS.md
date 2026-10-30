@@ -4,6 +4,27 @@ Monorepo UCM : trois plugins Figma (exporteur de contrats et de tokens DTCG, Pal
 
 Ce guide dit **ce que le produit garantit** et où le lire. [CONTRIBUTING.md](./CONTRIBUTING.md) dit **comment travailler**. Règle du produit → un fichier d'invariants ; règle de travail → `CONTRIBUTING.md`.
 
+## Écrire
+
+Ces règles valent pour tout texte : réponse, rapport d'agent, document, commentaire, plan, maquette, message au designer.
+
+- Une phrase qui n'apporte aucun fait se supprime. Elle ne se reformule pas.
+- Une phrase porte un fait, avec un sujet, un verbe et un complément. Un second fait prend une seconde phrase.
+- Commencer par la réponse ou le résultat. Ajouter le contexte seulement s'il change ce que le lecteur fait.
+- Nommer l'acteur et l'objet : « le hook relit le fichier », « le designer déplace le curseur ».
+- Prendre le mot courant : « pour », « donc », « il faut ». Garder le même terme du dépôt d'un bout à l'autre.
+- Donner le chiffre, le chemin ou le nom plutôt qu'un adjectif : « 3 tests échouent dans `palette.test.ts` ».
+- Écrire une action attendue à l'impératif, avec son objet.
+- Écrire un raisonnement en phrases. Réserver la liste aux éléments de même nature, et le gras à un mot par section au plus.
+- Ponctuer avec le point, la virgule et la parenthèse. Réserver les deux-points à l'annonce d'une liste ou d'une citation.
+- Un rapport ou une réponse dit ce qui est fait, ce qui reste et ce qui bloque, avec les chemins en entier.
+- S'arrêter quand l'information est donnée, sans résumé final ni offre de suite.
+
+Exemples tirés des corrections du mainteneur :
+
+- « Une instruction en mémoire est du contexte, que le défaut verbeux d'un modèle recouvre ; un hook est de la configuration, et il s'exécute. » devient « Un hook sera exécuté à chaque écriture plutôt que d'utiliser une consigne en mémoire. »
+- « Bonne nouvelle : tout passe ! Concrètement, trois points à retenir… » devient « Les 412 tests passent. Deux questions restent ouvertes. »
+
 ## Avant de modifier
 
 1. `npm run agents:lire -- <chemins touchés>` : les fichiers à lire, et seulement eux. Lire le groupe que la tâche touche, pas les autres.
@@ -16,7 +37,7 @@ Skills, dans `.agents/skills/`, à charger :
 
 | Avant de… | Skill |
 |---|---|
-| écrire une phrase, document ou commentaire | [`rediger-sans-tics-ia`](./.agents/skills/rediger-sans-tics-ia/SKILL.md) |
+| relire un document, un plan, une maquette ou un rapport long | [`relire-le-style`](./.agents/skills/relire-le-style/SKILL.md) |
 | écrire dans un fichier d'agent (ce guide, invariants, cartes, `CLAUDE.md`, définitions d'agents, skills) | [`rediger-pour-agents`](./.agents/skills/rediger-pour-agents/SKILL.md) |
 | créer ou modifier un message destiné au designer | [`rediger-diagnostics-ucm`](./.agents/skills/rediger-diagnostics-ucm/SKILL.md) |
 | reconstruire à froid un composant depuis son contrat (geste de recette du repository consommateur) | [`consommer-contrat`](./.agents/skills/consommer-contrat/SKILL.md) ; rangée ici, savoir du format : le repository de recette ne doit rien apprendre du produit |

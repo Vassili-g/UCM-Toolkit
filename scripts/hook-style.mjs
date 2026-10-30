@@ -52,7 +52,7 @@ if (fautes.length === 0) process.exit(0);
 process.stderr.write(
   `Le style du dépôt refuse ${fautes.length} passage(s) de ${chemin}.\n`
     + 'Corriger avant de continuer. Les règles vivent dans CONTRIBUTING.md, section\n'
-    + '« Rédiger un document », et dans la skill .agents/skills/rediger-sans-tics-ia.\n\n'
+    + '« Rédiger un document », et dans la skill .agents/skills/relire-le-style.\n\n'
     + `${rapport(fautes)}`,
 );
 process.exit(2);

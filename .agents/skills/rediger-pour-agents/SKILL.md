@@ -1,12 +1,12 @@
 ---
 name: rediger-pour-agents
-description: "Écrire ou réécrire un fichier lu par les agents (AGENTS.md, CLAUDE.md, invariants, cartes, définitions d'agents, skills) dans la forme compacte du dépôt, sans perdre aucune information. Charger avant toute écriture dans ces fichiers, en plus de rediger-sans-tics-ia."
+description: "Écrire ou réécrire un fichier lu par les agents (AGENTS.md, CLAUDE.md, invariants, cartes, définitions d'agents, skills) dans la forme compacte du dépôt, sans perdre aucune information. Charger avant toute écriture dans ces fichiers, en plus du bloc « Écrire » d'AGENTS.md."
 ---
 
 # Rédiger pour les agents
 
-Forme compacte des fichiers lus par les agents. Les règles de
-`rediger-sans-tics-ia` s'appliquent aussi, sauf celles que ce texte assouplit :
+Forme compacte des fichiers lus par les agents. Les règles du bloc « Écrire »
+d'`AGENTS.md` s'appliquent aussi, sauf celles que ce texte assouplit :
 fragments et symboles de la section 3.
 
 ## 1. Portée

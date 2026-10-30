@@ -29,7 +29,7 @@ de fin. Cocher la case d'une tâche quand son commit est fait.
 
 ## Règles communes à toutes les tâches
 
-- Lire `AGENTS.md`, puis la skill `.agents/skills/rediger-sans-tics-ia/SKILL.md`
+- Lire `AGENTS.md`, puis la skill `.agents/skills/relire-le-style/SKILL.md`
   avant d'écrire un commentaire ou un texte.
 - Ne jamais lancer `test:ui` ni une boucle d'attente `until`.
 - Ne pas commiter : la conversation principale commite par chemins explicites.

@@ -29,7 +29,7 @@ Procédures qu'un agent charge à la demande.
 - publier-paquets/ : publier les paquets du kit après une montée de version
 - rediger-diagnostics-ucm/ : écrire un message que le designer peut suivre
 - rediger-pour-agents/ : écrire les fichiers lus par les agents dans la forme compacte du dépôt
-- rediger-sans-tics-ia/ : standard d'écriture, documents et commentaires
+- relire-le-style/ : liste de relecture du style et paires avant/après
 
 ## scripts/
 - construire-plugin.mjs : construit, ouvre en galerie ou teste un paquet après le kit

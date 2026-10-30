@@ -16,7 +16,7 @@ les fiches.
 1. Lis [docs/references/README.md](../../docs/references/README.md), sections
    « Licences » et « Les trois couches ».
 2. Lis `docs/references/_outils/fiche.schema.json` et `docs/references/systemes.json`.
-3. Lis `.agents/skills/rediger-sans-tics-ia/SKILL.md`.
+3. Lis `.agents/skills/relire-le-style/paires.md` et applique le bloc « Écrire » d'`AGENTS.md` ; relis ensuite ton texte avec `.agents/skills/relire-le-style/SKILL.md`.
 4. Lis `docs/references/design-systems/ucm/registres.json` : `etats` et `role` d'une fiche en reprennent les identifiants.
 
 ## Pour chaque système

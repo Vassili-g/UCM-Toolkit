@@ -584,7 +584,9 @@ paquets, les définitions d'agents et les skills. Elle admet les fragments et
 quelques symboles, et elle garde chaque nom en code, nombre, négation et borne.
 Les autres documents gardent les règles de cette section.
 
-Elles existent parce que la documentation avait pris les tics d’écriture des
+Les règles d’écriture de tout texte sont dans le bloc « Écrire » d’[`AGENTS.md`](./AGENTS.md#écrire) ; [`.agents/skills/relire-le-style/`](./.agents/skills/relire-le-style/SKILL.md) sert à relire un texte écrit.
+
+Les contrôles ci-dessous existent parce que la documentation avait pris les tics d’écriture des
 modèles de langage, mesurables et reconnaissables : la densité de tiret cadratin
 atteignait cinquante fois celle d’un texte humain.
 
@@ -598,18 +600,6 @@ un fichier : le hook donne le retour immédiat, le test est la barrière que rie
 ne franchit. Un mot en capitales qui est un sigle, un type de l’API Figma ou un
 nom de document s’ajoute à `ACRONYMES`, dans le même commit.
 
-**Ponctuation.** Le tiret cadratin ne sert pas d’incise. Employer un point, un
-point-virgule, une virgule, deux points ou une parenthèse. Il reste admis dans
-un titre et dans une table de correspondance. Pas d’emphase par capitales : le
-gras suffit, et avec parcimonie. Pas de flèche ni de symbole décoratif dans la
-prose ; ils restent admis dans un tableau ou un schéma.
-
-**Tournures à éviter.** La construction en deux temps « ce n’est pas X, c’est Y
-» et ses variantes. La triade rhétorique, trois éléments listés pour la cadence.
-La personnification d’un document, d’une règle ou d’un fichier : écrire « le
-module `names.ts` porte la règle » plutôt que « la règle vit dans `names.ts` ».
-L’aphorisme et la formule frappante : écrire la règle.
-
 **Histoire.** Un document décrit l’état actuel. Il ne raconte pas ce qui s’est
 passé, ne date pas une décision et ne cite aucun identifiant de tâche.
 L’historique appartient à Git, message de commit compris : c’est le seul endroit
@@ -619,8 +609,7 @@ une décision du lecteur ; elle tient en une ou deux phrases.
 
 **Structure.** Une page ne mélange pas les quatre genres de
 [Diátaxis](https://diataxis.fr/) : le tutoriel enseigne, le guide pratique
-résout un problème, la référence énonce, l’explication justifie. Phrases
-courtes, voix active, une idée par phrase. Un exemple concret vaut mieux qu’une
+résout un problème, la référence énonce, l’explication justifie. Un exemple concret vaut mieux qu’une
 définition abstraite.
 
 **Volume.** Une passe de réduction menée sur tout le dépôt a rendu 20 710

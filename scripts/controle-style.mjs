@@ -9,7 +9,7 @@
  * partagent ce module pour qu'aucun des deux moments ne juge autrement.
  *
  * L'autorité rédactionnelle reste `CONTRIBUTING.md`, section « Rédiger un
- * document », et la skill `.agents/skills/rediger-sans-tics-ia`. Ce module ne
+ * document », et la skill `.agents/skills/relire-le-style`. Ce module ne
  * contrôle que ce qui se décide sans lire le sens : la question « cette phrase
  * apporte-t-elle un fait » reste à la relecture.
  *

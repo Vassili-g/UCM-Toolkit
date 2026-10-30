@@ -21,8 +21,10 @@ les fichiers concernés et les critères qui disent qu'il est fini.
 3. Lis la note de conception du lot, et les règles de code et de test de
    [CONTRIBUTING.md](../../CONTRIBUTING.md), dont la section « Travailler avec
    des agents ».
-4. Avant d'écrire un commentaire ou une phrase de document, lis
-   `.agents/skills/rediger-sans-tics-ia/SKILL.md`. Pour un message destiné au
+4. Avant d'écrire un document ou un rapport long, lis
+   `.agents/skills/relire-le-style/paires.md` et applique le bloc « Écrire »
+   d'`AGENTS.md` ; relis ensuite ton texte avec
+   `.agents/skills/relire-le-style/SKILL.md`. Pour un message destiné au
    designer, lis aussi `.agents/skills/rediger-diagnostics-ucm/SKILL.md`.
 5. Lis le code existant autour de ta modification et reprends son nommage et
    ses habitudes.

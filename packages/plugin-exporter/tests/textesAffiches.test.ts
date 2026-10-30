@@ -73,7 +73,7 @@ test('aucun texte affiché ne porte d’apostrophe droite', () => {
 });
 
 /**
- * Les tournures que la skill `rediger-sans-tics-ia` nomme.
+ * Les tournures que la skill `relire-le-style` nomme.
  *
  * Elles annoncent un effet sans dire par quel mécanisme. Un commentaire peut
  * les employer en donnant ce mécanisme dans la même phrase ; un texte affiché
