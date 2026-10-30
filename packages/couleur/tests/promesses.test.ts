@@ -28,6 +28,7 @@ import {
   type Recette,
   type TexteDesBoutons,
 } from '../src/index';
+import { COULEUR_DU_TEXTE_DES_BOUTONS } from '@ucm-kit/core/emplois';
 import { copie, paletteTailwind, profilsAuxParts, recetteAvec } from './fabrique';
 
 const BLEU = paletteTailwind('p-0000000a', '#1E6FD9');
@@ -198,7 +199,7 @@ test('[VER-03] chaque garantie désigne ses membres dans la table du sens de cha
             : cible === 'carte'
               ? couleurDeLaCarte(r, mode)
               : cible === 'texteDesBoutons'
-                ? lireHexa(r.texteDesBoutons[mode] === 'blanc' ? '#FFFFFF' : '#000000')
+                ? lireHexa(COULEUR_DU_TEXTE_DES_BOUTONS[r.texteDesBoutons[mode]])
                 : rampes[profil]![mode][r.crans.indexOf(cible)].couleur;
           assert.deepEqual(p.premier.couleur, couleurDe(cibleDe(p.premier)), `premier membre, ${lieu}`);
           assert.deepEqual(p.second.couleur, couleurDe(cibleDe(p.second)), `second membre, ${lieu}`);

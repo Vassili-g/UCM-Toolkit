@@ -14,6 +14,7 @@ import {
   enveloppeDe,
   fabriquerRampe,
   fondsSombresDe,
+  ecrireHexa,
   lireHexa,
   partDeChroma,
   partDeLaReference,
@@ -135,7 +136,7 @@ test('[MOT-17] sur deux mille références, le profil porteur contient les octet
   let glissees = 0;
   for (let essai = 0; essai < 2000; essai += 1) {
     const octets: Rgb8 = [Math.floor(tirer() * 256), Math.floor(tirer() * 256), Math.floor(tirer() * 256)];
-    const hexa = `#${octets.map((octet) => octet.toString(16).padStart(2, '0')).join('').toUpperCase()}`;
+    const hexa = ecrireHexa(octets);
     const { recette: r, palette } = neuve(hexa, recette);
     const ancrage = ancrageDe(r, palette);
     // La correction des textes éloigne le 700 des fonds teintés : on compare les rampes avant elle, et on vérifie après elle que la référence garde ses octets.

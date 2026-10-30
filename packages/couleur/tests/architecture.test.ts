@@ -8,6 +8,7 @@
  * tenir chaque seuil.
  */
 import assert from 'node:assert/strict';
+import { CRANS } from '@ucm-kit/core/referentiel';
 import test from 'node:test';
 
 import {
@@ -21,7 +22,6 @@ import {
   type Mode,
 } from '../src/index';
 
-const CRANS = [50, 100, 200, 300, 400, 500, 600, 700, 800, 900, 950];
 const COURBES: Record<Mode, number[]> = {
   light: [0.975, 0.95, 0.905, 0.845, 0.76, 0.67, 0.585, 0.5, 0.42, 0.34, 0.27],
   dark: [0.18, 0.225, 0.275, 0.33, 0.4, 0.49, 0.58, 0.67, 0.76, 0.85, 0.93],
@@ -61,7 +61,7 @@ const FONDS_SOMBRES = { depart: 0.3, clarteBasse: COURBES.dark[0], clarteHaute: 
 /** Clarté, teinte et part d'un membre : le fond est gris, sa teinte ne compte pas ; un fond du thème Dark perd de la part. */
 function membre(mode: Mode, quoi: Membre, teinte: number, part: number): [number, number, number] {
   if (quoi === 'fond') return [COURBES[mode][0], 0, 0];
-  const L = COURBES[mode][CRANS.indexOf(quoi)];
+  const L = COURBES[mode][(CRANS as readonly number[]).indexOf(quoi)];
   return [L, teinte, mode === 'dark' ? part * facteurSombre(L, FONDS_SOMBRES) : part];
 }
 

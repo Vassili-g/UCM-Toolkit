@@ -12,6 +12,7 @@
  */
 import { performance } from 'node:perf_hooks';
 
+import { CRANS } from '@ucm-kit/core/referentiel';
 import { boutsDe, fabriquerPalette, lireHexa, prereglageTailwind, rgb8VersOklch } from '../src/index.ts';
 
 const COURBES = {
@@ -19,7 +20,7 @@ const COURBES = {
   dark: [0.18, 0.225, 0.275, 0.33, 0.4, 0.49, 0.58, 0.67, 0.76, 0.85, 0.93],
 };
 const PARTS = { soft: 0.45, vivid: 0.95 };
-const BOUTS = boutsDe({ crans: [50, 100, 200, 300, 400, 500, 600, 700, 800, 900, 950], courbes: COURBES });
+const BOUTS = boutsDe({ crans: [...CRANS], courbes: COURBES });
 const reference = lireHexa('#1E6FD9');
 const tailwind = prereglageTailwind(rgb8VersOklch(reference), BOUTS);
 

@@ -13,7 +13,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { DESTINATION_DES_PALETTES, porteeDeLaGrammaire, reconnaitreLeChemin, type IdentifiantDeForme, type RoleDeSegment } from '@ucm-kit/core/referentiel';
+import { DESTINATION_DES_PALETTES, formeReconnue, porteeDeLaGrammaire, reconnaitreLeChemin, type IdentifiantDeForme, type RoleDeSegment } from '@ucm-kit/core/referentiel';
 import { idsNonRenommables, nomsSelonLesReglesSync, palettesLibres } from '@ucm-kit/core/nommage';
 import { lireReglesDeNommage } from '@ucm-kit/core/protocoles';
 import { jsonCanonique, type Recette } from 'ucm-couleur';
@@ -49,6 +49,12 @@ const jetons = async (fichier: FichierDeTest, recette = fichier.recette, palette
 const creees = (figma: FauxFigma): string[] => figma.journal.filter((ligne) => ligne.startsWith('créer variable ')).map((ligne) => ligne.slice('créer variable '.length));
 const renommees = (figma: FauxFigma): string[] => figma.journal.filter((ligne) => ligne.startsWith('renommer variable ')).map((ligne) => ligne.slice('renommer variable '.length));
 const sansDoublon = (noms: readonly string[]): boolean => new Set(noms.map((nom) => nom.toLowerCase())).size === noms.length;
+
+// Figma refuse deux noms qui ne diffèrent que par la casse : `sansDoublon` compare donc en minuscules, non par forme.
+test('la comparaison d’un nom pris passe par la forme : une écriture en camel et son écriture en tirets sont le même nom', () => {
+  assert.equal(formeReconnue('foregroundMain'), formeReconnue('Foreground-Main'));
+  assert.notEqual(formeReconnue('foregroundMain'), formeReconnue('backgroundMain'));
+});
 
 /** Pour chaque forme de la diagonale croisée avec les conventions, un test au titre lisible. `todo` donne la raison d'un défaut connu du code, qui ne se corrige pas dans ce lot. */
 function pourChaqueForme(loi: string, formes: readonly FormeDePalette[], corps: (forme: FormeDePalette) => Promise<void> | void, todo: (forme: FormeDePalette) => string | false = () => false): void {
@@ -96,7 +102,7 @@ function variableTierce(figma: FauxFigma, collection: string, nom: string): stri
 
 const resume = (j: Awaited<ReturnType<typeof jetons>>) => ({
   etat: j.etat, aCreer: j.aCreer, aRemplacer: j.aRemplacer, nomsOccupes: j.nomsOccupes, refus: j.refus,
-  renommagesDeForme: j.aRenommer.filter((renommage) => renommage.cause === 'forme').map(({ de, vers }) => [de.toLowerCase(), vers.toLowerCase()]),
+  renommagesDeForme: j.aRenommer.filter((renommage) => renommage.cause === 'forme').map(({ de, vers }) => [formeReconnue(de), formeReconnue(vers)]),
 });
 
 // Loi 1. Avant écriture : changer seulement la convention ne rend pas une palette « à mettre à jour ».
@@ -203,9 +209,9 @@ pourChaqueForme('3 annonce et écriture · remplacement', croiser([A, C]), async
   fichier.figma.journal.length = 0;
   const annonce = await jetons(fichier, recette, palette);
   // Sous des règles qui normalisent la casse, la variable remplacée garde le nom qu'elle porte : l'annonce le dit, et l'écriture le tient.
-  assert.deepEqual(annonce.existantes.map((nom) => nom.toLowerCase()), [premier.toLowerCase()]);
+  assert.deepEqual(annonce.existantes.map((nom) => formeReconnue(nom)), [formeReconnue(premier)]);
   assert.deepEqual(annonce.variablesExistantes, [tierce]);
-  assert.ok(!annonce.aCreer.some((nom) => nom.toLowerCase() === premier.toLowerCase()));
+  assert.ok(!annonce.aCreer.some((nom) => formeReconnue(nom) === formeReconnue(premier)));
   const ecriture = await ecrireLesVariables(api(fichier.figma), { palettes: [palette.id], empreinteLue: empreinte(recette), remettre: [palette.id], remplacer: [palette.id] });
   assert.equal(ecriture.issue, 'ecrites');
   assert.deepEqual(creees(fichier.figma), annonce.aCreer);
@@ -257,7 +263,7 @@ pourChaqueForme('4 nom pris · destination', croiser([A, C]), async (forme) => {
   const tierce = variableTierce(fichier.figma, fichier.collection, premier.toUpperCase());
   const avant = [nomsDe(fichier.figma).sort(), instantane(fichier.figma, tierce)];
   const annonce = await jetons(fichier, recette, palette);
-  assert.deepEqual(annonce.existantes.map((nom) => nom.toLowerCase()), [premier.toLowerCase()], 'Gestion annonce le nom pris');
+  assert.deepEqual(annonce.existantes.map((nom) => formeReconnue(nom)), [formeReconnue(premier)], 'Gestion annonce le nom pris');
   fichier.figma.journal.length = 0;
   const ecriture = await ecrireLesVariables(api(fichier.figma), { palettes: [palette.id], empreinteLue: empreinte(recette), remettre: [palette.id], remplacer: [] });
   assert.ok(ecriture.issue === 'ecrites');
@@ -294,13 +300,13 @@ async function verifierLeNomPrisEnReprise(fichier: FichierDeTest): Promise<void>
   const avant = instantane(fichier.figma, tierce);
   const annonce = await jetons(fichier);
   // Avec les thèmes en modes, Light et Dark visent la même variable : le nom paraît une fois par thème.
-  assert.deepEqual([...new Set(annonce.nomsOccupes.map((nom) => nom.toLowerCase()))], [premier.toLowerCase()], 'Gestion annonce le nom occupé');
-  assert.ok(!annonce.aCreer.some((nom) => nom.toLowerCase() === premier.toLowerCase()));
+  assert.deepEqual([...new Set(annonce.nomsOccupes.map((nom) => formeReconnue(nom)))], [formeReconnue(premier)], 'Gestion annonce le nom occupé');
+  assert.ok(!annonce.aCreer.some((nom) => formeReconnue(nom) === formeReconnue(premier)));
   fichier.figma.journal.length = 0;
   const ecriture = await ecrireLesVariables(api(fichier.figma), { palettes: [fichier.palette.id], empreinteLue: empreinte(fichier.recette), remettre: [fichier.palette.id], remplacer: [] });
   assert.ok(ecriture.issue === 'ecrites');
   assert.deepEqual(creees(fichier.figma), annonce.aCreer);
-  assert.ok(!creees(fichier.figma).some((nom) => nom.toLowerCase() === premier.toLowerCase()));
+  assert.ok(!creees(fichier.figma).some((nom) => formeReconnue(nom) === formeReconnue(premier)));
   assert.equal(instantane(fichier.figma, tierce), avant);
   assert.ok(sansDoublon(nomsDe(fichier.figma)));
 }
@@ -319,7 +325,7 @@ pourChaqueForme('4 nom pris · conversion', croiser([B, B_EN_CHEMIN]), async (fo
   const avant = [nomsDe(fichier.figma).sort(), instantane(fichier.figma, tierce)];
   const annonce = annonceDeLaConversion(fichier.recette, fichier.palette, suivie, await lire(fichier));
   assert.notEqual(annonce.occupe, null, 'l’écran annonce le nom occupé');
-  assert.equal(annonce.occupe!.toLowerCase(), premier.vers.toLowerCase());
+  assert.equal(formeReconnue(annonce.occupe!), formeReconnue(premier.vers));
   fichier.figma.journal.length = 0;
   const ecriture = await convertirLaReprise(api(fichier.figma), { palette: fichier.palette.id, empreinteLue: empreinte(fichier.recette) });
   assert.deepEqual(ecriture, { issue: 'nom-pris', nom: annonce.occupe });
@@ -399,7 +405,7 @@ pourChaqueForme('7 explorateur', croiser(DIAGONALE), async (forme) => {
   assert.deepEqual(reference.controle.constats.map((constat) => constat.regle), ['nuance'], 'le témoin : une seule variable du thème vise une mauvaise nuance');
   assert.deepEqual(controle, reference.controle);
   // Le rôle de chaque variable du thème se reconnaît, quelle que soit la convention.
-  const noms = [...fichier.figma.locales.values()].filter((variable) => variable.collection.name.toLowerCase() === 'theme').map((variable) => variable.name);
+  const noms = [...fichier.figma.locales.values()].filter((variable) => formeReconnue(variable.collection.name) === 'theme').map((variable) => variable.name);
   assert.equal(noms.length, 5);
   assert.equal(noms.filter((nom) => variableDuNom(nom) !== null).length, 4, `le rôle se lit dans ${noms.join(' | ')}`);
   assert.deepEqual(controle.limites.filter((limite) => limite.cause === 'role-inconnu'), []);

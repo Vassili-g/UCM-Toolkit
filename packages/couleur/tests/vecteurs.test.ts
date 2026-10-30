@@ -9,6 +9,7 @@
  * moment de [MOT-36].
  */
 import assert from 'node:assert/strict';
+import { CRANS } from '@ucm-kit/core/referentiel';
 import test from 'node:test';
 
 import {
@@ -64,22 +65,22 @@ test('vecteur : les gris de clarté 0,975 et 0,180 donnent #F7F7F7 et #121212', 
 
 test('vecteur : #1E6FD9 au préréglage Tailwind, clair -7,35, sombre +4,28', () => {
   const reference = rgb8VersOklch(hexa('#1E6FD9'));
-  assert.deepEqual(prereglageTailwind(reference, boutsDe({ crans: [50, 100, 200, 300, 400, 500, 600, 700, 800, 900, 950], courbes: COURBES })), { clair: -7.35, sombre: 4.28 });
+  assert.deepEqual(prereglageTailwind(reference, boutsDe({ crans: [...CRANS], courbes: COURBES })), { clair: -7.35, sombre: 4.28 });
 });
 
 test('vecteur : #F2A900 au préréglage Tailwind, clair +20,53, sombre -29,08', () => {
   const reference = rgb8VersOklch(hexa('#F2A900'));
-  assert.deepEqual(prereglageTailwind(reference, boutsDe({ crans: [50, 100, 200, 300, 400, 500, 600, 700, 800, 900, 950], courbes: COURBES })), { clair: 20.53, sombre: -29.08 });
+  assert.deepEqual(prereglageTailwind(reference, boutsDe({ crans: [...CRANS], courbes: COURBES })), { clair: 20.53, sombre: -29.08 });
 });
 
 /** Les quatre rampes d'une référence au préréglage Tailwind, les deux profils liés. */
 function paletteTailwind(texte: string) {
   const reference = hexa(texte);
-  const derive = prereglageTailwind(rgb8VersOklch(reference), boutsDe({ crans: [50, 100, 200, 300, 400, 500, 600, 700, 800, 900, 950], courbes: COURBES }));
+  const derive = prereglageTailwind(rgb8VersOklch(reference), boutsDe({ crans: [...CRANS], courbes: COURBES }));
   return fabriquerPalette({
     reference,
     courbes: COURBES,
-    bouts: boutsDe({ crans: [50, 100, 200, 300, 400, 500, 600, 700, 800, 900, 950], courbes: COURBES }),
+    bouts: boutsDe({ crans: [...CRANS], courbes: COURBES }),
     parts: PARTS,
     derives: { soft: derive, vivid: derive },
     gamut: 'srgb',

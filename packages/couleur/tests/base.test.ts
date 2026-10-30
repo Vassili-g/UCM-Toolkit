@@ -15,6 +15,7 @@ import {
   arrondir,
   classerRecette,
   jsonCanonique,
+  ecrireHexa,
   lireHexa,
   partDeChroma,
   partsDe,
@@ -171,10 +172,10 @@ function hsl(teinte: number, saturation: number, luminosite: number): string {
   const s = saturation / 100;
   const l = luminosite / 100;
   const a = s * Math.min(l, 1 - l);
-  const canal = (n: number): string => {
+  const canal = (n: number): number => {
     const k = (n + teinte / 30) % 12;
     const valeur = l - a * Math.max(-1, Math.min(k - 3, 9 - k, 1));
-    return Math.round(valeur * 255).toString(16).padStart(2, '0').toUpperCase();
+    return Math.round(valeur * 255);
   };
-  return `#${canal(0)}${canal(8)}${canal(4)}`;
+  return ecrireHexa([canal(0), canal(8), canal(4)]);
 }

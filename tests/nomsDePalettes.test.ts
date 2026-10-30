@@ -9,6 +9,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
+import { CRANS } from '@ucm-kit/core/referentiel';
 import { fnv1a, jsonCanonique, lireHexa, octetsUtf8, recetteParDefaut, type Palette, type Recette } from 'ucm-couleur';
 
 import { appliquerLesRenommages, creerPortDeRegles, creerPortEcriture, type RenommageDemande } from '../packages/plugin-architect/src/ecriture/noms';
@@ -29,7 +30,7 @@ import { lireReglesDeNommage } from '@ucm-kit/core/protocoles';
 
 const VIDE = recetteParDefaut();
 const POPPY: Palette = { ...nouvellePalette(VIDE, 'p-0000000a', '#1E6FD9', 2)!, nom: 'Poppy' };
-const TAILWIND = [50, 100, 200, 300, 400, 500, 600, 700, 800, 900, 950];
+const TAILWIND = [...CRANS];
 const GRIS = ['#F8FAFC', '#F1F5F9', '#E2E8F0', '#CBD5E1', '#94A3B8', '#64748B', '#475569', '#334155', '#1E293B', '#0F172A', '#020617'];
 const ECRITURE = JSON.stringify({ version: 1, groupes: { casse: 'PascalCase', separateur: 'camelCase' }, variables: { casse: 'minuscules', separateur: 'tiret' } });
 

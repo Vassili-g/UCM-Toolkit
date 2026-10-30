@@ -4,6 +4,7 @@
  * recette.
  */
 import assert from 'node:assert/strict';
+import { CRANS } from '@ucm-kit/core/referentiel';
 import test from 'node:test';
 
 import {
@@ -114,7 +115,7 @@ test('[MOT-35] Lenveloppe lit la borne de l’enveloppe à sa clarté et le plaf
 
 /** Une rampe de crans de clarté de courbe donnée, sans Color shift, pivot au milieu. */
 function rampeDeClartes(courbe: number[], reste: Partial<ParametresRampe>): ParametresRampe {
-  const crans = [50, 100, 200, 300, 400, 500, 600, 700, 800, 900, 950];
+  const crans = [...CRANS];
   const bouts = boutsDe({ crans, courbes: { light: [0.975, 0.95, 0.905, 0.845, 0.76, 0.67, 0.585, 0.5, 0.42, 0.34, 0.27], dark: [] } });
   return {
     courbe,

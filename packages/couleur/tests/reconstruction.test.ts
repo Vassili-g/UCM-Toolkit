@@ -8,6 +8,8 @@ import test from 'node:test';
 
 import {
   clarteSelonLaTeinte,
+  ecrireHexa,
+  lireHexa,
   rampesDe,
   reconstruireLesReglages,
   validerRecette,
@@ -66,8 +68,8 @@ for (const numero of [...RAPIDES_SANS_REFERENCE, ...RAPIDES_AVEC_REFERENCE]) {
 function retoucher(figee: PaletteFigee): PaletteFigee {
   const soft = figee.figees as { soft: { light: string[]; dark: string[] }; vivid: { light: string[]; dark: string[] } };
   const dark = soft.soft.dark.slice();
-  const rouge = parseInt(dark[3].slice(1, 3), 16);
-  dark[3] = `#${((rouge + 40) % 256).toString(16).padStart(2, '0').toUpperCase()}${dark[3].slice(3)}`;
+  const [rouge, vert, bleu] = lireHexa(dark[3])!;
+  dark[3] = ecrireHexa([(rouge + 40) % 256, vert, bleu]);
   return { ...figee, figees: { ...soft, soft: { ...soft.soft, dark } } };
 }
 

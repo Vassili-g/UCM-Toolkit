@@ -1,5 +1,6 @@
 /** La forme de la recette, sa validation et son classement ([REC-03] à [REC-05]). */
 import assert from 'node:assert/strict';
+import { CRANS } from '@ucm-kit/core/referentiel';
 import { readFileSync } from 'node:fs';
 import test from 'node:test';
 import { fileURLToPath } from 'node:url';
@@ -530,7 +531,7 @@ test('[REC-04] une recette illisible est refusée sans recette de remplacement',
 
 // ------------------------------------------------------------ les couleurs figées (formats 8 et 10)
 
-const NUANCES_FIGEES = [50, 100, 200, 300, 400, 500, 600, 700, 800, 900, 950];
+const NUANCES_FIGEES = [...CRANS];
 const SLATE = ['#F8FAFC', '#F1F5F9', '#E2E8F0', '#CBD5E1', '#94A3B8', '#64748B', '#475569', '#334155', '#1E293B', '#0F172A', '#020617'];
 
 /** Slate, reprise telle quelle des variables du fichier : sa liste, une intensité, ses couleurs. */

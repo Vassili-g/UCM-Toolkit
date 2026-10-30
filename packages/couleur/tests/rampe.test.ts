@@ -1,5 +1,6 @@
 /** Fabriquer un cran et une rampe ([MOT-09] à [MOT-17], [MOT-27]). */
 import assert from 'node:assert/strict';
+import { CRANS } from '@ucm-kit/core/referentiel';
 import test from 'node:test';
 
 import {
@@ -20,7 +21,7 @@ const COURBES: Courbes = {
   light: [0.975, 0.95, 0.905, 0.845, 0.76, 0.67, 0.585, 0.5, 0.42, 0.34, 0.27],
   dark: [0.18, 0.225, 0.275, 0.33, 0.4, 0.49, 0.58, 0.67, 0.76, 0.85, 0.93],
 };
-const BOUTS = boutsDe({ crans: [50, 100, 200, 300, 400, 500, 600, 700, 800, 900, 950], courbes: COURBES });
+const BOUTS = boutsDe({ crans: [...CRANS], courbes: COURBES });
 
 test('[MOT-10] l’arrondi à 8 bits est Math.round, demi vers le haut, après bornage', () => {
   // decoder(127.5 / 255) encode exactement à 127,5 : le demi monte à 128.
