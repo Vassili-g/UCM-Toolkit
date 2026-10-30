@@ -48,7 +48,7 @@ Tokens affiche Nomenclature à côté de l'arbre des variables.
 |---|---|
 | [RECHERCHE-VITESSE-ANALYSE.md](./5%20Vitesse%20de%20l'analyse/RECHERCHE-VITESSE-ANALYSE.md) | Où passe le temps de l'analyse d'un composant, les recherches sur Figma et la littérature, les leviers V1 à V9 et les décisions Q1 à Q3 |
 | [MAQUETTE-PROGRESSION.html](./5%20Vitesse%20de%20l'analyse/MAQUETTE-PROGRESSION.html) | La barre de progression, la phase en cours et les premiers points avant la fin |
-| [PLAN-IMPLEMENTATION.md](./5%20Vitesse%20de%20l'analyse/PLAN-IMPLEMENTATION.md) | Les lots L0 à L9, chacun avec son agent |
+| [CHECKLIST-IMPLEMENTATION.md](./5%20Vitesse%20de%20l'analyse/CHECKLIST-IMPLEMENTATION.md) | Les lots de la vitesse d'analyse et leurs preuves locales |
 
 ## 6 Recette v2
 
@@ -66,3 +66,9 @@ tokens restent dans [Plugin Architect](../Plugin%20Architect/README.md).
 ## Où en est le sujet
 
 Le plan de la recette v1 est implémenté : panneau du mode Composant sans onglets, signes des sortes d'objets dans le kit et le socle, règle des tokens du composant (C80). Il attend la recette Figma du mainteneur.
+
+## 7 Règles manquantes
+
+| Document | Contenu |
+|---|---|
+| [PLAN-IMPLEMENTATION-REGLES-MANQUANTES.md](./7%20R%C3%A8gles%20manquantes/PLAN-IMPLEMENTATION-REGLES-MANQUANTES.md) | La correction de C45 qui ajoute les règles manquantes dans une instance remplie : décisions, lots à cocher avec leur agent, textes et recette |

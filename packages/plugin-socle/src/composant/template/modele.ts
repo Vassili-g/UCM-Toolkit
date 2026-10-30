@@ -54,10 +54,12 @@ export function restreindreAuParent(
 /**
  * Une règle à poser, ou un séparateur. `cible` est le texte du calque `prop` ;
  * son absence dit que la règle n'en écrit aucun, et que le calque garde le
- * texte d'aide du maître.
+ * texte d'aide du maître. `description` est le texte du calque `content` d'une
+ * règle relue dans le document, marqueur compris ; une règle du modèle n'en
+ * porte pas.
  */
 export type ElementDeModele =
-  | { genre: 'regle'; tag: RuleTag; cible?: string }
+  | { genre: 'regle'; tag: RuleTag; cible?: string; description?: string }
   | { genre: 'separateur' };
 
 /** Les éléments d'une section, dans l'ordre où le template les pose. */
@@ -136,6 +138,91 @@ export function modeleDeRegles(nom: string, contrat: ContratLu): ModeleDeRegles 
   // calque d'un dessin que l'analyse signale ensuite comme non déclaré.
   sections.push({ tag: 'icons', elements: [{ genre: 'regle', tag: 'icons' }] });
   return { nom, sections };
+}
+
+/** Compacte une cible de règle pour la comparer : sans espaces, en minuscules. */
+export function cibleCompacte(cible: string): string {
+  return cible.replace(/\s+/g, '').toLowerCase();
+}
+
+/** L'axe d'une cible : ce qui précède son dernier point. */
+function axeDeLaCible(cible: string): string {
+  return cible.slice(0, Math.max(0, cible.lastIndexOf('.')));
+}
+
+/**
+ * Le modèle réduit aux règles que l'instance ne porte pas encore.
+ *
+ * `presentes` : les cibles déjà posées, rédigées ou non, compactées par
+ * `cibleCompacte`. Seules les règles `prop` et `boolean` ont une cible à
+ * comparer ; `usage` et `icons` n'en ont pas, et ne sont jamais rendues.
+ * La section `prop` garde l'ordre du modèle, avec un séparateur seulement entre
+ * deux règles manquantes d'axes différents.
+ */
+export function reglesManquantes(
+  modele: ModeleDeRegles,
+  presentes: ReadonlySet<string>,
+): ModeleDeRegles {
+  const sections: SectionDeModele[] = [];
+  for (const section of modele.sections) {
+    if (section.tag !== 'prop' && section.tag !== 'boolean') continue;
+    const elements: ElementDeModele[] = [];
+    let axePrecedent: string | null = null;
+    for (const element of section.elements) {
+      if (element.genre !== 'regle' || element.cible === undefined) continue;
+      if (presentes.has(cibleCompacte(element.cible))) continue;
+      const axe = axeDeLaCible(element.cible);
+      if (section.tag === 'prop' && axePrecedent !== null && axe !== axePrecedent) {
+        elements.push({ genre: 'separateur' });
+      }
+      elements.push(element);
+      axePrecedent = axe;
+    }
+    if (elements.length > 0) sections.push({ tag: section.tag, elements });
+  }
+  return { nom: modele.nom, sections };
+}
+
+/**
+ * Les éléments d'une section déjà posée (`relus`, dans leur ordre), complétés
+ * des règles manquantes de `manquantes`.
+ *
+ * Dans une section `prop`, une valeur d'un axe déjà présent va après la dernière
+ * règle de cet axe, sans séparateur ; un axe absent va à la fin, précédé d'un
+ * séparateur quand la section en porte déjà un élément, et les axes absents
+ * gardent l'ordre du modèle. Les séparateurs de `manquantes` ne sont pas repris.
+ * Dans une autre section, les règles manquantes vont à la fin.
+ */
+export function completerLaSection(
+  relus: readonly ElementDeModele[],
+  manquantes: SectionDeModele,
+): SectionDeModele {
+  const elements = [...relus];
+  const regles = manquantes.elements.filter((element) => element.genre === 'regle');
+  if (manquantes.tag !== 'prop') {
+    return { tag: manquantes.tag, elements: [...elements, ...regles] };
+  }
+
+  const axeDe = (element: ElementDeModele): string | null =>
+    element.genre === 'regle' ? axeDeLaCible(cibleCompacte(element.cible ?? '')) : null;
+  const axesPresents = new Set(elements.map(axeDe));
+  for (const regle of regles.filter((r) => axesPresents.has(axeDe(r)))) {
+    const derniere = elements.map(axeDe).lastIndexOf(axeDe(regle));
+    elements.splice(derniere + 1, 0, regle);
+  }
+
+  let precedent: string | null = null;
+  for (const regle of regles.filter((r) => !axesPresents.has(axeDe(r)))) {
+    if (axeDe(regle) !== precedent) {
+      precedent = axeDe(regle);
+      const dernier = elements[elements.length - 1];
+      if (dernier !== undefined && dernier.genre !== 'separateur') {
+        elements.push({ genre: 'separateur' });
+      }
+    }
+    elements.push(regle);
+  }
+  return { tag: manquantes.tag, elements };
 }
 
 /** Le nombre de règles du modèle, séparateurs exclus. */

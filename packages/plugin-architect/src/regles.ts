@@ -19,7 +19,7 @@ import { extractRules } from 'ucm-plugin-socle/src/composant/contract/extractRul
 import type { ResultatInterne } from 'ucm-plugin-socle/src/composant/analyse/resultat';
 import { elideContract } from 'ucm-plugin-socle/src/composant/contract/elideNeutrals';
 import { extractContractPropertyModel } from 'ucm-plugin-socle/src/composant/contract/parsers';
-import { modeleDeRegles, nombreDeRegles, restreindreAuParent } from 'ucm-plugin-socle/src/composant/template/modele';
+import { cibleCompacte, modeleDeRegles, nombreDeRegles, reglesManquantes, restreindreAuParent } from 'ucm-plugin-socle/src/composant/template/modele';
 import type { ContratLu, ModeleDeRegles } from 'ucm-plugin-socle/src/composant/template/modele';
 
 /** Ce qu'une correction de sorte `regles` demande (`apres.nom`). */
@@ -42,6 +42,10 @@ export interface ReleveDesRegles {
   readonly publiees?: readonly string[];
   /** Les noms que les règles `@prop` et `@boolean` de l'instance visent, tels que le designer les a écrits. */
   readonly documentees: readonly string[];
+  /** Les cibles des règles déjà posées, rédigées ou non, compactées par `cibleCompacte`. */
+  readonly presentes: readonly string[];
+  /** Les règles que le modèle pose et que l'instance ne porte pas. Vide sans instance. */
+  readonly manquantes: ModeleDeRegles;
 }
 
 /** Les propriétés que le modèle documente : une par axe, une par booléenne. */
@@ -56,6 +60,46 @@ export function proprietesDuModele(modele: ModeleDeRegles): string[] {
 }
 
 export const identifiantDeCorrection = (composantId: string): string => `regles:creer:${composantId}`;
+const identifiantDAjout = (composantId: string, propriete: string): string => `regles:ajouter:${composantId}:${propriete}`;
+
+const axeDeLaCible = (cible: string): string => cible.slice(0, Math.max(0, cible.lastIndexOf('.')));
+
+/** Les cibles `prop` et `boolean` que `manquantes` porte, groupées par propriété (axe ou clé), dans l'ordre du modèle. */
+function ciblesManquantesParPropriete(manquantes: ModeleDeRegles): Map<string, { tag: 'prop' | 'boolean'; cibles: string[] }> {
+  const groupes = new Map<string, { tag: 'prop' | 'boolean'; cibles: string[] }>();
+  for (const section of manquantes.sections) {
+    if (section.tag !== 'prop' && section.tag !== 'boolean') continue;
+    for (const element of section.elements) {
+      if (element.genre !== 'regle' || !element.cible) continue;
+      const propriete = section.tag === 'prop' ? axeDeLaCible(element.cible) : element.cible;
+      const groupe = groupes.get(propriete) ?? { tag: section.tag, cibles: [] };
+      groupe.cibles.push(element.cible);
+      groupes.set(propriete, groupe);
+    }
+  }
+  return groupes;
+}
+
+function correctionDAjout(composantId: string, propriete: string): Correction {
+  return {
+    id: identifiantDAjout(composantId, propriete),
+    sorte: 'regles',
+    cible: { layer: composantId },
+    avant: null,
+    apres: { nom: 'ajouter' },
+    aRelire: { regle: 'regles', avant: null },
+  };
+}
+
+/** Le modèle réduit aux règles manquantes d'une propriété, sans séparateur. */
+function modeleDUnAjout(manquantes: ModeleDeRegles, propriete: string): ModeleDeRegles {
+  const sections = manquantes.sections.flatMap((section) => {
+    const elements = section.elements.filter((element) => element.genre === 'regle' && element.cible !== undefined
+      && (section.tag === 'boolean' ? element.cible === propriete : element.cible.startsWith(`${propriete}.`)));
+    return elements.length > 0 && (section.tag === 'prop' || section.tag === 'boolean') ? [{ tag: section.tag, elements }] : [];
+  });
+  return { nom: manquantes.nom, sections };
+}
 
 /** C43, C45 : les constats d'un relevé de règles. Sans relevé, aucun. */
 export function constatsDeRegles(releve: ReleveDesRegles | null): Constat[] {
@@ -78,10 +122,25 @@ export function constatsDeRegles(releve: ReleveDesRegles | null): Constat[] {
   }
   const documentees = new Map(releve.documentees.map((nom) => [nomCompacte(nom), nom]));
   const connues = new Set([...releve.proprietes, ...(releve.publiees ?? [])].map(nomCompacte));
+  const manquantes = ciblesManquantesParPropriete(releve.manquantes);
   const constats: Constat[] = [];
   for (const propriete of releve.proprietes) {
     if (documentees.has(nomCompacte(propriete))) continue;
-    constats.push({ id: `regles:C45:sans-regle:${propriete}`, code: 'C45', type: 'corriger', famille: 'regles', variants: [], layers: [], faits: { composant: composant.nom, propriete, ecart: 'sans-regle' } });
+    const regles = manquantes.get(propriete)?.cibles.length ?? 0;
+    // Sans règle à poser, la correction n'écrirait rien : le constat reste seul.
+    constats.push({
+      id: `regles:C45:sans-regle:${propriete}`, code: 'C45', type: 'corriger', famille: 'regles', variants: [], layers: [],
+      faits: { composant: composant.nom, propriete, ecart: 'sans-regle', regles },
+      ...(regles > 0 ? { correction: correctionDAjout(composant.id, propriete) } : {}),
+    });
+  }
+  for (const [propriete, { tag, cibles }] of manquantes) {
+    if (tag !== 'prop' || !documentees.has(nomCompacte(propriete))) continue;
+    constats.push({
+      id: `regles:C45:sans-valeur:${propriete}`, code: 'C45', type: 'corriger', famille: 'regles', variants: [], layers: [],
+      faits: { composant: composant.nom, propriete, valeurs: cibles.map((cible) => cible.slice(propriete.length + 1)).join(', '), ecart: 'sans-valeur', regles: cibles.length },
+      correction: correctionDAjout(composant.id, propriete),
+    });
   }
   for (const [cle, regle] of documentees) {
     if (connues.has(cle)) continue;
@@ -94,9 +153,15 @@ let modelesRetenus: ReadonlyMap<string, ModeleDeRegles> = new Map();
 
 /** Retient le modèle de la correction de la dernière analyse, par identifiant de correction. */
 export function retenirLesModeles(releve: ReleveDesRegles | null): void {
-  modelesRetenus = releve && !releve.instancePresente
-    ? new Map([[identifiantDeCorrection(releve.composant.id), releve.modele]])
-    : new Map();
+  const retenus = new Map<string, ModeleDeRegles>();
+  if (releve && !releve.instancePresente) retenus.set(identifiantDeCorrection(releve.composant.id), releve.modele);
+  if (releve?.instancePresente) {
+    for (const constat of constatsDeRegles(releve)) {
+      if (constat.correction?.apres.nom !== 'ajouter') continue;
+      retenus.set(constat.correction.id, modeleDUnAjout(releve.manquantes, String(constat.faits.propriete)));
+    }
+  }
+  modelesRetenus = retenus;
 }
 
 export function modelesDeLAnalyse(): ReadonlyMap<string, ModeleDeRegles> {
@@ -152,6 +217,17 @@ export function surfaceDesRegles(
   return new Set([...declarees, ...surfaceDuMoteur.imbriques.auParent, ...Object.keys(surfaceDuMoteur.props)]);
 }
 
+/** Les cibles des règles que l'instance porte, rédigées ou non, compactées par `cibleCompacte`. */
+export function ciblesPresentes(
+  lues: Pick<Awaited<ReturnType<typeof extractRules>>, 'propDescriptions' | 'booleanDescriptions' | 'ciblesNonRedigees'>,
+): string[] {
+  return [
+    ...Object.entries(lues.propDescriptions).flatMap(([axe, valeurs]) => Object.keys(valeurs).map((valeur) => `${axe}.${valeur}`)),
+    ...Object.keys(lues.booleanDescriptions),
+    ...lues.ciblesNonRedigees,
+  ].map(cibleCompacte);
+}
+
 /**
  * Lit les règles du composant sur la page qui le porte, avec la surface que
  * l'analyse du moteur vient de produire. Les `props` sont restreintes à ce que le
@@ -171,12 +247,17 @@ export async function lireLesRegles(
   const declarees = clesDeclarees(composant);
   const surface = surfaceDesRegles(declarees, surfaceDuMoteur);
   const modele = modeleDeRegles(composant.name, surface ? restreindreAuParent(contrat, surface) : contrat);
+  const instancePresente = lues.releve.conteneurDuComposant;
+  const presentes = ciblesPresentes(lues);
+  const nonRedigees = lues.ciblesNonRedigees.map((cible) => (cible.includes('.') ? axeDeLaCible(cible) : cible));
   return {
     composant: { id: composant.id, nom: composant.name },
-    instancePresente: lues.releve.conteneurDuComposant,
+    instancePresente,
     modele,
     proprietes: proprietesDuModele(modele),
     publiees: Object.keys(surfaceDuMoteur.props),
-    documentees: [...Object.keys(lues.propDescriptions), ...Object.keys(lues.booleanDescriptions)],
+    documentees: [...new Set([...Object.keys(lues.propDescriptions), ...Object.keys(lues.booleanDescriptions), ...nonRedigees])],
+    presentes,
+    manquantes: instancePresente ? reglesManquantes(modele, new Set(presentes)) : { nom: composant.name, sections: [] },
   };
 }

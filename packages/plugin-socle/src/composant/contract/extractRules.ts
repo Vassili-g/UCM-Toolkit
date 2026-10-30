@@ -135,6 +135,11 @@ export type ExtractedRules = RulesResult & {
    * ligne du marqueur demande déjà le geste.
    */
   tagsARediger: readonly RuleTag[];
+  /**
+   * Les cibles des règles `@prop` et `@boolean` encore marquées « [À compléter] » :
+   * présentes dans l'instance, absentes du contrat. Texte du calque `prop`, tel qu'écrit.
+   */
+  ciblesNonRedigees: string[];
 };
 
 /**
@@ -511,6 +516,7 @@ export async function extractRules(
       releve,
       aRediger: 0,
       tagsARediger: [],
+      ciblesNonRedigees: [],
     };
   }
 
@@ -520,6 +526,7 @@ export async function extractRules(
 
   const entries: RuleEntry[] = [];
   const nonRedigees = new Map<RuleTag, InstanceNode[]>();
+  const ciblesNonRedigees: string[] = [];
   const warnings: string[] = [];
   if (containers.length > 1) {
     // La cause n'est pas un rangement à refaire : le maître `.componentRules`
@@ -561,6 +568,10 @@ export async function extractRules(
     // content est vide ou que sa politique d'icône est illisible.
     if (nEstPasRedigee(instance, tag)) {
       nonRedigees.set(tag, [...(nonRedigees.get(tag) ?? []), instance]);
+      if (tag === 'prop' || tag === 'boolean') {
+        const cible = textOfLayer(instance, CALQUES_DU_KIT_DE_REGLES.cible);
+        if (cible.trim() !== '' && !porteLeMarqueur(cible)) ciblesNonRedigees.push(cible);
+      }
       continue;
     }
 
@@ -610,5 +621,6 @@ export async function extractRules(
     releve,
     aRediger: [...nonRedigees.values()].reduce((total, regles) => total + regles.length, 0),
     tagsARediger: [...nonRedigees.keys()],
+    ciblesNonRedigees,
   };
 }

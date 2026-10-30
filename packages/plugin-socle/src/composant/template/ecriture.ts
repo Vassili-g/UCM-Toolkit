@@ -3,6 +3,8 @@
  *
  * Seul fichier du moteur qui écrit dans Figma, et seul exclu de la loi du
  * document intact. Ce qu'il pose se défait d'un geste : supprimer le conteneur.
+ * Il crée un conteneur (`creerLesRegles`), ou complète un conteneur déjà rempli
+ * sans retirer aucune règle rédigée (`ajouterLesRegles`).
  *
  * Trois règles d'écriture, mesurées dans Figma (`SPEC.md`, « Comment l'écriture
  * range une règle »), et aucune n'est négociable :
@@ -15,6 +17,13 @@
  *   retrouve juste avant usage ;
  * - une écriture se relit. Reçue par un handle périmé, elle est perdue sans
  *   lever, et le texte d'aide du maître partirait dans le contrat.
+ *
+ * Une section déjà rangée dans le conteneur ne reçoit donc jamais de règle, et
+ * ne se copie pas non plus : mesuré, les règles d'un `clone()` de section remplie
+ * gardent des chemins morts, et l'analyse ne les reconnaît plus. Elle se
+ * reconstruit : ses règles se relisent (cible et description, telles qu'écrites),
+ * une section neuve les reçoit avec les manquantes hors de l'arbre, puis prend
+ * la place de l'ancienne d'un seul geste, comme à la création.
  */
 import {
   CALQUES_DU_KIT_DE_REGLES,
@@ -22,9 +31,11 @@ import {
   MARQUEUR_A_COMPLETER,
   porteLeMarqueur,
 } from '@ucm-kit/core/referentiel';
-import { nombreDeRegles } from './modele';
+import { completerLaSection, nombreDeRegles } from './modele';
 import type { ElementDeModele, ModeleDeRegles, SectionDeModele } from './modele';
 import type { SourcesDeCreation } from './sources';
+import type { RuleTag } from '../contract/extractRules';
+import { ruleTagFromLayerName, ruleTagFromValue } from '../contract/rulesModel';
 import type { Annonce } from '../annonce';
 
 /** Nom du slot qui porte les sections d'un conteneur. */
@@ -199,8 +210,11 @@ async function poserUnElement(
   if (!maitre) return;
   const regle = maitre.createInstance();
   enAttente.add(regle);
-  if (element.genre === 'regle' && element.cible) {
+  if (element.genre === 'regle' && element.cible !== undefined) {
     await ecrireDans(regle, CALQUES_DU_KIT_DE_REGLES.cible, element.cible);
+  }
+  if (element.genre === 'regle' && element.description !== undefined) {
+    await ecrireDans(regle, CALQUES_DU_KIT_DE_REGLES.contenu, element.description);
   }
   if (element.genre === 'regle' && element.tag === 'icons') await marquerLeCalqueIcon(regle);
   (await slotFrais(section, SLOT_DES_REGLES)).appendChild(regle);
@@ -220,13 +234,12 @@ function etirer(slot: SlotNode): void {
   if (dernier && 'layoutSizingHorizontal' in dernier) dernier.layoutSizingHorizontal = 'FILL';
 }
 
-/** Pose une section entière, remplie hors de l'arbre, puis rangée d'un geste. */
-async function poserUneSection(
+/** Crée une section et la remplit, hors de l'arbre : elle reste à ranger. */
+async function remplirUneSection(
   section: SectionDeModele,
-  conteneur: InstanceNode,
   sources: SourcesDeCreation,
   enAttente: Set<SceneNode>,
-): Promise<void> {
+): Promise<InstanceNode> {
   const maitre = sources.sections.get(section.tag);
   if (!maitre) {
     throw new Error(
@@ -240,6 +253,17 @@ async function poserUneSection(
   for (const element of section.elements) {
     await poserUnElement(element, instance, sources, enAttente);
   }
+  return instance;
+}
+
+/** Pose une section entière, remplie hors de l'arbre, puis rangée d'un geste. */
+async function poserUneSection(
+  section: SectionDeModele,
+  conteneur: InstanceNode,
+  sources: SourcesDeCreation,
+  enAttente: Set<SceneNode>,
+): Promise<void> {
+  const instance = await remplirUneSection(section, sources, enAttente);
   (await slotFrais(conteneur, SLOT_DES_SECTIONS)).appendChild(instance);
   enAttente.delete(instance);
   etirer(await slotFrais(conteneur, SLOT_DES_SECTIONS));
@@ -370,5 +394,205 @@ export async function creerLesRegles(
     return { conteneur, regles: nombreDeRegles(modele) };
   } catch (erreur) {
     throw await defaire(conteneur, remplissait, enAttente, erreur);
+  }
+}
+
+/** L'ordre où le template range les sections d'un conteneur. */
+const ORDRE_DES_SECTIONS: RuleTag[] = ['usage', 'prop', 'boolean', 'icons'];
+
+/**
+ * Où se range une section de ce tag : l'index de la dernière section du même
+ * tag (`existante`, -1 s'il n'y en a pas), et l'index d'une section neuve,
+ * qui suit la dernière du même tag, sinon la dernière d'un tag placé avant,
+ * sinon la tête.
+ *
+ * Une section dont le maître n'est celui d'aucun tag connu est ignorée.
+ */
+async function placeDeLaSection(
+  enfants: readonly SceneNode[],
+  tag: RuleTag,
+  sources: SourcesDeCreation,
+): Promise<{ existante: number; index: number }> {
+  const rang = ORDRE_DES_SECTIONS.indexOf(tag);
+  let memeTag = -1;
+  let avant = -1;
+  for (let index = 0; index < enfants.length; index += 1) {
+    const enfant = enfants[index];
+    if (enfant.type !== 'INSTANCE') continue;
+    const maitre = await enfant.getMainComponentAsync().catch(() => null);
+    if (!maitre) continue;
+    for (const [autre, source] of sources.sections) {
+      if (source.id !== maitre.id) continue;
+      if (autre === tag) memeTag = index;
+      else if (ORDRE_DES_SECTIONS.indexOf(autre) < rang) avant = index;
+    }
+  }
+  return { existante: memeTag, index: (memeTag >= 0 ? memeTag : avant) + 1 };
+}
+
+/**
+ * Relit les enfants du slot de règles d'une section rangée, dans l'ordre, sans
+ * rien écrire : pour une règle, son tag, le texte de son calque de cible et celui
+ * de son calque de description, tels qu'écrits ; pour une instance sans aucun de
+ * ces deux calques, un séparateur, à sa place.
+ *
+ * Le tag se lit sur le calque `@tag`, sinon sur le variant, sinon c'est celui de
+ * la section. Un enfant qui n'est pas une instance ne se recopie pas : il lève.
+ * Seuls ces deux textes se recopient. La mise en forme interne d'un texte et les
+ * propriétés de variant de la règle (hors tag) se perdent.
+ */
+async function relireLaSection(
+  conteneur: InstanceNode,
+  index: number,
+  tag: RuleTag,
+): Promise<ElementDeModele[]> {
+  const section = (await slotFrais(conteneur, SLOT_DES_SECTIONS)).children[index];
+  if (!section || section.type !== 'INSTANCE') {
+    throw new Error(`La section « @${tag} » n’a pas pu être relue.`);
+  }
+  const elements: ElementDeModele[] = [];
+  for (const enfant of (await slotFrais(section, SLOT_DES_REGLES)).children) {
+    if (enfant.type !== 'INSTANCE') {
+      throw new Error(`Un calque « ${enfant.name} » de la section « @${tag} » n’est pas une règle.`);
+    }
+    const cible = calqueTexte(enfant, CALQUES_DU_KIT_DE_REGLES.cible);
+    const description = calqueTexte(enfant, CALQUES_DU_KIT_DE_REGLES.contenu);
+    if (!cible && !description) {
+      elements.push({ genre: 'separateur' });
+      continue;
+    }
+    elements.push({
+      genre: 'regle',
+      tag: tagDeLaRegle(enfant, tag),
+      cible: cible?.characters,
+      description: description?.characters,
+    });
+  }
+  return elements;
+}
+
+/** Le tag d'une règle rangée : son calque `@tag`, son variant, sinon `parDefaut`. */
+function tagDeLaRegle(regle: InstanceNode, parDefaut: RuleTag): RuleTag {
+  const calque = regle.findOne(
+    (enfant) => enfant.type === 'TEXT' && ruleTagFromLayerName(enfant.name) !== null,
+  );
+  const affiche = calque ? ruleTagFromLayerName(calque.name) : null;
+  const range = Object.values(regle.variantProperties ?? {})
+    .map(ruleTagFromValue)
+    .find((valeur): valeur is RuleTag => valeur !== null) ?? null;
+  return affiche ?? range ?? parDefaut;
+}
+
+/** Une section prête, hors de l'arbre : elle remplace l'ancienne section du tag, ou s'ajoute. */
+type SectionPrete = { tag: RuleTag; instance: InstanceNode; remplace: boolean };
+
+/**
+ * Range une section prête dans le slot du conteneur. Une section qui en remplace
+ * une prend son index, et l'ancienne ne part qu'une fois la neuve rangée.
+ */
+async function rangerLaSection(
+  prete: SectionPrete,
+  conteneur: InstanceNode,
+  sources: SourcesDeCreation,
+  enAttente: Set<SceneNode>,
+  rangees: string[],
+): Promise<void> {
+  const { existante, index } = await placeDeLaSection(
+    (await slotFrais(conteneur, SLOT_DES_SECTIONS)).children, prete.tag, sources,
+  );
+  const remplace = prete.remplace && existante >= 0;
+  const place = remplace ? existante : index;
+  (await slotFrais(conteneur, SLOT_DES_SECTIONS)).insertChild(place, prete.instance);
+  enAttente.delete(prete.instance);
+
+  const enfants = (await slotFrais(conteneur, SLOT_DES_SECTIONS)).children;
+  rangees.push(enfants[place].id);
+  if (remplace) {
+    const ancienne = enfants[place + 1];
+    const maitre = ancienne?.type === 'INSTANCE'
+      ? await ancienne.getMainComponentAsync().catch(() => null)
+      : null;
+    if (!maitre || maitre.id !== sources.sections.get(prete.tag)?.id) {
+      throw new Error(`La section « @${prete.tag} » n’a pas pu être remplacée par sa version complétée.`);
+    }
+    ancienne.remove();
+    rangees.pop();
+  }
+  const rangee = (await slotFrais(conteneur, SLOT_DES_SECTIONS)).children[place];
+  if ('layoutSizingHorizontal' in rangee) rangee.layoutSizingHorizontal = 'FILL';
+}
+
+/**
+ * Pose les règles manquantes dans un conteneur déjà rempli. Une section du même
+ * tag se reconstruit avec ses règles relues et les manquantes, et prend la place
+ * de l'ancienne ; sans section de ce tag, une section neuve se range après la
+ * dernière d'un tag placé avant.
+ * Ne vide rien, n'écrit pas `component-name`, ne déplace pas le conteneur.
+ *
+ * Tout se relit, puis tout se prépare hors de l'arbre, avant que la première
+ * section se range : une erreur de lecture ou de préparation ne touche à rien du
+ * conteneur. Le conteneur est le travail du designer : une erreur retire ce que
+ * l'appel a posé, jamais le conteneur ni une section dont la nouvelle version
+ * a déjà remplacé l'ancienne.
+ */
+export async function ajouterLesRegles(
+  conteneur: InstanceNode,
+  manquantes: ModeleDeRegles,
+  sources: SourcesDeCreation,
+  annoncer: Annonce,
+): Promise<ResultatDeCreation> {
+  annoncer('Vérification des polices…');
+  await chargerLesPolices(sources.maitre);
+  for (const variante of sources.regles.values()) await chargerLesPolices(variante);
+
+  const enAttente = new Set<SceneNode>();
+  const rangees: string[] = [];
+  try {
+    const aPreparer: Array<{ section: SectionDeModele; remplace: boolean; ajoutees: number }> = [];
+    for (const manquante of manquantes.sections) {
+      const enfants = (await slotFrais(conteneur, SLOT_DES_SECTIONS)).children;
+      const { existante } = await placeDeLaSection(enfants, manquante.tag, sources);
+      const ajoutees = manquante.elements.filter((element) => element.genre === 'regle').length;
+      aPreparer.push(existante >= 0
+        ? {
+            section: completerLaSection(
+              await relireLaSection(conteneur, existante, manquante.tag),
+              manquante,
+            ),
+            remplace: true,
+            ajoutees,
+          }
+        : { section: manquante, remplace: false, ajoutees });
+    }
+
+    const pretes: SectionPrete[] = [];
+    let posees = 0;
+    for (const { section, remplace, ajoutees } of aPreparer) {
+      annoncer(`Règles ajoutées : ${posees} sur ${nombreDeRegles(manquantes)}…`);
+      const instance = await remplirUneSection(section, sources, enAttente);
+      pretes.push({ tag: section.tag, instance, remplace });
+      posees += ajoutees;
+    }
+    for (const prete of pretes) {
+      await rangerLaSection(prete, conteneur, sources, enAttente, rangees);
+    }
+    return { conteneur, regles: nombreDeRegles(manquantes) };
+  } catch (erreur) {
+    for (const node of enAttente) {
+      try {
+        node.remove();
+      } catch {
+        // Un node déjà rangé, donc déjà mort sous son ancien chemin : rien à faire.
+      }
+    }
+    for (const id of rangees) {
+      try {
+        (await figma.getNodeByIdAsync(id))?.remove();
+      } catch {
+        // Une section déjà partie : le résultat voulu est atteint.
+      }
+    }
+    const cause = erreur instanceof Error ? erreur.message : 'L’ajout n’a pas abouti.';
+    throw new Error(`${cause} Les règles déjà rédigées n’ont pas été touchées.`);
   }
 }

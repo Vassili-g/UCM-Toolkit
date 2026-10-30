@@ -759,6 +759,13 @@
   font-weight: 400;
 }
 
+/* Ce qui manque aujourd'hui, comme « aucune règle » : la police du texte, pas celle des chemins. */
+.puce-absence {
+  color: var(--texte-second);
+  font-family: inherit;
+  font-weight: 400;
+}
+
 /* Une valeur dont des variants n'ont pas été lus : son contour est tireté. */
 .valeur-axe.non-lu {
   border-style: dashed;

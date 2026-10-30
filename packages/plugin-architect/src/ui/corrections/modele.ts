@@ -38,6 +38,8 @@ export interface LigneDeCarte {
   /** Les rangs de segment à marquer, de chaque côté. */
   readonly marquesAvant: readonly number[];
   readonly marquesApres: readonly number[];
+  /** Vrai quand `avant` dit une absence : le diff le montre en puce, pas en chemin. */
+  readonly absence?: true;
 }
 
 /** Une liaison préparée dont la variable n'est pas dans la library publiée : le layer et le variant s'écrivent comme Figma les nomme. */
@@ -136,6 +138,7 @@ function sorteDuModele(constat: Constat): 'couleurs' | 'tailles' | null {
 
 function genreDe(constat: Constat, correction: Correction, contexte: ContexteDeCartes): { cle: string; genre: Genre; section: SectionDeCorrections } {
   if (texte(constat.faits.modele) !== null) return { cle: `modele:${constat.faits.modele}:${sorteDuModele(constat) ?? ''}`, genre: 'modele', section: 'liaisons' };
+  if (correction.sorte === 'regles' && correction.apres.nom === 'ajouter') return { cle: `regles:ajouter:${correction.cible.layer ?? ''}`, genre: 'regles', section: 'regles' };
   if (correction.sorte === 'regles') return { cle: `regles:${correction.id}`, genre: 'regles', section: 'regles' };
   if (correction.sorte === 'nom-de-valeur') return { cle: `nom:${correction.cible.champ ?? ''}:${correction.avant ?? ''}:${correction.apres.nom}`, genre: 'nom', section: 'noms' };
   if (constat.code === 'C59') return { cle: `texte:${constat.code}`, genre: 'texte', section: 'liaisons' };
@@ -145,7 +148,17 @@ function genreDe(constat: Constat, correction: Correction, contexte: ContexteDeC
   return { cle: `lier:${constat.code}:${correction.apres.nom}`, genre: 'lier', section: 'liaisons' };
 }
 
+/** La propriété que nomme une ligne d'ajout de règles : la propriété seule, ou la propriété et ses valeurs sans règle. */
+function proprieteDeLaLigne(constat: Constat): string {
+  const propriete = texte(constat.faits.propriete) ?? '';
+  const valeurs = texte(constat.faits.valeurs);
+  return constat.faits.ecart === 'sans-valeur' && valeurs !== null ? T.valeursDeLaPropriete(propriete, valeurs) : propriete;
+}
+
 function ligneDe(constat: Constat, correction: Correction, contexte: ContexteDeCartes): LigneDeCarte {
+  if (correction.sorte === 'regles' && correction.apres.nom === 'ajouter') {
+    return { id: correction.id, constat, correction, avant: T.aucuneRegle, absence: true, variant: [], apres: proprieteDeLaLigne(constat), marquesAvant: [], marquesApres: [] };
+  }
   const apres = sansPrefixe(correction.apres.nom, contexte.composant);
   const apresSegments = segments(apres);
   if (correction.avant === null) {
@@ -217,6 +230,9 @@ function carteDe(cle: string, genre: Genre, section: SectionDeCorrections, ligne
   } else if (genre === 'tailles') {
     groupes = groupesDeTaille(lignes, contexte);
     phrase = [T.lierLaTaille(T.famille(premiere.correction.cible.champ ?? ''), uniques(groupes.map((groupe) => groupe.layer)), contexte.composant)];
+  } else if (genre === 'regles' && premiere.correction.apres.nom === 'ajouter') {
+    phrase = [T.ajouterLesRegles(contexte.composant)];
+    meta = [T.reglesAjouteesMeta(constats.reduce((somme, constat) => somme + Number(constat.faits.regles ?? 0), 0))];
   } else if (genre === 'regles') {
     phrase = [T.creerLesRegles(contexte.composant)];
     meta = [T.reglesMeta(Number(faitsPremiers.regles ?? 0), texte(faitsPremiers.proprietes) ?? '')];

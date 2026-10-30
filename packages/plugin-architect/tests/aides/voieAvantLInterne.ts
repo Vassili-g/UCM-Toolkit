@@ -9,7 +9,7 @@ import { extractRules } from 'ucm-plugin-socle/src/composant/contract/extractRul
 import { analyserLeComposant, type ComponentExport } from 'ucm-plugin-socle/src/composant/contract/exportComponent';
 import { BUDGET_DE_LAYERS_PAR_DEFAUT } from 'ucm-plugin-socle/src/composant/contract/budget';
 import { extractContractPropertyModel } from 'ucm-plugin-socle/src/composant/contract/parsers';
-import { modeleDeRegles, restreindreAuParent } from 'ucm-plugin-socle/src/composant/template/modele';
+import { cibleCompacte, modeleDeRegles, reglesManquantes, restreindreAuParent } from 'ucm-plugin-socle/src/composant/template/modele';
 import type { ContratLu } from 'ucm-plugin-socle/src/composant/template/modele';
 import type { InventairesDeLaDemande } from 'ucm-plugin-socle/src/composant/analyse/inventaires';
 import { proprietesDuModele, type ReleveDesRegles } from '../../src/regles';
@@ -42,12 +42,21 @@ export async function lireLesReglesAvant(
   const declarees = clesDeclarees(composant);
   const surface = declarees ? new Set([...declarees, ...exportDuMoteur.imbriques.auParent]) : null;
   const modele = modeleDeRegles(composant.name, surface ? restreindreAuParent(contrat, surface) : contrat);
+  const instancePresente = lues.releve.conteneurDuComposant;
+  const presentes = [
+    ...Object.entries(lues.propDescriptions).flatMap(([axe, valeurs]) => Object.keys(valeurs).map((valeur) => `${axe}.${valeur}`)),
+    ...Object.keys(lues.booleanDescriptions),
+    ...lues.ciblesNonRedigees,
+  ].map(cibleCompacte);
+  const nonRedigees = lues.ciblesNonRedigees.map((cible) => (cible.includes('.') ? cible.slice(0, cible.lastIndexOf('.')) : cible));
   return {
     composant: { id: composant.id, nom: composant.name },
-    instancePresente: lues.releve.conteneurDuComposant,
+    instancePresente,
     modele,
     proprietes: proprietesDuModele(modele),
-    documentees: [...Object.keys(lues.propDescriptions), ...Object.keys(lues.booleanDescriptions)],
+    documentees: [...new Set([...Object.keys(lues.propDescriptions), ...Object.keys(lues.booleanDescriptions), ...nonRedigees])],
+    presentes,
+    manquantes: instancePresente ? reglesManquantes(modele, new Set(presentes)) : { nom: composant.name, sections: [] },
   };
 }
 

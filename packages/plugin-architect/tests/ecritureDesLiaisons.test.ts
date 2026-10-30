@@ -184,6 +184,9 @@ test('un lot : liaisons et règles écrites, puis un seul commitUndo, après tou
     composant: async () => ({ id: '3:3' } as ComponentSetNode),
     releve: async () => releveVide(),
     resoudre: async () => ({ sources: {} as SourcesDeCreation, refus: null }),
+    presentes: async () => new Set(),
+    conteneur: async () => null,
+    ajouter: async () => ({ conteneur: {} as InstanceNode, regles: 0 }),
     creer: async () => { a.journal.push('regles'); return { conteneur: {} as InstanceNode, regles: 3 }; },
   };
   const rendu = await ecrireLeLot([
@@ -205,6 +208,9 @@ test('un lot dans un fichier qui ne déclare plus UCM n’écrit ni liaison ni i
     composant: async () => ({ id: '3:3' } as ComponentSetNode),
     releve: async () => releveVide(),
     resoudre: async () => ({ sources: {} as SourcesDeCreation, refus: null }),
+    presentes: async () => new Set(),
+    conteneur: async () => null,
+    ajouter: async () => ({ conteneur: {} as InstanceNode, regles: 0 }),
     creer: async () => { a.journal.push('regles'); return { conteneur: {} as InstanceNode, regles: 3 }; },
   };
   const rendu = await ecrireLeLot([liaison('c1', { layer: '1:1', champ: 'paddingLeft' }), regles], { modeles: new Map([[regles.id, modele]]), portDeRegles: port }, a.api);

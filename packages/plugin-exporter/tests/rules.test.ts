@@ -601,6 +601,31 @@ test('la lecture nomme les tags dont une règle attend encore son texte', async 
   assert.deepEqual([...rules.tagsARediger].sort(), ['prop', 'usage']);
 });
 
+test('la lecture rend les cibles des règles @prop et @boolean marquées, absentes du contrat', async (t) => {
+  monterPage(t, [conteneur('Root', [
+    regle('@prop', [texte('prop', 'size.sm'), texte('content', 'La petite taille.')]),
+    regle('@prop', [texte('prop', 'state.hover'), texte('content', `${MARQUEUR} Décrivez-la.`)]),
+    regle('@boolean', [texte('prop', 'disabled'), texte('content', `${MARQUEUR} Décrivez-la.`)]),
+    regle('@usage', [texte('content', `${MARQUEUR} Décrivez le composant.`)]),
+  ])]);
+
+  const rules = await extractRules({ name: 'Root' } as ComponentSetNode);
+
+  assert.deepEqual(rules.ciblesNonRedigees, ['state.hover', 'disabled']);
+  assert.deepEqual(rules.propDescriptions, { size: { sm: 'La petite taille.' } });
+  assert.ok(rules.warnings.some((w) => w.includes('contient encore « [À compléter] »')));
+});
+
+test('une cible qui porte elle-même le marqueur n’est pas rendue', async (t) => {
+  monterPage(t, [conteneur('Root', [
+    regle('@prop', [texte('prop', `${MARQUEUR} propriété.valeur`), texte('content', '')]),
+  ])]);
+
+  const rules = await extractRules({ name: 'Root' } as ComponentSetNode);
+
+  assert.deepEqual(rules.ciblesNonRedigees, []);
+});
+
 test('l’avertissement du marqueur nomme « .ruleItem », quel que soit le nom du calque', async (t) => {
   const renommee = regle('@boolean', [texte('prop', 'mark'), texte('content', `${MARQUEUR} x`)]);
   renommee.name = '.rulesItems';

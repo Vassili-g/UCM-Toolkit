@@ -101,7 +101,7 @@ test('le banc compare deux analyses indépendantes, leurs constats, corrections,
       regles: async () => ({
         composant: { id: 'jeu-Alert', nom: 'Alert' }, instancePresente: false,
         modele: { nom: 'Alert', sections: [{ tag: 'prop', elements: [{ genre: 'regle', tag: 'prop', cible: 'severity.info' }] }] },
-        proprietes: ['severity'], documentees: [],
+        proprietes: ['severity'], documentees: [], presentes: [], manquantes: { nom: 'Alert', sections: [] },
       }),
       ignores: async () => constatsDuMoteur(moteur).map(({ id }) => id),
     };
@@ -133,7 +133,7 @@ test('le provisoire part après les contrôles du kit, le moteur part avec le ca
       regles: async () => ({
         composant: { id: 'jeu-Alert', nom: 'Alert' }, instancePresente: false,
         modele: { nom: 'Alert', sections: [{ tag: 'prop', elements: [{ genre: 'regle', tag: 'prop', cible: 'severity.info' }] }] },
-        proprietes: ['severity'], documentees: [],
+        proprietes: ['severity'], documentees: [], presentes: [], manquantes: { nom: 'Alert', sections: [] },
       }),
       ignores: async () => ['C64:Label:sans-style'],
     };
@@ -946,7 +946,7 @@ test('une analyse rend C43 quand le composant n’a pas d’instance de règles,
   const modele = { nom: 'Alert', sections: [{ tag: 'prop' as const, elements: [{ genre: 'regle' as const, tag: 'prop' as const, cible: 'severity.info' }] }] };
   const avec = (instancePresente: boolean, documentees: string[]): Lecteurs => ({
     ...lecteurs(complete()),
-    regles: async () => ({ composant: { id: 'jeu-Alert', nom: 'Alert' }, instancePresente, modele, proprietes: ['severity'], documentees }),
+    regles: async () => ({ composant: { id: 'jeu-Alert', nom: 'Alert' }, instancePresente, modele, proprietes: ['severity'], documentees, presentes: [], manquantes: { nom: 'Alert', sections: [] } }),
   });
   const sans = banc();
   await traiterAvec(avec(false, []))({ type: 'analyser' }, sans.contexte);
@@ -1813,7 +1813,7 @@ test('une lecture refusée en fin d’analyse rend l’entrée à relire ; dispo
   await analyserAvec(avecRegles(async () => { throw new Error('règles illisibles'); }));
   assert.deepEqual(etatDeLEntree('Alert'), { etat: 'a-relire', raisons: ['lecture-refusee:regles'] });
   const refusee = sessionDesAnalyses().entree('Alert');
-  await analyserAvec(avecRegles(async () => ({ composant: { id: 'jeu-Alert', nom: 'Alert' }, instancePresente: false, modele: { nom: 'Alert', sections: [] }, proprietes: [], documentees: [] })));
+  await analyserAvec(avecRegles(async () => ({ composant: { id: 'jeu-Alert', nom: 'Alert' }, instancePresente: false, modele: { nom: 'Alert', sections: [] }, proprietes: [], documentees: [], presentes: [], manquantes: { nom: 'Alert', sections: [] } })));
   assert.equal(lectures, 2, 'la seconde analyse relit Figma au lieu de réutiliser');
   assert.deepEqual(etatDeLEntree('Alert'), { etat: 'utilisable' });
   assert.notEqual(sessionDesAnalyses().entree('Alert'), refusee);

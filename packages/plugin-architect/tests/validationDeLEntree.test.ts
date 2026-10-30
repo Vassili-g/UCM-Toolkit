@@ -53,7 +53,7 @@ function fichierDeDepart(): Fichier {
       imbriqueesNonLues: 0,
       calquesDesInstancesDistantes: [],
     },
-    regles: { composant: { id: 'jeu-Alert', nom: 'Alert' }, instancePresente: false, modele: { nom: 'Alert', sections: [] }, proprietes: [], documentees: [] },
+    regles: { composant: { id: 'jeu-Alert', nom: 'Alert' }, instancePresente: false, modele: { nom: 'Alert', sections: [] }, proprietes: [], documentees: [], presentes: [], manquantes: { nom: 'Alert', sections: [] } },
   };
 }
 

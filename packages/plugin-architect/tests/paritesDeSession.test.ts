@@ -74,7 +74,7 @@ function figmaDe(fichier: Fichier) {
   return { figma, jeu };
 }
 
-const REGLES: ReleveDesRegles = { composant: { id: 'jeu-Alert', nom: 'Alert' }, instancePresente: false, modele: { nom: 'Alert', sections: [] }, proprietes: [], documentees: [] };
+const REGLES: ReleveDesRegles = { composant: { id: 'jeu-Alert', nom: 'Alert' }, instancePresente: false, modele: { nom: 'Alert', sections: [] }, proprietes: [], documentees: [], presentes: [], manquantes: { nom: 'Alert', sections: [] } };
 
 interface Banc {
   contexte: Contexte;

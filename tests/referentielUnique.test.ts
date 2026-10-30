@@ -113,6 +113,11 @@ const EXCEPTIONS: { fichier: string; extrait: string; raison: string }[] = [
     raison: "Les colonnes d'états de l'Interface de test, dans l'ordre de l'écran, focus compris.",
   },
   {
+    fichier: 'packages/plugin-socle/src/composant/template/ecriture.ts',
+    extrait: "['usage', 'prop', 'boolean', 'icons']",
+    raison: "L'ordre où le template range les sections d'un conteneur : les seuls tags qui ont une section, pas la liste des tags.",
+  },
+  {
     fichier: 'packages/plugin-palettes/src/ui/configuration.ts',
     extrait: "['dark', 'light']",
     raison: "Une clé de comparaison de l'effet : `dark` d'abord, l'ordre n'est pas celui des modes et ne doit pas le suivre.",

@@ -197,7 +197,7 @@ test('une analyse retient les corrections de ses constats, par identifiant', asy
     releve: async () => ({ statut: 'lu', releve: { version: 1, jeu: { cle: 'Alert', id: 'jeu-Alert', nom: 'Alert' }, proprietes: [], variants: [{ id: 'v', nom: 'v', valeurs: {}, layers: [], modesEffectifs: {} }], lecture: { layersLus: 0, layersNonLus: 0, variantsNonLus: [], manquees: [] }, espaceDeCouleur: 'srgb' } }),
     catalogue: async () => ({ version: 1, library: null, collections: [], variables: [] }),
     moteur: async () => ({ etat: 'calculee', interne: { warnings: [], parties: new Map(), localisations: new Map(), couverture: { etat: 'complete' } } }) as unknown as ResultatSansPublication,
-    regles: async () => ({ composant: { id: 'jeu-Alert', nom: 'Alert' }, instancePresente: false, modele, proprietes: [], documentees: [] }),
+    regles: async () => ({ composant: { id: 'jeu-Alert', nom: 'Alert' }, instancePresente: false, modele, proprietes: [], documentees: [], presentes: [], manquantes: { nom: 'Alert', sections: [] } }),
   })({ type: 'analyser' }, b.contexte);
   const [rendu] = deType(b.envoyes, 'analyse');
   const retenues = correctionsDeLAnalyse(rendu.analyse);

@@ -139,6 +139,14 @@ function cheminAvecSegments(nom: string, marques: readonly number[], colonne: 'a
   return noeuds;
 }
 
+/** Une absence, en puce neutre : elle ne se lit pas comme un chemin. */
+function puceDAbsence(texte: string): HTMLElement {
+  const puce = document.createElement('span');
+  puce.className = 'puce-valeur puce-absence';
+  puce.textContent = texte;
+  return puce;
+}
+
 const dans = (noeuds: Node[]): DocumentFragment => {
   const morceau = document.createDocumentFragment();
   morceau.append(...noeuds);
@@ -336,7 +344,7 @@ export function monterLesCorrections(options: OptionsDesCorrections): Correction
     const preparation = carte.origine === 'preparation';
     for (const groupe of carte.groupes ?? []) corps.append(creerLaLigneDeTaille(groupe));
     for (const ligne of carte.groupes ? [] : carte.lignes) {
-      const avant = dans(cheminAvecSegments(ligne.avant, ligne.marquesAvant, 'ancien'));
+      const avant = ligne.absence ? dans([puceDAbsence(ligne.avant)]) : dans(cheminAvecSegments(ligne.avant, ligne.marquesAvant, 'ancien'));
       if (ligne.variant.length > 0) avant.append(document.createElement('br'), creerPuces(ligne.variant, jeuDuComposant()));
       const diff = creerLigneDeDiff(avant, dans(cheminAvecSegments(ligne.apres, ligne.marquesApres, 'nouveau', preparation)), { coche: cochee(ligne) });
       if (preparation) diff.classList.add('preparation-liaison');
