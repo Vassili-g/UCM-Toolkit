@@ -1,0 +1,97 @@
+{
+  "composant": "segmented-control",
+  "systeme": "material-3",
+  "lu": "2026-10-30",
+  "pages": [
+    "https://m3.material.io/components/segmented-buttons/overview",
+    "https://developer.android.com/develop/ui/compose/components/segmented-button"
+  ],
+  "variantes": [
+    "Single-select : un seul segment actif",
+    "Multi-select : plusieurs segments actifs en même temps",
+    "Outlined segmented button : le seul style que les tokens de composant décrivent"
+  ],
+  "tailles": {
+    "container": "40px"
+  },
+  "anatomie": [
+    "Container : un segment, de hauteur fixe, avec contour",
+    "Label text : le libellé du segment",
+    "Icon : icône facultative, 18px d'après les tokens",
+    "Indicateur de sélection : en Compose, SegmentedButtonDefaults.Icon affiche l'état coché du segment",
+    "Rangée : SingleChoiceSegmentedButtonRow ou MultiChoiceSegmentedButtonRow, qui place et dimensionne les segments"
+  ],
+  "etats": [
+    "default : segment non sélectionné au repos",
+    "selected : segment sélectionné, avec ses propres couleurs de conteneur, de libellé et d'icône",
+    "hover : couche d'état d'opacité propre, couleurs distinctes pour un segment sélectionné et pour un autre",
+    "focus : même découpage que hover",
+    "pressed : même découpage que hover",
+    "disabled : libellé, icône et contour gardent leur couleur et passent à une opacité réduite"
+  ],
+  "clavier": [],
+  "regles": [
+    "La page de présentation décrit le composant comme un moyen de choisir des options, de changer de vue ou de trier des éléments.",
+    "Un segment contient une icône, un libellé, ou les deux.",
+    "Multi-select : prévu pour 2 à 5 options. Au-delà, ou pour un choix plus complexe, la documentation Compose renvoie aux chips.",
+    "Single-select : la page Compose ne donne pas de limite de segments et son exemple en compte 3.",
+    "La sélection simple et la sélection multiple sont deux composants distincts en Compose : l'un reçoit selected et onClick, l'autre checked et onCheckedChange.",
+    "Un segment à icône seule porte un contentDescription pour que le lecteur d'écran l'annonce.",
+    "Chaque segment reçoit une forme selon sa position (itemShape avec son index et le nombre total) : seuls les coins extérieurs du premier et du dernier sont arrondis.",
+    "Le paramètre space règle le chevauchement entre segments voisins."
+  ],
+  "redaction": [
+    "Libellé, icône ou les deux ; aucune règle de longueur ni de casse sur les pages lues."
+  ],
+  "particularites": [
+    "La page m3.material.io est rendue côté client : seule sa description (balise meta) se lit sans navigateur. Les pages Guidelines, Specs et Accessibility n'ont pas pu être lues.",
+    "Largeur des segments, débordement, comportement responsive, clavier et rôle aria : non documentés par les pages lues.",
+    "Les tokens md.comp.outlined-segmented-button fournissent une hauteur de 40px, un contour de 1px, une forme à rayon maximal et une police label-large.",
+    "Les tokens séparent les couleurs d'un segment sélectionné (selected-*) de celles d'un segment non sélectionné (unselected-*), pour chacun des états hover, focus et pressed."
+  ],
+  "tokens": [
+    { "variante": "*", "etat": "default", "role": "hauteur du segment", "token": "md.comp.outlined-segmented-button.container-height" },
+    { "variante": "*", "etat": "default", "role": "border", "token": "md.comp.outlined-segmented-button.outline-color" },
+    { "variante": "*", "etat": "default", "role": "épaisseur du contour", "token": "md.comp.outlined-segmented-button.outline-width" },
+    { "variante": "*", "etat": "default", "role": "forme", "token": "md.comp.outlined-segmented-button.shape" },
+    { "variante": "*", "etat": "default", "role": "police du libellé", "token": "md.comp.outlined-segmented-button.label-text-font" },
+    { "variante": "*", "etat": "default", "role": "taille du libellé", "token": "md.comp.outlined-segmented-button.label-text-size" },
+    { "variante": "*", "etat": "default", "role": "interligne du libellé", "token": "md.comp.outlined-segmented-button.label-text-line-height" },
+    { "variante": "*", "etat": "default", "role": "approche du libellé", "token": "md.comp.outlined-segmented-button.label-text-tracking" },
+    { "variante": "*", "etat": "default", "role": "graisse du libellé", "token": "md.comp.outlined-segmented-button.label-text-weight" },
+    { "variante": "*", "etat": "default", "role": "typographie composite du libellé", "token": "md.comp.outlined-segmented-button.label-text-type" },
+    { "variante": "*", "etat": "default", "role": "taille de l'icône", "token": "md.comp.outlined-segmented-button.with-icon-icon-size" },
+    { "variante": "*", "etat": "hover", "role": "opacité de la couche d'état", "token": "md.comp.outlined-segmented-button.hover-state-layer-opacity" },
+    { "variante": "*", "etat": "focus", "role": "opacité de la couche d'état", "token": "md.comp.outlined-segmented-button.focus-state-layer-opacity" },
+    { "variante": "*", "etat": "pressed", "role": "opacité de la couche d'état", "token": "md.comp.outlined-segmented-button.pressed-state-layer-opacity" },
+    { "variante": "*", "etat": "disabled", "role": "icon", "token": "md.comp.outlined-segmented-button.disabled-icon-color" },
+    { "variante": "*", "etat": "disabled", "role": "opacité de l'icône", "token": "md.comp.outlined-segmented-button.disabled-icon-opacity" },
+    { "variante": "*", "etat": "disabled", "role": "text", "token": "md.comp.outlined-segmented-button.disabled-label-text-color" },
+    { "variante": "*", "etat": "disabled", "role": "opacité du libellé", "token": "md.comp.outlined-segmented-button.disabled-label-text-opacity" },
+    { "variante": "*", "etat": "disabled", "role": "border", "token": "md.comp.outlined-segmented-button.disabled-outline-color" },
+    { "variante": "*", "etat": "disabled", "role": "opacité du contour", "token": "md.comp.outlined-segmented-button.disabled-outline-opacity" },
+    { "variante": "selected", "etat": "default", "role": "background", "token": "md.comp.outlined-segmented-button.selected-container-color" },
+    { "variante": "selected", "etat": "default", "role": "text", "token": "md.comp.outlined-segmented-button.selected-label-text-color" },
+    { "variante": "selected", "etat": "default", "role": "icon", "token": "md.comp.outlined-segmented-button.selected-with-icon-icon-color" },
+    { "variante": "selected", "etat": "hover", "role": "text", "token": "md.comp.outlined-segmented-button.selected-hover-label-text-color" },
+    { "variante": "selected", "etat": "hover", "role": "icon", "token": "md.comp.outlined-segmented-button.selected-hover-icon-color" },
+    { "variante": "selected", "etat": "hover", "role": "couleur de la couche d'état", "token": "md.comp.outlined-segmented-button.selected-hover-state-layer-color" },
+    { "variante": "selected", "etat": "focus", "role": "text", "token": "md.comp.outlined-segmented-button.selected-focus-label-text-color" },
+    { "variante": "selected", "etat": "focus", "role": "icon", "token": "md.comp.outlined-segmented-button.selected-focus-icon-color" },
+    { "variante": "selected", "etat": "focus", "role": "couleur de la couche d'état", "token": "md.comp.outlined-segmented-button.selected-focus-state-layer-color" },
+    { "variante": "selected", "etat": "pressed", "role": "text", "token": "md.comp.outlined-segmented-button.selected-pressed-label-text-color" },
+    { "variante": "selected", "etat": "pressed", "role": "icon", "token": "md.comp.outlined-segmented-button.selected-pressed-icon-color" },
+    { "variante": "selected", "etat": "pressed", "role": "couleur de la couche d'état", "token": "md.comp.outlined-segmented-button.selected-pressed-state-layer-color" },
+    { "variante": "unselected", "etat": "default", "role": "text", "token": "md.comp.outlined-segmented-button.unselected-label-text-color" },
+    { "variante": "unselected", "etat": "default", "role": "icon", "token": "md.comp.outlined-segmented-button.unselected-with-icon-icon-color" },
+    { "variante": "unselected", "etat": "hover", "role": "text", "token": "md.comp.outlined-segmented-button.unselected-hover-label-text-color" },
+    { "variante": "unselected", "etat": "hover", "role": "icon", "token": "md.comp.outlined-segmented-button.unselected-hover-icon-color" },
+    { "variante": "unselected", "etat": "hover", "role": "couleur de la couche d'état", "token": "md.comp.outlined-segmented-button.unselected-hover-state-layer-color" },
+    { "variante": "unselected", "etat": "focus", "role": "text", "token": "md.comp.outlined-segmented-button.unselected-focus-label-text-color" },
+    { "variante": "unselected", "etat": "focus", "role": "icon", "token": "md.comp.outlined-segmented-button.unselected-focus-icon-color" },
+    { "variante": "unselected", "etat": "focus", "role": "couleur de la couche d'état", "token": "md.comp.outlined-segmented-button.unselected-focus-state-layer-color" },
+    { "variante": "unselected", "etat": "pressed", "role": "text", "token": "md.comp.outlined-segmented-button.unselected-pressed-label-text-color" },
+    { "variante": "unselected", "etat": "pressed", "role": "icon", "token": "md.comp.outlined-segmented-button.unselected-pressed-icon-color" },
+    { "variante": "unselected", "etat": "pressed", "role": "couleur de la couche d'état", "token": "md.comp.outlined-segmented-button.unselected-pressed-state-layer-color" }
+  ]
+}

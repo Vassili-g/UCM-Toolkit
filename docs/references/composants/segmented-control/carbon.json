@@ -1,0 +1,80 @@
+{
+  "composant": "segmented-control",
+  "systeme": "carbon",
+  "lu": "2026-10-30",
+  "pages": [
+    "https://carbondesignsystem.com/components/content-switcher/usage/",
+    "https://carbondesignsystem.com/components/content-switcher/style/",
+    "https://carbondesignsystem.com/components/content-switcher/accessibility/",
+    "https://carbondesignsystem.com/components/content-switcher/code/"
+  ],
+  "variantes": [
+    "High contrast : variante par défaut, pour un emplacement de haut niveau comme l'en-tête de page",
+    "Low contrast : plus discrète, pour une carte, une modale ou le voisinage d'un bouton",
+    "Icon : modificateur qui remplace les libellés par des icônes"
+  ],
+  "tailles": {
+    "Small": "32px",
+    "Medium": "40px",
+    "Large": "48px"
+  },
+  "anatomie": [
+    "Selected content tab : l'onglet sélectionné, toujours un seul",
+    "Content tab : le conteneur sélectionnable de chaque vue",
+    "Label text : texte ou icône, 16px en Small et Medium, 20px en Large",
+    "Content view : le contenu, placé en général juste sous le sélecteur, qui change avec la sélection",
+    "Divider : bordure de 1px entre les onglets",
+    "Rayon du conteneur : 4px"
+  ],
+  "etats": [
+    "default : onglet non sélectionné au repos",
+    "selected : onglet sélectionné",
+    "hover : le curseur survole un onglet non sélectionné",
+    "focus : l'onglet reçoit le focus par les flèches ou par un clic",
+    "disabled : le sélecteur entier ou des onglets isolés sont inactifs"
+  ],
+  "clavier": [
+    "Tab entre dans le sélecteur par un seul arrêt de tabulation.",
+    "Flèche gauche et flèche droite passent d'un onglet à l'autre.",
+    "Variante automatique : le focus et la sélection avancent ensemble et le contenu change tout de suite.",
+    "Variante manuelle : les flèches déplacent seulement le focus ; Entrée ou Espace sélectionne l'onglet focalisé.",
+    "Le choix entre automatique et manuel dépend surtout de la latence de mise à jour du contenu. Les deux se ressemblent en maquette, donc l'annotation du designer le précise."
+  ],
+  "regles": [
+    "Nombre de segments : deux au minimum ; la documentation lue ne fixe pas de maximum.",
+    "Sélection : exactement un onglet est sélectionné à tout moment, en général le premier par défaut. Choisir un onglet désélectionne le précédent. Aucune sélection multiple.",
+    "Largeur : tous les conteneurs ont la même largeur. En texte, le libellé le plus long la fixe, avec au moins 16px de marge à droite.",
+    "Largeur, alignement sur la grille : le sélecteur peut couvrir un nombre de colonnes et ses onglets restent égaux, le premier commençant à la première colonne.",
+    "Icônes seules : largeur fixe égale à la hauteur ; ne pas étirer ni dimensionner autrement les conteneurs.",
+    "Ne pas mélanger icônes et textes dans un même sélecteur.",
+    "Icônes seules, usage : quand la place manque ou quand les icônes représentent clairement les vues, comme liste et cartes.",
+    "Débordement : un libellé trop long est tronqué avec une ellipse et un tooltip natif du navigateur donne le texte complet.",
+    "Responsive : si les libellés ne tiennent pas, passer à l'icône. Un sélecteur à icônes est compact et peut remplacer la version texte sur petit écran.",
+    "Placement : au-dessus du contenu qu'il commande, aligné à gauche ou à droite, jamais centré. Dans un conteneur, pas collé au bord.",
+    "Usage : changer de format (grille ou tableau), restreindre un grand ensemble, trier un contenu apparenté (Tous, Lus, Non lus).",
+    "Pour des zones de contenu distinctes comme des sous-pages, utiliser des tabs ; un content switcher se place souvent dans un onglet pour trier à un niveau plus bas.",
+    "Pour un choix binaire oui ou non, utiliser un toggle. Deux vues comme grille et liste restent possibles, mais le composant ne sert pas de saisie binaire.",
+    "Toute la surface d'un onglet est cliquable.",
+    "Le choix de taille suit la densité de la mise en page ou l'importance voulue du sélecteur."
+  ],
+  "redaction": [
+    "Libellés courts et précis, deux à trois mots au plus.",
+    "Casse de phrase.",
+    "Noms ou groupes nominaux qui décrivent la vue et son contenu.",
+    "Éviter les verbes d'action et les textes longs, que l'on prendrait pour des boutons."
+  ],
+  "particularites": [
+    "Le rôle aria est tablist : chaque onglet est un button avec role=\"tab\", aria-selected à true sur l'onglet sélectionné, tabindex à 0 sur lui et à -1 sur les autres (roving tabindex).",
+    "Le content switcher se comporte comme des tabs, pas comme un radiogroup ni comme un groupe de boutons à bascule.",
+    "La page d'accessibilité ne dit rien du nom accessible d'un sélecteur à icônes ni de l'étiquette du tablist.",
+    "Libellé : 14px Regular pour les deux états en High contrast ; en Low contrast, l'onglet sélectionné passe en SemiBold.",
+    "Marge horizontale des icônes : 8px en Small, 12px en Medium, 14px en Large.",
+    "Tokens propres au composant : content-switcher.background, content-switcher.background-hover et content-switcher.selected, utilisés par la variante Low contrast. High contrast emploie des tokens globaux comme layer-selected-inverse, text-inverse et border-inverse.",
+    "La page de code est marquée Stable et indique @carbon/react ; l'accessibilité a été testée sur la version 1.114.0 de @carbon/react. La page de code renvoie à Storybook pour les props (size, selectionMode, selectedIndex ne s'y lisent pas)."
+  ],
+  "tokens": [
+    { "variante": "Low contrast", "etat": "default", "role": "background", "token": "content-switcher.background" },
+    { "variante": "Low contrast", "etat": "hover", "role": "background", "token": "content-switcher.background-hover" },
+    { "variante": "Low contrast", "etat": "selected", "role": "background", "token": "content-switcher.selected" }
+  ]
+}

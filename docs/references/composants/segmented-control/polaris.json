@@ -1,0 +1,36 @@
+{
+  "composant": "segmented-control",
+  "systeme": "polaris",
+  "lu": "2026-10-30",
+  "pages": ["https://shopify.dev/docs/api/app-home/polaris-web-components/actions/buttongroup"],
+  "variantes": [
+    "gap base",
+    "gap none (présentation segmentée)"
+  ],
+  "tailles": {},
+  "anatomie": [
+    "s-button-group : le conteneur",
+    "children : les boutons du groupe",
+    "primary-action : emplacement d'une action principale, inutilisable avec `gap=\"none\"`",
+    "secondary-actions : emplacement des actions secondaires"
+  ],
+  "etats": [],
+  "clavier": [],
+  "regles": [
+    "Il n'existe pas de composant segmenté propre : le groupe de boutons avec `gap=\"none\"` colle les boutons et donne l'aspect d'un contrôle segmenté.",
+    "La page recommande ce style pour des options étroitement liées, comme le changement de vue ou les filtres.",
+    "L'exemple segmenté compte trois boutons : Day, Week, Month.",
+    "La page conseille de limiter le nombre de boutons, pour éviter la paralysie du choix, sans donner de chiffre.",
+    "Pour une action unique, la page renvoie à `s-button`.",
+    "`accessibilityLabel` décrit le but du groupe aux lecteurs d'écran quand le contenu visible ne le dit pas.",
+    "La page ne documente ni état sélectionné, ni sélection simple ou multiple.",
+    "La page ne dit rien de la largeur, des icônes seules (tous ses exemples à icône ont aussi un texte), du débordement, du clavier ni de l'attribut `role`."
+  ],
+  "redaction": [],
+  "particularites": [
+    "Aucune propriété `variant=\"segmented\"` n'existe sur cette page : seules `gap` (`base` ou `none`, `base` par défaut) et `accessibilityLabel` sont documentées.",
+    "L'aspect segmenté ne vient donc que de la jointure des boutons ; la page ne décrit aucun comportement de bascule.",
+    "`primary-action` ne s'emploie pas avec `gap=\"none\"`, donc pas dans un groupe segmenté.",
+    "La page https://polaris-react.shopify.com/components/actions/button-group n'a pas pu être lue (connexion fermée)."
+  ]
+}

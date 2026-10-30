@@ -1,0 +1,70 @@
+{
+  "composant": "segmented-control",
+  "systeme": "ant-design",
+  "lu": "2026-10-30",
+  "pages": ["https://ant.design/components/segmented"],
+  "variantes": [
+    "shape default",
+    "shape round",
+    "orientation horizontal",
+    "orientation vertical",
+    "block"
+  ],
+  "tailles": {
+    "large": "40px",
+    "medium": "32px",
+    "small": "24px"
+  },
+  "anatomie": [
+    "root : le conteneur de l'ensemble",
+    "item : un segment, qui porte un champ radio",
+    "label : le texte du segment, tronqué par une ellipse quand il déborde",
+    "icon : l'icône du segment, seule ou à côté du label"
+  ],
+  "etats": [
+    "default",
+    "hover",
+    "active",
+    "selected",
+    "disabled"
+  ],
+  "clavier": [
+    "Avec la prop `name`, le navigateur traite le contrôle comme un vrai groupe de radios ; la page donne en exemple les flèches gauche et droite qui changent la sélection.",
+    "La page ne décrit ni Tab, ni Entrée, ni Espace."
+  ],
+  "regles": [
+    "À employer pour proposer plusieurs options dont l'utilisateur en choisit exactement une.",
+    "À employer quand le changement de sélection modifie le contenu d'une zone liée.",
+    "La sélection est unique ; la page ne documente pas de sélection multiple.",
+    "Le nombre de segments n'est pas borné : `options` accepte un tableau de chaînes, de nombres ou d'objets, et la page montre un chargement dynamique.",
+    "Par défaut le composant est inline-block, à la largeur de son contenu ; `block` l'étend à la largeur du parent.",
+    "La page ne dit pas si les segments ont une largeur égale ; `block` ne précise que la largeur du conteneur.",
+    "Un segment avec `icon` et sans `label` donne un segment à icône seule ; la page ne mentionne pas de nom accessible pour ce cas.",
+    "`disabled` sur le composant désactive tous les segments ; chaque segment a aussi son propre `disabled`.",
+    "Un segment peut recevoir un `tooltip`, chaîne ou propriétés de Tooltip.",
+    "`defaultValue` vaut par défaut la valeur du premier élément de `options` : la première option est donc sélectionnée au départ.",
+    "Mode contrôlé avec `value` et `onChange(value)` ; mode non contrôlé avec `defaultValue`.",
+    "`orientation` vaut `horizontal` ou `vertical` ; il l'emporte sur le booléen `vertical` (apparu en 5.21.0).",
+    "`shape` vaut `default` ou `round` (apparu en 5.24.0).",
+    "`name` s'applique à tous les champs radio du groupe, avec un nom aléatoire à défaut (apparu en 5.23.0).",
+    "La page ne documente aucun comportement de débordement ni de responsive, au-delà de l'ellipse du label et de `block`."
+  ],
+  "redaction": [],
+  "particularites": [
+    "Les tailles viennent des tokens globaux `controlHeightLG`, `controlHeight` et `controlHeightSM`.",
+    "Chaque segment utilise un `input[type=\"radio\"]` ; la page ne cite aucun attribut `role` explicite et ne parle ni de radiogroup, ni de tablist.",
+    "Depuis la 6.0.0, `classNames` et `styles` ciblent les parties root, item, label et icon.",
+    "Le composant existe depuis antd 4.20.0 ; la page lue affiche la version 6.6.8.",
+    "La piste (`trackBg`, `trackPadding`) a ses propres tokens, distincts de ceux des segments."
+  ],
+  "tokens": [
+    { "variante": "*", "etat": "default", "role": "background", "token": "Segmented.trackBg" },
+    { "variante": "*", "etat": "default", "role": "padding", "token": "Segmented.trackPadding" },
+    { "variante": "*", "etat": "default", "role": "text", "token": "Segmented.itemColor" },
+    { "variante": "*", "etat": "hover", "role": "background", "token": "Segmented.itemHoverBg" },
+    { "variante": "*", "etat": "hover", "role": "text", "token": "Segmented.itemHoverColor" },
+    { "variante": "*", "etat": "pressed", "role": "background", "token": "Segmented.itemActiveBg" },
+    { "variante": "*", "etat": "selected", "role": "background", "token": "Segmented.itemSelectedBg" },
+    { "variante": "*", "etat": "selected", "role": "text", "token": "Segmented.itemSelectedColor" }
+  ]
+}

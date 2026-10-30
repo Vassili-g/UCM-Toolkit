@@ -1,0 +1,62 @@
+{
+  "composant": "segmented-control",
+  "systeme": "wai-aria-apg",
+  "lu": "2026-10-30",
+  "pages": [
+    "https://www.w3.org/WAI/ARIA/apg/patterns/radio/",
+    "https://www.w3.org/WAI/ARIA/apg/patterns/radio/examples/radio/",
+    "https://www.w3.org/WAI/ARIA/apg/patterns/tabs/",
+    "https://www.w3.org/WAI/ARIA/apg/patterns/button/"
+  ],
+  "variantes": [
+    "Radio Group : choix unique, rôles radiogroup et radio",
+    "Tabs : un onglet actif qui commande un panneau, rôles tablist, tab et tabpanel",
+    "Toggle button : bouton à deux états avec aria-pressed"
+  ],
+  "tailles": {},
+  "anatomie": [
+    "radiogroup : le conteneur des boutons radio, étiqueté par aria-labelledby ou aria-label",
+    "radio : chaque option, nommée par son contenu, par aria-labelledby ou par aria-label",
+    "tablist, tab et tabpanel : le conteneur d'onglets, chaque onglet et la zone de contenu liée",
+    "button avec aria-pressed : une bascule isolée"
+  ],
+  "etats": [
+    "default : aria-checked vaut false sur un radio ; aria-pressed vaut false sur un toggle ; aria-selected vaut false sur un onglet",
+    "selected : aria-checked vaut true sur un radio ; aria-pressed vaut true sur un toggle ; aria-selected vaut true sur un onglet",
+    "disabled : aria-disabled vaut true sur un bouton qu'on ne peut pas utiliser"
+  ],
+  "clavier": [
+    "Radio Group, Tab : entre sur le radio coché, ou sur le premier si aucun n'est coché ; Maj+Tab et Tab sortent du groupe.",
+    "Radio Group, Espace : coche le radio focalisé s'il ne l'est pas déjà.",
+    "Radio Group, flèche droite et flèche bas : vont au suivant, le cochent et décochent l'ancien ; le focus boucle du dernier au premier.",
+    "Radio Group, flèche gauche et flèche haut : vont au précédent avec le même effet ; le focus boucle du premier au dernier.",
+    "Radio Group, Home et End : la page du motif n'en parle pas.",
+    "Radio Group dans une barre d'outils : les flèches ne déplacent que le focus. Espace, et Entrée en option, coche le radio focalisé.",
+    "Tabs, Tab : entre sur l'onglet actif ; un second Tab sort de la liste.",
+    "Tabs, flèche gauche et flèche droite : vont à l'onglet voisin avec bouclage et peuvent l'activer. Flèche haut et bas ne servent qu'aux listes verticales.",
+    "Tabs, Home et End : vont au premier et au dernier onglet, en option.",
+    "Tabs, Espace et Entrée : activent l'onglet focalisé si le focus ne l'a pas déjà fait.",
+    "Toggle button, Espace et Entrée : basculent le bouton."
+  ],
+  "regles": [
+    "Un radio group est un ensemble de boutons cochables dont un au plus est coché. Il peut démarrer sans sélection.",
+    "Le motif radio mentionne que ces boutons sont souvent habillés comme des toggle buttons, ce qui décrit le contrôle segmenté à choix unique.",
+    "Le conteneur ne prend jamais le focus. Un roving tabindex donne tabindex 0 à un seul radio et tabindex -1 aux autres ; le 0 suit le focus.",
+    "Le groupe a besoin d'une étiquette visible reliée par aria-labelledby, ou d'un aria-label.",
+    "Tabs, activation automatique : le panneau s'affiche dès que l'onglet reçoit le focus ; recommandée quand les panneaux s'affichent sans latence perceptible.",
+    "Tabs, activation manuelle : l'utilisateur déplace le focus puis appuie sur Espace ou Entrée ; adaptée quand un chargement ralentirait les flèches.",
+    "Un panneau sans contenu focalisable reçoit tabindex 0 pour rester atteignable au clavier.",
+    "Toggle button : le rôle est button et aria-pressed signale les deux états. Le motif ne décrit pas de conteneur de groupe ni de rôle pour une rangée de bascules.",
+    "Plusieurs sélections simultanées : le motif Radio Group ne les couvre pas. Il reste le motif Toggle button, un bouton par option."
+  ],
+  "redaction": [
+    "Toggle button : garder le même libellé quand l'état change, car l'état passe par aria-pressed.",
+    "Si le libellé change à la place (Muet devient Réactiver le son), omettre aria-pressed.",
+    "Un radio prend son nom accessible de son contenu texte, ou de aria-labelledby ou aria-label pour une icône seule."
+  ],
+  "particularites": [
+    "Le guide du W3C ne contient aucun motif segmenté. Les trois motifs lus se partagent le cas : radiogroup pour un choix unique à flèches, tablist quand la sélection commande un panneau, toggle buttons pour une sélection multiple.",
+    "Le guide ne dit rien du nombre de segments, de la largeur, du débordement ni du responsive.",
+    "Sans sélection au chargement, certains navigateurs mettent le focus sur le dernier bouton d'un radio group natif à l'entrée par Maj+Tab."
+  ]
+}

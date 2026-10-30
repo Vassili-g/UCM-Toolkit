@@ -1,0 +1,72 @@
+[
+  {
+    "id": "segmented-control",
+    "nom": "Segmented control",
+    "definition": "Groupe de deux à quatre segments accolés dont un seul est actif, qui change l'affichage d'une même vue sans naviguer.",
+    "voisins": ["tabs", "radio-group", "toggle-button"],
+    "systemes": {
+      "material-3": {
+        "nom": "Segmented button",
+        "url": "https://m3.material.io/components/segmented-buttons/overview",
+        "motifs": ["^md[.]comp[.]outlined-segmented-button[.]"]
+      },
+      "carbon": {
+        "nom": "Content switcher",
+        "url": "https://carbondesignsystem.com/components/content-switcher/usage/",
+        "motifs": ["^content-switcher[.]"]
+      },
+      "fluent-2": null,
+      "spectrum": {
+        "nom": "SegmentedControl",
+        "url": "https://react-spectrum.adobe.com/SegmentedControl.md",
+        "motifs": ["^segmented-control-"]
+      },
+      "atlassian": null,
+      "polaris": {
+        "nom": "Button group",
+        "url": "https://shopify.dev/docs/api/app-home/polaris-web-components/actions/buttongroup",
+        "note": "Pas de composant propre : le groupe de boutons a une présentation segmentée, pour basculer entre vues ou filtres."
+      },
+      "radix": {
+        "nom": "Segmented Control",
+        "url": "https://www.radix-ui.com/themes/docs/components/segmented-control"
+      },
+      "ant-design": {
+        "nom": "Segmented",
+        "url": "https://ant.design/components/segmented",
+        "motifs": ["^Segmented[.]"]
+      },
+      "wai-aria-apg": {
+        "nom": "Radio Group",
+        "url": "https://www.w3.org/WAI/ARIA/apg/patterns/radio/",
+        "note": "Pas de motif segmenté : le motif Radio Group décrit le comportement d'un choix unique à flèches."
+      },
+      "react-aria": {
+        "nom": "ToggleButtonGroup",
+        "url": "https://react-aria.adobe.com/ToggleButtonGroup"
+      },
+      "govuk": null
+    }
+  },
+  {
+    "id": "tabs",
+    "nom": "Tabs",
+    "definition": "Onglets qui passent d'une vue à une autre au sein d'une même page.",
+    "voisins": ["segmented-control"],
+    "systemes": {}
+  },
+  {
+    "id": "radio-group",
+    "nom": "Radio group",
+    "definition": "Groupe d'options dont une seule est choisie, dans un formulaire.",
+    "voisins": ["segmented-control"],
+    "systemes": {}
+  },
+  {
+    "id": "toggle-button",
+    "nom": "Toggle button",
+    "definition": "Bouton qui garde un état activé ou désactivé.",
+    "voisins": ["segmented-control"],
+    "systemes": {}
+  }
+]

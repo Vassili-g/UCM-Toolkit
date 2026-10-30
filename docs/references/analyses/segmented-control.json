@@ -1,0 +1,435 @@
+{
+  "gabarit": 1,
+  "composant": "segmented-control",
+  "date": "2026-10-30",
+  "definition": {
+    "resume": "Rangée de deux à quatre segments accolés. L'utilisateur en choisit un, et l'affichage d'une même zone change aussitôt, sans changer de page.",
+    "quandLUtiliser": [
+      "Changer le format d'un même contenu, par exemple grille ou tableau.",
+      "Filtrer ou trier un ensemble de contenus apparentés, par exemple tous, lus, non lus.",
+      "Choisir une valeur parmi peu d'options courtes, toutes visibles, quand le choix s'applique tout de suite.",
+      "Choisir une période d'affichage : jour, semaine, mois."
+    ],
+    "voisins": [
+      {
+        "id": "tabs",
+        "choisirSi": "Chaque option ouvre une zone de contenu distincte, comme une sous-page. Carbon place souvent un sélecteur segmenté à l'intérieur d'un onglet, pour trier à un niveau plus bas."
+      },
+      {
+        "id": "radio-group",
+        "choisirSi": "Le choix est une donnée de formulaire, envoyée avec les autres champs, ou les options sont nombreuses ou longues."
+      },
+      {
+        "id": "toggle-button",
+        "choisirSi": "Le réglage est binaire, actif ou inactif. Carbon renvoie un choix oui ou non vers un interrupteur."
+      }
+    ]
+  },
+  "anatomie": {
+    "parties": [
+      { "nom": "Conteneur du groupe : piste ou rangée qui place les segments", "obligatoire": true, "systemes": ["ant-design", "carbon", "material-3", "polaris", "radix", "spectrum"] },
+      { "nom": "Segment : zone cliquable entière, une par option", "obligatoire": true, "systemes": ["ant-design", "carbon", "material-3", "polaris", "radix", "spectrum"] },
+      { "nom": "Étiquette du groupe, visible ou annoncée par aria-label", "obligatoire": true, "systemes": ["polaris", "spectrum", "react-aria", "wai-aria-apg"] },
+      { "nom": "Libellé texte du segment", "obligatoire": false, "systemes": ["ant-design", "carbon", "material-3", "polaris", "spectrum"] },
+      { "nom": "Icône du segment", "obligatoire": false, "systemes": ["ant-design", "carbon", "material-3", "polaris", "spectrum"] },
+      { "nom": "Indicateur de sélection : coche, bordure ou surface qui se déplace", "obligatoire": false, "systemes": ["material-3", "spectrum", "react-aria"] },
+      { "nom": "Séparateur entre deux segments", "obligatoire": false, "systemes": ["carbon", "react-aria"] },
+      { "nom": "Infobulle du segment", "obligatoire": false, "systemes": ["ant-design", "carbon"] },
+      { "nom": "Zone de contenu commandée, hors du composant", "obligatoire": false, "systemes": ["carbon", "wai-aria-apg"] }
+    ]
+  },
+  "variantes": {
+    "emphase": [
+      { "nom": "fort contraste", "locaux": { "carbon": "High contrast" } },
+      { "nom": "faible contraste", "locaux": { "carbon": "Low contrast" } },
+      { "nom": "contour", "locaux": { "material-3": "Outlined segmented button" } }
+    ],
+    "statut": [],
+    "tailles": [
+      { "nom": "sm", "locaux": { "ant-design": "small", "carbon": "Small", "radix": "1" } },
+      { "nom": "md", "locaux": { "ant-design": "medium", "carbon": "Medium", "material-3": "container", "radix": "2", "spectrum": "desktop" } },
+      { "nom": "lg", "locaux": { "ant-design": "large", "carbon": "Large", "radix": "3" } }
+    ]
+  },
+  "etats": [
+    {
+      "etat": "default",
+      "ceQuiChange": "Segment non choisi, au repos. Libellé et icône prennent la couleur de base. Le segment n'a pas de fond propre et laisse voir la piste ou le contour du groupe.",
+      "systemes": ["ant-design", "carbon", "material-3", "radix", "wai-aria-apg"]
+    },
+    {
+      "etat": "hover",
+      "ceQuiChange": "Le fond du segment fonce un peu sur la piste (Ant, Carbon), ou une couche d'état de faible opacité le recouvre (Material). Material donne des couleurs différentes au survol d'un segment choisi et d'un segment non choisi.",
+      "systemes": ["ant-design", "carbon", "material-3"]
+    },
+    {
+      "etat": "focus",
+      "ceQuiChange": "Le segment focalisé montre un indicateur de focus, distinct du dessin de la sélection. Material y ajoute une couche d'état. React Aria distingue le focus au clavier du focus à la souris.",
+      "systemes": ["carbon", "material-3", "react-aria"]
+    },
+    {
+      "etat": "pressed",
+      "ceQuiChange": "Pendant l'appui, le fond du segment fonce davantage que pour le survol (Ant), ou la couche d'état devient plus opaque (Material).",
+      "systemes": ["ant-design", "material-3", "react-aria"]
+    },
+    {
+      "etat": "disabled",
+      "ceQuiChange": "Le groupe entier ou un segment seul devient inactif. Material garde les couleurs et baisse l'opacité du libellé, de l'icône et du contour.",
+      "systemes": ["ant-design", "carbon", "material-3", "radix", "spectrum", "react-aria", "wai-aria-apg"]
+    },
+    {
+      "etat": "selected",
+      "ceQuiChange": "Le segment choisi reçoit un fond propre et des couleurs propres pour le libellé et l'icône. Material peut y ajouter une coche, Spectrum une bordure de sélection, Carbon en faible contraste un libellé semi-gras. Cet état se combine avec le survol, le focus, l'appui et l'état inactif.",
+      "systemes": ["ant-design", "carbon", "material-3", "radix", "spectrum", "react-aria", "wai-aria-apg"]
+    }
+  ],
+  "clavier": {
+    "touches": [
+      { "touche": "Tab", "effet": "Entre dans le groupe par un seul arrêt, sur le segment choisi, ou sur le premier si aucun ne l'est. Un second appui sort du groupe.", "systemes": ["carbon", "radix", "wai-aria-apg"] },
+      { "touche": "Maj+Tab", "effet": "Sort du groupe vers l'élément précédent de la page.", "systemes": ["wai-aria-apg"] },
+      { "touche": "Flèche droite", "effet": "Va au segment suivant. En motif radio et en onglets à activation automatique, le choix suit le focus. Le focus revient au premier segment après le dernier.", "systemes": ["ant-design", "carbon", "radix", "wai-aria-apg"] },
+      { "touche": "Flèche gauche", "effet": "Va au segment précédent, avec le même effet sur le choix. Le focus revient au dernier segment avant le premier.", "systemes": ["ant-design", "carbon", "radix", "wai-aria-apg"] },
+      { "touche": "Flèche bas, flèche haut", "effet": "Vont au segment suivant ou précédent dans le motif radio et dans la primitive Radix. Le motif des onglets les réserve à une liste verticale.", "systemes": ["radix", "wai-aria-apg"] },
+      { "touche": "Home, End", "effet": "Vont au premier et au dernier segment. Le motif des onglets les rend facultatives, la primitive Radix les prévoit, le motif radio n'en parle pas.", "systemes": ["radix", "wai-aria-apg"] },
+      { "touche": "Espace", "effet": "Choisit le segment focalisé quand le focus ne l'a pas déjà choisi. Sur des boutons à bascule, inverse l'état du segment.", "systemes": ["carbon", "radix", "wai-aria-apg"] },
+      { "touche": "Entrée", "effet": "Même effet qu'Espace pour les onglets et les bascules. Le motif radio ne la prévoit qu'en option, dans une barre d'outils.", "systemes": ["carbon", "radix", "wai-aria-apg"] }
+    ],
+    "focus": [
+      { "texte": "Un seul segment porte tabindex 0, les autres portent -1, et le 0 suit le focus. Le conteneur ne reçoit jamais le focus.", "systemes": ["carbon", "radix", "wai-aria-apg"] },
+      { "texte": "Activation automatique : le choix suit le focus et la vue change à chaque flèche. Activation manuelle : les flèches déplacent le focus seul, puis Espace ou Entrée choisit.", "systemes": ["carbon", "wai-aria-apg"] },
+      { "texte": "En activation manuelle, le focus et la sélection peuvent porter sur deux segments différents. Le dessin du focus doit donc rester lisible à côté du dessin de la sélection.", "systemes": ["carbon", "wai-aria-apg"] },
+      { "texte": "Quand aucun segment n'est choisi au chargement, certains navigateurs posent le focus sur le dernier segment d'un groupe de radios natif quand on y entre par Maj+Tab.", "systemes": ["wai-aria-apg"] }
+    ],
+    "interactions": [
+      { "texte": "Toute la surface du segment répond au clic.", "systemes": ["carbon"] },
+      { "texte": "Choisir un segment libère le précédent. Un segment est choisi dès l'affichage, en général le premier.", "systemes": ["ant-design", "carbon"] },
+      { "texte": "En choix unique, un clic sur le segment déjà choisi peut le libérer. Radix et React Aria demandent un réglage explicite pour garder toujours un segment choisi.", "systemes": ["radix", "react-aria"] },
+      { "texte": "Quand la vue commandée met du temps à se mettre à jour, l'activation manuelle évite un chargement à chaque flèche.", "systemes": ["carbon", "wai-aria-apg"] }
+    ]
+  },
+  "accessibilite": {
+    "aria": {
+      "role": "À trancher en section 14 : radiogroup avec radio, tablist avec tab, ou group de button avec aria-pressed",
+      "attributs": [
+        "aria-checked sur chaque radio",
+        "aria-selected sur chaque tab",
+        "aria-pressed sur chaque bouton à bascule",
+        "aria-disabled",
+        "aria-label ou aria-labelledby sur le groupe",
+        "aria-label sur un segment à icône seule",
+        "tabindex 0 sur un segment, -1 sur les autres"
+      ],
+      "nomAccessible": "Le groupe reçoit une étiquette visible, reliée par aria-labelledby, ou un aria-label. Chaque segment prend son nom de son libellé visible. Un segment à icône seule reçoit son propre aria-label."
+    },
+    "criteres": [
+      { "critere": "1.4.1", "sApplique": true, "exigence": "La couleur seule ne signale pas le segment choisi.", "pratique": "Material ajoute une coche au segment choisi, Spectrum une bordure de sélection. Carbon en faible contraste passe le libellé choisi en semi-gras." },
+      { "critere": "1.4.3", "sApplique": true, "exigence": "Libellé et icône atteignent le seuil du texte normal sur leur fond, pour le segment choisi comme pour les autres, dans chaque état actif.", "pratique": "Le nuancier de la section 10 mesure les paires publiées. Un segment inactif est exempté par le critère." },
+      { "critere": "1.4.4", "sApplique": true, "exigence": "Le texte agrandi à 200 % reste lisible, sans perte de contenu.", "pratique": "Carbon et Ant tronquent un libellé trop long par une ellipse. Carbon donne alors le texte entier dans une infobulle native." },
+      { "critere": "1.4.11", "sApplique": true, "exigence": "La limite du segment choisi, le contour du groupe et l'indicateur de focus atteignent le seuil du contenu non textuel face à leur voisin.", "pratique": "Material dessine un contour autour de chaque segment. Ant et Carbon en faible contraste distinguent le segment choisi par l'écart entre sa teinte et celle de la piste." },
+      { "critere": "1.4.12", "sApplique": true, "exigence": "Le libellé reste lisible quand l'utilisateur augmente l'interligne et l'espacement des lettres et des mots.", "pratique": "Aucune source lue n'en parle. Une hauteur de segment fixe peut couper le texte agrandi." },
+      { "critere": "2.1.1", "sApplique": true, "exigence": "Chaque segment se choisit au clavier.", "pratique": "Carbon, Radix et Ant décrivent les flèches. Les pages de Material, Spectrum et Polaris ne décrivent aucune touche." },
+      { "critere": "2.4.3", "sApplique": true, "exigence": "Le groupe compte pour un seul arrêt de tabulation, et les flèches suivent l'ordre visuel des segments.", "pratique": "Carbon, la primitive Radix et l'APG utilisent un roving tabindex." },
+      { "critere": "2.4.7", "sApplique": true, "exigence": "Le segment focalisé montre un indicateur visible.", "pratique": "Material prévoit une couche d'état de focus. React Aria expose le focus clavier par data-focus-visible." },
+      { "critere": "2.4.11", "sApplique": true, "exigence": "Un segment voisin ou un élément fixé de la page ne cache pas l'indicateur de focus.", "pratique": "Material et la recette de React Aria font chevaucher les segments d'un pixel. L'anneau de focus doit alors passer au-dessus du segment voisin." },
+      { "critere": "2.4.13", "sApplique": true, "exigence": "Indicatif : l'anneau de focus entoure le segment, assez épais et assez contrasté entre état focalisé et non focalisé.", "pratique": "Aucune source lue ne donne d'épaisseur d'anneau propre au composant." },
+      { "critere": "2.5.3", "sApplique": true, "exigence": "Le nom accessible d'un segment contient son libellé visible.", "pratique": "L'APG nomme un radio par son contenu texte. Spectrum et React Aria ajoutent un aria-label seulement aux segments à icône seule." },
+      { "critere": "2.5.7", "sApplique": false, "exigence": "Une action par glissement a une alternative par simple pointage.", "pratique": "Le choix se fait par clic ou toucher. Un indicateur qui glisse en animation ne demande aucun geste de glissement." },
+      { "critere": "2.5.8", "sApplique": true, "exigence": "Chaque segment offre une cible d'au moins 24 par 24 pixels CSS.", "pratique": "La plus petite hauteur relevée, Ant small, est à cette limite. Carbon dessine un segment à icône seule carré, de largeur égale à sa hauteur." },
+      { "critere": "3.3.2", "sApplique": true, "exigence": "Le groupe porte une étiquette qui dit ce que l'utilisateur choisit.", "pratique": "Spectrum, React Aria et Polaris libellent le groupe. Carbon ne dit rien de l'étiquette de son tablist." },
+      { "critere": "4.1.2", "sApplique": true, "exigence": "Le rôle, l'état choisi et le nom de chaque segment sont exposés.", "pratique": "Carbon expose tablist et aria-selected. Ant pose un champ radio natif dans chaque segment. React Aria expose aria-pressed. Les pages des autres systèmes ne nomment aucun rôle." },
+      { "critere": "4.1.3", "sApplique": false, "exigence": "Un message d'état s'annonce sans déplacer le focus.", "pratique": "Aucune source ne prévoit d'annonce au changement de segment. Un nombre de résultats affiché après un filtre relève de la page." }
+    ]
+  },
+  "redaction": {
+    "regles": [
+      { "texte": "Libellé court, de deux ou trois mots au plus.", "systemes": ["carbon"] },
+      { "texte": "Casse de phrase.", "systemes": ["carbon"] },
+      { "texte": "Un nom ou un groupe nominal qui décrit la vue. Un verbe d'action ferait prendre les segments pour des boutons.", "systemes": ["carbon"] },
+      { "texte": "Les exemples publiés tiennent en un mot par segment, comme jour, semaine, mois ou gauche, centre, droite.", "systemes": ["polaris", "spectrum", "react-aria"] },
+      { "texte": "Le libellé reste le même quand l'état change : l'état passe par l'attribut.", "systemes": ["wai-aria-apg"] },
+      { "texte": "Texte trop long : ellipse, et texte entier dans une infobulle.", "systemes": ["ant-design", "carbon"] },
+      { "texte": "Traduction : avec des segments de largeur égale, le libellé le plus long fixe la largeur de tous. Quand les libellés ne tiennent plus, Carbon passe à la version à icônes.", "systemes": ["carbon"] },
+      { "texte": "Sens de lecture de droite à gauche : la primitive Radix accepte une direction, qui inverse l'ordre des segments et le sens des flèches.", "systemes": ["radix"] }
+    ]
+  },
+  "proposition": [
+    { "segments": [{ "genre": "autre", "valeur": "color" }, { "genre": "autre", "valeur": "track" }, { "genre": "etat", "valeur": "default" }, { "genre": "role", "valeur": "background" }], "note": "Fond de la piste, si le style retenu en a une." },
+    { "segments": [{ "genre": "autre", "valeur": "color" }, { "genre": "autre", "valeur": "track" }, { "genre": "etat", "valeur": "default" }, { "genre": "role", "valeur": "border" }], "note": "Contour du groupe, pour un style à contour." },
+    { "segments": [{ "genre": "autre", "valeur": "color" }, { "genre": "autre", "valeur": "item" }, { "genre": "etat", "valeur": "default" }, { "genre": "role", "valeur": "text" }] },
+    { "segments": [{ "genre": "autre", "valeur": "color" }, { "genre": "autre", "valeur": "item" }, { "genre": "etat", "valeur": "default" }, { "genre": "role", "valeur": "icon" }] },
+    { "segments": [{ "genre": "autre", "valeur": "color" }, { "genre": "autre", "valeur": "item" }, { "genre": "etat", "valeur": "default" }, { "genre": "role", "valeur": "divider" }], "note": "Séparateur entre deux segments non choisis." },
+    { "segments": [{ "genre": "autre", "valeur": "color" }, { "genre": "autre", "valeur": "item" }, { "genre": "etat", "valeur": "hover" }, { "genre": "role", "valeur": "background" }] },
+    { "segments": [{ "genre": "autre", "valeur": "color" }, { "genre": "autre", "valeur": "item" }, { "genre": "etat", "valeur": "pressed" }, { "genre": "role", "valeur": "background" }] },
+    { "segments": [{ "genre": "autre", "valeur": "color" }, { "genre": "autre", "valeur": "item" }, { "genre": "etat", "valeur": "focus" }, { "genre": "role", "valeur": "ring" }] },
+    { "segments": [{ "genre": "autre", "valeur": "color" }, { "genre": "autre", "valeur": "item" }, { "genre": "etat", "valeur": "selected" }, { "genre": "role", "valeur": "background" }] },
+    { "segments": [{ "genre": "autre", "valeur": "color" }, { "genre": "autre", "valeur": "item" }, { "genre": "etat", "valeur": "selected" }, { "genre": "role", "valeur": "text" }] },
+    { "segments": [{ "genre": "autre", "valeur": "color" }, { "genre": "autre", "valeur": "item" }, { "genre": "etat", "valeur": "selected" }, { "genre": "role", "valeur": "icon" }] },
+    { "segments": [{ "genre": "autre", "valeur": "color" }, { "genre": "autre", "valeur": "item" }, { "genre": "etat", "valeur": "selected" }, { "genre": "role", "valeur": "border" }], "note": "Bordure du segment choisi, pour un style qui en a une." },
+    { "segments": [{ "genre": "autre", "valeur": "color" }, { "genre": "autre", "valeur": "item" }, { "genre": "etat", "valeur": "disabled" }, { "genre": "role", "valeur": "text" }] },
+    { "segments": [{ "genre": "autre", "valeur": "color" }, { "genre": "autre", "valeur": "item" }, { "genre": "etat", "valeur": "disabled" }, { "genre": "role", "valeur": "icon" }] },
+    { "segments": [{ "genre": "autre", "valeur": "size" }, { "genre": "taille", "valeur": "sm" }, { "genre": "autre", "valeur": "height" }] },
+    { "segments": [{ "genre": "autre", "valeur": "size" }, { "genre": "taille", "valeur": "md" }, { "genre": "autre", "valeur": "height" }] },
+    { "segments": [{ "genre": "autre", "valeur": "size" }, { "genre": "taille", "valeur": "lg" }, { "genre": "autre", "valeur": "height" }] },
+    { "segments": [{ "genre": "autre", "valeur": "size" }, { "genre": "autre", "valeur": "track" }, { "genre": "autre", "valeur": "padding" }], "note": "Retrait entre la piste et les segments." },
+    { "segments": [{ "genre": "autre", "valeur": "size" }, { "genre": "autre", "valeur": "track" }, { "genre": "autre", "valeur": "radius" }] },
+    { "segments": [{ "genre": "autre", "valeur": "size" }, { "genre": "autre", "valeur": "track" }, { "genre": "autre", "valeur": "border-width" }] },
+    { "segments": [{ "genre": "autre", "valeur": "size" }, { "genre": "autre", "valeur": "item" }, { "genre": "autre", "valeur": "radius" }] },
+    { "segments": [{ "genre": "autre", "valeur": "size" }, { "genre": "autre", "valeur": "item" }, { "genre": "autre", "valeur": "padding-x" }] },
+    { "segments": [{ "genre": "autre", "valeur": "size" }, { "genre": "autre", "valeur": "item" }, { "genre": "autre", "valeur": "gap" }], "note": "Écart entre l'icône et le libellé." },
+    { "segments": [{ "genre": "autre", "valeur": "size" }, { "genre": "autre", "valeur": "item" }, { "genre": "autre", "valeur": "icon-size" }] },
+    { "segments": [{ "genre": "autre", "valeur": "size" }, { "genre": "autre", "valeur": "item" }, { "genre": "etat", "valeur": "selected" }, { "genre": "autre", "valeur": "border-width" }], "note": "Épaisseur de la bordure de sélection, comme chez Spectrum." }
+  ],
+  "choix": [
+    {
+      "question": "Quel rôle le composant expose-t-il au lecteur d'écran ?",
+      "options": {
+        "radiogroup": "Un radiogroup de radio, avec aria-checked : choix unique, les flèches choisissent.",
+        "tablist": "Un tablist de tab, avec aria-selected : chaque segment commande une zone de contenu.",
+        "aria-pressed": "Des boutons à bascule avec aria-pressed : le seul motif qui porte un choix multiple."
+      },
+      "systemes": { "ant-design": "radiogroup", "carbon": "tablist", "react-aria": "aria-pressed" }
+    },
+    {
+      "question": "Le composant accepte-t-il un choix multiple ?",
+      "options": {
+        "unique": "Choix unique seulement. Le choix multiple passe par un autre composant.",
+        "deux-modes": "Le même composant accepte un choix unique ou multiple, par une propriété ou par deux variantes de code."
+      },
+      "systemes": { "ant-design": "unique", "carbon": "unique", "material-3": "deux-modes", "spectrum": "unique", "react-aria": "deux-modes" }
+    },
+    {
+      "question": "Le groupe peut-il n'avoir aucun segment choisi ?",
+      "options": {
+        "jamais-vide": "Un segment reste toujours choisi, le premier par défaut.",
+        "vide-permis": "Le groupe peut démarrer sans choix, ou perdre son choix par un clic sur le segment choisi."
+      },
+      "systemes": { "ant-design": "jamais-vide", "carbon": "jamais-vide", "radix": "vide-permis", "react-aria": "vide-permis", "wai-aria-apg": "vide-permis" }
+    },
+    {
+      "question": "Comment se répartit la largeur ?",
+      "options": {
+        "egale": "Tous les segments ont la même largeur, fixée par le libellé le plus long, et peuvent couvrir des colonnes de la grille.",
+        "reglage-etirer": "Le groupe suit son contenu, et une propriété l'étire à la largeur du parent."
+      },
+      "systemes": { "ant-design": "reglage-etirer", "carbon": "egale", "spectrum": "reglage-etirer" }
+    },
+    {
+      "question": "Que fait un libellé trop long ?",
+      "options": {
+        "ellipse-infobulle": "Ellipse, et le texte entier apparaît dans une infobulle.",
+        "ellipse": "Ellipse ; une infobulle peut être posée à la main sur le segment.",
+        "largeur-max": "Un token fixe la largeur maximale d'un segment."
+      },
+      "systemes": { "ant-design": "ellipse", "carbon": "ellipse-infobulle", "spectrum": "largeur-max" }
+    },
+    {
+      "question": "Comment se dessine un segment à icône seule ?",
+      "options": {
+        "carre-sans-melange": "Segment carré, et aucun segment à texte dans le même groupe.",
+        "nom-par-segment": "Permis, avec un nom accessible porté par chaque segment.",
+        "sans-regle": "Permis, sans règle de forme ni de nom sur la page."
+      },
+      "systemes": { "ant-design": "sans-regle", "carbon": "carre-sans-melange", "material-3": "nom-par-segment", "spectrum": "nom-par-segment", "react-aria": "nom-par-segment" }
+    },
+    {
+      "question": "Un segment peut-il porter une icône et un texte ensemble ?",
+      "options": {
+        "icone-et-texte": "Oui, icône et texte côte à côte dans un segment.",
+        "jamais": "Non : un groupe n'a que des icônes ou que des textes."
+      },
+      "systemes": { "ant-design": "icone-et-texte", "carbon": "jamais", "material-3": "icone-et-texte", "spectrum": "icone-et-texte" }
+    },
+    {
+      "question": "Quel dessin marque le segment choisi ?",
+      "options": {
+        "piste": "Une piste de fond, et le segment choisi ressort en teinte claire.",
+        "contour": "Un contour autour de chaque segment, et le segment choisi se remplit d'une teinte.",
+        "inverse": "Le segment choisi prend une teinte inversée, sombre sur fond clair."
+      },
+      "systemes": { "ant-design": "piste", "carbon": "inverse", "material-3": "contour", "react-aria": "contour" }
+    },
+    {
+      "question": "Quelle forme ont les coins ?",
+      "options": {
+        "pilule": "Rayon maximal : le groupe a la forme d'une pilule.",
+        "leger": "Un petit rayon fixe.",
+        "reglable": "Une propriété choisit la forme parmi plusieurs."
+      },
+      "systemes": { "ant-design": "reglable", "carbon": "leger", "material-3": "pilule", "radix": "reglable" }
+    },
+    {
+      "question": "Les flèches choisissent-elles le segment, ou déplacent-elles seulement le focus ?",
+      "options": {
+        "automatique": "Les flèches déplacent le focus et changent le choix ensemble.",
+        "manuelle": "Les flèches déplacent le focus ; Espace ou Entrée choisit.",
+        "les-deux": "Les deux modes existent ; le designer annote celui qu'il veut."
+      },
+      "systemes": { "ant-design": "automatique", "carbon": "les-deux", "radix": "manuelle", "wai-aria-apg": "les-deux" }
+    },
+    {
+      "question": "Combien de segments le système admet-il ?",
+      "options": {
+        "borne": "Une borne écrite, par exemple de deux à cinq pour le choix multiple.",
+        "minimum-seul": "Deux au minimum, sans maximum écrit.",
+        "sans-chiffre": "Aucun chiffre ; la page conseille seulement d'en mettre peu ou n'en dit rien."
+      },
+      "systemes": { "ant-design": "sans-chiffre", "carbon": "minimum-seul", "material-3": "borne", "polaris": "sans-chiffre", "spectrum": "sans-chiffre" }
+    }
+  ],
+  "rappels": {
+    "regle": [
+      { "texte": "Deux segments au minimum.", "systemes": ["carbon"] },
+      { "texte": "Le composant change une vue ou filtre un contenu voisin. Des sous-pages distinctes relèvent des onglets.", "systemes": ["carbon"] },
+      { "texte": "Un choix oui ou non relève d'un interrupteur.", "systemes": ["carbon"] },
+      { "texte": "Le groupe se place au-dessus du contenu qu'il commande, aligné à gauche ou à droite, jamais centré, et à distance du bord d'un conteneur.", "systemes": ["carbon"] },
+      { "texte": "Seuls les coins extérieurs du premier et du dernier segment sont arrondis.", "systemes": ["material-3", "react-aria"] },
+      { "texte": "Radix propose deux habillages, surface par défaut et classic, que la page lue ne décrit pas.", "systemes": ["radix"] }
+    ],
+    "etat": [
+      { "texte": "La sélection et l'interaction forment deux axes. Un segment choisi passe lui aussi par le survol, le focus, l'appui et l'état inactif, avec ses propres couleurs.", "systemes": ["material-3"] },
+      { "texte": "L'état inactif vaut pour le groupe entier ou pour un segment seul.", "systemes": ["ant-design", "carbon", "radix", "spectrum", "react-aria"] },
+      { "texte": "L'état inactif baisse l'opacité du libellé, de l'icône et du contour, et garde leurs couleurs.", "systemes": ["material-3"] },
+      { "texte": "En faible contraste, le libellé choisi passe en semi-gras.", "systemes": ["carbon"] }
+    ],
+    "comportement": [
+      { "texte": "La vue change dès le choix. Avec un chargement lent, l'activation manuelle s'impose.", "systemes": ["carbon", "wai-aria-apg"] },
+      { "texte": "Sur petit écran, quand les libellés ne tiennent plus, une version à icônes remplace la version texte.", "systemes": ["carbon"] },
+      { "texte": "Une orientation verticale existe ; flèche haut et flèche bas servent alors à naviguer.", "systemes": ["ant-design", "radix", "react-aria"] }
+    ],
+    "accessibilite": [
+      { "texte": "Un segment à icône seule porte son propre nom accessible.", "systemes": ["material-3", "spectrum", "react-aria", "wai-aria-apg"] },
+      { "texte": "Le groupe porte une étiquette, visible ou par aria-label.", "systemes": ["polaris", "spectrum", "react-aria", "wai-aria-apg"] },
+      { "texte": "Un champ radio natif dans chaque segment donne au navigateur le rôle et le passage par les flèches.", "systemes": ["ant-design"] }
+    ],
+    "redaction": [
+      { "texte": "Noms courts, en casse de phrase, sans verbe d'action.", "systemes": ["carbon"] }
+    ],
+    "tokens": [
+      { "texte": "La piste a ses propres tokens, séparés de ceux des segments.", "systemes": ["ant-design"] },
+      { "texte": "Les couleurs du segment choisi et du segment non choisi sont séparées pour chaque état d'interaction.", "systemes": ["material-3"] },
+      { "texte": "Seule la variante en faible contraste a des tokens propres. La variante en fort contraste reprend des tokens globaux inversés.", "systemes": ["carbon"] },
+      { "texte": "La hauteur suit l'échelle desktop ou mobile, et deux tokens fixent la largeur maximale d'un segment et l'épaisseur de la bordure de sélection.", "systemes": ["spectrum"] }
+    ]
+  },
+  "exemples": [
+    {
+      "idee": "Le designer annote dans la maquette si l'activation est automatique ou manuelle, parce que les deux modes se ressemblent à l'écran.",
+      "systeme": "carbon",
+      "source": "https://carbondesignsystem.com/components/content-switcher/accessibility/"
+    },
+    {
+      "idee": "Un indicateur de sélection, rendu dans chaque segment, anime le passage du choix d'un segment à l'autre.",
+      "systeme": "react-aria",
+      "source": "https://react-aria.adobe.com/ToggleButtonGroup"
+    },
+    {
+      "idee": "Chaque segment peut porter sa propre infobulle, qui nomme à l'écran un segment à icône seule.",
+      "systeme": "ant-design",
+      "source": "https://ant.design/components/segmented"
+    }
+  ],
+  "questions": [
+    {
+      "question": "Quel rôle le composant expose-t-il au lecteur d'écran ?",
+      "options": [
+        "radiogroup et radio, avec aria-checked : choix unique, les flèches choisissent",
+        "tablist et tab, avec aria-selected : chaque segment commande une zone de contenu",
+        "group de boutons avec aria-pressed : bascules, seul motif qui porte un choix multiple",
+        "un rôle par usage, fixé par une propriété du composant"
+      ],
+      "dependDe": "Les touches de la section 7, les attributs de la section 8, l'existence d'un choix multiple et la frontière avec les composants tabs et radio-group."
+    },
+    {
+      "question": "Le composant accepte-t-il un choix multiple ?",
+      "options": [
+        "non, choix unique seulement",
+        "oui, par une propriété du même composant",
+        "oui, par un composant séparé"
+      ],
+      "dependDe": "Le rôle de la première question, la coche éventuelle du segment choisi et les propriétés du composant dans Figma."
+    },
+    {
+      "question": "Le groupe peut-il n'avoir aucun segment choisi ?",
+      "options": [
+        "jamais : un segment reste choisi, le premier par défaut",
+        "oui, au chargement seulement",
+        "oui, et un clic sur le segment choisi le libère"
+      ],
+      "dependDe": "L'état initial à dessiner, l'effet d'un clic sur le segment choisi et l'entrée au clavier sans segment choisi."
+    },
+    {
+      "question": "Comment se répartit la largeur des segments ?",
+      "options": [
+        "segments égaux, à la largeur du libellé le plus long",
+        "chaque segment à la largeur de son contenu",
+        "groupe étiré à la largeur du parent, en parts égales",
+        "une propriété choisit entre largeur au contenu et largeur étirée"
+      ],
+      "dependDe": "Le réglage de l'auto layout dans Figma, en Hug ou en Fill, la troncature et un éventuel token de largeur maximale."
+    },
+    {
+      "question": "Que fait un libellé trop long ?",
+      "options": [
+        "ellipse, et texte entier dans une infobulle",
+        "ellipse seule",
+        "retour à la ligne",
+        "largeur maximale fixée par un token, puis ellipse"
+      ],
+      "dependDe": "La largeur maximale, l'infobulle dans l'anatomie et le critère 1.4.4."
+    },
+    {
+      "question": "Le composant accepte-t-il des segments à icône seule ?",
+      "options": [
+        "non",
+        "oui, segments carrés, sans segment à texte dans le même groupe",
+        "oui, et un groupe peut mêler segments à icône et segments à texte"
+      ],
+      "dependDe": "Le nom accessible de chaque segment, l'infobulle, et les propriétés de contenu dans Figma : texte, icône, ou les deux."
+    },
+    {
+      "question": "Quel dessin marque le segment choisi ?",
+      "options": [
+        "piste de fond, segment choisi en teinte claire",
+        "contour autour de chaque segment, segment choisi rempli",
+        "segment choisi en teinte inversée",
+        "plusieurs dessins, proposés en variantes"
+      ],
+      "dependDe": "Les tokens de la section 10 : piste, contour, séparateur, bordure de sélection. Le critère 1.4.11 en dépend aussi."
+    },
+    {
+      "question": "Les flèches choisissent-elles le segment, ou déplacent-elles seulement le focus ?",
+      "options": [
+        "activation automatique",
+        "activation manuelle, Espace ou Entrée choisit",
+        "réglable pour chaque usage"
+      ],
+      "dependDe": "Le rôle de la première question et la vitesse de mise à jour de la vue commandée."
+    },
+    {
+      "question": "Combien de tailles le composant propose-t-il ?",
+      "options": [
+        "une seule taille",
+        "trois tailles, sm, md et lg",
+        "une hauteur qui suit une échelle desktop ou mobile"
+      ],
+      "dependDe": "Les tokens de hauteur de la section 10 et la cible minimale du critère 2.5.8."
+    },
+    {
+      "question": "Comment nommer un token qui combine sélection et interaction, comme le survol d'un segment choisi ?",
+      "options": [
+        "un état composé, hors du registre actuel des états",
+        "la sélection dans une autre position du chemin, l'interaction dans la position d'état",
+        "la sélection change seulement le fond ; les couleurs d'interaction restent communes"
+      ],
+      "dependDe": "La proposition de la section 10 et le registre des états du kit, qui place selected au même rang que hover."
+    },
+    {
+      "question": "Material 3 Expressive déconseille-t-il le segmented button au profit du connected button group ? Aucune fiche ne l'a vérifié.",
+      "options": [
+        "le vérifier sur la documentation de Material avant de dessiner",
+        "garder Material comme référence telle que la fiche le décrit"
+      ],
+      "dependDe": "La place de Material dans les choix de la section 11, en particulier le dessin à contour et le choix multiple."
+    }
+  ]
+}

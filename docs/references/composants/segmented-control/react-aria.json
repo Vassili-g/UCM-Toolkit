@@ -1,0 +1,50 @@
+{
+  "composant": "segmented-control",
+  "systeme": "react-aria",
+  "lu": "2026-10-30",
+  "pages": [
+    "https://react-aria.adobe.com/ToggleButtonGroup",
+    "https://react-aria.adobe.com/ToggleButtonGroup.md",
+    "https://react-aria.adobe.com/ToggleButtonGroup/useToggleButtonGroup.md",
+    "https://react-aria.adobe.com/ToggleButton"
+  ],
+  "variantes": [
+    "selectionMode single",
+    "selectionMode multiple",
+    "orientation horizontal",
+    "orientation vertical"
+  ],
+  "tailles": {},
+  "anatomie": [
+    "ToggleButtonGroup : le conteneur",
+    "ToggleButton : un bouton, identifié par `id`",
+    "SelectionIndicator : indicateur facultatif, rendu dans chaque bouton, qui anime le changement de sélection"
+  ],
+  "etats": [
+    "data-pressed",
+    "data-selected",
+    "data-focus-visible",
+    "data-disabled"
+  ],
+  "clavier": [],
+  "regles": [
+    "`selectionMode` vaut `single` par défaut ou `multiple` ; les clés choisies sont les `id` des ToggleButton.",
+    "Mode contrôlé avec `selectedKeys` et `onSelectionChange(keys: Set<Key>)` ; mode non contrôlé avec `defaultSelectedKeys`.",
+    "`disallowEmptySelection` interdit la sélection vide ; l'exemple de contrôle segmenté l'utilise pour garder une option toujours choisie.",
+    "`isDisabled` désactive tout le groupe, ou un seul ToggleButton.",
+    "`orientation` vaut `horizontal` par défaut ou `vertical`, et s'expose en CSS par `data-orientation`.",
+    "Le groupe reçoit un `aria-label` (exemples : « Text style », « Time period »).",
+    "Chaque bouton à icône seule reçoit son propre `aria-label` (exemples : Bold, Strikethrough).",
+    "L'exemple de contrôle segmenté compte quatre boutons : Day, Week, Month, Year ; la page ne fixe aucun nombre de boutons.",
+    "Le style de l'exemple colle les boutons avec un recouvrement de 1px et n'arrondit que les coins extérieurs du premier et du dernier.",
+    "La page ne dit pas si la largeur est égale ou liée au contenu ; seule l'orientation verticale utilise `width: fit-content`.",
+    "La page ne documente ni débordement, ni comportement responsive."
+  ],
+  "redaction": [],
+  "particularites": [
+    "Il n'existe pas de composant segmenté dans React Aria Components : la page fournit une recette de style `segmented-control` construite sur ToggleButtonGroup.",
+    "Les pages lues ne décrivent ni touches, ni attribut `role` du groupe (radiogroup, toolbar ou group), ni rôle des boutons ; elles listent `aria-pressed` parmi les attributs d'un ToggleButton.",
+    "`excludeFromTabOrder` retire un bouton de l'ordre de tabulation ; la page le déconseille hors cas rares.",
+    "La page de la recette et celle du hook `useToggleButtonGroup` exposent les mêmes props de groupe."
+  ]
+}

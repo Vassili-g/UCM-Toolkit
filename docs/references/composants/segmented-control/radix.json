@@ -1,0 +1,47 @@
+{
+  "composant": "segmented-control",
+  "systeme": "radix",
+  "lu": "2026-10-30",
+  "pages": [
+    "https://www.radix-ui.com/themes/docs/components/segmented-control",
+    "https://www.radix-ui.com/primitives/docs/components/toggle-group"
+  ],
+  "variantes": [
+    "surface : valeur par défaut",
+    "classic"
+  ],
+  "tailles": {},
+  "anatomie": [
+    "Root : le conteneur, qui reçoit size, variant, radius, disabled et defaultValue",
+    "Item : une option, identifiée par sa prop value"
+  ],
+  "etats": [
+    "default : item non actif (data-state off dans la primitive Toggle Group)",
+    "selected : item actif (data-state on dans la primitive Toggle Group)",
+    "disabled : prop disabled sur Root pour tout le groupe, ou sur un Item (data-disabled dans la primitive)"
+  ],
+  "clavier": [
+    "Tab entre dans le groupe et se pose sur l'item activé, ou sur le premier s'il n'y en a pas (primitive Toggle Group).",
+    "Flèche bas et flèche droite vont à l'item suivant ; flèche haut et flèche gauche à l'item précédent.",
+    "Home et End vont au premier et au dernier item.",
+    "Espace et Entrée basculent l'item focalisé.",
+    "Le focus boucle du dernier item au premier par défaut (loop vaut true)."
+  ],
+  "regles": [
+    "La page Themes décrit le composant comme un ensemble de boutons à bascule pour passer d'une valeur ou d'une vue à une autre, construit sur la primitive Toggle Group.",
+    "Taille : size vaut \"1\", \"2\" ou \"3\", \"2\" par défaut, et accepte des valeurs responsives.",
+    "Radius : none, small, medium, large ou full, sans valeur par défaut.",
+    "Les exemples de la page Themes donnent un defaultValue à une seule valeur et trois items : sélection simple en pratique, mais la page ne l'énonce pas.",
+    "Primitive Toggle Group : la prop type vaut single ou multiple. En single, value est une chaîne ; en multiple, un tableau de chaînes, vide par défaut.",
+    "Primitive Toggle Group, en single, un item actif peut se désactiver. Pour garder toujours une valeur, contrôler le composant et ignorer toute mise à jour vers une valeur vide.",
+    "Le focus entre items suit un roving tabindex fondé sur le motif WAI-ARIA radio group (primitive, option rovingFocus à true par défaut)."
+  ],
+  "redaction": [],
+  "particularites": [
+    "La page Themes ne parle ni du nombre de segments, ni de la largeur, ni des icônes, ni du clavier, ni du débordement, ni du rôle aria, ni de type single ou multiple. Elle ne montre aucune hauteur de taille.",
+    "La page de la primitive ne liste aucun rôle aria. On ne sait donc pas si le composant Themes expose radiogroup, group ou autre chose.",
+    "Le clavier ci-dessus vient de la primitive Toggle Group. Rien sur les pages lues ne confirme que Themes SegmentedControl le reprend à l'identique.",
+    "Primitive : orientation, dir et asChild existent sur Root ; disabled et asChild sur Item.",
+    "Le composant Themes n'a pas de page d'accessibilité distincte parmi les pages lues."
+  ]
+}

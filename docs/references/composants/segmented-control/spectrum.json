@@ -1,0 +1,52 @@
+{
+  "composant": "segmented-control",
+  "systeme": "spectrum",
+  "lu": "2026-10-30",
+  "pages": [
+    "https://react-spectrum.adobe.com/SegmentedControl.md",
+    "https://react-spectrum.adobe.com/llms.txt"
+  ],
+  "variantes": [],
+  "tailles": {
+    "desktop": "32px",
+    "mobile": "40px"
+  },
+  "anatomie": [
+    "SegmentedControl : le groupe",
+    "SegmentedControlItem : un segment, identifié par `id`",
+    "Icon : icône facultative dans un segment",
+    "Text : texte facultatif dans un segment"
+  ],
+  "etats": [
+    "selected",
+    "disabled"
+  ],
+  "clavier": [],
+  "regles": [
+    "Le composant est défini comme un groupe de boutons mutuellement exclusifs, destiné à changer de vue.",
+    "La sélection est unique, par clé : `defaultSelectedKey` ou `selectedKey` avec `onSelectionChange(id)`.",
+    "Un segment contient une icône et un texte, ou l'un des deux seulement.",
+    "Un segment sans libellé visible reçoit un `aria-label` ; la page en donne un exemple à icônes seules.",
+    "Le groupe accepte `aria-label`, `aria-labelledby`, `aria-describedby` et `aria-details`, et les exemples à icônes le libellent (« Text alignment »).",
+    "`isJustified` divise la largeur du conteneur à parts égales entre les segments ; sans lui, la page ne dit pas comment la largeur se répartit.",
+    "`isDisabled` existe sur le groupe entier et sur chaque segment.",
+    "La page ne fixe aucun nombre minimal ou maximal de segments ; ses exemples en comptent trois ou quatre.",
+    "La page ne documente ni débordement, ni comportement responsive du composant.",
+    "La page ne documente pas de sélection multiple pour ce composant ; `ToggleButtonGroup` couvre la sélection simple ou multiple."
+  ],
+  "redaction": [
+    "Les libellés des exemples sont courts : Day, Week, Month, Year ; Left, Center, Right."
+  ],
+  "particularites": [
+    "La page ne cite aucun attribut `role` et ne décrit aucune touche.",
+    "Les hauteurs de segment viennent du relevé de tokens : 32px en desktop, 40px en mobile. La page de composant ne parle pas de taille.",
+    "Le relevé de tokens fixe aussi une largeur maximale de segment (265px) et une épaisseur de bordure de sélection (2px) ; la page de composant ne les mentionne pas.",
+    "L'adresse https://react-spectrum.adobe.com/s2/SegmentedControl renvoie la page d'accueil du site ; la documentation de ce composant se lit en Markdown à l'adresse listée dans `llms.txt`.",
+    "La page de conception de Spectrum (spectrum.adobe.com/page/segmented-control/) renvoie 404 ; aucune page de conception n'a été lue."
+  ],
+  "tokens": [
+    { "variante": "*", "etat": "default", "role": "size", "token": "segmented-control-item-height" },
+    { "variante": "*", "etat": "default", "role": "size", "token": "segmented-control-item-maximum-width" },
+    { "variante": "*", "etat": "selected", "role": "border", "token": "segmented-control-selection-border-width" }
+  ]
+}
