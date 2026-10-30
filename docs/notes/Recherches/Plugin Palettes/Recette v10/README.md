@@ -6,7 +6,7 @@ palettes trop proches, messages qui déplacent la page, zones hachurées pendant
 un glisser, taille de la roue des teintes.
 
 **État.** R2 à R6 sont implémentés, recette Figma à faire. R1 (nom des
-palettes décalé entre Création et Vérification) attend la décision D1.
+palettes décalé entre Création et Vérification) est abandonné : les 47 px restent.
 
 | Document | Contenu |
 |---|---|

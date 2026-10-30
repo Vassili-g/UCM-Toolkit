@@ -299,7 +299,7 @@ Question 5 de RECHERCHE-NOMENCLATURE.md.
 - Les mécanismes de dépréciation : `removed.json` de Primer,
   `replaced_by` de Spectrum, cycle d'Atlassian et `eslint --fix`,
   `$deprecated` de DTCG.
-- La [piste du diff sémantique](../../Diff%20S%C3%A9mantique/PLAN-DIFF-SEMANTIQUE.md)
+- La [piste du diff sémantique](https://github.com/Vassili-g/UCM-Toolkit/blob/e4817610/docs/notes/Recherches/Diff%20S%C3%A9mantique/PLAN-DIFF-SEMANTIQUE.md)
   et ce qu'elle prévoit pour un renommage.
 
 **Données à relever.**
@@ -488,7 +488,7 @@ implémente ou modifie un composant.
 
 - Les serveurs MCP de design systems et de Figma : ce qu'ils exposent des
   tokens et des définitions.
-- La [piste 4.2 des évolutions globales](../../Evolutions%20globales/PISTES-EVOLUTION.md#42-fournir-une-méthode-de-lecture-ou-une-interface-mcp).
+- La [piste 4.2 des évolutions globales](https://github.com/Vassili-g/UCM-Toolkit/blob/e4817610/docs/notes/Recherches/Evolutions%20globales/PISTES-EVOLUTION.md#42-fournir-une-méthode-de-lecture-ou-une-interface-mcp).
 
 **Données à relever.**
 

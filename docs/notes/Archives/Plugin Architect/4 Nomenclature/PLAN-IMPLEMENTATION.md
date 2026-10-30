@@ -44,7 +44,7 @@ La revue a montré que corriger le bruit ne suffit pas. Il faut garantir qu'une 
 
 - [x] **A0 · Méthode adoptée.** Les règles M01 à M13 sont tranchées dans `decisions.json` ; M08 et M09 sont refusées, ce qui ajoute deux corrections à A2 et A3.
 - [x] **A1 · Jeu de référence annoté.** 17 paires de C2 classées : 10 équivalentes, 5 distinctes, 2 indéterminées, dans `_local/annotations-c2.json`.
-- [x] **A6 · Décisions de termes.** Toutes les questions sont tranchées, T09 et T10 annulées (tirées d’un ancien export) ; voir `decisions.json`. L’architecture de référence est la [vue illustrée multimarques](../../Archi%20Tokens%20Multi-marques/VUE-ILLUSTREE-MULTIMARQUES.html), pas l’export d’UCM-Playground.
+- [x] **A6 · Décisions de termes.** Toutes les questions sont tranchées, T09 et T10 annulées (tirées d’un ancien export) ; voir `decisions.json`. L’architecture de référence est la [vue illustrée multimarques](https://github.com/Vassili-g/UCM-Toolkit/blob/e4817610/docs/notes/Recherches/Archi%20Tokens%20Multi-marques/VUE-ILLUSTREE-MULTIMARQUES.html), pas l’export d’UCM-Playground.
 - [x] **A2 · Même découpage pour les questions et le renommage.** (`f067a52`).
   - [x] `decouperSegment` coupe un bloc soudé comme les questions, en tranches du mot d’origine (`textsucccess` → `text` + `succcess`) ; un nom sans règle reste identique (`f067a52`).
   - [x] Test de session : la réponse à la faute renomme, l’annulation rend l’état initial (`f067a52`).
@@ -64,8 +64,8 @@ La revue a montré que corriger le bruit ne suffit pas. Il faut garantir qu'une 
 - [ ] **Migration du fichier Figma** (mainteneur) : renommer avec Architect avant d’écrire avec Palettes, qui vise désormais `primitives/color`.
 - [ ] **A4 · Corpus UCM et audit des extractions.**
   - [x] Corpus UCM tiré de l’instantané de la vue illustrée : 1 300 noms dans les sept collections, couches renseignées, types suivis par alias et par mode ; 24 valeurs absentes restent sans type. Les 24 registres du kit, architecture comprise, et les empreintes des entrées sont relevés dans `docs/references/design-systems/ucm/`.
-  - [ ] Audit des extractions externes : provenance des occurrences, couches inconnues et réglages MUI.
-- [ ] **A5 · Analyse par concept** sur occurrences annotées, si une décision reste à justifier.
+  - [x] (abandonné) Audit des extractions externes : provenance des occurrences, couches inconnues et réglages MUI.
+- [x] (abandonné) **A5 · Analyse par concept** sur occurrences annotées, si une décision reste à justifier.
 - [ ] **A8 · Recette Figma** sur une copie et nouveau jugement de Q1, par le mainteneur.
 
 ## Format des décisions

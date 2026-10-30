@@ -76,7 +76,7 @@ vocabulaire. Chaque définition est écrite là où un produit en a eu besoin.
 | États reconnus et leurs variantes (`hover`/`hovered`, `press`/`pressed`) | `STATE_SELECTORS`, [semantics.ts](../../../../../packages/plugin-socle/src/composant/contract/semantics.ts) | Nulle part |
 | Tailles reconnues (`small` lu comme `sm`) | `SIZE_VALUES`, même fichier | Nulle part |
 | Les cinq couches et les alias permis entre elles | `COUCHES` et `CIBLES_DES_COUCHES`, [profilUcm.ts](https://github.com/Vassili-g/UCM-Toolkit/blob/edc56f63c6ac43b49a2938b590a202ca56a61526/packages/plugin-architect/src/integrations/profilUcm.ts) | Onglet Intégrations |
-| Architecture des collections | [Vue illustrée multi-marques](../../Archi%20Tokens%20Multi-marques/VUE-ILLUSTREE-MULTIMARQUES.html) | Référence actuelle des collections et des rôles |
+| Architecture des collections | [Vue illustrée multi-marques](https://github.com/Vassili-g/UCM-Toolkit/blob/e4817610/docs/notes/Recherches/Archi%20Tokens%20Multi-marques/VUE-ILLUSTREE-MULTIMARQUES.html) | Référence actuelle des collections et des rôles |
 | Une variable par propriété de composant | [SPEC de l'exporteur](../../../../../packages/plugin-exporter/SPEC.md), section 8 | [Guide designer](../../../../guides/POUR-LES-DESIGNERS.md), section 2 |
 | Tags des règles d'usage | [README de l'exporteur](../../../../../packages/plugin-exporter/README.md#documenter-les-règles-dusage) | Même document |
 | Sens de chaque caractéristique pour l'implémentation | [packages/cli/aides/](../../../../../packages/cli/aides/) | Un agent, par `ucm guide` |
@@ -438,7 +438,7 @@ l'explorateur puis migrer.
 | 4 | L'Architecte écrit : renommage avec table, descriptions de `theme`, alias de `theme` | Architecte |
 | Ensuite | Icônes, typographie | À décider |
 
-La table de renommage de la phase 4 rejoint la piste du [diff sémantique](../../Diff%20S%C3%A9mantique/PLAN-DIFF-SEMANTIQUE.md) :
+La table de renommage de la phase 4 rejoint la piste du [diff sémantique](https://github.com/Vassili-g/UCM-Toolkit/blob/e4817610/docs/notes/Recherches/Diff%20S%C3%A9mantique/PLAN-DIFF-SEMANTIQUE.md) :
 un renommage change le chemin publié, donc les références des contrats et les
 variables CSS du consommateur.
 

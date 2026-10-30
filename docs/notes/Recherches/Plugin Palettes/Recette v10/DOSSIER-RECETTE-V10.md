@@ -38,7 +38,7 @@ bouton et sa consigne, Vérification ses onglets ou sa phrase. La constante de
 47 px disparaît, et un test d'interface compare la position du premier nom dans
 les deux onglets.
 
-**État.** En attente de la décision D1.
+**État.** Abandonné : les 47 px restent.
 
 **Décision D1.** Valider le composant partagé. Si le décalage reste visible
 après `npm run build`, joindre une capture des deux onglets avec la largeur de
@@ -221,7 +221,7 @@ par exemple en infobulle sur l'anneau.
 
 | Lot | Contenu | Dépend de |
 |---|---|---|
-| L1 | Accueil du nuancier partagé, suppression des 47 px, test de position | D1 |
+| L1 (abandonné) | Accueil du nuancier partagé, suppression des 47 px, test de position | D1 |
 | L2 | Renommage de l'onglet et de la carte, textes fr et en, galerie, spécification | D2 |
 | L3 | Moteur : couleurs comparées, rôle `fond`, seuil des fonds, zones calculées quel que soit le départ, un balayage par palette | D3, D5 |
 | L4 | Messages à hauteur tenue, « Annuler les modifications » toujours affiché | D4 |

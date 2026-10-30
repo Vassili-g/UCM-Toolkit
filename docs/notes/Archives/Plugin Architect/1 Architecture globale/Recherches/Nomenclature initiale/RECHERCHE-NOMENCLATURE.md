@@ -211,7 +211,7 @@ qu'un token disparaisse sans entrée dans `removed.json`, où la valeur est
 Un renommage de nomenclature change le chemin publié dans `tokens.json`, donc
 la référence des contrats et la variable CSS du consommateur. Les quatre
 systèmes gardent une table de l'ancien nom vers le nouveau ; UCM n'en a pas
-aujourd'hui. La [piste du diff sémantique](../../../../Diff%20Sémantique/PLAN-DIFF-SEMANTIQUE.md)
+aujourd'hui. La [piste du diff sémantique](https://github.com/Vassili-g/UCM-Toolkit/blob/e4817610/docs/notes/Recherches/Diff%20S%C3%A9mantique/PLAN-DIFF-SEMANTIQUE.md)
 touche la même question.
 
 ## 5. Les outils et les techniques de détection

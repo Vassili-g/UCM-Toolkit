@@ -20,7 +20,7 @@ de fin. Cocher la case d'une tâche quand son commit est fait.
 
 | Point | Décision |
 |---|---|
-| R1 nuancier | En attente : le mainteneur n'a pas tranché D1. Aucune tâche. |
+| R1 nuancier | Abandonné : les 47 px restent. Aucune tâche. |
 | R2 nom | Onglet « Comparaison » (anglais « Comparison »). La carte « Comparaison » devient « Aperçu » (anglais « Preview »), le mot des bascules « Intensité de l’aperçu » et « Thème de l’aperçu ». Les identifiants de code ne changent pas. |
 | R3 alerte | Pleins (`solid/default`) et fonds (`surface/default`), en Light et en Dark. Les fonds se comparent à 20 % du seuil `palettesProches`, soit 0,010 par défaut (24 % signalait Terracota et Poppy, fonds Light à 0,0120, sur la recette du mainteneur). Aucun champ de recette ne s'ajoute. |
 | R4 messages | Les trois règles de la maquette, dans l'onglet Harmonisation seulement. Création ne change pas. |

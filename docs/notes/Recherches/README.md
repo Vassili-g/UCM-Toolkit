@@ -13,10 +13,9 @@ produit, partir des références de [docs/README.md](../../README.md) et du code
 | Sujet | Utilité | Statut |
 |---|---|---|
 | [Hub UCM][hub] | Rassembler l'exploration des palettes, variables, contrastes et règles dans une page locale. | Partiellement implémenté. Le banc existe ; l'inspecteur, les fiches de règles et les outils de tokens du plan restent à réaliser. |
-| [Palettes : recette v10][palettes-v10] | Corriger les décalages du nuancier et les interactions de l'onglet Comparaison. | Modifications retenues implémentées. L'accueil partagé du nuancier attend une décision. La proximité des palettes suit désormais le plan des crans clairs. |
+| [Palettes : recette v10][palettes-v10] | Corriger les décalages du nuancier et les interactions de l'onglet Comparaison. | Modifications retenues implémentées. L'accueil partagé du nuancier est abandonné ; les tests d'interface de I1 restent à réécrire. La proximité des palettes suit désormais le plan des crans clairs. |
 | [UCM Architect : vitesse d'analyse][vitesse] | Réduire les lectures répétées et le délai d'affichage des constats, avec annulation et reprise. | Partiellement implémenté. Retrait de l'ancien chemin de production encore ouvert ; signatures et worker conditionnels. Les branches écartées ne sont plus à réaliser. |
 | [UCM Architect : fusion et préparation][architect] | Réunir l'exploration des variables, leur nommage et la préparation des tokens d'un composant. | Implémenté pour le périmètre retenu. L'adaptation des noms de préparation à la convention Figma reste conditionnelle. |
-| [Ancien Architect : nomenclature][ancienne-nomenclature] | Rendre les questions de vocabulaire applicables aux renommages et les justifier par un corpus. | Code décidé implémenté ; audit des extractions et analyse de corpus encore ouverts. |
 | [Diff sémantique][diff] | Comparer deux ensembles de contrats et de tokens pour identifier les changements et les composants touchés. | Proposé, non implémenté ; périmètre de l'expérimentation à valider. |
 | [Conformité du rendu][rendu] | Comparer le rendu d'une implémentation aux obligations visuelles de son contrat. | Recherche proposée, non implémentée ; choix de réalisation ouverts. |
 | [Implémenteur de contrats][implementeur] | Produire et mettre à jour le code d'un composant à partir du contrat, avec moins de travail génératif. | Non réalisé. Le plan propose un compilateur ; sa revue recommande d'abord une preuve limitée et un contrôle de rendu autonome. Orientation à trancher. |
@@ -37,14 +36,8 @@ passent en premier ; celles d'un sujet en attente attendront sa reprise.
 
 | Sujet | Sujet implémenté | Questions ouvertes et décisions attendues |
 |---|---|---|
-| [Palettes en Dark][qualite-archive] | Oui | Distinguer la carte du fond par une ombre ou par un contour ? |
-| [Constats de Comparaison][qualite-archive] | Oui | Quels seuils retenir pour signaler les écarts de saturation et de luminosité, encore décrits comme des valeurs d'essai ? |
-| [Harmonisation d'un groupe de palettes][harmonisation-archive] | Oui | Faut-il aligner automatiquement leur luminosité ? Quel critère commun retenir et quelles références préserver ? |
-| [Pistes d'architecture globale][revue-architecture] | Oui | Quels apports reprendre au-delà de la version minimale : adoption partielle, état de publication, périmètre du bilan et parcours d'une équipe ? Réexaminer ces propositions avec le concept courant. |
-| [Nuancier de Palettes][palettes-v10-dossier] | Non | Adopter un accueil partagé entre Création et Vérification pour remplacer les hauteurs ajustées séparément ? |
 | [Préparation dans Architect][architect] | Non | Les noms Figma doivent-ils commencer par la collection ? Si non, adapter les noms créés et la recherche des cibles pour éviter un dossier de collection supplémentaire. |
 | [Catalogue d'Architect][architect] | Non | Autoriser plusieurs collections reconnues comme `theme` ou `layout` ? Si oui, les parcourir toutes ; sinon, signaler cette entrée. |
-| [Corpus de nomenclature][ancienne-nomenclature] | Non | La provenance, les couches inconnues et les réglages des extractions externes suffisent-ils à justifier les décisions de termes ? Quels concepts demandent encore une annotation ? |
 | [Hub UCM][hub] | Non | Faut-il retirer la planche du moteur et la vue illustrée lorsque les vues du Hub les couvriront ? |
 | [Prise en main de Palettes][concurrence] | Non | Quel jeu de départ proposer ? Quelle place donner à la sélection Figma et à la gestion des marques ? |
 | [Accessibilité des palettes][concurrence] | Non | Quelle portée donner à la simulation de vision des couleurs ? Une lecture APCA informative apporte-t-elle une aide utile en complément des garanties actuelles ? |
@@ -109,8 +102,9 @@ leurs plans.
 | [UCM Architect : recette v2][architect-v2] | Corriger les analyses et les parcours de préparation, de sélection et d'affichage des constats. | Implémenté. Les sous-lots du plan sont cochés. |
 | [UCM Architect : règles manquantes][regles-manquantes] | Compléter une instance de règles en conservant les textes déjà rédigés. | Implémenté, reconstruction des sections comprise. Recette Figma reportée. |
 | [UCM Architect : intégrité de la structure][integrite] | Repérer les variables absentes du thème et les cibles incorrectes, puis proposer les corrections certaines. | Implémenté. Recette Figma reportée ; quelques choix de présentation restent à arbitrer. |
-| [Ancien Architect : architecture globale][ancien-architect] | Cadrer le rôle des outils avant leur réalisation. | Version minimale réalisée dans le référentiel, puis reprise par UCM Architect. Les propositions d'élargissement restent à réexaminer. |
+| [Ancien Architect : architecture globale][ancien-architect] | Cadrer le rôle des outils avant leur réalisation. | Version minimale réalisée dans le référentiel, puis reprise par UCM Architect. Les propositions d'élargissement sont abandonnées. |
 | [Ancien Architect : refonte][ancienne-refonte] | Revoir l'interface de normalisation et ses questions de vocabulaire. | Implémenté, puis intégré à UCM Architect. |
+| [Ancien Architect : nomenclature][ancienne-nomenclature] | Rendre les questions de vocabulaire applicables aux renommages et les justifier par un corpus. | Code décidé implémenté. Audit des extractions et analyse de corpus abandonnés. |
 | [Ancien Architect : corrections de recette][ancienne-recette] | Corriger les parcours et les constats de la refonte. | Implémenté. |
 | [Ancien Architect : fiabilité][ancienne-fiabilite] | Préserver les noms et les protections lors des écritures et des changements de configuration. | Implémenté. |
 | [Ancien Architect : groupes et variables][anciens-groupes] | Distinguer le nommage des dossiers de celui des variables. | Implémenté. |
@@ -126,7 +120,6 @@ leurs plans.
 [crans]: https://github.com/Vassili-g/UCM-Toolkit/blob/da7f465d/docs/notes/Recherches/SUJETS%20IMPORTANTS%20%C3%A0%20trancher/PLAN-IMPLEMENTATION.md
 [hub]: ./Hub%20UCM/PLAN-HUB-UCM.md
 [palettes-v10]: ./Plugin%20Palettes/Recette%20v10/PLAN-IMPLEMENTATION-RECETTE-V10.md
-[palettes-v10-dossier]: ./Plugin%20Palettes/Recette%20v10/DOSSIER-RECETTE-V10.md
 [architect]: ./UCM%20Architect/3%20Plan/PLAN-IMPLEMENTATION.md
 [architect-v1]: https://github.com/Vassili-g/UCM-Toolkit/blob/da7f465d/docs/notes/Recherches/UCM%20Architect/4%20Recette%20v1/PLAN-IMPLEMENTATION-RECETTE-V1.md
 [vitesse]: ./UCM%20Architect/5%20Vitesse%20de%20l'analyse/lots/README.md
@@ -138,14 +131,13 @@ leurs plans.
 [integrite]: https://github.com/Vassili-g/UCM-Toolkit/blob/da7f465d/docs/notes/Recherches/UCM%20Architect/8%20Int%C3%A9grit%C3%A9%20de%20la%20structure/PLAN-IMPLEMENTATION.md
 [ancien-architect]: ./Plugin%20Architect/README.md
 [ancienne-refonte]: https://github.com/Vassili-g/UCM-Toolkit/blob/da7f465d/docs/notes/Recherches/Plugin%20Architect/3%20Refonte/PLAN-IMPLEMENTATION.md
-[ancienne-nomenclature]: ./Plugin%20Architect/4%20Nomenclature/PLAN-IMPLEMENTATION.md
+[ancienne-nomenclature]: https://github.com/Vassili-g/UCM-Toolkit/blob/e4817610/docs/notes/Recherches/Plugin%20Architect/4%20Nomenclature/PLAN-IMPLEMENTATION.md
 [ancienne-recette]: https://github.com/Vassili-g/UCM-Toolkit/blob/da7f465d/docs/notes/Recherches/Plugin%20Architect/5%20Recette/PLAN-IMPLEMENTATION.md
 [ancienne-fiabilite]: https://github.com/Vassili-g/UCM-Toolkit/blob/da7f465d/docs/notes/Recherches/Plugin%20Architect/5%20Recette/PLAN-FIABILITE.md
 [anciens-groupes]: https://github.com/Vassili-g/UCM-Toolkit/blob/da7f465d/docs/notes/Recherches/Plugin%20Architect/5%20Recette/PLAN-GROUPES-VARIABLES.md
 [ancien-historique]: https://github.com/Vassili-g/UCM-Toolkit/blob/da7f465d/docs/notes/Recherches/Plugin%20Architect/5%20Recette/PLAN-HISTORIQUE.md
 [ancien-vocabulaire]: https://github.com/Vassili-g/UCM-Toolkit/blob/da7f465d/docs/notes/Recherches/Plugin%20Architect/5%20Recette/PLAN-VOCABULAIRE.md
 [anciens-noms-palettes]: https://github.com/Vassili-g/UCM-Toolkit/blob/da7f465d/docs/notes/Recherches/Plugin%20Architect/5%20Recette/PLAN-NOMS-DE-PALETTES.md
-[revue-architecture]: ./Plugin%20Architect/1%20Architecture%20globale/REVUE-CONCEPTUELLE-ET-FONCTIONNELLE.md
 [diff]: ./Diff%20Sémantique/PLAN-DIFF-SEMANTIQUE.md
 [rendu]: ./Linter%20Dev/PLAN-CONFORMITE-RENDU.md
 [implementeur]: ./Optimisation%20Tokens/README.md
@@ -154,8 +146,6 @@ leurs plans.
 [concurrence]: ./Plugin%20Palettes/1%20Recherche%20initiale/RECHERCHE-CONCURRENCE-PALETTES.md
 [evolutions]: ./Evolutions%20globales/PISTES-EVOLUTION.md
 [spec-palettes]: ./Plugin%20Palettes/1%20Recherche%20initiale/RECHERCHE-PLUGIN-PALETTES.md
-[qualite-archive]: https://github.com/Vassili-g/UCM-Toolkit/blob/202f46e/docs/notes/Recherches/Plugin%20Palettes/Recette%20CRITIQUE%20de%20qualit%C3%A9/DECISIONS.md#7-ce-qui-reste-ouvert
-[harmonisation-archive]: https://github.com/Vassili-g/UCM-Toolkit/blob/202f46e/docs/notes/Recherches/Plugin%20Palettes/Harmonisation%20entre%20palettes/DOSSIER-HARMONISATION.md#8-décisions-attendues-du-mainteneur
 [recette-qualite-archive]: https://github.com/Vassili-g/UCM-Toolkit/blob/202f46e/docs/notes/Recherches/Plugin%20Palettes/Recette%20CRITIQUE%20de%20qualit%C3%A9/PLAN-IMPLEMENTATION.md
 [recette-moteur-archive]: https://github.com/Vassili-g/UCM-Toolkit/blob/202f46e/docs/notes/Recherches/Plugin%20Palettes/Recette%20moteur%20palettes/README.md
 [recette-texte-archive]: https://github.com/Vassili-g/UCM-Toolkit/blob/202f46e/docs/notes/Recherches/Plugin%20Palettes/Texte%20des%20boutons/README.md

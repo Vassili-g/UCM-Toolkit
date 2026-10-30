@@ -4,7 +4,7 @@ Ce dossier garde, pour chaque système de la première vague, les **noms** de
 ses tokens (jamais les valeurs), tels que le système les publie. Il sert de
 référence durable pour fixer la nomenclature d'UCM : qui dit `surface`, qui dit
 `background`, dans quel ordre, avec quels mots. Le plan qui l'utilise est dans
-[`Plugin Architect/4 Nomenclature`](../../notes/Recherches/Plugin%20Architect/4%20Nomenclature/PLAN-IMPLEMENTATION.md).
+[`Plugin Architect/4 Nomenclature`](https://github.com/Vassili-g/UCM-Toolkit/blob/e4817610/docs/notes/Recherches/Plugin%20Architect/4%20Nomenclature/PLAN-IMPLEMENTATION.md).
 
 Chaque système a son dossier :
 

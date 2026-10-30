@@ -14,7 +14,7 @@ if (!source) throw new Error('Usage : node --import tsx mesurer-questions.ts C1|
 const fichier = source === 'C1'
   ? fileURLToPath(new URL('../../../../../../UCM-Playground/src/tokens/tokens.json', import.meta.url))
   : source === 'C2'
-    ? fileURLToPath(new URL('../1 Architecture globale/Mesures/tokens-slice-exemple.json', import.meta.url))
+    ? fileURLToPath(new URL('../../../Archives/Plugin Architect/1 Architecture globale/Mesures/tokens-slice-exemple.json', import.meta.url))
     : source;
 const octets = readFileSync(fichier);
 const tokens = indexerTokensDtcg(JSON.parse(octets.toString('utf8')));

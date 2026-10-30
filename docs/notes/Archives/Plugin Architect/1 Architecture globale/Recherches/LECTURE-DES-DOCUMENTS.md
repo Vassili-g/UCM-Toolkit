@@ -12,13 +12,13 @@ Documents relus : [CONCEPT.md](../../../../../../CONCEPT.md),
 tokens de variantes, export des tokens), la
 [SPEC de l'exporteur](../../../../../../packages/plugin-exporter/SPEC.md) (objet,
 contexte, export des tokens, hors périmètre),
-[l'architecture multimarque](../../../Archi%20Tokens%20Multi-marques/VUE-ILLUSTREE-MULTIMARQUES.html)
+[l'architecture multimarque](https://github.com/Vassili-g/UCM-Toolkit/blob/e4817610/docs/notes/Recherches/Archi%20Tokens%20Multi-marques/VUE-ILLUSTREE-MULTIMARQUES.html)
 en entier, la [SPEC de l'explorateur](../../../../../../packages/plugin-architect/SPEC.md)
 (lecture seule, architecture libre), les README du dépôt, du kit, du CLI, de
 l'adaptateur TypeScript, de Palettes, de l'explorateur, de l'exporteur, du
-moteur de couleur et du socle, le [plan du diff sémantique](../../../Diff%20S%C3%A9mantique/PLAN-DIFF-SEMANTIQUE.md)
-et la [conformité du rendu](../../../Linter%20Dev/PLAN-CONFORMITE-RENDU.md).
-La [spécification Palettes](../../../Plugin%20Palettes/1%20Recherche%20initiale/RECHERCHE-PLUGIN-PALETTES.md)
+moteur de couleur et du socle, le [plan du diff sémantique](https://github.com/Vassili-g/UCM-Toolkit/blob/e4817610/docs/notes/Recherches/Diff%20S%C3%A9mantique/PLAN-DIFF-SEMANTIQUE.md)
+et la [conformité du rendu](https://github.com/Vassili-g/UCM-Toolkit/blob/e4817610/docs/notes/Recherches/Linter%20Dev/PLAN-CONFORMITE-RENDU.md).
+La [spécification Palettes](https://github.com/Vassili-g/UCM-Toolkit/blob/e4817610/docs/notes/Recherches/Plugin%20Palettes/1%20Recherche%20initiale/RECHERCHE-PLUGIN-PALETTES.md)
 a été relue pour son vocabulaire, ses décisions, son périmètre, la planche
 (section 9.4) et les variables (section 17). Non relus en entier : le détail
 champ par champ de FORMAT.md et de la SPEC de l'exporteur, l'optimisation des

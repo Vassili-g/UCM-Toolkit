@@ -9,7 +9,7 @@ choisir la direction du produit avant de préciser sa réalisation.
 La revue porte sur la proposition, les pistes, le plan de recherche, les
 résultats du sous-dossier `Recherches` et la présentation HTML. Elle prend
 [CONCEPT.md](../../../../../CONCEPT.md) comme point de comparaison et relit
-l'[architecture multimarque](../../Archi%20Tokens%20Multi-marques/VUE-ILLUSTREE-MULTIMARQUES.html)
+l'[architecture multimarque](https://github.com/Vassili-g/UCM-Toolkit/blob/e4817610/docs/notes/Recherches/Archi%20Tokens%20Multi-marques/VUE-ILLUSTREE-MULTIMARQUES.html)
 pour situer les règles proposées. Les mesures sont celles rapportées dans le
 dossier. Les scripts, les détails d'API et les affirmations sur le marché ne
 font pas l'objet d'une nouvelle vérification.
