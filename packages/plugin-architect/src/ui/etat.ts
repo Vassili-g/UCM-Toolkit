@@ -87,6 +87,11 @@ export type Lecture =
   | { readonly statut: 'annulee' }
   | { readonly statut: 'echouee'; readonly message: string };
 
+/** L'accueil se montre sans index, après un échec, et pendant toute lecture : Actualiser sur un relevé déjà lu doit montrer le chargement. */
+export function accueilVisible(lecture: Lecture, indexLu: boolean): boolean {
+  return !indexLu || lecture.statut === 'echouee' || lecture.statut === 'en-cours';
+}
+
 export interface Etat {
   releve: Releve | null;
   /** Le relevé lu dans Figma, conservé pendant une simulation. */

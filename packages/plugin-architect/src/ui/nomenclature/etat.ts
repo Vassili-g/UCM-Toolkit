@@ -12,11 +12,10 @@ export type Ecran = EcranDeTravail | 'configuration';
 
 /**
  * Un état qui prend la place du contenu. `analyse-en-cours` occupe l'écran
- * `lecture` ; les deux autres occupent les panneaux de l'écran `travail`.
+ * `lecture` ; l'autre occupe les panneaux de l'écran `travail`.
  */
 export type EtatParticulier =
   | { readonly type: 'analyse-en-cours'; readonly lues: number; readonly total: number }
-  | { readonly type: 'rien-a-faire' }
   | { readonly type: 'sans-variable-locale' };
 
 export interface EtatDeLEcran {
@@ -57,14 +56,6 @@ export function comptesDuBilan(bilan: Bilan | null): EtatDeLEcran['comptes'] {
 }
 
 /**
- * Rien dans À appliquer ni dans À trancher : ni groupe, ni nom bloqué, ni variable protégée, ni question, ni question remise à plus tard.
- * Une variable protégée a un geste que « Tous les noms suivent vos règles » cacherait.
- */
-function rienAFaire(bilan: Bilan): boolean {
-  return bilan.groupes.length === 0 && bilan.bloques.length === 0 && bilan.proteges === 0 && bilan.questions.length === 0 && bilan.plusTard.length === 0;
-}
-
-/**
  * Un fichier sans variable locale n'a rien à harmoniser, même au premier
  * lancement. Sans bilan, l'écran attend le geste du designer.
  */
@@ -79,7 +70,7 @@ function particulierDe(ecranDeTravail: EcranDeTravail, { analyse, bilan }: Pick<
   if (analyse) return { type: 'analyse-en-cours', lues: analyse.lues, total: analyse.total };
   if (!bilan || ecranDeTravail !== 'travail') return null;
   if (bilan.sansVariableLocale) return { type: 'sans-variable-locale' };
-  return rienAFaire(bilan) ? { type: 'rien-a-faire' } : null;
+  return null;
 }
 
 function composer(brut: Brut): EtatDeLEcran {

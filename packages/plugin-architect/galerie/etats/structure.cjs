@@ -38,7 +38,7 @@ const { bilans } = require('../nomenclature/donnees.cjs');
 
 const ouvertIntegrite = (donneesDuReleve, constats, attendre, ignores) => [
   preferences(), releve(donneesDuReleve),
-  { message: messages.initial(true) }, { message: messages.bilan(1, bilans.rienAFaire), attendre: '.etat' },
+  { message: messages.initial(true) }, { message: messages.bilan(1, bilans.rienAFaire) },
   { message: integrite.reponse(constats, 1, ignores), attendre },
   { clic: '.puce-x' },
 ];

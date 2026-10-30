@@ -56,7 +56,6 @@ export const TEXTES = {
   avancementDeLAnalyse: 'Avancement de la lecture',
   variablesLues: (lues: number, total: number): string => `${lues} sur ${total}`,
 
-  rienAFaire: 'Tous les noms suivent vos règles',
   relancerLAnalyse: 'Relancer l’analyse',
 
   sansVariableLocale: 'Aucune variable à harmoniser ici',

@@ -4,7 +4,6 @@
  * d'onglet monte son contenu dans `contenu` ; le panneau le masque quand un
  * état particulier prend sa place.
  */
-import { createButton } from 'ucm-plugin-socle/src/ui/Button';
 import type { EtatParticulier } from './etat';
 import { TEXTES } from '../textes/nomenclature';
 
@@ -22,29 +21,23 @@ export interface Panneau {
 export interface OptionsDePanneau {
   /** Les états que ce panneau montre à la place de son contenu. */
   readonly etats: readonly EtatDePanneau['type'][];
-  readonly relancer: () => void;
 }
 
-function vueDeLEtat(particulier: EtatDePanneau, relancer: () => void): HTMLElement {
+function vueDeLEtat(): HTMLElement {
   const vue = document.createElement('div');
   vue.className = 'etat';
   const titre = document.createElement('div');
   titre.className = 'etat-titre';
   vue.append(titre);
-  if (particulier.type === 'rien-a-faire') {
-    titre.textContent = TEXTES.rienAFaire;
-    vue.append(createButton({ label: TEXTES.relancerLAnalyse, variant: 'secondary', compact: true, onClick: relancer }));
-  } else {
-    titre.textContent = TEXTES.sansVariableLocale;
-    const explication = document.createElement('p');
-    explication.className = 'etat-texte';
-    explication.textContent = TEXTES.sansVariableLocaleExplication;
-    vue.append(explication);
-  }
+  titre.textContent = TEXTES.sansVariableLocale;
+  const explication = document.createElement('p');
+  explication.className = 'etat-texte';
+  explication.textContent = TEXTES.sansVariableLocaleExplication;
+  vue.append(explication);
   return vue;
 }
 
-export function creerPanneau({ etats, relancer }: OptionsDePanneau): Panneau {
+export function creerPanneau({ etats }: OptionsDePanneau): Panneau {
   const element = document.createElement('div');
   element.className = 'page-stack';
   const contenu = document.createElement('div');
@@ -64,7 +57,7 @@ export function creerPanneau({ etats, relancer }: OptionsDePanneau): Panneau {
       // Un état déjà montré garde sa vue : le bouton ne perd pas le focus à chaque message.
       if ((montre?.type ?? null) === typeMontre) return;
       typeMontre = montre?.type ?? null;
-      etat.replaceChildren(...(montre ? [vueDeLEtat(montre, relancer)] : []));
+      etat.replaceChildren(...(montre ? [vueDeLEtat()] : []));
     },
   };
 }

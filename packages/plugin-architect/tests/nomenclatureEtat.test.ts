@@ -64,9 +64,9 @@ test('un bilan de premier lancement garde l’écran du premier lancement jusqu�
   assert.equal(etatSuivant(premier, recu({ premierLancement: false })).ecran, 'travail');
 });
 
-test('rien à faire : ni groupe, ni nom bloqué, ni question, ni question remise à plus tard', () => {
+test('rien à faire : aucun état particulier, les panneaux ne montrent rien de plus', () => {
   const vide = { groupes: [], bloques: [], questions: [], plusTard: [] };
-  assert.deepEqual(jouer(recu(vide)).particulier, { type: 'rien-a-faire' });
+  assert.equal(jouer(recu(vide)).particulier, null);
   assert.equal(jouer(recu({ ...vide, bloques: [{ avant: 'Font Size', apres: 'font-size', collection: 'Typographie' }] })).particulier, null);
   assert.equal(jouer(recu({ ...vide, questions: [question('q1')] })).particulier, null);
   assert.equal(jouer(recu({ ...vide, plusTard: [question('q1')] })).particulier, null);
@@ -76,7 +76,7 @@ test('rien à faire : un bilan qui n’a que des variables protégées garde ses
   const vide = { groupes: [], bloques: [], questions: [], plusTard: [] };
   const protegees = { ...vide, proteges: 143, protections: [{ cause: 'marque-absente' as const, nombre: 143 }] };
   assert.equal(jouer(recu(protegees)).particulier, null);
-  assert.deepEqual(jouer(recu({ ...vide, proteges: 0, protections: [] })).particulier, { type: 'rien-a-faire' });
+  assert.equal(jouer(recu({ ...vide, proteges: 0, protections: [] })).particulier, null);
 });
 
 test('la Configuration s’ouvre pendant le premier lancement, avec le bilan qui porte la cause sans-regles', () => {

@@ -155,10 +155,10 @@ export function creerCoquille(app: HTMLElement, envoyer: (message: UiMessage) =>
   enTete.append(ligneDuHaut);
 
   const panneaux = {
-    aAppliquer: creerPanneau({ etats: ['rien-a-faire', 'sans-variable-locale'], relancer }),
-    aTrancher: creerPanneau({ etats: ['rien-a-faire', 'sans-variable-locale'], relancer }),
-    aFaire: creerPanneau({ etats: ['sans-variable-locale'], relancer }),
-    regles: creerPanneau({ etats: [], relancer }),
+    aAppliquer: creerPanneau({ etats: ['sans-variable-locale'] }),
+    aTrancher: creerPanneau({ etats: ['sans-variable-locale'] }),
+    aFaire: creerPanneau({ etats: ['sans-variable-locale'] }),
+    regles: creerPanneau({ etats: [] }),
   };
   const onglets = createOnglets<Onglet>(TEXTES.etiquetteDesOnglets, [
     { id: 'a-appliquer', libelle: TEXTES.ongletAAppliquer, panneau: panneaux.aAppliquer.element },

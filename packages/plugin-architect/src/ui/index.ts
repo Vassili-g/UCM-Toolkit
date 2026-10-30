@@ -23,7 +23,7 @@ import { creerCorpsDuComposant } from './composant/corps';
 import { creerFiche } from './fiche';
 import { monterPreparation } from './preparation';
 import { monterCreation } from './preparation/creation';
-import { collectionDuFiltre, etatInitial, poserReleve } from './etat';
+import { accueilVisible, collectionDuFiltre, etatInitial, poserReleve } from './etat';
 import { monterNomenclature } from './nomenclature';
 import { monterBibliotheque } from './bibliotheque';
 import { estReglesRecues } from './nomenclature/reglesRecues';
@@ -231,7 +231,7 @@ const heure = (millisecondes: number) => new Date(millisecondes).toLocaleTimeStr
 
 function rendreAccueil(): void {
   const { lecture, index } = etat;
-  accueil.hidden = Boolean(index) && lecture.statut !== 'echouee';
+  accueil.hidden = !accueilVisible(lecture, Boolean(index));
   const parties: HTMLElement[] = [];
   const texte = document.createElement('p');
   texte.className = 'accueil-texte';
