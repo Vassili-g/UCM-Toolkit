@@ -47,12 +47,12 @@ test('une mesure de contraste dit sa paire, son rapport sans arrondi, son seuil 
     assert.deepEqual(await premiere.locator('.constat-lieu .puce-valeur').evaluateAll((puces) => puces.map((puce) => puce.title)), ['Severity=warning', 'Variant=standard']);
     const mesure = premiere.locator('.constat-fait').first();
     assert.equal(await mesure.locator('span').first().textContent(), 'Mesure');
-    assert.equal(await mesure.locator('.paire b').textContent(), '3,9:1');
+    assert.equal(await mesure.locator('.paire b').textContent(), '3,90:1');
     assert.equal(await mesure.locator('.paire .meta').textContent(), 'seuil 4,5:1, intencial en Dark');
     assert.equal(await mesure.locator('.paire-echantillon').evaluate((element) => [element.style.color, element.style.backgroundColor]).then((couleurs) => couleurs.join(' sur ')), 'rgb(201, 140, 90) sur rgb(60, 42, 30)');
-    assert.deepEqual(await premiere.locator('.mesures span').allTextContents(), ['intencial en Light : 7,1:1', 'marque-2 en Light : 6,8:1', 'marque-2 en Dark : 4,6:1']);
+    assert.deepEqual(await premiere.locator('.mesures span').allTextContents(), ['intencial en Light : 7,10:1', 'marque-2 en Light : 6,80:1', 'marque-2 en Dark : 4,60:1']);
     assert.equal(await premiere.getByRole('button', { name: /^Ignorer :/ }).textContent(), 'Ignorer ce layer');
-    assert.equal(await cartes(page).nth(1).locator('.constat-lieu').textContent(), '4 variantsoutlined, 2,4:1 au lieu de 3:1');
+    assert.equal(await cartes(page).nth(1).locator('.constat-lieu').textContent(), '4 variantsoutlined, 2,40:1 au lieu de 3:1');
   } finally { await terminer(page); }
 });
 

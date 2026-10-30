@@ -3,13 +3,14 @@
  * partagées du nœud racine, sous la clé d'Ignorer de `ESPACE_ARCHITECT`, en
  * liste JSON de clés.
  *
- * Une clé est l'identifiant d'un constat (« Ignorer ») ou `proposition:` suivi
- * de cet identifiant (« Ne plus proposer » : le constat reste, sa correction ou
- * sa question disparaît). Un fichier qui ne déclare pas UCM ne reçoit rien. Un
+ * Une clé est l'identifiant d'un constat (« Ignorer »), `proposition:` suivi de
+ * cet identifiant (« Ne plus proposer » : le constat reste, sa correction ou sa
+ * question disparaît), ou `role-ucm:` suivi d'un rôle du thème (« Dans tout le
+ * fichier » : C82 n'en cite plus aucune palette). Un fichier qui ne déclare pas UCM ne reçoit rien. Un
  * constat `limite` ne s'ignore pas : une limite de lecture ne se range pas.
  */
 import type { Constat } from '@ucm-kit/core/controles';
-import type { VariableDuTheme } from '@ucm-kit/core/emplois';
+import { VARIABLES_DU_THEME, type VariableDuTheme } from '@ucm-kit/core/emplois';
 import { CLE_ARCHITECTURE_DU_FICHIER, CLES_D_ARCHITECT, ESPACE_ARCHITECT, lireLArchitectureDuFichier } from '@ucm-kit/core/referentiel';
 
 export interface PortDIgnores {
@@ -20,6 +21,7 @@ export interface PortDIgnores {
 }
 
 const PREFIXE = 'proposition:';
+const PREFIXE_DU_ROLE = 'role-ucm:';
 
 /** La clé qui retire la proposition d'un constat sans l'ignorer. */
 export const cleDeLaProposition = (idDuConstat: string): string => `${PREFIXE}${idDuConstat}`;
@@ -35,13 +37,15 @@ export function lireLesIgnores(api: PortDIgnores): string[] {
 }
 
 /** Les identifiants des constats ignorés parmi des clés : les clés de proposition n'en font pas partie. */
-export const constatsIgnores = (cles: readonly string[]): string[] => cles.filter((cle) => !cle.startsWith(PREFIXE));
+export const constatsIgnores = (cles: readonly string[]): string[] => cles.filter((cle) => !cle.startsWith(PREFIXE) && !cle.startsWith(PREFIXE_DU_ROLE));
 
-/**
- * Les rôles du thème que le fichier ignore partout (Q6), lus parmi des clés. Aucune clé n'en désigne encore : un lot suivant en
- * définit le préfixe, et C82 n'omet aucun rôle d'ici là.
- */
-export const rolesIgnoresDe = (_cles: readonly string[]): readonly VariableDuTheme[] => [];
+/** La clé qui écarte un rôle du thème dans tout le fichier (Q6). */
+export const cleDUnRoleIgnore = (role: VariableDuTheme): string => `${PREFIXE_DU_ROLE}${role}`;
+
+/** Les rôles du thème que le fichier ignore partout, lus parmi des clés ; une clé dont le rôle n'existe pas au référentiel est écartée. */
+export function rolesIgnoresDe(cles: readonly string[]): VariableDuTheme[] {
+  return VARIABLES_DU_THEME.filter((role) => cles.includes(cleDUnRoleIgnore(role)));
+}
 
 /**
  * Écarte des constats ceux dont l'identifiant est rangé, et retire leur
@@ -85,6 +89,22 @@ export function nePlusIgnorer(api: PortDIgnores, idDuConstat: string): ResultatD
   const rangees = lireLesIgnores(api);
   if (!estUcm(api)) return { ecrit: false, cles: rangees, motif: 'non-ucm' };
   return ranger(api, rangees.filter((cle) => cle !== idDuConstat && cle !== cleDeLaProposition(idDuConstat)));
+}
+
+/** Range le rôle : C82 ne le cite plus, dans aucune palette. Rien n'est écrit hors UCM. */
+export function ignorerUnRole(api: PortDIgnores, role: VariableDuTheme): ResultatDIgnorer {
+  const rangees = lireLesIgnores(api);
+  if (!estUcm(api)) return { ecrit: false, cles: rangees, motif: 'non-ucm' };
+  const cle = cleDUnRoleIgnore(role);
+  return ranger(api, rangees.includes(cle) ? rangees : [...rangees, cle]);
+}
+
+/** Retire le rôle des clés rangées : C82 le cite de nouveau à la prochaine lecture. */
+export function retablirUnRole(api: PortDIgnores, role: VariableDuTheme): ResultatDIgnorer {
+  const rangees = lireLesIgnores(api);
+  if (!estUcm(api)) return { ecrit: false, cles: rangees, motif: 'non-ucm' };
+  const cle = cleDUnRoleIgnore(role);
+  return ranger(api, rangees.filter((rangee) => rangee !== cle));
 }
 
 function ranger(api: PortDIgnores, cles: string[]): ResultatDIgnorer {

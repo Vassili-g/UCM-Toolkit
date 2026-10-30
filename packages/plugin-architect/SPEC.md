@@ -28,7 +28,7 @@ qui ne déclare plus UCM au moment d'écrire ne reçoit rien.
 | Variables créées dans `components` | Créer, depuis une préparation | Historique de la Configuration |
 | Liaison d'une variable à un layer du composant analysé | Appliquer, panneau des constats | Ctrl+Z dans Figma |
 | Nom d'une valeur de variante, instance de règles du composant | Appliquer, panneau des constats | Ctrl+Z dans Figma |
-| Constats ignorés, library choisie, déclaration UCM, clé du fichier des tokens | Ignorer, Configuration, ouverture du mode Tokens | Le geste inverse |
+| Constats et rôles ignorés, library choisie, déclaration UCM, clé du fichier des tokens | Ignorer, Configuration, ouverture du mode Tokens | Le geste inverse |
 
 Les écritures sur les variables entrent dans un journal rangé à la racine du
 document avant l'écriture. L'Historique n'annule que le dernier lot de chaque

@@ -36,10 +36,10 @@ const ETATS = [
 const integrite = require('../structure/integrite.cjs');
 const { bilans } = require('../nomenclature/donnees.cjs');
 
-const ouvertIntegrite = (donneesDuReleve, constats, attendre) => [
+const ouvertIntegrite = (donneesDuReleve, constats, attendre, ignores) => [
   preferences(), releve(donneesDuReleve),
   { message: messages.initial(true) }, { message: messages.bilan(1, bilans.rienAFaire), attendre: '.etat' },
-  { message: integrite.reponse(constats), attendre },
+  { message: integrite.reponse(constats, 1, ignores), attendre },
   { clic: '.puce-x' },
 ];
 const CARTES_DE_CORRECTION = '#panneau-a-appliquer .structure-liste .bloc';
@@ -94,6 +94,44 @@ ETATS.push(
       ...ouvertIntegrite(integrite.releveDeBase(), integrite.manquantes, CARTES_DE_CORRECTION), appliquerLaStructure,
       creation(21, [{ id: integrite.idsDeCreation[0], motif: 'deja-la' }, { id: integrite.idsDeCreation[1], motif: 'existe-divergente' }]), relecture,
     ],
+  },
+);
+
+/*
+ * Ignorer (Q6). Le sandbox ne rend plus `surface/subtle` (rôle ignoré dans tout le fichier) ni le `surface/divider` de `primary`
+ * (ignoré pour cette palette) : il les range dans `ignores`, que l'onglet montre sous « Ignorés ».
+ */
+const sansLeRoleIgnore = integrite.sansEcriture.filter((constat) => constat.faits.variable !== 'surface/subtle');
+const dividerDePrimary = sansLeRoleIgnore.find((constat) => constat.id === 'C82:variable-absente:theme:primary/surface/divider');
+const encoreAFaire = sansLeRoleIgnore.filter((constat) => constat !== dividerDePrimary).slice(0, 1);
+
+ETATS.push(
+  {
+    id: 't-role-ignore', titre: 'Tokens, rôle ignoré', quand: 'Le designer a ignoré surface/subtle dans tout le fichier, et surface/divider pour la seule palette primary.',
+    regarder: 'Sous « Ignorés », en fin d’onglet, deux cartes muettes en tirets : « surface/subtle : ignorée dans tout le fichier. » et le constat de primary, chacune avec « Ne plus ignorer » ; les cartes du dessus ne citent plus surface/subtle.',
+    existe: true,
+    atteinte: [...ouvertIntegrite(integrite.releveDeBase(), encoreAFaire, CARTES_A_FAIRE, { constats: [dividerDePrimary], roles: ['surface/subtle'] }), { clic: '#onglet-a-faire' }],
+  },
+  {
+    id: 't-menu-ignorer', titre: 'Tokens, menu Ignorer', quand: 'Le designer ouvre la carte d’un rôle absent d’une palette et clique sur Ignorer.',
+    regarder: 'Un menu sous le bouton Ignorer, à deux choix : « Pour cette palette » et « Dans tout le fichier » ; la carte ne grandit pas.',
+    existe: true,
+    atteinte: [
+      ...ouvertIntegrite(integrite.releveDeBase(), integrite.sansEcriture.slice(0, 3), CARTES_A_FAIRE), { clic: '#onglet-a-faire' },
+      { clic: '#panneau-a-faire .bloc-bouton' }, { clic: '#panneau-a-faire .ignorer-hote button' },
+    ],
+  },
+  {
+    id: 't-cran-de-library', titre: 'Tokens, cran dont la cible est dans une library', quand: 'Les rampes Dark de primary viennent d’une library : UCM juge le cran sans pouvoir le corriger.',
+    regarder: 'Sous « Crans », quatre cartes « En Dark, UCM attend le cran … Aujourd’hui elle vise le cran … », avec « Changez sa cible dans la fenêtre Variables » et la variable en lieu.',
+    existe: true,
+    atteinte: [...ouvertIntegrite(integrite.releveDeBase(), integrite.libraryEtScopes, CARTES_A_FAIRE), { clic: '#onglet-a-faire' }],
+  },
+  {
+    id: 't-retrait-de-scopes', titre: 'Corrections, retrait de scopes', quand: 'Deux variables de brands portent encore le scope Show in all.',
+    regarder: 'Sous « Scopes », une carte « Retirer les scopes de 2 variables de brands », cochée et dépliée : la colonne « Après l’application » dit « aucun scope ».',
+    existe: true,
+    atteinte: [...ouvertIntegrite(integrite.releveDeBase(), integrite.libraryEtScopes, CARTES_DE_CORRECTION), premiereCarte],
   },
 );
 

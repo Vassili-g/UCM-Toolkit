@@ -76,6 +76,23 @@ const modesDuTheme = [
   ...controler(catalogueAuxModes([{ id: MODE_LIGHT, nom: 'light' }])).filter(genre('mode-du-theme')),
   ...controler(catalogueAuxModes([{ id: 'm-a', nom: 'Clair' }, { id: 'm-b', nom: 'Sombre' }])).filter(genre('mode-du-theme')),
 ];
+/**
+ * Un fichier dont les rampes Dark de `primary` viennent d'une library (cible distante : le contrôle juge le cran sans pouvoir le corriger)
+ * et dont deux variables de `brands` portent encore un scope.
+ */
+function catalogueDeLibraryEtDeScopes() {
+  const catalogue = catalogueDeStructure();
+  const AVEC_SCOPE = [cleDeLaFixture('brands', 'primary/light/50'), cleDeLaFixture('brands', 'primary/light/100')];
+  return {
+    ...catalogue,
+    variables: catalogue.variables.map((entree) => {
+      if (entree.cle.startsWith('brands|primary/dark/')) return { ...entree, distante: true };
+      return AVEC_SCOPE.includes(entree.cle) ? { ...entree, scopes: ['ALL_SCOPES'] } : entree;
+    }),
+  };
+}
+const libraryEtScopes = controler(catalogueDeLibraryEtDeScopes()).filter((constat) => (genre('cran')(constat) && !constat.correction && !constat.question) || genre('scopes')(constat));
+
 /** Les constats sans correction du fichier aux écarts, un par sorte, et les modes de `theme`. */
 const aFaire = [
   ...auxEcarts.filter(genre('variable-absente')).filter((constat) => constat.faits.groupe === 'tertiary').slice(0, 1),
@@ -107,11 +124,12 @@ function releveDIntegrite(catalogue) {
 }
 
 /** Ce que le sandbox répond à `lire-structure` : ces constats et les corrections qu'ils portent. */
-const reponse = (constats, demande = 1) => ({
+const reponse = (constats, demande = 1, ignores = { constats: [], roles: [] }) => ({
   type: 'structure',
   demande,
   constats,
   corrections: constats.flatMap((constat) => (constat.correction ? [constat.correction] : [])),
+  ignores,
 });
 
 module.exports = {
@@ -122,6 +140,7 @@ module.exports = {
   manquantes,
   crans,
   sansEcriture,
+  libraryEtScopes,
   aFaire,
   sensInconnu,
   /** Un identifiant de ligne de variable manquante, pour les motifs de saut. */

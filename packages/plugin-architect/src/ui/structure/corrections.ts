@@ -273,24 +273,31 @@ export function monterLesCorrections({ element, auChangement, appliquer }: Optio
       scopesAvant.textContent = libelles(carte.avant);
       const scopesApres = document.createElement('span');
       scopesApres.className = 'ch-ajout';
-      scopesApres.textContent = libelles(carte.apres);
+      scopesApres.textContent = carte.apres.length === 0 ? TEXTES.aucunScope : libelles(carte.apres);
       avant.append(creerChemin(ligne.avant), document.createElement('br'), scopesAvant);
       apres.append(creerChemin(ligne.apres), document.createElement('br'), scopesApres);
       corps.append(creerLaLigne(ligne.id, ligne.avant, [avant], [apres]));
     }
     const action = document.createElement('span');
     action.className = 'bloc-phrase';
-    action.append(TEXTES.regler(carte.lignes.length));
-    carte.roles.forEach((role, rang) => {
-      if (rang > 0) action.append(rang === carte.roles.length - 1 ? TEXTES.et : TEXTES.virgule);
-      action.append(creerCheminEnPhrase(role));
-    });
-    action.append(TEXTES.sur, ...scopesEnPhrase(carte.apres));
-    const fonds = carte.apres.length === 2 && carte.apres.includes('FRAME_FILL') && carte.apres.includes('SHAPE_FILL');
-    const motif: (string | Node)[] = [TEXTES.reserve(carte.lignes.length)];
-    if (fonds) motif.push(TEXTES.auxFonds);
-    else motif.push(TEXTES.aCesScopes, ...scopesEnPhrase(carte.apres), '.');
-    motif.push(' ', TEXTES.aujourdhuiSujet(carte.avant.length, carte.lignes.length), ...scopesEnPhrase(carte.avant), '.');
+    const retrait = carte.apres.length === 0;
+    const motif: (string | Node)[] = [];
+    if (retrait) {
+      action.append(TEXTES.retirerLesScopes(carte.lignes.length), creerCheminEnPhrase(carte.collection));
+    } else {
+      action.append(TEXTES.regler(carte.lignes.length));
+      carte.roles.forEach((role, rang) => {
+        if (rang > 0) action.append(rang === carte.roles.length - 1 ? TEXTES.et : TEXTES.virgule);
+        action.append(creerCheminEnPhrase(role));
+      });
+      action.append(TEXTES.sur, ...scopesEnPhrase(carte.apres));
+      const fonds = carte.apres.length === 2 && carte.apres.includes('FRAME_FILL') && carte.apres.includes('SHAPE_FILL');
+      motif.push(TEXTES.reserve(carte.lignes.length));
+      if (fonds) motif.push(TEXTES.auxFonds);
+      else motif.push(TEXTES.aCesScopes, ...scopesEnPhrase(carte.apres), '.');
+      motif.push(' ');
+    }
+    motif.push(TEXTES.aujourdhuiSujet(carte.avant.length, carte.lignes.length), ...scopesEnPhrase(carte.avant), '.');
     const deLaCarte = carte.lignes.map(({ id }) => id);
     const caseDeCarte = creerLaCase(TEXTES.caseDeCarte(carte.roles.join(', ')), deLaCarte);
     casesDeCarte.push({ element: caseDeCarte, ids: deLaCarte });

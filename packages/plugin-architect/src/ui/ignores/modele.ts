@@ -7,8 +7,8 @@
  * Les codes du kit dont les faits donnent une phrase précise ont leur phrase ici. Un constat du moteur de l'exporteur dit lui-même ce
  * qu'il y a à faire (`titre`, `action`, `calque`, `elements`) ; un autre garde une phrase générique.
  *
- * Contraste et accessibilité (C49 à C52) : le rapport garde les décimales du kit, sans arrondi ; une mesure s'écrit « 3,9:1 » et son
- * seuil « 4,5:1 ». Une recommandation (cible, anneau, texte sous 12 px) le dit dans son statut, jamais comme un manquement. Ce que
+ * Contraste et accessibilité (C49 à C52) : le rapport s'écrit comme UCM Palettes l'écrit, tronqué à deux décimales ; une mesure s'écrit
+ * « 3,90:1 » et son seuil « 4,5:1 ». Une recommandation (cible, anneau, texte sous 12 px) le dit dans son statut, jamais comme un manquement. Ce que
  * le plugin n'a pas pu mesurer (limite de lecture, borne des combinaisons, variants désactivés) est une information, pas une carte :
  * `../panneau/informations.ts` l'écrit.
  *
@@ -16,6 +16,8 @@
  * deux couleurs hexadécimales, le fond déjà composé) et `rapports` (les autres modes mesurés, un texte JSON de paires
  * `[étiquette du mode, rapport]`). Sans eux la mesure s'écrit sans échantillon, et les autres modes se réduisent à leur nombre.
  */
+import { ecrireContraste } from '@ucm-kit/core/emplois';
+
 import type { Constat } from '../../messages/commun';
 import { lieuDesVariants, pairesCommunes, pairesDuNom, paireDeFigma, type MorceauDeLieu } from '../composant/variants';
 import { TEXTES } from '../textes';
@@ -156,8 +158,11 @@ export function lieuDe(constat: Constat, contexte: ContexteDAFaire, options: { r
   return parties.flatMap((partie, rang) => (rang === 0 ? partie : [', ', ...partie]));
 }
 
-/** Un rapport à la française, sans arrondi : « 3,9:1 ». */
-const rapportEnTexte = (valeur: number): string => `${String(valeur).replace('.', ',')}:1`;
+/** Un rapport mesuré, écrit comme UCM Palettes l'écrit : tronqué à deux décimales, « 3,90:1 ». */
+const rapportEnTexte = (valeur: number): string => `${ecrireContraste(valeur)}:1`;
+
+/** Un seuil n'est pas une mesure : il s'écrit sans décimale inutile, « 4,5:1 » et « 3:1 ». */
+const seuilEnTexte = (valeur: number): string => `${valeur.toString().replace('.', ',')}:1`;
 
 const nombre = (valeur: string | number | undefined): number | null => (typeof valeur === 'number' ? valeur : null);
 
@@ -220,7 +225,7 @@ function contraste(constat: Constat, contexte: ContexteDAFaire): Contenu {
   const usage = texte(faits.usage) ?? 'texte';
   const rapport = nombre(faits.rapport);
   const seuil = nombre(faits.seuil);
-  const mesure = rapport !== null && seuil !== null ? { rapport: rapportEnTexte(rapport), seuil: rapportEnTexte(seuil) } : null;
+  const mesure = rapport !== null && seuil !== null ? { rapport: rapportEnTexte(rapport), seuil: seuilEnTexte(seuil) } : null;
   const fondNomme = texte(faits.fondNomme);
   if (fondNomme !== null && mesure !== null) return contrasteSurUnFond(constat, contexte, fondNomme, usage, mesure);
   const phrase = T.manqueDeContraste(usage, modesEnPhrase(texte(faits.mode)));
@@ -449,9 +454,12 @@ function liaisonOuNom(constat: Constat, contexte: ContexteDAFaire): Contenu | nu
     case 'C43':
       return { phrase: T.sansRegles, lieu: TEXTES.variants.tous, statut: T.sansReglesStatut };
     case 'C45':
-      return faits.ecart === 'sans-propriete'
-        ? { phrase: T.regleSansPropriete(texte(faits.regle) ?? '', texte(faits.composant) ?? contexte.composant), lieu: TEXTES.variants.tous, statut: T.regleSansProprieteStatut }
-        : { phrase: T.proprieteSansRegle(texte(faits.propriete) ?? ''), lieu: TEXTES.variants.tous, statut: T.proprieteSansRegleStatut };
+      if (faits.ecart === 'sans-propriete') return { phrase: T.regleSansPropriete(texte(faits.regle) ?? '', texte(faits.composant) ?? contexte.composant), lieu: TEXTES.variants.tous, statut: T.regleSansProprieteStatut };
+      if (faits.ecart === 'sans-valeur') {
+        const valeurs = texte(faits.valeurs) ?? '';
+        return { phrase: T.valeursSansRegle(texte(faits.propriete) ?? '', valeurs), lieu: TEXTES.variants.tous, statut: T.valeursSansRegleStatut(valeurs) };
+      }
+      return { phrase: T.proprieteSansRegle(texte(faits.propriete) ?? ''), lieu: TEXTES.variants.tous, statut: T.proprieteSansRegleStatut };
     case 'C59':
       return { phrase: T.texteSansSurface(calqueDe(constat, contexte) ?? '', token(faits.variable)), lieu: sansLayer, statut: T.texteSansSurfaceStatut };
     case 'C60':

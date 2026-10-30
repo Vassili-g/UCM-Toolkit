@@ -5,7 +5,7 @@ import test, { beforeEach } from 'node:test';
 import type { Constat, Correction } from '@ucm-kit/core/controles';
 import { CLES_D_ARCHITECT, ESPACE_ARCHITECT, texteDeLArchitectureDuFichier } from '@ucm-kit/core/referentiel';
 
-import { ignorerUnConstat, lireLesIgnores, separerLesIgnores, type PortDIgnores } from '../src/ecriture/ignores';
+import { cleDUnRoleIgnore, constatsIgnores, ignorerUnConstat, ignorerUnRole, lireLesIgnores, retablirUnRole, rolesIgnoresDe, separerLesIgnores, type PortDIgnores } from '../src/ecriture/ignores';
 import type { PluginMessage } from '../src/messages';
 import { commencerUneAnalyse, correctionsDeLAnalyse, reinitialiserLAnalyse, retenirLesCorrections } from '../src/sandbox/analyse';
 import type { Contexte } from '../src/sandbox/contexte';
@@ -94,4 +94,28 @@ test('une donnée illisible ne donne aucune clé', () => {
   a.api.root.setSharedPluginData(ESPACE_ARCHITECT, CLES_D_ARCHITECT.ignorer, '{pas du json');
   assert.deepEqual(lireLesIgnores(a.api.root as never), []);
   assert.equal(ignorerUnConstat(a.api as never, limite, 'constat').ecrit, false);
+});
+
+test('un rôle ignoré a sa clé, que les constats ne comptent pas et que rolesIgnoresDe retrouve', () => {
+  assert.equal(cleDUnRoleIgnore('surface/subtle'), 'role-ucm:surface/subtle');
+  const cles = ['C22:a', 'proposition:C22:b', 'role-ucm:surface/subtle', 'role-ucm:surface/inconnu'];
+  assert.deepEqual(rolesIgnoresDe(cles), ['surface/subtle']);
+  assert.deepEqual(constatsIgnores(cles), ['C22:a']);
+  assert.deepEqual(separerLesIgnores([avecCorrection], cles).ignores, ['C22:a']);
+});
+
+test('ignorer puis rétablir un rôle range et retire sa clé, sans doublon', () => {
+  const a = atelierDEcriture();
+  assert.equal(ignorerUnRole(a.api as never, 'surface/subtle').ecrit, true);
+  assert.equal(ignorerUnRole(a.api as never, 'surface/subtle').ecrit, true);
+  assert.deepEqual(rangees(a), ['role-ucm:surface/subtle']);
+  assert.equal(retablirUnRole(a.api as never, 'surface/subtle').ecrit, true);
+  assert.deepEqual(rangees(a), []);
+});
+
+test('hors UCM, ignorer ou rétablir un rôle refuse en non-ucm sans rien écrire', () => {
+  const a = atelierDEcriture({ declaration: texteDeLArchitectureDuFichier(false) });
+  assert.deepEqual(ignorerUnRole(a.api as never, 'surface/subtle'), { ecrit: false, cles: [], motif: 'non-ucm' });
+  assert.deepEqual(retablirUnRole(a.api as never, 'surface/subtle'), { ecrit: false, cles: [], motif: 'non-ucm' });
+  assert.deepEqual(a.journal, []);
 });

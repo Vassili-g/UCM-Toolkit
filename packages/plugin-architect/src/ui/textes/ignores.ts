@@ -173,6 +173,10 @@ export const TEXTES_IGNORES = {
     sansReglesStatut: 'Créez l’instance de règles',
     proprieteSansRegle: (propriete: string): string => `La propriété \`${propriete}\` n’a pas de règle dans l’instance de règles.`,
     proprieteSansRegleStatut: 'Ajoutez sa règle @prop ou @boolean',
+    valeursSansRegle: (propriete: string, valeurs: string): string => (valeurs.includes(',')
+      ? `Les valeurs ${valeurs} de \`${propriete}\` n’ont pas de règle.`
+      : `La valeur ${valeurs} de \`${propriete}\` n’a pas de règle.`),
+    valeursSansRegleStatut: (valeurs: string): string => (valeurs.includes(',') ? 'Ajoutez leurs règles @prop' : 'Ajoutez sa règle @prop'),
     regleSansPropriete: (regle: string, composant: string): string => `La règle \`${regle}\` ne correspond à aucune propriété de ${composant}.`,
     regleSansProprieteStatut: 'Donnez-lui le nom exact de la propriété, ou supprimez-la',
     // C59, C60, C63 : le thème et la structure des variables.
@@ -180,7 +184,7 @@ export const TEXTES_IGNORES = {
     texteSansSurfaceStatut: 'Posez-le sur une surface, ou liez-le à un foreground de page',
     aliasDUnAutreMode: (token: string, mode: string, cible: string): string => `En ${mode}, \`${token}\` vise \`${cible}\`, un token d’un autre mode.`,
     aliasDUnAutreModeStatut: 'Choisissez une autre cible dans la fenêtre Variables',
-    aliasSupprime: (token: string): string => `\`${token}\` vise une variable supprimée.`,
+    aliasSupprime: (token: string): string => `\`${token}\` vise une variable introuvable.`,
     libraryInactive: (token: string): string => `La cible de \`${token}\` est dans une library non activée.`,
     sansValeurEnMode: (token: string, mode: string): string => `\`${token}\` n’a pas de valeur en ${mode}.`,
     couleurSansAlias: (token: string): string => `\`${token}\` est une couleur du thème sans alias.`,

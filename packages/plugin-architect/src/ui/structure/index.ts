@@ -6,7 +6,7 @@
  */
 import { createButton } from 'ucm-plugin-socle/src/ui/Button';
 import { TEXTES } from '../textes';
-import type { DemandeDeStructure, MessageDeStructure } from '../../messages/structure';
+import type { DemandeDeStructure, IgnoresDeStructure, MessageDeStructure } from '../../messages/structure';
 import type { Constat, Correction } from '../../messages/commun';
 import type { Coquille } from '../nomenclature/coquille';
 import { monterAFaire } from './aFaire';
@@ -33,11 +33,21 @@ export function monterStructure(coquille: Coquille, { envoyer, noms, ouvrirLaFic
   const nouvelleDemande = (): number => (compteur += 1);
   let demande: number | null = null;
   let demandeDApplication: number | null = null;
-  let recu: { readonly constats: readonly Constat[]; readonly corrections: readonly Correction[] } | null = null;
+  let recu: { readonly constats: readonly Constat[]; readonly corrections: readonly Correction[]; readonly ignores: IgnoresDeStructure } | null = null;
 
+  /** Un geste d'Ignorer prend un numéro neuf : la réponse est la relecture de la structure, et celle d'une lecture plus ancienne est laissée. */
+  const demanderAvec = (message: (numero: number) => DemandeDeStructure): void => {
+    demande = nouvelleDemande();
+    envoyer(message(demande));
+  };
   const aFaire = monterAFaire(coquille.panneaux.aFaire.contenu, ({ nom, cle }) => {
     const cible = cle ?? noms.cle(nom);
     if (cible !== null) ouvrirLaFiche(cible);
+  }, {
+    ignorerPourLaPalette: (constat) => demanderAvec((numero) => ({ type: 'ignorer-constat-de-structure', demande: numero, constat })),
+    ignorerDansLeFichier: (role) => demanderAvec((numero) => ({ type: 'ignorer-role', demande: numero, role })),
+    nePlusIgnorerLeConstat: (constat) => demanderAvec((numero) => ({ type: 'retablir-constat-de-structure', demande: numero, constat })),
+    nePlusIgnorerLeRole: (role) => demanderAvec((numero) => ({ type: 'retablir-role', demande: numero, role })),
   });
   const hoteDesCorrections = document.createElement('div');
   hoteDesCorrections.className = 'page-stack';
@@ -77,7 +87,7 @@ export function monterStructure(coquille: Coquille, { envoyer, noms, ouvrirLaFic
   function rendre(): void {
     const constats = recu ? lireLesConstats(recu.constats, noms) : null;
     constatsLus = constats?.length ?? 0;
-    aFaire.poser(constats);
+    aFaire.poser(constats, recu ? { constats: lireLesConstats(recu.ignores.constats, noms), roles: recu.ignores.roles } : undefined);
     corrections.poser(recu ? lireLesCorrections(recu.corrections, noms, recu.constats) : null);
   }
 
@@ -91,7 +101,7 @@ export function monterStructure(coquille: Coquille, { envoyer, noms, ouvrirLaFic
     recevoir(message) {
       if (message.type === 'structure') {
         if (message.demande !== demande) return;
-        recu = { constats: message.constats, corrections: message.corrections };
+        recu = { constats: message.constats, corrections: message.corrections, ignores: message.ignores };
         rendre();
         return;
       }

@@ -8,7 +8,7 @@ import test from 'node:test';
 import { collectionsDeReference, type CatalogueDeReference, type Correction, type VariableDuCatalogue } from '@ucm-kit/core/controles';
 import { VARIABLES_DE_PALETTE, cranDeLaVariable, type ModeDuTheme } from '@ucm-kit/core/emplois';
 import type { EcritureChoisie } from '@ucm-kit/core/protocoles';
-import { texteDeLArchitectureDuFichier } from '@ucm-kit/core/referentiel';
+import { CLES_D_ARCHITECT, ESPACE_ARCHITECT, texteDeLArchitectureDuFichier } from '@ucm-kit/core/referentiel';
 
 import { catalogueDuFichier } from '../src/catalogue';
 import { annulerLeDernierLotDeStructure, ecrireLaStructure, type ApiDeStructure } from '../src/ecriture/structure';
@@ -17,7 +17,7 @@ import type { PluginMessage } from '../src/messages';
 import type { VariableRelevee } from '../src/modele';
 import { commencerUneAnalyse, prendreLaPlaceDUneEcriture, reinitialiserLAnalyse } from '../src/sandbox/analyse';
 import type { Contexte } from '../src/sandbox/contexte';
-import { estDeStructure, traiterAvec, type Acces } from '../src/sandbox/structure';
+import { ACCES_DE_FIGMA, estDeStructure, traiterAvec, type Acces } from '../src/sandbox/structure';
 import { atelierDEcriture, type OptionsDeLEcriture, type VariableDEcriture } from './figmaDeTest';
 
 const COLLECTION = 'C:1';
@@ -358,6 +358,12 @@ function acces(
     catalogue: async () => catalogue,
     reglages: async () => reglages,
     ecrire: async (corrections) => { appels.push([...corrections]); return ecrire(corrections); },
+    rangement: () => ({
+      ignorerUnConstat: () => ({ ecrit: false, cles: [], motif: 'erreur' }),
+      nePlusIgnorer: () => ({ ecrit: false, cles: [], motif: 'erreur' }),
+      ignorerUnRole: () => ({ ecrit: false, cles: [], motif: 'erreur' }),
+      retablirUnRole: () => ({ ecrit: false, cles: [], motif: 'erreur' }),
+    }),
   };
 }
 
@@ -370,7 +376,7 @@ test('lire-structure rend les constats du kit et leurs corrections ; hors UCM, d
   assert.deepEqual(message.corrections.map(({ id, sorte }) => [id, sorte]), [['C63:k-defaut:scopes', 'scope']]);
   const hors = contexteDeTest();
   await traiterAvec(acces(null))({ type: 'lire-structure', demande: 4 }, hors.contexte);
-  assert.deepEqual(hors.envoyes, [{ type: 'structure', demande: 4, constats: [], corrections: [] }]);
+  assert.deepEqual(hors.envoyes, [{ type: 'structure', demande: 4, constats: [], corrections: [], ignores: { constats: [], roles: [] } }]);
 });
 
 test('appliquer-structure n’écrit que les corrections du dernier constat lu, puis les oublie', async () => {
@@ -428,18 +434,18 @@ const MODES_DU_THEME: readonly ModeDuTheme[] = ['light', 'dark'];
 const ID_DU_MODE: Record<ModeDuTheme, string> = { light: 'M:light', dark: 'M:dark' };
 const ECRITURE: EcritureChoisie = { groupes: { casse: 'minuscules', separateur: 'tiret' }, variables: { casse: 'minuscules', separateur: 'tiret' } };
 
-/** Un thème UCM dont le groupe `primary` n'a ni `surface/subtle` ni `surface/divider`, mais toutes ses autres variables, en alias. */
-function catalogueSansSubtle(): CatalogueDeReference {
+/** Un thème UCM dont les groupes (`primary` seul par défaut) n'ont ni `surface/subtle` ni `surface/divider`, mais toutes leurs autres variables, en alias. */
+function catalogueSansSubtle(palettes: readonly string[] = ['primary']): CatalogueDeReference {
   const variable = (collection: string, nom: string, valeurs?: Record<string, { alias: string }>): VariableDuCatalogue =>
     ({ cle: `${collection}|${nom}`, nom, collection, type: 'COLOR', etat: 'presente', ...(valeurs ? { valeurs } : {}) });
   const crans = [50, 100, 200, 300, 400, 500, 600, 700, 800, 900, 950];
-  const rampe = MODES_DU_THEME.flatMap((mode) => crans.map((cran) => variable('brands', `primary/${mode}/${cran}`)));
+  const rampe = palettes.flatMap((palette) => MODES_DU_THEME.flatMap((mode) => crans.map((cran) => variable('brands', `${palette}/${mode}/${cran}`))));
   const blancs = MODES_DU_THEME.map((mode) => variable('utility', `neutral/${mode}/white`));
   const roles = VARIABLES_DE_PALETTE.filter((role) => role !== 'surface/subtle' && role !== 'surface/divider');
-  const theme = roles.map((role) => variable('theme', `primary/${role}`, Object.fromEntries(MODES_DU_THEME.map((mode) => [
+  const theme = palettes.flatMap((palette) => roles.map((role) => variable('theme', `${palette}/${role}`, Object.fromEntries(MODES_DU_THEME.map((mode) => [
     ID_DU_MODE[mode],
-    { alias: role === 'solid/foreground' ? `utility|neutral/${mode}/white` : `brands|primary/${mode}/${cranDeLaVariable(role, mode, mode === 'light' ? 'normal' : 'inverse')}` },
-  ]))));
+    { alias: role === 'solid/foreground' ? `utility|neutral/${mode}/white` : `brands|${palette}/${mode}/${cranDeLaVariable(role, mode, mode === 'light' ? 'normal' : 'inverse')}` },
+  ])))));
   const collections = collectionsDeReference([
     { cle: 'theme', nom: 'theme', modes: MODES_DU_THEME.map((mode) => ({ id: ID_DU_MODE[mode], nom: mode })), etat: 'lue' },
     { cle: 'brands', nom: 'brands', modes: [{ id: 'M:marque', nom: 'Marque' }], etat: 'lue' },
@@ -511,4 +517,75 @@ test('le domaine écrit les sortes scope, alias-de-mode et variable, pas les aut
   const liaison: Correction = { id: 'L', sorte: 'liaison', cible: { layer: '1:1' }, avant: null, apres: { nom: 'x' }, aRelire: { regle: 'r', avant: null } };
   const creee: Correction = { ...liaison, sorte: 'variable' };
   assert.deepEqual([scope(), versLeSombre(), creee, liaison].map((correction) => estDeStructure(correction)), [true, true, true, false]);
+});
+
+// Ignorer dans le mode Tokens (Q6)
+
+const ID_SUBTLE_SECONDARY = 'C82:variable-absente:theme:secondary/surface/subtle';
+const CLES_RANGEES = `${ESPACE_ARCHITECT}/${CLES_D_ARCHITECT.ignorer}`;
+
+function bancDIgnorer(declaration?: string) {
+  reinitialiserLAnalyse();
+  const a = atelierDEcriture(declaration === undefined ? {} : { declaration });
+  const envoyes: PluginMessage[] = [];
+  const contexte: Contexte = { figma: a.api as never, envoyer: (message) => envoyes.push(message), surveillerLeDocument: () => {} };
+  const traiter = traiterAvec({ ...ACCES_DE_FIGMA, catalogue: async () => catalogueSansSubtle(['primary', 'secondary']) });
+  const derniere = (): Extract<PluginMessage, { type: 'structure' }> => envoyes.at(-1) as Extract<PluginMessage, { type: 'structure' }>;
+  const rangees = (): string[] => JSON.parse(a.donnees.get(CLES_RANGEES) ?? '[]');
+  const subtles = (): string[] => derniere().constats.filter(({ faits }) => faits.variable === 'surface/subtle').map(({ id }) => id);
+  return { a, envoyes, contexte, traiter, derniere, rangees, subtles };
+}
+
+test('Ignorer un rôle dans tout le fichier : plus aucune palette ne le cite, et la réponse le dit', async () => {
+  const b = bancDIgnorer();
+  await b.traiter({ type: 'lire-structure', demande: 1 }, b.contexte);
+  assert.deepEqual(b.subtles(), [ID_SUBTLE, ID_SUBTLE_SECONDARY]);
+  await b.traiter({ type: 'ignorer-role', demande: 2, role: 'surface/subtle' }, b.contexte);
+  assert.deepEqual(b.rangees(), ['role-ucm:surface/subtle']);
+  assert.equal(b.derniere().demande, 2);
+  assert.deepEqual(b.subtles(), []);
+  assert.deepEqual(b.derniere().ignores, { constats: [], roles: ['surface/subtle'] });
+  assert.ok(b.derniere().constats.some(({ id }) => id === ID_DIVIDER), 'les autres rôles restent');
+});
+
+test('Rétablir un rôle le fait revenir à la lecture suivante', async () => {
+  const b = bancDIgnorer();
+  await b.traiter({ type: 'ignorer-role', demande: 1, role: 'surface/subtle' }, b.contexte);
+  await b.traiter({ type: 'retablir-role', demande: 2, role: 'surface/subtle' }, b.contexte);
+  assert.deepEqual(b.rangees(), []);
+  assert.deepEqual(b.subtles(), [ID_SUBTLE, ID_SUBTLE_SECONDARY]);
+  assert.deepEqual(b.derniere().ignores.roles, []);
+});
+
+test('Ignorer pour une palette laisse les autres palettes, et Rétablir le rend', async () => {
+  const b = bancDIgnorer();
+  await b.traiter({ type: 'lire-structure', demande: 1 }, b.contexte);
+  await b.traiter({ type: 'ignorer-constat-de-structure', demande: 2, constat: ID_SUBTLE }, b.contexte);
+  assert.deepEqual(b.rangees(), [ID_SUBTLE]);
+  assert.deepEqual(b.subtles(), [ID_SUBTLE_SECONDARY]);
+  assert.deepEqual(b.derniere().ignores.constats.map(({ id }) => id), [ID_SUBTLE]);
+  assert.equal(b.derniere().ignores.constats[0]!.correction, undefined);
+  await b.traiter({ type: 'retablir-constat-de-structure', demande: 3, constat: ID_SUBTLE }, b.contexte);
+  assert.deepEqual(b.rangees(), []);
+  assert.deepEqual(b.subtles(), [ID_SUBTLE, ID_SUBTLE_SECONDARY]);
+  assert.deepEqual(b.derniere().ignores.constats, []);
+});
+
+test('Ignorer hors UCM n’écrit rien et relit quand même', async () => {
+  const b = bancDIgnorer(texteDeLArchitectureDuFichier(false));
+  await b.traiter({ type: 'lire-structure', demande: 1 }, b.contexte);
+  await b.traiter({ type: 'ignorer-role', demande: 2, role: 'surface/subtle' }, b.contexte);
+  await b.traiter({ type: 'ignorer-constat-de-structure', demande: 3, constat: ID_SUBTLE }, b.contexte);
+  assert.deepEqual(b.a.journal, []);
+  assert.deepEqual(b.rangees(), []);
+  assert.equal(b.derniere().demande, 3);
+});
+
+test('un rôle hors du référentiel ou un constat que la dernière lecture n’a pas envoyé n’écrit rien', async () => {
+  const b = bancDIgnorer();
+  await b.traiter({ type: 'lire-structure', demande: 1 }, b.contexte);
+  await b.traiter({ type: 'ignorer-role', demande: 2, role: 'surface/inconnu' }, b.contexte);
+  await b.traiter({ type: 'ignorer-constat-de-structure', demande: 3, constat: 'C82:variable-absente:theme:autre/surface/subtle' }, b.contexte);
+  assert.deepEqual(b.rangees(), []);
+  assert.deepEqual(b.subtles(), [ID_SUBTLE, ID_SUBTLE_SECONDARY]);
 });

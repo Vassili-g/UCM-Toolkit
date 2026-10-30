@@ -17,10 +17,10 @@ import { TEXTES } from '../textes';
 /** Un morceau de phrase : du texte, ou un chemin que l'écran met en forme. */
 export type Morceau = string | { readonly chemin: string };
 
-export type GroupeDeConstat = 'manquantes' | 'alias' | 'modes' | 'valeurs' | 'couches' | 'types' | 'rangement';
+export type GroupeDeConstat = 'manquantes' | 'crans' | 'alias' | 'modes' | 'valeurs' | 'couches' | 'types' | 'rangement';
 
 /** L'ordre des intertitres de « À faire dans Figma ». */
-export const GROUPES: readonly GroupeDeConstat[] = ['manquantes', 'alias', 'modes', 'valeurs', 'couches', 'types', 'rangement'];
+export const GROUPES: readonly GroupeDeConstat[] = ['manquantes', 'crans', 'alias', 'modes', 'valeurs', 'couches', 'types', 'rangement'];
 
 /** La collection des variables de palette dans les phrases de C82, que le fait `groupe` ne nomme pas. */
 const COLLECTION_DU_THEME = 'theme';
@@ -41,6 +41,8 @@ export interface ConstatAFaire {
   readonly faits: readonly FaitDeConstat[];
   /** La variable que « Ouvrir la fiche » désigne ; `null` quand le constat n'en désigne pas une seule. */
   readonly variable: { readonly nom: string; readonly cle: string | null } | null;
+  /** Le rôle du thème qu'une palette n'a pas (`surface/subtle`), pour Ignorer « Dans tout le fichier » ; `null` pour tout autre constat. */
+  readonly role: string | null;
 }
 
 type GenreDeConstat =
@@ -51,6 +53,9 @@ const GENRES_DECLARES: readonly GenreDeConstat[] = [
   'alias-supprime', 'library-inactive', 'sans-valeur-en-mode', 'couleur-sans-alias',
   'variable-absente', 'cran-absent', 'cran', 'couche', 'valeur-directe', 'mode-du-theme', 'type', 'mal-rangee',
 ];
+
+/** Un cran sans question ni correction (cible de library) a son intertitre ; avec une question il reste sous Alias. */
+const groupeDe = (genre: GenreDeConstat, constat: Constat): GroupeDeConstat => (genre === 'cran' && !constat.question ? 'crans' : GROUPE_DU_GENRE[genre]);
 
 const GROUPE_DU_GENRE: Readonly<Record<GenreDeConstat, GroupeDeConstat>> = {
   'alias-supprime': 'alias',
@@ -162,7 +167,7 @@ function phraseDe(genre: GenreDeConstat, lecture: Lecture): readonly Morceau[] {
       return [debut, { chemin: fait(constat, 'rampe') }, fin];
     }
     case 'cran':
-      return [TEXTES.cranSansSens];
+      return [constat.question ? TEXTES.cranSansSens : TEXTES.attendLeCranAujourdhui(libelleDuMode(fait(constat, 'mode')), constat.faits.attendu ?? '', constat.faits.avant ?? '')];
     case 'couche': {
       const attendues = ciblesAttenduesDe(lecture);
       return [attendues === null ? TEXTES.coucheVisee(fait(constat, 'coucheCible')) : TEXTES.coucheAttendue(fait(constat, 'coucheCible'), attendues)];
@@ -203,7 +208,7 @@ function statutDe(genre: GenreDeConstat, lecture: Lecture): string | null {
     case 'cran-absent':
       return TEXTES.ajouterLeCran;
     case 'cran':
-      return TEXTES.choisirLaCible;
+      return constat.question ? TEXTES.choisirLaCible : TEXTES.changerSaCible;
     case 'couche': {
       const attendues = ciblesAttenduesDe(lecture);
       return attendues === null ? TEXTES.autreCible : TEXTES.choisirUneCibleDans(attendues);
@@ -276,20 +281,19 @@ export function lireLesConstats(constats: readonly Constat[], noms: Noms): reado
     if (constat.correction) continue;
     const genre = genreDe(constat);
     if (genre === null) continue;
-    // Un cran sans correction ni question n'a pas de phrase au contrôle : il ne se montre pas.
-    if (genre === 'cran' && !constat.question) continue;
     const variable = variableDe(constat, genre, noms);
     const candidats = (constat.question?.candidats ?? []).map(({ cle, nom }) => ({ chemin: (cle ? noms.nom(cle) : null) ?? nom }));
     const lecture: Lecture = { constat, variable, candidats };
     lus.push({
       id: constat.id,
       type: constat.type,
-      groupe: GROUPE_DU_GENRE[genre],
+      groupe: groupeDe(genre, constat),
       phrase: phraseDe(genre, lecture),
       lieu: lieuDe(genre, lecture),
       statut: statutDe(genre, lecture),
       faits: faitsDe(genre, lecture),
       variable: SANS_VARIABLE.includes(genre) || variable === null ? null : { nom: variable.nom, cle: variable.cle },
+      role: genre === 'variable-absente' ? (variableDuThemeReconnue(fait(constat, 'variable')) ?? null) : null,
     });
   }
   return GROUPES.flatMap((groupe) => lus.filter((lu) => lu.groupe === groupe));
@@ -315,6 +319,8 @@ export interface CarteDeScopes {
   readonly sorte: 'scopes';
   readonly cle: string;
   readonly dossier: string;
+  /** La collection des variables de la carte (`brands`) ; le titre d'un retrait de scopes la nomme. */
+  readonly collection: string;
   /** Les rôles de la carte, dossier et nom (`Disabled/border`), dans l'ordre où ils viennent : le scope dépend du rôle, pas du dossier. */
   readonly roles: readonly string[];
   readonly avant: readonly string[];
@@ -409,7 +415,7 @@ export function lireLesCorrections(corrections: readonly Correction[], noms: Nom
   const variables = new Map<string, Omit<CarteDeVariables, 'sorte' | 'lignes'> & CarteEnCours<LigneDeCreation>>();
   const crans = new Map<string, Omit<CarteDeCrans, 'sorte' | 'lignes'> & CarteEnCours<LigneDeCran>>();
   const modes: CarteDeModes[] = [];
-  const scopes = new Map<string, { dossier: string; roles: string[]; avant: string[]; apres: string[]; lignes: LigneDeCorrection[] }>();
+  const scopes = new Map<string, { dossier: string; collection: string; roles: string[]; avant: string[]; apres: string[]; lignes: LigneDeCorrection[] }>();
   for (const correction of corrections) {
     const cle = correction.cible.variable;
     const nom = (cle ? noms.nom(cle) : null) ?? cle ?? '';
@@ -463,8 +469,9 @@ export function lireLesCorrections(corrections: readonly Correction[], noms: Nom
       const avant = scopesDe(correction.avant);
       const apres = scopesDe(correction.apres.nom);
       const dossier = segments(nom).at(-2) ?? '';
-      const regroupe = `${dossier}|${apres.join(',')}|${avant.join(',')}`;
-      const carte = scopes.get(regroupe) ?? { dossier, roles: [], avant, apres, lignes: [] };
+      const collection = segments(nom).length > 1 ? segments(nom)[0] : '';
+      const regroupe = `${collection}|${dossier}|${apres.join(',')}|${avant.join(',')}`;
+      const carte = scopes.get(regroupe) ?? { dossier, collection, roles: [], avant, apres, lignes: [] };
       const role = segments(nom).slice(-2).join('/');
       if (!carte.roles.includes(role)) carte.roles.push(role);
       carte.lignes.push({ id: correction.id, avant: nom, apres: nom });

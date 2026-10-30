@@ -2,7 +2,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import {
-  controlerLIntegriteUcm, type CatalogueDeReference, type CollectionDuCatalogue, type Constat, type VariableDuCatalogue,
+  controlerLIntegriteUcm, controlerLeCatalogue, type CatalogueDeReference, type CollectionDuCatalogue, type Constat, type VariableDuCatalogue,
 } from '../src/controles/index.js';
 import type { Collection } from '../src/referentiel/architecture.js';
 import { catalogueDeStructure, cleDeLaFixture } from './fixtures/catalogueDeStructure.js';
@@ -184,4 +184,19 @@ test('12. les identifiants sont uniques, et la clé d’une variable de la fixtu
   const constats = structure(sale);
   assert.equal(constats.length, 1);
   assert.equal(constats[0].id, `C82:type:${cleDeLaFixture('theme', 'extra')}`);
+});
+
+test('13. une couleur sans alias n’a qu’un juge par collection : C63 pour components, C82 pour le reste', () => {
+  const catalogue = fichier(['components', 'brands', 'primitives'], [
+    variable('components', 'button/color/bg', { valeur: '#112233' }),
+    variable('theme', 'primary/page/foreground', { 'theme:Light': { valeur: '#000000' }, 'theme:Dark': { valeur: '#FFFFFF' } }),
+    variable('brands', 'primary/dark/700', { valeur: '#112233' }),
+    variable('primitives', 'colors/blue/700', { valeur: '#1E40AF' }),
+  ]);
+  const jugees = (constats: Constat[], genre: string): string[] => constats.filter((constat) => constat.faits.genre === genre).map((constat) => String(constat.faits.variable));
+  const sansAlias = jugees(controlerLeCatalogue(catalogue), 'couleur-sans-alias');
+  const directes = jugees(controlerLIntegriteUcm(catalogue), 'valeur-directe');
+  assert.deepEqual(sansAlias, ['button/color/bg']);
+  assert.deepEqual([...new Set(directes)].sort(), ['primary/dark/700', 'primary/page/foreground']);
+  assert.deepEqual(sansAlias.filter((variable) => directes.includes(variable)), [], 'aucune variable n’est jugée deux fois');
 });

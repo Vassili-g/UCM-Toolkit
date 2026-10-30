@@ -185,6 +185,47 @@ button.bloc-bouton {
   justify-content: flex-end;
 }
 
+/* Le menu d'Ignorer d'une carte de rôle absent : deux choix sous le bouton, qui flotte sans pousser la carte. */
+.ignorer-hote {
+  position: relative;
+  display: inline-block;
+}
+
+.menu-ignorer {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  z-index: 3;
+  display: flex;
+  flex-direction: column;
+  min-width: 180px;
+  padding: var(--espace-serre);
+  border: 1px solid var(--bordure);
+  border-radius: var(--rayon);
+  background: var(--fond);
+  box-shadow: 0 4px 12px var(--ombre);
+}
+
+.menu-ignorer[hidden] {
+  display: none;
+}
+
+.menu-ignorer button {
+  padding: var(--espace-serre) var(--espace-controle);
+  border: 0;
+  border-radius: var(--rayon);
+  background: none;
+  color: var(--texte);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.menu-ignorer button:hover,
+.menu-ignorer button:focus-visible {
+  background: var(--fond-survol);
+}
+
 /* Une phrase sous la ligne verte du résultat : la publication de la library, ou une création sautée. */
 .resultat-suite {
   display: block;

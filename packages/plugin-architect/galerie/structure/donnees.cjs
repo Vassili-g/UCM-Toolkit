@@ -96,9 +96,9 @@ const CONSTATS = [
 ];
 
 /** Ce que le sandbox répond à `lire-structure` : les constats, dont ceux qu'une correction règle, et les corrections. */
-const structure = (demande = 1) => ({ type: 'structure', demande, constats: CONSTATS, corrections: CORRECTIONS });
+const structure = (demande = 1) => ({ type: 'structure', demande, constats: CONSTATS, corrections: CORRECTIONS, ignores: { constats: [], roles: [] } });
 
 /** Ce que le sandbox répond quand le fichier n'a que trois constats et aucune correction : les états de Corrections, de Questions et de la recherche, où la pastille de À faire dans Figma dit 3. */
-const structureAFaire = (demande = 1) => ({ type: 'structure', demande, constats: CONSTATS.slice(0, 3), corrections: [] });
+const structureAFaire = (demande = 1) => ({ type: 'structure', demande, constats: CONSTATS.slice(0, 3), corrections: [], ignores: { constats: [], roles: [] } });
 
 module.exports = { releveDeStructure, bilanDeStructure, structure, structureAFaire };

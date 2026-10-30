@@ -214,7 +214,6 @@ export const REGLES: Regle[] = [
     motif: /\$\{String\(\w+\)\.replace\(\s*(['"])\.\1\s*,\s*(['"]),\2\s*\)\}:1/,
     proprietaires: ['packages/kit/src/emplois/contraste.ts'],
     exceptions: [
-      { fichier: 'packages/plugin-architect/src/ui/ignores/modele.ts', raison: 'levée par I7, fichier en cours dans le plan Règles manquantes' },
       { fichier: 'packages/kit/src/lecteurs/diagnostic-contrastes.mjs', raison: 'écrit un seuil sans décimale inutile (4,5 et 3), pas un contraste tronqué' },
     ],
   },

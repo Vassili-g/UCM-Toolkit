@@ -61,6 +61,7 @@ export const TEXTES_STRUCTURE = {
   choisirLEcriture: 'Choisissez l’écriture des noms dans Nomenclature. Architect pourra alors la créer',
   ajouterLeCran: 'Ajoutez ce cran avec UCM Palettes',
   choisirLaCible: 'Choisissez la cible dans la fenêtre Variables',
+  changerSaCible: 'Changez sa cible dans la fenêtre Variables',
   choisirUneCibleDans: (attendues: string): string => `Choisissez une cible dans ${attendues} dans la fenêtre Variables`,
   lierAUneCouleur: 'Liez-la à une couleur dans la fenêtre Variables',
   lierALaCouleurDe: (attendues: string): string => `Liez-la à une couleur de ${attendues} dans la fenêtre Variables`,
@@ -99,6 +100,8 @@ export const TEXTES_STRUCTURE = {
   toutDeselectionner: 'Tout désélectionner',
   // Corrections de scopes
   regler: (nombre: number): string => `Régler le scope de ${variables(nombre)} `,
+  retirerLesScopes: (nombre: number): string => `Retirer les scopes de ${variables(nombre)} de `,
+  aucunScope: 'aucun scope',
   sur: ' sur ',
   reserve: (nombre: number): string => (nombre > 1 ? 'UCM réserve ces variables' : 'UCM réserve cette variable'),
   auxFonds: ' aux fonds.',
@@ -125,4 +128,8 @@ export const TEXTES_STRUCTURE = {
     'existe-divergente': 'Une variable de ce nom existe déjà, avec d’autres alias.',
   } as Readonly<Record<string, string>>,
   ouvrirLaFicheDe: (nom: string): string => `Ouvrir la fiche de ${nom}`,
+  // Ignorer (Q6)
+  ignorerPourLaPalette: 'Pour cette palette',
+  ignorerDansLeFichier: 'Dans tout le fichier',
+  roleIgnore: (role: string): string => `\`${role}\` : ignorée dans tout le fichier.`,
 };

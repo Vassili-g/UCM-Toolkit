@@ -77,19 +77,19 @@ const SUR_UN_FOND = { usage: 'stroke', champ: 'strokes', calque: 'container', ra
 
 test('un échec sur la page dont la variable est garantie nomme le fond, le mode, la mesure et la garantie', () => {
   const carte = carteDAFaire(constat('g', 'C50', 'contraste', { ...SUR_UN_FOND, fondNomme: 'page', variableDuTheme: 'page/border', garanti: 'oui' }, ['v1'], { type: 'corriger' }), CONTEXTE_A_FAIRE);
-  assert.equal(carte.phrase, 'Sur la page, `elevation/page`, le stroke a un contraste de 2,7:1 en Mode 1, Dark, sous le seuil de 3:1. UCM Palettes garantit ce contraste pour `page/border`.');
+  assert.equal(carte.phrase, 'Sur la page, `elevation/page`, le stroke a un contraste de 2,70:1 en Mode 1, Dark, sous le seuil de 3:1. UCM Palettes garantit ce contraste pour `page/border`.');
   assert.equal(carte.statut, 'Vérifiez la palette dans UCM Palettes, ou le token lié');
 });
 
 test('un échec sur une carte non garantie demande de vérifier la pose du composant', () => {
   const carte = carteDAFaire(constat('n', 'C50', 'contraste', { ...SUR_UN_FOND, rapport: 2.4, fondNomme: 'carte', variableDuTheme: 'page/border', garanti: 'non' }, ['v1'], { type: 'verifier' }), CONTEXTE_A_FAIRE);
-  assert.equal(carte.phrase, 'Sur une carte, `elevation/raised`, le stroke a un contraste de 2,4:1 en Mode 1, Dark, sous le seuil de 3:1. UCM Palettes ne garantit pas ce contraste sur une carte.');
+  assert.equal(carte.phrase, 'Sur une carte, `elevation/raised`, le stroke a un contraste de 2,40:1 en Mode 1, Dark, sous le seuil de 3:1. UCM Palettes ne garantit pas ce contraste sur une carte.');
   assert.equal(carte.statut, 'Vérifiez si Button se pose sur une carte');
 });
 
 test('la page Figma et une variable hors du thème disent qu’aucune garantie ne s’applique', () => {
   const figma = carteDAFaire(constat('f', 'C50', 'contraste', { ...SUR_UN_FOND, fondNomme: 'page-figma', variableDuTheme: '', garanti: 'non' }, ['v1'], { type: 'verifier' }), CONTEXTE_A_FAIRE);
-  assert.equal(figma.phrase, 'Sur le fond de la page Figma, le stroke a un contraste de 2,7:1 en Mode 1, Dark, sous le seuil de 3:1. Aucune garantie d’UCM Palettes ne s’applique au fond de la page Figma.');
+  assert.equal(figma.phrase, 'Sur le fond de la page Figma, le stroke a un contraste de 2,70:1 en Mode 1, Dark, sous le seuil de 3:1. Aucune garantie d’UCM Palettes ne s’applique au fond de la page Figma.');
   const horsTheme = carteDAFaire(constat('h', 'C50', 'contraste', { ...SUR_UN_FOND, fondNomme: 'page', variableDuTheme: '', garanti: 'non' }, ['v1'], { type: 'verifier' }), CONTEXTE_A_FAIRE);
   assert.match(horsTheme.phrase, /^Sur la page, `elevation\/page`, le stroke .* Aucune garantie d’UCM Palettes ne s’applique : la couleur liée n’est pas une variable du thème UCM\.$/);
 });

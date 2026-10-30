@@ -10,7 +10,7 @@ Plugin UCM Architect : ucm-architect-plugin, privé, en lecture seule.
 - galerie/composant/ : Alert à 11 variants et Button à 216, leurs analyses, et le fichier hors UCM de `t-hors`
 - galerie/nomenclature/ : données des états de Nomenclature, joués dans la galerie d'Architect (`etats/nomenclature.cjs`)
 - galerie/recherche/ : fichier d'exemple des états de recherche et de fiche (`t-questions`, `t-terme`, `t-fiche`)
-- galerie/structure/ : relevé et message `structure` des états `t-structure` et `t-portees` ; `integrite.cjs` joue le vrai C82 du kit sur sa fixture pour les états `t-variables-manquantes`, `t-crans`, `t-sans-ecriture`, `t-sens-inconnu`, `t-integrite-a-faire`, `t-apres-creation`, `t-creation-sautee`
+- galerie/structure/ : relevé et message `structure` des états `t-structure` et `t-portees` ; `integrite.cjs` joue le vrai C82 du kit sur sa fixture pour les états `t-variables-manquantes`, `t-crans`, `t-sans-ecriture`, `t-sens-inconnu`, `t-integrite-a-faire`, `t-apres-creation`, `t-creation-sautee`, `t-role-ignore`, `t-menu-ignorer`, `t-cran-de-library`, `t-retrait-de-scopes`
 - galerie/bibliotheque/ : noms et valeurs de la library Intencial Tokens des états `t-bibliotheque`
 
 ## src/
@@ -65,7 +65,7 @@ Plugin UCM Architect : ucm-architect-plugin, privé, en lecture seule.
 - anticipation.ts : lecture des libraries lancée à la sélection d'un composant, reprise ou relue au clic sur Analyser, abandonnée au changement de page ; `rafraichirLesLibraries` la relit pour la prélecture
 - prelecture.ts : moment de la prélecture à la sélection : 1 s de silence avant la demande `analyser` d'origine `prelecture`, jeton levé par chaque événement, relance des libraries toutes les 5 s ; `analyse.ts` porte l'analyse discrète
 - bibliotheque.ts : library lue depuis un autre fichier : arbre depuis les noms, valeurs d'un groupe importées par lots de huit
-- structure.ts : mode Tokens sans composant : `lire-structure` rend les constats de `controlerLeCatalogue` et de `controlerLIntegriteUcm` du kit et leurs corrections (scopes C63, alias de mode C60, création C82), sans les constats ignorés ; `appliquer-structure` n'écrit que les corrections retenues du dernier constat, une opération à la fois
+- structure.ts : mode Tokens sans composant : `lire-structure` rend les constats de `controlerLeCatalogue` et de `controlerLIntegriteUcm` du kit et leurs corrections (scopes C63, alias de mode C60, création C82), sans les constats ignorés, que le message `structure` rend à part dans `ignores` avec les rôles ignorés ; `ignorer-constat-de-structure`, `ignorer-role` et leurs `retablir-*` rangent ou retirent la clé puis relisent la structure, sous leur propre numéro ; `appliquer-structure` n'écrit que les corrections retenues du dernier constat, une opération à la fois
 - preparation.ts : plan de préparation des tokens tiré du kit (`preparer`), préparations rangées, texte échangé lu ou copié (`lire-texte` envoie aussi `regles-recues`), création des variables dans le fichier des tokens, retour au composant seulement pour la même clé de jeu (`lier-preparation`)
 - accessibilite.ts, fiche.ts, recherche.ts, regles.ts : souches
 
@@ -78,7 +78,7 @@ Plugin UCM Architect : ucm-architect-plugin, privé, en lecture seule.
 - regles.ts : applique les corrections de sorte `regles` par `creerLesRegles` du socle ; relit avant d'écrire, saute `objet-change`, `instance-remplie` ou `erreur`, sans point d'annulation
 - liaisons.ts : écrit les corrections de sorte `liaison` (nombre, fill, stroke, texte par plage) après relecture, saute avec un motif ; importe la variable cible, une fois par clé et par lot ; `ecrireLeLot` pose le seul point d'annulation du lot, liaisons, règles et noms de valeurs ensemble
 - noms-de-valeurs.ts : écrit les corrections de sorte `nom-de-valeur` (C12) : renomme une valeur dans le nom de chaque variant du jeu après relecture ; une valeur cible déjà présente n'est jamais écrite (`fait-faux`)
-- ignores.ts : range et lit les clés d'Ignorer (constat, `proposition:` + constat) à la racine du document sous `CLES_D_ARCHITECT.ignorer` ; rien hors UCM ni pour un constat `limite` ; `rolesIgnoresDe` rend les rôles ignorés partout (aucun pour l'instant)
+- ignores.ts : range et lit les clés d'Ignorer (constat, `proposition:` + constat) à la racine du document sous `CLES_D_ARCHITECT.ignorer` ; rien hors UCM ni pour un constat `limite` ; `role-ucm:` + rôle du thème écarte ce rôle de C82 dans tout le fichier (`ignorerUnRole`, `retablirUnRole`, `rolesIgnoresDe`)
 - selection.ts : le seul changement de sélection du plugin, les layers d'un constat
 - variables.ts : `creerUneVariableAliasee`, seul appel à `createVariable` ; crée les seules variables manquantes d'une préparation dans la collection `components` reconnue par la déclaration UCM, alias de chaque mode compris ; une variable divergente reste telle quelle sans réponse ; un lot du journal de structure, un point d'annulation
 
@@ -98,7 +98,7 @@ Plugin UCM Architect : ucm-architect-plugin, privé, en lecture seule.
 - styles/ : feuilles, une par domaine, chargées dans l'ordre de `FEUILLES_DES_DOMAINES` (`scripts/build-ui.cjs`)
 - recherche/ : lecture du champ de l'arbre (texte, `terme:`, `vise:`), variables trouvées et lignes de la recherche
 - fiche/ : fiche d'une variable, à la place de l'inspecteur : chaîne d'alias, renommage à appliquer, « Utilisée par »
-- structure/ : onglet À faire dans Figma du mode Tokens (constats typés, chemins en phrase) et cartes de variables manquantes, de crans, de modes et de scopes en deux colonnes, sous Corrections ; `Tout désélectionner` en tête de l'onglet
+- structure/ : onglet À faire dans Figma du mode Tokens (constats typés, chemins en phrase) et cartes de variables manquantes, de crans, de modes et de scopes en deux colonnes, sous Corrections ; `Tout désélectionner` en tête de l'onglet ; menu Ignorer (« Pour cette palette », « Dans tout le fichier ») sur la carte d'un rôle absent, section Ignorés avec Ne plus ignorer
 - preparation/ : dialogue de préparation des tokens, texte partagé, création et liaisons au composant
 - capture.ts : reçoit `capture-architect` du sandbox et le télécharge, seulement si `UCM_ARCHITECT_CAPTURER` vaut `true`
 
