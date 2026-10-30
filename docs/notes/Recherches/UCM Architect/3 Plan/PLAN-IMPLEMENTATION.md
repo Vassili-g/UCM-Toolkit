@@ -1100,7 +1100,7 @@ Sondes, lancées par le mainteneur au lancement :
   manifeste, puis lire `figma.fileKey`. Hypothèse : `undefined`. Si la clé est
   servie, B3 ajoute le drapeau au manifeste et le lien de `t-bibliotheque`
   marche.
-- **S-3 · Slot rempli**, hors de ce plan : avant C47.
+- **S-3 · Slot rempli** : levée par le mainteneur ; voir [Règles manquantes](../7%20Règles%20manquantes/PLAN-IMPLEMENTATION-REGLES-MANQUANTES.md#c1--correction-après-lessai).
 
 ## 8. Jalons
 
@@ -1612,7 +1612,6 @@ dans Figma reste à faire.
 | C26 : mapping par valeur | Contraire à la règle d'exactitude, sauf les tailles exactes de K6 |
 | C30, C41 dans le kit | Déjà rendus par le moteur de l'exporteur |
 | C39, C40 | Hors de Figma, ou demande le réseau |
-| C47 : compléter une instance de règles remplie | B7 prépare le code ; sonde S-3 avant |
 | C48 : rédaction par IA | Réseau |
 | T3, T4, T8 à T11, T13 | Utilité faible, doublon de Palettes, ou seulement si la recette montre une lenteur |
 | G8 : fusion de l'exporteur | Écartée |

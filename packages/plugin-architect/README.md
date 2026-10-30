@@ -164,11 +164,13 @@ plugin reste ouvert. Une variable créée qu'un alias ou un layer du fichier
 emploie déjà n'est pas supprimée. Le plugin ne voit pas les usages dans
 d'autres fichiers.
 
-## Modules sans écran
+## Intégrité de la structure
 
-Le profil d'architecture UCM (`src/integrations/profilUcm.ts`) et la lecture
-de la recette d'UCM Palettes (`lireLaRecette`) restent dans le code, avec
-leurs tests, sans écran.
+Le mode Tokens signale les variables manquantes du thème et les crans
+incorrects. **Appliquer** crée les variables dont les cibles sont certaines ;
+l'Historique de la Configuration annule le lot. La
+[spécification](./SPEC.md#intégrité-de-la-structure-ucm) décrit les contrôles et
+leurs limites.
 
 ## Limites
 

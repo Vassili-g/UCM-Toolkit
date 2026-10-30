@@ -54,8 +54,8 @@ T1 arrive au plus tôt : le bouton n'existe dans le plugin qu'avec A2, l'écritu
 
 Agent : `implementeur` (Sonnet). Fichiers : `packages/plugin-socle/src/composant/template/modele.ts`, `packages/plugin-socle/tests/reglesManquantes.test.ts` (nouveau).
 
-- [ ] **S1.1** Écrire les tests rouges de `reglesManquantes`, décrits en S1.3. Le fichier de test suit la forme des tests voisins de `packages/plugin-socle/tests/`, découverts par `build/run-tests.cjs`.
-- [ ] **S1.2** Ajouter à `modele.ts`, sans toucher aux fonctions existantes :
+- [x] **S1.1** (cabb1ea2) Écrire les tests rouges de `reglesManquantes`, décrits en S1.3. Le fichier de test suit la forme des tests voisins de `packages/plugin-socle/tests/`, découverts par `build/run-tests.cjs`.
+- [x] **S1.2** (cabb1ea2) Ajouter à `modele.ts`, sans toucher aux fonctions existantes :
 
   ```ts
   /** Compacte une cible de règle pour la comparer : sans espaces, en minuscules. */
@@ -76,14 +76,14 @@ Agent : `implementeur` (Sonnet). Fichiers : `packages/plugin-socle/src/composant
   - `nom` est celui du modèle reçu.
 
   `cibleCompacte` retire tous les espaces et passe en minuscules. Ne pas importer `nomCompacte` du kit : le point doit rester.
-- [ ] **S1.3** Tests, sur un modèle construit par `modeleDeRegles('Button', contrat)` avec `props: { size: enum [sm, md], disabled: boolean }` et `stateModel: { axis: 'state', states: { default, hover, focus } }` :
+- [x] **S1.3** (cabb1ea2) Tests, sur un modèle construit par `modeleDeRegles('Button', contrat)` avec `props: { size: enum [sm, md], disabled: boolean }` et `stateModel: { axis: 'state', states: { default, hover, focus } }` :
   1. `presentes` vide : rend toutes les sections `prop` et `boolean`, sans `usage` ni `icons` ;
   2. tout présent : `sections` vide ;
   3. `size.sm`, `size.md`, `state.default`, `disabled` présents : une section `prop` qui porte `state.hover` puis `state.focus`, sans séparateur ;
   4. `size.md` et `state.default` présents : `size.sm`, un séparateur, `state.hover`, `state.focus` ;
   5. `presentes` contient `State.Hover` compacté, et `state.hover` n'est pas rendu ;
   6. `disabled` absent, le reste présent : une seule section `boolean`.
-- [ ] **S1.4** `npm run test:paquet -- socle` passe. `npm run typecheck` passe.
+- [x] **S1.4** (cabb1ea2) `npm run test:paquet -- socle` passe. `npm run typecheck` passe.
 
 Fait quand : les six tests passent et aucune fonction existante de `modele.ts` n'a changé.
 
@@ -91,7 +91,7 @@ Fait quand : les six tests passent et aucune fonction existante de `modele.ts` n
 
 Agent : `implementeur` (Sonnet). Fichiers : `packages/plugin-socle/src/composant/contract/extractRules.ts`, le type de son résultat, un test du socle voisin des tests existants d'`extractRules`.
 
-- [ ] **S2.1** Trouver le type du résultat d'`extractRules` (champ `propDescriptions`, ligne 604) et y ajouter :
+- [x] **S2.1** (cabb1ea2) Trouver le type du résultat d'`extractRules` (champ `propDescriptions`, ligne 604) et y ajouter :
 
   ```ts
   /**
@@ -102,9 +102,9 @@ Agent : `implementeur` (Sonnet). Fichiers : `packages/plugin-socle/src/composant
   ```
 
   Le résultat vide (ligne 505) le porte à `[]`.
-- [ ] **S2.2** Dans la boucle, à la branche `nEstPasRedigee` (ligne 562), avant `continue` : quand `tag` vaut `prop` ou `boolean`, lire `textOfLayer(instance, CALQUES_DU_KIT_DE_REGLES.cible)`. Si le texte n'est pas vide après `trim()` et ne porte pas le marqueur (`porteLeMarqueur`), l'ajouter à `ciblesNonRedigees`. Rien d'autre ne change : l'avertissement C44, `entries`, `propDescriptions` et `booleanDescriptions` restent identiques.
-- [ ] **S2.3** Test : une instance de règles avec une règle `@prop` rédigée (`size.sm`), une règle `@prop` marquée de cible `state.hover`, une règle `@boolean` marquée de cible `disabled`, une règle `@usage` marquée. Attendu : `ciblesNonRedigees` vaut `['state.hover', 'disabled']`, `propDescriptions` ne contient que `size`, l'avertissement du marqueur est toujours rendu. Reprendre les doubles de nodes des tests existants d'`extractRules`.
-- [ ] **S2.4** `npm run test:paquet -- socle`, `npm run test:paquet -- exporter`, `npm run test:paquet -- architect` et `npm run typecheck` passent. Un test qui compare le résultat entier d'`extractRules` reçoit `ciblesNonRedigees: []`, et rien d'autre ne change.
+- [x] **S2.2** (cabb1ea2) Dans la boucle, à la branche `nEstPasRedigee` (ligne 562), avant `continue` : quand `tag` vaut `prop` ou `boolean`, lire `textOfLayer(instance, CALQUES_DU_KIT_DE_REGLES.cible)`. Si le texte n'est pas vide après `trim()` et ne porte pas le marqueur (`porteLeMarqueur`), l'ajouter à `ciblesNonRedigees`. Rien d'autre ne change : l'avertissement C44, `entries`, `propDescriptions` et `booleanDescriptions` restent identiques.
+- [x] **S2.3** (cabb1ea2) Test : une instance de règles avec une règle `@prop` rédigée (`size.sm`), une règle `@prop` marquée de cible `state.hover`, une règle `@boolean` marquée de cible `disabled`, une règle `@usage` marquée. Attendu : `ciblesNonRedigees` vaut `['state.hover', 'disabled']`, `propDescriptions` ne contient que `size`, l'avertissement du marqueur est toujours rendu. Reprendre les doubles de nodes des tests existants d'`extractRules`.
+- [x] **S2.4** (cabb1ea2) `npm run test:paquet -- socle`, `npm run test:paquet -- exporter`, `npm run test:paquet -- architect` et `npm run typecheck` passent. Un test qui compare le résultat entier d'`extractRules` reçoit `ciblesNonRedigees: []`, et rien d'autre ne change.
 
 Fait quand : le contrat publié par l'Exporter ne change pour aucune fixture.
 
@@ -114,7 +114,7 @@ Agent : `implementeur` (Sonnet). Après S1. Fichiers : `packages/plugin-socle/sr
 
 Lire d'abord l'en-tête d'`ecriture.ts` et la section « Comment l'écriture range une règle » de `packages/plugin-exporter/SPEC.md`. Les trois règles d'écriture s'appliquent sans exception.
 
-- [ ] **S3.1** Ajouter et exporter :
+- [x] **S3.1** (cabb1ea2) Ajouter et exporter :
 
   ```ts
   /**
@@ -130,19 +130,19 @@ Lire d'abord l'en-tête d'`ecriture.ts` et la section « Comment l'écriture ran
   ): Promise<ResultatDeCreation>;
   ```
 
-- [ ] **S3.2** Extraire de `poserUneSection` la construction hors de l'arbre (création de l'instance de section, `viderLeSlot` de ses règles, `poserUnElement` pour chaque élément) dans une fonction privée `remplirUneSection(section, sources, enAttente): Promise<InstanceNode>`. `poserUneSection` l'appelle, puis range comme avant. `creerLesRegles` ne change pas de comportement.
-- [ ] **S3.3** `ajouterLesRegles` :
+- [x] **S3.2** (cabb1ea2) Extraire de `poserUneSection` la construction hors de l'arbre (création de l'instance de section, `viderLeSlot` de ses règles, `poserUnElement` pour chaque élément) dans une fonction privée `remplirUneSection(section, sources, enAttente): Promise<InstanceNode>`. `poserUneSection` l'appelle, puis range comme avant. `creerLesRegles` ne change pas de comportement.
+- [x] **S3.3** (cabb1ea2) `ajouterLesRegles` :
   1. annonce `Vérification des polices…`, puis charge les polices du maître et des variantes, comme `creerLesRegles` ;
   2. pour chaque section de `manquantes`, annonce `Règles ajoutées : n sur total…`, remplit la section par `remplirUneSection`, puis calcule sa place dans `(await slotFrais(conteneur, SLOT_DES_SECTIONS)).children` : l'index qui suit la dernière section dont `await enfant.getMainComponentAsync()` a l'id de `sources.sections.get(tag)`. Sans section de ce tag, l'index qui suit la dernière section d'un tag placé avant dans l'ordre `usage`, `prop`, `boolean`, `icons`. Sans aucune des deux, 0 ;
   3. range par `insertChild(index, instance)` sur le slot retrouvé juste avant, retire l'instance de `enAttente`, puis pose `layoutSizingHorizontal = 'FILL'` sur la section rangée, retrouvée par son index dans le slot relu ;
   4. rend `{ conteneur, regles: nombreDeRegles(manquantes) }`.
-- [ ] **S3.4** En cas d'erreur : retirer chaque node de `enAttente`, plus chaque section déjà rangée par cet appel, retrouvée par son id (`figma.getNodeByIdAsync`). Ne jamais supprimer le conteneur. Lever `Error` dont le message garde la cause, suivie de ` Les règles déjà rédigées n’ont pas été touchées.`
-- [ ] **S3.5** Tests, avec des doubles de Figma qui tracent les appels (`appendChild`, `insertChild`, `remove`, écriture de `characters`). S'inspirer de `packages/plugin-architect/tests/ecritureDesRegles.test.ts` et des doubles existants du socle :
+- [x] **S3.4** (cabb1ea2) En cas d'erreur : retirer chaque node de `enAttente`, plus chaque section déjà rangée par cet appel, retrouvée par son id (`figma.getNodeByIdAsync`). Ne jamais supprimer le conteneur. Lever `Error` dont le message garde la cause, suivie de ` Les règles déjà rédigées n’ont pas été touchées.`
+- [x] **S3.5** (cabb1ea2) Tests, avec des doubles de Figma qui tracent les appels (`appendChild`, `insertChild`, `remove`, écriture de `characters`). S'inspirer de `packages/plugin-architect/tests/ecritureDesRegles.test.ts` et des doubles existants du socle :
   1. conteneur avec sections `usage`, `prop`, `icons` ; ajout d'une section `prop` à deux règles : rangée à l'index 2, aucun `remove` sur le conteneur ni sur ses sections d'avant, `component-name` jamais écrit ;
   2. ajout d'une section `boolean` absente du conteneur : rangée après la section `prop` ;
   3. une erreur pendant la deuxième section : la première, déjà rangée, est retirée ; le conteneur reste ; le message porte la phrase de S3.4 ;
   4. `creerLesRegles` : les tests existants passent sans changement.
-- [ ] **S3.6** `npm run test:paquet -- socle`, `npm run test:paquet -- exporter` (dont `loiDuDocumentIntact.test.ts`) et `npm run typecheck` passent.
+- [x] **S3.6** (cabb1ea2) `npm run test:paquet -- socle`, `npm run test:paquet -- exporter` (dont `loiDuDocumentIntact.test.ts`) et `npm run typecheck` passent.
 
 Fait quand : l'écriture ne range une règle que dans une section hors de l'arbre, et ne range une section que dans le slot du conteneur.
 
@@ -150,7 +150,7 @@ Fait quand : l'écriture ne range une règle que dans une section hors de l'arbr
 
 Agent : `implementeur` (Sonnet). Après S1 et S2. Fichiers : `packages/plugin-architect/src/regles.ts`, `packages/plugin-architect/tests/regles.test.ts`, le fichier où se construit le relevé passé à `constatsDeRegles` s'il n'est pas `regles.ts`.
 
-- [ ] **A1.1** `ReleveDesRegles` gagne :
+- [x] **A1.1** (cabb1ea2) `ReleveDesRegles` gagne :
 
   ```ts
   /** Les cibles des règles déjà posées, rédigées ou non, compactées par `cibleCompacte`. */
@@ -160,7 +160,7 @@ Agent : `implementeur` (Sonnet). Après S1 et S2. Fichiers : `packages/plugin-ar
   ```
 
   `lireLesRegles` les remplit : `presentes` est l'union de `axe.valeur` pour chaque entrée de `lues.propDescriptions` (clé, puis chaque clé de valeur), des clés de `lues.booleanDescriptions` et de `lues.ciblesNonRedigees`, chacune passée par `cibleCompacte`. `manquantes` vaut `reglesManquantes(modele, new Set(presentes))` quand l'instance est présente, sinon `{ nom: composant.name, sections: [] }`. `documentees` inclut aussi les axes ou clés tirés de `ciblesNonRedigees` (ce qui précède le dernier point pour une cible `@prop`, la cible entière pour `@boolean`).
-- [ ] **A1.2** `constatsDeRegles`, instance présente :
+- [x] **A1.2** (cabb1ea2) `constatsDeRegles`, instance présente :
   - pour chaque axe d'une section `prop` de `manquantes` dont l'axe figure dans `documentees` : un constat `regles:C45:sans-valeur:<axe>`, code `C45`, type `corriger`, famille `regles`, `faits: { composant, propriete: axe, valeurs: 'focus, pressed', ecart: 'sans-valeur' }`. Les valeurs sont celles des cibles manquantes, dans l'ordre du modèle, jointes par `', '` ;
   - les constats `sans-regle` et `sans-propriete` ne changent pas ;
   - chaque constat `sans-regle` et `sans-valeur` porte une correction :
@@ -177,8 +177,8 @@ Agent : `implementeur` (Sonnet). Après S1 et S2. Fichiers : `packages/plugin-ar
     ```
 
     et ses faits gagnent `regles: <nombre de règles manquantes de cette propriété>`.
-- [ ] **A1.3** `retenirLesModeles` retient aussi, pour chaque correction `ajouter`, le modèle réduit à la propriété de la correction : les sections de `manquantes` filtrées aux règles dont la cible est la propriété (`@boolean`) ou commence par `propriete.` (`@prop`), séparateurs retirés. L'identifiant est celui de la correction. Le modèle de C43 reste retenu comme avant.
-- [ ] **A1.4** Tests dans `regles.test.ts` :
+- [x] **A1.3** (cabb1ea2) `retenirLesModeles` retient aussi, pour chaque correction `ajouter`, le modèle réduit à la propriété de la correction : les sections de `manquantes` filtrées aux règles dont la cible est la propriété (`@boolean`) ou commence par `propriete.` (`@prop`), séparateurs retirés. L'identifiant est celui de la correction. Le modèle de C43 reste retenu comme avant.
+- [x] **A1.4** (cabb1ea2) Tests dans `regles.test.ts` :
   1. instance présente, `state` absent de `documentees` : C45 `sans-regle` avec correction `regles:ajouter:<id>:state`, `faits.regles` = nombre de valeurs de l'axe ;
   2. `state.default` documenté, `state.hover` et `state.focus` absents : un C45 `sans-valeur`, `faits.valeurs = 'hover, focus'`, avec correction ;
   3. `state.hover` présent seulement dans `ciblesNonRedigees` : pas de C45 pour `hover` ;
@@ -186,7 +186,7 @@ Agent : `implementeur` (Sonnet). Après S1 et S2. Fichiers : `packages/plugin-ar
   5. `sans-propriete` : aucune correction ;
   6. sans instance : C43 seul, comme avant ;
   7. `retenirLesModeles` rend le modèle réduit sous l'identifiant de chaque correction `ajouter`.
-- [ ] **A1.5** `npm run test:paquet -- architect` et `npm run typecheck` passent. Les autres tests d'Architect qui construisent un `ReleveDesRegles` reçoivent les deux champs.
+- [x] **A1.5** (cabb1ea2) `npm run test:paquet -- architect` et `npm run typecheck` passent. Les autres tests d'Architect qui construisent un `ReleveDesRegles` reçoivent les deux champs.
 
 Fait quand : après un ajout, une règle marquée ne relance ni C45 ni sa correction.
 
@@ -194,22 +194,22 @@ Fait quand : après un ajout, une règle marquée ne relance ni C45 ni sa correc
 
 Agent : `implementeur` (Sonnet). Après S3 et A1. Fichiers : `packages/plugin-architect/src/ecriture/regles.ts`, `packages/plugin-architect/tests/ecritureDesRegles.test.ts`.
 
-- [ ] **A2.1** `PortDEcritureDesRegles` gagne `ajouter: typeof ajouterLesRegles` et `conteneur(composant: Composant): Promise<InstanceNode | null>`, l'instance de règles qui écrit le nom du composant. Dans `PORT_DE_FIGMA`, la retrouver par le relevé d'`extractRules` si le résultat la porte ; sinon parcourir les instances de la page du composant dont le maître est `.componentRules` et dont le calque `component-name` vaut le nom du composant, comparé par `nomCompacte`. Lire `extractRules.ts` avant de choisir.
-- [ ] **A2.2** `ecrireLesRegles` traite `ajouter` :
+- [x] **A2.1** (cabb1ea2) `PortDEcritureDesRegles` gagne `ajouter: typeof ajouterLesRegles` et `conteneur(composant: Composant): Promise<InstanceNode | null>`, l'instance de règles qui écrit le nom du composant. Dans `PORT_DE_FIGMA`, la retrouver par le relevé d'`extractRules` si le résultat la porte ; sinon parcourir les instances de la page du composant dont le maître est `.componentRules` et dont le calque `component-name` vaut le nom du composant, comparé par `nomCompacte`. Lire `extractRules.ts` avant de choisir.
+- [x] **A2.2** (cabb1ea2) `ecrireLesRegles` traite `ajouter` :
   - regrouper les corrections `ajouter` cochées par `cible.layer`. Un composant donne un seul appel d'écriture ;
   - relire le composant (`objet-change` s'il manque) et le relevé. Sans conteneur : chaque correction du groupe saute `objet-change` ;
   - relire l'instance par `extractRules`, recalculer `presentes` comme A1.1, fusionner les modèles retenus du groupe dans l'ordre `prop`, `boolean`, puis appliquer `reglesManquantes` sur la fusion. Une correction dont toutes les règles sont déjà présentes saute `objet-change`. Un modèle absent de `modeles` saute `objet-change` ;
   - `resoudre` sans sources : `erreur` pour chaque correction du groupe ;
   - appeler `port.ajouter(conteneur, fusion, sources, annoncer)`, puis mettre dans `ecrites` chaque correction du groupe qui avait une règle à poser ; une erreur levée saute tout le groupe en `erreur`.
   - `retirer` saute toujours `instance-remplie`. `creer` ne change pas.
-- [ ] **A2.3** Mettre à jour l'en-tête du fichier : retirer « Une instance déjà remplie n'est jamais complétée ni allégée, faute de sonde… », écrire que `ajouter` pose les règles manquantes par `ajouterLesRegles` et que `retirer` reste refusé (`instance-remplie`).
-- [ ] **A2.4** Tests :
+- [x] **A2.3** (cabb1ea2) Mettre à jour l'en-tête du fichier : retirer « Une instance déjà remplie n'est jamais complétée ni allégée, faute de sonde… », écrire que `ajouter` pose les règles manquantes par `ajouterLesRegles` et que `retirer` reste refusé (`instance-remplie`).
+- [x] **A2.4** (cabb1ea2) Tests :
   1. remplacer le test « ajout et retrait sur une instance remplie » : `retirer` saute `instance-remplie` ; `ajouter` appelle `port.ajouter` une fois et rend `ecrites: ['a']` ;
   2. deux corrections `ajouter` du même composant : un seul appel à `port.ajouter`, modèle fusionné, les deux dans `ecrites` ;
   3. second passage, relevé qui porte déjà toutes les cibles : `port.ajouter` jamais appelé, saut `objet-change` ;
   4. sans conteneur : `objet-change` ;
   5. `port.ajouter` lève : `erreur` pour tout le groupe.
-- [ ] **A2.5** `npm run test:paquet -- architect` passe, `tests/loiDEcriture.test.ts` compris.
+- [x] **A2.5** (cabb1ea2) `npm run test:paquet -- architect` passe, `tests/loiDEcriture.test.ts` compris.
 
 Fait quand : deux clics successifs sur Appliquer ne posent jamais une règle deux fois.
 
@@ -217,11 +217,11 @@ Fait quand : deux clics successifs sur Appliquer ne posent jamais une règle deu
 
 Agent : `implementeur` (Sonnet). Après A1. Fichiers : `packages/plugin-architect/src/ui/corrections/modele.ts`, `packages/plugin-architect/src/ui/textes/corrections.ts`, `packages/plugin-architect/src/ui/textes/ignores.ts`, `packages/plugin-architect/src/ui/ignores/modele.ts`, un test d'interface voisin (`tests/interface/corrections.test.mjs` ou le test de modèle des cartes).
 
-- [ ] **U1.1** `genreDe` : une correction `regles` dont `apres.nom` vaut `ajouter` prend la clé `regles:ajouter:${correction.cible.layer}`. Toutes les propriétés d'un composant forment ainsi une carte, une ligne par correction, chacune cochable.
-- [ ] **U1.2** `carteDe`, genre `regles` : quand la première correction est `ajouter`, la phrase est `T.ajouterLesRegles(contexte.composant)` et la méta `T.reglesAjouteesMeta(total)`, où `total` est la somme des `faits.regles` des constats de la carte. Chaque ligne nomme sa propriété : `faits.propriete` seul pour `sans-regle`, `T.valeursDeLaPropriete(propriete, valeurs)` pour `sans-valeur`. Lire comment `index.ts` rend les lignes d'une carte `regles` avant de choisir le champ de `LigneDeCarte` à remplir.
-- [ ] **U1.3** Ajouter dans `textes/corrections.ts` les textes du §7.1, dans `textes/ignores.ts` ceux du §7.2. `ignores/modele.ts`, cas `C45` : l'écart `sans-valeur` rend `T.valeursSansRegle(...)` avec `T.valeursSansRegleStatut(...)`.
-- [ ] **U1.4** Test : un panneau avec un C45 `sans-regle` (`disabled`) et un C45 `sans-valeur` (`state`, `hover, focus`) du même composant donne une carte de la section `regles`, deux lignes, phrase et méta du §7.1.
-- [ ] **U1.5** `npm run test:paquet -- architect` passe. Ne pas lancer `test:ui` : le mainteneur teste l'interface.
+- [x] **U1.1** (cabb1ea2) `genreDe` : une correction `regles` dont `apres.nom` vaut `ajouter` prend la clé `regles:ajouter:${correction.cible.layer}`. Toutes les propriétés d'un composant forment ainsi une carte, une ligne par correction, chacune cochable.
+- [x] **U1.2** (cabb1ea2) `carteDe`, genre `regles` : quand la première correction est `ajouter`, la phrase est `T.ajouterLesRegles(contexte.composant)` et la méta `T.reglesAjouteesMeta(total)`, où `total` est la somme des `faits.regles` des constats de la carte. Chaque ligne nomme sa propriété : `faits.propriete` seul pour `sans-regle`, `T.valeursDeLaPropriete(propriete, valeurs)` pour `sans-valeur`. Lire comment `index.ts` rend les lignes d'une carte `regles` avant de choisir le champ de `LigneDeCarte` à remplir.
+- [x] **U1.3** (cabb1ea2) Ajouter dans `textes/corrections.ts` les textes du §7.1, dans `textes/ignores.ts` ceux du §7.2. `ignores/modele.ts`, cas `C45` : l'écart `sans-valeur` rend `T.valeursSansRegle(...)` avec `T.valeursSansRegleStatut(...)`.
+- [x] **U1.4** (cabb1ea2) Test : un panneau avec un C45 `sans-regle` (`disabled`) et un C45 `sans-valeur` (`state`, `hover, focus`) du même composant donne une carte de la section `regles`, deux lignes, phrase et méta du §7.1.
+- [x] **U1.5** (cabb1ea2) `npm run test:paquet -- architect` passe. Ne pas lancer `test:ui` : le mainteneur teste l'interface.
 
 Fait quand : la carte ne montre aucun texte absent du §7.
 
@@ -230,7 +230,7 @@ Fait quand : la carte ne montre aucun texte absent du §7.
 Agent : `verificateur` (Haiku). Après A2 et U1.
 
 - [ ] **T0.1** `npm run test:paquet -- socle`, `npm run test:paquet -- architect`, `npm run test:paquet -- exporter`, puis `npm run build:plugin -- architect` et `npm run build:plugin -- exporter`. Rendre un tableau : commande, résultat, premières lignes de chaque échec.
-- [ ] **T0.2** Conversation principale : relire les diffs de S1 à U1, commiter par chemins explicites, puis prévenir le mainteneur que T1 est prêt.
+- [x] **T0.2** (cabb1ea2) Conversation principale : relire les diffs de S1 à U1, commiter par chemins explicites, puis prévenir le mainteneur que T1 est prêt.
 
 ### T1 · Essai du mainteneur dans Figma
 
@@ -264,30 +264,30 @@ Une section entière ne se crée que si aucune section de ce tag n'existe. D1 ch
 
 Une règle ne se range jamais dans le slot d'une section déjà rangée : la coquille de « Comment l'écriture range une règle » reste interdite. La section se complète sur une copie hors de l'arbre :
 
-- [ ] **C1.1.1** Section du tag présente dans le slot du conteneur (`placeDeLaSection` la trouve déjà) : `copie = section.clone()`, puis sortir la copie de l'arbre du conteneur (`figma.currentPage.appendChild(copie)` si `clone()` l'a laissée dans le slot) et l'ajouter à `enAttente`.
-- [ ] **C1.1.2** Dans le slot `Rules-Wrapper` de la copie, relu juste avant chaque écriture, insérer les éléments manquants de ce tag. Section `prop` : une valeur d'un axe déjà présent va juste après la dernière règle de cet axe, sans divider ; un axe absent va à la fin, précédé d'un divider (`sources.separateur`) si la section porte déjà une règle ; deux axes absents gardent l'ordre du modèle, un divider entre eux. L'axe d'une règle existante se lit sur son calque de cible (`CALQUES_DU_KIT_DE_REGLES.cible`), compacté par `cibleCompacte`, ce qui précède le dernier point. Section `boolean` : les règles manquantes vont à la fin, dans l'ordre du modèle, sans divider. `FILL` sur chaque règle posée.
-- [ ] **C1.1.3** Ranger la copie dans le slot du conteneur par `insertChild` à l'index de l'ancienne section, relu, puis retirer l'ancienne section, retrouvée juste avant par son index (`index + 1`) et le maître de son tag. `FILL` sur la copie rangée. L'ancienne section n'est retirée qu'une fois la copie rangée.
-- [ ] **C1.1.4** Erreur avant le retrait de l'ancienne section : retirer la copie et ce qui reste dans `enAttente` ; l'ancienne section et ses règles restent intactes. Le message garde la phrase de S3.4.
-- [ ] **C1.1.5** Section du tag absente : comportement de S3, inchangé (section neuve, rangée après la dernière section d'un tag placé avant).
-- [ ] **C1.1.6** Tests, doubles qui tracent `clone`, `appendChild`, `insertChild`, `remove` :
+- [ ] **C1.1.1** (remplacé par C1.2) Section du tag présente dans le slot du conteneur (`placeDeLaSection` la trouve déjà) : `copie = section.clone()`, puis sortir la copie de l'arbre du conteneur (`figma.currentPage.appendChild(copie)` si `clone()` l'a laissée dans le slot) et l'ajouter à `enAttente`.
+- [ ] **C1.1.2** (remplacé par C1.2) Dans le slot `Rules-Wrapper` de la copie, relu juste avant chaque écriture, insérer les éléments manquants de ce tag. Section `prop` : une valeur d'un axe déjà présent va juste après la dernière règle de cet axe, sans divider ; un axe absent va à la fin, précédé d'un divider (`sources.separateur`) si la section porte déjà une règle ; deux axes absents gardent l'ordre du modèle, un divider entre eux. L'axe d'une règle existante se lit sur son calque de cible (`CALQUES_DU_KIT_DE_REGLES.cible`), compacté par `cibleCompacte`, ce qui précède le dernier point. Section `boolean` : les règles manquantes vont à la fin, dans l'ordre du modèle, sans divider. `FILL` sur chaque règle posée.
+- [ ] **C1.1.3** (remplacé par C1.2) Ranger la copie dans le slot du conteneur par `insertChild` à l'index de l'ancienne section, relu, puis retirer l'ancienne section, retrouvée juste avant par son index (`index + 1`) et le maître de son tag. `FILL` sur la copie rangée. L'ancienne section n'est retirée qu'une fois la copie rangée.
+- [ ] **C1.1.4** (remplacé par C1.2) Erreur avant le retrait de l'ancienne section : retirer la copie et ce qui reste dans `enAttente` ; l'ancienne section et ses règles restent intactes. Le message garde la phrase de S3.4.
+- [ ] **C1.1.5** (remplacé par C1.2) Section du tag absente : comportement de S3, inchangé (section neuve, rangée après la dernière section d'un tag placé avant).
+- [ ] **C1.1.6** (remplacé par C1.2) Tests, doubles qui tracent `clone`, `appendChild`, `insertChild`, `remove` :
   1. section `prop` avec `size.sm`, `size.md` ; manquent `state.default`, `state.hover` : la copie porte `size.sm`, `size.md`, divider, `state.default`, `state.hover` ; elle est rangée à l'index de l'ancienne, qui est retirée ; aucune insertion dans le slot de l'ancienne section ;
   2. section `prop` avec `state.default`, divider, `size.sm` ; manque `state.hover` : la copie porte `state.default`, `state.hover`, divider, `size.sm` ;
   3. section `boolean` existante : la règle manquante va à la fin ;
   4. section `boolean` absente : section neuve, comme S3 ;
   5. erreur pendant le remplissage de la copie : l'ancienne section n'a reçu aucun `remove`, la copie est retirée ;
   6. les règles déjà écrites de l'ancienne section gardent leur texte dans la copie (le double de `clone` copie les textes).
-- [ ] **C1.1.7** `npm run test:paquet -- socle`, `-- exporter`, `-- architect`, `npm run typecheck`, puis `npm run build:plugin -- architect` et `-- exporter`.
+- [ ] **C1.1.7** (remplacé par C1.2) `npm run test:paquet -- socle`, `-- exporter`, `-- architect`, `npm run typecheck`, puis `npm run build:plugin -- architect` et `-- exporter`.
 
 **Retour du mainteneur (29/10, T1 du correctif C1.1).** La section complétée s'affiche avec les règles et le texte du designer, mais Architect déclare `color`, `variant` et `size` sans règle. Le rapport (`6 Recette v2/ucm-architect-rapport-Button-2026-10-29-14-31-20.json`) montre que chaque règle de la copie lève « The node … I1282:1794;713:1220 does not exist » quand on lit son parent : `1282:1794` est l'id de la copie posée sur la page. Une section déjà remplie de règles, copiée puis rangée dans le slot du conteneur, garde des chemins morts. Le clone est abandonné.
 
 **Fiche C1.2 · Reconstruire la section au lieu de la copier** (agent : `implementeur-exigeant`). Fichiers : `packages/plugin-socle/src/composant/template/ecriture.ts`, `packages/plugin-socle/src/composant/template/modele.ts` (type `ElementDeModele`), `packages/plugin-socle/tests/ajoutDesRegles.test.ts`.
 
-- [ ] **C1.2.1** Retirer le geste de C1.1 (`clone()`, déplacement de la copie sur la page).
-- [ ] **C1.2.2** Section du tag présente : relire ses enfants dans l'ordre, avant toute écriture. Pour chaque règle, garder son tag, le texte de son calque de cible et celui de son calque de description, tels qu'écrits, marqueur compris ; pour un divider, garder sa place.
-- [ ] **C1.2.3** Construire un `SectionDeModele` : les règles relues, puis les règles manquantes à leur place selon la règle de C1.1.2 (valeur d'un axe présent après la dernière règle de cet axe, axe absent à la fin précédé d'un divider, `boolean` à la fin). Une règle relue porte son texte (`ElementDeModele` gagne un texte facultatif) ; `poserUnElement` l'écrit à la place du marqueur, avec la relecture de chaque écriture que demande l'en-tête d'`ecriture.ts`.
-- [ ] **C1.2.4** Remplir cette section neuve hors de l'arbre par `remplirUneSection`, la ranger par `insertChild` à l'index de l'ancienne, relu, puis retirer l'ancienne, retrouvée juste avant par son index et le maître de son tag. C'est le geste de la création, mesuré dans Figma.
-- [ ] **C1.2.5** Erreur avant le retrait de l'ancienne : retirer la section neuve et `enAttente` ; l'ancienne reste intacte.
-- [ ] **C1.2.6** Tests : les cas de C1.1.6, plus : le texte de cible et de description de chaque règle relue se retrouve à l'identique dans la section neuve ; aucun `clone` n'est appelé ; aucune règle n'est rangée dans le slot d'une section déjà rangée.
+- [x] **C1.2.1** (cabb1ea2) Retirer le geste de C1.1 (`clone()`, déplacement de la copie sur la page).
+- [x] **C1.2.2** (cabb1ea2) Section du tag présente : relire ses enfants dans l'ordre, avant toute écriture. Pour chaque règle, garder son tag, le texte de son calque de cible et celui de son calque de description, tels qu'écrits, marqueur compris ; pour un divider, garder sa place.
+- [x] **C1.2.3** (cabb1ea2) Construire un `SectionDeModele` : les règles relues, puis les règles manquantes à leur place selon la règle de C1.1.2 (valeur d'un axe présent après la dernière règle de cet axe, axe absent à la fin précédé d'un divider, `boolean` à la fin). Une règle relue porte son texte (`ElementDeModele` gagne un texte facultatif) ; `poserUnElement` l'écrit à la place du marqueur, avec la relecture de chaque écriture que demande l'en-tête d'`ecriture.ts`.
+- [x] **C1.2.4** (cabb1ea2) Remplir cette section neuve hors de l'arbre par `remplirUneSection`, la ranger par `insertChild` à l'index de l'ancienne, relu, puis retirer l'ancienne, retrouvée juste avant par son index et le maître de son tag. C'est le geste de la création, mesuré dans Figma.
+- [x] **C1.2.5** (cabb1ea2) Erreur avant le retrait de l'ancienne : retirer la section neuve et `enAttente` ; l'ancienne reste intacte.
+- [x] **C1.2.6** (cabb1ea2) Tests : les cas de C1.1.6, plus : le texte de cible et de description de chaque règle relue se retrouve à l'identique dans la section neuve ; aucun `clone` n'est appelé ; aucune règle n'est rangée dans le slot d'une section déjà rangée.
 - [ ] **C1.2.7** `npm run test:paquet -- socle`, `-- exporter`, `-- architect`, `npm run typecheck`, `npm run build:plugin -- architect` et `-- exporter`.
 
 Limite acceptée par le mainteneur : une mise en forme à l'intérieur d'un texte de règle (gras, lien) ne se recopie pas.
@@ -318,7 +318,7 @@ Agent : `verificateur` (Haiku). Après D1.
 
 Conversation principale.
 
-- [ ] **F1.1** Relire le diff de chaque lot ; vérifier qu'aucun texte hors du §7 n'apparaît dans l'interface.
+- [x] **F1.1** (cabb1ea2) Relire le diff de chaque lot ; vérifier qu'aucun texte hors du §7 n'apparaît dans l'interface.
 - [ ] **F1.2** `npm run agents:diff`, relire les documents listés.
 - [ ] **F1.3** Commits par chemins explicites, un par lot ou par paire de lots d'une même vague. Pas de push : la recette v2 attend encore la recette du mainteneur.
 
@@ -369,4 +369,6 @@ valeursSansRegleStatut: (valeurs: string): string => (valeurs.includes(',') ? 'A
 
 ### 7.3 Paragraphe de `SPEC.md`
 
-> Quand l'instance de règles existe, la correction de C45 pose les règles `@prop` et `@boolean` qui manquent, valeur absente d'un axe comprise. Elles vont dans une section neuve, rangée juste après la dernière section du même tag : ajouter une règle dans une section déjà rangée laisserait une coquille qui fait lever tout parcours du conteneur. Les règles déjà écrites ne sont ni déplacées ni réécrites. Chaque règle posée porte `[À compléter]` ; l'analyse suivante la compte comme présente pour C45 et la signale par C44 tant qu'elle n'est pas rédigée. Une règle qui vise une propriété absente n'a pas de correction : la retirer effacerait le texte du designer.
+La [spécification d'Architect](../../../../../packages/plugin-architect/SPEC.md#analyse-et-corrections)
+décrit C43, C45, l'ajout dans une section reconstruite et la conservation des
+textes sans leur mise en forme interne (C1.2).

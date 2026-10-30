@@ -476,7 +476,7 @@ variables dont le scope accepte la propriété.
 Le kit porte déjà le scope de chaque variable de `theme` : le champ `portees` de
 `SUPPORT_DES_VARIABLES`, dans `packages/kit/src/emplois/dossiers.ts`. UCM
 Architect compare les scopes lus dans Figma à cette table, et un écart devient
-un constat `portee` (`packages/plugin-architect/src/integrations/profilUcm.ts`).
+un constat C63 (`packages/kit/src/controles/structure.ts`, `controlerLesScopes`).
 Le champ `peint` de la même table dit ce que la variable colore : fond, texte,
 icône, contour ou anneau. Le nuancier de Palettes le lit pour classer les
 variables.

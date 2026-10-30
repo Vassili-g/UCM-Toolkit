@@ -10,7 +10,7 @@ conception du moteur réduit et des mémoires avant de les implémenter.**
 
 Cette revue porte sur [RECHERCHE-VITESSE-ANALYSE.md](./RECHERCHE-VITESSE-ANALYSE.md),
 confronté aux sources et aux tests du dépôt. Le
-[plan d'implémentation voisin](./PLAN-IMPLEMENTATION.md) et la
+plan d'implémentation retiré et la
 [maquette](./MAQUETTE-PROGRESSION.html) sont pris en compte lorsqu'ils précisent
 une proposition. Aucune mesure d'Architect dans Figma n'a été faite pour cette
 revue ; les gains restent à établir par le mainteneur.

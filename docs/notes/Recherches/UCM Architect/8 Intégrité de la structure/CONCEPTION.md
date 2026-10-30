@@ -1,6 +1,6 @@
 # Intégrité de la structure des tokens
 
-Ce document étudie comment UCM Architect pourrait vérifier la structure des tokens d'un fichier contre ce qu'UCM prévoit. Il propose des contrôles et des corrections. Rien n'est construit. Les décisions attendues sont au §6.
+Le contrôle d'intégrité de la structure est implémenté. Le [plan d'implémentation](./PLAN-IMPLEMENTATION.md) indique les lots commités et la recette restante ; cette note conserve la conception et les décisions qui les ont guidés.
 
 ## Le point de départ
 

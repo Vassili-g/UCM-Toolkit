@@ -26,6 +26,7 @@ qui ne déclare plus UCM au moment d'écrire ne reçoit rien.
 | Nom d'une variable ou d'une collection locale | Appliquer, onglet Corrections du mode Tokens | Historique de la Configuration |
 | Scopes d'une variable, cible d'alias dans un mode | Appliquer, sous Modes et Scopes | Historique de la Configuration |
 | Variables créées dans `components` | Créer, depuis une préparation | Historique de la Configuration |
+| Variables manquantes créées dans `theme` | Appliquer, sous Variables manquantes du mode Tokens | Historique de la Configuration |
 | Liaison d'une variable à un layer du composant analysé | Appliquer, panneau des constats | Ctrl+Z dans Figma |
 | Nom d'une valeur de variante, instance de règles du composant | Appliquer, panneau des constats | Ctrl+Z dans Figma |
 | Constats et rôles ignorés, library choisie, déclaration UCM, clé du fichier des tokens | Ignorer, Configuration, ouverture du mode Tokens | Le geste inverse |
@@ -356,6 +357,17 @@ correction, ou dont la question n'a aucun candidat, va dans À faire dans
 Figma, avec sa phrase et son geste. Le plugin ne calcule aucune correction
 dans l'interface.
 
+C43 propose de créer l'instance de règles absente. Quand elle existe, C45
+propose d'ajouter les règles `@prop` et `@boolean` manquantes, y compris les
+valeurs absentes d'un axe déjà documenté. La section du même tag se reconstruit
+hors de l'arbre avec les cibles et les descriptions relues, puis remplace
+l'ancienne à sa place. Sans section de ce tag, une section neuve suit l'ordre
+`usage`, `prop`, `boolean`, `icons`. Les textes et l'ordre des règles présentes
+sont conservés ; leur mise en forme interne (gras, lien) ne se recopie pas.
+Les nouvelles règles portent `[À compléter]` : C45 les compte comme présentes,
+C44 les signale tant qu'elles ne sont pas rédigées. Un second passage ne pose
+rien. Une règle visant une propriété absente ne se retire pas automatiquement.
+
 Le catalogue d'une library ne lit que `components`, `theme` et `layout`. Les
 valeurs s'importent à la demande, puis les cibles de leurs alias, jusqu'aux
 primitives. Les variables liées au composant s'importent toujours. Les tokens de taille de
@@ -437,54 +449,36 @@ créations. Le plugin ne voit pas les usages d'une variable créée dans
 d'autres fichiers : l'annulation peut supprimer une variable qu'un autre
 fichier emploie.
 
-## Modules sans écran
+## Intégrité de la structure UCM
 
-Le profil d'architecture UCM (`src/integrations/profilUcm.ts`) et la lecture
-de la recette d'UCM Palettes (`src/integrations/palettes.ts`) restent dans le
-code, avec leurs tests, sans écran ni préférence pour les activer. Ce qui suit
-décrit leurs règles.
+Dans un fichier déclaré UCM, le mode Tokens contrôle le catalogue sans
+composant. `controlerLeCatalogue` du kit juge les scopes, les échelles et les
+alias de mode. `controlerLIntegriteUcm` (C82) compare aussi la structure à la
+table du thème, sans lire de recette Palettes ni de profil d'architecture.
+Sans collection `theme` lue, C82 ne rend aucun constat.
 
-**Recette UCM Palettes.** Le texte rangé sous `ucm_palettes/recette` se
-classe par `classerRecette` d'`ucm-couleur`, sans migration. La recette ne
-dit pas quelle variable porte quel cran : le designer associe une variable
-de couleur à une palette, une intensité, un thème et un cran. Aucune
-association ne se déduit d'une teinte ou d'une égalité de couleurs.
-`variablesDeLAssociation` rend alors les variables de `theme` que la table en dossiers
-confie à ce cran (`variablesDuCran`, `@ucm-kit/core/emplois`), dans le sens du
-thème associé, normal ou inversé selon `texteDesBoutons` de la recette. Le
-neutre ajoute `page/foreground-main`, `page/foreground-subtle`, `scale/0`,
-`scale/1000` et `disabled/*`. Un cran qu'aucune variable ne vise, comme 50,
-400 ou 950, ne liste rien.
+C82 signale les variables manquantes de `theme`, les crans visés, les couches
+des cibles, les couleurs directes hors de `primitives` et de `components`, les scopes des couches
+qui n'en portent pas, les modes manquants de `theme`, le type des variables du
+thème et les variables de palette rangées dans une autre couche. Les contrôles
+de couche, de valeur directe et de scopes de couche portent seulement sur les
+couleurs ; C63 contrôle les scopes des variables du thème.
 
-**Profil UCM.** Les sept couches et leurs cibles suivent l'architecture
-multimarque. Pour les couleurs contrôlées ici, `components` vise `theme` ; `theme`
-vise `brands` ou `utility` ; `brands`, `utility`,
-`layout` et `typography` visent `primitives` ; `primitives` ne vise rien. Le
-profil ne juge que les variables de couleur : les variables de `layout` et de
-`typography` qui ne sont pas des couleurs ne sont pas contrôlées. Une association rangée sous
-`brand`, `color-brands`, `color-utilities` ou `layouts` se lit sous le nouveau
-nom (`brands`, `utility`, `layout`) ; une couche `usage`, disparue, se lit sans
-couche. Le profil contrôle quatre règles, en information :
+Une variable absente ne se crée que si les variables voisines et le
+référentiel donnent une cible unique dans chaque mode. La création conserve
+les noms des groupes du fichier, pose les alias et les scopes prévus et entre
+dans le journal de structure. Un cran absent de la rampe produit un constat
+de rampe à compléter dans Palettes. Une cible ambiguë, introuvable ou un sens
+inconnu reste sans correction, avec sa raison. Le sens de la palette vient
+des alias de ses variables présentes ; il ne se déduit pas de leur teinte.
 
-| Règle | Écart relevé |
-|---|---|
-| `couche` | Un alias vise une couche que sa couche ne peut pas viser |
-| `valeur-directe` | Une couleur hors de `primitives` n'est pas un alias |
-| `portee` | Une variable de `primitives`, `brands` ou `utility` porte un scope ; une variable de dossier de `theme` n'a pas les scopes de sa ligne de la table |
-| `nuance` | Une variable de dossier de `theme` ne vise pas, dans un mode `light` ou `dark`, le cran que la table donne dans le sens de ce mode |
-
-Les variables de dossier (`solid/default`, `surface/border`, `ring`),
-leurs crans et leurs scopes viennent de `@ucm-kit/core/emplois` ; le sens du
-mode vient de `texteDesBoutons` dans la recette associée. `scale/0`,
-`scale/1000`, `elevation/*` ne visent aucun cran et ne se jugent pas par
-nuance ; les deux premières ne portent aucun scope. Une collection sans
-couche n'est pas contrôlée, et le designer peut ignorer un écart pour ce
-fichier.
-
-Le profil annonce aussi les contrôles impossibles, avec une cause et la
-variable concernée : rôle de `theme` inconnu, mode non reconnu, valeur absente
-dans un mode ou cible dont la collection n'a pas de couche. Une limite n'est
-pas un écart et ne disparaît pas avec une exception du designer.
+Un cran incorrect donne une correction quand la cible est unique, une
+question quand deux candidats restent. L'écriture relit la collection, les
+modes et les cibles. Une variable déjà présente avec les mêmes alias est
+sautée ; une variable divergente de même nom reste intacte. L'Historique
+refuse de supprimer une variable créée qui a gagné un usage dans le fichier.
+Si la réécriture du journal échoue après une création, l'Historique ne peut
+pas défaire ces variables ; les usages dans d'autres fichiers lui échappent.
 
 ## Interface
 

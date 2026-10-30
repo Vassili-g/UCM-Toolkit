@@ -253,6 +253,13 @@ le calque s'écarte, un champ d'effet sans variable, un effet que le moteur
 n'écrit pas (bruit, texture, verre, shader, flou progressif), une opacité sans
 variable, et une dimension figée sans variable d'un composant sans auto layout.
 
+Les axes de variants `État` et `Etat` sont aussi reconnus comme axes d'états.
+Classe 6 : la reconnaissance change sans nouveau champ ni changement de
+`contractVersion`. Au réexport, cet axe se range dans `stateModel`, sous sa clé
+normalisée (`état` ou `etat`), et sort de `props` ; ses règles `@prop` le suivent.
+Les contrats déjà fusionnés restent inchangés. Les valeurs françaises comme
+`Défaut` et `Survol` ne deviennent pas pour autant des états UCM reconnus.
+
 La fenêtre de lecture porte la 13.0 et la 14.0.
 
 **Ce qui ne change pas** : tout le reste de la 13.0. L'absence d'auto layout
