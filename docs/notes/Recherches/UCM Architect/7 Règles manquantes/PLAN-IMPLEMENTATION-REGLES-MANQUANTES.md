@@ -324,7 +324,7 @@ Conversation principale.
 
 - [x] **F1.1** (cabb1ea2) Relire le diff de chaque lot ; vérifier qu'aucun texte hors du §7 n'apparaît dans l'interface.
 - [x] **F1.2** (52869579) `npm run agents:diff`, relire les documents listés.
-- [x] **F1.3** (cebd66a1) Commits par chemins explicites, un par lot ou par paire de lots d'une même vague. Le push de cebd66a1 a déjà eu lieu. Aucun autre push avant la fin du plan ; la recette v2 reste à rejouer par le mainteneur.
+- [x] **F1.3** (cebd66a1) Commits par chemins explicites, un par lot ou par paire de lots d'une même vague. Code et plans poussés avec la clôture commune de 93b3b66a. La recette v2 reste reportée à la demande du mainteneur ; aucun résultat Figma n'est présumé.
 
 ## 6. Estimation
 

@@ -66,14 +66,14 @@ Fichiers : `packages/kit/src/emplois/dossiers.ts`,
 
 ### Variables, crans et scopes
 
-- [x] `VARIABLES_DE_PALETTE` : ajouter `surface/subtle` après
+- [x] (071c20b2) `VARIABLES_DE_PALETTE` : ajouter `surface/subtle` après
       `surface/pressed`, et `surface/divider` après `surface/border`.
-- [x] `TABLE_DES_DOSSIERS`, Light normal : `surface/foreground` et
+- [x] (071c20b2) `TABLE_DES_DOSSIERS`, Light normal : `surface/foreground` et
       `surface/border` passent de 800 à 700.
-- [x] `TABLE_DES_DOSSIERS`, les quatre tables : `surface/subtle` vaut 50 en
+- [x] (071c20b2) `TABLE_DES_DOSSIERS`, les quatre tables : `surface/subtle` vaut 50 en
       Light (normal et inversé) et 200 en Dark (normal et inversé).
       `surface/divider` vaut 300 en Light et 500 en Dark.
-- [x] `SUPPORT_DES_VARIABLES` :
+- [x] (071c20b2) `SUPPORT_DES_VARIABLES` :
   - `solid/default`, `solid/hover`, `solid/pressed` : support `FOND`
     (`peint: ['background']`, `FRAME_FILL`, `SHAPE_FILL`). Supprimer la
     constante `SOLID` si plus rien ne la lit.
@@ -83,7 +83,7 @@ Fichiers : `packages/kit/src/emplois/dossiers.ts`,
     `FRAME_FILL`, `SHAPE_FILL`. Le donner à `page/divider` et
     `surface/divider`.
   - `surface/subtle` : `FOND`.
-- [x] `theme.ts`, `TEXTES_DES_VARIABLES` :
+- [x] (071c20b2) `theme.ts`, `TEXTES_DES_VARIABLES` :
   - `surface/subtle` : libellé « fond teinté léger » / « subtle tinted fill » ;
     définition « Fond teinté très léger, sans état. » / « Very light tinted
     background, with no state. ».
@@ -92,40 +92,40 @@ Fichiers : `packages/kit/src/emplois/dossiers.ts`,
     « Dividing line on a tinted background. ».
   - Corriger le commentaire de `libellesDesVariables` : le nombre de libellés
     passe de dix-sept à dix-neuf.
-- [x] `TABLE_DES_DOSSIERS`, Dark inversé : `ring` passe de 700 à 800. Le
+- [x] (071c20b2) `TABLE_DES_DOSSIERS`, Dark inversé : `ring` passe de 700 à 800. Le
       Dark normal ne change pas : il n'est pas mesuré.
-- [x] Le 50 devient requis. Les crans requis sont la réunion des crans de la
+- [x] (071c20b2) Le 50 devient requis. Les crans requis sont la réunion des crans de la
       table (`cransRequis`, `[REC-13]`) : `surface/subtle` y fait entrer le 50.
       Les deux préréglages le portent déjà. Une recette sans 50 est refusée
       (`crans-emplois`). Corriger le commentaire de `validerRecette` (« seul 50
       est facultatif ») et ajouter un test du refus.
-- [x] Mettre à jour les tests du kit qui comptent les variables, lisent la table
+- [x] (071c20b2) Mettre à jour les tests du kit qui comptent les variables, lisent la table
       ou les portées. Ajouter un test par règle nouvelle : crans des deux
       variables dans les quatre tables, portées de `FILET`, `TEXTE` et des fonds
       de `solid`.
 
 ### Garanties de contraste
 
-- [x] Garantie 3 : `surface/foreground` au seuil `texte` sur `surface/subtle`,
+- [x] (071c20b2) Garantie 3 : `surface/foreground` au seuil `texte` sur `surface/subtle`,
       `surface/default`, `surface/hover`, la page et la carte. Retirer
       `surface/pressed`.
-- [x] Nouvelle garantie 8 : `surface/foreground` au seuil `nonTexte` sur
+- [x] (071c20b2) Nouvelle garantie 8 : `surface/foreground` au seuil `nonTexte` sur
       `surface/pressed`. Le numéro 8 évite de renuméroter les garanties 1 à 7
       que les documents citent.
-- [x] Garantie 4 : ajouter `surface/subtle` à ses fonds ; garder
+- [x] (071c20b2) Garantie 4 : ajouter `surface/subtle` à ses fonds ; garder
       `surface/pressed`.
-- [x] Nouvelle garantie 9 : `page/foreground` au seuil `texte` sur
+- [x] (071c20b2) Nouvelle garantie 9 : `page/foreground` au seuil `texte` sur
       `surface/default`. Elle dit qu'un composant de la page reste lisible
       dans un fond teinté au repos.
-- [x] `surface/divider` n'entre dans aucune garantie.
-- [x] Mettre à jour le nombre de promesses par mode et par intensité partout où
+- [x] (071c20b2) `surface/divider` n'entre dans aucune garantie.
+- [x] (071c20b2) Mettre à jour le nombre de promesses par mode et par intensité partout où
       il est écrit (commentaires de `promesses.ts`, tests, hub).
-- [x] `garantie.ts` (garantie des courbes) : vérifier qu'elle ne lit pas
+- [x] (071c20b2) `garantie.ts` (garantie des courbes) : vérifier qu'elle ne lit pas
       `surface/pressed` comme fond textuel. Ne rien changer d'autre.
-- [x] Tests : la garantie 8 juge à 3:1 ; la garantie 9 juge
+- [x] (071c20b2) Tests : la garantie 8 juge à 3:1 ; la garantie 9 juge
       `page/foreground` sur `surface/default` ; la garantie 3 ne contient plus
       l'appui ; `garantieJugeable` traite `surface/subtle`.
-- [x] Changer la version du kit (`packages/kit/package.json`), puis faire passer
+- [x] (071c20b2) Changer la version du kit (`packages/kit/package.json`), puis faire passer
       `tests/` à la racine (`versionSuitLeContenu`).
 
 Fin : `node packages/kit/scripts/run-tests.cjs`, les tests racine,
@@ -156,28 +156,28 @@ Règle, mode Light seulement :
 | 400 | Un tiers de l'écart à la courbe corrigé |
 | 500 et au-delà | Inchangé |
 
-- [x] Appliquer la règle par numéro de cran, pas par rang : une palette libre
+- [x] (45c110aa) Appliquer la règle par numéro de cran, pas par rang : une palette libre
       (`palette.crans`) peut avoir une autre liste.
-- [x] Garder la teinte et la part de chroma de chaque cran : la chroma suit le
+- [x] (45c110aa) Garder la teinte et la part de chroma de chaque cran : la chroma suit le
       plafond à la nouvelle clarté, à part égale.
-- [x] Ne jamais toucher le cran qui porte la référence.
-- [x] Le Dark ne change pas.
-- [x] La référence de la simulation est
+- [x] (45c110aa) Ne jamais toucher le cran qui porte la référence.
+- [x] (45c110aa) Le Dark ne change pas.
+- [x] (45c110aa) La référence de la simulation est
       `docs/notes/Recherches/SUJETS IMPORTANTS à trancher/Mesures/generer-donnees.ts`,
       fonction `cransCommuns` (poids `[1, 1, 1, 2/3, 1/3]`).
-- [x] Les promesses et la limite dynamique se calculent sur les crans communs.
-- [x] Tests : sur la configuration
+- [x] (45c110aa) Les promesses et la limite dynamique se calculent sur les crans communs.
+- [x] (45c110aa) Tests : sur la configuration
       `Mesures/palettes-et-reglages.json` copiée dans les fixtures de `couleur`,
       l'écart de clarté entre palettes vaut 0,002 au plus sur le 50, le 100 et
       le 200 ; Ocean Vivid (réglage de luminosité −0,06) a son 50 à 0,975 ; le
       50 de Sun garde une chroma non nulle.
-- [x] Mettre à jour les tests qui figent des couleurs claires. Ne pas assouplir
+- [x] (45c110aa) Mettre à jour les tests qui figent des couleurs claires. Ne pas assouplir
       un test de promesse : signaler tout échec nouveau dans le rendu.
-- [x] Lecture : une recette du format 10 ou 11 sans 50 reçoit le 50, avec la
+- [x] (45c110aa) Lecture : une recette du format 10 ou 11 sans 50 reçoit le 50, avec la
       luminosité que `luminositeAuNumero` donne sur sa grille, comme le 400, le
       500 et le 950 du format 10 (`[REC-13]`). Sans cela, le lot K la rend
       illisible. Test de régression.
-- [x] `alertes.ts` : corriger le commentaire « Les crans facultatifs 50, 400 et
+- [x] (45c110aa) `alertes.ts` : corriger le commentaire « Les crans facultatifs 50, 400 et
       950 n'y sont pas », faux depuis K.
 
 Fin : `npm run test:paquet -- couleur` passe ; `npm run typecheck` passe.
@@ -213,32 +213,32 @@ S'il échoue, le moteur l'éloigne de ces fonds par pas de 0,001 de clarté OKLC
 part de chroma et teinte gardées, jusqu'au seuil : plus foncé en Light, plus
 clair en Dark.
 
-- [x] Ne jamais corriger le cran qui porte la référence. La garantie échoue
+- [x] (c388e9a3) Ne jamais corriger le cran qui porte la référence. La garantie échoue
       alors, et Palettes propose « Ajuster la référence » par le chemin qui
       existe pour une référence exacte.
-- [x] Ne jamais faire franchir au cran corrigé la clarté du cran voisin le plus
+- [x] (c388e9a3) Ne jamais faire franchir au cran corrigé la clarté du cran voisin le plus
       foncé (Light) ou le plus clair (Dark).
-- [x] Le cran corrigé reste le même cran pour toutes les variables qui le
+- [x] (c388e9a3) Le cran corrigé reste le même cran pour toutes les variables qui le
       visent : en Light normal, le 700 porte aussi `page/foreground`,
       `page/border` et `solid/default`.
-- [x] La limite dynamique lit les rampes corrigées.
-- [x] Tests, sur la configuration du mainteneur : Emerald Soft passe de 0,501 à
+- [x] (c388e9a3) La limite dynamique lit les rampes corrigées.
+- [x] (c388e9a3) Tests, sur la configuration du mainteneur : Emerald Soft passe de 0,501 à
       0,493, Grass Soft à 0,494, Grass Vivid à 0,496, Emerald Vivid à 0,495, Sky
       Soft à 0,499 ; texte 700 sur le 200 ≥ 4,5 pour les 21 rampes.
-- [x] Test de balayage, teintes 108 à 249 par pas de 10, références au 600 :
+- [x] (c388e9a3) Test de balayage, teintes 108 à 249 par pas de 10, références au 600 :
       correction ≤ 0,011 en Soft et ≤ 0,008 en Vivid. Référence de mesure :
       `balayer()` dans `Mesures/generer-donnees.ts`.
-- [x] Test : une référence ancrée au 700 qui manque 4,5 n'est pas corrigée, et
+- [x] (c388e9a3) Test : une référence ancrée au 700 qui manque 4,5 n'est pas corrigée, et
       la garantie 3 manque pour cette palette.
-- [x] Tests, Dark inversé de la configuration du mainteneur : le 800 de Titanium,
+- [x] (c388e9a3) Tests, Dark inversé de la configuration du mainteneur : le 800 de Titanium,
       Terracota, Deep, Poppy Soft, Ocean, Iris et Irene Soft s'éclaircit de
       0,009 au plus et passe 4,5 sur le 300. Poppy Vivid et Irene Vivid ont leur
       référence au 800 Dark : elles ne sont pas corrigées et la garantie 9
       manque.
-- [x] Mesurer la plus forte correction du 800 Dark sur 360 teintes, références
+- [x] (c388e9a3) Mesurer la plus forte correction du 800 Dark sur 360 teintes, références
       au 500, au 600 et au 700. Rendre le résultat dans le rendu du lot : le
       mainteneur a validé 0,009 au plus sur ses palettes.
-- [x] La règle vaut aussi pour le Light inversé et le Dark normal, qui ne sont
+- [x] (c388e9a3) La règle vaut aussi pour le Light inversé et le Dark normal, qui ne sont
       pas mesurés : la garantie 9 y juge le 800 Light et le 700 Dark sur le
       fond teinté. Rendre, sur la configuration du mainteneur et sur 360
       teintes, la plus forte correction de ces deux sens. Ne pas les exclure de
@@ -263,17 +263,17 @@ Fichiers : `packages/plugin-palettes/src/i18n/fr.ts`, `en.ts`,
 `src/planche/modele.ts`, `src/presentation.ts`, `src/ui/garanties.ts`,
 `src/ui/modeleDesGaranties.ts`, `src/ui/nuancier.ts`, tests du paquet.
 
-- [x] Libellés et textes des garanties 8 et 9 (fr et en), au format des
+- [x] (0cd805b3) Libellés et textes des garanties 8 et 9 (fr et en), au format des
       garanties voisines : « Texte des fonds teintés à l'appui » / « Tinted fill
       text, pressed » ; « Texte de la page sur un fond teinté » / « Page text on
       a tinted fill ».
-- [x] Nombre de contrôles affiché : suivre le nouveau total de promesses.
-- [x] Les deux nouvelles variables apparaissent dans l'aperçu, la planche et le
+- [x] (0cd805b3) Nombre de contrôles affiché : suivre le nouveau total de promesses.
+- [x] (0cd805b3) Les deux nouvelles variables apparaissent dans l'aperçu, la planche et le
       rapport. Le nuancier range `surface/subtle` avec les fonds teintés et
       `surface/divider` avec les contours.
-- [x] Les garanties 3 et 9 qui manquent sur une référence mènent à « Ajuster
+- [x] (0cd805b3) Les garanties 3 et 9 qui manquent sur une référence mènent à « Ajuster
       la référence ». Ajouter les tests.
-- [x] Avant de commiter, chercher dans `src/ui` les noms et valeurs des
+- [x] (0cd805b3) Avant de commiter, chercher dans `src/ui` les noms et valeurs des
       fixtures : aucune donnée de maquette ne doit y entrer.
 
 Fin : `npm run test:paquet -- palettes` passe ; `npm run build:plugin -- palettes`
@@ -294,14 +294,14 @@ Agent : `implementeur`.
 Fichiers : `packages/plugin-architect/src/integrations/profilUcm.ts`, fixtures
 de `packages/plugin-architect/tests/`, messages qui citent les portées.
 
-- [x] Les constats `portee` suivent la nouvelle table : fonds de `solid` sans
+- [x] (7c9678d6) Les constats `portee` suivent la nouvelle table : fonds de `solid` sans
       `STROKE_COLOR`, `foreground` avec, filets avec `FRAME_FILL` et
       `SHAPE_FILL`.
-- [x] `surface/subtle` et `surface/divider` sont reconnus par
+- [x] (7c9678d6) `surface/subtle` et `surface/divider` sont reconnus par
       `variableDuThemeReconnue`. Ajouter les tests.
-- [x] Mettre à jour les fixtures qui donnent `STROKE_COLOR` aux fonds de
+- [x] (7c9678d6) Mettre à jour les fixtures qui donnent `STROKE_COLOR` aux fonds de
       `solid` ou qui comptent les variables de `theme`.
-- [x] Dans les textes destinés au designer, écrire « scope » et non
+- [x] (7c9678d6) Dans les textes destinés au designer, écrire « scope » et non
       « portée ». Charger la skill `rediger-diagnostics-ucm` avant d'écrire un
       message.
 
@@ -314,16 +314,16 @@ Fait : `7c9678d6`. Le code d'Architect lisait déjà la table du kit : seuls les
 
 Agent : `implementeur`.
 
-- [x] `npm run agents:diff`, puis relire chaque document listé.
-- [x] Spécification de Palettes
+- [x] (5d1567fa) `npm run agents:diff`, puis relire chaque document listé.
+- [x] (5d1567fa) Spécification de Palettes
       (`docs/notes/Recherches/Plugin Palettes/1 Recherche initiale/RECHERCHE-PLUGIN-PALETTES.md`) :
       section 11.2, garanties 3, 4, 8 et 9 ; clarté commune et correction des
       textes par teinte, en regard de `[MOT-38]`.
-- [x] `packages/couleur/invariants/moteur-de-couleur.md` et les invariants du
+- [x] (5d1567fa) `packages/couleur/invariants/moteur-de-couleur.md` et les invariants du
       kit qui citent la table, les garanties ou les portées.
-- [x] `docs/format/FORMAT.md` et `docs/format/CHANGELOG-FORMAT.md` si la liste
+- [x] (5d1567fa) `docs/format/FORMAT.md` et `docs/format/CHANGELOG-FORMAT.md` si la liste
       des variables de `theme` ou leurs portées font partie du format publié.
-- [x] Charger `rediger-sans-tics-ia` avant d'écrire. Lancer
+- [x] (5d1567fa) Charger `rediger-sans-tics-ia` avant d'écrire. Lancer
       `node scripts/controle-style.mjs <fichiers>`.
 
 Fin : `controle-style` conforme ; aucun document ne décrit l'ancienne table.
@@ -358,19 +358,19 @@ K2 → C3 → P2 → D2 → V1 → R1
 
 Agent : `implementeur-exigeant`.
 
-- [x] `TABLE_DES_DOSSIERS`, Dark normal et inversé : `surface/default` 200,
+- [x] (d644ef7a) `TABLE_DES_DOSSIERS`, Dark normal et inversé : `surface/default` 200,
       `surface/hover` 300, `surface/pressed` 400, `surface/subtle` 100.
-- [x] Garantie 9 : fonds `surface/default` et `surface/hover`.
-- [x] Tests du kit, de `couleur` et du hub qui lisent la table Dark ou la
+- [x] (d644ef7a) Garantie 9 : fonds `surface/default` et `surface/hover`.
+- [x] (d644ef7a) Tests du kit, de `couleur` et du hub qui lisent la table Dark ou la
       garantie 9 ; version du kit ; tests racine.
 
 ### C3. Ancrage déplacé en Dark normal
 
 Agent : `implementeur-exigeant`.
 
-- [x] Dans l'ancrage du moteur, en Dark normal seulement : la règle de la
+- [x] (d644ef7a) Dans l'ancrage du moteur, en Dark normal seulement : la règle de la
       piste A, avec la formule de `Mesures/ancrage-deplace.ts`.
-- [x] Tests : Poppy Vivid et Irene Vivid passent la garantie 9 en Dark normal
+- [x] (d644ef7a) Tests : Poppy Vivid et Irene Vivid passent la garantie 9 en Dark normal
       (texte 700 à 0,704 et 0,710, 4,51:1 sur le 300) ; leur référence reste
       au 800 en Dark inversé et la garantie 9 y manque ; sur 360 teintes,
       l'ordre des nuances tient et aucun texte ne reste sous 4,5:1.
@@ -384,14 +384,14 @@ la reconstruction de la palette 28 reçoit un budget de 120 s.
 
 Agent : `implementeur`.
 
-- [x] Tests qui figent la table Dark de `surface` ou les couleurs du Dark.
-- [x] L'écran qui dit où se pose la référence montre le cran déplacé.
+- [x] (80d62c58) Tests qui figent la table Dark de `surface` ou les couleurs du Dark.
+- [x] (80d62c58) L'écran qui dit où se pose la référence montre le cran déplacé.
 
 ### D2. Documents
 
 Agent : `implementeur`.
 
-- [x] Spécification de Palettes, invariants du moteur et du kit, README du
+- [x] (80d62c58) Spécification de Palettes, invariants du moteur et du kit, README du
       dossier, section « Décisions ».
 
 Fait (P2 et D2) : `80d62c58`. La spécification reçoit `[MOT-42]`.
@@ -447,13 +447,12 @@ Recette reportée à la demande du mainteneur. Les cases restent ouvertes ; ce r
 
 Agent : `executant`, avec la skill `publier-paquets`.
 
-- [ ] Publier `@ucm-kit/core`, puis `@ucm-kit/cli` et
-      `@ucm-kit/adapter-typescript` si la skill le demande.
-- [ ] Pousser `main`.
+- [x] (cebd66a1, 93b3b66a) Publier `@ucm-kit/core`, puis `@ucm-kit/cli` et `@ucm-kit/adapter-typescript`.
+- [x] (93b3b66a) Pousser `main` et le relevé final des plans.
 
-Publication partielle : le noyau 0.14.10 répond déjà sur npm (workflow 41036066317). La CLI locale 0.1.143 et l'adaptateur local 0.2.1 ne sont pas publiés ; le registre sert encore 0.1.132 et 0.1.125. `main` est déjà à cebd66a1. Le mainteneur reporte la recette et demande de poursuivre R1. Les versions locales sont conservées ; le noyau déjà servi ne se republie pas. La recette X1 reste à faire.
+Versions confirmées sur npm : noyau 0.14.10, CLI 0.1.143, adaptateur 0.2.1. Le [workflow final](https://github.com/Vassili-g/UCM-Toolkit/actions/runs/41040530001) a passé les tests, l'installation depuis npm et le contrôle de tous les pins. La recette Figma reste reportée à la demande du mainteneur ; sa réussite n'est pas présumée. Les versions existantes ont été conservées et le noyau déjà servi n'a pas été republié.
 
-Fin : les versions publiées répondent sur le registre.
+Fin : les trois versions publiées répondent sur le registre.
 
 La recette T1 est reportée. Les builds complets sont prêts sur cebd66a1 ; après
 une correction, `npm run build` les reconstruit avant l'essai. La galerie ne

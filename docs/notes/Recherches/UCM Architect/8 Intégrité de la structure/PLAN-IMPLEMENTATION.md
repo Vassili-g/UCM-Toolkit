@@ -136,7 +136,7 @@ Non retenus : U2.2 (D-03) change le contrat publié ; U3.3 (D-08) touche `src/ui
 
 Agent : conversation principale.
 
-- [ ] **P0.1** La publication du plan des crans clairs (lot R1 du [plan des crans clairs](../../SUJETS%20IMPORTANTS%20à%20trancher/PLAN-IMPLEMENTATION.md)) est faite. Le kit ne doit pas changer de table pendant les lots I.
+- [x] **P0.1** (93b3b66a) La publication du plan des crans clairs (lot R1 du [plan des crans clairs](../../SUJETS%20IMPORTANTS%20à%20trancher/PLAN-IMPLEMENTATION.md)) est faite. Le kit ne doit pas changer de table pendant les lots I.
 - [x] **P0.2** (cabb1ea2) Le plan [Règles manquantes](../7%20Règles%20manquantes/PLAN-IMPLEMENTATION-REGLES-MANQUANTES.md) est commité : il modifie `src/ui/ignores/modele.ts`, `src/ui/textes/ignores.ts` et `src/ui/corrections/`, que I7 et I8 touchent aussi.
 - [x] **P0.3** (a0cf8b11) Reprise autorisée sur l'arbre existant ; `git status` relu avant les lots. Kit au départ de la reprise : 0.14.10 (0.13.36 à l'écriture du plan ; 0.14.2 après les quickwins). La propreté des vagues déjà commitées n'est pas rejouée rétrospectivement.
 
@@ -237,16 +237,16 @@ Fichiers : `packages/kit/src/referentiel/reconnaissance.ts`, `packages/kit/src/r
 
 Agent : conversation principale. Vague 2, en parallèle de U1.
 
-- [x] **M1.1** Figer l'état sombre de la galerie `packages/plugin-architect/galerie/etats/structure.cjs` et modifier son DOM ([Maquettes sur la galerie réelle]). Reprendre les cartes de modes et de scopes déjà construites à leur largeur (barre latérale de 640 px). Montrer :
+- [x] **M1.1** (e6d56203) Figer l'état sombre de la galerie `packages/plugin-architect/galerie/etats/structure.cjs` et modifier son DOM ([Maquettes sur la galerie réelle]). Reprendre les cartes de modes et de scopes déjà construites à leur largeur (barre latérale de 640 px). Montrer :
   - onglet Corrections : intertitres « Variables manquantes » (une carte par rôle, ses lignes par palette, colonnes Aujourd'hui / Après l'application) et « Crans » (une carte par rôle et par mode), puis Modes et Scopes ;
   - onglet À faire dans Figma : intertitres « Variables manquantes », « Couches », « Modes », « Types », « Rangement » ;
   - le menu Ignorer d'une carte de variable manquante : « Pour cette palette » et « Dans tout le fichier » ;
   - le pied et la ligne de réussite après une création, avec la phrase de Q10 ;
   - le bouton « Tout désélectionner » de l'onglet Corrections (Q-14), et des cartes de crans dont les lignes arrivent décochées ;
   - la feuille de préparation du mode Composant avec la raison de Q9.
-- [x] **M1.2** Textes du §5 posés mot pour mot. Lancer le contrôle de style des maquettes ([Maquettes en phrases simples]) et `galerie/comparer-maquette.cjs`.
+- [x] **M1.2** (e6d56203) Textes du §5 posés mot pour mot. Lancer le contrôle de style des maquettes ([Maquettes en phrases simples]) et `galerie/comparer-maquette.cjs`.
 - [x] **M1.3** ([MAQUETTE-INTEGRITE.html](./MAQUETTE-INTEGRITE.html), e6d56203). Validée par le mainteneur, avec les recommandations de M-1 à M-4 : « Tout désélectionner » en tête de l'onglet ; un menu à deux choix sous Ignorer ; une carte de crans par rôle et par mode ; pas d'exemple en Pascal. Pour la préparation (Q9), le contenu est validé, pas la mise en page du cadre 4 : I4.2 suit la ligne existante de la feuille. Terminer la maquette par un tableau de questions. **Validation du mainteneur** : I7 et I8 ne partent pas avant.
-- [x] **M1.4** Aucun texte changé. Reporter au §5 les textes changés pendant la validation.
+- [x] **M1.4** (919d7480) Aucun texte changé. Reporter au §5 les textes changés pendant la validation.
 
 ---
 
@@ -684,12 +684,12 @@ Agent : le mainteneur. Préparation faite sur cebd66a1, codes 0 : build de Palet
 
 ### Z · Publication et fin
 
-- [ ] **Z1** · conversation principale · Skill `publier-paquets` : `@ucm-kit/core`, `@ucm-kit/adapter-typescript` (U5), `@ucm-kit/cli` si U5 l'a touché.
-- [ ] **Z2** · conversation principale · Chaque sous-lot coché porte son hash. Pousser sur `main`.
+- [x] **Z1** (93b3b66a) · conversation principale · Skill `publier-paquets` : `@ucm-kit/core`, `@ucm-kit/adapter-typescript` (U5), `@ucm-kit/cli` si U5 l'a touché.
+- [x] **Z2** (93b3b66a) · conversation principale · Chaque sous-lot coché porte son hash. Pousser sur `main`.
 
-État de publication : `main` a déjà reçu cebd66a1. `@ucm-kit/core@0.14.10` est servi sur npm ; sa publication a eu lieu avant la fin de la recette. Le [workflow 41036066317](https://github.com/Vassili-g/UCM-Toolkit/actions/runs/41036066317) a passé les tests et publié le noyau, puis a échoué sur les pins des deux paquets encore absents. Le registre sert toujours CLI 0.1.132 et adaptateur 0.1.125 ; les versions locales 0.1.143 et 0.2.1 restent à publier.
+Versions confirmées sur npm : `@ucm-kit/core@0.14.10`, `@ucm-kit/cli@0.1.143` et `@ucm-kit/adapter-typescript@0.2.1`. Code de clôture : 93b3b66a. Le [workflow du noyau](https://github.com/Vassili-g/UCM-Toolkit/actions/runs/41036066317) et celui de la [CLI](https://github.com/Vassili-g/UCM-Toolkit/actions/runs/41039758692) ont passé les tests et l'épreuve du registre, puis échoué sur les pins encore absents. Le [dernier workflow](https://github.com/Vassili-g/UCM-Toolkit/actions/runs/41040530001) est vert : tests, publication de l'adaptateur, installation depuis npm et contrôle de tous les pins réussis.
 
-Le mainteneur reporte la recette Figma et demande de poursuivre la clôture. T1 à T5, X1 et T1 des règles manquantes restent non validés ; aucun résultat de recette n'est présumé. C1 attend un éventuel retour ultérieur. Les preuves de vérification sur cebd66a1 restent acquises, le code n'ayant pas changé. La reprise passe à Z1 puis Z2, sans nouvelle montée de version ni republication du noyau 0.14.10 déjà servi. Le bilan vide de Nomenclature est retiré (9cd7caaf) ; les décisions de recette restantes portent sur `3,90:1`, les questions de crans sous « Alias » et le résultat d'une création dont le journal n'a pas pu être réécrit.
+Le mainteneur reporte la recette Figma et demande de poursuivre la clôture. T1 à T5, X1 et T1 des règles manquantes restent non validés ; aucun résultat de recette n'est présumé. C1 attend un éventuel retour ultérieur. Les preuves de vérification sur cebd66a1 restent acquises, le code n'ayant pas changé. Z1 et Z2 clôturent la reprise ; aucune nouvelle montée n'a été nécessaire et le noyau 0.14.10 déjà servi n'a pas été republié. Le bilan vide de Nomenclature est retiré (9cd7caaf) ; les décisions de recette restantes portent sur `3,90:1`, les questions de crans sous « Alias » et le résultat d'une création dont le journal n'a pas pu être réécrit.
 
 ## 5. Textes destinés au designer
 
