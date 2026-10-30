@@ -229,7 +229,7 @@ Fait quand : la carte ne montre aucun texte absent du §7.
 
 Agent : `verificateur` (Haiku). Après A2 et U1.
 
-- [ ] **T0.1** `npm run test:paquet -- socle`, `npm run test:paquet -- architect`, `npm run test:paquet -- exporter`, puis `npm run build:plugin -- architect` et `npm run build:plugin -- exporter`. Rendre un tableau : commande, résultat, premières lignes de chaque échec.
+- [x] **T0.1** (cebd66a1) `npm run test:paquet -- socle`, `npm run test:paquet -- architect`, `npm run test:paquet -- exporter`, puis `npm run build:plugin -- architect` et `npm run build:plugin -- exporter`. Rendre un tableau : commande, résultat, premières lignes de chaque échec.
 - [x] **T0.2** (cabb1ea2) Conversation principale : relire les diffs de S1 à U1, commiter par chemins explicites, puis prévenir le mainteneur que T1 est prêt.
 
 ### T1 · Essai du mainteneur dans Figma
@@ -288,7 +288,7 @@ Une règle ne se range jamais dans le slot d'une section déjà rangée : la coq
 - [x] **C1.2.4** (cabb1ea2) Remplir cette section neuve hors de l'arbre par `remplirUneSection`, la ranger par `insertChild` à l'index de l'ancienne, relu, puis retirer l'ancienne, retrouvée juste avant par son index et le maître de son tag. C'est le geste de la création, mesuré dans Figma.
 - [x] **C1.2.5** (cabb1ea2) Erreur avant le retrait de l'ancienne : retirer la section neuve et `enAttente` ; l'ancienne reste intacte.
 - [x] **C1.2.6** (cabb1ea2) Tests : les cas de C1.1.6, plus : le texte de cible et de description de chaque règle relue se retrouve à l'identique dans la section neuve ; aucun `clone` n'est appelé ; aucune règle n'est rangée dans le slot d'une section déjà rangée.
-- [ ] **C1.2.7** `npm run test:paquet -- socle`, `-- exporter`, `-- architect`, `npm run typecheck`, `npm run build:plugin -- architect` et `-- exporter`.
+- [x] **C1.2.7** (cebd66a1) `npm run test:paquet -- socle`, `-- exporter`, `-- architect`, `npm run typecheck`, `npm run build:plugin -- architect` et `-- exporter`.
 
 Limite acceptée par le mainteneur : une mise en forme à l'intérieur d'un texte de règle (gras, lien) ne se recopie pas.
 
@@ -314,7 +314,9 @@ Fait : D1 suit C1.2. Une section présente est reconstruite à sa place avec les
 
 Agent : `verificateur` (Haiku). Après D1.
 
-- [ ] **V1.1** `npm run test:paquet -- socle`, `-- exporter`, `-- architect`, `npm test`, `npm run typecheck`, `npm run build:plugin -- architect`, `npm run build:plugin -- exporter`. Rendre un tableau : commande, résultat, premières lignes de chaque échec.
+- [x] **V1.1** (cebd66a1 ; suite complète du workflow 41036066317 réussie) `npm run test:paquet -- socle`, `-- exporter`, `-- architect`, `npm test`, `npm run typecheck`, `npm run build:plugin -- architect`, `npm run build:plugin -- exporter`. Rendre un tableau : commande, résultat, premières lignes de chaque échec.
+
+Les preuves locales et distantes sur cebd66a1 sont acquises. Après une correction issue de T1, reprendre les tests du paquet corrigé, puis `npm test`, `npm run typecheck` et les builds des plugins en toute fin. Aucun `npm run test:ui` par l'agent.
 
 ### F1 · Relecture et commit
 
@@ -322,7 +324,7 @@ Conversation principale.
 
 - [x] **F1.1** (cabb1ea2) Relire le diff de chaque lot ; vérifier qu'aucun texte hors du §7 n'apparaît dans l'interface.
 - [x] **F1.2** (52869579) `npm run agents:diff`, relire les documents listés.
-- [ ] **F1.3** Commits par chemins explicites, un par lot ou par paire de lots d'une même vague. Pas de push : la recette v2 attend encore la recette du mainteneur.
+- [x] **F1.3** (cebd66a1) Commits par chemins explicites, un par lot ou par paire de lots d'une même vague. Le push de cebd66a1 a déjà eu lieu. Aucun autre push avant la fin du plan ; la recette v2 reste à rejouer par le mainteneur.
 
 ## 6. Estimation
 

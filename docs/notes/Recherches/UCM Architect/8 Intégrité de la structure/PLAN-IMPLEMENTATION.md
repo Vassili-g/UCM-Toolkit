@@ -647,21 +647,30 @@ Agent : conversation principale pour chaque phrase d'autorité (skills `rediger-
 - [x] **D1** (52869579) · conversation principale · Architect : `packages/plugin-architect/SPEC.md` (lignes « Créer » et tableau des écritures : création dans `theme` depuis le mode Tokens ; retrait de « Modules sans écran » ; C82 et ses genres) ; `invariants/explorateur.md` (l'invariant « ne crée que les variables manquantes de `components` » gagne la création de structure dans `theme`, avec son autorité `src/ecriture/structure.ts` et son test `tests/creationDansLeTheme.test.ts`) ; `CARTE.md` (dossier `integrations/` retiré).
 - [x] **D2** (52869579) · conversation principale · Kit : l'invariant du domicile de `controles/` décrit `controlerLIntegriteUcm` et sa séparation de `controlerLeCatalogue` ; `CARTE.md` du kit (`integrite.ts`, `emplois/couleur.ts`) ; `invariants/referentiel.md` si un propriétaire nouveau y entre.
 - [x] **D3** (52869579) · conversation principale · Règles dupliquées : les quatre passages de « Documents en contradiction » (FORMAT.md:91 et ses deux voisins pour `État` ; FORMAT.md:183 et `couleurs.md:10` sont tenus par U3 ; `tokens-et-variables.md:7` est tenu par U5). Une entrée de `docs/format/CHANGELOG-FORMAT.md` si l'axe `État` change le contrat publié. `README.md` du dossier : questions marquées retenues, renvoi vers ce plan. Socle et exporteur : invariant de la variable supprimée (U9).
-- [x] **D4** (52869579) · `executant` · Renvois listés par `npm run agents:diff` : chemins supprimés ou renommés (`integrations/`, `cleDuTheme`, `pascal`).
+- [x] **D4** (52869579, cebd66a1) · `executant` · Renvois listés par `npm run agents:diff` : chemins supprimés ou renommés (`integrations/`, `cleDuTheme`, `pascal`).
 - [x] **D5** (52869579) · conversation principale · CONCEPTION.md : en tête, « implémenté », avec le renvoi à ce plan. ROADMAP.md si une ligne cite ce travail.
 
 ---
 
 ### V · Vérification complète
 
-- [x] **V1** (8a5be127) · `verificateur` · `npm test`, `npm run typecheck`, `npm run build`, `npm run vues` (rien ne doit changer après), `npm run agents:diff`.
-- [x] **V2** (52869579) · conversation principale · Relire le tableau, et les documents que `agents:diff` liste.
+- [x] **V1** (8a5be127, cebd66a1 ; suite complète du workflow 41036066317 réussie) · `verificateur` · `npm test`, `npm run typecheck`, `npm run build`, `npm run vues` (rien ne doit changer après), `npm run agents:diff`.
+- [x] **V2** (52869579, cebd66a1) · conversation principale · Relire le tableau, et les documents que `agents:diff` liste.
 
 Fait : les suites des paquets ne manquent initialement que la fraîcheur de la planche et du Hub. Après `npm run vues`, couleur passe 436/436, Hub 9/9 et les quatre tests ciblés de la planche et de la vue illustrée passent. Typecheck global : code 0. Le test des dix mille variables passe en 385,5 ms (borne 500 ms). Les contrôles racine sont lancés après la régénération : les sept liens historiques vers le code retiré sont épinglés au commit où il existe, le manifeste vise la nouvelle ancre de la spec et la validation exacte du rôle reçu par le protocole a son exception D-02 nommée. Les 22 contrôles ciblés repassent. Le bilan vide de Nomenclature est retiré et Actualiser montre le chargement (9cd7caaf).
 
+Vérifications à prévoir après les derniers changements, en cas de correction issue de la recette :
+
+- `npm test` complet : suites des paquets puis contrôles racine, sans arrêt entre les deux. Les contrôles racine des liens, des domiciles, des règles uniques et du style doivent passer sur les fichiers commités.
+- `npm run typecheck` et `npm run build` : déjà verts sur cebd66a1 ; à reprendre seulement si le code change encore.
+- `npm run vues`, puis les contrôles de fraîcheur de la planche, du Hub et de la vue illustrée : déjà verts ; à reprendre si leurs sources changent.
+- Le test Architect des dix mille variables garde sa borne de 500 ms. La recette Figma reste T1 à T5, plus X1 et le rechargement d'Actualiser. Aucun lancement de `npm run test:ui` par l'agent.
+
+Les relances locales sont arrêtées à la demande du mainteneur. Le workflow 41036066317 a déjà passé `npm test` sur cebd66a1. Ces preuves restent acquises pour ce commit ; une nouvelle passe attend les derniers changements, sans relance par sous-lot.
+
 ### T · Recette du mainteneur dans Figma
 
-Agent : le mainteneur. Préparation par la conversation principale : `npm run build:plugin -- architect`, puis `npm run build` ([Build désynchronisé de Palettes] : la galerie ne reconstruit que `ui.html`).
+Agent : le mainteneur. Préparation faite sur cebd66a1, codes 0 : build de Palettes, `npm run build:plugin -- architect`, puis `npm run build`. Préparation par la conversation principale : `npm run build:plugin -- architect`, puis `npm run build` ([Build désynchronisé de Palettes] : la galerie ne reconstruit que `ui.html`).
 
 - [ ] **T1** Mode Tokens sur le fichier des tokens : 23 lignes cochées sous « Variables manquantes » (`surface/subtle`, `surface/divider`, `neutral/page/foreground`) ; cartes « Crans » conformes au tableau de I2, décochées ; « Tout désélectionner » décoche tout ; Appliquer ; les variables existent avec leurs alias et leurs scopes ; la ligne de réussite demande de publier ; l'Historique défait le lot.
 - [ ] **T2** Ignorer `surface/divider` dans tout le fichier, puis Rétablir.
@@ -677,6 +686,10 @@ Agent : le mainteneur. Préparation par la conversation principale : `npm run bu
 
 - [ ] **Z1** · conversation principale · Skill `publier-paquets` : `@ucm-kit/core`, `@ucm-kit/adapter-typescript` (U5), `@ucm-kit/cli` si U5 l'a touché.
 - [ ] **Z2** · conversation principale · Chaque sous-lot coché porte son hash. Pousser sur `main`.
+
+État de publication : `main` a déjà reçu cebd66a1. `@ucm-kit/core@0.14.10` est servi sur npm ; sa publication a eu lieu avant la fin de la recette. Le [workflow 41036066317](https://github.com/Vassili-g/UCM-Toolkit/actions/runs/41036066317) a passé les tests et publié le noyau, puis a échoué sur les pins des deux paquets encore absents. Le registre sert toujours CLI 0.1.132 et adaptateur 0.1.125 ; les versions locales 0.1.143 et 0.2.1 restent à publier.
+
+La chaîne est arrêtée à la demande du mainteneur. Aucune autre publication ni aucun nouveau push avant la fin du plan. Les prochaines montées de version se font à cette étape finale. Ne pas republier le noyau 0.14.10, déjà servi. Les changements des plans restent locaux jusque-là.
 
 ## 5. Textes destinés au designer
 

@@ -425,7 +425,7 @@ Agent : `implementeur-exigeant`.
 
 Agent : `verificateur`.
 
-- [x] (8a5be127) `npm test`
+- [x] (cebd66a1, workflow 41036066317) `npm test` complet : paquets puis contrôles racine
 - [x] (8a5be127) `npm run typecheck`
 - [x] (8a5be127) `npm run build`
 - [x] (8a5be127) `npm run vues`, puis le test de fraîcheur des vues.
@@ -433,7 +433,7 @@ Agent : `verificateur`.
 Fin : un tableau des résultats. La conversation principale commite les vues
 régénérées.
 
-Fait : les seuls échecs de la suite initiale portent sur les vues périmées ; les tests de fraîcheur passent après régénération. Typecheck global : code 0.
+Fait : les suites des paquets ne manquent initialement que les vues périmées ; les tests de fraîcheur passent après régénération. Les contrôles racine sont ensuite joués : renvois, ancre de spec et exception de validation du protocole corrigés en cebd66a1, 22 contrôles ciblés verts. Typecheck et build globaux : codes 0. Les attentes du bilan de galerie suivent le modèle pur ; la suite UI reste au mainteneur.
 
 ## R1. Publication
 
@@ -442,6 +442,8 @@ Agent : `executant`, avec la skill `publier-paquets`.
 - [ ] Publier `@ucm-kit/core`, puis `@ucm-kit/cli` et
       `@ucm-kit/adapter-typescript` si la skill le demande.
 - [ ] Pousser `main`.
+
+Publication partielle : le noyau 0.14.10 répond déjà sur npm (workflow 41036066317). La CLI locale 0.1.143 et l'adaptateur local 0.2.1 ne sont pas publiés ; le registre sert encore 0.1.132 et 0.1.125. `main` est déjà à cebd66a1. Aucun nouvel incrément, push ou lancement de publication avant la fin du plan, à la demande du mainteneur. La recette X1 dans Figma reste à faire.
 
 Fin : les versions publiées répondent sur le registre.
 
