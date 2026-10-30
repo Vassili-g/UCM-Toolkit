@@ -1,5 +1,7 @@
 # Lot 12 : signatures par contrôle et factorisation des modes
 
+**Abandonné par le mainteneur.** Le chemin direct reste.
+
 [Sommaire des lots](./README.md).
 
 ## Tâches à committer

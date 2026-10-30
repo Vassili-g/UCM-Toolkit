@@ -23,9 +23,9 @@ Un lot est fini quand toutes ses cases sont cochées dans des commits. Mettre so
 | [9 : réutilisation avec invalidation large et rétention bornée](./LOT-09.md) | Fini |
 | [10 : graphe de requêtes et recalcul ciblé](./LOT-10.md) | Graphe fin écarté ; voie légère faite |
 | [11 : contributions et agrégats maintenus](./LOT-11.md) | Écarté (décision du mainteneur) |
-| [12 : signatures par contrôle et factorisation des modes](./LOT-12.md) | Non fini (conditionnel) |
-| [13 : worker unique, transport par lots et repli](./LOT-13.md) | Non fini (conditionnel) |
-| [14 : worker conservé et différences versionnées](./LOT-14.md) | Non fini (conditionnel) |
+| [12 : signatures par contrôle et factorisation des modes](./LOT-12.md) | Abandonné (décision du mainteneur) |
+| [13 : worker unique, transport par lots et repli](./LOT-13.md) | Abandonné (décision du mainteneur) |
+| [14 : worker conservé et différences versionnées](./LOT-14.md) | Abandonné (décision du mainteneur) |
 | [15 : clôture locale et recette du mainteneur](./LOT-15.md) | Non fini |
 | [16 : chemin critique, reprise au clic et prélecture](./LOT-16.md) | Validé, non fini |
 

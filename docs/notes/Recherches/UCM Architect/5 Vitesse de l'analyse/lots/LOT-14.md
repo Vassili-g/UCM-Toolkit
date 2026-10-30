@@ -1,5 +1,7 @@
 # Lot 14 : worker conservé et différences versionnées
 
+**Abandonné par le mainteneur.** Le chemin direct reste.
+
 [Sommaire des lots](./README.md).
 
 ## Tâches à committer

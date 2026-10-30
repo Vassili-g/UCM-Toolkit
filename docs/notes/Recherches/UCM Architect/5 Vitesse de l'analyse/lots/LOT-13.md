@@ -1,5 +1,7 @@
 # Lot 13 : worker unique, transport par lots et repli
 
+**Abandonné par le mainteneur.** Le chemin direct reste.
+
 [Sommaire des lots](./README.md).
 
 ## Tâches à committer

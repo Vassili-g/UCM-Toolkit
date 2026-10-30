@@ -38,9 +38,9 @@ node --import tsx "docs/notes/Recherches/Plugin Palettes/1 Recherche initiale/me
 |---|---|---|---|---|
 | Écrire les variables `primitives` et `brand` | Forte : relie la recette à `tokens.json` | Élevé | Faire en premier, avec les alias de `theme` | [3](#3-écrire-les-variables) |
 | Écrire les alias de `theme` | Forte : sans eux, aucune variable écrite n'apparaît dans un sélecteur de Figma | Moyen | Faire avec le point précédent | [3.4](#34-la-couche-theme) |
-| Créer une palette depuis la sélection | Moyenne | Faible | Faire | [8.1](#81-une-palette-depuis-la-sélection) |
-| Créer le jeu de palettes de l'architecture | Moyenne, forte avec les variables | Moyen | Faire après les variables | [8.2](#82-le-jeu-de-départ) |
-| Montrer les palettes en vision simulée | Moyenne, pour les utilitaires | Faible | Faire, sans alerte | [7](#7-daltonisme) |
+| Créer une palette depuis la sélection | Moyenne | Faible | Abandonné | [8.1](#81-une-palette-depuis-la-sélection) |
+| Créer le jeu de palettes de l'architecture | Moyenne, forte avec les variables | Moyen | Abandonné | [8.2](#82-le-jeu-de-départ) |
+| Montrer les palettes en vision simulée | Moyenne, pour les utilitaires | Faible | Fait (Roue des teintes) | [7](#7-daltonisme) |
 | Exporter du CSS, du Tailwind ou du DTCG | Faible | Faible | Ne pas faire | [4](#4-exporter-du-code) |
 | Afficher le contraste APCA | Faible | Faible | Attendre WCAG 3 | [5](#5-apca) |
 | Fabriquer en Display P3 | Faible | Élevé | Ne pas faire | [6](#6-display-p3) |

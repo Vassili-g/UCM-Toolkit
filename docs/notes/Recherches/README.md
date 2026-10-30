@@ -14,13 +14,12 @@ produit, partir des références de [docs/README.md](../../README.md) et du code
 |---|---|---|
 | [Hub UCM][hub] | Rassembler l'exploration des palettes, variables, contrastes et règles dans une page locale. | Partiellement implémenté. Le banc existe ; l'inspecteur, les fiches de règles et les outils de tokens du plan restent à réaliser. |
 | [Palettes : recette v10][palettes-v10] | Corriger les décalages du nuancier et les interactions de l'onglet Comparaison. | Modifications retenues implémentées. L'accueil partagé du nuancier est abandonné ; les tests d'interface de I1 restent à réécrire. La proximité des palettes suit désormais le plan des crans clairs. |
-| [UCM Architect : vitesse d'analyse][vitesse] | Réduire les lectures répétées et le délai d'affichage des constats, avec annulation et reprise. | Partiellement implémenté. Retrait de l'ancien chemin de production encore ouvert ; signatures et worker conditionnels. Les branches écartées ne sont plus à réaliser. |
+| [UCM Architect : vitesse d'analyse][vitesse] | Réduire les lectures répétées et le délai d'affichage des constats, avec annulation et reprise. | Partiellement implémenté. Retrait de l'ancien chemin de production encore ouvert ; signatures, worker et échanges différentiels abandonnés. |
 | [UCM Architect : fusion et préparation][architect] | Réunir l'exploration des variables, leur nommage et la préparation des tokens d'un composant. | Implémenté pour le périmètre retenu. L'adaptation des noms de préparation à la convention Figma reste conditionnelle. |
 | [Diff sémantique][diff] | Comparer deux ensembles de contrats et de tokens pour identifier les changements et les composants touchés. | Proposé, non implémenté ; périmètre de l'expérimentation à valider. |
 | [Conformité du rendu][rendu] | Comparer le rendu d'une implémentation aux obligations visuelles de son contrat. | Recherche proposée, non implémentée ; choix de réalisation ouverts. |
 | [Implémenteur de contrats][implementeur] | Produire et mettre à jour le code d'un composant à partir du contrat, avec moins de travail génératif. | Non réalisé. Le plan propose un compilateur ; sa revue recommande d'abord une preuve limitée et un contrôle de rendu autonome. Orientation à trancher. |
 | [Réduction du coût du chemin agent][reduction] | Réduire les lectures et les générations répétées lorsqu'un agent reconstruit un composant. | Plan partiellement remplacé par l'implémenteur. Les propositions de harnais et de guide restent distinctes du compilateur. |
-| [Comparaison des outils de palettes][concurrence] | Choisir les améliorations utiles au parcours de création et de vérification des palettes. | Recherche ouverte. Chaque apport retenu demande son propre périmètre ; le gamut des recettes reste sRGB. |
 | [Évolutions globales][evolutions] | Choisir les prochains usages des contrats et des tokens à partir des besoins des équipes. | Catalogue de propositions, dont certaines fonctions sont déjà livrées. Les autres essais ne sont pas des lots approuvés. |
 
 La [spécification de Palettes][spec-palettes] demeure la référence de son
@@ -38,12 +37,6 @@ passent en premier ; celles d'un sujet en attente attendront sa reprise.
 |---|---|---|
 | [Préparation dans Architect][architect] | Non | Les noms Figma doivent-ils commencer par la collection ? Si non, adapter les noms créés et la recherche des cibles pour éviter un dossier de collection supplémentaire. |
 | [Catalogue d'Architect][architect] | Non | Autoriser plusieurs collections reconnues comme `theme` ou `layout` ? Si oui, les parcourir toutes ; sinon, signaler cette entrée. |
-| [Hub UCM][hub] | Non | Faut-il retirer la planche du moteur et la vue illustrée lorsque les vues du Hub les couvriront ? |
-| [Prise en main de Palettes][concurrence] | Non | Quel jeu de départ proposer ? Quelle place donner à la sélection Figma et à la gestion des marques ? |
-| [Accessibilité des palettes][concurrence] | Non | Quelle portée donner à la simulation de vision des couleurs ? Une lecture APCA informative apporte-t-elle une aide utile en complément des garanties actuelles ? |
-| [Signatures des contrôles][vitesse-signatures] | Non | Activer le partage de résultats par signature et la factorisation des modes ? Quel gain net, coût mémoire et comportement sur un corpus distinct exigent-ils ? |
-| [Worker d'analyse][vitesse-worker] | Non | Le démarrage et les copies permettent-ils un gain sur l'analyse complète dans Figma ? Retenir le worker seulement si ce trajet apporte un bénéfice mesuré. |
-| [Échanges différentiels du worker][vitesse-differences] | Non | Si le worker est retenu, conserver son état et transmettre des différences ? Le gain en session justifie-t-il le coût à froid et la mémoire ? |
 | [Diff sémantique][diff] | Non | Valider le périmètre local proposé et lancer l'expérimentation ? Le rapport obtenu aide-t-il à décider des changements à traiter ? |
 | [Adressage du rendu][rendu] | Non | Adopter `data-ucm-slot` pour retrouver les éléments observés ? Garder cet attribut en production ? |
 | [Preuves du rendu][rendu] | Non | Comment prouver l'identité des tokens, et quelles clauses minimales peuvent produire un verdict de conformité ? |
@@ -111,6 +104,7 @@ leurs plans.
 | [Ancien Architect : historique][ancien-historique] | Retrouver et annuler le dernier lot de renommages depuis la Configuration. | Implémenté. |
 | [Ancien Architect : vocabulaire][ancien-vocabulaire] | Appliquer les décisions de termes au moteur et aux produits qui le consomment. | Implémenté. |
 | [Ancien Architect : noms de palettes][anciens-noms-palettes] | Préserver les noms de palettes à travers les lectures et les écritures des plugins. | Implémenté. |
+| [Comparaison des outils de palettes][concurrence] | Choisir les améliorations utiles au parcours de création et de vérification des palettes. | Écriture des variables réalisée. Les autres apports sont abandonnés ; APCA attend WCAG 3. |
 
 [kits]: https://github.com/Vassili-g/UCM-Toolkit/blob/da7f465d/docs/notes/Recherches/Kits%20UCM%20et%20partage%20des%20donnees/PLAN-IMPLEMENTATION-FIABILITE.md
 [referentiel]: https://github.com/Vassili-g/UCM-Toolkit/blob/da7f465d/docs/notes/Recherches/R%C3%A9f%C3%A9rentiel%20UCM/PLAN-IMPLEMENTATION.md
@@ -123,9 +117,6 @@ leurs plans.
 [architect]: ./UCM%20Architect/3%20Plan/PLAN-IMPLEMENTATION.md
 [architect-v1]: https://github.com/Vassili-g/UCM-Toolkit/blob/da7f465d/docs/notes/Recherches/UCM%20Architect/4%20Recette%20v1/PLAN-IMPLEMENTATION-RECETTE-V1.md
 [vitesse]: ./UCM%20Architect/5%20Vitesse%20de%20l'analyse/lots/README.md
-[vitesse-signatures]: ./UCM%20Architect/5%20Vitesse%20de%20l'analyse/lots/LOT-12.md
-[vitesse-worker]: ./UCM%20Architect/5%20Vitesse%20de%20l'analyse/lots/LOT-13.md
-[vitesse-differences]: ./UCM%20Architect/5%20Vitesse%20de%20l'analyse/lots/LOT-14.md
 [architect-v2]: https://github.com/Vassili-g/UCM-Toolkit/blob/da7f465d/docs/notes/Recherches/UCM%20Architect/6%20Recette%20v2/PLAN-IMPLEMENTATION-RECETTE-V2.md
 [regles-manquantes]: https://github.com/Vassili-g/UCM-Toolkit/blob/da7f465d/docs/notes/Recherches/UCM%20Architect/7%20R%C3%A8gles%20manquantes/PLAN-IMPLEMENTATION-REGLES-MANQUANTES.md
 [integrite]: https://github.com/Vassili-g/UCM-Toolkit/blob/da7f465d/docs/notes/Recherches/UCM%20Architect/8%20Int%C3%A9grit%C3%A9%20de%20la%20structure/PLAN-IMPLEMENTATION.md
