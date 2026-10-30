@@ -54,7 +54,7 @@ test("sans rien à signaler, le rapport reste exactement ce qu’il était", () 
 
 test("un point non décrit apparaît sous un verdict vert, sans se donner pour un blocage", () => {
   // Le cas qui a motivé ce module : le contrat est cohérent, donc rien ne
-  // bloquait, et le gap resté en valeur brute passait sous un ✅ silencieux.
+  // bloquait, et le gap resté en valeur brute passait sous un `✅` silencieux.
   const markdown = sectionAvertissementsExport([
     { fichier: "Button.contract.json", avertissements: [GAP_NON_LIE] },
   ]).join("\n");

@@ -9,6 +9,11 @@
  * Ce test est la barrière, le hook est le retour immédiat. Un agent d'un autre
  * outillage, un éditeur humain, une correction faite en ligne sur la forge : le
  * hook ne voit rien de tout cela, ce test si.
+ *
+ * Seuls les refus font échouer le test. Les signaux (`permet de`, opposition à
+ * deux-points, deux-points multiples, flèche) se lisent avec
+ * `node scripts/controle-style.mjs --detail`. Les cas isolés de chaque motif
+ * sont dans `styleMotifs.test.ts`.
  */
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
@@ -19,28 +24,25 @@ import {
   AUTORITES,
   MOTS_RECOPIES,
   fautesDuFichier,
-  fichiersSuivis,
-  horsPerimetre,
+  fichiersAControler,
   messageDeLaRegle,
   passagesRecopies,
   racine,
 } from '../scripts/controle-style.mjs';
 
-type Faute = { regle: string; ou: string; extrait: string };
+type Faute = { regle: string; niveau: string; ou: string; extrait: string };
 
 /**
- * Les fichiers soumis aux règles.
+ * Les fichiers soumis aux règles : documents, sources, maquettes `.html` et
+ * `fr.ts`, tels que `fichiersAControler` les rend.
  *
- * Aucun n'est exempté : les plans de travail, qui l'étaient parce qu'ils
- * racontaient un chantier, ont été retirés du dépôt. Leur histoire vit dans
- * Git, qui n'a pas de règle de style. Restent hors périmètre les dépendances,
- * les artefacts de build et les fixtures figées, dont le texte a été gelé pour
- * un autre contrôle.
+ * Aucun n'est exempté sans raison écrite : `EXCLUS_DU_CONTROLE` nomme chaque
+ * fichier laissé de côté et dit pourquoi. Restent hors périmètre les
+ * dépendances, les artefacts de build et les fixtures figées, dont le texte a
+ * été gelé pour un autre contrôle.
  */
 function fichiersSoumis(): { chemin: string; contenu: string }[] {
-  const tous = fichiersSuivis()
-    .filter((chemin: string) => !horsPerimetre(chemin))
-    .filter((chemin: string) => /\.(md|ts|tsx|mjs|cjs)$/.test(chemin));
+  const tous: string[] = fichiersAControler();
 
   // Zéro fichier passerait sans rien contrôler : un dossier renommé, et le
   // garde-fou disparaîtrait en silence. C'est la faute qu'il empêche.
@@ -58,7 +60,7 @@ const toutesLesFautes = (): Faute[] => fichiersSoumis()
 /** Rend les fautes d'une règle, sous une forme lisible dans le rapport d'échec. */
 function fautesDe(regle: string): string[] {
   return toutesLesFautes()
-    .filter((faute) => faute.regle === regle)
+    .filter((faute) => faute.regle === regle && faute.niveau === 'refus')
     .map((faute) => `${faute.ou} ${faute.extrait}`);
 }
 
@@ -88,6 +90,19 @@ test('aucun texte ne date une décision, puisque Git la date', () => {
   const fautes = fautesDe('datation');
   assert.deepEqual(fautes, [], `${echec('datation')}${fautes.join('\n')}`);
 });
+
+for (const [regle, titre] of [
+  ['afin-de', 'aucun texte n’écrit « afin de » ou « afin que »'],
+  ['liaison-creuse', 'aucun mot de liaison ne remplace le fait'],
+  ['formule-de-reponse', 'aucune formule d’ouverture ou de clôture ne figure dans un texte'],
+  ['attaque-enthousiaste', 'aucune phrase ne s’ouvre par une interjection'],
+  ['emoji-de-statut', 'aucun emoji de statut ne figure dans un texte'],
+] as const) {
+  test(titre, () => {
+    const fautes = fautesDe(regle);
+    assert.deepEqual(fautes, [], `${echec(regle)}${fautes.join('\n')}`);
+  });
+}
 
 /**
  * La re-narration est la cause première de l'inflation, et le seul contrôle du

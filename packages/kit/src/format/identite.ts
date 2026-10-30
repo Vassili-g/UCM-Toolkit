@@ -2,7 +2,7 @@
  * Protège l'écriture quand deux noms se projettent sur le même chemin.
  * `componentKey`, stable au renommage, tranche avant `nodeId`. Le nom et le
  * fichier servent au message sans voter ; faute de signal commun, le verdict
- * reste indécidable afin de ne pas autoriser un écrasement silencieux.
+ * reste indécidable pour ne pas autoriser un écrasement silencieux.
  */
 
 /** Le champ qui a tranché. `null` quand rien n'a pu trancher. */

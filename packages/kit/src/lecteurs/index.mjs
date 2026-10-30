@@ -18,7 +18,7 @@ export {
 } from "./implementation.mjs";
 
 /**
- * Ouvre `ucm.config.json` sur disque ; sa grammaire reste dans `format` afin
+ * Ouvre `ucm.config.json` sur disque ; sa grammaire reste dans `format` pour
  * que le plugin Figma utilise la même autorité.
  */
 export { lireConfiguration } from "./configuration.mjs";

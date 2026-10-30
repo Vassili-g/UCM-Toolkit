@@ -842,7 +842,7 @@ introduirait une étape d’intégration aux dossiers de composants.
 les tokens et leurs empreintes. Comparer cette unité à des paquets par famille
 seulement si les projets ont des cycles de mise à jour réellement distincts.
 Un import contrôlé pourrait déposer les contrats à côté du code, avec leur
-provenance, afin de respecter la co-localisation définie par le concept.
+provenance, pour respecter la co-localisation définie par le concept.
 
 Lire directement les contrats dans une dépendance externe constituerait une
 autre direction. Elle demanderait de revoir cette règle du concept et la

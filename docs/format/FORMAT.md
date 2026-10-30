@@ -956,7 +956,7 @@ Chaque tag remplit un champ :
     un renommage. Une liaison `INSTANCE_SWAP` qui varie entre variants produit
     également un warning au lieu d'une seconde API concurrente.
 
-  En résumé, trois responsabilités distinctes. La deuxième ne dépend pas de la
+  Les trois responsabilités sont distinctes. La deuxième ne dépend pas de la
   première, précisément parce qu'elles le sont :
 
   | Qui | Contrôle | Défini où |
@@ -999,7 +999,7 @@ connaître. Cette décision a écarté pour cette raison un champ `icons` de
 `ucm.config.json` : une correspondance écrite dans la configuration aurait fait
 porter au format une question à laquelle seul le code répond.
 
-*Ce que cela donne concrètement chez un consommateur*, avec l'ordre de grandeur
+*Ce que cela donne chez un consommateur*, avec l'ordre de grandeur
 du travail attendu : le repository de référence résout ces trois points en une
 vingtaine de lignes : un préfixe de style constant, une concaténation du
 `figmaName` vers le nom du jeu, et un ratio du glyphe dans le carré que le

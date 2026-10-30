@@ -63,7 +63,7 @@ export type DiscoveredRoles = {
 
 /**
  * Retourne le vocabulaire de rendu partagé par tous les contrats. Il est exporté
- * dans chaque contrat afin qu'un agent n'ait pas à deviner le CSS d'un rôle.
+ * dans chaque contrat pour qu'un agent n'ait pas à deviner le CSS d'un rôle.
  */
 export function defaultRenderingSemantics(): RenderingSemantics {
   return { roles: tableDesRolesDeRendu() };

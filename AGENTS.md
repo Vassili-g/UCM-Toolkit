@@ -44,7 +44,7 @@ Skills, dans `.agents/skills/`, à charger :
 | publier `@ucm-kit/core`, `@ucm-kit/cli` ou `@ucm-kit/adapter-typescript` | [`publier-paquets`](./.agents/skills/publier-paquets/SKILL.md) |
 | écrire le guide d'un composant à créer, d'après les design systems du marché (« je veux créer un composant X, génère-moi un guide ») | [`guide-composant`](./.agents/skills/guide-composant/SKILL.md) |
 
-Un commentaire se justifie seulement par un fait absent du code : décision, précondition, conséquence, limite. Six contrôles refusent le reste ; [CONTRIBUTING.md](./CONTRIBUTING.md#rédiger-un-document) les énumère.
+Un commentaire se justifie seulement par un fait absent du code : décision, précondition, conséquence, limite. [CONTRIBUTING.md](./CONTRIBUTING.md#rédiger-un-document) énumère les contrôles automatiques du style.
 
 Interface d'un plugin : lire d'abord [CONTRIBUTING.md](./CONTRIBUTING.md#interface-du-plugin) ; hiérarchie de l'information et protocole de relecture y font autorité ; la galerie des états rend chaque écran atteignable hors de Figma.
 

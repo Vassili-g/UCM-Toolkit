@@ -1,6 +1,6 @@
 /**
  * Tant que le résultat final manque, l'interface n'envoie aucune demande d'écriture et désactive cases et boutons d'écriture, sans DOM
- * de navigateur. Au passage au final, les identifiants des constats se conservent.
+ * de navigateur. À l'arrivée du résultat final, les identifiants des constats se conservent.
  */
 import assert from 'node:assert/strict';
 import test from 'node:test';

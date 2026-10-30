@@ -8,7 +8,7 @@
 - [x] **1.2 | gpt-6.1-sol | medium** : séparer dans la trace sujet, relevé, catalogue, moteur, règles, contrôles, corrections et projection ; vérifier les étapes imbriquées.
 - [x] **1.3 | gpt-6-luna | low** : compter appels API, attentes, cessions, tranches synchrones et taille de sortie dans les ports instrumentés ; test avec horloge simulée.
 - [x] **1.4 | gpt-6.1-sol | medium** : corréler clic, réception, premier affichage, premiers constats et final par identité de demande ; ignorer les acquittements tardifs.
-- [x] **1.5 | gpt-6.1-sol | medium** : transmettre phase, compte et progression monotone ; publier une phase nouvelle au même pourcentage et réserver 100 % au final.
+- [x] **1.5 | gpt-6.1-sol | medium** : transmettre phase, compte et progression monotone ; publier une phase nouvelle au même pourcentage et réserver 100 % au résultat final.
 - [x] **1.6 | gpt-6-luna | low** : brancher les textes de progression prévus par la maquette, puis couvrir les phases par tests sans navigateur.
 - [x] **1.7 | gpt-6-luna | low** | **Claude Haiku | low** : créer les états de galerie avec compte, sans compte, annulé et périmé ; vérifier les écrans indiqués par la galerie. Travail local : `galerie/etats/analyse.cjs`. Le mainteneur vérifie les écrans ; aucun agent ne lance `test:ui`.
 - [x] **1.8 | gpt-6.1-sol | medium** | **Claude Sonnet | medium** : relier les traces au banc de mesure Architect et documenter leur activation dans le README existant ; comparer mesure active et inactive. Travail local : `scripts/mesurer.mjs` et `README.md` d'Architect.

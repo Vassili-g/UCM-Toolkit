@@ -650,7 +650,7 @@ function validerTextStyles(textStyles, invalides) {
 /**
  * Valide l'arbre parallèle aux axes et les liens feuille → slot → style.
  * Comme les autres arbres de variantes, un set sans axe garde un niveau de
- * repli `variant` afin de ne perdre aucun variant.
+ * repli `variant` pour ne perdre aucun variant.
  */
 function validerVariantTypography(
   node,

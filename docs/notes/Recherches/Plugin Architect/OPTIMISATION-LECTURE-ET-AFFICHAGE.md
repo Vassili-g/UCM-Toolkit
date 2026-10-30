@@ -252,7 +252,7 @@ distincte du transfert entre le sandbox et l'iframe.
 
 Le jeu des variantes contient un set, `State=Default` pour toutes ses variantes
 et une valeur `Size` distincte pour chacune. Les pauses sont remplacées par des
-promesses résolues afin d'isoler le travail de construction. Ces pauses ne
+promesses résolues pour isoler le travail de construction. Ces pauses ne
 mesurent donc ni les reprises de tâches Figma ni le chargement des pages.
 
 | Variantes | Entrées logiques | Construction pure (ms) | Références antérieures recopiées pour `Default` |

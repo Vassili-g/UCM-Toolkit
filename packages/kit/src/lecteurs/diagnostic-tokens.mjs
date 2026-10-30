@@ -4,7 +4,7 @@ import { libelleNombre, rendreDiagnostic } from "./diagnostic-markdown.mjs";
  * Avertit qu'un contrat conserve des références absentes de la source DTCG.
  *
  * `tokens.json` fait foi : un contrat plus ancien ne doit ni empêcher son
- * évolution ni imposer un alias de compatibilité. L'écart reste visible afin
+ * évolution ni imposer un alias de compatibilité. L'écart reste visible pour
  * que le designer sache quels composants réexporter, mais il n'entre pas dans
  * le verdict bloquant de `check-contract.mjs`.
  */

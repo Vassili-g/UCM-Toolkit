@@ -314,7 +314,7 @@ function rapportMarkdown(bilans, fautifs, bilansDuRapport, contexte) {
     lignes.push(...sectionContrastes(bilansTokensManquants));
     // Le verdict est exact, mais il ne porte que sur ce qui a été exporté. Une
     // propriété que l'export n'a pas pu décrire n'est citée par personne et ne
-    // produit donc aucun écart : sans ce rappel, elle passerait sous un ✅.
+    // produit donc aucun écart : sans ce rappel, elle passerait sous un `✅`.
     lignes.push(...sectionAvertissementsExport(bilansDuRapport));
     lignes.push(...sectionEcartsDeParite(bilansDuRapport));
     ajouterImplementationsEnAttente(lignes, bilansDuRapport);

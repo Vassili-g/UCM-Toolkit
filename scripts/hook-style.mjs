@@ -3,16 +3,16 @@
  *
  * Branché en `PostToolUse` sur `Write` et `Edit` par `.claude/settings.json`.
  * Le retour arrive à l'agent au moment de l'écriture, avant la relecture et
- * avant la CI. Une instruction en mémoire est du contexte, que le défaut
- * verbeux d'un modèle recouvre ; un hook est de la configuration, et il
- * s'exécute.
+ * avant la CI. Un hook sera exécuté à chaque écriture plutôt que d'utiliser une
+ * consigne en mémoire.
  *
  * Le contrôle lui-même vit dans `controle-style.mjs`, qui dit le partage des
- * rôles entre les deux moments. Le hook ne juge rien de son côté : il ne fait
- * que choisir le moment.
+ * rôles entre les moments où il s'applique.
  *
- * Le fichier reste écrit. Sortie 2, qui rend le texte de l'erreur à l'agent
- * pour qu'il corrige, plutôt que sortie 1, qui n'irait qu'au journal.
+ * Un refus sort en code 2, qui rend le texte de l'erreur à l'agent pour qu'il
+ * corrige, plutôt qu'en code 1, qui n'irait qu'au journal. Un signal sort en
+ * code 0 avec une sortie JSON `additionalContext` : l'agent revoit la phrase et
+ * la garde si le fait l'exige. Le fichier reste écrit dans les deux cas.
  *
  * Node lit l'entrée standard lui-même : ce dépôt tourne sous Windows, où `jq`
  * n'est pas installé.
@@ -41,18 +41,33 @@ if (!vise) process.exit(0);
 
 const chemin = path.relative(racine, path.resolve(vise)).split(path.sep).join('/');
 if (chemin.startsWith('..') || horsPerimetre(chemin)) process.exit(0);
-if (!/\.(md|ts|tsx|mjs|cjs)$/.test(chemin)) process.exit(0);
+if (!/\.(md|ts|tsx|mjs|cjs|html)$/.test(chemin)) process.exit(0);
 
 const complet = path.join(racine, chemin);
 if (!fs.existsSync(complet)) process.exit(0);
 
-const fautes = fautesDuFichier(chemin, fs.readFileSync(complet, 'utf8'));
-if (fautes.length === 0) process.exit(0);
+const toutes = fautesDuFichier(chemin, fs.readFileSync(complet, 'utf8'));
+const refus = toutes.filter((faute) => faute.niveau === 'refus');
+const signaux = toutes.filter((faute) => faute.niveau === 'signal');
 
-process.stderr.write(
-  `Le style du dépôt refuse ${fautes.length} passage(s) de ${chemin}.\n`
-    + 'Corriger avant de continuer. Les règles vivent dans CONTRIBUTING.md, section\n'
-    + '« Rédiger un document », et dans la skill .agents/skills/relire-le-style.\n\n'
-    + `${rapport(fautes)}`,
-);
-process.exit(2);
+if (refus.length > 0) {
+  process.stderr.write(
+    `Le style du dépôt refuse ${refus.length} passage(s) de ${chemin}.\n`
+      + 'Corriger avant de continuer. Les règles vivent dans le bloc « Écrire » d\'AGENTS.md,\n'
+      + 'dans CONTRIBUTING.md, section « Rédiger un document », et dans la skill\n'
+      + '.agents/skills/relire-le-style.\n\n'
+      + `${rapport(refus)}`
+      + (signaux.length > 0 ? `\nÀ revoir aussi :\n${rapport(signaux)}` : ''),
+  );
+  process.exit(2);
+}
+
+if (signaux.length > 0) {
+  const additionalContext = `Le contrôle de style signale ${signaux.length} passage(s) de ${chemin}. `
+    + 'Revoir chaque phrase et la garder si le fait l\'exige.\n\n'
+    + rapport(signaux);
+  process.stdout.write(JSON.stringify({
+    hookSpecificOutput: { hookEventName: 'PostToolUse', additionalContext },
+  }));
+}
+process.exit(0);

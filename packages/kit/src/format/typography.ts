@@ -1,6 +1,6 @@
 /**
  * Traduit le style de police Figma (`fontName.style`, « SemiBold », « Bold
- * Italic ») en valeurs CSS, au niveau du format afin que toutes les cibles
+ * Italic ») en valeurs CSS, au niveau du format pour que toutes les cibles
  * partagent la table. La comparaison ignore casse et séparateurs. Un nom
  * inconnu n'est pas fautif : `poidsDeGraisse` rend `null`.
  */

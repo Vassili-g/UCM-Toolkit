@@ -45,7 +45,7 @@ test("un contrat encore sans implémentation ne produit aucune section", () => {
 });
 
 /**
- * Le cœur de la correction : ce constat s'écrivait en ❌ sous un titre qui
+ * Le cœur de la correction : ce constat s'écrivait en `❌` sous un titre qui
  * refusait la fusion. Il accusait le contrat, alors qu'il décrit son implémentation.
  */
 test("l'écart s'annonce en avertissement, jamais en erreur", () => {

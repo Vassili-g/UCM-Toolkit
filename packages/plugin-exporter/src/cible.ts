@@ -1,5 +1,5 @@
 /**
- * Décrit la cible séparément du texte d'état afin qu'elle survive aux phases de
+ * Décrit la cible séparément du texte d'état pour qu'elle survive aux phases de
  * traitement. Distingue absence de sélection, sélection multiple et mauvais
  * type de calque, car chacun demande un geste différent.
  */

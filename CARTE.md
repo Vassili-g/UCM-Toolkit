@@ -34,8 +34,9 @@ Procédures qu'un agent charge à la demande.
 ## scripts/
 - construire-plugin.mjs : construit, ouvre en galerie ou teste un paquet après le kit
 - empreinte-du-kit.mjs : empreinte des sources compilées du kit, écrite dans `dist`
-- controle-style.mjs : règles de style, pour le test et pour le hook
-- hook-style.mjs : même contrôle, au moment où un agent écrit
+- controle-style.mjs : règles de style à deux niveaux (refus, signal), pour le test et pour les hooks
+- hook-style.mjs : même contrôle, au moment où un agent écrit un fichier
+- hook-reponse.mjs : motifs de refus communs, appliqués à la dernière réponse d'un agent (`Stop`, `SubagentStop`)
 - hook-documents.mjs : refuse qu'un agent crée un document Markdown hors du registre
 - mesurer-prose.mjs : volume de la prose, document et commentaire
 - pins-servis.mjs : versions que le registre sert
@@ -45,7 +46,7 @@ Procédures qu'un agent charge à la demande.
 - verifier-conservation.mjs : garde de conservation de la réécriture d'`AGENTS.md`
 
 ## .claude/
-- settings.json : hook d'écriture, branché sur Write et Edit
+- settings.json : hook d'écriture sur Write et Edit, hook de réponse sur Stop et SubagentStop
 
 ## .github/workflows/
 - ci.yml : intégration continue
@@ -63,7 +64,8 @@ Les tests du monorepo lui-même.
 - textesEcrits.test.mjs : aucun catalogue de textes des plugins ne porte `TODO(texte)`
 - cartes.test.ts : chaque chemin des cartes existe, et la section `tests/` liste exactement les tests de `tests/`
 - referencesComposants.test.ts : registre des systèmes, extraction des noms et valeurs, schémas, guide d'essai et données réelles de `docs/references/`
-- styleDocumentaire.test.ts : tics de rédaction, interdits sans exemption
+- styleDocumentaire.test.ts : tics de rédaction refusés sur tout le dépôt, hors `EXCLUS_DU_CONTROLE`
+- styleMotifs.test.ts : chaque motif de style, le niveau refus ou signal, les hooks d'écriture et de réponse
 - pinDocumente.test.mjs : versions montrées par une commande copiable
 - registrePortableDocuments.test.ts : aucun document portable ne promet une stack
 - versionSuitLeContenu.test.mjs : un numéro publié annonce bien ce qu'il publie

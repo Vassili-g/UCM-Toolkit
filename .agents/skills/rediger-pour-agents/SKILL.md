@@ -98,7 +98,7 @@ Liste fermée. Un raccourci absent de la table s'écrit en toutes lettres.
 
 ## 4. À retirer
 
-- Annonces, transitions (donc, ainsi, en effet), reformulations.
+- Annonces, transitions (« donc », « ainsi », « en effet »), reformulations.
 - Le sujet du titre de section, répété dans chaque puce.
 - Ce que le code dit déjà : signature, type, valeur d'une constante. Exception : un seuil qui fonde la règle.
 - L'histoire d'une décision.

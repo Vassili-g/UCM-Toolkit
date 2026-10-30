@@ -35,7 +35,7 @@ const BOUND_FIELDS = ['fills', 'strokes'] as const;
  * Une couleur liée d'un variant, telle que Figma la porte.
  *
  * Aucun `SceneNode` n'en fait partie : seuls ses identifiants internes peuvent
- * franchir la frontière afin d'être convertis ensuite en chemins publics. Cela
+ * franchir la frontière pour être convertis ensuite en chemins publics. Cela
  * évite aussi d'exposer au relevé des références les cycles
  * `parent` ↔ `children` de l'arbre Figma.
  */
