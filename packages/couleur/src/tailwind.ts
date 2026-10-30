@@ -6,6 +6,9 @@
 import { CHROMA_SANS_TEINTE, ecartAngulaire, type Oklch } from './conversions';
 import { arrondir, poidsA, type Bouts, type Derive } from './rampe';
 
+/** Les cinq familles grises de Tailwind 3.4 : le relevé de la planche et le hub les écartent des familles colorées. */
+export const FAMILLES_GRISES: readonly string[] = ['slate', 'gray', 'zinc', 'neutral', 'stone'];
+
 /** Une rampe relevée : son nom, et pour chaque cran du 50 au 950 sa clarté OKLCH `L` et sa teinte `H` en degrés. */
 export interface RampeDeDerive {
   readonly nom: string;

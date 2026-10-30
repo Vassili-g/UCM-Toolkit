@@ -42,6 +42,15 @@ export function contraste(a: Rgb8, b: Rgb8): number {
 }
 
 /**
+ * L'encre, noire ou blanche, qui se lit le mieux sur un fond : le noir à égalité.
+ * Corps sans dépendance hors de ce fichier : la planche du moteur en copie le texte
+ * dans sa page.
+ */
+export function encreLisible(fond: Rgb8): 'noir' | 'blanc' {
+  return contraste(fond, [0, 0, 0]) >= contraste(fond, [255, 255, 255]) ? 'noir' : 'blanc';
+}
+
+/**
  * Le contraste écrit à dix décimales, que lisent le verdict et l'affichage.
  * `4.35` vaut `4.3499999999999996` en binaire, et une troncature sur cette
  * valeur afficherait 4,34.

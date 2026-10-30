@@ -20,6 +20,17 @@ import {
 } from '@ucm-kit/core/referentiel';
 
 import {
+  contraste,
+  decoder,
+  encreLisible,
+  luminanceLineaire,
+  luminanceRelative,
+  rapportDeLuminances,
+  rgb8VersLineaire,
+} from '@ucm-kit/core/emplois';
+
+import {
+  FAMILLES_GRISES,
   ancrageDe,
   boutsDe,
   couleurDeLaCarte,
@@ -36,7 +47,6 @@ import {
 } from '../src/index';
 
 const dossier = path.dirname(fileURLToPath(import.meta.url));
-const FAMILLES_GRISES = ['slate', 'gray', 'zinc', 'neutral', 'stone'];
 const TEXTES_DU_DARK: readonly TexteDesBoutons[] = ['noir', 'blanc'];
 
 /** Les variables que les composants de la page lisent dans la table des rôles. */
@@ -141,6 +151,17 @@ function jeuDeDonnees(texte: TexteDesBoutons, familles: readonly Famille[]) {
   };
 }
 
+/**
+ * Le texte des fonctions de contraste du kit, que la page embarque : `contraste` et
+ * `encreLisible` avec les fonctions dont leur corps dépend. La page n'a donc pas de
+ * seconde écriture de la luminance WCAG.
+ */
+export function contrasteDuKit(): string {
+  return [decoder, rgb8VersLineaire, luminanceLineaire, luminanceRelative, rapportDeLuminances, contraste, encreLisible]
+    .map((fonction) => fonction.toString())
+    .join('\n');
+}
+
 /** La page complète, octet pour octet : mêmes entrées, même texte. */
 export function genererPlanche(): string {
   const familles = famillesDeTailwind();
@@ -150,7 +171,7 @@ export function genererPlanche(): string {
     jeux: Object.fromEntries(TEXTES_DU_DARK.map((texte) => [texte, jeuDeDonnees(texte, familles)])),
   };
   const css = readFileSync(path.join(dossier, 'page.css'), 'utf8').trim();
-  const script = readFileSync(path.join(dossier, 'page.js'), 'utf8').trim().replace('DONNEES', () => JSON.stringify(donnees));
+  const script = readFileSync(path.join(dossier, 'page.js'), 'utf8').trim().replace('DONNEES', () => JSON.stringify(donnees)).replace('CONTRASTE_DU_KIT', () => contrasteDuKit());
   return `<!doctype html>
 <html lang="fr" data-theme="light">
 <head>

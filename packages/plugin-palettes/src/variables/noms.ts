@@ -7,6 +7,11 @@
 import type { Palette, Recette } from 'ucm-couleur';
 import { cheminCitable } from '@ucm-kit/core/format';
 
+/** Deux noms de Figma désignent la même variable quand ils ne diffèrent que par la casse : Figma ne distingue pas `Grass` de `grass` dans une collection. */
+export function memeNomFigma(a: string, b: string): boolean {
+  return a.toLowerCase() === b.toLowerCase();
+}
+
 /**
  * Le segment d'un nom : espaces en tirets, rendu citable, puis privé du `.`
  * que Figma refuse dans un nom de variable. Il garde la casse du nom : « Grass »

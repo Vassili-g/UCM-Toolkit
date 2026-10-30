@@ -5,7 +5,7 @@ import {
   COULEUR_DU_TEXTE_DES_BOUTONS, DOSSIERS, ETATS, ETAT_DU_FOND,
   NIVEAUX_D_ELEVATION_DU_THEME, SUPPORT_DES_VARIABLES, TABLE_DES_DOSSIERS,
   TEXTE_DES_BOUTONS_PAR_DEFAUT, VARIABLES_DE_PALETTE, VARIABLES_DU_NEUTRE, VARIABLES_GLOBALES,
-  cranDeLaVariable, cransRequis, rangDuCranLeger, sensDuTheme, variablePresente, variablesDuCran,
+  cranDeLaVariable, cransRequis, rangDuCranLeger, sensDuTheme, variablePresente, variablesAEtats, variablesDuCran, variablesDuDossier,
   type ModeDuTheme, type SensDuTheme, type VariableDePalette, type VariableDuTheme,
 } from '../src/emplois/index';
 
@@ -170,4 +170,18 @@ test('le rang du cran léger est l’indice du plus petit numéro de la liste', 
   assert.equal(rangDuCranLeger([100, 200, 300]), 0);
   assert.equal(rangDuCranLeger([300, 100, 200, 50, 400]), 3);
   assert.equal(rangDuCranLeger([300, 100, 200]), 1);
+});
+
+test('les variables d’un dossier sont celles de la palette qui portent son nom, dans l’ordre de la table', () => {
+  assert.deepEqual(variablesDuDossier('solid'), ['solid/default', 'solid/hover', 'solid/pressed', 'solid/foreground']);
+  assert.deepEqual(variablesDuDossier('page'), ['page/foreground', 'page/border', 'page/divider']);
+  for (const dossier of DOSSIERS) {
+    for (const variable of variablesDuDossier(dossier)) assert.ok(variable.startsWith(`${dossier}/`), variable);
+  }
+});
+
+test('seuls solid et surface ont des variables à états, dans l’ordre default, hover, pressed', () => {
+  assert.deepEqual(variablesAEtats('solid'), ['solid/default', 'solid/hover', 'solid/pressed']);
+  assert.deepEqual(variablesAEtats('surface'), ['surface/default', 'surface/hover', 'surface/pressed']);
+  assert.deepEqual(variablesAEtats('page'), []);
 });

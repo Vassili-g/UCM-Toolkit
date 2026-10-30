@@ -7,6 +7,9 @@
  * calque que l'hôte ne surcharge pas n'est donc pas reconnu comme tel ; la liaison se juge alors comme celle d'un layer de
  * l'hôte, ce que fait aussi une instance sans sorte.
  *
+ * Les dimensions de layout sont celles de `DIMENSIONS_DE_LAYOUT`, que l'élection du wrapper dans le socle compte aussi ; le
+ * comptage reste double, car le socle compte sur les nœuds Figma et ce module sur les liaisons du relevé.
+ *
  * Un wrapper de dimensions note aussi son jeu de variants, que le relevé lit ensuite en entier.
  *
  * Une liaison vient du composant principal quand le layer homologue du maître lie le même champ à la même variable. Le
@@ -16,14 +19,11 @@
 import type { LayerLu, LiaisonLue, ReleveDeComposant } from '@ucm-kit/core/controles';
 import { sorteDeLImbrique } from '@ucm-kit/core/referentiel';
 import { compter } from 'ucm-plugin-socle/src/composant/contract/mesure';
-import { BINDING_PATTERNS } from 'ucm-plugin-socle/src/composant/contract/nodeBindings';
+import { DIMENSIONS_DE_LAYOUT } from 'ucm-plugin-socle/src/composant/contract/nodeBindings';
 import type { LecteurDeChamp } from 'ucm-plugin-socle/src/composant/analyse/acquisition';
 import { AnalyseAnnulee, type ContexteCooperatif } from 'ucm-plugin-socle/src/composant/contract/porteeDAnalyse';
 
 import { liaisonsDuNoeudCooperatives, type NoeudLu } from './consommateurs';
-
-/** Les dimensions de layout dont une liaison complète fait un porteur de layout, les mêmes que l'élection du wrapper dans le socle. */
-const DIMENSIONS_DE_LAYOUT = [BINDING_PATTERNS.gap, BINDING_PATTERNS.paddingX, BINDING_PATTERNS.paddingY, BINDING_PATTERNS.radius];
 
 /** Une liaison par son chemin : champ sans indice de tête, indice, plage de texte. */
 export function decouper(propriete: string): { champ: string; indice?: number; plage?: { debut: number; fin: number } } {

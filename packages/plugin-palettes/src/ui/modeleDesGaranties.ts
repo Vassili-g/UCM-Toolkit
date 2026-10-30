@@ -5,7 +5,7 @@
  * réglette. Pur : ni DOM, ni texte. Le numéro d'une garantie sert de clé à la
  * ligne ; aucun texte ne l'affiche.
  */
-import { ETATS, GARANTIES, type Designation, type FondDeGarantie, type Garantie, type Promesse } from 'ucm-couleur';
+import { ETATS, GARANTIES, etatDuFond, type Designation, type Garantie, type Promesse } from 'ucm-couleur';
 
 /** Les six colonnes de fonds : la page, la carte, `surface/subtle`, puis les trois états de `solid` et de `surface` (S3). */
 export const COLONNES = ['page', 'carte', 'subtle', ...ETATS] as const;
@@ -16,16 +16,6 @@ export const GARANTIE_PAR_DEFAUT = 3;
 
 /** Une case de la réglette : les trois cases avant la première nuance, ou une nuance. */
 export type CaseDeLaReglette = 'page' | 'carte' | 'boutons' | number;
-
-/** La colonne d'un fond : la page, la carte, `subtle` pour `surface/subtle`, ou l'état que son nom porte (`surface/hover` : `hover`). */
-export function colonneDuFond(fond: FondDeGarantie): Colonne {
-  if ('fondDeLaPage' in fond) return 'page';
-  if ('fondDeLaCarte' in fond) return 'carte';
-  if (fond.variable === 'surface/subtle') return 'subtle';
-  const etat = ETATS.find((candidat) => fond.variable.endsWith(`/${candidat}`));
-  if (!etat) throw new Error(`Le fond ${fond.variable} n'a pas d'état.`);
-  return etat;
-}
 
 /** La case de la réglette qu'un membre désigne : la page, la carte, le texte des boutons, ou une nuance. */
 export function caseDeLaReglette(designation: Designation): CaseDeLaReglette {
@@ -58,7 +48,7 @@ export function lignesDesGaranties(promesses: readonly Promesse[]): LigneDeGaran
     const siennes = promesses.filter((promesse) => promesse.garantie.numero === garantie.numero);
     if (siennes.length !== garantie.fonds.length) return [];
     const cases = siennes
-      .map((promesse, rang): CaseDeGarantie => ({ colonne: colonneDuFond(garantie.fonds[rang]), promesse }))
+      .map((promesse, rang): CaseDeGarantie => ({ colonne: etatDuFond(garantie.fonds[rang]), promesse }))
       .sort((a, b) => COLONNES.indexOf(a.colonne) - COLONNES.indexOf(b.colonne));
     return [{ garantie, cases, depart: caseDeLaReglette(siennes[0].premier) }];
   });

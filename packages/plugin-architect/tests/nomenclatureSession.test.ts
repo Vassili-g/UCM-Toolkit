@@ -4,7 +4,8 @@ import test from 'node:test';
 import type { PortDeRegles } from '../src/ecriture/noms';
 import type { PortDeLecture } from '../src/nomenclature/lecture';
 import type { DemandeDeNomenclature, GesteSurLesRegles, MessageDeNomenclature, Reponse } from '../src/messages/nomenclature';
-import { creerSession, fichierDejaAnalyse } from '../src/nomenclature/session';
+import { creerSession, employe, fichierDejaAnalyse, motsDe, motsDuTermeUcm } from '../src/nomenclature/session';
+import { commencerLexique, type Lexique } from '@ucm-kit/core/referentiel';
 import { mener } from '../src/nomenclature/tranches';
 
 // Les tranches
@@ -358,4 +359,30 @@ test('termes transmet le filtre de places et la place de la page, et répond les
   const type = tout.sections.find((section) => section.totaux.groupes > 0)!.type;
   const page = await lire({ section: type, place: 'groupes' });
   assert.ok(page.sections[0].termes.length > 0 && page.sections[0].termes.every((ligne) => ligne.place === 'groupes'), 'la page ne lit que la place demandée');
+});
+
+// Les mots d’un terme
+
+test('motsDe découpe comme le kit : foregroundMain donne deux mots, en minuscules', () => {
+  assert.deepEqual(motsDe('foregroundMain'), ['foreground', 'main']);
+  assert.deepEqual(motsDe('Foreground-Main'), ['foreground', 'main']);
+  assert.deepEqual(motsDe('  extra small '), ['extra', 'small']);
+  assert.deepEqual(motsDe(''), []);
+});
+
+test('employe rend vrai quand le lexique contient les mots du terme, quelle que soit son écriture', () => {
+  const preparation = commencerLexique();
+  preparation.ajouter([{ id: 'v1', categorie: 'variables', portee: 'c:1', nom: 'foreground main' }]);
+  const calcul = preparation.terminer();
+  let etape = calcul.next();
+  while (!etape.done) etape = calcul.next();
+  const lexique: Lexique = etape.value;
+  assert.equal(employe(lexique, 'foregroundMain'), true);
+  assert.equal(employe(lexique, 'foreground-main'), true);
+  assert.equal(employe(lexique, 'background'), false);
+});
+
+test('motsDuTermeUcm retrouve un terme par sa forme reconnue : Hover donne la forme tolérée hovered', () => {
+  assert.deepEqual(motsDuTermeUcm('Hover'), [['Hover'], ['hovered']]);
+  assert.deepEqual(motsDuTermeUcm('hover'), [['hover'], ['hovered']]);
 });

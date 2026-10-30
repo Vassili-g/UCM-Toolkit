@@ -27,6 +27,7 @@ import {
   TABLE_DES_DOSSIERS,
   contraste,
   cranDeLaVariable,
+  encreLisible,
   lireHexa,
   mesurerCran,
   rampeDe,
@@ -824,7 +825,7 @@ const VARIABLE_DU_TEXTE_DES_BOUTONS = 'solid/foreground';
           const pastille = pastillesDesRangees[rangDeRampe][rang];
           const numero = crans[rang];
           pastille.style.background = cran.hexa;
-          pastille.style.color = contraste(cran.couleur, [0, 0, 0]) >= contraste(cran.couleur, [255, 255, 255]) ? '#000000' : '#FFFFFF';
+          pastille.style.color = encreLisible(cran.couleur) === 'noir' ? '#000000' : '#FFFFFF';
           const reference = analyse.ancrage.profil === profil && analyse.ancrage.rangs[mode] === rang;
           const confondue = confondues.has(numero);
           const etiquettes = [TEXTES_DU_NUANCIER.etiquetteDeNuance(profil, numero, cran.hexa)];

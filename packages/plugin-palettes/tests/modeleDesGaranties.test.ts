@@ -2,7 +2,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { GARANTIES, recetteAvecTexteDesBoutons, recetteParDefaut, verifierPromesses, type Mode, type Recette, type TexteDesBoutons } from 'ucm-couleur';
+import { GARANTIES, etatDuFond, recetteAvecTexteDesBoutons, recetteParDefaut, verifierPromesses, type Mode, type Recette, type TexteDesBoutons } from 'ucm-couleur';
 
 import { changerReference } from '../src/edition';
 import {
@@ -10,7 +10,6 @@ import {
   blocsDeGaranties,
   caseDeLaReglette,
   ciblesDeLaGarantie,
-  colonneDuFond,
   garantieParDefaut,
   lignesDesGaranties,
   type CibleDeGarantie,
@@ -102,7 +101,7 @@ test('[UI-09] [VER-21] une ligne nomme ses fonds : les trois états d’un dossi
     ['surface/pressed'],
     ['surface/default', 'surface/hover'],
   ]);
-  assert.deepEqual(GARANTIES.flatMap((garantie) => garantie.fonds.map(colonneDuFond)), [
+  assert.deepEqual(GARANTIES.flatMap((garantie) => garantie.fonds.map(etatDuFond)), [
     'default', 'hover', 'pressed',
     'page', 'carte',
     'subtle', 'default', 'hover', 'page', 'carte',

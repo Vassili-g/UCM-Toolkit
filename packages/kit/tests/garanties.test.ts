@@ -1,7 +1,7 @@
 /** Les membres et fonds attendus proviennent des neuf garanties de contraste du thème. */
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { GARANTIES, garantieJugeable, type ModeDuTheme, type SensDuTheme } from '../src/emplois/index';
+import { GARANTIES, etatDuFond, garantieJugeable, type ModeDuTheme, type SensDuTheme } from '../src/emplois/index';
 
 test('les neuf garanties ont leurs membres, fonds et seuil', () => {
   assert.deepEqual(GARANTIES, [
@@ -104,4 +104,14 @@ test('garantieJugeable traite surface/subtle : G3 attend le 50 en Light et le 10
   assert.equal(garantieJugeable(g3, [50, 100, 200, 700], 'light', 'normal'), true);
   assert.equal(garantieJugeable(g3, [200, 300, 950], 'dark', 'normal'), false);
   assert.equal(garantieJugeable(g3, [100, 200, 300, 950], 'dark', 'normal'), true);
+});
+
+test('etatDuFond rend la page, la carte, subtle ou l’état que le nom du fond porte', () => {
+  assert.equal(etatDuFond({ fondDeLaPage: true }), 'page');
+  assert.equal(etatDuFond({ fondDeLaCarte: true }), 'carte');
+  assert.equal(etatDuFond({ variable: 'surface/subtle' }), 'subtle');
+  assert.equal(etatDuFond({ variable: 'solid/default' }), 'default');
+  assert.equal(etatDuFond({ variable: 'solid/hover' }), 'hover');
+  assert.equal(etatDuFond({ variable: 'surface/pressed' }), 'pressed');
+  assert.throws(() => etatDuFond({ variable: 'ring' }), /ring/);
 });

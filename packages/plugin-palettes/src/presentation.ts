@@ -17,6 +17,7 @@ import {
   decalageRange,
   sensDuTheme,
   severiteDeLAlerte,
+  variablesAEtats,
   variablesDuCran,
   type Alerte,
   type Bout,
@@ -277,9 +278,12 @@ export interface Bande {
 
 type Membre = readonly [VariableDuTheme, NomDeCode];
 
+/** Le nom français des trois états, dans l'ordre de `variablesAEtats`. */
+const NOMS_DES_ETATS: readonly NomDeCode[] = ['repos', 'survol', 'appui'];
+
 /** Les accolades d'un dossier, avant leur place : chacune réunit les variables qui se lisent ensemble. */
 function groupesDuDossier(dossier: Dossier, neutre: boolean): Membre[][] {
-  const etats: Membre[] = [['default', 'repos'], ['hover', 'survol'], ['pressed', 'appui']].map(([etat, nom]) => [`${dossier}/${etat}` as VariableDuTheme, nom as NomDeCode]);
+  const etats: Membre[] = variablesAEtats(dossier).map((variable, rang) => [variable, NOMS_DES_ETATS[rang]]);
   switch (dossier) {
     case 'solid':
       return [[['solid/foreground', 'texteDesBoutons']], etats];

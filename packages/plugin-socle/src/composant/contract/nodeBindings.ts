@@ -67,6 +67,14 @@ export const BINDING_PATTERNS = {
   ],
 } as const satisfies Record<string, FieldAlternatives>;
 
+/** Les dimensions de layout dont une liaison complète fait d'un nœud un porteur de layout : l'élection du wrapper et le relevé d'Architect les comptent. */
+export const DIMENSIONS_DE_LAYOUT: FieldAlternatives[] = [
+  BINDING_PATTERNS.gap,
+  BINDING_PATTERNS.paddingX,
+  BINDING_PATTERNS.paddingY,
+  BINDING_PATTERNS.radius,
+];
+
 /**
  * Libellé Figma de chaque propriété citée dans un avertissement.
  *

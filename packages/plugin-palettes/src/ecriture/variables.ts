@@ -24,6 +24,7 @@ import { CLE_RECETTE, ESPACE_PARTAGE, empreinteDuTexte, lireEtat } from '../lect
 import { ajouter, nouvellePalette, reprendreDuFichier } from '../edition';
 import { collectionLue, inventaireLu, lireLeSuiviRange, lireLesDonneesDeNommage, variableLue, variablesDeLaBibliotheque, type FigmaDesBibliotheques } from '../lectureDesVariables';
 import { variablesDeLaRampe } from '../variables/bibliotheques';
+import { memeNomFigma } from '../variables/noms';
 import { conversionDeLaReprise } from '../variables/conversion';
 import { COLLECTION_A_CREER, creerNommeur } from '../variables/nommeur';
 import { MODE_PAR_DEFAUT_A_CREER, idSimuleDeLaVariable, planDuLot, suiviApresLEcriture, type DecisionDuLot } from '../variables/lot';
@@ -102,11 +103,6 @@ function coucheInterdite(nom: string, architecture: ArchitectureDuFichier): bool
   return architecture === 'ucm' && COUCHES_SANS_PALETTES.some((couche) => couche === collectionUcmReconnue(nom));
 }
 
-/** Le mode d'une collection qui porte ce nom, sans casse ni espaces autour. */
-function modeNomme(collection: VariableCollection, nom: string): string | undefined {
-  return collection.modes.find((mode) => mode.name.trim().toLowerCase() === nom.toLowerCase())?.modeId;
-}
-
 /**
  * Écrit les palettes demandées, dans l'ordre de la recette ([VAR-07]).
  * Chaque palette réussit ou échoue seule : une palette arrêtée n'empêche pas
@@ -162,7 +158,7 @@ export async function ecrireLesVariables(figma: FigmaDesVariablesEcrites, demand
       let collection = 'id' in decision.collection ? collections.get(idReel(decision.collection.id)) : collections.get(idReel(COLLECTION_A_CREER));
       if (unEchec && collection) {
         const aPrendre = [...decision.creations.map((creation) => ({ nom: creation.nom, id: '' })), ...decision.renommages.map((renommage) => ({ nom: renommage.vers, id: idReel(renommage.id) })), ...decision.remplacements.map((remplacement) => ({ nom: remplacement.vers, id: idReel(remplacement.id) }))];
-        const prise = aPrendre.find((cible) => [...locales.values()].some((variable) => variable.variableCollectionId === collection!.id && variable.id !== cible.id && variable.name.toLowerCase() === cible.nom.toLowerCase()));
+        const prise = aPrendre.find((cible) => [...locales.values()].some((variable) => variable.variableCollectionId === collection!.id && variable.id !== cible.id && memeNomFigma(variable.name, cible.nom)));
         if (prise) return { palette: id, issue: 'nom-pris', nom: prise.nom };
       }
       if (!collection) {

@@ -13,7 +13,7 @@
  */
 import {
   COLLECTIONS, REGISTRES, REGISTRES_ARCHITECTURE, assembler, commencerLexique, decouperSegment, detecterParEtapes, indexerVocabulaire,
-  motsAvecCasse, normaliserParEtapes, porteesTouchees,
+  motsAvecCasse, normaliserParEtapes, porteesTouchees, termeReconnu,
   type ConflitDeVocabulaire, type IndexDuVocabulaire, type Lexique, type Mots,
   type Collection, type Collision, type Question, type Renommage, type ResultatDesQuestions, type ResultatDuLexique,
 } from '@ucm-kit/core/referentiel';
@@ -89,18 +89,15 @@ const memes = (a: unknown, b: unknown): boolean => JSON.stringify(a) === JSON.st
 const signatureDuCalcul = (regles: ReglesDuFichier): string =>
   JSON.stringify([regles.ecriture ?? null, regles.ecritureDeLaV1, regles.termes, regles.ecartsUcm, regles.ordinaires, regles.collectionsExclues, regles.collectionsRenommees]);
 
-const motsDe = (texte: string): Mots => texte.trim().toLowerCase().split(/[\s-]+/u).filter((mot) => mot !== '');
+/** Les mots d'un terme tels que le kit les découpe : `foregroundMain` donne `foreground` et `main`. */
+export const motsDe = (texte: string): Mots => decouperSegment(texte.trim()).map((mot) => mot.toLowerCase());
 const jointure = (mots: Mots): string => mots.map((mot) => mot.toLowerCase()).join(' ');
 
 /** Le mot, ses formes tolérées et leurs découpes, pour un terme UCM désigné par son identifiant. */
-function motsDuTermeUcm(id: string): Mots[] {
-  const cle = id.toLowerCase();
+export function motsDuTermeUcm(id: string): Mots[] {
   const mots: Mots[] = [decouperSegment(id)];
   for (const registre of [...REGISTRES, ...REGISTRES_ARCHITECTURE]) {
-    for (const terme of registre.termes) {
-      if (terme.id.toLowerCase() !== cle) continue;
-      for (const tolere of terme.toleres ?? []) mots.push(decouperSegment(tolere));
-    }
+    for (const tolere of termeReconnu(registre, id)?.toleres ?? []) mots.push(decouperSegment(tolere));
   }
   return mots;
 }
@@ -212,7 +209,8 @@ function ecrituresDuGeste(geste: GesteSurLesRegles, regles: ReglesDuFichier, cou
   }
 }
 
-const employe = (lexique: Lexique, forme: string): boolean => lexique.occurrences.has(motsDe(forme)[0] ?? '');
+/** Vrai quand le premier mot de la forme figure dans le lexique du fichier. */
+export const employe = (lexique: Lexique, forme: string): boolean => lexique.occurrences.has(motsDe(forme)[0] ?? '');
 
 /** Les écritures d'une réponse, avant `preparerReponse`. Une réponse qui ne convient pas à la question est une erreur. */
 function ecrituresDeLaReponse(question: Question, reponse: Reponse, regles: ReglesDuFichier, lexique: Lexique): Ecriture[] {

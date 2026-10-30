@@ -1,5 +1,5 @@
 /** Les neuf garanties de contraste du thème, jugées par palette : membres, fonds et seuils. */
-import { variablePresente, type ModeDuTheme, type SensDuTheme, type VariableDePalette } from './dossiers.js';
+import { ETATS, variablePresente, type ModeDuTheme, type SensDuTheme, type VariableDePalette } from './dossiers.js';
 
 export type FondDeGarantie =
   | { readonly variable: VariableDePalette }
@@ -33,6 +33,19 @@ export const GARANTIES: readonly Garantie[] = [
   { numero: 8, premier: { variable: 'surface/foreground' }, fonds: [{ variable: 'surface/pressed' }], seuil: 'nonTexte' },
   { numero: 9, premier: { variable: 'page/foreground' }, fonds: [{ variable: 'surface/default' }, { variable: 'surface/hover' }], seuil: 'texte' },
 ];
+
+/** Ce qu'un fond désigne : la page, la carte, `subtle` pour `surface/subtle`, ou l'état que son nom porte (`surface/hover` : `hover`). */
+export type EtatDuFond = (typeof ETATS)[number] | 'subtle' | 'page' | 'carte';
+
+/** L'état d'un fond de garantie. Un fond dont le nom ne porte aucun état (`ring`) est une erreur de table. */
+export function etatDuFond(fond: FondDeGarantie): EtatDuFond {
+  if ('fondDeLaPage' in fond) return 'page';
+  if ('fondDeLaCarte' in fond) return 'carte';
+  if (fond.variable === 'surface/subtle') return 'subtle';
+  const etat = ETATS.find((candidat) => fond.variable.endsWith(`/${candidat}`));
+  if (!etat) throw new Error(`Le fond ${fond.variable} n'a pas d'état.`);
+  return etat;
+}
 
 /** Une garantie se juge quand la liste porte le cran de chacun de ses membres. */
 export function garantieJugeable(garantie: Garantie, crans: readonly number[], mode: ModeDuTheme, sens: SensDuTheme): boolean {

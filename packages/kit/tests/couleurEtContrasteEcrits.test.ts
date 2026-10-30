@@ -5,7 +5,7 @@
  */
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { contrasteTronque, ecrireContraste, hexaDeFigma, versOctet, versRgb8 } from '../src/emplois/index';
+import { contraste, contrasteTronque, ecrireContraste, encreLisible, hexaDeFigma, versOctet, versRgb8, type Rgb8 } from '../src/emplois/index';
 
 test('une composante à 1,002 rend FF, jamais 100', () => {
   assert.equal(versOctet(1.002), 255);
@@ -40,4 +40,20 @@ test('contrasteTronque rend le nombre que ecrireContraste écrit', () => {
   assert.equal(contrasteTronque(4.4999), 4.49);
   assert.equal(contrasteTronque(12.9, 0), 12);
   assert.equal(contrasteTronque(5.7656, 3), 5.765);
+});
+
+test('encreLisible rend le noir ou le blanc, le noir à égalité', () => {
+  assert.equal(encreLisible([255, 255, 255]), 'noir');
+  assert.equal(encreLisible([0, 0, 0]), 'blanc');
+  assert.equal(encreLisible([30, 64, 175]), 'blanc');
+  assert.equal(encreLisible([250, 204, 21]), 'noir');
+  for (let r = 0; r < 256; r += 51) {
+    for (let g = 0; g < 256; g += 51) {
+      for (let b = 0; b < 256; b += 51) {
+        const fond: Rgb8 = [r, g, b];
+        const attendu = contraste(fond, [0, 0, 0]) >= contraste(fond, [255, 255, 255]) ? 'noir' : 'blanc';
+        assert.equal(encreLisible(fond), attendu, `${r},${g},${b}`);
+      }
+    }
+  }
 });

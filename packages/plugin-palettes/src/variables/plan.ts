@@ -7,7 +7,7 @@
 import { MODES, grilleDe, intensitePorteuse, intensitesDe, rampeDe, rampesDe, type Intensite, type Mode, type Palette, type Recette } from 'ucm-couleur';
 
 import { segmentsDuGroupe, type Destination } from './destination';
-import { segmentDeLaPalette } from './noms';
+import { memeNomFigma, segmentDeLaPalette } from './noms';
 import type { OrigineDeLaReprise } from './reprise';
 import type { VariableLue } from './releve';
 import type { PaletteSuivie } from './suivi';
@@ -88,12 +88,12 @@ function cheminSelonLaReprise(nom: string, origine: OrigineDeLaReprise): string 
   const segments = nom.split('/');
   const prefixe = segments.slice(0, -1);
   const exemples = [...origine.suivies.values()].map((variable) => variable.nom.split('/')).filter((existants) => existants.length === segments.length);
-  const memeRampe = exemples.find((existants) => prefixe.every((segment, rang) => segment.toLowerCase() === existants[rang].toLowerCase()));
+  const memeRampe = exemples.find((existants) => prefixe.every((segment, rang) => memeNomFigma(segment, existants[rang])));
   if (memeRampe) return [...memeRampe.slice(0, -1), segments.at(-1)!].join('/');
   return segments.map((segment, rang) => {
     if (rang === segments.length - 1) return segment;
     const presents = [...new Set(exemples.map((existants) => existants[rang]))];
-    const memeSegment = presents.filter((present) => present.toLowerCase() === segment.toLowerCase());
+    const memeSegment = presents.filter((present) => memeNomFigma(present, segment));
     if (memeSegment.length === 1) return memeSegment[0];
     return segment;
   }).join('/');
@@ -196,7 +196,7 @@ export function planDesVariables(recette: Recette, palette: Palette, destination
     const finals = nommer ? nommer(candidats.map(({ entree, lue, voulu }) => ({ cle: entree.cle, nom: voulu, id: lue?.id }))) : candidats.map(({ lue, voulu }) => lue || destination.groupe !== suivie.groupe ? voulu : cheminSelonLaReprise(voulu, origine));
     candidats.forEach(({ entree, lue, voulu: brut }, rang) => {
       const final = finals[rang];
-      const voulu = lue && lue.nom.toLowerCase() === final.toLowerCase() ? lue.nom : final;
+      const voulu = lue && memeNomFigma(lue.nom, final) ? lue.nom : final;
       const occupant = origine.parNom.get(voulu.toLowerCase());
       const cible = suivie.modes[entree.mode];
       const reservePar = reservesDuLot?.get(voulu.toLowerCase());

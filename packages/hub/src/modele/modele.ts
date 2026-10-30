@@ -11,6 +11,7 @@
  */
 import {
   COULEUR_DU_TEXTE_DES_BOUTONS,
+  FAMILLES_GRISES,
   GARANTIES,
   MODES,
   TABLE_DES_DOSSIERS,
@@ -25,7 +26,9 @@ import {
   cranDeLaVariable,
   distanceOk,
   ecrireHexa,
+  etatDuFond,
   estPaletteGrise,
+  estReferenceGrise,
   intensitesDe,
   lireHexa,
   prereglageTailwind,
@@ -103,12 +106,9 @@ export interface PaletteDuBanc {
   readonly ancrage: Ancrage;
   /** Une palette libre ou figée sort du modèle des dossiers : elle n'a ni variables de thème ni mesures. */
   readonly aDesDossiers: boolean;
-  /** Une palette grise ou un gris teinté, comme Slate : sa référence porte une chroma OKLCH sous `CHROMA_DES_GRIS`. */
+  /** Une palette grise ou un gris teinté, comme Slate : sa référence porte une chroma OKLCH sous le seuil de `estReferenceGrise`. */
   readonly grise: boolean;
 }
-
-/** La chroma sous laquelle une référence est un gris teinté : Slate de Tailwind porte 0,04. */
-export const CHROMA_DES_GRIS = 0.05;
 
 /** Les couleurs qu'une palette rend dans une intensité et un mode : ce que les composants du banc lisent. */
 export interface Jeu {
@@ -207,7 +207,7 @@ function lirePalette(recette: Recette, palette: Palette, rang: number): PaletteD
     rampes: rampesDe(recette, palette),
     ancrage: ancrageDe(recette, palette),
     aDesDossiers,
-    grise: aDesDossiers && (estPaletteGrise(recette, palette) || rgb8VersOklch(lireHexa(palette.reference) ?? [0, 0, 0]).C < CHROMA_DES_GRIS),
+    grise: aDesDossiers && (estPaletteGrise(recette, palette) || estReferenceGrise(lireHexa(palette.reference) ?? [0, 0, 0])),
   };
 }
 
@@ -255,9 +255,9 @@ function neutreDe(jeu: Jeu): Neutre {
 /** Les fonds d'une garantie que les exigences gardent. */
 function fondsGardes(garantie: Garantie, exigences: Exigences): Garantie['fonds'] {
   return garantie.fonds.filter((fond) => {
-    if (!('variable' in fond)) return true;
-    if (!exigences.fondsSurvoles && fond.variable.endsWith('/hover')) return false;
-    if (!exigences.fondsAppuyes && fond.variable.endsWith('/pressed')) return false;
+    const etat = etatDuFond(fond);
+    if (etat === 'hover') return exigences.fondsSurvoles;
+    if (etat === 'pressed') return exigences.fondsAppuyes;
     return true;
   });
 }
@@ -407,14 +407,13 @@ export function harmonisation(modele: Modele, intensite: Intensite, mode: Mode):
 
 /** Une famille du relevé Tailwind 3.4, en hexa par cran de 50 à 950. */
 export type ReleveTailwind = Readonly<Record<string, Readonly<Record<string, string>>>>;
-const FAMILLES_GRISES = ['slate', 'gray', 'zinc', 'neutral', 'stone'];
 
 /** La famille Tailwind la plus proche d'une référence : par teinte au 500 pour une couleur, par distance au 500 pour un gris. */
 export function familleTailwindProche(reference: string, releve: ReleveTailwind): string {
   const couleur = lireHexa(reference);
   if (!couleur) return Object.keys(releve)[0];
   const lu = rgb8VersOklch(couleur);
-  const grise = lu.C < 0.04;
+  const grise = estReferenceGrise(couleur);
   let meilleure = '';
   let ecart = Infinity;
   for (const [nom, crans] of Object.entries(releve)) {

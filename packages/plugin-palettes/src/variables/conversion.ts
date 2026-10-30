@@ -10,6 +10,7 @@
 import { intensitePorteuse, intensitesDe, type Palette, type Recette } from 'ucm-couleur';
 
 import type { VariablesDuFichier } from '../lectureDesVariables';
+import { memeNomFigma } from './noms';
 import type { Destination } from './destination';
 import { nommeurDuFichier } from './nommeur';
 import { nommerLePlan, planDesVariables, type Nommer } from './plan';
@@ -66,7 +67,7 @@ export function conversionDeLaReprise(
   const brut = planDesVariables(recette, palette, destination);
   for (const entree of nommer ? nommerLePlan(brut, nommer, (cle) => cles[cle]?.id) : brut) {
     const lue = lues.get(cles[entree.cle]?.id ?? '');
-    if (lue && lue.nom.toLowerCase() !== entree.nom.toLowerCase() && !aRenommer.has(lue.id)) aRenommer.set(lue.id, { id: lue.id, de: lue.nom, vers: entree.nom });
+    if (lue && !memeNomFigma(lue.nom, entree.nom) && !aRenommer.has(lue.id)) aRenommer.set(lue.id, { id: lue.id, de: lue.nom, vers: entree.nom });
   }
   const propres = new Set(Object.values(cles).map((variable) => variable.id));
   const prises = new Set(variables.filter((variable) => variable.collection === suivie.collection && !propres.has(variable.id)).map((variable) => variable.nom.toLowerCase()));

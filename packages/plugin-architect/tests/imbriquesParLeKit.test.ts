@@ -65,3 +65,8 @@ test('le relevé des imbriqués appelle sorteDeLImbrique, et lui seul', () => {
   const appelants = sources().filter(({ code }) => /\bsorteDeLImbrique\(/.test(code)).map(({ fichier }) => fichier);
   assert.deepEqual(appelants.sort(), ['imbriquesDuReleve.ts']);
 });
+
+test('la liste des dimensions de layout vient de nodeBindings, pas d’une copie de BINDING_PATTERNS', () => {
+  const copies = sources().filter(({ code }) => /BINDING_PATTERNS\.gap\s*,\s*BINDING_PATTERNS\.paddingX/.test(code)).map(({ fichier }) => fichier);
+  assert.deepEqual(copies, [], 'Importer DIMENSIONS_DE_LAYOUT de nodeBindings.ts.');
+});

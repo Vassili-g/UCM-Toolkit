@@ -50,7 +50,7 @@ Plugin UCM Palettes : ucm-palettes-plugin, privé.
 ## src/variables/
 - nommeur.ts : noms du plan passés par le calcul de renommage du socle, sur l'inventaire du fichier entier ; sans règles rangées ou dans une collection exclue, ils restent bruts
 - destination.ts : où les palettes s'écrivent : collection, groupe, thèmes ; son défaut et sa validation
-- noms.ts : segment d'une palette dans le chemin de ses variables, et collision de deux palettes
+- noms.ts : segment d'une palette dans le chemin de ses variables, collision de deux palettes, égalité de deux noms de Figma
 - plan.ts : ce qu'une palette écrit : clé stable, nom de variable, mode et couleur de chaque entrée
 - suivi.ts : suivi rangé sous `ucm_palettes/variables` : destination, variables de chaque palette, lecture tolérante et versionnée
 - releve.ts : ce que la lecture rend : collections, variables de couleur, et couleur de Figma arrondie à l'octet

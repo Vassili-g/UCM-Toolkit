@@ -12,7 +12,7 @@ import { getAllNodes } from './exportableNodes';
 import { maitreDe } from './porteeDAnalyse';
 import { pousserSansNode } from './localisation';
 import type { ComposedInstances } from './exportableNodes';
-import { BINDING_PATTERNS, hasCompleteBinding } from './nodeBindings';
+import { DIMENSIONS_DE_LAYOUT, hasCompleteBinding } from './nodeBindings';
 
 function epuiser<T>(calcul: Generator<void, T>): T {
   let etape = calcul.next();
@@ -329,14 +329,6 @@ export function* findMissingVariantCombinationsParEtapes(componentSet: Component
   };
 }
 
-/** Dimensions complètes dont la liaison signale un porteur de layout. */
-const LAYOUT_BINDING_PATTERNS = [
-  BINDING_PATTERNS.gap,
-  BINDING_PATTERNS.paddingX,
-  BINDING_PATTERNS.paddingY,
-  BINDING_PATTERNS.radius,
-];
-
 /** Compte les liaisons de dimensions dans tout le sous-arbre rendable d'une instance. */
 function countLayoutBindings(
   root: InstanceNode,
@@ -345,7 +337,7 @@ function countLayoutBindings(
 ): number {
   let count = 0;
   for (const node of getAllNodes(root, warnings, composed)) {
-    for (const alternatives of LAYOUT_BINDING_PATTERNS) {
+    for (const alternatives of DIMENSIONS_DE_LAYOUT) {
       if (hasCompleteBinding(node, alternatives)) count += 1;
     }
   }

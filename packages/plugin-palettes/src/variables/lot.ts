@@ -12,11 +12,13 @@
  * remplace par ceux de Figma. Une palette qui échoue au moment d'écrire fausse
  * l'hypothèse des suivantes, et le geste suivant replanifie.
  */
-import { aUneIntensite, profilPorteur, type Palette, type Recette } from 'ucm-couleur';
+import { modeDuThemeReconnu } from '@ucm-kit/core/referentiel';
+import { aUneIntensite, profilPorteur, type ModeDuTheme, type Palette, type Recette } from 'ucm-couleur';
 
 import type { VariablesDuFichier } from '../lectureDesVariables';
 import type { Destination } from './destination';
 import { etatDesTokens, type EtatDesTokensDUnePalette, type RenommageExecute } from './etat';
+import { memeNomFigma } from './noms';
 import { COLLECTION_A_CREER, nommeurDuFichier, planDeLaPalette, type CollectionVisee, type DonneesDeNommage, type VariableNommee } from './nommeur';
 import { cheminDeLaReprise, type EntreeDuPlan, type ModeDuPlan, type NomReserve } from './plan';
 import type { VariableLue } from './releve';
@@ -164,9 +166,9 @@ function simulerLeDepart(fichier: InventaireDuLot): Simule {
   };
 }
 
-/** Le mode d'une collection qui porte ce nom, sans casse ni espaces autour. */
-function modeNomme(collection: CollectionSimulee, nom: string, exclu?: string): string | undefined {
-  return collection.modes.find((mode) => mode.id !== exclu && mode.nom.trim().toLowerCase() === nom.toLowerCase())?.id;
+/** Le mode d'une collection que son nom désigne comme ce thème, quelle que soit l'écriture ; le fichier ne porte pas encore de vocabulaire ici. */
+function modeNomme(collection: CollectionSimulee, theme: ModeDuTheme, exclu?: string): string | undefined {
+  return collection.modes.find((mode) => mode.id !== exclu && modeDuThemeReconnu(mode.nom) === theme)?.id;
 }
 
 /** Les modes qu'une palette de la destination écrit ([VAR-10]), trouvés dans la collection ou à créer. */
@@ -176,11 +178,11 @@ function modesDeLaDestination(collection: CollectionSimulee, garde: PaletteSuivi
   if (themes === 'chemin') return { unique: { id: existe(garde?.modes.unique) ? garde!.modes.unique! : parDefaut } };
   // Une collection sans variable et à un seul mode est neuve : son mode se renomme, plutôt que d'en ajouter un.
   const neuve = collection.variables === 0 && collection.modes.length === 1;
-  const lightTrouve = existe(garde?.modes.light) ? garde!.modes.light : modeNomme(collection, 'Light');
+  const lightTrouve = existe(garde?.modes.light) ? garde!.modes.light : modeNomme(collection, 'light');
   const light: ModeVise = lightTrouve !== undefined
     ? { id: lightTrouve }
     : neuve ? { id: parDefaut, creer: { nom: 'Light', renommer: true } } : { id: inventer(), creer: { nom: 'Light', renommer: false } };
-  const darkTrouve = existe(garde?.modes.dark) ? garde!.modes.dark : modeNomme(collection, 'Dark', light.creer?.renommer ? parDefaut : undefined);
+  const darkTrouve = existe(garde?.modes.dark) ? garde!.modes.dark : modeNomme(collection, 'dark', light.creer?.renommer ? parDefaut : undefined);
   const dark: ModeVise = darkTrouve !== undefined ? { id: darkTrouve } : { id: inventer(), creer: { nom: 'Dark', renommer: false } };
   return { light, dark };
 }
@@ -211,7 +213,7 @@ function modesDeLaReprise(
   }
   const modes: { [M in ModeDuPlan]?: ModeVise } = vises();
   if (ids.dark === undefined && ecritDark) {
-    const nomme = modeNomme(collection, 'Dark');
+    const nomme = modeNomme(collection, 'dark');
     modes.dark = nomme !== undefined && nomme !== ids.light ? { id: nomme } : { id: inventer(), creer: { nom: 'Dark', renommer: false } };
   }
   return { modes, disparu: undefined };
@@ -305,7 +307,7 @@ export function planDuLot(recette: Recette, fichier: InventaireDuLot, demande: D
         cibles.push({ cible: 'creee', rang: reference.rang });
       } else {
         const actuel = nomActuel(reference.id);
-        if (entree.nom !== '' && actuel.toLowerCase() !== entree.nom.toLowerCase()) {
+        if (entree.nom !== '' && !memeNomFigma(actuel, entree.nom)) {
           const deja = renommages.get(reference.id);
           renommages.set(reference.id, deja ? { ...deja, vers: entree.nom } : { id: reference.id, de: actuel, vers: entree.nom, cause: actuel === entree.brut ? 'regles' : 'forme' });
           noms.set(reference.id, entree.nom);

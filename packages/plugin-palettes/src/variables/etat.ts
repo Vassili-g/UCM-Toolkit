@@ -5,6 +5,7 @@
  */
 import type { EtatDesTokens } from '../presentation';
 import { segmentsDuGroupe, type Destination } from './destination';
+import { memeNomFigma } from './noms';
 import { nomsDuPlan, type EntreeDuPlan } from './plan';
 import type { VariableLue } from './releve';
 import type { PaletteSuivie } from './suivi';
@@ -143,7 +144,7 @@ export function etatDesTokens(
       }
       continue;
     }
-    if (entree.nom !== '' && lue.nom.toLowerCase() !== entree.nom.toLowerCase()) {
+    if (entree.nom !== '' && !memeNomFigma(lue.nom, entree.nom)) {
       // Une reprise est renommée par l'écriture ; une palette de la destination garde le nom du fichier (D2).
       if (suivi.liaison === 'reprise') aRenommer.set(lue.id, { id: lue.id, de: lue.nom, vers: entree.nom, cause: lue.nom === entree.brut ? 'regles' : 'forme' });
       else if (!ecarts.has(lue.id)) ecarts.set(lue.id, { id: lue.id, nom: lue.nom, plan: entree.nom });

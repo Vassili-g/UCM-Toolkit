@@ -1,23 +1,12 @@
-/* Le script de la planche, copié tel quel dans la page par generer-planche.ts, qui écrit les données à la place du mot-clé de la ligne var D. */
+/* Le script de la planche, copié dans la page par generer-planche.ts, qui écrit les données à la place du mot-clé de la ligne var D et le texte des fonctions de contraste du kit à la place du mot-clé de la ligne qui précède encreSur. */
 (function () {
   var D = DONNEES;
   var etat = { profil: 'soft', theme: 'light', texte: 'noir' };
 
-  function lineaire(c) {
-    c = c / 255;
-    return c <= 0.04045 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4);
-  }
-  function luminance(hexa) {
-    var n = parseInt(hexa.slice(1), 16);
-    return 0.2126 * lineaire(n >> 16) + 0.7152 * lineaire((n >> 8) & 255) + 0.0722 * lineaire(n & 255);
-  }
-  function contraste(a, b) {
-    var x = Math.max(luminance(a), luminance(b));
-    var y = Math.min(luminance(a), luminance(b));
-    return (x + 0.05) / (y + 0.05);
-  }
+  CONTRASTE_DU_KIT
   function encreSur(hexa) {
-    return contraste(hexa, '#FFFFFF') > contraste(hexa, '#000000') ? '#fff' : '#000';
+    var n = parseInt(hexa.slice(1), 16);
+    return encreLisible([n >> 16, (n >> 8) & 255, n & 255]) === 'blanc' ? '#fff' : '#000';
   }
 
   function cellule(hexas, jeu, rangReference, pied) {

@@ -28,6 +28,7 @@ import {
   ecrireContraste,
   ecrireHexa,
   empreinte,
+  encreLisible,
   intensitesDe,
   lireHexa,
   rampeDe,
@@ -35,6 +36,8 @@ import {
   rgb8VersP3,
   sensDuTheme,
   variablePresente,
+  variablesAEtats,
+  variablesDuDossier,
   type Cran,
   type Garantie,
   type Intensite,
@@ -201,7 +204,7 @@ const hexaLu = (hexa: string): Rgb8 => {
 
 /** Le noir ou le blanc, celui qui contraste le plus avec un fond ([PLA-13]). */
 export function noirOuBlanc(fond: Rgb8): Rgb8 {
-  return contraste(fond, [0, 0, 0]) >= contraste(fond, [255, 255, 255]) ? [0, 0, 0] : [255, 255, 255];
+  return encreLisible(fond) === 'noir' ? [0, 0, 0] : [255, 255, 255];
 }
 
 /** L'encre des légendes posées sur un fond : la sombre ou la claire, celle qui s'y lit le mieux ([PLA-09]). */
@@ -358,9 +361,9 @@ type Dossier = (typeof DOSSIERS)[number];
 
 /** Les variables de chaque ligne, dans l'ordre de la planche. `page` n'a pas d'états : ses trois variables se suivent. `ring`, à la racine de la palette, a sa propre rangée. */
 const VARIABLES_DU_DOSSIER: Readonly<Record<Dossier, readonly VariableDePalette[]>> = {
-  solid: ['solid/default', 'solid/hover', 'solid/pressed'],
-  surface: ['surface/default', 'surface/hover', 'surface/pressed'],
-  page: ['page/foreground', 'page/border', 'page/divider'],
+  solid: variablesAEtats('solid'),
+  surface: variablesAEtats('surface'),
+  page: variablesDuDossier('page'),
 };
 
 /** Les variables d'un dossier qui n'ont pas d'état : `surface` les range sous ses trois états, dans une seconde rangée. */

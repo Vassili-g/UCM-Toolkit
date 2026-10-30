@@ -22,6 +22,17 @@ export const VARIABLES_GLOBALES = ['disabled/background', 'disabled/foreground',
 export const NIVEAUX_D_ELEVATION_DU_THEME = ['page', 'raised'] as const;
 
 export type VariableDePalette = (typeof VARIABLES_DE_PALETTE)[number];
+export type DossierDuTheme = (typeof DOSSIERS)[number];
+
+/** Les variables de palette d'un dossier, dans l'ordre de `VARIABLES_DE_PALETTE`. `ring`, à la racine, n'en fait partie d'aucun. */
+export function variablesDuDossier(dossier: DossierDuTheme): readonly VariableDePalette[] {
+  return VARIABLES_DE_PALETTE.filter((variable) => variable.startsWith(`${dossier}/`));
+}
+
+/** Les variables d'un dossier qui portent un état (`default`, `hover`, `pressed`) : aucune pour `page`. */
+export function variablesAEtats(dossier: DossierDuTheme): readonly VariableDePalette[] {
+  return variablesDuDossier(dossier).filter((variable) => ETATS.some((etat) => variable === `${dossier}/${etat}`));
+}
 export type VariablePropreAuNeutre = (typeof VARIABLES_DU_NEUTRE)[number];
 export type VariableGlobale = (typeof VARIABLES_GLOBALES)[number];
 export type VariableDuTheme = VariableDePalette | VariablePropreAuNeutre | VariableGlobale | `elevation/${(typeof NIVEAUX_D_ELEVATION_DU_THEME)[number]}`;

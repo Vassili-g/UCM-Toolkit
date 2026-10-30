@@ -36,9 +36,9 @@ Sous-chemin sans Figma : calcul de renommage sur un inventaire portable.
 ## src/emplois/
 Sous-chemin sans dépendance : vocabulaire qu'UCM Palettes et `ucm check` partagent.
 
-- dossiers.ts : table des dossiers `solid`, `surface` et `page` et de `ring`, une par thème et par sens, le neutre, les crans requis, les trois états, ce que chaque variable peint et ses portées Figma
-- garanties.ts : les neuf garanties G1 à G9, leurs fonds (une variable de la palette, la page ou la carte) et leur jugeabilité selon les crans présents
-- contraste.ts : contraste WCAG 2 et sa comparaison au seuil à dix décimales, contraste tronqué et écrit
+- dossiers.ts : table des dossiers `solid`, `surface` et `page` et de `ring`, une par thème et par sens, le neutre, les crans requis, les trois états, les variables de chaque dossier, ce que chaque variable peint et ses portées Figma
+- garanties.ts : les neuf garanties G1 à G9, leurs fonds (une variable de la palette, la page ou la carte), l'état de chaque fond et leur jugeabilité selon les crans présents
+- contraste.ts : contraste WCAG 2 et sa comparaison au seuil à dix décimales, contraste tronqué et écrit, encre noire ou blanche d'un fond
 - couleur.ts : une couleur de Figma en octets bornés (`versOctet`, `versRgb8`) et en hexadécimal majuscule (`hexaDeFigma`)
 - index.ts : ce que le sous-chemin publie
 

@@ -1,6 +1,7 @@
 /** Contrôles des rôles peints et des alias de mode du thème UCM. */
 import { formeDuChemin, formeReconnue } from '../referentiel/reconnaissance.js';
 import { TABLE_DES_DOSSIERS, type ModeDuTheme, type SensDuTheme } from '../emplois/dossiers.js';
+import { GARANTIES, etatDuFond } from '../emplois/garanties.js';
 import { modeDuThemeReconnu, variableDuThemeReconnue } from '../referentiel/theme.js';
 import { collectionParCle, variableParCle, type CatalogueDeReference, type VariableDuCatalogue } from './catalogue.js';
 import type { Constat, Correction, Question } from './constat.js';
@@ -86,11 +87,16 @@ function* aUnFondDeSurface(layer: LayerLu, layers: ReadonlyMap<string, LayerLu>,
   return false;
 }
 
+/** Les fonds de `surface` que les garanties jugent, `subtle` excepté : un texte de surface se pose sur eux. */
+const FONDS_DE_SURFACE: ReadonlySet<string> = new Set(
+  GARANTIES.flatMap((garantie) => garantie.fonds).flatMap((fond) => ('variable' in fond && fond.variable.startsWith('surface/') && etatDuFond(fond) !== 'subtle' ? [fond.variable] : [])),
+);
+
 /** Une liaison illisible peut être un fond de surface : C59 ne l'accuse pas sur ce qu'il n'a pas lu. */
 function* estFondDeSurface(liaison: LiaisonLue, catalogue: CatalogueDeReference): Generator<void, boolean> {
   if (liaison.illisible) return true;
   const variable = yield* trouverVariable(catalogue, liaison.variable.cle);
-  return !!variable && collection(catalogue, variable)?.role === 'theme' && /^surface\/(default|hover|pressed)$/.test(variableDuThemeReconnue(variable.nom) ?? '');
+  return !!variable && collection(catalogue, variable)?.role === 'theme' && FONDS_DE_SURFACE.has(variableDuThemeReconnue(variable.nom) ?? '');
 }
 
 /** Les alias de mode du thème, sans composant. */

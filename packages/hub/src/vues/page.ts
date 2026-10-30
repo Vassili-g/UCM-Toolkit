@@ -5,12 +5,13 @@
  * d'affichage) n'est qu'une commodité : un stockage refusé laisse la page
  * fonctionner avec la recette de démonstration.
  */
-import { CRANS, PROFILS } from '@ucm-kit/core/referentiel';
+import { CRANS, PROFILS, REGISTRE_ETATS, REGISTRE_STATUTS } from '@ucm-kit/core/referentiel';
 import releveBrut from 'ucm-couleur/tailwind-3.4.17.json';
 import {
   atteintLeSeuil,
   boutsDe,
   ecrireContraste,
+  encreLisible,
   prereglageTailwind,
   recetteAvecTexteDesBoutons,
   validerRecette,
@@ -58,13 +59,21 @@ type Role = 'primary' | 'neutral' | 'success' | 'warning' | 'danger' | 'info';
 type Action = 'page' | 'surface';
 type Nature = 'texte' | 'nonTexte';
 
+/** Le libellé français d'un terme de statut ou d'état : celui du registre du kit. */
+function libelleDuRegistre(registre: typeof REGISTRE_STATUTS, id: string): string {
+  const terme = registre.termes.find((candidat) => candidat.id === id);
+  if (!terme) throw new Error(`Le registre ${registre.id} n'a pas de terme ${id}.`);
+  return terme.libelle.fr;
+}
+
+/** Les rôles du banc : le libellé d'un statut vient du registre, les teintes qui le désignent restent au hub. */
 const ROLES: readonly (readonly [Role, string, RegExp])[] = [
   ['primary', 'Marque', /^$/],
   ['neutral', 'Neutre', /slate|gr[ae]y|zinc|neutral|stone|titan|gris/i],
-  ['success', 'Succès', /green|grass|emerald|lime|success|vert/i],
-  ['warning', 'Avertissement', /amber|orange|yellow|sun|warning|jaune/i],
-  ['danger', 'Danger', /red|poppy|danger|error|rouge|rose|crimson/i],
-  ['info', 'Information', /sky|blue|cyan|info|bleu|azure/i],
+  ['success', libelleDuRegistre(REGISTRE_STATUTS, 'success'), /green|grass|emerald|lime|success|vert/i],
+  ['warning', libelleDuRegistre(REGISTRE_STATUTS, 'warning'), /amber|orange|yellow|sun|warning|jaune/i],
+  ['danger', libelleDuRegistre(REGISTRE_STATUTS, 'danger'), /red|poppy|danger|error|rouge|rose|crimson/i],
+  ['info', libelleDuRegistre(REGISTRE_STATUTS, 'info'), /sky|blue|cyan|info|bleu|azure/i],
 ];
 
 type ProfilAffiche = (typeof PROFILS)[number];
@@ -124,7 +133,7 @@ const modesAffiches = (): readonly Mode[] => (etat.theme === 'deux' ? MODES : [e
 const nomDuMode = (mode: Mode): string => (mode === 'light' ? 'Light' : 'Dark');
 const nomDeLIntensite = (intensite: Intensite): string => ({ soft: 'Soft', vivid: 'Vivid', unique: 'Unique' })[intensite];
 const visibles = () => modele.palettes.filter((palette) => !etat.masquees.includes(palette.rang));
-const encreSur = (teinte: Teinte): string => (contraste(teinte.couleur, [255, 255, 255]) >= contraste(teinte.couleur, [0, 0, 0]) ? '#FFFFFF' : '#000000');
+const encreSur = (teinte: Teinte): string => (encreLisible(teinte.couleur) === 'blanc' ? '#FFFFFF' : '#000000');
 
 function neutreDuMode(mode: Mode): Neutre {
   return modele.neutres[mode] ?? {
@@ -184,8 +193,10 @@ const ICONES = {
 
 type Variante = 'contained' | 'outlined' | 'text';
 const VARIANTES: readonly Variante[] = ['contained', 'outlined', 'text'];
-const ETATS_DU_BOUTON = [['default', 'Repos'], ['hover', 'Survol'], ['focus', 'Focus'], ['pressed', 'Appui'], ['disabled', 'Désactivé']] as const;
-type EtatDuBouton = (typeof ETATS_DU_BOUTON)[number][0];
+const IDENTIFIANTS_DES_ETATS = ['default', 'hover', 'focus', 'pressed', 'disabled'] as const;
+type EtatDuBouton = (typeof IDENTIFIANTS_DES_ETATS)[number];
+const etatAvecLibelle = (id: EtatDuBouton): readonly [EtatDuBouton, string] => [id, libelleDuRegistre(REGISTRE_ETATS, id)];
+const ETATS_DU_BOUTON = IDENTIFIANTS_DES_ETATS.map(etatAvecLibelle);
 
 function desactive(jeu: Jeu, variable: VariableDuBanc): Teinte | undefined {
   const neutre = modele.neutres[jeu.mode];
@@ -340,7 +351,7 @@ function panneauDeComposants(jeu: Jeu): string {
   return `<div class="panneau" style="background:${page.hexa};color:${neutre.principal.hexa}">
     <div class="titre-panneau">${nomDuMode(jeu.mode)} · ${nomDeLIntensite(jeu.intensite)}</div>
     <h4>Boutons sur la page</h4>${grilleDeBoutons(jeu, page, ETATS_DU_BOUTON)}
-    <div class="zone-carte" style="background:${carte.hexa}"><h4>Boutons sur la carte</h4>${grilleDeBoutons(jeu, carte, [['default', 'Repos'], ['focus', 'Focus']])}</div>
+    <div class="zone-carte" style="background:${carte.hexa}"><h4>Boutons sur la carte</h4>${grilleDeBoutons(jeu, carte, [etatAvecLibelle('default'), etatAvecLibelle('focus')])}</div>
     <h4>Alertes</h4>
     <div class="pile">
       ${alerte(jeu, 'filled', 'Filled, action en page/foreground', 'Le bouton Text garde sa couleur de page.', statut, { action: 'page' })}

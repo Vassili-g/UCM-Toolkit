@@ -132,6 +132,14 @@ export function partsDesProfils(recette: Recette, palette: Palette): Parts {
   return { soft: terne ? arrondir(part / rapport, 3) : Math.min(communes.soft, part), vivid: part };
 }
 
+/** La chroma OKLCH sous laquelle une référence est un gris teinté : Slate de Tailwind porte 0,04. */
+export const CHROMA_DES_GRIS = 0.05;
+
+/** Vrai pour une référence dont la chroma OKLCH est sous `CHROMA_DES_GRIS` : un gris pur ou teinté. */
+export function estReferenceGrise(reference: Rgb8): boolean {
+  return rgb8VersOklch(reference).C < CHROMA_DES_GRIS;
+}
+
 /**
  * Vrai pour une palette grise ([DER-15]) : aucune nuance calculée, hors du
  * cran de la référence, n'a de couleur. R, G et B y sont égaux, dans chaque

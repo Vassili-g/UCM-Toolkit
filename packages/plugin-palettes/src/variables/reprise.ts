@@ -8,6 +8,7 @@
 import { MODES, PROFILS, type CouleursFigees, type Intensite, type Mode, type Palette } from 'ucm-couleur';
 
 import { nuanceDeReference, type GroupeRange, type PaletteDuFichier, type PaletteGroupee } from './detection';
+import { memeNomFigma } from './noms';
 import { cleDuPlan, type EntreeDuPlan } from './plan';
 import type { CollectionLue, ModeLu, VariableLue } from './releve';
 import type { PaletteSuivie, VariableSuivie } from './suivi';
@@ -265,10 +266,11 @@ export function origineDeLaReprise(suivie: PaletteSuivie, variables: readonly Va
     ? origine.map((nom) => nom.split('/').slice(0, profondeur).join('/'))
     : [];
   const cheminActuel = prefixesActuels[0];
+  const segmentsRanges = cheminRange?.split('/') ?? [];
   const memeCheminIgnoreLaCasse = cheminRange !== undefined
     && cheminActuel !== undefined
     && prefixesActuels.every((prefixe) => prefixe === cheminActuel)
-    && cheminActuel.split('/').every((segment, rang) => segment.toLowerCase() === cheminRange.split('/')[rang]?.toLowerCase());
+    && cheminActuel.split('/').every((segment, rang) => rang < segmentsRanges.length && memeNomFigma(segment, segmentsRanges[rang]));
   return {
     chemin: memeCheminIgnoreLaCasse ? cheminActuel : cheminRange ?? cheminCommun(origine),
     parNom,
