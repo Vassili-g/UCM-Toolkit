@@ -17,14 +17,16 @@ const CLAIR = `${COMPOSANTS}:Light`;
 const SOMBRE = `${COMPOSANTS}:Dark`;
 const alias = (id: string) => ({ type: 'VARIABLE_ALIAS', id });
 
+// Une préparation nomme tout par son chemin complet ; Figma écrit les noms sans la collection.
 const FOND = 'components/alert/color/danger/soft/background';
 const TEXTE = 'components/alert/color/danger/soft/foreground';
 const MARGE = 'components/alert/size/padding-x';
+const nomFigma = (chemin: string) => chemin.split('/').slice(1).join('/');
 
 const cible = (id: string, nom: string, collection: string, type = 'COLOR'): VariableDEcriture => ({ id, key: `k-${id}`, name: nom, valuesByMode: {}, collection, type });
-const fond = () => cible('V:1', 'theme/danger/soft/surface/default', THEME);
-const texte = () => cible('V:2', 'theme/danger/soft/surface/foreground', THEME);
-const taille = () => cible('V:3', 'layout/sizing/2', LAYOUT, 'FLOAT');
+const fond = () => cible('V:1', 'danger/soft/surface/default', THEME);
+const texte = () => cible('V:2', 'danger/soft/surface/foreground', THEME);
+const taille = () => cible('V:3', 'sizing/2', LAYOUT, 'FLOAT');
 
 const COLLECTIONS = [
   { id: THEME, name: 'theme', modes: ['light'] },
@@ -42,7 +44,7 @@ const preparation = (): PreparationRangee => ({
   ],
 });
 
-const divergente = (): VariableDEcriture => ({ id: 'V:20', key: 'k-20', name: FOND, collection: COMPOSANTS, type: 'COLOR', valuesByMode: { [CLAIR]: alias('V:2'), [SOMBRE]: alias('V:2') } });
+const divergente = (): VariableDEcriture => ({ id: 'V:20', key: 'k-20', name: nomFigma(FOND), collection: COMPOSANTS, type: 'COLOR', valuesByMode: { [CLAIR]: alias('V:2'), [SOMBRE]: alias('V:2') } });
 
 function monde(options: OptionsDeLEcriture = {}, refuserLeJournal = false) {
   const a = atelierDEcriture({ collections: COLLECTIONS, locales: [fond(), texte(), taille()], ...options });
@@ -70,28 +72,31 @@ test('les variables manquantes sont créées dans components, alias de chaque mo
   assert.equal(rendu.refus, null);
   assert.deepEqual([rendu.creees, rendu.gardees, rendu.sautees], [3, 0, 0]);
   assert.deepEqual(Object.values(rendu.etats), ['creee', 'creee', 'creee']);
-  const fondCree = m.a.locales().find((variable) => variable.name === FOND)!;
+  const fondCree = m.a.locales().find((variable) => variable.name === nomFigma(FOND))!;
   assert.deepEqual(fondCree.valuesByMode, { [CLAIR]: alias('V:1'), [SOMBRE]: alias('V:1') });
   assert.equal((fondCree as unknown as { variableCollectionId: string }).variableCollectionId, COMPOSANTS);
   assert.equal(rendu.journal, true);
   assert.deepEqual(lireLeJournalDeStructure(m.stockage)?.lignes.map((ligne) => ligne.sorte), ['creation', 'creation', 'creation']);
   assert.equal(m.points(), 1);
+  // Aucun dossier `components` n'entre dans la collection : le nom écrit ne redit pas la collection.
+  assert.deepEqual(m.creations(), [FOND, TEXTE, MARGE].map((chemin) => `creer:${nomFigma(chemin)}`));
+  assert.ok(m.a.locales().every((variable) => !variable.name.startsWith('components/')));
 });
 
 test('une création interrompue se reprend sans doublon : l’identique est gardée, la manquante créée', async () => {
-  const premiere = monde({ refusees: new Set([`creer:${MARGE}`]) });
+  const premiere = monde({ refusees: new Set([`creer:${nomFigma(MARGE)}`]) });
   const interrompu = await premiere.creer();
   assert.deepEqual([interrompu.creees, interrompu.sautees], [2, 1]);
   assert.deepEqual(interrompu.echecs, [{ nom: MARGE, motif: 'erreur' }]);
   assert.equal(interrompu.etats[MARGE], 'echec');
 
   // Le fichier garde les deux variables écrites ; la reprise relit le fichier, jamais l'état rangé.
-  const deja = premiere.a.locales().filter((variable) => variable.name.startsWith('components/')).map((variable) => ({ id: variable.id, key: variable.key, name: variable.name, collection: COMPOSANTS, type: 'COLOR', valuesByMode: { ...variable.valuesByMode } }));
+  const deja = premiere.a.locales().filter((variable) => variable.name.startsWith('alert/')).map((variable) => ({ id: variable.id, key: variable.key, name: variable.name, collection: COMPOSANTS, type: 'COLOR', valuesByMode: { ...variable.valuesByMode } }));
   assert.equal(deja.length, 2);
   const reprise = monde({ locales: [fond(), texte(), taille(), ...deja] });
   const rendu = await reprise.creer();
   assert.deepEqual([rendu.creees, rendu.gardees, rendu.sautees], [1, 2, 0]);
-  assert.deepEqual(reprise.creations(), [`creer:${MARGE}`]);
+  assert.deepEqual(reprise.creations(), [`creer:${nomFigma(MARGE)}`]);
   assert.equal(rendu.etats[FOND], 'existe-identique');
   assert.equal(rendu.etats[MARGE], 'creee');
 });
@@ -135,7 +140,7 @@ test('les variables créées se défont depuis l’annulation de la structure', 
   await m.creer();
   const defait = await m.annuler();
   assert.equal(defait.defaites, 3);
-  assert.deepEqual(m.a.locales().map((variable) => variable.name).filter((nom) => nom.startsWith('components/')), []);
+  assert.deepEqual(m.a.locales().map((variable) => variable.name).filter((nom) => nom.startsWith('alert/')), []);
 });
 
 test('un fichier qui ne garde pas le journal crée quand même et le dit', async () => {
@@ -193,4 +198,30 @@ test('sans theme, sans components ou hors UCM, rien n’est écrit', async () =>
     assert.deepEqual(m.creations(), []);
     assert.equal(m.points(), 0);
   }
+});
+
+test('les cibles se trouvent aussi dans un fichier dont les noms redisent leur collection', async () => {
+  const m = monde({ locales: [
+    cible('V:1', 'theme/danger/soft/surface/default', THEME), cible('V:2', 'theme/danger/soft/surface/foreground', THEME), cible('V:3', 'layout/sizing/2', LAYOUT, 'FLOAT'),
+  ] });
+  const rendu = await m.creer();
+  assert.deepEqual([rendu.creees, rendu.echecs], [3, []]);
+  assert.deepEqual(m.creations(), [FOND, TEXTE, MARGE].map((chemin) => `creer:${nomFigma(chemin)}`));
+});
+
+test('une cible se cherche dans sa collection : un nom pareil dans une autre collection ne la remplace pas', async () => {
+  const m = monde({ locales: [fond(), texte(), cible('V:3', 'sizing/2', THEME, 'FLOAT')] });
+  const rendu = await m.creer();
+  assert.deepEqual(rendu.echecs, [{ nom: MARGE, motif: 'cible-introuvable' }]);
+  assert.equal(rendu.creees, 2);
+});
+
+test('une variable existante, nommée sans la collection, est reconnue identique', async () => {
+  const existante = (id: string, chemin: string, cibleId: string): VariableDEcriture => ({
+    id, key: `k-${id}`, name: nomFigma(chemin), collection: COMPOSANTS, type: 'COLOR', valuesByMode: { [CLAIR]: alias(cibleId), [SOMBRE]: alias(cibleId) },
+  });
+  const m = monde({ locales: [fond(), texte(), taille(), existante('V:20', FOND, 'V:1')] });
+  const rendu = await m.creer();
+  assert.equal(rendu.etats[FOND], 'existe-identique');
+  assert.deepEqual([rendu.creees, rendu.gardees], [2, 1]);
 });

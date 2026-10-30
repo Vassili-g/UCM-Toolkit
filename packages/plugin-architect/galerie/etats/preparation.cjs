@@ -123,6 +123,11 @@ const messageDuPlan = {
   type: 'plan-de-preparation', analyse: identite, plan, refus: null, apercus,
   mesures: { 'components/tag/size/padding-x': 8, 'components/tag/size/corner-radius': 13 },
 };
+/** Le même plan quand le fichier porte deux collections de thème et deux de mise en page : la préparation lit la première de chacune. */
+const messageAvecDeuxCollections = {
+  ...messageDuPlan,
+  plan: { ...plan, collectionsEnDouble: [{ role: 'theme', retenue: 'theme', ignoree: 'theme-archive' }, { role: 'layout', retenue: 'layout', ignoree: 'layout-mobile' }] },
+};
 const source = { fichier: 'Tag', cleDuFichier: 'tag-file', jeu: { cle: tag.sujet.id, nom: 'Tag' } };
 const creeLe = new Date();
 creeLe.setHours(14, 20, 0, 0);
@@ -159,6 +164,7 @@ const rangementsAReglerApresCreation = { message: { type: 'preparations', prepar
 const ETATS = [
   { id: 'g-entree', titre: 'Préparer les tokens', quand: 'Tag est sélectionné et analysé.', regarder: 'Le bouton Préparer les tokens apparaît dans le panneau des constats.', existe: true, atteinte: entree },
   { id: 'g-preparer', titre: 'Répondre à la préparation', quand: 'Les questions du plan sont ouvertes.', regarder: 'Les termes UCM et leur description sont présentés avec les tokens visés.', existe: true, atteinte: [...entree, ouvrir, { message: messageDuPlan }, { clic: 'input[name="intensite"][value="soft"]' }, { message: messageDuPlan }, { clic: 'input[name="dossier:soft"][value="surface"]' }, { message: messageDuPlan }] },
+  { id: 'g-collections-en-double', titre: 'Deux collections de thème', quand: 'Le fichier porte deux collections reconnues comme theme et deux comme layout.', regarder: 'Deux informations à vérifier au-dessus des questions : chacune nomme les deux collections, celle que la préparation lit et celle qu’elle ignore. Aucun bouton.', existe: true, atteinte: [...entree, ouvrir, { message: messageAvecDeuxCollections }] },
   { id: 'g-pret', titre: 'Préparation rangée', quand: 'La préparation de Tag est rangée sur le poste.', regarder: 'La préparation propose de copier en texte ou de l’abandonner.', existe: true, atteinte: [...entree, ouvrir, preparations] },
   { id: 'g-lier', titre: 'Liaisons préparées', quand: 'La préparation est revenue au composant, après une nouvelle analyse.', regarder: 'Les liaisons préparées sont annoncées dans le panneau, et la section Tokens du composant montre la carte : deux lignes cochées, une ligne sans case qui attend sa publication.', existe: true, atteinte: [preferences(), configuration, etroite, choisir(tagLie), composant(tagLie), apercu(tagLie), { message: analyse }, { clic: '.bouton-panneau' }, { clic: '[data-focus="directes"]' }, { clic: '.puce-element[data-element="tokens"]' }, rangements, { message: analyseLiaisons }, { message: liaisonsPreparees }] },
   { id: 'g-creer', titre: 'Variables préparées', quand: 'Le fichier des tokens reçoit une préparation rangée sur ce poste, et le designer ouvre la liste.', regarder: 'L’alerte annonce 16 variables à créer pour Tag ; la feuille liste les trois premières, celle qui existe déjà, Afficher les 12 autres et Créer 15 variables.', existe: true, atteinte: [...ouvertureTokens(), rangements, voirLesVariables] },

@@ -12,8 +12,8 @@
  * `ecrireLeLot`. `lire-texte` envoie aussi `regles-recues` quand le texte porte des règles.
  */
 import {
-  collectionDuCatalogue, preparerLesTokens, variableDuCatalogue,
-  type CatalogueDeReference, type LieuDePreparation, type PreparationDesTokens, type ReponsesDePreparation,
+  cheminComplet, collectionDuCatalogue, preparerLesTokens, variableDuCatalogue, variableParCheminComplet,
+  type CatalogueDeReference, type LieuDePreparation, type PreparationDesTokens, type ReponsesDePreparation, type VariableDuCatalogue,
 } from '@ucm-kit/core/controles';
 import { formeReconnue } from '@ucm-kit/core/referentiel';
 import { lireLesLibraries, type PortDeBibliotheque } from 'ucm-plugin-socle/src/bibliotheque';
@@ -50,7 +50,7 @@ type MessageLiaisons = Extract<MessageDePreparation, { type: 'liaisons-preparees
 export interface Acces {
   /** Le catalogue du plan : theme, layout et components, valeurs chargées pour ce qui sert ; `null` quand rien ne se lit. */
   catalogue(contexte: Contexte, releve: Releve): Promise<CatalogueDeReference | null>;
-  /** La clé de chaque variable de `components` que la library publiée porte, par nom ; `null` quand la library ne se lit pas. */
+  /** La clé de chaque variable de `components` que la library publiée porte, par chemin complet (`components/Button/…`) ; `null` quand la library ne se lit pas. */
   publiees(contexte: Contexte): Promise<ReadonlyMap<string, string> | null>;
   creer(preparation: PreparationRangee, options: OptionsDeCreation): Promise<ResultatDeCreation>;
   /** Le fichier ouvert : son nom et sa clé servie par Figma, `null` quand elle ne l'est pas. */
@@ -73,6 +73,15 @@ async function libraryLue({ figma }: Contexte): Promise<CatalogueDeReference | n
   }
 }
 
+/** La clé de chaque variable de `components` de la library, par chemin complet : `components/Button/…` pour la variable `Button/…`. */
+export function variablesPubliees(nommes: CatalogueDeReference): ReadonlyMap<string, string> {
+  const composants = new Map(nommes.collections.filter((collection) => collection.role === COUCHE_DES_COMPOSANTS).map((collection) => [collection.cle, collection] as const));
+  return new Map(nommes.variables.flatMap((variable) => {
+    const collection = composants.get(variable.collection);
+    return collection ? [[cheminComplet(variable.nom, collection), variable.cle] as const] : [];
+  }));
+}
+
 const ACCES_DE_FIGMA: Acces = {
   async catalogue(contexte, releve) {
     const { figma } = contexte;
@@ -80,9 +89,12 @@ const ACCES_DE_FIGMA: Acces = {
     if (nommes) {
       // Les tailles se comparent en pixels, et une variable du composant se compare à ses cibles : on n'importe que celles-là.
       const prefixe = `components/${formeReconnue(releve.jeu.nom)}/`;
-      const roles = new Map(nommes.collections.map((collection) => [collection.cle, collection.role] as const));
+      const collections = new Map(nommes.collections.map((collection) => [collection.cle, collection] as const));
       const cles = nommes.variables
-        .filter((variable) => roles.get(variable.collection) === COUCHE_DES_TAILLES || (roles.get(variable.collection) === COUCHE_DES_COMPOSANTS && variable.nom.startsWith(prefixe)))
+        .filter((variable) => {
+          const collection = collections.get(variable.collection);
+          return collection?.role === COUCHE_DES_TAILLES || (collection?.role === COUCHE_DES_COMPOSANTS && cheminComplet(variable.nom, collection).startsWith(prefixe));
+        })
         .map((variable) => variable.cle);
       return (await chargerLesValeurs(portDeLecture(figma), nommes, cles)).catalogue;
     }
@@ -96,8 +108,7 @@ const ACCES_DE_FIGMA: Acces = {
   async publiees(contexte) {
     const nommes = await libraryLue(contexte);
     if (!nommes) return null;
-    const composants = new Set(nommes.collections.filter((collection) => collection.role === COUCHE_DES_COMPOSANTS).map((collection) => collection.cle));
-    return new Map(nommes.variables.filter((variable) => composants.has(variable.collection)).map((variable) => [variable.nom, variable.cle] as const));
+    return variablesPubliees(nommes);
   },
   creer: (preparation, options) => creerLesVariables(preparation, options),
   fichier: ({ figma }) => ({ nom: figma.root.name, cle: typeof figma.fileKey === 'string' && figma.fileKey !== '' ? figma.fileKey : null }),
@@ -127,7 +138,7 @@ const cleDuLieu = (lieu: LieuDePreparation): string => `${lieu.variant}\u0000${l
 
 /** La couleur Light d'une variable du catalogue, alias suivis ; `undefined` quand une valeur manque en chemin. */
 function couleurDeLaCible(catalogue: CatalogueDeReference, nom: string): string | undefined {
-  let variable = variableDuCatalogue(catalogue, nom);
+  let variable: VariableDuCatalogue | 'absente' = variableParCheminComplet(catalogue, nom) ?? 'absente';
   for (let tour = 0; tour < 10; tour += 1) {
     if (variable === 'absente' || variable.type !== 'COLOR' || variable.etat !== 'presente' || !variable.valeurs) return undefined;
     const collection = collectionDuCatalogue(catalogue, variable.collection);

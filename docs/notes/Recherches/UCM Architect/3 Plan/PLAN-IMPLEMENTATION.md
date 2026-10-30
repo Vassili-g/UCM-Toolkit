@@ -1551,7 +1551,11 @@ Choix faits sans le mainteneur :
   dans un catalogue : `preparerLesTokens` ne prend que la première, et la
   préparation ignore les palettes de la seconde. Question au mainteneur : une
   telle library est-elle une entrée permise ? Si oui, un lot la traite ; sinon
-  Architect le signale · réversible : oui.
+  Architect le signale · réversible : oui. Tranchée par le mainteneur le 30
+  octobre : non, signaler. Fait : la préparation garde la première collection
+  de chaque rôle, y compris pour les candidats de taille de `layout`, et le
+  plan rend les autres dans `collectionsEnDouble` ; la feuille de préparation
+  les écrit en information « à vérifier », sans bouton.
 - Q-87 · §11, lots G · Choix pris sur la recommandation de l'analyse Opus de
   la note de couverture, sans le mainteneur : (1) première passe sur les
   longueurs explicites seules ; (2) « proche » = écart non nul d'au plus
@@ -1574,7 +1578,8 @@ Choix faits sans le mainteneur :
   cibles sous `theme/<palette>/…`, par nom exact dans l'écriture. Question
   au mainteneur : dans le fichier migré, le nom d'une variable commence-t-il
   par sa collection ? Si non, lot G7 : noms créés et cibles sans préfixe
-  · réversible : oui.
+  · réversible : oui. Tranchée par le mainteneur le 30 octobre : non. Fait en
+  G7.
 
 ### Revue des lots réalisés
 
@@ -1690,9 +1695,16 @@ Un lot du kit monte sa version dans son commit (script du lot V).
   C29 n'avait jamais de candidat : seules les variables liées étaient
   chargées. L'analyse charge les familles de `layout` dont un C29 a besoin ;
   sans lecture complète, C29 dit « non vérifié », sans question.
-- [ ] **G7 · Noms de la préparation dans la convention de Figma** (attend
-  Q-88). La préparation bâtit `components/<composant>/…` et vise
+- [x] **G7 · Noms de la préparation dans la convention de Figma** (Q-88 :
+  non). La préparation bâtit `components/<composant>/…` et vise
   `theme/<palette>/…` ; l'écriture retrouve ses cibles par ce nom exact.
+  Fait : la préparation garde le chemin complet, collection en tête, pour
+  l'affichage et le texte échangé ; la création écrit le chemin sans son
+  premier segment (`Button/color/background` dans `components`) et retrouve
+  une cible par (collection, nom sans préfixe). Un seul lecteur de la
+  convention, `cheminDeLaVariable` du kit, que `cheminDansLaCollection`,
+  `cheminComplet` et `variableParCheminComplet` appellent ; les variables
+  publiées, l'aperçu et la variable existante passent par lui.
 - [x] (063ac3f7) **G5 · Un classement des candidats de longueur partagé.** C29 et la
   préparation lisent les mêmes candidats exacts, valeur résolue dans tous
   les modes, alias suivis. Aucune question « proche » encore.

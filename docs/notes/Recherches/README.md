@@ -33,13 +33,9 @@ dans les plans. Les questions anciennes tranchées par un plan plus récent ne
 sont pas reprises comme des choix ouverts. Les questions d'un sujet en attente
 restent dans son dossier jusqu'à sa reprise.
 
-| Sujet | Sujet implémenté | Questions ouvertes et décisions attendues |
-|---|---|---|
-| [Préparation dans Architect][architect] | Non | Les noms Figma doivent-ils commencer par la collection ? Si non, adapter les noms créés et la recherche des cibles pour éviter un dossier de collection supplémentaire. |
-| [Catalogue d'Architect][architect] | Non | Autoriser plusieurs collections reconnues comme `theme` ou `layout` ? Si oui, les parcourir toutes ; sinon, signaler cette entrée. |
-
-Les autres sujets du tableau n'ont pas de décision de conception ouverte
-identifiée dans leur plan d'exécution. Les avis des revues restent des
+Aucune décision n'est attendue sur un sujet en cours. Les sujets du tableau
+n'ont pas de décision de conception ouverte identifiée dans leur plan
+d'exécution. Les avis des revues restent des
 propositions tant que le mainteneur ne les adopte pas.
 
 ## Références et validations

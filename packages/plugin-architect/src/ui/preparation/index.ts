@@ -1,4 +1,4 @@
-import type { PreparationDesTokens, Question } from '@ucm-kit/core/controles';
+import type { CollectionEnDouble, PreparationDesTokens, Question } from '@ucm-kit/core/controles';
 import { creerAlerte } from 'ucm-plugin-socle/src/ui/Alerte';
 import { createButton } from 'ucm-plugin-socle/src/ui/Button';
 import type { ApercusDePreparation, MessageDePreparation, PreparationVue } from '../../messages/preparation';
@@ -7,6 +7,7 @@ import type { Etat } from '../etat';
 import { TEXTES } from '../textes';
 import { TEXTES_PREPARATION as T } from '../textes/preparation';
 import { versSandbox } from '../pont';
+import { poserLeTexteEnrichi } from '../ignores/texte';
 import { copierTexte } from '../pressePapiers';
 
 export interface Preparation {
@@ -33,6 +34,17 @@ export function couleursEnDur(couleurs: NonNullable<PreparationDesTokens['couleu
   const lignes = new Map<string, { nom: string; hexa: string; absente?: string }>();
   for (const { nom, hexa, raison, cible } of couleurs) lignes.set(`${nom}|${hexa}`, { nom, hexa, ...(raison === 'absente-du-theme' && cible ? { absente: cible } : {}) });
   return [...lignes.values()];
+}
+
+/** Le constat d'une collection que la préparation ignore : un fait à vérifier, sans geste dans la feuille. */
+export function alerteDeCollectionEnDouble({ role, retenue, ignoree }: CollectionEnDouble): HTMLElement {
+  const titre = document.createDocumentFragment();
+  poserLeTexteEnrichi(titre, T.preparationCollectionsEnDoubleTitre(role, retenue, ignoree));
+  const texte = document.createDocumentFragment();
+  poserLeTexteEnrichi(texte, T.preparationCollectionsEnDoubleTexte(role, retenue, ignoree));
+  const alerte = creerAlerte('verifier', { titre, texte });
+  alerte.dataset.preparationCollectionEnDouble = role;
+  return alerte;
 }
 
 export function monterPreparation(etat: Etat): Preparation {
@@ -168,6 +180,7 @@ export function monterPreparation(etat: Etat): Preparation {
       const message = document.createElement('p'); message.textContent = T.preparationRefus[refus as keyof typeof T.preparationRefus] ?? T.preparationRefus.inconnu; corps.append(message);
     }
     if (plan) {
+      for (const double of plan.collectionsEnDouble ?? []) corps.append(alerteDeCollectionEnDouble(double));
       const noteDeLExemple = noteDuDossier(plan.questions);
       for (const question of plan.questions) {
         const bloc = creerSection(titreDeLaQuestion(question), noteDeLaQuestion(question, noteDeLExemple));

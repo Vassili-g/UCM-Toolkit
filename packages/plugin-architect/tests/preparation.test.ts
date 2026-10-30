@@ -16,7 +16,7 @@ import {
 import { couleursEnDur, demandeUneSaisie, reponseSaisie } from '../src/ui/preparation';
 import { TEXTES_PREPARATION } from '../src/ui/textes/preparation';
 import type { Contexte } from '../src/sandbox/contexte';
-import { TYPES, traiterAvec, type Acces } from '../src/sandbox/preparation';
+import { TYPES, traiterAvec, variablesPubliees, type Acces } from '../src/sandbox/preparation';
 import type { ResultatDeCreation } from '../src/ecriture/variables';
 
 const FOND = 'components/alert/color/danger/soft/background';
@@ -336,4 +336,75 @@ test('les couleurs en dur se comptent une fois par nom et par hexadécimal', () 
   assert.equal(TEXTES_PREPARATION.creerDepuisTokens, 'Créez-la depuis le mode Tokens.');
   assert.equal(TEXTES_PREPARATION.preparationResteEnDur(1), '1 valeur reste en dur : Architect ne crée pas de token dans theme ni dans layout. Elle reste dans À faire dans Figma.');
   assert.match(TEXTES_PREPARATION.preparationResteEnDur(3), /^3 valeurs restent en dur .* Elles restent/);
+});
+
+// Figma nomme une variable sans sa collection : `danger/soft/surface/default` dans `theme`, `alert/color/…` dans `components`.
+const sansPrefixe = (library: CatalogueDeReference): CatalogueDeReference => ({
+  ...library,
+  variables: library.variables.map((variable) => ({ ...variable, nom: variable.nom.replace(new RegExp(`^${variable.collection}/`), '') })),
+});
+
+test('preparer : une library aux noms sans préfixe de collection donne les mêmes cibles, montrées avec leur collection', async () => {
+  reinitialiserLAnalyse();
+  const b = banc({ catalogue: sansPrefixe(catalogue()) });
+  await b.traiter({ type: 'preparer', analyse: analyse(b), reponses: { 'dossier:soft': 'surface' }, ranger: true }, b.contexte);
+  const rangee = b.dernier('preparations').preparations[0];
+  assert.deepEqual(rangee.variables.map(({ nom, cibles }) => [nom, cibles]), [[FOND, { Light: 'theme/danger/soft/surface/default', Dark: 'theme/danger/soft/surface/default' }]]);
+
+  const ouvert = banc({ catalogue: sansPrefixe(catalogue()) });
+  await ouvert.traiter({ type: 'preparer', analyse: analyse(ouvert), reponses: {} }, ouvert.contexte);
+  const { apercus } = ouvert.dernier('plan-de-preparation');
+  assert.deepEqual(apercus['dossier:soft'].surface.map(({ cible }) => cible), ['theme/danger/soft/surface/default']);
+  reinitialiserLAnalyse();
+});
+
+test('les variables publiées se retrouvent par chemin complet, que le nom redise ou non la collection', () => {
+  const library: CatalogueDeReference = {
+    version: 1, library: null,
+    collections: [{ cle: 'c', nom: 'components', role: 'components', modes: [], etat: 'lue' }, { cle: 't', nom: 'theme', role: 'theme', modes: [], etat: 'lue' }],
+    variables: [
+      { cle: 'k1', nom: 'alert/color/danger/soft/background', collection: 'c', type: 'COLOR', etat: 'presente' },
+      { cle: 'k2', nom: 'components/alert/color/danger/soft/foreground', collection: 'c', type: 'COLOR', etat: 'presente' },
+      { cle: 'k3', nom: 'alert/color/danger/soft/border', collection: 't', type: 'COLOR', etat: 'presente' },
+    ],
+  };
+  assert.deepEqual([...variablesPubliees(library)], [[FOND, 'k1'], ['components/alert/color/danger/soft/foreground', 'k2']]);
+});
+
+test('lier-preparation : une variable publiée sans préfixe de collection donne sa liaison', async () => {
+  reinitialiserLAnalyse();
+  const b = banc({ publiees: variablesPubliees({
+    version: 1, library: null, collections: [{ cle: 'c', nom: 'components', role: 'components', modes: [], etat: 'lue' }],
+    variables: [{ cle: 'cle-1', nom: 'alert/color/danger/soft/background', collection: 'c', type: 'COLOR', etat: 'presente' }],
+  }) });
+  await rangerUnePreparation(b.contexte.figma.clientStorage as never, rangee());
+  await b.traiter({ type: 'lier-preparation', analyse: analyse(b), preparation: 'prep-1' }, b.contexte);
+  const publiee = b.dernier('liaisons-preparees');
+  assert.deepEqual([publiee.corrections.length, publiee.enAttente.length], [1, 0]);
+  assert.equal(publiee.corrections[0].apres && 'cle' in publiee.corrections[0].apres ? publiee.corrections[0].apres.cle : null, 'cle-1');
+  reinitialiserLAnalyse();
+});
+
+test('preparer : deux collections de thème ou de mise en page sont rendues dans le plan, la première sert', async () => {
+  reinitialiserLAnalyse();
+  const base = catalogue();
+  const deuxThemes: CatalogueDeReference = {
+    ...base,
+    collections: [...base.collections, { cle: 'theme-2', nom: 'theme-2', role: 'theme', modes: [], etat: 'lue' }],
+    variables: [...base.variables, { cle: 'z', nom: 'theme/danger/soft/surface/default', collection: 'theme-2', type: 'COLOR', etat: 'presente' }],
+  };
+  const b = banc({ catalogue: deuxThemes });
+  await b.traiter({ type: 'preparer', analyse: analyse(b), reponses: { 'dossier:soft': 'surface' } }, b.contexte);
+  const { plan } = b.dernier('plan-de-preparation');
+  assert.deepEqual(plan?.collectionsEnDouble, [{ role: 'theme', retenue: 'theme', ignoree: 'theme-2' }]);
+  assert.equal(plan?.variables[0].vise?.nom, 'theme/danger/soft/surface/default');
+  reinitialiserLAnalyse();
+});
+
+test('le constat de deux collections dit les faits en phrases courtes, les collections entre accents graves', () => {
+  const T = TEXTES_PREPARATION;
+  assert.equal(T.preparationCollectionsEnDoubleTitre('theme', 'theme', 'theme-2'), 'Ce fichier a deux collections de thème : `theme` et `theme-2`.');
+  assert.equal(T.preparationCollectionsEnDoubleTexte('theme', 'theme', 'theme-2'), 'Architect prépare seulement avec `theme`. Les palettes de `theme-2` sont ignorées.');
+  assert.equal(T.preparationCollectionsEnDoubleTitre('layout', 'layout', 'sizes'), 'Ce fichier a deux collections de mise en page : `layout` et `sizes`.');
+  assert.equal(T.preparationCollectionsEnDoubleTexte('layout', 'layout', 'sizes'), 'Architect prépare seulement avec `layout`. Les variables de `sizes` sont ignorées.');
 });

@@ -263,3 +263,66 @@ test('la préparation ne propose aucune liaison directe vers layout ou theme : c
   assert.ok(sansExact.variables.every(({ nom, vise }) => nom !== vise?.nom && !(vise?.nom ?? '').endsWith('/14')));
   assert.equal(sansExact.sansCible?.length, 1);
 });
+
+// Figma nomme une variable sans sa collection : `primary/solid` dans `theme`, `Button/background` dans `components`.
+const sansPrefixe = (entree: EntreeDeVariable): EntreeDeVariable => ({
+  ...entree, nom: entree.nom.startsWith(`${entree.collection}/`) ? entree.nom.slice(entree.collection.length + 1) : entree.nom,
+  ...(entree.alias ? { alias: entree.alias.replace(/^(theme|layout)\//, '') } : {}),
+});
+
+test('des noms sans préfixe de collection trouvent les mêmes cibles que les noms préfixés', () => {
+  const jetons = [...complet('soft'), ...rayons(['12', 12])];
+  const avec = preparerLesTokens(alert({ rayon: 12 }), catalogue(...jetons), reponses);
+  const sans = preparerLesTokens(alert({ rayon: 12 }), catalogue(...jetons.map(sansPrefixe)), reponses);
+  assert.ok(sans.variables.length >= 3);
+  assert.deepEqual(sans.variables.map(({ nom, vise, attend }) => [nom, vise?.nom, attend]), avec.variables.map(({ nom, vise, attend }) => [nom, vise?.nom, attend]));
+  assert.deepEqual(sans.variables.map(({ nom }) => nom.split('/')[0]), sans.variables.map(() => 'components'));
+  assert.deepEqual(sans.variables.map(({ vise }) => vise?.nom.split('/')[0]), ['theme', 'theme', 'layout', 'layout']);
+  assert.deepEqual(sans.questions, []);
+});
+
+test('les palettes et les intensités du thème se lisent sans préfixe', () => {
+  const jetons = [...themeDuStatut('danger', 'soft', 'vivid'), ...themeDuStatut('success', 'soft'), ...sizing(['2', 8])].map(sansPrefixe);
+  const resultat = preparerLesTokens(alert({ palettes: ['danger', 'inconnue'] }), catalogue(...jetons), reponses);
+  const palette = resultat.questions.find(({ id }) => id === 'palette:inconnue');
+  assert.deepEqual(palette?.candidats.map(({ nom }) => nom), ['danger', 'success']);
+  assert.deepEqual(resultat.questions.map(({ id }) => id).sort(), ['intensite', 'palette:inconnue']);
+});
+
+test('une variable existante, nommée sans préfixe, vise déjà son choix', () => {
+  const existante: EntreeDeVariable = { nom: 'alert/color/danger/soft/background', collection: 'components', alias: 'v0' };
+  const resultat = preparerLesTokens(alert(), catalogue(...complet('soft').map(sansPrefixe), existante), reponses);
+  assert.equal(resultat.variables[0].nom, 'components/alert/color/danger/soft/background');
+  assert.deepEqual([resultat.variables[0].statut, resultat.questions], ['existe', []]);
+});
+
+function deuxCollections(role: 'theme' | 'layout'): CatalogueDeReference {
+  const base = catalogue(...complet('soft'));
+  return {
+    ...base,
+    collections: [...base.collections, { cle: `${role}-2`, nom: `${role}-bis`, role, modes: [], etat: 'lue' }],
+    variables: [
+      ...base.variables,
+      ...(role === 'theme'
+        ? [{ cle: 'z0', nom: 'theme/danger/soft/surface/default', collection: 'theme-2', type: 'COLOR' as const, etat: 'presente' as const }]
+        : [{ cle: 'z0', nom: 'sizing/3', collection: 'layout-2', type: 'FLOAT' as const, etat: 'presente' as const, valeurs: { m: { valeur: 8 } } }]),
+    ],
+  };
+}
+
+test('deux collections theme : la première sert, la seconde est signalée', () => {
+  const resultat = preparerLesTokens(alert(), deuxCollections('theme'), reponses);
+  assert.deepEqual(resultat.collectionsEnDouble, [{ role: 'theme', retenue: 'theme', ignoree: 'theme-bis' }]);
+  assert.equal(resultat.variables[0].vise?.nom, 'theme/danger/soft/surface/default');
+  assert.deepEqual(resultat.questions, []);
+});
+
+test('deux collections layout : les tailles de la seconde sont ignorées', () => {
+  const resultat = preparerLesTokens(alert(), deuxCollections('layout'), reponses);
+  assert.deepEqual(resultat.collectionsEnDouble, [{ role: 'layout', retenue: 'layout', ignoree: 'layout-bis' }]);
+  assert.deepEqual(resultat.variables.filter(({ type }) => type === 'FLOAT').map(({ vise }) => vise?.nom), ['layout/sizing/2']);
+});
+
+test('une collection par rôle ne signale rien', () => {
+  assert.deepEqual(preparerLesTokens(alert(), catalogue(...complet('soft')), reponses).collectionsEnDouble, []);
+});

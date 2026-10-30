@@ -149,7 +149,9 @@ deux fichiers ; la préparation passe de l'un à l'autre.
 
 1. Dans le fichier des composants, cliquez **Préparer les tokens**. Chaque
    choix porte son terme UCM, sa description et les tokens qu'il viserait.
-   **Préparer** reste inactif tant qu'une question reste ouverte.
+   **Préparer** reste inactif tant qu'une question reste ouverte. Un fichier
+   qui a deux collections de thème, ou deux de mise en page, reçoit une
+   information : Architect prépare avec la première et ignore l'autre.
 2. La préparation se range sur ce poste. Pour un autre poste, copiez-la en
    texte ; l'autre designer clique **Coller une préparation** dans la Configuration.
 3. Dans le fichier des tokens, une alerte annonce les variables à créer.

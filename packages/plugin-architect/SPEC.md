@@ -423,6 +423,21 @@ tokens sont deux fichiers : la préparation passe de l'un à l'autre par
 | Créer | Tokens | Seules les variables manquantes de `components` se créent, par le journal de structure |
 | Lier | Composants | Les variables publiées reviennent au composant en corrections de liaison |
 
+Figma nomme une variable sans sa collection : `primary/solid` dans `theme`,
+`Button/color/background` dans `components`. Une préparation, elle, nomme les
+variables créées et leurs cibles par leur chemin complet, collection en tête
+(`components/Button/color/background`, `theme/primary/solid`,
+`layout/sizing/2`), qui est aussi ce que la feuille montre. Le kit lit le nom
+d'une variable avec ou sans sa collection (`cheminDeLaVariable`) ; la création
+écrit le chemin moins son premier segment (`nomDansFigma`) et retrouve une
+cible par le chemin complet de chaque variable locale de sa collection
+(`cheminComplet`). Aucun dossier `components` n'entre donc dans la collection.
+
+Le fichier doit avoir une seule collection reconnue comme `theme` et une seule
+comme `layout`. Avec plusieurs, la préparation lit la première de chaque rôle
+et la feuille l'écrit : une information « à vérifier » par collection ignorée,
+sans bouton, avant les questions.
+
 La destination est la collection `components` locale que la déclaration UCM
 reconnaît. Sans `theme` local, la création est refusée (`sans-cibles`). Deux
 collections candidates posent une question.

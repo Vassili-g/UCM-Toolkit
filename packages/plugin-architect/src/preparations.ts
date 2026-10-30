@@ -42,10 +42,10 @@ export interface LayerPrepare {
 }
 
 export interface VariablePreparee {
-  /** Le nom complet, `components/composant/…`. */
+  /** Le chemin complet, `components/composant/…` : Figma écrit la variable sans sa collection (`composant/…`). */
   readonly nom: string;
   readonly type: 'COLOR' | 'FLOAT';
-  /** Le nom de la variable visée, par nom de mode de `components`. */
+  /** Le chemin complet de la variable visée (`theme/…`, `layout/…`), par nom de mode de `components`. */
   readonly cibles: Readonly<Record<string, string>>;
   readonly layers: readonly LayerPrepare[];
 }

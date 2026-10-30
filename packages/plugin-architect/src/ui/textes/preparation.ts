@@ -36,6 +36,11 @@ export const TEXTES_PREPARATION = {
   /** Les accents graves entourent le nom : la feuille le met en code. */
   absenteDuTheme: (nom: string) => `\`${nom}\` manque dans le thème.`,
   creerDepuisTokens: 'Créez-la depuis le mode Tokens.',
+  /** Une collection de trop dans le fichier : la feuille la dit en deux phrases, les noms de collection entre accents graves en code. */
+  preparationCollectionsEnDoubleTitre: (role: string, retenue: string, ignoree: string) =>
+    `Ce fichier a deux collections de ${role === 'theme' ? 'thème' : 'mise en page'} : \`${retenue}\` et \`${ignoree}\`.`,
+  preparationCollectionsEnDoubleTexte: (role: string, retenue: string, ignoree: string) =>
+    `Architect prépare seulement avec \`${retenue}\`. ${role === 'theme' ? 'Les palettes' : 'Les variables'} de \`${ignoree}\` sont ignorées.`,
   preparationResteEnDur: (nombre: number) => (nombre === 1
     ? '1 valeur reste en dur : Architect ne crée pas de token dans theme ni dans layout. Elle reste dans À faire dans Figma.'
     : `${nombre} valeurs restent en dur : Architect ne crée pas de token dans theme ni dans layout. Elles restent dans À faire dans Figma.`),

@@ -4,11 +4,11 @@
  */
 import { hexaDeFigma } from '../emplois/couleur.js';
 import { cranDeLaVariable, DOSSIERS, ETATS, VARIABLES_DU_THEME, type VariableDuTheme } from '../emplois/dossiers.js';
-import { REGISTRE_PALETTES_COMPOSANT } from '../referentiel/architecture.js';
+import { REGISTRE_PALETTES_COMPOSANT, type Collection } from '../referentiel/architecture.js';
 import { formeReconnue, termeReconnu } from '../referentiel/reconnaissance.js';
 import { MODES, PROFILS, REGISTRE_ETATS, REGISTRE_ROLES, REGISTRE_STATUTS, REGISTRE_TAILLES } from '../referentiel/vocabulaire.js';
-import { variableDuCatalogue, type CatalogueDeReference, type VariableDuCatalogue } from './catalogue.js';
-import { candidatsDeLongueur } from './candidatsDeLongueur.js';
+import { cheminComplet, cheminDansLaCollection, variableParCheminComplet, type CatalogueDeReference, type VariableDuCatalogue } from './catalogue.js';
+import { classerLesCandidats, indexDeLongueurs } from './candidatsDeLongueur.js';
 import type { Question } from './constat.js';
 import { axeDePropriete, axesDuReleve, type AxeDuComposant, type ProprieteDAxe } from './nommage.js';
 import { liaisonsPropres, type LayerLu, type PeintureLue, type ReleveDeComposant, type VariantLu } from './releve.js';
@@ -17,7 +17,7 @@ import { liaisonsPropres, type LayerLu, type PeintureLue, type ReleveDeComposant
 export type ReponsesDePreparation = Readonly<Record<string, string>>;
 
 export interface ViseDePreparation {
-  /** Le nom complet de la variable visée. */
+  /** Le chemin complet de la variable visée, sa collection en tête (`theme/primary/solid`) : Figma ne l'écrit pas dans le nom. */
   nom: string;
   /** Une couleur du thème : sa variable de dossier, d'où viennent les crans. */
   crans?: Record<(typeof MODES)[number], number | 'texteDesBoutons' | undefined>;
@@ -28,7 +28,7 @@ export interface ViseDePreparation {
 export interface LieuDePreparation { variant: string; layer: string; champ: string; indice?: number }
 
 export interface VariableAPreparer {
-  /** Le nom complet, `components/composant/famille/…`. Provisoire tant que `attend` cite une question de nom. */
+  /** Le chemin complet, `components/composant/famille/…` : Figma écrit la variable sans `components/`. Provisoire tant que `attend` cite une question de nom. */
   nom: string;
   type: 'COLOR' | 'FLOAT';
   /** Absent tant qu'une question reste ouverte. Le même alias vaut pour tous les modes de `components`. */
@@ -67,6 +67,15 @@ export interface CouleurSansCible {
   cible?: string;
 }
 
+/** Un fichier qui a deux collections reconnues pour un même rôle : la préparation lit la première seulement. */
+export interface CollectionEnDouble {
+  role: Collection;
+  /** Le nom de la collection que la préparation lit. */
+  retenue: string;
+  /** Le nom de la collection qu'elle ignore. */
+  ignoree: string;
+}
+
 export interface PreparationDesTokens {
   /** Les couleurs d'abord, puis les tailles. */
   variables: VariableAPreparer[];
@@ -75,6 +84,8 @@ export interface PreparationDesTokens {
   sansCible?: TailleSansCible[];
   /** Les couleurs sans token du thème pour cible, laissées en dur pour la même raison. Toujours rendu par `preparerLesTokens`. */
   couleursSansCible?: CouleurSansCible[];
+  /** Une entrée par collection ignorée de `theme` et de `layout`. Toujours rendu par `preparerLesTokens`. */
+  collectionsEnDouble?: CollectionEnDouble[];
 }
 
 const NOM_PAR_DEFAUT = /^(frame|group|rectangle|ellipse|vector|line|polygon|star|component|instance|section|boolean|union|subtract|intersect|exclude|image)\s*\d+$/i;
@@ -130,6 +141,16 @@ export function preparerLesTokens(
   const composant = segmentDe(releve.jeu.nom);
   const collectionDe = (role: string) => catalogue.collections.find((collection) => collection.role === role);
   const theme = collectionDe('theme');
+  const layout = collectionDe('layout');
+  const collectionsEnDouble = [theme, layout].flatMap((retenue): CollectionEnDouble[] => {
+    const role = retenue?.role;
+    return retenue && role ? catalogue.collections.filter((collection) => collection.role === role && collection !== retenue)
+      .map((ignoree) => ({ role, retenue: retenue.nom, ignoree: ignoree.nom })) : [];
+  });
+  let cheminsLus: string[][] | undefined;
+  const cheminsDuTheme = (): string[][] => (cheminsLus ??= catalogue.variables
+    .filter((variable) => variable.collection === theme?.cle)
+    .map((variable) => cheminDansLaCollection(variable, catalogue)));
 
   // Axes : ceux que le nommage reconnaît, plus un axe inconnu que le designer a dit vouloir en style.
   const axes: Partial<Record<AxeDuComposant, ProprieteDAxe>> = { ...axesDuReleve(releve) };
@@ -146,11 +167,9 @@ export function preparerLesTokens(
   }
 
   // Palettes : reconnues par le registre, ou nommées par le designer.
-  const palettesDuTheme = (): { nom: string }[] => [...new Set(catalogue.variables
-    .filter((variable) => variable.collection === theme?.cle && variable.nom.startsWith('theme/'))
-    .map((variable) => variable.nom.split('/')[1]))].map((nom) => ({ nom }));
+  const palettesDuTheme = (): { nom: string }[] => [...new Set(cheminsDuTheme().filter((chemin) => chemin.length > 1).map((chemin) => chemin[0]))].map((nom) => ({ nom }));
   const intensitesDe = (palette: string): string[] => PROFILS.filter((intensite) =>
-    catalogue.variables.some((variable) => variable.collection === theme?.cle && variable.nom.startsWith(`theme/${palette}/${intensite}/`)));
+    cheminsDuTheme().some((chemin) => chemin.length > 2 && chemin[0] === palette && chemin[1] === intensite));
 
   function paletteDe(valeur: string | undefined): { segment?: string; theme?: string; attend?: string } {
     if (valeur === undefined && !axes.palette) {
@@ -297,8 +316,8 @@ export function preparerLesTokens(
   }
 
   const themeAvec = (nom: string): VariableDuCatalogue | undefined => {
-    const variable = variableDuCatalogue(catalogue, nom, theme?.cle);
-    return variable !== 'absente' && variable.type === 'COLOR' ? variable : undefined;
+    const variable = variableParCheminComplet(catalogue, nom, theme?.cle);
+    return variable?.type === 'COLOR' ? variable : undefined;
   };
 
   for (const { variant, layer, peinture, role, attend } of trouvailles) {
@@ -358,7 +377,7 @@ export function preparerLesTokens(
     else if (champ === 'cornerRadius') { propriete = 'radius'; famille = 'radius'; }
     else if (champ === 'strokeWeight') { propriete = 'border-width'; famille = 'stroke'; }
     else { propriete = 'icon-size'; famille = 'icon'; }
-    const candidats = candidatsDeLongueur(catalogue, FAMILLES_DE_TAILLE[famille], valeur).exacts;
+    const candidats = classerLesCandidats((indexDeLongueurs(catalogue).get(FAMILLES_DE_TAILLE[famille]) ?? []).filter((candidat) => candidat.variable.collection === layout?.cle), valeur).exacts;
     // Sans token exact, le lieu ne pose aucune question de nom : il reste en dur.
     const element = candidats.length > 0 ? elementDe(variant, layer) : { element: aNommer.has(cleDeLayer(variant, layer)) ? segmentDe(layer.nom) : undefined, attend: undefined };
     const taille = valeurDeVariant(variant, axes.taille);
@@ -370,7 +389,10 @@ export function preparerLesTokens(
     const lieu = { variant: variant.id, layer: layer.id, champ: champDuLieu };
     if (candidats.length === 0) { sansCible.push({ nom, champ: champDuLieu, famille: FAMILLES_DE_TAILLE[famille], valeur, lieu }); continue; }
     brouillons.push({
-      nom, type: 'FLOAT', choix: candidats.map((variable) => ({ nom: variable.nom, vise: { nom: variable.nom, valeur } })),
+      nom, type: 'FLOAT', choix: candidats.map((variable) => {
+        const chemin = cheminComplet(variable.nom, layout!);
+        return { nom: chemin, vise: { nom: chemin, valeur } };
+      }),
       attend: element.attend ? [element.attend] : [], concerne: lieu,
       ordre: 'taille', taille: { champ: champDuLieu, famille: FAMILLES_DE_TAILLE[famille], valeur },
     });
@@ -415,10 +437,10 @@ export function preparerLesTokens(
     }
     let statut: VariableAPreparer['statut'] = 'a-creer';
     const collectionDesComposants = collectionDe('components');
-    const existante = catalogue.variables.find((variable) => variable.nom === nom && variable.collection === collectionDesComposants?.cle);
+    const existante = collectionDesComposants && variableParCheminComplet(catalogue, nom, collectionDesComposants.cle);
     if (vise && existante) {
       const modes = collectionDesComposants?.modes.length ? collectionDesComposants.modes.map((mode) => mode.id) : Object.keys(existante.valeurs ?? {});
-      const cibleCatalogue = variableDuCatalogue(catalogue, vise.nom);
+      const cibleCatalogue = variableParCheminComplet(catalogue, vise.nom) ?? 'absente';
       const egale = existante.type === type && !!existante.valeurs && modes.length > 0 && modes.every((mode) => {
         const entree = existante.valeurs![mode];
         if (!entree) return false;
@@ -438,5 +460,5 @@ export function preparerLesTokens(
     }
     variables.push({ nom, type, vise, statut, attend, concerne });
   }
-  return { variables, questions: [...questions.values()], sansCible, couleursSansCible };
+  return { variables, questions: [...questions.values()], sansCible, couleursSansCible, collectionsEnDouble };
 }

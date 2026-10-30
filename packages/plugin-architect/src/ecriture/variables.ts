@@ -6,6 +6,10 @@
  * (`sans-cibles` sinon). La destination est la collection locale `components` : une seule, sinon l'appelant choisit
  * (`destination-ambigue`, avec `collections`) ; aucune, rien n'est créé (`sans-destination`). Aucun refus n'écrit quoi que ce soit.
  *
+ * Une préparation nomme variables et cibles par leur chemin complet, collection en tête (`components/Button/color/background`,
+ * `theme/primary/default/background`) ; Figma écrit le nom sans la collection. La variable créée porte donc le chemin moins son
+ * premier segment (`nomDansFigma`), et une cible se retrouve par `cheminComplet` de chaque variable locale de sa collection.
+ *
  * Chaque variable de la préparation reçoit un état d'après le fichier, jamais d'après un essai précédent : une variable déjà là
  * qui vise les mêmes cibles dans chaque mode est `existe-identique` ; si elle vise autre chose, elle est `existe-divergente` et
  * reste telle quelle tant que `reponses['existante:<nom>']` ne vaut pas `garder` (elle est comptée gardée) ou `remplacer` (ses alias
@@ -16,6 +20,7 @@
  * puis un seul point d'annulation se pose. `journal: false` dit que le fichier n'a pas pu garder le journal : les écritures
  * existent alors sans annulation possible.
  */
+import { cheminComplet, nomDansFigma } from '@ucm-kit/core/controles';
 import { CLE_ARCHITECTURE_DU_FICHIER, ESPACE_ARCHITECT, collectionUcmReconnue, lireLArchitectureDuFichier } from '@ucm-kit/core/referentiel';
 
 import { COUCHE_DES_COMPOSANTS, COUCHE_DES_COULEURS, COUCHE_DES_TAILLES, type EtatDeVariable, type PreparationRangee, type VariablePreparee } from '../preparations';
@@ -158,10 +163,15 @@ export async function creerLesVariables(preparation: PreparationRangee, options:
     return refus('destination-ambigue', choix);
   }
 
+  const collectionDe = new Map(collections.map((collection) => [collection.id, { nom: collection.name, role: roleDe.get(collection.id) ?? null }] as const));
+  const cheminDe = (variable: VariableAliasable & { readonly variableCollectionId: string }): string =>
+    cheminComplet(variable.name, collectionDe.get(variable.variableCollectionId) ?? { nom: '', role: null });
   const cibles = new Map<string, VariableCreable>();
   for (const variable of locales) {
     const role = roleDe.get(variable.variableCollectionId);
-    if ((role === COUCHE_DES_COULEURS || role === COUCHE_DES_TAILLES) && !cibles.has(variable.name)) cibles.set(variable.name, variable);
+    if (role !== COUCHE_DES_COULEURS && role !== COUCHE_DES_TAILLES) continue;
+    const chemin = cheminDe(variable);
+    if (!cibles.has(chemin)) cibles.set(chemin, variable);
   }
 
   const etats: Record<string, EtatDeVariable> = {};
@@ -186,7 +196,7 @@ export async function creerLesVariables(preparation: PreparationRangee, options:
     if (manquante) { echec(entree.nom, 'cible-introuvable'); continue; }
     if ([...visees.values()].some((cible) => cible.resolvedType !== entree.type)) { echec(entree.nom, 'type-incompatible'); continue; }
 
-    const existante = locales.find((variable) => variable.name === entree.nom && variable.variableCollectionId === destination.id);
+    const existante = locales.find((variable) => variable.variableCollectionId === destination.id && cheminDe(variable) === entree.nom);
     if (existante) {
       const identique = existante.resolvedType === entree.type && [...visees].every(([mode, cible]) => aliasVise(existante.valuesByMode[mode]) === cible.id);
       if (identique) { etats[entree.nom] = 'existe-identique'; gardees += 1; continue; }
@@ -194,7 +204,7 @@ export async function creerLesVariables(preparation: PreparationRangee, options:
       if (reponse === 'garder') { etats[entree.nom] = 'existe-divergente'; gardees += 1; continue; }
       if (reponse !== 'remplacer') {
         etats[entree.nom] = 'existe-divergente';
-        divergentes.push({ nom: entree.nom, vise: [...visees.values()][0].name });
+        divergentes.push({ nom: entree.nom, vise: [...parMode.values()][0] });
         continue;
       }
       if (existante.resolvedType !== entree.type) { echec(entree.nom, 'type-incompatible'); continue; }
@@ -222,7 +232,7 @@ export async function creerLesVariables(preparation: PreparationRangee, options:
     }
 
     try {
-      const creee = creerUneVariableAliasee(api, destination, entree.nom, Object.fromEntries(visees), undefined, entree.type);
+      const creee = creerUneVariableAliasee(api, destination, nomDansFigma(entree.nom), Object.fromEntries(visees), undefined, entree.type);
       locales.push(creee);
       creations.push({ variable: creee.id, nom: creee.name, collection: destination.id });
       etats[entree.nom] = 'creee';

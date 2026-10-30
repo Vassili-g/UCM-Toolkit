@@ -107,3 +107,26 @@ test('cheminDansLaCollection garde sa sortie avec l\'index', () => {
   assert.deepEqual(cheminDansLaCollection(variable('2', 'radius/md', 'l'), c), ['radius', 'md']);
   assert.deepEqual(cheminDansLaCollection(variable('3', 'layout/radius/md', 'autre'), c), ['layout', 'radius', 'md']);
 });
+
+import { cheminComplet, nomDansFigma, variableParCheminComplet } from '../src/controles/index.js';
+
+test('le chemin complet met la collection en tête, quelle que soit l\'écriture du nom', () => {
+  const theme = collectionDe('t', 'Theme', 'theme');
+  assert.equal(cheminComplet('primary/solid', theme), 'theme/primary/solid');
+  assert.equal(cheminComplet('theme/primary/solid', theme), 'theme/primary/solid');
+  assert.equal(cheminComplet('Button/color/background', collectionDe('c', 'Components', 'components')), 'components/Button/color/background');
+  assert.equal(cheminComplet('a/b', collectionDe('x', 'Divers')), 'Divers/a/b');
+  assert.equal(nomDansFigma('components/Button/color/background'), 'Button/color/background');
+});
+
+test('une variable se retrouve par son chemin complet dans les deux écritures, dans sa collection', () => {
+  const collections = [collectionDe('t', 'theme', 'theme'), collectionDe('u', 'theme-bis', 'theme')];
+  const c: CatalogueDeReference = {
+    version: 1, library: null, collections,
+    variables: [variable('1', 'primary/solid', 't'), variable('2', 'theme/primary/solid', 'u'), variable('3', 'radius/md', 't')],
+  };
+  assert.equal(variableParCheminComplet(c, 'theme/primary/solid')?.cle, '1');
+  assert.equal(variableParCheminComplet(c, 'theme/primary/solid', 'u')?.cle, '2');
+  assert.equal(variableParCheminComplet(c, 'theme/radius/md', 't')?.cle, '3');
+  assert.equal(variableParCheminComplet(c, 'primary/solid'), undefined);
+});

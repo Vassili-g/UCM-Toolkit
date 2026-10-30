@@ -143,11 +143,59 @@ export function collectionDuCatalogue(catalogue: CatalogueDeReference, cleOuNom:
  * Les segments d'une variable dans sa collection. Figma nomme une variable sans sa collection (`radius/md` dans `layout`) ; un
  * premier segment qui redit la collection (`layout/radius/md`, `layouts/radius/md`) est retiré, pour lire les deux écritures.
  */
+export function cheminDeLaVariable(nom: string, collection: Pick<CollectionDuCatalogue, 'nom' | 'role'> | undefined): string[] {
+  const segments = nom.split('/');
+  if (segments.length < 2 || collection === undefined) return segments;
+  const redit = collectionUcmReconnue(segments[0]);
+  return redit !== undefined && redit === (collection.role ?? collectionUcmReconnue(collection.nom)) ? segments.slice(1) : segments;
+}
+
 export function cheminDansLaCollection(variable: Pick<VariableDuCatalogue, 'nom' | 'collection'>, catalogue: Pick<CatalogueDeReference, 'collections'>): string[] {
-  const segments = variable.nom.split('/');
-  if (segments.length < 2) return segments;
-  const collection = collectionParCle(catalogue, variable.collection);
-  const redit = collection !== undefined && collectionUcmReconnue(segments[0]) !== undefined
-    && (collectionUcmReconnue(segments[0]) === (collection.role ?? collectionUcmReconnue(collection.nom)));
-  return redit ? segments.slice(1) : segments;
+  return cheminDeLaVariable(variable.nom, collectionParCle(catalogue, variable.collection));
+}
+
+/**
+ * Le chemin complet d'une variable, sa collection en tête : `theme/primary/solid`, `components/Button/color/background`. La
+ * collection est celle que son rôle désigne (`theme` pour une collection nommée `Theme`), sinon son nom. C'est le chemin que le
+ * plugin montre et qu'une préparation échange ; Figma ne l'écrit pas dans le nom d'une variable (`primary/solid`).
+ */
+export function cheminComplet(nom: string, collection: Pick<CollectionDuCatalogue, 'nom' | 'role'>): string {
+  return [collection.role ?? collectionUcmReconnue(collection.nom) ?? collection.nom, ...cheminDeLaVariable(nom, collection)].join('/');
+}
+
+/** Le nom à écrire dans Figma pour un chemin complet : sans sa collection. */
+export function nomDansFigma(chemin: string): string {
+  return chemin.split('/').slice(1).join('/');
+}
+
+interface IndexDesChemins {
+  readonly variables: readonly VariableDuCatalogue[];
+  readonly collections: readonly CollectionDuCatalogue[];
+  readonly nombre: number;
+  readonly parChemin: Map<string, VariableDuCatalogue[]>;
+}
+
+const indexDesCheminsMemorises = new WeakMap<object, IndexDesChemins>();
+
+function indexDesChemins(catalogue: CatalogueDeReference): IndexDesChemins {
+  const { variables, collections } = catalogue;
+  const connu = indexDesCheminsMemorises.get(catalogue);
+  if (connu && connu.variables === variables && connu.collections === collections && connu.nombre === variables.length) return connu;
+  const parChemin = new Map<string, VariableDuCatalogue[]>();
+  for (const variable of variables) {
+    const collection = collectionParCle(catalogue, variable.collection);
+    if (!collection) continue;
+    const chemin = cheminComplet(variable.nom, collection);
+    const memes = parChemin.get(chemin);
+    if (memes) memes.push(variable); else parChemin.set(chemin, [variable]);
+  }
+  const index = { variables, collections, nombre: variables.length, parChemin };
+  indexDesCheminsMemorises.set(catalogue, index);
+  return index;
+}
+
+/** La première variable de ce chemin complet, dans la collection `collection` (une clé) si elle est précisée. Lit les deux écritures du nom. */
+export function variableParCheminComplet(catalogue: CatalogueDeReference, chemin: string, collection?: string): VariableDuCatalogue | undefined {
+  const memes = indexDesChemins(catalogue).parChemin.get(chemin);
+  return collection === undefined ? memes?.[0] : memes?.find((variable) => variable.collection === collection);
 }
