@@ -2,15 +2,21 @@
  * Le domaine `structure` : le mode Tokens lit les scopes et les alias de mode des variables du fichier ouvert, sans composant, et
  * écrit les corrections que l'on coche.
  *
- * `lire-structure` rend `structure` : les constats de `controlerLeCatalogue` du kit sur le catalogue du fichier, et les corrections
- * que ces constats portent. Hors UCM, ou quand la lecture échoue, les listes sont vides. Le sandbox retient ces corrections, par
- * identifiant : `appliquer-structure` n'écrit que celles-là (`ecriture/structure.ts`), une opération à la fois, analyse comprise
- * (une demande reçue pendant ce temps saute tout en `occupe`). Le lot écrit, `structure-appliquee` part, les corrections retenues
- * sont oubliées et l'analyse d'un composant éventuelle est périmée.
+ * `lire-structure` rend `structure` : les constats de `controlerLeCatalogue` et de `controlerLIntegriteUcm` du kit sur le
+ * catalogue du fichier, et les corrections que ces constats portent. C82 ne propose une création que si le fichier a choisi son
+ * écriture dans Nomenclature, et n'omet que les rôles que le fichier n'ignore pas. Un constat ignoré par son identifiant n'est pas
+ * rendu, ni sa correction ; une proposition retirée garde le constat sans correction. Hors UCM, ou quand la lecture échoue, les
+ * listes sont vides. Le sandbox retient ces corrections, par identifiant : `appliquer-structure` n'écrit que celles-là
+ * (`ecriture/structure.ts`), une opération à la fois, analyse comprise (une demande reçue pendant ce temps saute tout en
+ * `occupe`). Le lot écrit, `structure-appliquee` part, les corrections retenues sont oubliées et l'analyse d'un composant
+ * éventuelle est périmée.
  */
-import { controlerLeCatalogue, type CatalogueDeReference, type Correction } from '@ucm-kit/core/controles';
+import { controlerLIntegriteUcm, controlerLeCatalogue, type CatalogueDeReference, type Constat, type Correction } from '@ucm-kit/core/controles';
+import { CLE_ECRITURE, lireEcriture, lireEntree, type EcritureChoisie } from '@ucm-kit/core/protocoles';
+import { ESPACE_ARCHITECT } from '@ucm-kit/core/referentiel';
 
 import { catalogueDuFichier } from '../catalogue';
+import { lireLesIgnores, rolesIgnoresDe, separerLesIgnores } from '../ecriture/ignores';
 import { ecrireLaStructure, type ResultatDEcritureDeStructure } from '../ecriture/structure';
 import { idsDesLocales, lireLesVariables } from '../lecture';
 import type { DemandeDeStructure } from '../messages/structure';
@@ -25,6 +31,8 @@ export const TYPES: readonly DemandeDeStructure['type'][] = ['lire-structure', '
 export interface Acces {
   /** Le catalogue du fichier ouvert ; `null` hors UCM ou quand la lecture n'aboutit pas. */
   catalogue(contexte: Contexte): Promise<CatalogueDeReference | null>;
+  /** L'écriture choisie dans Nomenclature, `null` tant qu'elle n'y est pas rangée, et les clés d'Ignorer du fichier. */
+  reglages(contexte: Contexte): Promise<{ readonly ecriture: EcritureChoisie | null; readonly cles: readonly string[] }>;
   ecrire(corrections: readonly Correction[]): Promise<ResultatDEcritureDeStructure>;
 }
 
@@ -37,6 +45,11 @@ const ACCES_DE_FIGMA: Acces = {
     if (!lues) return null;
     return catalogueDuFichier({ collections: [...lues.collections.values()], variables: [...lues.variables.values()] }, 'ucm');
   },
+  async reglages({ figma }) {
+    const texte = figma.root.getSharedPluginData(ESPACE_ARCHITECT, CLE_ECRITURE);
+    const brut = texte ? lireEntree(texte) : undefined;
+    return { ecriture: (brut && lireEcriture(brut)) || null, cles: lireLesIgnores(figma) };
+  },
   ecrire: (corrections) => ecrireLaStructure(corrections),
 };
 
@@ -44,7 +57,13 @@ const ACCES_DE_FIGMA: Acces = {
 let retenues: ReadonlyMap<string, Correction> = new Map();
 
 /** Les sortes que ce domaine écrit ; une autre sorte retenue ne s'y écrit pas. */
-const estDeStructure = (correction: Correction): boolean => correction.sorte === 'scope' || correction.sorte === 'alias-de-mode';
+export const estDeStructure = (correction: Correction): boolean => correction.sorte === 'scope' || correction.sorte === 'alias-de-mode' || correction.sorte === 'variable';
+
+/** Les constats des deux contrôles, le premier de chaque identifiant. */
+function sansDoublon(constats: readonly Constat[]): Constat[] {
+  const vus = new Set<string>();
+  return constats.filter((constat) => !vus.has(constat.id) && vus.add(constat.id));
+}
 
 /** Le traitement du domaine sur des accès donnés. */
 export function traiterAvec(acces: Acces): Traiter<DemandeDeStructure> {
@@ -52,7 +71,16 @@ export function traiterAvec(acces: Acces): Traiter<DemandeDeStructure> {
     if (demande.type === 'lire-structure') {
       let catalogue: CatalogueDeReference | null = null;
       try { catalogue = await acces.catalogue(contexte); } catch { catalogue = null; }
-      const constats = catalogue ? controlerLeCatalogue(catalogue) : [];
+      let constats: Constat[] = [];
+      if (catalogue) {
+        let reglages: Awaited<ReturnType<Acces['reglages']>> = { ecriture: null, cles: [] };
+        try { reglages = await acces.reglages(contexte); } catch { /* sans réglages : aucune création, aucun constat écarté */ }
+        const tous = sansDoublon([
+          ...controlerLeCatalogue(catalogue),
+          ...controlerLIntegriteUcm(catalogue, { ecriture: reglages.ecriture, rolesIgnores: rolesIgnoresDe(reglages.cles) }),
+        ]);
+        constats = separerLesIgnores(tous, reglages.cles).visibles;
+      }
       const corrections = constats.flatMap((constat) => (constat.correction ? [constat.correction] : []));
       retenues = new Map(corrections.map((correction) => [correction.id, correction] as const));
       contexte.envoyer({ type: 'structure', demande: demande.demande, constats, corrections });

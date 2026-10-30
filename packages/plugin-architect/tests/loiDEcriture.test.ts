@@ -8,6 +8,9 @@
  * balayage des appels : l'iframe n'a pas de global `figma`, et ses
  * `appendChild` construisent le panneau du plugin.
  *
+ * Seule `creerUneVariableAliasee`, dans `ecriture/variables.ts`, appelle `createVariable` : la préparation d'un composant et la
+ * création de C82 passent par elle.
+ *
  * Deux fichiers importent une variable par sa clé : `lecture.ts`, pour lire la
  * cible d'un alias que Figma ne rend pas par son identifiant et les valeurs d'un
  * groupe de library que le mode Tokens ouvre, et `ecriture/liaisons.ts`, pour la
@@ -90,6 +93,21 @@ test('dans src/ecriture/, seul liaisons.ts importe une variable et seul selectio
   const fichiersDEcriture = fs.readdirSync(ECRITURE).filter((nom) => nom.endsWith('.ts'));
   assert.deepEqual(fichiersDEcriture.filter((nom) => /importVariableByKeyAsync/.test(lire(nom))), ['liaisons.ts']);
   assert.deepEqual(fichiersDEcriture.filter((nom) => /\.selection\s*=(?!=)/.test(lire(nom))), ['selection.ts']);
+});
+
+test('dans src/ecriture/, seule creerUneVariableAliasee appelle createVariable', () => {
+  const sansCommentaires = (texte: string): string => texte.replace(/\r\n/g, '\n').replace(/\/\*[\s\S]*?\*\//g, '').replace(/\/\/.*$/gm, '');
+  const appel = /\.createVariable\s*\(/;
+  const fichiersDEcriture = fs.readdirSync(ECRITURE).filter((nom) => nom.endsWith('.ts'));
+  const appelants = fichiersDEcriture.filter((nom) => appel.test(sansCommentaires(fs.readFileSync(path.join(ECRITURE, nom), 'utf8'))));
+  assert.deepEqual(appelants, ['variables.ts']);
+  const texte = sansCommentaires(fs.readFileSync(path.join(ECRITURE, 'variables.ts'), 'utf8'));
+  const debut = texte.indexOf('export function creerUneVariableAliasee');
+  assert.ok(debut >= 0, 'creerUneVariableAliasee n’est plus exportée');
+  const fin = texte.indexOf('\n}\n', debut);
+  assert.ok(fin > debut);
+  assert.ok(appel.test(texte.slice(debut, fin)), 'createVariable n’est plus appelé dans creerUneVariableAliasee');
+  assert.ok(!appel.test(texte.slice(0, debut) + texte.slice(fin)), 'createVariable est appelé hors de creerUneVariableAliasee');
 });
 
 test('seuls le routage et l’aperçu exportent une image', () => {

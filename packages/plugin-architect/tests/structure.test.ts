@@ -5,7 +5,9 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import type { CatalogueDeReference, Correction } from '@ucm-kit/core/controles';
+import { collectionsDeReference, type CatalogueDeReference, type Correction, type VariableDuCatalogue } from '@ucm-kit/core/controles';
+import { VARIABLES_DE_PALETTE, cranDeLaVariable, type ModeDuTheme } from '@ucm-kit/core/emplois';
+import type { EcritureChoisie } from '@ucm-kit/core/protocoles';
 import { texteDeLArchitectureDuFichier } from '@ucm-kit/core/referentiel';
 
 import { catalogueDuFichier } from '../src/catalogue';
@@ -15,7 +17,7 @@ import type { PluginMessage } from '../src/messages';
 import type { VariableRelevee } from '../src/modele';
 import { commencerUneAnalyse, prendreLaPlaceDUneEcriture, reinitialiserLAnalyse } from '../src/sandbox/analyse';
 import type { Contexte } from '../src/sandbox/contexte';
-import { traiterAvec, type Acces } from '../src/sandbox/structure';
+import { estDeStructure, traiterAvec, type Acces } from '../src/sandbox/structure';
 import { atelierDEcriture, type OptionsDeLEcriture, type VariableDEcriture } from './figmaDeTest';
 
 const COLLECTION = 'C:1';
@@ -345,9 +347,18 @@ const catalogueAvecUnScopeFaux = (): CatalogueDeReference => ({
   variables: [{ cle: 'k-defaut', nom: 'success/surface/default', collection: COLLECTION, type: 'COLOR', etat: 'presente', scopes: ['TEXT_FILL'], valeurs: { [CLAIR]: { valeur: '#ffffff' } } }],
 });
 
-function acces(catalogue: CatalogueDeReference | null, ecrire: Acces['ecrire'] = async () => ({ ecrites: [], sautees: [] })): Acces & { appels: Correction[][] } {
+type Reglages = Awaited<ReturnType<Acces['reglages']>>;
+
+function acces(
+  catalogue: CatalogueDeReference | null, ecrire: Acces['ecrire'] = async () => ({ ecrites: [], sautees: [] }), reglages: Reglages = { ecriture: null, cles: [] },
+): Acces & { appels: Correction[][] } {
   const appels: Correction[][] = [];
-  return { appels, catalogue: async () => catalogue, ecrire: async (corrections) => { appels.push([...corrections]); return ecrire(corrections); } };
+  return {
+    appels,
+    catalogue: async () => catalogue,
+    reglages: async () => reglages,
+    ecrire: async (corrections) => { appels.push([...corrections]); return ecrire(corrections); },
+  };
 }
 
 test('lire-structure rend les constats du kit et leurs corrections ; hors UCM, des listes vides', async () => {
@@ -355,7 +366,7 @@ test('lire-structure rend les constats du kit et leurs corrections ; hors UCM, d
   await traiterAvec(acces(catalogueAvecUnScopeFaux()))({ type: 'lire-structure', demande: 3 }, contexte);
   const message = envoyes[0] as Extract<PluginMessage, { type: 'structure' }>;
   assert.equal(message.demande, 3);
-  assert.deepEqual(message.constats.map(({ code }) => code), ['C63']);
+  assert.deepEqual(message.constats.filter(({ code }) => code !== 'C82').map(({ code }) => code), ['C63'], 'le thème partiel reçoit aussi des C82');
   assert.deepEqual(message.corrections.map(({ id, sorte }) => [id, sorte]), [['C63:k-defaut:scopes', 'scope']]);
   const hors = contexteDeTest();
   await traiterAvec(acces(null))({ type: 'lire-structure', demande: 4 }, hors.contexte);
@@ -409,4 +420,95 @@ test('le catalogue du fichier nomme la cible d’un alias par sa clé, comme les
   ];
   const catalogue = catalogueDuFichier({ collections: [], variables: lues }, 'ucm');
   assert.deepEqual(catalogue.variables[0]!.valeurs, { [CLAIR]: { alias: 'k-10' } });
+});
+
+// La structure du thème UCM : C82 et sa création
+
+const MODES_DU_THEME: readonly ModeDuTheme[] = ['light', 'dark'];
+const ID_DU_MODE: Record<ModeDuTheme, string> = { light: 'M:light', dark: 'M:dark' };
+const ECRITURE: EcritureChoisie = { groupes: { casse: 'minuscules', separateur: 'tiret' }, variables: { casse: 'minuscules', separateur: 'tiret' } };
+
+/** Un thème UCM dont le groupe `primary` n'a ni `surface/subtle` ni `surface/divider`, mais toutes ses autres variables, en alias. */
+function catalogueSansSubtle(): CatalogueDeReference {
+  const variable = (collection: string, nom: string, valeurs?: Record<string, { alias: string }>): VariableDuCatalogue =>
+    ({ cle: `${collection}|${nom}`, nom, collection, type: 'COLOR', etat: 'presente', ...(valeurs ? { valeurs } : {}) });
+  const crans = [50, 100, 200, 300, 400, 500, 600, 700, 800, 900, 950];
+  const rampe = MODES_DU_THEME.flatMap((mode) => crans.map((cran) => variable('brands', `primary/${mode}/${cran}`)));
+  const blancs = MODES_DU_THEME.map((mode) => variable('utility', `neutral/${mode}/white`));
+  const roles = VARIABLES_DE_PALETTE.filter((role) => role !== 'surface/subtle' && role !== 'surface/divider');
+  const theme = roles.map((role) => variable('theme', `primary/${role}`, Object.fromEntries(MODES_DU_THEME.map((mode) => [
+    ID_DU_MODE[mode],
+    { alias: role === 'solid/foreground' ? `utility|neutral/${mode}/white` : `brands|primary/${mode}/${cranDeLaVariable(role, mode, mode === 'light' ? 'normal' : 'inverse')}` },
+  ]))));
+  const collections = collectionsDeReference([
+    { cle: 'theme', nom: 'theme', modes: MODES_DU_THEME.map((mode) => ({ id: ID_DU_MODE[mode], nom: mode })), etat: 'lue' },
+    { cle: 'brands', nom: 'brands', modes: [{ id: 'M:marque', nom: 'Marque' }], etat: 'lue' },
+    { cle: 'utility', nom: 'utility', modes: [{ id: 'M:utility', nom: 'Mode 1' }], etat: 'lue' },
+  ], 'ucm');
+  return { version: 1, library: null, collections, variables: [...rampe, ...blancs, ...theme] };
+}
+
+const ID_SUBTLE = 'C82:variable-absente:theme:primary/surface/subtle';
+const ID_DIVIDER = 'C82:variable-absente:theme:primary/surface/divider';
+
+test('lire-structure : un thème sans surface/subtle rend un C82 et sa correction de création', async () => {
+  const { contexte, envoyes } = contexteDeTest();
+  await traiterAvec(acces(catalogueSansSubtle(), undefined, { ecriture: ECRITURE, cles: [] }))({ type: 'lire-structure', demande: 1 }, contexte);
+  const message = envoyes[0] as Extract<PluginMessage, { type: 'structure' }>;
+  const constat = message.constats.find(({ id }) => id === ID_SUBTLE);
+  assert.equal(constat?.code, 'C82');
+  assert.equal(constat?.correction?.sorte, 'variable');
+  assert.equal(constat?.correction?.creation?.nom, 'primary/surface/subtle');
+  assert.deepEqual(Object.keys(constat?.correction?.creation?.alias ?? {}).sort(), [ID_DU_MODE.dark, ID_DU_MODE.light]);
+  assert.ok(message.corrections.some(({ id, sorte }) => id === ID_SUBTLE && sorte === 'variable'));
+  assert.equal(new Set(message.constats.map(({ id }) => id)).size, message.constats.length, 'aucun identifiant en double');
+});
+
+test('lire-structure : sans écriture choisie, le C82 est rendu sans correction', async () => {
+  const { contexte, envoyes } = contexteDeTest();
+  await traiterAvec(acces(catalogueSansSubtle()))({ type: 'lire-structure', demande: 1 }, contexte);
+  const message = envoyes[0] as Extract<PluginMessage, { type: 'structure' }>;
+  const constat = message.constats.find(({ id }) => id === ID_SUBTLE);
+  assert.equal(constat?.faits.raison, 'sans-ecriture');
+  assert.equal(constat?.correction, undefined);
+  assert.ok(!message.corrections.some(({ id }) => id === ID_SUBTLE));
+});
+
+test('lire-structure : un constat ignoré par identifiant n’est pas envoyé, sa correction n’est pas retenue', async () => {
+  const { contexte, envoyes } = contexteDeTest();
+  const double = acces(catalogueSansSubtle(), async (corrections) => ({ ecrites: corrections.map(({ id }) => id), sautees: [] }), { ecriture: ECRITURE, cles: [ID_SUBTLE] });
+  const traiter = traiterAvec(double);
+  await traiter({ type: 'lire-structure', demande: 1 }, contexte);
+  const message = envoyes[0] as Extract<PluginMessage, { type: 'structure' }>;
+  assert.ok(!message.constats.some(({ id }) => id === ID_SUBTLE));
+  assert.ok(!message.corrections.some(({ id }) => id === ID_SUBTLE));
+  assert.ok(message.constats.some(({ id }) => id === ID_DIVIDER), 'les autres constats restent');
+  await traiter({ type: 'appliquer-structure', demande: 2, ids: [ID_SUBTLE] }, contexte);
+  assert.deepEqual(envoyes[1], { type: 'structure-appliquee', demande: 2, ecrites: 0, sautees: [{ id: ID_SUBTLE, motif: 'correction-inconnue' }] });
+});
+
+test('lire-structure : « ne plus proposer » garde le constat et retire sa correction', async () => {
+  const { contexte, envoyes } = contexteDeTest();
+  await traiterAvec(acces(catalogueSansSubtle(), undefined, { ecriture: ECRITURE, cles: [`proposition:${ID_SUBTLE}`] }))({ type: 'lire-structure', demande: 1 }, contexte);
+  const message = envoyes[0] as Extract<PluginMessage, { type: 'structure' }>;
+  const constat = message.constats.find(({ id }) => id === ID_SUBTLE);
+  assert.ok(constat, 'le constat reste');
+  assert.equal(constat.correction, undefined);
+  assert.ok(!message.corrections.some(({ id }) => id === ID_SUBTLE));
+});
+
+test('appliquer-structure : une correction variable retenue part à l’écriture', async () => {
+  const { contexte, envoyes } = contexteDeTest();
+  const double = acces(catalogueSansSubtle(), async (corrections) => ({ ecrites: corrections.map(({ id }) => id), sautees: [] }), { ecriture: ECRITURE, cles: [] });
+  const traiter = traiterAvec(double);
+  await traiter({ type: 'lire-structure', demande: 1 }, contexte);
+  await traiter({ type: 'appliquer-structure', demande: 2, ids: [ID_SUBTLE, ID_DIVIDER] }, contexte);
+  assert.deepEqual(envoyes[1], { type: 'structure-appliquee', demande: 2, ecrites: 2, sautees: [] });
+  assert.deepEqual(double.appels[0]!.map(({ id, sorte }) => [id, sorte]), [[ID_SUBTLE, 'variable'], [ID_DIVIDER, 'variable']]);
+});
+
+test('le domaine écrit les sortes scope, alias-de-mode et variable, pas les autres', () => {
+  const liaison: Correction = { id: 'L', sorte: 'liaison', cible: { layer: '1:1' }, avant: null, apres: { nom: 'x' }, aRelire: { regle: 'r', avant: null } };
+  const creee: Correction = { ...liaison, sorte: 'variable' };
+  assert.deepEqual([scope(), versLeSombre(), creee, liaison].map((correction) => estDeStructure(correction)), [true, true, true, false]);
 });

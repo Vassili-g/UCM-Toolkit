@@ -66,7 +66,7 @@ Plugin UCM Architect : ucm-architect-plugin, privé, en lecture seule.
 - anticipation.ts : lecture des libraries lancée à la sélection d'un composant, reprise ou relue au clic sur Analyser, abandonnée au changement de page ; `rafraichirLesLibraries` la relit pour la prélecture
 - prelecture.ts : moment de la prélecture à la sélection : 1 s de silence avant la demande `analyser` d'origine `prelecture`, jeton levé par chaque événement, relance des libraries toutes les 5 s ; `analyse.ts` porte l'analyse discrète
 - bibliotheque.ts : library lue depuis un autre fichier : arbre depuis les noms, valeurs d'un groupe importées par lots de huit
-- structure.ts : mode Tokens sans composant : `lire-structure` rend les constats de `controlerLeCatalogue` du kit et leurs corrections (scopes C63, alias de mode C60) ; `appliquer-structure` n'écrit que les corrections retenues du dernier constat, une opération à la fois
+- structure.ts : mode Tokens sans composant : `lire-structure` rend les constats de `controlerLeCatalogue` et de `controlerLIntegriteUcm` du kit et leurs corrections (scopes C63, alias de mode C60, création C82), sans les constats ignorés ; `appliquer-structure` n'écrit que les corrections retenues du dernier constat, une opération à la fois
 - preparation.ts : plan de préparation des tokens tiré du kit (`preparer`), préparations rangées, texte échangé lu ou copié (`lire-texte` envoie aussi `regles-recues`), création des variables dans le fichier des tokens, retour au composant seulement pour la même clé de jeu (`lier-preparation`)
 - accessibilite.ts, fiche.ts, recherche.ts, regles.ts : souches
 
@@ -74,14 +74,14 @@ Plugin UCM Architect : ucm-architect-plugin, privé, en lecture seule.
 - configuration.ts : range la library choisie, donnée partagée du nœud racine sous `CLES_D_ARCHITECT.libraryChoisie`
 - cleDuFichier.ts : range `figma.fileKey`, quand Figma le sert, sous `CLES_D_ARCHITECT.cleDuFichierDesTokens`
 - journal.ts : range un lot du journal (entrées, puis référence) dans les données partagées ; le journal des noms (`journal`) et celui de structure (`journal-structure` : scopes, cible d'alias par mode, création de variables) ; `journaliserLesCreations` sert la création de B8
-- structure.ts : écrit les corrections `scope` et `alias-de-mode` après relecture, journal rangé avant, un point d'annulation ; défait le dernier lot de structure (`annulerLeDernierLotDeStructure`), sans supprimer une variable créée qui a gagné un usage
+- structure.ts : écrit les corrections `scope`, `alias-de-mode` et `variable` (création dans `theme`) après relecture, journal rangé avant, un point d'annulation ; défait le dernier lot de structure (`annulerLeDernierLotDeStructure`), sans supprimer une variable créée qui a gagné un usage
 - noms.ts : écrit les noms, les règles du fichier et le point d'annulation des renommages, avec le journal de `journal.ts` ; un refus avant toute écriture quand une règle de nommage vient d'une version plus récente
 - regles.ts : applique les corrections de sorte `regles` par `creerLesRegles` du socle ; relit avant d'écrire, saute `objet-change`, `instance-remplie` ou `erreur`, sans point d'annulation
 - liaisons.ts : écrit les corrections de sorte `liaison` (nombre, fill, stroke, texte par plage) après relecture, saute avec un motif ; importe la variable cible, une fois par clé et par lot ; `ecrireLeLot` pose le seul point d'annulation du lot, liaisons, règles et noms de valeurs ensemble
 - noms-de-valeurs.ts : écrit les corrections de sorte `nom-de-valeur` (C12) : renomme une valeur dans le nom de chaque variant du jeu après relecture ; une valeur cible déjà présente n'est jamais écrite (`fait-faux`)
-- ignores.ts : range et lit les clés d'Ignorer (constat, `proposition:` + constat) à la racine du document sous `CLES_D_ARCHITECT.ignorer` ; rien hors UCM ni pour un constat `limite`
+- ignores.ts : range et lit les clés d'Ignorer (constat, `proposition:` + constat) à la racine du document sous `CLES_D_ARCHITECT.ignorer` ; rien hors UCM ni pour un constat `limite` ; `rolesIgnoresDe` rend les rôles ignorés partout (aucun pour l'instant)
 - selection.ts : le seul changement de sélection du plugin, les layers d'un constat
-- variables.ts : crée les seules variables manquantes d'une préparation dans la collection `components` reconnue par la déclaration UCM, alias de chaque mode compris ; une variable divergente reste telle quelle sans réponse ; un lot du journal de structure, un point d'annulation
+- variables.ts : `creerUneVariableAliasee`, seul appel à `createVariable` ; crée les seules variables manquantes d'une préparation dans la collection `components` reconnue par la déclaration UCM, alias de chaque mode compris ; une variable divergente reste telle quelle sans réponse ; un lot du journal de structure, un point d'annulation
 
 ## src/nomenclature/
 - session.ts : inventaire, lexique, règles et résultat, gardés dans le sandbox ; file des calculs

@@ -9,6 +9,7 @@
  * constat `limite` ne s'ignore pas : une limite de lecture ne se range pas.
  */
 import type { Constat } from '@ucm-kit/core/controles';
+import type { VariableDuTheme } from '@ucm-kit/core/emplois';
 import { CLE_ARCHITECTURE_DU_FICHIER, CLES_D_ARCHITECT, ESPACE_ARCHITECT, lireLArchitectureDuFichier } from '@ucm-kit/core/referentiel';
 
 export interface PortDIgnores {
@@ -35,6 +36,12 @@ export function lireLesIgnores(api: PortDIgnores): string[] {
 
 /** Les identifiants des constats ignorés parmi des clés : les clés de proposition n'en font pas partie. */
 export const constatsIgnores = (cles: readonly string[]): string[] => cles.filter((cle) => !cle.startsWith(PREFIXE));
+
+/**
+ * Les rôles du thème que le fichier ignore partout (Q6), lus parmi des clés. Aucune clé n'en désigne encore : un lot suivant en
+ * définit le préfixe, et C82 n'omet aucun rôle d'ici là.
+ */
+export const rolesIgnoresDe = (_cles: readonly string[]): readonly VariableDuTheme[] => [];
 
 /**
  * Écarte des constats ceux dont l'identifiant est rangé, et retire leur

@@ -1,5 +1,6 @@
 /**
- * Crée dans le fichier des tokens les variables d'une préparation. C'est la seule création de variables d'Architect.
+ * Crée dans le fichier des tokens les variables d'une préparation. `creerUneVariableAliasee`, qu'elle partage avec la création
+ * des variables de C82 (`structure.ts`), est le seul appel à `createVariable` d'Architect.
  *
  * Le fichier doit déclarer UCM (`hors-ucm` sinon) et porter une collection `theme` locale, que les variables visent
  * (`sans-cibles` sinon). La destination est la collection locale `components` : une seule, sinon l'appelant choisit
@@ -54,15 +55,20 @@ export interface CollectionEcrivable {
   readonly modes: readonly { readonly modeId: string; readonly name: string }[];
 }
 
-export interface VariableCreable {
+/** Ce que `creerUneVariableAliasee` demande à une variable : celle d'une préparation et celle d'une correction de structure la portent. */
+export interface VariableAliasable {
   readonly id: string;
   readonly name: string;
+  scopes: string[];
+  setValueForMode(mode: string, valeur: unknown): void;
+  remove(): void;
+}
+
+export interface VariableCreable extends VariableAliasable {
   readonly resolvedType: string;
   readonly variableCollectionId: string;
   readonly remote?: boolean;
   readonly valuesByMode: Readonly<Record<string, unknown>>;
-  setValueForMode(mode: string, valeur: unknown): void;
-  remove(): void;
 }
 
 /** Ce que la création demande à Figma : les doubles des tests le remplacent. */
@@ -107,6 +113,25 @@ function ciblesParMode(variable: VariablePreparee, destination: CollectionEcriva
     parMode.set(mode.modeId, nom);
   }
   return parMode;
+}
+
+/**
+ * Crée une couleur aliasée par mode et pose ses scopes ; rend la variable créée. Sans `scopes`, ceux que Figma donne restent.
+ * `type` ne change que pour une préparation de tailles. Une écriture qui lève après la création retire la variable : une variable à moitié écrite ne reste pas.
+ */
+export function creerUneVariableAliasee<V extends VariableAliasable>(
+  api: { readonly variables: { createVariable(nom: string, collection: CollectionEcrivable, type: string): V; createVariableAlias(variable: V): unknown } },
+  collection: CollectionEcrivable, nom: string, alias: Readonly<Record<string, V>>, scopes?: readonly string[], type = 'COLOR',
+): V {
+  const creee = api.variables.createVariable(nom, collection, type);
+  try {
+    for (const [mode, cible] of Object.entries(alias)) creee.setValueForMode(mode, api.variables.createVariableAlias(cible));
+    if (scopes) creee.scopes = [...scopes];
+  } catch (erreur) {
+    try { creee.remove(); } catch { /* retirée à la main */ }
+    throw erreur;
+  }
+  return creee;
 }
 
 export async function creerLesVariables(preparation: PreparationRangee, options: OptionsDeCreation = {}): Promise<ResultatDeCreation> {
@@ -196,16 +221,13 @@ export async function creerLesVariables(preparation: PreparationRangee, options:
       continue;
     }
 
-    let creee: VariableCreable | null = null;
     try {
-      creee = api.variables.createVariable(entree.nom, destination, entree.type);
-      for (const [mode, cible] of visees) creee.setValueForMode(mode, api.variables.createVariableAlias(cible));
+      const creee = creerUneVariableAliasee(api, destination, entree.nom, Object.fromEntries(visees), undefined, entree.type);
       locales.push(creee);
       creations.push({ variable: creee.id, nom: creee.name, collection: destination.id });
       etats[entree.nom] = 'creee';
     } catch {
       // Une variable à moitié écrite ne reste pas : la reprise la crée de nouveau.
-      try { creee?.remove(); } catch { /* retirée à la main */ }
       echec(entree.nom, 'erreur');
     }
   }

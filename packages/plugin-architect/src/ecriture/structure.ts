@@ -1,15 +1,22 @@
 /**
- * Écrit les corrections de structure du mode Tokens : les scopes d'une variable (sorte `scope`) et la cible d'alias d'un mode
- * (sorte `alias-de-mode`). Défait aussi, par le journal de structure, ce que ces écritures et les créations de variables ont fait.
+ * Écrit les corrections de structure du mode Tokens : les scopes d'une variable (sorte `scope`, `apres.nom` vide pour un ensemble
+ * vide), la cible d'alias d'un mode (sorte `alias-de-mode`) et la création d'une couleur de `theme` (sorte `variable`). Défait
+ * aussi, par le journal de structure, ce que ces écritures et les créations de variables ont fait.
  *
  * Le fichier doit toujours déclarer UCM, relu au début du lot, sinon rien n'est écrit (`non-ucm`). Chaque correction relit ensuite ce
  * que l'analyse avait lu : la variable existe (`objet-change`), ses scopes ou l'alias du mode sont ceux de `aRelire.avant`
  * (`fait-faux`), la variable visée se trouve parmi les variables locales (`cible-introuvable`). Une écriture de Figma qui lève saute
  * la correction (`erreur`) ; les autres s'écrivent.
  *
+ * Une création relit la collection (locale, de rôle `theme`, qui porte les modes visés : `objet-change` sinon) puis le nom. Une
+ * variable de ce nom qui est une couleur et vise déjà les mêmes cibles dans chaque mode saute la correction en `deja-la` ; une
+ * autre variable de ce nom la saute en `existe-divergente`. Aucune écriture dans ces deux cas : un second Appliquer ne double rien.
+ *
  * Le journal de structure est rangé avant la première écriture, sur les écritures prévues : s'il ne tient pas, rien ne s'écrit
- * (`journal-impossible`). Une fois les écritures faites, il est réécrit avec ce qui a changé ; sans écriture, le journal précédent
- * reste. Un lot pose un seul point d'annulation, après toutes les écritures.
+ * (`journal-impossible`). Une variable à créer n'a pas encore d'identifiant : le journal prévu en garde la place avec `ID_A_CREER`.
+ * Une fois les écritures faites, il est réécrit avec ce qui a changé et les identifiants réels des variables créées ; si cette
+ * réécriture échoue, le journal prévu reste et l'Historique ne défait pas les variables créées. Sans écriture, le journal
+ * précédent reste. Un lot pose un seul point d'annulation, après toutes les écritures.
  *
  * L'annulation remet, ligne par ligne et dans l'ordre inverse de l'écriture, l'état que le journal a gardé. Une ligne dont l'objet a
  * changé depuis est sautée et reste au journal. Une variable créée n'est supprimée que si aucune autre variable du fichier ne la vise
@@ -18,15 +25,18 @@
  * Seul `liaisons.ts` importe une variable : la variable visée d'un alias se cherche ici parmi les variables locales.
  */
 import type { Correction } from '@ucm-kit/core/controles';
-import { CLE_ARCHITECTURE_DU_FICHIER, ESPACE_ARCHITECT, lireLArchitectureDuFichier } from '@ucm-kit/core/referentiel';
+import { CLE_ARCHITECTURE_DU_FICHIER, ESPACE_ARCHITECT, collectionUcmReconnue, lireLArchitectureDuFichier } from '@ucm-kit/core/referentiel';
 
+import { COUCHE_DES_COULEURS } from '../preparations';
 import {
   CLE_JOURNAL_DE_STRUCTURE, identifiantDeLot, lireLeJournalDeStructure, nettoyerLeJournalDeStructure, rangerLeJournalDeStructure, retirer,
   type LigneDeStructure, type PortDeRegles,
 } from './journal';
 import { creerPortDeRegles } from './noms';
+import { creerUneVariableAliasee, type CollectionEcrivable } from './variables';
 
-export type MotifDeStructureSaute = 'objet-change' | 'fait-faux' | 'cible-introuvable' | 'erreur' | 'non-ucm' | 'journal-impossible';
+export type MotifDeStructureSaute =
+  | 'objet-change' | 'fait-faux' | 'cible-introuvable' | 'erreur' | 'non-ucm' | 'journal-impossible' | 'deja-la' | 'existe-divergente';
 
 export interface StructureSautee { readonly id: string; readonly motif: MotifDeStructureSaute }
 
@@ -42,6 +52,7 @@ export interface VariableEcrivable {
   readonly key: string;
   readonly name: string;
   readonly remote?: boolean;
+  readonly resolvedType: string;
   readonly variableCollectionId?: string;
   scopes: string[];
   readonly valuesByMode: Readonly<Record<string, unknown>>;
@@ -70,6 +81,8 @@ export interface ApiDeStructure {
   readonly variables: {
     getLocalVariablesAsync(): Promise<readonly VariableEcrivable[]>;
     getVariableByIdAsync(id: string): Promise<{ readonly key: string } | null>;
+    getLocalVariableCollectionsAsync(): Promise<readonly CollectionEcrivable[]>;
+    createVariable(nom: string, collection: CollectionEcrivable, type: string): VariableEcrivable;
     createVariableAlias(variable: VariableEcrivable): unknown;
   };
   commitUndo(): void;
@@ -113,20 +126,62 @@ function trouverLaVariable(locales: readonly VariableEcrivable[], cle: string | 
   return locales.find((variable) => variable.key === cle) ?? locales.find((variable) => variable.id === cle);
 }
 
+/** L'identifiant que le journal prévu garde pour une variable pas encore créée ; il a la forme d'un identifiant de Figma. */
+const ID_A_CREER = 'VariableID:0000:00000';
+
 interface Plan {
   readonly correction: Correction;
-  readonly ecrire: () => void;
+  /** Écrit, et rend la ligne du journal avec les identifiants réels : `ligne` elle-même quand rien n'était à découvrir. */
+  readonly ecrire: () => LigneDeStructure;
+  /** La ligne prévue, rangée avant la première écriture. */
   readonly ligne: LigneDeStructure;
 }
 
-async function planifier(api: ApiDeStructure, locales: readonly VariableEcrivable[], correction: Correction): Promise<Plan | MotifDeStructureSaute> {
+function planifierUneCreation(
+  api: ApiDeStructure, collections: readonly CollectionEcrivable[], locales: readonly VariableEcrivable[], correction: Correction,
+): Plan | MotifDeStructureSaute {
+  const { creation } = correction;
+  if (!creation) return 'objet-change';
+  const collection = collections.find((candidate) => candidate.id === creation.collection);
+  if (!collection || collection.remote || collectionUcmReconnue(collection.name) !== COUCHE_DES_COULEURS) return 'objet-change';
+  const modes = Object.keys(creation.alias);
+  if (modes.length === 0 || !modes.every((mode) => collection.modes.some(({ modeId }) => modeId === mode))) return 'objet-change';
+  const cibles = new Map(modes.map((mode) => [mode, trouverLaVariable(locales, creation.alias[mode]?.cle)] as const));
+  const existante = locales.find((variable) => variable.name === creation.nom && variable.variableCollectionId === collection.id);
+  if (existante) {
+    const identique = existante.resolvedType === creation.type && modes.every((mode) => {
+      const cible = cibles.get(mode);
+      return cible !== undefined && aliasExact(existante.valuesByMode[mode]) === cible.id;
+    });
+    return identique ? 'deja-la' : 'existe-divergente';
+  }
+  const visees: Record<string, VariableEcrivable> = {};
+  for (const [mode, cible] of cibles) {
+    if (!cible) return 'cible-introuvable';
+    visees[mode] = cible;
+  }
+  return {
+    correction,
+    ecrire: () => {
+      const creee = creerUneVariableAliasee(api, collection, creation.nom, visees, creation.scopes);
+      return { sorte: 'creation', variable: creee.id, nom: creee.name, collection: collection.id };
+    },
+    ligne: { sorte: 'creation', variable: ID_A_CREER, nom: creation.nom, collection: collection.id },
+  };
+}
+
+async function planifier(
+  api: ApiDeStructure, collections: readonly CollectionEcrivable[], locales: readonly VariableEcrivable[], correction: Correction,
+): Promise<Plan | MotifDeStructureSaute> {
+  if (correction.sorte === 'variable') return planifierUneCreation(api, collections, locales, correction);
   const variable = trouverLaVariable(locales, correction.cible.variable);
   if (!variable || variable.remote) return 'objet-change';
   if (correction.sorte === 'scope') {
     const lus = [...variable.scopes];
     if (!memeEnsemble(lus, listeDeScopes(correction.aRelire.avant ?? ''))) return 'fait-faux';
     const apres = listeDeScopes(correction.apres.nom);
-    return { correction, ecrire: () => { variable.scopes = [...apres]; }, ligne: { sorte: 'scopes', variable: variable.id, nom: variable.name, avant: lus, apres } };
+    const ligne: LigneDeStructure = { sorte: 'scopes', variable: variable.id, nom: variable.name, avant: lus, apres };
+    return { correction, ecrire: () => { variable.scopes = [...apres]; return ligne; }, ligne };
   }
   const mode = correction.cible.mode;
   if (!mode || !(mode in variable.valuesByMode)) return 'objet-change';
@@ -137,20 +192,17 @@ async function planifier(api: ApiDeStructure, locales: readonly VariableEcrivabl
   if (cleAvant !== correction.aRelire.avant) return 'fait-faux';
   const cible = trouverLaVariable(locales, correction.apres.cle);
   if (!cible) return 'cible-introuvable';
-  return {
-    correction,
-    ecrire: () => variable.setValueForMode(mode, api.variables.createVariableAlias(cible)),
-    ligne: { sorte: 'alias-de-mode', variable: variable.id, nom: variable.name, mode, avant, apres: cible.id },
-  };
+  const ligne: LigneDeStructure = { sorte: 'alias-de-mode', variable: variable.id, nom: variable.name, mode, avant, apres: cible.id };
+  return { correction, ecrire: () => { variable.setValueForMode(mode, api.variables.createVariableAlias(cible)); return ligne; }, ligne };
 }
 
 /**
- * Applique les corrections de sorte `scope` et `alias-de-mode`, une à la fois, avec le journal et un seul point d'annulation.
+ * Applique les corrections de sorte `scope`, `alias-de-mode` et `variable`, une à la fois, avec le journal et un seul point d'annulation.
  * Les autres sortes sont ignorées.
  */
 export async function ecrireLaStructure(corrections: readonly Correction[], options: OptionsDeStructure = {}): Promise<ResultatDEcritureDeStructure> {
   const api = options.api ?? apiDeFigma();
-  const aEcrire = corrections.filter((correction) => correction.sorte === 'scope' || correction.sorte === 'alias-de-mode');
+  const aEcrire = corrections.filter((correction) => correction.sorte === 'scope' || correction.sorte === 'alias-de-mode' || correction.sorte === 'variable');
   const ecrites: string[] = [];
   const sautees: StructureSautee[] = [];
   if (aEcrire.length === 0) return { ecrites, sautees };
@@ -164,9 +216,10 @@ export async function ecrireLaStructure(corrections: readonly Correction[], opti
   const plans: Plan[] = [];
   try {
     const locales = await api.variables.getLocalVariablesAsync();
+    const collections = aEcrire.some(({ sorte }) => sorte === 'variable') ? await api.variables.getLocalVariableCollectionsAsync() : [];
     for (const correction of aEcrire) {
       let plan: Plan | MotifDeStructureSaute;
-      try { plan = await planifier(api, locales, correction); } catch { plan = 'erreur'; }
+      try { plan = await planifier(api, collections, locales, correction); } catch { plan = 'erreur'; }
       if (typeof plan === 'string') sautees.push({ id: correction.id, motif: plan });
       else plans.push(plan);
     }
@@ -181,9 +234,9 @@ export async function ecrireLaStructure(corrections: readonly Correction[], opti
   const faites: LigneDeStructure[] = [];
   for (const plan of plans) {
     try {
-      plan.ecrire();
+      const ligne = plan.ecrire();
       ecrites.push(plan.correction.id);
-      faites.push(plan.ligne);
+      faites.push(ligne);
     } catch {
       sautees.push({ id: plan.correction.id, motif: 'erreur' });
     }
@@ -193,7 +246,8 @@ export async function ecrireLaStructure(corrections: readonly Correction[], opti
     return { ecrites, sautees };
   }
   // Si la réécriture échoue, le journal prévu reste valide : l'annulation reconnaît une ligne jamais écrite à son état d'avant.
-  const reecrit = faites.length === plans.length ? undefined : rangerLeJournalDeStructure(stockage, { heure, lignes: faites }, nouveauLot());
+  const identiques = faites.length === plans.length && faites.every((ligne, rang) => ligne === plans[rang]?.ligne);
+  const reecrit = identiques ? undefined : rangerLeJournalDeStructure(stockage, { heure, lignes: faites }, nouveauLot());
   nettoyerLeJournalDeStructure(stockage, (reecrit ?? prevu).cles);
   try {
     api.commitUndo();
