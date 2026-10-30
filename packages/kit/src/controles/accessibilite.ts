@@ -6,7 +6,8 @@
  * ne permet pas de calculer rend une limite, jamais un verdict.
  */
 import { GARANTIES } from '../emplois/garanties.js';
-import { atteintLeSeuil, contraste, type Rgb8 } from '../emplois/contraste.js';
+import { atteintLeSeuil, contraste, contrasteTronque } from '../emplois/contraste.js';
+import { hexaDeFigma, versRgb8 } from '../emplois/couleur.js';
 import { RECOMMANDATIONS } from '../referentiel/recommandations.js';
 import type { CatalogueDeReference, CollectionDuCatalogue, CouleurResolue, VariableDuCatalogue } from './catalogue.js';
 import { collectionDuCatalogue, variableDuCatalogue } from './catalogue.js';
@@ -581,11 +582,6 @@ function estGaranti(variableDuTheme: string | null, fond: NomDeFond): boolean {
     && g.fonds.some((f) => (fond === 'page' ? 'fondDeLaPage' in f : 'fondDeLaCarte' in f)));
 }
 
-function versRgb8(c: Rgba): Rgb8 {
-  const borne = (x: number) => Math.round(Math.min(1, Math.max(0, x)) * 255);
-  return [borne(c.r), borne(c.g), borne(c.b)];
-}
-
 /* ---------- C49 et C50 ---------- */
 
 /** Cède par layer visible et par plage de texte ; la liste rendue est celle de la voie synchrone. */
@@ -625,12 +621,6 @@ function* ciblesDeContraste(variant: VariantLu, niveau: NiveauWcag): Generator<v
 
 type GroupeMesure = { constat: Constat; pire: number };
 
-function hexa(c: Rgba): string {
-  return `#${versRgb8(c).map((x) => x.toString(16).padStart(2, '0')).join('')}`;
-}
-
-const sansArrondi = (rapport: number) => Math.floor(rapport * 100) / 100;
-
 function* mesurerLeVariant(
   variant: VariantLu, combinaisons: Combinaison[], catalogue: CatalogueDeReference, niveau: NiveauWcag,
   groupes: Map<string, GroupeMesure>, limites: Map<string, Constat>,
@@ -655,11 +645,11 @@ function* mesurerLeVariant(
         const rapport = contraste(versRgb8(premier), versRgb8(fond.couleur));
         const mesure = mesures.get(fond.nom ?? '') ?? { pire: null, echecs: 0, rapports: [] };
         mesures.set(fond.nom ?? '', mesure);
-        mesure.rapports.push([combinaison.etiquette, sansArrondi(rapport)]);
+        mesure.rapports.push([combinaison.etiquette, contrasteTronque(rapport)]);
         if (atteintLeSeuil(rapport, cible.seuil)) continue;
         mesure.echecs++;
         if (!mesure.pire || rapport < mesure.pire.rapport) {
-          mesure.pire = { rapport, etiquette: combinaison.etiquette, premierPlan: hexa(premier), fond: hexa(fond.couleur), combinaison };
+          mesure.pire = { rapport, etiquette: combinaison.etiquette, premierPlan: hexaDeFigma(premier), fond: hexaDeFigma(fond.couleur), combinaison };
         }
       }
     }
@@ -671,7 +661,7 @@ function* mesurerLeVariant(
       } else {
         limites.set('fond-de-repli', {
           id: 'fond-de-repli', code: cible.code, type: 'info', famille: 'contraste', variants: [variant.nom], layers: [cible.layer.id],
-          faits: { cause: 'fond-de-repli', fond: hexa(enOpaque(catalogue.fondDeLaPageFigma!)) }, limite: true,
+          faits: { cause: 'fond-de-repli', fond: hexaDeFigma(enOpaque(catalogue.fondDeLaPageFigma!)) }, limite: true,
         });
       }
     }
@@ -737,7 +727,7 @@ function faitsDeContraste(
 ): Constat['faits'] {
   return {
     ...sur,
-    usage: cible.usage, champ: cible.champ, calque: cible.layer.nom, rapport: sansArrondi(pire.rapport),
+    usage: cible.usage, champ: cible.champ, calque: cible.layer.nom, rapport: contrasteTronque(pire.rapport),
     seuil: cible.seuil, niveau, mode: pire.etiquette, autresModes: echecs - 1,
     premierPlan: pire.premierPlan, fond: pire.fond, rapports: JSON.stringify(rapports),
   };

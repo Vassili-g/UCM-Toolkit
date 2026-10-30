@@ -13,7 +13,7 @@ import { palettesDuFichier, regrouperLesPalettes } from '../src/variables/detect
 import { etatDesTokens } from '../src/variables/etat';
 import { segmentDuNom, segmentsDesPalettes } from '../src/variables/noms';
 import { nomsDuPlan, planDesVariables, type EntreeDuPlan } from '../src/variables/plan';
-import { hexaDeFigma, type CollectionLue, type VariableLue } from '../src/variables/releve';
+import { hexaLu, type CollectionLue, type VariableLue } from '../src/variables/releve';
 import { SUIVI_VIDE, lireLeSuivi, suiviFutur, texteDuSuivi, variablesSuivies, type PaletteSuivie, type SuiviDesVariables } from '../src/variables/suivi';
 
 const VIDE = recetteParDefaut();
@@ -308,11 +308,13 @@ test('[VAR-05] un groupe changé se juge sur l’emplacement des variables suivi
 });
 
 test('[VAR-05] deux couleurs sont égales à l’octet : les composantes de Figma s’arrondissent', () => {
-  assert.equal(hexaDeFigma({ r: 0.11764705926179886, g: 0.43529412150382996, b: 0.8509804010391235 }), '#1E6FD9');
-  assert.equal(hexaDeFigma({ r: 1, g: 1, b: 1, a: 1 }), '#FFFFFF');
-  assert.equal(hexaDeFigma({ r: 0.4999, g: 0.5001, b: 0, a: 1 }), '#7F8000');
+  assert.equal(hexaLu({ r: 0.11764705926179886, g: 0.43529412150382996, b: 0.8509804010391235 }, 'SRGB'), '#1E6FD9');
+  assert.equal(hexaLu({ r: 1, g: 1, b: 1, a: 1 }, 'SRGB'), '#FFFFFF');
+  assert.equal(hexaLu({ r: 0.4999, g: 0.5001, b: 0, a: 1 }, 'SRGB'), '#7F8000');
+  // Une composante au-delà de 1 est saturée : elle vaut FF, et non 100.
+  assert.equal(hexaLu({ r: 1.002, g: 1, b: 1, a: 1 }, 'SRGB'), '#FFFFFF');
   // Une couleur qui n'est pas opaque ne vaut aucune couleur écrite par le plugin.
-  assert.equal(hexaDeFigma({ r: 1, g: 1, b: 1, a: 0.5 }), '#FFFFFF80');
+  assert.equal(hexaLu({ r: 1, g: 1, b: 1, a: 0.5 }, 'SRGB'), '#FFFFFF80');
 });
 
 // ------------------------------------------------------------ la détection

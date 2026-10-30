@@ -4,7 +4,7 @@
  * envoie à l'interface. `src/lectureDesVariables.ts` le produit ; l'état et
  * la détection le lisent. Pur.
  */
-import { ecrireHexa, lireHexa, p3VersRgb8, rgb8VersP3 } from 'ucm-couleur';
+import { hexaDeFigma, lireHexa, p3VersRgb8, rgb8VersP3 } from 'ucm-couleur';
 
 export interface ModeLu {
   readonly id: string;
@@ -41,20 +41,6 @@ export interface ReleveDesVariables {
 
 export const RELEVE_VIDE: ReleveDesVariables = { collections: [], variables: [] };
 
-const octet = (composante: number): number => Math.min(255, Math.max(0, Math.round(composante * 255)));
-
-/**
- * La couleur d'une variable de Figma en hexa majuscule : ses composantes
- * flottantes arrondies à l'octet, comme l'égalité de `[VAR-05]` le demande.
- * Une couleur qui n'est pas opaque porte son alpha en deux chiffres de
- * plus : elle ne vaut alors aucune couleur que le plugin écrit.
- */
-export function hexaDeFigma(couleur: { readonly r: number; readonly g: number; readonly b: number; readonly a?: number }): string {
-  const hexa = ecrireHexa([octet(couleur.r), octet(couleur.g), octet(couleur.b)]).toUpperCase();
-  const alpha = octet(couleur.a ?? 1);
-  return alpha === 255 ? hexa : `${hexa}${alpha.toString(16).padStart(2, '0').toUpperCase()}`;
-}
-
 /** Le profil de couleur du document : dans un document `DISPLAY_P3`, les composantes d'une variable sont en P3. */
 type Profil = 'SRGB' | 'DISPLAY_P3' | 'LEGACY';
 
@@ -64,9 +50,9 @@ type Profil = 'SRGB' | 'DISPLAY_P3' | 'LEGACY';
  * à 8 bits avant la comparaison ([MOT-26]).
  */
 export function hexaLu(couleur: { readonly r: number; readonly g: number; readonly b: number; readonly a?: number }, profil: Profil): string {
-  if (profil !== 'DISPLAY_P3') return hexaDeFigma(couleur);
+  if (profil !== 'DISPLAY_P3') return hexaDeFigma(couleur, { alpha: true });
   const [r, g, b] = p3VersRgb8([couleur.r, couleur.g, couleur.b]).couleur;
-  return hexaDeFigma({ r: r / 255, g: g / 255, b: b / 255, a: couleur.a });
+  return hexaDeFigma({ r: r / 255, g: g / 255, b: b / 255, a: couleur.a }, { alpha: true });
 }
 
 /**

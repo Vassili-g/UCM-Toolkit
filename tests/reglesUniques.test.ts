@@ -147,6 +147,51 @@ export const REGLES: Regle[] = [
     proprietaires: ['packages/kit/src/controles/nommage.ts'],
     exceptions: [],
   },
+  {
+    fiche: 'D-20',
+    raison: "Une peinture se voit par `peintureVisible` (visible et d'opacité non nulle), pas par un `.visible !== false && …opacity` écrit en ligne.",
+    motif: /\.visible !== false\s*&&\s*\(?\s*[\w.]*opaci/,
+    proprietaires: ['packages/kit/src/controles/releve.ts'],
+    exceptions: [
+      { fichier: 'packages/plugin-palettes/src/lecture.ts', raison: 'juge une peinture opaque, autre question' },
+    ],
+  },
+  {
+    fiche: 'D-24',
+    raison: "Une composante de Figma devient un octet par `versOctet`, `versRgb8` ou `hexaDeFigma` de `emplois/couleur.ts`, pas par un `Math.round(… * 255)` : 1,002 écrirait `100`.",
+    motif: /Math\.round\([^;]*?\*\s*255\)/,
+    proprietaires: ['packages/kit/src/emplois/couleur.ts', 'packages/couleur/src/conversions.ts'],
+    exceptions: [
+      { fichier: 'packages/plugin-architect/src/contraste.ts', raison: 'composantes contrôlées avant, sans hexa' },
+      { fichier: 'packages/plugin-architect/src/ui/valeurs.ts', raison: 'composantes contrôlées avant, sans hexa' },
+      { fichier: 'packages/plugin-architect/src/modele.ts', raison: "le noyau d'Architect n'importe pas le kit (loiDEcriture.test.ts) ; il borne avant d'arrondir et signale l'arrondi" },
+      { fichier: 'packages/plugin-palettes/src/ui/couleur/formats.ts', raison: 'conversion HSV vers 8 bits d\'une saisie, sans composante de Figma ni hexa' },
+    ],
+  },
+  {
+    fiche: 'D-08',
+    raison: "Un contraste se tronque et s'écrit par `contrasteTronque` et `ecrireContraste` de `emplois/contraste.ts`, pas par un `aDixDecimales(…).split('.')` ou `.replace(` écrit en ligne.",
+    motif: /\baDixDecimales\((?:[^()]|\([^()]*\))*\)\s*\.(?:split|replace)\(/,
+    proprietaires: ['packages/kit/src/emplois/contraste.ts'],
+    exceptions: [],
+  },
+  {
+    fiche: 'D-08',
+    raison: "Un contraste ne se tronque pas par `Math.floor(… * 100) / 100` : 4,35 donnerait 4,34. `contrasteTronque` lit l'écriture à dix décimales.",
+    motif: /Math\.floor\([^;]*?\*\s*100\)\s*\/\s*100/,
+    proprietaires: ['packages/kit/src/emplois/contraste.ts'],
+    exceptions: [],
+  },
+  {
+    fiche: 'D-08',
+    raison: "Un rapport de contraste s'écrit par `ecrireContraste`, pas par un `${String(x).replace('.', ',')}:1` écrit en ligne.",
+    motif: /\$\{String\(\w+\)\.replace\(\s*(['"])\.\1\s*,\s*(['"]),\2\s*\)\}:1/,
+    proprietaires: ['packages/kit/src/emplois/contraste.ts'],
+    exceptions: [
+      { fichier: 'packages/plugin-architect/src/ui/ignores/modele.ts', raison: 'levée par I7, fichier en cours dans le plan Règles manquantes' },
+      { fichier: 'packages/kit/src/lecteurs/diagnostic-contrastes.mjs', raison: 'écrit un seuil sans décimale inutile (4,5 et 3), pas un contraste tronqué' },
+    ],
+  },
 ];
 
 /** Remplace les commentaires par des blancs, sans toucher aux chaînes ni aux numéros de ligne. */

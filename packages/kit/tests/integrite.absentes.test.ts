@@ -19,7 +19,7 @@ const trouver = (constats: readonly Constat[], groupe: string, variable: string)
 const aliasDe = (constat: Constat) => constat.correction?.creation?.alias ?? {};
 
 test('1. la fixture rend 23 constats de variable absente, tous avec une correction', () => {
-  const constats = controlerLIntegriteUcm(catalogueDeStructure(), { ecriture: avecEcriture('minuscules', 'tiret') });
+  const constats = absentes(catalogueDeStructure());
   assert.equal(constats.length, 23);
   assert.ok(constats.every((constat) => constat.code === 'C82' && constat.faits.genre === 'variable-absente' && constat.correction?.sorte === 'variable'));
   assert.equal(new Set(constats.map((constat) => constat.id)).size, 23);
@@ -74,7 +74,7 @@ test('4. le nom créé suit l’écriture choisie, et un dossier existant garde 
 
 test('5. sans écriture, les 23 constats restent et aucun ne porte de correction', () => {
   for (const options of [{}, { ecriture: null }]) {
-    const constats = controlerLIntegriteUcm(catalogueDeStructure(), options);
+    const constats = controlerLIntegriteUcm(catalogueDeStructure(), options).filter((constat) => constat.faits.genre === 'variable-absente');
     assert.equal(constats.length, 23);
     assert.ok(constats.every((constat) => constat.correction === undefined && constat.faits.raison === 'sans-ecriture' && constat.faits.nom === undefined));
   }
@@ -160,11 +160,12 @@ test('12. une rampe de library ne donne jamais de correction', () => {
     ...catalogue,
     variables: catalogue.variables.map((entree) => (entree.collection === 'brands' && entree.nom.startsWith('primary/') ? { ...entree, distante: true as const } : entree)),
   };
-  const constats = controlerLIntegriteUcm(distante, { ecriture: avecEcriture('minuscules', 'tiret') });
+  const toutes = controlerLIntegriteUcm(distante, { ecriture: avecEcriture('minuscules', 'tiret') });
+  const constats = toutes.filter((constat) => constat.faits.genre === 'variable-absente');
   const subtle = trouver(constats, 'primary', 'surface/subtle');
   assert.equal(subtle.faits.raison, 'cible-de-library');
   assert.equal(subtle.correction, undefined);
-  assert.equal(constats.filter((constat) => constat.faits.genre === 'cran-absent').length, 0);
+  assert.equal(toutes.filter((constat) => constat.faits.genre === 'cran-absent').length, 0);
   assert.equal(constats.filter((constat) => constat.correction).length, 21);
 });
 

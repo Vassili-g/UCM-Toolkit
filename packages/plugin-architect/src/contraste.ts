@@ -10,7 +10,7 @@
  * passent d'abord par `versSrgb`.
  */
 import { SEUILS_PAR_USAGE, SEUIL_TEXTE_AAA } from '@ucm-kit/core/referentiel';
-import { aDixDecimales, atteintLeSeuil, contraste, type Rgb8 } from '@ucm-kit/core/emplois';
+import { atteintLeSeuil, contraste, ecrireContraste, type Rgb8 } from '@ucm-kit/core/emplois';
 
 import { versSrgb } from './espace';
 import type { Couleur, EspaceDuReleve } from './modele';
@@ -26,12 +26,6 @@ function enOctets(couleur: Couleur): Rgb8 {
   return [Math.round(couleur.r * 255), Math.round(couleur.g * 255), Math.round(couleur.b * 255)];
 }
 
-/** Le ratio tronqué à deux décimales, avec la virgule : 4,499 s'affiche 4,49 et ne passe pas 4,5. */
-export function ratioAffiche(ratio: number): string {
-  const [entier, decimales] = aDixDecimales(ratio).split('.');
-  return `${entier},${decimales.slice(0, 2)}`;
-}
-
 /** Juge le contraste du premier plan sur le fond, au seuil donné, pour des couleurs rangées dans `espace`. */
 export function jugerContraste(premierPlan: Resultat, fond: Resultat, seuil: number, espace: EspaceDuReleve = 'srgb'): Contraste {
   if (premierPlan.statut !== 'resolu' || fond.statut !== 'resolu') return { statut: 'non-juge', raison: 'non-resolu' };
@@ -40,5 +34,5 @@ export function jugerContraste(premierPlan: Resultat, fond: Resultat, seuil: num
   if (couleurs.some((couleur) => [couleur.r, couleur.g, couleur.b].some((composante) => !(composante >= 0 && composante <= 1)))) return { statut: 'non-juge', raison: 'gamut' };
   if (couleurs.some((couleur) => couleur.a !== 1)) return { statut: 'non-juge', raison: 'transparence' };
   const ratio = contraste(enOctets(versSrgb(couleurs[0], espace).couleur), enOctets(versSrgb(couleurs[1], espace).couleur));
-  return { statut: 'juge', ratio, affiche: ratioAffiche(ratio), atteint: atteintLeSeuil(ratio, seuil), seuil };
+  return { statut: 'juge', ratio, affiche: ecrireContraste(ratio), atteint: atteintLeSeuil(ratio, seuil), seuil };
 }

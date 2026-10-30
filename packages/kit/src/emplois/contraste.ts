@@ -51,6 +51,27 @@ export function aDixDecimales(x: number): string {
 }
 
 /**
+ * Le contraste tronqué à `decimales` chiffres, sur son écriture à dix décimales
+ * et non sur sa valeur binaire : 4,4999 vaut 4,49 et 4,499999999999 vaut 4,5.
+ * Le fait `rapport` d'un constat et l'affichage de Palettes rendent ainsi le
+ * même nombre.
+ */
+export function contrasteTronque(x: number, decimales = 2): number {
+  const [entier, fraction] = aDixDecimales(x).split('.');
+  return Number(decimales === 0 ? entier : `${entier}.${fraction.slice(0, decimales)}`);
+}
+
+/**
+ * Le contraste tel que le designer le lit : deux décimales tronquées sur
+ * l'écriture à dix décimales, le séparateur au choix (la virgule par défaut).
+ * 4,4999 s'écrit `4,49` et 4,499999999999 s'écrit `4,50`.
+ */
+export function ecrireContraste(x: number, separateur = ','): string {
+  const [entier, fraction] = aDixDecimales(x).split('.');
+  return `${entier}${separateur}${fraction.slice(0, 2)}`;
+}
+
+/**
  * Vrai quand un contraste atteint un seuil ([MOT-22]). La comparaison lit la
  * valeur à dix décimales que l'affichage tronque : un contraste affiché 4,50
  * tient 4,5, et 4,499 échoue.

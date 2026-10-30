@@ -2,6 +2,7 @@
  * Préparation des tokens d'un composant : les variables de `components` à créer, ce qu'elles visent dans `theme` et `layout`,
  * et les questions que le relevé ne tranche pas. Fonction pure ; l'identifiant, le stockage et la création sont ceux d'Architect.
  */
+import { hexaDeFigma } from '../emplois/couleur.js';
 import { cranDeLaVariable, DOSSIERS, ETATS, VARIABLES_DU_THEME, type VariableDuTheme } from '../emplois/dossiers.js';
 import { REGISTRE_PALETTES_COMPOSANT } from '../referentiel/architecture.js';
 import { formeReconnue, termeReconnu } from '../referentiel/reconnaissance.js';
@@ -92,8 +93,7 @@ interface Brouillon {
 
 function hexaDe(couleur: PeintureLue['couleur']): string {
   if (!couleur) return '';
-  const canal = (valeur: number): string => Math.round(Math.min(1, Math.max(0, valeur)) * 255).toString(16).padStart(2, '0').toUpperCase();
-  return `#${canal(couleur.r)}${canal(couleur.g)}${canal(couleur.b)}`;
+  return hexaDeFigma(couleur);
 }
 
 function ajouterQuestion(questions: Map<string, Question>, question: Question): void {

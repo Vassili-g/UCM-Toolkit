@@ -138,7 +138,7 @@ test('le produit des modes conserve l’ordre effectif et les faits de contraste
     id: 'C49:Label:texte:0-5:4.5:AA', code: 'C49', type: 'corriger', famille: 'contraste', variants: ['a'], layers: ['t'],
     faits: {
       usage: 'texte', champ: 'fills', calque: 'Label', rapport: 1, seuil: 4.5, niveau: 'AA',
-      mode: 'c1 en M1, c2 en M1', autresModes: 1, premierPlan: '#ffffff', fond: '#ffffff',
+      mode: 'c1 en M1, c2 en M1', autresModes: 1, premierPlan: '#FFFFFF', fond: '#FFFFFF',
       rapports: JSON.stringify([
         ['c1 en M1, c2 en M1', 1], ['c1 en M1, c2 en M0', 1],
         ['c1 en M0, c2 en M1', 21], ['c1 en M0, c2 en M0', 21],
@@ -329,8 +329,8 @@ test('faits du contraste : premier plan, fond et rapports de chaque mode ; une l
   const v = variant('a', [racine(), t]);
   v.modesEffectifs = { ck: 'l' };
   const c = parCode(cc(releve([v]), 'AA', cat), 'C49')[0];
-  assert.equal(c.faits.premierPlan, '#ffffff');
-  assert.equal(c.faits.fond, '#ffffff');
+  assert.equal(c.faits.premierPlan, '#FFFFFF');
+  assert.equal(c.faits.fond, '#FFFFFF');
   assert.equal(c.faits.rapport, 1);
   const rapports = JSON.parse(String(c.faits.rapports)) as [string, number][];
   assert.deepEqual(rapports.map(([e]) => e), ['theme en Light', 'theme en Dark']);

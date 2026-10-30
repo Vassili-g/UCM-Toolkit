@@ -2,10 +2,10 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { contraste } from '@ucm-kit/core/emplois';
+import { contraste, ecrireContraste } from '@ucm-kit/core/emplois';
 import { p3VersRgb8 } from 'ucm-couleur';
 
-import { jugerContraste, ratioAffiche } from '../src/contraste';
+import { jugerContraste } from '../src/contraste';
 import { indexer } from '../src/indexation';
 import type { Releve } from '../src/modele';
 import { creerPreferences, PREFERENCES_PAR_DEFAUT, preferencesValides } from '../src/preferences';
@@ -20,7 +20,8 @@ test('le contraste d’une paire opaque est celui du kit, tronqué à l’affich
   if (jugement.statut !== 'juge') return;
   assert.equal(jugement.ratio, contraste([0x22, 0x26, 0x30], [0xf7, 0xf8, 0xfa]));
   assert.equal(jugement.atteint, true);
-  assert.equal(ratioAffiche(4.4999), '4,49');
+  assert.equal(jugement.affiche, ecrireContraste(jugement.ratio));
+  assert.equal(ecrireContraste(4.4999), '4,49');
 });
 
 test('une transparence, une chaîne qui n’aboutit pas ou un fond non couleur ne se jugent pas', () => {

@@ -3,7 +3,7 @@
  * emploi ([REC-03]), son empreinte, le profil de couleur du document, les
  * cadres de la planche et la couleur de la sélection. Rien ici n'écrit.
  */
-import { CLE_RECETTE, ESPACE_PARTAGE, classerRecette, ecrireHexa, fnv1a, octetsUtf8, p3VersRgb8, type Classement } from 'ucm-couleur';
+import { CLE_RECETTE, ESPACE_PARTAGE, classerRecette, ecrireHexa, fnv1a, hexaDeFigma, octetsUtf8, p3VersRgb8, type Classement } from 'ucm-couleur';
 
 export { CLE_RECETTE, ESPACE_PARTAGE };
 
@@ -349,7 +349,7 @@ export function couleurDeLaSelection(
       const lue = p3VersRgb8([r, g, b]);
       return { hexa: ecrireHexa(lue.couleur), ramenee: lue.ramenee };
     }
-    return { hexa: ecrireHexa([Math.round(r * 255), Math.round(g * 255), Math.round(b * 255)]), ramenee: false };
+    return { hexa: hexaDeFigma({ r, g, b }), ramenee: false };
   }
   return { raison: 'sans-remplissage-uni' };
 }

@@ -1,9 +1,10 @@
 /**
  * Niveaux WCAG, distance Oklab et part de chroma, mesurés sur la couleur à
  * 8 bits ([MOT-22] à [MOT-24]), et leur écriture décimale à virgule. Le
- * contraste et sa comparaison à un seuil viennent de `@ucm-kit/core/emplois`.
+ * contraste, sa comparaison à un seuil et son écriture (`ecrireContraste`)
+ * viennent de `@ucm-kit/core/emplois`.
  */
-import { aDixDecimales } from '@ucm-kit/core/emplois';
+import { contrasteTronque } from '@ucm-kit/core/emplois';
 
 import {
   CHROMA_SANS_TEINTE,
@@ -22,18 +23,15 @@ function avecVirgule(ecriture: string): string {
 }
 
 /**
- * Tronque à `decimales` chiffres, sur l'écriture à dix décimales, et écrit la
- * virgule : 4,499 donne `4,49` ([MOT-22]).
+ * Tronque à `decimales` chiffres, sur l'écriture à dix décimales du kit, et
+ * écrit la virgule : 4,499 donne `4,49` ([MOT-22]).
  */
 export function ecrireTronque(x: number, decimales: number): string {
-  const [entier, fraction] = aDixDecimales(x).split('.');
-  return decimales === 0 ? entier : avecVirgule(`${entier}.${fraction.slice(0, decimales)}`);
+  return avecVirgule(contrasteTronque(x, decimales).toFixed(decimales));
 }
 
-/** Un contraste tel que la planche et l'interface l'affichent : deux décimales tronquées. */
-export function ecrireContraste(valeur: number): string {
-  return ecrireTronque(valeur, 2);
-}
+/** Le contraste affiché, deux décimales tronquées : le nom que le moteur garde pour `ecrireContraste` du kit. */
+export { ecrireContraste } from '@ucm-kit/core/emplois';
 
 /** Arrondit à `decimales` chiffres et écrit la virgule : une clarté, une chroma, une teinte. */
 export function ecrireArrondi(x: number, decimales: number): string {

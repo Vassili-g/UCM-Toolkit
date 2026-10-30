@@ -14,7 +14,7 @@
  * descend à 3:1. Un texte en grand corps peut donc être signalé à tort ; un
  * faux signal reste une information. Le diagnostic ne bloque jamais la fusion.
  */
-import { aDixDecimales, atteintLeSeuil, contraste } from "@ucm-kit/core/emplois";
+import { atteintLeSeuil, contraste, ecrireContraste, versRgb8 } from "@ucm-kit/core/emplois";
 import { natureDuRoleDuContrat } from "@ucm-kit/core/format";
 import { SEUILS_PAR_ROLE } from "@ucm-kit/core/referentiel";
 
@@ -61,7 +61,8 @@ function enHuitBits(valeur) {
   if (!estObjet(valeur) || valeur.colorSpace !== "srgb" || (valeur.alpha ?? 1) !== 1) return null;
   const { components } = valeur;
   if (!Array.isArray(components) || components.length !== 3 || !components.every(Number.isFinite)) return null;
-  return components.map((canal) => Math.round(Math.min(1, Math.max(0, canal)) * 255));
+  const [r, g, b] = components;
+  return versRgb8({ r, g, b });
 }
 
 /** La couleur qu'un chemin prend dans un contexte, alias suivis ; `null` si elle ne se juge pas. */
@@ -201,7 +202,7 @@ export function constatsDesContrastes(contrat, document) {
 }
 
 /** Un contraste à deux décimales tronquées, comme UCM Palettes l'affiche : « 4,49:1 ». */
-const contrasteEcrit = (valeur) => `${aDixDecimales(valeur).replace(/^(\d+)\.(\d{2}).*$/, "$1,$2")}:1`;
+const contrasteEcrit = (valeur) => `${ecrireContraste(valeur)}:1`;
 
 /** Le seuil écrit sans décimale inutile : « 4,5:1 », « 3:1 ». */
 const seuilEcrit = (seuil) => `${String(seuil).replace(".", ",")}:1`;

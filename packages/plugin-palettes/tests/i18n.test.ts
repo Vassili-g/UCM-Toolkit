@@ -1,6 +1,7 @@
 /** Les catalogues et la préférence personnelle se vérifient sans document ni DOM. */
 import assert from 'node:assert/strict';
 import test from 'node:test';
+import { contrasteTronque } from 'ucm-couleur';
 import { creerTraducteur, CATALOGUES } from '../src/i18n';
 import { LANGUES, resoudreDansRegistre, resoudreLangue } from '../src/i18n/langues';
 import { arrondi, contraste, pluriel } from '../src/i18n/nombres';
@@ -36,6 +37,9 @@ test('les nombres gardent les arrondis du moteur et le séparateur de la langue'
   assert.equal(arrondi(0.9751, 3, 'fr'), '0,975');
   assert.equal(contraste(4.319, 'en'), '4.31');
   assert.equal(contraste(4.319, 'fr'), '4,31');
+  assert.equal(contraste(4.499999999999, 'fr'), '4,50');
+  assert.equal(contraste(4.499999999999, 'en'), '4.50');
+  assert.equal(Number(contraste(4.499999999999, 'en')), contrasteTronque(4.499999999999));
   assert.deepEqual([0, 1, 2].map((n) => pluriel(n, 'en')), ['other', 'one', 'other']);
   assert.deepEqual([0, 1, 2].map((n) => pluriel(n, 'fr')), ['one', 'one', 'other']);
 });

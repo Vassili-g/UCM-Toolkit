@@ -38,7 +38,8 @@ Sous-chemin sans dépendance : vocabulaire qu'UCM Palettes et `ucm check` partag
 
 - dossiers.ts : table des dossiers `solid`, `surface` et `page` et de `ring`, une par thème et par sens, le neutre, les crans requis, les trois états, ce que chaque variable peint et ses portées Figma
 - garanties.ts : les neuf garanties G1 à G9, leurs fonds (une variable de la palette, la page ou la carte) et leur jugeabilité selon les crans présents
-- contraste.ts : contraste WCAG 2 et sa comparaison au seuil à dix décimales
+- contraste.ts : contraste WCAG 2 et sa comparaison au seuil à dix décimales, contraste tronqué et écrit
+- couleur.ts : une couleur de Figma en octets bornés (`versOctet`, `versRgb8`) et en hexadécimal majuscule (`hexaDeFigma`)
 - index.ts : ce que le sous-chemin publie
 
 ## src/lecteurs/
@@ -74,7 +75,7 @@ Ce qui juge un contrat écrit ; `ajv` et `node:fs`.
 
 ## src/controles/
 - candidatsDeLongueur.ts : valeur en pixels d'une variable, alias suivis (`candidatDeLongueur`), classement exact ou proche (`classerLesCandidats`, C29 seul) ; `candidatsDeLongueur` cherche dans `layout`, par index de catalogue, pour `preparerLesTokens` ; C29 classe les tokens `components` du composant
-- integrite.ts : `controlerLIntegriteUcm` (C82) : les variables que le thème prévoit et que `theme` n'a pas, avec la création exacte (`Correction.creation`) quand la règle et les variables jumelles donnent une seule cible ; un cran absent d'une rampe est un constat de rampe
+- integrite.ts : `controlerLIntegriteUcm` (C82) : les variables que le thème prévoit et que `theme` n'a pas, avec la création exacte (`Correction.creation`) quand la règle et les variables jumelles donnent une seule cible ; un cran absent d'une rampe est un constat de rampe ; le cran que chaque variable de `theme` vise, jugé sur la table et le sens de la palette (correction ou question) ; les couches visées, les valeurs directes, les scopes, les modes de `theme`, le type et le rangement des variables de palette
 - oublis.ts : C31 (combinaison d'axes absente), C32 (token inutilisé ou sans variant) et C33 ; C32 lit aussi les variants des wrappers de dimensions (`ReleveDeComposant.wrappers`) pour les tokens dont un segment joue un rôle d'axe que seul un wrapper porte
 - preparation.ts : `preparerLesTokens` : variables de `components` à créer pour un composant, ce qu'elles visent dans `theme` et `layout`, questions ouvertes
 - propagation.ts : `proposerLaPropagation` (C24) : liaisons d'un variant modèle reportées sur les autres variants par substitution des segments d'axe, en correction exacte ou en question ; `candidatsDeModele` et `constatsDeModele` (C81) : par sorte, couleurs ou tailles, le variant le plus lié que les autres variants pourraient suivre, émis par `controlerCouchesParEtapes`
