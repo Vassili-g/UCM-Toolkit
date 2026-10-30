@@ -336,10 +336,10 @@ Les liens pointent vers les fichiers de production et les contrôles qui étayen
 [recommandations]: ../../../../packages/kit/src/referentiel/recommandations.ts
 [noms-format]: ../../../../packages/kit/src/format/names.ts
 [diagnostic-contrastes]: ../../../../packages/kit/src/lecteurs/diagnostic-contrastes.mjs
-[profil]: ../../../../packages/plugin-architect/src/integrations/profilUcm.ts
+[profil]: https://github.com/Vassili-g/UCM-Toolkit/blob/edc56f63c6ac43b49a2938b590a202ca56a61526/packages/plugin-architect/src/integrations/profilUcm.ts
 [imports]: https://github.com/Vassili-g/UCM-Toolkit/blob/edc56f63c6/packages/plugin-architect/src/integrations/contrats.ts
 [lecture-explorateur]: ../../../../packages/plugin-architect/src/lecture.ts
-[vue-integrations]: ../../../../packages/plugin-architect/src/integrations/
+[vue-integrations]: https://github.com/Vassili-g/UCM-Toolkit/tree/edc56f63c6ac43b49a2938b590a202ca56a61526/packages/plugin-architect/src/integrations/
 [textes-explorateur]: ../../../../packages/plugin-architect/src/ui/textes/index.ts
 [contraste-explorateur]: ../../../../packages/plugin-architect/src/contraste.ts
 [explorateur-spec]: ../../../../packages/plugin-architect/SPEC.md

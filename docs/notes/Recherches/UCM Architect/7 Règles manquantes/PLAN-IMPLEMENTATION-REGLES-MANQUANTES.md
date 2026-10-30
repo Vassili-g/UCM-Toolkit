@@ -302,11 +302,13 @@ Repli prévu si T1.6 lève, c'est-à-dire si `insertChild` laisse une coquille :
 
 Agent : `executant` (Haiku). Après T1 tenu. Remplacements exacts, rien d'autre.
 
-- [ ] **D1.1** `packages/plugin-architect/invariants/explorateur.md`, ligne de « Une liaison s'écrit après relecture » : après « `ecrireLeLot` n'écrit rien, ni liaison ni instance de règles, si le fichier ne déclare plus UCM ; », ajouter « une correction `regles` / `ajouter` pose les règles manquantes dans une section neuve, rangée après la dernière du même tag, et un second passage ne pose rien (`src/ecriture/regles.ts`) ; `retirer` saute `instance-remplie` ; ».
-- [ ] **D1.2** `packages/plugin-exporter/invariants/ecriture-dans-le-document.md` : rien à changer, vérifier seulement que la phrase sur `ecriture.ts` reste vraie.
-- [ ] **D1.3** `docs/notes/Recherches/UCM Architect/3 Plan/PLAN-IMPLEMENTATION.md`, §10 : supprimer la ligne « C47 : compléter une instance de règles remplie ». Au §7, remplacer « **S-3 · Slot rempli**, hors de ce plan : avant C47. » par « **S-3 · Slot rempli** : levée par le mainteneur le 29/10, voir `7 Règles manquantes/`. ».
-- [ ] **D1.4** `packages/plugin-architect/SPEC.md` : chercher le passage qui décrit C43 et C45. Ajouter, après lui, le paragraphe du §7.3.
-- [ ] **D1.5** `npm run agents:diff` : rendre la liste des documents signalés, sans les modifier.
+- [x] **D1.1** (52869579) `packages/plugin-architect/invariants/explorateur.md`, ligne de « Une liaison s'écrit après relecture » : après « `ecrireLeLot` n'écrit rien, ni liaison ni instance de règles, si le fichier ne déclare plus UCM ; », ajouter « une correction `regles` / `ajouter` pose les règles manquantes dans une section neuve, rangée après la dernière du même tag, et un second passage ne pose rien (`src/ecriture/regles.ts`) ; `retirer` saute `instance-remplie` ; ».
+- [x] **D1.2** (52869579) `packages/plugin-exporter/invariants/ecriture-dans-le-document.md` : rien à changer, vérifier seulement que la phrase sur `ecriture.ts` reste vraie.
+- [x] **D1.3** (52869579) `docs/notes/Recherches/UCM Architect/3 Plan/PLAN-IMPLEMENTATION.md`, §10 : supprimer la ligne « C47 : compléter une instance de règles remplie ». Au §7, remplacer « **S-3 · Slot rempli**, hors de ce plan : avant C47. » par « **S-3 · Slot rempli** : levée par le mainteneur le 29/10, voir `7 Règles manquantes/`. ».
+- [x] **D1.4** (52869579) `packages/plugin-architect/SPEC.md` : chercher le passage qui décrit C43 et C45. Ajouter, après lui, le paragraphe du §7.3.
+- [x] **D1.5** (52869579) `npm run agents:diff` : rendre la liste des documents signalés, sans les modifier.
+
+Fait : D1 suit C1.2. Une section présente est reconstruite à sa place avec les textes relus ; la mise en forme interne ne se recopie pas. Le paragraphe de la spec décrit cette écriture.
 
 ### V1 · Vérifications
 
@@ -319,7 +321,7 @@ Agent : `verificateur` (Haiku). Après D1.
 Conversation principale.
 
 - [x] **F1.1** (cabb1ea2) Relire le diff de chaque lot ; vérifier qu'aucun texte hors du §7 n'apparaît dans l'interface.
-- [ ] **F1.2** `npm run agents:diff`, relire les documents listés.
+- [x] **F1.2** (52869579) `npm run agents:diff`, relire les documents listés.
 - [ ] **F1.3** Commits par chemins explicites, un par lot ou par paire de lots d'une même vague. Pas de push : la recette v2 attend encore la recette du mainteneur.
 
 ## 6. Estimation

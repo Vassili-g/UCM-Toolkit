@@ -136,9 +136,9 @@ Non retenus : U2.2 (D-03) change le contrat publié ; U3.3 (D-08) touche `src/ui
 
 Agent : conversation principale.
 
-- [ ] **P0.1** La publication du plan des crans clairs (lot R1 de [SUJETS IMPORTANTS à trancher/PLAN-IMPLEMENTATION.md](../../SUJETS%20IMPORTANTS%20à%20trancher/PLAN-IMPLEMENTATION.md)) est faite. Le kit ne doit pas changer de table pendant les lots I.
-- [ ] **P0.2** Le plan [Règles manquantes](../7%20Règles%20manquantes/PLAN-IMPLEMENTATION-REGLES-MANQUANTES.md) est commité : il modifie `src/ui/ignores/modele.ts`, `src/ui/textes/ignores.ts` et `src/ui/corrections/`, que I7 et I8 touchent aussi.
-- [ ] **P0.3** `git status` propre sur les chemins de la vague 1. Noter ici la version du kit de départ (0.13.36 à l'écriture du plan ; 0.14.2 après les quickwins).
+- [ ] **P0.1** La publication du plan des crans clairs (lot R1 du [plan des crans clairs](../../SUJETS%20IMPORTANTS%20à%20trancher/PLAN-IMPLEMENTATION.md)) est faite. Le kit ne doit pas changer de table pendant les lots I.
+- [x] **P0.2** (cabb1ea2) Le plan [Règles manquantes](../7%20Règles%20manquantes/PLAN-IMPLEMENTATION-REGLES-MANQUANTES.md) est commité : il modifie `src/ui/ignores/modele.ts`, `src/ui/textes/ignores.ts` et `src/ui/corrections/`, que I7 et I8 touchent aussi.
+- [x] **P0.3** (a0cf8b11) Reprise autorisée sur l'arbre existant ; `git status` relu avant les lots. Kit au départ de la reprise : 0.14.10 (0.13.36 à l'écriture du plan ; 0.14.2 après les quickwins). La propreté des vagues déjà commitées n'est pas rejouée rétrospectivement.
 
 ---
 
@@ -596,7 +596,7 @@ Fichiers : `packages/kit/src/emplois/{garanties,contraste,dossiers}.ts`, `packag
 - [x] **U6.3** (f48310fa) · `implementeur` (même appel) · D-27 : `variablesDuDossier(dossier): readonly VariableDePalette[]` dans `emplois/dossiers.ts` ; remplace les littéraux de `planche/modele.ts:361-363` et `presentation.ts:285-292`.
 - [x] **U6.4** (f48310fa) · `implementeur` · D-09, Q-06 : `generer-planche.ts` injecte dans la page le corps de `contraste` et d'`encreLisible` du kit (texte de la fonction compilée), à la place des copies de `page.js:6-19`. Les tests du navigateur de Palettes (`interface.test.mjs:263`, `:5497`, `roueDesTeintes.test.ts:98`) gardent leur copie ; un test compare chaque copie au kit sur une grille de couleurs.
 - [x] **U6.5** (f48310fa) · `implementeur` · Lignes de la loi racine : D-11 (`endsWith('/hover')`, `endsWith('/pressed')`) ; D-10 (`contraste(…, [0, 0, 0]) >= contraste(…, [255, 255, 255])` et l'inverse) ; D-27 (`'solid/default', 'solid/hover'` et `'page/foreground', 'page/border'` hors domiciles) ; D-09 (`0.2126` hors `emplois/contraste.ts`, exceptions nommées pour les copies de test de U6.4).
-- [ ] **U6.6** · `verificateur` · `npm run vues`, puis `npm test` dans `packages/kit`, `npm run test:paquet -- palettes`, `-- hub`, `-- couleur`, `npm run typecheck`.
+- [x] **U6.6** (8a5be127) · `verificateur` · `npm run vues`, puis `npm test` dans `packages/kit`, `npm run test:paquet -- palettes`, `-- hub`, `-- couleur`, `npm run typecheck`.
 
   Fait : `etatDuFond` rend aussi `subtle`. `variablesAEtats(dossier)` s'ajoute à `variablesDuDossier`. La planche embarque sept fonctions du kit. `npm run vues` attend V (pages générées mêlées au travail de X1).
 
@@ -607,7 +607,7 @@ Fichiers : `packages/kit/src/emplois/{garanties,contraste,dossiers}.ts`, `packag
 Fichiers : `packages/plugin-architect/src/integrations/` (supprimé), `packages/plugin-architect/tests/{integrationsUcm.test.ts,fixturesDesLimites.ts,loiDEcriture.test.ts}`.
 
 - [x] **I9.1** (a8be5110) · `implementeur` · Vérifier par `grep` qu'aucun fichier de `src/` n'importe `integrations/profilUcm.ts` ni `integrations/palettes.ts`. Si un import existe, s'arrêter et le dire. Sinon : supprimer le dossier `src/integrations/` et `tests/integrationsUcm.test.ts` ; retirer l'import de type de `tests/fixturesDesLimites.ts` (remplacer le type par sa forme locale si un test l'utilise encore) ; retirer de `loiDEcriture.test.ts` l'assertion sur le balayage de `src/integrations/`. D-26 (`estIdentite`) disparaît avec le fichier.
-- [ ] **I9.2** · `verificateur` · `npm run test:paquet -- architect`, `npm run typecheck`, `npm run build:plugin -- architect`.
+- [x] **I9.2** (8a5be127) · `verificateur` · `npm run test:paquet -- architect`, `npm run typecheck`, `npm run build:plugin -- architect`.
 
   Fait (a8be5110) : décision du mainteneur, les lois 6 et 7 et la fabrique du thème jugent par le kit (`variableDuThemeReconnue`, `cibleDeLaVariable`, `controlerLIntegriteUcm` sur `catalogueDuFichier`). Le témoin de la loi 7 compte trois constats `cran` : la fabrique n'a pas de blanc ni de noir dans `utility`. `tests/fixturesDesLimites.ts` supprimé. Renvois restants pour D : `invariants/explorateur.md` lignes 5 et 19, `README.md` ligne 169, `SPEC.md` lignes 442-443.
 
@@ -621,7 +621,7 @@ Fichiers : `packages/plugin-socle/src/composant/contract/nodeBindings.ts`, `pack
 - [x] **U7.2** (f48310fa) · `implementeur` · D-22 : `memeNomFigma(a, b)` dans `packages/plugin-palettes/src/variables/` ; remplace les huit comparaisons `toLowerCase()` de la fiche. D-23 côté Palettes : `ecriture/variables.ts:107` et `variables/lot.ts:169` passent à `modeDuThemeReconnu` (avec l'index du vocabulaire du fichier s'il est à portée, sans sinon) ; retirer les deux exceptions posées en U1.5. Ligne de loi D-22 dans `tests/reglesUniques.test.ts`.
 - [x] **U7.3** (f48310fa) · `implementeur` · D-25, Q-10 : `motsDe` de `session.ts:92` découpe par `decouperSegment` (en minuscules) ; `motsDuTermeUcm` retrouve un terme par `termeReconnu` sur `REGISTRES`. Test : `foregroundMain` donne deux mots, et `employe` rend vrai sur un lexique qui contient `foreground main`. Ligne de loi : `.split(/[\s-]+/` refusé dans `src/nomenclature/`.
 - [x] **U7.4** (f48310fa) · `implementeur` · Hub et planche. D-12 : `estReferenceGrise(reference: Rgb8): boolean` dans `ucm-couleur`, seuil de chroma 0,05 ; `familleTailwindProche` et `modele.ts:112` l'appellent ; `FAMILLES_GRISES` exportée une fois, importée par le hub et `generer-planche.ts`. D-14, Q-07 : les termes de statut passent par `REGISTRE_STATUTS`, les teintes restent au hub. D-15 : les libellés d'états du hub viennent de `libelle.fr` de `REGISTRE_ETATS`. Lignes de loi : `.C < 0.0` dans `packages/hub/src/` et `packages/plugin-*/src/` ; les libellés dans `referentielUnique.test.ts`.
-- [ ] **U7.5** · `verificateur` · `npm run vues`, `npm run test:paquet -- socle`, `-- architect`, `-- palettes`, `-- hub`, `-- couleur`, `npm run typecheck`.
+- [x] **U7.5** (8a5be127) · `verificateur` · `npm run vues`, `npm run test:paquet -- socle`, `-- architect`, `-- palettes`, `-- hub`, `-- couleur`, `npm run typecheck`.
 
   Fait : `componentTree.ts` du socle importe aussi `DIMENSIONS_DE_LAYOUT`. `modeNomme` (Palettes), jamais appelée, est supprimée. L'exception D-23 de `detection.ts` reste. Seuil de gris 0,05. Le hub affiche « Par défaut » et « Pressé » à la place de « Repos » et « Appui ». U6.6 et U7.5 se font en V.
 
@@ -634,7 +634,7 @@ Fichiers : `tests/{loisEntreProduits.test.ts,fabriquesDeFichiers.ts,nomsDePalett
 - [x] **U8.1** (165897e3) · `implementeur` · `tests/loisEntreProduits.test.ts` (`:51`, `:99`, `:206-208`, `:260`, `:297`, `:402`) compare par `formeReconnue` au lieu de `toLowerCase()`. Ajouter une fixture en camel (`foregroundMain`) qui passe.
 - [x] **U8.2** (165897e3) · `executant` · Remplacer les littéraux par les imports, liste fermée : les cinq variables de `fabriquesDeFichiers.ts:194` par `VARIABLES_DU_THEME` ; les onze crans de `nomsDePalettes.test.ts:32`, des tests de `packages/couleur/tests/` (`architecture`, `enveloppe`, `proprietes`, `rampe`, `recette`, `vecteurs`) et de `mesurer-temps.mjs:22` par `CRANS` ; `ETATS` de `referentielUnique.test.ts:23` par l'import ; `COULEUR_DU_TEXTE_DES_BOUTONS` de `promesses.test.ts:177` par l'import ; les copies d'`ecrireHexa` de `base.test.ts:177`, `ancrage.test.ts:134`, `intensites.test.ts:62`, `reconstruction.test.ts:68` par l'import. Rien d'autre.
 - [x] **U8.3** (4d2ba7ac) · `implementeur` · `tests/referentielUnique.test.ts` balaie aussi `tests/` racine, avec une liste d'exceptions nommées (le détecteur lui-même).
-- [ ] **U8.4** · `verificateur` · `npm test`, `npm run typecheck`.
+- [x] **U8.4** (8a5be127) · `verificateur` · `npm test`, `npm run typecheck`.
 
   Fait : `sansDoublon` (`loisEntreProduits.test.ts`) garde `toLowerCase()` : Figma refuse deux noms qui ne diffèrent que par la casse, et `formeReconnue` confondrait `Ocean-Blue` et `OceanBlue`. Les cinq variables de `fabriquesDeFichiers.ts` restent : `VARIABLES_DU_THEME` est une autre liste. `intensites.test.ts` garde sa copie d'`ecrireHexa` (fichier d'une autre session). `referentielUnique.test.ts` (U8.3) part avec le commit de U5.
 
@@ -644,18 +644,20 @@ Fichiers : `tests/{loisEntreProduits.test.ts,fabriquesDeFichiers.ts,nomsDePalett
 
 Agent : conversation principale pour chaque phrase d'autorité (skills `rediger-pour-agents` et `rediger-sans-tics-ia`) ; `executant` pour les renvois.
 
-- [ ] **D1** · conversation principale · Architect : `packages/plugin-architect/SPEC.md` (lignes « Créer » et tableau des écritures : création dans `theme` depuis le mode Tokens ; retrait de « Modules sans écran » ; C82 et ses genres) ; `invariants/explorateur.md` (l'invariant « ne crée que les variables manquantes de `components` » gagne la création de structure dans `theme`, avec son autorité `src/ecriture/structure.ts` et son test `tests/creationDansLeTheme.test.ts`) ; `CARTE.md` (dossier `integrations/` retiré).
-- [ ] **D2** · conversation principale · Kit : l'invariant du domicile de `controles/` décrit `controlerLIntegriteUcm` et sa séparation de `controlerLeCatalogue` ; `CARTE.md` du kit (`integrite.ts`, `emplois/couleur.ts`) ; `invariants/referentiel.md` si un propriétaire nouveau y entre.
-- [ ] **D3** · conversation principale · Règles dupliquées : les quatre passages de « Documents en contradiction » (FORMAT.md:91 et ses deux voisins pour `État` ; FORMAT.md:183 et `couleurs.md:10` sont tenus par U3 ; `tokens-et-variables.md:7` est tenu par U5). Une entrée de `docs/format/CHANGELOG-FORMAT.md` si l'axe `État` change le contrat publié. `README.md` du dossier : questions marquées retenues, renvoi vers ce plan. Socle et exporteur : invariant de la variable supprimée (U9).
-- [ ] **D4** · `executant` · Renvois listés par `npm run agents:diff` : chemins supprimés ou renommés (`integrations/`, `cleDuTheme`, `pascal`).
-- [ ] **D5** · conversation principale · CONCEPTION.md : en tête, « implémenté », avec le renvoi à ce plan. ROADMAP.md si une ligne cite ce travail.
+- [x] **D1** (52869579) · conversation principale · Architect : `packages/plugin-architect/SPEC.md` (lignes « Créer » et tableau des écritures : création dans `theme` depuis le mode Tokens ; retrait de « Modules sans écran » ; C82 et ses genres) ; `invariants/explorateur.md` (l'invariant « ne crée que les variables manquantes de `components` » gagne la création de structure dans `theme`, avec son autorité `src/ecriture/structure.ts` et son test `tests/creationDansLeTheme.test.ts`) ; `CARTE.md` (dossier `integrations/` retiré).
+- [x] **D2** (52869579) · conversation principale · Kit : l'invariant du domicile de `controles/` décrit `controlerLIntegriteUcm` et sa séparation de `controlerLeCatalogue` ; `CARTE.md` du kit (`integrite.ts`, `emplois/couleur.ts`) ; `invariants/referentiel.md` si un propriétaire nouveau y entre.
+- [x] **D3** (52869579) · conversation principale · Règles dupliquées : les quatre passages de « Documents en contradiction » (FORMAT.md:91 et ses deux voisins pour `État` ; FORMAT.md:183 et `couleurs.md:10` sont tenus par U3 ; `tokens-et-variables.md:7` est tenu par U5). Une entrée de `docs/format/CHANGELOG-FORMAT.md` si l'axe `État` change le contrat publié. `README.md` du dossier : questions marquées retenues, renvoi vers ce plan. Socle et exporteur : invariant de la variable supprimée (U9).
+- [x] **D4** (52869579) · `executant` · Renvois listés par `npm run agents:diff` : chemins supprimés ou renommés (`integrations/`, `cleDuTheme`, `pascal`).
+- [x] **D5** (52869579) · conversation principale · CONCEPTION.md : en tête, « implémenté », avec le renvoi à ce plan. ROADMAP.md si une ligne cite ce travail.
 
 ---
 
 ### V · Vérification complète
 
-- [ ] **V1** · `verificateur` · `npm test`, `npm run typecheck`, `npm run build`, `npm run vues` (rien ne doit changer après), `npm run agents:diff`.
-- [ ] **V2** · conversation principale · Relire le tableau, et les documents que `agents:diff` liste.
+- [x] **V1** (8a5be127) · `verificateur` · `npm test`, `npm run typecheck`, `npm run build`, `npm run vues` (rien ne doit changer après), `npm run agents:diff`.
+- [x] **V2** (52869579) · conversation principale · Relire le tableau, et les documents que `agents:diff` liste.
+
+Fait : les suites des paquets ne manquent initialement que la fraîcheur de la planche et du Hub. Après `npm run vues`, couleur passe 436/436, Hub 9/9 et les quatre tests ciblés de la planche et de la vue illustrée passent. Typecheck global : code 0. Le test des dix mille variables passe en 385,5 ms (borne 500 ms). Les contrôles racine sont lancés après la régénération : les sept liens historiques vers le code retiré sont épinglés au commit où il existe, le manifeste vise la nouvelle ancre de la spec et la validation exacte du rôle reçu par le protocole a son exception D-02 nommée. Les 22 contrôles ciblés repassent. Le bilan vide de Nomenclature est retiré et Actualiser montre le chargement (9cd7caaf).
 
 ### T · Recette du mainteneur dans Figma
 

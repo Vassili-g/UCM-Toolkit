@@ -311,7 +311,7 @@ test('[VAR-05] deux couleurs sont égales à l’octet : les composantes de Figm
   assert.equal(hexaLu({ r: 0.11764705926179886, g: 0.43529412150382996, b: 0.8509804010391235 }, 'SRGB'), '#1E6FD9');
   assert.equal(hexaLu({ r: 1, g: 1, b: 1, a: 1 }, 'SRGB'), '#FFFFFF');
   assert.equal(hexaLu({ r: 0.4999, g: 0.5001, b: 0, a: 1 }, 'SRGB'), '#7F8000');
-  // Une composante au-delà de 1 est saturée : elle vaut FF, et non 100.
+  // Une composante au-delà de 1 est saturée : elle vaut `FF`, et non `100`.
   assert.equal(hexaLu({ r: 1.002, g: 1, b: 1, a: 1 }, 'SRGB'), '#FFFFFF');
   // Une couleur qui n'est pas opaque ne vaut aucune couleur écrite par le plugin.
   assert.equal(hexaLu({ r: 1, g: 1, b: 1, a: 0.5 }, 'SRGB'), '#FFFFFF80');

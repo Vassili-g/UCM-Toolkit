@@ -653,11 +653,11 @@ finale.
 [parsers]: ../../../../packages/plugin-socle/src/composant/contract/parsers.ts
 [detection]: ../../../../packages/plugin-palettes/src/variables/detection.ts
 [normalisation]: ../../../../packages/kit/src/referentiel/normalisation.ts
-[profil]: ../../../../packages/plugin-architect/src/integrations/profilUcm.ts
+[profil]: https://github.com/Vassili-g/UCM-Toolkit/blob/edc56f63c6ac43b49a2938b590a202ca56a61526/packages/plugin-architect/src/integrations/profilUcm.ts
 [architecture]: ../../../../packages/kit/src/referentiel/architecture.ts
 [mots]: ../../../../packages/kit/src/referentiel/ecriture-des-mots.ts
 [imports]: https://github.com/Vassili-g/UCM-Toolkit/blob/edc56f63c6/packages/plugin-architect/src/integrations/contrats.ts
-[vue-integrations]: ../../../../packages/plugin-architect/src/integrations/
+[vue-integrations]: https://github.com/Vassili-g/UCM-Toolkit/tree/edc56f63c6ac43b49a2938b590a202ca56a61526/packages/plugin-architect/src/integrations/
 [lecture-explorateur]: ../../../../packages/plugin-architect/src/lecture.ts
 [inventaire]: ../../../../packages/plugin-socle/src/inventaireDeNoms.ts
 [lecture-nomenclature]: ../../../../packages/plugin-architect/src/nomenclature/lectureFigma.ts

@@ -405,33 +405,35 @@ Mesure : `Mesures/mesurer-proximite-ponderee.ts`.
 
 Agent : `implementeur-exigeant`.
 
-- [ ] La proximité de deux palettes compare toute la rampe, Vivid ou l'unique
+- [x] (97f1f3f5) La proximité de deux palettes compare toute la rampe, Vivid ou l'unique
       intensité, en Light et en Dark : pour chaque cran, la distance OKLab sur le
       seuil `palettesProches`. Le score est la moyenne pondérée de ces rapports,
       avec les poids « cloche douce », les mêmes dans les deux thèmes : 50 : 0,1 ;
       100 : 0,1 ; 200 : 0,2 ; 300 : 0,5 ; 400 à 700 : 1 ; 800 : 0,6 ; 900 : 0,3 ;
       950 : 0,2. Trop proches sous 1, presque identiques sous 0,2.
-- [ ] Deux palettes ne sont jamais trop proches quand l'une est nettement plus
+- [x] (97f1f3f5) Deux palettes ne sont jamais trop proches quand l'une est nettement plus
       terne : la chroma moyenne de ses crans 400 à 700, Light et Dark, vaut 75 %
       ou moins de celle de l'autre.
-- [ ] Le rôle « fond » et sa part de seuil disparaissent. Le message de Palettes
+- [x] (97f1f3f5) Le rôle « fond » et sa part de seuil disparaissent. Le message de Palettes
       devient « Rampes trop proches » ; le bouton Comparer reste.
-- [ ] Tests : sur la configuration du mainteneur, aucune paire ne sonne ;
+- [x] (97f1f3f5) Tests : sur la configuration du mainteneur, aucune paire ne sonne ;
       Terracota et Poppy sont distinctes par le critère de chroma ; une paire
       fabriquée de même teinte et de même saturation sonne.
-- [ ] Spécification `[VER-22]`, invariant du moteur.
+- [x] (97f1f3f5) Spécification `[VER-22]`, invariant du moteur.
 
 ## V1. Vérification
 
 Agent : `verificateur`.
 
-- [ ] `npm test`
-- [ ] `npm run typecheck`
-- [ ] `npm run build`
-- [ ] `npm run vues`, puis le test de fraîcheur des vues.
+- [x] (8a5be127) `npm test`
+- [x] (8a5be127) `npm run typecheck`
+- [x] (8a5be127) `npm run build`
+- [x] (8a5be127) `npm run vues`, puis le test de fraîcheur des vues.
 
 Fin : un tableau des résultats. La conversation principale commite les vues
 régénérées.
+
+Fait : les seuls échecs de la suite initiale portent sur les vues périmées ; les tests de fraîcheur passent après régénération. Typecheck global : code 0.
 
 ## R1. Publication
 

@@ -423,7 +423,7 @@
         "packages/plugin-architect/SPEC.md#résolution",
         "packages/plugin-architect/SPEC.md#lecture",
         "packages/plugin-architect/SPEC.md#vue-composant",
-        "packages/plugin-architect/SPEC.md#modules-sans-écran"
+        "packages/plugin-architect/SPEC.md#intégrité-de-la-structure-ucm"
       ],
       "lies": [
         "packages/plugin-architect/README.md",

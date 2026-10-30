@@ -21,7 +21,7 @@ du référentiel.
 | Noms d'axe d'état (`state`, `states`, `status`) | `STATE_AXIS_NAMES`, même fichier | Anglais | Exporteur seul |
 | Tailles reconnues | `SIZE_VALUES`, même fichier | Anglais | Exporteur seul |
 | Tags des règles d'usage | `TAGS_D_INTENTION`, [rulesModel.ts](../../../../../../packages/plugin-socle/src/composant/contract/rulesModel.ts) | Anglais | Exporteur seul |
-| Les cinq couches et leurs cibles | `COUCHES`, `CIBLES_DES_COUCHES`, [profilUcm.ts](../../../../../../packages/plugin-architect/src/integrations/profilUcm.ts) | Anglais | Explorateur seul, dans l'onglet Intégrations retiré |
+| Les cinq couches et leurs cibles | `COUCHES`, `CIBLES_DES_COUCHES`, [profilUcm.ts](https://github.com/Vassili-g/UCM-Toolkit/blob/edc56f63c6ac43b49a2938b590a202ca56a61526/packages/plugin-architect/src/integrations/profilUcm.ts) | Anglais | Explorateur seul, dans l'onglet Intégrations retiré |
 | Les caractéristiques d'un contrat et leur aide | `CARACTERISTIQUES`, [caracteristiques.mjs](../../../../../../packages/kit/src/lecteurs/caracteristiques.mjs), et [packages/cli/aides/](../../../../../../packages/cli/aides/) | Français | `ucm guide`, un agent |
 
 ### 1.1 Les contradictions relevées

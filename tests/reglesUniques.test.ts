@@ -38,7 +38,10 @@ export const REGLES: Regle[] = [
     raison: "Les variables du thème se trouvent, se trient et se reconnaissent par les fonctions de `referentiel/theme.ts` et de `emplois/dossiers.ts`.",
     motif: /\bVARIABLES_DU_THEME\b[^;]*?\.(?:find|sort|endsWith)\(/,
     proprietaires: ['packages/kit/src/referentiel/theme.ts', 'packages/kit/src/emplois/dossiers.ts'],
-    exceptions: [],
+    exceptions: [{
+      fichier: 'packages/plugin-architect/src/sandbox/structure.ts',
+      raison: "Valide par égalité exacte l'identifiant de rôle reçu du protocole avant de ranger une clé Ignorer ; ne reconnaît pas un nom de variable Figma.",
+    }],
   },
   {
     fiche: 'D-02',

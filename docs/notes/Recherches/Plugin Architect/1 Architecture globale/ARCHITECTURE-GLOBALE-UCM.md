@@ -75,7 +75,7 @@ vocabulaire. Chaque définition est écrite là où un produit en a eu besoin.
 | Les neuf garanties de contraste | [garanties.ts](../../../../../packages/kit/src/emplois/garanties.ts) | Carte des garanties de Palettes |
 | États reconnus et leurs variantes (`hover`/`hovered`, `press`/`pressed`) | `STATE_SELECTORS`, [semantics.ts](../../../../../packages/plugin-socle/src/composant/contract/semantics.ts) | Nulle part |
 | Tailles reconnues (`small` lu comme `sm`) | `SIZE_VALUES`, même fichier | Nulle part |
-| Les cinq couches et les alias permis entre elles | `COUCHES` et `CIBLES_DES_COUCHES`, [profilUcm.ts](../../../../../packages/plugin-architect/src/integrations/profilUcm.ts) | Onglet Intégrations |
+| Les cinq couches et les alias permis entre elles | `COUCHES` et `CIBLES_DES_COUCHES`, [profilUcm.ts](https://github.com/Vassili-g/UCM-Toolkit/blob/edc56f63c6ac43b49a2938b590a202ca56a61526/packages/plugin-architect/src/integrations/profilUcm.ts) | Onglet Intégrations |
 | Architecture des collections | [Vue illustrée multi-marques](../../Archi%20Tokens%20Multi-marques/VUE-ILLUSTREE-MULTIMARQUES.html) | Référence actuelle des collections et des rôles |
 | Une variable par propriété de composant | [SPEC de l'exporteur](../../../../../packages/plugin-exporter/SPEC.md), section 8 | [Guide designer](../../../../guides/POUR-LES-DESIGNERS.md), section 2 |
 | Tags des règles d'usage | [README de l'exporteur](../../../../../packages/plugin-exporter/README.md#documenter-les-règles-dusage) | Même document |
