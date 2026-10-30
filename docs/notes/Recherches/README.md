@@ -1,63 +1,160 @@
 # État des recherches UCM
 
-Ce dossier ne garde que les sujets en cours et les pistes de recherche. Les
-sujets implémentés sont rangés dans `docs/notes/Archives/`, en attente de
-suppression ; les liens ci-dessous qui y mènent pointent vers le commit
-`202f46e` et restent valides après la suppression.
+Ce sommaire décrit l'utilité des sujets et leur état de réalisation. Le statut
+« implémenté » concerne le périmètre de code retenu ; les tests et la recette
+Figma ne maintiennent pas ce statut ouvert. Une proposition ou une branche
+conditionnelle ne constitue pas un engagement de réalisation.
 
-Pour modifier le produit, partez des références de
-[docs/README.md](../../README.md) et du code, pas d'un plan archivé.
+Les plans d'exécution liés précisent le travail restant. Pour modifier le
+produit, partir des références de [docs/README.md](../../README.md) et du code.
 
-## Sujets en cours
+## Sujets
 
-| Sujet | État | Prochain geste |
+| Sujet | Utilité | Statut |
 |---|---|---|
-| [Kits UCM et partage des données](./Kits%20UCM%20et%20partage%20des%20donnees/REVIEW-KITS-UCM-ET-PARTAGE-DES-DONNEES.md) | Revue du référentiel, des protocoles et de leurs consommateurs ; douze constats | Corriger les conclusions erronées du profil et de la comparaison d'exports, puis compléter les API communes du kit |
-| [Recette v10 de Palettes](./Plugin%20Palettes/Recette%20v10/README.md) | R2 à R6 implémentés ; R1 attend la décision D1 ; rampes Dark sans ancrage mesurées | Décision D1 du mainteneur, puis recette Figma |
-| [Référentiel UCM](./Référentiel%20UCM/README.md) | Lots 0 à 18 du [plan par lots](./Référentiel%20UCM/PLAN-IMPLEMENTATION.md) faits, kit 0.7.0 publié | Lot 19 : recette d'UCM Architect dans Figma, puis export des tokens |
-| [Règles dupliquées](./R%C3%A8gles%20dupliqu%C3%A9es/README.md) | Audit des règles écrites en code à plusieurs endroits, propriétaire et loi anticopie proposés | Décisions du mainteneur sur les questions de l'audit, puis plan d'implémentation |
-| [Nomenclature, ex-Architect](./Plugin%20Architect/README.md) | Repris depuis le début. La v1 normalise les noms ; l'architecture globale UCM et les explorations de la suite y sont regroupées | Le mainteneur parcourt les maquettes et les réflexions |
-| [UCM Architect](./UCM%20Architect/README.md) | Fusion de l'explorateur et de Nomenclature : préparation, grammaire des composants, maquettes, plans d'implémentation, recette v1, vitesse de l'analyse | Recette Figma de la recette v1 |
-| [Guide des agents](./Guide%20des%20agents/README.md) | Découpage d'`AGENTS.md` fait : index, guides et invariants par paquet, convention compacte | Essais Codex et `/context` du mainteneur |
-| [Crans clairs des palettes](./SUJETS%20IMPORTANTS%20%C3%A0%20trancher/README.md) | Remarques du mainteneur sur ses composants : crans clairs, texte de `surface`, noms des variables, contexte des composants ; maquette des solutions | Le mainteneur parcourt la maquette ; aucune solution décidée |
-| [Architecture multi-marques](Archi%20Tokens%20Multi-marques/VUE-ILLUSTREE-MULTIMARQUES.html) | Référence actuelle : collections, panneau des variables et rôles de `theme` | Actualiser les données du panneau après un export ; les évolutions ouvertes restent séparées dans le dossier |
+| [Kits UCM et partage des données][kits] | Faire appliquer les mêmes conventions et protocoles par le kit et les plugins. | Implémenté. Le plan d'exécution termine les lots que l'ancien plan de conception laisse encore décochés. |
+| [Référentiel UCM][referentiel] | Définir une seule fois les collections, modes, crans et termes partagés par les produits. | Implémenté. Les opérations Figma restantes relèvent de la recette. |
+| [Guide des agents][agents] | Orienter les agents vers les fichiers utiles et réduire le volume de contexte à charger. | Implémenté. Le plan d'exécution remplace le découpage initial. |
+| [Architecture des tokens multi-marques][multimarques] | Expliquer les collections et les alias pour composer les marques et les thèmes. | Référence et générateurs réalisés ; données à actualiser après un nouvel export. |
+| [Règles dupliquées][regles-dupliquees] | Attribuer chaque règle à une seule fonction et empêcher ses copies divergentes. | Implémenté dans le plan Intégrité de la structure. |
+| [Crans clairs, textes, variables et scopes][crans] | Harmoniser les fonds clairs et préserver la lisibilité des textes dans les thèmes. | Implémenté, comparaison pondérée des palettes comprise. Recette Figma reportée. |
+| [Hub UCM][hub] | Rassembler l'exploration des palettes, variables, contrastes et règles dans une page locale. | Partiellement implémenté. Le banc existe ; l'inspecteur, les fiches de règles et les outils de tokens du plan restent à réaliser. |
+| [Palettes : recette v10][palettes-v10] | Corriger les décalages du nuancier et les interactions de l'onglet Comparaison. | Modifications retenues implémentées. L'accueil partagé du nuancier attend une décision. La proximité des palettes suit désormais le plan des crans clairs. |
+| [UCM Architect : fusion et préparation][architect] | Réunir l'exploration des variables, leur nommage et la préparation des tokens d'un composant. | Implémenté pour le périmètre retenu. L'adaptation des noms de préparation à la convention Figma reste conditionnelle. |
+| [UCM Architect : recette v1][architect-v1] | Corriger les constats de liaison et organiser le panneau du composant par élément. | Implémenté. Les comparaisons de galerie et la recette restent des validations. |
+| [UCM Architect : vitesse d'analyse][vitesse] | Réduire les lectures répétées et le délai d'affichage des constats, avec annulation et reprise. | Partiellement implémenté. Retrait de l'ancien chemin de production encore ouvert ; signatures et worker conditionnels. Les branches écartées ne sont plus à réaliser. |
+| [UCM Architect : recette v2][architect-v2] | Corriger les analyses et les parcours de préparation, de sélection et d'affichage des constats. | Implémenté. Les sous-lots du plan sont cochés. |
+| [UCM Architect : règles manquantes][regles-manquantes] | Compléter une instance de règles en conservant les textes déjà rédigés. | Implémenté, reconstruction des sections comprise. Recette Figma reportée. |
+| [UCM Architect : intégrité de la structure][integrite] | Repérer les variables absentes du thème et les cibles incorrectes, puis proposer les corrections certaines. | Implémenté. Recette Figma reportée ; quelques choix de présentation restent à arbitrer. |
+| [Ancien Architect : architecture globale][ancien-architect] | Cadrer le rôle des outils avant leur réalisation. | Version minimale réalisée dans le référentiel, puis reprise par UCM Architect. Les propositions d'élargissement restent à réexaminer. |
+| [Ancien Architect : refonte][ancienne-refonte] | Revoir l'interface de normalisation et ses questions de vocabulaire. | Implémenté, puis intégré à UCM Architect. |
+| [Ancien Architect : nomenclature][ancienne-nomenclature] | Rendre les questions de vocabulaire applicables aux renommages et les justifier par un corpus. | Code décidé implémenté ; audit des extractions et analyse de corpus encore ouverts. |
+| [Ancien Architect : corrections de recette][ancienne-recette] | Corriger les parcours et les constats de la refonte. | Implémenté. |
+| [Ancien Architect : fiabilité][ancienne-fiabilite] | Préserver les noms et les protections lors des écritures et des changements de configuration. | Implémenté. |
+| [Ancien Architect : groupes et variables][anciens-groupes] | Distinguer le nommage des dossiers de celui des variables. | Implémenté. |
+| [Ancien Architect : historique][ancien-historique] | Retrouver et annuler le dernier lot de renommages depuis la Configuration. | Implémenté. |
+| [Ancien Architect : vocabulaire][ancien-vocabulaire] | Appliquer les décisions de termes au moteur et aux produits qui le consomment. | Implémenté. |
+| [Ancien Architect : noms de palettes][anciens-noms-palettes] | Préserver les noms de palettes à travers les lectures et les écritures des plugins. | Implémenté. |
+| [Diff sémantique][diff] | Comparer deux ensembles de contrats et de tokens pour identifier les changements et les composants touchés. | Proposé, non implémenté ; périmètre de l'expérimentation à valider. |
+| [Conformité du rendu][rendu] | Comparer le rendu d'une implémentation aux obligations visuelles de son contrat. | Recherche proposée, non implémentée ; choix de réalisation ouverts. |
+| [Implémenteur de contrats][implementeur] | Produire et mettre à jour le code d'un composant à partir du contrat, avec moins de travail génératif. | Non réalisé. Le plan propose un compilateur ; sa revue recommande d'abord une preuve limitée et un contrôle de rendu autonome. Orientation à trancher. |
+| [Réduction du coût du chemin agent][reduction] | Réduire les lectures et les générations répétées lorsqu'un agent reconstruit un composant. | Plan partiellement remplacé par l'implémenteur. Les propositions de harnais et de guide restent distinctes du compilateur. |
+| [Comparaison des outils de palettes][concurrence] | Choisir les améliorations utiles au parcours de création et de vérification des palettes. | Recherche ouverte. Chaque apport retenu demande son propre périmètre ; le gamut des recettes reste sRGB. |
+| [Évolutions globales][evolutions] | Choisir les prochains usages des contrats et des tokens à partir des besoins des équipes. | Catalogue de propositions, dont certaines fonctions sont déjà livrées. Les autres essais ne sont pas des lots approuvés. |
 
-La [spécification de Palettes](./Plugin%20Palettes/1%20Recherche%20initiale/RECHERCHE-PLUGIN-PALETTES.md)
-reste dans ce dossier jusqu'à son déplacement dans `packages/plugin-palettes/` :
-c'est une référence du produit, pas une recherche.
+La [spécification de Palettes][spec-palettes] demeure la référence de son
+comportement, même si elle est encore rangée dans le dossier de recherche.
 
-## Pistes conservées
+## Questions ouvertes
 
-| Sujet | État |
+Ce tableau rassemble les décisions encore attendues et les propositions à
+arbitrer. Les recettes à exécuter et les tâches de code déjà décidées restent
+dans les plans. Les questions anciennes tranchées par un plan plus récent ne
+sont pas reprises comme des choix ouverts.
+
+| Sujet | Questions ouvertes et décisions attendues |
 |---|---|
-| [Diff sémantique](./Diff%20Sémantique/PLAN-DIFF-SEMANTIQUE.md) | Proposé ; aucune commande `ucm diff` dans le CLI |
-| [Conformité du rendu](./Linter%20Dev/PLAN-CONFORMITE-RENDU.md) | Non implémentée ; la parité TypeScript ne compare pas le rendu |
-| [Coût de génération et implémenteur](./Optimisation%20Tokens/README.md) | Mesures et conception d'un compilateur ; aucun paquet d'implémenteur |
-| [Comparaison des outils de palettes](./Plugin%20Palettes/1%20Recherche%20initiale/RECHERCHE-CONCURRENCE-PALETTES.md) | Vision simulée, Display P3, APCA, sélection et jeu de départ |
-| [Évolutions globales](./Evolutions%20globales/PISTES-EVOLUTION.md) | Catalogue d'options à confronter au format courant |
-Les comparatifs externes doivent être revérifiés avant une décision : tarifs,
-versions et fonctions changent.
+| [Hub UCM][hub] | Faut-il retirer la planche du moteur et la vue illustrée lorsque les vues du Hub les couvriront ? |
+| [Nuancier de Palettes][palettes-v10-dossier] | Adopter un accueil partagé entre Création et Vérification pour remplacer les hauteurs ajustées séparément ? |
+| [Palettes en Dark][qualite-archive] | Distinguer la carte du fond par une ombre ou par un contour ? |
+| [Constats de Comparaison][qualite-archive] | Quels seuils retenir pour signaler les écarts de saturation et de luminosité, encore décrits comme des valeurs d'essai ? |
+| [Harmonisation d'un groupe de palettes][harmonisation-archive] | Faut-il aligner automatiquement leur luminosité ? Quel critère commun retenir et quelles références préserver ? |
+| [Prise en main de Palettes][concurrence] | Quel jeu de départ proposer ? Quelle place donner à la sélection Figma et à la gestion des marques ? |
+| [Accessibilité des palettes][concurrence] | Quelle portée donner à la simulation de vision des couleurs ? Une lecture APCA informative apporte-t-elle une aide utile en complément des garanties actuelles ? |
+| [Préparation dans Architect][architect] | Les noms Figma doivent-ils commencer par la collection ? Si non, adapter les noms créés et la recherche des cibles pour éviter un dossier de collection supplémentaire. |
+| [Catalogue d'Architect][architect] | Autoriser plusieurs collections reconnues comme `theme` ou `layout` ? Si oui, les parcourir toutes ; sinon, signaler cette entrée. |
+| [États dans Architect][integrite] | Reconnaître des valeurs d'état françaises comme `Défaut` et `Survol`, en plus de la reconnaissance des noms d'axes `État` et `Etat` ? |
+| [Affichage des contrastes][integrite] | Conserver deux décimales dans `3,90:1` ou afficher `3,9:1` ? |
+| [Questions de crans][integrite] | Les laisser dans la section « Alias » ou leur donner un rangement distinct ? |
+| [Historique des créations][integrite] | Quel retour afficher et quelle annulation proposer lorsque la réécriture du journal échoue après une création ? |
+| [Corpus de nomenclature][ancienne-nomenclature] | La provenance, les couches inconnues et les réglages des extractions externes suffisent-ils à justifier les décisions de termes ? Quels concepts demandent encore une annotation ? |
+| [Pistes d'architecture globale][revue-architecture] | Quels apports reprendre au-delà de la version minimale : adoption partielle, état de publication, périmètre du bilan et parcours d'une équipe ? Réexaminer ces propositions avec le concept courant. |
+| [Signatures des contrôles][vitesse-signatures] | Activer le partage de résultats par signature et la factorisation des modes ? Quel gain net, coût mémoire et comportement sur un corpus distinct exigent-ils ? |
+| [Worker d'analyse][vitesse-worker] | Le démarrage et les copies permettent-ils un gain sur l'analyse complète dans Figma ? Retenir le worker seulement si ce trajet apporte un bénéfice mesuré. |
+| [Échanges différentiels du worker][vitesse-differences] | Si le worker est retenu, conserver son état et transmettre des différences ? Le gain en session justifie-t-il le coût à froid et la mémoire ? |
+| [Diff sémantique][diff] | Valider le périmètre local proposé et lancer l'expérimentation ? Le rapport obtenu aide-t-il à décider des changements à traiter ? |
+| [Adressage du rendu][rendu] | Adopter `data-ucm-slot` pour retrouver les éléments observés ? Garder cet attribut en production ? |
+| [Preuves du rendu][rendu] | Comment prouver l'identité des tokens, et quelles clauses minimales peuvent produire un verdict de conformité ? |
+| [Périmètre du rendu][rendu] | Couvrir les états d'interaction ? Comment traiter un composant qui ne peut pas être affiché seul ? |
+| [Contrôles dans le workflow][rendu] | Quels contrôles dans l'éditeur et au push ? Qui répond d'un blocage de fusion, dans quel délai, et faut-il commencer par une période d'observation ? |
+| [Orientation de l'implémenteur][revue-implementeur] | Suspendre le programme complet au profit d'une preuve limitée ? Fixer sa dépense maximale et son horizon de rentabilité. |
+| [Contrôle autonome avant génération][revue-implementeur] | Livrer d'abord un contrôle de rendu sur le code maintenu par l'équipe ? Quel sous-ensemble d'obligations couvrir ? |
+| [Sortie du générateur][revue-implementeur] | Produire des données, une feuille CSS ou une coque de composant après comparaison sur un réexport réel ? |
+| [Politiques locales du générateur][revue-implementeur] | Quels choix deviennent des politiques typées ? Où se trouve leur seule valeur exécutable ? |
+| [Props des dépendances][revue-implementeur] | Qui choisit les props fixes, dérivées ou exposées ? Comment confirmer une suggestion issue des échantillons ? |
+| [Comportement et états visuels][revue-implementeur] | Quel raccord relie les signaux applicatifs, les états visuels et les changements de structure ? |
+| [Validité des décisions de génération][revue-implementeur] | Quels événements invalident une décision même lorsqu'elle reste valide pour son type ? |
+| [Propriété du code généré][revue-implementeur] | Choisir des fichiers générés séparés ou des régions identifiées dans les fichiers ? Quel refus appliquer en cas de conflit hors ligne ? |
+| [Acceptation du code généré][revue-implementeur] | Quel protocole d'observation et quelles mutations permettent de distinguer un résultat conforme d'un résultat incorrect ? |
+| [Fournisseur et mémoire partagée][revue-implementeur] | Retirer le port fournisseur et la mémoire mutualisée jusqu'à quel constat de charge humaine ? |
+| [Intégration du générateur][revue-implementeur] | Quel parcours de fusion retenir ? Qui prend en charge les prérequis de tokens et de CI chez le consommateur ? |
+| [Guide du chemin agent][reduction] | Quel gabarit neutre en technologie peut guider une reconstruction sans imposer une stack ? |
+| [Choix des évolutions globales][evolutions] | Quel besoin observé justifie le prochain essai : contrats et export, usages applicatifs, contrôle des écarts, aide à l'implémentation ou partage ? Désigner son responsable, son corpus et son budget. |
 
-## Questions ouvertes reprises des sujets archivés
+Les autres sujets du tableau n'ont pas de décision de conception ouverte
+identifiée dans leur plan d'exécution. Les avis des revues restent des
+propositions tant que le mainteneur ne les adopte pas.
 
-| Question | Origine |
-|---|---|
-| L'ombre ou le contour de la carte en Dark | [Recette critique, décisions, section 7](https://github.com/Vassili-g/UCM-Toolkit/blob/202f46e/docs/notes/Recherches/Plugin%20Palettes/Recette%20CRITIQUE%20de%20qualit%C3%A9/DECISIONS.md#7-ce-qui-reste-ouvert) |
-| En Dark inversé, l'appui du fond teinté (500) a la couleur de l'appui du bouton plein | Même section |
-| Les seuils des constats de saturation et de luminosité de l'onglet Comparaison, valeurs d'essai | Même section |
-| L'alignement de la luminosité d'un groupe de palettes (D3 à D7) ; la comparaison seule est implémentée | [Dossier Harmonisation, section 8](https://github.com/Vassili-g/UCM-Toolkit/blob/202f46e/docs/notes/Recherches/Plugin%20Palettes/Harmonisation%20entre%20palettes/DOSSIER-HARMONISATION.md#8-décisions-attendues-du-mainteneur) |
-| Cinq écarts de la vue composant de l'explorateur avec son plan ou sa maquette | [Suivi de la vue composant](https://github.com/Vassili-g/UCM-Toolkit/blob/202f46e/docs/notes/Recherches/Plugin%20Explorateur%20Tokens/Vue%20composant/SUIVI-VUE-COMPOSANT.md#écarts-avec-le-plan-ou-la-maquette-à-relire) |
-| La gestion des marques, le jeu de départ et la vision simulée dans Palettes | [Parcours 01 à 06](https://github.com/Vassili-g/UCM-Toolkit/tree/202f46e/docs/notes/Recherches/Plugin%20Palettes/Int%C3%A9gration%20du%20march%C3%A9) |
+## Références et validations
 
-## Recettes Figma en attente
+Les recettes Figma reportées d'Architect et de Palettes restent dans les plans
+liés ci-dessus. Les recettes antérieures demeurent accessibles :
 
-Ces fonctions sont implémentées. Leur liste de gestes reste lisible au
-commit `202f46e`.
+- [Qualité des palettes et Comparaison][recette-qualite-archive] ;
+- [Moteur, profils Soft et Vivid][recette-moteur-archive] ;
+- [Thème en dossiers et texte des boutons][recette-texte-archive] ;
+- [Création, Vérification et Gestion][recette-direction-archive] ;
+- [Ancienne vue composant de l'explorateur][recette-composant-archive] et [écarts relevés dans son suivi][suivi-composant-archive] ;
+- [Parcours proposés pour les apports du marché][parcours-marche-archive].
 
-| Fonction | Gestes à vérifier |
-|---|---|
-| Qualité des palettes, onglet Comparaison | [Tâche F4](https://github.com/Vassili-g/UCM-Toolkit/blob/202f46e/docs/notes/Recherches/Plugin%20Palettes/Recette%20CRITIQUE%20de%20qualit%C3%A9/PLAN-IMPLEMENTATION.md) |
-| Moteur retenu, profils Soft et Vivid | [Recette du moteur](https://github.com/Vassili-g/UCM-Toolkit/blob/202f46e/docs/notes/Recherches/Plugin%20Palettes/Recette%20moteur%20palettes/README.md) |
-| Thème en dossiers et texte des boutons | [Décisions du texte des boutons](https://github.com/Vassili-g/UCM-Toolkit/blob/202f46e/docs/notes/Recherches/Plugin%20Palettes/Texte%20des%20boutons/README.md) |
-| Création, Vérification, Gestion | [Recette de la direction simple](https://github.com/Vassili-g/UCM-Toolkit/blob/202f46e/docs/notes/Recherches/Plugin%20Palettes/Int%C3%A9gration%20du%20march%C3%A9/07%20Direction%20simple/RECETTE-DIRECTION-SIMPLE.md) |
-| Vue composant de l'explorateur | [Recette de la vue composant](https://github.com/Vassili-g/UCM-Toolkit/blob/202f46e/docs/notes/Recherches/Plugin%20Explorateur%20Tokens/Vue%20composant/RECETTE-VUE-COMPOSANT.md) |
+Les documents archivés décrivent leur périmètre d'origine. Les règles
+courantes viennent des spécifications et du référentiel. Les comparatifs
+externes demandent une nouvelle vérification avant un choix de produit ou de
+modèle.
+
+[kits]: ./Kits%20UCM%20et%20partage%20des%20donnees/PLAN-IMPLEMENTATION-FIABILITE.md
+[referentiel]: ./Référentiel%20UCM/PLAN-IMPLEMENTATION.md
+[agents]: ./Guide%20des%20agents/PLAN-IMPLEMENTATION.md
+[multimarques]: ./Archi%20Tokens%20Multi-marques/README.md
+[regles-dupliquees]: ./Règles%20dupliquées/README.md
+[crans]: ./SUJETS%20IMPORTANTS%20à%20trancher/PLAN-IMPLEMENTATION.md
+[hub]: ./Hub%20UCM/PLAN-HUB-UCM.md
+[palettes-v10]: ./Plugin%20Palettes/Recette%20v10/PLAN-IMPLEMENTATION-RECETTE-V10.md
+[palettes-v10-dossier]: ./Plugin%20Palettes/Recette%20v10/DOSSIER-RECETTE-V10.md
+[architect]: ./UCM%20Architect/3%20Plan/PLAN-IMPLEMENTATION.md
+[architect-v1]: ./UCM%20Architect/4%20Recette%20v1/PLAN-IMPLEMENTATION-RECETTE-V1.md
+[vitesse]: ./UCM%20Architect/5%20Vitesse%20de%20l'analyse/lots/README.md
+[vitesse-signatures]: ./UCM%20Architect/5%20Vitesse%20de%20l'analyse/lots/LOT-12.md
+[vitesse-worker]: ./UCM%20Architect/5%20Vitesse%20de%20l'analyse/lots/LOT-13.md
+[vitesse-differences]: ./UCM%20Architect/5%20Vitesse%20de%20l'analyse/lots/LOT-14.md
+[architect-v2]: ./UCM%20Architect/6%20Recette%20v2/PLAN-IMPLEMENTATION-RECETTE-V2.md
+[regles-manquantes]: ./UCM%20Architect/7%20Règles%20manquantes/PLAN-IMPLEMENTATION-REGLES-MANQUANTES.md
+[integrite]: ./UCM%20Architect/8%20Intégrité%20de%20la%20structure/PLAN-IMPLEMENTATION.md
+[ancien-architect]: ./Plugin%20Architect/README.md
+[ancienne-refonte]: ./Plugin%20Architect/3%20Refonte/PLAN-IMPLEMENTATION.md
+[ancienne-nomenclature]: ./Plugin%20Architect/4%20Nomenclature/PLAN-IMPLEMENTATION.md
+[ancienne-recette]: ./Plugin%20Architect/5%20Recette/PLAN-IMPLEMENTATION.md
+[ancienne-fiabilite]: ./Plugin%20Architect/5%20Recette/PLAN-FIABILITE.md
+[anciens-groupes]: ./Plugin%20Architect/5%20Recette/PLAN-GROUPES-VARIABLES.md
+[ancien-historique]: ./Plugin%20Architect/5%20Recette/PLAN-HISTORIQUE.md
+[ancien-vocabulaire]: ./Plugin%20Architect/5%20Recette/PLAN-VOCABULAIRE.md
+[anciens-noms-palettes]: ./Plugin%20Architect/5%20Recette/PLAN-NOMS-DE-PALETTES.md
+[revue-architecture]: ./Plugin%20Architect/1%20Architecture%20globale/REVUE-CONCEPTUELLE-ET-FONCTIONNELLE.md
+[diff]: ./Diff%20Sémantique/PLAN-DIFF-SEMANTIQUE.md
+[rendu]: ./Linter%20Dev/PLAN-CONFORMITE-RENDU.md
+[implementeur]: ./Optimisation%20Tokens/README.md
+[revue-implementeur]: ./Optimisation%20Tokens/review/review-plan-codex-astra.md#8-décisions-ouvertes-par-cette-revue
+[reduction]: ./Optimisation%20Tokens/Recherches/PLAN-REDUCTION-TOKENS.md
+[concurrence]: ./Plugin%20Palettes/1%20Recherche%20initiale/RECHERCHE-CONCURRENCE-PALETTES.md
+[evolutions]: ./Evolutions%20globales/PISTES-EVOLUTION.md
+[spec-palettes]: ./Plugin%20Palettes/1%20Recherche%20initiale/RECHERCHE-PLUGIN-PALETTES.md
+[qualite-archive]: https://github.com/Vassili-g/UCM-Toolkit/blob/202f46e/docs/notes/Recherches/Plugin%20Palettes/Recette%20CRITIQUE%20de%20qualit%C3%A9/DECISIONS.md#7-ce-qui-reste-ouvert
+[harmonisation-archive]: https://github.com/Vassili-g/UCM-Toolkit/blob/202f46e/docs/notes/Recherches/Plugin%20Palettes/Harmonisation%20entre%20palettes/DOSSIER-HARMONISATION.md#8-décisions-attendues-du-mainteneur
+[recette-qualite-archive]: https://github.com/Vassili-g/UCM-Toolkit/blob/202f46e/docs/notes/Recherches/Plugin%20Palettes/Recette%20CRITIQUE%20de%20qualit%C3%A9/PLAN-IMPLEMENTATION.md
+[recette-moteur-archive]: https://github.com/Vassili-g/UCM-Toolkit/blob/202f46e/docs/notes/Recherches/Plugin%20Palettes/Recette%20moteur%20palettes/README.md
+[recette-texte-archive]: https://github.com/Vassili-g/UCM-Toolkit/blob/202f46e/docs/notes/Recherches/Plugin%20Palettes/Texte%20des%20boutons/README.md
+[recette-direction-archive]: https://github.com/Vassili-g/UCM-Toolkit/blob/202f46e/docs/notes/Recherches/Plugin%20Palettes/Int%C3%A9gration%20du%20march%C3%A9/07%20Direction%20simple/RECETTE-DIRECTION-SIMPLE.md
+[recette-composant-archive]: https://github.com/Vassili-g/UCM-Toolkit/blob/202f46e/docs/notes/Recherches/Plugin%20Explorateur%20Tokens/Vue%20composant/RECETTE-VUE-COMPOSANT.md
+
+[suivi-composant-archive]: https://github.com/Vassili-g/UCM-Toolkit/blob/202f46e/docs/notes/Recherches/Plugin%20Explorateur%20Tokens/Vue%20composant/SUIVI-VUE-COMPOSANT.md#écarts-avec-le-plan-ou-la-maquette-à-relire
+[parcours-marche-archive]: https://github.com/Vassili-g/UCM-Toolkit/tree/202f46e/docs/notes/Recherches/Plugin%20Palettes/Int%C3%A9gration%20du%20march%C3%A9
