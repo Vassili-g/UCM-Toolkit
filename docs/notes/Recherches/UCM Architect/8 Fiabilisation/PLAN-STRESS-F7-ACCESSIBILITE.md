@@ -104,7 +104,7 @@ Display P3. Pour un document P3, l'oracle compose dans l'espace encodé P3, lin�
 
 ### 3.1 Composant de base
 
-F7 réutilise le générateur de F3 (`packages/kit/scripts/stress/f3-composant/composantDeBase.ts` et `profils.ts`) : relevé, catalogue et carte. Il n'en écrit pas un second. Un module de F7, `composantDeContraste.ts`, appelle `composantDeBase` puis impose sur la copie les états de l'axe `State` et les couleurs. Il ne modifie aucun fichier de F3.
+F7 réutilise le générateur de F3 (`packages/kit/tests/stress/f3-composant/composantDeBase.ts` et `profils.ts`) : relevé, catalogue et carte. Il n'en écrit pas un second. Un module de F7, `composantDeContraste.ts`, appelle `composantDeBase` puis impose sur la copie les états de l'axe `State` et les couleurs. Il ne modifie aucun fichier de F3.
 
 | Couche | Ce que F7 impose |
 |---|---|
@@ -340,7 +340,7 @@ Le code vit hors de `npm test`, dans deux dossiers.
 
 | Dossier | Contenu |
 |---|---|
-| `packages/kit/scripts/stress/f7-accessibilite/` | Hors de `tests/`, donc non découvert par `run-tests.cjs`. Le cadre commun (`prng.ts`, `types.ts`, `comparer.ts`) est dans `packages/kit/scripts/stress/commun/`. Ici : `oracleContraste.ts`, `paires.ts`, `couleursDeStress.ts`, `composantDeContraste.ts`, `profils.ts`, `operateursSeuils.ts` (S, G, O), `operateursFonds.ts` (F, M, Y), `operateursFormes.ts` (I, R, Z, X), `operateursEspaceEtBorne.ts` (E, Q, T, L), `fauxPositifs.ts`, `combinaisons.ts`, `metamorphiques.ts`. Il importe `composantDeBase.ts` et `profils.ts` de `f3-composant/`. |
+| `packages/kit/tests/stress/f7-accessibilite/` | Hors de `tests/`, donc non découvert par `run-tests.cjs`. Le cadre commun (`prng.ts`, `types.ts`, `comparer.ts`) est dans `packages/kit/tests/stress/commun/`. Ici : `oracleContraste.ts`, `paires.ts`, `couleursDeStress.ts`, `composantDeContraste.ts`, `profils.ts`, `operateursSeuils.ts` (S, G, O), `operateursFonds.ts` (F, M, Y), `operateursFormes.ts` (I, R, Z, X), `operateursEspaceEtBorne.ts` (E, Q, T, L), `fauxPositifs.ts`, `combinaisons.ts`, `metamorphiques.ts`. Il importe `composantDeBase.ts` et `profils.ts` de `f3-composant/`. |
 | `packages/plugin-architect/scripts/stress/f7-accessibilite/` | `chaine.ts` (sandbox et écran), `executer.ts`, `rapport.ts`, `signatures.ts` (rattachement d'un écart à un E connu), `recette.ts`. |
 
 Lancement, après construction du kit comme le font les scripts du plugin.
@@ -454,7 +454,7 @@ Le plan d'ensemble reste dans la conversation principale. Un lot par appel d'age
 
 | Lot | Fichiers | Agent | Critères de fin |
 |---|---|---|---|
-| 0 Cadre commun et générateur de F3 | `packages/kit/scripts/stress/commun/`, `packages/kit/scripts/stress/f3-composant/composantDeBase.ts`, `profils.ts` | `implementeur` | Le lot 0 de F2 et le lot 1 de F3 sont livrés. Si `comparer` a une clé fixe, la famille fournit la clé (code, usage, variant, layer, plage, fond). `stressCadre.test.ts` prouve que deux tirages de la graine 7107 sont identiques. `npm run typecheck` passe. |
+| 0 Cadre commun et générateur de F3 | `packages/kit/tests/stress/commun/`, `packages/kit/tests/stress/f3-composant/composantDeBase.ts`, `profils.ts` | `implementeur` | Le lot 0 de F2 et le lot 1 de F3 sont livrés. Si `comparer` a une clé fixe, la famille fournit la clé (code, usage, variant, layer, plage, fond). `stressCadre.test.ts` prouve que deux tirages de la graine 7107 sont identiques. `npm run typecheck` passe. |
 | 1 Oracle numérique | `oracleContraste.ts`, `paires.ts`, `packages/kit/tests/oracleContraste.test.ts` | `implementeur-exigeant` | L'oracle n'importe rien de `emplois/`. Il rend 21 pour noir sur blanc, 1 pour deux couleurs égales, 4,5422 pour #767676 sur blanc et 7,0047 pour #595959. La table de luminance est la même avec 0,03928 et 0,04045. Sur 100 000 paires opaques de la graine, l'oracle et `contraste` du kit diffèrent de moins de 1e-12. La recherche de `paires.ts` rend la paire la plus proche de chaque seuil, à plus de 1e-9. La conversion P3 retrouve (1, 1, 1) pour le blanc P3. |
 | 2 Générateur | `couleursDeStress.ts`, `composantDeContraste.ts`, `profils.ts` de F7 | `implementeur-exigeant` | Les 96 profils donnent zéro constat C49 à C52 (P1). `button-216` se construit en moins de 2 s. Chaque profil porte les fonds d'élévation et la carte de ses couleurs. Un profil non vide en constats est lui-même un résultat à remonter. Le lot 2 relève la fonction de `packages/couleur` qui génère une palette. |
 | 3 Opérateurs S, G, O, F, M, Y | `operateursSeuils.ts`, `operateursFonds.ts` | `implementeur-exigeant` | Les opérateurs rendent 96 + 45 + 47 + 52 + 36 + 18 = 294 cas. Chaque cas a un oracle rédigé, les verdicts `mesure` sont marqués, et un contrôle de cohérence prouve que dégrader puis annuler redonne le composant de base. |

@@ -88,7 +88,12 @@ Ce qui juge un contrat écrit ; `ajv` et `node:fs`.
 ## scripts/
 - build-schema.ts : génère le schéma depuis `types.ts`
 - generer-refus.mjs : refus de version, rendus pour la relecture
-- stress/commun/ : tirage à graine, types des cas et comparaison des constats attendus et émis, partagés par les harnais de stress test d'Architect, hors de npm test
+
+## tests/stress/
+Harnais de stress test d'Architect, hors de `npm test` : `run-tests.cjs` ne lit que le premier niveau de `tests/`.
+
+- f1-noms/ : noms de Nomenclature (`npm run stress:f1` à la racine) ; `corpus.ts` convertit les `noms.json` des design systems en inventaires, `dictionnaire.ts` compte les mots et rend les listes de candidats, `index.ts` lit les options ; tout s'écrit sous `_local/stress/f1-noms/`
+- commun/ : tirage à graine, types des cas et comparaison des constats attendus et émis, partagés par toutes les familles
 
 ## fixtures/contrats/
 Jeux figés que le moteur ne sait plus fabriquer.

@@ -352,10 +352,10 @@ Le code vit hors de `npm test`. Presque tout vit dans le plugin, car les contrô
 
 | Dossier | Contenu |
 |---|---|
-| `packages/kit/scripts/stress/commun/` | Cadre commun livré par le lot 0 de F2 (`prng.ts`, `types.ts`, `comparer.ts`). Ce plan n'y ajoute rien. |
+| `packages/kit/tests/stress/commun/` | Cadre commun livré par le lot 0 de F2 (`prng.ts`, `types.ts`, `comparer.ts`). Ce plan n'y ajoute rien. |
 | `packages/plugin-architect/scripts/stress/f8-analyse/` | `profilsRegles.ts`, `pageDeRegles.ts`, `scenarioDeBase.ts`, `corpusDuMoteur.ts`, `injecteur.ts`, un fichier d'opérateurs par groupe (`operateursRegles.ts`, `operateursEcriture.ts`, `operateursMoteur.ts`, `operateursLectures.ts`, `operateursBudget.ts`, `operateursCycle.ts`, `operateursEtats.ts`), `fauxPositifs.ts`, `oracle.ts`, `combinaisons.ts`, `metamorphiques.ts`, `appliquer.ts`, `chaine.ts`, `ecran.ts`, `rejeu.ts`, `executer.ts`, `rapport.ts`, `signatures.ts`, `recette.ts`. |
 
-Le harnais importe le `composantDeBase` de `packages/kit/scripts/stress/f3-composant/` et l'`atelierDuComposant` de F3-F4 sans les modifier.
+Le harnais importe le `composantDeBase` de `packages/kit/tests/stress/f3-composant/` et l'`atelierDuComposant` de F3-F4 sans les modifier.
 
 Lancement, après construction du kit comme le font les scripts du plugin.
 
@@ -489,7 +489,7 @@ Le plan d'ensemble reste dans la conversation principale. Un lot par appel d'age
 
 | Lot | Fichiers | Agent | Critères de fin |
 |---|---|---|---|
-| 0 Cadre commun | `packages/kit/scripts/stress/commun/` | `implementeur` | Le lot 0 de F2 est livré, `comparer` accepte une clé fournie par la famille (code, propriété ou point, statut). `npm run typecheck` passe. |
+| 0 Cadre commun | `packages/kit/tests/stress/commun/` | `implementeur` | Le lot 0 de F2 est livré, `comparer` accepte une clé fournie par la famille (code, propriété ou point, statut). `npm run typecheck` passe. |
 | 1 Bases et injecteur | `packages/plugin-architect/scripts/stress/f8-analyse/profilsRegles.ts`, `pageDeRegles.ts`, `scenarioDeBase.ts`, `corpusDuMoteur.ts`, `injecteur.ts` | `implementeur-exigeant` | Les 48 profils de règles ne donnent ni C43 ni C45. Les 72 profils d'analyse donnent `complete`. Le corpus compte 40 gabarits et le contrôle de couverture des sites du socle passe. Un cas qui ne lève aucune panne rend un résultat identique à une analyse sans injecteur. Deux cas de suite ne partagent aucun état. Le lot 1 dépend du lot 1 de F3-F4 (`composantDeBase`). |
 | 2 Opérateurs de règles et d'écriture | `operateursRegles.ts`, `operateursEcriture.ts` | `implementeur` | Les opérateurs rendent 21 + 58 + 6 + 36 = 121 cas. Chaque cas a un oracle rédigé. Les verdicts `mesure` sont marqués. |
 | 3 Opérateurs du moteur | `operateursMoteur.ts` | `implementeur` | Les opérateurs rendent 114 cas. La recherche d'une collision d'empreinte est bornée à 200 000 essais et reproductible. Les lots 2 et 3 touchent des fichiers distincts et peuvent tourner ensemble. |

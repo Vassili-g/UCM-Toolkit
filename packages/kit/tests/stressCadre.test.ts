@@ -1,8 +1,8 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { agreger, comparer, tableauTexte } from '../scripts/stress/commun/comparer.js';
-import { echantillon, graineDe, melanger, mulberry32 } from '../scripts/stress/commun/prng.js';
-import type { CasDeStress, ConstatAttendu } from '../scripts/stress/commun/types.js';
+import { agreger, comparer, tableauTexte } from './stress/commun/comparer.js';
+import { echantillon, graineDe, melanger, mulberry32 } from './stress/commun/prng.js';
+import type { CasDeStress, ConstatAttendu } from './stress/commun/types.js';
 import type { Constat } from '../src/controles/constat.js';
 
 function constat(code: `C${number}`, cle: string, reste: Partial<Constat> = {}): Constat {
