@@ -257,6 +257,8 @@ Le tableau principal croise chaque opérateur (lignes) avec chaque axe (colonnes
 
 Le harnais calcule les marges de chaque ligne et de chaque colonne. Une cellule vide s'écrit `.`. Sans `--attendre-zero`, le code de sortie est 0, car la première exécution mesure. Avec `--attendre-zero`, il vaut 1 s'il reste un manqué ou un faux positif certain, ce qui sert après les corrections.
 
+Le lot 2, livré, génère 22 591 cas en 4 secondes. La strate S16 donne 2 794 cas au lieu de 3 840 : les contraintes de lot (20 sites par passe, aucun mot partagé, aucun couple de mutants à distance 1) laissent moins de sites sur les petits systèmes. La conversation principale garde ce nombre.
+
 ## 6. Deux temps
 
 ### 6.1 Mesure de l'existant

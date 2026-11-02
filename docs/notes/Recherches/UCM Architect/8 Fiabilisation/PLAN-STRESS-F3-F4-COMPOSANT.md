@@ -326,6 +326,8 @@ Le `verificateur` lance le harnais sur le code actuel. La conversation principal
 | Les corrections arrivent cochées, aucun bouton « Tout cocher » ne les groupe et les cartes de question n'ont ni Ignorer ni « Ne plus proposer ». | D1, D2 | `ui/corrections/index.ts` l.161, `ui/questions/` | lecture |
 | C25 ou C29 et C30 donnent deux cartes pour la même valeur en dur. | D4 | `sandbox/analyse.ts`, `constatsDuMoteur.ts` | lecture |
 
+Constats du lot 1, livré en `453c5db0`. Les 48 profils aux scopes précis donnent C18 sur une icône au scope `SHAPE_FILL`, car `porteeAttendue` (`mapping.ts`) n'attend que `FRAME_FILL` ; le test de base le garde en `todo`. `proposerLaPropagation` depuis le premier variant de P0 rend 70 questions sans candidat, une par plage de `Label` et par variant visé, car la liaison d'une plage n'a pas d'`indice` (`propagation.ts`). Ces 70 questions sont un écart attendu, pas une base de M2.
+
 ### 6.2 Tests de régression
 
 Une fois la mesure lue, des cas représentatifs deviennent des tests dans `npm test`.

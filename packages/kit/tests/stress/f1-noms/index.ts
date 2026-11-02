@@ -1,6 +1,7 @@
 /**
- * Point d'entrée du harnais de stress test F1 (noms de Nomenclature), hors de `npm test`. Lot 1 du plan : `--corpus` lit les
- * design systems, écrit le tableau de conversion, le dictionnaire et les listes de candidats sous `_local/stress/f1-noms/`.
+ * Point d'entrée du harnais de stress test F1 (noms de Nomenclature), hors de `npm test`. `--corpus` (lot 1) lit les design
+ * systems, écrit le tableau de conversion, le dictionnaire et les listes de candidats sous `_local/stress/f1-noms/`.
+ * `--scenarios` (lot 2) génère les cas des strates, compte ceux de chaque strate contre le plan et écrit l'empreinte.
  * Les autres options du plan sont reconnues et refusées tant que leur lot n'existe pas.
  */
 import { mkdirSync, writeFileSync } from 'node:fs';
@@ -11,25 +12,37 @@ import {
 import {
   candidatsADistanceUn, candidatsAmbigus, candidatsDeFormes, candidatsDeSynonymes, construireLeDictionnaire, vocabulaireDeReference,
 } from './dictionnaire.js';
+import { bilanDesScenarios, creerLeContexte, GRAINE_PAR_DEFAUT } from './scenarios.js';
 
 const PAS_ENCORE: Readonly<Record<string, string>> = {
-  '--strate': 'lot 2', '--rapide': 'lot 2', '--graine': 'lot 2', '--attendre-zero': 'lot 3',
+  '--attendre-zero': 'lot 3',
   '--slice': 'lot 5 : le fichier Slice est confidentiel et le harnais ne le lit pas avant ce lot', '--verifier-fuite': 'lot 5',
 };
 
-interface Options { corpus: boolean; sortie: string }
+interface Options { corpus: boolean; scenarios: boolean; strates?: string[]; rapide: boolean; graine: number; sortie: string }
 
 function lireLesOptions(argv: readonly string[]): Options {
-  const options: Options = { corpus: false, sortie: DOSSIER_DE_SORTIE };
+  const options: Options = { corpus: false, scenarios: false, rapide: false, graine: GRAINE_PAR_DEFAUT, sortie: DOSSIER_DE_SORTIE };
   for (let i = 0; i < argv.length; i++) {
     const option = argv[i];
     if (option in PAS_ENCORE) throw new Error(`L'option ${option} n'existe pas encore (${PAS_ENCORE[option]}).`);
     if (option === '--corpus') options.corpus = true;
+    else if (option === '--scenarios') options.scenarios = true;
+    else if (option === '--rapide') options.rapide = true;
+    else if (option === '--strate') {
+      const valeur = argv[++i];
+      if (!valeur) throw new Error('--strate demande une liste, par exemple S1,S2.');
+      options.strates = valeur.split(',').map((strate) => strate.trim().toUpperCase());
+    } else if (option === '--graine') {
+      const graine = Number(argv[++i]);
+      if (!Number.isInteger(graine)) throw new Error('--graine demande un entier.');
+      options.graine = graine;
+    }
     else if (option === '--sortie') {
       const valeur = argv[++i];
       if (!valeur) throw new Error('--sortie demande un dossier.');
       options.sortie = resolve(valeur);
-    } else throw new Error(`Option inconnue : ${option}. Options admises : --corpus, --sortie <dossier>.`);
+    } else throw new Error(`Option inconnue : ${option}. Options admises : --corpus, --scenarios, --strate, --rapide, --graine, --sortie <dossier>.`);
   }
   return options;
 }
@@ -73,10 +86,25 @@ function lancerLeCorpus(sortie: string): void {
   console.log(`Écrit sous ${sortie}`);
 }
 
+function lancerLesScenarios(options: Options): void {
+  const debut = Date.now();
+  const contexte = creerLeContexte(lireLesSystemes(), options.graine);
+  const bilan = bilanDesScenarios(contexte, { strates: options.strates, rapide: options.rapide });
+  console.log(`Graine ${bilan.graine}, empreinte ${bilan.empreinte}${options.rapide ? ' (un cas sur dix)' : ''}`);
+  for (const [strate, ligne] of Object.entries(bilan.parStrate)) {
+    const ecart = `${ligne.ecart >= 0 ? '+' : ''}${(ligne.ecart * 100).toFixed(1)} %`;
+    console.log(`  ${strate.padEnd(4)} ${String(ligne.cas).padStart(6)} cas, plan ${String(ligne.plan).padStart(6)}, écart ${ecart}${options.rapide || ligne.dansLaMarge ? '' : ' (hors marge)'}`);
+  }
+  console.log(`  Total ${bilan.total} cas en ${Date.now() - debut} ms`);
+  mkdirSync(options.sortie, { recursive: true });
+  ecrire(join(options.sortie, 'scenarios-bilan.json'), bilan);
+}
+
 try {
   const options = lireLesOptions(process.argv.slice(2));
-  if (!options.corpus) throw new Error('Rien à lancer : le lot 1 ne fournit que --corpus. Les strates arrivent avec le lot 2.');
-  lancerLeCorpus(options.sortie);
+  if (!options.corpus && !options.scenarios) throw new Error('Rien à lancer : choisir --corpus ou --scenarios.');
+  if (options.corpus) lancerLeCorpus(options.sortie);
+  if (options.scenarios) lancerLesScenarios(options);
 } catch (erreur) {
   console.error(erreur instanceof Error ? erreur.message : String(erreur));
   process.exitCode = 1;
