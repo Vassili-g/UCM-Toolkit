@@ -183,5 +183,6 @@ Les deux écarts en attente dépendent de Q-F3-5 (D5-6) et de Q-F3-12 (D5-10). L
 
 | Id | Écart | Mesure |
 |---|---|---|
-| N-23 | Le résultat provisoire ne dessine aucune carte : 0 carte de corrections et 0 carte À faire, pour 1 et 113 dans le modèle. L'écran attendu du provisoire reste à trancher | D3-5 |
-| N-24 | Avec une library à choisir, le panneau d'analyse dessine ses cartes sans demander le choix. Le choix est peut-être porté hors du panneau | D6-4, à confirmer |
+| N-23 | Le résultat provisoire ne dessine aucune carte : 0 carte de corrections et 0 carte À faire, pour 1 et 113 dans le modèle. Le mainteneur a tranché : le provisoire montre ses cartes | D3-5 |
+
+D6-4 n'est pas un écart du plugin. Tant que la library reste à choisir, `barre.ts` désactive Analyser et le panneau demande le choix avec « Ouvrir la configuration ». Le harnais force une analyse que l'interface empêche. Le lot de régression réécrit D6-4 pour juger l'écran avant l'analyse.
