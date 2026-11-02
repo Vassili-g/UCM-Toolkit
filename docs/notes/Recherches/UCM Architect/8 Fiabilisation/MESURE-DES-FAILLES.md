@@ -149,3 +149,39 @@ C29 tient ses 42 cas de proximité, ses cas exacts et `counterAxisSpacing`. Les 
 | N-21 | C16 accuse un token d'un autre état alors que la variable visée est non chargée ou inaccessible, ou que `components` est inaccessible | nouveau |
 | N-22 | `divider` sur un fond ou un trait, `inverse` sur un texte et `ring` en fond reçoivent une correction de rôle (C24) | Q-F3-3 |
 
+
+### Chaîne jusqu'à l'écran et l'écriture
+
+Mesure du lot 6, `npm run stress:composant --workspace ucm-architect-plugin` : les 67 cas de la section D en 30 secondes. Le harnais monte le vrai panneau sur le faux DOM, puis écrit dans le double de Figma. Le composite fusionne 44 cas du kit et porte tous les codes de la portée sauf C25, que le kit n'émet pas (E-25).
+
+| Série | Contenu | Cas | Tiennent | Écarts | Écarts en attente |
+|---|---|---|---|---|---|
+| D1 | Cases décochées | 17 | 0 | 17 | 0 |
+| D2 | Cartes de question | 24 | 6 | 18 | 0 |
+| D3 | Affichage de tous les codes | 6 | 4 | 2 | 0 |
+| D4 | Doublon du moteur | 4 | 0 | 4 | 0 |
+| D5 | Écriture | 11 | 4 | 5 | 2 |
+| D6 | États | 5 | 2 | 3 | 0 |
+| Total | | 67 | 16 | 49 | 2 |
+
+Les deux écarts en attente dépendent de Q-F3-5 (D5-6) et de Q-F3-12 (D5-10). L'écriture d'une plage de texte, d'une marge et d'un rayon tient, et un variant renommé saute en `objet-change`.
+
+| Écart | Cas | Ce que l'écran fait |
+|---|---|---|
+| E-34 | 15 | Les corrections arrivent cochées, Appliquer est actif, et « Tout cocher » et « Tout décocher » manquent par section et au global. La propagation du modèle coche 422 lignes sur 424. |
+| E-35 | 12 | Les cartes de question n'ont ni Ignorer ni « Ne plus proposer ». |
+| E-25 | 12 | Sans C25 sur un fond, un trait ou une plage, la carte « lier », ses motifs de saut et le doublon avec C30 ne se jugent pas. |
+| E-30 | 2 | C29 et C30 donnent deux cartes pour la même valeur en dur. |
+| N-15 | 3 | Sans C63 `vide`, aucune carte de question. |
+| E-28 | 1 | La correction `alias-de-mode` de C63 a une case, mais l'écran ne l'envoie pas à l'écriture. |
+| E-31 | 1 | L'échec de la lecture des ignorés laisse le statut `complete`. |
+| E-32 | 1 | Sur un moteur partiel, la bannière dit « 1 variants lus sur 1 ». |
+| E-38 | 1 | Une analyse périmée ne dessine aucune carte. |
+| N-06 | 1 | Palette et rôle faux sur une même liaison : la seconde correction saute en `fait-faux`. |
+
+Écarts nouveaux :
+
+| Id | Écart | Mesure |
+|---|---|---|
+| N-23 | Le résultat provisoire ne dessine aucune carte : 0 carte de corrections et 0 carte À faire, pour 1 et 113 dans le modèle. L'écran attendu du provisoire reste à trancher | D3-5 |
+| N-24 | Avec une library à choisir, le panneau d'analyse dessine ses cartes sans demander le choix. Le choix est peut-être porté hors du panneau | D6-4, à confirmer |
