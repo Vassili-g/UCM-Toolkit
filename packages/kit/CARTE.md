@@ -88,6 +88,7 @@ Ce qui juge un contrat écrit ; `ajv` et `node:fs`.
 ## scripts/
 - build-schema.ts : génère le schéma depuis `types.ts`
 - generer-refus.mjs : refus de version, rendus pour la relecture
+- stress/commun/ : tirage à graine, types des cas et comparaison des constats attendus et émis, partagés par les harnais de stress test d'Architect, hors de npm test
 
 ## fixtures/contrats/
 Jeux figés que le moteur ne sait plus fabriquer.
