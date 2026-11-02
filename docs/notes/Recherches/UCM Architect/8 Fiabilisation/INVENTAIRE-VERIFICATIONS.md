@@ -1,6 +1,6 @@
 # Inventaire des vérifications d'UCM Architect
 
-Ce document liste chaque vérification qu'UCM Architect fait en mode Tokens et en mode Composant. Pour chacune, il donne la source, les conditions exactes de déclenchement, ce que le plugin affiche, le résultat attendu et l'écart. Il sert de base aux plans de stress test (étape E2) et attend la relecture du mainteneur (étape V1).
+Ce document liste chaque vérification qu'UCM Architect fait en mode Tokens et en mode Composant. Pour chacune, il donne la source, les conditions exactes de déclenchement, ce que le plugin affiche, le résultat attendu et l'écart. Il sert de base aux plans de stress test (étape E2). La section 8 porte les réponses du mainteneur (étape V1).
 
 Les chemins sont relatifs à `packages/`. `K` désigne `kit/src/controles/`, `R` `kit/src/referentiel/`, `A` `plugin-architect/src/`, `S` `plugin-socle/src/composant/`. Tout vient de la lecture du code. Deux cas ont été rejoués sur le kit (section 2.4).
 
@@ -285,18 +285,20 @@ Les règles ne se lisent que si le moteur a couvert tout le composant (`A/sandbo
 
 Ce qui touche Figma (lecture des nœuds, écriture, sélection) reste hors des générateurs. Chaque plan en rend une liste de recette.
 
-## 8. Questions au mainteneur
+## 8. Réponses du mainteneur (V1)
 
-| Id | Question | Options |
-|---|---|---|
-| Q-01 | Dans ton fichier, `separator` avait-il pour voisin un `divider` du même parent ? | Oui : collision (E-08) ; non : autre cause à chercher |
-| Q-02 | Une forme tolérée doit-elle rester un renommage cochable dans Corrections, ou devenir une question ? Et quand la collision la bloque ? | Renommage cochable ; question ; question seulement en cas de collision |
-| Q-03 | Les corrections de liaison qui changent une couleur en mode Composant (E-34) et la correction C60 (E-22) doivent-elles arriver décochées, comme les crans C82 ? | Décochées ; cochées |
-| Q-04 | Au-delà de 10 questions, faut-il tout montrer, ou garder « Autres pistes » avec une action pour les ouvrir ? | Tout montrer ; ouvrir Autres pistes |
-| Q-05 | Une faute doit-elle sortir hors de la place partagée (autre collection, autre rang, nom d'un seul segment) dès qu'elle est à une lettre d'un terme connu ? | Oui, partout ; seulement dans la même collection |
-| Q-06 | C25 doit-il juger toute peinture unie visible en dur, et pas seulement le texte `title` ? | Toute peinture ; seulement texte et icône ; tel quel |
-| Q-07 | Une variable de `theme` qui n'est aucun rôle UCM doit-elle donner un constat en mode Tokens ? | Constat à faire ; question vers le rôle le plus proche ; rien |
-| Q-08 | Faut-il reconnaître d'autres noms d'axes (`type`, `kind`, `tone`, `emphasis`, `hierarchy`), tirés des design systems ? | Oui, liste tirée du corpus ; liste fixée par toi |
-| Q-09 | Quand le kit et le moteur disent le même défaut (C43 et C44, C29 et C30), lequel garder ? | Le constat du kit ; celui du moteur ; les fusionner |
-| Q-10 | Les paires pluriel et terminaison doivent-elles passer par un dictionnaire, tiré des design systems, pour écarter les faux couples ? | Oui ; non |
-| Q-11 | Les cartes de question doivent-elles proposer Ignorer et « Ne plus proposer » ? | Oui ; non |
+| Id | Question | Réponse | Écarts tranchés |
+|---|---|---|---|
+| Q-01 | `separator` avait-il pour voisin un `divider` du même parent ? | Oui. La collision explique le silence du cas rejoué | E-08 |
+| Q-02 | Forme tolérée : renommage ou question ? | Renommage dans Corrections ; une question quand le renommage est bloqué | E-08, E-09, E-10 |
+| Q-03 | Une correction qui change une couleur arrive-t-elle décochée ? | Toute correction arrive décochée, dans les deux modes. Chaque section reçoit « Tout cocher » et « Tout décocher », et le panneau les mêmes boutons pour toutes les sections | E-22, E-34 |
+| Q-04 | Au-delà de 10 questions ? | 10 questions, et « Autres pistes » devient dépliable | E-14 |
+| Q-05 | Une faute hors de la place partagée ? | Partout, dès qu'un mot est à une lettre d'un terme UCM connu | E-05 |
+| Q-06 | C25 au-delà du texte `title` ? | Toute peinture unie visible sans token | E-25 |
+| Q-07 | Variable de `theme` qui n'est aucun rôle UCM ? | Une question vers le rôle le plus proche | E-19 |
+| Q-08 | D'autres noms d'axes ? | Oui, liste tirée des design systems relevés | E-27 |
+| Q-09 | Doublon du kit et du moteur ? | Garder le constat du kit, qui porte la correction | E-30 |
+| Q-10 | Dictionnaire pour les pluriels et terminaisons ? | Oui, tiré des design systems | E-12 |
+| Q-11 | Ignorer et « Ne plus proposer » sur les cartes de question ? | Oui, les deux | E-35 |
+
+Piste ouverte par Q-03, hors de ce plan : refondre le mode Tokens sur le modèle du mode Composant, avec des sections repliables titrées et signées d'une icône, et des filtres au lieu des onglets. Elle demande une étude et une maquette avant toute décision.

@@ -77,4 +77,4 @@ Le plan de la recette v1 est implémenté : panneau du mode Composant sans ongle
 
 | Document | Contenu |
 |---|---|
-| [INVENTAIRE-VERIFICATIONS.md](./8%20Fiabilisation/INVENTAIRE-VERIFICATIONS.md) | Chaque vérification des modes Tokens et Composant : source, conditions, affichage, résultat attendu, écarts E-01 à E-45, familles des plans de stress test et questions Q-01 à Q-11 |
+| [INVENTAIRE-VERIFICATIONS.md](./8%20Fiabilisation/INVENTAIRE-VERIFICATIONS.md) | Chaque vérification des modes Tokens et Composant : source, conditions, affichage, résultat attendu, écarts E-01 à E-45, familles des plans de stress test et réponses aux questions Q-01 à Q-11 |
