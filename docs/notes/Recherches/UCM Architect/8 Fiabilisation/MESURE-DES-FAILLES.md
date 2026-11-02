@@ -74,6 +74,15 @@ La courbe projette la règle voulue par D2 (une faute est un mot à une lettre d
 
 La règle provisoire Q-F4 (moins de 1 faux positif pour 1 000 noms justes) retient L = 7, ce qui laisse sans détection les fautes sur 69 termes de moins de 7 lettres, `border` et `radius` compris. Ce compromis est une question pour le mainteneur à l'étape V2.
 
+### Fichier Slice
+
+Mesure du lot 5 (`df6ef65c`), `npm run stress:f1 -- --slice <chemin>`. Le détail, qui cite des noms du fichier, reste sous `_local/stress/f1-noms/slice/`.
+
+- Le fichier compte 2 415 noms en 5 collections et 2 011 alias.
+- Le renommage n'y est pas idempotent : un second passage renomme encore (N-01).
+- Sur 209 fautes introduites dans ses noms, le kit en détecte 122 et en manque 87. Aucune des 40 inversions de deux lettres n'est vue (E-03). Les 49 synonymes et formes tolérées introduits sont tous vus.
+- Le contrôle `--verifier-fuite` ne trouve aucun mot du fichier dans les 2 339 fichiers suivis par Git.
+
 ## F3-F4 Liaisons et tailles du composant
 
 Mesure partielle du lot 2 (`e5b28b4f`), graine 7103, profil P0 (`button-36`) : opérateurs L, R et K, 150 cas.
