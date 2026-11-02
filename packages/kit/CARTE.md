@@ -92,7 +92,8 @@ Ce qui juge un contrat écrit ; `ajv` et `node:fs`.
 ## tests/stress/
 Harnais de stress test d'Architect, hors de `npm test` : `run-tests.cjs` ne lit que le premier niveau de `tests/`.
 
-- f1-noms/ : noms de Nomenclature (`npm run stress:f1` à la racine) ; `corpus.ts` convertit les `noms.json` des design systems en inventaires, `dictionnaire.ts` compte les mots et rend les listes de candidats, `index.ts` lit les options ; tout s'écrit sous `_local/stress/f1-noms/`
+- f1-noms/ : noms de Nomenclature (`npm run stress:f1` à la racine) ; `corpus.ts` convertit les `noms.json` des design systems en inventaires, `dictionnaire.ts` compte les mots et rend les listes de candidats, `mutations.ts` rend les fautes M-01 à M-06 et les variantes de pluriel, de casse et de séparateur, `scenarios.ts` bâtit le squelette et les strates S1 à S17 (`--scenarios` compte les cas contre le plan et écrit l'empreinte), `index.ts` lit les options ; tout s'écrit sous `_local/stress/f1-noms/`
+- f3-composant/ : composant de base des stress tests de liaisons et de tailles ; `composantDeBase.ts` fabrique un relevé, un catalogue et une carte sans constat de la portée (`constatsDeLaPortee`) à partir d'une `SpecDeComposant`, `profils.ts` donne les 96 profils et P0, `carte.ts` dit le token attendu par layer, champ et variant ; `tests/stressComposantBase.test.ts` en garde P0 et un échantillon
 - commun/ : tirage à graine, types des cas et comparaison des constats attendus et émis, partagés par toutes les familles
 
 ## fixtures/contrats/
