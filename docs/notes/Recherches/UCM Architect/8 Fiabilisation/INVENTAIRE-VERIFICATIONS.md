@@ -296,6 +296,8 @@ Cadre commun aux plans :
 |---|---|
 | [PLAN-STRESS-F1-NOMS.md](./PLAN-STRESS-F1-NOMS.md) | F1 |
 | [PLAN-STRESS-F2-STRUCTURE.md](./PLAN-STRESS-F2-STRUCTURE.md) | F2 |
+| [PLAN-STRESS-F3-F4-COMPOSANT.md](./PLAN-STRESS-F3-F4-COMPOSANT.md) | F3, F4 |
+| [PLAN-STRESS-F5-F6-VARIANTS-TYPO.md](./PLAN-STRESS-F5-F6-VARIANTS-TYPO.md) | F5, F6 |
 
 ## 8. Réponses du mainteneur (V1)
 
