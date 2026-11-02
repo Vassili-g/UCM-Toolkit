@@ -120,3 +120,23 @@ Mesure du lot 3 (`8809b935`), même profil : opérateurs M, U, T et S, 126 cas.
 | N-15 | C63 `vide` ne sort jamais sur un composant conforme : une sœur en alias ne compte pas comme une sœur qui a une valeur | nouveau (`structure.ts`) |
 | N-16 | C63 `theme` propose une correction vers la cible d'une sœur, donc vers la palette d'une autre | hypothèse 16 du plan, confirmée |
 | N-17 | C80 juge une liaison héritée d'une dépendance | hypothèse 10 du plan, confirmée |
+
+Mesure du lot 4 (`c9ea9657`), même profil pour Z, X et les thèmes ciblés, 96 profils pour la base : 282 cas.
+
+| Opérateur | Contenu | Attendus | Détectés | Manqués | Faux constats |
+|---|---|---|---|---|---|
+| Z | Tailles en dur (C29) | 113 | 97 | 0 | 0 |
+| X | Lecture et entrées dégradées | 0 | 0 | 0 | 3 |
+| A1 à A9 | Composants valides ciblés | 0 | 0 | 0 | 2 |
+| A0 | 96 profils valides | 0 | 0 | 0 | 3 324 |
+
+C29 tient ses 42 cas de proximité, ses cas exacts et `counterAxisSpacing`. Les 3 324 faux constats de A0 sont tous le C18 de N-04, sur les 48 profils aux scopes précis. 20 écarts dépendent de décisions provisoires et sont comptés à part.
+
+| Id | Écart | Rattachement |
+|---|---|---|
+| N-18 | C29 compare en égalité stricte : un écart de 1e-6 px ou `0,1 + 0,2` face à `0,3` devient une question proche au lieu d'une correction | Q-F3-11, 7 cas |
+| N-19 | De deux tokens proches à égalité, C29 n'en montre qu'un | Q-F3-11 |
+| N-20 | C29 ne lit ni la famille `sizes` ni la propriété `border-radius` | Q-F3-13, 7 cas |
+| N-21 | C16 accuse un token d'un autre état alors que la variable visée est non chargée ou inaccessible, ou que `components` est inaccessible | nouveau |
+| N-22 | `divider` sur un fond ou un trait, `inverse` sur un texte et `ring` en fond reçoivent une correction de rôle (C24) | Q-F3-3 |
+
