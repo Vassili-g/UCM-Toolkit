@@ -285,6 +285,18 @@ Les règles ne se lisent que si le moteur a couvert tout le composant (`A/sandbo
 
 Ce qui touche Figma (lecture des nœuds, écriture, sélection) reste hors des générateurs. Chaque plan en rend une liste de recette.
 
+Cadre commun aux plans :
+
+- le code des harnais vit sous `packages/kit/scripts/stress/`, un dossier par famille (`f1-noms/`, `f2-structure/`…) et `commun/` pour le tirage, les types et la comparaison ; la partie qui appelle le sandbox ou l'interface vit sous `packages/plugin-architect/scripts/stress/<famille>/` ;
+- les rapports et toute sortie tirée du fichier Slice vont sous `_local/stress/<famille>/`, ignoré par Git ;
+- les résultats de toutes les familles se résument dans `MESURE-DES-FAILLES.md`, dans ce dossier ;
+- les tests de régression entrent dans `npm test` avec `{ todo: '<écart>' }` tant que la correction manque.
+
+| Plan | Famille |
+|---|---|
+| [PLAN-STRESS-F1-NOMS.md](./PLAN-STRESS-F1-NOMS.md) | F1 |
+| [PLAN-STRESS-F2-STRUCTURE.md](./PLAN-STRESS-F2-STRUCTURE.md) | F2 |
+
 ## 8. Réponses du mainteneur (V1)
 
 | Id | Question | Réponse | Écarts tranchés |
