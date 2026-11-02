@@ -78,3 +78,28 @@ Quatre écarts de L5 dépendent de Q-F3-12 et sont comptés à part. Écarts obs
 | N-07 | C20 accuse l'alias d'un token de composant vers un autre token de `components` | Q-F3-15, réservée au mainteneur |
 | N-08 | C63 `theme` sort en plus de C20 sur un alias de `components` vers `brands` dont la cible porte un segment de mode | nouveau |
 | N-09 | `proposerLaPropagation` pose 70 questions sans candidat sur un composant entièrement lié, une par plage de texte et par variant visé | hypothèse du lot 1 |
+
+Mesure du lot 3 (`8809b935`), même profil : opérateurs M, U, T et S, 126 cas.
+
+| Opérateur | Contenu | Attendus | Détectés | Manqués | Faux constats | Corrections inexactes |
+|---|---|---|---|---|---|---|
+| M1 | Fratrie (C21) | 8 | 8 | 0 | 0 | 0 |
+| M2 | Propagation et modèle (C24, C81) | 1 498 | 1 283 | 1 | 556 | 214 |
+| U | Peinture unie sans token (C25) | 41 | 2 | 32 | 2 | 5 |
+| T | Texte de surface sans fond (C59) | 38 | 24 | 0 | 0 | 0 |
+| S | C63 `vide` et `theme` du mode Composant | 18 | 12 | 5 | 0 | 1 |
+
+484 écarts dépendent de décisions provisoires (Q-F3-1, Q-F3-6, Q-F3-9, Q-F3-10) et sont comptés à part. Écarts observés :
+
+| Id | Écart | Rattachement |
+|---|---|---|
+| N-09 | Chaque plage de texte donne une question de propagation sans candidat, que le variant visé soit nu ou déjà lié : 70 questions par cas sur P0, soit presque tous les 556 faux constats de M2 | confirmé, plus large que prévu (`propagation.ts`) |
+| N-10 | La propagation reprend une liaison directe à `theme` ou un token au nom illisible, et propose 35 corrections et un C81 | Q-F3-6 |
+| E-25 | C25 ne juge que le texte nommé `title` : 32 des 41 peintures sans token sont manquées | confirmé ; décision Q-06 |
+| N-11 | Pour le texte `title`, la correction de C25 manque dans 4 ordres de propriétés sur 5 : le suffixe du token suit l'ordre des propriétés du jeu, pas celui de la grammaire | hypothèse 1 du plan, confirmée |
+| N-12 | C25 accuse une peinture d'opacité 0 et une lecture mixte | nouveau |
+| N-13 | C59 ne juge que la liaison directe à `theme` : un token de composant aliasé à `surface/foreground` ne déclenche rien, et la correction vise `theme/page/foreground` au lieu d'un token du composant | hypothèse 9 du plan, confirmée |
+| N-14 | Une liaison de plage est énumérée deux fois, d'où deux C59 de même identifiant | nouveau (`theme.ts`, `liaisonsDuLayer`) |
+| N-15 | C63 `vide` ne sort jamais sur un composant conforme : une sœur en alias ne compte pas comme une sœur qui a une valeur | nouveau (`structure.ts`) |
+| N-16 | C63 `theme` propose une correction vers la cible d'une sœur, donc vers la palette d'une autre | hypothèse 16 du plan, confirmée |
+| N-17 | C80 juge une liaison héritée d'une dépendance | hypothèse 10 du plan, confirmée |
