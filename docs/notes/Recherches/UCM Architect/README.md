@@ -72,3 +72,9 @@ Le plan de la recette v1 est implémenté : panneau du mode Composant sans ongle
 | Document | Contenu |
 |---|---|
 | [PLAN-IMPLEMENTATION-REGLES-MANQUANTES.md](https://github.com/Vassili-g/UCM-Toolkit/blob/da7f465d/docs/notes/Recherches/UCM%20Architect/7%20R%C3%A8gles%20manquantes/PLAN-IMPLEMENTATION-REGLES-MANQUANTES.md) | La correction de C45 qui ajoute les règles manquantes dans une instance remplie : décisions, lots à cocher avec leur agent, textes et recette |
+
+## 8 Fiabilisation
+
+| Document | Contenu |
+|---|---|
+| [INVENTAIRE-VERIFICATIONS.md](./8%20Fiabilisation/INVENTAIRE-VERIFICATIONS.md) | Chaque vérification des modes Tokens et Composant : source, conditions, affichage, résultat attendu, écarts E-01 à E-45, familles des plans de stress test et questions Q-01 à Q-11 |
