@@ -1,7 +1,8 @@
 /**
  * Corpus de noms justes du stress test F1 : lit les `noms.json` des design systems et les convertit en inventaires du kit.
  * Chaque système donne quatre inventaires (chemins `points` ou `tirets`, collections `couche` ou `unique`), décrits dans
- * le plan F1, section 2.2. Le fichier Slice n'est jamais lu ici : l'option `--slice` appartient au lot 5.
+ * le plan F1, section 2.2. Le fichier Slice (confidentiel, ignoré par Git) ne s'ouvre que par `lireLaSlice`, que `index.ts` appelle
+ * seulement avec `--slice` ou `--verifier-fuite` ; `fichiersEnFuite` cherche ses mots dans les fichiers suivis par Git (plan F1, 2.5).
  */
 import { existsSync, readdirSync, readFileSync } from 'node:fs';
 import { dirname, join, resolve } from 'node:path';
@@ -13,8 +14,22 @@ export const RACINE_DU_DEPOT = resolve(dirname(fileURLToPath(import.meta.url)), 
 export const DOSSIER_DES_SYSTEMES = join(RACINE_DU_DEPOT, 'docs/references/design-systems');
 export const DOSSIER_DE_SORTIE = join(RACINE_DU_DEPOT, '_local/stress/f1-noms');
 
+/** Le fichier Slice, que seuls `--slice` et `--verifier-fuite` ouvrent ; `--verifier-fuite` le prend ici quand `--slice` ne donne pas de chemin. */
+export const CHEMIN_DE_SLICE_PAR_DEFAUT = join(RACINE_DU_DEPOT, 'docs/notes/Archives/Plugin Architect/1 Architecture globale/Mesures/tokens-slice-exemple.json');
+/** Toutes les sorties tirées de Slice : `_local/` est ignoré par Git. */
+export const DOSSIER_DE_SLICE = join(DOSSIER_DE_SORTIE, 'slice');
+export const ID_DE_SLICE = 'slice';
+
 export type Couche = 'primitive' | 'semantique' | 'composant' | null;
-export interface NomDeSysteme { readonly nom: string; readonly type: string | null; readonly couche: Couche }
+export interface NomDeSysteme {
+  readonly nom: string;
+  readonly type: string | null;
+  readonly couche: Couche;
+  /** Slice seulement : la collection du fichier (sa racine), qui remplace la collection déduite de la couche. */
+  readonly collection?: string;
+  /** Slice seulement : la variable que ce nom vise par alias, écrite `collection|chemin` comme `collection` et `nom` de sa cible. */
+  readonly alias?: string;
+}
 export interface Systeme { readonly id: string; readonly noms: readonly NomDeSysteme[] }
 
 export type ModeDeChemins = 'points' | 'tirets';
@@ -55,6 +70,7 @@ export function segmentsDuNom(nom: string, chemins: ModeDeChemins): string[] {
 }
 
 export function collectionDe(nom: NomDeSysteme, collections: ModeDeCollections): string {
+  if (nom.collection !== undefined) return nom.collection;
   return collections === 'unique' ? COLLECTION_UNIQUE : COLLECTION_PAR_COUCHE[nom.couche ?? 'null'];
 }
 
@@ -80,6 +96,8 @@ export function convertir(systeme: Systeme, chemins: ModeDeChemins, collections:
   const idsDeCollection = new Map<string, string>();
   const vus = new Set<string>();
   let doublons = 0;
+  const rangDeLaCible = new Map<string, number>();
+  systeme.noms.forEach((source, rang) => { if (source.collection !== undefined) rangDeLaCible.set(`${source.collection}|${source.nom}`, rang); });
   const collectionId = (collection: string): string => {
     let id = idsDeCollection.get(collection);
     if (id === undefined) {
@@ -92,7 +110,7 @@ export function convertir(systeme: Systeme, chemins: ModeDeChemins, collections:
   };
   systeme.noms.forEach((source, rang) => {
     const segments = segmentsDuNom(source.nom, chemins);
-    if (segments.length === 0) throw new Error(`${systeme.id} : le nom « ${source.nom} » est vide après conversion`);
+    if (segments.length === 0) throw new Error(`${systeme.id} : le nom n° ${rang} est vide après conversion`);
     const nom = segments.join('/');
     const collection = collectionDe(source, collections);
     const cle = `${collection}|${nom}`;
@@ -101,8 +119,10 @@ export function convertir(systeme: Systeme, chemins: ModeDeChemins, collections:
     const idCollection = collectionId(collection);
     const id = `${systeme.id}:${rang}`;
     const categories = categoriesDesSegments(nom);
+    const rangCible = source.alias === undefined ? undefined : rangDeLaCible.get(source.alias);
     entrees.push({
-      nom: { id, categorie: 'variables', portee: idCollection, nom, ...(categories ? { categoriesDesSegments: categories } : {}) },
+      nom: { id, categorie: 'variables', portee: idCollection, nom, ...(categories ? { categoriesDesSegments: categories } : {}),
+        ...(rangCible === undefined ? {} : { cibleAlias: `${systeme.id}:${rangCible}` }) },
       contexte: { collection }, cible: { type: 'variable', variableId: id, collectionId: idCollection }, renommable: true, protegee: false,
     });
   });
@@ -157,4 +177,85 @@ export function tableauDeConversion(systemes: readonly Systeme[]) {
     }),
     bilan: bilanDuCorpus(systemes),
   };
+}
+
+// ---------------------------------------------------------------------------------------------------------------- Slice
+
+const ALIAS_ENTIER = /^\{([^{}]+)\}$/;
+
+/**
+ * Un export de tokens à collections racines en système : chaque clé de premier niveau est une collection, le chemin sous la racine
+ * est le nom, et un `$value` qui est un alias entier renseigne `alias` (`{racine.chemin}` devient `racine|chemin`). Un `$value` composé
+ * ou un jeton posé à la racine n'ont pas de nom de variable et sont ignorés.
+ */
+export function systemeDepuisTokens(id: string, tokens: unknown): Systeme {
+  const noms: NomDeSysteme[] = [];
+  const visiter = (noeud: Record<string, unknown>, chemin: readonly string[], collection: string): void => {
+    for (const [cle, valeur] of Object.entries(noeud)) {
+      if (cle.startsWith('$') || valeur === null || typeof valeur !== 'object') continue;
+      const enfant = valeur as Record<string, unknown>;
+      if (!('$value' in enfant)) { visiter(enfant, [...chemin, cle], collection); continue; }
+      const cible = typeof enfant.$value === 'string' ? ALIAS_ENTIER.exec(enfant.$value)?.[1].split('.') : undefined;
+      noms.push({
+        nom: [...chemin, cle].join('/'), type: typeof enfant.$type === 'string' ? enfant.$type : null, couche: null, collection,
+        ...(cible && cible.length > 1 ? { alias: `${cible[0]}|${cible.slice(1).join('/')}` } : {}),
+      });
+    }
+  };
+  if (tokens === null || typeof tokens !== 'object') throw new Error('Le fichier de tokens n\'est pas un objet.');
+  for (const [collection, racine] of Object.entries(tokens as Record<string, unknown>)) {
+    if (!collection.startsWith('$') && racine !== null && typeof racine === 'object') visiter(racine as Record<string, unknown>, [], collection);
+  }
+  return { id, noms };
+}
+
+/** Le seul endroit qui ouvre le fichier Slice. Son message d'erreur ne cite aucun nom du fichier. */
+export function lireLaSlice(chemin: string): Systeme {
+  if (!existsSync(chemin)) throw new Error(`Le fichier ${chemin} n'existe pas.`);
+  let tokens: unknown;
+  try { tokens = JSON.parse(readFileSync(chemin, 'utf8')); } catch { throw new Error(`Le fichier ${chemin} n'est pas du JSON valide.`); }
+  return systemeDepuisTokens(ID_DE_SLICE, tokens);
+}
+
+export const LONGUEUR_MINIMALE_D_UN_MOT_SURVEILLE = 5;
+
+/**
+ * Les mots de 5 lettres ou plus des noms et des collections d'un système qui ne sont connus ni du vocabulaire du kit ni du
+ * dictionnaire des design systems : ceux qui, écrits dans un fichier suivi par Git, trahiraient le fichier. Un segment en casse mixte dont
+ * un mot est inconnu entre aussi d'un bloc, en minuscules, pour que le même segment écrit sans casse soit retrouvé.
+ */
+export function motsASurveiller(systeme: Systeme, connu: (mot: string) => boolean): string[] {
+  const mots = new Set<string>();
+  const ajouter = (texte: string) => {
+    for (const suite of texte.split(/[^A-Za-z]+/)) {
+      const morceaux = suite.replace(/([a-z])([A-Z])/g, '$1 $2').toLowerCase().split(' ');
+      const inconnus = morceaux.filter((mot) => mot.length >= LONGUEUR_MINIMALE_D_UN_MOT_SURVEILLE && !connu(mot));
+      for (const mot of inconnus) mots.add(mot);
+      if (inconnus.length > 0 && morceaux.length > 1) mots.add(suite.toLowerCase());
+    }
+  };
+  for (const nom of systeme.noms) { ajouter(nom.nom); if (nom.collection !== undefined) ajouter(nom.collection); }
+  return [...mots].sort();
+}
+
+/** Les mots d'un texte : suites de lettres en minuscules, avec et sans coupe aux passages de minuscule à majuscule (`sizeLarge` donne `size`, `large` et `sizelarge`). */
+export function motsDuTexte(texte: string): Set<string> {
+  const mots = new Set<string>();
+  for (const brut of [texte, texte.replace(/([a-z])([A-Z])/g, '$1 $2')]) for (const mot of brut.toLowerCase().match(/[a-z]{5,}/g) ?? []) mots.add(mot);
+  return mots;
+}
+
+/**
+ * Les fichiers qui contiennent l'un des mots comme mot entier (`motsDuTexte`). Un mot collé à d'autres lettres en minuscules (`acmebrand`)
+ * n'est pas retrouvé : la comparaison par sous-chaîne rendait presque chaque fichier, par les mots courants. Un fichier que `lire`
+ * ne rend pas (supprimé, binaire) est ignoré.
+ */
+export function fichiersEnFuite(mots: readonly string[], fichiers: readonly string[], lire: (fichier: string) => string | undefined): string[] {
+  const surveilles = new Set(mots);
+  return fichiers.filter((fichier) => {
+    const contenu = lire(fichier);
+    if (contenu === undefined) return false;
+    for (const mot of motsDuTexte(contenu)) if (surveilles.has(mot)) return true;
+    return false;
+  });
 }

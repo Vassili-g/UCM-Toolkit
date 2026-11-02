@@ -5,10 +5,13 @@ import { nomsSelonLesReglesSync } from '../src/nommage/index.js';
 import { lireReglesDeNommage } from '../src/protocoles/nommage.js';
 import { detecterLesQuestions, type DejaJuge } from '../src/referentiel/index.js';
 import { distanceUnOuEchange } from '../src/referentiel/termes-connus.js';
-import { readFileSync } from 'node:fs';
+import { readdirSync, readFileSync } from 'node:fs';
+import { spawnSync } from 'node:child_process';
 import { join } from 'node:path';
 import { pathToFileURL } from 'node:url';
-import { lireLesSystemes, RACINE_DU_DEPOT } from './stress/f1-noms/corpus.js';
+import {
+  convertir, DOSSIER_DE_SLICE, fichiersEnFuite, ID_DE_SLICE, lireLesSystemes, motsASurveiller, RACINE_DU_DEPOT, systemeDepuisTokens,
+} from './stress/f1-noms/corpus.js';
 import { CERTAINES, classer, creerLeContexteDeClassement, lignesAJuger, PLAFOND_A_JUGER, type LigneDeFauxPositif } from './stress/f1-noms/faux-positifs.js';
 import { chargerLesClassements, clePaire } from './stress/f1-noms/oracle.js';
 import { mutationsDe, OPERATEURS_DE_FAUTE } from './stress/f1-noms/mutations.js';
@@ -129,4 +132,51 @@ test('a-juger.csv garde 200 lignes au plus, les mieux notées, une par système 
   assert.equal(rendues.length, PLAFOND_A_JUGER);
   assert.ok(rendues.every((rendue, rang) => rang === 0 || (rendues[rang - 1].score ?? 0) >= (rendue.score ?? 0)));
   assert.equal(new Set(rendues.map((rendue) => `${rendue.systeme}|${rendue.mot}`)).size, rendues.length);
+});
+
+// Slice (lot 5) : les noms ci-dessous sont inventés ; aucun ne vient du fichier client.
+const TOKENS_INVENTES = {
+  zorblax: { couleur: { fond: { $type: 'color', $value: '#ffffff' }, bord: { $type: 'color', $value: '{zorblax.couleur.fond}' } }, $description: 'ignoré' },
+  quimbus: { texte: { corps: { $type: 'color', $value: '{zorblax.couleur.bord}' }, ombre: { $type: 'shadow', $value: { x: 1 } }, perdu: { $type: 'color', $value: '{zorblax.absent.rien}' } } },
+  vide: {},
+};
+
+test('Slice : chaque racine est une collection et les alias renseignent cibleAlias', () => {
+  const systeme = systemeDepuisTokens(ID_DE_SLICE, TOKENS_INVENTES);
+  assert.deepEqual(systeme.noms.map((nom) => `${nom.collection}|${nom.nom}`), ['zorblax|couleur/fond', 'zorblax|couleur/bord', 'quimbus|texte/corps', 'quimbus|texte/ombre', 'quimbus|texte/perdu']);
+  const converti = convertir(systeme, 'points', 'couche');
+  const variables = converti.inventaire.entrees.filter((entree) => entree.nom.categorie === 'variables');
+  assert.deepEqual(variables.map((entree) => entree.contexte?.collection), ['zorblax', 'zorblax', 'quimbus', 'quimbus', 'quimbus']);
+  assert.deepEqual(variables.map((entree) => entree.nom.cibleAlias), [undefined, `${ID_DE_SLICE}:0`, `${ID_DE_SLICE}:1`, undefined, undefined], 'une cible absente du fichier ne donne pas d\'alias');
+  assert.equal(converti.inventaire.entrees.filter((entree) => entree.nom.categorie === 'collections').length, 2, 'une racine sans jeton n\'est pas une collection');
+});
+
+test('Slice : le contrôle de fuite retient les mots inconnus de 5 lettres ou plus et les trouve comme mots entiers', () => {
+  const systeme = systemeDepuisTokens(ID_DE_SLICE, TOKENS_INVENTES);
+  const mots = motsASurveiller(systeme, (mot) => ['couleur', 'texte', 'corps', 'ombre', 'perdu'].includes(mot));
+  assert.deepEqual(mots, ['quimbus', 'zorblax']);
+  const fichiers: Record<string, string> = { 'a.md': 'le Zorblax est un mot', 'b.ts': 'const quimbusBrand = 1;', 'c.md': 'rien ici', 'd.md': 'zorb et quim', 'e.bin': '' };
+  assert.deepEqual(fichiersEnFuite(mots, Object.keys(fichiers), (fichier) => (fichier === 'e.bin' ? undefined : fichiers[fichier])), ['a.md', 'b.ts']);
+  const blocs = motsASurveiller(systemeDepuisTokens(ID_DE_SLICE, { racine: { quimbusBrand: { $value: '1' } } }), () => false);
+  assert.ok(blocs.includes('quimbusbrand') && blocs.includes('quimbus') && blocs.includes('brand'), 'le segment en casse mixte entre aussi sans casse');
+  assert.deepEqual(fichiersEnFuite(blocs, ['f.md'], () => 'quimbusbrand'), ['f.md']);
+});
+
+test('Slice : sans --slice, rien du harnais n\'ouvre le fichier', () => {
+  const dossier = join(RACINE_DU_DEPOT, 'packages/kit/tests/stress/f1-noms');
+  const sources = readdirSync(dossier).filter((fichier) => fichier.endsWith('.ts')).map((fichier) => [fichier, readFileSync(join(dossier, fichier), 'utf8')] as const);
+  for (const [fichier, source] of sources) {
+    if (fichier !== 'corpus.ts') assert.ok(!/slice-exemple|lireLaSlice/.test(source) || fichier === 'index.ts', `${fichier} cite le fichier Slice`);
+  }
+  const index = sources.find(([fichier]) => fichier === 'index.ts')![1];
+  const usages = index.split('\n').filter((ligne) => /lireLaSlice\(|CHEMIN_DE_SLICE_PAR_DEFAUT/.test(ligne) && !ligne.startsWith('  bilanDuCorpus'));
+  assert.equal(usages.length, 3, 'deux appels de main et la lecture de verifierLaFuite');
+  assert.ok(usages.every((ligne) => /options\.(slice|verifierFuite)|function verifierLaFuite|const slice = lireLaSlice\(chemin\)/.test(ligne)), 'chaque lecture suit --slice ou --verifier-fuite');
+  assert.ok(!lireLesSystemes().some((systeme) => systeme.id === ID_DE_SLICE), 'le corpus ne contient pas Slice');
+});
+
+test('Slice : toutes les sorties vont sous _local/stress/f1-noms/slice/, que Git ignore', () => {
+  assert.equal(DOSSIER_DE_SLICE, join(RACINE_DU_DEPOT, '_local/stress/f1-noms/slice'));
+  const ignore = spawnSync('git', ['check-ignore', '-q', join(DOSSIER_DE_SLICE, 'rapport.md')], { cwd: RACINE_DU_DEPOT });
+  assert.equal(ignore.status, 0);
 });
