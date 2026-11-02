@@ -57,6 +57,23 @@ Les cas du mainteneur sortent comme prévu : `backgrond` (E-01), `bordre` (E-03)
 
 Sur la visibilité à l'écran, 2 064 questions détectées sans seuil donnent 281 questions rangées dans « Autres pistes » avec les paramètres de la session (seuil 2, maximum 10) ; aucune n'est perdue.
 
+### Faux positifs et seuil de longueur
+
+Mesure du lot 4 (`f4a5fe90`) : 64 passes sur 59 484 noms justes des design systems. Le kit y produit 19 faux positifs certains, soit 0,32 pour 1 000 noms : 2 fautes et 17 terminaisons. Les fréquences des strates S6, S12 et S13 sont désormais effectives, et le total passe à 4 839 détectés sur 16 152 attendus.
+
+La courbe projette la règle voulue par D2 (une faute est un mot à une lettre d'un terme connu, sans condition de fréquence ni de place) selon la longueur minimale L du terme. Elle ne mesure pas le kit actuel, dont la constante de 5 lettres ne règle que le découpage des mots collés.
+
+| L | Fautes attendues | Termes perdus | Faux positifs certains | Pour 1 000 noms |
+|---|---|---|---|---|
+| 3 | 1 384 | 0 | 261 | 4,39 |
+| 4 | 1 279 | 7 | 229 | 3,85 |
+| 5 | 1 069 | 26 | 129 | 2,17 |
+| 6 | 801 | 47 | 100 | 1,68 |
+| 7 | 532 | 69 | 20 | 0,34 |
+| 8 | 321 | 88 | 2 | 0,03 |
+
+La règle provisoire Q-F4 (moins de 1 faux positif pour 1 000 noms justes) retient L = 7, ce qui laisse sans détection les fautes sur 69 termes de moins de 7 lettres, `border` et `radius` compris. Ce compromis est une question pour le mainteneur à l'étape V2.
+
 ## F3-F4 Liaisons et tailles du composant
 
 Mesure partielle du lot 2 (`e5b28b4f`), graine 7103, profil P0 (`button-36`) : opérateurs L, R et K, 150 cas.
