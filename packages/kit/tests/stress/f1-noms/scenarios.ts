@@ -4,6 +4,9 @@
  * (l'exécution et l'oracle sont du lot 3). Chaque strate est un générateur : rien n'est gardé en mémoire d'un cas à l'autre.
  */
 import { createHash } from 'node:crypto';
+import { readFileSync } from 'node:fs';
+import { dirname, join } from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { choisir, echantillon, entier, graineDe, melanger, mulberry32 } from '../commun/prng.js';
 import { REGISTRES_ARCHITECTURE, REGISTRES_COMPOSANTS, COLLECTIONS, FORMES_ANCIENNES_DES_COLLECTIONS } from '../../../src/referentiel/architecture.js';
 import type { EntreeInventaire, Inventaire } from '../../../src/nommage/inventaire.js';
@@ -121,6 +124,8 @@ const FORME_DU_SQUELETTE: readonly (readonly [string, number])[] = [
   ['layout', 2], ['layout', 1], ['layout', 3], ['primitives', 3], ['primitives', 2], ['primitives', 2], ['primitives', 1],
 ];
 const DEBUT_DES_REMPLISSAGES = 40;
+/** Les mots du pool que `variant` donne aux noms de rang 1 et plus ; le pool compte 400 mots et `variant` en lit moins de 20. */
+const FIN_DES_REMPLISSAGES_VARIES = 370;
 
 /** Le squelette : 12 noms de mots inventés dans quatre collections, qui ne forment aucune question. */
 export function squelette(pool: readonly string[]): NomDeScenario[] {
@@ -144,6 +149,8 @@ class Constructeur {
   }
   /** Un mot du pool fixe, hors des remplissages : le voisin ou le parent d'un cas. */
   fixe(rang: number): string { return this.pool[20 + rang]; }
+  /** Un segment qui vaut `base` pour le premier nom et un mot inventé propre à chaque rang pour les suivants (le premier nom garde le cas d'origine). */
+  variant(base: string): (i: number) => string { return (i) => (i === 0 ? base : this.pool[FIN_DES_REMPLISSAGES_VARIES + i]); }
   ajouter(collection: string, segments: readonly string[]): void {
     const cle = `${collection}|${segments.join('/')}`;
     if (this.vus.has(cle)) return;
@@ -153,13 +160,16 @@ class Constructeur {
   /**
    * `nombre` noms de profondeur `profondeur` dont le segment `rang` vaut `mot`. `voisin` fixe le segment qui précède (ou qui suit
    * à la racine) ; `autres` fixe les autres segments, dans l'ordre. Un segment non fixé est un remplissage propre au nom.
+   * Un segment fixé par une fonction prend sa valeur du rang du nom : sans cela, `nombre` noms identiques se réduisent à un seul
+   * (`ajouter` déduplique) et la fréquence du mot n'a aucun effet.
    */
-  emploi(collection: string, mot: string, nombre: number, rang: number, profondeur: number, voisin?: string, autres?: Readonly<Record<number, string>>): void {
+  emploi(collection: string, mot: string, nombre: number, rang: number, profondeur: number, voisin?: string, autres?: Readonly<Record<number, string | ((i: number) => string)>>): void {
     const rangDuVoisin = profondeur === 1 ? -1 : rang > 0 ? rang - 1 : 1;
     for (let i = 0; i < nombre; i++) {
       const segments: string[] = [];
       for (let r = 0; r < profondeur; r++) {
-        segments.push(r === rang ? mot : r === rangDuVoisin && voisin !== undefined ? voisin : autres?.[r] ?? this.remplissage());
+        const fixe = autres?.[r];
+        segments.push(r === rang ? mot : r === rangDuVoisin && voisin !== undefined ? voisin : fixe === undefined ? this.remplissage() : typeof fixe === 'function' ? fixe(i) : fixe);
       }
       this.ajouter(collection, segments);
     }
@@ -192,14 +202,9 @@ export function pairesDeLaTable(): PaireDeMots[] {
   return SYNONYMES_COURANTS.flatMap((groupe) => groupe.flatMap((a, i) => groupe.slice(i + 1).map((b) => ({ a, b, source: 'table' }))));
 }
 
-/** Les paires de mots distincts légitimes écrites à la main (plan F1, 2.6). Une copie rangée dans `donnees/distincts.json` la remplacera au lot 4. */
-export const PAIRES_DISTINCTES_ECRITES: readonly (readonly [string, string])[] = [
-  ['fill', 'full'], ['top', 'tip'], ['gap', 'cap'], ['xs', 'xl'], ['light', 'right'], ['title', 'tile'], ['radius', 'radio'],
-  ['color', 'colon'], ['border', 'bolder'], ['label', 'lable'], ['solid', 'solis'], ['focus', 'locus'],
-  ['sm', 'md'], ['md', 'mid'], ['2xl', '3xl'], ['fill', 'film'], ['line', 'link'], ['text', 'next'], ['icon', 'iron'],
-  ['bold', 'bolt'], ['mute', 'mate'], ['hint', 'mint'], ['tint', 'tent'], ['tone', 'zone'], ['base', 'vase'],
-  ['pace', 'race'], ['size', 'sire'], ['card', 'cord'], ['gray', 'grey'], ['rose', 'nose'],
-];
+/** Les paires de mots distincts légitimes écrites à la main (plan F1, 2.6), rangées dans `donnees/distincts.json`. */
+export const PAIRES_DISTINCTES_ECRITES: readonly (readonly [string, string])[] =
+  (JSON.parse(readFileSync(join(dirname(fileURLToPath(import.meta.url)), 'donnees', 'distincts.json'), 'utf8')) as { paires: [string, string][] }).paires;
 const NEGATIONS: readonly (readonly [string, string])[] = [['selected', 'unselected'], ['active', 'inactive'], ['visible', 'invisible']];
 const FRERES_LEGITIMES: readonly (readonly [string, string])[] = [
   ['primary', 'secondary'], ['sm', 'md'], ['hover', 'pressed'], ['top', 'bottom'], ['success', 'warning'],
@@ -352,7 +357,7 @@ function* s6(c: Contexte): Generator<Scenario> {
     for (const [fa, fb] of FREQUENCES_DE_PAIRE) {
       for (const parente of ['freres', 'cousins'] as const) {
         const constructeur = new Constructeur(c.pool);
-        const suivant = constructeur.fixe(2);
+        const suivant = constructeur.variant(constructeur.fixe(2));
         if (parente === 'freres') {
           const parent = constructeur.fixe(3);
           constructeur.emploi('theme', paire.a, fa, 1, 3, parent, { 2: suivant });
@@ -366,7 +371,7 @@ function* s6(c: Contexte): Generator<Scenario> {
     }
     for (const [mot, n] of [[paire.a, 1], [paire.a, 5], [paire.b, 1], [paire.b, 5]] as const) {
       const constructeur = new Constructeur(c.pool);
-      constructeur.emploi('theme', mot, n, 1, 3, constructeur.fixe(3), { 2: constructeur.fixe(2) });
+      constructeur.emploi('theme', mot, n, 1, 3, constructeur.fixe(3), { 2: constructeur.variant(constructeur.fixe(2)) });
       yield scenario(constructeur, 'S6', operateur, terme, { parente: 'isoles', seul: mot === paire.a ? 'a' : 'b', n }, attendus,
         { ...extra, ...(paire.source === 'table' ? { provisoire: 'Q-F5' } : {}) });
     }
@@ -374,8 +379,8 @@ function* s6(c: Contexte): Generator<Scenario> {
   for (const paire of table) {
     for (const [fa, fb] of FREQUENCES_DE_PAIRE) {
       const constructeur = new Constructeur(c.pool);
-      constructeur.emploi('theme', paire.a, fa, 1, 3, constructeur.fixe(3), { 2: constructeur.fixe(2) });
-      constructeur.emploi('components', paire.b, fb, 1, 3, constructeur.fixe(3), { 2: constructeur.fixe(2) });
+      constructeur.emploi('theme', paire.a, fa, 1, 3, constructeur.fixe(3), { 2: constructeur.variant(constructeur.fixe(2)) });
+      constructeur.emploi('components', paire.b, fb, 1, 3, constructeur.fixe(3), { 2: constructeur.variant(constructeur.fixe(2)) });
       yield scenario(constructeur, 'S6', 'M-07', `table:${paire.a}|${paire.b}`, { parente: 'collections', fa, fb }, [{ propriete: 'P-14', mot: paire.a, reference: paire.b }]);
     }
   }
@@ -591,7 +596,7 @@ function* s12(c: Contexte): Generator<Scenario> {
   for (const { terme, ecriture, ecrite, reference } of variantes) {
     for (const variables of [1, 10]) {
       const constructeur = new Constructeur(c.pool);
-      constructeur.emploi(ecrite, constructeur.fixe(5), variables, 1, 2, constructeur.fixe(6));
+      constructeur.emploi(ecrite, constructeur.fixe(5), variables, 1, 2, undefined, { 0: constructeur.variant(constructeur.fixe(6)) });
       yield scenario(constructeur, 'S12', 'M-16', terme, { ecriture, variables }, [{ propriete: 'P-19', mot: ecrite, reference }], { collectionsBrutes: [ecrite] });
     }
   }
@@ -606,9 +611,10 @@ function* s13(c: Contexte): Generator<Scenario> {
       const constructeur = new Constructeur(c.pool);
       const rang = type === 'variable' ? 2 : 1;
       const parent = constructeur.fixe(0);
-      constructeur.emploi('theme', forme, frequence, rang, 3, parent, rang === 2 ? { 0: constructeur.fixe(1) } : { 2: constructeur.fixe(2) });
-      if (position === 'meme-dossier') constructeur.emploi('theme', terme, 1, rang, 3, parent, rang === 2 ? { 0: constructeur.fixe(1) } : { 2: constructeur.fixe(2) });
-      if (position === 'autre-dossier') constructeur.emploi('theme', terme, 1, rang, 3, constructeur.fixe(7), rang === 2 ? { 0: constructeur.fixe(1) } : { 2: constructeur.fixe(2) });
+      const autres: Record<number, (i: number) => string> = rang === 2 ? { 0: constructeur.variant(constructeur.fixe(1)) } : { 2: constructeur.variant(constructeur.fixe(2)) };
+      constructeur.emploi('theme', forme, frequence, rang, 3, parent, autres);
+      if (position === 'meme-dossier') constructeur.emploi('theme', terme, 1, rang, 3, parent, autres);
+      if (position === 'autre-dossier') constructeur.emploi('theme', terme, 1, rang, 3, constructeur.fixe(7), autres);
       yield scenario(constructeur, 'S13', 'M-17', `${registre}:${forme}`, { terme: position, type, frequence },
         [{ propriete: position === 'meme-dossier' ? 'P-11' : 'P-10', mot: forme, reference: terme }, ...(position === 'meme-dossier' ? [{ propriete: 'P-20', mot: forme, reference: terme }] : [])]);
     }
@@ -620,7 +626,8 @@ function* s13(c: Contexte): Generator<Scenario> {
       const rang = type === 'variable' ? 2 : 1;
       const parent = constructeur.fixe(0);
       const mot = constructeur.fixe(3);
-      const complete = (valeur: string, nombre: number) => constructeur.emploi('theme', valeur, nombre, rang, 3, parent, rang === 2 ? { 0: constructeur.fixe(1) } : { 2: constructeur.fixe(2) });
+      const complete = (valeur: string, nombre: number) => constructeur.emploi('theme', valeur, nombre, rang, 3, parent,
+        rang === 2 ? { 0: constructeur.variant(constructeur.fixe(1)) } : { 2: constructeur.variant(constructeur.fixe(2)) });
       const protegees: string[] = [];
       const { terme, forme } = tolerees[entier(mulberry32(graineDe(c.graine, `S13/${nature}`)), 0, tolerees.length - 1)];
       switch (nature) {

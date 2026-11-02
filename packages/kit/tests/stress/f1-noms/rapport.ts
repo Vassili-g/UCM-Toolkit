@@ -5,7 +5,7 @@
  */
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
-import type { Mesure } from './execution.js';
+import { ECART_DE_P21, type Mesure } from './execution.js';
 import type { Verdict } from './oracle.js';
 
 export interface Compte { n: number; attendus: number; detectes: number; manques: number; fp: number }
@@ -123,7 +123,9 @@ function tableauDesEcarts(mesure: Mesure): string {
     }
   }
   const ordre = (a: string, b: string) => (a === 'nouveau' ? 1 : b === 'nouveau' ? -1 : a.localeCompare(b));
-  return table(['Écart', 'Manqués', 'Faux positifs'], [...parEcart.entries()].sort(([a], [b]) => ordre(a, b)).map(([ecart, compte]) => [ecart, compte.manques, compte.fp]));
+  const lignes = [...parEcart.entries()].sort(([a], [b]) => ordre(a, b)).map(([ecart, compte]) => [ecart, compte.manques, compte.fp] as (string | number)[]);
+  if (mesure.stabilite && mesure.stabilite.p21.echecs > 0) lignes.push([`${ECART_DE_P21} (P-21, fichiers)`, mesure.stabilite.p21.echecs, 0]);
+  return table(['Écart', 'Manqués', 'Faux positifs'], lignes);
 }
 
 function tableauDeVisibilite(mesure: Mesure): string {
@@ -174,7 +176,7 @@ function lireLaDureeComplete(dossier: string): DureeComplete | undefined {
   return existsSync(chemin) ? (JSON.parse(readFileSync(chemin, 'utf8')) as DureeComplete) : undefined;
 }
 
-const csv = (valeurs: readonly (string | number | undefined)[]): string =>
+export const csv = (valeurs: readonly (string | number | undefined)[]): string =>
   valeurs.map((valeur) => { const texte = String(valeur ?? ''); return /[",\n;]/.test(texte) ? `"${texte.replace(/"/g, '""')}"` : texte; }).join(',');
 
 function manquesCsv(mesure: Mesure): string {
@@ -192,7 +194,7 @@ function collisionsCsv(mesure: Mesure): string {
 }
 
 /** Le texte de `rapport.md`. */
-export function texteDuRapport(mesure: Mesure, dureeComplete: DureeComplete | undefined): string {
+export function texteDuRapport(mesure: Mesure, dureeComplete: DureeComplete | undefined, fauxPositifs?: string): string {
   const mode = mesure.complet ? 'complet' : mesure.rapide ? 'rapide (un cas sur dix)' : `limité aux strates ${mesure.strates.join(', ')}`;
   const nombreDeCas = Object.values(mesure.casParStrate).reduce((somme, n) => somme + n, 0);
   const complete = mesure.complet ? { ms: mesure.dureeMs, cas: nombreDeCas, date: new Date().toISOString(), graine: mesure.graine } : dureeComplete;
@@ -233,9 +235,9 @@ export function texteDuRapport(mesure: Mesure, dureeComplete: DureeComplete | un
     '',
     `Le squelette seul (P-23) donne ${mesure.squelette.questions} question et ${mesure.squelette.renommages} renommage.`,
     stabilite
-      ? `P-21 (idempotence) : ${stabilite.p21.reussis} fichiers sur ${stabilite.fichiers}. P-22 (stabilité à la permutation) : ${stabilite.p22.reussis} fichiers sur ${stabilite.fichiers}. ${stabilite.noms} noms lus, 1 500 noms au plus par fichier.`
+      ? `P-21 (idempotence, définition stricte) : ${stabilite.p21.reussis} fichiers sur ${stabilite.fichiers}${stabilite.p21.echecs > 0 ? `, ${stabilite.p21.echecs} échecs rattachés à l'écart nouveau « ${ECART_DE_P21} »` : ''}. P-22 (stabilité à la permutation) : ${stabilite.p22.reussis} fichiers sur ${stabilite.fichiers}. ${stabilite.noms} noms lus, 1 500 noms au plus par fichier.`
       : 'P-21 et P-22 ne sont mesurées que sans `--strate`.',
-    ...(stabilite && stabilite.echecs.length > 0 ? ['', ...stabilite.echecs.slice(0, 20).map((echec) => `- ${echec.propriete} ${echec.fichier} : ${echec.detail}`)] : []),
+    ...(stabilite && stabilite.echecs.length > 0 ? ['', ...stabilite.echecs.slice(0, 20).map((echec) => `- ${echec.propriete} ${echec.fichier} : ${echec.detail}${echec.ecart ? ` [${echec.ecart}]` : ''}`)] : []),
     '',
     '## Rattachement des manqués aux écarts de l\'inventaire',
     '',
@@ -255,6 +257,7 @@ export function texteDuRapport(mesure: Mesure, dureeComplete: DureeComplete | un
     '',
     `${mesure.collisionsSansQuestion.length} collisions sans question sont listées dans \`collisions-sans-question.csv\`.`,
     '',
+    ...(fauxPositifs ? ['## Faux positifs et seuil de longueur', '', fauxPositifs, ''] : []),
     '## Durée par étape',
     '',
     table(['Étape', 'Durée'], Object.entries(mesure.dureeParEtape).map(([etape, ms]) => [etape, secondes(ms)])),
@@ -263,12 +266,12 @@ export function texteDuRapport(mesure: Mesure, dureeComplete: DureeComplete | un
   return lignes.join('\n');
 }
 
-export function ecrireLeRapport(mesure: Mesure, dossier: string): void {
+export function ecrireLeRapport(mesure: Mesure, dossier: string, fauxPositifs?: string): void {
   mkdirSync(dossier, { recursive: true });
   const dureeComplete = lireLaDureeComplete(dossier);
   const nombreDeCas = Object.values(mesure.casParStrate).reduce((somme, n) => somme + n, 0);
   if (mesure.complet) writeFileSync(join(dossier, 'duree-complete.json'), `${JSON.stringify({ ms: mesure.dureeMs, cas: nombreDeCas, date: new Date().toISOString(), graine: mesure.graine })}\n`, 'utf8');
-  writeFileSync(join(dossier, 'rapport.md'), texteDuRapport(mesure, dureeComplete), 'utf8');
+  writeFileSync(join(dossier, 'rapport.md'), texteDuRapport(mesure, dureeComplete, fauxPositifs), 'utf8');
   writeFileSync(join(dossier, 'rapport.json'), JSON.stringify({
     graine: mesure.graine, empreinte: mesure.empreinte, version: mesure.version, dureeMs: mesure.dureeMs, casParStrate: mesure.casParStrate,
     temoins: mesure.temoins, stabilite: mesure.stabilite, cas: mesure.cas,

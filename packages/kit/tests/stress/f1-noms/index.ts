@@ -4,10 +4,14 @@
  * `--scenarios` (lot 2) génère les cas des strates, compte ceux de chaque strate contre le plan et écrit l'empreinte.
  * Sans `--corpus` ni `--scenarios` (lot 3), le harnais exécute les cas sur le kit, juge les sorties et écrit `rapport.md`,
  * `rapport.json`, `manques.csv` et `collisions-sans-question.csv` ; `--attendre-zero` sort 1 s'il reste un manqué ou un faux positif.
+ * Le lot 4 ajoute à cette mesure, hors `--strate`, les passes de faux positifs et la courbe du seuil (`faux-positifs.csv`, `a-juger.csv`,
+ * `courbe-seuil.csv`, `faux-positifs-par-type.csv`, et une section de `rapport.md`). `--faux-positifs` les lance seules ;
+ * `--mesure-du-seuil` est l'entrée des processus enfants que lance la courbe, sous le chargeur `seuil.mjs`.
  * Les autres options du plan sont reconnues et refusées tant que leur lot n'existe pas.
  */
 import { mkdirSync, writeFileSync } from 'node:fs';
 import { join, resolve } from 'node:path';
+import { fileURLToPath } from 'node:url';
 import {
   bilanDuCorpus, DOSSIER_DE_SORTIE, lireLesSystemes, MODES_DE_CHEMINS, MODES_DE_COLLECTIONS, tableauDeConversion,
 } from './corpus.js';
@@ -15,6 +19,7 @@ import {
   candidatsADistanceUn, candidatsAmbigus, candidatsDeFormes, candidatsDeSynonymes, construireLeDictionnaire, vocabulaireDeReference,
 } from './dictionnaire.js';
 import { mesurer } from './execution.js';
+import { CERTAINES, ecrireLesFauxPositifs, mesurerLeKit, mesurerLesFauxPositifs, sectionDuRapport, type MesureDesFauxPositifs } from './faux-positifs.js';
 import { ecrireLeRapport, resteDesEcarts } from './rapport.js';
 import { bilanDesScenarios, creerLeContexte, GRAINE_PAR_DEFAUT, STRATES } from './scenarios.js';
 
@@ -22,15 +27,17 @@ const PAS_ENCORE: Readonly<Record<string, string>> = {
   '--slice': 'lot 5 : le fichier Slice est confidentiel et le harnais ne le lit pas avant ce lot', '--verifier-fuite': 'lot 5',
 };
 
-interface Options { corpus: boolean; scenarios: boolean; strates?: string[]; rapide: boolean; attendreZero: boolean; graine: number; sortie: string }
+interface Options { corpus: boolean; scenarios: boolean; fauxPositifs: boolean; mesureDuSeuil: boolean; strates?: string[]; rapide: boolean; attendreZero: boolean; graine: number; sortie: string }
 
 function lireLesOptions(argv: readonly string[]): Options {
-  const options: Options = { corpus: false, scenarios: false, rapide: false, attendreZero: false, graine: GRAINE_PAR_DEFAUT, sortie: DOSSIER_DE_SORTIE };
+  const options: Options = { corpus: false, scenarios: false, fauxPositifs: false, mesureDuSeuil: false, rapide: false, attendreZero: false, graine: GRAINE_PAR_DEFAUT, sortie: DOSSIER_DE_SORTIE };
   for (let i = 0; i < argv.length; i++) {
     const option = argv[i];
     if (option in PAS_ENCORE) throw new Error(`L'option ${option} n'existe pas encore (${PAS_ENCORE[option]}).`);
     if (option === '--corpus') options.corpus = true;
     else if (option === '--scenarios') options.scenarios = true;
+    else if (option === '--faux-positifs') options.fauxPositifs = true;
+    else if (option === '--mesure-du-seuil') options.mesureDuSeuil = true;
     else if (option === '--rapide') options.rapide = true;
     else if (option === '--attendre-zero') options.attendreZero = true;
     else if (option === '--strate') {
@@ -48,7 +55,7 @@ function lireLesOptions(argv: readonly string[]): Options {
       const valeur = argv[++i];
       if (!valeur) throw new Error('--sortie demande un dossier.');
       options.sortie = resolve(valeur);
-    } else throw new Error(`Option inconnue : ${option}. Options admises : --corpus, --scenarios, --strate, --rapide, --graine, --attendre-zero, --sortie <dossier>.`);
+    } else throw new Error(`Option inconnue : ${option}. Options admises : --corpus, --scenarios, --faux-positifs, --strate, --rapide, --graine, --attendre-zero, --sortie <dossier>.`);
   }
   return options;
 }
@@ -106,24 +113,45 @@ function lancerLesScenarios(options: Options): void {
   ecrire(join(options.sortie, 'scenarios-bilan.json'), bilan);
 }
 
-function lancerLaMesure(options: Options): void {
+const INDEX = fileURLToPath(import.meta.url);
+
+async function mesurerLesFauxPositifsDuHarnais(options: Options): Promise<MesureDesFauxPositifs> {
+  const mesure = await mesurerLesFauxPositifs(lireLesSystemes(), { rapide: options.rapide, graine: options.graine, index: INDEX, progression: (message) => console.log(`  ${message}`) });
+  ecrireLesFauxPositifs(mesure, options.sortie);
+  return mesure;
+}
+
+async function lancerLaMesure(options: Options): Promise<void> {
   const mesure = mesurer(lireLesSystemes(), { strates: options.strates, rapide: options.rapide, graine: options.graine, progression: (message) => console.log(`  ${message}`) });
-  ecrireLeRapport(mesure, options.sortie);
+  const fauxPositifs = options.strates ? undefined : await mesurerLesFauxPositifsDuHarnais(options);
+  ecrireLeRapport(mesure, options.sortie, fauxPositifs ? sectionDuRapport(fauxPositifs) : undefined);
   const total = Object.values(mesure.casParStrate).reduce((somme, n) => somme + n, 0);
   console.log(`${total} cas en ${(mesure.dureeMs / 1000).toFixed(1)} s${mesure.complet ? ' (mode complet)' : ''}, rapport sous ${options.sortie}`);
-  const reste = resteDesEcarts(mesure);
+  const certains = fauxPositifs ? fauxPositifs.lignes.filter((ligne) => CERTAINES.has(ligne.classe)).reduce((somme, ligne) => somme + ligne.nombre, 0) : 0;
+  const reste = resteDesEcarts(mesure) + certains;
   if (options.attendreZero && reste > 0) {
     console.error(`${reste} manqué(s) ou faux positif(s) restent.`);
     process.exitCode = 1;
   }
 }
 
-try {
+async function lancerLesFauxPositifs(options: Options): Promise<void> {
+  const mesure = await mesurerLesFauxPositifsDuHarnais(options);
+  console.log(`${sectionDuRapport(mesure)}
+Écrit sous ${options.sortie}`);
+}
+
+async function main(): Promise<void> {
   const options = lireLesOptions(process.argv.slice(2));
-  if (options.corpus) lancerLeCorpus(options.sortie);
-  if (options.scenarios) lancerLesScenarios(options);
-  if (!options.corpus && !options.scenarios) lancerLaMesure(options);
-} catch (erreur) {
+  if (options.mesureDuSeuil) console.log(JSON.stringify(mesurerLeKit(lireLesSystemes(), options.graine, options.rapide)));
+  else if (options.corpus || options.scenarios) {
+    if (options.corpus) lancerLeCorpus(options.sortie);
+    if (options.scenarios) lancerLesScenarios(options);
+  } else if (options.fauxPositifs) await lancerLesFauxPositifs(options);
+  else await lancerLaMesure(options);
+}
+
+main().catch((erreur) => {
   console.error(erreur instanceof Error ? erreur.message : String(erreur));
   process.exitCode = 1;
-}
+});

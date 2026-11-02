@@ -1,0 +1,11 @@
+{
+  "_note": "Les 30 paires de mots distincts écrites à la main (plan F1, 2.6, lot 4). Chaque paire est à une lettre ajoutée, retirée, remplacée ou échangée ; formes.json l'emporte en cas de contradiction (gray et grey, un même mot, n'y figurent pas ; radius et radio, à distance 2, non plus). temoinsDeFaute : paires de la liste où le second mot est une vraie faute, que S15 et le classement des faux positifs ne comptent pas comme des mots distincts.",
+  "paires": [
+    ["fill", "full"], ["top", "tip"], ["gap", "cap"], ["xs", "xl"], ["light", "right"], ["title", "tile"], ["color", "colon"],
+    ["border", "bolder"], ["label", "lable"], ["solid", "solis"], ["focus", "locus"], ["md", "mid"], ["2xl", "3xl"], ["fill", "film"],
+    ["line", "link"], ["text", "next"], ["icon", "iron"], ["bold", "bolt"], ["mute", "mate"], ["hint", "mint"], ["tint", "tent"],
+    ["tone", "zone"], ["base", "vase"], ["pace", "race"], ["size", "sire"], ["card", "cord"], ["rose", "nose"],
+    ["mask", "task"], ["wide", "wine"], ["pill", "pull"]
+  ],
+  "temoinsDeFaute": [["label", "lable"]]
+}

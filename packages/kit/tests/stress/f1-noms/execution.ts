@@ -238,7 +238,9 @@ function jugerUnSite(cas: Scenario, sortie: Sortie, ctx: ContexteOracle): Verdic
 
 // ---------------------------------------------------------------------------------------------------------------- P-21, P-22, P-23
 
-export interface EchecDeStabilite { readonly fichier: string; readonly propriete: 'P-21' | 'P-22'; readonly detail: string }
+/** L'écart que rattache la décision provisoire de la conversation principale : un second passage qui renomme encore est un « renommage non idempotent » du kit. */
+export const ECART_DE_P21 = 'renommage non idempotent';
+export interface EchecDeStabilite { readonly fichier: string; readonly propriete: 'P-21' | 'P-22'; readonly detail: string; readonly ecart?: string }
 export interface Stabilite {
   readonly fichiers: number;
   readonly noms: number;
@@ -291,7 +293,7 @@ export function verifierLaStabilite(systemes: readonly Systeme[], nombre: number
     const second = calculer(appliquer(inventaire, premier.renommages), { ...REGLES_DETECTEES, ecriture: premier.ecriture });
     const nouvelles = second.questions.filter((question) => !cles.has(question.cle)).map((question) => question.cle);
     if (second.renommages.length === 0 && nouvelles.length === 0) reussis21++;
-    else echecs.push({ fichier, propriete: 'P-21', detail: `${second.renommages.length} renommage(s) au second passage${second.renommages[0] ? ` (${second.renommages[0].ancienNom} -> ${second.renommages[0].nouveauNom})` : ''}, ${nouvelles.length} question(s) nouvelle(s)${nouvelles[0] ? ` (${nouvelles[0]})` : ''}` });
+    else echecs.push({ fichier, propriete: 'P-21', ecart: ECART_DE_P21, detail: `${second.renommages.length} renommage(s) au second passage${second.renommages[0] ? ` (${second.renommages[0].ancienNom} -> ${second.renommages[0].nouveauNom})` : ''}, ${nouvelles.length} question(s) nouvelle(s)${nouvelles[0] ? ` (${nouvelles[0]})` : ''}` });
 
     const permute = calculer({ ...inventaire, entrees: melanger(tirage, inventaire.entrees) }, REGLES_DETECTEES);
     const clesPermutees = new Set(permute.questions.map((question) => question.cle));

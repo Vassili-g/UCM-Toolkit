@@ -207,6 +207,19 @@ function ecartsDeFaute(noms: readonly NomDeScenario[], mot: string, reference: s
   return ecarts;
 }
 
+const IDENTIFIANTS_UCM = new Set([...REGISTRES, ...REGISTRES_ARCHITECTURE].flatMap((registre) => registre.termes.map((terme) => terme.id.toLowerCase())));
+const TERMES_DES_FORMES_TOLEREES = new Map<string, Set<string>>();
+for (const registre of [...REGISTRES, ...REGISTRES_ARCHITECTURE]) {
+  for (const terme of registre.termes) {
+    for (const toleree of terme.toleres ?? []) {
+      if (IDENTIFIANTS_UCM.has(toleree.toLowerCase())) continue;
+      TERMES_DES_FORMES_TOLEREES.set(toleree.toLowerCase(), (TERMES_DES_FORMES_TOLEREES.get(toleree.toLowerCase()) ?? new Set()).add(terme.id.toLowerCase()));
+    }
+  }
+}
+/** Les termes UCM d'une forme tolérée (`error` vers `danger`) ; vide quand le mot est un terme UCM ou n'est pas toléré. Décision provisoire : la faute d'une forme tolérée attend une question vers le terme UCM. */
+export const termesUcmDeLaForme = (mot: string): readonly string[] => [...(TERMES_DES_FORMES_TOLEREES.get(mot.toLowerCase()) ?? [])];
+
 /** Une faute `mot` attendue près de `reference` : une question faute sur `mot` dont la référence est `reference` ou un autre terme proche. */
 export function jugerUneFaute(cas: Pick<Scenario, 'id' | 'strate' | 'operateur' | 'axes' | 'oracle' | 'provisoire'>, sortie: Sortie, ctx: ContexteOracle,
   mot: string, reference: string, proprietes: readonly string[], extra: Partial<Option> = {}): Verdict {
@@ -217,10 +230,11 @@ export function jugerUneFaute(cas: Pick<Scenario, 'id' | 'strate' | 'operateur' 
   }
   const question = fauteSur(sortie, mot);
   const ref = question?.type === 'ecriture-du-terme' ? question.reference?.mot : undefined;
-  const ok = !!question && (ref === reference || (ref !== undefined && proches.includes(ref)));
+  const canoniques = termesUcmDeLaForme(reference);
+  const ok = !!question && (canoniques.length > 0 ? ref !== undefined && canoniques.includes(ref.toLowerCase()) : ref === reference || (ref !== undefined && proches.includes(ref)));
   const referenceRenommee = !ok && !!renommeLeMot(sortie, reference);
   const detail = ok ? `question faute ${mot} -> ${ref}`
-    : (!question ? `aucune question faute pour ${mot}` : `question faute pour ${mot} avec la référence ${ref ?? '-'}, attendu ${reference}`)
+    : (!question ? `aucune question faute pour ${mot}` : `question faute pour ${mot} avec la référence ${ref ?? '-'}, attendu ${canoniques.length > 0 ? canoniques.join(' ou ') : reference}`)
       + (referenceRenommee ? ` (le kit renomme lui-même ${reference})` : '');
   return verdict(cas, sortie, { proprietes, attendu: true, ok, mot, reference, detail, cle: ok ? question!.cle : undefined,
     ecarts: ok ? [] : ecartsDeFaute(sortie.noms, mot, reference, proprietes), ...extra });
