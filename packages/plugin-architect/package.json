@@ -15,6 +15,7 @@
     "fidelite": "node galerie/comparer-maquette.cjs",
     "test:ui": "npm run galerie && node --test \"tests/interface/*.test.mjs\"",
     "mesure": "node --expose-gc scripts/mesurer.mjs",
+    "stress:composant": "node ../../scripts/construire-plugin.mjs verifier-kit architect && npx tsx scripts/stress/f3-composant/executer.ts",
     "build": "node ../../scripts/construire-plugin.mjs verifier-kit architect && npm run typecheck && npm run build:code && npm run build:ui && npm run build:manifest",
     "test": "node scripts/run-tests.cjs"
   },
