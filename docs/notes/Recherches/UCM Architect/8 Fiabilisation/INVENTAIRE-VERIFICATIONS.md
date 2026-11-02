@@ -292,6 +292,14 @@ Cadre commun aux plans :
 - les résultats de toutes les familles se résument dans `MESURE-DES-FAILLES.md`, dans ce dossier ;
 - les tests de régression entrent dans `npm test` avec `{ todo: '<écart>' }` tant que la correction manque.
 
+Version allégée, retenue par le mainteneur après la mesure de F1 et de F3-F4. Les familles F2, F5-F6, F7 et F8-F9 se construisent en un ou deux lots chacune, et non avec tous les lots de leur plan :
+
+- chaque famille garde ses opérateurs simples, ses faux positifs, les interactions déclarées de son plan et deux relations métamorphiques (ordre mélangé, casse changée), puis rend sa mesure ;
+- la chaîne jusqu'à l'écran se mesure pour F2 et F8-F9, et pour F3-F4 au lot 6 ;
+- les combinaisons tirées au hasard sont retirées ;
+- les tests de régression s'écrivent avec les corrections ;
+- le rejeu des fichiers réels (Slice, captures des composants, Intencial Tokens) remplace les combinaisons comme test de défauts mêlés.
+
 | Plan | Famille |
 |---|---|
 | [PLAN-STRESS-F1-NOMS.md](./PLAN-STRESS-F1-NOMS.md) | F1 |
