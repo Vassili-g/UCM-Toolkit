@@ -317,4 +317,6 @@ Cadre commun aux plans :
 | Q-10 | Dictionnaire pour les pluriels et terminaisons ? | Oui, tiré des design systems | E-12 |
 | Q-11 | Ignorer et « Ne plus proposer » sur les cartes de question ? | Oui, les deux | E-35 |
 
+Display P3 est hors périmètre de la fiabilisation : les harnais ne testent que des documents sRGB.
+
 Piste ouverte par Q-03, hors de ce plan : refondre le mode Tokens sur le modèle du mode Composant, avec des sections repliables titrées et signées d'une icône, et des filtres au lieu des onglets. Elle demande une étude et une maquette avant toute décision.

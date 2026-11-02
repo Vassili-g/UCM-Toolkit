@@ -2,6 +2,8 @@
 
 Ce plan décrit le harnais qui mesure les contrôles d'accessibilité du mode Composant sur 1 120 cas fabriqués, depuis le rapport de contraste du kit jusqu'à la carte lue par le designer. Il ne corrige aucun code : il produit la mesure de l'existant, puis des tests de régression en attente des corrections. Il prolonge la famille F7 de [INVENTAIRE-VERIFICATIONS.md](./INVENTAIRE-VERIFICATIONS.md) (sections 4.6, 6.3, 7 et 8). La forme suit [PLAN-STRESS-F2-STRUCTURE.md](./PLAN-STRESS-F2-STRUCTURE.md). Le générateur de composant est celui de [PLAN-STRESS-F3-F4-COMPOSANT.md](./PLAN-STRESS-F3-F4-COMPOSANT.md), que F7 appelle sans le modifier.
 
+Le mainteneur a écarté Display P3 du périmètre. Le harnais ne génère que des documents sRGB. La dimension « espace de couleur » des profils, les opérateurs E1 à E3, les trois paires P3 de E4, la propriété P15, le geste H7, la question Q-F7-13 et l'hypothèse de défaut sur `espaceDeCouleur` sont retirés. Les profils passent de 96 à 48, et les totaux de ce plan baissent d'autant au lot 2.
+
 ## 1. Portée
 
 | Contrôle | Source | Ce que le plan mesure |
@@ -482,5 +484,5 @@ Les décisions Q-F2-7 (un seul document, `MESURE-DES-FAILLES.md`) et Q-F2-9 (tes
 | Q-F7-10 | Quels variants sont désactivés, et que retire C53 ? | Les états `disabled` et `disable`, plus un axe booléen `Disabled=True` et `Enabled=False`. `Inactive`, `read-only` et `dimmed` restent mesurés. C53 exclut le contraste et la cible et le dit dans sa phrase. Le texte sous 12 px reste mesuré. |
 | Q-F7-11 | La borne de 5 000 doit-elle dire quels variants ne sont pas mesurés ? Doit-elle compter des combinaisons distinctes ? | Oui aux deux : l'information donne le nombre de variants non mesurés, et les collections dont le mode ne change aucune valeur lue sortent du produit. |
 | Q-F7-12 | De quoi se compose l'identifiant d'un constat de contraste ? | Du code, du nom du layer, de l'usage et du fond nommé. La plage de texte et le niveau en sortent, pour qu'un constat ignoré le reste. |
-| Q-F7-13 | Où convertit-on Display P3 vers sRGB pour C49 et C50 ? | Dans le kit, qui lit `espaceDeCouleur` du relevé et convertit relevé et catalogue avant de composer, avec la conversion de `p3VersRgb8` copiée dans `emplois/`. Les paires opaques sont `attendu`. Une composition translucide se fait dans l'espace encodé P3 puis se convertit. |
+| Q-F7-13 | Où convertit-on Display P3 vers sRGB pour C49 et C50 ? | Retirée : Display P3 est hors périmètre. |
 | Q-F7-14 | Le relevé lit-il le mode de fusion du layer et ses effets ? | Oui : un layer en mode de fusion autre que `NORMAL` ou `PASS_THROUGH`, ou un fond à flou d'arrière-plan, donne la limite `peinture-superposee`. La phrase de cette cause dit « mélange » et non « superpose plusieurs peintures » quand il s'agit d'un mode de fusion. |
