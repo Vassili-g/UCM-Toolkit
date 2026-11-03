@@ -431,6 +431,13 @@ Les lots 1 à 8 supposent que le lot 0 de F2 (cadre commun) et le lot générate
 
 Ordre : 1a avec 1b si F3 est livré, puis 2 avec 3, puis 4 avec 5, puis 6 avec 7, puis 8, 9, 10 et 11.
 
+La version allégée (section 7 de l'inventaire) remplace les lots 1a à 9 par les lots suivants. Le corpus vient des tableaux de la section 3.2 et des sources figées du dépôt, sans relevé du `chercheur`. Les lots 10 et 11 s'écrivent avec les corrections.
+
+| Lot allégé | Contenu | État |
+|---|---|---|
+| 1 | Corpus, profils, composant de base, opérateurs A, V, Q, M, O, `mesurer.ts` | fait, `7a05a0a1` |
+| 2 | Opérateurs S, I, 180 faux positifs, 32 interactions, ordre mélangé et écriture changée | à faire |
+
 ## 9. Questions au mainteneur
 
 Chaque proposition vaut décision provisoire. Les cas liés restent `mesure` dans le rapport, comptés à part, jusqu'à la confirmation du mainteneur. Les tests de régression `todo` suivent la décision Q-F2-9.

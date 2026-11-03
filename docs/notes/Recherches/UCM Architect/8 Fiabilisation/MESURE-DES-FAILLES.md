@@ -255,3 +255,36 @@ Aucun écart n'est nouveau. Les hypothèses 7 et 8 du plan sont confirmées.
 | E-20 | 2 | La question C60 sans correction n'a pas de genre et n'a aucune carte (hypothèse 8, D5-1). |
 
 Les cas qui tiennent : un cran ajouté à la relecture reste décoché (D2-7), ignorer la proposition d'un cran ou d'une variable absente laisse le constat (D3-4, D3-5), et `deja-la` et `existe-divergente` ont un texte (D4-7, D4-8).
+
+## F5-F6 Variants, typographie et icônes
+
+Mesure du lot 1 (`7a05a0a1`), graine 7105, `npx tsx packages/kit/tests/stress/f5-variants/mesurer.ts` : les 60 profils et 270 cas de variants (F5) en 60 secondes. P0 est un `Button` de 72 variants (`Style`, `Color`, `Size`, `State`) sans constat. Le corpus des noms d'axes vient des tableaux du plan et de quatre sources figées du dépôt, sans relevé web.
+
+| Opérateur | Contenu | Cas | Attendus | Détectés | Manqués | Faux constats | Corrections inexactes | En attente |
+|---|---|---|---|---|---|---|---|---|
+| A | Noms d'axes | 137 | 94 | 42 | 19 | 91 | 0 | 33 |
+| V | Valeurs renommées (C7 à C10, C12, C13) | 66 | 2 280 | 2 260 | 12 | 10 | 0 | 13 |
+| Q | Questions de valeur | 5 | 1 504 | 1 499 | 5 | 1 | 2 | 1 |
+| M | Matrice trouée (C31) | 29 | 4 969 | 4 963 | 0 | 1 | 0 | 6 |
+| O | Tokens orphelins (C32, C33) | 33 | 387 | 381 | 1 | 7 | 0 | 5 |
+| Total | | 270 | 9 234 | 9 145 | 37 | 110 | 2 | 58 |
+
+Les tokens de P0 écrivent les tailles `small`, `medium`, `large`, et ses variants `sm`, `md`, `lg`. Sinon le registre des dossiers rend C10 sur chaque token. Le test de garde dure 3,3 secondes, pour 3 demandées.
+
+36 profils sur 60 ne sont pas muets. Primer (`Variant` à valeurs de palette), Fluent (`Appearance`, `Shape`) et Spectrum (`Fill style`) donnent des C7, C13 et C33, et de 72 à 192 tokens sans lecture. Carbon (`Kind`), Untitled UI (`Hierarchy`) et Ant Design (`Type`) ne donnent aucun constat, alors que 240 à 288 de leurs tokens de couleur ne se lisent pas. Les 24 autres profils (MUI, Polaris, UCM, Radix) sont muets avec une lecture complète.
+
+| Id | Écart | Rattachement |
+|---|---|---|
+| E-27 | `Kind`, `Type`, `Tone`, `Emphasis`, `Hierarchy`, `Density`, `Shape`, `Colour` et `Fill style` ne sont pas des axes : leurs tokens deviennent illisibles sans un mot | confirmé ; hypothèse 1 ; 19 manqués de A1, profils J3, J5, J8 |
+| E-33 | C32 `inutilise` accuse un token que seule une liaison illisible lie | confirmé ; O3-1 à O3-3 |
+| E-44 | Au-delà de 4 096 combinaisons, C31 se tait sans information | confirmé ; hypothèse 8 ; M3-4 à M3-8 |
+| N-34 | Une valeur écrite `sm`, `md` ou `lg` dans un axe ne correspond jamais au token `small` : `correspondAuxAutresAxes` compare les formes, `memeValeurDAxe` les termes, et C12 et C13 disparaissent | nouveau ; V1-1 à V1-5, V1-9 à V1-12, Q1-1, Q1-3 |
+| N-35 | Les candidats d'une question de valeur comptent des valeurs déjà présentes, et un candidat unique présent dans deux familles donne C13 au lieu de C12 | hypothèse 5, confirmée ; Q1-2, V1-6 à V1-8, Q3-1 |
+| N-36 | Un axe `Variant` à valeurs de palette (Primer) rend ses tokens illisibles : C7 et 24 C33, sans C12 ni C32 | hypothèse 2, confirmée ; A4-1, p07 |
+| N-37 | C9 est asymétrique : `primary` face à `Primary` donne C9, `Default` face à `default` ne donne rien ; `S` et `Extra Large` donnent C9 au lieu d'une forme tolérée | hypothèse 6, confirmée ; V3-3, V5-1, V5-5 |
+| N-38 | Une valeur répétée dans un axe donne deux C31 de même identifiant | hypothèse 10, confirmée ; M4-1 |
+| N-39 | Un token au nom illisible est sauté par C32 et C33 sans constat | hypothèse 11, confirmée ; O6-1 à O6-6 |
+| N-40 | Un token d'une palette hors registre (`tertiary`) non lié donne C32 `inutilise` au lieu de `sans-variant` | nouveau ; O1-2 |
+| N-41 | Une matrice de 16 × 16 × 16 variants dépasse le budget de 2 secondes (2,9 s) | nouveau ; M3-1, M3-2 |
+
+Le second axe d'un même rôle est ignoré sans le dire (hypothèse 4, A3-1). La forme tolérée d'une palette (`error`, `critical`) ne donne ni C8 ni C10 (hypothèse 7, V4-13, V4-14, en attente de Q-F5-5). La famille `Colours` rend 432 tokens illisibles sans constat (V4-12, en attente de Q-F5-8). Une matrice creuse à axes booléens (25 920 combinaisons pour 300 variants) se tait comme au-delà de la borne (hypothèse 9, M3-9).
