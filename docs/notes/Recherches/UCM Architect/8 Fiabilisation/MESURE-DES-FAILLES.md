@@ -186,3 +186,25 @@ Les deux écarts en attente dépendent de Q-F3-5 (D5-6) et de Q-F3-12 (D5-10). L
 | N-23 | Le résultat provisoire ne dessine aucune carte : 0 carte de corrections et 0 carte À faire, pour 1 et 113 dans le modèle. Le mainteneur a tranché : le provisoire montre ses cartes | D3-5 |
 
 D6-4 n'est pas un écart du plugin. Tant que la library reste à choisir, `barre.ts` désactive Analyser et le panneau demande le choix avec « Ouvrir la configuration ». Le harnais force une analyse que l'interface empêche. Le lot de régression réécrit D6-4 pour juger l'écran avant l'analyse.
+
+## F2 Structure du mode Tokens
+
+Mesure du lot A1 (`e20a3e3d`), graine 7102, profil P0 (`p14`), `npx tsx packages/kit/tests/stress/f2-structure/mesurer.ts` : opérateurs R, K et M, 172 cas en 7 secondes.
+
+| Opérateur | Contenu | Cas | Attendus | Détectés | Manqués | Faux constats | Corrections inexactes | En attente |
+|---|---|---|---|---|---|---|---|---|
+| R | Rôles retirés (C82 `variable-absente`) | 53 | 100 | 100 | 0 | 0 | 0 | 0 |
+| K | Crans déplacés (C82 `cran`) | 78 | 76 | 59 | 5 | 0 | 0 | 12 |
+| M | Modes croisés (C60, `mode-du-theme`) | 41 | 41 | 29 | 0 | 0 | 5 | 12 |
+| Total | | 172 | 217 | 188 | 5 | 0 | 5 | 24 |
+
+R1 compte 47 attendus pour 39 cas, car un rôle retiré casse aussi l'alias des couleurs de `components` qui le visaient (C63 `alias-supprime`). Les 24 écarts en attente dépendent de Q-F2-2 (K2, 10 cas), Q-F2-3 (K3, 2 cas) et Q-F2-4 (M1, 12 cas).
+
+| Id | Écart | Rattachement |
+|---|---|---|
+| N-24 | C60 ne voit pas un alias vers l'autre branche quand le mode est un segment du chemin d'une rampe à modes de marque (`primary/dark/300`) | hypothèse 1 du plan, confirmée ; 12 cas M1 en attente de Q-F2-4 |
+| N-25 | Un rôle déplacé sur le cran de l'autre table vote pour l'autre sens, et son cran faux disparaît sans constat : `page/foreground` et `page/border` dans les deux modes, `ring` en Light | hypothèse 2 du plan, confirmée ; K1-21 à K1-24, K1-27 |
+| N-26 | Un rôle aliasé vers l'autre branche au cran de son propre mode donne une question C60 sans candidat, au lieu de la correction vers la bonne branche | nouveau ; M3-1 à M3-4 |
+| N-27 | C60 pose une question à deux candidats quand le cran fautif vaut pour les deux sens, car il ne lit pas le sens de la palette | nouveau ; M1-19 |
+
+Sur les 51 autres cas K1 et sur 11 des 12 cas M1 où la cible a des modes Light et Dark, la correction a la bonne cible et le bon `avant`. Le kit n'émet aucun faux constat sur les 172 cas.

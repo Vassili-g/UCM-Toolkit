@@ -349,6 +349,14 @@ Le plan d'ensemble reste dans la conversation principale. Un lot par appel d'age
 | 8 Régression | `packages/kit/tests/stressStructure.test.ts`, `packages/plugin-architect/tests/structureStress.test.ts` | `implementeur` | Les deux fichiers couvrent chaque écart classé au lot 7. `npm test` passe, les écarts non corrigés portent `todo`, et les deux fichiers durent moins de 10 secondes. |
 | 9 Scénario de recette | `packages/plugin-architect/scripts/stress/f2-structure/recette.ts`, sortie `recette-figma.txt` | `implementeur` | Le fichier donne, pour F2 à F9, les cartes attendues d'après l'oracle. Le mainteneur le lit avant la recette. |
 
+La version allégée (section 7 de l'inventaire) remplace les lots 2 à 7 par les lots suivants. Les lots 8 et 9 s'écrivent avec les corrections.
+
+| Lot allégé | Contenu | État |
+|---|---|---|
+| A1 | Opérateurs R, K, M, `mesurer.ts` | fait, `e20a3e3d` |
+| A2 | Opérateurs L, S, Y, E, Q, X, faux positifs, relations M-1 et M-3 | à faire |
+| B | Interactions déclarées, chaîne D1 à D4, script `stress:structure` | à faire |
+
 ## 9. Questions au mainteneur
 
 Le mainteneur a laissé la suite en autonomie. La conversation principale retient chaque proposition comme décision provisoire, que le mainteneur peut revoir. Les cas liés restent `mesure` dans le rapport, comptés à part, jusqu'à sa confirmation. Q-F2-7 est tranchée autrement : les résultats de toutes les familles vont dans un seul document, `MESURE-DES-FAILLES.md`, dans ce dossier.
