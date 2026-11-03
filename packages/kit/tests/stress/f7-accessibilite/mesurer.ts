@@ -1,194 +1,32 @@
 /**
- * Mesure du stress test F7 (accessibilité du mode Composant, lot des opérateurs S, G, O, F, M et Y). Chaque cas passe dans
- * `controlerLAccessibilite` (C49 à C53) avec le niveau qu'il déclare, puis son résultat est comparé à son oracle. Le rapport
- * s'écrit dans `_local/stress/f7-accessibilite/operateurs.txt` et `operateurs.json` (dossier ignoré par Git). Deux sections :
+ * Mesure du stress test F7 (accessibilité du mode Composant). Chaque cas passe dans `controlerLAccessibilite` (C49 à C53) avec le
+ * niveau qu'il déclare, puis son résultat est comparé à son oracle (`mesureDesCas.ts`). Le rapport s'écrit dans
+ * `_local/stress/f7-accessibilite/operateurs.txt` et `operateurs.json` (dossier ignoré par Git). Trois sections et les relations :
  *
- *   A  les 48 profils sRGB (P0 compris) : zéro constat C49 à C52, seul C53 sort ;
- *   B  les opérateurs sur P0 (Button, 48 variants, `Light` et `Dark`, fond opaque lié, niveau AA).
+ *   A  les 48 profils sRGB (zéro constat C49 à C52, seul C53 sort), les 22 thèmes ciblés (FP1) et les 72 cas de garantie (FP2) ;
+ *   B  les 519 cas des opérateurs S, G, O, F, M, Y, I, R, Z, X, Q, T et L sur P0 (Button, 48 variants, `Light` et `Dark`) ;
+ *   C  les interactions déclarées, sept couples sur trois profils ;
+ *   R  les relations métamorphiques (ordre mélangé, casse changée) sur les faux positifs et les 519 cas.
  *
- *   npx tsx packages/kit/tests/stress/f7-accessibilite/mesurer.ts [--operateur S1] [--cas S1-4] [--graine 7107]
+ *   npx tsx packages/kit/tests/stress/f7-accessibilite/mesurer.ts [--section A|B|C|R] [--operateur S1] [--cas S1-4] [--graine 7107]
  *
- * Une option de filtre n'écrit rien (le tableau va à l'écran), et `--cas` imprime en plus les constats émis et l'oracle. Le rapport ne
- * porte ni date ni durée, pour que deux exécutions donnent le même `.json`. Le harnais ne corrige rien : un écart du kit est un
- * résultat, une exception levée par un contrôle est un écart (colonne « Exceptions ») et le harnais continue.
- *
- * Un cas dont un constat attendu est émis avec un rapport, un seuil, un niveau, un type, des variants, un mode ou une couleur
- * différents de l'oracle compte comme une correction inexacte (colonne « Corrections inexactes »).
+ * Une option de filtre n'écrit rien (le tableau va à l'écran), et `--cas` imprime en plus les constats émis et l'oracle. Le rapport
+ * ne porte ni date ni durée, pour que deux exécutions donnent le même `.json`. Le harnais ne corrige rien.
  */
 import { mkdirSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { controlerLAccessibilite } from '../../../src/controles/accessibilite.js';
 import type { Constat } from '../../../src/controles/index.js';
-import { comparer } from '../commun/comparer.js';
-import type { Ecart, ResultatDuCas, SorteDEcart } from '../commun/types.js';
-import { cleDeConstat, HYPOTHESES, type AttenduAcc, type CasAccessibilite } from './cas.js';
+import { verdictsDesTroisFonctions, type DefinitionDIcone } from '../f5-variants/typo/definitionsDIcone.js';
+import type { CasAccessibilite } from './cas.js';
 import { composantDeContraste, GRAINE_F7 } from './composantDeContraste.js';
-import { tousLesCas } from './operateurs.js';
+import { tousLesFauxPositifs } from './fauxPositifs.js';
+import { lesInteractions } from './interactions.js';
+import { MARQUE_DE_SONDE, agreger, mesurerLeCas, messageDe, rapportDeSection, rattacher, tableauMarkdown, type Mesure } from './mesureDesCas.js';
+import { rejouerLaRelation, RELATIONS, type ResultatDeRelation } from './metamorphiques.js';
+import { tousLesCasDesOperateurs } from './operateurs.js';
 import { constatsDuProfil, constatsInterdits, composantDuProfil, PROFILS, PROFIL_P0 } from './profils.js';
-
-const messageDe = (erreur: unknown): string => (erreur instanceof Error ? erreur.message : String(erreur));
-
-interface Mesure {
-  readonly cas: CasAccessibilite;
-  readonly emis: readonly Constat[];
-  readonly resultat: ResultatDuCas;
-  readonly exception?: string;
-  readonly duree: number;
-}
-
-// ---------------------------------------------------------------------------------------------------------------------------
-// Détail d'un constat attendu
-
-const normaliserLEtiquette = (etiquette: string): string => etiquette.split(', ').sort().join(', ');
-
-/** Les différences entre un constat émis et le détail que l'attendu donne (rapport, seuil, niveau, type, variants, couleurs, modes). */
-function differences(attendu: AttenduAcc, constat: Constat): string[] {
-  const faits = constat.faits as Record<string, unknown>;
-  const dit: string[] = [];
-  const comparerLesValeurs = (nom: string, attenduValeur: unknown, emisValeur: unknown): void => {
-    if (attenduValeur !== undefined && attenduValeur !== emisValeur) dit.push(`${nom} ${String(emisValeur)}, attendu ${String(attenduValeur)}`);
-  };
-  comparerLesValeurs('type', attendu.type, constat.type);
-  comparerLesValeurs('rapport', attendu.rapport, faits.rapport);
-  comparerLesValeurs('seuil', attendu.seuil, faits.seuil);
-  comparerLesValeurs('niveau', attendu.niveau, faits.niveau);
-  comparerLesValeurs('premier plan', attendu.premierPlan, faits.premierPlan);
-  comparerLesValeurs('fond', attendu.fond, faits.fond);
-  comparerLesValeurs('autres modes', attendu.autresModes, faits.autresModes);
-  comparerLesValeurs('variable du thème', attendu.variableDuTheme, faits.variableDuTheme);
-  comparerLesValeurs('taille', attendu.fontSize, faits.fontSize);
-  if (attendu.mode !== undefined && normaliserLEtiquette(String(faits.mode ?? '')) !== normaliserLEtiquette(attendu.mode)) dit.push(`mode « ${String(faits.mode)} », attendu « ${attendu.mode} »`);
-  if (attendu.variants) {
-    const [a, b] = [new Set(attendu.variants), new Set(constat.variants)];
-    if (a.size !== b.size || [...a].some((v) => !b.has(v))) dit.push(`variants [${constat.variants.join(' ; ')}], attendu [${attendu.variants.join(' ; ')}]`);
-  }
-  if (attendu.rapports) {
-    const lus = (JSON.parse(String(faits.rapports ?? '[]')) as [string, number][]).map(([etiquette, rapport]) => [normaliserLEtiquette(etiquette), rapport] as const);
-    const voulus = attendu.rapports.map(([etiquette, rapport]) => [normaliserLEtiquette(etiquette), rapport] as const);
-    const parEtiquette = new Map(lus);
-    const pareils = attendu.rapportsOrdonnes
-      ? lus.length === voulus.length && voulus.every(([etiquette, rapport], rang) => lus[rang][0] === etiquette && lus[rang][1] === rapport)
-      : parEtiquette.size === voulus.length && voulus.every(([etiquette, rapport]) => parEtiquette.get(etiquette) === rapport);
-    if (!pareils) dit.push(`rapports ${JSON.stringify(lus)}, attendu ${JSON.stringify(voulus)}`);
-  }
-  return dit;
-}
-
-// ---------------------------------------------------------------------------------------------------------------------------
-// Mesure d'un cas
-
-function mesurerLeCas(cas: CasAccessibilite): Mesure {
-  const debut = Date.now();
-  const vide: ResultatDuCas = { cas: cas.id, famille: cas.famille, operateur: cas.operateur, verdict: cas.verdict, attendus: cas.attendus.length, detectes: 0, ecarts: [] };
-  let emis: Constat[];
-  try {
-    const { composant } = cas.entree.materialiser();
-    emis = controlerLAccessibilite(composant.releve, composant.catalogue, { niveau: cas.entree.niveau });
-  } catch (erreur) {
-    return { cas, emis: [], resultat: vide, exception: messageDe(erreur), duree: Date.now() - debut };
-  }
-  const compare = comparer(cas, emis, cleDeConstat);
-  const ecarts: Ecart[] = [...compare.ecarts];
-  const emisParCle = new Map<string, Constat>();
-  for (const constat of emis) if (!emisParCle.has(`${constat.code}|${cleDeConstat(constat)}`)) emisParCle.set(`${constat.code}|${cleDeConstat(constat)}`, constat);
-  let inexacts = 0;
-  for (const attendu of cas.attendus) {
-    const constat = emisParCle.get(`${attendu.code}|${attendu.cle}`);
-    if (!constat) continue;
-    const dit = differences(attendu, constat);
-    if (dit.length === 0) continue;
-    inexacts++;
-    ecarts.push({ cas: cas.id, sorte: 'correction-inexacte', attendu, emis: constat, detail: `${attendu.code}|${attendu.cle} : ${dit.join(' ; ')}` });
-  }
-  const identifiants = new Map<string, number>();
-  for (const constat of emis) identifiants.set(constat.id, (identifiants.get(constat.id) ?? 0) + 1);
-  for (const [id, nombre] of identifiants) {
-    if (nombre > 1) ecarts.push({ cas: cas.id, sorte: 'doublon', emis: emis.find((constat) => constat.id === id), detail: `${id} émis ${nombre} fois : l'identifiant n'est pas unique` });
-  }
-  return { cas, emis, resultat: { ...compare, detectes: compare.detectes - inexacts, ecarts }, duree: Date.now() - debut };
-}
-
-// ---------------------------------------------------------------------------------------------------------------------------
-// Rapport
-
-interface Ligne {
-  operateur: string;
-  cas: number;
-  attendus: number;
-  detectes: number;
-  manques: number;
-  fauxConstats: number;
-  correctionsInexactes: number;
-  exceptions: number;
-  enAttente: number;
-}
-
-const ligneVide = (operateur: string): Ligne => ({ operateur, cas: 0, attendus: 0, detectes: 0, manques: 0, fauxConstats: 0, correctionsInexactes: 0, exceptions: 0, enAttente: 0 });
-const sortes = (resultat: ResultatDuCas, ...liste: SorteDEcart[]): number => resultat.ecarts.filter((ecart) => liste.includes(ecart.sorte)).length;
-
-/** Une ligne par opérateur, puis une par lettre (S, G, O…), puis le total. Les écarts d'un cas `mesure` vont dans `enAttente` seulement. */
-function agreger(mesures: readonly Mesure[]): Ligne[] {
-  const lignes = new Map<string, Ligne>();
-  const lettres = new Map<string, Ligne>();
-  const total = ligneVide('Total');
-  const compter = (ligne: Ligne, { resultat, exception }: Mesure): void => {
-    ligne.cas++;
-    ligne.attendus += resultat.attendus;
-    ligne.detectes += resultat.detectes;
-    if (exception !== undefined) ligne.exceptions++;
-    if (resultat.verdict === 'mesure') { ligne.enAttente += resultat.ecarts.length; return; }
-    ligne.manques += sortes(resultat, 'manque');
-    ligne.fauxConstats += sortes(resultat, 'faux-constat', 'doublon');
-    ligne.correctionsInexactes += sortes(resultat, 'correction-inexacte', 'question-inexacte');
-  };
-  for (const mesure of mesures) {
-    const { operateur } = mesure.cas;
-    const ligne = lignes.get(operateur) ?? ligneVide(operateur);
-    lignes.set(operateur, ligne);
-    const lettre = lettres.get(operateur[0]) ?? ligneVide(`Total ${operateur[0]}`);
-    lettres.set(operateur[0], lettre);
-    for (const cible of [ligne, lettre, total]) compter(cible, mesure);
-  }
-  const rangees: Ligne[] = [];
-  for (const [initiale, lettre] of lettres) {
-    rangees.push(...[...lignes.values()].filter((ligne) => ligne.operateur.startsWith(initiale)), lettre);
-  }
-  return [...rangees, total];
-}
-
-const tableauMarkdown = (entete: readonly string[], rangees: readonly (readonly (string | number)[])[]): string =>
-  [entete, entete.map(() => '---'), ...rangees.map((rangee) => rangee.map(String))].map((rangee) => `| ${rangee.join(' | ')} |`).join('\n');
-
-const tableau = (lignes: readonly Ligne[]): string => tableauMarkdown(
-  ['Opérateur', 'Cas', 'Attendus', 'Détectés', 'Manqués', 'Faux constats', 'Corrections inexactes', 'Exceptions', 'En attente'],
-  lignes.map((l) => [l.operateur, l.cas, l.attendus, l.detectes, l.manques, l.fauxConstats, l.correctionsInexactes, l.exceptions, l.enAttente]),
-);
-
-/** L'hypothèse de la section 6.1 et l'écart de l'inventaire que le cas déclare ; sans lien, « nouveau ». */
-function rattacher(cas: CasAccessibilite): string {
-  const liens = [cas.hypothese ? HYPOTHESES[cas.hypothese] ?? cas.hypothese : undefined, cas.ecartConnu].filter((lien): lien is string => lien !== undefined);
-  return liens.length ? liens.join(' ; ') : 'nouveau';
-}
-
-interface Groupe { readonly cas: CasAccessibilite; readonly sorte: string; readonly code: string; readonly nombre: number; readonly exemple: string }
-
-/** Un cas peut émettre plusieurs écarts de même sorte : le rapport les range par (sorte, code) avec un exemple. */
-function grouper(mesures: readonly Mesure[], verdict: 'attendu' | 'mesure'): Groupe[] {
-  return mesures.filter(({ cas }) => cas.verdict === verdict).flatMap(({ cas, resultat }) => {
-    const groupes = new Map<string, Groupe>();
-    for (const ecart of resultat.ecarts) {
-      const code = ecart.attendu?.code ?? ecart.emis?.code ?? '-';
-      const cle = `${ecart.sorte}|${code}`;
-      const connu = groupes.get(cle);
-      groupes.set(cle, connu ? { ...connu, nombre: connu.nombre + 1 } : { cas, sorte: ecart.sorte, code, nombre: 1, exemple: ecart.detail });
-    }
-    return [...groupes.values()];
-  });
-}
-
-const ligneDeGroupe = ({ cas, sorte, code, nombre, exemple }: Groupe): string =>
-  `- ${cas.id} | ${sorte} | ${code}${nombre > 1 ? ` x${nombre}` : ''} | ${exemple} | ${rattacher(cas)}${cas.question ? ` | ${cas.question}` : ''}`;
 
 // ---------------------------------------------------------------------------------------------------------------------------
 // Profils
@@ -236,32 +74,81 @@ function rapportDesProfils(profils: readonly MesureDeProfil[]): string[] {
   ];
 }
 
-function rapportTexte(graine: number, mesures: readonly Mesure[], profils: readonly MesureDeProfil[]): string {
-  const ecarts = grouper(mesures, 'attendu').map(ligneDeGroupe);
-  const attentes = grouper(mesures, 'mesure').map(ligneDeGroupe);
-  const exceptions = mesures.filter((mesure) => mesure.exception !== undefined)
-    .map(({ cas, exception }) => `- ${cas.id} | exception | ${exception} | ${rattacher(cas)}${cas.question ? ` | ${cas.question}` : ''}`);
-  return [
-    `Stress test F7, accessibilité (graine ${graine} ; sRGB seul ; opérateurs sur P0 = ${PROFIL_P0.id}, Button à 48 variants)`,
-    '',
-    ...(mesures.length ? [
-      `Section B, opérateurs S, G, O, F, M et Y (${mesures.length} cas)`,
-      '',
-      tableau(agreger(mesures)),
-      '',
-      `Écarts (${ecarts.length} groupes) : cas | sorte | code | détail | rattachement`,
-      ...ecarts,
-      '',
-      `Exceptions (${exceptions.length}) : cas | exception | message | rattachement`,
-      ...exceptions,
-      '',
-      `En attente (${attentes.length} groupes) : cas | sorte | code | détail | rattachement | question`,
-      ...attentes,
-      '',
-    ] : []),
-    ...(profils.length ? ['Section A, profils', '', ...rapportDesProfils(profils)] : []),
-  ].join('\n');
+// ---------------------------------------------------------------------------------------------------------------------------
+// Définitions d'icône (E-26)
+
+interface VerdictsDesDefinitions {
+  readonly cas: string;
+  readonly layer: string;
+  readonly attendu: boolean;
+  readonly c66: boolean;
+  readonly c49: boolean;
+  readonly c17: boolean;
 }
+
+/** Pour chaque cas qui pose un layer et sa définition d'icône, le verdict des trois fonctions du kit (C66, C49, C17) contre Q-F3-4. */
+function definitionsDIcone(cas: readonly CasAccessibilite[], base: ReturnType<typeof composantDeContraste>): VerdictsDesDefinitions[] {
+  return cas.filter((entree) => entree.icone).map((entree) => {
+    const { nom, type, instance, estUneIcone } = entree.icone!;
+    const verdicts = verdictsDesTroisFonctions(base, { nom, type: type as DefinitionDIcone['type'], ...(instance ? { instance } : {}), estUneIcone, verdict: 'attendu' });
+    return { cas: entree.id, layer: `${nom} (${type}${instance ? ` ${instance}` : ''})`, attendu: estUneIcone, ...verdicts };
+  });
+}
+
+function rapportDesDefinitions(lignes: readonly VerdictsDesDefinitions[]): string[] {
+  if (lignes.length === 0) return [];
+  const oui = (valeur: boolean): string => (valeur ? 'icône' : '-');
+  const discordants = lignes.filter((l) => l.c66 !== l.c49 || l.c49 !== l.c17 || l.c66 !== l.c17);
+  const horsDefinition = lignes.filter((l) => l.c66 !== l.attendu || l.c49 !== l.attendu || l.c17 !== l.attendu);
+  return [
+    `Définitions d'icône, E-26 (${lignes.length} layers) : ${discordants.length} sur lesquels C66, C49 et C17 se contredisent, ${horsDefinition.length} où l'une des trois s'écarte de Q-F3-4`,
+    '',
+    tableauMarkdown(['Cas', 'Layer', 'Q-F3-4', 'C66', 'C49', 'C17'], lignes.map((l) => [l.cas, l.layer, oui(l.attendu), oui(l.c66), oui(l.c49), oui(l.c17)])),
+    '',
+  ];
+}
+
+// ---------------------------------------------------------------------------------------------------------------------------
+// Relations
+
+interface LigneDeRelation { ensemble: string; relation: string; rejoues: number; tenues: number; ecarts: number; exceptions: number; ignores: number }
+
+function rapportDesRelations(parEnsemble: readonly { ensemble: string; cas: Map<string, CasAccessibilite>; resultats: ResultatDeRelation[] }[]): { texte: string[]; lignes: LigneDeRelation[] } {
+  const lignes: LigneDeRelation[] = [];
+  const ecarts: string[] = [];
+  const exceptions: string[] = [];
+  const ignores = new Map<string, number>();
+  for (const { ensemble, cas, resultats } of parEnsemble) {
+    for (const relation of RELATIONS) {
+      const dEnsemble = resultats.filter((r) => r.relation === relation);
+      const compte = (issue: ResultatDeRelation['issue']): number => dEnsemble.filter((r) => r.issue === issue).length;
+      lignes.push({ ensemble, relation, rejoues: dEnsemble.length - compte('ignore'), tenues: compte('tenue'), ecarts: compte('ecart'), exceptions: compte('exception'), ignores: compte('ignore') });
+      for (const r of dEnsemble) {
+        const ligne = `- ${relation} | ${r.cas} | ${r.detail} | ${rattacher(cas.get(r.cas)!)}`;
+        if (r.issue === 'ecart') ecarts.push(ligne);
+        else if (r.issue === 'exception') exceptions.push(ligne);
+        else if (r.issue === 'ignore') ignores.set(`${relation} | ${r.detail}`, (ignores.get(`${relation} | ${r.detail}`) ?? 0) + 1);
+      }
+    }
+  }
+  const total = lignes.reduce((somme, l) => ({ ...somme, rejoues: somme.rejoues + l.rejoues, tenues: somme.tenues + l.tenues, ecarts: somme.ecarts + l.ecarts, exceptions: somme.exceptions + l.exceptions, ignores: somme.ignores + l.ignores }),
+    { ensemble: 'Total', relation: '', rejoues: 0, tenues: 0, ecarts: 0, exceptions: 0, ignores: 0 });
+  return {
+    lignes,
+    texte: [
+      'Relations métamorphiques (P8) : ordre des variants et des layers mélangé, casse des noms changée',
+      '',
+      tableauMarkdown(['Ensemble', 'Relation', 'Rejoués', 'Tenues', 'Écarts', 'Exceptions', 'Ignorés'], [...lignes, total].map((l) => [l.ensemble, l.relation, l.rejoues, l.tenues, l.ecarts, l.exceptions, l.ignores])),
+      '',
+      `Écarts (${ecarts.length}) : relation | cas | première différence | rattachement`, ...ecarts, '',
+      `Exceptions (${exceptions.length}) : relation | cas | message | rattachement`, ...exceptions, '',
+      `Cas ignorés (${total.ignores}) : relation | raison`, ...[...ignores].map(([raison, nombre]) => `- ${raison} x${nombre}`), '',
+    ],
+  };
+}
+
+// ---------------------------------------------------------------------------------------------------------------------------
+// Impression d'un cas
 
 function resumeDuConstat(constat: Constat): unknown {
   const { id, code, type, faits, variants } = constat;
@@ -288,23 +175,79 @@ function option(nom: string): string | undefined {
   return rang >= 0 ? process.argv[rang + 1] : undefined;
 }
 
+const jsonDeCas = (mesures: readonly Mesure[]): unknown[] => mesures.map(({ cas: c, resultat, exception }) => ({
+  id: c.id, operateur: c.operateur, verdict: c.verdict, ...(c.question ? { question: c.question } : {}),
+  attendus: resultat.attendus, detectes: resultat.detectes, ...(exception === undefined ? {} : { exception }),
+  ecarts: resultat.ecarts.map((ecart) => ({ sorte: ecart.sorte, detail: ecart.detail, rattachement: rattacher(c) })),
+}));
+
+/** Le processus fils d'un cas à risque de boucle : ses constats en JSON sur la dernière ligne, ou son exception. */
+function sonde(identifiant: string, graine: number): void {
+  const base = composantDeContraste(PROFIL_P0, graine);
+  const cas = tousLesCasDesOperateurs(base, graine).find((entree) => entree.id === identifiant);
+  if (!cas) { console.log(`${MARQUE_DE_SONDE}${JSON.stringify({ exception: `Aucun cas ${identifiant}` })}`); return; }
+  try {
+    const { composant } = cas.entree.materialiser();
+    console.log(`${MARQUE_DE_SONDE}${JSON.stringify({ emis: controlerLAccessibilite(composant.releve, composant.catalogue, { niveau: cas.entree.niveau }) })}`);
+  } catch (erreur) {
+    console.log(`${MARQUE_DE_SONDE}${JSON.stringify({ exception: messageDe(erreur) })}`);
+  }
+}
+
 function principal(): void {
   const debut = Date.now();
   const graine = Number(option('--graine') ?? GRAINE_F7);
+  if (option('--sonde') !== undefined) { sonde(option('--sonde')!, graine); return; }
+  const section = option('--section');
   const operateur = option('--operateur');
   const identifiant = option('--cas');
-  const filtre = operateur !== undefined || identifiant !== undefined;
+  const filtre = section !== undefined || operateur !== undefined || identifiant !== undefined;
+  const voulue = (lettre: string): boolean => section === undefined || section === lettre;
+  const selection = (cas: readonly CasAccessibilite[]): CasAccessibilite[] =>
+    cas.filter((entree) => (operateur === undefined || entree.operateur === operateur) && (identifiant === undefined || entree.id === identifiant));
+
   const base = composantDeContraste(PROFIL_P0, graine);
-  const cas = tousLesCas(base, graine).filter((entree) => (operateur === undefined || entree.operateur === operateur) && (identifiant === undefined || entree.id === identifiant));
-  if (filtre && cas.length === 0) {
-    console.error(`Aucun cas pour ${identifiant ?? operateur}.`);
+  const faux = tousLesFauxPositifs(base, graine);
+  const operateurs = tousLesCasDesOperateurs(base, graine);
+  const interactions = lesInteractions(graine);
+  const [casFaux, casOperateurs, casInteractions] = [selection(faux.cas), selection(operateurs), selection(interactions)];
+  if (filtre && casFaux.length + casOperateurs.length + casInteractions.length === 0) {
+    console.error(`Aucun cas pour ${identifiant ?? operateur ?? section}.`);
     process.exitCode = 1;
     return;
   }
-  const mesures = cas.map(mesurerLeCas);
-  const profils = filtre ? [] : PROFILS.map((profil) => mesurerLeProfil(profil.id, () => composantDuProfil(profil, graine)));
-  const texte = rapportTexte(graine, mesures, profils);
-  if (identifiant !== undefined) imprimerLeCas(mesures[0]);
+  const mesuresFaux = voulue('A') || voulue('R') ? casFaux.map((cas) => mesurerLeCas(cas, graine)) : [];
+  const mesuresOperateurs = voulue('B') || voulue('R') ? casOperateurs.map((cas) => mesurerLeCas(cas, graine)) : [];
+  const mesuresInteractions = voulue('C') ? casInteractions.map((cas) => mesurerLeCas(cas, graine)) : [];
+  const profils = !filtre || (section === 'A' && operateur === undefined && identifiant === undefined) ? PROFILS.map((profil) => mesurerLeProfil(profil.id, () => composantDuProfil(profil, graine))) : [];
+  const relations = voulue('R') && (section === 'R' || !filtre)
+    ? [
+      { ensemble: `Faux positifs (${mesuresFaux.length})`, mesures: mesuresFaux },
+      { ensemble: `Opérateurs (${mesuresOperateurs.length})`, mesures: mesuresOperateurs },
+    ].map(({ ensemble, mesures }) => ({
+      ensemble, cas: new Map(mesures.map((m) => [m.cas.id, m.cas] as const)),
+      resultats: mesures.flatMap((m) => RELATIONS.map((relation): ResultatDeRelation => (m.exception === undefined
+        ? rejouerLaRelation(m.cas, relation, m.emis, graine)
+        : { cas: m.cas.id, relation, issue: 'ignore', detail: 'le contrôle lève déjà sur le cas tel quel' }))),
+    }))
+    : [];
+  const rapportRelations = rapportDesRelations(relations);
+  const sectionsA = voulue('A') ? mesuresFaux : [];
+  const sectionsB = voulue('B') ? mesuresOperateurs : [];
+  const definitions = voulue('B') ? definitionsDIcone(casOperateurs, base) : [];
+  const texte = [
+    `Stress test F7, accessibilité (graine ${graine} ; sRGB seul ; opérateurs sur P0 = ${PROFIL_P0.id}, Button à 48 variants)`,
+    '',
+    ...(profils.length ? ['Section A, profils', '', ...rapportDesProfils(profils)] : []),
+    ...rapportDeSection('Section A, faux positifs : FP1 (thèmes ciblés) et FP2 (garanties de palettes)', sectionsA, false),
+    ...(voulue('A') && sectionsA.length ? [`Cas de garantie vides (${faux.vides.length}) : cas | raison`, ...faux.vides.map((v) => `- ${v.id} | ${v.raison}`), ''] : []),
+    ...rapportDeSection('Section B, opérateurs S, G, O, F, M, Y, I, R, Z, X, Q, T et L', sectionsB),
+    ...rapportDesDefinitions(definitions),
+    ...rapportDeSection('Section C, interactions déclarées (sept couples sur P0, Pα et le profil tiré ; le couple O2 et E1 est retiré avec Display P3)', mesuresInteractions, false),
+    ...(relations.length ? rapportRelations.texte : []),
+  ].join('\n');
+
+  if (identifiant !== undefined) imprimerLeCas([...mesuresFaux, ...mesuresOperateurs, ...mesuresInteractions][0]);
   if (filtre) {
     console.log(`\n${texte}`);
     return;
@@ -314,12 +257,12 @@ function principal(): void {
   writeFileSync(path.join(dossier, 'operateurs.txt'), texte);
   const json = {
     graine,
-    operateurs: agreger(mesures),
-    cas: mesures.map(({ cas: c, resultat, exception }) => ({
-      id: c.id, operateur: c.operateur, verdict: c.verdict, ...(c.question ? { question: c.question } : {}),
-      attendus: resultat.attendus, detectes: resultat.detectes, ...(exception === undefined ? {} : { exception }),
-      ecarts: resultat.ecarts.map((ecart) => ({ sorte: ecart.sorte, detail: ecart.detail, rattachement: rattacher(c) })),
-    })),
+    fauxPositifs: { lignes: agreger(mesuresFaux, false), videsDeGarantie: faux.vides, cas: jsonDeCas(mesuresFaux) },
+    operateurs: agreger(mesuresOperateurs),
+    cas: jsonDeCas(mesuresOperateurs),
+    definitionsDIcone: definitions,
+    interactions: { lignes: agreger(mesuresInteractions, false), cas: jsonDeCas(mesuresInteractions) },
+    relations: { lignes: rapportRelations.lignes, resultats: relations.flatMap((r) => r.resultats.filter((x) => x.issue !== 'tenue')) },
     profils,
   };
   writeFileSync(path.join(dossier, 'operateurs.json'), `${JSON.stringify(json, null, 2)}\n`);

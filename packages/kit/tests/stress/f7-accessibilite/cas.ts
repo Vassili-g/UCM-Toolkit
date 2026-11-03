@@ -40,6 +40,13 @@ export interface AttenduAcc extends ConstatAttendu {
   readonly rapportsOrdonnes?: boolean;
   readonly variableDuTheme?: string;
   readonly fontSize?: number;
+  /** C53 : le nombre de variants exclus. */
+  readonly exclus?: number;
+  /** `C49:borne` : les combinaisons mesurées, et celles que le kit ne mesure pas (un nombre, ou la chaîne de ses chiffres au-delà de 2^53). */
+  readonly combinaisonsMesurees?: number;
+  readonly combinaisonsNonMesurees?: number | string;
+  /** Des faits que la proposition d'un cas `mesure` ajoute, comparés tels quels à `faits`. */
+  readonly faitsEnPlus?: Readonly<Record<string, unknown>>;
 }
 
 export interface EntreeAccessibilite {
@@ -48,8 +55,23 @@ export interface EntreeAccessibilite {
   readonly materialiser: () => Materialise;
 }
 
+/** La définition d'icône d'un cas de I1 : le layer posé et ce que Q-F3-4 en dit. */
+export interface IconeDuCas {
+  readonly nom: string;
+  readonly type: string;
+  readonly instance?: 'bibliotheque' | 'pilotee';
+  readonly estUneIcone: boolean;
+}
+
 export interface CasAccessibilite extends CasDeStress<EntreeAccessibilite> {
   readonly attendus: readonly AttenduAcc[];
+  readonly icone?: IconeDuCas;
+  /** Aucun `layers` en double dans un constat émis (P8, hypothèse 20). */
+  readonly layersUniques?: boolean;
+  /** Le contrôle peut ne jamais finir sur cette entrée : le harnais l'exécute dans un processus à délai. */
+  readonly risqueDeBoucle?: boolean;
+  /** Les relations métamorphiques que l'ordre ou la casse d'un nom change légitimement. */
+  readonly sansRelation?: readonly ('ordre' | 'casse')[];
   /** L'hypothèse de la section 6.1 du plan que ce cas met à l'épreuve (`H1` à `H20`). */
   readonly hypothese?: string;
   /** L'écart de l'inventaire auquel le cas se rattache (`E-26`, `E-31`, `E-40`). */
@@ -68,6 +90,16 @@ export const HYPOTHESES: Readonly<Record<string, string>> = {
   H15: 'hypothèse 15 (le mode de fusion du layer et les effets ne sont pas lus)',
   H19: "hypothèse 19 (l'exclusion de C53 retire aussi le texte sous 12 px et la cible)",
   H16: 'hypothèse 16 (un canal ou un alpha hors de [0, 1] est borné ou pris tel quel)',
+  H7: "hypothèse 7 (une instance nommée .Ring sans peinture propre n'est pas reconnue comme anneau)",
+  H8: "hypothèse 8 (un anneau rempli sans contour n'est ni mesuré ni épargné par C51)",
+  H9: "hypothèse 9 (un axe booléen Disabled=True ou l'état Inactive est mesuré comme un variant actif)",
+  H10: "hypothèse 10 (tout VECTOR est une icône, quel que soit son nom ; un RECTANGLE nommé icon n'en est pas une)",
+  H12: "hypothèse 12 (la borne coupe les derniers variants sans dire lesquels)",
+  H13: "hypothèse 13 (le produit des modes compte des collections dont le mode ne change pas la mesure)",
+  H14: "hypothèse 14 (l'identifiant d'un constat porte la plage de texte et le niveau)",
+  H17: "hypothèse 17 (un contour décoratif est mesuré sur le fond des ancêtres seulement)",
+  H18: "hypothèse 18 (la phrase de fond-de-repli et le code du premier layer mesuré)",
+  H20: "hypothèse 20 (C51 ajoute le layer d'un second anneau de même nom sans test de doublon)",
 };
 
 // ---------------------------------------------------------------------------------------------------------------------------
@@ -145,6 +177,26 @@ export function limiteAttendue(o: { usage: Usage; layer: string; cause: CauseAtt
 /** L'information de repli sur la page Figma. Elle porte le code du premier layer mesuré, `Root` et son trait donc C50. */
 export const repliAttendu = (fondHex: string, code: 'C49' | 'C50' = 'C50'): AttenduAcc => ({ code, cle: CLE_DE_REPLI, forme: 'a-faire', type: 'info', fond: fondHex });
 
+/** `C50:sans-anneau` : les variants en focus sans anneau reconnu visible. */
+export const sansAnneauAttendu = (variants: readonly string[]): AttenduAcc => ({ code: 'C50', cle: 'sans-anneau', forme: 'a-faire', type: 'corriger', variants });
+
+/** C51 : un anneau dont le contour n'a pas 2 px, rangé par nom et épaisseur lue. */
+export const epaisseurAttendue = (layer: string, epaisseur: number, variants?: readonly string[]): AttenduAcc =>
+  ({ code: 'C51', cle: `anneau|${layer}|${epaisseur}`, forme: 'a-faire', type: 'verifier', ...detail({ variants }) });
+
+/** C52 : la racine sous 24 px (corriger) ou sous 44 px (vérifier), rangée par dimensions et seuil. */
+export const cibleAttendue = (largeur: number, hauteur: number, variants?: readonly string[]): AttenduAcc => {
+  const seuil = Math.min(largeur, hauteur) < 24 ? 24 : 44;
+  return { code: 'C52', cle: `cible|${largeur}x${hauteur}|${seuil}`, forme: 'a-faire', type: seuil === 24 ? 'corriger' : 'verifier', seuil, ...detail({ variants }) };
+};
+
+/** C53 : le nombre de variants désactivés que le contrôle exclut. */
+export const desactivesAttendu = (exclus: number): AttenduAcc => ({ code: 'C53', cle: 'C53', forme: 'a-faire', type: 'info', exclus });
+
+/** `C49:borne` : un total au-delà de 5 000 combinaisons, les 5 000 premières mesurées. */
+export const borneAttendue = (nonMesurees: number | string, faitsEnPlus?: Readonly<Record<string, unknown>>): AttenduAcc =>
+  ({ code: 'C49', cle: CLE_DE_BORNE, forme: 'a-faire', type: 'info', combinaisonsMesurees: 5000, combinaisonsNonMesurees: nonMesurees, ...detail({ faitsEnPlus }) });
+
 export const tailleAttendue = (layer: string, fontSize: number, variants?: readonly string[]): AttenduAcc =>
   ({ code: 'C49', cle: cleDeTaille(layer, fontSize), forme: 'a-faire', type: 'verifier', seuil: 12, fontSize, ...detail({ variants }) });
 
@@ -212,6 +264,12 @@ export interface DefinitionDeCas {
   readonly question?: string;
   readonly hypothese?: string;
   readonly ecartConnu?: string;
+  /** Les codes jugés ; absent : C49 à C52. Vide : seule une exception du contrôle compte. */
+  readonly codesJuges?: readonly string[];
+  readonly icone?: IconeDuCas;
+  readonly layersUniques?: boolean;
+  readonly risqueDeBoucle?: boolean;
+  readonly sansRelation?: readonly ('ordre' | 'casse')[];
 }
 
 export type FabriqueDeCas = (id: string, operateur: string, definition: DefinitionDeCas) => CasAccessibilite;
@@ -224,10 +282,15 @@ export function fabrique(base: ComposantDeContraste): FabriqueDeCas {
       description: `${operateur} : ${definition.description}`, niveau: definition.niveau ?? base.profil.niveau,
       materialiser: () => { const d = new Degradation(base); definition.degrader(d); return d.materialiser(); },
     },
-    attendus: definition.attendus, codesJuges: CODES_JUGES,
+    attendus: definition.attendus, codesJuges: definition.codesJuges ?? CODES_JUGES,
     ...(definition.hypothese ? { hypothese: definition.hypothese } : {}), ...(definition.ecartConnu ? { ecartConnu: definition.ecartConnu } : {}),
+    ...(definition.icone ? { icone: definition.icone } : {}), ...(definition.layersUniques ? { layersUniques: true } : {}),
+    ...(definition.risqueDeBoucle ? { risqueDeBoucle: true } : {}), ...(definition.sansRelation ? { sansRelation: definition.sansRelation } : {}),
   });
 }
+
+/** Les modes du thème que le profil de la base porte : `Light` et `Dark`, ou `Light` seul. */
+export const modesDuProfil = (base: ComposantDeContraste): readonly ModeDeStress[] => (base.profil.modes === 2 ? MODES_DE_STRESS : MODES_DE_STRESS.slice(0, 1));
 
 /** Le nom du variant que les cas dégradent. */
 export const nomDeLaCible = (base: ComposantDeContraste): string => base.releve.variants[0].nom;
