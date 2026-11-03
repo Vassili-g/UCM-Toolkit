@@ -119,3 +119,10 @@ Plugin UCM Architect : ucm-architect-plugin, privé, lecture et corrections apr�
   - casDeLaChaine.ts : les 27 cas D1 à D4, le composite D5-1 et la fusion des dégradations du kit
   - signatures.ts : rattache un écart à un écart connu (E-20 à E-24, N-24 à N-33) ou le marque « nouveau »
   - executer.ts : point d'entrée, rapport par cas, par série D1 à D6 et par propriété
+- stress/f8-analyse/ : stress test F8 (règles d'usage et moteur de l'exporteur : 235 cas, 67 faux positifs, 16 interactions), hors des tests ; `npx tsx packages/plugin-architect/scripts/stress/f8-analyse/mesurer.ts` écrit `_local/stress/f8-analyse/operateurs.txt` et `operateurs.json` ; gardé par `tests/stressReglesOperateurs.test.ts`
+  - profilsRegles.ts, pageDeRegles.ts : les 48 profils de règles, la page fabriquée et sa lecture par `lireLesRegles` et `extractRules`
+  - scenarioDeBase.ts, injecteur.ts : les 72 profils d'analyse sur des lecteurs doubles, et l'injecteur de pannes par point de passage
+  - corpusDuMoteur.ts : les 40 gabarits de points du moteur et le contrôle de couverture des sites du socle
+  - operateursRegles.ts, operateursEcriture.ts, operateursMoteur.ts : G, H et J ; E ; M
+  - fauxPositifs.ts, interactions.ts, metamorphiques.ts : faux positifs, 8 couples sur 2 profils, relations d'ordre et de casse
+  - cas.ts, operateurs.ts, mesurer.ts : le cadre des cas et leurs clés, le point d'entrée par famille, la mesure et le rapport
