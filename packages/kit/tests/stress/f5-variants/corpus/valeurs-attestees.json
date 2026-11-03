@@ -1,0 +1,929 @@
+[
+  {
+    "valeur": "xs",
+    "categorie": "taille",
+    "axe": "Size",
+    "systeme": null,
+    "composant": null,
+    "source": "plan 3.2",
+    "verdict": "attendu",
+    "constat": null
+  },
+  {
+    "valeur": "sm",
+    "categorie": "taille",
+    "axe": "Size",
+    "systeme": null,
+    "composant": null,
+    "source": "plan 3.2",
+    "verdict": "attendu",
+    "constat": null
+  },
+  {
+    "valeur": "md",
+    "categorie": "taille",
+    "axe": "Size",
+    "systeme": null,
+    "composant": null,
+    "source": "plan 3.2",
+    "verdict": "attendu",
+    "constat": null
+  },
+  {
+    "valeur": "lg",
+    "categorie": "taille",
+    "axe": "Size",
+    "systeme": null,
+    "composant": null,
+    "source": "plan 3.2",
+    "verdict": "attendu",
+    "constat": null
+  },
+  {
+    "valeur": "xl",
+    "categorie": "taille",
+    "axe": "Size",
+    "systeme": null,
+    "composant": null,
+    "source": "plan 3.2",
+    "verdict": "attendu",
+    "constat": null
+  },
+  {
+    "valeur": "2xl",
+    "categorie": "taille",
+    "axe": "Size",
+    "systeme": null,
+    "composant": null,
+    "source": "plan 3.2",
+    "verdict": "attendu",
+    "constat": null
+  },
+  {
+    "valeur": "3xl",
+    "categorie": "taille",
+    "axe": "Size",
+    "systeme": null,
+    "composant": null,
+    "source": "plan 3.2",
+    "verdict": "attendu",
+    "constat": null
+  },
+  {
+    "valeur": "S",
+    "categorie": "taille",
+    "axe": "Size",
+    "systeme": null,
+    "composant": null,
+    "source": "plan 3.2",
+    "verdict": "attendu",
+    "constat": null
+  },
+  {
+    "valeur": "M",
+    "categorie": "taille",
+    "axe": "Size",
+    "systeme": null,
+    "composant": null,
+    "source": "plan 3.2",
+    "verdict": "attendu",
+    "constat": null
+  },
+  {
+    "valeur": "L",
+    "categorie": "taille",
+    "axe": "Size",
+    "systeme": null,
+    "composant": null,
+    "source": "docs/references/composants/segmented-control/polaris.json",
+    "verdict": "attendu",
+    "constat": null
+  },
+  {
+    "valeur": "XL",
+    "categorie": "taille",
+    "axe": "Size",
+    "systeme": null,
+    "composant": null,
+    "source": "plan 3.2",
+    "verdict": "attendu",
+    "constat": null
+  },
+  {
+    "valeur": "XXL",
+    "categorie": "taille",
+    "axe": "Size",
+    "systeme": null,
+    "composant": null,
+    "source": "plan 3.2",
+    "verdict": "attendu",
+    "constat": {
+      "code": "C10",
+      "attendu": "2xl"
+    }
+  },
+  {
+    "valeur": "Mini",
+    "categorie": "taille",
+    "axe": "Size",
+    "systeme": null,
+    "composant": null,
+    "source": "plan 3.2",
+    "verdict": "attendu",
+    "constat": null
+  },
+  {
+    "valeur": "Micro",
+    "categorie": "taille",
+    "axe": "Size",
+    "systeme": null,
+    "composant": null,
+    "source": "plan 3.2",
+    "verdict": "attendu",
+    "constat": null
+  },
+  {
+    "valeur": "Slim",
+    "categorie": "taille",
+    "axe": "Size",
+    "systeme": null,
+    "composant": null,
+    "source": "plan 3.2",
+    "verdict": "attendu",
+    "constat": null
+  },
+  {
+    "valeur": "Small",
+    "categorie": "taille",
+    "axe": "Size",
+    "systeme": null,
+    "composant": null,
+    "source": "docs/references/design-systems/mui/sources/composant__mui-material__Button__Button.js.txt",
+    "verdict": "attendu",
+    "constat": {
+      "code": "C10",
+      "attendu": "sm"
+    }
+  },
+  {
+    "valeur": "Medium",
+    "categorie": "taille",
+    "axe": "Size",
+    "systeme": null,
+    "composant": null,
+    "source": "docs/references/design-systems/mui/sources/composant__mui-material__Button__Button.js.txt",
+    "verdict": "attendu",
+    "constat": {
+      "code": "C10",
+      "attendu": "md"
+    }
+  },
+  {
+    "valeur": "Large",
+    "categorie": "taille",
+    "axe": "Size",
+    "systeme": null,
+    "composant": null,
+    "source": "docs/references/design-systems/mui/sources/composant__mui-material__Button__Button.js.txt",
+    "verdict": "attendu",
+    "constat": {
+      "code": "C10",
+      "attendu": "lg"
+    }
+  },
+  {
+    "valeur": "Extra Large",
+    "categorie": "taille",
+    "axe": "Size",
+    "systeme": null,
+    "composant": null,
+    "source": "plan 3.2",
+    "verdict": "attendu",
+    "constat": null
+  },
+  {
+    "valeur": "X-Large",
+    "categorie": "taille",
+    "axe": "Size",
+    "systeme": null,
+    "composant": null,
+    "source": "plan 3.2",
+    "verdict": "attendu",
+    "constat": null
+  },
+  {
+    "valeur": "Middle",
+    "categorie": "taille",
+    "axe": "Size",
+    "systeme": null,
+    "composant": null,
+    "source": "docs/references/design-systems/fluent-2/sources/composant__fluentui-react-button__lib__components__Button__useButtonStyles.styles.raw.js.txt",
+    "verdict": "attendu",
+    "constat": null
+  },
+  {
+    "valeur": "Default",
+    "categorie": "taille",
+    "axe": "Size",
+    "systeme": null,
+    "composant": null,
+    "source": "docs/references/composants/segmented-control/ant-design.json",
+    "verdict": "attendu",
+    "constat": null
+  },
+  {
+    "valeur": "Compact",
+    "categorie": "taille",
+    "axe": "Size",
+    "systeme": null,
+    "composant": null,
+    "source": "plan 3.2",
+    "verdict": "attendu",
+    "constat": null
+  },
+  {
+    "valeur": "Comfortable",
+    "categorie": "taille",
+    "axe": "Size",
+    "systeme": null,
+    "composant": null,
+    "source": "plan 3.2",
+    "verdict": "attendu",
+    "constat": null
+  },
+  {
+    "valeur": "Desktop",
+    "categorie": "taille",
+    "axe": "Size",
+    "systeme": null,
+    "composant": null,
+    "source": "docs/references/composants/segmented-control/spectrum.json",
+    "verdict": "attendu",
+    "constat": null
+  },
+  {
+    "valeur": "Mobile",
+    "categorie": "taille",
+    "axe": "Size",
+    "systeme": null,
+    "composant": null,
+    "source": "docs/references/composants/segmented-control/spectrum.json",
+    "verdict": "attendu",
+    "constat": null
+  },
+  {
+    "valeur": "1",
+    "categorie": "taille",
+    "axe": "Size",
+    "systeme": null,
+    "composant": null,
+    "source": "plan 3.2",
+    "verdict": "attendu",
+    "constat": null
+  },
+  {
+    "valeur": "2",
+    "categorie": "taille",
+    "axe": "Size",
+    "systeme": null,
+    "composant": null,
+    "source": "docs/references/composants/segmented-control/tokens.json",
+    "verdict": "attendu",
+    "constat": null
+  },
+  {
+    "valeur": "3",
+    "categorie": "taille",
+    "axe": "Size",
+    "systeme": null,
+    "composant": null,
+    "source": "plan 3.2",
+    "verdict": "attendu",
+    "constat": null
+  },
+  {
+    "valeur": "4",
+    "categorie": "taille",
+    "axe": "Size",
+    "systeme": null,
+    "composant": null,
+    "source": "plan 3.2",
+    "verdict": "attendu",
+    "constat": null
+  },
+  {
+    "valeur": "Default",
+    "categorie": "etat",
+    "axe": "State",
+    "systeme": null,
+    "composant": null,
+    "source": "docs/references/composants/segmented-control/ant-design.json",
+    "verdict": "attendu",
+    "constat": null
+  },
+  {
+    "valeur": "Rest",
+    "categorie": "etat",
+    "axe": "State",
+    "systeme": null,
+    "composant": null,
+    "source": "plan 3.2",
+    "verdict": "attendu",
+    "constat": {
+      "code": "C8",
+      "attendu": "default"
+    }
+  },
+  {
+    "valeur": "Enabled",
+    "categorie": "etat",
+    "axe": "State",
+    "systeme": null,
+    "composant": null,
+    "source": "plan 3.2",
+    "verdict": "attendu",
+    "constat": null
+  },
+  {
+    "valeur": "Hover",
+    "categorie": "etat",
+    "axe": "State",
+    "systeme": null,
+    "composant": null,
+    "source": "docs/references/composants/segmented-control/ant-design.json",
+    "verdict": "attendu",
+    "constat": null
+  },
+  {
+    "valeur": "Hovered",
+    "categorie": "etat",
+    "axe": "State",
+    "systeme": null,
+    "composant": null,
+    "source": "plan 3.2",
+    "verdict": "attendu",
+    "constat": {
+      "code": "C8",
+      "attendu": "hover"
+    }
+  },
+  {
+    "valeur": "Focus",
+    "categorie": "etat",
+    "axe": "State",
+    "systeme": null,
+    "composant": null,
+    "source": "docs/references/composants/segmented-control/material-3.json",
+    "verdict": "attendu",
+    "constat": null
+  },
+  {
+    "valeur": "Focused",
+    "categorie": "etat",
+    "axe": "State",
+    "systeme": null,
+    "composant": null,
+    "source": "plan 3.2",
+    "verdict": "attendu",
+    "constat": {
+      "code": "C8",
+      "attendu": "focus"
+    }
+  },
+  {
+    "valeur": "Focus-visible",
+    "categorie": "etat",
+    "axe": "State",
+    "systeme": null,
+    "composant": null,
+    "source": "plan 3.2",
+    "verdict": "attendu",
+    "constat": null
+  },
+  {
+    "valeur": "Pressed",
+    "categorie": "etat",
+    "axe": "State",
+    "systeme": null,
+    "composant": null,
+    "source": "docs/references/composants/segmented-control/ant-design.json",
+    "verdict": "attendu",
+    "constat": null
+  },
+  {
+    "valeur": "Press",
+    "categorie": "etat",
+    "axe": "State",
+    "systeme": null,
+    "composant": null,
+    "source": "plan 3.2",
+    "verdict": "attendu",
+    "constat": {
+      "code": "C8",
+      "attendu": "pressed"
+    }
+  },
+  {
+    "valeur": "Active",
+    "categorie": "etat",
+    "axe": "State",
+    "systeme": null,
+    "composant": null,
+    "source": "docs/references/composants/segmented-control/ant-design.json",
+    "verdict": "attendu",
+    "constat": null
+  },
+  {
+    "valeur": "Disabled",
+    "categorie": "etat",
+    "axe": "State",
+    "systeme": null,
+    "composant": null,
+    "source": "docs/references/composants/segmented-control/ant-design.json",
+    "verdict": "attendu",
+    "constat": null
+  },
+  {
+    "valeur": "Disable",
+    "categorie": "etat",
+    "axe": "State",
+    "systeme": null,
+    "composant": null,
+    "source": "plan 3.2",
+    "verdict": "attendu",
+    "constat": {
+      "code": "C8",
+      "attendu": "disabled"
+    }
+  },
+  {
+    "valeur": "Loading",
+    "categorie": "etat",
+    "axe": "State",
+    "systeme": null,
+    "composant": null,
+    "source": "docs/references/design-systems/mui/sources/composant__mui-material__Button__Button.js.txt",
+    "verdict": "attendu",
+    "constat": null
+  },
+  {
+    "valeur": "Selected",
+    "categorie": "etat",
+    "axe": "State",
+    "systeme": null,
+    "composant": null,
+    "source": "docs/references/composants/segmented-control/ant-design.json",
+    "verdict": "attendu",
+    "constat": null
+  },
+  {
+    "valeur": "Checked",
+    "categorie": "etat",
+    "axe": "State",
+    "systeme": null,
+    "composant": null,
+    "source": "plan 3.2",
+    "verdict": "attendu",
+    "constat": null
+  },
+  {
+    "valeur": "Dragged",
+    "categorie": "etat",
+    "axe": "State",
+    "systeme": null,
+    "composant": null,
+    "source": "plan 3.2",
+    "verdict": "attendu",
+    "constat": null
+  },
+  {
+    "valeur": "Error",
+    "categorie": "etat",
+    "axe": "State",
+    "systeme": null,
+    "composant": null,
+    "source": "docs/references/design-systems/mui/sources/composant__mui-material__Button__Button.js.txt",
+    "verdict": "attendu",
+    "constat": null
+  },
+  {
+    "valeur": "Read-only",
+    "categorie": "etat",
+    "axe": "State",
+    "systeme": null,
+    "composant": null,
+    "source": "plan 3.2",
+    "verdict": "attendu",
+    "constat": null
+  },
+  {
+    "valeur": "Visited",
+    "categorie": "etat",
+    "axe": "State",
+    "systeme": null,
+    "composant": null,
+    "source": "plan 3.2",
+    "verdict": "attendu",
+    "constat": null
+  },
+  {
+    "valeur": "Primary",
+    "categorie": "palette",
+    "axe": "Color",
+    "systeme": null,
+    "composant": null,
+    "source": "docs/references/design-systems/mui/sources/composant__mui-material__Button__Button.js.txt",
+    "verdict": "attendu",
+    "constat": null
+  },
+  {
+    "valeur": "Secondary",
+    "categorie": "palette",
+    "axe": "Color",
+    "systeme": null,
+    "composant": null,
+    "source": "docs/references/design-systems/mui/sources/composant__mui-material__Button__Button.js.txt",
+    "verdict": "attendu",
+    "constat": null
+  },
+  {
+    "valeur": "Tertiary",
+    "categorie": "palette",
+    "axe": "Color",
+    "systeme": null,
+    "composant": null,
+    "source": "plan 3.2",
+    "verdict": "attendu",
+    "constat": null
+  },
+  {
+    "valeur": "Accent",
+    "categorie": "palette",
+    "axe": "Color",
+    "systeme": null,
+    "composant": null,
+    "source": "plan 3.2",
+    "verdict": "attendu",
+    "constat": null
+  },
+  {
+    "valeur": "Brand",
+    "categorie": "palette",
+    "axe": "Color",
+    "systeme": null,
+    "composant": null,
+    "source": "plan 3.2",
+    "verdict": "attendu",
+    "constat": null
+  },
+  {
+    "valeur": "Neutral",
+    "categorie": "palette",
+    "axe": "Color",
+    "systeme": null,
+    "composant": null,
+    "source": "plan 3.2",
+    "verdict": "attendu",
+    "constat": null
+  },
+  {
+    "valeur": "Danger",
+    "categorie": "palette",
+    "axe": "Color",
+    "systeme": null,
+    "composant": null,
+    "source": "plan 3.2",
+    "verdict": "attendu",
+    "constat": null
+  },
+  {
+    "valeur": "Destructive",
+    "categorie": "palette",
+    "axe": "Color",
+    "systeme": null,
+    "composant": null,
+    "source": "plan 3.2",
+    "verdict": "attendu",
+    "constat": null
+  },
+  {
+    "valeur": "Critical",
+    "categorie": "palette",
+    "axe": "Color",
+    "systeme": null,
+    "composant": null,
+    "source": "plan 3.2",
+    "verdict": "mesure",
+    "question": "Q-F5-5",
+    "constat": null,
+    "constatSelonLaProposition": {
+      "code": "C8",
+      "attendu": "danger"
+    }
+  },
+  {
+    "valeur": "Negative",
+    "categorie": "palette",
+    "axe": "Color",
+    "systeme": null,
+    "composant": null,
+    "source": "plan 3.2",
+    "verdict": "attendu",
+    "constat": null
+  },
+  {
+    "valeur": "Success",
+    "categorie": "palette",
+    "axe": "Color",
+    "systeme": null,
+    "composant": null,
+    "source": "docs/references/design-systems/mui/sources/composant__mui-material__Button__Button.js.txt",
+    "verdict": "attendu",
+    "constat": null
+  },
+  {
+    "valeur": "Positive",
+    "categorie": "palette",
+    "axe": "Color",
+    "systeme": null,
+    "composant": null,
+    "source": "plan 3.2",
+    "verdict": "mesure",
+    "question": "Q-F5-5",
+    "constat": null,
+    "constatSelonLaProposition": {
+      "code": "C8",
+      "attendu": "success"
+    }
+  },
+  {
+    "valeur": "Warning",
+    "categorie": "palette",
+    "axe": "Color",
+    "systeme": null,
+    "composant": null,
+    "source": "docs/references/design-systems/mui/sources/composant__mui-material__Button__Button.js.txt",
+    "verdict": "attendu",
+    "constat": null
+  },
+  {
+    "valeur": "Info",
+    "categorie": "palette",
+    "axe": "Color",
+    "systeme": null,
+    "composant": null,
+    "source": "docs/references/design-systems/mui/sources/composant__mui-material__Button__Button.js.txt",
+    "verdict": "attendu",
+    "constat": null
+  },
+  {
+    "valeur": "Informative",
+    "categorie": "palette",
+    "axe": "Color",
+    "systeme": null,
+    "composant": null,
+    "source": "plan 3.2",
+    "verdict": "mesure",
+    "question": "Q-F5-5",
+    "constat": null,
+    "constatSelonLaProposition": {
+      "code": "C8",
+      "attendu": "info"
+    }
+  },
+  {
+    "valeur": "Discovery",
+    "categorie": "palette",
+    "axe": "Color",
+    "systeme": null,
+    "composant": null,
+    "source": "plan 3.2",
+    "verdict": "attendu",
+    "constat": null
+  },
+  {
+    "valeur": "Inverse",
+    "categorie": "palette",
+    "axe": "Color",
+    "systeme": null,
+    "composant": null,
+    "source": "plan 3.2",
+    "verdict": "attendu",
+    "constat": null
+  },
+  {
+    "valeur": "Error",
+    "categorie": "palette",
+    "axe": "Color",
+    "systeme": null,
+    "composant": null,
+    "source": "docs/references/design-systems/mui/sources/composant__mui-material__Button__Button.js.txt",
+    "verdict": "mesure",
+    "question": "Q-F5-5",
+    "constat": null,
+    "constatSelonLaProposition": {
+      "code": "C8",
+      "attendu": "danger"
+    }
+  },
+  {
+    "valeur": "Solid",
+    "categorie": "style",
+    "axe": "Style",
+    "systeme": null,
+    "composant": null,
+    "source": "plan 3.2",
+    "verdict": "attendu",
+    "constat": null
+  },
+  {
+    "valeur": "Soft",
+    "categorie": "style",
+    "axe": "Style",
+    "systeme": null,
+    "composant": null,
+    "source": "plan 3.2",
+    "verdict": "attendu",
+    "constat": null
+  },
+  {
+    "valeur": "Surface",
+    "categorie": "style",
+    "axe": "Style",
+    "systeme": null,
+    "composant": null,
+    "source": "plan 3.2",
+    "verdict": "attendu",
+    "constat": null
+  },
+  {
+    "valeur": "Outline",
+    "categorie": "style",
+    "axe": "Style",
+    "systeme": null,
+    "composant": null,
+    "source": "plan 3.2",
+    "verdict": "attendu",
+    "constat": null
+  },
+  {
+    "valeur": "Ghost",
+    "categorie": "style",
+    "axe": "Style",
+    "systeme": null,
+    "composant": null,
+    "source": "plan 3.2",
+    "verdict": "attendu",
+    "constat": null
+  },
+  {
+    "valeur": "Classic",
+    "categorie": "style",
+    "axe": "Style",
+    "systeme": null,
+    "composant": null,
+    "source": "docs/references/composants/segmented-control/radix.json",
+    "verdict": "attendu",
+    "constat": null
+  },
+  {
+    "valeur": "Filled",
+    "categorie": "style",
+    "axe": "Style",
+    "systeme": null,
+    "composant": null,
+    "source": "plan 3.2",
+    "verdict": "attendu",
+    "constat": null
+  },
+  {
+    "valeur": "Tonal",
+    "categorie": "style",
+    "axe": "Style",
+    "systeme": null,
+    "composant": null,
+    "source": "plan 3.2",
+    "verdict": "attendu",
+    "constat": null
+  },
+  {
+    "valeur": "Text",
+    "categorie": "style",
+    "axe": "Style",
+    "systeme": null,
+    "composant": null,
+    "source": "docs/references/design-systems/mui/sources/composant__mui-material__Button__Button.js.txt",
+    "verdict": "attendu",
+    "constat": null
+  },
+  {
+    "valeur": "Link",
+    "categorie": "style",
+    "axe": "Style",
+    "systeme": null,
+    "composant": null,
+    "source": "plan 3.2",
+    "verdict": "attendu",
+    "constat": null
+  },
+  {
+    "valeur": "Plain",
+    "categorie": "style",
+    "axe": "Style",
+    "systeme": null,
+    "composant": null,
+    "source": "plan 3.2",
+    "verdict": "attendu",
+    "constat": null
+  },
+  {
+    "valeur": "Dashed",
+    "categorie": "style",
+    "axe": "Style",
+    "systeme": null,
+    "composant": null,
+    "source": "plan 3.2",
+    "verdict": "attendu",
+    "constat": null
+  },
+  {
+    "valeur": "Contained",
+    "categorie": "style",
+    "axe": "Style",
+    "systeme": null,
+    "composant": null,
+    "source": "docs/references/design-systems/mui/sources/composant__mui-material__Button__Button.js.txt",
+    "verdict": "attendu",
+    "constat": null
+  },
+  {
+    "valeur": "Outlined",
+    "categorie": "style",
+    "axe": "Style",
+    "systeme": null,
+    "composant": null,
+    "source": "docs/references/design-systems/mui/sources/composant__mui-material__Button__Button.js.txt",
+    "verdict": "attendu",
+    "constat": null
+  },
+  {
+    "valeur": "Elevated",
+    "categorie": "style",
+    "axe": "Style",
+    "systeme": null,
+    "composant": null,
+    "source": "plan 3.2",
+    "verdict": "attendu",
+    "constat": null
+  },
+  {
+    "valeur": "Invisible",
+    "categorie": "style",
+    "axe": "Style",
+    "systeme": null,
+    "composant": null,
+    "source": "plan 3.2",
+    "verdict": "attendu",
+    "constat": null
+  },
+  {
+    "valeur": "Transparent",
+    "categorie": "style",
+    "axe": "Style",
+    "systeme": null,
+    "composant": null,
+    "source": "docs/references/design-systems/mui/sources/composant__mui-material__Button__Button.js.txt",
+    "verdict": "attendu",
+    "constat": null
+  },
+  {
+    "valeur": "Subtle",
+    "categorie": "style",
+    "axe": "Style",
+    "systeme": null,
+    "composant": null,
+    "source": "plan 3.2",
+    "verdict": "attendu",
+    "constat": null
+  },
+  {
+    "valeur": "Standard",
+    "categorie": "style",
+    "axe": "Style",
+    "systeme": null,
+    "composant": null,
+    "source": "plan 3.2",
+    "verdict": "attendu",
+    "constat": null
+  },
+  {
+    "valeur": "Fill",
+    "categorie": "style",
+    "axe": "Style",
+    "systeme": null,
+    "composant": null,
+    "source": "plan 3.2",
+    "verdict": "attendu",
+    "constat": null
+  }
+]

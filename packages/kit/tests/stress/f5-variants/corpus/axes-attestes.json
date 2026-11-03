@@ -1,0 +1,314 @@
+[
+  {
+    "nom": "Size",
+    "systeme": "mui",
+    "composant": "Button",
+    "role": "taille",
+    "verdict": "attendu",
+    "source": "docs/references/design-systems/mui/sources/composant__mui-material__Button__Button.js.txt"
+  },
+  {
+    "nom": "Sizes",
+    "systeme": null,
+    "composant": null,
+    "role": "taille",
+    "verdict": "attendu",
+    "source": "plan 3.2"
+  },
+  {
+    "nom": "Taille",
+    "systeme": null,
+    "composant": null,
+    "role": "taille",
+    "verdict": "attendu",
+    "source": "plan 3.2"
+  },
+  {
+    "nom": "Density",
+    "systeme": null,
+    "composant": null,
+    "role": "taille",
+    "roleSelonLaProposition": "taille",
+    "verdict": "mesure",
+    "question": "Q-F5-1",
+    "source": "plan 3.2"
+  },
+  {
+    "nom": "Spacing",
+    "systeme": null,
+    "composant": null,
+    "role": "taille",
+    "roleSelonLaProposition": "taille",
+    "verdict": "mesure",
+    "question": "Q-F5-1",
+    "source": "plan 3.2"
+  },
+  {
+    "nom": "State",
+    "systeme": "mui",
+    "composant": "Button",
+    "role": "etat",
+    "verdict": "attendu",
+    "source": "plan 3.2"
+  },
+  {
+    "nom": "States",
+    "systeme": null,
+    "composant": null,
+    "role": "etat",
+    "verdict": "attendu",
+    "source": "plan 3.2"
+  },
+  {
+    "nom": "Status",
+    "systeme": null,
+    "composant": null,
+    "role": "etat",
+    "verdict": "attendu",
+    "source": "plan 3.2"
+  },
+  {
+    "nom": "Etat",
+    "systeme": null,
+    "composant": null,
+    "role": "etat",
+    "verdict": "attendu",
+    "source": "plan 3.2"
+  },
+  {
+    "nom": "État",
+    "systeme": null,
+    "composant": null,
+    "role": "etat",
+    "verdict": "attendu",
+    "source": "plan 3.2"
+  },
+  {
+    "nom": "Loading",
+    "systeme": null,
+    "composant": null,
+    "role": "etat",
+    "roleSelonLaProposition": null,
+    "verdict": "mesure",
+    "question": "Q-F5-1",
+    "source": "plan 3.2"
+  },
+  {
+    "nom": "Selected",
+    "systeme": null,
+    "composant": null,
+    "role": "etat",
+    "roleSelonLaProposition": null,
+    "verdict": "mesure",
+    "question": "Q-F5-1",
+    "source": "plan 3.2"
+  },
+  {
+    "nom": "Color",
+    "systeme": "mui",
+    "composant": "Button",
+    "role": "palette",
+    "verdict": "attendu",
+    "source": "docs/references/design-systems/mui/sources/composant__mui-material__Button__Button.js.txt"
+  },
+  {
+    "nom": "Colour",
+    "systeme": null,
+    "composant": null,
+    "role": "palette",
+    "verdict": "attendu",
+    "source": "plan 3.2"
+  },
+  {
+    "nom": "Intent",
+    "systeme": null,
+    "composant": null,
+    "role": "palette",
+    "verdict": "attendu",
+    "source": "plan 3.2"
+  },
+  {
+    "nom": "Severity",
+    "systeme": "ucm",
+    "composant": "Alert",
+    "role": "palette",
+    "verdict": "attendu",
+    "source": "plan 3.2"
+  },
+  {
+    "nom": "Tone",
+    "systeme": "polaris",
+    "composant": "Button",
+    "role": "palette",
+    "verdict": "attendu",
+    "source": "plan 3.2"
+  },
+  {
+    "nom": "Couleur",
+    "systeme": null,
+    "composant": null,
+    "role": "palette",
+    "roleSelonLaProposition": "palette",
+    "verdict": "mesure",
+    "question": "Q-F5-9",
+    "source": "plan 3.2"
+  },
+  {
+    "nom": "Intention",
+    "systeme": null,
+    "composant": null,
+    "role": "palette",
+    "roleSelonLaProposition": "palette",
+    "verdict": "mesure",
+    "question": "Q-F5-9",
+    "source": "plan 3.2"
+  },
+  {
+    "nom": "Gravité",
+    "systeme": null,
+    "composant": null,
+    "role": "palette",
+    "roleSelonLaProposition": "palette",
+    "verdict": "mesure",
+    "question": "Q-F5-9",
+    "source": "plan 3.2"
+  },
+  {
+    "nom": "Destructive",
+    "systeme": "untitled-ui",
+    "composant": "Button",
+    "role": "palette",
+    "roleSelonLaProposition": null,
+    "verdict": "mesure",
+    "question": "Q-F5-1",
+    "source": "plan 3.2"
+  },
+  {
+    "nom": "Danger",
+    "systeme": "ant-design",
+    "composant": "Button",
+    "role": "palette",
+    "roleSelonLaProposition": null,
+    "verdict": "mesure",
+    "question": "Q-F5-1",
+    "source": "plan 3.2"
+  },
+  {
+    "nom": "Style",
+    "systeme": "ucm",
+    "composant": "Alert",
+    "role": "style",
+    "verdict": "attendu",
+    "source": "plan 3.2"
+  },
+  {
+    "nom": "Variant",
+    "systeme": "mui",
+    "composant": "Button",
+    "role": "style",
+    "verdict": "attendu",
+    "source": "docs/references/design-systems/mui/sources/composant__mui-material__Button__Button.js.txt"
+  },
+  {
+    "nom": "Appearance",
+    "systeme": "fluent-2",
+    "composant": "Button",
+    "role": "style",
+    "verdict": "attendu",
+    "source": "plan 3.2"
+  },
+  {
+    "nom": "Hierarchy",
+    "systeme": "untitled-ui",
+    "composant": "Button",
+    "role": "style",
+    "verdict": "attendu",
+    "source": "plan 3.2"
+  },
+  {
+    "nom": "Emphasis",
+    "systeme": null,
+    "composant": null,
+    "role": "style",
+    "verdict": "attendu",
+    "source": "plan 3.2"
+  },
+  {
+    "nom": "Fill style",
+    "systeme": "spectrum",
+    "composant": "Button",
+    "role": "style",
+    "verdict": "attendu",
+    "source": "plan 3.2"
+  },
+  {
+    "nom": "Variante",
+    "systeme": null,
+    "composant": null,
+    "role": "style",
+    "roleSelonLaProposition": "style",
+    "verdict": "mesure",
+    "question": "Q-F5-9",
+    "source": "plan 3.2"
+  },
+  {
+    "nom": "Apparence",
+    "systeme": null,
+    "composant": null,
+    "role": "style",
+    "roleSelonLaProposition": "style",
+    "verdict": "mesure",
+    "question": "Q-F5-9",
+    "source": "plan 3.2"
+  },
+  {
+    "nom": "Hiérarchie",
+    "systeme": null,
+    "composant": null,
+    "role": "style",
+    "roleSelonLaProposition": "style",
+    "verdict": "mesure",
+    "question": "Q-F5-9",
+    "source": "plan 3.2"
+  },
+  {
+    "nom": "Type",
+    "systeme": "ant-design",
+    "composant": "Button",
+    "role": "style",
+    "roleSelonLaProposition": "style",
+    "verdict": "mesure",
+    "question": "Q-F5-1",
+    "source": "plan 3.2"
+  },
+  {
+    "nom": "Kind",
+    "systeme": "carbon",
+    "composant": "Button",
+    "role": "style",
+    "roleSelonLaProposition": "style",
+    "verdict": "mesure",
+    "question": "Q-F5-1",
+    "source": "plan 3.2"
+  },
+  {
+    "nom": "Shape",
+    "systeme": "fluent-2",
+    "composant": "Button",
+    "role": "style",
+    "roleSelonLaProposition": "style",
+    "verdict": "mesure",
+    "question": "Q-F5-1",
+    "source": "plan 3.2"
+  },
+  {
+    "nom": "High contrast",
+    "systeme": "radix",
+    "composant": "Button",
+    "role": "style",
+    "roleSelonLaProposition": null,
+    "verdict": "mesure",
+    "question": "Q-F5-1",
+    "source": "docs/references/design-systems/radix/sources/composant__radix-ui-themes__src__components___internal__base-button.css.txt"
+  }
+]
