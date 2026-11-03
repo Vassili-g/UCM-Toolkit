@@ -1,9 +1,10 @@
 /**
- * Mesure du stress test F2 sur le profil P0. Il passe chaque cas dans les deux contrôles du mode Tokens, le compare à son oracle
- * et écrit `_local/stress/f2-structure/operateurs.txt` et `operateurs.json` (dossier ignoré par Git). La section A porte les 85
- * faux positifs (72 profils et 13 thèmes ciblés, aucun constat attendu), la section B les 426 cas des opérateurs.
+ * Mesure du stress test F2. Il passe chaque cas dans les deux contrôles du mode Tokens, le compare à son oracle et écrit
+ * `_local/stress/f2-structure/operateurs.txt` et `operateurs.json` (dossier ignoré par Git). La section A porte les 85 faux positifs
+ * (72 profils et 13 thèmes ciblés, aucun constat attendu), la section B les 426 cas des opérateurs sur le profil P0, la section C les
+ * 24 interactions déclarées (8 couples sur P0, p37 et le profil tiré, `interactions.ts`).
  *
- *   npx tsx packages/kit/tests/stress/f2-structure/mesurer.ts [--section A|B] [--operateur K1] [--cas K1-12] [--graine 7102]
+ *   npx tsx packages/kit/tests/stress/f2-structure/mesurer.ts [--section A|B|C] [--operateur K1] [--cas K1-12] [--graine 7102]
  *
  * `--section`, `--operateur` et `--cas` filtrent et n'écrivent rien (le tableau va à l'écran), et `--cas` imprime en plus le
  * catalogue dégradé (les variables touchées seulement), les constats émis et l'oracle. Le rapport ne porte ni date ni durée, pour
@@ -21,6 +22,7 @@ import { comparer } from '../commun/comparer.js';
 import type { Ecart, ResultatDuCas, SorteDEcart } from '../commun/types.js';
 import { cleDeConstat, constatsBrutsDuCas, sansDoublon, verifierLesDetails, type CasDeStructure } from './cas.js';
 import { fauxPositifs } from './fauxPositifs.js';
+import { interactions, themesDesInteractions } from './interactions.js';
 import { RELATIONS, verifierLesRelations, type EcartDeRelation, type Relation } from './metamorphiques.js';
 import { tousLesCas } from './operateurs.js';
 import { GRAINE_PAR_DEFAUT, PROFIL_P0, themeDuProfil } from './themeUcm.js';
@@ -33,12 +35,19 @@ const HYPOTHESES: Readonly<Record<string, string>> = {
   H5: 'hypothèse 5 (un rôle reconnu deux fois n\'est jugé que pour le premier)',
 };
 
+const NOMS_DE_SECTION: Readonly<Record<Section, string>> = {
+  A: 'Section A, faux positifs (72 profils et 13 thèmes ciblés)',
+  B: 'Section B, opérateurs',
+  C: 'Section C, interactions déclarées (8 couples, 3 profils)',
+};
+const SECTIONS: readonly Section[] = ['A', 'B', 'C'];
+
 /** L'hypothèse de la section 6.1 que le cas met à l'épreuve ; « nouveau » sinon. */
 function rattacher(cas: CasDeStructure): string {
   return cas.hypothese ? HYPOTHESES[cas.hypothese] : 'nouveau';
 }
 
-type Section = 'A' | 'B';
+type Section = 'A' | 'B' | 'C';
 
 interface Mesure {
   readonly section: Section;
@@ -132,7 +141,7 @@ function tableauDesRelations(mesures: readonly Mesure[]): { tableau: string; eca
   const parSection = (section: Section): Mesure[] => mesures.filter((mesure) => mesure.section === section);
   const compte = (liste: readonly Mesure[], relation: Relation): number => liste.filter((mesure) => mesure.relations.some((ecart) => ecart.relation === relation)).length;
   const entete = ['Section', 'Cas rejoués', ...RELATIONS.map((relation) => `Écarts « ${relation} »`)];
-  const rangees = (['A', 'B'] as const).map((section) => {
+  const rangees = SECTIONS.map((section) => {
     const liste = parSection(section);
     return [section, String(liste.filter((mesure) => mesure.exception === undefined).length), ...RELATIONS.map((relation) => String(compte(liste, relation)))];
   });
@@ -143,15 +152,14 @@ function tableauDesRelations(mesures: readonly Mesure[]): { tableau: string; eca
 }
 
 function rapportTexte(graine: number, mesures: readonly Mesure[]): string {
-  const sections = (['A', 'B'] as const).map((section) => ({ section, liste: mesures.filter((mesure) => mesure.section === section) })).filter(({ liste }) => liste.length > 0);
+  const sections = SECTIONS.map((section) => ({ section, liste: mesures.filter((mesure) => mesure.section === section) })).filter(({ liste }) => liste.length > 0);
   const attentes = listeDesEcarts(mesures, 'mesure');
   const ecarts = [...listeDesEcarts(mesures, 'attendu'), ...listeDesExceptions(mesures)];
   const relations = tableauDesRelations(mesures);
-  const nomDeSection: Record<Section, string> = { A: 'Section A, faux positifs (72 profils et 13 thèmes ciblés)', B: 'Section B, opérateurs' };
   return [
-    `Stress test F2 sur ${PROFIL_P0.id} (graine ${graine})`,
+    `Stress test F2 (graine ${graine} ; sections A et B sur ${PROFIL_P0.id})`,
     '',
-    ...sections.flatMap(({ section, liste }) => [nomDeSection[section], '', tableau(agreger(liste)), '']),
+    ...sections.flatMap(({ section, liste }) => [NOMS_DE_SECTION[section], '', tableau(agreger(liste)), '']),
     `Écarts (${ecarts.length}) : cas | sorte | détail | rattachement`,
     ...ecarts,
     '',
@@ -212,15 +220,16 @@ function principal(): void {
   const operateur = option('--operateur');
   const identifiant = option('--cas');
   const section = option('--section');
-  if (section !== undefined && section !== 'A' && section !== 'B') {
-    console.error('--section attend A ou B.');
+  if (section !== undefined && !(SECTIONS as readonly string[]).includes(section)) {
+    console.error('--section attend A, B ou C.');
     process.exitCode = 1;
     return;
   }
   const base = themeDuProfil(PROFIL_P0, graine);
   const candidats: { cas: CasDeStructure; section: Section }[] = [
-    ...(section === 'B' ? [] : fauxPositifs(base, graine).map((cas) => ({ cas, section: 'A' as const }))),
-    ...(section === 'A' ? [] : tousLesCas(base, graine).map((cas) => ({ cas, section: 'B' as const }))),
+    ...(section === undefined || section === 'A' ? fauxPositifs(base, graine).map((cas) => ({ cas, section: 'A' as const })) : []),
+    ...(section === undefined || section === 'B' ? tousLesCas(base, graine).map((cas) => ({ cas, section: 'B' as const })) : []),
+    ...(section === undefined || section === 'C' ? interactions(graine).map((cas) => ({ cas, section: 'C' as const })) : []),
   ];
   const retenus = candidats.filter(({ cas }) => (operateur === undefined || cas.operateur === operateur) && (identifiant === undefined || cas.id === identifiant));
   if (retenus.length === 0) {
@@ -239,8 +248,8 @@ function principal(): void {
   mkdirSync(dossier, { recursive: true });
   writeFileSync(path.join(dossier, 'operateurs.txt'), texte);
   const json = {
-    graine, profil: PROFIL_P0.id,
-    sections: (['A', 'B'] as const).map((s) => ({ section: s, lignes: agreger(mesures.filter((mesure) => mesure.section === s)) })),
+    graine, profil: PROFIL_P0.id, profilsDeLaSectionC: themesDesInteractions(graine).map((theme) => theme.profil.id),
+    sections: SECTIONS.map((s) => ({ section: s, lignes: agreger(mesures.filter((mesure) => mesure.section === s)) })),
     cas: mesures.map(({ cas: c, section: s, resultat, exception, relations }) => ({
       id: c.id, section: s, operateur: c.operateur, verdict: c.verdict, ...(c.question ? { question: c.question } : {}),
       attendus: resultat.attendus, detectes: resultat.detectes,

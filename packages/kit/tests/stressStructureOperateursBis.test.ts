@@ -1,8 +1,8 @@
 /**
  * Garde les opérateurs L, S, Y, X, E et Q du harnais de stress F2, ses 85 faux positifs et ses relations métamorphiques : les
  * nombres de cas contre la section 3.3 et la section 4 du plan, la forme des cas, les cas `mesure` et leur question, un oracle
- * écrit à la main par opérateur et la cohérence de chaque dégradation (dégrader puis annuler redonne le thème de base). Le test ne
- * mesure pas le kit : un écart du kit sur ces cas est un résultat de `mesurer.ts`, pas un échec d'ici.
+ * écrit à la main par opérateur et la cohérence de chaque dégradation (dégrader puis annuler redonne le thème de base). Il garde aussi
+ * les 24 interactions déclarées (8 couples sur 3 profils). Le test ne mesure pas le kit : un écart du kit sur ces cas est un résultat de `mesurer.ts`, pas un échec d'ici.
  */
 import assert from 'node:assert/strict';
 import test from 'node:test';
@@ -10,6 +10,7 @@ import { isDeepStrictEqual } from 'node:util';
 import type { Constat } from '../src/controles/index.js';
 import { identifiantsEnDouble, type CasDeStructure } from './stress/f2-structure/cas.js';
 import { fauxPositifs } from './stress/f2-structure/fauxPositifs.js';
+import { COUPLES, interactions } from './stress/f2-structure/interactions.js';
 import { autreCasse, catalogueEnAutreCasse, catalogueMelange, verifierLesRelations } from './stress/f2-structure/metamorphiques.js';
 import { GENERATEURS } from './stress/f2-structure/operateurs.js';
 import { GRAINE_PAR_DEFAUT, PROFIL_P0, PROFILS_DE_THEME, themeDuProfil } from './stress/f2-structure/themeUcm.js';
@@ -297,4 +298,74 @@ test('dégrader ne touche pas la base, puis annuler redonne le catalogue de la b
     assert.ok(isDeepStrictEqual(theme.catalogue, origine.catalogue), `${entree.id} : annuler ne redonne pas la base`);
   }
   assert.equal(JSON.stringify(base), baseAvant);
+});
+
+test('les 24 interactions : 8 couples sur P0, p37 et le profil tiré, un identifiant I<n>-<rang du profil>, un verdict attendu', () => {
+  const cas24 = interactions();
+  assert.equal(cas24.length, 24);
+  assert.deepEqual(COUPLES, ['I1', 'I2', 'I3', 'I4', 'I5', 'I6', 'I7', 'I8']);
+  assert.deepEqual(cas24.map((entree) => entree.id), COUPLES.flatMap((couple) => [1, 2, 3].map((rang) => `${couple}-${rang}`)));
+  for (const couple of COUPLES) {
+    assert.deepEqual(cas24.filter((entree) => entree.operateur === couple).map((entree) => entree.entree.theme.profil.id), ['p14', 'p37', 'p24'], couple);
+  }
+  for (const entree of cas24) {
+    assert.equal(entree.famille, 'F2');
+    assert.equal(entree.verdict, 'attendu');
+    assert.ok(entree.entree.description.startsWith(entree.operateur), entree.id);
+    assert.ok(entree.entree.zones.length > 0, entree.id);
+    assert.ok(entree.attendus.length > 0, `${entree.id} sans oracle`);
+    for (const detail of entree.details ?? []) assert.ok(cles(entree).includes(detail.pour), `${entree.id} ${detail.pour}`);
+  }
+  assert.deepEqual(new Set(cas24.map((entree) => entree.id)).size, 24);
+});
+
+test('chaque couple d’interactions rend son oracle propre, écrit à la main', () => {
+  const toutes = interactions();
+  const couple = (id: string) => toutes.find((entree) => entree.id === id)!;
+  // I1 : le rôle retiré et le cran qu'il visait donnent `cran-absent` de la rampe, jamais la création du rôle ; le chemin suit l'écriture du profil.
+  assert.deepEqual(cles(couple('I1-1')), ['C82|cran-absent|primary/light/800|']);
+  assert.deepEqual(cles(couple('I1-2')), ['C82|cran-absent|Primary/Light/600|']);
+  assert.deepEqual(cles(couple('I1-3')), ['C82|cran-absent|neutral/light/800|'], 'les rampes de brands du profil tiré sont distantes : la palette de travail est neutral');
+  assert.equal(couple('I1-1').entree.theme.catalogue.variables.some((v) => v.cle === 'brands|primary/light/800'), false);
+  assert.equal(couple('I1-1').entree.theme.catalogue.variables.some((v) => v.cle === 'theme|primary/solid/hover'), false);
+  // I2 : une question qui nomme le rôle retiré, aucune création de ce rôle, la création exacte du voisin dont le nom a pris la faute.
+  assert.deepEqual(cles(couple('I2-1')), ['C82|variable-inconnue|primary/surface/hoer|', 'C82|variable-absente|primary/surface/pressed|']);
+  assert.ok(!cles(couple('I2-1')).some((cle) => cle.includes('variable-absente|primary/surface/hover')));
+  const verification = couple('I2-1').verifications![0].verifier;
+  const question = (nom: string): Constat => ({
+    id: 'x', code: 'C82', type: 'corriger', famille: 'liaisons', variants: [], layers: [], faits: {}, question: { id: 'x', candidats: [{ nom }] },
+  });
+  assert.equal(verification(question('primary/surface/hover')), undefined);
+  assert.match(verification(question('primary/surface/pressed'))!, /ne nomme pas primary\/surface\/hover/);
+  // I3 : deux corrections de cran vers la cible de la carte, une par rôle déplacé.
+  assert.deepEqual(cles(couple('I3-2')), ['C82|cran|Primary/Solid/Default|Light', 'C82|cran|Primary/Solid/Hover|Light']);
+  assert.equal(couple('I3-2').details!.length, 2);
+  // I4 : l'alias dont la cible est supprimée ne donne que `alias-supprime`.
+  assert.deepEqual(cles(couple('I4-1')), ['C63|alias-supprime|primary/solid/pressed|light']);
+  assert.equal(couple('I4-1').entree.theme.catalogue.variables.some((v) => v.cle === 'brands|primary/light/950'), false);
+  // I5 : un seul constat C60 avec la correction vers la branche Light au cran de la table, pas de `cran` de C82.
+  assert.deepEqual(cles(couple('I5-1')), ['C60|-|primary/solid/default|light']);
+  assert.equal(couple('I5-1').attendus[0].apres?.cle, 'brands|primary/light/700');
+  assert.deepEqual(couple('I5-1').entree.theme.catalogue.collections.find((c) => c.cle === 'brands')!.modes.map((m) => m.nom), ['light', 'dark']);
+  // I6 : la valeur directe et les scopes faux, sur la même variable.
+  assert.deepEqual(cles(couple('I6-1')), ['C82|valeur-directe|primary/surface/border|light', 'C63|-|primary/surface/border|']);
+  assert.equal(couple('I6-1').details![0].avant, 'ALL_SCOPES');
+  // I7 : la couche seule, même quand le cran avait aussi bougé.
+  assert.deepEqual(cles(couple('I7-1')), ['C82|couche|primary/surface/default|light']);
+  // I8 : la rampe est de library sur tous les profils, et le rôle retiré garde la raison sans correction.
+  assert.deepEqual(cles(couple('I8-1')), ['C82|variable-absente|primary/surface/subtle||cible-de-library']);
+  for (const id of ['I8-1', 'I8-2', 'I8-3']) {
+    const { catalogue } = couple(id).entree.theme;
+    assert.equal(catalogue.library?.nom, 'Bibliothèque des marques', id);
+    assert.ok(catalogue.variables.filter((v) => v.collection === 'brands' && /primary\/(light|dark)\//i.test(v.nom)).every((v) => v.distante === true), id);
+  }
+});
+
+test('dégrader une interaction ne touche pas la base, puis annuler redonne le catalogue de la base', () => {
+  for (const entree of interactions()) {
+    const { theme, annuler, base: origine } = entree.entree;
+    assert.ok(!isDeepStrictEqual(theme.catalogue, origine.catalogue), `${entree.id} ne dégrade rien`);
+    annuler();
+    assert.ok(isDeepStrictEqual(theme.catalogue, origine.catalogue), `${entree.id} : annuler ne redonne pas la base`);
+  }
 });

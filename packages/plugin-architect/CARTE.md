@@ -114,4 +114,8 @@ Plugin UCM Architect : ucm-architect-plugin, privé, lecture et corrections apr�
   - casDeLaChaine.ts : les 67 cas D1 à D6 et la fusion des dégradations du kit en un composite
   - atelierDuComposant.ts : relevé converti en layers et variables du double de Figma, pour `ecrireLeLot`
   - signatures.ts : rattache un écart à un écart connu (E-25 à E-45, N-04 à N-22) ou le marque « nouveau »
+- stress/f2-structure/ : stress test F2, section D (28 cas), hors des tests ; `npm run stress:structure` écrit `_local/stress/f2-structure/chaine.txt` et `chaine.json`
+  - chaine.ts : la chaîne (`traiterAvec` de `sandbox/structure.ts` sur un double d'`Acces`, vrai `monterStructure` sur le faux DOM), la classe `Ecran` et les contrôles P9 à P14
+  - casDeLaChaine.ts : les 27 cas D1 à D4, le composite D5-1 et la fusion des dégradations du kit
+  - signatures.ts : rattache un écart à un écart connu (E-20 à E-24, N-24 à N-33) ou le marque « nouveau »
   - executer.ts : point d'entrée, rapport par cas, par série D1 à D6 et par propriété
