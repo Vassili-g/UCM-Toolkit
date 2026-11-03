@@ -418,3 +418,36 @@ Les faux positifs donnent 3 manqués et 3 faux constats, tous sur un code choisi
 | N-75 | `reinitialiserLAnalyse` ne remet pas à zéro le compteur de génération des identités : une seconde analyse dans le même processus part à la génération 2 | nouveau ; aucun cas, lu dans le code |
 
 L'hypothèse 1 est infirmée : le contrat remplace le point d'une valeur par un tiret, donc `1.5` n'atteint jamais les règles (H4-7, H4-8). `creer` sans modèle saute en `objet-change`, comme le plan l'attend (hypothèse 12, E1-4). Trois cas M7 restent non constructibles sans les opérateurs de F5-F6 ou la propagation.
+
+### Lecture, budget, cycle et états de F9
+
+Mesure du lot 2 (`e213ee45`), `npx tsx packages/plugin-architect/scripts/stress/f8-analyse/mesurer.ts --famille F9` : 344 cas, 88 faux positifs, 20 interactions et les deux relations, en 122 secondes. `seance.ts` monte l'analyse sur des lecteurs doubles et lit les messages, le panneau et la bannière. F9 ne juge pas des constats mais des faits : statut final, bannière, péremption, refus, ignorés. Le tableau compte donc les faits inexacts, plusieurs par cas au besoin.
+
+| Opérateurs | Contenu | Cas | Faits inexacts | En attente |
+|---|---|---|---|---|
+| N1 à N11, Lm, Mp1 | Lectures refusées, lectures manquées, moteur partiel | 68 | 58 | 12 |
+| Bd1 à Bd3 | Budget de lecture et bannière | 30 | 7 | 2 |
+| An, Pe, Oc, Pr, Id, Pv | Annulation, péremption, `occupe`, prélecture, identité, provisoire | 150 | 17 | 0 |
+| Li, Hu, Ig, St | Library, déclaration UCM, ignorés, statut final | 96 | 85 | 5 |
+| Total | | 344 | 167 | 19 |
+
+Les 88 faux positifs (72 profils d'analyse et 16 thèmes ciblés) ne donnent aucun écart. Les deux relations tiennent sur les 452 cas rejoués. Sur les 10 couples d'interactions, J4 à J7 et J10 tiennent sur les deux profils. J1, J2 et J3 redisent E-32, P15 et E-31. J8 tombe sur N-77 et J9 sur N-82.
+
+| Id | Écart | Rattachement |
+|---|---|---|
+| E-31 | Le statut final ignore les lectures refusées : `complete` sans signal, et AAA devient AA sans le dire | confirmé ; hypothèse 13 ; 48 cas, dont N1, N2, Pv-4, Pv-11, St, J3 |
+| E-32 | Un moteur partiel avec relevé complet affiche « N variants lus sur N » | confirmé ; hypothèse 14 ; Mp1, Bd3-6, St-4, J1 |
+| E-38 | Le panneau périmé remplace la liste des constats par une note | confirmé ; hypothèse 19 ; 7 cas Pe |
+| N-71 | Une analyse annulée laisse son modèle retenu | confirmé une seconde fois ; An-12 à An-14, An-26 à An-28 |
+| N-76 | Le relevé et le moteur coupent à des variants différents (62 contre 54 ou 27) | hypothèse 14, confirmée ; Bd1-14, Bd1-15 |
+| N-77 | Quand tous les constats sont ignorés, le statut reste `complete` et l'écran ne parle pas des ignorés | hypothèse 16, confirmée ; J8-1, J8-2 |
+| N-78 | Une déclaration UCM qui lève saute les familles thème et structure, en silence et avec `complete` | hypothèse 17, confirmée ; N11-1, N11-2, Hu-4, Hu-5, Hu-9, Hu-10 |
+| N-79 | Une library illisible laisse `complete`, sans dire que les tokens sont cherchés dans le fichier | hypothèse 18, confirmée ; N5-2, Li-16, St-3 ; la collection `inaccessible` attend Q-F89-4 |
+| N-80 | `occupe` met `ecriture` à `null` alors que l'écriture continue | hypothèse 20, confirmée ; Oc-18, Oc-22 ; le silence d'`occupe` (E-39) se juge à l'écran, au lot 3 |
+| N-81 | Un décompte de layers qui lève arrête le moteur | hypothèse 21, confirmée ; Bd1-9 ; la coupe des variants suivants attend Q-F89-19 |
+| N-82 | La prélecture lit le relevé alors que la library est à choisir | hypothèse 22, confirmée ; Li-19, Li-20, J9 |
+| N-83 | Une annulation pendant la lecture des règles compte comme lecture refusée | hypothèse 24, confirmée ; N1-3 |
+| N-84 | Après un changement d'ordre de phrases jumelles, le point ignoré porte l'impact d'une autre phrase | hypothèse 4, confirmée à l'écran des ignorés ; Ig-15 à Ig-17 |
+| N-85 | La bannière d'une analyse partielle donne une seule cause : elle tait les lectures échouées quand le budget coupe, et le moteur ou les règles quand une lecture échoue | P15 ; Lm2, Bd3-2, Bd3-5, J2 |
+
+L'hypothèse 23 n'a aucun cas dans ce lot. L'hypothèse 15 (sections « tenues » dans une analyse partielle, Mp1-4) attend Q-F89-16. Deux cas n'ont pas de question au plan et restent `mesure` « à trancher ». N9-3 : un sujet sans nœud finit `complete` avec un message vide, au lieu de « Aucun composant n'est sélectionné ». Ig-10 : ignorer un constat sur une analyse périmée range sa clé (C53). Ils entrent dans les questions V2.
