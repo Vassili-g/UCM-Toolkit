@@ -318,3 +318,31 @@ Les trois définitions d'icône ne s'accordent que sur 5 layers sur 31. C66 pren
 | N-44 | Deux layers de même nom dans un variant masquent leurs styles différents : aucun `style-different` | hypothèse 24, confirmée ; S2-12 |
 
 En attente des questions du plan : une icône liée aux tokens du composant reçoit `taille-hors-icone` et `couleur-hors-premier-plan` (Q-F6-1, I2-3, I3-3). Une couleur d'icône par `strokes` reçoit `couleur-sans-variable` (Q-F6-5, I3-5). Un slot INSTANCE_SWAP d'avatar ou d'illustration est jugé comme une icône (Q-F6-4, I5-4 à I5-6). C65 ne juge ni `lineHeight`, ni `letterSpacing`, ni `fontFamily` (Q-F6-7, S3-9 à S3-11). Les hypothèses 20 à 23 portent sur l'écran ; la version allégée ne mesure pas la chaîne de F5-F6.
+
+## F7 Accessibilité
+
+Mesure du lot 1 (`c47fd85d`), graine 7107, `npx tsx packages/kit/tests/stress/f7-accessibilite/mesurer.ts` : 48 profils sRGB et 294 cas en 5 secondes. L'oracle numérique rend 21 pour noir sur blanc et 4,5422 pour #767676 sur blanc. Sur 100 000 paires, il diffère de la fonction `contraste` du kit de moins de 1e-12. Les 48 profils ne donnent aucun constat C49 à C52.
+
+| Opérateur | Contenu | Cas | Attendus | Détectés | Manqués | Faux constats | En attente |
+|---|---|---|---|---|---|---|---|
+| S | Seuils 3, 4,5 et 7 (C49, C50) | 96 | 46 | 46 | 0 | 0 | 0 |
+| G | Grand texte, texte sous 12 px | 45 | 33 | 27 | 0 | 0 | 7 |
+| O | Opacités et couches | 47 | 42 | 33 | 0 | 0 | 14 |
+| F | Fonds et limites | 52 | 52 | 47 | 2 | 3 | 5 |
+| M | Modes et collections | 36 | 37 | 29 | 0 | 0 | 10 |
+| Y | Garanties du thème | 18 | 36 | 26 | 0 | 0 | 10 |
+| Total | | 294 | 246 | 208 | 2 | 3 | 46 |
+
+Le kit juge juste chaque paire autour des seuils 3, 4,5 et 7, à 1e-9 près. Ses écarts tiennent à ce qu'il compose sous le texte, pas au calcul du rapport.
+
+| Id | Écart | Rattachement |
+|---|---|---|
+| N-45 | Un layer visible sous un parent visible sous un grand-parent masqué est jugé visible et accusé en C49 : la mémoire de `layersVisiblesDuVariant` note le parent visible | nouveau ; F5-3 |
+| N-46 | Un dégradé posé sur un solide translucide ou sur un autre dégradé donne la limite `degrade` au lieu de `peinture-superposee` | nouveau ; F4-2, F4-6 |
+| N-47 | Un frère placé sous le texte n'est jamais vu : le contraste se mesure sur la page Figma (2,13 attendu, 1 rendu) | hypothèse 4, confirmée ; F6-1, F6-2, F6-4 |
+| N-48 | Un alpha, une opacité ou une plage sans peinture à zéro donnent un rapport de 1:1 sur un texte invisible | hypothèse 3, confirmée ; O1-9 à O1-12 |
+| N-49 | La garantie du thème ne compare ni le seuil ni le niveau : elle sort `corriger` au lieu de `verifier` | hypothèse 5, confirmée ; Y1-10 à Y1-14 |
+| N-50 | Un canal ou un alpha hors de [0, 1] donne un constat de contraste au lieu d'une limite, ou rien | hypothèse 16, confirmée ; M5-9 à M5-12 |
+| N-51 | Un texte de 11 px dans un variant `disabled` n'est pas signalé | hypothèse 19, moitié texte, confirmée ; G3-9 |
+
+En attente des questions du plan : l'opacité d'un ancêtre n'est pas appliquée (hypothèse 2, Q-F7-2, O5-1 à O5-5, O3-5). Un texte gras est grand dès 18,66 px (hypothèse 11, Q-F7-3, G1-7, G1-8, G1-11, G1-12, G2-2). Le kit se replie sur un seul mode du thème et manque la page et la carte du mode Dark (hypothèse 6, M6-1, M6-4). Une page ou une élévation d'alpha 0,5 est forcée opaque sans limite `fond-indetermine` (Q-F7-1, O4-10, O4-11). Le relevé ne lit pas le mode de fusion d'un layer, donc l'hypothèse 15 ne se rejoue pas hors de Figma.
