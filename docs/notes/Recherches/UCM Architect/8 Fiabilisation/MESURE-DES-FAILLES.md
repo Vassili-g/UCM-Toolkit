@@ -346,3 +346,39 @@ Le kit juge juste chaque paire autour des seuils 3, 4,5 et 7, à 1e-9 près. Ses
 | N-51 | Un texte de 11 px dans un variant `disabled` n'est pas signalé | hypothèse 19, moitié texte, confirmée ; G3-9 |
 
 En attente des questions du plan : l'opacité d'un ancêtre n'est pas appliquée (hypothèse 2, Q-F7-2, O5-1 à O5-5, O3-5). Un texte gras est grand dès 18,66 px (hypothèse 11, Q-F7-3, G1-7, G1-8, G1-11, G1-12, G2-2). Le kit se replie sur un seul mode du thème et manque la page et la carte du mode Dark (hypothèse 6, M6-1, M6-4). Une page ou une élévation d'alpha 0,5 est forcée opaque sans limite `fond-indetermine` (Q-F7-1, O4-10, O4-11). Le relevé ne lit pas le mode de fusion d'un layer, donc l'hypothèse 15 ne se rejoue pas hors de Figma.
+
+### Formes, cibles, borne, faux positifs et interactions
+
+Mesure du lot 2 (`c340662c`), même commande : 225 cas de plus (519 en tout), 94 faux positifs, 21 interactions et les deux relations, en 38 secondes. Display P3 retire les 27 cas E1 à E3 et le couple O2 et E1 des interactions.
+
+| Opérateur | Contenu | Cas | Attendus | Détectés | Manqués | Faux constats | Exceptions | En attente |
+|---|---|---|---|---|---|---|---|---|
+| I | Icônes (C49 et définitions) | 41 | 26 | 13 | 0 | 0 | 0 | 13 |
+| R | Contour et anneau (C50, C51) | 65 | 42 | 39 | 2 | 3 | 0 | 5 |
+| Z | Cible (C52) | 34 | 20 | 19 | 1 | 0 | 0 | 0 |
+| X | Variants désactivés (C53) | 30 | 38 | 33 | 0 | 0 | 0 | 7 |
+| Q | Borne de 5 000 combinaisons | 19 | 17 | 14 | 0 | 0 | 0 | 3 |
+| T | Texte mixte | 10 | 11 | 10 | 0 | 1 | 0 | 3 |
+| L | Entrées dégradées et lectures manquées | 26 | 1 | 1 | 0 | 4 | 3 | 0 |
+| Total des lots 1 et 2 | | 519 | 401 | 337 | 5 | 11 | 3 | 77 |
+
+Les 94 faux positifs (22 thèmes ciblés et 72 garanties de palettes) et les 48 profils ne donnent aucun écart. Les palettes des garanties sont tirées de la graine, sans appel au moteur de `packages/couleur` : elles prouvent l'accord d'Architect avec la table de crans du kit, pas avec Palettes. Les 21 interactions tiennent, sauf O4 et M6 (4 en attente, hypothèse 6). Les relations tiennent sur 1 209 rejeux.
+
+Les trois définitions d'icône se contredisent sur 25 des 36 layers de I1 à I6 (E-26, confirmé une seconde fois).
+
+| Id | Écart | Rattachement |
+|---|---|---|
+| N-52 | `contrasteTronque` lève sur un canal ou un alpha NaN | nouveau ; L1-1, L1-2 |
+| N-53 | Un cycle de `parent` ne termine jamais : `couchesDesAncetres` ne garde pas les ancêtres déjà vus | nouveau ; L1-13 |
+| N-54 | C49 et C50 jugent un texte ou un contour dont les fills ou les strokes n'ont pas été lus, ou dont le variant n'a pas été lu ; seul C52 lit `manquees` | nouveau ; L2-2 à L2-5, R1-16 |
+| N-55 | Un axe `État` aux valeurs `Défaut` et `Survol` n'est pas interactif, car `Survol` n'est pas une forme tolérée : aucun C52 pour une racine de 20 px | nouveau ; Z2-14 |
+| N-56 | Une plage de texte vide (5 à 5) donne un C49 | nouveau ; T1-5 |
+| N-57 | Un anneau à opacité ou alpha 0 compte comme anneau, et un contour à alpha 0 se mesure à 1:1 | hypothèse 3, confirmée pour l'anneau ; R4-4, R4-5, R1-8 |
+| N-58 | Une instance `.Ring` sans peinture propre donne `C50:sans-anneau` | hypothèse 7, confirmée ; R4-9 |
+| N-59 | Un anneau rempli sans contour n'est ni mesuré par C50, ni épargné par C51 | hypothèse 8, confirmée ; R4-10, R5-12 |
+| N-60 | Un variant `Disabled=True` ou `Enabled=False` est mesuré comme actif | hypothèse 9, confirmée ; X2-8, X2-9 |
+| N-61 | Au-delà de la borne, le constat ne dit pas quels variants sont coupés, et le produit des modes compte une collection inutile | hypothèses 12 et 13, confirmées ; Q2-2, Q4-1, Q4-2 |
+| N-62 | Deux longueurs de plage pour un même texte donnent deux constats | hypothèse 14, confirmée ; T2-2 |
+| N-63 | Un contour est accusé alors que le fill du layer le recouvre | hypothèse 17, confirmée ; R1-12 |
+
+L'hypothèse 20 est infirmée : un second anneau de même nom a des identifiants distincts (R5-13, R5-14). C53 retire bien C52 d'un variant désactivé (X3-2). Les hypothèses 18 et la phrase « Contraste non mesuré » portent sur l'écran ; la version allégée ne mesure pas la chaîne de F7.

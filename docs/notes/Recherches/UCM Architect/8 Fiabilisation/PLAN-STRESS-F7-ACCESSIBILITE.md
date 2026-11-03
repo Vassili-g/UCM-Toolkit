@@ -471,7 +471,7 @@ La version allégée (section 7 de l'inventaire) remplace les lots 1 à 8 par le
 | Lot allégé | Contenu | État |
 |---|---|---|
 | 1 | Oracle numérique, 48 profils sRGB, opérateurs S, G, O, F, M, Y, `mesurer.ts` | fait, `c47fd85d` |
-| 2 | Opérateurs I, R, Z, X, Q, T, L, faux positifs, 24 interactions, deux relations | à faire |
+| 2 | Opérateurs I, R, Z, X, Q, T, L, faux positifs, 21 interactions (P3 retiré), deux relations | fait, `c340662c` |
 
 ## 9. Questions au mainteneur
 
