@@ -30,6 +30,12 @@ function differences(base: readonly Constat[], autre: readonly Constat[]): strin
 
 interface Rendu { ecrites?: string[]; sautees?: { id: string; motif: string }[] }
 
+/** Les cas de F9 : le statut, les péremptions, les refus et les ignorés d'une séance ne dépendent pas de l'ordre ni de la casse. */
+function resumeDeLaSeance(sortie: SortieDeCas): string | null {
+  const obs = (sortie.donnees as { obs?: { finals: string[]; provisoires: number; occupes: number; perimes: string[]; ignores: string[]; sansTokens: boolean | undefined } } | undefined)?.obs;
+  return obs ? JSON.stringify({ finals: obs.finals, provisoires: obs.provisoires, occupes: obs.occupes, perimes: obs.perimes, ignores: [...obs.ignores].sort(), sansTokens: obs.sansTokens }) : null;
+}
+
 /** Les résultats d'écriture, comme un texte sans ordre. */
 function ecritureDe(sortie: SortieDeCas): string | null {
   const rendu = (sortie.donnees as { rendu?: Rendu } | undefined)?.rendu;
@@ -45,6 +51,7 @@ export async function verifierLesRelations(cas: CasF8, base: SortieDeCas, graine
       const autre = await cas.entree.jouer(variante);
       const messages = differences(base.constats, autre.constats);
       if (ecritureDe(base) !== ecritureDe(autre)) messages.push(`écriture différente : ${ecritureDe(base)} puis ${ecritureDe(autre)}`);
+      if (resumeDeLaSeance(base) !== resumeDeLaSeance(autre)) messages.push(`séance différente : ${resumeDeLaSeance(base)} puis ${resumeDeLaSeance(autre)}`);
       if (messages.length > 0) ecarts.push({ cas: cas.id, relation, detail: `${messages.slice(0, 3).join(' ; ')}${messages.length > 3 ? ` (+${messages.length - 3})` : ''}` });
     } catch (erreur) {
       ecarts.push({ cas: cas.id, relation, detail: `exception : ${messageDe(erreur)}` });

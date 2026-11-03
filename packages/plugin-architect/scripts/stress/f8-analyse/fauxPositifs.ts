@@ -4,11 +4,19 @@
  *
  * Un profil aux règles marquées « [À compléter] » rend des C44 légitimes : seuls C43 et C45 y sont jugés.
  */
+import { lireLArchitectureDuFichier } from '@ucm-kit/core/referentiel';
+
+import { traiterAvec as traiterLesCorrections } from '../../../src/sandbox/corrections';
 import { attenduC44, HYPOTHESES, Registre, type AttenduF8, type CasF8, type SortieDeCas } from './cas';
 import { attenduDuPoint, chaineAvecLePointDuMoteur, constatsDesPoints, point } from './operateursMoteur';
 import { avecLesProprietes, avecLesRegles, avecLeConteneur, jouerLaPage, reglesDe, reecrire, specDeLaForme, specR0 } from './operateursRegles';
 import { specDuProfil, type SpecDePage } from './pageDeRegles';
 import { PROFILS_DE_REGLES, REDIGE, type ProprieteDuJeu } from './profilsRegles';
+import { DECLARATIONS, PROFILS_D_ANALYSE } from './scenarioDeBase';
+import {
+  ajouterUneSeance, analyserUneFois, barreApres, catalogueDuProduit, degraderLaLecture, ecranDe_, etatApres, ignoresDuProduit, jouerSeance, juger, observationDe,
+  type Attente, type CasDeSeance, type Ecran, type EtatDeLaBarre,
+} from './seance';
 
 const CODES = ['C43', 'C45'] as const;
 
@@ -78,5 +86,120 @@ export function fauxPositifs(): CasF8[] {
   const registre = new Registre('F8');
   profils(registre);
   themes(registre);
+  return registre.cas;
+}
+
+// ---------------------------------------------------------------------------------------------------------------------------
+// F9 : 88 faux positifs
+
+const PARTIELLE = /Analyse partielle/;
+
+/** Les 72 profils d'analyse : le sandbox rend `complete`, et l'écran prévu par l'architecture et la library du profil. */
+function profilsDAnalyse(registre: Registre): void {
+  for (const profil of PROFILS_D_ANALYSE) {
+    const horsUcm = profil.architecture !== 'ucm';
+    const aChoisir = !horsUcm && profil.libraries === 'plusieurs';
+    const reference = { library: profil.libraries === 'une' ? 'Intencial' : null, nom: profil.libraries === 'une' ? 'Intencial' : null, candidates: profil.libraries === 'aucune' ? 0 : profil.libraries === 'une' ? 1 : 2 };
+    registre.ajouter('FP1', {
+      description: `${profil.id} : ${profil.forme}, ${profil.architecture}, ${profil.niveau}, libraries ${profil.libraries} → complete, ${horsUcm ? 'l’alerte hors UCM' : aChoisir ? '« Library à choisir » avant la première analyse, la liste après' : 'la liste'}`,
+      codesJuges: [], relations: profil.forme === 'button-216' ? [] : ['ordre'],
+      jouer: (variante) => jouerSeance({ profil, variante }, analyserUneFois, async (s) => {
+        const architecture = lireLArchitectureDuFichier(typeof s.declaration === 'function' ? s.declaration() : s.declaration);
+        const etat = await etatApres(s.messages, { architecture, reference });
+        const avant = aChoisir ? await etatApres([], { architecture, reference }) : null;
+        return { ecran: await ecranDe_(etat), barre: await barreApres(etat), ecranAvant: avant ? await ecranDe_(avant) : null, barreAvant: avant ? await barreApres(avant) : null };
+      }),
+      verifier: (sortie) => {
+        const o = observationDe(sortie);
+        const { ecran, barre, ecranAvant, barreAvant } = sortie.donnees as { ecran: Ecran; barre: EtatDeLaBarre; ecranAvant: Ecran | null; barreAvant: EtatDeLaBarre | null };
+        const messages = juger(sortie, { statuts: ['complete'], occupes: 0, perimes: [] });
+        const alertes = ecran.alertes.join(' | ');
+        if (PARTIELLE.test(alertes)) messages.push(`l’écran dit « analyse partielle » pour une analyse complète (${alertes})`);
+        if (horsUcm) {
+          if (!/UCM/.test(alertes)) messages.push(`l’écran ne montre pas l’alerte hors UCM (alertes : ${alertes || 'aucune'})`);
+          if (!barre.analyserCache) messages.push('Analyser reste visible hors UCM');
+        } else {
+          if (/n.est pas déclaré UCM/.test(alertes)) messages.push('l’alerte hors UCM est montrée pour un fichier UCM');
+          if (ecran.sections < 1 && o.constats.length > 0) messages.push('l’écran ne montre aucune section pour une analyse qui a des constats');
+          if (barre.analyserCache) messages.push('Analyser est caché pour un fichier UCM');
+        }
+        if (aChoisir) {
+          if (!ecranAvant || !/library/i.test(ecranAvant.alertes.join(' '))) messages.push('l’écran de la première analyse ne demande pas de choisir la library');
+          if (!barreAvant?.analyserInactif) messages.push('Analyser est actif alors que la library est à choisir');
+        } else if (!horsUcm && barre.analyserInactif) messages.push('Analyser est inactif alors qu’aucun choix de library n’est à faire');
+        return messages;
+      },
+    });
+  }
+}
+
+/** Les 16 thèmes ciblés de la section 4 du plan, côté F9. */
+function themesF9(registre: Registre): void {
+  const fp = (description: string, cas: Omit<CasDeSeance, 'description'>): void => ajouterUneSeance(registre, 'FP2', { description, codesJuges: [], relations: ['ordre'], ...cas });
+  const complete: Attente = { statut: 'complete', provisoires: 1, occupes: 0, perimes: [], ecran: { nonDit: [PARTIELLE] } };
+
+  const sans = (lecteur: 'ignores' | 'regles' | 'niveau' | 'dependances', libelle: string): void =>
+    fp(`lecteur ${libelle} non défini : l’absence n’est pas un refus`, {
+      options: { adaptateurs: [(_b, lecteurs) => { const { [lecteur]: _retire, ...reste } = lecteurs; return reste as typeof lecteurs; }] },
+      attente: { ...complete, ...(lecteur === 'regles' ? {} : {}) },
+      plus: (sortie) => (observationDe(sortie).passages.some((p) => p.startsWith(`${lecteur}:`)) ? [`le lecteur ${lecteur} a été appelé`] : []),
+    });
+  sans('ignores', 'd’ignorés');
+  sans('regles', 'de règles');
+  sans('niveau', 'de niveau');
+  sans('dependances', 'de dépendances');
+
+  for (const layers of [1999, 2000]) {
+    fp(`relevé de ${layers} layers lus, aucun non lu : complet`, { options: { adaptateurs: [degraderLaLecture({ layersLus: layers })] }, attente: complete });
+  }
+  fp('variants désactivés : exclus du contraste, jamais accusés', {
+    attente: { ...complete, avecCodes: ['C53'] },
+    plus: (sortie) => observationDe(sortie).constats.filter((c) => (c.code === 'C49' || c.code === 'C50') && c.variants.some((v) => /disabled/.test(v))).map((c) => `${c.code} accuse un variant désactivé`),
+  });
+  fp('constat `info` seul : aucune alerte partielle, la section Informations existe', {
+    options: { avecUnModele: false, adaptateurs: [ignoresDuProduit] },
+    flux: async (s) => {
+      await s.demander();
+      const ids = s.observer().constats.filter((c) => c.type !== 'info').map((c) => c.id);
+      s.ignoresBruts = JSON.stringify(ids);
+      await s.demander({ type: 'analyser', intention: 'actualiser', demande: ++s.numero });
+    },
+    attente: { statuts: ['complete', 'complete'], occupes: 0, ecran: { nonDit: [PARTIELLE, /Aucun constat/], dansLeTexte: false } },
+  });
+  fp('sélection d’un variant du jeu pendant l’analyse : aucune péremption', {
+    options: { plan: (s) => ({ moteur: [{ quand: 'avant', action: { action: 'appeler', faire: () => { s.evenement('variant'); } } }] }) }, attente: complete,
+  });
+  fp('deux analyses successives, non concurrentes', { flux: async (s) => { await s.demander(); await s.demander(); }, attente: { statuts: ['complete', 'complete'], occupes: 0, perimes: [] } });
+  fp('Actualiser après une analyse', { flux: async (s) => { await s.demander(); await s.demander({ type: 'analyser', intention: 'actualiser', demande: ++s.numero }); }, attente: { statuts: ['complete', 'complete'], occupes: 0, perimes: [] } });
+  fp('écriture vide (aucune ligne écrite) : l’analyse n’est pas périmée', {
+    flux: async (s) => {
+      await s.demander();
+      await traiterLesCorrections({ lot: async () => ({ ecrites: [], sautees: [] }), selectionner: async () => undefined })({ type: 'appliquer-corrections', analyse: s.identiteCourante()!, ids: [] }, s.contexte);
+    },
+    attente: { statuts: ['complete'], perimes: [] },
+    plus: (sortie) => (observationDe(sortie).types.includes('corrections-appliquees') ? [] : ['aucun message `corrections-appliquees`']),
+  });
+  fp('événement hors inventaire pendant l’analyse : aucune péremption', {
+    options: { plan: (s) => ({ moteur: [{ quand: 'avant', action: { action: 'appeler', faire: () => { s.evenement('hors-inventaire'); } } }] }) }, attente: complete,
+  });
+  fp('prélecture entière sans événement, puis clic : une analyse, promue', {
+    flux: async (s) => { await s.demander({ type: 'analyser', origine: 'prelecture' }); await s.demander(); },
+    attente: { statuts: ['complete'], occupes: 0, perimes: [], retenue: true },
+  });
+  fp('library choisie par les liaisons, une seule candidate : Analyser actif, analyse complète', {
+    options: { adaptateurs: [catalogueDuProduit] }, attente: complete, reference: { library: null, nom: null, candidates: 1 },
+    flux: async (s) => { await s.demander(); },
+    plus: (sortie) => (observationDe(sortie).libraryRetenue === 'Intencial' ? [] : [`library retenue ${String(observationDe(sortie).libraryRetenue)}, attendu Intencial`]),
+  });
+  fp('fichier déclaré `libre` : l’alerte seule, l’analyse est complète', {
+    options: { declaration: DECLARATIONS.libre },
+    attente: { statut: 'complete', provisoires: 1, ecran: { dit: [/UCM/], nonDit: [PARTIELLE] } },
+  });
+}
+
+export function fauxPositifsF9(): CasF8[] {
+  const registre = new Registre('F9');
+  profilsDAnalyse(registre);
+  themesF9(registre);
   return registre.cas;
 }

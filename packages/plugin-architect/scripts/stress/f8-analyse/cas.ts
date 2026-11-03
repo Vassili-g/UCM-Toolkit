@@ -47,6 +47,8 @@ export interface EntreeF8 {
   readonly relations: readonly Relation[];
   /** L'hypothèse de la section 6.1 du plan, ou l'écart connu (E-xx, N-xx), que le cas met à l'épreuve. */
   readonly rattachement?: string;
+  /** Les cas de F9 : l'attente écrite à la main (`Attente` de `seance.ts`), que la garde relit sans passer le cas. */
+  readonly oracle?: unknown;
 }
 
 export interface CasF8 extends CasDeStress<EntreeF8> {
@@ -67,6 +69,18 @@ export const HYPOTHESES = {
   H10: 'hypothèse 10 de 6.1 (un conteneur dans une instance fait compter l’instance parente)',
   H11: 'hypothèse 11 de 6.1 (instance d’une autre page ou calque vide : `creer` pose un second conteneur)',
   H12: 'hypothèse 12 de 6.1 (`creer` saute en objet-change quand le modèle manque)',
+  H13: 'hypothèse 13 de 6.1 (le statut final ignore les lectures refusées ; AAA devient AA sans le dire)',
+  H14: 'hypothèse 14 de 6.1 (moteur partiel « N variants lus sur N » ; le relevé et le moteur coupent à des variants différents)',
+  H15: 'hypothèse 15 de 6.1 (une analyse partielle sans constat montre les sections tenues)',
+  H16: 'hypothèse 16 de 6.1 (tous les constats ignorés : « Aucun constat » avant la liste des ignorés)',
+  H17: 'hypothèse 17 de 6.1 (une déclaration UCM qui lève donne `architectureUcm` faux en silence)',
+  H18: 'hypothèse 18 de 6.1 (une library illisible ou une collection inaccessible laisse `complete` sans signal)',
+  H19: 'hypothèse 19 de 6.1 (le panneau périmé remplace la liste par une note)',
+  H20: 'hypothèse 20 de 6.1 (`occupe` ne dit rien et met l’écriture à `null`)',
+  H21: 'hypothèse 21 de 6.1 (un `parcourir` ou un décompte qui lève coupe les variants suivants ou arrête le moteur)',
+  H22: 'hypothèse 22 de 6.1 (la garde « library à choisir » ne vaut que pour une première analyse, et la prélecture l’ignore)',
+  H23: 'hypothèse 23 de 6.1 (une erreur après le message final envoie un second message `analyse` arrêtée)',
+  H24: 'hypothèse 24 de 6.1 (les lecteurs avalent `AnalyseAnnulee` : une annulation compte comme lecture refusée)',
 } as const;
 
 // ---------------------------------------------------------------------------------------------------------------------------
@@ -132,6 +146,7 @@ export interface DefinitionDeCas {
   readonly verifier?: EntreeF8['verifier'];
   readonly relations?: readonly Relation[];
   readonly rattachement?: string;
+  readonly oracle?: unknown;
   /** `mesure` : la question de la section 9 dont dépend l'oracle. */
   readonly question?: string;
   readonly codesJuges?: readonly string[];
@@ -152,6 +167,7 @@ export class Registre {
       entree: {
         description: definition.description, jouer: definition.jouer, ...(definition.verifier ? { verifier: definition.verifier } : {}),
         relations: definition.relations ?? ['ordre', 'casse'], ...(definition.rattachement ? { rattachement: definition.rattachement } : {}),
+        ...(definition.oracle !== undefined ? { oracle: definition.oracle } : {}),
       },
       attendus: definition.attendus ?? [],
       ...(definition.codesJuges ? { codesJuges: definition.codesJuges } : {}),
