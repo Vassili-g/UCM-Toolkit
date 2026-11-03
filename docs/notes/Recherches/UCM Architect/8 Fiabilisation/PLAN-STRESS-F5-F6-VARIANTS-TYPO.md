@@ -436,7 +436,7 @@ La version allégée (section 7 de l'inventaire) remplace les lots 1a à 9 par l
 | Lot allégé | Contenu | État |
 |---|---|---|
 | 1 | Corpus, profils, composant de base, opérateurs A, V, Q, M, O, `mesurer.ts` | fait, `7a05a0a1` |
-| 2 | Opérateurs S, I, 180 faux positifs, 32 interactions, ordre mélangé et écriture changée | à faire |
+| 2 | Opérateurs S, I, 180 faux positifs, 32 interactions, ordre mélangé et écriture changée | fait, `16ff841e` |
 
 ## 9. Questions au mainteneur
 

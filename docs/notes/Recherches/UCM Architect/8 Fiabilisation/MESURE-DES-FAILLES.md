@@ -288,3 +288,33 @@ Les tokens de P0 écrivent les tailles `small`, `medium`, `large`, et ses varian
 | N-41 | Une matrice de 16 × 16 × 16 variants dépasse le budget de 2 secondes (2,9 s) | nouveau ; M3-1, M3-2 |
 
 Le second axe d'un même rôle est ignoré sans le dire (hypothèse 4, A3-1). La forme tolérée d'une palette (`error`, `critical`) ne donne ni C8 ni C10 (hypothèse 7, V4-13, V4-14, en attente de Q-F5-5). La famille `Colours` rend 432 tokens illisibles sans constat (V4-12, en attente de Q-F5-8). Une matrice creuse à axes booléens (25 920 combinaisons pour 300 variants) se tait comme au-delà de la borne (hypothèse 9, M3-9).
+
+### Typographie, icônes, faux positifs et interactions
+
+Mesure du lot 2 (`16ff841e`), même commande : 101 cas de F6, 180 faux positifs, 32 interactions et les deux relations, en 188 secondes, dont 102 pour les relations.
+
+| Opérateur | Contenu | Cas | Attendus | Détectés | Manqués | Faux constats | En attente |
+|---|---|---|---|---|---|---|---|
+| S | Styles de texte (C64, C65) | 43 | 28 | 16 | 4 | 0 | 12 |
+| I | Icônes (C66, C67) et définitions | 58 | 112 | 67 | 7 | 18 | 30 |
+| Total F6 | | 101 | 140 | 83 | 11 | 18 | 42 |
+
+| Faux positifs | Cas | Résultat |
+|---|---|---|
+| FP1 | 60 profils | 24 muets ; les 36 autres, ceux de E-27 et N-36, portent 849 faux constats |
+| FP2 | 88 valeurs attestées | 13 formes tolérées attendues, 9 vues, 4 palettes en attente de Q-F5-5, aucun faux constat |
+| FP3 | 9 valeurs limites | `1.5`, `2.5`, `v2.0` et les accents passent ; `Small/Medium` donne C7, C12, C32 et C33 (Q-F5-10) |
+| FP4 | 23 composants F6 valides | 30 faux constats : chacune des 10 non-icônes reçoit 3 C66 |
+
+Les 32 interactions donnent 2 078 attendus, 1 272 détectés, 418 manqués, 22 faux constats et 393 écarts en attente. Les manques viennent presque tous de p18 (Carbon, `Kind`, N-36), et sur P0 du seul C12 de N-34. Les deux relations tiennent : mélanger l'ordre des variants (297 cas) ou changer l'écriture du nom d'axe (387 cas) ne change aucun constat.
+
+Les trois définitions d'icône ne s'accordent que sur 5 layers sur 31. C66 prend tout nom qui contient `icon`, même un TEXT `Lexicon` ou un FRAME `Silicone`, et ignore `Pictogram`, `Glyph`, `icône` et `Symbol`. C49 ne prend que les VECTOR et BOOLEAN_OPERATION, donc aucune instance de library. C17 prend tout VECTOR et les FRAME à nom `icon`.
+
+| Id | Écart | Rattachement |
+|---|---|---|
+| E-26 | Trois définitions d'icône divergentes, et des non-icônes jugées par C66 | confirmé, élargi ; I6, FP4, hypothèses 17 et 18 |
+| N-42 | Sans axe de taille, C64 compare les styles de tous les variants ; un style de taille hors de son groupe ne donne rien | hypothèse 13, confirmée ; S2-1 à S2-4 |
+| N-43 | Un texte à styles mixtes reçoit `sans-style-ni-variables`, jamais une information `styles-mixtes` | hypothèse 14, confirmée ; S1-5 à S1-7 |
+| N-44 | Deux layers de même nom dans un variant masquent leurs styles différents : aucun `style-different` | hypothèse 24, confirmée ; S2-12 |
+
+En attente des questions du plan : une icône liée aux tokens du composant reçoit `taille-hors-icone` et `couleur-hors-premier-plan` (Q-F6-1, I2-3, I3-3). Une couleur d'icône par `strokes` reçoit `couleur-sans-variable` (Q-F6-5, I3-5). Un slot INSTANCE_SWAP d'avatar ou d'illustration est jugé comme une icône (Q-F6-4, I5-4 à I5-6). C65 ne juge ni `lineHeight`, ni `letterSpacing`, ni `fontFamily` (Q-F6-7, S3-9 à S3-11). Les hypothèses 20 à 23 portent sur l'écran ; la version allégée ne mesure pas la chaîne de F5-F6.
