@@ -17,12 +17,14 @@ import {
   SUPPORT_DES_VARIABLES, cranDeLaVariable,
   type ModeDuTheme, type SensDuTheme, type VariableDuTheme,
 } from '../../../src/emplois/dossiers.js';
-import { controlerLIntegriteUcm, controlerLeCatalogue, type CatalogueDeReference, type Constat, type VariableDuCatalogue } from '../../../src/controles/index.js';
+import {
+  controlerLIntegriteUcm, controlerLeCatalogue, type CatalogueDeReference, type CollectionDuCatalogue, type Constat, type VariableDuCatalogue,
+} from '../../../src/controles/index.js';
 import type { EcritureChoisie } from '../../../src/protocoles/nommage.js';
 import { CRANS } from '../../../src/referentiel/vocabulaire.js';
 import type { CasDeStress, ConstatAttendu, Ecart, Verdict } from '../commun/types.js';
 import { MODES_DU_THEME, roleDeCarte, type PaletteDeCarte, type RoleDeCarte } from './carte.js';
-import { GRAINE_PAR_DEFAUT, copierLeTheme, type ThemeDeBase } from './themeUcm.js';
+import { GRAINE_PAR_DEFAUT, type ThemeDeBase } from './themeUcm.js';
 
 /** La palette en sens normal et celle en sens inverse (sur les deux modes) que les opérateurs de P0 dégradent. */
 export const PALETTE_NORMALE = 'primary';
@@ -64,8 +66,17 @@ export interface DetailDeCorrection {
   readonly creation?: { readonly collection: string; readonly nom: string; readonly scopes: readonly string[]; readonly alias: Readonly<Record<string, string>> };
 }
 
+/** Un fait d'un constat que `comparer` ne lit pas (la voisine d'un alias supprimé, le rôle qu'une question nomme). */
+export interface VerificationDeFait {
+  /** `<code>|<cle>` du constat émis à contrôler. */
+  readonly pour: string;
+  /** Un message quand le fait est faux, `undefined` sinon. */
+  readonly verifier: (constat: Constat) => string | undefined;
+}
+
 export interface CasDeStructure extends CasDeStress<EntreeDeStructure> {
   readonly details?: readonly DetailDeCorrection[];
+  readonly verifications?: readonly VerificationDeFait[];
   /** L'hypothèse de la section 6.1 du plan que ce cas met à l'épreuve ; le rapport y rattache un manque. */
   readonly hypothese?: string;
 }
@@ -74,12 +85,16 @@ export interface CasDeStructure extends CasDeStress<EntreeDeStructure> {
 // Clés de rattachement
 
 const SANS_GENRE = '-';
+/** Le plan marque certains cas `mesure` sans dire de quelle question de la section 9 ils dépendent. */
+export const QUESTION_SANS_NUMERO = 'Q-F2-sans-numero';
 const texte = (valeur: string | number | undefined): string => (valeur === undefined ? '' : String(valeur));
 
 /** La clé que `comparer` calcule pour un constat émis. */
 export function cleDeConstat(constat: Constat): string {
   const { faits } = constat;
-  const genre = typeof faits.genre === 'string' ? faits.genre : SANS_GENRE;
+  // Les doublons d'échelle de C63 n'ont pas de genre : la valeur partagée et le mode les distinguent.
+  const genre = typeof faits.genre === 'string' ? faits.genre : typeof faits.doublons === 'number' ? 'doublons' : SANS_GENRE;
+  if (genre === 'doublons') return cleAttendue(genre, texte(faits.valeur), texte(faits.mode));
   if (genre === 'variable-absente') {
     const variable = [texte(faits.groupe), texte(faits.variable)].filter((segment) => segment !== '').join('/');
     return cleAttendue(genre, variable, '', typeof faits.raison === 'string' ? faits.raison : undefined);
@@ -109,20 +124,38 @@ export const cleComplete = (constat: ConstatAttendu): string => `${constat.code}
 // ---------------------------------------------------------------------------------------------------------------------------
 // Constats des deux contrôles
 
-/**
- * Les constats de `controlerLeCatalogue` puis de `controlerLIntegriteUcm`, le premier de chaque identifiant, comme le fait
- * `sansDoublon` dans `packages/plugin-architect/src/sandbox/structure.ts`, sans importer le plugin.
- */
-export function constatsDeStructure(catalogue: CatalogueDeReference, ecriture: EcritureChoisie | null, rolesIgnores: readonly VariableDuTheme[]): Constat[] {
+/** Les constats de `controlerLeCatalogue` puis de `controlerLIntegriteUcm`, avant le dédoublonnage : un identifiant peut y figurer deux fois. */
+export function constatsBruts(catalogue: CatalogueDeReference, ecriture: EcritureChoisie | null, rolesIgnores: readonly VariableDuTheme[]): Constat[] {
+  return [...controlerLeCatalogue(catalogue), ...controlerLIntegriteUcm(catalogue, { ecriture, rolesIgnores })];
+}
+
+/** Le premier constat de chaque identifiant, comme le fait `sansDoublon` dans `packages/plugin-architect/src/sandbox/structure.ts`. */
+export function sansDoublon(constats: readonly Constat[]): Constat[] {
   const vus = new Set<string>();
-  return [...controlerLeCatalogue(catalogue), ...controlerLIntegriteUcm(catalogue, { ecriture, rolesIgnores })]
-    .filter((constat) => !vus.has(constat.id) && vus.add(constat.id));
+  return constats.filter((constat) => !vus.has(constat.id) && vus.add(constat.id));
+}
+
+/** Les identifiants que la liste porte plus d'une fois. */
+export function identifiantsEnDouble(constats: readonly Constat[]): string[] {
+  const comptes = new Map<string, number>();
+  for (const constat of constats) comptes.set(constat.id, (comptes.get(constat.id) ?? 0) + 1);
+  return [...comptes].filter(([, nombre]) => nombre > 1).map(([id]) => id);
+}
+
+/** Les constats des deux contrôles du mode Tokens, le premier de chaque identifiant, comme le sandbox du plugin. */
+export function constatsDeStructure(catalogue: CatalogueDeReference, ecriture: EcritureChoisie | null, rolesIgnores: readonly VariableDuTheme[]): Constat[] {
+  return sansDoublon(constatsBruts(catalogue, ecriture, rolesIgnores));
+}
+
+/** Les constats bruts d'un cas, lus sur une copie du catalogue dégradé. */
+export function constatsBrutsDuCas(cas: CasDeStructure): Constat[] {
+  const { theme, ecriture, rolesIgnores } = cas.entree;
+  return constatsBruts(structuredClone(theme.catalogue), ecriture, rolesIgnores);
 }
 
 /** Les constats d'un cas, lus sur une copie du catalogue dégradé. */
 export function constatsDuCas(cas: CasDeStructure): Constat[] {
-  const { theme, ecriture, rolesIgnores } = cas.entree;
-  return constatsDeStructure(structuredClone(theme.catalogue), ecriture, rolesIgnores);
+  return sansDoublon(constatsBrutsDuCas(cas));
 }
 
 /**
@@ -131,6 +164,12 @@ export function constatsDuCas(cas: CasDeStructure): Constat[] {
  */
 export function verifierLesDetails(cas: CasDeStructure, emis: readonly Constat[]): Ecart[] {
   const ecarts: Ecart[] = [];
+  for (const verification of cas.verifications ?? []) {
+    for (const constat of emis.filter((entree) => `${entree.code}|${cleDeConstat(entree)}` === verification.pour)) {
+      const message = verification.verifier(constat);
+      if (message) ecarts.push({ cas: cas.id, sorte: 'correction-inexacte', emis: constat, detail: `${verification.pour} : ${message}` });
+    }
+  }
   for (const detail of cas.details ?? []) {
     const constat = emis.find((entree) => `${entree.code}|${cleDeConstat(entree)}` === detail.pour);
     const correction = constat?.correction;
@@ -165,8 +204,9 @@ export class Degradation {
   rolesIgnores: VariableDuTheme[] = [];
   private readonly journal: (() => void)[] = [];
 
+  /** Seul le catalogue est copié : aucun cas n'écrit la carte, et la copier coûtait plus d'un tiers du temps d'un cas. */
   constructor(readonly base: ThemeDeBase) {
-    this.theme = copierLeTheme(base);
+    this.theme = { ...base, catalogue: structuredClone(base.catalogue) };
     this.ecriture = this.theme.ecriture;
   }
 
@@ -247,9 +287,12 @@ export interface ResultatDeCas {
   readonly description: string;
   readonly attendus: readonly ConstatAttendu[];
   readonly details?: readonly DetailDeCorrection[];
+  readonly verifications?: readonly VerificationDeFait[];
   readonly verdict?: Verdict;
   readonly question?: string;
   readonly hypothese?: string;
+  /** Les codes dont un constat non attendu compte comme faux constat ; absent : tous. */
+  readonly codesJuges?: readonly string[];
 }
 
 /** Numérote les cas `<opérateur>-<n>`. */
@@ -264,14 +307,15 @@ export class Registre {
   ajouter(operateur: string, degradation: Degradation, resultat: ResultatDeCas): void {
     const rang = (this.compteurs.get(operateur) ?? 0) + 1;
     this.compteurs.set(operateur, rang);
-    const { description, attendus, details, verdict = 'attendu', question, hypothese } = resultat;
+    const { description, attendus, details, verifications, verdict = 'attendu', question, hypothese } = resultat;
     this.cas.push({
       id: `${operateur}-${rang}`, famille: this.famille, operateur, verdict, ...(question ? { question } : {}),
       entree: {
         theme: degradation.theme, base: degradation.base, annuler: () => degradation.annuler(), zones: degradation.zones,
         touchees: [...degradation.touchees], description, ecriture: degradation.ecriture, rolesIgnores: degradation.rolesIgnores,
       },
-      attendus, ...(details ? { details } : {}), ...(hypothese ? { hypothese } : {}),
+      attendus, ...(details ? { details } : {}), ...(verifications ? { verifications } : {}), ...(hypothese ? { hypothese } : {}),
+      ...(resultat.codesJuges ? { codesJuges: resultat.codesJuges } : {}),
     });
   }
 }
@@ -356,4 +400,73 @@ export function attenduDeVariableAbsente(
 /** Un rôle de `theme` de la carte, par palette (`null` pour une variable globale). */
 export function leRole(base: ThemeDeBase, palette: string | null, role: VariableDuTheme): RoleDeCarte {
   return roleDeCarte(base.carte, palette, role);
+}
+
+// ---------------------------------------------------------------------------------------------------------------------------
+// Gabarits de dégradation et d'oracle des opérateurs de structure, de scopes, d'alias, d'échelle et de noms
+
+/** Une couleur directe, pour une valeur posée dans une variable. */
+export const COULEUR_DIRECTE = { r: 0.2, g: 0.4, b: 0.6, a: 1 } as const;
+
+export function collectionDuCas(degradation: Degradation, cle: string): CollectionDuCatalogue {
+  const collection = degradation.catalogue.collections.find((entree) => entree.cle === cle);
+  if (!collection) throw new Error(`Collection ${cle} absente du catalogue`);
+  return collection;
+}
+
+/** Le nom qu'une collection donne à un de ses modes, tel que le catalogue du cas l'écrit. */
+export function nomDuModeDeLaCollection(degradation: Degradation, collection: string, idDeMode: string): string {
+  return collectionDuCas(degradation, collection).modes.find((mode) => mode.id === idDeMode)?.nom ?? idDeMode;
+}
+
+/** Les noms des modes d'une collection, dans l'ordre du catalogue. */
+export const nomsDesModes = (degradation: Degradation, collection: string): string[] => collectionDuCas(degradation, collection).modes.map((mode) => mode.nom);
+
+/** Ajoute un mode à une collection et lui donne, pour chaque variable, la valeur du premier mode. */
+export function ajouterUnMode(degradation: Degradation, collection: string, mode: { id: string; nom: string }): void {
+  const cible = collectionDuCas(degradation, collection);
+  const premier = cible.modes[0].id;
+  degradation.inserer(cible.modes, { ...mode });
+  for (const variable of degradation.catalogue.variables) {
+    if (variable.collection !== collection || !variable.valeurs || variable.valeurs[premier] === undefined) continue;
+    degradation.fixer(variable.valeurs, mode.id, structuredClone(variable.valeurs[premier]));
+  }
+}
+
+/** Ajoute une variable présente au catalogue du cas. Elle porte la même valeur dans chaque mode de sa collection. */
+export function ajouterUneVariable(
+  degradation: Degradation, collection: string, nom: string, valeur: { alias: string } | { valeur: unknown },
+  plus: Partial<Pick<VariableDuCatalogue, 'type' | 'scopes' | 'distante' | 'etat'>> = {},
+): VariableDuCatalogue {
+  const variable: VariableDuCatalogue = {
+    cle: `${collection}|${nom}`, nom, collection, type: plus.type ?? 'COLOR', etat: plus.etat ?? 'presente', scopes: plus.scopes ? [...plus.scopes] : [],
+    ...(plus.distante ? { distante: true as const } : {}),
+    valeurs: Object.fromEntries(collectionDuCas(degradation, collection).modes.map((mode) => [mode.id, structuredClone(valeur)])),
+  };
+  degradation.inserer(degradation.catalogue.variables, variable);
+  degradation.touchees.add(variable.cle);
+  return variable;
+}
+
+/** Ajoute une collection au catalogue du cas (`role` : le rôle que le kit lui reconnaîtrait). */
+export function ajouterUneCollection(degradation: Degradation, collection: CollectionDuCatalogue): void {
+  degradation.inserer(degradation.catalogue.collections, collection);
+}
+
+/**
+ * Le segment de palette qu'une variable d'une rampe, d'un rôle ou d'un composant contient, retiré. Rend `null` quand le nom ne
+ * contient aucune palette de la carte. Sert à dire qu'une voisine a « le même rôle dans une autre palette ».
+ */
+export function nomSansLaPalette(base: ThemeDeBase, nom: string): { palette: string; reste: string } | null {
+  const segments = nom.split('/');
+  const palettes = [...base.carte.palettes].sort((a, b) => b.groupe.length - a.groupe.length);
+  for (const palette of palettes) {
+    const groupe = palette.groupe;
+    for (let debut = 0; debut + groupe.length <= segments.length; debut++) {
+      if (groupe.every((segment, rang) => segments[debut + rang] === segment)) {
+        return { palette: palette.id, reste: [...segments.slice(0, debut), ...segments.slice(debut + groupe.length)].join('/') };
+      }
+    }
+  }
+  return null;
 }

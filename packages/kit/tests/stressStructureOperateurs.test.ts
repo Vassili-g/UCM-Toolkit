@@ -12,12 +12,16 @@ import { comparer } from './stress/commun/comparer.js';
 import {
   cleAttendue, cleDeConstat, constatsDeStructure, constatsDuCas, verifierLesDetails, type CasDeStructure,
 } from './stress/f2-structure/cas.js';
-import { GENERATEURS, tousLesCas } from './stress/f2-structure/operateurs.js';
+import { GENERATEURS } from './stress/f2-structure/operateurs.js';
+import { operateursCrans } from './stress/f2-structure/operateursCrans.js';
+import { operateursModes } from './stress/f2-structure/operateursModes.js';
+import { operateursRoles } from './stress/f2-structure/operateursRoles.js';
 import { PROFIL_P0, themeDuProfil } from './stress/f2-structure/themeUcm.js';
 
 const base = themeDuProfil(PROFIL_P0);
 const baseAvant = JSON.stringify(base);
-const TOUS = tousLesCas(base);
+/** Les opérateurs R, K et M ; les autres sont gardés par `stressStructureOperateursBis.test.ts`. */
+const TOUS = [operateursRoles, operateursCrans, operateursModes].flatMap((generer) => generer(base));
 const cas = (id: string): CasDeStructure => TOUS.find((entree) => entree.id === id)!;
 const duOperateur = (operateur: string) => TOUS.filter((entree) => entree.operateur === operateur);
 const cles = (entree: CasDeStructure) => entree.attendus.map((attendu) => `${attendu.code}|${attendu.cle}`);
@@ -28,7 +32,7 @@ test('les opérateurs rendent les nombres de cas de la section 3.3 du plan : 53 
   const parLettre = (lettre: string) => TOUS.filter((entree) => entree.operateur.startsWith(lettre)).length;
   assert.deepEqual([parLettre('R'), parLettre('K'), parLettre('M')], [53, 78, 41]);
   assert.equal(TOUS.length, 172);
-  assert.equal(GENERATEURS.length, 3);
+  assert.deepEqual(GENERATEURS.slice(0, 3), [operateursRoles, operateursCrans, operateursModes]);
 });
 
 test('chaque cas a un identifiant <opérateur>-<n>, une description, des zones, une clé à trois parts et un verdict cohérent', () => {
