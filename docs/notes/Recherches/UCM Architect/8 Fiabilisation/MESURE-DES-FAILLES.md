@@ -382,3 +382,39 @@ Les trois définitions d'icône se contredisent sur 25 des 36 layers de I1 à I6
 | N-63 | Un contour est accusé alors que le fill du layer le recouvre | hypothèse 17, confirmée ; R1-12 |
 
 L'hypothèse 20 est infirmée : un second anneau de même nom a des identifiants distincts (R5-13, R5-14). C53 retire bien C52 d'un variant désactivé (X3-2). Les hypothèses 18 et la phrase « Contraste non mesuré » portent sur l'écran ; la version allégée ne mesure pas la chaîne de F7.
+
+## F8-F9 Règles d'usage, moteur, lecture et états
+
+Mesure du lot 1 (`84bffed0`), graine 7108, `npx tsx packages/plugin-architect/scripts/stress/f8-analyse/mesurer.ts` : 235 cas de F8, 67 faux positifs, 16 interactions et les deux relations, en 73 secondes. Les cas passent par le vrai sandbox d'analyse, avec un injecteur sur les 10 lecteurs. Les 48 profils de règles ne donnent ni C43 ni C45, et les 72 profils d'analyse finissent `complete`.
+
+| Opérateur | Contenu | Cas | Attendus | Détectés | Manqués | Faux constats | Faits inexacts | En attente |
+|---|---|---|---|---|---|---|---|---|
+| G | Instance absente ou mal reconnue (C43) | 21 | 14 | 10 | 0 | 8 | 0 | 12 |
+| H | Propriété, valeur ou règle en trop (C45) | 58 | 40 | 36 | 3 | 2 | 0 | 3 |
+| J | Points « À compléter » (C44) | 6 | 21 | 21 | 0 | 0 | 0 | 0 |
+| E | Écriture des règles (`creer`, `ajouter`) | 36 | 8 | 8 | 0 | 0 | 1 | 0 |
+| M | Points du moteur (C30, C34, C35, C41, C42, C44) | 114 | 707 | 695 | 4 | 14 | 14 | 20 |
+| Total | | 235 | 790 | 770 | 7 | 24 | 15 | 35 |
+
+Les faux positifs donnent 3 manqués et 3 faux constats, tous sur un code choisi d'après un mot du titre (FP2-12 à FP2-14). Les relations tiennent sur 318 rejeux. Sur les 16 interactions, cinq couples tiennent. I1 redit E-30 et I6 redit E-31 (une lecture refusée laisse `complete`). I3 et I5 sont en attente de Q-F89-13 et Q-F89-12.
+
+| Id | Écart | Rattachement |
+|---|---|---|
+| E-29 | C30 et C41 vont dans Couleurs même pour une marge | confirmé ; hypothèse 7 ; 11 cas M6 sur 14 |
+| E-30 | C43 et C44 sortent ensemble pour la même instance absente | confirmé ; hypothèse 8 ; G1-1 à G1-6, G2-2, G2-9, M7-1, M7-2, I1 |
+| E-37 | C34 reçoit tout point `proprietes` du moteur | confirmé ; hypothèse 6 ; M1-21 à M1-24, M8-3 à M8-6 |
+| E-25 | Sans C25 du kit, le C30 du moteur reste seul sur une peinture en dur | confirmé ; M7-3 à M7-5 |
+| N-64 | Une propriété au souligné (`show_icon`) donne `sans-regle` et `sans-propriete`, et un tiret ou un souligné dans le nom du conteneur donne un faux C43 | hypothèse 2, confirmée en partie ; H4-3, G2-7, G2-8 |
+| N-65 | `Size.xxl` n'est pas rattaché à sa valeur | hypothèse 3, confirmée ; H3-7 |
+| N-66 | Deux points du moteur de même empreinte prennent le même identifiant (collision trouvée en 95 398 essais) | hypothèse 4, confirmée ; M3-1, M3-6 |
+| N-67 | Le code d'un point du moteur suit un mot de son titre | hypothèse 5, confirmée ; M2-1, M2-3, M2-4, M2-7, FP2-12 à FP2-14 |
+| N-68 | Deux propriétés de même nom compacté se confondent | hypothèse 9, confirmée ; G2-10 |
+| N-69 | Un conteneur de règles posé dans une instance donne C44 « plusieurs instances » | hypothèse 10, confirmée ; G2-14 |
+| N-70 | Un conteneur sur une autre page ou un calque vide est accusé | hypothèse 11, confirmée en détection ; G2-1, G2-3, G2-4 |
+| N-71 | Une analyse annulée pendant la phase `regles` laisse son modèle à la place de celui de l'analyse affichée | nouveau ; E5-4 |
+| N-72 | Une cible `@prop` vide ou faite d'espaces ne donne aucun C45 `sans-propriete`, seulement un point C44 | nouveau ; H3-9, H3-10 |
+| N-73 | `@boolean palette` posé sur un axe ne donne aucun constat | nouveau ; H3-12 |
+| N-74 | `Size.Mode` donne `sans-regle` pour `sizeMode`, et `ExtraLarge` pour `Extra Large` donne `sans-valeur` | nouveau ; H4-9, H4-10 |
+| N-75 | `reinitialiserLAnalyse` ne remet pas à zéro le compteur de génération des identités : une seconde analyse dans le même processus part à la génération 2 | nouveau ; aucun cas, lu dans le code |
+
+L'hypothèse 1 est infirmée : le contrat remplace le point d'une valeur par un tiret, donc `1.5` n'atteint jamais les règles (H4-7, H4-8). `creer` sans modèle saute en `objet-change`, comme le plan l'attend (hypothèse 12, E1-4). Trois cas M7 restent non constructibles sans les opérateurs de F5-F6 ou la propagation.
