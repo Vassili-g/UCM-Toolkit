@@ -189,22 +189,42 @@ D6-4 n'est pas un écart du plugin. Tant que la library reste à choisir, `barre
 
 ## F2 Structure du mode Tokens
 
-Mesure du lot A1 (`e20a3e3d`), graine 7102, profil P0 (`p14`), `npx tsx packages/kit/tests/stress/f2-structure/mesurer.ts` : opérateurs R, K et M, 172 cas en 7 secondes.
+Mesure des lots A1 (`e20a3e3d`) et A2 (`2ce2db12`), graine 7102, profil P0 (`p14`), `npx tsx packages/kit/tests/stress/f2-structure/mesurer.ts` : 426 cas d'opérateurs et 85 faux positifs, avec les deux relations métamorphiques, en 58 secondes.
 
 | Opérateur | Contenu | Cas | Attendus | Détectés | Manqués | Faux constats | Corrections inexactes | En attente |
 |---|---|---|---|---|---|---|---|---|
 | R | Rôles retirés (C82 `variable-absente`) | 53 | 100 | 100 | 0 | 0 | 0 | 0 |
 | K | Crans déplacés (C82 `cran`) | 78 | 76 | 59 | 5 | 0 | 0 | 12 |
 | M | Modes croisés (C60, `mode-du-theme`) | 41 | 41 | 29 | 0 | 0 | 5 | 12 |
-| Total | | 172 | 217 | 188 | 5 | 0 | 5 | 24 |
+| L | Alias, library, valeurs (C63) | 48 | 89 | 78 | 0 | 0 | 22 | 11 |
+| S | Scopes (C63, C82) | 43 | 42 | 41 | 1 | 0 | 0 | 0 |
+| Y | Couches, types, rangement (C82) | 63 | 66 | 61 | 0 | 0 | 0 | 5 |
+| E | Doublons d'échelle (C63) | 13 | 10 | 8 | 1 | 0 | 0 | 1 |
+| Q | Noms inconnus dans `theme` | 67 | 67 | 0 | 63 | 63 | 0 | 4 |
+| X | Structure globale, entrées dégradées | 20 | 12 | 2 | 0 | 5 | 0 | 17 |
+| Total | | 426 | 503 | 378 | 70 | 68 | 27 | 62 |
+| A | Faux positifs (72 profils, 13 thèmes ciblés) | 85 | 0 | 0 | 0 | 0 | 0 | 0 |
 
-R1 compte 47 attendus pour 39 cas, car un rôle retiré casse aussi l'alias des couleurs de `components` qui le visaient (C63 `alias-supprime`). Les 24 écarts en attente dépendent de Q-F2-2 (K2, 10 cas), Q-F2-3 (K3, 2 cas) et Q-F2-4 (M1, 12 cas).
+R1 compte 47 attendus pour 39 cas, car un rôle retiré casse aussi l'alias des couleurs de `components` qui le visaient (C63 `alias-supprime`). Les 62 écarts en attente dépendent de Q-F2-1 (Q3), Q-F2-2 (K2), Q-F2-3 (K3), Q-F2-4 (M1), Q-F2-5 et Q-F2-6 (X1, X2), Q-F2-8 (L2, E1) et de deux cas sans question numérotée (Y4 `ring` hors de `theme`, troisième mode de `theme`).
+
+Les relations métamorphiques tiennent. Mélanger l'ordre des variables ou changer la casse des noms laisse les mêmes constats sur les 511 cas, et aucun contrôle ne modifie son entrée. Aucun contrôle ne lève, même sur les 8 entrées dégradées de X6 (cycles, clé en double, nom vide).
+
+Le kit émet 0 faux constat sur les thèmes valides. Ses faux constats viennent tous de deux causes : Q1 et Q2 (63) et les variables non chargées de X3 (5).
 
 | Id | Écart | Rattachement |
 |---|---|---|
+| E-19 | Une faute ou un synonyme de rôle dans `theme` (`primary/solid/deault`, `surface/outline`) ne donne aucune question ; le kit propose à la place de créer le rôle absent, qui doublonne la variable fautive | confirmé ; hypothèse 4 du plan ; les 63 cas Q1 et Q2 |
 | N-24 | C60 ne voit pas un alias vers l'autre branche quand le mode est un segment du chemin d'une rampe à modes de marque (`primary/dark/300`) | hypothèse 1 du plan, confirmée ; 12 cas M1 en attente de Q-F2-4 |
 | N-25 | Un rôle déplacé sur le cran de l'autre table vote pour l'autre sens, et son cran faux disparaît sans constat : `page/foreground` et `page/border` dans les deux modes, `ring` en Light | hypothèse 2 du plan, confirmée ; K1-21 à K1-24, K1-27 |
 | N-26 | Un rôle aliasé vers l'autre branche au cran de son propre mode donne une question C60 sans candidat, au lieu de la correction vers la bonne branche | nouveau ; M3-1 à M3-4 |
 | N-27 | C60 pose une question à deux candidats quand le cran fautif vaut pour les deux sens, car il ne lit pas le sens de la palette | nouveau ; M1-19 |
+| N-28 | La voisine citée par `alias-supprime` est choisie sur le dernier segment : `primary/surface/default` pour `primary/solid/default` | hypothèse 3 du plan, confirmée ; 22 constats L1 sur 24 |
+| N-29 | Un rôle présent deux fois dans une palette n'est jugé que pour la première variable | hypothèse 5 du plan, confirmée ; X2-2, en attente de Q-F2-6 |
+| N-30 | L'identifiant de `C82:cran-absent` ne porte pas la collection : deux collections `theme` donnent deux constats de même identifiant, que le plugin dédoublonne | hypothèse 6 du plan, confirmée ; X1-1 |
+| N-31 | Une variable `theme` non chargée compte comme absente : le kit propose de créer 5 rôles qu'il n'a pas lus | nouveau ; X3-3 |
+| N-32 | C82 `scopes` ne juge que les couleurs : un scope posé sur une variable FLOAT de `primitives` passe | nouveau ; S2-10 |
+| N-33 | Les doublons d'échelle comparent les nombres tels quels : `0,1 + 0,2` et `0,3` ne forment pas un doublon | nouveau ; E1-7 |
 
-Sur les 51 autres cas K1 et sur 11 des 12 cas M1 où la cible a des modes Light et Dark, la correction a la bonne cible et le bon `avant`. Le kit n'émet aucun faux constat sur les 172 cas.
+Sans library choisie, une cible inaccessible ne donne aucun constat (L2-9, L2-10, Q-F2-8). `ring` rangé hors de `theme` n'est pas vu, faute de slash dans son nom (Y4, en attente). Un nom de `theme` sans proximité ne donne aucune information (Q3, Q-F2-1). Le constat C63 `scopes` et la question C60 n'ont pas de genre dans le kit (S1-1, M2-1) ; le lot B mesure ce que l'écran en fait (E-20, E-21).
+
+Le plan compte 19 paires de couches interdites et 6 admises pour Y1 ; l'oracle, écrit d'après `CIBLES_DES_COLLECTIONS`, en trouve 20 et 5.
