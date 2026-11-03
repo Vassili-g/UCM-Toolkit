@@ -228,3 +228,30 @@ Le kit émet 0 faux constat sur les thèmes valides. Ses faux constats viennent 
 Sans library choisie, une cible inaccessible ne donne aucun constat (L2-9, L2-10, Q-F2-8). `ring` rangé hors de `theme` n'est pas vu, faute de slash dans son nom (Y4, en attente). Un nom de `theme` sans proximité ne donne aucune information (Q3, Q-F2-1). Le constat C63 `scopes` et la question C60 n'ont pas de genre dans le kit (S1-1, M2-1) ; le lot B mesure ce que l'écran en fait (E-20, E-21).
 
 Le plan compte 19 paires de couches interdites et 6 admises pour Y1 ; l'oracle, écrit d'après `CIBLES_DES_COLLECTIONS`, en trouve 20 et 5.
+
+### Interactions et chaîne jusqu'à l'écran
+
+Mesure du lot B (`25ecbd3e`). Les 24 interactions déclarées tournent sur P0, p37 et le profil tiré p24, en section C de `mesurer.ts` : 33 attendus, 30 détectés, 3 manqués, 3 faux constats et 3 corrections inexactes. Les écarts redisent E-19 (I2, faute sur un rôle voisin d'un rôle retiré) et N-26 (I5, cran et branche faux sur la même variable). Les six autres couples tiennent, et le sens d'une palette reste celui des rôles non dégradés quand deux rôles votants sont déplacés (I3).
+
+La chaîne, `npm run stress:structure --workspace ucm-architect-plugin`, passe 28 cas par le sandbox et le vrai panneau monté sur le faux DOM, en 7 secondes.
+
+| Série | Contenu | Cas | Tiennent | Écarts |
+|---|---|---|---|---|
+| D1 | Lecture qui échoue (P13) | 4 | 0 | 4 |
+| D2 | Cases décochées (P12) | 10 | 1 | 9 |
+| D3 | Proposition ignorée (P11) | 5 | 2 | 3 |
+| D4 | Motifs de saut (P14) | 8 | 2 | 6 |
+| D5 | Composite de 18 cas du kit, tous les genres émis (P9, P10) | 1 | 0 | 1 |
+| Total | | 28 | 5 | 23 |
+
+Aucun écart n'est nouveau. Les hypothèses 7 et 8 du plan sont confirmées.
+
+| Écart | Cas | Ce que l'écran fait |
+|---|---|---|
+| E-22 | 9 | Les cartes Variables manquantes, Modes, Scopes C63 et Scopes C82 arrivent cochées, Appliquer est actif, et « Tout cocher » et « Tout décocher » manquent dans chaque section, crans compris. À la relecture, une ligne ajoutée arrive cochée. |
+| E-24 | 6 | Les motifs `objet-change`, `fait-faux`, `cible-introuvable`, `erreur`, `non-ucm` et `journal-impossible` n'ont pas de texte : l'écran dit « 0 corrections écrite, 1 sautée. » |
+| E-23 | 4 | Une lecture qui lève, un catalogue `null` ou un refus de Figma donnent « Rien à régler ». Des réglages illisibles font réapparaître l'ignoré et perdent la création. |
+| E-21 | 3 | Ignorer la proposition d'un constat de scopes, de C82 comme de C63, fait disparaître le constat, qui n'est pas non plus sous Ignorés. E-21 s'étend donc à C63 `scopes` (hypothèse 7, D3-2). |
+| E-20 | 2 | La question C60 sans correction n'a pas de genre et n'a aucune carte (hypothèse 8, D5-1). |
+
+Les cas qui tiennent : un cran ajouté à la relecture reste décoché (D2-7), ignorer la proposition d'un cran ou d'une variable absente laisse le constat (D3-4, D3-5), et `deja-la` et `existe-divergente` ont un texte (D4-7, D4-8).

@@ -355,7 +355,7 @@ La version allégée (section 7 de l'inventaire) remplace les lots 2 à 7 par le
 |---|---|---|
 | A1 | Opérateurs R, K, M, `mesurer.ts` | fait, `e20a3e3d` |
 | A2 | Opérateurs L, S, Y, E, Q, X, faux positifs, relations M-1 et M-3 | fait, `2ce2db12` |
-| B | Interactions déclarées, chaîne D1 à D4, script `stress:structure` | à faire |
+| B | Interactions déclarées, chaîne D1 à D4, script `stress:structure` | fait, `25ecbd3e` |
 
 ## 9. Questions au mainteneur
 
