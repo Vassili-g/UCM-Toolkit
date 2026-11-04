@@ -401,7 +401,7 @@ const VARIABLE_DU_TEXTE_DES_BOUTONS = 'solid/foreground';
     }
 
     /** L'en-tête d'un détail : grande pastille, titre, code, la mention de la référence, et « Copier ». */
-    function enTeteDuDetail(couleur: string, titre: Texte, code: string, reference = false): HTMLDivElement {
+    function enTeteDuDetail(couleur: string, titre: Texte, code: string, reference = false, choisie?: string): HTMLDivElement {
       const enTete = document.createElement('div');
       enTete.className = 'detail-tete';
       const grande = document.createElement('span');
@@ -414,9 +414,10 @@ const VARIABLE_DU_TEXTE_DES_BOUTONS = 'solid/foreground';
       codeDuDetail.className = 'detail-code';
       nomme.append(nomDuDetail, codeDuDetail);
       if (reference) {
-        const mention = paragraphe(TEXTES_DU_DETAIL.reference);
+        const mention = paragraphe(choisie === undefined ? TEXTES_DU_DETAIL.reference : TEXTES_DU_DETAIL.referenceAjustee);
         mention.className = 'detail-reference';
         nomme.append(mention);
+        if (choisie !== undefined) nomme.append(paragraphe(TEXTES_DU_DETAIL.couleurChoisie(choisie), 'ligne-secondaire'));
       }
       const copie = bouton('bouton-discret', TEXTES_DU_NUANCIER.copier);
       copie.addEventListener('click', () => {
@@ -434,7 +435,8 @@ const VARIABLE_DU_TEXTE_DES_BOUTONS = 'solid/foreground';
       const texteDesBoutons = lireHexa(COULEUR_DU_TEXTE_DES_BOUTONS[recette.texteDesBoutons[mode]]) ?? [255, 255, 255];
       const { crans } = analyse.grille;
       const reference = analyse.ancrage.profil === profil && analyse.ancrage.rangs[mode] === rang;
-      const blocs: HTMLElement[] = [enTeteDuDetail(cran.hexa, TEXTES_DU_DETAIL.titre(profil, crans[rang]), cran.hexa, reference)];
+      const choisie = reference && mode === 'dark' ? analyse.referenceAjustee?.avant.hexa : undefined;
+      const blocs: HTMLElement[] = [enTeteDuDetail(cran.hexa, TEXTES_DU_DETAIL.titre(profil, crans[rang]), cran.hexa, reference, choisie)];
       // Les variables que la nuance porte dans la table du sens du thème montré (I5). Une palette libre n'en a pas (W6.5).
       const sens = sensDuTheme(mode, recette.texteDesBoutons[mode]);
       const variables = analyse.libre ? [] : variablesDuCran(crans, rang, mode, sens, entrees.neutre ?? false);
@@ -829,7 +831,7 @@ const VARIABLE_DU_TEXTE_DES_BOUTONS = 'solid/foreground';
           const reference = analyse.ancrage.profil === profil && analyse.ancrage.rangs[mode] === rang;
           const confondue = confondues.has(numero);
           const etiquettes = [TEXTES_DU_NUANCIER.etiquetteDeNuance(profil, numero, cran.hexa)];
-          if (reference) etiquettes.push(TEXTES_DU_NUANCIER.reference);
+          if (reference) etiquettes.push(mode === 'dark' && analyse.referenceAjustee ? TEXTES_DU_NUANCIER.referenceAjustee : TEXTES_DU_NUANCIER.reference);
           if (confondue) etiquettes.push(TEXTES_DU_NUANCIER.tresProche(profil === 'soft' ? 'vivid' : 'soft'));
           if (reference) pastille.dataset.reference = 'true';
           else delete pastille.dataset.reference;

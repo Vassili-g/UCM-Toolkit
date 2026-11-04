@@ -339,7 +339,8 @@ function sectionDesRampes(contexte: Contexte, mode: Mode, encres: Encres): Noeud
   const { analyse, palette, recette } = contexte;
   const intensites = intensitesDe(palette);
   const confondus = analyse.confusions.some((confusion) => confusion.mode === mode);
-  const note = confondus ? `${TEXTES_DE_LA_PLANCHE.noteDuRepere} ${TEXTES_DE_LA_PLANCHE.noteDesConfondus}` : TEXTES_DE_LA_PLANCHE.noteDuRepere;
+  const repere = mode === 'dark' && analyse.referenceAjustee ? TEXTES_DE_LA_PLANCHE.noteDuRepereAjuste(analyse.referenceAjustee.avant.hexa) : TEXTES_DE_LA_PLANCHE.noteDuRepere;
+  const note = confondus ? `${repere} ${TEXTES_DE_LA_PLANCHE.noteDesConfondus}` : repere;
   return cadre(intensites.length === 1 ? 'la rampe' : 'les deux rampes', 'VERTICAL', [
     texte('titre', intensites.length === 1 ? TEXTES_DE_LA_PLANCHE.rampe : TEXTES_DE_LA_PLANCHE.rampes, 'theme', encres.encre),
     numeros(contexte, encres),

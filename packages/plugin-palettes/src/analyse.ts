@@ -17,6 +17,7 @@ import {
   partsDe,
   proximiteDePalettes,
   rampesDe,
+  referenceAjustee,
   referenceDe,
   verifierPromesses,
   type Alerte,
@@ -29,6 +30,7 @@ import {
   type Promesse,
   type Rampes,
   type Recette,
+  type ReferenceAjustee,
 } from 'ucm-couleur';
 
 export interface AnalyseDePalette {
@@ -52,6 +54,8 @@ export interface AnalyseDePalette {
   readonly parts: PartsDePalette;
   /** L'intensité et les nuances qui portent la référence exacte ([MOT-17]). */
   readonly ancrage: Ancrage;
+  /** La référence que le moteur a éclaircie en Dark inversé, ou `undefined` : le ◆ garde alors ses octets exacts. */
+  readonly referenceAjustee: ReferenceAjustee | undefined;
   /** Les nuances où Soft et Vivid se confondent, sur toute la liste : le repère ≈ ([PLA-15]). */
   readonly confusions: readonly Confusion[];
 }
@@ -76,17 +80,19 @@ function alertesQuiLaConcernent(recette: Recette, palette: Palette): Alerte[] {
 /** Analyse une palette d'une recette validée. */
 export function analyserPalette(recette: Recette, palette: Palette): AnalyseDePalette {
   const promesses = verifierPromesses(recette, palette);
+  const rampes = rampesDe(recette, palette);
   return {
     grille: grilleDe(recette, palette),
     libre: estLibre(palette),
     intensites: intensitesDe(palette),
-    rampes: rampesDe(recette, palette),
+    rampes,
     promesses,
     manquees: compterManquees(promesses),
     alertes: alertesQuiLaConcernent(recette, palette),
     part: partDeLaReference(recette, palette),
     parts: partsDe(recette, palette),
     ancrage: ancrageDe(recette, palette),
+    referenceAjustee: referenceAjustee(recette, palette, rampes),
     confusions: confusionsDe(recette, palette),
   };
 }

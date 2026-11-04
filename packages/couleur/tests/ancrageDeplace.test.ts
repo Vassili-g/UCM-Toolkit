@@ -1,7 +1,8 @@
 /**
  * L'ancrage déplacé en Dark normal ([MOT-17]) : une référence posée sur le 700, texte de la page, qui manque le
  * seuil `texte` sur les fonds de la garantie 9 (200 et 300) glisse au 600. Le 700 libéré s'éclaircit jusqu'au
- * seuil, le 400 et le 500 se relèvent vers un espacement régulier. Le Dark inversé et le Light n'en relèvent pas.
+ * seuil, le 400 et le 500 se relèvent vers un espacement régulier. Le Dark inversé et le Light n'en relèvent pas :
+ * en Dark inversé, la référence au 800 reste en place et la correction des textes l'éclaircit.
  */
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
@@ -97,13 +98,15 @@ test('Dark normal : les autres palettes de la configuration gardent leur ancrage
   }
 });
 
-test('Dark inversé, configuration du mainteneur : Poppy Vivid et Irene Vivid gardent leur référence au 800, et la garantie 9 manque', () => {
-  for (const nom of ['Poppy', 'Irene']) {
+test('Dark inversé, configuration du mainteneur : Poppy Vivid et Irene Vivid gardent leur ◆ au 800, dont la correction des textes tient la garantie 9', () => {
+  for (const [nom, ajuste] of [['Poppy', '#F17562'], ['Irene', '#E96AD1']]) {
     const p = palette(INVERSE, nom);
     assert.equal(ancrageDe(INVERSE, p).crans.dark, 800, nom);
     const dark = rampeDe(rampesDe(INVERSE, p), 'vivid').dark;
-    assert.equal(dark[rang(INVERSE, 800)].hexa, p.reference, nom);
-    assert.ok(g9(INVERSE, p, 'vivid').some((promesse) => promesse.verdict === 'manquee'), nom);
+    assert.equal(dark[rang(INVERSE, 800)].hexa, ajuste, nom);
+    assert.notEqual(dark[rang(INVERSE, 800)].hexa, p.reference, nom);
+    assert.ok(clarteDe(ajuste) > clarteDe(p.reference), nom);
+    assert.ok(g9(INVERSE, p, 'vivid').every((promesse) => promesse.verdict === 'tenue'), nom);
   }
 });
 

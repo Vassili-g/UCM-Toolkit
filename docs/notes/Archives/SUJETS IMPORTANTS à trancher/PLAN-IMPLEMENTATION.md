@@ -457,3 +457,371 @@ Fin : les trois versions publiées répondent sur le registre.
 La recette T1 est reportée. Les builds complets sont prêts sur cebd66a1 ; après
 une correction, `npm run build` les reconstruit avant l'essai. La galerie ne
 reconstruit que `ui.html`.
+
+## Référence ajustée en Dark inversé
+
+Décision du mainteneur, sur le cas des textes de boutons blancs en Dark. Un
+Dark inversé donne à `page/foreground` le 800 (`TABLE_DES_DOSSIERS.dark.inverse`).
+Quand la référence exacte se pose sur ce cran et manque la garantie 9
+(Poppy Vivid, `#EF4733`, 4,03 et 3,39 ; Irene Vivid, `#DA51C2`, 4,28 et 3,59),
+le moteur ne la corrige pas aujourd'hui et Palettes répond « Ajuster la
+référence », qui éclaircit aussi le Light. Le mainteneur refuse de passer le
+texte des boutons au noir et d'éclaircir sa couleur de marque en Light.
+
+Ce plan remplace la ligne « Dark inversé : rien de plus » de la piste A.
+
+### Périmètre
+
+| Décision | Effet |
+|---|---|
+| Dark inversé : un cran de texte qui porte la référence exacte et manque le seuil est corrigé comme les autres textes (pas de 0,001 de clarté OKLCH, teinte et part de chroma gardées, sans passer la clarté du voisin plus clair) | Moteur |
+| Le ◆ reste sur le cran corrigé ; la référence n'est plus exacte en Dark dans ce cas | Moteur, Palettes |
+| Dark normal : ancrage déplacé inchangé (la référence glisse au 600, couleur exacte) | Aucun |
+| Light, normal et inversé : un cran de texte qui porte la référence reste non corrigé ; « Ajuster la référence » reste la réponse | Aucun |
+| Palettes montre la mention « ajustée pour rester lisible » et la couleur choisie à côté, sans l'écart appliqué ; le message de garantie manquée disparaît parce que la garantie passe | Palettes |
+| Palette figée, palette libre | Aucun, sauf la reconstruction des réglages d'une palette figée (E2) |
+
+Le kit ne change pas : la table et les garanties restent celles du kit, la règle
+vit dans `ucm-couleur` (paquet privé, lu en source). Aucune version à monter,
+aucune publication. Les tests racine (`node scripts/run-tests.cjs`) se lancent
+parce que Palettes change.
+
+### Mesure de départ
+
+Simulation faite sur la configuration du mainteneur, en appelant
+`corrigerLesTextes(recette, 'dark', rampesSansCorrection(...)[i].dark)` sans
+`rangDeLaReference` : Poppy Vivid 800 `#EF4733` vers `#F17562` (ΔL +0,066,
+ΔEok 0,084), Irene Vivid 800 `#DA51C2` vers `#E96AD1` (ΔL +0,056, ΔEok 0,058).
+Chacune passe de 2 garanties manquées à 0. Les dix autres palettes gardent
+leurs octets. La simulation ne rejoue pas la garde de la bosse de chroma de
+`rampesDe` : E1 compare le moteur réel à ces valeurs.
+
+### Règles de chaque lot
+
+Les règles du début de ce plan valent. En plus :
+
+- `git status` avant de commencer. Les fichiers d'Architect modifiés par une
+  autre session ne sont pas à ce plan et ne se touchent pas.
+- Ne pas lancer `test:ui`. Un test d'interface s'écrit et se nomme dans le
+  rendu ; le mainteneur le lance.
+- Aucune migration de fichier Figma ni de Playground n'entre dans le plan.
+- Un texte destiné au designer se pose tel que la note du lot l'écrit, après
+  validation du mainteneur (question 1). Charger `rediger-diagnostics-ucm`,
+  puis `rediger-sans-tics-ia`.
+
+### Ordre
+
+```
+M1 → E1 → P1 ┐
+       └→ E2 ┤→ D1 → V1 → T1
+```
+
+P1 et E2 partent ensemble après E1. Au plus deux agents à la fois. M1 est un
+point d'arrêt : si une de ses sorties dépasse un critère, E1 ne commence pas.
+
+### M1. Mesure sur 360 teintes
+
+Agent : `implementeur` écrit le script ; un `verificateur` le lance (sortie
+longue). La conversation principale lit les chiffres et décide de la suite.
+
+Fichier : `docs/notes/Archives/SUJETS IMPORTANTS à trancher/Mesures/mesurer-reference-ajustee.ts`,
+à côté de `mesurer-ancrage-deplace.ts`, dont il reprend l'en-tête, le
+chargement de `palettes-et-reglages.json` et la recette en Dark inversé. Le
+registre de `.agents/domiciles.json` ne refuse que les Markdown : un `.ts` de
+mesure y est permis. Lancement depuis ce dossier :
+`npx tsx mesurer-reference-ajustee.ts`.
+
+Le script simule la règle hors du moteur, comme `ancrage-deplace.ts` avant C3 :
+la rampe Dark de `rampesSansCorrection`, puis `corrigerLesTextes` sans
+`rangDeLaReference`, puis `jugerLesRampes` sur la rampe obtenue.
+
+- [x] Configuration du mainteneur, Dark inversé : pour chaque palette et chaque
+      intensité, le cran de texte (800 et 950) avant et après (hexa, ΔL, ΔEok),
+      les garanties G1 à G9 manquées avant et après, et la liste des rampes dont
+      un octet change. Attendu : Poppy Vivid et Irene Vivid seulement, aux
+      valeurs de la mesure de départ.
+- [x] Balayage : 360 teintes (pas de 1°), base Soft et Vivid, référence posée
+      sur chaque cran de texte du Dark inversé (800 et 950). La clarté de la
+      référence parcourt l'intervalle que `rangPorteur` rattache à ce cran, par
+      pas de 0,02, lu sur `recette.courbes.dark`. Une référence hors de cet
+      intervalle ne porte pas le cran.
+- [x] Sorties du balayage : nombre de rampes dans la tranche (référence sur un
+      cran de texte qui manque le seuil) ; plus forte correction en ΔL, en
+      médiane et au maximum ; nombre de crans qui butent sur le voisin
+      (`etat === 'voisin'`, garantie encore manquée) ; ordre des nuances (clartés
+      strictement croissantes et plus petit écart entre le cran corrigé et son
+      voisin plus clair, à comparer à `ECART_MINIMAL_DES_CLARTES`) ; garanties
+      G1 à G9 qui manquent après et tenaient avant, dont G1 (`solid/default`
+      contre le texte des boutons), G5, G6 et le ring au 800 (G7).
+- [x] Une ligne qui montre que le Light et le Dark normal ne sont pas touchés
+      (même rampe avant et après).
+
+Critères pour passer à E1 :
+
+- aucune garantie G1 à G9 ne manque après et tenait avant ;
+- l'ordre des nuances tient partout ;
+- l'écart entre le cran corrigé et son voisin plus clair reste au moins
+  `ECART_MINIMAL_DES_CLARTES`, ou la question 3 est tranchée ;
+- la plus forte correction est rendue au mainteneur, avec les teintes qui la
+  causent.
+
+Fin : le script s'exécute sans erreur ; les chiffres sont dans le rendu, puis
+recopiés dans ce plan à la ligne « Fait de M1 », en fin de section.
+
+### E1. Moteur
+
+Agent : `implementeur-exigeant` (la règle a plusieurs lecteurs : promesses,
+alertes, limites, ancrage, tests figés).
+
+Fichiers : `packages/couleur/src/palette.ts`, `packages/couleur/src/textes.ts`
+(en-tête), `packages/couleur/src/ancrageDeplace.ts` (en-tête),
+`packages/couleur/src/promesses.ts` et `packages/couleur/src/limites.ts`
+(commentaires), `packages/couleur/tests/textes.test.ts`,
+`ancrageDeplace.test.ts`, `promesses.test.ts`, `ancrage.test.ts`,
+`limites.test.ts`, `alertes.test.ts`, `packages/couleur/CARTE.md`.
+
+Note de conception :
+
+- `palette.ts` appelle aujourd'hui `corrigerLesTextes(..., ancrage.rangs[mode])`
+  pour les deux modes (`rampeDeLIntensitePorteuse`, par `Correction`). La
+  nouvelle règle change cet argument en Dark inversé seulement : `undefined`, donc
+  aucun cran n'est protégé. Light, Dark normal, palette libre et palette figée
+  gardent l'argument actuel. En Dark normal, la référence qui échoue glisse
+  (`deplacerLaReference`) et le rang protégé reste celui de la grille.
+- La règle s'écrit en un seul endroit de `palette.ts`, par une fonction
+  exportée (`rangDeLaReferenceGardee(recette, mode, ancrage)` ou nom voisin).
+  Elle lit `sensDuTheme`, comme chaque lecteur de la table. Les tests de
+  `textes.test.ts` l'appellent au lieu de recopier la condition.
+- `textes.ts` ne change pas de comportement. `EtatDeLaCorrection` ne reçoit pas
+  de nouvel état : la fonction ignore si le cran porte la référence, c'est
+  l'appelant qui le lui dit. L'état `reference` ne se rend plus qu'en Light et
+  en Dark normal.
+- Les vues lisent une fonction de `palette.ts`,
+  `referenceAjustee(recette, palette, rampes = rampesDe(recette, palette))`, qui
+  rend `undefined` ou `{ intensite, mode: 'dark', rang, numero, avant, apres, ecart }` :
+  `avant` la référence (octets), `apres` le cran de la rampe corrigée à
+  `ancrageDe(...).rangs.dark`, `ecart` la différence de clarté OKLCH arrondie à
+  0,001. Elle rend `undefined` quand les octets du cran sont ceux de la
+  référence : en Light, en Dark normal (la référence glissée est exacte), pour
+  une palette figée ou libre et pour une référence qui tenait déjà.
+- `ancrageDe` et `ancrage.crans.dark` ne changent pas : le ◆ reste au 800.
+  `clartesDe` ne change pas : l'ordre des nuances se juge sur la clarté
+  fabriquée, avant la correction.
+
+- [x] `palette.ts` : la fonction de la règle, son appel dans `Correction`,
+      `referenceAjustee`. Mettre à jour les commentaires de `ancrageDe`, de
+      `rampesDe` et de `rampesSansCorrection`.
+- [x] Tests à inverser. `textes.test.ts`, « Dark inversé, configuration du
+      mainteneur » (neuf rampes corrigées de 0,009 au plus, deux références
+      intactes) devient onze rampes corrigées : Poppy Vivid +0,066 vers
+      `#F17562`, Irene Vivid +0,056 vers `#E96AD1`, plus aucun état `reference`
+      en Dark inversé, G9 tenue. Son assistant `corrections()` passe le rang par
+      la fonction de la règle. `ancrageDeplace.test.ts`, « Dark inversé … gardent
+      leur référence au 800, et la garantie 9 manque » devient : le 800
+      s'éclaircit, `ancrageDe(...).crans.dark` vaut 800, G9 tenue.
+      `promesses.test.ts`, « oracles S8 » (quatre combinaisons) : l'assertion
+      « hors ancrage » reste vraie ; ajouter que G9 ne manque plus en Dark
+      inversé sur les références au 800.
+- [x] Tests nouveaux : `referenceAjustee` (Poppy Vivid et Irene Vivid : valeurs ;
+      les dix autres, Dark normal, Light : `undefined`) ; sur la configuration
+      du mainteneur en Dark inversé, `rampesDe` garde les octets exacts de la
+      référence au cran du ◆ pour toute palette sauf Poppy et Irene ; une
+      référence au 700 Light qui manque G3 reste non corrigée (test existant, à
+      garder) ; 360 teintes, référence sur le 800 Dark, bornes de M1 (plus forte
+      correction, ordre, aucune garantie nouvellement manquée) ; Dark normal
+      inchangé (les tests de `ancrageDeplace.test.ts` passent sans changement
+      d'attente).
+- [x] Alertes : sur la configuration du mainteneur, la liste des alertes
+      (`profils-confondus`, `palettes-proches`) est celle d'avant ; sinon, le
+      rendu la donne et rien n'est corrigé dans ce lot.
+- [x] `limites.test.ts` : pour Poppy Vivid en Dark inversé, la limite de
+      luminosité se calcule et G9 est tenue au départ.
+- [x] Comparer le moteur réel à la simulation de M1 sur les deux références
+      (écart d'octets nul) ; sinon l'écart vient de la garde de la bosse, et le
+      rendu le dit.
+- [x] En-têtes : `textes.ts` (« Le cran de la référence ne change jamais »
+      devient « sauf là où l'appelant ne le protège pas ») et `ancrageDeplace.ts`
+      (« garde sa place et la garantie 9 manque » devient la règle nouvelle).
+      `CARTE.md` : lignes de `palette.ts` (`referenceAjustee`) et de `textes.ts`.
+
+Fin : `npm run test:paquet -- couleur` passe ; `npm run typecheck` passe. Le
+rendu liste chaque test dont l'attente a changé.
+
+### E2. Reconstruction d'une palette figée
+
+Agent : `implementeur-exigeant`.
+
+Fichiers : `packages/couleur/src/reconstruction.ts`,
+`packages/couleur/tests/reconstruction.test.ts`.
+
+La reconstruction cherche la référence parmi les hexas égaux en Light et en
+Dark dans une même intensité (`candidats`). Poppy Vivid et Irene Vivid, figées
+depuis un Dark inversé, ont un 800 Dark différent de leur référence : aucun
+candidat ne se présente, et la fonction rend `null` ou retient un mauvais
+ancrage. Les autres lecteurs de rampes n'ont pas cette hypothèse : `rampesDe`
+est leur seule source.
+
+- [x] Ajouter à `candidats` le couple (rang Light, rang Dark du cran de texte) du
+      Dark inversé quand le hexa Light est la référence connue (`c.reference`) et
+      que le cran Dark garde la teinte à 1° près et une clarté au moins égale.
+      Ne pas ancrer ce cran Dark dans `Candidat.ancres` : il n'est pas exact, et
+      `c.textes.dark` le lit déjà à sa clarté observée. Le critère exact se
+      choisit avec les deux cas des tests ; il n'ajoute aucun candidat aux autres
+      palettes, donc la durée de la recherche ne change pas.
+- [x] `rangsOk` accepte ce rang Dark pour ce candidat.
+- [x] Tests : figer Poppy Vivid et Irene Vivid depuis `rampesDe` en Dark inversé
+      (rampes réelles de E1), reconstruire, retrouver la référence d'origine,
+      écart nul. Une palette figée sans référence connue garde son comportement
+      actuel : le test le fixe.
+- [x] En-tête du fichier : « les octets exacts de la référence … des deux
+      thèmes » reçoit l'exception du Dark inversé.
+
+Fin : `npm run test:paquet -- couleur` passe, `reconstruction.test.ts` compris,
+dans son budget de temps actuel ; `npm run typecheck` passe.
+
+### P1. UCM Palettes
+
+Agent : `implementeur`. Dépend de E1 et de la question 1.
+
+Fichiers : `packages/plugin-palettes/src/analyse.ts`, `src/i18n/fr.ts`,
+`src/i18n/en.ts`, `src/ui/nuancier.ts`, `src/ui/ongletCreation.ts`,
+`src/ui/garanties.ts`, `src/ui/apercuCompact.ts`, `src/ui/ongletGestion.ts` (si
+la question 1 la retient), `src/planche/modele.ts`, `src/ui/styles.css` si une
+ligne se pose, `galerie/etats.cjs`, tests `analyse.test.ts`,
+`modeleDePlanche.test.ts`, `presentation.test.ts`, `i18n.test.ts`,
+`textes.test.ts`, `tests/interface/interface.test.mjs` (écrit, non lancé),
+`CARTE.md` si une ligne change.
+
+Note de conception :
+
+- `AnalyseDePalette` reçoit `referenceAjustee` (E1), calculée sur les rampes
+  qu'`analyserPalette` a déjà. Aucune vue ne recalcule l'écart.
+- Le ◆ ne bouge pas : toutes les vues le posent déjà par `analyse.ancrage`.
+  Seuls les textes et la couleur affichée changent. Les lieux du ◆ à relire :
+  `nuancier.ts` (pastille, étiquette d'accessibilité, détail « ◆ Votre couleur de
+  référence exacte »), `garanties.ts` (réglette), `apercuCompact.ts`,
+  `planche/modele.ts` (pastille, `noteDuRepere`, ligne de tête
+  `enTeteDeLaReference`), `ongletGestion.ts` (ligne de la fiche).
+- La mention ne s'affiche que dans le thème Dark, et seulement quand
+  `referenceAjustee` existe. La couleur choisie est le hexa de la référence de
+  la palette ; le cran garde son hexa corrigé. L'écart appliqué ne s'affiche
+  pas (décision du mainteneur, question 1).
+- La ligne de Création (`repereDeReference`) occupe déjà une ligne qui garde sa
+  place ([UI-20]) : la mention n'ajoute pas de hauteur à l'onglet, avec ou sans
+  mention. Test d'interface écrit pour ce point.
+- Le message « garantie manquée » de Vérification disparaît sans code : la
+  garantie 9 est tenue. Aucune ligne n'entre dans le groupe de messages, parce
+  qu'un constat sans geste ne s'y écrit pas (`rediger-diagnostics-ucm`).
+
+Textes retenus (question 1) :
+
+| Lieu | fr | en |
+|---|---|---|
+| Détail de la nuance, Dark | `◆ Votre couleur de référence, ajustée pour rester lisible.` puis `Couleur choisie : #EF4733.` | `◆ Your reference colour, adjusted to stay readable.` then `Chosen colour: #EF4733.` |
+| Étiquette du ◆ (lecture d'écran) | `Référence ajustée` | `Adjusted reference` |
+| Note de la planche, section Dark | `◆ : la couleur de référence, ajustée pour rester lisible. Couleur choisie : #EF4733.` | `◆: the reference colour, adjusted to stay readable. Chosen colour: #EF4733.` |
+
+Les textes passent `node scripts/controle-style.mjs` et
+`tests/loiDesTextes.test.ts`.
+
+- [x] `analyse.ts` : champ `referenceAjustee`. Test.
+- [x] Textes fr et en : une fonction qui prend `referenceAjustee` et rend la
+      mention ; `noteDuRepere` garde son texte quand rien n'est ajusté.
+- [x] Création : détail de la nuance. La ligne « ◆ Référence : Vivid nuance 800 » ne change pas :
+      le ◆ reste au 800 et aucun texte validé ne la touche. Vérification :
+      réglette et aperçu. Planche : note et pastille du Dark. Gestion : ligne de
+      la fiche, seulement si la question 1 la retient.
+- [x] `planche/modele.ts` : l'empreinte du cadre change pour les seules palettes
+      ajustées en Dark inversé ; `modeleDePlanche.test.ts` le fixe.
+- [x] Galerie : un état « Référence ajustée en Dark » (recette du mainteneur en
+      Dark inversé, Poppy ouverte, thème Dark). `regarder` dit : ◆ au 800, mention
+      et couleur choisie, aucune garantie manquée. Les états existants qui
+      montrent Poppy ou un Dark inversé sont relus.
+- [x] Avant de commiter, chercher dans `src/ui` les noms et valeurs des fixtures
+      (`Poppy`, `#EF4733`, `#F17562`) : aucune donnée de maquette n'y entre.
+
+Fin : `npm run test:paquet -- palettes` passe ; `npm run build:plugin -- palettes`
+passe. Le rendu nomme les écrans que le lot change : Création (détail et ligne),
+Vérification (réglette), planche.
+
+### D1. Documents
+
+Agent : `implementeur`.
+
+- [x] `npm run agents:diff`, puis relire chaque document listé.
+- [x] Spécification de Palettes
+      (`docs/notes/Recherches/Plugin Palettes/1 Recherche initiale/RECHERCHE-PLUGIN-PALETTES.md`) :
+      `[MOT-41]` (le cran de la référence ne se corrige pas, sauf en Dark
+      inversé), `[MOT-42]` (la dernière phrase écarte le Dark inversé), `[MOT-17]`
+      (octets exacts, exception du Dark inversé), le paragraphe de la section 11
+      sur G3 et G9 (« En Dark inversé, une référence au 800 manque G9 »), et la
+      note `[PLA-11]` de la planche. `[MOT-41]` porte la règle ; un `[MOT-43]` ne
+      s'ouvre que si l'implémenteur la sépare. `[UI-20]` si la ligne de Création
+      change, et `[VER-16]` si la question 2 ajoute un champ au rapport.
+- [x] README de ce dossier, tableau « Prises » : la ligne « Une référence au 800
+      en Dark inversé (Poppy Vivid, Irene Vivid) » dit que le moteur corrige le
+      cran, que le ◆ reste au 800 et que Palettes montre l'ajustement.
+- [x] `packages/couleur/invariants/moteur-de-couleur.md`, trois puces : les
+      octets exacts de la référence (Borne : Dark inversé) ; la correction des
+      textes (« Le cran qui porte la référence ne se corrige jamais » reçoit les
+      deux exceptions : le glissement en Dark normal, la correction en Dark
+      inversé) ; le glissement en Dark normal (la Borne « une référence posée sur
+      le 800 d'un Dark inversé garde sa place et G9 manque » est retirée).
+      Ajouter `referenceAjustee` à l'autorité et le test qui la tient.
+- [x] `packages/plugin-palettes/invariants/interface.md` si la ligne de Création
+      change (invariant [UI-20]) ; `docs/format/FORMAT.md` et `SPEC.md` : aucun
+      changement attendu, le dire dans le rendu.
+- [x] Charger `rediger-pour-agents` pour les invariants et les cartes, puis
+      lancer `node scripts/verifier-conservation.mjs --domaines <id>` et
+      `node scripts/controle-style.mjs <fichiers>`.
+
+Fin : `controle-style` conforme ; aucun document ne décrit l'ancien Dark inversé.
+
+### V1. Vérification
+
+Agent : `verificateur`.
+
+- [ ] `npm test` complet : paquets puis contrôles racine
+- [ ] `npm run typecheck`
+- [ ] `npm run build`
+- [ ] `npm run vues`, puis le test de fraîcheur des vues. Aucun changement n'est
+      attendu : le hub et la planche du moteur lisent la recette par défaut
+      (Dark normal). Un changement de vue se note et se lit avant de commiter.
+- [ ] `npm run agents:diff`
+
+Fin : un tableau des résultats. La conversation principale relit le diff,
+commite par chemins explicites sur `main` et coche les lots avec leur commit.
+
+### T1. Recette du mainteneur dans Figma
+
+Les cases restent ouvertes tant que le mainteneur ne les a pas jouées.
+
+- [ ] `npm run build`, puis recharger Palettes.
+- [ ] Poppy Vivid et Irene Vivid en Dark inversé : le ◆ est au 800, le code du
+      cran est `#F17562` et `#E96AD1`, la mention et la couleur choisie
+      paraissent, aucune garantie n'est manquée. Le Light est inchangé.
+- [ ] Une palette qui tenait déjà la garantie 9 en Dark inversé garde sa
+      référence exacte, sans mention.
+- [ ] Attendu après la mise à jour : la planche de Poppy et d'Irene devient
+      périmée et leurs tokens passent à « à mettre à jour », parce que le 800
+      Dark change. Les autres palettes restent à jour.
+- [ ] Une palette figée reprise du fichier garde sa référence (E2).
+
+Fait de M1 (`Mesures/mesurer-reference-ajustee.ts`) : sur la
+configuration du mainteneur, seules Poppy Vivid (`#F17562`, ΔL +0,066) et Irene
+Vivid (`#E96AD1`, ΔL +0,056) changent, de deux garanties manquées à zéro. Sur
+360 teintes, 2 483 rampes ont leur référence sur le 800 Dark inversé et manquent
+le seuil ; correction médiane 0,034, maximale 0,088 (teintes 326 à 331, Soft,
+référence à 0,64) ; aucun cran ne bute sur son voisin, l'ordre tient, le plus
+petit écart au voisin plus clair vaut 0,121 ; aucune garantie ne se met à
+manquer. Le 950 ne se présente pas. Light et Dark normal intacts.
+
+### Questions tranchées
+
+| N° | Question | Bloque | Réponse du mainteneur |
+|---|---|---|---|
+| 1 | Les textes et les lieux de la mention valent-ils : détail de la nuance, ligne de Création, réglette de Vérification, note de la planche ? « Couleur d'origine » porte déjà un autre sens (l'originale d'« Ajuster la référence », `originaleRetiree`) : garder ce terme ou en prendre un autre, par exemple « couleur choisie » ? La fiche de Gestion montre-t-elle aussi la mention ? | P1 | « Couleur choisie », sans l'écart appliqué ; Gestion sans mention |
+| 2 | Le rapport JSON porte-t-il l'ajustement ? Aujourd'hui `reference` y est la couleur choisie et le cran Dark en donne une autre. Un champ ajouté monterait `FORMAT_DU_RAPPORT` à 6 (`[VER-16]`). | P1, D1 | Aucun champ ; le rapport montre les deux hexas |
+| 3 | Si M1 trouve un cran corrigé à moins de 0,01 de clarté de son voisin plus clair, la correction est-elle bornée par cet écart (la garantie peut alors rester manquée) ou franchit-elle seulement le voisin comme aujourd'hui ? | E1 | Sans objet : M1 trouve 0,121 au plus près, aucune borne nouvelle |
+| 4 | La règle s'applique à tout cran de texte du Dark inversé, le 800 (`page/foreground`) et le 950 (`surface/foreground`), parce que la décision parle d'« un cran de texte ». Confirmer le 950 ; M1 dit s'il se présente. | E1 | Les deux crans |
+| 5 | Une mention sans geste n'a pas de canal dans Vérification (`rediger-diagnostics-ucm`). La décision demande pourtant la mention : confirmer qu'elle reste une étiquette près du ◆ et que Vérification n'ajoute ni message ni lien. | P1 | Étiquette seule |

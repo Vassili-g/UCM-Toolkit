@@ -2,7 +2,8 @@
  * La correction des textes par teinte : le cran de `surface/foreground` tient le seuil `texte` sur
  * `surface/subtle`, `surface/default` et `surface/hover`, celui de `page/foreground` sur `surface/default`.
  * Une teinte qui les manque éloigne le cran des fonds par pas de 0,001 de clarté, sans franchir le cran voisin et
- * sans toucher le cran de la référence.
+ * sans toucher le cran de la référence, sauf en Dark inversé, où le cran de texte qui porte la référence se corrige
+ * comme les autres (`rangDeLaReferenceGardee`, `referenceAjustee`).
  */
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
@@ -17,14 +18,19 @@ import {
   ecrireHexa,
   fabriquerCran,
   intensitesDe,
+  cleDeLaPromesse,
+  ECART_MINIMAL_DES_CLARTES,
   jugerLesRampes,
   lireHexa,
   plafond,
   prereglageTailwind,
   rampeDe,
   rampesDe,
+  rangDeLaReferenceGardee,
+  rangPorteur,
   rampesSansCorrection,
   recetteAvecTexteDesBoutons,
+  referenceAjustee,
   rgb8VersOklch,
   validerRecette,
   verifierPromesses,
@@ -58,7 +64,7 @@ function corrections(recette: Recette, palette: Palette, mode: Mode) {
   const sans = rampesSansCorrection(recette, palette);
   const ancrage = ancrageDe(recette, palette);
   return intensitesDe(palette).map((intensite) => {
-    const { corrections: lignes } = corrigerLesTextes(recette, mode, rampeDe(sans, intensite)[mode], intensite === ancrage.profil ? ancrage.rangs[mode] : undefined);
+    const { corrections: lignes } = corrigerLesTextes(recette, mode, rampeDe(sans, intensite)[mode], intensite === ancrage.profil ? rangDeLaReferenceGardee(recette, mode, ancrage) : undefined);
     return { intensite, lignes, sans: rampeDe(sans, intensite)[mode], finale: rampeDe(rampesDe(recette, palette), intensite)[mode] };
   });
 }
@@ -165,51 +171,146 @@ test('une référence ancrée au 700 qui manque 4,5:1 n’est pas corrigée, et 
   assert.equal(verifierPromesses(recette, palette).filter((p) => p.garantie.numero === 3 && p.profil === 'soft' && p.mode === 'light').every((p) => p.verdict === 'tenue'), true);
 });
 
-test('Dark inversé, configuration du mainteneur : neuf rampes éclaircissent leur 800 de 0,009 au plus ; Poppy Vivid et Irene Vivid, dont le 800 est la référence, restent telles quelles', () => {
+test('Dark inversé, configuration du mainteneur : onze rampes éclaircissent leur 800, dont Poppy Vivid et Irene Vivid qui le tiennent de leur référence, et G9 est tenue', () => {
   const rang = rangDe(RECETTE, 800);
   const corrigees: string[] = [];
-  const tenant: string[] = [];
+  const attendues: Record<string, [string, number]> = { 'Poppy vivid': ['#F17562', 0.066], 'Irene vivid': ['#E96AD1', 0.056] };
   for (const palette of RECETTE.palettes) {
+    const g9 = verifierPromesses(RECETTE, palette).filter((p) => p.garantie.numero === 9 && p.mode === 'dark');
     for (const { intensite, lignes, finale } of corrections(RECETTE, palette, 'dark')) {
       const ligne = lignes.find((autre) => autre.rang === rang)!;
       const cle = `${nom(palette)} ${intensite}`;
       const valeur = contraste(finale[rang].couleur, finale[rangDe(RECETTE, 300)].couleur);
-      if (ligne.etat === 'corrigee') {
-        corrigees.push(cle);
-        assert.ok(ligne.pas * PAS_DE_LA_CORRECTION <= 0.009 + 1e-9, `${cle} : ${ligne.pas} pas`);
-        assert.ok(valeur >= RECETTE.seuils.texte, `${cle} : ${valeur}`);
-      } else if (ligne.etat === 'reference') {
-        tenant.push(cle);
-        assert.deepEqual(finale[rang], ligne.avant, cle);
-        assert.ok(valeur < RECETTE.seuils.texte, `${cle} : ${valeur}`);
-        const g9 = verifierPromesses(RECETTE, palette).find((p) => p.garantie.numero === 9 && p.mode === 'dark' && p.profil === intensite)!;
-        assert.equal(g9.verdict, 'manquee', cle);
+      assert.notEqual(ligne.etat, 'reference', cle);
+      assert.ok(valeur >= RECETTE.seuils.texte, `${cle} : ${valeur}`);
+      assert.ok(g9.filter((p) => p.profil === intensite).every((p) => p.verdict === 'tenue'), `${cle} : G9`);
+      if (ligne.etat !== 'corrigee') continue;
+      corrigees.push(cle);
+      const attendue = attendues[cle];
+      if (attendue) {
+        assert.equal(finale[rang].hexa, attendue[0], cle);
+        assert.ok(Math.abs(finale[rang].L - ligne.avant.L - attendue[1]) < 0.0015, `${cle} : ${finale[rang].L - ligne.avant.L}`);
+        assert.equal(ligne.avant.hexa, palette.reference, `${cle} : la rampe fabriquée porte la référence`);
       } else {
-        assert.ok(valeur >= RECETTE.seuils.texte, `${cle} : ${valeur}`);
+        assert.ok(ligne.pas * PAS_DE_LA_CORRECTION <= 0.009 + 1e-9, `${cle} : ${ligne.pas} pas`);
       }
     }
   }
-  assert.deepEqual(tenant.sort(), ['Irene vivid', 'Poppy vivid']);
-  assert.equal(corrigees.length, 9);
-  for (const cle of ['Titanium unique', 'Terracota unique', 'Deep unique', 'Poppy soft', 'Ocean soft', 'Ocean vivid', 'Iris soft', 'Iris vivid', 'Irene soft']) {
+  assert.equal(corrigees.length, 11);
+  for (const cle of ['Titanium unique', 'Terracota unique', 'Deep unique', 'Poppy soft', 'Ocean soft', 'Ocean vivid', 'Iris soft', 'Iris vivid', 'Irene soft', ...Object.keys(attendues)]) {
     assert.ok(corrigees.includes(cle), cle);
   }
 });
 
-test('Dark inversé, 360 teintes, références au 500, au 600 et au 700 : le 800 s’éclaircit de 0,02 au plus', () => {
+test('rangDeLaReferenceGardee : aucun rang protégé en Dark inversé, le rang de l’ancrage ailleurs', () => {
+  const poppy = RECETTE.palettes.find((palette) => nom(palette) === 'Poppy')!;
+  for (const [recette, mode, protege] of [
+    [RECETTE, 'dark', false], [RECETTE, 'light', true], [DARK_NORMAL, 'dark', true], [DARK_NORMAL, 'light', true], [LIGHT_INVERSE, 'light', true], [LIGHT_INVERSE, 'dark', false],
+  ] as const) {
+    const ancrage = ancrageDe(recette, poppy);
+    assert.equal(rangDeLaReferenceGardee(recette, mode, ancrage), protege ? ancrage.rangs[mode] : undefined, `${mode} ${recette.texteDesBoutons.light}/${recette.texteDesBoutons.dark}`);
+  }
+});
+
+test('referenceAjustee : Poppy Vivid et Irene Vivid en Dark inversé, aucune autre palette, aucune en Dark normal', () => {
+  const ajustees = RECETTE.palettes.map((palette) => [nom(palette), referenceAjustee(RECETTE, palette)] as const).filter(([, ajustee]) => ajustee);
+  assert.deepEqual(ajustees.map(([cle]) => cle), ['Poppy', 'Irene']);
+  const [poppy, irene] = ajustees.map(([, ajustee]) => ajustee!);
+  const rang = rangDe(RECETTE, 800);
+  for (const [ajustee, avant, apres, ecart] of [[poppy, '#EF4733', '#F17562', 0.066], [irene, '#DA51C2', '#E96AD1', 0.056]] as const) {
+    assert.equal(ajustee.intensite, 'vivid');
+    assert.equal(ajustee.mode, 'dark');
+    assert.equal(ajustee.rang, rang);
+    assert.equal(ajustee.numero, 800);
+    assert.equal(ajustee.avant.hexa, avant);
+    assert.equal(ajustee.apres.hexa, apres);
+    assert.equal(ajustee.ecart, ecart);
+  }
+  // Le ◆ ne bouge pas : l'ancrage de Poppy reste au 800 du Dark.
+  const palette = RECETTE.palettes.find((autre) => nom(autre) === 'Poppy')!;
+  assert.equal(ancrageDe(RECETTE, palette).crans.dark, 800);
+  // Les rampes passées en argument sont celles qu'elle lit.
+  assert.deepEqual(referenceAjustee(RECETTE, palette, rampesDe(RECETTE, palette)), poppy);
+  // Dark normal : la référence glisse au 600 et reste exacte.
+  assert.deepEqual(DARK_NORMAL.palettes.filter((autre) => referenceAjustee(DARK_NORMAL, autre)).map(nom), []);
+});
+
+test('referenceAjustee : une palette figée ou libre n’a rien à ajuster', () => {
+  const poppy = RECETTE.palettes.find((palette) => nom(palette) === 'Poppy')!;
+  const rampes = rampesDe(RECETTE, poppy);
+  const figee: Palette = { ...poppy, intensites: 1, crans: [...RECETTE.crans], figees: { light: rampeDe(rampes, 'vivid').light.map((cran) => cran.hexa), dark: rampeDe(rampes, 'vivid').dark.map((cran) => cran.hexa) } };
+  assert.equal(referenceAjustee(RECETTE, figee), undefined);
+  const libre: Palette = { ...poppy, crans: [100, 300, 600, 800, 950] };
+  assert.equal(referenceAjustee(RECETTE, libre), undefined);
+});
+
+test('Dark inversé, 360 teintes, référence au 800 du Dark : la correction reste sous 0,09, garde l’ordre des nuances et ne fait manquer aucune garantie', () => {
+  const rang = rangDe(RECETTE, 800);
+  const courbe = RECETTE.courbes.dark;
+  let rampes = 0;
+  let ajustees = 0;
   let plus = 0;
+  let ecartMinimal = Infinity;
+  const fautes: string[] = [];
+  for (const base of ['soft', 'vivid'] as const) {
+    for (let L = 0.5; L <= 0.9; L += 0.02) {
+      if (rangPorteur(courbe, L) !== rang) continue;
+      for (let teinte = 0; teinte < 360; teinte += 6) {
+        const reference = ecrireHexa(fabriquerCran(L, teinte, 1, RECETTE.gamut).couleur);
+        const derive = prereglageTailwind(rgb8VersOklch(lireHexa(reference)!), boutsDe(RECETTE));
+        const palette: Palette = { id: `t${teinte}`, reference, base, derive: { lien: true, soft: { ...derive, origine: 'tailwind' }, vivid: { ...derive, origine: 'tailwind' } } };
+        const recette = { ...RECETTE, palettes: [palette] };
+        if (ancrageDe(recette, palette).rangs.dark !== rang) continue;
+        rampes += 1;
+        const cle = `${base} ${teinte}° L ${L.toFixed(2)}`;
+        const toutes = rampesDe(recette, palette);
+        const ajustee = referenceAjustee(recette, palette, toutes);
+        if (!ajustee) continue;
+        ajustees += 1;
+        plus = Math.max(plus, ajustee.ecart);
+        const dark = rampeDe(toutes, ajustee.intensite).dark;
+        if (!dark.every((cran, k) => k === 0 || cran.L > dark[k - 1].L)) fautes.push(`${cle} : ordre`);
+        ecartMinimal = Math.min(ecartMinimal, dark[rang + 1].L - dark[rang].L);
+        // Avant la règle, le cran portait la référence : les mêmes rampes, ce cran remplacé par elle.
+        const avant = { ...toutes, [ajustee.intensite]: { ...rampeDe(toutes, ajustee.intensite), dark: dark.map((cran, k) => (k === rang ? ajustee.avant : cran)) } };
+        const lieu = { mode: 'dark', intensite: ajustee.intensite } as const;
+        const manquees = (r: typeof toutes) => jugerLesRampes(recette, [ajustee.intensite], r, lieu).filter((p) => p.verdict === 'manquee');
+        const avantLaRegle = new Set(manquees(avant).map(cleDeLaPromesse));
+        for (const manquee of manquees(toutes)) {
+          if (!avantLaRegle.has(cleDeLaPromesse(manquee))) fautes.push(`${cle} : ${cleDeLaPromesse(manquee)} manque désormais`);
+          if (manquee.garantie.numero === 9) fautes.push(`${cle} : G9`);
+        }
+      }
+    }
+  }
+  assert.deepEqual(fautes.slice(0, 5), []);
+  assert.ok(rampes > 300, `${rampes} rampes posées`);
+  assert.ok(ajustees > 100, `${ajustees} références ajustées`);
+  assert.ok(plus <= 0.09, `correction maximale ${plus}`);
+  assert.ok(ecartMinimal >= ECART_MINIMAL_DES_CLARTES, `écart au voisin plus clair ${ecartMinimal}`);
+});
+
+test('Dark inversé, 360 teintes, références au 500, au 600 et au 700 : le 800 s’éclaircit de 0,02 au plus, de 0,09 au plus quand il porte la référence', () => {
+  const plus = { autre: 0, reference: 0 };
   for (const niveau of [500, 600, 700]) {
     for (let teinte = 0; teinte < 360; teinte += 1) {
       const palette = paletteDeLaTeinte(RECETTE, niveau, teinte);
       const recette = { ...RECETTE, palettes: [palette] };
-      for (const { lignes } of corrections(recette, palette, 'dark')) {
+      const ancrage = ancrageDe(recette, palette);
+      for (const { intensite, lignes } of corrections(recette, palette, 'dark')) {
+        const porte = intensite === ancrage.profil && ancrage.crans.dark === 800;
         const ligne = lignes.find((autre) => autre.rang === rangDe(recette, 800))!;
-        if (ligne.etat === 'corrigee') plus = Math.max(plus, ligne.pas * PAS_DE_LA_CORRECTION);
+        assert.notEqual(ligne.etat, 'reference', `${niveau} ${teinte}°`);
+        if (ligne.etat !== 'corrigee') continue;
+        const cle = porte ? 'reference' : 'autre';
+        plus[cle] = Math.max(plus[cle], ligne.pas * PAS_DE_LA_CORRECTION);
       }
     }
   }
-  assert.ok(plus > 0.009, `${plus}`);
-  assert.ok(plus <= 0.02, `${plus}`);
+  assert.ok(plus.autre > 0.009, `${plus.autre}`);
+  assert.ok(plus.autre <= 0.02, `${plus.autre}`);
+  assert.ok(plus.reference > 0.02, `${plus.reference}`);
+  assert.ok(plus.reference <= 0.09, `${plus.reference}`);
 });
 
 test('Dark normal : la règle s’applique au 700, texte de la page, et au 950, texte de surface', () => {

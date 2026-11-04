@@ -525,3 +525,18 @@ test('[PLA-24] Y5.4 : les calques du cadre de Bleu, toutes parties dessinées, �
   assert.equal(compterCalques(AVEC_GRILLE.racine), 1862);
   assert.equal(compterCalques(modeleDeCadre(RECETTE_SEULE, BLEU_SEUL, 'SRGB').racine), 960);
 });
+
+test('[PLA-11] en Dark inversé, la note du thème Dark nomme la couleur choisie d’une référence ajustée ; le thème Light et une référence exacte gardent la note ordinaire', () => {
+  const inversee = recetteAvecTexteDesBoutons(VIDE, 'dark', 'blanc');
+  assert.ok('recette' in inversee);
+  // #B17EFF est le 800 Dark de Vivid : le moteur l'éclaircit, la garantie 9 sinon manque.
+  const violette = { ...nouvellePalette(inversee.recette, 'p-0000000f', '#B17EFF', 2)!, nom: 'Violette' };
+  const note = (recette: Recette, palette: Palette, theme: string) =>
+    textes(trouver(trouver(modeleDeCadre(recette, palette, 'SRGB').racine, theme), 'les deux rampes')).find((noeud) => noeud.nom === 'note')!.contenu;
+  const recette = ajouter(inversee.recette, violette);
+  assert.match(note(recette, violette, 'thème dark'), /^◆ : la couleur de référence, ajustée pour rester lisible\. Couleur choisie : #B17EFF\./);
+  assert.match(note(recette, violette, 'thème light'), /^◆ : la couleur de référence exacte\./);
+  const bleu = ajouter(inversee.recette, BLEU);
+  assert.match(note(bleu, BLEU, 'thème dark'), /^◆ : la couleur de référence exacte\./);
+  assert.notEqual(modeleDeCadre(recette, violette, 'SRGB').empreinte, modeleDeCadre(ajouter(VIDE, violette), violette, 'SRGB').empreinte);
+});

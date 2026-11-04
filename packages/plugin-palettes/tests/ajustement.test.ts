@@ -18,6 +18,7 @@ import {
   pasLePlusProche,
   propositionAuPas,
 } from '../src/ajustementDeLaReference';
+import { analyserPalette } from '../src/analyse';
 import { ajouter, changerReference, nouvellePalette, revenirALOriginale } from '../src/edition';
 import { ciblesDeLaPromesse, groupesManques } from '../src/presentation';
 import { recetteAuxPartsDe045 } from './recetteAuxPartsDe045';
@@ -130,15 +131,16 @@ test('[VER-15] G3 : une référence au 700 que le moteur ne corrige pas manque l
   assert.deepEqual([comparee, ...autres].map((c) => [c.avant.garantie.numero, c.avant.verdict, c.apres.verdict]), [[3, 'manquee', 'tenue'], [9, 'manquee', 'tenue']]);
 });
 
-test('[VER-15] G9 : en Dark inversé, une référence au 800 que le moteur ne corrige pas manque le texte de la page sur le fond teinté, et le groupe mène à « Ajuster la référence »', () => {
+test('[VER-15] G9 : en Dark inversé, une référence au 800 qui manque le texte de la page sur le fond teinté est ajustée par le moteur, la garantie est tenue et aucun groupe ne mène à « Ajuster la référence »', () => {
   const inversee = recetteAvecTexteDesBoutons(RECETTE, 'dark', 'blanc');
   assert.ok('recette' in inversee);
   // #B17EFF est le 800 Dark de Vivid.
   const violette: Palette = { ...nouvellePalette(inversee.recette, 'p-0000000f', '#B17EFF', 2)!, nom: 'Violette' };
   const recette = ajouter(inversee.recette, violette);
-  const groupes = groupesManques(verifierPromesses(recette, violette));
-  assert.deepEqual(groupes.map((groupe) => [groupe.garantie.numero, groupe.mode, 'variable' in groupe.fond ? groupe.fond.variable : '']), [[9, 'dark', 'surface/hover']]);
-  assert.equal(groupes[0].garantie.premier.variable, 'page/foreground');
-  assert.ok(ciblesDeLaPromesse().includes('ajuster-reference'));
-  assert.deepEqual(manqueesParIntensite(recette, violette).map(({ intensite, manquees }) => `${intensite} ${manquees}`), ['soft 0', 'vivid 1']);
+  assert.deepEqual(groupesManques(verifierPromesses(recette, violette)), []);
+  assert.deepEqual(manqueesParIntensite(recette, violette).map(({ intensite, manquees }) => `${intensite} ${manquees}`), ['soft 0', 'vivid 0']);
+  const ajustee = analyserPalette(recette, violette).referenceAjustee;
+  assert.ok(ajustee, 'le moteur a éclairci le 800 Dark');
+  assert.equal(ajustee.avant.hexa, '#B17EFF');
+  assert.notEqual(ajustee.apres.hexa, '#B17EFF');
 });

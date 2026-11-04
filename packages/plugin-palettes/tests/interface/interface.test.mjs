@@ -8451,3 +8451,30 @@ test('V3a [VER-18] le nuancier ne dépasse pas son conteneur, à Vérification c
     for (const mesure of mesures) assert.ok(mesure.nuancier <= mesure.conteneur, `Création : ${JSON.stringify(mesure)}`);
   } finally { await page.close(); }
 });
+
+test('[MOT-17] [UI-20] en Dark inversé, la référence ajustée garde son ◆ au 800, dit « ajustée pour rester lisible » avec la couleur choisie, et la ligne de Création garde sa hauteur', async () => {
+  const page = await ouvrirSur('reference-ajustee-en-dark');
+  try {
+    const repere = page.locator('.repere-de-la-reference');
+    const hauteurs = () => repere.evaluate((ligne) => [ligne.getBoundingClientRect().height, ligne.closest('.carte').getBoundingClientRect().height]);
+    await choisirLeTheme(page, 'Light');
+    const enLight = await hauteurs();
+    await choisirLeTheme(page, 'Dark');
+    assert.deepEqual(await hauteurs(), enLight, 'la mention n’ajoute aucune hauteur à la carte de Création');
+    const reperee = page.locator('.pastille[data-reference="true"]');
+    assert.equal(await reperee.evaluate((pastille) => `${pastille.dataset.profil} ${pastille.dataset.cran}`), 'vivid 800');
+    assert.match(await reperee.getAttribute('aria-label'), /Référence ajustée$/);
+    await reperee.click();
+    const detail = page.locator('.detail-reference');
+    assert.equal(await detail.textContent(), '◆ Votre couleur de référence, ajustée pour rester lisible.');
+    assert.match(await detail.locator('xpath=following-sibling::p').first().textContent(), /^Couleur choisie : #[0-9A-F]{6}\.$/);
+    await ouvrirLaVerification(page);
+    assert.equal(await page.locator('#panneau-verification .verdict').getAttribute('data-ton'), 'succes', 'aucune garantie manquée');
+    assert.equal(await page.locator('#panneau-verification .reglette-reference title').first().textContent(), 'Référence ajustée');
+    await ouvrirLaCreation(page);
+    await choisirLeTheme(page, 'Light');
+    assert.match(await page.locator('.pastille[data-reference="true"]').getAttribute('aria-label'), /Référence$/);
+  } finally {
+    await page.close();
+  }
+});

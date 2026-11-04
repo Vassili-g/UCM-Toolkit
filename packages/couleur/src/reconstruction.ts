@@ -8,7 +8,11 @@
  *  - Le moteur écrit les octets exacts de la référence sur le cran d'ancrage
  *    des deux thèmes de l'intensité porteuse (MOT-17). Un hexa égal en Light et
  *    en Dark dans une même intensité est donc un candidat de référence. Les
- *    candidats qui portent la référence connue passent d'abord.
+ *    candidats qui portent la référence connue passent d'abord. Exception du
+ *    Dark inversé : la correction des textes y éclaircit la référence sur son
+ *    cran de texte, le Dark n'a plus ses octets. Avec la référence connue, le
+ *    cran de texte du Dark qui garde sa teinte et n'est pas plus sombre devient
+ *    aussi candidat, sans être ancré : l'ajustement le compare comme un texte.
  *  - Par candidat, un premier temps : moindres carrés (Levenberg-Marquardt)
  *    sur un modèle flottant de `fabriquerRampe`, et balayage des décalages de
  *    clarté du porteur. Le second temps commence par le candidat le mieux
@@ -27,6 +31,8 @@
  * `setTimeout` s'ils existent. C'est le seul endroit du moteur qui dépend du
  * temps, et le résultat n'en dépend que si le budget s'épuise.
  */
+import { sensDuTheme } from '@ucm-kit/core/emplois';
+
 import { texteSurveille } from './ancrageDeplace';
 import { ecrireHexa, encoder, lireHexa, normaliserTeinte, oklchVersLineaire, rgb8VersOklch, type Rgb8 } from './conversions';
 import { bosseDeChroma } from './bosse';
@@ -805,12 +811,39 @@ async function caler(c: Cadre, s: Suivi, essayer: Essayeur, x0: readonly number[
 
 // ---------------------------------------------------------------- recherche par candidat
 
-function candidat(c: Cadre, cle: Profil, rl: number, rd: number): Candidat {
+/** `exact` vaut faux quand le cran Dark n'a pas les octets de la référence : il reste alors dans les écarts de l'ajustement. */
+function candidat(c: Cadre, cle: Profil, rl: number, rd: number, exact = true): Candidat {
   const couleur = c.octets[cle]!.light![rl];
   const lu = rgb8VersOklch(couleur);
   const ancres = new Set<string>([`${cle}/light/${rl}`]);
-  if (rd >= 0) ancres.add(`${cle}/dark/${rd}`);
+  if (rd >= 0 && exact) ancres.add(`${cle}/dark/${rd}`);
   return { cle, rl, rd, couleur, L: lu.L, H: lu.H, C: lu.C, decalage: clarteDuPreregle(c, couleur), ancres };
+}
+
+/**
+ * Les ancrages de la référence connue en Dark inversé, où la correction des
+ * textes l'éclaircit sur son cran de texte (`rangDeLaReferenceGardee`) : le
+ * cran Dark n'a plus ses octets. Un cran de texte du Dark compte quand il garde
+ * la teinte de la référence à 1° près et n'est pas plus sombre qu'elle. Hors
+ * Dark inversé, ou sans liste de la recette, il n'y a aucun candidat de plus.
+ */
+function candidatsAjustes(c: Cadre, exacts: readonly Candidat[]): Candidat[] {
+  const reference = c.reference ? rgb8VersOklch(lireHexa(c.reference) as Rgb8) : undefined;
+  if (!reference || sensDuTheme('dark', c.recette.texteDesBoutons.dark) !== 'inverse') return [];
+  const ajustes: Candidat[] = [];
+  for (const cle of c.cles) {
+    if (!c.presents[cle]!.dark) continue;
+    c.hexas[cle]!.light!.forEach((h, rl) => {
+      if (h !== c.reference) return;
+      for (const rd of c.textes.dark) {
+        if (exacts.some((k) => k.cle === cle && k.rl === rl && k.rd === rd)) continue;
+        const lu = c.oklch[cle]!.dark![rd];
+        if (lu.L < reference.L || (reference.C >= 1e-3 && Math.abs(ecartAngle(lu.H, reference.H)) > 1)) continue;
+        ajustes.push(candidat(c, cle, rl, rd, false));
+      }
+    });
+  }
+  return ajustes;
 }
 
 /** Les ancrages possibles, ceux de la référence connue d'abord. */
@@ -828,6 +861,7 @@ function candidats(c: Cadre): Candidat[] {
     });
   }
   if (!c.reference) return liste;
+  liste.push(...candidatsAjustes(c, liste));
   const portent = liste.filter((k) => hexa(k.couleur) === c.reference);
   // Sans Dark, chaque rang de Light serait un candidat : on s'en tient à ceux qui portent la référence quand il y en a.
   if (portent.length && liste.some((k) => k.rd < 0)) return portent;

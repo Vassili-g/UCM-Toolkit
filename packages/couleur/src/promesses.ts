@@ -7,7 +7,8 @@
  * carte, qui s'en déduit ([MOT-37]). Une garantie dont un cran manque à la
  * liste ne se juge pas. Les rampes jugées sont celles de `rampesDe`, textes
  * corrigés (`corrigerLesTextes`) : G3 et G9 manquent seulement quand le cran
- * du texte porte la référence ou bute sur son voisin.
+ * du texte bute sur son voisin, ou porte la référence en Light ou en Dark
+ * normal (en Dark inversé, la référence se corrige : `rangDeLaReferenceGardee`).
  */
 import { atteintLeSeuil, contraste } from '@ucm-kit/core/emplois';
 

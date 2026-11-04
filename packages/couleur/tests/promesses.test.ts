@@ -421,10 +421,22 @@ test('[VER-03] oracles S8 : G2 à G7 ne manquent jamais sur les quatorze référ
 test('[VER-03] oracles S8 : sur les quatorze références, G3, G8 et G9 ne manquent que quand leur texte est le cran de la référence, dans les quatre combinaisons', () => {
   for (const texte of COMBINAISONS) {
     const manquees = promessesDesReferences(texte).filter(({ p }) => [3, 8, 9].includes(p.garantie.numero) && p.verdict === 'manquee');
-    // Le cran de la référence ne se corrige pas (`corrigerLesTextes`) : Palettes propose alors d'ajuster la référence.
+    // Le cran de la référence ne se corrige pas en Light ni en Dark normal (`rangDeLaReferenceGardee`) : Palettes propose alors d'ajuster la référence.
     const horsAncrage = manquees.filter(({ p, surLAncre }) => !surLAncre(p.premier)).map(({ reference, p }) => `${reference} ${p.mode} ${p.profil} G${p.garantie.numero} ${p.contraste}`);
     assert.deepEqual(horsAncrage, [], `texte ${texte.light}/${texte.dark}`);
   }
+});
+
+test('[VER-03] oracles S8 : en Dark inversé, G9 ne manque sur aucune des quatorze références, même posée sur le 800', () => {
+  let auDark800 = 0;
+  for (const texte of COMBINAISONS.filter(({ dark }) => dark === 'blanc')) {
+    const promesses = promessesDesReferences(texte);
+    const g9 = promesses.filter(({ p }) => p.garantie.numero === 9 && p.mode === 'dark');
+    assert.ok(g9.length > 0);
+    assert.deepEqual(g9.filter(({ p }) => p.verdict === 'manquee').map(({ reference, p }) => `${reference} ${p.profil} ${p.contraste}`), [], `texte ${texte.light}/${texte.dark}`);
+    auDark800 += promesses.filter(({ p, surLAncre }) => p.garantie.numero === 9 && p.mode === 'dark' && surLAncre(p.premier)).length;
+  }
+  assert.ok(auDark800 > 0, 'au moins une référence se pose sur le 800 du Dark');
 });
 
 test('[MOT-37] la carte vaut le blanc en Light et le cran qui suit la page en Dark', () => {

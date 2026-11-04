@@ -13,8 +13,9 @@
  *   (`f` vaut 1/3 pour le premier cran, 2/3 pour le suivant). Un cran déjà au-dessus
  *   de cet espacement ne bouge pas. Teinte et part de chroma de chaque cran sont gardées.
  *
- * Le Dark inversé et le Light n'en relèvent pas : une référence posée sur le 800 garde
- * sa place et la garantie 9 manque pour elle. Le module ne lit aucune palette :
+ * Le Dark inversé et le Light n'en relèvent pas. En Dark inversé, une référence posée
+ * sur le 800 garde sa place et la correction des textes l'éclaircit jusqu'au seuil
+ * (`rangDeLaReferenceGardee`) ; la garantie 9 tient. Le module ne lit aucune palette :
  * `palette.ts` lui passe les couleurs. Mesure : `docs/notes/Archives/SUJETS IMPORTANTS à trancher/Mesures/ancrage-deplace.ts`.
  */
 import { TABLE_DES_DOSSIERS, atteintLeSeuil, contraste, sensDuTheme } from '@ucm-kit/core/emplois';

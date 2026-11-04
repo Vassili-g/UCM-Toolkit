@@ -7,7 +7,9 @@
  * chroma et teinte gardées : plus foncé en Light, plus clair en Dark.
  *
  * Le module ne lit aucune palette : `palette.ts` lui passe chaque rampe
- * fabriquée, une fois le cran de la référence et la bosse posés.
+ * fabriquée, une fois le cran de la référence et la bosse posés. Le cran de la
+ * référence ne change jamais, sauf là où l'appelant ne le protège pas : en Dark
+ * inversé, `palette.ts` ne passe aucun rang (`rangDeLaReferenceGardee`).
  */
 import { GARANTIES, TABLE_DES_DOSSIERS, atteintLeSeuil, contraste, garantieJugeable, sensDuTheme } from '@ucm-kit/core/emplois';
 
@@ -24,7 +26,7 @@ const GARANTIES_CORRIGEES: readonly number[] = [3, 9];
 /**
  * Ce qui est arrivé au cran d'un texte : `tenue`, il tenait le seuil ;
  * `corrigee`, il l'a atteint en s'éloignant des fonds ; `reference`, il porte
- * la référence exacte et reste tel quel ; `voisin`, la clarté du cran voisin
+ * la référence exacte et reste tel quel (Light et Dark normal) ; `voisin`, la clarté du cran voisin
  * l'arrête avant le seuil et il reste tel quel.
  */
 export type EtatDeLaCorrection = 'tenue' | 'corrigee' | 'reference' | 'voisin';
@@ -69,8 +71,8 @@ export function rangsDesTextes(recette: Recette, mode: Mode): ReadonlySet<number
  * Les textes d'une rampe de ce mode ramenés au seuil `texte` de la recette, un
  * cran à la fois, du plus grand numéro au plus petit : un cran ne passe jamais
  * la clarté de son voisin, déjà corrigé s'il est un texte (le voisin le plus
- * foncé en Light, le plus clair en Dark). Le cran de la référence (`rangDeLaReference`)
- * ne change jamais. Le cran corrigé est le même pour toutes les variables qui
+ * foncé en Light, le plus clair en Dark). Le cran `rangDeLaReference`, quand
+ * l'appelant en passe un, ne change jamais. Le cran corrigé est le même pour toutes les variables qui
  * le visent : la table le désigne une seule fois. Rend la rampe corrigée et ce
  * qui est arrivé à chaque cran de texte.
  */

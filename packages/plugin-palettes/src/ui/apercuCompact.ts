@@ -15,7 +15,7 @@ import { creerVuesNuancier } from './nuancier';
 
 function construireVues(i18n: Localisation) {
   const { encresSur } = creerVuesNuancier(i18n);
-  const { NOM_DU_PROFIL, TEXTES, TEXTES_DE_L_APERCU, resultatDuProfil, resultatDuProfilEnMots } = i18n.messages;
+  const { NOM_DU_PROFIL, TEXTES, TEXTES_DE_L_APERCU, TEXTES_DU_NUANCIER, resultatDuProfil, resultatDuProfilEnMots } = i18n.messages;
 
   /** Le nom de chaque état sur son bouton, celui que l'aperçu en bandes donne sous `default`, `hover` et `pressed`. */
   const NOM_SUR_LE_BOUTON = { default: TEXTES_DE_L_APERCU.noms.repos, hover: TEXTES_DE_L_APERCU.noms.survol, pressed: TEXTES_DE_L_APERCU.noms.appui } as const;
@@ -73,6 +73,7 @@ function construireVues(i18n: Localisation) {
         if (analyse.ancrage.profil === profil && analyse.ancrage.rangs[mode] === rang) {
           pastille.dataset.reference = 'true';
           i18n.lier(pastille, 'textContent', '◆');
+          if (mode === 'dark' && analyse.referenceAjustee) i18n.lier(pastille, 'title', TEXTES_DU_NUANCIER.referenceAjustee);
           pastille.style.color = encresSur(lireHexa(cran.hexa) ?? [255, 255, 255]).encre;
         }
         rangee.append(pastille);

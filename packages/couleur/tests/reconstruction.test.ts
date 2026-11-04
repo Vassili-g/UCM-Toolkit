@@ -4,6 +4,7 @@
  * la main donne un écart, et la recherche s'arrête sur demande.
  */
 import assert from 'node:assert/strict';
+import { readFileSync } from 'node:fs';
 import test from 'node:test';
 
 import {
@@ -15,8 +16,15 @@ import {
   validerRecette,
   type Palette,
   type PaletteFigee,
+  type Recette,
 } from '../src/index';
 import { RECETTE, figerLaPalette, graineDeRecherche, tirerLesPalettes } from './tirageReconstruction';
+
+const brute: unknown = JSON.parse(readFileSync(new URL('./fixtures/palettes-et-reglages.json', import.meta.url), 'utf8'));
+const validee = validerRecette(brute);
+if (!('recette' in validee)) throw new Error(`Recette du mainteneur refusée : ${JSON.stringify(validee.refus)}`);
+/** La configuration du mainteneur : Light normal, Dark inversé, où la correction des textes éclaircit un 800 qui porte la référence. */
+const INVERSE = validee.recette;
 
 const TIRAGES = tirerLesPalettes(30);
 const tirage = (numero: number) => TIRAGES[numero - 1];
@@ -27,8 +35,8 @@ function poser(figee: PaletteFigee, reglages: Partial<Palette>, intensites?: 1):
   return { id: 'p-0000000a', nom: 'Poppy', ...(commune ? {} : { crans: figee.crans }), ...reglages, ...(intensites ? { intensites } : {}) } as Palette;
 }
 
-function assertValide(palette: Palette): void {
-  const verdict = validerRecette({ ...RECETTE, palettes: [palette] });
+function assertValide(palette: Palette, recette: Recette = RECETTE): void {
+  const verdict = validerRecette({ ...recette, palettes: [palette] });
   assert.ok('recette' in verdict, `la palette réglée est refusée : ${JSON.stringify('refus' in verdict ? verdict.refus : null)}`);
 }
 
@@ -204,4 +212,65 @@ test('reconstruction : une palette à deux intensités sans réglage se reprend 
   assert.equal(resultat.ecart, 0);
   assert.ok(!('reglages' in resultat.reglages), 'le porteur Vivid est celui du classement automatique');
   assertMemesRampes(complete, poser(figee, resultat.reglages));
+});
+
+/**
+ * Le Vivid de Poppy ou d'Irene de la configuration du mainteneur, à une intensité, et ses couleurs figées depuis un
+ * Dark inversé : le 800 du Dark y est la référence éclaircie par la correction des textes, plus la référence.
+ */
+function vividDuMainteneur(nom: string): { palette: Palette; figee: PaletteFigee } {
+  const source = INVERSE.palettes.find((autre) => autre.nom === nom)!;
+  const palette: Palette = {
+    id: source.id,
+    nom,
+    reference: source.reference,
+    originale: source.originale,
+    derive: { lien: true, soft: source.derive.vivid, vivid: source.derive.vivid },
+    intensites: 1,
+    reglages: { teinte: { vivid: source.reglages!.teinte!.vivid } },
+  };
+  assertValide(palette, INVERSE);
+  const rampe = rampesDe(INVERSE, palette).unique!;
+  const figee: PaletteFigee = {
+    crans: INVERSE.crans,
+    reference: palette.reference,
+    figees: { light: rampe.light.map((cran) => cran.hexa), dark: rampe.dark.map((cran) => cran.hexa) },
+  };
+  return { palette, figee };
+}
+
+const sombre = (figee: PaletteFigee): string[] => (figee.figees as unknown as { dark: string[] }).dark;
+const RANG_800 = INVERSE.crans.indexOf(800);
+
+for (const [nom, graine, ajustee] of [['Poppy', 1, '#F17562'], ['Irene', 3, '#E96AD1']] as const) {
+  test(`reconstruction : ${nom} Vivid, figé depuis un Dark inversé où sa référence est éclaircie, retrouve sa référence`, async () => {
+    const { palette, figee } = vividDuMainteneur(nom);
+    assert.equal(sombre(figee)[RANG_800], ajustee);
+    assert.ok(!sombre(figee).includes(palette.reference), 'la référence ne figure plus en Dark');
+    const resultat = await reconstruireLesReglages(INVERSE, figee, { graine });
+    assert.ok(resultat, 'aucune piste');
+    assert.equal(resultat.ecart, 0);
+    assert.equal(resultat.differentes, 0);
+    assert.equal(resultat.reglages.reference, palette.reference);
+    const reglee = poser(figee, resultat.reglages, 1);
+    assertValide(reglee, INVERSE);
+    const rendu = rampesDe(INVERSE, reglee).unique!;
+    assert.deepEqual(rendu.dark.map((cran) => cran.hexa), sombre(figee));
+    assert.deepEqual(rendu.light.map((cran) => cran.hexa), (figee.figees as { light: string[] }).light);
+  });
+}
+
+test("reconstruction : sans référence connue, une palette figée depuis un Dark inversé n'a toujours aucun ancrage", async () => {
+  const { figee } = vividDuMainteneur('Poppy');
+  assert.equal(await reconstruireLesReglages(INVERSE, { crans: figee.crans, figees: figee.figees }, { budgetMs: 3000, graine: 1 }), null);
+});
+
+test("reconstruction : un cran de texte du Dark qui change de teinte ou s'assombrit n'est pas la référence éclaircie", async () => {
+  const { figee } = vividDuMainteneur('Poppy');
+  for (const autre of ['#F175E6', '#E03A2A']) {
+    const dark = sombre(figee).slice();
+    dark[RANG_800] = autre;
+    const resultat = await reconstruireLesReglages(INVERSE, { ...figee, figees: { light: (figee.figees as unknown as { light: string[] }).light, dark } }, { budgetMs: 3000, graine: 1 });
+    assert.equal(resultat, null, autre);
+  }
 });

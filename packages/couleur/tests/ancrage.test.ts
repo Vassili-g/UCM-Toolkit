@@ -3,6 +3,7 @@
  * dans chaque mode, et les octets qu'il pose dans les rampes.
  */
 import assert from 'node:assert/strict';
+import { readFileSync } from 'node:fs';
 import test from 'node:test';
 
 import {
@@ -25,6 +26,7 @@ import {
   rangPorteur,
   recetteParDefaut,
   rgb8VersOklch,
+  validerRecette,
   viseesDeLaRampe,
   type Palette,
   type Recette,
@@ -224,4 +226,24 @@ test('[MOT-17] [MOT-30] sous vingt mille Color shift tirés au hasard, le cran p
     }
   }
   assert.deepEqual(fautes.slice(0, 5), []);
+});
+
+test('[MOT-17] Dark inversé, configuration du mainteneur : le ◆ ne bouge pas et le cran garde les octets exacts de la référence, sauf Poppy Vivid et Irene Vivid dont le 800 est éclairci', () => {
+  const brute: unknown = JSON.parse(readFileSync(new URL('./fixtures/palettes-et-reglages.json', import.meta.url), 'utf8'));
+  const validee = validerRecette(brute);
+  if (!('recette' in validee)) throw new Error(`Recette du mainteneur refusée : ${JSON.stringify(validee.refus)}`);
+  const recette = validee.recette;
+  const eclaircies: string[] = [];
+  for (const palette of recette.palettes) {
+    const ancrage = ancrageDe(recette, palette);
+    const depart = rgb8VersOklch(lireHexa(palette.reglages ? (palette.originale ?? palette.reference) : palette.reference)!).L;
+    assert.equal(ancrage.rangs.dark, rangPorteur(recette.courbes.dark, depart), `${palette.nom} : le Dark ne glisse pas`);
+    const rampes = rampesDe(recette, palette);
+    for (const mode of MODES) {
+      const cran = rampes[ancrage.profil]![mode][ancrage.rangs[mode]];
+      if (cran.hexa === palette.reference) continue;
+      eclaircies.push(`${palette.nom} ${ancrage.profil} ${mode} ${ancrage.crans[mode]}`);
+    }
+  }
+  assert.deepEqual(eclaircies.sort(), ['Irene vivid dark 800', 'Poppy vivid dark 800']);
 });

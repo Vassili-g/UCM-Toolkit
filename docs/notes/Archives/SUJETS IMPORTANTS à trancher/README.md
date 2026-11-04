@@ -563,7 +563,7 @@ Les thèmes inversés en Light ne sont pas mesurés.
 | La table Dark de `surface` | 200, 300, 400 au repos, au survol et à l'appui, `surface/subtle` au 100 et `surface/divider` au 500, texte 950 (piste A, 29 octobre). Avant : 300, 400, 500 |
 | Le survol et l'appui du bouton texte en Dark (décision 6) | Piste A. Les fonds teintés Dark descendent d'un cran. La garantie 9 juge `page/foreground` sur `surface/default` et `surface/hover`. Les tokens du bouton texte gardent leurs noms et visent les mêmes variables |
 | Une référence au 700 qui manque la garantie 9 en Dark normal | Elle glisse au 600, couleur exacte gardée. Le 700 libéré se corrige par teinte ; le 400 et le 500 se relèvent d'un tiers et de deux tiers de leur écart à un espacement régulier entre le 300 et la référence |
-| Une référence au 800 en Dark inversé (Poppy Vivid, Irene Vivid) | Elle garde sa place et la garantie 9 manque : avec un texte des boutons blanc, aucun cran libre ne la porte sans casser la garantie 1. Palettes propose « Ajuster la référence » |
+| Une référence au 800 en Dark inversé (Poppy Vivid, Irene Vivid) | Le moteur corrige le cran comme les autres textes : il l'éclaircit jusqu'au seuil, et la garantie 9 est tenue. Le ◆ reste au 800. Palettes montre « Référence ajustée » et la couleur choisie |
 
 ### À prendre
 
@@ -628,8 +628,9 @@ sur le fond teinté 300.
 
 Poppy Vivid et Irene Vivid échouent parce que leur 800 Dark est la référence
 elle-même : `#EF4733` à 0,638 de clarté et `#DA51C2` à 0,655, au lieu de 0,70.
-Elles relèvent de la décision 1, « Ajuster la référence ». Cette correction ne
-règle pas le survol : sur le 400, le 800 manque 4,5 sur les 21 rampes.
+Le moteur éclaircit ce 800 en Dark inversé (« Une référence au 800 en Dark
+inversé », tableau des décisions). Cette correction ne règle pas le survol :
+sur le 400, le 800 manque 4,5 sur les 21 rampes.
 
 **Question du mainteneur : bouger les fonds teintés en Dark, avec un texte de
 `surface` différent de celui de `page`.** Le texte de `surface` reste 950 et
@@ -646,8 +647,9 @@ contraste baisse encore. Rapprocher les fonds de la page fait l'inverse.
 
 Avec les fonds discrets, tout passe : le texte de `page` au repos et au
 survol, l'appui à 3:1, l'anneau sans changement. Seules Poppy Vivid et Irene
-Vivid manquent 4,5 au survol, parce que leur 800 Dark est leur référence : elles
-relèvent de la décision 1. Le bouton texte passe alors sur la page, et un
+Vivid manquent 4,5 au survol, parce que leur 800 Dark est leur référence : le
+moteur éclaircit ce 800 en Dark inversé. Le bouton texte passe alors sur la page,
+et un
 composant de la page passe dans une alerte teintée, sans variante, sans mode et
 sans changer un texte.
 
@@ -703,10 +705,9 @@ Limites :
   l'alerte : il ne se voit pas. Le survol se voit : plus clair que l'alerte en
   Light, plus sombre en Dark.
 - Six rampes Vivid ont leur référence au 800 Dark : Sky, Poppy, Orange, Grass,
-  Emerald et Irene. Le moteur ne les corrige pas. Poppy Vivid (3,39) et Irene
-  Vivid (3,59) manquent 4,5 au repos. Comme à la décision 1, Palettes
-  proposerait « Ajuster la référence » : leur couleur de marque s'éclaircirait
-  de 0,056 à 0,066.
+  Emerald et Irene. Poppy Vivid (3,39) et Irene Vivid (3,59) manquaient 4,5 au
+  repos avant la correction de la référence en Dark inversé : leur 800 s'éclaircit
+  de 0,056 à 0,066, et Palettes le signale.
 
 La section 6 de la maquette montre la piste, avec le bouton texte au repos,
 survolé et appuyé.

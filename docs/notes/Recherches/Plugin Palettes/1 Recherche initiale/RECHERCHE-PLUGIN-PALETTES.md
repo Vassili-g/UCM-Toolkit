@@ -325,7 +325,9 @@ reste l'autorité de la teinte.
 - `[MOT-17]` La couleur de référence ne se recalcule jamais : ses octets
   entrent tels quels dans les rampes de son intensité porteuse, un cran par
   mode : la rampe unique d'une palette à une intensité (`[ENT-14]`), le
-  profil porteur d'une palette à deux.
+  profil porteur d'une palette à deux. Exception : en Dark inversé, le cran
+  de texte qui porte la référence et manque le seuil `texte` est corrigé
+  (`[MOT-41]`) ; la référence n'y est plus exacte, et le ◆ reste sur ce cran.
   - Une palette de base Soft ou Vivid (`[ENT-11]`) désigne le profil porteur.
     Sans elle, le porteur que `reglages.porteur` a figé au premier réglage
     (`[ENT-15]`) le désigne. Sans l'un ni l'autre, le classement automatique
@@ -477,7 +479,12 @@ trouve, et non la teinte de son cran 50.
   clarté de son voisin le plus foncé en Light, le plus clair en Dark ; s'il y
   bute avant le seuil, il reste tel quel et la garantie manque. Le cran qui
   porte la référence ne se corrige pas : la garantie manque, et le message
-  propose « Ajuster la référence ». Le cran corrigé reste le même pour toutes
+  propose « Ajuster la référence ». Deux exceptions : le glissement en Dark
+  normal (`[MOT-42]`), et le Dark inversé, où le cran de texte qui porte la
+  référence se corrige comme les autres (`rangDeLaReferenceGardee`,
+  `packages/couleur/src/palette.ts`). Le ◆ reste alors sur ce cran, et
+  `referenceAjustee` rend la référence, le cran corrigé et l'écart de clarté.
+  Le cran corrigé reste le même pour toutes
   les variables que la table lui donne : en Light normal, le 700 porte aussi
   `page/foreground`, `page/border` et `solid/default`. La correction se pose
   sur chaque rampe fabriquée, bosse comprise, avant tout jugement : promesses,
@@ -499,9 +506,10 @@ trouve, et non la teinte de son cran 50.
   cran. L'ordre des nuances de la limite dynamique se juge avant le
   glissement. Le Light, le Dark inversé, une palette figée et une palette libre
   ne glissent pas. En Dark inversé, une référence posée sur le 800 garde sa
-  place et G9 manque pour elle : avec un texte des boutons blanc, aucun cran
-  libre ne la porte sans casser G1. Palettes propose alors « Ajuster la
-  référence » (Poppy Vivid et Irene Vivid de la configuration du mainteneur).
+  place : avec un texte des boutons blanc, aucun cran libre ne la porte sans
+  casser G1. Si elle manque G9, `[MOT-41]` éclaircit ce 800 jusqu'au seuil
+  (Poppy Vivid et Irene Vivid de la configuration du mainteneur). Palettes
+  montre alors « Référence ajustée » et la couleur choisie (`[PLA-11]`).
   `deplacerLaReference` et `texteSurveille`
   (`packages/couleur/src/ancrageDeplace.ts`) en sont l'autorité, `ancrageDe`
   (`palette.ts`) décide.
@@ -1218,7 +1226,10 @@ contrastes nuance par nuance ; la recette dit quelles parties se dessinent
   la référence exacte montre ◆ dans sa pastille, comme l'aperçu.
 - `[PLA-11]` Une note sous les rampes explique ◆, et ≈ quand une pastille le
   porte, ce qu'une palette à une intensité ne connaît pas. La légende des grilles tient en une ligne à droite de leur titre. Ni
-  l'une ni l'autre ne nomme un seuil par son nom interne.
+  l'une ni l'autre ne nomme un seuil par son nom interne. Dans le thème Dark,
+  quand `referenceAjustee` existe (`[MOT-41]`), la note dit : « ◆ : la couleur
+  de référence, ajustée pour rester lisible. Couleur choisie : #… » ; l'écart
+  appliqué ne s'affiche pas.
 
 ### 9.3 Les pastilles des rampes
 
@@ -1491,8 +1502,8 @@ les deux sens. G2 juge le bouton au repos dans les deux sens. Une référence
 qui ne porte pas le texte des boutons reste ancrée, et le message de la
 garantie manquée propose « Ajuster la référence ». Il en va de même pour
 G3 et G9 quand la référence est ancrée au cran de texte que `[MOT-41]` ne
-corrige pas, sauf pour G9 en Dark normal, où `[MOT-42]` la fait glisser au 600.
-En Dark inversé, une référence au 800 manque G9. Sur les quatorze références de la recherche, à une et deux
+corrige pas, sauf pour G9 en Dark normal, où `[MOT-42]` la fait glisser au 600,
+et en Dark inversé, où `[MOT-41]` corrige ce cran. Sur les quatorze références de la recherche, à une et deux
 intensités et dans les quatre thèmes, G1 n'échoue que sur la nuance où la
 référence est ancrée ; cette mesure date d'avant G8 et G9 et du changement
 de G3 et G4. Sur 864 références de toutes teintes, chromas et clartés,

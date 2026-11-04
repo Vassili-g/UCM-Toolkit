@@ -2,7 +2,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { alertesDePalette, ancrageDe, rampesDe, type Recette } from 'ucm-couleur';
+import { alertesDePalette, ancrageDe, rampesDe, recetteAvecTexteDesBoutons, type Recette } from 'ucm-couleur';
 
 import { analyserPalette } from '../src/analyse';
 import { changerReference } from '../src/edition';
@@ -67,4 +67,20 @@ test('[MOT-17] [MOT-42] en Dark normal, l’analyse dit le cran où la référen
   assert.equal(analyse.rampes[analyse.ancrage.profil as 'vivid']!.dark[analyse.ancrage.rangs.dark].hexa, rose.reference, 'le 600 de Dark porte les octets de la référence');
   assert.equal(ligneDeLaReference(analyse.ancrage, 'dark'), 'Référence : Vivid · nuance 600');
   assert.equal(analyse.manquees, 0, 'et le texte de la page tient les deux fonds teintés');
+});
+
+test('[MOT-17] en Dark inversé, l’analyse porte la référence ajustée par le moteur ; ailleurs, elle n’en porte pas', () => {
+  const inversee = recetteAvecTexteDesBoutons(DEFAUT, 'dark', 'blanc');
+  assert.ok('recette' in inversee);
+  // #B17EFF est le 800 Dark de Vivid : le moteur l'éclaircit pour tenir la garantie 9.
+  const violette = nouvelle('p-0000000f', '#B17EFF');
+  const analyse = analyserPalette(avec(violette), violette);
+  assert.equal(analyse.referenceAjustee, undefined, 'Dark normal : la référence est exacte');
+  const ajustee = analyserPalette({ ...inversee.recette, palettes: [violette] }, violette);
+  assert.ok(ajustee.referenceAjustee);
+  assert.equal(ajustee.referenceAjustee.avant.hexa, '#B17EFF');
+  assert.equal(ajustee.referenceAjustee.numero, ajustee.ancrage.crans.dark);
+  assert.equal(ajustee.manquees, 0);
+  const bleu = analyserPalette({ ...inversee.recette, palettes: [BLEU] }, BLEU);
+  assert.equal(bleu.referenceAjustee, undefined, 'une référence qui tenait garde ses octets');
 });

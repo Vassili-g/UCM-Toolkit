@@ -259,10 +259,16 @@ test('[VER-22] sur la configuration du mainteneur, aucune paire ne sonne', () =>
   assert.ok(!codes(alertesDeRecette(MAINTENEUR)).includes('palettes-proches'));
 });
 
+test('[VER-22] sur la configuration du mainteneur en Dark inversé, la correction du 800 de Poppy et d’Irene ne change aucune alerte : seule Sky confond ses profils', () => {
+  const alertes = MAINTENEUR.palettes.flatMap((palette) => alertesDePalette(MAINTENEUR, palette).map((alerte) => `${palette.nom} ${alerte.code}`));
+  assert.deepEqual(alertes, ['Sky profils-confondus']);
+});
+
 test('[VER-22] Terracota et Poppy se distinguent par la chroma, leur score pondéré seul étant sous 1', () => {
   const proximite = proximiteDePalettes(MAINTENEUR, duMainteneur('Terracota'), duMainteneur('Poppy'));
   assert.ok(proximite);
-  assert.ok(Math.abs(proximite.score - 0.98) < 0.005, `score ${proximite.score}`);
+  // Le 800 Dark de Poppy est sa référence éclaircie (`referenceAjustee`) : il pèse dans le score.
+  assert.ok(Math.abs(proximite.score - 0.908) < 0.005, `score ${proximite.score}`);
   assert.ok(proximite.rapportDeChroma! <= PART_DE_CHROMA_QUI_DISTINGUE, `chroma ${proximite.rapportDeChroma}`);
   assert.ok(!proximite.tropProche && !proximite.presqueIdentiques);
 });

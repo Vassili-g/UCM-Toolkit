@@ -1544,6 +1544,18 @@ const ETATS = [
     atteinte: [etatDuFichier(rangee([BLEU])), { clic: '[aria-label^="Profil Vivid, nuance 600,"]' }],
   },
   {
+    id: 'reference-ajustee-en-dark',
+    titre: 'Référence ajustée en Dark',
+    quand: 'Le fichier du mainteneur donne le texte blanc aux boutons du thème Dark, donc inversé. Poppy, dont la référence tombe sur la nuance 800 de Vivid, est ouverte en thème Dark ; le designer choisit cette nuance.',
+    regarder: 'Le ◆ sur la nuance 800 de Vivid, dont le code n’est plus celui de la couleur choisie. Dans le détail : « ◆ Votre couleur de référence, ajustée pour rester lisible. » puis « Couleur choisie : » et le code de la référence. Dans Vérification, aucune garantie manquée pour Poppy. Le thème Light de Poppy garde « ◆ Votre couleur de référence exacte ».',
+    existe: true,
+    atteinte: [
+      etatDuFichier(poppyEnPremier()),
+      montrerLeThemeDark,
+      { clic: '[aria-label^="Profil Vivid, nuance 800,"]' },
+    ],
+  },
+  {
     id: 'nuance-libre',
     titre: 'Nuance sans rôle',
     quand: 'Le designer choisit la nuance Vivid 500, qu’aucun rôle n’emploie.',
@@ -1915,6 +1927,13 @@ function avecLaPremierePalette(etat) {
   const palettes = lu.message?.type === 'etat' ? lu.message.classement.recette?.palettes ?? [] : [];
   if (palettes.length === 0 || etat.ouvertSurGestion) return etat;
   return { ...etat, atteinte: [lu, { clic: '#onglet-creation' }, ...(etat.sansPaletteChoisie ? [] : ouvrirLaPremierePalette), ...suite] };
+}
+
+/** La recette du mainteneur, Poppy en tête : la galerie ouvre la première palette. */
+function poppyEnPremier() {
+  const recette = JSON.parse(readFileSync(path.resolve(__dirname, 'fixtures/recette-mainteneur.json'), 'utf8'));
+  const poppy = recette.palettes.find((candidate) => candidate.nom === 'Poppy');
+  return jsonCanonique({ ...recette, palettes: [poppy, ...recette.palettes.filter((candidate) => candidate !== poppy)] });
 }
 
 ETATS.push(

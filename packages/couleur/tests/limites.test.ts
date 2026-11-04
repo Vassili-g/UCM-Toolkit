@@ -5,6 +5,7 @@
  * manquer une, et les limites se croisent.
  */
 import assert from 'node:assert/strict';
+import { readFileSync } from 'node:fs';
 import test from 'node:test';
 
 import {
@@ -15,6 +16,7 @@ import {
   courbesParDefaut,
   limiteDynamique,
   ordreTenu,
+  validerRecette,
   verifierPromesses,
   type Borne,
   type GrandeurDuColorShift,
@@ -224,4 +226,23 @@ test('[DER-20] [VER-21] la limite ne borne pas le réglage par la promesse de la
   }
   assert.ok(causes.length > 0);
   assert.ok(!causes.includes(cle(g7[1])), `la carte, manquée au départ, borne un réglage : ${causes.join(', ')}`);
+});
+
+test('[DER-19] Dark inversé, Poppy Vivid : la référence éclaircie tient G9 au départ, et la limite de luminosité se calcule', () => {
+  const brute: unknown = JSON.parse(readFileSync(new URL('./fixtures/palettes-et-reglages.json', import.meta.url), 'utf8'));
+  const validee = validerRecette(brute);
+  if (!('recette' in validee)) throw new Error(`Recette du mainteneur refusée : ${JSON.stringify(validee.refus)}`);
+  const poppy = validee.recette.palettes.find((palette) => palette.nom === 'Poppy')!;
+  const recette = { ...validee.recette, palettes: [poppy] };
+  const g9 = verifierPromesses(recette, poppy).filter((promesse) => promesse.garantie.numero === 9 && promesse.mode === 'dark' && promesse.profil === 'vivid');
+  assert.ok(g9.length > 0);
+  assert.ok(g9.every((promesse) => promesse.verdict === 'tenue'));
+  const tenues = tenuesDe(recette, poppy);
+  for (const bout of BOUTS) {
+    const { bas, haut } = limite(recette, poppy, 'clarte', bout);
+    assert.ok(bas.valeur <= 0 && haut.valeur >= 0, `${bout} : ${bas.valeur} à ${haut.valeur}`);
+    for (const borne of [bas, haut]) {
+      if (borne.cause?.nature === 'promesse') assert.ok(tenues.has(cle(borne.cause.promesse)), `${bout} : ${cle(borne.cause.promesse)} manquait au départ`);
+    }
+  }
 });

@@ -289,6 +289,12 @@ function construireVues(i18n: Localisation) {
           const losange = element('text', { x: x + CASE / 2, y: 66.5, fill: cran.L > 0.6 ? '#000000' : '#FFFFFF' });
           losange.classList.add('reglette-reference');
           i18n.lier(losange, 'textContent', '◆');
+          // Étiquette seule : la garantie passe, Vérification n'a rien à dire de plus.
+          if (mode === 'dark' && analyse.referenceAjustee) {
+            const titre = element('title', {});
+            i18n.lier(titre, 'textContent', TEXTES_DU_NUANCIER.referenceAjustee);
+            losange.append(titre);
+          }
           svg.append(losange);
         }
         svg.append(nom(recette.crans[rang], String(recette.crans[rang])));

@@ -901,6 +901,8 @@ export const TEXTES_DES_GARANTIES = {
 export const TEXTES_DU_DETAIL = {
   titre: (profil: Intensite, numero: number) => (profil === 'unique' ? `Shade ${numero}` : `${NOM_DU_PROFIL[profil]} · ${numero}`),
   reference: "◆ Your exact reference colour",
+  referenceAjustee: "◆ Your reference colour, adjusted to stay readable.",
+  couleurChoisie: (hexa: string) => `Chosen colour: ${hexa}.`,
   sertA: "Used for",
   // Une nuance qu'aucun rôle ne vise ; « libre » désigne une palette sortie du modèle (N102).
   sansRole: "No role",
@@ -950,6 +952,7 @@ export const TEXTES_DU_NUANCIER = {
   fondCommun: "This background applies to all palettes.",
   modifierLeFond: (mode: Mode, hexa: string) => `Edit page background, ${NOM_DU_MODE[mode]} theme, currently ${hexa}`,
   reference: "Reference",
+  referenceAjustee: "Adjusted reference",
   copier: "Copy code",
   copie: "Code copied",
   etiquetteDeNuance: (profil: Intensite, numero: number, hexa: string) => (profil === 'unique'
@@ -1593,6 +1596,7 @@ export const TEXTES_DE_LA_PLANCHE = {
   reperage: '◆',
   confondu: '≈',
   noteDuRepere: "◆: the exact reference colour.",
+  noteDuRepereAjuste: (hexa: string) => `◆: the reference colour, adjusted to stay readable. Chosen colour: ${hexa}.`,
   noteDesConfondus: "≈: Soft and Vivid are almost identical at this shade.",
   mode: { light: "Light theme", dark: "Dark theme" },
 } as const;

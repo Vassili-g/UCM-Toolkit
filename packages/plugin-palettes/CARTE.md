@@ -13,7 +13,7 @@ Plugin UCM Palettes : ucm-palettes-plugin, privé.
 - fileDuDocument.ts : file commune des lectures et mutations du document ; un refus libère le geste suivant
 - messages.ts : les deux sens de la frontière sandbox ↔ interface
 - lecture.ts : recette rangée, classée, son empreinte, profil du document, cadres retrouvés où qu'ils soient, pages du fichier
-- analyse.ts : une palette pour l'onglet : rampes, promesses, alertes et notices triées
+- analyse.ts : une palette pour l'onglet : rampes, promesses, alertes et notices triées, référence ajustée en Dark inversé
 - edition.ts : ce qu'une saisie fait à une palette, avant tout rangement, ajustement de la référence compris ; la palette du plugin qu'une palette du fichier devient, recalculée ou figée
 - familles.ts : huit familles de teinte, et famille voisine d'une teinte dans un sens, qui nomme les bouts de la piste de teinte
 - reglagesParDefaut.ts : valeurs par défaut des trois réglettes du réglage global, ce qui les écarte d'elles, et liste des réglages modifiés d'une palette, sans DOM

@@ -4,6 +4,8 @@
  *
  * Chaque fonction reçoit une recette déjà validée ([REC-05]).
  */
+import { sensDuTheme } from '@ucm-kit/core/emplois';
+
 import { deplacerLaReference, texteSurveille, tientLeTexte, type TexteSurveille } from './ancrageDeplace';
 import { bosseDeChroma } from './bosse';
 import { CHROMA_SANS_TEINTE, ecrireHexa, lireHexa, normaliserTeinte, rgb8VersOklch, type Oklch, type Rgb8 } from './conversions';
@@ -337,13 +339,25 @@ function ancrageGlisse(recette: Recette, palette: Palette, base: Ancrage): boole
  * que toutes les vues lisent, sur la grille de la palette : la liste commune,
  * ou sa liste libre. En Dark normal, une référence qui se pose sur le cran du
  * texte de la page et manque la garantie 9 glisse au cran plus sombre voisin :
- * `rangs.dark` et `crans.dark` rendent ce cran.
+ * `rangs.dark` et `crans.dark` rendent ce cran. En Dark inversé, la référence
+ * ne glisse pas : le ◆ reste au cran de la référence, que la correction des
+ * textes peut éclaircir (`referenceAjustee`).
  */
 export function ancrageDe(recette: Recette, palette: Palette): Ancrage {
   const base = ancrageDeLaGrille(recette, palette);
   if (!ancrageGlisse(recette, palette, base)) return base;
   const rang = base.rangs.dark - 1;
   return { ...base, rangs: { ...base.rangs, dark: rang }, crans: { ...base.crans, dark: grilleDe(recette, palette).crans[rang] } };
+}
+
+/**
+ * Le rang que `corrigerLesTextes` laisse tel quel dans un mode : celui de la
+ * référence exacte. Aucun en Dark inversé : la référence n'y glisse pas
+ * (`ancrageDe`), donc le cran de texte qui la porte et manque le seuil se
+ * corrige comme les autres. Light et Dark normal gardent leur rang.
+ */
+export function rangDeLaReferenceGardee(recette: Recette, mode: Mode, ancrage: Ancrage): number | undefined {
+  return mode === 'dark' && sensDuTheme('dark', recette.texteDesBoutons.dark) === 'inverse' ? undefined : ancrage.rangs[mode];
 }
 
 /** Le cran que la référence devient : ses octets tels quels, et L, C, H lus sur eux ([MOT-11]). */
@@ -507,7 +521,7 @@ function rampeDeLIntensitePorteuse(
     const bosse = bosses[mode];
     const fabriquee = corriger(mode, visees[mode].map((visee, rang) => (rang === ancrage.rangs[mode]
       ? cranDeLaReference(reference)
-      : cranDeLaVisee({ L: visee.L, H: visee.H, C: bosse ? visee.C + (bosse[rang] - visee.C) * force : visee.C }))), ancrage.rangs[mode]);
+      : cranDeLaVisee({ L: visee.L, H: visee.H, C: bosse ? visee.C + (bosse[rang] - visee.C) * force : visee.C }))), rangDeLaReferenceGardee(recette, mode, ancrage));
     return mode === 'dark' && deplacement ? deplacerLaReference(recette, fabriquee, deplacement.surveille, deplacement.clarteDeLaCourbe, deplacement.corriger) : fabriquee;
   };
   const forces = { light: 0, dark: 0 };
@@ -540,7 +554,7 @@ interface Deplacement {
   readonly corriger: boolean;
 }
 
-/** La correction des textes d'une rampe fabriquée : la rampe du mode, et le rang de la référence qu'elle porte, s'il y en a un. */
+/** La correction des textes d'une rampe fabriquée : la rampe du mode, et le rang du cran qu'elle laisse tel quel, s'il y en a un (`rangDeLaReferenceGardee`). */
 type Correction = (mode: Mode, rampe: Cran[], rangDeLaReference: number | undefined) => Cran[];
 
 /**
@@ -583,6 +597,9 @@ function rampesAvecLeDecalage(recette: Recette, palette: Palette, decalageDeClar
  * la bosse de chroma monte vers la référence, et les textes que la table
  * éloigne des fonds teintés quand la teinte les y manque (`corrigerLesTextes`).
  * En Dark normal, la référence qui manque G9 sur le 700 se pose au 600 (`ancrageDe`).
+ * En Dark inversé, le cran de texte qui porte la référence et manque le seuil
+ * s'éclaircit comme les autres textes : ses octets ne sont plus ceux de la
+ * référence (`referenceAjustee`).
  * Promesses, alertes, planche et rapport lisent ces rampes-ci.
  */
 export function rampesDe(recette: Recette, palette: Palette): Rampes {
@@ -606,6 +623,37 @@ export function rampesDe(recette: Recette, palette: Palette): Rampes {
 export function rampesSansCorrection(recette: Recette, palette: Palette): Rampes {
   if (estFigee(palette)) return rampesDe(recette, palette);
   return rampesAvecLeDecalage(recette, palette, clarteSelonLaTeinteGardee(recette, palette).decalage, false);
+}
+
+/**
+ * La référence éclaircie en Dark inversé : le cran du ◆ porte alors une couleur
+ * que la correction des textes a déplacée (`rangDeLaReferenceGardee`).
+ */
+export interface ReferenceAjustee {
+  readonly intensite: Intensite;
+  readonly mode: 'dark';
+  readonly rang: number;
+  readonly numero: number;
+  /** La référence choisie, octets exacts. */
+  readonly avant: Cran;
+  /** Le cran de la rampe corrigée au rang du ◆. */
+  readonly apres: Cran;
+  /** La clarté OKLCH gagnée, au millième. */
+  readonly ecart: number;
+}
+
+/**
+ * L'ajustement de la référence d'une palette, ou `undefined` quand le cran du
+ * ◆ garde les octets de la référence : Light, Dark normal (la référence glisse
+ * et reste exacte), palette figée ou libre, référence qui tenait déjà.
+ */
+export function referenceAjustee(recette: Recette, palette: Palette, rampes: Rampes = rampesDe(recette, palette)): ReferenceAjustee | undefined {
+  if (estFigee(palette) || estLibre(palette) || sensDuTheme('dark', recette.texteDesBoutons.dark) !== 'inverse') return undefined;
+  const ancrage = ancrageDe(recette, palette);
+  const apres = rampeDe(rampes, ancrage.profil).dark[ancrage.rangs.dark];
+  const avant = cranDeLaReference(referenceDe(palette));
+  if (apres.hexa === avant.hexa) return undefined;
+  return { intensite: ancrage.profil, mode: 'dark', rang: ancrage.rangs.dark, numero: ancrage.crans.dark, avant, apres, ecart: arrondir(apres.L - avant.L, 3) };
 }
 
 export type { ClartesParMode };
