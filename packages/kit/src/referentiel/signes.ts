@@ -19,6 +19,7 @@ export const FAMILLES_DE_SIGNES = [
   { id: 'objet-figma', libelle: 'Objet de Figma', teinte: 'variants' },
   { id: 'property', libelle: 'Property de composant', teinte: 'variants' },
   { id: 'regles', libelle: 'Règles d’utilisation (.componentRules)', teinte: 'regles' },
+  { id: 'type-de-terme', libelle: 'Type de terme de Nomenclature', teinte: 'regles' },
   { id: 'proposition', libelle: 'Sorte de proposition', teinte: null },
   { id: 'accessibilite', libelle: 'Accessibilité', teinte: 'a11y' },
   { id: 'palettes', libelle: 'Palettes', teinte: 'couleurs' },
@@ -181,9 +182,13 @@ export const SIGNES: readonly SigneDuLangage[] = [
     ['strict', 'strict', '<rect x="3.5" y="7" width="9" height="7" rx="1.5"/><path d="M5.5 7V5a2.5 2.5 0 0 1 5 0v2"/>', 'La valeur est imposée.'],
     ['a-completer', '[À compléter]', tx('…', 11, 8, 10.5), 'Texte d’aide pas encore rédigé. Il ne part pas dans le contrat.'],
   ]),
+  ...famille('type-de-terme', [
+    ['remplace', 'remplace', '<path d="M2.5 4.5h7M2.5 11.5h7M9.5 4.5 13 8l-3.5 3.5M13 8H6"/>', 'Le terme remplace un autre terme.'],
+    ['sans-regle', 'sans règle', '<circle cx="8" cy="8" r="5.5" stroke-dasharray="2.2 2"/>', 'Aucune règle ne décide ce terme.'],
+  ]),
   ...famille('proposition', [
     ['correction', 'correction', '<path d="M10.4 2.1a3.4 3.4 0 0 0-3.9 4.6L2.3 10.9a1.4 1.4 0 0 0 2 2l4.2-4.2a3.4 3.4 0 0 0 4.6-3.9l-2.1 2.1-1.9-.5-.5-1.9z"/>', 'Le plugin l’applique.'],
-    ['question', 'question', tx('?', 12, 8, 12.4, 700), 'Le designer choisit.'],
+    ['question', 'question', tx('?', 12, 8, 12.4, 700), 'Le designer choisit. Le type de terme « À trancher » la reprend en ambre : la teinte vient du lecteur, pas du tracé.'],
     ['a-faire', 'à faire dans Figma', '<path d="M3.5 2.5 12.8 7.6 8.6 8.8 6.6 13z"/>', 'Le designer agit dans Figma.'],
     ['modele', 'copie d’un modèle', '<rect x="5" y="5" width="9" height="9" rx="1.5"/><path d="M11 5V3.5A1.5 1.5 0 0 0 9.5 2h-6A1.5 1.5 0 0 0 2 3.5v6A1.5 1.5 0 0 0 3.5 11H5"/>', 'Les liaisons d’un variant juste copiées aux autres.'],
     ['ignore', 'ignoré', '<path d="M1.8 8s2.3-4.2 6.2-4.2S14.2 8 14.2 8s-2.3 4.2-6.2 4.2S1.8 8 1.8 8z"/><circle cx="8" cy="8" r="1.8"/><path d="M2.8 13.2 13.2 2.8"/>', 'Le constat ne sera plus proposé.'],
@@ -247,6 +252,15 @@ export const REPRISES_DE_SIGNES: readonly RepriseDeSigne[] = [
   },
   { famille: 'usage-couleur', reprend: [{ id: 'type-color', libelle: 'Couleurs' }] },
   { famille: 'proposition', reprend: [{ id: 'a-creer', libelle: 'préparation' }] },
+  {
+    famille: 'type-de-terme',
+    reprend: [
+      { id: 'palette', libelle: 'palette' },
+      { id: 'component', libelle: 'composant' },
+      { id: 'question', libelle: 'à trancher' },
+      { id: 'applique', libelle: 'conforme' },
+    ],
+  },
   { famille: 'interface', reprend: [{ id: 'ecart', libelle: 'différent' }] },
   { famille: 'palettes', reprend: [{ id: 'mode', libelle: 'Light, Dark' }] },
   {

@@ -24,13 +24,16 @@ export const SIGNAUX_DU_LANGAGE = [
 
 export type SignalDuLangage = (typeof SIGNAUX_DU_LANGAGE)[number];
 
-/** Les types d’alerte sont ordonnés du plus bloquant au constat tenu. */
+/**
+ * Les types d’alerte sont ordonnés du plus bloquant au constat tenu. `texte` est le repli sans SVG : `brut` pour une sortie texte,
+ * `forge` pour un commentaire de forge. « Corriger » et « vérifier » partagent le glyphe d’avertissement, les sorties n’en ayant qu’un.
+ */
 export const TYPES_D_ALERTE = [
-  { id: 'bloquant', libelle: 'Bloquant', sens: 'L’opération ne peut pas continuer.' },
-  { id: 'corriger', libelle: 'À corriger', sens: 'Un écart établi demande une correction.' },
-  { id: 'verifier', libelle: 'À vérifier', sens: 'Les faits lus ne suffisent pas pour conclure.' },
-  { id: 'info', libelle: 'Information', sens: 'Un fait est communiqué sans correction demandée.' },
-  { id: 'tenu', libelle: 'Tenu', sens: 'Le contrôle n’a trouvé aucun écart.' },
+  { id: 'bloquant', libelle: 'Bloquant', sens: 'L’opération ne peut pas continuer.', texte: { brut: '✗', forge: '❌' } },
+  { id: 'corriger', libelle: 'À corriger', sens: 'Un écart établi demande une correction.', texte: { brut: '⚠', forge: '⚠️' } },
+  { id: 'verifier', libelle: 'À vérifier', sens: 'Les faits lus ne suffisent pas pour conclure.', texte: { brut: '⚠', forge: '⚠️' } },
+  { id: 'info', libelle: 'Information', sens: 'Un fait est communiqué sans correction demandée.', texte: { brut: 'ℹ', forge: 'ℹ️' } },
+  { id: 'tenu', libelle: 'Tenu', sens: 'Le contrôle n’a trouvé aucun écart.', texte: { brut: '✓', forge: '✅' } },
 ] as const;
 
 export type TypeDAlerte = (typeof TYPES_D_ALERTE)[number]['id'];

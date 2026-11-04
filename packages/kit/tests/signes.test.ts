@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { FAMILLES_DE_SIGNES, REPRISES_DE_SIGNES, SIGNES, svgDuSigne } from '../src/referentiel/index.js';
+import { FAMILLES_DE_SIGNES, REPRISES_DE_SIGNES, SIGNES, TYPES_D_ALERTE, svgDuSigne } from '../src/referentiel/index.js';
 
 test('les identifiants de signes sont uniques', () => {
   const ids = SIGNES.map((signe) => signe.id);
@@ -114,4 +114,33 @@ test('aucune forme d’alerte du socle n’est recopiée dans SIGNES', () => {
   // Les cinq formes de packages/plugin-socle/src/ui/Alerte.ts restent au socle (R-8, QM-11).
   const formes = ['M4 .5h4L11.5 4v4L8 11.5H4L.5 8V4z', 'M6 .6l5.6 10.4H.4z', 'M3.3 6h5.4', 'M6 4.2v3.3', 'M6 5.2v3.6', 'M4.5 4.7a1.6 1.6 0 1 1 2.3 1.4c-.5.3-.8.6-.8 1.1', 'M3.4 6.1l1.8 1.8 3.5-3.7'];
   for (const signe of SIGNES) for (const forme of formes) assert.ok(!signe.trace.includes(forme), `${signe.id} recopie la forme ${forme}`);
+});
+
+test('la famille type-de-terme définit remplace et sans-regle, et reprend palette, component, question et applique', () => {
+  const famille = FAMILLES_DE_SIGNES.find((candidat) => candidat.id === 'type-de-terme');
+  assert.equal(famille?.teinte, 'regles');
+  assert.deepEqual(SIGNES.filter((signe) => signe.famille === 'type-de-terme').map((signe) => signe.id), ['remplace', 'sans-regle']);
+  assert.deepEqual(REPRISES_DE_SIGNES.find((reprise) => reprise.famille === 'type-de-terme')?.reprend, [
+    { id: 'palette', libelle: 'palette' },
+    { id: 'component', libelle: 'composant' },
+    { id: 'question', libelle: 'à trancher' },
+    { id: 'applique', libelle: 'conforme' },
+  ]);
+});
+
+test('les tracés de remplace et sans-regle sont ceux de l’icône de Nomenclature', () => {
+  assert.equal(SIGNES.find((signe) => signe.id === 'remplace')?.trace, '<path d="M2.5 4.5h7M2.5 11.5h7M9.5 4.5 13 8l-3.5 3.5M13 8H6"/>');
+  assert.equal(SIGNES.find((signe) => signe.id === 'sans-regle')?.trace, '<circle cx="8" cy="8" r="5.5" stroke-dasharray="2.2 2"/>');
+});
+
+test('chaque type d’alerte porte un repli texte brut et un repli de forge', () => {
+  const attendus: Record<string, [string, string]> = {
+    bloquant: ['✗', '❌'],
+    corriger: ['⚠', '⚠️'],
+    verifier: ['⚠', '⚠️'],
+    info: ['ℹ', 'ℹ️'],
+    tenu: ['✓', '✅'],
+  };
+  assert.deepEqual(TYPES_D_ALERTE.map((type) => type.id), Object.keys(attendus));
+  for (const type of TYPES_D_ALERTE) assert.deepEqual([type.texte.brut, type.texte.forge], attendus[type.id], type.id);
 });
