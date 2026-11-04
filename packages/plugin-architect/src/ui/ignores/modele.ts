@@ -20,6 +20,7 @@ import { ecrireContraste } from '@ucm-kit/core/emplois';
 
 import type { Constat } from '../../messages/commun';
 import { lieuDesVariants, pairesCommunes, pairesDuNom, paireDeFigma, type MorceauDeLieu } from '../composant/variants';
+import { carteDeQuestion } from '../questions/modele';
 import { TEXTES } from '../textes';
 
 const T = TEXTES.aFaireDuComposant;
@@ -505,7 +506,8 @@ export function carteDAFaire(constat: Constat, contexte: ContexteDAFaire): Carte
   const exacte = precise(constat, contexte);
   if (exacte) return { constat, section, faits: [], ...exacte, lieu: typeof exacte.lieu === 'string' ? (exacte.lieu === '' ? [] : [exacte.lieu]) : exacte.lieu };
   const { faits } = constat;
-  const phrase = texte(faits.titre) ?? texte(faits.message) ?? T.sansPhrase(constat.code);
+  // Un constat ignoré qui porte une question (C12, C13) n'a pas de phrase propre : il garde le titre de sa question.
+  const phrase = texte(faits.titre) ?? texte(faits.message) ?? carteDeQuestion(constat, contexte)?.titreEnTexte ?? T.sansPhrase(constat.code);
   const elements = texte(faits.elements);
   const noms = nomsDesVariants(constat, contexte);
   const nomme = noms.length > 0 && noms.every((nom) => phrase.includes(nom));

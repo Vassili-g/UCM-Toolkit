@@ -39,6 +39,9 @@ export function lireLesIgnores(api: PortDIgnores): string[] {
 /** Les identifiants des constats ignorés parmi des clés : les clés de proposition n'en font pas partie. */
 export const constatsIgnores = (cles: readonly string[]): string[] => cles.filter((cle) => !cle.startsWith(PREFIXE) && !cle.startsWith(PREFIXE_DU_ROLE));
 
+/** Les identifiants des constats dont la proposition (correction ou question) est retirée parmi des clés : le constat reste, sans elle. */
+export const propositionsRetirees = (cles: readonly string[]): string[] => cles.filter((cle) => cle.startsWith(PREFIXE)).map((cle) => cle.slice(PREFIXE.length));
+
 /** La clé qui écarte un rôle du thème dans tout le fichier (Q6). */
 export const cleDUnRoleIgnore = (role: VariableDuTheme): string => `${PREFIXE_DU_ROLE}${role}`;
 

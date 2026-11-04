@@ -68,8 +68,18 @@ const repondue = { message: { type: 'question-repondue', analyse: IDENTITE, ques
 const ETATS = [
   {
     id: 'c-questions', titre: 'Questions du composant', quand: 'Alert est analysé ; le designer choisit la puce Couleurs.',
-    regarder: 'Une carte par question : le layer title en olive, le chemin proposé en gris, le segment nouveau en vert ; un seul bouton bordé pour répondre, les autres candidats en liens ; à droite, Sélectionner avec le signe de la sélection de Figma (la question du layer title vise un layer), puis Plus tard ; rien n’est choisi avant le clic.',
+    regarder: 'Une carte par question : le layer title en olive, le chemin proposé en gris, le segment nouveau en vert ; un seul bouton bordé pour répondre, les autres candidats en liens ; à droite, Sélectionner avec le signe de la sélection de Figma (la question du layer title vise un layer), puis Ignorer, « Ne plus proposer » et Plus tard ; rien n’est choisi avant le clic.',
     existe: true, atteinte: [...ouvrirLePanneau, puceCouleurs],
+  },
+  {
+    id: 'q-gestes', titre: 'Les trois gestes d’une question', quand: 'Alert est analysé ; le designer choisit la puce Couleurs.',
+    regarder: 'Sous chaque question, à droite et dans cet ordre : Ignorer (pour le fichier), « Ne plus proposer » (pour la proposition), Plus tard (pour la session). Les trois sont des liens ; seul le bouton bordé répond.',
+    existe: true, atteinte: [...ouvrirLePanneau, puceCouleurs],
+  },
+  {
+    id: 'q-ignoree', titre: 'Question ignorée', quand: 'Le designer clique Ignorer sur la question du layer title ; le sandbox rend la liste des constats ignorés.',
+    regarder: 'La carte quitte les questions ; le constat rejoint Ignorés, en carte muette avec Ne plus ignorer et le titre de la question ; la question du nom de valeur reste à trancher.',
+    existe: true, atteinte: [...ouvrirLePanneau, puceCouleurs, { clic: '.question [data-action="ignorer"]' }, { message: { type: 'ignores', analyse: IDENTITE, constats: [ignore.id, questionDeTitre.id] } }],
   },
   {
     id: 'c-tranchee', titre: 'Question répondue', quand: 'Le designer lie title au token proposé ; le sandbox rend la correction exacte.',

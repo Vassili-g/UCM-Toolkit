@@ -123,6 +123,8 @@ export function monterLePanneau(app: Application, vue: VueComposant, options: Op
   const questions = monterLesQuestions({
     repondre: (question, reponse) => app.repondre(question, reponse),
     annuler: (question) => app.annulerLaReponse(question),
+    ignorer: (constats) => { for (const constat of constats) app.ignorer(constat); },
+    nePlusProposer: (constats) => app.ignorerLaProposition(constats),
     selectionner,
     selectionnes,
     redessiner: () => dessiner(),

@@ -12,7 +12,7 @@
  */
 import type { Constat } from '@ucm-kit/core/controles';
 
-import { cleDeLaProposition, constatsIgnores, ignorerUnConstat, nePlusIgnorer, type PortDIgnores, type ResultatDIgnorer } from '../ecriture/ignores';
+import { constatsIgnores, ignorerUnConstat, nePlusIgnorer, propositionsRetirees, type PortDIgnores, type ResultatDIgnorer } from '../ecriture/ignores';
 import type { DemandeDIgnores } from '../messages/ignores';
 import { analyseCourante, analyseFinalisee, constatDeLAnalyse, fixerUneCorrection, prendreLaPlaceDUneEcriture } from './analyse';
 import type { Contexte, Traiter } from './contexte';
@@ -49,8 +49,7 @@ export function traiterAvec(rangement: (contexte: Contexte) => Rangement): Trait
         // Un constat ou une proposition écartés quittent le lot Appliquer ; Ne plus ignorer les y remet.
         fixerUneCorrection(demande.analyse, constat.correction.id, demande.type === 'ignorer' ? null : constat.correction);
       }
-      const prefixe = cleDeLaProposition('');
-      const propositions = resultat.cles.filter((cle) => cle.startsWith(prefixe)).map((cle) => cle.slice(prefixe.length));
+      const propositions = propositionsRetirees(resultat.cles);
       contexte.envoyer({ type: 'ignores', analyse: demande.analyse, constats: constatsIgnores(resultat.cles), ...(propositions.length > 0 ? { propositions } : {}) });
     } finally {
       place.liberer();

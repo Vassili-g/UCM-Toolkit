@@ -232,6 +232,8 @@ Aucune de ces lectures n'a été essayée dans Figma. La
 [recette](https://github.com/Vassili-g/UCM-Toolkit/blob/202f46e/docs/notes/Recherches/Plugin%20Explorateur%20Tokens/Vue%20composant/RECETTE-VUE-COMPOSANT.md)
 les reprend une à une.
 
+Une carte de question porte trois gestes. Ignorer écarte son constat pour le fichier. « Ne plus proposer » retire la question pour le fichier et laisse le constat dans À faire dans Figma. « Plus tard » la reporte pour la session seulement. Chaque analyse renvoie les propositions retirées avec les constats ignorés (message `ignores`, champ `propositions`).
+
 ## Analyse et corrections
 
 Analyser lit le relevé du jeu de variants et le catalogue de référence : la

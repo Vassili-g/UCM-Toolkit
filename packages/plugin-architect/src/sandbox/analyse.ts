@@ -73,7 +73,7 @@ import { constatsDuMoteur } from '../constatsDuMoteur';
 import { enregistrerLesImports, idsDesLocales, lireLesVariables } from '../lecture';
 import { sujetDe, type PortDuComposant } from '../lectureDuComposant';
 import { lireLaLibraryRangee } from '../ecriture/configuration';
-import { lireLesIgnores, separerLesIgnores } from '../ecriture/ignores';
+import { lireLesIgnores, propositionsRetirees, separerLesIgnores } from '../ecriture/ignores';
 import type { PluginMessage } from '../messages';
 import type { NiveauDAccessibilite } from '../messages/configuration';
 import type { CauseDePeremption, DemandeDAnalyse, IntentionDAnalyse, StatutDAnalyse, PhaseDAnalyse, ProgressionDAnalyse } from '../messages/analyse';
@@ -1822,7 +1822,7 @@ async function analyser(contexte: Contexte, lecteurs: Lecteurs, demandeRecue: Ex
   const retenuesEnAttente: (() => void)[] = [];
   const retenir = (effet: () => void): void => { if (discrete) retenuesEnAttente.push(effet); else effet(); };
   const poserLesRetenues = (): void => { for (const effet of retenuesEnAttente.splice(0)) effet(); };
-  const rendre = (statut: StatutDAnalyse, constats: readonly Constat[], releve: ReleveDeComposant | null, ecartes: readonly string[] = [], tous: readonly Constat[] = constats): void => {
+  const rendre = (statut: StatutDAnalyse, constats: readonly Constat[], releve: ReleveDeComposant | null, ecartes: readonly string[] = [], tous: readonly Constat[] = constats, retirees: readonly string[] = []): void => {
     terminee = true;
     if (statut === 'annulee' && discrete) noterLaPrelecture('prelecturesAnnulees');
     phase('projection');
@@ -1848,7 +1848,8 @@ async function analyser(contexte: Contexte, lecteurs: Lecteurs, demandeRecue: Ex
       if (tous.length && envoyee.envois['premiers-constats'] === undefined) envoyee.envois['premiers-constats'] = Date.now();
     }
     emettre({ type: 'analyse', analyse: identite as IdentiteDAnalyse, ...(demande.demande !== undefined ? { demande: demande.demande } : {}), statut, ...sortie, progression: { phase: 'projection', fraction: 1 }, ...(mesure ? { mesure } : {}) });
-    if (releve !== null) emettre({ type: 'ignores', analyse: identite as IdentiteDAnalyse, constats: ecartes });
+    // Les propositions retirées partent avec les ignorés : sans elles, une nouvelle analyse rendrait la correction ou la question.
+    if (releve !== null) emettre({ type: 'ignores', analyse: identite as IdentiteDAnalyse, constats: ecartes, ...(retirees.length > 0 ? { propositions: retirees } : {}) });
   };
   if (enPrelecture) {
     courant.prelecture = {
@@ -2124,7 +2125,7 @@ async function analyser(contexte: Contexte, lecteurs: Lecteurs, demandeRecue: Ex
       retenirLeMaximum('aretesRetenues', retenu.aretes);
       retenirLeMaximum('entreesDuJournal', journal?.depuis(0).length ?? 0);
     }
-    rendre(statutFinal, visibles, releve, ignores, tous);
+    rendre(statutFinal, visibles, releve, ignores, tous, propositionsRetirees(rangees));
     // La capture suit l'envoi de la trace et garde la place d'opération : une écriture demandée pendant ce temps rend `occupe`.
     await capturerSiDemande(demande, contexte, { noeud: sujet.noeud, page: pageDuNoeud(sujet.noeud, contexte.figma.currentPage), imports: importsEnregistres });
   } catch (erreur) {

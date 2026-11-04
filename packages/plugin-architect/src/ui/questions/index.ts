@@ -1,8 +1,10 @@
 /**
  * Les questions du panneau des constats : une carte par question du moteur, au modèle d'« À trancher » de Nomenclature. Le titre cite le
  * premier candidat, chaque autre candidat a son bouton, et rien n'est choisi avant le clic. Une réponse remplace la carte par sa ligne
- * verte (la correction qu'elle tire est une carte de corrections, dans la même section), avec un geste : annuler la réponse. « Plus tard »
- * range la carte en fin de liste jusqu'à la prochaine analyse. Les questions identiques de plusieurs variants se montrent en une carte, qui
+ * verte (la correction qu'elle tire est une carte de corrections, dans la même section), avec un geste : annuler la réponse. Trois gestes
+ * écartent une carte à trancher, chacun pour sa durée : Ignorer écarte le constat dans le fichier (il rejoint les Ignorés), « Ne plus
+ * proposer » retire la question dans le fichier (le constat reste, À faire dans Figma), « Plus tard » range la carte en fin de liste
+ * jusqu'à la prochaine analyse. Les questions identiques de plusieurs variants se montrent en une carte, qui
  * envoie une réponse par question du groupe. Une question qui vise des layers porte un bouton Sélectionner, dans sa ligne d'actions.
  * Le panneau choisit les groupes à montrer ; ce module les dessine.
  */
@@ -10,6 +12,7 @@ import { createButton } from 'ucm-plugin-socle/src/ui/Button';
 import { creerResultat } from 'ucm-plugin-socle/src/ui/Changement';
 import { creerCheminEnPhrase, creerVariantEnPhrase } from 'ucm-plugin-socle/src/ui/Chemin';
 
+import type { Constat } from '../../messages/commun';
 import { analyseApplicable, type AnalyseRecue } from '../composant/analyse';
 import { poserLeLieuEnrichi, poserLeTexteEnrichi } from '../ignores/texte';
 import { creerBoutonSelectionner } from '../structure/carte';
@@ -27,6 +30,10 @@ export interface OptionsDesQuestions {
   readonly selectionner: (layers: readonly string[]) => void;
   /** Les layers que le plugin a sélectionnés depuis le dernier changement de sélection de Figma ; aucun par défaut. */
   readonly selectionnes?: () => readonly string[];
+  /** Écarte ces constats dans le fichier : la question ne revient pas à l'analyse suivante. */
+  readonly ignorer: (constats: readonly Constat[]) => void;
+  /** Retire la question de ces constats dans le fichier ; les constats restent. */
+  readonly nePlusProposer: (constats: readonly Constat[]) => void;
   /** Appelée quand « Plus tard » change l'ordre des cartes : le panneau se redessine. */
   readonly redessiner: () => void;
 }
@@ -167,7 +174,12 @@ export function monterLesQuestions(options: OptionsDesQuestions): Questions {
       selectionner: options.selectionner,
     });
     if (bouton) droite.append(bouton);
-    droite.append(boutonTexte(T.plusTard, T.plusTardPour(carte.titreEnTexte), () => {
+    const constats = groupe.cartes.map((membre) => membre.constat);
+    const ignorer = boutonTexte(TEXTES.aFaireDuComposant.ignorer, TEXTES.aFaireDuComposant.ignorerCeConstat(carte.titreEnTexte), () => options.ignorer(constats), inactif);
+    ignorer.dataset.action = 'ignorer';
+    const nePlusProposer = boutonTexte(TEXTES.correctionsDuComposant.nePlusProposer(0), null, () => options.nePlusProposer(constats), inactif);
+    nePlusProposer.dataset.action = 'ne-plus-proposer';
+    droite.append(ignorer, nePlusProposer, boutonTexte(T.plusTard, T.plusTardPour(carte.titreEnTexte), () => {
       for (const membre of groupe.cartes) plusTard.add(membre.id);
       options.redessiner();
     }, inactif));
