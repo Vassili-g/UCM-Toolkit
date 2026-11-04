@@ -11,6 +11,22 @@
  * `occupe`). Le lot écrit, `structure-appliquee` part (avec les noms des variables créées que l'Historique ne pourra pas annuler), les corrections retenues sont oubliées et l'analyse d'un composant
  * éventuelle est périmée.
  *
+ * Après Appliquer (D4b), la relecture est complète : l'interface envoie `lire-structure` à la réponse `structure-appliquee`, et il lit
+ * tout Figma. `appliquer-structure` ferme la reprise de l'acquisition du relevé et oublie la lecture gardée avant d'écrire ; l'écriture
+ * périme l'acquisition même refusée ou levée (`pendantUneEcriture`), comme l'annulation de l'Historique. Avant d'écrire, l'écriture relit
+ * les variables visées (existence, scopes, alias du mode, cible, collection de `theme`) et saute ce qui a changé depuis la lecture.
+ * Aucune relecture ciblée des variables écrites n'existe, parce que les contrôles du kit lisent plus que ces variables :
+ * - scopes (`C63` scopes, `C82` scopes d'une couche) : la variable écrite et ses seuls constats ; aucun contrôle ne lit les scopes
+ *   d'une autre variable. Le cas le plus local, mais il ne se relit pas seul : un lot mêle les sortes.
+ * - alias d'un mode : la valeur de la variable, donc son jugement de cran, les rampes que ses jumelles du groupe visent (le sens de la
+ *   palette et l'alias des créations C82 en dépendent) et, pour `C63` alias supprimé, la voisine de même dernier segment dont la cible sert de repère.
+ * - création : la liste des variables, donc les `C82` « variable absente » de son groupe, les jumelles du groupe et les index du kit,
+ *   mémorisés par catalogue sur la longueur de la liste : une variable ajoutée ou changée en place à un catalogue gardé n'y serait pas vue.
+ * - renommage, écrit avant les corrections par le même Appliquer : le rôle reconnu et le groupe de la variable, les identifiants des
+ *   constats `C82` (ils portent le nom), les scopes attendus par `C63`, les candidats que `C63` cherche par nom, et la clé d'Ignorer d'un constat.
+ * La relecture complète garde donc les voisins et les candidats justes, et rend le même message qu'un Actualiser (`tests/relectureApresAppliquer.test.ts`).
+ * Un Ctrl+Z de Figma ou un changement à la main ne se signale pas : seule la lecture suivante, d'Actualiser ou d'Appliquer, les voit.
+ *
  * Ignorer (Q6) : `ignorer-constat-de-structure` range un constat du dernier `structure` envoyé, pour sa palette ;
  * `ignorer-role` range un rôle du thème, pour tout le fichier ; `retablir-*` retire la clé. Chacune refiltre la dernière lecture
  * de structure si elle est fraîche, sinon relit Figma, et répond `structure` sous son propre numéro. Une demande faite pendant une autre écriture, un constat inconnu, un
@@ -74,8 +90,16 @@ export async function catalogueParLesLectures(figma: PluginAPI, appels: AppelsDe
   const locales = await port.getLocalVariablesAsync();
   const lues = await lireLesVariables(port, locales.map((variable) => variable.id), { annulee: () => false }, idsDesLocales(locales));
   if (!lues) return null;
-  return catalogueDuFichier({ collections: [...lues.collections.values()], variables: [...lues.variables.values()] }, 'ucm');
+  const catalogue = catalogueDuFichier({ collections: [...lues.collections.values()], variables: [...lues.variables.values()] }, 'ucm');
+  if ([...lues.manquees.values()].some((manquee) => manquee.issue === 'refusee')) cataloguesAvecUnRefus.add(catalogue);
+  return catalogue;
 }
+
+/**
+ * Les catalogues dont une lecture a été refusée : leur contenu dépend d'un refus que la lecture suivante peut ne plus avoir. Ils
+ * s'envoient, mais ne se gardent pas pour Ignorer, qui relit Figma. L'acquisition du relevé n'en retient aucune (`estComplete`).
+ */
+const cataloguesAvecUnRefus = new WeakSet<CatalogueDeReference>();
 
 export const ACCES_DE_FIGMA: Acces = {
   async catalogue({ figma }, appels = {}, depuisLeReleve = false) {
@@ -126,8 +150,8 @@ interface LectureGardee {
 
 /**
  * La dernière lecture complète, gardée jusqu'à la prochaine lecture. Rien n'est gardé quand le catalogue est absent (hors UCM,
- * lecture partielle ou refusée) ou quand les réglages ne se lisent pas : ces cas relisent Figma. Une écriture de variable ou un
- * nouvel Actualiser change le repère et la périme.
+ * lecture annulée), qu'une lecture a été refusée (`cataloguesAvecUnRefus`) ou que les réglages ne se lisent pas : ces cas relisent
+ * Figma. Une écriture de variable, un Appliquer ou un nouvel Actualiser change le repère ou l'efface, et la périme.
  */
 let gardee: LectureGardee | null = null;
 
@@ -175,7 +199,7 @@ async function lireLaStructure(numero: number, acces: Acces, contexte: Contexte,
   try { reglages = await acces.reglages(contexte); } catch { lus = false; /* sans réglages : aucune création, aucun constat écarté */ }
   const roles = rolesIgnoresDe(reglages.cles);
   const tous = controler(catalogue, reglages.ecriture, roles);
-  if (lus && reper === reperDesLectures()) gardee = { catalogue, ecriture: reglages.ecriture, roles, tous, reper };
+  if (lus && !cataloguesAvecUnRefus.has(catalogue) && reper === reperDesLectures()) gardee = { catalogue, ecriture: reglages.ecriture, roles, tous, reper };
   rendre(numero, contexte, tous, reglages.cles, roles);
 }
 
@@ -254,6 +278,8 @@ async function appliquer(demande: Extract<DemandeDeStructure, { type: 'appliquer
     let ecrites = 0;
     let sansAnnulation: readonly string[] = [];
     if (aEcrire.length > 0) {
+      // Une écriture, même refusée ou levée, a pu changer des variables : la lecture gardée ne sert plus, quelle que soit l'écriture.
+      gardee = null;
       try {
         const lot = await acces.ecrire(aEcrire);
         ecrites = lot.ecrites.length;
