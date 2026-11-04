@@ -17,4 +17,4 @@ Fin : `npm run stress:composant --workspace ucm-architect-plugin` rend deux tabl
 
 ## Avancement
 
-Pas commencé.
+En cours (Claude). Ne pas reprendre.

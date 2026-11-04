@@ -77,7 +77,7 @@ Les signes d'objet ont une seule définition dans `packages/kit/src/referentiel/
 | Lot | Agent | Dépend de | État |
 |---|---|---|---|
 | [A1](lots/A1.md) Signes du mode Tokens et de la revue | `implementeur` | rien | [x] 8d4111ce |
-| [A2](lots/A2.md) Un tracé, une définition | `implementeur-exigeant` | A1 | [ ] |
+| [A2](lots/A2.md) Un tracé, une définition | `implementeur-exigeant` | A1 | [x] a0c55f27 |
 | [A3a](lots/A3a.md) Interface | `implementeur` | A2 | [ ] |
 | [A3b](lots/A3b.md) Types de terme et sorties texte | `implementeur` | A3a | [ ] |
 | [A3c](lots/A3c.md) Signes de Palettes | `implementeur` | A3b, arbre réservé commité et relevé autorisé | [ ] |
@@ -95,7 +95,7 @@ Les signes d'objet ont une seule définition dans `packages/kit/src/referentiel/
 | Lot | Agent | Dépend de | Section | État |
 |---|---|---|---|---|
 | [B1](lots/B1.md) Corrections décochées | `implementeur` | rien | 2 | [x] f92b3d9c, B1.4 en partie |
-| [B2](lots/B2.md) Ignorer sur les cartes de règles | `implementeur` | B1 | 2 | [ ] |
+| [B2](lots/B2.md) Ignorer sur les cartes de règles | `implementeur` | B1 | 2 | [x] 71ca79a7, « Ne plus proposer » après une nouvelle analyse reste |
 | [B3](lots/B3.md) Ignorer une question | `implementeur-exigeant` | B2 | 3 | [ ] |
 | [B4](lots/B4.md) Analyse périmée | `implementeur` | B3 | 4 | [ ] |
 | [B5](lots/B5.md) Tous les constats ignorés | `implementeur` | B4 | 5 | [ ] |
@@ -109,7 +109,7 @@ Variables manquantes, Crans, Alias, Modes, Valeurs, Couches, Types, Rangement, S
 
 | Lot | Agent | Dépend de | État |
 |---|---|---|---|
-| [C1](lots/C1.md) Modèle des catégories | `implementeur` | A1 | [ ] |
+| [C1](lots/C1.md) Modèle des catégories | `implementeur` | A1 | [x] 71ca79a7 |
 | [C2](lots/C2.md) Coquille à deux onglets, sommaire et sections | `implementeur-exigeant` | C1 | [ ] |
 | [C3](lots/C3.md) Section Noms | `implementeur` | C2 | [ ] |
 | [C4](lots/C4.md) Sections de structure | `implementeur` | C3 | [ ] |
@@ -133,13 +133,13 @@ Une capture absente se compte absente. Une comparaison locale ne prouve pas la f
 |---|---|---|---|
 | [D0](lots/D0.md) Mesure de référence | `implementeur` | rien | [x] bd9f418d, 10956167, D0.3 et D0.4 en partie |
 | [D1](lots/D1.md) Acquisition commune dans la demande | `implementeur-exigeant` | D0 | [x] dfd09249, D1.4 en partie |
-| [D2](lots/D2.md) Lectures groupées | `implementeur` | D1 | [ ] |
+| [D2](lots/D2.md) Lectures groupées | `implementeur` | D1 | [x] 4dedcf96 |
 | [D3](lots/D3.md) Coûts algorithmiques du kit | `implementeur` | D0 | [x] 8d4111ce, D3.3 en partie |
 | [D4a](lots/D4a.md) Ignorer sans acquisition | `implementeur` | D3 | [ ] |
 | [D4b](lots/D4b.md) Relecture après Appliquer | `implementeur-exigeant` | D4a | [ ] |
 | [D5a](lots/D5a.md) Candidat de prélecture | `implementeur` | D4b | [ ] |
 | [D5b](lots/D5b.md) Mesure de prélecture | mainteneur | D5a, build disponible | [ ] |
-| [D6a](lots/D6a.md) Virtualisation des cartes | `implementeur` | D4b | [ ] |
+| [D6a](lots/D6a.md) Virtualisation des cartes | `implementeur` | D4b | [x] 2756fac9 |
 | [D6b](lots/D6b.md) Branchement des sections | `implementeur` | D6a | [ ] |
 | [D7](lots/D7.md) Mesure finale | `verificateur`, puis le mainteneur | D6b, D5a | [ ] |
 
@@ -165,8 +165,8 @@ Règles propres à la phase E :
 
 | Lot | Agent | Dépend de | État |
 |---|---|---|---|
-| [E0](lots/E0.md) Décisions et oracles | `implementeur` | C6 | [ ] |
-| [E0b](lots/E0b.md) Mesure des opérateurs F3-F4 | `implementeur` | E0 | [ ] |
+| [E0](lots/E0.md) Décisions et oracles | `implementeur` | C6 | en cours (Claude), E0.5 reste |
+| [E0b](lots/E0b.md) Mesure des opérateurs F3-F4 | `implementeur` | E0 | en cours (Claude) |
 | [E1a](lots/E1a.md) Valeurs de variant et axes | `implementeur-exigeant` | E0 | [ ] |
 | [E1b](lots/E1b.md) Icône, anneau et rôle de layer | `implementeur-exigeant` | E1a | [ ] |
 | [E2a](lots/E2a.md) Dictionnaire et vocabulaire du fichier | `implementeur-exigeant` | E1b | [ ] |
