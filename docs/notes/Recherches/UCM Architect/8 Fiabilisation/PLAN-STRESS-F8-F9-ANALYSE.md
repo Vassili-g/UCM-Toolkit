@@ -509,7 +509,7 @@ La version allégée (section 7 de l'inventaire) remplace les lots 1 à 10 par l
 |---|---|---|
 | 1 | Bases, injecteur, opérateurs F8, faux positifs et interactions de F8, deux relations, `mesurer.ts` | fait, `84bffed0` |
 | 2 | Opérateurs F9 (lectures, budget, cycle, états), faux positifs et interactions de F9 | fait, `e213ee45` |
-| 3 | Chaîne jusqu'à l'écran (section D, 129 cas), script `stress:analyse` | à faire |
+| 3 | Chaîne jusqu'à l'écran (section D, 129 cas), script `stress:analyse` | fait, `4bd6c04c`, mesuré `b370c335` |
 
 ## 9. Questions au mainteneur
 
