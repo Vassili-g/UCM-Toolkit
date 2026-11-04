@@ -18,6 +18,12 @@ Ajoutez les régressions voisines de chaque autorité modifiée.
 
 Fin : `npm run test --workspace @ucm-kit/core` passe. Les régressions ciblées de chaque case échouent sans sa correction. Les contrôles racine suivent toute modification des sources du kit. `npm run test:paquet -- architect` passe aussi.
 
+## Textes du designer
+
+Écrits par la conversation principale avec `rediger-diagnostics-ucm`. Gardez-les tels quels.
+
+- E2.2. La carte reprend la forme d'une paire : titre `titreDePaire` (« Remplacer `a` par `b` ? »), boutons « Remplacer », « Termes différents » et « Plus tard ». Nouvel indice de paire `ecriture-proche` : « Écriture proche ». La réponse « Termes différents » garde la ligne existante « Gardés séparés ».
+
 ## Avancement
 
 Pas commencé.

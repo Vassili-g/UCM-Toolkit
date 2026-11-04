@@ -17,6 +17,13 @@ Ajoutez les régressions voisines de chaque autorité modifiée.
 
 Fin : `npm run test --workspace @ucm-kit/core` passe. Les régressions ciblées de chaque case échouent sans sa correction. Les contrôles racine suivent toute modification des sources du kit.
 
+## Textes du designer
+
+Écrits par la conversation principale avec `rediger-diagnostics-ucm`. Gardez-les tels quels.
+
+- E5.1. Une phrase précède la phrase du constat C25 ou C29 : `Le layer ${layer} est masqué.`, ou `Le layer ${layer} est dans ${ancetre}, qui est masqué.` pour un ancêtre masqué. Le statut ne change pas.
+- E5.3. Les cases de correction : `Lier à \`${token}\`` quand le token est unique, `Renommer le layer en ${nom}` quand le nom est unique.
+
 ## Avancement
 
 Pas commencé.

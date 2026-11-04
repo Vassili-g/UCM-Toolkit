@@ -18,6 +18,13 @@ Ajoutez les régressions voisines de chaque autorité modifiée.
 
 Fin : `npm run test --workspace @ucm-kit/core` passe. Les régressions ciblées de chaque case échouent sans sa correction. Les contrôles racine suivent toute modification des sources du kit. `npm run test:paquet -- architect` passe aussi.
 
+## Textes du designer
+
+Écrits par la conversation principale avec `rediger-diagnostics-ucm`. Gardez-les tels quels.
+
+- E9.10, C53. Phrase : `Le variant ${variant} est désactivé : le contraste et la taille de la cible ne sont pas contrôlés.`
+- E9.12. Nouvelles causes dans `CAUSES_DE_LIMITE` de `packages/plugin-architect/src/ui/textes/ignores.ts` : `'mode-de-fusion': 'a un mode de fusion'` et `'flou-arriere-plan': 'est posé sur un flou d’arrière-plan'`. N'écrivez ni « peinture » ni « mélange » dans un texte nouveau (Q-F7-14).
+
 ## Avancement
 
 Pas commencé.

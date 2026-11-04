@@ -19,6 +19,14 @@ Ajoutez les régressions voisines de chaque autorité modifiée.
 
 Fin : `npm run test --workspace @ucm-kit/core` passe. Les tests bornent le nombre de combinaisons et de constats. La durée de la matrice est relevée dans le harnais, hors test unitaire.
 
+## Textes du designer
+
+Écrits par la conversation principale avec `rediger-diagnostics-ucm`. Gardez-les tels quels.
+
+- E7.5, au-delà de la borne. Phrase : `${variants} variants donnent ${combinaisons} combinaisons. Le plugin ne cherche pas les variants absents au-delà de 4 096 combinaisons.` Statut : « Vérifiez vous-même les variants à créer ».
+- E7.5, sous la borne. Ligne qui suit les 200 premiers constats : `Et 1 autre variant absent` ou `Et ${n} autres variants absents`.
+- E7.6, C32 `nom-illisible`. Phrase : `Le plugin ne lit pas le nom du token \`${token}\`.` Statut : « Renommez-le comme les autres tokens du composant, ou ignorez ce constat ».
+
 ## Avancement
 
 Pas commencé.

@@ -18,6 +18,16 @@ Ajoutez les régressions voisines de chaque autorité modifiée.
 
 Fin : `npm run test --workspace @ucm-kit/core` passe. Les régressions ciblées de chaque case échouent sans sa correction. Les contrôles racine suivent toute modification des sources du kit. `npm run test:paquet -- architect` passe aussi.
 
+## Textes du designer
+
+Écrits par la conversation principale avec `rediger-diagnostics-ucm`. Gardez-les tels quels.
+
+- E8.1. Ces textes remplacent `iconeSansLibrary`, `iconeSansTaille`, `iconeTailleHorsIcon` et `iconeTailleStatut` de `packages/plugin-architect/src/ui/textes/ignores.ts` :
+  - pas une instance d'Icon : « L’icône n’est pas une instance du composant Icon. » Statut : « Remplacez-la par une instance d’Icon ».
+  - couleur : `La couleur de l’icône est liée à \`${token}\`. Le composant prévoit \`${attendu}\`.` Statut : `Liez-la à \`${attendu}\``. Sans token : « La couleur de l’icône n’a pas de token. », même statut.
+  - taille : `La propriété Size de l’icône vaut ${valeur}. Le variant est en ${taille}.` Statut : `Réglez Size sur ${taille}`.
+- E8.2. Le statut de couleur garde « Liez-la à un token icon ou foreground ».
+
 ## Avancement
 
 Pas commencé.

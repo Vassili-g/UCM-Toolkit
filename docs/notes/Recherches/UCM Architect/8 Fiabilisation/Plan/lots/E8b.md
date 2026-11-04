@@ -16,6 +16,12 @@ Ajoutez les régressions voisines de chaque autorité modifiée.
 
 Fin : `npm run test --workspace @ucm-kit/core` passe. Les régressions ciblées de chaque case échouent sans sa correction. Les contrôles racine suivent toute modification des sources du kit.
 
+## Textes du designer
+
+Écrits par la conversation principale avec `rediger-diagnostics-ucm`. Gardez-les tels quels.
+
+- E8.3, information `styles-mixtes`. Phrase : `Le layer ${layer} porte plusieurs text styles.` Statut : « Appliquez un seul text style, ou ignorez ce constat ». N'écrivez pas « mélange » (Q-F7-14).
+
 ## Avancement
 
 Pas commencé.

@@ -16,6 +16,15 @@ Ajoutez les régressions voisines de chaque autorité modifiée.
 
 Fin : `npm run test:paquet -- architect` passe. Les régressions couvrent les cases de ce sous-lot. La galerie expose ses cartes et ses refus.
 
+## Textes du designer
+
+Écrits par la conversation principale avec `rediger-diagnostics-ucm`. Gardez-les tels quels.
+
+- E4.1, palette d'un seul composant. Titre : `Texte sur les boutons ${palette}`. Choix : `Garder le texte ${actuel} sur les boutons` et `Passer au texte ${autre}`, où `actuel` et `autre` valent « noir » ou « blanc ».
+- E4.1, palette partagée. Titre : `Texte sur ${palette}, que les boutons et les encadrés partagent`. Légendes des dessins : « Bouton » et « Encadré ». Choix : `Garder le texte ${actuel}` et `Passer au texte ${autre}`.
+- E4.6, carte groupée (QV-3). Phrase : `${n} variables de \`${collection}\` visent \`${coucheVisee}\`, sur ${modes} modes.` au pluriel, `1 variable de … vise …, sur 1 mode.` au singulier. Le dépliage reprend `Voir les ${n} variables`. Le statut garde celui de la carte non groupée.
+- E4.6, information (QV-4). Phrase : « Aucune collection n’est reconnue comme `theme`. L’intégrité UCM n’est pas contrôlée. » Statut : « Répondez à la question de collection dans la section Noms ».
+
 ## Avancement
 
 Pas commencé.
