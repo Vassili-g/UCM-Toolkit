@@ -43,7 +43,7 @@ function wrapper(): LayerLu {
   return layer('instance', '.sizeWrapperButton', 'INSTANCE', 'racine', [
     liaison('fills', FOND),
     liaison('fills', TEXTE, { id: 'I;texte', nom: 'Suivant', type: 'TEXT' }),
-    liaison('fills', TEXTE, { id: 'I;icone', nom: 'Vector', type: 'VECTOR' }),
+    liaison('fills', TEXTE, { id: 'I;icone', nom: 'icon', type: 'VECTOR' }),
   ], [solide('fills', 1)]);
 }
 
@@ -59,7 +59,7 @@ test('C17 garde le fond de l’instance elle-même : un foreground posé sur son
 });
 
 test('une icône admet icon et foreground, un stroke admet border et foreground', () => {
-  const icone = layer('icone', 'circle-info', 'INSTANCE', 'racine', [liaison('fills', TEXTE, { id: 'I;v', nom: 'circle-info', type: 'VECTOR' })]);
+  const icone = { ...layer('icone', 'circle-info', 'INSTANCE', 'racine', [liaison('fills', TEXTE, { id: 'I;v', nom: 'circle-info', type: 'VECTOR' })]), instanceDe: { cle: 'icon', nom: 'Icon', distante: true, pilotee: null } };
   const racine = layer('racine', 'Alert', 'COMPONENT', null, [liaison('strokes', TEXTE)]);
   const constats = controlerMapping(releve([variant('v', [racine, icone])]), catalogue(TEXTE, 'button/color/primary/border'));
   assert.deepEqual(constats.filter((constat) => constat.code === 'C17'), []);

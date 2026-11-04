@@ -7,13 +7,17 @@
  * layers (`padding-left` et `padding-right` donnent `padding-x`), pas par son
  * nom. Une couleur dit son usage : contour, effet, texte, icône, fond.
  */
+import { estUneIcone } from '@ucm-kit/core/referentiel';
 import { champDe, natureDe, type CalqueDuComposant, type LectureDeComposant, type LigneDeComposant } from '../../composant';
 
-/** Un layer d'icône : un tracé, ou un nom qui dit « icon ». Même lecture que le mapping du kit. */
+/** Un layer d'icône selon la définition du référentiel ; une instance imbriquée y donne le composant qu'elle pose. */
 const estUnLayerDIcone = (calque: CalqueDuComposant | undefined): boolean =>
-  calque !== undefined && (calque.type === 'VECTOR' || calque.type === 'BOOLEAN_OPERATION' || /icon/i.test(calque.nom));
+  calque !== undefined && estUneIcone({
+    nom: calque.nom, type: calque.type,
+    ...(calque.frontiere ? { instanceDe: { nom: calque.frontiere.composant, pilotee: null } } : {}),
+  });
 
-/** Un token d'icône : un segment de son nom dit « icon » ou « icons ». */
+/** Un token d'icône : un segment de son nom dit « icon » ou « icons ». C'est une convention de nom de token, que la définition d'un layer d'icône du référentiel ne remplace pas. */
 const estUnTokenDIcone = (nomComplet: string): boolean => /(^|\/)icons?(\/|$)/i.test(nomComplet);
 
 function ligneDIcone(lecture: LectureDeComposant, ligne: LigneDeComposant): boolean {

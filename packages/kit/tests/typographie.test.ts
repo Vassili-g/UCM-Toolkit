@@ -31,7 +31,7 @@ function icone(over: Partial<LayerLu> = {}, liaisons: LiaisonLue[] = [
 ]): LayerLu {
   return {
     id: `i${Math.random()}`, nom: 'icon', type: 'INSTANCE', parent: 'r', visible: true, opacite: 1, dimensions: dims,
-    peintures: [], liaisons, valeursEnDur: [], instanceDe: { cle: 'c', nom: 'Info', distante: true, pilotee: null }, ...over,
+    peintures: [], liaisons, valeursEnDur: [], instanceDe: { cle: 'c', nom: 'Icon', distante: true, pilotee: null }, ...over,
   };
 }
 const variant = (nom: string, layers: LayerLu[]): VariantLu => ({ id: nom, nom, valeurs: { Severity: nom }, layers, modesEffectifs: {} });

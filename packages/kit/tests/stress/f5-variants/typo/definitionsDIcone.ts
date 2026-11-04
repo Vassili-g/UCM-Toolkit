@@ -87,7 +87,7 @@ const ID_DU_LAYER = 'r:2';
 function layerAJuger(definition: DefinitionDIcone, plus: Partial<LayerLu> = {}): LayerLu {
   return layerNeuf(ID_DU_LAYER, definition.nom, definition.type, 'r:1', {
     peintures: [BLANC],
-    ...(definition.type === 'INSTANCE' ? { instanceDe: { cle: 'lib-icone', nom: 'Chevron', distante: true, pilotee: definition.instance === 'pilotee' ? 'Icon#1:2' : null } } : {}),
+    ...(definition.type === 'INSTANCE' ? { instanceDe: { cle: 'lib-icone', nom: 'Icon', distante: true, pilotee: definition.instance === 'pilotee' ? 'Icon#1:2' : null } } : {}),
     ...(definition.type === 'TEXT' ? { texte: { style: 'Label/Medium', plages: [] } } : {}),
     ...plus,
   });

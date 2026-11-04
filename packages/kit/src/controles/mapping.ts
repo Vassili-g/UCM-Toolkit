@@ -1,4 +1,5 @@
 /** Écarts entre les liaisons lues et les axes, rôles et portées du composant. */
+import { estUnNomDAnneau, estUneIcone, estUneInstanceDIcone } from '../referentiel/layers.js';
 import { formeDuChemin, formeReconnue, termeReconnu } from '../referentiel/reconnaissance.js';
 import { REGISTRE_ROLES } from '../referentiel/vocabulaire.js';
 import { collectionParCle, variableDuCatalogue, type CatalogueDeReference, type VariableDuCatalogue } from './catalogue.js';
@@ -29,20 +30,22 @@ function layerPeint(layer: LayerLu, liaison: LiaisonLue): { nom: string; type: s
   return liaison.surcharge ?? layer;
 }
 
-/** Une icône : un tracé, un layer dont le nom dit « icon », ou une instance qu'une propriété INSTANCE_SWAP pilote. */
-function estUneIcone(layer: LayerLu, liaison: LiaisonLue): boolean {
-  const peint = layerPeint(layer, liaison);
-  if (peint.type === 'VECTOR' || peint.type === 'BOOLEAN_OPERATION' || /icon/i.test(peint.nom)) return true;
-  return !liaison.surcharge && (layer.instanceDe?.pilotee ?? null) !== null;
+/**
+ * Le layer que la liaison peint est une icône selon la définition du référentiel. Une surcharge peint un layer de l'instance : il
+ * est une icône s'il l'est lui-même, ou si l'instance qui le porte est celle d'un composant Icon, dont le tracé intérieur garde un nom libre.
+ */
+function estUneIconePeinte(layer: LayerLu, liaison: LiaisonLue): boolean {
+  if (!liaison.surcharge) return estUneIcone(layer);
+  return estUneIcone(liaison.surcharge) || estUneInstanceDIcone(layer);
 }
 
 /** Les rôles admis pour la liaison : le premier est celui qu'une correction pose. Une icône prend `icon` ou `foreground`. */
 function rolesAdmis(layer: LayerLu, liaison: LiaisonLue): readonly string[] | undefined {
   const peint = layerPeint(layer, liaison);
-  if (liaison.champ === 'strokes') return /ring|focus/i.test(peint.nom) ? ['ring'] : ['border', 'foreground'];
+  if (liaison.champ === 'strokes') return estUnNomDAnneau(peint.nom) ? ['ring'] : ['border', 'foreground'];
   if (liaison.champ !== 'fills') return undefined;
   if (peint.type === 'TEXT' || liaison.plage) return ['foreground', 'text'];
-  if (estUneIcone(layer, liaison)) return ['icon', 'foreground'];
+  if (estUneIconePeinte(layer, liaison)) return ['icon', 'foreground'];
   return ['background'];
 }
 

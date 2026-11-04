@@ -53,7 +53,7 @@ export const GABARITS: Readonly<Record<NomDeFamille, Gabarit>> = {
   'controle-mapping': [
     'releve.jeu.nom', ...PROPRIETES,
     ...sous('releve.variants.*', 'id', 'valeurs'),
-    ...sous(LAYERS, 'id', 'nom', 'type', 'instanceDe.pilotee'),
+    ...sous(LAYERS, 'id', 'nom', 'type', 'instanceDe.nom', 'instanceDe.pilotee'),
     ...sous(LIAISONS_DU_LAYER, 'champ', 'indice', 'plage', 'surcharge', 'variable.cle', 'variable.nom'),
     ...COLLECTIONS, ...sous('catalogue.variables.*', 'cle', 'nom', 'collection', 'scopes', ALIAS),
   ],
@@ -75,7 +75,7 @@ export const GABARITS: Readonly<Record<NomDeFamille, Gabarit>> = {
   'controle-accessibilite': [
     'niveau', ...sous('releve.lecture.manquees.*', 'layer', 'champ'), ...PROPRIETES,
     ...sous('releve.variants.*', 'nom', 'valeurs', 'modesEffectifs'),
-    ...sous(LAYERS, 'id', 'nom', 'type', 'parent', 'visible', 'opacite', 'strokeWeight', 'dimensions.largeur', 'dimensions.hauteur', 'peintures'),
+    ...sous(LAYERS, 'id', 'nom', 'type', 'parent', 'visible', 'opacite', 'strokeWeight', 'dimensions.largeur', 'dimensions.hauteur', 'peintures', 'instanceDe.nom', 'instanceDe.pilotee'),
     ...liaisons(['champ', 'indice', 'surcharge.id', 'illisible', 'variable.cle'], ['champ', 'indice', 'illisible', 'variable.cle']),
     ...sous(`${LAYERS}.texte.plages.*`, 'debut', 'fin', 'fontSize', 'fontWeight', 'peintures'),
     ...sous('catalogue.collections.*', 'cle', 'nom', 'role', 'etat', 'modes'), ...sous('catalogue.variables.*', 'cle', 'nom', 'collection', 'etat', 'valeurs'),
@@ -83,7 +83,7 @@ export const GABARITS: Readonly<Record<NomDeFamille, Gabarit>> = {
   ],
   'controle-typographie': [
     ...sous('releve.proprietes.*', 'nom', 'type'), 'releve.variants.*.nom',
-    ...sous(LAYERS, 'id', 'nom', 'type', 'parent', 'visible', 'instanceDe.distante', 'instanceDe.pilotee', 'texte.style'),
+    ...sous(LAYERS, 'id', 'nom', 'type', 'parent', 'visible', 'instanceDe.nom', 'instanceDe.distante', 'instanceDe.pilotee', 'texte.style'),
     ...liaisons(['champ', 'illisible', 'variable.cle', 'variable.nom', 'variable.collection'], ['champ', 'illisible', 'variable.cle', 'variable.nom', 'variable.collection']),
     ...COLLECTIONS, ...sous('catalogue.variables.*', 'cle', 'nom', 'collection'),
   ],

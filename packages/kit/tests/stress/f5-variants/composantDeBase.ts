@@ -156,7 +156,7 @@ export function avecLesCouchesF6(composant: ComposantDeBase): ComposantDeBase {
       peintures: [{ champ: 'fills', indice: 0, type: 'SOLID', visible: true, opacite: 1, blendMode: 'NORMAL', couleur: { r: 0.2, g: 0.4, b: 0.8, a: 1 } }],
       liaisons: [liaisonVers(ancienne.id, 'width', taille), liaisonVers(ancienne.id, 'height', taille), liaisonVers(ancienne.id, 'fills', premierPlan, { indice: 0 })],
       valeursEnDur: ancienne.valeursEnDur,
-      instanceDe: { cle: 'lib-icone', nom: 'Chevron', distante: true, pilotee: PROPRIETE_D_ICONE },
+      instanceDe: { cle: 'lib-icone', nom: 'Icon', distante: true, pilotee: PROPRIETE_D_ICONE },
     };
     variant.layers = variant.layers.filter((layer) => layer.nom !== 'Glyph').map((layer) => (layer.id === ancienne.id ? icone : layer));
   }

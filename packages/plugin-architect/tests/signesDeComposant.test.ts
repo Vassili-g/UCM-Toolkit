@@ -7,7 +7,7 @@ import { SIGNES } from '@ucm-kit/core/referentiel';
 import { lignesDe, porteeDe, type LectureDeComposant, type LigneDeComposant } from '../src/composant';
 import { indexer } from '../src/indexation';
 import { signeDeLigne, signeDuTitre } from '../src/ui/composant/signes';
-import { composantBouton, composantComplexe, composantSimple } from './fixtures';
+import { composantBouton, composantComplexe, composantSimple, composantTuile } from './fixtures';
 
 const lignesDuSujet = (lecture: LectureDeComposant): LigneDeComposant[] => lignesDe(lecture, indexer(lecture.releve), porteeDe(lecture, lecture.calques[0].id));
 
@@ -81,4 +81,21 @@ test('le titre : component pour le sujet, le signe du type pour un layer', () =>
   assert.equal(signeDuTitre(false, 'FRAME'), 'frame');
   assert.equal(signeDuTitre(false, 'TEXT'), 'text');
   assert.equal(signeDuTitre(false, 'INSTANCE'), 'instance');
+});
+
+/** Le signe de la couleur `foreground` de TileLink quand son layer `chess` devient celui-ci. */
+function signeDuLayerDe(calque: { nom?: string; type?: string; frontiere?: { composant: string } }): string {
+  const tuile = composantTuile();
+  const lecture = { ...tuile, calques: tuile.calques.map((c, rang) => (rang === 1 ? { ...c, ...calque } : c)) } as LectureDeComposant;
+  const ligne = lignesDuSujet(lecture).find((l) => l.nomCourt === 'colors/info/default/foreground');
+  assert.ok(ligne, 'ligne foreground absente');
+  return signeDeLigne(lecture, ligne, true).id;
+}
+
+test("un layer est une icône selon le référentiel : instance d'Icon, ou tracé nommé en mot entier ; un FRAME ou un nom piège ne l'est pas (Q-F6-3)", () => {
+  assert.equal(signeDuLayerDe({ nom: 'Leading', type: 'INSTANCE', frontiere: { composant: 'Icon' } }), 'usage-icone');
+  assert.equal(signeDuLayerDe({ nom: 'icon', type: 'VECTOR' }), 'usage-icone');
+  assert.equal(signeDuLayerDe({ nom: 'Silicone', type: 'VECTOR' }), 'usage-fill');
+  assert.equal(signeDuLayerDe({ nom: 'icon-container', type: 'FRAME' }), 'usage-fill');
+  assert.equal(signeDuLayerDe({ nom: 'Avatar', type: 'INSTANCE', frontiere: { composant: 'Photo' } }), 'usage-fill');
 });

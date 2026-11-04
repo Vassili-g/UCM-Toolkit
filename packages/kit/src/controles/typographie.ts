@@ -7,6 +7,7 @@
  * jamais jugée.
  */
 import { CHAMPS_DE_TYPOGRAPHIE } from '../referentiel/architecture.js';
+import { estUneIcone } from '../referentiel/layers.js';
 import type { CatalogueDeReference } from './catalogue.js';
 import { collectionDuCatalogue, variableDuCatalogue } from './catalogue.js';
 import type { Constat } from './constat.js';
@@ -20,7 +21,6 @@ const CHAMPS_DE_TAILLE = ['width', 'height'];
 const AUTRES_MINIMUM = 2;
 const SEGMENT_D_ICONE = 'icon';
 const SEGMENTS_DE_PREMIER_PLAN = ['icon', 'foreground'];
-const NOM_D_ICONE = /icon/i;
 
 type Source = { variant: VariantLu; layer: LayerLu };
 
@@ -35,16 +35,12 @@ export function* controlerLaTypographieParEtapes(releve: ReleveDeComposant, cata
   const variants = releve.variants;
   const constats: Constat[] = [];
   const textes = yield* sources(variants, (l) => l.type === 'TEXT');
-  const icones = yield* sources(variants, estIcone);
+  const icones = yield* sources(variants, estUneIcone);
   constats.push(...(yield* controlerLesTextes(textes, catalogue)));
   constats.push(...(yield* controlerLesTailleEtGraisse(textes, catalogue)));
   constats.push(...(yield* controlerLesIcones(icones, catalogue)));
   constats.push(...(yield* controlerLesReglesIcones(icones, releve)));
   return constats;
-}
-
-function estIcone(layer: LayerLu): boolean {
-  return (NOM_D_ICONE.test(layer.nom) || (layer.instanceDe?.pilotee ?? null) !== null);
 }
 
 function* sources(variants: VariantLu[], garde: (l: LayerLu) => boolean): Generator<void, Map<string, Source[]>> {

@@ -8,11 +8,13 @@
 import { GARANTIES } from '../emplois/garanties.js';
 import { atteintLeSeuil, contraste, contrasteTronque } from '../emplois/contraste.js';
 import { hexaDeFigma, versRgb8 } from '../emplois/couleur.js';
+import { estUnAnneau, estUneIcone } from '../referentiel/layers.js';
 import { RECOMMANDATIONS } from '../referentiel/recommandations.js';
 import type { CatalogueDeReference, CollectionDuCatalogue, CouleurResolue, VariableDuCatalogue } from './catalogue.js';
 import { collectionDuCatalogue, variableDuCatalogue } from './catalogue.js';
-import { estLAxeDEtats } from '../referentiel/reconnaissance.js';
+import { estLAxeDEtats, termeReconnu } from '../referentiel/reconnaissance.js';
 import { variableDuThemeReconnue } from '../referentiel/theme.js';
+import { REGISTRE_ROLES } from '../referentiel/vocabulaire.js';
 import { etatReconnu } from './nommage.js';
 import type { Constat } from './constat.js';
 import { layersVisiblesDuVariant, lectureManquee, liaisonsPropres, peintureVisible, type LayerLu, type LiaisonLue, type PeintureLue, type ReleveDeComposant, type VariantLu } from './releve.js';
@@ -104,11 +106,6 @@ type Cible = {
 };
 
 const OPAQUE = 1 - 1e-9;
-/**
- * Un anneau se reconnaît à son nom seul, `ring` ou `focus-ring` (note P : le nom tranche). Un point ou un tiret bas en tête,
- * la marque Figma d'un layer privé (`.Ring`), ne change pas le nom.
- */
-const NOM_D_ANNEAU = /^[._]?(focus[-_ ]?)?ring$/i;
 
 export function controlerLAccessibilite(
   releve: ReleveDeComposant,
@@ -161,7 +158,7 @@ export function* controlerLAccessibiliteParEtapes(
 
   constats.push(...yield* controlerLesCibles(mesures, estInteractif(releve), releve));
   constats.push(...yield* controlerLeTexteMinimal(mesures));
-  constats.push(...yield* controlerLAnneau(mesures));
+  constats.push(...yield* controlerLAnneau(mesures, catalogue));
   return constats;
 }
 
@@ -187,10 +184,6 @@ function layersVisibles(variant: VariantLu): readonly LayerLu[] {
 
 function estGrandTexte(fontSize: number, fontWeight: number): boolean {
   return fontSize >= 24 || (fontSize >= 18.66 && fontWeight >= 700);
-}
-
-function estIcone(layer: LayerLu): boolean {
-  return layer.type === 'VECTOR' || layer.type === 'BOOLEAN_OPERATION';
 }
 
 function aUnePeintureVisible(layer: LayerLu, champ: 'fills' | 'strokes'): boolean {
@@ -584,8 +577,20 @@ function estGaranti(variableDuTheme: string | null, fond: NomDeFond): boolean {
 
 /* ---------- C49 et C50 ---------- */
 
+/** Le rôle de chaque token que le layer lie lui-même (une surcharge d'instance n'est pas le layer) ; c'est la seconde moitié de la définition d'un anneau (Q-F7-9). */
+function rolesLiesDuLayer(layer: LayerLu, catalogue: CatalogueDeReference): string[] {
+  const roles: string[] = [];
+  for (const liaison of liaisonsPropres(layer)) {
+    const variable = variableDuCatalogue(catalogue, liaison.variable.cle);
+    if (variable === 'absente') continue;
+    const role = termeReconnu(REGISTRE_ROLES, variable.nom.split('/').at(-1) ?? '')?.id;
+    if (role) roles.push(role);
+  }
+  return roles;
+}
+
 /** Cède par layer visible et par plage de texte ; la liste rendue est celle de la voie synchrone. */
-function* ciblesDeContraste(variant: VariantLu, niveau: NiveauWcag): Generator<void, Cible[]> {
+function* ciblesDeContraste(variant: VariantLu, niveau: NiveauWcag, catalogue: CatalogueDeReference): Generator<void, Cible[]> {
   const cibles: Cible[] = [];
   for (const layer of layersVisibles(variant)) {
     yield;
@@ -602,8 +607,8 @@ function* ciblesDeContraste(variant: VariantLu, niveau: NiveauWcag): Generator<v
       }
       continue;
     }
-    const anneau = NOM_D_ANNEAU.test(layer.nom);
-    if (estIcone(layer) && !anneau && aUnePeintureVisible(layer, 'fills')) {
+    const anneau = estUnAnneau(layer, rolesLiesDuLayer(layer, catalogue));
+    if (estUneIcone(layer) && !anneau && aUnePeintureVisible(layer, 'fills')) {
       cibles.push({
         layer, code: 'C49', usage: 'icone', champ: 'fills', peintures: layer.peintures.filter((p) => p.champ === 'fills'),
         liaisons: liaisonsPropres(layer), seuil: SEUILS_D_ACCESSIBILITE.nonTexte,
@@ -625,7 +630,7 @@ function* mesurerLeVariant(
   variant: VariantLu, combinaisons: Combinaison[], catalogue: CatalogueDeReference, niveau: NiveauWcag,
   groupes: Map<string, GroupeMesure>, limites: Map<string, Constat>,
 ): Generator<void, void> {
-  const cibles = yield* ciblesDeContraste(variant, niveau);
+  const cibles = yield* ciblesDeContraste(variant, niveau, catalogue);
   for (const cible of cibles) {
     yield;
     type Mesure = { pire: { rapport: number; etiquette: string; premierPlan: string; fond: string; combinaison: Combinaison } | null; echecs: number; rapports: [string, number][] };
@@ -739,16 +744,16 @@ function estEnFocus(variant: VariantLu): boolean {
   return etatDuVariant(variant)?.startsWith('focus') ?? false;
 }
 
-function* anneauxDuVariant(variant: VariantLu): Generator<void, LayerLu[]> {
+function* anneauxDuVariant(variant: VariantLu, catalogue: CatalogueDeReference): Generator<void, LayerLu[]> {
   const anneaux: LayerLu[] = [];
   for (const layer of layersVisibles(variant)) {
     yield;
-    if (NOM_D_ANNEAU.test(layer.nom) && layer.type !== 'TEXT' && layer.peintures.some(peintureVisible)) anneaux.push(layer);
+    if (estUnAnneau(layer, rolesLiesDuLayer(layer, catalogue)) && layer.type !== 'TEXT' && layer.peintures.some(peintureVisible)) anneaux.push(layer);
   }
   return anneaux;
 }
 
-function* controlerLAnneau(variants: VariantLu[]): Generator<void, Constat[]> {
+function* controlerLAnneau(variants: VariantLu[], catalogue: CatalogueDeReference): Generator<void, Constat[]> {
   const constats: Constat[] = [];
   const recommandation = RECOMMANDATIONS.find((r) => r.id === 'anneau-de-focus');
   const epaisseur = Number(recommandation?.parametres.epaisseur ?? 2);
@@ -756,7 +761,7 @@ function* controlerLAnneau(variants: VariantLu[]): Generator<void, Constat[]> {
   const sansAnneau: VariantLu[] = [];
   for (const variant of variants) {
     yield;
-    if (estEnFocus(variant) && (yield* anneauxDuVariant(variant)).length === 0) sansAnneau.push(variant);
+    if (estEnFocus(variant) && (yield* anneauxDuVariant(variant, catalogue)).length === 0) sansAnneau.push(variant);
   }
   if (sansAnneau.length > 0) {
     const racines: LayerLu[] = [];
@@ -781,7 +786,7 @@ function* controlerLAnneau(variants: VariantLu[]): Generator<void, Constat[]> {
   const fins = new Map<string, Constat>();
   for (const variant of variants) {
     yield;
-    const anneaux = yield* anneauxDuVariant(variant);
+    const anneaux = yield* anneauxDuVariant(variant, catalogue);
     for (const anneau of anneaux) {
       yield;
       if (anneau.strokeWeight === undefined || anneau.strokeWeight === epaisseur) continue;

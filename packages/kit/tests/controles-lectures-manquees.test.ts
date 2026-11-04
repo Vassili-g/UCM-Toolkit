@@ -44,7 +44,7 @@ test('lectureManquee : vrai pour le layer et le champ consignés, faux pour les 
 
 test('C66 : une couleur et une taille liées par une variable illisible ne sont ni « sans variable » ni jugées', () => {
   const icone = (id: string, liaisons: LiaisonLue[]) => layer(id, 'icon', 'INSTANCE', 'r', {
-    liaisons, instanceDe: { cle: 'c', nom: 'Info', distante: true, pilotee: null },
+    liaisons, instanceDe: { cle: 'c', nom: 'Icon', distante: true, pilotee: null },
   });
   const lie = releve([variant('a', [icone('i', [illisible('fills', 0), illisible('width'), illisible('height')])])]);
   assert.deepEqual(typographie(lie, 'C66'), []);
