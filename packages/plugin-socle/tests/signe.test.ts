@@ -61,7 +61,10 @@ test('un signe est gris sans `informe`, et prend la teinte de sa famille avec', 
 test('un signe repris prend la teinte de la famille qui le montre, et refuse une famille qui ne le montre pas', () => {
   assert.equal(teinteDuSigne('prop-variant'), 'variants');
   assert.equal(teinteDuSigne('prop-variant', 'regles'), 'regles');
-  assert.deepEqual(classesDe(creerSigne('prop-boolean', { informe: true, famille: 'regles' })), ['signe', 'signe-informe', 'signe-teinte-regles']);
+  assert.deepEqual(classesDe(creerSigne('type-boolean', { informe: true, famille: 'regles' })), ['signe', 'signe-informe', 'signe-teinte-regles']);
+  for (const id of ['type-boolean', 'text', 'slot']) {
+    assert.deepEqual(classesDe(creerSigne(id, { informe: true, famille: 'property' })), ['signe', 'signe-informe', 'signe-teinte-variants'], id);
+  }
   assert.equal(teinteDuSigne('a-creer', 'proposition'), null);
   assert.equal(teinteDuSigne('mode', 'palettes'), 'couleurs');
   for (const { famille, reprend } of REPRISES_DE_SIGNES) for (const { id } of reprend) assert.doesNotThrow(() => teinteDuSigne(id, famille));

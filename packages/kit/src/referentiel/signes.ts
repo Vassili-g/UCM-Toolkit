@@ -161,10 +161,7 @@ export const SIGNES: readonly SigneDuLangage[] = [
   ]),
   ...famille('property', [
     ['prop-variant', 'variant property', '<path d="M8 2.3 13.7 8 8 13.7 2.3 8z"/><circle cx="8" cy="8" r="1.4" fill="currentColor" stroke="none"/>', 'Property de variant : Severity, Variant.'],
-    ['prop-boolean', 'boolean property', BASCULE, 'Property vrai ou faux.'],
-    ['prop-text', 'text property', TEXTE_T, 'Property de texte.'],
     ['prop-swap', 'instance swap', '<path d="M8 4.6 11.4 8 8 11.4 4.6 8z"/><path d="M2.3 6.2A6 6 0 0 1 11 2.6M13.7 9.8A6 6 0 0 1 5 13.4"/>', 'Property d’échange d’instance.'],
-    ['prop-slot', 'slot property', EMPLACEMENT, 'Property de slot.'],
   ]),
   ...famille('regles', [
     ['regles', 'instance de règles', '<rect x="3" y="2" width="10" height="12" rx="1.5"/><path d="M5.5 5.5h5M5.5 8h5M5.5 10.5h3"/>', 'L’instance .componentRules posée à côté du composant.'],
@@ -211,10 +208,18 @@ export const SIGNES: readonly SigneDuLangage[] = [
 /** Les signes qu’une famille montre sans les définir : la définition reste dans leur famille d’origine. */
 export const REPRISES_DE_SIGNES: readonly RepriseDeSigne[] = [
   {
+    famille: 'property',
+    reprend: [
+      { id: 'type-boolean', libelle: 'boolean property' },
+      { id: 'text', libelle: 'text property' },
+      { id: 'slot', libelle: 'slot property' },
+    ],
+  },
+  {
     famille: 'regles',
     reprend: [
       { id: 'prop-variant', libelle: '@prop' },
-      { id: 'prop-boolean', libelle: '@boolean' },
+      { id: 'type-boolean', libelle: '@boolean' },
     ],
   },
   { famille: 'usage-couleur', reprend: [{ id: 'type-color', libelle: 'Couleurs' }] },

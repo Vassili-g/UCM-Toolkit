@@ -9,6 +9,15 @@ test('les identifiants de signes sont uniques', () => {
   assert.equal(new Set(familles).size, familles.length);
 });
 
+test('un tracé non vide appartient à un seul signe', () => {
+  const proprietaires = new Map<string, string>();
+  for (const signe of SIGNES) {
+    if (!signe.trace) continue;
+    assert.equal(proprietaires.get(signe.trace), undefined, `${signe.id} reprend le tracé de ${proprietaires.get(signe.trace)}`);
+    proprietaires.set(signe.trace, signe.id);
+  }
+});
+
 test('chaque signe vise une famille existante et porte libellé, sens et mot', () => {
   const familles = new Set<string>(FAMILLES_DE_SIGNES.map((famille) => famille.id));
   for (const signe of SIGNES) {
@@ -35,6 +44,14 @@ test('chaque reprise vise un signe existant d’une autre famille', () => {
       assert.notEqual(signe.famille, reprise.famille, repris.id);
     }
   }
+});
+
+test('les propriétés reprennent les signes booléen, texte et slot avec leurs libellés', () => {
+  assert.deepEqual(REPRISES_DE_SIGNES.find((reprise) => reprise.famille === 'property')?.reprend, [
+    { id: 'type-boolean', libelle: 'boolean property' },
+    { id: 'text', libelle: 'text property' },
+    { id: 'slot', libelle: 'slot property' },
+  ]);
 });
 
 test('un tracé n’emploie que path, rect, circle et text', () => {

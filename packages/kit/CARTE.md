@@ -83,7 +83,7 @@ Ce qui juge un contrat écrit ; `ajv` et `node:fs`.
 
 ## src/referentiel/
 - composition.ts : les quatre sortes de composant imbriqué et `sorteDeLImbrique(faits)`, depuis nom, règles trouvées et dimensions liées
-- signes.ts : les signes des sortes d’objets (14 familles, dont `rubrique-tokens` pour les dix catégories du mode Tokens, identifiant, libellé, sens, tracé SVG, mot de repli), les reprises entre familles et `svgDuSigne` ; données seules, la tuile se pose dans le socle
+- signes.ts : les signes des sortes d’objets (14 familles, dont `rubrique-tokens` pour les dix catégories du mode Tokens, identifiant, libellé, sens, tracé SVG unique, mot de repli), les reprises entre familles et `svgDuSigne` ; données seules, la tuile se pose dans le socle
 
 ## scripts/
 - build-schema.ts : génère le schéma depuis `types.ts`
