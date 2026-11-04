@@ -13,4 +13,9 @@ export const TEXTES_TOKENS = {
   nomDeLaPuceDesQuestions: (libelle: string, nombre: number): string => `${libelle}, ${nombre} question${pluriel(nombre)}`,
   nomDeLaBande: (libelle: string, nombre: number): string => `${libelle}, ${nombre} constat${pluriel(nombre)}`,
   nomDeLaBandeDesQuestions: (libelle: string, nombre: number): string => `${libelle}, ${nombre} question${pluriel(nombre)}`,
+  /** Le pied quand les deux écritures partent ensemble : « Appliquer renomme 87 noms, puis écrit 3 corrections de structure. » */
+  pied: {
+    renomme: 'Appliquer renomme ',
+    puisEcrit: ', puis écrit ',
+  },
 };

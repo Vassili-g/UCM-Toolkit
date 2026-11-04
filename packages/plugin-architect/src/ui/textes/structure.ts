@@ -95,7 +95,6 @@ export const TEXTES_STRUCTURE = {
     return `En ${mode}, UCM attend ${cran(attendu)}. Aujourd’hui elle vise ${cran(lu)}.`;
   },
   changeLaCouleur: 'Cette correction change la couleur affichée.',
-  toutDeselectionner: 'Tout désélectionner',
   // Corrections de scopes
   regler: (nombre: number): string => `Régler le scope de ${variables(nombre)} `,
   retirerLesScopes: (nombre: number): string => `Retirer les scopes de ${variables(nombre)} de `,
@@ -115,7 +114,6 @@ export const TEXTES_STRUCTURE = {
   },
   // Pied et application
   appliquerEcrit: (nombre: number): { readonly debut: string; readonly nombre: string; readonly fin: string } => ({ debut: 'Appliquer écrit ', nombre: corrections(nombre), fin: ' de structure.' }),
-  aucuneCorrectionCochee: 'Aucune correction de structure cochée.',
   appliquer: 'Appliquer',
   caseDeCorrection: (nom: string): string => `Corriger ${nom}`,
   caseDeCarte: (action: string): string => `Corriger : ${action}`,

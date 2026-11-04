@@ -102,12 +102,30 @@ test('le nom de la table est entier, seul le terme que Corrections change est ve
   } finally { await page.context().close(); }
 });
 
+const PIED = '#panneau-a-appliquer .corrections-pied';
+
+test('toutes les cases arrivent décochées : le pied n’a rien à écrire et Appliquer est inactif', async () => {
+  const page = await ouvrirInterface();
+  try {
+    assert.equal(await page.locator(`${PIED} .corrections-resume`).textContent(), 'Aucune correction cochée');
+    assert.equal(await page.locator(`${PIED} .btn-primary`).isDisabled(), true);
+    assert.equal(await page.locator('.section-element[data-element="noms"] .case:checked').count(), 0);
+    assert.deepEqual(await page.locator('.section-element[data-element="noms"] .section-actions button').allTextContents(), ['Tout cocher', 'Tout décocher']);
+    await page.locator('.section-element[data-element="noms"] .section-actions button').first().click();
+    assert.match(await page.locator(`${PIED} .corrections-resume`).textContent(), /^Appliquer renomme 24 variables et 1 collection de Interface\.$/);
+    await page.locator('.section-element[data-element="noms"] .section-actions button').nth(1).click();
+    assert.equal(await page.locator(`${PIED} .corrections-resume`).textContent(), 'Aucune correction cochée');
+    assert.deepEqual(page.erreurs, []);
+  } finally { await page.context().close(); }
+});
+
 test('Appliquer sous le filtre n’écrit que les noms de la collection affichée, et le pied les compte', async () => {
   const page = await ouvrirInterface();
   try {
-    assert.match(await page.locator('.noms-pied .resume').textContent(), /^Appliquer renomme 24 variables et 1 collection de Interface\.$/);
+    await page.locator(`${PIED} .cocher-global`).click();
+    assert.match(await page.locator(`${PIED} .corrections-resume`).textContent(), /^Appliquer renomme 24 variables et 1 collection de Interface\.$/);
     assert.equal(await page.locator('#onglet-a-appliquer .compte').textContent(), await page.locator('.puce-element[data-element="tout"] .nombre').textContent());
-    await page.locator('.noms-pied .btn-primary').click();
+    await page.locator(`${PIED} .btn-primary`).click();
     await page.locator('.feuille-groupe .btn-primary').click();
     await page.waitForTimeout(30);
     const [demande] = await demandesDe(page, 'appliquer');
@@ -124,8 +142,9 @@ test('sans filtre, Appliquer écrit les groupes cochés du bilan', async () => {
   const page = await ouvrirInterface();
   try {
     await page.locator('.filtre-ligne .puce-x').click();
-    assert.match(await page.locator('.noms-pied .resume').textContent(), /^87 noms cochés$/);
-    await page.locator('.noms-pied .btn-primary').click();
+    await page.locator(`${PIED} .cocher-global`).click();
+    assert.match(await page.locator(`${PIED} .corrections-resume`).textContent(), /^87 noms cochés$/);
+    await page.locator(`${PIED} .btn-primary`).click();
     await page.locator('.feuille-groupe .btn-primary').click();
     await page.waitForTimeout(30);
     const [demande] = await demandesDe(page, 'appliquer');

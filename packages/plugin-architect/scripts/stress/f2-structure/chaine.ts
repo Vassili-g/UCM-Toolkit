@@ -10,7 +10,8 @@
  * mesure comme des écarts sans les contourner.
  *
  * `monterStructure` demande une coquille de Nomenclature que le harnais ne monte pas. Le harnais lui donne le double de `tests/rapport.test.ts`
- * (`tokens` : `hote`, `ignores`, `haut`, `pied`, `poserLaStructure`) et les conteneurs qu'il lit : tous sont rangés sous une même racine. Un geste d'Ignorer qui n'a pas de bouton à
+ * et les conteneurs qu'il lit, tous rangés sous une même racine. Ce double a `tokens` (`hote`, `ignores`, `haut`, `pied`, `poserLaStructure`,
+ * `poserLesGestes`) et `renommages`, sans renommage. Les boutons de section que le panneau poserait sous chaque bande sont gardés par catégorie. Un geste d'Ignorer qui n'a pas de bouton à
  * l'écran remplace la prochaine demande de l'interface par la demande du geste, sous le même numéro, comme `demanderAvec` de
  * `ui/structure/index.ts`. Le sandbox garde un état global (`reinitialiserLAnalyse`) : les chaînes se lancent l'une après l'autre.
  */
@@ -32,6 +33,7 @@ poserLeDom();
 // L'interface lit `document` à l'appel : le domaine se charge après la pose du faux DOM.
 // eslint-disable-next-line @typescript-eslint/no-require-imports
 const { monterStructure } = require('../../../src/ui/structure') as typeof import('../../../src/ui/structure');
+const { SANS_RENOMMAGES } = require('../../../src/ui/tokens/cochage') as typeof import('../../../src/ui/tokens/cochage');
 
 // ---------------------------------------------------------------------------------------------------------------------------
 // La chaîne
@@ -159,10 +161,11 @@ export async function lancerLaChaine(parametres: ParametresDeChaine): Promise<Ch
   };
   const ignores = conteneur();
   const pied = conteneur();
+  const gestes = new Map<string, ElementDeTest>();
   const coquille = {
-    tokens: { hote, ignores, haut, pied, poserLaStructure() {} },
+    tokens: { hote, ignores, haut, pied, poserLaStructure() {}, poserLesGestes: (id: string, element: unknown) => { if (element === null) gestes.delete(id); else gestes.set(id, comme(element)); } },
     pied: new ElementDeTest('DIV'),
-    toutDecocher() {},
+    renommages: () => SANS_RENOMMAGES,
   };
   const structure = monterStructure(coquille as never, {
     envoyer: (demande) => {
@@ -179,7 +182,7 @@ export async function lancerLaChaine(parametres: ParametresDeChaine): Promise<Ch
 
   const chaine: Chaine = {
     etat, messages, ecritures,
-    ecran: new Ecran(racine, racine),
+    ecran: new Ecran(racine, racine, hotes, gestes),
     poserLeCatalogue(catalogue) { etat.catalogue = structuredClone(catalogue); },
     derniere: () => [...messages].reverse().find((message) => message.type === 'structure') as MessageDeStructureRecu,
     async lire() {
@@ -214,7 +217,7 @@ export class Ecran {
   readonly racineAFaire: ElementDeTest;
   readonly racineCorrections: ElementDeTest;
 
-  constructor(aFaire: unknown, corrections: unknown) {
+  constructor(aFaire: unknown, corrections: unknown, private readonly hotes: ReadonlyMap<string, ElementDeTest>, private readonly gestes: ReadonlyMap<string, ElementDeTest>) {
     this.racineAFaire = comme(aFaire);
     this.racineCorrections = comme(corrections);
   }
@@ -234,8 +237,9 @@ export class Ecran {
   casesDeCartes(): ElementDeTest[] { return this.racineCorrections.querySelectorAll('.bloc-tete input').filter((element) => element.type === 'checkbox'); }
   cartesDeCorrections(): ElementDeTest[] { return this.racineCorrections.querySelectorAll('.bloc'); }
 
-  pied(): ElementDeTest | null { return this.racineCorrections.querySelector('.structure-pied'); }
-  boutonAppliquer(): ElementDeTest | null { return this.pied()?.querySelector('button') ?? null; }
+  /** Le pied commun de l'onglet, qui compte les cases des renommages et des corrections de structure. */
+  pied(): ElementDeTest | null { return this.racineCorrections.querySelector('.corrections-pied'); }
+  boutonAppliquer(): ElementDeTest | null { return this.pied()?.querySelector('.btn-primary') ?? null; }
   /** La ligne verte que l'application d'un lot laisse, vide tant qu'aucun lot n'est revenu. */
   resultat(): string {
     const zone = this.racineCorrections.querySelector('.page-stack')?.children.find((enfant) => !enfant.classes.has('structure-liste'));
@@ -246,15 +250,11 @@ export class Ecran {
     return racine.querySelectorAll('button').filter((bouton) => motif.test(texteDe(bouton)));
   }
 
-  /** Les intertitres de la liste des corrections, chacun avec les éléments qui le suivent jusqu'au suivant. */
-  sectionsDeCorrections(): { readonly titre: string; readonly elements: ElementDeTest[] }[] {
-    const liste = this.racineCorrections.querySelector('.structure-liste');
-    const sections: { titre: string; elements: ElementDeTest[] }[] = [];
-    for (const enfant of liste?.children ?? []) {
-      if (enfant.classes.has('intertitre-structure')) sections.push({ titre: texteDe(enfant), elements: [] });
-      else sections.at(-1)?.elements.push(enfant);
-    }
-    return sections;
+  /** Pour chaque catégorie qui a des lignes de correction, les boutons que le panneau pose sous la bande de sa section (`undefined` s'il n'y en a pas). */
+  sectionsDeCorrections(): { readonly titre: string; readonly boutons: ElementDeTest | undefined }[] {
+    return [...this.hotes]
+      .filter(([, hote]) => hote.querySelectorAll('.diff input').some((element) => element.type === 'checkbox'))
+      .map(([titre]) => ({ titre, boutons: this.gestes.get(titre) }));
   }
 }
 
@@ -454,8 +454,9 @@ export function controlerLesCasesDecochees(ecran: Ecran, quand: string): Verific
   const pied = ecran.pied();
   verifier(v, pied !== null, { propriete: 'P12', sorte: 'non-affiche', detail: `${quand} : le pied des corrections est absent` });
   if (pied) {
-    const resume = texteDe(pied.querySelector('.structure-resume') ?? pied);
-    verifier(v, resume === TEXTES.aucuneCorrectionCochee, { propriete: 'P12', sorte: 'cochee', detail: `${quand} : le pied dit « ${resume} », attendu « ${TEXTES.aucuneCorrectionCochee} »` });
+    const resume = texteDe(pied.querySelector('.corrections-resume') ?? pied);
+    const attendu = TEXTES.correctionsDuComposant.aucuneCochee;
+    verifier(v, resume === attendu, { propriete: 'P12', sorte: 'cochee', detail: `${quand} : le pied dit « ${resume} », attendu « ${attendu} »` });
     verifier(v, ecran.boutonAppliquer()?.disabled === true, { propriete: 'P12', sorte: 'cochee', detail: `${quand} : Appliquer est actif` });
   }
   return v;
@@ -464,8 +465,8 @@ export function controlerLesCasesDecochees(ecran: Ecran, quand: string): Verific
 /** P12 : chaque section de corrections porte « Tout cocher » et « Tout décocher ». */
 export function controlerLesBoutonsDeCochage(ecran: Ecran): Verification {
   const v = verification();
-  for (const { titre, elements } of ecran.sectionsDeCorrections()) {
-    const boutons = elements.flatMap((element) => ecran.boutons(/./, element));
+  for (const { titre, boutons: gestes } of ecran.sectionsDeCorrections()) {
+    const boutons = gestes && !gestes.hidden ? ecran.boutons(/./, gestes) : [];
     verifier(v, boutons.some((bouton) => MOTIF_TOUT_COCHER.test(texteDe(bouton))), { propriete: 'P12', sorte: 'bouton-manquant', detail: `la section « ${titre} » n'a pas « Tout cocher »` });
     verifier(v, boutons.some((bouton) => MOTIF_TOUT_DECOCHER.test(texteDe(bouton))), { propriete: 'P12', sorte: 'bouton-manquant', detail: `la section « ${titre} » n'a pas « Tout décocher »` });
   }

@@ -77,7 +77,10 @@ const termeOuvert = (mot, fiche) => [
 /** Le délai de la simulation d'une saisie : l'écran attend 250 ms avant de demander. */
 const delai = () => Array.from({ length: 60 }, () => ({ survol: 'body' }));
 const repondreAuPremier = '.carte.question .question-actions:first-child .btn-secondary';
-const appliquer = [clic('.noms-pied .btn-primary', '.feuille'), clic('.feuille-groupe .btn-primary')];
+/** Toutes les cases arrivent décochées : « Tout cocher » du pied les coche, puis Appliquer du pied commun ouvre la confirmation. */
+const toutCocher = clic('#panneau-a-appliquer .cocher-global');
+const piedCommun = '#panneau-a-appliquer .corrections-pied';
+const appliquer = [toutCocher, clic(`${piedCommun} .btn-primary`, '.feuille'), clic('.feuille-groupe .btn-primary')];
 
 const ETATS = [
   {
@@ -115,7 +118,7 @@ const ETATS = [
     'La carte des groupes, des noms et des collections, avec un exemple réel par ligne, et Continuer en bas.',
     [msg(messages.initial(false)), clic('.etat > .btn'), msg(messages.bilan(1, bilans.premierLancement), '.ecriture')]),
   etat('a-appliquer', 'Renommages, repliée', 'Le bilan propose des renommages dans les trois sections.',
-    'Termes, Écriture et Collections ; chaque carte coche, dit avant → après, son nombre de variables et son origine.',
+    'Termes, Écriture et Collections ; chaque carte est décochée, dit avant → après, son nombre de variables et son origine ; « Tout cocher » et « Tout décocher » sont sous la bande de Noms ; le pied dit « Aucune correction cochée », « Tout cocher » est à côté d’Appliquer, qui est inactif.',
     ouvert(bilans.travail)),
   etat('a-appliquer-depliee', 'Renommages, dépliée', 'Le designer déplie un groupe et demande les autres noms.',
     'Une variable par ligne, le bouton des autres noms, puis les noms reçus dans la carte.',
@@ -133,7 +136,7 @@ const ETATS = [
     'La ligne « 3 noms écrits par UCM Palettes » avec la pastille Protégé et le texte « Ce fichier a été ouvert avec une version d’UCM Palettes plus récente que celle qu’UCM Architect connaît. Mettez à jour UCM Architect pour renommer ces variables. ».',
     [...ouvert(bilans.marqueFuture), clic('.carte.muette .tete-bouton')]),
   etat('regles-futures', 'Renommages, règles d’une version plus récente', 'Une version plus récente d’UCM Architect a rangé des règles dans le fichier.',
-    'Le pied de l’onglet remplace le compte de noms cochés par « Une version plus récente d’UCM Architect a rangé des règles dans ce fichier. Mettez le plugin à jour pour renommer. » ; Appliquer est inactif.',
+    'Le pied commun de l’onglet remplace « Aucune correction cochée » par « Une version plus récente d’UCM Architect a rangé des règles dans ce fichier. Mettez le plugin à jour pour renommer. » ; Appliquer est inactif.',
     ouvert(bilans.reglesFutures)),
   etat('protection-sans-regles', 'Protection, écriture non enregistrée', 'Au premier lancement, le designer ouvre la Configuration avant de choisir l’écriture.',
     'La ligne de primitives « 346 variables, dont 120 gardent leur nom », puis sous la liste « 120 noms écrits par UCM Palettes » et « Les variables d’UCM Palettes gardent leur nom tant que l’écriture des noms n’est pas enregistrée. Choisissez l’écriture, puis appuyez sur Continuer. ».',
@@ -152,12 +155,12 @@ const ETATS = [
     [...ouvert(bilans.travail), clic('.icon-button', '.config-liste')]),
   etat('a-appliquer-nom-corrige', 'Renommages, un nom décoché puis corrigé', 'Le designer décoche Button/bg/hover ; le nom est corrigé dans Figma ; la nouvelle analyse ne le propose plus.',
     'Le groupe background garde ses 11 noms, tous cochés, sans mention « non cochés » ; le pied compte 86 noms cochés et Appliquer reste disponible.',
-    [...ouvert(bilans.travail), clic('.case[aria-label="Button/bg/hover"]'), clic('[data-element="questions"]', '.carte.question'), clic(repondreAuPremier),
-      msg(messages.bilan(3, bilans.apresUneCorrection), '.faite-texte'), msg(messages.selection(4, 2, []), '.noms-pied .btn-primary:not([disabled])'),
+    [...ouvert(bilans.travail), toutCocher, clic('.case[aria-label="Button/bg/hover"]'), clic('[data-element="questions"]', '.carte.question'), clic(repondreAuPremier),
+      msg(messages.bilan(3, bilans.apresUneCorrection), '.faite-texte'), msg(messages.selection(4, 2, []), `${piedCommun} .btn-primary:not([disabled])`),
       clic('[data-element="tout"]')]),
   etat('confirmation', 'Confirmation', 'Le designer appuie sur Appliquer.',
     'La feuille « Renommer 87 noms ? », ses quatre faits, Retour et Renommer ; le focus sur Retour.',
-    [...ouvert(bilans.travail), clic('.noms-pied .btn-primary', '.feuille')]),
+    [...ouvert(bilans.travail), toutCocher, clic(`${piedCommun} .btn-primary`, '.feuille')]),
   etat('application', 'Après application', 'Les noms cochés ont été renommés.',
     'La ligne « 87 noms renommés » avec Annuler, suivie de « Les anciens noms sont gardés dans Configuration › Historique. » ; la liste ne garde que ce qui n’était pas coché.',
     [...ouvert(bilans.travail), ...appliquer, msg(messages.application(3)), msg(messages.bilan(3, bilans.apresLApplication), '.resultat:not([hidden])')]),

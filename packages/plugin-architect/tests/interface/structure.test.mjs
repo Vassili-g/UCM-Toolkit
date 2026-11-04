@@ -94,7 +94,9 @@ test('Constats range les corrections de modes et de scopes dans leur section, av
     assert.deepEqual(await scopes.locator('.bloc').locator('.meta').allTextContents().then((textes) => textes.slice(0, 1)), ['UCM réserve ces variables aux fonds. Aujourd’hui, leur scope est Show in all.']);
     assert.deepEqual(await scopes.locator('.bloc').locator('.chemin-apres .ch-ajout').allTextContents(), ['Frame fill, Shape fill', 'Frame fill, Shape fill', 'Frame fill, Shape fill']);
     assert.equal(await page.locator('#onglet-a-appliquer .compte').textContent(), '15');
-    assert.match(await page.locator('.structure-pied').textContent(), /^Appliquer écrit 4 corrections de structure\.Appliquer$/);
+    assert.equal(await scopes.locator('.case:checked').count(), 0, 'les corrections arrivent décochées');
+    assert.match(await page.locator('#panneau-a-appliquer .corrections-pied').textContent(), /^Aucune correction cochéeTout cocherAppliquer$/);
+    assert.deepEqual(await page.locator('.section-element[data-element="scopes"] .section-actions button').allTextContents(), ['Tout cocher', 'Tout décocher']);
     assert.deepEqual(page.erreurs, []);
   } finally { await page.context().close(); }
 });
@@ -104,13 +106,15 @@ test('Appliquer n’envoie que les lignes cochées, et la réponse dit ce qui s�
   try {
     const scopes = page.locator('.section-element[data-element="scopes"]');
     await scopes.locator('.bloc-bouton').click();
+    await page.locator('.section-element[data-element="modes"] .section-actions button').first().click();
+    await scopes.locator('.section-actions button').first().click();
     await scopes.locator('.bloc').locator('.diff .case').first().uncheck();
-    assert.match(await page.locator('.structure-pied .structure-resume').textContent(), /^Appliquer écrit 3 corrections de structure\.$/);
-    await page.locator('.structure-pied .btn-primary').click();
+    assert.match(await page.locator('.corrections-pied .corrections-resume').textContent(), /^Appliquer écrit 3 corrections de structure\.$/);
+    await page.locator('.corrections-pied .btn-primary').click();
     await page.waitForFunction(() => window.demandes.some((demande) => demande.type === 'appliquer-structure'));
     const [envoi] = await demandesDe(page, 'appliquer-structure');
     assert.deepEqual(envoi.ids, ['mode:success/vivid/ring', 'scope:primary/surface/hover', 'scope:info/soft/surface/default']);
-    assert.equal(await page.locator('.structure-pied .btn-primary').isDisabled(), true);
+    assert.equal(await page.locator('.corrections-pied .btn-primary').isDisabled(), true);
     await envoyer(page, { type: 'structure-appliquee', demande: envoi.demande, ecrites: 3, sautees: [], sansAnnulation: [] });
     assert.equal(await page.locator('#panneau-a-appliquer .resultat:visible').textContent().then((texte) => texte.includes('3 corrections écrites.')), true);
     assert.equal((await demandesDe(page, 'lire-structure')).length, 2);
@@ -121,7 +125,8 @@ test('Appliquer n’envoie que les lignes cochées, et la réponse dit ce qui s�
 test('une création sans trace au journal dit les noms, sans bouton', async () => {
   const page = await ouvrirLaStructure();
   try {
-    await page.locator('.structure-pied .btn-primary').click();
+    await page.locator('.section-element[data-element="modes"] .section-actions button').first().click();
+    await page.locator('.corrections-pied .btn-primary').click();
     await page.waitForFunction(() => window.demandes.some((demande) => demande.type === 'appliquer-structure'));
     const [envoi] = await demandesDe(page, 'appliquer-structure');
     await envoyer(page, { type: 'structure-appliquee', demande: envoi.demande, ecrites: 1, sautees: [], sansAnnulation: ['theme/primary/surface/subtle'] });

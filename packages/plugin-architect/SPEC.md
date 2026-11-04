@@ -80,7 +80,7 @@ chevron replie l'arbre sans changer la table.
 
 ### Catégories du mode Tokens
 
-Le modèle `src/ui/tokens/categories.ts` classe les cartes dans dix catégories ordonnées. Leur branchement dans le panneau reste à faire.
+Le modèle `src/ui/tokens/categories.ts` classe les cartes dans dix catégories ordonnées.
 Les catégories sont Noms, Variables manquantes, Crans, Alias, Modes, Valeurs, Couches, Types, Rangement et Scopes.
 Chaque catégorie porte son signe de la famille `rubrique-tokens` du kit et son nombre de cartes. Une carte peut regrouper plusieurs corrections.
 Les questions précèdent les autres cartes. Une catégorie vide est tenue seulement si l'analyse est complète. Si tous les constats sont ignorés, aucune catégorie n'est tenue.
@@ -88,6 +88,8 @@ Les questions précèdent les autres cartes. Une catégorie vide est tenue seule
 Les lecteurs de `src/ui/structure/lecture.ts` gardent le classement des faits. `alias-supprime` et `library-inactive` vont dans Alias.
 Une correction `alias-de-mode` va dans Crans quand son constat porte le genre `cran`, sinon dans Modes. Une correction `scope` va dans Scopes.
 Le code C63 seul ne détermine aucune catégorie.
+
+Toutes les cases de l'onglet arrivent décochées : un seul pied compte les noms cochés de Noms et les corrections de structure cochées. Appliquer écrit d'abord les renommages, puis les corrections de structure par identifiant de variable, que le sandbox relit avant d'écrire. Un échec des renommages arrête les corrections. Chaque section qui a des cases porte « Tout cocher » et « Tout décocher » ; le pied porte « Tout cocher » global.
 
 ## Lecture
 

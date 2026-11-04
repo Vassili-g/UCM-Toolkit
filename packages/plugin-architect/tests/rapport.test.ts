@@ -22,6 +22,7 @@ import { traiter } from '../src/sandbox/rapport';
 import { creerApplication } from '../src/ui/application';
 import { monterLePanneau } from '../src/ui/analyse';
 import { monterStructure } from '../src/ui/structure';
+import { SANS_RENOMMAGES } from '../src/ui/tokens/cochage';
 import { creerLesMesuresDuPanneau, monterLeRapportDeTokens } from '../src/ui/structure/rapport';
 import { contenuDuRapport, nomDuRapport } from '../src/ui/analyse/rapport';
 import type { AnalyseRecue } from '../src/ui/composant/analyse';
@@ -296,8 +297,8 @@ test('un échec du rapport de tokens écrit la ligne d’échec et laisse le lie
 test('la structure mesure la taille de releve et de structure et le rendu, et montre le lien après la première lecture', () => {
   const fabrique = (): ElementDeTest => comme(document.createElement('div'));
   const pied = fabrique();
-  const tokens = { hote: () => fabrique(), ignores: fabrique(), haut: fabrique(), pied: fabrique(), poserLaStructure() {} };
-  const coquille = { tokens, pied, toutDecocher() {} };
+  const tokens = { hote: () => fabrique(), ignores: fabrique(), haut: fabrique(), pied: fabrique(), poserLaStructure() {}, poserLesGestes() {} };
+  const coquille = { tokens, pied, renommages: () => SANS_RENOMMAGES };
   const envoyes: Array<{ type: string; demande: number }> = [];
   const demandes: Array<(mesures: string | null) => void> = [];
   const telechargements: Array<{ contenu: string }> = [];

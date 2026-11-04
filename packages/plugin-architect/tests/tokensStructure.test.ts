@@ -146,7 +146,7 @@ test('chaque carte À faire se pose dans le conteneur de son groupe, avec son me
 
 test('chaque correction se pose dans le conteneur de sa catégorie, avec ses cases', () => {
   const hotes = { manquantes: element(), crans: element(), modes: element(), scopes: element() };
-  const corrections = monterLesCorrections({ element: element(), hotes, hoteDuPied: element(), auChangement() {}, appliquer() {} });
+  const corrections = monterLesCorrections({ element: element(), hotes, auChangement() {} });
   const constats = constatsDesFixtures();
   const toutes = constats.flatMap((constat) => (constat.correction ? [constat.correction] : []));
   const lues = lireLesCorrections(toutes, SANS_NOMS, constats);

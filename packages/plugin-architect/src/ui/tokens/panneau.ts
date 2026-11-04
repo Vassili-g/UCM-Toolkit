@@ -55,11 +55,16 @@ export interface DonneesDuPanneau {
 export interface PanneauDesTokens {
   /** Le conteneur du corps d'une catégorie de structure. */
   hote(id: CategorieDeStructure): HTMLElement;
+  /**
+   * Les gestes d'une section, « Tout cocher » et « Tout décocher » : le panneau les pose sous la bande de la section ouverte, sauf sous la puce
+   * Questions. L'élément dure autant que le panneau ; son module le masque quand la section n'a aucune case.
+   */
+  poserLesGestes(id: IdDeCategorie, gestes: HTMLElement | null): void;
   /** Le conteneur des constats ignorés, en fin de liste sous « Tout ». */
   readonly ignores: HTMLElement;
-  /** La zone sous le sommaire : « Tout désélectionner » et les lignes de résultat de la structure. */
+  /** La zone sous le sommaire : les lignes de résultat de la structure. */
   readonly haut: HTMLElement;
-  /** La zone sous la liste : le pied des corrections de structure. */
+  /** La zone sous la liste : le pied commun, qui compte les cases cochées des renommages et des corrections de structure. */
   readonly pied: HTMLElement;
   /** Le choix du sommaire, ramené à « Tout » quand la catégorie ou les questions choisies n'ont plus de carte. */
   choix(): ChoixDuSommaire;
@@ -130,6 +135,8 @@ export function monterLePanneauDesTokens({ racine, nomenclature, auChangement }:
     }
     return element;
   };
+
+  const gestes = new Map<IdDeCategorie, HTMLElement>();
 
   let donnees: DonneesDuPanneau = { bilan: null, reglesRecues: 0 };
   let structure: StructureLue | null = null;
@@ -206,7 +213,11 @@ export function monterLePanneauDesTokens({ racine, nomenclature, auChangement }:
       nomAccessible: (seulementLesQuestions ? TEXTES_TOKENS.nomDeLaBandeDesQuestions : TEXTES_TOKENS.nomDeLaBande)(vue.libelle, nombre),
       ouverte: ouverte || seule,
     }, (suite) => basculer(vue.id, suite)));
-    if (ouverte || seule) section.append(...(vue.id === 'noms' ? corpsDeNoms(seulementLesQuestions) : [hote(vue.id)]));
+    if (ouverte || seule) {
+      const gestesDeLaSection = seulementLesQuestions ? undefined : gestes.get(vue.id);
+      if (gestesDeLaSection) section.append(gestesDeLaSection);
+      section.append(...(vue.id === 'noms' ? corpsDeNoms(seulementLesQuestions) : [hote(vue.id)]));
+    }
     return section;
   }
 
@@ -266,6 +277,10 @@ export function monterLePanneauDesTokens({ racine, nomenclature, auChangement }:
 
   return {
     hote,
+    poserLesGestes(id, element) {
+      if (element === null) gestes.delete(id);
+      else gestes.set(id, element);
+    },
     ignores,
     haut,
     pied,

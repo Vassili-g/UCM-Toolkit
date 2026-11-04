@@ -1,9 +1,11 @@
 /**
- * Le contenu de l'onglet Corrections : une carte par groupe de renommages sous
- * trois intertitres, la carte repliée des noms non renommés, le pied avec le
- * compte des noms cochés, la confirmation et la ligne qui suit une application.
+ * Les renommages de la section Noms : une carte par groupe de renommages sous
+ * trois intertitres, la carte repliée des noms non renommés, la confirmation et
+ * la ligne qui suit une application. Toutes les cases arrivent décochées ;
+ * « Tout cocher » et « Tout décocher » se posent sous la bande de la section.
  * Ce que le designer a coché vit dans `selection.ts` ; ce module le reflète dans
- * les cases et envoie `appliquer` avec ce modèle.
+ * les cases. Il n'a pas de pied : le pied commun de l'onglet (`tokens/cochage.ts`)
+ * lit son compte par le pont `PontDesRenommages` et lui demande d'écrire.
  */
 import { CONVENTIONS, REGISTRE_CASSES, REGISTRE_SEPARATEURS, libelleDuTerme, termeRetenu, type Convention } from '@ucm-kit/core/referentiel';
 import { createButton } from 'ucm-plugin-socle/src/ui/Button';
@@ -14,6 +16,7 @@ import type { Coquille } from './coquille';
 import {
   cocherGroupe,
   cocherLigne,
+  cocherTout,
   compterLesNomsCoches,
   compterLesNomsCochesParSorte,
   creerSelection,
@@ -32,6 +35,8 @@ import { annonceApresUneErreur, annonceDUneApplication, annonceDUneAnnulation, l
 import { lignesDeProtection, totauxDeProtection } from './protection';
 import { creerLaReserve, type Reserve } from './renommages';
 import { TEXTES } from '../textes/nomenclature';
+import { creerLaSuiteDuPied } from './suiteDuPied';
+import { creerLesGestesDeSection, type CompteDesRenommages, type IssueDesRenommages, type PontDesRenommages } from '../tokens/cochage';
 
 type Pastille = 'nouveau' | 'bloque' | 'protege' | 'non-verifie';
 
@@ -241,6 +246,8 @@ export interface DemandeDeConfirmation {
   readonly renommer: () => void;
   /** Appelée à chaque fermeture, confirmation comprise. */
   readonly auRetour?: () => void;
+  /** Appelée après `auRetour` quand la feuille se ferme sans confirmation : Retour, croix, Échap ou clic sur le voile. */
+  readonly abandonner?: () => void;
 }
 
 interface DemandeDeFeuille {
@@ -252,6 +259,8 @@ interface DemandeDeFeuille {
   readonly confirmer: () => void;
   /** Appelée à chaque fermeture, confirmation comprise. */
   readonly auRetour?: () => void;
+  /** Appelée après `auRetour` quand la feuille se ferme sans confirmation. */
+  readonly abandonner?: () => void;
 }
 
 /**
@@ -259,11 +268,13 @@ interface DemandeDeFeuille {
  * d'un renommage. Le focus arrive sur le bouton de retour et revient au bouton
  * qui a ouvert la feuille à sa fermeture.
  */
-export function ouvrirUneFeuilleDeConfirmation({ titre, corps, libelleDuRetour, libelleDeLaConfirmation, confirmer, auRetour }: DemandeDeFeuille): { fermer(): void } {
+export function ouvrirUneFeuilleDeConfirmation({ titre, corps, libelleDuRetour, libelleDeLaConfirmation, confirmer, auRetour, abandonner }: DemandeDeFeuille): { fermer(): void } {
+  let confirmee = false;
   const retour = createButton({ label: libelleDuRetour, variant: 'secondary', onClick: () => feuille.fermer() });
   const valider = createButton({
     label: libelleDeLaConfirmation,
     onClick: () => {
+      confirmee = true;
       feuille.fermer();
       confirmer();
     },
@@ -275,13 +286,21 @@ export function ouvrirUneFeuilleDeConfirmation({ titre, corps, libelleDuRetour, 
   groupe.append(retour, valider);
   pied.append(document.createElement('span'), groupe);
 
-  const feuille = createFeuille({ titre, corps, pied, onFermer: () => auRetour?.() });
+  const feuille = createFeuille({
+    titre,
+    corps,
+    pied,
+    onFermer: () => {
+      auRetour?.();
+      if (!confirmee) abandonner?.();
+    },
+  });
   retour.focus();
   return { fermer: () => feuille.fermer() };
 }
 
 /** La confirmation qui précède chaque application. */
-export function ouvrirConfirmation({ variables, collections, renommer, auRetour }: DemandeDeConfirmation): { fermer(): void } {
+export function ouvrirConfirmation({ variables, collections, renommer, auRetour, abandonner }: DemandeDeConfirmation): { fermer(): void } {
   const faits = document.createElement('ul');
   faits.className = 'faits';
   const changement = TEXTES.nomsQuiChangent(variables, collections);
@@ -302,6 +321,7 @@ export function ouvrirConfirmation({ variables, collections, renommer, auRetour 
     libelleDeLaConfirmation: TEXTES.renommer,
     confirmer: renommer,
     auRetour,
+    abandonner,
   });
 }
 
@@ -325,10 +345,11 @@ export interface OptionsDeCorrections {
 }
 
 /**
- * Monte l'onglet dans `coquille.panneaux.aAppliquer.contenu` et suit les
+ * Monte les renommages dans `coquille.panneaux.aAppliquer.contenu` et suit les
  * messages de la coquille : un `bilan` reconstruit les cartes, une `application`
- * pose la ligne du résultat. Sous le filtre de l'arbre, les cartes et le pied ne
- * comptent que les noms de la collection choisie, et Appliquer n'écrit qu'eux.
+ * pose la ligne du résultat. Sous le filtre de l'arbre, les cartes et le compte du
+ * pont ne comptent que les noms de la collection choisie, et l'application n'écrit
+ * qu'eux. Le pont est rangé dans la coquille : le pied commun l'y lit.
  */
 export function monterAAppliquer(coquille: Coquille, { appartient }: OptionsDeCorrections): Reserve {
   const { frontiere } = coquille;
@@ -346,6 +367,9 @@ export function monterAAppliquer(coquille: Coquille, { appartient }: OptionsDeCo
   let intertitres: { readonly element: HTMLElement; readonly cartes: readonly CarteDeGroupe[] }[] = [];
   let nonRenommesDeplie = false;
   let boutonAnnuler: HTMLButtonElement | null = null;
+  /** La demande de renommage que le pied commun a lancée et dont il attend l'issue. */
+  const suiteDuPied = creerLaSuiteDuPied();
+  const rappels = new Set<() => void>();
 
   const ligneDuResultat = document.createElement('div');
   ligneDuResultat.className = 'resultat';
@@ -353,13 +377,10 @@ export function monterAAppliquer(coquille: Coquille, { appartient }: OptionsDeCo
   ligneDuResultat.hidden = true;
   const liste = document.createElement('div');
   liste.className = 'liste';
-  const pied = document.createElement('div');
-  pied.className = 'noms-pied';
-  const resume = document.createElement('span');
-  resume.className = 'resume';
-  const boutonAppliquer = createButton({ label: TEXTES.appliquer, onClick: demanderLaConfirmation });
-  pied.append(resume, boutonAppliquer);
-  coquille.panneaux.aAppliquer.contenu.append(ligneDuResultat, liste, pied);
+  coquille.panneaux.aAppliquer.contenu.append(ligneDuResultat, liste);
+  const gestes = creerLesGestesDeSection(() => cocherToutes(true), () => cocherToutes(false));
+  gestes.hidden = true;
+  coquille.tokens.poserLesGestes('noms', gestes);
 
   /** Le filtre de l'arbre sur Corrections : la collection choisie, et le prédicat des noms qu'elle retient. */
   function leFiltre(): { readonly nom: string; readonly retient: (ligne: LigneVue) => boolean } | null {
@@ -376,30 +397,25 @@ export function monterAAppliquer(coquille: Coquille, { appartient }: OptionsDeCo
     return { variables: retenus.length - collections, collections, identifiants: retenus.map((retenu) => retenu.ligne.id) };
   }
 
-  function synchroniserLePied(): void {
+  /** Les noms que l'application écrirait : ceux des groupes cochés, ou sous un filtre ceux que la collection retient. */
+  function compter(): CompteDesRenommages {
+    if (bilan?.reglesFutures === true) return { etat: 'regles-futures' };
     const filtre = leFiltre();
     const sousFiltre = nomsDuFiltre();
-    const nombre = sousFiltre ? sousFiltre.variables + sousFiltre.collections : compterLesNomsCoches(modele);
-    const reglesFutures = bilan?.reglesFutures === true;
-    if (reglesFutures) {
-      resume.textContent = TEXTES.reglesFutures;
-    } else if (filtre && !sousFiltre) {
-      resume.textContent = TEXTES.chargementDesNoms;
-    } else if (nombre === 0) {
-      resume.textContent = TEXTES.aucunNomCoche;
-    } else if (filtre && sousFiltre) {
-      const texte = TEXTES.appliquerSousFiltre(sousFiltre.variables, sousFiltre.collections, filtre.nom);
-      const enGras = document.createElement('b');
-      enGras.textContent = texte.nombre;
-      resume.replaceChildren(texte.debut, enGras, texte.fin);
-    } else {
-      const compte = TEXTES.nomsCoches(nombre);
-      const enGras = document.createElement('b');
-      enGras.textContent = compte.nombre;
-      resume.replaceChildren(enGras, compte.suite);
-    }
-    boutonAppliquer.disabled = reglesFutures || nombre === 0 || attente !== null || lectureDeLaSelection !== null || (filtre !== null && sousFiltre === null);
+    if (filtre && !sousFiltre) return { etat: 'chargement' };
+    if (filtre && sousFiltre) return { etat: 'pret', variables: sousFiltre.variables, collections: sousFiltre.collections, filtre: filtre.nom };
+    return { etat: 'pret', ...compterLesNomsCochesParSorte(modele), filtre: null };
+  }
+
+  /** Dit au pied commun qu'un compte ou une attente a changé, et grise Annuler tant qu'une demande est en vol. */
+  function synchroniserLePied(): void {
     if (boutonAnnuler) boutonAnnuler.disabled = attente !== null;
+    for (const rappel of [...rappels]) rappel();
+  }
+
+  function cocherToutes(coche: boolean): void {
+    modele = cocherTout(modele, coche);
+    synchroniser();
   }
 
   /** Montre dans chaque carte les noms du filtre, cache les cartes sans nom retenu, et pose le compte de l'onglet. */
@@ -421,6 +437,7 @@ export function monterAAppliquer(coquille: Coquille, { appartient }: OptionsDeCo
   function synchroniser(): void {
     for (const carte of cartes) carte.rafraichir();
     reserve.poserLaSelection(modele);
+    gestes.hidden = modele.ordre.length === 0;
     synchroniserLePied();
   }
 
@@ -771,11 +788,17 @@ export function monterAAppliquer(coquille: Coquille, { appartient }: OptionsDeCo
     return action;
   }
 
-  function demanderLaConfirmation(): void {
+  /**
+   * Ouvre la confirmation, puis envoie les renommages cochés. `suite` reçoit l'issue : `abandon` si le designer refuse, `echec` si
+   * rien ne peut s'écrire ou si le sandbox refuse ou échoue, `ecrit` quand le fichier a été relu après l'écriture.
+   */
+  function appliquer(suite: (issue: IssueDesRenommages) => void): void {
     const sousFiltre = nomsDuFiltre();
-    if (leFiltre() && !sousFiltre) return;
     const nombre = sousFiltre ? sousFiltre.variables + sousFiltre.collections : compterLesNomsCoches(modele);
-    if (bilan?.reglesFutures === true || nombre === 0 || attente || lectureDeLaSelection || confirmation) return;
+    if ((leFiltre() && !sousFiltre) || bilan?.reglesFutures === true || nombre === 0 || attente || lectureDeLaSelection || confirmation || suiteDuPied.enCours()) {
+      suite('echec');
+      return;
+    }
     const { variables, collections } = sousFiltre ?? compterLesNomsCochesParSorte(modele);
     // Sous le filtre, seuls les noms affichés s'écrivent : aucun groupe n'est envoyé, chaque nom l'est par son identifiant.
     const selection = sousFiltre ? { groupes: [], exclus: [], inclus: sousFiltre.identifiants } : versSelection(modele);
@@ -785,16 +808,21 @@ export function monterAAppliquer(coquille: Coquille, { appartient }: OptionsDeCo
       auRetour: () => {
         confirmation = null;
       },
+      abandonner: () => suite('abandon'),
       renommer: () => {
         const demande = frontiere.appliquer(selection);
-        if (demande === null) return;
+        if (demande === null) {
+          suite('echec');
+          return;
+        }
         attente = { sorte: 'application', demande };
+        suiteDuPied.attendre(demande, suite);
         synchroniserLePied();
       },
     });
   }
 
-  function traiterLeBilan(nouveau: Bilan): void {
+  function traiterLeBilan(nouveau: Bilan, demande: number | null): void {
     confirmation?.fermer();
     bilan = nouveau;
     modele = reconcilier(modele, nouveau.groupes);
@@ -805,6 +833,7 @@ export function monterAAppliquer(coquille: Coquille, { appartient }: OptionsDeCo
     appliquerLeFiltre();
     rendreLaLigneDuResultat();
     verifierLaSelection();
+    if (demande !== null) suiteDuPied.recevoirLeBilan(demande);
   }
 
   /** `reconcilier` ne connaît que les groupes : le sandbox dit quels exclus et quels inclus sont encore des renommages. */
@@ -831,6 +860,7 @@ export function monterAAppliquer(coquille: Coquille, { appartient }: OptionsDeCo
     if (resultat.statut === 'refuse') attente = null;
     synchroniser();
     rendreLaLigneDuResultat();
+    suiteDuPied.recevoirLeResultat(demande, resultat);
   }
 
   coquille.abonner((message) => {
@@ -841,10 +871,12 @@ export function monterAAppliquer(coquille: Coquille, { appartient }: OptionsDeCo
         attente = null;
         lectureDeLaSelection = null;
         confirmation?.fermer();
+        // Une nouvelle lecture remet l'écran à zéro : l'application en cours n'a plus de suite.
+        suiteDuPied.repartir();
         rendreLaLigneDuResultat();
         break;
       case 'bilan':
-        traiterLeBilan(message.bilan);
+        traiterLeBilan(message.bilan, message.demande);
         break;
       case 'lignes':
         reserve.recevoir(message);
@@ -872,6 +904,7 @@ export function monterAAppliquer(coquille: Coquille, { appartient }: OptionsDeCo
           synchroniser();
           rendreLaLigneDuResultat();
         }
+        suiteDuPied.recevoirUneErreur(message.demande);
         break;
       default:
         break;
@@ -879,9 +912,19 @@ export function monterAAppliquer(coquille: Coquille, { appartient }: OptionsDeCo
   });
 
   coquille.surCarteDemandee((cle) => cartes.find((carte) => carte.groupe.cle === cle)?.deplier());
-  coquille.surToutDecocher(() => {
-    for (const cle of modele.ordre) modele = cocherGroupe(modele, cle, false);
-    synchroniser();
+  coquille.lierLesRenommages({
+    compte: compter,
+    groupes: () => modele.ordre.length,
+    occupe: () => attente !== null || lectureDeLaSelection !== null,
+    toutCocher: () => cocherToutes(true),
+    toutDecocher: () => cocherToutes(false),
+    appliquer,
+    abonner(rappel) {
+      rappels.add(rappel);
+      return () => {
+        rappels.delete(rappel);
+      };
+    },
   });
 
   /** La carte qu'un clic dans la table ou « Voir dans Corrections » vient d'ouvrir prend la bordure et le fond bleus. */
@@ -901,7 +944,7 @@ export function monterAAppliquer(coquille: Coquille, { appartient }: OptionsDeCo
   reserve.abonner(() => appliquerLeFiltre());
 
   const dejaLu = coquille.etat().bilan;
-  if (dejaLu) traiterLeBilan(dejaLu);
+  if (dejaLu) traiterLeBilan(dejaLu, null);
   else synchroniserLePied();
   return reserve;
 }

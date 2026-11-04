@@ -2,15 +2,15 @@
  * Le domaine `structure` de l'interface : il demande au sandbox les constats et les corrections de structure, ignore une réponse dont la
  * demande est remplacée, puis range leurs cartes dans les sections de l'onglet Constats (`tokens/panneau.ts`) : les constats à régler
  * dans Figma et les corrections de variables manquantes, de crans, de modes et de scopes, chacun dans le conteneur de sa catégorie.
- * « Tout désélectionner » ouvre l'onglet : il décoche les renommages de Nomenclature et les corrections de structure d'un seul geste.
+ * Toutes les cases arrivent décochées. Le pied commun de l'onglet (`tokens/cochage.ts`) compte les cases cochées des renommages et des
+ * corrections de structure ; Appliquer envoie d'abord les renommages, puis les corrections de structure ce module envoie ici.
  * Le panneau tire le compte de l'onglet des cartes que ce module lui livre.
  * Le lien « Télécharger le rapport d'analyse » est au pied des onglets (`rapport.ts`) ; il joint la durée du rendu mesurée ici.
  */
-import { createButton } from 'ucm-plugin-socle/src/ui/Button';
-import { TEXTES } from '../textes';
 import type { DemandeDeStructure, IgnoresDeStructure, MessageDeStructure } from '../../messages/structure';
 import type { Constat, Correction } from '../../messages/commun';
 import type { Coquille } from '../nomenclature/coquille';
+import { monterLePied } from '../tokens/cochage';
 import { monterAFaire } from './aFaire';
 import { monterLesCorrections } from './corrections';
 import { GROUPES, lireLesConstats, lireLesCorrections, type GroupeDeConstat, type Noms } from './lecture';
@@ -49,6 +49,8 @@ export function monterStructure(coquille: Coquille, { envoyer, noms, ouvrirLaFic
   const nouvelleDemande = (): number => (compteur += 1);
   let demande: number | null = null;
   let demandeDApplication: number | null = null;
+  /** Les lignes du dernier lot envoyé : la ligne verte du résultat en tire la demande de publier la library. */
+  let envoyees: readonly string[] = [];
   let recu: { readonly constats: readonly Constat[]; readonly corrections: readonly Correction[]; readonly ignores: IgnoresDeStructure } | null = null;
 
   /** Un geste d'Ignorer prend un numéro neuf : la réponse est la relecture de la structure, et celle d'une lecture plus ancienne est laissée. */
@@ -80,37 +82,25 @@ export function monterStructure(coquille: Coquille, { envoyer, noms, ouvrirLaFic
   });
   const hoteDuResultat = document.createElement('div');
   hoteDuResultat.className = 'page-stack';
-  let afficheLesComptes = (): void => {};
-  const toutDeselectionner = document.createElement('div');
-  toutDeselectionner.className = 'tout-deselectionner';
-  toutDeselectionner.hidden = true;
-  toutDeselectionner.append(
-    createButton({
-      label: TEXTES.toutDeselectionner,
-      variant: 'secondary',
-      compact: true,
-      onClick: () => {
-        coquille.toutDecocher();
-        corrections.toutDecocher();
+  let recompter = (): void => {};
+  const corrections = monterLesCorrections({ element: hoteDuResultat, hotes: hotesDeCorrections, auChangement: () => recompter() });
+  for (const categorie of Object.keys(hotesDeCorrections) as (keyof typeof hotesDeCorrections)[]) tokens.poserLesGestes(categorie, corrections.gestes[categorie]);
+  tokens.haut.append(hoteDuResultat);
+  const pied = monterLePied({
+    hote: tokens.pied,
+    renommages: coquille.renommages(),
+    structure: {
+      idsCoches: corrections.idsCoches,
+      lignes: corrections.nombre,
+      toutCocher: () => corrections.toutCocher(),
+      ecrire(ids) {
+        envoyees = ids;
+        demandeDApplication = nouvelleDemande();
+        envoyer({ type: 'appliquer-structure', demande: demandeDApplication, ids });
       },
-    }),
-  );
-  tokens.haut.append(toutDeselectionner, hoteDuResultat);
-  const corrections = monterLesCorrections({
-    element: hoteDuResultat,
-    hotes: hotesDeCorrections,
-    hoteDuPied: tokens.pied,
-    auChangement: () => afficheLesComptes(),
-    appliquer(ids) {
-      demandeDApplication = nouvelleDemande();
-      corrections.attendre(true);
-      envoyer({ type: 'appliquer-structure', demande: demandeDApplication, ids });
     },
   });
-
-  afficheLesComptes = () => {
-    toutDeselectionner.hidden = corrections.nombre() === 0;
-  };
+  recompter = pied.recompter;
 
   function rendre(): void {
     const constats = recu ? lireLesConstats(recu.constats, noms) : null;
@@ -141,8 +131,8 @@ export function monterStructure(coquille: Coquille, { envoyer, noms, ouvrirLaFic
       }
       if (message.demande !== demandeDApplication) return;
       demandeDApplication = null;
-      corrections.attendre(false);
-      corrections.appliquee(message.ecrites, message.sautees, message.sansAnnulation);
+      corrections.appliquee(envoyees, message.ecrites, message.sautees, message.sansAnnulation);
+      pied.structureRevenue();
       demander();
     },
   };

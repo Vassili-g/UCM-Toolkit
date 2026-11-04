@@ -23,7 +23,7 @@ const ETATS = [
   },
   {
     id: 't-portees', titre: 'Constats, modes et scopes', quand: 'Les corrections de la structure sont dans les sections Modes et Scopes de Constats, sans filtre de collection ; les deux cartes sont dépliées.',
-    regarder: 'Dans la section Modes, « Viser la rampe Dark » avec brands/success/light/600 devenant dark ; dans la section Scopes, trois variables de surface qui passent de Show in all à Frame fill et Shape fill, en deux colonnes ; le pied dit « Appliquer écrit 4 corrections de modes et de scopes. ».',
+    regarder: 'Dans la section Modes, « Viser la rampe Dark » avec brands/success/light/600 devenant dark ; dans la section Scopes, trois variables de surface qui passent de Show in all à Frame fill et Shape fill, en deux colonnes ; chaque section a « Tout cocher » et « Tout décocher » sous sa bande ; les cases sont décochées, le pied dit « Aucune correction cochée » et Appliquer est inactif.',
     existe: true,
     atteinte: [...ouvert(), { clic: '.puce-x' }, { clic: '.section-element[data-element="modes"] .bloc-bouton' }, { clic: '.section-element[data-element="scopes"] .bloc-bouton' }],
   },
@@ -46,26 +46,28 @@ const ouvertIntegrite = (donneesDuReleve, constats, attendre, ignores) => [
 const CARTES_DE_CORRECTION = '#panneau-a-appliquer .structure-liste .bloc';
 const CARTES_A_FAIRE = '#panneau-a-appliquer .structure-liste .bloc-constat';
 const premiereCarte = { clic: '#panneau-a-appliquer .structure-liste .bloc-bouton' };
-const appliquerLaStructure = { clic: '#panneau-a-appliquer .structure-pied .btn-primary' };
+/** Toutes les cases arrivent décochées : « Tout cocher » du pied les coche, puis Appliquer du pied commun écrit la structure. */
+const toutCocher = { clic: '#panneau-a-appliquer .corrections-pied .cocher-global' };
+const appliquerLaStructure = { clic: '#panneau-a-appliquer .corrections-pied .btn-primary' };
 const creation = (ecrites, sautees, sansAnnulation = []) => ({ message: { type: 'structure-appliquee', demande: 2, ecrites, sautees, sansAnnulation }, attendre: '#panneau-a-appliquer .resultat:not([hidden])' });
 const relecture = { message: integrite.reponse([], 3) };
 
 ETATS.push(
   {
     id: 't-variables-manquantes', titre: 'Tokens, variables manquantes', quand: 'Le fichier n’a ni surface/subtle ni surface/divider dans ses 11 palettes, et neutral n’a pas page/foreground ; l’écriture des noms est choisie.',
-    regarder: 'Dans la section Variables manquantes, une carte par rôle, cochée, avec la phrase « Créer … dans 11 palettes de theme » ; la première est dépliée : une ligne par palette, le nom absent, puis ses alias Light et Dark et ses scopes ; le pied compte 23 corrections de structure ; « Tout désélectionner » est sous le sommaire.',
+    regarder: 'Dans la section Variables manquantes, sous la bande, « Tout cocher » et « Tout décocher » ; une carte par rôle, décochée, avec la phrase « Créer … dans 11 palettes de theme » ; la première est dépliée : une ligne par palette, le nom absent, puis ses alias Light et Dark et ses scopes ; le pied dit « Aucune correction cochée », « Tout cocher » est à côté d’Appliquer, qui est inactif.',
     existe: true,
     atteinte: [...ouvertIntegrite(integrite.releveDeBase(), integrite.manquantes, CARTES_DE_CORRECTION), premiereCarte],
   },
   {
     id: 't-crans', titre: 'Tokens, crans', quand: 'Les variables surface visent en Dark les crans de l’ancienne table.',
-    regarder: 'Dans la section Crans, une carte par rôle et par mode, décochée, qui dit le cran attendu, le cran visé et que la couleur change ; la première est dépliée : le segment qui change prend la couleur de sa colonne ; le pied dit « Aucune correction de structure cochée. ».',
+    regarder: 'Dans la section Crans, une carte par rôle et par mode, décochée, qui dit le cran attendu, le cran visé et que la couleur change ; la première est dépliée : le segment qui change prend la couleur de sa colonne ; sous la bande, « Tout cocher » et « Tout décocher » ; le pied dit « Aucune correction cochée ».',
     existe: true,
     atteinte: [...ouvertIntegrite(integrite.releveDeBase(), integrite.crans, CARTES_DE_CORRECTION), premiereCarte],
   },
   {
     id: 't-sans-ecriture', titre: 'Tokens, écriture non choisie', quand: 'Nomenclature n’a pas encore choisi l’écriture des noms : Architect ne crée aucune variable.',
-    regarder: 'Dans la section Variables manquantes, des constats « Cette palette n’a pas … » qui renvoient à Nomenclature ; aucune carte de correction à cocher et aucun pied d’Appliquer.',
+    regarder: 'Dans la section Variables manquantes, des constats « Cette palette n’a pas … » qui renvoient à Nomenclature ; aucune carte de correction à cocher, aucun bouton « Tout cocher » ni « Tout décocher » et aucun pied d’Appliquer.',
     existe: true,
     atteinte: ouvertIntegrite(integrite.releveDeBase(), integrite.sansEcriture.slice(0, 3), CARTES_A_FAIRE),
   },
@@ -83,25 +85,25 @@ ETATS.push(
   },
   {
     id: 't-apres-creation', titre: 'Tokens, après une création', quand: 'Le designer a appliqué les 23 variables manquantes ; le sandbox les a écrites et la relecture ne trouve plus rien.',
-    regarder: 'La ligne verte « 23 corrections écrites. » et, dessous, « Publiez la library pour voir ces variables dans les fichiers de composants. » ; plus de pied ni de carte de correction.',
+    regarder: 'Le designer a coché les 23 corrections avec « Tout cocher » avant Appliquer. La ligne verte « 23 corrections écrites. » et, dessous, « Publiez la library pour voir ces variables dans les fichiers de composants. » ; plus de pied ni de carte de correction.',
     existe: true,
-    atteinte: [...ouvertIntegrite(integrite.releveDeBase(), integrite.manquantes, CARTES_DE_CORRECTION), appliquerLaStructure, creation(23, []), relecture],
+    atteinte: [...ouvertIntegrite(integrite.releveDeBase(), integrite.manquantes, CARTES_DE_CORRECTION), toutCocher, appliquerLaStructure, creation(23, []), relecture],
   },
   {
     id: 't-creation-sautee', titre: 'Tokens, création sautée', quand: 'Deux des variables existaient déjà dans le fichier : l’une avec les mêmes alias, l’autre avec d’autres.',
-    regarder: 'La ligne verte « 21 corrections écrites, 2 sautées. », les deux noms sautés avec leur phrase, puis la phrase de publication.',
+    regarder: 'Le designer a coché les 23 corrections avant Appliquer. La ligne verte « 21 corrections écrites, 2 sautées. », les deux noms sautés avec leur phrase, puis la phrase de publication.',
     existe: true,
     atteinte: [
-      ...ouvertIntegrite(integrite.releveDeBase(), integrite.manquantes, CARTES_DE_CORRECTION), appliquerLaStructure,
+      ...ouvertIntegrite(integrite.releveDeBase(), integrite.manquantes, CARTES_DE_CORRECTION), toutCocher, appliquerLaStructure,
       creation(21, [{ id: integrite.idsDeCreation[0], motif: 'deja-la' }, { id: integrite.idsDeCreation[1], motif: 'existe-divergente' }]), relecture,
     ],
   },
   {
     id: 't-creation-sans-annulation', titre: 'Tokens, création sans trace', quand: 'Le sandbox a créé trois variables, mais le fichier n’a pas gardé le journal réécrit : l’Historique ne pourra pas les annuler.',
-    regarder: 'La ligne verte « 23 corrections écrites. », puis une alerte « À vérifier » : « UCM n’a pas pu garder la trace de ces créations. », les trois noms, puis « L’Historique ne pourra pas les annuler. Supprimez-les dans la fenêtre Variables si vous voulez revenir en arrière. » ; aucun bouton.',
+    regarder: 'Le designer a coché les 23 corrections avant Appliquer. La ligne verte « 23 corrections écrites. », puis une alerte « À vérifier » : « UCM n’a pas pu garder la trace de ces créations. », les trois noms, puis « L’Historique ne pourra pas les annuler. Supprimez-les dans la fenêtre Variables si vous voulez revenir en arrière. » ; aucun bouton.',
     existe: true,
     atteinte: [
-      ...ouvertIntegrite(integrite.releveDeBase(), integrite.manquantes, CARTES_DE_CORRECTION), appliquerLaStructure,
+      ...ouvertIntegrite(integrite.releveDeBase(), integrite.manquantes, CARTES_DE_CORRECTION), toutCocher, appliquerLaStructure,
       creation(23, [], ['theme/primary/surface/subtle', 'theme/secondary/surface/subtle', 'theme/neutral/page/foreground']), relecture,
     ],
   },
@@ -139,7 +141,7 @@ ETATS.push(
   },
   {
     id: 't-retrait-de-scopes', titre: 'Corrections, retrait de scopes', quand: 'Deux variables de brands portent encore le scope Show in all.',
-    regarder: 'Dans la section Scopes, une carte « Retirer les scopes de 2 variables de brands », cochée et dépliée : la colonne « Après l’application » dit « aucun scope ».',
+    regarder: 'Dans la section Scopes, une carte « Retirer les scopes de 2 variables de brands », décochée et dépliée : la colonne « Après l’application » dit « aucun scope ».',
     existe: true,
     atteinte: [...ouvertIntegrite(integrite.releveDeBase(), integrite.libraryEtScopes, CARTES_DE_CORRECTION), premiereCarte],
   },
@@ -158,7 +160,7 @@ ETATS.push(
  */
 ETATS.push({
   id: 't-constats', cadre: 'constats', titre: 'Tokens, Constats à 680 px', quand: 'Le designer ouvre Constats sur un fichier qui a des renommages, des questions et des constats à régler dans Figma.',
-  regarder: 'Deux onglets, Constats et Règles ; le sommaire (Tout, une puce par catégorie qui a des cartes, Questions) ; une section par catégorie qui a des cartes, de Noms à Rangement, avec son signe, son titre et son nombre ; Alias, Valeurs et Scopes tenues en fin de liste ; dans Noms, les questions avant les renommages, puis « Plus tard » et les autres pistes ; le compte de Constats est le total des cartes.',
+  regarder: 'Deux onglets, Constats et Règles ; le sommaire (Tout, une puce par catégorie qui a des cartes, Questions) ; une section par catégorie qui a des cartes, de Noms à Rangement, avec son signe, son titre et son nombre ; Alias, Valeurs et Scopes tenues en fin de liste ; dans Noms, les questions avant les renommages, puis « Plus tard » et les autres pistes ; le compte de Constats est le total des cartes ; « Tout cocher » et « Tout décocher » sous la bande de Noms ; toutes les cases sont décochées, un seul pied dit « Aucune correction cochée », avec « Tout cocher » à côté d’Appliquer, inactif.',
   existe: true,
   atteinte: [
     preferences(), releve(integrite.releveAuxEcarts()),
@@ -167,6 +169,39 @@ ETATS.push({
     { clic: '.puce-x' },
   ],
 });
+
+/*
+ * Le cochage commun : les renommages de Noms et les corrections de structure ont un seul pied. Les cases arrivent décochées ; « Tout cocher »
+ * du pied coche celles des deux domaines, et le pied compte les deux. Appliquer envoie les renommages, puis les corrections de structure.
+ */
+const bilanDuCochage = bilans.travail;
+const ouvertAuCochage = () => [
+  preferences(), releve(integrite.releveDeBase()),
+  { message: messages.initial(true) }, { message: messages.bilan(1, bilanDuCochage), attendre: '.liste' },
+  { message: integrite.reponse(integrite.manquantes, 1), attendre: CARTES_DE_CORRECTION },
+  { clic: '.puce-x' },
+];
+
+ETATS.push(
+  {
+    id: 't-cochage-decoche', cadre: 'constats', titre: 'Tokens, cases décochées des deux domaines', quand: 'Le fichier a des renommages et 23 variables manquantes à créer ; le designer n’a rien coché.',
+    regarder: 'Sous la bande de Noms et sous celle de Variables manquantes, « Tout cocher » et « Tout décocher » ; chaque carte, dans les deux sections, est décochée ; un seul pied : « Aucune correction cochée », « Tout cocher » à côté d’Appliquer, qui est inactif.',
+    existe: true,
+    atteinte: ouvertAuCochage(),
+  },
+  {
+    id: 't-cochage-commun', cadre: 'constats', titre: 'Tokens, un pied pour les deux domaines', quand: 'Le designer appuie sur « Tout cocher » du pied : les renommages et les corrections de structure sont cochés.',
+    regarder: 'Les cartes de Noms et celles de Variables manquantes sont cochées ; un seul pied dit « Appliquer renomme 86 variables et 1 collection, puis écrit 23 corrections de structure. » ; Appliquer est actif.',
+    existe: true,
+    atteinte: [...ouvertAuCochage(), { clic: '#panneau-a-appliquer .corrections-pied .cocher-global' }],
+  },
+  {
+    id: 't-cochage-confirmation', cadre: 'constats', titre: 'Tokens, confirmation des renommages avant la structure', quand: 'Le designer appuie sur Appliquer avec les deux domaines cochés : les renommages passent d’abord, par leur confirmation ; les corrections de structure partent après.',
+    regarder: 'La feuille « Renommer 87 noms ? » avec Retour et Renommer ; derrière elle, le pied est inactif : rien n’est envoyé à la structure tant que les renommages ne sont pas écrits.',
+    existe: true,
+    atteinte: [...ouvertAuCochage(), { clic: '#panneau-a-appliquer .corrections-pied .cocher-global' }, { clic: '#panneau-a-appliquer .corrections-pied .btn-primary', attendre: '.feuille' }],
+  },
+);
 
 /*
  * Noms longue (C3.3) : 24 renommages et 3 questions font 27 cartes, au-delà des 20 que la section montre ouvertes. Elle arrive repliée :

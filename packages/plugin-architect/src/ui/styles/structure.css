@@ -150,25 +150,6 @@ button.bloc-bouton {
   padding-top: var(--espace-serre);
 }
 
-.structure-pied {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: var(--espace-controle);
-  padding: var(--espace-bloc) 0 var(--espace-page);
-  border-top: 1px solid var(--bordure);
-  background: var(--fond);
-}
-
-.structure-resume {
-  color: var(--texte-second);
-}
-
-.structure-resume b {
-  color: var(--texte);
-  font-weight: 600;
-}
-
 /* Un dossier cité dans une phrase de carte : en police de chemin, gras, sans fond. */
 .bloc .mot-cite {
   padding: 0;
@@ -189,12 +170,6 @@ button.bloc-bouton {
 
 .filtre-questions .bloc:not(.constat-question) {
   display: none;
-}
-
-/* « Tout désélectionner » ouvre l'onglet Constats, calé à droite sous le sommaire. */
-.tout-deselectionner {
-  display: flex;
-  justify-content: flex-end;
 }
 
 /* Le menu d'Ignorer d'une carte de rôle absent : deux choix sous le bouton, qui flotte sans pousser la carte. */

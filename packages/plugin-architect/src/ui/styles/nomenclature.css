@@ -539,29 +539,6 @@ button.tete-bouton {
   opacity: 0.5;
 }
 
-/* Le pied suit le défilement. Il annule la marge basse de la page pour ne pas la doubler. */
-.noms-pied {
-  position: sticky;
-  bottom: 0;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: var(--espace-controle);
-  margin-bottom: calc(-1 * var(--espace-page));
-  padding: var(--espace-bloc) 0 var(--espace-page);
-  border-top: 1px solid var(--bordure);
-  background: var(--fond);
-}
-
-.resume {
-  color: var(--texte-second);
-}
-
-.resume b {
-  color: var(--texte);
-  font-weight: 600;
-}
-
 .faits {
   margin: 0;
   padding-left: var(--espace-page);

@@ -49,7 +49,7 @@ function tailleDesGroupes(groupes: readonly GroupeVue[]): Map<string, TailleDeGr
   return new Map(groupes.map((groupe) => [groupe.cle, { variables: groupe.variables, collections: groupe.collections }]));
 }
 
-/** Tous les groupes du bilan sont cochés, aucun nom n'est exclu ni inclus. */
+/** Aucun groupe du bilan n'est coché, aucun nom n'est exclu ni inclus. */
 export function creerSelection(groupes: readonly GroupeVue[]): ModeleDeSelection {
   return reconcilier(VIDE, groupes);
 }
@@ -57,12 +57,11 @@ export function creerSelection(groupes: readonly GroupeVue[]): ModeleDeSelection
 /**
  * Reporte le modèle sur un nouveau bilan. Un groupe disparu sort, avec les
  * identifiants qu'il portait ; un groupe qui n'était pas au bilan précédent
- * arrive coché ; les autres gardent leur case.
+ * arrive décoché ; les autres gardent leur case.
  */
 export function reconcilier(modele: ModeleDeSelection, groupes: readonly GroupeVue[]): ModeleDeSelection {
-  const connus = new Set(modele.ordre);
   const presents = new Set(groupes.map((groupe) => groupe.cle));
-  const coches = new Set(groupes.filter((groupe) => !connus.has(groupe.cle) || modele.coches.has(groupe.cle)).map((groupe) => groupe.cle));
+  const coches = new Set(groupes.filter((groupe) => modele.coches.has(groupe.cle)).map((groupe) => groupe.cle));
   const garder = (entrees: ReadonlyMap<string, string>): ReadonlyMap<string, string> => new Map([...entrees].filter(([, cle]) => presents.has(cle)));
   return { ordre: groupes.map((groupe) => groupe.cle), tailles: tailleDesGroupes(groupes), coches, exclus: garder(modele.exclus), inclus: garder(modele.inclus) };
 }
@@ -74,6 +73,11 @@ export function cocherGroupe(modele: ModeleDeSelection, cle: string, coche: bool
   if (coche) coches.add(cle);
   else coches.delete(cle);
   return { ...modele, coches, exclus: sansLesEntreesDe(modele.exclus, cle), inclus: sansLesEntreesDe(modele.inclus, cle) };
+}
+
+/** Coche ou décoche tous les groupes du bilan : les exclus et les inclus sont oubliés. */
+export function cocherTout(modele: ModeleDeSelection, coche: boolean): ModeleDeSelection {
+  return modele.ordre.reduce((suite, cle) => cocherGroupe(suite, cle, coche), modele);
 }
 
 /**

@@ -1,16 +1,17 @@
 /**
  * Les corrections de structure : une carte par rôle de variable manquante, une par rôle et par mode de cran, une par correction de mode,
  * une par dossier de scopes, rangées dans le conteneur de leur catégorie (Variables manquantes, Crans, Modes, Scopes). Chaque ligne se
- * coche ; le pied, posé sous la liste des sections, compte les lignes cochées et Appliquer envoie leurs identifiants, que le sandbox
- * relit avant d'écrire. Les lignes de crans arrivent décochées : elles changent une couleur affichée. Le designer voit le scope tel
- * que la fenêtre Edit variable de Figma le nomme.
+ * coche, et toutes arrivent décochées, y compris une ligne qu'une relecture ajoute : le module ne garde que les lignes cochées. Le
+ * pied commun (`tokens/cochage.ts`) compte les lignes cochées et envoie leurs identifiants, que le sandbox relit avant d'écrire.
+ * « Tout cocher » et « Tout décocher » de chaque catégorie sont rendus ici, et le panneau les pose sous la bande de la section. Le
+ * designer voit le scope tel que la fenêtre Edit variable de Figma le nomme.
  */
 import { creerAlerte } from 'ucm-plugin-socle/src/ui/Alerte';
-import { createButton } from 'ucm-plugin-socle/src/ui/Button';
 import { creerTermeFigma } from 'ucm-plugin-socle/src/ui/Terme';
 import { creerChemin, creerCheminEnPhrase, creerSegmentAncien, creerSegmentNouveau } from 'ucm-plugin-socle/src/ui/Chemin';
 import { creerColonnes, creerLigneDeDiff, creerResultat } from 'ucm-plugin-socle/src/ui/Changement';
 import { TEXTES } from '../textes';
+import { creerLesGestesDeSection } from '../tokens/cochage';
 import { creerCarte, poserLesMorceaux } from './carte';
 import {
   segmentsQuiChangent,
@@ -23,37 +24,37 @@ import {
   type LigneDeCreation,
 } from './lecture';
 
-export interface CorrectionsDeStructure {
-  /** Montre les corrections reçues ; `null` tant que le sandbox n'a pas répondu. */
-  poser(lecture: CorrectionsLues | null): void;
-  /** Le nombre de corrections que la lecture propose, cochées ou non. */
-  nombre(): number;
-  /** Décoche toutes les lignes ; le pied se recompte. */
-  toutDecocher(): void;
-  /**
-   * L'application est revenue : la ligne verte dit ce qui s'est écrit. Elle demande de publier la library quand une des lignes
-   * envoyées créait une variable que le sandbox n'a pas sautée, et nomme les créations sautées parce que la variable existait déjà.
-   * Une alerte à vérifier nomme les variables créées que l'Historique ne pourra pas annuler.
-   */
-  appliquee(ecrites: number, sautees: readonly { readonly id: string; readonly motif: string }[], sansAnnulation: readonly string[]): void;
-  /** L'application est en cours : Appliquer reste inactif. */
-  attendre(enCours: boolean): void;
-}
-
 /** Les catégories dont les corrections se rangent dans un conteneur à elles. */
 export type CategorieDeCorrection = 'manquantes' | 'crans' | 'modes' | 'scopes';
+
+export interface CorrectionsDeStructure {
+  /** Montre les corrections reçues ; `null` tant que le sandbox n'a pas répondu. Une ligne nouvelle arrive décochée. */
+  poser(lecture: CorrectionsLues | null): void;
+  /** Le nombre de lignes de correction que la lecture propose, cochées ou non. */
+  nombre(): number;
+  /** Les identifiants des lignes cochées, dans l'ordre de la lecture. */
+  idsCoches(): readonly string[];
+  /** Coche toutes les lignes, ou celles d'une catégorie. */
+  toutCocher(categorie?: CategorieDeCorrection): void;
+  /** Décoche toutes les lignes, ou celles d'une catégorie. */
+  toutDecocher(categorie?: CategorieDeCorrection): void;
+  /** « Tout cocher » et « Tout décocher » de chaque catégorie ; l'élément est masqué quand la catégorie n'a aucune ligne. */
+  readonly gestes: Readonly<Record<CategorieDeCorrection, HTMLElement>>;
+  /**
+   * L'application est revenue pour ces lignes envoyées : la ligne verte dit ce qui s'est écrit. Elle demande de publier la library
+   * quand une des lignes envoyées créait une variable que le sandbox n'a pas sautée, et nomme les créations sautées parce que la
+   * variable existait déjà. Une alerte à vérifier nomme les variables créées que l'Historique ne pourra pas annuler.
+   */
+  appliquee(envoyees: readonly string[], ecrites: number, sautees: readonly { readonly id: string; readonly motif: string }[], sansAnnulation: readonly string[]): void;
+}
 
 export interface OptionsDeCorrections {
   /** Là où la ligne verte du résultat se pose ; masqué tant qu'il n'y a rien à dire. */
   readonly element: HTMLElement;
   /** Le conteneur des cartes de chaque catégorie. */
   readonly hotes: Readonly<Record<CategorieDeCorrection, HTMLElement>>;
-  /** Là où le pied (le compte des lignes cochées, Appliquer) se pose. */
-  readonly hoteDuPied: HTMLElement;
-  /** Appelée quand le nombre de corrections change. */
+  /** Appelée quand les lignes ou les cases changent : le pied commun se recompte. */
   readonly auChangement: () => void;
-  /** Appelée par Appliquer, avec les identifiants des lignes cochées. */
-  readonly appliquer: (ids: readonly string[]) => void;
 }
 
 /** Un chemin écrit en texte, dont les segments qui changent prennent la couleur de leur colonne. */
@@ -76,57 +77,48 @@ function cheminAvecSegments(nom: string, marques: readonly number[], colonne: 'a
 
 const libelles = (scopes: readonly string[]): string => scopes.map(TEXTES.scopeDeFigma).join(', ');
 
-export function monterLesCorrections({ element, hotes, hoteDuPied, auChangement, appliquer }: OptionsDeCorrections): CorrectionsDeStructure {
+const CATEGORIES: readonly CategorieDeCorrection[] = ['manquantes', 'crans', 'modes', 'scopes'];
+
+export function monterLesCorrections({ element, hotes, auChangement }: OptionsDeCorrections): CorrectionsDeStructure {
   element.hidden = true;
-  const pied = document.createElement('div');
-  pied.className = 'structure-pied';
-  const resume = document.createElement('span');
-  resume.className = 'structure-resume';
-  const boutonAppliquer = createButton({
-    label: TEXTES.appliquer,
-    onClick: () => {
-      envoyees = cochees();
-      appliquer(envoyees);
-    },
-  });
-  pied.append(resume, boutonAppliquer);
-  pied.hidden = true;
-  hoteDuPied.append(pied);
   const resultat = document.createElement('div');
   resultat.hidden = true;
   element.append(resultat);
 
   let ids: string[] = [];
+  /** Les identifiants de chaque catégorie, pour les gestes d'une section. */
+  let idsParCategorie: Readonly<Record<CategorieDeCorrection, readonly string[]>> = { manquantes: [], crans: [], modes: [], scopes: [] };
   /** Le nom créé par chaque ligne de variable manquante, pour nommer celles que l'application saute. */
   let creations = new Map<string, string>();
-  let envoyees: readonly string[] = [];
-  let enCours = false;
-  const decochees = new Set<string>();
-  /** Les lignes déjà montrées : une ligne de crans nouvelle arrive décochée, une lecture qui revient ne rend pas leur case à celles que le designer a décochées ou cochées. */
-  const vues = new Set<string>();
+  /** Les lignes cochées : une ligne qui n'y est pas est décochée, donc toute ligne arrive décochée, relecture comprise. */
+  const cochees = new Set<string>();
   /** Les cartes dépliées par le designer : une lecture qui revient ne les replie pas. */
   const deplies = new Set<string>();
   const cases = new Map<string, HTMLInputElement>();
   const casesDeCarte: { readonly element: HTMLInputElement; readonly ids: readonly string[] }[] = [];
-
-  const cochees = (): string[] => ids.filter((id) => !decochees.has(id));
+  const gestes = Object.fromEntries(CATEGORIES.map((categorie) => {
+    const deLaCategorie = creerLesGestesDeSection(() => cocherLes(idsParCategorie[categorie], true), () => cocherLes(idsParCategorie[categorie], false));
+    deLaCategorie.hidden = true;
+    return [categorie, deLaCategorie];
+  })) as Record<CategorieDeCorrection, HTMLElement>;
 
   function rafraichir(): void {
-    for (const [id, caseACocher] of cases) caseACocher.checked = !decochees.has(id);
+    for (const [id, caseACocher] of cases) caseACocher.checked = cochees.has(id);
     for (const { element: caseACocher, ids: deLaCarte } of casesDeCarte) {
-      const nombre = deLaCarte.filter((id) => !decochees.has(id)).length;
+      const nombre = deLaCarte.filter((id) => cochees.has(id)).length;
       caseACocher.checked = nombre === deLaCarte.length;
       caseACocher.indeterminate = nombre > 0 && nombre < deLaCarte.length;
     }
-    const nombre = cochees().length;
-    if (nombre === 0) resume.textContent = TEXTES.aucuneCorrectionCochee;
-    else {
-      const texte = TEXTES.appliquerEcrit(nombre);
-      const enGras = document.createElement('b');
-      enGras.textContent = texte.nombre;
-      resume.replaceChildren(texte.debut, enGras, texte.fin);
+  }
+
+  /** Coche ou décoche ces lignes, remet les cases d'accord, puis prévient le pied commun. */
+  function cocherLes(lignes: readonly string[], coche: boolean): void {
+    for (const id of lignes) {
+      if (coche) cochees.add(id);
+      else cochees.delete(id);
     }
-    boutonAppliquer.disabled = nombre === 0 || enCours;
+    rafraichir();
+    auChangement();
   }
 
   function creerLaCase(libelle: string, deLaCarte: readonly string[]): HTMLInputElement {
@@ -134,13 +126,7 @@ export function monterLesCorrections({ element, hotes, hoteDuPied, auChangement,
     caseACocher.type = 'checkbox';
     caseACocher.className = 'case';
     caseACocher.setAttribute('aria-label', libelle);
-    caseACocher.addEventListener('change', () => {
-      for (const id of deLaCarte) {
-        if (caseACocher.checked) decochees.delete(id);
-        else decochees.add(id);
-      }
-      rafraichir();
-    });
+    caseACocher.addEventListener('change', () => cocherLes(deLaCarte, caseACocher.checked));
     return caseACocher;
   }
 
@@ -154,11 +140,7 @@ export function monterLesCorrections({ element, hotes, hoteDuPied, auChangement,
     const ligne = creerLigneDeDiff(dedans(avant), dedans(apres));
     const caseACocher = ligne.querySelector('input') as HTMLInputElement;
     caseACocher.setAttribute('aria-label', TEXTES.caseDeCorrection(nom));
-    caseACocher.addEventListener('change', () => {
-      if (caseACocher.checked) decochees.delete(id);
-      else decochees.add(id);
-      rafraichir();
-    });
+    caseACocher.addEventListener('change', () => cocherLes([id], caseACocher.checked));
     cases.set(id, caseACocher);
     return ligne;
   }
@@ -335,30 +317,28 @@ export function monterLesCorrections({ element, hotes, hoteDuPied, auChangement,
       const crans = lecture?.crans ?? [];
       const modes = lecture?.modes ?? [];
       const scopes = lecture?.scopes ?? [];
-      const lignesDeCrans = crans.flatMap((carte) => carte.lignes);
-      ids = [...variables, ...crans, ...modes, ...scopes].flatMap((carte) => carte.lignes.map(({ id }) => id));
+      const idsDe = (cartes: readonly { readonly lignes: readonly { readonly id: string }[] }[]): string[] => cartes.flatMap((carte) => carte.lignes.map(({ id }) => id));
+      idsParCategorie = { manquantes: idsDe(variables), crans: idsDe(crans), modes: idsDe(modes), scopes: idsDe(scopes) };
+      ids = CATEGORIES.flatMap((categorie) => idsParCategorie[categorie]);
       creations = new Map(variables.flatMap((carte) => carte.lignes.map((ligne) => [ligne.id, ligne.nom] as const)));
       cases.clear();
       casesDeCarte.length = 0;
-      for (const id of [...decochees]) if (!ids.includes(id)) decochees.delete(id);
-      for (const id of [...vues]) if (!ids.includes(id)) vues.delete(id);
-      for (const { id } of lignesDeCrans) if (!vues.has(id)) decochees.add(id);
-      for (const id of ids) vues.add(id);
+      for (const id of [...cochees]) if (!ids.includes(id)) cochees.delete(id);
       hotes.manquantes.replaceChildren(...variables.map(carteDeVariables));
       hotes.crans.replaceChildren(...crans.map(carteDeCrans));
       hotes.modes.replaceChildren(...modes.map(carteDeModes));
       hotes.scopes.replaceChildren(...scopes.map(carteDeScopes));
-      pied.hidden = ids.length === 0;
+      for (const categorie of CATEGORIES) gestes[categorie].hidden = idsParCategorie[categorie].length === 0;
       element.hidden = ids.length === 0 && resultat.hidden;
       rafraichir();
       auChangement();
     },
     nombre: () => ids.length,
-    toutDecocher() {
-      for (const id of ids) decochees.add(id);
-      rafraichir();
-    },
-    appliquee(ecrites, sautees, sansAnnulation) {
+    idsCoches: () => ids.filter((id) => cochees.has(id)),
+    toutCocher: (categorie) => cocherLes(categorie ? idsParCategorie[categorie] : ids, true),
+    toutDecocher: (categorie) => cocherLes(categorie ? idsParCategorie[categorie] : ids, false),
+    gestes,
+    appliquee(envoyees, ecrites, sautees, sansAnnulation) {
       const sautee = new Set(sautees.map(({ id }) => id));
       const texte = document.createDocumentFragment();
       texte.append(TEXTES.ecrites(ecrites, sautees.length));
@@ -375,10 +355,6 @@ export function monterLesCorrections({ element, hotes, hoteDuPied, auChangement,
       if (sansAnnulation.length > 0) resultat.append(avertissementSansAnnulation(sansAnnulation));
       resultat.hidden = false;
       element.hidden = false;
-    },
-    attendre(valeur) {
-      enCours = valeur;
-      rafraichir();
     },
   };
 }

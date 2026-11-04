@@ -23,6 +23,7 @@ import { creerBandeau, creerPanneau, creerVueDAnalyse, type Panneau } from './pa
 import { TEXTES } from '../textes/nomenclature';
 import { TEXTES_BIBLIOTHEQUE } from '../textes/bibliotheque';
 import { TEXTES_TOKENS } from '../textes/tokens';
+import { SANS_RENOMMAGES, type PontDesRenommages } from '../tokens/cochage';
 import { monterLePanneauDesTokens, type PanneauDesTokens } from '../tokens/panneau';
 
 /** Reçoit chaque message que la frontière rend, après la mise à jour de l'état. */
@@ -78,10 +79,10 @@ export interface Coquille {
   demanderUneCarte(cle: string): void;
   /** Branche le dépliage d'une carte de renommage. */
   surCarteDemandee(rappel: (cle: string) => void): void;
-  /** Décoche tous les renommages, groupes et noms. */
-  toutDecocher(): void;
-  /** Branche le geste de `toutDecocher` : les renommages décochent leurs groupes. */
-  surToutDecocher(rappel: () => void): void;
+  /** Les renommages tels que le pied commun les voit ; `SANS_RENOMMAGES` tant que l'onglet des renommages n'est pas monté. */
+  renommages(): PontDesRenommages;
+  /** Branche le pont des renommages : leurs cases, leur compte et leur écriture. */
+  lierLesRenommages(pont: PontDesRenommages): void;
   /** Écrit un texte dans la recherche de l'arbre, comme une recherche tapée. Sans hôte qui la porte, ne fait rien. */
   rechercher(texte: string): void;
   /** Filtre le tableau sur un terme, avec les formes que la fiche du terme énumère. */
@@ -123,7 +124,7 @@ export function creerCoquille(app: HTMLElement, envoyer: (message: UiMessage) =>
   let reglesRecues = 0;
   let libraryAffichee = false;
   let deplierUneCarte: (cle: string) => void = () => {};
-  let decocherLesRenommages: () => void = () => {};
+  let renommages: PontDesRenommages = SANS_RENOMMAGES;
 
   function appliquerLEtat(suivant: EtatDeLEcran): boolean {
     if (suivant === etat) return false;
@@ -342,9 +343,9 @@ export function creerCoquille(app: HTMLElement, envoyer: (message: UiMessage) =>
     surCarteDemandee(rappel) {
       deplierUneCarte = rappel;
     },
-    toutDecocher: () => decocherLesRenommages(),
-    surToutDecocher(rappel) {
-      decocherLesRenommages = rappel;
+    renommages: () => renommages,
+    lierLesRenommages(pont) {
+      renommages = pont;
     },
     rechercher: (texte) => options.rechercher?.(texte),
     rechercherLeTerme: (mot, formes) => options.rechercherLeTerme?.(mot, formes),
