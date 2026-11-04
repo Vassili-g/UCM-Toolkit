@@ -104,6 +104,7 @@ Le code C63 seul ne détermine aucune catégorie.
 | Catalogue de référence d'une analyse | `theme`, `layout` et `components` de la library choisie : noms d'abord ; valeurs lues par l'identifiant que porte une liaison du relevé quand `getVariableByIdAsync` rend la variable de la même clé, importées par clé sinon | Une entrée est présente, absente, non chargée ou inaccessible ; un identifiant refusé ou d'une autre clé retombe sur l'import |
 
 Un Actualiser du mode Tokens lit les variables locales une fois. `lire-structure` et le `rafraichir` de Nomenclature reprennent cette lecture seulement s'ils suivent ce relevé, sans écriture entre eux et dans les 5 s. Toute autre demande lit Figma, car Figma ne signale ni un changement fait à la main ni un Ctrl+Z.
+Ignorer et « Ne plus ignorer » un constat du mode Tokens refiltrent la dernière lecture de structure, gardée avec son catalogue, sans lire de variable. Ignorer ou rétablir un rôle relance les contrôles du kit sur ce catalogue. Après une écriture, un nouvel Actualiser ou une lecture partielle, le geste relit Figma.
 
 Une cible que ni la lecture ni l'import ne rendent reste « introuvable » ;
 elle reste « refusée », avec son message, quand la lecture a levé. Ni l'une
