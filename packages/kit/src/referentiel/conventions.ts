@@ -58,6 +58,11 @@ export const REGISTRE_SEPARATEURS: Registre = {
   ],
 };
 
+/** Une valeur de variant : un mot entier par segment, une majuscule à chaque mot, une espace entre les mots (`Extra Large`) (Q-F5-5, Q-F5-6). */
+export const CONVENTION_DE_VALEUR_DE_VARIANT: Convention = { casse: 'PascalCase', separateur: 'espace' };
+/** Le segment d'un token qui écrit une valeur : minuscules, tirets entre les mots (`xl`, `extra-large`). */
+export const CONVENTION_DE_SEGMENT_DE_TOKEN: Convention = { casse: 'minuscules', separateur: 'tiret' };
+
 export const CONVENTIONS: readonly { readonly id: string; readonly libelle: { readonly fr: string; readonly en: string }; readonly specimen: { readonly fr: string; readonly en: string }; readonly convention: Convention }[] = [
   { id: 'tiret', libelle: { fr: 'Minuscules · tirets', en: 'Lowercase · hyphens' }, specimen: { fr: 'minuscules-tirets', en: 'kebab-case' }, convention: { casse: 'minuscules', separateur: 'tiret' } },
   { id: 'bas', libelle: { fr: 'Minuscules · tirets bas', en: 'Lowercase · underscores' }, specimen: { fr: 'minuscules_tirets_bas', en: 'snake_case' }, convention: { casse: 'minuscules', separateur: 'tiret-bas' } },

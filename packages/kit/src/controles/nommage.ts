@@ -4,13 +4,15 @@ import { estLAxeDEtats, formeReconnue, termeReconnu } from '../referentiel/recon
 import type { NomANormaliser } from '../referentiel/conventions.js';
 import { categorieDuSegment } from '../referentiel/ecriture-des-mots.js';
 import { termePourCategorie, type Registre } from '../referentiel/termes.js';
-import { FAMILLES_PRIMITIVES, REGISTRE_PALETTES_COMPOSANT, REGISTRE_STYLES_COMPOSANT } from '../referentiel/architecture.js';
+import {
+  FAMILLES_PRIMITIVES, INTERRUPTEURS, NOMS_D_AXES, NOMS_D_AXES_FRANCAIS, REGISTRE_PALETTES_COMPOSANT, REGISTRE_STYLES_COMPOSANT, type RoleDAxe,
+} from '../referentiel/architecture.js';
 import { REGISTRE_ETATS, REGISTRE_TAILLES } from '../referentiel/vocabulaire.js';
 import { collectionParCle, type CatalogueDeReference, type VariableDuCatalogue } from './catalogue.js';
 import type { Constat } from './constat.js';
 import type { ReleveDeComposant } from './releve.js';
 
-export type AxeDuComposant = 'palette' | 'style' | 'taille' | 'etat';
+export type AxeDuComposant = RoleDAxe;
 export type ProprieteDAxe = ReleveDeComposant['proprietes'][number];
 export interface TokenDuComposant {
   variable: VariableDuCatalogue;
@@ -18,13 +20,31 @@ export interface TokenDuComposant {
   lecture: readonly SegmentReconnu[];
 }
 
+const ROLE_PAR_NOM = new Map((Object.entries(NOMS_D_AXES) as [Exclude<AxeDuComposant, 'etat'>, readonly string[]][])
+  .flatMap(([role, noms]) => noms.map((nom) => [nom, role] as const)));
+
+function anglaisDuNomFrancais(forme: string): string | undefined {
+  return Object.prototype.hasOwnProperty.call(NOMS_D_AXES_FRANCAIS, forme) ? NOMS_D_AXES_FRANCAIS[forme] : undefined;
+}
+
+/** Le rôle du nom d'une propriété de variant ; `undefined` pour un nom qui ne pilote aucun segment, interrupteur compris. Un nom français a le rôle de son équivalent anglais. */
 export function axeDePropriete(nom: string): AxeDuComposant | undefined {
-  const forme = formeReconnue(nom);
   if (estLAxeDEtats(nom)) return 'etat';
-  if (['size', 'sizes', 'taille'].includes(forme)) return 'taille';
-  if (['palette', 'severity', 'intent', 'color'].includes(forme)) return 'palette';
-  if (['style', 'variant', 'appearance'].includes(forme)) return 'style';
-  return undefined;
+  const forme = formeReconnue(nom);
+  const anglais = anglaisDuNomFrancais(forme);
+  return ROLE_PAR_NOM.get(anglais ? formeReconnue(anglais) : forme);
+}
+
+/** L'équivalent anglais d'un nom d'axe français, à la casse de son initiale (`Couleur` donne `Color`) ; `undefined` pour tout autre nom. */
+export function nomDAxeEnAnglais(nom: string): string | undefined {
+  const anglais = anglaisDuNomFrancais(formeReconnue(nom));
+  if (!anglais) return undefined;
+  return /^\p{Ll}/u.test(nom) ? anglais.charAt(0).toLowerCase() + anglais.slice(1) : anglais;
+}
+
+/** Vrai pour un interrupteur oui ou non (`Destructive`, `High contrast`) : il garde son nom et ne pilote aucun segment de token. */
+export function estUnInterrupteur(nom: string): boolean {
+  return INTERRUPTEURS.includes(formeReconnue(nom));
 }
 
 type AxesDuReleve = Partial<Record<AxeDuComposant, ProprieteDAxe>>;

@@ -97,10 +97,10 @@ export function releveRiche(): ReleveDeComposant {
  */
 export function releveRicheAvecWrapper(): ReleveDeComposant {
   const releve = releveRiche();
-  releve.proprietes = releve.proprietes.map((propriete) => (propriete.nom === 'Size' ? { ...propriete, nom: 'Density' } : propriete));
+  releve.proprietes = releve.proprietes.map((propriete) => (propriete.nom === 'Size' ? { ...propriete, nom: 'Scale' } : propriete));
   for (const variante of releve.variants) {
-    const { Size: densite, ...autres } = variante.valeurs;
-    variante.valeurs = { ...autres, Density: densite };
+    const { Size: echelle, ...autres } = variante.valeurs;
+    variante.valeurs = { ...autres, Scale: echelle };
   }
   releve.wrappers = [{
     id: 'jeu-sizeWrapper', cle: 'cle-sizeWrapper', nom: '.sizeWrapperButton',

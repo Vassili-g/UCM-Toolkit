@@ -1,10 +1,13 @@
 /** Découpage et écriture des segments employés par les deux moteurs de normalisation. */
-import { COLLECTIONS, FORMES_ANCIENNES_DES_COLLECTIONS, REGISTRES_ARCHITECTURE } from './architecture.js';
-import { CATEGORIES_DE_NOM, type Casse, type CategorieDeNom, type NomANormaliser, type Separateur } from './conventions.js';
+import { COLLECTIONS, FORMES_ANCIENNES_DES_COLLECTIONS, REGISTRE_PALETTES_COMPOSANT, REGISTRES_ARCHITECTURE } from './architecture.js';
+import {
+  CATEGORIES_DE_NOM, CONVENTION_DE_SEGMENT_DE_TOKEN, CONVENTION_DE_VALEUR_DE_VARIANT,
+  type Casse, type CategorieDeNom, type NomANormaliser, type Separateur,
+} from './conventions.js';
 import type { NatureDeSegment } from './natures.js';
 import type { ConventionDetectee } from './normalisation.js';
 import { decouperUnBloc, TERMES_COMPOSES, termeOuVarianteConnu } from './termes-connus.js';
-import { REGISTRES } from './vocabulaire.js';
+import { REGISTRE_ETATS, REGISTRE_TAILLES, REGISTRES, TAILLES_DE_VARIANT } from './vocabulaire.js';
 
 export function frontieres(segment: string): string {
   return segment.replace(/(\p{Lu})(\p{Lu}\p{Ll})/gu, '$1\0$2').replace(/([\p{Ll}\p{N}])(\p{Lu})/gu, '$1\0$2');
@@ -131,6 +134,84 @@ export function assembler(segment: string, mots: readonly string[], separateur: 
   }
   const jonction = { tiret: '-', 'tiret-bas': '_', espace: ' ', soude: '', camelCase: '' }[separateur];
   return mots.join(jonction);
+}
+
+/** Les rôles dont une valeur de variant a une écriture décidée : la taille, la palette d'un composant et l'état. */
+export type RoleDeValeur = 'taille' | 'palette' | 'etat';
+
+/** Ce que le kit sait d'une valeur de variant qui écrit un terme connu. */
+export interface EcritureDeVariant {
+  /** L'identifiant du terme du registre que la valeur écrit (`xl`). */
+  readonly terme: string;
+  /** L'écriture du variant : mots entiers, une majuscule à chaque mot (`Extra Large`), selon `CONVENTION_DE_VALEUR_DE_VARIANT`. */
+  readonly variant: string;
+  /** Le segment du token qui écrit le terme : son identifiant (`xl`). */
+  readonly token: string;
+  /**
+   * Vrai quand la valeur n'est pas déjà `variant` à la casse près : une abréviation (`S`, `sm`, `XL`) ou un synonyme (`Middle`, `Error`)
+   * se corrige vers `variant`. Faux pour `small`, `SMALL` ou `extra large` : un terme connu ne reçoit aucun constat de casse.
+   */
+  readonly correction: boolean;
+}
+
+/** La valeur ramenée à la forme qu'on compare : mots de `decouperSegment`, en minuscules, joints par `-`. */
+function formeDeValeur(valeur: string): string {
+  return decouperSegment(valeur).map((mot) => mot.toLowerCase()).join('-');
+}
+
+function ecrireLeVariant(mots: readonly string[]): string {
+  const { casse, separateur } = CONVENTION_DE_VALEUR_DE_VARIANT;
+  return assembler('', motsAvecCasse(mots, casse), separateur);
+}
+
+let variantsConnus: Readonly<Record<RoleDeValeur, ReadonlyMap<string, EcritureDeVariant>>> | undefined;
+
+/** Construit à la première demande : les registres sont fixes après le chargement. L'écriture du variant passe avant ses variantes, qui ne la remplacent pas. */
+function indexDesVariants(): Readonly<Record<RoleDeValeur, ReadonlyMap<string, EcritureDeVariant>>> {
+  if (variantsConnus) return variantsConnus;
+  const index: Record<RoleDeValeur, Map<string, EcritureDeVariant>> = { taille: new Map(), palette: new Map(), etat: new Map() };
+  const ajouter = (role: RoleDeValeur, ecrit: string, ecriture: EcritureDeVariant): void => {
+    const forme = formeDeValeur(ecrit);
+    if (forme && !index[role].has(forme)) index[role].set(forme, ecriture);
+  };
+  for (const terme of REGISTRE_TAILLES.termes) {
+    const entree = TAILLES_DE_VARIANT[terme.id];
+    if (!entree) continue;
+    const ecriture = { terme: terme.id, variant: entree.variant, token: terme.id };
+    ajouter('taille', entree.variant, { ...ecriture, correction: false });
+    for (const forme of [terme.id, ...(terme.toleres ?? []), ...entree.abregees]) ajouter('taille', forme, { ...ecriture, correction: true });
+  }
+  for (const terme of REGISTRE_PALETTES_COMPOSANT.termes) {
+    const ecriture = { terme: terme.id, variant: ecrireLeVariant(decouperSegment(terme.id)), token: terme.id };
+    ajouter('palette', ecriture.variant, { ...ecriture, correction: false });
+    for (const forme of terme.toleres ?? []) ajouter('palette', forme, { ...ecriture, correction: true });
+  }
+  // Une forme tolérée d'état se reconnaît sans correction : seules la taille et la palette ont une décision écrite.
+  for (const terme of REGISTRE_ETATS.termes) {
+    const ecriture = { terme: terme.id, variant: ecrireLeVariant(decouperSegment(terme.id)), token: terme.id, correction: false };
+    for (const forme of [terme.id, ...(terme.toleres ?? [])]) ajouter('etat', forme, ecriture);
+  }
+  variantsConnus = index;
+  return index;
+}
+
+/**
+ * Le terme qu'une valeur de variant écrit, et comment le variant et le token l'écrivent ; `undefined` pour une valeur sans terme connu
+ * dans ce rôle. Le rôle décide : `M` est une taille, pas une palette.
+ */
+export function ecritureDuVariant(role: RoleDeValeur, valeur: string): EcritureDeVariant | undefined {
+  return indexDesVariants()[role].get(formeDeValeur(valeur));
+}
+
+/**
+ * Le segment qu'un token écrit pour une valeur de variant : l'identifiant du terme connu dans `role` (`Small` donne `sm`), sinon la valeur en
+ * minuscules, ses mots joints par un tiret, où le point et la barre deviennent un tiret aussi (`16/9` donne `16-9`, `1.5` donne `1-5`).
+ */
+export function segmentDeToken(valeur: string, role?: RoleDeValeur): string {
+  const connue = role ? ecritureDuVariant(role, valeur) : undefined;
+  if (connue) return connue.token;
+  const { casse, separateur } = CONVENTION_DE_SEGMENT_DE_TOKEN;
+  return assembler('', motsAvecCasse(valeur.split(/[\s./_-]+/u).filter(Boolean), casse), separateur);
 }
 
 export function categorieDuSegment(nom: NomANormaliser, rang: number): CategorieDeNom {

@@ -122,6 +122,36 @@ export const REGISTRES_ARCHITECTURE: readonly Registre[] = [
   REGISTRE_DOSSIERS_THEME, REGISTRE_VALEURS_THEME,
 ];
 
+/** Le segment d'un token que pilote une propriété de variant : l'état, la taille, la palette ou le style. */
+export type RoleDAxe = 'etat' | 'taille' | 'palette' | 'style';
+
+/**
+ * Les noms de propriété de variant qui pilotent un segment de token, par rôle, en forme reconnue (minuscules, mots joints par `-`).
+ * L'axe d'états a son registre, `REGISTRE_AXES_ETAT`. Le nom décide du rôle (Q-F5-1, Q-F5-2) : `Type`, `Kind` et `Shape` pilotent le style,
+ * `Density` et `Spacing` la taille. `Hierarchy`, `Emphasis` et `Fill style` pilotent le style, `Tone` et `Colour` la palette.
+ */
+export const NOMS_D_AXES: Readonly<Record<Exclude<RoleDAxe, 'etat'>, readonly string[]>> = {
+  taille: ['size', 'sizes', 'density', 'spacing'],
+  palette: ['palette', 'severity', 'intent', 'color', 'colour', 'tone'],
+  style: ['style', 'variant', 'appearance', 'type', 'kind', 'shape', 'hierarchy', 'emphasis', 'fill-style'],
+};
+
+/**
+ * Un nom d'axe français et son équivalent anglais, en forme reconnue pour la clé (Q-F5-9). Le français prend le rôle de l'anglais et
+ * reçoit un renommage vers lui. Les formes sans accent y figurent à côté des formes accentuées.
+ */
+export const NOMS_D_AXES_FRANCAIS: Readonly<Record<string, string>> = {
+  couleur: 'Color', intention: 'Intent', gravité: 'Severity', gravite: 'Severity',
+  variante: 'Variant', apparence: 'Appearance', hiérarchie: 'Hierarchy', hierarchie: 'Hierarchy',
+  taille: 'Size', état: 'State', etat: 'State',
+};
+
+/**
+ * Les noms de propriété de variant qui sont un interrupteur oui ou non, en forme reconnue (Q-F5-1). Un interrupteur garde son nom
+ * et ne pilote aucun segment de token : il n'est pas un axe de valeur.
+ */
+export const INTERRUPTEURS: readonly string[] = ['destructive', 'danger', 'high-contrast', 'loading', 'selected'];
+
 export const AXES_DES_COLLECTIONS = {
   marque: { collection: 'brands', attribut: 'data-brands', registre: REGISTRE_MARQUES },
   theme: { collection: 'theme', attribut: 'data-theme', registre: REGISTRE_MODES },

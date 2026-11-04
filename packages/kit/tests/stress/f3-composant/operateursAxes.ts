@@ -278,7 +278,7 @@ export function axeDeSegment(carte: CarteDuComposant, role: 'palette' | 'style' 
   return carte.axes.find((axe) => axe.segment === role);
 }
 
-/** Un axe que le kit ne reconnaît pas (`Type`, `Tone`) rend le cas `mesure` tant que la liste de Q-08 n'existe pas. */
+/** Un axe sans rôle pour le kit rend le cas `mesure` (ancienne référence Q-08). `Type` et `Tone` en ont un depuis Q-F5-1 : aucun profil de base n'en porte plus. */
 export function verdictDesAxes(axes: readonly (AxeDeCarte | undefined)[]): { verdict: Verdict; question?: string } {
   return axes.some((axe) => axe && axe.axe === null) ? { verdict: 'mesure', question: 'Q-08' } : { verdict: 'attendu' };
 }

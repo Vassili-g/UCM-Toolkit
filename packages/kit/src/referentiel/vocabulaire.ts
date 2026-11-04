@@ -142,6 +142,20 @@ export const REGISTRE_TAILLES: Registre = {
  */
 export const SIZE_VALUES: ReadonlySet<string> = new Set(REGISTRE_TAILLES.termes.flatMap((terme) => [terme.id, ...(terme.toleres ?? [])]));
 
+/**
+ * Une taille dans un variant : le variant l'écrit en toutes lettres, avec une majuscule à chaque mot, le token par son identifiant de
+ * `REGISTRE_TAILLES` (Q-F5-6). `abregees` ajoute les écritures abrégées que le registre ne tolère pas et qui se corrigent vers
+ * `variant` ; les formes tolérées du registre (`tiny`, `big`, `huge`) se corrigent aussi. Aucune écriture en toutes lettres n'est décidée
+ * au-delà de `xl`, donc `2xl` et les suivantes n'ont pas d'entrée.
+ */
+export const TAILLES_DE_VARIANT: Readonly<Record<string, { readonly variant: string; readonly abregees: readonly string[] }>> = {
+  xs: { variant: 'Extra Small', abregees: ['x-small'] },
+  sm: { variant: 'Small', abregees: ['s'] },
+  md: { variant: 'Medium', abregees: ['m', 'middle'] },
+  lg: { variant: 'Large', abregees: ['l'] },
+  xl: { variant: 'Extra Large', abregees: ['x-large'] },
+};
+
 export const REGISTRE_STATUTS: Registre = {
   id: 'statuts', extensible: true,
   termes: [

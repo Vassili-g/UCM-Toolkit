@@ -11,6 +11,8 @@ export * from './architecture.js';
 export * from './grammaire.js';
 export * from './conventions.js';
 export * from './normalisation.js';
+export { ecritureDuVariant, segmentDeToken } from './ecriture-des-mots.js';
+export type { EcritureDeVariant, RoleDeValeur } from './ecriture-des-mots.js';
 export * from './theme.js';
 export * from './contraste.js';
 export * from './produits.js';

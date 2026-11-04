@@ -164,7 +164,7 @@ test('trois cas passent par les contrôles du kit et `comparer` sans lever', () 
   }
 });
 
-test('les opérateurs tournent sur d\'autres profils : Pα garde ses cas, un jeu à axes hors liste passe en mesure Q-08', () => {
+test('les opérateurs tournent sur d\'autres profils : Pα garde ses cas, Badge lit Type et Tone, ses cas restent attendus (Q-F5-1)', () => {
   const alpha = composantDuProfil(PROFIL_ALPHA);
   const casAlpha = [...operateursAxes(alpha), ...operateursRoles(alpha), ...operateursCibles(alpha)];
   assert.equal(casAlpha.filter((entree) => entree.operateur === 'L1').length, 0, 'alert-11 n\'a pas d\'axe d\'états');
@@ -172,7 +172,8 @@ test('les opérateurs tournent sur d\'autres profils : Pα garde ses cas, un jeu
   assert.ok(casAlpha.every((entree) => entree.question !== 'Q-08'));
   const badge = composantDuProfil(PROFILS_DE_BASE.find((profil) => profil.forme === 'badge-9' && profil.imbriques && profil.plages === 2 && profil.modesDeTaille === 1)!);
   const casBadge = operateursAxes(badge);
-  assert.ok(casBadge.some((entree) => entree.operateur === 'L2' && entree.question === 'Q-08'));
+  assert.ok(casBadge.some((entree) => entree.operateur === 'L2'));
+  assert.ok(casBadge.every((entree) => entree.verdict === 'attendu' && entree.question === undefined), 'Type (style) et Tone (palette) ont un rôle');
 });
 
 test('dégrader ne touche pas la base, puis annuler redonne le relevé et le catalogue de la base', () => {

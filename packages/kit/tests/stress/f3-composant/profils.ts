@@ -27,8 +27,7 @@ interface JeuDeVariants {
 
 /**
  * Les axes et valeurs de chaque forme. `alert-11` et `button-216` reprennent la galerie d'Architect. `badge-9` nomme ses axes
- * `Type` et `Tone`, que le kit ne reconnaît pas : leur segment figure dans les tokens (`Tone` en palette, `Type` en style),
- * mais aucun contrôle n'en lit la valeur.
+ * `Type` et `Tone`, que le kit lit depuis Q-F5-1 : `Type` pilote le style, `Tone` la palette.
  */
 export const JEUX_DE_VARIANTS: Readonly<Record<FormeDeJeu, JeuDeVariants>> = {
   'alert-11': {
