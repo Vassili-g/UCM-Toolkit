@@ -1,6 +1,6 @@
 # Retours de relecture du plan de fiabilisation
 
-La relecture porte sur `docs/notes/Recherches/UCM Architect/8 Fiabilisation/PLAN-IMPLEMENTATION.md`. Aucun code ni commit ne fait partie de cette tâche. Le mainteneur a demandé ce fichier de suivi pendant la relecture. Le motif existant `docs/notes/Recherches/UCM Architect/**` du registre couvre ce fichier. Aucun changement du registre n’est nécessaire.
+La relecture porte sur le plan d'implémentation, découpé depuis dans [Plan/](./Plan/README.md), un fichier par lot. Aucun code ni commit ne fait partie de cette tâche. Le mainteneur a demandé ce fichier de suivi pendant la relecture. Le motif existant `docs/notes/Recherches/UCM Architect/**` du registre couvre ce fichier. Aucun changement du registre n’est nécessaire.
 
 ## Contrôles de la conversation principale
 
