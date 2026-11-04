@@ -126,3 +126,6 @@ Plugin UCM Architect : ucm-architect-plugin, privé, lecture et corrections apr�
   - operateursRegles.ts, operateursEcriture.ts, operateursMoteur.ts : G, H et J ; E ; M
   - fauxPositifs.ts, interactions.ts, metamorphiques.ts : faux positifs, 8 couples sur 2 profils, relations d'ordre et de casse
   - cas.ts, operateurs.ts, mesurer.ts : le cadre des cas et leurs clés, le point d'entrée par famille, la mesure et le rapport
+  - chaine.ts, casDeLaChaine.ts : la chaîne jusqu'au vrai panneau sur faux DOM et le `Jugement` d'un cas, puis les 129 cas de la section D (F8 D1 à D6, F9 D1 et D2)
+  - rejeu.ts : F9 D3 et D4, cinq captures de `_local/` sous six pannes et la parité de la prélecture ; une source absente compte « absente »
+  - signatures.ts, executer.ts : rattache un écart à un écart connu ou le marque « nouveau » ; `npm run stress:analyse -- --section D` écrit `_local/stress/f8-analyse/chaine.txt` et `chaine.json`, gardé par `tests/stressChaineAnalyse.test.ts`

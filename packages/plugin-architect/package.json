@@ -17,6 +17,7 @@
     "mesure": "node --expose-gc scripts/mesurer.mjs",
     "stress:composant": "node ../../scripts/construire-plugin.mjs verifier-kit architect && npx tsx scripts/stress/f3-composant/executer.ts",
     "stress:structure": "node ../../scripts/construire-plugin.mjs verifier-kit architect && npx tsx scripts/stress/f2-structure/executer.ts",
+    "stress:analyse": "node ../../scripts/construire-plugin.mjs verifier-kit architect && npx tsx scripts/stress/f8-analyse/executer.ts",
     "build": "node ../../scripts/construire-plugin.mjs verifier-kit architect && npm run typecheck && npm run build:code && npm run build:ui && npm run build:manifest",
     "test": "node scripts/run-tests.cjs"
   },
