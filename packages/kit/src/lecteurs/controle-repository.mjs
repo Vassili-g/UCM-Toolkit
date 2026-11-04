@@ -30,6 +30,9 @@ import { champsInvalidesDuContrat } from "./validation-contrat.mjs";
 import { validerGrapheDesContrats } from "./validation-graphe-contrats.mjs";
 import { bilanEstBloquant, enteteDuVerdict } from "./verdict-bilan.mjs";
 import { VERSION_CONTRAT_MAXIMALE, VERSION_CONTRAT_MINIMALE, verdictDeVersion } from "./version-contrat.mjs";
+import { TYPES_D_ALERTE } from "@ucm-kit/core/referentiel";
+
+const GLYPHES = Object.fromEntries(TYPES_D_ALERTE.map(({ id, texte }) => [id, texte]));
 
 const VERSIONS_CONTRAT_SUPPORTEES = VERSION_CONTRAT_MINIMALE === VERSION_CONTRAT_MAXIMALE
   ? VERSION_CONTRAT_MINIMALE
@@ -261,7 +264,7 @@ function finaliserRapport(rapport, { sansObjet = false } = {}) {
  * donc ce qui a été constaté et l'état de la fusion, et rien d'autre.
  */
 const RAPPORT_SANS_OBJET = [
-  "## ✅ Cette demande de fusion ne touche aucun fichier suivi par UCM",
+  `## ${GLYPHES.tenu.forge} Cette demande de fusion ne touche aucun fichier suivi par UCM`,
   "",
   "Le contrôle a tourné et ne demande aucun geste. La fusion n'est pas bloquée.",
 ].join("\n");
@@ -306,7 +309,7 @@ function rapportMarkdown(bilans, fautifs, bilansDuRapport, contexte) {
   if (fautifs.length === 0 && !echecsDeTests.echoue) {
     const tokens = bilans.reduce((somme, bilan) => somme + bilan.total, 0);
     const lignes = [
-      "## ✅ Aucun blocage détecté",
+      `## ${GLYPHES.tenu.forge} Aucun blocage détecté`,
       "",
       `${libelleNombre(bilans.length, "contrat")} et ${libelleNombre(tokens, "référence")} de token contrôlés. Les contrôles bloquants sont passés.`,
     ];
@@ -453,60 +456,60 @@ function terminalDesBilans(bilans) {
   const fil = [];
   for (const bilan of bilans) {
     if (bilan.illisible) {
-      fil.push({ flux: "error", texte: `✗ ${bilan.fichier} : JSON illisible (${bilan.relatif})` });
+      fil.push({ flux: "error", texte: `${GLYPHES.bloquant.brut} ${bilan.fichier} : JSON illisible (${bilan.relatif})` });
       continue;
     }
     if (bilan.champsAbsents.length > 0) {
-      fil.push({ flux: "error", texte: `✗ ${bilan.fichier} : contrat inexploitable, champs absents → ${bilan.champsAbsents.join(', ')} (${bilan.relatif})` });
+      fil.push({ flux: "error", texte: `${GLYPHES.bloquant.brut} ${bilan.fichier} : contrat inexploitable, champs absents → ${bilan.champsAbsents.join(', ')} (${bilan.relatif})` });
       continue;
     }
     if (bilan.version) {
       fil.push({
         flux: "error",
         texte: bilan.version.verdict === "recent"
-          ? `✗ ${bilan.fichier} : contrat en ${bilan.version.valeur}. Ce repository lit les schémas ${VERSIONS_CONTRAT_SUPPORTEES}. Un développeur doit adapter les lecteurs ; réexporter n'y changera rien.`
-          : `✗ ${bilan.fichier} : contrat en ${bilan.version.valeur}. Ce repository lit les schémas ${VERSIONS_CONTRAT_SUPPORTEES}. Réexportez le composant depuis Figma.`,
+          ? `${GLYPHES.bloquant.brut} ${bilan.fichier} : contrat en ${bilan.version.valeur}. Ce repository lit les schémas ${VERSIONS_CONTRAT_SUPPORTEES}. Un développeur doit adapter les lecteurs ; réexporter n'y changera rien.`
+          : `${GLYPHES.bloquant.brut} ${bilan.fichier} : contrat en ${bilan.version.valeur}. Ce repository lit les schémas ${VERSIONS_CONTRAT_SUPPORTEES}. Réexportez le composant depuis Figma.`,
       });
     }
     for (const token of bilan.manquants) {
-      fil.push({ flux: "warn", texte: `⚠ ${bilan.fichier} : référence absente de la source de tokens → ${token}` });
+      fil.push({ flux: "warn", texte: `${GLYPHES.corriger.brut} ${bilan.fichier} : référence absente de la source de tokens → ${token}` });
     }
     for (const { chemin, reference, attendu, recu, feuille, mode, extension } of bilan.typesTypographiques) {
       const ou = extension === undefined ? `le mode ${mode}` : `le mode ${mode} de l'extension ${extension}`;
       const constat = mode === undefined
         ? `${reference} est ${recu}, attendu ${attendu}`
         : `${reference} traverse ${feuille}, qui cite un ${recu} dans ${ou}, attendu ${attendu}`;
-      fil.push({ flux: "error", texte: `✗ ${bilan.fichier} : type typographique incompatible → ${chemin}, ${constat}` });
+      fil.push({ flux: "error", texte: `${GLYPHES.bloquant.brut} ${bilan.fichier} : type typographique incompatible → ${chemin}, ${constat}` });
     }
     for (const erreur of bilan.graphe) {
-      fil.push({ flux: "error", texte: `✗ ${bilan.fichier} : graphe de composition incohérent → ${erreur}` });
+      fil.push({ flux: "error", texte: `${GLYPHES.bloquant.brut} ${bilan.fichier} : graphe de composition incohérent → ${erreur}` });
     }
     // Le terminal marque la parité en ⚠ et non en ✗ : le rapport ne la compte
     // pas parmi les contrats fautifs, et deux symboles contradictoires pour le
     // même constat feraient chercher un blocage qui n'existe pas.
     if (bilan.parite.interfaceAbsente) {
-      fil.push({ flux: "warn", texte: `⚠ ${bilan.fichier} : interface ${bilan.parite.interfaceAbsente} introuvable dans le composant` });
+      fil.push({ flux: "warn", texte: `${GLYPHES.corriger.brut} ${bilan.fichier} : interface ${bilan.parite.interfaceAbsente} introuvable dans le composant` });
     }
     if (bilan.parite.fonctionAbsente) {
-      fil.push({ flux: "warn", texte: `⚠ ${bilan.fichier} : fonction du composant ${bilan.parite.fonctionAbsente} introuvable → nommez-la comme le fichier, ou exportez-la par défaut` });
+      fil.push({ flux: "warn", texte: `${GLYPHES.corriger.brut} ${bilan.fichier} : fonction du composant ${bilan.parite.fonctionAbsente} introuvable → nommez-la comme le fichier, ou exportez-la par défaut` });
     }
     for (const prop of bilan.parite.manquantes) {
-      fil.push({ flux: "warn", texte: `⚠ ${bilan.fichier} : prop du contrat absente du composant → ${prop}` });
+      fil.push({ flux: "warn", texte: `${GLYPHES.corriger.brut} ${bilan.fichier} : prop du contrat absente du composant → ${prop}` });
     }
     for (const { prop, attendu, recu } of bilan.parite.typesIncorrects) {
-      fil.push({ flux: "warn", texte: `⚠ ${bilan.fichier} : type de prop incompatible → ${prop} doit être ${attendu}, reçu ${recu}` });
+      fil.push({ flux: "warn", texte: `${GLYPHES.corriger.brut} ${bilan.fichier} : type de prop incompatible → ${prop} doit être ${attendu}, reçu ${recu}` });
     }
     for (const { prop, valeurs } of bilan.parite.valeursNonImplementees ?? []) {
-      fil.push({ flux: "warn", texte: `⚠ ${bilan.fichier} : valeurs du contrat absentes de l'union du code → ${prop} : ${valeurs.join(", ")}` });
+      fil.push({ flux: "warn", texte: `${GLYPHES.corriger.brut} ${bilan.fichier} : valeurs du contrat absentes de l'union du code → ${prop} : ${valeurs.join(", ")}` });
     }
     for (const { prop } of bilan.parite.enumsSansEffet ?? []) {
-      fil.push({ flux: "warn", texte: `⚠ ${bilan.fichier} : prop enum déclarée mais non utilisée par le composant → ${prop}` });
+      fil.push({ flux: "warn", texte: `${GLYPHES.corriger.brut} ${bilan.fichier} : prop enum déclarée mais non utilisée par le composant → ${prop}` });
     }
     for (const prop of bilan.parite.booleensNonUtilises) {
-      fil.push({ flux: "warn", texte: `⚠ ${bilan.fichier} : prop BOOLEAN déclarée mais non utilisée par le composant → ${prop}` });
+      fil.push({ flux: "warn", texte: `${GLYPHES.corriger.brut} ${bilan.fichier} : prop BOOLEAN déclarée mais non utilisée par le composant → ${prop}` });
     }
     for (const { component, attendu, rendu } of bilan.parite.compositionsIncorrectes) {
-      fil.push({ flux: "warn", texte: `⚠ ${bilan.fichier} : cardinalité de composition incorrecte → ${component}, attendu ${attendu}, rendu ${rendu}` });
+      fil.push({ flux: "warn", texte: `${GLYPHES.corriger.brut} ${bilan.fichier} : cardinalité de composition incorrecte → ${component}, attendu ${attendu}, rendu ${rendu}` });
     }
 
     const ecartDeParite = aUnEcartDeParite(bilan);
@@ -516,7 +519,7 @@ function terminalDesBilans(bilans) {
       && bilan.graphe.length === 0
       && !bilan.version;
     const aAvertir = bilan.manquants.length > 0 || ecartDeParite;
-    const marque = contratValide ? (aAvertir ? "⚠" : "✓") : "✗";
+    const marque = contratValide ? (aAvertir ? GLYPHES.corriger.brut : GLYPHES.tenu.brut) : GLYPHES.bloquant.brut;
     const etatDuCode = !bilan.pariteMesuree
       // L'analyse s'est arrêtée avant la parité : le contrat est illisible, ou
       // sa version n'est pas lue. Rien n'a été comparé, et le dire est la seule
@@ -542,7 +545,7 @@ function terminalDesBilans(bilans) {
 /** Les gestes correctifs du terminal : seuls ceux qui s'appliquent. */
 function terminalDesFautifs(fautifs) {
   if (fautifs.length === 0) return [];
-  const fil = [{ flux: "error", texte: `\n✗ ${libelleNombre(fautifs.length, "contrat")} en défaut.` }];
+  const fil = [{ flux: "error", texte: `\n${GLYPHES.bloquant.brut} ${libelleNombre(fautifs.length, "contrat")} en défaut.` }];
   if (fautifs.some((bilan) => bilan.illisible || bilan.champsAbsents.length > 0)) {
     fil.push({ flux: "error", texte: '  JSON illisible ou incomplet : ré-exportez le composant depuis Figma.' });
   }
@@ -570,7 +573,7 @@ function abandon(titre, explication, terminal, echecsDeTests) {
     fautifs: [],
     bloquant: true,
     rapport: finaliserRapport([
-      `## ❌ ${titre}`,
+      `## ${GLYPHES.bloquant.forge} ${titre}`,
       "",
       explication,
       "",
@@ -607,7 +610,7 @@ function refusDuFormatDeTokens(format, tokens, { sourceTokens, cheminTokens, ech
       `Le fichier porte la version ${format.version} du format de tokens. Les paquets UCM de ce repository lisent la version ${TOKENS_FORMAT_VERSION}, et aucune référence n'a été vérifiée. Un développeur doit mettre à jour les paquets UCM du repository : réexporter les tokens ne corrigera pas ce problème. La fusion reste bloquée.`,
       [{
         flux: "error",
-        texte: `✗ ${cheminTokens} : version ${format.version} du format de tokens, ce repository lit la version ${TOKENS_FORMAT_VERSION}. Un développeur doit mettre à jour les paquets UCM ; réexporter n'y changera rien.`,
+        texte: `${GLYPHES.bloquant.brut} ${cheminTokens} : version ${format.version} du format de tokens, ce repository lit la version ${TOKENS_FORMAT_VERSION}. Un développeur doit mettre à jour les paquets UCM ; réexporter n'y changera rien.`,
       }],
       echecsDeTests,
     );
@@ -618,7 +621,7 @@ function refusDuFormatDeTokens(format, tokens, { sourceTokens, cheminTokens, ech
     `${constat} Le plugin n'écrit jamais cette forme. Relancez **Exporter les tokens** depuis Figma plutôt que de corriger le fichier. La fusion reste bloquée.`,
     [{
       flux: "error",
-      texte: `✗ ${cheminTokens} : version du format de tokens illisible. ${constat} Relancez l’export de tokens depuis Figma.`,
+      texte: `${GLYPHES.bloquant.brut} ${cheminTokens} : version du format de tokens illisible. ${constat} Relancez l’export de tokens depuis Figma.`,
     }],
     echecsDeTests,
   );
@@ -656,7 +659,7 @@ function demarrage({ dossierDeclare, dossierAbsent, sourceTokens, tokensAbsents,
       rapport: finaliserRapport(RAPPORT_SANS_OBJET, { sansObjet: true }),
       terminal: [{
         flux: "log",
-        texte: `✓ Aucun contrat dans ${dossierDeclare}, et cette demande de fusion n'en dépose aucun. Rien à contrôler.`,
+        texte: `${GLYPHES.tenu.brut} Aucun contrat dans ${dossierDeclare}, et cette demande de fusion n'en dépose aucun. Rien à contrôler.`,
       }],
     };
   }
@@ -664,7 +667,7 @@ function demarrage({ dossierDeclare, dossierAbsent, sourceTokens, tokensAbsents,
   const lignes = echecsDeTests.echoue
     ? enteteDuVerdict([], false)
     : [
-      "## ✅ Ce repository n'a pas encore reçu d'export",
+      `## ${GLYPHES.tenu.forge} Ce repository n'a pas encore reçu d'export`,
       "",
       `Aucun contrat n'a été trouvé dans \`${dossierDeclare}\`, il n'y a donc rien à contrôler. Un repository où UCM vient d'être installé se trouve dans cet état jusqu'à son premier export.`,
       "",
@@ -692,7 +695,7 @@ function demarrage({ dossierDeclare, dossierAbsent, sourceTokens, tokensAbsents,
     rapport: finaliserRapport(lignes.join("\n")),
     terminal: [{
       flux: "log",
-      texte: `✓ Aucun contrat dans ${dossierDeclare} : ce repository n'a pas encore reçu d'export. Rien à contrôler.`,
+      texte: `${GLYPHES.tenu.brut} Aucun contrat dans ${dossierDeclare} : ce repository n'a pas encore reçu d'export. Rien à contrôler.`,
     }],
   };
 }
@@ -765,8 +768,8 @@ export function controlerRepository(racine, {
         [{
           flux: "error",
           texte: absent
-            ? `✗ ${cheminTokens} introuvable. Fusionnez l'export des tokens, puis relancez ce contrôle.`
-            : `✗ ${cheminTokens} est illisible. Relancez l’export de tokens depuis Figma.`,
+            ? `${GLYPHES.bloquant.brut} ${cheminTokens} introuvable. Fusionnez l'export des tokens, puis relancez ce contrôle.`
+            : `${GLYPHES.bloquant.brut} ${cheminTokens} est illisible. Relancez l’export de tokens depuis Figma.`,
         }],
         echecsDeTests,
       );
@@ -863,7 +866,7 @@ export function controlerRepository(racine, {
   if (!bloquant) {
     terminal.push({
       flux: "log",
-      texte: "\n✓ Contrats valides."
+      texte: `\n${GLYPHES.tenu.brut} Contrats valides.`
         + " Les références absentes et les écarts contrat ↔ code éventuels ont été signalés sans bloquer.",
     });
   }

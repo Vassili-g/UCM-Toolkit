@@ -16,6 +16,9 @@ import {
   marqueurDeCopie,
   sectionsARelire,
 } from "./conventions.mjs";
+import { TYPES_D_ALERTE } from "@ucm-kit/core/referentiel";
+
+const GLYPHES = Object.fromEntries(TYPES_D_ALERTE.map(({ id, texte }) => [id, texte]));
 
 export const DOSSIER_AIDES = fileURLToPath(new URL("../aides/", import.meta.url));
 
@@ -80,10 +83,10 @@ export function avertissements(conventions, chemin, racine, catalogue) {
   if (!conventions) return [];
   const ou = relative(racine, chemin).split("\\").join("/");
   return [
-    ...conventions.anomalies.map((anomalie) => `⚠ ${ou} : ${anomalie}`),
+    ...conventions.anomalies.map((anomalie) => `${GLYPHES.corriger.brut} ${ou} : ${anomalie}`),
     ...sectionsARelire(conventions, catalogue).map(({ nom, version, sansEmpreinte }) => (sansEmpreinte
-      ? `⚠ ${ou} : la section « ${nom} » copie l'écriture par défaut de la version ${version}, sans empreinte qui dise si elle a changé depuis. Comparez-la à \`ucm aides ${nom}\`.`
-      : `⚠ ${ou} : la section « ${nom} » copie l'écriture par défaut de la version ${version}, qui a changé depuis. Relisez-la.`
+      ? `${GLYPHES.corriger.brut} ${ou} : la section « ${nom} » copie l'écriture par défaut de la version ${version}, sans empreinte qui dise si elle a changé depuis. Comparez-la à \`ucm aides ${nom}\`.`
+      : `${GLYPHES.corriger.brut} ${ou} : la section « ${nom} » copie l'écriture par défaut de la version ${version}, qui a changé depuis. Relisez-la.`
     )),
   ];
 }

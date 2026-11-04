@@ -22,6 +22,9 @@ import { libelleNombre, rendreDiagnostic } from "./diagnostic-markdown.mjs";
 import { axesDeTokens, conesDesAxes, valeurDansLeContexte } from "./modes-tokens.mjs";
 import { cheminDeReference } from "./tokens-dtcg.mjs";
 import { vueExacteDuVariant } from "./variant-views.mjs";
+import { TYPES_D_ALERTE } from "@ucm-kit/core/referentiel";
+
+const GLYPHES = Object.fromEntries(TYPES_D_ALERTE.map(({ id, texte }) => [id, texte]));
 
 /** Au-delà de ce nombre de contextes, la mesure se limite au défaut et à un mode par axe. */
 const CONTEXTES_AU_PLUS = 32;
@@ -241,6 +244,6 @@ export function resumeTerminalContrastes(bilans) {
   const total = bilans.reduce((somme, bilan) => somme + (bilan.contrastes ?? []).length, 0);
   return total === 0
     ? null
-    : `ℹ ${libelleNombre(total, "couleur")} sous le contraste attendu dans les contrats. `
+    : `${GLYPHES.info.brut} ${libelleNombre(total, "couleur")} sous le contraste attendu dans les contrats. `
       + "Vérifiez-les dans Figma. Ce point ne bloque pas la fusion.";
 }

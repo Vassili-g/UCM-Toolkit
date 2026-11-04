@@ -1,6 +1,9 @@
 #!/usr/bin/env node
 /** Point d'entrée du générateur de types UCM. */
 import { genererTypes, rendreGeneration } from "./generation.mjs";
+import { TYPES_D_ALERTE } from "@ucm-kit/core/referentiel";
+
+const GLYPHES = Object.fromEntries(TYPES_D_ALERTE.map(({ id, texte }) => [id, texte]));
 
 function lireArguments(arguments_) {
   if (arguments_.length === 0) return { dossierSortie: "src/generated/contracts" };
@@ -20,6 +23,6 @@ try {
   const texte = rendreGeneration(genererTypes(process.cwd(), options));
   if (texte) console.log(texte);
 } catch (erreur) {
-  console.error(`✗ ${erreur?.message ?? erreur}`);
+  console.error(`${GLYPHES.bloquant.brut} ${erreur?.message ?? erreur}`);
   process.exit(2);
 }

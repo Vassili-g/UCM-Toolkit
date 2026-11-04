@@ -1,10 +1,14 @@
 /** Mise en forme commune des diagnostics destinés au designer. */
 
+import { TYPES_D_ALERTE } from "@ucm-kit/core/referentiel";
+
+const GLYPHES = Object.fromEntries(TYPES_D_ALERTE.map(({ id, texte }) => [id, texte]));
+
 const ICONES = {
-  error: "❌",
-  warning: "⚠️",
-  info: "ℹ️",
-  success: "✅",
+  error: GLYPHES.bloquant.forge,
+  warning: GLYPHES.corriger.forge,
+  info: GLYPHES.info.forge,
+  success: GLYPHES.tenu.forge,
 };
 
 /**

@@ -85,7 +85,10 @@ export function resumeTerminalAvertissements(bilans) {
   const total = bilans.reduce((somme, bilan) => somme + bilan.avertissements.length, 0);
   return total === 0
     ? null
-    : `⚠ ${libelleNombre(total, "point")} signalé${total === 1 ? "" : "s"} par l'export. ` +
+    : `${GLYPHES.corriger.brut} ${libelleNombre(total, "point")} signalé${total === 1 ? "" : "s"} par l'export. ` +
       "Consultez le rapport publié.";
 }
 import { libelleNombre, rendreDiagnostic } from "./diagnostic-markdown.mjs";
+import { TYPES_D_ALERTE } from "@ucm-kit/core/referentiel";
+
+const GLYPHES = Object.fromEntries(TYPES_D_ALERTE.map(({ id, texte }) => [id, texte]));

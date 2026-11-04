@@ -38,6 +38,9 @@ import { MARQUEUR_RAPPORT, MARQUEUR_SANS_OBJET, lireConfiguration } from "@ucm-k
 
 import { NOM_ADAPTATEUR_TYPESCRIPT } from "./adaptateur.mjs";
 import { CHEMIN_CONVENTIONS } from "./conventions.mjs";
+import { TYPES_D_ALERTE } from "@ucm-kit/core/referentiel";
+
+const GLYPHES = Object.fromEntries(TYPES_D_ALERTE.map(({ id, texte }) => [id, texte]));
 
 /** Les options qui reçoivent un dossier, et la clé que chacune décide. */
 const OPTIONS_DE_DOSSIER = { "--components": "components", "--tokens": "tokens" };
@@ -489,7 +492,7 @@ function workflow(version) {
     // que le noyau aurait posé. Sans lui, le commentaire qu'il crée ne serait
     // retrouvé par aucune exécution suivante, et chaque push en empilerait un.
     `          ${MARQUEUR_RAPPORT}`,
-    "          ## ❌ La vérification n'a pas pu rendre son diagnostic",
+    `          ## ${GLYPHES.bloquant.forge} La vérification n'a pas pu rendre son diagnostic`,
     "",
     "          Les contrôles se sont arrêtés avant d'avoir pu analyser cet export : le rapport habituel n'a pas été produit. **Votre design n'est pas en cause** et ré-exporter depuis Figma n'y changerait rien.",
     "",
@@ -649,7 +652,7 @@ function workflowGitlab(version) {
     "    - |",
     "      if [ ! -f ci-report.md ]; then",
     "        printf '%s\\n\\n%s\\n\\n%s\\n' \\",
-    "          \"## ❌ La vérification n'a pas pu rendre son diagnostic\" \\",
+    `          "## ${GLYPHES.bloquant.forge} La vérification n'a pas pu rendre son diagnostic" \\`,
     "          \"Les contrôles se sont arrêtés avant d'avoir pu analyser cet export : le rapport habituel n'a pas été produit. **Votre design n'est pas en cause** et réexporter depuis Figma n'y changerait rien.\" \\",
     "          \"**Action attendue :** un développeur doit ouvrir [le pipeline de la CI]($CI_PIPELINE_URL) pour en connaître la raison.\" \\",
     "          > ci-report.md",
@@ -833,7 +836,7 @@ export function rendreInit({
   lignes: restantes = [],
 }) {
   const lignes = [];
-  for (const chemin of ecrits) lignes.push(`✓ ${chemin}`);
+  for (const chemin of ecrits) lignes.push(`${GLYPHES.tenu.brut} ${chemin}`);
   for (const chemin of conserves) lignes.push(`· ${chemin} existait déjà, laissé tel quel`);
   lignes.push("");
   // L'endroit vient de la configuration écrite, jamais d'une convention

@@ -2,6 +2,10 @@
  * Vrai si seule la version bloque. Les tokens absents et la parité avertissent
  * sans bloquer, car ils accusent le dépôt ou le code, pas le contrat exporté.
  */
+import { TYPES_D_ALERTE } from "@ucm-kit/core/referentiel";
+
+const GLYPHES = Object.fromEntries(TYPES_D_ALERTE.map(({ id, texte }) => [id, texte]));
+
 function seuleLaVersionBloque(bilan) {
   return Boolean(bilan?.version)
     && !bilan.illisible
@@ -59,7 +63,7 @@ export function enteteDuVerdict(fautifs, avecAvertissements = false) {
   if (contratsFautifs > 0 && versionsSeules === contratsFautifs) {
     const pluriel = versionsSeules === 1 ? "" : "s";
     return [
-      `## ❌ ${versionsSeules} contrat${pluriel} dans une version que ce repository ne lit pas`,
+      `## ${GLYPHES.bloquant.forge} ${versionsSeules} contrat${pluriel} dans une version que ce repository ne lit pas`,
       "",
       // Le titre se borne à dire que la version n'est pas lue, ce qui est vrai
       // dans les deux sens de l'écart. La phrase qui suit désigne un
@@ -71,14 +75,14 @@ export function enteteDuVerdict(fautifs, avecAvertissements = false) {
   if (contratsFautifs > 0) {
     const pluriel = contratsFautifs === 1 ? "" : "s";
     return [
-      `## ❌ ${contratsFautifs} contrat${pluriel} invalide${pluriel}`,
+      `## ${GLYPHES.bloquant.forge} ${contratsFautifs} contrat${pluriel} invalide${pluriel}`,
       "",
       "Les contrôles ont détecté des contrats inexploitables, incompatibles ou incohérents.",
       "",
     ];
   }
   return [
-    "## ❌ Les contrôles du repository bloquent la fusion",
+    `## ${GLYPHES.bloquant.forge} Les contrôles du repository bloquent la fusion`,
     "",
     avecAvertissements
       ? "Les contrats sont valides. Les avertissements d'export sont présentés séparément et ne bloquent pas à eux seuls."

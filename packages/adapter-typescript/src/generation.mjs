@@ -6,6 +6,9 @@ import { codeIdentifier } from "@ucm-kit/core/format";
 import { libelleNombre, lireConfiguration, trouverContrats } from "@ucm-kit/core/lecteurs";
 
 import { nomsEnumsDeVariantes, typeVariantesExactes } from "./types-variants.mjs";
+import { TYPES_D_ALERTE } from "@ucm-kit/core/referentiel";
+
+const GLYPHES = Object.fromEntries(TYPES_D_ALERTE.map(({ id, texte }) => [id, texte]));
 
 /** Contenu d'un fichier dérivé d'un contrat, ou `null` s'il n'a aucun enum. */
 export function typesDuContrat(contrat) {
@@ -95,8 +98,8 @@ export function genererTypes(racine = process.cwd(), { dossierSortie = "src/gene
 export function rendreGeneration({ generes, omis }) {
   return [
     ...generes.map(({ composant, nombreUnions, chemin }) => (
-      `✓ ${composant} : ${libelleNombre(nombreUnions, "union")} générée${nombreUnions === 1 ? "" : "s"}. Fichier : ${chemin}`
+      `${GLYPHES.tenu.brut} ${composant} : ${libelleNombre(nombreUnions, "union")} générée${nombreUnions === 1 ? "" : "s"}. Fichier : ${chemin}`
     )),
-    ...omis.map(({ chemin }) => `⚠ ${basename(chemin)} illisible : types non générés (lancez « ucm check »).`),
+    ...omis.map(({ chemin }) => `${GLYPHES.corriger.brut} ${basename(chemin)} illisible : types non générés (lancez « ucm check »).`),
   ].join("\n");
 }

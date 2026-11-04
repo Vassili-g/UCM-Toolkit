@@ -8,6 +8,9 @@
  */
 import { TITRE_AVERTISSEMENTS } from "./avertissements-export.mjs";
 import { libelleNombre, rendreDiagnostic } from "./diagnostic-markdown.mjs";
+import { TYPES_D_ALERTE } from "@ucm-kit/core/referentiel";
+
+const GLYPHES = Object.fromEntries(TYPES_D_ALERTE.map(({ id, texte }) => [id, texte]));
 
 /**
  * Sépare ce qui concerne un composant exporté de ce qui concerne l'outillage.
@@ -139,12 +142,12 @@ export function diagnosticEchecsDeTests({ echoue, echecs }, avertissements = nul
 export function resumeTerminalEchecsDeTests({ echoue, echecs }) {
   if (!echoue) return [];
   if (echecs.length === 0) {
-    return ["✗ La suite de tests n'a pas terminé. Consultez la sortie ci-dessus."];
+    return [`${GLYPHES.bloquant.brut} La suite de tests n'a pas terminé. Consultez la sortie ci-dessus.`];
   }
   const { rendu, testsComposants } = repartirEchecs(echecs);
   const lignes = [
-    ...echecs.map(({ fichier, test }) => `✗ ${fichier ?? "?"} : ${test}`),
-    `\n✗ ${libelleNombre(echecs.length, "test")} en échec.`,
+    ...echecs.map(({ fichier, test }) => `${GLYPHES.bloquant.brut} ${fichier ?? "?"} : ${test}`),
+    `\n${GLYPHES.bloquant.brut} ${libelleNombre(echecs.length, "test")} en échec.`,
   ];
   if (rendu.length > 0) {
     lignes.push("  Assertions de rendu en échec : le composant et le contrat ne correspondent plus.");

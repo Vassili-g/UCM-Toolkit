@@ -35,6 +35,9 @@ import { avertissements, catalogueDesAides } from "./aides.mjs";
 import { contratsDuDossier } from "./contrats.mjs";
 import { conventionsLesPlusProches, lireConventions } from "./conventions.mjs";
 import { attributsDesAxes, memeFichier, refusDuGrapheDesTokens } from "./tokens-css.mjs";
+import { TYPES_D_ALERTE } from "@ucm-kit/core/referentiel";
+
+const GLYPHES = Object.fromEntries(TYPES_D_ALERTE.map(({ id, texte }) => [id, texte]));
 
 export const USAGE_GUIDE = "ucm guide <contrat> [--out <fichier>]";
 
@@ -219,7 +222,7 @@ export function pinsEnDesaccord(racine) {
   }
   if (new Set(trouves.map(({ version }) => version)).size < 2) return [];
   return [
-    "⚠ Les pins de @ucm-kit/cli diffèrent : alignez-les sur une seule version.",
+    `${GLYPHES.corriger.brut} Les pins de @ucm-kit/cli diffèrent : alignez-les sur une seule version.`,
     ...trouves.map(({ chemin, version }) => `  ${chemin} : ${version}`),
   ];
 }

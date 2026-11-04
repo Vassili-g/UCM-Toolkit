@@ -1,4 +1,7 @@
 import { libelleNombre, rendreDiagnostic } from "./diagnostic-markdown.mjs";
+import { TYPES_D_ALERTE } from "@ucm-kit/core/referentiel";
+
+const GLYPHES = Object.fromEntries(TYPES_D_ALERTE.map(({ id, texte }) => [id, texte]));
 
 /**
  * Avertit qu'un contrat conserve des références absentes de la source DTCG.
@@ -36,6 +39,6 @@ export function resumeTerminalTokensManquants(bilans, sourceTokens) {
   const total = bilans.reduce((somme, bilan) => somme + bilan.manquants.length, 0);
   return total === 0
     ? null
-    : `⚠ ${libelleNombre(total, "référence")} de contrat absente${total === 1 ? "" : "s"} de ${sourceTokens}. ` +
+    : `${GLYPHES.corriger.brut} ${libelleNombre(total, "référence")} de contrat absente${total === 1 ? "" : "s"} de ${sourceTokens}. ` +
       "Réexportez les composants concernés. Ce point ne bloque pas la fusion.";
 }

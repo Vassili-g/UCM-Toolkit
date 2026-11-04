@@ -3,6 +3,9 @@
  * stack et reste dans l'adaptateur ; le noyau ne connaît que la forme du relevé.
  */
 import { libelleNombre, rendreDiagnostic } from "./diagnostic-markdown.mjs";
+import { TYPES_D_ALERTE } from "@ucm-kit/core/referentiel";
+
+const GLYPHES = Object.fromEntries(TYPES_D_ALERTE.map(({ id, texte }) => [id, texte]));
 
 /**
  * Ce relevé de parité porte-t-il un écart ?
@@ -142,7 +145,7 @@ export function resumeTerminalEcartsDeParite(bilans) {
   const concernes = bilans.filter(aUnEcartDeParite);
   return concernes.length === 0
     ? null
-    : `⚠ ${libelleNombre(concernes.length, "composant")} en retard sur ${concernes.length === 1 ? "son" : "leur"} contrat.` +
+    : `${GLYPHES.corriger.brut} ${libelleNombre(concernes.length, "composant")} en retard sur ${concernes.length === 1 ? "son" : "leur"} contrat.` +
       "\n  Un développeur doit mettre à jour l'API ou le rendu ; le code doit rendre exactement la cardinalité déclarée, ni moins ni plus." +
       "\n  Ne réexportez pas depuis Figma : le contrat est valide, et la fusion n'est pas bloquée.";
 }
