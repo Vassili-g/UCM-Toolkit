@@ -517,6 +517,17 @@ Les sept injecteurs de R5 reprennent le code et la clé d'un opérateur de F2 : 
 
 R4 reste sans preuve sur fichier réel : aucun des deux fichiers ne reçoit de correction `scope`, `alias-de-mode` ou `variable`. Seule la garde fabriquée (`tests/stressRejeuFichiers.test.ts`) applique une correction.
 
+#### Durée des contrôles, référence de la phase D
+
+`npm run stress:rejeu -- --chrono` donne la médiane de 11 passes, après une passe d'échauffement (lot D0, bd9f418d).
+
+| Fichier | Variables | `controlerLeCatalogue` | `controlerLIntegriteUcm` |
+|---|---|---|---|
+| Premier fichier réel | 2 415 | 35 ms | 39 ms |
+| Intencial Tokens | 755 | 0,9 ms | 0 ms, aucune collection `theme` reconnue |
+
+Les deux contrôles du kit prennent moins de 0,1 s sur 2 415 variables. Le temps d'un Actualiser vient donc des lectures dans Figma, que D1 réduit. Le lot D3 (8d4111ce) indexe la voisine de `controlerLesAliasesManquants` : 40 ms deviennent 11 ms sur un banc de 3 000 variables à 1 000 alias manquants, avec des constats identiques sur 428 catalogues. La durée dans Figma attend le rapport du mode Tokens (10956167), que le mainteneur télécharge.
+
 ### Mode Composant
 
 `npx tsx packages/plugin-architect/scripts/stress/f8-analyse/rejeuDeBase.ts` analyse sans panne les 5 sources de `rejeu.ts`, en 7 secondes. Les 5 fichiers sont le même Button, au même état : 90 variants, 198 layers, statut `complete` et les mêmes 7 constats.
