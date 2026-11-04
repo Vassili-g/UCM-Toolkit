@@ -490,3 +490,42 @@ L'écriture des règles tient de bout en bout sur les 6 formes (D5), et la prél
 | N-86 | Les cartes de correction C43, C45 `sans-regle` et C45 `sans-valeur` n'ont ni Ignorer ni « Ne plus proposer » ; la correction revient à la relecture. Les cartes À faire (C45 `sans-propriete`, C44) les ont. | F8-D4-1, 2, 4, 5, 7, 8 |
 
 Les quatre cas en attente sont F8-D3-4 (opacité rangée hors de Tokens, Q-F89-11), F8-D6-1 (C43 et C44 pour la même absence, Q-F89-5), F9-D2-14 (`occupe` muet, E-39, Q-F89-17) et F8-D5-8 (Divider n'a aucune propriété, non constructible).
+
+## Rejeu des fichiers réels
+
+Le rejeu remplace les combinaisons tirées au hasard de la version complète des plans. Il passe les fichiers réels dans les contrôles, sans oracle écrit cas par cas. Il juge des propriétés : aucune exception, même résultat à chaque exécution, même résultat quel que soit l'ordre, point fixe des corrections, détection de défauts injectés ensemble. Les détails, qui citent des noms, restent sous `_local/stress/rejeu-fichiers/`.
+
+### Mode Tokens
+
+Mesure de `npm run stress:rejeu`, graine 7110, en 6 secondes. `dtcg.ts` convertit chaque export DTCG en catalogue, et les deux contrôles tournent comme le mode Tokens les appelle (`controlerLeCatalogue`, `controlerLIntegriteUcm`). Deux exécutions donnent le même rapport, et le contrôle de fuite ne trouve aucun mot du fichier Slice dans la sortie.
+
+| Propriété | Slice | Intencial Tokens |
+|---|---|---|
+| Conversion | 5 collections, 2 415 variables, 7 947 alias tous résolus | 8 collections, 755 variables, 576 alias tous résolus, 5 jetons composés sautés |
+| R1 constats de base | 4 483, tous C82 sans correction | 0 |
+| R2 déterminisme | 0 différence | 0 différence |
+| R3 ordre (5 mélanges) | 0 différence | 0 différence |
+| R4 point fixe | aucune correction émise, propriété non exercée | aucune correction émise, propriété non exercée |
+| R5 défauts mêlés (20 tirages de 5) | 61 injectés, 61 détectés, 0 constat de base perdu | 45 injectés, 45 détectés, 0 constat de base perdu |
+
+Les sept injecteurs de R5 reprennent le code et la clé d'un opérateur de F2 : L1, L4 et L5 (C63), S1 (C63), S2 (C82), M1 (C60), Y3 (C82). Sur Slice, S2, L5 et M1 ne trouvent aucune cible dans 12 à 14 tirages. Sur Intencial Tokens, S1, M1 et Y3 n'en trouvent pas dans 13 à 17 tirages, et S2 jamais.
+
+| Id | Écart | Mesure |
+|---|---|---|
+| N-87 | Un thème dont les variables visent d'autres variables du thème reçoit un C82 `couche` par variable et par mode, sans correction : 908 variables sur 5 modes donnent 4 359 cartes. Le designer ne peut ni les régler ni les lire. | Slice, R1 |
+| N-88 | Sans collection reconnue comme `theme`, `controlerLIntegriteUcm` rend 0 constat sans le dire : variables manquantes, couches, valeurs directes, scopes, types et rangement ne sont pas jugés. Intencial Tokens nomme son thème `color-brand-tokens`, que le référentiel ne reconnaît pas. | Intencial Tokens, R1 |
+
+R4 reste sans preuve sur fichier réel : aucun des deux fichiers ne reçoit de correction `scope`, `alias-de-mode` ou `variable`. Seule la garde fabriquée (`tests/stressRejeuFichiers.test.ts`) applique une correction.
+
+### Mode Composant
+
+`npx tsx packages/plugin-architect/scripts/stress/f8-analyse/rejeuDeBase.ts` analyse sans panne les 5 sources de `rejeu.ts`, en 7 secondes. Les 5 fichiers sont le même Button, au même état : 90 variants, 198 layers, statut `complete` et les mêmes 7 constats.
+
+| Code | Nombre | Lecture |
+|---|---|---|
+| C32 `inutilise` | 3 | Tokens du composant qu'aucun layer n'emploie. À vérifier dans Figma. |
+| C50 `fond-indetermine` | 2 | Contraste d'un contour sans fond connu, en information. Limite assumée. |
+| C53 | 1 | 18 variants exclus du contraste, en information. |
+| C45 `sans-regle` | 1 | La propriété `state` n'a pas de règle, avec la correction `ajouter`. À vérifier dans Figma. |
+
+Aucune exception et aucun faux constat évident. Le corpus réel du mode Composant ne compte qu'un composant : il faut d'autres captures (Alert, Input) pour que le rejeu mêle des défauts.
