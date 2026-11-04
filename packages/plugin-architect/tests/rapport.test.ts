@@ -295,11 +295,9 @@ test('un échec du rapport de tokens écrit la ligne d’échec et laisse le lie
 
 test('la structure mesure la taille de releve et de structure et le rendu, et montre le lien après la première lecture', () => {
   const fabrique = (): ElementDeTest => comme(document.createElement('div'));
-  const panneau = () => ({ element: Object.assign(fabrique(), { prepend() {} }), contenu: fabrique(), poserEtat() {} });
   const pied = fabrique();
-  const coquille = {
-    panneaux: { aFaire: panneau(), aAppliquer: panneau(), aTrancher: panneau(), regles: panneau() }, pied, toutDecocher() {}, poserLesComptesDeStructure() {},
-  };
+  const tokens = { hote: () => fabrique(), ignores: fabrique(), haut: fabrique(), pied: fabrique(), poserLaStructure() {} };
+  const coquille = { tokens, pied, toutDecocher() {} };
   const envoyes: Array<{ type: string; demande: number }> = [];
   const demandes: Array<(mesures: string | null) => void> = [];
   const telechargements: Array<{ contenu: string }> = [];

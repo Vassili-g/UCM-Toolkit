@@ -24,39 +24,70 @@ export function signeDeLElement(id: IdDElement, taille: TailleDeSigne, informe =
   return creerSigne(SIGNE_DE_L_ELEMENT[id], { taille, informe, ...(id === 'couleurs' ? { famille: 'usage-couleur' } : {}) });
 }
 
-function puce(id: ElementChoisi, libelle: string, points: number, bloquant: boolean, actif: boolean, choisir: (id: ElementChoisi) => void): HTMLElement {
+/** Ce qu'une puce du sommaire dit : son nom, son nombre, son signe, et si elle est choisie. */
+export interface DescriptionDePuce {
+  readonly id: string;
+  readonly libelle: string;
+  readonly nombre: number;
+  readonly nomAccessible: string;
+  /** Le signe de 14 px devant le nom ; `null` pour « Tout ». */
+  readonly signe: HTMLElement | null;
+  /** L'icône après le nom (Bloquant) ; `null` sinon. */
+  readonly icone?: HTMLElement | null;
+  readonly actif: boolean;
+}
+
+/** Une puce du sommaire : le panneau du mode Composant et celui du mode Tokens la posent de la même façon. */
+export function creerPuce({ id, libelle, nombre, nomAccessible, signe, icone = null, actif }: DescriptionDePuce, choisir: (id: string) => void): HTMLElement {
   const bouton = document.createElement('button');
   bouton.type = 'button';
   bouton.className = 'puce-element';
   if (actif) bouton.classList.add('actif');
   bouton.dataset.element = id;
   bouton.setAttribute('aria-pressed', String(actif));
-  bouton.setAttribute('aria-label', T.nomDeLaPuce(libelle, points, bloquant ? libelleDuType('bloquant') : null));
-  if (id !== 'tout') bouton.append(signeDeLElement(id, 14));
+  bouton.setAttribute('aria-label', nomAccessible);
+  if (signe) bouton.append(signe);
   const nom = document.createElement('span');
   nom.textContent = libelle;
   bouton.append(nom);
-  if (bloquant) bouton.append(creerIcone('bloquant'));
-  const nombre = document.createElement('span');
-  nombre.className = 'nombre';
-  nombre.textContent = String(points);
-  bouton.append(nombre);
+  if (icone) bouton.append(icone);
+  const compte = document.createElement('span');
+  compte.className = 'nombre';
+  compte.textContent = String(nombre);
+  bouton.append(compte);
   bouton.addEventListener('click', () => choisir(id));
   return bouton;
 }
 
-/** « Tout », puis une puce par élément qui a des points ; les éléments tenus n'ont pas de puce. */
-export function creerSommaire(elements: readonly ElementDuPanneau[], choisi: ElementChoisi, choisir: (id: ElementChoisi) => void): HTMLElement {
+/** Le groupe de puces d'un sommaire, sous le nom que la technologie d'assistance lit. */
+export function creerGroupeDePuces(etiquette: string, puces: readonly HTMLElement[]): HTMLElement {
   const sommaire = document.createElement('div');
   sommaire.className = 'sommaire-elements';
   sommaire.setAttribute('role', 'group');
-  sommaire.setAttribute('aria-label', T.etiquetteDuSommaire);
+  sommaire.setAttribute('aria-label', etiquette);
+  sommaire.append(...puces);
+  return sommaire;
+}
+
+function puce(id: ElementChoisi, libelle: string, points: number, bloquant: boolean, actif: boolean, choisir: (id: ElementChoisi) => void): HTMLElement {
+  return creerPuce({
+    id,
+    libelle,
+    nombre: points,
+    nomAccessible: T.nomDeLaPuce(libelle, points, bloquant ? libelleDuType('bloquant') : null),
+    signe: id === 'tout' ? null : signeDeLElement(id, 14),
+    icone: bloquant ? creerIcone('bloquant') : null,
+    actif,
+  }, (choix) => choisir(choix as ElementChoisi));
+}
+
+/** « Tout », puis une puce par élément qui a des points ; les éléments tenus n'ont pas de puce. */
+export function creerSommaire(elements: readonly ElementDuPanneau[], choisi: ElementChoisi, choisir: (id: ElementChoisi) => void): HTMLElement {
   const total = elements.reduce((somme, element) => somme + element.points, 0);
-  sommaire.append(
+  return creerGroupeDePuces(T.etiquetteDuSommaire, [
     puce('tout', T.tout, total, false, choisi === 'tout', choisir),
     ...elements.map((element) => puce(element.id, T.libelles[element.id], element.points, element.bloquant, choisi === element.id, choisir)),
-  );
-  return sommaire;
+  ]);
 }
 
 export interface OptionsDeSection {
@@ -68,25 +99,58 @@ export interface OptionsDeSection {
   readonly actions?: () => HTMLElement | null;
 }
 
+/** Ce qu'une bande de section dit : son signe de 24 px, son titre, son nombre et son état. */
+export interface DescriptionDeBande {
+  readonly signe: HTMLElement;
+  readonly libelle: string;
+  readonly nombre: number;
+  readonly nomAccessible: string;
+  readonly ouverte: boolean;
+}
+
+/** La bande d'une section : signe, titre, nombre, chevron. Un clic demande l'état inverse. */
+export function creerBande({ signe, libelle, nombre, nomAccessible, ouverte }: DescriptionDeBande, basculer: (ouverte: boolean) => void): HTMLElement {
+  const bande = document.createElement('button');
+  bande.type = 'button';
+  bande.className = 'bande-element';
+  bande.setAttribute('aria-expanded', String(ouverte));
+  bande.setAttribute('aria-label', nomAccessible);
+  const titre = document.createElement('span');
+  titre.className = 'titre';
+  titre.textContent = libelle;
+  const compte = document.createElement('span');
+  compte.className = 'nombre';
+  compte.textContent = String(nombre);
+  bande.append(signe, titre, compte, creerChevron());
+  bande.addEventListener('click', () => basculer(!ouverte));
+  return bande;
+}
+
+/** La bande d'une catégorie sans point : signe gris, titre en couleur secondaire, la coche Tenu seule. */
+export function creerBandeTenue(signe: HTMLElement, libelle: string): HTMLElement {
+  const bande = document.createElement('div');
+  bande.className = 'bande-element tenue';
+  bande.setAttribute('role', 'group');
+  bande.setAttribute('aria-label', T.nomDeLaBandeTenue(libelle, libelleDuType('tenu')));
+  const titre = document.createElement('span');
+  titre.className = 'titre';
+  titre.textContent = libelle;
+  bande.append(signe, titre, creerIcone('tenu'));
+  return bande;
+}
+
 /** Une section : sa bande (signe, titre, nombre de points, chevron) et, ouverte, ses cartes. */
 export function creerSection(element: ElementDuPanneau, { ouverte, basculer, corps, actions }: OptionsDeSection): HTMLElement {
   const section = document.createElement('div');
   section.className = 'section-element';
   section.dataset.element = element.id;
-  const bande = document.createElement('button');
-  bande.type = 'button';
-  bande.className = 'bande-element';
-  bande.setAttribute('aria-expanded', String(ouverte));
-  bande.setAttribute('aria-label', T.nomDeLaBande(T.libelles[element.id], element.points));
-  const titre = document.createElement('span');
-  titre.className = 'titre';
-  titre.textContent = T.libelles[element.id];
-  const nombre = document.createElement('span');
-  nombre.className = 'nombre';
-  nombre.textContent = String(element.points);
-  bande.append(signeDeLElement(element.id, 24), titre, nombre, creerChevron());
-  bande.addEventListener('click', () => basculer(!ouverte));
-  section.append(bande);
+  section.append(creerBande({
+    signe: signeDeLElement(element.id, 24),
+    libelle: T.libelles[element.id],
+    nombre: element.points,
+    nomAccessible: T.nomDeLaBande(T.libelles[element.id], element.points),
+    ouverte,
+  }, basculer));
   if (ouverte) {
     const gestes = actions?.();
     if (gestes) section.append(gestes);
@@ -100,15 +164,7 @@ export function creerSectionTenue(id: IdDElement): HTMLElement {
   const section = document.createElement('div');
   section.className = 'section-element';
   section.dataset.element = id;
-  const bande = document.createElement('div');
-  bande.className = 'bande-element tenue';
-  bande.setAttribute('role', 'group');
-  bande.setAttribute('aria-label', T.nomDeLaBandeTenue(T.libelles[id], libelleDuType('tenu')));
-  const titre = document.createElement('span');
-  titre.className = 'titre';
-  titre.textContent = T.libelles[id];
-  bande.append(signeDeLElement(id, 24, false), titre, creerIcone('tenu'));
-  section.append(bande);
+  section.append(creerBandeTenue(signeDeLElement(id, 24, false), T.libelles[id]));
   return section;
 }
 

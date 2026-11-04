@@ -1,5 +1,5 @@
 /*
- * « À faire dans Figma » et les corrections de modes et de scopes : des cartes sous des intertitres, comme celles des renommages. Ce
+ * Les constats à régler dans Figma et les corrections de modes et de scopes : des cartes dans les sections de l'onglet Constats. Ce
  * domaine pose ses propres classes, aux valeurs des cartes de Corrections (`nomenclature.css`) : la loi des styles ne laisse pas une
  * feuille de Nomenclature servir un autre domaine.
  */
@@ -179,7 +179,19 @@ button.bloc-bouton {
   font-weight: 600;
 }
 
-/* « Tout désélectionner » ouvre l'onglet Corrections, calé à droite au-dessus de tous les intertitres. */
+/*
+ * Les sections de l'onglet Constats rangent les cartes de structure dans des conteneurs sans boîte : le conteneur de la catégorie garde
+ * l'espacement des cartes. Sous la puce Questions, seules les cartes qui posent une question restent.
+ */
+.structure-groupe {
+  display: contents;
+}
+
+.filtre-questions .bloc:not(.constat-question) {
+  display: none;
+}
+
+/* « Tout désélectionner » ouvre l'onglet Constats, calé à droite sous le sommaire. */
 .tout-deselectionner {
   display: flex;
   justify-content: flex-end;

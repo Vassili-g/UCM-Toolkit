@@ -1,8 +1,9 @@
 /**
  * Le domaine `structure` de l'interface : il demande au sandbox les constats et les corrections de structure, ignore une réponse dont la
- * demande est remplacée, puis monte « À faire dans Figma » dans son onglet et les corrections de variables manquantes, de crans, de
- * modes et de scopes à la suite des renommages dans l'onglet Corrections. « Tout désélectionner » ouvre cet onglet : il décoche les
- * renommages de Nomenclature et les corrections de structure d'un seul geste. Les comptes des deux onglets passent par la coquille.
+ * demande est remplacée, puis range leurs cartes dans les sections de l'onglet Constats (`tokens/panneau.ts`) : les constats à régler
+ * dans Figma et les corrections de variables manquantes, de crans, de modes et de scopes, chacun dans le conteneur de sa catégorie.
+ * « Tout désélectionner » ouvre l'onglet : il décoche les renommages de Nomenclature et les corrections de structure d'un seul geste.
+ * Le panneau tire le compte de l'onglet des cartes que ce module lui livre.
  * Le lien « Télécharger le rapport d'analyse » est au pied des onglets (`rapport.ts`) ; il joint la durée du rendu mesurée ici.
  */
 import { createButton } from 'ucm-plugin-socle/src/ui/Button';
@@ -12,7 +13,7 @@ import type { Constat, Correction } from '../../messages/commun';
 import type { Coquille } from '../nomenclature/coquille';
 import { monterAFaire } from './aFaire';
 import { monterLesCorrections } from './corrections';
-import { lireLesConstats, lireLesCorrections, type Noms } from './lecture';
+import { GROUPES, lireLesConstats, lireLesCorrections, type GroupeDeConstat, type Noms } from './lecture';
 import { creerLesMesuresDuPanneau, monterLeRapportDeTokens } from './rapport';
 
 export interface OptionsDeStructure {
@@ -55,7 +56,20 @@ export function monterStructure(coquille: Coquille, { envoyer, noms, ouvrirLaFic
     demande = nouvelleDemande();
     envoyer(message(demande));
   };
-  const aFaire = monterAFaire(coquille.panneaux.aFaire.contenu, ({ nom, cle }) => {
+  const { tokens } = coquille;
+  /**
+   * Chaque catégorie a un conteneur que le panneau attache dans sa section ; dedans, un sous-conteneur par module (`display: contents`),
+   * les corrections d'abord. Les modules y remplacent leurs cartes sans toucher à celles de l'autre.
+   */
+  const sousHote = (categorie: Parameters<typeof tokens.hote>[0]): HTMLElement => {
+    const sous = document.createElement('div');
+    sous.className = 'structure-groupe';
+    tokens.hote(categorie).append(sous);
+    return sous;
+  };
+  const hotesDeCorrections = { manquantes: sousHote('manquantes'), crans: sousHote('crans'), modes: sousHote('modes'), scopes: sousHote('scopes') };
+  const hotesDAFaire = Object.fromEntries(GROUPES.map((groupe) => [groupe, sousHote(groupe)])) as Record<GroupeDeConstat, HTMLElement>;
+  const aFaire = monterAFaire(hotesDAFaire, tokens.ignores, ({ nom, cle }) => {
     const cible = cle ?? noms.cle(nom);
     if (cible !== null) ouvrirLaFiche(cible);
   }, {
@@ -64,9 +78,8 @@ export function monterStructure(coquille: Coquille, { envoyer, noms, ouvrirLaFic
     nePlusIgnorerLeConstat: (constat) => demanderAvec((numero) => ({ type: 'retablir-constat-de-structure', demande: numero, constat })),
     nePlusIgnorerLeRole: (role) => demanderAvec((numero) => ({ type: 'retablir-role', demande: numero, role })),
   });
-  const hoteDesCorrections = document.createElement('div');
-  hoteDesCorrections.className = 'page-stack';
-  coquille.panneaux.aAppliquer.element.append(hoteDesCorrections);
+  const hoteDuResultat = document.createElement('div');
+  hoteDuResultat.className = 'page-stack';
   let afficheLesComptes = (): void => {};
   const toutDeselectionner = document.createElement('div');
   toutDeselectionner.className = 'tout-deselectionner';
@@ -82,9 +95,11 @@ export function monterStructure(coquille: Coquille, { envoyer, noms, ouvrirLaFic
       },
     }),
   );
-  coquille.panneaux.aAppliquer.element.prepend(toutDeselectionner);
+  tokens.haut.append(toutDeselectionner, hoteDuResultat);
   const corrections = monterLesCorrections({
-    element: hoteDesCorrections,
+    element: hoteDuResultat,
+    hotes: hotesDeCorrections,
+    hoteDuPied: tokens.pied,
     auChangement: () => afficheLesComptes(),
     appliquer(ids) {
       demandeDApplication = nouvelleDemande();
@@ -93,17 +108,16 @@ export function monterStructure(coquille: Coquille, { envoyer, noms, ouvrirLaFic
     },
   });
 
-  let constatsLus = 0;
   afficheLesComptes = () => {
     toutDeselectionner.hidden = corrections.nombre() === 0;
-    coquille.poserLesComptesDeStructure({ aFaire: constatsLus, corrections: corrections.nombre() });
   };
 
   function rendre(): void {
     const constats = recu ? lireLesConstats(recu.constats, noms) : null;
-    constatsLus = constats?.length ?? 0;
-    aFaire.poser(constats, recu ? { constats: lireLesConstats(recu.ignores.constats, noms), roles: recu.ignores.roles } : undefined);
+    const questions = new Set(recu?.constats.filter((constat) => constat.question).map(({ id }) => id));
+    aFaire.poser(constats, recu ? { constats: lireLesConstats(recu.ignores.constats, noms), roles: recu.ignores.roles } : undefined, questions);
     corrections.poser(recu ? lireLesCorrections(recu.corrections, noms, recu.constats) : null);
+    tokens.poserLaStructure(recu ? { constats: recu.constats, corrections: recu.corrections, noms } : null);
   }
 
   function demander(): void {

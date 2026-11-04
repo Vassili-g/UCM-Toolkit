@@ -1,7 +1,7 @@
 /**
- * Les corrections de structure, à la suite des renommages dans l'onglet Corrections : une carte par rôle de variable manquante, une par
- * rôle et par mode de cran, une par correction de mode, une par dossier de scopes, sous les intertitres Variables manquantes, Crans,
- * Modes et Scopes. Chaque ligne se coche ; le pied compte les lignes cochées et Appliquer envoie leurs identifiants, que le sandbox
+ * Les corrections de structure : une carte par rôle de variable manquante, une par rôle et par mode de cran, une par correction de mode,
+ * une par dossier de scopes, rangées dans le conteneur de leur catégorie (Variables manquantes, Crans, Modes, Scopes). Chaque ligne se
+ * coche ; le pied, posé sous la liste des sections, compte les lignes cochées et Appliquer envoie leurs identifiants, que le sandbox
  * relit avant d'écrire. Les lignes de crans arrivent décochées : elles changent une couleur affichée. Le designer voit le scope tel
  * que la fenêtre Edit variable de Figma le nomme.
  */
@@ -11,7 +11,7 @@ import { creerTermeFigma } from 'ucm-plugin-socle/src/ui/Terme';
 import { creerChemin, creerCheminEnPhrase, creerSegmentAncien, creerSegmentNouveau } from 'ucm-plugin-socle/src/ui/Chemin';
 import { creerColonnes, creerLigneDeDiff, creerResultat } from 'ucm-plugin-socle/src/ui/Changement';
 import { TEXTES } from '../textes';
-import { creerCarte, creerIntertitre, poserLesMorceaux } from './carte';
+import { creerCarte, poserLesMorceaux } from './carte';
 import {
   segmentsQuiChangent,
   type CarteDeCrans,
@@ -40,8 +40,16 @@ export interface CorrectionsDeStructure {
   attendre(enCours: boolean): void;
 }
 
+/** Les catégories dont les corrections se rangent dans un conteneur à elles. */
+export type CategorieDeCorrection = 'manquantes' | 'crans' | 'modes' | 'scopes';
+
 export interface OptionsDeCorrections {
+  /** Là où la ligne verte du résultat se pose ; masqué tant qu'il n'y a rien à dire. */
   readonly element: HTMLElement;
+  /** Le conteneur des cartes de chaque catégorie. */
+  readonly hotes: Readonly<Record<CategorieDeCorrection, HTMLElement>>;
+  /** Là où le pied (le compte des lignes cochées, Appliquer) se pose. */
+  readonly hoteDuPied: HTMLElement;
   /** Appelée quand le nombre de corrections change. */
   readonly auChangement: () => void;
   /** Appelée par Appliquer, avec les identifiants des lignes cochées. */
@@ -68,10 +76,8 @@ function cheminAvecSegments(nom: string, marques: readonly number[], colonne: 'a
 
 const libelles = (scopes: readonly string[]): string => scopes.map(TEXTES.scopeDeFigma).join(', ');
 
-export function monterLesCorrections({ element, auChangement, appliquer }: OptionsDeCorrections): CorrectionsDeStructure {
+export function monterLesCorrections({ element, hotes, hoteDuPied, auChangement, appliquer }: OptionsDeCorrections): CorrectionsDeStructure {
   element.hidden = true;
-  const liste = document.createElement('div');
-  liste.className = 'structure-liste';
   const pied = document.createElement('div');
   pied.className = 'structure-pied';
   const resume = document.createElement('span');
@@ -84,9 +90,11 @@ export function monterLesCorrections({ element, auChangement, appliquer }: Optio
     },
   });
   pied.append(resume, boutonAppliquer);
+  pied.hidden = true;
+  hoteDuPied.append(pied);
   const resultat = document.createElement('div');
   resultat.hidden = true;
-  element.append(resultat, liste);
+  element.append(resultat);
 
   let ids: string[] = [];
   /** Le nom créé par chaque ligne de variable manquante, pour nommer celles que l'application saute. */
@@ -336,13 +344,11 @@ export function monterLesCorrections({ element, auChangement, appliquer }: Optio
       for (const id of [...vues]) if (!ids.includes(id)) vues.delete(id);
       for (const { id } of lignesDeCrans) if (!vues.has(id)) decochees.add(id);
       for (const id of ids) vues.add(id);
-      const enfants: HTMLElement[] = [];
-      if (variables.length > 0) enfants.push(creerIntertitre(TEXTES.groupeVariablesManquantes), ...variables.map(carteDeVariables));
-      if (crans.length > 0) enfants.push(creerIntertitre(TEXTES.groupeCrans), ...crans.map(carteDeCrans));
-      if (modes.length > 0) enfants.push(creerIntertitre(TEXTES.groupeModes), ...modes.map(carteDeModes));
-      if (scopes.length > 0) enfants.push(creerIntertitre(TEXTES.groupeScopes), ...scopes.map(carteDeScopes));
-      if (ids.length > 0) enfants.push(pied);
-      liste.replaceChildren(...enfants);
+      hotes.manquantes.replaceChildren(...variables.map(carteDeVariables));
+      hotes.crans.replaceChildren(...crans.map(carteDeCrans));
+      hotes.modes.replaceChildren(...modes.map(carteDeModes));
+      hotes.scopes.replaceChildren(...scopes.map(carteDeScopes));
+      pied.hidden = ids.length === 0;
       element.hidden = ids.length === 0 && resultat.hidden;
       rafraichir();
       auChangement();

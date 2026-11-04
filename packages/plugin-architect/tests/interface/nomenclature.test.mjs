@@ -83,7 +83,7 @@ test('un clic sur un terme vert de la table ouvre sa carte dans Corrections, cib
     await page.locator('.table-ligne:nth-child(2) .ch-lien').nth(1).click();
     assert.equal(await page.locator('.carte-ciblee .jeton-retenu').textContent(), 'hover');
     assert.equal(await page.locator('.carte-ciblee').count(), 1);
-    await page.locator('#onglet-a-trancher').click();
+    await page.locator('#onglet-regles').click();
     assert.equal(await page.locator('.carte-ciblee').count(), 0);
     assert.deepEqual(page.erreurs, []);
   } finally { await page.context().close(); }
@@ -106,7 +106,7 @@ test('Appliquer sous le filtre n’écrit que les noms de la collection affiché
   const page = await ouvrirInterface();
   try {
     assert.match(await page.locator('.noms-pied .resume').textContent(), /^Appliquer renomme 24 variables et 1 collection de Interface\.$/);
-    assert.equal(await page.locator('#onglet-a-appliquer .compte').textContent(), '25');
+    assert.equal(await page.locator('#onglet-a-appliquer .compte').textContent(), await page.locator('.puce-element[data-element="tout"] .nombre').textContent());
     await page.locator('.noms-pied .btn-primary').click();
     await page.locator('.feuille-groupe .btn-primary').click();
     await page.waitForTimeout(30);
@@ -139,7 +139,6 @@ const { bilans, messages } = exiger('../../galerie/nomenclature/donnees.cjs');
 /** Les règles reçues : le fichier Intencial, Questions ouvert, puis les deux règles que le mode Composant prépare. */
 async function ouvrirLesReglesRecues() {
   const page = await ouvrirInterface();
-  await page.locator('#onglet-a-trancher').click();
   await page.evaluate(() => window.postMessage({ pluginMessage: { type: 'regles-recues', regles: [
     { ancien: 'outline', nouveau: 'outlined', composant: 'Alert', exemple: { ancien: 'alert/color/info/outline/border', nouveau: 'alert/color/info/outlined/border' } },
     { ancien: 'txt', nouveau: 'text', composant: 'Tag', exemple: { ancien: 'tag/color/danger/soft/txt', nouveau: 'tag/color/danger/soft/text' } },
@@ -148,15 +147,15 @@ async function ouvrirLesReglesRecues() {
   return page;
 }
 
-test('les règles reçues du mode Composant se rangent en tête de Questions, sous leur intertitre, et s’ajoutent au compte', async () => {
+test('les règles reçues du mode Composant se rangent en tête des questions de Noms, sous leur intertitre, et s’ajoutent au compte de la puce Questions', async () => {
   const page = await ouvrirLesReglesRecues();
   try {
-    const panneau = page.locator('#panneau-a-trancher');
+    const panneau = page.locator('.questions-de-noms');
     assert.deepEqual(await panneau.locator('.intertitre h2').allTextContents(), ['Règles reçues du mode Composant', 'Noms du fichier']);
     assert.equal(await panneau.locator('.question-proposition').first().locator('.origine').textContent(), 'Alert');
     assert.equal(await panneau.locator('.question-proposition').first().locator('.question-titre').textContent(), 'Ajouter la règle outline → outlined ?');
     assert.equal(await panneau.locator('.question-proposition').first().locator('.meta').textContent(), 'Préparée depuis Alert, dans le fichier des composants.');
-    assert.equal(await page.locator('#onglet-a-trancher .compte').textContent(), '4');
+    assert.equal(await page.locator('.puce-element[data-element="questions"] .nombre').textContent(), '4');
     assert.deepEqual(page.erreurs, []);
   } finally { await page.context().close(); }
 });
@@ -164,14 +163,14 @@ test('les règles reçues du mode Composant se rangent en tête de Questions, so
 test('Ajouter la règle envoie remplacer-par ; la carte part avec le bilan qui suit', async () => {
   const page = await ouvrirLesReglesRecues();
   try {
-    await page.locator('#panneau-a-trancher .question-proposition').first().getByRole('button', { name: 'Ajouter la règle' }).click();
+    await page.locator('.questions-de-noms .question-proposition').first().getByRole('button', { name: 'Ajouter la règle' }).click();
     await page.waitForTimeout(30);
     const [demande] = await demandesDe(page, 'regle');
     assert.deepEqual(demande.geste, { type: 'remplacer-par', terme: 'outline', par: 'outlined' });
-    assert.equal(await page.locator('#panneau-a-trancher .question-proposition').first().getByRole('button', { name: 'Ajouter la règle' }).isDisabled(), true);
+    assert.equal(await page.locator('.questions-de-noms .question-proposition').first().getByRole('button', { name: 'Ajouter la règle' }).isDisabled(), true);
     await page.evaluate((m) => window.postMessage({ pluginMessage: m }, '*'), messages.bilan(demande.demande, bilans.travail));
     await page.waitForTimeout(30);
-    assert.deepEqual(await page.locator('#panneau-a-trancher .question-proposition .question-titre').first().textContent(), 'Ajouter la règle txt → text ?');
+    assert.deepEqual(await page.locator('.questions-de-noms .question-proposition .question-titre').first().textContent(), 'Ajouter la règle txt → text ?');
     assert.deepEqual(page.erreurs, []);
   } finally { await page.context().close(); }
 });
@@ -180,10 +179,10 @@ test('Écarter et Plus tard retirent la carte sans rien envoyer', async () => {
   const page = await ouvrirLesReglesRecues();
   try {
     const avant = (await demandesDe(page, 'regle')).length;
-    await page.locator('#panneau-a-trancher .question-proposition').first().getByRole('button', { name: 'Écarter' }).click();
-    await page.locator('#panneau-a-trancher .question-proposition').first().getByRole('button', { name: 'Plus tard' }).click();
-    assert.equal(await page.locator('#panneau-a-trancher .intertitre h2').count(), 0);
-    assert.equal(await page.locator('#onglet-a-trancher .compte').textContent(), '2');
+    await page.locator('.questions-de-noms .question-proposition').first().getByRole('button', { name: 'Écarter' }).click();
+    await page.locator('.questions-de-noms .question-proposition').first().getByRole('button', { name: 'Plus tard' }).click();
+    assert.equal(await page.locator('.questions-de-noms .intertitre h2').count(), 0);
+    assert.equal(await page.locator('.puce-element[data-element="questions"] .nombre').textContent(), '2');
     assert.equal((await demandesDe(page, 'regle')).length, avant);
     assert.deepEqual(page.erreurs, []);
   } finally { await page.context().close(); }

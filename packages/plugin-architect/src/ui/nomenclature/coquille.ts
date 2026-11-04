@@ -1,11 +1,15 @@
 /**
- * La coquille de l'écran de renommage : les quatre onglets (Corrections,
- * Questions, À faire dans Figma, Règles), la puce du filtre de l'arbre, les
- * écrans de lecture et de premier lancement, la page Configuration et le
- * bandeau du fichier modifié. L'en-tête du socle ne se montre que dans la
- * Configuration : la barre d'Architect ouvre celle-ci. Elle relie la frontière à
- * l'état et l'état au DOM. Les lots d'onglet reçoivent la coquille et montent
- * leur contenu dans ses conteneurs.
+ * La coquille de l'écran de renommage : les deux onglets (Constats, Règles), la
+ * puce du filtre de l'arbre, les écrans de lecture et de premier lancement, la
+ * page Configuration et le bandeau du fichier modifié. L'en-tête du socle ne se
+ * montre que dans la Configuration : la barre d'Architect ouvre celle-ci. Elle
+ * relie la frontière à l'état et l'état au DOM. Les lots d'onglet reçoivent la
+ * coquille et montent leur contenu dans ses conteneurs.
+ *
+ * L'onglet Constats range les cartes par catégorie (`tokens/panneau.ts`). Son
+ * identifiant reste `a-appliquer`, celui de l'onglet Corrections qu'il remplace.
+ * `panneaux.aAppliquer` et `panneaux.aTrancher` ne sont plus des onglets : leur
+ * contenu est le corps de la section Noms.
  */
 import { createBackButton, createSettingsButton, montrerConfiguration, montrerTravail, type ElementsDeBascule } from 'ucm-plugin-socle/src/ui/EnTete';
 import { creerPuceFiltre } from 'ucm-plugin-socle/src/ui/Filtre';
@@ -18,7 +22,8 @@ import { creerFrontiere, type Frontiere, type MessageAAfficher } from './frontie
 import { creerBandeau, creerPanneau, creerVueDAnalyse, type Panneau } from './panneaux';
 import { TEXTES } from '../textes/nomenclature';
 import { TEXTES_BIBLIOTHEQUE } from '../textes/bibliotheque';
-import { TEXTES_STRUCTURE } from '../textes/structure';
+import { TEXTES_TOKENS } from '../textes/tokens';
+import { monterLePanneauDesTokens, type PanneauDesTokens } from '../tokens/panneau';
 
 /** Reçoit chaque message que la frontière rend, après la mise à jour de l'état. */
 export type Ecouteur = (message: MessageAAfficher, etat: EtatDeLEcran) => void;
@@ -35,7 +40,10 @@ export interface LibraryAffichee {
 
 export interface Coquille {
   readonly frontiere: Frontiere;
-  readonly panneaux: { readonly aAppliquer: Panneau; readonly aTrancher: Panneau; readonly aFaire: Panneau; readonly regles: Panneau };
+  /** `constats` est l'onglet ; `aAppliquer` et `aTrancher` sont les conteneurs que le panneau attache dans la section Noms. */
+  readonly panneaux: { readonly constats: Panneau; readonly aAppliquer: Panneau; readonly aTrancher: Panneau; readonly regles: Panneau };
+  /** Le sommaire et les sections de l'onglet Constats ; le domaine structure y monte ses cartes. */
+  readonly tokens: PanneauDesTokens;
   /** Le pied de l'écran des onglets, sous le panneau de l'onglet ouvert : le lien du rapport d'analyse. */
   readonly pied: HTMLElement;
   /** Le conteneur du premier lancement : l'invitation à analyser, puis la carte de l'écriture. */
@@ -51,27 +59,25 @@ export interface Coquille {
   fermerLaConfiguration(): void;
   /** Le filtre de l'arbre, `null` quand aucune collection ne filtre. */
   filtre(): FiltreDeCollection | null;
-  /** Le compte de l'onglet Corrections sous un filtre : les noms que le filtre retient. `null` rend le compte du bilan. */
+  /** Sans effet : l'onglet Constats compte des cartes, que le filtre de l'arbre ne change pas. */
   poserLeCompteDesCorrections(nombre: number | null): void;
-  /** Les comptes du domaine structure : les constats de « À faire dans Figma », et les corrections de modes et de scopes que Corrections ajoute à ses renommages. */
-  poserLesComptesDeStructure(comptes: { readonly aFaire: number; readonly corrections: number }): void;
   poserLeFiltre(filtre: FiltreDeCollection | null): void;
-  /** Les règles que le mode Composant a préparées s'ajoutent au compte de Questions. */
+  /** Les règles que le mode Composant a préparées s'ajoutent aux questions de Noms. */
   poserLeCompteDesReglesRecues(nombre: number): void;
-  /** Grise Corrections, Questions et À faire dans Figma, montre l'alerte de la library et ouvre Règles ; `null` rend les onglets. */
+  /** Grise Constats, montre l'alerte de la library et ouvre Règles ; `null` rend les onglets. */
   poserLaLibrary(library: LibraryAffichee | null): void;
   /** Appelle le rappel à chaque changement de filtre ou d'état local (onglet, carte demandée) ; rend la fonction qui le retire. */
   surChangement(rappel: () => void): () => void;
   /** Rend la fonction qui retire l'écouteur. */
   abonner(ecouteur: Ecouteur): () => void;
   choisirOnglet(onglet: Onglet): void;
-  /** Ouvre l'onglet À appliquer, puis appelle le rappel de `surCarteDemandee` avec la clé du groupe à déplier. */
+  /** Ouvre l'onglet Constats, puis appelle le rappel de `surCarteDemandee` avec la clé du groupe à déplier. */
   demanderUneCarte(cle: string): void;
-  /** Branche le dépliage d'une carte de À appliquer. */
+  /** Branche le dépliage d'une carte de renommage. */
   surCarteDemandee(rappel: (cle: string) => void): void;
-  /** Décoche tous les renommages de À appliquer, groupes et noms. */
+  /** Décoche tous les renommages, groupes et noms. */
   toutDecocher(): void;
-  /** Branche le geste de `toutDecocher` : À appliquer décoche ses groupes. */
+  /** Branche le geste de `toutDecocher` : les renommages décochent leurs groupes. */
   surToutDecocher(rappel: () => void): void;
   /** Écrit un texte dans la recherche de l'arbre, comme une recherche tapée. Sans hôte qui la porte, ne fait rien. */
   rechercher(texte: string): void;
@@ -111,8 +117,6 @@ export function creerCoquille(app: HTMLElement, envoyer: (message: UiMessage) =>
   const ecouteurs = new Set<Ecouteur>();
   const surChangements = new Set<() => void>();
   let filtre: FiltreDeCollection | null = null;
-  let compteDesCorrections: number | null = null;
-  let comptesDeStructure = { aFaire: 0, corrections: 0 };
   let reglesRecues = 0;
   let libraryAffichee = false;
   let deplierUneCarte: (cle: string) => void = () => {};
@@ -157,15 +161,20 @@ export function creerCoquille(app: HTMLElement, envoyer: (message: UiMessage) =>
   enTete.append(ligneDuHaut);
 
   const panneaux = {
-    aAppliquer: creerPanneau({ etats: ['sans-variable-locale'] }),
-    aTrancher: creerPanneau({ etats: ['sans-variable-locale'] }),
-    aFaire: creerPanneau({ etats: ['sans-variable-locale'] }),
+    constats: creerPanneau({ etats: ['sans-variable-locale'] }),
+    aAppliquer: creerPanneau({ etats: [] }),
+    aTrancher: creerPanneau({ etats: [] }),
     regles: creerPanneau({ etats: [] }),
   };
+  // Dans la section Noms, « Aucune question » n'a plus de sens : la section dit déjà ce qu'elle contient (`nomenclature.css`).
+  panneaux.aTrancher.contenu.classList.add('questions-de-noms');
+  const tokens = monterLePanneauDesTokens({
+    racine: panneaux.constats.contenu,
+    nomenclature: { questions: panneaux.aTrancher.contenu, renommages: panneaux.aAppliquer.contenu },
+    auChangement: () => rendre(),
+  });
   const onglets = createOnglets<Onglet>(TEXTES.etiquetteDesOnglets, [
-    { id: 'a-appliquer', libelle: TEXTES.ongletAAppliquer, panneau: panneaux.aAppliquer.element },
-    { id: 'a-trancher', libelle: TEXTES.ongletATrancher, panneau: panneaux.aTrancher.element },
-    { id: 'a-faire', libelle: TEXTES.ongletAFaire, panneau: panneaux.aFaire.element },
+    { id: 'a-appliquer', libelle: TEXTES_TOKENS.ongletConstats, panneau: panneaux.constats.element },
     { id: 'regles', libelle: TEXTES.ongletRegles, panneau: panneaux.regles.element },
   ], (id) => {
     if (prete) appliquerLEtat(etatSuivant(etat, { type: 'onglet-choisi', onglet: id }));
@@ -181,9 +190,7 @@ export function creerCoquille(app: HTMLElement, envoyer: (message: UiMessage) =>
     bouton.append(pastille);
     return { bouton, pastille, nom };
   }
-  const compteAAppliquer = lierLeCompte('a-appliquer', TEXTES.nomDeLOngletAAppliquer);
-  const compteATrancher = lierLeCompte('a-trancher', TEXTES.nomDeLOngletATrancher);
-  const compteAFaire = lierLeCompte('a-faire', TEXTES_STRUCTURE.nomDeLOngletAFaire);
+  const compteDesConstats = lierLeCompte('a-appliquer', TEXTES_TOKENS.nomDeLOngletConstats);
 
   function poserLeCompte({ bouton, pastille, nom }: CompteDOnglet, nombre: number): void {
     pastille.hidden = nombre === 0;
@@ -206,7 +213,7 @@ export function creerCoquille(app: HTMLElement, envoyer: (message: UiMessage) =>
   const alerteDePreparation = document.createElement('div');
   alerteDePreparation.hidden = true;
   const pied = document.createElement('div');
-  ecranDesOnglets.append(alerteDeLaLibrary, alerteDePreparation, onglets.liste, ligneDuFiltre, panneaux.aAppliquer.element, panneaux.aTrancher.element, panneaux.aFaire.element, panneaux.regles.element, pied);
+  ecranDesOnglets.append(alerteDeLaLibrary, alerteDePreparation, onglets.liste, ligneDuFiltre, panneaux.constats.element, panneaux.regles.element, pied);
   const travail = document.createElement('div');
   travail.className = 'page-stack';
   travail.append(bandeau, premierLancement, vueDAnalyse.element, ecranDesOnglets);
@@ -236,9 +243,9 @@ export function creerCoquille(app: HTMLElement, envoyer: (message: UiMessage) =>
     if (point.focus?.isConnected && point.focus !== document.body) point.focus.focus({ preventScroll: true });
   }
 
-  /** La puce du filtre se montre sous les onglets qui parlent des noms ; les règles valent pour tout le fichier, et les constats de À faire dans Figma ne suivent pas la collection de l'arbre. */
+  /** La puce du filtre se montre sous Constats, où elle restreint les renommages de Noms ; les règles valent pour tout le fichier. */
   function rendreLeFiltre(): void {
-    ligneDuFiltre.hidden = filtre === null || etat.onglet === 'regles' || etat.onglet === 'a-faire';
+    ligneDuFiltre.hidden = filtre === null || etat.onglet === 'regles';
     if (filtre === null) return;
     ligneDuFiltre.replaceChildren(TEXTES.filtre, creerPuceFiltre(TEXTES.filtreCollection, filtre.nom, TEXTES.enleverLeFiltre, options.enleverLeFiltre));
   }
@@ -257,11 +264,10 @@ export function creerCoquille(app: HTMLElement, envoyer: (message: UiMessage) =>
     bandeau.hidden = !etat.fichierModifie || etat.ecranDeTravail === 'lecture';
     if (etat.analyse) vueDAnalyse.poser(etat.analyse.lues, etat.analyse.total);
 
-    // Les onglets grisés d'une library ne comptent rien : ils ne peuvent rien écrire ici.
-    poserLeCompte(compteAAppliquer, libraryAffichee ? 0 : (compteDesCorrections ?? etat.comptes.aAppliquer) + comptesDeStructure.corrections);
-    poserLeCompte(compteATrancher, libraryAffichee ? 0 : etat.comptes.aTrancher + reglesRecues);
-    poserLeCompte(compteAFaire, libraryAffichee ? 0 : comptesDeStructure.aFaire);
-    for (const panneau of [panneaux.aAppliquer, panneaux.aTrancher, panneaux.aFaire, panneaux.regles]) panneau.poserEtat(etat.particulier);
+    tokens.poser({ bilan: etat.bilan, reglesRecues });
+    // L'onglet grisé d'une library ne compte rien : il ne peut rien écrire ici.
+    poserLeCompte(compteDesConstats, libraryAffichee ? 0 : tokens.total());
+    for (const panneau of [panneaux.constats, panneaux.regles]) panneau.poserEtat(etat.particulier);
     if (onglets.actif() !== etat.onglet) onglets.selectionner(etat.onglet);
     for (const rappel of [...surChangements]) rappel();
   }
@@ -273,6 +279,7 @@ export function creerCoquille(app: HTMLElement, envoyer: (message: UiMessage) =>
   return {
     frontiere,
     panneaux,
+    tokens,
     pied,
     premierLancement,
     configuration,
@@ -284,16 +291,7 @@ export function creerCoquille(app: HTMLElement, envoyer: (message: UiMessage) =>
       alerteDePreparation.hidden = alerte === null;
     },
     filtre: () => filtre,
-    poserLeCompteDesCorrections(nombre) {
-      if (nombre === compteDesCorrections) return;
-      compteDesCorrections = nombre;
-      rendre();
-    },
-    poserLesComptesDeStructure(comptes) {
-      if (comptes.aFaire === comptesDeStructure.aFaire && comptes.corrections === comptesDeStructure.corrections) return;
-      comptesDeStructure = comptes;
-      rendre();
-    },
+    poserLeCompteDesCorrections() {},
     poserLeCompteDesReglesRecues(nombre) {
       if (nombre === reglesRecues) return;
       reglesRecues = nombre;
@@ -307,7 +305,7 @@ export function creerCoquille(app: HTMLElement, envoyer: (message: UiMessage) =>
         texte: TEXTES_BIBLIOTHEQUE.alerteRenommer,
         actions: suivante.ouvrir === null ? [] : [lienDeLaLibrary(suivante.nom, suivante.ouvrir)],
       })]));
-      for (const onglet of ['a-appliquer', 'a-trancher', 'a-faire'] as const) onglets.definirDisponible(onglet, suivante === null);
+      onglets.definirDisponible('a-appliquer', suivante === null);
       if (suivante !== null) appliquerLEtat(etatSuivant(etat, { type: 'onglet-choisi', onglet: 'regles' }));
       rendre();
     },
@@ -329,6 +327,8 @@ export function creerCoquille(app: HTMLElement, envoyer: (message: UiMessage) =>
       };
     },
     choisirOnglet: (onglet) => {
+      // Une ligne de résultat peut avoir paru dans Noms avant ce geste, sans qu'aucun message ne redessine le panneau.
+      tokens.rafraichir();
       appliquerLEtat(etatSuivant(etat, { type: 'onglet-choisi', onglet }));
     },
     demanderUneCarte(cle) {

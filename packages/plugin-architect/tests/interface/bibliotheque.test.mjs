@@ -89,10 +89,10 @@ test('une valeur que l’import refuse ne reste pas en attente', async () => {
   } finally { await page.context().close(); }
 });
 
-test('les onglets de renommage sont grisés, Règles est ouvert et l’alerte dit où renommer', async () => {
+test('l’onglet Constats est grisé, Règles est ouvert et l’alerte dit où renommer', async () => {
   const page = await ouvrirLaLibrary();
   try {
-    for (const onglet of ['a-appliquer', 'a-trancher', 'a-faire']) assert.equal(await page.locator(`#onglet-${onglet}`).isDisabled(), true, onglet);
+    assert.equal(await page.locator('#onglet-a-appliquer').isDisabled(), true);
     assert.equal(await page.locator('#onglet-regles').getAttribute('aria-selected'), 'true');
     assert.equal(await page.locator('.compte:visible').count(), 0);
     const alerte = page.locator('.alerte:visible');

@@ -13,6 +13,9 @@
  * donc absents du relevé. Le champ `extrait` donne la ligne que la maquette
  * écrit à leur place ; elle prend sa place dans la page sans y être un texte,
  * donc sans entrer dans le relevé.
+ *
+ * Un état qui porte `cadre: 'constats'` va dans la galerie de 680 px, la largeur du cadre « Proposé » de la section 1 de la maquette de
+ * la fiabilisation. Elle montre la barre latérale seule, comme un cadre `seul`.
  */
 const fs = require('fs');
 const path = require('path');
@@ -20,12 +23,14 @@ const { construireGalerie, MODES, sortieDe } = require('ucm-plugin-socle/galerie
 const { ETATS } = require('./etats.cjs');
 
 const racine = path.resolve(__dirname, '..');
-const larges = ETATS.filter((etat) => etat.disposition !== 'etroite');
+const constats = ETATS.filter((etat) => etat.cadre === 'constats');
+const larges = ETATS.filter((etat) => etat.disposition !== 'etroite' && etat.cadre === undefined);
 const etroits = ETATS.filter((etat) => etat.disposition === 'etroite');
 const GALERIES = [
   { racine, etats: larges, largeur: 1360, hauteur: 800 },
   { racine, etats: larges, largeur: 560, hauteur: 480, dossier: 'galerie-minimale' },
   { racine, etats: etroits, largeur: 500, hauteur: 760, dossier: 'galerie-etroite' },
+  { racine, etats: constats, largeur: 680, hauteur: 1400, dossier: 'galerie-constats', seul: true },
 ];
 
 /** La barre latérale couvre la fenêtre : tout le reste de l'application disparaît, et la place de ses bordures avec lui. */
@@ -44,6 +49,9 @@ function cadresSeuls() {
   return manifeste.filter((cadre) => cadre.sorte === 'seul');
 }
 
+/** Les états d'une galerie `seul` n'ont pas d'entrée au manifeste : la barre latérale couvre toute leur fenêtre. */
+const cadresDeLaGalerie = (galerie) => (galerie.seul ? galerie.etats.map((etat) => ({ cadre: etat.id })) : cadresSeuls());
+
 const feuilleDuCadre = (cadre) => {
   const masque = (cadre.masque ?? []).map((selecteur) => `${selecteur} { display: none !important; }
 `).join('');
@@ -55,7 +63,7 @@ const feuilleDuCadre = (cadre) => {
 /** Ajoute la feuille du cadre seul à la page de chaque état concerné, dans chaque mode de couleur. */
 function poserLesCadresSeuls(galerie) {
   for (const nom of Object.keys(MODES)) {
-    for (const cadre of cadresSeuls()) {
+    for (const cadre of cadresDeLaGalerie(galerie)) {
       if (!galerie.etats.some((etat) => etat.id === cadre.cadre)) continue;
       const fichier = path.join(sortieDe(galerie), nom, `${cadre.cadre}.html`);
       const page = fs.readFileSync(fichier, 'utf8');

@@ -6,7 +6,6 @@ import type { IndiceDePaire } from '@ucm-kit/core/referentiel';
 import type { CauseDeProtection, CodeDErreur, ConflitVue, TypeDeTerme } from '../../messages/nomenclature';
 
 const noms = (nombre: number): string => (nombre === 1 ? '1 nom' : `${nombre} noms`);
-const questions = (nombre: number): string => (nombre === 1 ? '1 question' : `${nombre} questions`);
 /** La ligne de détail d'une carte : « 60 variables », « 159 variables et 1 collection ». */
 function nombreDeNoms(variables: number, collections: number): string {
   const lesVariables = variables === 1 ? '1 variable' : `${variables} variables`;
@@ -44,13 +43,7 @@ export const TEXTES = {
   retour: 'Retour',
 
   etiquetteDesOnglets: 'Sections d’UCM Architect',
-  ongletAAppliquer: 'Corrections',
-  ongletATrancher: 'Questions',
-  ongletAFaire: 'À faire dans Figma',
   ongletRegles: 'Règles',
-  /** Le nom que les lecteurs d'écran donnent à l'onglet quand son compte s'affiche. */
-  nomDeLOngletAAppliquer: (nombre: number): string => `Corrections, ${noms(nombre)}`,
-  nomDeLOngletATrancher: (nombre: number): string => `Questions, ${questions(nombre)}`,
 
   analyseEnCours: 'Lecture des variables',
   avancementDeLAnalyse: 'Avancement de la lecture',

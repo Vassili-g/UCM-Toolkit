@@ -269,6 +269,11 @@
   gap: var(--espace-controle);
 }
 
+/* Les questions de la section Noms : la vue « Aucune question » ne s'y montre pas. */
+.questions-de-noms .etat {
+  display: none;
+}
+
 .intertitre {
   display: flex;
   min-height: var(--hauteur-secondaire);

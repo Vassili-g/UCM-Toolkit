@@ -2,7 +2,6 @@
 
 const variables = (nombre: number): string => (nombre === 1 ? '1 variable' : `${nombre} variables`);
 const corrections = (nombre: number): string => (nombre === 1 ? '1 correction' : `${nombre} corrections`);
-const constats = (nombre: number): string => (nombre === 1 ? '1 constat' : `${nombre} constats`);
 const liste = (mots: readonly string[]): string => (mots.length < 2 ? mots.join('') : `${mots.slice(0, -1).join(', ')} et ${mots[mots.length - 1]}`);
 const listeOu = (mots: readonly string[]): string => (mots.length < 2 ? mots.join('') : `${mots.slice(0, -1).join(', ')} ou ${mots[mots.length - 1]}`);
 
@@ -19,7 +18,6 @@ const SCOPES_DE_FIGMA: ReadonlyArray<readonly [string, string]> = [
 
 export const TEXTES_STRUCTURE = {
   // Onglet
-  nomDeLOngletAFaire: (nombre: number): string => `À faire dans Figma, ${constats(nombre)}`,
   rienAFaireDansFigma: 'Rien à régler dans la fenêtre Variables de Figma.',
   // Intertitres
   groupeAlias: 'Alias',

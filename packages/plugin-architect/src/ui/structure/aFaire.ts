@@ -1,7 +1,8 @@
 /**
- * L'onglet « À faire dans Figma » du mode Tokens : un constat par carte, sous l'intertitre de sa famille. Le liseré, l'icône et le mot de la
- * carte disent le type ; la phrase dit le problème, le lieu cite les variables, la ligne grise dit où le régler. Rien ne s'écrit d'ici :
- * le geste se fait dans la fenêtre Variables de Figma, et « Ouvrir la fiche » montre la variable dans l'explorateur.
+ * Les constats à régler dans Figma, une carte par constat, rangés dans le conteneur de leur famille : la section de la catégorie les
+ * montre sous sa bande. Le liseré, l'icône et le mot de la carte disent le type ; la phrase dit le problème, le lieu cite les variables,
+ * la ligne grise dit où le régler. Rien ne s'écrit d'ici : le geste se fait dans la fenêtre Variables de Figma, et « Ouvrir la fiche »
+ * montre la variable dans l'explorateur.
  *
  * Ignorer (Q6) : la carte d'un rôle absent d'une palette offre un menu à deux choix, « Pour cette palette » et « Dans tout le fichier ».
  * Les constats ignorés pour leur palette et les rôles ignorés partout se rangent sous l'intertitre Ignorés, en cartes muettes, chacune
@@ -12,17 +13,6 @@ import { createButton } from 'ucm-plugin-socle/src/ui/Button';
 import { TEXTES } from '../textes';
 import { creerCarte, creerIntertitre, poserLesMorceaux } from './carte';
 import { GROUPES, type ConstatAFaire, type GroupeDeConstat, type Morceau } from './lecture';
-
-const INTERTITRES: Readonly<Record<GroupeDeConstat, string>> = {
-  manquantes: TEXTES.groupeVariablesManquantes,
-  crans: TEXTES.groupeCrans,
-  alias: TEXTES.groupeAlias,
-  modes: TEXTES.groupeModes,
-  valeurs: TEXTES.groupeValeurs,
-  couches: TEXTES.groupeCouches,
-  types: TEXTES.groupeTypes,
-  rangement: TEXTES.groupeRangement,
-};
 
 /** Ce que le fichier écarte : les constats ignorés pour leur palette et les rôles ignorés dans tout le fichier. */
 export interface IgnoresLus {
@@ -39,8 +29,11 @@ export interface GestesDIgnorer {
 }
 
 export interface AFaire {
-  /** Montre les constats reçus et ceux qui sont ignorés ; `null` tant que le sandbox n'a pas répondu. */
-  poser(constats: readonly ConstatAFaire[] | null, ignores?: IgnoresLus): void;
+  /**
+   * Range les constats reçus dans le conteneur de leur famille, et ceux qui sont ignorés dans le conteneur des Ignorés ; `null` tant
+   * que le sandbox n'a pas répondu. `questions` nomme les constats qui posent une question : leur carte porte `constat-question`.
+   */
+  poser(constats: readonly ConstatAFaire[] | null, ignores?: IgnoresLus, questions?: ReadonlySet<string>): void;
 }
 
 /** Un texte dont les mots entre accents graves sont des chemins. */
@@ -139,17 +132,16 @@ function creerLeCorps(constat: ConstatAFaire, ouvrirLaFiche: (variable: { nom: s
   return corps;
 }
 
-export function monterAFaire(contenu: HTMLElement, ouvrirLaFiche: (variable: { nom: string; cle: string | null }) => void, gestes: GestesDIgnorer): AFaire {
-  const liste = document.createElement('div');
-  liste.className = 'structure-liste';
-  const vide = document.createElement('p');
-  vide.className = 'meta';
-  vide.hidden = true;
-  contenu.append(vide, liste);
+export function monterAFaire(
+  hotes: Readonly<Record<GroupeDeConstat, HTMLElement>>,
+  hoteDesIgnores: HTMLElement,
+  ouvrirLaFiche: (variable: { nom: string; cle: string | null }) => void,
+  gestes: GestesDIgnorer,
+): AFaire {
   /** Les constats dépliés par le designer : un nouveau message ne les replie pas. */
   const deplies = new Set<string>();
 
-  function creerLaCarte(constat: ConstatAFaire): HTMLElement {
+  function creerLaCarte(constat: ConstatAFaire, question: boolean): HTMLElement {
     const entete = document.createElement('span');
     entete.className = 'constat-entete';
     const phrase = document.createElement('span');
@@ -177,6 +169,7 @@ export function monterAFaire(contenu: HTMLElement, ouvrirLaFiche: (variable: { n
       },
     });
     element.classList.add('bloc-constat');
+    if (question) element.classList.add('constat-question');
     marquerDuTon(element, constat.type);
     return element;
   }
@@ -224,19 +217,16 @@ export function monterAFaire(contenu: HTMLElement, ouvrirLaFiche: (variable: { n
   }
 
   return {
-    poser(constats, ignores) {
-      vide.hidden = constats === null || constats.length > 0;
-      vide.textContent = vide.hidden ? '' : TEXTES.rienAFaireDansFigma;
-      const enfants: HTMLElement[] = [];
+    poser(constats, ignores, questions = new Set()) {
       for (const groupe of GROUPES) {
         const duGroupe = (constats ?? []).filter((constat) => constat.groupe === groupe);
-        if (duGroupe.length === 0) continue;
-        enfants.push(creerIntertitre(INTERTITRES[groupe]), ...duGroupe.map(creerLaCarte));
+        hotes[groupe].replaceChildren(...duGroupe.map((constat) => creerLaCarte(constat, questions.has(constat.id))));
       }
-      if (ignores && (ignores.roles.length > 0 || ignores.constats.length > 0)) {
-        enfants.push(creerIntertitre(TEXTES.aFaireDuComposant.ignores), ...ignores.roles.map(creerLaCarteDuRole), ...ignores.constats.map(creerLaCarteIgnoree));
-      }
-      liste.replaceChildren(...enfants);
+      const ecartes = ignores !== undefined && (ignores.roles.length > 0 || ignores.constats.length > 0);
+      hoteDesIgnores.hidden = !ecartes;
+      hoteDesIgnores.replaceChildren(...(ignores && ecartes
+        ? [creerIntertitre(TEXTES.aFaireDuComposant.ignores), ...ignores.roles.map(creerLaCarteDuRole), ...ignores.constats.map(creerLaCarteIgnoree)]
+        : []));
     },
   };
 }

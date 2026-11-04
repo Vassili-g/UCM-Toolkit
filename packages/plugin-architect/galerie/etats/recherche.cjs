@@ -25,7 +25,7 @@ const ETATS = [
     id: 't-questions', titre: 'Tokens, Questions et recherche', quand: 'Le designer ouvre les questions et suit « Voir les 2 variables », sous la question qui corrige backgrond.',
     regarder: 'La recherche backgrond dans le champ de l’arbre, à bordure bleue ; l’arbre ne liste que Interface avec 2 ; le tableau montre Drawer/backgrond/default et Modal/backgrond/default, le terme en rose ; aucune puce de filtre sous les onglets.',
     existe: true,
-    atteinte: [...ouverture(releveQuestions(), bilanDesQuestions, pagesDuTerme(demandes)), { clic: '#onglet-a-trancher' }, { clic: '.question-proposition .btn-texte' }],
+    atteinte: [...ouverture(releveQuestions(), bilanDesQuestions, pagesDuTerme(demandes)), { clic: '[data-element="questions"]' }, { clic: '.question-proposition .btn-texte' }],
   },
   {
     id: 't-terme', titre: 'Tokens, terme filtré depuis Règles', quand: 'Le designer ouvre la feuille de background dans Règles et appuie sur Filtrer le tableau des tokens.',
