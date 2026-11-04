@@ -5,7 +5,7 @@ Plugin UCM Architect : ucm-architect-plugin, privé, lecture et corrections apr�
 ## ./
 - SPEC.md : ce que le plugin lit, résout et refuse de conclure
 - invariants/ : les invariants du paquet, un fichier par groupe
-- galerie/ : états de l'interface, à 1360 × 800, à 560 × 480 et à 500 × 760 (la galerie `t-constats` : 680 × 1400), un fichier d'états par domaine dans `etats/`, et comparaison à la maquette de la vue composant
+- galerie/ : états de l'interface, à 1360 × 800, à 560 × 480 et à 500 × 760 (la galerie `t-constats` : 680 × 1400, qui range aussi `t-constats-noms-longue`), un fichier d'états par domaine dans `etats/`, et comparaison à la maquette de la vue composant
 - tests/ : dont les lois d'écriture (`loiDEcriture`, `loiDEcritureDesNoms`), la loi des imbriqués (`imbriquesParLeKit`), les doubles de Figma, `outils/` (le monde fabriqué et le chargeur de capture de `capture.test.ts`), `nomenclature*.test.ts` pour le code de Nomenclature et `interface/` pour Chromium
 - galerie/composant/ : Alert à 11 variants et Button à 216, leurs analyses, et le fichier hors UCM de `t-hors`
 - galerie/nomenclature/ : données des états de Nomenclature, joués dans la galerie d'Architect (`etats/nomenclature.cjs`)
@@ -101,7 +101,7 @@ Plugin UCM Architect : ucm-architect-plugin, privé, lecture et corrections apr�
 - fiche/ : fiche d'une variable, à la place de l'inspecteur : chaîne d'alias, renommage à appliquer, « Utilisée par »
 - structure/ : constats typés (chemins en phrase) et corrections de variables manquantes, de crans, de modes et de scopes en deux colonnes, rangés dans les sections de l'onglet Constats du mode Tokens ; `Tout désélectionner` sous le sommaire ; menu Ignorer (« Pour cette palette », « Dans tout le fichier ») sur la carte d'un rôle absent, section Ignorés avec Ne plus ignorer en fin de « Tout » ; `rapport.ts` pose « Télécharger le rapport d'analyse » au pied des onglets du mode Tokens et joint aux mesures du sandbox la durée du rendu et la taille des messages `releve` et `structure`
 - tokens/categories.ts : modèle pur des dix catégories, cartes, compteurs et état tenu
-- tokens/panneau.ts : sommaire (Tout, une puce par catégorie, Questions), sections et conteneurs des catégories de l'onglet Constats
+- tokens/panneau.ts : sommaire (Tout, une puce par catégorie, Questions), sections et conteneurs des catégories de l'onglet Constats ; Noms range ses questions, ses renommages, puis « Plus tard » et « Autres pistes », et arrive repliée au-delà de 20 cartes
 - preparation/ : dialogue de préparation des tokens, texte partagé, création et liaisons au composant
 - virtualisation.ts : listes virtualisées : `creerListeVirtuelle` à hauteur fixe (arbre, table) et `creerListeDeCartes` à hauteur mesurée, qui range l'état d'une carte sortie de l'écran par clé (déplié, menus, réponses, cases, focus)
 - capture.ts : reçoit `capture-architect` du sandbox et le télécharge, seulement si `UCM_ARCHITECT_CAPTURER` vaut `true`

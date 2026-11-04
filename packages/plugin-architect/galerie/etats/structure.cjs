@@ -158,11 +158,30 @@ ETATS.push(
  */
 ETATS.push({
   id: 't-constats', cadre: 'constats', titre: 'Tokens, Constats à 680 px', quand: 'Le designer ouvre Constats sur un fichier qui a des renommages, des questions et des constats à régler dans Figma.',
-  regarder: 'Deux onglets, Constats et Règles ; le sommaire (Tout, une puce par catégorie qui a des cartes, Questions) ; une section par catégorie qui a des cartes, de Noms à Rangement, avec son signe, son titre et son nombre ; Alias, Valeurs et Scopes tenues en fin de liste ; dans Noms, les questions avant les renommages ; le compte de Constats est le total des cartes.',
+  regarder: 'Deux onglets, Constats et Règles ; le sommaire (Tout, une puce par catégorie qui a des cartes, Questions) ; une section par catégorie qui a des cartes, de Noms à Rangement, avec son signe, son titre et son nombre ; Alias, Valeurs et Scopes tenues en fin de liste ; dans Noms, les questions avant les renommages, puis « Plus tard » et les autres pistes ; le compte de Constats est le total des cartes.',
   existe: true,
   atteinte: [
     preferences(), releve(integrite.releveAuxEcarts()),
     { message: messages.initial(true) }, { message: messages.bilan(1, bilans.travail), attendre: '.liste' },
+    { message: integrite.reponse(integrite.aFaire, 1), attendre: CARTES_A_FAIRE },
+    { clic: '.puce-x' },
+  ],
+});
+
+/*
+ * Noms longue (C3.3) : 24 renommages et 3 questions font 27 cartes, au-delà des 20 que la section montre ouvertes. Elle arrive repliée :
+ * la bande garde son compte, le sommaire ses puces, et les cartes attendent le clic sur la bande ou sur la puce.
+ */
+const [renommageDeBase] = bilans.travail.groupes;
+const bilanLong = { ...bilans.travail, groupes: Array.from({ length: 24 }, (_, rang) => ({ ...renommageDeBase, cle: `terme:t${rang}`, avant: `t${rang}`, apres: `terme-${rang}` })) };
+
+ETATS.push({
+  id: 't-constats-noms-longue', cadre: 'constats', titre: 'Tokens, Constats, Noms longue repliée', quand: 'Le fichier a 24 renommages et 3 questions : Noms dépasse 20 cartes.',
+  regarder: 'La section Noms est repliée, sa bande dit 27 ; aucune carte de renommage ni de question n’est montrée ; les sections de structure, plus courtes, sont ouvertes sous elle ; la puce Noms du sommaire dit 27 et déplie la section.',
+  existe: true,
+  atteinte: [
+    preferences(), releve(integrite.releveAuxEcarts()),
+    { message: messages.initial(true) }, { message: messages.bilan(1, bilanLong), attendre: '.liste' },
     { message: integrite.reponse(integrite.aFaire, 1), attendre: CARTES_A_FAIRE },
     { clic: '.puce-x' },
   ],

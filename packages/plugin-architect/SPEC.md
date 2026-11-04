@@ -515,7 +515,10 @@ pas défaire ces variables : le résultat de l'écriture en rend les noms
 Constats les dit dans une alerte à vérifier, sans bouton. Les usages dans
 d'autres fichiers échappent à l'Historique. L'onglet Constats range sous
 « Crans » tout constat de cran, question comprise ; « Alias » garde les
-cibles supprimées et les libraries non activées.
+cibles supprimées et les libraries non activées. La section Noms range les questions,
+puis les renommages, puis les questions remises à plus tard et les autres
+pistes. Au-delà de 20 cartes, elle arrive repliée ; sa bande ou la puce Noms
+la déplie.
 
 ## Interface
 

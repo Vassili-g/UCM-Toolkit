@@ -14,7 +14,7 @@ import { poserLeDom, comme, type ElementDeTest } from './domDeTest';
 poserLeDom();
 
 import { lireLesCategories } from '../src/ui/tokens/categories';
-import { monterLePanneauDesTokens, type PanneauDesTokens, type StructureLue } from '../src/ui/tokens/panneau';
+import { monterLePanneauDesTokens, SEUIL_DE_REPLI, type PanneauDesTokens, type StructureLue } from '../src/ui/tokens/panneau';
 import type { Bilan } from '../src/messages/nomenclature';
 import { TEXTES_TOKENS } from '../src/ui/textes/tokens';
 
@@ -49,14 +49,14 @@ function lireUnEtat(id: string): { bilan: Bilan | null; structure: StructureLue 
 interface Banc {
   readonly panneau: PanneauDesTokens;
   readonly racine: ElementDeTest;
-  readonly nomenclature: { readonly questions: HTMLElement; readonly renommages: HTMLElement };
+  readonly nomenclature: { readonly questions: HTMLElement; readonly renommages: HTMLElement; readonly remises: HTMLElement };
   changements: number;
 }
 
 function monter(id: string): Banc & { donnees: ReturnType<typeof lireUnEtat> } {
   const donnees = lireUnEtat(id);
   const racine = element();
-  const nomenclature = { questions: element(), renommages: element() };
+  const nomenclature = { questions: element(), renommages: element(), remises: element() };
   const banc = { racine: lu(racine), nomenclature, changements: 0, donnees } as Banc & { donnees: typeof donnees };
   const panneau = monterLePanneauDesTokens({ racine, nomenclature, auChangement: () => { banc.changements += 1; } });
   Object.assign(banc, { panneau });
@@ -161,7 +161,7 @@ test('un choix qui n’a plus de carte revient à Tout', () => {
 test('tant que la structure n’est pas lue, seules les catégories de Noms se comptent, et aucune n’est tenue', () => {
   const donnees = lireUnEtat('t-structure');
   const racine = element();
-  const nomenclature = { questions: element(), renommages: element() };
+  const nomenclature = { questions: element(), renommages: element(), remises: element() };
   const panneau = monterLePanneauDesTokens({ racine, nomenclature, auChangement() {} });
   panneau.poser({ bilan: donnees.bilan, reglesRecues: 0 });
   assert.deepEqual(identifiants(lu(racine).querySelectorAll('.section-element')), ['noms']);
@@ -183,4 +183,102 @@ test('les noms accessibles disent le nombre de constats ou de questions', () => 
   assert.equal(TEXTES_TOKENS.nomDeLaPuce('Crans', 3), 'Crans, 3 constats');
   assert.equal(TEXTES_TOKENS.nomDeLaPuceDesQuestions('Questions', 2), 'Questions, 2 questions');
   assert.equal(TEXTES_TOKENS.nomDeLOngletConstats(1), 'Constats, 1 constat');
+});
+
+/** Le bilan de travail de la galerie : 3 questions, 4 renommages, 1 question remise à plus tard et 2 autres pistes. */
+const { bilans } = require('../galerie/nomenclature/donnees.cjs') as { bilans: { travail: Bilan } };
+
+/** Le bilan de travail, rallongé à `total` renommages. */
+function bilanDeRenommages(total: number): Bilan {
+  const [modele] = bilans.travail.groupes;
+  return { ...bilans.travail, groupes: Array.from({ length: total }, (_, rang) => ({ ...modele, cle: `terme:t${rang}`, avant: `t${rang}` })) };
+}
+
+function monterAvec(bilan: Bilan): Banc {
+  const racine = element();
+  const nomenclature = { questions: element(), renommages: element(), remises: element() };
+  const banc = { racine: lu(racine), nomenclature, changements: 0 } as Banc;
+  const panneau = monterLePanneauDesTokens({ racine, nomenclature, auChangement: () => { banc.changements += 1; } });
+  Object.assign(banc, { panneau });
+  panneau.poser({ bilan, reglesRecues: 0 });
+  return banc;
+}
+
+const sectionDeNoms = (banc: Banc): ElementDeTest => comme(sections(banc).find((section) => section.dataset.element === 'noms'));
+const corpsDe = (section: ElementDeTest): ElementDeTest[] => section.children.filter((enfant) => !enfant.classes.has('bande-element'));
+
+test('la section Noms montre les questions, puis les renommages, puis les questions remises et les autres pistes', () => {
+  const banc = monterAvec(bilans.travail);
+  const { questions, renommages, remises } = banc.nomenclature;
+  assert.deepEqual(corpsDe(sectionDeNoms(banc)), [lu(questions), lu(renommages), lu(remises)]);
+  assert.equal(questions.hidden, false);
+  assert.equal(renommages.hidden, false);
+  assert.equal(remises.hidden, false);
+});
+
+test('sans question remise ni autre piste, le conteneur des remises se cache ; sans renommage, celui des renommages', () => {
+  const banc = monterAvec({ ...bilans.travail, plusTard: [], autresPistes: 0 });
+  assert.deepEqual(corpsDe(sectionDeNoms(banc)), [lu(banc.nomenclature.questions), lu(banc.nomenclature.renommages)]);
+  const sansRenommage = monterAvec({ ...bilans.travail, groupes: [] });
+  assert.deepEqual(corpsDe(sectionDeNoms(sansRenommage)), [lu(sansRenommage.nomenclature.questions), lu(sansRenommage.nomenclature.remises)]);
+});
+
+test('la puce Questions garde les questions et les remises, et retire les renommages', () => {
+  const banc = monterAvec(bilans.travail);
+  comme(puces(banc).find((puce) => puce.dataset.element === 'questions')).clic();
+  assert.deepEqual(corpsDe(sectionDeNoms(banc)), [lu(banc.nomenclature.questions), lu(banc.nomenclature.remises)]);
+});
+
+test('Noms arrive repliée au-delà de 20 cartes, et ouverte à 20', () => {
+  const ouverte = monterAvec(bilanDeRenommages(17));
+  assert.equal(ouverte.panneau.total(), 20);
+  assert.equal(comme(sectionDeNoms(ouverte).querySelector('.bande-element')).getAttribute('aria-expanded'), 'true');
+  assert.ok(corpsDe(sectionDeNoms(ouverte)).length > 0);
+  const repliee = monterAvec(bilanDeRenommages(18));
+  assert.equal(repliee.panneau.total(), 21);
+  assert.equal(SEUIL_DE_REPLI, 20);
+  assert.equal(comme(sectionDeNoms(repliee).querySelector('.bande-element')).getAttribute('aria-expanded'), 'false');
+  assert.deepEqual(corpsDe(sectionDeNoms(repliee)), [], 'aucun conteneur dans la section repliée');
+  assert.equal(nombre(comme(sectionDeNoms(repliee).querySelector('.bande-element'))), '21', 'la bande garde le compte');
+});
+
+test('une section Noms longue se déplie par sa bande et se replie de même', () => {
+  const banc = monterAvec(bilanDeRenommages(18));
+  comme(sectionDeNoms(banc).querySelector('.bande-element')).clic();
+  const section = sectionDeNoms(banc);
+  assert.equal(comme(section.querySelector('.bande-element')).getAttribute('aria-expanded'), 'true');
+  assert.deepEqual(corpsDe(section), [lu(banc.nomenclature.questions), lu(banc.nomenclature.renommages), lu(banc.nomenclature.remises)]);
+  comme(section.querySelector('.bande-element')).clic();
+  assert.deepEqual(corpsDe(sectionDeNoms(banc)), []);
+});
+
+test('une section Noms longue se déplie par sa puce, et une nouvelle lecture ne rouvre pas ce que le designer a replié', () => {
+  const banc = monterAvec(bilanDeRenommages(18));
+  comme(puces(banc).find((puce) => puce.dataset.element === 'noms')).clic();
+  assert.equal(banc.panneau.choix(), 'noms');
+  const section = sectionDeNoms(banc);
+  assert.equal(comme(section.querySelector('.bande-element')).getAttribute('aria-expanded'), 'true');
+  assert.deepEqual(corpsDe(section), [lu(banc.nomenclature.questions), lu(banc.nomenclature.renommages), lu(banc.nomenclature.remises)]);
+  comme(puces(banc).find((puce) => puce.dataset.element === 'tout')).clic();
+  assert.deepEqual(corpsDe(sectionDeNoms(banc)), [], 'revenu à Tout, la section est restée repliée');
+  banc.panneau.poser({ bilan: bilanDeRenommages(19), reglesRecues: 0 });
+  assert.deepEqual(corpsDe(sectionDeNoms(banc)), [], 'une nouvelle lecture garde le choix pris');
+});
+
+test('les états de galerie montrent les questions en tête de Noms, et Noms longue repliée', () => {
+  const montrerLEtat = (id: string): Banc => {
+    const donnees = lireUnEtat(id);
+    const banc = monterAvec(donnees.bilan!);
+    banc.panneau.poserLaStructure(donnees.structure);
+    return banc;
+  };
+  const constats = montrerLEtat('t-constats');
+  assert.deepEqual(corpsDe(sectionDeNoms(constats)).slice(0, 2), [lu(constats.nomenclature.questions), lu(constats.nomenclature.renommages)]);
+  assert.equal(comme(sectionDeNoms(constats).querySelector('.bande-element')).getAttribute('aria-expanded'), 'true');
+  const longue = montrerLEtat('t-constats-noms-longue');
+  assert.equal(nombre(comme(sectionDeNoms(longue).querySelector('.bande-element'))), '27');
+  assert.equal(comme(sectionDeNoms(longue).querySelector('.bande-element')).getAttribute('aria-expanded'), 'false');
+  assert.deepEqual(corpsDe(sectionDeNoms(longue)), []);
+  const autres = sections(longue).filter((section) => section.dataset.element !== 'noms');
+  assert.ok(autres.some((section) => comme(section.querySelector('.bande-element')).getAttribute('aria-expanded') === 'true'), 'les sections courtes restent ouvertes');
 });

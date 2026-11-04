@@ -4,8 +4,9 @@
  * une bande tenue par catégorie sans carte. Le classement et les nombres viennent de `lireLesCategories` ; ce module n'en pose que le DOM.
  *
  * Les cartes ne naissent pas ici. Les modules de Nomenclature et de structure les montent dans des conteneurs qui durent tout le
- * plugin : le panneau y attache ceux d'une section ouverte et les détache ailleurs, sans les recréer. Les deux conteneurs de Nomenclature
- * (questions, renommages) forment ensemble le corps de Noms ; chaque autre catégorie a le sien (`hote`).
+ * plugin : le panneau y attache ceux d'une section ouverte et les détache ailleurs, sans les recréer. Les trois conteneurs de Nomenclature
+ * (questions, renommages, remises) forment ensemble le corps de Noms, dans cet ordre ; chaque autre catégorie a le sien (`hote`).
+ * Au-delà de `SEUIL_DE_REPLI` cartes, Noms arrive repliée ; le designer la déplie par sa bande ou par sa puce.
  */
 import { creerSigne } from 'ucm-plugin-socle/src/ui/Signe';
 
@@ -16,6 +17,9 @@ import { lireLesCategories, type CategorieDeTokens, type DonneesDesCategories, t
 
 export const QUESTIONS = 'questions';
 
+/** Au-delà de ce nombre de cartes, la section Noms arrive repliée. */
+export const SEUIL_DE_REPLI = 20;
+
 /** Ce que le sommaire isole : tout, les seules questions, ou une catégorie. */
 export type ChoixDuSommaire = 'tout' | typeof QUESTIONS | IdDeCategorie;
 
@@ -25,10 +29,12 @@ export type CategorieDeStructure = Exclude<IdDeCategorie, 'noms'>;
 /** Ce que le domaine structure rend à la lecture : les constats et corrections reçus, et les noms qui les écrivent. */
 export type StructureLue = Pick<DonneesDesCategories, 'constats' | 'corrections' | 'noms'>;
 
-/** Les deux conteneurs que Nomenclature remplit : le panneau les attache dans la section Noms. */
+/** Les trois conteneurs que Nomenclature remplit : le panneau les attache dans la section Noms. */
 export interface HotesDeNomenclature {
   readonly questions: HTMLElement;
   readonly renommages: HTMLElement;
+  /** Les questions remises à plus tard et le compte des autres pistes, après les renommages. */
+  readonly remises: HTMLElement;
 }
 
 export interface OptionsDuPanneauDesTokens {
@@ -130,7 +136,7 @@ export function monterLePanneauDesTokens({ racine, nomenclature, auChangement }:
   let categories: readonly CategorieDeTokens[] = [];
   let vues: readonly VueDeCategorie[] = [];
   let choisi: ChoixDuSommaire = 'tout';
-  /** Les sections que le designer a ouvertes ou fermées ; toutes arrivent ouvertes. */
+  /** Les sections que le designer a ouvertes ou fermées, ou que le panneau a repliées à leur arrivée ; une section absente est ouverte. */
   const ouvertes = new Map<IdDeCategorie, boolean>();
 
   const questionsTotal = (): number => vues.reduce((somme, vue) => somme + vue.questions, 0);
@@ -151,15 +157,21 @@ export function monterLePanneauDesTokens({ racine, nomenclature, auChangement }:
       partielle: structure === null || donnees.bilan === null,
     });
     vues = vuesDe(categories, donnees);
+    // Une section longue arrive repliée : le choix est pris une fois, à sa première apparition avec des cartes.
+    for (const vue of vues) if (vue.nombre > 0 && !ouvertes.has(vue.id)) ouvertes.set(vue.id, vue.id !== 'noms' || vue.nombre <= SEUIL_DE_REPLI);
   }
 
-  /** La section Noms montre les questions d'abord, puis les renommages : chaque conteneur ne se montre que s'il a de quoi. */
+  /**
+   * La section Noms montre les questions d'abord, puis les renommages, puis les questions remises à plus tard et les autres pistes :
+   * chaque conteneur ne se montre que s'il a de quoi. Sous la puce Questions, les renommages disparaissent.
+   */
   function corpsDeNoms(seulementLesQuestions: boolean): HTMLElement[] {
     const { bilan, reglesRecues } = donnees;
-    nomenclature.questions.hidden = !bilan || bilan.questions.length + bilan.plusTard.length + bilan.autresPistes + reglesRecues === 0;
-    if (seulementLesQuestions) return nomenclature.questions.hidden ? [] : [nomenclature.questions];
+    nomenclature.questions.hidden = !bilan || bilan.questions.length + reglesRecues === 0;
+    nomenclature.remises.hidden = !bilan || bilan.plusTard.length + bilan.autresPistes === 0;
     nomenclature.renommages.hidden = !bilan || (bilan.groupes.length === 0 && !aUnResultat(nomenclature.renommages));
-    return [nomenclature.questions, nomenclature.renommages].filter((element) => !element.hidden);
+    const corps = seulementLesQuestions ? [nomenclature.questions, nomenclature.remises] : [nomenclature.questions, nomenclature.renommages, nomenclature.remises];
+    return corps.filter((element) => !element.hidden);
   }
 
   function basculer(id: IdDeCategorie, ouverte: boolean): void {

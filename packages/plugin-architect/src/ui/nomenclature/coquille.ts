@@ -8,8 +8,8 @@
  *
  * L'onglet Constats range les cartes par catégorie (`tokens/panneau.ts`). Son
  * identifiant reste `a-appliquer`, celui de l'onglet Corrections qu'il remplace.
- * `panneaux.aAppliquer` et `panneaux.aTrancher` ne sont plus des onglets : leur
- * contenu est le corps de la section Noms.
+ * `panneaux.aTrancher`, `panneaux.aAppliquer` et `panneaux.remises` ne sont plus
+ * des onglets : leur contenu est le corps de la section Noms.
  */
 import { createBackButton, createSettingsButton, montrerConfiguration, montrerTravail, type ElementsDeBascule } from 'ucm-plugin-socle/src/ui/EnTete';
 import { creerPuceFiltre } from 'ucm-plugin-socle/src/ui/Filtre';
@@ -40,8 +40,11 @@ export interface LibraryAffichee {
 
 export interface Coquille {
   readonly frontiere: Frontiere;
-  /** `constats` est l'onglet ; `aAppliquer` et `aTrancher` sont les conteneurs que le panneau attache dans la section Noms. */
-  readonly panneaux: { readonly constats: Panneau; readonly aAppliquer: Panneau; readonly aTrancher: Panneau; readonly regles: Panneau };
+  /**
+   * `constats` est l'onglet ; `aTrancher` (les questions), `aAppliquer` (les renommages) et `remises` (« Plus tard » et « Autres pistes »)
+   * sont les conteneurs que le panneau attache dans la section Noms, dans cet ordre.
+   */
+  readonly panneaux: { readonly constats: Panneau; readonly aAppliquer: Panneau; readonly aTrancher: Panneau; readonly remises: Panneau; readonly regles: Panneau };
   /** Le sommaire et les sections de l'onglet Constats ; le domaine structure y monte ses cartes. */
   readonly tokens: PanneauDesTokens;
   /** Le pied de l'écran des onglets, sous le panneau de l'onglet ouvert : le lien du rapport d'analyse. */
@@ -164,13 +167,14 @@ export function creerCoquille(app: HTMLElement, envoyer: (message: UiMessage) =>
     constats: creerPanneau({ etats: ['sans-variable-locale'] }),
     aAppliquer: creerPanneau({ etats: [] }),
     aTrancher: creerPanneau({ etats: [] }),
+    remises: creerPanneau({ etats: [] }),
     regles: creerPanneau({ etats: [] }),
   };
   // Dans la section Noms, « Aucune question » n'a plus de sens : la section dit déjà ce qu'elle contient (`nomenclature.css`).
   panneaux.aTrancher.contenu.classList.add('questions-de-noms');
   const tokens = monterLePanneauDesTokens({
     racine: panneaux.constats.contenu,
-    nomenclature: { questions: panneaux.aTrancher.contenu, renommages: panneaux.aAppliquer.contenu },
+    nomenclature: { questions: panneaux.aTrancher.contenu, renommages: panneaux.aAppliquer.contenu, remises: panneaux.remises.contenu },
     auChangement: () => rendre(),
   });
   const onglets = createOnglets<Onglet>(TEXTES.etiquetteDesOnglets, [

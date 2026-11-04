@@ -3,7 +3,9 @@
  * réussite qui prend la place d'une carte répondue, la carte d'un conflit,
  * puis les sections « Plus tard » et « Autres pistes ». Ce qu'une carte affiche
  * et la réponse de chaque bouton viennent de `questions.ts`. Les règles que le
- * mode Composant prépare s'y rangent en tête, sous leur intertitre.
+ * mode Composant prépare s'y rangent en tête, sous leur intertitre. Les cartes
+ * viennent sous l'intertitre « Questions » ; « Plus tard » et « Autres pistes »
+ * vont dans `panneaux.remises`, que la section Noms place après les renommages.
  */
 import { createButton } from 'ucm-plugin-socle/src/ui/Button';
 import { creerChevron } from 'ucm-plugin-socle/src/ui/Chevron';
@@ -25,6 +27,7 @@ import {
 } from './questions';
 import { cleDeRegleRecue, ligneDeRegleRecue, sansDoublon, type RegleRecue } from './reglesRecues';
 import { TEXTES } from '../textes/nomenclature';
+import { TEXTES_TOKENS } from '../textes/tokens';
 
 /** Une entrée de la liste : son élément, et ce que l'écran peut en faire. */
 interface Entree {
@@ -258,7 +261,8 @@ export function monterATrancher(coquille: Coquille): ATrancher {
   const vueVide = document.createElement('div');
   const sectionPlusTard = document.createElement('div');
   const sectionPistes = document.createElement('div');
-  panneau.contenu.append(message, liste, vueVide, sectionPlusTard, sectionPistes);
+  panneau.contenu.append(message, liste, vueVide);
+  coquille.panneaux.remises.contenu.append(sectionPlusTard, sectionPistes);
 
   function dire(texte: string | null): void {
     message.hidden = texte === null;
@@ -629,7 +633,10 @@ export function monterATrancher(coquille: Coquille): ATrancher {
       if (enCours.has(cle)) entree.figer();
       entrees.set(cle, entree);
     }
-    const delaRegle = recues.length === 0 ? [] : [fabriquerIntertitre(TEXTES.reglesRecues.intertitre), ...recues.map(creerCarteRecue), ...(entrees.size === 0 ? [] : [fabriquerIntertitre(TEXTES.reglesRecues.intertitreDuFichier)])];
+    // Les règles reçues portent leur intertitre, puis « Noms du fichier » ; sans règle reçue, les questions du fichier prennent « Questions ».
+    const delaRegle = recues.length === 0
+      ? (entrees.size === 0 ? [] : [fabriquerIntertitre(TEXTES_TOKENS.questions)])
+      : [fabriquerIntertitre(TEXTES.reglesRecues.intertitre), ...recues.map(creerCarteRecue), ...(entrees.size === 0 ? [] : [fabriquerIntertitre(TEXTES.reglesRecues.intertitreDuFichier)])];
     liste.replaceChildren(...delaRegle, ...[...entrees.values()].map((entree) => entree.element));
     liste.hidden = entrees.size === 0 && recues.length === 0;
     const ligneVide = ligneDeLaVueVide(questions.size, plusTard.length);
