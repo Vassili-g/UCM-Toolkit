@@ -4,7 +4,8 @@
  * et la carte qu'un clic ailleurs vient d'ouvrir. Les classes viennent de
  * `langage.css`.
  */
-import type { Contenu } from './Alerte';
+import { texteDuType, type Contenu } from './Alerte';
+import { glypheDe } from './Signe';
 
 /** La légende des deux colonnes d'un diff. */
 export function creerColonnes(avant: string, apres: string, { avecCase = true }: { avecCase?: boolean } = {}): HTMLDivElement {
@@ -50,7 +51,7 @@ export function creerLigneDeDiff(avant: Contenu, apres: Contenu, { coche = true,
   colonneApres.className = 'chemin-apres';
   const fleche = document.createElement('span');
   fleche.className = 'fleche-ligne';
-  fleche.textContent = '→ ';
+  fleche.textContent = `${glypheDe('avant-apres')} `;
   colonneApres.append(fleche, apres);
   element.append(colonneAvant, colonneApres);
   return element;
@@ -66,7 +67,7 @@ export function creerResultat(texte: Contenu, meta?: Contenu): HTMLDivElement {
   const ligne = document.createElement('span');
   const coche = document.createElement('span');
   coche.setAttribute('aria-hidden', 'true');
-  coche.textContent = '✓ ';
+  coche.textContent = `${texteDuType('tenu')} `;
   ligne.append(coche, texte);
   corps.append(ligne);
   if (meta !== undefined) {

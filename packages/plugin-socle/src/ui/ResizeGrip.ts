@@ -1,3 +1,5 @@
+import { creerSvgDuSigne } from './Signe';
+
 /** La demande de redimensionnement qu'une poignée envoie au sandbox. */
 export interface DemandeDeTaille {
   type: 'resize';
@@ -11,8 +13,8 @@ export interface DemandeDeTaille {
 }
 
 /**
- * La poignée de redimensionnement de la fenêtre. Chaque plugin fournit sa
- * porte d'envoi vers le sandbox.
+ * La poignée de redimensionnement de la fenêtre, dont le tracé est le signe
+ * `poignee` du kit. Chaque plugin fournit sa porte d'envoi vers le sandbox.
  *
  * Le geste se suit sur le document, au plus un message par image, à la
  * dernière position reçue. Dans Figma, un mouvement arrive avec `buttons` à 0
@@ -28,13 +30,7 @@ export function createResizeGrip(envoyer: (demande: DemandeDeTaille) => void): H
   grip.className = 'resize-grip';
   grip.setAttribute('aria-hidden', 'true');
 
-  const namespace = 'http://www.w3.org/2000/svg';
-  const icone = document.createElementNS(namespace, 'svg');
-  icone.setAttribute('viewBox', '0 0 16 16');
-  const trait = document.createElementNS(namespace, 'path');
-  trait.setAttribute('d', 'M15 6 L6 15 M15 11 L11 15');
-  icone.appendChild(trait);
-  grip.appendChild(icone);
+  grip.appendChild(creerSvgDuSigne('poignee', 16));
 
   let geste: { pointeur: number; x: number; y: number; image: number | null } | null = null;
 

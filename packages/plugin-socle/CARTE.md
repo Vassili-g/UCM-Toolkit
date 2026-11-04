@@ -16,7 +16,7 @@ Ce que les plugins partagent : ucm-plugin-socle, privé, lu en source.
 - fenetre.ts : taille bornée de la fenêtre, rangée dans clientStorage
 - inventaireDeNoms.ts : acquisition de l'inventaire depuis Figma : ports de lecture, lecture par lots, lecture du suivi de Palettes ; forme de l'inventaire et protection sont dans `@ucm-kit/core/nommage`
 - bibliotheque.ts : noms des variables des libraries activées (sans valeur), lus huit collections à la fois par `limiteur.ts`, et choix de la library la plus liée
-- ui/ : bouton, onglets dont un peut être indisponible (désactivé, sauté par les flèches), interrupteur, chevron `Chevron.ts` (SVG qui tourne par CSS), feuille modale, poignée de redimensionnement, bouton « Configuration » (engrenage puis libellé), bascule de l'en-tête et composants du langage visuel (voir `## src/ui/`)
+- ui/ : bouton, onglets dont un peut être indisponible (désactivé, sauté par les flèches), interrupteur, chevron `Chevron.ts` (signe `chevron` du kit, SVG qui tourne par CSS), feuille modale, poignée de redimensionnement, bouton « Configuration » (engrenage puis libellé ; tracés `poignee` et `reglages` du kit), bascule de l'en-tête et composants du langage visuel (voir `## src/ui/`)
 
 ## src/composant/
 - annonce.ts : le type `Annonce`, par lequel le moteur dit son étape sans dépendre de l'UI
@@ -82,8 +82,8 @@ Ce que les plugins partagent : ucm-plugin-socle, privé, lu en source.
 - Chemin.ts : chemin de token, chemin ou variant dans une phrase, segment qui part ou arrive, pastille de couleur
 - Jeton.ts : jeton d'un renommage, flèche, mot de place
 - Terme.ts : terme de Figma cité dans une phrase, comme un scope (`terme-figma`)
-- Alerte.ts : les cinq types d'alerte, tirés de `TYPES_D_ALERTE` du kit : icône, gravité, alerte, liseré, pastille de compte, lien externe
+- Alerte.ts : les cinq types d'alerte, tirés de `TYPES_D_ALERTE` du kit : icône, gravité, alerte, liseré, pastille de compte, lien externe (signe `lien-externe`) ; `svgDeLAlerte` rend l'icône en texte sans DOM, et `texteDuType` lit le repli texte du kit
 - Changement.ts : colonnes et ligne de diff, ligne de réussite, carte ciblée
 - Filtre.ts : puce de filtre et recherche active
-- Signe.ts : la tuile d'un signe de `SIGNES` (kit) : taille 14, 16 ou 24 px, gris ou dans la teinte de sa famille, valeur de couleur de token dans la tuile
+- Signe.ts : la tuile d'un signe de `SIGNES` (kit) : taille 14, 16 ou 24 px, gris ou dans la teinte de sa famille, valeur de couleur de token dans la tuile ; `creerSvgDuSigne` pose le SVG d'un signe par `createElementNS`, `creerGlyphe` et `glypheDe` donnent les caractères des glyphes de la famille `interface`
 - PoigneeDeSeparation.ts : poignée entre deux vues

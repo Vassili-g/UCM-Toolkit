@@ -311,15 +311,15 @@ test('[UI-45] une feuille ouverte pendant la sortie d’une autre reste seule à
   assert.deepEqual(documentDeTest.body.children, [declencheur]);
 });
 
-test('le chevron est un SVG décoratif de 12 px, posé par setAttribute', () => {
+test('le chevron est un SVG décoratif de 12 px, tiré du signe chevron du kit et posé par setAttribute', () => {
   const chevron = creerChevron() as unknown as ElementDeTest;
   assert.equal(chevron.espace, 'http://www.w3.org/2000/svg');
   assert.equal(chevron.getAttribute('class'), 'chevron-svg');
   assert.equal(chevron.getAttribute('aria-hidden'), 'true');
-  assert.equal(chevron.getAttribute('viewBox'), '0 0 12 12');
+  assert.equal(chevron.getAttribute('viewBox'), '0 0 16 16');
   assert.equal(chevron.getAttribute('width'), '12');
   assert.equal(chevron.getAttribute('height'), '12');
-  assert.equal(chevron.children[0].getAttribute('d'), 'M3 4.5 6 7.5 9 4.5');
+  assert.equal(chevron.children[0].getAttribute('d'), 'M4 6 8 10 12 6');
   assert.equal(chevron.classList.contains('retour'), false);
   for (const sens of ['ouvert', 'replie', 'suivant', 'retour'] as const) {
     assert.equal((creerChevron(sens) as unknown as ElementDeTest).classList.contains(sens), true);

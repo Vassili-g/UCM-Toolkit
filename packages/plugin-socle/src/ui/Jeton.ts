@@ -3,6 +3,7 @@
  * vert s'il reste, gris pour une forme d'écriture, rose ou olive pour sa place.
  * Les classes viennent de `langage.css`.
  */
+import { glypheDe } from './Signe';
 
 export type TonDeJeton = 'retire' | 'retenu' | 'neutre' | 'groupe' | 'variable';
 
@@ -30,7 +31,7 @@ export function creerFleche(): HTMLSpanElement {
   const element = document.createElement('span');
   element.className = 'fleche';
   element.setAttribute('aria-hidden', 'true');
-  element.textContent = '→';
+  element.textContent = glypheDe('avant-apres');
   return element;
 }
 

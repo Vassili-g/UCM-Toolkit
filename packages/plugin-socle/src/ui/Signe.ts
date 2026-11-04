@@ -4,6 +4,9 @@
  * `svgDuSigne`) et la teinte de chaque famille ; ce fichier pose la tuile.
  * Les classes viennent de `langage.css`.
  *
+ * Il pose aussi les icônes de la famille `interface` hors d'une tuile :
+ * `creerSvgDuSigne` pour un tracé, `creerGlyphe` pour un caractère.
+ *
  * Un signe est gris quand il montre seulement, dans la couleur de sa famille
  * quand il porte une information (`informe`). Une valeur de couleur de token
  * remplit la tuile (`valeur`) et prend le pas sur la teinte.
@@ -80,5 +83,68 @@ export function creerSigne(id: string, { taille = 16, informe = false, valeur, c
   }
   // Le tracé vient du kit, jamais d'un utilisateur : l'insertion en HTML est sûre.
   element.innerHTML = svgDuSigne(id, COTE_DU_TRACE[taille]);
+  return element;
+}
+
+const ESPACE_SVG = 'http://www.w3.org/2000/svg';
+const OUVERTURE_DU_SVG = /^<svg\b([^>]*)>/u;
+const ELEMENT_DU_TRACE = /<(path|rect|circle|text)\b([^>]*?)(?:\/>|>([^<]*)<\/\1>)/gu;
+const ATTRIBUT = /([\w:-]+)="([^"]*)"/gu;
+
+const attributsDe = (source: string): [string, string][] => [...source.matchAll(ATTRIBUT)].map(([, nom, valeur]) => [nom, valeur]);
+
+/**
+ * Le SVG d'un signe du kit, en éléments du DOM, construits par `createElementNS` sans `innerHTML` : les fabriques du socle
+ * n'exigent ainsi que `createElementNS` et `setAttribute`. Le tracé est celui de `svgDuSigne`, sur la grille du signe ; `epaisseur`
+ * remplace l'épaisseur de trait de la grille (1,4) quand le lecteur garde l'épaisseur en pixels d'un ancien dessin.
+ */
+export function creerSvgDuSigne(id: string, taille: number, { epaisseur }: { readonly epaisseur?: number } = {}): SVGSVGElement {
+  const source = svgDuSigne(id, taille);
+  const ouverture = OUVERTURE_DU_SVG.exec(source);
+  if (!ouverture) throw new Error(`Le SVG du signe « ${id} » n'a pas la forme attendue.`);
+  const trace = source.slice(ouverture[0].length, source.length - '</svg>'.length);
+  const svg = document.createElementNS(ESPACE_SVG, 'svg');
+  for (const [nom, valeur] of attributsDe(ouverture[1])) {
+    if (nom === 'xmlns') continue;
+    svg.setAttribute(nom, nom === 'stroke-width' && epaisseur !== undefined ? String(epaisseur) : valeur);
+  }
+  let reconnu = 0;
+  for (const [element, balise, attributs, texte] of trace.matchAll(ELEMENT_DU_TRACE)) {
+    reconnu += element.length;
+    const noeud = document.createElementNS(ESPACE_SVG, balise);
+    for (const [nom, valeur] of attributsDe(attributs)) noeud.setAttribute(nom, valeur);
+    if (texte !== undefined) noeud.textContent = texte;
+    svg.append(noeud);
+  }
+  // Le kit n'emploie que path, rect, circle et text : un autre élément ne se pose pas en silence.
+  if (reconnu !== trace.length) throw new Error(`Le tracé du signe « ${id} » emploie un élément que le socle ne sait pas poser.`);
+  return svg;
+}
+
+/** Les caractères des signes de la famille `interface` qui se disent en texte (les autres sont des tracés). */
+const GLYPHES = {
+  fermer: '×',
+  'avant-apres': '→',
+  menu: '⋯',
+  ajouter: '+',
+  retirer: '−',
+  separateur: '›',
+  ecart: '≠',
+} as const;
+
+export type IdDeGlyphe = keyof typeof GLYPHES;
+
+export const IDENTIFIANTS_DE_GLYPHES = Object.keys(GLYPHES) as readonly IdDeGlyphe[];
+
+/** Le caractère d'un signe de la famille `interface`, pour un texte qu'un élément porte déjà. */
+export function glypheDe(id: IdDeGlyphe): string {
+  return GLYPHES[id];
+}
+
+/** Le glyphe dans son propre élément, décoratif : le nom du bouton ou le mot à côté porte le sens. */
+export function creerGlyphe(id: IdDeGlyphe): HTMLSpanElement {
+  const element = document.createElement('span');
+  element.setAttribute('aria-hidden', 'true');
+  element.textContent = GLYPHES[id];
   return element;
 }

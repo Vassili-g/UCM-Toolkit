@@ -3,6 +3,7 @@
  * une bordure bleue pour une recherche qu'un lien du plugin a posée. Les
  * classes viennent de `langage.css`.
  */
+import { glypheDe } from './Signe';
 
 /** Un filtre posé sous les onglets ; `libelleDeLaCroix` nomme le geste qui l'enlève. */
 export function creerPuceFiltre(type: string, valeur: string, libelleDeLaCroix: string, onEnlever?: () => void): HTMLSpanElement {
@@ -14,7 +15,7 @@ export function creerPuceFiltre(type: string, valeur: string, libelleDeLaCroix: 
   const croix = document.createElement('span');
   croix.className = 'puce-x';
   croix.setAttribute('aria-label', libelleDeLaCroix);
-  croix.textContent = '×';
+  croix.textContent = glypheDe('fermer');
   if (onEnlever) croix.addEventListener('click', onEnlever);
   element.append(nom, valeur, croix);
   return element;

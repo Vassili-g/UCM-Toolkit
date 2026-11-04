@@ -633,12 +633,13 @@ select.input:hover {
   transition: transform 150ms ease-out;
 }
 
+/* Le trait est de 2 sur la grille de 16 du signe `chevron` : 1,5 px à 12 px, comme l'ancien tracé sur 12. */
 .chevron-svg path {
   fill: none;
   stroke: currentColor;
   stroke-linecap: round;
   stroke-linejoin: round;
-  stroke-width: 1.5;
+  stroke-width: 2;
 }
 
 [aria-expanded="false"] .chevron-svg {
@@ -741,5 +742,7 @@ svg.chevron-svg.retour {
   height: 16px;
   fill: none;
   stroke: currentColor;
+  stroke-linecap: butt;
+  stroke-linejoin: miter;
   stroke-width: 1.5;
 }

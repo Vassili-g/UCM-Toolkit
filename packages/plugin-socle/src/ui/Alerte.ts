@@ -5,6 +5,7 @@
  * viennent de `langage.css`.
  */
 import { TYPES_D_ALERTE, type TypeDAlerte } from '@ucm-kit/core/referentiel';
+import { creerSvgDuSigne } from './Signe';
 
 export type { TypeDAlerte };
 
@@ -16,6 +17,13 @@ export function libelleDuType(type: TypeDAlerte): string {
   const trouve = TYPES_D_ALERTE.find((entree) => entree.id === type);
   if (!trouve) throw new Error(`type d'alerte inconnu : ${type}`);
   return trouve.libelle;
+}
+
+/** Le repli texte du type : `brut` pour une sortie texte, `forge` pour un commentaire de forge, tels que le kit les donne. */
+export function texteDuType(type: TypeDAlerte, sortie: 'brut' | 'forge' = 'brut'): string {
+  const trouve = TYPES_D_ALERTE.find((entree) => entree.id === type);
+  if (!trouve) throw new Error(`type d'alerte inconnu : ${type}`);
+  return trouve.texte[sortie];
 }
 
 /** Donne à un élément la couleur de son type : la classe lui pose `--ton`. */
@@ -70,6 +78,14 @@ const FORMES: Readonly<Record<TypeDAlerte, readonly Forme[]>> = {
 
 const ESPACE_SVG = 'http://www.w3.org/2000/svg';
 
+/** Les attributs d'une forme tels que le SVG les porte : l'encre d'une forme se pose en `style`. */
+function attributsDeLaForme(forme: Forme): [string, string][] {
+  const attributs = Object.entries(forme.attributs);
+  if (forme.encre === 'trait') attributs.push(['style', 'stroke:var(--texte-sur-ton);fill:none']);
+  if (forme.encre === 'plein') attributs.push(['style', 'fill:var(--texte-sur-ton)']);
+  return attributs;
+}
+
 /** L'icône d'un type, décorative : le mot qui l'accompagne porte le sens. */
 export function creerIcone(type: TypeDAlerte): HTMLSpanElement {
   const enveloppe = document.createElement('span');
@@ -80,13 +96,26 @@ export function creerIcone(type: TypeDAlerte): HTMLSpanElement {
   svg.setAttribute('viewBox', '0 0 12 12');
   for (const forme of FORMES[type]) {
     const noeud = document.createElementNS(ESPACE_SVG, forme.balise);
-    for (const [nom, valeur] of Object.entries(forme.attributs)) noeud.setAttribute(nom, valeur);
-    if (forme.encre === 'trait') noeud.setAttribute('style', 'stroke:var(--texte-sur-ton);fill:none');
-    if (forme.encre === 'plein') noeud.setAttribute('style', 'fill:var(--texte-sur-ton)');
+    for (const [nom, valeur] of attributsDeLaForme(forme)) noeud.setAttribute(nom, valeur);
     svg.append(noeud);
   }
   enveloppe.append(svg);
   return enveloppe;
+}
+
+const echapper = (valeur: string): string => valeur.replace(/&/gu, '&amp;').replace(/"/gu, '&quot;').replace(/</gu, '&lt;');
+
+/**
+ * Le SVG d'un type d'alerte en texte, sans DOM : pour un rendu qui n'a pas de document, comme le hub. Il est construit depuis
+ * `FORMES`, comme `creerIcone`. La couleur du type vient de `color` autour du SVG (`currentColor`) et l'encre du trait et
+ * du point de `--texte-sur-ton` : la page qui le pose définit ces deux rôles.
+ */
+export function svgDeLAlerte(type: TypeDAlerte, taille = 12): string {
+  const formes = FORMES[type].map((forme) => {
+    const attributs = attributsDeLaForme(forme).map(([nom, valeur]) => ` ${nom}="${echapper(valeur)}"`).join('');
+    return `<${forme.balise}${attributs}/>`;
+  });
+  return `<svg xmlns="${ESPACE_SVG}" viewBox="0 0 12 12" width="${taille}" height="${taille}" aria-hidden="true">${formes.join('')}</svg>`;
 }
 
 /** L'icône et le mot d'un type, de sa couleur. */
@@ -144,25 +173,16 @@ export function creerPastilleDeCompte(compte: number, type: TypeDAlerte): HTMLSp
   return element;
 }
 
-/** Un lien qui ouvre une page hors du plugin : le libellé, puis la flèche qui sort du cadre. */
+/** L'ancien tracé portait 1,3 sur une grille de 12 : à 11 px, c'est 1,73 sur la grille de 16 du kit. */
+const EPAISSEUR_DU_LIEN = 1.73;
+
+/** Un lien qui ouvre une page hors du plugin : le libellé, puis le signe `lien-externe` du kit. */
 export function creerLienExterne(libelle: string, onClick?: (event: MouseEvent) => void): HTMLButtonElement {
   const bouton = document.createElement('button');
   bouton.type = 'button';
   bouton.className = 'lien-externe';
   bouton.append(libelle);
-  const svg = document.createElementNS(ESPACE_SVG, 'svg');
-  svg.setAttribute('viewBox', '0 0 12 12');
-  svg.setAttribute('width', '11');
-  svg.setAttribute('height', '11');
-  svg.setAttribute('fill', 'none');
-  svg.setAttribute('stroke', 'currentColor');
-  svg.setAttribute('stroke-width', '1.3');
-  svg.setAttribute('stroke-linecap', 'round');
-  svg.setAttribute('aria-hidden', 'true');
-  const trait = document.createElementNS(ESPACE_SVG, 'path');
-  trait.setAttribute('d', 'M5 2H2v8h8V7M7 1.5h3.5V5M10.5 1.5 5.5 6.5');
-  svg.append(trait);
-  bouton.append(svg);
+  bouton.append(creerSvgDuSigne('lien-externe', 11, { epaisseur: EPAISSEUR_DU_LIEN }));
   if (onClick) bouton.addEventListener('click', onClick);
   return bouton;
 }

@@ -1,6 +1,7 @@
 /** La feuille modale commune : étapes, focus clavier, entrée et sortie animées. */
 
 import { creerChevron } from './Chevron';
+import { glypheDe } from './Signe';
 
 export interface LibellesDeFeuille {
   retour: string;
@@ -68,7 +69,7 @@ export function createFeuille(options: OptionsFeuille): FeuilleUi {
   boutonFermer.type = 'button';
   boutonFermer.className = 'feuille-fermer';
   boutonFermer.setAttribute('aria-label', options.libelles?.fermer ?? 'Fermer');
-  boutonFermer.textContent = '×';
+  boutonFermer.textContent = glypheDe('fermer');
 
   const corps = document.createElement('div');
   corps.className = 'feuille-corps';
