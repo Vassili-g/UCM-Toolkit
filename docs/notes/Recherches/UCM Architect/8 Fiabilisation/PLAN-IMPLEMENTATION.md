@@ -415,7 +415,7 @@ Fichiers : `src/ui/structure/aFaire.ts:227-239`, `src/ui/structure/corrections.t
 
 Chaque décision de [QUESTIONS-V2.html](./QUESTIONS-V2.html) (archive « Questions tranchées ») et chaque écart de
 [MESURE-DES-FAILLES.md](./MESURE-DES-FAILLES.md) a une case ci-dessous. Une case cite la question ou l'écart, et l'agent relit la
-décision dans la page avant d'écrire. Q-F5-3 reste ouverte, et seule la case E7.3 en dépend. QV-5 est reportée à la recette.
+décision dans la page avant d'écrire. Toutes les questions sont tranchées, sauf QV-5 reportée à la recette.
 
 Règles propres à la phase E :
 
@@ -593,7 +593,9 @@ PLAN-STRESS-F5-F6-VARIANTS-TYPO.md, sections 3 et 8.
 - [ ] E7.1 Le nom de l'axe décide de son rôle, avant les termes d'un autre registre (Q-F5-2, N-36).
 - [ ] E7.2 Deux valeurs renommées dans deux axes donnent C7 sans question (Q-F5-4). Les candidats ne comptent pas une valeur déjà
   présente (N-35).
-- [ ] E7.3 Deux axes du même rôle (Q-F5-3, ouverte au tour 4). La case s'écrit après la réponse du mainteneur.
+- [ ] E7.3 Deux axes de style (Q-F5-3). Un constat À faire demande de les réunir en un seul axe (`Variant=Solid, Subtle, Outline`),
+  sans fusion automatique. Les tokens du style `subtle` visent `surface/*` du thème, ceux du style `solid` visent `solid/*`, et un écart
+  donne un constat.
 - [ ] E7.4 Casse et forme (Q-F5-5, Q-F5-6, N-34, N-37). Le variant en toutes lettres correspond au token abrégé par la table de E1.1. C9
   reste pour une valeur inconnue. `Error` reçoit C8 vers `Danger`.
 - [ ] E7.5 Au-delà de 4 096 combinaisons, une information donne le total et le nombre de variants. Sous la borne, 200 constats au plus,

@@ -100,6 +100,7 @@ export const REPONSES = {
   },
   // Tour 2 : la décision est la proposition réécrite, sauf mention.
   ...Object.fromEntries(['Q-F2-6', 'Q-F3-3', 'Q-F3-7', 'Q-F3-9', 'Q-F3-12', 'Q-F5-1', 'Q-F5-5', 'Q-F5-10', 'Q-F6-1', 'Q-F7-7', 'Q-F7-9'].map((id) => [id, { reponse: accord }])),
+  'Q-F5-3': { reponse: accord },
   'Q-F2-3': {
     reponse: 'D\'accord, mais « sens normal » ou « sens inverse » doit être expliqué de façon concrète. Texte noir ou texte blanc sur les boutons ?',
     decision: 'Une question à deux réponses, sans case cochée, qui décrit le rendu et jamais le sens. Pour le texte du bouton, « Garder le texte noir sur les boutons » ou « Passer au texte blanc ». Pour une palette partagée, « Boutons foncés à texte blanc, encadrés clairs à texte foncé » ou « Boutons clairs à texte foncé, encadrés foncés à texte clair », avec un bouton et un encadré dessinés dans chaque couleur. Architect vérifie ensuite chaque rôle contre la table choisie et ne corrige jamais seul.',
