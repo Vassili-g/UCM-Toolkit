@@ -1,6 +1,8 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { FAMILLES_DE_SIGNES, REPRISES_DE_SIGNES, SIGNES, TYPES_D_ALERTE, svgDuSigne } from '../src/referentiel/index.js';
+import { FAMILLES_DE_SIGNES, POSE_DES_ALERTES, REPRISES_DE_SIGNES, SIGNES, TYPES_D_ALERTE, svgDuSigne } from '../src/referentiel/index.js';
+
+const sansEmploi = (reprises: readonly { id: string; libelle: string }[] | undefined) => reprises?.map(({ id, libelle }) => ({ id, libelle }));
 
 test('les identifiants de signes sont uniques', () => {
   const ids = SIGNES.map((signe) => signe.id);
@@ -47,7 +49,7 @@ test('chaque reprise vise un signe existant d’une autre famille', () => {
 });
 
 test('les propriétés reprennent les signes booléen, texte et slot avec leurs libellés', () => {
-  assert.deepEqual(REPRISES_DE_SIGNES.find((reprise) => reprise.famille === 'property')?.reprend, [
+  assert.deepEqual(sansEmploi(REPRISES_DE_SIGNES.find((reprise) => reprise.famille === 'property')?.reprend), [
     { id: 'type-boolean', libelle: 'boolean property' },
     { id: 'text', libelle: 'text property' },
     { id: 'slot', libelle: 'slot property' },
@@ -100,7 +102,7 @@ test('les dix catégories du mode Tokens ont un signe dans rubrique-tokens', () 
 test('la famille interface porte quinze signes propres et reprend « différent » à écart', () => {
   const propres = SIGNES.filter((signe) => signe.famille === 'interface').map((signe) => signe.id);
   assert.deepEqual(propres, ['chevron', 'fermer', 'lien-externe', 'reglages', 'poignee', 'loupe', 'tout-replier', 'panneau-lateral', 'synchroniser', 'menu', 'ajouter', 'retirer', 'avant-apres', 'separateur', 'vide']);
-  assert.deepEqual(REPRISES_DE_SIGNES.find((reprise) => reprise.famille === 'interface')?.reprend, [{ id: 'ecart', libelle: 'différent' }]);
+  assert.deepEqual(sansEmploi(REPRISES_DE_SIGNES.find((reprise) => reprise.famille === 'interface')?.reprend), [{ id: 'ecart', libelle: 'différent' }]);
   assert.equal(FAMILLES_DE_SIGNES.find((famille) => famille.id === 'interface')?.teinte, null);
 });
 
@@ -120,7 +122,7 @@ test('la famille type-de-terme définit remplace et sans-regle, et reprend palet
   const famille = FAMILLES_DE_SIGNES.find((candidat) => candidat.id === 'type-de-terme');
   assert.equal(famille?.teinte, 'regles');
   assert.deepEqual(SIGNES.filter((signe) => signe.famille === 'type-de-terme').map((signe) => signe.id), ['remplace', 'sans-regle']);
-  assert.deepEqual(REPRISES_DE_SIGNES.find((reprise) => reprise.famille === 'type-de-terme')?.reprend, [
+  assert.deepEqual(sansEmploi(REPRISES_DE_SIGNES.find((reprise) => reprise.famille === 'type-de-terme')?.reprend), [
     { id: 'palette', libelle: 'palette' },
     { id: 'component', libelle: 'composant' },
     { id: 'question', libelle: 'à trancher' },
@@ -143,4 +145,33 @@ test('chaque type d’alerte porte un repli texte brut et un repli de forge', ()
   };
   assert.deepEqual(TYPES_D_ALERTE.map((type) => type.id), Object.keys(attendus));
   for (const type of TYPES_D_ALERTE) assert.deepEqual([type.texte.brut, type.texte.forge], attendus[type.id], type.id);
+});
+
+test('chaque signe porte un emploi, et chaque reprise un emploi non vide quand elle en déclare un', () => {
+  for (const signe of SIGNES) assert.ok(signe.emploi.trim(), `${signe.id} : emploi vide`);
+  for (const reprise of REPRISES_DE_SIGNES) {
+    for (const repris of reprise.reprend) assert.ok(repris.emploi === undefined || repris.emploi.trim(), `${reprise.famille}/${repris.id} : emploi vide`);
+  }
+});
+
+test('un emploi ne désigne que des signes qui existent', () => {
+  const ids = new Set(SIGNES.map((signe) => signe.id));
+  const emplois = [...SIGNES.map((signe) => [signe.id, signe.emploi]), ...REPRISES_DE_SIGNES.flatMap((reprise) => reprise.reprend.map((repris) => [repris.id, repris.emploi ?? '']))];
+  for (const [id, emploi] of emplois) {
+    for (const [, cite] of emploi!.matchAll(/`([a-z0-9-]+)`/g)) assert.ok(ids.has(cite!), `${id} cite le signe inconnu « ${cite} »`);
+  }
+});
+
+test('chaque famille et la pose des alertes décrivent fonction, tailles, teinte et nom accessible', () => {
+  for (const pose of [...FAMILLES_DE_SIGNES.map((famille) => famille.pose), POSE_DES_ALERTES]) {
+    for (const champ of ['fonction', 'tailles', 'teinte', 'nom'] as const) assert.ok(pose[champ].trim(), champ);
+  }
+  for (const famille of FAMILLES_DE_SIGNES) assert.ok(famille.pose.fonction.includes('socle') || famille.pose.fonction.includes('creer'), famille.id);
+});
+
+test('sept signes portent un glyphe, les autres aucun', () => {
+  const attendus = { fermer: '×', 'avant-apres': '→', menu: '⋯', ajouter: '+', retirer: '−', separateur: '›', ecart: '≠' };
+  assert.deepEqual(Object.fromEntries(SIGNES.filter((signe) => signe.glyphe !== undefined).map((signe) => [signe.id, signe.glyphe])), attendus);
+  for (const id of ['fermer', 'avant-apres', 'menu', 'ajouter', 'retirer', 'separateur']) assert.equal(SIGNES.find((signe) => signe.id === id)?.famille, 'interface', id);
+  assert.equal(SIGNES.find((signe) => signe.id === 'ecart')?.famille, 'etat-token');
 });

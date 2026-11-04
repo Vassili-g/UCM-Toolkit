@@ -8,24 +8,58 @@
 
 export type TeinteDeFamille = 'couleurs' | 'tailles' | 'texte' | 'tokens' | 'variants' | 'regles' | 'a11y';
 
+/** Comment le socle pose les signes d’une famille. */
+export interface PoseDeFamille {
+  /** La fonction du socle qui pose le signe. */
+  fonction: string;
+  /** Les tailles admises. */
+  tailles: string;
+  /** La règle de teinte : quand le signe prend la couleur de la famille, quand il reste gris. */
+  teinte: string;
+  /** Le nom accessible attendu. */
+  nom: string;
+}
+
+const TAILLES_DE_TUILE = '14 px dans un texte ou un bouton, 16 px dans une ligne (défaut), 24 px dans une bande de section.';
+const NOM_DE_TUILE = 'Sans option `titre`, la tuile est décorative et le mot écrit à côté nomme le signe. Quand rien n’est écrit à côté, passer `titre` avec le libellé du signe : la tuile prend alors `role="img"` et `aria-label`.';
+const teinteDe = (nom: string): string => `Avec \`informe: true\`, la tuile prend la couleur « ${nom} ». Sans lui, elle reste grise : réserver la couleur à un signe qui porte une information.`;
+const GRIS = 'La famille n’a pas de teinte : `informe` ne change rien et la tuile reste grise.';
+const poseDeTuile = (teinte: string, supplement = ''): PoseDeFamille => ({
+  fonction: `\`creerSigne(id, options)\` du socle (\`packages/plugin-socle/src/ui/Signe.ts\`).${supplement}`,
+  tailles: TAILLES_DE_TUILE,
+  teinte,
+  nom: NOM_DE_TUILE,
+});
+
 export const FAMILLES_DE_SIGNES = [
-  { id: 'types-figma', libelle: 'Type de variable Figma', teinte: null },
-  { id: 'usage-couleur', libelle: 'Usage d’une couleur', teinte: 'couleurs' },
-  { id: 'usage-nombre', libelle: 'Usage d’un nombre', teinte: 'tailles' },
-  { id: 'typographie', libelle: 'Typographie', teinte: 'texte' },
-  { id: 'couche', libelle: 'Couche UCM, dans l’ordre de la library', teinte: 'tokens' },
-  { id: 'etat-token', libelle: 'État d’un token', teinte: 'tokens' },
-  { id: 'rubrique-tokens', libelle: 'Rubrique du mode Tokens', teinte: 'tokens' },
-  { id: 'objet-figma', libelle: 'Objet de Figma', teinte: 'variants' },
-  { id: 'property', libelle: 'Property de composant', teinte: 'variants' },
-  { id: 'regles', libelle: 'Règles d’utilisation (.componentRules)', teinte: 'regles' },
-  { id: 'type-de-terme', libelle: 'Type de terme de Nomenclature', teinte: 'regles' },
-  { id: 'proposition', libelle: 'Sorte de proposition', teinte: null },
-  { id: 'accessibilite', libelle: 'Accessibilité', teinte: 'a11y' },
-  { id: 'palettes', libelle: 'Palettes', teinte: 'couleurs' },
-  { id: 'publication', libelle: 'Publication', teinte: null },
-  { id: 'interface', libelle: 'Interface des plugins', teinte: null },
-] as const satisfies readonly { id: string; libelle: string; teinte: TeinteDeFamille | null }[];
+  { id: 'types-figma', libelle: 'Type de variable Figma', teinte: null, pose: poseDeTuile(GRIS) },
+  { id: 'usage-couleur', libelle: 'Usage d’une couleur', teinte: 'couleurs', pose: poseDeTuile(teinteDe('couleurs'), ' Pour montrer la valeur d’une couleur de token, passer `valeur` (et `clair` si elle est claire) : la tuile se remplit, `usage-stroke` devient un anneau, et la valeur prend le pas sur la teinte.') },
+  { id: 'usage-nombre', libelle: 'Usage d’un nombre', teinte: 'tailles', pose: poseDeTuile(teinteDe('tailles')) },
+  { id: 'typographie', libelle: 'Typographie', teinte: 'texte', pose: poseDeTuile(teinteDe('texte')) },
+  { id: 'couche', libelle: 'Couche UCM, dans l’ordre de la library', teinte: 'tokens', pose: poseDeTuile(teinteDe('tokens')) },
+  { id: 'etat-token', libelle: 'État d’un token', teinte: 'tokens', pose: poseDeTuile(teinteDe('tokens'), ' `a-creer` reçoit la classe `signe-absent`.') },
+  { id: 'rubrique-tokens', libelle: 'Rubrique du mode Tokens', teinte: 'tokens', pose: poseDeTuile(teinteDe('tokens'), ' Pour `a-creer`, `cran`, `rompue`, `mode` et `scope`, reprises par cette famille, passer `famille: "rubrique-tokens"` pour en prendre la teinte.') },
+  { id: 'objet-figma', libelle: 'Objet de Figma', teinte: 'variants', pose: poseDeTuile(teinteDe('variants')) },
+  { id: 'property', libelle: 'Property de composant', teinte: 'variants', pose: poseDeTuile(teinteDe('variants'), ' Pour `type-boolean`, `text` et `slot`, reprises par cette famille, passer `famille: "property"`.') },
+  { id: 'regles', libelle: 'Règles d’utilisation (.componentRules)', teinte: 'regles', pose: poseDeTuile(teinteDe('regles'), ' Pour `prop-variant` et `type-boolean`, reprises par cette famille, passer `famille: "regles"`.') },
+  { id: 'type-de-terme', libelle: 'Type de terme de Nomenclature', teinte: 'regles', pose: poseDeTuile(teinteDe('regles'), ' Pour `palette`, `component`, `question` et `applique`, reprises par cette famille, passer `famille: "type-de-terme"`.') },
+  { id: 'proposition', libelle: 'Sorte de proposition', teinte: null, pose: poseDeTuile(GRIS) },
+  { id: 'accessibilite', libelle: 'Accessibilité', teinte: 'a11y', pose: poseDeTuile(teinteDe('a11y')) },
+  { id: 'palettes', libelle: 'Palettes', teinte: 'couleurs', pose: poseDeTuile(teinteDe('couleurs'), ' Pour `mode`, repris par cette famille, passer `famille: "palettes"`.') },
+  { id: 'publication', libelle: 'Publication', teinte: null, pose: poseDeTuile(GRIS) },
+  {
+    id: 'interface',
+    libelle: 'Interface des plugins',
+    teinte: null,
+    pose: {
+      fonction:
+        '`creerSvgDuSigne(id, taille)` pour un tracé, `creerChevron(sens)` pour `chevron`, `creerGlyphe(id)` ou `glypheDe(id)` pour les sept signes dont le champ `glyphe` donne le caractère (`fermer`, `avant-apres`, `menu`, `ajouter`, `retirer`, `separateur`, `ecart`) ; tout vient de `packages/plugin-socle/src/ui/Signe.ts` et `Chevron.ts`. Le champ `glyphe` du signe donne le caractère qu’un texte écrit à la place du dessin. `creerSigne` ne pose pas ces signes dans une tuile.',
+      tailles: 'Un tracé prend le côté en pixels que l’appelant donne ; `creerChevron` pose 12 px. Un glyphe prend la taille du texte autour.',
+      teinte: GRIS + ' Le signe prend la couleur du texte qui l’entoure (`currentColor`).',
+      nom: 'Le signe est décoratif (`aria-hidden`) : le bouton qui le porte garde son nom accessible, par exemple « Fermer » ou « Réglages ».',
+    },
+  },
+] as const satisfies readonly { id: string; libelle: string; teinte: TeinteDeFamille | null; pose: PoseDeFamille }[];
 
 export type IdDeFamilleDeSignes = (typeof FAMILLES_DE_SIGNES)[number]['id'];
 
@@ -40,12 +74,18 @@ export interface SigneDuLangage {
   grille?: number;
   /** Mot d’un texte brut, là où aucun tracé ne se dessine. */
   mot: string;
+  /** Le caractère qu’un texte écrit à la place du dessin. Seuls sept signes de la famille `interface` en ont un. */
+  glyphe?: string;
+  /** Quand employer le signe, et le signe à prendre à sa place quand il ne convient pas. */
+  emploi: string;
 }
 
 /** Signe défini dans une autre famille, avec le libellé qu’il porte dans celle-ci. */
 export interface SigneRepris {
   id: string;
   libelle: string;
+  /** L’emploi du signe dans la famille qui le reprend, quand il diffère de celui de sa famille d’origine. */
+  emploi?: string;
 }
 
 export interface RepriseDeSigne {
@@ -83,13 +123,129 @@ const padding = (...cotes: (keyof typeof COTES)[]): string =>
 
 type Entree = readonly [id: string, libelle: string, trace: string, sens: string];
 
-const famille = (id: IdDeFamilleDeSignes, entrees: readonly Entree[]): SigneDuLangage[] =>
+const famille = (id: IdDeFamilleDeSignes, entrees: readonly Entree[]): Omit<SigneDuLangage, 'emploi'>[] =>
   entrees.map(([signe, libelle, trace, sens]) => ({ id: signe, famille: id, libelle, sens, trace, mot: libelle }));
 
 /** Engrenage de Font Awesome Free Solid 6.7.2 (gear, f013), plein, sur sa grille de 512. */
 const ENGRENAGE = '<path d="M495.9 166.6c3.2 8.7.5 18.4-6.4 24.6l-43.3 39.4c1.1 8.3 1.7 16.8 1.7 25.4s-.6 17.1-1.7 25.4l43.3 39.4c6.9 6.2 9.6 15.9 6.4 24.6c-4.4 11.9-9.7 23.3-15.8 34.3l-4.7 8.1c-6.6 11-14 21.4-22.1 31.2c-5.9 7.2-15.7 9.6-24.5 6.8l-55.7-17.7c-13.4 10.3-28.2 18.9-44 25.4l-12.5 57.1c-2 9.1-9 16.3-18.2 17.8c-13.8 2.3-28 3.5-42.5 3.5s-28.7-1.2-42.5-3.5c-9.2-1.5-16.2-8.7-18.2-17.8l-12.5-57.1c-15.8-6.5-30.6-15.1-44-25.4L83.1 425.9c-8.8 2.8-18.6.3-24.5-6.8c-8.1-9.8-15.5-20.2-22.1-31.2l-4.7-8.1c-6.1-11-11.4-22.4-15.8-34.3c-3.2-8.7-.5-18.4 6.4-24.6l43.3-39.4C64.6 273.1 64 264.6 64 256s.6-17.1 1.7-25.4L22.4 191.2c-6.9-6.2-9.6-15.9-6.4-24.6c4.4-11.9 9.7-23.3 15.8-34.3l4.7-8.1c6.6-11 14-21.4 22.1-31.2c5.9-7.2 15.7-9.6 24.5-6.8l55.7 17.7c13.4-10.3 28.2-18.9 44-25.4l12.5-57.1c2-9.1 9-16.3 18.2-17.8C227.3 1.2 241.5 0 256 0s28.7 1.2 42.5 3.5c9.2 1.5 16.2 8.7 18.2 17.8l12.5 57.1c15.8 6.5 30.6 15.1 44 25.4l55.7-17.7c8.8-2.8 18.6-.3 24.5 6.8c8.1 9.8 15.5 20.2 22.1 31.2l4.7 8.1c6.1 11 11.4 22.4 15.8 34.3zM256 336a80 80 0 1 0 0-160 80 80 0 1 0 0 160z" fill="currentColor" stroke="none"/>';
 
-export const SIGNES: readonly SigneDuLangage[] = [
+/**
+ * Quand employer chaque signe, et le signe à prendre à sa place quand il ne convient pas ; un identifiant entre accents graves
+ * désigne un autre signe. Un signe sans entrée fait échouer le chargement du module.
+ */
+const EMPLOIS: Readonly<Record<string, string>> = {
+  'type-color': 'Une variable de type Color, dans une liste de types. Pour la couleur d’un layer, prendre `usage-fill`.',
+  'type-number': 'Une variable de type Number. Pour dire ce que le nombre règle, prendre le signe de la famille « Usage d’un nombre ».',
+  'type-string': 'Une variable de type String. Pour un layer texte, prendre `text`.',
+  'type-boolean': 'Une variable de type Boolean, et une property booléenne de composant que la famille « Property » reprend. Pour un état de la library, prendre `variable`.',
+  'usage-fill': 'La couleur qui peint le fond d’un layer. Pour un contour, prendre `usage-stroke`.',
+  'usage-texte': 'La couleur qui peint un texte. Pour la police ou le corps, prendre un signe de « Typographie ».',
+  'usage-icone': 'La couleur qui peint une icône. Pour sa taille, prendre `taille-icone`.',
+  'usage-stroke': 'La couleur qui peint un contour. Pour son épaisseur, prendre `stroke-weight`.',
+  'usage-effet': 'La couleur d’une ombre ou d’un autre effet. Pour un fond, prendre `usage-fill`.',
+  'usage-inconnue': 'Une couleur dont la valeur ne se résout pas. Une couleur lue se montre par son usage, jamais par ce signe.',
+  padding: 'Un padding identique sur les quatre côtés. Si un côté diffère, prendre `padding-x`, `padding-y` ou le côté seul.',
+  'padding-x': 'Un padding à gauche et à droite. Pour un seul côté, prendre `padding-left` ou `padding-right`.',
+  'padding-y': 'Un padding en haut et en bas. Pour un seul côté, prendre `padding-top` ou `padding-bottom`.',
+  'padding-top': 'Un padding en haut seulement. Pour haut et bas ensemble, prendre `padding-y`.',
+  'padding-right': 'Un padding à droite seulement. Pour gauche et droite ensemble, prendre `padding-x`.',
+  'padding-bottom': 'Un padding en bas seulement. Pour haut et bas ensemble, prendre `padding-y`.',
+  'padding-left': 'Un padding à gauche seulement. Pour gauche et droite ensemble, prendre `padding-x`.',
+  gap: 'L’espace entre les enfants d’un auto layout. Pour l’espace entre le bord et le contenu, prendre `padding`.',
+  width: 'Une largeur fixée. Pour une hauteur, prendre `height`.',
+  height: 'Une hauteur fixée. Pour une largeur, prendre `width`.',
+  'taille-icone': 'Le côté d’une icône. Pour la largeur d’un layer quelconque, prendre `width`.',
+  radius: 'Le rayon des coins d’un layer. Pour l’épaisseur du contour, prendre `stroke-weight`.',
+  'stroke-weight': 'L’épaisseur d’un contour. Pour sa couleur, prendre `usage-stroke`.',
+  opacity: 'L’opacité d’un layer. Pour une couleur, prendre le signe de son usage.',
+  'text-style': 'Un style de texte de Figma, qui réunit police, corps et interligne. Pour un seul réglage, prendre le signe de ce réglage.',
+  'font-family': 'La famille de police d’un texte. Pour son corps, prendre `font-size`.',
+  'font-size': 'Le corps d’un texte. Pour l’interligne, prendre `line-height`.',
+  'font-weight': 'La graisse d’un texte. Pour la famille de police, prendre `font-family`.',
+  'line-height': 'La hauteur de ligne d’un texte. Pour l’espace entre les lettres, prendre `letter-spacing`.',
+  'letter-spacing': 'L’espace entre les lettres. Pour l’interligne, prendre `line-height`.',
+  'couche-primitives': 'La collection des valeurs brutes, première de la library. Pour une collection qui les lit, prendre `couche-layout`.',
+  'couche-layout': 'Les collections layout, typography, brands et utility, qui lisent primitives. Pour les rôles de couleur par mode, prendre `couche-theme`.',
+  'couche-theme': 'La collection des rôles de couleur par mode. Pour les tokens d’un composant, prendre `couche-components`.',
+  'couche-components': 'La collection des tokens d’un composant, dernière de la library. Pour une valeur partagée, prendre `couche-layout`.',
+  variable: 'Une variable liée à un layer, sans dire d’où elle vient. Pour sa provenance, prendre `library` ou `local`.',
+  existe: 'La variable que le plugin propose existe déjà. Pour une variable à ajouter, prendre `a-creer`.',
+  'a-creer': 'La préparation créera la variable. Pour une variable déjà présente, prendre `existe`.',
+  'en-dur': 'Une valeur écrite dans le layer, sans variable. Pour une chaîne dont un maillon manque, prendre `rompue`.',
+  alias: 'Une variable qui renvoie à une autre. Pour une chaîne dont un maillon manque, prendre `rompue`.',
+  library: 'Une variable d’une library publiée. Pour une variable de ce fichier, prendre `local`.',
+  local: 'Une variable de ce fichier. Pour une variable d’une library publiée, prendre `library`.',
+  rompue: 'Une chaîne d’alias dont une variable est introuvable. Pour une valeur sans variable, prendre `en-dur`.',
+  ecart: 'Figma rend une autre valeur que celle de la chaîne. Pour un changement de valeur proposé, prendre `avant-apres`. En texte, le caractère « ≠ » (champ glyphe) remplace le dessin.',
+  mode: 'Un mode d’une collection, Light ou Dark. Pour une palette entière, prendre `palette`.',
+  scope: 'Le scope d’une variable, au sens de Figma. Pour la collection qui la range, prendre `rangement`.',
+  nom: 'Le nom d’une variable, dans la rubrique « Noms » du mode Tokens. Pour le dossier qui la range, prendre `rangement`.',
+  valeurs: 'Une valeur vide, ou deux variables de même valeur. Pour une valeur écrite dans le layer, prendre `en-dur`.',
+  couches: 'L’ordre des couches, où chacune lit celle du dessus. Pour une couche seule, prendre son signe de la famille « Couche UCM ».',
+  types: 'Le type Figma d’une variable, en rubrique. Pour un type précis, prendre son signe de « Type de variable Figma ».',
+  rangement: 'Le dossier ou la collection où la variable est rangée. Pour son nom, prendre `nom`.',
+  'component-set': 'Le jeu de variants d’un composant. Pour un composant seul, prendre `component`.',
+  component: 'Un composant principal. Pour une copie posée dans un frame, prendre `instance`.',
+  variant: 'Un variant du jeu, en plein. Pour une copie du composant, prendre `instance`, au contour seul.',
+  instance: 'Une instance d’un composant, y compris imbriquée. Pour le composant principal, prendre `component`.',
+  frame: 'Un frame. Pour un group, prendre `group`.',
+  group: 'Un group de layers. Pour un frame, prendre `frame`.',
+  text: 'Un layer texte, et une property texte de composant que la famille « Property » reprend. Pour le style d’un texte, prendre `text-style`.',
+  vector: 'Un tracé vectoriel. Pour la couleur d’une icône, prendre `usage-icone`.',
+  slot: 'Un emplacement à remplir, et une property slot que la famille « Property » reprend. Pour échanger une instance, prendre `prop-swap`.',
+  selection: 'Les layers que le plugin a sélectionnés. Pour un objet précis, prendre son signe de « Objet de Figma ».',
+  'prop-variant': 'Une property de variant, comme Severity. Pour une property qui échange une instance, prendre `prop-swap`.',
+  'prop-swap': 'Une property d’échange d’instance. Pour une property de variant, prendre `prop-variant`.',
+  regles: 'L’instance .componentRules posée à côté du composant. Pour une ligne de règle, prendre le signe de son tag.',
+  'tag-usage': 'Le tag @usage, qui dit quand employer le composant. Pour un emploi précis, prendre `tag-do` ou `tag-dont`.',
+  'tag-do': 'Un emploi recommandé, en gris. Pour un emploi à éviter, prendre `tag-dont`.',
+  'tag-dont': 'Un emploi à éviter, en gris. Pour un emploi recommandé, prendre `tag-do`.',
+  'tag-pairs': 'Un composant qui va avec celui-ci. Pour les icônes admises, prendre `tag-icons`.',
+  'tag-icons': 'Les icônes qu’un composant admet. Pour la couleur d’une icône, prendre `usage-icone`.',
+  'tag-default': 'La valeur par défaut d’une property. Pour une valeur imposée, prendre `strict`.',
+  modifiable: 'Une valeur que le développeur peut changer. Pour une valeur imposée, prendre `strict`.',
+  strict: 'Une valeur imposée. Pour une valeur que le développeur peut changer, prendre `modifiable`.',
+  'a-completer': 'Un texte d’aide pas encore rédigé. Un texte rédigé ne porte aucun signe.',
+  remplace: 'Un terme de Nomenclature qui en remplace un autre. Pour un terme qu’aucune règle ne décide, prendre `sans-regle`.',
+  'sans-regle': 'Un terme qu’aucune règle ne décide. Pour un terme qui en remplace un autre, prendre `remplace`.',
+  correction: 'Une proposition que le plugin applique lui-même. Pour un choix du designer, prendre `question`.',
+  question: 'Une proposition où le designer choisit. Pour une action dans Figma, prendre `a-faire`.',
+  'a-faire': 'Une proposition où le designer agit dans Figma, hors du plugin. Pour une correction que le plugin applique, prendre `correction`.',
+  modele: 'Les liaisons d’un variant copiées aux autres. Pour une correction ordinaire, prendre `correction`.',
+  ignore: 'Un constat que le plugin ne proposera plus. Pour une question remise à plus tard, prendre `plus-tard`.',
+  'plus-tard': 'Une question qui attend. Pour un constat écarté, prendre `ignore`.',
+  applique: 'Une écriture réussie. Pour une écriture annulée, prendre `defait`.',
+  defait: 'Une écriture que le designer a annulée par Ctrl+Z. Pour une écriture réussie, prendre `applique`.',
+  perime: 'Le composant a changé depuis l’analyse. Pour relire l’état de Figma, prendre `synchroniser`.',
+  information: 'Un fait que l’analyse n’a pas mesuré, sans geste attendu. Pour un constat à corriger, prendre `correction`.',
+  contraste: 'Un texte ou une icône sur son fond. Pour le contour du focus, prendre `focus`.',
+  focus: 'Le contour du focus clavier. Pour la surface tactile, prendre `cible`.',
+  cible: 'La surface qu’un doigt touche. Pour le contour du focus, prendre `focus`.',
+  palette: 'Une palette de primitives. Pour un pas de cette palette, prendre `cran`.',
+  cran: 'Un pas de palette, de 50 à 950. Pour la palette entière, prendre `palette`.',
+  contrat: 'Le .contract.json publié. Pour les tokens, prendre `dtcg`.',
+  dtcg: 'Les tokens exportés. Pour la feuille CSS, prendre `css`.',
+  css: 'La feuille des custom properties. Pour les tokens DTCG, prendre `dtcg`.',
+  fusion: 'La demande de fusion ouverte, pull request ou merge request. Pour le numéro du kit, prendre `version`.',
+  version: 'Le numéro de @ucm-kit/core. Pour une demande de fusion, prendre `fusion`.',
+  chevron: 'Une section qui se plie ou une liste qui s’ouvre ; le lecteur le tourne pour les trois autres sens. Pour séparer deux niveaux d’un chemin, prendre `separateur`.',
+  fermer: 'Fermer un panneau, un message ou une fenêtre. Pour retirer un élément d’une liste, prendre `retirer`. En texte, le caractère « × » (champ glyphe) remplace le dessin.',
+  'lien-externe': 'Ouvrir une page hors du plugin. Pour une action dans le plugin, prendre l’icône de cette action.',
+  reglages: 'Ouvrir la configuration du plugin. Pour les autres actions d’une ligne, prendre `menu`.',
+  poignee: 'Le coin que le designer tire pour redimensionner la fenêtre. Pour replier une section, prendre `chevron`.',
+  loupe: 'Lancer une recherche. Pour restreindre une liste par une catégorie, écrire le filtre en toutes lettres.',
+  'tout-replier': 'Replier toutes les sections sauf celle qui est ouverte. Pour une seule section, prendre `chevron`.',
+  'panneau-lateral': 'Montrer ou masquer le panneau latéral. Pour fermer une fenêtre, prendre `fermer`.',
+  synchroniser: 'Relire l’état de Figma. Pour dire qu’une analyse est périmée, prendre `perime`.',
+  menu: 'Ouvrir les autres actions d’une ligne. Pour une action unique, prendre l’icône de cette action. En texte, le caractère « ⋯ » (champ glyphe) remplace le dessin.',
+  ajouter: 'Ajouter un élément. Pour retirer un élément, prendre `retirer`. En texte, le caractère « + » (champ glyphe) remplace le dessin.',
+  retirer: 'Retirer un élément d’une liste. Pour fermer une fenêtre, prendre `fermer`. En texte, le caractère « − » (champ glyphe) remplace le dessin.',
+  'avant-apres': 'Aller d’une valeur d’avant à la valeur d’après. Pour un écart de rendu avec Figma, prendre `ecart`. En texte, le caractère « → » (champ glyphe) remplace le dessin.',
+  separateur: 'Séparer deux niveaux d’un chemin. Pour une section qui se plie, prendre `chevron`. En texte, le caractère « › » (champ glyphe) remplace le dessin.',
+  vide: 'Une vue sans rien à montrer. Pour un terme sans règle, prendre `sans-regle`.',
+};
+
+const SIGNES_SANS_EMPLOI: readonly Omit<SigneDuLangage, 'emploi'>[] = [
   ...famille('types-figma', [
     ['type-color', 'Color', GOUTTE, 'Variable de type Color.'],
     ['type-number', 'Number', '<path d="M6.2 2.5 5 13.5M11 2.5l-1.2 11M2.8 6h10.7M2.5 10h10.7"/>', 'Variable de type Number.'],
@@ -233,44 +389,73 @@ export const SIGNES: readonly SigneDuLangage[] = [
   ]).map((signe) => (signe.id === 'reglages' ? { ...signe, grille: 512 } : signe)),
 ];
 
+/**
+ * Comment le socle pose les icônes d’alerte. Leurs formes restent dans `packages/plugin-socle/src/ui/Alerte.ts`, car la forme dit un type
+ * d’alerte (`TYPES_D_ALERTE`) et non un objet ; le kit documente seulement leur pose.
+ */
+export const POSE_DES_ALERTES: PoseDeFamille = {
+  fonction:
+    '`creerIcone(type)` pose l’icône dans un élément DOM ; `svgDeLAlerte(type, taille)` rend le même SVG en texte pour un rendu sans document, comme le hub ; `creerGravite(type)` pose l’icône avec le mot du type. Pour une sortie texte, `texteDuType(type, sortie)` rend le repli de `TYPES_D_ALERTE`.',
+  tailles: '12 px, la taille de `creerIcone` et de `svgDeLAlerte` par défaut ; `svgDeLAlerte` accepte une autre taille.',
+  teinte: 'La couleur vient du type (`poserTon`) : une alerte est toujours teintée. L’encre du trait et du point est `--texte-sur-ton`.',
+  nom: 'L’icône est décorative (`aria-hidden`) : le mot du type (« Bloquant », « À corriger »…) porte le sens, jamais la couleur ni la forme seules.',
+};
+
+const GLYPHES_DES_SIGNES: Readonly<Record<string, string>> = {
+  fermer: '×',
+  'avant-apres': '→',
+  menu: '⋯',
+  ajouter: '+',
+  retirer: '−',
+  separateur: '›',
+  ecart: '≠',
+};
+
+export const SIGNES: readonly SigneDuLangage[] = SIGNES_SANS_EMPLOI.map((signe) => {
+  const emploi = EMPLOIS[signe.id];
+  if (!emploi) throw new Error(`Le signe « ${signe.id} » n’a pas d’emploi : ajouter son entrée à EMPLOIS.`);
+  const glyphe = GLYPHES_DES_SIGNES[signe.id];
+  return glyphe === undefined ? { ...signe, emploi } : { ...signe, emploi, glyphe };
+});
+
 /** Les signes qu’une famille montre sans les définir : la définition reste dans leur famille d’origine. */
 export const REPRISES_DE_SIGNES: readonly RepriseDeSigne[] = [
   {
     famille: 'property',
     reprend: [
-      { id: 'type-boolean', libelle: 'boolean property' },
-      { id: 'text', libelle: 'text property' },
-      { id: 'slot', libelle: 'slot property' },
+      { id: 'type-boolean', libelle: 'boolean property', emploi: 'Une property booléenne de composant. Pour une property de variant, prendre `prop-variant`.' },
+      { id: 'text', libelle: 'text property', emploi: 'Une property texte de composant. Pour une property booléenne, prendre `type-boolean`.' },
+      { id: 'slot', libelle: 'slot property', emploi: 'Une property slot de composant. Pour une property d’échange d’instance, prendre `prop-swap`.' },
     ],
   },
   {
     famille: 'regles',
     reprend: [
-      { id: 'prop-variant', libelle: '@prop' },
-      { id: 'type-boolean', libelle: '@boolean' },
+      { id: 'prop-variant', libelle: '@prop', emploi: 'Le tag @prop, qui décrit une property de variant. Pour une property booléenne, prendre `type-boolean`.' },
+      { id: 'type-boolean', libelle: '@boolean', emploi: 'Le tag @boolean, qui décrit une property booléenne. Pour une property de variant, prendre `prop-variant`.' },
     ],
   },
-  { famille: 'usage-couleur', reprend: [{ id: 'type-color', libelle: 'Couleurs' }] },
-  { famille: 'proposition', reprend: [{ id: 'a-creer', libelle: 'préparation' }] },
+  { famille: 'usage-couleur', reprend: [{ id: 'type-color', libelle: 'Couleurs', emploi: 'La rubrique des couleurs d’un composant. Pour l’usage d’une couleur, prendre le signe de cet usage.' }] },
+  { famille: 'proposition', reprend: [{ id: 'a-creer', libelle: 'préparation', emploi: 'La proposition de préparation, où le plugin crée la variable. Pour une variable à ajouter dans une liste, prendre `ajouter`.' }] },
   {
     famille: 'type-de-terme',
     reprend: [
-      { id: 'palette', libelle: 'palette' },
-      { id: 'component', libelle: 'composant' },
-      { id: 'question', libelle: 'à trancher' },
-      { id: 'applique', libelle: 'conforme' },
+      { id: 'palette', libelle: 'palette', emploi: 'Un terme de Nomenclature qui désigne une palette. Pour un terme qui désigne un composant, prendre `component`.' },
+      { id: 'component', libelle: 'composant', emploi: 'Un terme de Nomenclature qui désigne un composant. Pour un terme qui désigne une palette, prendre `palette`.' },
+      { id: 'question', libelle: 'à trancher', emploi: 'Un terme que le designer doit trancher, en ambre : la teinte vient du lecteur, pas du tracé. Pour un terme conforme, prendre `applique`.' },
+      { id: 'applique', libelle: 'conforme', emploi: 'Un terme qui suit déjà sa règle. Pour un terme à remplacer, prendre `remplace`.' },
     ],
   },
-  { famille: 'interface', reprend: [{ id: 'ecart', libelle: 'différent' }] },
-  { famille: 'palettes', reprend: [{ id: 'mode', libelle: 'Light, Dark' }] },
+  { famille: 'interface', reprend: [{ id: 'ecart', libelle: 'différent', emploi: 'Dire que deux valeurs sont différentes, en caractère (`creerGlyphe`). Pour un constat de rendu avec Figma, prendre `ecart` dans sa famille « État d’un token ».' }] },
+  { famille: 'palettes', reprend: [{ id: 'mode', libelle: 'Light, Dark', emploi: 'Les modes Light et Dark d’une palette. Pour les modes d’une collection de variables, prendre `mode` dans « État d’un token ».' }] },
   {
     famille: 'rubrique-tokens',
     reprend: [
-      { id: 'a-creer', libelle: 'Variables manquantes' },
-      { id: 'cran', libelle: 'Crans' },
-      { id: 'rompue', libelle: 'Alias' },
-      { id: 'mode', libelle: 'Modes' },
-      { id: 'scope', libelle: 'Scopes' },
+      { id: 'a-creer', libelle: 'Variables manquantes', emploi: 'La rubrique des variables que la préparation créera. Pour une variable à ajouter dans une liste, prendre `ajouter`.' },
+      { id: 'cran', libelle: 'Crans', emploi: 'La rubrique des crans de palette. Pour un cran seul, prendre `cran` dans « Palettes ».' },
+      { id: 'rompue', libelle: 'Alias', emploi: 'La rubrique des alias, où se lisent les chaînes rompues. Pour une chaîne seule, prendre `rompue`.' },
+      { id: 'mode', libelle: 'Modes', emploi: 'La rubrique des modes d’une collection. Pour un mode seul, prendre `mode` dans « État d’un token ».' },
+      { id: 'scope', libelle: 'Scopes', emploi: 'La rubrique des scopes d’une variable. Pour un scope seul, prendre `scope` dans « État d’un token ».' },
     ],
   },
 ];

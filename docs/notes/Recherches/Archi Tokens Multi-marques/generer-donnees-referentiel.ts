@@ -12,10 +12,15 @@ import {
   COLLECTIONS_SANS_PORTEE,
   COULEUR_DU_TEXTE_DES_BOUTONS,
   DEFINITIONS_DES_VARIABLES,
+  FAMILLES_DE_SIGNES,
   GARANTIES,
   NIVEAUX_D_ELEVATION_DU_THEME,
+  POSE_DES_ALERTES,
   PRODUITS,
   RECOMMANDATIONS,
+  REPRISES_DE_SIGNES,
+  SIGNES,
+  TYPES_D_ALERTE,
   TEXTE_DES_BOUTONS_PAR_DEFAUT,
   cranDeLaVariable,
   type ModeDuTheme,
@@ -54,6 +59,31 @@ function variablesDeLaTable() {
   }));
 }
 
+/** Les familles de signes avec leurs signes, leurs reprises et leur pose : la page « Signes et icônes » les dessine au côté de la grille de chaque signe. */
+function famillesDeSignes() {
+  return FAMILLES_DE_SIGNES.map((famille) => ({
+    id: famille.id,
+    libelle: famille.libelle,
+    teinte: famille.teinte,
+    pose: famille.pose,
+    signes: SIGNES.filter((signe) => signe.famille === famille.id).map((signe) => ({
+      id: signe.id,
+      libelle: signe.libelle,
+      sens: signe.sens,
+      emploi: signe.emploi,
+      trace: signe.trace,
+      grille: signe.grille ?? 16,
+    })),
+    reprises: REPRISES_DE_SIGNES.filter((reprise) => reprise.famille === famille.id).flatMap((reprise) =>
+      reprise.reprend.map((repris) => {
+        const signe = SIGNES.find((candidat) => candidat.id === repris.id);
+        if (!signe) throw new Error(`Signe repris inconnu : ${repris.id}`);
+        return { id: repris.id, libelle: repris.libelle, emploi: repris.emploi ?? signe.emploi, trace: signe.trace, grille: signe.grille ?? 16 };
+      }),
+    ),
+  }));
+}
+
 function donnees() {
   return {
     collections: COLLECTIONS.map((nom) => ({
@@ -72,6 +102,11 @@ function donnees() {
       preuve: recommandation.preuve.fr,
       parametres: recommandation.parametres,
     })),
+    famillesDeSignes: famillesDeSignes(),
+    alertes: {
+      pose: POSE_DES_ALERTES,
+      types: TYPES_D_ALERTE.map((type) => ({ id: type.id, libelle: type.libelle, sens: type.sens, brut: type.texte.brut, forge: type.texte.forge })),
+    },
     outils: PRODUITS_MONTRES.map((id) => {
       const produit = PRODUITS.find((candidat) => candidat.id === id);
       if (!produit) throw new Error(`Produit absent du référentiel : ${id}`);

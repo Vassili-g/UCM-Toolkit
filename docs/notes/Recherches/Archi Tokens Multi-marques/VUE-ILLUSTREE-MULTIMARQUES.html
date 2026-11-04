@@ -105,13 +105,22 @@ footer ul{padding-left:18px;margin:6px 0 0}
 .chaine{display:flex;align-items:center;flex-wrap:wrap;gap:10px;margin:16px 0;font-size:.9rem}
 .chaine code{padding:8px 12px}.chaine span{color:var(--muted)}
 @media(max-width:720px){.logique{grid-template-columns:1fr}}
+.signes-famille{margin:28px 0 8px}
+.signes-famille h3{margin:0 0 4px;font-size:1.05rem}
+.pose{margin:0 0 10px;font-size:.88rem}
+.pose dt{font-weight:600;float:left;clear:left;width:7.5em}
+.pose dd{margin:0 0 4px 7.5em}
+.trois{display:flex;align-items:center;gap:10px;color:var(--ink)}
+.trois .rien{display:inline-block;width:16px;height:16px;border-radius:3px;background:currentColor;opacity:.55}
+.repris td:first-child{box-shadow:inset 3px 0 0 var(--line)}
+.repris .tag{font-size:.74rem;color:var(--muted)}
 </style>
 </head>
 <body><main>
 <div class="narrow">
   <h1>Architecture des tokens multi-marques</h1>
   <p class="lede">Les collections séparent les palettes, la marque et le thème. Les composants utilisent des rôles de couleur communs, en clair comme en sombre.</p>
-  <nav class="sommaire" aria-label="Dans cette page"><a href="#structure">Structure</a><a href="#variables">Variables</a><a href="#emplois">Rôles et états</a><a href="#utilisation">Utilisation</a></nav>
+  <nav class="sommaire" aria-label="Dans cette page"><a href="#structure">Structure</a><a href="#variables">Variables</a><a href="#emplois">Rôles et états</a><a href="#utilisation">Utilisation</a><a href="#signes">Signes et icônes</a></nav>
   <h2 id="structure">La logique des collections</h2>
   <p>Une couleur est définie dans <code>primitives</code>. Les collections suivantes la désignent par alias : changer une palette ou une marque conserve les noms utilisés par les composants.</p>
 </div>
@@ -166,6 +175,9 @@ footer ul{padding-left:18px;margin:6px 0 0}
 <p>Côté code, <code>ucm tokens css</code> produit les propriétés CSS et les sélecteurs des axes. Les attributs par défaut sont <code>data-color-brands</code> et <code>data-theme</code>. Le champ <code>modes</code> de <code>ucm.config.json</code> peut renommer l’attribut de marque.</p>
 <div class="tw"><table class="plain"><thead><tr><th>Outil</th><th>Rôle</th></tr></thead><tbody id="table-outils"></tbody></table></div>
 <p>La table et les garanties sont définies dans <a href="../../../../packages/kit/src/emplois/dossiers.ts"><code>dossiers.ts</code></a> et <a href="../../../../packages/kit/src/emplois/garanties.ts"><code>garanties.ts</code></a>. Les contrastes se mesurent sur les couleurs calculées ; le numéro d’un cran ne suffit pas à prouver un seuil.</p>
+<h2 id="signes">Signes et icônes</h2>
+<p>Le kit définit chaque signe une fois, avec son sens, son emploi et la façon dont le socle le pose. Chaque ligne montre le signe en 14, 16 et 24 px, dans la couleur du texte. Une ligne marquée « repris » est un signe défini dans une autre famille et montré par celle-ci.</p>
+<div id="signes-corps"></div>
 <footer><a href="README.md">Contenu du dossier et actualisation</a></footer>
 </div></main>
 <script src="donnees-vue-illustree.js"></script>
@@ -214,5 +226,19 @@ footer ul{padding-left:18px;margin:6px 0 0}
     remplir('table-outils',R.outils.map(function(o){return '<tr><td>'+esc(o.libelle)+'</td><td>'+esc(o.definition)+'</td></tr>';}).join(''));
   }
   rendreReferentiel();
+  function txt(t){return esc(t).replace(/`([^`]+)`/g,'<code>$1</code>');}
+  function svg(trace,grille,px){return '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 '+grille+' '+grille+'" width="'+px+'" height="'+px+'" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'+trace+'</svg>';}
+  function trois(s){return '<span class="trois">'+[14,16,24].map(function(px){return s.trace?svg(s.trace,s.grille,px):'<span class="rien" style="width:'+px+'px;height:'+px+'px" title="La tuile porte seule la couleur"></span>';}).join('')+'</span>';}
+  function pose(p){return '<dl class="pose"><dt>Fonction</dt><dd>'+txt(p.fonction)+'</dd><dt>Tailles</dt><dd>'+txt(p.tailles)+'</dd><dt>Teinte</dt><dd>'+txt(p.teinte)+'</dd><dt>Nom accessible</dt><dd>'+txt(p.nom)+'</dd></dl>';}
+  function rendreSignes(){
+    var h=R.famillesDeSignes.map(function(f){
+      var lignes=f.signes.map(function(s){return '<tr><td>'+trois(s)+'</td><td>'+code(s.id)+'<br>'+esc(s.libelle)+'</td><td>'+txt(s.sens)+'</td><td>'+txt(s.emploi)+'</td></tr>';}).concat(f.reprises.map(function(s){return '<tr class="repris"><td>'+trois(s)+'</td><td>'+code(s.id)+'<br>'+esc(s.libelle)+' <span class="tag">repris</span></td><td>Défini dans une autre famille.</td><td>'+txt(s.emploi)+'</td></tr>';}));
+      return '<section class="signes-famille"><h3>'+esc(f.libelle)+' '+code(f.id)+'</h3>'+pose(f.pose)+'<div class="tw"><table class="plain"><thead><tr><th>14, 16, 24 px</th><th>Signe</th><th>Sens</th><th>Emploi</th></tr></thead><tbody>'+lignes.join('')+'</tbody></table></div></section>';
+    }).join('');
+    var a=R.alertes;
+    h+='<section class="signes-famille"><h3>Alertes '+code('TYPES_D_ALERTE')+'</h3><p>Leurs formes restent dans le socle, car la forme dit un type d’alerte et non un objet. Le kit donne le type, son sens et son repli texte.</p>'+pose(a.pose)+'<div class="tw"><table class="plain"><thead><tr><th>Type</th><th>Sens</th><th>Texte brut</th><th>Forge</th></tr></thead><tbody>'+a.types.map(function(t){return '<tr><td>'+code(t.id)+'<br>'+esc(t.libelle)+'</td><td>'+esc(t.sens)+'</td><td>'+esc(t.brut)+'</td><td>'+esc(t.forge)+'</td></tr>';}).join('')+'</tbody></table></div></section>';
+    remplir('signes-corps',h);
+  }
+  rendreSignes();
 })();
 </script></body></html>
