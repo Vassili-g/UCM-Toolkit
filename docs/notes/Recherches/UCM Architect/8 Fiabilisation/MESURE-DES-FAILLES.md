@@ -451,3 +451,42 @@ Les 88 faux positifs (72 profils d'analyse et 16 thèmes ciblés) ne donnent auc
 | N-85 | La bannière d'une analyse partielle donne une seule cause : elle tait les lectures échouées quand le budget coupe, et le moteur ou les règles quand une lecture échoue | P15 ; Lm2, Bd3-2, Bd3-5, J2 |
 
 L'hypothèse 23 n'a aucun cas dans ce lot. L'hypothèse 15 (sections « tenues » dans une analyse partielle, Mp1-4) attend Q-F89-16. Deux cas n'ont pas de question au plan et restent `mesure` « à trancher ». N9-3 : un sujet sans nœud finit `complete` avec un message vide, au lieu de « Aucun composant n'est sélectionné ». Ig-10 : ignorer un constat sur une analyse périmée range sa clé (C53). Ils entrent dans les questions V2.
+
+### Chaîne jusqu'à l'écran de F8-F9
+
+Mesure du lot 3, `npm run stress:analyse --workspace ucm-architect-plugin -- --section D` : 129 cas en 89 secondes, et deux exécutions donnent le même rapport. La chaîne passe par `traiterAvec` du sandbox, `recevoirUneAnalyse` et le vrai panneau sur le faux DOM. D3 et D4 de F9 rejouent les 5 captures de `_local/`, toutes trouvées.
+
+| Série | Contenu | Cas | Attendus | Détectés | Écarts | En attente |
+|---|---|---|---|---|---|---|
+| F8 D1 | Cartes lisibles | 4 | 26 | 26 | 0 | 0 |
+| F8 D2 | Cases décochées, boutons de cochage | 6 | 13 | 3 | 7 | 0 |
+| F8 D3 | Rangement par élément du panneau | 8 | 39 | 33 | 4 | 2 |
+| F8 D4 | Ignorer, « Ne plus proposer », « Ne plus ignorer » | 18 | 96 | 87 | 9 | 0 |
+| F8 D5 | Analyse, coche, écriture, relecture | 12 | 121 | 121 | 0 | 0 |
+| F8 D6 | Doublons à l'écran | 7 | 26 | 16 | 9 | 1 |
+| F9 D1 | Un écran par état | 19 | 78 | 70 | 8 | 0 |
+| F9 D2 | Relecture de 20 suites de messages | 20 | 261 | 260 | 0 | 1 |
+| F9 D3 | Captures sous six pannes | 30 | 190 | 140 | 50 | 0 |
+| F9 D4 | Parité de la prélecture sur les captures | 5 | 40 | 40 | 0 | 0 |
+| Total | | 129 | 890 | 796 | 87 | 4 |
+
+L'écriture des règles tient de bout en bout sur les 6 formes (D5), et la prélecture promue rend la même analyse que le clic froid sur les 5 captures (D4). Sur les captures, l'annulation à mi-parcours tient. Les cinq autres pannes donnent 25 cas faux sur 25.
+
+| Id | Écart | Rattachement |
+|---|---|---|
+| E-31 | Règles, niveau ou ignorés illisibles : statut `complete` et aucune alerte, sur les 5 captures | confirmé sur fichiers réels ; F9-D1-12, 15 cas F9-D3 |
+| E-32 | Budget de 300 layers ou moteur partiel : « Analyse partielle : 90 variants lus sur 90 » | confirmé sur fichiers réels ; F9-D1-11, 10 cas F9-D3 |
+| E-34 | Corrections de règles cochées, sans « Tout cocher » ni « Tout décocher », Appliquer actif | confirmé à l'écran ; F8-D2-1 à F8-D2-6 |
+| E-29 | Une marge et un style de texte du moteur rangés dans Couleurs | confirmé à l'écran ; F8-D3-2, F8-D3-3 |
+| E-25, E-30 | Sans C25, le C30 du moteur reste seul ; avec une valeur en dur de taille, deux cartes (kit et moteur) | confirmé à l'écran ; F8-D6-2 à F8-D6-7 |
+| E-38 | Une analyse périmée, avant ou après écriture, remplace la liste par une note | confirmé à l'écran ; F9-D1-15, F9-D1-16 |
+| N-77 | Tous les constats ignorés : aucun bouton « Ne plus ignorer » | confirmé à l'écran ; F9-D1-19 |
+| N-80 | Une demande refusée pour `occupe` ramène la liste et réactive Appliquer pendant l'écriture | confirmé à l'écran ; F9-D1-18 |
+
+Écart nouveau :
+
+| Id | Écart | Mesure |
+|---|---|---|
+| N-86 | Les cartes de correction C43, C45 `sans-regle` et C45 `sans-valeur` n'ont ni Ignorer ni « Ne plus proposer » ; la correction revient à la relecture. Les cartes À faire (C45 `sans-propriete`, C44) les ont. | F8-D4-1, 2, 4, 5, 7, 8 |
+
+Les quatre cas en attente sont F8-D3-4 (opacité rangée hors de Tokens, Q-F89-11), F8-D6-1 (C43 et C44 pour la même absence, Q-F89-5), F9-D2-14 (`occupe` muet, E-39, Q-F89-17) et F8-D5-8 (Divider n'a aucune propriété, non constructible).
