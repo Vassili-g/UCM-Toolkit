@@ -116,6 +116,7 @@ export function monterLePanneau(app: Application, vue: VueComposant, options: Op
     selectionner,
     selectionnes,
     ignorer: (constats) => app.ignorerLaProposition(constats),
+    ignorerLesConstats: (constats) => { for (const constat of constats) app.ignorer(constat); },
     auChangement: () => poserLesLiaisonsDansLaVue(),
     redessiner: () => dessiner(),
   });

@@ -42,7 +42,7 @@ test('Ne plus proposer range l’id de la proposition : le constat n’est pas l
   const b = banc();
   await b.traiter({ type: 'ignorer', analyse: b.analyse, constat: 'C22:a', portee: 'proposition' }, b.contexte);
   assert.deepEqual(rangees(b.a), ['proposition:C22:a']);
-  assert.deepEqual(b.envoyes, [{ type: 'ignores', analyse: b.analyse, constats: [] }]);
+  assert.deepEqual(b.envoyes, [{ type: 'ignores', analyse: b.analyse, constats: [], propositions: ['C22:a'] }]);
   assert.equal(correctionsDeLAnalyse(b.analyse)?.has('C22:a'), false);
 });
 

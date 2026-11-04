@@ -43,6 +43,8 @@ export interface AnalyseRecue {
   /** Tous les constats du message, ignorés compris. */
   readonly tous: readonly Constat[];
   readonly ignores: readonly string[];
+  /** Les propositions écartées dans le fichier, quand le sandbox en a transmis la liste. */
+  readonly propositions?: readonly string[];
   /** Les corrections que les réponses du designer ont tirées, par identifiant de question. */
   readonly repondues: Readonly<Record<string, Correction>>;
   readonly variants: ReadonlyArray<{ readonly id: string; readonly nom: string }>;
@@ -85,7 +87,11 @@ const memeIdentite = (a: IdentiteDAnalyse, b: IdentiteDAnalyse): boolean => a.su
 /** Vrai quand l'identité est celle de l'analyse retenue. */
 export const deLAnalyseCourante = (etat: Etat, identite: IdentiteDAnalyse): boolean => etat.analyse !== null && memeIdentite(etat.analyse.identite, identite);
 
-const visibles = (tous: readonly Constat[], ignores: readonly string[]): Constat[] => tous.filter((constat) => !ignores.includes(constat.id));
+function visibles(tous: readonly Constat[], ignores: readonly string[], propositions: readonly string[] = []): Constat[] {
+  const retirees = new Set(propositions);
+  return tous.filter((constat) => !ignores.includes(constat.id)).map((constat) => retirees.has(constat.id)
+    ? { ...constat, correction: undefined, question: undefined } : constat);
+}
 
 /** Vrai tant que le résultat final manque, provisoire reçu ou non. Une analyse périmée ne calcule plus pour l'interface : son final sera refusé, Analyser redevient possible. */
 export const calculEnCours = (analyse: Pick<AnalyseRecue, 'statut' | 'perimee'>): boolean => (analyse.statut === 'en-cours' || analyse.statut === 'provisoire') && !analyse.perimee;
@@ -134,14 +140,17 @@ export function recevoirUneAnalyse(etat: Etat, message: MessageRecuDeLAnalyse): 
       if (courante.perimee || (courante.statut !== 'en-cours' && courante.statut !== 'provisoire')) return;
       // Le sandbox garde périmée l'analyse qu'un `perime` a atteinte : le message final ne la rend pas applicable.
       etat.analyse = {
-        ...courante, statut: message.statut, constats: visibles(message.constats, courante.ignores), tous: message.constats, variants: message.variants,
+        ...courante, statut: message.statut, constats: visibles(message.constats, courante.ignores, courante.propositions), tous: message.constats, variants: message.variants,
         lecture: message.lecture, sansTokens: message.sansTokens, progression: null, recueA: Date.now(),
         ...(dureeMs !== undefined ? { dureeMs } : {}),
       };
       return;
-    case 'ignores':
-      etat.analyse = { ...courante, ignores: message.constats, constats: visibles(courante.tous, message.constats) };
+    case 'ignores': {
+      const propositions = message.propositions ?? [];
+      const constats = visibles(courante.tous, message.constats, propositions);
+      etat.analyse = { ...courante, ignores: message.constats, propositions, constats };
       return;
+    }
     case 'question-repondue': {
       if (!analyseApplicable(courante)) return;
       const repondues: Record<string, Correction> = { ...courante.repondues };
@@ -157,7 +166,7 @@ export function recevoirUneAnalyse(etat: Etat, message: MessageRecuDeLAnalyse): 
       const restants = courante.tous.filter((constat) => !retires.has(constat.id));
       const nouveaux = new Map(message.constats.map((constat) => [constat.id, constat]));
       const tous = [...restants.map((constat) => nouveaux.get(constat.id) ?? constat), ...message.constats.filter((constat) => !restants.some((connu) => connu.id === constat.id))];
-      etat.analyse = { ...courante, tous, constats: visibles(tous, courante.ignores) };
+      etat.analyse = { ...courante, tous, constats: visibles(tous, courante.ignores, courante.propositions) };
       return;
     }
     case 'liaisons-preparees':

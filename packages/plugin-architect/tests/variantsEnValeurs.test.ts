@@ -135,7 +135,7 @@ test('la ligne qui lie une couleur en dur dit d’abord la valeur en dur, puis l
   assert.deepEqual(cartes[0].lignes[0].variant, [['State', 'Default'], ['Size', 'Default']]);
   assert.deepEqual(cartes[0].meta.slice(0, 2), ['1 variant', { puces: [['State', 'Default'], ['Size', 'Default']] }]);
 
-  const corrections = monterLesCorrections({ appliquer() {}, selectionner() {}, ignorer() {}, auChangement() {}, redessiner() {} });
+  const corrections = monterLesCorrections({ appliquer() {}, selectionner() {}, ignorer() {}, ignorerLesConstats() {}, auChangement() {}, redessiner() {} });
   const analyse = { identite: { sujet: 'Button', generation: 1 }, statut: 'complete', perimee: false, ecriture: null } as never;
   corrections.poser({ analyse, contexte, cartes });
   corrections.commencer();

@@ -12,7 +12,32 @@ const analyseAvecLayers = { ...analyseDeQuestions, constats: constatsDeQuestions
 const panneauAvecLayers = [...ouvrirLePanneau.slice(0, 5), { message: analyseAvecLayers }, ...ouvrirLePanneau.slice(6), tout];
 const selectionner = { clic: '.en-tete-bloquants .bouton-selectionner' };
 
+const regle = (id, code, faits, ajouter) => ({
+  id, code, type: 'corriger', famille: 'regles', variants: [], layers: [], faits,
+  correction: { id: `cor:${id}`, sorte: 'regles', cible: { layer: 'jeu-Alert' }, avant: null,
+    apres: { nom: ajouter ? 'ajouter' : 'Alert' }, aRelire: { regle: 'Les propriétés du composant ont chacune leur règle.', avant: null } },
+});
+const constatsDeRegles = [
+  regle('C43:instance', 'C43', { composant: 'Alert', regles: 1, proprietes: 'Size' }, false),
+  regle('C45:propriete', 'C45', { composant: 'Alert', propriete: 'Dismissible', ecart: 'sans-regle', regles: 1 }, true),
+  regle('C45:valeur', 'C45', { composant: 'Alert', propriete: 'Size', valeurs: 'Small, Large', ecart: 'sans-valeur', regles: 2 }, true),
+];
+const etatsDeRegles = constatsDeRegles.flatMap((constat, rang) => {
+  const base = [...ouvrirLePanneau.slice(0, 5), { message: { ...analyseDeQuestions, constats: [constat, rangement] } }, ignores([]), { clic: '.bouton-panneau' }, tout];
+  const ecarter = [...base, { clic: '.constat-actions [data-action="ignorer"]' }, ignores([constat.id])];
+  return [
+    { id: `i-regles-${rang + 1}`, titre: `Règles, ${constat.code} ${constat.faits.ecart ?? 'instance absente'}`, quand: 'La carte de correction des règles est ouverte.',
+      regarder: 'Les actions Ignorer et Ne plus proposer figurent sous la correction décochée.', existe: true, atteinte: base },
+    { id: `i-regles-${rang + 1}-ignore`, titre: 'Règles ignorées', quand: 'Le designer clique Ignorer sur la carte de règles.',
+      regarder: 'Le constat rejoint les Ignorés et porte Ne plus ignorer.', existe: true, atteinte: ecarter },
+    { id: `i-regles-${rang + 1}-rendu`, titre: 'Règles rendues', quand: 'Le designer clique Ne plus ignorer sur la carte de règles ignorée.',
+      regarder: 'La correction revient décochée dans Règles ; le constat quitte les Ignorés.', existe: true,
+      atteinte: [...ecarter, { clic: '.muette .btn-texte' }, ignores([])] },
+  ];
+});
+
 const ETATS = [
+  ...etatsDeRegles,
   {
     id: 'c-afaire', titre: 'À faire dans Figma', quand: 'Alert est analysé ; le panneau montre Tout. Un constat est déjà ignoré.',
     regarder: 'Les constats à faire en fin de leur section ; sur chaque carte un liseré, une icône et un mot de la couleur du type (octogone rouge, triangle orange, cercle jaune) ; la phrase, le lieu, où régler ; en bas la section Ignorés et une carte muette.',
@@ -55,4 +80,4 @@ const ETATS = [
   },
 ].map((etat) => ({ ...etat, disposition: 'etroite' }));
 
-module.exports = { ETATS };
+module.exports = { ETATS, constatsDeRegles };

@@ -69,7 +69,7 @@ export const TEXTES_CORRECTIONS = {
     propriete: 'Propriété',
     regle: 'Règle',
     duLayer: (champ: string, layer: string): string => `${champ} du layer ${layer}`,
-    nePlusProposer: (layers: number): string => (layers > 1 ? `Ne plus proposer pour ces ${layers} layers` : 'Ne plus proposer pour ce layer'),
+    nePlusProposer: (layers: number): string => (layers === 0 ? 'Ne plus proposer' : layers > 1 ? `Ne plus proposer pour ces ${layers} layers` : 'Ne plus proposer pour ce layer'),
     pied: (cartes: number, layers: number, instances: number, valeurs: number, cachees: { readonly dans: number; readonly element: string } | null = null): { readonly gras: string; readonly suite: string } => ({
       gras: `${cartes} correction${pluriel(cartes)}`,
       suite: ` cochée${pluriel(cartes)}${dontDans(cachees)}${layers > 0 ? `, ${layers} layer${pluriel(layers)}` : ''}${instances > 0 ? `, ${instances} instance${pluriel(instances)}` : ''}${valeurs > 0 ? `, ${valeurs} valeur${pluriel(valeurs)} de variante` : ''}`,

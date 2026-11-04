@@ -17,10 +17,10 @@ import { TEXTES } from '../textes';
 /** Un morceau de phrase : du texte, ou un chemin que l'écran met en forme. */
 export type Morceau = string | { readonly chemin: string };
 
-export type GroupeDeConstat = 'manquantes' | 'crans' | 'alias' | 'modes' | 'valeurs' | 'couches' | 'types' | 'rangement';
-
 /** L'ordre des intertitres de « À faire dans Figma ». */
-export const GROUPES: readonly GroupeDeConstat[] = ['manquantes', 'crans', 'alias', 'modes', 'valeurs', 'couches', 'types', 'rangement'];
+export const GROUPES = ['manquantes', 'crans', 'alias', 'modes', 'valeurs', 'couches', 'types', 'rangement'] as const;
+
+export type GroupeDeConstat = (typeof GROUPES)[number];
 
 /** La collection des variables de palette dans les phrases de C82, que le fait `groupe` ne nomme pas. */
 const COLLECTION_DU_THEME = 'theme';

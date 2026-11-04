@@ -34,6 +34,8 @@ export interface OptionsDesCorrections {
   readonly selectionnes?: () => readonly string[];
   /** Range le choix de ne plus proposer ces corrections. */
   readonly ignorer: (constats: readonly Constat[]) => void;
+  /** Écarte les constats d'une carte de règles. */
+  readonly ignorerLesConstats: (constats: readonly Constat[]) => void;
   /** Appelée quand ce qui est coché change, pour que la vue Composant montre les liaisons à venir. */
   readonly auChangement: () => void;
   /** Appelée quand une carte s'ouvre ou se ferme : le panneau se redessine. */
@@ -261,7 +263,7 @@ export function monterLesCorrections(options: OptionsDesCorrections): Correction
     return blocs;
   }
 
-  /** Les gestes du corps déplié : Sélectionner pour une carte qui vise des layers, puis « Ne plus proposer » sur la carte ouverte par un clic. */
+  /** Les cartes de règles proposent aussi Ignorer, y compris quand la première carte s'ouvre d'elle-même. */
   function actionsDeLaCarte(carte: CarteDeCorrections, ciblee: boolean): HTMLElement | null {
     const selectionner = creerBoutonSelectionner({
       layers: carte.layers,
@@ -270,8 +272,21 @@ export function monterLesCorrections(options: OptionsDesCorrections): Correction
       inactif: !applicable(),
       selectionner: options.selectionner,
     });
+    const regles = carte.constats.length > 0 && carte.constats.every((constat) => constat.limite !== true
+      && (constat.code === 'C43' || (constat.code === 'C45' && (constat.faits.ecart === 'sans-regle' || constat.faits.ecart === 'sans-valeur'))));
+    let ignorer: HTMLButtonElement | null = null;
+    if (regles) {
+      ignorer = document.createElement('button');
+      ignorer.type = 'button';
+      ignorer.className = 'btn-texte';
+      ignorer.dataset.action = 'ignorer';
+      ignorer.textContent = TEXTES.aFaireDuComposant.ignorer;
+      ignorer.setAttribute('aria-label', TEXTES.aFaireDuComposant.ignorerCeConstat(texteDeLaPhrase(carte.phrase)));
+      ignorer.disabled = !applicable();
+      ignorer.addEventListener('click', () => options.ignorerLesConstats(carte.constats));
+    }
     let nePlusProposer: HTMLButtonElement | null = null;
-    if (ciblee && carte.constats.length > 0) {
+    if ((ciblee || regles) && carte.constats.length > 0) {
       nePlusProposer = document.createElement('button');
       nePlusProposer.type = 'button';
       nePlusProposer.className = 'btn-texte';
@@ -279,10 +294,10 @@ export function monterLesCorrections(options: OptionsDesCorrections): Correction
       nePlusProposer.disabled = !applicable();
       nePlusProposer.addEventListener('click', () => options.ignorer(carte.constats));
     }
-    if (selectionner === null && nePlusProposer === null) return null;
+    if (selectionner === null && ignorer === null && nePlusProposer === null) return null;
     const ligne = document.createElement('div');
     ligne.className = 'constat-actions';
-    ligne.append(...[selectionner, nePlusProposer].filter((bouton): bouton is HTMLButtonElement => bouton !== null));
+    ligne.append(...[selectionner, ignorer, nePlusProposer].filter((bouton): bouton is HTMLButtonElement => bouton !== null));
     return ligne;
   }
 
@@ -496,6 +511,8 @@ export function monterLesCorrections(options: OptionsDesCorrections): Correction
         ouvertes.clear();
         cible = null;
       }
+      const presentes = new Set(suivante.cartes.flatMap((carte) => carte.lignes.map((ligne) => ligne.id)));
+      for (const id of cochees) if (!presentes.has(id)) cochees.delete(id);
       entree = suivante;
       annoncerLaVue();
     },

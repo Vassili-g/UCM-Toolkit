@@ -121,7 +121,7 @@ function monterLesModules(phase: Phase) {
   };
   const panneau = elementsDuPanneau(analyse!.constats, contexte, { reponses: {}, preparee: null, sansTokens: false });
   const cartes = panneau.elements.flatMap((element) => element.corrections);
-  const corrections = monterLesCorrections({ appliquer() {}, selectionner() {}, ignorer() {}, auChangement() {}, redessiner() {} });
+  const corrections = monterLesCorrections({ appliquer() {}, selectionner() {}, ignorer() {}, ignorerLesConstats() {}, auChangement() {}, redessiner() {} });
   corrections.poser({ analyse: analyse!, contexte, cartes });
   corrections.commencer();
   const questions = monterLesQuestions({ repondre() {}, annuler() {}, selectionner() {}, redessiner() {} });

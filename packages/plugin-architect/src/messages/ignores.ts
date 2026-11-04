@@ -6,4 +6,4 @@ export type DemandeDIgnores =
   | { type: 'ne-plus-ignorer'; analyse: IdentiteDAnalyse; constat: string };
 
 export type MessageDIgnores =
-  | { type: 'ignores'; analyse: IdentiteDAnalyse; constats: readonly string[] };
+  | { type: 'ignores'; analyse: IdentiteDAnalyse; constats: readonly string[]; propositions?: readonly string[] };

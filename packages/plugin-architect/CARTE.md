@@ -95,12 +95,14 @@ Plugin UCM Architect : ucm-architect-plugin, privé, lecture et corrections apr�
 
 ## src/ui/
 - roles.css : couleurs sombres, placées avant la feuille du socle
-- textes/ : catalogues des textes, un par domaine (`elements.ts` : les sept éléments du panneau et leurs libellés) ; `index.ts` les réunit
+- textes/ : catalogues des textes, un par domaine (`elements.ts` : les sept éléments du panneau et leurs libellés ; `tokens.ts` : libellé de la catégorie Noms) ; `index.ts` réunit les catalogues de l'interface
 - styles/ : feuilles, une par domaine, chargées dans l'ordre de `FEUILLES_DES_DOMAINES` (`scripts/build-ui.cjs`)
 - recherche/ : lecture du champ de l'arbre (texte, `terme:`, `vise:`), variables trouvées et lignes de la recherche
 - fiche/ : fiche d'une variable, à la place de l'inspecteur : chaîne d'alias, renommage à appliquer, « Utilisée par »
 - structure/ : onglet À faire dans Figma du mode Tokens (constats typés, chemins en phrase) et cartes de variables manquantes, de crans, de modes et de scopes en deux colonnes, sous Corrections ; `Tout désélectionner` en tête de l'onglet ; menu Ignorer (« Pour cette palette », « Dans tout le fichier ») sur la carte d'un rôle absent, section Ignorés avec Ne plus ignorer ; `rapport.ts` pose « Télécharger le rapport d'analyse » au pied des onglets du mode Tokens et joint aux mesures du sandbox la durée du rendu et la taille des messages `releve` et `structure`
+- tokens/categories.ts : modèle pur des dix catégories, cartes, compteurs et état tenu, avant leur branchement dans l'interface
 - preparation/ : dialogue de préparation des tokens, texte partagé, création et liaisons au composant
+- virtualisation.ts : listes virtualisées : `creerListeVirtuelle` à hauteur fixe (arbre, table) et `creerListeDeCartes` à hauteur mesurée, qui range l'état d'une carte sortie de l'écran par clé (déplié, menus, réponses, cases, focus)
 - capture.ts : reçoit `capture-architect` du sandbox et le télécharge, seulement si `UCM_ARCHITECT_CAPTURER` vaut `true`
 
 ## src/ui/vues/

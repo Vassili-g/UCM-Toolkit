@@ -7,12 +7,12 @@
  * demande refusée (constat `limite`, hors UCM, proposition absente) n'écrit
  * rien et rend la liste telle qu'elle était. Le sandbox retire du lot
  * « Appliquer » la correction d'un constat écarté et la y remet avec lui ; la
- * réponse `ignores` ne liste que les constats ignorés, pas les propositions
- * retirées. Écarter ne périme pas l'analyse.
+ * réponse `ignores` sépare les constats ignorés des propositions retirées.
+ * Écarter ne périme pas l'analyse.
  */
 import type { Constat } from '@ucm-kit/core/controles';
 
-import { constatsIgnores, ignorerUnConstat, nePlusIgnorer, type PortDIgnores, type ResultatDIgnorer } from '../ecriture/ignores';
+import { cleDeLaProposition, constatsIgnores, ignorerUnConstat, nePlusIgnorer, type PortDIgnores, type ResultatDIgnorer } from '../ecriture/ignores';
 import type { DemandeDIgnores } from '../messages/ignores';
 import { analyseCourante, analyseFinalisee, constatDeLAnalyse, fixerUneCorrection, prendreLaPlaceDUneEcriture } from './analyse';
 import type { Contexte, Traiter } from './contexte';
@@ -49,7 +49,9 @@ export function traiterAvec(rangement: (contexte: Contexte) => Rangement): Trait
         // Un constat ou une proposition écartés quittent le lot Appliquer ; Ne plus ignorer les y remet.
         fixerUneCorrection(demande.analyse, constat.correction.id, demande.type === 'ignorer' ? null : constat.correction);
       }
-      contexte.envoyer({ type: 'ignores', analyse: demande.analyse, constats: constatsIgnores(resultat.cles) });
+      const prefixe = cleDeLaProposition('');
+      const propositions = resultat.cles.filter((cle) => cle.startsWith(prefixe)).map((cle) => cle.slice(prefixe.length));
+      contexte.envoyer({ type: 'ignores', analyse: demande.analyse, constats: constatsIgnores(resultat.cles), ...(propositions.length > 0 ? { propositions } : {}) });
     } finally {
       place.liberer();
     }

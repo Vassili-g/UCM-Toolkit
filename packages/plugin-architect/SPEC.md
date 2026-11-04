@@ -78,6 +78,17 @@ restent distincts. Choisir une collection montre toutes ses variables ;
 choisir un groupe montre ses variables et celles de ses descendants. Le
 chevron replie l'arbre sans changer la table.
 
+### Catégories du mode Tokens
+
+Le modèle `src/ui/tokens/categories.ts` classe les cartes dans dix catégories ordonnées. Leur branchement dans le panneau reste à faire.
+Les catégories sont Noms, Variables manquantes, Crans, Alias, Modes, Valeurs, Couches, Types, Rangement et Scopes.
+Chaque catégorie porte son signe de la famille `rubrique-tokens` du kit et son nombre de cartes. Une carte peut regrouper plusieurs corrections.
+Les questions précèdent les autres cartes. Une catégorie vide est tenue seulement si l'analyse est complète.
+
+Les lecteurs de `src/ui/structure/lecture.ts` gardent le classement des faits. `alias-supprime` et `library-inactive` vont dans Alias.
+Une correction `alias-de-mode` va dans Crans quand son constat porte le genre `cran`, sinon dans Modes. Une correction `scope` va dans Scopes.
+Le code C63 seul ne détermine aucune catégorie.
+
 ## Lecture
 
 | Donnée | Lecture | Limite |
