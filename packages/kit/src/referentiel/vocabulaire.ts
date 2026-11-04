@@ -37,16 +37,24 @@ export const STATE_PRECEDENCE = [
   'disable', 'disabled', 'press', 'pressed', 'selected-true', 'selected', 'focus', 'focused', 'hover', 'hovered',
   'default', 'rest', 'resting', 'normal', 'selected-false', 'unselected',
 ] as const;
+/**
+ * Groupes de synonymes que les noms de quinze design systems attestent. Les quatre groupes classés dans
+ * `tests/stress/f1-noms/donnees/synonymes.json` (E-11) y entrent, fusionnés avec les groupes d'avant quand ils se recouvrent
+ * (`stroke` et `outline` pour `border`, `caution` pour `warning`) ; `tests/dictionnaireDuVocabulaire.test.ts` compare les deux listes.
+ * Un synonyme employé seul donne une question quand un seul terme UCM du groupe le remplace (Q-F5).
+ */
 export const SYNONYMES_COURANTS = [
   ['danger', 'error', 'negative', 'critical'],
-  ['warning', 'attention', 'notice'],
+  ['warning', 'attention', 'notice', 'caution'],
   ['success', 'positive'],
   ['info', 'information', 'informative'],
   ['pressed', 'active', 'down'],
   ['foreground', 'fg', 'content'],
   ['background', 'bg'],
-  ['border', 'stroke'],
+  ['border', 'stroke', 'outline'],
   ['radius', 'corner', 'border-radius'],
+  ['divider', 'separator'],
+  ['subtle', 'muted'],
 ] as const;
 
 export const ABREVIATIONS: Readonly<Record<string, string>> = {

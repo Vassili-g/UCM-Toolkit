@@ -20,11 +20,25 @@ export function aUneLettreOuUnEchange(a: string, b: string): boolean {
   return reste(court, debut) === reste(long, debut + 1);
 }
 
+/** Vrai si les deux mots sont à deux éditions exactement (ajout, retrait, remplacement, échange de deux voisines), au sens de Damerau-Levenshtein. */
+export function aDeuxEditions(a: string, b: string): boolean {
+  if (a === b || Math.abs(a.length - b.length) > 2) return false;
+  const d: number[][] = Array.from({ length: a.length + 1 }, (_, i) => [i, ...new Array<number>(b.length).fill(0)]);
+  for (let j = 1; j <= b.length; j++) d[0][j] = j;
+  for (let i = 1; i <= a.length; i++) for (let j = 1; j <= b.length; j++) {
+    d[i][j] = Math.min(d[i - 1][j] + 1, d[i][j - 1] + 1, d[i - 1][j - 1] + Number(a[i - 1] !== b[j - 1]));
+    if (i > 1 && j > 1 && a[i - 1] === b[j - 2] && a[i - 2] === b[j - 1]) d[i][j] = Math.min(d[i][j], d[i - 2][j - 2] + 1);
+  }
+  return d[a.length][b.length] === 2;
+}
+
 export interface Candidat { readonly mot: string; readonly terme: string }
 
 export interface Detecteur {
   /** Les termes à une lettre ou à un échange du mot ; vide si le mot est du vocabulaire ou du dictionnaire. */
   termesProches(mot: string): string[];
+  /** Les termes à deux éditions exactement ; vide si le mot est du vocabulaire, du dictionnaire ou à une lettre d'un terme. */
+  termesADeuxEditions(mot: string): string[];
   /** Vrai si le mot est une faute du terme selon la règle voulue. */
   confirme(mot: string, terme: string): boolean;
   /** Les candidats d'un ensemble de mots. */
@@ -47,8 +61,18 @@ export function creerLeDetecteur(vocabulaire: VocabulaireDeReference, motsDuDict
     }
     return rendus;
   };
+  const cacheDeux = new Map<string, string[]>();
+  const termesADeuxEditions = (mot: string): string[] => {
+    let rendus = cacheDeux.get(mot);
+    if (!rendus) {
+      rendus = termesProches(mot).length > 0 || vocabulaire.termes.has(mot) || motsDuDictionnaire.has(mot) ? [] : cibles.filter((terme) => aDeuxEditions(mot, terme));
+      cacheDeux.set(mot, rendus);
+    }
+    return rendus;
+  };
   return {
     termesProches,
+    termesADeuxEditions,
     confirme: (mot, terme) => termesProches(mot).includes(terme),
     analyser: (mots) => [...new Set(mots)].sort().flatMap((mot) => termesProches(mot).map((terme) => ({ mot, terme }))),
   };

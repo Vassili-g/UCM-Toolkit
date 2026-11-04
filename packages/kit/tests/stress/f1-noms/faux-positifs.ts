@@ -22,7 +22,7 @@ import { chargerLesClassements, clePaire, creerLeContexteOracle, juger, type Cla
 import { csv } from './rapport.js';
 import { creerLeContexte, genererLesScenarios, PAIRES_DISTINCTES_ECRITES, type Contexte } from './scenarios.js';
 
-export const LONGUEURS_DU_SEUIL = [3, 4, 5, 6, 7, 8] as const;
+export const LONGUEURS_DU_SEUIL = [3, 4, 5, 6, 7, 8, 9, 10] as const;
 export const BUDGET_Q_F4 = 1;
 export const PLAFOND_A_JUGER = 200;
 const DOSSIER_DE_CE_FICHIER = fileURLToPath(new URL('.', import.meta.url));
@@ -210,7 +210,8 @@ export function executerUnePasse(passe: Passe, systemes: readonly Systeme[], con
 
 // ---------------------------------------------------------------------------------------------------------------- règle voulue, par longueur
 
-export interface CandidatDeLaRegle { readonly passe: string; readonly mot: string; readonly termes: readonly string[]; readonly longueur: number; readonly classe: Classe }
+/** `editions` : 1 pour une lettre (échange compris), 2 pour une faute de deux lettres (Q-F9). */
+export interface CandidatDeLaRegle { readonly passe: string; readonly mot: string; readonly termes: readonly string[]; readonly longueur: number; readonly classe: Classe; readonly editions: 1 | 2 }
 
 /**
  * La règle voulue sans dictionnaire (plan F1, 4.2) sur les mots de chaque passe : tout mot absent du vocabulaire et à une lettre ou un
@@ -228,10 +229,11 @@ export function candidatsDeLaRegle(passes: readonly Passe[], systemes: readonly 
     const mots = new Set<string>();
     for (const entree of converti.inventaire.entrees) if (entree.nom.categorie === 'variables') for (const mot of motsDeDetection(entree.nom.nom)) mots.add(mot);
     for (const mot of [...mots].sort()) {
-      const termes = detecteur.termesProches(mot);
+      const aUneLettre = detecteur.termesProches(mot);
+      const termes = aUneLettre.length > 0 ? aUneLettre : detecteur.termesADeuxEditions(mot);
       if (termes.length === 0) continue;
       const { classe } = classer({ type: 'faute', signales: [mot], references: termes }, contexte, du);
-      candidats.push({ passe: passe.cle, mot, termes, longueur: mot.length, classe });
+      candidats.push({ passe: passe.cle, mot, termes, longueur: mot.length, classe, editions: aUneLettre.length > 0 ? 1 : 2 });
     }
   }
   return { candidats, noms };
@@ -311,6 +313,9 @@ export interface LigneDeCourbe {
   /** Règle voulue sans dictionnaire, sur les 64 passes : mots FP-A ou FP-C de L lettres ou plus. */
   readonly fauxPositifsCertains: number;
   readonly fauxPositifsPourMille: number;
+  /** Même mesure pour les fautes de deux lettres (Q-F9) : mots FP-A ou FP-C de L lettres ou plus à deux éditions d'un terme, sans terme à une lettre. */
+  readonly fauxPositifsDeuxLettres: number;
+  readonly fauxPositifsDeuxLettresPourMille: number;
   /** Mots FP-D, soumis au mainteneur. */
   readonly aJuger: number;
   /** Paires de mots distincts légitimes (S15 : dictionnaire classé et liste écrite) que la règle sans dictionnaire signalerait. */
@@ -337,12 +342,14 @@ export function courbeDuSeuil(scenarios: Contexte, contexte: ContexteDeClassemen
     const attendues = fautes.filter((attendu) => attendu.mot!.length >= longueur);
     const perdus = scenarios.termesCibles.filter((terme) => terme.length < longueur);
     const retenus = candidats.candidats.filter((candidat) => candidat.longueur >= longueur);
-    const certains = retenus.filter((candidat) => CERTAINES.has(candidat.classe)).length;
+    const certains = retenus.filter((candidat) => candidat.editions === 1 && CERTAINES.has(candidat.classe)).length;
+    const certainsDeux = retenus.filter((candidat) => candidat.editions === 2 && CERTAINES.has(candidat.classe)).length;
     return {
       longueur, attendues: attendues.length, detectees: attendues.filter((attendu) => avecDictionnaire.confirme(attendu.mot!, attendu.reference!)).length,
       termesPerdus: perdus.length, exemplesPerdus: perdus.slice(0, 6).join(' '),
       fauxPositifsCertains: certains, fauxPositifsPourMille: Math.round((certains / candidats.noms) * 1000 * 100) / 100,
-      aJuger: retenus.filter((candidat) => candidat.classe === 'FP-D').length,
+      fauxPositifsDeuxLettres: certainsDeux, fauxPositifsDeuxLettresPourMille: Math.round((certainsDeux / candidats.noms) * 1000 * 100) / 100,
+      aJuger: retenus.filter((candidat) => candidat.editions === 1 && candidat.classe === 'FP-D').length,
       pairesDistinctesSignalees: paires.filter(([a, b]) => [a, b].some((mot) => mot.length >= longueur && sansDictionnaire.termesProches(mot).length > 0)).length,
       pairesDistinctes: paires.length, kit: kits.get(longueur),
     };
@@ -352,6 +359,12 @@ export function courbeDuSeuil(scenarios: Contexte, contexte: ContexteDeClassemen
 /** Q-F4 : la plus petite longueur dont les faux positifs certains du corpus restent sous le budget pour 1 000 noms. */
 export function longueurRetenue(courbe: readonly LigneDeCourbe[], budget = BUDGET_Q_F4): number | undefined {
   return courbe.find((ligne) => ligne.fauxPositifsPourMille < budget)?.longueur;
+}
+
+/** Q-F9 : la plus petite longueur dont les faux positifs certains de deux lettres restent sous le même budget, et jamais sous celle d'une lettre. */
+export function longueurRetenueDeDeuxLettres(courbe: readonly LigneDeCourbe[], budget = BUDGET_Q_F4): number | undefined {
+  const unelettre = longueurRetenue(courbe, budget) ?? 0;
+  return courbe.find((ligne) => ligne.longueur >= unelettre && ligne.fauxPositifsDeuxLettresPourMille < budget)?.longueur;
 }
 
 /** La règle d'origine du plan (4.3) : zéro faux positif certain sur le corpus et sur S15. */
@@ -374,6 +387,8 @@ export interface MesureDesFauxPositifs {
   readonly lignes: readonly LigneDeFauxPositif[];
   readonly courbe: readonly LigneDeCourbe[];
   readonly retenue: number | undefined;
+  /** Seuil des fautes de deux lettres (Q-F9). */
+  readonly retenueDeDeuxLettres?: number | undefined;
   readonly sansFauxPositif: number | undefined;
   readonly dureeMs: number;
 }
@@ -398,8 +413,8 @@ export async function mesurerLesFauxPositifs(systemes: readonly Systeme[], optio
   const candidats = candidatsDeLaRegle(passes, systemes, scenarios, contexte);
   const mesures = await enfants;
   const courbe = courbeDuSeuil(scenarios, contexte, candidats, new Map(mesures.map((mesure, rang) => [LONGUEURS_DU_SEUIL[rang], mesure])));
-  dire(`seuil : ${LONGUEURS_DU_SEUIL.length} longueurs, L retenu ${longueurRetenue(courbe) ?? 'aucun'}`);
-  return { passes: passes.length, noms, lignes, courbe, retenue: longueurRetenue(courbe), sansFauxPositif: longueurSansFauxPositif(courbe), dureeMs: Date.now() - debut };
+  dire(`seuil : ${LONGUEURS_DU_SEUIL.length} longueurs, L retenu ${longueurRetenue(courbe) ?? 'aucun'} (une lettre), ${longueurRetenueDeDeuxLettres(courbe) ?? 'aucun'} (deux lettres)`);
+  return { passes: passes.length, noms, lignes, courbe, retenue: longueurRetenue(courbe), retenueDeDeuxLettres: longueurRetenueDeDeuxLettres(courbe), sansFauxPositif: longueurSansFauxPositif(courbe), dureeMs: Date.now() - debut };
 }
 
 // ---------------------------------------------------------------------------------------------------------------- sorties
@@ -442,9 +457,9 @@ function tauxCsv(mesure: MesureDesFauxPositifs): string {
 }
 
 function courbeCsv(courbe: readonly LigneDeCourbe[]): string {
-  return `${[csv(['L', 'fautes_attendues_S1', 'detectees_detecteur', 'termes_perdus', 'exemples_perdus', 'fp_certains_corpus', 'fp_certains_pour_1000_noms', 'fp_a_juger_corpus',
+  return `${[csv(['L', 'fautes_attendues_S1', 'detectees_detecteur', 'termes_perdus', 'exemples_perdus', 'fp_certains_corpus', 'fp_certains_pour_1000_noms', 'fp_deux_lettres_certains', 'fp_deux_lettres_pour_1000_noms', 'fp_a_juger_corpus',
     'paires_distinctes_signalees_S15', 'paires_distinctes_S15', 'kit_noms', 'kit_fp_certains', 'kit_fp_certains_pour_1000_noms', 'kit_S1_detectees', 'kit_S1_attendues', 'kit_S9_soudes_detectees', 'kit_S9_soudes_attendues', 'kit_S10_detectees', 'kit_S10_attendues', 'kit_S15_faux_positifs', 'kit_sonde_colon_faute_connue']),
-  ...courbe.map((l) => csv([l.longueur, l.attendues, l.detectees, l.termesPerdus, l.exemplesPerdus, l.fauxPositifsCertains, l.fauxPositifsPourMille, l.aJuger, l.pairesDistinctesSignalees, l.pairesDistinctes,
+  ...courbe.map((l) => csv([l.longueur, l.attendues, l.detectees, l.termesPerdus, l.exemplesPerdus, l.fauxPositifsCertains, l.fauxPositifsPourMille, l.fauxPositifsDeuxLettres, l.fauxPositifsDeuxLettresPourMille, l.aJuger, l.pairesDistinctesSignalees, l.pairesDistinctes,
     l.kit?.noms, l.kit?.certains, l.kit ? Math.round((l.kit.certains / l.kit.noms) * 1000 * 100) / 100 : undefined, l.kit?.s1.detectes, l.kit?.s1.attendus, l.kit?.s9.detectes, l.kit?.s9.attendus, l.kit?.s10.detectes, l.kit?.s10.attendus, l.kit?.s15.fauxPositifs, l.kit ? String(l.kit.sonde) : undefined]))].join('\n')}\n`;
 }
 
@@ -464,12 +479,13 @@ export function sectionDuRapport(mesure: MesureDesFauxPositifs): string {
   const mille = (n: number) => Math.round((n / mesure.noms) * 1000 * 100) / 100;
   const types = table(['Type de sortie', 'FP-A', 'FP-B', 'FP-C', 'FP-D', 'Certains pour 1 000 noms'],
     [...comptes].map(([type, c]) => [type, c['FP-A'], c['FP-B'], c['FP-C'], c['FP-D'], mille(c['FP-A'] + c['FP-C'])]));
-  const courbe = table(['L', 'Fautes attendues (S1)', 'Détectées', 'Termes perdus', 'FP certains (règle voulue)', 'Pour 1 000 noms', 'À juger', 'Paires S15 signalées', 'Kit : FP certains', 'Kit : S9 soudés', 'Kit : S10 détectées', 'Kit : S15 FP', 'Sonde colon'],
-    mesure.courbe.map((l) => [l.longueur, l.attendues, l.detectees, l.termesPerdus, l.fauxPositifsCertains, l.fauxPositifsPourMille, l.aJuger, `${l.pairesDistinctesSignalees} / ${l.pairesDistinctes}`,
+  const courbe = table(['L', 'Fautes attendues (S1)', 'Détectées', 'Termes perdus', 'FP certains (règle voulue)', 'Pour 1 000 noms', 'FP certains à deux lettres', 'Pour 1 000 noms (deux lettres)', 'À juger', 'Paires S15 signalées', 'Kit : FP certains', 'Kit : S9 soudés', 'Kit : S10 détectées', 'Kit : S15 FP', 'Sonde colon'],
+    mesure.courbe.map((l) => [l.longueur, l.attendues, l.detectees, l.termesPerdus, l.fauxPositifsCertains, l.fauxPositifsPourMille, l.fauxPositifsDeuxLettres, l.fauxPositifsDeuxLettresPourMille, l.aJuger, `${l.pairesDistinctesSignalees} / ${l.pairesDistinctes}`,
       l.kit?.certains ?? '.', l.kit ? `${l.kit.s9.detectes} / ${l.kit.s9.attendus}` : '.', l.kit ? `${l.kit.s10.detectes} / ${l.kit.s10.attendus}` : '.', l.kit?.s15.fauxPositifs ?? '.', l.kit ? (l.kit.sonde ? 'connu' : 'inconnu') : '.']));
   return [
     `${mesure.passes} passes, ${mesure.noms} noms, ${mesure.lignes.length} lignes de sortie (${(mesure.dureeMs / 1000).toFixed(1)} s).`, '', types, '',
     `La règle Q-F4 retient L = ${mesure.retenue ?? 'aucun (le budget n\'est tenu pour aucune longueur de 3 à 8)'} : la plus petite longueur sous ${BUDGET_Q_F4} faux positif certain pour 1 000 noms.`,
-    `Zéro faux positif certain sur le corpus et sur S15 (règle d'origine du plan) : L = ${mesure.sansFauxPositif ?? 'aucun de 3 à 8'}.`, '', courbe,
+    `La règle Q-F9 retient L = ${mesure.retenueDeDeuxLettres ?? 'aucun'} pour une faute de deux lettres, avec le même budget et sans descendre sous la longueur d'une lettre.`,
+    `Zéro faux positif certain sur le corpus et sur S15 (règle d'origine du plan) : L = ${mesure.sansFauxPositif ?? 'aucun de 3 à 10'}.`, '', courbe,
   ].join('\n');
 }

@@ -67,27 +67,27 @@ test('un couple de formes d’un même mot garde sa question de pluriel', () => 
 // E2.2
 
 test('deux mots proches absents du dictionnaire donnent une question « même mot ou deux mots »', () => {
-  const resultat = paires(couple('ledger', 'ledgar'));
+  const resultat = paires(couple('harvest', 'harvast'));
   assert.equal(resultat.length, 1);
   const [question] = resultat;
   assert.ok(question.type === 'paire');
-  assert.equal(question.cle, 'paire:ledgar|ledger');
+  assert.equal(question.cle, 'paire:harvast|harvest');
   assert.equal(question.indice, 'ecriture-proche');
-  assert.deepEqual(question.termes.map((terme) => terme.mot), ['ledgar', 'ledger']);
+  assert.deepEqual(question.termes.map((terme) => terme.mot), ['harvast', 'harvest']);
   assert.deepEqual(question.termes.map((terme) => terme.ucm), [false, false]);
 });
 
 test('le mot le plus employé est le mot proposé', () => {
-  const noms = [...couple('ledger', 'ledgar'), nom('c', 'card/ledger/edge'), nom('d', 'card/ledger/text')];
+  const noms = [...couple('harvest', 'harvast'), nom('c', 'card/harvest/edge'), nom('d', 'card/harvest/text')];
   const [question] = paires(noms);
   assert.ok(question?.type === 'paire');
-  assert.equal(question.termes[question.propose].mot, 'ledger');
+  assert.equal(question.termes[question.propose].mot, 'harvest');
 });
 
 test('l’échange de deux lettres, la lettre ajoutée et la lettre remplacée sont des couples proches', () => {
-  assert.deepEqual(paires(couple('ledger', 'legder')).map((q) => q.cle), ['paire:ledger|legder']);
-  assert.deepEqual(paires(couple('ledger', 'ledgerx')).map((q) => q.cle), ['paire:ledger|ledgerx']);
-  assert.deepEqual(paires(couple('ledger', 'ledges')).map((q) => q.cle), ['paire:ledger|ledges']);
+  assert.deepEqual(paires(couple('harvest', 'harvset')).map((q) => q.cle), ['paire:harvest|harvset']);
+  assert.deepEqual(paires(couple('harvest', 'harvestx')).map((q) => q.cle), ['paire:harvest|harvestx']);
+  assert.deepEqual(paires(couple('harvest', 'harvesk')).map((q) => q.cle), ['paire:harvesk|harvest']);
 });
 
 test('un couple classé par le dictionnaire ne donne aucune question', () => {
@@ -96,18 +96,20 @@ test('un couple classé par le dictionnaire ne donne aucune question', () => {
   assert.deepEqual(paires(couple('orange', 'range')), [], 'mots distincts');
 });
 
-test('un couple proche ne sort pas sans place commune, sous cinq lettres, ni quand un mot est connu du kit', () => {
-  assert.deepEqual(paires([nom('a', 'card/ledger/fill'), nom('b', 'tab/ledgar/text')]), [], 'aucun voisin commun');
-  assert.deepEqual(paires(couple('quix', 'quax')), [], 'moins de cinq lettres');
+test('un couple proche ne sort pas sans place commune, sous le seuil de longueur, ni quand un mot est connu du kit', () => {
+  assert.deepEqual(paires([nom('a', 'card/harvest/fill'), nom('b', 'tab/harvast/text')]), [], 'aucun voisin commun');
+  assert.deepEqual(paires(couple('quix', 'quax')), [], 'sous le seuil de longueur');
+  assert.deepEqual(paires(couple('harves', 'harvet')), [], 'six lettres : sous le seuil d’une lettre');
+  assert.equal(paires(couple('harvesx', 'harvesy')).length, 1, 'sept lettres : au seuil');
   assert.deepEqual(paires(couple('border', 'bordre')), [], 'bordre est une faute de border, la question de faute le traite');
   assert.deepEqual(paires(couple('hover', 'hovers')).map((q) => (q.type === 'paire' ? q.indice : q.type)), ['pluriel'], 'une seule question, du pluriel');
 });
 
 test('une paire que le fichier a jugée distincte, ou mise de côté, ou voulue, ne revient pas', () => {
-  const noms = couple('ledger', 'ledgar');
+  const noms = couple('harvest', 'harvast');
   assert.equal(paires(noms).length, 1);
-  assert.deepEqual(paires(noms, { ...vide, distincts: [['ledgar', 'ledger']] }), []);
-  assert.deepEqual(paires(noms, { ...vide, distincts: [['Ledger', 'LEDGAR']] }), [], 'la casse ne change pas la paire jugée');
-  assert.deepEqual(paires(noms, { ...vide, plusTard: ['paire:ledgar|ledger'] }), []);
-  assert.deepEqual(paires(noms, { ...vide, voulus: ['ledgar'] }), []);
+  assert.deepEqual(paires(noms, { ...vide, distincts: [['harvast', 'harvest']] }), []);
+  assert.deepEqual(paires(noms, { ...vide, distincts: [['Harvest', 'HARVAST']] }), [], 'la casse ne change pas la paire jugée');
+  assert.deepEqual(paires(noms, { ...vide, plusTard: ['paire:harvast|harvest'] }), []);
+  assert.deepEqual(paires(noms, { ...vide, voulus: ['harvast'] }), []);
 });

@@ -1,5 +1,5 @@
 /** Termes connus du kit et découpage des segments gardé par ce vocabulaire, pour la détection des questions. */
-import { REGISTRES_ARCHITECTURE } from './architecture.js';
+import { REGISTRES_ARCHITECTURE, REGISTRES_COMPOSANTS } from './architecture.js';
 import { ABREVIATIONS, REGISTRES, SYNONYMES_COURANTS } from './vocabulaire.js';
 
 /** Propriétés CSS usuelles : un segment qui en forme une reste un seul mot. */
@@ -47,8 +47,89 @@ export function distanceUnOuEchange(a: string, b: string): boolean {
   return ecarts.length === 2 && ecarts[1] === ecarts[0] + 1 && x[ecarts[0]] === y[ecarts[1]] && x[ecarts[1]] === y[ecarts[0]];
 }
 
+/** Vrai si `a` et `b` sont à deux éditions exactement (lettre ajoutée, retirée, remplacée, ou échange de deux voisines). */
+export function distanceDeux(a: string, b: string): boolean {
+  const x = [...a], y = [...b];
+  if (Math.abs(x.length - y.length) > 2 || a === b) return false;
+  const d: number[][] = Array.from({ length: x.length + 1 }, (_, i) => [i, ...new Array<number>(y.length).fill(0)]);
+  for (let j = 1; j <= y.length; j++) d[0][j] = j;
+  for (let i = 1; i <= x.length; i++) for (let j = 1; j <= y.length; j++) {
+    d[i][j] = Math.min(d[i - 1][j] + 1, d[i][j - 1] + 1, d[i - 1][j - 1] + Number(x[i - 1] !== y[j - 1]));
+    if (i > 1 && j > 1 && x[i - 1] === y[j - 2] && x[i - 2] === y[j - 1]) d[i][j] = Math.min(d[i][j], d[i - 2][j - 2] + 1);
+  }
+  return d[x.length][y.length] === 2;
+}
+
 export function termeConnu(mot: string): boolean {
   return termesConnus.has(mot.toLowerCase());
+}
+
+/** Ce que les mots à une ou deux éditions d'un terme connu partagent : un mot auquel on retire jusqu'à deux lettres. */
+function retraits(mot: string, fois: number): Set<string> {
+  let courants = new Set<string>([mot]);
+  const tous = new Set<string>([mot]);
+  for (let tour = 0; tour < fois; tour++) {
+    const suivants = new Set<string>();
+    for (const courant of courants) {
+      const lettres = [...courant];
+      for (let rang = 0; rang < lettres.length; rang++) suivants.add(lettres.slice(0, rang).concat(lettres.slice(rang + 1)).join(''));
+    }
+    for (const suivant of suivants) tous.add(suivant);
+    courants = suivants;
+  }
+  return tous;
+}
+
+type IndexDesRetraits = Map<string, string[]>;
+const indexDesRetraits = new Map<number, IndexDesRetraits>();
+/** Les termes des registres de composant (`padding`, `width`, `height`, `gap`) ne servent pas au découpage, mais une faute les vise (E-04). */
+const termesDeComposant = new Set(REGISTRES_COMPOSANTS.flatMap((registre) => registre.termes.map((terme) => terme.id.toLowerCase())));
+const termesDeReference = [...new Set([...termesConnus, ...termesDeComposant])].filter((terme) => /^\p{L}{3,}$/u.test(terme));
+
+/** Vrai pour un terme d'un registre de composant : `padding` n'est pas une faute, et `paddng` en est une (E-04). */
+export function termeDeComposant(mot: string): boolean {
+  return termesDeComposant.has(mot.toLowerCase());
+}
+
+function indexer(fois: 1 | 2): IndexDesRetraits {
+  let index = indexDesRetraits.get(fois);
+  if (!index) {
+    index = new Map();
+    for (const terme of termesDeReference) for (const cle of retraits(terme, fois)) {
+      const groupe = index.get(cle) ?? [];
+      groupe.push(terme);
+      index.set(cle, groupe);
+    }
+    indexDesRetraits.set(fois, index);
+  }
+  return index;
+}
+
+const proches = new Map<string, readonly string[]>();
+
+function chercher(mot: string, fois: 1 | 2, juste: (terme: string) => boolean): readonly string[] {
+  const cle = `${fois}|${mot}`;
+  let trouves = proches.get(cle);
+  if (!trouves) {
+    const index = indexer(fois);
+    const candidats = new Set<string>();
+    for (const retrait of retraits(mot, fois)) for (const terme of index.get(retrait) ?? []) candidats.add(terme);
+    trouves = [...candidats].filter(juste).sort();
+    proches.set(cle, trouves);
+  }
+  return trouves;
+}
+
+/** Les termes connus, sans trait d'union, à une lettre ajoutée, retirée, remplacée ou à un échange de deux voisines du mot. */
+export function termesAUneLettre(mot: string): readonly string[] {
+  const minuscule = mot.toLowerCase();
+  return chercher(minuscule, 1, (terme) => distanceUnOuEchange(minuscule, terme));
+}
+
+/** Les termes connus, sans trait d'union, à deux éditions exactement du mot. Un échange de deux voisines compte pour une. */
+export function termesADeuxLettres(mot: string): readonly string[] {
+  const minuscule = mot.toLowerCase();
+  return chercher(minuscule, 2, (terme) => distanceDeux(minuscule, terme));
 }
 
 const formes = new Map<string, boolean>();
