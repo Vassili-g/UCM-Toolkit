@@ -1,0 +1,396 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Maquettes de la fiabilisation</title>
+<style>
+  :root { --fond: #161616; --bordure: #333; --texte: #eee; --second: #9a9a9a; }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--fond); color: var(--texte); font: 14px/1.5 Inter, system-ui, sans-serif; }
+  main { max-width: 2400px; margin: 0 auto; padding: 32px 16px 96px; }
+  h1 { font-size: 26px; margin: 0 0 6px; }
+  h2 { font-size: 20px; margin: 56px 0 6px; padding-top: 16px; border-top: 1px solid var(--bordure); }
+  h3 { font-size: 16px; margin: 32px 0 6px; }
+  p { margin: 6px 0; max-width: 900px; }
+  .intro { color: var(--second); }
+  code { font-family: Consolas, monospace; font-size: 13px; background: #2a2a2a; padding: 0 4px; border-radius: 3px; }
+  a { color: #9fcfff; }
+  nav.sommaire { display: flex; flex-wrap: wrap; gap: 6px 16px; margin: 16px 0; font-size: 13px; }
+  .colonnes { display: flex; flex-wrap: wrap; gap: 28px; align-items: flex-start; margin-top: 16px; }
+  .colonne { flex: 0 0 auto; max-width: 100%; }
+  .cadre { border: 1px solid var(--bordure); border-radius: 8px; overflow: hidden; background: #141414; display: block; width: fit-content; max-width: 100%; overflow-x: auto; }
+  .cadre iframe { display: block; border: 0; }
+  .etiquette { display: table; font-size: 12px; font-weight: 700; padding: 1px 8px; border-radius: 4px; margin-bottom: 6px; background: #333; color: #ddd; }
+  .etiquette.nouveau { background: #1d3a24; color: #a6e3b4; }
+  ol.legende { list-style: none; padding: 0; margin: 8px 0 0; font-size: 13px; color: #e6e6e6; max-width: 440px; }
+  ol.legende li { display: flex; gap: 8px; align-items: baseline; margin: 4px 0; }
+  ol.legende .num { flex: 0 0 auto; min-width: 16px; height: 16px; padding: 0 4px; border-radius: 8px; background: #ff8ad8; color: #1a1a1a; font: 700 10px/16px Inter, sans-serif; text-align: center; }
+  table.t { border-collapse: collapse; margin-top: 12px; font-size: 13px; max-width: 1200px; }
+  table.t th, table.t td { text-align: left; vertical-align: top; padding: 6px 12px; border-top: 1px solid var(--bordure); }
+  table.t th { color: var(--second); font-weight: 600; border-top: 0; }
+  .decide { display: inline-block; padding: 1px 8px; border-radius: 4px; background: #1d3a24; color: #a6e3b4; font-size: 12px; font-weight: 700; }
+  .ouvert { display: inline-block; padding: 1px 8px; border-radius: 4px; background: #4a3412; color: #f5c38a; font-size: 12px; font-weight: 700; }
+  .discussion { max-width: 900px; margin: 20px 0 0; padding: 12px 16px; border-left: 3px solid #f5c38a; border-radius: 4px; background: #2a2318; font-size: 13.5px; }
+  .discussion h4 { margin: 0 0 6px; font-size: 13px; color: #f5c38a; }
+  .discussion p { margin: 6px 0; }
+  .discussion .avis { margin-top: 10px; padding-top: 8px; border-top: 1px solid #4a3a22; }
+</style>
+</head>
+<body>
+<main>
+  <h1>Maquettes de la fiabilisation d'Architect</h1>
+  <p class="intro">Chaque cadre part d'un écran réel de la galerie d'Architect, figé par <code>Mesures/extraire-galerie.mjs</code>.
+  Les repères roses renvoient à la légende sous le cadre. Les écarts cités (E-xx, N-xx) sont dans
+  <a href="./MESURE-DES-FAILLES.md">MESURE-DES-FAILLES.md</a>. Les questions de la mesure sont dans
+  <a href="./QUESTIONS-V2.html">QUESTIONS-V2.html</a>.</p>
+  <nav class="sommaire">
+    <a href="#tokens">1. Le mode Tokens en deux onglets</a>
+    <a href="#cochage">2. Corrections décochées</a>
+    <a href="#questions">3. Ignorer une question</a>
+    <a href="#perimee">4. Analyse périmée</a>
+    <a href="#ignores">5. Tous les constats ignorés</a>
+    <a href="#partielle">6. Analyse partielle</a>
+    <a href="#occupe">7. Demande refusée pendant une écriture</a>
+    <a href="#a-trancher">8. Questions au mainteneur</a>
+  </nav>
+
+  <h2 id="tokens">1. Le mode Tokens en deux onglets</h2>
+  <p>Aujourd'hui, le mode Tokens range ses constats en trois onglets selon le geste attendu : Corrections, Questions, À faire dans Figma.
+  Le mode Composant les range par élément, dans des sections repliables avec une icône, et filtre par les puces du sommaire.
+  La proposition garde deux onglets, Constats et Règles, et range les constats du mode Tokens comme ceux du mode Composant.</p>
+  <div class="colonnes">
+    <div class="colonne"><span class="etiquette">Aujourd'hui, onglet Corrections</span><div class="cadre" id="t-avant-corrections"></div></div>
+    <div class="colonne"><span class="etiquette">Aujourd'hui, onglet À faire dans Figma</span><div class="cadre" id="t-avant-a-faire"></div></div>
+    <div class="colonne"><span class="etiquette nouveau">Proposé</span><div class="cadre" id="t-apres"></div></div>
+  </div>
+  <div class="discussion">
+    <h4>En discussion</h4>
+    <p>Les faits. Une même variable peut avoir un renommage dans Corrections, une question dans Questions et une rampe incomplète dans
+    À faire dans Figma. Le designer change d'onglet pour voir les trois. Les trois onglets montrent la même vue, une liste de constats,
+    avec un autre filtre. La règle du dépôt réserve l'onglet au changement de vue et donne le filtre au choix segmenté ou à la puce.
+    Le mode Composant suit déjà cette règle.</p>
+    <table class="t">
+      <tr><th>Option</th><th>Gagne</th><th>Perd</th></tr>
+      <tr><td>A. Garder les quatre onglets</td><td>Aucun travail. Les questions restent dans une file à part, faciles à trouver.</td><td>Deux langages entre les modes. Trois onglets pour une même variable. Le compte de chaque onglet cache le total.</td></tr>
+      <tr><td>B. Constats et Règles, constats par catégorie</td><td>Un seul langage dans le plugin. Tout ce qui touche une catégorie se lit ensemble. Le geste devient un filtre (puce Questions, puce À faire dans Figma).</td><td>Une liste plus longue. La virtualisation des renommages doit tenir dans une section repliable. Les cartes du tour 3 changent de place, pas de forme.</td></tr>
+      <tr><td>C. Trois onglets, Constats, Questions, Règles</td><td>Les questions gardent leur file.</td><td>Une question sur un nom quitte encore la catégorie Noms. La règle de l'onglet n'est tenue qu'en partie.</td></tr>
+    </table>
+    <p class="avis">Avis : B. Les cartes de Nomenclature gardent la forme validée du tour 3 à 640 px. Chaque section porte « Tout cocher » et
+    « Tout décocher », comme les décisions V1 le demandent. Les questions vont en tête de leur catégorie, et la puce Questions du sommaire
+    les isole. Ce qui décide : le nombre de cartes d'un vrai fichier. Sur Slice, les renommages se comptent par centaines, donc une section
+    Noms repliée par défaut au-delà de 20 cartes.</p>
+  </div>
+
+  <h2 id="cochage">2. Corrections décochées, et Ignorer sur les cartes de règles</h2>
+  <p>E-34, N-86. Les corrections arrivent cochées et Appliquer tout est actif dès l'ouverture. Aucune section n'a « Tout cocher » ni
+  « Tout décocher ». Les cartes de correction de règles (C43, C45) n'ont pas Ignorer.</p>
+  <div class="colonnes">
+    <div class="colonne"><span class="etiquette">Aujourd'hui</span><div class="cadre" id="c-avant"></div></div>
+    <div class="colonne"><span class="etiquette nouveau">Proposé</span><div class="cadre" id="c-apres"></div></div>
+  </div>
+
+  <h2 id="questions">3. Ignorer une question</h2>
+  <p>E-35. Une carte de question n'a que « Plus tard », qui ne dure que la session. La question revient à chaque analyse.</p>
+  <div class="colonnes">
+    <div class="colonne"><span class="etiquette">Aujourd'hui</span><div class="cadre" id="q-avant"></div></div>
+    <div class="colonne"><span class="etiquette nouveau">Proposé</span><div class="cadre" id="q-apres"></div></div>
+  </div>
+
+  <h2 id="perimee">4. Analyse périmée</h2>
+  <p>E-38. Quand le composant change après l'analyse, le panneau remplace les constats par une note. La SPEC dit que les constats restent.</p>
+  <div class="colonnes">
+    <div class="colonne"><span class="etiquette">Aujourd'hui</span><div class="cadre" id="p-avant"></div></div>
+    <div class="colonne"><span class="etiquette nouveau">Proposé</span><div class="cadre" id="p-apres"></div></div>
+  </div>
+
+  <h2 id="ignores">5. Tous les constats ignorés</h2>
+  <p>N-77. Quand le designer a ignoré tous les constats, l'écran dit « Aucun constat » et ne montre plus la liste des ignorés.
+  « Ne plus ignorer » n'est plus atteignable.</p>
+  <div class="colonnes">
+    <div class="colonne"><span class="etiquette nouveau">Proposé</span><div class="cadre" id="i-apres"></div></div>
+  </div>
+
+  <h2 id="partielle">6. Analyse partielle</h2>
+  <p>E-31, E-32, N-85. La bannière ne donne qu'une cause. Quand le moteur s'arrête avant la fin, elle peut dire « 90 variants lus sur 90 ».
+  Une lecture refusée des règles, du niveau ou des ignorés laisse l'analyse complète et sans bannière.</p>
+  <div class="colonnes">
+    <div class="colonne"><span class="etiquette">Aujourd'hui</span><div class="cadre" id="b-avant"></div></div>
+    <div class="colonne"><span class="etiquette nouveau">Proposé</span><div class="cadre" id="b-apres"></div></div>
+  </div>
+
+  <h2 id="occupe">7. Demande refusée pendant une écriture</h2>
+  <p>N-80, E-39. Quand le designer clique Actualiser pendant une écriture, le sandbox refuse en silence. L'écran revient à la liste et
+  Appliquer tout redevient actif alors que l'écriture continue.</p>
+  <div class="colonnes">
+    <div class="colonne"><span class="etiquette nouveau">Proposé</span><div class="cadre" id="o-apres"></div></div>
+  </div>
+
+  <h2 id="a-trancher">8. Questions au mainteneur</h2>
+  <table class="t">
+    <tr><th>Id</th><th>Question</th><th>Proposition</th><th>État</th></tr>
+    <tr><td>QM-1</td><td>Le mode Tokens passe-t-il à deux onglets, Constats et Règles ?</td><td>Oui, option B de la section 1.</td><td><span class="ouvert">En discussion</span></td></tr>
+    <tr><td>QM-2</td><td>Quelles catégories pour le mode Tokens ?</td><td>Noms, puis les rubriques actuelles de l'onglet À faire dans Figma (Variables manquantes, Crans, Modes, Couches, Types, Rangement). Une catégorie sans constat se montre tenue, comme en mode Composant.</td><td><span class="ouvert">Ouvert</span></td></tr>
+    <tr><td>QM-3</td><td>Les icônes des catégories du mode Tokens sont-elles à dessiner ?</td><td>Oui. La maquette prête les icônes du mode Composant.</td><td><span class="ouvert">Ouvert</span></td></tr>
+    <tr><td>QM-4</td><td>Où vont les questions dans une catégorie ?</td><td>En tête de la catégorie. La puce Questions du sommaire les isole.</td><td><span class="ouvert">Ouvert</span></td></tr>
+    <tr><td>QM-5</td><td>« Plus tard » reste-t-il à côté d'Ignorer et de « Ne plus proposer » ?</td><td>Oui sur les questions. « Plus tard » vaut pour la session, Ignorer pour le fichier, « Ne plus proposer » pour la proposition.</td><td><span class="ouvert">Ouvert</span></td></tr>
+    <tr><td>QM-6</td><td>Les constats d'une analyse périmée gardent-ils leurs cases ?</td><td>Non. Les cases et Appliquer sont inactifs jusqu'à Actualiser (Q-F89-15).</td><td><span class="ouvert">Ouvert</span></td></tr>
+    <tr><td>QM-7</td><td>La bannière partielle liste-t-elle chaque cause ?</td><td>Oui, une ligne par cause, et jamais « N lus sur N ».</td><td><span class="ouvert">Ouvert</span></td></tr>
+    <tr><td>QM-8</td><td>Corrections décochées, « Tout cocher » et « Tout décocher » par section et au global</td><td>Décision V1, reprise ici.</td><td><span class="decide">Décidé</span></td></tr>
+    <tr><td>QM-9</td><td>Ignorer et « Ne plus proposer » sur les questions</td><td>Décision V1, reprise ici et étendue aux cartes de règles (N-86).</td><td><span class="decide">Décidé</span></td></tr>
+  </table>
+</main>
+
+<script src="galerie/etats.js"></script>
+<script>
+const G = window.GALERIE;
+const COMPOSANT = 460;
+const TOKENS = 680;
+
+function srcdoc(etat, seul) {
+  const e = G[etat];
+  return `<!doctype html><html lang="fr" class="${e.classe} ${seul}"><head><meta charset="utf-8"><link rel="stylesheet" href="galerie/plugin.css"><link rel="stylesheet" href="fiabilisation.css"></head><body>${e.corps}</body></html>`;
+}
+
+function cadre(hote, { etat, largeur, seul, modifier = null }) {
+  const f = document.createElement('iframe');
+  f.style.width = `${largeur}px`;
+  f.style.height = '900px';
+  f.srcdoc = srcdoc(etat, seul);
+  f.addEventListener('load', () => {
+    const doc = f.contentDocument;
+    if (modifier) modifier(doc);
+    setTimeout(() => {
+      f.style.height = `${Math.min(1600, doc.documentElement.scrollHeight)}px`;
+      annoter(hote, doc);
+    }, 300);
+  });
+  document.getElementById(hote).append(f);
+}
+
+// Les repères : une pastille numérotée par entrée de LEGENDES, et la même ligne sous le cadre.
+function annoter(hote, doc) {
+  const entrees = LEGENDES[hote];
+  if (!entrees) return;
+  const lignes = [];
+  for (const [selecteur, texte] of entrees) {
+    const element = doc.querySelector(selecteur);
+    if (!element) { console.warn(`Repère introuvable : ${hote} ${selecteur}`); continue; }
+    const n = lignes.length + 1;
+    element.classList.add('repere');
+    const r = element.getBoundingClientRect();
+    const pastille = doc.createElement('span');
+    pastille.className = 'repere-n';
+    pastille.textContent = n;
+    pastille.style.left = `${Math.max(0, Math.min(r.right + doc.defaultView.scrollX - 10, doc.documentElement.clientWidth - 18))}px`;
+    pastille.style.top = `${Math.max(0, r.top + doc.defaultView.scrollY - 8)}px`;
+    doc.body.append(pastille);
+    lignes.push(`<li><span class="num">${n}</span><span>${texte}</span></li>`);
+  }
+  const ol = document.createElement('ol');
+  ol.className = 'legende';
+  ol.innerHTML = lignes.join('');
+  document.getElementById(hote).after(ol);
+}
+
+// ---------- Outils ----------
+const q = (doc, s) => doc.querySelector(s);
+const qa = (doc, s) => [...doc.querySelectorAll(s)];
+const html = (doc, texte) => { const t = doc.createElement('template'); t.innerHTML = texte.trim(); return t.content.firstElementChild; };
+const etatLu = (etat) => new DOMParser().parseFromString(`<body>${G[etat].corps}</body>`, 'text/html');
+const boutonTexte = (libelle, classe = '') => `<button class="btn-texte ${classe}">${libelle}</button>`;
+const actionsDeSection = (classe = '') => `<div class="section-actions ${classe}">${boutonTexte('Tout cocher')}${boutonTexte('Tout décocher')}</div>`;
+const decocher = (doc) => qa(doc, 'input.case').forEach((c) => { c.checked = false; c.removeAttribute('checked'); });
+
+// Les signes des sections du mode Composant, prêtés aux catégories du mode Tokens (QM-3).
+const COMPOSANT_LU = etatLu('c-corrections');
+const signe = (teinte, taille) => {
+  const s = COMPOSANT_LU.querySelector(`.bande-element .signe-teinte-${teinte}`).cloneNode(true);
+  s.classList.replace('signe-24', `signe-${taille}`);
+  return s.outerHTML;
+};
+const bande = (teinte, titre, nombre) => `<button class="bande-element">${signe(teinte, 24)}<span class="titre">${titre}</span><span class="nombre">${nombre}</span></button>`;
+const puce = (teinte, titre, nombre, actif = false) => `<button class="puce-element${actif ? ' actif' : ''}">${teinte ? signe(teinte, 14) : ''}<span>${titre}</span><span class="nombre">${nombre}</span></button>`;
+
+// ---------- 1. Mode Tokens ----------
+function tokensEnDeuxOnglets(doc) {
+  const liste = q(doc, '.panneau-lateral .liste');
+  const onglets = qa(doc, '.onglets .onglet');
+  // Les cartes de Nomenclature gardent leur forme ; seules leurs cases changent (décochées, V1).
+  const noms = [...liste.children].filter((e) => !e.matches('.muette'));
+  const muette = q(liste, '.carte.muette');
+  const questions = qa(etatLu('a-trancher'), '.panneau-lateral .carte').filter((c) => c.querySelector('.question-actions'));
+  const aFaire = etatLu('t-integrite-a-faire');
+  const premierIntertitre = q(aFaire, '.panneau-lateral .intertitre-structure');
+  const groupes = [];
+  for (const e of premierIntertitre ? [...premierIntertitre.parentElement.children] : []) {
+    if (e.matches('.intertitre-structure')) groupes.push({ titre: e.textContent.trim(), cartes: [] });
+    else if (groupes.length) groupes.at(-1).cartes.push(e);
+  }
+  const nombreNoms = noms.filter((e) => e.matches('.carte')).length + questions.length;
+  const total = nombreNoms + groupes.reduce((s, g) => s + g.cartes.length, 0);
+
+  onglets[0].firstChild.textContent = 'Constats ';
+  q(onglets[0], '.compte').textContent = total;
+  onglets[1].remove(); onglets[2].remove();
+
+  const teintes = ['regles', 'couleurs', 'tailles', 'tokens'];
+  const sommaire = html(doc, `<div class="sommaire-elements">${puce(null, 'Tout', total, true)}${puce('tokens', 'Noms', nombreNoms)}${groupes.map((g, i) => puce(teintes[i % teintes.length], g.titre, g.cartes.length)).join('')}${puce(null, 'Questions', questions.length)}</div>`);
+  const constats = html(doc, '<div class="liste liste-des-constats"></div>');
+
+  const sectionNoms = html(doc, `<div class="section-element section-noms">${bande('tokens', 'Noms', nombreNoms)}${actionsDeSection('actions-noms')}</div>`);
+  if (questions.length) sectionNoms.append(html(doc, '<div class="intertitre intertitre-questions"><h2>Questions</h2></div>'));
+  for (const carte of questions) {
+    const c = doc.importNode(carte, true);
+    c.classList.add('question-maquette');
+    const plusTard = [...c.querySelectorAll('.question-actions .btn-texte')].find((b) => b.textContent.trim() === 'Plus tard');
+    plusTard.before(html(doc, boutonTexte('Ignorer', 'ignorer-question')), html(doc, boutonTexte('Ne plus proposer')));
+    sectionNoms.append(c);
+  }
+  for (const e of noms) sectionNoms.append(e);
+  if (muette) sectionNoms.append(muette);
+  constats.append(sectionNoms);
+  groupes.forEach((g, i) => {
+    const s = html(doc, `<div class="section-element">${bande(teintes[i % teintes.length], g.titre, g.cartes.length)}</div>`);
+    for (const carte of g.cartes) s.append(doc.importNode(carte, true));
+    constats.append(s);
+  });
+  liste.replaceWith(sommaire, constats);
+  decocher(doc);
+
+  const pied = q(doc, '.noms-pied');
+  q(pied, '.resume').innerHTML = 'Aucune correction cochée';
+  q(pied, '.btn-primary').disabled = true;
+  q(pied, '.btn-primary').before(html(doc, boutonTexte('Tout cocher', 'cocher-global')));
+}
+
+// ---------- 2. Corrections décochées ----------
+function correctionsDecochees(doc) {
+  decocher(doc);
+  for (const section of qa(doc, '.section-element')) {
+    if (q(section, 'input.case')) q(section, '.bande-element').after(html(doc, actionsDeSection()));
+  }
+  const regles = qa(doc, '.section-element').find((s) => /Règles/.test(q(s, '.titre')?.textContent ?? ''));
+  const carte = regles && q(regles, '.bloc');
+  if (carte) carte.append(html(doc, `<div class="carte-actions actions-regles">${boutonTexte('Ignorer')}${boutonTexte('Ne plus proposer')}</div>`));
+  const pied = q(doc, '.corrections-pied');
+  q(pied, '.corrections-resume').innerHTML = 'Aucune correction cochée';
+  q(pied, '.btn-primary').disabled = true;
+  q(pied, '.btn-primary').before(html(doc, boutonTexte('Tout cocher', 'cocher-global')));
+}
+
+// ---------- 3. Ignorer une question ----------
+function questionsIgnorables(doc) {
+  decocher(doc);
+  for (const pied of qa(doc, '.question .question-pied')) {
+    const actions = pied.lastElementChild;
+    actions.append(html(doc, boutonTexte('Ignorer', 'ignorer-question')), html(doc, boutonTexte('Ne plus proposer')));
+  }
+}
+
+// ---------- 4. Analyse périmée ----------
+function perimeeGardee(doc) {
+  doc.documentElement.classList.add('perimee');
+  const alerte = q(doc, '.alerte');
+  q(alerte, '.alerte-corps p:not(.alerte-titre)').textContent = 'Les constats datent d’avant le changement. Cliquez Actualiser pour relire.';
+  const garde = COMPOSANT_LU.querySelector('.liste-des-constats').cloneNode(true);
+  q(doc, '.liste-des-constats').replaceWith(doc.importNode(garde, true));
+  decocher(doc);
+  qa(doc, '.liste-des-constats input, .liste-des-constats .btn').forEach((e) => { e.disabled = true; });
+  q(doc, '.corrections-resume').innerHTML = 'Actualisez pour appliquer';
+}
+
+// ---------- 5. Tous les constats ignorés ----------
+function tousIgnores(doc) {
+  const liste = q(doc, '.liste-des-constats');
+  const ignores = [...liste.children];
+  const debut = ignores.findIndex((e) => e.matches('.section-informations'));
+  ignores.slice(0, debut).forEach((e) => e.remove());
+  q(doc, '.sommaire-elements')?.parentElement.remove();
+  q(doc, '.corrections-pied')?.remove();
+  const muettes = qa(doc, '.bloc.muette').length;
+  liste.prepend(html(doc, `<p class="meta vide-ignores">Aucun constat visible, ${muettes} ignoré${muettes > 1 ? 's' : ''}.</p>`));
+}
+
+// ---------- 6. Analyse partielle ----------
+function partielleAvecCauses(doc) {
+  const corps = q(doc, '.alerte-corps');
+  q(corps, '.alerte-titre').textContent = 'Analyse partielle.';
+  q(corps, 'p:not(.alerte-titre)').remove();
+  corps.append(html(doc, `<ul class="causes">
+    <li>Le moteur a lu 54 variants sur 90.</li>
+    <li>Les règles d’utilisation n’ont pas pu être lues.</li>
+    <li>Le niveau du fichier n’a pas pu être lu. Le niveau AA s’applique.</li>
+  </ul>`), html(doc, '<p>Les constats portent sur la partie lue.</p>'));
+  // Q-F89-16 : une analyse partielle ne montre aucune section tenue.
+  qa(doc, '.bande-element.tenue').forEach((b) => b.closest('.section-element').remove());
+  decocher(doc);
+  q(doc, '.corrections-resume').innerHTML = 'Aucune correction cochée';
+  q(doc, '.corrections-pied .btn-primary').disabled = true;
+}
+
+// ---------- 7. Demande refusée ----------
+function demandeRefusee(doc) {
+  q(doc, '.arch-resume').after(html(doc, `<div class="alerte ton-info refus-occupe">${etatLu('i-perimee').querySelector('.alerte .ico').outerHTML}<div class="alerte-corps"><p class="alerte-titre">Une opération est déjà en cours.</p><p>L’écriture continue. Actualisez quand elle est finie.</p></div></div>`));
+  qa(doc, '.liste-des-constats input, .liste-des-constats .btn').forEach((e) => { e.disabled = true; });
+  const pied = q(doc, '.corrections-pied');
+  if (pied) { q(pied, '.corrections-resume').innerHTML = 'Écriture en cours'; q(pied, '.btn-primary').disabled = true; }
+}
+
+const LEGENDES = {
+  't-apres': [
+    ['.onglets', 'Deux onglets, Constats et Règles. Le compte de Constats est le total.'],
+    ['.sommaire-elements', 'Le sommaire du mode Composant. Une puce par catégorie, et la puce Questions qui isole les questions.'],
+    ['.section-noms .bande-element', 'Une section repliable par catégorie, avec son icône et son nombre. Les icônes sont prêtées par le mode Composant (QM-3).'],
+    ['.actions-noms', '« Tout cocher » et « Tout décocher » de la section.'],
+    ['.question-maquette .ignorer-question', 'Les questions en tête de leur catégorie, avec Ignorer et « Ne plus proposer ».'],
+    ['.cocher-global', 'Les cartes arrivent décochées. « Tout cocher » global, Appliquer inactif tant que rien n’est coché.'],
+  ],
+  'c-apres': [
+    ['.section-actions', '« Tout cocher » et « Tout décocher » sous la bande de chaque section qui a des cases.'],
+    ['.actions-regles', 'La carte de règles (C43, C45) reçoit Ignorer et « Ne plus proposer », comme une carte À faire (N-86).'],
+    ['.cocher-global', 'Les cases arrivent décochées. Le pied dit « Aucune correction cochée » et Appliquer tout reste inactif.'],
+  ],
+  'q-apres': [
+    ['.ignorer-question', 'Ignorer range la question pour ce fichier. « Ne plus proposer » retire la proposition. « Plus tard » ne vaut que pour la session (QM-5).'],
+  ],
+  'p-avant': [
+    ['.liste-des-constats', 'La note remplace la liste : les constats ne se relisent plus.'],
+  ],
+  'p-apres': [
+    ['.alerte', 'La note reste en tête et dit quoi faire.'],
+    ['.liste-des-constats', 'La liste reste lisible. Les cases et Appliquer sont inactifs jusqu’à Actualiser (QM-6).'],
+  ],
+  'i-apres': [
+    ['.vide-ignores', 'L’écran dit combien de constats sont ignorés, au lieu de « Aucun constat ».'],
+    ['.bloc.muette .btn-texte', '« Ne plus ignorer » reste atteignable.'],
+  ],
+  'b-avant': [
+    ['.alerte', 'Une seule cause. Avec un moteur arrêté, le texte devient « 90 variants lus sur 90 ».'],
+  ],
+  'b-apres': [
+    ['.causes', 'Une ligne par cause, pour le moteur, les règles et le niveau. Jamais « N lus sur N » (QM-7).'],
+    ['.liste-des-constats', 'Aucune section tenue : une coche dirait que l’élément a été contrôlé (Q-F89-16).'],
+  ],
+  'o-apres': [
+    ['.refus-occupe', 'Le refus se dit avec la ligne existante « Une opération est déjà en cours. ».'],
+    ['.corrections-pied', 'Appliquer tout reste inactif tant que l’écriture continue.'],
+  ],
+};
+
+cadre('t-avant-corrections', { etat: 'a-appliquer', largeur: TOKENS, seul: 'seul-tokens' });
+cadre('t-avant-a-faire', { etat: 't-integrite-a-faire', largeur: TOKENS, seul: 'seul-tokens' });
+cadre('t-apres', { etat: 'a-appliquer', largeur: TOKENS, seul: 'seul-tokens', modifier: tokensEnDeuxOnglets });
+cadre('c-avant', { etat: 'c-corrections', largeur: COMPOSANT, seul: 'seul-composant' });
+cadre('c-apres', { etat: 'c-corrections', largeur: COMPOSANT, seul: 'seul-composant', modifier: correctionsDecochees });
+cadre('q-avant', { etat: 'c-questions', largeur: COMPOSANT, seul: 'seul-composant' });
+cadre('q-apres', { etat: 'c-questions', largeur: COMPOSANT, seul: 'seul-composant', modifier: questionsIgnorables });
+cadre('p-avant', { etat: 'i-perimee', largeur: COMPOSANT, seul: 'seul-composant' });
+cadre('p-apres', { etat: 'i-perimee', largeur: COMPOSANT, seul: 'seul-composant', modifier: perimeeGardee });
+cadre('i-apres', { etat: 'i-ouvert', largeur: COMPOSANT, seul: 'seul-composant', modifier: tousIgnores });
+cadre('b-avant', { etat: 'e-partiel', largeur: COMPOSANT, seul: 'seul-composant' });
+cadre('b-apres', { etat: 'e-partiel', largeur: COMPOSANT, seul: 'seul-composant', modifier: partielleAvecCauses });
+cadre('o-apres', { etat: 'analyse-occupee', largeur: COMPOSANT, seul: 'seul-composant', modifier: demandeRefusee });
+</script>
+</body>
+</html>

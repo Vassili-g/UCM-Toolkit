@@ -1,0 +1,28 @@
+/* Éléments nouveaux de la maquette de la fiabilisation, posés sur la feuille réelle du plugin (galerie/plugin.css). */
+
+/* Repères de la maquette : contour pointillé de 1 px et pastille numérotée, expliquée sous le cadre. */
+.repere { outline: 1px dashed #ff8ad8 !important; outline-offset: 1px; }
+.repere-n { position: absolute; z-index: 99; min-width: 16px; height: 16px; padding: 0 4px; border-radius: 8px; background: #ff8ad8; color: #1a1a1a; font: 700 10px/16px Inter, sans-serif; text-align: center; pointer-events: none; }
+
+/* Panneau seul : le mode Composant garde son panneau latéral, le mode Tokens son panneau du bas. */
+.seul-composant .application > :not(.arch-corps-composant) { display: none !important; }
+.seul-composant .arch-corps-composant { display: block !important; }
+.seul-composant .arch-corps-composant > :not(.panneau-lateral) { display: none !important; }
+.seul-composant .panneau-lateral { width: 100% !important; max-width: none !important; height: auto !important; border: 0 !important; }
+.seul-tokens .application > :not(.corps) { display: none !important; }
+.seul-tokens .corps { display: block !important; height: auto !important; }
+.seul-tokens .corps > :not(.panneau-lateral) { display: none !important; }
+.seul-tokens .panneau-lateral { width: 100% !important; max-width: none !important; height: auto !important; border: 0 !important; }
+
+/* « Tout cocher » et « Tout décocher » d'une section, sous sa bande. */
+.section-actions { display: flex; justify-content: flex-end; gap: 12px; padding: 2px 4px 6px; }
+
+/* Ligne d'actions en bas d'une carte : Ignorer, « Ne plus proposer ». */
+.carte-actions { display: flex; flex-wrap: wrap; gap: 12px; padding: 0 12px 10px 15px; }
+
+/* Liste des causes d'une analyse partielle. */
+.alerte-corps ul.causes { margin: 4px 0 0; padding-left: 16px; }
+.alerte-corps ul.causes li { margin: 2px 0; }
+
+/* Constats d'une analyse périmée : gardés, sans case active. */
+.perimee .liste-des-constats { opacity: .72; }

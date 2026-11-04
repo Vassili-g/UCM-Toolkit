@@ -1,0 +1,157 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Questions V2 d'Architect</title>
+<style>
+  :root { --fond: #161616; --carte: #1f1f1f; --bordure: #333; --texte: #eee; --second: #9a9a9a; --lien: #9fcfff; --vert: #a6e3b4; --orange: #f5c38a; }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--fond); color: var(--texte); font: 14px/1.5 Inter, system-ui, sans-serif; }
+  main { max-width: 980px; margin: 0 auto; padding: 32px 16px 120px; }
+  h1 { font-size: 24px; margin: 0 0 6px; }
+  h2 { font-size: 18px; margin: 40px 0 8px; padding-top: 12px; border-top: 1px solid var(--bordure); }
+  p { margin: 6px 0; }
+  .intro { color: var(--second); }
+  a { color: var(--lien); }
+  code { font-family: Consolas, monospace; font-size: 12.5px; background: #2a2a2a; padding: 0 4px; border-radius: 3px; }
+  .barre { position: sticky; top: 0; z-index: 2; display: flex; flex-wrap: wrap; gap: 8px; align-items: center; padding: 10px 0; background: var(--fond); border-bottom: 1px solid var(--bordure); }
+  .puce { border: 1px solid var(--bordure); background: none; color: var(--texte); border-radius: 12px; padding: 2px 10px; font: inherit; font-size: 13px; cursor: pointer; }
+  .puce.actif { background: #1b3550; border-color: #2d5a85; }
+  .compte { margin-left: auto; color: var(--second); font-size: 13px; }
+  .copier { border: 0; background: #1677d2; color: #fff; border-radius: 6px; padding: 5px 12px; font: inherit; font-weight: 600; cursor: pointer; }
+  .q { background: var(--carte); border: 1px solid var(--bordure); border-radius: 8px; padding: 12px 14px; margin: 10px 0; }
+  .q.repondue { border-left: 3px solid var(--vert); }
+  .q-tete { display: flex; flex-wrap: wrap; gap: 8px; align-items: baseline; }
+  .q-id { font-weight: 700; }
+  .etat { font-size: 12px; font-weight: 700; padding: 0 8px; border-radius: 4px; }
+  .etat.decidee { background: #1d3a24; color: var(--vert); }
+  .etat.reservee { background: #4a3412; color: var(--orange); }
+  .q-question { font-weight: 600; }
+  .q-proposition { margin-top: 4px; }
+  .q-proposition b { color: var(--second); font-weight: 600; }
+  .q-mesure { margin-top: 4px; color: var(--second); font-size: 13px; }
+  .reponse { display: flex; flex-wrap: wrap; gap: 6px 16px; align-items: center; margin-top: 8px; font-size: 13px; }
+  .reponse textarea { flex: 1 1 100%; min-height: 44px; background: #141414; color: var(--texte); border: 1px solid var(--bordure); border-radius: 6px; padding: 6px 8px; font: inherit; font-size: 13px; }
+  .export { width: 100%; min-height: 160px; margin-top: 12px; background: #141414; color: var(--texte); border: 1px solid var(--bordure); border-radius: 6px; font: 12px Consolas, monospace; }
+  [hidden] { display: none !important; }
+</style>
+</head>
+<body>
+<main>
+  <h1>Questions V2 d'Architect</h1>
+  <p class="intro"><!--TOTAL--> questions, dont <!--OUVERTES--> ouvertes. Chaque proposition vaut décision provisoire, et les harnais
+  comptent à part les cas qui en dépendent. Une question sans cas en attente se tranche sur le texte du plan.
+  Les écarts cités sont dans <a href="./MESURE-DES-FAILLES.md">MESURE-DES-FAILLES.md</a>, les écrans dans
+  <a href="./MAQUETTE-FIABILISATION.html">MAQUETTE-FIABILISATION.html</a>.</p>
+  <p class="intro">Choisissez « D'accord » ou écrivez votre réponse. Les réponses restent dans ce navigateur.
+  « Copier les réponses » les met dans le presse-papiers, à coller dans la conversation.</p>
+  <div class="barre">
+    <button class="puce actif" data-filtre="toutes">Toutes</button>
+    <button class="puce" data-filtre="sans-reponse">Sans réponse</button>
+    <button class="puce" data-filtre="en-attente">Avec cas en attente</button>
+    <span class="compte" id="compte"></span>
+    <button class="copier" id="copier">Copier les réponses</button>
+  </div>
+  <textarea class="export" id="export" hidden readonly></textarea>
+  <div id="familles"></div>
+</main>
+<script>
+/*DONNEES*/
+const CLE = 'architect-questions-v2';
+let reponses = {};
+try { reponses = JSON.parse(localStorage.getItem(CLE) || '{}'); } catch { reponses = {}; }
+const enregistrer = () => { try { localStorage.setItem(CLE, JSON.stringify(reponses)); } catch { /* sans stockage, les réponses vivent le temps de la page */ } };
+const echapper = (t) => t.replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]);
+const enLigne = (t) => echapper(t).replace(/`([^`]+)`/g, '<code>$1</code>').replace(/\*\*([^*]+)\*\*/g, '<b>$1</b>');
+const ETATS = { decidee: 'Décidée', reservee: 'Réservée au mainteneur' };
+let filtre = 'toutes';
+
+function mesureDe(q) {
+  const { cas, ecarts } = q.mesure;
+  const parts = [];
+  if (cas > 0) parts.push(`${cas} cas en attente${ecarts ? `, dont ${ecarts} avec un écart` : ''}`);
+  else parts.push('aucun cas en attente');
+  if (q.ecarts.length) parts.push(`écarts liés ${q.ecarts.join(', ')}`);
+  return parts.join(' · ');
+}
+
+function rendre() {
+  const hote = document.getElementById('familles');
+  hote.replaceChildren();
+  for (const famille of FAMILLES) {
+    const titre = document.createElement('h2');
+    titre.innerHTML = `${echapper(famille.famille)} <span class="intro" style="font-size:13px;font-weight:400">· <a href="./${encodeURI(famille.fichier)}">${echapper(famille.fichier)}</a></span>`;
+    hote.append(titre);
+    for (const q of famille.questions) {
+      const r = reponses[q.id];
+      const carte = document.createElement('div');
+      carte.className = `q${r && (r.accord || r.texte) ? ' repondue' : ''}`;
+      carte.dataset.id = q.id;
+      carte.dataset.attente = String(q.mesure.cas > 0);
+      carte.innerHTML = `
+        <div class="q-tete"><span class="q-id">${q.id}</span>${ETATS[q.etat] ? `<span class="etat ${q.etat}">${ETATS[q.etat]}</span>` : ''}
+          ${q.question ? `<span class="q-question">${enLigne(q.question)}</span>` : ''}</div>
+        <div class="q-proposition"><b>Proposition</b> ${enLigne(q.proposition)}</div>
+        <div class="q-mesure">${mesureDe(q)}</div>
+        ${q.etat === 'decidee' ? '' : `<div class="reponse">
+          <label><input type="checkbox" class="accord" ${r?.accord ? 'checked' : ''}> D'accord</label>
+          <textarea class="texte" placeholder="Votre réponse, si elle diffère de la proposition">${r?.texte ? echapper(r.texte) : ''}</textarea>
+        </div>`}`;
+      hote.append(carte);
+    }
+  }
+  appliquerLeFiltre();
+}
+
+function appliquerLeFiltre() {
+  let repondues = 0; let aRepondre = 0;
+  for (const carte of document.querySelectorAll('.q')) {
+    const r = reponses[carte.dataset.id];
+    const repondue = Boolean(r && (r.accord || r.texte));
+    if (carte.querySelector('.reponse')) { aRepondre += 1; if (repondue) repondues += 1; }
+    carte.classList.toggle('repondue', repondue);
+    carte.hidden = (filtre === 'sans-reponse' && (repondue || !carte.querySelector('.reponse'))) || (filtre === 'en-attente' && carte.dataset.attente !== 'true');
+  }
+  document.getElementById('compte').textContent = `${repondues} réponse${repondues > 1 ? 's' : ''} sur ${aRepondre}`;
+}
+
+document.getElementById('familles').addEventListener('input', (e) => {
+  const carte = e.target.closest('.q');
+  if (!carte) return;
+  const r = reponses[carte.dataset.id] ?? {};
+  if (e.target.classList.contains('accord')) r.accord = e.target.checked;
+  if (e.target.classList.contains('texte')) r.texte = e.target.value;
+  reponses[carte.dataset.id] = r;
+  enregistrer();
+  appliquerLeFiltre();
+});
+
+for (const puce of document.querySelectorAll('.puce')) {
+  puce.addEventListener('click', () => {
+    filtre = puce.dataset.filtre;
+    document.querySelectorAll('.puce').forEach((p) => p.classList.toggle('actif', p === puce));
+    appliquerLeFiltre();
+  });
+}
+
+document.getElementById('copier').addEventListener('click', async () => {
+  const lignes = ['| Id | Réponse |', '|---|---|'];
+  for (const famille of FAMILLES) for (const q of famille.questions) {
+    const r = reponses[q.id];
+    if (!r || (!r.accord && !r.texte)) continue;
+    const texte = (r.texte || '').replace(/\s*\n\s*/g, ' ').replace(/\|/g, '/');
+    lignes.push(`| ${q.id} | ${r.accord ? 'D\'accord' : ''}${r.accord && texte ? '. ' : ''}${texte} |`);
+  }
+  const sortie = lignes.join('\n');
+  const zone = document.getElementById('export');
+  zone.value = sortie;
+  zone.hidden = false;
+  try { await navigator.clipboard.writeText(sortie); document.getElementById('copier').textContent = 'Réponses copiées'; }
+  catch { zone.select(); document.getElementById('copier').textContent = 'Copiez le texte ci-dessous'; }
+});
+
+rendre();
+</script>
+</body>
+</html>

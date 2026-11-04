@@ -529,3 +529,26 @@ R4 reste sans preuve sur fichier réel : aucun des deux fichiers ne reçoit de c
 | C45 `sans-regle` | 1 | La propriété `state` n'a pas de règle, avec la correction `ajouter`. À vérifier dans Figma. |
 
 Aucune exception et aucun faux constat évident. Le corpus réel du mode Composant ne compte qu'un composant : il faut d'autres captures (Alert, Input) pour que le rejeu mêle des défauts.
+
+## Cibles
+
+Les cibles valent pour le plan de correction. Un cas `attendu` doit tenir après correction, sauf s'il est classé limite assumée avec l'accord du mainteneur. Les cas `mesure` reçoivent leur cible quand la question V2 qui les tient est tranchée. Un faux constat sur un fichier juste est toujours un défaut, donc sa cible est 0 partout.
+
+| Famille | Mesure actuelle | Cible |
+|---|---|---|
+| F1 Noms | 30 % des 16 160 attendus détectés, 70 faux positifs ; Slice 122 fautes sur 209, 0 inversion sur 40 ; renommage non idempotent (N-01) | 90 % des attendus détectés hors S3 et S4, 0 faux positif sur les 15 design systems ; Slice 190 fautes sur 209 et 40 inversions sur 40 ; un second passage ne renomme rien |
+| F2 Structure | 378 sur 503 détectés, 68 faux constats, 27 corrections inexactes ; chaîne 5 cas sur 28 | 100 % des attendus, 0 faux constat, 0 correction inexacte ; chaîne 28 sur 28 |
+| F3-F4 Liaisons et tailles | kit 181 sur 185, 3 faux constats ; chaîne 16 cas sur 67 | kit 185 sur 185, 0 faux constat ; chaîne 65 sur 65 hors les 2 cas en attente |
+| F5 Variants | 9 145 sur 9 234, 110 faux constats | 100 % des attendus, 0 faux constat ; les 24 profils muets le restent |
+| F6 Typographie et icônes | 83 sur 140, 18 faux constats | 95 % des attendus, 0 faux constat ; une seule définition d'icône (E-26) |
+| F7 Accessibilité | 545 sur 647, 14 faux constats, 3 exceptions | 100 % des seuils S et G, 0 faux constat, 0 exception |
+| F8 Règles et moteur | 770 sur 790, 24 faux constats, 15 faits inexacts ; chaîne 286 sur 321 | 100 % des attendus, 0 faux constat, 0 fait inexact ; chaîne 321 sur 321 |
+| F9 Lecture et états | 167 faits inexacts sur 344 cas ; chaîne 510 sur 569 | 0 fait inexact ; chaîne 569 sur 569 ; aucune lecture refusée ne finit `complete` |
+| Rejeu Tokens | 4 359 cartes C82 sans correction sur Slice ; 0 constat et aucun signal sans `theme` | au plus une carte par couple de collections pour une même couche ; un signal quand le thème n'est pas reconnu ; R2, R3 et R5 restent à 100 % |
+| Rejeu Composant | 1 composant capturé | 3 composants capturés (Button, Alert, Input), 0 exception, chaque constat classé |
+
+Temps : les harnais restent hors de `npm test`. Chaque fichier de régression dure moins de 15 secondes, et le harnais d'une famille moins de 240 secondes.
+
+## Questions V2
+
+Les questions des six plans, celles nées de la mesure (QV-1 à QV-5) et celles des écrans (QM-1 à QM-7) sont dans [QUESTIONS-V2.html](./QUESTIONS-V2.html), avec pour chacune le nombre de cas en attente. `Mesures/generer-questions-v2.mjs` la régénère d'après les plans et les rapports de `_local/stress/`. Les écrans sont dans [MAQUETTE-FIABILISATION.html](./MAQUETTE-FIABILISATION.html).
