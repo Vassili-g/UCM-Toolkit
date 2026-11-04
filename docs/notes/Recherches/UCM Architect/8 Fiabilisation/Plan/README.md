@@ -132,7 +132,7 @@ Une capture absente se compte absente. Une comparaison locale ne prouve pas la f
 | Lot | Agent | Dépend de | État |
 |---|---|---|---|
 | [D0](lots/D0.md) Mesure de référence | `implementeur` | rien | [x] bd9f418d, 10956167, D0.3 et D0.4 en partie |
-| [D1](lots/D1.md) Acquisition commune dans la demande | `implementeur-exigeant` | D0 | en cours |
+| [D1](lots/D1.md) Acquisition commune dans la demande | `implementeur-exigeant` | D0 | [x] dfd09249, D1.4 en partie |
 | [D2](lots/D2.md) Lectures groupées | `implementeur` | D1 | [ ] |
 | [D3](lots/D3.md) Coûts algorithmiques du kit | `implementeur` | D0 | [x] 8d4111ce, D3.3 en partie |
 | [D4a](lots/D4a.md) Ignorer sans acquisition | `implementeur` | D3 | [ ] |
