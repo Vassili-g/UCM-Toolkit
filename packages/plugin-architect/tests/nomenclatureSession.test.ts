@@ -189,6 +189,19 @@ test('répondre à une paire : autre terme, termes différents, plus tard', asyn
   assert.ok(b.bilan().questions.some((q) => q.cle === cle));
 });
 
+test('E2.2 : deux mots proches que le fichier n’a pas jugés donnent une question de paire, et « Termes différents » la range dans le vocabulaire du fichier', async () => {
+  const b = banc([['v1', 'tile/ledger/fill'], ['v2', 'tile/ledgar/fill'], ['v3', 'tile/ledger/edge']], { ecriture });
+  await b.envoyer({ type: 'noms-analyser' });
+  const question = b.bilan().questions.find((q) => q.type === 'paire' && q.cle === 'paire:ledgar|ledger');
+  assert.ok(question && question.type === 'paire', 'la question « même mot ou deux mots » est posée');
+  assert.equal(question.indice, 'ecriture-proche');
+  assert.equal(question.termes[question.propose].mot, 'ledger');
+  await b.repondre(question.cle, { type: 'distincts' });
+  assert.ok(b.stock.has('distinct:ledgar|ledger'), 'la réponse est rangée dans le vocabulaire du fichier');
+  await b.envoyer({ type: 'noms-analyser' });
+  assert.ok(!b.bilan().questions.some((q) => q.cle === question.cle), 'la question ne revient pas à la lecture suivante');
+});
+
 test('répondre à une faute : corriger écrit le terme corrigé ; c\'est voulu écrit le terme voulu', async () => {
   const noms: [string, string][] = [];
   for (let i = 0; i < 5; i++) noms.push([`a${i}`, `box${i}/border/bg`]);

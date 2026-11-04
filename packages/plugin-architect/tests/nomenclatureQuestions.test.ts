@@ -61,11 +61,11 @@ test('l’effet de la carte est celui du bilan', () => {
 });
 
 test('chaque indice de paire a son texte, et sans cible commune le détail s’arrête au terme proposé', () => {
-  const details = (['terminaison', 'pluriel', 'abreviation', 'synonymes', 'branches-paralleles'] as const).map((indice) => {
+  const details = (['terminaison', 'pluriel', 'abreviation', 'synonymes', 'branches-paralleles', 'ecriture-proche'] as const).map((indice) => {
     const carte = carteDeQuestion(paire(indice));
     return carte.forme === 'proposition' ? carte.detail.split(' · ')[0] : 'autre forme';
   });
-  assert.deepEqual(details, ['Terminaison', 'Singulier et pluriel', 'Abréviation', 'Synonymes', 'Branches parallèles']);
+  assert.deepEqual(details, ['Terminaison', 'Singulier et pluriel', 'Abréviation', 'Synonymes', 'Branches parallèles', 'Écriture proche']);
   const carte = carteDeQuestion(paire());
   assert.equal(carte.forme === 'proposition' ? carte.detail : 'autre forme', 'Terminaison · 8 variables à renommer · outlined déjà dans 24');
 });

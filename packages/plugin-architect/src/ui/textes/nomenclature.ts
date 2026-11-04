@@ -398,6 +398,7 @@ export const TEXTES = {
     abreviation: 'Abréviation',
     synonymes: 'Synonymes',
     'branches-paralleles': 'Branches parallèles',
+    'ecriture-proche': 'Écriture proche',
   } satisfies Record<IndiceDePaire, string>,
   indiceDeFaute: INDICE_DE_FAUTE,
   indiceDeMotsColles: 'Mots collés',

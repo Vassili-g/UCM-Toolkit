@@ -4,12 +4,15 @@ import { categorieDuSegment } from './ecriture-des-mots.js';
 import type { DejaJuge, IndexDuVocabulaire, Lexique, Mots, NomLu, Question, ResultatDesQuestions, TermeEnQuestion, IndiceDePaire } from './harmonisation.js';
 import { collectionUcmReconnue } from './normalisation.js';
 import { detecterBranchesParalleles } from './branches-paralleles.js';
-import { decouperPourQuestions, distanceUn, termeOuFormeConnu } from './termes-connus.js';
-import { ABREVIATIONS, REGISTRES, SYNONYMES_COURANTS } from './vocabulaire.js';
+import { decouperPourQuestions, distanceUn, distanceUnOuEchange, termeOuFormeConnu, termeOuVarianteConnu } from './termes-connus.js';
+import { ABREVIATIONS, FORMES_D_UN_MEME_MOT, MOTS_DISTINCTS, REGISTRES, SYNONYMES_COURANTS } from './vocabulaire.js';
 
 const TAILLE_D_UN_LOT = 200;
 const comparer = (a: string, b: string): number => a < b ? -1 : a > b ? 1 : 0;
 const lettres = /\p{L}/u;
+const uniquementDesLettres = /^\p{L}+$/u;
+/** Les deux mots d'un couple proche ont au moins cette longueur : en dessous, `top` et `tip` sont deux mots. La mesure de E2.5 fixe la valeur définitive. */
+const LONGUEUR_MINIMALE_D_UN_COUPLE_PROCHE = 5;
 const termesUcm = new Set([...REGISTRES, ...REGISTRES_ARCHITECTURE]
   .flatMap((registre) => registre.termes.map((terme) => terme.id.toLowerCase())));
 
@@ -25,6 +28,9 @@ function clePaire(a: string, b: string): string {
 function motJuge(mot: string): string {
   return mot.trim().toLowerCase().replace(/\s+/gu, '-');
 }
+
+const distinctsDuDictionnaire = new Set(MOTS_DISTINCTS.map(([a, b]) => clePaire(a, b)));
+const formesDuDictionnaire = new Set(FORMES_D_UN_MEME_MOT.map(([a, b]) => clePaire(a, b)));
 
 type CacheDeContextes = Map<string, Map<number, { avant: Map<string, string>; apres: Map<string, string> }>>;
 
@@ -204,7 +210,8 @@ export function* detecterParEtapes(lexique: Lexique, index: IndexDuVocabulaire, 
     for (let i = 0; i < bas.length; i++) for (let j = i + 1; j <= Math.min(bas.length, i + 3); j++) motsApplicables.add(bas.slice(i, j).join('-'));
     if (++operations % TAILLE_D_UN_LOT === 0) yield;
   }
-  const distincts = new Set(dejaJuge.distincts.map(([a, b]) => clePaire(motJuge(a), motJuge(b))));
+  const distinctsDuFichier = new Set(dejaJuge.distincts.map(([a, b]) => clePaire(motJuge(a), motJuge(b))));
+  const distincts = { has: (cle: string): boolean => distinctsDuFichier.has(cle) || distinctsDuDictionnaire.has(cle) };
   const voulus = new Set(dejaJuge.voulus.map(motJuge));
   const plusTard = new Set(dejaJuge.plusTard);
   const paires = new Map<string, PaireCandidate>();
@@ -212,7 +219,8 @@ export function* detecterParEtapes(lexique: Lexique, index: IndexDuVocabulaire, 
     if (a === b || !observes.has(a) || !observes.has(b)) return;
     const cle = clePaire(a, b);
     if (distincts.has(cle) || voulus.has(a) || voulus.has(b)) return;
-    if (indice === 'synonymes' && !(yield* partagentUnePlace(observes.get(a)!, observes.get(b)!))) return;
+    if (indice === 'ecriture-proche' && (paires.has(cle) || formesDuDictionnaire.has(cle))) return;
+    if ((indice === 'synonymes' || indice === 'ecriture-proche') && !(yield* partagentUnePlace(observes.get(a)!, observes.get(b)!))) return;
     if ((indice === 'pluriel' || indice === 'terminaison') && ![...observes.get(a)!.types].some((type) => observes.get(b)!.types.has(type))) return;
     const precedente = paires.get(cle) ?? { mots: [a, b].sort(comparer) as [string, string], indices: new Set<IndiceDePaire>() };
     precedente.indices.add(indice);
@@ -245,10 +253,33 @@ export function* detecterParEtapes(lexique: Lexique, index: IndexDuVocabulaire, 
     precedente.indices.add('branches-paralleles');
     paires.set(cle, precedente);
   }
+  // Deux mots à une lettre près (échange compris), que ni le dictionnaire ni le fichier n'ont jugés et dont aucun n'est connu du kit : le designer dit si c'est un même mot.
+  const parCleProche = new Map<string, string[]>();
+  const parLettres = new Map<string, string[]>();
+  for (const observe of observes.values()) {
+    const mot = observe.mot;
+    if ([...mot].length < LONGUEUR_MINIMALE_D_UN_COUPLE_PROCHE || !uniquementDesLettres.test(mot) || termeOuVarianteConnu(mot)) continue;
+    for (const cle of [mot, ...suppressions(mot)]) {
+      const groupe = parCleProche.get(cle) ?? [];
+      groupe.push(mot);
+      parCleProche.set(cle, groupe);
+    }
+    const lettresTriees = [...mot].sort().join('');
+    const memesLettres = parLettres.get(lettresTriees) ?? [];
+    memesLettres.push(mot);
+    parLettres.set(lettresTriees, memesLettres);
+    if (++operations % TAILLE_D_UN_LOT === 0) yield;
+  }
+  for (const groupe of [...parCleProche.values(), ...parLettres.values()]) {
+    for (let i = 0; i < groupe.length; i++) for (let j = i + 1; j < groupe.length; j++) {
+      if (distanceUnOuEchange(groupe[i], groupe[j])) yield* ajouterPaire(groupe[i], groupe[j], 'ecriture-proche');
+      if (++operations % TAILLE_D_UN_LOT === 0) yield;
+    }
+  }
   const observe = (mot: string): MotObserve => observes.get(mot) ?? segmentsObserves.get(mot)!;
 
   const questions: Question[] = [];
-  const ordreIndices: readonly IndiceDePaire[] = ['synonymes', 'abreviation', 'terminaison', 'pluriel', 'branches-paralleles'];
+  const ordreIndices: readonly IndiceDePaire[] = ['synonymes', 'abreviation', 'terminaison', 'pluriel', 'branches-paralleles', 'ecriture-proche'];
   for (const [cle, candidate] of paires) {
     if (plusTard.has(cle) || !candidate.mots.every((mot) => motsApplicables.has(mot))) continue;
     const [a, b] = candidate.mots.map(observe) as [MotObserve, MotObserve];

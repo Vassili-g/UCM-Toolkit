@@ -53,6 +53,39 @@ export const ABREVIATIONS: Readonly<Record<string, string>> = {
   bg: 'background', fg: 'foreground', btn: 'button', txt: 'text', img: 'image',
 };
 
+/**
+ * Le dictionnaire des couples de mots proches, classé par la conversation principale sur les noms de quinze design systems
+ * (`tests/stress/f1-noms/donnees/formes.json` en garde la copie et `dictionnaireDuVocabulaire.test.ts` la compare). Un couple classé ne
+ * donne aucune question de proximité : `FORMES_D_UN_MEME_MOT` garde les questions de pluriel et de terminaison, `MOTS_DISTINCTS` les
+ * supprime. Un couple absent des deux listes que le fichier emploie à une même place devient une question « même mot ou deux mots ? ».
+ */
+export const FORMES_D_UN_MEME_MOT: readonly (readonly [string, string])[] = [
+  ['action', 'actions'], ['brand', 'brands'], ['breadcrumb', 'breadcrumbs'], ['breakpoint', 'breakpoints'], ['center', 'centered'],
+  ['collapse', 'collapsed'], ['color', 'colors'], ['component', 'components'], ['curve', 'curves'], ['description', 'descriptions'],
+  ['disable', 'disabled'], ['duration', 'durations'], ['expand', 'expanded'], ['height', 'heights'], ['hover', 'hovered'],
+  ['icon', 'icons'], ['keyframe', 'keyframes'], ['layout', 'layouts'], ['line', 'lines'], ['mark', 'marks'], ['press', 'pressed'],
+  ['shadow', 'shadows'], ['size', 'sizes'], ['spacing', 'spacings'], ['step', 'steps'], ['style', 'styles'], ['subhead', 'subheading'],
+  ['tab', 'tabs'], ['transition', 'transitions'], ['width', 'widths'], ['colors', 'colours'], ['gray', 'grey'],
+];
+
+export const MOTS_DISTINCTS: readonly (readonly [string, string])[] = [
+  ['brand', 'branded'], ['close', 'closed'], ['fill', 'filled'], ['outline', 'outlined'], ['select', 'selected'], ['stack', 'stacked'],
+  ['support', 'supporting'], ['track', 'tracking'], ['back', 'black'], ['base', 'ease'], ['black', 'block'], ['block', 'clock'],
+  ['blue', 'blur'], ['bold', 'gold'], ['bold', 'hold'], ['bolder', 'border'], ['brass', 'grass'], ['bright', 'right'],
+  ['caption', 'caution'], ['center', 'enter'], ['chart', 'chat'], ['code', 'node'], ['contained', 'container'], ['dark', 'mark'],
+  ['data', 'date'], ['date', 'rate'], ['done', 'none'], ['done', 'one'], ['done', 'zone'], ['dot', 'hot'], ['fab', 'tab'],
+  ['fade', 'jade'], ['fill', 'full'], ['fill', 'pill'], ['four', 'tour'], ['full', 'null'], ['gold', 'hold'], ['heading', 'leading'],
+  ['height', 'weight'], ['hint', 'mint'], ['hint', 'tint'], ['inserted', 'inverted'], ['large', 'xlarge'], ['leading', 'loading'],
+  ['light', 'right'], ['light', 'tight'], ['lime', 'line'], ['lime', 'time'], ['line', 'link'], ['line', 'pine'], ['link', 'mink'],
+  ['link', 'pink'], ['list', 'mist'], ['main', 'min'], ['mid', 'min'], ['min', 'mink'], ['min', 'mint'], ['mink', 'mint'],
+  ['mink', 'pink'], ['mint', 'mist'], ['mint', 'tint'], ['nav', 'navy'], ['node', 'none'], ['none', 'one'], ['none', 'zone'],
+  ['one', 'zone'], ['orange', 'range'], ['page', 'sage'], ['pine', 'pink'], ['rail', 'tail'], ['red', 'ref'], ['right', 'tight'],
+  ['sand', 'sans'], ['sds', 'sys'], ['shade', 'shape'], ['side', 'size'], ['side', 'slide'], ['side', 'wide'], ['slate', 'state'],
+  ['slide', 'slider'], ['small', 'xsmall'], ['star', 'start'], ['step', 'stop'], ['stop', 'top'], ['string', 'strong'],
+  ['subtle', 'subtler'], ['swatch', 'switch'], ['tab', 'tag'], ['table', 'tablet'], ['thick', 'tick'], ['three', 'tree'],
+  ['tile', 'time'], ['tile', 'title'], ['tip', 'top'], ['width', 'with'], ['xlarge', 'xxlarge'], ['xxl', 'xxs'], ['xxl', 'xxxl'],
+];
+
 export const ECHELLES_DE_TAILLES = [
   ['sm', 'small'], ['md', 'medium'], ['lg', 'large'],
 ] as const;

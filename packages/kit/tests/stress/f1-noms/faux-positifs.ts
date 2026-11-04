@@ -33,10 +33,10 @@ export const CLASSES: readonly Classe[] = ['FP-A', 'FP-B', 'FP-C', 'FP-D'];
 export const CERTAINES: ReadonlySet<Classe> = new Set<Classe>(['FP-A', 'FP-C']);
 
 export type TypeDeSortie =
-  | 'faute' | 'synonymes' | 'abreviation' | 'terminaison' | 'pluriel' | 'branches-paralleles' | 'mots-colles' | 'collection'
+  | 'faute' | 'synonymes' | 'abreviation' | 'terminaison' | 'pluriel' | 'branches-paralleles' | 'ecriture-proche' | 'mots-colles' | 'collection'
   | 'renommage-mot' | 'renommage-ecriture';
 export const TYPES_DE_SORTIE: readonly TypeDeSortie[] = [
-  'faute', 'synonymes', 'abreviation', 'terminaison', 'pluriel', 'branches-paralleles', 'mots-colles', 'collection', 'renommage-mot', 'renommage-ecriture',
+  'faute', 'synonymes', 'abreviation', 'terminaison', 'pluriel', 'branches-paralleles', 'ecriture-proche', 'mots-colles', 'collection', 'renommage-mot', 'renommage-ecriture',
 ];
 
 export interface Passe { readonly systeme: Systeme; readonly chemins: ModeDeChemins; readonly collections: ModeDeCollections; readonly cle: string }
