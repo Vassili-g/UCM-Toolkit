@@ -24,6 +24,11 @@ const RAPPORTS = [
 ];
 // Les questions que le mainteneur a déjà tranchées, ou qu'il s'est réservées.
 const ETATS = { 'Q-F2-7': 'decidee', 'Q-F2-9': 'decidee', 'Q-F3-15': 'reservee' };
+// Les questions des écrans, toutes validées par le mainteneur (option B pour QM-1).
+const ECRANS_VALIDES = new Set(['QM-1', 'QM-2', 'QM-3', 'QM-4', 'QM-5', 'QM-6', 'QM-7', 'QM-10', 'QM-11']);
+// Un exemple concret par question, écrit dans exemples-v2.json : ce que le designer voit dans Figma, avant et après.
+const cheminDesExemples = path.join(ici, 'exemples-v2.json');
+const EXEMPLES = existsSync(cheminDesExemples) ? JSON.parse(readFileSync(cheminDesExemples, 'utf8')) : {};
 
 const cellules = (ligne) => ligne.replace(/^\|\s*/, '').replace(/\s*\|\s*$/, '').split(/\s*\|\s*/);
 
@@ -111,8 +116,11 @@ familles.push({
     ['QM-7', 'La bannière partielle liste-t-elle chaque cause ?', 'Oui, une ligne par cause, et jamais « N lus sur N ».'],
     ['QM-10', 'Les catégories du mode Tokens prennent-elles toutes la teinte tokens ?', 'Oui. La forme porte la catégorie, et les sept teintes restent aux éléments du mode Composant.'],
     ['QM-11', 'Les doublons R-1 à R-8 de la section 8 se corrigent-ils dans le plan de correction ?', 'Oui, en deux lots. Le premier change `signes.ts` du kit, le second fait lire le kit à Nomenclature.'],
-  ].map(([id, question, proposition]) => ({ id, question, proposition, etat: 'ouverte', ecarts: [], mesure: { cas: 0, ecarts: 0 } })),
+  ].map(([id, question, proposition]) => ({ id, question, proposition, etat: ECRANS_VALIDES.has(id) ? 'decidee' : 'ouverte', ecarts: [], mesure: { cas: 0, ecarts: 0 } })),
 });
+
+for (const famille of familles) for (const q of famille.questions) q.exemple = EXEMPLES[q.id] ?? '';
+const sansExemple = familles.flatMap((f) => f.questions).filter((q) => q.etat === 'ouverte' && !q.exemple).map((q) => q.id);
 
 const total = familles.reduce((s, f) => s + f.questions.length, 0);
 const ouvertes = familles.reduce((s, f) => s + f.questions.filter((q) => q.etat === 'ouverte').length, 0);
@@ -123,4 +131,5 @@ const page = gabarit
   .replace('<!--OUVERTES-->', String(ouvertes));
 writeFileSync(path.join(dossier, 'QUESTIONS-V2.html'), page);
 console.log(`QUESTIONS-V2.html : ${total} questions, ${ouvertes} ouvertes`);
+if (sansExemple.length) console.log(`Sans exemple : ${sansExemple.join(', ')}`);
 for (const f of familles) console.log(`  ${f.famille} : ${f.questions.length}, ${f.questions.reduce((s, q) => s + q.mesure.cas, 0)} cas mesure`);

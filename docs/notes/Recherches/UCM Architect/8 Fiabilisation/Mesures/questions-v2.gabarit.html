@@ -30,6 +30,8 @@
   .q-question { font-weight: 600; }
   .q-proposition { margin-top: 4px; }
   .q-proposition b { color: var(--second); font-weight: 600; }
+  .q-exemple { margin-top: 6px; padding: 6px 10px; border-left: 3px solid #2d5a85; background: #1a2430; border-radius: 4px; white-space: pre-line; }
+  .q-exemple b { color: var(--lien); font-weight: 600; }
   .q-mesure { margin-top: 4px; color: var(--second); font-size: 13px; }
   .reponse { display: flex; flex-wrap: wrap; gap: 6px 16px; align-items: center; margin-top: 8px; font-size: 13px; }
   .reponse textarea { flex: 1 1 100%; min-height: 44px; background: #141414; color: var(--texte); border: 1px solid var(--bordure); border-radius: 6px; padding: 6px 8px; font: inherit; font-size: 13px; }
@@ -92,6 +94,7 @@ function rendre() {
       carte.innerHTML = `
         <div class="q-tete"><span class="q-id">${q.id}</span>${ETATS[q.etat] ? `<span class="etat ${q.etat}">${ETATS[q.etat]}</span>` : ''}
           ${q.question ? `<span class="q-question">${enLigne(q.question)}</span>` : ''}</div>
+        ${q.exemple ? `<div class="q-exemple"><b>Exemple</b> ${enLigne(q.exemple)}</div>` : ''}
         <div class="q-proposition"><b>Proposition</b> ${enLigne(q.proposition)}</div>
         <div class="q-mesure">${mesureDe(q)}</div>
         ${q.etat === 'decidee' ? '' : `<div class="reponse">
