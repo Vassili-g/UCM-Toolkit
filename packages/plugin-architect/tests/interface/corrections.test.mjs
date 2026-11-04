@@ -29,6 +29,12 @@ async function ouvrirLePanneau(analyse = analyseCorrections, lecture = alertCorr
 /** Les cartes de corrections : celles qui ont une case, hors des constats à faire dans Figma. */
 const CARTES = '.liste .bloc:has(> .bloc-tete > input.case)';
 const cartes = (page) => page.locator(CARTES);
+/** Ouvre le panneau, puis coche tout par « Tout cocher » du pied : les corrections arrivent décochées. */
+async function ouvrirCoche(analyse, lecture) {
+  const page = await ouvrirLePanneau(analyse, lecture);
+  await page.locator('.corrections-pied .cocher-global').click();
+  return page;
+}
 const appliquerLaCarte = (page, element) => page.locator(`.section-element[data-element="${element}"] .appliquer-carte`).first();
 
 /** Les demandes de l'interface au sandbox : l'envoi se relève un instant après le geste. */
@@ -41,12 +47,18 @@ const texteDuPanneau = (page) => page.locator('.arch-laterale').innerText();
 const appliquer = (page) => page.locator('.corrections-pied .btn-primary');
 const pied = (page) => page.locator('.corrections-resume').innerText();
 
-test('quatre cartes rangées par élément, toutes cochées, et un pied qui compte layers et instances', async () => {
+test('quatre cartes arrivent décochées, rangées par élément, et « Tout cocher » les coche toutes avec un pied qui compte layers et instances', async () => {
   const page = await ouvrirLePanneau();
   try {
     assert.deepEqual(await page.locator('.section-element .titre').allTextContents(), ['Couleurs', 'Tailles et forme', 'Tokens du composant', 'Règles d’utilisation', 'Texte', 'Variants et layers', 'Accessibilité']);
     assert.equal(await page.locator('.onglets').count(), 0);
     assert.equal(await cartes(page).count(), 4);
+    assert.equal(await page.locator('input.case:checked').count(), 0);
+    assert.equal(await pied(page), 'Aucune correction cochée');
+    assert.equal(await appliquer(page).isDisabled(), true);
+    assert.equal(await page.locator('.section-element:has(input.case) > .section-actions').count(), 3);
+    assert.deepEqual(await page.locator('.section-actions').first().locator('.btn-texte').allTextContents(), ['Tout cocher', 'Tout décocher']);
+    await page.locator('.corrections-pied .cocher-global').click();
     assert.equal(await page.locator(`${CARTES} > .bloc-tete > input.case:checked`).count(), 4);
     assert.equal(await pied(page), '4 corrections cochées, 8 layers, 1 instance');
     assert.equal(await appliquer(page).isEnabled(), true);
@@ -55,7 +67,7 @@ test('quatre cartes rangées par élément, toutes cochées, et un pied qui comp
 });
 
 test('Appliquer sur une carte n’écrit que ses lignes cochées ; Appliquer tout écrit tout le coché, même ce que l’élément choisi cache', async () => {
-  const page = await ouvrirLePanneau();
+  const page = await ouvrirCoche();
   try {
     await appliquerLaCarte(page, 'tailles').click();
     const premiere = await demandes(page, 'appliquer-corrections');
@@ -73,7 +85,7 @@ test('Appliquer sur une carte n’écrit que ses lignes cochées ; Appliquer tou
 });
 
 test('Appliquer n’envoie que les corrections cochées, sous l’identité de l’analyse, et le pied se recompte', async () => {
-  const page = await ouvrirLePanneau();
+  const page = await ouvrirCoche();
   try {
     // La première carte est ouverte : sa première ligne, celle de l'icône, se décoche.
     await cartes(page).first().locator('.diff input.case').first().uncheck();
@@ -88,17 +100,17 @@ test('Appliquer n’envoie que les corrections cochées, sous l’identité de l
 });
 
 test('décocher une carte entière retire ses lignes du lot et rend le pied à « aucune »', async () => {
-  const page = await ouvrirLePanneau();
+  const page = await ouvrirCoche();
   try {
     for (const carte of await page.locator(`${CARTES} > .bloc-tete > input.case`).all()) await carte.uncheck();
-    assert.equal(await pied(page), 'Aucune correction cochée.');
+    assert.equal(await pied(page), 'Aucune correction cochée');
     assert.equal(await appliquer(page).isDisabled(), true);
     assert.deepEqual(await demandes(page, 'appliquer-corrections'), []);
   } finally { await terminer(page); }
 });
 
 test('la vue Composant montre en vert les liaisons cochées et les reprend quand on les décoche', async () => {
-  const page = await ouvrirLePanneau();
+  const page = await ouvrirCoche();
   try {
     const icone = page.locator("[data-focus^='ligne:components/alert/colors/info/standard/icon']");
     assert.match(await icone.innerText(), /colors\/success\/standard\/icon/);
@@ -109,7 +121,7 @@ test('la vue Composant montre en vert les liaisons cochées et les reprend quand
 });
 
 test('ouvrir une carte ne sélectionne rien ; Sélectionner, dans son corps, sélectionne ses layers et les entoure d’un trait de 1 px dans l’aperçu, jusqu’à la sélection suivante', async () => {
-  const page = await ouvrirLePanneau();
+  const page = await ouvrirCoche();
   try {
     assert.equal(await page.locator('.vc-cadre-selection').count(), 0);
     const premiere = cartes(page).first().locator('.bloc-bouton');
@@ -140,7 +152,7 @@ test('ouvrir une carte ne sélectionne rien ; Sélectionner, dans son corps, sé
 });
 
 test('« Ne plus proposer » range la proposition de chaque constat de la carte', async () => {
-  const page = await ouvrirLePanneau();
+  const page = await ouvrirCoche();
   try {
     const premiere = cartes(page).first().locator('.bloc-bouton');
     await premiere.click();
@@ -153,7 +165,7 @@ test('« Ne plus proposer » range la proposition de chaque constat de la carte'
 });
 
 test('pendant l’écriture, Appliquer est inactif et rien ne repart ; une réponse d’une autre analyse est ignorée', async () => {
-  const page = await ouvrirLePanneau();
+  const page = await ouvrirCoche();
   try {
     await appliquer(page).click();
     assert.match(await texteDuPanneau(page), /Écriture de 8 liaisons en cours\./);
@@ -166,7 +178,7 @@ test('pendant l’écriture, Appliquer est inactif et rien ne repart ; une répo
 });
 
 test('un plugin occupé rend la liste et un Appliquer actif, sans rien écrire', async () => {
-  const page = await ouvrirLePanneau();
+  const page = await ouvrirCoche();
   try {
     await appliquer(page).click();
     await envoyer(page, { type: 'occupe', analyse: IDENTITE });
@@ -177,7 +189,7 @@ test('un plugin occupé rend la liste et un Appliquer actif, sans rien écrire',
 });
 
 test('après l’écriture : la ligne de réussite et Ctrl+Z, puis, après un Ctrl+Z, plus que le constat du changement', async () => {
-  const page = await ouvrirLePanneau();
+  const page = await ouvrirCoche();
   try {
     await appliquer(page).click();
     await envoyer(page, lot);
@@ -199,7 +211,7 @@ test('après l’écriture : la ligne de réussite et Ctrl+Z, puis, après un Ct
 });
 
 test('les corrections sautées s’annoncent avec leur motif, dans la ligne de réussite du sandbox', async () => {
-  const page = await ouvrirLePanneau();
+  const page = await ouvrirCoche();
   try {
     await appliquer(page).click();
     const resume = '7 layers liés, 1 instance de règles créée. 1 correction sautée : 1 car le layer n’existe plus.';
@@ -210,7 +222,7 @@ test('les corrections sautées s’annoncent avec leur motif, dans la ligne de r
 });
 
 test('une carte de modèle copie les liaisons du variant affiché ; Appliquer envoie ses lignes', async () => {
-  const page = await ouvrirLePanneau(analyseModele, alertModele);
+  const page = await ouvrirCoche(analyseModele, alertModele);
   try {
     assert.match(await cartes(page).first().locator('.bloc-pile').innerText(), /Copier les liaisons de\s+Severity=info, Variant=standard/);
     assert.match(await cartes(page).first().locator('.meta').innerText(), /3 variants, 3 liaisons exactes, 3 cas dans Questions/);

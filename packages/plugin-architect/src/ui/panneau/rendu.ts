@@ -64,10 +64,12 @@ export interface OptionsDeSection {
   readonly basculer: (ouverte: boolean) => void;
   /** Ce que la section montre ouverte : ses cartes. */
   readonly corps: () => readonly HTMLElement[];
+  /** « Tout cocher » et « Tout décocher », sous la bande ; `null` quand la section n'a aucune case. */
+  readonly actions?: () => HTMLElement | null;
 }
 
 /** Une section : sa bande (signe, titre, nombre de points, chevron) et, ouverte, ses cartes. */
-export function creerSection(element: ElementDuPanneau, { ouverte, basculer, corps }: OptionsDeSection): HTMLElement {
+export function creerSection(element: ElementDuPanneau, { ouverte, basculer, corps, actions }: OptionsDeSection): HTMLElement {
   const section = document.createElement('div');
   section.className = 'section-element';
   section.dataset.element = element.id;
@@ -85,7 +87,11 @@ export function creerSection(element: ElementDuPanneau, { ouverte, basculer, cor
   bande.append(signeDeLElement(element.id, 24), titre, nombre, creerChevron());
   bande.addEventListener('click', () => basculer(!ouverte));
   section.append(bande);
-  if (ouverte) section.append(...corps());
+  if (ouverte) {
+    const gestes = actions?.();
+    if (gestes) section.append(gestes);
+    section.append(...corps());
+  }
   return section;
 }
 

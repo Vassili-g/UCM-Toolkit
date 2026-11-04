@@ -117,6 +117,7 @@ const lesIds = constatsAlert.flatMap((constat) => (constat.correction ? [constat
 
 /** Le composant lu, analysé, le panneau ouvert. */
 const panneauOuvert = [preferences(), etroite, choisir(alertCorrections), composant(alertCorrections), apercu(alertCorrections), { message: analyseCorrections }, { message: aucunIgnore }, { clic: '.bouton-panneau' }];
+const toutCocher = { clic: '.corrections-pied .cocher-global' };
 const appliquer = { clic: '.corrections-pied .btn-primary' };
 const lot = { type: 'corrections-appliquees', analyse: IDENTITE, ecrites: 9, sautees: [], resume: '8 layers liés, 1 instance de règles créée' };
 const perime = (cause) => ({ message: { type: 'perime', analyse: IDENTITE, cause } });
@@ -124,7 +125,7 @@ const perime = (cause) => ({ message: { type: 'perime', analyse: IDENTITE, cause
 const ETATS = [
   {
     id: 'c-corrections', titre: 'Corrections du composant', quand: 'Alert est analysé : 24 constats, dont 9 portent une correction ; le designer ouvre le panneau.',
-    regarder: 'Le sommaire : Tout, Couleurs 18, Tailles et forme 2, Tokens du composant 3, Règles d’utilisation 1 ; Couleurs repliée, les autres sections ouvertes ; chaque carte de correction a son Appliquer ; Texte tenu, la coche seule ; le pied compte 4 corrections, 8 layers et 1 instance, et propose Appliquer tout.',
+    regarder: 'Le sommaire : Tout, Couleurs 18, Tailles et forme 2, Tokens du composant 3, Règles d’utilisation 1 ; Couleurs repliée, les autres sections ouvertes ; chaque carte de correction a son Appliquer ; Texte tenu, la coche seule ; aucune case n’est cochée ; chaque section qui a des cases porte « Tout cocher » et « Tout décocher » sous sa bande ; le pied dit « Aucune correction cochée », « Tout cocher » est à gauche d’Appliquer tout, qui est inactif.',
     existe: true, atteinte: [preferences(), etroite, choisir(alertTexteSuccess), composant(alertTexteSuccess), apercu(alertTexteSuccess), ...panneauOuvert.slice(5)],
   },
   {
@@ -144,7 +145,7 @@ const ETATS = [
   },
   {
     id: 'c-carte-modele-proposee', titre: 'Après « Proposer les liaisons »', quand: 'Le designer clique « Proposer les liaisons » : le sandbox calcule sans rien écrire, puis rend les corrections du modèle et les deux cartes qu’elles remplacent.',
-    regarder: 'Les deux cartes du modèle ont quitté le panneau ; Couleurs reste ouverte et porte la carte « Copier les liaisons de » avec ses lignes cochées et son Appliquer ; Tailles et forme n’a plus de point et passe en section tenue.',
+    regarder: 'Les deux cartes du modèle ont quitté le panneau ; Couleurs reste ouverte et porte la carte « Copier les liaisons de » avec ses lignes décochées et son Appliquer ; Tailles et forme n’a plus de point et passe en section tenue.',
     existe: true, atteinte: [...panneauDuModele(analyseCarteDuModele), proposer, { message: modeleProposeApresLaCarte }],
   },
   {
@@ -158,30 +159,30 @@ const ETATS = [
     existe: true, atteinte: [preferences(), etroite, choisir(alertTexteSuccess), composant(alertTexteSuccess), apercu(alertTexteSuccess), ...panneauOuvert.slice(5), { clic: '.puce-element[data-element="couleurs"]' }, { clic: '.bloc-bouton' }, { clic: '.bloc-bouton' }],
   },
   {
-    id: 'c-apres', titre: 'Après Appliquer', quand: 'Le designer applique les 4 corrections : le sandbox écrit, rend la ligne de réussite, puis périme l’analyse.',
+    id: 'c-apres', titre: 'Après Appliquer', quand: 'Le designer coche tout, puis applique les 4 corrections : le sandbox écrit, rend la ligne de réussite, puis périme l’analyse.',
     regarder: 'L’alerte « Le composant a changé depuis l’analyse » ; la ligne de réussite avec « Ctrl+Z dans Figma défait ce lot. » ; ni sommaire ni section tant que l’analyse est périmée.',
-    existe: true, atteinte: [...panneauOuvert, appliquer, { message: lot }, perime('ecriture')],
+    existe: true, atteinte: [...panneauOuvert, toutCocher, appliquer, { message: lot }, perime('ecriture')],
   },
   {
     id: 'c-ctrlz', titre: 'Après un Ctrl+Z', quand: 'Le designer défait le lot dans Figma : le document change, l’analyse reste périmée.',
     regarder: 'L’alerte du composant changé ; plus de ligne de réussite : « Les constats datent d’avant le changement. » ; rien ne se relance avant Actualiser ou Analyser.',
-    existe: true, atteinte: [...panneauOuvert, appliquer, { message: lot }, perime('ecriture'), perime('document')],
+    existe: true, atteinte: [...panneauOuvert, toutCocher, appliquer, { message: lot }, perime('ecriture'), perime('document')],
   },
   {
-    id: 'e-ecriture', titre: 'Écriture en cours', quand: 'Le designer clique Appliquer ; le sandbox n’a pas encore répondu.',
+    id: 'e-ecriture', titre: 'Écriture en cours', quand: 'Le designer coche tout, puis clique Appliquer tout ; le sandbox n’a pas encore répondu.',
     regarder: '« Écriture de 8 liaisons en cours. » à la place de la liste ; le pied garde son décompte, Appliquer tout est inactif.',
-    existe: true, atteinte: [...panneauOuvert, appliquer],
+    existe: true, atteinte: [...panneauOuvert, toutCocher, appliquer],
   },
   {
-    id: 'analyse-occupee', titre: 'Écriture refusée, le plugin est occupé', quand: 'Le designer clique Appliquer pendant une autre opération : le sandbox répond « occupé ».',
+    id: 'analyse-occupee', titre: 'Écriture refusée, le plugin est occupé', quand: 'Le designer coche tout, puis clique Appliquer tout pendant une autre opération : le sandbox répond « occupé ».',
     regarder: 'La liste des corrections revient telle qu’elle était, Appliquer redevient actif ; rien n’a été écrit.',
-    existe: true, atteinte: [...panneauOuvert, appliquer, { message: { type: 'occupe', analyse: IDENTITE } }],
+    existe: true, atteinte: [...panneauOuvert, toutCocher, appliquer, { message: { type: 'occupe', analyse: IDENTITE } }],
   },
   {
     id: 'corrections-sautees', titre: 'Corrections sautées', quand: 'Le sandbox écrit 8 corrections sur 9 et en saute une : le layer a disparu.',
     regarder: 'La ligne de réussite compte la correction sautée et dit pourquoi ; la carte qui la portait reste à appliquer.',
     existe: true,
-    atteinte: [...panneauOuvert, appliquer, { message: { type: 'corrections-appliquees', analyse: IDENTITE, ecrites: 8, sautees: [{ id: 'cor:icon', motif: 'layer-absent' }], resume: '7 layers liés, 1 instance de règles créée. 1 correction sautée : 1 car le layer n’existe plus.' } }, perime('ecriture')],
+    atteinte: [...panneauOuvert, toutCocher, appliquer, { message: { type: 'corrections-appliquees', analyse: IDENTITE, ecrites: 8, sautees: [{ id: 'cor:icon', motif: 'layer-absent' }], resume: '7 layers liés, 1 instance de règles créée. 1 correction sautée : 1 car le layer n’existe plus.' } }, perime('ecriture')],
   },
 ].map((etat) => ({ ...etat, disposition: 'etroite' }));
 

@@ -63,6 +63,13 @@ const nombre = (element: ElementDeTest): string => comme(element.querySelector('
 const pied = (banc: Banc): ElementDeTest => comme(banc.racine.querySelector('.corrections-pied'));
 const boutonDePied = (banc: Banc): ElementDeTest => comme(pied(banc).querySelector('.btn-primary'));
 const boutonsDeCartes = (racine: ElementDeTest): ElementDeTest[] => racine.querySelectorAll('.appliquer-carte');
+const toutCocherGlobal = (banc: Banc): ElementDeTest => comme(pied(banc).querySelector('.cocher-global'));
+/** Monte le panneau, puis coche tout par le bouton global du pied : les corrections arrivent décochées. */
+function monterCoche(): Banc {
+  const banc = monter();
+  toutCocherGlobal(banc).clic();
+  return banc;
+}
 const choisir = (banc: Banc, id: string): void => {
   puceDe(banc, id).clic();
 };
@@ -146,7 +153,7 @@ test('un clic sur la bande bascule la section, et le choix survit à une nouvell
 test('dans une section : les cartes de corrections, puis les questions, puis ce qui reste à faire dans Figma', () => {
   const banc = monter();
   bande(sectionDe(banc, 'couleurs')).clic();
-  const enfants = sectionDe(banc, 'couleurs').children.slice(1);
+  const enfants = sectionDe(banc, 'couleurs').children.slice(1).filter((enfant) => !enfant.classes.has('section-actions'));
   const genre = (enfant: ElementDeTest): string => (enfant.classes.has('question') ? 'question' : enfant.classes.has('bloc-constat') ? 'a-faire' : 'correction');
   const lecture = enfants.map(genre);
   assert.deepEqual([...new Set(lecture)], ['correction', 'question', 'a-faire']);
@@ -226,7 +233,7 @@ test('le résumé donne le nombre de points', () => {
 });
 
 test('Appliquer sur une carte n’envoie que les lignes cochées de cette carte', () => {
-  const banc = monter();
+  const banc = monterCoche();
   const tailles = sectionDe(banc, 'tailles');
   assert.equal(boutonsDeCartes(tailles).length, 1);
   boutonsDeCartes(tailles)[0].clic();
@@ -239,18 +246,21 @@ test('Appliquer sur une carte n’envoie que les lignes cochées de cette carte'
 });
 
 test('Appliquer sur la carte des règles n’envoie que l’instance de règles, sans compter de liaison', () => {
-  const banc = monter();
+  const banc = monterCoche();
   boutonsDeCartes(sectionDe(banc, 'regles'))[0].clic();
   assert.deepEqual(banc.envois.appliquer, [{ ids: ['cor:regles'], liaisons: 0 }]);
 });
 
-test('Appliquer d’une carte est inactif quand rien n’y est coché, sans toucher aux autres cartes', () => {
+test('Appliquer d’une carte est inactif tant que rien n’y est coché, sans toucher aux autres cartes', () => {
   const banc = monter();
   const tailles = sectionDe(banc, 'tailles');
+  assert.equal(boutonsDeCartes(tailles)[0].disabled, true);
   const carte = comme(tailles.querySelector('.bloc'));
   comme(carte.querySelector('.bloc-tete input')).clic();
+  assert.equal(boutonsDeCartes(tailles)[0].disabled, false);
+  comme(carte.querySelector('.bloc-tete input')).clic();
   assert.equal(boutonsDeCartes(tailles)[0].disabled, true);
-  assert.equal(boutonsDeCartes(sectionDe(banc, 'regles'))[0].disabled, false);
+  assert.equal(boutonsDeCartes(sectionDe(banc, 'regles'))[0].disabled, true);
   boutonsDeCartes(tailles)[0].clic();
   assert.deepEqual(banc.envois.appliquer, []);
 });
@@ -283,7 +293,7 @@ test('le chevron d’une carte est un bouton qui déplie comme la phrase, sous a
 });
 
 test('« Appliquer tout » envoie toutes les corrections cochées, de tous les éléments', () => {
-  const banc = monter();
+  const banc = monterCoche();
   assert.equal(boutonDePied(banc).textContent, 'Appliquer tout');
   boutonDePied(banc).clic();
   assert.equal(banc.envois.appliquer.length, 1);
@@ -292,7 +302,7 @@ test('« Appliquer tout » envoie toutes les corrections cochées, de tous les �
 });
 
 test('« Appliquer tout » écrit aussi ce que l’élément choisi ne montre pas, et le résumé le dit', () => {
-  const banc = monter();
+  const banc = monterCoche();
   choisir(banc, 'tailles');
   const resume = comme(pied(banc).querySelector('.corrections-resume'));
   assert.match(resume.textContent, /^4 corrections cochées, dont 1 dans Tailles et forme/);
@@ -302,7 +312,7 @@ test('« Appliquer tout » écrit aussi ce que l’élément choisi ne montre pa
 });
 
 test('le résumé ne parle de part cachée que si une carte cochée n’est pas visible', () => {
-  const banc = monter();
+  const banc = monterCoche();
   assert.doesNotMatch(comme(pied(banc).querySelector('.corrections-resume')).textContent, /dont/);
   choisir(banc, 'couleurs');
   assert.match(comme(pied(banc).querySelector('.corrections-resume')).textContent, /^4 corrections cochées, dont 2 dans Couleurs/);
@@ -317,7 +327,7 @@ test('le résumé ne parle de part cachée que si une carte cochée n’est pas 
 });
 
 test('un élément sans carte cochée visible dit « aucune », jamais « dont 0 »', () => {
-  const banc = monter();
+  const banc = monterCoche();
   choisir(banc, 'tokens');
   const texte = comme(pied(banc).querySelector('.corrections-resume')).textContent;
   assert.match(texte, /^4 corrections cochées, aucune dans Tokens du composant/);
@@ -325,7 +335,7 @@ test('un élément sans carte cochée visible dit « aucune », jamais « dont 0
 });
 
 test('une case décochée dans une vue reste décochée dans l’autre', () => {
-  const banc = monter();
+  const banc = monterCoche();
   choisir(banc, 'regles');
   comme(sectionDe(banc, 'regles').querySelector('.bloc-tete input')).clic();
   choisir(banc, 'tout');
@@ -334,13 +344,13 @@ test('une case décochée dans une vue reste décochée dans l’autre', () => {
 });
 
 test('le pied se recompte quand une case change et « Appliquer tout » s’éteint à zéro', () => {
-  const banc = monter();
+  const banc = monterCoche();
   for (const id of ['tailles', 'regles']) {
     comme(sectionDe(banc, id).querySelector('.bloc-tete input')).clic();
   }
   bande(sectionDe(banc, 'couleurs')).clic();
   for (const carte of sectionDe(banc, 'couleurs').querySelectorAll('.bloc').filter((candidate) => candidate.querySelector('.bloc-tete input'))) comme(carte.querySelector('.bloc-tete input')).clic();
-  assert.equal(comme(pied(banc).querySelector('.corrections-resume')).textContent, 'Aucune correction cochée.');
+  assert.equal(comme(pied(banc).querySelector('.corrections-resume')).textContent, 'Aucune correction cochée');
   assert.equal(boutonDePied(banc).disabled, true);
 });
 
@@ -393,6 +403,7 @@ test('les liaisons d’une préparation sont une carte de corrections de « Toke
   const correction = { id: 'prep:1', sorte: 'liaison' as const, cible: { layer: 'alert:l:gauche', champ: 'paddingLeft' }, avant: null, apres: { nom: 'alert/sizes/padding-x' }, aRelire: { regle: 'r', avant: null } };
   const banc = monter([], { liaisons: { preparation: 'p', corrections: [correction], enAttente: [] } });
   assert.deepEqual(puces(banc).map((puce) => puce.dataset.element), ['tout', 'tokens']);
+  toutCocherGlobal(banc).clic();
   const tokens = sectionDe(banc, 'tokens');
   assert.match(comme(tokens.querySelector('.bloc-phrase')).textContent, /^Lier les layers de Alert à leurs tokens/);
   boutonsDeCartes(tokens)[0].clic();
@@ -634,4 +645,57 @@ test('un constat info déjà ignoré n’apparaît pas sous « Ignorés »', () 
   const banc = monter(constatsAlert, { tous: [...constatsAlert, ...infos], ignores: [infos[0].id] });
   assert.equal(banc.racine.querySelectorAll('.intertitre-structure').length, 0);
   assert.equal(banc.racine.querySelector('.section-informations'), null);
+});
+
+const casesDe = (racine: ElementDeTest): ElementDeTest[] => racine.querySelectorAll('input.case');
+const boutonsTexte = (racine: ElementDeTest): string[] => textes(racine.querySelectorAll('.section-actions .btn-texte'));
+
+test('à l’arrivée aucune case n’est cochée, le pied le dit et Appliquer tout est inactif', () => {
+  const banc = monter();
+  const cases = casesDe(banc.racine);
+  assert.equal(cases.length > 0, true);
+  assert.equal(cases.filter((element) => element.checked).length, 0);
+  assert.equal(cases.filter((element) => element.indeterminate).length, 0);
+  assert.equal(comme(pied(banc).querySelector('.corrections-resume')).textContent, 'Aucune correction cochée');
+  assert.equal(boutonDePied(banc).disabled, true);
+  boutonDePied(banc).clic();
+  assert.deepEqual(banc.envois.appliquer, []);
+});
+
+test('chaque section qui a des cases porte Tout cocher et Tout décocher sous sa bande ; les autres n’en ont pas', () => {
+  const banc = monter();
+  bande(sectionDe(banc, 'couleurs')).clic();
+  for (const id of ['couleurs', 'tailles', 'regles']) {
+    const section = sectionDe(banc, id);
+    assert.deepEqual(boutonsTexte(section), ['Tout cocher', 'Tout décocher'], id);
+    assert.equal(section.children.indexOf(comme(section.querySelector('.section-actions'))), 1, id);
+  }
+  // La section Tokens n'a que des constats à faire dans Figma : aucune case.
+  assert.equal(sectionDe(banc, 'tokens').querySelector('.section-actions'), null);
+  assert.equal(sectionDe(banc, 'texte').querySelector('.section-actions'), null);
+});
+
+test('« Tout cocher » d’une section ne coche que ses cases, « Tout décocher » les vide', () => {
+  const banc = monter();
+  const tailles = sectionDe(banc, 'tailles');
+  comme(tailles.querySelectorAll('.section-actions .btn-texte')[0]).clic();
+  assert.equal(casesDe(tailles).every((element) => element.checked), true);
+  assert.equal(casesDe(sectionDe(banc, 'regles')).some((element) => element.checked), false);
+  assert.match(comme(pied(banc).querySelector('.corrections-resume')).textContent, /^1 correction cochée/);
+  boutonDePied(banc).clic();
+  assert.deepEqual([...banc.envois.appliquer[0].ids].sort(), ['cor:padding-x', 'cor:padding-y']);
+  comme(sectionDe(banc, 'tailles').querySelectorAll('.section-actions .btn-texte')[1]).clic();
+  assert.equal(casesDe(sectionDe(banc, 'tailles')).some((element) => element.checked), false);
+  assert.equal(comme(pied(banc).querySelector('.corrections-resume')).textContent, 'Aucune correction cochée');
+  assert.equal(boutonDePied(banc).disabled, true);
+});
+
+test('« Tout cocher » du pied coche toutes les corrections du panneau, même celles que la vue cache', () => {
+  const banc = monter();
+  choisir(banc, 'tailles');
+  toutCocherGlobal(banc).clic();
+  assert.match(comme(pied(banc).querySelector('.corrections-resume')).textContent, /^4 corrections cochées, dont 1 dans Tailles et forme/);
+  assert.equal(boutonDePied(banc).disabled, false);
+  choisir(banc, 'tout');
+  assert.equal(casesDe(banc.racine).filter((element) => !element.checked).length, 0);
 });

@@ -349,6 +349,7 @@ export function monterLePanneau(app: Application, vue: VueComposant, options: Op
           for (const section of Array.from(listeHote.querySelectorAll<HTMLElement>('.section-element'))) if (section.dataset.element === element.id) section.querySelector<HTMLElement>('.bande-element')?.focus();
         },
         corps: () => cartesDe(aMontrer),
+        actions: () => corrections.actionsDeSection(correctionsDe(aMontrer)),
       });
     });
     const cartesEnTete = tout ? cartesDe(panneau.enTete) : [];

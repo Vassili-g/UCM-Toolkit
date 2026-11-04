@@ -69,6 +69,8 @@ export interface Corrections {
   cartes(cartes: readonly CarteDeCorrections[]): HTMLElement[];
   /** Le pied : le résumé de ce qui est coché dans tout le panneau, et « Appliquer tout ». `visible` dit la part que la vue montre, quand elle n'est pas entière. */
   pied(visible: PartVisible | null, inactif?: boolean): HTMLElement;
+  /** « Tout cocher » et « Tout décocher » d'une section, ou `null` quand ses cartes n'ont aucune case. */
+  actionsDeSection(cartes: readonly CarteDeCorrections[]): HTMLElement | null;
   /** Les liaisons que les corrections cochées vont changer. */
   liaisonsAVenir(): readonly LiaisonAVenir[];
   /** Ouvre la carte qui change ces layers ; rend la carte, ou `null` quand aucune ne les change. Le panneau se redessine ensuite. */
@@ -158,7 +160,7 @@ const ecritLaLigne = (ligne: LigneDeCarte): boolean => ligne.correction.sorte ==
 export function monterLesCorrections(options: OptionsDesCorrections): Corrections {
   let entree: EntreeDesCorrections | null = null;
   let identite = '';
-  const decochees = new Set<string>();
+  const cochees = new Set<string>();
   const ouvertes = new Map<string, boolean>();
   let cible: string | null = null;
   let derniereAVenir = '';
@@ -169,7 +171,7 @@ export function monterLesCorrections(options: OptionsDesCorrections): Correction
 
   const cartesDuPanneau = (): readonly CarteDeCorrections[] => entree?.cartes ?? [];
   const jeuDuComposant = (): readonly VariantDuJeu[] => entree?.contexte.variants ?? [];
-  const cochee = (ligne: LigneDeCarte): boolean => !decochees.has(ligne.id);
+  const cochee = (ligne: LigneDeCarte): boolean => cochees.has(ligne.id);
   const lignesCochees = (cartes: readonly CarteDeCorrections[] = cartesDuPanneau()): LigneDeCarte[] => cartes.flatMap((carte) => carte.lignes.filter(cochee));
   /** Seule une analyse finale non périmée laisse cocher, appliquer ou écarter ; replier et déplier restent permis. */
   const applicable = (): boolean => analyseApplicable(entree?.analyse ?? null);
@@ -181,13 +183,32 @@ export function monterLesCorrections(options: OptionsDesCorrections): Correction
     options.appliquer(aEcrire.map((ligne) => ligne.id), aEcrire.filter((ligne) => ligne.correction.sorte === 'liaison').length);
   }
 
+  function boutonTexte(libelle: string, inactif: boolean, auClic: () => void): HTMLButtonElement {
+    const bouton = document.createElement('button');
+    bouton.type = 'button';
+    bouton.className = 'btn-texte';
+    bouton.textContent = libelle;
+    bouton.disabled = inactif;
+    bouton.addEventListener('click', auClic);
+    return bouton;
+  }
+
+  /** Coche ou décoche toutes les lignes de ces cartes, puis recompte. */
+  function poserLesCases(cartes: readonly CarteDeCorrections[], coche: boolean): void {
+    for (const ligne of cartes.flatMap((carte) => carte.lignes)) {
+      if (coche) cochees.add(ligne.id);
+      else cochees.delete(ligne.id);
+    }
+    rafraichir();
+  }
+
   function creerLePied(visible: PartVisible | null, inactif: boolean): HTMLElement {
     const element = document.createElement('div');
     element.className = 'corrections-pied';
     const resume = document.createElement('span');
     resume.className = 'corrections-resume';
-    const cochees = lignesCochees();
-    if (cochees.length === 0) resume.textContent = T.aucuneCochee;
+    const lignes = lignesCochees();
+    if (lignes.length === 0) resume.textContent = T.aucuneCochee;
     else {
       const cartesCochees = cartesDuPanneau().filter((carte) => carte.lignes.some(cochee));
       const sorte = (ligne: LigneDeCarte): string => ligne.correction.sorte;
@@ -196,12 +217,12 @@ export function monterLesCorrections(options: OptionsDesCorrections): Correction
         ? { dans: cartesCochees.filter((carte) => cles.has(carte.cle)).length, element: visible.element }
         : null;
       const texte = cartesCochees.every((carte) => carte.origine !== 'constats')
-        ? T.piedDeLaCopie(cochees.length, cachees)
+        ? T.piedDeLaCopie(lignes.length, cachees)
         : T.pied(
           cartesCochees.length,
-          new Set(cochees.filter((ligne) => sorte(ligne) === 'liaison').map((ligne) => ligne.correction.cible.layer)).size,
-          cochees.filter((ligne) => sorte(ligne) === 'regles').length,
-          cochees.filter((ligne) => sorte(ligne) === 'nom-de-valeur').length,
+          new Set(lignes.filter((ligne) => sorte(ligne) === 'liaison').map((ligne) => ligne.correction.cible.layer)).size,
+          lignes.filter((ligne) => sorte(ligne) === 'regles').length,
+          lignes.filter((ligne) => sorte(ligne) === 'nom-de-valeur').length,
           cachees,
         );
       const gras = document.createElement('b');
@@ -210,10 +231,12 @@ export function monterLesCorrections(options: OptionsDesCorrections): Correction
     }
     const appliquer = createButton({
       label: T.appliquerTout,
-      disabled: inactif || !applicable() || cochees.length === 0,
+      disabled: inactif || !applicable() || lignes.length === 0,
       onClick: () => ecrire(lignesCochees()),
     });
-    element.append(resume, appliquer);
+    const toutCocher = boutonTexte(T.toutCocher, inactif || !applicable(), () => poserLesCases(cartesDuPanneau(), true));
+    toutCocher.classList.add('cocher-global');
+    element.append(resume, toutCocher, appliquer);
     piedPose = { element, visible, inactif };
     return element;
   }
@@ -321,16 +344,16 @@ export function monterLesCorrections(options: OptionsDesCorrections): Correction
         morceau(null, T.existe),
       ],
     );
-    const cochee = groupe.ids.every((id) => !decochees.has(id));
-    const diff = creerLigneDeDiff(avant, apres, { coche: cochee });
+    const toutes = groupe.ids.every((id) => cochees.has(id));
+    const diff = creerLigneDeDiff(avant, apres, { coche: toutes });
     diff.classList.add('ligne-de-taille');
     const caseACocher = diff.querySelector('input') as HTMLInputElement;
     caseACocher.setAttribute('aria-label', TEXTES.caseDeCorrection(groupe.apres));
     caseACocher.disabled = !applicable();
     caseACocher.addEventListener('change', () => {
       for (const id of groupe.ids) {
-        if (caseACocher.checked) decochees.delete(id);
-        else decochees.add(id);
+        if (caseACocher.checked) cochees.add(id);
+        else cochees.delete(id);
       }
       rafraichir();
     });
@@ -352,8 +375,8 @@ export function monterLesCorrections(options: OptionsDesCorrections): Correction
       caseACocher.setAttribute('aria-label', TEXTES.caseDeCorrection(ligne.apres));
       caseACocher.disabled = !applicable();
       caseACocher.addEventListener('change', () => {
-        if (caseACocher.checked) decochees.delete(ligne.id);
-        else decochees.add(ligne.id);
+        if (caseACocher.checked) cochees.add(ligne.id);
+        else cochees.delete(ligne.id);
         rafraichir();
       });
       casesDeLignes.set(ligne.id, caseACocher);
@@ -393,14 +416,14 @@ export function monterLesCorrections(options: OptionsDesCorrections): Correction
       element.type = 'checkbox';
       element.className = 'case';
       element.setAttribute('aria-label', TEXTES.caseDeCarte(carte.lignes[0].apres));
-      const cochees = ids.filter((id) => !decochees.has(id)).length;
-      element.checked = cochees === ids.length;
-      element.indeterminate = cochees > 0 && cochees < ids.length;
+      const nombre = ids.filter((id) => cochees.has(id)).length;
+      element.checked = nombre === ids.length;
+      element.indeterminate = nombre > 0 && nombre < ids.length;
       element.disabled = !applicable();
       element.addEventListener('change', () => {
         for (const id of ids) {
-          if (element.checked) decochees.delete(id);
-          else decochees.add(id);
+          if (element.checked) cochees.add(id);
+          else cochees.delete(id);
         }
         rafraichir();
       });
@@ -435,9 +458,9 @@ export function monterLesCorrections(options: OptionsDesCorrections): Correction
 
   /** Reflète les cases dans les lignes et les cartes, puis recompte le pied. */
   function rafraichir(): void {
-    for (const [id, caseACocher] of casesDeLignes) caseACocher.checked = !decochees.has(id);
+    for (const [id, caseACocher] of casesDeLignes) caseACocher.checked = cochees.has(id);
     for (const { element, ids } of casesDeCartes) {
-      const nombre = ids.filter((id) => !decochees.has(id)).length;
+      const nombre = ids.filter((id) => cochees.has(id)).length;
       element.checked = nombre === ids.length;
       element.indeterminate = nombre > 0 && nombre < ids.length;
     }
@@ -469,7 +492,7 @@ export function monterLesCorrections(options: OptionsDesCorrections): Correction
       const nouvelle = `${suivante.analyse.identite.sujet}:${suivante.analyse.identite.generation}`;
       if (nouvelle !== identite) {
         identite = nouvelle;
-        decochees.clear();
+        cochees.clear();
         ouvertes.clear();
         cible = null;
       }
@@ -484,6 +507,16 @@ export function monterLesCorrections(options: OptionsDesCorrections): Correction
     },
     cartes: (cartes) => cartes.map(creerLaCarte),
     pied: (visible, inactif = false) => creerLePied(visible, inactif),
+    actionsDeSection(cartes) {
+      if (!cartes.some((carte) => carte.lignes.length > 0)) return null;
+      const element = document.createElement('div');
+      element.className = 'section-actions';
+      element.append(
+        boutonTexte(T.toutCocher, !applicable(), () => poserLesCases(cartes, true)),
+        boutonTexte(T.toutDecocher, !applicable(), () => poserLesCases(cartes, false)),
+      );
+      return element;
+    },
     liaisonsAVenir,
     ouvrirPourLesCalques(calques) {
       const carte = cartesDuPanneau().find((candidate) => candidate.lignes.some((ligne) => ligne.correction.cible.layer !== undefined && calques.includes(ligne.correction.cible.layer)));

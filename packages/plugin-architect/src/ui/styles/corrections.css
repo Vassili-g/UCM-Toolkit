@@ -22,7 +22,20 @@
 }
 
 .corrections-resume {
+  margin-right: auto;
   color: var(--texte-second);
+}
+
+/* « Tout cocher » du pied reste à gauche d'Appliquer tout. */
+.corrections-pied .cocher-global {
+  flex: none;
+}
+
+/* « Tout cocher » et « Tout décocher » : sous la bande d'une section, alignés à gauche. */
+.section-actions {
+  display: flex;
+  align-items: center;
+  gap: var(--espace-serre);
 }
 
 .corrections-resume b {
