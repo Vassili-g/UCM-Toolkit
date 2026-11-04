@@ -5,6 +5,7 @@
 import { existsSync, readFileSync, writeFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import path from 'node:path';
+import { PREMIERES_REPONSES, REPONSES, TOUR_2 } from './reponses-v2.mjs';
 
 const ici = path.dirname(fileURLToPath(import.meta.url));
 const dossier = path.resolve(ici, '..');
@@ -119,7 +120,18 @@ familles.push({
   ].map(([id, question, proposition]) => ({ id, question, proposition, etat: ECRANS_VALIDES.has(id) ? 'decidee' : 'ouverte', ecarts: [], mesure: { cas: 0, ecarts: 0 } })),
 });
 
-for (const famille of familles) for (const q of famille.questions) q.exemple = EXEMPLES[q.id] ?? '';
+// Une réponse du mainteneur archive la question avec sa décision. Une question du tour 2 se réécrit et reste ouverte.
+for (const famille of familles) for (const q of famille.questions) {
+  q.exemple = EXEMPLES[q.id] ?? '';
+  if (q.etat === 'decidee' && ECRANS_VALIDES.has(q.id)) q.reponse = 'Validée sur la maquette.';
+  const reecrite = TOUR_2[q.id];
+  if (reecrite) {
+    Object.assign(q, { questionInitiale: q.question, ...reecrite, etat: 'ouverte', tour: 2, reponse: PREMIERES_REPONSES[q.id] ?? '' });
+    continue;
+  }
+  const r = REPONSES[q.id];
+  if (r) Object.assign(q, { etat: 'decidee', reponse: r.reponse, decision: r.decision ?? q.proposition });
+}
 const sansExemple = familles.flatMap((f) => f.questions).filter((q) => q.etat === 'ouverte' && !q.exemple).map((q) => q.id);
 
 const total = familles.reduce((s, f) => s + f.questions.length, 0);

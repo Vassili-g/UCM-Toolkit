@@ -35,6 +35,24 @@
   .q-mesure { margin-top: 4px; color: var(--second); font-size: 13px; }
   .reponse { display: flex; flex-wrap: wrap; gap: 6px 16px; align-items: center; margin-top: 8px; font-size: 13px; }
   .reponse textarea { flex: 1 1 100%; min-height: 44px; background: #141414; color: var(--texte); border: 1px solid var(--bordure); border-radius: 6px; padding: 6px 8px; font: inherit; font-size: 13px; }
+  .q-explication { margin-top: 6px; white-space: pre-line; }
+  .q-initiale, .q-tour1, .second { color: var(--second); font-size: 13px; }
+  .q-options { margin: 6px 0 0; padding-left: 18px; }
+  .q-options li { margin: 2px 0; }
+  .q-decision { margin-top: 4px; }
+  .q-decision b { color: var(--vert); font-weight: 600; }
+  .mini { display: flex; flex-wrap: wrap; gap: 14px; margin-top: 8px; padding: 10px 12px; background: #141414; border: 1px solid var(--bordure); border-radius: 6px; font-size: 12.5px; }
+  .mini .col { flex: 1 1 220px; min-width: 0; }
+  .mini .titre { margin-bottom: 4px; color: var(--second); font-size: 11.5px; font-weight: 600; }
+  .mini .n0 { padding: 1px 0; } .mini .n1 { padding: 1px 0 1px 14px; } .mini .n2 { padding: 1px 0 1px 28px; }
+  .mini .ok { color: var(--vert); font-weight: 700; } .mini .ko { color: #f5a3a3; font-weight: 700; }
+  .pastille { display: inline-block; width: 10px; height: 10px; margin: 0 2px; border-radius: 2px; vertical-align: middle; border: 1px solid #0004; }
+  .bouton-demo { display: inline-block; padding: 5px 14px; border-radius: 6px; font-weight: 600; }
+  .carte-demo { margin-bottom: 4px; padding: 8px 10px; border: 1px solid var(--bordure); border-radius: 6px; }
+  .archive { margin-top: 40px; border-top: 1px solid var(--bordure); padding-top: 12px; }
+  .archive > summary { cursor: pointer; font-size: 18px; font-weight: 700; }
+  .archive h2 { font-size: 15px; margin-top: 24px; }
+  .archive .q { padding: 8px 12px; }
   .export { width: 100%; min-height: 160px; margin-top: 12px; background: #141414; color: var(--texte); border: 1px solid var(--bordure); border-radius: 6px; font: 12px Consolas, monospace; }
   [hidden] { display: none !important; }
 </style>
@@ -42,8 +60,8 @@
 <body>
 <main>
   <h1>Questions V2 d'Architect</h1>
-  <p class="intro"><!--TOTAL--> questions, dont <!--OUVERTES--> ouvertes. Chaque proposition vaut décision provisoire, et les harnais
-  comptent à part les cas qui en dépendent. Une question sans cas en attente se tranche sur le texte du plan.
+  <p class="intro"><!--TOTAL--> questions, dont <!--OUVERTES--> ouvertes. Les questions ouvertes sont celles du tour 2, réécrites
+  avec une explication et une mini-maquette. Les questions tranchées sont rangées en bas de la page, avec la décision retenue.
   Les écarts cités sont dans <a href="./MESURE-DES-FAILLES.md">MESURE-DES-FAILLES.md</a>, les écrans dans
   <a href="./MAQUETTE-FIABILISATION.html">MAQUETTE-FIABILISATION.html</a>.</p>
   <p class="intro">Choisissez « D'accord » ou écrivez votre réponse. Les réponses restent dans ce navigateur.
@@ -60,7 +78,7 @@
 </main>
 <script>
 /*DONNEES*/
-const CLE = 'architect-questions-v2';
+const CLE = 'architect-questions-v2-tour2';
 let reponses = {};
 try { reponses = JSON.parse(localStorage.getItem(CLE) || '{}'); } catch { reponses = {}; }
 const enregistrer = () => { try { localStorage.setItem(CLE, JSON.stringify(reponses)); } catch { /* sans stockage, les réponses vivent le temps de la page */ } };
@@ -78,32 +96,68 @@ function mesureDe(q) {
   return parts.join(' · ');
 }
 
+const titreDeFamille = (famille) => {
+  const titre = document.createElement('h2');
+  titre.innerHTML = `${echapper(famille.famille)} <span class="intro" style="font-size:13px;font-weight:400">· <a href="./${encodeURI(famille.fichier)}">${echapper(famille.fichier)}</a></span>`;
+  return titre;
+};
+
+// Une question ouverte du tour 2 : explication, mini-maquette, options, proposition et zone de réponse.
+function carteOuverte(q) {
+  const r = reponses[q.id];
+  const carte = document.createElement('div');
+  carte.className = 'q';
+  carte.dataset.id = q.id;
+  carte.dataset.attente = String(q.mesure.cas > 0);
+  const explique = Boolean(q.explication);
+  carte.innerHTML = `
+    <div class="q-tete"><span class="q-id">${q.id}</span>${q.tour ? '<span class="etat reservee">Tour 2</span>' : ''}
+      <span class="q-question">${enLigne(q.question)}</span></div>
+    ${q.reponse ? `<div class="q-tour1">Ta réponse au tour 1 : « ${enLigne(q.reponse)} »</div>` : ''}
+    ${explique ? `<div class="q-explication">${enLigne(q.explication)}</div>` : ''}
+    ${q.maquette ?? ''}
+    ${!explique && q.exemple ? `<div class="q-exemple"><b>Exemple</b> ${enLigne(q.exemple)}</div>` : ''}
+    ${q.options ? `<ul class="q-options">${q.options.map((o) => `<li>${enLigne(o)}</li>`).join('')}</ul>` : ''}
+    <div class="q-proposition"><b>Proposition</b> ${enLigne(q.proposition)}</div>
+    <div class="reponse">
+      <label><input type="checkbox" class="accord" ${r?.accord ? 'checked' : ''}> D'accord</label>
+      <textarea class="texte" placeholder="Votre réponse, si elle diffère de la proposition">${r?.texte ? echapper(r.texte) : ''}</textarea>
+    </div>`;
+  return carte;
+}
+
+// Une question tranchée : la question, la décision retenue et la réponse du mainteneur quand elle n'est pas un simple accord.
+function carteArchivee(q) {
+  const carte = document.createElement('div');
+  carte.className = 'q repondue';
+  const reponse = q.reponse && q.reponse !== 'D\'accord' ? `<div class="q-tour1">Ta réponse : « ${enLigne(q.reponse)} »</div>` : '';
+  carte.innerHTML = `
+    <div class="q-tete"><span class="q-id">${q.id}</span><span class="q-question">${enLigne(q.question)}</span></div>
+    ${reponse}
+    <div class="q-decision"><b>Décision</b> ${enLigne(q.decision ?? q.proposition)}</div>`;
+  return carte;
+}
+
 function rendre() {
   const hote = document.getElementById('familles');
   hote.replaceChildren();
   for (const famille of FAMILLES) {
-    const titre = document.createElement('h2');
-    titre.innerHTML = `${echapper(famille.famille)} <span class="intro" style="font-size:13px;font-weight:400">· <a href="./${encodeURI(famille.fichier)}">${echapper(famille.fichier)}</a></span>`;
-    hote.append(titre);
-    for (const q of famille.questions) {
-      const r = reponses[q.id];
-      const carte = document.createElement('div');
-      carte.className = `q${r && (r.accord || r.texte) ? ' repondue' : ''}`;
-      carte.dataset.id = q.id;
-      carte.dataset.attente = String(q.mesure.cas > 0);
-      carte.innerHTML = `
-        <div class="q-tete"><span class="q-id">${q.id}</span>${ETATS[q.etat] ? `<span class="etat ${q.etat}">${ETATS[q.etat]}</span>` : ''}
-          ${q.question ? `<span class="q-question">${enLigne(q.question)}</span>` : ''}</div>
-        ${q.exemple ? `<div class="q-exemple"><b>Exemple</b> ${enLigne(q.exemple)}</div>` : ''}
-        <div class="q-proposition"><b>Proposition</b> ${enLigne(q.proposition)}</div>
-        <div class="q-mesure">${mesureDe(q)}</div>
-        ${q.etat === 'decidee' ? '' : `<div class="reponse">
-          <label><input type="checkbox" class="accord" ${r?.accord ? 'checked' : ''}> D'accord</label>
-          <textarea class="texte" placeholder="Votre réponse, si elle diffère de la proposition">${r?.texte ? echapper(r.texte) : ''}</textarea>
-        </div>`}`;
-      hote.append(carte);
-    }
+    const ouvertes = famille.questions.filter((q) => q.etat !== 'decidee');
+    if (!ouvertes.length) continue;
+    hote.append(titreDeFamille(famille));
+    for (const q of ouvertes) hote.append(carteOuverte(q));
   }
+  const tranchees = FAMILLES.flatMap((f) => f.questions).filter((q) => q.etat === 'decidee');
+  const archive = document.createElement('details');
+  archive.className = 'archive';
+  archive.innerHTML = `<summary>Questions tranchées (${tranchees.length})</summary>`;
+  for (const famille of FAMILLES) {
+    const decidees = famille.questions.filter((q) => q.etat === 'decidee');
+    if (!decidees.length) continue;
+    archive.append(titreDeFamille(famille));
+    for (const q of decidees) archive.append(carteArchivee(q));
+  }
+  hote.append(archive);
   appliquerLeFiltre();
 }
 
