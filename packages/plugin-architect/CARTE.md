@@ -112,7 +112,7 @@ Plugin UCM Architect : ucm-architect-plugin, privé, lecture et corrections apr�
 ## scripts/
 - mesurer.mjs : mesure sur 10 000 variables, hors des tests
 - rejouer-la-capture.ts : rejoue l'analyse sur une capture et compte ses lectures par étape, champ et appelant, pondérées par le banc
-- stress/f3-composant/ : stress test F3 et F4, section D (67 cas), hors des tests ; `npm run stress:composant` écrit `_local/stress/f3-composant/chaine.txt` et `chaine.json`
+- stress/f3-composant/ : stress test F3 et F4, section D (67 cas) puis les 558 cas des opérateurs du kit F3-F4, hors des tests ; `npm run stress:composant` écrit `_local/stress/f3-composant/chaine.txt` et `chaine.json`, puis `operateurs.txt` et `operateurs.json` sans durée et `operateurs-durees.json` ; `operateurs.ts` compte par opérateur attendus, détectés, manqués, faux constats, corrections inexactes, exceptions et cas `mesure`, gardé par `tests/stressOperateursComposant.test.ts`
   - chaine.ts : la chaîne (analyse du sandbox, état de l'interface, vrai panneau sur le faux DOM), la classe `Ecran` et les contrôles P11 à P16, P18, P19
   - casDeLaChaine.ts : les 67 cas D1 à D6 et la fusion des dégradations du kit en un composite
   - atelierDuComposant.ts : relevé converti en layers et variables du double de Figma, pour `ecrireLeLot`

@@ -6,11 +6,19 @@
  * Écrit `_local/stress/f3-composant/chaine.txt` et `chaine.json` : par cas, la propriété, le verdict et les écarts avec leur
  * rattachement, puis le total par série D1 à D6 et par propriété. Un cas qui lève est un écart `exception`, jamais un arrêt.
  * Un écart de cas `mesure` se compte à part (colonne « en attente » du plan). Le script sort sans erreur malgré les écarts, car il mesure l'existant.
+ *
+ * Il mesure aussi les opérateurs du kit (`operateurs.ts`, 800 cas environ) et rend leur tableau à part de celui de la chaîne, avec
+ * `operateurs.txt` et `operateurs.json` dans le même dossier. Ces deux fichiers ne portent aucune durée, pour que deux exécutions
+ * donnent les mêmes octets ; les durées vont à l'écran et dans `operateurs-durees.json`.
+ *
+ *   npm run stress:composant -- --operateur K4   (opérateurs seuls, rien n'est écrit ; une lettre ou un opérateur)
+ *   npm run stress:composant -- --cas K4-3       (un cas des opérateurs ; un identifiant D1-3 vise la chaîne)
  */
 import { mkdirSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
 
 import { casDeLaChaine, type CasDeChaine, type ResultatDeChaine } from './casDeLaChaine';
+import { agreger, detailTexte, GRAINE_PAR_DEFAUT, mesurerLesOperateurs, rapportJson, rapportTexte, tableau } from './operateurs';
 import { rattacher, vueDeComparer, vueDeLEcran, type VueDEcart } from './signatures';
 
 interface EcartRapporte {
@@ -46,6 +54,10 @@ const argument = (nom: string): string | undefined => {
 };
 const seulCas = argument('--cas');
 const seuleSerie = argument('--serie');
+const seulOperateur = argument('--operateur');
+const casDeChaine = (id: string): boolean => /^D\d+-\d+$/.test(id);
+const veutLaChaine = seulOperateur === undefined && (seulCas === undefined || casDeChaine(seulCas));
+const veutLesOperateurs = seuleSerie === undefined && (seulOperateur !== undefined || seulCas === undefined || !casDeChaine(seulCas));
 
 function ecartsDuResultat(definition: CasDeChaine, resultat: ResultatDeChaine): EcartRapporte[] {
   const commande = `npm run stress:composant -- --cas ${definition.id}`;
@@ -98,7 +110,7 @@ function tableauParCle(lignes: readonly LigneDeCas[], cle: (ligne: LigneDeCas) =
   return sortie;
 }
 
-function rapportTexte(lignes: readonly LigneDeCas[], millisecondes: number): string {
+function rapportDeLaChaine(lignes: readonly LigneDeCas[], millisecondes: number): string {
   const sortie: string[] = [];
   sortie.push(`Chaîne du stress test F3 et F4 : ${lignes.length} cas exécutés sur ${casDeLaChaine().length}, ${(millisecondes / 1000).toFixed(1)} s.`);
   sortie.push(`Cas qui tiennent : ${lignes.filter((ligne) => ligne.tient).length}. Écarts sur un cas attendu : ${lignes.filter((ligne) => ligne.verdict === 'attendu' && !ligne.tient).length}. Écarts sur un cas à mesurer : ${lignes.filter((ligne) => ligne.verdict === 'mesure' && !ligne.tient).length}.`);
@@ -124,20 +136,43 @@ function rapportTexte(lignes: readonly LigneDeCas[], millisecondes: number): str
   return `${sortie.join('\n')}\n`;
 }
 
-async function principal(): Promise<void> {
+function mesurerLesOperateursEtRendre(dossier: string): void {
   const debut = performance.now();
-  const retenus = casDeLaChaine().filter((definition) => (seulCas === undefined || definition.id === seulCas) && (seuleSerie === undefined || definition.operateur === seuleSerie));
-  const lignes: LigneDeCas[] = [];
-  for (const definition of retenus) lignes.push(await executerUnCas(definition));
-  const millisecondes = performance.now() - debut;
+  const mesures = mesurerLesOperateurs(GRAINE_PAR_DEFAUT, { operateur: seulOperateur, cas: seulCas });
+  const lignes = agreger(mesures);
+  const sortie = [`Opérateurs du kit F3 et F4 : ${mesures.length} cas, ${((performance.now() - debut) / 1000).toFixed(1)} s.`, '', tableau(lignes, true), ''];
+  if (seulOperateur === undefined && seulCas === undefined) {
+    writeFileSync(path.join(dossier, 'operateurs.txt'), rapportTexte(mesures, GRAINE_PAR_DEFAUT));
+    writeFileSync(path.join(dossier, 'operateurs.json'), `${JSON.stringify(rapportJson(mesures, GRAINE_PAR_DEFAUT), null, 2)}\n`);
+    writeFileSync(path.join(dossier, 'operateurs-durees.json'), `${JSON.stringify(Object.fromEntries(lignes.map((l) => [l.operateur, Math.round(l.millisecondes)])), null, 2)}\n`);
+    sortie.push(`(détail nommé : ${path.join(dossier, 'operateurs.txt')})`);
+  } else {
+    sortie.push(detailTexte(mesures));
+  }
+  process.stdout.write(`${sortie.join('\n')}\n`);
+}
+
+async function principal(): Promise<void> {
   const dossier = path.resolve(__dirname, '../../../../../_local/stress/f3-composant');
   mkdirSync(dossier, { recursive: true });
-  const texte = rapportTexte(lignes, millisecondes);
-  if (seulCas === undefined && seuleSerie === undefined) {
-    writeFileSync(path.join(dossier, 'chaine.txt'), texte);
-    writeFileSync(path.join(dossier, 'chaine.json'), `${JSON.stringify({ millisecondes: Math.round(millisecondes), cas: lignes }, null, 2)}\n`);
+  if (veutLaChaine) {
+    const debut = performance.now();
+    const retenus = casDeLaChaine().filter((definition) => (seulCas === undefined || definition.id === seulCas) && (seuleSerie === undefined || definition.operateur === seuleSerie));
+    const lignes: LigneDeCas[] = [];
+    for (const definition of retenus) lignes.push(await executerUnCas(definition));
+    const millisecondes = performance.now() - debut;
+    const texte = rapportDeLaChaine(lignes, millisecondes);
+    const complet = seulCas === undefined && seuleSerie === undefined;
+    if (complet) {
+      writeFileSync(path.join(dossier, 'chaine.txt'), texte);
+      writeFileSync(path.join(dossier, 'chaine.json'), `${JSON.stringify({ millisecondes: Math.round(millisecondes), cas: lignes }, null, 2)}\n`);
+    }
+    process.stdout.write(complet ? `${texte.split('\n').slice(0, 40).join('\n')}\n(rapport complet : ${path.join(dossier, 'chaine.txt')})\n` : texte);
   }
-  process.stdout.write(seulCas === undefined && seuleSerie === undefined ? texte.split('\n').slice(0, 40).join('\n') + `\n(rapport complet : ${path.join(dossier, 'chaine.txt')})\n` : texte);
+  if (veutLesOperateurs) {
+    if (veutLaChaine) process.stdout.write('\n');
+    mesurerLesOperateursEtRendre(dossier);
+  }
 }
 
 principal().catch((erreur) => {
