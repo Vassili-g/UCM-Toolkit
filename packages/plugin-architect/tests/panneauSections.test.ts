@@ -410,14 +410,31 @@ test('les liaisons d’une préparation sont une carte de corrections de « Toke
   assert.deepEqual(banc.envois.appliquer, [{ ids: ['prep:1'], liaisons: 1 }]);
 });
 
-test('une analyse périmée ne montre ni sommaire ni section : la note du changement, ou la ligne du lot', () => {
+test('une analyse périmée garde sommaire, sections et cartes sous la note, et la ligne du lot au-dessus', () => {
   const banc = monter(constatsAlert, { perimee: true, cause: 'document' });
-  assert.equal(banc.racine.querySelector('.sommaire-elements'), null);
-  assert.equal(sections(banc).length, 0);
-  assert.equal(comme(banc.panneau.liste).textContent, 'Les constats datent d’avant le changement.');
+  assert.notEqual(banc.racine.querySelector('.sommaire-elements'), null);
+  assert.ok(sections(banc).length > 0);
+  assert.ok(banc.racine.querySelectorAll('.bloc-constat').length > 0);
+  assert.match(banc.racine.textContent, /Les constats datent d’avant le changement\. Cliquez Actualiser pour relire\./);
   banc.actualiser({ lot: { resume: '8 layers liés', ecrites: 8, appliquees: [] } });
+  assert.ok(sections(banc).length > 0);
   assert.match(comme(banc.panneau.liste).textContent, /8 layers liés/);
   assert.match(comme(banc.panneau.liste).textContent, /Ctrl\+Z/);
+});
+
+test('sur une analyse périmée, aucun geste d’écriture ni d’Ignorer n’est actif ni envoyé ; Actualiser les rend', () => {
+  const banc = monter(constatsAlert, { perimee: true, cause: 'document' });
+  const gestes = (): ElementDeTest[] => [
+    ...banc.racine.querySelectorAll('.appliquer-carte'), ...banc.racine.querySelectorAll('.btn-texte'), ...banc.racine.querySelectorAll('.btn-primary'),
+    ...banc.racine.querySelectorAll('input'),
+  ];
+  assert.ok(gestes().length > 0);
+  assert.equal(gestes().every((geste) => geste.disabled), true, 'tous les gestes sont inactifs');
+  for (const geste of gestes()) geste.clic();
+  assert.deepEqual(banc.envois.appliquer, []);
+  banc.actualiser({ perimee: false, cause: null });
+  assert.equal(gestes().some((geste) => !geste.disabled), true, 'la liste revient active');
+  assert.equal(boutonsDeCartes(banc.racine).some((bouton) => !bouton.disabled) || toutCocherGlobal(banc).disabled === false, true);
 });
 
 test('pendant une écriture, la note et un pied inactif remplacent la liste', () => {

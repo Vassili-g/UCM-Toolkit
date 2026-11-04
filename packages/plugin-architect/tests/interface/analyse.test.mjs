@@ -116,8 +116,8 @@ test('un panneau périmé garde ses constats, dit pourquoi et ne relance rien', 
     assert.match(texte, /Cliquez Actualiser pour relire\./);
     assert.match(texte, /Les constats datent d’avant le changement\./);
     assert.equal(await page.locator('.bouton-panneau .pastille-compte').textContent(), '24');
-    assert.equal(await page.locator('.sommaire-elements').count(), 0);
-    assert.equal(await page.locator('.section-element').count(), 0);
+    assert.equal(await page.locator('.sommaire-elements').count(), 1);
+    assert.ok(await page.locator('.section-element').count() > 0);
     assert.equal(await page.locator('.corrections-pied').count(), 0);
     assert.equal((await demandes(page, 'analyser')).length, 0, 'rien ne se relance tout seul');
     assert.equal(await page.getByRole('button', { name: 'Actualiser' }).isEnabled(), true);

@@ -75,7 +75,7 @@ const ETATS = [
   },
   {
     id: 'i-perimee', titre: 'À faire d’une analyse périmée', quand: 'Le designer change la sélection dans Figma : l’analyse est périmée.',
-    regarder: 'L’alerte « Le composant a changé depuis l’analyse » ; Ignorer et Ne plus ignorer ne se proposent plus.',
+    regarder: 'L’alerte « Le composant a changé depuis l’analyse » ; les cartes restent, Ignorer et Ne plus ignorer sont inactifs.',
     existe: true, atteinte: [...ouvrirLePanneau, tout, perime('selection')],
   },
 ].map((etat) => ({ ...etat, disposition: 'etroite' }));

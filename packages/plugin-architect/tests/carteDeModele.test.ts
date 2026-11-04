@@ -171,10 +171,10 @@ test('le clic sur « Proposer les liaisons » envoie le variant des faits, un id
   assert.deepEqual(banc.modeles, ['alert:0']);
 });
 
-test('pendant le provisoire « Proposer les liaisons » est inactif, et une analyse périmée n’a plus de carte', () => {
+test('pendant le provisoire « Proposer les liaisons » est inactif, et une analyse périmée garde la carte, inactive', () => {
   assert.equal(proposer(carteDe(monter(constatsCarteDuModele, { statut: 'provisoire' }), 'couleurs')).disabled, true);
   assert.equal(proposer(carteDe(monter(), 'couleurs')).disabled, false);
-  assert.equal(monter(constatsCarteDuModele, { perimee: true, cause: 'document' }).racine.querySelector('.bloc-constat'), null);
+  assert.equal(proposer(carteDe(monter(constatsCarteDuModele, { perimee: true, cause: 'document' }), 'couleurs')).disabled, true);
 });
 
 test('la réponse retire les C81 de `retires`, garde les autres constats et range les corrections dans la section ouverte', () => {

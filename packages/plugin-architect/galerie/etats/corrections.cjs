@@ -160,12 +160,12 @@ const ETATS = [
   },
   {
     id: 'c-apres', titre: 'Après Appliquer', quand: 'Le designer coche tout, puis applique les 4 corrections : le sandbox écrit, rend la ligne de réussite, puis périme l’analyse.',
-    regarder: 'L’alerte « Le composant a changé depuis l’analyse » ; la ligne de réussite avec « Ctrl+Z dans Figma défait ce lot. » ; ni sommaire ni section tant que l’analyse est périmée.',
+    regarder: 'L’alerte « Le composant a changé depuis l’analyse » ; la ligne de réussite avec « Ctrl+Z dans Figma défait ce lot. » ; le sommaire, les sections et les cartes restent sous la note, gestes inactifs.',
     existe: true, atteinte: [...panneauOuvert, toutCocher, appliquer, { message: lot }, perime('ecriture')],
   },
   {
     id: 'c-ctrlz', titre: 'Après un Ctrl+Z', quand: 'Le designer défait le lot dans Figma : le document change, l’analyse reste périmée.',
-    regarder: 'L’alerte du composant changé ; plus de ligne de réussite : « Les constats datent d’avant le changement. » ; rien ne se relance avant Actualiser ou Analyser.',
+    regarder: 'L’alerte du composant changé ; plus de ligne de réussite ; la note « Les constats datent d’avant le changement. » ; les cartes restent, inactives ; rien ne se relance avant Actualiser ou Analyser.',
     existe: true, atteinte: [...panneauOuvert, toutCocher, appliquer, { message: lot }, perime('ecriture'), perime('document')],
   },
   {

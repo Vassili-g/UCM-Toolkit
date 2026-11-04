@@ -143,8 +143,8 @@ test('une analyse périmée ne laisse aucune réponse à donner', async () => {
   const page = await ouvrirLesQuestions();
   try {
     await envoyer(page, { type: 'perime', analyse: IDENTITE, cause: 'selection' });
-    assert.equal(await page.locator('.arch-laterale .liste button').count(), 0);
-    assert.equal(await page.locator('.arch-laterale .liste').innerText(), 'Les constats datent d’avant le changement.');
+    assert.match(await page.locator('.arch-laterale').innerText(), /Les constats datent d’avant le changement\./);
+    assert.equal(await page.locator('.arch-laterale .liste button:enabled:not(.bande-element):not(.puce-element)').count(), 0);
     assert.deepEqual(await demandes(page, 'repondre'), []);
   } finally { await terminer(page); }
 });

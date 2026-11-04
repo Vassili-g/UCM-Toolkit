@@ -79,13 +79,9 @@ export interface Corrections {
   ouvrirPourLesCalques(calques: readonly string[]): CarteDeCorrections | null;
 }
 
-/** La ligne de réussite du lot écrit, ou la note du composant périmé. */
-export function resultatApresPeremption(analyse: AnalyseRecue): HTMLElement {
-  if (analyse.lot) return creerResultat(analyse.lot.resume, analyse.lot.ecrites > 0 ? T.ctrlZ : undefined);
-  const element = document.createElement('p');
-  element.className = 'meta';
-  element.textContent = TEXTES.panneauDesConstats.perimeMeta;
-  return element;
+/** La ligne de réussite du lot écrit, que l'analyse périmée garde en tête de sa liste ; `null` quand aucun lot n'a été écrit. */
+export function resultatDuLotEcrit(analyse: AnalyseRecue): HTMLElement | null {
+  return analyse.lot ? creerResultat(analyse.lot.resume, analyse.lot.ecrites > 0 ? T.ctrlZ : undefined) : null;
 }
 
 /** Le message de l'écriture en cours. */

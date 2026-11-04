@@ -19,7 +19,7 @@ import { champDe, natureDe, type LectureDeComposant } from '../../composant';
 import type { Constat } from '../../messages/commun';
 import type { Application } from '../application';
 import { analyseApplicable, calculEnCours, demandeDAnalyseEnCours, analyseDuComposant, aDesLiaisonsPreparees, aPreparer, libraryAChoisir, type AnalyseRecue } from '../composant/analyse';
-import { monterLesCorrections, noteDeLEcriture, resultatApresPeremption } from '../corrections';
+import { monterLesCorrections, noteDeLEcriture, resultatDuLotEcrit } from '../corrections';
 import { carteDesLiaisonsPreparees } from '../corrections/liaisons';
 import type { CarteDeCorrections, ContexteDeCartes } from '../corrections/modele';
 import type { ElementChoisi } from '../etat';
@@ -327,11 +327,6 @@ export function monterLePanneau(app: Application, vue: VueComposant, options: Op
     if (!rendu) return;
     const { analyse, panneau, cartes, ignores, contexte } = rendu;
     corrections.commencer();
-    if (analyse.perimee && analyse.statut !== 'provisoire') {
-      sommaireHote.replaceChildren();
-      listeHote.replaceChildren(resultatApresPeremption(analyse));
-      return;
-    }
     if (analyse.ecriture !== null) {
       sommaireHote.replaceChildren();
       listeHote.replaceChildren(noteDeLEcriture(analyse), corrections.pied(null, true));
@@ -364,7 +359,7 @@ export function monterLePanneau(app: Application, vue: VueComposant, options: Op
     const ignoresMontres = tout ? ignores : ignores.filter((constat) => elementDuConstat(constat) === choisi);
     const visible = tout ? null : { cartes: montres.flatMap(correctionsDe), element: TEXTES.elementsDuPanneau.libelles[choisi] };
     sommaireHote.replaceChildren(...(panneau.elements.length > 0 ? [creerSommaire(panneau.elements, choisi, choisir)] : []));
-    listeHote.replaceChildren(...enTete, ...sections, ...tenus, ...informations, ...aFaire.ignores(ignoresMontres), ...(cartes.length > 0 && !provisoire ? [corrections.pied(visible)] : []), ...(!provisoire && analyse.constats.length > 0 ? [pied(analyse)] : []));
+    listeHote.replaceChildren(...(analyse.perimee ? [resultatDuLotEcrit(analyse)].filter((ligne): ligne is HTMLElement => ligne !== null) : []), ...enTete, ...sections, ...tenus, ...informations, ...aFaire.ignores(ignoresMontres), ...(cartes.length > 0 && !provisoire ? [corrections.pied(visible)] : []), ...(!provisoire && !analyse.perimee && analyse.constats.length > 0 ? [pied(analyse)] : []));
   }
 
   /** Le sommaire et la liste d'une analyse rendue. */
@@ -435,7 +430,7 @@ export function monterLePanneau(app: Application, vue: VueComposant, options: Op
     } else if (analyse.constats.length === 0 && !aPreparer(analyse) && !aDesLiaisonsPreparees(analyse) && !analyse.perimee && analyse.ecriture === null) {
       return [resume(lecture, P.analyseA(heure(analyse.recueA), analyse.dureeMs), analyse.variants.length), creerAlerte('tenu', { titre: T.aucunTitre(lecture.sujet.nom, variants), meta: T.aucunMeta })];
     }
-    if (analyse.perimee) alertes.push(creerAlerte('info', { titre: T.perimeTitre, texte: T.perimeTexte }));
+    if (analyse.perimee) alertes.push(creerAlerte('info', { titre: T.perimeTitre, texte: `${T.perimeMeta} ${T.perimeTexte}` }));
     const { points, enfants: elements } = montrerLesElements(lecture, analyse);
     // Un provisoire périmé n'a pas d'heure d'analyse à dire : seuls ses points sont connus.
     const analyseA = analyse.statut === 'provisoire' ? P.pasAnalyse : P.analyseA(heure(analyse.recueA), analyse.dureeMs);

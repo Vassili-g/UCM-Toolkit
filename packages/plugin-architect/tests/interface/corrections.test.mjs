@@ -198,13 +198,13 @@ test('après l’écriture : la ligne de réussite et Ctrl+Z, puis, après un Ct
     assert.match(texte, /Le composant a changé depuis l’analyse\./);
     assert.match(texte, /✓ 8 layers liés, 1 instance de règles créée/);
     assert.match(texte, /Ctrl\+Z dans Figma défait ce lot\./);
-    assert.equal(await page.locator('.sommaire-elements').count(), 0);
-    assert.equal(await page.locator('.section-element').count(), 0);
-    assert.equal(await page.locator('.corrections-pied').count(), 0);
+    assert.ok(await page.locator('.section-element').count() > 0, 'la liste reste lisible');
+    assert.equal(await appliquer(page).isDisabled(), true);
 
     await envoyer(page, { type: 'perime', analyse: IDENTITE, cause: 'document' });
     const apres = await texteDuPanneau(page);
     assert.doesNotMatch(apres, /Ctrl\+Z dans Figma défait ce lot/);
+    assert.ok(await page.locator('.section-element').count() > 0);
     assert.match(apres, /Les constats datent d’avant le changement\./);
     assert.deepEqual(await demandes(page, 'analyser'), [], 'le panneau ne relance rien');
   } finally { await terminer(page); }

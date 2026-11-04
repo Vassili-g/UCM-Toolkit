@@ -93,7 +93,7 @@ const ETATS = [
   },
   {
     id: 'q-perimee', titre: 'Questions d’une analyse périmée', quand: 'Le designer change la sélection dans Figma : l’analyse est périmée.',
-    regarder: 'L’alerte « Le composant a changé depuis l’analyse » ; les questions ne se répondent plus : « Les constats datent d’avant le changement. » prend la place des cartes.',
+    regarder: 'L’alerte « Le composant a changé depuis l’analyse » ; les questions restent lisibles sous la note « Les constats datent d’avant le changement. », leurs boutons sont inactifs.',
     existe: true, atteinte: [...ouvrirLePanneau, puceCouleurs, perime('selection')],
   },
 ].map((etat) => ({ ...etat, disposition: 'etroite' }));
