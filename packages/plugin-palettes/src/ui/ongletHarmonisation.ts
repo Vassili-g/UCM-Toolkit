@@ -18,6 +18,7 @@
  * constat qui paraît ou disparaît sous le pointeur ne déplace donc ni la roue
  * ni les réglettes.
  */
+import { creerIcone } from 'ucm-plugin-socle/src/ui/Alerte';
 import { pairesTropProches, validerRecette, type Mode, type Palette, type PaireTropProche, type Profil, type Recette, type Refus } from 'ucm-couleur';
 
 import { remplacerPalette } from '../edition';
@@ -219,7 +220,7 @@ function construireVues(i18n: Localisation) {
       intensite.poser(etat.intensite);
       mode.poser(etat.mode);
       ligne.dataset.ton = nombre > 0 ? 'avertissement' : 'neutre';
-      icone.textContent = nombre > 0 ? '!' : '✓';
+      icone.replaceChildren(creerIcone(nombre > 0 ? 'corriger' : 'tenu'));
       const bilan = TEXTES_DE_L_HARMONISATION.bilan(nombre);
       i18n.lier(texte, 'textContent', bilan);
       i18n.lier(texte, 'title', bilan);

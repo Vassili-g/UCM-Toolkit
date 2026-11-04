@@ -6,7 +6,7 @@
  * Les clés `soft`, `vivid`, `light`, `dark` et les codes d'emploi restent
  * ceux des données ; seul leur affichage se traduit ici.
  */
-import { libellesDesVariables, MODES as MODES_DU_REFERENTIEL, type VariableLibellee } from '@ucm-kit/core/referentiel';
+import { TYPES_D_ALERTE, glypheDuSigne, libellesDesVariables, MODES as MODES_DU_REFERENTIEL, type VariableLibellee } from '@ucm-kit/core/referentiel';
 import type { ChampDePalette } from '../importation';
 import type { IssueDeLaPage } from '../ecriture/planche';
 import type { EtatDuCadre } from '../planche/fraicheur';
@@ -42,6 +42,19 @@ import type { CibleDAction, EtatDeLaFiche, EtatDesTokens, GroupeDePromesses, Ver
 import type { RefusDeDestination } from '../variables/destination';
 import type { FormeGroupee } from '../variables/detection';
 import type { Vision } from '../vision';
+
+/** Les repères que le kit définit : la référence, et deux profils presque identiques. */
+const REFERENCE = glypheDuSigne('reference');
+const CONFONDUS = glypheDuSigne('confondus');
+
+/** Le repli texte des verdicts, tel que le kit le définit pour les alertes : la coche de « tenu », la croix de « bloquant ». */
+function texteDuVerdict(id: 'tenu' | 'bloquant'): string {
+  const type = TYPES_D_ALERTE.find((candidat) => candidat.id === id);
+  if (!type) throw new Error(`type d'alerte inconnu : ${id}`);
+  return type.texte.brut;
+}
+const COCHE = texteDuVerdict('tenu');
+const CROIX = texteDuVerdict('bloquant');
 
 export const TEXTES = {
   numeroDeNuance: (numero: number) => `nuance ${numero}`,
@@ -141,7 +154,7 @@ export const TEXTES_DE_L_ONGLET = {
   sousTitreDeLApercu: "Les nuances sur le fond de la page",
   garanties: 'Garanties de contraste',
   derive: 'Color shift',
-  sousTitreDeLaDerive: "Ajuster les nuances autour de la référence ◆",
+  sousTitreDeLaDerive: `Ajuster les nuances autour de la référence ${REFERENCE}`,
   sousTitreDesGaranties: "Les contrastes de chaque variable",
 } as const;
 
@@ -346,7 +359,7 @@ export const TEXTES_DU_CONTENU = {
   themes: 'Thèmes',
   lignes: {
     rampes: { nom: 'En-tête et rampes', aide: 'Nom, référence, et les pastilles que la création des variables lit' },
-    note: { nom: 'Note sous les rampes', aide: '◆ et ≈ expliqués' },
+    note: { nom: 'Note sous les rampes', aide: `${REFERENCE} et ${CONFONDUS} expliqués` },
     usages: { nom: 'Quelle nuance pour quel usage', aide: 'Les spécimens et leurs garanties, par profil' },
     grilles: { nom: 'Contrastes, nuance par nuance', aide: 'Les grilles de chaque rampe' },
     light: { nom: 'Thème Light', aide: (fond: string) => `Fond ${fond}` },
@@ -440,7 +453,7 @@ export function paletteDeLApercu(nom: string, mode: Mode): string {
 export function legendeDesCourbes(reference: { readonly nom: string; readonly crans: { readonly [M in Mode]: number } } | null): string {
   const traits = 'Trait plein : Thème Light · tireté : Thème Dark.';
   if (!reference) return traits;
-  return `${traits} ◆ : la référence de « ${reference.nom} », insérée à la nuance ${reference.crans.light} en Thème Light et ${reference.crans.dark} en Thème Dark, à sa propre luminosité.`;
+  return `${traits} ${REFERENCE} : la référence de « ${reference.nom} », insérée à la nuance ${reference.crans.light} en Thème Light et ${reference.crans.dark} en Thème Dark, à sa propre luminosité.`;
 }
 
 /** Le résumé replié de la carte « Minimums des promesses » (V9.2, N057). */
@@ -851,7 +864,7 @@ export const LIBELLE_DE_LA_VARIABLE: Record<VariableLibellee, string> = libelles
  */
 export function resultatDuProfil(profil: Intensite, manquees: number): string {
   const nom = profil === 'unique' ? 'Garanties' : NOM_DU_PROFIL[profil];
-  return manquees === 0 ? `${nom} ✓` : `${nom} ✗ ${manquees}`;
+  return manquees === 0 ? `${nom} ${COCHE}` : `${nom} ${CROIX} ${manquees}`;
 }
 
 /** Le même résultat, pour l'assistance technique ([UI-09]). */
@@ -896,15 +909,15 @@ export const TEXTES_DES_GARANTIES = {
   echec: (fond: 'page' | 'carte' | 'subtle' | 'default' | 'hover' | 'pressed', contraste: number, seuil: number) =>
     `${fond === 'page' ? 'Sur la page' : fond === 'carte' ? 'Sur la carte' : fond === 'subtle' ? 'Sur le fond teinté léger' : `État ${fond}`} : ${contrasteEcrit(contraste)} pour un minimum de ${seuilEcrit(seuil)}:1`,
   numeros: (premier: string, second: string) => `${premier} / ${second}`,
-  resultat: (tenue: boolean, contraste: number) => `${tenue ? '✓' : '✗'} ${ecrireContraste(contraste)}`,
+  resultat: (tenue: boolean, contraste: number) => `${tenue ? COCHE : CROIX} ${ecrireContraste(contraste)}`,
 } as const;
 
 /** Les textes du détail d'une nuance ([UI-10], N039). */
 export const TEXTES_DU_DETAIL = {
   titre: (profil: Intensite, numero: number) => (profil === 'unique' ? `Nuance ${numero}` : `${NOM_DU_PROFIL[profil]} · ${numero}`),
-  reference: '◆ Votre couleur de référence exacte',
+  reference: `${REFERENCE} Votre couleur de référence exacte`,
   // Dark inversé : le moteur a éclairci le cran de la référence ; l'écart appliqué ne se montre pas.
-  referenceAjustee: '◆ Votre couleur de référence, ajustée pour rester lisible.',
+  referenceAjustee: `${REFERENCE} Votre couleur de référence, ajustée pour rester lisible.`,
   couleurChoisie: (hexa: string) => `Couleur choisie : ${hexa}.`,
   sertA: 'Sert à',
   // Une nuance qu'aucun rôle ne vise ; « libre » désigne une palette sortie du modèle (N102).
@@ -917,7 +930,7 @@ export const TEXTES_DU_DETAIL = {
   oklch: 'OKLCH',
   // Sous la case tiretée : le texte des boutons du thème, posé sur les trois fonds de `solid`.
   texteDesBoutons: (mode: Mode, texte: TexteDesBoutons, debut: number, fin: number) => `Texte des boutons du thème ${NOM_DU_MODE[mode]} : ${NOM_DU_TEXTE_DES_BOUTONS[texte]} pur. Il se pose sur solid/default, solid/hover et solid/pressed, nuances ${debut} à ${fin}.`,
-  garantie: (tenue: boolean, sens: string, contraste: number) => `${tenue ? '✓' : '✗'} ${sens} : ${contrasteEcrit(contraste)}`,
+  garantie: (tenue: boolean, sens: string, contraste: number) => `${tenue ? COCHE : CROIX} ${sens} : ${contrasteEcrit(contraste)}`,
   sur: (partenaire: string) => `sur ${partenaire}`,
   dessus: (partenaire: string) => `${partenaire} dessus`,
 } as const;
@@ -1022,7 +1035,7 @@ export function niveauEcrit(valeur: number, jugement: Jugement): NiveauEcrit {
     const suite = jugement === 'graphique' ? '' : ', AAA non atteint';
     return { ecrit: 'AA', etiquette: `${nom} : AA atteint${suite}`, atteint: true };
   }
-  return { ecrit: 'AA ✗', etiquette: `${nom} : AA non atteint`, atteint: false };
+  return { ecrit: `AA ${CROIX}`, etiquette: `${nom} : AA non atteint`, atteint: false };
 }
 
 /** Ce que le badge d'une garantie juge : un texte pour une paire au minimum texte, un élément graphique sinon. */
@@ -1592,11 +1605,11 @@ export const TEXTES_DE_LA_PLANCHE = {
   rampe: 'La rampe',
   contrastes: 'Contrastes, nuance par nuance',
   // N096 : les repères dans une pastille, et la note des profils confondus.
-  reperage: '◆',
-  confondu: '≈',
-  noteDuRepere: '◆ : la couleur de référence exacte.',
-  noteDuRepereAjuste: (hexa: string) => `◆ : la couleur de référence, ajustée pour rester lisible. Couleur choisie : ${hexa}.`,
-  noteDesConfondus: '≈ : Soft et Vivid presque identiques à cette nuance.',
+  reperage: REFERENCE,
+  confondu: CONFONDUS,
+  noteDuRepere: `${REFERENCE} : la couleur de référence exacte.`,
+  noteDuRepereAjuste: (hexa: string) => `${REFERENCE} : la couleur de référence, ajustée pour rester lisible. Couleur choisie : ${hexa}.`,
+  noteDesConfondus: `${CONFONDUS} : Soft et Vivid presque identiques à cette nuance.`,
   mode: { light: 'Thème Light', dark: 'Thème Dark' },
 } as const;
 
@@ -1642,7 +1655,7 @@ export const TEXTES_DE_L_INTERFACE_DE_TEST = {
     ],
     roleParDefaut: 'Rôle par défaut',
     membre: 'Membre',
-    coche: '✓',
+    coche: COCHE,
     notifier: 'Notifier par e-mail',
     acces: 'Accès invité',
     boutons: ['Annuler', 'Brouillon', 'Enregistrer'],
@@ -1709,7 +1722,7 @@ export function themeDeLaGarantie(mode: Mode, profil: Intensite, enTitre: boolea
 
 /** Une garantie avant ou après la proposition : « ✓ 3,03:1 », « ✗ 2,92:1 » (N138). */
 export function resultatDeLaGarantie(tenue: boolean, contraste: number): string {
-  return `${tenue ? '✓' : '✗'} ${contrasteEcrit(contraste)}`;
+  return `${tenue ? COCHE : CROIX} ${contrasteEcrit(contraste)}`;
 }
 
 /**
@@ -1739,7 +1752,7 @@ export function garantiesManqueesDeLaReference(manques: { readonly [M in Mode]: 
 
 /** Le bilan d'un profil avant et après la proposition : « Vivid ✗ 2 → ✓ », ou « Soft ✓ inchangé ». */
 export function bilanDeLAjustement(profil: Intensite, avant: number, apres: number): string {
-  const resultat = (manquees: number) => (manquees === 0 ? '✓' : `✗ ${manquees}`);
+  const resultat = (manquees: number) => (manquees === 0 ? COCHE : `${CROIX} ${manquees}`);
   const nom = profil === 'unique' ? 'Garanties' : NOM_DU_PROFIL[profil];
   return avant === apres
     ? `${nom} ${resultat(avant)} inchangé`
@@ -1771,7 +1784,7 @@ export function enTeteDeLaReference(hexa: string, ancrage: Ancrage): string {
 
 /** Le verdict d'un thème, en tête de sa section : ses garanties manquées, chaque intensité comptée (N098). */
 export function verdictDuTheme(manquees: number): string {
-  if (manquees === 0) return '✓ Toutes les garanties tenues';
+  if (manquees === 0) return `${COCHE} Toutes les garanties tenues`;
   return manquees === 1 ? '1 garantie manquée' : `${manquees} garanties manquées`;
 }
 

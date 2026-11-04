@@ -41,6 +41,7 @@ import {
   type VariableDuTheme,
 } from 'ucm-couleur';
 
+import { glypheDuSigne } from '@ucm-kit/core/referentiel';
 import type { AnalyseDePalette } from '../analyse';
 import {
   apercuEnBandes,
@@ -59,6 +60,11 @@ import { creerVuesPropositions } from './couleur/propositions';
 import { creerVuesSelecteur } from './couleur/selecteur';
 import { memoriserVues, type Localisation, type Texte } from './localisation';
 import { creerVuesSpecimens, type FormeDeSpecimen } from './specimens';
+
+/** La référence d'une palette : le caractère du signe `reference` du kit. */
+const REFERENCE = glypheDuSigne('reference');
+/** Le repère de deux profils presque identiques : le caractère du signe `confondus` du kit. */
+const CONFONDUS = glypheDuSigne('confondus');
 
 /** Ce que le nuancier montre. */
 export interface EntreesDuNuancier {
@@ -835,9 +841,14 @@ const VARIABLE_DU_TEXTE_DES_BOUTONS = 'solid/foreground';
           if (confondue) etiquettes.push(TEXTES_DU_NUANCIER.tresProche(profil === 'soft' ? 'vivid' : 'soft'));
           if (reference) pastille.dataset.reference = 'true';
           else delete pastille.dataset.reference;
-          if (confondue) pastille.dataset.confondue = 'true';
-          else delete pastille.dataset.confondue;
-          i18n.lier(pastille, 'textContent', reference ? '◆' : '');
+          if (confondue) {
+            pastille.dataset.confondue = 'true';
+            pastille.dataset.repereConfondu = CONFONDUS;
+          } else {
+            delete pastille.dataset.confondue;
+            delete pastille.dataset.repereConfondu;
+          }
+          i18n.lier(pastille, 'textContent', reference ? REFERENCE : '');
           i18n.lier(pastille, 'aria-label', i18n.joindre(etiquettes, ', '));
           pastille.setAttribute('aria-selected', String(choix?.nature === 'nuance' && choix.profil === profil && choix.rang === rang));
         });

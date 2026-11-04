@@ -5,6 +5,7 @@
  * n'occupent l'écran qu'à la demande, le compte des objets restant sous la
  * douzaine (protocole de relecture, point (e)).
  */
+import { creerSvgDuSigne } from 'ucm-plugin-socle/src/ui/Signe';
 import { memoriserVues, type Localisation, type Texte } from './localisation';
 
 export type GesteDePalette = 'dupliquer' | 'supprimer';
@@ -30,7 +31,7 @@ function construireVues(i18n: Localisation) {
     const bouton = document.createElement('button');
     bouton.type = 'button';
     bouton.className = 'icon-button';
-    i18n.lier(bouton, 'textContent', '⋯');
+    bouton.append(creerSvgDuSigne('menu', 16));
     i18n.lier(bouton, 'aria-label', TEXTES.gestesDeLaPalette);
     bouton.setAttribute('aria-haspopup', 'menu');
     bouton.setAttribute('aria-expanded', 'false');

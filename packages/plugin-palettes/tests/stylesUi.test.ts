@@ -10,6 +10,8 @@ import test from 'node:test';
 
 import { ORDRE_DES_SEVERITES } from 'ucm-couleur';
 
+import { CLASSES_DES_ROLES } from '../src/ui/glyphes';
+
 import {
   classesSansRegle,
   couleursHorsDesRoles,
@@ -42,7 +44,8 @@ const ENTREES: EntreesLoiDesStyles = {
     variant: () => variantesDeBouton(source),
     severite: () => [...ORDRE_DES_SEVERITES],
   },
-  poseesParLHote: new Set(['figma-dark']),
+  // Les rôles de forme des pictogrammes viennent des tracés du kit, que `tests/glyphes.test.ts` compare à cette liste.
+  poseesParLHote: new Set(['figma-dark', ...CLASSES_DES_ROLES]),
 };
 
 test('toute classe posée par l’interface a une règle dans les feuilles', () => {

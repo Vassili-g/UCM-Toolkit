@@ -9,6 +9,7 @@
  * Le tracé est décoratif pour l'assistance technique : la table porte les
  * mêmes valeurs, au clavier.
  */
+import { glypheDuSigne } from '@ucm-kit/core/referentiel';
 import { MODES, type Mode } from 'ucm-couleur';
 
 /** Ce que le tracé montre de la palette ouverte : sa luminosité et sa nuance dans chaque thème. */
@@ -59,6 +60,8 @@ export function geometrieDesCourbes(courbes: { readonly [M in Mode]: readonly nu
 }
 
 const SVG = 'http://www.w3.org/2000/svg';
+/** La référence d'une palette : le caractère du signe `reference` du kit. */
+const REFERENCE = glypheDuSigne('reference');
 
 function noeud<K extends keyof SVGElementTagNameMap>(nom: K, attributs: Record<string, string | number>): SVGElementTagNameMap[K] {
   const element = document.createElementNS(SVG, nom);
@@ -94,7 +97,7 @@ export function dessinerLesCourbes(geometrie: GeometrieDesCourbes): SVGSVGElemen
     const losange = noeud('text', { x, y: y + 4 });
     losange.classList.add('trace-reference');
     losange.dataset.mode = mode;
-    losange.textContent = '◆';
+    losange.textContent = REFERENCE;
     svg.append(losange);
   }
   return svg;

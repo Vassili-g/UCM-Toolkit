@@ -6,12 +6,20 @@
  * neutre ou garde sa place vide : un message qui paraît pendant un geste ne
  * déplace aucun contrôle ([UI-20]).
  */
+import { creerIcone, type TypeDAlerte } from 'ucm-plugin-socle/src/ui/Alerte';
+import { creerSvgDuSigne } from 'ucm-plugin-socle/src/ui/Signe';
 import { memoriserVues, lireTexte, type Localisation, type Texte } from './localisation';
 
 /** Le ton d'une ligne. Sa couleur ne dit que la sévérité, et son icône la redit sans couleur ([VER-14]). */
 export type TonDeLaLigne = 'neutre' | 'avertissement' | 'danger' | 'butee';
 
-const ICONES: Record<TonDeLaLigne, string> = { neutre: '', avertissement: '!', danger: '✗', butee: '⊣' };
+/** Les tons de sévérité prennent l'alerte du socle qui porte leur sens ; la butée, le signe `butee` du kit ; le ton neutre n'a pas d'icône. */
+const ALERTE_DU_TON: Readonly<Record<'avertissement' | 'danger', TypeDAlerte>> = { avertissement: 'corriger', danger: 'bloquant' };
+
+function iconeDuTon(ton: TonDeLaLigne): readonly Node[] {
+  if (ton === 'neutre') return [];
+  return [ton === 'butee' ? creerSvgDuSigne('butee', 12) : creerIcone(ALERTE_DU_TON[ton])];
+}
 
 /** L'écart entre la ligne et sa bulle, et entre la bulle et le bord de la fenêtre. */
 const ECART = 4;
@@ -105,7 +113,7 @@ function construireVues(i18n: Localisation) {
       poser(texte, ton = 'neutre', gestes = []) {
         texteCourant = texte;
         element.dataset.ton = ton;
-        icone.textContent = ICONES[ton];
+        icone.replaceChildren(...iconeDuTon(ton));
         i18n.lier(bouton, 'textContent', texte);
         i18n.lier(bouton, 'title', texte);
         bouton.disabled = lireTexte(texte) === '';

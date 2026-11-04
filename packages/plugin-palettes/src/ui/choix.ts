@@ -10,9 +10,13 @@
  * Le composant ne garde pas la valeur choisie : la carte la possède, reçoit
  * `surChoix`, puis la rend avec `poser`.
  */
+import { glypheDuSigne } from '@ucm-kit/core/referentiel';
 import { PROFILS, type Profil } from 'ucm-couleur';
 
 import { memoriserVues, type Localisation, type Texte } from './localisation';
+
+/** La référence d'une palette : le caractère du signe `reference` du kit. */
+const REFERENCE = glypheDuSigne('reference');
 
 export type ValeurDuChoix = Profil | 'deux';
 
@@ -145,7 +149,7 @@ function construireVues(i18n: Localisation) {
     return {
       element: choix.element,
       poser(choisie, porteur = null, segmentDe) {
-        choix.poser(choisie, (valeur) => segmentDe?.(valeur) ?? (valeur !== 'deux' && valeur === porteur ? { texte: i18n.composer`${NOM_DU_PROFIL[valeur]} ◆` } : undefined));
+        choix.poser(choisie, (valeur) => segmentDe?.(valeur) ?? (valeur !== 'deux' && valeur === porteur ? { texte: i18n.composer`${NOM_DU_PROFIL[valeur]} ${REFERENCE}` } : undefined));
       },
       cacher: choix.cacher,
       premierSegment: choix.premierSegment,

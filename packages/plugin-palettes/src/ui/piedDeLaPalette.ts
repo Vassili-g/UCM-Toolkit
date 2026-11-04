@@ -5,7 +5,9 @@
  * Vérification sur la palette. Le pied ne change jamais de hauteur, et une
  * région `aria-live` n'annonce le bilan qu'à la fin d'un geste ([UI-20]).
  */
+import { creerIcone } from 'ucm-plugin-socle/src/ui/Alerte';
 import { type Message } from './constats';
+import { creerIconeDeVerdict } from './selecteur';
 import { memoriserVues, lireTexte, type Localisation, type Texte } from './localisation';
 
 /** Ce que le pied résume de la palette ouverte. */
@@ -44,7 +46,7 @@ function construireVues(i18n: Localisation) {
 
   /**
    * Pose le compteur sur l'onglet : rouge pour les garanties manquées, ambre
-   * pour des alertes seules, ✓ vert quand tout tient, rien sans palette
+   * pour des alertes seules, icône « tenu » quand tout tient, rien sans palette
    * ouverte. Le nom accessible de l'onglet reprend le bilan.
    */
   function lierLeCompteur(onglet: HTMLElement, libelle: Texte): void {
@@ -64,7 +66,8 @@ function construireVues(i18n: Localisation) {
         const ton = lu.manquees > 0 ? 'danger' : lu.alertes > 0 ? 'avertissement' : 'succes';
         onglet.dataset.compteur = ton;
         pastille.dataset.ton = ton;
-        pastille.textContent = ton === 'danger' ? String(lu.manquees) : ton === 'avertissement' ? String(lu.alertes) : '✓';
+        if (ton === 'succes') pastille.replaceChildren(creerIcone('tenu'));
+        else pastille.textContent = String(ton === 'danger' ? lu.manquees : lu.alertes);
       }
       i18n.lier(onglet, 'aria-label', nom);
     });
@@ -114,7 +117,7 @@ function construireVues(i18n: Localisation) {
         element.dataset.ton = ton;
         // Tout tient : le pied se masque, l'annonce et le compteur de l'onglet Vérification restent à jour.
         element.hidden = ton === 'succes';
-        icone.textContent = ton === 'danger' ? '✕' : ton === 'avertissement' ? '!' : '✓';
+        icone.replaceChildren(creerIconeDeVerdict(ton));
         i18n.lier(compteur, 'textContent', resume);
         i18n.lier(constat, 'textContent', suite);
         poserLeCompte({ manquees: bilan.manquees, alertes });

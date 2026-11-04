@@ -21,7 +21,7 @@ import { creerVuesGaranties } from './garanties';
 import { memoriserVues, type Localisation } from './localisation';
 import { creerVuesMessagesDePalette } from './messagesDePalette';
 import type { PaletteOuverte } from './paletteOuverte';
-import { SIGNE_DU_VERDICT } from './selecteur';
+import { creerIconeDeVerdict } from './selecteur';
 import { creerSocleLocalise } from './socleLocalise';
 import { creerVuesBilanDesPalettes } from './vueDuBilanDesPalettes';
 
@@ -166,7 +166,7 @@ function construireVues(i18n: Localisation) {
       const alertes = liste.filter((message) => message.severite === 'alerte').length;
       const ton = verdictDeLaPalette(analyse);
       verdict.dataset.ton = ton;
-      i18n.lier(iconeDuVerdict, 'textContent', SIGNE_DU_VERDICT[ton]);
+      iconeDuVerdict.replaceChildren(creerIconeDeVerdict(ton));
       i18n.lier(bilan, 'textContent', analyse.libre
         ? TEXTES.paletteLibre(analyse.grille.crans.length)
         : verdictDesGaranties(analyse.promesses.length, analyse.manquees));

@@ -27,6 +27,8 @@
  * (V8.5). Chaque génération dessine les parties que la recette choisit
  * ([PLA-28]).
  */
+import { glypheDuSigne } from '@ucm-kit/core/referentiel';
+import { creerChevron } from 'ucm-plugin-socle/src/ui/Chevron';
 import { MODES, rampeDe, type Classement, type Mode, type Recette } from 'ucm-couleur';
 
 import { analyserPalette } from '../analyse';
@@ -55,6 +57,9 @@ import { memoriserVues, type Localisation, type Texte } from './localisation';
 import { creerVuesPageDesPlanches } from './pageDesPlanches';
 import { createSection } from './section';
 import { creerSocleLocalise } from './socleLocalise';
+
+/** La référence d'une palette : le caractère du signe `reference` du kit. */
+const REFERENCE = glypheDuSigne('reference');
 import { lignesDeSortie, type LigneDeSortie } from './sorties';
 import { type Constat, type ConstatIllustre } from './textes';
 
@@ -967,9 +972,6 @@ function construireVues(i18n: Localisation) {
       bascule.className = 'palette-bascule';
       bascule.dataset.geste = 'deplier';
       bascule.setAttribute('aria-expanded', String(ouverte));
-      const chevron = document.createElement('span');
-      chevron.className = 'palette-chevron';
-      chevron.setAttribute('aria-hidden', 'true');
       const teinte = document.createElement('i');
       teinte.className = 'fiche-teinte';
       teinte.setAttribute('aria-hidden', 'true');
@@ -978,7 +980,7 @@ function construireVues(i18n: Localisation) {
       const nom = document.createElement('span');
       nom.className = 'palette-nom';
       nom.textContent = ligne.nom;
-      bascule.append(chevron, teinte, nom);
+      bascule.append(creerChevron(), teinte, nom);
       if (ligne.precision) {
         const precision = document.createElement('span');
         precision.className = 'palette-precision';
@@ -1040,7 +1042,7 @@ function construireVues(i18n: Localisation) {
       teinte.className = 'fiche-teinte';
       teinte.style.background = palette.reference;
       teinte.setAttribute('aria-hidden', 'true');
-      reference.append(teinte, i18n.noeud(i18n.composer`${palette.reference} ◆ ${avecLeNom(analyse.ancrage.profil, TEXTES.numeroDeNuance(analyse.ancrage.crans[mode]))}`));
+      reference.append(teinte, i18n.noeud(i18n.composer`${palette.reference} ${REFERENCE} ${avecLeNom(analyse.ancrage.profil, TEXTES.numeroDeNuance(analyse.ancrage.crans[mode]))}`));
       // Le résultat des garanties ouvre Vérification sur la palette : une garantie manquée n'empêche aucune écriture.
       const garanties = resultatsDesGaranties(analyse, mode, 'button');
       garanties.dataset.geste = 'verifier';

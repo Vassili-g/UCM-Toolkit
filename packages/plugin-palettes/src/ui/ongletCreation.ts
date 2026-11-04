@@ -39,7 +39,7 @@ import {
   type Recette,
   type Refus,
 } from 'ucm-couleur';
-import { INTENSITE_UNIQUE } from '@ucm-kit/core/referentiel';
+import { glypheDuSigne, INTENSITE_UNIQUE } from '@ucm-kit/core/referentiel';
 
 import { analyserPalette } from '../analyse';
 import { palettesParTeinte } from '../ordreDesPalettes';
@@ -103,7 +103,11 @@ import { creerVuesNuancier } from './nuancier';
 import { creerVuesNuancierDesPalettes } from './nuancierDesPalettes';
 import { creerVuesPiedDeLaPalette } from './piedDeLaPalette';
 import { creerVuesReglagesDeLaPalette } from './reglagesDeLaPalette';
+import { creerSvgDuSigne } from 'ucm-plugin-socle/src/ui/Signe';
 import { creerSocleLocalise } from './socleLocalise';
+
+/** La référence d'une palette : le caractère du signe `reference` du kit. */
+const REFERENCE = glypheDuSigne('reference');
 import { type Constat } from './textes';
 
 /** Ce que l'onglet demande au sandbox, par la frontière, et au reste de l'interface. */
@@ -1045,6 +1049,7 @@ function construireVues(i18n: Localisation) {
     accueil.className = 'accueil-de-creation';
     const nouvelleDeLAccueil = createButton({ label: TEXTES.nouvellePalette, onClick: () => ouvrirLaCreation() });
     nouvelleDeLAccueil.classList.add('accueil-nouvelle');
+    nouvelleDeLAccueil.prepend(creerSvgDuSigne('ajouter', 14, { epaisseur: 2 }));
     const consigneDeLAccueil = document.createElement('p');
     consigneDeLAccueil.className = 'accueil-consigne';
     i18n.lier(consigneDeLAccueil, 'textContent', TEXTES.accueilConsigne);
@@ -1166,7 +1171,7 @@ function construireVues(i18n: Localisation) {
         : courante.base ? '' : TEXTES_DE_LA_BASE.choixAutomatique(profilAutomatique(lue, courante));
       i18n.lier(choixAutomatique, 'textContent', aideDuChoix);
       i18n.lier(choixAutomatique, 'title', aideDuChoix);
-      i18n.lier(repereDeReference, 'textContent', i18n.composer`◆ ${ligneDeLaReference(analyse.ancrage, etat.theme())}`);
+      i18n.lier(repereDeReference, 'textContent', i18n.composer`${REFERENCE} ${ligneDeLaReference(analyse.ancrage, etat.theme())}`);
 
       nuancier.afficher({ recette: lue, analyse, mode: etat.theme(), confondues: analyse.confusions, neutre: estLaPaletteNeutre(courante) });
       if (apercuSeul) return;

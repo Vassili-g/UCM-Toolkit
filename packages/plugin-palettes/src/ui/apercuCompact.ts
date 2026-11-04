@@ -9,9 +9,13 @@
  */
 import { COULEUR_DU_TEXTE_DES_BOUTONS, ETATS, TABLE_DES_DOSSIERS, lireHexa, rampeDe, sensDuTheme, type Intensite, type Mode, type Recette } from 'ucm-couleur';
 
+import { glypheDuSigne } from '@ucm-kit/core/referentiel';
 import type { AnalyseDePalette } from '../analyse';
 import { memoriserVues, type Localisation } from './localisation';
 import { creerVuesNuancier } from './nuancier';
+
+/** La référence d'une palette : le caractère du signe `reference` du kit. */
+const REFERENCE = glypheDuSigne('reference');
 
 function construireVues(i18n: Localisation) {
   const { encresSur } = creerVuesNuancier(i18n);
@@ -72,7 +76,7 @@ function construireVues(i18n: Localisation) {
         pastille.style.background = cran.hexa;
         if (analyse.ancrage.profil === profil && analyse.ancrage.rangs[mode] === rang) {
           pastille.dataset.reference = 'true';
-          i18n.lier(pastille, 'textContent', '◆');
+          i18n.lier(pastille, 'textContent', REFERENCE);
           if (mode === 'dark' && analyse.referenceAjustee) i18n.lier(pastille, 'title', TEXTES_DU_NUANCIER.referenceAjustee);
           pastille.style.color = encresSur(lireHexa(cran.hexa) ?? [255, 255, 255]).encre;
         }

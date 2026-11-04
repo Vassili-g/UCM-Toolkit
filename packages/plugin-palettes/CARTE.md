@@ -74,11 +74,11 @@ Plugin UCM Palettes : ucm-palettes-plugin, privé.
 - bilanDesPalettes.ts : classement de chaque palette, à corriger, à vérifier ou conforme, et son premier constat, sans DOM
 - vueDuBilanDesPalettes.ts : Vérification sans palette ouverte : onglets du bilan, nuancier mis en avant ou atténué, détail, « tout est conforme »
 - nuancierDesPalettes.ts : nuancier partagé de l'accueil de Création et du bilan : carte de trois aplats par palette, point d'état, carte atténuée
-- ligneFixe.ts : un message sur une ligne de 24 px, présente même vide, et sa bulle au clic
+- ligneFixe.ts : un message sur une ligne de 24 px, présente même vide, avec l'alerte du socle de son ton, et sa bulle au clic
 - piedDeLaPalette.ts : pied de l'onglet Création, visible seulement en cas de garantie manquée ou d'alerte : bilan, « Vérifier », annonce en fin de geste ; compteur de l'onglet Vérification
 - champs.ts : libellé au-dessus de ses saisies, choix du modèle, deux cartes des intensités de la création, segments des intensités de la configuration et choix du profil porteur
 - carte.ts : une carte de la configuration, fixe ou repliable : glyphe, titre, sous-titre et résumé ; une carte repliable porte un en-tête de bouton de repli puis l'emplacement de ses choix, visible carte ouverte
-- glyphes.ts : glyphe de chaque carte titrée, aperçu compris, en formes à rôle de couleur, que la maquette du Color shift dessine aussi
+- glyphes.ts : glyphe de chaque carte titrée, aperçu compris : le pictogramme de la famille `pictogramme-palettes` du kit, dont chaque forme porte un rôle de couleur que la feuille peint
 - calculDesLimites.ts : limites dynamiques calculées par tranches entre les images, terminées au début d'un geste
 - localisation.ts : contexte de langue d'une interface : textes liés aux éléments, retraduits à la bascule
 - socleLocalise.ts : composants du socle, libellés liés au contexte de langue
@@ -87,7 +87,7 @@ Plugin UCM Palettes : ucm-palettes-plugin, privé.
 - badge.ts : badge d'un niveau WCAG, AAA, AA ou AA ✗, et ce qu'il juge pour l'assistance technique
 - garanties.ts : carte des garanties, fixe, dans Vérification : en-tête sans thème, rangée en tête du corps pour le choix Soft/Vivid « Afficher » (deux intensités), liens vers l'autre thème, réglette et arcs, un encadré par minimum, états en colonnes, une ligne par association
 - specimens.ts : spécimen d'un rôle : bouton, texte, champ, anneau, trait ou aplat
-- selecteur.ts : palette ouverte, en liste déroulante avec la pastille de chaque référence et le verdict de chaque palette
+- selecteur.ts : palette ouverte, en liste déroulante avec la pastille de chaque référence et le verdict de chaque palette, en icône d'alerte du socle (`creerIconeDeVerdict`)
 - creation.ts : une palette neuve, en carte : nom, référence, modèle, intensités
 - menuPalette.ts : dupliquer, supprimer
 - frontiere.ts : numérotation des demandes, un seul rangement en vol, écriture des variables et dessin après lui, un seul choix de page et un seul rangement de destination en vol

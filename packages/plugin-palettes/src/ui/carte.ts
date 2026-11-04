@@ -10,6 +10,7 @@
  * carte ouverte, ils se lisent et le résumé est caché. Son état ouvert dure
  * autant que l'élément, donc la session.
  */
+import { creerChevron } from 'ucm-plugin-socle/src/ui/Chevron';
 import type { Localisation, Texte } from './localisation';
 
 export interface OptionsDeCarte {
@@ -88,10 +89,7 @@ export function createCarte(options: OptionsDeCarte, i18n: Localisation): CarteU
     bouton.type = 'button';
     bouton.className = 'carte-bascule';
     bouton.setAttribute('aria-controls', corps.id);
-    const chevron = document.createElement('span');
-    chevron.className = 'carte-chevron';
-    chevron.setAttribute('aria-hidden', 'true');
-    bouton.append(chevron, ...avantLeTitre, intitule, resume);
+    bouton.append(creerChevron(), ...avantLeTitre, intitule, resume);
     bouton.addEventListener('click', () => changer(!ouverte));
     tete = document.createElement('div');
     tete.className = 'carte-tete carte-tete-repliable';

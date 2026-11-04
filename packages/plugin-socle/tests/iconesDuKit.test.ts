@@ -45,20 +45,20 @@ interface ElementDeTrace {
 }
 
 /** Les éléments du tracé d'un signe tel que le kit l'écrit. */
-function traceDuKit(id: string): { grille: number; elements: ElementDeTrace[] } {
+function traceDuKit(id: string): { grille: number; hauteur: number; elements: ElementDeTrace[] } {
   const signe = SIGNES.find((candidat) => candidat.id === id);
   assert.ok(signe, id);
   const elements = [...signe.trace.matchAll(/<(path|rect|circle|text)\b([^>]*?)(?:\/>|>[^<]*<\/\1>)/gu)].map(([, balise, attributs]) => ({
     balise,
     attributs: Object.fromEntries([...attributs.matchAll(/([\w:-]+)="([^"]*)"/gu)].map(([, nom, valeur]) => [nom, valeur])),
   }));
-  return { grille: signe.grille ?? 16, elements };
+  return { grille: signe.grille ?? 16, hauteur: signe.hauteur ?? signe.grille ?? 16, elements };
 }
 
 /** Le SVG pose, élément par élément, le tracé du signe du kit sur la grille du signe. */
 function verifierLeTrace(svg: Noeud, id: string): void {
-  const { grille, elements } = traceDuKit(id);
-  assert.equal(attribut(svg, 'viewBox'), `0 0 ${grille} ${grille}`, `${id} : grille`);
+  const { grille, hauteur, elements } = traceDuKit(id);
+  assert.equal(attribut(svg, 'viewBox'), `0 0 ${grille} ${hauteur}`, `${id} : grille`);
   const poses = svg.noeuds.map((enfant) => ({ balise: enfant.balise, attributs: Object.fromEntries(enfant.attributs) }));
   assert.deepEqual(poses, elements, `${id} : tracé`);
   assert.ok(elements.length > 0, id);

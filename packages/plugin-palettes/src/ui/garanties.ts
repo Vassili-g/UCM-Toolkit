@@ -38,6 +38,8 @@ import {
   type Recette,
 } from 'ucm-couleur';
 
+import { glypheDuSigne } from '@ucm-kit/core/referentiel';
+import { texteDuType } from 'ucm-plugin-socle/src/ui/Alerte';
 import type { AnalyseDePalette } from '../analyse';
 import { ciblesDeLaPromesse, type CibleDAction } from '../presentation';
 import { creerVuesBadge } from './badge';
@@ -59,6 +61,9 @@ import {
 } from './modeleDesGaranties';
 import { creerVuesNuancier } from './nuancier';
 import { creerVuesSpecimens } from './specimens';
+
+/** La référence d'une palette : le caractère du signe `reference` du kit. */
+const REFERENCE = glypheDuSigne('reference');
 
 export interface GestesDesGaranties {
   /** Ouvre le réglage qu'une ligne en échec nomme ([VER-15]). */
@@ -288,7 +293,7 @@ function construireVues(i18n: Localisation) {
         if (analyse.ancrage.profil === profil && analyse.ancrage.rangs[mode] === rang) {
           const losange = element('text', { x: x + CASE / 2, y: 66.5, fill: cran.L > 0.6 ? '#000000' : '#FFFFFF' });
           losange.classList.add('reglette-reference');
-          i18n.lier(losange, 'textContent', '◆');
+          i18n.lier(losange, 'textContent', REFERENCE);
           // Étiquette seule : la garantie passe, Vérification n'a rien à dire de plus.
           if (mode === 'dark' && analyse.referenceAjustee) {
             const titre = element('title', {});
@@ -319,7 +324,7 @@ function construireVues(i18n: Localisation) {
 
     /** L'étiquette accessible d'une ligne : les variables, le libellé, puis chaque fond avec ses numéros, son ratio et son résultat. */
     function etiquette(ligne: LigneDeGarantie, recette: Recette): Texte {
-      const fonds = ligne.cases.map(({ colonne, promesse }) => i18n.composer`${TEXTES_DES_GARANTIES.colonnes[colonne]}, ${numeroDuMembre(promesse, 'premier', recette)} ${TEXTES_DES_GARANTIES.sur} ${numeroDuMembre(promesse, 'second', recette)}, ${contrasteEcrit(promesse.contraste)}, ${promesse.verdict === 'tenue' ? '✓' : '✗'}, ${niveauEcrit(promesse.contraste, jugementDuSeuil(promesse.garantie.seuil)).etiquette}`);
+      const fonds = ligne.cases.map(({ colonne, promesse }) => i18n.composer`${TEXTES_DES_GARANTIES.colonnes[colonne]}, ${numeroDuMembre(promesse, 'premier', recette)} ${TEXTES_DES_GARANTIES.sur} ${numeroDuMembre(promesse, 'second', recette)}, ${contrasteEcrit(promesse.contraste)}, ${texteDuType(promesse.verdict === 'tenue' ? 'tenu' : 'bloquant')}, ${niveauEcrit(promesse.contraste, jugementDuSeuil(promesse.garantie.seuil)).etiquette}`);
       return i18n.composer`${ligne.garantie.premier.variable} ${TEXTES_DES_GARANTIES.sur} ${fondsEcrits(ligne)}. ${libelleDeLaLigne(ligne)}. ${i18n.joindre(fonds, ' ; ')}`;
     }
 

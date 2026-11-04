@@ -495,7 +495,7 @@ const ETATS = [
     id: 'sans-palette-choisie',
     titre: 'Onglet Création sans palette choisie',
     quand: 'Le fichier porte trois palettes ; le plugin s’ouvre, et aucune n’est choisie.',
-    regarder: 'La barre du sélecteur est masquée. De haut en bas : « ＋ Nouvelle palette » en bouton principal pleine largeur, 40 px ; « Partez d’une couleur de référence. » centré en texte secondaire ; l’intertitre « Vos palettes » et son compte, 3 ; les trois cartes du nuancier, sans point ni atténuation.',
+    regarder: 'La barre du sélecteur est masquée. De haut en bas : « Nouvelle palette », précédé du signe « + » du kit, en bouton principal pleine largeur, 40 px ; « Partez d’une couleur de référence. » centré en texte secondaire ; l’intertitre « Vos palettes » et son compte, 3 ; les trois cartes du nuancier, sans point ni atténuation.',
     existe: true,
     sansPaletteChoisie: true,
     atteinte: [etatDuFichier(rangee(TROIS_PALETTES))],
@@ -559,7 +559,7 @@ const ETATS = [
     id: 'promesses-manquees',
     titre: 'Palette avec promesses manquées',
     quand: 'Le texte des boutons du thème Light est noir, donc inversé : la 700 de Bleu, ancrée sur #1E6FD9, ne tient plus le noir à 4,5:1 (4,33:1), G1 est manquée en Light.',
-    regarder: 'Sous le code, la ligne qui compte les garanties manquées ; le pied de 40 px en danger, avec son filet plein, sa pastille ✕, le compte en gras puis le premier constat et « Vérifier » ; le compteur rouge sur l’onglet Vérification ; le ✗ du verdict dans le sélecteur ; le focus clavier déplacé sur la rampe.',
+    regarder: 'Sous le code, la ligne qui compte les garanties manquées ; le pied de 40 px en danger, avec son filet plein, son icône « bloquant » du socle (octogone), le compte en gras puis le premier constat et « Vérifier » ; le compteur rouge sur l’onglet Vérification ; l’icône « bloquant » du verdict dans le sélecteur ; le focus clavier déplacé sur la rampe.',
     existe: true,
     atteinte: [
       etatDuFichier(rangee([BLEU, JAUNE], texteNoirEnLight)),
@@ -570,7 +570,7 @@ const ETATS = [
     id: 'alertes-seules',
     titre: 'Référence plus vive que la saturation commune',
     quand: 'Une référence jaune, plus vive que la saturation commune de Vivid : Vivid la porte au 300 en Light et prend sa saturation, 98 %.',
-    regarder: 'Les garanties respectées, la ligne « Référence : Vivid · nuance 300 », et aucune notice : la référence n’est pas plus vive que Vivid. Tout tient : pas de pied, et un ✓ vert sur l’onglet Vérification.',
+    regarder: 'Les garanties respectées, la ligne « Référence : Vivid · nuance 300 », et aucune notice : la référence n’est pas plus vive que Vivid. Tout tient : pas de pied, et l’icône « tenu » sur l’onglet Vérification.',
     existe: true,
     atteinte: [etatDuFichier(rangee([JAUNE, BLEU]))],
   },
@@ -1159,7 +1159,7 @@ const ETATS = [
     id: 'reprise-telle-quelle',
     titre: 'Reprise telle quelle',
     quand: 'Dans l’encart de la palette reprise, le designer presse « Telles quelles ».',
-    regarder: '« Telles quelles » pressé ; les deux rampes identiques ; « Aucune couleur ne change. » ; le nom seul dans la carte de configuration ; ni « Réglage global » ni « Color shift » ; le pied masqué, un ✓ vert sur l’onglet Vérification.',
+    regarder: '« Telles quelles » pressé ; les deux rampes identiques ; « Aucune couleur ne change. » ; le nom seul dans la carte de configuration ; ni « Réglage global » ni « Color shift » ; le pied masqué, l’icône « tenu » sur l’onglet Vérification.',
     existe: true,
     atteinte: [((reprise) => etatDuFichier(rangee([reprise.palette, BLEU]), 'SRGB', PLANCHE_VIDE, 1, reprise.fichier))(repriseDeSlate(true))],
   },
@@ -2169,6 +2169,37 @@ ETATS.push({
     { clic: `.paire[data-paire="${identifiantDuBilan(0)} ${identifiantDuBilan(18)}"] .bilan-verifier` },
     { clic: '#panneau-harmonisation .carte:has(.plaque) > .carte-tete > .carte-bascule', attendre: '#panneau-harmonisation .carte:has(.plaque) circle[role="slider"]' },
   ],
+});
+
+/*
+ * Les signes que Palettes lit dans le kit (A8) : le verdict de chaque palette dans le sélecteur ouvert, la connexion dépliée
+ * avec son geste « Synchroniser », et le menu « … » de la palette.
+ */
+ETATS.push({
+  id: 'selecteur-avec-verdicts',
+  titre: 'Le sélecteur ouvert, un verdict par palette',
+  quand: 'Bleu manque une garantie en Thème Light, Jaune tient les siennes ; la palette ouverte est Bleu, et le designer ouvre la liste du sélecteur.',
+  regarder: 'La liste sous le sélecteur : chaque palette porte, à droite de son nom, l’icône d’alerte du socle de son verdict, l’octogone « bloquant » pour Bleu et le rond coché « tenu » pour Jaune ; le bouton montre celle de Bleu avant son chevron.',
+  existe: true,
+  atteinte: [etatDuFichier(rangee([BLEU_FAUTIF, JAUNE], texteNoirEnLight)), { clic: '.selecteur-bouton' }],
+});
+
+ETATS.push({
+  id: 'connexion-depliee',
+  titre: 'La connexion dépliée, avec « Synchroniser »',
+  quand: 'Trois palettes dans un fichier de trois pages ; dans Gestion, le designer déplie « Connexion à Figma ».',
+  regarder: 'Le chevron de la section tourné vers le bas ; les lignes « Tokens » et « Planches » avec leur chemin séparé par « › » ; le bouton « Synchroniser » précédé du signe « synchroniser » du kit, deux flèches en cercle de 14 px.',
+  existe: true,
+  atteinte: [gestionDeTroisPalettes(), ouvrirLaPlanche, { clic: '[data-section="connexion"] .section-bascule' }],
+});
+
+ETATS.push({
+  id: 'menu-de-la-palette-ouvert',
+  titre: 'Le menu « … » de la palette ouvert',
+  quand: 'Bleu est ouverte ; le designer clique le bouton « … » de la barre.',
+  regarder: 'Le bouton porte les trois points du signe « menu » du kit, sur 16 px ; sa liste, « Dupliquer » et « Supprimer », s’ouvre vers la gauche au-dessus de la ligne du titre.',
+  existe: true,
+  atteinte: [etatDuFichier(rangee([BLEU])), { clic: '.menu-palette .icon-button' }],
 });
 
 module.exports = { ETATS: ETATS.map(avecLaPremierePalette), SAUGE: { palette: (variante) => sauge(variante).palette, recette: recetteDeLaGalerie(), rampesDe } };

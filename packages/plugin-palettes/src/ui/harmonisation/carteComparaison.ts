@@ -11,6 +11,7 @@
  * La carte ne se redessine que si la recette, ses paires, les cochées, le
  * thème, l'intensité ou l'affichage changent.
  */
+import { creerIcone, type TypeDAlerte } from 'ucm-plugin-socle/src/ui/Alerte';
 import { estLibre, type Mode, type Palette, type PaireTropProche, type Profil, type Recette } from 'ucm-couleur';
 
 import { constatsDeLaComparaison, type ConstatDeComparaison, type EtatHarmonisation } from '../../harmonisation';
@@ -30,7 +31,8 @@ export interface CarteDeComparaisonUi {
   afficher(recette: Recette, paires: readonly PaireTropProche[], etat: EtatHarmonisation, ordre: readonly string[]): void;
 }
 
-const ICONES: Readonly<Record<ConstatDeComparaison['ton'], string>> = { avertissement: '!', succes: '✓', info: 'i' };
+/** L'alerte du socle que chaque ton de constat prend. */
+const ALERTE_DU_TON: Readonly<Record<ConstatDeComparaison['ton'], TypeDAlerte>> = { avertissement: 'corriger', succes: 'tenu', info: 'info' };
 
 /** Les rangées de composants sous les noms : plein, contour, message, lien. */
 const RANGEES_DE_COMPOSANTS = 4;
@@ -154,7 +156,7 @@ function construireVues(i18n: Localisation) {
       element.dataset.ton = constat.ton;
       const icone = document.createElement('i');
       icone.setAttribute('aria-hidden', 'true');
-      icone.textContent = ICONES[constat.ton];
+      icone.append(creerIcone(ALERTE_DU_TON[constat.ton]));
       const texte = document.createElement('span');
       segments(recette, constat).forEach((segment, rang) => {
         const morceau = document.createElement(rang % 2 === 1 ? 'b' : 'span');

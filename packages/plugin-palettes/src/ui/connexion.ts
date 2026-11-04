@@ -5,6 +5,7 @@
  * elle porte une ligne par sortie, chacune avec « Changer », puis l'heure du
  * dernier état lu et « Synchroniser », qui relit le fichier sans rien écrire.
  */
+import { creerSvgDuSigne, glypheDe } from 'ucm-plugin-socle/src/ui/Signe';
 import type { Localisation, Texte } from './localisation';
 import { memoriserVues } from './localisation';
 import { createSection } from './section';
@@ -43,21 +44,10 @@ export interface GestesDeLaConnexion {
   basculer(ouverte: boolean): void;
 }
 
-const SVG = 'http://www.w3.org/2000/svg';
-
-/** Les deux flèches en cercle de « Synchroniser » : elles le distinguent de « Changer ». */
-function icone(): SVGSVGElement {
-  const svg = document.createElementNS(SVG, 'svg');
-  svg.setAttribute('viewBox', '0 0 16 16');
-  svg.setAttribute('width', '14');
-  svg.setAttribute('height', '14');
+/** Les deux flèches en cercle de « Synchroniser » : elles le distinguent de « Changer ». Le trait garde les 1,5 de la grille de 16. */
+function iconeDeSynchronisation(): SVGSVGElement {
+  const svg = creerSvgDuSigne('synchroniser', 14, { epaisseur: 1.5 });
   svg.setAttribute('class', 'synchroniser-icone');
-  svg.setAttribute('aria-hidden', 'true');
-  for (const trace of ['M13.5 8a5.5 5.5 0 0 1-9.6 3.7M2.5 8a5.5 5.5 0 0 1 9.6-3.7', 'M12.4 1.8v2.7H9.7M3.6 14.2v-2.7h2.7']) {
-    const chemin = document.createElementNS(SVG, 'path');
-    chemin.setAttribute('d', trace);
-    svg.append(chemin);
-  }
   return svg;
 }
 
@@ -71,7 +61,7 @@ function construireVues(i18n: Localisation) {
     const collection = document.createElement('code');
     const fleche = document.createElement('span');
     fleche.setAttribute('aria-hidden', 'true');
-    fleche.append('›');
+    fleche.append(glypheDe('separateur'));
     const groupe = document.createElement('code');
     element.append(collection, fleche, groupe);
     return {
@@ -143,7 +133,7 @@ function construireVues(i18n: Localisation) {
     synchroniser.type = 'button';
     synchroniser.className = 'synchroniser';
     synchroniser.dataset.geste = 'synchroniser';
-    synchroniser.append(icone(), i18n.noeud(TEXTES_DE_LA_GESTION.synchroniser));
+    synchroniser.append(iconeDeSynchronisation(), i18n.noeud(TEXTES_DE_LA_GESTION.synchroniser));
     synchroniser.addEventListener('click', () => gestes.synchroniser());
     const pied = document.createElement('div');
     pied.className = 'connexion-pied';

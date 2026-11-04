@@ -2,19 +2,25 @@
  * Le sélecteur de la palette ouverte ([UI-06]) : chaque palette sous son nom
  * ou son hexa, avec une pastille de sa référence ; « Sélectionner une
  * palette » tant qu'aucune n'est choisie. Chaque option porte à droite le
- * verdict de sa palette, ✓, ! ou ✗, et le bouton celui de la palette ouverte
+ * verdict de sa palette, une icône d'alerte du socle, et le bouton celui de la palette ouverte
  * ([UI-23], [VER-19]). Un `<select>` natif ne porte ni pastille ni verdict :
  * la liste suit le motif WAI-ARIA « listbox » derrière un bouton. Flèches et
  * Entrée choisissent, Échap referme.
  */
+import { creerIcone, type TypeDAlerte } from 'ucm-plugin-socle/src/ui/Alerte';
 import { creerChevron } from 'ucm-plugin-socle/src/ui/Chevron';
 import type { Palette } from 'ucm-couleur';
 
 import type { Verdict } from '../presentation';
 import { memoriserVues, type Localisation } from './localisation';
 
-/** Le signe d'un verdict : une forme en plus de la couleur ([VER-14]). */
-export const SIGNE_DU_VERDICT: Record<Verdict, string> = { succes: '✓', avertissement: '!', danger: '✗' };
+/** L'alerte du socle qui porte chaque verdict : une forme en plus de la couleur ([VER-14]). */
+const ALERTE_DU_VERDICT: Record<Verdict, TypeDAlerte> = { succes: 'tenu', avertissement: 'corriger', danger: 'bloquant' };
+
+/** L'icône d'un verdict, décorative : le mot du verdict la nomme ailleurs. */
+export function creerIconeDeVerdict(verdict: Verdict): HTMLSpanElement {
+  return creerIcone(ALERTE_DU_VERDICT[verdict]);
+}
 
 export interface SelecteurUi {
   element: HTMLDivElement;
@@ -45,7 +51,7 @@ function construireVues(i18n: Localisation) {
     marque.hidden = verdict === undefined;
     if (verdict === undefined) return;
     marque.dataset.ton = verdict;
-    i18n.lier(marque, 'textContent', SIGNE_DU_VERDICT[verdict]);
+    marque.replaceChildren(creerIconeDeVerdict(verdict));
     i18n.lier(marque, 'aria-label', VERDICT_EN_MOTS[verdict]);
   }
 

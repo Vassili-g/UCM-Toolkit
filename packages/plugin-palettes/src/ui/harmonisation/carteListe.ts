@@ -10,6 +10,7 @@
  * que le focus reste sur la case cliquée.
  */
 import type { Mode, PaireTropProche, Profil, Recette } from 'ucm-couleur';
+import { creerIcone } from 'ucm-plugin-socle/src/ui/Alerte';
 
 import type { EtatHarmonisation } from '../../harmonisation';
 import { rangerSelon } from '../../ordreDesPalettes';
@@ -118,7 +119,7 @@ function construireVues(i18n: Localisation) {
         const texte = TEXTES.tropProcheDe(proches);
         i18n.lier(signal, 'title', texte);
         i18n.lier(signal, 'aria-label', texte);
-        signal.textContent = '!';
+        signal.append(creerIcone('corriger'));
         element.append(signal);
       }
       return { id, element, coche };

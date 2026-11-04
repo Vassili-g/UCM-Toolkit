@@ -11,6 +11,7 @@
  * pas non plus ce qui n'a pas changé.
  */
 import type { PaireTropProche, Recette } from 'ucm-couleur';
+import { creerIcone } from 'ucm-plugin-socle/src/ui/Alerte';
 
 import {
   ETATS_DU_BILAN,
@@ -84,7 +85,7 @@ function construireVues(i18n: Localisation) {
     const coche = document.createElement('span');
     coche.className = 'bilan-coche';
     coche.setAttribute('aria-hidden', 'true');
-    coche.textContent = '✓';
+    coche.append(creerIcone('tenu'));
     const phrases = document.createElement('div');
     const phrase = document.createElement('strong');
     const secondaire = document.createElement('span');

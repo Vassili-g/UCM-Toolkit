@@ -48,6 +48,23 @@ export const FAMILLES_DE_SIGNES = [
   { id: 'palettes', libelle: 'Palettes', teinte: 'couleurs', pose: poseDeTuile(teinteDe('couleurs'), ' Pour `mode`, repris par cette famille, passer `famille: "palettes"`.') },
   { id: 'publication', libelle: 'Publication', teinte: null, pose: poseDeTuile(GRIS) },
   {
+    id: 'verdict-palettes',
+    libelle: 'Verdicts et repères de Palettes',
+    teinte: 'couleurs',
+    pose: poseDeTuile(teinteDe('couleurs'), ' Les verdicts « tenu », « à corriger » et « bloquant » ne sont pas dans cette famille : ils prennent les icônes d’alerte du socle (`creerIcone`).'),
+  },
+  {
+    id: 'pictogramme-palettes',
+    libelle: 'Pictogrammes des cartes de Palettes',
+    teinte: null,
+    pose: {
+      fonction: '`creerSvgDuSigne(id, largeur)` du socle pose le tracé sur sa grille de 44 × 28 ; UCM Palettes le ramène à 38 × 24 px (`creerGlyphe`, `packages/plugin-palettes/src/ui/glyphes.ts`).',
+      tailles: '38 × 24 px dans l’en-tête d’une carte titrée. La grille est de 44 sur 28 (champs `grille` et `hauteur`) : le trait de 1,8 se règle dans la feuille du plugin.',
+      teinte: 'Chaque forme porte un rôle, la classe `glyphe-*` de son attribut `class`, et la feuille du plugin la peint de ses rôles de couleur. Sans cette feuille, le tracé reste dans la couleur du texte.',
+      nom: 'Le pictogramme est décoratif (`aria-hidden`) : le titre de la carte le nomme.',
+    },
+  },
+  {
     id: 'interface',
     libelle: 'Interface des plugins',
     teinte: null,
@@ -72,9 +89,11 @@ export interface SigneDuLangage {
   trace: string;
   /** Côté de la grille du tracé, 16 quand il manque. Un tracé plein copié d’une icône de 512 la garde, faute de se tracer au trait. */
   grille?: number;
+  /** Hauteur de la grille quand elle diffère de sa largeur `grille` (44 × 28 pour un pictogramme de carte). Elle vaut `grille` quand elle manque. */
+  hauteur?: number;
   /** Mot d’un texte brut, là où aucun tracé ne se dessine. */
   mot: string;
-  /** Le caractère qu’un texte écrit à la place du dessin. Seuls sept signes de la famille `interface` en ont un. */
+  /** Le caractère qu’un texte écrit à la place du dessin. Sept signes de la famille `interface`, `ecart` et les trois signes de `verdict-palettes` en ont un. */
   glyphe?: string;
   /** Quand employer le signe, et le signe à prendre à sa place quand il ne convient pas. */
   emploi: string;
@@ -228,6 +247,20 @@ const EMPLOIS: Readonly<Record<string, string>> = {
   css: 'La feuille des custom properties. Pour les tokens DTCG, prendre `dtcg`.',
   fusion: 'La demande de fusion ouverte, pull request ou merge request. Pour le numéro du kit, prendre `version`.',
   version: 'Le numéro de @ucm-kit/core. Pour une demande de fusion, prendre `fusion`.',
+  'carte-apercu': 'Le pictogramme de la carte Aperçu de Création. Pour une palette seule, prendre `palette`.',
+  'carte-reglage-global': 'Le pictogramme de la carte du Réglage global. Pour le pictogramme du Color shift, prendre `carte-color-shift`.',
+  'carte-color-shift': 'Le pictogramme de la carte du Color shift. Pour le Réglage global, prendre `carte-reglage-global`.',
+  'carte-garanties': 'Le pictogramme de la carte des garanties. Pour un verdict de garantie, prendre l’icône d’alerte du socle.',
+  'carte-interface-de-test': 'Le pictogramme de la carte de l’Interface de test. Pour une autre carte, prendre le pictogramme de cette carte.',
+  'carte-fonds': 'Le pictogramme de la carte des fonds. Pour la couleur d’une nuance, prendre `palette`.',
+  'carte-intensites': 'Le pictogramme de la carte des intensités, Soft et Vivid. Pour les modes Light et Dark, prendre `mode`.',
+  'carte-courbes': 'Le pictogramme de la carte des courbes. Pour un cran seul, prendre `cran`.',
+  'carte-minimums': 'Le pictogramme de la carte des minimums de contraste. Pour une paire de contraste seule, prendre `contraste`.',
+  'carte-proches': 'Le pictogramme de la carte des couleurs proches. Pour deux profils confondus à un cran, prendre `confondus`.',
+  'carte-contenu': 'Le pictogramme d’un cadre de la planche. Pour la planche entière, prendre `palette`.',
+  butee: 'Une valeur arrêtée sur sa borne, dans la ligne fixe sous une réglette. Pour une garantie manquée, prendre l’icône d’alerte « bloquant » du socle. En texte, le caractère « ⊣ » (champ glyphe) remplace le dessin.',
+  reference: 'La référence d’une palette, à son cran. Pour la palette entière, prendre `palette`. En texte, le caractère « ◆ » (champ glyphe) remplace le dessin.',
+  confondus: 'Soft et Vivid presque identiques à un cran. Pour deux valeurs différentes, prendre `ecart`. En texte, le caractère « ≈ » (champ glyphe) remplace le dessin.',
   chevron: 'Une section qui se plie ou une liste qui s’ouvre ; le lecteur le tourne pour les trois autres sens. Pour séparer deux niveaux d’un chemin, prendre `separateur`.',
   fermer: 'Fermer un panneau, un message ou une fenêtre. Pour retirer un élément d’une liste, prendre `retirer`. En texte, le caractère « × » (champ glyphe) remplace le dessin.',
   'lien-externe': 'Ouvrir une page hors du plugin. Pour une action dans le plugin, prendre l’icône de cette action.',
@@ -244,6 +277,49 @@ const EMPLOIS: Readonly<Record<string, string>> = {
   separateur: 'Séparer deux niveaux d’un chemin. Pour une section qui se plie, prendre `chevron`. En texte, le caractère « › » (champ glyphe) remplace le dessin.',
   vide: 'Une vue sans rien à montrer. Pour un terme sans règle, prendre `sans-regle`.',
 };
+
+/**
+ * Les pictogrammes des cartes de Palettes, sur une grille de 44 × 28. Chaque forme porte son rôle dans `class`, que la feuille
+ * du plugin peint. Les rôles sans cerne (`stroke="none"`) ou à bouts droits (`butt`) annulent ce que le `svg` de `svgDuSigne`
+ * pose par défaut, pour que la feuille retrouve les formes que le plugin dessinait avant.
+ */
+const nb = (valeur: number): number => Math.round(valeur * 100) / 100;
+const ATTRIBUTS_DE_ROLE: Readonly<Record<string, string>> = { 'aplat-pale': ' stroke="none"', 'aplat-marque': ' stroke="none"', losange: ' stroke="none"', axe: ' stroke-linecap="butt"' };
+const roleDe = (role: string): string => `class="glyphe-${role}"${ATTRIBUTS_DE_ROLE[role] ?? ''}`;
+const formeRect = (x: number, y: number, largeur: number, hauteur: number, role: string, rx = 1): string => `<rect ${roleDe(role)} x="${nb(x)}" y="${nb(y)}" width="${nb(largeur)}" height="${nb(hauteur)}" rx="${rx}"/>`;
+const formeRond = (cx: number, cy: number, r: number, role: string): string => `<circle ${roleDe(role)} cx="${nb(cx)}" cy="${nb(cy)}" r="${nb(r)}"/>`;
+const formeChemin = (d: string, role: string, extra = ''): string => `<path ${roleDe(role)}${extra} d="${d}"/>`;
+const formeLigne = (x1: number, y1: number, x2: number, y2: number, role: string, extra = ''): string => formeChemin(`M${x1} ${y1}L${x2} ${y2}`, role, extra);
+const PASTILLES = [0, 1, 2, 3, 4];
+/** Six pastilles en escalier, à `y` pour la première : une rampe, du clair au sombre. */
+const rampe = (y: number, role: string): string => [0, 1, 2, 3, 4, 5].map((rang) => formeRect(3 + rang * 6.6, y + rang * 2.2, 4.6, 4, role)).join('');
+
+const pictogrammes: Omit<SigneDuLangage, 'emploi'>[] = (
+  [
+    // Une surface, une rangée de pastilles dont la troisième, de marque, porte le losange de la référence.
+    ['carte-apercu', 'aperçu', 'La carte Aperçu de Création : les nuances sur leur fond, la référence repérée.', formeRect(4, 3, 36, 22, 'fond', 2) + PASTILLES.map((rang) => formeRect(8 + rang * 6, 7, 4.6, 8, rang === 2 ? 'aplat-marque' : 'aplat-pale')).join('') + formeChemin('M22.3 17.5 L24.8 20 L22.3 22.5 L19.8 20 Z', 'losange')],
+    // Une rampe pâle, puis la même translatée, de marque.
+    ['carte-reglage-global', 'réglage global', 'La carte du Réglage global : une rampe, et la même rampe décalée.', rampe(6, 'aplat-pale') + rampe(13, 'aplat-marque')],
+    // Deux bouts qui pivotent autour du losange de la référence.
+    ['carte-color-shift', 'Color shift', 'La carte du Color shift : deux bouts de rampe qui pivotent autour de la référence.', formeLigne(4, 14, 40, 14, 'axe') + formeChemin('M4 5L22 14L40 22', 'trait-marque') + formeRond(4, 5, 2.6, 'point') + formeRond(40, 22, 2.6, 'point') + formeChemin('M22 10 L26 14 L22 18 L18 14 Z', 'losange')],
+    // Un texte posé sur un fond plein, et la coche de la garantie tenue.
+    ['carte-garanties', 'garanties', 'La carte des garanties : un texte sur son fond, et la coche de la garantie tenue.', formeRect(4, 6, 20, 16, 'aplat-marque', 2) + formeLigne(9, 14, 19, 14, 'fond') + formeChemin('M28 14L32 19L40 8', 'trait')],
+    // Une fenêtre : sa barre, une ligne de texte et un bouton plein.
+    ['carte-interface-de-test', 'Interface de test', 'La carte de l’Interface de test : une fenêtre, sa barre, une ligne et un bouton.', formeRect(4, 4, 36, 20, 'fond', 2) + formeLigne(4, 9, 40, 9, 'trait') + formeLigne(9, 14, 25, 14, 'trait') + formeRect(9, 17, 14, 4, 'aplat-marque', 2)],
+    // Une page, et la pastille de son fond dans un coin.
+    ['carte-fonds', 'fonds', 'La carte des fonds : une page, et la pastille de son fond.', formeRect(4, 4, 36, 20, 'fond', 2) + formeRect(27, 13, 10, 8, 'aplat-marque', 1.5)],
+    // Soft et Vivid : un rond cerné, un rond plein.
+    ['carte-intensites', 'intensités', 'La carte des intensités : Soft en rond cerné, Vivid en rond plein.', formeRond(14, 14, 7, 'trait-marque') + formeRond(30, 14, 7, 'aplat-marque')],
+    // La courbe de luminosité qui descend du clair au sombre, au-dessus de sa base.
+    ['carte-courbes', 'courbes', 'La carte des courbes : la luminosité qui descend du clair au sombre.', formeLigne(4, 24, 40, 24, 'axe') + formeChemin('M4 5 C 16 6, 26 20, 40 21', 'trait-marque') + formeRond(4, 5, 2, 'aplat-marque') + formeRond(40, 21, 2, 'aplat-marque')],
+    // Des contrastes en barres, et le minimum en ligne tiretée.
+    ['carte-minimums', 'minimums', 'La carte des minimums de contraste : des barres, et le minimum en ligne tiretée.', formeRect(7, 10, 5, 14, 'aplat-marque') + formeRect(15, 14, 5, 10, 'aplat-marque') + formeRect(23, 7, 5, 17, 'aplat-marque') + formeRect(31, 17, 5, 7, 'aplat-pale') + formeLigne(4, 13, 40, 13, 'trait', ' stroke-dasharray="3 2"')],
+    // Deux couleurs proches : deux ronds qui se recouvrent.
+    ['carte-proches', 'couleurs proches', 'La carte des couleurs proches : deux ronds qui se recouvrent.', formeRond(17, 14, 8, 'trait') + formeRond(27, 14, 8, 'trait-marque')],
+    // Un cadre de la planche : une rangée de pastilles, puis deux lignes de texte.
+    ['carte-contenu', 'contenu de la planche', 'Un cadre de la planche : des pastilles, puis deux lignes de texte.', formeRect(4, 3, 36, 22, 'fond', 2) + PASTILLES.map((rang) => formeRect(8 + rang * 6, 7, 4.6, 5, 'aplat-marque')).join('') + formeLigne(8, 16, 36, 16, 'trait') + formeLigne(8, 21, 28, 21, 'trait')],
+  ] as const
+).map(([id, libelle, sens, trace]) => ({ id, famille: 'pictogramme-palettes' as const, libelle, sens, trace, grille: 44, hauteur: 28, mot: libelle }));
 
 const SIGNES_SANS_EMPLOI: readonly Omit<SigneDuLangage, 'emploi'>[] = [
   ...famille('types-figma', [
@@ -370,6 +446,12 @@ const SIGNES_SANS_EMPLOI: readonly Omit<SigneDuLangage, 'emploi'>[] = [
     ['fusion', 'demande de fusion', '<circle cx="4" cy="3.5" r="1.6"/><circle cx="4" cy="12.5" r="1.6"/><circle cx="12" cy="12.5" r="1.6"/><path d="M4 5.1v5.8M4 6.5c0 3.5 8 2 8 4.4"/>', 'La pull request ou la merge request ouverte.'],
     ['version', 'version du kit', '<path d="M2 2h6l6 6-6 6-6-6z"/><circle cx="5.5" cy="5.5" r="1"/>', 'Le numéro de @ucm-kit/core.'],
   ]),
+  ...famille('verdict-palettes', [
+    ['butee', 'butée', '<path d="M2.5 8h9M12.5 3.5v9"/>', 'Une valeur qui s’arrête sur la borne que le calcul de la palette impose.'],
+    ['reference', 'référence', '<path d="M8 2.2 13.8 8 8 13.8 2.2 8z" fill="currentColor"/>', 'La couleur de référence de la palette, à son cran.'],
+    ['confondus', 'presque identiques', '<path d="M2 6.2q1.5-2 3 0t3 0 3 0 3 0M2 10.8q1.5-2 3 0t3 0 3 0 3 0"/>', 'Soft et Vivid se confondent à un cran.'],
+  ]),
+  ...pictogrammes,
   ...famille('interface', [
     ['chevron', 'chevron', '<path d="M4 6 8 10 12 6"/>', 'Un tracé qui pointe vers le bas ; le lecteur le tourne pour les trois autres sens.'],
     ['fermer', 'fermer', '<path d="M4.8 4.8l6.4 6.4M11.2 4.8l-6.4 6.4"/>', 'Ferme le panneau, le message ou la fenêtre.'],
@@ -409,6 +491,9 @@ const GLYPHES_DES_SIGNES: Readonly<Record<string, string>> = {
   retirer: '−',
   separateur: '›',
   ecart: '≠',
+  butee: '⊣',
+  reference: '◆',
+  confondus: '≈',
 };
 
 export const SIGNES: readonly SigneDuLangage[] = SIGNES_SANS_EMPLOI.map((signe) => {
@@ -464,5 +549,15 @@ export const REPRISES_DE_SIGNES: readonly RepriseDeSigne[] = [
 export function svgDuSigne(id: string, taille = 16): string {
   const signe = SIGNES.find((candidat) => candidat.id === id);
   if (!signe) throw new Error(`Signe inconnu : « ${id} ». Les identifiants admis sont ceux de SIGNES.`);
-  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${signe.grille ?? 16} ${signe.grille ?? 16}" width="${taille}" height="${taille}" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${signe.trace}</svg>`;
+  const largeur = signe.grille ?? 16;
+  const hauteur = signe.hauteur ?? largeur;
+  const hauteurRendue = Math.round(((taille * hauteur) / largeur) * 100) / 100;
+  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${largeur} ${hauteur}" width="${taille}" height="${hauteurRendue}" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${signe.trace}</svg>`;
+}
+
+/** Le caractère qu’un texte écrit à la place du signe. Lève une erreur pour un signe sans glyphe. */
+export function glypheDuSigne(id: string): string {
+  const glyphe = SIGNES.find((candidat) => candidat.id === id)?.glyphe;
+  if (glyphe === undefined) throw new Error(`Le signe « ${id} » n’a pas de glyphe dans le kit.`);
+  return glyphe;
 }

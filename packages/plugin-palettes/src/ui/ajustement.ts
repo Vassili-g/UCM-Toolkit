@@ -31,6 +31,7 @@ import { fondDeLaPromesse, variableDuFond } from '../presentation';
 import { creerVuesBadge } from './badge';
 import { creerVuesChamps } from './champs';
 import { memoriserVues, type Localisation, type Texte } from './localisation';
+import { glypheDe } from 'ucm-plugin-socle/src/ui/Signe';
 import { creerSocleLocalise } from './socleLocalise';
 
 export interface GestesDeLAjustement {
@@ -136,9 +137,9 @@ function construireVues(i18n: Localisation) {
     temoins.append(originale.element, proposition.element);
 
     // Les deux pas de part et d'autre de la piste.
-    const plusSombre = createButton({ label: '−', variant: 'secondary', onClick: () => faireUnPas(-1) });
+    const plusSombre = createButton({ label: glypheDe('retirer'), variant: 'secondary', onClick: () => faireUnPas(-1) });
     i18n.lier(plusSombre, 'aria-label', TEXTES_DE_L_AJUSTEMENT.plusSombre);
-    const plusClair = createButton({ label: '+', variant: 'secondary', onClick: () => faireUnPas(1) });
+    const plusClair = createButton({ label: glypheDe('ajouter'), variant: 'secondary', onClick: () => faireUnPas(1) });
     i18n.lier(plusClair, 'aria-label', TEXTES_DE_L_AJUSTEMENT.plusClair);
     const piste = document.createElement('div');
     piste.className = 'ajustement-piste';

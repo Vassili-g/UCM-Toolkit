@@ -93,6 +93,12 @@
   position: relative;
 }
 
+/* Les trois points du signe `menu` du kit, à 16 px : le socle donne 12 px à une icône de bouton. */
+.menu-palette .icon-button svg {
+  width: 16px;
+  height: 16px;
+}
+
 /* Le menu est au bord droit de la barre : sa liste s'ouvre vers la gauche, au-dessus de la ligne du titre (z-index 1). */
 .menu-liste {
   position: absolute;
@@ -227,25 +233,15 @@
 }
 
 /*
- * Le verdict d'une palette ([VER-19]) : un signe, et la couleur de sa
- * sévérité. Dans le bouton, il suit le nom et précède la flèche.
+ * Le verdict d'une palette ([VER-19]) : l'icône d'alerte du socle, dont la
+ * forme et la couleur disent la sévérité. Dans le bouton, il suit le nom et
+ * précède la flèche.
  */
 .marque-de-verdict {
+  display: inline-flex;
   flex: none;
+  align-items: center;
   padding-left: var(--espace-controle);
-  font-weight: 700;
-}
-
-.marque-de-verdict[data-ton='succes'] {
-  color: var(--texte-succes);
-}
-
-.marque-de-verdict[data-ton='avertissement'] {
-  color: var(--texte-avertissement);
-}
-
-.marque-de-verdict[data-ton='danger'] {
-  color: var(--texte-danger);
 }
 
 .selecteur-bouton:focus-visible,
@@ -2008,17 +2004,6 @@
   outline-offset: 2px;
 }
 
-.palette-chevron::before {
-  content: '';
-  display: block;
-  width: 12px;
-  height: 12px;
-  background: currentColor;
-  color: var(--texte-second);
-  -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www%2Ew3%2Eorg/2000/svg' viewBox='0 0 12 12'%3E%3Cpath d='M3 4.5 6 7.5 9 4.5' fill='none' stroke='black' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") center / 12px 12px no-repeat;
-  mask: url("data:image/svg+xml,%3Csvg xmlns='http://www%2Ew3%2Eorg/2000/svg' viewBox='0 0 12 12'%3E%3Cpath d='M3 4.5 6 7.5 9 4.5' fill='none' stroke='black' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") center / 12px 12px no-repeat;
-}
-
 .palette-bascule .fiche-teinte {
   flex: none;
   box-shadow: none;
@@ -2403,12 +2388,6 @@
   display: grid;
   width: 14px;
   height: 14px;
-  border-radius: 50%;
-  background: var(--texte-avertissement);
-  color: var(--fond);
-  font-size: 10px;
-  font-weight: 700;
-  line-height: 1;
   place-items: center;
 }
 
@@ -2514,9 +2493,10 @@
 }
 
 .constat-de-comparaison i {
-  font-style: normal;
-  font-weight: 700;
-  text-align: center;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding-top: 2px;
 }
 
 .constat-de-comparaison[data-ton='succes'] {
@@ -2690,10 +2670,6 @@
   stroke: var(--texte-marque);
 }
 
-.glyphe-aplat {
-  fill: var(--texte-second);
-}
-
 .glyphe-aplat-pale {
   fill: var(--texte-second);
   opacity: 0.35;
@@ -2738,40 +2714,6 @@
   font-weight: 400;
   text-overflow: ellipsis;
   white-space: nowrap;
-}
-
-.carte-chevron::before {
-  content: '';
-  display: block;
-  width: 12px;
-  height: 12px;
-  background: currentColor;
-  color: var(--texte-second);
-  -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www%2Ew3%2Eorg/2000/svg' viewBox='0 0 12 12'%3E%3Cpath d='M3 4.5 6 7.5 9 4.5' fill='none' stroke='black' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") center / 12px 12px no-repeat;
-  mask: url("data:image/svg+xml,%3Csvg xmlns='http://www%2Ew3%2Eorg/2000/svg' viewBox='0 0 12 12'%3E%3Cpath d='M3 4.5 6 7.5 9 4.5' fill='none' stroke='black' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") center / 12px 12px no-repeat;
-}
-
-/*
- * Le glyphe pointe vers le bas : replié, il est tourné vers la droite ; ouvert,
- * il revient vers le bas. Le sélecteur vise le chevron enfant direct de sa
- * bascule, pour qu'une section ouverte ne tourne pas ceux des cartes qu'elle contient.
- */
-.carte-chevron::before,
-.palette-chevron::before {
-  transform: rotate(-90deg);
-  transition: transform 150ms ease-out;
-}
-
-[aria-expanded='true'] > .carte-chevron::before,
-[aria-expanded='true'] > .palette-chevron::before {
-  transform: none;
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .carte-chevron::before,
-  .palette-chevron::before {
-    transition: none;
-  }
 }
 
 /* Dépliée, l'en-tête ajoute 4 px sous lui : le contenu ne colle pas au titre. */
@@ -3188,7 +3130,7 @@
 
 .pastille[data-confondue='true']::after {
   margin-left: 2px;
-  content: '≈';
+  content: attr(data-repere-confondu);
   font-size: 9px;
   opacity: 0.8;
 }
@@ -4289,8 +4231,9 @@
 }
 
 .ligne-fixe-icone {
+  display: inline-flex;
   flex: 0 0 auto;
-  font-weight: 600;
+  align-items: center;
 }
 
 .ligne-fixe-icone:empty,
@@ -4419,33 +4362,10 @@ html {
 
 .pied-icone {
   display: grid;
-  flex: 0 0 auto;
-  font-weight: 600;
-}
-
-/* L'icône du pied est une pastille ronde pleine de 20 px, avec le signe en blanc. */
-.pied-de-la-palette[data-ton='danger'] .pied-icone,
-.pied-de-la-palette[data-ton='avertissement'] .pied-icone {
   width: 20px;
   height: 20px;
-  border-radius: 10px;
-  color: var(--texte-sur-danger);
-  font-size: 11px;
-  font-weight: 700;
+  flex: 0 0 auto;
   place-items: center;
-}
-
-.pied-de-la-palette[data-ton='danger'] .pied-icone {
-  background: var(--fond-danger-plein);
-}
-
-.pied-de-la-palette[data-ton='avertissement'] .pied-icone {
-  background: var(--texte-avertissement);
-  color: var(--fond);
-}
-
-.pied-de-la-palette[data-ton='succes'] .pied-icone {
-  color: var(--texte-succes);
 }
 
 
@@ -4508,11 +4428,12 @@ html {
 }
 
 .compteur-de-verification[data-ton='succes'] {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   padding: 0;
   background: none;
-  color: var(--texte-succes);
-  font-size: 12px;
-  font-weight: 700;
+  vertical-align: top;
 }
 
 /* Le pied de Vérification : sa phrase à gauche, le geste vers l'onglet suivant à droite. */
@@ -4551,7 +4472,6 @@ html {
   flex: none;
   border-radius: 50%;
   background: var(--fond);
-  font-weight: 700;
   place-items: center;
 }
 
@@ -5159,10 +5079,6 @@ html {
   flex: none;
   width: 22px;
   height: 22px;
-  border-radius: 50%;
-  background: var(--fond-succes);
-  color: var(--texte-succes);
-  font-weight: 700;
   place-items: center;
 }
 
@@ -5255,8 +5171,11 @@ html {
   font-weight: 700;
 }
 
-.accueil-de-creation .accueil-nouvelle > span::before {
-  content: '＋ ' / '';
+.accueil-de-creation .accueil-nouvelle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
 }
 
 .accueil-consigne {

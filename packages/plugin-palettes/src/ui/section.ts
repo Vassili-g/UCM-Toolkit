@@ -4,6 +4,7 @@
  * puis un compte en pastille. Repliée, elle montre un résumé au bord droit de
  * l'en-tête, sur une ligne.
  */
+import { creerChevron } from 'ucm-plugin-socle/src/ui/Chevron';
 import type { SectionDeGestion } from '../preferences';
 import type { Localisation, Texte } from './localisation';
 
@@ -41,10 +42,7 @@ export function createSection(options: OptionsDeSection, i18n: Localisation): Se
   bascule.type = 'button';
   bascule.className = 'section-bascule';
   bascule.setAttribute('aria-controls', corps.id);
-  const chevron = document.createElement('span');
-  chevron.className = 'carte-chevron';
-  chevron.setAttribute('aria-hidden', 'true');
-  bascule.append(chevron, i18n.noeud(options.titre));
+  bascule.append(creerChevron(), i18n.noeud(options.titre));
   const titre = document.createElement('h2');
   titre.className = 'section-titre';
   titre.append(bascule);

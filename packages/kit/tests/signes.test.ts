@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { FAMILLES_DE_SIGNES, POSE_DES_ALERTES, REPRISES_DE_SIGNES, SIGNES, TYPES_D_ALERTE, svgDuSigne } from '../src/referentiel/index.js';
+import { FAMILLES_DE_SIGNES, POSE_DES_ALERTES, REPRISES_DE_SIGNES, SIGNES, TYPES_D_ALERTE, glypheDuSigne, svgDuSigne } from '../src/referentiel/index.js';
 
 const sansEmploi = (reprises: readonly { id: string; libelle: string }[] | undefined) => reprises?.map(({ id, libelle }) => ({ id, libelle }));
 
@@ -109,7 +109,8 @@ test('la famille interface porte quinze signes propres et reprend « différent 
 test('un signe à grille propre déclare sa grille dans le viewBox, les autres gardent 16', () => {
   assert.match(svgDuSigne('reglages'), /viewBox="0 0 512 512"/);
   assert.match(svgDuSigne('chevron'), /viewBox="0 0 16 16"/);
-  assert.deepEqual(SIGNES.filter((signe) => signe.grille !== undefined).map((signe) => signe.id), ['reglages']);
+  assert.deepEqual(SIGNES.filter((signe) => signe.grille !== undefined).map((signe) => signe.famille).filter((famille, rang, liste) => liste.indexOf(famille) === rang), ['pictogramme-palettes', 'interface']);
+  assert.deepEqual(SIGNES.filter((signe) => signe.grille === 512).map((signe) => signe.id), ['reglages']);
 });
 
 test('aucune forme d’alerte du socle n’est recopiée dans SIGNES', () => {
@@ -169,9 +170,47 @@ test('chaque famille et la pose des alertes décrivent fonction, tailles, teinte
   for (const famille of FAMILLES_DE_SIGNES) assert.ok(famille.pose.fonction.includes('socle') || famille.pose.fonction.includes('creer'), famille.id);
 });
 
-test('sept signes portent un glyphe, les autres aucun', () => {
-  const attendus = { fermer: '×', 'avant-apres': '→', menu: '⋯', ajouter: '+', retirer: '−', separateur: '›', ecart: '≠' };
+test('dix signes portent un glyphe, les autres aucun', () => {
+  const attendus = { fermer: '×', 'avant-apres': '→', menu: '⋯', ajouter: '+', retirer: '−', separateur: '›', ecart: '≠', butee: '⊣', reference: '◆', confondus: '≈' };
   assert.deepEqual(Object.fromEntries(SIGNES.filter((signe) => signe.glyphe !== undefined).map((signe) => [signe.id, signe.glyphe])), attendus);
   for (const id of ['fermer', 'avant-apres', 'menu', 'ajouter', 'retirer', 'separateur']) assert.equal(SIGNES.find((signe) => signe.id === id)?.famille, 'interface', id);
   assert.equal(SIGNES.find((signe) => signe.id === 'ecart')?.famille, 'etat-token');
+  for (const id of ['butee', 'reference', 'confondus']) assert.equal(SIGNES.find((signe) => signe.id === id)?.famille, 'verdict-palettes', id);
+});
+
+test('glypheDuSigne rend le caractère d’un signe et refuse un signe sans glyphe', () => {
+  assert.equal(glypheDuSigne('reference'), '◆');
+  assert.equal(glypheDuSigne('confondus'), '≈');
+  assert.equal(glypheDuSigne('butee'), '⊣');
+  assert.throws(() => glypheDuSigne('palette'), /n’a pas de glyphe/);
+});
+
+test('la famille verdict-palettes définit butée, référence et presque identiques, en teinte couleurs', () => {
+  assert.equal(FAMILLES_DE_SIGNES.find((famille) => famille.id === 'verdict-palettes')?.teinte, 'couleurs');
+  assert.deepEqual(SIGNES.filter((signe) => signe.famille === 'verdict-palettes').map((signe) => signe.id), ['butee', 'reference', 'confondus']);
+});
+
+test('les verdicts tenu, à corriger et bloquant ne sont pas redessinés : ils restent les alertes du socle', () => {
+  const ids = new Set(TYPES_D_ALERTE.map((type) => type.id as string));
+  for (const id of ['bloquant', 'corriger', 'tenu']) assert.ok(ids.has(id), id);
+  for (const signe of SIGNES.filter((candidat) => candidat.famille === 'verdict-palettes')) assert.ok(!ids.has(signe.id), signe.id);
+});
+
+test('la famille pictogramme-palettes porte les onze pictogrammes de carte sur une grille de 44 × 28', () => {
+  const pictogrammes = SIGNES.filter((signe) => signe.famille === 'pictogramme-palettes');
+  assert.deepEqual(pictogrammes.map((signe) => signe.id), ['carte-apercu', 'carte-reglage-global', 'carte-color-shift', 'carte-garanties', 'carte-interface-de-test', 'carte-fonds', 'carte-intensites', 'carte-courbes', 'carte-minimums', 'carte-proches', 'carte-contenu']);
+  assert.equal(FAMILLES_DE_SIGNES.find((famille) => famille.id === 'pictogramme-palettes')?.teinte, null);
+  for (const signe of pictogrammes) {
+    assert.deepEqual([signe.grille, signe.hauteur], [44, 28], signe.id);
+    assert.match(signe.trace, /class="glyphe-[a-z-]+"/, `${signe.id} : chaque forme porte son rôle`);
+    assert.ok(!/<(line|polyline)/.test(signe.trace), signe.id);
+  }
+});
+
+test('svgDuSigne garde le rapport d’une grille qui n’est pas carrée', () => {
+  const svg = svgDuSigne('carte-apercu', 38);
+  assert.match(svg, /viewBox="0 0 44 28"/);
+  assert.match(svg, /width="38" height="24\.18"/);
+  assert.match(svgDuSigne('carte-apercu', 44), /width="44" height="28"/);
+  assert.deepEqual(SIGNES.filter((signe) => signe.hauteur !== undefined).map((signe) => signe.famille).filter((famille, rang, liste) => liste.indexOf(famille) === rang), ['pictogramme-palettes']);
 });

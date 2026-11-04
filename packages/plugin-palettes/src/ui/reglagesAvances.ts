@@ -8,6 +8,7 @@
  * session, comme celui des cartes « Réglage global » et « Color shift » : il
  * survit au changement de palette, qui ne fait que redessiner son contenu.
  */
+import { creerChevron } from 'ucm-plugin-socle/src/ui/Chevron';
 import type { Localisation, Texte } from './localisation';
 
 export interface ReglagesAvancesUi {
@@ -32,15 +33,12 @@ export function createReglagesAvances(titre: Texte, i18n: Localisation): Reglage
   bouton.type = 'button';
   bouton.className = 'reglages-avances-bascule';
   bouton.setAttribute('aria-controls', corps.id);
-  const chevron = document.createElement('span');
-  chevron.className = 'carte-chevron';
-  chevron.setAttribute('aria-hidden', 'true');
   const intitule = document.createElement('span');
   intitule.className = 'reglages-avances-titre';
   i18n.lier(intitule, 'textContent', titre);
   const resume = document.createElement('span');
   resume.className = 'reglages-avances-resume';
-  bouton.append(chevron, intitule, resume);
+  bouton.append(creerChevron(), intitule, resume);
   element.append(bouton, corps);
 
   let ouvert = false;
