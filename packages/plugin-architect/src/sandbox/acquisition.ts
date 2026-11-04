@@ -78,6 +78,12 @@ export function oublierLAcquisition(): void {
   dernierConclu = compteur;
 }
 
+/**
+ * Le repère des lectures de variables : change à chaque écriture de variable ou de collection, à chaque oubli et à chaque Actualiser
+ * qui commence. Un résultat gardé avec ce repère n'est plus bon dès qu'il a changé.
+ */
+export const reperDesLectures = (): string => `${generation}:${compteur}`;
+
 /** Exécute une écriture de variable ou de collection en périmant l'acquisition avant et après, même si elle lève. */
 export function pendantUneEcriture<T>(ecriture: () => T): T {
   perimerLAcquisition();

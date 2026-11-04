@@ -18,7 +18,9 @@ import type { VariableRelevee } from '../src/modele';
 import { oublierLesPassagesDuModeTokens, passagesDuModeTokens } from '../src/lecture';
 import { commencerUneAnalyse, prendreLaPlaceDUneEcriture, reinitialiserLAnalyse } from '../src/sandbox/analyse';
 import type { Contexte } from '../src/sandbox/contexte';
-import { ACCES_DE_FIGMA, estDeStructure, traiterAvec, type Acces } from '../src/sandbox/structure';
+import { commencerUneAcquisition, pendantUneEcriture } from '../src/sandbox/acquisition';
+import type { DemandeDeStructure } from '../src/messages/structure';
+import { ACCES_DE_FIGMA, estDeStructure, oublierLaLectureGardee, traiterAvec, type Acces } from '../src/sandbox/structure';
 import { atelierDEcriture, type OptionsDeLEcriture, type VariableDEcriture } from './figmaDeTest';
 
 const COLLECTION = 'C:1';
@@ -535,6 +537,7 @@ const CLES_RANGEES = `${ESPACE_ARCHITECT}/${CLES_D_ARCHITECT.ignorer}`;
 
 function bancDIgnorer(declaration?: string) {
   reinitialiserLAnalyse();
+  oublierLaLectureGardee();
   const a = atelierDEcriture(declaration === undefined ? {} : { declaration });
   const envoyes: PluginMessage[] = [];
   const contexte: Contexte = { figma: a.api as never, envoyer: (message) => envoyes.push(message), surveillerLeDocument: () => {} };
@@ -614,4 +617,77 @@ test('lire-structure range sa durée, celle de la lecture du catalogue et celles
   assert.ok(passages.every(({ ms }) => ms >= 0));
   assert.ok(!JSON.stringify(passages).includes('success'), 'aucun nom de variable dans les passages');
   oublierLesPassagesDuModeTokens();
+});
+
+// Ignorer sans relire Figma (D4a)
+
+/** Un banc d'Ignorer dont le catalogue compte ses lectures et dont l'écriture est choisie, pour que C82 porte une création. */
+function bancSansRelecture() {
+  const b = bancDIgnorer();
+  let lectures = 0;
+  const traiter = traiterAvec({
+    ...ACCES_DE_FIGMA,
+    catalogue: async () => { lectures += 1; return catalogueSansSubtle(['primary', 'secondary']); },
+    reglages: async () => ({ ecriture: ECRITURE, cles: b.rangees() }),
+  });
+  return { ...b, traiter, lectures: () => lectures };
+}
+
+const sansNumero = (message: Extract<PluginMessage, { type: 'structure' }>) => ({ ...message, demande: 0 });
+
+const GESTES: readonly { nom: string; avant?: DemandeDeStructure; geste: DemandeDeStructure }[] = [
+  { nom: 'Ignorer un constat', geste: { type: 'ignorer-constat-de-structure', demande: 2, constat: ID_SUBTLE } },
+  { nom: 'Ne plus ignorer un constat', avant: { type: 'ignorer-constat-de-structure', demande: 2, constat: ID_SUBTLE }, geste: { type: 'retablir-constat-de-structure', demande: 3, constat: ID_SUBTLE } },
+  { nom: 'Ignorer un rôle', geste: { type: 'ignorer-role', demande: 2, role: 'surface/subtle' } },
+  { nom: 'Rétablir un rôle', avant: { type: 'ignorer-role', demande: 2, role: 'surface/subtle' }, geste: { type: 'retablir-role', demande: 3, role: 'surface/subtle' } },
+];
+
+for (const { nom, avant, geste } of GESTES) {
+  test(`${nom} : le message structure est celui d'une lecture complète, sans lire de variable`, async () => {
+    const b = bancSansRelecture();
+    await b.traiter({ type: 'lire-structure', demande: 1 }, b.contexte);
+    if (avant) await b.traiter(avant, b.contexte);
+    const lecturesAvant = b.lectures();
+    oublierLesPassagesDuModeTokens();
+    await b.traiter(geste, b.contexte);
+    const passages = passagesDuModeTokens();
+    assert.equal(b.lectures(), lecturesAvant, 'le catalogue n’est pas relu');
+    assert.ok(!passages.some(({ phase }) => phase === 'lire-le-catalogue'));
+    assert.deepEqual(passages.find(({ phase }) => phase === 'lire-structure')?.appels, {});
+    const filtre = sansNumero(b.derniere());
+    await b.traiter({ type: 'lire-structure', demande: 9 }, b.contexte);
+    assert.equal(b.lectures(), lecturesAvant + 1, 'la lecture complète relit le catalogue');
+    assert.deepEqual(filtre, sansNumero(b.derniere()), 'constats, corrections, ignorés et ordre identiques');
+    oublierLesPassagesDuModeTokens();
+  });
+}
+
+test('Ignorer un rôle recalcule C82 : plus aucune création de ce rôle n’est proposée, et Rétablir la rend', async () => {
+  const b = bancSansRelecture();
+  await b.traiter({ type: 'lire-structure', demande: 1 }, b.contexte);
+  assert.ok(b.derniere().corrections.some(({ id }) => id === ID_SUBTLE));
+  await b.traiter({ type: 'ignorer-role', demande: 2, role: 'surface/subtle' }, b.contexte);
+  assert.ok(!b.derniere().constats.some(({ code, faits }) => code === 'C82' && faits.variable === 'surface/subtle'));
+  assert.ok(!b.derniere().corrections.some(({ id }) => id === ID_SUBTLE));
+  assert.ok(b.derniere().constats.some(({ id }) => id === ID_DIVIDER));
+  await b.traiter({ type: 'retablir-role', demande: 3, role: 'surface/subtle' }, b.contexte);
+  assert.ok(b.derniere().corrections.some(({ id }) => id === ID_SUBTLE));
+  assert.equal(b.lectures(), 1);
+});
+
+test('Après une écriture de variable, ou sans lecture gardée, Ignorer relit le catalogue', async () => {
+  const b = bancSansRelecture();
+  await b.traiter({ type: 'ignorer-role', demande: 1, role: 'surface/subtle' }, b.contexte);
+  assert.equal(b.lectures(), 1, 'rien n’est gardé : lecture complète');
+  await b.traiter({ type: 'ignorer-constat-de-structure', demande: 2, constat: ID_DIVIDER }, b.contexte);
+  assert.equal(b.lectures(), 1, 'la lecture gardée sert');
+  pendantUneEcriture(() => undefined);
+  await b.traiter({ type: 'retablir-constat-de-structure', demande: 3, constat: ID_DIVIDER }, b.contexte);
+  assert.equal(b.lectures(), 2, 'une écriture est passée : le catalogue est relu');
+  await b.traiter({ type: 'ignorer-constat-de-structure', demande: 4, constat: ID_DIVIDER }, b.contexte);
+  assert.equal(b.lectures(), 2, 'la lecture refaite est gardée à son tour');
+  const c = commencerUneAcquisition();
+  c.annuler();
+  await b.traiter({ type: 'retablir-constat-de-structure', demande: 5, constat: ID_DIVIDER }, b.contexte);
+  assert.equal(b.lectures(), 3, 'un nouvel Actualiser périme la lecture gardée');
 });
