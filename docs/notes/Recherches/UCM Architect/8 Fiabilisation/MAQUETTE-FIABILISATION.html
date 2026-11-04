@@ -52,7 +52,8 @@
     <a href="#ignores">5. Tous les constats ignorés</a>
     <a href="#partielle">6. Analyse partielle</a>
     <a href="#occupe">7. Demande refusée pendant une écriture</a>
-    <a href="#a-trancher">8. Questions au mainteneur</a>
+    <a href="#icones">8. Les icônes</a>
+    <a href="#a-trancher">9. Questions au mainteneur</a>
   </nav>
 
   <h2 id="tokens">1. Le mode Tokens en deux onglets</h2>
@@ -126,22 +127,56 @@
     <div class="colonne"><span class="etiquette nouveau">Proposé</span><div class="cadre" id="o-apres"></div></div>
   </div>
 
-  <h2 id="a-trancher">8. Questions au mainteneur</h2>
+  <h2 id="icones">8. Les icônes</h2>
+  <p>La première version de la section 1 prêtait aux catégories du mode Tokens les signes des sections du mode Composant, dans l'ordre et
+  en boucle. Modes recevait ainsi le radius de Tailles, et Couches l'hexagone de « Tokens du composant ». Le kit porte 90 signes dans
+  <code>packages/kit/src/referentiel/signes.ts</code>. Un signe désigne une sorte d'objet, et sa famille lui donne sa teinte.
+  <code>Mesures/extraire-signes.mts</code> fige les signes du kit dans <code>galerie/signes.js</code>.</p>
+
+  <h3>Les catégories du mode Tokens</h3>
+  <p>La proposition crée une famille « Rubrique du mode Tokens », en teinte tokens. Cinq catégories reprennent un signe du kit qui a déjà
+  leur sens. Cinq demandent un signe nouveau, dessiné sur la grille de 16 et avec le trait du kit. La teinte est la même pour toutes, car
+  le mode ne montre que des tokens. La forme porte la catégorie, et les sept teintes restent aux éléments du mode Composant (QM-10).
+  Chaque fiche montre la bande (24 px), la puce (14 px) et la ligne grise (16 px).</p>
+  <div class="cadre" id="planche-categories"></div>
+
+  <h3>Doublons et sens croisés</h3>
+  <table class="t">
+    <tr><th>Id</th><th>Signes</th><th>Fait</th><th>Proposition</th></tr>
+    <tr><td>R-1</td><td><code>palette</code></td><td>Le kit dessine trois nuances. Nomenclature dessine un rond barré d'une croix pour le même mot.</td><td>Nomenclature prend le signe du kit.</td></tr>
+    <tr><td>R-2</td><td><code>composant</code> de Nomenclature</td><td>Il redessine <code>component</code> hors du kit, avec d'autres coordonnées.</td><td>Nomenclature lit <code>component</code> dans le kit.</td></tr>
+    <tr><td>R-3</td><td><code>a-trancher</code>, <code>question</code>, À vérifier</td><td>Trois dessins proches pour deux sens. Nomenclature dessine un rond à « ? » ambre, le kit un « ? » seul, l'alerte À vérifier un rond à « ? ».</td><td><code>a-trancher</code> reprend <code>question</code>. Le rond à « ? » reste à l'alerte À vérifier.</td></tr>
+    <tr><td>R-4</td><td><code>conforme</code>, <code>applique</code>, <code>tag-do</code></td><td>La même coche dit « le terme suit la règle », « l'écriture a réussi » et « emploi recommandé ».</td><td><code>conforme</code> reprend <code>applique</code>, qui dit déjà un état atteint. <code>tag-do</code> garde son rond.</td></tr>
+    <tr><td>R-5</td><td><code>information</code>, <code>regles</code>, <code>tag-usage</code></td><td>Trois feuilles à lignes. Les bandes Règles et Informations sont voisines dans le mode Composant.</td><td><code>information</code> prend un « i » dans un rond, la forme de l'alerte Information en trait.</td></tr>
+    <tr><td>R-6</td><td><code>ignore</code></td><td>Une corbeille. Ignorer ne supprime rien, et « Ne plus ignorer » rend le constat.</td><td>Un œil barré.</td></tr>
+    <tr><td>R-7</td><td><code>type-boolean</code> et <code>prop-boolean</code>, <code>text</code> et <code>prop-text</code>, <code>slot</code> et <code>prop-slot</code></td><td>Le même tracé sous deux identifiants, par une constante partagée. L'en-tête de <code>signes.ts</code> demande une seule définition et une reprise.</td><td>Garder le dessin, que Figma emploie pour les deux. Déclarer le second en reprise.</td></tr>
+    <tr><td>R-8</td><td>Icônes de Nomenclature</td><td>Elles sont dessinées hors du kit, donc aucun test ne compare leurs tracés à ceux du kit.</td><td>Ranger les six icônes dans le kit, en famille « Type de terme ». Les icônes d'alerte restent au socle, car leur forme dit un type et non un objet.</td></tr>
+  </table>
+
+  <h3>Tous les signes du kit</h3>
+  <p>Le sens est celui du kit. La pastille verte nomme la section du mode Composant dont la bande prend le signe. La pastille rouge nomme
+  un autre signe au même tracé.</p>
+  <div class="cadre" id="planche-kit"></div>
+
+  <h2 id="a-trancher">9. Questions au mainteneur</h2>
   <table class="t">
     <tr><th>Id</th><th>Question</th><th>Proposition</th><th>État</th></tr>
     <tr><td>QM-1</td><td>Le mode Tokens passe-t-il à deux onglets, Constats et Règles ?</td><td>Oui, option B de la section 1.</td><td><span class="ouvert">En discussion</span></td></tr>
-    <tr><td>QM-2</td><td>Quelles catégories pour le mode Tokens ?</td><td>Noms, puis les rubriques actuelles de l'onglet À faire dans Figma (Variables manquantes, Crans, Modes, Couches, Types, Rangement). Une catégorie sans constat se montre tenue, comme en mode Composant.</td><td><span class="ouvert">Ouvert</span></td></tr>
-    <tr><td>QM-3</td><td>Les icônes des catégories du mode Tokens sont-elles à dessiner ?</td><td>Oui. La maquette prête les icônes du mode Composant.</td><td><span class="ouvert">Ouvert</span></td></tr>
+    <tr><td>QM-2</td><td>Quelles catégories pour le mode Tokens ?</td><td>Noms, puis les huit rubriques de l'onglet À faire dans Figma (Variables manquantes, Crans, Alias, Modes, Valeurs, Couches, Types, Rangement), puis Scopes des corrections. Une catégorie sans constat se montre tenue, comme en mode Composant.</td><td><span class="ouvert">Ouvert</span></td></tr>
+    <tr><td>QM-3</td><td>Quels signes pour les catégories du mode Tokens ?</td><td>Ceux de la section 8. Cinq sont repris du kit (<code>a-creer</code>, <code>cran</code>, <code>rompue</code>, <code>mode</code>, <code>scope</code>), cinq sont nouveaux (<code>nom</code>, <code>valeurs</code>, <code>couches</code>, <code>types</code>, <code>rangement</code>).</td><td><span class="ouvert">Ouvert</span></td></tr>
     <tr><td>QM-4</td><td>Où vont les questions dans une catégorie ?</td><td>En tête de la catégorie. La puce Questions du sommaire les isole.</td><td><span class="ouvert">Ouvert</span></td></tr>
     <tr><td>QM-5</td><td>« Plus tard » reste-t-il à côté d'Ignorer et de « Ne plus proposer » ?</td><td>Oui sur les questions. « Plus tard » vaut pour la session, Ignorer pour le fichier, « Ne plus proposer » pour la proposition.</td><td><span class="ouvert">Ouvert</span></td></tr>
     <tr><td>QM-6</td><td>Les constats d'une analyse périmée gardent-ils leurs cases ?</td><td>Non. Les cases et Appliquer sont inactifs jusqu'à Actualiser (Q-F89-15).</td><td><span class="ouvert">Ouvert</span></td></tr>
     <tr><td>QM-7</td><td>La bannière partielle liste-t-elle chaque cause ?</td><td>Oui, une ligne par cause, et jamais « N lus sur N ».</td><td><span class="ouvert">Ouvert</span></td></tr>
     <tr><td>QM-8</td><td>Corrections décochées, « Tout cocher » et « Tout décocher » par section et au global</td><td>Décision V1, reprise ici.</td><td><span class="decide">Décidé</span></td></tr>
     <tr><td>QM-9</td><td>Ignorer et « Ne plus proposer » sur les questions</td><td>Décision V1, reprise ici et étendue aux cartes de règles (N-86).</td><td><span class="decide">Décidé</span></td></tr>
+    <tr><td>QM-10</td><td>Les catégories du mode Tokens prennent-elles toutes la teinte tokens ?</td><td>Oui. La forme porte la catégorie, et les sept teintes restent aux éléments du mode Composant.</td><td><span class="ouvert">Ouvert</span></td></tr>
+    <tr><td>QM-11</td><td>Les doublons R-1 à R-8 se corrigent-ils dans le plan de correction ?</td><td>Oui, en deux lots. Le premier change <code>signes.ts</code> du kit, le second fait lire le kit à Nomenclature.</td><td><span class="ouvert">Ouvert</span></td></tr>
   </table>
 </main>
 
 <script src="galerie/etats.js"></script>
+<script src="galerie/signes.js"></script>
 <script>
 const G = window.GALERIE;
 const COMPOSANT = 460;
@@ -202,15 +237,49 @@ const boutonTexte = (libelle, classe = '') => `<button class="btn-texte ${classe
 const actionsDeSection = (classe = '') => `<div class="section-actions ${classe}">${boutonTexte('Tout cocher')}${boutonTexte('Tout décocher')}</div>`;
 const decocher = (doc) => qa(doc, 'input.case').forEach((c) => { c.checked = false; c.removeAttribute('checked'); });
 
-// Les signes des sections du mode Composant, prêtés aux catégories du mode Tokens (QM-3).
 const COMPOSANT_LU = etatLu('c-corrections');
-const signe = (teinte, taille) => {
-  const s = COMPOSANT_LU.querySelector(`.bande-element .signe-teinte-${teinte}`).cloneNode(true);
-  s.classList.replace('signe-24', `signe-${taille}`);
-  return s.outerHTML;
+
+// ---------- Signes ----------
+// Les signes du kit viennent de galerie/signes.js. Les signes nouveaux sont dessinés ici sur la grille de 16 du kit, avec ses conventions
+// de trait (svgDuSigne).
+const K = window.SIGNES_DU_KIT;
+const HEXA = 'M8 1.8 13.4 4.9v6.2L8 14.2 2.6 11.1V4.9z';
+const svg = (trace) => `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${trace}</svg>`;
+const NOUVEAUX = [
+  { id: 'nom', libelle: 'nom', trace: '<text x="8" y="11" font-size="7.5" text-anchor="middle" font-weight="650">a/b</text>', sens: 'Le nom d’une variable, en segments séparés par des barres obliques.' },
+  { id: 'valeurs', libelle: 'valeurs', trace: `<path d="${HEXA}"/><path d="M5.6 6.9h4.8M5.6 9.1h4.8"/>`, sens: 'Une valeur vide, ou deux variables de même valeur.' },
+  { id: 'couches', libelle: 'couches', trace: '<path d="M1.8 2.5h7.5M1.8 6.2h7.5M1.8 9.8h7.5M1.8 13.5h7.5"/><path d="M12.8 13V3.5M11.2 5.1l1.6-1.6 1.6 1.6"/>', sens: 'L’ordre des couches. Chaque couche lit celle du dessus.' },
+  { id: 'types', libelle: 'types', trace: '<rect x="2" y="2.2" width="5" height="5" rx="1"/><circle cx="11.5" cy="4.7" r="2.5"/><path d="M8 9.2l3.2 5H4.8z"/>', sens: 'Le type Figma d’une variable (Color, Number, String, Boolean).' },
+  { id: 'rangement', libelle: 'rangement', trace: '<path d="M1.8 4.2a1 1 0 0 1 1-1h3.4l1.5 1.8h5.5a1 1 0 0 1 1 1v6.8a1 1 0 0 1-1 1H2.8a1 1 0 0 1-1-1z"/>', sens: 'Le dossier ou la collection où la variable est rangée.' },
+  { id: 'information-i', libelle: 'information', trace: '<circle cx="8" cy="8" r="5.8"/><path d="M8 7.2v4.2"/><circle cx="8" cy="4.8" r=".6" fill="currentColor" stroke="none"/>', sens: 'Remplace la feuille à lignes de `information` (R-5).' },
+  { id: 'ignore-oeil', libelle: 'ignoré', trace: '<path d="M1.8 8s2.3-4.2 6.2-4.2S14.2 8 14.2 8s-2.3 4.2-6.2 4.2S1.8 8 1.8 8z"/><circle cx="8" cy="8" r="1.8"/><path d="M2.8 13.2 13.2 2.8"/>', sens: 'Remplace la corbeille de `ignore` (R-6).' },
+].map((s) => ({ ...s, svg: svg(s.trace), nouveau: true }));
+const signeLu = (id) => K.signes.find((s) => s.id === id) ?? NOUVEAUX.find((s) => s.id === id);
+const TEINTE_DE_FAMILLE = Object.fromEntries(K.familles.map((f) => [f.id, f.teinte]));
+// Une tuile comme creerSigne du socle la pose. `teinte` null laisse la tuile grise.
+const tuile = (id, taille, teinte) => `<span class="signe${taille === 16 ? '' : ` signe-${taille}`}${teinte ? ` signe-informe signe-teinte-${teinte}` : ''}${id === 'a-creer' ? ' signe-absent' : ''}">${signeLu(id).svg}</span>`;
+
+// Les catégories du mode Tokens : le signe de chacune, repris du kit ou nouveau, en teinte tokens (QM-3, QM-10).
+const CATEGORIES = [
+  ['Noms', 'nom', 'Renommages et questions de Nomenclature.'],
+  ['Variables manquantes', 'a-creer', '`variable-absente`, `cran-absent`'],
+  ['Crans', 'cran', '`cran`'],
+  ['Alias', 'rompue', '`alias-supprime`, `library-inactive`'],
+  ['Modes', 'mode', '`sans-valeur-en-mode`, `mode-du-theme`'],
+  ['Valeurs', 'valeurs', '`valeur-vide`, `doublons`'],
+  ['Couches', 'couches', '`couche`, `valeur-directe`, `couleur-sans-alias`'],
+  ['Types', 'types', '`type`'],
+  ['Rangement', 'rangement', '`mal-rangee`'],
+  ['Scopes', 'scope', 'Corrections de scopes.'],
+];
+const SIGNE_DE_CATEGORIE = Object.fromEntries(CATEGORIES.map(([titre, id]) => [titre, id]));
+
+const bande = (titre, nombre) => `<button class="bande-element">${tuile(SIGNE_DE_CATEGORIE[titre], 24, 'tokens')}<span class="titre">${titre}</span><span class="nombre">${nombre}</span></button>`;
+// Une puce de catégorie prend le signe de sa catégorie, la puce Questions le signe gris `question` du kit, Tout aucun signe.
+const puce = (titre, nombre, actif = false) => {
+  const signe = SIGNE_DE_CATEGORIE[titre] ? tuile(SIGNE_DE_CATEGORIE[titre], 14, 'tokens') : titre === 'Questions' ? tuile('question', 14, null) : '';
+  return `<button class="puce-element${actif ? ' actif' : ''}">${signe}<span>${titre}</span><span class="nombre">${nombre}</span></button>`;
 };
-const bande = (teinte, titre, nombre) => `<button class="bande-element">${signe(teinte, 24)}<span class="titre">${titre}</span><span class="nombre">${nombre}</span></button>`;
-const puce = (teinte, titre, nombre, actif = false) => `<button class="puce-element${actif ? ' actif' : ''}">${teinte ? signe(teinte, 14) : ''}<span>${titre}</span><span class="nombre">${nombre}</span></button>`;
 
 // ---------- 1. Mode Tokens ----------
 function tokensEnDeuxOnglets(doc) {
@@ -234,11 +303,10 @@ function tokensEnDeuxOnglets(doc) {
   q(onglets[0], '.compte').textContent = total;
   onglets[1].remove(); onglets[2].remove();
 
-  const teintes = ['regles', 'couleurs', 'tailles', 'tokens'];
-  const sommaire = html(doc, `<div class="sommaire-elements">${puce(null, 'Tout', total, true)}${puce('tokens', 'Noms', nombreNoms)}${groupes.map((g, i) => puce(teintes[i % teintes.length], g.titre, g.cartes.length)).join('')}${puce(null, 'Questions', questions.length)}</div>`);
+  const sommaire = html(doc, `<div class="sommaire-elements">${puce('Tout', total, true)}${puce('Noms', nombreNoms)}${groupes.map((g) => puce(g.titre, g.cartes.length)).join('')}${puce('Questions', questions.length)}</div>`);
   const constats = html(doc, '<div class="liste liste-des-constats"></div>');
 
-  const sectionNoms = html(doc, `<div class="section-element section-noms">${bande('tokens', 'Noms', nombreNoms)}${actionsDeSection('actions-noms')}</div>`);
+  const sectionNoms = html(doc, `<div class="section-element section-noms">${bande('Noms', nombreNoms)}${actionsDeSection('actions-noms')}</div>`);
   if (questions.length) sectionNoms.append(html(doc, '<div class="intertitre intertitre-questions"><h2>Questions</h2></div>'));
   for (const carte of questions) {
     const c = doc.importNode(carte, true);
@@ -250,8 +318,8 @@ function tokensEnDeuxOnglets(doc) {
   for (const e of noms) sectionNoms.append(e);
   if (muette) sectionNoms.append(muette);
   constats.append(sectionNoms);
-  groupes.forEach((g, i) => {
-    const s = html(doc, `<div class="section-element">${bande(teintes[i % teintes.length], g.titre, g.cartes.length)}</div>`);
+  groupes.forEach((g) => {
+    const s = html(doc, `<div class="section-element">${bande(g.titre, g.cartes.length)}</div>`);
     for (const carte of g.cartes) s.append(doc.importNode(carte, true));
     constats.append(s);
   });
@@ -337,11 +405,62 @@ function demandeRefusee(doc) {
   if (pied) { q(pied, '.corrections-resume').innerHTML = 'Écriture en cours'; q(pied, '.btn-primary').disabled = true; }
 }
 
+// ---------- 8. Les icônes ----------
+const enCode = (t) => t.replace(/`([^`]+)`/g, '<code>$1</code>');
+const SECTION_DE_L_ELEMENT = { couleurs: 'Couleurs', tailles: 'Tailles', texte: 'Texte', tokens: 'Tokens du composant', variants: 'Variants', regles: 'Règles', a11y: 'Accessibilité' };
+
+function planche(hote, corps, largeur = 1180) {
+  const f = document.createElement('iframe');
+  f.style.width = `${largeur}px`;
+  f.style.height = '400px';
+  f.srcdoc = `<!doctype html><html lang="fr" class="figma-dark"><head><meta charset="utf-8"><link rel="stylesheet" href="galerie/plugin.css"><link rel="stylesheet" href="fiabilisation.css"></head><body class="planche">${corps}</body></html>`;
+  f.addEventListener('load', () => setTimeout(() => { f.style.height = `${f.contentDocument.documentElement.scrollHeight}px`; }, 200));
+  document.getElementById(hote).append(f);
+}
+
+const fiche = (id, teinte, { libelle, sens, marques = [] }) => `<div class="fiche">
+  <div class="tuiles">${tuile(id, 24, teinte)}${tuile(id, 14, teinte)}${tuile(id, 16, null)}</div>
+  <div><div class="fiche-tete"><b>${libelle}</b> <code>${id}</code>${marques.join('')}</div><div class="fiche-sens">${enCode(sens)}</div></div>
+</div>`;
+
+function planchesDesIcones() {
+  const categories = CATEGORIES.map(([titre, id, constats]) => {
+    const s = signeLu(id);
+    const origine = s.nouveau ? '<span class="marque nouveau">nouveau</span>' : `<span class="marque">repris de ${K.familles.find((f) => f.id === s.famille).libelle}</span>`;
+    return fiche(id, 'tokens', { libelle: titre, sens: `${s.sens}<br><span class="fiche-constats">Range ${constats}</span>`, marques: [origine] });
+  }).join('');
+  const revue = ['information-i', 'ignore-oeil'].map((id) => fiche(id, null, { ...signeLu(id), marques: ['<span class="marque nouveau">nouveau</span>'] })).join('');
+  planche('planche-categories', `<h3>Catégories du mode Tokens, teinte tokens</h3><div class="grille">${categories}</div>
+    <h3>Puces sans catégorie</h3><div class="grille">${fiche('question', null, { libelle: 'Questions', sens: 'Signe gris `question` du kit. Le designer choisit.' })}</div>
+    <h3>Signes proposés par la revue</h3><div class="grille">${revue}</div>`);
+
+  const parTrace = new Map();
+  // Un tracé vide (`usage-fill`, `usage-stroke`) laisse la couleur seule dans la tuile : ce n'est pas un doublon.
+  for (const s of K.signes) if (!s.svg.includes('true"></svg>')) parTrace.set(s.svg, [...(parTrace.get(s.svg) ?? []), s.id]);
+  const jumeaux = new Set([...parTrace.values()].filter((ids) => ids.length > 1).flat());
+  const familles = K.familles.map((f) => {
+    const marques = (id) => [
+      ...Object.entries(K.elements).filter(([, signe]) => signe === id).map(([element]) => `<span class="marque employe">bande ${SECTION_DE_L_ELEMENT[element]}</span>`),
+      ...(jumeaux.has(id) ? [`<span class="marque doublon">même tracé que ${parTrace.get(K.signes.find((s) => s.id === id).svg).filter((autre) => autre !== id).map((autre) => `<code>${autre}</code>`).join(', ')}</span>`] : []),
+    ];
+    const propres = K.signes.filter((s) => s.famille === f.id).map((s) => fiche(s.id, f.teinte, { ...s, marques: marques(s.id) })).join('');
+    const reprises = (K.reprises.find((r) => r.famille === f.id)?.reprend ?? []).map((r) => fiche(r.id, f.teinte, { libelle: r.libelle, sens: `Repris de ${K.familles.find((g) => g.id === signeLu(r.id).famille).libelle}.`, marques: ['<span class="marque">reprise</span>'] })).join('');
+    return `<h3>${f.libelle} <span class="teinte">teinte ${f.teinte ?? 'aucune'}</span></h3><div class="grille">${propres}${reprises}</div>`;
+  }).join('');
+  const SENS_DES_TERMES = { 'a-trancher': 'À trancher. Seule icône ambre.', remplace: 'Le terme est remplacé.', conforme: 'Le terme suit la règle.', 'sans-regle': 'Aucune règle ne lit le terme.', composant: 'Le terme nomme un composant.', palette: 'Le terme nomme une palette.' };
+  const termes = K.termes.map((t) => `<div class="fiche"><div class="tuiles">${t.html}</div><div><div class="fiche-tete"><b>${t.type}</b></div><div class="fiche-sens">${SENS_DES_TERMES[t.type]}</div></div></div>`).join('');
+  const alertes = K.alertes.map((a) => `<div class="fiche"><div class="tuiles">${a.html}</div><div><div class="fiche-tete"><b>${a.libelle}</b> <code>${a.id}</code></div></div></div>`).join('');
+  planche('planche-kit', `${familles}
+    <h3>Types de terme de Nomenclature <span class="teinte">hors du kit, src/ui/nomenclature/icones.ts</span></h3><div class="grille">${termes}</div>
+    <h3>Types d’alerte <span class="teinte">hors du kit, plugin-socle/src/ui/Alerte.ts</span></h3><div class="grille">${alertes}</div>`);
+}
+planchesDesIcones();
+
 const LEGENDES = {
   't-apres': [
     ['.onglets', 'Deux onglets, Constats et Règles. Le compte de Constats est le total.'],
     ['.sommaire-elements', 'Le sommaire du mode Composant. Une puce par catégorie, et la puce Questions qui isole les questions.'],
-    ['.section-noms .bande-element', 'Une section repliable par catégorie, avec son icône et son nombre. Les icônes sont prêtées par le mode Composant (QM-3).'],
+    ['.section-noms .bande-element', 'Une section repliable par catégorie, avec son signe et son nombre. Les signes sont ceux de la section 8 (QM-3).'],
     ['.actions-noms', '« Tout cocher » et « Tout décocher » de la section.'],
     ['.question-maquette .ignorer-question', 'Les questions en tête de leur catégorie, avec Ignorer et « Ne plus proposer ».'],
     ['.cocher-global', 'Les cartes arrivent décochées. « Tout cocher » global, Appliquer inactif tant que rien n’est coché.'],

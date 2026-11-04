@@ -103,12 +103,14 @@ familles.push({
   famille: 'Écrans de la maquette', fichier: 'MAQUETTE-FIABILISATION.html',
   questions: [
     ['QM-1', 'Le mode Tokens passe-t-il à deux onglets, Constats et Règles ?', 'Oui, option B de la section 1 de la maquette.'],
-    ['QM-2', 'Quelles catégories pour le mode Tokens ?', 'Noms, puis les rubriques actuelles de l’onglet À faire dans Figma (Variables manquantes, Crans, Modes, Couches, Types, Rangement). Une catégorie sans constat se montre tenue.'],
-    ['QM-3', 'Les icônes des catégories du mode Tokens sont-elles à dessiner ?', 'Oui. La maquette prête les icônes du mode Composant.'],
+    ['QM-2', 'Quelles catégories pour le mode Tokens ?', 'Noms, puis les huit rubriques de l’onglet À faire dans Figma (Variables manquantes, Crans, Alias, Modes, Valeurs, Couches, Types, Rangement), puis Scopes des corrections. Une catégorie sans constat se montre tenue.'],
+    ['QM-3', 'Quels signes pour les catégories du mode Tokens ?', 'Ceux de la section 8 de la maquette. Cinq sont repris du kit (`a-creer`, `cran`, `rompue`, `mode`, `scope`), cinq sont nouveaux (`nom`, `valeurs`, `couches`, `types`, `rangement`).'],
     ['QM-4', 'Où vont les questions dans une catégorie ?', 'En tête de la catégorie. La puce Questions du sommaire les isole.'],
     ['QM-5', '« Plus tard » reste-t-il à côté d’Ignorer et de « Ne plus proposer » ?', 'Oui sur les questions. « Plus tard » vaut pour la session, Ignorer pour le fichier, « Ne plus proposer » pour la proposition.'],
     ['QM-6', 'Les constats d’une analyse périmée gardent-ils leurs cases ?', 'Non. Les cases et Appliquer sont inactifs jusqu’à Actualiser (Q-F89-15).'],
     ['QM-7', 'La bannière partielle liste-t-elle chaque cause ?', 'Oui, une ligne par cause, et jamais « N lus sur N ».'],
+    ['QM-10', 'Les catégories du mode Tokens prennent-elles toutes la teinte tokens ?', 'Oui. La forme porte la catégorie, et les sept teintes restent aux éléments du mode Composant.'],
+    ['QM-11', 'Les doublons R-1 à R-8 de la section 8 se corrigent-ils dans le plan de correction ?', 'Oui, en deux lots. Le premier change `signes.ts` du kit, le second fait lire le kit à Nomenclature.'],
   ].map(([id, question, proposition]) => ({ id, question, proposition, etat: 'ouverte', ecarts: [], mesure: { cas: 0, ecarts: 0 } })),
 });
 

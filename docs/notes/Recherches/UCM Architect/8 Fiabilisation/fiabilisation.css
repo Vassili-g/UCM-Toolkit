@@ -24,5 +24,26 @@
 .alerte-corps ul.causes { margin: 4px 0 0; padding-left: 16px; }
 .alerte-corps ul.causes li { margin: 2px 0; }
 
+/* Planches des icônes (section 8) : une fiche par signe, ses trois tailles, son nom et son sens. */
+.planche { margin: 0; padding: 4px 16px 20px; font: 12px/1.45 Inter, system-ui, sans-serif; color: var(--texte, #e6e6e6); }
+.planche h3 { margin: 18px 0 8px; font-size: 13px; }
+.planche .teinte { margin-left: 6px; font-weight: 400; opacity: .65; }
+.planche .grille { display: grid; grid-template-columns: repeat(auto-fill, minmax(270px, 1fr)); gap: 8px; }
+.planche .fiche { display: flex; gap: 10px; align-items: flex-start; padding: 8px; border: 1px solid color-mix(in srgb, currentColor 16%, transparent); border-radius: 6px; }
+.planche .tuiles { display: flex; flex: 0 0 auto; gap: 6px; align-items: center; min-width: 70px; }
+.planche .signe { display: inline-flex; flex: 0 0 auto; align-items: center; justify-content: center; }
+.planche .signe:not(.signe-14):not(.signe-24) { width: 16px; height: 16px; }
+.planche .fiche-tete { display: flex; flex-wrap: wrap; gap: 4px 6px; align-items: baseline; }
+.planche .fiche-sens { margin-top: 2px; opacity: .78; }
+.planche .fiche-constats { opacity: .8; }
+.planche code { font: 11px Consolas, monospace; padding: 0 3px; border-radius: 3px; background: color-mix(in srgb, currentColor 10%, transparent); }
+.planche .marque { font-size: 10.5px; font-weight: 700; padding: 0 6px; border-radius: 4px; background: color-mix(in srgb, currentColor 14%, transparent); }
+.planche .marque.nouveau, .planche .marque.employe { background: #1d3a24; color: #a6e3b4; }
+.planche .marque.doublon { background: #4a1d1d; color: #f5a3a3; }
+.planche .icone-type { display: inline-flex; width: 16px; height: 16px; color: color-mix(in srgb, currentColor 70%, transparent); }
+.planche .icone-type.ambre { color: #f5c38a; }
+.planche .icone-type svg, .planche .ico svg { width: 16px; height: 16px; }
+.planche .ico { width: 16px; height: 16px; margin: 0; }
+
 /* Constats d'une analyse périmée : gardés, sans case active. */
 .perimee .liste-des-constats { opacity: .72; }
