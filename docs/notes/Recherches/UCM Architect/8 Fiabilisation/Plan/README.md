@@ -21,8 +21,9 @@ est dans [COUVERTURE.md](./COUVERTURE.md).
   fonctionnels sont commités.
 - Un agent ne touche ni `CARTE.md`, ni `SPEC.md`, ni un invariant, ni ce plan. Il rend les lignes à changer, et la conversation
   principale les écrit avant le commit.
-- Un agent qui modifie `packages/kit/src/` ne monte pas la version. La conversation principale la monte une fois, après le dernier
-  lot du kit en cours, puis commite ces lots ensemble.
+- Personne ne monte la version du kit avant la fin. Le mainteneur le demande pour aller vite : la conversation principale la monte
+  une seule fois en F2, puis publie. D'ici là, `tests/versionSuitLeContenu.test.mjs` et `tests/corpusUcm.test.ts` échouent après un
+  lot du kit, et le `verificateur` les classe à part.
 - Un échec dans un fichier d'un autre lot en cours se signale sans se corriger. Le `verificateur` relance l'arbre stable avant
   le commit.
 - La conversation principale relit le diff et fait vérifier l'arbre stable par un `verificateur` avant chaque commit.
@@ -165,8 +166,8 @@ Règles propres à la phase E :
 
 | Lot | Agent | Dépend de | État |
 |---|---|---|---|
-| [E0](lots/E0.md) Décisions et oracles | `implementeur` | C6 | en cours (Claude), E0.5 reste |
-| [E0b](lots/E0b.md) Mesure des opérateurs F3-F4 | `implementeur` | E0 | en cours (Claude) |
+| [E0](lots/E0.md) Décisions et oracles | `implementeur` | C6 | [x] 71ca79a7 et suivi, Codex |
+| [E0b](lots/E0b.md) Mesure des opérateurs F3-F4 | `implementeur` | E0 | [x] 7b1cc3e3 |
 | [E1a](lots/E1a.md) Valeurs de variant et axes | `implementeur-exigeant` | E0 | [ ] |
 | [E1b](lots/E1b.md) Icône, anneau et rôle de layer | `implementeur-exigeant` | E1a | [ ] |
 | [E2a](lots/E2a.md) Dictionnaire et vocabulaire du fichier | `implementeur-exigeant` | E1b | [ ] |
