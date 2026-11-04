@@ -3,6 +3,7 @@
  * demande est remplacée, puis monte « À faire dans Figma » dans son onglet et les corrections de variables manquantes, de crans, de
  * modes et de scopes à la suite des renommages dans l'onglet Corrections. « Tout désélectionner » ouvre cet onglet : il décoche les
  * renommages de Nomenclature et les corrections de structure d'un seul geste. Les comptes des deux onglets passent par la coquille.
+ * Le lien « Télécharger le rapport d'analyse » est au pied des onglets (`rapport.ts`) ; il joint la durée du rendu mesurée ici.
  */
 import { createButton } from 'ucm-plugin-socle/src/ui/Button';
 import { TEXTES } from '../textes';
@@ -12,6 +13,7 @@ import type { Coquille } from '../nomenclature/coquille';
 import { monterAFaire } from './aFaire';
 import { monterLesCorrections } from './corrections';
 import { lireLesConstats, lireLesCorrections, type Noms } from './lecture';
+import { creerLesMesuresDuPanneau, monterLeRapportDeTokens } from './rapport';
 
 export interface OptionsDeStructure {
   readonly envoyer: (message: DemandeDeStructure) => void;
@@ -19,15 +21,28 @@ export interface OptionsDeStructure {
   readonly noms: Noms;
   /** Montre une variable dans l'explorateur, fiche ouverte. */
   readonly ouvrirLaFiche: (cle: string) => void;
+  /** Demande au sandbox les mesures du mode Tokens ; absent, le lien du rapport ne se monte pas. */
+  readonly preparerLeRapport?: (auRetour: (mesures: string | null) => void) => void;
+  readonly telecharger?: (nom: string, contenu: string, type: string) => void;
+  readonly maintenant?: () => Date;
+  /** L'horloge du rendu, en millisecondes. */
+  readonly horloge?: () => number;
 }
 
 export interface Structure {
+  /** Range la taille du message `releve`, reçu par l'application : le rapport la joint. */
+  noterLaTaille(message: 'releve', octets: number): void;
   /** Demande une nouvelle lecture ; la réponse d'une demande plus ancienne est ignorée. */
   demander(): void;
   recevoir(message: MessageDeStructure): void;
 }
 
-export function monterStructure(coquille: Coquille, { envoyer, noms, ouvrirLaFiche }: OptionsDeStructure): Structure {
+export function monterStructure(coquille: Coquille, { envoyer, noms, ouvrirLaFiche, preparerLeRapport, telecharger, maintenant, horloge = () => globalThis.performance?.now() ?? Date.now() }: OptionsDeStructure): Structure {
+  const mesures = creerLesMesuresDuPanneau();
+  const rapport = preparerLeRapport
+    ? monterLeRapportDeTokens({ preparer: preparerLeRapport, mesures, ...(telecharger ? { telecharger } : {}), ...(maintenant ? { maintenant } : {}) })
+    : null;
+  if (rapport) coquille.pied.append(rapport.element);
   /** Les demandes de ce domaine se numérotent à part : prendre un numéro du compteur de l'application décalerait celui de la vue composant. */
   let compteur = 0;
   const nouvelleDemande = (): number => (compteur += 1);
@@ -97,12 +112,17 @@ export function monterStructure(coquille: Coquille, { envoyer, noms, ouvrirLaFic
   }
 
   return {
+    noterLaTaille: (message, octets) => mesures.noterLaTaille(message, octets),
     demander,
     recevoir(message) {
       if (message.type === 'structure') {
         if (message.demande !== demande) return;
+        mesures.noterLaTaille('structure', JSON.stringify(message).length);
+        const debut = horloge();
         recu = { constats: message.constats, corrections: message.corrections, ignores: message.ignores };
         rendre();
+        mesures.noterLeRendu(horloge() - debut);
+        rapport?.poser(true);
         return;
       }
       if (message.demande !== demandeDApplication) return;

@@ -99,7 +99,9 @@ export interface Application {
   nePlusIgnorer(constat: Constat): void;
   /** Demande la description du composant analysé ; `auRetour` reçoit sa capture en JSON, ou `null` quand le sandbox n'a pu la lire. Une demande plus récente remplace celle-ci, dont la réponse est ignorée. */
   preparerLeRapport(sujet: string, auRetour: (capture: string | null) => void): void;
-  /** La réponse du sandbox à `preparerLeRapport`. */
+  /** Demande les mesures du mode Tokens ; `auRetour` les reçoit en JSON, ou `null` quand le sandbox n'a pu les rendre. Même remplacement que `preparerLeRapport`. */
+  preparerLeRapportDeTokens(auRetour: (mesures: string | null) => void): void;
+  /** La réponse du sandbox à `preparerLeRapport` ou à `preparerLeRapportDeTokens`. */
   recevoirLeRapport(message: MessageDeRapport): void;
   /** Ouvre ou ferme le panneau des constats ; la fenêtre prend la taille du mode sans le ranger. */
   basculerLePanneau(): void;
@@ -289,11 +291,16 @@ export function creerApplication(etat: Etat, branchements: () => Branchements): 
       rapportAttendu = { demande, auRetour };
       versSandbox({ type: 'preparer-le-rapport', demande, sujet });
     },
+    preparerLeRapportDeTokens(auRetour) {
+      const demande = app.nouvelleDemande();
+      rapportAttendu = { demande, auRetour };
+      versSandbox({ type: 'preparer-le-rapport-de-tokens', demande });
+    },
     recevoirLeRapport(message) {
       if (rapportAttendu === null || rapportAttendu.demande !== message.demande) return;
       const { auRetour } = rapportAttendu;
       rapportAttendu = null;
-      auRetour(message.type === 'rapport-pret' ? message.capture : null);
+      auRetour(message.type === 'rapport-pret' ? message.capture : message.type === 'rapport-de-tokens-pret' ? message.mesures : null);
     },
     basculerLePanneau() {
       etat.panneau = { ...etat.panneau, ouvert: !etat.panneau.ouvert };

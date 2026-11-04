@@ -5,13 +5,14 @@
  * imports de library que l'analyse a faits. Lecture seule : rien ne s'écrit dans le document. Un nœud absent ou dont la lecture
  * lève rend `rapport-echoue`. La capture porte des données du document : elle part
  * vers l'interface, qui la propose en téléchargement, et nulle part ailleurs.
+ * `preparer-le-rapport-de-tokens` rend `mesuresDuModeTokens()` : des durées et des comptes d'appels, aucun nom de variable.
  */
 import type { DemandeDeRapport } from '../messages/rapport';
 import { pageDuNoeud } from './analyse';
-import { capturerLeComposant } from './capture';
+import { capturerLeComposant, mesuresDuModeTokens } from './capture';
 import type { Contexte, Traiter } from './contexte';
 
-export const TYPES: readonly DemandeDeRapport['type'][] = ['preparer-le-rapport'];
+export const TYPES: readonly DemandeDeRapport['type'][] = ['preparer-le-rapport', 'preparer-le-rapport-de-tokens'];
 
 async function preparer(demande: number, sujet: string, { figma, envoyer }: Contexte): Promise<void> {
   try {
@@ -30,6 +31,19 @@ async function preparer(demande: number, sujet: string, { figma, envoyer }: Cont
   }
 }
 
+/** Les mesures du mode Tokens ne lisent rien dans Figma : le journal des phases se rend tel qu'il est. */
+function preparerLesMesuresDeTokens(demande: number, { envoyer }: Contexte): void {
+  try {
+    envoyer({ type: 'rapport-de-tokens-pret', demande, mesures: JSON.stringify(mesuresDuModeTokens()) });
+  } catch {
+    envoyer({ type: 'rapport-echoue', demande });
+  }
+}
+
 export const traiter: Traiter<DemandeDeRapport> = async (demande, contexte) => {
+  if (demande.type === 'preparer-le-rapport-de-tokens') {
+    preparerLesMesuresDeTokens(demande.demande, contexte);
+    return;
+  }
   await preparer(demande.demande, demande.sujet, contexte);
 };

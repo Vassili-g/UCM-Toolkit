@@ -407,6 +407,7 @@ la capture du composant (`capturerLeComposant`, sans les imports de library),
 de quoi rejouer l'analyse hors de Figma. Rien ne part du poste, mais le fichier
 contient des noms et des valeurs du document : le designer le joint lui-même
 à un signalement. Le sandbox le lit sans rien écrire (`preparer-le-rapport`).
+Le mode Tokens a le même geste, au pied de ses onglets. Le sandbox rend le journal de ses phases (`preparer-le-rapport-de-tokens`), avec la durée et les appels à l'API Figma de chacune. Le panneau y ajoute la durée du rendu et la taille des messages `releve` et `structure`. Ce fichier ne porte aucun nom de variable.
 
 ## Préparation
 

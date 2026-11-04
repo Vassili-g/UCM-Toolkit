@@ -21,6 +21,8 @@ import { DOMAINES, tableDesTypes } from '../src/sandbox/index';
 import { traiter } from '../src/sandbox/rapport';
 import { creerApplication } from '../src/ui/application';
 import { monterLePanneau } from '../src/ui/analyse';
+import { monterStructure } from '../src/ui/structure';
+import { creerLesMesuresDuPanneau, monterLeRapportDeTokens } from '../src/ui/structure/rapport';
 import { contenuDuRapport, nomDuRapport } from '../src/ui/analyse/rapport';
 import type { AnalyseRecue } from '../src/ui/composant/analyse';
 import { fabriquerLeMonde } from './outils/mondeFabrique';
@@ -213,4 +215,109 @@ test('le rapport du mode Tokens porte les durées et les appels de chaque phase,
   assert.equal(contenu.mode, 'tokens');
   assert.deepEqual(contenu.mesures.passages.map(({ phase, appels }) => [phase, appels]), [['lire-releve', { getLocalVariablesAsync: 1 }]]);
   oublierLesPassagesDuModeTokens();
+});
+
+// Le rapport du mode Tokens, de la demande au téléchargement
+
+test('le sandbox déclare preparer-le-rapport-de-tokens et rend le journal des phases, sans rien écrire', async () => {
+  assert.equal(tableDesTypes().get('preparer-le-rapport-de-tokens'), 'rapport');
+  oublierLesPassagesDuModeTokens();
+  mesurerUnePhaseDeTokens('lire-structure', (appels) => { appels.getLocalVariablesAsync = 2; });
+  const b = banc();
+  await traiter({ type: 'preparer-le-rapport-de-tokens', demande: 11 }, b.contexte);
+  assert.equal(b.envoyes.length, 1);
+  const message = b.envoyes[0] as Extract<MessageDeRapport, { type: 'rapport-de-tokens-pret' }>;
+  assert.equal(message.type, 'rapport-de-tokens-pret');
+  assert.equal(message.demande, 11);
+  const mesures = JSON.parse(message.mesures) as { mode: string; passages: Array<{ phase: string; appels: Record<string, number> }> };
+  assert.equal(mesures.mode, 'tokens');
+  assert.deepEqual(mesures.passages.map(({ phase, appels }) => [phase, appels]), [['lire-structure', { getLocalVariablesAsync: 2 }]]);
+  assert.deepEqual(b.ecritures, []);
+  oublierLesPassagesDuModeTokens();
+});
+
+test('l’application envoie la demande de tokens et lui rend ses mesures, ou null à l’échec', () => {
+  const envoyes: unknown[] = [];
+  (globalThis as { parent?: unknown }).parent = { postMessage: (message: unknown) => envoyes.push(message) };
+  const app = creerApplication({} as never, () => ({}) as never);
+  const retours: Array<string | null> = [];
+  app.preparerLeRapportDeTokens((mesures) => retours.push(mesures));
+  const [{ pluginMessage }] = envoyes as Array<{ pluginMessage: { type: string; demande: number } }>;
+  assert.equal(pluginMessage.type, 'preparer-le-rapport-de-tokens');
+  app.recevoirLeRapport({ type: 'rapport-de-tokens-pret', demande: pluginMessage.demande, mesures: '{"passages":[]}' });
+  assert.deepEqual([...retours], ['{"passages":[]}']);
+  app.preparerLeRapportDeTokens((mesures) => retours.push(mesures));
+  const demande = (envoyes[1] as { pluginMessage: { demande: number } }).pluginMessage.demande;
+  app.recevoirLeRapport({ type: 'rapport-echoue', demande });
+  assert.deepEqual([...retours], ['{"passages":[]}', null]);
+});
+
+test('le lien du mode Tokens télécharge les mesures du sandbox avec le rendu et les tailles, sans nom de variable', () => {
+  const mesures = creerLesMesuresDuPanneau();
+  mesures.noterLaTaille('releve', 1200);
+  mesures.noterLaTaille('structure', 340);
+  mesures.noterLeRendu(12.5);
+  const demandes: Array<(mesures: string | null) => void> = [];
+  const telechargements: Array<{ nom: string; contenu: string; type: string }> = [];
+  const rapport = monterLeRapportDeTokens({
+    preparer: (auRetour) => demandes.push(auRetour), mesures, maintenant: () => new Date('2026-11-04T10:20:30Z'),
+    telecharger: (nom, contenu, type) => telechargements.push({ nom, contenu, type }),
+  });
+  assert.equal(rapport.element.hidden, true);
+  rapport.poser(true);
+  assert.equal(rapport.element.hidden, false);
+  const lien = (): ElementDeTest => comme(comme(rapport.element).querySelector('.lien-rapport'));
+  assert.equal(lien().textContent, 'Télécharger le rapport d’analyse');
+  lien().clic();
+  assert.equal(lien().textContent, 'Préparation du rapport…');
+  demandes[0](JSON.stringify({ version: 1, mode: 'tokens', passages: [{ phase: 'lire-releve', ms: 30, appels: { getLocalVariablesAsync: 1 } }] }));
+  const [{ nom, contenu, type }] = telechargements;
+  assert.equal(type, 'application/json');
+  assert.equal(nom, 'ucm-architect-rapport-tokens-2026-11-04-10-20-30.json');
+  const rapportLu = JSON.parse(contenu) as { mode: string; mesures: { passages: Array<{ phase: string; ms: number }>; tailles: Record<string, number> } };
+  assert.equal(rapportLu.mode, 'tokens');
+  assert.deepEqual(rapportLu.mesures.passages.map(({ phase, ms }) => [phase, ms]), [['lire-releve', 30], ['rendu', 12.5]]);
+  assert.deepEqual(rapportLu.mesures.tailles, { releve: 1200, structure: 340 });
+  assert.doesNotMatch(contenu, /primary|surface|brands/);
+  assert.equal(lien().textContent, 'Télécharger le rapport d’analyse');
+});
+
+test('un échec du rapport de tokens écrit la ligne d’échec et laisse le lien actif', () => {
+  const demandes: Array<(mesures: string | null) => void> = [];
+  const telechargements: unknown[] = [];
+  const rapport = monterLeRapportDeTokens({ preparer: (auRetour) => demandes.push(auRetour), mesures: creerLesMesuresDuPanneau(), telecharger: (...args) => telechargements.push(args) });
+  comme(comme(rapport.element).querySelector('.lien-rapport')).clic();
+  demandes[0](null);
+  assert.equal(telechargements.length, 0);
+  assert.equal(comme(comme(rapport.element).querySelector('.note-rapport')).textContent, 'Le rapport n’a pas pu être préparé.');
+  assert.equal(comme(comme(rapport.element).querySelector('.lien-rapport')).disabled, false);
+});
+
+test('la structure mesure la taille de releve et de structure et le rendu, et montre le lien après la première lecture', () => {
+  const fabrique = (): ElementDeTest => comme(document.createElement('div'));
+  const panneau = () => ({ element: Object.assign(fabrique(), { prepend() {} }), contenu: fabrique(), poserEtat() {} });
+  const pied = fabrique();
+  const coquille = {
+    panneaux: { aFaire: panneau(), aAppliquer: panneau(), aTrancher: panneau(), regles: panneau() }, pied, toutDecocher() {}, poserLesComptesDeStructure() {},
+  };
+  const envoyes: Array<{ type: string; demande: number }> = [];
+  const demandes: Array<(mesures: string | null) => void> = [];
+  const telechargements: Array<{ contenu: string }> = [];
+  let tic = 0;
+  const structure = monterStructure(coquille as never, {
+    envoyer: (message) => envoyes.push(message as never), noms: { nom: () => null, cle: () => null }, ouvrirLaFiche() {},
+    preparerLeRapport: (auRetour) => demandes.push(auRetour), telecharger: (_nom, contenu) => telechargements.push({ contenu }), horloge: () => (tic += 5),
+  });
+  const lien = comme(pied.querySelector('.pied-rapport'));
+  assert.equal(lien.hidden, true);
+  structure.noterLaTaille('releve', 999);
+  structure.demander();
+  const message = { type: 'structure' as const, demande: envoyes[0].demande, constats: [], corrections: [], ignores: { constats: [], roles: [] } };
+  structure.recevoir(message as never);
+  assert.equal(lien.hidden, false);
+  comme(lien.querySelector('.lien-rapport')).clic();
+  demandes[0]('{"passages":[]}');
+  const { mesures } = JSON.parse(telechargements[0].contenu) as { mesures: { passages: Array<{ phase: string; ms: number }>; tailles: Record<string, number> } };
+  assert.deepEqual(mesures.passages, [{ phase: 'rendu', ms: 5, appels: {} }]);
+  assert.deepEqual(mesures.tailles, { releve: 999, structure: JSON.stringify(message).length });
 });

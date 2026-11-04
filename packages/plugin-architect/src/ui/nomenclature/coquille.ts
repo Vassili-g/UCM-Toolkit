@@ -36,6 +36,8 @@ export interface LibraryAffichee {
 export interface Coquille {
   readonly frontiere: Frontiere;
   readonly panneaux: { readonly aAppliquer: Panneau; readonly aTrancher: Panneau; readonly aFaire: Panneau; readonly regles: Panneau };
+  /** Le pied de l'écran des onglets, sous le panneau de l'onglet ouvert : le lien du rapport d'analyse. */
+  readonly pied: HTMLElement;
   /** Le conteneur du premier lancement : l'invitation à analyser, puis la carte de l'écriture. */
   readonly premierLancement: HTMLElement;
   /** Le conteneur de la page Configuration. */
@@ -203,7 +205,8 @@ export function creerCoquille(app: HTMLElement, envoyer: (message: UiMessage) =>
   alerteDeLaLibrary.hidden = true;
   const alerteDePreparation = document.createElement('div');
   alerteDePreparation.hidden = true;
-  ecranDesOnglets.append(alerteDeLaLibrary, alerteDePreparation, onglets.liste, ligneDuFiltre, panneaux.aAppliquer.element, panneaux.aTrancher.element, panneaux.aFaire.element, panneaux.regles.element);
+  const pied = document.createElement('div');
+  ecranDesOnglets.append(alerteDeLaLibrary, alerteDePreparation, onglets.liste, ligneDuFiltre, panneaux.aAppliquer.element, panneaux.aTrancher.element, panneaux.aFaire.element, panneaux.regles.element, pied);
   const travail = document.createElement('div');
   travail.className = 'page-stack';
   travail.append(bandeau, premierLancement, vueDAnalyse.element, ecranDesOnglets);
@@ -270,6 +273,7 @@ export function creerCoquille(app: HTMLElement, envoyer: (message: UiMessage) =>
   return {
     frontiere,
     panneaux,
+    pied,
     premierLancement,
     configuration,
     etat: () => etat,

@@ -142,6 +142,12 @@ ETATS.push(
     existe: true,
     atteinte: [...ouvertIntegrite(integrite.releveDeBase(), integrite.libraryEtScopes, CARTES_DE_CORRECTION), premiereCarte],
   },
+  {
+    id: 't-rapport', titre: 'Tokens, rapport d’analyse', quand: 'La structure est lue ; le designer ouvre À faire dans Figma et descend au pied des onglets.',
+    regarder: 'Sous la liste des constats, un bouton texte gris « Télécharger le rapport d’analyse », sans surface ni bordure, comme sous la liste du mode Composant ; il n’apparaît pas avant la première lecture de la structure.',
+    existe: true,
+    atteinte: [...ouvert(), { clic: '#onglet-a-faire' }],
+  },
 );
 
 module.exports = { ETATS };

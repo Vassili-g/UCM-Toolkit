@@ -150,7 +150,7 @@ const noms: Noms = {
     return trouvee?.id ?? null;
   },
 };
-const structure = monterStructure(nomenclature.coquille, { envoyer: versSandbox, noms, ouvrirLaFiche: (cle) => app.suivre(cle) });
+const structure = monterStructure(nomenclature.coquille, { envoyer: versSandbox, noms, ouvrirLaFiche: (cle) => app.suivre(cle), preparerLeRapport: (auRetour) => app.preparerLeRapportDeTokens(auRetour) });
 
 /** Un fichier sans variable locale montre la library dont il tire les siennes ; ses onglets de renommage se grisent, et l'alerte dit où les renommer. */
 const bibliotheque = monterBibliotheque({
@@ -340,6 +340,7 @@ function recevoir(message: PluginMessage): void {
     case 'releve':
       if (!demandeCourante(message.demande)) return;
       etat.lecture = { statut: 'attente' };
+      structure.noterLaTaille('releve', JSON.stringify(message).length);
       poserReleve(etat, message.releve);
       // Le fichier a des variables locales : la library s'oublie avant le rendu, sinon l'arbre garde son titre de library.
       if (message.releve.variables.length > 0 && etat.bibliotheque) {
@@ -418,6 +419,7 @@ function recevoir(message: PluginMessage): void {
       nomenclature.recevoirConfiguration(message);
       return;
     case 'rapport-pret':
+    case 'rapport-de-tokens-pret':
     case 'rapport-echoue':
       app.recevoirLeRapport(message);
       return;
