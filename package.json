@@ -18,6 +18,7 @@
     "galerie:plugin": "node scripts/construire-plugin.mjs galerie",
     "test:paquet": "node scripts/construire-plugin.mjs test",
     "stress:f1": "tsx packages/kit/tests/stress/f1-noms/index.ts",
+    "stress:rejeu": "tsx packages/kit/tests/stress/rejeu-fichiers/index.ts",
     "vues": "node scripts/vues.mjs",
     "agents:lire": "node scripts/agents-contexte.mjs lire",
     "agents:domicile": "node scripts/agents-contexte.mjs domicile",

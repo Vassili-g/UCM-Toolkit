@@ -182,7 +182,7 @@ const finalDe = (messages: readonly PluginMessage[]): MessageFinal | undefined =
 // ---------------------------------------------------------------------------------------------------------------------------
 // La base de chaque source : l'analyse sans panne
 
-interface Reference {
+export interface Reference {
   readonly final: MessageFinal;
   readonly lecture: LectureDeComposant;
   /** Les layers de chaque variant du relevé, dans l'ordre du relevé. */
@@ -192,7 +192,7 @@ interface Reference {
 
 const references = new Map<number, Promise<Reference | null>>();
 
-function reference(source: Source): Promise<Reference | null> {
+export function reference(source: Source): Promise<Reference | null> {
   let promesse = references.get(source.rang);
   if (!promesse) {
     promesse = (async () => {
