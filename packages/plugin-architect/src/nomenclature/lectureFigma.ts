@@ -1,6 +1,7 @@
 /** L'adaptateur ne conserve aucun nœud dans l'inventaire envoyé à l'interface. */
 import { CLES_PARTAGEES_DE_PALETTES, CLE_NOMMAGE_DE_PALETTES, ESPACE_PARTAGE } from '@ucm-kit/core/referentiel';
 import { lireLaMarqueDeNommage, marqueurDePaletteLu } from '@ucm-kit/core/protocoles';
+import type { LocalesLues } from '../lecture';
 import { lireLeSuiviDePalettes, type LecteurDeVariable, type PortDeLecture } from './lecture';
 
 /**
@@ -44,8 +45,13 @@ export function lecteurDeVariablesFigma(api: PluginAPI, variables: readonly Vari
   };
 }
 
-/** Les variables lues restent en mémoire le temps du geste, pour que l'alias et la protection se lisent par lots. */
-export function creerPortDeLecture(api: PluginAPI): PortDeLecture {
+/**
+ * Les variables lues restent en mémoire le temps du geste, pour que l'alias et la protection se lisent par lots.
+ *
+ * `localesEnCours` rend les objets locaux que le relevé du mode Tokens est en train de lire, ou `null` : `locales` les reprend, et
+ * n'appelle alors ni `getLocalVariableCollectionsAsync` ni `getLocalVariablesAsync`. Un port sans `localesEnCours` lit Figma.
+ */
+export function creerPortDeLecture(api: PluginAPI, localesEnCours?: () => Promise<LocalesLues | null>): PortDeLecture {
   let lecteur: LecteurDeVariable | undefined;
   return {
     collections: () => api.variables.getLocalVariableCollectionsAsync(),
@@ -53,6 +59,15 @@ export function creerPortDeLecture(api: PluginAPI): PortDeLecture {
       const variables = await api.variables.getLocalVariablesAsync();
       lecteur = lecteurDeVariablesFigma(api, variables);
       return variables;
+    },
+    locales: async () => {
+      // Ces objets sont ceux que Figma a rendus au relevé : le lecteur y lit la donnée partagée à la demande, comme sur les siens.
+      const reprises = await localesEnCours?.().catch(() => null) ?? null;
+      const [collections, variables] = reprises
+        ? [reprises.collections, reprises.variables as unknown as readonly Variable[]]
+        : await Promise.all([api.variables.getLocalVariableCollectionsAsync(), api.variables.getLocalVariablesAsync()]);
+      lecteur = lecteurDeVariablesFigma(api, variables);
+      return { collections, variables, ...(reprises ? { viaUneAutreLecture: true as const } : {}) };
     },
     cibleAlias: (variable) => lecteur?.cibleAlias(variable),
     protegee: (variable) => lecteur?.protegee(variable) ?? false,

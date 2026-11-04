@@ -29,6 +29,7 @@ import type { Correction } from '@ucm-kit/core/controles';
 import { CLE_ARCHITECTURE_DU_FICHIER, ESPACE_ARCHITECT, collectionUcmReconnue, lireLArchitectureDuFichier } from '@ucm-kit/core/referentiel';
 
 import { COUCHE_DES_COULEURS } from '../preparations';
+import { pendantUneEcriture } from '../sandbox/acquisition';
 import {
   CLE_JOURNAL_DE_STRUCTURE, identifiantDeLot, lireLeJournalDeStructure, nettoyerLeJournalDeStructure, rangerLeJournalDeStructure, retirer,
   type LigneDeStructure, type PortDeRegles,
@@ -203,7 +204,11 @@ async function planifier(
  * Applique les corrections de sorte `scope`, `alias-de-mode` et `variable`, une à la fois, avec le journal et un seul point d'annulation.
  * Les autres sortes sont ignorées.
  */
-export async function ecrireLaStructure(corrections: readonly Correction[], options: OptionsDeStructure = {}): Promise<ResultatDEcritureDeStructure> {
+export function ecrireLaStructure(corrections: readonly Correction[], options: OptionsDeStructure = {}): Promise<ResultatDEcritureDeStructure> {
+  return pendantUneEcriture(() => ecrireLesCorrections(corrections, options));
+}
+
+async function ecrireLesCorrections(corrections: readonly Correction[], options: OptionsDeStructure): Promise<ResultatDEcritureDeStructure> {
   const api = options.api ?? apiDeFigma();
   const aEcrire = corrections.filter((correction) => correction.sorte === 'scope' || correction.sorte === 'alias-de-mode' || correction.sorte === 'variable');
   const ecrites: string[] = [];
@@ -326,7 +331,11 @@ async function defaireLaLigne(api: ApiDeStructure, ligne: LigneDeStructure): Pro
  * dont la variable créée a gagné un usage, est sautée et reste au journal ; une ligne déjà rétablie en part. Le journal n'est
  * effacé que quand toutes ses lignes sont réglées. Un journal illisible n'est pas touché.
  */
-export async function annulerLeDernierLotDeStructure(options: OptionsDeStructure = {}): Promise<ResultatDeLAnnulationDeStructure> {
+export function annulerLeDernierLotDeStructure(options: OptionsDeStructure = {}): Promise<ResultatDeLAnnulationDeStructure> {
+  return pendantUneEcriture(() => defaireLeDernierLot(options));
+}
+
+async function defaireLeDernierLot(options: OptionsDeStructure): Promise<ResultatDeLAnnulationDeStructure> {
   const api = options.api ?? apiDeFigma();
   const stockage = options.stockage ?? creerPortDeRegles(figma);
   const journal = lireLeJournalDeStructure(stockage);

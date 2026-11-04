@@ -7,6 +7,7 @@ import { creerPortDeRegles, creerPortEcriture } from '../ecriture/noms';
 import { estUiMessage, type DemandeDeNomenclature } from '../messages/nomenclature';
 import { creerPortDeLecture } from '../nomenclature/lectureFigma';
 import { creerSession, fichierDejaAnalyse, type Session } from '../nomenclature/session';
+import { attendreLesLocalesEnCours } from './acquisition';
 import type { Contexte, Traiter } from './contexte';
 
 export const TYPES: readonly DemandeDeNomenclature['type'][] = [
@@ -18,7 +19,7 @@ let session: Session | null = null;
 
 function laSession({ figma, envoyer }: Contexte): Session {
   session ??= creerSession({
-    port: { lecture: creerPortDeLecture(figma), ecriture: creerPortEcriture(figma), regles: creerPortDeRegles(figma) },
+    port: { lecture: creerPortDeLecture(figma, attendreLesLocalesEnCours), ecriture: creerPortEcriture(figma), regles: creerPortDeRegles(figma) },
     envoyer,
   });
   return session;

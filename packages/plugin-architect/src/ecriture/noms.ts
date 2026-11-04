@@ -16,6 +16,7 @@ import { inventaireDeLectures } from '../nomenclature/lecture';
 import { lecteurDeVariablesFigma } from '../nomenclature/lectureFigma';
 import type { CauseDeRefus } from '../messages/nomenclature';
 import { effacerLeJournal, lireLesRegles, lireLeStockage, rangerLesEcritures, type Journal, type RenommageJournal } from '../nomenclature/regles';
+import { pendantUneEcriture } from '../sandbox/acquisition';
 import { identifiantDeLot, nettoyer, ranger, retirer, type PortDeRegles } from './journal';
 
 export type { PortDeRegles } from './journal';
@@ -310,7 +311,11 @@ const lignesDuJournal = (renommages: readonly { readonly type: 'variable' | 'col
  * avec les noms constatés (noms provisoires compris), puis un seul point d'annulation s'ouvre.
  * Sans renommage effectif, le journal précédent reste en place.
  */
-export function appliquerLesRenommages(options: {
+export function appliquerLesRenommages(options: OptionsDApplication): ResultatEcriture {
+  return pendantUneEcriture(() => appliquerLeLot(options));
+}
+
+interface OptionsDApplication {
   readonly demandes: readonly RenommageDemande[];
   readonly session: SessionEcriture;
   readonly stockage: PortDeRegles;
@@ -318,7 +323,9 @@ export function appliquerLesRenommages(options: {
   readonly heure?: () => string;
   /** Identifiant de lot, sans `:` ; un identifiant neuf à chaque appel par défaut. */
   readonly lot?: () => string;
-}): ResultatEcriture {
+}
+
+function appliquerLeLot(options: OptionsDApplication): ResultatEcriture {
   const { session, stockage } = options;
   if (reglesFuturesDuStockage(stockage).length > 0) return { statut: 'refuse', renommes: [], sautes: [], annulable: false, cause: 'regles-futures' };
   const inventaire = session.inventaire;
@@ -392,12 +399,18 @@ export function classerLeRenommage(renommage: RenommageJournal, lecteurs: Lecteu
  * d'origine qui concernent ces entrées ; il n'est effacé que quand toutes le sont. Un journal illisible refuse l'annulation
  * sans être touché. Les identifiants du résultat sont ceux de Figma.
  */
-export function annulerLeDernierRenommage(options: {
+export function annulerLeDernierRenommage(options: OptionsDAnnulation): ResultatEcriture {
+  return pendantUneEcriture(() => defaireLeLot(options));
+}
+
+interface OptionsDAnnulation {
   readonly session: SessionEcriture;
   readonly stockage: PortDeRegles;
   /** Identifiant du lot qui garde les entrées non rétablies ; voir `appliquerLesRenommages`. */
   readonly lot?: () => string;
-}): ResultatEcriture {
+}
+
+function defaireLeLot(options: OptionsDAnnulation): ResultatEcriture {
   const { session, stockage } = options;
   if (reglesFuturesDuStockage(stockage).length > 0) return { statut: 'refuse', renommes: [], sautes: [], annulable: false, cause: 'regles-futures' };
   const inventaire = session.inventaire;

@@ -39,6 +39,12 @@ export interface PortDeLecture {
   indecidable?(variable: VariableLue): boolean;
   /** L'état de la marque par laquelle Palettes déclare qu'il nomme ses variables selon les règles. Absent : `absente`. */
   marqueDePalettes?(): EtatDeLaMarque;
+  /**
+   * Les collections et les variables locales d'une seule lecture. Quand le port le donne, `lireInventaire` n'appelle ni `collections`
+   * ni `variables` : le port peut ainsi servir les listes qu'une autre lecture du sandbox vient de faire. `viaUneAutreLecture` dit
+   * qu'aucun appel à l'API n'a eu lieu pour cette demande ; le port garde alors le lecteur (alias, protection) de ces variables.
+   */
+  locales?(): Promise<{ readonly collections: readonly CollectionLue[]; readonly variables: readonly VariableLue[]; readonly viaUneAutreLecture?: true }>;
 }
 
 /** Variables lues sur le total des variables locales. */
@@ -100,7 +106,8 @@ export async function lireInventaire(
   port: PortDeLecture,
   options: { readonly pause: () => Promise<void>; readonly avancement?: (etat: AvancementLecture) => void },
 ): Promise<Inventaire> {
-  const [toutesLesCollections, toutesLesVariables] = await Promise.all([port.collections(), port.variables()]);
+  const lues = port.locales ? await port.locales() : undefined;
+  const [toutesLesCollections, toutesLesVariables] = lues ? [lues.collections, lues.variables] : await Promise.all([port.collections(), port.variables()]);
   const { collections, variables } = lesLocales(toutesLesCollections, toutesLesVariables);
   const locales = new Set(variables.map((variable) => variable.id));
   const entrees: EntreeInventaire[] = [...collections.values()].map(entreeDeCollection);

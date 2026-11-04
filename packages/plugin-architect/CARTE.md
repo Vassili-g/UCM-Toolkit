@@ -15,7 +15,7 @@ Plugin UCM Architect : ucm-architect-plugin, privé, lecture et corrections apr�
 
 ## src/
 - code.ts : aiguillage des demandes de l'interface vers les domaines de `sandbox/` ; ouverture, déclaration UCM, sélection et panneau périmé
-- lecture.ts : collections et variables locales, cibles d'alias lues par identifiant, huit à la fois (`limiteur.ts` du socle), importées par leur clé quand Figma ne les rend pas ; journal des phases du mode Tokens (`mesurerUnePhaseDeTokens`, `compterLesAppelsDuPort`, `passagesDuModeTokens`), durée et appels à l'API de `lire-releve`, `lire-structure` et `rafraichir`
+- lecture.ts : collections et variables locales, cibles d'alias lues par identifiant, huit à la fois (`limiteur.ts` du socle), importées par leur clé quand Figma ne les rend pas ; journal des phases du mode Tokens (`mesurerUnePhaseDeTokens`, `compterLesAppelsDuPort`, `passagesDuModeTokens`), durée et appels à l'API de `lire-releve`, `lire-structure` et `rafraichir` ; `lireLeReleveAcquis` rend aussi les variables lues avant `separerLesModes`
 - catalogue.ts : catalogue de référence du mode Composant : library lue par noms, valeurs lues par identifiant quand le relevé le donne, sinon importées par clé (avec leurs cibles d'alias et les modes de leurs collections), variables du fichier
 - modele.ts : relevé sérialisable : collections, modes, extensions, valeurs typées, lectures manquées
 - groupes.ts : arbre des groupes, des seuls segments `/` des noms Figma
@@ -65,7 +65,8 @@ Plugin UCM Architect : ucm-architect-plugin, privé, lecture et corrections apr�
 - anticipation.ts : lecture des libraries lancée à la sélection d'un composant, reprise ou relue au clic sur Analyser, abandonnée au changement de page ; `rafraichirLesLibraries` la relit pour la prélecture
 - prelecture.ts : moment de la prélecture à la sélection : 1 s de silence avant la demande `analyser` d'origine `prelecture`, jeton levé par chaque événement, relance des libraries toutes les 5 s ; `analyse.ts` porte l'analyse discrète
 - bibliotheque.ts : library lue depuis un autre fichier : arbre depuis les noms, valeurs d'un groupe importées par lots de huit
-- structure.ts : mode Tokens sans composant : `lire-structure` rend les constats de `controlerLeCatalogue` et de `controlerLIntegriteUcm` du kit et leurs corrections (scopes C63, alias de mode C60, création C82), sans les constats ignorés, que le message `structure` rend à part dans `ignores` avec les rôles ignorés ; `ignorer-constat-de-structure`, `ignorer-role` et leurs `retablir-*` rangent ou retirent la clé puis relisent la structure, sous leur propre numéro ; `appliquer-structure` n'écrit que les corrections retenues du dernier constat, une opération à la fois
+- acquisition.ts : variables que `lire-releve` vient de lire, reprises par le `lire-structure` qui le suit et par le `rafraichir` de Nomenclature lancé pendant la lecture ; périmée par toute écriture de `ecriture/` (`pendantUneEcriture`), fermée par Ignorer, Appliquer ou un autre Actualiser, expirée après 5 s
+- structure.ts : mode Tokens sans composant : `lire-structure` rend les constats de `controlerLeCatalogue` et de `controlerLIntegriteUcm` du kit et leurs corrections (scopes C63, alias de mode C60, création C82), sans les constats ignorés, que le message `structure` rend à part dans `ignores` avec les rôles ignorés ; `ignorer-constat-de-structure`, `ignorer-role` et leurs `retablir-*` rangent ou retirent la clé puis relisent la structure, sous leur propre numéro ; `appliquer-structure` n'écrit que les corrections retenues du dernier constat, une opération à la fois ; `lire-structure` reprend le catalogue de l'acquisition du relevé qui le précède, sinon `catalogueParLesLectures`
 - preparation.ts : plan de préparation des tokens tiré du kit (`preparer`), préparations rangées, texte échangé lu ou copié (`lire-texte` envoie aussi `regles-recues`), création des variables dans le fichier des tokens, retour au composant seulement pour la même clé de jeu (`lier-preparation`)
 - accessibilite.ts, fiche.ts, recherche.ts, regles.ts : souches
 
@@ -86,7 +87,7 @@ Plugin UCM Architect : ucm-architect-plugin, privé, lecture et corrections apr�
 - session.ts : inventaire, lexique, règles et résultat, gardés dans le sandbox ; file des calculs
 - tranches.ts : un générateur du kit mené par tranches de huit millisecondes, abandonné par une demande plus récente
 - lecture.ts : republie l'acquisition de l'inventaire du socle
-- lectureFigma.ts : collections et variables locales, variables qu'UCM Palettes a écrites et sa marque `nommage`
+- lectureFigma.ts : collections et variables locales, variables qu'UCM Palettes a écrites et sa marque `nommage` ; `creerPortDeLecture` reçoit les locales du relevé en cours
 - regles.ts : règles du fichier, une entrée de données partagées par règle, journal, export et import ; les clés qui changent un nom, leurs constructeurs et leur lecture viennent du kit (`protocoles`)
 - projection.ts : du résultat du kit aux vues de l'écran : bilan, groupes, pages, questions, fiches, effets
 - conventions.ts : écriture des noms choisie par le fichier, validée par les registres du kit

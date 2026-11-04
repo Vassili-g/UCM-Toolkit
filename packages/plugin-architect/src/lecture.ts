@@ -479,17 +479,37 @@ export function lireLeVocabulaire(racine: RacineDeNommage): VocabulaireDuReleve 
   return lireReglesDeNommage(couples)?.vocabulaire;
 }
 
+/** Les collections et variables locales telles que Figma les a rendues, avant toute conversion. */
+export interface LocalesLues {
+  readonly collections: readonly CollectionFigma[];
+  readonly variables: readonly VariableFigma[];
+}
+
+/**
+ * Ce que le relevé a lu, et ce que la lecture des variables du mode Tokens peut reprendre sans relire Figma : `lues` est l'état
+ * avant `separerLesModes` (les modes distants gardent l'identifiant de Figma), `idsLocaux` les variables locales dans l'ordre de Figma.
+ */
+export type IssueDeLectureAcquise =
+  | { readonly statut: 'lu'; readonly releve: Releve; readonly lues: VariablesLues; readonly idsLocaux: readonly string[] }
+  | { readonly statut: 'annule' };
+
 /**
  * Lit toutes les variables accessibles et les cibles de leurs alias. `espace` est celui du profil du document, que
  * l'appelant lit (`espaceDuProfil` du kit) : le relevé le porte pour le contraste et les copies de couleur.
+ * `apresLesLocales` reçoit les objets locaux dès qu'ils sont lus, avant la lecture de leurs cibles : un autre lecteur du même
+ * moment peut les reprendre sans appeler `getLocalVariablesAsync` de nouveau.
  */
-export async function lireLeReleve(port: PortDeLecture, fichier: string, revision: number, suivi: SuiviDeLecture, horloge: () => number, espace: EspaceDuReleve = 'srgb'): Promise<IssueDeLecture> {
+export async function lireLeReleveAcquis(
+  port: PortDeLecture, fichier: string, revision: number, suivi: SuiviDeLecture, horloge: () => number, espace: EspaceDuReleve = 'srgb',
+  apresLesLocales?: (locales: LocalesLues) => void,
+): Promise<IssueDeLectureAcquise> {
   const lues: VariablesLues = { collections: new Map(), variables: new Map(), manquees: new Map(), ecartees: new Set() };
   const { collections, variables, manquees, ecartees } = lues;
   let collectionsEtendues = false;
 
   suivi.progression?.('collections', 0, 1);
-  for (const collection of await port.getLocalVariableCollectionsAsync()) {
+  const collectionsLocales = await port.getLocalVariableCollectionsAsync();
+  for (const collection of collectionsLocales) {
     const convertie = convertirCollection(collection);
     if (convertie.extension) collectionsEtendues = true;
     collections.set(convertie.id, convertie);
@@ -503,26 +523,36 @@ export async function lireLeReleve(port: PortDeLecture, fichier: string, revisio
     if (convertie) variables.set(convertie.id, convertie);
     else ecartees.add(variable.id);
   }
+  apresLesLocales?.({ collections: collectionsLocales, variables: locales });
   if (suivi.annulee()) return { statut: 'annule' };
 
   if (!(await lireLesVariables(port, [], suivi, idsDesLocales(locales), { lues, membres: true }))) return { statut: 'annule' };
   await lireLesBasesDesExtensions(port, lues);
   if (suivi.annulee()) return { statut: 'annule' };
 
-  separerLesModes(collections, variables);
+  // `separerLesModes` remplace des entrées de ses tables : le relevé travaille sur des copies, `lues` garde l'état d'avant.
+  const collectionsDuReleve = new Map(collections);
+  const variablesDuReleve = new Map(variables);
+  separerLesModes(collectionsDuReleve, variablesDuReleve);
 
   const releve: Releve = {
     format: FORMAT_DU_RELEVE,
     revision,
     fichier,
     luA: horloge(),
-    collections: [...collections.values()],
-    variables: [...variables.values()],
+    collections: [...collectionsDuReleve.values()],
+    variables: [...variablesDuReleve.values()],
     manquees: [...manquees.values()],
-    capacites: { collectionsEtendues, variablesDistantes: [...variables.values()].some((variable) => variable.distante) },
+    capacites: { collectionsEtendues, variablesDistantes: [...variablesDuReleve.values()].some((variable) => variable.distante) },
     espace,
   };
-  return { statut: 'lu', releve };
+  return { statut: 'lu', releve, lues, idsLocaux: locales.map((variable) => variable.id) };
+}
+
+/** Le relevé seul : `lireLeReleveAcquis` sans ce que le mode Tokens reprend. */
+export async function lireLeReleve(port: PortDeLecture, fichier: string, revision: number, suivi: SuiviDeLecture, horloge: () => number, espace: EspaceDuReleve = 'srgb'): Promise<IssueDeLecture> {
+  const issue = await lireLeReleveAcquis(port, fichier, revision, suivi, horloge, espace);
+  return issue.statut === 'lu' ? { statut: 'lu', releve: issue.releve } : issue;
 }
 
 /** Un import que l'analyse a fait : la variable rendue, ou l'erreur levée. */

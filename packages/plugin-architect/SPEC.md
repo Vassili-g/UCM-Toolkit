@@ -92,6 +92,8 @@ chevron replie l'arbre sans changer la table.
 | Library d'un fichier sans variable locale | Noms par `figma.teamLibrary`, valeurs d'un groupe par `importVariableByKeyAsync` à son ouverture, par lots de huit | Modes sans nom avant l'import ; `LIMITE_PAR_GROUPE` variables importées par groupe |
 | Catalogue de référence d'une analyse | `theme`, `layout` et `components` de la library choisie : noms d'abord ; valeurs lues par l'identifiant que porte une liaison du relevé quand `getVariableByIdAsync` rend la variable de la même clé, importées par clé sinon | Une entrée est présente, absente, non chargée ou inaccessible ; un identifiant refusé ou d'une autre clé retombe sur l'import |
 
+Un Actualiser du mode Tokens lit les variables locales une fois. `lire-structure` et le `rafraichir` de Nomenclature reprennent cette lecture seulement s'ils suivent ce relevé, sans écriture entre eux et dans les 5 s. Toute autre demande lit Figma, car Figma ne signale ni un changement fait à la main ni un Ctrl+Z.
+
 Une cible que ni la lecture ni l'import ne rendent reste « introuvable » ;
 elle reste « refusée », avec son message, quand la lecture a levé. Ni l'une
 ni l'autre ne prouve une suppression. Une variable que `getVariableByIdAsync`

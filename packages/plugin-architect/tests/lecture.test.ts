@@ -241,7 +241,7 @@ test('le relevé porte l’espace du profil du document, sRGB sans autre précis
 
 test('le sandbox lit le profil du document et le donne à la lecture', () => {
   const code = fs.readFileSync(path.join(__dirname, '..', 'src', 'sandbox', 'arbre.ts'), 'utf8');
-  assert.match(code, /lireLeReleve\([\s\S]*espaceDuProfil\(figma\.root\.documentColorProfile\)\)/);
+  assert.match(code, /lireLeReleveAcquis\([\s\S]*espaceDuProfil\(figma\.root\.documentColorProfile\)/);
 });
 
 test('mesurer une phase du mode Tokens range sa durée et ses appels, qu’elle rende une valeur, une promesse ou qu’elle lève', async () => {

@@ -23,6 +23,7 @@
 import { cheminComplet, nomDansFigma } from '@ucm-kit/core/controles';
 import { CLE_ARCHITECTURE_DU_FICHIER, ESPACE_ARCHITECT, collectionUcmReconnue, lireLArchitectureDuFichier } from '@ucm-kit/core/referentiel';
 
+import { pendantUneEcriture } from '../sandbox/acquisition';
 import { COUCHE_DES_COMPOSANTS, COUCHE_DES_COULEURS, COUCHE_DES_TAILLES, type EtatDeVariable, type PreparationRangee, type VariablePreparee } from '../preparations';
 import {
   identifiantDeLot, journaliserLesCreations, nettoyerLeJournalDeStructure, rangerLeJournalDeStructure,
@@ -139,7 +140,11 @@ export function creerUneVariableAliasee<V extends VariableAliasable>(
   return creee;
 }
 
-export async function creerLesVariables(preparation: PreparationRangee, options: OptionsDeCreation = {}): Promise<ResultatDeCreation> {
+export function creerLesVariables(preparation: PreparationRangee, options: OptionsDeCreation = {}): Promise<ResultatDeCreation> {
+  return pendantUneEcriture(() => creerLesVariablesDeLaPreparation(preparation, options));
+}
+
+async function creerLesVariablesDeLaPreparation(preparation: PreparationRangee, options: OptionsDeCreation): Promise<ResultatDeCreation> {
   const api = options.api ?? apiDeFigma();
   if (lireLArchitectureDuFichier(api.root.getSharedPluginData(ESPACE_ARCHITECT, CLE_ARCHITECTURE_DU_FICHIER)) !== 'ucm') return refus('hors-ucm');
   let collections: readonly CollectionEcrivable[];

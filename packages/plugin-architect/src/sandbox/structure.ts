@@ -27,6 +27,7 @@ import { ignorerUnConstat, ignorerUnRole, lireLesIgnores, nePlusIgnorer, retabli
 import { ecrireLaStructure, type ResultatDEcritureDeStructure } from '../ecriture/structure';
 import { compterLesAppelsDuPort, idsDesLocales, lireLesVariables, mesurerUnePhaseDeTokens, type AppelsDePhase } from '../lecture';
 import type { DemandeDeStructure, IgnoresDeStructure } from '../messages/structure';
+import { fermerLaReprise, prendreLAcquisitionPourLaStructure, variablesDuCatalogue } from './acquisition';
 import { perimerApresUneEcriture, prendreLaPlaceDUneEcriture } from './analyse';
 import { lireLaDeclaration } from './commun';
 import type { Contexte, Traiter } from './contexte';
@@ -53,22 +54,36 @@ export const rangementDeFigma = (api: PortDIgnores): RangementDeStructure => ({
 
 /** Les lectures et les écritures du domaine : le sandbox donne celles de Figma, les tests des doubles. */
 export interface Acces {
-  /** Le catalogue du fichier ouvert ; `null` hors UCM ou quand la lecture n'aboutit pas. */
-  catalogue(contexte: Contexte, appels?: AppelsDePhase): Promise<CatalogueDeReference | null>;
+  /**
+   * Le catalogue du fichier ouvert ; `null` hors UCM ou quand la lecture n'aboutit pas. `depuisLeReleve` est vrai pour la demande
+   * `lire-structure`, que l'interface envoie après le relevé : le catalogue peut venir de l'acquisition du relevé, sinon Figma est lu.
+   */
+  catalogue(contexte: Contexte, appels?: AppelsDePhase, depuisLeReleve?: boolean): Promise<CatalogueDeReference | null>;
   /** L'écriture choisie dans Nomenclature, `null` tant qu'elle n'y est pas rangée, et les clés d'Ignorer du fichier. */
   reglages(contexte: Contexte): Promise<{ readonly ecriture: EcritureChoisie | null; readonly cles: readonly string[] }>;
   ecrire(corrections: readonly Correction[]): Promise<ResultatDEcritureDeStructure>;
   rangement(contexte: Contexte): RangementDeStructure;
 }
 
+/**
+ * Le catalogue par lecture de Figma : les variables locales, chacune relue par identifiant, puis les cibles de leurs alias. Le
+ * chemin de `lire-structure` sans acquisition, et la référence à laquelle les tests comparent le catalogue de l'acquisition.
+ */
+export async function catalogueParLesLectures(figma: PluginAPI, appels: AppelsDePhase = {}): Promise<CatalogueDeReference | null> {
+  const port = compterLesAppelsDuPort(portDeLecture(figma), appels);
+  const locales = await port.getLocalVariablesAsync();
+  const lues = await lireLesVariables(port, locales.map((variable) => variable.id), { annulee: () => false }, idsDesLocales(locales));
+  if (!lues) return null;
+  return catalogueDuFichier({ collections: [...lues.collections.values()], variables: [...lues.variables.values()] }, 'ucm');
+}
+
 export const ACCES_DE_FIGMA: Acces = {
-  async catalogue({ figma }, appels = {}) {
+  async catalogue({ figma }, appels = {}, depuisLeReleve = false) {
+    // La reprise se prend d'abord : une demande hors UCM la consomme aussi, elle ne reste pas pour la suivante.
+    const acquisition = depuisLeReleve ? prendreLAcquisitionPourLaStructure() : null;
     if (lireLaDeclaration(figma) !== 'ucm') return null;
-    const port = compterLesAppelsDuPort(portDeLecture(figma), appels);
-    const locales = await port.getLocalVariablesAsync();
-    const lues = await lireLesVariables(port, locales.map((variable) => variable.id), { annulee: () => false }, idsDesLocales(locales));
-    if (!lues) return null;
-    return catalogueDuFichier({ collections: [...lues.collections.values()], variables: [...lues.variables.values()] }, 'ucm');
+    if (acquisition) return catalogueDuFichier(variablesDuCatalogue(acquisition), 'ucm');
+    return catalogueParLesLectures(figma, appels);
   },
   async reglages({ figma }) {
     const texte = figma.root.getSharedPluginData(ESPACE_ARCHITECT, CLE_ECRITURE);
@@ -94,14 +109,14 @@ function sansDoublon(constats: readonly Constat[]): Constat[] {
 }
 
 /** La lecture du domaine : les constats des deux contrôles moins les ignorés, et leurs corrections, sous le numéro de la demande. */
-async function lire(numero: number, acces: Acces, contexte: Contexte): Promise<void> {
-  await mesurerUnePhaseDeTokens('lire-structure', (appels) => lireLaStructure(numero, acces, contexte, appels));
+async function lire(numero: number, acces: Acces, contexte: Contexte, depuisLeReleve = false): Promise<void> {
+  await mesurerUnePhaseDeTokens('lire-structure', (appels) => lireLaStructure(numero, acces, contexte, appels, depuisLeReleve));
 }
 
-async function lireLaStructure(numero: number, acces: Acces, contexte: Contexte, appels: AppelsDePhase): Promise<void> {
+async function lireLaStructure(numero: number, acces: Acces, contexte: Contexte, appels: AppelsDePhase, depuisLeReleve: boolean): Promise<void> {
   let catalogue: CatalogueDeReference | null = null;
   try { catalogue = await mesurerUnePhaseDeTokens('lire-le-catalogue', (appelsDuCatalogue) => {
-    const lecture = acces.catalogue(contexte, appelsDuCatalogue);
+    const lecture = acces.catalogue(contexte, appelsDuCatalogue, depuisLeReleve);
     return lecture.finally(() => { for (const [nom, n] of Object.entries(appelsDuCatalogue)) appels[nom] = (appels[nom] ?? 0) + n; });
   }); } catch { catalogue = null; }
   let constats: Constat[] = [];
@@ -131,6 +146,7 @@ type DemandeDIgnorerDeStructure = Exclude<DemandeDeStructure, { type: 'lire-stru
 
 /** Range ou retire la clé que la demande désigne, puis relit la structure. */
 async function ignorer(demande: DemandeDIgnorerDeStructure, acces: Acces, contexte: Contexte): Promise<void> {
+  fermerLaReprise();
   const place = await prendreLaPlaceDUneEcriture({ sujet: 'structure', generation: 0 });
   if (!('occupe' in place)) {
     try {
@@ -153,13 +169,14 @@ async function ignorer(demande: DemandeDIgnorerDeStructure, acces: Acces, contex
 /** Le traitement du domaine sur des accès donnés. */
 export function traiterAvec(acces: Acces): Traiter<DemandeDeStructure> {
   return async (demande, contexte) => {
-    if (demande.type === 'lire-structure') await lire(demande.demande, acces, contexte);
+    if (demande.type === 'lire-structure') await lire(demande.demande, acces, contexte, true);
     else if (demande.type === 'appliquer-structure') await appliquer(demande, acces, contexte);
     else await ignorer(demande, acces, contexte);
   };
 }
 
 async function appliquer(demande: Extract<DemandeDeStructure, { type: 'appliquer-structure' }>, acces: Acces, contexte: Contexte): Promise<void> {
+  fermerLaReprise();
   const ids = [...new Set(demande.ids)];
   const place = await prendreLaPlaceDUneEcriture({ sujet: 'structure', generation: 0 });
   if ('occupe' in place) {

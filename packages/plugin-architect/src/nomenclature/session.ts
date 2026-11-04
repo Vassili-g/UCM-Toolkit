@@ -478,6 +478,15 @@ export function creerSession(options: OptionsDeSession): Session {
     ...port.lecture,
     collections: () => { appels.collections = (appels.collections ?? 0) + 1; return port.lecture.collections(); },
     variables: () => { appels.variables = (appels.variables ?? 0) + 1; return port.lecture.variables(); },
+    // Des listes reprises d'une autre lecture n'appellent pas Figma : aucun appel à compter.
+    locales: port.lecture.locales ? async () => {
+      const locales = await port.lecture.locales!();
+      if (!locales.viaUneAutreLecture) {
+        appels.collections = (appels.collections ?? 0) + 1;
+        appels.variables = (appels.variables ?? 0) + 1;
+      }
+      return locales;
+    } : undefined,
     cibleAlias: (variable) => port.lecture.cibleAlias(variable),
     protegee: (variable) => port.lecture.protegee(variable),
     palette: (variable) => port.lecture.palette(variable),
