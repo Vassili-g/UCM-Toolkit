@@ -203,24 +203,18 @@ export const TOUR_2 = {
     proposition: '`Type`, `Kind` et `Shape` pilotent le style. `Density` et `Spacing` pilotent la taille. Un interrupteur oui ou non (`Destructive`, `Danger`, `High contrast`, `Loading`, `Selected`) ne pilote aucun segment.',
   },
   'Q-F5-3': {
-    tour: 4,
-    question: 'Le bouton plein léger (`Solid, Subtle`) a un fond bleu clair. À quel token ce fond est-il lié ?',
-    explication: 'Tu as raison sur le nom : un bouton plein léger reste un bouton plein. Le problème vient de sa couleur. `button/color/primary/solid/background` vaut le bleu franc du bouton `Solid, Default`. Si le bouton `Solid, Subtle` se lie au même token, il devient bleu franc lui aussi, et `Subtle` ne change plus rien au rendu.\nPour garder son bleu clair, son fond doit viser un autre token. Ce token a besoin d\'un nom, et c\'est ce nom qu\'il faut fixer. Selon la réponse, Architect sait ce qu\'il doit vérifier sur les variants `Subtle`.',
+    tour: 5,
+    question: 'Un Button a deux axes de style, `Variant=Solid, Outline` et `Appearance=Default, Subtle`. Que dit Architect ?',
+    explication: 'Un bouton léger prend les tokens de `surface` du thème, pas ceux de `solid`. `Subtle` n\'est donc pas une nuance du bouton plein. C\'est un style à part, comme `Solid` et `Outline`, avec ses propres rôles du thème.\nChaque style a ses tokens de composant, qui visent sa famille de rôles du thème : `solid` vise `solid/*`, `subtle` vise `surface/*`. Un seul axe suffit donc à porter le style, `Variant=Solid, Subtle, Outline`. Avec deux axes, le designer peut dessiner `Outline, Subtle`, une combinaison qui ne correspond à aucune famille de rôles.',
     maquette: mini(
       colonne('Les quatre variants de Button', `<div class="grille-demo">
         <span class="second">Variant ↓ · Appearance →</span><span class="second">Default</span><span class="second">Subtle</span>
         <span class="second">Solid</span><span class="bouton-demo" style="background:#2f5bd3;color:#fff">Valider</span><span class="bouton-demo" style="background:#c9d6f7;color:#1b2a55">Valider</span>
         <span class="second">Outline</span><span class="bouton-demo" style="background:transparent;color:#6f93f0;border:1.5px solid #6f93f0">Valider</span><span class="bouton-demo" style="background:transparent;color:#9fb5ee;border:1.5px dashed #9fb5ee">Valider</span>
       </div>`),
-      colonne('Si `Solid, Subtle` se lie à `button/color/primary/solid/background`', `<span class="bouton-demo" style="background:#2f5bd3;color:#fff">Valider</span> <span class="bouton-demo" style="background:#2f5bd3;color:#fff">Valider</span><br><span class="second">Default et Subtle deviennent le même bouton bleu franc. ${ko} le bleu clair est perdu.</span><br><br>${ligne(0, `<span class="jeton-bleu">A</span> button/color/primary/solid/background, bleu franc`)}${ligne(0, `<span class="jeton-bleu">B</span> button/color/primary/solid/<b>subtle</b>/background, bleu clair`)}${ligne(0, `<span class="jeton-bleu">C</span> button/color/primary/<b>subtle</b>/background → \`surface/default\`, bleu clair`)}`),
+      colonne('Un seul axe, `Variant=Solid, Subtle, Outline`', `<span class="bouton-demo" style="background:#2f5bd3;color:#fff">Valider</span> <span class="bouton-demo" style="background:#c9d6f7;color:#1b2a55">Valider</span> <span class="bouton-demo" style="background:transparent;color:#6f93f0;border:1.5px solid #6f93f0">Valider</span><br><br>${ligne(0, `<span class="jeton-bleu">Solid</span> button/color/primary/solid/background → \`solid/default\` ${ok}`)}${ligne(0, `<span class="jeton-bleu">Subtle</span> button/color/primary/subtle/background → \`surface/default\` ${ok}`)}${ligne(0, `<span class="jeton-bleu">Outline</span> button/color/primary/outline/border → \`page/border\` ${ok}`)}${ligne(0, `<span class="jeton-bleu">Outline, Subtle</span> ${ko} aucune famille de rôles`)}`),
     ),
-    options: [
-      'A. Le même token, `button/color/primary/solid/background`. Les deux boutons pleins ont alors le même bleu, et Architect ne vérifie rien de plus sur `Subtle`.',
-      'B. Un token qui porte aussi la valeur du second axe, `button/color/primary/solid/subtle/background`. Le token gagne une case, et Architect vérifie que chaque variant `Subtle` se lie à un token `subtle`.',
-      'C. Un token d\'un autre style, `button/color/primary/subtle/background`, qui vise le fond teinté du thème (`surface/default`). Dans ce cas, `Subtle` est un troisième style à côté de `Solid` et `Outline`, et UCM attend un seul axe, `Variant=Solid, Subtle, Outline`. Architect propose de fusionner les deux axes.',
-      'D. Ce cas n\'existe pas dans un design system UCM. Architect ne contrôle que le premier axe de style et ne dit rien du second.',
-    ],
-    proposition: 'Option C, parce que le thème UCM a déjà un fond teinté (`surface/default`) pour ce rendu.',
+    proposition: 'Un constat À faire dit que deux axes portent le style et demande de les réunir en un seul axe (`Variant=Solid, Subtle, Outline`). Architect ne fait pas la fusion, puisque le designer choisit quelles combinaisons gardent un style. Les tokens du style `subtle` visent les rôles `surface/*` du thème, et ceux du style `solid` les rôles `solid/*`.',
   },
   'Q-F5-5': {
     question: 'Une valeur de variant s\'écrit-elle avec une majuscule initiale (`Danger`, `Small`) ?',
