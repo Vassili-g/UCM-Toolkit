@@ -15,6 +15,7 @@ export const FAMILLES_DE_SIGNES = [
   { id: 'typographie', libelle: 'Typographie', teinte: 'texte' },
   { id: 'couche', libelle: 'Couche UCM, dans l’ordre de la library', teinte: 'tokens' },
   { id: 'etat-token', libelle: 'État d’un token', teinte: 'tokens' },
+  { id: 'rubrique-tokens', libelle: 'Rubrique du mode Tokens', teinte: 'tokens' },
   { id: 'objet-figma', libelle: 'Objet de Figma', teinte: 'variants' },
   { id: 'property', libelle: 'Property de composant', teinte: 'variants' },
   { id: 'regles', libelle: 'Règles d’utilisation (.componentRules)', teinte: 'regles' },
@@ -139,6 +140,13 @@ export const SIGNES: readonly SigneDuLangage[] = [
     ['mode', 'mode', '<circle cx="8" cy="8" r="5.6"/><path d="M8 2.4a5.6 5.6 0 0 0 0 11.2z" fill="currentColor" stroke="none"/>', 'Mode d’une collection : Light, Dark.'],
     ['scope', 'scope', '<circle cx="8" cy="8" r="4.3"/><path d="M8 1.5v3M8 11.5v3M1.5 8h3M11.5 8h3"/>', 'Scope de la variable, comme Figma le nomme.'],
   ]),
+  ...famille('rubrique-tokens', [
+    ['nom', 'nom', '<text x="8" y="11" font-size="7.5" text-anchor="middle" font-weight="650">a/b</text>', 'Le nom d’une variable, en segments séparés par des barres obliques.'],
+    ['valeurs', 'valeurs', `<path d="${HEXA}"/><path d="M5.6 6.9h4.8M5.6 9.1h4.8"/>`, 'Une valeur vide, ou deux variables de même valeur.'],
+    ['couches', 'couches', '<path d="M1.8 2.5h7.5M1.8 6.2h7.5M1.8 9.8h7.5M1.8 13.5h7.5"/><path d="M12.8 13V3.5M11.2 5.1l1.6-1.6 1.6 1.6"/>', 'L’ordre des couches. Chaque couche lit celle du dessus.'],
+    ['types', 'types', '<rect x="2" y="2.2" width="5" height="5" rx="1"/><circle cx="11.5" cy="4.7" r="2.5"/><path d="M8 9.2l3.2 5H4.8z"/>', 'Le type Figma d’une variable (Color, Number, String, Boolean).'],
+    ['rangement', 'rangement', '<path d="M1.8 4.2a1 1 0 0 1 1-1h3.4l1.5 1.8h5.5a1 1 0 0 1 1 1v6.8a1 1 0 0 1-1 1H2.8a1 1 0 0 1-1-1z"/>', 'Le dossier ou la collection où la variable est rangée.'],
+  ]),
   ...famille('objet-figma', [
     ['component-set', 'component set', '<rect x="1.2" y="1.2" width="13.6" height="13.6" rx="2" stroke-dasharray="2 1.6"/><path d="M8 3.6 9.4 5 8 6.4 6.6 5zM8 9.6 9.4 11 8 12.4 6.6 11zM5 6.6 6.4 8 5 9.4 3.6 8zM11 6.6 12.4 8 11 9.4 9.6 8z"/>', 'Le jeu de variants : le cadre en pointillés de Figma autour du component.'],
     ['component', 'component', '<path d="M8 1.8 10.1 3.9 8 6 5.9 3.9zM8 10l2.1 2.1L8 14.2l-2.1-2.1zM3.9 5.9 6 8l-2.1 2.1L1.8 8zM12.1 5.9 14.2 8l-2.1 2.1L10 8z"/>', 'Un composant principal. Signe de Figma.'],
@@ -175,12 +183,12 @@ export const SIGNES: readonly SigneDuLangage[] = [
     ['question', 'question', tx('?', 12, 8, 12.4, 700), 'Le designer choisit.'],
     ['a-faire', 'à faire dans Figma', '<path d="M3.5 2.5 12.8 7.6 8.6 8.8 6.6 13z"/>', 'Le designer agit dans Figma.'],
     ['modele', 'copie d’un modèle', '<rect x="5" y="5" width="9" height="9" rx="1.5"/><path d="M11 5V3.5A1.5 1.5 0 0 0 9.5 2h-6A1.5 1.5 0 0 0 2 3.5v6A1.5 1.5 0 0 0 3.5 11H5"/>', 'Les liaisons d’un variant juste copiées aux autres.'],
-    ['ignore', 'ignoré', '<path d="M2.5 4.5h11M6 4.5V3h4v1.5M4 4.5l.7 9h6.6l.7-9M6.7 7v4.5M9.3 7v4.5"/>', 'Le constat ne sera plus proposé.'],
+    ['ignore', 'ignoré', '<path d="M1.8 8s2.3-4.2 6.2-4.2S14.2 8 14.2 8s-2.3 4.2-6.2 4.2S1.8 8 1.8 8z"/><circle cx="8" cy="8" r="1.8"/><path d="M2.8 13.2 13.2 2.8"/>', 'Le constat ne sera plus proposé.'],
     ['plus-tard', 'plus tard', '<circle cx="8" cy="8" r="6"/><path d="M8 4.5V8l2.5 1.5"/>', 'La question attend.'],
     ['applique', 'appliqué', '<path d="m3 8.5 3.2 3.2L13 4.5"/>', 'L’écriture a réussi.'],
     ['defait', 'défait', '<path d="M5.5 3.5 2.5 6.5l3 3M2.5 6.5h7a4 4 0 0 1 0 8H7"/>', 'Le designer a fait Ctrl+Z.'],
     ['perime', 'analyse périmée', '<path d="M13 8a5 5 0 1 1-1.5-3.6M13 2.3v3h-3"/>', 'Le composant a changé depuis l’analyse.'],
-    ['information', 'information', '<path d="M3.5 2h6.5l2.5 2.5V14h-9z"/><path d="M5.8 7h4.4M5.8 9.5h4.4M5.8 12h2.6"/>', 'Ce que l’analyse n’a pas mesuré ; aucun geste attendu.'],
+    ['information', 'information', '<circle cx="8" cy="8" r="5.8"/><path d="M8 7.2v4.2"/><circle cx="8" cy="4.8" r=".6" fill="currentColor" stroke="none"/>', 'Ce que l’analyse n’a pas mesuré ; aucun geste attendu.'],
   ]),
   ...famille('accessibilite', [
     ['contraste', 'paire de contraste', '<rect x="2" y="2" width="8" height="8" rx="1" fill="currentColor"/><rect x="6" y="6" width="8" height="8" rx="1"/>', 'Un texte ou une icône sur son fond.'],
@@ -212,6 +220,16 @@ export const REPRISES_DE_SIGNES: readonly RepriseDeSigne[] = [
   { famille: 'usage-couleur', reprend: [{ id: 'type-color', libelle: 'Couleurs' }] },
   { famille: 'proposition', reprend: [{ id: 'a-creer', libelle: 'préparation' }] },
   { famille: 'palettes', reprend: [{ id: 'mode', libelle: 'Light, Dark' }] },
+  {
+    famille: 'rubrique-tokens',
+    reprend: [
+      { id: 'a-creer', libelle: 'Variables manquantes' },
+      { id: 'cran', libelle: 'Crans' },
+      { id: 'rompue', libelle: 'Alias' },
+      { id: 'mode', libelle: 'Modes' },
+      { id: 'scope', libelle: 'Scopes' },
+    ],
+  },
 ];
 
 /** Le SVG complet d’un signe, prêt à poser dans une tuile. Lève une erreur pour un identifiant inconnu. */
