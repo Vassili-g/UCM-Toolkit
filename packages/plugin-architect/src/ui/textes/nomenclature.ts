@@ -134,7 +134,7 @@ export const TEXTES = {
   rienAAnnuler: 'Rien à annuler pour l’instant.',
   rienAAnnulerExplication: 'Après chaque renommage ou import, l’état d’avant apparaît ici.',
   nomsRetablis: (nombre: number): string => (nombre === 1 ? '1 nom rétabli' : `${nombre} noms rétablis`),
-  renommagesReviennent: 'Les renommages reviennent dans l’onglet Corrections.',
+  renommagesReviennent: 'Les renommages reviennent dans la section Noms de l’onglet Constats.',
   anciensNomsGardes: 'Les anciens noms sont gardés dans Configuration › Historique.',
   annulationDuRenommageRefusee: 'L’annulation a été refusée. Relancez l’analyse, puis annulez de nouveau.',
   annulationNonVerifiee: (nombre: number): string =>
@@ -144,7 +144,7 @@ export const TEXTES = {
     `${noms(retablis)} rétablis, ${sautes} n’ont pas pu l’être : un autre nom occupe leur place ou ils ont changé depuis. Le plugin les garde ; annulez de nouveau après avoir corrigé.`,
   /**
    * Une annulation qui laisse des noms dans une collection décochée de « Collections analysées ». La collection se coche dans l'onglet
-   * Réglages de la Configuration et l'annulation se refait dans l'onglet Historique ; depuis l'onglet Corrections (`depuis`),
+   * Réglages de la Configuration et l'annulation se refait dans l'onglet Historique ; depuis l'onglet Constats (`depuis`),
    * le designer ouvre d'abord Configuration.
    */
   annulationDansUneCollectionExclue: (retablis: number, exclues: number, depuis: 'configuration' | 'renommages' = 'configuration'): string => {
@@ -346,7 +346,7 @@ export const TEXTES = {
   typeDeTermeAuSingulier: { 'a-trancher': 'À trancher', remplace: 'Remplace', conforme: 'Conforme', 'sans-regle': 'Sans règle', composant: 'Composant', palette: 'Palette' },
   /** La ligne sous le titre d'une section de la liste des termes. */
   ligneDeSection: {
-    'a-trancher': 'Termes qui attendent votre réponse dans l’onglet Questions.',
+    'a-trancher': 'Termes qui attendent votre réponse sous la puce Questions de l’onglet Constats.',
     remplace: 'Termes qui remplacent des variantes dans le fichier.',
     conforme: 'Termes déjà écrits selon leur règle.',
     'sans-regle': 'Termes qu’aucune règle ne couvre encore.',
@@ -364,7 +364,7 @@ export const TEXTES = {
   placeAuSingulier: { groupes: 'groupe', variables: 'variable' },
   titreDesPlaces: 'Place',
   placeDeFiltre: { groupes: 'Groupes', variables: 'Variables' },
-  /** L'onglet Questions quand aucun terme n'en pose. */
+  /** La puce Questions de l'onglet Constats quand aucun terme n'en pose. */
   questionsVides: {
     titre: 'Aucune question pour l’instant',
     ligne: 'Aucun terme du fichier n’en rappelle un autre. Une question apparaîtra si une variante arrive, comme `bg` à côté de `background`.',
@@ -516,7 +516,7 @@ export const TEXTES = {
     { texte: dejaEcrites === 1 ? ' déjà écrite ainsi' : ' déjà écrites ainsi', gras: false },
   ],
   titreARenommer: (nombre: number): string => `À renommer · ${nombre}`,
-  voirDansCorrections: 'Voir dans Corrections',
+  voirDansCorrections: 'Voir dans Constats',
   titreDejaEmploye: (nombre: number): string => `Déjà employé · ${nombre}`,
   retirer: 'Retirer',
   sectionGardeSepare: 'Gardé séparé de',

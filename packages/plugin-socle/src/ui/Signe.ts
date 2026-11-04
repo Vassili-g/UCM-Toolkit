@@ -121,20 +121,16 @@ export function creerSvgDuSigne(id: string, taille: number, { epaisseur }: { rea
   return svg;
 }
 
-/** Les caractères des signes de la famille `interface` qui se disent en texte (les autres sont des tracés). */
-const GLYPHES = {
-  fermer: '×',
-  'avant-apres': '→',
-  menu: '⋯',
-  ajouter: '+',
-  retirer: '−',
-  separateur: '›',
-  ecart: '≠',
-} as const;
+/** Les signes de la famille `interface` qui se disent en texte : leur caractère est le champ `glyphe` du signe, dans le kit. */
+export const IDENTIFIANTS_DE_GLYPHES = ['fermer', 'avant-apres', 'menu', 'ajouter', 'retirer', 'separateur', 'ecart'] as const;
 
-export type IdDeGlyphe = keyof typeof GLYPHES;
+export type IdDeGlyphe = (typeof IDENTIFIANTS_DE_GLYPHES)[number];
 
-export const IDENTIFIANTS_DE_GLYPHES = Object.keys(GLYPHES) as readonly IdDeGlyphe[];
+const GLYPHES = Object.fromEntries(IDENTIFIANTS_DE_GLYPHES.map((id) => {
+  const glyphe = SIGNES.find((signe) => signe.id === id)?.glyphe;
+  if (glyphe === undefined) throw new Error(`Le signe « ${id} » n'a pas de glyphe dans le kit.`);
+  return [id, glyphe];
+})) as Readonly<Record<IdDeGlyphe, string>>;
 
 /** Le caractère d'un signe de la famille `interface`, pour un texte qu'un élément porte déjà. */
 export function glypheDe(id: IdDeGlyphe): string {

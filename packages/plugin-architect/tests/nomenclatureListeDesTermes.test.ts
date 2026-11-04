@@ -301,7 +301,7 @@ test('la bande d’une section dit son titre, son compte et sa ligne ; son libel
   assert.deepEqual(bandeDeLaSection(LISTE_INITIALE, section), { titre: 'Conforme', total: 9, ligne: 'Termes déjà écrits selon leur règle.', ouverte: true, libelle: 'Replier Conforme' });
   const repliee = bandeDeLaSection(basculerLePli(LISTE_INITIALE, 'conforme'), section);
   assert.deepEqual([repliee.ouverte, repliee.libelle], [false, 'Déplier Conforme']);
-  assert.equal(bandeDeLaSection(LISTE_INITIALE, { ...section, type: 'a-trancher' }).ligne, 'Termes qui attendent votre réponse dans l’onglet Questions.');
+  assert.equal(bandeDeLaSection(LISTE_INITIALE, { ...section, type: 'a-trancher' }).ligne, 'Termes qui attendent votre réponse sous la puce Questions de l’onglet Constats.');
 });
 
 test('le filtre de place se coche dans l’ordre des places, repart de zéro, se montre en jeton et se retire', () => {

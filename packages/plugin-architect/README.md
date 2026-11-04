@@ -59,13 +59,13 @@ et le numéro du relevé.
   complète après 250 ms ; Échap la ferme. Cliquer sur le nom ouvre la fiche
   de la variable, cliquer sur un alias suit sa cible.
 - **Fiche d'une variable.** Une feuille sur le panneau latéral : la chaîne
-  d'alias dans les modes affichés, le renommage que Corrections propose, et
+  d'alias dans les modes affichés, le renommage que Constats propose, et
   les variables qui la visent (« Utilisée par »). La croix ou Échap la ferme.
 
-Le nom d'une variable est un chemin : les groupes en gris, le dernier segment en gris clair. Quand un renommage coché de Corrections change un terme, la table montre le nom entier après l'application et ce terme en vert ; un clic sur lui ouvre sa carte dans Corrections.
+Le nom d'une variable est un chemin : les groupes en gris, le dernier segment en gris clair. Quand un renommage coché de Constats change un terme, la table montre le nom entier après l'application et ce terme en vert ; un clic sur lui ouvre sa carte dans Constats.
 
 Le centre ne montre plus que la table. Le panneau latéral de 640 px porte Nomenclature ; la fiche d'une variable s'ouvre sur lui.
-Les onglets du panneau latéral sont Corrections, Questions, À faire dans Figma et Règles. La collection choisie dans l'arbre les filtre : une puce « collection » sous les onglets la nomme, et sa croix enlève le filtre. Sous le filtre, Appliquer n'écrit que les noms de cette collection. À faire dans Figma ne suit pas ce filtre : ses constats (variables manquantes, crans, alias, modes, valeurs, couches, types, rangement) disent chacun où le régler dans la fenêtre Variables, et « Ouvrir la fiche » montre la variable dans l'explorateur. Corrections ajoute à ses renommages les variables manquantes à créer dans theme, les crans à corriger, les corrections de modes et de scopes, avec les cases de l'onglet Scope de Figma avant et après (Show in all, Frame fill, Shape fill…).
+Les onglets du panneau latéral sont Constats et Règles. Constats range ses cartes par catégorie, dans un sommaire (Tout, une puce par catégorie, Questions) et des sections repliables. La collection choisie dans l'arbre filtre les renommages de la section Noms : une puce « collection » sous les onglets la nomme, et sa croix enlève le filtre. Sous le filtre, Appliquer n'écrit que les noms de cette collection. Les autres sections ne suivent pas ce filtre : leurs constats (variables manquantes, crans, alias, modes, valeurs, couches, types, rangement) disent chacun où le régler dans la fenêtre Variables, et « Ouvrir la fiche » montre la variable dans l'explorateur. Les sections Variables manquantes, Crans, Modes et Scopes portent aussi les corrections à appliquer : variables à créer dans theme, crans à corriger, modes et scopes, avec les cases de l'onglet Scope de Figma avant et après (Show in all, Frame fill, Shape fill…).
 
 La [maquette de la navigation](https://github.com/Vassili-g/UCM-Toolkit/blob/202f46e/docs/notes/Recherches/Plugin%20Explorateur%20Tokens/Recette%201/MAQUETTE-RECETTE-1.html)
 montre la bascule des deux modes et la recherche dans l'arbre.
@@ -158,7 +158,7 @@ deux fichiers ; la préparation passe de l'un à l'autre.
    **Voir les N variables** ouvre la liste ; **Créer N variables** ne crée que les
    variables qui manquent dans `components`.
 4. Publiez la library : Assets, Libraries, Publish.
-5. Dans le fichier des composants, cliquez **Actualiser** : Corrections
+5. Dans le fichier des composants, cliquez **Actualiser** : le panneau des constats
    propose de lier les nouvelles variables.
 
 L'Historique de la Configuration annule la dernière création, tant que le

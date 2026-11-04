@@ -23,10 +23,10 @@ qui ne déclare plus UCM au moment d'écrire ne reçoit rien.
 
 | Écriture | Geste | Annulation |
 |---|---|---|
-| Nom d'une variable ou d'une collection locale | Appliquer, onglet Corrections du mode Tokens | Historique de la Configuration |
-| Scopes d'une variable, cible d'alias dans un mode | Appliquer, sous Modes et Scopes | Historique de la Configuration |
+| Nom d'une variable ou d'une collection locale | Appliquer, section Noms de l'onglet Constats du mode Tokens | Historique de la Configuration |
+| Scopes d'une variable, cible d'alias dans un mode | Appliquer, sections Modes et Scopes de l'onglet Constats | Historique de la Configuration |
 | Variables créées dans `components` | Créer, depuis une préparation | Historique de la Configuration |
-| Variables manquantes créées dans `theme` | Appliquer, sous Variables manquantes du mode Tokens | Historique de la Configuration |
+| Variables manquantes créées dans `theme` | Appliquer, section Variables manquantes de l'onglet Constats du mode Tokens | Historique de la Configuration |
 | Liaison d'une variable à un layer du composant analysé | Appliquer, panneau des constats | Ctrl+Z dans Figma |
 | Nom d'une valeur de variante, instance de règles du composant | Appliquer, panneau des constats | Ctrl+Z dans Figma |
 | Constats et rôles ignorés, library choisie, déclaration UCM, clé du fichier des tokens | Ignorer, Configuration, ouverture du mode Tokens | Le geste inverse |
@@ -232,7 +232,7 @@ Aucune de ces lectures n'a été essayée dans Figma. La
 [recette](https://github.com/Vassili-g/UCM-Toolkit/blob/202f46e/docs/notes/Recherches/Plugin%20Explorateur%20Tokens/Vue%20composant/RECETTE-VUE-COMPOSANT.md)
 les reprend une à une.
 
-Une carte de question porte trois gestes. Ignorer écarte son constat pour le fichier. « Ne plus proposer » retire la question pour le fichier et laisse le constat dans À faire dans Figma. « Plus tard » la reporte pour la session seulement. Chaque analyse renvoie les propositions retirées avec les constats ignorés (message `ignores`, champ `propositions`).
+Une carte de question porte trois gestes. Ignorer écarte son constat pour le fichier. « Ne plus proposer » retire la question pour le fichier et laisse le constat dans la section de sa catégorie de l'onglet Constats. « Plus tard » la reporte pour la session seulement. Chaque analyse renvoie les propositions retirées avec les constats ignorés (message `ignores`, champ `propositions`).
 
 ## Analyse et corrections
 
@@ -467,7 +467,7 @@ telle quelle, sauf réponse du designer.
 Le texte échangé est un JSON de `format` `ucm-preparation`. Il se juge dans
 l'ordre : format, puis version (une version supérieure est refusée
 `future`), puis chaque champ. Les règles de nommage que le mode Composant
-prépare passent par le même texte et arrivent dans Questions du mode Tokens.
+prépare passent par le même texte et arrivent dans la puce Questions de l'onglet Constats du mode Tokens.
 
 Le retour au composant n'a lieu que pour le jeu de variants qui a préparé :
 `source.jeu.cle` doit égaler la clé du sujet analysé (`autre-composant`
@@ -511,8 +511,8 @@ refuse de supprimer une variable créée qui a gagné un usage dans le fichier.
 Si la réécriture du journal échoue après une création, l'Historique ne peut
 pas défaire ces variables : le résultat de l'écriture en rend les noms
 (`sansAnnulation`), `structure-appliquee` les transporte et l'onglet
-Corrections les dit dans une alerte à vérifier, sans bouton. Les usages dans
-d'autres fichiers échappent à l'Historique. À faire dans Figma range sous
+Constats les dit dans une alerte à vérifier, sans bouton. Les usages dans
+d'autres fichiers échappent à l'Historique. L'onglet Constats range sous
 « Crans » tout constat de cran, question comprise ; « Alias » garde les
 cibles supprimées et les libraries non activées.
 
@@ -533,7 +533,7 @@ Chacune range sa taille sous sa propre clé.
 
 | Disposition | Mode | Ouverture | Minimum | Contenu sous la barre |
 |---|---|---|---|---|
-| Large | Tokens | 1360 × 800 | 560 × 480 | Arbre, table et barre latérale de 640 px : onglets Corrections, Questions, À faire dans Figma et Règles ; la fiche d'une variable s'ouvre en feuille sur la barre ; Actualiser dans la barre du haut |
+| Large | Tokens | 1360 × 800 | 560 × 480 | Arbre, table et barre latérale de 640 px : onglets Constats et Règles ; la fiche d'une variable s'ouvre en feuille sur la barre ; Actualiser dans la barre du haut |
 | Étroite | Composant | 500 × 760, 1144 × 760 panneau ouvert | 500 × 420 | La vue composant, sous une barre de 44 px ; le panneau des constats à droite, sommaire d'éléments et sections |
 
 La recherche est dans l'arbre, sous son titre, et porte sur toutes les

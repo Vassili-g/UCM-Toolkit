@@ -201,6 +201,7 @@ test('les glyphes de la famille interface sont des signes du kit, un caractère 
   const attendus = { fermer: '×', 'avant-apres': '→', menu: '⋯', ajouter: '+', retirer: '−', separateur: '›', ecart: '≠' } as const;
   assert.deepEqual([...IDENTIFIANTS_DE_GLYPHES].sort(), Object.keys(attendus).sort());
   for (const [id, caractere] of Object.entries(attendus)) {
+    assert.equal(SIGNES.find((signe) => signe.id === id)?.glyphe, caractere, `${id} : le kit porte le glyphe`);
     const glyphe = noeud(creerGlyphe(id as keyof typeof attendus));
     assert.equal(glypheDe(id as keyof typeof attendus), caractere);
     assert.equal(glyphe.textContent, caractere);

@@ -5,7 +5,7 @@ Plugin UCM Architect : ucm-architect-plugin, privé, lecture et corrections apr�
 ## ./
 - SPEC.md : ce que le plugin lit, résout et refuse de conclure
 - invariants/ : les invariants du paquet, un fichier par groupe
-- galerie/ : états de l'interface, à 1360 × 800, à 560 × 480 et à 500 × 760, un fichier d'états par domaine dans `etats/`, et comparaison à la maquette de la vue composant
+- galerie/ : états de l'interface, à 1360 × 800, à 560 × 480 et à 500 × 760 (la galerie `t-constats` : 680 × 1400), un fichier d'états par domaine dans `etats/`, et comparaison à la maquette de la vue composant
 - tests/ : dont les lois d'écriture (`loiDEcriture`, `loiDEcritureDesNoms`), la loi des imbriqués (`imbriquesParLeKit`), les doubles de Figma, `outils/` (le monde fabriqué et le chargeur de capture de `capture.test.ts`), `nomenclature*.test.ts` pour le code de Nomenclature et `interface/` pour Chromium
 - galerie/composant/ : Alert à 11 variants et Button à 216, leurs analyses, et le fichier hors UCM de `t-hors`
 - galerie/nomenclature/ : données des états de Nomenclature, joués dans la galerie d'Architect (`etats/nomenclature.cjs`)
@@ -39,12 +39,12 @@ Plugin UCM Architect : ucm-architect-plugin, privé, lecture et corrections apr�
 - ui/ : barre et sa bascule de mode, arbre et sa recherche, table, panneau latéral, bulle de chaîne et poignée des largeurs
 - ui/composant/ : analyse retenue (constats, pastille ; `modele-propose` y retire les C81 de `retires` et range les constats d'un modèle), section Variants, `signes.ts` (signe de chaque ligne et du titre de la colonne de gauche), corps du mode Composant (vue, frontière tirable, panneau)
 - ui/analyse/ : panneau des constats : le sommaire d'éléments, les sections, l'en-tête des Bloquants et le pied, l'écran de chaque état de l'analyse (vide, en cours, aucun constat, partielle, annulée, arrêtée, périmée, library à choisir, hors UCM), `rapport.ts` (nom et contenu du rapport téléchargeable, lien sous la liste)
-- ui/panneau/ : `elements.ts` range les constats visibles par élément du composant (couleurs, tailles, texte, tokens, variants, règles, accessibilité) : cartes de corrections, puis questions, puis constats à faire ; nombre de points, Bloquants, éléments tenus, signe de chaque élément. `informations.ts` : phrase et lieu de chaque constat `info`. `rendu.ts` : puce du sommaire, bande de section, section tenue, en-tête des Bloquants, section Informations et ses lignes
+- ui/panneau/ : `elements.ts` range les constats visibles par élément du composant (couleurs, tailles, texte, tokens, variants, règles, accessibilité) : cartes de corrections, puis questions, puis constats à faire ; nombre de points, Bloquants, éléments tenus, signe de chaque élément. `informations.ts` : phrase et lieu de chaque constat `info`. `rendu.ts` : `creerPuce` et `creerGroupeDePuces` (sommaire), `creerBande` et `creerBandeTenue` (section), section tenue, en-tête des Bloquants, section Informations et ses lignes
 - ui/corrections/ : cartes de corrections cochables (Liaisons, Tailles, Règles d'usage, Noms de valeurs), carte d'un modèle, carte des liaisons préparées (`liaisons.ts`), bouton Sélectionner dans le corps déplié, Appliquer par carte, cases décochées à l'arrivée, « Tout cocher » et « Tout décocher » sous la bande d'une section qui a des cases, pied avec « Tout cocher » et Appliquer tout et ligne de réussite avec les sautées
 - ui/questions/ : une carte par question du moteur (liaison, nom de valeur, liaison d'état avec l'indice du moteur), candidats en boutons, Sélectionner, ligne de réponse avec Annuler la réponse, puis Ignorer (fichier), Ne plus proposer (proposition) et Plus tard (session)
 - ui/ignores/ : constats à faire dans Figma avec l'alerte typée, mesure de contraste et recommandations d'accessibilité (C49 à C52), ligne d'actions avec Sélectionner, Ignorer, section Ignorés avec Ne plus ignorer, carte du composant sans token, carte du modèle C81 (« Proposer les liaisons », liste des layers du modèle) ; un constat ignoré qui porte une question garde le titre de sa question
 - ui/bibliotheque/ : library d'un fichier sans variable locale : relevé bâti sur ses noms, valeurs importées à l'ouverture d'un groupe
-- ui/nomenclature/ : coquille de Nomenclature et sa frontière, onglets À appliquer, À trancher et Règles, feuilles, Configuration ; montée dans le panneau latéral du mode Tokens
+- ui/nomenclature/ : coquille de Nomenclature et sa frontière, onglets Constats et Règles, feuilles, Configuration ; montée dans le panneau latéral du mode Tokens
 
 ## src/messages/
 - index.ts : `UiRequest` et `PluginMessage`, réunis par domaine
@@ -95,12 +95,13 @@ Plugin UCM Architect : ucm-architect-plugin, privé, lecture et corrections apr�
 
 ## src/ui/
 - roles.css : couleurs sombres, placées avant la feuille du socle
-- textes/ : catalogues des textes, un par domaine (`elements.ts` : les sept éléments du panneau et leurs libellés ; `tokens.ts` : libellé de la catégorie Noms) ; `index.ts` réunit les catalogues de l'interface
+- textes/ : catalogues des textes, un par domaine (`elements.ts` : les sept éléments du panneau et leurs libellés ; `tokens.ts` : onglet Constats, Tout, Questions, catégorie Noms et noms accessibles) ; `index.ts` réunit les catalogues de l'interface
 - styles/ : feuilles, une par domaine, chargées dans l'ordre de `FEUILLES_DES_DOMAINES` (`scripts/build-ui.cjs`)
 - recherche/ : lecture du champ de l'arbre (texte, `terme:`, `vise:`), variables trouvées et lignes de la recherche
 - fiche/ : fiche d'une variable, à la place de l'inspecteur : chaîne d'alias, renommage à appliquer, « Utilisée par »
-- structure/ : onglet À faire dans Figma du mode Tokens (constats typés, chemins en phrase) et cartes de variables manquantes, de crans, de modes et de scopes en deux colonnes, sous Corrections ; `Tout désélectionner` en tête de l'onglet ; menu Ignorer (« Pour cette palette », « Dans tout le fichier ») sur la carte d'un rôle absent, section Ignorés avec Ne plus ignorer ; `rapport.ts` pose « Télécharger le rapport d'analyse » au pied des onglets du mode Tokens et joint aux mesures du sandbox la durée du rendu et la taille des messages `releve` et `structure`
-- tokens/categories.ts : modèle pur des dix catégories, cartes, compteurs et état tenu, avant leur branchement dans l'interface
+- structure/ : constats typés (chemins en phrase) et corrections de variables manquantes, de crans, de modes et de scopes en deux colonnes, rangés dans les sections de l'onglet Constats du mode Tokens ; `Tout désélectionner` sous le sommaire ; menu Ignorer (« Pour cette palette », « Dans tout le fichier ») sur la carte d'un rôle absent, section Ignorés avec Ne plus ignorer en fin de « Tout » ; `rapport.ts` pose « Télécharger le rapport d'analyse » au pied des onglets du mode Tokens et joint aux mesures du sandbox la durée du rendu et la taille des messages `releve` et `structure`
+- tokens/categories.ts : modèle pur des dix catégories, cartes, compteurs et état tenu
+- tokens/panneau.ts : sommaire (Tout, une puce par catégorie, Questions), sections et conteneurs des catégories de l'onglet Constats
 - preparation/ : dialogue de préparation des tokens, texte partagé, création et liaisons au composant
 - virtualisation.ts : listes virtualisées : `creerListeVirtuelle` à hauteur fixe (arbre, table) et `creerListeDeCartes` à hauteur mesurée, qui range l'état d'une carte sortie de l'écran par clé (déplié, menus, réponses, cases, focus)
 - capture.ts : reçoit `capture-architect` du sandbox et le télécharge, seulement si `UCM_ARCHITECT_CAPTURER` vaut `true`

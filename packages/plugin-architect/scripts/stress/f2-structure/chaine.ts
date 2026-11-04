@@ -1,7 +1,7 @@
 /**
  * La chaîne du stress test F2, du sandbox à l'écran : un catalogue fabriqué passe par `traiterAvec` de `sandbox/structure.ts` sur un
- * double d'`Acces`, ses messages `structure` entrent dans `monterStructure` (le vrai domaine de l'interface), et « À faire dans
- * Figma » et les corrections se montent sur le faux DOM de `tests/domDeTest.ts`. Le harnais lit ensuite les cartes, les cases, le
+ * double d'`Acces`, ses messages `structure` entrent dans `monterStructure` (le vrai domaine de l'interface), et les constats et les
+ * corrections se montent dans les conteneurs de l'onglet Constats, sur le faux DOM de `tests/domDeTest.ts`. Le harnais lit ensuite les cartes, les cases, le
  * pied et les boutons, applique des gestes (Appliquer, Ignorer, « Ne plus ignorer ») et lit les réponses du sandbox.
  *
  * Ce module ne contient aucun cas. Il fournit la chaîne (`lancerLaChaine`), l'écran (`Ecran`) et les contrôles des propriétés P9 à
@@ -9,8 +9,8 @@
  * réponses Q-03 (toute correction arrive décochée) et de la section 2.3 du plan ; le code actuel ne les tient pas, et le harnais les
  * mesure comme des écarts sans les contourner.
  *
- * `monterStructure` demande une coquille de Nomenclature que le harnais ne monte pas. Le harnais lui donne les deux conteneurs qu'il lit
- * (`panneaux.aFaire.contenu`, `panneaux.aAppliquer.element`) et les deux rappels qu'il appelle. Un geste d'Ignorer qui n'a pas de bouton à
+ * `monterStructure` demande une coquille de Nomenclature que le harnais ne monte pas. Le harnais lui donne le double de `tests/rapport.test.ts`
+ * (`tokens` : `hote`, `ignores`, `haut`, `pied`, `poserLaStructure`) et les conteneurs qu'il lit : tous sont rangés sous une même racine. Un geste d'Ignorer qui n'a pas de bouton à
  * l'écran remplace la prochaine demande de l'interface par la demande du geste, sous le même numéro, comme `demanderAvec` de
  * `ui/structure/index.ts`. Le sandbox garde un état global (`reinitialiserLAnalyse`) : les chaînes se lancent l'une après l'autre.
  */
@@ -99,13 +99,6 @@ function nomsDe(catalogue: () => CatalogueDeReference | null | typeof LEVE): Nom
   };
 }
 
-/** Le faux DOM n'a pas `prepend`, que `monterStructure` appelle pour « Tout désélectionner ». */
-class ElementAvecPrepend extends ElementDeTest {
-  prepend(...enfants: ElementDeTest[]): void {
-    this.replaceChildren(...enfants, ...this.childNodes);
-  }
-}
-
 export async function lancerLaChaine(parametres: ParametresDeChaine): Promise<Chaine> {
   reinitialiserLAnalyse();
   const etat: EtatDesAcces = {
@@ -153,12 +146,23 @@ export async function lancerLaChaine(parametres: ParametresDeChaine): Promise<Ch
     surveillerLeDocument() {},
   };
 
-  const aFaire = new ElementDeTest('DIV');
-  const aAppliquer = new ElementAvecPrepend('DIV');
+  const racine = new ElementDeTest('DIV');
+  const conteneur = (): ElementDeTest => { const element = new ElementDeTest('DIV'); racine.append(element); return element; };
+  const haut = conteneur();
+  const hotes = new Map<string, ElementDeTest>();
+  const hote = (categorie: string): ElementDeTest => {
+    const existant = hotes.get(categorie);
+    if (existant) return existant;
+    const cree = conteneur();
+    hotes.set(categorie, cree);
+    return cree;
+  };
+  const ignores = conteneur();
+  const pied = conteneur();
   const coquille = {
-    panneaux: { aFaire: { contenu: aFaire }, aAppliquer: { element: aAppliquer } },
+    tokens: { hote, ignores, haut, pied, poserLaStructure() {} },
+    pied: new ElementDeTest('DIV'),
     toutDecocher() {},
-    poserLesComptesDeStructure() {},
   };
   const structure = monterStructure(coquille as never, {
     envoyer: (demande) => {
@@ -175,7 +179,7 @@ export async function lancerLaChaine(parametres: ParametresDeChaine): Promise<Ch
 
   const chaine: Chaine = {
     etat, messages, ecritures,
-    ecran: new Ecran(aFaire, aAppliquer),
+    ecran: new Ecran(racine, racine),
     poserLeCatalogue(catalogue) { etat.catalogue = structuredClone(catalogue); },
     derniere: () => [...messages].reverse().find((message) => message.type === 'structure') as MessageDeStructureRecu,
     async lire() {
@@ -218,7 +222,7 @@ export class Ecran {
   texteAFaire(): string { return texteDe(this.racineAFaire); }
   texteDesCorrections(): string { return texteDe(this.racineCorrections); }
 
-  /** Les cartes de « À faire dans Figma » : les constats à régler, sans les cartes muettes de Ignorés. */
+  /** Les cartes de constats à régler dans Figma, sans les cartes muettes de Ignorés. */
   cartesAFaire(): ElementDeTest[] { return this.racineAFaire.querySelectorAll('.bloc-constat').filter((carte) => !carte.classes.has('muette')); }
   /** Les cartes muettes sous Ignorés : un constat ignoré pour sa palette, ou un rôle ignoré dans tout le fichier. */
   cartesIgnorees(): ElementDeTest[] { return this.racineAFaire.querySelectorAll('.bloc-constat').filter((carte) => carte.classes.has('muette')); }

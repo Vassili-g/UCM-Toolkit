@@ -20,7 +20,7 @@ export const TEXTES_COMMUN = {
   frontiereDuPanneau: 'Tirer pour changer la largeur',
   horsUcm: {
     titre: 'Ce fichier n’est pas déclaré UCM.',
-    texte: 'Les onglets « Corrections », « Questions » et « À faire dans Figma » s’ouvrent après la déclaration.',
+    texte: 'Les onglets « Constats » et « Règles » s’ouvrent après la déclaration.',
     declarer: 'Déclarer dans la Configuration',
   },
   rechercher: 'Rechercher',
