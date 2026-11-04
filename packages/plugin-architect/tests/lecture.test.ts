@@ -9,6 +9,7 @@ import {
   CONCURRENCE, IMPORTS_EN_VOL, PASSAGES_RETENUS, cleDeBibliotheque, compterLesAppelsDuPort, convertirValeur, importerLesValeurs, lireLeReleve, mesurerUnePhaseDeTokens,
   oublierLesPassagesDuModeTokens, passagesDuModeTokens,
 } from '../src/lecture';
+import type { CollectionFigma, PortDeLecture, VariableFigma } from '../src/lecture';
 import { resoudre } from '../src/resolution';
 import { collectionFigma, portDeTest, variableFigma } from './figmaDeTest';
 
@@ -268,4 +269,130 @@ test('mesurer une phase du mode Tokens range sa durée et ses appels, qu’elle 
   for (let i = 0; i < PASSAGES_RETENUS + 5; i++) mesurerUnePhaseDeTokens('rafraichir', () => i, horloge);
   assert.equal(passagesDuModeTokens().length, PASSAGES_RETENUS, 'le journal garde les derniers passages');
   oublierLesPassagesDuModeTokens();
+});
+
+// D2 : lectures groupées. Les compteurs du port rendent la parité et le gain vérifiables.
+
+/** Un port à délais par identifiant, qui note l'ordre des appels et les lectures en vol. */
+function portJournalise(collections: CollectionFigma[], distantes: Record<string, CollectionFigma | 'refusee'>, delais: Record<string, number> = {}, variables: VariableFigma[] = []) {
+  const journal: string[] = [];
+  const appels: Record<string, number> = {};
+  let enVol = 0;
+  let pic = 0;
+  const vol = async (nom: string, delai: number) => {
+    journal.push(nom);
+    appels[nom.split(':')[0]] = (appels[nom.split(':')[0]] ?? 0) + 1;
+    enVol += 1;
+    pic = Math.max(pic, enVol);
+    await new Promise((resolve) => setTimeout(resolve, delai));
+    enVol -= 1;
+  };
+  const port: PortDeLecture = {
+    async getLocalVariableCollectionsAsync() { await vol('collections', delais.collections ?? 0); return collections; },
+    async getLocalVariablesAsync() { await vol('variables', delais.variables ?? 0); return variables; },
+    async getVariableByIdAsync(id) { await vol(`id:${id}`, delais[id] ?? 0); return variables.find((variable) => variable.id === id) ?? null; },
+    async getVariableCollectionByIdAsync(id) {
+      await vol(`collection:${id}`, delais[id] ?? 0);
+      const trouvee = distantes[id] ?? collections.find((collection) => collection.id === id);
+      if (trouvee === 'refusee') throw new Error('Accès refusé');
+      return trouvee ?? null;
+    },
+    async importVariableByKeyAsync(cle) { await vol(`import:${cle}`, 0); throw new Error('Clé absente'); },
+  };
+  return { port, journal, appels, pic: () => pic };
+}
+
+const extensionDe = (id: string, parent: string): CollectionFigma => ({
+  ...collectionFigma(id, id, ['Mode'], []), isExtension: true, parentVariableCollectionId: parent, rootVariableCollectionId: parent, variableOverrides: {},
+});
+
+test('D2.1 les bases d’extension se lisent ensemble, rangées dans l’ordre des collections, refus compris', async () => {
+  const extensions = [extensionDe('e1', 'p1'), extensionDe('e2', 'p2'), extensionDe('e3', 'p3'), extensionDe('e4', 'p1'), extensionDe('e5', 'p4')];
+  const { port, journal, appels, pic } = portJournalise(
+    [collectionFigma('c', 'Locale', ['M'], []), ...extensions],
+    { p1: collectionFigma('p1', 'Base 1', ['M'], []), p3: 'refusee', p4: collectionFigma('p4', 'Base 4', ['M'], []) },
+    { p1: 20, p4: 1 },
+  );
+  const issue = await lireLeReleve(port, 'Fichier', 1, sansAnnulation, horloge);
+  assert.equal(issue.statut, 'lu');
+  if (issue.statut !== 'lu') return;
+  // p1 répond après p4 : l'ordre du relevé reste celui des collections qui demandent, non celui des réponses.
+  assert.deepEqual(issue.releve.collections.map((collection) => collection.id), ['c', 'e1', 'e2', 'e3', 'e4', 'e5', 'p1', 'p4']);
+  assert.deepEqual(issue.releve.manquees.map((m) => [m.id, m.issue, m.depuis]), [['p2', 'introuvable', 'e2'], ['p3', 'refusee', 'e3']]);
+  assert.equal(appels.collection, 4, 'une lecture par base distincte');
+  const lecturesDeBases = journal.filter((nom) => /^collection:p/.test(nom));
+  assert.deepEqual(lecturesDeBases, ['collection:p1', 'collection:p2', 'collection:p3', 'collection:p4']);
+  console.log('D2.1 bases : lectures', appels.collection, 'en vol au plus', pic());
+  assert.ok(pic() >= 2, 'les bases ne se lisent plus une à une');
+});
+
+test(`D2.1 au plus ${CONCURRENCE} bases d’extension sont en vol`, async () => {
+  const extensions = Array.from({ length: 30 }, (_, rang) => extensionDe(`e${rang}`, `p${rang}`));
+  const distantes = Object.fromEntries(extensions.map((_, rang) => [`p${rang}`, collectionFigma(`p${rang}`, `Base ${rang}`, ['M'], [])]));
+  const { port, pic } = portJournalise(extensions, distantes, Object.fromEntries(extensions.map((_, rang) => [`p${rang}`, 2])));
+  const issue = await lireLeReleve(port, 'Fichier', 1, sansAnnulation, horloge);
+  assert.equal(issue.statut === 'lu' && issue.releve.collections.length, 60);
+  assert.ok(pic() <= CONCURRENCE, `${pic()} lectures en vol`);
+  assert.ok(pic() > 1);
+});
+
+test('les collections et les variables locales partent ensemble, et le relevé garde leur ordre', async () => {
+  const { port, journal, pic } = portJournalise(
+    [collectionFigma('c', 'Locale', ['M'], ['a', 'b'])], {}, { collections: 5, variables: 1 },
+    [variableFigma('a', 'c', 'a', 'FLOAT', { 'c:M': 1 }), variableFigma('b', 'c', 'b', 'FLOAT', { 'c:M': 2 })],
+  );
+  const issue = await lireLeReleve(port, 'Fichier', 1, sansAnnulation, horloge);
+  assert.deepEqual(journal.slice(0, 2), ['collections', 'variables']);
+  assert.equal(pic(), 2, 'les deux lectures sont en vol ensemble');
+  assert.equal(issue.statut === 'lu' && issue.releve.variables.map((variable) => variable.id).join(), 'a,b');
+});
+
+test('une collection que plusieurs variables en vol demandent ne se lit qu’une fois', async () => {
+  const cibles = Array.from({ length: 24 }, (_, rang) => `d${rang}`);
+  const { port, appels } = portDeTest(
+    [collectionFigma('c', 'Interface', ['M'], cibles.map((_, rang) => `a${rang}`))],
+    cibles.map((cible, rang) => variableFigma(`a${rang}`, 'c', `a${rang}`, 'FLOAT', { 'c:M': alias(cible) })),
+    cibles.map((cible) => variableFigma(cible, 'bib', cible, 'FLOAT', { 'bib:M': 1 }, true)),
+    [collectionFigma('bib', 'Bibliothèque', ['M'], cibles, true)],
+    { delai: 3 },
+  );
+  const issue = await lireLeReleve(port, 'Fichier', 1, sansAnnulation, horloge);
+  assert.equal(issue.statut === 'lu' && issue.releve.manquees.length, 0);
+  console.log('D2 collection distante : lectures', appels.get('collection:bib'));
+  assert.equal(appels.get('collection:bib'), 1);
+});
+
+test('D2.2 une cible de bibliothèque se lit par identifiant avant son import par clé, et chaque import suit sa lecture', async () => {
+  const cibles = Array.from({ length: 12 }, (_, rang) => `VariableID:cle${rang}/1:1`);
+  const importables = cibles.map((cible, rang) => ({ ...variableFigma(cible, 'bib', `v${rang}`, 'FLOAT', { 'bib:M': 1 }, true), key: `cle${rang}` }));
+  const journal: string[] = [];
+  const { port: base } = portDeTest(
+    [collectionFigma('c', 'Interface', ['M'], cibles.map((_, rang) => `a${rang}`))],
+    cibles.map((cible, rang) => variableFigma(`a${rang}`, 'c', `a${rang}`, 'FLOAT', { 'c:M': alias(cible) })),
+    [], [collectionFigma('bib', 'Bibliothèque', ['M'], cibles, true)],
+    { delai: 2, importables },
+  );
+  const port: PortDeLecture = {
+    getLocalVariableCollectionsAsync: () => base.getLocalVariableCollectionsAsync(),
+    getLocalVariablesAsync: () => base.getLocalVariablesAsync(),
+    getVariableByIdAsync: (id) => { journal.push(`lire:${id}`); return base.getVariableByIdAsync(id); },
+    getVariableCollectionByIdAsync: (id) => base.getVariableCollectionByIdAsync(id),
+    importVariableByKeyAsync: (cle) => { journal.push(`import:${cle}`); return base.importVariableByKeyAsync(cle); },
+  };
+  const issue = await lireLeReleve(port, 'Fichier', 1, sansAnnulation, horloge);
+  assert.equal(issue.statut === 'lu' && issue.releve.manquees.length, 0);
+  for (const [rang, cible] of cibles.entries()) {
+    const lecture = journal.indexOf(`lire:${cible}`);
+    const importee = journal.indexOf(`import:cle${rang}`);
+    assert.ok(lecture >= 0 && importee > lecture, `${cible} : lecture avant import`);
+    assert.equal(journal.filter((entree) => entree === `lire:${cible}`).length, 1);
+    assert.equal(journal.filter((entree) => entree === `import:cle${rang}`).length, 1);
+  }
+  let enVol = 0;
+  let pic = 0;
+  const lent = {
+    importVariableByKeyAsync: async (cle: string) => { enVol += 1; pic = Math.max(pic, enVol); await new Promise((resolve) => setTimeout(resolve, 2)); enVol -= 1; return variableFigma(cle, 'bib', cle, 'FLOAT', { 'bib:M': 1 }, true); },
+  } as unknown as Parameters<typeof importerLesValeurs>[0];
+  await importerLesValeurs(lent, Array.from({ length: 50 }, (_, rang) => `k${rang}`));
+  assert.ok(pic <= IMPORTS_EN_VOL, `${pic} imports en vol`);
 });

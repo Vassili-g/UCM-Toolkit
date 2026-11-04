@@ -355,15 +355,23 @@ export async function lireLesVariables(
     return [...manquants];
   };
 
-  const lireCollection = async (id: string, depuis: string): Promise<void> => {
-    if (collections.has(id) || manquees.has(id)) return;
-    try {
-      const collection = await port.getVariableCollectionByIdAsync(id);
-      if (collection) collections.set(id, convertirCollection(collection));
-      else manquees.set(id, { id, genre: 'collection', issue: 'introuvable', message: '', depuis });
-    } catch (erreur) {
-      manquees.set(id, { id, genre: 'collection', issue: 'refusee', message: messageDErreur(erreur), depuis });
-    }
+  // Une promesse par identifiant : les variables en vol qui demandent la même collection avant sa première réponse l'attendent ensemble.
+  const collectionsEnCours = new Map<string, Promise<void>>();
+  const lireCollection = (id: string, depuis: string): Promise<void> => {
+    if (collections.has(id) || manquees.has(id)) return Promise.resolve();
+    const enCours = collectionsEnCours.get(id);
+    if (enCours) return enCours;
+    const lecture = (async () => {
+      try {
+        const collection = await port.getVariableCollectionByIdAsync(id);
+        if (collection) collections.set(id, convertirCollection(collection));
+        else manquees.set(id, { id, genre: 'collection', issue: 'introuvable', message: '', depuis });
+      } catch (erreur) {
+        manquees.set(id, { id, genre: 'collection', issue: 'refusee', message: messageDErreur(erreur), depuis });
+      }
+    })();
+    collectionsEnCours.set(id, lecture);
+    return lecture;
   };
 
   /** La variable importée par la clé de son identifiant, ou `null` sans clé ou quand l'import lève. */
@@ -449,18 +457,31 @@ export async function importerLesValeurs(port: Pick<PortDeLecture, 'importVariab
   return rendues;
 }
 
-/** Lit la collection de base d'une extension quand elle manque au lot : elle peut être distante. */
+/**
+ * Lit la collection de base d'une extension quand elle manque au lot : elle peut être distante. Les bases distinctes se lisent
+ * ensemble, `CONCURRENCE` à la fois ; le lot les range ensuite dans l'ordre des collections qui les demandent, l'ordre séquentiel
+ * d'avant. Une base partagée par plusieurs extensions se lit une fois, située par la première.
+ */
 async function lireLesBasesDesExtensions(port: PortDeLecture, { collections, manquees }: VariablesLues): Promise<void> {
-  for (const collection of [...collections.values()]) {
+  const demandees = new Map<string, string>();
+  for (const collection of collections.values()) {
     const parent = collection.extension?.parent;
-    if (parent === undefined || collections.has(parent) || manquees.has(parent)) continue;
+    if (parent === undefined || collections.has(parent) || manquees.has(parent) || demandees.has(parent)) continue;
+    demandees.set(parent, collection.id);
+  }
+  const bases = [...demandees];
+  const { resultats } = await executerAuPlus(bases, async ([parent]): Promise<{ readonly lue: CollectionFigma | null } | { readonly refus: string }> => {
     try {
-      const lue = await port.getVariableCollectionByIdAsync(parent);
-      if (lue) collections.set(parent, convertirCollection(lue));
-      else manquees.set(parent, { id: parent, genre: 'collection', issue: 'introuvable', message: '', depuis: collection.id });
+      return { lue: await port.getVariableCollectionByIdAsync(parent) };
     } catch (erreur) {
-      manquees.set(parent, { id: parent, genre: 'collection', issue: 'refusee', message: messageDErreur(erreur), depuis: collection.id });
+      return { refus: messageDErreur(erreur) };
     }
+  }, { limite: CONCURRENCE });
+  for (const [rang, [parent, depuis]] of bases.entries()) {
+    const resultat = resultats[rang];
+    if ('refus' in resultat) manquees.set(parent, { id: parent, genre: 'collection', issue: 'refusee', message: resultat.refus, depuis });
+    else if (resultat.lue) collections.set(parent, convertirCollection(resultat.lue));
+    else manquees.set(parent, { id: parent, genre: 'collection', issue: 'introuvable', message: '', depuis });
   }
 }
 
@@ -507,8 +528,12 @@ export async function lireLeReleveAcquis(
   const { collections, variables, manquees, ecartees } = lues;
   let collectionsEtendues = false;
 
+  // Les deux lectures locales partent ensemble ; leurs résultats se rangent dans le même ordre qu'en séquence.
   suivi.progression?.('collections', 0, 1);
-  const collectionsLocales = await port.getLocalVariableCollectionsAsync();
+  const lectureDesCollections = port.getLocalVariableCollectionsAsync();
+  const lectureDesVariables = port.getLocalVariablesAsync();
+  lectureDesVariables.catch(() => undefined);
+  const collectionsLocales = await lectureDesCollections;
   for (const collection of collectionsLocales) {
     const convertie = convertirCollection(collection);
     if (convertie.extension) collectionsEtendues = true;
@@ -517,7 +542,7 @@ export async function lireLeReleveAcquis(
   if (suivi.annulee()) return { statut: 'annule' };
 
   suivi.progression?.('variables', 0, 1);
-  const locales = await port.getLocalVariablesAsync();
+  const locales = await lectureDesVariables;
   for (const variable of locales) {
     const convertie = convertirVariable(variable);
     if (convertie) variables.set(convertie.id, convertie);

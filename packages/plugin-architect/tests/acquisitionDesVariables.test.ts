@@ -240,6 +240,28 @@ test('lireInventaire avec des locales reprises n’appelle ni collections ni var
   assert.deepEqual(repris, lu);
 });
 
+// D2.3 : une lecture par demande
+
+/** Les lectures de données partagées du nœud racine, par clé, pendant `travail`. */
+async function lecturesDeLaRacine(f: Fichier, travail: () => Promise<void>): Promise<Record<string, number>> {
+  const racine = f.figma.root as unknown as { getSharedPluginData(espace: string, cle: string): string };
+  const origine = racine.getSharedPluginData;
+  const lectures: Record<string, number> = {};
+  racine.getSharedPluginData = (espace, cle) => { lectures[cle] = (lectures[cle] ?? 0) + 1; return origine(espace, cle); };
+  try { await travail(); } finally { racine.getSharedPluginData = origine; }
+  return lectures;
+}
+
+test('lire-structure lit le réglage d’écriture, les clés d’Ignorer et la déclaration une fois chacun, et une nouvelle demande les relit', async () => {
+  const f = fichierUcm();
+  await lireLeReleve(f);
+  const premiere = await lecturesDeLaRacine(f, () => lireLaStructure(f, 2));
+  const seconde = await lecturesDeLaRacine(f, () => lireLaStructure(f, 3));
+  assert.deepEqual(Object.values(premiere), Object.values(premiere).map(() => 1), JSON.stringify(premiere));
+  assert.ok(Object.keys(premiere).length >= 3, 'déclaration, écriture et clés d’Ignorer');
+  assert.deepEqual(seconde, premiere, 'aucune mémoire d’une demande à l’autre');
+});
+
 // Qui reprend l'acquisition
 
 test('lire-structure ne reprend l’acquisition qu’une fois : un second lire-structure lit Figma', async () => {

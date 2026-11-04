@@ -44,7 +44,7 @@ function monter(total: number) {
     return carte as unknown as HTMLElement;
   });
   const defiler = (haut: number) => {
-    element.scrollTop = haut;
+    Object.assign(element, { scrollTop: haut });
     element.dispatchEvent(new Event('scroll'));
     images.splice(0).forEach((image) => image());
   };
