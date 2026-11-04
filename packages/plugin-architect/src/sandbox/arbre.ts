@@ -1,7 +1,7 @@
 /** Le domaine `arbre` : la lecture du relevé des variables et son annulation. */
 import { espaceDuProfil } from '@ucm-kit/core/format';
 
-import { lireLeReleve, lireLeVocabulaire } from '../lecture';
+import { compterLesAppelsDuPort, lireLeReleve, lireLeVocabulaire, mesurerUnePhaseDeTokens } from '../lecture';
 import type { DemandeDArbre } from '../messages/arbre';
 import type { Contexte, Traiter } from './contexte';
 import { portDeLecture } from './lectureDeFigma';
@@ -14,10 +14,10 @@ let revision = 0;
 
 async function lireReleve(demande: number, { figma, envoyer }: Contexte): Promise<void> {
   try {
-    const issue = await lireLeReleve(portDeLecture(figma), figma.root.name, revision + 1, {
+    const issue = await mesurerUnePhaseDeTokens('lire-releve', (appels) => lireLeReleve(compterLesAppelsDuPort(portDeLecture(figma), appels), figma.root.name, revision + 1, {
       annulee: () => annulees.has(demande),
       progression: (phase, fait, total) => envoyer({ type: 'progression', demande, phase, fait, total }),
-    }, () => Date.now(), espaceDuProfil(figma.root.documentColorProfile));
+    }, () => Date.now(), espaceDuProfil(figma.root.documentColorProfile)));
     if (issue.statut === 'annule') {
       envoyer({ type: 'annulation', demande });
       return;

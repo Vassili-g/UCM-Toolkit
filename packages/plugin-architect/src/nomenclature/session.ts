@@ -25,6 +25,7 @@ import {
   annulerLeDernierRenommage, appliquerLesRenommages, reglesFuturesDuStockage,
   type PortDeRegles, type PortEcriture, type RenommageDemande, type ResultatEcriture,
 } from '../ecriture/noms';
+import { mesurerUnePhaseDeTokens } from '../lecture';
 import { lireInventaire, type PortDeLecture } from './lecture';
 import type {
   CodeDErreur, DemandeDeNomenclature, EcritureChoisie, EffetVue, GesteSurLesRegles, MessageDeNomenclature, Reponse, ResultatVue,
@@ -468,10 +469,26 @@ export function creerSession(options: OptionsDeSession): Session {
   }
 
   /** Relit Figma et refait tout le calcul. */
-  async function rafraichir(passage: Passage, avecProgression: boolean): Promise<void> {
+  function rafraichir(passage: Passage, avecProgression: boolean): Promise<void> {
+    return mesurerUnePhaseDeTokens('rafraichir', (appels) => relire(passage, avecProgression, appels));
+  }
+
+  /** Les appels que `lireInventaire` fait au port de lecture, comptés pour la mesure du mode Tokens. */
+  const compterLaLecture = (appels: Record<string, number>): PortDeLecture => ({
+    ...port.lecture,
+    collections: () => { appels.collections = (appels.collections ?? 0) + 1; return port.lecture.collections(); },
+    variables: () => { appels.variables = (appels.variables ?? 0) + 1; return port.lecture.variables(); },
+    cibleAlias: (variable) => port.lecture.cibleAlias(variable),
+    protegee: (variable) => port.lecture.protegee(variable),
+    palette: (variable) => port.lecture.palette(variable),
+    indecidable: port.lecture.indecidable ? (variable) => port.lecture.indecidable!(variable) : undefined,
+    marqueDePalettes: port.lecture.marqueDePalettes ? () => port.lecture.marqueDePalettes!() : undefined,
+  });
+
+  async function relire(passage: Passage, avecProgression: boolean, appels: Record<string, number>): Promise<void> {
     const { demande } = passage;
     const regles = lireRegles();
-    const inventaire = await lireInventaire(port.lecture, {
+    const inventaire = await lireInventaire(compterLaLecture(appels), {
       pause,
       avancement: avecProgression ? ({ lues, total }) => envoyer({ type: 'lecture', demande: demande.demande, lues, total }) : undefined,
     });

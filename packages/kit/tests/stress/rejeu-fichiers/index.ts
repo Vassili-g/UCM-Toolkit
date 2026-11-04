@@ -4,18 +4,21 @@
  * `packages/kit/src/`.
  *
  * Sources : le fichier Slice (confidentiel), les tokens d'Intencial, et tout `--fichier <chemin>`. Une source absente se saute.
- * Options : `--source slice|intencial`, `--fichier <chemin>` (répétable), `--propriete R1..R5` (répétable).
+ * Options : `--source slice|intencial`, `--fichier <chemin>` (répétable), `--propriete R1..R5` (répétable), `--chrono` (médiane de
+ * `CHRONO_PASSES` passes de chaque contrôle, en ms, sans les propriétés R1 à R5 ; écrit `chrono.txt`, qui ne porte que des nombres).
  *
  * Sorties sous `_local/stress/rejeu-fichiers/` : `<source>/rapport.txt` et `rapport.json` portent des noms de variables ;
  * `resume.txt` ne porte que des nombres et des codes, comme la sortie standard. Aucun fichier ne porte de date ni de durée : la
  * durée s'imprime à l'écran. Si la source Slice a tourné, un contrôle cherche ses mots dans la sortie standard et `resume.txt`.
  */
+import { performance } from 'node:perf_hooks';
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { termeOuFormeConnu } from '../../../src/referentiel/termes-connus.js';
 import { CHEMIN_DE_SLICE_PAR_DEFAUT, DOSSIER_DE_SLICE, lireLaSlice, lireLesSystemes, motsASurveiller, motsDuTexte, RACINE_DU_DEPOT } from '../f1-noms/corpus.js';
 import { construireLeDictionnaire, vocabulaireDeReference } from '../f1-noms/dictionnaire.js';
+import { controlerLIntegriteUcm, controlerLeCatalogue } from '../../../src/controles/index.js';
 import { catalogueDepuisTokens } from './dtcg.js';
 import { lire, r1Base, r2Determinisme, r3Ordre, r4PointFixe, r5DefautsMeles, type Resultat } from './proprietes.js';
 
@@ -26,10 +29,12 @@ type Propriete = typeof PROPRIETES[number];
 
 interface Source { id: string; chemin: string }
 
-interface Options { sources: string[]; fichiers: string[]; proprietes: Propriete[] }
+interface Options { sources: string[]; fichiers: string[]; proprietes: Propriete[]; chrono: boolean }
+
+export const CHRONO_PASSES = 11;
 
 function lireLesOptions(argv: readonly string[]): Options {
-  const options: Options = { sources: [], fichiers: [], proprietes: [] };
+  const options: Options = { sources: [], fichiers: [], proprietes: [], chrono: false };
   for (let i = 0; i < argv.length; i++) {
     const option = argv[i];
     const valeur = (): string => {
@@ -37,7 +42,8 @@ function lireLesOptions(argv: readonly string[]): Options {
       if (suivante === undefined) throw new Error(`${option} attend une valeur.`);
       return suivante;
     };
-    if (option === '--source') {
+    if (option === '--chrono') options.chrono = true;
+    else if (option === '--source') {
       const source = valeur();
       if (source !== 'slice' && source !== 'intencial') throw new Error('--source admet slice ou intencial.');
       options.sources.push(source);
@@ -46,7 +52,7 @@ function lireLesOptions(argv: readonly string[]): Options {
       const propriete = valeur() as Propriete;
       if (!PROPRIETES.includes(propriete)) throw new Error(`--propriete admet ${PROPRIETES.join(', ')}.`);
       options.proprietes.push(propriete);
-    } else throw new Error(`Option inconnue : ${option}. Options admises : --source, --fichier, --propriete.`);
+    } else throw new Error(`Option inconnue : ${option}. Options admises : --source, --fichier, --propriete, --chrono.`);
   }
   return options;
 }
@@ -118,9 +124,61 @@ function motsDeSliceDansLaSortie(textes: readonly string[]): { mots: number; tex
   return { mots: mots.size, textesEnCause };
 }
 
+const mediane = (valeurs: readonly number[]): number => [...valeurs].sort((a, b) => a - b)[Math.floor(valeurs.length / 2)] ?? 0;
+
+/** Médiane en ms de `CHRONO_PASSES` passes de chaque contrôle sur le catalogue converti, après une passe d'échauffement. */
+function chronometrer(source: Source): string[] | 'absente' | 'illisible' {
+  if (!existsSync(source.chemin)) return 'absente';
+  let tokens: unknown;
+  try { tokens = JSON.parse(readFileSync(source.chemin, 'utf8')); } catch { return 'illisible'; }
+  const { catalogue } = catalogueDepuisTokens(tokens);
+  const options = { ecriture: null, rolesIgnores: [] };
+  controlerLeCatalogue(catalogue);
+  controlerLIntegriteUcm(catalogue, options);
+  const catalogueMs: number[] = [];
+  const integriteMs: number[] = [];
+  let constatsCatalogue = 0;
+  let constatsIntegrite = 0;
+  for (let passe = 0; passe < CHRONO_PASSES; passe++) {
+    const t0 = performance.now();
+    constatsCatalogue = controlerLeCatalogue(catalogue).length;
+    const t1 = performance.now();
+    constatsIntegrite = controlerLIntegriteUcm(catalogue, options).length;
+    const t2 = performance.now();
+    catalogueMs.push(t1 - t0);
+    integriteMs.push(t2 - t1);
+  }
+  const arrondi = (n: number): string => n.toFixed(1);
+  return [
+    `# ${source.id}`,
+    `variables = ${catalogue.variables.length}`,
+    `passes = ${CHRONO_PASSES}`,
+    `controlerLeCatalogue.constats = ${constatsCatalogue}`,
+    `controlerLeCatalogue.medianeMs = ${arrondi(mediane(catalogueMs))}`,
+    `controlerLeCatalogue.minMs = ${arrondi(Math.min(...catalogueMs))}`,
+    `controlerLeCatalogue.maxMs = ${arrondi(Math.max(...catalogueMs))}`,
+    `controlerLIntegriteUcm.constats = ${constatsIntegrite}`,
+    `controlerLIntegriteUcm.medianeMs = ${arrondi(mediane(integriteMs))}`,
+    `controlerLIntegriteUcm.minMs = ${arrondi(Math.min(...integriteMs))}`,
+    `controlerLIntegriteUcm.maxMs = ${arrondi(Math.max(...integriteMs))}`,
+  ];
+}
+
+function mainChrono(options: Options): void {
+  mkdirSync(DOSSIER_DU_REJEU, { recursive: true });
+  const lignes: string[] = [];
+  for (const source of sourcesDemandees(options)) {
+    const bloc = chronometrer(source);
+    lignes.push(...(typeof bloc === 'string' ? [`# ${source.id}`, `etat = ${bloc}`] : bloc));
+  }
+  for (const ligne of lignes) console.log(ligne);
+  writeFileSync(join(DOSSIER_DU_REJEU, 'chrono.txt'), lignes.join('\n') + '\n');
+}
+
 function main(): void {
   const debut = Date.now();
   const options = lireLesOptions(process.argv.slice(2));
+  if (options.chrono) { mainChrono(options); return; }
   const proprietes = options.proprietes.length > 0 ? PROPRIETES.filter((p) => options.proprietes.includes(p)) : PROPRIETES;
   const sortie: string[] = [];
   const dire = (ligne: string): void => { sortie.push(ligne); console.log(ligne); };

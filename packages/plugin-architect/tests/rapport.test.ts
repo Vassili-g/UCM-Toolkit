@@ -13,7 +13,9 @@ poserLeDom();
 
 import type { PluginMessage } from '../src/messages';
 import type { MessageDeRapport } from '../src/messages/rapport';
-import type { CaptureArchitect } from '../src/sandbox/capture';
+import { mesuresDuModeTokens, type CaptureArchitect } from '../src/sandbox/capture';
+import { mesurerUnePhaseDeTokens, oublierLesPassagesDuModeTokens } from '../src/lecture';
+import { contenuDuRapportDeTokens, nomDuRapportDeTokens } from '../src/ui/telechargement';
 import type { Contexte } from '../src/sandbox/contexte';
 import { DOMAINES, tableDesTypes } from '../src/sandbox/index';
 import { traiter } from '../src/sandbox/rapport';
@@ -200,4 +202,15 @@ test('l’application envoie la demande et ignore la réponse d’une demande pl
   assert.deepEqual(retours, ['{"a":1}']);
   app.recevoirLeRapport({ type: 'rapport-echoue', demande: demandes[1].demande });
   assert.deepEqual(retours, ['{"a":1}']);
+});
+
+test('le rapport du mode Tokens porte les durées et les appels de chaque phase, sans nom de variable', () => {
+  oublierLesPassagesDuModeTokens();
+  mesurerUnePhaseDeTokens('lire-releve', (appels) => { appels.getLocalVariablesAsync = 1; });
+  const date = new Date('2026-11-04T10:20:30Z');
+  assert.equal(nomDuRapportDeTokens(date), 'ucm-architect-rapport-tokens-2026-11-04-10-20-30.json');
+  const contenu = JSON.parse(contenuDuRapportDeTokens(mesuresDuModeTokens(), date)) as { mode: string; mesures: { passages: Array<{ phase: string; ms: number; appels: Record<string, number> }> } };
+  assert.equal(contenu.mode, 'tokens');
+  assert.deepEqual(contenu.mesures.passages.map(({ phase, appels }) => [phase, appels]), [['lire-releve', { getLocalVariablesAsync: 1 }]]);
+  oublierLesPassagesDuModeTokens();
 });

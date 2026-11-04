@@ -17,7 +17,7 @@
  */import { CALQUES_DU_KIT_DE_REGLES, ESPACE_ARCHITECT } from '@ucm-kit/core/referentiel';
 import { porteLeNom } from 'ucm-plugin-socle/src/composant/contract/extractRules';
 
-import type { ImportsEnregistres } from '../lecture';
+import { passagesDuModeTokens, type ImportsEnregistres, type PassageDeTokens } from '../lecture';
 import { CLE_DU_NIVEAU } from './configuration';
 import type { Contexte } from './contexte';
 
@@ -715,4 +715,15 @@ export async function capturerSiDemande(demande: { readonly capturer?: boolean }
   } catch (erreur) {
     console.error('Capture : échec', erreur);
   }
+}
+
+export const VERSION_DES_MESURES_DE_TOKENS = 1;
+
+/**
+ * Les mesures du mode Tokens que le rapport d'analyse joint : la durée et les appels à l'API Figma de chaque passage dans
+ * `lire-releve`, `lire-structure` (avec `lire-le-catalogue` et les deux contrôles du kit) et `rafraichir` de Nomenclature.
+ * Des nombres et des noms de phase ou de méthode, jamais un nom de variable ni de collection.
+ */
+export function mesuresDuModeTokens(): { readonly version: number; readonly mode: 'tokens'; readonly passages: readonly PassageDeTokens[] } {
+  return { version: VERSION_DES_MESURES_DE_TOKENS, mode: 'tokens', passages: passagesDuModeTokens() };
 }

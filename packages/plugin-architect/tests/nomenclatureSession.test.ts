@@ -7,6 +7,7 @@ import type { DemandeDeNomenclature, GesteSurLesRegles, MessageDeNomenclature, R
 import { creerSession, employe, fichierDejaAnalyse, motsDe, motsDuTermeUcm } from '../src/nomenclature/session';
 import { commencerLexique, type Lexique } from '@ucm-kit/core/referentiel';
 import { mener } from '../src/nomenclature/tranches';
+import { oublierLesPassagesDuModeTokens, passagesDuModeTokens } from '../src/lecture';
 
 // Les tranches
 
@@ -385,4 +386,14 @@ test('employe rend vrai quand le lexique contient les mots du terme, quelle que 
 test('motsDuTermeUcm retrouve un terme par sa forme reconnue : Hover donne la forme tolérée hovered', () => {
   assert.deepEqual(motsDuTermeUcm('Hover'), [['Hover'], ['hovered']]);
   assert.deepEqual(motsDuTermeUcm('hover'), [['hover'], ['hovered']]);
+});
+
+test('noms-analyser range un passage rafraichir avec les lectures du port, sans nom de variable', async () => {
+  oublierLesPassagesDuModeTokens();
+  const b = banc([['v1', 'primary/surface/default']]);
+  await b.envoyer({ type: 'noms-analyser' });
+  const passages = passagesDuModeTokens().filter(({ phase }) => phase === 'rafraichir');
+  assert.equal(passages.length, 1);
+  assert.deepEqual(passages[0]!.appels, { collections: 1, variables: 1 });
+  oublierLesPassagesDuModeTokens();
 });

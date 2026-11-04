@@ -15,6 +15,7 @@ import { annulerLeDernierLotDeStructure, ecrireLaStructure, type ApiDeStructure 
 import { CLE_JOURNAL_DE_STRUCTURE, journaliserLesCreations, lireLeJournalDeStructure, rangerLeJournalDeStructure, type PortDeRegles } from '../src/ecriture/journal';
 import type { PluginMessage } from '../src/messages';
 import type { VariableRelevee } from '../src/modele';
+import { oublierLesPassagesDuModeTokens, passagesDuModeTokens } from '../src/lecture';
 import { commencerUneAnalyse, prendreLaPlaceDUneEcriture, reinitialiserLAnalyse } from '../src/sandbox/analyse';
 import type { Contexte } from '../src/sandbox/contexte';
 import { ACCES_DE_FIGMA, estDeStructure, traiterAvec, type Acces } from '../src/sandbox/structure';
@@ -596,4 +597,21 @@ test('un rôle hors du référentiel ou un constat que la dernière lecture n’
   await b.traiter({ type: 'ignorer-constat-de-structure', demande: 3, constat: 'C82:variable-absente:theme:autre/surface/subtle' }, b.contexte);
   assert.deepEqual(b.rangees(), []);
   assert.deepEqual(b.subtles(), [ID_SUBTLE, ID_SUBTLE_SECONDARY]);
+});
+
+test('lire-structure range sa durée, celle de la lecture du catalogue et celles des deux contrôles, sans nom de variable', async () => {
+  oublierLesPassagesDuModeTokens();
+  const { contexte } = contexteDeTest();
+  const double: Acces = {
+    ...acces(catalogueAvecUnScopeFaux()),
+    catalogue: async (_contexte, appels) => { if (appels) appels.getLocalVariablesAsync = 1; return catalogueAvecUnScopeFaux(); },
+  };
+  await traiterAvec(double)({ type: 'lire-structure', demande: 1 }, contexte);
+  const passages = passagesDuModeTokens();
+  assert.deepEqual(passages.map(({ phase }) => phase), ['lire-le-catalogue', 'controler-le-catalogue', 'controler-l-integrite', 'lire-structure']);
+  assert.deepEqual(passages[0]!.appels, { getLocalVariablesAsync: 1 });
+  assert.deepEqual(passages[3]!.appels, { getLocalVariablesAsync: 1 }, 'lire-structure reprend les appels de la lecture du catalogue');
+  assert.ok(passages.every(({ ms }) => ms >= 0));
+  assert.ok(!JSON.stringify(passages).includes('success'), 'aucun nom de variable dans les passages');
+  oublierLesPassagesDuModeTokens();
 });

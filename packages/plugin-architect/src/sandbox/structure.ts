@@ -25,7 +25,7 @@ import { ESPACE_ARCHITECT } from '@ucm-kit/core/referentiel';
 import { catalogueDuFichier } from '../catalogue';
 import { ignorerUnConstat, ignorerUnRole, lireLesIgnores, nePlusIgnorer, retablirUnRole, rolesIgnoresDe, separerLesIgnores, type PortDIgnores, type ResultatDIgnorer } from '../ecriture/ignores';
 import { ecrireLaStructure, type ResultatDEcritureDeStructure } from '../ecriture/structure';
-import { idsDesLocales, lireLesVariables } from '../lecture';
+import { compterLesAppelsDuPort, idsDesLocales, lireLesVariables, mesurerUnePhaseDeTokens, type AppelsDePhase } from '../lecture';
 import type { DemandeDeStructure, IgnoresDeStructure } from '../messages/structure';
 import { perimerApresUneEcriture, prendreLaPlaceDUneEcriture } from './analyse';
 import { lireLaDeclaration } from './commun';
@@ -54,7 +54,7 @@ export const rangementDeFigma = (api: PortDIgnores): RangementDeStructure => ({
 /** Les lectures et les écritures du domaine : le sandbox donne celles de Figma, les tests des doubles. */
 export interface Acces {
   /** Le catalogue du fichier ouvert ; `null` hors UCM ou quand la lecture n'aboutit pas. */
-  catalogue(contexte: Contexte): Promise<CatalogueDeReference | null>;
+  catalogue(contexte: Contexte, appels?: AppelsDePhase): Promise<CatalogueDeReference | null>;
   /** L'écriture choisie dans Nomenclature, `null` tant qu'elle n'y est pas rangée, et les clés d'Ignorer du fichier. */
   reglages(contexte: Contexte): Promise<{ readonly ecriture: EcritureChoisie | null; readonly cles: readonly string[] }>;
   ecrire(corrections: readonly Correction[]): Promise<ResultatDEcritureDeStructure>;
@@ -62,9 +62,9 @@ export interface Acces {
 }
 
 export const ACCES_DE_FIGMA: Acces = {
-  async catalogue({ figma }) {
+  async catalogue({ figma }, appels = {}) {
     if (lireLaDeclaration(figma) !== 'ucm') return null;
-    const port = portDeLecture(figma);
+    const port = compterLesAppelsDuPort(portDeLecture(figma), appels);
     const locales = await port.getLocalVariablesAsync();
     const lues = await lireLesVariables(port, locales.map((variable) => variable.id), { annulee: () => false }, idsDesLocales(locales));
     if (!lues) return null;
@@ -95,8 +95,15 @@ function sansDoublon(constats: readonly Constat[]): Constat[] {
 
 /** La lecture du domaine : les constats des deux contrôles moins les ignorés, et leurs corrections, sous le numéro de la demande. */
 async function lire(numero: number, acces: Acces, contexte: Contexte): Promise<void> {
+  await mesurerUnePhaseDeTokens('lire-structure', (appels) => lireLaStructure(numero, acces, contexte, appels));
+}
+
+async function lireLaStructure(numero: number, acces: Acces, contexte: Contexte, appels: AppelsDePhase): Promise<void> {
   let catalogue: CatalogueDeReference | null = null;
-  try { catalogue = await acces.catalogue(contexte); } catch { catalogue = null; }
+  try { catalogue = await mesurerUnePhaseDeTokens('lire-le-catalogue', (appelsDuCatalogue) => {
+    const lecture = acces.catalogue(contexte, appelsDuCatalogue);
+    return lecture.finally(() => { for (const [nom, n] of Object.entries(appelsDuCatalogue)) appels[nom] = (appels[nom] ?? 0) + n; });
+  }); } catch { catalogue = null; }
   let constats: Constat[] = [];
   let ignores: IgnoresDeStructure = { constats: [], roles: [] };
   if (catalogue) {
@@ -104,8 +111,8 @@ async function lire(numero: number, acces: Acces, contexte: Contexte): Promise<v
     try { reglages = await acces.reglages(contexte); } catch { /* sans réglages : aucune création, aucun constat écarté */ }
     const roles = rolesIgnoresDe(reglages.cles);
     const tous = sansDoublon([
-      ...controlerLeCatalogue(catalogue),
-      ...controlerLIntegriteUcm(catalogue, { ecriture: reglages.ecriture, rolesIgnores: roles }),
+      ...mesurerUnePhaseDeTokens('controler-le-catalogue', () => controlerLeCatalogue(catalogue)),
+      ...mesurerUnePhaseDeTokens('controler-l-integrite', () => controlerLIntegriteUcm(catalogue, { ecriture: reglages.ecriture, rolesIgnores: roles })),
     ]);
     const separes = separerLesIgnores(tous, reglages.cles);
     constats = separes.visibles;

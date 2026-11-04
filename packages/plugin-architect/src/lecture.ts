@@ -554,3 +554,57 @@ export function mesurerLePortDeLecture(variables: PortDeLecture): PortDeLecture 
     },
   };
 }
+
+/** Les phases que le mode Tokens mesure ; `lire-structure` englobe `lire-le-catalogue` et les deux contrôles du kit. */
+export type PhaseDeTokens = 'lire-releve' | 'lire-structure' | 'lire-le-catalogue' | 'controler-le-catalogue' | 'controler-l-integrite' | 'rafraichir';
+
+/** Un passage dans une phase : sa durée et les appels à l'API Figma qu'il a faits, par méthode. Ni nom de variable ni identifiant. */
+export interface PassageDeTokens { readonly phase: PhaseDeTokens; readonly ms: number; readonly appels: Readonly<Record<string, number>> }
+
+/** Les appels d'une phase, par méthode de l'API Figma. */
+export type AppelsDePhase = Record<string, number>;
+
+/** Le journal garde les derniers passages : Ignorer et Appliquer en ajoutent à chaque geste. */
+export const PASSAGES_RETENUS = 60;
+const journalDeTokens: PassageDeTokens[] = [];
+
+/** Les derniers passages du mode Tokens, du plus ancien au plus récent. */
+export const passagesDuModeTokens = (): readonly PassageDeTokens[] => journalDeTokens.slice();
+
+/** Vide le journal ; les tests l'appellent entre deux cas. */
+export function oublierLesPassagesDuModeTokens(): void {
+  journalDeTokens.length = 0;
+}
+
+/**
+ * Chronomètre `travail` et range son passage dans le journal, qu'il rende une valeur ou une promesse, et qu'il lève ou non.
+ * `travail` reçoit le compteur d'appels de la phase ; le comportement et la valeur rendue ne changent pas.
+ */
+export function mesurerUnePhaseDeTokens<T>(phase: PhaseDeTokens, travail: (appels: AppelsDePhase) => T, horloge: () => number = Date.now): T {
+  const appels: AppelsDePhase = {};
+  const debut = horloge();
+  const noter = (): void => {
+    journalDeTokens.push({ phase, ms: horloge() - debut, appels: { ...appels } });
+    if (journalDeTokens.length > PASSAGES_RETENUS) journalDeTokens.splice(0, journalDeTokens.length - PASSAGES_RETENUS);
+  };
+  let rendu: T;
+  try { rendu = travail(appels); } catch (erreur) { noter(); throw erreur; }
+  if (rendu instanceof Promise) return rendu.finally(noter) as T;
+  noter();
+  return rendu;
+}
+
+/** Le port de lecture, avec un compte des appels par méthode dans `appels` ; les appels passent tels quels. */
+export function compterLesAppelsDuPort(port: PortDeLecture, appels: AppelsDePhase): PortDeLecture {
+  const compte = <A extends unknown[], R>(nom: string, appel: (...arguments_: A) => R) => (...arguments_: A): R => {
+    appels[nom] = (appels[nom] ?? 0) + 1;
+    return appel(...arguments_);
+  };
+  return {
+    getLocalVariableCollectionsAsync: compte('getLocalVariableCollectionsAsync', () => port.getLocalVariableCollectionsAsync()),
+    getLocalVariablesAsync: compte('getLocalVariablesAsync', () => port.getLocalVariablesAsync()),
+    getVariableByIdAsync: compte('getVariableByIdAsync', (id: string) => port.getVariableByIdAsync(id)),
+    getVariableCollectionByIdAsync: compte('getVariableCollectionByIdAsync', (id: string) => port.getVariableCollectionByIdAsync(id)),
+    importVariableByKeyAsync: compte('importVariableByKeyAsync', (cle: string) => port.importVariableByKeyAsync(cle)),
+  };
+}

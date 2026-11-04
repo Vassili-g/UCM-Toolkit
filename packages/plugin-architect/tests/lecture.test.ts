@@ -5,7 +5,10 @@ import path from 'node:path';
 import test from 'node:test';
 
 import { indexer } from '../src/indexation';
-import { CONCURRENCE, IMPORTS_EN_VOL, cleDeBibliotheque, convertirValeur, importerLesValeurs, lireLeReleve } from '../src/lecture';
+import {
+  CONCURRENCE, IMPORTS_EN_VOL, PASSAGES_RETENUS, cleDeBibliotheque, compterLesAppelsDuPort, convertirValeur, importerLesValeurs, lireLeReleve, mesurerUnePhaseDeTokens,
+  oublierLesPassagesDuModeTokens, passagesDuModeTokens,
+} from '../src/lecture';
 import { resoudre } from '../src/resolution';
 import { collectionFigma, portDeTest, variableFigma } from './figmaDeTest';
 
@@ -239,4 +242,30 @@ test('le relevé porte l’espace du profil du document, sRGB sans autre précis
 test('le sandbox lit le profil du document et le donne à la lecture', () => {
   const code = fs.readFileSync(path.join(__dirname, '..', 'src', 'sandbox', 'arbre.ts'), 'utf8');
   assert.match(code, /lireLeReleve\([\s\S]*espaceDuProfil\(figma\.root\.documentColorProfile\)\)/);
+});
+
+test('mesurer une phase du mode Tokens range sa durée et ses appels, qu’elle rende une valeur, une promesse ou qu’elle lève', async () => {
+  oublierLesPassagesDuModeTokens();
+  let maintenant = 100;
+  const horloge = () => maintenant;
+  assert.equal(mesurerUnePhaseDeTokens('controler-le-catalogue', () => { maintenant += 7; return 'fait'; }, horloge), 'fait');
+  const { port } = portDeTest([collectionFigma('c', 'Couleurs', ['Jour'], ['a'], false, 'Jour')], [variableFigma('a', 'c', 'surface', 'COLOR', { 'c:Jour': { r: 0, g: 0, b: 0, a: 1 } })]);
+  const rendue = await mesurerUnePhaseDeTokens('lire-structure', async (appels) => {
+    const compte = compterLesAppelsDuPort(port, appels);
+    await compte.getLocalVariablesAsync();
+    await compte.getVariableByIdAsync('a');
+    await compte.getVariableByIdAsync('a');
+    maintenant += 40;
+    return 3;
+  }, horloge);
+  assert.equal(rendue, 3);
+  assert.throws(() => mesurerUnePhaseDeTokens('controler-l-integrite', () => { throw new Error('boum'); }, horloge), /boum/u);
+  assert.deepEqual(passagesDuModeTokens(), [
+    { phase: 'controler-le-catalogue', ms: 7, appels: {} },
+    { phase: 'lire-structure', ms: 40, appels: { getLocalVariablesAsync: 1, getVariableByIdAsync: 2 } },
+    { phase: 'controler-l-integrite', ms: 0, appels: {} },
+  ]);
+  for (let i = 0; i < PASSAGES_RETENUS + 5; i++) mesurerUnePhaseDeTokens('rafraichir', () => i, horloge);
+  assert.equal(passagesDuModeTokens().length, PASSAGES_RETENUS, 'le journal garde les derniers passages');
+  oublierLesPassagesDuModeTokens();
 });
