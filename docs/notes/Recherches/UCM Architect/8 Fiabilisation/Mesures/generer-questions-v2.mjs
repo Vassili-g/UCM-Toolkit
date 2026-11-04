@@ -125,10 +125,7 @@ for (const famille of familles) for (const q of famille.questions) {
   q.exemple = EXEMPLES[q.id] ?? '';
   if (q.etat === 'decidee' && ECRANS_VALIDES.has(q.id)) q.reponse = 'Validée sur la maquette.';
   const reecrite = TOUR_2[q.id];
-  if (reecrite) {
-    Object.assign(q, { questionInitiale: q.question, ...reecrite, etat: 'ouverte', tour: 2, reponse: PREMIERES_REPONSES[q.id] ?? '' });
-    continue;
-  }
+  if (reecrite) Object.assign(q, { questionInitiale: q.question, tour: 2, ...reecrite, etat: 'ouverte', reponse: PREMIERES_REPONSES[q.id] ?? '' });
   const r = REPONSES[q.id];
   if (r) Object.assign(q, { etat: 'decidee', reponse: r.reponse, decision: r.decision ?? q.proposition });
 }

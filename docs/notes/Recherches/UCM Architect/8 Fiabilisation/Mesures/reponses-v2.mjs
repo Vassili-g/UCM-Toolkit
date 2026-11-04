@@ -98,6 +98,16 @@ export const REPONSES = {
     reponse: 'D\'accord. On verra.',
     decision: 'Reportée au prochain passage dans Figma.',
   },
+  // Tour 2 : la décision est la proposition réécrite, sauf mention.
+  ...Object.fromEntries(['Q-F2-6', 'Q-F3-3', 'Q-F3-7', 'Q-F3-9', 'Q-F3-12', 'Q-F5-1', 'Q-F5-5', 'Q-F5-10', 'Q-F6-1', 'Q-F7-7', 'Q-F7-9'].map((id) => [id, { reponse: accord }])),
+  'Q-F5-3': {
+    reponse: 'Le « subtle » reste un solid, donc c\'est aussi `button/color/primary/solid/background` et `button/color/primary/outline/background`. Pourquoi se prendre la tête ?',
+    decision: 'Aucun constat. Le premier axe de style (`Variant`) donne le segment de style du token. Le second (`Appearance`) n\'a pas de segment à lui, et un variant `Solid, Subtle` se lie aux tokens `solid`. Architect ne cherche pas de token propre à `Subtle`.',
+  },
+  'Q-F2-3': {
+    reponse: 'D\'accord, mais « sens normal » ou « sens inverse » doit être expliqué de façon concrète. Texte noir ou texte blanc sur les boutons ?',
+    decision: 'Une question à deux réponses, sans case cochée, qui décrit le rendu et jamais le sens. Pour le texte du bouton, « Garder le texte noir sur les boutons » ou « Passer au texte blanc ». Pour une palette partagée, « Boutons foncés à texte blanc, encadrés clairs à texte foncé » ou « Boutons clairs à texte foncé, encadrés foncés à texte clair », avec un bouton et un encadré dessinés dans chaque couleur. Architect vérifie ensuite chaque rôle contre la table choisie et ne corrige jamais seul.',
+  },
 };
 
 // La réponse du premier tour aux questions reprises au tour 2.
@@ -109,7 +119,7 @@ export const PREMIERES_REPONSES = {
   'Q-F3-9': 'Pas compris pourquoi un texte d\'Alert devrait suivre le texte de la page.',
   'Q-F3-12': 'On n\'utilise pas la nomenclature « bg-hover » dans le kit, donc je ne comprends pas la question.',
   'Q-F5-1': 'Pas compris.',
-  'Q-F5-3': 'Pourquoi le second ne serait-il pas contrôlé ?',
+  'Q-F5-3': 'Tour 1, pourquoi le second ne serait-il pas contrôlé ? Tour 2, je n\'ai toujours pas compris, fais plus clair et avec des couleurs.',
   'Q-F5-5': 'Pas bien compris.',
   'Q-F5-10': 'Pas compris.',
   'Q-F6-1': 'Icon va devenir son propre composant avec ses propres propriétés.',
@@ -197,15 +207,20 @@ export const TOUR_2 = {
     proposition: '`Type`, `Kind` et `Shape` pilotent le style. `Density` et `Spacing` pilotent la taille. Un interrupteur oui ou non (`Destructive`, `Danger`, `High contrast`, `Loading`, `Selected`) ne pilote aucun segment.',
   },
   'Q-F5-3': {
-    question: 'Button a deux axes qui pilotent le style. Que dit Architect ?',
-    explication: 'Un token de couleur a une seule place pour le style, `button/color/primary/solid/background`. Button a deux axes de style, `Variant=Solid, Outline` et `Appearance=Default, Subtle`. Le token n\'a pas de place pour la valeur du second axe, donc Architect ne peut pas vérifier que `Appearance=Subtle` a ses tokens. C\'est pour cela que la proposition ne contrôlait pas le second axe.',
+    tour: 3,
+    question: 'Button a deux axes qui changent tous deux le style du bouton. Que dit Architect ?',
+    explication: 'Le nom d\'un token de couleur a une seule case pour le style, entre la palette et le rôle, `button/color/primary/<style>/background`. Un bouton plein remplit cette case avec `solid`, un bouton à contour avec `outline`.\nCe Button a deux axes qui changent le style. `Variant` choisit plein ou contour. `Appearance` choisit franc ou léger. Il dessine donc quatre boutons, mais ses tokens n\'ont que deux noms possibles, `solid` et `outline`. Le bouton plein léger n\'a aucun nom de token à lui, et Architect ne peut pas vérifier qu\'il est lié au bon token.',
     maquette: mini(
-      colonne('Axes de Button', `${ligne(0, '`Variant=Solid, Outline` → segment style')}${ligne(0, '`Appearance=Default, Subtle` → segment style aussi')}`),
-      colonne('Token', `${ligne(0, 'button/color/primary/<b>solid</b>/background')}${ligne(0, `${ko} aucune place pour \`subtle\``)}`),
+      colonne('Les quatre variants de Button', `<div class="grille-demo">
+        <span class="second">Variant ↓ · Appearance →</span><span class="second">Default</span><span class="second">Subtle</span>
+        <span class="second">Solid</span><span class="bouton-demo" style="background:#2f5bd3;color:#fff">Valider</span><span class="bouton-demo" style="background:#c9d6f7;color:#1b2a55">Valider</span>
+        <span class="second">Outline</span><span class="bouton-demo" style="background:transparent;color:#6f93f0;border:1.5px solid #6f93f0">Valider</span><span class="bouton-demo" style="background:transparent;color:#9fb5ee;border:1.5px dashed #9fb5ee">Valider</span>
+      </div>`),
+      colonne('Token de fond de chaque variant', `${ligne(0, `<span class="jeton-bleu">Solid, Default</span> → button/color/primary/<b class="ok">solid</b>/background ${ok}`)}${ligne(0, `<span class="jeton-bleu">Solid, Subtle</span> → button/color/primary/<b class="ko">?</b>/background ${ko} aucune case pour « subtle »`)}${ligne(0, `<span class="jeton-bleu">Outline, Default</span> → button/color/primary/<b class="ok">outline</b>/background ${ok}`)}${ligne(0, `<span class="jeton-bleu">Outline, Subtle</span> → button/color/primary/<b class="ko">?</b>/background ${ko}`)}`),
     ),
     options: [
-      'A. Le premier axe est contrôlé, une information grise dit que le second ne l\'est pas.',
-      'B. Un constat À faire dit que deux axes pilotent le style, et demande de les fusionner en un seul axe ou de donner au second un autre rôle.',
+      'A. Architect contrôle `Variant` seul. Une information grise dit que `Appearance` n\'est pas contrôlé.',
+      'B. Un constat À faire dit que deux axes changent le style, et propose deux corrections au choix du designer. Fusionner les deux axes en un seul (`Style=Solid, Solid Subtle, Outline, Outline Subtle`), et les tokens prennent ces quatre noms (`solid`, `solid-subtle`, `outline`, `outline-subtle`). Ou garder un seul des deux axes.',
     ],
     proposition: 'Option B.',
   },

@@ -1,7 +1,7 @@
 # Plan d'implémentation de la fiabilisation d'Architect
 
 Ce plan implémente les maquettes validées de [MAQUETTE-FIABILISATION.html](./MAQUETTE-FIABILISATION.html), sections 1 à 8.
-Il ajoute une phase de vitesse du mode Tokens. La phase E recevra le reste de la refonte après les réponses aux
+Il ajoute une phase de vitesse du mode Tokens. La phase E corrige les failles mesurées, d'après les réponses aux
 [questions V2](./QUESTIONS-V2.html).
 
 ## Règles d'exécution
@@ -27,7 +27,7 @@ Il ajoute une phase de vitesse du mode Tokens. La phase E recevra le reste de la
 | B | B1 à B7 | Mode Composant : cochage, Ignorer, périmée, ignorés, partielle, refus (sections 2 à 7) |
 | C | C1 à C6 | Mode Tokens en deux onglets, Constats et Règles (section 1) |
 | D | D0 à D7 | Vitesse de l'analyse du mode Tokens |
-| E | à écrire | Corrections tirées des réponses V2 |
+| E | E1 à E12 | Corrections tirées des réponses V2, famille par famille |
 | F | F1 à F3 | Clôture, publication, recette |
 
 ## Phase A. Les icônes dans le kit
@@ -413,13 +413,289 @@ Fichiers : `src/ui/structure/aFaire.ts:227-239`, `src/ui/structure/corrections.t
 
 ## Phase E. Corrections tirées des réponses V2
 
-À écrire après les réponses du mainteneur dans [QUESTIONS-V2.html](./QUESTIONS-V2.html). Chaque réponse donne un lot ou une case, par
-famille : F1 Noms (10 questions), F2 Structure (7), F3-F4 Liaisons et tailles (16), F5-F6 Variants, typographie et icônes (17),
-F7 Accessibilité (14), F8-F9 Règles, moteur, lecture et états (21), QV-1 à QV-5. Les écarts N-87 (regroupement des C82) et N-88
-(thème non reconnu) attendent QV-3 et QV-4.
+Chaque décision de [QUESTIONS-V2.html](./QUESTIONS-V2.html) (archive « Questions tranchées ») et chaque écart de
+[MESURE-DES-FAILLES.md](./MESURE-DES-FAILLES.md) a une case ci-dessous. Une case cite la question ou l'écart, et l'agent relit la
+décision dans la page avant d'écrire. Toutes les questions V2 sont tranchées, sauf QV-5 reportée à la recette.
+
+Règles propres à la phase E :
+
+- La conversation principale écrit les textes destinés au designer avant de confier un lot, avec la skill `rediger-diagnostics-ucm`, et
+  les met dans la note du lot. Aucun texte ne dit « peinture » ni « mélange » (Q-F7-14).
+- Toute proposition arrive décochée (Q-F2). Une correction n'est cochable que si elle est exacte, avec une règle écrite et un seul
+  candidat. Sinon c'est une question.
+- Un exemple, un test ou une fixture écrit un variant en toutes lettres (`Size=Small`) et un token en abréviation (`sm`) (Q-F5-6).
+- Les tests `todo` d'un écart (Q-F2-9) passent dans le lot qui le corrige. Le lot retire le `todo`.
+- La fin d'un lot se lit sur son harnais, dont la cible est celle de la section « Cibles » de MESURE-DES-FAILLES.md. Un `verificateur`
+  lance le harnais et rend les nombres.
+
+| Lot | Agent | Dépend de | État |
+|---|---|---|---|
+| E1 Définitions communes du référentiel | `implementeur-exigeant` | A1 | [ ] |
+| E2 Noms de Nomenclature (F1) | `implementeur-exigeant` | E1 | [ ] |
+| E3 Structure du mode Tokens, kit (F2) | `implementeur-exigeant` | E1 | [ ] |
+| E4 Structure du mode Tokens, écrans et écritures (F2) | `implementeur` | E3, C4 | [ ] |
+| E5 Liaisons du composant (F3) | `implementeur-exigeant` | E1 | [ ] |
+| E6 Tailles du composant (F4) | `implementeur` | E5 | [ ] |
+| E7 Variants et noms des tokens du composant (F5) | `implementeur-exigeant` | E1 | [ ] |
+| E8 Typographie et icônes (F6) | `implementeur-exigeant` | E1, E7 | [ ] |
+| E9 Accessibilité (F7) | `implementeur-exigeant` | E1 | [ ] |
+| E10 Règles d'usage et moteur (F8) | `implementeur-exigeant` | B2 | [ ] |
+| E11 Lecture et états de l'analyse (F9) | `implementeur-exigeant` | B6, B7 | [ ] |
+| E12 Rejeu complet et cibles | `verificateur`, puis la conversation principale | E2 à E11 | [ ] |
+
+### E1. Définitions communes du référentiel
+
+Plusieurs contrôles lisent chacune de ces définitions. Elles vont dans `packages/kit/src/referentiel/`, et chaque lecteur les importe.
+Fichiers : `vocabulaire.ts`, `ecriture-des-mots.ts`, `architecture.ts`, `conventions.ts`, `packages/kit/src/controles/nommage.ts`
+(`axeDePropriete`), `mapping.ts` (`estUneIcone`), `typographie.ts` et `accessibilite.ts` (`estIcone`, `NOM_D_ANNEAU`), les tests du kit.
+
+- [ ] E1.1 Écriture d'une valeur de variant (Q-F5-5, Q-F5-6). Le variant s'écrit en toutes lettres, avec une majuscule à chaque mot
+  (`Small`, `Extra Large`, `Danger`). Le token s'écrit en minuscules et en abréviation (`sm`, `xl`, `danger`). Une table du kit passe de
+  l'un à l'autre. `S`, `M`, `L`, `sm` et `Middle` dans un variant ont une correction vers le mot entier.
+- [ ] E1.2 Rôle d'un nom d'axe (Q-F5-1, Q-F5-9, E-27). `Type`, `Kind` et `Shape` pilotent le style. `Density` et `Spacing` pilotent la
+  taille. Un nom français prend le rôle de son équivalent anglais et reçoit un renommage vers l'anglais. Un interrupteur oui ou non n'est
+  pas un axe.
+- [ ] E1.3 Définition unique d'une icône (Q-F6-3, Q-F3-4, Q-F6-4, E-26). L'instance d'un composant `Icon` est le cas principal. Puis
+  une instance qu'une propriété INSTANCE_SWAP pilote, dont la propriété ou le layer porte un mot d'icône, ou un VECTOR ou
+  BOOLEAN_OPERATION dont le nom contient le mot entier `icon`, `icône`, `glyph`, `pictogram` ou `symbol`. Un FRAME ou un TEXT n'est jamais
+  une icône. Les trois fonctions `estUneIcone` et `estIcone` disparaissent au profit de celle du kit.
+- [ ] E1.4 Définition d'un anneau (Q-F7-9). Un layer lié à un token de rôle `ring`, ou nommé `Ring` ou `Focus ring`. `NOM_D_ANNEAU`
+  passe dans le référentiel.
+- [ ] E1.5 Rôles qui désignent un layer (Q-F3-3). `divider` (noms `Divider`, `Separator`), `ring` (noms `Ring`, `Focus ring`) et `icon`
+  (instance d'`Icon`). Les autres rôles ne regardent pas le nom.
+- [ ] E1.6 Segment d'une valeur à point ou à barre (Q-F5-10). Le point et la barre deviennent un tiret (`16-9`, `1-5`).
+- [ ] E1.7 Monter la version du kit.
+
+Fin : chaque définition a un test. `git grep` ne trouve plus de seconde définition d'icône ni d'anneau. `npm run test --workspace
+@ucm-kit/core` passe.
+
+### E2. Noms de Nomenclature (F1)
+
+Fichiers : `packages/kit/src/referentiel/questions.ts`, `termes-connus.ts`, `normalisation.ts`, `harmonisation.ts`,
+`vocabulaire-du-fichier.ts`, `packages/plugin-architect/src/nomenclature/`, `packages/kit/tests/stress/f1-noms/donnees/`,
+`packages/kit/tests/stressF1Regressions.test.ts`. Lire PLAN-STRESS-F1-NOMS.md, sections 1, 4 et 8.
+
+- [ ] E2.1 Dictionnaire (Q-F6). La conversation principale classe les listes de candidats du lot 1 dans `formes.json` et
+  `synonymes.json`. Le mainteneur ne relit aucun JSON. Un couple qu'elle ne sait pas classer reste hors du dictionnaire.
+- [ ] E2.2 Question « même mot ou deux mots ? » de Nomenclature pour ce couple. La réponse du designer se range dans le vocabulaire du
+  fichier, et la question ne revient pas.
+- [ ] E2.3 Règle des fautes. Une faute n'a plus besoin de partager une place (E-05), ni d'une référence vue dans 5 noms (E-01). Une
+  faute vue dans 3 noms ou plus reste vue (E-02). L'échange de deux lettres est une faute (E-03). Deux mots hors vocabulaire à une lettre
+  donnent une question, le plus fréquent en premier (Q-F1). Une faute d'un seul nom va dans Questions (Q-F3).
+- [ ] E2.4 Fautes à deux lettres (Q-F9). Elles donnent une question, seulement pour un mot au-dessus du seuil de longueur.
+- [ ] E2.5 Seuils (Q-F4). `npm run stress:f1 -- --faux-positifs` mesure la courbe. Le seuil d'une lettre et celui de deux lettres sont
+  les plus petites longueurs à moins d'un faux positif pour 1 000 noms justes. Les valeurs vont dans le kit.
+- [ ] E2.6 Formes tolérées et synonymes. Une forme tolérée bloquée par collision pose une question (E-08). Les blocs gardés entiers
+  (E-09), les pluriels (E-10), les termes de `REGISTRES_COMPOSANTS` (E-04) et une référence tolérée (N-02) sont lus. Les synonymes
+  viennent de `synonymes.json` au lieu des 9 groupes en dur (E-11). Un synonyme seul donne une question si son terme UCM est unique
+  (Q-F5).
+- [ ] E2.7 Une collection à une lettre d'une collection UCM (`thme`) propose cette collection en question (Q-F8, E-15). Une référence
+  inconnue se replie au lieu de bloquer (E-06). La conversion par `couche` reste (Q-F10).
+- [ ] E2.8 Le renommage est idempotent (N-01). Les 720 cas de casse sont expliqués, puis corrigés côté kit ou côté oracle (N-03).
+- [ ] E2.9 Branches parallèles au-delà de 12 branches (E-45).
+- [ ] E2.10 Monter la version du kit. Les tests `todo` de F1 passent.
+
+Fin : `npm run stress:f1` détecte 90 % des attendus hors S4, S3 compris après E2.4, avec 0 faux positif sur les 15 design systems. Avec
+`--slice`, 190 fautes sur 209 et 40 inversions sur 40. Un second passage ne renomme rien.
+
+### E3. Structure du mode Tokens, kit (F2)
+
+Fichiers : `packages/kit/src/controles/integrite.ts`, `theme.ts`, `structure.ts`, `catalogue.ts`, leurs tests,
+`packages/kit/tests/stress/f2-structure/`. Lire PLAN-STRESS-F2-STRUCTURE.md, sections 3 et 8.
+
+- [ ] E3.1 Rôles proches (Q-F2-1, E-19). Un dernier segment proche d'un rôle du même dossier donne une question, au lieu de créer le
+  rôle absent. Une variable loin de tout rôle ne donne rien.
+- [ ] E3.2 Sens de la palette (Q-F2-3, N-25, N-27). Le sens se lit sur les rôles non dégradés. Un sens partagé ou un `solid/foreground` à
+  contre-sens donne une question à deux réponses, sans correction. C60 lit le sens.
+- [ ] E3.3 Modes (Q-F2-4, N-24, N-26, E-20). C60 trouve la branche dans le chemin (`primary/dark/300`) et dans les modes de la cible. Un
+  alias vers l'autre branche au cran de son propre mode a la correction vers la bonne branche. Toute question C60 a un genre.
+- [ ] E3.4 Palette voisine (Q-F2-2). Un rôle aliasé vers la rampe d'une autre palette donne une question sans présélection.
+- [ ] E3.5 Doublons. Deux collections `theme` donnent un constat À faire (Q-F2-5, à rapprocher de Q-86). Un rôle présent deux fois est
+  jugé pour ses deux variables (N-29) et reçoit la question de fusion de Q-F2-6 (écriture en E4.4).
+- [ ] E3.6 Doublons d'échelle (Q-F2-8, N-33). Les alias se résolvent avant la comparaison, pour toutes les échelles, à 1e-6 près. Sans
+  library choisie, une cible inaccessible donne une information.
+- [ ] E3.7 Alias de mode de C63 `theme` (Q-F3-5, N-16). La cible est le cran de la configuration d'UCM Palettes pour ce rôle et ce mode.
+  Vérifier d'abord que la recette rangée par Palettes (`figma.root`, espace `ucm_palettes`, clé `recette`) donne ce cran. Si elle ne le
+  donne pas, rendre la question à la conversation principale. Sans recette, la table UCM du kit sert.
+- [ ] E3.8 Regroupement des C82 `couche` (QV-3, N-87). Une carte par couple de collections et par couche visée, avec le nombre de
+  variables et de modes.
+- [ ] E3.9 Thème non reconnu (QV-4, N-88). Une information dit qu'aucune collection n'est reconnue comme `theme`.
+- [ ] E3.10 Écarts restants. N-08, N-15, N-28 (voisine choisie par le dernier segment), N-30 (collection dans l'identifiant), N-31
+  (variable non chargée), N-32 (scopes des FLOAT).
+- [ ] E3.11 Monter la version du kit. Les tests `todo` de F2 passent.
+
+Fin : `npx tsx packages/kit/tests/stress/f2-structure/mesurer.ts` donne 100 % des attendus, 0 faux constat et 0 correction inexacte.
+`npm run stress:rejeu` donne au plus une carte par couple de collections pour une même couche, et R2, R3, R5 restent à 100 %.
+
+### E4. Structure du mode Tokens, écrans et écritures (F2)
+
+Fichiers : `packages/plugin-architect/src/ui/structure/`, `src/sandbox/structure.ts`, `src/ecriture/`, `src/ui/textes/`, la galerie.
+
+- [ ] E4.1 La question du sens décrit le rendu (Q-F2-3). « Garder le texte noir sur les boutons » ou « Passer au texte blanc ». Pour une
+  palette partagée, un bouton et un encadré dessinés dans chaque couleur, jamais « sens normal » ni « sens inverse ».
+- [ ] E4.2 Chaque motif de saut a un texte (E-24). Une lecture qui lève, un catalogue `null` ou un refus de Figma ne disent plus « Rien à
+  régler » (E-23).
+- [ ] E4.3 Ignorer la proposition d'un constat de scopes range le constat sous Ignorés (E-21).
+- [ ] E4.4 Fusion de deux variables du même rôle (Q-F2-6, option C). Architect relie à la variable gardée chaque token et chaque layer du
+  fichier, puis fait de l'autre un alias de la variable gardée, marquée à retirer. Un second constat propose de la retirer quand plus
+  rien ne l'emploie.
+- [ ] E4.5 La correction `alias-de-mode` part à l'écriture (E-28).
+- [ ] E4.6 Carte groupée de QV-3, avec la liste des variables qui se déplie. Information de QV-4 en tête du mode Tokens.
+- [ ] E4.7 États de galerie de chaque écran changé.
+
+Fin : `npm run stress:structure` passe la chaîne de 28 cas sur 28. `npm run test:paquet -- architect` passe.
+
+### E5. Liaisons du composant (F3)
+
+Fichiers : `packages/kit/src/controles/corrections.ts`, `mapping.ts`, `propagation.ts`, `theme.ts`, `couche.ts`, leurs tests,
+`packages/kit/tests/stress/f3-composant/`, `packages/plugin-architect/src/constatsDuMoteur.ts` (E5.8). Lire PLAN-STRESS-F3-F4-COMPOSANT.md,
+sections 3 et 8.
+
+- [ ] E5.1 Layers masqués (Q-F3-1). C25 et C29 jugent un layer masqué ou sous un ancêtre masqué. La carte dit que le layer est masqué.
+  Une instance imbriquée reste une frontière (Q-F3-2).
+- [ ] E5.2 C25 juge toute peinture sans token, pas seulement `title` (E-25, N-11). Il saute l'opacité 0 et la lecture mixte (N-12).
+- [ ] E5.3 Nom et rôle (Q-F3-3, N-22). C24 lit la table de E1.5 dans les deux sens. La correction propose le token ou le nom, s'il est
+  unique.
+- [ ] E5.4 Propagation (Q-F3-6, Q-F3-7, N-09, N-10). Elle recopie seulement les tokens lisibles du composant. Une plage déjà liée ne
+  donne pas de question. Un layer propre à un variant ne donne rien. Deux homonymes sous le même parent donnent une question.
+- [ ] E5.5 Héritage (Q-F3-8, N-17). Une liaison héritée sans changement n'est jamais jugée. Une surcharge de l'hôte l'est.
+- [ ] E5.6 Texte sur fond de page (Q-F3-9, Q-F3-10, N-13, N-14). C59 suit l'alias du token du composant jusqu'au thème. Sa correction
+  vise le token du composant qui vise `page/foreground`. Une plage n'est énumérée qu'une fois.
+- [ ] E5.7 Un constat par liaison (Q-F3-12, Q-F3-16, N-06). Palette et état faux donnent une carte, vers le token qui corrige les deux
+  segments. Quand plusieurs constats visent la même liaison, celui qui porte la correction reste.
+- [ ] E5.8 Doublon du kit et du moteur (Q-F3-17, Q-F89-12, E-30). Un point C30 tombe quand un C25 ou un C29 porte le même layer et le
+  même champ. Ignorer le constat du kit fait taire le point.
+- [ ] E5.9 Tokens d'icône (Q-F3-15, N-07). Un composant ne déclare plus de token d'icône. L'alias d'un token de composant vers un autre
+  composant est un défaut. Les 3 fixtures qui emploient ce motif se mettent à jour.
+- [ ] E5.10 Écarts restants. N-04 et N-05 (scopes `SHAPE_FILL` et `FRAME_FILL` de C18), N-21 (variable non chargée ou inaccessible).
+- [ ] E5.11 Monter la version du kit. Les tests `todo` de F3 passent.
+
+Fin : `npm run stress:composant` donne 185 sur 185 et 0 faux constat pour le kit, et la chaîne passe 65 cas sur 65.
+
+### E6. Tailles du composant (F4)
+
+Fichiers : `packages/kit/src/controles/corrections.ts` (C29), `candidatsDeLongueur.ts`, `structure.ts`, leurs tests,
+`packages/kit/tests/stress/f3-composant/operateursTailles.ts`.
+
+- [ ] E6.1 Égalité à 1e-6 px près. À égalité, les deux candidats sont montrés (Q-F3-11, N-18, N-19).
+- [ ] E6.2 C29 lit la famille `sizes` et la propriété `border-radius`, et C8 demande l'harmonisation (Q-F3-13, N-20).
+- [ ] E6.3 Un token de taille dont la valeur change entre Light et Dark donne un constat À faire. La carte demande quelle valeur garder,
+  sans case cochée (Q-F3-14).
+- [ ] E6.4 Monter la version du kit.
+
+Fin : les cas Z1 à Z8 du harnais F3 sont à leur oracle.
+
+### E7. Variants et noms des tokens du composant (F5)
+
+Fichiers : `packages/kit/src/controles/nommage.ts`, `oublis.ts`, leurs tests, `packages/kit/tests/stress/f5-variants/`. Lire
+PLAN-STRESS-F5-F6-VARIANTS-TYPO.md, sections 3 et 8.
+
+- [ ] E7.1 Le nom de l'axe décide de son rôle, avant les termes d'un autre registre (Q-F5-2, N-36).
+- [ ] E7.2 Deux valeurs renommées dans deux axes donnent C7 sans question (Q-F5-4). Les candidats ne comptent pas une valeur déjà
+  présente (N-35).
+- [ ] E7.3 Deux axes du même rôle (Q-F5-3). Aucun constat. Le premier axe de style donne le segment de style. Le second n'a pas de
+  segment à lui, et ses variants se lient aux tokens du premier axe.
+- [ ] E7.4 Casse et forme (Q-F5-5, Q-F5-6, N-34, N-37). Le variant en toutes lettres correspond au token abrégé par la table de E1.1. C9
+  reste pour une valeur inconnue. `Error` reçoit C8 vers `Danger`.
+- [ ] E7.5 Au-delà de 4 096 combinaisons, une information donne le total et le nombre de variants. Sous la borne, 200 constats au plus,
+  puis « et N autres » (Q-F5-7, E-44). Une valeur répétée ne donne qu'un C31 (N-38).
+- [ ] E7.6 Un token au nom illisible donne C32 `nom-illisible` (Q-F5-8, N-39). C32 `inutilise` ne compte pas une liaison illisible
+  (E-33). Une palette hors registre donne `sans-variant` (N-40).
+- [ ] E7.7 Valeur à point ou à barre lue par E1.6 (Q-F5-10).
+- [ ] E7.8 La matrice de 16 × 16 × 16 variants tient sous 2 secondes (N-41).
+- [ ] E7.9 Monter la version du kit. Les tests `todo` de F5 passent.
+
+Fin : `npx tsx packages/kit/tests/stress/f5-variants/mesurer.ts --famille F5` donne 100 % des attendus et 0 faux constat. Les 24 profils
+muets le restent.
+
+### E8. Typographie et icônes (F6)
+
+Fichiers : `packages/kit/src/controles/typographie.ts`, `mapping.ts`, leurs tests, `packages/kit/tests/stress/f5-variants/typo/`,
+`packages/plugin-architect/src/ui/textes/composant.ts`.
+
+- [ ] E8.1 Icône (Q-F6-1, option A). C66 contrôle que l'icône est une instance d'`Icon`, que son remplissage suit le token de premier
+  plan du composant (`button/color/primary/solid/foreground`), et que sa propriété `Size` suit la taille du variant. Les textes « Liez-la
+  à une taille de layout/icon » changent.
+- [ ] E8.2 Les `strokes` d'une icône à tracé tiennent lieu de couleur sans fill visible (Q-F6-5).
+- [ ] E8.3 C64 compare les styles dans chaque valeur de l'axe de taille (Q-F6-2, N-42). Deux layers homonymes ne masquent pas leurs
+  styles (N-44). Un texte à styles mixtes reçoit l'information `styles-mixtes` (Q-F6-6, N-43).
+- [ ] E8.4 C65 couvre les huit champs de `CHAMPS_DE_TYPOGRAPHIE` (Q-F6-7).
+- [ ] E8.5 Un slot sans mot d'icône n'est pas une icône, et C67 ne le compte pas (Q-F6-4).
+- [ ] E8.6 Monter la version du kit.
+
+Fin : `mesurer.ts --famille F6` donne 95 % des attendus et 0 faux constat.
+
+### E9. Accessibilité (F7)
+
+Fichiers : `packages/kit/src/controles/accessibilite.ts`, `packages/kit/src/emplois/`, leurs tests,
+`packages/kit/tests/stress/f7-accessibilite/`, les textes de C49 à C53. Lire PLAN-STRESS-F7-ACCESSIBILITE.md, sections 3 et 8.
+
+- [ ] E9.1 Composition et arrondi (Q-F7-1). Un fond de page ou d'élévation d'alpha inférieur à 1 donne `fond-indetermine`.
+- [ ] E9.2 Opacités (Q-F7-2, N-48, N-57). L'alpha effectif multiplie ceux des ancêtres. Un layer d'alpha effectif nul n'est pas mesuré.
+- [ ] E9.3 Grand texte gras à 56/3 px et 700 (Q-F7-3).
+- [ ] E9.4 Fonds (Q-F7-4, N-45, N-47). Un frère plus bas qui couvre la boîte du texte est son fond. La visibilité suit chaque ancêtre.
+- [ ] E9.5 Valeurs hors gamme (Q-F7-5, N-50, N-52). Un canal ou un alpha hors de [0, 1], ou NaN, donne `couleur-hors-gamut`.
+- [ ] E9.6 Modes du thème au repli (Q-F7-6). Borne de 5 000 qui dit les variants non mesurés, sans collection inutile (Q-F7-11, N-61).
+- [ ] E9.7 Garantie du thème (Q-F7-7, N-49). `corriger` seulement si la garantie vise le même type de seuil, le niveau demandé et ce fond.
+- [ ] E9.8 Contours (Q-F7-8, N-63). Un contour sous 3:1 reste muet quand le remplissage du layer atteint 3:1.
+- [ ] E9.9 Anneau par E1.4 (Q-F7-9, N-58, N-59). Un anneau rempli sans contour se mesure sur son remplissage.
+- [ ] E9.10 Variants désactivés (Q-F7-10, N-51, N-55, N-60). `Disabled=True` et `Enabled=False` sont exclus, et `Survol` est une forme
+  tolérée de `hover`.
+- [ ] E9.11 Identifiant d'un constat de contraste sans plage ni niveau (Q-F7-12, N-62). Une plage vide ne donne rien (N-56).
+- [ ] E9.12 Mode de fusion et flou d'arrière-plan (Q-F7-14, N-46). La limite dit « mode de fusion » pour un mode de fusion.
+- [ ] E9.13 Lecture partielle (N-53, N-54). Un cycle de `parent` termine. C49 et C50 ne jugent pas ce qui n'a pas été lu.
+- [ ] E9.14 Monter la version du kit. Les tests `todo` de F7 passent.
+
+Fin : `npx tsx packages/kit/tests/stress/f7-accessibilite/mesurer.ts` donne 100 % des seuils S et G, 0 faux constat et 0 exception.
+
+### E10. Règles d'usage et moteur (F8)
+
+Fichiers : `packages/plugin-architect/src/regles.ts`, `src/constatsDuMoteur.ts`, `src/sandbox/analyse.ts`, `src/ui/panneau/`, leurs tests,
+`packages/plugin-architect/scripts/stress/f8-analyse/`. Lire PLAN-STRESS-F8-F9-ANALYSE.md, sections 3 et 8.
+
+- [ ] E10.1 Noms de règle (Q-F89-1, N-64, N-74). La comparaison retire espaces, tirets, soulignés, casse et suffixe `#1:2`.
+- [ ] E10.2 Valeur inconnue (Q-F89-2, N-65). `Size.xxl` donne C45 `valeur-inconnue`. Une cible `@prop` vide donne `sans-propriete`
+  (N-72). `@boolean` sur un axe donne un constat (N-73).
+- [ ] E10.3 Conteneurs (Q-F89-5 à Q-F89-9, N-68 à N-70, E-30). Le scan reste sur la page du composant. Un conteneur vide est rempli. Deux
+  noms compactés égaux donnent un constat. Le premier conteneur de la page l'emporte. Seule l'instance la plus proche compte. C43 et
+  C44 ne sortent plus ensemble.
+- [ ] E10.4 Points du moteur (Q-F89-10, Q-F89-11, E-29, E-37, N-67). Les points `proprietes` se répartissent entre C34 et C42. Une marge
+  va dans Tailles, un style de texte dans Texte.
+- [ ] E10.5 Règle renommée (Q-F89-13). Une propriété sans règle et une règle sans propriété au nom voisin font un constat.
+- [ ] E10.6 Identifiant d'un point (Q-F89-21, N-66). L'empreinte porte le titre, les nœuds et les éléments.
+- [ ] E10.7 Écarts N-84 (point ignoré après un changement d'ordre des phrases).
+
+Fin : `npm run stress:analyse` donne 100 % des attendus de F8, 0 faux constat et 0 fait inexact, et la chaîne passe 321 cas sur 321.
+
+### E11. Lecture et états de l'analyse (F9)
+
+Fichiers : `packages/plugin-architect/src/sandbox/analyse.ts`, `src/sandbox/prelecture.ts`, `src/messages/analyse.ts`,
+`src/ui/analyse/index.ts`, leurs tests. B4 à B7 couvrent déjà Q-F89-15 à Q-F89-18 et QV-2.
+
+- [ ] E11.1 Lectures refusées (Q-F89-3, N-78, N-83). Règles, niveau, ignorés et déclaration refusés rendent `partielle`. Les
+  dépendances refusées laissent une trace. Une annulation n'est pas un refus.
+- [ ] E11.2 Library illisible (Q-F89-4, N-79). L'analyse est partielle. La bannière nomme la library et dit de l'activer dans les
+  libraries du fichier (Assets, Libraries), puis d'actualiser.
+- [ ] E11.3 Ordre des états (Q-F89-14). Arrêtée, annulée, périmée, partielle, complète.
+- [ ] E11.4 Décompte des layers (Q-F89-19, N-76, N-81). Une seule fonction de décompte. Un variant qui lève est une lecture manquée sans
+  couper les suivants. Au-delà de 2 000 layers dans le premier variant, une information.
+- [ ] E11.5 Library à choisir (Q-F89-20, N-82). La garde passe dans le sandbox, pour la prélecture et pour Analyser.
+- [ ] E11.6 Sujet sans nœud (QV-1). L'écran « Aucun composant n'est sélectionné ».
+- [ ] E11.7 Modèle d'une analyse annulée (N-71). Compteur de génération remis à zéro (N-75).
+
+Fin : `npm run stress:analyse` donne 0 fait inexact de F9, et la chaîne passe 569 cas sur 569. Aucune lecture refusée ne finit
+`complete`.
+
+### E12. Rejeu complet et cibles
+
+- [ ] E12.1 Le `verificateur` relance les sept harnais et `npm run stress:rejeu`, et rend un tableau par famille.
+- [ ] E12.2 La conversation principale écrit les nombres dans la section « Cibles » de MESURE-DES-FAILLES.md. Un écart qui reste a une
+  question au mainteneur.
+- [ ] E12.3 QV-5 : le mainteneur capture Alert et Input au prochain passage dans Figma.
 
 ## Phase F. Clôture
 
 - [ ] F1 `npm test`, `npm run typecheck`, `npm run build` par un `verificateur`. `npm run agents:diff`, relecture des documents listés.
 - [ ] F2 Publier `@ucm-kit/core`, puis `@ucm-kit/cli` et `@ucm-kit/adapter-typescript` s'ils ont changé, avec `publier-paquets`.
-- [ ] F3 Recette du mainteneur dans Figma : sections 1 à 8 de la maquette, et durées de D7.2.
+- [ ] F3 Recette du mainteneur dans Figma : sections 1 à 8 de la maquette, durées de D7.2, et gestes de la section 7 de chaque plan de
+  stress test.

@@ -48,6 +48,8 @@
   .mini .ok { color: var(--vert); font-weight: 700; } .mini .ko { color: #f5a3a3; font-weight: 700; }
   .pastille { display: inline-block; width: 10px; height: 10px; margin: 0 2px; border-radius: 2px; vertical-align: middle; border: 1px solid #0004; }
   .bouton-demo { display: inline-block; padding: 5px 14px; border-radius: 6px; font-weight: 600; }
+  .grille-demo { display: grid; grid-template-columns: auto auto auto; gap: 8px 10px; align-items: center; }
+  .jeton-bleu { color: var(--lien); font-weight: 600; }
   .carte-demo { margin-bottom: 4px; padding: 8px 10px; border: 1px solid var(--bordure); border-radius: 6px; }
   .archive { margin-top: 40px; border-top: 1px solid var(--bordure); padding-top: 12px; }
   .archive > summary { cursor: pointer; font-size: 18px; font-weight: 700; }
@@ -78,7 +80,7 @@
 </main>
 <script>
 /*DONNEES*/
-const CLE = 'architect-questions-v2-tour2';
+const CLE = 'architect-questions-v2-tour3';
 let reponses = {};
 try { reponses = JSON.parse(localStorage.getItem(CLE) || '{}'); } catch { reponses = {}; }
 const enregistrer = () => { try { localStorage.setItem(CLE, JSON.stringify(reponses)); } catch { /* sans stockage, les réponses vivent le temps de la page */ } };
@@ -111,9 +113,9 @@ function carteOuverte(q) {
   carte.dataset.attente = String(q.mesure.cas > 0);
   const explique = Boolean(q.explication);
   carte.innerHTML = `
-    <div class="q-tete"><span class="q-id">${q.id}</span>${q.tour ? '<span class="etat reservee">Tour 2</span>' : ''}
+    <div class="q-tete"><span class="q-id">${q.id}</span>${q.tour ? `<span class="etat reservee">Tour ${q.tour}</span>` : ''}
       <span class="q-question">${enLigne(q.question)}</span></div>
-    ${q.reponse ? `<div class="q-tour1">Ta réponse au tour 1 : « ${enLigne(q.reponse)} »</div>` : ''}
+    ${q.reponse ? `<div class="q-tour1">${q.tour > 2 ? 'Tes réponses précédentes' : 'Ta réponse au tour 1'} : «${enLigne(q.reponse)} »</div>` : ''}
     ${explique ? `<div class="q-explication">${enLigne(q.explication)}</div>` : ''}
     ${q.maquette ?? ''}
     ${!explique && q.exemple ? `<div class="q-exemple"><b>Exemple</b> ${enLigne(q.exemple)}</div>` : ''}
