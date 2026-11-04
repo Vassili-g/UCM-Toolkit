@@ -1521,6 +1521,146 @@ window.REFERENTIEL = {
    "reprises": []
   },
   {
+   "id": "verdict-palettes",
+   "libelle": "Verdicts et repères de Palettes",
+   "teinte": "couleurs",
+   "pose": {
+    "fonction": "`creerSigne(id, options)` du socle (`packages/plugin-socle/src/ui/Signe.ts`). Les verdicts « tenu », « à corriger » et « bloquant » ne sont pas dans cette famille : ils prennent les icônes d’alerte du socle (`creerIcone`).",
+    "tailles": "14 px dans un texte ou un bouton, 16 px dans une ligne (défaut), 24 px dans une bande de section.",
+    "teinte": "Avec `informe: true`, la tuile prend la couleur « couleurs ». Sans lui, elle reste grise : réserver la couleur à un signe qui porte une information.",
+    "nom": "Sans option `titre`, la tuile est décorative et le mot écrit à côté nomme le signe. Quand rien n’est écrit à côté, passer `titre` avec le libellé du signe : la tuile prend alors `role=\"img\"` et `aria-label`."
+   },
+   "signes": [
+    {
+     "id": "butee",
+     "libelle": "butée",
+     "sens": "Une valeur qui s’arrête sur la borne que le calcul de la palette impose.",
+     "emploi": "Une valeur arrêtée sur sa borne, dans la ligne fixe sous une réglette. Pour une garantie manquée, prendre l’icône d’alerte « bloquant » du socle. En texte, le caractère « ⊣ » (champ glyphe) remplace le dessin.",
+     "trace": "<path d=\"M2.5 8h9M12.5 3.5v9\"/>",
+     "grille": 16
+    },
+    {
+     "id": "reference",
+     "libelle": "référence",
+     "sens": "La couleur de référence de la palette, à son cran.",
+     "emploi": "La référence d’une palette, à son cran. Pour la palette entière, prendre `palette`. En texte, le caractère « ◆ » (champ glyphe) remplace le dessin.",
+     "trace": "<path d=\"M8 2.2 13.8 8 8 13.8 2.2 8z\" fill=\"currentColor\"/>",
+     "grille": 16
+    },
+    {
+     "id": "confondus",
+     "libelle": "presque identiques",
+     "sens": "Soft et Vivid se confondent à un cran.",
+     "emploi": "Soft et Vivid presque identiques à un cran. Pour deux valeurs différentes, prendre `ecart`. En texte, le caractère « ≈ » (champ glyphe) remplace le dessin.",
+     "trace": "<path d=\"M2 6.2q1.5-2 3 0t3 0 3 0 3 0M2 10.8q1.5-2 3 0t3 0 3 0 3 0\"/>",
+     "grille": 16
+    }
+   ],
+   "reprises": []
+  },
+  {
+   "id": "pictogramme-palettes",
+   "libelle": "Pictogrammes des cartes de Palettes",
+   "teinte": null,
+   "pose": {
+    "fonction": "`creerSvgDuSigne(id, largeur)` du socle pose le tracé sur sa grille de 44 × 28 ; UCM Palettes le ramène à 38 × 24 px (`creerGlyphe`, `packages/plugin-palettes/src/ui/glyphes.ts`).",
+    "tailles": "38 × 24 px dans l’en-tête d’une carte titrée. La grille est de 44 sur 28 (champs `grille` et `hauteur`) : le trait de 1,8 se règle dans la feuille du plugin.",
+    "teinte": "Chaque forme porte un rôle, la classe `glyphe-*` de son attribut `class`, et la feuille du plugin la peint de ses rôles de couleur. Sans cette feuille, le tracé reste dans la couleur du texte.",
+    "nom": "Le pictogramme est décoratif (`aria-hidden`) : le titre de la carte le nomme."
+   },
+   "signes": [
+    {
+     "id": "carte-apercu",
+     "libelle": "aperçu",
+     "sens": "La carte Aperçu de Création : les nuances sur leur fond, la référence repérée.",
+     "emploi": "Le pictogramme de la carte Aperçu de Création. Pour une palette seule, prendre `palette`.",
+     "trace": "<rect class=\"glyphe-fond\" x=\"4\" y=\"3\" width=\"36\" height=\"22\" rx=\"2\"/><rect class=\"glyphe-aplat-pale\" stroke=\"none\" x=\"8\" y=\"7\" width=\"4.6\" height=\"8\" rx=\"1\"/><rect class=\"glyphe-aplat-pale\" stroke=\"none\" x=\"14\" y=\"7\" width=\"4.6\" height=\"8\" rx=\"1\"/><rect class=\"glyphe-aplat-marque\" stroke=\"none\" x=\"20\" y=\"7\" width=\"4.6\" height=\"8\" rx=\"1\"/><rect class=\"glyphe-aplat-pale\" stroke=\"none\" x=\"26\" y=\"7\" width=\"4.6\" height=\"8\" rx=\"1\"/><rect class=\"glyphe-aplat-pale\" stroke=\"none\" x=\"32\" y=\"7\" width=\"4.6\" height=\"8\" rx=\"1\"/><path class=\"glyphe-losange\" stroke=\"none\" d=\"M22.3 17.5 L24.8 20 L22.3 22.5 L19.8 20 Z\"/>",
+     "grille": 44
+    },
+    {
+     "id": "carte-reglage-global",
+     "libelle": "réglage global",
+     "sens": "La carte du Réglage global : une rampe, et la même rampe décalée.",
+     "emploi": "Le pictogramme de la carte du Réglage global. Pour le pictogramme du Color shift, prendre `carte-color-shift`.",
+     "trace": "<rect class=\"glyphe-aplat-pale\" stroke=\"none\" x=\"3\" y=\"6\" width=\"4.6\" height=\"4\" rx=\"1\"/><rect class=\"glyphe-aplat-pale\" stroke=\"none\" x=\"9.6\" y=\"8.2\" width=\"4.6\" height=\"4\" rx=\"1\"/><rect class=\"glyphe-aplat-pale\" stroke=\"none\" x=\"16.2\" y=\"10.4\" width=\"4.6\" height=\"4\" rx=\"1\"/><rect class=\"glyphe-aplat-pale\" stroke=\"none\" x=\"22.8\" y=\"12.6\" width=\"4.6\" height=\"4\" rx=\"1\"/><rect class=\"glyphe-aplat-pale\" stroke=\"none\" x=\"29.4\" y=\"14.8\" width=\"4.6\" height=\"4\" rx=\"1\"/><rect class=\"glyphe-aplat-pale\" stroke=\"none\" x=\"36\" y=\"17\" width=\"4.6\" height=\"4\" rx=\"1\"/><rect class=\"glyphe-aplat-marque\" stroke=\"none\" x=\"3\" y=\"13\" width=\"4.6\" height=\"4\" rx=\"1\"/><rect class=\"glyphe-aplat-marque\" stroke=\"none\" x=\"9.6\" y=\"15.2\" width=\"4.6\" height=\"4\" rx=\"1\"/><rect class=\"glyphe-aplat-marque\" stroke=\"none\" x=\"16.2\" y=\"17.4\" width=\"4.6\" height=\"4\" rx=\"1\"/><rect class=\"glyphe-aplat-marque\" stroke=\"none\" x=\"22.8\" y=\"19.6\" width=\"4.6\" height=\"4\" rx=\"1\"/><rect class=\"glyphe-aplat-marque\" stroke=\"none\" x=\"29.4\" y=\"21.8\" width=\"4.6\" height=\"4\" rx=\"1\"/><rect class=\"glyphe-aplat-marque\" stroke=\"none\" x=\"36\" y=\"24\" width=\"4.6\" height=\"4\" rx=\"1\"/>",
+     "grille": 44
+    },
+    {
+     "id": "carte-color-shift",
+     "libelle": "Color shift",
+     "sens": "La carte du Color shift : deux bouts de rampe qui pivotent autour de la référence.",
+     "emploi": "Le pictogramme de la carte du Color shift. Pour le Réglage global, prendre `carte-reglage-global`.",
+     "trace": "<path class=\"glyphe-axe\" stroke-linecap=\"butt\" d=\"M4 14L40 14\"/><path class=\"glyphe-trait-marque\" d=\"M4 5L22 14L40 22\"/><circle class=\"glyphe-point\" cx=\"4\" cy=\"5\" r=\"2.6\"/><circle class=\"glyphe-point\" cx=\"40\" cy=\"22\" r=\"2.6\"/><path class=\"glyphe-losange\" stroke=\"none\" d=\"M22 10 L26 14 L22 18 L18 14 Z\"/>",
+     "grille": 44
+    },
+    {
+     "id": "carte-garanties",
+     "libelle": "garanties",
+     "sens": "La carte des garanties : un texte sur son fond, et la coche de la garantie tenue.",
+     "emploi": "Le pictogramme de la carte des garanties. Pour un verdict de garantie, prendre l’icône d’alerte du socle.",
+     "trace": "<rect class=\"glyphe-aplat-marque\" stroke=\"none\" x=\"4\" y=\"6\" width=\"20\" height=\"16\" rx=\"2\"/><path class=\"glyphe-fond\" d=\"M9 14L19 14\"/><path class=\"glyphe-trait\" d=\"M28 14L32 19L40 8\"/>",
+     "grille": 44
+    },
+    {
+     "id": "carte-interface-de-test",
+     "libelle": "Interface de test",
+     "sens": "La carte de l’Interface de test : une fenêtre, sa barre, une ligne et un bouton.",
+     "emploi": "Le pictogramme de la carte de l’Interface de test. Pour une autre carte, prendre le pictogramme de cette carte.",
+     "trace": "<rect class=\"glyphe-fond\" x=\"4\" y=\"4\" width=\"36\" height=\"20\" rx=\"2\"/><path class=\"glyphe-trait\" d=\"M4 9L40 9\"/><path class=\"glyphe-trait\" d=\"M9 14L25 14\"/><rect class=\"glyphe-aplat-marque\" stroke=\"none\" x=\"9\" y=\"17\" width=\"14\" height=\"4\" rx=\"2\"/>",
+     "grille": 44
+    },
+    {
+     "id": "carte-fonds",
+     "libelle": "fonds",
+     "sens": "La carte des fonds : une page, et la pastille de son fond.",
+     "emploi": "Le pictogramme de la carte des fonds. Pour la couleur d’une nuance, prendre `palette`.",
+     "trace": "<rect class=\"glyphe-fond\" x=\"4\" y=\"4\" width=\"36\" height=\"20\" rx=\"2\"/><rect class=\"glyphe-aplat-marque\" stroke=\"none\" x=\"27\" y=\"13\" width=\"10\" height=\"8\" rx=\"1.5\"/>",
+     "grille": 44
+    },
+    {
+     "id": "carte-intensites",
+     "libelle": "intensités",
+     "sens": "La carte des intensités : Soft en rond cerné, Vivid en rond plein.",
+     "emploi": "Le pictogramme de la carte des intensités, Soft et Vivid. Pour les modes Light et Dark, prendre `mode`.",
+     "trace": "<circle class=\"glyphe-trait-marque\" cx=\"14\" cy=\"14\" r=\"7\"/><circle class=\"glyphe-aplat-marque\" stroke=\"none\" cx=\"30\" cy=\"14\" r=\"7\"/>",
+     "grille": 44
+    },
+    {
+     "id": "carte-courbes",
+     "libelle": "courbes",
+     "sens": "La carte des courbes : la luminosité qui descend du clair au sombre.",
+     "emploi": "Le pictogramme de la carte des courbes. Pour un cran seul, prendre `cran`.",
+     "trace": "<path class=\"glyphe-axe\" stroke-linecap=\"butt\" d=\"M4 24L40 24\"/><path class=\"glyphe-trait-marque\" d=\"M4 5 C 16 6, 26 20, 40 21\"/><circle class=\"glyphe-aplat-marque\" stroke=\"none\" cx=\"4\" cy=\"5\" r=\"2\"/><circle class=\"glyphe-aplat-marque\" stroke=\"none\" cx=\"40\" cy=\"21\" r=\"2\"/>",
+     "grille": 44
+    },
+    {
+     "id": "carte-minimums",
+     "libelle": "minimums",
+     "sens": "La carte des minimums de contraste : des barres, et le minimum en ligne tiretée.",
+     "emploi": "Le pictogramme de la carte des minimums de contraste. Pour une paire de contraste seule, prendre `contraste`.",
+     "trace": "<rect class=\"glyphe-aplat-marque\" stroke=\"none\" x=\"7\" y=\"10\" width=\"5\" height=\"14\" rx=\"1\"/><rect class=\"glyphe-aplat-marque\" stroke=\"none\" x=\"15\" y=\"14\" width=\"5\" height=\"10\" rx=\"1\"/><rect class=\"glyphe-aplat-marque\" stroke=\"none\" x=\"23\" y=\"7\" width=\"5\" height=\"17\" rx=\"1\"/><rect class=\"glyphe-aplat-pale\" stroke=\"none\" x=\"31\" y=\"17\" width=\"5\" height=\"7\" rx=\"1\"/><path class=\"glyphe-trait\" stroke-dasharray=\"3 2\" d=\"M4 13L40 13\"/>",
+     "grille": 44
+    },
+    {
+     "id": "carte-proches",
+     "libelle": "couleurs proches",
+     "sens": "La carte des couleurs proches : deux ronds qui se recouvrent.",
+     "emploi": "Le pictogramme de la carte des couleurs proches. Pour deux profils confondus à un cran, prendre `confondus`.",
+     "trace": "<circle class=\"glyphe-trait\" cx=\"17\" cy=\"14\" r=\"8\"/><circle class=\"glyphe-trait-marque\" cx=\"27\" cy=\"14\" r=\"8\"/>",
+     "grille": 44
+    },
+    {
+     "id": "carte-contenu",
+     "libelle": "contenu de la planche",
+     "sens": "Un cadre de la planche : des pastilles, puis deux lignes de texte.",
+     "emploi": "Le pictogramme d’un cadre de la planche. Pour la planche entière, prendre `palette`.",
+     "trace": "<rect class=\"glyphe-fond\" x=\"4\" y=\"3\" width=\"36\" height=\"22\" rx=\"2\"/><rect class=\"glyphe-aplat-marque\" stroke=\"none\" x=\"8\" y=\"7\" width=\"4.6\" height=\"5\" rx=\"1\"/><rect class=\"glyphe-aplat-marque\" stroke=\"none\" x=\"14\" y=\"7\" width=\"4.6\" height=\"5\" rx=\"1\"/><rect class=\"glyphe-aplat-marque\" stroke=\"none\" x=\"20\" y=\"7\" width=\"4.6\" height=\"5\" rx=\"1\"/><rect class=\"glyphe-aplat-marque\" stroke=\"none\" x=\"26\" y=\"7\" width=\"4.6\" height=\"5\" rx=\"1\"/><rect class=\"glyphe-aplat-marque\" stroke=\"none\" x=\"32\" y=\"7\" width=\"4.6\" height=\"5\" rx=\"1\"/><path class=\"glyphe-trait\" d=\"M8 16L36 16\"/><path class=\"glyphe-trait\" d=\"M8 21L28 21\"/>",
+     "grille": 44
+    }
+   ],
+   "reprises": []
+  },
+  {
    "id": "interface",
    "libelle": "Interface des plugins",
    "teinte": null,

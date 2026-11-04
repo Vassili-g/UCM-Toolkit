@@ -81,12 +81,12 @@ Les signes d'objet ont une seule définition dans `packages/kit/src/referentiel/
 | [A2](lots/A2.md) Un tracé, une définition | `implementeur-exigeant` | A1 | [x] a0c55f27 |
 | [A3a](lots/A3a.md) Interface | `implementeur` | A2 | [x] 4e8adebf |
 | [A3b](lots/A3b.md) Types de terme et sorties texte | `implementeur` | A3a | [x] 1378730e |
-| [A3c](lots/A3c.md) Signes de Palettes | `implementeur` | A3b, arbre réservé commité et relevé autorisé | [ ] |
+| [A3c](lots/A3c.md) Signes de Palettes | `implementeur` | A3b, arbre réservé commité et relevé autorisé | [x] bd46a97c, A3.7 en F2 |
 | [A4](lots/A4.md) Documentation d'emploi et vue illustrée | `implementeur` | A3b | [x] ebae5136 |
 | [A5](lots/A5.md) Le socle lit le kit | `implementeur-exigeant` | A3b | [x] 9830ed71 |
 | [A6](lots/A6.md) Architect lit le kit | `implementeur` | A5 | [ ] |
 | [A7](lots/A7.md) L'exporteur lit le kit | `implementeur` | A5 | [x] 66177bb5 |
-| [A8](lots/A8.md) Palettes lit le kit | `implementeur` | A3c, A5, arbre de Palettes commité | [ ] |
+| [A8](lots/A8.md) Palettes lit le kit | `implementeur` | A3c, A5, arbre de Palettes commité | [x] bd46a97c |
 | [A9](lots/A9.md) Le hub lit le kit | `implementeur` | A3b, A5 | [ ] |
 | [A10](lots/A10.md) Glyphes des sorties texte | `executant` | A3b | [x] 8899b0fa, A10.2 reste |
 | [A11](lots/A11.md) Test de la loi des icônes | `implementeur` | A6 à A10 | [ ] |
@@ -99,9 +99,9 @@ Les signes d'objet ont une seule définition dans `packages/kit/src/referentiel/
 | [B2](lots/B2.md) Ignorer sur les cartes de règles | `implementeur` | B1 | 2 | [x] 71ca79a7, « Ne plus proposer » après une nouvelle analyse reste |
 | [B3](lots/B3.md) Ignorer une question | `implementeur-exigeant` | B2 | 3 | [x] cf23ed93 |
 | [B4](lots/B4.md) Analyse périmée | `implementeur` | B3 | 4 | [x] ebd9613e |
-| [B5](lots/B5.md) Tous les constats ignorés | `implementeur` | B4 | 5 | [ ] |
-| [B6](lots/B6.md) Analyse partielle | `implementeur` | B5 | 6 | [ ] |
-| [B7](lots/B7.md) Demande refusée pendant une écriture | `implementeur` | B6 | 7 | [ ] |
+| [B5](lots/B5.md) Tous les constats ignorés | `implementeur` | B4 | 5 | [x] 138490d9 |
+| [B6](lots/B6.md) Analyse partielle | `implementeur` | B5 | 6 | [x] 138490d9 |
+| [B7](lots/B7.md) Demande refusée pendant une écriture | `implementeur` | B6 | 7 | [x] 138490d9 |
 
 ## Phase C. Mode Tokens en deux onglets
 
@@ -114,7 +114,7 @@ Variables manquantes, Crans, Alias, Modes, Valeurs, Couches, Types, Rangement, S
 | [C2](lots/C2.md) Coquille à deux onglets, sommaire et sections | `implementeur-exigeant` | C1 | [x] 8a49858d, c950a105 |
 | [C3](lots/C3.md) Section Noms | `implementeur` | C2 | [x] edcbd311 |
 | [C4](lots/C4.md) Sections de structure | `implementeur` | C3 | [x] edcbd311 |
-| [C5](lots/C5.md) Cochage et Appliquer commun | `implementeur-exigeant` | C3, C4 | [ ] |
+| [C5](lots/C5.md) Cochage et Appliquer commun | `implementeur-exigeant` | C3, C4 | [x] bdf26ed5 |
 | [C6](lots/C6.md) Galerie et SPEC | `implementeur` | C5 | [ ] |
 
 ## Phase D. Vitesse du mode Tokens
@@ -137,7 +137,7 @@ Une capture absente se compte absente. Une comparaison locale ne prouve pas la f
 | [D2](lots/D2.md) Lectures groupées | `implementeur` | D1 | [x] 4dedcf96 |
 | [D3](lots/D3.md) Coûts algorithmiques du kit | `implementeur` | D0 | [x] 8d4111ce, D3.3 en partie |
 | [D4a](lots/D4a.md) Ignorer sans acquisition | `implementeur` | D3 | [x] e91eac2e |
-| [D4b](lots/D4b.md) Relecture après Appliquer | `implementeur-exigeant` | D4a | [ ] |
+| [D4b](lots/D4b.md) Relecture après Appliquer | `implementeur-exigeant` | D4a | [x] 96ce02a6, voie complète |
 | [D5a](lots/D5a.md) Candidat de prélecture | `implementeur` | D4b | [ ] |
 | [D5b](lots/D5b.md) Mesure de prélecture | mainteneur | D5a, build disponible | [ ] |
 | [D6a](lots/D6a.md) Virtualisation des cartes | `implementeur` | D4b | [x] 2756fac9 |
@@ -170,10 +170,10 @@ Règles propres à la phase E :
 | [E0b](lots/E0b.md) Mesure des opérateurs F3-F4 | `implementeur` | E0 | [x] 7b1cc3e3 |
 | [E1a](lots/E1a.md) Valeurs de variant et axes | `implementeur-exigeant` | E0 | [x] 1273a15a |
 | [E1b](lots/E1b.md) Icône, anneau et rôle de layer | `implementeur-exigeant` | E1a | [x] 65e01b5e, E1.7 en F2 |
-| [E2a](lots/E2a.md) Dictionnaire et vocabulaire du fichier | `implementeur-exigeant` | E1b | [ ] |
-| [E2b](lots/E2b.md) Fautes et seuils | `implementeur` | E2a | [ ] |
-| [E2c](lots/E2c.md) Formes tolérées, synonymes et collections | `implementeur` | E2b | [ ] |
-| [E2d](lots/E2d.md) Idempotence et branches parallèles | `implementeur` | E2c | [ ] |
+| [E2a](lots/E2a.md) Dictionnaire et vocabulaire du fichier | `implementeur-exigeant` | E1b | [x] 9bd451ad |
+| [E2b](lots/E2b.md) Fautes et seuils | `implementeur` | E2a | [x] fb3a84e1 |
+| [E2c](lots/E2c.md) Formes tolérées, synonymes et collections | `implementeur` | E2b | [x] fb3a84e1, `gray`/`grey` reste |
+| [E2d](lots/E2d.md) Idempotence et branches parallèles | `implementeur` | E2c | [x] fdca6a38, E2.10 en F2 |
 | [E3a](lots/E3a.md) Rôles proches et palette voisine | `implementeur` | E2d | [ ] |
 | [E3b](lots/E3b.md) Sens et modes | `implementeur-exigeant` | E3a | [ ] |
 | [E3c](lots/E3c.md) Doublons de rôle et d’échelle | `implementeur` | E3b | [ ] |
