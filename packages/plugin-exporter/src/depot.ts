@@ -13,6 +13,8 @@ import {
   versionDeContrat,
 } from '@ucm-kit/core/format';
 
+import { texteDuType } from 'ucm-plugin-socle/src/ui/Alerte';
+
 import { utf8ByteLength } from './base64';
 import { causeDepuisStatut } from './connexion';
 import type { CauseConnexion } from './connexion';
@@ -250,7 +252,7 @@ export function corpsDeLaDemande(path: string, artifact: RepositoryArtifact, for
   const debut = [
     header,
     '',
-    `## ⚠️ Points à vérifier avant d’utiliser cet export (${points})`,
+    `## ${texteDuType('verifier', 'forge')} Points à vérifier avant d’utiliser cet export (${points})`,
     '',
     'Chaque point précise ce qui manque ou demande une correction :',
     '',

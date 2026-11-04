@@ -1,6 +1,7 @@
 
 import type { FamilleDePoint, LogLevel, PluginMessage } from '../../messages';
 import { FAMILLES_DE_POINT } from '../../messages';
+import { creerChevron } from 'ucm-plugin-socle/src/ui/Chevron';
 import { versSandbox } from '../pont';
 
 /** Le point à corriger écrit par le moteur, sans son enveloppe de message. */
@@ -166,10 +167,7 @@ export function createCompteRendu(): CompteRenduUi {
     bascule.type = 'button';
     bascule.className = 'section-bascule';
     bascule.setAttribute('aria-controls', corps.id);
-    const chevron = document.createElement('span');
-    chevron.className = 'carte-chevron';
-    chevron.setAttribute('aria-hidden', 'true');
-    bascule.append(chevron, document.createTextNode(LIBELLES_DE_FAMILLE[famille]));
+    bascule.append(creerChevron(), document.createTextNode(LIBELLES_DE_FAMILLE[famille]));
     bascule.addEventListener('click', () => {
       // Le clic fixe cette section, d'après ce que le designer voit.
       choix.set(famille, !estOuverte(famille));
