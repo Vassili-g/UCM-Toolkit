@@ -1,6 +1,8 @@
 /** Les états des constats À faire dans Figma du panneau des constats : la liste de la maquette, ses constats ignorés, et les deux gestes qui les déplacent. Les données viennent de `questions.cjs`. */
 const { IDENTITE } = require('../composant/donnees.cjs');
 const { ignore, ouvrirLePanneau, constatsDeQuestions, analyseDeQuestions } = require('./questions.cjs');
+
+const AIGNORER = constatsDeQuestions.filter((constat) => constat.type !== 'info').length;
 const { perime, alertCorrections, CONTAINER } = require('./corrections.cjs');
 
 const tout = { clic: '.puce-element[data-element="tout"]' };
@@ -72,6 +74,11 @@ const ETATS = [
     id: 'i-rendu', titre: 'Un constat rendu', quand: 'Le designer clique Ne plus ignorer ; le sandbox rend la liste vidée.',
     regarder: 'Le constat revient dans sa section ; la section Ignorés disparaît ; la puce de son élément compte un point de plus.',
     existe: true, atteinte: [...ouvrirLePanneau, tout, { clic: '.muette .btn-texte' }, ignores([])],
+  },
+  {
+    id: 'i-tous-ignores', titre: 'Tous les constats ignorés', quand: `Le designer a ignoré les ${AIGNORER} points de la liste ; le sandbox rend la liste des ignorés avec le dernier.`,
+    regarder: `La ligne « Aucun constat visible, ${AIGNORER} ignorés. » ; ni sommaire, ni section tenue, ni pied de corrections, ni « Aucun constat » en vert ; la section Ignorés garde ses ${AIGNORER} cartes muettes, chacune avec « Ne plus ignorer ».`,
+    existe: true, atteinte: [...ouvrirLePanneau, tout, ignores(constatsDeQuestions.map((constat) => constat.id))],
   },
   {
     id: 'i-perimee', titre: 'À faire d’une analyse périmée', quand: 'Le designer change la sélection dans Figma : l’analyse est périmée.',

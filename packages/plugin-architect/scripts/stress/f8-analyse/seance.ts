@@ -700,12 +700,12 @@ export const DIT: Readonly<Record<Partie | 'budget' | 'manquees', RegExp>> = {
   ignores: /ignorés?/i,
   declaration: /déclaration/i,
   dependances: /dépendances?/i,
-  budget: /\d+ (layers|variants) lus sur \d+/i,
+  budget: /a lu \d[\d  ]* (layers|variants) sur \d/i,
   manquees: /lectures? (ont|a) échoué/i,
 };
 
 /** Jamais « N variants lus sur N » ni « N layers lus sur N » : le nombre lu égal au total ment sur ce qui manque. */
-export const JAMAIS_N_SUR_N = /(\d[\d ]*) (?:variants|layers) lus sur \1(?!\d)/;
+export const JAMAIS_N_SUR_N = /a lu (\d[\d  ]*) (?:variants|layers) sur \1(?!\d)/;
 
 /** Un `figma` assez complet pour que `catalogueDeFigma` lise les libraries et le fichier, sans variable locale. */
 export function figmaDeCatalogue(contexte: Contexte): PluginAPI {

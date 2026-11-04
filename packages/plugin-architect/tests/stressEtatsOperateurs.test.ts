@@ -94,7 +94,7 @@ test('F9 : un oracle écrit à la main par opérateur, d’après la table de la
   assert.deepEqual(oracle('Bd2-1').sansCodes, ['C31', 'C32', 'C33']);
   assert.deepEqual(oracle('Bd2-4').sansCodes, ['C21']);
   assert.deepEqual(oracle('Bd2-7').sansCodes, ['C7', 'C12', 'C13']);
-  assert.ok(oracle('Bd3-1').ecran?.dit?.[0].test('231 layers lus sur 252'));
+  assert.ok(oracle('Bd3-1').ecran?.dit?.[0].test('Le moteur a lu 231 layers sur 252.'));
   // Cycle de vie.
   assert.deepEqual(oracle('An-2').statuts, ['annulee', 'complete']);
   assert.deepEqual(oracle('An-29').statuts, ['complete'], 'annuler après le final ne change rien');

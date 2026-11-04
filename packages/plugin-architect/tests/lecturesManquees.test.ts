@@ -108,7 +108,13 @@ function releveDe(lecture: Partial<ReleveDeComposant['lecture']>): ReleveDeCompo
   };
 }
 
-async function statutAvec(lecture: Partial<ReleveDeComposant['lecture']>) {
+/** Ce qu'un lecteur refuse ou rend à moitié : le moteur coupé par son budget, et les lectures du fichier qui lèvent. */
+interface Refus {
+  readonly couverture?: { etat: 'partielle'; lus: number; nonLus: number | 'inconnu' };
+  readonly lectures?: readonly ('regles' | 'niveau' | 'ignores')[];
+}
+
+async function statutAvec(lecture: Partial<ReleveDeComposant['lecture']>, refus: Refus = {}) {
   const envoyes: PluginMessage[] = [];
   const contexte: Contexte = { figma: { root: { getSharedPluginData: () => '' } } as unknown as PluginAPI, envoyer: (m) => envoyes.push(m), surveillerLeDocument() {} };
   const lecteurs: Lecteurs = {
@@ -121,7 +127,10 @@ async function statutAvec(lecture: Partial<ReleveDeComposant['lecture']>) {
     async catalogue() {
       return catalogueVide;
     },
-    moteur: async (): Promise<ResultatSansPublication> => ({ etat: 'calculee', interne: { warnings: [], parties: new Map(), localisations: new Map(), couverture: { etat: 'complete' } } as unknown as ResultatInterne }),
+    moteur: async (): Promise<ResultatSansPublication> => ({ etat: 'calculee', interne: { warnings: [], parties: new Map(), localisations: new Map(), couverture: refus.couverture ?? { etat: 'complete' } } as unknown as ResultatInterne }),
+    ...(refus.lectures?.includes('regles') ? { regles: async () => { throw new Error('refusée'); } } : {}),
+    ...(refus.lectures?.includes('niveau') ? { niveau: async () => { throw new Error('refusé'); } } : {}),
+    ...(refus.lectures?.includes('ignores') ? { ignores: async () => { throw new Error('refusés'); } } : {}),
   };
   await traiterAvec(lecteurs)({ type: 'analyser' }, contexte);
   const analyse = envoyes.find((m) => m.type === 'analyse');
@@ -137,4 +146,52 @@ test('l’analyse d’un relevé aux lectures manquées est partielle, et se dit
 
   reinitialiserLAnalyse();
   assert.equal((await statutAvec({}))?.statut, 'complete');
+});
+
+test('une analyse partielle porte une cause par lecture qui n’est pas allée au bout, et aucune quand tout est lu', async () => {
+  assert.equal((await statutAvec({}))?.causes, undefined, 'une analyse complète ne porte aucune cause');
+
+  const variants = await statutAvec({ variantsNonLus: ['Alert warning', 'Alert error'] });
+  assert.equal(variants?.statut, 'partielle');
+  assert.deepEqual(variants?.causes, [{ cause: 'variants', lus: 1, total: 3 }]);
+
+  reinitialiserLAnalyse();
+  const layers = await statutAvec({ layersLus: 2000, layersNonLus: 640 });
+  assert.deepEqual(layers?.causes, [{ cause: 'layers', lus: 2000, total: 2640 }]);
+
+  reinitialiserLAnalyse();
+  const lesDeux = await statutAvec({ layersLus: 2000, layersNonLus: 640, variantsNonLus: ['Alert warning'] });
+  assert.deepEqual(lesDeux?.causes, [{ cause: 'layers', lus: 2000, total: 2640 }], 'les layers laissés disent la part non lue : une seule ligne de lecture');
+
+  reinitialiserLAnalyse();
+  const inconnu = await statutAvec({ layersLus: 12, layersNonLus: 'inconnu' });
+  assert.deepEqual(inconnu?.causes, [{ cause: 'layers', lus: 12, total: null }]);
+
+  reinitialiserLAnalyse();
+  const lectures = await statutAvec({ manquees: [{ motif: 'a' }, { motif: 'b' }] });
+  assert.deepEqual(lectures?.causes, [{ cause: 'lectures', nombre: 2 }]);
+});
+
+test('un moteur coupé par son budget avec un relevé complet est partiel et dit ses layers, jamais « N lus sur N »', async () => {
+  const moteur = await statutAvec({}, { couverture: { etat: 'partielle', lus: 300, nonLus: 80 } });
+  assert.equal(moteur?.statut, 'partielle');
+  assert.deepEqual(moteur?.causes, [{ cause: 'layers', lus: 300, total: 380 }]);
+
+  reinitialiserLAnalyse();
+  const sansTotal = await statutAvec({}, { couverture: { etat: 'partielle', lus: 300, nonLus: 'inconnu' } });
+  assert.deepEqual(sansTotal?.causes, [{ cause: 'layers', lus: 300, total: null }]);
+});
+
+for (const lecteur of ['regles', 'niveau', 'ignores'] as const) {
+  test(`une lecture refusée ${{ regles: 'des règles', niveau: 'du niveau', ignores: 'des ignorés' }[lecteur]} rend l’analyse partielle, avec sa cause`, async () => {
+    const analyse = await statutAvec({}, { lectures: [lecteur] });
+    assert.equal(analyse?.statut, 'partielle');
+    assert.deepEqual(analyse?.causes, [{ cause: lecteur }]);
+  });
+}
+
+test('les causes se cumulent dans l’ordre : lecture du composant, champs refusés, règles, niveau, ignorés', async () => {
+  const analyse = await statutAvec({ layersLus: 2000, layersNonLus: 640, manquees: [{ motif: 'a' }] }, { lectures: ['ignores', 'niveau', 'regles'] });
+  assert.equal(analyse?.statut, 'partielle');
+  assert.deepEqual(analyse?.causes, [{ cause: 'layers', lus: 2000, total: 2640 }, { cause: 'lectures', nombre: 1 }, { cause: 'regles' }, { cause: 'niveau' }, { cause: 'ignores' }]);
 });

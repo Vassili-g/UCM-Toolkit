@@ -10,7 +10,7 @@ import { TYPES_D_ALERTE, type TypeDAlerte } from '@ucm-kit/core/referentiel';
 
 import type { LectureDeComposant } from '../../composant';
 import type { PluginMessage } from '../../messages';
-import type { CauseDePeremption, ProgressionDAnalyse, RenduDAnalyse } from '../../messages/analyse';
+import type { CauseDePartielle, CauseDePeremption, ProgressionDAnalyse, RenduDAnalyse } from '../../messages/analyse';
 import type { Constat, Correction, IdentiteDAnalyse } from '../../messages/commun';
 import type { PreparationVue } from '../../messages/preparation';
 import type { LiaisonEnAttente } from '../../preparations';
@@ -49,6 +49,8 @@ export interface AnalyseRecue {
   readonly repondues: Readonly<Record<string, Correction>>;
   readonly variants: ReadonlyArray<{ readonly id: string; readonly nom: string }>;
   readonly lecture: ReleveDeComposant['lecture'] | null;
+  /** Pourquoi le statut est `partielle` ; vide quand l'analyse est complète. */
+  readonly causes: readonly CauseDePartielle[];
   /** Le composant n'a aucun token `components` : le panneau propose de les préparer. */
   readonly sansTokens: boolean;
   /** Les variants lus sur le total, pendant l'analyse. */
@@ -58,6 +60,8 @@ export interface AnalyseRecue {
   readonly cause: CauseDePeremption | null;
   /** Le sandbox écrit un lot : la demande est partie, la réponse n'est pas revenue. */
   readonly ecriture: { readonly liaisons: number; readonly ids: readonly string[] } | null;
+  /** Un Analyser ou un Actualiser a été refusé (`occupe`) pendant l'écriture : le panneau le dit jusqu'à la fin de l'écriture. */
+  readonly refusPendantEcriture: boolean;
   readonly lot: LotEcrit | null;
   /** Les corrections déjà écrites pour cette analyse. */
   readonly appliquees: readonly string[];
@@ -96,7 +100,7 @@ function visibles(tous: readonly Constat[], ignores: readonly string[], proposit
 /** Vrai tant que le résultat final manque, provisoire reçu ou non. Une analyse périmée ne calcule plus pour l'interface : son final sera refusé, Analyser redevient possible. */
 export const calculEnCours = (analyse: Pick<AnalyseRecue, 'statut' | 'perimee'>): boolean => (analyse.statut === 'en-cours' || analyse.statut === 'provisoire') && !analyse.perimee;
 
-/** Retient le message du sandbox. `occupe` ne change que l'écriture en cours. */
+/** Retient le message du sandbox. `occupe` ne change que l'écriture en cours et la mention du refus. */
 export function recevoirUneAnalyse(etat: Etat, message: MessageRecuDeLAnalyse): void {
   const courante = etat.analyse;
   const demande = demandes.get(etat);
@@ -106,8 +110,8 @@ export function recevoirUneAnalyse(etat: Etat, message: MessageRecuDeLAnalyse): 
   if (message.type === 'analyse-commencee') {
     if (courante && message.analyse.generation <= courante.identite.generation) return;
     etat.analyse = {
-      identite: message.analyse, statut: 'en-cours', constats: [], tous: [], ignores: [], repondues: {}, variants: [], lecture: null, sansTokens: false, progression: null,
-      perimee: false, cause: null, ecriture: null, lot: null, appliquees: [], liaisons: null, liaisonsDemandees: false, recueA: Date.now(),
+      identite: message.analyse, statut: 'en-cours', constats: [], tous: [], ignores: [], repondues: {}, variants: [], lecture: null, causes: [], sansTokens: false, progression: null,
+      perimee: false, cause: null, ecriture: null, refusPendantEcriture: false, lot: null, appliquees: [], liaisons: null, liaisonsDemandees: false, recueA: Date.now(),
       ...(etat.composant?.selection ? { selection: etat.composant.selection.id } : {}),
     };
     return;
@@ -118,7 +122,7 @@ export function recevoirUneAnalyse(etat: Etat, message: MessageRecuDeLAnalyse): 
     const ignores = provisoire ? message.ignores : [];
     etat.analyse = {
       identite: message.analyse, statut: provisoire ? 'provisoire' : message.statut, constats: visibles(message.constats, ignores), tous: message.constats, ignores, repondues: {}, variants: message.variants,
-      lecture: message.lecture, sansTokens: provisoire ? false : message.sansTokens, progression: null, perimee: false, cause: null, ecriture: null, lot: null, appliquees: [], liaisons: null, liaisonsDemandees: false, recueA: Date.now(),
+      lecture: message.lecture, causes: provisoire ? [] : message.causes ?? [], sansTokens: provisoire ? false : message.sansTokens, progression: null, perimee: false, cause: null, ecriture: null, refusPendantEcriture: false, lot: null, appliquees: [], liaisons: null, liaisonsDemandees: false, recueA: Date.now(),
       ...(dureeMs !== undefined ? { dureeMs } : {}),
       ...(etat.composant?.selection ? { selection: etat.composant.selection.id } : {}),
     };
@@ -141,7 +145,7 @@ export function recevoirUneAnalyse(etat: Etat, message: MessageRecuDeLAnalyse): 
       // Le sandbox garde périmée l'analyse qu'un `perime` a atteinte : le message final ne la rend pas applicable.
       etat.analyse = {
         ...courante, statut: message.statut, constats: visibles(message.constats, courante.ignores, courante.propositions), tous: message.constats, variants: message.variants,
-        lecture: message.lecture, sansTokens: message.sansTokens, progression: null, recueA: Date.now(),
+        lecture: message.lecture, causes: message.causes ?? [], sansTokens: message.sansTokens, progression: null, recueA: Date.now(),
         ...(dureeMs !== undefined ? { dureeMs } : {}),
       };
       return;
@@ -179,13 +183,15 @@ export function recevoirUneAnalyse(etat: Etat, message: MessageRecuDeLAnalyse): 
       etat.analyse = { ...courante, perimee: true, cause: message.cause, lot: message.cause === 'ecriture' ? courante.lot : null, liaisons: null };
       return;
     case 'occupe':
-      etat.analyse = { ...courante, ecriture: null };
+      // Un refus de `analyser` (il porte `demande`) laisse l'écriture courir : elle garde son verrou et Appliquer reste inactif. Un refus
+      // d'écriture n'a rien écrit : le verrou tombe.
+      etat.analyse = message.demande !== undefined && courante.ecriture !== null ? { ...courante, refusPendantEcriture: true } : { ...courante, ecriture: null };
       return;
     case 'corrections-appliquees':
       {
         const sautees = new Set(message.sautees.map(({ id }) => id));
         const ecrites = (courante.ecriture?.ids ?? []).filter((id) => !sautees.has(id));
-        etat.analyse = { ...courante, ecriture: null, lot: { resume: message.resume, ecrites: message.ecrites, appliquees: ecrites }, appliquees: [...courante.appliquees, ...ecrites] };
+        etat.analyse = { ...courante, ecriture: null, refusPendantEcriture: false, lot: { resume: message.resume, ecrites: message.ecrites, appliquees: ecrites }, appliquees: [...courante.appliquees, ...ecrites] };
       }
       return;
   }

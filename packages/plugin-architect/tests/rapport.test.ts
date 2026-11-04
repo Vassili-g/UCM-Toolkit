@@ -106,8 +106,8 @@ function monter(surcharge: Partial<AnalyseRecue> = {}, constats: readonly Consta
   const demandes: Array<{ sujet: string; auRetour: (capture: string | null) => void }> = [];
   const telechargements: Array<{ nom: string; contenu: string; type: string }> = [];
   const analyse = {
-    identite: IDENTITE, statut: 'complete', constats, tous: constats, ignores: ['C1:x'], repondues: {}, variants: alertCorrections.sujet.variants, lecture: null, sansTokens: false,
-    progression: null, perimee: false, cause: null, ecriture: null, lot: null, appliquees: [], liaisons: null, liaisonsDemandees: false, recueA: 12, dureeMs: 345, ...surcharge,
+    identite: IDENTITE, statut: 'complete', constats, tous: constats, ignores: ['C1:x'], repondues: {}, variants: alertCorrections.sujet.variants, lecture: null, causes: [], sansTokens: false,
+    progression: null, perimee: false, cause: null, ecriture: null, refusPendantEcriture: false, lot: null, appliquees: [], liaisons: null, liaisonsDemandees: false, recueA: 12, dureeMs: 345, ...surcharge,
   } as unknown as AnalyseRecue;
   const etat = { composant: { lecture: alertCorrections }, analyse, architecture: null, reference: null, panneau: { ouvert: true, largeurDeLaVue: 400, element: 'tout' } };
   const app = {

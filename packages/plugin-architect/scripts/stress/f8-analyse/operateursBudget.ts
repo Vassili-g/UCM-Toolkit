@@ -299,11 +299,11 @@ function bd3(registre: Registre): void {
       description, options: { adaptateurs }, relations: [], ...(rattachement ? { rattachement } : {}),
       attente: { statut: 'partielle', provisoires: 1, ecran },
     });
-  cas('layersNonLus est un nombre : 231 layers lus sur 252', [releveCoupe(33)], { dit: [/231 layers lus sur 252/], nonDit: [JAMAIS_N_SUR_N] });
-  cas('layersNonLus est `inconnu` : la bannière le dit', [releveCoupe(33), degraderLaLecture({ layersNonLus: 'inconnu' })], { dit: [/inconnu/i], nonDit: [JAMAIS_N_SUR_N] }, P15);
-  cas('variants non lus sans layers comptés : 33 variants lus sur 36', [degraderLaLecture({ variantsNonLus: ['v34', 'v35', 'v36'] }), (b, lecteurs, s) => { const retenus = new Set(s.ordreInitial.slice(0, 33).map((v) => v.id)); (b.releve as { variants: unknown }).variants = b.releve.variants.filter((v) => retenus.has(v.id)); return lecteurs; }], { dit: [/33 variants lus sur 36/], nonDit: [JAMAIS_N_SUR_N] });
+  cas('layersNonLus est un nombre : 231 layers lus sur 252', [releveCoupe(33)], { dit: [/a lu 231 layers sur 252/], nonDit: [JAMAIS_N_SUR_N] });
+  cas('layersNonLus est `inconnu` : la bannière le dit', [releveCoupe(33), degraderLaLecture({ layersNonLus: 'inconnu' })], { dit: [/n’a pas lu tout le composant/i], nonDit: [JAMAIS_N_SUR_N] }, P15);
+  cas('variants non lus sans layers comptés : 33 variants lus sur 36', [degraderLaLecture({ variantsNonLus: ['v34', 'v35', 'v36'] }), (b, lecteurs, s) => { const retenus = new Set(s.ordreInitial.slice(0, 33).map((v) => v.id)); (b.releve as { variants: unknown }).variants = b.releve.variants.filter((v) => retenus.has(v.id)); return lecteurs; }], { dit: [/a lu 33 variants sur 36/], nonDit: [JAMAIS_N_SUR_N] });
   cas('lectures manquées seules : 3 lectures ont échoué', [degraderLaLecture({ manquees: [{ layer: '20:1', champ: 'fills', motif: 'x' }, { layer: '20:2', champ: 'fills', motif: 'x' }, { layer: '20:3', champ: 'fills', motif: 'x' }] })], { dit: [/3 lectures ont échoué/], nonDit: [JAMAIS_N_SUR_N] });
-  cas('lectures manquées avec coupe : les deux nombres sont dits', [releveCoupe(33), degraderLaLecture({ manquees: [{ layer: '20:1', champ: 'fills', motif: 'x' }, { layer: '20:2', champ: 'fills', motif: 'x' }] })], { dit: [/231 layers lus sur 252/, /2 lectures ont échoué/], nonDit: [JAMAIS_N_SUR_N] }, P15);
+  cas('lectures manquées avec coupe : les deux nombres sont dits', [releveCoupe(33), degraderLaLecture({ manquees: [{ layer: '20:1', champ: 'fills', motif: 'x' }, { layer: '20:2', champ: 'fills', motif: 'x' }] })], { dit: [/a lu 231 layers sur 252/, /2 lectures ont échoué/], nonDit: [JAMAIS_N_SUR_N] }, P15);
   cas('moteur partiel seul : la bannière nomme le moteur, jamais « N sur N »', [avecLecteurs({ moteur: async () => moteurAvecCouverture({ etat: 'partielle', lus: 24, nonLus: 12 }) })], { dit: [DIT.moteur], nonDit: [JAMAIS_N_SUR_N] }, H14);
 }
 

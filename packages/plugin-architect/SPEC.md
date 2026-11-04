@@ -83,7 +83,7 @@ chevron replie l'arbre sans changer la table.
 Le modèle `src/ui/tokens/categories.ts` classe les cartes dans dix catégories ordonnées. Leur branchement dans le panneau reste à faire.
 Les catégories sont Noms, Variables manquantes, Crans, Alias, Modes, Valeurs, Couches, Types, Rangement et Scopes.
 Chaque catégorie porte son signe de la famille `rubrique-tokens` du kit et son nombre de cartes. Une carte peut regrouper plusieurs corrections.
-Les questions précèdent les autres cartes. Une catégorie vide est tenue seulement si l'analyse est complète.
+Les questions précèdent les autres cartes. Une catégorie vide est tenue seulement si l'analyse est complète. Si tous les constats sont ignorés, aucune catégorie n'est tenue.
 
 Les lecteurs de `src/ui/structure/lecture.ts` gardent le classement des faits. `alias-supprime` et `library-inactive` vont dans Alias.
 Une correction `alias-de-mode` va dans Crans quand son constat porte le genre `cran`, sinon dans Modes. Une correction `scope` va dans Scopes.
@@ -199,7 +199,7 @@ du relevé du fichier, et fonctionne dans un fichier sans variable locale.
 | Nature | Couleur, forme, espacement, taille, texte, d'après la propriété liée ; toute autre propriété va dans « Autre » |
 | Portée | Un calque sélectionné sous le sujet déjà lu restreint la vue à ce calque et à ses descendants, sans relecture |
 | Valeur sans token | Peinture unie visible, rayon, épaisseur d'un contour visible, écart et marges d'un auto-layout, taille d'un texte sans style, quand aucune variable ne lie la propriété |
-| Panneau des constats | Une analyse porte son identité (jeu, génération) ; l'interface ignore un message d'une autre identité. Après une écriture, un changement du jeu analysé (un Ctrl+Z en est un) ou la sélection d'un autre jeu, l'analyse est périmée : le panneau garde son sommaire, ses sections et ses cartes sous la note « Les constats datent d'avant le changement. Cliquez Actualiser pour relire. », et tous les gestes d'écriture et d'Ignorer restent inactifs jusqu'à Actualiser ou Analyser. Une analyse partielle, annulée ou arrêtée ne conclut jamais « aucun constat ». Le bouton Sélectionner d'une carte sélectionne ses layers dans Figma, seul geste du plugin qui change la sélection ; ouvrir une carte ne la change pas. Un constat `info` (variants désactivés, contraste non mesuré avec sa cause, fond lu sur la page Figma, borne des paires, icône non contrôlée) n'est pas une carte : la dernière section du panneau, repliée à l'arrivée, le range en une ligne qui ne compte pas parmi les constats |
+| Panneau des constats | Une analyse porte son identité (jeu, génération) ; l'interface ignore un message d'une autre identité. Après une écriture, un changement du jeu analysé (un Ctrl+Z en est un) ou la sélection d'un autre jeu, l'analyse est périmée : le panneau garde son sommaire, ses sections et ses cartes sous la note « Les constats datent d'avant le changement. Cliquez Actualiser pour relire. », et tous les gestes d'écriture et d'Ignorer restent inactifs jusqu'à Actualiser ou Analyser. Une analyse partielle, annulée ou arrêtée ne conclut jamais « aucun constat ». La bannière d'une analyse partielle liste une ligne par cause et ne dit jamais « N lus sur N » ; elle ne montre aucune section tenue. Le bouton Sélectionner d'une carte sélectionne ses layers dans Figma, seul geste du plugin qui change la sélection ; ouvrir une carte ne la change pas. Un constat `info` (variants désactivés, contraste non mesuré avec sa cause, fond lu sur la page Figma, borne des paires, icône non contrôlée) n'est pas une carte : la dernière section du panneau, repliée à l'arrivée, le range en une ligne qui ne compte pas parmi les constats |
 
 Au-delà de 12 lignes dans la portée, chaque section s'ouvre repliée sur un
 résumé : une pastille par couleur, les valeurs distinctes des nombres, les
@@ -244,6 +244,7 @@ moteur de l'exporteur (`analyserLeComposant` du socle) et les contrôles de
 de l'échelle commune (`TypeDAlerte` du kit). Une seule opération court à la
 fois, analyse ou écriture : une seconde demande reçoit `occupe`, sauf quand l'opération
 en cours est une analyse déjà périmée : son calcul est annulé et la nouvelle demande est servie.
+Un `occupe` qui porte `demande` ne change pas l'écriture affichée.
 
 Une analyse crée un seul contexte coopératif (`creerContexteCooperatif` du
 socle) : horloge, pause, budget de 25 ms et jeton d'annulation. Le relevé, le

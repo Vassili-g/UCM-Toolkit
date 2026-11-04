@@ -25,8 +25,8 @@ const autre: Constat = { id: 'autre', code: 'C31', type: 'verifier', famille: 'v
 function monter(constats: readonly Constat[]) {
   const analyse: AnalyseRecue = {
     identite, statut: 'complete', constats: [...constats, autre], tous: [...constats, autre], ignores: [], repondues: {},
-    variants: alertCorrections.sujet.variants, lecture: null, sansTokens: false, progression: null, perimee: false, cause: null,
-    ecriture: null, lot: null, appliquees: [], liaisons: null, liaisonsDemandees: false, recueA: 0,
+    variants: alertCorrections.sujet.variants, lecture: null, causes: [], sansTokens: false, progression: null, perimee: false, cause: null,
+    ecriture: null, refusPendantEcriture: false, lot: null, appliquees: [], liaisons: null, liaisonsDemandees: false, recueA: 0,
   };
   const etat = { composant: { lecture: alertCorrections }, analyse, architecture: null, reference: null,
     panneau: { ouvert: true, largeurDeLaVue: 400, element: 'tout' } };

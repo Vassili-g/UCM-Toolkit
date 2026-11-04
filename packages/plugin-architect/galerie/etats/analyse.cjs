@@ -7,7 +7,7 @@ const { preferences, etroite, choisir, sansSelection, composant, apercu } = requ
 const { alertCorrections, constatsAlert, panneauOuvert, perime } = require('./corrections.cjs');
 
 const variants = analyseAlert.variants;
-const lu = (statut, constats, lecture = null, lus = variants) => ({ message: { type: 'analyse', analyse: IDENTITE, statut, constats, lecture, variants: lus } });
+const lu = (statut, constats, lecture = null, lus = variants, causes = undefined) => ({ message: { type: 'analyse', analyse: IDENTITE, statut, constats, lecture, variants: lus, ...(causes ? { causes } : {}) } });
 const OUVRIR = { clic: '.bouton-panneau' };
 const COMMENCEE = { message: { type: 'analyse-commencee', analyse: IDENTITE } };
 const enCours = (progression, variantsLus = 0, variantsTotal = 0) => ({ message: { type: 'analyse-en-cours', analyse: IDENTITE, variantsLus, variantsTotal, progression } });
@@ -29,6 +29,7 @@ const constatsPartiels = constatsAlert
   });
 const lecturePartielle = { layersLus: 2000, layersNonLus: 640, variantsNonLus: variants.filter((variant) => variant.nom.startsWith('Severity=warning')).map((variant) => variant.nom), manquees: [] };
 /** Les premiers constats des contrôles du relevé, avant le résultat final. */
+const CAUSE_DES_LAYERS = [{ cause: 'layers', lus: 2000, total: 2640 }];
 const PROVISOIRE = { message: { type: 'analyse-provisoire', analyse: IDENTITE, constats: constatsPartiels, ignores: [], lecture: lecturePartielle, variants } };
 
 const ETATS = [
@@ -75,8 +76,8 @@ const ETATS = [
   },
   {
     id: 'analyse-provisoire-partielle', titre: 'Partielle après les premiers constats', quand: 'La lecture est restée incomplète (2 000 layers lus sur 2 640) mais l’analyse est allée à son terme.',
-    regarder: 'La barre et la mention disparaissent ; l’alerte « À vérifier » dit que les constats portent sur la partie lue ; les sections tenues et le pied des corrections reviennent ; les corrections sont applicables.',
-    existe: true, atteinte: [...alertLu, OUVRIR, COMMENCEE, PROVISOIRE, lu('partielle', constatsPartiels, lecturePartielle)],
+    regarder: 'La barre et la mention disparaissent ; l’alerte « À vérifier » dit « Analyse partielle. », donne la ligne « Le moteur a lu 2 000 layers sur 2 640. » et dit que les constats portent sur la partie lue ; aucune section tenue ; le pied des corrections revient ; les corrections sont applicables.',
+    existe: true, atteinte: [...alertLu, OUVRIR, COMMENCEE, PROVISOIRE, lu('partielle', constatsPartiels, lecturePartielle, variants, CAUSE_DES_LAYERS)],
   },
   {
     id: 'analyse-provisoire-perimee', titre: 'Périmée après les premiers constats', quand: 'Le document change alors que les premiers constats sont affichés et que le moteur lit encore.',
@@ -95,8 +96,15 @@ const ETATS = [
   },
   {
     id: 'e-partiel', titre: 'Analyse partielle', quand: 'L’exporteur a lu 2 000 layers sur 2 640 ; les variants Severity=warning n’ont pas été lus.',
-    regarder: 'Une alerte « À vérifier » dit que les constats portent sur la partie lue ; jamais « aucun constat » ; les puces gardent leur nombre de points.',
-    existe: true, atteinte: [...alertAnalyse, OUVRIR, lu('partielle', constatsPartiels, lecturePartielle)],
+    regarder: 'Une alerte « À vérifier » dit « Analyse partielle. », donne la ligne « Le moteur a lu 2 000 layers sur 2 640. » et dit que les constats portent sur la partie lue ; jamais « aucun constat » ; aucune section tenue ; les puces gardent leur nombre de points.',
+    existe: true, atteinte: [...alertAnalyse, OUVRIR, lu('partielle', constatsPartiels, lecturePartielle, variants, CAUSE_DES_LAYERS)],
+  },
+  {
+    id: 'e-partiel-causes', titre: 'Analyse partielle, plusieurs causes', quand: 'Le moteur a lu 7 variants sur 11, les règles d’utilisation et le niveau du fichier n’ont pas pu être lus, et le designer a ignoré des constats que le fichier ne rend plus.',
+    regarder: 'L’alerte « À vérifier » dit « Analyse partielle. », puis une ligne par cause dans une liste : « Le moteur a lu 7 variants sur 11. », « Les règles d’utilisation n’ont pas pu être lues. », « Le niveau du fichier n’a pas pu être lu. Le niveau AA s’applique. », « Les constats ignorés n’ont pas pu être lus. Ils s’affichent de nouveau. », puis « Les constats portent sur la partie lue. » ; jamais « N lus sur N » ; aucune section tenue.',
+    existe: true, atteinte: [...alertAnalyse, OUVRIR, lu('partielle', constatsPartiels, { ...lecturePartielle, layersNonLus: 0, variantsNonLus: variants.slice(7).map((variant) => variant.nom) }, variants.slice(0, 7), [
+      { cause: 'variants', lus: 7, total: 11 }, { cause: 'regles' }, { cause: 'niveau' }, { cause: 'ignores' },
+    ])],
   },
   {
     id: 'e-echec', titre: 'Analyse arrêtée', quand: 'L’exporteur refuse de lire le composant : deux properties s’écrivent de la même façon.',

@@ -76,7 +76,7 @@ import { lireLaLibraryRangee } from '../ecriture/configuration';
 import { lireLesIgnores, propositionsRetirees, separerLesIgnores } from '../ecriture/ignores';
 import type { PluginMessage } from '../messages';
 import type { NiveauDAccessibilite } from '../messages/configuration';
-import type { CauseDePeremption, DemandeDAnalyse, IntentionDAnalyse, StatutDAnalyse, PhaseDAnalyse, ProgressionDAnalyse } from '../messages/analyse';
+import type { CauseDePartielle, CauseDePeremption, DemandeDAnalyse, IntentionDAnalyse, StatutDAnalyse, PhaseDAnalyse, ProgressionDAnalyse } from '../messages/analyse';
 import type { IdentiteDAnalyse, OrigineDeSelection } from '../messages/commun';
 import { constatsDeRegles, lireLesRegles, retenirLesModeles, type ReleveDesRegles } from '../regles';
 import { lireLeReleve, type IssueDuReleve } from '../releveDuComposant';
@@ -619,6 +619,30 @@ function ouvrirLeJournal(): JournalDeChangements {
 /** Le journal des changements, `null` avant la première analyse. */
 export function journalDesChangements(): JournalDeChangements | null {
   return journal;
+}
+
+/**
+ * Pourquoi l'analyse est partielle, dans l'ordre où le panneau les dit : la lecture du composant, les champs refusés par Figma, puis les
+ * règles, le niveau et les ignorés quand leur lecture a été refusée. Le relevé et le moteur ne se cumulent pas : les layers que le
+ * relevé a laissés sont la cause quand il les compte, sinon les variants non lus, sinon des layers en nombre inconnu, sinon la
+ * couverture du moteur.
+ */
+export function causesDeLaPartielle({ lecture, variants }: Pick<ReleveDeComposant, 'lecture' | 'variants'>, couverture: { readonly etat: string; readonly lus?: number; readonly nonLus?: number | 'inconnu' }, refusees: readonly string[]): CauseDePartielle[] {
+  const causes: CauseDePartielle[] = [];
+  const variantsNonLus = lecture.variantsNonLus.length;
+  if (typeof lecture.layersNonLus === 'number' && lecture.layersNonLus > 0) {
+    causes.push({ cause: 'layers', lus: lecture.layersLus, total: lecture.layersLus + lecture.layersNonLus });
+  } else if (variantsNonLus > 0) {
+    causes.push({ cause: 'variants', lus: variants.length, total: variants.length + variantsNonLus });
+  } else if (lecture.layersNonLus === 'inconnu') {
+    causes.push({ cause: 'layers', lus: lecture.layersLus, total: null });
+  } else if (couverture.etat === 'partielle') {
+    const nonLus = couverture.nonLus ?? 'inconnu';
+    causes.push({ cause: 'layers', lus: couverture.lus ?? 0, total: nonLus === 'inconnu' ? null : (couverture.lus ?? 0) + nonLus });
+  }
+  if (lecture.manquees.length > 0) causes.push({ cause: 'lectures', nombre: lecture.manquees.length });
+  for (const lecteur of ['regles', 'niveau', 'ignores'] as const) if (refusees.includes(lecteur)) causes.push({ cause: lecteur });
+  return causes;
 }
 
 /** Sans topologie lue, aucun trou n'est connu et rien n'est couvert : la couverture est inconnue. */
@@ -1822,7 +1846,7 @@ async function analyser(contexte: Contexte, lecteurs: Lecteurs, demandeRecue: Ex
   const retenuesEnAttente: (() => void)[] = [];
   const retenir = (effet: () => void): void => { if (discrete) retenuesEnAttente.push(effet); else effet(); };
   const poserLesRetenues = (): void => { for (const effet of retenuesEnAttente.splice(0)) effet(); };
-  const rendre = (statut: StatutDAnalyse, constats: readonly Constat[], releve: ReleveDeComposant | null, ecartes: readonly string[] = [], tous: readonly Constat[] = constats, retirees: readonly string[] = []): void => {
+  const rendre = (statut: StatutDAnalyse, constats: readonly Constat[], releve: ReleveDeComposant | null, ecartes: readonly string[] = [], tous: readonly Constat[] = constats, retirees: readonly string[] = [], causes: readonly CauseDePartielle[] = []): void => {
     terminee = true;
     if (statut === 'annulee' && discrete) noterLaPrelecture('prelecturesAnnulees');
     phase('projection');
@@ -1847,7 +1871,7 @@ async function analyser(contexte: Contexte, lecteurs: Lecteurs, demandeRecue: Ex
       envoyee.envois['resultat-final'] = Date.now();
       if (tous.length && envoyee.envois['premiers-constats'] === undefined) envoyee.envois['premiers-constats'] = Date.now();
     }
-    emettre({ type: 'analyse', analyse: identite as IdentiteDAnalyse, ...(demande.demande !== undefined ? { demande: demande.demande } : {}), statut, ...sortie, progression: { phase: 'projection', fraction: 1 }, ...(mesure ? { mesure } : {}) });
+    emettre({ type: 'analyse', analyse: identite as IdentiteDAnalyse, ...(demande.demande !== undefined ? { demande: demande.demande } : {}), statut, ...sortie, ...(causes.length > 0 ? { causes } : {}), progression: { phase: 'projection', fraction: 1 }, ...(mesure ? { mesure } : {}) });
     // Les propositions retirées partent avec les ignorés : sans elles, une nouvelle analyse rendrait la correction ou la question.
     if (releve !== null) emettre({ type: 'ignores', analyse: identite as IdentiteDAnalyse, constats: ecartes, ...(retirees.length > 0 ? { propositions: retirees } : {}) });
   };
@@ -2104,12 +2128,15 @@ async function analyser(contexte: Contexte, lecteurs: Lecteurs, demandeRecue: Ex
     await new Promise<void>((resolve) => setTimeout(resolve, 0));
     if (jeton.leve) return rendre('annulee', [], null);
     verifierLaGeneration(contexte);
-    const lectureComplete = releve.lecture.variantsNonLus.length === 0 && releve.lecture.layersNonLus === 0 && releve.lecture.manquees.length === 0;
-    const statutFinal: StatutDAnalyse = moteur.couverture.etat === 'partielle' || !lectureComplete || (discrete && importsEvites > 0) ? 'partielle' : 'complete';
+    const causes = causesDeLaPartielle(releve, moteur.couverture, lecturesRefusees);
+    const statutFinal: StatutDAnalyse = causes.length > 0 || (discrete && importsEvites > 0) ? 'partielle' : 'complete';
+    // Une lecture du fichier refusée (règles, niveau, ignorés) rend l'analyse partielle pour le designer, mais l'entrée de session la retient
+    // comme avant, à relire (`lecture-refusee`) : seules une lecture incomplète du composant ou un moteur coupé la jettent.
+    const statutDeLaSession: StatutDAnalyse = statutFinal === 'partielle' && !(discrete && importsEvites > 0) && causes.every(({ cause }) => cause === 'regles' || cause === 'niveau' || cause === 'ignores') ? 'complete' : statutFinal;
     // La promotion précède l'envoi du résultat : la trace qu'il porte se ferme à l'envoi et doit déjà compter ce que la session retient.
     if (revision) {
       const entreeAvant = session.entree(identite.sujet);
-      promouvoirLaRevision(revision, identite, statutFinal, { releve, catalogue, moteur, regles: reglesLues, dependances: dependances ?? null, niveau, architectureUcm, ignores: rangees, lecturesRefusees }, {
+      promouvoirLaRevision(revision, identite, statutDeLaSession, { releve, catalogue, moteur, regles: reglesLues, dependances: dependances ?? null, niveau, architectureUcm, ignores: rangees, lecturesRefusees }, {
         ...Object.fromEntries(Object.entries(parFamille).map(([nom, resultat]) => [nom, { resultat, entrees: ENTREES_DES_REQUETES[nom as NomDeFamille] }])) as Record<NomDeFamille, RequeteRetenue<readonly Constat[], NomDEntree>>,
         corrections: { resultat: tous, entrees: ENTREES_DES_REQUETES.corrections },
         projection: { resultat: { visibles, ignores }, entrees: ENTREES_DES_REQUETES.projection },
@@ -2125,7 +2152,7 @@ async function analyser(contexte: Contexte, lecteurs: Lecteurs, demandeRecue: Ex
       retenirLeMaximum('aretesRetenues', retenu.aretes);
       retenirLeMaximum('entreesDuJournal', journal?.depuis(0).length ?? 0);
     }
-    rendre(statutFinal, visibles, releve, ignores, tous, propositionsRetirees(rangees));
+    rendre(statutFinal, visibles, releve, ignores, tous, propositionsRetirees(rangees), causes);
     // La capture suit l'envoi de la trace et garde la place d'opération : une écriture demandée pendant ce temps rend `occupe`.
     await capturerSiDemande(demande, contexte, { noeud: sujet.noeud, page: pageDuNoeud(sujet.noeud, contexte.figma.currentPage), imports: importsEnregistres });
   } catch (erreur) {

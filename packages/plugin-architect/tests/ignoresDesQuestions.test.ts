@@ -42,7 +42,7 @@ const bouton = (racine: ElementDeTest, libelle: string): ElementDeTest => {
 function analyseRecue(identiteDeLAnalyse: { sujet: string; generation: number }, constats: readonly Constat[]): AnalyseRecue {
   return {
     identite: identiteDeLAnalyse, statut: 'complete', constats, tous: constats, ignores: [], repondues: {}, variants: alertCorrections.sujet.variants,
-    lecture: null, sansTokens: false, progression: null, perimee: false, cause: null, ecriture: null, lot: null, appliquees: [], liaisons: null,
+    lecture: null, causes: [], sansTokens: false, progression: null, perimee: false, cause: null, ecriture: null, refusPendantEcriture: false, lot: null, appliquees: [], liaisons: null,
     liaisonsDemandees: false, recueA: 0,
   };
 }

@@ -543,7 +543,7 @@ function seriesF9D1(cas: CasDeChaine[]): void {
     adaptateurs: [degraderLaLecture({ variantsNonLus: ['Palette=danger, Style=outline, State=disabled, Size=medium'], layersNonLus: 252 })],
   }, (c, j, texte) => {
     const lus = c.s.b.releve.lecture.layersLus;
-    j.verifier(sansBlancs(texte).includes(`${lus}layerslussur${lus + 252}`), `la bannière donne les nombres lus : ${lus} layers lus sur ${lus + 252}`, `alertes : ${texte}`, 'accusation', 'P15');
+    j.verifier(sansBlancs(texte).includes(`alu${lus}layerssur${lus + 252}`), `la bannière donne les nombres lus : le moteur a lu ${lus} layers sur ${lus + 252}`, `alertes : ${texte}`, 'accusation', 'P15');
     nonDit(j, texte, JAMAIS_N_SUR_N, '« N layers lus sur N »', 'accusation', 'P15');
   });
   partielle('partielle par lectures manquées', { adaptateurs: [degraderLaLecture({ manquees: manquees(3) })] }, (_c, j, texte) => {
@@ -620,7 +620,8 @@ function seriesF9D1(cas: CasDeChaine[]): void {
     j.verifier(vue.casesActives === 0 && vue.sections.length === 0, 'aucune case active pendant l’écriture', `${vue.casesActives} case(s) active(s)`, 'cochee');
     j.verifier(barre.analyserInactif, 'Analyser est inactif pendant l’écriture', 'Analyser est actif', 'muet');
     const identite = c.identite();
-    if (identite) c.recevoir({ type: 'occupe', analyse: identite });
+    // Le refus d'un Actualiser porte le numéro de la demande ; sans lui, c'est l'écriture elle-même qui a été refusée.
+    if (identite) c.recevoir({ type: 'occupe', analyse: identite, demande: 1 });
     const apres = lireLEcran(c.ecran);
     j.verifier(/Écriture .*en cours/.test(norm(apres.texte)) && (c.etat.analyse as unknown as { ecriture: unknown } | null)?.ecriture !== null, 'une demande refusée (occupe) ne change pas l’écriture affichée : elle continue', 'l’écran revient à la liste et Appliquer redevient possible', 'fuite', 'P22');
     j.note('texte de l’écran après occupe (Q-F89-17, non jugé ici) : ' + (apres.alertes.join(' | ') || 'aucune alerte'));

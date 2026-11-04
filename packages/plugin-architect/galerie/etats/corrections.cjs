@@ -179,6 +179,11 @@ const ETATS = [
     existe: true, atteinte: [...panneauOuvert, toutCocher, appliquer, { message: { type: 'occupe', analyse: IDENTITE } }],
   },
   {
+    id: 'analyse-occupee-actualiser', titre: 'Actualiser refusé pendant une écriture', quand: 'Le designer clique Appliquer tout ; pendant que le sandbox écrit, il clique Actualiser et le sandbox répond « occupé ».',
+    regarder: '« Écriture de 8 liaisons en cours. » reste à la place de la liste ; l’alerte d’information « Une opération est déjà en cours. » dit « L’écriture continue. Actualisez quand elle est finie. » sous le résumé ; Appliquer tout reste inactif.',
+    existe: true, atteinte: [...panneauOuvert, toutCocher, appliquer, { message: { type: 'occupe', analyse: IDENTITE, demande: 2 } }],
+  },
+  {
     id: 'corrections-sautees', titre: 'Corrections sautées', quand: 'Le sandbox écrit 8 corrections sur 9 et en saute une : le layer a disparu.',
     regarder: 'La ligne de réussite compte la correction sautée et dit pourquoi ; la carte qui la portait reste à appliquer.',
     existe: true,

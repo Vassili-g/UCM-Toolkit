@@ -1,6 +1,7 @@
 /**
  * Les messages de l'analyse d'un composant. Une seule opération à la fois : une
- * demande reçue pendant une opération rend `occupe`. Après une écriture, un
+ * demande reçue pendant une opération rend `occupe` ; avec `demande`, c'est un
+ * Analyser ou un Actualiser refusé, et l'écriture en cours continue. Après une écriture, un
  * Ctrl+Z ou la sélection d'un autre jeu de variants, le sandbox envoie
  * `perime` ; l'interface garde les constats et ne relance rien avant
  * Actualiser ou Analyser.
@@ -12,6 +13,18 @@ import type { ReleveDeComposant } from '@ucm-kit/core/controles';
 import type { Constat, IdentiteDAnalyse } from './commun';
 
 export type StatutDAnalyse = 'complete' | 'partielle' | 'annulee' | 'arretee';
+/**
+ * Pourquoi une analyse est partielle : une cause par lecture qui n'est pas allée au bout. `variants` et `layers` disent la lecture du
+ * composant (`total` est `null` quand le moteur ne sait pas ce qui reste), `lectures` le nombre de champs que Figma a refusés, les trois
+ * autres une lecture du fichier refusée. Une lecture complète n'a aucune cause.
+ */
+export type CauseDePartielle =
+  | { cause: 'variants'; lus: number; total: number }
+  | { cause: 'layers'; lus: number; total: number | null }
+  | { cause: 'lectures'; nombre: number }
+  | { cause: 'regles' }
+  | { cause: 'niveau' }
+  | { cause: 'ignores' };
 /** Ce qui a rendu l'analyse périmée : une écriture du plugin, un changement du document, une autre sélection. */
 export type CauseDePeremption = 'ecriture' | 'document' | 'selection';
 
@@ -46,6 +59,8 @@ export type MessageDAnalyse =
   | { type: 'analyse-provisoire'; analyse: IdentiteDAnalyse; demande?: number; constats: readonly Constat[]; ignores: readonly string[]; lecture: ReleveDeComposant['lecture']; variants: readonly { id: string; nom: string }[] }
   | { type: 'analyse'; analyse: IdentiteDAnalyse; statut: StatutDAnalyse; constats: readonly Constat[]; lecture: ReleveDeComposant['lecture'] | null; variants: readonly { id: string; nom: string }[];
       /** Vrai quand le relevé et le catalogue sont lus et que la collection `components` n'a aucune variable du jeu. */
-      sansTokens: boolean; demande?: number; progression?: ProgressionDAnalyse; mesure?: TraceDeMesure }
+      sansTokens: boolean;
+      /** Pourquoi le statut est `partielle`, dans l'ordre où l'interface les dit ; absent ou vide quand l'analyse est complète. */
+      causes?: readonly CauseDePartielle[]; demande?: number; progression?: ProgressionDAnalyse; mesure?: TraceDeMesure }
   | { type: 'perime'; analyse: IdentiteDAnalyse; cause: CauseDePeremption }
   | { type: 'occupe'; analyse: IdentiteDAnalyse; demande?: number };

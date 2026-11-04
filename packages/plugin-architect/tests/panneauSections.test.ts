@@ -13,7 +13,7 @@ poserLeDom();
 
 // Les modules de l'interface lisent `document` à l'appel, pas à l'import : ils se chargent après `poserLeDom`.
 import { monterLePanneau, type PanneauDesConstats } from '../src/ui/analyse';
-import type { AnalyseRecue } from '../src/ui/composant/analyse';
+import { noterLEnvoi, recevoirUneAnalyse, type AnalyseRecue } from '../src/ui/composant/analyse';
 import type { ElementChoisi } from '../src/ui/etat';
 
 const { constatsAlert, alertCorrections } = require('../galerie/etats/corrections.cjs') as { constatsAlert: Constat[]; alertCorrections: { sujet: { nom: string; variants: Array<{ id: string; nom: string }> } } };
@@ -33,7 +33,7 @@ function monter(constats: readonly Constat[] = constatsAlert, surcharge: Partial
   const envois: Banc['envois'] = { appliquer: [], annulees: [], selections: [] };
   const analyse = {
     identite: IDENTITE, statut: 'complete', constats, tous: constats, ignores: [], repondues: {}, variants: alertCorrections.sujet.variants, lecture: null, sansTokens: false,
-    progression: null, perimee: false, cause: null, ecriture: null, lot: null, appliquees: [], liaisons: null, liaisonsDemandees: false, recueA: 0, ...surcharge,
+    causes: [], progression: null, perimee: false, cause: null, ecriture: null, refusPendantEcriture: false, lot: null, appliquees: [], liaisons: null, liaisonsDemandees: false, recueA: 0, ...surcharge,
   } as unknown as AnalyseRecue;
   const etat = { composant: { lecture: alertCorrections }, analyse, architecture: null, reference: null, panneau: { ouvert: true, largeurDeLaVue: 400, element: 'tout' as ElementChoisi } };
   const app = {
@@ -525,15 +525,105 @@ test('après l’arrêt du moteur pendant le provisoire, le panneau montre l’�
   assert.doesNotMatch(banc.racine.textContent, /composants imbriqués est en cours/);
 });
 
-test('le final partielle après le provisoire montre l’alerte de couverture, les sections tenues et le pied', () => {
+test('le final partielle après le provisoire montre la bannière de ses causes et le pied, sans section tenue', () => {
   const banc = monter(constatsAlert, { statut: 'provisoire', progression: { lus: 11, total: 11, phase: 'imbriques', fraction: 0.35 } });
-  banc.actualiser({ statut: 'partielle', progression: null, lecture: { layersLus: 2000, layersNonLus: 640, variantsNonLus: ['Severity=warning'], manquees: [] } as never });
-  assert.match(banc.racine.textContent, /Analyse partielle : 2 000 layers lus sur 2 640\./);
-  assert.match(banc.racine.textContent, /Les variants non lus ne sont pas contrôlés\./);
+  banc.actualiser({ statut: 'partielle', progression: null, causes: [{ cause: 'layers', lus: 2000, total: 2640 }] });
+  assert.deepEqual(textes(banc.racine.querySelectorAll('ul.causes li')), ['Le moteur a lu 2 000 layers sur 2 640.']);
+  assert.match(banc.racine.textContent, /Analyse partielle\./);
+  assert.match(banc.racine.textContent, /Les constats portent sur la partie lue\./);
   assert.equal(banc.racine.querySelector('.progression-analyse'), null);
   assert.doesNotMatch(banc.racine.textContent, /composants imbriqués est en cours/);
-  assert.equal(sections(banc).some((section) => bande(section).classes.has('tenue')), true);
+  assert.equal(sections(banc).some((section) => bande(section).classes.has('tenue')), false);
   assert.notEqual(banc.racine.querySelector('.corrections-pied'), null);
+});
+
+const LIGNES_DES_CAUSES = {
+  variants: ['Le moteur a lu 54 variants sur 90.', { cause: 'variants', lus: 54, total: 90 }],
+  layers: ['Le moteur a lu 2 000 layers sur 2 640.', { cause: 'layers', lus: 2000, total: 2640 }],
+  moteurSansTotal: ['Le moteur n’a pas lu tout le composant.', { cause: 'layers', lus: 2000, total: null }],
+  lectures: ['3 lectures ont échoué.', { cause: 'lectures', nombre: 3 }],
+  regles: ['Les règles d’utilisation n’ont pas pu être lues.', { cause: 'regles' }],
+  niveau: ['Le niveau du fichier n’a pas pu être lu. Le niveau AA s’applique.', { cause: 'niveau' }],
+  ignores: ['Les constats ignorés n’ont pas pu être lus. Ils s’affichent de nouveau.', { cause: 'ignores' }],
+} as const;
+
+for (const [nom, [ligne, cause]] of Object.entries(LIGNES_DES_CAUSES)) {
+  test(`une analyse partielle dit la cause « ${nom} » en une ligne, sans section tenue`, () => {
+    const banc = monter(constatsAlert, { statut: 'partielle', causes: [cause] });
+    assert.deepEqual(textes(banc.racine.querySelectorAll('ul.causes li')), [ligne]);
+    assert.equal(sections(banc).some((section) => bande(section).classes.has('tenue')), false);
+  });
+}
+
+test('une analyse partielle cumule une ligne par cause, dans l’ordre du message, et ne dit jamais « N lus sur N »', () => {
+  const causes = [LIGNES_DES_CAUSES.variants[1], LIGNES_DES_CAUSES.lectures[1], LIGNES_DES_CAUSES.regles[1], LIGNES_DES_CAUSES.niveau[1], LIGNES_DES_CAUSES.ignores[1]];
+  const banc = monter(constatsAlert, { statut: 'partielle', causes });
+  assert.deepEqual(textes(banc.racine.querySelectorAll('ul.causes li')), [LIGNES_DES_CAUSES.variants[0], LIGNES_DES_CAUSES.lectures[0], LIGNES_DES_CAUSES.regles[0], LIGNES_DES_CAUSES.niveau[0], LIGNES_DES_CAUSES.ignores[0]]);
+  const egal = monter(constatsAlert, { statut: 'partielle', causes: [{ cause: 'variants', lus: 90, total: 90 }, { cause: 'layers', lus: 300, total: 300 }] });
+  assert.deepEqual(textes(egal.racine.querySelectorAll('ul.causes li')), ['Le moteur n’a pas lu tous les variants.', 'Le moteur n’a pas lu tout le composant.']);
+});
+
+test('une analyse partielle sans constat ne dit pas « aucun constat » et ne montre aucune section tenue', () => {
+  const banc = monter([], { statut: 'partielle', causes: [LIGNES_DES_CAUSES.regles[1]], tous: [] });
+  assert.doesNotMatch(banc.racine.textContent, /Aucun constat sur/);
+  assert.equal(sections(banc).length, 0);
+});
+
+test('tous les constats ignorés : le panneau dit « Aucun constat visible, N ignorés. » et garde « Ne plus ignorer »', () => {
+  const ignorables = constatsAlert.filter((constat) => constat.type !== 'info');
+  const banc = monter([], { tous: constatsAlert, ignores: ignorables.map((constat) => constat.id) });
+  assert.equal(comme(banc.racine.querySelector('.vide-ignores')).textContent, `Aucun constat visible, ${ignorables.length} ignorés.`);
+  assert.doesNotMatch(banc.racine.textContent, /Aucun constat sur/);
+  assert.deepEqual(textes(banc.racine.querySelectorAll('.intertitre-structure h2')), ['Ignorés']);
+  assert.equal(banc.racine.querySelectorAll('.bloc.muette').length, ignorables.length);
+  assert.equal(banc.racine.querySelectorAll('.bloc.muette .btn-texte').length >= ignorables.length, true);
+  assert.equal(sections(banc).some((section) => bande(section).classes.has('tenue')), false);
+  assert.equal(banc.racine.querySelector('.corrections-pied'), null);
+});
+
+test('ignorer le dernier constat garde la liste des ignorés, au singulier pour un seul', () => {
+  const dernier = constatsAlert[0];
+  const banc = monter([dernier]);
+  assert.equal(banc.racine.querySelector('.vide-ignores'), null);
+  banc.actualiser({ constats: [], tous: [dernier], ignores: [dernier.id] });
+  assert.equal(comme(banc.racine.querySelector('.vide-ignores')).textContent, 'Aucun constat visible, 1 ignoré.');
+  assert.equal(banc.racine.querySelectorAll('.bloc.muette').length, 1);
+  assert.doesNotMatch(banc.racine.textContent, /Aucun constat sur/);
+  banc.actualiser({ constats: [dernier], ignores: [] });
+  assert.equal(banc.racine.querySelector('.vide-ignores'), null);
+});
+
+test('sans constat ni ignoré, l’alerte « Aucun constat » reste', () => {
+  const banc = monter([]);
+  assert.match(banc.racine.textContent, /Aucun constat sur/);
+  assert.equal(banc.racine.querySelector('.vide-ignores'), null);
+});
+
+test('un Actualiser refusé pendant une écriture garde le verrou, dit pourquoi et laisse Appliquer tout inactif', () => {
+  const banc = monter();
+  toutCocherGlobal(banc).clic();
+  noterLEnvoi(banc.etat as never, ['cor:padding-x'], 2);
+  banc.actualiser();
+  assert.equal(boutonDePied(banc).disabled, true);
+  recevoirUneAnalyse(banc.etat as never, { type: 'occupe', analyse: IDENTITE, demande: 7 });
+  banc.actualiser();
+  assert.notEqual(banc.etat.analyse.ecriture, null, 'l’écriture continue');
+  assert.equal(boutonDePied(banc).disabled, true, 'Appliquer tout reste inactif');
+  assert.match(banc.racine.textContent, /Une opération est déjà en cours\./);
+  assert.match(banc.racine.textContent, /L’écriture continue\. Actualisez quand elle est finie\./);
+  recevoirUneAnalyse(banc.etat as never, { type: 'corrections-appliquees', analyse: IDENTITE, ecrites: 1, sautees: [], resume: 'Fait.' } as never);
+  banc.actualiser();
+  assert.equal(banc.etat.analyse.ecriture, null);
+  assert.doesNotMatch(banc.racine.textContent, /Une opération est déjà en cours\./);
+});
+
+test('une écriture refusée pour occupe n’a rien écrit : le verrou tombe et aucune alerte ne parle d’écriture', () => {
+  const banc = monter();
+  noterLEnvoi(banc.etat as never, ['cor:padding-x'], 2);
+  recevoirUneAnalyse(banc.etat as never, { type: 'occupe', analyse: IDENTITE });
+  banc.actualiser();
+  assert.equal(banc.etat.analyse.ecriture, null);
+  assert.doesNotMatch(banc.racine.textContent, /L’écriture continue/);
 });
 
 test('une péremption pendant le provisoire garde les constats consultables sous l’alerte périmée, sans barre, mention, tenue ni pied', () => {

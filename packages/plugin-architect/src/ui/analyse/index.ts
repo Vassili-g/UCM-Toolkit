@@ -74,6 +74,30 @@ function bouton(libelle: string, onClick: () => void): HTMLElement {
 const correctionsDe = (element: Pick<ElementDuPanneau, 'corrections'> & { readonly preparee?: CarteDeCorrections | null }): readonly CarteDeCorrections[] =>
   [...(element.preparee ? [element.preparee] : []), ...element.corrections];
 
+/** Les constats que le designer a ignorés, informations exclues : elles n'ont ni carte, ni « Ne plus ignorer ». */
+const ignoresDe = (analyse: AnalyseRecue): Constat[] => analyse.tous.filter((constat) => analyse.ignores.includes(constat.id) && !estUneInformation(constat));
+
+/** La bannière d'une analyse partielle : une ligne par cause, puis la portée des constats. */
+function alerteDeLaPartielle(causes: AnalyseRecue['causes']): HTMLElement {
+  const alerte = creerAlerte('verifier', { titre: T.partielleTitre });
+  const corps = alerte.querySelector('.alerte-corps') as HTMLElement;
+  if (causes.length > 0) {
+    const liste = document.createElement('ul');
+    liste.className = 'causes';
+    for (const cause of causes) {
+      const ligne = document.createElement('li');
+      ligne.textContent = cause.cause === 'variants' || cause.cause === 'layers' ? T.partielleCauses[cause.cause](cause.lus, cause.total as never)
+        : cause.cause === 'lectures' ? T.partielleCauses.lectures(cause.nombre) : T.partielleCauses[cause.cause];
+      liste.append(ligne);
+    }
+    corps.append(liste);
+  }
+  const portee = document.createElement('p');
+  portee.textContent = T.partielleTexte;
+  corps.append(portee);
+  return alerte;
+}
+
 /** Ce que les tests remplacent : le téléchargement et l'horloge. */
 export interface OptionsDuPanneau {
   readonly telecharger?: typeof telecharger;
@@ -234,7 +258,7 @@ export function monterLePanneau(app: Application, vue: VueComposant, options: Op
     const preparee = analyse.liaisons === null ? null : carteDesLiaisonsPreparees(analyse.liaisons, analyse.appliquees, contexte);
     const panneau = elementsDuPanneau(constatsAMontrer(analyse), contexte, { reponses: analyse.repondues, preparee, sansTokens: aPreparer(analyse) });
     const cartes = panneau.elements.flatMap(correctionsDe);
-    rendu = { analyse, panneau, cartes, contexte, ignores: analyse.tous.filter((constat) => analyse.ignores.includes(constat.id) && !estUneInformation(constat)) };
+    rendu = { analyse, panneau, cartes, contexte, ignores: ignoresDe(analyse) };
     corrections.poser({ analyse, contexte, cartes });
     questions.poser(analyse);
     aFaire.poser({ analyse, contexte });
@@ -352,14 +376,25 @@ export function monterLePanneau(app: Application, vue: VueComposant, options: Op
     });
     const cartesEnTete = tout ? cartesDe(panneau.enTete) : [];
     const enTete = cartesEnTete.length > 0 ? [creerEnTeteDesBloquants(cartesEnTete)] : [];
-    // Une section tenue dirait que le moteur a tout contrôlé : elle attend le résultat final.
+    // Une section tenue dirait que le moteur a tout contrôlé : elle attend le résultat final, et une analyse partielle ne l'a pas lu en entier.
+    // Quand tous les constats sont ignorés, un élément « tenu » dirait le contraire de ce que le designer a fait.
     const provisoire = analyse.statut === 'provisoire';
-    const tenus = tout && !provisoire ? panneau.tenus.map(creerSectionTenue) : [];
+    const toutIgnore = panneau.elements.length === 0 && ignores.length > 0;
+    const tenus = tout && !provisoire && analyse.statut !== 'partielle' && !toutIgnore ? panneau.tenus.map(creerSectionTenue) : [];
+    const aucunVisible = toutIgnore && tout && !provisoire ? [videIgnores(ignores.length)] : [];
     const informations = tout && panneau.informations.length > 0 ? [sectionDesInformations(analyse, panneau, contexte)] : [];
     const ignoresMontres = tout ? ignores : ignores.filter((constat) => elementDuConstat(constat) === choisi);
     const visible = tout ? null : { cartes: montres.flatMap(correctionsDe), element: TEXTES.elementsDuPanneau.libelles[choisi] };
     sommaireHote.replaceChildren(...(panneau.elements.length > 0 ? [creerSommaire(panneau.elements, choisi, choisir)] : []));
-    listeHote.replaceChildren(...(analyse.perimee ? [resultatDuLotEcrit(analyse)].filter((ligne): ligne is HTMLElement => ligne !== null) : []), ...enTete, ...sections, ...tenus, ...informations, ...aFaire.ignores(ignoresMontres), ...(cartes.length > 0 && !provisoire ? [corrections.pied(visible)] : []), ...(!provisoire && !analyse.perimee && analyse.constats.length > 0 ? [pied(analyse)] : []));
+    listeHote.replaceChildren(...(analyse.perimee ? [resultatDuLotEcrit(analyse)].filter((ligne): ligne is HTMLElement => ligne !== null) : []), ...aucunVisible, ...enTete, ...sections, ...tenus, ...informations, ...aFaire.ignores(ignoresMontres), ...(cartes.length > 0 && !provisoire ? [corrections.pied(visible)] : []), ...(!provisoire && !analyse.perimee && analyse.constats.length > 0 ? [pied(analyse)] : []));
+  }
+
+  /** « Aucun constat visible, N ignorés. », au-dessus des ignorés qui restent atteignables. */
+  function videIgnores(nombreDIgnores: number): HTMLElement {
+    const ligne = document.createElement('p');
+    ligne.className = 'meta vide-ignores';
+    ligne.textContent = T.aucunVisible(nombreDIgnores);
+    return ligne;
   }
 
   /** Le sommaire et la liste d'une analyse rendue. */
@@ -416,21 +451,13 @@ export function monterLePanneau(app: Application, vue: VueComposant, options: Op
     }
 
     const alertes: HTMLElement[] = [];
-    if (analyse.statut === 'partielle') {
-      const lus = analyse.lecture?.layersLus ?? 0;
-      const nonLus = analyse.lecture?.layersNonLus;
-      const echecs = analyse.lecture?.manquees.length ?? 0;
-      const rienNonLu = nonLus === 0 && (analyse.lecture?.variantsNonLus.length ?? 0) === 0;
-      if (rienNonLu && echecs > 0) {
-        alertes.push(creerAlerte('verifier', { titre: T.partielleDesLecturesTitre(echecs), texte: T.partielleDesLecturesTexte }));
-      } else {
-        const titre = typeof nonLus === 'number' && nonLus > 0 ? T.partielleTitre(lus, lus + nonLus) : T.partielleTitreDesVariants(analyse.variants.length, analyse.variants.length + (analyse.lecture?.variantsNonLus.length ?? 0));
-        alertes.push(creerAlerte('verifier', { titre, texte: T.partielleTexte }));
-      }
-    } else if (analyse.constats.length === 0 && !aPreparer(analyse) && !aDesLiaisonsPreparees(analyse) && !analyse.perimee && analyse.ecriture === null) {
+    if (analyse.statut === 'partielle') alertes.push(alerteDeLaPartielle(analyse.causes));
+    else if (analyse.constats.length === 0 && ignoresDe(analyse).length === 0 && !aPreparer(analyse) && !aDesLiaisonsPreparees(analyse) && !analyse.perimee && analyse.ecriture === null) {
       return [resume(lecture, P.analyseA(heure(analyse.recueA), analyse.dureeMs), analyse.variants.length), creerAlerte('tenu', { titre: T.aucunTitre(lecture.sujet.nom, variants), meta: T.aucunMeta })];
     }
     if (analyse.perimee) alertes.push(creerAlerte('info', { titre: T.perimeTitre, texte: `${T.perimeMeta} ${T.perimeTexte}` }));
+    // Le refus d'un Actualiser pendant l'écriture : l'écriture affichée ne change pas, le panneau dit seulement pourquoi rien n'est parti.
+    if (analyse.refusPendantEcriture && analyse.ecriture !== null) alertes.push(creerAlerte('info', { titre: T.occupeTitre, texte: T.occupeTexte }));
     const { points, enfants: elements } = montrerLesElements(lecture, analyse);
     // Un provisoire périmé n'a pas d'heure d'analyse à dire : seuls ses points sont connus.
     const analyseA = analyse.statut === 'provisoire' ? P.pasAnalyse : P.analyseA(heure(analyse.recueA), analyse.dureeMs);

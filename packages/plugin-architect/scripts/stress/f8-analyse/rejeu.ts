@@ -337,7 +337,7 @@ async function jouerLaPanne(source: Source, panne: Panne): Promise<Jugement> {
       if (coupe.nonLus > 0) {
         v(final?.lecture?.layersNonLus === coupe.nonLus, `layersNonLus est la somme des layers laissés : ${coupe.nonLus}`, `layersNonLus ${String(final?.lecture?.layersNonLus)}`, 'accusation', 'P16');
         v(final?.variants.length === coupe.gardes, `le relevé garde ${coupe.gardes} variants`, `${final?.variants.length} variants gardés`, 'accusation', 'P16');
-        v(sansBlancs(alertes).includes(`${lus}layerslussur${lus + coupe.nonLus}`), `la bannière donne les nombres lus : ${lus} layers lus sur ${lus + coupe.nonLus}`, `alertes : ${alertes || 'aucune'}`, 'accusation', 'P15');
+        v(sansBlancs(alertes).includes(`alu${lus}layerssur${lus + coupe.nonLus}`), `la bannière donne les nombres lus : le moteur a lu ${lus} layers sur ${lus + coupe.nonLus}`, `alertes : ${alertes || 'aucune'}`, 'accusation', 'P15');
       } else if (banc.moteur.partiel) dit(DIT.moteur, 'que le moteur n’a pas tout lu', 'P15');
       if (statut === 'partielle') {
         v(!AUCUN_CONSTAT.test(alertes), 'l’écran ne dit pas « Aucun constat sur … »', alertes, 'accusation', 'P13');

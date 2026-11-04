@@ -198,3 +198,10 @@
   min-width: 0;
   flex: 1 1 auto;
 }
+
+/* Les causes d'une analyse partielle : une ligne par lecture qui n'est pas allée au bout. */
+.alerte-corps ul.causes { margin: 4px 0 0; padding-left: 16px; }
+.alerte-corps ul.causes li { margin: 2px 0; }
+
+/* Tous les constats sont ignorés : la ligne qui le dit, au-dessus des ignorés. */
+.vide-ignores { margin: 4px 0 var(--espace-bloc); }

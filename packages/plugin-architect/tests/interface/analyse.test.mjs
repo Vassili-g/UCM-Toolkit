@@ -26,7 +26,7 @@ async function ouvrirLePanneau(messages = [], lecture = alertCorrections) {
 }
 
 /** Un message final d'une analyse déjà finie est refusé (6be0db4d) : chaque état ensuite joué ouvre sa propre génération. */
-const lu = (statut, constats, lecture = null, lus = variants, generation = 1) => ({ type: 'analyse', analyse: { ...IDENTITE, generation }, statut, constats, lecture, variants: lus });
+const lu = (statut, constats, lecture = null, lus = variants, generation = 1, causes = undefined) => ({ type: 'analyse', analyse: { ...IDENTITE, generation }, statut, constats, lecture, variants: lus, ...(causes ? { causes } : {}) });
 const texteDuPanneau = (page) => page.locator('.arch-laterale').innerText();
 /** Les demandes de l'interface au sandbox : l'envoi se relève un instant après le geste. */
 const demandes = async (page, type) => {
@@ -48,10 +48,11 @@ test('le panneau annonce chaque état de l’analyse, et ne dit « aucun constat
 
     const lecture = { layersLus: 2000, layersNonLus: 640, variantsNonLus: ['Severity=warning, Variant=standard'], manquees: [] };
     for (const [rang, constats] of [analyseCorrections.constats, []].entries()) {
-      await envoyer(page, lu('partielle', constats, lecture, variants, 1 + rang));
+      await envoyer(page, lu('partielle', constats, lecture, variants, 1 + rang, [{ cause: 'layers', lus: 2000, total: 2640 }]));
       const texte = await texteDuPanneau(page);
-      assert.match(texte, /Analyse partielle : 2 000 layers lus sur 2 640\./);
-      assert.match(texte, /Les variants non lus ne sont pas contrôlés\./);
+      assert.match(texte, /Analyse partielle\./);
+      assert.match(texte, /Le moteur a lu 2 000 layers sur 2 640\./);
+      assert.match(texte, /Les constats portent sur la partie lue\./);
       assert.doesNotMatch(texte, /Aucun constat/);
     }
 
