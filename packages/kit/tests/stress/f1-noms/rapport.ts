@@ -235,7 +235,7 @@ export function texteDuRapport(mesure: Mesure, dureeComplete: DureeComplete | un
     '',
     `Le squelette seul (P-23) donne ${mesure.squelette.questions} question et ${mesure.squelette.renommages} renommage.`,
     stabilite
-      ? `P-21 (idempotence, définition stricte) : ${stabilite.p21.reussis} fichiers sur ${stabilite.fichiers}${stabilite.p21.echecs > 0 ? `, ${stabilite.p21.echecs} échecs rattachés à l'écart nouveau « ${ECART_DE_P21} »` : ''}. P-22 (stabilité à la permutation) : ${stabilite.p22.reussis} fichiers sur ${stabilite.fichiers}. ${stabilite.noms} noms lus, 1 500 noms au plus par fichier.`
+      ? `P-21 (idempotence, définition stricte, hors questions révélées) : ${stabilite.p21.reussis} fichiers sur ${stabilite.fichiers}${stabilite.p21.echecs > 0 ? `, ${stabilite.p21.echecs} échecs rattachés à l'écart nouveau « ${ECART_DE_P21} »` : ''}. ${stabilite.revelees} questions du second passage portent sur un mot que le renommage a fait naître (mot coupé ou soudé), mesurées sans être comptées en échec. P-22 (stabilité à la permutation) : ${stabilite.p22.reussis} fichiers sur ${stabilite.fichiers}. ${stabilite.noms} noms lus, 1 500 noms au plus par fichier.`
       : 'P-21 et P-22 ne sont mesurées que sans `--strate`.',
     ...(stabilite && stabilite.echecs.length > 0 ? ['', ...stabilite.echecs.slice(0, 20).map((echec) => `- ${echec.propriete} ${echec.fichier} : ${echec.detail}${echec.ecart ? ` [${echec.ecart}]` : ''}`)] : []),
     '',

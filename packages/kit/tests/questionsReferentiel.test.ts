@@ -379,6 +379,33 @@ test('un synonyme seul donne une question quand son terme UCM est unique (Q-F5)'
 });
 
 // E2.7
+test('deux orthographes d’un même mot que ni le pluriel ni la terminaison ne relient donnent une question (Q-F6)', () => {
+  const memePlace = [nom('a', 'neutral/gray/bg'), nom('b', 'neutral/grey/bg')];
+  assert.deepEqual(questions(memePlace).filter((q) => q.type === 'paire').map((q) => [q.cle, q.indice]), [['paire:gray|grey', 'synonymes']]);
+  assert.deepEqual(paires([nom('a', 'neutral/gray/bg'), nom('b', 'surface/grey/fg')]), [], 'sans place partagée, rien à choisir');
+  assert.deepEqual(paires(memePlace, { ...vide, distincts: [['gray', 'grey']] }), [], 'une réponse « termes différents » écarte la question');
+  assert.deepEqual(paires([nom('a', 'a/colors/bg'), nom('b', 'a/colours/bg')]).sort(), ['paire:color|colors', 'paire:color|colours'], 'colors et colours se rejoignent sur color');
+  assert.deepEqual(paires([nom('a', 'a/lines/bg'), nom('b', 'a/line/bg')]), ['paire:line|lines'], 'un pluriel garde son indice');
+  assert.equal(questions([nom('a', 'a/lines/bg'), nom('b', 'a/line/bg')]).find((q) => q.type === 'paire')?.indice, 'pluriel');
+});
+
+function branches(nombre: number): NomLu[] {
+  const noms: NomLu[] = [];
+  const mot = (rang: number) => `${String.fromCharCode(97 + (rang % 26))}${String.fromCharCode(97 + Math.floor(rang / 26))}`.repeat(2);
+  for (let branche = 0; branche < nombre; branche++) {
+    const dossier = mot(branche).toUpperCase();
+    for (let k = 0; k < 5; k++) noms.push(nom(`${dossier}-${k}`, `palette/${dossier}/${mot(40 + k)}/${mot(80 + k)}`));
+    if (branche < 2) noms.push(nom(`${dossier}-d`, `palette/${dossier}/${mot(45)}/${branche === 0 ? 'small' : 'smalll'}`));
+  }
+  return noms;
+}
+
+test('des branches parallèles se lisent au-delà de 12 branches sœurs (E-45)', () => {
+  const pairesDeBranches = (noms: readonly NomLu[]) => questions(noms).filter((q) => q.type === 'paire' && q.indice === 'branches-paralleles').map((q) => q.cle);
+  for (const nombre of [2, 12, 13, 20, 50]) assert.deepEqual(pairesDeBranches(branches(nombre)), ['paire:small|smalll'], `${nombre} branches`);
+  assert.deepEqual(pairesDeBranches(branches(51)), [], 'au-delà de 50 branches, la clé est ignorée pour borner le calcul');
+});
+
 test('une collection à une lettre d’une collection UCM propose celle-ci (Q-F8, E-15)', () => {
   const collection = (id: string, nomDeCollection: string): NomLu => ({ id, nom: nomDeCollection, categorie: 'collections', portee: 'document' });
   const proposee = (nomDeCollection: string) => {

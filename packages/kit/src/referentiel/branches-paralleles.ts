@@ -4,7 +4,7 @@ import { memeConcept, opposes, termeConnu, termeOuVarianteConnu } from './termes
 
 const TAILLE_D_UN_LOT = 200;
 const SEPARATEUR = '\u0001';
-const BRANCHES_MAXIMALES_PAR_CLE = 12;
+const BRANCHES_MAXIMALES_PAR_CLE = 50;
 const ENTREES_MAXIMALES_PAR_CLE = 200;
 const NOMS_MINIMAUX_SANS_TERME_CONNU = 2;
 const lettres = /\p{L}/u;

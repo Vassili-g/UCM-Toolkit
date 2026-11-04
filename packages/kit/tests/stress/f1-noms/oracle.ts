@@ -11,6 +11,7 @@ import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { COLLECTIONS, FORMES_ANCIENNES_DES_COLLECTIONS } from '../../../src/referentiel/architecture.js';
 import type { Collision, Question, Renommage } from '../../../src/referentiel/index.js';
+import { LONGUEUR_MINIMALE_D_UNE_FAUTE_A_UNE_LETTRE } from '../../../src/referentiel/questions.js';
 import { REGISTRES, SYNONYMES_COURANTS } from '../../../src/referentiel/vocabulaire.js';
 import { REGISTRES_ARCHITECTURE } from '../../../src/referentiel/architecture.js';
 import { motsDeDetection, type Detecteur } from './detecteur.js';
@@ -406,7 +407,11 @@ function s8(cas: Scenario, sortie: Sortie, ctx: ContexteOracle): Verdict[] {
   if (cas.axes.nature === 'fautif') {
     const faute = fauteDeS8(cas, ctx);
     if (!faute) return [];
-    return [jugerUneFaute(cas, sortie, ctx, faute, reference!, ['P-17'], { ecarts: ecartsDeFaute(sortie.noms, faute, reference!, ['P-17']) })];
+    // N-03 : la casse ne change aucun verdict. Une faute plus courte que le seuil de Q-F4 n'est pas attendue (comme M-06 en S3) : mesurée, jamais jugée.
+    const sousLeSeuil = [...faute].length < LONGUEUR_MINIMALE_D_UNE_FAUTE_A_UNE_LETTRE;
+    return [jugerUneFaute(cas, sortie, ctx, faute, reference!, ['P-17'], sousLeSeuil
+      ? { role: 'informatif', ecarts: [`faute de moins de ${LONGUEUR_MINIMALE_D_UNE_FAUTE_A_UNE_LETTRE} lettres (Q-F4)`] }
+      : { ecarts: ecartsDeFaute(sortie.noms, faute, reference!, ['P-17']) })];
   }
   const mots = new Set([reference!, ecrit!.toLowerCase()]);
   const faute = sortie.questions.find((question) => question.type === 'ecriture-du-terme' && question.indice === 'faute' && (mots.has(question.terme.mot.toLowerCase()) || (question.reference && mots.has(question.reference.mot))));
@@ -461,7 +466,7 @@ function s11(cas: Scenario, sortie: Sortie, ctx: ContexteOracle): Verdict[] {
   const question = questionSur(sortie, a!, b!);
   const parametres = `${branches} branches, ${entrees} entrées, ${part} % communs`;
   if (note?.startsWith('question')) {
-    const ecart = branches > 12 ? ['E-45'] : ['nouveau'];
+    const ecart = ['nouveau'];
     // la disposition du lot 2 met les deux mots sous un même parent : ce sont des frères pour le kit, jamais des branches
     const dispositionDuLot2 = cas.axes.disposition !== 'kit';
     return [verdict(cas, sortie, { proprietes: ['P-18'], attendu: true, ok: !!question, mot: b, reference: a, cle: question?.cle, role: dispositionDuLot2 ? 'informatif' : undefined,

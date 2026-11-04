@@ -11,6 +11,7 @@ import { nomsSelonLesReglesSync } from '../../../src/nommage/index.js';
 import type { Inventaire } from '../../../src/nommage/inventaire.js';
 import { lireReglesDeNommage, type ReglesPourLeCalcul } from '../../../src/protocoles/nommage.js';
 import { detecterLesQuestions, type DejaJuge, type Question } from '../../../src/referentiel/index.js';
+import { decouperPourQuestions } from '../../../src/referentiel/termes-connus.js';
 import { echantillon, graineDe, melanger, mulberry32 } from '../commun/prng.js';
 import { convertir, MODES_DE_CHEMINS, MODES_DE_COLLECTIONS, RACINE_DU_DEPOT, segmentsDuNom, type Systeme } from './corpus.js';
 import { creerLeDetecteur } from './detecteur.js';
@@ -247,6 +248,8 @@ export interface Stabilite {
   readonly p21: { readonly reussis: number; readonly echecs: number };
   readonly p22: { readonly reussis: number; readonly echecs: number };
   readonly echecs: readonly EchecDeStabilite[];
+  /** Les questions du second passage que le renommage a rendues visibles (un mot qu'il a découpé ou soudé) : mesurées, jamais comptées en échec. */
+  readonly revelees: number;
 }
 
 const PLAFOND_DE_NOMS_PAR_FICHIER = 1500;
@@ -269,6 +272,44 @@ function appliquer(inventaire: Inventaire, renommages: Sortie['renommages']): In
   };
 }
 
+/** Les mots que le premier passage observe : ceux de `decouperPourQuestions` pour chaque segment, entiers et coupés sur `-`. */
+function motsObserves(noms: Iterable<string>): Set<string> {
+  const mots = new Set<string>();
+  for (const nom of noms) for (const segment of nom.split('/')) for (const mot of decouperPourQuestions(segment)) {
+    mots.add(mot.toLowerCase());
+    for (const morceau of mot.toLowerCase().split('-')) mots.add(morceau);
+  }
+  return mots;
+}
+
+/** Les mots d'une clé de question de mot ou de paire (`ecriture-du-terme:faute:a|b`, `paire:a|b`) ; vide pour une question de collection. */
+function motsDeLaCle(cle: string): string[] {
+  return cle.startsWith('collection:') ? [] : cle.slice(cle.lastIndexOf(':') + 1).split('|');
+}
+
+export interface SecondPassage {
+  /** Ce que le second passage renomme encore. */
+  readonly renommages: Sortie['renommages'];
+  /** Les questions qu'il pose sur des mots que le premier passage observait déjà : une faille d'idempotence. */
+  readonly nouvelles: readonly string[];
+  /** Les questions qu'il pose sur un mot que le renommage a fait naître (`additionLine` coupé en `addition-line`, `padding-x` soudé en `paddingx`). */
+  readonly revelees: readonly string[];
+}
+
+/**
+ * Applique les renommages du premier passage et relance le calcul. Le plugin range l'écriture au premier lancement : le second passage
+ * suit celle que le premier a choisie. Une question sur un mot absent du premier passage n'a pu être posée avant le renommage : elle est
+ * « révélée », pas nouvelle. Une question de collection, sans mot, compte toujours comme nouvelle.
+ */
+export function secondPassage(inventaire: Inventaire, regles: ReglesPourLeCalcul = REGLES_DETECTEES, premier: Calcul = calculer(inventaire, regles)): SecondPassage {
+  const second = calculer(appliquer(inventaire, premier.renommages), { ...regles, ecriture: premier.ecriture });
+  const cles = new Set(premier.questions.map((question) => question.cle));
+  const avant = motsObserves(premier.nomsParId.values());
+  const inedites = second.questions.map((question) => question.cle).filter((cle) => !cles.has(cle));
+  const revelees = (cle: string) => motsDeLaCle(cle).some((mot) => !avant.has(mot));
+  return { renommages: second.renommages, nouvelles: inedites.filter((cle) => !revelees(cle)), revelees: inedites.filter(revelees) };
+}
+
 /**
  * P-21 et P-22 sur des fichiers du corpus : `nombre` fichiers, un par système et variante à tour de rôle, de 1 500 noms au plus
  * tirés par la graine. Pour P-21, appliquer les renommages ne donne ni renommage ni question nouvelle. Pour P-22, permuter les
@@ -277,7 +318,7 @@ function appliquer(inventaire: Inventaire, renommages: Sortie['renommages']): In
 export function verifierLaStabilite(systemes: readonly Systeme[], nombre: number, graine: number): Stabilite {
   const echecs: EchecDeStabilite[] = [];
   const variantes = MODES_DE_CHEMINS.flatMap((chemins) => MODES_DE_COLLECTIONS.map((collections) => [chemins, collections] as const));
-  let noms = 0, reussis21 = 0, reussis22 = 0;
+  let noms = 0, reussis21 = 0, reussis22 = 0, revelees = 0;
   for (let i = 0; i < nombre; i++) {
     const systeme = systemes[i % systemes.length];
     const [chemins, collections] = variantes[Math.floor(i / systemes.length) % variantes.length];
@@ -289,11 +330,10 @@ export function verifierLaStabilite(systemes: readonly Systeme[], nombre: number
     const premier = calculer(inventaire, REGLES_DETECTEES);
     const cles = new Set(premier.questions.map((question) => question.cle));
 
-    // Le plugin range l'écriture au premier lancement : le second passage suit celle que le premier a choisie
-    const second = calculer(appliquer(inventaire, premier.renommages), { ...REGLES_DETECTEES, ecriture: premier.ecriture });
-    const nouvelles = second.questions.filter((question) => !cles.has(question.cle)).map((question) => question.cle);
-    if (second.renommages.length === 0 && nouvelles.length === 0) reussis21++;
-    else echecs.push({ fichier, propriete: 'P-21', ecart: ECART_DE_P21, detail: `${second.renommages.length} renommage(s) au second passage${second.renommages[0] ? ` (${second.renommages[0].ancienNom} -> ${second.renommages[0].nouveauNom})` : ''}, ${nouvelles.length} question(s) nouvelle(s)${nouvelles[0] ? ` (${nouvelles[0]})` : ''}` });
+    const passage = secondPassage(inventaire, REGLES_DETECTEES, premier);
+    revelees += passage.revelees.length;
+    if (passage.renommages.length === 0 && passage.nouvelles.length === 0) reussis21++;
+    else echecs.push({ fichier, propriete: 'P-21', ecart: ECART_DE_P21, detail: `${passage.renommages.length} renommage(s) au second passage${passage.renommages[0] ? ` (${passage.renommages[0].ancienNom} -> ${passage.renommages[0].nouveauNom})` : ''}, ${passage.nouvelles.length} question(s) nouvelle(s)${passage.nouvelles[0] ? ` (${passage.nouvelles[0]})` : ''}` });
 
     const permute = calculer({ ...inventaire, entrees: melanger(tirage, inventaire.entrees) }, REGLES_DETECTEES);
     const clesPermutees = new Set(permute.questions.map((question) => question.cle));
@@ -301,7 +341,7 @@ export function verifierLaStabilite(systemes: readonly Systeme[], nombre: number
     if (manquantes.length === 0 && ajoutees.length === 0) reussis22++;
     else echecs.push({ fichier, propriete: 'P-22', detail: `${manquantes.length} clé(s) perdue(s)${manquantes[0] ? ` (${manquantes[0]})` : ''}, ${ajoutees.length} clé(s) en plus${ajoutees[0] ? ` (${ajoutees[0]})` : ''}` });
   }
-  return { fichiers: nombre, noms, p21: { reussis: reussis21, echecs: nombre - reussis21 }, p22: { reussis: reussis22, echecs: nombre - reussis22 }, echecs };
+  return { fichiers: nombre, noms, p21: { reussis: reussis21, echecs: nombre - reussis21 }, p22: { reussis: reussis22, echecs: nombre - reussis22 }, echecs, revelees };
 }
 
 /** P-23, témoin négatif : le squelette seul ne donne ni question ni renommage. */

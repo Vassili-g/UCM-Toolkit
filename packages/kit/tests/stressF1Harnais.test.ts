@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import { nomsSelonLesReglesSync } from '../src/nommage/index.js';
 import { lireReglesDeNommage } from '../src/protocoles/nommage.js';
+import { LONGUEUR_MINIMALE_D_UNE_FAUTE_A_UNE_LETTRE } from '../src/referentiel/index.js';
 import { detecterLesQuestions, type DejaJuge } from '../src/referentiel/index.js';
 import { distanceUnOuEchange } from '../src/referentiel/termes-connus.js';
 import { readdirSync, readFileSync } from 'node:fs';
@@ -13,7 +14,9 @@ import {
   convertir, DOSSIER_DE_SLICE, fichiersEnFuite, ID_DE_SLICE, lireLesSystemes, motsASurveiller, RACINE_DU_DEPOT, systemeDepuisTokens,
 } from './stress/f1-noms/corpus.js';
 import { CERTAINES, classer, creerLeContexteDeClassement, lignesAJuger, PLAFOND_A_JUGER, type LigneDeFauxPositif } from './stress/f1-noms/faux-positifs.js';
-import { chargerLesClassements, clePaire } from './stress/f1-noms/oracle.js';
+import { chargerLesClassements, clePaire, creerLeContexteOracle, juger } from './stress/f1-noms/oracle.js';
+import { creerLeDetecteur } from './stress/f1-noms/detecteur.js';
+import { executerUnCas, REGLES_FIXES, secondPassage } from './stress/f1-noms/execution.js';
 import { mutationsDe, OPERATEURS_DE_FAUTE } from './stress/f1-noms/mutations.js';
 import {
   bilanDesScenarios, CAS_DU_PLAN, creerLeContexte, enInventaire, genererLesScenarios, MARGE_DU_PLAN, PAIRES_DISTINCTES_ECRITES, squelette,
@@ -179,4 +182,41 @@ test('Slice : toutes les sorties vont sous _local/stress/f1-noms/slice/, que Git
   assert.equal(DOSSIER_DE_SLICE, join(RACINE_DU_DEPOT, '_local/stress/f1-noms/slice'));
   const ignore = spawnSync('git', ['check-ignore', '-q', join(DOSSIER_DE_SLICE, 'rapport.md')], { cwd: RACINE_DU_DEPOT });
   assert.equal(ignore.status, 0);
+});
+
+const CAMEL = lireReglesDeNommage([['ecriture', JSON.stringify({ version: 1, groupes: { casse: 'camelCase', separateur: 'camelCase' }, variables: { casse: 'camelCase', separateur: 'camelCase' } })]])!;
+const inventaireDe = (noms: string[]) => enInventaire({ id: 'p21', noms: noms.map((nom) => ({ collection: 'theme', nom })) } as Parameters<typeof enInventaire>[0]);
+
+test('P-21 : un second passage ne renomme rien quand un mot ne commence pas par une lettre (N-01)', () => {
+  const passage = secondPassage(inventaireDe(['mixins/toolbar/@media (orientation: landscape)/min-height']), CAMEL);
+  assert.deepEqual(passage.renommages.map((renommage) => renommage.nouveauNom), []);
+  assert.deepEqual([passage.nouvelles, passage.revelees], [[], []]);
+});
+
+test('P-21 : une question que le renommage fait naître est révélée, pas nouvelle (N-01)', () => {
+  const passage = secondPassage(inventaireDe(['codeMirror-lines-bgColor', 'diffBlob-additionLine-bgColor', 'diffBlob-additionLine-fgColor']), REGLES_FIXES);
+  assert.deepEqual(passage.renommages, []);
+  assert.deepEqual(passage.nouvelles, []);
+  assert.deepEqual(passage.revelees, ['paire:line|lines']);
+});
+
+test('S8 : la casse ne change aucun verdict ; une faute sous le seuil de longueur n’est pas attendue (N-03)', () => {
+  const detecteur = creerLeDetecteur(contexte.vocabulaire, contexte.motsDuDictionnaire);
+  const ctx = creerLeContexteOracle(contexte, detecteur, chargerLesClassements());
+  const parTerme = new Map<string, Map<string, string>>();
+  for (const cas of genererLesScenarios(contexte, { strates: ['S8'] })) {
+    if (cas.axes.part !== '10/20' || cas.axes.type !== 'variable') continue;
+    if (parTerme.size >= 12 && !parTerme.has(cas.terme)) break;
+    const [verdict] = juger(cas, executerUnCas(cas), ctx);
+    const faute = cas.axes.nature === 'fautif';
+    if (!faute) assert.equal(verdict.issue, 'ok', `${cas.id} : ${verdict.detail}`);
+    else if ([...(verdict.mot ?? '')].length < LONGUEUR_MINIMALE_D_UNE_FAUTE_A_UNE_LETTRE) assert.equal(verdict.role, 'informatif', cas.id);
+    else assert.equal(verdict.issue, 'detecte', `${cas.id} : ${verdict.detail}`);
+    if (faute) parTerme.set(cas.terme, (parTerme.get(cas.terme) ?? new Map()).set(String(cas.axes.casse), `${verdict.role}/${verdict.issue}`));
+  }
+  assert.equal(parTerme.size, 12);
+  const lectures = new Set([...parTerme.values()].flatMap((parCasse) => [...parCasse.values()]));
+  assert.deepEqual([...lectures].sort(), ['informatif/manque', 'oracle/detecte'], 'des termes sous et au-dessus du seuil');
+  for (const [terme, parCasse] of parTerme) assert.equal(new Set(parCasse.values()).size, 1, `${terme} : ${[...parCasse].join(', ')}`);
+  assert.deepEqual([...[...parTerme.values()][0].keys()].sort(), ['initiale', 'interne', 'majuscules', 'pascal']);
 });

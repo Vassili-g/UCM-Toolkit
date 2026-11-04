@@ -1,5 +1,5 @@
 /** Préparation des noms et normalisation par lots, sans accès au document Figma. */
-import type { CategorieDeNom, ConventionsParCategorie } from './conventions.js';
+import type { CategorieDeNom, Convention, ConventionsParCategorie } from './conventions.js';
 import { assembler, categorieDuSegment, commencerDetectionDesConventions, decouperSegment, motsAvecCasse, termesDuSegment } from './ecriture-des-mots.js';
 import type { ChangementDeTerme, CleDeRegle, Collision, IndexDuVocabulaire, Lexique, Mots, NomLu, Occurrence, OccurrenceDeTerme, PlageDeTerme, PreparationDuLexique, Renommage, ResultatDuLexique } from './harmonisation.js';
 import { naturesDesNoms } from './natures.js';
@@ -111,10 +111,26 @@ function normaliserSegment(segment: string, categorie: CategorieDeNom, conventio
   remplaces.push(...decoupe.slice(curseur));
   const ecritSansTerme = assembler(segment, motsAvecCasse(decoupe, choix.casse), choix.separateur);
   if (ecritSansTerme !== segment) regles.push({ cle: `ecriture:${categorie}`, priorite: 3 });
-  return {
-    nouveau: assembler(segment, motsAvecCasse(remplaces, choix.casse), choix.separateur),
-    regles, termes,
-  };
+  return { nouveau: ecritureStable(segment, assembler(segment, motsAvecCasse(remplaces, choix.casse), choix.separateur), choix), regles, termes };
+}
+
+const ETAPES_MAXIMALES_D_UNE_ECRITURE = 3;
+
+/**
+ * Reprend l'écriture jusqu'à ce que sa relecture ne la change plus. Un mot qui ne commence pas par une lettre (`(orientation:`) reçoit une
+ * majuscule que la relecture en camelCase ne voit pas : `@media (orientation: landscape)` devient `@media(orientation:Landscape)`, lu comme
+ * un seul mot, que le second passage met en minuscules. Sans cette reprise, le renommage n'est pas idempotent (N-01).
+ */
+function ecritureStable(segment: string, ecrit: string, choix: Convention | undefined): string {
+  if (ecrit === segment) return ecrit;
+  const casse = choix?.casse ?? 'inchangee', separateur = choix?.separateur ?? 'inchange';
+  let stable = ecrit;
+  for (let etape = 0; etape < ETAPES_MAXIMALES_D_UNE_ECRITURE; etape++) {
+    const suivant = assembler(stable, motsAvecCasse(decouperSegment(stable), casse), separateur);
+    if (suivant === stable) break;
+    stable = suivant;
+  }
+  return stable;
 }
 
 function cheminDeGroupe(portee: string, segments: readonly string[], rang: number): string {

@@ -293,3 +293,13 @@ test('assembler joint par le premier séparateur du segment quand le nombre de m
   assert.equal(assembler('fooBarBaz', ['foo', 'Qux'], 'inchange'), 'fooQux');
   assert.equal(assembler('foo-bar-baz', ['foo', 'qux'], 'tiret-bas'), 'foo_qux');
 });
+
+test('un mot qui ne commence pas par une lettre ne fait pas renommer le second passage (N-01)', () => {
+  const camel = { casse: 'camelCase', separateur: 'camelCase' } as const;
+  const conventionsCamel: ConventionsParCategorie = { variables: camel, groupes: camel, collections: camel };
+  const renommer = (nom: string): string | undefined => normaliserLeLexique(preparer([variable('a', nom)]), conventionsCamel, indexUcm).renommages[0]?.nouveauNom;
+  const premier = renommer('toolbar/@media (orientation: landscape)/min-height');
+  assert.equal(premier, 'toolbar/@media(orientation:landscape)/minHeight');
+  assert.equal(renommer(premier!), undefined);
+  assert.equal(renommer('x/(orientation: Landscape)'), 'x/(orientation:landscape)');
+});

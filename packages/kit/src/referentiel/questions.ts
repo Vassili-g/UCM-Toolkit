@@ -319,6 +319,11 @@ export function* detecterParEtapes(lexique: Lexique, index: IndexDuVocabulaire, 
     yield* ajouterPaire(groupe[i], groupe[j], 'synonymes');
     if (++operations % TAILLE_D_UN_LOT === 0) yield;
   }
+  // Deux orthographes d'un même mot que ni le pluriel ni la terminaison ne relient (`gray`, `grey`) : le designer choisit celle qu'il garde.
+  for (const [a, b] of FORMES_D_UN_MEME_MOT) {
+    if (!paires.has(clePaire(a, b))) yield* ajouterPaire(a, b, 'synonymes');
+    if (++operations % TAILLE_D_UN_LOT === 0) yield;
+  }
   const segmentsObserves = new Map<string, MotObserve>();
   /** Les mots qu'une question propose sans que le fichier les emploie : `divider` pour `separator`, `separator` pour `separators`. */
   const synthetiques = new Set<string>();
