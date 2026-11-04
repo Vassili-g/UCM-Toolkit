@@ -14,13 +14,15 @@ ASCII ni sélecteur de présentation. Le total incluant Palettes reste à releve
 Les nombres 31 SVG et 26 glyphes ne sont pas établis pour un périmètre reproductible.
 `SigneDuLangage` reçoit une grille adaptée au tracé, sans déplacer les alertes du socle.
 
-- [ ] A3.1 Conservez les cinq formes `FORMES` dans `packages/plugin-socle/src/ui/Alerte.ts` (R-8, QM-11).
+- [x] A3.1 Conservez les cinq formes `FORMES` dans `packages/plugin-socle/src/ui/Alerte.ts` (R-8, QM-11).
   Testez que les migrations suivantes ne recopient pas ces formes dans le kit.
-- [ ] A3.2 Famille `interface`, sans teinte : chevron (un tracé, quatre sens par rotation), fermer (`×`), lien externe, réglages,
+- [x] A3.2 Famille `interface`, sans teinte : chevron (un tracé, quatre sens par rotation), fermer (`×`), lien externe, réglages,
   poignée de taille, loupe, tout replier, panneau latéral, synchroniser, menu (`⋯`), ajouter (`+`), retirer (`−`), avant-après (`→`),
   séparateur de chemin (`›`), différent (`≠`), vide (losange en tirets de la vue Composant).
 Fin : `npm run test --workspace @ucm-kit/core` passe pour la famille interface.
 
 ## Avancement
 
-Pas commencé.
+A3.1 fait : les `FORMES` restent dans `Alerte.ts`, intactes. Test ajouté dans `packages/kit/tests/signes.test.ts` (aucune des six formes recopiée dans `SIGNES`).
+A3.2 fait : famille `interface` (15 signes, sans teinte) et reprise de `ecart` sous « différent », dans `packages/kit/src/referentiel/signes.ts`. Champ facultatif `grille` pour l'engrenage (512). Version du kit non montée.
+Reste : la conversation principale monte la version du kit ; les lecteurs migrent aux lots A5 à A9.

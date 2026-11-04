@@ -96,3 +96,22 @@ test('les dix catégories du mode Tokens ont un signe dans rubrique-tokens', () 
   const reprises = REPRISES_DE_SIGNES.filter((reprise) => reprise.famille === 'rubrique-tokens').flatMap((reprise) => reprise.reprend.map((repris) => repris.id));
   assert.deepEqual([...propres, ...reprises].sort(), ['a-creer', 'couches', 'cran', 'mode', 'nom', 'rangement', 'rompue', 'scope', 'types', 'valeurs']);
 });
+
+test('la famille interface porte quinze signes propres et reprend « différent » à écart', () => {
+  const propres = SIGNES.filter((signe) => signe.famille === 'interface').map((signe) => signe.id);
+  assert.deepEqual(propres, ['chevron', 'fermer', 'lien-externe', 'reglages', 'poignee', 'loupe', 'tout-replier', 'panneau-lateral', 'synchroniser', 'menu', 'ajouter', 'retirer', 'avant-apres', 'separateur', 'vide']);
+  assert.deepEqual(REPRISES_DE_SIGNES.find((reprise) => reprise.famille === 'interface')?.reprend, [{ id: 'ecart', libelle: 'différent' }]);
+  assert.equal(FAMILLES_DE_SIGNES.find((famille) => famille.id === 'interface')?.teinte, null);
+});
+
+test('un signe à grille propre déclare sa grille dans le viewBox, les autres gardent 16', () => {
+  assert.match(svgDuSigne('reglages'), /viewBox="0 0 512 512"/);
+  assert.match(svgDuSigne('chevron'), /viewBox="0 0 16 16"/);
+  assert.deepEqual(SIGNES.filter((signe) => signe.grille !== undefined).map((signe) => signe.id), ['reglages']);
+});
+
+test('aucune forme d’alerte du socle n’est recopiée dans SIGNES', () => {
+  // Les cinq formes de packages/plugin-socle/src/ui/Alerte.ts restent au socle (R-8, QM-11).
+  const formes = ['M4 .5h4L11.5 4v4L8 11.5H4L.5 8V4z', 'M6 .6l5.6 10.4H.4z', 'M3.3 6h5.4', 'M6 4.2v3.3', 'M6 5.2v3.6', 'M4.5 4.7a1.6 1.6 0 1 1 2.3 1.4c-.5.3-.8.6-.8 1.1', 'M3.4 6.1l1.8 1.8 3.5-3.7'];
+  for (const signe of SIGNES) for (const forme of formes) assert.ok(!signe.trace.includes(forme), `${signe.id} recopie la forme ${forme}`);
+});

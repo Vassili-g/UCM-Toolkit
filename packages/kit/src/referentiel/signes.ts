@@ -2,7 +2,7 @@
  * Les signes : la sorte d’objet qu’une tuile désigne, partagée par tous les plugins UCM.
  *
  * Le kit porte les données (identifiant, famille, libellé, sens, tracé, mot de repli) et ne crée aucun élément DOM.
- * Le tracé est le contenu SVG d’une grille de 16 ; il n’emploie que `path`, `rect`, `circle` et `text`.
+ * Le tracé est le contenu SVG d’une grille de 16, ou de la `grille` que le signe déclare ; il n’emploie que `path`, `rect`, `circle` et `text`.
  * Un signe repris par une autre famille n’est défini qu’une fois ; la famille qui le reprend le liste dans `REPRISES_DE_SIGNES`.
  */
 
@@ -23,6 +23,7 @@ export const FAMILLES_DE_SIGNES = [
   { id: 'accessibilite', libelle: 'Accessibilité', teinte: 'a11y' },
   { id: 'palettes', libelle: 'Palettes', teinte: 'couleurs' },
   { id: 'publication', libelle: 'Publication', teinte: null },
+  { id: 'interface', libelle: 'Interface des plugins', teinte: null },
 ] as const satisfies readonly { id: string; libelle: string; teinte: TeinteDeFamille | null }[];
 
 export type IdDeFamilleDeSignes = (typeof FAMILLES_DE_SIGNES)[number]['id'];
@@ -32,8 +33,10 @@ export interface SigneDuLangage {
   famille: IdDeFamilleDeSignes;
   libelle: string;
   sens: string;
-  /** Contenu SVG sur une grille de 16. Vide quand la tuile porte seule la couleur. */
+  /** Contenu SVG sur la grille du signe. Vide quand la tuile porte seule la couleur. */
   trace: string;
+  /** Côté de la grille du tracé, 16 quand il manque. Un tracé plein copié d’une icône de 512 la garde, faute de se tracer au trait. */
+  grille?: number;
   /** Mot d’un texte brut, là où aucun tracé ne se dessine. */
   mot: string;
 }
@@ -81,6 +84,9 @@ type Entree = readonly [id: string, libelle: string, trace: string, sens: string
 
 const famille = (id: IdDeFamilleDeSignes, entrees: readonly Entree[]): SigneDuLangage[] =>
   entrees.map(([signe, libelle, trace, sens]) => ({ id: signe, famille: id, libelle, sens, trace, mot: libelle }));
+
+/** Engrenage de Font Awesome Free Solid 6.7.2 (gear, f013), plein, sur sa grille de 512. */
+const ENGRENAGE = '<path d="M495.9 166.6c3.2 8.7.5 18.4-6.4 24.6l-43.3 39.4c1.1 8.3 1.7 16.8 1.7 25.4s-.6 17.1-1.7 25.4l43.3 39.4c6.9 6.2 9.6 15.9 6.4 24.6c-4.4 11.9-9.7 23.3-15.8 34.3l-4.7 8.1c-6.6 11-14 21.4-22.1 31.2c-5.9 7.2-15.7 9.6-24.5 6.8l-55.7-17.7c-13.4 10.3-28.2 18.9-44 25.4l-12.5 57.1c-2 9.1-9 16.3-18.2 17.8c-13.8 2.3-28 3.5-42.5 3.5s-28.7-1.2-42.5-3.5c-9.2-1.5-16.2-8.7-18.2-17.8l-12.5-57.1c-15.8-6.5-30.6-15.1-44-25.4L83.1 425.9c-8.8 2.8-18.6.3-24.5-6.8c-8.1-9.8-15.5-20.2-22.1-31.2l-4.7-8.1c-6.1-11-11.4-22.4-15.8-34.3c-3.2-8.7-.5-18.4 6.4-24.6l43.3-39.4C64.6 273.1 64 264.6 64 256s.6-17.1 1.7-25.4L22.4 191.2c-6.9-6.2-9.6-15.9-6.4-24.6c4.4-11.9 9.7-23.3 15.8-34.3l4.7-8.1c6.6-11 14-21.4 22.1-31.2c5.9-7.2 15.7-9.6 24.5-6.8l55.7 17.7c13.4-10.3 28.2-18.9 44-25.4l12.5-57.1c2-9.1 9-16.3 18.2-17.8C227.3 1.2 241.5 0 256 0s28.7 1.2 42.5 3.5c9.2 1.5 16.2 8.7 18.2 17.8l12.5 57.1c15.8 6.5 30.6 15.1 44 25.4l55.7-17.7c8.8-2.8 18.6-.3 24.5 6.8c8.1 9.8 15.5 20.2 22.1 31.2l4.7 8.1c6.1 11 11.4 22.4 15.8 34.3zM256 336a80 80 0 1 0 0-160 80 80 0 1 0 0 160z" fill="currentColor" stroke="none"/>';
 
 export const SIGNES: readonly SigneDuLangage[] = [
   ...famille('types-figma', [
@@ -203,6 +209,23 @@ export const SIGNES: readonly SigneDuLangage[] = [
     ['fusion', 'demande de fusion', '<circle cx="4" cy="3.5" r="1.6"/><circle cx="4" cy="12.5" r="1.6"/><circle cx="12" cy="12.5" r="1.6"/><path d="M4 5.1v5.8M4 6.5c0 3.5 8 2 8 4.4"/>', 'La pull request ou la merge request ouverte.'],
     ['version', 'version du kit', '<path d="M2 2h6l6 6-6 6-6-6z"/><circle cx="5.5" cy="5.5" r="1"/>', 'Le numéro de @ucm-kit/core.'],
   ]),
+  ...famille('interface', [
+    ['chevron', 'chevron', '<path d="M4 6 8 10 12 6"/>', 'Un tracé qui pointe vers le bas ; le lecteur le tourne pour les trois autres sens.'],
+    ['fermer', 'fermer', '<path d="M4.8 4.8l6.4 6.4M11.2 4.8l-6.4 6.4"/>', 'Ferme le panneau, le message ou la fenêtre.'],
+    ['lien-externe', 'lien externe', '<path d="M9 2.5h4.5V7M13.5 2.5 7.5 8.5M11.5 9.5v3a1 1 0 0 1-1 1h-7a1 1 0 0 1-1-1v-7a1 1 0 0 1 1-1h3"/>', 'Ouvre une page hors du plugin.'],
+    ['reglages', 'réglages', ENGRENAGE, 'Ouvre la configuration du plugin.'],
+    ['poignee', 'poignée de taille', '<path d="M15 6 L6 15 M15 11 L11 15"/>', 'Coin que le designer tire pour changer la taille de la fenêtre.'],
+    ['loupe', 'loupe', '<circle cx="6.8" cy="6.8" r="4.9"/><path d="m10.5 10.5 4.3 4.3"/>', 'Recherche.'],
+    ['tout-replier', 'tout replier', '<path d="M4 2.5l4 3.5 4-3.5M4 13.5l4-3.5 4 3.5"/>', 'Replie toutes les sections sauf celle qui est ouverte.'],
+    ['panneau-lateral', 'panneau latéral', '<rect x="1.5" y="2.5" width="13" height="11" rx="1.5"/><path d="M10 2.5v11"/>', 'Montre ou masque le panneau latéral.'],
+    ['synchroniser', 'synchroniser', '<path d="M13.5 6.5A5.5 5.5 0 0 0 3.2 5M2.5 2.5v2.7h2.7M2.5 9.5A5.5 5.5 0 0 0 12.8 11M13.5 13.5v-2.7h-2.7"/>', 'Relit l’état de Figma.'],
+    ['menu', 'menu', '<circle cx="3" cy="8" r=".9" fill="currentColor"/><circle cx="8" cy="8" r=".9" fill="currentColor"/><circle cx="13" cy="8" r=".9" fill="currentColor"/>', 'Ouvre les autres actions d’une ligne.'],
+    ['ajouter', 'ajouter', '<path d="M8 3v10M3 8h10"/>', 'Ajoute un élément.'],
+    ['retirer', 'retirer', '<path d="M3 8h10"/>', 'Retire un élément.'],
+    ['avant-apres', 'avant, après', '<path d="M3.2 8h8.8M8.8 4.8 12 8l-3.2 3.2"/>', 'Va d’une valeur d’avant à la valeur d’après.'],
+    ['separateur', 'séparateur de chemin', '<path d="m6 3.5 4.5 4.5L6 12.5"/>', 'Sépare deux niveaux d’un chemin.'],
+    ['vide', 'vide', '<path d="M8 1.5 14.5 8 8 14.5 1.5 8z" stroke-dasharray="1.1 1.1"/>', 'Rien à montrer dans cette vue.'],
+  ]).map((signe) => (signe.id === 'reglages' ? { ...signe, grille: 512 } : signe)),
 ];
 
 /** Les signes qu’une famille montre sans les définir : la définition reste dans leur famille d’origine. */
@@ -224,6 +247,7 @@ export const REPRISES_DE_SIGNES: readonly RepriseDeSigne[] = [
   },
   { famille: 'usage-couleur', reprend: [{ id: 'type-color', libelle: 'Couleurs' }] },
   { famille: 'proposition', reprend: [{ id: 'a-creer', libelle: 'préparation' }] },
+  { famille: 'interface', reprend: [{ id: 'ecart', libelle: 'différent' }] },
   { famille: 'palettes', reprend: [{ id: 'mode', libelle: 'Light, Dark' }] },
   {
     famille: 'rubrique-tokens',
@@ -241,5 +265,5 @@ export const REPRISES_DE_SIGNES: readonly RepriseDeSigne[] = [
 export function svgDuSigne(id: string, taille = 16): string {
   const signe = SIGNES.find((candidat) => candidat.id === id);
   if (!signe) throw new Error(`Signe inconnu : « ${id} ». Les identifiants admis sont ceux de SIGNES.`);
-  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" width="${taille}" height="${taille}" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${signe.trace}</svg>`;
+  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${signe.grille ?? 16} ${signe.grille ?? 16}" width="${taille}" height="${taille}" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${signe.trace}</svg>`;
 }
