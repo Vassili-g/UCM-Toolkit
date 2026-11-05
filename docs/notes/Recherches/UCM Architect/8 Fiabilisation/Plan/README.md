@@ -219,7 +219,7 @@ Règles propres à la phase E :
 | [E11b](lots/E11b.md) Ordre, budget et library à choisir | `implementeur-exigeant` | E11a, B7 | [x] 6a1d1b3b |
 | [E11c](lots/E11c.md) Sujet, cycle et résultat provisoire | `implementeur` | E11b | [x] 21c67c8e |
 | [E12](lots/E12.md) Rejeu complet et cibles | `verificateur`, puis la conversation principale | E11c, E0b, E3d, E4c, D7.1, D5a | [ ] E12.1 et E12.2 rejoués, écarts en E13, E12.3 au mainteneur |
-| [E13](lots/E13.md) Écarts du rejeu final | `implementeur-exigeant` | E12.1, E12.2 | [ ] |
+| [E13](lots/E13.md) Écarts du rejeu final | `implementeur-exigeant` | E12.1, E12.2 | [x] 6650e77f, Q-F3-4 et pictogramme au mainteneur |
 
 ## Phase G. Attente avant les constats du mode Tokens
 
