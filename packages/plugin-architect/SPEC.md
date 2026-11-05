@@ -249,6 +249,8 @@ fois, analyse ou écriture : une seconde demande reçoit `occupe`, sauf quand l'
 en cours est une analyse déjà périmée : son calcul est annulé et la nouvelle demande est servie.
 Un `occupe` qui porte `demande` ne change pas l'écriture affichée.
 
+Le relevé lit `variantProperties` de chaque instance dans `instanceDe.valeurs` pour comparer sa taille à celle du variant hôte. Une lecture refusée garde le maître de l'instance et ajoute une manquée `variantProperties`, sans juger sa taille.
+
 Une analyse crée un seul contexte coopératif (`creerContexteCooperatif` du
 socle) : horloge, pause, budget de 25 ms et jeton d'annulation. Le relevé, le
 moteur, les contrôles du kit et le calcul des corrections le reçoivent et
@@ -436,7 +438,7 @@ la capture du composant (`capturerLeComposant`, sans les imports de library),
 de quoi rejouer l'analyse hors de Figma. Rien ne part du poste, mais le fichier
 contient des noms et des valeurs du document : le designer le joint lui-même
 à un signalement. Le sandbox le lit sans rien écrire (`preparer-le-rapport`).
-Le mode Tokens a le même geste, au pied de ses onglets. Le sandbox rend le journal de ses phases (`preparer-le-rapport-de-tokens`), avec la durée et les appels à l'API Figma de chacune. Le panneau y ajoute la durée du rendu et la taille des messages `releve` et `structure`. Ce fichier ne porte aucun nom de variable. Sans réponse du sandbox, le lien revient à son libellé avec la ligne « Le rapport n’a pas pu être préparé. » : après 20 s pour le mode Tokens, après 120 s pour le mode Composant. Un `code.js` plus ancien que `ui.html` ignore `preparer-le-rapport-de-tokens` sans répondre ; `npm run build:plugin -- architect` reconstruit les deux.
+Le mode Tokens a le même geste, au pied de ses onglets. Le sandbox rend le journal de ses phases (`preparer-le-rapport-de-tokens`) : pour chaque passage, la phase, son début et sa fin (millisecondes depuis 1970), le numéro de la demande et les appels à l'API Figma. Les phases sont les appels locaux, les cibles et les imports, l'inventaire, le lexique, les renommages, les questions, le bilan, les contrôles de structure, avec pour le calcul des noms le nombre de cessions, l'attente des pauses et la tranche synchrone la plus longue. Une phase englobante (`englobante: true`) ne s'additionne pas à ses sous-phases. Le panneau y ajoute la durée du rendu, la taille des messages `releve` et `structure`, et les repères de l'actualisation : départ, réception et rendu du relevé, de la structure et des noms, affichage complet. Ce fichier ne porte aucun nom de variable. Sans réponse du sandbox, le lien revient à son libellé avec la ligne « Le rapport n’a pas pu être préparé. » : après 20 s pour le mode Tokens, après 120 s pour le mode Composant. Un `code.js` plus ancien que `ui.html` ignore `preparer-le-rapport-de-tokens` sans répondre ; `npm run build:plugin -- architect` reconstruit les deux.
 
 ## Préparation
 

@@ -1,6 +1,7 @@
 /** Le relevé d'un jeu de variants : propriétés, layers, liaisons et porteurs, textes, instances, budget, annulation, lecture seule. */
 import assert from 'node:assert/strict';
 import test from 'node:test';
+import { controlerLaTypographie } from '@ucm-kit/core/controles';
 
 import { ouvrirLaMesure, fermerLaMesure } from 'ucm-plugin-socle/src/composant/contract/mesure';
 import { liaisonsDuNoeud, liaisonsDuNoeudCooperatives } from '../src/consommateurs';
@@ -10,6 +11,44 @@ import { atelierDeCalques, collectionFigma, portDeTest, variableFigma } from './
 
 const alias = (id: string) => ({ type: 'VARIABLE_ALIAS', id });
 const boite = (x: number, y: number, width: number, height: number) => ({ x, y, width, height });
+
+test('C66 compare la taille de chaque instance à celle du variant hôte', async () => {
+  const a = atelierDeCalques();
+  const maitre = a.calque('maitre', 'COMPONENT', { name: 'Size=Small', key: 'cle-small' });
+  a.calque('jeu-icone', 'COMPONENT_SET', { name: 'Icon', key: 'cle-icon' }, [maitre]);
+  const instances = ['Small', 'Medium'].map((Size) => a.calque(`icone-${Size}`, 'INSTANCE', {
+    name: `Icon ${Size}`, getMainComponentAsync: async () => maitre,
+    variantProperties: { Size }, absoluteBoundingBox: boite(0, 0, 16, 16),
+  }));
+  const variant = a.calque('variant', 'COMPONENT', { name: 'Size=Small', variantProperties: { Size: 'Small' } }, instances);
+  const jeu = a.calque('jeu', 'COMPONENT_SET', {
+    name: 'Button', key: 'cle-button',
+    componentPropertyDefinitions: { Size: { type: 'VARIANT', defaultValue: 'Small', variantOptions: ['Small', 'Medium'] } },
+  }, [variant]);
+  const issue = await lireLeReleve(a.port(portDeTest([], []).port), jeu);
+  assert.equal(issue.statut, 'lu');
+  if (issue.statut !== 'lu') return;
+  assert.deepEqual(issue.releve.variants[0].layers.slice(1).map((layer) => layer.instanceDe?.valeurs), [{ Size: 'Small' }, { Size: 'Medium' }]);
+  const constats = controlerLaTypographie(issue.releve, { version: 1, library: null, variables: [], collections: [] });
+  assert.deepEqual(constats.filter((constat) => constat.faits.motif === 'taille-differente').map(({ layers, faits }) => ({ layers, faits })), [
+    { layers: ['icone-Medium'], faits: { calque: 'Icon Medium', motif: 'taille-differente', valeur: 'Medium', taille: 'Small' } },
+  ]);
+});
+
+test('une taille d’instance illisible conserve son maître sans juger sa taille', async () => {
+  const a = atelierDeCalques();
+  const maitre = a.calque('maitre', 'COMPONENT', { name: 'Icon', key: 'cle-icon' });
+  const instance = a.calque('icone', 'INSTANCE', {
+    name: 'Icon', getMainComponentAsync: async () => maitre,
+    get variantProperties() { throw new Error('taille illisible'); },
+  });
+  const variant = a.calque('variant', 'COMPONENT', {}, [instance]);
+  const issue = await lireLeReleve(a.port(portDeTest([], []).port), variant);
+  assert.equal(issue.statut, 'lu');
+  if (issue.statut !== 'lu') return;
+  assert.deepEqual(issue.releve.variants[0].layers[1].instanceDe, { cle: 'cle-icon', nom: 'Icon', distante: false, pilotee: null });
+  assert.ok(issue.releve.lecture.manquees.some(({ layer, champ, motif }) => layer === 'icone' && champ === 'variantProperties' && motif === 'taille illisible'));
+});
 
 test('90 petits variants partagent le budget et gardent le même relevé avec ou sans cessions', async () => {
   const a = atelierDeCalques();

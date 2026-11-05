@@ -30,7 +30,25 @@ Fin : `npm run test --workspace @ucm-kit/core` passe. Les régressions ciblées 
 
 ## Avancement
 
-E8.1, E8.2 et E8.5 faites côté kit, avec leurs textes. E8.6 reste pour F2. Le lecteur d'Architect ne remplit pas encore `instanceDe.valeurs`, donc le motif `taille-differente` ne se déclenche pas dans Figma. Pas de commit.
+En cours (Codex). Ne pas reprendre.
+
+Le reliquat commence par la lecture du lecteur, du type `LayerLu` et des tests voisins. `agents:lire` rend le domaine explorateur. La branche est `main` et les fichiers de ce reliquat étaient propres.
+
+Le test `C66 compare` échoue sans correction. Les deux instances rendent `undefined` au lieu de leur valeur de `Size`. Le lecteur copie maintenant `variantProperties` par la mémoire de champs, avec une cession par propriété. Une lecture refusée conserve le maître et ajoute une manquée.
+
+Les 66 tests du relevé passent après correction. Le test traverse le lecteur puis C66 et ne signale que l'instance `Medium` dans le variant `Small`. La carte, la spec et l'invariant décrivent cette lecture.
+
+La correction retirée fait échouer `C66 compare`, puis remise elle passe. Les 71 tests du relevé et de la projection des lecteurs passent. La projection attend maintenant la lecture de `variantProperties` sur une instance.
+
+Les premières compilations et le premier typecheck échouent dans `packages/kit/src/controles/accessibilite.ts`, réservé à l'autre session. La relance du kit passe après ses écritures. Les tests d'Architect donnent 2 143 succès et 7 échecs dans `analyse.test.ts`, `paritesDeSession.test.ts` et `projectionsDesControles.test.ts`, hors reliquat, autour de `controle-accessibilite`.
+
+`agents:diff` a été lancé. Les documents liés ont été relus. Le contrôle de style ne rend aucun refus.
+
+Le typecheck global rend 0. Les trois fichiers en échec ont été relancés chacun seul et échouent encore. Aucun n'a été corrigé. Les journaux locaux sont dans `_local/codex-r1-*`.
+
+Prochaine action prévue. Commiter les seuls chemins du reliquat, puis noter son hash dans ce lot et dans le tableau du plan.
+
+E8.1, E8.2 et E8.5 faites côté kit, avec leurs textes. Le lecteur d'Architect remplit `instanceDe.valeurs` pour déclencher `taille-differente`. E8.6 reste pour F2.
 
 Fichiers :
 - `packages/kit/src/controles/typographie.ts` (C66) :
@@ -61,6 +79,4 @@ Commandes :
 - `npx tsx --test tests/referentielUnique.test.ts` (racine) : une liste `['default', 'hover']` dans `tests/referencesComposants.test.ts:180`, hors lot.
 
 Reste :
-- Le lecteur du relevé (`packages/plugin-architect/src/releveDuComposant.ts`) doit remplir `instanceDe.valeurs` avec les propriétés de variant de l'instance : sans lui, `taille-differente` reste muet dans Figma. Ce fichier n'est pas dans le lot.
-- Une ligne à écrire dans `packages/plugin-architect/SPEC.md` si le mainteneur veut l'expliquer : la lecture de `instanceDe.valeurs`.
 - E8.6, montée de version du kit en F2.

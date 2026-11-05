@@ -1,6 +1,6 @@
 /**
  * Le relevé complet d'un jeu de variants : tous ses variants, leurs layers,
- * peintures, liaisons, textes, valeurs sans variable et instances, tels que
+ * peintures, liaisons, textes, valeurs sans variable et instances avec leurs propriétés de variant, tels que
  * les contrôles du kit les lisent (`ReleveDeComposant`). Rien n'est écrit
  * dans le document, et aucune variable n'est importée.
  *
@@ -401,11 +401,26 @@ async function instanceDe(noeud: NoeudLu, lecteur: Lecteur, manquees: Manquee[])
     manquees.push({ layer: noeud.id, champ: 'instanceDe', motif: lu.motif });
     return undefined;
   }
+  let valeurs: Record<string, string> | undefined;
+  try {
+    const propres = champLu(noeud, 'variantProperties', lecteur.lire);
+    if (estUnObjet(propres)) {
+      valeurs = {};
+      for (const nom of Object.keys(propres)) {
+        await lecteur.cooperation.cederSiBesoin();
+        Object.defineProperty(valeurs, nom, { value: String(propres[nom]), enumerable: true, configurable: true, writable: true });
+      }
+    }
+  } catch (erreur) {
+    if (erreur instanceof AnalyseAnnulee) throw erreur;
+    valeurs = undefined;
+    manquees.push({ layer: noeud.id, champ: 'variantProperties', motif: messageDErreur(erreur) });
+  }
   try {
     const references = champLu(noeud, 'componentPropertyReferences', lecteur.lire);
     const pilotee = estUnObjet(references) && typeof references.mainComponent === 'string' ? references.mainComponent : null;
     const publie = lu.maitre.jeu ?? lu.maitre;
-    return { instanceDe: { cle: publie.key, nom: publie.nom, distante: lu.maitre.remote, pilotee }, natif: lu.natif };
+    return { instanceDe: { cle: publie.key, nom: publie.nom, distante: lu.maitre.remote, pilotee, ...(valeurs === undefined ? {} : { valeurs }) }, natif: lu.natif };
   } catch (erreur) {
     manquees.push({ layer: noeud.id, champ: 'instanceDe', motif: messageDErreur(erreur) });
     return undefined;
