@@ -251,5 +251,5 @@ G1a et G2 peuvent tourner ensemble, sans fichier commun.
 | Lot | Agent | Dépend de | État |
 |---|---|---|---|
 | [F1](lots/F1.md) Vérification du dépôt | `verificateur` | A11, E12.1, E12.2, E12.4, G5.1 | [ ] |
-| [F2](lots/F2.md) Publication finale | conversation principale | F1 | [ ] |
+| [F2](lots/F2.md) Publication finale | conversation principale | F1 | [x] 2c9642ba, publié |
 | [F3](lots/F3.md) Recette Figma | mainteneur | F1, build disponible | [ ] |
