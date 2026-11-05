@@ -1,4 +1,6 @@
 {
   "extends": "../tsconfig.json",
+  // Le test du hub importe la page, qui lit les tracés du socle écrits pour le DOM.
+  "compilerOptions": { "lib": ["ES2022", "DOM"] },
   "include": ["./**/*", "../src/modele/**/*", "../src/generer.ts"]
 }

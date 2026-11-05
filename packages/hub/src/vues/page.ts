@@ -272,7 +272,7 @@ function alerte(jeu: Jeu, variante: 'filled' | 'outlined', titre: string, texte:
   const jeuAction = options.actionJeu ?? jeu;
   const texteAction = jeuAction.v[filled && action === 'surface' ? 'surface/foreground' : 'page/foreground'];
   const style = `background:${hx(fond)};color:${hx(encre)};${bord ? `box-shadow:inset 0 0 0 1px ${bord.hexa}` : ''}`;
-  const html = `<div class="alerte" style="${style}"><span class="icone">${icone(statut, fond)}</span><div class="alerte-texte"><b>${esc(titre)}</b><span>${esc(texte)}</span></div><span class="alerte-action" style="color:${hx(texteAction)}">Action</span></div>`;
+  const html = `<div class="alerte" style="${style}"><span class="icone">${icone(statut, fond ?? jeu.page)}</span><div class="alerte-texte"><b>${esc(titre)}</b><span>${esc(texte)}</span></div><span class="alerte-action" style="color:${hx(texteAction)}">Action</span></div>`;
   const prises: Prise[] = [
     { nom: 'texte', premier: encre, fond, nature: 'texte' },
     { nom: 'action', premier: texteAction, fond, nature: 'texte' },
