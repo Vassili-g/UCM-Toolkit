@@ -65,9 +65,14 @@ export function creerPanneau({ etats }: OptionsDePanneau): Panneau {
 export interface VueDAnalyse {
   readonly element: HTMLElement;
   poser(lues: number, total: number): void;
+  /** Le texte de l'étape en cours, que l'actualisation donne ; `null` rend le titre d'origine et le compte « N sur M ». */
+  poserLeTexte(texte: string | null): void;
 }
 
-/** La lecture des variables : un titre, une barre et le compte, sans total tant que le sandbox ne l'a pas donné. */
+/**
+ * La lecture des variables : un titre, une barre et le compte, sans total tant que le sandbox ne l'a pas donné. La barre disparaît à N variables
+ * sur N : la lecture finie ne vaut pas analyse finie, et le titre dit l'étape suivante. Avec le texte de l'actualisation, il porte aussi le compte.
+ */
 export function creerVueDAnalyse(): VueDAnalyse {
   const element = document.createElement('div');
   element.className = 'etat';
@@ -86,15 +91,31 @@ export function creerVueDAnalyse(): VueDAnalyse {
   compte.className = 'etat-texte';
   element.append(titre, barre, compte);
 
+  let texteDonne: string | null = null;
+  let lue = 0;
+  let totale = 0;
+
+  function rendre(): void {
+    const connu = totale > 0;
+    rempli.style.width = connu ? `${Math.min(100, Math.round((lue / totale) * 100))}%` : '0%';
+    barre.setAttribute('aria-valuemax', String(totale));
+    barre.setAttribute('aria-valuenow', String(lue));
+    barre.hidden = connu && lue >= totale;
+    titre.textContent = texteDonne ?? TEXTES.analyseEnCours;
+    compte.hidden = texteDonne !== null || !connu;
+    compte.textContent = texteDonne === null && connu ? TEXTES.variablesLues(lue, totale) : '';
+  }
+
   return {
     element,
     poser(lues, total) {
-      const connu = total > 0;
-      rempli.style.width = connu ? `${Math.min(100, Math.round((lues / total) * 100))}%` : '0%';
-      barre.setAttribute('aria-valuemax', String(total));
-      barre.setAttribute('aria-valuenow', String(lues));
-      compte.hidden = !connu;
-      compte.textContent = connu ? TEXTES.variablesLues(lues, total) : '';
+      lue = lues;
+      totale = total;
+      rendre();
+    },
+    poserLeTexte(texte) {
+      texteDonne = texte;
+      rendre();
     },
   };
 }

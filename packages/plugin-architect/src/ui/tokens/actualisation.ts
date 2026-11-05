@@ -6,11 +6,17 @@
  * l'onglet montre la durée de l'analyse, sous la forme du mode Composant (`TEXTES.panneau.analyseA`). Une lecture échouée ou annulée
  * abandonne le suivi : l'attente tombe, sans durée.
  *
+ * Chaque message suit un événement du calcul, jamais une minuterie. Deux fils portent des textes distincts, pour qu'une même phrase ne paraisse
+ * pas deux fois : la structure (en tête des constats) va de « Lecture des variables… » à « Vérification des variables et des alias… », et les noms
+ * (dans la section Noms) vont du compte des variables acquises à « Recherche des termes à harmoniser… ». Une fois la structure affichée, Noms dit
+ * « La vérification des noms continue. » tant qu'il n'a pas d'étape plus précise.
+ *
  * Il ne parle pas au sandbox : `relancerLesNoms` est injecté, et rend faux quand le fichier n'a pas de bilan.
  *
  * Il tient aussi les repères du rapport (`Repere`) : l'heure, en millisecondes depuis 1970 comme les phases du sandbox, du départ de
  * l'actualisation, de la réception puis du rendu des constats de structure et des noms, et de la fin du rendu complet.
  */
+import type { EtapeDesNoms } from '../../messages/nomenclature';
 import type { Lecture } from '../etat';
 import { TEXTES } from '../textes';
 import { heureLisible } from '../textes/composant';
@@ -19,10 +25,9 @@ import type { PanneauDesTokens } from './panneau';
 /** Ce qu'une actualisation attend : la lecture des variables, la structure, et les noms quand leur analyse est relancée. */
 export type PartDeLActualisation = 'releve' | 'structure' | 'noms';
 
-/** Le texte de lecture du mode Tokens : la phase et son compte quand le sandbox les a donnés, sinon « Lecture des variables… ». */
+/** Le texte de la lecture du relevé : « Lecture des cibles des alias… » à la phase des références, sinon « Lecture des variables… », sans total. */
 export function texteDeLaLecture(lecture: Lecture): string {
-  if (lecture.statut === 'en-cours' && (lecture.total > 1 || lecture.fait > 0)) return TEXTES.progression(TEXTES.phase[lecture.phase] ?? lecture.phase, lecture.fait, lecture.total);
-  return TEXTES.lectureEnCours;
+  return lecture.statut === 'en-cours' && lecture.phase === 'references' ? TEXTES.lectureDesCibles : TEXTES.lectureEnCours;
 }
 
 /** Les moments que l'interface note pour une actualisation. `affichage-complet` : la dernière part est rendue et le chargement se retire. */
@@ -56,6 +61,10 @@ export interface Actualisation {
   recevoir(part: PartDeLActualisation): void;
   /** Un `bilan` neuf arrive d'une analyse des noms que l'écran avait lui-même demandée pendant l'actualisation : elle compte aussi. */
   attendreLesNoms(): void;
+  /** Le calcul des noms entre dans une étape (sandbox ou Worker) ; sans effet si les noms ne sont pas attendus. */
+  etapeDesNoms(etape: EtapeDesNoms): void;
+  /** L'inventaire des noms compte `lues` variables acquises sur `total` ; le compte s'efface à N sur N. */
+  lectureDesNoms(lues: number, total: number): void;
   /** La lecture a échoué ou été annulée. */
   abandonner(): void;
   /** Redessine le message : le texte de progression a pu changer. */
@@ -73,16 +82,40 @@ export function creerActualisation({ panneau, lecture, relancerLesNoms, horloge 
   let suivie = false;
   let chargement = true;
   let numero = 0;
+  /** Le relevé est reçu : la structure se vérifie, sans autre événement à suivre avant ses constats. */
+  let structureEnVerification = false;
+  /** Les variables acquises par l'analyse des noms ; `null` avant le premier compte. */
+  let acquises: { readonly lues: number; readonly total: number } | null = null;
+  let etapeDesNoms: EtapeDesNoms | null = null;
   const reperes: Repere[] = [];
   function noter(repere: NomDeRepere): void {
     reperes.push({ repere, a: maintenant(), actualisation: numero });
     if (reperes.length > REPERES_RETENUS) reperes.splice(0, reperes.length - REPERES_RETENUS);
   }
 
+  const structureAttendue = (): boolean => attendues.has('releve') || attendues.has('structure');
+
+  /** Le texte du fil des noms : l'étape la plus avancée, sinon le compte des variables, sinon la phrase de la structure affichée. */
+  function texteDesNoms(): string | null {
+    if (!attendues.has('noms')) return null;
+    if (etapeDesNoms === 'questions') return TEXTES.rechercheDesTermes;
+    if (etapeDesNoms === 'lexique') return TEXTES.verificationDesNoms;
+    if (acquises !== null && acquises.total > 0 && acquises.lues < acquises.total) return TEXTES.lectureAvecCompte(acquises.lues, acquises.total);
+    return structureAttendue() ? null : TEXTES.verificationDesNomsContinue;
+  }
+
   function poser(): void {
-    panneau.poserLAttente(suivie
-      ? { structure: attendues.has('releve') || attendues.has('structure'), noms: attendues.has('noms'), texte: texteDeLaLecture(lecture()), enTete: chargement }
-      : null);
+    if (!suivie) {
+      panneau.poserLAttente(null);
+      return;
+    }
+    panneau.poserLAttente({
+      structure: structureAttendue(),
+      noms: attendues.has('noms'),
+      texte: structureEnVerification ? TEXTES.verificationDeLaStructure : texteDeLaLecture(lecture()),
+      texteDesNoms: texteDesNoms(),
+      enTete: chargement,
+    });
   }
 
   return {
@@ -91,6 +124,9 @@ export function creerActualisation({ panneau, lecture, relancerLesNoms, horloge 
       numero += 1;
       noter('depart');
       attendues = new Set<PartDeLActualisation>(['releve', 'structure']);
+      structureEnVerification = false;
+      acquises = null;
+      etapeDesNoms = null;
       debut = horloge();
       suivie = true;
       if (relancerLesNoms()) attendues.add('noms');
@@ -100,10 +136,23 @@ export function creerActualisation({ panneau, lecture, relancerLesNoms, horloge 
     attendreLesNoms() {
       if (!suivie) return;
       attendues.add('noms');
+      acquises = null;
+      etapeDesNoms = null;
+      poser();
+    },
+    etapeDesNoms(etape) {
+      if (!suivie || !attendues.has('noms')) return;
+      etapeDesNoms = etape;
+      poser();
+    },
+    lectureDesNoms(lues, total) {
+      if (!suivie || !attendues.has('noms')) return;
+      acquises = { lues, total };
       poser();
     },
     recevoir(part) {
       if (!suivie || !attendues.delete(part)) return;
+      if (part === 'releve') structureEnVerification = true;
       if (attendues.size > 0) {
         poser();
         return;

@@ -7,7 +7,8 @@
  * qui demande une autre génération reçoit `perimee`, et le sandbox calcule alors lui-même.
  */
 import type { ResultatDuTravail, TravailDesNoms } from '../messages/calculDesNoms';
-import { calculerLEtatDirect, construireEtat, menerSansCeder, moteurDuKit, recalculer, type Etat, type Moteur } from './calcul';
+import type { EtapeDesNoms } from '../messages/nomenclature';
+import { calculerLEtatDirect, construireEtat, menerSansCeder, moteurAnnonceur, moteurDuKit, recalculer, type Etat, type Moteur } from './calcul';
 import {
   ErreurDeProtocole, conclureLaSimulation, debuterLaSimulation, messageDeSimulation, preparerLeGeste, renommagesDeLaSelection, repondreALaLecture,
 } from './gestes';
@@ -16,8 +17,11 @@ import {
 export const GENERATIONS_GARDEES = 2;
 
 export interface Atelier {
-  /** Exécute `travail` pour `generation` : la génération créée par `calculer`, `recalculer`, ou celle sur laquelle les autres travaux portent. */
-  executer(travail: TravailDesNoms, generation: number): ResultatDuTravail;
+  /**
+   * Exécute `travail` pour `generation` : la génération créée par `calculer`, `recalculer`, ou celle sur laquelle les autres travaux portent.
+   * `signaler` reçoit les étapes du calcul d'un bilan (`calculer`), dans l'ordre où le sandbox les annoncerait lui-même.
+   */
+  executer(travail: TravailDesNoms, generation: number, signaler?: (etape: EtapeDesNoms) => void): ResultatDuTravail;
 }
 
 export function creerAtelier(moteur: Moteur = moteurDuKit): Atelier {
@@ -41,10 +45,10 @@ export function creerAtelier(moteur: Moteur = moteurDuKit): Atelier {
   }
 
   return {
-    executer(travail, generation) {
+    executer(travail, generation, signaler) {
       switch (travail.sorte) {
         case 'calculer': {
-          const etat = garder(calculerLEtatDirect({ ...travail.entree, generation }, moteur));
+          const etat = garder(calculerLEtatDirect({ ...travail.entree, generation }, signaler ? moteurAnnonceur(moteur, signaler) : moteur));
           return { sorte: 'bilan', bilan: etat.projection.bilan() };
         }
         case 'recalculer': {

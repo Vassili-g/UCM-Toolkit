@@ -45,7 +45,7 @@ export const TEXTES = {
   etiquetteDesOnglets: 'Sections d’UCM Architect',
   ongletRegles: 'Règles',
 
-  analyseEnCours: 'Lecture des variables',
+  analyseEnCours: 'Lecture des variables…',
   avancementDeLAnalyse: 'Avancement de la lecture',
   variablesLues: (lues: number, total: number): string => `${lues} sur ${total}`,
 

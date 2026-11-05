@@ -19,6 +19,7 @@ import { creerApplication } from '../src/ui/application';
 import { creerBarre } from '../src/ui/barre';
 import { etatInitial, type Lecture } from '../src/ui/etat';
 import { creerCoquille } from '../src/ui/nomenclature/coquille';
+import { creerVueDAnalyse } from '../src/ui/nomenclature/panneaux';
 import { creerFrontiere, type MessageAAfficher } from '../src/ui/nomenclature/frontiere';
 import { monterStructure } from '../src/ui/structure';
 import { creerActualisation, texteDeLaLecture } from '../src/ui/tokens/actualisation';
@@ -47,11 +48,11 @@ function suivi(options: { noms?: boolean; lecture?: () => Lecture } = {}) {
 test('l’attente dit à chaque part reçue ce qui manque encore, jusqu’à la dernière ; la durée prend alors sa place', () => {
   const { actualisation, panneau, avancer } = suivi({ noms: true });
   actualisation.commencer();
-  assert.deepEqual(panneau.attente, { structure: true, noms: true, texte: TEXTES.lectureEnCours, enTete: true });
+  assert.deepEqual(panneau.attente, { structure: true, noms: true, texte: TEXTES.lectureEnCours, texteDesNoms: null, enTete: true });
   actualisation.recevoir('releve');
-  assert.deepEqual(panneau.attente, { structure: true, noms: true, texte: TEXTES.lectureEnCours, enTete: true }, 'la structure suit le relevé');
+  assert.deepEqual(panneau.attente, { structure: true, noms: true, texte: TEXTES.verificationDeLaStructure, texteDesNoms: null, enTete: true }, 'la structure suit le relevé');
   actualisation.recevoir('structure');
-  assert.deepEqual(panneau.attente, { structure: false, noms: true, texte: TEXTES.lectureEnCours, enTete: true }, 'les noms manquent encore');
+  assert.deepEqual(panneau.attente, { structure: false, noms: true, texte: TEXTES.verificationDeLaStructure, texteDesNoms: TEXTES.verificationDesNomsContinue, enTete: true }, 'les noms manquent encore');
   assert.equal(panneau.resume, null);
   avancer(3_400);
   actualisation.recevoir('noms');
@@ -66,7 +67,7 @@ test('sans bilan, les noms ne sont pas attendus ; une part inattendue ou répét
   actualisation.commencer();
   actualisation.recevoir('noms');
   actualisation.recevoir('releve');
-  assert.deepEqual(panneau.attente, { structure: true, noms: false, texte: TEXTES.lectureEnCours, enTete: true });
+  assert.deepEqual(panneau.attente, { structure: true, noms: false, texte: TEXTES.verificationDeLaStructure, texteDesNoms: null, enTete: true });
   actualisation.recevoir('structure');
   assert.equal(panneau.attente, null);
   const resume = panneau.resume;
@@ -103,22 +104,23 @@ test('une lecture échouée ou annulée lève l’attente sans durée, et un nou
   assert.equal((panneau.attente as AttenteDeLAnalyse | null)?.texte, TEXTES.lectureEnCours);
 });
 
-test('le texte de chargement reprend celui de la lecture : la phase et son compte, sinon « Lecture des variables… »', () => {
+test('le texte de la lecture suit la phase du relevé : « Lecture des variables… » sans total, « Lecture des cibles des alias… » aux références', () => {
   assert.equal(texteDeLaLecture({ statut: 'en-cours', demande: 1, phase: 'variables', fait: 0, total: 1 }), TEXTES.lectureEnCours);
-  assert.equal(texteDeLaLecture({ statut: 'en-cours', demande: 1, phase: 'variables', fait: 12, total: 40 }), TEXTES.progression(TEXTES.phase.variables, 12, 40));
+  assert.equal(texteDeLaLecture({ statut: 'en-cours', demande: 1, phase: 'variables', fait: 12, total: 40 }), TEXTES.lectureEnCours, 'aucun total pour les listes locales');
+  assert.equal(texteDeLaLecture({ statut: 'en-cours', demande: 1, phase: 'references', fait: 12, total: 40 }), TEXTES.lectureDesCibles);
   assert.equal(texteDeLaLecture(ATTENTE), TEXTES.lectureEnCours);
   const lecture: { courante: Lecture } = { courante: { statut: 'en-cours', demande: 1, phase: 'variables', fait: 0, total: 1 } };
   const { actualisation, panneau } = suivi({ lecture: () => lecture.courante });
   actualisation.commencer();
-  lecture.courante = { statut: 'en-cours', demande: 1, phase: 'variables', fait: 12, total: 40 };
+  lecture.courante = { statut: 'en-cours', demande: 1, phase: 'references', fait: 12, total: 40 };
   actualisation.rafraichir();
-  assert.equal(panneau.attente?.texte, TEXTES.progression(TEXTES.phase.variables, 12, 40));
+  assert.equal(panneau.attente?.texte, TEXTES.lectureDesCibles);
 });
 
 test('à l’ouverture, l’attente est suivie sans que son texte paraisse en tête des constats', () => {
   const { actualisation, panneau } = suivi({ noms: true });
   actualisation.commencer(false);
-  assert.deepEqual(panneau.attente, { structure: true, noms: true, texte: TEXTES.lectureEnCours, enTete: false });
+  assert.deepEqual(panneau.attente, { structure: true, noms: true, texte: TEXTES.lectureEnCours, texteDesNoms: null, enTete: false });
 });
 
 // Le panneau : le message de lecture reste en tête sans cacher les constats, la durée est la ligne `.arch-resume` du mode Composant.
@@ -346,7 +348,7 @@ test('G2.1 : la structure reçue pendant l’analyse des noms remplace la page d
   assert.ok(banc.racineDesConstats.querySelectorAll('.structure-liste .bloc').length > 0, 'les cartes de structure sont affichées');
   const noms = lu(sectionDe(banc.racineDesConstats, 'noms'));
   assert.notEqual(noms.querySelector('.bande-element.en-cours'), null, 'Noms reste en cours');
-  assert.equal(noms.querySelector('.accueil-texte')?.textContent, TEXTES.lectureEnCours, 'avec le texte de chargement existant');
+  assert.equal(noms.querySelector('.accueil-texte')?.textContent, TEXTES.verificationDesNomsContinue, 'la structure est affichée, la vérification des noms continue');
   assert.equal(noms.querySelector('.nombre'), null, 'sans nombre de cartes');
   assert.equal(sectionsDe(banc.racineDesConstats)[0], 'noms', 'Noms garde sa place en tête');
 
@@ -484,3 +486,21 @@ test('G2.3 : pendant Actualiser, les gestes d’Ignorer des cartes de la révisi
   banc.structureRendue({ constats: integrite.sansEcriture.slice(0, 3) });
   assert.ok(gestes().every((bouton) => !bouton.disabled));
 });
+
+test('G3 : la barre de lecture disparaît à N variables sur N, et le titre porte le texte de l’étape quand l’actualisation le donne', () => {
+  const vue = creerVueDAnalyse();
+  const element = lu(vue.element);
+  const barre = lu(element.querySelector('.avancement'));
+  vue.poser(0, 0);
+  assert.equal(barre.hidden, false, 'sans total, la barre attend');
+  vue.poser(500, 2415);
+  assert.equal(barre.hidden, false);
+  vue.poserLeTexte(TEXTES.lectureAvecCompte(500, 2415));
+  assert.equal(lu(element.querySelector('.etat-titre')).textContent, TEXTES.lectureAvecCompte(500, 2415));
+  assert.equal(lu(element.querySelector('.etat-texte')).hidden, true, 'le compte est dans le titre');
+  vue.poser(2415, 2415);
+  assert.equal(barre.hidden, true, 'N sur N : la lecture est finie, la barre disparaît');
+  vue.poserLeTexte(null);
+  assert.equal(lu(element.querySelector('.etat-titre')).textContent, 'Lecture des variables…');
+}
+);

@@ -17,7 +17,7 @@ import {
   CONVENTION_DES_COLLECTIONS, avecLesCheminsPublies, conventionsDe, ecritureEffective, idsNonRenommables, inventaireSelonLaProtection, nomsSelonLesRegles, palettesLibres,
   type Inventaire,
 } from '@ucm-kit/core/nommage';
-import type { Bilan, EcritureChoisie } from '../messages/nomenclature';
+import type { Bilan, EcritureChoisie, EtapeDesNoms } from '../messages/nomenclature';
 import { projeter, type EntreeDeProjection, type Projection } from './projection';
 import { dejaJugeDuFichier, vocabulaireDuFichier, type ReglesDuFichier } from './regles';
 
@@ -29,6 +29,25 @@ export interface Moteur {
   readonly porteesTouchees: typeof porteesTouchees;
 }
 export const moteurDuKit: Moteur = { commencerLexique, indexerVocabulaire, normaliserParEtapes, detecterParEtapes, porteesTouchees };
+
+/**
+ * Le moteur qui annonce l'étape où le calcul entre : `lexique` à la préparation du lexique (qui précède les renommages), `questions` à la détection
+ * des questions. Chaque étape s'annonce une fois. La session du sandbox et l'atelier du Worker l'emploient de la même façon, pour que l'écran
+ * reçoive les mêmes événements de l'une ou de l'autre voie ; ses résultats ne changent pas.
+ */
+export function moteurAnnonceur(moteur: Moteur, signaler: (etape: EtapeDesNoms) => void): Moteur {
+  const annoncees = new Set<EtapeDesNoms>();
+  const annoncer = (etape: EtapeDesNoms): void => {
+    if (annoncees.has(etape)) return;
+    annoncees.add(etape);
+    signaler(etape);
+  };
+  return {
+    ...moteur,
+    commencerLexique: (options) => { annoncer('lexique'); return moteur.commencerLexique(options); },
+    detecterParEtapes: (lexique, index, dejaJuge, options) => { annoncer('questions'); return moteur.detecterParEtapes(lexique, index, dejaJuge, options); },
+  };
+}
 
 // Les règles qui comptent pour le calcul
 

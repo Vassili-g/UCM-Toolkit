@@ -29,7 +29,7 @@ import type {
 import type { CauseDeRepli, DemandeDeLecture, RenommageAEcrire, ResultatDuTravail, TravailDePreparation, TravailDesNoms } from '../messages/calculDesNoms';
 import type { PortDeCalculDistant } from './distant';
 import {
-  calculerTout, construireEtat, moteurDuKit, motsDe, motsDuTermeUcm, premierLancement, recalculer,
+  calculerTout, construireEtat, moteurAnnonceur, moteurDuKit, motsDe, motsDuTermeUcm, premierLancement, recalculer,
   type Calcul, type Etat, type Moteur,
 } from './calcul';
 import {
@@ -391,7 +391,7 @@ export function creerSession(options: OptionsDeSession): Session {
       bilan = ailleurs.bilan;
       validerLeCalculDistant(demande.demande, inventaire, regles, bilan);
     } else {
-      const calcul = await menerLeCalcul(passage, (moteurDuPassage) => calculerTout(moteurDuPassage, inventaire, regles), ailleurs.repli ?? undefined);
+      const calcul = await menerLeCalcul(passage, (moteurDuPassage) => calculerTout(avecProgression ? moteurAnnonceur(moteurDuPassage, (etape) => envoyer({ type: 'etape-des-noms', demande: demande.demande, etape })) : moteurDuPassage, inventaire, regles), ailleurs.repli ?? undefined);
       if (calcul.abandonne) return;
       bilan = valider(demande.demande, null, inventaire, regles, calcul.valeur).projection.bilan();
     }

@@ -317,6 +317,8 @@ const reponseDeTermes = (demande, sections, comptes, reste = {}) => m('termes', 
 const messages = {
   initial: (dejaAnalyse) => ({ type: 'initial', dejaAnalyse }),
   lecture: (lues, total) => m('lecture', 1, { lues, total }),
+  /** Le calcul des noms entre dans une étape (`lexique` ou `questions`). */
+  etape: (etape) => m('etape-des-noms', 1, { etape }),
   bilan: (demande, bilan) => m('bilan', demande, { bilan }),
   lignes: (demande, debut) => m('lignes', demande, { generation: 1, groupe: groupeBackground.cle, debut, lignes: lignesSupplementaires.slice(debut - groupeBackground.apercu.length, debut - groupeBackground.apercu.length + 50), total: 12 }),
   // Une réponse de la liste : sans `section`, les premières lignes de chaque section ; avec `section`, la page qui commence à `debut`.

@@ -2,13 +2,21 @@
 import type { TypeDeVariable } from '../../modele';
 import type { OrigineDuMode, StatutDeResolution } from '../../resolution';
 
+const nombreLisible = (nombre: number): string => String(Math.trunc(nombre)).replace(/\B(?=(\d{3})+(?!\d))/g, '\u00a0');
+
 export const TEXTES_ARBRE = {
   // Lecture
   pret: 'Lire les variables de ce fichier pour commencer.',
   lire: 'Lire les variables',
   lectureEnCours: 'Lecture des variables…',
-  phase: { collections: 'Collections', variables: 'Variables locales', references: 'Cibles des alias' } as Record<string, string>,
-  progression: (phase: string, fait: number, total: number) => (total > 1 ? `${phase} : ${fait} sur ${total}` : `${phase}…`),
+  // Une étape, un texte : chacun suit l'événement du calcul qui le déclenche (`tokens/actualisation.ts`), jamais une minuterie.
+  lectureDesCibles: 'Lecture des cibles des alias…',
+  /** Les variables acquises sur le total de l'inventaire ; les milliers se séparent d'une espace insécable. */
+  lectureAvecCompte: (lues: number, total: number) => `Lecture des variables, ${nombreLisible(lues)} sur ${nombreLisible(total)}`,
+  verificationDeLaStructure: 'Vérification des variables et des alias…',
+  verificationDesNoms: 'Vérification des noms…',
+  rechercheDesTermes: 'Recherche des termes à harmoniser…',
+  verificationDesNomsContinue: 'La vérification des noms continue.',
   lectureAnnulee: 'Lecture annulée. Aucune donnée partielle n’est affichée.',
   lectureEchouee: (message: string) => `La lecture a échoué : ${message}. Actualisez pour réessayer.`,
   donneesAnciennes: (heure: string) => `Données lues à ${heure}, la dernière lecture a échoué. Actualisez pour réessayer.`,

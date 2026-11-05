@@ -217,6 +217,8 @@ export function creerCoquille(app: HTMLElement, envoyer: (message: UiMessage) =>
   const premierLancement = document.createElement('div');
   premierLancement.className = 'page-stack';
   const vueDAnalyse = creerVueDAnalyse();
+  // La page de lecture dit l'étape en cours de l'actualisation : le texte des noms quand il existe, sinon celui de la structure.
+  tokens.surTexteDeLecture((texte) => vueDAnalyse.poserLeTexte(texte));
   const bandeau = creerBandeau(relancer);
   const ecranDesOnglets = document.createElement('div');
   ecranDesOnglets.className = 'page-stack';

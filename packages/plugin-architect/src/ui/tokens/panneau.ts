@@ -71,8 +71,13 @@ export interface AttenteDeLAnalyse {
   readonly structure: boolean;
   /** Le bilan des noms manque. */
   readonly noms: boolean;
-  /** Le texte de lecture ; Noms en cours le reprend. */
+  /** Le texte de la structure, en tête des constats : la lecture des variables, puis la vérification des variables et des alias. */
   readonly texte: string;
+  /**
+   * Le texte de Noms en cours : l'étape du calcul ou le compte des variables lues ; `null` quand Noms n'a pas d'étape à dire (la structure
+   * manque encore, ou aucune analyse des noms ne court). Sans lui, Noms garde le texte de lecture d'une analyse que l'écran a demandée seul.
+   */
+  readonly texteDesNoms?: string | null;
   /** Vrai quand le texte paraît aussi en tête des constats tant que la structure manque. */
   readonly enTete: boolean;
 }
@@ -114,6 +119,11 @@ export interface PanneauDesTokens {
   attente(): AttenteEffective;
   /** Appelle le rappel quand l'attente effective change ; rend la fonction qui le retire. */
   surAttente(rappel: () => void): () => void;
+  /**
+   * Appelle le rappel avec le texte de la page de lecture (celle de la coquille, tant que la structure manque) à chaque changement :
+   * le texte des noms quand il existe, sinon celui de la structure. `null` hors actualisation.
+   */
+  surTexteDeLecture(rappel: (texte: string | null) => void): () => void;
   /** La ligne discrète en tête (« analysé à 14:32 en 3 s ») ; `null` la retire. */
   poserLeResume(texte: string | null): void;
 }
@@ -197,6 +207,7 @@ export function monterLePanneauDesTokens({ racine, nomenclature, auChangement }:
   let structure: StructureLue | null = null;
   let attenteDeLActualisation: AttenteDeLAnalyse | null = null;
   const surAttentes = new Set<() => void>();
+  const surTextes = new Set<(texte: string | null) => void>();
   let derniereAttente = '';
   /** Le texte de la section Noms en cours, que la progression de la lecture met à jour sans redessiner le panneau. */
   let texteDesNoms: HTMLElement | null = null;
@@ -207,6 +218,13 @@ export function monterLePanneauDesTokens({ racine, nomenclature, auChangement }:
   const ouvertes = new Map<IdDeCategorie, boolean>();
 
   const questionsTotal = (): number => vues.reduce((somme, vue) => somme + vue.questions, 0);
+
+  /** Le texte de Noms en cours : l'étape, sinon rien tant que la structure manque (son texte est en tête), sinon la lecture d'une analyse demandée seule. */
+  const texteDesNomsAffiche = (): string => {
+    const attente = attenteDeLActualisation;
+    if (attente === null || attente.texteDesNoms === undefined) return attente?.texte ?? TEXTES.lectureEnCours;
+    return attente.texteDesNoms ?? (attente.noms ? '' : TEXTES.lectureEnCours);
+  };
 
   const attenteEffective = (): AttenteEffective => ({
     structure: attenteDeLActualisation?.structure === true,
@@ -303,7 +321,8 @@ export function monterLePanneauDesTokens({ racine, nomenclature, auChangement }:
     section.dataset.element = vue.id;
     const texte = document.createElement('p');
     texte.className = 'accueil-texte';
-    texte.textContent = attenteDeLActualisation?.texte ?? TEXTES.lectureEnCours;
+    texte.textContent = texteDesNomsAffiche();
+    texte.hidden = texte.textContent === '';
     texteDesNoms = texte;
     section.append(creerBandeEnCours(signeDe(vue, 24, false), vue.libelle), texte);
     return section;
@@ -394,7 +413,12 @@ export function monterLePanneauDesTokens({ racine, nomenclature, auChangement }:
       chargement.hidden = !charge;
       resumeHote.hidden = charge || resumeHote.childNodes.length === 0;
       texteDeChargement.textContent = charge ? suivante.texte : '';
-      if (texteDesNoms !== null && suivante !== null) texteDesNoms.textContent = suivante.texte;
+      if (texteDesNoms !== null && suivante !== null) {
+        texteDesNoms.textContent = texteDesNomsAffiche();
+        texteDesNoms.hidden = texteDesNoms.textContent === '';
+      }
+      const lecture = suivante === null ? null : suivante.texteDesNoms ?? suivante.texte;
+      for (const rappel of [...surTextes]) rappel(lecture);
       // Un changement de texte seul (la progression de la lecture) ne redessine pas les sections.
       if (avant?.structure === suivante?.structure && avant?.noms === suivante?.noms && avant?.enTete === suivante?.enTete) return;
       recalculer();
@@ -408,6 +432,12 @@ export function monterLePanneauDesTokens({ racine, nomenclature, auChangement }:
       surAttentes.add(rappel);
       return () => {
         surAttentes.delete(rappel);
+      };
+    },
+    surTexteDeLecture(rappel) {
+      surTextes.add(rappel);
+      return () => {
+        surTextes.delete(rappel);
       };
     },
     structureRecue: () => structure !== null,

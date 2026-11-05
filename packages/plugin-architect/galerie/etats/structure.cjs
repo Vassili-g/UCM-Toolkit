@@ -427,13 +427,13 @@ const actualiserEtAttendre = { ...actualiser, attendre: '#panneau-a-appliquer .a
 ETATS.push(
   {
     id: 't-actualiser-chargement', titre: 'Tokens, Actualiser en cours', quand: 'Le designer a lu les constats, puis clique Actualiser ; le sandbox n’a encore rien rendu.',
-    regarder: 'Dans l’onglet Constats, « Lecture des variables… » paraît en tête ; dessous, la section Noms est en cours (sa bande sans nombre, le même texte) et les sections de structure de la lecture précédente restent affichées, avec leurs cases, « Tout cocher », « Tout décocher » et Appliquer grisés ; aucune catégorie n’est tenue ; la table à gauche n’a plus de message qui la décale ; Actualiser est grisé et Annuler paraît.',
+    regarder: 'Dans l’onglet Constats, « Lecture des variables… » paraît une seule fois, en tête ; dessous, la section Noms est en cours (sa bande sans nombre, sans texte tant que le calcul des noms n’a rien annoncé) et les sections de structure de la lecture précédente restent affichées, avec leurs cases, « Tout cocher », « Tout décocher » et Appliquer grisés ; aucune catégorie n’est tenue ; la table à gauche n’a plus de message qui la décale ; Actualiser est grisé et Annuler paraît.',
     existe: true,
     atteinte: [...ouvert(), actualiserEtAttendre],
   },
   {
     id: 't-actualiser-structure-recue', titre: 'Tokens, Actualiser, structure reçue', quand: 'Le designer a cliqué Actualiser ; le sandbox a rendu le relevé et la structure, mais pas encore le bilan des noms.',
-    regarder: 'Le message de tête a disparu ; les cartes de structure sont celles de la nouvelle lecture et leurs cases sont ouvertes ; la section Noms, en tête, reste en cours (« Lecture des variables… », sans nombre ni puce) ; aucune catégorie n’est tenue ; Appliquer reste grisé.',
+    regarder: 'Le message de tête a disparu ; les cartes de structure sont celles de la nouvelle lecture et leurs cases sont ouvertes ; la section Noms, en tête, reste en cours (« La vérification des noms continue. », sans nombre ni puce) ; aucune catégorie n’est tenue ; Appliquer reste grisé.',
     existe: true,
     atteinte: [...ouvert(), actualiser, releve(releveDeStructure(), 2), { message: structure(2), attendre: '#panneau-a-appliquer .bande-element.en-cours' }],
   },
@@ -455,13 +455,54 @@ ETATS.push(
  */
 ETATS.push({
   id: 't-structure-avant-les-noms', titre: 'Tokens, structure affichée avant les noms', quand: 'Le fichier a déjà été analysé et le plugin vient de s’ouvrir ; le sandbox a rendu la structure, le bilan des noms n’est pas encore là.',
-  regarder: 'La page de lecture a laissé la place à l’onglet Constats : le sommaire n’a pas de puce Noms ; la section Noms est en tête, en cours, sa bande sans nombre ni chevron, avec « Lecture des variables… » dessous ; les sections de structure ont leurs cartes (Alias, Modes, Valeurs, Couches, Scopes) ; aucune catégorie sans carte n’est tenue en fin de liste ; le pied dit « Aucune correction cochée » et Appliquer est grisé.',
+  regarder: 'La page de lecture a laissé la place à l’onglet Constats : le sommaire n’a pas de puce Noms ; la section Noms est en tête, en cours, sa bande sans nombre ni chevron, avec « La vérification des noms continue. » dessous ; les sections de structure ont leurs cartes (Alias, Modes, Valeurs, Couches, Scopes) ; aucune catégorie sans carte n’est tenue en fin de liste ; le pied dit « Aucune correction cochée » et Appliquer est grisé.',
   existe: true,
   atteinte: [
     preferences(), releve(releveDeStructure()), chevron('primitives'), chevron('theme'), groupe('theme', 'primary'),
     { message: messages.initial(true) }, { message: structure(1), attendre: '#panneau-a-appliquer .bande-element.en-cours' },
   ],
 });
+
+/*
+ * G3 : chaque message suit un événement. Le clic d'Actualiser prend la demande 2 du relevé ; l'analyse des noms qu'il relance prend la demande 7.
+ * L'événement `progression` vient du relevé, `lecture` de l'inventaire des noms, `etape-des-noms` du calcul (sandbox ou Worker).
+ */
+const progression = (phase, fait, total) => ({ message: { type: 'progression', demande: 2, phase, fait, total } });
+const etape = (nom) => ({ message: { type: 'etape-des-noms', demande: 7, etape: nom } });
+const lectureDesNoms = (lues, total) => ({ message: { type: 'lecture', demande: 7, lues, total } });
+const apresLaStructure = [...ouvert(), actualiser, releve(releveDeStructure(), 2), { message: structure(2), attendre: '#panneau-a-appliquer .bande-element.en-cours' }];
+ETATS.push(
+  {
+    id: 't-actualiser-cibles', titre: 'Tokens, Actualiser, cibles des alias', quand: 'Le designer a cliqué Actualiser ; le sandbox lit les cibles des alias qui sortent du fichier.',
+    regarder: 'En tête des constats, « Lecture des cibles des alias… », sans total ; la section Noms, dessous, n’a pas de texte.',
+    existe: true,
+    atteinte: [...ouvert(), actualiserEtAttendre, progression('references', 3, 9)],
+  },
+  {
+    id: 't-actualiser-compte-des-noms', titre: 'Tokens, Actualiser, inventaire des noms', quand: 'Le designer a cliqué Actualiser ; l’analyse des noms a lu 500 variables sur 2 415.',
+    regarder: 'En tête, « Lecture des variables… » ; dans la section Noms, « Lecture des variables, 500 sur 2 415 ».',
+    existe: true,
+    atteinte: [...ouvert(), actualiserEtAttendre, lectureDesNoms(500, 2415)],
+  },
+  {
+    id: 't-actualiser-verification-structure', titre: 'Tokens, Actualiser, vérification de la structure', quand: 'Le sandbox a rendu le relevé ; il vérifie les variables et les alias.',
+    regarder: 'En tête, « Vérification des variables et des alias… » ; la section Noms garde sa bande sans texte, et les cartes de la lecture précédente restent grisées.',
+    existe: true,
+    atteinte: [...ouvert(), actualiser, releve(releveDeStructure(), 2)],
+  },
+  {
+    id: 't-actualiser-verification-des-noms', titre: 'Tokens, Actualiser, vérification des noms', quand: 'La structure est affichée ; le calcul des noms en est au lexique et aux renommages.',
+    regarder: 'Le message de tête a disparu ; la section Noms dit « Vérification des noms… ».',
+    existe: true,
+    atteinte: [...apresLaStructure, etape('lexique')],
+  },
+  {
+    id: 't-actualiser-recherche-des-termes', titre: 'Tokens, Actualiser, recherche des termes', quand: 'La structure est affichée ; le calcul des noms cherche les termes à harmoniser.',
+    regarder: 'La section Noms dit « Recherche des termes à harmoniser… ».',
+    existe: true,
+    atteinte: [...apresLaStructure, etape('lexique'), etape('questions')],
+  },
+);
 
 ETATS.push({
   id: 't-duree-ouverture', titre: 'Tokens, durée après l’ouverture', quand: 'Le plugin vient de s’ouvrir : le relevé, les noms et la structure sont lus, sans Actualiser.',

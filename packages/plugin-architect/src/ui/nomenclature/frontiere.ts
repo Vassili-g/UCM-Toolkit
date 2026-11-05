@@ -175,6 +175,9 @@ export function creerFrontiere(options: OptionsDeFrontiere): Frontiere {
       case 'initial':
         options.afficher(message);
         return;
+      case 'etape-des-noms':
+        // L'actualisation du mode Tokens lit cet événement avant ; l'écran des noms n'en a pas l'usage.
+        return;
       case 'lecture':
         if (enVol?.type === 'noms-analyser' && enVol.demande === message.demande && !silencieuses.has(message.demande)) options.afficher(message);
         return;

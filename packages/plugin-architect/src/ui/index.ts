@@ -340,6 +340,8 @@ function recevoir(message: PluginMessage): void {
   }
   if (estMessageDeNomenclature(message)) {
     if (message.type === 'bilan' || message.type === 'erreur') actualisation.noter('noms-recus');
+    if (message.type === 'etape-des-noms') actualisation.etapeDesNoms(message.etape);
+    if (message.type === 'lecture') actualisation.lectureDesNoms(message.lues, message.total);
     nomenclature.recevoir(message);
     return;
   }
@@ -464,7 +466,7 @@ function recevoir(message: PluginMessage): void {
 }
 
 /** Le calcul des noms que le sandbox confie à un Worker : le bilan lui revient par `versSandbox`, sans passer par l'écran de Nomenclature. */
-const calculDesNoms = creerCalculateurDeNoms({ envoyer: versSandbox });
+const calculDesNoms = creerCalculateurDeNoms({ envoyer: versSandbox, surEtape: (_demande, etape) => actualisation.etapeDesNoms(etape) });
 
 window.addEventListener('message', (evenement: MessageEvent) => {
   const brut: unknown = evenement.data?.pluginMessage;

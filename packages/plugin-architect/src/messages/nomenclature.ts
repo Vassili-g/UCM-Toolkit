@@ -231,8 +231,14 @@ export interface ResultatVue {
 }
 export type CodeDErreur = 'analyse-en-cours' | 'fichier-modifie' | 'generation-perimee' | 'regles-modifiees' | 'regles-futures' | 'import-illisible' | 'mot-refuse' | 'import-partiel' | 'echec';
 
+/** Les étapes du calcul des noms que l'écran annonce : le lexique avec les renommages, puis la détection des questions. */
+export type EtapeDesNoms = 'lexique' | 'questions';
+export const ETAPES_DES_NOMS: readonly EtapeDesNoms[] = ['lexique', 'questions'];
+
 export type MessageDeNomenclature =
   | { readonly type: 'initial'; readonly dejaAnalyse: boolean }
+  /** Le calcul des noms entre dans une étape. Le sandbox l'envoie quand il calcule lui-même ; avec un Worker, l'écran reçoit le même événement du Worker. */
+  | { readonly type: 'etape-des-noms'; readonly demande: number; readonly etape: EtapeDesNoms }
   | { readonly type: 'lecture'; readonly demande: number; readonly lues: number; readonly total: number }
   | { readonly type: 'bilan'; readonly demande: number; readonly bilan: Bilan }
   | { readonly type: 'lignes'; readonly demande: number; readonly generation: number; readonly groupe: string; readonly debut: number; readonly lignes: readonly LigneVue[]; readonly total: number }
@@ -273,7 +279,7 @@ export interface MessageDeReglesRecues {
  * lui confier ces messages ; `Record` oblige à lister chaque membre de `MessageDeNomenclature`.
  */
 const TYPES_DES_MESSAGES: Readonly<Record<Exclude<MessageDeNomenclature, MessageDeReglesRecues | MessageDeCalculDesNoms>['type'], true>> = {
-  initial: true, lecture: true, bilan: true, lignes: true, termes: true, fiche: true, 'noms-selection': true, diagnostic: true,
+  initial: true, lecture: true, 'etape-des-noms': true, bilan: true, lignes: true, termes: true, fiche: true, 'noms-selection': true, diagnostic: true,
   simulation: true, refus: true, application: true, 'regles-exportees': true, erreur: true,
 };
 export const estMessageDeNomenclature = (brut: { readonly type: string }): brut is Exclude<MessageDeNomenclature, MessageDeReglesRecues | MessageDeCalculDesNoms> => Object.prototype.hasOwnProperty.call(TYPES_DES_MESSAGES, brut.type);

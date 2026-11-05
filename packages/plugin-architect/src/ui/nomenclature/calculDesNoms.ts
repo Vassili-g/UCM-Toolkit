@@ -11,6 +11,7 @@
  * Plusieurs requêtes attendent ensemble, une par numéro de demande. Un nouveau calcul de bilan remplace ceux qui attendent encore : la
  * réponse d'une analyse remplacée, et toute réponse dont la demande, la génération ou la révision diffère, sont ignorées.
  */
+import type { EtapeDesNoms } from '../../messages/nomenclature';
 import { estCalculDesNoms, type MesureDuCalculDistant, type MessageDeCalculDesNoms, type ReponseDuCalculDesNoms, type ResultatDuTravail } from '../../messages/calculDesNoms';
 import type { ReponseDuTravailleur, RequeteDuTravailleur } from './calculDesNomsWorker';
 
@@ -36,6 +37,8 @@ export interface OptionsDuCalculateurDeNoms {
   readonly envoyer: (reponse: ReponseDuCalculDesNoms) => void;
   /** Crée le Worker ; lève ou rend `null` quand il est impossible. Par défaut, celui de la source embarquée. */
   readonly fabriquer?: () => TravailleurDeNoms | null;
+  /** Reçoit chaque étape que le Worker annonce pour un calcul de bilan : l'écran la montre, le sandbox ne la voit pas. */
+  readonly surEtape?: (demande: number, etape: EtapeDesNoms) => void;
   readonly maintenant?: () => number;
   readonly delaiDeDemarrage?: number;
   /** Rend la fonction qui annule le rappel. `setTimeout` par défaut. */
@@ -108,6 +111,10 @@ export function creerCalculateurDeNoms(options: OptionsDuCalculateurDeNoms): Cal
         return;
       }
       const requete = attendues.get(data.demande);
+      if (data.type === 'etape') {
+        if (requete && data.generation === requete.generation && data.revision === requete.revision) options.surEtape?.(data.demande, data.etape);
+        return;
+      }
       if (!requete || data.generation !== requete.generation || data.revision !== requete.revision) return;
       attendues.delete(requete.demande);
       if (data.type === 'echec') {

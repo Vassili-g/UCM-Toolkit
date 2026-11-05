@@ -83,6 +83,8 @@ function ecritureEnMemoire(fixture: FixtureDeNomenclature) {
 
 interface Banc {
   readonly messages: MessageDeNomenclature[];
+  /** Les étapes que le sandbox annonce quand il calcule lui-même : elles ne font pas partie du bilan ni de la suite des réponses. */
+  readonly etapes: string[];
   readonly session: ReturnType<typeof creerSession>;
   readonly moteurs: { lexiques: number };
   readonly stock: Map<string, string>;
@@ -92,19 +94,20 @@ interface Banc {
 /** Une session sur la fixture, avec ou sans Worker ; un moteur qui compte les calculs de lexique que le sandbox mène. */
 function banc(fixture: FixtureDeNomenclature, calcul?: PortDeCalculDistant, avecEcriture = false): Banc {
   const messages: MessageDeNomenclature[] = [];
+  const etapes: string[] = [];
   const moteurs = { lexiques: 0 };
   const moteur: Moteur = { ...moteurDuKit, commencerLexique: (options) => { moteurs.lexiques += 1; return moteurDuKit.commencerLexique(options); } };
   const stock = stockageDeRegles(fixture);
   const memoire = ecritureEnMemoire(fixture);
   const session = creerSession({
     port: { lecture: avecEcriture ? memoire.lecture : portDeLecture(fixture), ecriture: avecEcriture ? memoire.ecriture : sansEcriture, regles: portDeRegles(stock) },
-    envoyer: (message) => { messages.push(message); },
+    envoyer: (message) => { if (message.type === 'etape-des-noms') etapes.push(message.etape); else messages.push(message); },
     tranches: { pause: async () => {} },
     heure: () => '2026-01-01T00:00:00.000Z',
     moteur,
     calcul,
   });
-  return { messages, session, moteurs, stock, noms: memoire.noms };
+  return { messages, etapes, session, moteurs, stock, noms: memoire.noms };
 }
 
 const bilanDe = (messages: readonly MessageDeNomenclature[]): Bilan => {

@@ -185,13 +185,14 @@ test('le Worker rend le bilan du calcul pur, avec les heures de son calcul, et `
   servirLesCalculs(portee);
   assert.deepEqual(envoyes, [{ type: 'demarre' }]);
   portee.onmessage!({ data: { type: 'travailler', demande: 9, generation: 4, revision: 'r', travail: { sorte: 'calculer', entree: JSON.parse(JSON.stringify(entree)) } } });
-  const reponse = envoyes[1];
+  assert.deepEqual(envoyes.slice(1, -1).map((message) => message.type === 'etape' ? message.etape : message.type), ['lexique', 'questions'], 'les étapes partent avant le résultat');
+  const reponse = envoyes.at(-1)!;
   assert.ok(reponse.type === 'resultat');
   assert.equal(JSON.stringify(reponse.resultat), JSON.stringify({ sorte: 'bilan', bilan: calculerLeBilanDirect(entree) }));
   assert.deepEqual([reponse.demande, reponse.generation, reponse.revision], [9, 4, 'r']);
   assert.ok(reponse.calculFinA >= reponse.calculDebutA);
   portee.onmessage!({ data: { type: 'travailler', demande: 10, generation: 4, revision: 'r', travail: { sorte: 'calculer', entree: {} as never } } });
-  assert.deepEqual(envoyes[2], { type: 'echec', demande: 10, generation: 4, revision: 'r' });
+  assert.deepEqual(envoyes.at(-1), { type: 'echec', demande: 10, generation: 4, revision: 'r' });
 });
 
 test('le sandbox et l\'écran reconnaissent la forme des messages du calcul', () => {
@@ -204,4 +205,17 @@ test('le sandbox et l\'écran reconnaissent la forme des messages du calcul', ()
   for (const mauvais of [null, {}, { sorte: 'bilan', bilan: { ...BILAN, generation: 9 } }, { sorte: 'message', message: null }, { sorte: 'ecritures', ecritures: {} }, { sorte: 'inconnue' }]) {
     assert.equal(estReponseDuCalculDesNoms(reponse(mauvais)), false, JSON.stringify(mauvais));
   }
+});
+
+test('G3 : le client rend à l’écran les étapes du Worker pour la requête en attente, et ignore celles d’une autre génération', () => {
+  const travailleur = fauxTravailleur();
+  const vues: [number, string][] = [];
+  const calculateur = creerCalculateurDeNoms({ envoyer: () => {}, fabriquer: () => travailleur, surEtape: (demande, etape) => { vues.push([demande, etape]); } });
+  calculateur.recevoir(requete(7));
+  travailleur.repondre({ type: 'demarre' });
+  travailleur.repondre({ type: 'etape', demande: 7, generation: 3, revision: 'r1', etape: 'lexique' });
+  travailleur.repondre({ type: 'etape', demande: 7, generation: 2, revision: 'r1', etape: 'questions' });
+  travailleur.repondre({ type: 'etape', demande: 8, generation: 3, revision: 'r1', etape: 'questions' });
+  travailleur.repondre({ type: 'etape', demande: 7, generation: 3, revision: 'r1', etape: 'questions' });
+  assert.deepEqual(vues, [[7, 'lexique'], [7, 'questions']]);
 });
