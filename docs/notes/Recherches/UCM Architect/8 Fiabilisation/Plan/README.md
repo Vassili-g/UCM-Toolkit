@@ -147,10 +147,10 @@ Une capture absente se compte absente. Une comparaison locale ne prouve pas la f
 
 | Lot | Agent | Dépend de | État |
 |---|---|---|---|
-| [D0](lots/D0.md) Mesure de référence | `implementeur` | rien | [x] bd9f418d, 10956167, D0.3 et D0.4 en partie |
-| [D1](lots/D1.md) Acquisition commune dans la demande | `implementeur-exigeant` | D0 | [x] dfd09249, D1.4 en partie |
+| [D0](lots/D0.md) Mesure de référence | `implementeur` | rien | [x] bd9f418d, 10956167, 6da92e93, durée Figma en D7.2 |
+| [D1](lots/D1.md) Acquisition commune dans la demande | `implementeur-exigeant` | D0 | [x] dfd09249, 6da92e93 |
 | [D2](lots/D2.md) Lectures groupées | `implementeur` | D1 | [x] 4dedcf96 |
-| [D3](lots/D3.md) Coûts algorithmiques du kit | `implementeur` | D0 | [x] 8d4111ce, D3.3 en partie |
+| [D3](lots/D3.md) Coûts algorithmiques du kit | `implementeur` | D0 | [x] 8d4111ce, 6da92e93 |
 | [D4a](lots/D4a.md) Ignorer sans acquisition | `implementeur` | D3 | [x] e91eac2e |
 | [D4b](lots/D4b.md) Relecture après Appliquer | `implementeur-exigeant` | D4a | [x] 96ce02a6, voie complète |
 | [D5a](lots/D5a.md) Candidat de prélecture | `implementeur` | D4b | [x] f3f676b7 |
