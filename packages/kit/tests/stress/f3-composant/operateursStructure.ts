@@ -3,13 +3,14 @@
  *
  * S1 : un token de couleur sans valeur dans un mode, alors que deux sœurs au moins (mêmes valeurs d'axe et même rôle, autre
  * palette) en ont une, donne une question dont les candidats sont les sœurs. S2 : un token de palette qui vise `brands` par une
- * variable à segment de mode donne une correction `alias-de-mode` vers la variable de thème de sa palette quand les sœurs la
- * désignent sans ambiguïté, sinon une question. S3 : trois alias que C63 ne juge pas, dont deux que C20 juge.
+ * variable à segment de mode donne une correction `alias-de-mode` vers l'unique variable de sa palette au cran de la table du kit
+ * dans le sens lu, sinon une question. Les sœurs ne choisissent pas la cible. S3 : quatre alias que C63 ne juge pas, dont deux que C20 juge.
  *
  * Un constat C63 de ce groupe n'a ni variant, ni layer, ni champ : sa clé ajoute le mode, sans quoi deux modes d'un même token se
  * confondraient. `cleDeConstatEtendue` (`operateursModele.ts`) calcule cette clé ; c'est la clé de comparaison des cas de ce fichier.
  */
 import type { VariableDuCatalogue } from '../../../src/controles/index.js';
+import { TABLE_DES_DOSSIERS } from '../../../src/emplois/dossiers.js';
 import type { ConstatAttendu } from '../commun/types.js';
 import type { JetonDeCarte } from './carte.js';
 import { construireLeComposant, GRAINE_PAR_DEFAUT, type AxeDeSpec, type ComposantDeBase } from './composantDeBase.js';
@@ -103,35 +104,49 @@ export function operateursStructure(base: ComposantDeBase, graine: number = GRAI
   const viserBrands = (degradation: Degradation, jeton: JetonDeCarte, rangs: readonly number[]): void => {
     for (const rang of rangs) degradation.fixer(degradation.variable(jeton.cle).valeurs!, mode(rang).id, { alias: brands(degradation).cle });
   };
-  const correction = (jeton: JetonDeCarte, rang: number): ConstatAttendu =>
-    ({ code: 'C63', cle: cleDeC63(jeton.nom, mode(rang).nom), forme: 'correction', apres: { cle: jeton.cible.cle, nom: jeton.cible.nom } });
-  const s2 = (libelle: string, rangs: readonly number[], preparer: (degradation: Degradation, token: JetonDeCarte, soeurs: JetonDeCarte[]) => ConstatAttendu[] | undefined): void => {
+  /** La base fabrique les palettes au sens normal. S2 ne change aucun de leurs crans. Le segment de brands donne le mode du thème. */
+  const ciblesAuCran = (degradation: Degradation, jeton: JetonDeCarte): VariableDuCatalogue[] => {
+    const [, modeDuTheme, cran] = brands(degradation).nom.split('/');
+    if (modeDuTheme !== 'light' && modeDuTheme !== 'dark') throw new Error(`Mode de brands inconnu : ${modeDuTheme}`);
+    const palette = jeton.cible.nom.split('/')[0];
+    const noms = new Set(Object.entries(TABLE_DES_DOSSIERS[modeDuTheme].normal)
+      .filter(([, valeur]) => valeur === Number(cran)).map(([role]) => `${palette}/${role}`));
+    const theme = degradation.catalogue.collections.find((collection) => collection.role === 'theme')!;
+    return degradation.catalogue.variables.filter((variable) => variable.collection === theme.cle && noms.has(variable.nom));
+  };
+  const oracleDeTheme = (degradation: Degradation, jeton: JetonDeCarte, rang: number): ConstatAttendu => {
+    const cibles = ciblesAuCran(degradation, jeton);
+    if (cibles.length !== 1) return question(jeton, mode(rang).nom, cibles.map(({ nom }) => nom));
+    const { cle, nom } = cibles[0];
+    return { code: 'C63', cle: cleDeC63(jeton.nom, mode(rang).nom), forme: 'correction', apres: { cle, nom } };
+  };
+  const s2 = (libelle: string, rangs: readonly number[], preparer: (degradation: Degradation, token: JetonDeCarte, soeurs: JetonDeCarte[]) => ConstatAttendu[] | undefined, mesure?: string): void => {
     const { token, soeurs } = tirerUnGroupe('S2', b3);
     const degradation = new Degradation(b3);
     viserBrands(degradation, token, rangs);
     degradation.zones.push({ variant: b3.carte.variants[0].id, layer: '', champ: 'valeurs' });
-    const attendus = preparer(degradation, token, soeurs) ?? rangs.map((rang) => correction(token, rang));
-    ajouter('S2', degradation, `${libelle}, token ${token.nom}`, attendus);
+    const attendus = preparer(degradation, token, soeurs) ?? rangs.map((rang) => oracleDeTheme(degradation, token, rang));
+    ajouter('S2', degradation, `${libelle}, token ${token.nom}`, attendus, ['C63'], mesure);
   };
   s2('visée de brands dans le mode 1', [0], () => undefined);
   s2('visée de brands dans le mode 2', [1], () => undefined);
   s2('visée de brands dans les deux modes', [0, 1], () => undefined);
   // 4. La variable de thème de la palette du token existe deux fois : deux candidats.
   s2('cible de thème en double', [0], (degradation, token) => {
-    const cible = degradation.variable(token.cible.cle);
+    const [cible] = ciblesAuCran(degradation, token);
     degradation.cloner(cible);
-    return [question(token, mode(0).nom, [cible.nom, cible.nom])];
-  });
-  // 5. Aucune sœur : rien ne dit vers quelle variable de thème renvoyer.
+    return undefined;
+  }, 'S2-4-cible-en-double');
+  // 5. Sans sœur, la table et le sens de la palette désignent toujours la cible.
   s2('aucune sœur', [0], (degradation, token, soeurs) => {
     for (const soeur of soeurs) degradation.retirer(degradation.catalogue.variables, degradation.variable(soeur.cle));
-    return [question(token, mode(0).nom, [])];
+    return undefined;
   });
-  // 6. Les sœurs visent une variable de thème sans segment de palette : leur cible ne se transpose pas, donc aucune correction.
+  // 6. La cible sans palette des sœurs ne change pas la cible au cran du token.
   s2('sœurs qui visent disabled/background, sans segment de palette', [0], (degradation, token, soeurs) => {
     const globale = degradation.variableParNom('disabled/background')!;
     for (const soeur of soeurs) degradation.fixer(degradation.variable(soeur.cle).valeurs!, mode(0).id, { alias: globale.cle });
-    return [{ code: 'C63', cle: cleDeC63(token.nom, mode(0).nom), forme: 'a-faire' }];
+    return undefined;
   });
   // 7. La palette du token n'existe plus dans le thème.
   s2('palette absente du thème', [0], (degradation, token) => {
@@ -142,10 +157,10 @@ export function operateursStructure(base: ComposantDeBase, graine: number = GRAI
     }
     return [question(token, mode(0).nom, [])];
   });
-  // 8. Les sœurs visent elles-mêmes brands : chaque token du groupe reçoit son constat, sans candidat.
+  // 8. Les sœurs visent elles-mêmes brands : chaque token du groupe reçoit sa correction au cran.
   s2('sœurs qui visent aussi brands', [0], (degradation, token, soeurs) => {
     for (const soeur of soeurs) viserBrands(degradation, soeur, [0]);
-    return [token, ...soeurs].map((jeton) => question(jeton, mode(0).nom, []));
+    return [token, ...soeurs].map((jeton) => oracleDeTheme(degradation, jeton, 0));
   });
 
   // S3. Quatre alias que C63 ne juge pas ; C20 juge ceux qui visent une couche interdite aux couleurs de composant.

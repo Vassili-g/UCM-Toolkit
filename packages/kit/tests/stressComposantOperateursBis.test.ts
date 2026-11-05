@@ -66,7 +66,8 @@ test('les cas qui dépendent d\'une question non confirmée portent le verdict m
   // Q-F3-8, Q-F3-9 et Q-F3-10 sont tranchées : T1 et T2 n'ont plus de cas `mesure`.
   assert.deepEqual([...mesures('T1'), ...mesures('T2')], []);
   assert.deepEqual(mesures('S1'), [['S1-5', 'S1-5']]);
-  assert.deepEqual([...mesures('M1'), ...mesures('U3'), ...mesures('U4'), ...mesures('S2'), ...mesures('S3')], []);
+  assert.deepEqual([...mesures('M1'), ...mesures('U3'), ...mesures('U4'), ...mesures('S3')], []);
+  assert.deepEqual(mesures('S2'), [['S2-4', 'S2-4-cible-en-double']]);
 });
 
 test('M1 : un C21 pour les cas 1, 2, 4, 7, 8, 9 et 10, aucun pour 3, 5 et 6 (E-41)', () => {
@@ -147,10 +148,15 @@ test('S1 à S3 : des questions sans présélection, une correction alias-de-mode
   assert.notEqual(s18a.cle, s18b.cle);
   assert.ok(s18a.cle.endsWith('|Default') && s18b.cle.endsWith('|Comfortable'));
   assert.deepEqual(duOperateur('S2').map((entree) => entree.attendus.map((attendu) => attendu.forme)), [
-    ['correction'], ['correction'], ['correction', 'correction'], ['question'], ['question'], ['a-faire'], ['question'], ['question', 'question', 'question'],
+    ['correction'], ['correction'], ['correction', 'correction'], ['question'], ['correction'], ['correction'], ['question'], ['correction', 'correction', 'correction'],
   ]);
   assert.equal(cas('S2-4').attendus[0].candidats!.length, 2);
-  assert.deepEqual(cas('S2-5').attendus[0].candidats, []);
+  assert.deepEqual(cas('S2-7').attendus[0].candidats, []);
+  for (const entree of duOperateur('S2')) {
+    for (const attendu of entree.attendus.filter((constat) => constat.forme === 'correction')) {
+      assert.ok(attendu.apres!.nom!.endsWith('/surface/subtle'), `${entree.id} vise le cran 50 en Light, au sens normal`);
+    }
+  }
   assert.deepEqual(duOperateur('S3').map((entree) => entree.attendus.map((attendu) => attendu.code)), [['C20'], [], [], ['C20']]);
   assert.equal(cas('S1-2').entree.base.spec.modesDeTaille, 2);
 });
