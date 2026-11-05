@@ -769,6 +769,59 @@ test('à l’arrivée aucune case n’est cochée, le pied le dit et Appliquer t
   assert.deepEqual(banc.envois.appliquer, []);
 });
 
+test('un nouveau résultat du même sujet décoche les corrections conservées et ajoutées', () => {
+  const banc = monterCoche();
+  const regles = constatsAlert.find((constat) => constat.correction?.sorte === 'regles');
+  assert.ok(regles?.correction);
+  const ajoutee: Constat = { ...regles, id: 'regles:nouvelles', correction: { ...regles.correction, id: 'cor:regles:nouvelles' } };
+  const constats = [...constatsAlert, ajoutee];
+  recevoirUneAnalyse(banc.etat as never, {
+    type: 'analyse', analyse: { ...IDENTITE, generation: 2 }, statut: 'complete', constats,
+    variants: alertCorrections.sujet.variants, lecture: null, sansTokens: false,
+  });
+  banc.actualiser();
+  choisir(banc, 'couleurs');
+  assert.ok(casesDe(banc.racine).length > 0);
+  assert.ok(casesDe(banc.racine).every((element) => !element.checked && !element.indeterminate));
+  choisir(banc, 'regles');
+  assert.equal(boutonsDeCartes(banc.racine).length, 2);
+  assert.ok(casesDe(banc.racine).every((element) => !element.checked && !element.indeterminate));
+  assert.equal(comme(pied(banc).querySelector('.corrections-resume')).textContent, 'Aucune correction cochée');
+  assert.equal(boutonDePied(banc).disabled, true);
+  boutonDePied(banc).clic();
+  assert.equal(banc.envois.appliquer.length, 0);
+  toutCocherGlobal(banc).clic();
+  boutonDePied(banc).clic();
+  assert.ok(banc.envois.appliquer[0].ids.includes(ajoutee.correction!.id), 'la correction ajoutée est cochable');
+});
+
+test('la réponse à une question ajoute une correction décochée et garde les coches du designer', () => {
+  const question = constatsAlert.find((constat) => constat.question);
+  assert.ok(question?.question);
+  const banc = monterCoche();
+  boutonDePied(banc).clic();
+  const avant = banc.envois.appliquer[0];
+  const correction = {
+    id: 'rep:decochage', sorte: 'liaison' as const, cible: { layer: question.layers[0], champ: 'fills' }, avant: null,
+    apres: { nom: 'alert/colors/info/standard/title' }, aRelire: { regle: 'r', avant: null },
+  };
+  recevoirUneAnalyse(banc.etat as never, { type: 'question-repondue', analyse: IDENTITE, question: question.question.id, correction });
+  banc.actualiser();
+  choisir(banc, 'couleurs');
+  const carte = sectionDe(banc, 'couleurs').querySelectorAll('.bloc').find((element) => element.textContent.includes(correction.apres.nom.replace('alert/', '')));
+  assert.ok(carte);
+  const cases = casesDe(carte);
+  assert.ok(cases.length > 0);
+  assert.ok(cases.every((element) => !element.checked && !element.indeterminate));
+  assert.match(comme(pied(banc).querySelector('.corrections-resume')).textContent, /^4 corrections cochées/);
+  boutonDePied(banc).clic();
+  assert.deepEqual(banc.envois.appliquer[1], avant, 'seules les anciennes coches partent');
+  comme(carte.querySelector('.bloc-tete input.case')).clic();
+  assert.match(comme(pied(banc).querySelector('.corrections-resume')).textContent, /^5 corrections cochées/);
+  boutonDePied(banc).clic();
+  assert.deepEqual([...banc.envois.appliquer[2].ids].sort(), [...avant.ids, correction.id].sort());
+});
+
 test('chaque section qui a des cases porte Tout cocher et Tout décocher sous sa bande ; les autres n’en ont pas', () => {
   const banc = monter();
   bande(sectionDe(banc, 'couleurs')).clic();

@@ -194,6 +194,10 @@ test('la réponse retire les C81 de `retires`, garde les autres constats et rang
   const copie = section(banc, 'couleurs').querySelectorAll('.bloc').find((carte) => /Copier les liaisons de/.test(carte.textContent));
   assert.ok(copie, 'la carte de corrections est dans Couleurs');
   assert.ok(comme(copie).querySelector('input.case'));
+  const cases = comme(copie).querySelectorAll('input.case');
+  assert.ok(cases.every((element) => !element.checked && !element.indeterminate), 'les corrections du modèle arrivent décochées');
+  assert.equal(comme(banc.racine.querySelector('.corrections-resume')).textContent, 'Aucune correction cochée');
+  assert.equal(comme(banc.racine.querySelector('.corrections-pied .btn-primary')).disabled, true);
   assert.equal(ouverte(banc, 'couleurs'), 'true');
   assert.equal(comme(section(banc, 'tailles').querySelector('.bande-element')).classes.has('tenue'), true, 'Tailles et forme n’a plus de point : son C81 est parti');
 });
