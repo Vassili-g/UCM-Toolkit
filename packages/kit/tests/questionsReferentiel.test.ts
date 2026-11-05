@@ -379,6 +379,23 @@ test('un synonyme seul donne une question quand son terme UCM est unique (Q-F5)'
 });
 
 // E2.7
+test('gray et grey restent un choix du designer même quand une forme est plus fréquente', () => {
+  const noms = [nom('a', 'neutral/gray/bg'), nom('b', 'neutral/gray/fg'), nom('c', 'neutral/grey/bg')];
+  const paire = questions(noms).find((question) => question.cle === 'paire:gray|grey');
+  assert.equal(paire?.type, 'paire');
+  if (paire?.type !== 'paire') return;
+  assert.equal(paire.indice, 'synonymes');
+  assert.deepEqual(paire.termes.map(({ mot, nombre, ucm }) => ({ mot, nombre, ucm })), [
+    { mot: 'gray', nombre: 2, ucm: false }, { mot: 'grey', nombre: 1, ucm: false },
+  ]);
+  assert.equal(paire.termes[paire.propose].mot, 'gray');
+  assert.deepEqual(paires(noms.filter(({ id }) => id !== 'c')), []);
+  assert.deepEqual(paires([noms[2]]), []);
+  assert.deepEqual(paires(noms, { ...vide, voulus: ['grey'] }), []);
+  assert.deepEqual(paires(noms, { ...vide, distincts: [['grey', 'gray']] }), []);
+  assert.deepEqual(paires(noms, { ...vide, plusTard: [paire.cle] }), []);
+});
+
 test('deux orthographes d’un même mot que ni le pluriel ni la terminaison ne relient donnent une question (Q-F6)', () => {
   const memePlace = [nom('a', 'neutral/gray/bg'), nom('b', 'neutral/grey/bg')];
   assert.deepEqual(questions(memePlace).filter((q) => q.type === 'paire').map((q) => [q.cle, q.indice]), [['paire:gray|grey', 'synonymes']]);

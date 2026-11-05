@@ -20,7 +20,23 @@ Fin : `npm run test --workspace @ucm-kit/core` passe. Les régressions ciblées 
 
 ## Avancement
 
-E2.6 et E2.7 sont écrits. Les cases ne sont pas cochées.
+En cours (Codex). Ne pas reprendre.
+
+Le reliquat `gray`/`grey` est déjà implémenté dans `questions.ts` par E2d (`fdca6a38`). Son avancement décrit une question `synonymes` quand les deux formes sont observées à une place partagée. La décision Q-F6 laisse le designer choisir dans le plugin. Aucun terme UCM unique ne justifie un renommage automatique.
+
+Le test ajouté vérifie deux emplois de `gray` et un de `grey`, leur absence de terme UCM, les formes seules et les réponses « voulu », « termes différents » et « plus tard ». Il échoue quand la passe `FORMES_D_UN_MEME_MOT` est retirée. La passe est remise sans modification de source. Les 44 tests de `questionsReferentiel.test.ts` passent. L'invariant du référentiel décrit ce cas. La ligne de carte le décrivait déjà.
+
+Le build du kit rend 0. Ses tests donnent 1 682 succès et 2 échecs. « 32 000 noms » passe seul (3 670,1 ms de détection). `stressAccessibiliteOperateursBis.test.ts` passe aussi seul après les écritures de l'autre session. Architect donne 2 142 succès et 8 échecs hors reliquat. Le typecheck relève une faute de champ dans le nouveau test B2 de cette session, corrigée avant la relance.
+
+`agents:diff` a été lancé et ses documents liés relus. Le contrôle de style ne rend aucun refus. Les journaux locaux sont dans `_local/codex-r3-*`.
+
+La relance d'Architect donne 2 145 succès et 8 échecs, tous hors reliquat. Les quatre fichiers concernés ont été relancés chacun seul et échouent encore. Les trois premiers sont `packages/plugin-architect/tests/analyse.test.ts`, `packages/plugin-architect/tests/paritesDeSession.test.ts` et `packages/plugin-architect/tests/projectionsDesControles.test.ts` (accessibilité). Le quatrième est `packages/plugin-architect/tests/nomenclatureCheminsPublies.test.ts` (642 ms pour un seuil de temps).
+
+Le typecheck global échoue maintenant dans le mode Tokens d'une autre session (`poserLeChargement`, puis `poserLAttente`). La relance isolée d'Architect confirme des erreurs dans `packages/plugin-architect/tests/actualisationDuModeTokens.test.ts` et `packages/plugin-architect/tests/mesureParPhase.test.ts`. Aucun fichier en cause n'est corrigé ici.
+
+Prochaine action prévue. Commiter le test et l'invariant de `gray`/`grey`, puis noter le hash dans le tableau du plan.
+
+E2.6 et E2.7 sont écrits et cochés. Le cas `gray`/`grey` est implémenté par E2d et sa régression est complétée ici.
 
 E2.6. `packages/kit/src/referentiel/questions.ts` :
 - E-08. Le renommage d'une forme tolérée est retiré par collision quand le nom visé existe déjà. `detecterParEtapes` recalcule ce nom (les remplacements que `lexique.ts` pose, avec ses frontières de termes) et pose une question de paire d'indice `synonymes`, terme UCM proposé, quand deux noms d'origine différente se rejoignent. Seules les formes des segments qui diffèrent portent la collision : `colors` n'est pas accusé quand `radius` et `border-radius` se rejoignent. Une réponse « termes différents », « voulu » ou « plus tard » écarte la question.

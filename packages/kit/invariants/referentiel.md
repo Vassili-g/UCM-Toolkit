@@ -1,5 +1,7 @@
 # Référentiel
 
+- **Deux formes d'un même mot observées à une place partagée donnent une question quand ni le pluriel ni la terminaison ne les relient.** Indice `synonymes` ; aucune forme seule sans terme UCM unique ; les réponses distinctes, voulues ou reportées écartent la question. Autorité : `src/referentiel/questions.ts` `detecterParEtapes`. Tests : `tests/questionsReferentiel.test.ts` (`gray`/`grey`).
+
 - **Une définition UCM (crans, modes, profils, états, collections, rôles du thème, garanties, rôle des produits, tags des règles d'usage, conventions de noms) se modifie dans [`src/referentiel/`](../src/referentiel/), jamais dans un paquet.** Tests : `/tests/referentielUnique.test.ts` refuse la liste qui la recopie.
 - **Un tracé non vide appartient à un seul signe de `SIGNES`.** Une autre famille le déclare dans `REPRISES_DE_SIGNES`, avec son libellé. Autorité : `src/referentiel/signes.ts`. Tests : `tests/signes.test.ts`.
 - **Les formes d'alerte restent dans le socle.** Les cinq `FORMES` de `packages/plugin-socle/src/ui/Alerte.ts` ne se recopient pas dans `SIGNES`. Un signe se dessine sur une grille de 16, sauf s'il déclare `grille`, et `hauteur` quand elle n'est pas carrée. Autorité : `src/referentiel/signes.ts`. Tests : `tests/signes.test.ts`.
