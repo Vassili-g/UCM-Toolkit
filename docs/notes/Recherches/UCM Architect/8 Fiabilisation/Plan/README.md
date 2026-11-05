@@ -188,7 +188,7 @@ Règles propres à la phase E :
 | [E1b](lots/E1b.md) Icône, anneau et rôle de layer | `implementeur-exigeant` | E1a | [x] 65e01b5e, E1.7 en F2 |
 | [E2a](lots/E2a.md) Dictionnaire et vocabulaire du fichier | `implementeur-exigeant` | E1b | [x] 9bd451ad |
 | [E2b](lots/E2b.md) Fautes et seuils | `implementeur` | E2a | [x] fb3a84e1 |
-| [E2c](lots/E2c.md) Formes tolérées, synonymes et collections | `implementeur` | E2b | [x] fb3a84e1, `gray`/`grey` reste |
+| [E2c](lots/E2c.md) Formes tolérées, synonymes et collections | `implementeur` | E2b | [x] fb3a84e1, `gray`/`grey` traité par E2d et régression complétée dans db488483 |
 | [E2d](lots/E2d.md) Idempotence et branches parallèles | `implementeur` | E2c | [x] fdca6a38, E2.10 en F2 |
 | [E3a](lots/E3a.md) Rôles proches et palette voisine | `implementeur` | E2d | [x] eae07fc6 |
 | [E3b](lots/E3b.md) Sens et modes | `implementeur-exigeant` | E3a | [x] eae07fc6 |
