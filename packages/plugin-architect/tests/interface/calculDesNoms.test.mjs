@@ -145,14 +145,9 @@ test('la réponse d\'une analyse remplacée n\'arrive pas : seule la dernière e
 });
 
 test('une politique de contenu qui refuse les Workers donne `noms-non-calcules`, et le client ne réessaie pas', async () => {
-  const page = await ouvrir();
+  // La politique est posée avant le chargement : le Worker naît au montage, une politique ajoutée après ne le refuserait plus.
+  const page = await ouvrir({ politique: "worker-src 'none'" });
   try {
-    await page.evaluate(() => {
-      const politique = document.createElement('meta');
-      politique.httpEquiv = 'Content-Security-Policy';
-      politique.content = "worker-src 'none'";
-      document.head.append(politique);
-    });
     const entree = await entreeDeFixture(FIXTURES[2], 4);
     await jouer(page, calcul(entree, 1));
     await attendreLesDemandes(page, 'noms-non-calcules');

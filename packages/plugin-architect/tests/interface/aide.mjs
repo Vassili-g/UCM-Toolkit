@@ -58,13 +58,13 @@ const DEMANDES_PERMISES = new Set(['lire-preferences', 'ranger-preferences', 'li
   // La réponse du Worker de l'écran au calcul des noms.
   'noms-calcules', 'noms-non-calcules']);
 
-export async function ouvrir({ largeur = 1360, hauteur = 800, classe = '', presse = true } = {}) {
+export async function ouvrir({ largeur = 1360, hauteur = 800, classe = '', presse = true, politique = '' } = {}) {
   const contexte = await navigateur.newContext({ viewport: { width: largeur, height: hauteur }, permissions: presse ? ['clipboard-read', 'clipboard-write'] : [] });
   const page = await contexte.newPage();
   page.setDefaultTimeout(5000);
   const erreurs = [];
   page.on('pageerror', (erreur) => erreurs.push(erreur.message));
-  await page.setContent(html.replace('<head>', () => `<head>${RELEVE}`).replace('<html lang="fr" dir="ltr">', () => `<html lang="fr" dir="ltr" class="${classe}">`));
+  await page.setContent(html.replace('<head>', () => `<head>${politique ? `<meta http-equiv="Content-Security-Policy" content="${politique}">` : ''}${RELEVE}`).replace('<html lang="fr" dir="ltr">', () => `<html lang="fr" dir="ltr" class="${classe}">`));
   page.erreurs = erreurs;
   return page;
 }
