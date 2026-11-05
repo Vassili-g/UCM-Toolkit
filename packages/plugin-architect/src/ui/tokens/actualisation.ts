@@ -1,8 +1,10 @@
 /**
  * L'actualisation du mode Tokens, du clic à la fin de l'analyse : le relevé des variables, les constats de structure et, quand le fichier
- * a déjà un bilan, les noms de Nomenclature. Le module tient la liste de ce qui manque. Tant qu'une part manque, l'onglet Constats montre le
- * message de lecture à la place des constats ; dès que la dernière arrive, il montre la durée de l'analyse, sous la forme du mode Composant
- * (`TEXTES.panneau.analyseA`). Une lecture échouée ou annulée abandonne le suivi : les constats reviennent, sans durée.
+ * a déjà un bilan, les noms de Nomenclature. Le module tient la liste de ce qui manque et la donne au panneau (`poserLAttente`) à chaque
+ * part reçue. Le panneau reste visible : les constats de structure paraissent dès leur réception, Noms reste en cours jusqu'au bilan,
+ * et Appliquer comme les corrections de la révision précédente restent désactivés tant qu'une part manque. Dès que la dernière arrive,
+ * l'onglet montre la durée de l'analyse, sous la forme du mode Composant (`TEXTES.panneau.analyseA`). Une lecture échouée ou annulée
+ * abandonne le suivi : l'attente tombe, sans durée.
  *
  * Il ne parle pas au sandbox : `relancerLesNoms` est injecté, et rend faux quand le fichier n'a pas de bilan.
  *
@@ -33,7 +35,7 @@ export interface Repere { readonly repere: NomDeRepere; readonly a: number; read
 export const REPERES_RETENUS = 120;
 
 export interface OptionsDActualisation {
-  readonly panneau: Pick<PanneauDesTokens, 'poserLeChargement' | 'poserLeResume'>;
+  readonly panneau: Pick<PanneauDesTokens, 'poserLAttente' | 'poserLeResume'>;
   /** La lecture en cours de l'application, relue à chaque `rafraichir` pour le texte de progression. */
   readonly lecture: () => Lecture;
   /** Relance l'analyse des noms ; rend vrai quand elle part. */
@@ -47,7 +49,7 @@ export interface OptionsDActualisation {
 export interface Actualisation {
   /**
    * Une lecture part : le suivi recommence, et les noms sont relancés si le fichier en a un bilan. `avecChargement` faux (la lecture de
-   * l'ouverture) : le message de lecture ne prend pas la place des constats, mais la durée paraît à la fin.
+   * l'ouverture) : le message de lecture ne paraît pas en tête des constats, mais la durée paraît à la fin.
    */
   commencer(avecChargement?: boolean): void;
   /** Une part est arrivée ; sans effet si elle n'est pas attendue. La dernière montre la durée. */
@@ -78,7 +80,9 @@ export function creerActualisation({ panneau, lecture, relancerLesNoms, horloge 
   }
 
   function poser(): void {
-    panneau.poserLeChargement(suivie && chargement ? texteDeLaLecture(lecture()) : null);
+    panneau.poserLAttente(suivie
+      ? { structure: attendues.has('releve') || attendues.has('structure'), noms: attendues.has('noms'), texte: texteDeLaLecture(lecture()), enTete: chargement }
+      : null);
   }
 
   return {
@@ -94,10 +98,16 @@ export function creerActualisation({ panneau, lecture, relancerLesNoms, horloge 
       poser();
     },
     attendreLesNoms() {
-      if (suivie) attendues.add('noms');
+      if (!suivie) return;
+      attendues.add('noms');
+      poser();
     },
     recevoir(part) {
-      if (!suivie || !attendues.delete(part) || attendues.size > 0) return;
+      if (!suivie || !attendues.delete(part)) return;
+      if (attendues.size > 0) {
+        poser();
+        return;
+      }
       suivie = false;
       noter('affichage-complet');
       panneau.poserLeResume(TEXTES.panneau.analyseA(heureLisible(maintenant()), Math.max(0, horloge() - debut)));

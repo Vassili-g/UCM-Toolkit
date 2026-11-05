@@ -163,3 +163,21 @@ test('les messages de lecture, de simulation et de résultat ne changent pas l�
   ];
   for (const evenement of sansEffet) assert.equal(etatSuivant(travail, evenement), travail, evenement.type);
 });
+
+test('G2.1 : la structure reçue pendant l’analyse laisse l’onglet Constats visible, sans bilan', () => {
+  const lecture = jouer({ type: 'initial', dejaAnalyse: true });
+  assert.equal(lecture.ecran, 'lecture', 'sans structure, la page de lecture reste');
+  const avecStructure = etatSuivant(lecture, { type: 'structure-recue', recue: true });
+  assert.equal(avecStructure.ecran, 'travail');
+  assert.equal(avecStructure.bilan, null);
+  assert.notEqual(avecStructure.analyse, null, 'l’analyse des noms continue');
+  assert.equal(etatSuivant(avecStructure, { type: 'structure-recue', recue: true }), avecStructure, 'un événement répété ne change rien');
+  assert.equal(etatSuivant(avecStructure, { type: 'structure-recue', recue: false }).ecran, 'lecture');
+});
+
+test('G2.1 : la structure reçue avant le premier lancement ne le remplace pas, et survit au message initial', () => {
+  const recue = etatSuivant(ETAT_INITIAL, { type: 'structure-recue', recue: true });
+  assert.equal(recue.ecran, 'premier-lancement');
+  assert.equal(etatSuivant(recue, { type: 'analyse-demandee' }).ecran, 'travail', 'le designer lance l’analyse : les constats déjà reçus restent visibles');
+  assert.equal(etatSuivant(recue, { type: 'initial', dejaAnalyse: true }).ecran, 'travail', 'initial garde ce que le panneau a reçu');
+});

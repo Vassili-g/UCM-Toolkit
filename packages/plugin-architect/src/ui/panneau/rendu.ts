@@ -139,6 +139,20 @@ export function creerBandeTenue(signe: HTMLElement, libelle: string): HTMLElemen
   return bande;
 }
 
+/** La bande d'une catégorie dont les contrôles ne sont pas finis : signe, titre, sans nombre ni chevron ni coche Tenu. */
+export function creerBandeEnCours(signe: HTMLElement, libelle: string): HTMLElement {
+  const bande = document.createElement('div');
+  bande.className = 'bande-element en-cours';
+  bande.setAttribute('role', 'group');
+  bande.setAttribute('aria-label', libelle);
+  bande.setAttribute('aria-busy', 'true');
+  const titre = document.createElement('span');
+  titre.className = 'titre';
+  titre.textContent = libelle;
+  bande.append(signe, titre);
+  return bande;
+}
+
 /** Une section : sa bande (signe, titre, nombre de points, chevron) et, ouverte, ses cartes. */
 export function creerSection(element: ElementDuPanneau, { ouverte, basculer, corps, actions }: OptionsDeSection): HTMLElement {
   const section = document.createElement('div');

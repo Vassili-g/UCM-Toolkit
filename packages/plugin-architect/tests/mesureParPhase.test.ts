@@ -135,7 +135,7 @@ test('chronométrer un appel hors d’une phase mesurée le laisse passer tel qu
 test('l’actualisation note le départ, la réception et le rendu de la structure et des noms, puis la fin du rendu complet', () => {
   let heure = 1000;
   const actualisation = creerActualisation({
-    panneau: { poserLeChargement() {}, poserLeResume() {} },
+    panneau: { poserLAttente() {}, poserLeResume() {} },
     lecture: () => ({ statut: 'attente' }),
     relancerLesNoms: () => true,
     maintenant: () => heure,

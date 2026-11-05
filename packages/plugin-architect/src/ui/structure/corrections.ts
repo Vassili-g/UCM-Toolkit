@@ -43,6 +43,11 @@ export interface CorrectionsDeStructure {
   toutCocher(categorie?: CategorieDeCorrection): void;
   /** Décoche toutes les lignes, ou celles d'une catégorie. */
   toutDecocher(categorie?: CategorieDeCorrection): void;
+  /**
+   * Désactive les cases et les gestes de section tant que les lignes affichées sont celles de la révision précédente. Les lignes
+   * cochées restent cochées ; une ligne créée plus tard, par la liste virtuelle, naît désactivée.
+   */
+  figer(figees: boolean): void;
   /** « Tout cocher » et « Tout décocher » de chaque catégorie ; l'élément est masqué quand la catégorie n'a aucune ligne. */
   readonly gestes: Readonly<Record<CategorieDeCorrection, HTMLElement>>;
   /**
@@ -101,6 +106,7 @@ export function monterLesCorrections({ element, hotes, auChangement, questionsSe
   let designations = new Map<string, string>();
   /** Les lignes cochées : une ligne qui n'y est pas est décochée, donc toute ligne arrive décochée, relecture comprise. */
   const cochees = new Set<string>();
+  let figees = false;
   /** Les cartes dépliées par le designer : une lecture qui revient ne les replie pas. */
   const deplies = new Set<string>();
   const cases = new Map<string, HTMLInputElement>();
@@ -113,8 +119,15 @@ export function monterLesCorrections({ element, hotes, auChangement, questionsSe
   })) as Record<CategorieDeCorrection, HTMLElement>;
 
   function rafraichir(): void {
-    for (const [id, caseACocher] of cases) caseACocher.checked = cochees.has(id);
-    for (const carte of casesDeCarte) accorderLaCaseDeCarte(carte);
+    for (const [id, caseACocher] of cases) {
+      caseACocher.checked = cochees.has(id);
+      caseACocher.disabled = figees;
+    }
+    for (const carte of casesDeCarte) {
+      accorderLaCaseDeCarte(carte);
+      carte.element.disabled = figees;
+    }
+    for (const categorie of CATEGORIES) for (const bouton of Array.from(gestes[categorie].querySelectorAll<HTMLButtonElement>('button'))) bouton.disabled = figees;
   }
 
   function accorderLaCaseDeCarte({ element: caseACocher, ids: deLaCarte }: { readonly element: HTMLInputElement; readonly ids: readonly string[] }): void {
@@ -140,6 +153,7 @@ export function monterLesCorrections({ element, hotes, auChangement, questionsSe
     caseACocher.setAttribute('aria-label', libelle);
     caseACocher.addEventListener('change', () => cocherLes(deLaCarte, caseACocher.checked));
     accorderLaCaseDeCarte({ element: caseACocher, ids: deLaCarte });
+    caseACocher.disabled = figees;
     return caseACocher;
   }
 
@@ -155,6 +169,7 @@ export function monterLesCorrections({ element, hotes, auChangement, questionsSe
     caseACocher.setAttribute('aria-label', TEXTES.caseDeCorrection(nom));
     caseACocher.addEventListener('change', () => cocherLes([id], caseACocher.checked));
     caseACocher.checked = cochees.has(id);
+    caseACocher.disabled = figees;
     cases.set(id, caseACocher);
     return ligne;
   }
@@ -358,6 +373,11 @@ export function monterLesCorrections({ element, hotes, auChangement, questionsSe
     idsCoches: () => ids.filter((id) => cochees.has(id)),
     toutCocher: (categorie) => cocherLes(categorie ? idsParCategorie[categorie] : ids, true),
     toutDecocher: (categorie) => cocherLes(categorie ? idsParCategorie[categorie] : ids, false),
+    figer(suivantes) {
+      if (suivantes === figees) return;
+      figees = suivantes;
+      rafraichir();
+    },
     gestes,
     appliquee(envoyees, ecrites, sautees, sansAnnulation) {
       const sautee = new Set(sautees.map(({ id }) => id));

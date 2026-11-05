@@ -8,6 +8,9 @@
  * Les constats ignorés pour leur palette et les rôles ignorés partout se rangent sous l'intertitre Ignorés, en cartes muettes, chacune
  * avec « Ne plus ignorer ».
  *
+ * Tant que les constats affichés sont ceux de la révision précédente (`figer`), les boutons qui envoient un geste au sandbox (Ignorer,
+ * ses deux choix, Ne plus ignorer, la fusion d'un choix) sont désactivés : un geste sur un constat périmé écrirait ou relirait pour rien.
+ *
  * Un conteneur de plus de `SEUIL_DE_LISTE` cartes les range dans une liste virtuelle (`virtualisation.ts`) : seules les cartes à l'écran
  * existent dans le DOM. Une carte créée est gardée avec son menu d'Ignorer jusqu'à la lecture suivante.
  */
@@ -40,6 +43,16 @@ export interface AFaire {
    * que le sandbox n'a pas répondu. `questions` nomme les constats qui posent une question : leur carte porte `constat-question`.
    */
   poser(constats: readonly ConstatAFaire[] | null, ignores?: IgnoresLus, questions?: ReadonlySet<string>): void;
+  /** Désactive les boutons de geste des cartes affichées et de celles que la liste virtuelle créera ; `false` les rouvre. */
+  figer(figees: boolean): void;
+}
+
+/** Les boutons qui envoient un geste au sandbox portent cet attribut : `figer` les retrouve. */
+const GESTE = 'data-geste';
+
+function marquerLeGeste<Bouton extends HTMLElement>(bouton: Bouton): Bouton {
+  bouton.setAttribute(GESTE, '');
+  return bouton;
 }
 
 /** Un texte dont les mots entre accents graves sont des chemins. */
@@ -57,12 +70,18 @@ function boutonTexte(libelle: string, nomAccessible: string, auClic: () => void)
   return bouton;
 }
 
+/** Un bouton texte qui envoie un geste au sandbox. */
+function boutonDeGeste(libelle: string, nomAccessible: string, auClic: () => void): HTMLButtonElement {
+  return marquerLeGeste(boutonTexte(libelle, nomAccessible, auClic));
+}
+
 /** Le bouton Ignorer d'une carte de rôle absent, et son menu à deux choix. Échap ou un clic ailleurs le referme. */
 function creerLeMenuIgnorer(constat: ConstatAFaire, role: string, gestes: GestesDIgnorer): HTMLElement {
   const T = TEXTES.aFaireDuComposant;
   const hote = document.createElement('span');
   hote.className = 'ignorer-hote';
   const declencheur = createButton({ label: T.ignorer, variant: 'secondary', compact: true, onClick: () => basculer(menu.hidden) });
+  marquerLeGeste(declencheur);
   declencheur.setAttribute('aria-haspopup', 'menu');
   declencheur.setAttribute('aria-expanded', 'false');
   const menu = document.createElement('span');
@@ -89,6 +108,7 @@ function creerLeMenuIgnorer(constat: ConstatAFaire, role: string, gestes: Gestes
   const choix = (libelle: string, geste: () => void): HTMLButtonElement => {
     const bouton = document.createElement('button');
     bouton.type = 'button';
+    marquerLeGeste(bouton);
     bouton.setAttribute('role', 'menuitem');
     bouton.textContent = libelle;
     bouton.addEventListener('click', () => {
@@ -148,7 +168,7 @@ function creerLesChoix(choix: readonly ChoixDeCarte[], gestes: GestesDIgnorer): 
     // Une fusion s'écrit sur un clic du designer, jamais cochée d'avance : le choix devient un bouton texte qui porte le libellé.
     if (fusion && gestes.fusionner) {
       const fusionner = gestes.fusionner;
-      ligne.append(boutonTexte(libelle, libelle, () => fusionner(fusion.constat, fusion.garder)));
+      ligne.append(boutonDeGeste(libelle, libelle, () => fusionner(fusion.constat, fusion.garder)));
     } else {
       ligne.append(...(dessin === null ? [mot] : [creerLeDessin(dessin), mot]));
     }
@@ -212,6 +232,12 @@ export function monterAFaire(
   const deplies = new Set<string>();
   const lignes = Object.fromEntries(GROUPES.map((groupe) => [groupe, creerHoteDeCartes(hotes[groupe], questionsSeules)])) as Record<GroupeDeConstat, ReturnType<typeof creerHoteDeCartes>>;
   const ligneDesIgnores = creerHoteDeCartes(hoteDesIgnores);
+  let figees = false;
+
+  /** Aligne les boutons de geste d'une carte, ou de tout un conteneur, sur l'état figé. */
+  function accorderLesGestes(racine: HTMLElement): void {
+    for (const bouton of Array.from(racine.querySelectorAll<HTMLButtonElement>(`[${GESTE}]`))) bouton.disabled = figees;
+  }
 
   function creerLaCarte(constat: ConstatAFaire, question: boolean): HTMLElement {
     const entete = document.createElement('span');
@@ -250,6 +276,7 @@ export function monterAFaire(
     element.classList.add('bloc-constat');
     if (question) element.classList.add('constat-question');
     marquerDuTon(element, constat.type);
+    accorderLesGestes(element);
     return element;
   }
 
@@ -268,11 +295,12 @@ export function monterAFaire(
     const dite = constat.phrase.map((morceau) => (typeof morceau === 'string' ? morceau : morceau.chemin)).join('');
     const { element } = creerCarte({
       tete: [entete],
-      meta: [lieu, document.createElement('br'), boutonTexte(T.nePlusIgnorer, T.nePlusIgnorerCeConstat(dite), () => gestes.nePlusIgnorerLeConstat(constat.id))],
+      meta: [lieu, document.createElement('br'), boutonDeGeste(T.nePlusIgnorer, T.nePlusIgnorerCeConstat(dite), () => gestes.nePlusIgnorerLeConstat(constat.id))],
       corps: null,
       deplie: false,
     });
     element.classList.add('bloc-constat', 'muette');
+    accorderLesGestes(element);
     return element;
   }
 
@@ -287,15 +315,21 @@ export function monterAFaire(
     entete.append(phrase);
     const { element } = creerCarte({
       tete: [entete],
-      meta: [boutonTexte(T.nePlusIgnorer, T.nePlusIgnorerCeConstat(role), () => gestes.nePlusIgnorerLeRole(role))],
+      meta: [boutonDeGeste(T.nePlusIgnorer, T.nePlusIgnorerCeConstat(role), () => gestes.nePlusIgnorerLeRole(role))],
       corps: null,
       deplie: false,
     });
     element.classList.add('bloc-constat', 'muette');
+    accorderLesGestes(element);
     return element;
   }
 
   return {
+    figer(suivantes) {
+      if (suivantes === figees) return;
+      figees = suivantes;
+      for (const hote of [...Object.values(hotes), hoteDesIgnores]) accorderLesGestes(hote);
+    },
     poser(constats, ignores, questions = new Set()) {
       for (const groupe of GROUPES) {
         const duGroupe = (constats ?? []).filter((constat) => constat.groupe === groupe);

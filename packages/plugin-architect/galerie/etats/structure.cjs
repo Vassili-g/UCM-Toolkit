@@ -418,16 +418,24 @@ ETATS.push(
 /*
  * Actualiser dans le mode Tokens. Le clic prend la demande 2 du relevé ; l'analyse des noms qu'il relance prend la demande 7 de la frontière
  * (le bilan 1 a fait lire quatre groupes, demandes 2 à 5, et les termes, demande 6) et la relecture de la structure la demande 2 du domaine.
- * Le message de lecture prend la place des constats tant que ces trois réponses manquent ; la durée paraît à la dernière.
+ * Le panneau reste visible pendant l'analyse : le message de lecture paraît en tête tant que la structure manque, les cartes de la lecture
+ * précédente restent affichées et désactivées, Noms est en cours tant que le bilan manque et Appliquer est inactif. La durée paraît à la
+ * dernière réponse.
  */
 const actualiser = { clic: '.barre-lecture .bouton-discret' };
 const actualiserEtAttendre = { ...actualiser, attendre: '#panneau-a-appliquer .accueil:not([hidden])' };
 ETATS.push(
   {
     id: 't-actualiser-chargement', titre: 'Tokens, Actualiser en cours', quand: 'Le designer a lu les constats, puis clique Actualiser ; le sandbox n’a encore rien rendu.',
-    regarder: 'Dans l’onglet Constats, « Lecture des variables… » prend la place du sommaire, des sections et du pied ; les onglets Constats et Règles restent, et la table à gauche n’a plus de message qui la décale ; Actualiser est grisé et Annuler paraît.',
+    regarder: 'Dans l’onglet Constats, « Lecture des variables… » paraît en tête ; dessous, la section Noms est en cours (sa bande sans nombre, le même texte) et les sections de structure de la lecture précédente restent affichées, avec leurs cases, « Tout cocher », « Tout décocher » et Appliquer grisés ; aucune catégorie n’est tenue ; la table à gauche n’a plus de message qui la décale ; Actualiser est grisé et Annuler paraît.',
     existe: true,
     atteinte: [...ouvert(), actualiserEtAttendre],
+  },
+  {
+    id: 't-actualiser-structure-recue', titre: 'Tokens, Actualiser, structure reçue', quand: 'Le designer a cliqué Actualiser ; le sandbox a rendu le relevé et la structure, mais pas encore le bilan des noms.',
+    regarder: 'Le message de tête a disparu ; les cartes de structure sont celles de la nouvelle lecture et leurs cases sont ouvertes ; la section Noms, en tête, reste en cours (« Lecture des variables… », sans nombre ni puce) ; aucune catégorie n’est tenue ; Appliquer reste grisé.',
+    existe: true,
+    atteinte: [...ouvert(), actualiser, releve(releveDeStructure(), 2), { message: structure(2), attendre: '#panneau-a-appliquer .bande-element.en-cours' }],
   },
   {
     id: 't-actualiser-duree', titre: 'Tokens, durée de l’analyse', quand: 'Le sandbox a rendu le relevé, les noms et la structure de l’Actualiser.',
@@ -440,6 +448,20 @@ ETATS.push(
     ],
   },
 );
+
+/*
+ * La structure arrive avant les noms. Le fichier a déjà été analysé : à l'ouverture, le plugin relit les variables et demande les noms.
+ * Le sandbox rend la structure (demande 1 du domaine) et le bilan n'est pas encore là.
+ */
+ETATS.push({
+  id: 't-structure-avant-les-noms', titre: 'Tokens, structure affichée avant les noms', quand: 'Le fichier a déjà été analysé et le plugin vient de s’ouvrir ; le sandbox a rendu la structure, le bilan des noms n’est pas encore là.',
+  regarder: 'La page de lecture a laissé la place à l’onglet Constats : le sommaire n’a pas de puce Noms ; la section Noms est en tête, en cours, sa bande sans nombre ni chevron, avec « Lecture des variables… » dessous ; les sections de structure ont leurs cartes (Alias, Modes, Valeurs, Couches, Scopes) ; aucune catégorie sans carte n’est tenue en fin de liste ; le pied dit « Aucune correction cochée » et Appliquer est grisé.',
+  existe: true,
+  atteinte: [
+    preferences(), releve(releveDeStructure()), chevron('primitives'), chevron('theme'), groupe('theme', 'primary'),
+    { message: messages.initial(true) }, { message: structure(1), attendre: '#panneau-a-appliquer .bande-element.en-cours' },
+  ],
+});
 
 ETATS.push({
   id: 't-duree-ouverture', titre: 'Tokens, durée après l’ouverture', quand: 'Le plugin vient de s’ouvrir : le relevé, les noms et la structure sont lus, sans Actualiser.',

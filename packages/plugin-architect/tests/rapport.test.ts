@@ -297,7 +297,7 @@ test('un échec du rapport de tokens écrit la ligne d’échec et laisse le lie
 test('la structure mesure la taille de releve et de structure et le rendu, et montre le lien après la première lecture', () => {
   const fabrique = (): ElementDeTest => comme(document.createElement('div'));
   const pied = fabrique();
-  const tokens = { hote: () => fabrique(), ignores: fabrique(), haut: fabrique(), pied: fabrique(), poserLaStructure() {}, poserLesGestes() {}, choix: () => 'tout' };
+  const tokens = { hote: () => fabrique(), ignores: fabrique(), haut: fabrique(), pied: fabrique(), poserLaStructure() {}, poserLesGestes() {}, choix: () => 'tout', attente: () => ({ structure: false, noms: false }), surAttente: () => () => {} };
   const coquille = { tokens, pied, renommages: () => SANS_RENOMMAGES };
   const envoyes: Array<{ type: string; demande: number }> = [];
   const demandes: Array<(mesures: string | null) => void> = [];

@@ -4,7 +4,9 @@
  * dans Figma et les corrections de variables manquantes, de crans, de modes et de scopes, chacun dans le conteneur de sa catégorie.
  * Toutes les cases arrivent décochées. Le pied commun de l'onglet (`tokens/cochage.ts`) compte les cases cochées des renommages et des
  * corrections de structure ; Appliquer envoie d'abord les renommages, puis les corrections de structure ce module envoie ici.
- * Le panneau tire le compte de l'onglet des cartes que ce module lui livre.
+ * Le panneau tire le compte de l'onglet des cartes que ce module lui livre. Pendant une analyse, les cartes de la révision précédente
+ * restent affichées : leurs cases, leurs gestes de section et leurs boutons d'Ignorer sont désactivés tant que la structure manque, et
+ * Appliquer l'est tant que l'analyse n'est pas finie, noms compris.
  * Le lien « Télécharger le rapport d'analyse » est au pied des onglets (`rapport.ts`) ; il joint la durée du rendu mesurée ici.
  */
 import type { DemandeDeStructure, EchecDeLecture, IgnoresDeStructure, MessageDeStructure } from '../../messages/structure';
@@ -109,6 +111,7 @@ export function monterStructure(coquille: Coquille, { envoyer, noms, ouvrirLaFic
   tokens.haut.append(hoteDeLEchec, hoteDeLInformation, hoteDuResultat);
   const pied = monterLePied({
     hote: tokens.pied,
+    analyseEnCours: () => tokens.attente().structure || tokens.attente().noms,
     renommages: coquille.renommages(),
     structure: {
       idsCoches: corrections.idsCoches,
@@ -123,6 +126,12 @@ export function monterStructure(coquille: Coquille, { envoyer, noms, ouvrirLaFic
     },
   });
   recompter = pied.recompter;
+  tokens.surAttente(() => {
+    const perimee = tokens.attente().structure;
+    corrections.figer(perimee);
+    aFaire.figer(perimee);
+    pied.recompter();
+  });
 
   function rendre(): void {
     const constats = recu ? lireLesConstats(recu.constats, noms) : null;

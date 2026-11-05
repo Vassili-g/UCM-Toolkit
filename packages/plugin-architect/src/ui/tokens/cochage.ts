@@ -72,6 +72,8 @@ export interface OptionsDuPied {
   readonly hote: HTMLElement;
   readonly renommages: PontDesRenommages;
   readonly structure: SourceDeStructure;
+  /** Vrai tant que l'analyse n'est pas finie, noms compris : Appliquer et « Tout cocher » restent désactivés. Absent, jamais. */
+  readonly analyseEnCours?: () => boolean;
 }
 
 export interface Pied {
@@ -132,7 +134,7 @@ export function resumeDuPied(noms: CompteDesRenommages, corrections: number): (s
   return [TEXTES_TOKENS.pied.renomme, enGras(renomme.noms), TEXTES_TOKENS.pied.puisEcrit, enGras(ecrit.nombre), ecrit.fin];
 }
 
-export function monterLePied({ hote, renommages, structure }: OptionsDuPied): Pied {
+export function monterLePied({ hote, renommages, structure, analyseEnCours = () => false }: OptionsDuPied): Pied {
   const element = document.createElement('div');
   element.className = 'corrections-pied';
   const resume = document.createElement('span');
@@ -154,8 +156,9 @@ export function monterLePied({ hote, renommages, structure }: OptionsDuPied): Pi
     const nombreDeNoms = noms.etat === 'pret' ? noms.variables + noms.collections : 0;
     element.hidden = renommages.groupes() === 0 && structure.lignes() === 0;
     resume.replaceChildren(...resumeDuPied(noms, corrections));
-    toutCocher.disabled = enCours;
-    appliquer.disabled = enCours || renommages.occupe() || noms.etat === 'chargement' || nombreDeNoms + corrections === 0;
+    const analyse = analyseEnCours();
+    toutCocher.disabled = enCours || analyse;
+    appliquer.disabled = enCours || analyse || renommages.occupe() || noms.etat === 'chargement' || nombreDeNoms + corrections === 0;
   }
 
   function terminer(): void {

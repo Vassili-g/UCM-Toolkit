@@ -181,7 +181,12 @@ export function creerCoquille(app: HTMLElement, envoyer: (message: UiMessage) =>
   const tokens = monterLePanneauDesTokens({
     racine: panneaux.constats.contenu,
     nomenclature: { questions: panneaux.aTrancher.contenu, renommages: panneaux.aAppliquer.contenu, remises: panneaux.remises.contenu },
-    auChangement: () => rendre(),
+    // Les premiers constats de structure font passer l'écran de la lecture aux onglets, même sans bilan : Noms y est en cours.
+    auChangement: () => {
+      const recue = tokens.structureRecue();
+      if (recue !== etat.structureRecue) appliquerLEtat(etatSuivant(etat, { type: 'structure-recue', recue }));
+      else rendre();
+    },
   });
   const onglets = createOnglets<Onglet>(TEXTES.etiquetteDesOnglets, [
     { id: 'a-appliquer', libelle: TEXTES_TOKENS.ongletConstats, panneau: panneaux.constats.element },
@@ -274,7 +279,7 @@ export function creerCoquille(app: HTMLElement, envoyer: (message: UiMessage) =>
     bandeau.hidden = !etat.fichierModifie || etat.ecranDeTravail === 'lecture';
     if (etat.analyse) vueDAnalyse.poser(etat.analyse.lues, etat.analyse.total);
 
-    tokens.poser({ bilan: etat.bilan, reglesRecues });
+    tokens.poser({ bilan: etat.bilan, reglesRecues, nomsEnCours: etat.analyse !== null });
     // L'onglet grisé d'une library ne compte rien : il ne peut rien écrire ici.
     poserLeCompte(compteDesConstats, libraryAffichee ? 0 : tokens.total());
     for (const panneau of [panneaux.constats, panneaux.regles]) panneau.poserEtat(etat.particulier);

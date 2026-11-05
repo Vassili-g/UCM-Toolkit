@@ -112,11 +112,27 @@
   font-weight: 500;
 }
 
+/* Une catégorie dont les contrôles ne sont pas finis : le titre seul, sans nombre, sans chevron et sans clic. */
+.bande-element.en-cours {
+  grid-template-columns: 24px minmax(0, 1fr);
+  cursor: default;
+}
+
+.bande-element.en-cours .titre {
+  color: var(--texte-second);
+  font-weight: 500;
+}
+
 .bande-element .ico {
   align-items: center;
   justify-content: center;
   width: 14px;
   height: 14px;
+}
+
+/* Le message de lecture en tête des constats : ceux-ci restent visibles dessous, il ne prend pas la marge d'un écran d'accueil. */
+.accueil.lecture-en-tete {
+  padding: var(--espace-controle) 0;
 }
 
 /* La dernière section ne touche pas le bord de la fenêtre. */

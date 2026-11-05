@@ -8,13 +8,17 @@
  * (questions, renommages, remises) forment ensemble le corps de Noms, dans cet ordre ; chaque autre catégorie a le sien (`hote`).
  * Au-delà de `SEUIL_DE_REPLI` cartes, Noms arrive repliée ; le designer la déplie par sa bande ou par sa puce.
  *
- * Pendant une actualisation, le message de chargement prend la place du sommaire, des sections et du pied (`poserLeChargement`) ; une
- * fois l'analyse finie, la ligne de durée du mode Composant (`.arch-resume`) paraît en tête (`poserLeResume`).
+ * Pendant une analyse, le panneau reste visible (`poserLAttente`). Les constats de structure paraissent dès leur réception. Tant que
+ * le bilan des noms manque, Noms garde sa place en tête, en cours : sa bande sans nombre et le texte de lecture, sans carte ni puce.
+ * Tant que la structure manque, le message de lecture paraît en tête et les cartes de la révision précédente restent affichées ; leurs
+ * gestes sont désactivés par les modules qui les montent (`surAttente`). Aucune catégorie ne se dit tenue avant la fin de l'analyse
+ * complète. Une fois l'analyse finie, la ligne de durée du mode Composant (`.arch-resume`) paraît en tête (`poserLeResume`).
  */
 import { creerSigne } from 'ucm-plugin-socle/src/ui/Signe';
 
 import type { Bilan } from '../../messages/nomenclature';
-import { creerBande, creerBandeTenue, creerGroupeDePuces, creerPuce } from '../panneau/rendu';
+import { creerBande, creerBandeEnCours, creerBandeTenue, creerGroupeDePuces, creerPuce } from '../panneau/rendu';
+import { TEXTES } from '../textes';
 import { TEXTES_TOKENS } from '../textes/tokens';
 import { rafraichirLesListesDe } from '../virtualisation';
 import { lireLesCategories, type CategorieDeTokens, type DonneesDesCategories, type IdDeCategorie } from './categories';
@@ -57,8 +61,27 @@ export interface DonneesDuPanneau {
   readonly bilan: Bilan | null;
   /** Les règles que le mode Composant a préparées : elles s'affichent en tête des questions de Noms. */
   readonly reglesRecues: number;
+  /** Vrai pendant une analyse des noms que l'écran a lui-même demandée : Noms est en cours, quel que soit le suivi de l'actualisation. */
+  readonly nomsEnCours?: boolean;
 }
 
+/** Ce qu'une analyse attend encore, que l'actualisation donne au panneau. */
+export interface AttenteDeLAnalyse {
+  /** La structure manque : les constats affichés, s'il y en a, sont ceux de la révision précédente. */
+  readonly structure: boolean;
+  /** Le bilan des noms manque. */
+  readonly noms: boolean;
+  /** Le texte de lecture ; Noms en cours le reprend. */
+  readonly texte: string;
+  /** Vrai quand le texte paraît aussi en tête des constats tant que la structure manque. */
+  readonly enTete: boolean;
+}
+
+/** Ce que les modules de cartes lisent de l'attente : les cartes de structure et le pied Appliquer s'y accordent. */
+export interface AttenteEffective {
+  readonly structure: boolean;
+  readonly noms: boolean;
+}
 export interface PanneauDesTokens {
   /** Le conteneur du corps d'une catégorie de structure. */
   hote(id: CategorieDeStructure): HTMLElement;
@@ -81,10 +104,16 @@ export interface PanneauDesTokens {
   poser(donnees: DonneesDuPanneau): void;
   /** Les données du domaine structure ; `null` tant que le sandbox n'a pas répondu. */
   poserLaStructure(structure: StructureLue | null): void;
+  /** Vrai dès que le domaine structure a rendu ses constats. */
+  structureRecue(): boolean;
   /** Redessine les sections : une ligne de résultat de Noms vient de paraître dans un conteneur que le panneau n'observe pas. */
   rafraichir(): void;
-  /** Le message de chargement à la place des constats ; `null` rend les constats. Les cartes restent montées, seulement masquées. */
-  poserLeChargement(texte: string | null): void;
+  /** Ce que l'analyse attend encore ; `null` hors analyse. Le panneau et ses cartes restent visibles. */
+  poserLAttente(attente: AttenteDeLAnalyse | null): void;
+  /** L'attente en vigueur : celle de l'actualisation, plus l'analyse des noms que l'écran a demandée. */
+  attente(): AttenteEffective;
+  /** Appelle le rappel quand l'attente effective change ; rend la fonction qui le retire. */
+  surAttente(rappel: () => void): () => void;
   /** La ligne discrète en tête (« analysé à 14:32 en 3 s ») ; `null` la retire. */
   poserLeResume(texte: string | null): void;
 }
@@ -97,10 +126,14 @@ interface VueDeCategorie extends CategorieDeTokens {
   readonly questions: number;
   /** Vrai quand la section se montre : des cartes, ou des questions remises à plus tard. */
   readonly visible: boolean;
+  /** Vrai pour Noms tant que son bilan manque : la section se montre sans carte ni nombre. */
+  readonly enCours: boolean;
 }
 
-function vuesDe(categories: readonly CategorieDeTokens[], { bilan, reglesRecues }: DonneesDuPanneau): readonly VueDeCategorie[] {
+function vuesDe(categories: readonly CategorieDeTokens[], { bilan, reglesRecues }: DonneesDuPanneau, nomsEnCours: boolean): readonly VueDeCategorie[] {
   return categories.map((categorie) => {
+    // Le bilan précédent n'est pas celui de cette analyse : ses cartes ne se comptent ni ne se montrent.
+    if (categorie.id === 'noms' && nomsEnCours) return { ...categorie, cartes: [], nombre: 0, questions: 0, tenue: false, visible: true, enCours: true };
     const dePlus = categorie.id === 'noms' ? reglesRecues : 0;
     const remises = categorie.id === 'noms' && bilan ? bilan.plusTard.length + bilan.autresPistes : 0;
     const nombre = categorie.nombre + dePlus;
@@ -110,6 +143,7 @@ function vuesDe(categories: readonly CategorieDeTokens[], { bilan, reglesRecues 
       questions: categorie.cartes.filter(({ estUneQuestion }) => estUneQuestion).length + dePlus,
       tenue: categorie.tenue && remises === 0 && dePlus === 0,
       visible: nombre > 0 || remises > 0,
+      enCours: false,
     };
   });
 }
@@ -128,7 +162,8 @@ export function monterLePanneauDesTokens({ racine, nomenclature, auChangement }:
   resumeHote.hidden = true;
   const chargement = document.createElement('div');
   // La même mise en forme que l'accueil de la table, qui portait ce message avant : le texte et le style ne changent pas, seule la place change.
-  chargement.className = 'accueil';
+  // Au-dessus de constats qui restent visibles, le message n'a pas la marge d'un écran d'accueil.
+  chargement.className = 'accueil lecture-en-tete';
   chargement.hidden = true;
   const texteDeChargement = document.createElement('p');
   texteDeChargement.className = 'accueil-texte';
@@ -160,6 +195,11 @@ export function monterLePanneauDesTokens({ racine, nomenclature, auChangement }:
 
   let donnees: DonneesDuPanneau = { bilan: null, reglesRecues: 0 };
   let structure: StructureLue | null = null;
+  let attenteDeLActualisation: AttenteDeLAnalyse | null = null;
+  const surAttentes = new Set<() => void>();
+  let derniereAttente = '';
+  /** Le texte de la section Noms en cours, que la progression de la lecture met à jour sans redessiner le panneau. */
+  let texteDesNoms: HTMLElement | null = null;
   let categories: readonly CategorieDeTokens[] = [];
   let vues: readonly VueDeCategorie[] = [];
   let choisi: ChoixDuSommaire = 'tout';
@@ -168,6 +208,20 @@ export function monterLePanneauDesTokens({ racine, nomenclature, auChangement }:
 
   const questionsTotal = (): number => vues.reduce((somme, vue) => somme + vue.questions, 0);
 
+  const attenteEffective = (): AttenteEffective => ({
+    structure: attenteDeLActualisation?.structure === true,
+    noms: attenteDeLActualisation?.noms === true || donnees.nomsEnCours === true,
+  });
+
+  /** Prévient les modules de cartes quand l'attente change : leurs gestes se désactivent ou se rouvrent. */
+  function signalerLAttente(): void {
+    const { structure: enAttenteDeStructure, noms } = attenteEffective();
+    const cle = `${enAttenteDeStructure}|${noms}`;
+    if (cle === derniereAttente) return;
+    derniereAttente = cle;
+    for (const rappel of [...surAttentes]) rappel();
+  }
+
   function choixEffectif(): ChoixDuSommaire {
     if (choisi === 'tout') return 'tout';
     if (choisi === QUESTIONS) return questionsTotal() > 0 ? QUESTIONS : 'tout';
@@ -175,15 +229,16 @@ export function monterLePanneauDesTokens({ racine, nomenclature, auChangement }:
   }
 
   function recalculer(): void {
+    const attente = attenteEffective();
     categories = lireLesCategories({
       nomenclature: donnees.bilan,
       constats: structure?.constats ?? [],
       corrections: structure?.corrections ?? [],
       noms: structure?.noms ?? SANS_NOMS,
-      // Tant que le bilan ou la structure manque, une catégorie vide n'a pas été lue : elle ne se montre pas tenue.
-      partielle: structure === null || structure.partielle === true || donnees.bilan === null,
+      // Tant que le bilan ou la structure manque, ou que l'analyse attend encore une part, une catégorie vide n'a pas été lue : elle ne se montre pas tenue.
+      partielle: structure === null || structure.partielle === true || donnees.bilan === null || attente.structure || attente.noms,
     });
-    vues = vuesDe(categories, donnees);
+    vues = vuesDe(categories, donnees, attente.noms);
     // Une section longue arrive repliée : le choix est pris une fois, à sa première apparition avec des cartes.
     for (const vue of vues) if (vue.nombre > 0 && !ouvertes.has(vue.id)) ouvertes.set(vue.id, vue.id !== 'noms' || vue.nombre <= SEUIL_DE_REPLI);
   }
@@ -241,6 +296,19 @@ export function monterLePanneauDesTokens({ racine, nomenclature, auChangement }:
     return section;
   }
 
+  /** Noms tant que son bilan manque : sa bande sans nombre, puis le texte de lecture de l'actualisation. */
+  function creerLaSectionEnCours(vue: VueDeCategorie): HTMLElement {
+    const section = document.createElement('div');
+    section.className = 'section-element';
+    section.dataset.element = vue.id;
+    const texte = document.createElement('p');
+    texte.className = 'accueil-texte';
+    texte.textContent = attenteDeLActualisation?.texte ?? TEXTES.lectureEnCours;
+    texteDesNoms = texte;
+    section.append(creerBandeEnCours(signeDe(vue, 24, false), vue.libelle), texte);
+    return section;
+  }
+
   function creerLaSectionTenue(vue: VueDeCategorie): HTMLElement {
     const section = document.createElement('div');
     section.className = 'section-element';
@@ -281,15 +349,17 @@ export function monterLePanneauDesTokens({ racine, nomenclature, auChangement }:
   function rendre(): void {
     const effectif = choixEffectif();
     const visibles = vues.filter((vue) => vue.visible);
+    // Noms en cours n'a ni nombre ni carte : il garde sa section, mais ni puce ni part du total.
+    const avecPuce = visibles.filter((vue) => !vue.enCours);
     const tout = effectif === 'tout';
     const seulementLesQuestions = effectif === QUESTIONS;
     const montrees = tout ? visibles : seulementLesQuestions ? visibles.filter((vue) => vue.questions > 0) : visibles.filter((vue) => vue.id === effectif);
     const tenues = tout ? vues.filter((vue) => vue.tenue) : [];
     // Sous la puce Questions, les conteneurs de structure ne montrent que les cartes qui posent une question.
     for (const conteneur of hotes.values()) conteneur.classList.toggle('filtre-questions', seulementLesQuestions);
-    sommaireHote.replaceChildren(...(visibles.length > 0 ? [creerLeSommaire(visibles, effectif)] : []));
+    sommaireHote.replaceChildren(...(avecPuce.length > 0 ? [creerLeSommaire(avecPuce, effectif)] : []));
     liste.replaceChildren(
-      ...montrees.map((vue) => creerLaSection(vue, seulementLesQuestions, montrees.length === 1 && !tout)),
+      ...montrees.map((vue) => (vue.enCours ? creerLaSectionEnCours(vue) : creerLaSection(vue, seulementLesQuestions, montrees.length === 1 && !tout))),
       ...tenues.map(creerLaSectionTenue),
       ...(tout ? [ignores] : []),
     );
@@ -309,20 +379,38 @@ export function monterLePanneauDesTokens({ racine, nomenclature, auChangement }:
     choix: choixEffectif,
     total: () => vues.filter((vue) => vue.visible).reduce((somme, vue) => somme + vue.nombre, 0),
     poser(suivantes) {
-      if (suivantes.bilan === donnees.bilan && suivantes.reglesRecues === donnees.reglesRecues) return;
+      if (suivantes.bilan === donnees.bilan && suivantes.reglesRecues === donnees.reglesRecues && suivantes.nomsEnCours === donnees.nomsEnCours) return;
       donnees = suivantes;
       recalculer();
       rendre();
+      signalerLAttente();
     },
     rafraichir: rendre,
-    poserLeChargement(texte) {
-      const charge = texte !== null;
-      // Le message prend la place des constats sans les démonter : l'attribut `hidden` suffit, y compris sur les conteneurs sans boîte.
-      for (const zone of [sommaireHote, haut, liste, pied]) zone.hidden = charge;
+    poserLAttente(suivante) {
+      const avant = attenteDeLActualisation;
+      attenteDeLActualisation = suivante;
+      // Le message paraît en tête tant que la structure manque ; les constats restent là, leurs gestes désactivés par `surAttente`.
+      const charge = suivante !== null && suivante.structure && suivante.enTete;
       chargement.hidden = !charge;
       resumeHote.hidden = charge || resumeHote.childNodes.length === 0;
-      if (charge) texteDeChargement.textContent = texte;
+      texteDeChargement.textContent = charge ? suivante.texte : '';
+      if (texteDesNoms !== null && suivante !== null) texteDesNoms.textContent = suivante.texte;
+      // Un changement de texte seul (la progression de la lecture) ne redessine pas les sections.
+      if (avant?.structure === suivante?.structure && avant?.noms === suivante?.noms && avant?.enTete === suivante?.enTete) return;
+      recalculer();
+      rendre();
+      signalerLAttente();
+      // Le compte de l'onglet suit les sections : Noms y entre quand son bilan est là.
+      auChangement();
     },
+    attente: attenteEffective,
+    surAttente(rappel) {
+      surAttentes.add(rappel);
+      return () => {
+        surAttentes.delete(rappel);
+      };
+    },
+    structureRecue: () => structure !== null,
     poserLeResume(texte) {
       if (texte === null) {
         resumeHote.replaceChildren();
