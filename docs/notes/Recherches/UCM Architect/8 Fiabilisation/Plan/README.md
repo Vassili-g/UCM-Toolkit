@@ -209,8 +209,8 @@ Règles propres à la phase E :
 | [E8a](lots/E8a.md) Icônes du composant | `implementeur-exigeant` | E7b, E1b | [x] b0558daf, reliquat des valeurs d'instance fait dans 7f363fc7 |
 | [E8b](lots/E8b.md) Styles de texte | `implementeur` | E8a | [x] 2e80ec58 |
 | [E9a](lots/E9a.md) Composition et valeurs de couleur | `implementeur` | E8b | [x] 2e80ec58, phrase de couleur-hors-gamut reste |
-| [E9b](lots/E9b.md) Visibilité et fond du texte | `implementeur` | E9a | [ ] |
-| [E9c](lots/E9c.md) Modes, garanties et identifiants | `implementeur` | E9b | [ ] |
+| [E9b](lots/E9b.md) Visibilité et fond du texte | `implementeur` | E9a | [x] 477f3511 |
+| [E9c](lots/E9c.md) Modes, garanties et identifiants | `implementeur` | E9b | [x] 477f3511, texte de C49:borne reste |
 | [E9d](lots/E9d.md) Contours et anneaux | `implementeur` | E9c, E1b | [ ] |
 | [E9e](lots/E9e.md) Désactivés et limites de lecture | `implementeur` | E9d | [ ] |
 | [E10a](lots/E10a.md) Règles d’usage | `implementeur` | E9e, B2 | [ ] |
