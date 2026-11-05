@@ -5,7 +5,8 @@
  * d'affichage) n'est qu'une commodité : un stockage refusé laisse la page
  * fonctionner avec la recette de démonstration.
  */
-import { CRANS, PROFILS, REGISTRE_ETATS, REGISTRE_STATUTS } from '@ucm-kit/core/referentiel';
+import { CRANS, PROFILS, REGISTRE_ETATS, REGISTRE_STATUTS, svgDuSigne } from '@ucm-kit/core/referentiel';
+import { svgDeLAlerte } from 'ucm-plugin-socle/src/ui/Alerte';
 import releveBrut from 'ucm-couleur/tailwind-3.4.17.json';
 import {
   atteintLeSeuil,
@@ -180,14 +181,19 @@ function cellule(contenu: string, prises: readonly Prise[], legende = ''): strin
 
 // --- Icônes ---------------------------------------------------------------
 
-const ICONES = {
-  info: '<svg viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="8" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M10 9v5M10 6v.5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>',
-  succes: '<svg viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="8" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M6.5 10.2l2.4 2.4 4.6-5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>',
-  alerte: '<svg viewBox="0 0 20 20" aria-hidden="true"><path d="M10 3l8 14H2z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><path d="M10 8v4M10 14.5v.5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>',
-  fleche: '<svg viewBox="0 0 20 20" aria-hidden="true"><path d="M4 10h11M11 6l4 4-4 4" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>',
-  coche: '<svg viewBox="0 0 20 20" aria-hidden="true"><path d="M5 10.5l3.2 3.2L15 7" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>',
-  fermer: '<svg viewBox="0 0 20 20" aria-hidden="true"><path d="M6 6l8 8M14 6l-8 8" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>',
-} as const;
+/**
+ * Les icônes viennent du kit et du socle : `info`, `succes`, `alerte` et `coche` sont les rendus sans DOM des alertes du socle
+ * (`svgDeLAlerte`), `fleche` et `fermer` les signes `avant-apres` et `fermer` de la famille `interface`. Le rond des alertes
+ * est plein en `currentColor` et son tracé prend `--texte-sur-ton` : l'appelant donne le fond que l'icône pose sur.
+ * L'espace de noms SVG est retiré, car la page HTML n'en a pas besoin.
+ */
+const sansEspaceDeNoms = (svg: string): string => svg.replace(/ xmlns="[^"]*"/u, '');
+const SIGNES_D_ALERTE = { info: 'info', succes: 'tenu', alerte: 'corriger', coche: 'tenu' } as const;
+function icone(nom: keyof typeof SIGNES_D_ALERTE, fond: Teinte): string {
+  return `<span style="display:contents;--texte-sur-ton:${fond.hexa}">${sansEspaceDeNoms(svgDeLAlerte(SIGNES_D_ALERTE[nom], 16))}</span>`;
+}
+const FLECHE = sansEspaceDeNoms(svgDuSigne('avant-apres', 16));
+const FERMER = sansEspaceDeNoms(svgDuSigne('fermer', 16));
 
 // --- Composants -----------------------------------------------------------
 
@@ -240,7 +246,7 @@ function bouton(jeu: Jeu, variante: Variante, etatDuBouton: EtatDuBouton, fond: 
     texte = actif ? v[action === 'surface' ? 'surface/foreground' : 'page/foreground'] : desactive(jeu, 'disabled/foreground');
   }
   const ombres = [contour ? `inset 0 0 0 1px ${contour.hexa}` : '', etatDuBouton === 'focus' ? anneau(fond, v.ring) : ''].filter(Boolean).join(', ');
-  const html = `<span class="bouton" style="background:${hx(arrierePlan)};color:${hx(texte)};${ombres ? `box-shadow:${ombres}` : ''}">${esc(libelle)}${ICONES.fleche}</span>`;
+  const html = `<span class="bouton" style="background:${hx(arrierePlan)};color:${hx(texte)};${ombres ? `box-shadow:${ombres}` : ''}">${esc(libelle)}${FLECHE}</span>`;
   const prises: Prise[] = [{ nom: 'texte', premier: texte, fond: arrierePlan ?? fond, ...(actif ? { nature: 'texte' as const } : {}) }];
   if (contour) prises.push({ nom: 'contour', premier: contour, fond, ...(actif ? { nature: 'nonTexte' as const } : {}) });
   if (etatDuBouton === 'focus') prises.push({ nom: 'anneau', premier: v.ring, fond, nature: 'nonTexte' });
@@ -266,7 +272,7 @@ function alerte(jeu: Jeu, variante: 'filled' | 'outlined', titre: string, texte:
   const jeuAction = options.actionJeu ?? jeu;
   const texteAction = jeuAction.v[filled && action === 'surface' ? 'surface/foreground' : 'page/foreground'];
   const style = `background:${hx(fond)};color:${hx(encre)};${bord ? `box-shadow:inset 0 0 0 1px ${bord.hexa}` : ''}`;
-  const html = `<div class="alerte" style="${style}"><span class="icone">${ICONES[statut]}</span><div class="alerte-texte"><b>${esc(titre)}</b><span>${esc(texte)}</span></div><span class="alerte-action" style="color:${hx(texteAction)}">Action</span></div>`;
+  const html = `<div class="alerte" style="${style}"><span class="icone">${icone(statut, fond)}</span><div class="alerte-texte"><b>${esc(titre)}</b><span>${esc(texte)}</span></div><span class="alerte-action" style="color:${hx(texteAction)}">Action</span></div>`;
   const prises: Prise[] = [
     { nom: 'texte', premier: encre, fond, nature: 'texte' },
     { nom: 'action', premier: texteAction, fond, nature: 'texte' },
@@ -290,7 +296,7 @@ function etiquettes(jeu: Jeu, fond: Teinte): string {
 function puces(jeu: Jeu, fond: Teinte): string {
   const v = jeu.v;
   const puce = (arrierePlan: Teinte | undefined, texte: Teinte | undefined, contour: Teinte | undefined, legende: string, prises: Prise[]) =>
-    cellule(`<span class="puce" style="background:${hx(arrierePlan)};color:${hx(texte)};${contour ? `box-shadow:inset 0 0 0 1px ${contour.hexa}` : ''}">${legende === 'sélectionnée' ? ICONES.coche : ''}Filtre</span>`, prises, legende);
+    cellule(`<span class="puce" style="background:${hx(arrierePlan)};color:${hx(texte)};${contour ? `box-shadow:inset 0 0 0 1px ${contour.hexa}` : ''}">${legende === 'sélectionnée' ? icone('coche', arrierePlan ?? jeu.page) : ''}Filtre</span>`, prises, legende);
   return [
     puce(undefined, v['page/foreground'], v['page/border'], 'repos', [{ nom: 'texte', premier: v['page/foreground'], fond, nature: 'texte' }, { nom: 'contour', premier: v['page/border'], fond, nature: 'nonTexte' }]),
     puce(v['surface/hover'], v['surface/foreground'], v['page/border'], 'survol', [{ nom: 'texte', premier: v['surface/foreground'], fond: v['surface/hover'], nature: 'texte' }]),
@@ -313,7 +319,7 @@ function champ(jeu: Jeu, neutre: Neutre, focus: boolean, libelle = 'Montant', va
 function formulaire(jeu: Jeu, neutre: Neutre): string {
   const v = jeu.v;
   const carte = jeu.carte;
-  const caseCochee = cellule(`<span class="case" style="background:${hx(v['solid/default'])};color:${hx(v['solid/foreground'])}">${ICONES.coche}</span><span>Accepté</span>`, [{ nom: 'case', premier: v['solid/default'], fond: carte, nature: 'nonTexte' }, { nom: 'coche', premier: v['solid/foreground'], fond: v['solid/default'], nature: 'nonTexte' }], 'case cochée');
+  const caseCochee = cellule(`<span class="case" style="background:${hx(v['solid/default'])};color:${hx(v['solid/foreground'])}">${icone('coche', v['solid/default']!)}</span><span>Accepté</span>`, [{ nom: 'case', premier: v['solid/default'], fond: carte, nature: 'nonTexte' }, { nom: 'coche', premier: v['solid/foreground'], fond: v['solid/default'], nature: 'nonTexte' }], 'case cochée');
   const caseVide = cellule(`<span class="case" style="box-shadow:inset 0 0 0 1.5px ${hx(v['page/border'])}"></span><span>Refusé</span>`, [{ nom: 'contour', premier: v['page/border'], fond: carte, nature: 'nonTexte' }], 'case vide');
   const radio = cellule(`<span class="radio" style="box-shadow:inset 0 0 0 1.5px ${hx(v['solid/default'])}"><span style="background:${hx(v['solid/default'])}"></span></span><span>Mensuel</span>`, [{ nom: 'radio', premier: v['solid/default'], fond: carte, nature: 'nonTexte' }], 'radio');
   const interrupteur = cellule(`<span class="interrupteur" style="background:${hx(v['solid/default'])}"><span style="background:${jeu.texteDesBoutons.hexa}"></span></span>`, [{ nom: 'piste', premier: v['solid/default'], fond: carte, nature: 'nonTexte' }, { nom: 'bouton', premier: jeu.texteDesBoutons, fond: v['solid/default'], nature: 'nonTexte' }], 'interrupteur');
@@ -330,7 +336,7 @@ function navigation(jeu: Jeu, neutre: Neutre): string {
     'onglets',
   );
   const bandeau = cellule(
-    `<div class="bandeau" style="background:${hx(v['solid/default'])};color:${hx(v['solid/foreground'])}"><span>Virement envoyé.</span><u>Annuler</u>${ICONES.fermer}</div>`,
+    `<div class="bandeau" style="background:${hx(v['solid/default'])};color:${hx(v['solid/foreground'])}"><span>Virement envoyé.</span><u>Annuler</u>${FERMER}</div>`,
     [{ nom: 'texte', premier: v['solid/foreground'], fond: v['solid/default'], nature: 'texte' }],
     'bandeau plein',
   );

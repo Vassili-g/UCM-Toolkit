@@ -15,6 +15,6 @@ Page locale et autonome qui montre ce que le kit et le moteur de couleur produis
 - modele.ts : modèle pur : jeux de couleurs par palette, intensité et mode, mesures des garanties et des usages, lecture d'une recette
 
 ## src/vues/
-- page.ts : la page dans le navigateur ; seul fichier du paquet qui lit le DOM
+- page.ts : la page dans le navigateur ; seul fichier du paquet qui lit le DOM ; ses icônes viennent du kit (`svgDuSigne`) et du socle (`svgDeLAlerte`), sans tracé propre
 - page.css : feuille de la page
 - tsconfig.json : compile les vues avec le DOM

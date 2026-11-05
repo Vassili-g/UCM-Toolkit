@@ -12,7 +12,8 @@
   },
   "dependencies": {
     "@ucm-kit/core": "*",
-    "ucm-couleur": "*"
+    "ucm-couleur": "*",
+    "ucm-plugin-socle": "*"
   },
   "devDependencies": {
     "esbuild": "^0.28.0"
