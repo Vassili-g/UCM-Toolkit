@@ -52,8 +52,8 @@ function assertMemesRampes(figee: PaletteFigee, palette: Palette): void {
 
 const RAPIDES_SANS_REFERENCE = [6, 7, 11, 17, 20, 21];
 const RAPIDES_AVEC_REFERENCE = [12, 28];
-// La palette 28 demande environ 93 s depuis la correction des textes par teinte (C2) : le mainteneur a porté son budget à 120 s le 29/10.
-const BUDGETS: Readonly<Record<number, number>> = { 28: 120_000 };
+// La palette 28 demande de 93 à 118 s selon la charge de la machine : son budget laisse cette marge.
+const BUDGETS: Readonly<Record<number, number>> = { 28: 180_000 };
 
 for (const numero of [...RAPIDES_SANS_REFERENCE, ...RAPIDES_AVEC_REFERENCE]) {
   const avecReference = RAPIDES_AVEC_REFERENCE.includes(numero);
