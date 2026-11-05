@@ -35,8 +35,9 @@ composant pour sujet, elle s'ouvre sur **Composant** ; sinon sur **Tokens**.
 ## Explorer les variables
 
 À l'ouverture, le plugin lit les variables locales et les cibles de leurs
-alias. **Actualiser** relit le fichier ; le pied de la fenêtre donne l'heure
-et le numéro du relevé.
+alias. **Actualiser** relit le fichier : l'onglet Constats montre « Lecture des
+variables… » à la place des constats, puis une ligne grise donne la durée de
+l'analyse. Le pied de la fenêtre donne l'heure et le numéro du relevé.
 
 - **Arbre.** Une collection montre toutes ses variables ; un groupe montre les
   siennes et celles de ses descendants. Le chevron replie l'arbre sans

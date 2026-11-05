@@ -34,6 +34,8 @@ export interface OptionsDeFrontiere {
  */
 export interface Frontiere {
   analyser(): number;
+  /** Relance l'analyse sans prévenir l'écran : ni `analyse-demandee`, ni les messages `lecture` de sa demande. Le `bilan` qui suit est rendu comme les autres. */
+  rafraichir(): number;
   regle(geste: GesteSurLesRegles): number;
   repondre(question: string, reponse: Reponse): number;
   configurer(collectionsExclues: readonly string[]): number;
@@ -65,6 +67,8 @@ export function creerFrontiere(options: OptionsDeFrontiere): Frontiere {
   const lectures = new Map<number, string>();
   const derniereLecture = new Map<string, number>();
   let exportEnAttente: number | null = null;
+  /** Les analyses lancées par `rafraichir` : leur progression ne remplace pas l'écran. */
+  const silencieuses = new Set<number>();
 
   const numeroSuivant = (): number => {
     compteur += 1;
@@ -78,6 +82,7 @@ export function creerFrontiere(options: OptionsDeFrontiere): Frontiere {
   }
 
   function terminerLeCalcul(): void {
+    if (enVol) silencieuses.delete(enVol.demande);
     enVol = null;
     const suivante = attente.shift();
     if (suivante) partir(suivante);
@@ -171,7 +176,7 @@ export function creerFrontiere(options: OptionsDeFrontiere): Frontiere {
         options.afficher(message);
         return;
       case 'lecture':
-        if (enVol?.type === 'noms-analyser' && enVol.demande === message.demande) options.afficher(message);
+        if (enVol?.type === 'noms-analyser' && enVol.demande === message.demande && !silencieuses.has(message.demande)) options.afficher(message);
         return;
       case 'bilan':
         recevoirLeBilan(message);
@@ -210,6 +215,11 @@ export function creerFrontiere(options: OptionsDeFrontiere): Frontiere {
     analyser() {
       options.afficher({ type: 'analyse-demandee' });
       return calculer({ type: 'noms-analyser', demande: numeroSuivant() });
+    },
+    rafraichir() {
+      const demande = numeroSuivant();
+      silencieuses.add(demande);
+      return calculer({ type: 'noms-analyser', demande });
     },
     regle: (geste) => calculer({ type: 'regle', demande: numeroSuivant(), geste }),
     repondre: (question, reponse) => calculer({ type: 'noms-repondre', demande: numeroSuivant(), question, reponse }),

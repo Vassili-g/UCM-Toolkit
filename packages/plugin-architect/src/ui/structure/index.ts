@@ -29,6 +29,8 @@ export interface OptionsDeStructure {
   readonly preparerLeRapport?: (auRetour: (mesures: string | null) => void) => void;
   readonly telecharger?: (nom: string, contenu: string, type: string) => void;
   readonly maintenant?: () => Date;
+  /** Appelée après le rendu de chaque réponse `structure` retenue, que ce soit la lecture d'un Actualiser ou celle d'un Ignorer. */
+  readonly apresLaStructure?: () => void;
   /** L'horloge du rendu, en millisecondes. */
   readonly horloge?: () => number;
 }
@@ -41,7 +43,7 @@ export interface Structure {
   recevoir(message: MessageDeStructure): void;
 }
 
-export function monterStructure(coquille: Coquille, { envoyer, noms, ouvrirLaFiche, preparerLeRapport, telecharger, maintenant, horloge = () => globalThis.performance?.now() ?? Date.now() }: OptionsDeStructure): Structure {
+export function monterStructure(coquille: Coquille, { envoyer, noms, ouvrirLaFiche, preparerLeRapport, telecharger, maintenant, apresLaStructure, horloge = () => globalThis.performance?.now() ?? Date.now() }: OptionsDeStructure): Structure {
   const mesures = creerLesMesuresDuPanneau();
   const rapport = preparerLeRapport
     ? monterLeRapportDeTokens({ preparer: preparerLeRapport, mesures, ...(telecharger ? { telecharger } : {}), ...(maintenant ? { maintenant } : {}) })
@@ -145,6 +147,7 @@ export function monterStructure(coquille: Coquille, { envoyer, noms, ouvrirLaFic
         rendre();
         mesures.noterLeRendu(horloge() - debut);
         rapport?.poser(true);
+        apresLaStructure?.();
         return;
       }
       if (message.demande !== demandeDApplication) return;

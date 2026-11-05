@@ -27,6 +27,7 @@ import { accueilVisible, collectionDuFiltre, etatInitial, poserReleve } from './
 import { monterNomenclature } from './nomenclature';
 import { monterBibliotheque } from './bibliotheque';
 import { estReglesRecues } from './nomenclature/reglesRecues';
+import { creerActualisation, texteDeLaLecture } from './tokens/actualisation';
 import { monterStructure } from './structure';
 import type { Noms } from './structure/lecture';
 import { versSandbox } from './pont';
@@ -150,7 +151,21 @@ const noms: Noms = {
     return trouvee?.id ?? null;
   },
 };
-const structure = monterStructure(nomenclature.coquille, { envoyer: versSandbox, noms, ouvrirLaFiche: (cle) => app.suivre(cle), preparerLeRapport: (auRetour) => app.preparerLeRapportDeTokens(auRetour) });
+/** L'actualisation du mode Tokens : le message de lecture dans l'onglet Constats, puis la durée de l'analyse à sa fin. */
+const actualisation = creerActualisation({
+  panneau: nomenclature.coquille.tokens,
+  lecture: () => etat.lecture,
+  relancerLesNoms: () => nomenclature.coquille.rafraichir(),
+});
+nomenclature.coquille.abonner((message) => {
+  // Une analyse des noms que le designer ou l'ouverture vient de demander pendant l'actualisation compte comme celle qu'Actualiser relance.
+  if (message.type === 'analyse-demandee') actualisation.attendreLesNoms();
+  else if (message.type === 'bilan' || message.type === 'erreur') actualisation.recevoir('noms');
+});
+const structure = monterStructure(nomenclature.coquille, {
+  envoyer: versSandbox, noms, ouvrirLaFiche: (cle) => app.suivre(cle), preparerLeRapport: (auRetour) => app.preparerLeRapportDeTokens(auRetour),
+  apresLaStructure: () => actualisation.recevoir('structure'),
+});
 
 /** Un fichier sans variable locale montre la library dont il tire les siennes ; ses onglets de renommage se grisent, et l'alerte dit où les renommer. */
 const bibliotheque = monterBibliotheque({
@@ -235,7 +250,7 @@ function rendreAccueil(): void {
   const parties: HTMLElement[] = [];
   const texte = document.createElement('p');
   texte.className = 'accueil-texte';
-  if (lecture.statut === 'en-cours') texte.textContent = lecture.total > 1 || lecture.fait > 0 ? TEXTES.progression(TEXTES.phase[lecture.phase] ?? lecture.phase, lecture.fait, lecture.total) : TEXTES.lectureEnCours;
+  if (lecture.statut === 'en-cours') texte.textContent = texteDeLaLecture(lecture);
   else if (lecture.statut === 'annulee') texte.textContent = TEXTES.lectureAnnulee;
   else if (lecture.statut === 'echouee') texte.textContent = etat.releve ? TEXTES.donneesAnciennes(heure(etat.releve.luA)) : TEXTES.lectureEchouee(lecture.message);
   else if (etat.releve && etat.releve.variables.length === 0) texte.textContent = TEXTES.aucuneVariable;
@@ -267,11 +282,13 @@ branchements = {
     if (demandees.has('table') || demandees.has('vue')) table.mettreAJour();
     if (demandees.has('fiche')) fiche.mettreAJour();
     rendreAccueil();
+    actualisation.rafraichir();
     if (demandees.has('pied') || demandees.has('barre')) rendrePied();
     poserLeFiltre();
     bibliotheque.suivre();
   },
   montrerDansLaTable: (variable) => table.montrer(variable),
+  actualiser: () => actualisation.commencer(),
   ouvrirLaConfiguration: () => nomenclature.coquille.ouvrirLaConfiguration(),
   fermerLaConfiguration: () => nomenclature.coquille.fermerLaConfiguration(),
   configurationOuverte: () => nomenclature.coquille.etat().ecran === 'configuration',
@@ -350,6 +367,7 @@ function recevoir(message: PluginMessage): void {
       }
       app.rendre();
       structure.demander();
+      actualisation.recevoir('releve');
       if (message.releve.variables.length === 0) bibliotheque.demander();
       return;
     case 'bibliotheque':
@@ -359,6 +377,8 @@ function recevoir(message: PluginMessage): void {
     case 'bibliotheque-illisible':
       return;
     case 'lecture-echouee':
+      // Une lecture échouée, celle du relevé ou de la structure, ferme le chargement : les constats reviennent sans durée.
+      actualisation.abandonner();
       if (demandeCourante(message.demande)) {
         etat.lecture = { statut: 'echouee', message: message.message };
         app.rendre(['barre', 'pied']);
@@ -366,6 +386,7 @@ function recevoir(message: PluginMessage): void {
       return;
     case 'annulation':
       if (demandeCourante(message.demande)) {
+        actualisation.abandonner();
         etat.lecture = etat.releve ? { statut: 'attente' } : { statut: 'annulee' };
         app.rendre(['barre', 'pied', 'table']);
       }
@@ -450,5 +471,5 @@ window.addEventListener('message', (evenement: MessageEvent) => {
 
 app.rendre();
 versSandbox({ type: 'lire-preferences' });
-app.actualiser();
+app.actualiser(true);
 versSandbox({ type: 'lire-preparations' });

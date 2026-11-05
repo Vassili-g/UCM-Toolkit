@@ -7,6 +7,9 @@
  * plugin : le panneau y attache ceux d'une section ouverte et les détache ailleurs, sans les recréer. Les trois conteneurs de Nomenclature
  * (questions, renommages, remises) forment ensemble le corps de Noms, dans cet ordre ; chaque autre catégorie a le sien (`hote`).
  * Au-delà de `SEUIL_DE_REPLI` cartes, Noms arrive repliée ; le designer la déplie par sa bande ou par sa puce.
+ *
+ * Pendant une actualisation, le message de chargement prend la place du sommaire, des sections et du pied (`poserLeChargement`) ; une
+ * fois l'analyse finie, la ligne de durée du mode Composant (`.arch-resume`) paraît en tête (`poserLeResume`).
  */
 import { creerSigne } from 'ucm-plugin-socle/src/ui/Signe';
 
@@ -77,6 +80,10 @@ export interface PanneauDesTokens {
   poserLaStructure(structure: StructureLue | null): void;
   /** Redessine les sections : une ligne de résultat de Noms vient de paraître dans un conteneur que le panneau n'observe pas. */
   rafraichir(): void;
+  /** Le message de chargement à la place des constats ; `null` rend les constats. Les cartes restent montées, seulement masquées. */
+  poserLeChargement(texte: string | null): void;
+  /** La ligne discrète en tête (« analysé à 14:32 en 3 s ») ; `null` la retire. */
+  poserLeResume(texte: string | null): void;
 }
 
 const SANS_NOMS: StructureLue['noms'] = { nom: () => null, cle: () => null };
@@ -114,6 +121,15 @@ function aUnResultat(hote: HTMLElement): boolean {
 }
 
 export function monterLePanneauDesTokens({ racine, nomenclature, auChangement }: OptionsDuPanneauDesTokens): PanneauDesTokens {
+  const resumeHote = document.createElement('div');
+  resumeHote.hidden = true;
+  const chargement = document.createElement('div');
+  // La même mise en forme que l'accueil de la table, qui portait ce message avant : le texte et le style ne changent pas, seule la place change.
+  chargement.className = 'accueil';
+  chargement.hidden = true;
+  const texteDeChargement = document.createElement('p');
+  texteDeChargement.className = 'accueil-texte';
+  chargement.append(texteDeChargement);
   const sommaireHote = document.createElement('div');
   // Sans boîte (`display: contents`) : vides ou masquées, la zone du haut et celle du pied ne laissent aucun espacement de la pile.
   const haut = document.createElement('div');
@@ -124,7 +140,7 @@ export function monterLePanneauDesTokens({ racine, nomenclature, auChangement }:
   pied.className = 'structure-groupe';
   const ignores = document.createElement('div');
   ignores.hidden = true;
-  racine.append(sommaireHote, haut, liste, pied);
+  racine.append(resumeHote, chargement, sommaireHote, haut, liste, pied);
 
   const hotes = new Map<CategorieDeStructure, HTMLElement>();
   const hote = (id: CategorieDeStructure): HTMLElement => {
@@ -296,6 +312,35 @@ export function monterLePanneauDesTokens({ racine, nomenclature, auChangement }:
       rendre();
     },
     rafraichir: rendre,
+    poserLeChargement(texte) {
+      const charge = texte !== null;
+      // Le message prend la place des constats sans les démonter : l'attribut `hidden` suffit, y compris sur les conteneurs sans boîte.
+      for (const zone of [sommaireHote, haut, liste, pied]) zone.hidden = charge;
+      chargement.hidden = !charge;
+      resumeHote.hidden = charge || resumeHote.childNodes.length === 0;
+      if (charge) texteDeChargement.textContent = texte;
+    },
+    poserLeResume(texte) {
+      if (texte === null) {
+        resumeHote.replaceChildren();
+        resumeHote.hidden = true;
+        return;
+      }
+      const resume = document.createElement('div');
+      resume.className = 'arch-resume';
+      const ligne = document.createElement('div');
+      ligne.className = 'arch-resume-ligne';
+      const titre = document.createElement('span');
+      titre.className = 'arch-resume-titre';
+      const meta = document.createElement('span');
+      meta.className = 'meta';
+      meta.textContent = texte;
+      titre.append(meta);
+      ligne.append(titre);
+      resume.append(ligne);
+      resumeHote.replaceChildren(resume);
+      resumeHote.hidden = !chargement.hidden;
+    },
     poserLaStructure(suivante) {
       if (suivante === null && structure === null) return;
       if (suivante && structure && suivante.constats === structure.constats && suivante.corrections === structure.corrections && suivante.noms === structure.noms) return;

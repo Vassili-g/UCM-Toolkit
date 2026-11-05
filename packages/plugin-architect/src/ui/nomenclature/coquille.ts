@@ -57,6 +57,11 @@ export interface Coquille {
   /** Affiche une préparation en attente au-dessus des onglets du mode Tokens. */
   poserAlerteDePreparation(alerte: HTMLElement | null): void;
   etat(): EtatDeLEcran;
+  /**
+   * Relance l'analyse des noms sans écran de lecture, quand un bilan est déjà là ; le `bilan` neuf remplace l'ancien. Rend faux, sans rien
+   * envoyer, tant que le fichier n'a pas de bilan : le premier lancement attend le geste du designer.
+   */
+  rafraichir(): boolean;
   /** Ouvre la page Configuration. */
   ouvrirLaConfiguration(): void;
   /** Revient au travail depuis Configuration. */
@@ -289,6 +294,11 @@ export function creerCoquille(app: HTMLElement, envoyer: (message: UiMessage) =>
     premierLancement,
     configuration,
     etat: () => etat,
+    rafraichir() {
+      if (etat.bilan === null) return false;
+      frontiere.rafraichir();
+      return true;
+    },
     ouvrirLaConfiguration,
     fermerLaConfiguration,
     poserAlerteDePreparation(alerte) {

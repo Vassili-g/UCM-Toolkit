@@ -87,9 +87,9 @@ export type Lecture =
   | { readonly statut: 'annulee' }
   | { readonly statut: 'echouee'; readonly message: string };
 
-/** L'accueil se montre sans index, après un échec, et pendant toute lecture : Actualiser sur un relevé déjà lu doit montrer le chargement. */
+/** L'accueil se montre sans index et après un échec. Actualiser sur un relevé déjà lu montre son chargement dans l'onglet Constats (`tokens/actualisation.ts`), pas dans la table. */
 export function accueilVisible(lecture: Lecture, indexLu: boolean): boolean {
-  return !indexLu || lecture.statut === 'echouee' || lecture.statut === 'en-cours';
+  return !indexLu || lecture.statut === 'echouee';
 }
 
 export interface Etat {

@@ -12,6 +12,9 @@ export function dureeLisible(ms: number): string {
   return reste === 0 ? `${minutes} min` : `${minutes} min ${reste} s`;
 }
 
+/** L'heure de fin d'une analyse, sur deux chiffres : « 14:32 ». */
+export const heureLisible = (millisecondes: number): string => new Date(millisecondes).toLocaleTimeString('fr', { hour: '2-digit', minute: '2-digit' });
+
 /** Une liste de mots : « a », « a et b », « a, b et c ». */
 const liste = (mots: readonly string[]): string => (mots.length < 2 ? mots.join('') : `${mots.slice(0, -1).join(', ')} et ${mots[mots.length - 1]}`);
 

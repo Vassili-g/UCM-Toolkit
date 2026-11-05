@@ -341,4 +341,30 @@ ETATS.push(
   },
 );
 
+/*
+ * Actualiser dans le mode Tokens. Le clic prend la demande 2 du relevé ; l'analyse des noms qu'il relance prend la demande 7 de la frontière
+ * (le bilan 1 a fait lire quatre groupes, demandes 2 à 5, et les termes, demande 6) et la relecture de la structure la demande 2 du domaine.
+ * Le message de lecture prend la place des constats tant que ces trois réponses manquent ; la durée paraît à la dernière.
+ */
+const actualiser = { clic: '.barre-lecture .bouton-discret' };
+const actualiserEtAttendre = { ...actualiser, attendre: '#panneau-a-appliquer .accueil:not([hidden])' };
+ETATS.push(
+  {
+    id: 't-actualiser-chargement', titre: 'Tokens, Actualiser en cours', quand: 'Le designer a lu les constats, puis clique Actualiser ; le sandbox n’a encore rien rendu.',
+    regarder: 'Dans l’onglet Constats, « Lecture des variables… » prend la place du sommaire, des sections et du pied ; les onglets Constats et Règles restent, et la table à gauche n’a plus de message qui la décale ; Actualiser est grisé et Annuler paraît.',
+    existe: true,
+    atteinte: [...ouvert(), actualiserEtAttendre],
+  },
+  {
+    id: 't-actualiser-duree', titre: 'Tokens, durée de l’analyse', quand: 'Le sandbox a rendu le relevé, les noms et la structure de l’Actualiser.',
+    regarder: 'Tout en haut de l’onglet Constats, au-dessus du sommaire, la ligne grise « analysé à 14:32 en 3 s » du mode Composant, avec son filet dessous ; les constats ont repris leur place.',
+    existe: true,
+    atteinte: [
+      ...ouvert(), actualiser,
+      releve(releveDeStructure(), 2), { message: messages.bilan(7, bilanDeStructure) },
+      { message: structure(2), attendre: '#panneau-a-appliquer .arch-resume' },
+    ],
+  },
+);
+
 module.exports = { ETATS };
