@@ -5,7 +5,7 @@ import {
   controlerLIntegriteUcm, controlerLeCatalogue, type CatalogueDeReference, type CollectionDuCatalogue, type Constat, type VariableDuCatalogue,
 } from '../src/controles/index.js';
 import type { Collection } from '../src/referentiel/architecture.js';
-import { catalogueDeStructure, cleDeLaFixture } from './fixtures/catalogueDeStructure.js';
+import { MODE_DARK, MODE_LIGHT, catalogueDeStructure, cleDeLaFixture } from './fixtures/catalogueDeStructure.js';
 
 const GENRES = ['couche', 'valeur-directe', 'scopes', 'mode-du-theme', 'type', 'mal-rangee'];
 const structure = (catalogue: CatalogueDeReference): Constat[] => controlerLIntegriteUcm(catalogue).filter((constat) => GENRES.includes(String(constat.faits.genre)));
@@ -199,4 +199,36 @@ test('13. une couleur sans alias n’a qu’un juge par collection : C63 pour co
   assert.deepEqual(sansAlias, ['button/color/bg']);
   assert.deepEqual([...new Set(directes)].sort(), ['primary/dark/700', 'primary/page/foreground']);
   assert.deepEqual(sansAlias.filter((variable) => directes.includes(variable)), [], 'aucune variable n’est jugée deux fois');
+});
+
+test('14. une seconde collection theme, ou une copie qui en porte le nom, reçoit un constat À faire sans correction (Q-F2-5)', () => {
+  const base = catalogueDeStructure();
+  const theme = base.collections.find((entree) => entree.role === 'theme')!;
+  assert.deepEqual(controlerLIntegriteUcm(base).filter((constat) => constat.faits.genre === 'theme-en-double'), []);
+  const deuxThemes: CatalogueDeReference = { ...base, collections: [...base.collections, { ...structuredClone(theme), cle: 'theme-2', nom: 'Theme' }] };
+  const copie: CatalogueDeReference = { ...base, collections: [...base.collections, { ...structuredClone(theme), cle: 'theme-3', nom: 'Theme (copie)', role: null }] };
+  for (const [catalogue, nom] of [[deuxThemes, 'Theme'], [copie, 'Theme (copie)']] as const) {
+    const doubles = controlerLIntegriteUcm(catalogue).filter((constat) => constat.faits.genre === 'theme-en-double');
+    assert.equal(doubles.length, 1, nom);
+    assert.equal(doubles[0].faits.collection, nom);
+    assert.equal(doubles[0].faits.reference, theme.nom);
+    assert.equal(doubles[0].type, 'corriger');
+    assert.equal(doubles[0].correction, undefined);
+    assert.equal(doubles[0].question, undefined);
+  }
+});
+
+test('15. un rôle écrit deux fois dans une palette reçoit une question sans case cochée, et ses deux variables sont jugées (Q-F2-6, N-29)', () => {
+  const base = catalogueDeStructure();
+  const origine = base.variables.find((entree) => entree.cle === cleDeLaFixture('theme', 'primary/solid/hover'))!;
+  assert.ok(origine);
+  const copie: VariableDuCatalogue = structuredClone({ ...origine, cle: `${origine.cle}#2` });
+  copie.valeurs = { [MODE_LIGHT]: { alias: cleDeLaFixture('brands', 'primary/light/50') }, [MODE_DARK]: { alias: cleDeLaFixture('brands', 'primary/dark/950') } };
+  const constats = controlerLIntegriteUcm({ ...base, variables: [...base.variables, copie] });
+  const doubles = constats.filter((constat) => constat.faits.genre === 'role-en-double');
+  assert.equal(doubles.length, 1);
+  assert.equal(doubles[0].type, 'verifier');
+  assert.equal(doubles[0].correction, undefined);
+  assert.deepEqual(doubles[0].question?.candidats?.map(({ cle }) => cle), [copie.cle, origine.cle].sort());
+  assert.ok(constats.some((constat) => constat.faits.genre === 'cran' && constat.faits.variable === copie.nom && constat.id.includes(copie.cle)), 'la variable en double est jugée');
 });

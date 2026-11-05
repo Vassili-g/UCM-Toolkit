@@ -95,12 +95,13 @@ export function cleDeConstat(constat: Constat): string {
   // Les doublons d'échelle de C63 n'ont pas de genre : la valeur partagée et le mode les distinguent.
   const genre = typeof faits.genre === 'string' ? faits.genre : typeof faits.doublons === 'number' ? 'doublons' : SANS_GENRE;
   if (genre === 'doublons') return cleAttendue(genre, texte(faits.valeur), texte(faits.mode));
-  if (genre === 'variable-absente') {
+  if (genre === 'variable-absente' || genre === 'role-en-double') {
     const variable = [texte(faits.groupe), texte(faits.variable)].filter((segment) => segment !== '').join('/');
     return cleAttendue(genre, variable, '', typeof faits.raison === 'string' ? faits.raison : undefined);
   }
   if (genre === 'cran-absent') return cleAttendue(genre, `${texte(faits.rampe)}/${texte(faits.cran)}`);
   if (genre === 'mode-du-theme') return cleAttendue(genre, texte(faits.collection), texte(faits.manque));
+  if (genre === 'theme-en-double' || genre === 'cible-inaccessible') return cleAttendue(genre, texte(faits.collection));
   return cleAttendue(genre, texte(faits.variable ?? faits.cle), texte(faits.mode));
 }
 

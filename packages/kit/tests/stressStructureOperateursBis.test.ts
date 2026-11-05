@@ -60,12 +60,9 @@ test('chaque cas a un identifiant <opérateur>-<n>, une description, des zones, 
 test('les cas qui dépendent d\'une question non confirmée portent le verdict mesure et son identifiant', () => {
   const mesures = AUTRES.filter((entree) => entree.verdict === 'mesure').map((entree) => [entree.id, entree.question]);
   assert.deepEqual(mesures, [
-    ['L2-9', 'Q-F2-8'], ['L2-10', 'Q-F2-8'], ['L4-9', 'Q-F2-sans-numero'],
+    ['L4-9', 'Q-F2-sans-numero'],
     ['Y4-3', 'Q-F2-sans-numero'], ['Y4-6', 'Q-F2-sans-numero'], ['Y4-9', 'Q-F2-sans-numero'], ['Y4-12', 'Q-F2-sans-numero'], ['Y4-15', 'Q-F2-sans-numero'],
     ['Y4-16', 'Q-F2-sans-numero'], ['Y4-17', 'Q-F2-sans-numero'], ['Y4-18', 'Q-F2-sans-numero'],
-    ['X1-1', 'Q-F2-5'], ['X1-2', 'Q-F2-5'], ['X1-3', 'Q-F2-5'], ['X1-4', 'Q-F2-5'],
-    ['X2-1', 'Q-F2-6'], ['X2-2', 'Q-F2-6'], ['X2-3', 'Q-F2-6'], ['X2-4', 'Q-F2-6'],
-    ['E1-8', 'Q-F2-8'],
   ]);
 });
 
@@ -84,7 +81,7 @@ test('L1 à L5 : alias-supprime sans correction, library-inactive avec le nom de
   assert.match(verification(constat('primary/surface/default'))!, /n'a pas le même rôle/);
   assert.equal(verification({ ...constat(''), faits: { genre: 'alias-supprime' } }), undefined);
 
-  // L2 : la library est choisie pour les huit premiers cas ; les deux derniers n'en ont pas et dépendent de Q-F2-8.
+  // L2 : la library est choisie pour les huit premiers cas ; les deux derniers n'en ont pas et attendent l'information `cible-inaccessible` (Q-F2-8).
   const l2 = duOperateur('L2');
   assert.deepEqual(l2.map((entree) => entree.entree.theme.catalogue.library?.nom ?? null), [...Array(8).fill('Bibliothèque des marques'), null, null]);
   assert.equal(l2[0].attendus.length, 5);
@@ -182,7 +179,7 @@ test('E1 et E2 : un doublon par valeur partagée dans un mode, avec ses candidat
   assert.deepEqual(cas('E1-4').attendus.map((a) => a.cle), ['doublons|4|Mode 1', 'doublons|4|Mode 2']);
   assert.deepEqual(cas('E1-5').attendus.map((a) => a.cle), ['doublons|0|Mode 1']);
   assert.deepEqual(cas('E1-7').attendus.map((a) => a.cle), ['doublons|0.3|Mode 1']);
-  assert.equal(cas('E1-8').verdict, 'mesure');
+  assert.deepEqual(cas('E1-8').attendus.map((a) => a.cle), ['doublons|4|Mode 1']);
   assert.deepEqual([cas('E1-9').attendus.length, cas('E1-10').attendus.length], [0, 0]);
   assert.deepEqual(duOperateur('E2').map((entree) => entree.attendus.length), [0, 0, 0]);
   assert.ok(duOperateur('E1').every((entree) => entree.attendus.every((attendu) => attendu.forme === 'question')));

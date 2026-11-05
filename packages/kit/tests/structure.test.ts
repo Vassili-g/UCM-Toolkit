@@ -189,3 +189,79 @@ test('une variable dont la collection manque au catalogue ne fait pas lever les 
   assert.deepEqual(controlerLesAliasesManquants(c), []);
   assert.doesNotThrow(() => controlerLeCatalogue(c));
 });
+
+const flottant = (cle: string, nom: string, valeurs: CatalogueDeReference['variables'][number]['valeurs']) => ({ ...variable(cle, nom, 'layout', valeurs), type: 'FLOAT' as const });
+const doublonsDEchelle = (c: CatalogueDeReference) => controlerLeCatalogue(c).filter(({ faits }) => typeof faits.doublons === 'number');
+
+test('C63 compare les crans de toute échelle de layout, alias résolus, à 1e-6 près (Q-F2-8, N-33)', () => {
+  const modeUnique = [{ id: 'light', nom: 'Light' }];
+  const layout = { cle: 'layout', nom: 'layout', role: 'layout' as const, modes: modeUnique, etat: 'lue' as const };
+  const primitives = { cle: 'primitives', nom: 'primitives', role: 'primitives' as const, modes: modeUnique, etat: 'lue' as const };
+  // Une échelle `radius` dont deux crans valent 8.
+  const radius = cat([layout], [flottant('md', 'radius/md', { light: { valeur: 8 } }), flottant('lg', 'radius/lg', { light: { valeur: 8 } }), flottant('sm', 'radius/sm', { light: { valeur: 4 } })]);
+  assert.deepEqual(doublonsDEchelle(radius).map(({ question }) => question?.candidats?.map(({ cle }) => cle)), [['md', 'lg']]);
+  // Deux alias vers des primitives de même valeur.
+  const alias = cat([layout, primitives], [
+    flottant('s1', 'spacing/1', { light: { alias: 'a' } }), flottant('s2', 'spacing/2', { light: { alias: 'b' } }),
+    { ...flottant('a', 'spacing/base-a', { light: { valeur: 4 } }), collection: 'primitives' }, { ...flottant('b', 'spacing/base-b', { light: { valeur: 4 } }), collection: 'primitives' },
+  ]);
+  assert.equal(doublonsDEchelle(alias).length, 1);
+  // 0,1 + 0,2 et 0,3 sont le même cran.
+  const decimaux = cat([layout], [flottant('x', 'sizing/1', { light: { valeur: 0.1 + 0.2 } }), flottant('y', 'sizing/2', { light: { valeur: 0.3 } })]);
+  assert.equal(doublonsDEchelle(decimaux).length, 1);
+  const eloignes = cat([layout], [flottant('x', 'sizing/1', { light: { valeur: 0.3 } }), flottant('y', 'sizing/2', { light: { valeur: 0.30001 } })]);
+  assert.equal(doublonsDEchelle(eloignes).length, 0);
+});
+
+test('C63 rend une information par collection quand la cible d’un alias est inaccessible et qu’aucune library n’est choisie (Q-F2-8)', () => {
+  const c = cat([collection('components', 'components'), { ...collection('remote', 'theme'), etat: 'inaccessible' }], [
+    variable('source', 'Button/color/primary/background', 'components', { light: { alias: 'remote' }, dark: { alias: 'remote' } }),
+    { ...variable('remote', 'primary/solid/default', 'remote'), etat: 'inaccessible' },
+  ]);
+  const informations = controlerLeCatalogue(c).filter(({ faits }) => faits.genre === 'cible-inaccessible');
+  assert.equal(informations.length, 1);
+  assert.equal(informations[0].type, 'info');
+  assert.deepEqual([informations[0].faits.collection, informations[0].faits.cibles, informations[0].faits.alias], ['remote', 1, 2]);
+  assert.equal(controlerLeCatalogue(c).some(({ faits }) => faits.genre === 'library-inactive'), false);
+});
+
+const themeEtBrands = (extra: CatalogueDeReference['variables']) => cat([collection('components', 'components'), collection('brands', 'brands'), collection('theme', 'theme')], [
+  variable('secondary', 'Button/color/secondary/contained/default/background', 'components', { dark: { alias: 'brand-secondary' } }),
+  variable('brand-secondary', 'secondary/light/700', 'brands'),
+  ...extra,
+]);
+const contournement = (c: CatalogueDeReference) => controlerLaStructure(releve(), c).find(({ id }) => id.startsWith('C63:secondary:'));
+
+test('C63 theme vise la variable de la palette dont le cran de la table est celui du token, sans regarder les sœurs (Q-F3-5, N-16)', () => {
+  const c = themeEtBrands([
+    variable('primary', 'Button/color/primary/contained/default/background', 'components', { dark: { alias: 'theme-globale' } }),
+    variable('theme-globale', 'disabled/background', 'theme'),
+    variable('theme-secondary', 'secondary/solid/default', 'theme'),
+    variable('theme-secondary-hover', 'secondary/solid/hover', 'theme'),
+  ]);
+  const resultat = contournement(c);
+  assert.equal(resultat?.correction?.sorte, 'alias-de-mode');
+  assert.equal(resultat?.correction?.apres.cle, 'theme-secondary');
+});
+
+test('C63 theme pose une question sans présélection quand plusieurs rôles de la palette visent le cran', () => {
+  const resultat = contournement(themeEtBrands([
+    variable('a', 'secondary/solid/default', 'theme'),
+    variable('b', 'secondary/surface/foreground', 'theme'),
+  ]));
+  assert.equal(resultat?.correction, undefined);
+  assert.deepEqual(resultat?.question?.candidats?.map(({ cle }) => cle).sort(), ['a', 'b']);
+});
+
+test('C63 theme ne corrige pas une palette dont le sens est partagé entre les deux tables', () => {
+  const c = themeEtBrands([
+    variable('a', 'secondary/solid/default', 'theme'),
+    variable('hover', 'secondary/solid/hover', 'theme', { light: { alias: 'b800' } }),
+    variable('pressed', 'secondary/solid/pressed', 'theme', { light: { alias: 'b500' } }),
+    variable('b800', 'secondary/light/800', 'brands'),
+    variable('b500', 'secondary/light/500', 'brands'),
+  ]);
+  const resultat = contournement(c);
+  assert.equal(resultat?.correction, undefined);
+  assert.deepEqual(resultat?.question?.candidats?.map(({ cle }) => cle), ['a']);
+});

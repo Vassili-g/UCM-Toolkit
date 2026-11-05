@@ -5,7 +5,7 @@
  * Y1 à Y4 écrivent une variable de sonde dans une collection, plutôt que de défaire un rôle de `theme` : le rôle garde son alias et
  * ses votes de sens, donc le seul constat attendu est celui de la sonde. X1 duplique la collection `theme`, X2 duplique un rôle dans
  * une palette, X3 rend des variables illisibles, X5 déclare le fichier libre et X6 donne aux contrôles des entrées malformées. Le
- * plan attend de X1 et de X2 un constat que le kit n'a pas (`theme-en-double`, `role-en-double`, Q-F2-5 et Q-F2-6), et de X6 seulement
+ * kit rend pour X1 un constat `theme-en-double` (Q-F2-5) et pour X2 une question `role-en-double` (Q-F2-6), et pour X6 seulement
  * l'absence d'exception (`codesJuges` vide : aucun constat n'y compte comme faux).
  *
  * Le plan compte 6 paires admises dans Y1 ; le référentiel (`ciblesAdmises`) n'en donne que 5 sur les 25 couples, donc Y1 garde
@@ -137,7 +137,7 @@ export function operateursStructure(base: ThemeDeBase, graine: number = GRAINE_P
     });
   }
 
-  // X1. Deux collections `theme`. Le plan attend un constat en À faire, sans correction (Q-F2-5).
+  // X1. Deux collections `theme`. Chaque collection de trop reçoit un constat À faire, sans correction (Q-F2-5).
   const themeDuCatalogue = (degradation: Degradation): VariableDuCatalogue[] =>
     degradation.catalogue.variables.filter((variable) => variable.collection === carte.collections.theme.cle);
   /** Une copie de la collection `theme` : mêmes alias, modes de ce nom, variables retenues par `garder`. */
@@ -172,7 +172,6 @@ export function operateursStructure(base: ThemeDeBase, graine: number = GRAINE_P
     registre.ajouter('X1', degradation, {
       description: 'X1 copie complète nommée Theme, avec surface/subtle de primary et le cran 50 de sa rampe retirés',
       attendus: [unTheme('Theme'), attendu('C82', 'cran-absent', 'primary/light/50', '', 'a-faire')],
-      verdict: 'mesure', question: 'Q-F2-5',
     });
   }
   {
@@ -183,7 +182,7 @@ export function operateursStructure(base: ThemeDeBase, graine: number = GRAINE_P
     degradation.zone({ palette: null, role: '(theme)', mode: 'les-deux' });
     registre.ajouter('X1', degradation, {
       description: 'X1 copie nommée THEME des rôles de rang pair de primary et des variables globales',
-      attendus: [unTheme('THEME')], verdict: 'mesure', question: 'Q-F2-5',
+      attendus: [unTheme('THEME')],
     });
   }
   {
@@ -192,7 +191,7 @@ export function operateursStructure(base: ThemeDeBase, graine: number = GRAINE_P
     degradation.zone({ palette: null, role: '(theme)', mode: 'les-deux' });
     registre.ajouter('X1', degradation, {
       description: 'X1 copie complète nommée Theme aux modes Day et Night',
-      attendus: [unTheme('Theme'), attendu('C82', 'mode-du-theme', 'Theme', 'les-deux', 'a-faire')], verdict: 'mesure', question: 'Q-F2-5',
+      attendus: [unTheme('Theme'), attendu('C82', 'mode-du-theme', 'Theme', 'les-deux', 'a-faire')],
     });
   }
   {
@@ -200,11 +199,11 @@ export function operateursStructure(base: ThemeDeBase, graine: number = GRAINE_P
     copierLeTheme(degradation, 'theme-5', 'Theme (copy)', modesClairSombre('5'));
     degradation.zone({ palette: null, role: '(theme)', mode: 'les-deux' });
     registre.ajouter('X1', degradation, {
-      description: 'X1 copie complète nommée Theme (copy)', attendus: [unTheme('Theme (copy)')], verdict: 'mesure', question: 'Q-F2-5',
+      description: 'X1 copie complète nommée Theme (copy)', attendus: [unTheme('Theme (copy)')],
     });
   }
 
-  // X2. Un rôle reconnu deux fois dans une palette : le plan attend un constat qui cite les deux variables (Q-F2-6).
+  // X2. Un rôle reconnu deux fois dans une palette : une question à une candidate par variable, sans case cochée (Q-F2-6).
   const hover = leRole(base, 'primary', 'solid/hover');
   const doublon = (
     description: string, ecrire: (copie: VariableDuCatalogue) => void, attendus: readonly ConstatAttendu[], hypothese?: string,
@@ -213,12 +212,13 @@ export function operateursStructure(base: ThemeDeBase, graine: number = GRAINE_P
     const origine = degradation.variable(hover.cle);
     const copie: VariableDuCatalogue = structuredClone({ ...origine, cle: `${hover.cle}#2` });
     ecrire(copie);
+    const nomsDuRole = [hover.nom, copie.nom];
     degradation.inserer(degradation.catalogue.variables, copie);
     degradation.touchees.add(copie.cle);
     degradation.zone({ palette: 'primary', role: 'solid/hover', mode: 'les-deux' });
     registre.ajouter('X2', degradation, {
-      description: `X2 ${description}`, attendus: [attendu('C82', 'role-en-double', hover.nom, '', 'a-faire'), ...attendus],
-      verdict: 'mesure', question: 'Q-F2-6', ...(hypothese ? { hypothese } : {}),
+      description: `X2 ${description}`, attendus: [attendu('C82', 'role-en-double', hover.nom, '', 'question', { candidats: nomsDuRole }), ...attendus],
+      ...(hypothese ? { hypothese } : {}),
     });
   };
   doublon('solid/hover de primary écrit deux fois avec le même alias', () => undefined, []);

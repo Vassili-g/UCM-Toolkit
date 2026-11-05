@@ -3,8 +3,8 @@
  * `sizing` dans un mode, E2 écrit des échelles sans doublon. Le doublon est une question qui cite les variables de même valeur, sans
  * correction, pour chaque mode et chaque valeur partagée.
  *
- * Le plan veut un doublon pour deux valeurs décimales proches (`0,1 + 0,2` et `0,3`) ; C63 compare les nombres tels quels. Le
- * doublon de valeurs en alias dépend de Q-F2-8 et reste `mesure`. Une variable `icon/<taille>` et une variable STRING ne font pas
+ * Deux valeurs décimales à 1e-6 près (`0,1 + 0,2` et `0,3`) et deux alias qui se résolvent à la même valeur forment un doublon
+ * (Q-F2-8, N-33). Une variable `icon/<taille>` et une variable STRING ne font pas
  * partie de l'échelle `sizing`, donc leur valeur partagée ne donne rien.
  */
 import type { ConstatAttendu } from '../commun/types.js';
@@ -47,7 +47,7 @@ export function operateursEchelle(base: ThemeDeBase, graine: number = GRAINE_PAR
     d.viserDansLeMode(marche(1).cle, ID_DU_MODE, a.cle);
     d.viserDansLeMode(marche(2).cle, ID_DU_MODE, b.cle);
     return [doublon(d, 4, [1, 2])];
-  }, { verdict: 'mesure', question: 'Q-F2-8' });
+  });
   e1('icon/small prend la valeur de sizing/1', (d) => { ajouterUneVariable(d, 'layout', 'icon/small', { valeur: 4 }, { type: 'FLOAT' }); return []; });
   e1('sizing/2 est une chaîne qui vaut 4', (d) => {
     d.fixer(d.variable(marche(2).cle), 'type', 'STRING');

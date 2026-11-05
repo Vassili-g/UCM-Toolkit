@@ -15,7 +15,7 @@ import type { CatalogueDeReference, VariableDuCatalogue } from '../../../src/con
 import type { ConstatAttendu } from '../commun/types.js';
 import { MODES_DU_THEME, paletteDeCarte } from './carte.js';
 import {
-  COULEUR_DIRECTE, QUESTION_SANS_NUMERO, Registre, ajouterUnMode, ajouterUneCollection, attendu, attenduDeVariableAbsente, attendusDAliasSupprime,
+  COULEUR_DIRECTE, QUESTION_SANS_NUMERO, Registre, collectionDuCas, ajouterUnMode, ajouterUneCollection, attendu, attenduDeVariableAbsente, attendusDAliasSupprime,
   leRole, nomDuModeDeLaCollection, nomSansLaPalette,
   type CasDeStructure, type Degradation, type VerificationDeFait,
 } from './cas.js';
@@ -103,8 +103,10 @@ export function operateursAlias(base: ThemeDeBase, graine: number = GRAINE_PAR_D
     degradation.zone({ palette: identifiant, role: 'light/700', mode: 'light' });
     registre.ajouter('L2', degradation, {
       description: `L2 ${identifiant} light/700 ${forme === 'variable' ? 'inaccessible' : 'dans une collection inaccessible'}, ${avecLibrary ? 'library choisie' : 'aucune library'}`,
-      attendus: visent.map(({ variable: source, idDeMode }) => attendu('C63', 'library-inactive', source.nom, nomDuMode(degradation, source.collection, idDeMode), 'a-faire')),
-      ...(avecLibrary ? {} : { verdict: 'mesure' as const, question: 'Q-F2-8' }),
+      // Library choisie : `library-inactive` par variable et par mode. Sans library : une information par collection cible (Q-F2-8).
+      attendus: avecLibrary
+        ? visent.map(({ variable: source, idDeMode }) => attendu('C63', 'library-inactive', source.nom, nomDuMode(degradation, source.collection, idDeMode), 'a-faire'))
+        : [attendu('C63', 'cible-inaccessible', collectionDuCas(degradation, variable.collection).nom, '', 'a-faire')],
     });
   };
   for (const identifiant of palettesDeL2) for (const forme of ['variable', 'collection'] as const) inaccessible(identifiant, forme, true);

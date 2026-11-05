@@ -16,6 +16,7 @@ import type { EcritureChoisie } from '../protocoles/nommage.js';
 import { COLLECTIONS_SANS_PORTEE, FAMILLES_UTILITY, REGISTRE_COULEURS_ABSOLUES, ciblesAdmises } from '../referentiel/architecture.js';
 import type { Casse, Convention, Separateur } from '../referentiel/conventions.js';
 import { assembler, decouperSegment, frontieres, motsAvecCasse } from '../referentiel/ecriture-des-mots.js';
+import { collectionUcmReconnue } from '../referentiel/normalisation.js';
 import { formeDuChemin, formeReconnue, termeReconnu } from '../referentiel/reconnaissance.js';
 import { distanceUnOuEchange, memeConcept } from '../referentiel/termes-connus.js';
 import { MODES } from '../referentiel/vocabulaire.js';
@@ -35,7 +36,10 @@ export interface Prefixe {
   readonly segments: readonly string[];
   /** Le premier segment des noms du groupe quand ils redisent la collection (`theme/primary/…`) : la variable créée le garde. */
   readonly collectionEcrite: string | undefined;
+  /** La première variable de chaque rôle ; les suivantes sont dans `doublons`. */
   readonly presentes: Map<VariableDuTheme, VariableDuCatalogue>;
+  /** Les variables qui jouent un rôle déjà tenu par une autre du même groupe (Q-F2-6). */
+  readonly doublons: { readonly role: VariableDuTheme; readonly variable: VariableDuCatalogue }[];
   /** Le dossier de chaque rôle (`surface`, `page`…), tel que le fichier l'écrit, par sa forme reconnue. */
   readonly dossiers: Map<string, string>;
   readonly jumelles: Map<ModeDuTheme, Jumelles>;
@@ -81,7 +85,23 @@ export function controlerLIntegriteUcm(catalogue: CatalogueDeReference, options:
   return [
     ...themes.flatMap((theme) => controlerUnTheme(catalogue, theme, index, options)),
     ...controlerLaStructure(catalogue, themes),
+    ...controlerLesThemesEnDouble(catalogue, themes),
   ];
+}
+
+/** Un nom de copie que Figma ou le designer ajoute à la fin d'un nom de collection : `(copy)`, `(copie)`, `copy 2`, `(2)`. */
+const SUFFIXE_DE_COPIE = /\s*(?:\((?:copy|copie)(?:\s*\d+)?\)|\(\d+\)|(?:copy|copie)(?:\s*\d+)?)\s*$/iu;
+
+/**
+ * Une collection `theme` de plus (Q-F2-5). La première collection `theme` du catalogue est la référence ; chaque collection `theme`
+ * suivante, et chaque copie dont le nom ne diffère que par un suffixe de copie, reçoit un constat sans correction : le kit ne sait
+ * pas laquelle le fichier veut garder.
+ */
+function controlerLesThemesEnDouble(catalogue: CatalogueDeReference, themes: readonly CollectionDuCatalogue[]): Constat[] {
+  const [reference, ...suivants] = themes;
+  const copies = catalogue.collections.filter((collection) => collection.role === null && collection.etat === 'lue'
+    && SUFFIXE_DE_COPIE.test(collection.nom) && collectionUcmReconnue(collection.nom.replace(SUFFIXE_DE_COPIE, '')) === 'theme');
+  return [...suivants, ...copies].map((collection) => constatDeStructure('theme-en-double', collection.cle, { collection: collection.nom, reference: reference.nom }));
 }
 
 function indexerLesCibles(catalogue: CatalogueDeReference): IndexDesCibles {
@@ -167,7 +187,7 @@ function controlerUnTheme(catalogue: CatalogueDeReference, theme: CollectionDuCa
     const attendues: readonly VariableDuTheme[] = estLeNeutre(prefixe.segments) ? [...VARIABLES_DE_PALETTE, ...VARIABLES_DU_NEUTRE] : VARIABLES_DE_PALETTE;
     for (const role of attendues) if (!ignores.has(role) && !prefixe.presentes.has(role)) absente(prefixe, true, role);
   }
-  const racine: Prefixe = prefixes.get('') ?? { segments: [], collectionEcrite, presentes: new Map(), dossiers: new Map(), jumelles: new Map() };
+  const racine: Prefixe = prefixes.get('') ?? { segments: [], collectionEcrite, presentes: new Map(), doublons: [], dossiers: new Map(), jumelles: new Map() };
   const globales: readonly VariableDuTheme[] = [...VARIABLES_GLOBALES, ...NIVEAUX_D_ELEVATION_DU_THEME.map((niveau): VariableDuTheme => `elevation/${niveau}`)];
   for (const role of globales) if (!ignores.has(role) && !racine.presentes.has(role)) absente(racine, false, role);
 
@@ -176,14 +196,29 @@ function controlerUnTheme(catalogue: CatalogueDeReference, theme: CollectionDuCa
     const groupe = prefixe.segments.length > 0;
     if (groupe && ![...prefixe.presentes.keys()].some(estUneVariableDePalette)) continue;
     const jugees: readonly VariableDuTheme[] = groupe ? attendusDuNeutre : VARIABLES_GLOBALES;
-    for (const [role, variable] of prefixe.presentes) {
-      if (ignores.has(role) || !jugees.includes(role)) continue;
+    const juger = (role: VariableDuTheme, variable: VariableDuCatalogue): void => {
       for (const mode of modes) {
         const jugement = jugerLeCran(catalogue, index, groupe ? lesJumelles(catalogue, prefixe, mode) : undefined, role, variable, mode);
         if (!jugement) continue;
         if (jugement.constat) constats.push(jugement.constat);
         if (jugement.cranAbsent) noterLeCranAbsent(jugement.cranAbsent.rampe, jugement.cranAbsent.cran, [...prefixe.segments, role].join('/'));
       }
+    };
+    for (const [role, variable] of prefixe.presentes) if (!ignores.has(role) && jugees.includes(role)) juger(role, variable);
+    // Un rôle écrit deux fois est jugé pour chacune de ses variables, puis une seule question réunit toutes celles qui le jouent (Q-F2-6, N-29).
+    const rolesEnDouble = new Set(prefixe.doublons.map(({ role }) => role));
+    for (const { role, variable } of prefixe.doublons) if (!ignores.has(role) && jugees.includes(role)) juger(role, variable);
+    for (const role of rolesEnDouble) {
+      if (ignores.has(role)) continue;
+      const variables = [prefixe.presentes.get(role)!, ...prefixe.doublons.filter((entree) => entree.role === role).map((entree) => entree.variable)]
+        .sort((a, b) => (a.nom < b.nom ? -1 : a.nom > b.nom ? 1 : a.cle < b.cle ? -1 : a.cle > b.cle ? 1 : 0));
+      const formeDuGroupe = formeDuChemin(prefixe.segments);
+      const id = `C82:role-en-double:${theme.cle}:${formeDuGroupe ? `${formeDuGroupe}/` : ''}${role}`;
+      constats.push({
+        id, code: 'C82', type: 'verifier', famille: 'liaisons', variants: [], layers: [],
+        faits: { genre: 'role-en-double', variable: role, groupe: prefixe.segments.join('/'), variables: variables.length },
+        question: { id, candidats: variables.map(({ cle, nom }) => ({ cle, nom })) },
+      });
     }
     if (groupe) {
       for (const mode of modes) {
@@ -459,10 +494,11 @@ export function lesPrefixes(
     const forme = formeDuChemin(segments);
     let prefixe = prefixes.get(forme);
     if (!prefixe) {
-      prefixe = { segments, collectionEcrite, presentes: new Map(), dossiers: new Map(), jumelles: new Map() };
+      prefixe = { segments, collectionEcrite, presentes: new Map(), doublons: [], dossiers: new Map(), jumelles: new Map() };
       prefixes.set(forme, prefixe);
     }
     if (!prefixe.presentes.has(role)) prefixe.presentes.set(role, variable);
+    else prefixe.doublons.push({ role, variable });
     if (longueur > 1) {
       const dossier = chemin[segments.length];
       const formeDuDossier = formeReconnue(dossier);
