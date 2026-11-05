@@ -111,7 +111,7 @@ Les signes d'objet ont une seule définition dans `packages/kit/src/referentiel/
 
 | Lot | Agent | Dépend de | Section | État |
 |---|---|---|---|---|
-| [B1](lots/B1.md) Corrections décochées | `implementeur` | rien | 2 | [x] f92b3d9c, B1.4 en partie |
+| [B1](lots/B1.md) Corrections décochées | `implementeur` | rien | 2 | [x] f92b3d9c, B1.4 complétée par S1 ec2e8618 (D1-16 reste à reprendre en E12) |
 | [B2](lots/B2.md) Ignorer sur les cartes de règles | `implementeur` | B1 | 2 | [x] 71ca79a7, persistance après analyse vérifiée sur le faux DOM dans 7066074e |
 | [B3](lots/B3.md) Ignorer une question | `implementeur-exigeant` | B2 | 3 | [x] cf23ed93 |
 | [B4](lots/B4.md) Analyse périmée | `implementeur` | B3 | 4 | [x] ebd9613e |
