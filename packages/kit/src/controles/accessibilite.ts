@@ -14,7 +14,7 @@ import type { CatalogueDeReference, CollectionDuCatalogue, CouleurResolue, Varia
 import { collectionDuCatalogue, variableDuCatalogue } from './catalogue.js';
 import { estLAxeDEtats, termeReconnu } from '../referentiel/reconnaissance.js';
 import { variableDuThemeReconnue } from '../referentiel/theme.js';
-import { REGISTRE_ROLES } from '../referentiel/vocabulaire.js';
+import { ETATS_FRANCAIS_INTERACTIFS, REGISTRE_ROLES } from '../referentiel/vocabulaire.js';
 import { etatReconnu } from './nommage.js';
 import type { Constat } from './constat.js';
 import { layersVisiblesDuVariant, lectureManquee, liaisonsPropres, peintureVisible, type LayerLu, type LiaisonLue, type PeintureLue, type ReleveDeComposant, type VariantLu } from './releve.js';
@@ -96,7 +96,7 @@ export const CIBLE_MINIMALE_PX = 24;
 export const CIBLE_TACTILE_PX = 44;
 export const TEXTE_MINIMAL_PX = 12;
 
-export type Cause = 'fond-indetermine' | 'degrade' | 'image' | 'peinture-superposee' | 'mode-illisible' | 'couleur-absente' | 'fond-de-repli' | 'couleur-hors-gamut';
+export type Cause = 'fond-indetermine' | 'degrade' | 'image' | 'peinture-superposee' | 'mode-de-fusion' | 'mode-illisible' | 'couleur-absente' | 'fond-de-repli' | 'couleur-hors-gamut';
 export type Rgba = { r: number; g: number; b: number; a: number };
 /**
  * Une combinaison de modes. `sansTheme` n'existe que si les modes du thème sont entrés dans le produit pour le seul repli : la même
@@ -138,13 +138,23 @@ export function* controlerLAccessibiliteParEtapes(
   const constats: Constat[] = [];
   const limites = new Map<string, Constat>();
   const groupes = new Map<string, GroupeMesure>();
-  const desactives = releve.variants.filter((v) => etatDuVariant(v) === 'disabled');
-  const mesures = releve.variants.filter((v) => etatDuVariant(v) !== 'disabled');
+  const desactives: VariantLu[] = [];
+  const mesures: VariantLu[] = [];
+  let ecriture = '';
+  const nonLus = new Set(releve.lecture.variantsNonLus);
+  for (const v of releve.variants) {
+    if (nonLus.has(v.nom)) continue;
+    const ecrit = ecritureDeLaDesactivation(v);
+    if (ecrit === null) { mesures.push(v); continue; }
+    desactives.push(v);
+    ecriture ||= ecrit;
+  }
 
+  // C53 exclut le contraste, les cibles et l'anneau ; le texte sous 12 px se juge encore (Q-F7-10).
   if (desactives.length > 0) {
     constats.push({
       id: 'C53', code: 'C53', type: 'info', famille: 'contraste',
-      variants: desactives.map((v) => v.nom), layers: [], faits: { variantsExclus: desactives.length },
+      variants: desactives.map((v) => v.nom), layers: [], faits: { variantsExclus: desactives.length, ecriture },
     });
   }
 
@@ -154,7 +164,7 @@ export function* controlerLAccessibiliteParEtapes(
   let variantsNonMesures = 0;
   for (const variant of mesures) {
     yield;
-    const cibles = yield* ciblesDeContraste(variant, options.niveau, catalogue);
+    const cibles = yield* ciblesDeContraste(variant, options.niveau, catalogue, releve);
     const { prises, total } = yield* combinaisonsDeModes(variant, catalogue, Math.max(0, reste), cibles);
     reste -= prises.length;
     mesureesTotal += prises.length;
@@ -172,8 +182,8 @@ export function* controlerLAccessibiliteParEtapes(
   }
 
   constats.push(...yield* controlerLesCibles(mesures, estInteractif(releve), releve));
-  constats.push(...yield* controlerLeTexteMinimal(mesures));
-  constats.push(...yield* controlerLAnneau(mesures, catalogue));
+  constats.push(...yield* controlerLeTexteMinimal(releve.variants.filter((v) => !nonLus.has(v.nom)), releve));
+  constats.push(...yield* controlerLAnneau(mesures, catalogue, releve));
   return constats;
 }
 
@@ -182,9 +192,24 @@ function etatDuVariant(variant: VariantLu): string | null {
   return null;
 }
 
+/**
+ * Comment le variant se déclare désactivé, écrit `Axe=Valeur` comme dans son nom, ou `null` s'il ne l'est pas : un état `disabled` ou
+ * `disable`, un axe booléen `Disabled=True` ou `Enabled=False`. `Inactive`, `read-only` et `dimmed` ne sont pas désactivés (Q-F7-10).
+ */
+function ecritureDeLaDesactivation(variant: VariantLu): string | null {
+  for (const [axe, valeur] of Object.entries(variant.valeurs)) {
+    const nom = axe.trim().toLowerCase();
+    const booleen = valeur.trim().toLowerCase();
+    if ((estLAxeDEtats(axe) && (etatReconnu(valeur) ?? booleen) === 'disabled')
+      || (nom === 'disabled' && booleen === 'true') || (nom === 'enabled' && booleen === 'false')) return `${axe}=${valeur}`;
+  }
+  return null;
+}
+
 function estInteractif(releve: ReleveDeComposant): boolean {
   return releve.proprietes.some((p) => p.type === 'VARIANT' && estLAxeDEtats(p.nom)
     && (p.valeurs ?? []).some((v) => {
+      if (ETATS_FRANCAIS_INTERACTIFS.includes(v.trim().toLowerCase())) return true;
       const etat = etatReconnu(v);
       return etat !== undefined && etat !== 'default' && etat !== 'disabled';
     }));
@@ -200,6 +225,23 @@ function layersVisibles(variant: VariantLu): readonly LayerLu[] {
 /** Le grand texte commence à 24 px, ou à 14 pt (56/3 px) en graisse 700 ou plus ; 18,66 px reste un petit texte (Q-F7-3). */
 function estGrandTexte(fontSize: number, fontWeight: number): boolean {
   return fontSize >= 24 || (fontSize >= 56 / 3 && fontWeight >= 700);
+}
+
+/** Les fills du layer ou d'un de ses ancêtres n'ont pas été lus : son fond est inconnu. Un cycle de `parent` s'arrête au premier layer déjà vu. */
+function lectureDuFondManquee(releve: Pick<ReleveDeComposant, 'lecture'>, variant: VariantLu, layer: LayerLu): boolean {
+  if (releve.lecture.manquees.length === 0) return false;
+  const parId = memoireDuVariant(variant).parId;
+  const vus = new Set<string>();
+  for (let courant: LayerLu | undefined = layer.parent ? parId.get(layer.parent) : undefined; courant && !vus.has(courant.id); courant = courant.parent ? parId.get(courant.parent) : undefined) {
+    vus.add(courant.id);
+    if (lectureManquee(releve, courant.id, 'fills')) return true;
+  }
+  return false;
+}
+
+/** Un contour compte quand son épaisseur n'est pas nulle et qu'une de ses peintures se voit. */
+function aUnContourVisible(layer: LayerLu): boolean {
+  return aUnePeintureVisible(layer, 'strokes') && (layer.strokeWeight ?? 0) > 0;
 }
 
 function aUnePeintureVisible(layer: LayerLu, champ: 'fills' | 'strokes'): boolean {
@@ -412,10 +454,11 @@ export function pileDePeintures(
     const p = peintures[i];
     if (!peintureVisible(p)) continue;
     if (p.type !== 'SOLID') {
-      if (couches.length > 0) return { limite: 'peinture-superposee' };
+      // Des remplissages superposés priment sur le dégradé ou l'image : ce qui se voit est leur somme (N-46).
+      if (couches.length > 0 || peintures.slice(0, i).some(peintureVisible)) return { limite: 'peinture-superposee' };
       return { limite: p.type.startsWith('GRADIENT') ? 'degrade' : p.type === 'IMAGE' || p.type === 'VIDEO' ? 'image' : 'peinture-superposee' };
     }
-    if (p.blendMode !== 'NORMAL' && p.blendMode !== 'PASS_THROUGH') return { limite: 'peinture-superposee' };
+    if (p.blendMode !== 'NORMAL' && p.blendMode !== 'PASS_THROUGH') return { limite: 'mode-de-fusion' };
     const liaison = liaisons.find((l) => l.champ === p.champ && (l.indice ?? 0) === p.indice);
     let couleur: Rgba | undefined = p.couleur;
     if (liaison?.illisible) return { limite: 'mode-illisible' };
@@ -781,12 +824,15 @@ function rolesLiesDuLayer(layer: LayerLu, catalogue: CatalogueDeReference): stri
  * Cède par layer visible et par plage de texte ; la liste rendue est celle de la voie synchrone. Un layer d'opacité effective nulle
  * et une plage vide n'ont rien à mesurer.
  */
-function* ciblesDeContraste(variant: VariantLu, niveau: NiveauWcag, catalogue: CatalogueDeReference): Generator<void, Cible[]> {
+function* ciblesDeContraste(variant: VariantLu, niveau: NiveauWcag, catalogue: CatalogueDeReference, releve: Pick<ReleveDeComposant, 'lecture'>): Generator<void, Cible[]> {
   const cibles: Cible[] = [];
   for (const layer of layersVisibles(variant)) {
     yield;
     if (opaciteEffective(variant, layer) === 0) continue;
+    // Ce que le relevé dit ne pas avoir lu n'est pas un fait : ni le layer, ni le fond qu'il demande ne se jugent (N-54).
+    if (lectureDuFondManquee(releve, variant, layer)) continue;
     if (layer.type === 'TEXT') {
+      if (lectureManquee(releve, layer.id, 'texte') || lectureManquee(releve, layer.id, 'fills')) continue;
       for (const plage of layer.texte?.plages ?? []) {
         yield;
         if (plage.fin <= plage.debut) continue;
@@ -800,16 +846,23 @@ function* ciblesDeContraste(variant: VariantLu, niveau: NiveauWcag, catalogue: C
       continue;
     }
     const anneau = estUnAnneau(layer, rolesLiesDuLayer(layer, catalogue));
-    if (estUneIcone(layer) && !anneau && aUnePeintureVisible(layer, 'fills')) {
+    if (estUneIcone(layer) && !anneau && aUnePeintureVisible(layer, 'fills') && !lectureManquee(releve, layer.id, 'fills')) {
       cibles.push({
         layer, code: 'C49', usage: 'icone', champ: 'fills', peintures: layer.peintures.filter((p) => p.champ === 'fills'),
         liaisons: liaisonsPropres(layer), seuil: SEUILS_D_ACCESSIBILITE.nonTexte,
       });
     }
-    if (aUnePeintureVisible(layer, 'strokes') && (layer.strokeWeight ?? 0) > 0) {
+    if (lectureManquee(releve, layer.id, 'strokes') || (!anneau && lectureManquee(releve, layer.id, 'fills'))) continue;
+    if (aUnContourVisible(layer)) {
       cibles.push({
         layer, code: 'C50', usage: anneau ? 'anneau' : 'stroke', champ: 'strokes',
         peintures: layer.peintures.filter((p) => p.champ === 'strokes'), liaisons: liaisonsPropres(layer), seuil: SEUILS_D_ACCESSIBILITE.nonTexte,
+      });
+    } else if (anneau && aUnePeintureVisible(layer, 'fills')) {
+      // Un anneau rempli sans contour se mesure sur son remplissage (Q-F7-9, N-59).
+      cibles.push({
+        layer, code: 'C50', usage: 'anneau', champ: 'fills',
+        peintures: layer.peintures.filter((p) => p.champ === 'fills'), liaisons: liaisonsPropres(layer), seuil: SEUILS_D_ACCESSIBILITE.nonTexte,
       });
     }
   }
@@ -854,6 +907,7 @@ function* mesurerLeVariant(
         const premier = composer(pile.couches, fond.couleur);
         if (!premier) continue;
         if (fond.nom === 'page-figma') enRepli = true;
+        if (cible.usage === 'stroke' && leRemplissageAtteintLeSeuil(variant, cible, catalogue, combinaison, fond.couleur)) continue;
         const rapport = contraste(versRgb8(premier), versRgb8(fond.couleur));
         const mesure = mesures.get(fond.nom ?? '') ?? { pire: null, echecs: 0, rapports: [] };
         mesures.set(fond.nom ?? '', mesure);
@@ -917,6 +971,20 @@ function* mesurerLeVariant(
   }
 }
 
+/**
+ * Le contour d'un layer dont le remplissage atteint 3:1 sur le fond est décoratif et reste muet (Q-F7-8). Un remplissage absent,
+ * masqué, ou que le relevé ne permet pas de calculer ne couvre pas le contour : il se mesure sur le fond des ancêtres.
+ */
+function leRemplissageAtteintLeSeuil(
+  variant: VariantLu, cible: Cible, catalogue: CatalogueDeReference, combinaison: Combinaison, fond: Rgba,
+): boolean {
+  const fills = cible.layer.peintures.filter((p) => p.champ === 'fills');
+  const pile = pileDePeintures(fills, liaisonsPropres(cible.layer), opaciteEffective(variant, cible.layer), catalogue, variant, combinaison);
+  if ('limite' in pile || pile.couches.length === 0) return false;
+  const rempli = composer(pile.couches, fond);
+  return rempli !== null && atteintLeSeuil(contraste(versRgb8(rempli), versRgb8(fond)), cible.seuil);
+}
+
 /** Sévérité et faits d'un échec sur la page, la carte ou la page Figma : le garanti se corrige, le reste se vérifie. */
 function surUnFondNomme(
   cible: Cible, fond: NomDeFond, niveau: NiveauWcag, catalogue: CatalogueDeReference, variant: VariantLu, combinaison: Combinaison,
@@ -952,17 +1020,36 @@ function estEnFocus(variant: VariantLu): boolean {
   return etatDuVariant(variant)?.startsWith('focus') ?? false;
 }
 
-function* anneauxDuVariant(variant: VariantLu, catalogue: CatalogueDeReference): Generator<void, LayerLu[]> {
+function* anneauxDuVariant(variant: VariantLu, catalogue: CatalogueDeReference, releve: Pick<ReleveDeComposant, 'lecture'>): Generator<void, LayerLu[]> {
   const anneaux: LayerLu[] = [];
   for (const layer of layersVisibles(variant)) {
     yield;
-    if (estUnAnneau(layer, rolesLiesDuLayer(layer, catalogue)) && layer.type !== 'TEXT' && opaciteEffective(variant, layer) !== 0
-      && layer.peintures.some((p) => peintureVisible(p) && (layer.liaisons.some((l) => l.champ === p.champ && (l.indice ?? 0) === p.indice) || (p.couleur?.a ?? 1) !== 0))) anneaux.push(layer);
+    if (!estUnAnneau(layer, rolesLiesDuLayer(layer, catalogue)) || layer.type === 'TEXT' || opaciteEffective(variant, layer) === 0) continue;
+    // Un anneau dont les peintures n'ont pas été lues existe : le dire absent serait un faux constat (N-54).
+    if (aUnePeintureQuiSeVoit(layer) || lectureManquee(releve, layer.id, 'fills') || lectureManquee(releve, layer.id, 'strokes') || (yield* unDescendantSePeint(variant, layer))) anneaux.push(layer);
   }
   return anneaux;
 }
 
-function* controlerLAnneau(variants: VariantLu[], catalogue: CatalogueDeReference): Generator<void, Constat[]> {
+const aUnePeintureQuiSeVoit = (layer: LayerLu): boolean =>
+  layer.peintures.some((p) => peintureVisible(p) && (layer.liaisons.some((l) => l.champ === p.champ && (l.indice ?? 0) === p.indice) || (p.couleur?.a ?? 1) !== 0));
+
+/** Une instance d'anneau sans peinture propre est un anneau quand un de ses descendants visibles se peint (Q-F7-9, N-58). */
+function* unDescendantSePeint(variant: VariantLu, anneau: LayerLu): Generator<void, boolean> {
+  const parId = memoireDuVariant(variant).parId;
+  for (const layer of layersVisibles(variant)) {
+    yield;
+    if (layer === anneau || layer.type === 'TEXT' || !aUnePeintureQuiSeVoit(layer) || opaciteEffective(variant, layer) === 0) continue;
+    const vus = new Set<string>();
+    for (let parent = layer.parent ? parId.get(layer.parent) : undefined; parent && !vus.has(parent.id); parent = parent.parent ? parId.get(parent.parent) : undefined) {
+      if (parent === anneau) return true;
+      vus.add(parent.id);
+    }
+  }
+  return false;
+}
+
+function* controlerLAnneau(variants: VariantLu[], catalogue: CatalogueDeReference, releve: Pick<ReleveDeComposant, 'lecture'>): Generator<void, Constat[]> {
   const constats: Constat[] = [];
   const recommandation = RECOMMANDATIONS.find((r) => r.id === 'anneau-de-focus');
   const epaisseur = Number(recommandation?.parametres.epaisseur ?? 2);
@@ -970,7 +1057,7 @@ function* controlerLAnneau(variants: VariantLu[], catalogue: CatalogueDeReferenc
   const sansAnneau: VariantLu[] = [];
   for (const variant of variants) {
     yield;
-    if (estEnFocus(variant) && (yield* anneauxDuVariant(variant, catalogue)).length === 0) sansAnneau.push(variant);
+    if (estEnFocus(variant) && (yield* anneauxDuVariant(variant, catalogue, releve)).length === 0) sansAnneau.push(variant);
   }
   if (sansAnneau.length > 0) {
     const racines: LayerLu[] = [];
@@ -995,10 +1082,11 @@ function* controlerLAnneau(variants: VariantLu[], catalogue: CatalogueDeReferenc
   const fins = new Map<string, Constat>();
   for (const variant of variants) {
     yield;
-    const anneaux = yield* anneauxDuVariant(variant, catalogue);
+    const anneaux = yield* anneauxDuVariant(variant, catalogue, releve);
     for (const anneau of anneaux) {
       yield;
-      if (anneau.strokeWeight === undefined || anneau.strokeWeight === epaisseur) continue;
+      // Un anneau sans contour visible n'a pas d'épaisseur à juger (N-59).
+      if (anneau.strokeWeight === undefined || anneau.strokeWeight === epaisseur || !aUnePeintureVisible(anneau, 'strokes')) continue;
       const id = `C51:${anneau.nom}:${anneau.strokeWeight}`;
       const existant = fins.get(id);
       if (existant) {
@@ -1044,13 +1132,13 @@ function* controlerLesCibles(variants: VariantLu[], interactif: boolean, releve:
   return [...groupes.values()];
 }
 
-function* controlerLeTexteMinimal(variants: VariantLu[]): Generator<void, Constat[]> {
+function* controlerLeTexteMinimal(variants: VariantLu[], releve: Pick<ReleveDeComposant, 'lecture'>): Generator<void, Constat[]> {
   const groupes = new Map<string, Constat>();
   for (const variant of variants) {
     yield;
     for (const layer of layersVisibles(variant)) {
       yield;
-      if (layer.type !== 'TEXT') continue;
+      if (layer.type !== 'TEXT' || lectureManquee(releve, layer.id, 'texte')) continue;
       for (const plage of layer.texte?.plages ?? []) {
         yield;
         if (plage.fin <= plage.debut || plage.fontSize >= TEXTE_MINIMAL_PX) continue;

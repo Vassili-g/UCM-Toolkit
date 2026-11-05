@@ -60,13 +60,13 @@ export function operateurF(base: ComposantDeContraste): CasAccessibilite[] {
     const lisible = mode === 'NORMAL' || mode === 'PASS_THROUGH';
     cas.push(faire(`F3-${numero('F3')}`, 'F3', {
       description: `mode de fusion ${mode} sur la peinture grise du texte, fond blanc`, degrader: surLeTexte([solide(GRIS, { blendMode: mode })]),
-      attendus: lisible ? constatDuTexte() : [limiteDuTexte('peinture-superposee')],
+      attendus: lisible ? constatDuTexte() : [limiteDuTexte('mode-de-fusion')],
     }));
   }
   for (const mode of ['MULTIPLY', 'OVERLAY', 'PASS_THROUGH']) {
     cas.push(faire(`F3-${numero('F3')}`, 'F3', {
       description: `mode de fusion ${mode} sur le fond blanc du Root, texte gris`, degrader: surLeFond([solide(BLANC, { blendMode: mode })]),
-      attendus: mode === 'PASS_THROUGH' ? constatDuTexte() : [limiteDuTexte('peinture-superposee')],
+      attendus: mode === 'PASS_THROUGH' ? constatDuTexte() : [limiteDuTexte('mode-de-fusion')],
     }));
   }
 

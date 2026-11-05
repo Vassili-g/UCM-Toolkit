@@ -693,7 +693,7 @@ test('ouverte, la section montre une ligne par information : phrase, lieu, sans 
   assert.equal(bande(sectionDesInformations(banc)).getAttribute('aria-expanded'), 'true');
   const toutes = lignes(banc);
   assert.equal(toutes.length, 3);
-  assert.match(toutes[0].textContent, /^Contraste non mesuré sur Disabled, que WCAG exempte\./);
+  assert.match(toutes[0].textContent, /^Le variant Disabled est désactivé : le contraste et la taille de la cible ne sont pas contrôlés\./);
   assert.match(toutes[1].textContent, new RegExp(`^Contraste non mesuré : le fill du layer ${LAYER.nom} est un dégradé\.`));
   assert.match(toutes[2].textContent, /^12 paires de couleurs non mesurées sur 5012\.$/);
   assert.ok(toutes[0].querySelector('.info-lieu'));

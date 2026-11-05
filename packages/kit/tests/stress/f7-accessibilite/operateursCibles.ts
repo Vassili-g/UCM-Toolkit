@@ -113,16 +113,15 @@ export function operateurX(base: ComposantDeContraste): CasAccessibilite[] {
 
   // X1 : l'écriture de l'état. `disabled` et `disable` sont exclus (Q-F7-10) ; les autres écritures restent mesurées.
   const ecritures: [string, boolean][] = [
-    ['disabled', true], ['Disabled', true], ['DISABLED', true], ['disable', true], ['Disabled ', false], ['inactive', false], ['Inactive', false],
+    ['disabled', true], ['Disabled', true], ['DISABLED', true], ['disable', true], ['Disabled ', true], ['inactive', false], ['Inactive', false],
     ['unavailable', false], ['read-only', false], ['dimmed', false],
   ];
   ecritures.forEach(([ecriture, exclu]) => {
-    const certain = exclu;
     cas.push(faire(`X1-${numero('X1')}`, 'X1', {
       description: `état « ${ecriture} », texte ${FAIBLE} à 2:1 : ${exclu ? 'exclu' : 'mesuré'}`,
       degrader: (d) => { d.fixer(d.cible.valeurs, 'State', ecriture); d.poserLaPaire('texte', FAIBLE, BLANC); },
       attendus: exclu ? [desactivesAttendu(de + 1)] : [...texteFaible, desactivesAttendu(de)],
-      ...(certain ? {} : { verdict: 'mesure' as const, question: 'Q-F7-10', hypothese: 'H9' }),
+      hypothese: 'H9',
     }));
   });
 
@@ -131,12 +130,12 @@ export function operateurX(base: ComposantDeContraste): CasAccessibilite[] {
     ['State', 'Disabled', true], ['states', 'Disabled', true], ['Status', 'Disabled', true], ['État', 'Disabled', true], ['Etat', 'Disabled', true],
     ['Mode', 'Disabled', false], ['Interaction', 'Disabled', false], ['Disabled', 'True', true], ['Enabled', 'False', true],
   ];
-  axes.forEach(([axe, valeur, exclu], rang) => {
+  axes.forEach(([axe, valeur, exclu]) => {
     cas.push(faire(`X2-${numero('X2')}`, 'X2', {
       description: `axe « ${axe} » à la valeur « ${valeur} », texte ${FAIBLE} à 2:1 : ${exclu ? 'exclu' : 'mesuré'}`,
       degrader: (d) => { d.fixer(d.cible.valeurs, 'State', undefined); d.fixer(d.cible.valeurs, axe, valeur); d.poserLaPaire('texte', FAIBLE, BLANC); },
       attendus: exclu ? [desactivesAttendu(de + 1)] : [...texteFaible, desactivesAttendu(de)],
-      ...(rang < 5 ? {} : { verdict: 'mesure' as const, question: 'Q-F7-10', hypothese: 'H9' }),
+      hypothese: 'H9',
     }));
   });
 
@@ -158,7 +157,7 @@ export function operateurX(base: ComposantDeContraste): CasAccessibilite[] {
   ];
   for (const [quoi, degrader, attendus, plus] of x3) {
     cas.push(faire(`X3-${numero('X3')}`, 'X3', {
-      description: `variant désactivé avec ${quoi}`, degrader, attendus: [...attendus, desactivesAttendu(de)], verdict: 'mesure', question: 'Q-F7-10', hypothese: 'H19', ...plus,
+      description: `variant désactivé avec ${quoi}`, degrader, attendus: [...attendus, desactivesAttendu(de)], hypothese: 'H19', ...plus,
     }));
   }
 

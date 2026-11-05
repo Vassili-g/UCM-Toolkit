@@ -88,7 +88,7 @@ test('les contrôles finaux par étapes conservent les groupes et leur ordre', (
     variant('c', [racine(undefined, dims(20, 20)), { ...petitTexte, id: 'tc' }], { State: 'focus' }),
   ], ['default', 'hover', 'focus', 'disabled']);
   const attendu = [
-    { id: 'C53', code: 'C53', type: 'info', famille: 'contraste', variants: ['disabled'], layers: [], faits: { variantsExclus: 1 } },
+    { id: 'C53', code: 'C53', type: 'info', famille: 'contraste', variants: ['disabled'], layers: [], faits: { variantsExclus: 1, ecriture: 'State=disabled' } },
     {
       id: 'C52:20x20:24', code: 'C52', type: 'corriger', famille: 'contraste', variants: ['a', 'c'], layers: ['r', 'r'],
       faits: { largeur: 20, hauteur: 20, seuil: 24 },
@@ -1163,4 +1163,119 @@ test('E9.11 : une plage vide ne donne ni constat de contraste ni constat de tail
   const t = texte([solide('fills', gris(0.9))], 8);
   t.texte!.plages = [{ ...t.texte!.plages[0], debut: 5, fin: 5 }];
   assert.deepEqual(cc(releve([variant('a', [racine(), t])])), []);
+});
+
+/* ---------- E9.8 et E9.9 : contours et anneaux ---------- */
+
+const champ = (id: string, peintures: PeintureLue[], extra: Partial<LayerLu> = {}): LayerLu =>
+  ({ id, nom: 'Champ', type: 'RECTANGLE', parent: 'r', visible: true, opacite: 1, dimensions: dims(), peintures, strokeWeight: 1, liaisons: [], valeursEnDur: [], ...extra });
+const contoursMesures = (layers: LayerLu[]) => parCode(cc(releve([variant('a', [racine(), ...layers])])), 'C50').filter((c) => c.faits.usage === 'stroke');
+
+test('E9.8 : un contour sous 3:1 reste muet quand le remplissage du layer atteint 3:1', () => {
+  const contour = solide('strokes', gris(0.72));
+  assert.equal(contoursMesures([champ('c', [contour])]).length, 1, 'sans remplissage');
+  assert.equal(contoursMesures([champ('c', [solide('fills', gris(0.25)), contour])]).length, 0, 'remplissage à plus de 3:1');
+  assert.equal(contoursMesures([champ('c', [{ ...solide('fills', gris(0.25)), visible: false }, contour])]).length, 1, 'remplissage masqué');
+  assert.equal(contoursMesures([champ('c', [solide('fills', gris(0.72)), contour])]).length, 1, 'remplissage sous 3:1');
+  assert.equal(contoursMesures([champ('c', [{ ...solide('fills', gris(0.25)), type: 'GRADIENT_LINEAR' }, contour])]).length, 1, 'remplissage incalculable');
+});
+
+test('E9.9 : un anneau rempli sans contour se mesure sur son remplissage et C51 ne le juge pas', () => {
+  const anneau = (peintures: PeintureLue[], strokeWeight?: number): LayerLu =>
+    champ('f', peintures, { nom: 'Focus ring', type: 'ELLIPSE', ...(strokeWeight === undefined ? {} : { strokeWeight }) });
+  const enFocus = (layer: LayerLu) => cc(releve([variant('f', [racine(), layer], { State: 'focus' })], ['default', 'focus']));
+  const clair = enFocus(anneau([solide('fills', gris(0.72))]));
+  assert.equal(parCode(clair, 'C50').filter((c) => c.faits.usage === 'anneau').length, 1);
+  assert.equal(parCode(enFocus(anneau([solide('fills', gris(0))])), 'C50').length, 0);
+  assert.equal(enFocus(anneau([solide('fills', gris(0))], 0)).filter((c) => c.code === 'C51').length, 0, 'épaisseur 0 sans contour');
+  assert.equal(enFocus(anneau([solide('strokes', gris(0))], 0)).filter((c) => c.code === 'C51').length, 1, 'un contour visible garde son épaisseur jugée');
+});
+
+test('E9.9 : une instance d’anneau sans peinture propre est un anneau quand un descendant se peint', () => {
+  const instance = champ('i', [], { nom: '.Ring', type: 'INSTANCE', strokeWeight: undefined });
+  const dedans = champ('d', [solide('strokes', gris(0))], { nom: 'Contour', parent: 'i', strokeWeight: 2 });
+  const sansAnneau = (layers: LayerLu[]) =>
+    cc(releve([variant('f', [racine(), ...layers], { State: 'focus' })], ['default', 'focus'])).find((c) => c.id === 'C50:sans-anneau');
+  assert.equal(sansAnneau([instance, dedans]), undefined);
+  assert.ok(sansAnneau([instance, { ...dedans, visible: false }]), 'descendant masqué');
+  assert.ok(sansAnneau([instance, { ...dedans, parent: 'r' }]), 'peinture hors de l’instance');
+});
+
+/* ---------- E9.10, E9.12, E9.13 : désactivés, mode de fusion, lecture partielle ---------- */
+
+const texteFaible = (id = 't') => texte([solide('fills', gris(0.72))], 14, 400, id);
+
+test('E9.10 : disabled, disable, Disabled=True et Enabled=False sont exclus, Inactive, read-only et dimmed restent mesurés', () => {
+  const c53 = (valeurs: Record<string, string>) => {
+    const constats = cc(releve([variant('v', [racine(), texteFaible()], valeurs)], ['default', 'hover']));
+    return { exclu: constats.some((c) => c.code === 'C53'), mesure: parCode(constats, 'C49').length === 1, ecriture: constats.find((c) => c.code === 'C53')?.faits.ecriture };
+  };
+  for (const valeurs of [{ State: 'disabled' }, { State: 'Disable' }, { Disabled: 'True' }, { Enabled: 'False' }] as Record<string, string>[]) {
+    assert.deepEqual([c53(valeurs).exclu, c53(valeurs).mesure], [true, false], JSON.stringify(valeurs));
+  }
+  assert.equal(c53({ Disabled: 'True' }).ecriture, 'Disabled=True');
+  for (const valeurs of [{ State: 'Inactive' }, { State: 'read-only' }, { State: 'dimmed' }, { Disabled: 'False' }, { Enabled: 'True' }] as Record<string, string>[]) {
+    assert.deepEqual([c53(valeurs).exclu, c53(valeurs).mesure], [false, true], JSON.stringify(valeurs));
+  }
+});
+
+test('E9.10 : un texte sous 12 px se juge encore dans un variant désactivé, sa cible ne se juge pas', () => {
+  const petit = texte([solide('fills', gris(0))], 11);
+  const constats = cc(releve([variant('v', [racine(undefined, dims(20, 20)), petit], { Disabled: 'True' }), variant('w', [racine()], { Disabled: 'False' })], ['default', 'hover']));
+  assert.equal(constats.filter((c) => c.id === 'C49:taille:Label:11').length, 1);
+  assert.equal(constats.filter((c) => c.code === 'C52').length, 0);
+});
+
+test('E9.10 : Survol se lit comme une interaction, donc l’axe État de Défaut et Survol est interactif', () => {
+  const v = variant('v', [racine(undefined, dims(20, 20))], { État: 'Défaut' });
+  const r = releve([v]);
+  r.proprietes.push({ nom: 'État', type: 'VARIANT', valeurs: ['Défaut', 'Survol'], defaut: 'Défaut' });
+  assert.equal(parCode(cc(r), 'C52').length, 1);
+});
+
+test('E9.12 : un mode de fusion donne la cause mode-de-fusion, des remplissages superposés priment sur le dégradé', () => {
+  const causes = (peintures: PeintureLue[]) => limiteDe(cc(releve([variant('a', [racine(), texte(peintures)])])));
+  assert.deepEqual(causes([{ ...solide('fills', gris(0)), blendMode: 'MULTIPLY' }]), ['C49:mode-de-fusion']);
+  const degrade = { ...solide('fills', gris(0)), type: 'GRADIENT_LINEAR' };
+  assert.deepEqual(causes([degrade]), ['C49:degrade']);
+  assert.deepEqual(causes([solide('fills', gris(0), 0.5), { ...degrade, indice: 1 }]), ['C49:peinture-superposee'], 'dégradé sur un solide translucide');
+  assert.deepEqual(causes([degrade, { ...degrade, indice: 1 }]), ['C49:peinture-superposee'], 'deux dégradés');
+  assert.deepEqual(causes([{ ...degrade, visible: false }, { ...degrade, indice: 1 }]), ['C49:degrade'], 'un dégradé masqué ne superpose rien');
+});
+
+test('E9.13 : un cycle de parent termine, de la visibilité aux fonds', () => {
+  const a: LayerLu = { ...racine(), id: 'a', parent: 'b', peintures: [solide('fills', { ...gris(1), a: 0.5 })] };
+  const b: LayerLu = { ...racine(), id: 'b', nom: 'B', parent: 'a', peintures: [] };
+  const t: LayerLu = { ...texteFaible('t'), parent: 'a' };
+  assert.doesNotThrow(() => cc(releve([variant('a', [a, b, t])])));
+});
+
+test('E9.13 : C49 et C50 ne jugent pas ce que le relevé dit ne pas avoir lu', () => {
+  const lire = (manquees: { layer?: string; champ?: string; motif: string }[], layers: LayerLu[], nonLus: string[] = []) => {
+    const r = releve([variant('a', layers)]);
+    r.lecture.manquees.push(...manquees);
+    r.lecture.variantsNonLus.push(...nonLus);
+    return cc(r).filter((c) => c.code === 'C49' || c.code === 'C50');
+  };
+  const contour = champ('c', [solide('strokes', gris(0.72))]);
+  assert.equal(lire([], [racine(), texteFaible()]).length, 1);
+  assert.equal(lire([{ layer: 't', champ: 'fills', motif: 'x' }], [racine(), texteFaible()]).length, 0, 'fills du texte');
+  assert.equal(lire([{ layer: 't', champ: 'texte', motif: 'x' }], [racine(), texteFaible()]).length, 0, 'texte illisible');
+  assert.equal(lire([{ layer: 'r', champ: 'fills', motif: 'x' }], [racine(), texteFaible()]).length, 0, 'fills du fond');
+  assert.equal(lire([], [racine(), contour]).length, 1);
+  assert.equal(lire([{ layer: 'c', champ: 'strokes', motif: 'x' }], [racine(), contour]).length, 0, 'strokes du contour');
+  assert.equal(lire([], [racine(), texteFaible()], ['a']).length, 0, 'variant non lu');
+  const petit = texte([solide('fills', gris(0))], 11);
+  assert.equal(lire([{ layer: 't', champ: 'texte', motif: 'x' }], [racine(), petit]).length, 0, 'taille d’un texte illisible');
+});
+
+test('E9.13 : un anneau dont les peintures n’ont pas été lues n’est pas déclaré absent', () => {
+  const anneau = champ('f', [], { nom: 'Focus ring', strokeWeight: 2 });
+  const sansAnneau = (manquees: { layer?: string; champ?: string; motif: string }[]) => {
+    const r = releve([variant('f', [racine(), anneau], { State: 'focus' })], ['default', 'focus']);
+    r.lecture.manquees.push(...manquees);
+    return cc(r).some((c) => c.id === 'C50:sans-anneau');
+  };
+  assert.equal(sansAnneau([]), true);
+  assert.equal(sansAnneau([{ layer: 'f', champ: 'strokes', motif: 'x' }]), false);
 });

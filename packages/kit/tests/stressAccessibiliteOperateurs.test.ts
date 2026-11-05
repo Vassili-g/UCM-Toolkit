@@ -80,9 +80,7 @@ test('chaque cas a un identifiant <opérateur>-<n>, une description qui commence
 test('les cas qui dépendent d\'une question non confirmée portent le verdict mesure et son identifiant', () => {
   const parQuestion: Record<string, string[]> = {};
   for (const entree of TOUS.filter((autre) => autre.verdict === 'mesure')) (parQuestion[entree.question!] ??= []).push(entree.id);
-  assert.deepEqual(parQuestion, {
-    'Q-F7-10': ['G3-9'],
-  });
+  assert.deepEqual(parQuestion, {});
 });
 
 test('S : une paire juste sous le seuil donne un constat au rapport tronqué, une paire juste au-dessus aucun', () => {
@@ -114,7 +112,6 @@ test('G : la classe du texte suit 14 pt = 56/3 px, la taille minimale suit la fr
   assert.deepEqual(duOperateur('G3').map((c) => c.attendus.map((a) => a.cle)), [
     ['taille|Texte|8'], ['taille|Texte|10'], ['taille|Texte|11'], ['taille|Texte|11.99'], [], [], ['taille|Texte|0'], ['taille|Texte|11'], ['taille|Texte|11'],
   ]);
-  assert.equal(cas('G3-9').question, 'Q-F7-10');
 });
 
 test('O : l\'alpha effectif compose le texte, une pile s\'arrête à l\'opaque, un fond translucide se mesure sur la page et la carte', () => {
@@ -138,9 +135,9 @@ test('O : l\'alpha effectif compose le texte, une pile s\'arrête à l\'opaque, 
 test('F : un dégradé, une image ou un mode de fusion rend une limite sans verdict ; un fond lisible rend le verdict normal', () => {
   assert.deepEqual(duOperateur('F1').map((c) => c.attendus.map((a) => a.cle)), Array(8).fill(['limite:degrade|texte|Texte|']));
   assert.deepEqual(duOperateur('F2').map((c) => c.attendus.map((a) => a.cle)), Array(4).fill(['limite:image|texte|Texte|']));
-  const limites = duOperateur('F3').map((c) => c.attendus[0].cle === 'limite:peinture-superposee|texte|Texte|');
+  const limites = duOperateur('F3').map((c) => c.attendus[0].cle === 'limite:mode-de-fusion|texte|Texte|');
   assert.equal(limites.filter(Boolean).length, 19);
-  assert.deepEqual([cas('F3-1').attendus[0].cle, cas('F3-2').attendus[0].cle, cas('F3-4').attendus[0].cle], ['texte|Texte||', 'texte|Texte||', 'limite:peinture-superposee|texte|Texte|']);
+  assert.deepEqual([cas('F3-1').attendus[0].cle, cas('F3-2').attendus[0].cle, cas('F3-4').attendus[0].cle], ['texte|Texte||', 'texte|Texte||', 'limite:mode-de-fusion|texte|Texte|']);
   assert.equal(cas('F3-22').attendus[0].cle, 'texte|Texte||');
   assert.deepEqual(duOperateur('F4').map((c) => c.attendus[0].cle.startsWith('limite:')), [true, true, false, false, false, true]);
   assert.deepEqual(duOperateur('F5').map((c) => c.attendus.length), [0, 0, 0, 0, 1, 1]);

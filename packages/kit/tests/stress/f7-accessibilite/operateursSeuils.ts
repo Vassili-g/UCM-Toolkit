@@ -144,7 +144,7 @@ export function operateurG(base: ComposantDeContraste): CasAccessibilite[] {
   cas.push(faire(`G3-${++g3}`, 'G3', {
     description: `texte de 11 px dans le variant désactivé ${desactive.nom} (C53 l'exclut du contraste ; la proposition garde le texte sous 12 px)`,
     degrader: (d) => { d.poserLaPaire('texte', '#000000', BLANC, { variant: d.variantOu({ ...desactive.valeurs }), fontSize: 11 }); },
-    attendus: [tailleAttendue('Texte', 11, [desactive.nom])], verdict: 'mesure', question: 'Q-F7-10', hypothese: 'H19',
+    attendus: [tailleAttendue('Texte', 11, [desactive.nom])], hypothese: 'H19',
   }));
   return cas;
 }

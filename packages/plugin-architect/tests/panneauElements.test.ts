@@ -207,8 +207,13 @@ test('des informations seules ne font aucun point : tous les éléments sont ten
 
 test('C53 : le contraste non mesuré sur l’état exclu, avec sa ligne de lieu', () => {
   const ligne = ligneDInformation(constatBrut({ id: 'C53', code: 'C53', type: 'info', famille: 'contraste', variants: ['v:2', 'v:3'], faits: { variantsExclus: 2 } }), contexteDeLigne);
-  assert.equal(ligne.phrase, 'Contraste non mesuré sur `Disabled`, que WCAG exempte.');
+  assert.equal(ligne.phrase, 'Le variant Disabled est désactivé : le contraste et la taille de la cible ne sont pas contrôlés.');
   assert.deepEqual(ligne.lieu, ['2 variants', { puces: [['State', 'Disabled']] }]);
+});
+
+test('C53 : le variant désactivé s’écrit comme le kit le donne, axe booléen compris', () => {
+  const ligne = ligneDInformation(constatBrut({ id: 'C53', code: 'C53', type: 'info', famille: 'contraste', variants: ['v:2'], faits: { variantsExclus: 1, ecriture: 'Disabled=True' } }), contexteDeLigne);
+  assert.equal(ligne.phrase, 'Le variant Disabled=True est désactivé : le contraste et la taille de la cible ne sont pas contrôlés.');
 });
 
 test('C49 et C50 avec limite : « Contraste non mesuré : » suivi de la cause', () => {
@@ -216,6 +221,8 @@ test('C49 et C50 avec limite : « Contraste non mesuré : » suivi de la cause',
   assert.equal(limite('degrade', 'fills'), 'Contraste non mesuré : le fill du layer `icon` est un dégradé.');
   assert.equal(limite('image', 'strokes', 'C50'), 'Contraste non mesuré : le stroke du layer `icon` est une image.');
   assert.equal(limite('peinture-superposee', 'fills'), 'Contraste non mesuré : le fill du layer `icon` superpose plusieurs peintures.');
+  assert.equal(limite('mode-de-fusion', 'fills'), 'Contraste non mesuré : le fill du layer `icon` a un mode de fusion.');
+  assert.equal(limite('flou-arriere-plan', 'fills'), 'Contraste non mesuré : le fill du layer `icon` est posé sur un flou d’arrière-plan.');
   assert.equal(limite('fond-indetermine', 'strokes', 'C50'), 'Contraste non mesuré : le stroke du layer `icon` est posé sur un fond que le plugin ne détermine pas.');
   assert.equal(limite('inconnue', 'fills'), 'Contraste non mesuré : le fill du layer `icon` n’a pas pu être lu.');
   // Le layer est dans la phrase : la ligne de lieu ne le répète pas.

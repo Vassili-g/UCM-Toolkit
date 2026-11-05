@@ -242,7 +242,7 @@ const SCENARIOS: readonly Scenario[] = [
     modifier: (_donnees, niveau) => { niveau.valeur = 'AA'; },
   },
   {
-    nom: 'la lecture d’une page de variants', projections: ['controle-oublis'], constatsAuMoins: ['controle-oublis'],
+    nom: 'la lecture d’une page de variants', projections: ['controle-oublis', 'controle-accessibilite'], constatsAuMoins: ['controle-oublis'],
     modifier: ({ releve }) => { releve.lecture.variantsNonLus = ['v-inconnu']; },
   },
   {

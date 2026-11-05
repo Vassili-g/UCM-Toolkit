@@ -74,7 +74,7 @@ export const GABARITS: Readonly<Record<NomDeFamille, Gabarit>> = {
     ...COLLECTIONS, 'catalogue.collections.*.etat', ...sous('catalogue.variables.*', 'cle', 'nom', 'collection', 'type'),
   ],
   'controle-accessibilite': [
-    'niveau', ...sous('releve.lecture.manquees.*', 'layer', 'champ'), ...PROPRIETES,
+    'niveau', 'releve.lecture.variantsNonLus', ...sous('releve.lecture.manquees.*', 'layer', 'champ'), ...PROPRIETES,
     ...sous('releve.variants.*', 'nom', 'valeurs', 'modesEffectifs'),
     ...sous(LAYERS, 'id', 'nom', 'type', 'parent', 'visible', 'opacite', 'strokeWeight', 'dimensions.largeur', 'dimensions.hauteur', 'dimensions.x', 'dimensions.y', 'peintures', 'instanceDe.nom', 'instanceDe.pilotee'),
     ...liaisons(['champ', 'indice', 'surcharge.id', 'illisible', 'variable.cle'], ['champ', 'indice', 'illisible', 'variable.cle']),

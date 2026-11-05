@@ -24,7 +24,7 @@ export interface LigneDInformation {
 
 const texte = (valeur: string | number | undefined): string | null => (typeof valeur === 'string' && valeur !== '' ? valeur : typeof valeur === 'number' ? String(valeur) : null);
 
-/** L'état exclu, écrit comme les variants l'écrivent (`Disabled`), pris dans le premier variant dont la valeur est « disabled ». */
+/** Repli quand le kit ne donne pas `faits.ecriture` : l'état exclu, écrit comme les variants l'écrivent (`Disabled`), pris dans le premier variant dont la valeur est « disabled ». */
 function etatExclu(constat: Constat, contexte: ContexteDAFaire): string {
   for (const nom of nomsDesVariants(constat, contexte)) {
     for (const paire of nom.split(', ')) {
@@ -48,7 +48,7 @@ export function ligneDInformation(constat: Constat, contexte: ContexteDAFaire): 
   const { faits } = constat;
   const calque = texte(faits.calque);
   const sansLayer = (phrase: string): LigneDInformation => ({ constat, phrase, lieu: lieuDe(constat, contexte, { sansLayer: true }) });
-  if (constat.code === 'C53') return sansLayer(T.variantsExclus(etatExclu(constat, contexte)));
+  if (constat.code === 'C53') return sansLayer(T.variantsExclus(texte(faits.ecriture) ?? etatExclu(constat, contexte)));
   // Les deux informations de C31 portent `faits.genre` : un variant absent (type `verifier`) y porte ses paires, dont un axe pourrait s'appeler `genre`.
   if (constat.code === 'C31' && faits.genre === 'au-dela-de-la-borne') return sansLayer(TA.variantsAuDelaDeLaBorne(Number(faits.variants), Number(faits.combinaisons)));
   if (constat.code === 'C31' && faits.genre === 'et-autres') return sansLayer(TA.variantsAbsentsRestants(Number(faits.autres)));

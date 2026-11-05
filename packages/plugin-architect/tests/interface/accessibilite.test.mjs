@@ -81,7 +81,7 @@ test('la cible, l’anneau et le texte sous 12 px sont des recommandations ; les
     assert.equal(await cartes(page).nth(3).locator('.constat-lieu').textContent(), '72 variantssmall');
     const section = page.locator('.section-informations');
     assert.equal(await section.locator('.bande-element .nombre').textContent(), '1');
-    assert.equal(await section.locator('.info-texte').innerText(), 'Contraste non mesuré sur disabled, que WCAG exempte.');
+    assert.equal(await section.locator('.info-texte').innerText(), 'Le variant disabled est désactivé : le contraste et la taille de la cible ne sont pas contrôlés.');
     assert.equal(await section.locator('.info-lieu').textContent(), '54 variantsdisabled');
     assert.equal(await note(page).textContent(), 'Ces mesures portent sur le dessin du composant dans Figma.');
   } finally { await terminer(page); }

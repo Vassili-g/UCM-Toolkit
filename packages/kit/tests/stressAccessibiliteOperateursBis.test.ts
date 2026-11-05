@@ -64,10 +64,8 @@ test('les cas qui dépendent d\'une question non confirmée portent le verdict m
   for (const entree of LOT_2.filter((autre) => autre.verdict === 'mesure')) (parQuestion[entree.question!] ??= []).push(entree.id);
   assert.deepEqual(parQuestion, {
     'Q-F3-4': [...Array.from({ length: 20 }, (_, rang) => `I1-${rang + 5}`), 'I2-3', 'I2-4'],
-    'Q-F7-8': ['R1-12', 'R1-13', 'R1-14'],
-    'Q-F7-9': ['R2-10', 'R2-11', 'R2-12', 'R2-13', 'R2-14', 'R2-15', 'R4-9', 'R4-10', 'R5-11', 'R5-12'],
+    'Q-F7-9': ['R2-10', 'R2-11', 'R2-12', 'R2-13', 'R2-14', 'R2-15', 'R5-11'],
     'E-40': ['Z2-9', 'Z2-10', 'Z2-11'],
-    'Q-F7-10': ['X1-5', 'X1-6', 'X1-7', 'X1-8', 'X1-9', 'X1-10', 'X2-6', 'X2-7', 'X2-8', 'X2-9', 'X3-1', 'X3-2', 'X3-3', 'X3-4'],
   });
 });
 
@@ -84,7 +82,7 @@ test('I : un VECTOR est une icône quel que soit son nom, un RECTANGLE nommé ic
   assert.deepEqual(duOperateur('I2').map((c) => c.icone!.estUneIcone), [false, false, true, true, false, false]);
   // I3 : quatre VECTOR de nom libre sont des icônes (E-26). I5 : `ring` n'en est pas une.
   assert.deepEqual(duOperateur('I3').map((c) => c.attendus[0].cle), ['icone|Divider||', 'icone|Separator||', 'icone|Chevron||', 'icone|Glyph||']);
-  assert.deepEqual(duOperateur('I5').map((c) => c.attendus), [[], []]);
+  assert.deepEqual(duOperateur('I5').map((c) => c.attendus.map((a) => a.cle)), [['anneau|ring||'], ['anneau|Focus ring||']]);
   // I4 : un fill et un stroke donnent un constat d'icône et un constat de contour ; deux fills, celui du dessus ; un fill noir d'alpha 0,2 se compose en gris clair (1,60).
   assert.deepEqual(cas('I4-1').attendus.map(({ code, cle, rapport }) => [code, cle, rapport]), [['C49', 'icone|Pictogramme||', 1.98], ['C50', 'stroke|Pictogramme||', 2.61]]);
   assert.deepEqual([cas('I4-2').attendus[0].premierPlan, cas('I4-2').attendus[0].rapport], ['#A8A8A8', 2.37]);
@@ -129,10 +127,10 @@ test('Z : corriger sous 24 px, vérifier de 24 à moins de 44 px, rien à 44 px,
   assert.deepEqual([cas('Z4-2').attendus.length, cas('Z4-2').attendus[0].variants!.length], [1, 3]);
 });
 
-test('X : disabled et disable sont exclus et comptés, les autres écritures sont mesurées, C53 compte les variants exclus', () => {
+test('X : disabled, disable, Disabled=True et Enabled=False sont exclus et comptés, les autres écritures sont mesurées, C53 compte les variants exclus', () => {
   // P0 a douze variants Disabled : un cas qui en désactive un de plus en compte treize.
-  assert.deepEqual(duOperateur('X1').map((c) => c.attendus.find((a) => a.code === 'C53')!.exclus), [13, 13, 13, 13, 12, 12, 12, 12, 12, 12]);
-  assert.deepEqual(duOperateur('X1').map((c) => c.attendus.filter((a) => a.code === 'C49').length), [0, 0, 0, 0, 1, 1, 1, 1, 1, 1]);
+  assert.deepEqual(duOperateur('X1').map((c) => c.attendus.find((a) => a.code === 'C53')!.exclus), [13, 13, 13, 13, 13, 12, 12, 12, 12, 12]);
+  assert.deepEqual(duOperateur('X1').map((c) => c.attendus.filter((a) => a.code === 'C49').length), [0, 0, 0, 0, 0, 1, 1, 1, 1, 1]);
   assert.deepEqual(duOperateur('X2').map((c) => c.attendus.find((a) => a.code === 'C53')!.exclus), [13, 13, 13, 13, 13, 12, 12, 13, 13]);
   // X3 : le texte de 11 px reste mesuré, le contraste et la cible sont exclus.
   assert.deepEqual(cas('X3-1').attendus.map((a) => a.cle), ['taille|Texte|11', 'C53']);

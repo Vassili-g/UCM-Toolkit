@@ -114,11 +114,13 @@ export function operateurI(base: ComposantDeContraste): CasAccessibilite[] {
     }));
   }
 
-  // I5 : un VECTOR nommé comme un anneau n'est pas une icône.
+  // I5 : un VECTOR nommé comme un anneau n'est pas une icône ; rempli sans contour, il se mesure comme anneau sur son remplissage (Q-F7-9).
   for (const nom of ['ring', 'Focus ring']) {
     cas.push(faire(`I5-${numero('I5')}`, 'I5', {
-      description: `VECTOR nommé ${nom}, peinture ${FAIBLE} : pas mesuré comme icône`,
-      degrader: (d) => { d.scene(); poserLeLayer(d, nom, 'VECTOR'); }, attendus: [], icone: { nom, type: 'VECTOR', estUneIcone: false },
+      description: `VECTOR nommé ${nom}, peinture ${FAIBLE} : pas mesuré comme icône, mesuré comme anneau`,
+      degrader: (d) => { d.scene(); poserLeLayer(d, nom, 'VECTOR'); },
+      attendus: [contrasteAttendu({ usage: 'anneau', layer: nom, rapport: rapportDeHex(FAIBLE, BLANC), seuil: 3, variants: [cible], premierPlan: FAIBLE, fondHex: BLANC })],
+      icone: { nom, type: 'VECTOR', estUneIcone: false },
     }));
   }
 

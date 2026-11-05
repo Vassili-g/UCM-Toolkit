@@ -145,6 +145,12 @@ export const REGISTRE_ETATS: Registre = {
   ],
 };
 
+/**
+ * Les valeurs d'état françaises qu'un contrôle d'accessibilité lit comme une interaction, sans qu'elles deviennent des formes tolérées :
+ * Nomenclature ne corrige pas `Survol` vers `hover` (faux positifs de F5), mais C52 doit voir qu'un axe `État` à `Défaut` et `Survol` s'interagit.
+ */
+export const ETATS_FRANCAIS_INTERACTIFS: readonly string[] = ['survol'];
+
 export const REGISTRE_AXES_ETAT: Registre = {
   id: 'axes-etat', extensible: false,
   termes: [

@@ -68,7 +68,7 @@ export function operateurR(base: ComposantDeContraste): CasAccessibilite[] {
   for (const [quoi, peinturesDuCas, mesure] of surSonFill) {
     cas.push(faire(`R1-${numero('R1')}`, 'R1', {
       description: `contour ${FAIBLE} sur un layer qui a son fill, ${quoi}`, degrader: contourSurRectangle(peinturesDuCas),
-      attendus: mesure ? [contourAttendu('Contour', cible)] : [], verdict: 'mesure', question: 'Q-F7-8', hypothese: 'H17',
+      attendus: mesure ? [contourAttendu('Contour', cible)] : [], hypothese: 'H17',
     }));
   }
   cas.push(faire(`R1-${numero('R1')}`, 'R1', {
@@ -154,13 +154,13 @@ export function operateurR(base: ComposantDeContraste): CasAccessibilite[] {
       const instance = d.ajouterUnLayer({ variant: v, nom: '.Ring', type: 'INSTANCE', parent: d.scene({ variant: v }) });
       d.ajouterUnLayer({ variant: v, nom: 'Contour', peintures: [contour(NOIR)], strokeWeight: 2, parent: instance });
     },
-    attendus: [], verdict: 'mesure', question: 'Q-F7-9', hypothese: 'H7',
+    attendus: [], hypothese: 'H7',
   }));
   cas.push(faire(`R4-${numero('R4')}`, 'R4', {
     description: `ELLIPSE « ring » remplie ${FAIBLE} sans contour : mesurée sur son fill, sans accusation de C51`,
     degrader: (d) => { const v = d.variantOu({ State: 'Focus' }); d.scene({ variant: v }); d.ajouterUnLayer({ variant: v, nom: 'ring', type: 'ELLIPSE', peintures: [solide(FAIBLE)] }); },
     attendus: [contrasteAttendu({ usage: 'anneau', layer: 'ring', rapport: rapportDeHex(FAIBLE, BLANC), seuil: SEUIL, variants: [focus], premierPlan: FAIBLE, fondHex: BLANC })],
-    verdict: 'mesure', question: 'Q-F7-9', hypothese: 'H8',
+    hypothese: 'H8',
   }));
 
   // R5 : l'épaisseur de l'anneau vaut 2 px ; C51 donne l'épaisseur lue.
@@ -181,7 +181,7 @@ export function operateurR(base: ComposantDeContraste): CasAccessibilite[] {
   cas.push(faire(`R5-${numero('R5')}`, 'R5', {
     description: 'anneau rempli noir d\'épaisseur 0, sans contour visible : pas accusé par C51 selon Q-F7-9',
     degrader: (d) => { const v = d.variantOu({ State: 'Focus' }); d.scene({ variant: v }); d.ajouterUnLayer({ variant: v, nom: 'ring', peintures: [solide(NOIR)], strokeWeight: 0 }); },
-    attendus: [], verdict: 'mesure', question: 'Q-F7-9', hypothese: 'H8',
+    attendus: [], hypothese: 'H8',
   }));
   cas.push(faire(`R5-${numero('R5')}`, 'R5', {
     description: 'deux anneaux « ring » de 1 px dans le même variant : un seul constat, sans layer en double',

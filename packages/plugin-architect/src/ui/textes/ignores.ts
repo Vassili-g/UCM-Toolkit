@@ -5,6 +5,8 @@ const CAUSES_DE_LIMITE: Readonly<Record<string, string>> = {
   degrade: 'est un dégradé',
   image: 'est une image',
   'peinture-superposee': 'superpose plusieurs peintures',
+  'mode-de-fusion': 'a un mode de fusion',
+  'flou-arriere-plan': 'est posé sur un flou d’arrière-plan',
   'mode-illisible': 'prend une couleur que le plugin ne sait pas lire',
   'couleur-absente': 'n’a pas de couleur',
   'fond-indetermine': 'est posé sur un fond que le plugin ne détermine pas',
@@ -47,7 +49,7 @@ export const TEXTES_IGNORES = {
   // La section Informations : ce que l'analyse n'a pas mesuré. Ses lignes ne sont pas des constats.
   informationsDuPanneau: {
     titre: 'Informations',
-    variantsExclus: (etat: string): string => `Contraste non mesuré sur \`${etat}\`, que WCAG exempte.`,
+    variantsExclus: (variant: string): string => `Le variant ${variant} est désactivé : le contraste et la taille de la cible ne sont pas contrôlés.`,
     contrasteNonMesure: (champ: string, layer: string | null, cause: string): string =>
       `Contraste non mesuré : le ${CHAMPS_DE_CONTRASTE[champ] ?? 'fill'}${layer === null ? '' : ` du layer \`${layer}\``} ${CAUSES_DE_LIMITE[cause] ?? 'n’a pas pu être lu'}.`,
     fondDeRepli: 'Fond lu sur la page Figma : `elevation/raised` est introuvable.',
