@@ -219,3 +219,43 @@ test('G3 : le client rend à l’écran les étapes du Worker pour la requête e
   travailleur.repondre({ type: 'etape', demande: 7, generation: 3, revision: 'r1', etape: 'questions' });
   assert.deepEqual(vues, [[7, 'lexique'], [7, 'questions']]);
 });
+
+test('G6 : `demarrer` crée le Worker au montage, une seule fois ; une requête avant `demarre` n’en crée pas un second', () => {
+  let creations = 0;
+  const travailleur = fauxTravailleur();
+  const { calculateur, reponses, delais } = client({ fabriquer: () => { creations += 1; return travailleur; } });
+  calculateur.demarrer();
+  calculateur.demarrer();
+  assert.equal(creations, 1, 'le Worker naît avant toute requête');
+  assert.equal(delais.length, 1);
+  calculateur.recevoir(requete(1));
+  assert.equal(creations, 1, 'la requête attend le démarrage en cours');
+  assert.equal(delais.length, 1);
+  assert.equal(travailleur.requetes.length, 1);
+  travailleur.repondre({ type: 'demarre' });
+  travailleur.repondre(bilan(1));
+  assert.equal((reponses[0] as Extract<ReponseDuCalculDesNoms, { type: 'noms-calcules' }>).mesure.demarrage, true, 'la première requête mesure l’attente restante');
+  calculateur.recevoir(requete(2, 4));
+  travailleur.repondre(bilan(2, 4));
+  assert.equal((reponses[1] as Extract<ReponseDuCalculDesNoms, { type: 'noms-calcules' }>).mesure.demarrage, false);
+  assert.equal(creations, 1);
+});
+
+test('G6 : un démarrage refusé mène au repli à la première requête, sans nouvelle tentative', () => {
+  let tentatives = 0;
+  const { calculateur, reponses } = client({ fabriquer: () => { tentatives += 1; return null; } });
+  calculateur.demarrer();
+  assert.deepEqual(reponses, [], 'rien à répondre au montage');
+  calculateur.recevoir(requete(1));
+  calculateur.recevoir(requete(2));
+  assert.deepEqual(reponses.map((reponse) => (reponse as { cause?: string }).cause), ['indisponible', 'indisponible']);
+  assert.equal(tentatives, 1);
+
+  const muet = client();
+  muet.calculateur.demarrer();
+  muet.delais[0].rappel();
+  muet.calculateur.recevoir(requete(1));
+  muet.calculateur.recevoir(requete(2));
+  assert.deepEqual(muet.reponses.map((reponse) => (reponse as { cause?: string }).cause), ['demarrage', 'indisponible'], 'le Worker muet au montage répond `demarrage` à la première requête');
+  assert.equal(muet.travailleur!.ferme, true);
+});

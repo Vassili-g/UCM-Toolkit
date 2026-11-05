@@ -468,6 +468,8 @@ function recevoir(message: PluginMessage): void {
 
 /** Le calcul des noms que le sandbox confie à un Worker : le bilan lui revient par `versSandbox`, sans passer par l'écran de Nomenclature. */
 const calculDesNoms = creerCalculateurDeNoms({ envoyer: versSandbox, surEtape: (_demande, etape) => actualisation.etapeDesNoms(etape) });
+// Le Worker naît au montage : son démarrage (839 ms mesurés dans Figma) ne retarde plus la première analyse.
+calculDesNoms.demarrer();
 
 window.addEventListener('message', (evenement: MessageEvent) => {
   const brut: unknown = evenement.data?.pluginMessage;

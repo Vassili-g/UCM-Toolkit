@@ -4,7 +4,7 @@
  * quoi le sandbox travaille lui-même.
  *
  * Le Worker naît de la source que le build embarque dans le bundle de l'écran (`__SOURCE_DU_WORKER_DE_NOMS__`), lancée depuis un `Blob` : le
- * plugin est un seul fichier HTML, sans second fichier à servir. Il naît à la première requête, une seule fois. S'il ne naît pas (source
+ * plugin est un seul fichier HTML, sans second fichier à servir. Il naît au montage de l'écran (`demarrer`), une seule fois, pour que son démarrage ne pèse pas sur la première requête ; une requête qui arrive avant `demarre` attend ce démarrage. S'il ne naît pas (source
  * absente, politique de contenu qui refuse le `Blob`), ne répond pas au démarrage, ou plante, le client le jette et répond `indisponible`,
  * `demarrage` ou `echec` ; il ne le relance pas dans la même session. Un Worker jeté perd l'état qu'il gardait : le sandbox calcule alors lui-même.
  *
@@ -46,6 +46,8 @@ export interface OptionsDuCalculateurDeNoms {
 }
 
 export interface CalculateurDeNoms {
+  /** Crée le Worker et arme le délai de démarrage ; sans effet s'il existe déjà ou s'il a été jeté. L'écran l'appelle au montage. */
+  demarrer(): void;
   /** Reçoit le travail du sandbox. */
   recevoir(message: MessageDeCalculDesNoms): void;
   /** Vrai tant que le Worker peut servir : il n'a pas été jeté. */
@@ -80,6 +82,10 @@ export function creerCalculateurDeNoms(options: OptionsDuCalculateurDeNoms): Cal
   let travailleur: TravailleurDeNoms | null = null;
   let jete = false;
   let demarre = false;
+  /** Vrai tant qu'aucune requête n'a été servie : la première mesure l'attente du démarrage. */
+  let premiere = true;
+  /** La cause d'un Worker jeté avant toute requête : la première requête la reçoit, comme si le Worker était né avec elle. */
+  let causeEnAttente: 'indisponible' | 'demarrage' | 'echec' | null = null;
   let arreterLeDelai: () => void = () => {};
   /** Les requêtes dont la réponse est attendue, par numéro de demande. */
   const attendues = new Map<number, Attendue>();
@@ -91,6 +97,7 @@ export function creerCalculateurDeNoms(options: OptionsDuCalculateurDeNoms): Cal
     arreterLeDelai();
     arreterLeDelai = () => {};
     const aRepondre = [...attendues.values()];
+    if (aRepondre.length === 0 && premiere) causeEnAttente = cause;
     attendues.clear();
     const courant = travailleur;
     travailleur = null;
@@ -133,25 +140,35 @@ export function creerCalculateurDeNoms(options: OptionsDuCalculateurDeNoms): Cal
     return neuf;
   }
 
+  function demarrer(): boolean {
+    if (jete) return false;
+    if (travailleur) return true;
+    if (!creer()) {
+      jete = true;
+      return false;
+    }
+    arreterLeDelai = planifier(() => { if (!demarre) jeter('demarrage'); }, delaiDeDemarrage);
+    return true;
+  }
+
   return {
+    demarrer() { demarrer(); },
     recevoir(message) {
       const recuA = maintenant();
       const requete: Attendue = { sorte: message.travail.sorte, demande: message.demande, generation: message.generation, revision: message.revision, recuA, demarrage: false };
+      if (!jete) demarrer();
       if (jete) {
-        options.envoyer({ type: 'noms-non-calcules', ...identite(requete), cause: 'indisponible' });
+        const cause = causeEnAttente ?? 'indisponible';
+        causeEnAttente = null;
+        premiere = false;
+        options.envoyer({ type: 'noms-non-calcules', ...identite(requete), cause });
         return;
       }
-      const cree = travailleur === null;
-      const actif = travailleur ?? creer();
-      if (!actif) {
-        jete = true;
-        options.envoyer({ type: 'noms-non-calcules', ...identite(requete), cause: 'indisponible' });
-        return;
-      }
+      const actif = travailleur!;
       // Une analyse plus récente remplace celles qui attendent encore : leur réponse ne servirait plus.
       if (requete.sorte === 'calculer') for (const [demande, ancienne] of [...attendues]) if (ancienne.sorte === 'calculer') attendues.delete(demande);
-      attendues.set(requete.demande, { ...requete, demarrage: cree });
-      if (cree) arreterLeDelai = planifier(() => { if (!demarre) jeter('demarrage'); }, delaiDeDemarrage);
+      attendues.set(requete.demande, { ...requete, demarrage: premiere });
+      premiere = false;
       try {
         actif.postMessage({ type: 'travailler', demande: message.demande, generation: message.generation, revision: message.revision, travail: message.travail });
       } catch {
