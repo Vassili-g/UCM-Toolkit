@@ -197,7 +197,7 @@ Règles propres à la phase E :
 | [E3e](lots/E3e.md) Variables indisponibles, voisins et scopes | `implementeur` | E3c | [x] 62ace337, N-08 en E10b |
 | [E3f](lots/E3f.md) Cartes de couches et thème absent | `implementeur` | E3e | [x] 62ace337 |
 | [E4a](lots/E4a.md) Questions et cartes de structure | `implementeur` | E3f, C6 | [x] 04b9f6c2, reliquat du parent des homonymes fait dans 99a44d82 |
-| [E4b](lots/E4b.md) Échecs, ignorés et alias à écrire | `implementeur` | E4a, E3d | [x] ccf4ff24, cinq motifs sans texte (E4.2) |
+| [E4b](lots/E4b.md) Échecs, ignorés et alias à écrire | `implementeur` | E4a, E3d | [x] ccf4ff24, cinq motifs sans texte (E4.2), harnais F2 réparé par S2 9a5f32ab (P13, 3 cas sur 4) |
 | [E4c](lots/E4c.md) Fusion de variables | `implementeur-exigeant` | E4b, E3c | [x] ccf4ff24, second constat de retrait reste |
 | [E5a](lots/E5a.md) Layers masqués et rôles | `implementeur` | E1b | [x] 28d4fc6d, interface E5.1 et E5.3 en E4a |
 | [E5b](lots/E5b.md) Propagation et héritage | `implementeur` | E5a | [x] 28d4fc6d, texte des homonymes reste |
