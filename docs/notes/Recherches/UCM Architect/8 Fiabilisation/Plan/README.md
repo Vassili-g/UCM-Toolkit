@@ -47,6 +47,21 @@ est dans [COUVERTURE.md](./COUVERTURE.md).
   l'existence de leurs chemins. A3c et A8 attendent leur arbre commité et un relevé autorisé de leurs icônes.
 - Aucun nom tiré d'un fichier client n'entre dans un fichier suivi. Les captures et les rapports nommés restent dans `_local/`.
 
+### Méthode économe
+
+Le mainteneur la demande pour aller vite et économiser les tokens. Elle remplace les règles ci-dessus quand elles
+divergent.
+
+- Deux files tournent, sans fichier commun. La file kit suit la chaîne E3, puis E5 à E9. La file Architect suit C6, D6b, A6, A9, D5a,
+  A11, puis E4 et E10 à E11. Le hub (A9) peut rejoindre l'une ou l'autre.
+- Un appel confie deux ou trois lots consécutifs de la même file. Le prompt donne les chemins des fichiers de lot et la ligne
+  « Fin », pas leur contenu. L'agent lit ses fichiers de lot et lance lui-même `npm run agents:lire`.
+- L'agent remplit l'« Avancement » de chaque lot et coche ses cases. Il rend un rapport de quinze lignes au plus : fichiers touchés,
+  commandes et résultats, reste, lignes de `CARTE.md`, `SPEC.md` ou d'invariant à écrire.
+- L'agent peut écrire ces lignes de documents dans son lot. La conversation principale relit leur diff.
+- La conversation principale lit `git diff --stat` et les seules sources de règle, pas les tests en entier.
+- Un `verificateur` passe par vague de deux appels. Les commits restent séparés par lot.
+
 ### Chemins et commandes
 
 Les chemins commençant par `src/` dans les phases A à E désignent `packages/plugin-architect/src/`.
@@ -84,10 +99,10 @@ Les signes d'objet ont une seule définition dans `packages/kit/src/referentiel/
 | [A3c](lots/A3c.md) Signes de Palettes | `implementeur` | A3b, arbre réservé commité et relevé autorisé | [x] bd46a97c, A3.7 en F2 |
 | [A4](lots/A4.md) Documentation d'emploi et vue illustrée | `implementeur` | A3b | [x] ebae5136 |
 | [A5](lots/A5.md) Le socle lit le kit | `implementeur-exigeant` | A3b | [x] 9830ed71 |
-| [A6](lots/A6.md) Architect lit le kit | `implementeur` | A5 | [ ] |
+| [A6](lots/A6.md) Architect lit le kit | `implementeur` | A5 | [x] f3f676b7 |
 | [A7](lots/A7.md) L'exporteur lit le kit | `implementeur` | A5 | [x] 66177bb5 |
 | [A8](lots/A8.md) Palettes lit le kit | `implementeur` | A3c, A5, arbre de Palettes commité | [x] bd46a97c |
-| [A9](lots/A9.md) Le hub lit le kit | `implementeur` | A3b, A5 | [ ] |
+| [A9](lots/A9.md) Le hub lit le kit | `implementeur` | A3b, A5 | [x] 3caafb11, cafa043d |
 | [A10](lots/A10.md) Glyphes des sorties texte | `executant` | A3b | [x] 8899b0fa, A10.2 reste |
 | [A11](lots/A11.md) Test de la loi des icônes | `implementeur` | A6 à A10 | [ ] |
 
@@ -115,7 +130,7 @@ Variables manquantes, Crans, Alias, Modes, Valeurs, Couches, Types, Rangement, S
 | [C3](lots/C3.md) Section Noms | `implementeur` | C2 | [x] edcbd311 |
 | [C4](lots/C4.md) Sections de structure | `implementeur` | C3 | [x] edcbd311 |
 | [C5](lots/C5.md) Cochage et Appliquer commun | `implementeur-exigeant` | C3, C4 | [x] bdf26ed5 |
-| [C6](lots/C6.md) Galerie et SPEC | `implementeur` | C5 | [ ] |
+| [C6](lots/C6.md) Galerie et SPEC | `implementeur` | C5 | [x] 303d8903 |
 
 ## Phase D. Vitesse du mode Tokens
 
@@ -138,10 +153,10 @@ Une capture absente se compte absente. Une comparaison locale ne prouve pas la f
 | [D3](lots/D3.md) Coûts algorithmiques du kit | `implementeur` | D0 | [x] 8d4111ce, D3.3 en partie |
 | [D4a](lots/D4a.md) Ignorer sans acquisition | `implementeur` | D3 | [x] e91eac2e |
 | [D4b](lots/D4b.md) Relecture après Appliquer | `implementeur-exigeant` | D4a | [x] 96ce02a6, voie complète |
-| [D5a](lots/D5a.md) Candidat de prélecture | `implementeur` | D4b | [ ] |
+| [D5a](lots/D5a.md) Candidat de prélecture | `implementeur` | D4b | [x] f3f676b7 |
 | [D5b](lots/D5b.md) Mesure de prélecture | mainteneur | D5a, build disponible | [ ] |
 | [D6a](lots/D6a.md) Virtualisation des cartes | `implementeur` | D4b | [x] 2756fac9 |
-| [D6b](lots/D6b.md) Branchement des sections | `implementeur` | D6a | [ ] |
+| [D6b](lots/D6b.md) Branchement des sections | `implementeur` | D6a | [x] 303d8903 |
 | [D7](lots/D7.md) Mesure finale | `verificateur`, puis le mainteneur | D6b, D5a | [ ] |
 
 ## Phase E. Corrections tirées des réponses V2
@@ -174,8 +189,8 @@ Règles propres à la phase E :
 | [E2b](lots/E2b.md) Fautes et seuils | `implementeur` | E2a | [x] fb3a84e1 |
 | [E2c](lots/E2c.md) Formes tolérées, synonymes et collections | `implementeur` | E2b | [x] fb3a84e1, `gray`/`grey` reste |
 | [E2d](lots/E2d.md) Idempotence et branches parallèles | `implementeur` | E2c | [x] fdca6a38, E2.10 en F2 |
-| [E3a](lots/E3a.md) Rôles proches et palette voisine | `implementeur` | E2d | [ ] |
-| [E3b](lots/E3b.md) Sens et modes | `implementeur-exigeant` | E3a | [ ] |
+| [E3a](lots/E3a.md) Rôles proches et palette voisine | `implementeur` | E2d | [x] eae07fc6 |
+| [E3b](lots/E3b.md) Sens et modes | `implementeur-exigeant` | E3a | [x] eae07fc6 |
 | [E3c](lots/E3c.md) Doublons de rôle et d’échelle | `implementeur` | E3b | [ ] |
 | [E3d](lots/E3d.md) Cible des alias du thème | `implementeur` | E3c | [ ] |
 | [E3e](lots/E3e.md) Variables indisponibles, voisins et scopes | `implementeur` | E3c | [ ] |
