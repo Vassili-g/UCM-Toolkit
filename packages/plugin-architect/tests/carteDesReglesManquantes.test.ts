@@ -47,3 +47,13 @@ test('le constat par valeur se lit au pluriel ou au singulier', () => {
   assert.equal(lire('hover, focus').statut, 'Ajoutez leurs règles @prop');
   assert.equal(lire('hover').statut, 'Ajoutez sa règle @prop');
 });
+
+test('E10a : chaque écart d’une règle a sa propre phrase, et aucun ne dit qu’une propriété manque de règle', () => {
+  const lire = (faits: Constat['faits']) => carteDAFaire({ id: 'regles:C45:x', code: 'C45', type: 'corriger', famille: 'regles', variants: [], layers: [], faits: { composant: 'Button', ...faits } }, { composant: 'Button', variants: [], layers: new Map() });
+  const renommee = lire({ propriete: 'show_icon', regle: 'show_icn', ecart: 'regle-renommee' });
+  assert.equal(renommee.phrase, 'La règle `show_icn` ressemble à la propriété `show_icon`.');
+  assert.equal(renommee.statut, 'Renommez la règle en show_icon');
+  assert.equal(lire({ propriete: 'Size', regle: 'size.xxl', ecart: 'valeur-inconnue' }).phrase, 'La règle `size.xxl` vise une valeur que `Size` n’a pas.');
+  assert.equal(lire({ regle: 'Size', ecart: 'sans-propriete', surUnAxe: 1 }).phrase, '`Size` est un axe de variants. Une règle @boolean ne le pilote pas.');
+  assert.equal(lire({ regle: '', ecart: 'sans-propriete', regles: 2 }).phrase, 'Une règle de l’instance de règles ne nomme aucune propriété.');
+});

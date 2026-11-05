@@ -188,6 +188,13 @@ export const TEXTES_IGNORES = {
     valeursSansRegleStatut: (valeurs: string): string => (valeurs.includes(',') ? 'Ajoutez leurs règles @prop' : 'Ajoutez sa règle @prop'),
     regleSansPropriete: (regle: string, composant: string): string => `La règle \`${regle}\` ne correspond à aucune propriété de ${composant}.`,
     regleSansProprieteStatut: 'Donnez-lui le nom exact de la propriété, ou supprimez-la',
+    regleSurUnAxe: (regle: string): string => `\`${regle}\` est un axe de variants. Une règle @boolean ne le pilote pas.`,
+    regleSurUnAxeStatut: 'Écrivez une règle @prop pour chacune de ses valeurs',
+    reglesSansNom: 'Une règle de l’instance de règles ne nomme aucune propriété.',
+    regleRenommee: (regle: string, propriete: string): string => `La règle \`${regle}\` ressemble à la propriété \`${propriete}\`.`,
+    regleRenommeeStatut: (propriete: string): string => `Renommez la règle en ${propriete}`,
+    valeurInconnue: (regle: string, propriete: string): string => `La règle \`${regle}\` vise une valeur que \`${propriete}\` n’a pas.`,
+    valeurInconnueStatut: 'Corrigez la valeur, ou supprimez la règle',
     // C59, C60, C63 : le thème et la structure des variables.
     texteSansSurface: (layer: string, token: string): string => `Le layer ${layer} est lié à \`${token}\`, mais aucune surface n’est posée dessous.`,
     texteSansSurfaceStatut: 'Posez-le sur une surface, ou liez-le à un foreground de page',
