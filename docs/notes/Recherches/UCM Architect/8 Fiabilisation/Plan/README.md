@@ -193,7 +193,7 @@ Règles propres à la phase E :
 | [E3a](lots/E3a.md) Rôles proches et palette voisine | `implementeur` | E2d | [x] eae07fc6 |
 | [E3b](lots/E3b.md) Sens et modes | `implementeur-exigeant` | E3a | [x] eae07fc6 |
 | [E3c](lots/E3c.md) Doublons de rôle et d’échelle | `implementeur` | E3b | [x] 60f567cf |
-| [E3d](lots/E3d.md) Cible des alias du thème | `implementeur` | E3c | [x] 60f567cf, recette de Palettes non lue |
+| [E3d](lots/E3d.md) Cible des alias du thème | `implementeur` | E3c | [x] 60f567cf, recette de Palettes non lue, oracle S2 repris par S3 0ce90d06 (S2-4 reste en mesure) |
 | [E3e](lots/E3e.md) Variables indisponibles, voisins et scopes | `implementeur` | E3c | [x] 62ace337, N-08 en E10b |
 | [E3f](lots/E3f.md) Cartes de couches et thème absent | `implementeur` | E3e | [x] 62ace337 |
 | [E4a](lots/E4a.md) Questions et cartes de structure | `implementeur` | E3f, C6 | [x] 04b9f6c2, reliquat du parent des homonymes fait dans 99a44d82 |
