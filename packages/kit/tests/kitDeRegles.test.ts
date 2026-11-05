@@ -67,6 +67,14 @@ test('les formes compactées dérivent des noms des maîtres', () => {
   assert.equal(nomCompacte(' .Rule Item '), '.ruleitem');
 });
 
+test('nomCompacte retire espaces, tirets, soulignés, casse et suffixe d’identifiant Figma (Q-F89-1)', () => {
+  for (const ecrit of ['Icon Button', 'icon-button', 'icon_button', 'ICON  BUTTON', ' Icon - Button ', 'IconButton']) {
+    assert.equal(nomCompacte(ecrit), 'iconbutton', ecrit);
+  }
+  assert.equal(nomCompacte('Has Icon#1:2'), 'hasicon');
+  assert.equal(nomCompacte('Size.Mode'), 'size.mode');
+});
+
 test('le calque d’un tag s’écrit avec son arobase', () => {
   assert.deepEqual(TAGS_DES_REGLES.map(calqueDuTag), [
     '@usage', '@prop', '@boolean', '@do', '@dont', '@pairs', '@icons', '@default',

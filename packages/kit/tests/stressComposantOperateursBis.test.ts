@@ -67,7 +67,7 @@ test('les cas qui dépendent d\'une question non confirmée portent le verdict m
   assert.deepEqual([...mesures('T1'), ...mesures('T2')], []);
   assert.deepEqual(mesures('S1'), [['S1-5', 'S1-5']]);
   assert.deepEqual([...mesures('M1'), ...mesures('U3'), ...mesures('U4'), ...mesures('S3')], []);
-  assert.deepEqual(mesures('S2'), [['S2-4', 'S2-4-cible-en-double']]);
+  assert.deepEqual(mesures('S2'), []);
 });
 
 test('M1 : un C21 pour les cas 1, 2, 4, 7, 8, 9 et 10, aucun pour 3, 5 et 6 (E-41)', () => {

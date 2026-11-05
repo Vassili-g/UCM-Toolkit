@@ -67,3 +67,8 @@ test('disabled absent, le reste présent : une seule section boolean', () => {
 test('cibleCompacte retire les espaces et passe en minuscules, le point reste', () => {
   assert.equal(cibleCompacte(' State . Hover '), 'state.hover');
 });
+
+test('cibleCompacte retire aussi tirets, soulignés et suffixe d’identifiant : une règle écrite autrement vise la même cible (Q-F89-1)', () => {
+  for (const ecrite of ['Show Icon', 'show-icon', 'show_icon', 'showIcon', 'Show Icon#1:2']) assert.equal(cibleCompacte(ecrite), 'showicon', ecrite);
+  assert.equal(cibleCompacte('Width.Extra-Large'), cibleCompacte('width.extra large'));
+});

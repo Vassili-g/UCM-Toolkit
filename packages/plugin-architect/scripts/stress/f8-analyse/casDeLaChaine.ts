@@ -225,7 +225,7 @@ function seriesF8D3(cas: CasDeChaine[]): void {
   parPoint('couleurs', 'un remplissage en dur va dans Couleurs', 'Layer « Card » : son fill n’est relié à aucune variable Figma.');
   parPoint('tailles', 'une marge en dur va dans Tailles', 'Layer « Card », padding : aucune variable Figma n’est reliée.');
   parPoint('texte', 'un style de texte en dur va dans Texte', 'Layer « Title », font size : aucune variable Figma n’est reliée.');
-  parPoint('tokens', 'une opacité en dur va dans Tokens', 'Layer « Card », opacity : aucune variable associée.', { question: 'Q-F89-11' });
+  parPoint('tokens', 'une opacité en dur va dans Tokens', 'Layer « Card », opacity : aucune variable associée.');
   const gabarit = gabaritDe('proprietes-2');
   serie.ajouter('P10', 'une combinaison de variants manquante va dans Variants', () => avecLaChaine('P10', ['Analyser un point `proprietes`, lire la section du panneau'], optionsDePoints([{ point: gabarit.point, noeuds: ['12:34'] }]), async (c, j) => {
     const constat = trouverLe(c, (candidat) => candidat.code === 'C34');
@@ -422,7 +422,7 @@ function seriesF8D6(cas: CasDeChaine[]): void {
     c.ecran.ouvrirToutes();
     const lieux = new Set([...rangementDesConstats(c.ecran.modele(), doublons).values()].flat());
     j.verifier(lieux.size === 1, 'l’absence d’instance donne une seule carte', `${lieux.size} cartes (${[...lieux].join(' ; ')})`, 'affiche-deux-fois');
-  }), { question: 'Q-F89-5', rattachement: 'E-30' });
+  }), { rattachement: 'E-30' });
 
   const paire = (code: 'C25' | 'C29', source: { operateur: string; description: string }, libelle: string): void =>
     serie.ajouter('P11', `${code} du kit et C30 du moteur sur ${libelle} : une seule carte, celle du kit (Q-09)`, async () => {
@@ -440,7 +440,7 @@ function seriesF8D6(cas: CasDeChaine[]): void {
       chaine.ecran.ouvrirToutes();
       const lieux = new Set([...rangementDesConstats(chaine.ecran.modele(), doublons).values()].flat());
       j.verifier(doublons.some((constat) => constat.code === code), `le kit signale l’écart (${code})`, `codes émis sur le layer : ${doublons.map((constat) => constat.code).join(', ') || 'aucun'}`, 'manque');
-      j.verifier(doublons.some((constat) => constat.code === 'C30'), 'le moteur signale le même écart (C30)', 'aucun C30', 'manque');
+      j.verifier(!doublons.some((constat) => constat.code === 'C30'), 'le point C30 du moteur se tait devant celui du kit', 'un C30 reste sur le layer', 'affiche-deux-fois');
       j.verifier(lieux.size === 1, 'les deux signalements donnent une seule carte', `${lieux.size} cartes (${[...lieux].join(' ; ')})`, 'affiche-deux-fois');
       j.verifier(!doublons.some((constat) => constat.code === 'C30' && [...rangementDesConstats(chaine.ecran.modele(), [constat]).values()].flat().length > 0) || !doublons.some((constat) => constat.code === code), 'la carte restante est celle du kit', 'la carte du moteur s’ajoute à celle du kit', 'affiche-deux-fois');
       j.messages.push(`constats sur le layer : ${doublons.map((constat) => constat.code).join(', ')}`);

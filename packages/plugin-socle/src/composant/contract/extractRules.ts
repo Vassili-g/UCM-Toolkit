@@ -140,6 +140,18 @@ export type ExtractedRules = RulesResult & {
    * présentes dans l'instance, absentes du contrat. Texte du calque `prop`, tel qu'écrit.
    */
   ciblesNonRedigees: string[];
+  /**
+   * Les noms des autres composants de la page dont le nom compacté égale celui du composant. Leur conteneur ne se partage pas : aucun
+   * des deux ne lit les règles d'un conteneur qui porte ce nom, et le point `nom-compacte-double` le dit.
+   */
+  homonymes?: readonly string[];
+  /**
+   * Combien d'instances de la page ont un calque `component-name` vide ou encore marqué : elles ne documentent personne. La page peut en
+   * porter plusieurs ; `releve.conteneurVierge` n'en retient qu'une.
+   */
+  orphelins?: number;
+  /** Combien de règles `@prop` ou `@boolean` rédigées ont une cible vide : le contrat ne les range sous aucune propriété. */
+  reglesSansCible?: number;
 };
 
 /**
@@ -227,7 +239,25 @@ export function textesDesCalques(
 export function nomDeComposantEcrit(node: NodeFouillable): string | null {
   if (node.type !== 'INSTANCE') return null;
   const calque = layerOfName(node, CALQUES_DU_KIT_DE_REGLES.nomDuComposant);
-  return calque ? calque.characters : null;
+  if (!calque || !estLeProprietaireLePlusProche(calque, node)) return null;
+  return calque.characters;
+}
+
+/**
+ * Vrai quand l'instance la plus proche au-dessus du calque est `node` (Q-F89-9). Un conteneur posé dans une instance d'un autre
+ * composant écrit son nom pour lui seul : l'instance qui l'enveloppe ne compte pas comme un second conteneur. Un calque dont les
+ * ancêtres ne se lisent pas, ou un double sans parent, est tenu pour celui de `node`.
+ */
+function estLeProprietaireLePlusProche(calque: TextNode, node: NodeFouillable): boolean {
+  try {
+    let parent: BaseNode | null = calque.parent;
+    while (parent && parent.type !== 'INSTANCE') parent = parent.parent;
+    if (!parent) return true;
+    const identifiant = (node as { id?: string }).id;
+    return parent === (node as unknown) || (identifiant !== undefined && parent.id === identifiant);
+  } catch {
+    return true;
+  }
 }
 
 /**
@@ -267,6 +297,14 @@ function nomOrphelin(node: NodeFouillable): 'vide' | 'marque' | null {
   if (nom === null) return null;
   if (porteLeMarqueur(nom)) return 'marque';
   return nomCompacte(nom) === '' ? 'vide' : null;
+}
+
+/**
+ * Les instances de la page dont le calque `component-name` est vide ou resté marqué : elles ne documentent aucun composant. L'écriture
+ * d'une correction `remplir` n'agit que s'il y en a une seule, sinon le choix reviendrait au designer.
+ */
+export function orphelinsDeLaPage(page: PageNode): InstanceNode[] {
+  return candidatsDeRegles(page).filter((node): node is InstanceNode => nomOrphelin(node) !== null);
 }
 
 /**
@@ -412,7 +450,7 @@ function ruleTagOf(instance: InstanceNode, warnings: string[]): RuleTag | null {
 /** Les instances sans calque de nom ne demandent aucune fouille de leur contenu. */
 function candidatsDeRegles(page: PageNode): SceneNode[] {
   if (typeof page.findAllWithCriteria !== 'function') {
-    return page.findAll((node) => node.type === 'INSTANCE' || node.type === 'COMPONENT');
+    return page.findAll((node) => node.type === 'INSTANCE' || node.type === 'COMPONENT' || node.type === 'COMPONENT_SET');
   }
   const instances = new Set<string>();
   for (const texte of page.findAllWithCriteria({ types: ['TEXT'] })) {
@@ -423,8 +461,30 @@ function candidatsDeRegles(page: PageNode): SceneNode[] {
       parent = parent.parent;
     }
   }
-  return page.findAllWithCriteria({ types: ['INSTANCE', 'COMPONENT'] })
-    .filter((node) => node.type === 'COMPONENT' || instances.has(node.id));
+  return page.findAllWithCriteria({ types: ['INSTANCE', 'COMPONENT', 'COMPONENT_SET'] })
+    .filter((node) => node.type !== 'INSTANCE' || instances.has(node.id));
+}
+
+/**
+ * Les noms des autres composants de la page (jeux de variants et composants isolés) dont le nom compacté égale `proprietaire`. Le
+ * sélectionné et les variants d'un jeu ne comptent pas.
+ */
+function homonymesDe(candidats: readonly SceneNode[], composant: ComponentNode | ComponentSetNode, proprietaire: string): string[] {
+  const noms: string[] = [];
+  for (const node of candidats) {
+    if (node.type !== 'COMPONENT' && node.type !== 'COMPONENT_SET') continue;
+    // Le nom d'abord : les variants d'un grand jeu ne coûtent qu'une lecture. Un nœud que Figma ne sert plus n'est l'homonyme de personne.
+    const nom = nomLisible(node);
+    if (nom === null || nomCompacte(nom) !== proprietaire || noms.includes(nom)) continue;
+    try {
+      if (node.id === composant.id) continue;
+      if (node.type === 'COMPONENT' && node.parent?.type === 'COMPONENT_SET') continue;
+    } catch {
+      continue;
+    }
+    noms.push(nom);
+  }
+  return noms;
 }
 
 /**
@@ -446,6 +506,8 @@ export async function extractRules(
   // ferait disparaître des règles sans que rien ne le dise. Le même parcours
   // relève ce dont l'offre de création a besoin.
   const candidats = candidatsDeRegles(page);
+  // Deux composants au nom compacté égal ne partagent pas leur conteneur (Q-F89-7) : aucun ne lit celui qui porte ce nom.
+  const homonymes = homonymesDe(candidats, componentSet, owner);
   const containers = candidats.filter((node) => {
     if (node.type === 'COMPONENT' && nomCompacte(node.name) === MAITRES_COMPACTES.conteneur) {
       releve.maitreLocal ??= node;
@@ -454,13 +516,15 @@ export async function extractRules(
     const nom = nomDeComposantEcrit(node);
     if (nom === null) return false;
     releve.instanceSource ??= node as InstanceNode;
-    if (porteLeMarqueur(nom) && estVierge(node as InstanceNode)) {
+    // Un nom vide ou resté marqué ne documente personne : le conteneur qui n'écrit rien d'autre se remplit (Q-F89-6).
+    if ((porteLeMarqueur(nom) || nomCompacte(nom) === '') && estVierge(node as InstanceNode)) {
       releve.conteneurVierge ??= node as InstanceNode;
     }
-    const estConteneur = rulesContainerOwner(node, nom) === owner;
+    const estConteneur = homonymes.length === 0 && rulesContainerOwner(node, nom) === owner;
     if (estConteneur) releve.conteneurDuComposant = true;
     return estConteneur;
   }) as (SceneNode & ChildrenMixin)[];
+  const orphelins = candidats.filter((node) => nomOrphelin(node) !== null).length;
 
   const container = containers[0];
   if (!container) {
@@ -470,7 +534,16 @@ export async function extractRules(
     // l'export de composants qui n'y sont pour rien : il devient l'action de
     // celui-ci, seul message que son absence de règles concerne vraiment.
     const orphelin = candidats.find((node) => nomOrphelin(node) !== null);
-    if (orphelin) {
+    if (homonymes.length > 0) {
+      pousserLocalise(absent, componentSet.type === 'COMPONENT_SET' ? 'Component Set' : 'Layer', componentSet, {
+        famille: 'regles',
+        manque: `${homonymes.length === 1 ? 'un autre composant de cette page' : `${homonymes.length} autres composants de cette page`}, `
+          + `${homonymes.map((nom) => `« ${nom} »`).join(', ')}, ${homonymes.length === 1 ? 'porte' : 'portent'} le même nom une fois les espaces, `
+          + 'tirets et soulignés retirés.',
+        impact: 'Aucun des deux ne lit le conteneur de règles qui porte ce nom : la documentation de ce composant manquera au développeur.',
+        action: 'Renommez l’un des deux composants, puis réexportez.',
+      });
+    } else if (orphelin) {
       const marque = nomOrphelin(orphelin) === 'marque';
       pousserLocalise(absent, 'Layer', orphelin, {
         famille: 'regles',
@@ -517,6 +590,9 @@ export async function extractRules(
       aRediger: 0,
       tagsARediger: [],
       ciblesNonRedigees: [],
+      homonymes,
+      orphelins,
+      reglesSansCible: 0,
     };
   }
 
@@ -527,6 +603,7 @@ export async function extractRules(
   const entries: RuleEntry[] = [];
   const nonRedigees = new Map<RuleTag, InstanceNode[]>();
   const ciblesNonRedigees: string[] = [];
+  let reglesSansCible = 0;
   const warnings: string[] = [];
   if (containers.length > 1) {
     // La cause n'est pas un rangement à refaire : le maître `.componentRules`
@@ -575,6 +652,7 @@ export async function extractRules(
       continue;
     }
 
+    if ((tag === 'prop' || tag === 'boolean') && textOfLayer(instance, CALQUES_DU_KIT_DE_REGLES.cible).trim() === '') reglesSansCible += 1;
     entries.push(
       tag === 'icons'
         ? iconRuleEntry(instance)
@@ -622,5 +700,20 @@ export async function extractRules(
     aRediger: [...nonRedigees.values()].reduce((total, regles) => total + regles.length, 0),
     tagsARediger: [...nonRedigees.keys()],
     ciblesNonRedigees,
+    homonymes: [],
+    orphelins,
+    reglesSansCible,
   };
+}
+
+/**
+ * La sorte d'un point `regles` que ce fichier écrit, lue sur son titre ; `null` pour tout autre point (rédaction d'une règle, cible
+ * inconnue du contrat…). Les phrases sont celles de `extractRules` ci-dessus : une phrase changée change aussi cette lecture.
+ */
+export function sorteDuPointDeRegles(titre: string): 'aucune-instance' | 'orphelin-vide' | 'orphelin-marque' | 'plusieurs-instances' | 'nom-compacte-double' | null {
+  if (/aucune instance de cette page/.test(titre)) return 'aucune-instance';
+  if (/donc il ne documente aucun composant/.test(titre)) return /contient encore/.test(titre) ? 'orphelin-marque' : 'orphelin-vide';
+  if (/instances écrivent/.test(titre)) return 'plusieurs-instances';
+  if (/le même nom une fois les espaces, tirets et soulignés retirés/.test(titre)) return 'nom-compacte-double';
+  return null;
 }

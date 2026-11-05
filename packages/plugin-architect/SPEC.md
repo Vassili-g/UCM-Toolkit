@@ -390,6 +390,39 @@ Les nouvelles règles portent `[À compléter]` : C45 les compte comme présente
 C44 les signale tant qu'elles ne sont pas rédigées. Un second passage ne pose
 rien. Une règle visant une propriété absente ne se retire pas automatiquement.
 
+Une règle vise un composant ou une propriété par son nom compacté : sans espaces,
+tirets ni soulignés, sans casse, et sans le suffixe `#1:2` que Figma ajoute. Le
+scan ne lit que la page du composant : C43 reste quand l'instance écrite sur une
+autre page n'est pas lue. Un conteneur dont le calque `component-name` est vide
+ou resté marqué est rempli, pas doublé : C43 propose `remplir` quand la page n'en
+porte qu'un, et le point C44 du moteur sur le même conteneur tombe. Deux
+composants au même nom compacté ne partagent pas leur conteneur : aucun ne le lit,
+et le point `nom-compacte-double` du moteur le dit seul. Quand deux conteneurs
+écrivent le même composant, C45 lit les règles du premier de la page ; C44 dit que
+l'autre est ignoré. Seule l'instance la plus proche du calque `component-name`
+compte : un conteneur posé dans l'instance d'un autre composant ne fait pas de
+celui-ci un second conteneur.
+
+C45 dit aussi, sans correction : une valeur écrite que l'axe n'a pas
+(`valeur-inconnue`), une règle dont la cible est vide, un `@boolean` posé sur un
+axe, et une règle probablement renommée (`regle-renommee`), quand une propriété
+sans règle et une règle sans propriété sont à une lettre l'une de l'autre et sont
+chacune la seule candidate de l'autre. Une propriété dont le nom porte un point
+(`Size.Mode`) s'attache à la cible du modèle qui s'écrit pareil à ses points près.
+
+Un point du moteur ne double ni un constat du kit ni C43. Un point C30 tombe
+quand un C25 ou un C29 porte le même layer et le même champ, même si le designer a
+ignoré le constat du kit. Un point C44 « aucune instance » tombe quand C43 le dit.
+Le code d'un point du moteur suit son sens : les noms écrits par le designer
+(entre « et ») ne le décident pas. C34 garde les combinaisons manquantes et les
+états non reconnus ou tolérés ; « aucun variant » est un C42 bloquant, « aucune
+propriété définie » et les collisions de noms des C42 à vérifier. Un point de
+variable se range dans l'élément de ce qu'il lie : Tailles pour une marge, un
+espacement, un rayon ou une épaisseur de contour, Texte pour un style de texte,
+Tokens pour une opacité ou un effet, Couleurs pour un remplissage ou un contour.
+L'identifiant d'un point porte son titre, ses nœuds et ses éléments, sans rang
+pour deux points distincts.
+
 Le catalogue d'une library ne lit que `components`, `theme` et `layout`. Les
 valeurs s'importent à la demande, puis les cibles de leurs alias, jusqu'aux
 primitives. Les variables liées au composant s'importent toujours. Les tokens de taille de

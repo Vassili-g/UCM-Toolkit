@@ -19,7 +19,7 @@ const correction = (operation: string, id = 'c1'): Correction => ({ id, sorte: '
 
 const modeleDe = (tag: 'prop' | 'boolean', ...cibles: string[]): ModeleDeRegles => ({ nom: 'Alert', sections: [{ tag, elements: cibles.map((cible) => regle(tag, cible)) }] });
 
-function banc(sur: { composant?: boolean; releve?: Partial<ReleveDeSource>; refus?: boolean; leve?: boolean; sansConteneur?: boolean; presentes?: string[]; leveAjout?: boolean } = {}) {
+function banc(sur: { composant?: boolean; releve?: Partial<ReleveDeSource>; refus?: boolean; leve?: boolean; sansConteneur?: boolean; presentes?: string[]; leveAjout?: boolean; orphelin?: boolean } = {}) {
   const appels: string[] = [];
   const ajoutees: ModeleDeRegles[] = [];
   const port: PortDEcritureDesRegles = {
@@ -33,6 +33,10 @@ function banc(sur: { composant?: boolean; releve?: Partial<ReleveDeSource>; refu
       ajoutees.push(manquantes);
       if (sur.leveAjout) throw new Error('Figma refuse');
       return { conteneur: {} as InstanceNode, regles: 1 };
+    },
+    nommerLOrphelin: async () => {
+      appels.push('nommer');
+      return sur.orphelin !== false;
     },
     creer: async () => {
       appels.push('creer');
@@ -50,6 +54,28 @@ test('une création relit, puis écrit', async () => {
   const rendu = await ecrireLesRegles([correction('creer')], () => {}, modeles, b.port);
   assert.deepEqual(rendu, { ecrites: ['c1'], sautees: [] });
   assert.deepEqual(b.appels, ['creer']);
+});
+
+test('remplir écrit le nom dans l’unique conteneur au nom vide, sans rien créer (Q-F89-6)', async () => {
+  const b = banc();
+  const rendu = await ecrireLesRegles([correction('remplir')], () => {}, modeles, b.port);
+  assert.deepEqual(rendu, { ecrites: ['c1'], sautees: [] });
+  assert.deepEqual(b.appels, ['nommer']);
+});
+
+test('remplir sur un conteneur vierge pose le modèle dedans, comme creer', async () => {
+  const b = banc({ releve: { conteneurVierge: {} as InstanceNode } });
+  const rendu = await ecrireLesRegles([correction('remplir')], () => {}, modeles, b.port);
+  assert.deepEqual(rendu, { ecrites: ['c1'], sautees: [] });
+  assert.deepEqual(b.appels, ['creer']);
+});
+
+test('remplir saute objet-change quand la page n’a plus un seul conteneur sans nom, ou que le composant a son conteneur', async () => {
+  const plusDOrphelin = banc({ orphelin: false });
+  assert.deepEqual((await ecrireLesRegles([correction('remplir')], () => {}, modeles, plusDOrphelin.port)).sautees, [{ id: 'c1', motif: 'objet-change' }]);
+  const apparu = banc({ releve: { conteneurDuComposant: true } });
+  assert.deepEqual((await ecrireLesRegles([correction('remplir')], () => {}, modeles, apparu.port)).sautees, [{ id: 'c1', motif: 'objet-change' }]);
+  assert.deepEqual([...plusDOrphelin.appels, ...apparu.appels], ['nommer']);
 });
 
 test('un composant disparu : sautée objet-change, rien d’écrit', async () => {

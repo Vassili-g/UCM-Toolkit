@@ -13,7 +13,7 @@ import { localisationsDe, partiesDe } from 'ucm-plugin-socle/src/composant/contr
 import type { ModeleDeRegles } from 'ucm-plugin-socle/src/composant/template/modele';
 import type { Constat } from '@ucm-kit/core/controles';
 
-import { constatsDuMoteur } from '../../../src/constatsDuMoteur';
+import { constatsDuMoteur, sansLesDoublonsDuMoteur } from '../../../src/constatsDuMoteur';
 import { constatsDeRegles, lireLesRegles, modelesDeLAnalyse, retenirLesModeles, type ReleveDesRegles } from '../../../src/regles';
 import { noeud, type NoeudFabrique } from '../../../tests/outils/mondeFabrique';
 import { graineDe, melanger, mulberry32 } from '../../../../kit/tests/stress/commun/prng';
@@ -131,7 +131,8 @@ export async function lireLaPage(spec: SpecDePage): Promise<LectureDeLaPage> {
   const scan = await extractRules(composant as never, page as never);
   const moteur = { warnings: scan.warnings, parties: partiesDe(scan.warnings), localisations: localisationsDe(scan.warnings) };
   retenirLesModeles(releve);
-  return { releve, scan, constats: [...constatsDeRegles(releve), ...constatsDuMoteur(moteur as never)], modeles: new Map(modelesDeLAnalyse()) };
+  const desRegles = constatsDeRegles(releve);
+  return { releve, scan, constats: sansLesDoublonsDuMoteur([...desRegles, ...constatsDuMoteur(moteur as never)]), modeles: new Map(modelesDeLAnalyse()) };
 }
 
 // ---------------------------------------------------------------------------------------------------------------------------

@@ -66,9 +66,13 @@ export const AIDES_A_MARQUER: Readonly<Partial<Record<RuleTag, CalqueDuKitDeRegl
   boolean: CALQUES_DU_KIT_DE_REGLES.contenu,
 };
 
-/** Compacte un nom (sans espaces, en minuscules) pour comparer un nom de composant. */
+/**
+ * Compacte un nom pour le comparer : sans espaces, tirets ni soulignés, en minuscules, et sans le suffixe d'identifiant que Figma
+ * ajoute à une propriété (`Has Icon#1:2`). `Icon Button`, `icon-button` et `icon_button` se confondent. Deux noms qui se confondent
+ * ne désignent pas deux composants ou propriétés distincts pour une règle d'usage.
+ */
 export function nomCompacte(nom: string): string {
-  return nom.replace(/\s+/g, '').toLowerCase();
+  return nom.replace(/#\d+:\d+/g, '').replace(/[\s_-]+/g, '').toLowerCase();
 }
 
 /** Les noms compactés des maîtres, dérivés de `MAITRES_DU_KIT_DE_REGLES`. */

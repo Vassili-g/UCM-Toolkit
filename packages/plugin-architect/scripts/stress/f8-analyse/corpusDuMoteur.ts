@@ -5,16 +5,15 @@
  *
  *   variables 11, disposition 6, proprietes 9, imbriques 4, styles 2, regles 6, non-exportes 2.
  *
- * Les points `proprietes` autres que « pilote » dépendent de la question Q-F89-10 : leur code suit la proposition de la section 9 du
- * plan (C34 pour une combinaison manquante et un état non reconnu ou toléré, C42 bloquant pour « aucun variant », C42 à vérifier pour
- * « aucune propriété définie » et les collisions de noms).
+ * Les points `proprietes` autres que « pilote » suivent la décision Q-F89-10 : C34 pour une combinaison manquante et un état non reconnu
+ * ou toléré, C42 bloquant pour « aucun variant », C42 à vérifier pour « aucune propriété définie » et les collisions de noms.
  *
  * `couvertureDesSites` compte les sites `famille: '…'` du socle par famille : une famille qui a des sites et aucun gabarit fait échouer
  * le contrôle. Il ne rapproche pas chaque site d'un gabarit (le socle en compte plusieurs dizaines, le corpus en garde 40).
  */
 import { readdirSync, readFileSync, statSync } from 'node:fs';
 import path from 'node:path';
-import type { TypeDAlerte } from '@ucm-kit/core/controles';
+import type { Constat, TypeDAlerte } from '@ucm-kit/core/controles';
 import type { FamilleDePoint } from 'ucm-plugin-socle/src/composant/contract/famillesDePoint';
 import type { PointACorriger } from 'ucm-plugin-socle/src/composant/contract/localisation';
 
@@ -32,12 +31,12 @@ export interface GabaritDuMoteur {
   /** Le code que l'oracle attend. */
   readonly code: CodeDuMoteur;
   readonly type: TypeDAlerte;
-  /** `Q-F89-10` : le code suit la proposition du plan, pas une règle écrite. */
-  readonly question?: string;
+  /** La famille que le constat attend : celle de ce que le point lie (tailles, typographie, tokens), `liaisons` par défaut pour C30 et C41. */
+  readonly famille?: Constat['famille'];
 }
 
 const FAMILLE_DU_CONSTAT: Readonly<Record<CodeDuMoteur, string>> = { C30: 'liaisons', C41: 'liaisons', C35: 'visibilite', C34: 'variants', C42: 'export', C44: 'regles' };
-export const familleDuConstatAttendu = (code: CodeDuMoteur): string => FAMILLE_DU_CONSTAT[code];
+export const familleDuConstatAttendu = (code: CodeDuMoteur, famille?: Constat['famille']): string => famille ?? FAMILLE_DU_CONSTAT[code];
 
 const IMPACT = 'Le contrat ne le transmettra pas.';
 const ACTION = 'Corrigez ce point dans Figma, puis réexportez.';
@@ -46,10 +45,10 @@ function point(famille: FamilleDePoint, titre: string, plus: Partial<PointACorri
   return { famille, titre, impact: IMPACT, action: ACTION, ...plus };
 }
 
-function gabarit(id: string, p: PointACorriger, sens: SensDuPoint, plus: { code?: CodeDuMoteur; question?: string; type?: TypeDAlerte } = {}): GabaritDuMoteur {
+function gabarit(id: string, p: PointACorriger, sens: SensDuPoint, plus: { code?: CodeDuMoteur; famille?: Constat['famille']; type?: TypeDAlerte } = {}): GabaritDuMoteur {
   const code = plus.code ?? codeDuSens(p.famille, sens);
   const bloquant = code === 'C41' || p.severite === 'danger';
-  return { id, point: p, sens, code, type: plus.type ?? (bloquant ? 'bloquant' : code === 'C30' || code === 'C44' ? 'corriger' : 'verifier'), ...(plus.question ? { question: plus.question } : {}) };
+  return { id, point: p, sens, code, type: plus.type ?? (bloquant ? 'bloquant' : code === 'C30' || code === 'C44' ? 'corriger' : 'verifier'), ...(plus.famille ? { famille: plus.famille } : {}) };
 }
 
 /** Le code que le sens du point demande (inventaire 4.8 et proposition Q-F89-10). */
@@ -61,20 +60,18 @@ export function codeDuSens(famille: FamilleDePoint, sens: SensDuPoint): CodeDuMo
   return 'C42';
 }
 
-const Q10 = 'Q-F89-10';
-
 const VARIABLES = [
-  gabarit('variables-1', point('variables', 'Layer « Card », padding : certains côtés utilisent une variable introuvable.', { calque: 'Card' }), 'variable-introuvable'),
-  gabarit('variables-2', point('variables', 'Layer « Badge », cornerRadius : variable introuvable : cornerRadius.', { calque: 'Badge' }), 'variable-introuvable'),
-  gabarit('variables-3', point('variables', 'Layer « Card », padding : aucune variable Figma n\'est reliée.', { calque: 'Card' }), 'variable-absente'),
-  gabarit('variables-4', point('variables', 'Layer « Card », gap : aucune variable associée.', { calque: 'Card' }), 'variable-absente'),
+  gabarit('variables-1', point('variables', 'Layer « Card », padding : certains côtés utilisent une variable introuvable.', { calque: 'Card' }), 'variable-introuvable', { famille: 'tailles' }),
+  gabarit('variables-2', point('variables', 'Layer « Badge », cornerRadius : variable introuvable : cornerRadius.', { calque: 'Badge' }), 'variable-introuvable', { famille: 'tailles' }),
+  gabarit('variables-3', point('variables', 'Layer « Card », padding : aucune variable Figma n\'est reliée.', { calque: 'Card' }), 'variable-absente', { famille: 'tailles' }),
+  gabarit('variables-4', point('variables', 'Layer « Card », gap : aucune variable associée.', { calque: 'Card' }), 'variable-absente', { famille: 'tailles' }),
   gabarit('variables-5', point('variables', 'Layer « Card » : son fill n’est relié à aucune variable Figma.', { calque: 'Card' }), 'variable-absente'),
   gabarit('variables-6', point('variables', 'Layer « Card » : son stroke n’est relié à aucune variable Figma.', { calque: 'Card' }), 'variable-absente'),
-  gabarit('variables-7', point('variables', 'Layer « Label », opacity : aucune variable associée.', { calque: 'Label' }), 'variable-absente'),
-  gabarit('variables-8', point('variables', 'Layer « Card » : son vertical gap est réglé sur « Auto », donc Figma répartit lui-même l\'espace.', { calque: 'Card' }), 'variable-absente'),
-  gabarit('variables-9', point('variables', 'Layer « Card », padding : les côtés ne sont pas reliés à la même variable.', { calque: 'Card' }), 'variable-absente'),
-  gabarit('variables-10', point('variables', 'Layer « Card » : il fixe minWidth sans variable Figma.', { calque: 'Card' }), 'variable-absente'),
-  gabarit('variables-11', point('variables', 'Layer « Title », font size : aucune variable Figma n\'est reliée.', { calque: 'Title' }), 'variable-absente'),
+  gabarit('variables-7', point('variables', 'Layer « Label », opacity : aucune variable associée.', { calque: 'Label' }), 'variable-absente', { famille: 'tokens' }),
+  gabarit('variables-8', point('variables', 'Layer « Card » : son vertical gap est réglé sur « Auto », donc Figma répartit lui-même l\'espace.', { calque: 'Card' }), 'variable-absente', { famille: 'tailles' }),
+  gabarit('variables-9', point('variables', 'Layer « Card », padding : les côtés ne sont pas reliés à la même variable.', { calque: 'Card' }), 'variable-absente', { famille: 'tailles' }),
+  gabarit('variables-10', point('variables', 'Layer « Card » : il fixe minWidth sans variable Figma.', { calque: 'Card' }), 'variable-absente', { famille: 'tailles' }),
+  gabarit('variables-11', point('variables', 'Layer « Title », font size : aucune variable Figma n\'est reliée.', { calque: 'Title' }), 'variable-absente', { famille: 'typographie' }),
 ];
 
 const DISPOSITION = [
@@ -88,14 +85,14 @@ const DISPOSITION = [
 
 const PROPRIETES = [
   gabarit('proprietes-1', point('proprietes', 'Propriété booléenne « Has Icon » : elle pilote aucun calque.'), 'pilote'),
-  gabarit('proprietes-2', point('proprietes', 'Component Set « Button » : une combinaison de valeurs de ses propriétés de variante n\'a pas de variant.', { calque: 'Button' }), 'combinaison-manquante', { question: Q10 }),
-  gabarit('proprietes-3', point('proprietes', 'Component Set « Button » : 4 combinaisons de valeurs de ses propriétés de variante n\'ont pas de variant.', { calque: 'Button' }), 'combinaison-manquante', { question: Q10 }),
-  gabarit('proprietes-4', point('proprietes', 'Component Set sélectionné : il ne contient aucun variant.'), 'aucun-variant', { question: Q10, type: 'bloquant', code: 'C42' }),
-  gabarit('proprietes-5', point('proprietes', 'Component Set « Button » : aucune propriété de composant n’est définie.', { calque: 'Button' }), 'aucune-propriete', { question: Q10 }),
-  gabarit('proprietes-6', point('proprietes', 'Propriétés de composant « Icon Left » et « icon-left » : leurs noms donnent le même nom « iconLeft » dans le contrat.'), 'collision', { question: Q10 }),
-  gabarit('proprietes-7', point('proprietes', 'Propriété de variante « Scale » : ses valeurs sont des tailles, mais une autre propriété de composant porte déjà le nom « size ».'), 'collision', { question: Q10 }),
-  gabarit('proprietes-8', point('proprietes', 'Propriété de variante « State » : l\'état « busy » n\'est pas reconnu.'), 'etat-inconnu', { question: Q10 }),
-  gabarit('proprietes-9', point('proprietes', 'Propriété de variante « State » : l’état « active » s’écrit « pressed » dans le vocabulaire UCM.'), 'etat-tolere', { question: Q10 }),
+  gabarit('proprietes-2', point('proprietes', 'Component Set « Button » : une combinaison de valeurs de ses propriétés de variante n\'a pas de variant.', { calque: 'Button' }), 'combinaison-manquante'),
+  gabarit('proprietes-3', point('proprietes', 'Component Set « Button » : 4 combinaisons de valeurs de ses propriétés de variante n\'ont pas de variant.', { calque: 'Button' }), 'combinaison-manquante'),
+  gabarit('proprietes-4', point('proprietes', 'Component Set sélectionné : il ne contient aucun variant.'), 'aucun-variant', { type: 'bloquant', code: 'C42' }),
+  gabarit('proprietes-5', point('proprietes', 'Component Set « Button » : aucune propriété de composant n’est définie.', { calque: 'Button' }), 'aucune-propriete'),
+  gabarit('proprietes-6', point('proprietes', 'Propriétés de composant « Icon Left » et « icon-left » : leurs noms donnent le même nom « iconLeft » dans le contrat.'), 'collision'),
+  gabarit('proprietes-7', point('proprietes', 'Propriété de variante « Scale » : ses valeurs sont des tailles, mais une autre propriété de composant porte déjà le nom « size ».'), 'collision'),
+  gabarit('proprietes-8', point('proprietes', 'Propriété de variante « State » : l\'état « busy » n\'est pas reconnu.'), 'etat-inconnu'),
+  gabarit('proprietes-9', point('proprietes', 'Propriété de variante « State » : l’état « active » s’écrit « pressed » dans le vocabulaire UCM.'), 'etat-tolere'),
 ];
 
 const IMBRIQUES = [

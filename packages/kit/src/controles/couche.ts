@@ -13,6 +13,7 @@ import type { Constat } from './constat.js';
 import { constatDuComposant } from './nommage.js';
 import { constatsDeModele } from './propagation.js';
 import type { LayerLu, ReleveDeComposant } from './releve.js';
+import { contournementsDuTheme } from './structure.js';
 
 /** Les cibles distinctes des alias d'une variable, dans tous ses modes ; une cible absente du catalogue n'est pas jugée. */
 function* ciblesDesAlias(catalogue: CatalogueDeReference, variable: VariableDuCatalogue): Generator<void, VariableDuCatalogue[]> {
@@ -37,6 +38,8 @@ export function controlerCouches(releve: ReleveDeComposant, catalogue: Catalogue
 export function* controlerCouchesParEtapes(releve: ReleveDeComposant, catalogue: CatalogueDeReference): Generator<void, Constat[]> {
   const constats: Constat[] = [];
   const roleDe = (variable: VariableDuCatalogue) => collectionParCle(catalogue, variable.collection);
+  // C63 `theme` accuse déjà l'alias d'un token vers un `brands` à segment de mode, et propose le cran du thème : C20 s'y tait. Lu au premier alias vers `brands`.
+  let dejaAccuses: ReadonlySet<string> | undefined;
   for (const variant of releve.variants) {
     yield;
     for (const layer of variant.layers) {
@@ -61,6 +64,10 @@ export function* controlerCouchesParEtapes(releve: ReleveDeComposant, catalogue:
           yield;
           const couche = cible ? roleDe(cible) : collection;
           if (!couche?.role || admises.includes(couche.role)) continue;
+          if (cible && couche.role === 'brands') {
+            dejaAccuses ??= new Set((yield* contournementsDuTheme(releve, catalogue)).map((entree) => `${entree.variable.cle}\u0000${entree.cible.cle}`));
+            if (dejaAccuses.has(`${variable.cle}\u0000${cible.cle}`)) continue;
+          }
           const lieu = cible ? `${lieuDeBase}:${cible.cle}` : lieuDeBase;
           const faits = { token: variable.nom, couche: couche.nom, nature, admises: admises.join(','), ...(cible ? { cible: cible.nom } : {}) };
           constats.push(constatDuComposant('C20', 'liaisons', 'corriger', lieu, faits, [variant.id], [layer.id]));

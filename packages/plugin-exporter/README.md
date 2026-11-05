@@ -44,8 +44,10 @@ contrat ne porte ni intention, ni documentation de props, ni politique d'icône.
 
 Posez une instance de `.componentRules` à côté du composant, sur la même page.
 Écrivez le nom du composant dans son calque `component-name`. Ce texte relie les
-règles au composant, et rien d'autre ne les relie : la casse et les espaces sont
-ignorés, et vous pouvez renommer l'instance comme vous voulez.
+règles au composant, et rien d'autre ne les relie : la casse, les espaces, les
+tirets et les soulignés sont ignorés, et vous pouvez renommer l'instance comme vous
+voulez. Deux composants de la page dont les noms se confondent ainsi ne lisent
+aucun conteneur : l'export le signale, et vous renommez l'un des deux.
 
 Le bouton « Créer les règles d'usage », sous « Analyser le composant », fait ce
 geste à votre place. Il part du maître de `.componentRules` qu'il retrouve

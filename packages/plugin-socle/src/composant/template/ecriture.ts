@@ -166,6 +166,14 @@ async function ecrireDans(
   throw new Error(`Le calque « ${nomDuCalque} » n’a pas gardé le texte écrit.`);
 }
 
+/**
+ * Écrit le nom d'un composant dans le calque `component-name` d'un conteneur dont le nom est vide ou resté marqué, sans toucher aux
+ * règles qu'il porte. Le conteneur revendique alors ce composant.
+ */
+export async function nommerLeConteneur(conteneur: InstanceNode, nom: string): Promise<void> {
+  await ecrireDans(conteneur, CALQUES_DU_KIT_DE_REGLES.nomDuComposant, nom);
+}
+
 /** Le maître d'un élément du modèle, ou `null` pour un séparateur sans catalogue. */
 function maitreDe(element: ElementDeModele, sources: SourcesDeCreation): ComponentNode | null {
   if (element.genre === 'separateur') return sources.separateur;

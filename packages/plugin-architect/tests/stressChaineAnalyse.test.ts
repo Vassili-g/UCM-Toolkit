@@ -39,7 +39,7 @@ test('section D : un cas `mesure` cite sa question, et seul un cas `mesure` en c
   }
   const enAttente = new Map(cas.filter(({ verdict }) => verdict === 'mesure').map(({ id, question }) => [id, question]));
   assert.deepEqual([...enAttente], [
-    ['F8-D3-4', 'Q-F89-11'], ['F8-D5-8', 'non constructible'], ['F8-D6-1', 'Q-F89-5'], ['F9-D2-14', 'Q-F89-17'],
+    ['F8-D5-8', 'non constructible'], ['F9-D2-14', 'Q-F89-17'],
   ]);
 });
 

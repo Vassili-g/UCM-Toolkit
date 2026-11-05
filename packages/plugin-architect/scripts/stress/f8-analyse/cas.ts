@@ -12,6 +12,7 @@
  * constats du plugin pour construire son oracle : les `attendus` viennent de l'opérateur, du plan et de l'inventaire.
  */
 import type { Constat } from '@ucm-kit/core/controles';
+import { sorteDuPointDeRegles } from 'ucm-plugin-socle/src/composant/contract/extractRules';
 
 import { comparer } from '../../../../kit/tests/stress/commun/comparer';
 import type { CasDeStress, ConstatAttendu, SorteDEcart, Verdict } from '../../../../kit/tests/stress/commun/types';
@@ -91,9 +92,8 @@ export const compacter = (texte: string): string => texte.toLowerCase().replace(
 
 /** La sorte d'un point C44 que le scan des règles écrit, lue sur son titre. `null` : un autre point, gardé par son titre. */
 export function sorteDeC44(titre: string): string | null {
-  if (/aucune instance de cette page/.test(titre)) return 'aucune-instance';
-  if (/donc il ne documente aucun composant/.test(titre)) return /contient encore/.test(titre) ? 'orphelin-marque' : 'orphelin-vide';
-  if (/instances écrivent/.test(titre)) return 'plusieurs-instances';
+  const sorte = sorteDuPointDeRegles(titre);
+  if (sorte) return sorte;
   const marque = /(?:règle|règles) (@\w+) contien(?:t|nent) encore/.exec(titre);
   return marque ? `a-completer|${marque[1]}` : null;
 }

@@ -3,8 +3,10 @@
  * existe-t-elle, et dit-elle les propriétés du composant ?
  *
  * Rend C43 (composant sans instance de règles, avec sa correction de sorte
- * `regles`) et C45 (propriété sans règle `@prop`, règle `@prop` sans
- * propriété). C44, la validation des règles, vient du moteur
+ * `regles` : `creer`, ou `remplir` quand la page porte un seul conteneur au nom
+ * vide ou marqué, que la correction nomme au lieu d'en poser un second) et C45 (propriété sans règle
+ * `@prop`, règle sans propriété, valeur inconnue, règle probablement renommée).
+ * C44, la validation des règles, vient du moteur
  * (`constatsDuMoteur.ts`). Le modèle que la correction posera est celui du
  * socle : il pose `@usage`, `@prop`, `@boolean` et `@icons`, jamais `@default`,
  * `@do`, `@dont` ni `@pairs`, qui demandent un jugement du designer.
@@ -15,6 +17,7 @@
 import { nomCompacte } from '@ucm-kit/core/referentiel';
 import type { Constat, Correction } from '@ucm-kit/core/controles';
 import type { InventairesDeLaDemande } from 'ucm-plugin-socle/src/composant/analyse/inventaires';
+import { normalizePropKey, normalizePropValue } from 'ucm-plugin-socle/src/composant/analyse/proprietesEtEtats';
 import { extractRules } from 'ucm-plugin-socle/src/composant/contract/extractRules';
 import type { ResultatInterne } from 'ucm-plugin-socle/src/composant/analyse/resultat';
 import { elideContract } from 'ucm-plugin-socle/src/composant/contract/elideNeutrals';
@@ -23,7 +26,7 @@ import { cibleCompacte, modeleDeRegles, nombreDeRegles, reglesManquantes, restre
 import type { ContratLu, ModeleDeRegles } from 'ucm-plugin-socle/src/composant/template/modele';
 
 /** Ce qu'une correction de sorte `regles` demande (`apres.nom`). */
-export type OperationDeRegles = 'creer' | 'ajouter' | 'retirer';
+export type OperationDeRegles = 'creer' | 'remplir' | 'ajouter' | 'retirer';
 
 /** Ce que l'analyse lit des règles d'un composant. */
 export interface ReleveDesRegles {
@@ -46,6 +49,20 @@ export interface ReleveDesRegles {
   readonly presentes: readonly string[];
   /** Les règles que le modèle pose et que l'instance ne porte pas. Vide sans instance. */
   readonly manquantes: ModeleDeRegles;
+  /** La page qui porte le composant : le scan ne lit que celle-là. */
+  readonly page?: string;
+  /** Les autres composants de la page au même nom compacté : le conteneur ne se partage pas, le point du moteur le dit. */
+  readonly homonymes?: readonly string[];
+  /** Combien de conteneurs au nom vide ou marqué la page porte. */
+  readonly orphelins?: number;
+  /** Un seul conteneur au nom vide ou marqué sur la page : C43 propose d'y écrire le nom du composant plutôt que d'en poser un second. */
+  readonly remplissable?: boolean;
+  /** Combien de règles `@prop` ou `@boolean` rédigées ont une cible vide. */
+  readonly reglesSansCible?: number;
+  /** Les cibles `axe.valeur` des règles `@prop`, normalisées comme le contrat, rédigées ou non. */
+  readonly valeursEcrites?: readonly string[];
+  /** Les noms des règles `@boolean`, normalisés comme le contrat. */
+  readonly booleennesEcrites?: readonly string[];
 }
 
 /** Les propriétés que le modèle documente : une par axe, une par booléenne. */
@@ -101,31 +118,88 @@ function modeleDUnAjout(manquantes: ModeleDeRegles, propriete: string): ModeleDe
   return { nom: manquantes.nom, sections };
 }
 
+/**
+ * Vrai de deux noms compactés à une édition l'un de l'autre (lettre ajoutée, retirée ou remplacée, deux voisines échangées), le plus
+ * long ayant au moins quatre lettres : en dessous, deux noms voisins se confondent trop souvent pour dire qu'un seul a changé.
+ */
+function nomsVoisins(a: string, b: string): boolean {
+  const [court, long] = a.length <= b.length ? [a, b] : [b, a];
+  if (long.length < 4 || long.length - court.length > 1 || a === b) return false;
+  let debut = 0;
+  while (debut < court.length && court[debut] === long[debut]) debut += 1;
+  if (long.length === court.length) {
+    if (court.slice(debut + 1) === long.slice(debut + 1)) return true;
+    return court[debut] === long[debut + 1] && court[debut + 1] === long[debut] && court.slice(debut + 2) === long.slice(debut + 2);
+  }
+  return court.slice(debut) === long.slice(debut + 1);
+}
+
+/** Les axes `@prop` du modèle par nom compacté, avec la cible compactée de chacune de leurs valeurs. */
+function axesDuModele(modele: ModeleDeRegles): Map<string, { nom: string; valeurs: Set<string> }> {
+  const axes = new Map<string, { nom: string; valeurs: Set<string> }>();
+  for (const section of modele.sections) {
+    if (section.tag !== 'prop') continue;
+    for (const element of section.elements) {
+      if (element.genre !== 'regle' || !element.cible) continue;
+      const nom = axeDeLaCible(element.cible);
+      const axe = axes.get(nomCompacte(nom)) ?? { nom, valeurs: new Set<string>() };
+      axe.valeurs.add(cibleCompacte(element.cible));
+      axes.set(nomCompacte(nom), axe);
+    }
+  }
+  return axes;
+}
+
 /** C43, C45 : les constats d'un relevé de règles. Sans relevé, aucun. */
 export function constatsDeRegles(releve: ReleveDesRegles | null): Constat[] {
   if (!releve) return [];
   const { composant } = releve;
+  // Deux composants au même nom compacté ne partagent pas leur conteneur : le point du moteur (`nom-compacte-double`) le dit seul.
+  if ((releve.homonymes?.length ?? 0) > 0) return [];
   if (!releve.instancePresente) {
+    // Un conteneur au nom vide ou marqué que la correction ne peut pas remplir seule reste dit par le point du moteur : C43 n'accuse pas deux fois.
+    if ((releve.orphelins ?? 0) > 0 && releve.remplissable !== true) return [];
     const correction: Correction = {
       id: identifiantDeCorrection(composant.id),
       sorte: 'regles',
       cible: { layer: composant.id },
       avant: null,
-      apres: { nom: 'creer' },
+      apres: { nom: releve.remplissable === true ? 'remplir' : 'creer' },
       aRelire: { regle: 'regles', avant: null },
     };
     return [{
       id: 'regles:C43', code: 'C43', type: 'corriger', famille: 'regles', variants: [], layers: [],
-      faits: { composant: composant.nom, regles: nombreDeRegles(releve.modele), proprietes: releve.proprietes.join(', ') },
+      faits: { composant: composant.nom, regles: nombreDeRegles(releve.modele), proprietes: releve.proprietes.join(', '), ...(releve.page ? { page: releve.page } : {}) },
       correction,
     }];
   }
   const documentees = new Map(releve.documentees.map((nom) => [nomCompacte(nom), nom]));
   const connues = new Set([...releve.proprietes, ...(releve.publiees ?? [])].map(nomCompacte));
   const manquantes = ciblesManquantesParPropriete(releve.manquantes);
+  const axes = axesDuModele(releve.modele);
+
+  // Une propriété sans règle et une règle sans propriété au nom voisin : une seule règle probablement renommée, jamais plusieurs candidates (Q-F89-13).
+  const sansRegle = releve.proprietes.filter((propriete) => !documentees.has(nomCompacte(propriete)));
+  const sansPropriete = [...documentees].filter(([cle]) => !connues.has(cle)).map(([, regle]) => regle);
+  const renommees = new Map<string, string>();
+  for (const propriete of sansRegle) {
+    const candidates = sansPropriete.filter((regle) => nomsVoisins(nomCompacte(propriete), nomCompacte(regle)));
+    if (candidates.length !== 1) continue;
+    if (sansRegle.filter((autre) => nomsVoisins(nomCompacte(autre), nomCompacte(candidates[0]))).length !== 1) continue;
+    renommees.set(propriete, candidates[0]);
+  }
+  const renommeesParRegle = new Set(renommees.values());
+
   const constats: Constat[] = [];
-  for (const propriete of releve.proprietes) {
-    if (documentees.has(nomCompacte(propriete))) continue;
+  for (const propriete of sansRegle) {
+    const regle = renommees.get(propriete);
+    if (regle !== undefined) {
+      constats.push({
+        id: `regles:C45:regle-renommee:${propriete}`, code: 'C45', type: 'corriger', famille: 'regles', variants: [], layers: [],
+        faits: { composant: composant.nom, propriete, regle, ecart: 'regle-renommee' },
+      });
+      continue;
+    }
     const regles = manquantes.get(propriete)?.cibles.length ?? 0;
     // Sans règle à poser, la correction n'écrirait rien : le constat reste seul.
     constats.push({
@@ -142,9 +216,30 @@ export function constatsDeRegles(releve: ReleveDesRegles | null): Constat[] {
       correction: correctionDAjout(composant.id, propriete),
     });
   }
+  // Une valeur écrite que l'axe n'a pas : aucune correction, le designer dit si la règle ou le composant se trompe (Q-F89-2).
+  const inconnues = new Set<string>();
+  for (const ecrite of releve.valeursEcrites ?? []) {
+    const axe = axes.get(nomCompacte(axeDeLaCible(ecrite)));
+    if (!axe || axe.valeurs.has(cibleCompacte(ecrite)) || inconnues.has(cibleCompacte(ecrite))) continue;
+    inconnues.add(cibleCompacte(ecrite));
+    constats.push({
+      id: `regles:C45:valeur-inconnue:${ecrite}`, code: 'C45', type: 'corriger', famille: 'regles', variants: [], layers: [],
+      faits: { composant: composant.nom, propriete: axe.nom, regle: ecrite, ecart: 'valeur-inconnue' },
+    });
+  }
   for (const [cle, regle] of documentees) {
-    if (connues.has(cle)) continue;
+    if (connues.has(cle) || renommeesParRegle.has(regle)) continue;
     constats.push({ id: `regles:C45:sans-propriete:${regle}`, code: 'C45', type: 'corriger', famille: 'regles', variants: [], layers: [], faits: { composant: composant.nom, regle, ecart: 'sans-propriete' } });
+  }
+  // `@boolean` posé sur un axe : l'axe existe, mais pas comme booléenne (N-73).
+  for (const nom of releve.booleennesEcrites ?? []) {
+    if (!axes.has(nomCompacte(nom))) continue;
+    constats.push({ id: `regles:C45:sans-propriete:${nom}`, code: 'C45', type: 'corriger', famille: 'regles', variants: [], layers: [], faits: { composant: composant.nom, regle: nom, ecart: 'sans-propriete', surUnAxe: 1 } });
+  }
+  // Une règle dont la cible est vide ne vise rien (N-72) : un constat pour toutes, sans nom à citer.
+  const vides = releve.reglesSansCible ?? 0;
+  if (vides > 0) {
+    constats.push({ id: 'regles:C45:sans-propriete:', code: 'C45', type: 'corriger', famille: 'regles', variants: [], layers: [], faits: { composant: composant.nom, regle: '', ecart: 'sans-propriete', regles: vides } });
   }
   return constats;
 }
@@ -248,16 +343,47 @@ export async function lireLesRegles(
   const surface = surfaceDesRegles(declarees, surfaceDuMoteur);
   const modele = modeleDeRegles(composant.name, surface ? restreindreAuParent(contrat, surface) : contrat);
   const instancePresente = lues.releve.conteneurDuComposant;
-  const presentes = ciblesPresentes(lues);
-  const nonRedigees = lues.ciblesNonRedigees.map((cible) => (cible.includes('.') ? axeDeLaCible(cible) : cible));
+  // Les cibles `axe.valeur` des règles `@prop`, normalisées comme le contrat. Une règle non rédigée garde la cible écrite : elle se normalise ici.
+  const ecrites = [
+    ...Object.entries(lues.propDescriptions).flatMap(([axe, valeurs]) => Object.keys(valeurs).map((valeur) => `${axe}.${valeur}`)),
+    ...lues.ciblesNonRedigees.filter((cible) => cible.indexOf('.') > 0).map((cible) => {
+      const point = cible.indexOf('.');
+      return `${normalizePropKey(cible.slice(0, point))}.${normalizePropValue(cible.slice(point + 1))}`;
+    }),
+  ];
+  // Un nom de propriété qui porte un point (`Size.Mode`) coupe la cible au mauvais endroit : la cible s'attache à celle du modèle qui
+  // s'écrit pareil à ses points près, et c'est l'axe du modèle qui compte (N-74).
+  const sansPoint = (cible: string): string => cibleCompacte(cible).replace(/\./g, '');
+  const cibleDuModele = new Map<string, string>();
+  for (const section of modele.sections) {
+    if (section.tag !== 'prop') continue;
+    for (const element of section.elements) if (element.genre === 'regle' && element.cible) cibleDuModele.set(sansPoint(element.cible), element.cible);
+  }
+  const rattachees = ecrites.map((ecrite) => cibleDuModele.get(sansPoint(ecrite)) ?? null);
+  const booleennesNonRedigees = lues.ciblesNonRedigees.filter((cible) => cible.indexOf('.') <= 0);
+  const presentes = [
+    ...ecrites.map((ecrite, rang) => cibleCompacte(rattachees[rang] ?? ecrite)),
+    ...Object.keys(lues.booleanDescriptions).map(cibleCompacte),
+    ...booleennesNonRedigees.map(cibleCompacte),
+  ];
+  const axesDocumentes = ecrites.map((ecrite, rang) => axeDeLaCible(rattachees[rang] ?? ecrite));
+  const valeursEcrites = ecrites.filter((_, rang) => rattachees[rang] === null);
+  const orphelins = lues.orphelins ?? 0;
   return {
     composant: { id: composant.id, nom: composant.name },
     instancePresente,
     modele,
     proprietes: proprietesDuModele(modele),
     publiees: Object.keys(surfaceDuMoteur.props),
-    documentees: [...new Set([...Object.keys(lues.propDescriptions), ...Object.keys(lues.booleanDescriptions), ...nonRedigees])],
+    documentees: [...new Set([...axesDocumentes, ...Object.keys(lues.booleanDescriptions), ...booleennesNonRedigees])],
     presentes,
     manquantes: instancePresente ? reglesManquantes(modele, new Set(presentes)) : { nom: composant.name, sections: [] },
+    ...(typeof page.name === 'string' ? { page: page.name } : {}),
+    homonymes: lues.homonymes ?? [],
+    orphelins,
+    remplissable: !instancePresente && orphelins === 1,
+    reglesSansCible: lues.reglesSansCible ?? 0,
+    valeursEcrites,
+    booleennesEcrites: Object.keys(lues.booleanDescriptions),
   };
 }

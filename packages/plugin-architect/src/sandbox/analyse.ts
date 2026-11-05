@@ -69,7 +69,7 @@ import { AnalyseAnnulee, creerContexteCooperatif, type ContexteCooperatif, type 
 
 import { avecLesFondsDElevation, catalogueDuFichier, chargerLesValeurs, clesDesFondsDElevation, fondDeLaPageFigma, lireLeCatalogueDeLibrary, type OptionsDeCatalogue } from '../catalogue';
 import type { NoeudLu } from '../consommateurs';
-import { constatsDuMoteur } from '../constatsDuMoteur';
+import { constatsDuMoteur, sansLesDoublonsDuMoteur } from '../constatsDuMoteur';
 import { enregistrerLesImports, idsDesLocales, lireLesVariables } from '../lecture';
 import { sujetDe, type PortDuComposant } from '../lectureDuComposant';
 import { lireLaLibraryRangee } from '../ecriture/configuration';
@@ -2117,7 +2117,8 @@ async function analyser(contexte: Contexte, lecteurs: Lecteurs, demandeRecue: Ex
       const brut = mesurerLeCalcul(() => [...controles, ...constatsDeRegles(reglesLues), ...constatsDuMoteur(moteur, new Set(releve.variants.map((variant) => variant.id)))], 'controles', true);
       phase('corrections');
       await cooperation.cederSiBesoin();
-      return calculerParEtapes(proposerLesCorrectionsParEtapes(releve, catalogue, brut), cooperation, 'corrections');
+      // C25 et C29 naissent des corrections : le doublon du moteur se retire après elles.
+      return sansLesDoublonsDuMoteur(await calculerParEtapes(proposerLesCorrectionsParEtapes(releve, catalogue, brut), cooperation, 'corrections'));
     });
     if (jeton.leve) return rendre('annulee', [], null);
     await cooperation.cederSiBesoin();

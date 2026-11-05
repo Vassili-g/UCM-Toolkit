@@ -52,15 +52,15 @@ function themes(registre: Registre): void {
   fp('composant sans propriété, conteneur réduit à `@usage`', avecLesRegles(diviseur, reglesDe(diviseur).filter((regle) => regle.tag === 'usage')));
   fp('conteneur dans une section', avecLeConteneur(base, { emplacement: 'section' }));
 
-  const mot = (description: string, titre: string, plus: Parameters<typeof point>[1], code: 'C30' | 'C34' | 'C42'): void => {
+  const mot = (description: string, titre: string, plus: Parameters<typeof point>[1], code: 'C30' | 'C34' | 'C42', famille?: 'tailles'): void => {
     const p = point(titre, plus);
     registre.ajouter('FP2', {
-      description, attendus: [attenduDuPoint(code, p, ['12:34'])], rattachement: HYPOTHESES.H05, jouer: async () => ({ constats: constatsDesPoints([{ point: p, noeuds: ['12:34'] }]) }),
+      description, attendus: [attenduDuPoint(code, p, ['12:34'], { famille })], rattachement: HYPOTHESES.H05, jouer: async () => ({ constats: constatsDesPoints([{ point: p, noeuds: ['12:34'] }]) }),
     });
   };
   mot('calque nommé « masqué » dans un point ordinaire', 'Layer « masqué » : il range 3 calques mais n\'utilise pas d\'auto layout.', {}, 'C42');
   mot('propriété nommée « pilote » dans un point ordinaire', 'Component Set « Button » : une combinaison de valeurs de ses propriétés de variante n\'a pas de variant, parmi « pilote ».', { famille: 'proprietes' }, 'C34');
-  mot('calque nommé « Variable introuvable » dans un point de variables', 'Layer « Variable introuvable », gap : aucune variable associée.', { famille: 'variables' }, 'C30');
+  mot('calque nommé « Variable introuvable » dans un point de variables', 'Layer « Variable introuvable », gap : aucune variable associée.', { famille: 'variables' }, 'C30', 'tailles');
   mot('calque nommé « Variable introuvable » dans un point de disposition', 'Layer « Variable introuvable » : il n\'utilise pas d\'auto layout.', {}, 'C42');
   registre.ajouter('FP2', { description: 'moteur sans aucun point', attendus: [], jouer: async () => ({ constats: constatsDesPoints([]) }) });
   const repete = point('Layer « Card » : il n\'utilise pas d\'auto layout.');

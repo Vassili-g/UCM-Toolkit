@@ -1,10 +1,12 @@
 /**
  * Écrit les corrections de sorte `regles` : poser l'instance de règles d'un
- * composant qui n'en a pas, par `creerLesRegles` du socle (`creer`), ou lui
- * poser les règles qu'elle ne porte pas, par `ajouterLesRegles` (`ajouter`).
+ * composant qui n'en a pas, par `creerLesRegles` du socle (`creer`), remplir le
+ * conteneur au nom vide ou marqué que la page porte (`remplir`, même appel, sur
+ * la source `aRemplir`), ou lui poser les règles qu'elle ne porte pas, par
+ * `ajouterLesRegles` (`ajouter`).
  *
  * Chaque correction relit le document avant d'écrire : `creer` demande un
- * composant sans instance de règles, `ajouter` une instance qui existe et une
+ * composant sans instance de règles, `remplir` en plus un conteneur vierge, `ajouter` une instance qui existe et une
  * règle encore absente, sinon la correction est sautée (`objet-change`). Les
  * corrections `ajouter` d'un même composant s'écrivent d'un seul appel, sur la
  * fusion de leurs modèles : deux clics sur Appliquer ne posent jamais une règle
@@ -17,10 +19,10 @@
  */
 import type { Correction } from '@ucm-kit/core/controles';
 import { CALQUES_DU_KIT_DE_REGLES, nomCompacte } from '@ucm-kit/core/referentiel';
-import { extractRules, porteLeNom, rulesContainerOwner } from 'ucm-plugin-socle/src/composant/contract/extractRules';
+import { extractRules, orphelinsDeLaPage, porteLeNom, rulesContainerOwner } from 'ucm-plugin-socle/src/composant/contract/extractRules';
 import type { ReleveDeSource } from 'ucm-plugin-socle/src/composant/contract/extractRules';
 import type { Annonce } from 'ucm-plugin-socle/src/composant/annonce';
-import { ajouterLesRegles, creerLesRegles } from 'ucm-plugin-socle/src/composant/template/ecriture';
+import { ajouterLesRegles, creerLesRegles, nommerLeConteneur } from 'ucm-plugin-socle/src/composant/template/ecriture';
 import { nombreDeRegles, reglesManquantes } from 'ucm-plugin-socle/src/composant/template/modele';
 import type { ModeleDeRegles, SectionDeModele } from 'ucm-plugin-socle/src/composant/template/modele';
 import { chercherLaSourceDansLeDocument, resoudreLesSources } from 'ucm-plugin-socle/src/composant/template/sources';
@@ -53,6 +55,11 @@ export interface PortDEcritureDesRegles {
   conteneur(composant: Composant): Promise<InstanceNode | null>;
   creer: typeof creerLesRegles;
   ajouter: typeof ajouterLesRegles;
+  /**
+   * Écrit le nom du composant dans l'unique conteneur au nom vide ou marqué de sa page, sans toucher à ses règles ; `false` quand la
+   * page n'en porte plus un seul. Absent d'un double de test : aucun conteneur à nommer.
+   */
+  nommerLOrphelin?(composant: Composant): Promise<boolean>;
 }
 
 function pageDe(node: BaseNode): PageNode {
@@ -94,6 +101,12 @@ const PORT_DE_FIGMA: PortDEcritureDesRegles = {
   resoudre: resoudreLesSources,
   creer: creerLesRegles,
   ajouter: ajouterLesRegles,
+  async nommerLOrphelin(composant) {
+    const orphelins = orphelinsDeLaPage(pageDe(composant));
+    if (orphelins.length !== 1) return false;
+    await nommerLeConteneur(orphelins[0], composant.name);
+    return true;
+  },
 };
 
 /** Les modèles réunis en une section `prop` puis une section `boolean`, séparateurs laissés à `reglesManquantes`. */
@@ -134,12 +147,19 @@ export async function ecrireLesRegles(
       const composant = correction.cible.layer ? await port.composant(correction.cible.layer) : null;
       if (!composant) { saute('objet-change'); continue; }
       const releve = await port.releve(composant);
-      if (operation !== 'creer') {
+      if (operation !== 'creer' && operation !== 'remplir') {
         saute(releve.conteneurDuComposant ? 'instance-remplie' : 'objet-change');
         continue;
       }
+      if (releve.conteneurDuComposant) { saute('objet-change'); continue; }
+      // `remplir` écrit le nom dans le conteneur que l'analyse a vu au nom vide ou marqué, sans toucher à ses règles ; un conteneur que
+      // rien d'autre n'occupe reçoit en plus le modèle, comme `creer`. Si la page n'en porte plus un seul, rien ne s'écrit.
+      if (operation === 'remplir' && !releve.conteneurVierge) {
+        if (await port.nommerLOrphelin?.(composant)) ecrites.push(correction.id); else saute('objet-change');
+        continue;
+      }
       const modele = modeles.get(correction.id);
-      if (releve.conteneurDuComposant || !modele) { saute('objet-change'); continue; }
+      if (!modele) { saute('objet-change'); continue; }
       const { sources } = await port.resoudre(releve);
       if (!sources) { saute('erreur'); continue; }
       await port.creer(composant, modele, sources, annoncer);

@@ -47,12 +47,12 @@ export function cleDuPoint(code: CodeDuMoteur, point: PointACorriger, noeuds: re
   return sorte ?? `${point.titre}|${point.impact}|${[...noeuds].sort().join(',')}`;
 }
 
-export function attenduDuPoint(code: CodeDuMoteur, point: PointACorriger, noeuds: readonly string[], plus: { type?: Constat['type']; variants?: readonly string[] } = {}): AttenduF8 {
+export function attenduDuPoint(code: CodeDuMoteur, point: PointACorriger, noeuds: readonly string[], plus: { type?: Constat['type']; variants?: readonly string[]; famille?: Constat['famille'] } = {}): AttenduF8 {
   const bloquant = code === 'C41' || point.severite === 'danger';
   const type = plus.type ?? (bloquant ? 'bloquant' : code === 'C30' || code === 'C44' ? 'corriger' : 'verifier');
   const variants = plus.variants ?? noeuds.filter((id) => VARIANTS_DU_RELEVE.has(id));
   return {
-    code, cle: cleDuPoint(code, point, noeuds), forme: 'a-faire', type, famille: familleDuConstatAttendu(code) as Constat['famille'],
+    code, cle: cleDuPoint(code, point, noeuds), forme: 'a-faire', type, famille: familleDuConstatAttendu(code, plus.famille) as Constat['famille'],
     variants, layers: noeuds.filter((id) => !variants.includes(id)), faits: { geste: point.famille },
   };
 }
@@ -108,8 +108,7 @@ function operateursM1(registre: Registre): void {
     const noeuds = [NOEUD];
     registre.ajouter('M1', {
       description: `${gabarit.id} (${gabarit.sens}) : ${gabarit.code} attendu`,
-      attendus: [attenduDuPoint(gabarit.code, gabarit.point, noeuds, { type: gabarit.type })],
-      ...(gabarit.question ? { question: gabarit.question } : {}),
+      attendus: [attenduDuPoint(gabarit.code, gabarit.point, noeuds, { type: gabarit.type, famille: gabarit.famille })],
       ...(gabarit.point.famille === 'proprietes' ? { rattachement: `${HYPOTHESES.H06} ; E-37` } : {}),
       jouer: jouerMoteur([{ point: gabarit.point, noeuds }]),
     });
@@ -120,17 +119,18 @@ function operateursM1(registre: Registre): void {
 // M2 : pièges de texte
 
 function operateursM2(registre: Registre): void {
-  const m2 = (description: string, p: PointACorriger, code: CodeDuMoteur, plus: Partial<DefinitionDeCas> = {}): void => {
-    registre.ajouter('M2', { description, attendus: [attenduDuPoint(code, p, [NOEUD])], rattachement: HYPOTHESES.H05, jouer: jouerMoteur([{ point: p, noeuds: [NOEUD] }]), ...plus });
+  const m2 = (description: string, p: PointACorriger, code: CodeDuMoteur, plus: { famille?: Constat['famille'] } & Partial<DefinitionDeCas> = {}): void => {
+    const { famille, ...reste } = plus;
+    registre.ajouter('M2', { description, attendus: [attenduDuPoint(code, p, [NOEUD], { famille })], rattachement: HYPOTHESES.H05, jouer: jouerMoteur([{ point: p, noeuds: [NOEUD] }]), ...reste });
   };
   m2('calque nommé « masqué » dans un point `disposition` ordinaire', point('Layer « masqué » : il n\'utilise pas d\'auto layout.', { calque: 'masqué' }), 'C42');
   m2('composant nommé « masqué », combinaison manquante', point('Component Set « masqué » : une combinaison de valeurs de ses propriétés de variante n\'a pas de variant.', { famille: 'proprietes', calque: 'masqué' }), 'C34');
   m2('propriété nommée « pilote » dans une combinaison manquante', point('Component Set « Button » : une combinaison de valeurs de ses propriétés de variante n\'a pas de variant :', { famille: 'proprietes', elements: ['pilote=on'] }), 'C34');
-  m2('calque nommé « Variable introuvable » dans un point C30', point('Layer « Variable introuvable », padding : aucune variable Figma n\'est reliée.', { famille: 'variables', calque: 'Variable introuvable' }), 'C30');
-  m2('« variable introuvable » dans `elements` (témoin C41)', point('Layer « Card », padding : certains côtés n\'ont pas de variable exploitable :', { famille: 'variables', elements: ['variable introuvable : padding-left'] }), 'C41');
+  m2('calque nommé « Variable introuvable » dans un point C30', point('Layer « Variable introuvable », padding : aucune variable Figma n\'est reliée.', { famille: 'variables', calque: 'Variable introuvable' }), 'C30', { famille: 'tailles' });
+  m2('« variable introuvable » dans `elements` (témoin C41)', point('Layer « Card », padding : certains côtés n\'ont pas de variable exploitable :', { famille: 'variables', elements: ['variable introuvable : padding-left'] }), 'C41', { famille: 'tailles' });
   m2('« Masqué » en majuscule dans un point `disposition` ordinaire', point('Layer « Masqué » : il n\'utilise pas d\'auto layout.', { calque: 'Masqué' }), 'C42');
   m2('« masqué » dans `elements` seul', point('Layer « Card » : il range 3 calques mais n\'utilise pas d\'auto layout, dont :', { elements: ['Badge masqué'] }), 'C42');
-  m2('« Valeur introuvable » (témoin C30)', point('Layer « Valeur introuvable », gap : aucune variable associée.', { famille: 'variables', calque: 'Valeur introuvable' }), 'C30');
+  m2('« Valeur introuvable » (témoin C30)', point('Layer « Valeur introuvable », gap : aucune variable associée.', { famille: 'variables', calque: 'Valeur introuvable' }), 'C30', { famille: 'tailles' });
 }
 
 // ---------------------------------------------------------------------------------------------------------------------------
@@ -206,11 +206,11 @@ function operateursM3(registre: Registre): void {
   m3('un point sans parties', [sans1], [sansParties(sans1)]);
   m3('deux points sans parties', [sans1, sans2], [sansParties(sans1), sansParties(sans2)], { alternatives: [[sans2, sans1]] });
   const danger = poser('Layer « Card », padding : aucune variable Figma n\'est reliée.', [NOEUD], { famille: 'variables', severite: 'danger' });
-  m3('sévérité danger sur un point de variables', [danger], attendre([danger], 'C30'));
+  m3('sévérité danger sur un point de variables', [danger], [attenduDuPoint('C30', danger.point, danger.noeuds, { famille: 'tailles' })]);
   const dangerRegles = poser('Règle @prop « size.md » : elle apparaît deux fois.', [NOEUD], { famille: 'regles', severite: 'danger' });
   m3('sévérité danger sur un point de règles', [dangerRegles], attendre([dangerRegles], 'C44'));
   const sansSeverite = poser('Layer « Card », padding : aucune variable Figma n\'est reliée.', [NOEUD], { famille: 'variables' });
-  m3('sévérité absente', [sansSeverite], attendre([sansSeverite], 'C30'));
+  m3('sévérité absente', [sansSeverite], [attenduDuPoint('C30', sansSeverite.point, sansSeverite.noeuds, { famille: 'tailles' })]);
   const cent = Array.from({ length: 100 }, (_, rang) => poser(`Layer « Calque ${rang} » : il n'utilise pas d'auto layout.`, [`13:${rang}`]));
   m3('cent points distincts', cent, attendre(cent), { alternatives: [[...cent].reverse()] });
   const cinqCents = Array.from({ length: 500 }, (_, rang) => poser(`Layer « Cellule ${rang} » : il n'utilise pas d'auto layout.`));
@@ -238,11 +238,12 @@ function operateursM4(registre: Registre): void {
 // M6 : rangement par élément
 
 function operateursM6(registre: Registre): void {
-  const m6 = (description: string, titre: string, element: string, plus: { code?: CodeDuMoteur; question?: string } = {}): void => {
+  const FAMILLE_DE_L_ELEMENT: Readonly<Record<string, Constat['famille']>> = { tailles: 'tailles', couleurs: 'liaisons', texte: 'typographie', tokens: 'tokens' };
+  const m6 = (description: string, titre: string, element: string, plus: { code?: CodeDuMoteur } = {}): void => {
     const p = point(titre, { famille: 'variables' });
     const code = plus.code ?? 'C30';
     registre.ajouter('M6', {
-      description, attendus: [attenduDuPoint(code, p, [NOEUD])], rattachement: `${HYPOTHESES.H07} ; E-29`,
+      description, attendus: [attenduDuPoint(code, p, [NOEUD], { famille: FAMILLE_DE_L_ELEMENT[element] })], rattachement: `${HYPOTHESES.H07} ; E-29`,
       jouer: async (variante) => {
         const sortie = await jouerMoteur([{ point: p, noeuds: [NOEUD] }])(variante);
         return { ...sortie, donnees: { elements: sortie.constats.map(elementDuConstat) } };
@@ -251,7 +252,6 @@ function operateursM6(registre: Registre): void {
         const elements = (sortie.donnees?.elements ?? []) as string[];
         return elements.every((id) => id === element) ? [] : [`rangé dans « ${elements.join(', ')} », attendu « ${element} »`];
       },
-      ...(plus.question ? { question: plus.question } : {}),
     });
   };
   m6('marge', 'Layer « Card », padding : aucune variable Figma n\'est reliée.', 'tailles');
@@ -261,8 +261,8 @@ function operateursM6(registre: Registre): void {
   m6('remplissage', 'Layer « Card » : son fill n’est relié à aucune variable Figma.', 'couleurs');
   m6('contour', 'Layer « Card » : son stroke n’est relié à aucune variable Figma.', 'couleurs');
   m6('style de texte', 'Layer « Title », font size : aucune variable Figma n\'est reliée.', 'texte');
-  m6('opacité', 'Layer « Card », opacity : aucune variable associée.', 'tokens', { question: 'Q-F89-11' });
-  m6('effet', 'Style d’effets « Ombre », blur : aucune variable associée.', 'tokens', { question: 'Q-F89-11' });
+  m6('opacité', 'Layer « Card », opacity : aucune variable associée.', 'tokens');
+  m6('effet', 'Style d’effets « Ombre », blur : aucune variable associée.', 'tokens');
   m6('dimensions minimales', 'Layer « Card » : il fixe minWidth sans variable Figma.', 'tailles');
   m6('côtés à variables différentes', 'Layer « Card », padding : les côtés ne sont pas reliés à la même variable.', 'tailles');
   m6('espacement « Auto »', 'Layer « Card » : son vertical gap est réglé sur « Auto », donc Figma répartit lui-même l\'espace.', 'tailles');
@@ -305,10 +305,10 @@ export async function chaineAvecLePointDuMoteur(source: SourceDuKit, plus: { mot
 }
 
 function operateursM7(registre: Registre): void {
-  const doublon = (description: string, source: SourceDuKit, question?: string): void => {
+  const doublon = (description: string, source: SourceDuKit): void => {
     registre.ajouter('M7', {
       description: `${source.code} du kit avec C30 du moteur sur ${description}`, attendus: [], codesJuges: ['C30'], rattachement: source.code === 'C25' ? 'E-25 (le kit ne juge pas ce layer), puis E-30' : 'E-30',
-      jouer: () => chaineAvecLePointDuMoteur(source), ...(question ? { question } : {}),
+      jouer: () => chaineAvecLePointDuMoteur(source),
       verifier: (sortie) => ((sortie.donnees?.kit as number) >= 1 ? [] : [`le constat ${source.code} du kit manque sur le layer ${String(sortie.donnees?.layer)}`]),
     });
   };
@@ -342,7 +342,7 @@ function operateursM7(registre: Registre): void {
   const sansEquivalent = (description: string, titre: string, calque: string): void => {
     const p = point(titre, { famille: 'variables', calque });
     registre.ajouter('M7', {
-      description, attendus: [attenduDuPoint('C30', p, [NOEUD])], codesJuges: ['C30'], jouer: jouerMoteur([{ point: p, noeuds: [NOEUD] }]),
+      description, attendus: [attenduDuPoint('C30', p, [NOEUD], { famille: 'tokens' })], codesJuges: ['C30'], jouer: jouerMoteur([{ point: p, noeuds: [NOEUD] }]),
     });
   };
   sansEquivalent('témoin : C30 sur `opacity`, sans équivalent du kit (Root)', 'Layer « Root », opacity : aucune variable associée.', 'Root');
@@ -365,7 +365,7 @@ function operateursM7(registre: Registre): void {
   });
   for (const [source, nom] of [[{ operateur: 'Z1', code: 'C29', description: 'paddingLeft' }, 'C29'], [{ operateur: 'U1', code: 'C25', description: 'fond de Root' }, 'C25']] as const) {
     registre.ajouter('M7', {
-      description: `constat ${nom} du kit ignoré : le point C30 de même clé`, attendus: [], codesJuges: ['C30'], question: 'Q-F89-12', rattachement: 'E-30',
+      description: `constat ${nom} du kit ignoré : le point C30 de même clé`, attendus: [], codesJuges: ['C30'], rattachement: 'E-30',
       jouer: () => chaineAvecLePointDuMoteur(source, { ignorer: true }),
     });
   }
@@ -375,22 +375,21 @@ function operateursM7(registre: Registre): void {
 // M8 : largeur de C34
 
 function operateursM8(registre: Registre): void {
-  const m8 = (description: string, id: string, plus: { question?: boolean } = {}): void => {
+  const m8 = (description: string, id: string): void => {
     const gabarit: GabaritDuMoteur = gabaritDe(id);
     registre.ajouter('M8', {
       description: `${description} : ${gabarit.code} attendu`, attendus: [attenduDuPoint(gabarit.code, gabarit.point, [NOEUD], { type: gabarit.type })],
       jouer: jouerMoteur([{ point: gabarit.point, noeuds: [NOEUD] }]), rattachement: `${HYPOTHESES.H06} ; E-37`,
-      ...(plus.question ? { question: 'Q-F89-10' } : {}),
     });
   };
   m8('une combinaison manquante', 'proprietes-2');
   m8('plusieurs combinaisons manquantes', 'proprietes-3');
-  m8('« aucun variant »', 'proprietes-4', { question: true });
-  m8('« aucune propriété définie »', 'proprietes-5', { question: true });
-  m8('collision de noms de propriétés', 'proprietes-6', { question: true });
-  m8('collision de taille', 'proprietes-7', { question: true });
-  m8('état non reconnu', 'proprietes-8', { question: true });
-  m8('état toléré', 'proprietes-9', { question: true });
+  m8('« aucun variant »', 'proprietes-4');
+  m8('« aucune propriété définie »', 'proprietes-5');
+  m8('collision de noms de propriétés', 'proprietes-6');
+  m8('collision de taille', 'proprietes-7');
+  m8('état non reconnu', 'proprietes-8');
+  m8('état toléré', 'proprietes-9');
   m8('« pilote aucun calque »', 'proprietes-1');
 }
 

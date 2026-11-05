@@ -4,7 +4,7 @@
  *
  * Chaque cas dégrade la `SpecDePage` d'un profil, la lit par la chaîne entière (scan, modèle, `constatsDeRegles`, points du scan) et
  * attend ce que dit l'oracle : l'inventaire 4.7, la SPEC d'Architect (« Analyse et corrections ») et la section 2.2 du plan pour la
- * correction exacte. Un cas qui dépend d'une question Q-F89-* est `mesure` et suit la proposition de la section 9.
+ * correction exacte. Les décisions Q-F89-1 à Q-F89-9 sont acquises : aucun cas de ce fichier n'est plus `mesure`.
  */
 import { normalizePropKey, normalizePropValue } from 'ucm-plugin-socle/src/composant/analyse/proprietesEtEtats';
 
@@ -75,9 +75,6 @@ export const verifierLesModeles = (attendues: Readonly<Record<string, readonly s
 
 const CODES_DES_REGLES = ['C43', 'C45', 'C44'] as const;
 const CODES_C43_C45 = ['C43', 'C45'] as const;
-const Q = {
-  autrePage: 'Q-F89-5', calqueVide: 'Q-F89-6', compacte: 'Q-F89-1', memeNom: 'Q-F89-7', deuxConteneurs: 'Q-F89-8', dansInstance: 'Q-F89-9', valeurInconnue: 'Q-F89-2',
-} as const;
 
 // ---------------------------------------------------------------------------------------------------------------------------
 // G1, G2 : l'instance de règles
@@ -100,24 +97,24 @@ function operateursG(registre: Registre): void {
   const ecrit = (nom: string | null, emplacement: ConteneurEcrit['emplacement'] = 'page'): SpecDePage => avecLeConteneur(base, { ecrit: nom, emplacement });
   const autreNom = (nom: string, ecritNom: string): SpecDePage => ({ ...avecLeConteneur(base, { ecrit: ecritNom }), nom });
 
-  g2('instance sur une autre page', ecrit('Button', 'autre-page'), c43, { question: Q.autrePage, rattachement: HYPOTHESES.H11 });
+  g2('instance sur une autre page', ecrit('Button', 'autre-page'), c43, { rattachement: HYPOTHESES.H11 });
   g2('instance qui écrit le nom d\'un autre composant', ecrit('Alert'), c43);
-  g2('calque de nom vide', ecrit(''), [attenduC43(nombre, { apres: { nom: 'remplir' } })], { question: Q.calqueVide, rattachement: HYPOTHESES.H11 });
-  g2('calque de nom resté « [À compléter] »', ecrit('[À compléter]'), [attenduC43(nombre, { apres: { nom: 'remplir' } })], { question: Q.calqueVide, rattachement: HYPOTHESES.H11 });
+  g2('calque de nom vide', ecrit(''), [attenduC43(nombre, { apres: { nom: 'remplir' } })], { rattachement: HYPOTHESES.H11 });
+  g2('calque de nom resté « [À compléter] »', ecrit('[À compléter]'), [attenduC43(nombre, { apres: { nom: 'remplir' } })], { rattachement: HYPOTHESES.H11 });
   g2('nom en casse différente', ecrit('BUTTON'), []);
   g2('nom aux espaces en trop', ecrit(' B utton '), []);
-  g2('nom avec tiret (`icon-button`)', autreNom('Icon Button', 'icon-button'), [], { question: Q.compacte, rattachement: HYPOTHESES.H02 });
-  g2('nom avec souligné (`icon_button`)', autreNom('Icon Button', 'icon_button'), [], { question: Q.compacte, rattachement: HYPOTHESES.H02 });
+  g2('nom avec tiret (`icon-button`)', autreNom('Icon Button', 'icon-button'), [], { rattachement: HYPOTHESES.H02 });
+  g2('nom avec souligné (`icon_button`)', autreNom('Icon Button', 'icon_button'), [], { rattachement: HYPOTHESES.H02 });
   g2('composant renommé après coup', autreNom('Button v2', 'Button'), c43);
   g2('deux composants au nom compacté égal, un conteneur', {
     ...avecLeConteneur(base, { ecrit: 'Icon Button' }), nom: 'IconButton', voisins: [{ nom: 'Icon Button' }],
-  }, [attenduC43(nombre), attenduC44('nom-compacte-double')], { question: Q.memeNom, rattachement: HYPOTHESES.H09 });
+  }, [attenduC44('nom-compacte-double')], { rattachement: HYPOTHESES.H09 });
   g2('`Button` et `Button Group`, un conteneur chacun', specDuProfil(PROFILS_DE_REGLES.find((profil) => profil.forme === 'button-36' && profil.composants === 3 && profil.redigees && profil.ecriture === 'exacte')!), []);
   g2('deux conteneurs pour le même composant', {
     ...base, conteneurs: [base.conteneurs[0], { ecrit: 'Button', regles: [{ tag: 'usage', contenu: REDIGE }], emplacement: 'page' }],
-  }, [attenduC44('plusieurs-instances')], { question: Q.deuxConteneurs });
+  }, [attenduC44('plusieurs-instances')]);
   g2('conteneur dans un frame', ecrit('Button', 'cadre'), []);
-  g2('conteneur dans une instance d\'un autre composant', ecrit('Button', 'instance'), [], { question: Q.dansInstance, rattachement: HYPOTHESES.H10 });
+  g2('conteneur dans une instance d\'un autre composant', ecrit('Button', 'instance'), [], { rattachement: HYPOTHESES.H10 });
   g2('sélection d\'un composant seul, sans jeu', { ...base, type: 'COMPONENT' }, []);
 }
 
@@ -190,7 +187,7 @@ function operateursH3(registre: Registre): void {
   h3('propriété d\'un imbriqué rattaché au parent, sa règle posée', avecLesProprietes(base, [...base.proprietes, imbrique]), []);
   const texte: ProprieteDuJeu = { nom: 'Label', type: 'TEXT' };
   h3('règle sur une propriété de texte publiée', { ...avec(booleenne('label')), proprietes: [...base.proprietes, texte] }, []);
-  h3('valeur inexistante (`size.xxl`)', avec(valeur('size.xxl')), [{ code: 'C45', cle: 'valeur-inconnue|size', forme: 'a-faire', faits: { ecart: 'valeur-inconnue' } }], { question: Q.valeurInconnue, rattachement: HYPOTHESES.H03 });
+  h3('valeur inexistante (`size.xxl`)', avec(valeur('size.xxl')), [{ code: 'C45', cle: 'valeur-inconnue|size', forme: 'a-faire', faits: { ecart: 'valeur-inconnue' } }], { rattachement: HYPOTHESES.H03 });
   h3('axe inexistant avec valeur (`tone.loud`)', avec(valeur('tone.loud')), [attenduSansPropriete('tone')]);
   h3('cible vide', avec(valeur('')), [attenduSansPropriete('')]);
   h3('cible faite d\'espaces', avec(valeur('   ')), [attenduSansPropriete('')]);
@@ -206,10 +203,10 @@ function operateursH4(registre: Registre): void {
   const bouton = specR0();
   const ecritePar = (spec: SpecDePage, ancienne: string, nouvelle: string): SpecDePage => avecLesRegles(spec, reecrire(reglesDe(spec), ancienne, nouvelle));
   h4('`Show Icon` écrit `show icon`', ecritePar(tuile, 'showIcon', 'show icon'));
-  h4('`Show Icon` écrit `show-icon`', ecritePar(tuile, 'showIcon', 'show-icon'), { question: Q.compacte, rattachement: HYPOTHESES.H02 });
-  h4('`Show Icon` écrit `show_icon`', ecritePar(tuile, 'showIcon', 'show_icon'), { question: Q.compacte, rattachement: HYPOTHESES.H02 });
+  h4('`Show Icon` écrit `show-icon`', ecritePar(tuile, 'showIcon', 'show-icon'), { rattachement: HYPOTHESES.H02 });
+  h4('`Show Icon` écrit `show_icon`', ecritePar(tuile, 'showIcon', 'show_icon'), { rattachement: HYPOTHESES.H02 });
   h4('`Show Icon` écrit `showIcon`', ecritePar(tuile, 'showIcon', 'showIcon'));
-  h4('`Has Icon` écrit `Has Icon#1:2`', ecritePar(bouton, 'hasIcon', 'Has Icon#1:2'), { question: Q.compacte });
+  h4('`Has Icon` écrit `Has Icon#1:2`', ecritePar(bouton, 'hasIcon', 'Has Icon#1:2'));
   const avecPropriete = (propriete: ProprieteDuJeu): SpecDePage => avecLesProprietes(bouton, [...bouton.proprietes, propriete]);
   const variante = (nom: string, options: readonly string[]): ProprieteDuJeu => ({ nom, type: 'VARIANT', options });
   const reecrites = (spec: SpecDePage, paires: ReadonlyArray<readonly [string, string]>): SpecDePage => paires.reduce((courant, [ancienne, nouvelle]) => ecritePar(courant, ancienne, nouvelle), spec);
@@ -218,7 +215,7 @@ function operateursH4(registre: Registre): void {
   h4('valeurs `v2.0` et `v2.1`', reecrites(avecPropriete(variante('Release', ['v2.0', 'v2.1'])), [['release.v2-0', 'Release.v2.0'], ['release.v2-1', 'Release.v2.1']]), { rattachement: HYPOTHESES.H01 });
   h4('propriété nommée `Size.Mode`', reecrites(avecPropriete(variante('Size.Mode', ['compact', 'wide'])), [['sizemode.compact', 'Size.Mode.compact'], ['sizemode.wide', 'Size.Mode.wide']]));
   h4('valeur `Extra Large` écrite `ExtraLarge`', reecrites(avecPropriete(variante('Width', ['Extra Large', 'Small'])), [['width.extra-large', 'Width.ExtraLarge']]));
-  h4('valeur `Extra Large` écrite `Extra-Large`', reecrites(avecPropriete(variante('Width', ['Extra Large', 'Small'])), [['width.extra-large', 'Width.Extra-Large']]), { question: Q.compacte });
+  h4('valeur `Extra Large` écrite `Extra-Large`', reecrites(avecPropriete(variante('Width', ['Extra Large', 'Small'])), [['width.extra-large', 'Width.Extra-Large']]));
   h4('valeur `Icon / Left`', reecrites(avecPropriete(variante('Position', ['Icon / Left', 'Icon / Right'])), [['position.icon-/-left', 'Position.Icon / Left']]));
   h4('propriété nommée `1`', avecPropriete(variante('1', ['a', 'b'])));
   h4('deux propriétés au nom compacté égal (`Icon Left`, `icon-left`)', avecLesProprietes(bouton, [...bouton.proprietes, { nom: 'Icon Left', type: 'BOOLEAN' }, { nom: 'icon-left', type: 'BOOLEAN' }]));

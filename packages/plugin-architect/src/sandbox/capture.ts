@@ -326,7 +326,7 @@ export async function capturerLeComposant(figma: PluginAPI, options: OptionsDeCa
   for (const noeud of [jeu, ...selectionDeLaPage]) demander(noeud, true);
   await viderLaFile();
 
-  // Le scan des règles de la page du sujet : les textes, puis les instances et composants que le moteur parcourt.
+  // Le scan des règles de la page du sujet : les textes, puis les instances, composants et jeux de variants que le moteur parcourt.
   const pageDuSujet = page as LecturePage;
   const criteres = pages[pageDuSujet.id].criteres;
   const lireLesCriteres = (types: string[]): readonly LectureNoeud[] | null => {
@@ -342,7 +342,7 @@ export async function capturerLeComposant(figma: PluginAPI, options: OptionsDeCa
     }
   };
   const textes = lireLesCriteres(['TEXT']) ?? [];
-  const candidats = lireLesCriteres(['INSTANCE', 'COMPONENT']) ?? [];
+  const candidats = lireLesCriteres(['INSTANCE', 'COMPONENT', 'COMPONENT_SET']) ?? [];
   const conteneurs = new Set<string>();
   for (const texte of textes) {
     try {

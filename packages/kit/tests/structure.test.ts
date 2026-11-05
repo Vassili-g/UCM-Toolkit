@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { controlerLaStructure as structureDuComposant, controlerLaStructureParEtapes, controlerLeCatalogue, controlerLesAliasesManquants, type CatalogueDeReference, type ReleveDeComposant } from '../src/controles/index.js';
+import { controlerCouches, controlerLaStructure as structureDuComposant, controlerLaStructureParEtapes, controlerLeCatalogue, controlerLesAliasesManquants, type CatalogueDeReference, type ReleveDeComposant } from '../src/controles/index.js';
 
 const modes = [{ id: 'light', nom: 'Light' }, { id: 'dark', nom: 'Dark' }];
 const collection = (cle: string, role: 'theme' | 'components' | 'layout' | 'brands') => ({ cle, nom: cle, role, modes, etat: 'lue' as const });
@@ -251,6 +251,37 @@ test('C63 theme pose une question sans présélection quand plusieurs rôles de 
   ]));
   assert.equal(resultat?.correction, undefined);
   assert.deepEqual(resultat?.question?.candidats?.map(({ cle }) => cle).sort(), ['a', 'b']);
+});
+
+test('C63 theme pose une question quand deux variables du thème portent le même rôle au cran (S2-4)', () => {
+  const resultat = contournement(themeEtBrands([
+    variable('a', 'secondary/solid/default', 'theme'),
+    variable('a-bis', 'secondary/solid/default', 'theme'),
+  ]));
+  assert.equal(resultat?.correction, undefined);
+  assert.deepEqual(resultat?.question?.candidats?.map(({ cle }) => cle).sort(), ['a', 'a-bis']);
+});
+
+const liaisonsDuToken = (cle: string): ReleveDeComposant => ({
+  ...releve(),
+  variants: [{
+    id: 'secondary', nom: 'secondary', valeurs: { Palette: 'secondary' }, modesEffectifs: {}, layers: [{
+      id: 'fond', nom: 'fond', type: 'FRAME', parent: null, visible: true, opacite: 1, dimensions: { x: 0, y: 0, largeur: 100, hauteur: 40 },
+      peintures: [], valeursEnDur: [], liaisons: [{ champ: 'fills', indice: 0, porteur: 'fond', variable: { id: cle, cle, nom: cle, collection: 'components', distante: false } }],
+    }],
+  }],
+});
+
+test('C20 se tait sur une liaison dont le token reçoit déjà C63 theme, et C63 garde sa correction au cran (N-08)', () => {
+  const c = themeEtBrands([variable('theme-secondary', 'secondary/solid/default', 'theme')]);
+  const r = liaisonsDuToken('secondary');
+  assert.deepEqual(controlerCouches(r, c).map(({ code }) => code), []);
+  const duTheme = (catalogue: CatalogueDeReference) => controlerLaStructure(r, catalogue).find(({ id }) => id === 'C63:secondary:dark:theme');
+  assert.equal(duTheme(c)?.correction?.apres.cle, 'theme-secondary');
+  // Un alias vers un brands sans segment de mode n'est pas un contournement du thème : C20 le juge toujours.
+  const sansMode = cat(c.collections, c.variables.map((entree) => (entree.cle === 'brand-secondary' ? { ...entree, nom: 'secondary-700' } : entree)));
+  assert.deepEqual(controlerCouches(r, sansMode).map(({ code }) => code), ['C20']);
+  assert.equal(duTheme(sansMode), undefined);
 });
 
 test('C63 theme ne corrige pas une palette dont le sens est partagé entre les deux tables', () => {

@@ -136,7 +136,7 @@ export function operateursStructure(base: ComposantDeBase, graine: number = GRAI
     const [cible] = ciblesAuCran(degradation, token);
     degradation.cloner(cible);
     return undefined;
-  }, 'S2-4-cible-en-double');
+  });
   // 5. Sans sœur, la table et le sens de la palette désignent toujours la cible.
   s2('aucune sœur', [0], (degradation, token, soeurs) => {
     for (const soeur of soeurs) degradation.retirer(degradation.catalogue.variables, degradation.variable(soeur.cle));

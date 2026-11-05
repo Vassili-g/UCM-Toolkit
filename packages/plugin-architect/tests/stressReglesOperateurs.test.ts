@@ -46,7 +46,8 @@ test('F8 : un cas `mesure` cite sa question, et seul un cas `mesure` en cite une
     if (entree.question) assert.match(entree.question, /^(Q-F89-\d+|non constructible)$/, entree.id);
   }
   const enAttente = cas.filter(({ verdict }) => verdict === 'mesure').map(({ id }) => id);
-  assert.ok(enAttente.includes('G2-1') && enAttente.includes('H3-7') && enAttente.includes('M6-8'));
+  // Q-F89-1 à Q-F89-13 sont tranchées : ni les conteneurs, ni les noms de règle, ni les points du moteur ne sont plus en mesure.
+  for (const id of ['G2-1', 'G2-10', 'H3-7', 'H4-3', 'M1-21', 'M6-8', 'M7-20']) assert.ok(!enAttente.includes(id), id);
 });
 
 test('F8 : un oracle écrit à la main par opérateur', () => {

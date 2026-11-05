@@ -346,15 +346,25 @@ function controlerLesEchelles(catalogue: CatalogueDeReference): Constat[] {
   return resultats;
 }
 
-function* controlerLesContournements(releve: ReleveDeComposant, catalogue: CatalogueDeReference): Generator<void, Constat[]> {
+/** Un token de `components` qui vise `brands` par une variable à segment de mode, dans un mode : C63 `theme` l'accuse. */
+export interface ContournementDuTheme {
+  readonly variable: VariableDuCatalogue;
+  readonly palette: string;
+  readonly mode: { readonly id: string; readonly nom: string };
+  readonly alias: string;
+  readonly cible: VariableDuCatalogue;
+  readonly partieDeMode: string;
+}
+
+/** Les alias de `components` vers `brands` dont la cible porte un segment de mode, un par variable et par mode. Les contrôles des couches s'en servent pour ne pas accuser deux fois la même liaison. */
+export function* contournementsDuTheme(releve: ReleveDeComposant, catalogue: CatalogueDeReference): Generator<void, ContournementDuTheme[]> {
   const tokens = yield* tokensDuComposantParEtapes(releve, catalogue);
   const parCle = new Map<string, TokenDuComposant>();
   for (const token of tokens) {
     yield;
     parCle.set(token.variable.cle, token);
   }
-  const resultats: Constat[] = [];
-  const lectures: LecturesDeThemes = new Map();
+  const resultats: ContournementDuTheme[] = [];
   let parcourues = 0;
   for (const variable of catalogue.variables) {
     parcourues += 1;
@@ -382,22 +392,33 @@ function* controlerLesContournements(releve: ReleveDeComposant, catalogue: Catal
         if (partieDeMode !== undefined) break;
       }
       if (partieDeMode === undefined) continue;
-      const id = `C63:${variable.cle}:${mode.id}:theme`;
-      const constat: Constat = { id, code: 'C63', type: 'corriger', famille: 'liaisons', variants: [], layers: [], faits: { variable: variable.nom, mode: mode.nom, cible: cible.nom } };
-      const modeDuTheme = partieDeMode === undefined ? undefined : modeDuThemeReconnu(partieDeMode);
-      const cran = nombre(cible.nom.split('/').at(-1) ?? '');
-      const { candidats: trouves, sens } = modeDuTheme && cran !== undefined
-        ? variablesDeLaPaletteAuCran(catalogue, palette, modeDuTheme, cran, lectures)
-        : { candidats: [], sens: 'inconnu' as SensLu };
-      // Le cran vient de la table du kit et du sens lu dans le fichier. La recette de Palettes n'est pas lue (reste à faire dans Architect).
-      if (trouves.length === 1 && sens !== 'partage') constat.correction = {
-        id, sorte: 'alias-de-mode', cible: { variable: variable.cle, mode: mode.id }, avant: valeur.alias,
-        apres: { cle: trouves[0].cle, nom: trouves[0].nom },
-        aRelire: { axes: { mode: mode.nom }, regle: 'Un composant UCM vise le thème, pas une primitive à segment de mode.', avant: valeur.alias },
-      };
-      else constat.question = { id, candidats: trouves.map(({ cle, nom }) => ({ cle, nom })) };
-      resultats.push(constat);
+      resultats.push({ variable, palette, mode, alias: valeur.alias, cible, partieDeMode });
     }
+  }
+  return resultats;
+}
+
+function* controlerLesContournements(releve: ReleveDeComposant, catalogue: CatalogueDeReference): Generator<void, Constat[]> {
+  const contournements = yield* contournementsDuTheme(releve, catalogue);
+  const resultats: Constat[] = [];
+  const lectures: LecturesDeThemes = new Map();
+  for (const { variable, palette, mode, alias, cible, partieDeMode } of contournements) {
+    yield;
+    const id = `C63:${variable.cle}:${mode.id}:theme`;
+    const constat: Constat = { id, code: 'C63', type: 'corriger', famille: 'liaisons', variants: [], layers: [], faits: { variable: variable.nom, mode: mode.nom, cible: cible.nom } };
+    const modeDuTheme = modeDuThemeReconnu(partieDeMode);
+    const cran = nombre(cible.nom.split('/').at(-1) ?? '');
+    const { candidats: trouves, sens } = modeDuTheme && cran !== undefined
+      ? variablesDeLaPaletteAuCran(catalogue, palette, modeDuTheme, cran, lectures)
+      : { candidats: [], sens: 'inconnu' as SensLu };
+    // Le cran vient de la table du kit et du sens lu dans le fichier. La recette de Palettes n'est pas lue (reste à faire dans Architect).
+    if (trouves.length === 1 && sens !== 'partage') constat.correction = {
+      id, sorte: 'alias-de-mode', cible: { variable: variable.cle, mode: mode.id }, avant: alias,
+      apres: { cle: trouves[0].cle, nom: trouves[0].nom },
+      aRelire: { axes: { mode: mode.nom }, regle: 'Un composant UCM vise le thème, pas une primitive à segment de mode.', avant: alias },
+    };
+    else constat.question = { id, candidats: trouves.map(({ cle, nom }) => ({ cle, nom })) };
+    resultats.push(constat);
   }
   return resultats;
 }
@@ -422,7 +443,9 @@ function variablesDeLaPaletteAuCran(
     if (!prefixe) continue;
     sens = lireLeSens(mode, lesJumelles(catalogue, prefixe, modeLu).vise);
     const sensLus: readonly SensDuTheme[] = sens === 'normal' || sens === 'inverse' ? [sens] : ['normal', 'inverse'];
-    for (const [role, variable] of prefixe.presentes) {
+    // Un rôle écrit deux fois occupe le cran avec deux variables : la correction n'a plus un seul candidat.
+    const occupants = [...prefixe.presentes, ...prefixe.doublons.map(({ role, variable }) => [role, variable] as const)];
+    for (const [role, variable] of occupants) {
       if (variable.distante || !sensLus.some((lu) => cranDeLaVariable(role, mode, lu) === cran)) continue;
       candidats.set(variable.cle, variable);
     }

@@ -408,7 +408,10 @@ La grammaire des règles décrit ce que le moteur lit dans Figma, donc ce
 document. Une instance de `.componentRules` sur la même page, dont le calque
 `component-name` écrit le nom du composant documenté ; une instance de
 `.ruleItem` par règle, dont un calque nomme le tag. Un calque lu qui contient
-le marqueur `[À compléter]` rend sa règle, ou son conteneur, non rédigé.
+le marqueur `[À compléter]` rend sa règle, ou son conteneur, non rédigé. Les noms se
+comparent sans casse, espaces, tirets ni soulignés ; seule l'instance la plus proche
+du calque `component-name` compte, et deux composants de la page au même nom ainsi
+compacté ne lisent aucun conteneur (point `nom-compacte-double`).
 Chaque règle n'a de sens qu'à côté du champ qu'elle remplit : `@icons` et sa
 politique, son slot, sa prop runtime, ses variants forment une seule
 explication, et la couper en deux la rendrait illisible des deux côtés.

@@ -71,7 +71,7 @@ function couple3(registre: Registre): void {
     const posees = reglesDe(base).filter((regle) => regle.cible?.startsWith(`${cle}.`)).map((regle) => ({ ...regle, cible: regle.cible!.replace(`${cle}.`, `${faute}.`) }));
     registre.ajouter('I3', {
       description: `${nom} : « ${propriete.nom} » sans règle et « ${faute} » posée avec les mêmes valeurs`,
-      attendus: [{ code: 'C45', cle: `regle-renommee|${compacter(faute)}`, forme: 'a-faire' }], codesJuges: ['C43', 'C45'], question: 'Q-F89-13',
+      attendus: [{ code: 'C45', cle: `regle-renommee|${compacter(cle)}`, forme: 'a-faire' }], codesJuges: ['C43', 'C45'],
       jouer: jouerLaPage(avecLesRegles(base, [...sans, ...posees])),
     });
   }
@@ -104,7 +104,7 @@ function couple4(registre: Registre): void {
 function couple5(registre: Registre): void {
   for (const description of ['paddingLeft', 'itemSpacing']) {
     registre.ajouter('I5', {
-      description: `constat C29 du kit sur ${description} ignoré, point C30 du moteur de même clé`, attendus: [], codesJuges: ['C30'], question: 'Q-F89-12', rattachement: 'E-30',
+      description: `constat C29 du kit sur ${description} ignoré, point C30 du moteur de même clé`, attendus: [], codesJuges: ['C30'], rattachement: 'E-30',
       jouer: () => chaineAvecLePointDuMoteur({ operateur: 'Z1', code: 'C29', description }, { ignorer: true }),
     });
   }

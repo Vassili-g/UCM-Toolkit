@@ -146,7 +146,7 @@ test('E4.8 : deux collections de thème, deux variables d’un même rôle, des 
   const role = unique([c82(id, { genre: 'role-en-double', variable: 'surface/default', groupe: 'primary', variables: 2 }, { question: { id, candidats: [{ nom: 'theme/primary/surface/default' }, { nom: 'theme/primary/Surface/Default' }] } })]);
   assert.equal(texte(role.phrase), '2 variables portent le rôle `surface/default`.');
   assert.deepEqual(role.choix.map(({ libelle }) => libelle), ['Garder theme/primary/surface/default', 'Garder theme/primary/Surface/Default']);
-  assert.equal(role.statut, 'Supprimez les autres dans la fenêtre Variables');
+  assert.equal(role.statut, 'Les autres deviendront des alias de celle que vous gardez. Supprimez-les ensuite dans la fenêtre Variables');
   const inaccessible = unique([{ ...c82('C63:b:cible-inaccessible', { genre: 'cible-inaccessible', collection: 'brands', cibles: 3, alias: 12 }), code: 'C63', type: 'info' }]);
   assert.equal(texte(inaccessible.phrase), 'Les cibles rangées dans `brands` ne sont pas lues, car aucune library n’est choisie.');
   assert.equal(inaccessible.statut, 'Choisissez la library du fichier pour les contrôler');

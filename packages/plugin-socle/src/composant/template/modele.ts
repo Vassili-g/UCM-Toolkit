@@ -14,6 +14,7 @@
  */
 import { estUneValeurDesactivee } from '@ucm-kit/core/format';
 import type { Contract } from '@ucm-kit/core/format';
+import { nomCompacte } from '@ucm-kit/core/referentiel';
 import type { RuleTag } from '@ucm-kit/core/referentiel';
 
 /** Ce que le modèle lit du contrat, et rien d'autre. */
@@ -140,9 +141,9 @@ export function modeleDeRegles(nom: string, contrat: ContratLu): ModeleDeRegles 
   return { nom, sections };
 }
 
-/** Compacte une cible de règle pour la comparer : sans espaces, en minuscules. */
+/** Compacte une cible de règle pour la comparer, comme un nom de composant : sans espaces, tirets, soulignés ni suffixe `#1:2`, en minuscules ; le point reste. */
 export function cibleCompacte(cible: string): string {
-  return cible.replace(/\s+/g, '').toLowerCase();
+  return nomCompacte(cible);
 }
 
 /** L'axe d'une cible : ce qui précède son dernier point. */
