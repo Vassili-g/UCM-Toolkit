@@ -4,7 +4,8 @@
 const CAUSES_DE_LIMITE: Readonly<Record<string, string>> = {
   degrade: 'est un dégradé',
   image: 'est une image',
-  'peinture-superposee': 'superpose plusieurs peintures',
+  'peinture-superposee': 'superpose plusieurs remplissages',
+  'couleur-hors-gamut': 'a une valeur de couleur invalide',
   'mode-de-fusion': 'a un mode de fusion',
   'flou-arriere-plan': 'est posé sur un flou d’arrière-plan',
   'mode-illisible': 'prend une couleur que le plugin ne sait pas lire',

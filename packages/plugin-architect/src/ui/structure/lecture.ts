@@ -358,7 +358,7 @@ function statutDe(genre: GenreDeConstat, lecture: Lecture): string | null {
     case 'mal-rangee':
       return TEXTES.deplacerDansLeTheme;
     case 'scopes':
-      return null;
+      return TEXTES.reglerLesScopes;
   }
 }
 

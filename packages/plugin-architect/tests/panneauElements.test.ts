@@ -220,7 +220,7 @@ test('C49 et C50 avec limite : « Contraste non mesuré : » suivi de la cause',
   const limite = (cause: string, champ: string, code: 'C49' | 'C50' = 'C49'): string => ligneDInformation(information({ id: `${code}:${cause}`, code, variants: ['v:1'], layers: ['l:icon'], faits: { cause, champ, usage: 'texte', calque: 'icon' } }), contexteDeLigne).phrase;
   assert.equal(limite('degrade', 'fills'), 'Contraste non mesuré : le fill du layer `icon` est un dégradé.');
   assert.equal(limite('image', 'strokes', 'C50'), 'Contraste non mesuré : le stroke du layer `icon` est une image.');
-  assert.equal(limite('peinture-superposee', 'fills'), 'Contraste non mesuré : le fill du layer `icon` superpose plusieurs peintures.');
+  assert.equal(limite('peinture-superposee', 'fills'), 'Contraste non mesuré : le fill du layer `icon` superpose plusieurs remplissages.');
   assert.equal(limite('mode-de-fusion', 'fills'), 'Contraste non mesuré : le fill du layer `icon` a un mode de fusion.');
   assert.equal(limite('flou-arriere-plan', 'fills'), 'Contraste non mesuré : le fill du layer `icon` est posé sur un flou d’arrière-plan.');
   assert.equal(limite('fond-indetermine', 'strokes', 'C50'), 'Contraste non mesuré : le stroke du layer `icon` est posé sur un fond que le plugin ne détermine pas.');

@@ -9,7 +9,7 @@ Fichiers : `packages/plugin-architect/src/sandbox/structure.ts`, `packages/plugi
 `packages/plugin-architect/src/ui/structure/`, `packages/plugin-architect/src/ui/textes/`.
 Ajoutez les régressions voisines de chaque autorité modifiée.
 
-- [ ] E4.2 Chaque motif de saut a un texte (E-24). Une lecture qui lève, un catalogue `null` ou un refus de Figma ne disent plus « Rien à
+- [x] E4.2 Chaque motif de saut a un texte (E-24). Une lecture qui lève, un catalogue `null` ou un refus de Figma ne disent plus « Rien à
   régler » (E-23).
 - [x] E4.3 Ignorer la proposition d'un constat de scopes range le constat sous Ignorés (E-21).
 - [x] E4.5 La correction `alias-de-mode` part à l'écriture (E-28).
@@ -97,3 +97,5 @@ Commandes : `npm run typecheck --workspace ucm-architect-plugin` rend 0. `npm ru
 Documents : `CARTE.md`, `SPEC.md` (intégrité de la structure) et `invariants/explorateur.md` d'Architect.
 
 Reste : les cinq phrases de motif, la phrase des réglages illisibles, le statut de la carte de scopes ; relecture de la galerie par le mainteneur.
+
+Textes posés par la conversation principale : les cinq motifs de saut manquants de E4.2 dans `TEXTES.motifDeSaut` (`src/ui/textes/structure.ts`), le statut de la carte de scopes (`reglerLesScopes`), et le statut du rôle en double, qui dit que les autres variables deviennent des alias de la gardée. Aucune confirmation n’est ajoutée avant une fusion : l’Historique la défait.
