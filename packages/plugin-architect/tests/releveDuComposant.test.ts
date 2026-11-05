@@ -12,6 +12,42 @@ import { atelierDeCalques, collectionFigma, portDeTest, variableFigma } from './
 const alias = (id: string) => ({ type: 'VARIABLE_ALIAS', id });
 const boite = (x: number, y: number, width: number, height: number) => ({ x, y, width, height });
 
+test('E9.12 : chaque layer relève son mode de fusion et seulement le flou d’arrière-plan visible', async () => {
+  const a = atelierDeCalques();
+  const enfants = [
+    a.calque('flou', 'FRAME', { blendMode: 'MULTIPLY', effects: [{ type: 'BACKGROUND_BLUR', visible: true }] }),
+    a.calque('masque', 'FRAME', { blendMode: 'NORMAL', effects: [{ type: 'BACKGROUND_BLUR', visible: false }] }),
+    a.calque('autre', 'FRAME', { blendMode: 'PASS_THROUGH', effects: [{ type: 'LAYER_BLUR', visible: true }] }),
+  ];
+  const jeu = a.calque('variant', 'COMPONENT', { blendMode: 'PASS_THROUGH', effects: [] }, enfants);
+  const issue = await lireLeReleve(a.port(portDeTest([], []).port), jeu);
+  assert.equal(issue.statut, 'lu');
+  if (issue.statut !== 'lu') return;
+  assert.deepEqual(issue.releve.variants[0].layers.map((layer) => ({
+    id: layer.id, blendMode: Reflect.get(layer, 'blendMode'), flouArrierePlan: Reflect.get(layer, 'flouArrierePlan'),
+  })), [
+    { id: 'variant', blendMode: 'PASS_THROUGH', flouArrierePlan: false },
+    { id: 'flou', blendMode: 'MULTIPLY', flouArrierePlan: true },
+    { id: 'masque', blendMode: 'NORMAL', flouArrierePlan: false },
+    { id: 'autre', blendMode: 'PASS_THROUGH', flouArrierePlan: false },
+  ]);
+});
+
+test('E9.12 : les effets et le mode de fusion refusés restent des lectures manquées', async () => {
+  const a = atelierDeCalques();
+  const variant = a.calque('variant', 'COMPONENT', {
+    get blendMode() { throw new Error('mode refusé'); },
+    get effects() { throw new Error('effets refusés'); },
+  });
+  const issue = await lireLeReleve(a.port(portDeTest([], []).port), variant);
+  assert.equal(issue.statut, 'lu');
+  if (issue.statut !== 'lu') return;
+  assert.equal(issue.releve.variants[0].layers[0].blendMode, undefined);
+  assert.equal(issue.releve.variants[0].layers[0].flouArrierePlan, undefined);
+  assert.ok(issue.releve.lecture.manquees.some(({ champ }) => champ === 'blendMode'));
+  assert.ok(issue.releve.lecture.manquees.some(({ champ }) => champ === 'effects'));
+});
+
 test('C66 compare la taille de chaque instance à celle du variant hôte', async () => {
   const a = atelierDeCalques();
   const maitre = a.calque('maitre', 'COMPONENT', { name: 'Size=Small', key: 'cle-small' });

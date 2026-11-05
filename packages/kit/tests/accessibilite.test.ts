@@ -38,6 +38,30 @@ const cc = (releveDuTest: ReleveDeComposant, niveau: 'AA' | 'AAA' = 'AA', catalo
   controlerLAccessibilite(releveDuTest, catalogue, { niveau });
 const parCode = (constats: ReturnType<typeof cc>, code: string) => constats.filter((c) => c.code === code && !c.limite);
 
+test('E9.12 : le mode de fusion et le flou du layer ou du fond empêchent le rapport', () => {
+  for (const porteur of ['texte', 'ancetre', 'fond', 'frere']) {
+    for (const cause of ['mode-de-fusion', 'flou-arriere-plan']) {
+      const fond = racine();
+      const parent = { ...racine([]), id: 'p', parent: 'r' };
+      const t = { ...texte([solide('fills', gris(0.6))]), parent: 'p' };
+      const frere = { ...racine(), id: 'f', parent: 'p', type: 'RECTANGLE' };
+      const layer = porteur === 'texte' ? t : porteur === 'ancetre' ? parent : porteur === 'frere' ? frere : fond;
+      Object.assign(layer, cause === 'mode-de-fusion' ? { blendMode: 'MULTIPLY' } : { flouArrierePlan: true });
+      const constats = cc(releve([variant('a', [fond, parent, ...(porteur === 'frere' ? [frere] : []), t])]));
+      assert.deepEqual(constats.filter((c) => c.code === 'C49').map((c) => c.faits.cause), [cause], `${porteur}, ${cause}`);
+      assert.ok(constats.every((c) => c.faits.rapport === undefined));
+    }
+  }
+  for (const blendMode of ['NORMAL', 'PASS_THROUGH', undefined]) {
+    const t = Object.assign(texte([solide('fills', gris(0.6))]), { blendMode, flouArrierePlan: false });
+    assert.equal(parCode(cc(releve([variant('a', [racine(), t])])), 'C49').length, 1);
+  }
+  const horsDuFond = Object.assign(racine(), { flouArrierePlan: true, blendMode: 'MULTIPLY' });
+  const fondOpaque = { ...racine(), id: 'p', parent: 'r' };
+  const t = { ...texte([solide('fills', gris(0.6))]), parent: 'p' };
+  assert.equal(parCode(cc(releve([variant('a', [horsDuFond, fondOpaque, t])])), 'C49').length, 1);
+});
+
 test('le contraste par étapes conserve les rapports et cède au sein d’un variant', () => {
   const layers = [racine(), ...Array.from({ length: 90 }, (_, i) => texte([solide('fills', gris(0.6))], 14, 400, `t-${i}`))];
   const r = releve([variant('a', layers)]);
@@ -1262,6 +1286,11 @@ test('E9.13 : C49 et C50 ne jugent pas ce que le relevé dit ne pas avoir lu', (
   assert.equal(lire([{ layer: 't', champ: 'fills', motif: 'x' }], [racine(), texteFaible()]).length, 0, 'fills du texte');
   assert.equal(lire([{ layer: 't', champ: 'texte', motif: 'x' }], [racine(), texteFaible()]).length, 0, 'texte illisible');
   assert.equal(lire([{ layer: 'r', champ: 'fills', motif: 'x' }], [racine(), texteFaible()]).length, 0, 'fills du fond');
+  for (const champ of ['blendMode', 'effects']) {
+    for (const layer of ['r', 't']) {
+      assert.equal(lire([{ layer, champ, motif: 'x' }], [racine(), texteFaible()]).length, 0, `${champ} de ${layer} illisible`);
+    }
+  }
   assert.equal(lire([], [racine(), contour]).length, 1);
   assert.equal(lire([{ layer: 'c', champ: 'strokes', motif: 'x' }], [racine(), contour]).length, 0, 'strokes du contour');
   assert.equal(lire([], [racine(), texteFaible()], ['a']).length, 0, 'variant non lu');

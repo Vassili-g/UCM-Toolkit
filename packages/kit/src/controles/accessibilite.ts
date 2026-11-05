@@ -96,7 +96,7 @@ export const CIBLE_MINIMALE_PX = 24;
 export const CIBLE_TACTILE_PX = 44;
 export const TEXTE_MINIMAL_PX = 12;
 
-export type Cause = 'fond-indetermine' | 'degrade' | 'image' | 'peinture-superposee' | 'mode-de-fusion' | 'mode-illisible' | 'couleur-absente' | 'fond-de-repli' | 'couleur-hors-gamut';
+export type Cause = 'fond-indetermine' | 'degrade' | 'image' | 'peinture-superposee' | 'mode-de-fusion' | 'flou-arriere-plan' | 'mode-illisible' | 'couleur-absente' | 'fond-de-repli' | 'couleur-hors-gamut';
 export type Rgba = { r: number; g: number; b: number; a: number };
 /**
  * Une combinaison de modes. `sansTheme` n'existe que si les modes du thème sont entrés dans le produit pour le seul repli : la même
@@ -117,6 +117,11 @@ const OPAQUE = 1 - 1e-9;
 const dansLeGamut = (x: number): boolean => x >= 0 && x <= 1;
 const couleurDansLeGamut = (c: { r: number; g: number; b: number; a?: number }): boolean =>
   dansLeGamut(c.r) && dansLeGamut(c.g) && dansLeGamut(c.b) && dansLeGamut(c.a ?? 1);
+
+function limiteDuLayer(layer: LayerLu): Cause | null {
+  if (layer.blendMode !== undefined && layer.blendMode !== 'NORMAL' && layer.blendMode !== 'PASS_THROUGH') return 'mode-de-fusion';
+  return layer.flouArrierePlan ? 'flou-arriere-plan' : null;
+}
 
 export function controlerLAccessibilite(
   releve: ReleveDeComposant,
@@ -227,14 +232,14 @@ function estGrandTexte(fontSize: number, fontWeight: number): boolean {
   return fontSize >= 24 || (fontSize >= 56 / 3 && fontWeight >= 700);
 }
 
-/** Les fills du layer ou d'un de ses ancêtres n'ont pas été lus : son fond est inconnu. Un cycle de `parent` s'arrête au premier layer déjà vu. */
+/** Les remplissages, le mode de fusion ou les effets d'un ancêtre n'ont pas été lus : son fond est inconnu. Un cycle de `parent` s'arrête au premier layer déjà vu. */
 function lectureDuFondManquee(releve: Pick<ReleveDeComposant, 'lecture'>, variant: VariantLu, layer: LayerLu): boolean {
   if (releve.lecture.manquees.length === 0) return false;
   const parId = memoireDuVariant(variant).parId;
   const vus = new Set<string>();
   for (let courant: LayerLu | undefined = layer.parent ? parId.get(layer.parent) : undefined; courant && !vus.has(courant.id); courant = courant.parent ? parId.get(courant.parent) : undefined) {
     vus.add(courant.id);
-    if (lectureManquee(releve, courant.id, 'fills')) return true;
+    if (['fills', 'blendMode', 'effects'].some((champ) => lectureManquee(releve, courant.id, champ))) return true;
   }
   return false;
 }
@@ -691,6 +696,8 @@ function couchesDuFond(
   const couches: Rgba[] = [];
   for (const { frere, recouvre } of freres) {
     if (recouvre === 'partie') return { limite: 'fond-indetermine', sansRepli: true };
+    const limite = limiteDuLayer(frere);
+    if (limite) return { limite };
     const pile = pileDePeintures(frere.peintures.filter((p) => p.champ === 'fills'), liaisonsPropres(frere), opaciteEffective(variant, frere), catalogue, variant, combinaison);
     if ('limite' in pile) return pile;
     couches.push(...pile.couches);
@@ -711,6 +718,8 @@ function couchesDesAncetres(
   while (courant && !vus.has(courant.id)) {
     vus.add(courant.id);
     if (courant.visible) {
+      const limite = limiteDuLayer(courant);
+      if (limite) return { limite };
       const fills = courant.peintures.filter((p) => p.champ === 'fills');
       const pile = pileDePeintures(fills, liaisonsPropres(courant), opaciteEffective(variant, courant), catalogue, variant, combinaison);
       if ('limite' in pile) return pile;
@@ -829,6 +838,7 @@ function* ciblesDeContraste(variant: VariantLu, niveau: NiveauWcag, catalogue: C
   for (const layer of layersVisibles(variant)) {
     yield;
     if (opaciteEffective(variant, layer) === 0) continue;
+    if (lectureManquee(releve, layer.id, 'blendMode') || lectureManquee(releve, layer.id, 'effects')) continue;
     // Ce que le relevé dit ne pas avoir lu n'est pas un fait : ni le layer, ni le fond qu'il demande ne se jugent (N-54).
     if (lectureDuFondManquee(releve, variant, layer)) continue;
     if (layer.type === 'TEXT') {
@@ -898,6 +908,8 @@ function* mesurerLeVariant(
     let enRepli = false;
     for (const combinaison of combinaisons) {
       yield;
+      const limite = limiteDuLayer(cible.layer);
+      if (limite) { causes.add(limite); continue; }
       const choisis = fondsDeMesure(variant, cible.layer, catalogue, combinaison);
       if ('limite' in choisis) { causes.add(choisis.limite); continue; }
       const pile = pileDePeintures(cible.peintures, cible.liaisons, opaciteEffective(variant, cible.layer), catalogue, variant, combinaison);

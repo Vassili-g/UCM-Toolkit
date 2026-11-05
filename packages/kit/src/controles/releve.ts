@@ -36,6 +36,9 @@ export interface LayerLu {
   parent: string | null;
   visible: boolean;
   opacite: number;
+  /** Absents d'un relevé ancien qui ne lisait pas ces propriétés du layer. */
+  blendMode?: string;
+  flouArrierePlan?: boolean;
   dimensions: { x: number; y: number; largeur: number; hauteur: number };
   peintures: PeintureLue[];
   strokeWeight?: number;

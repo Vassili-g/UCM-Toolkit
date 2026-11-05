@@ -28,7 +28,7 @@ import { peintureVisible, type LayerLu, type LiaisonLue, type PeintureLue, type 
 import { copierLaMiseEnPage, copierLesPeinturesParEtapes, lectureNative, lireLesPeinturesParEtapes, lireLesSegmentsCooperatif, lireLesSegmentsParEtapes, type ChampDeMiseEnPage, type ChampsDeMiseEnPage, type EtatDesSegments, type LecteurDeChamp, type PlageLue } from 'ucm-plugin-socle/src/composant/analyse/acquisition';
 import { champDe, type ChampDeSegment, type EtatEcrit, type MaitreLu, type ModeDeCollectionLu, type PeintureLue as PeintureCopiee, type TableDesChamps } from 'ucm-plugin-socle/src/composant/analyse/faits';
 import { creerMemoireDeRessources, type MemoireDeRessources } from 'ucm-plugin-socle/src/composant/analyse/ressources';
-import { BUDGET_DE_LAYERS_PAR_DEFAUT } from 'ucm-plugin-socle/src/composant/contract/budget';
+import { BUDGET_DE_LAYERS_PAR_DEFAUT, parcourirLesLayers, type EtapeDeLayer } from 'ucm-plugin-socle/src/composant/contract/budget';
 import { espacementSansEffet } from 'ucm-plugin-socle/src/composant/contract/nodeBindings';
 import { compter } from 'ucm-plugin-socle/src/composant/contract/mesure';
 import { AnalyseAnnulee, creerContexteCooperatif, type ContexteCooperatif, type JetonDAnnulation } from 'ucm-plugin-socle/src/composant/contract/porteeDAnalyse';
@@ -62,7 +62,7 @@ export type IssueDuReleve =
 
 type Manquee = ReleveDeComposant['lecture']['manquees'][number];
 type Brut = Record<string, unknown>;
-type Etape = { noeud: NoeudLu; parent: string | null; frontiere: boolean };
+type Etape = EtapeDeLayer<NoeudLu>;
 
 const estUnNombre = (valeur: unknown): valeur is number => typeof valeur === 'number' && Number.isFinite(valeur);
 const estUnObjet = (valeur: unknown): valeur is Brut => typeof valeur === 'object' && valeur !== null;
@@ -74,21 +74,16 @@ const champLu = (noeud: NoeudLu, champ: string, lire: LecteurDeChamp = lectureNa
 
 const estUnVariant = (noeud: NoeudLu, lire: LecteurDeChamp = lectureNative): boolean => noeud.type === 'COMPONENT' && lire<NoeudLu | null>(noeud, 'parent')?.type === 'COMPONENT_SET';
 
-/** Les layers d'un variant, racine d'abord ; une instance sous la racine n'est pas descendue. */
+/**
+ * Les layers d'un variant, racine d'abord ; une instance sous la racine n'est pas descendue. C'est `parcourirLesLayers` du budget, la
+ * fonction que le moteur emploie pour compter : le relevé et le moteur coupent au même variant (Q-F89-19).
+ */
 async function parcourir(racine: NoeudLu, cooperation: ContexteCooperatif, lire: LecteurDeChamp): Promise<Etape[]> {
   const etapes: Etape[] = [];
-  const aVisiter: Array<{ noeud: NoeudLu; parent: string | null }> = [{ noeud: racine, parent: null }];
-  while (aVisiter.length > 0) {
+  const parcours = parcourirLesLayers<NoeudLu>(racine, (noeud) => lire<readonly NoeudLu[] | undefined>(noeud, 'children'), (noeud) => noeud.type === 'INSTANCE');
+  for (let etape = parcours.next(); !etape.done; etape = parcours.next()) {
     await cooperation.cederSiBesoin();
-    const { noeud, parent } = aVisiter.pop() as { noeud: NoeudLu; parent: string | null };
-    const frontiere = noeud.type === 'INSTANCE' && noeud.id !== racine.id;
-    etapes.push({ noeud, parent, frontiere });
-    if (frontiere) continue;
-    const enfants = lire<readonly NoeudLu[] | undefined>(noeud, 'children') ?? [];
-    for (let rang = enfants.length - 1; rang >= 0; rang -= 1) {
-      await cooperation.cederSiBesoin();
-      aVisiter.push({ noeud: enfants[rang], parent: noeud.id });
-    }
+    etapes.push(etape.value);
   }
   return etapes;
 }
@@ -447,6 +442,25 @@ async function lireLeLayer(port: PortDuComposant, lecteur: Lecteur, etape: Etape
     liaisons: [],
     valeursEnDur: [],
   };
+  try {
+    const mode = champLu(noeud, 'blendMode', lecteur.lire);
+    layer.blendMode = typeof mode === 'string' ? mode : 'NORMAL';
+  } catch (erreur) {
+    if (erreur instanceof AnalyseAnnulee) throw erreur;
+    manquees.push({ layer: id, champ: 'blendMode', motif: messageDErreur(erreur) });
+  }
+  try {
+    const effets = champLu(noeud, 'effects', lecteur.lire);
+    layer.flouArrierePlan = false;
+    if (Array.isArray(effets)) for (const effet of effets) {
+      await lecteur.cooperation.cederSiBesoin();
+      if (estUnObjet(effet) && effet.type === 'BACKGROUND_BLUR' && effet.visible !== false) layer.flouArrierePlan = true;
+    }
+  } catch (erreur) {
+    if (erreur instanceof AnalyseAnnulee) throw erreur;
+    delete layer.flouArrierePlan;
+    manquees.push({ layer: id, champ: 'effects', motif: messageDErreur(erreur) });
+  }
   const strokes = await lireLesPeinturesParEtapes(noeud, 'strokes', lecteur.cooperation, compterLaLecture, lecteur.lire);
   for (const peinture of await peinturesDe('strokes', strokes, noeud.id, manquees, lecteur.cooperation)) {
     await lecteur.cooperation.cederSiBesoin();
@@ -655,9 +669,11 @@ async function lireLeReleveInterruptible(port: PortDuComposant, depart: NoeudLu,
       etapes = await parcourir(composant, cooperation, lire);
     } catch (erreur) {
       if (erreur instanceof AnalyseAnnulee) throw erreur;
+      // Un variant dont le parcours lève est une lecture manquée de ce variant : les suivants se lisent et se comptent comme avant.
       manquees.push({ layer: composant.id, champ: 'children', motif: messageDErreur(erreur) });
+      continue;
     }
-    if (!coupe && etapes && (variants.length === 0 || layersLus + etapes.length <= budget)) {
+    if (!coupe && (variants.length === 0 || layersLus + etapes.length <= budget)) {
       const layers: LayerLu[] = [];
       for (const etape of etapes) {
         await cooperation.cederSiBesoin();
@@ -670,7 +686,7 @@ async function lireLeReleveInterruptible(port: PortDuComposant, depart: NoeudLu,
     }
     coupe = true;
     variantsNonLus.push(composant.name);
-    layersNonLus = etapes && layersNonLus !== 'inconnu' ? layersNonLus + etapes.length : 'inconnu';
+    layersNonLus = layersNonLus !== 'inconnu' ? layersNonLus + etapes.length : 'inconnu';
   }
 
   const proprietes = await proprietesDe(jeu, manquees, cooperation, lire);

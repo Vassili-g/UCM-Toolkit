@@ -39,7 +39,7 @@ export function jeuDe90Variants(options: { delai?: number } = {}) {
 /** Empreinte du relevé que `lireLeReleve` rendait au commit 34c64a65, avant le cache de promesses, sur ce jeu. */
 const EMPREINTE_DU_RELEVE = '1b431efa2b5964cc0b99251d1579b3abbe9c205dce067ef04d69791f2c806f15';
 
-test('une variable partagée par 90 layers se lit une fois, et le relevé reste celui d’avant', async () => {
+test('une variable partagée par 90 layers se lit une fois, et les autres faits restent ceux d’avant', async () => {
   const { jeu, appels, portDuComposant } = jeuDe90Variants();
   const issue = await lireLeReleve(portDuComposant, jeu);
   assert.equal(issue.statut, 'lu');
@@ -54,7 +54,17 @@ test('une variable partagée par 90 layers se lit une fois, et le relevé reste 
   assert.deepEqual(manquees[1], { layer: 'v1', champ: 'paddingLeft', motif: 'variable illisible' });
   assert.equal(releve.lecture.manquees.filter((entree) => entree.champ === 'paddingRight').length, 90);
   assert.ok(releve.variants.every((variant) => variant.layers[0].liaisons.filter((liaison) => liaison.illisible).length === 2));
-  assert.equal(createHash('sha256').update(JSON.stringify(releve)).digest('hex'), EMPREINTE_DU_RELEVE);
+  for (const variant of releve.variants) {
+    assert.equal(variant.layers[0].blendMode, 'NORMAL');
+    assert.equal(variant.layers[0].flouArrierePlan, false);
+  }
+  const autresFaits = {
+    ...releve,
+    variants: releve.variants.map((variant) => ({
+      ...variant, layers: variant.layers.map(({ blendMode, flouArrierePlan, ...layer }) => layer),
+    })),
+  };
+  assert.equal(createHash('sha256').update(JSON.stringify(autresFaits)).digest('hex'), EMPREINTE_DU_RELEVE);
 });
 
 test('des lectures qui se croisent ne demandent pas deux fois la même variable', async () => {
