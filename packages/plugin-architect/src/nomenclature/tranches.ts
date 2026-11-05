@@ -1,9 +1,9 @@
 /**
- * Mène un générateur du kit par tranches : le sandbox ne bloque jamais plus de huit millisecondes de suite,
- * et une pause rend la main entre deux tranches pour que les lectures et les nouvelles demandes passent.
+ * Mène un générateur du kit par tranches, avec un budget de huit millisecondes vérifié après chaque appel de `next`.
+ * Un pas peut dépasser ce budget. Une pause rend la main aux lectures et aux nouvelles demandes entre deux tranches.
  */
 
-/** Durée maximale d'une tranche, en millisecondes. */
+/** Budget d'une tranche, en millisecondes, hors dépassement du dernier pas. */
 export const DUREE_D_UNE_TRANCHE = 8;
 
 /** Ce que `mener` note de son propre cours : les cessions, le temps passé à attendre les pauses, et la tranche synchrone la plus longue. */
