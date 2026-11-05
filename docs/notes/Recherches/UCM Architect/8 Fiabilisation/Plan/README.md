@@ -240,7 +240,7 @@ G1a et G2 peuvent tourner ensemble, sans fichier commun.
 | [G1c](lots/G1c.md) Recalculs, simulations et projections dans le Worker | `implementeur-exigeant` | G1b | [ ] |
 | [G2](lots/G2.md) Structure affichée avant les noms | `implementeur-exigeant` | G0 | [x] 218e3e75 |
 | [G3](lots/G3.md) Messages fidèles aux étapes | `implementeur` | G2 | [ ] |
-| [G4](lots/G4.md) Pas synchrones bornés | `implementeur` | G1b | [ ] |
+| [G4](lots/G4.md) Pas synchrones bornés | `implementeur` | G1b | [ ] ad3bd578, 1926b45c, G4.1 et G4.2 faits, G4.3 reste ouvert |
 | [G5](lots/G5.md) Mesure de l’attente | `verificateur`, puis le mainteneur | G1c, G2, G3, G4 | [ ] |
 
 ## Phase F. Clôture
