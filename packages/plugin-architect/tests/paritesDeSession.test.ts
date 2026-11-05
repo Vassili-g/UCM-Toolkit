@@ -460,8 +460,9 @@ const MUTATIONS_LOCALES: ReadonlyArray<{ nom: string; mutation: string; rejouees
   // C81 juge un layer en dur par ses peintures : en ajouter une rejoue les couches.
   { nom: 'peinture', mutation: 'peinture d’un calque', rejouees: ['controle-accessibilite', 'controle-couches', 'controle-typographie', 'corrections', 'projection'] },
   { nom: 'taille du texte', mutation: 'texte d’un calque', rejouees: ['controle-accessibilite', 'corrections', 'projection'] },
-  // Les constats de contraste nomment la plage de texte (`0-5`) : sa fin change leurs identifiants, donc les corrections et la projection.
-  { nom: 'contenu du texte', mutation: 'contenu d’un texte', rejouees: ['controle-accessibilite', 'corrections', 'projection'] },
+  // Depuis E9b (Q-F7-12), l'identifiant d'un constat de contraste ne porte plus la plage de texte : changer sa fin rejoue les corrections (elles lisent le relevé), mais
+  // les constats gardent leurs identifiants et leur résultat égal fait reprendre la projection.
+  { nom: 'contenu du texte', mutation: 'contenu d’un texte', rejouees: ['controle-accessibilite', 'corrections'] },
   { nom: 'nom d’un calque', mutation: 'nom d’un calque', rejouees: ['controle-accessibilite', 'controle-couches', 'controle-mapping', 'controle-oublis', 'controle-typographie', 'corrections', 'projection'] },
   { nom: 'ajout d’un calque', mutation: 'ajout d’un calque', rejouees: ['controle-accessibilite', 'controle-couches', 'controle-mapping', 'controle-oublis', 'controle-typographie', 'corrections', 'projection'] },
 ];
