@@ -26,6 +26,12 @@ function leCalculDistant({ envoyer }: Contexte): PortDistantDuSandbox {
   return calculDistant;
 }
 
+/**
+ * Le port que les contrôles de structure partagent avec Nomenclature (`nomenclature/controlesDistants.ts`) : l'écran renvoie toutes les
+ * réponses du Worker sous les mêmes types, que `traiter` range auprès de ce seul port.
+ */
+export const portDuCalculDistant = leCalculDistant;
+
 function laSession(contexte: Contexte): Session {
   const { figma, envoyer } = contexte;
   session ??= creerSession({

@@ -10,7 +10,9 @@
  * les range telles quelles. Ni nom de variable ni identifiant n'y figure.
  */
 import type { Bilan, CodeDErreur, ConflitVue, DemandeDeNomenclature, GesteSurLesRegles, MessageDeNomenclature, Reponse, Selection } from './nomenclature';
+import type { Constat } from '@ucm-kit/core/controles';
 import type { EntreeDuCalcul } from '../nomenclature/calcul';
+import type { EntreeDesControles, HeuresDesControles } from '../nomenclature/controlesDeStructure';
 import type { Ecriture, ReglesDuFichier } from '../nomenclature/regles';
 
 /** Les lectures paginées que le Worker rend de son état : tout ce qui se lit sans calcul. */
@@ -29,6 +31,8 @@ export type StockageEnvoye = readonly (readonly [string, string])[];
 /**
  * Ce que le sandbox confie au Worker. `calculer` et `recalculer` créent la génération de la requête ; les autres travaux portent sur la génération
  * de la requête, que le Worker doit encore garder. `adopter` refait la projection de cette génération avec d'autres règles, sans recalculer.
+ * `controler` exécute les contrôles de structure du kit sur un catalogue : il ne touche à aucune génération de noms, et sa `generation` est le
+ * numéro de la demande de structure qui l'envoie.
  */
 export type TravailDesNoms =
   | { readonly sorte: 'calculer'; readonly entree: EntreeDuCalcul }
@@ -37,9 +41,10 @@ export type TravailDesNoms =
   | { readonly sorte: 'lire'; readonly lecture: DemandeDeLecture }
   | { readonly sorte: 'simuler'; readonly demande: number; readonly geste: GesteSurLesRegles; readonly courant: StockageEnvoye }
   | { readonly sorte: 'preparer'; readonly preparation: TravailDePreparation; readonly courant: StockageEnvoye }
-  | { readonly sorte: 'renommages'; readonly selection: Selection };
+  | { readonly sorte: 'renommages'; readonly selection: Selection }
+  | { readonly sorte: 'controler'; readonly entree: EntreeDesControles };
 
-export const SORTES_DE_TRAVAIL: readonly TravailDesNoms['sorte'][] = ['calculer', 'recalculer', 'adopter', 'lire', 'simuler', 'preparer', 'renommages'];
+export const SORTES_DE_TRAVAIL: readonly TravailDesNoms['sorte'][] = ['calculer', 'recalculer', 'adopter', 'lire', 'simuler', 'preparer', 'renommages', 'controler'];
 
 /** Un renommage à écrire : le Worker rend l'identifiant et les deux noms, le sandbox le rapproche de ce qu'il a lu dans Figma. */
 export interface RenommageAEcrire { readonly id: string; readonly ancienNom: string; readonly nouveauNom: string }
@@ -52,6 +57,7 @@ export type ResultatDuTravail =
   | { readonly sorte: 'refus'; readonly conflits: readonly ConflitVue[] }
   | { readonly sorte: 'erreur'; readonly code: CodeDErreur }
   | { readonly sorte: 'renommages'; readonly renommages: readonly RenommageAEcrire[] }
+  | { readonly sorte: 'constats'; readonly catalogue: readonly Constat[]; readonly integrite: readonly Constat[]; readonly heures: HeuresDesControles }
   | { readonly sorte: 'perimee' };
 
 /** Sandbox vers interface : le travail, que l'interface passe au Worker. */
@@ -101,6 +107,7 @@ function estResultatDuTravail(resultat: unknown, generation: number): resultat i
     case 'refus': return Array.isArray(resultat.conflits);
     case 'erreur': return typeof resultat.code === 'string';
     case 'renommages': return Array.isArray(resultat.renommages);
+    case 'constats': return Array.isArray(resultat.catalogue) && Array.isArray(resultat.integrite) && objet(resultat.heures) && objet(resultat.heures.catalogue) && objet(resultat.heures.integrite);
     case 'perimee': return true;
     default: return false;
   }

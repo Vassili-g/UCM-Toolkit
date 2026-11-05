@@ -24,7 +24,8 @@ export interface RequeteDistante {
 }
 
 export interface PortDeCalculDistant {
-  calculer(requete: { readonly demande: number; readonly generation: number; readonly travail: TravailDesNoms }): RequeteDistante;
+  /** `delai` remplace le délai du port pour cette requête : un travail court se replie plus tôt qu'un calcul de bilan. */
+  calculer(requete: { readonly demande: number; readonly generation: number; readonly travail: TravailDesNoms; readonly delai?: number }): RequeteDistante;
 }
 
 export interface OptionsDuPortDistant {
@@ -59,7 +60,7 @@ export function creerPortDistant(options: OptionsDuPortDistant): PortDistantDuSa
   const attente = new Map<number, EnAttente>();
 
   return {
-    calculer({ demande, generation, travail }) {
+    calculer({ demande, generation, travail, delai: delaiDeLaRequete }) {
       const revision = options.revision();
       const envoyeA = maintenant();
       let fin: (issue: IssueDuCalculDistant) => void = () => {};
@@ -74,7 +75,7 @@ export function creerPortDistant(options: OptionsDuPortDistant): PortDistantDuSa
       // Une demande de même numéro ne peut pas rester en attente : la nouvelle remplace l'ancienne.
       attente.get(demande)?.fin({ type: 'annule' });
       attente.set(demande, { generation, revision, envoyeA, fin: conclure });
-      arreter = planifier(() => conclure({ type: 'repli', cause: 'delai' }), delai);
+      arreter = planifier(() => conclure({ type: 'repli', cause: 'delai' }), delaiDeLaRequete ?? delai);
       try {
         options.envoyer({ type: 'calcul-des-noms', demande, generation, revision, envoyeA, travail });
       } catch {

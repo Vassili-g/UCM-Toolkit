@@ -9,6 +9,7 @@
 import type { ResultatDuTravail, TravailDesNoms } from '../messages/calculDesNoms';
 import type { EtapeDesNoms } from '../messages/nomenclature';
 import { calculerLEtatDirect, construireEtat, menerSansCeder, moteurAnnonceur, moteurDuKit, recalculer, type Etat, type Moteur } from './calcul';
+import { controlerEtMesurer } from './controlesDeStructure';
 import {
   ErreurDeProtocole, conclureLaSimulation, debuterLaSimulation, messageDeSimulation, preparerLeGeste, renommagesDeLaSelection, repondreALaLecture,
 } from './gestes';
@@ -92,6 +93,8 @@ export function creerAtelier(moteur: Moteur = moteurDuKit): Atelier {
           const base = etats.get(generation);
           return base ? { sorte: 'renommages', renommages: renommagesDeLaSelection(base, travail.selection) } : { sorte: 'perimee' };
         }
+        // Les contrôles de structure ne lisent aucune génération de noms : le catalogue qu'ils jugent est dans le travail.
+        case 'controler': return { sorte: 'constats', ...controlerEtMesurer(travail.entree) };
       }
     },
   };
