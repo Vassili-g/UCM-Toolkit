@@ -22,5 +22,5 @@ export { clesDesTokensDeTailleAttendus, proposerLesCorrections, proposerLesCorre
 export { candidatsDeModele, constatsDeModele, proposerLaPropagation, type CandidatDeModele, type SorteDeModele } from './propagation.js';
 export { controlerLeTheme, controlerLeThemeParEtapes, controlerLesModes } from './theme.js';
 export { controlerLaStructure, controlerLaStructureParEtapes, controlerLeCatalogue, controlerLesAliasesManquants } from './structure.js';
-export { controlerLIntegriteUcm } from './integrite.js';
-export type { OptionsDIntegrite } from './integrite.js';
+export { controlerLIntegriteUcm, grouperLesCouches } from './integrite.js';
+export type { GroupeDeCouche, OptionsDIntegrite } from './integrite.js';

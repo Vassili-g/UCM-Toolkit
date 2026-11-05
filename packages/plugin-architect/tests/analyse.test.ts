@@ -166,7 +166,8 @@ test('le provisoire part après les contrôles du kit, le moteur part avec le ca
   // Le final range les constats comme avant : contrôles du kit, puis règles, puis moteur.
   const codes = final.constats.map(({ code }) => code);
   assert.deepEqual(final.constats.slice(0, provisoire.constats.length).map(({ id }) => id), provisoire.constats.map(({ id }) => id));
-  assert.deepEqual(codes, ['C64', 'C43', 'C44'], 'contrôle du kit, règles (C43), moteur');
+  // Les deux C25 viennent des corrections (E5.2) : le fond blanc de Root et la plage grise de Label n'ont pas de token ; C25 ne jugeait avant que les layers `title`.
+  assert.deepEqual(codes, ['C64', 'C43', 'C44', 'C25', 'C25'], 'contrôle du kit, règles (C43), moteur, puis les constats que les corrections ajoutent');
   assert.deepEqual(provisoire.ignores, ['C64:Label:sans-style'], 'le provisoire dit déjà quels constats sont ignorés');
   assert.deepEqual(provisoire.constats.map(({ code }) => code), ['C64']);
 
@@ -657,8 +658,14 @@ test('annuler au milieu de la remontée des fonds du thème abandonne les ancêt
   let visiblesLus = 0;
   const catalogue: CatalogueDeReference = {
     version: 1, library: null,
-    collections: [{ cle: 't', nom: 'themes', role: 'theme', etat: 'lue', modes: [] }],
-    variables: [{ cle: 'fg', nom: 'success/surface/foreground', collection: 't', etat: 'presente', type: 'COLOR' }],
+    collections: [
+      { cle: 't', nom: 'themes', role: 'theme', etat: 'lue', modes: [] },
+      { cle: 'c', nom: 'components', role: 'components', etat: 'lue', modes: [] },
+    ],
+    variables: [
+      { cle: 'fg', nom: 'success/surface/foreground', collection: 't', etat: 'presente', type: 'COLOR' },
+      { cle: 'tok', nom: 'alert/color/surface-foreground', collection: 'c', etat: 'presente', type: 'COLOR', valeurs: { m: { alias: 'fg' } } },
+    ],
   };
   const dimensions = { x: 0, y: 0, largeur: 100, hauteur: 40 };
   // Les ancêtres sont masqués : l'accessibilité les saute, seule la remontée du thème lit leurs peintures.
@@ -669,7 +676,7 @@ test('annuler au milieu de la remontée des fonds du thème abandonne les ancêt
   }));
   releve.variants[0].layers = [...ancetres, {
     id: 'texte', nom: 'Message', type: 'TEXT', parent: 'a255', visible: true, opacite: 1, dimensions, peintures: [], valeursEnDur: [],
-    liaisons: [{ champ: 'fills', indice: 0, porteur: 'texte', variable: { id: 'fg', cle: 'fg', nom: 'success/surface/foreground', collection: 't', distante: false } }],
+    liaisons: [{ champ: 'fills', indice: 0, porteur: 'texte', variable: { id: 'tok', cle: 'tok', nom: 'alert/color/surface-foreground', collection: 'c', distante: false } }],
   }];
   let horloge = 0;
   const traiter = traiterAvec({
@@ -1293,6 +1300,7 @@ function catalogueDeStructure(): CatalogueDeReference {
       { cle: 'surface-fg', nom: 'success/surface/foreground', collection: 'theme', type: 'COLOR', etat: 'presente', scopes: ['TEXT_FILL'] },
       { cle: 'page-fg', nom: 'success/page/foreground', collection: 'theme', type: 'COLOR', etat: 'presente' },
       { cle: 'surface-bg', nom: 'success/surface/default', collection: 'theme', type: 'COLOR', etat: 'presente' },
+      { cle: 'texte-surface', nom: 'Button/color/primary/contained/default/foreground', collection: 'components', type: 'COLOR', etat: 'presente', valeurs: { light: { alias: 'surface-fg' } } },
       { cle: 'primary', nom: 'Button/color/primary/contained/default/background', collection: 'components', type: 'COLOR', etat: 'presente', valeurs: { light: { alias: 'theme-primary' } } },
       { cle: 'secondary', nom: 'Button/color/secondary/contained/default/background', collection: 'components', type: 'COLOR', etat: 'presente', valeurs: { light: { alias: 'brand-secondary' } } },
       { cle: 'theme-primary', nom: 'primary/solid/default', collection: 'theme', type: 'COLOR', etat: 'presente' },
@@ -1302,7 +1310,7 @@ function catalogueDeStructure(): CatalogueDeReference {
   };
 }
 
-/** Un bouton à trois axes et un texte lié à `success/surface/foreground`. */
+/** Un bouton à trois axes et un texte lié au token du composant qui vise `success/surface/foreground`. */
 function composantDeStructure(): ReleveDeComposant {
   return {
     ...releveDe('Button'),
@@ -1314,7 +1322,7 @@ function composantDeStructure(): ReleveDeComposant {
     variants: [{ id: 'v-Button', nom: 'Button défaut', valeurs: {}, modesEffectifs: {}, layers: [{
       id: 'text', nom: 'Message', type: 'TEXT', parent: null, visible: true, opacite: 1,
       dimensions: { x: 0, y: 0, largeur: 20, hauteur: 10 }, peintures: [], valeursEnDur: [],
-      liaisons: [{ champ: 'fills', indice: 0, porteur: 'text', variable: { id: 'surface-fg', cle: 'surface-fg', nom: 'success/surface/foreground', collection: 'theme', distante: false } }],
+      liaisons: [{ champ: 'fills', indice: 0, porteur: 'text', variable: { id: 'texte-surface', cle: 'texte-surface', nom: 'Button/color/primary/contained/default/foreground', collection: 'components', distante: false } }],
     }] }],
   };
 }

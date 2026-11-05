@@ -11,7 +11,9 @@ import { lectureManquee, peintureVisible, type LayerLu, type LiaisonLue, type Pe
 
 /**
  * Enrichit les constats avec une correction exacte ou une question non tranchée. C15 et C17 cèdent la place à C22 et C24, qui
- * portent les mêmes faits et la proposition : un même écart ne se compte qu'une fois.
+ * portent les mêmes faits et la proposition : un même écart ne se compte qu'une fois. Une liaison qui se trompe sur plusieurs segments
+ * (palette et état, palette et rôle) reçoit une seule carte, qui vise le token corrigeant tous les segments (Q-F3-12) ; un C21 ou un C59 sur la
+ * même liaison se taisent quand cette carte propose le token (Q-F3-16).
  */
 export function proposerLesCorrections(releve: ReleveDeComposant, catalogue: CatalogueDeReference, constats: readonly Constat[]): Constat[] {
   const calcul = proposerLesCorrectionsParEtapes(releve, catalogue, constats);
@@ -32,7 +34,24 @@ export function* proposerLesCorrectionsParEtapes(releve: ReleveDeComposant, cata
   const gardes = constats.filter((constat) => constat.code !== 'C15' && constat.code !== 'C17');
   nouveaux.push(...(yield* constatsManquantsParEtapes(releve)), ...(yield* constatsDeValeursEnDurParEtapes(releve)));
   const enrichis: Constat[] = [];
-  for (const constat of [...gardes.filter((entree) => entree.code === 'C16'), ...nouveaux]) {
+  const aEnrichir = [...gardes.filter((entree) => entree.code === 'C16'), ...nouveaux];
+  const compagnons = ecartsDeLaMemeLiaison(aEnrichir);
+  const fusions = new Map<Constat, Pick<Constat, 'correction' | 'question' | 'faits'>>();
+  const absorbes = new Set<Constat>();
+  for (const [chef, autres] of compagnons) {
+    const ensemble = yield* corrigerEnsemble(chef, autres, releve, index);
+    if (!ensemble) continue;
+    fusions.set(chef, ensemble);
+    for (const autre of autres) absorbes.add(autre);
+  }
+  for (const constat of aEnrichir) {
+    if (absorbes.has(constat)) continue;
+    const ensemble = fusions.get(constat);
+    if (ensemble) {
+      enrichis.push({ ...constat, ...ensemble });
+      yield;
+      continue;
+    }
     const proposition = constat.code === 'C16'
       ? yield* corrigerAxe(constat, releve, catalogue, index)
       : constat.code === 'C22'
@@ -45,7 +64,95 @@ export function* proposerLesCorrectionsParEtapes(releve: ReleveDeComposant, cata
     enrichis.push(proposition ? { ...constat, ...proposition } : constat);
     yield;
   }
-  return [...gardes.filter((constat) => constat.code !== 'C16'), ...enrichis];
+  const corriges = new Set(enrichis.filter((constat) => constat.correction && LIAISON_A_SEGMENTS.includes(constat.code)).map(cleSansIndice));
+  return [...gardes.filter((constat) => constat.code !== 'C16' && !(CONSTATS_QUI_CEDENT.includes(constat.code) && corriges.has(cleSansIndice(constat)))), ...enrichis];
+}
+
+/** Les constats d'une liaison qui cèdent à la carte d'un segment faux : l'écart à la majorité (C21) et le texte de surface sans fond (C59). */
+const CONSTATS_QUI_CEDENT: readonly string[] = ['C21', 'C59'];
+
+/** Les constats qui jugent les segments du nom du token lié, dans l'ordre du nom : axes (C22), état (C16), rôle (C24). */
+const LIAISON_A_SEGMENTS: readonly string[] = ['C22', 'C16', 'C24'];
+
+/** La liaison que le constat vise : variant, layer, surcharge, champ, indice ou plage, et nom du token. */
+function cleDeLiaison(constat: Constat): string {
+  const f = constat.faits;
+  return [cleSansIndice(constat), f.indice ?? '', f.plageDebut ?? '', f.plageFin ?? ''].join('|');
+}
+
+/** La clé que C21 et C59 partagent avec les autres constats : ils ne portent ni indice ni plage, et nomment le token par `nom` ou `variable` au lieu de `token`. */
+function cleSansIndice(constat: Constat): string {
+  const f = constat.faits;
+  return [constat.variants[0], constat.layers[0], f.surcharge ?? '', f.champ, f.token ?? f.nom ?? f.variable].join('|');
+}
+
+/** Le segment du nom du token que le constat juge : le rôle pour C24, sinon l'axe. */
+function segmentJuge(constat: Constat): string { return constat.code === 'C24' ? 'role' : String(constat.faits.axe); }
+
+/**
+ * Pour le constat de chaque liaison à plusieurs segments faux qui précède les autres dans le nom du token, ces autres constats. Le nom
+ * place les axes (C22) avant l'état (C16), et l'état avant le rôle (C24) ; la carte reprend le code du premier.
+ */
+function ecartsDeLaMemeLiaison(constats: readonly Constat[]): Map<Constat, Constat[]> {
+  const groupes = new Map<string, Constat[]>();
+  for (const constat of constats) {
+    if (!LIAISON_A_SEGMENTS.includes(constat.code)) continue;
+    const cle = cleDeLiaison(constat);
+    const groupe = groupes.get(cle);
+    // Deux constats du même segment (le même axe, ou le rôle) ne corrigent pas deux segments : ils gardent chacun leur carte.
+    if (groupe) { if (!groupe.some((autre) => segmentJuge(autre) === segmentJuge(constat))) groupe.push(constat); }
+    else groupes.set(cle, [constat]);
+  }
+  const resultat = new Map<Constat, Constat[]>();
+  const rang = (constat: Constat): number => LIAISON_A_SEGMENTS.indexOf(constat.code);
+  for (const groupe of groupes.values()) {
+    if (groupe.length < 2) continue;
+    const ordonne = [...groupe].sort((a, b) => rang(a) - rang(b));
+    resultat.set(ordonne[0], ordonne.slice(1));
+  }
+  return resultat;
+}
+
+/**
+ * Une seule carte pour une liaison dont plusieurs segments sont faux : le nom visé remplace chaque segment par la valeur du variant ou
+ * par le rôle attendu. Un seul token présent donne la correction, sinon une question. `autresEcarts` nomme les segments que les autres
+ * constats auraient corrigés. Rend `undefined` quand un des constats ne se relit pas : chacun garde alors sa carte.
+ */
+function* corrigerEnsemble(constat: Constat, autres: readonly Constat[], releve: ReleveDeComposant, index: IndexDeCorrection): Generator<void, Pick<Constat, 'correction' | 'question' | 'faits'> | undefined> {
+  const nomToken = chaine(constat.faits.token);
+  const variant = variantDuConstat(constat, index);
+  const layer = layerDuConstat(constat, index);
+  const liaison = layer && nomToken ? liaisonDuConstat(constat, layer, nomToken) : undefined;
+  const tokens = yield* index.tokens();
+  const token = tokens.find((entree) => entree.variable.nom === nomToken);
+  if (!nomToken || !variant || !layer || !liaison || !token) return undefined;
+  const segments = nomToken.split('/');
+  const axes = index.axes();
+  const noms: string[] = [];
+  let versHover = false;
+  for (const ecart of [constat, ...autres]) {
+    if (ecart.code === 'C24') {
+      const role = chaine(ecart.faits.attendu);
+      if (!role) return undefined;
+      segments[segments.length - 1] = role;
+      noms.push(`rôle ${role}`);
+      continue;
+    }
+    const nomAxe = chaine(ecart.faits.axe);
+    const axe = Object.entries(axes).find(([, propriete]) => formeReconnue(propriete.nom) === formeReconnue(nomAxe ?? '')) as [AxeDuComposant, NonNullable<ReturnType<typeof axesDuReleve>[AxeDuComposant]>] | undefined;
+    const valeur = axe && variant.valeurs[axe[1].nom];
+    const segmentActuel = axe && segmentDAxe(token, axe[0]);
+    const rang = axe ? token.lecture.findIndex((segment) => segment.role === axe[0]) : -1;
+    if (!axe || !valeur || !segmentActuel || rang < 0 || rang >= segments.length) return undefined;
+    segments[rang] = valeur;
+    noms.push(`${axe[1].nom}=${valeur}`);
+    if (axe[0] === 'etat' && etatReconnu(valeur) === 'hover' && etatReconnu(segmentActuel) === 'default') versHover = true;
+  }
+  const candidats = presentesDeLaCollection(index, segments.join('/'), liaison.variable.collection);
+  const faits = { ...constat.faits, autresEcarts: noms.slice(1).join(', ') };
+  if (versHover) return { faits, question: { id: constat.id, candidats: candidats.map(({ cle, nom }) => ({ cle, nom })), indice: indiceHover(releve, index, layer, variant.id) } };
+  if (candidats.length !== 1) return { faits, ...question(constat, candidats) };
+  return { faits, correction: correctionDeLiaison(constat, layer, liaison, candidats[0], `Le token reprend ${noms.join(' et ')} du variant.`, variant.valeurs) };
 }
 
 function constatDerive(source: Constat, code: 'C22' | 'C24'): Constat {

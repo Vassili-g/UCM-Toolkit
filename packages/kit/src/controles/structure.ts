@@ -1,13 +1,12 @@
 /** Contrôles des scopes et des structures UCM du catalogue. */
-import { formeDuChemin, formeReconnue, termeReconnu } from '../referentiel/reconnaissance.js';
-import { REGISTRE_TAILLES } from '../referentiel/vocabulaire.js';
+import { formeDuChemin, formeReconnue } from '../referentiel/reconnaissance.js';
 import { modeDuThemeReconnu, variableDuThemeReconnue } from '../referentiel/theme.js';
 import { SUPPORT_DES_VARIABLES, cranDeLaVariable, type ModeDuTheme, type SensDuTheme } from '../emplois/dossiers.js';
 import { cheminDansLaCollection, collectionParCle, variableParCle, type CatalogueDeReference, type VariableDuCatalogue } from './catalogue.js';
 import type { Constat, Correction, Question } from './constat.js';
 import { lesJumelles, lesPrefixes, lireLeSens, modesDuTheme, type SensLu } from './integrite.js';
 import { controlerLesModes } from './theme.js';
-import { estLaFamilleCouleur, segmentDAxe, tokensDuComposantParEtapes, type TokenDuComposant } from './nommage.js';
+import { estLaFamilleCouleur, segmentDAxe, tailleReconnue, tokensDuComposantParEtapes, type TokenDuComposant } from './nommage.js';
 import type { ReleveDeComposant } from './releve.js';
 
 /** Les règles de structure qui lisent un composant : valeurs vides et contournements du thème. */
@@ -70,6 +69,7 @@ export function controlerLesAliasesManquants(catalogue: CatalogueDeReference): C
       if (!valeur || !('alias' in valeur)) continue;
       if (variableParCle(catalogue, valeur.alias)) continue;
       const voisine = (voisines().get(`${variable.collection}\u0000${dernierSegment(variable.nom)}`) ?? []).find((entree) => entree.cle !== variable.cle
+        && memeRoleAilleurs(catalogue, variable, entree)
         && entree.valeurs?.[mode.id] && 'alias' in entree.valeurs[mode.id]
         && variableParCle(catalogue, (entree.valeurs![mode.id] as { alias: string }).alias));
       const cibleVoisine = voisine && 'alias' in voisine.valeurs![mode.id] ? variableParCle(catalogue, (voisine.valeurs![mode.id] as { alias: string }).alias) : undefined;
@@ -80,6 +80,25 @@ export function controlerLesAliasesManquants(catalogue: CatalogueDeReference): C
     }
   }
   return resultat;
+}
+
+/**
+ * Une voisine cite le même rôle dans une autre palette (N-28) : pour `theme`, le même rôle reconnu sous un autre préfixe ; pour
+ * `brands` et `utility`, le même chemin à son premier segment près (la palette). Ailleurs, aucune voisine n'est citée : le kit ne sait
+ * pas où est la palette dans le nom.
+ */
+function memeRoleAilleurs(catalogue: CatalogueDeReference, variable: VariableDuCatalogue, voisine: VariableDuCatalogue): boolean {
+  const role = roleCollection(catalogue, variable);
+  if (role === 'theme') {
+    const reconnu = variableDuThemeReconnue(variable.nom);
+    if (!reconnu || variableDuThemeReconnue(voisine.nom) !== reconnu) return false;
+    const prefixe = (v: VariableDuCatalogue) => { const chemin = cheminDansLaCollection(v, catalogue); return formeDuChemin(chemin.slice(0, chemin.length - reconnu.split('/').length)); };
+    return prefixe(variable) !== prefixe(voisine);
+  }
+  if (role !== 'brands' && role !== 'utility') return false;
+  const chemin = cheminDansLaCollection(variable, catalogue);
+  const autre = cheminDansLaCollection(voisine, catalogue);
+  return chemin.length > 1 && chemin.length === autre.length && formeDuChemin(chemin.slice(1)) === formeDuChemin(autre.slice(1)) && formeReconnue(chemin[0]) !== formeReconnue(autre[0]);
 }
 
 /**
@@ -227,7 +246,7 @@ function* controlerLesValeursVides(releve: ReleveDeComposant, catalogue: Catalog
           for (const candidate of groupe) {
             yield;
             const valeurSoeur = candidate.variable.valeurs?.[mode.id];
-            if (candidate.variable.cle !== entree.variable.cle && !!valeurSoeur && 'valeur' in valeurSoeur && valeurSoeur.valeur !== null) soeurs.push(candidate);
+            if (candidate.variable.cle !== entree.variable.cle && !!valeurSoeur && ('alias' in valeurSoeur || valeurSoeur.valeur !== null)) soeurs.push(candidate);
           }
           if (soeurs.length < 2) continue;
           const id = `C63:${entree.variable.cle}:${mode.id}:vide`;
@@ -254,7 +273,7 @@ const PROFONDEUR_DES_ALIAS = 16;
 
 /** Le cran d'une échelle : un nombre (`1,5`) ou une taille du registre (`md`). */
 function estUnCranDEchelle(segment: string): boolean {
-  return nombre(segment) !== undefined || termeReconnu(REGISTRE_TAILLES, segment) !== undefined;
+  return nombre(segment) !== undefined || tailleReconnue(segment) !== undefined;
 }
 
 /**

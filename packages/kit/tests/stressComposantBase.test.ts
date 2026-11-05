@@ -39,9 +39,8 @@ test('un profil aux scopes larges, de chaque forme, ne donne aucun constat de la
   }
 });
 
-// Écart de mapping.ts : SUPPORT_DES_VARIABLES admet SHAPE_FILL pour un fond de forme, `porteeAttendue` n'attend que FRAME_FILL.
-// Aujourd'hui, l'icône et la surcharge de Glyph reçoivent C18 dans chaque variant.
-test('un profil aux scopes précis ne donne aucun constat de la portée', { todo: 'F3 K4 : porteeAttendue refuse SHAPE_FILL' }, () => {
+// `porteeAttendue` attend `SHAPE_FILL` pour le fond d'une forme (N-04, N-05) : l'icône et la surcharge de Glyph ne reçoivent plus C18.
+test('un profil aux scopes précis ne donne aucun constat de la portée', () => {
   for (const profil of [PROFIL_ALPHA, parId('p025'), parId('p029')]) {
     const base = composantDuProfil(profil);
     assert.deepEqual(constatsDeLaPortee(base.releve, base.catalogue), [], profil.id);

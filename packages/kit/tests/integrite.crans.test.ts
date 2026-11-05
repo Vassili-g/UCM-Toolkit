@@ -124,7 +124,7 @@ test('11. un cran absent de la rampe est le constat de rampe de I1, sans constat
   const catalogue = catalogueDeStructure();
   const sansDeux: CatalogueDeReference = { ...catalogue, variables: catalogue.variables.filter((entree) => entree.cle !== cleDeLaFixture('brands', 'primary/dark/200')) };
   const constats = controlerLIntegriteUcm(sansDeux, { ecriture });
-  const rampe = constats.filter((constat) => constat.id === 'C82:cran-absent:primary/dark/200');
+  const rampe = constats.filter((constat) => constat.id === 'C82:cran-absent:theme:primary/dark/200');
   assert.equal(rampe.length, 1);
   assert.match(String(rampe[0].faits.variables), /primary\/surface\/default/);
   assert.equal(constats.some((constat) => constat.faits.genre === 'cran' && constat.faits.variable === 'primary/surface/default'), false);

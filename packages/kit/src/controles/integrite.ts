@@ -80,13 +80,25 @@ const NOMBRE = /^\d+$/;
 /** Les contrôles d'intégrité UCM du catalogue, sans composant. Rend [] hors collection `theme` lue. */
 export function controlerLIntegriteUcm(catalogue: CatalogueDeReference, options: OptionsDIntegrite = {}): Constat[] {
   const themes = catalogue.collections.filter((collection) => collection.role === 'theme' && collection.etat === 'lue');
-  if (themes.length === 0) return [];
+  if (themes.length === 0) return fichierUcmSansTheme(catalogue) ? [themeNonReconnu()] : [];
   const index = indexerLesCibles(catalogue);
   return [
     ...themes.flatMap((theme) => controlerUnTheme(catalogue, theme, index, options)),
     ...controlerLaStructure(catalogue, themes),
     ...controlerLesThemesEnDouble(catalogue, themes),
   ];
+}
+
+/** Le fichier reconnaît au moins une collection UCM mais aucune `theme`. Sans aucun rôle reconnu, le fichier est libre : rien n'est dit. */
+const fichierUcmSansTheme = (catalogue: CatalogueDeReference): boolean =>
+  catalogue.collections.some((collection) => collection.role !== null) && !catalogue.collections.some((collection) => collection.role === 'theme');
+
+/**
+ * Aucune collection du fichier n'est reconnue comme `theme` (QV-4, N-88) : l'intégrité UCM n'est donc pas contrôlée. Une collection
+ * `theme` inaccessible est reconnue, et ne donne pas cette information.
+ */
+function themeNonReconnu(): Constat {
+  return { id: 'C82:theme-non-reconnu', code: 'C82', type: 'info', famille: 'liaisons', variants: [], layers: [], faits: { genre: 'theme-non-reconnu' } };
 }
 
 /** Un nom de copie que Figma ou le designer ajoute à la fin d'un nom de collection : `(copy)`, `(copie)`, `copy 2`, `(2)`. */
@@ -127,7 +139,7 @@ function indexerLesCibles(catalogue: CatalogueDeReference): IndexDesCibles {
 function controlerUnTheme(catalogue: CatalogueDeReference, theme: CollectionDuCatalogue, index: IndexDesCibles, options: OptionsDIntegrite): Constat[] {
   const modes = modesDuTheme(theme);
   const modeInconnu = modes.length < theme.modes.length;
-  const { prefixes, collectionEcrite, inconnues } = lesPrefixes(catalogue, theme);
+  const { prefixes, collectionEcrite, inconnues, nonChargees } = lesPrefixes(catalogue, theme);
   const ignores = new Set<VariableDuTheme>(options.rolesIgnores ?? []);
   const ecriture = options.ecriture ?? null;
   const constats: Constat[] = [];
@@ -140,7 +152,8 @@ function controlerUnTheme(catalogue: CatalogueDeReference, theme: CollectionDuCa
   };
 
   // Un nom proche d'un rôle (Q-F2-1) : la question passe avant la création du rôle, qui doublonnerait la variable fautive.
-  const protegees = new Set<string>();
+  // Un rôle que le fichier écrit pour une variable non chargée n'est pas absent : le kit ne l'a pas lue (N-31).
+  const protegees = new Set<string>(nonChargees);
   for (const variable of inconnues) {
     const proches = rolesProches(catalogue, variable, prefixes, ignores);
     if (proches.length === 0) continue;
@@ -229,7 +242,7 @@ function controlerUnTheme(catalogue: CatalogueDeReference, theme: CollectionDuCa
 
   for (const [cle, manque] of cransAbsents) {
     constats.push({
-      id: `C82:cran-absent:${cle}`, code: 'C82', type: 'corriger', famille: 'liaisons', variants: [], layers: [],
+      id: `C82:cran-absent:${theme.cle}:${cle}`, code: 'C82', type: 'corriger', famille: 'liaisons', variants: [], layers: [],
       faits: { genre: 'cran-absent', rampe: manque.rampe.join('/'), cran: manque.cran, variables: manque.variables.join(', ') },
     });
   }
@@ -473,13 +486,23 @@ function viser(
  */
 export function lesPrefixes(
   catalogue: CatalogueDeReference, theme: CollectionDuCatalogue,
-): { prefixes: Map<string, Prefixe>; collectionEcrite: string | undefined; inconnues: VariableDuCatalogue[] } {
+): { prefixes: Map<string, Prefixe>; collectionEcrite: string | undefined; inconnues: VariableDuCatalogue[]; nonChargees: Set<string> } {
   const prefixes = new Map<string, Prefixe>();
   const inconnues: VariableDuCatalogue[] = [];
+  /** Les rôles des variables de `theme` que le fichier nomme sans que le kit les ait lues : `forme du préfixe`, nul, rôle. */
+  const nonChargees = new Set<string>();
   let collectionDuTheme: string | undefined;
   let premiere = true;
   for (const variable of catalogue.variables) {
-    if (variable.collection !== theme.cle || variable.etat !== 'presente') continue;
+    if (variable.collection !== theme.cle) continue;
+    if (variable.etat === 'non-chargee') {
+      const roleNonLu = variableDuThemeReconnue(variable.nom);
+      const cheminNonLu = cheminDansLaCollection(variable, catalogue);
+      const longueurNonLue = roleNonLu?.split('/').length ?? 0;
+      if (roleNonLu && cheminNonLu.length >= longueurNonLue) nonChargees.add(`${formeDuChemin(cheminNonLu.slice(0, cheminNonLu.length - longueurNonLue))}\0${roleNonLu}`);
+      continue;
+    }
+    if (variable.etat !== 'presente') continue;
     const role = variableDuThemeReconnue(variable.nom);
     if (!role) {
       if (!variable.distante) inconnues.push(variable);
@@ -505,7 +528,7 @@ export function lesPrefixes(
       if (!prefixe.dossiers.has(formeDuDossier)) prefixe.dossiers.set(formeDuDossier, dossier);
     }
   }
-  return { prefixes, collectionEcrite: collectionDuTheme, inconnues };
+  return { prefixes, collectionEcrite: collectionDuTheme, inconnues, nonChargees };
 }
 
 function estUneVariableDePalette(role: VariableDuTheme): role is VariableDePalette {
@@ -676,21 +699,22 @@ function controlerLaStructure(catalogue: CatalogueDeReference, themes: readonly 
           const cible = variableParCle(catalogue, valeur.alias);
           const coucheCible = cible && collectionParCle(catalogue, cible.collection)?.role;
           if (cible && coucheCible && !ciblesAdmises(role, 'couleur').includes(coucheCible)) {
-            constats.push(constatDeStructure('couche', `${variable.cle}:${mode}`, { variable: variable.nom, mode: nomDuMode(mode), cible: cible.nom, coucheCible }));
+            constats.push(constatDeStructure('couche', `${variable.cle}:${mode}`, { variable: variable.nom, mode: nomDuMode(mode), cible: cible.nom, coucheCible, collection: collection.nom }));
           }
         } else if (valeur.valeur !== null && role !== 'primitives' && role !== 'components') {
           constats.push(constatDeStructure('valeur-directe', `${variable.cle}:${mode}`, { variable: variable.nom, mode: nomDuMode(mode) }));
         }
       }
-      if ((COLLECTIONS_SANS_PORTEE as readonly string[]).includes(role) && variable.scopes && variable.scopes.length > 0) {
-        const scopes = variable.scopes.join(',');
-        const constat = constatDeStructure('scopes', variable.cle, { variable: variable.nom, scopes });
-        constat.correction = {
-          id: constat.id, sorte: 'scope', cible: { variable: variable.cle }, avant: scopes, apres: { nom: '' },
-          aRelire: { regle: `Les variables de ${role} ne portent aucun scope (COLLECTIONS_SANS_PORTEE).`, avant: scopes },
-        };
-        constats.push(constat);
-      }
+    }
+    // Toute variable d'une couche sans portée est jugée, quel que soit son type : un scope sur un FLOAT de `primitives` passe sinon (N-32).
+    if ((COLLECTIONS_SANS_PORTEE as readonly string[]).includes(role) && variable.scopes && variable.scopes.length > 0) {
+      const scopes = variable.scopes.join(',');
+      const constat = constatDeStructure('scopes', variable.cle, { variable: variable.nom, scopes });
+      constat.correction = {
+        id: constat.id, sorte: 'scope', cible: { variable: variable.cle }, avant: scopes, apres: { nom: '' },
+        aRelire: { regle: `Les variables de ${role} ne portent aucun scope (COLLECTIONS_SANS_PORTEE).`, avant: scopes },
+      };
+      constats.push(constat);
     }
     if (role === 'theme') {
       if (variable.type !== 'COLOR' && variableDuThemeReconnue(variable.nom)) {
@@ -740,4 +764,38 @@ function correctionDeCreation(
     aRelire: { regle, avant: null },
     creation: { collection: theme.cle, nom, type: 'COLOR', scopes: [...SUPPORT_DES_VARIABLES[role].portees], alias },
   };
+}
+
+/** Les constats `couche` d'un couple de collections : une collection source et la couche que ses variables visent (QV-3, N-87). */
+export interface GroupeDeCouche {
+  readonly id: string;
+  /** Le nom de la collection dont les variables visent la couche. */
+  readonly collection: string;
+  readonly coucheCible: string;
+  /** Les noms des variables, sans doublon, dans l'ordre des constats. */
+  readonly variables: readonly string[];
+  /** Les noms des modes, sans doublon. */
+  readonly modes: readonly string[];
+  /** Les identifiants des constats `couche` du groupe : Ignorer et Appliquer restent par constat. */
+  readonly constats: readonly string[];
+}
+
+/** Regroupe les constats `couche` de C82 par collection source et par couche visée. Les autres constats n'y entrent pas. */
+export function grouperLesCouches(constats: readonly Constat[]): GroupeDeCouche[] {
+  const groupes = new Map<string, { collection: string; coucheCible: string; variables: Set<string>; modes: Set<string>; constats: string[] }>();
+  for (const constat of constats) {
+    if (constat.code !== 'C82' || constat.faits.genre !== 'couche') continue;
+    const collection = String(constat.faits.collection ?? '');
+    const coucheCible = String(constat.faits.coucheCible ?? '');
+    const cle = `${collection}\0${coucheCible}`;
+    let groupe = groupes.get(cle);
+    if (!groupe) { groupe = { collection, coucheCible, variables: new Set(), modes: new Set(), constats: [] }; groupes.set(cle, groupe); }
+    groupe.variables.add(String(constat.faits.variable));
+    groupe.modes.add(String(constat.faits.mode));
+    groupe.constats.push(constat.id);
+  }
+  return [...groupes.values()].map((groupe) => ({
+    id: `C82:couches:${groupe.collection}:${groupe.coucheCible}`, collection: groupe.collection, coucheCible: groupe.coucheCible,
+    variables: [...groupe.variables], modes: [...groupe.modes], constats: groupe.constats,
+  }));
 }

@@ -2,14 +2,20 @@
 import { formeDuChemin, formeReconnue, termeReconnu } from '../referentiel/reconnaissance.js';
 import { CIBLES_ABSOLUES_DU_NEUTRE, cranDeLaVariable, type ModeDuTheme, type VariableDuTheme } from '../emplois/dossiers.js';
 import { REGISTRE_COULEURS_ABSOLUES } from '../referentiel/architecture.js';
-import { GARANTIES, etatDuFond } from '../emplois/garanties.js';
+import { GARANTIES } from '../emplois/garanties.js';
 import { modeDuThemeReconnu, variableDuThemeReconnue } from '../referentiel/theme.js';
 import { cheminDansLaCollection, collectionParCle, variableParCle, type CatalogueDeReference, type VariableDuCatalogue } from './catalogue.js';
 import type { Constat, Correction, Question } from './constat.js';
+import { estDuComposant } from './nommage.js';
 import { lesJumelles, lesPrefixes, lireLeSens, type ModeLu, type SensLu } from './integrite.js';
 import type { LayerLu, LiaisonLue, ReleveDeComposant, VariantLu } from './releve.js';
 
-/** Détecte une couleur `surface/foreground` sans fond de surface dans un composant. Les alias de mode sont dans `controlerLesModes`. */
+/**
+ * Détecte un texte lié à `surface/foreground` sans fond de surface dans un composant (Q-F3-9, Q-F3-10). La liaison est celle d'un token de
+ * `components` : C59 suit son alias jusqu'au thème, et sa correction vise le token du même composant qui vise `page/foreground`, s'il est
+ * unique. Une liaison directe à `theme` n'a que C80 ; une liaison que l'instance tient de son composant principal n'est pas jugée.
+ * Les alias de mode sont dans `controlerLesModes`.
+ */
 export function controlerLeTheme(releve: ReleveDeComposant, catalogue: CatalogueDeReference): Constat[] {
   const calcul = controlerLeThemeParEtapes(releve, catalogue);
   let etape = calcul.next();
@@ -32,8 +38,11 @@ export function* controlerLeThemeParEtapes(releve: ReleveDeComposant, catalogue:
       for (const liaison of liaisonsDuLayer(layer)) {
         yield;
         if (!liaison) continue;
+        if (liaison.provenance === 'composant-principal') continue;
         const variable = yield* trouverVariable(catalogue, liaison.variable.cle);
-        if (!variable || collection(catalogue, variable)?.role !== 'theme' || variableDuThemeReconnue(variable.nom) !== 'surface/foreground') continue;
+        if (!variable || collection(catalogue, variable)?.role !== 'components') continue;
+        const themeVise = vers(catalogue, variable);
+        if (themeVise === 'inconnue' || !themeVise || variableDuThemeReconnue(themeVise.nom) !== 'surface/foreground') continue;
         if (yield* aUnFondDeSurface(layer, layers, catalogue)) continue;
         const constat: Constat = {
           id: `C59:${variant.id}:${layer.id}${liaison.surcharge ? `>${liaison.surcharge.id}` : ''}:${liaison.champ}:${liaison.indice ?? liaison.plage?.debut ?? ''}`,
@@ -45,13 +54,15 @@ export function* controlerLeThemeParEtapes(releve: ReleveDeComposant, catalogue:
             ...(liaison.plage ? { plageDebut: liaison.plage.debut, plageFin: liaison.plage.fin } : {}),
           },
         };
-        const cibleForme = formeDuNomRemplace(variable.nom, 'surface/foreground', 'page/foreground');
+        const cibleForme = formeDuNomRemplace(themeVise.nom, 'surface/foreground', 'page/foreground');
         const candidats: VariableDuCatalogue[] = [];
         let parcourues = 0;
         for (const entree of catalogue.variables) {
           parcourues += 1;
           if (parcourues % 256 === 0) yield;
-          if (entree.collection === variable.collection && entree.etat === 'presente' && formeDuChemin(entree.nom) === cibleForme) candidats.push(entree);
+          if (entree.collection !== variable.collection || entree.etat !== 'presente' || !estDuComposant(entree.nom, releve.jeu.nom)) continue;
+          const vise = vers(catalogue, entree);
+          if (vise && vise !== 'inconnue' && vise.collection === themeVise.collection && formeDuChemin(vise.nom) === cibleForme) candidats.push(entree);
         }
         if (candidats.length === 1) constat.correction = correctionDeLiaison(constat, layer, liaison, variable, candidats[0], 'Un texte lié à surface/foreground doit être posé sur un fond de surface visible.');
         else {
@@ -89,16 +100,47 @@ function* aUnFondDeSurface(layer: LayerLu, layers: ReadonlyMap<string, LayerLu>,
   return false;
 }
 
-/** Les fonds de `surface` que les garanties jugent, `subtle` excepté : un texte de surface se pose sur eux. */
+/** Les fonds de `surface` que les garanties jugent, `subtle` compris : un texte de surface se pose sur eux (Q-F3-10). */
 const FONDS_DE_SURFACE: ReadonlySet<string> = new Set(
-  GARANTIES.flatMap((garantie) => garantie.fonds).flatMap((fond) => ('variable' in fond && fond.variable.startsWith('surface/') && etatDuFond(fond) !== 'subtle' ? [fond.variable] : [])),
+  GARANTIES.flatMap((garantie) => garantie.fonds).flatMap((fond) => ('variable' in fond && fond.variable.startsWith('surface/') ? [fond.variable] : [])),
 );
 
-/** Une liaison illisible peut être un fond de surface : C59 ne l'accuse pas sur ce qu'il n'a pas lu. */
+/**
+ * Une liaison illisible, dont l'alias vise une variable que le catalogue ne porte pas, ou qui saute le token du composant (C80, C20),
+ * peut être un fond de surface : C59 ne l'accuse pas sur ce qu'il n'a pas lu. Un fond lié par un token de `components` se juge sur le
+ * thème que le token vise.
+ */
 function* estFondDeSurface(liaison: LiaisonLue, catalogue: CatalogueDeReference): Generator<void, boolean> {
   if (liaison.illisible) return true;
   const variable = yield* trouverVariable(catalogue, liaison.variable.cle);
-  return !!variable && collection(catalogue, variable)?.role === 'theme' && FONDS_DE_SURFACE.has(variableDuThemeReconnue(variable.nom) ?? '');
+  if (!variable) return false;
+  if (collection(catalogue, variable)?.role !== 'components') return true;
+  const vise = vers(catalogue, variable);
+  if (vise === 'inconnue') return true;
+  return !!vise && FONDS_DE_SURFACE.has(variableDuThemeReconnue(vise.nom) ?? '');
+}
+
+/**
+ * La variable de `theme` qu'une variable vise : elle-même dans `theme`, pour un token de `components` la cible commune de ses alias,
+ * suivie de token en token. `undefined` quand la variable porte une valeur directe ou que ses modes visent deux variables du thème ;
+ * `inconnue` quand un alias mène hors du catalogue ou dans une collection que ni `theme` ni `components` ne couvrent (C20 en répond).
+ */
+function vers(catalogue: CatalogueDeReference, variable: VariableDuCatalogue, vues: ReadonlySet<string> = new Set()): VariableDuCatalogue | 'inconnue' | undefined {
+  const role = collection(catalogue, variable)?.role;
+  if (role === 'theme') return variable;
+  if (role !== 'components' || vues.has(variable.cle)) return undefined;
+  let commune: VariableDuCatalogue | undefined;
+  for (const valeur of Object.values(variable.valeurs ?? {})) {
+    if (!('alias' in valeur)) return undefined;
+    const cible = variableParCle(catalogue, valeur.alias);
+    const roleCible = cible && collection(catalogue, cible)?.role;
+    if (!cible || (roleCible !== 'theme' && roleCible !== 'components')) return 'inconnue';
+    const vise = vers(catalogue, cible, new Set([...vues, variable.cle]));
+    if (vise === 'inconnue' || !vise) return vise;
+    if (commune && commune.cle !== vise.cle) return undefined;
+    commune = vise;
+  }
+  return commune;
 }
 
 /**
@@ -224,11 +266,25 @@ function* trouverVariable(catalogue: CatalogueDeReference, cle: string): Generat
   return undefined;
 }
 
+/** Les liaisons du layer et de ses plages, chacune une seule fois : une liaison de plage figure parfois dans les deux listes (N-14). */
 function* liaisonsDuLayer(layer: LayerLu): Generator<LiaisonLue | undefined> {
-  yield* layer.liaisons;
+  const vues = new Set<string>();
+  const nouvelle = (liaison: LiaisonLue): boolean => {
+    const cle = [liaison.champ, liaison.indice ?? '', liaison.plage?.debut ?? '', liaison.plage?.fin ?? '', liaison.surcharge?.id ?? '', liaison.variable.cle].join('|');
+    if (vues.has(cle)) return false;
+    vues.add(cle);
+    return true;
+  };
+  for (const liaison of layer.liaisons) {
+    yield;
+    if (nouvelle(liaison)) yield liaison;
+  }
   for (const plage of layer.texte?.plages ?? []) {
     yield;
-    yield* plage.liaisons;
+    for (const liaison of plage.liaisons) {
+      yield;
+      if (nouvelle(liaison)) yield liaison;
+    }
   }
 }
 /** La forme de `nom` dont la fin `suffixe` devient `remplacement`. */

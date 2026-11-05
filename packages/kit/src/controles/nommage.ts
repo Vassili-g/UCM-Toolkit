@@ -224,6 +224,11 @@ export function etatReconnu(valeur: string): string | undefined {
   return termeReconnu(REGISTRE_ETATS, valeur)?.id;
 }
 
+/** L'identifiant du terme de taille que la valeur écrit (`Medium` donne `md`), ou `undefined` si elle n'en écrit aucun. */
+export function tailleReconnue(valeur: string): string | undefined {
+  return termeReconnu(REGISTRE_TAILLES, valeur)?.id;
+}
+
 /** Vrai quand le segment écrit la famille `color`, sous l'une de ses formes tolérées (`Colors`, `colour`). */
 export function estLaFamilleCouleur(segment: string): boolean {
   return termeReconnu(FAMILLES_PRIMITIVES, segment)?.id === 'color';

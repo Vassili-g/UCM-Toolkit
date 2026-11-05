@@ -265,3 +265,39 @@ test('C63 theme ne corrige pas une palette dont le sens est partagé entre les d
   assert.equal(resultat?.correction, undefined);
   assert.deepEqual(resultat?.question?.candidats?.map(({ cle }) => cle), ['a']);
 });
+
+test('C63 vide : une palette sœur en alias compte comme une sœur qui a une valeur (N-15)', () => {
+  const c = cat([collection('components', 'components'), collection('theme', 'theme')], [
+    variable('p', 'Button/color/primary/contained/default/ring', 'components', { dark: { valeur: null } }),
+    variable('s', 'Button/color/secondary/contained/default/ring', 'components', { dark: { alias: 'cible' } }),
+    variable('t', 'Button/color/tertiary/contained/default/ring', 'components', { dark: { alias: 'cible' } }),
+    variable('cible', 'primary/solid/default', 'theme'),
+  ]);
+  const vide = controlerLaStructure(releve(), c).find(({ id }) => id === 'C63:p:dark:vide');
+  assert.deepEqual(vide?.question?.candidats.map(({ cle }) => cle), ['s', 't']);
+  const alias = cat(c.collections, c.variables.map((entree) => (entree.cle === 'p' ? { ...entree, valeurs: { dark: { alias: 'cible' } } } : entree)));
+  assert.equal(controlerLaStructure(releve(), alias).some(({ id }) => id.endsWith(':vide')), false);
+});
+
+test('alias-supprime ne cite que la voisine de même rôle dans une autre palette (N-28)', () => {
+  const c = cat([collection('theme', 'theme')], [
+    variable('source', 'primary/solid/default', 'theme', { light: { alias: 'removed' } }),
+    variable('meme-dossier', 'primary/surface/default', 'theme', { light: { alias: 'cible' } }),
+    variable('meme-segment', 'secondary/surface/default', 'theme', { light: { alias: 'cible' } }),
+    variable('cible', 'secondary/solid/default-cible', 'theme'),
+  ]);
+  const sans = controlerLeCatalogue(c).find(({ faits }) => faits.genre === 'alias-supprime');
+  assert.equal(sans?.faits.voisine, undefined);
+  c.variables.push(variable('bonne', 'secondary/solid/default', 'theme', { light: { alias: 'cible' } }));
+  const avec = controlerLeCatalogue(c).find(({ faits }) => faits.genre === 'alias-supprime');
+  assert.deepEqual([avec?.faits.voisine, avec?.faits.cibleDeLaVoisine], ['secondary/solid/default', 'secondary/solid/default-cible']);
+  const brands = cat([collection('brands', 'brands')], [
+    variable('source', 'primary/light/700', 'brands', { light: { alias: 'removed' } }),
+    variable('autre-cran', 'primary/light/800', 'brands', { light: { alias: 'cible' } }),
+    variable('autre-mode', 'primary/dark/700', 'brands', { light: { alias: 'cible' } }),
+    variable('cible', 'secondary/light/700-cible', 'brands'),
+  ]);
+  assert.equal(controlerLeCatalogue(brands).find(({ faits }) => faits.genre === 'alias-supprime')?.faits.voisine, undefined);
+  brands.variables.push(variable('bonne', 'secondary/light/700', 'brands', { light: { alias: 'cible' } }));
+  assert.equal(controlerLeCatalogue(brands).find(({ faits }) => faits.genre === 'alias-supprime')?.faits.voisine, 'secondary/light/700');
+});

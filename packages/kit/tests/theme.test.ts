@@ -25,36 +25,45 @@ function layer(id: string, parent: string | null, name: string, variable?: { key
 }
 const collection = (cle: string, role: 'theme' | 'brands', ms = modes) => ({ cle, nom: cle, role, modes: ms, etat: 'lue' as const });
 
+const composants = { cle: 'comp', nom: 'comp', role: 'components' as const, modes, etat: 'lue' as const };
+/** Un token de `components` aliasé, dans chaque mode, à une variable. */
+const jeton = (cle: string, nom: string, vers: string): CatalogueDeReference['variables'][number] =>
+  ({ cle, nom, collection: 'comp', type: 'COLOR', etat: 'presente', valeurs: { light: { alias: vers }, dark: { alias: vers } } });
+const liaisonDeJeton = (cle: string, nom: string) => ({ key: cle, name: nom, collection: 'comp' });
+
 const controlerLeTheme = (r: Parameters<typeof fondsDuComposant>[0], c: Parameters<typeof fondsDuComposant>[1]) => [...fondsDuComposant(r, c), ...controlerLesModes(c)];
 
 test('le thème par étapes conserve les constats, corrections et questions dans l’ordre des plages', () => {
-  const texte = layer('text', null, 'message', { key: 'fg-surface', name: 'success/surface/foreground', collection: 'themes' });
+  const texte = layer('text', null, 'message', liaisonDeJeton('tok-surface', 'alert/color/success-surface-foreground'));
   texte.texte = { style: null, plages: [{
     debut: 5, fin: 10, fontSize: 14, fontWeight: 400, peintures: [],
     liaisons: [{
       champ: 'fills', porteur: 'text', plage: { debut: 5, fin: 10 },
-      variable: { id: 'warning', cle: 'warning', nom: 'warning/surface/foreground', collection: 'themes', distante: false },
+      variable: { id: 'tok-warning', cle: 'tok-warning', nom: 'alert/color/warning-surface-foreground', collection: 'comp', distante: false },
     }],
   }] };
   const r = releve(texte);
-  const c = cat([collection('themes', 'theme')], [
+  const c = cat([collection('themes', 'theme'), composants], [
     { cle: 'fg-surface', nom: 'success/surface/foreground', collection: 'themes', type: 'COLOR', etat: 'presente' },
     { cle: 'fg-page', nom: 'success/page/foreground', collection: 'themes', type: 'COLOR', etat: 'presente' },
     { cle: 'warning', nom: 'warning/surface/foreground', collection: 'themes', type: 'COLOR', etat: 'presente' },
+    jeton('tok-surface', 'alert/color/success-surface-foreground', 'fg-surface'),
+    jeton('tok-page', 'alert/color/success-page-foreground', 'fg-page'),
+    jeton('tok-warning', 'alert/color/warning-surface-foreground', 'warning'),
   ]);
   const attendu = [
     {
       id: 'C59:v1:text:fills:0', code: 'C59', type: 'corriger', famille: 'liaisons', variants: ['v1'], layers: ['text'],
-      faits: { variable: 'success/surface/foreground', champ: 'fills', calque: 'message', indice: 0 },
+      faits: { variable: 'alert/color/success-surface-foreground', champ: 'fills', calque: 'message', indice: 0 },
       correction: {
-        id: 'C59:v1:text:fills:0', sorte: 'liaison', cible: { layer: 'text', champ: 'fills', indice: 0, variable: 'fg-surface' },
-        avant: 'success/surface/foreground', apres: { cle: 'fg-page', nom: 'success/page/foreground' },
-        aRelire: { regle: 'Un texte lié à surface/foreground doit être posé sur un fond de surface visible.', avant: 'success/surface/foreground' },
+        id: 'C59:v1:text:fills:0', sorte: 'liaison', cible: { layer: 'text', champ: 'fills', indice: 0, variable: 'tok-surface' },
+        avant: 'alert/color/success-surface-foreground', apres: { cle: 'tok-page', nom: 'alert/color/success-page-foreground' },
+        aRelire: { regle: 'Un texte lié à surface/foreground doit être posé sur un fond de surface visible.', avant: 'alert/color/success-surface-foreground' },
       },
     },
     {
       id: 'C59:v1:text:fills:5', code: 'C59', type: 'corriger', famille: 'liaisons', variants: ['v1'], layers: ['text'],
-      faits: { variable: 'warning/surface/foreground', champ: 'fills', calque: 'message', plageDebut: 5, plageFin: 10 },
+      faits: { variable: 'alert/color/warning-surface-foreground', champ: 'fills', calque: 'message', plageDebut: 5, plageFin: 10 },
       question: { id: 'C59:v1:text:fills:5', candidats: [] },
     },
   ];
@@ -65,36 +74,121 @@ test('le thème par étapes conserve les constats, corrections et questions dans
   assert.deepEqual(fondsDuComposant(r, c), attendu);
 });
 
-test('C59 propose page/foreground si surface/foreground n’a aucun fond de surface', () => {
+/** Le catalogue de la plupart des cas : le thème `success`, un token du composant par variable utile. */
+const catalogueDeBase = (...enPlus: CatalogueDeReference['variables']) => cat([collection('themes', 'theme'), composants], [
+  { cle: 'fg-surface', nom: 'success/surface/foreground', collection: 'themes', type: 'COLOR', etat: 'presente' },
+  { cle: 'fg-page', nom: 'success/page/foreground', collection: 'themes', type: 'COLOR', etat: 'presente' },
+  { cle: 'bg', nom: 'success/surface/default', collection: 'themes', type: 'COLOR', etat: 'presente' },
+  { cle: 'bg-subtle', nom: 'success/surface/subtle', collection: 'themes', type: 'COLOR', etat: 'presente' },
+  jeton('tok-surface', 'alert/color/surface-foreground', 'fg-surface'),
+  jeton('tok-page', 'alert/color/page-foreground', 'fg-page'),
+  jeton('tok-bg', 'alert/color/background', 'bg'),
+  jeton('tok-subtle', 'alert/color/subtle', 'bg-subtle'),
+  ...enPlus,
+]);
+const texteDeSurface = () => layer('text', null, 'message', liaisonDeJeton('tok-surface', 'alert/color/surface-foreground'));
+
+test('C59 suit l’alias du token du composant et propose le token qui vise page/foreground', () => {
+  const resultat = controlerLeTheme(releve(texteDeSurface()), catalogueDeBase()).find(({ code }) => code === 'C59');
+  assert.equal(resultat?.correction?.apres.cle, 'tok-page');
+  assert.equal(resultat?.correction?.avant, 'alert/color/surface-foreground');
+  assert.equal(resultat?.correction?.aRelire.avant, 'alert/color/surface-foreground');
+  assert.deepEqual(resultat?.correction?.cible, { layer: 'text', champ: 'fills', indice: 0, variable: 'tok-surface' });
+  assert.deepEqual(resultat?.faits, { variable: 'alert/color/surface-foreground', champ: 'fills', calque: 'message', indice: 0 });
+});
+
+test('C59 ne juge pas une liaison directe à theme : C80 en répond seul', () => {
   const r = releve(layer('text', null, 'message', { key: 'fg-surface', name: 'success/surface/foreground', collection: 'themes' }));
-  const c = cat([collection('themes', 'theme')], [
-    { cle: 'fg-surface', nom: 'success/surface/foreground', collection: 'themes', type: 'COLOR', etat: 'presente' },
-    { cle: 'fg-page', nom: 'success/page/foreground', collection: 'themes', type: 'COLOR', etat: 'presente' },
-  ]);
-  const resultat = controlerLeTheme(r, c).find(({ code }) => code === 'C59');
-  assert.equal(resultat?.correction?.apres.cle, 'fg-page');
-  assert.equal(resultat?.correction?.avant, 'success/surface/foreground');
-  assert.equal(resultat?.correction?.aRelire.avant, 'success/surface/foreground');
-  assert.deepEqual(resultat?.correction?.cible, { layer: 'text', champ: 'fills', indice: 0, variable: 'fg-surface' });
-  assert.deepEqual(resultat?.faits, { variable: 'success/surface/foreground', champ: 'fills', calque: 'message', indice: 0 });
+  assert.equal(controlerLeTheme(r, catalogueDeBase()).some(({ code }) => code === 'C59'), false);
+});
+
+test('C59 suit une chaîne de tokens du composant jusqu’au thème', () => {
+  const r = releve(layer('text', null, 'message', liaisonDeJeton('tok-relais', 'alert/color/relais')));
+  const resultat = controlerLeTheme(r, catalogueDeBase(jeton('tok-relais', 'alert/color/relais', 'tok-surface'))).find(({ code }) => code === 'C59');
+  assert.equal(resultat?.correction?.apres.cle, 'tok-page');
+});
+
+test('C59 pose une question, sans correction, quand deux tokens du composant visent page/foreground', () => {
+  const resultat = controlerLeTheme(releve(texteDeSurface()), catalogueDeBase(jeton('tok-page-bis', 'alert/color/page-foreground-bis', 'fg-page'))).find(({ code }) => code === 'C59');
+  assert.equal(resultat?.correction, undefined);
+  assert.deepEqual(resultat?.question?.candidats.map(({ cle }) => cle), ['tok-page', 'tok-page-bis']);
+});
+
+test('C59 ne propose pas le token page/foreground d’un autre composant', () => {
+  const resultat = controlerLeTheme(releve(texteDeSurface()), catalogueDeBase(jeton('tok-autre', 'button/color/page-foreground', 'fg-page'))).find(({ code }) => code === 'C59');
+  assert.equal(resultat?.correction?.apres.cle, 'tok-page');
 });
 
 test('C59 pose une question avec la localisation exacte de la peinture concernée', () => {
-  const cible = layer('text', null, 'message', { key: 'fg-surface', name: 'success/surface/foreground', collection: 'themes' });
+  const cible = texteDeSurface();
   cible.liaisons = [0, 1].map((rang) => ({
     ...cible.liaisons[0], indice: undefined, plage: rang === 0 ? { debut: 0, fin: 5 } : { debut: 5, fin: 10 },
   }));
-  const r = releve(cible);
-  const c = cat([collection('themes', 'theme')], [
-    { cle: 'fg-surface', nom: 'success/surface/foreground', collection: 'themes', type: 'COLOR', etat: 'presente' },
-    { cle: 'fg-page-1', nom: 'success/page/foreground', collection: 'themes', type: 'COLOR', etat: 'presente' },
-    { cle: 'fg-page-2', nom: 'success/page/foreground', collection: 'themes', type: 'COLOR', etat: 'presente' },
-  ]);
-  const resultat = controlerLeTheme(r, c).filter(({ code }) => code === 'C59');
+  const resultat = controlerLeTheme(releve(cible), catalogueDeBase(jeton('tok-page-bis', 'alert/color/page-foreground-bis', 'fg-page'))).filter(({ code }) => code === 'C59');
   assert.equal(resultat.length, 2);
   assert.deepEqual(resultat.map(({ faits }) => [faits.champ, faits.plageDebut, faits.plageFin]), [['fills', 0, 5], ['fills', 5, 10]]);
   assert.equal(resultat[1].correction, undefined);
-  assert.deepEqual(resultat[1].question?.candidats.map(({ cle }) => cle), ['fg-page-1', 'fg-page-2']);
+  assert.deepEqual(resultat[1].question?.candidats.map(({ cle }) => cle), ['tok-page', 'tok-page-bis']);
+});
+
+test('C59 énumère une plage une seule fois quand la liaison figure aussi parmi celles du layer', () => {
+  const texte = texteDeSurface();
+  const liaison = { ...texte.liaisons[0], indice: undefined, plage: { debut: 0, fin: 5 } };
+  texte.liaisons = [liaison];
+  texte.texte = { style: null, plages: [{ debut: 0, fin: 5, fontSize: 14, fontWeight: 400, peintures: [], liaisons: [liaison] }] };
+  const resultat = controlerLeTheme(releve(texte), catalogueDeBase()).filter(({ code }) => code === 'C59');
+  assert.deepEqual(resultat.map(({ id }) => id), ['C59:v1:text:fills:0']);
+});
+
+test('C59 ne juge pas une liaison que l’instance tient sans changement de son composant principal', () => {
+  const texte = texteDeSurface();
+  texte.liaisons[0].provenance = 'composant-principal';
+  assert.equal(controlerLeTheme(releve(texte), catalogueDeBase()).some(({ code }) => code === 'C59'), false);
+});
+
+test('C59 compte surface/subtle parmi les fonds de surface, lié directement ou par un token du composant', () => {
+  for (const fond of [{ key: 'bg-subtle', name: 'success/surface/subtle', collection: 'themes' }, liaisonDeJeton('tok-subtle', 'alert/color/subtle')]) {
+    const r = releve(layer('root', null, 'container', undefined, fond));
+    r.variants[0].layers.push(layer('text', 'root', 'message', liaisonDeJeton('tok-surface', 'alert/color/surface-foreground')));
+    assert.equal(controlerLeTheme(r, catalogueDeBase()).some(({ code }) => code === 'C59'), false, fond.name);
+  }
+});
+
+test('C59 reconnaît surface/foreground quelle que soit l’écriture et propose la variable du fichier', () => {
+  const r = releve(layer('text', null, 'message', liaisonDeJeton('tok-surface', 'Alert/Color/Surface-Foreground')));
+  const c = cat([collection('themes', 'theme'), composants], [
+    { cle: 'fg-surface', nom: 'Success/Surface/foreground', collection: 'themes', type: 'COLOR', etat: 'presente' },
+    { cle: 'fg-page', nom: 'Success/Page/foreground', collection: 'themes', type: 'COLOR', etat: 'presente' },
+    { cle: 'fg-page-autre', nom: 'Danger/Page/foreground', collection: 'themes', type: 'COLOR', etat: 'presente' },
+    jeton('tok-surface', 'Alert/Color/Surface-Foreground', 'fg-surface'),
+    jeton('tok-page', 'Alert/Color/Page-Foreground', 'fg-page'),
+    jeton('tok-page-autre', 'Alert/Color/Danger-Page-Foreground', 'fg-page-autre'),
+  ]);
+  const resultat = controlerLeTheme(r, c).find(({ code }) => code === 'C59');
+  assert.equal(resultat?.correction?.avant, 'Alert/Color/Surface-Foreground');
+  assert.deepEqual(resultat?.correction?.apres, { cle: 'tok-page', nom: 'Alert/Color/Page-Foreground' });
+});
+
+test('C59 reconnaît un nom en majuscules et sa cible écrite autrement', () => {
+  const r = releve(layer('text', null, 'message', liaisonDeJeton('tok-surface', 'ALERT/COLOR/SURFACE-FOREGROUND')));
+  const c = cat([collection('themes', 'theme'), composants], [
+    { cle: 'fg-surface', nom: 'SUCCESS/SURFACE/FOREGROUND', collection: 'themes', type: 'COLOR', etat: 'presente' },
+    { cle: 'fg-page', nom: 'success/page/foreground', collection: 'themes', type: 'COLOR', etat: 'presente' },
+    jeton('tok-surface', 'ALERT/COLOR/SURFACE-FOREGROUND', 'fg-surface'),
+    jeton('tok-page', 'alert/color/page-foreground', 'fg-page'),
+  ]);
+  assert.equal(controlerLeTheme(r, c).find(({ code }) => code === 'C59')?.correction?.apres.cle, 'tok-page');
+});
+
+test('C59 ne corrige jamais un token vers lui-même : sans cible, il pose une question sans candidat', () => {
+  const r = releve(texteDeSurface());
+  const c = cat([collection('themes', 'theme'), composants], [
+    { cle: 'fg-surface', nom: 'Success/Surface/Foreground', collection: 'themes', type: 'COLOR', etat: 'presente' },
+    jeton('tok-surface', 'alert/color/surface-foreground', 'fg-surface'),
+  ]);
+  const resultat = controlerLeTheme(r, c).find(({ code }) => code === 'C59');
+  assert.equal(resultat?.correction, undefined);
+  assert.deepEqual(resultat?.question?.candidats, []);
 });
 
 test('C59 disparaît quand un ancestor peint un fond surface visible', () => {
@@ -132,37 +226,6 @@ test('C60 pose une question si l’alias mode boucle ou si la cible calculée ma
   assert.deepEqual(resultat?.question?.candidats, []);
 });
 
-test('C59 reconnaît surface/foreground quelle que soit l’écriture et propose la variable du fichier', () => {
-  const r = releve(layer('text', null, 'message', { key: 'fg-surface', name: 'Success/Surface/foreground', collection: 'themes' }));
-  const c = cat([collection('themes', 'theme')], [
-    { cle: 'fg-surface', nom: 'Success/Surface/foreground', collection: 'themes', type: 'COLOR', etat: 'presente' },
-    { cle: 'fg-page', nom: 'Success/Page/foreground', collection: 'themes', type: 'COLOR', etat: 'presente' },
-    { cle: 'fg-page-autre', nom: 'Danger/Page/foreground', collection: 'themes', type: 'COLOR', etat: 'presente' },
-  ]);
-  const resultat = controlerLeTheme(r, c).find(({ code }) => code === 'C59');
-  assert.equal(resultat?.correction?.avant, 'Success/Surface/foreground');
-  assert.deepEqual(resultat?.correction?.apres, { cle: 'fg-page', nom: 'Success/Page/foreground' });
-});
-
-test('C59 reconnaît un nom en majuscules et sa cible écrite autrement', () => {
-  const r = releve(layer('text', null, 'message', { key: 'fg-surface', name: 'SUCCESS/SURFACE/FOREGROUND', collection: 'themes' }));
-  const c = cat([collection('themes', 'theme')], [
-    { cle: 'fg-surface', nom: 'SUCCESS/SURFACE/FOREGROUND', collection: 'themes', type: 'COLOR', etat: 'presente' },
-    { cle: 'fg-page', nom: 'success/page/foreground', collection: 'themes', type: 'COLOR', etat: 'presente' },
-  ]);
-  assert.equal(controlerLeTheme(r, c).find(({ code }) => code === 'C59')?.correction?.apres.cle, 'fg-page');
-});
-
-test('C59 ne corrige jamais une variable vers elle-même : sans cible, il pose une question sans candidat', () => {
-  const r = releve(layer('text', null, 'message', { key: 'fg-surface', name: 'Success/Surface/Foreground', collection: 'themes' }));
-  const c = cat([collection('themes', 'theme')], [
-    { cle: 'fg-surface', nom: 'Success/Surface/Foreground', collection: 'themes', type: 'COLOR', etat: 'presente' },
-  ]);
-  const resultat = controlerLeTheme(r, c).find(({ code }) => code === 'C59');
-  assert.equal(resultat?.correction, undefined);
-  assert.deepEqual(resultat?.question?.candidats, []);
-});
-
 test('C60 reconnaît un nom en majuscules et écrit le mode visé comme la collection cible', () => {
   const c = cat([collection('themes', 'theme'), collection('brands', 'brands')], [
     { cle: 'theme-ring', nom: 'Success/Vivid/Ring', collection: 'themes', type: 'COLOR', etat: 'presente', valeurs: { light: { alias: 'brand-light' }, dark: { alias: 'brand-light' } } },
@@ -174,15 +237,20 @@ test('C60 reconnaît un nom en majuscules et écrit le mode visé comme la colle
   assert.deepEqual(resultat?.correction?.apres, { cle: 'brand-dark', nom: 'Success/Vivid/Dark/800' });
 });
 
+test('C59 ne juge pas un texte posé sur un fond dont l’alias mène hors du catalogue', () => {
+  const r = releve(layer('root', null, 'container', undefined, liaisonDeJeton('tok-perdu', 'alert/color/perdu')));
+  r.variants[0].layers.push(layer('text', 'root', 'message', liaisonDeJeton('tok-surface', 'alert/color/surface-foreground')));
+  assert.equal(controlerLeTheme(r, catalogueDeBase(jeton('tok-perdu', 'alert/color/perdu', 'absente'))).some(({ code }) => code === 'C59'), false);
+});
+
 test('C59 ne juge pas un texte posé sur un fond lié à une variable illisible', () => {
   const fond: LayerLu = {
     ...layer('fond', null, 'container'), type: 'FRAME',
     liaisons: [{ champ: 'fills', indice: 0, porteur: 'fond', illisible: true, variable: { id: 'perdue', cle: '', nom: '', collection: '', distante: false } }],
   };
-  const texte = layer('text', 'fond', 'message', { key: 'fg-surface', name: 'success/surface/foreground', collection: 'themes' });
+  const texte = layer('text', 'fond', 'message', liaisonDeJeton('tok-surface', 'alert/color/surface-foreground'));
   const r = { ...releve(texte), variants: [{ id: 'v1', nom: 'Alert', valeurs: {}, modesEffectifs: {}, layers: [fond, texte] }] };
-  const c = cat([collection('themes', 'theme')], [{ cle: 'fg-surface', nom: 'success/surface/foreground', collection: 'themes', type: 'COLOR', etat: 'presente' }]);
-  assert.equal(controlerLeTheme(r, c).find(({ code }) => code === 'C59'), undefined);
+  assert.equal(controlerLeTheme(r, catalogueDeBase()).find(({ code }) => code === 'C59'), undefined);
 });
 
 // ---------------------------------------------------------------------------------------------------------------------------

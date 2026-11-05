@@ -91,6 +91,6 @@ test('lire-structure rend C63 alias-supprime pour un alias qui vise une variable
   const contexte: Contexte = { figma, envoyer: (message) => envoyes.push(message), surveillerLeDocument: () => {} };
   await traiter({ type: 'lire-structure', demande: 1 }, contexte);
   const message = envoyes[0] as Extract<PluginMessage, { type: 'structure' }>;
-  assert.deepEqual(message.constats.map(({ code, faits }) => [code, faits.genre, faits.variable]), [['C63', 'alias-supprime', 'carte/fond']]);
+  assert.deepEqual(message.constats.map(({ code, faits }) => [code, faits.genre, faits.variable]), [['C63', 'alias-supprime', 'carte/fond'], ['C82', 'theme-non-reconnu', undefined]]);
   assert.equal(appels.get('local:variables'), 1);
 });

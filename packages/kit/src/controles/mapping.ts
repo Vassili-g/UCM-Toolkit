@@ -49,10 +49,15 @@ export function rolesAdmisDuLayer(layer: LayerLu, champ: string, plage?: unknown
   return ['background'];
 }
 
+/** Les types de layer que Figma range parmi les formes : leur remplissage porte le scope `SHAPE_FILL`, pas `FRAME_FILL` (N-04, N-05). */
+const TYPES_DE_FORME: ReadonlySet<string> = new Set(['RECTANGLE', 'ELLIPSE', 'POLYGON', 'STAR', 'VECTOR', 'LINE', 'BOOLEAN_OPERATION']);
+
 function porteeAttendue(layer: LayerLu, liaison: LiaisonLue): string | undefined {
   if (liaison.champ === 'strokes') return 'STROKE_COLOR';
-  if (liaison.champ === 'fills') return layerPeint(layer, liaison).type === 'TEXT' || liaison.plage ? 'TEXT_FILL' : 'FRAME_FILL';
-  return undefined;
+  if (liaison.champ !== 'fills') return undefined;
+  const type = layerPeint(layer, liaison).type;
+  if (type === 'TEXT' || liaison.plage) return 'TEXT_FILL';
+  return TYPES_DE_FORME.has(type) ? 'SHAPE_FILL' : 'FRAME_FILL';
 }
 
 function porteeCompatible(scopes: readonly string[], attendue: string): boolean {
@@ -148,6 +153,7 @@ function* ecartsDeFratrie(releve: ReleveDeComposant, catalogue: CatalogueDeRefer
       if (variable !== 'absente' && (yield* porteLesValeursDeSonVariant(entree.variant, variable, axes, tokens))) continue;
       constats.push(constatDuComposant('C21', 'liaisons', 'verifier', `${entree.variant.id}:${entree.layer.id}:${entree.liaison.surcharge?.id ?? ''}:${entree.liaison.champ}`, {
         nom: entree.liaison.variable.nom, majorite: majoritaires[0][0], autres: majoritaires[0][1], exemple, champ: entree.liaison.champ,
+        ...(entree.liaison.surcharge ? { surcharge: entree.liaison.surcharge.id } : {}),
       }, [entree.variant.id], [entree.layer.id]));
     }
   }
@@ -174,7 +180,9 @@ export function* controlerMappingParEtapes(releve: ReleveDeComposant, catalogue:
     if (variable === 'absente') continue;
     const lieu = `${variant.id}:${layer.id}${liaison.surcharge ? `>${liaison.surcharge.id}` : ''}:${liaison.champ}:${liaison.indice ?? ''}:${liaison.plage?.debut ?? ''}`;
     const token = tokens.get(variable.cle);
-    if (token) {
+    // Une variable non chargée ou inaccessible, ou dans une collection inaccessible, ne se lit pas : C15, C16 et C17 ne l'accusent pas (N-21).
+    const lisible = variable.etat === 'presente' && collectionParCle(catalogue, variable.collection)?.etat !== 'inaccessible';
+    if (token && lisible) {
       for (const [axe, propriete] of Object.entries(axes) as [AxeDuComposant, NonNullable<typeof axes[AxeDuComposant]>][]) {
         yield;
         const dansLeToken = segmentDAxe(token, axe);
@@ -207,7 +215,7 @@ export function* controlerMappingParEtapes(releve: ReleveDeComposant, catalogue:
           ...(liaison.plage ? { plageDebut: liaison.plage.debut, plageFin: liaison.plage.fin } : {}),
         }, [variant.id], [layer.id]));
       }
-    } else {
+    } else if (!token) {
       const collection = collectionParCle(catalogue, variable.collection);
       // Une liaison que l'instance tient sans changement de son composant principal n'est pas celle de l'hôte (Q-F3-8).
       if (collection?.role === 'components' && liaison.provenance !== 'composant-principal' && !estDuComposant(variable.nom, releve.jeu.nom)) {

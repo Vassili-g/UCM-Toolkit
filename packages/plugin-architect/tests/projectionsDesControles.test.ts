@@ -214,7 +214,7 @@ const SCENARIOS: readonly Scenario[] = [
       const racine = releve.variants[0].layers[0];
       releve.variants[0].layers.push({
         id: 'neuf', nom: 'Neuf', type: 'TEXT', parent: racine.id, visible: true, opacite: 1, dimensions: { x: 0, y: 0, largeur: 10, hauteur: 10 }, peintures: [], valeursEnDur: [],
-        liaisons: [{ champ: 'fills', porteur: 'neuf', variable: { id: 'id-t-fg', cle: 't-fg', nom: 'surface/foreground', collection: 'theme', distante: false } }],
+        liaisons: [{ champ: 'fills', porteur: 'neuf', variable: { id: 'id-b-texte', cle: 'b-texte', nom: 'Button/color/primary/contained/default/foreground', collection: 'components', distante: false } }],
         texte: { style: null, plages: [{ debut: 0, fin: 1, fontSize: 14, fontWeight: 400, peintures: [], liaisons: [] }] },
       });
     },
@@ -224,7 +224,7 @@ const SCENARIOS: readonly Scenario[] = [
     modifier: (donnees) => { variableDe(donnees, 'b-rayon').valeurs!.l = { valeur: 9 }; },
   },
   {
-    nom: 'l’alias d’une variable liée', projections: ['controle-mapping', 'controle-couches', 'controle-accessibilite', 'controle-structure'], constatsAuMoins: ['controle-accessibilite'],
+    nom: 'l’alias d’une variable liée', projections: ['controle-mapping', 'controle-couches', 'controle-accessibilite', 'controle-theme', 'controle-structure'], constatsAuMoins: ['controle-accessibilite'],
     modifier: (donnees) => { variableDe(donnees, 'b-fond').valeurs!.l = { alias: 't-secondary' }; },
   },
   {

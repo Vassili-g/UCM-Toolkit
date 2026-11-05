@@ -1,13 +1,12 @@
 /**
  * Les opérateurs de dégradation du thème dans un composant (T1 et T2, constat C59) des stress tests F3. Un texte lié à
- * `surface/foreground` se pose sur un fond de surface : `surface/default`, `hover` ou `pressed` (Q-F3-10 y ajoute `subtle`).
+ * `surface/foreground` se pose sur un fond de surface : `surface/default`, `hover`, `pressed` ou `subtle` (Q-F3-10).
  * Le texte, son fond et leurs ancêtres forment un second arbre `Zone` dans le variant, pour que les fonds de `Root` ne
  * répondent pas à la place du fond posé.
  *
- * Deux formes par situation : la liaison directe à `theme` (C80 sur chaque liaison directe, C59 selon le fond) et le token de
- * `components` aliasé à la variable de thème, que Q-F3-9 fait résoudre. Les cas dont l'attendu change avec Q-F3-9 sont `mesure` :
- * toutes les formes par token, et les formes directes où l'on attend un C59, puisque la décision provisoire de Q-F3-9 laisse
- * alors C80 seul. La correction attendue est le token de `components` dont l'alias vise `page/foreground`, s'il est unique.
+ * Deux formes par situation : la liaison directe à `theme`, où C80 répond seul sur chaque liaison directe, et le token de
+ * `components` aliasé à la variable de thème, que C59 résout (Q-F3-9). La correction attendue est le token de `components` dont
+ * l'alias vise `page/foreground`, s'il est unique, sinon une question.
  */
 import type { LayerLu, LiaisonLue, VariableDuCatalogue } from '../../../src/controles/index.js';
 import type { ConstatAttendu } from '../commun/types.js';
@@ -26,7 +25,7 @@ const cleDeC59 = (lieu: LieuDeConstat): string => [lieu.variant, lieu.layer, lie
 
 type Fond = 'aucun' | 'en dur' | 'surface/default' | 'surface/hover' | 'surface/pressed' | 'surface/subtle' | 'solid/default' | 'page/foreground' | 'ancetre' | 'frere';
 
-/** Les dix fonds de T1, et le C59 que la règle attend pour chacun. `subtle` dépend de Q-F3-10. */
+/** Les dix fonds de T1, et le C59 que la règle attend pour chacun par un token du composant. */
 const FONDS: readonly (readonly [Fond, c59: boolean])[] = [
   ['aucun', true], ['en dur', true], ['surface/default', false], ['surface/hover', false], ['surface/pressed', false],
   ['surface/subtle', false], ['solid/default', true], ['page/foreground', true], ['ancetre', false], ['frere', true],
@@ -108,22 +107,21 @@ export function operateursTheme(base: ComposantDeBase, graine: number = GRAINE_P
 
   const ajouterLeCas = (
     libelle: string, variant: VariantDeCarte, degradation: Degradation, situation: Situation & { texteLie: VariableDuCatalogue },
-    plan: { c59: boolean; par: 'direct' | 'token'; plage?: boolean; candidats: VariableDuCatalogue[]; question?: string },
+    plan: { c59: boolean; par: 'direct' | 'token'; plage?: boolean; candidats: VariableDuCatalogue[] },
   ): void => {
     const attendus: ConstatAttendu[] = situation.c80Directs.map(({ layer, variable }) => attendu('C80', 'a-faire', { variant: variant.id, layer: layer.id, champ: 'fills', token: variable.nom }));
-    if (plan.c59) {
-      const lieu: LieuDeConstat = { variant: variant.id, layer: situation.texte.id, champ: 'fills', ...(plan.plage ? { plageDebut: 0 } : {}), token: `${paletteDe(variant)}/surface/foreground` };
+    // Q-F3-9 : une liaison directe à theme n'a que C80 ; C59 juge le token de components qui vise surface/foreground.
+    if (plan.c59 && plan.par === 'token') {
+      const lieu: LieuDeConstat = { variant: variant.id, layer: situation.texte.id, champ: 'fills', ...(plan.plage ? { plageDebut: 0 } : {}), token: situation.texteLie.nom };
       const cle = cleDeC59(lieu);
       const [unique] = plan.candidats;
       attendus.push(plan.candidats.length === 1
         ? { code: 'C59', cle, forme: 'correction', apres: { cle: unique.cle, nom: unique.nom } }
         : { code: 'C59', cle, forme: 'question', candidats: plan.candidats.map((candidat) => candidat.nom) });
     }
-    // Q-F3-9 : un token de components est résolu jusqu'au thème ; une liaison directe laisse C80 seul. Q-F3-10 : `subtle` est un fond.
-    const question = plan.question ?? (plan.par === 'token' || plan.c59 ? 'Q-F3-9' : undefined);
     ajouterAvecCodes(registre, 'T1', degradation, {
       description: `T1 : ${libelle}, ${plan.par === 'direct' ? 'liaison directe à theme' : 'token de components'}, variant ${variant.nom}`,
-      attendus, ...(question ? { verdict: 'mesure' as const, question } : {}),
+      attendus,
     }, CODES_DE_T);
   };
 
@@ -134,7 +132,9 @@ export function operateursTheme(base: ComposantDeBase, graine: number = GRAINE_P
       const degradation = new Degradation(base);
       const situation = bâtir(degradation, variant, fond, par);
       const candidats = candidatsDePage(degradation, variant, 1);
-      ajouterLeCas(`texte de surface sur fond ${fond}`, variant, degradation, situation, { c59, par, candidats, ...(fond === 'surface/subtle' ? { question: 'Q-F3-10' } : {}) });
+      // Un fond `page/foreground` posé par un token du composant est lui-même un token qui vise page/foreground : deux candidats.
+      if (fond === 'page/foreground' && par === 'token') candidats.unshift(degradation.variable(situation.fondLie!.liaisons[0].variable.cle));
+      ajouterLeCas(`texte de surface sur fond ${fond}`, variant, degradation, situation, { c59, par, candidats });
     }
   }
   for (const par of ['direct', 'token'] as const) {
@@ -147,48 +147,48 @@ export function operateursTheme(base: ComposantDeBase, graine: number = GRAINE_P
     // page/foreground absent du thème : aucun token ne peut être candidat.
     const variant = registre.tirer('T1', sansEtatDesactive);
     const degradation = new Degradation(base);
-    const situation = bâtir(degradation, variant, 'aucun', 'direct');
+    const situation = bâtir(degradation, variant, 'aucun', 'token');
     degradation.retirer(degradation.catalogue.variables, degradation.variableParNom(`${paletteDe(variant)}/page/foreground`)!);
-    ajouterLeCas('texte de surface sans fond, page/foreground absent du catalogue', variant, degradation, situation, { c59: true, par: 'direct', candidats: [] });
+    ajouterLeCas('texte de surface sans fond, page/foreground absent du catalogue', variant, degradation, situation, { c59: true, par: 'token', candidats: [] });
   }
   {
     // Deux tokens de components de même nom visent page/foreground : une question à deux candidats.
     const variant = registre.tirer('T1', sansEtatDesactive);
     const degradation = new Degradation(base);
-    const situation = bâtir(degradation, variant, 'aucun', 'direct');
-    ajouterLeCas('texte de surface sans fond, deux tokens vers page/foreground', variant, degradation, situation, { c59: true, par: 'direct', candidats: candidatsDePage(degradation, variant, 2) });
+    const situation = bâtir(degradation, variant, 'aucun', 'token');
+    ajouterLeCas('texte de surface sans fond, deux tokens vers page/foreground', variant, degradation, situation, { c59: true, par: 'token', candidats: candidatsDePage(degradation, variant, 2) });
   }
 
-  // T2. Quatre liaisons à surface/foreground que C59 ne devrait pas juger ou dont le verdict dépend de Q-F3-8 et de Q-F3-9.
-  const t2 = (libelle: string, question: string, poser: (degradation: Degradation, variant: VariantDeCarte, surface: VariableDuCatalogue) => ConstatAttendu[] | undefined): void => {
+  // T2. Quatre liaisons à surface/foreground que C59 ne juge pas : héritées (Q-F3-8), ou directes à theme (Q-F3-9).
+  const t2 = (libelle: string, poser: (degradation: Degradation, variant: VariantDeCarte, surface: VariableDuCatalogue) => ConstatAttendu[] | undefined): void => {
     const variant = registre.tirer('T2', sansEtatDesactive);
     const degradation = new Degradation(base);
     const attendus = poser(degradation, variant, degradation.variableParNom(`${paletteDe(variant)}/surface/foreground`)!);
     if (!attendus) return;
-    ajouterAvecCodes(registre, 'T2', degradation, { description: `T2 : ${libelle}, variant ${variant.nom}`, attendus, verdict: 'mesure', question }, CODES_DE_T);
+    ajouterAvecCodes(registre, 'T2', degradation, { description: `T2 : ${libelle}, variant ${variant.nom}`, attendus }, CODES_DE_T);
   };
   const liaisonDe = (variant: VariantDeCarte, nomDuLayer: string, champ: string) =>
     carte.liaisons.find((liaison) => liaison.variant === variant.id && liaison.nomDuLayer === nomDuLayer && liaison.champ === champ);
-  t2('liaison héritée de .Bar à surface/foreground', 'Q-F3-8', (degradation, variant, surface) => {
+  t2('liaison héritée de .Bar à surface/foreground', (degradation, variant, surface) => {
     const heritee = liaisonDe(variant, '.Bar', 'fills');
     if (!heritee) return undefined;
     degradation.lierA(heritee, surface);
     return [];
   });
-  t2('liaison héritée de Glyph, une dépendance, à surface/foreground', 'Q-F3-8', (degradation, variant, surface) => {
+  t2('liaison héritée de Glyph, une dépendance, à surface/foreground', (degradation, variant, surface) => {
     if (!variant.layers.Glyph) return undefined;
     const glyph = degradation.layer(variant.id, 'Glyph');
     degradation.inserer(glyph.liaisons, { champ: 'fills', indice: 0, porteur: glyph.id, provenance: 'composant-principal', variable: variableLue(surface) });
     degradation.zones.push({ variant: variant.id, layer: glyph.id, champ: 'fills' });
     return [];
   });
-  t2('fond de Root lié directement à surface/foreground', 'Q-F3-9', (degradation, variant, surface) => {
+  t2('fond de Root lié directement à surface/foreground', (degradation, variant, surface) => {
     const fond = liaisonDeCible(carte, variant.id, 'fond')!;
     degradation.lierA(fond, surface);
     const lieu = lieuDe(fond, surface.nom);
-    return [attendu('C80', 'a-faire', lieu), { code: 'C59', cle: cleDeC59(lieu), forme: 'a-faire' }];
+    return [attendu('C80', 'a-faire', lieu)];
   });
-  t2('trait de Root lié à surface/foreground', 'Q-F3-9', (degradation, variant, surface) => {
+  t2('trait de Root lié à surface/foreground', (degradation, variant, surface) => {
     const trait = liaisonDeCible(carte, variant.id, 'trait')!;
     degradation.lierA(trait, surface);
     return [attendu('C80', 'a-faire', lieuDe(trait, surface.nom))];

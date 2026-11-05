@@ -57,10 +57,8 @@ test('chaque cas a un identifiant <opérateur>-<n>, une description, des zones e
 
 test('les cas qui dépendent d\'une question non confirmée portent le verdict mesure et son identifiant', () => {
   const mesures = TOUS.filter((entree) => entree.verdict === 'mesure').map((entree) => [entree.id, entree.question]);
-  assert.deepEqual(mesures, [
-    ['L5-1', 'Q-F3-12'], ['L5-2', 'Q-F3-12'],
-    ['K3-4', 'Q-F3-15'], ['K3-8', 'Q-F3-15'], ['K3-12', 'Q-F3-15'],
-  ]);
+  // Q-F3-12 (L5) et Q-F3-15 (K3-4, K3-8, K3-12) sont tranchées : plus aucun cas `mesure` dans ce fichier.
+  assert.deepEqual(mesures, []);
 });
 
 test('L1 : hover lié au token default est une question, les autres transitions des corrections vers le token du variant', () => {

@@ -2,7 +2,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import {
-  controlerLIntegriteUcm, controlerLeCatalogue, type CatalogueDeReference, type CollectionDuCatalogue, type Constat, type VariableDuCatalogue,
+  controlerLIntegriteUcm, controlerLeCatalogue, grouperLesCouches, type CatalogueDeReference, type CollectionDuCatalogue, type Constat, type VariableDuCatalogue,
 } from '../src/controles/index.js';
 import type { Collection } from '../src/referentiel/architecture.js';
 import { MODE_DARK, MODE_LIGHT, catalogueDeStructure, cleDeLaFixture } from './fixtures/catalogueDeStructure.js';
@@ -231,4 +231,32 @@ test('15. un rôle écrit deux fois dans une palette reçoit une question sans c
   assert.equal(doubles[0].correction, undefined);
   assert.deepEqual(doubles[0].question?.candidats?.map(({ cle }) => cle), [copie.cle, origine.cle].sort());
   assert.ok(constats.some((constat) => constat.faits.genre === 'cran' && constat.faits.variable === copie.nom && constat.id.includes(copie.cle)), 'la variable en double est jugée');
+});
+
+test('6b. scopes : un scope posé sur une variable FLOAT d’une couche sans portée est jugé (N-32)', () => {
+  const constats = structure(fichier(['primitives'], [
+    variable('primitives', 'spacing/1', { valeur: 4 }, { type: 'FLOAT', scopes: ['ALL_SCOPES'] }),
+    variable('primitives', 'spacing/2', { valeur: 8 }, { type: 'FLOAT', scopes: [] }),
+  ])).filter((constat) => constat.faits.genre === 'scopes');
+  assert.deepEqual(constats.map((constat) => constat.id), ['C82:scopes:primitives|spacing/1']);
+  assert.equal(constats[0].correction?.sorte, 'scope');
+});
+
+test('QV-3. les constats couche se regroupent par collection source et couche visée, avec leurs variables et leurs modes (N-87)', () => {
+  const constats = controlerLIntegriteUcm({
+    ...fichier(['components', 'brands', 'primitives'], [
+      variable('components', 'button/a', { 'components:M': alias('brands', 'primary/light/700'), 'components:N': alias('brands', 'primary/light/700') }),
+      variable('components', 'button/b', alias('brands', 'primary/light/700')),
+      variable('components', 'button/c', alias('primitives', 'colors/blue/700')),
+      variable('brands', 'primary/light/700', alias('primitives', 'colors/blue/700')),
+      variable('primitives', 'colors/blue/700', { valeur: '#1E40AF' }),
+    ]),
+  });
+  const groupes = grouperLesCouches(constats);
+  assert.deepEqual(groupes.map(({ collection, coucheCible, variables, modes }) => [collection, coucheCible, variables, modes]), [
+    ['components', 'brands', ['button/a', 'button/b'], ['M', 'components:N']],
+    ['components', 'primitives', ['button/c'], ['M']],
+  ]);
+  assert.equal(groupes[0].constats.length, 3);
+  assert.deepEqual(grouperLesCouches([]), []);
 });

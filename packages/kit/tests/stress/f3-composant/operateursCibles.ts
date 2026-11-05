@@ -2,7 +2,7 @@
  * Les opérateurs de dégradation des cibles et des couches (K1 à K4 : C19, C80, C20, C18) des stress tests F3. Un layer se lie
  * seulement aux tokens de son composant, qui visent `theme` pour les couleurs et `layout` ou `typography` pour les tailles :
  * K1 lie le token d'un autre composant, K2 saute le token pour une variable d'une autre collection, K3 déplace la cible d'un
- * alias, K4 change les scopes du token lié. Les cas qui dépendent de Q-F3-15 portent le verdict `mesure`.
+ * alias, K4 change les scopes du token lié. L'alias d'un token de `components` vers un autre token de `components` est un défaut (Q-F3-15).
  */
 import type { CollectionDuCatalogue, VariableDuCatalogue } from '../../../src/controles/index.js';
 import type { ConstatAttendu } from '../commun/types.js';
@@ -121,7 +121,7 @@ export function operateursCibles(base: ComposantDeBase, graine: number = GRAINE_
   const c20Du = (token: VariableDuCatalogue): ConstatAttendu[] =>
     carte.liaisons.filter((liaison) => liaison.cle === token.cle && liaison.origine === 'composant').map((liaison) => attendu('C20', 'a-faire', lieuDe(liaison, token.nom)));
 
-  const couleurVers = (decrit: string, cible: (degradation: Degradation, token: VariableDuCatalogue) => VariableDuCatalogue | undefined, interdit: boolean, mesure = false): void => {
+  const couleurVers = (decrit: string, cible: (degradation: Degradation, token: VariableDuCatalogue) => VariableDuCatalogue | undefined, interdit: boolean): void => {
     const variant = registre.tirer('K3', carte.variants);
     const jeton = jetonCouleur(carte, variant, 'background');
     if (!jeton) return;
@@ -133,10 +133,10 @@ export function operateursCibles(base: ComposantDeBase, graine: number = GRAINE_
     degradation.zones.push({ variant: variant.id, layer: degradation.layer(variant.id, 'Root').id, champ: 'fills' });
     registre.ajouter('K3', degradation, {
       description: `K3 : l'alias de ${token.nom} (variant ${variant.nom}) vise ${decrit} ${visee.nom}`,
-      attendus: interdit ? c20Du(token) : [], ...(mesure ? { verdict: 'mesure' as const, question: 'Q-F3-15' } : {}),
+      attendus: interdit ? c20Du(token) : [],
     });
   };
-  const tailleVers = (decrit: string, cible: (degradation: Degradation, token: VariableDuCatalogue, variant: VariantDeCarte) => VariableDuCatalogue | undefined, interdit: boolean, mesure = false): void => {
+  const tailleVers = (decrit: string, cible: (degradation: Degradation, token: VariableDuCatalogue, variant: VariantDeCarte) => VariableDuCatalogue | undefined, interdit: boolean): void => {
     const variant = registre.tirer('K3', carte.variants);
     const jeton = jetonTaille(carte, variant, 'gap');
     if (!jeton) return;
@@ -148,7 +148,7 @@ export function operateursCibles(base: ComposantDeBase, graine: number = GRAINE_
     for (const liaison of carte.liaisons.filter((entree) => entree.cle === token.cle)) degradation.zones.push({ variant: liaison.variant, layer: liaison.layer, champ: liaison.champ });
     registre.ajouter('K3', degradation, {
       description: `K3 : l'alias de ${token.nom} vise ${decrit} ${visee.nom}`,
-      attendus: interdit ? c20Du(token) : [], ...(mesure ? { verdict: 'mesure' as const, question: 'Q-F3-15' } : {}),
+      attendus: interdit ? c20Du(token) : [],
     });
   };
   const premiere = (role: string, type: VariableDuCatalogue['type']) => (degradation: Degradation) => degradation.premiereDe(role, type);
@@ -164,7 +164,7 @@ export function operateursCibles(base: ComposantDeBase, graine: number = GRAINE_
   // Un autre token de `components` qui porte une valeur directe : Q-F3-15.
   couleurVers('le token de components', (degradation, token) => degradation.cloner(token, {
     nom: `${token.nom.split('/')[0]}/color/valeur-directe`, valeurs: Object.fromEntries(modes(token).map((mode) => [mode, { valeur: { r: 0.1, g: 0.2, b: 0.3, a: 1 } }])),
-  }), true, true);
+  }), true);
   couleurVers('theme', (degradation, token) => {
     const actuelle = Object.values(token.valeurs ?? {}).map((valeur) => ('alias' in valeur ? valeur.alias : ''));
     return degradation.catalogue.variables.find((variable) => variable.nom === 'neutral/surface/subtle' && !actuelle.includes(variable.cle));
@@ -175,7 +175,7 @@ export function operateursCibles(base: ComposantDeBase, graine: number = GRAINE_
   tailleVers('le token de components', (degradation, _token, variant) => {
     const radius = jetonTaille(carte, variant, 'radius');
     return radius ? degradation.variable(radius.cle) : undefined;
-  }, true, true);
+  }, true);
   tailleVers('theme', premiere('theme', 'FLOAT'), false);
   // Un autre token de `layout` que celui où le token vise déjà.
   tailleVers('layout', (degradation, token) => {
@@ -197,7 +197,7 @@ export function operateursCibles(base: ComposantDeBase, graine: number = GRAINE_
       degradation.zones.push({ variant: variant.id, layer: degradation.layer(variant.id, 'Root').id, champ: 'fills' });
       registre.ajouter('K3', degradation, {
         description: `K3 : chaîne, ${token.nom} (variant ${variant.nom}) vise ${intermediaire.nom}, qui vise theme`,
-        attendus: c20Du(token), verdict: 'mesure', question: 'Q-F3-15',
+        attendus: c20Du(token),
       });
     }
   }

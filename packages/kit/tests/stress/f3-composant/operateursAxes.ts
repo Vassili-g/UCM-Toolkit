@@ -452,7 +452,7 @@ export function operateursAxes(base: ComposantDeBase, graine: number = GRAINE_PA
         const variant = registre.tirer('L5', candidats);
         // Q-F3-12 : une seule carte, au code du premier segment faux dans l'ordre des noms (palette avant état), vers le token qui change les deux.
         lierAUnAutreToken('L5', variant, cible, { [palette.propriete]: palette.valeurs[1], [etat.propriete]: survol }, palette,
-          (lieu, juste) => [attendu('C22', 'correction', lieu, { apres: juste })], { mesure: 'Q-F3-12' });
+          (lieu, juste) => [attendu('C22', 'correction', lieu, { apres: juste })]);
       }
     }
   }

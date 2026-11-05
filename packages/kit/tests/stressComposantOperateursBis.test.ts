@@ -63,12 +63,10 @@ test('les cas qui dépendent d\'une question non confirmée portent le verdict m
   const mesures = (operateur: string) => duOperateur(operateur).filter((entree) => entree.verdict === 'mesure').map((entree) => [entree.id, entree.question]);
   // Q-F3-1, Q-F3-2, Q-F3-4, Q-F3-6 et Q-F3-7 sont tranchées : les opérateurs M2, U1 et U2 n'ont plus de cas `mesure`.
   assert.deepEqual([...mesures('M2'), ...mesures('U1'), ...mesures('U2')], []);
-  assert.deepEqual(mesures('T2'), [['T2-1', 'Q-F3-8'], ['T2-2', 'Q-F3-8'], ['T2-3', 'Q-F3-9'], ['T2-4', 'Q-F3-9']]);
+  // Q-F3-8, Q-F3-9 et Q-F3-10 sont tranchées : T1 et T2 n'ont plus de cas `mesure`.
+  assert.deepEqual([...mesures('T1'), ...mesures('T2')], []);
   assert.deepEqual(mesures('S1'), [['S1-5', 'S1-5']]);
   assert.deepEqual([...mesures('M1'), ...mesures('U3'), ...mesures('U4'), ...mesures('S2'), ...mesures('S3')], []);
-  // T1 : toute forme par token (Q-F3-9), les formes directes où l'on attend un C59 (Q-F3-9), et les cas `subtle` (Q-F3-10).
-  assert.deepEqual(duOperateur('T1').filter((entree) => entree.verdict === 'attendu').map((entree) => entree.id), ['T1-5', 'T1-7', 'T1-9', 'T1-17']);
-  assert.deepEqual(duOperateur('T1').filter((entree) => entree.question === 'Q-F3-10').map((entree) => entree.id), ['T1-11', 'T1-12']);
 });
 
 test('M1 : un C21 pour les cas 1, 2, 4, 7, 8, 9 et 10, aucun pour 3, 5 et 6 (E-41)', () => {
@@ -127,17 +125,19 @@ test('U2 à U4 : des témoins sans constat, le même token quel que soit l\'ordr
 
 test('T1 et T2 : C80 sur chaque liaison directe, C59 pour les fonds qui ne sont pas de surface, correction vers un token de components', () => {
   const t1 = duOperateur('T1');
-  // Direct : C80 sur le texte, et sur le fond quand il est lié. Par token : jamais de C80.
+  // Direct : C80 sur le texte, et sur le fond quand il est lié, jamais de C59 (Q-F3-9). Par token : jamais de C80.
   assert.ok(t1.filter((_, rang) => rang < 20 && rang % 2 === 1).every((entree) => entree.attendus.every((attendu) => attendu.code === 'C59')));
+  assert.ok(t1.filter((_, rang) => rang < 21 && rang % 2 === 0).every((entree) => entree.attendus.every((attendu) => attendu.code === 'C80')));
   const avecC59 = t1.slice(0, 20).filter((entree) => entree.attendus.some((attendu) => attendu.code === 'C59')).map((entree) => entree.id);
-  assert.deepEqual(avecC59, ['T1-1', 'T1-2', 'T1-3', 'T1-4', 'T1-13', 'T1-14', 'T1-15', 'T1-16', 'T1-19', 'T1-20']);
-  const c59 = cas('T1-1').attendus.find((attendu) => attendu.code === 'C59')!;
+  // Aucun, fond en dur, solid/default, page/foreground, fond d'un frère ; surface/default, hover, pressed, subtle et le fond d'un ancêtre n'en ont pas.
+  assert.deepEqual(avecC59, ['T1-2', 'T1-4', 'T1-14', 'T1-16', 'T1-20']);
+  const c59 = cas('T1-2').attendus.find((attendu) => attendu.code === 'C59')!;
   assert.equal(c59.forme, 'correction');
   assert.ok(c59.apres!.nom!.endsWith('/zone/page-foreground'));
-  assert.equal(cas('T1-21').attendus.find((a) => a.code === 'C59')!.cle.split('|')[3], '0', 'la plage figure dans la clé du C59');
+  assert.equal(cas('T1-22').attendus.find((a) => a.code === 'C59')!.cle.split('|')[3], '0', 'la plage figure dans la clé du C59');
   assert.deepEqual(cas('T1-23').attendus.find((a) => a.code === 'C59')!.candidats, []);
   assert.equal(cas('T1-24').attendus.find((a) => a.code === 'C59')!.candidats!.length, 2);
-  assert.deepEqual([1, 2, 3, 4].map((rang) => codes(cas(`T2-${rang}`))), [[], [], ['C80:a-faire', 'C59:a-faire'], ['C80:a-faire']]);
+  assert.deepEqual([1, 2, 3, 4].map((rang) => codes(cas(`T2-${rang}`))), [[], [], ['C80:a-faire'], ['C80:a-faire']]);
 });
 
 test('S1 à S3 : des questions sans présélection, une correction alias-de-mode, la clé d\'un C63 porte le mode', () => {

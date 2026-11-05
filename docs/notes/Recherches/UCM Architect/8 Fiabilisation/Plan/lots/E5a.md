@@ -44,3 +44,5 @@ Reste :
 - E5.1 : la phrase `Le layer ${layer} est masqué.` ou `Le layer ${layer} est dans ${ancetre}, qui est masqué.` se pose avant celle du constat dans `packages/plugin-architect/src/ui/ignores/modele.ts` (cas `C25` et `C29`) et dans la carte de la question. Elle lit `faits.masque` et `faits.ancetre`.
 - E5.3 : `Renommer le layer en ${nom}` suppose un type de correction qui renomme un layer ; `Correction.sorte` n'en a pas et l'écriture d'Architect non plus. Le libellé `Lier à \`${token}\`` relève aussi de l'interface. Question ouverte pour le mainteneur : ajouter cette sorte (`format/types.ts`, schéma, écriture) ou garder la seule liaison.
 - Cartes : lignes de `corrections.ts`, `couche.ts` et `mapping.ts` ajoutées à `packages/kit/CARTE.md`.
+
+Décision de la conversation principale (le mainteneur l'a déléguée) : « Renommer le layer en … » reste une question. La correction lie seulement le token du rôle, et le format ne gagne aucune sorte de renommage.

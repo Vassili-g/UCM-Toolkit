@@ -102,7 +102,7 @@ test('7. un cran absent de la rampe est un constat de rampe, sans création', ()
   const constats = controlerLIntegriteUcm(sansCinquante, { ecriture: avecEcriture('minuscules', 'tiret') });
   const rampe = constats.filter((constat) => constat.faits.genre === 'cran-absent');
   assert.equal(rampe.length, 1);
-  assert.equal(rampe[0].id, 'C82:cran-absent:primary/light/50');
+  assert.equal(rampe[0].id, 'C82:cran-absent:theme:primary/light/50');
   assert.equal(rampe[0].faits.rampe, 'primary/light');
   assert.equal(rampe[0].faits.cran, 50);
   assert.equal(rampe[0].faits.variables, 'primary/surface/subtle');
@@ -214,9 +214,10 @@ test('un mode de theme que le kit ne reconnaît pas interdit la création', () =
   assert.ok(constats.every((constat) => constat.faits.raison === 'mode-sans-cible' && constat.correction === undefined));
 });
 
-test('hors collection theme lue, le contrôle ne rend rien', () => {
+test('hors collection theme lue, le contrôle ne rend rien, sauf l’information d’un fichier UCM sans thème (QV-4, N-88)', () => {
   const catalogue = catalogueDeStructure();
-  assert.deepEqual(controlerLIntegriteUcm({ ...catalogue, collections: catalogue.collections.filter((collection) => collection.role !== 'theme') }), []);
+  const sansTheme = controlerLIntegriteUcm({ ...catalogue, collections: catalogue.collections.filter((collection) => collection.role !== 'theme') });
+  assert.deepEqual(sansTheme.map((constat) => [constat.id, constat.type, constat.faits.genre]), [['C82:theme-non-reconnu', 'info', 'theme-non-reconnu']]);
   assert.deepEqual(controlerLIntegriteUcm({ ...catalogue, collections: catalogue.collections.map((collection) => (collection.role === 'theme' ? { ...collection, etat: 'inaccessible' as const } : collection)) }), []);
   assert.deepEqual(controlerLIntegriteUcm({ ...catalogue, collections: catalogue.collections.map((collection) => ({ ...collection, role: null })) }), []);
 });
@@ -285,4 +286,26 @@ test('18. un rôle ignoré n’est pas proposé comme rôle proche', () => {
   const questions = controlerLIntegriteUcm(catalogue, { ecriture: avecEcriture('minuscules', 'tiret'), rolesIgnores: ['solid/default'] })
     .filter((constat) => constat.faits.genre === 'variable-inconnue');
   assert.deepEqual(questions, []);
+});
+
+test('une variable de theme non chargée n’est pas un rôle absent à créer (N-31)', () => {
+  const catalogue = catalogueDeStructure();
+  const cle = cleDeLaFixture('theme', 'primary/surface/default');
+  const avecEtat = (etat: 'presente' | 'non-chargee'): CatalogueDeReference => ({ ...catalogue, variables: catalogue.variables.map((entree) => (entree.cle === cle ? { ...entree, etat } : entree)) });
+  const compte = (c: CatalogueDeReference) => absentes(c).filter((constat) => constat.faits.groupe === 'primary' && constat.faits.variable === 'surface/default').length;
+  assert.equal(compte(avecEtat('presente')), 0);
+  assert.equal(compte(avecEtat('non-chargee')), 0);
+  assert.equal(compte({ ...catalogue, variables: catalogue.variables.filter((entree) => entree.cle !== cle) }), 1);
+});
+
+test('deux collections theme ne partagent pas l’identifiant d’un cran absent (N-30)', () => {
+  const catalogue = catalogueDeStructure();
+  const sansCinquante = catalogue.variables.filter((entree) => entree.cle !== cleDeLaFixture('brands', 'primary/light/50'));
+  const premiere = catalogue.collections.find((collection) => collection.role === 'theme')!;
+  const seconde = { ...premiere, cle: 'theme-2', nom: 'Theme 2' };
+  const doubles = sansCinquante.filter((entree) => entree.collection === premiere.cle).map((entree) => ({ ...entree, cle: `2|${entree.cle}`, collection: 'theme-2' }));
+  const constats = controlerLIntegriteUcm({ ...catalogue, collections: [...catalogue.collections, seconde], variables: [...sansCinquante, ...doubles] }, { ecriture: avecEcriture('minuscules', 'tiret') })
+    .filter((constat) => constat.faits.genre === 'cran-absent' && constat.faits.cran === 50);
+  assert.ok(constats.length >= 2);
+  assert.equal(new Set(constats.map((constat) => constat.id)).size, constats.length);
 });

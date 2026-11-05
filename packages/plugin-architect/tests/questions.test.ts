@@ -90,22 +90,24 @@ test('C59 se corrige par le nom relu et sa question cible la plage exacte', asyn
   const calque = releveTheme.variants[0].layers[0];
   calque.type = 'TEXT';
   calque.nom = 'message';
-  const ancienne = { id: 'old-id', cle: 'fg-surface', nom: 'success/surface/foreground', collection: 'themes', distante: false };
+  const ancienne = { id: 'old-id', cle: 'tok-surface', nom: 'button/color/surface-foreground', collection: 'comps', distante: false };
   calque.liaisons = [{ champ: 'fills', indice: 0, porteur: 'L1', variable: ancienne }];
   calque.peintures = [{ champ: 'fills', indice: 0, type: 'SOLID', visible: true, opacite: 1, blendMode: 'NORMAL' }];
   const catalogue = (cibles: { cle: string; nom: string }[]): CatalogueDeReference => ({
     version: 1, library: null,
-    collections: [{ cle: 'themes', nom: 'theme', role: 'theme', modes: [], etat: 'lue' }],
+    collections: [{ cle: 'themes', nom: 'theme', role: 'theme', modes: [], etat: 'lue' }, { cle: 'comps', nom: 'components', role: 'components', modes: [], etat: 'lue' }],
     variables: [
       { cle: 'fg-surface', nom: 'success/surface/foreground', collection: 'themes', type: 'COLOR', etat: 'presente' },
-      ...cibles.map(({ cle, nom }) => ({ cle, nom, collection: 'themes', type: 'COLOR' as const, etat: 'presente' as const })),
+      { cle: 'fg-page', nom: 'success/page/foreground', collection: 'themes', type: 'COLOR', etat: 'presente' },
+      { cle: 'tok-surface', nom: 'button/color/surface-foreground', collection: 'comps', type: 'COLOR', etat: 'presente', valeurs: { m: { alias: 'fg-surface' } } },
+      ...cibles.map(({ cle, nom }) => ({ cle, nom, collection: 'comps', type: 'COLOR' as const, etat: 'presente' as const, valeurs: { m: { alias: 'fg-page' } } })),
     ],
   });
-  const constats = controlerLeTheme(releveTheme, catalogue([{ cle: 'fg-page', nom: 'success/page/foreground' }])).filter(({ code }) => code === 'C59');
+  const constats = controlerLeTheme(releveTheme, catalogue([{ cle: 'tok-page', nom: 'button/color/page-foreground' }])).filter(({ code }) => code === 'C59');
   assert.equal(constats.length, 1);
-  assert.equal(constats[0].correction?.avant, 'success/surface/foreground');
-  const anciennesVariables: VariableDEcriture[] = [{ id: 'old-id', key: 'fg-surface', name: 'success/surface/foreground' }];
-  const cible: VariableDEcriture = { id: 'new-id', key: 'fg-page', name: 'success/page/foreground' };
+  assert.equal(constats[0].correction?.avant, 'button/color/surface-foreground');
+  const anciennesVariables: VariableDEcriture[] = [{ id: 'old-id', key: 'tok-surface', name: 'button/color/surface-foreground' }];
+  const cible: VariableDEcriture = { id: 'new-id', key: 'tok-page', name: 'button/color/page-foreground' };
   const atelier = atelierDEcriture({ lisibles: anciennesVariables, importables: [cible] });
   const jeu = atelier.jeuDeVariants('jeu', ['State=default']);
   const variant = (jeu.children as Array<Record<string, unknown>>)[0];
@@ -119,14 +121,14 @@ test('C59 se corrige par le nom relu et sa question cible la plage exacte', asyn
   const ciblePlage = plageTheme.variants[0].layers[0];
   ciblePlage.liaisons = [0, 1].map((rang) => ({ champ: 'fills', porteur: 'L1', plage: rang === 0 ? { debut: 0, fin: 5 } : { debut: 5, fin: 10 }, variable: ancienne }));
   const questions = controlerLeTheme(plageTheme, catalogue([
-    { cle: 'fg-page-1', nom: 'success/page/foreground' }, { cle: 'fg-page-2', nom: 'success/page/foreground' },
+    { cle: 'tok-page-1', nom: 'button/color/page-foreground' }, { cle: 'tok-page-2', nom: 'button/color/page-foreground-bis' },
   ])).filter(({ code }) => code === 'C59');
   const b = banc();
   retenirLesCorrections(b.analyse, questions, plageTheme);
-  await traiter({ type: 'repondre', analyse: b.analyse, question: questions[1].id, reponse: 'fg-page-2' }, b.contexte);
+  await traiter({ type: 'repondre', analyse: b.analyse, question: questions[1].id, reponse: 'tok-page-2' }, b.contexte);
   const reponse = b.envoyes.at(-1) as Extract<PluginMessage, { type: 'question-repondue' }>;
-  assert.deepEqual(reponse.correction?.cible, { layer: 'L1', champ: 'fills', plage: { debut: 5, fin: 10 }, variable: 'fg-surface' });
-  assert.equal(reponse.correction?.avant, 'success/surface/foreground');
+  assert.deepEqual(reponse.correction?.cible, { layer: 'L1', champ: 'fills', plage: { debut: 5, fin: 10 }, variable: 'tok-surface' });
+  assert.equal(reponse.correction?.avant, 'button/color/surface-foreground');
 });
 
 test('une réponse à une question de propagation (C24) garde la plage du texte et la liaison actuelle du champ', async () => {

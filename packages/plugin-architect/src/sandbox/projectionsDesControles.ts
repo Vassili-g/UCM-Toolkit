@@ -55,7 +55,7 @@ export const GABARITS: Readonly<Record<NomDeFamille, Gabarit>> = {
     ...sous('releve.variants.*', 'id', 'valeurs'),
     ...sous(LAYERS, 'id', 'nom', 'type', 'instanceDe.nom', 'instanceDe.pilotee'),
     ...sous(LIAISONS_DU_LAYER, 'champ', 'indice', 'plage', 'surcharge', 'variable.cle', 'variable.nom'),
-    ...COLLECTIONS, ...sous('catalogue.variables.*', 'cle', 'nom', 'collection', 'scopes', ALIAS),
+    ...COLLECTIONS, 'catalogue.collections.*.etat', ...sous('catalogue.variables.*', 'cle', 'nom', 'collection', 'etat', 'scopes', ALIAS),
   ],
   'controle-couches': [
     'releve.jeu.nom', ...PROPRIETES,
@@ -88,15 +88,15 @@ export const GABARITS: Readonly<Record<NomDeFamille, Gabarit>> = {
     ...COLLECTIONS, ...sous('catalogue.variables.*', 'cle', 'nom', 'collection'),
   ],
   'controle-theme': [
-    'releve.variants.*.id',
+    'releve.jeu.nom', 'releve.variants.*.id',
     ...sous(LAYERS, 'id', 'nom', 'parent', 'peintures.*.champ', 'peintures.*.visible', 'peintures.*.indice'),
-    ...liaisons(['champ', 'indice', 'plage', 'surcharge', 'illisible', 'variable.cle'], ['champ', 'indice', 'plage', 'surcharge', 'variable.cle']),
-    ...COLLECTIONS, ...sous('catalogue.variables.*', 'cle', 'nom', 'collection', 'etat'),
+    ...liaisons(['champ', 'indice', 'plage', 'provenance', 'surcharge', 'illisible', 'variable.cle'], ['champ', 'indice', 'plage', 'provenance', 'surcharge', 'variable.cle']),
+    ...COLLECTIONS, ...sous('catalogue.variables.*', 'cle', 'nom', 'collection', 'etat', ALIAS),
   ],
   'controle-structure': [
     'releve.jeu.nom', ...PROPRIETES,
     ...sous('catalogue.collections.*', 'cle', 'nom', 'role', 'etat', 'modes'),
-    ...sous('catalogue.variables.*', 'cle', 'nom', 'collection', 'etat', 'valeurs'),
+    ...sous('catalogue.variables.*', 'cle', 'nom', 'collection', 'etat', 'distante', 'valeurs'),
   ],
 };
 

@@ -28,14 +28,14 @@ function variant(valeurs: Record<string, string>, extra: (id: string) => LayerLu
     id: `${id}/texte`, nom: 'Label', type: 'TEXT', parent: `${id}/racine`, visible: true, opacite: 1, dimensions: dimensions(80, 16),
     peintures: [], valeursEnDur: [],
     liaisons: [
-      liaison('fills', `${id}/texte`, variable('t-fg', 'surface/foreground', 'theme'), { plage: { debut: 0, fin: 5 } }),
+      liaison('fills', `${id}/texte`, variable('b-texte', 'Button/color/primary/contained/default/foreground', 'components'), { plage: { debut: 0, fin: 5 } }),
       liaison('fontFamily', `${id}/texte`, variable('absente-du-catalogue', 'Button/text/family', 'components')),
     ],
     texte: {
       style: valeurs.Size === 'small' ? null : 'Body',
       plages: [
         { debut: 0, fin: 5, fontSize: valeurs.Size === 'small' ? 10 : 14, fontWeight: 400, peintures: [peinture('fills', 0, 0.45)], liaisons: [
-        liaison('fills', `${id}/texte`, variable('t-fg', 'surface/foreground', 'theme'), { indice: 0 }),
+        liaison('fills', `${id}/texte`, variable('b-texte', 'Button/color/primary/contained/default/foreground', 'components'), { indice: 0 }),
         liaison('fontSize', `${id}/texte`, variable('b-rayon', 'Button/radius/medium', 'components')),
         liaison('lineHeight', `${id}/texte`, variable('introuvable', 'Button/text/line', 'components')),
         liaison('fontWeight', `${id}/texte`, variable('inconnue', '', ''), { illisible: true }),
@@ -140,6 +140,7 @@ export function catalogueRiche(): CatalogueDeReference {
       theme('t-primary', 'primary/solid/default', 0.4),
       theme('t-secondary', 'secondary/solid/default', 0.5),
       composant('b-fond', 'Button/color/primary/contained/default/background', 't-primary', { scopes: ['ALL_FILLS'] }),
+      composant('b-texte', 'Button/color/primary/contained/default/foreground', 't-fg'),
       composant('b-fond-icone', 'Button/color/secondary/contained/default/background', 'brand-secondary'),
       composant('b-fond-hover', 'Button/color/primary/contained/hover/background', 't-primary'),
       composant('b-fond-outlined', 'Button/color/primary/outlined/default/background', 't-primary'),
