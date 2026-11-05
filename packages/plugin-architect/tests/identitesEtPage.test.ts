@@ -186,3 +186,26 @@ test('les acquittements corrèlent demande et identité avec une seule horloge l
   frames.shift()!();
   assert.equal(envoyes.length, 1);
 });
+
+test('N-82 : « library à choisir » termine la demande et retire l’analyse en cours que le sandbox venait d’ouvrir', () => {
+  const etat = etatInitial();
+  noterLaDemandeDAnalyse(etat, 3, false, 0);
+  recevoirUneAnalyse(etat, { type: 'analyse-commencee', demande: 3, analyse: { sujet: 'Alert', generation: 1 } });
+  assert.equal(demandeDAnalyseEnCours(etat), 3);
+  assert.equal(calculEnCours(etat.analyse!), true);
+  recevoirUneAnalyse(etat, { type: 'library-a-choisir', demande: 3, analyse: etat.analyse!.identite });
+  assert.equal(demandeDAnalyseEnCours(etat), null);
+  assert.equal(etat.analyse, null, 'aucune analyse : l’écran demande de choisir la library');
+});
+
+test('N-82 : « library à choisir » laisse intacte une analyse déjà rendue', () => {
+  const etat = etatInitial();
+  noterLaDemandeDAnalyse(etat, 4, false, 0);
+  recevoirUneAnalyse(etat, { type: 'analyse-commencee', demande: 4, analyse: { sujet: 'Alert', generation: 1 } });
+  recevoirUneAnalyse(etat, { type: 'analyse', demande: 4, analyse: etat.analyse!.identite, statut: 'complete', constats: [], lecture: null, variants: [], sansTokens: false });
+  const rendue = etat.analyse;
+  noterLaDemandeDAnalyse(etat, 5, false, 0);
+  recevoirUneAnalyse(etat, { type: 'library-a-choisir', demande: 5, analyse: rendue!.identite });
+  assert.equal(etat.analyse, rendue);
+  assert.equal(demandeDAnalyseEnCours(etat), null);
+});

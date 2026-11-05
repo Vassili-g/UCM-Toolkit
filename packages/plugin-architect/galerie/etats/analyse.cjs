@@ -107,6 +107,18 @@ const ETATS = [
     ])],
   },
   {
+    id: 'e-partiel-fichier', titre: 'Analyse partielle, déclaration et library', quand: 'La déclaration du fichier vient d’une version plus récente du plugin, et la library UCM Tokens n’est pas activée : les tokens se lisent dans le fichier.',
+    regarder: 'L’alerte « À vérifier » dit « Analyse partielle. », puis « La déclaration rangée dans ce fichier est illisible. Elle vient d’une version plus récente d’UCM Architect. » et « Activez la library « Intencial Tokens » dans les libraries du fichier (Assets, Libraries), puis cliquez Actualiser. » ; aucune section tenue.',
+    existe: true, atteinte: [...alertAnalyse, OUVRIR, lu('partielle', constatsPartiels, { ...lecturePartielle, layersNonLus: 0, variantsNonLus: [] }, variants, [
+      { cause: 'declaration', etat: 'future' }, { cause: 'catalogue', library: 'Intencial Tokens' },
+    ])],
+  },
+  {
+    id: 'analyse-perimee-partielle', titre: 'Analyse partielle puis périmée', quand: 'Le document change alors que l’analyse partielle est affichée.',
+    regarder: 'Seule l’alerte « Le composant a changé depuis l’analyse » paraît ; la bannière « Analyse partielle. » cède (ordre : arrêtée, annulée, périmée, partielle, complète) ; les constats restent sans case active.',
+    existe: true, atteinte: [...alertAnalyse, OUVRIR, lu('partielle', constatsPartiels, lecturePartielle, variants, CAUSE_DES_LAYERS), perime('document')],
+  },
+  {
     id: 'e-echec', titre: 'Analyse arrêtée', quand: 'L’exporteur refuse de lire le composant : deux properties s’écrivent de la même façon.',
     regarder: 'Une alerte « Bloquant » reprend le message de l’exporteur et dit qu’aucun autre contrôle n’a été fait ; la pastille de Constats est bloquante.',
     existe: true,
@@ -126,6 +138,11 @@ const ETATS = [
     id: 'e-biblio', titre: 'Library à choisir', quand: 'Deux libraries activées portent des variables ; aucune n’est liée à ce composant.',
     regarder: 'Une alerte d’information dit « Choisissez la library de tokens. » et propose d’ouvrir la Configuration.',
     existe: true, atteinte: [...alertLu, { message: { type: 'configuration', library: null, candidates: [{ cle: 'tokens', nom: 'Intencial Tokens', liaisons: 24 }, { cle: 'autre', nom: 'Autre library', liaisons: 3 }], niveau: 'AA' } }, OUVRIR],
+  },
+  {
+    id: 'e-biblio-refusee', titre: 'Analyser refusé, library à choisir', quand: 'Le designer clique Analyser alors que deux libraries portent des variables et qu’aucune n’est choisie ; le sandbox répond « library à choisir ».',
+    regarder: 'L’analyse en cours tombe : la barre de progression disparaît et l’alerte « Choisissez la library de tokens. » propose d’ouvrir la Configuration, comme avant le clic.',
+    existe: true, atteinte: [...alertLu, { message: { type: 'configuration', library: null, candidates: [{ cle: 'tokens', nom: 'Intencial Tokens', liaisons: 24 }, { cle: 'autre', nom: 'Autre library', liaisons: 3 }], niveau: 'AA' } }, OUVRIR, COMMENCEE, { message: { type: 'library-a-choisir', analyse: IDENTITE } }],
   },
   {
     id: 'analyse-perimee-selection', titre: 'Analyse périmée par une autre sélection', quand: 'Le designer sélectionne un autre jeu de variants dans Figma.',

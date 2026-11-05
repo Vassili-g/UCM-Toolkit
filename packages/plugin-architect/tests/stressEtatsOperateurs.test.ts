@@ -62,7 +62,6 @@ test('F9 : un cas `mesure` cite sa question, et seul un cas `mesure` en cite une
   assert.equal(enAttente.get('N4-1'), 'Q-F89-3');
   assert.equal(enAttente.get('N6-1'), 'Q-F89-4');
   assert.equal(enAttente.get('St-9'), 'Q-F89-3', 'les dépendances refusées seules');
-  assert.equal(enAttente.get('Li-10'), 'Q-F89-20');
   assert.equal(enAttente.get('An-1'), 'non constructible', 'l’identité n’existe pas encore pendant la lecture du sujet');
   assert.equal(enAttente.get('Oc-10'), 'non constructible');
   assert.equal(enAttente.get('Bd1-6'), 'Q-F89-19');

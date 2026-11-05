@@ -20,7 +20,7 @@
  * l'acquisition précédente ; une lecture qui échoue, ou dont une cible a été refusée, n'en laisse aucune.
  */
 import type { LocalesLues, VariablesLues } from '../lecture';
-import type { CollectionRelevee, ValeurSource, VariableRelevee } from '../modele';
+import type { CollectionRelevee, LectureManquee, ValeurSource, VariableRelevee } from '../modele';
 
 /** Ce qu'un relevé réussi laisse : les variables lues avant `separerLesModes`, et les locales dans l'ordre de Figma. */
 export interface Acquisition {
@@ -179,16 +179,23 @@ export function acquisitionCourante(): Acquisition | null {
  * Les collections et variables que `lireLesVariables` rendrait pour `lire-structure` : les variables locales lues, puis les cibles
  * de leurs alias, et les collections de ces variables. Les membres des autres collections, les collections vides et les bases
  * d'extension que le relevé lit en plus n'y entrent pas. Les cibles se suivent par vagues, comme l'ancienne lecture ; l'ordre
- * de chaque liste est celui de l'acquisition.
+ * de chaque liste est celui de l'acquisition. `manquees` reprend les cibles que la lecture n'a pas obtenues et que ces variables
+ * visent, comme `lireLesVariables` les rendrait : celles des membres des autres collections n'y entrent pas.
  */
-export function variablesDuCatalogue(acquisition: Acquisition): { collections: CollectionRelevee[]; variables: VariableRelevee[] } {
-  const { collections: lesCollections, variables: lesVariables } = acquisition.lues;
+export function variablesDuCatalogue(acquisition: Acquisition): { collections: CollectionRelevee[]; variables: VariableRelevee[]; manquees: LectureManquee[] } {
+  const { collections: lesCollections, variables: lesVariables, manquees: lesManquees } = acquisition.lues;
   const collections = new Map<string, CollectionRelevee>();
   const variables = new Map<string, VariableRelevee>();
+  const manquees = new Map<string, LectureManquee>();
   let vague: string[] = [];
   const ajouter = (id: string): void => {
     const variable = lesVariables.get(id);
-    if (!variable || variables.has(id)) return;
+    if (!variable) {
+      const manquee = lesManquees.get(id);
+      if (manquee?.genre === 'variable') manquees.set(id, manquee);
+      return;
+    }
+    if (variables.has(id)) return;
     variables.set(id, variable);
     vague.push(id);
     const collection = lesCollections.get(variable.collection);
@@ -210,5 +217,5 @@ export function variablesDuCatalogue(acquisition: Acquisition): { collections: C
       for (const valeurs of Object.values(collection.extension?.surcharges ?? {})) cibles(valeurs);
     }
   }
-  return { collections: [...collections.values()], variables: [...variables.values()] };
+  return { collections: [...collections.values()], variables: [...variables.values()], manquees: [...manquees.values()] };
 }

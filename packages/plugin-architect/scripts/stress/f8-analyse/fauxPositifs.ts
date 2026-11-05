@@ -101,7 +101,7 @@ function profilsDAnalyse(registre: Registre): void {
     const aChoisir = !horsUcm && profil.libraries === 'plusieurs';
     const reference = { library: profil.libraries === 'une' ? 'Intencial' : null, nom: profil.libraries === 'une' ? 'Intencial' : null, candidates: profil.libraries === 'aucune' ? 0 : profil.libraries === 'une' ? 1 : 2 };
     registre.ajouter('FP1', {
-      description: `${profil.id} : ${profil.forme}, ${profil.architecture}, ${profil.niveau}, libraries ${profil.libraries} → complete, ${horsUcm ? 'l’alerte hors UCM' : aChoisir ? '« Library à choisir » avant la première analyse, la liste après' : 'la liste'}`,
+      description: `${profil.id} : ${profil.forme}, ${profil.architecture}, ${profil.niveau}, libraries ${profil.libraries} → ${aChoisir ? 'Analyser ne part pas, « Library à choisir »' : `complete, ${horsUcm ? 'l’alerte hors UCM' : 'la liste'}`}`,
       codesJuges: [], relations: profil.forme === 'button-216' ? [] : ['ordre'],
       jouer: (variante) => jouerSeance({ profil, variante }, analyserUneFois, async (s) => {
         const architecture = lireLArchitectureDuFichier(typeof s.declaration === 'function' ? s.declaration() : s.declaration);
@@ -112,7 +112,9 @@ function profilsDAnalyse(registre: Registre): void {
       verifier: (sortie) => {
         const o = observationDe(sortie);
         const { ecran, barre, ecranAvant, barreAvant } = sortie.donnees as { ecran: Ecran; barre: EtatDeLaBarre; ecranAvant: Ecran | null; barreAvant: EtatDeLaBarre | null };
-        const messages = juger(sortie, { statuts: ['complete'], occupes: 0, perimes: [] });
+        // Plusieurs libraries sans choix : le sandbox ne lance pas l'analyse et répond `library-a-choisir` (Q-F89-20).
+        const messages = juger(sortie, { statuts: aChoisir ? [] : ['complete'], occupes: 0, perimes: [] });
+        if (aChoisir && !o.types.includes('library-a-choisir')) messages.push('le sandbox n’a pas envoyé `library-a-choisir`');
         const alertes = ecran.alertes.join(' | ');
         if (PARTIELLE.test(alertes)) messages.push(`l’écran dit « analyse partielle » pour une analyse complète (${alertes})`);
         if (horsUcm) {
@@ -125,7 +127,8 @@ function profilsDAnalyse(registre: Registre): void {
         }
         if (aChoisir) {
           if (!ecranAvant || !/library/i.test(ecranAvant.alertes.join(' '))) messages.push('l’écran de la première analyse ne demande pas de choisir la library');
-          if (!barreAvant?.analyserInactif) messages.push('Analyser est actif alors que la library est à choisir');
+          if (!/library/i.test(alertes)) messages.push(`l’écran après le refus ne demande pas de choisir la library (alertes : ${alertes || 'aucune'})`);
+          if (!barreAvant?.analyserInactif || !barre.analyserInactif) messages.push('Analyser est actif alors que la library est à choisir');
         } else if (!horsUcm && barre.analyserInactif) messages.push('Analyser est inactif alors qu’aucun choix de library n’est à faire');
         return messages;
       },

@@ -338,7 +338,10 @@ function operateursOc(r: Registre): void {
   trois('lancées toutes ensemble : les deux dernières reçoivent `occupe`', async (s) => { s.garder(s.demander()); s.garder(s.demander()); s.garder(s.demander()); }, { statuts: ['complete'], occupes: 2 });
 }
 
-/** Les cinq cas « côté interface » : `occupe` ne change rien à l'opération en cours, écriture comprise. */
+/**
+ * Les cinq cas « côté interface » : `occupe` ne change rien à l'opération en cours. Un Analyser ou un Actualiser refusé porte `demande`
+ * (B7) et laisse l'écriture affichée ; un refus d'écriture n'en porte pas et fait tomber le verrou, car rien n'a été écrit.
+ */
 function interfaceOc(r: Registre): void {
   const identite = { sujet: 'Alert', generation: 3 };
   const final = { type: 'analyse', analyse: identite, statut: 'complete', constats: [], lecture: null, variants: [{ id: '1', nom: 'Alert' }], sansTokens: false } as unknown as PluginMessage;
@@ -356,7 +359,7 @@ function interfaceOc(r: Registre): void {
     ui.noterLEnvoi(etat, ['a'], 1);
     return etat;
   };
-  cas('`occupe` pendant une écriture : l’écriture affichée continue', (ui) => { const etat = ecritureEnCours(ui); ui.recevoir(etat, { type: 'occupe', analyse: identite }); return etat; },
+  cas('`occupe` pendant une écriture : l’écriture affichée continue', (ui) => { const etat = ecritureEnCours(ui); ui.recevoir(etat, { type: 'occupe', analyse: identite, demande: 2 }); return etat; },
     (etat) => (etat.analyse?.ecriture === null ? ['`occupe` a mis `ecriture` à null alors que l’écriture continue'] : []), H20);
   cas('`occupe` pendant un calcul : l’analyse reste en cours', (ui) => { const etat = ui.etatInitial(); ui.recevoir(etat, commencee); ui.recevoir(etat, { type: 'occupe', analyse: identite }); return etat; },
     (etat) => (etat.analyse?.statut === 'en-cours' ? [] : [`statut ${String(etat.analyse?.statut)}, attendu en-cours`]));
@@ -364,7 +367,7 @@ function interfaceOc(r: Registre): void {
     (etat) => (etat.analyse?.ecriture === null ? ['`occupe` d’une autre identité a touché l’écriture affichée'] : []));
   cas('`occupe` sans analyse retenue : aucun effet, aucune exception', (ui) => { const etat = ui.etatInitial(); ui.recevoir(etat, { type: 'occupe', analyse: identite }); return etat; },
     (etat) => (etat.analyse === null ? [] : ['`occupe` a ouvert une analyse']));
-  cas('`occupe` deux fois pendant une écriture : l’écriture affichée continue', (ui) => { const etat = ecritureEnCours(ui); ui.recevoir(etat, { type: 'occupe', analyse: identite }); ui.recevoir(etat, { type: 'occupe', analyse: identite }); return etat; },
+  cas('`occupe` deux fois pendant une écriture : l’écriture affichée continue', (ui) => { const etat = ecritureEnCours(ui); ui.recevoir(etat, { type: 'occupe', analyse: identite, demande: 2 }); ui.recevoir(etat, { type: 'occupe', analyse: identite, demande: 3 }); return etat; },
     (etat) => (etat.analyse?.ecriture === null ? ['`occupe` a mis `ecriture` à null alors que l’écriture continue'] : []), H20);
 }
 

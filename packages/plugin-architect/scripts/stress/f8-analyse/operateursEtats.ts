@@ -58,7 +58,7 @@ function operateursLiInterface(r: Registre): void {
         const aChoisir = candidates >= 2 && !choisie;
         r.ajouter('Li', {
           description: `${candidates === 2 ? '2 libraries ou plus' : `${candidates} library`} candidate(s), library ${choisie ? 'choisie' : 'non choisie'}, ${nouvelle ? 'nouvelle analyse' : 'première analyse'} : Analyser ${aChoisir ? 'inactif' : 'actif'}`,
-          relations: [], ...(aChoisir && nouvelle ? { question: 'Q-F89-20', rattachement: H22 } : {}),
+          relations: [],
           jouer: async (): Promise<SortieDeCas> => {
             const etat = await etatApres(nouvelle ? await analyseDeReference() : [], {
               architecture: 'ucm', reference: { library: choisie ? 'Intencial' : null, nom: choisie ? 'Intencial' : null, candidates },
@@ -89,9 +89,10 @@ function operateursLiSandbox(r: Registre): void {
     attente: { statuts: ['complete'] },
     plus: (sortie) => (observationDe(sortie).libraryRetenue === 'Intencial' ? [] : [`library retenue ${String(observationDe(sortie).libraryRetenue)}, attendu Intencial`]),
   });
-  li('deux libraries à égalité : aucune n’est choisie, l’analyse ne tient pas le catalogue du fichier pour celui de la library', {
+  li('deux libraries à égalité : aucune n’est choisie, l’analyse ne part pas et l’écran demande la library (Q-F89-20)', {
     options: { adaptateurs: [catalogueDuProduit], plan: rendre('bibliotheques', deuxLibraries()) },
-    attente: { statut: 'partielle', provisoires: 1 }, question: 'Q-F89-20', rattachement: H22,
+    attente: { statuts: [] },
+    plus: (sortie) => (observationDe(sortie).types.includes('library-a-choisir') ? [] : ['le sandbox n’a pas envoyé `library-a-choisir`']),
   });
   li('library illisible : le repli sur le fichier est dit', {
     options: { adaptateurs: [catalogueDuProduit], plan: rendre('bibliotheques', bibliothequesIllisibles) },

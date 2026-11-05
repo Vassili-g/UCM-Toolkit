@@ -83,7 +83,7 @@ import { lireLeReleve, type IssueDuReleve } from '../releveDuComposant';
 import { lireLesLibrariesAuClic } from './anticipation';
 import { capturerSiDemande, PROPRIETES_DE_STYLE } from './capture';
 import { lireLaDeclaration } from './commun';
-import { retenirLesLiaisons } from './bibliotheque';
+import { liaisonsRetenues, retenirLesLiaisons } from './bibliotheque';
 import { FAMILLES_DE_CONTROLES, FAMILLES_UCM, PROJECTIONS, type NomDeFamille } from './projectionsDesControles';
 import { libraryDeReference, lireLeNiveau } from './configuration';
 import type { Contexte, Traiter } from './contexte';
@@ -623,11 +623,11 @@ export function journalDesChangements(): JournalDeChangements | null {
 
 /**
  * Pourquoi l'analyse est partielle, dans l'ordre où le panneau les dit : la lecture du composant, les champs refusés par Figma, puis les
- * règles, le niveau et les ignorés quand leur lecture a été refusée. Le relevé et le moteur ne se cumulent pas : les layers que le
+ * règles, le niveau et les ignorés quand leur lecture a été refusée, puis la déclaration UCM et le catalogue. Le relevé et le moteur ne se cumulent pas : les layers que le
  * relevé a laissés sont la cause quand il les compte, sinon les variants non lus, sinon des layers en nombre inconnu, sinon la
  * couverture du moteur.
  */
-export function causesDeLaPartielle({ lecture, variants }: Pick<ReleveDeComposant, 'lecture' | 'variants'>, couverture: { readonly etat: string; readonly lus?: number; readonly nonLus?: number | 'inconnu' }, refusees: readonly string[]): CauseDePartielle[] {
+export function causesDeLaPartielle({ lecture, variants }: Pick<ReleveDeComposant, 'lecture' | 'variants'>, couverture: { readonly etat: string; readonly lus?: number; readonly nonLus?: number | 'inconnu' }, refusees: readonly string[], precisions: PrecisionsDeLaPartielle = {}): CauseDePartielle[] {
   const causes: CauseDePartielle[] = [];
   const variantsNonLus = lecture.variantsNonLus.length;
   if (typeof lecture.layersNonLus === 'number' && lecture.layersNonLus > 0) {
@@ -641,8 +641,18 @@ export function causesDeLaPartielle({ lecture, variants }: Pick<ReleveDeComposan
     causes.push({ cause: 'layers', lus: couverture.lus ?? 0, total: nonLus === 'inconnu' ? null : (couverture.lus ?? 0) + nonLus });
   }
   if (lecture.manquees.length > 0) causes.push({ cause: 'lectures', nombre: lecture.manquees.length });
-  for (const lecteur of ['regles', 'niveau', 'ignores'] as const) if (refusees.includes(lecteur)) causes.push({ cause: lecteur });
+  // Un moteur coupé ne rend pas les règles : elles ne se lisent que sur un composant lu en entier.
+  if (refusees.includes('regles') || couverture.etat === 'partielle') causes.push({ cause: 'regles' });
+  for (const lecteur of ['niveau', 'ignores'] as const) if (refusees.includes(lecteur)) causes.push({ cause: lecteur });
+  if (refusees.includes('declaration')) causes.push({ cause: 'declaration', etat: precisions.declaration ?? 'illisible' });
+  if (refusees.includes('catalogue')) causes.push({ cause: 'catalogue', library: precisions.library ?? null });
   return causes;
+}
+
+/** Ce que les causes `declaration` et `catalogue` disent en plus : l'état de la déclaration, et la library à nommer. */
+export interface PrecisionsDeLaPartielle {
+  readonly declaration?: 'illisible' | 'future';
+  readonly library?: string | null;
 }
 
 /** Sans topologie lue, aucun trou n'est connu et rien n'est couvert : la couverture est inconnue. */
@@ -1010,6 +1020,22 @@ function portDuComposant({ figma }: Contexte): PortDuComposant {
   };
 }
 
+/**
+ * Vrai quand plusieurs libraries portent des variables et qu'aucune n'est choisie : ni rangée par la Configuration, ni désignée par les
+ * liaisons. L'analyse n'a alors pas de catalogue à lire, et l'écran demande de choisir la library (Q-F89-20).
+ */
+async function libraryAChoisir(libraries: LibrariesEnAvance, liaisons: ReadonlyMap<string, number>, figma: PluginAPI): Promise<boolean> {
+  // Un fichier déclaré libre ou sans déclaration n'a pas d'Analyser : la garde ne le concerne pas.
+  try {
+    const declaration = lireLaDeclaration(figma);
+    if (declaration === 'absente' || declaration === 'libre') return false;
+  } catch { /* une déclaration qui ne se lit pas ne dispense pas du choix */ }
+  const issue = await libraries;
+  if ('erreur' in issue || issue.lecture.etat !== 'lue') return false;
+  const { collections } = issue.lecture;
+  return new Set(collections.map(({ library }) => library)).size > 1 && libraryDeReference(collections, liaisons, lireLaLibraryRangee(figma)) === null;
+}
+
 /** Le nombre de calques liés, par clé de variable : de quoi départager des libraries. */
 function liaisonsParCle(releve: ReleveDeComposant): Map<string, number> {
   const comptes = new Map<string, number>();
@@ -1064,6 +1090,7 @@ async function catalogueSansFonds(releve: ReleveDeComposant, jeton: JetonDAnnula
       const lireLesLibrariesDuFichier = () => lireLesLibraries(figma as unknown as PortDeBibliotheque, cooperation);
       lecture = await (inventaires ? inventaires.libraries(lireLesLibrariesDuFichier) : lireLesLibrariesDuFichier());
     }
+    if (lecture.etat === 'illisible') options.repliSurLeFichier?.(lireLaLibraryRangee(figma));
     if (lecture.etat === 'lue') {
       const choisie = libraryDeReference(lecture.collections, liaisons, lireLaLibraryRangee(figma));
       if (choisie !== null) {
@@ -1082,6 +1109,7 @@ async function catalogueSansFonds(releve: ReleveDeComposant, jeton: JetonDAnnula
   } catch (erreur) {
     if (erreur instanceof AnalyseAnnulee) throw erreur;
     // La library ne se lit pas : le catalogue du fichier ouvert suit.
+    options.repliSurLeFichier?.(lireLaLibraryRangee(figma));
   }
   const port = portDeLecture(figma);
   const locales = await (inventaires ? inventaires.variablesLocales(() => port.getLocalVariablesAsync()) : port.getLocalVariablesAsync());
@@ -1090,7 +1118,7 @@ async function catalogueSansFonds(releve: ReleveDeComposant, jeton: JetonDAnnula
     importEvite: () => options.importsEvites?.(1),
   });
   const architecture = lireLaDeclaration(figma) === 'ucm' ? 'ucm' : 'libre';
-  return catalogueDuFichier({ collections: [...(lues?.collections.values() ?? [])], variables: [...(lues?.variables.values() ?? [])] }, architecture);
+  return catalogueDuFichier({ collections: [...(lues?.collections.values() ?? [])], variables: [...(lues?.variables.values() ?? [])], manquees: [...(lues?.manquees.values() ?? [])] }, architecture);
 }
 
 /**
@@ -1521,7 +1549,7 @@ export const LECTEURS_DE_FIGMA: Lecteurs = {
   bibliotheques: ({ figma }, cooperation) => lireLesLibrariesAuClic(figma, cooperation),
   catalogue: catalogueDeFigma,
   niveau: ({ figma }) => lireLeNiveau(figma),
-  ignores: async ({ figma }) => lireLesIgnores(figma),
+  ignores: async ({ figma }) => lireLesIgnores(figma, true),
   regles: (sujet, interne, _contexte, inventaires) => lireLesRegles(sujet.noeud as unknown as ComponentSetNode, interne, inventaires),
   dependances: dependancesDeFigma,
   moteur: async (sujet, jeton, { figma }, progresser, cooperation, inventaires) => {
@@ -1683,6 +1711,19 @@ function reprendre<T>(anticipe: Anticipe<T>): T {
   return anticipe.valeur;
 }
 
+/**
+ * L'information d'un premier variant plus gros que le budget : il se lit sans borne, tous les suivants sont jugés sur ce qui reste. Le
+ * code C42 sert de réserve à la famille `export` ; `limite` la tient hors d'Ignorer. Aucun texte du designer n'est encore écrit pour elle.
+ */
+export function informationDuPremierVariant(releve: Pick<ReleveDeComposant, 'variants'>): Constat | null {
+  const [premier] = releve.variants;
+  if (!premier || premier.layers.length <= BUDGET_DE_LAYERS_PAR_DEFAUT) return null;
+  return {
+    id: 'C42:premier-variant-hors-budget', code: 'C42', type: 'info', famille: 'export', variants: [premier.nom], layers: [], limite: true,
+    faits: { genre: 'premier-variant-hors-budget', layers: premier.layers.length, budget: BUDGET_DE_LAYERS_PAR_DEFAUT },
+  };
+}
+
 /** L'unique constat d'une analyse arrêtée : le code C42 sert de réserve à la famille `export`. */
 function bloquant(message: string): Constat {
   return { id: 'export:arret', code: 'C42', type: 'bloquant', famille: 'export', variants: [], layers: [], faits: { message } };
@@ -1839,12 +1880,27 @@ async function analyser(contexte: Contexte, lecteurs: Lecteurs, demandeRecue: Ex
   let catalogueLu: CatalogueDeReference | null = null;
   let catalogueResolu = false;
   let importsEvites = 0;
+  // La library dont le catalogue s'est replié sur le fichier faute de la lire (`library` nul : aucune n'est nommée) ; `null` sans repli.
+  let repliDuCatalogue = null as { readonly library: string | null } | null;
   let libraries: LibrariesEnAvance | undefined;
   let librariesEnCours = false;
-  // Les liaisons et les modèles de la dernière analyse, que la Configuration et l'écriture des règles lisent : une prélecture
-  // discrète ne les pose qu'à sa promotion ou quand un clic la prend, jamais pour une prélecture annulée.
+  // La lecture des libraries ne dépend pas du relevé : elle court pendant lui, et `catalogue` en attend l'issue. Elle partage le jeton et
+  // le budget de l'analyse ; `libraries` ne rejette jamais. Rend sa lecture, `null` sans lecteur de libraries.
+  const lancerLesLibraries = (): LibrariesEnAvance | null => {
+    if (!lecteurs.bibliotheques) return null;
+    if (libraries !== undefined) return libraries;
+    const lire = lecteurs.bibliotheques;
+    librariesEnCours = true;
+    libraries = attendrePourLaMesure(async () => inventaires.libraries(() => lire(contexte, cooperation)), 'parallele', 'libraries')
+      .then((lecture) => ({ lecture }), (erreur: unknown) => ({ erreur }))
+      .finally(() => { librariesEnCours = false; });
+    return libraries;
+  };
+  // Les liaisons et les modèles de la dernière analyse, que la Configuration et l'écriture des règles lisent : une analyse ne les pose
+  // qu'à son résultat `complete` ou `partielle` (N-71), une prélecture discrète qu'à sa promotion. Une analyse annulée ou arrêtée laisse
+  // ceux de l'analyse affichée.
   const retenuesEnAttente: (() => void)[] = [];
-  const retenir = (effet: () => void): void => { if (discrete) retenuesEnAttente.push(effet); else effet(); };
+  const retenir = (effet: () => void): void => { retenuesEnAttente.push(effet); };
   const poserLesRetenues = (): void => { for (const effet of retenuesEnAttente.splice(0)) effet(); };
   const rendre = (statut: StatutDAnalyse, constats: readonly Constat[], releve: ReleveDeComposant | null, ecartes: readonly string[] = [], tous: readonly Constat[] = constats, retirees: readonly string[] = [], causes: readonly CauseDePartielle[] = []): void => {
     terminee = true;
@@ -1882,7 +1938,6 @@ async function analyser(contexte: Contexte, lecteurs: Lecteurs, demandeRecue: Ex
       adoptable: () => !(catalogueResolu && importsEvites > 0),
       adopter(clic) {
         discrete = false;
-        poserLesRetenues();
         demande = clic;
         courant.demande = clic.demande;
         analysesDuDesigner += 1;
@@ -1923,6 +1978,13 @@ async function analyser(contexte: Contexte, lecteurs: Lecteurs, demandeRecue: Ex
       connaitre({ sujet: sujet?.cle ?? '', generation });
       return;
     }
+    // Une prélecture ne lit rien tant que la library reste à choisir (Q-F89-20, N-82) : ni le relevé, ni les libraries au-delà de leur liste.
+    const librariesDeLaPrelecture = discrete ? lancerLesLibraries() : null;
+    if (librariesDeLaPrelecture && await libraryAChoisir(librariesDeLaPrelecture, liaisonsRetenues(), contexte.figma)) {
+      terminee = true;
+      connaitre({ sujet: sujet?.cle ?? '', generation });
+      return;
+    }
     if (enPrelecture && discrete) noterLaPrelecture('prelecturesLancees');
     if (!enPrelecture && sujet && entreeDeLaPrelecture !== null && session.entree(sujet.cle) === entreeDeLaPrelecture) noterLaPrelecture('clicApresPrelecture:repris');
     identite = commencerUneAnalyse(sujet?.cle ?? '', sujet?.noeuds ?? [], contexte, sujet?.admis, sujet ? pageDuNoeud<PageNode | undefined>(sujet.noeud, undefined) : undefined, sujet?.couverture, curseur, sujet?.parents);
@@ -1943,15 +2005,7 @@ async function analyser(contexte: Contexte, lecteurs: Lecteurs, demandeRecue: Ex
     const { jeton } = courant;
 
     phase('releve');
-    // La lecture des libraries ne dépend pas du relevé : elle court pendant lui, et `catalogue` en attend l'issue.
-    // Elle partage le jeton et le budget de l'analyse ; `libraries` ne rejette jamais.
-    if (lecteurs.bibliotheques) {
-      const lire = lecteurs.bibliotheques;
-      librariesEnCours = true;
-      libraries = attendrePourLaMesure(async () => inventaires.libraries(() => lire(contexte, cooperation)), 'parallele', 'libraries')
-        .then((lecture) => ({ lecture }), (erreur: unknown) => ({ erreur }))
-        .finally(() => { librariesEnCours = false; });
-    }
+    lancerLesLibraries();
     // Validation du relevé (16.15) : sur une entrée qui peut se valider, le relevé se relit en entier, ses appels par
     // identifiant demandés en avance, puis se compare au retenu. Égal, l'objet retenu sert : les comparaisons suivantes
     // (requêtes, validation de l'entrée) le trouvent identique sans le parcourir. Le relevé lu porte les valeurs résolues
@@ -1978,20 +2032,30 @@ async function analyser(contexte: Contexte, lecteurs: Lecteurs, demandeRecue: Ex
 
     const liaisonsDuReleve = liaisonsParCle(releve);
     retenir(() => retenirLesLiaisons(liaisonsDuReleve));
-    const niveau = await attendrePourLaMesure(async () => await lecteurs.niveau?.(contexte).catch((): NiveauDAccessibilite => { lecturesRefusees.push('niveau'); return 'AA'; }) ?? 'AA');
+    // Un niveau qui lève ou que ni AA ni AAA ne désigne est une lecture refusée : AA s'applique, et l'analyse le dit.
+    const niveau = await attendrePourLaMesure(async (): Promise<NiveauDAccessibilite> => {
+      if (!lecteurs.niveau) return 'AA';
+      const lu: unknown = await lecteurs.niveau(contexte).catch((): undefined => undefined);
+      if (lu === 'AA' || lu === 'AAA') return lu;
+      lecturesRefusees.push('niveau');
+      return 'AA';
+    });
     phase('catalogue');
     // Une prélecture lit le catalogue sans import par clé, qui abonnerait le fichier à la variable. Si cela a évité un import, ce
     // catalogue n'est pas celui d'une demande ordinaire : la prélecture ne promeut rien, un clic ne la prend pas, et un clic
     // arrivé pendant cette lecture la refait avec les imports.
     const lireLeCatalogue = async (): Promise<CatalogueDeReference> => {
       const sansImport = discrete;
-      const lu = await lecteurs.catalogue(releve, jeton, contexte, cooperation, libraries, inventaires, sansImport ? { sansImport, importsEvites: (n) => { importsEvites += n; } } : undefined);
+      repliDuCatalogue = null;
+      const options: OptionsDeCatalogue = { repliSurLeFichier: (library) => { repliDuCatalogue = { library }; }, ...(sansImport ? { sansImport, importsEvites: (n: number) => { importsEvites += n; } } : {}) };
+      const lu = await lecteurs.catalogue(releve, jeton, contexte, cooperation, libraries, inventaires, options);
       if (!sansImport || importsEvites === 0 || discrete) {
         catalogueResolu = true;
         return lu;
       }
       importsEvites = 0;
-      const complet = await lecteurs.catalogue(releve, jeton, contexte, cooperation, libraries, inventaires);
+      repliDuCatalogue = null;
+      const complet = await lecteurs.catalogue(releve, jeton, contexte, cooperation, libraries, inventaires, { repliSurLeFichier: (library) => { repliDuCatalogue = { library }; } });
       catalogueResolu = true;
       return complet;
     };
@@ -2024,20 +2088,35 @@ async function analyser(contexte: Contexte, lecteurs: Lecteurs, demandeRecue: Ex
     catalogueLu = catalogue;
     compter('variablesDuCatalogue', catalogue.variables.length);
     if (jeton.leve) return rendre('annulee', [], null);
+    // Une analyse sans library choisie s'arrête et l'écran demande le choix (Q-F89-20, N-82). La décision attend les libraries que le
+    // catalogue attendait déjà : elle ne retarde ni le catalogue, ni les dépendances, ni le moteur.
+    if (!discrete && libraries !== undefined && await libraryAChoisir(libraries, liaisonsDuReleve, contexte.figma)) {
+      terminee = true;
+      emettre({ type: 'library-a-choisir', analyse: identite, ...(demande.demande !== undefined ? { demande: demande.demande } : {}) });
+      return;
+    }
 
     // Les valeurs actuelles que les requêtes comparent à celles de l'entrée retenue (`creerLesRequetes`).
     const actuelles = new Map<NomDEntree, unknown>([['releve', releve], ['catalogue', catalogue], ['niveau', niveau]]);
-    const architectureUcm = (() => {
-      try { return lireLaDeclaration(contexte.figma) === 'ucm'; }
-      catch { return false; }
+    // Une déclaration que Figma refuse de lire, illisible ou d'une version plus récente ne dit pas que le fichier est libre : les familles
+    // thème et structure tournent, et l'analyse dit qu'elle n'a pas pu juger si le fichier suit UCM.
+    const declaration = (() => {
+      try { return lireLaDeclaration(contexte.figma); }
+      catch { return 'illisible' as const; }
     })();
+    const declarationIncertaine = declaration === 'illisible' || declaration === 'future';
+    if (declarationIncertaine) lecturesRefusees.push('declaration');
+    const architectureUcm = declaration === 'ucm' || declarationIncertaine;
     actuelles.set('architectureUcm', architectureUcm);
     // Une lecture des règles qui lève ne coûte que C43 et C45 : le reste de l'analyse reste vrai.
     const lireLesReglesDe: RelireLesRegles = (surface) => attendrePourLaMesure(async () => {
       if (!lecteurs.regles) return { regles: null, refusee: false };
       try {
-        return { regles: await lecteurs.regles(sujet, surface, contexte, inventaires), refusee: false };
-      } catch {
+        const lues = await lecteurs.regles(sujet, surface, contexte, inventaires);
+        return lues === undefined ? { regles: null, refusee: true } : { regles: lues, refusee: false };
+      } catch (erreur) {
+        // Une annulation n'est pas un refus de Figma : la demande s'arrête, sans marquer l'entrée de session ni l'analyse.
+        if (jeton.leve) throw erreur;
         return { regles: null, refusee: true };
       }
     }, 'attente', 'regles');
@@ -2066,6 +2145,8 @@ async function analyser(contexte: Contexte, lecteurs: Lecteurs, demandeRecue: Ex
         ? await validerLEntree(sujet, identite as IdentiteDAnalyse, { releve, catalogue, dependances }, lireLesReglesDe)
         : null;
       if (reutilisationPermise(demande) && dependances !== undefined) compterLaValidation(sujet.cle, validation);
+      // Des dépendances refusées ne disent rien à l'écran : elles interdisent la reprise d'une entrée et se lisent dans la trace.
+      if (dependances === null && !(validation?.etat === 'invalide' && validation.raisons.includes('lecture-refusee:dependances'))) compter('nonReprise:lecture-refusee:dependances');
     };
     // Les requêtes pures se reprennent de l'entrée promue du sujet, quel que soit son état : leurs entrées se comparent aux
     // valeurs lues par cette demande, jamais à celles de l'entrée. Actualiser ne reprend rien. Les contrôles précèdent donc la
@@ -2078,7 +2159,13 @@ async function analyser(contexte: Contexte, lecteurs: Lecteurs, demandeRecue: Ex
     if (jeton.leve) return rendre('annulee', [], null);
     // Les ignorés se lisent avant le premier envoi : le provisoire dit déjà lesquels ne comptent pas. Son étape garde leur coût hors du dernier contrôle.
     etape('provisoire');
-    const rangees = await attendrePourLaMesure(async () => await lecteurs.ignores?.(contexte).catch((): readonly string[] => { lecturesRefusees.push('ignores'); return []; }) ?? []);
+    const rangees = await attendrePourLaMesure(async (): Promise<readonly string[]> => {
+      if (!lecteurs.ignores) return [];
+      const lues: unknown = await lecteurs.ignores(contexte).catch((): undefined => undefined);
+      if (Array.isArray(lues)) return lues as readonly string[];
+      lecturesRefusees.push('ignores');
+      return [];
+    });
     actuelles.set('ignores', rangees);
     if (jeton.leve) return rendre('annulee', [], null);
     const envoyee = demande.demande === undefined ? undefined : mesuresEnvoyees.get(demande.demande);
@@ -2114,7 +2201,9 @@ async function analyser(contexte: Contexte, lecteurs: Lecteurs, demandeRecue: Ex
     retenir(() => retenirLesModeles(modeles));
     const tous = await requete('corrections', async () => {
       etape('controle-fusion');
-      const brut = mesurerLeCalcul(() => [...controles, ...constatsDeRegles(reglesLues), ...constatsDuMoteur(moteur, new Set(releve.variants.map((variant) => variant.id)))], 'controles', true);
+      const variantsDuReleve = releve.variants;
+      const information = informationDuPremierVariant({ variants: variantsDuReleve });
+      const brut = mesurerLeCalcul(() => [...controles, ...constatsDeRegles(reglesLues), ...constatsDuMoteur(moteur, new Set(variantsDuReleve.map((variant) => variant.id))), ...(information ? [information] : [])], 'controles', true);
       phase('corrections');
       await cooperation.cederSiBesoin();
       // C25 et C29 naissent des corrections : le doublon du moteur se retire après elles.
@@ -2129,11 +2218,16 @@ async function analyser(contexte: Contexte, lecteurs: Lecteurs, demandeRecue: Ex
     await new Promise<void>((resolve) => setTimeout(resolve, 0));
     if (jeton.leve) return rendre('annulee', [], null);
     verifierLaGeneration(contexte);
-    const causes = causesDeLaPartielle(releve, moteur.couverture, lecturesRefusees);
+    // Un catalogue replié sur le fichier est une lecture refusée de la library ; une collection inaccessible aussi. Les deux nomment la library.
+    if (repliDuCatalogue !== null || catalogue.collections.some(({ etat }) => etat === 'inaccessible')) lecturesRefusees.push('catalogue');
+    const causes = causesDeLaPartielle(releve, moteur.couverture, lecturesRefusees, {
+      library: repliDuCatalogue !== null ? repliDuCatalogue.library : catalogue.library?.nom ?? null,
+      ...(declaration === 'future' ? { declaration: 'future' as const } : {}),
+    });
     const statutFinal: StatutDAnalyse = causes.length > 0 || (discrete && importsEvites > 0) ? 'partielle' : 'complete';
-    // Une lecture du fichier refusée (règles, niveau, ignorés) rend l'analyse partielle pour le designer, mais l'entrée de session la retient
-    // comme avant, à relire (`lecture-refusee`) : seules une lecture incomplète du composant ou un moteur coupé la jettent.
-    const statutDeLaSession: StatutDAnalyse = statutFinal === 'partielle' && !(discrete && importsEvites > 0) && causes.every(({ cause }) => cause === 'regles' || cause === 'niveau' || cause === 'ignores') ? 'complete' : statutFinal;
+    // Une lecture du fichier refusée (règles, niveau, ignorés, déclaration, catalogue) rend l'analyse partielle pour le designer, mais
+    // l'entrée de session la retient à relire (`lecture-refusee`) : seules une lecture incomplète du composant ou un moteur coupé la jettent.
+    const statutDeLaSession: StatutDAnalyse = statutFinal === 'partielle' && !(discrete && importsEvites > 0) && causes.every(({ cause }) => cause === 'regles' || cause === 'niveau' || cause === 'ignores' || cause === 'declaration' || cause === 'catalogue') ? 'complete' : statutFinal;
     // La promotion précède l'envoi du résultat : la trace qu'il porte se ferme à l'envoi et doit déjà compter ce que la session retient.
     if (revision) {
       const entreeAvant = session.entree(identite.sujet);
@@ -2153,6 +2247,7 @@ async function analyser(contexte: Contexte, lecteurs: Lecteurs, demandeRecue: Ex
       retenirLeMaximum('aretesRetenues', retenu.aretes);
       retenirLeMaximum('entreesDuJournal', journal?.depuis(0).length ?? 0);
     }
+    if (!discrete) poserLesRetenues();
     rendre(statutFinal, visibles, releve, ignores, tous, propositionsRetirees(rangees), causes);
     // La capture suit l'envoi de la trace et garde la place d'opération : une écriture demandée pendant ce temps rend `occupe`.
     await capturerSiDemande(demande, contexte, { noeud: sujet.noeud, page: pageDuNoeud(sujet.noeud, contexte.figma.currentPage), imports: importsEnregistres });

@@ -103,7 +103,7 @@ export async function catalogueParLesLectures(figma: PluginAPI, appels: AppelsDe
   try { locales = await port.getLocalVariablesAsync(); } catch { throw new RefusDeFigma('Figma refuse la lecture des variables'); }
   const lues = await lireLesVariables(port, locales.map((variable) => variable.id), { annulee: () => false }, idsDesLocales(locales));
   if (!lues) return null;
-  const catalogue = catalogueDuFichier({ collections: [...lues.collections.values()], variables: [...lues.variables.values()] }, 'ucm');
+  const catalogue = catalogueDuFichier({ collections: [...lues.collections.values()], variables: [...lues.variables.values()], manquees: [...lues.manquees.values()] }, 'ucm');
   if ([...lues.manquees.values()].some((manquee) => manquee.issue === 'refusee')) cataloguesAvecUnRefus.add(catalogue);
   return catalogue;
 }

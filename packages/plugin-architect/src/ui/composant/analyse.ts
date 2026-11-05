@@ -17,7 +17,7 @@ import type { LiaisonEnAttente } from '../../preparations';
 import type { Etat } from '../etat';
 
 /** Les messages qui touchent l'analyse retenue. */
-export type MessageRecuDeLAnalyse = Extract<PluginMessage, { type: 'analyse-commencee' | 'analyse-en-cours' | 'analyse-provisoire' | 'analyse' | 'perime' | 'occupe' | 'corrections-appliquees' | 'ignores' | 'question-repondue' | 'modele-propose' | 'liaisons-preparees' }>;
+export type MessageRecuDeLAnalyse = Extract<PluginMessage, { type: 'analyse-commencee' | 'analyse-en-cours' | 'analyse-provisoire' | 'analyse' | 'perime' | 'occupe' | 'library-a-choisir' | 'corrections-appliquees' | 'ignores' | 'question-repondue' | 'modele-propose' | 'liaisons-preparees' }>;
 
 /** Le dernier lot écrit : la ligne de réussite du sandbox, et ce qui s'est écrit. */
 export interface LotEcrit {
@@ -105,7 +105,7 @@ export function recevoirUneAnalyse(etat: Etat, message: MessageRecuDeLAnalyse): 
   const courante = etat.analyse;
   const demande = demandes.get(etat);
   if ('demande' in message && message.demande !== undefined && demande && message.demande !== demande.id) return;
-  if ((message.type === 'analyse' || message.type === 'occupe') && demande && message.demande === demande.id) demande.terminee = true;
+  if ((message.type === 'analyse' || message.type === 'occupe' || message.type === 'library-a-choisir') && demande && message.demande === demande.id) demande.terminee = true;
   const dureeMs = message.type === 'analyse' && demande && message.demande === demande.id ? Math.max(0, performance.now() - demande.debut) : undefined;
   if (message.type === 'analyse-commencee') {
     if (courante && message.analyse.generation <= courante.identite.generation) return;
@@ -181,6 +181,10 @@ export function recevoirUneAnalyse(etat: Etat, message: MessageRecuDeLAnalyse): 
     case 'perime':
       // Un changement du document après une écriture est un Ctrl+Z : la ligne « Ctrl+Z défait ce lot » n'a plus d'objet.
       etat.analyse = { ...courante, perimee: true, cause: message.cause, lot: message.cause === 'ecriture' ? courante.lot : null, liaisons: null };
+      return;
+    case 'library-a-choisir':
+      // L'analyse n'a pas lu le composant : l'état en cours qu'`analyse-commencee` a ouvert tombe, et l'écran demande le choix de la library.
+      if (courante.statut === 'en-cours') etat.analyse = null;
       return;
     case 'occupe':
       // Un refus de `analyser` (il porte `demande`) laisse l'écriture courir : elle garde son verrou et Appliquer reste inactif. Un refus

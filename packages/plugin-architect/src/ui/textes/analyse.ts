@@ -8,6 +8,8 @@ const nombre = (valeur: number): string => String(valeur).replace(/\B(?=(\d{3})+
 
 const MOTS: Readonly<Record<number, string>> = { 2: 'Deux', 3: 'Trois', 4: 'Quatre', 5: 'Cinq' };
 
+import { TEXTES as TEXTES_NOMENCLATURE } from './nomenclature';
+
 export const TEXTES_ANALYSE = {
   panneauDesConstats: {
     aucunComposant: 'Sélectionnez un composant dans Figma.',
@@ -51,7 +53,12 @@ export const TEXTES_ANALYSE = {
       regles: 'Les règles d’utilisation n’ont pas pu être lues.',
       niveau: 'Le niveau du fichier n’a pas pu être lu. Le niveau AA s’applique.',
       ignores: 'Les constats ignorés n’ont pas pu être lus. Ils s’affichent de nouveau.',
+      /** Les textes de Nomenclature (Configuration) : la déclaration se dit de la même façon dans les deux modes. */
+      declaration: (etat: 'illisible' | 'future'): string => (etat === 'future' ? `${TEXTES_NOMENCLATURE.architectureIllisible} ${TEXTES_NOMENCLATURE.architectureFuture}` : TEXTES_NOMENCLATURE.architectureIllisible),
+      catalogue: (library: string | null): string => `Activez ${library === null ? 'la library de tokens' : `la library « ${library} »`} dans les libraries du fichier (Assets, Libraries), puis cliquez Actualiser.`,
     },
+    /** Une déclaration illisible ou d'une version plus récente, dite même sous une analyse complète : l'analyse n'a pas jugé si le fichier suit UCM. */
+    declarationIncertaine: (etat: 'illisible' | 'future'): string => (etat === 'future' ? `${TEXTES_NOMENCLATURE.architectureIllisible} ${TEXTES_NOMENCLATURE.architectureFuture}` : TEXTES_NOMENCLATURE.architectureIllisible),
     partielleTexte: 'Les constats portent sur la partie lue.',
     occupeTitre: 'Une opération est déjà en cours.',
     occupeTexte: 'L’écriture continue. Actualisez quand elle est finie.',

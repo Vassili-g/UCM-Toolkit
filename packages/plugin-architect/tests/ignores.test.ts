@@ -96,6 +96,16 @@ test('une donnée illisible ne donne aucune clé', () => {
   assert.equal(ignorerUnConstat(a.api as never, limite, 'constat').ecrit, false);
 });
 
+test('l’analyse d’un composant lit les ignorés en mode strict : une donnée illisible, qui n’est pas une liste, ou une lecture qui lève, lève', () => {
+  const api = (lire: () => string) => ({ root: { getSharedPluginData: lire } }) as never;
+  assert.deepEqual(lireLesIgnores(api(() => '["C30:b"]'), true), ['C30:b']);
+  assert.deepEqual(lireLesIgnores(api(() => ''), true), []);
+  for (const lire of [() => '{pas du json', () => '{"cle":"x"}', () => { throw new Error('Figma refuse la lecture'); }]) {
+    assert.deepEqual(lireLesIgnores(api(lire)), [], 'hors du mode strict, aucune clé');
+    assert.throws(() => lireLesIgnores(api(lire), true));
+  }
+});
+
 test('un rôle ignoré a sa clé, que les constats ne comptent pas et que rolesIgnoresDe retrouve', () => {
   assert.equal(cleDUnRoleIgnore('surface/subtle'), 'role-ucm:surface/subtle');
   const cles = ['C22:a', 'proposition:C22:b', 'role-ucm:surface/subtle', 'role-ucm:surface/inconnu'];

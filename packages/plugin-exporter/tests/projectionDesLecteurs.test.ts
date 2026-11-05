@@ -183,7 +183,7 @@ test('le moteur lit ces champs dans cet ordre et en tire ce contrat', async () =
   }
 });
 
-test('le budget lit l’identifiant et le relevé natif de chaque variant, et en tire ce bilan', () => {
+test('le budget lit l’identifiant et les enfants natifs de chaque layer jusqu’aux instances, et en tire ce bilan', () => {
   const jeu = monterLeJeu();
   try {
     const variants = jeu.variants.map((component) => ({ component: jeu.e.espion(component) })) as unknown as VariantEntry[];
@@ -193,7 +193,8 @@ test('le budget lit l’identifiant et le relevé natif de chaque variant, et en
     assert.deepEqual([large.gardes.map((entry) => entry.component.id), large.bilan], [['Taille=S', 'Taille=M'], null]);
     const serre = bornerLesVariants(variants, premier.component, 7, () => {});
     assert.deepEqual([serre.gardes.map((entry) => entry.component.id), serre.bilan], [['Taille=S'], { lus: 6, nonLus: 6 }]);
-    assert.deepEqual(jeu.e.releverEtVider(), { COMPONENT: ['in findAll', 'id', 'findAll(filtre)'] });
+    // Le décompte est celui du relevé (`parcourirLesLayers`) : les enfants d'une instance ne se lisent pas, aucun `findAll` ne part.
+    assert.deepEqual(jeu.e.releverEtVider(), { COMPONENT: ['type', 'children', 'id'], TEXT: ['type', 'children'], RECTANGLE: ['type', 'children'], FRAME: ['type', 'children', 'id'], INSTANCE: ['type', 'id'] });
   } finally {
     jeu.restaurer();
   }

@@ -111,7 +111,9 @@ Ignorer et « Ne plus ignorer » un constat du mode Tokens refiltrent la derniè
 
 Une cible que ni la lecture ni l'import ne rendent reste « introuvable » ;
 elle reste « refusée », avec son message, quand la lecture a levé. Ni l'une
-ni l'autre ne prouve une suppression. Une variable que `getVariableByIdAsync`
+ni l'autre ne prouve une suppression : le catalogue du fichier la garde en
+variable inaccessible, sans collection, et le mode Tokens ne dit pas que
+l'alias vise une variable supprimée. Une variable que `getVariableByIdAsync`
 rend encore parce qu'un alias ou un calque la cite, et qui n'est ni distante ni
 parmi les variables locales, est « supprimée » : la lecture la range dans les
 cibles manquées, jamais dans les variables, et le mode Tokens signale l'alias
@@ -362,7 +364,19 @@ compare rien. Le message final range les constats comme avant : contrôles du ki
 règles, moteur. Une annulation pendant le catalogue ou les contrôles du kit
 n'envoie aucun provisoire ; le chargement des valeurs du catalogue ne lance plus
 aucune lecture ni aucun import, et seules finissent celles déjà en vol ; le moteur lancé avec le catalogue reçoit le jeton et s'arrête avant que la demande rende la place. `analyse-provisoire` n'est
-pas un statut de `analyse` : seul `analyse` termine la demande. Seul un final
+pas un statut de `analyse` : seul `analyse` termine la demande. Une analyse est
+`partielle` dès qu'une part n'a pas été jugée, et le message `analyse` en donne les
+causes : lecture du composant coupée par le budget ou par un parcours refusé, moteur
+coupé (les règles ne sont alors pas lues), lecture refusée des règles, du niveau, des
+ignorés ou de la déclaration UCM, catalogue lu dans le fichier faute de library
+lisible ou collection de la library inaccessible. Une lecture refusée des dépendances
+ne la rend pas partielle : elle interdit seulement de reprendre une entrée de session.
+Quand plusieurs états se superposent, l'écran suit l'ordre arrêtée, annulée, périmée,
+partielle, complète. Quand plusieurs libraries portent des variables et qu'aucune n'est
+choisie, ni la prélecture ni Analyser ne partent : le sandbox répond `library-a-choisir`
+et l'écran demande le choix. Le relevé et le moteur comptent les layers d'un variant avec
+la même fonction (`parcourirLesLayers`), si bien que le budget de 2 000 layers les coupe
+au même variant ; le premier variant se lit sans borne. Seul un final
 `complete` ou `partielle` retient les corrections : avant lui, le sandbox
 refuse les réponses, Ignorer, la propagation, la préparation et les
 corrections. L'interface tient le même verrou : elle n'envoie aucune de ces

@@ -584,7 +584,7 @@ export function chargerLInterface(): Promise<InterfaceChargee> {
   return interfaceChargee;
 }
 
-const MESSAGES_DE_L_ANALYSE: ReadonlySet<string> = new Set(['analyse-commencee', 'analyse-en-cours', 'analyse-provisoire', 'analyse', 'perime', 'occupe', 'ignores']);
+const MESSAGES_DE_L_ANALYSE: ReadonlySet<string> = new Set(['analyse-commencee', 'analyse-en-cours', 'analyse-provisoire', 'analyse', 'perime', 'occupe', 'library-a-choisir', 'ignores']);
 
 /**
  * L'état de l'interface après avoir reçu les messages de l'analyse, dans l'ordre. Le composant affiché est celui de la galerie, avec

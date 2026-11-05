@@ -545,6 +545,10 @@ const LIGNES_DES_CAUSES = {
   regles: ['Les règles d’utilisation n’ont pas pu être lues.', { cause: 'regles' }],
   niveau: ['Le niveau du fichier n’a pas pu être lu. Le niveau AA s’applique.', { cause: 'niveau' }],
   ignores: ['Les constats ignorés n’ont pas pu être lus. Ils s’affichent de nouveau.', { cause: 'ignores' }],
+  declarationIllisible: ['La déclaration rangée dans ce fichier est illisible.', { cause: 'declaration', etat: 'illisible' }],
+  declarationFuture: ['La déclaration rangée dans ce fichier est illisible. Elle vient d’une version plus récente d’UCM Architect.', { cause: 'declaration', etat: 'future' }],
+  catalogueNomme: ['Activez la library « UCM Tokens » dans les libraries du fichier (Assets, Libraries), puis cliquez Actualiser.', { cause: 'catalogue', library: 'UCM Tokens' }],
+  catalogueSansNom: ['Activez la library de tokens dans les libraries du fichier (Assets, Libraries), puis cliquez Actualiser.', { cause: 'catalogue', library: null }],
 } as const;
 
 for (const [nom, [ligne, cause]] of Object.entries(LIGNES_DES_CAUSES)) {
@@ -858,4 +862,36 @@ test('« Tout cocher » du pied coche toutes les corrections du panneau, même c
   assert.equal(boutonDePied(banc).disabled, false);
   choisir(banc, 'tout');
   assert.equal(casesDe(banc.racine).filter((element) => !element.checked).length, 0);
+});
+
+test('une déclaration annoncée illisible ou plus récente est dite sous une analyse complète, une seule fois quand l’analyse la dit déjà', () => {
+  for (const architecture of ['illisible', 'future'] as const) {
+    const banc = monter([], { statut: 'complete', tous: [] });
+    (banc.etat as unknown as { architecture: string }).architecture = architecture;
+    banc.actualiser();
+    const attendu = architecture === 'future' ? LIGNES_DES_CAUSES.declarationFuture[0] : LIGNES_DES_CAUSES.declarationIllisible[0];
+    assert.equal(banc.racine.textContent.includes(attendu), true, architecture);
+    const avecLaCause = monter([], { statut: 'partielle', tous: [], causes: [{ cause: 'declaration', etat: architecture }] });
+    (avecLaCause.etat as unknown as { architecture: string }).architecture = architecture;
+    avecLaCause.actualiser();
+    assert.equal(avecLaCause.racine.textContent.split(attendu).length - 1, 1, 'la cause suffit : pas de seconde alerte');
+  }
+});
+
+test('Q-F89-14 : quand plusieurs états se superposent, un seul écran suit l’ordre arrêtée, annulée, périmée, partielle, complète', () => {
+  const partielle = { statut: 'partielle', causes: [LIGNES_DES_CAUSES.regles[1]] } as const;
+  const bannieres = (banc: Banc): string => textes(banc.racine.querySelectorAll('.alerte-titre')).join('|');
+  const seule = monter(constatsAlert, partielle);
+  assert.match(bannieres(seule), /Analyse partielle\./);
+  assert.doesNotMatch(bannieres(seule), /a changé/);
+  const perimeeEtPartielle = monter(constatsAlert, { ...partielle, perimee: true, cause: 'document' });
+  assert.match(bannieres(perimeeEtPartielle), /Le composant a changé depuis l’analyse\./);
+  assert.doesNotMatch(bannieres(perimeeEtPartielle), /Analyse partielle\./, 'la partielle cède à la périmée');
+  assert.equal(perimeeEtPartielle.racine.querySelectorAll('.section-element').length > 0, true, 'la liste reste sous la note');
+  const arretee = monter(constatsAlert, { statut: 'arretee', perimee: true, causes: partielle.causes });
+  assert.match(bannieres(arretee), /L’analyse s’est arrêtée\./);
+  assert.doesNotMatch(bannieres(arretee), /a changé|partielle/);
+  const annulee = monter(constatsAlert, { statut: 'annulee', perimee: true, causes: partielle.causes });
+  assert.match(bannieres(annulee), /L’analyse a été annulée\./);
+  assert.doesNotMatch(bannieres(annulee), /a changé|partielle/);
 });

@@ -131,3 +131,18 @@ test('ouvrir la Configuration depuis le mode Composant ne change ni le mode ni l
   assert.equal(etat.disposition, 'etroite');
   assert.equal(envois.some((message) => message.type === 'changer-disposition' || message.type === 'resize'), false);
 });
+
+test('N-82 : Analyser reste grisé tant que la library est à choisir, aussi sur un composant déjà analysé', () => {
+  const { etat, analyser, relire } = monter();
+  etat.composant.selectionConnue = true;
+  etat.composant.selection = { id: 'Button', portee: 'Button' };
+  etat.reference = { library: null, nom: null, candidates: 2 } as never;
+  relire();
+  assert.equal(analyser.disabled, true, 'première analyse');
+  recevoirUneAnalyse(etat, { type: 'analyse', analyse: { sujet: 'Button', generation: 1 }, statut: 'complete', constats: [], lecture: null, variants: [], sansTokens: false });
+  relire();
+  assert.equal(analyser.disabled, true, 'nouvelle analyse du même composant');
+  etat.reference = { library: 'Intencial', nom: 'Intencial', candidates: 2 } as never;
+  relire();
+  assert.equal(analyser.disabled, false);
+});

@@ -12,7 +12,7 @@ import {
 } from 'ucm-plugin-socle/src/composant/contract/exportComponent';
 import {
   BUDGET_DE_LAYERS_PAR_DEFAUT,
-  bornerLesVariants, bornerLesVariantsParTranches,
+  bornerLesVariants, bornerLesVariantsParTranches, parcourirLesLayers,
 } from 'ucm-plugin-socle/src/composant/contract/budget';
 import {
   AnalyseAnnulee, calculerParTranches, dansUnePorteeDAnalyse, respirerSiBesoin,
@@ -88,11 +88,17 @@ function monterFigma() {
 /** Le contrat sans sa date : deux exports du même composant diffèrent par elle. */
 const sansDate = (contenu: string) => contenu.replace(/"exportedAt":\s*"[^"]*"/, '"exportedAt": "-"');
 
+/** Un variant de `layers` layers : sa racine et des cadres vides, que `lire` compte à chaque lecture de ses enfants. */
+const variantDe = (id: string, layers: number, lire: (id: string) => void = () => {}) => ({
+  id, type: 'COMPONENT',
+  get children() { lire(id); return Array.from({ length: layers - 1 }, (_, rang) => ({ id: `${id}-${rang}`, type: 'FRAME', children: [] })); },
+});
+
 test('le budget coopératif cède pendant 90 comptes de variants et garde le préfixe de la voie synchrone', async () => {
   let horloge = 0;
   let comptes = 0;
   const variants = Array.from({ length: 90 }, (_, rang) => ({
-    component: { id: `v-${rang}`, findAll: () => { comptes += 1; horloge += 1; return []; } },
+    component: variantDe(`v-${rang}`, 1, () => { comptes += 1; horloge += 1; }),
   })) as unknown as Parameters<typeof bornerLesVariants>[0];
   const cessions: number[] = [];
   const courant = await dansUnePorteeDAnalyse({
@@ -108,7 +114,7 @@ test('le budget coopératif cède pendant 90 comptes de variants et garde le pr�
 test('le budget rend le même bilan dans une portée et hors portée, et reprend le relevé d’un variant déjà lu', async () => {
   let relevesNatifs = 0;
   const variants = Array.from({ length: 6 }, (_, rang) => ({
-    component: { id: `b-${rang}`, findAll: () => { relevesNatifs += 1; return Array(rang + 1).fill({}); } },
+    component: variantDe(`b-${rang}`, rang + 1, () => { relevesNatifs += 1; }),
   })) as unknown as Parameters<typeof bornerLesVariants>[0];
   const borner = () => bornerLesVariants(variants, variants[0].component, 12, () => {});
   const horsPortee = borner();
@@ -120,19 +126,51 @@ test('le budget rend le même bilan dans une portée et hors portée, et reprend
   assert.deepEqual(dansLaPortee, horsPortee);
   assert.deepEqual(deuxieme, horsPortee);
   assert.equal(relevesNatifs, 6);
-  assert.deepEqual(horsPortee.bilan, { lus: 9, nonLus: 18 });
+  assert.deepEqual(horsPortee.bilan, { lus: 10, nonLus: 11 });
 });
 
-test('un relevé qui lève après la coupe donne le même nonLus inconnu dans une portée et hors portée', async () => {
+test('un décompte qui lève après la coupe donne le même nonLus inconnu dans une portée et hors portée, sans arrêter le budget', async () => {
   const variants = Array.from({ length: 6 }, (_, rang) => ({
-    component: { id: `c-${rang}`, findAll: () => { if (rang === 4) throw new Error('illisible'); return Array(rang + 1).fill({}); } },
+    component: variantDe(`c-${rang}`, rang + 1, () => { if (rang === 4) throw new Error('illisible'); }),
   })) as unknown as Parameters<typeof bornerLesVariants>[0];
   const borner = () => bornerLesVariants(variants, variants[0].component, 7, () => {});
   const horsPortee = borner();
   let dansLaPortee!: ReturnType<typeof borner>;
   await dansUnePorteeDAnalyse({}, async () => { dansLaPortee = borner(); });
-  assert.deepEqual(horsPortee.bilan, { lus: 5, nonLus: 'inconnu' });
+  assert.deepEqual(horsPortee.bilan, { lus: 6, nonLus: 'inconnu' });
   assert.deepEqual(dansLaPortee, horsPortee);
+});
+
+test('Q-F89-19 : un décompte qui lève avant la coupe manque ce variant et laisse lire les suivants', () => {
+  const variants = Array.from({ length: 6 }, (_, rang) => ({
+    component: variantDe(`d-${rang}`, 3, () => { if (rang === 2) throw new Error('illisible'); }),
+  })) as unknown as Parameters<typeof bornerLesVariants>[0];
+  const borne = bornerLesVariants(variants, variants[0].component, 100, () => {});
+  assert.deepEqual(borne.gardes.map((entree) => entree.component.id), ['d-0', 'd-1', 'd-3', 'd-4', 'd-5']);
+  assert.deepEqual(borne.bilan, { lus: 15, nonLus: 'inconnu' });
+});
+
+test('Q-F89-19 : le variant de référence se lit sans borne, et le décompte s’arrête à une instance sous la racine', () => {
+  const instance = { id: 'i', type: 'INSTANCE', get children() { throw new Error('une instance ne se descend pas'); } };
+  const variants = [
+    { component: { id: 'premier', type: 'COMPONENT', children: Array.from({ length: 2600 }, (_, rang) => ({ id: `p-${rang}`, type: 'FRAME', children: [] })) } },
+    { component: { id: 'avec-instance', type: 'COMPONENT', children: [instance] } },
+    { component: variantDe('suivant', 2) },
+  ] as unknown as Parameters<typeof bornerLesVariants>[0];
+  const borne = bornerLesVariants(variants, variants[0].component, 2000, () => {});
+  assert.deepEqual(borne.gardes.map((entree) => entree.component.id), ['premier']);
+  assert.deepEqual(borne.bilan, { lus: 2601, nonLus: 4 });
+});
+
+test('Q-F89-19 : le relevé et le moteur comptent les layers d’un variant avec la même fonction', () => {
+  const enfants = [{ id: 'a', type: 'FRAME', children: [{ id: 'a1', type: 'TEXT', children: [] }] }, { id: 'inst', type: 'INSTANCE', children: [{ id: 'dedans', type: 'FRAME', children: [] }] }];
+  const racine = { id: 'racine', type: 'COMPONENT', children: enfants };
+  const etapes = [...parcourirLesLayers<{ id: string; type: string; children: unknown[] }>(racine, (noeud) => noeud.children as never, (noeud) => noeud.type === 'INSTANCE')];
+  assert.deepEqual(etapes.map(({ noeud, parent, frontiere }) => [noeud.id, parent, frontiere]), [['racine', null, false], ['a', 'racine', false], ['a1', 'a', false], ['inst', 'racine', true]]);
+  const borne = bornerLesVariants([{ component: racine }] as never, racine as never, 100, () => {});
+  assert.equal(borne.bilan, null);
+  const serre = bornerLesVariants([{ component: racine }, { component: racine }] as never, racine as never, 4, () => {});
+  assert.deepEqual(serre.bilan, { lus: 4, nonLus: 4 });
 });
 
 test('le budget interrompt son décompte dès le retour de la pause annulée', async () => {
@@ -140,7 +178,7 @@ test('le budget interrompt son décompte dès le retour de la pause annulée', a
   let comptes = 0;
   const jeton = { leve: false };
   const variants = Array.from({ length: 90 }, (_, rang) => ({
-    component: { id: `v-${rang}`, findAll: () => { comptes += 1; horloge += 1; return []; } },
+    component: variantDe(`v-${rang}`, 1, () => { comptes += 1; horloge += 1; }),
   })) as unknown as Parameters<typeof bornerLesVariants>[0];
   await assert.rejects(dansUnePorteeDAnalyse({
     jeton, horloge: () => horloge, budgetDeCalculMs: 25,
@@ -207,7 +245,9 @@ test('un compte impossible des variants non lus se dit inconnu', async () => {
   const restaurer = monterFigma();
   try {
     const set = (globalThis as any).figma.currentPage.selection[0];
-    set.children[3].findAll = () => { throw new Error('illisible'); };
+    const enfants = set.children[3].children;
+    // Seul le décompte du budget voit Figma refuser le parcours de ce variant : le reste de l'analyse le lit.
+    Object.defineProperty(set.children[3], 'children', { get() { if (new Error().stack?.includes('compterLesLayers')) throw new Error('illisible'); return enfants; } });
     const resultat = await analyserLeComposant(undefined, { budgetDeLayers: 7 });
     assert.equal(resultat.etat, 'partielle');
     if (resultat.etat !== 'partielle') return;
@@ -234,11 +274,8 @@ test('un jeton levé pendant le décompte du budget rend l’analyse annulée', 
   try {
     const jeton = { leve: false };
     const set = (globalThis as any).figma.currentPage.selection[0];
-    const findAll = set.children[1].findAll;
-    set.children[1].findAll = (...args: unknown[]) => {
-      jeton.leve = true;
-      return findAll(...args);
-    };
+    const enfants = set.children[1].children;
+    Object.defineProperty(set.children[1], 'children', { get() { jeton.leve = true; return enfants; } });
     const resultat = await analyserLeComposant(undefined, { jeton, budgetDeLayers: 7 });
     assert.deepEqual(resultat, { etat: 'annulee' });
   } finally { restaurer(); }

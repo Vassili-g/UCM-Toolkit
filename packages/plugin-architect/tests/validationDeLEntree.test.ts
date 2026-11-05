@@ -445,3 +445,34 @@ test('le lecteur de Figma rend le scan des règles, les listes locales, la défi
   await inventaires.reglesDeLaPage(page, jeu, async () => { throw new Error('le moteur reprend le scan de la demande'); });
   assert.equal(scans, 1);
 });
+
+test('N-83 : une lecture des règles qui lève après l’annulation est une annulation, pas un refus : l’entrée reste utilisable', async () => {
+  const { lectures, demander } = preparer();
+  await demander();
+  assert.deepEqual(etatDeLEntree('Alert'), { etat: 'utilisable' });
+  const b = banc();
+  const traiter = traiterAvec({ ...lectures, regles: async () => { await traiter({ type: 'annuler-analyse', demande: 7 }, b.contexte); throw new Error('Figma refuse la lecture'); } });
+  await traiter({ type: 'analyser', demande: 7 }, b.contexte);
+  const finale = b.envoyes.find((message) => message.type === 'analyse');
+  assert.equal(finale?.type === 'analyse' ? finale.statut : null, 'annulee');
+  assert.deepEqual(etatDeLEntree('Alert'), { etat: 'utilisable' }, 'aucune marque d’invalidation ni raison « lecture-refusee »');
+});
+
+test('N-71 : une analyse annulée pendant la lecture des règles laisse le modèle retenu de l’analyse affichée', async () => {
+  const { fichier, lectures, demander } = preparer();
+  await demander();
+  const avant = JSON.stringify([...modelesDeLAnalyse()]);
+  assert.notEqual(avant, '[]');
+  const b = banc();
+  const traiter = traiterAvec({
+    ...lectures,
+    regles: async () => {
+      await traiter({ type: 'annuler-analyse', demande: 8 }, b.contexte);
+      return { ...structuredClone(fichier.regles), modele: { nom: 'Autre', sections: [] } };
+    },
+  });
+  await traiter({ type: 'analyser', intention: 'actualiser', demande: 8 }, b.contexte);
+  const finale = b.envoyes.find((message) => message.type === 'analyse');
+  assert.equal(finale?.type === 'analyse' ? finale.statut : null, 'annulee');
+  assert.equal(JSON.stringify([...modelesDeLAnalyse()]), avant);
+});

@@ -86,6 +86,8 @@ function fichierUcm(options: OptionsDuFichier = {}) {
     collectionFigma(utilityId, 'utility', ['Mode 1'], variables.filter((v) => v.variableCollectionId === utilityId).map((v) => v.id)),
   ];
   const collectionDistante = collectionFigma('C:lib', 'lib', ['M'], [distante.id], true);
+  // Une variable supprimée que Figma rend encore (ni distante ni locale) : seule une telle cible est une suppression prouvée (E11.3).
+  const supprimee: VariableFigma = { ...variableFigma('VariableID:supprimee', themeId, 'primary/supprimee', 'COLOR', { [`${themeId}:light`]: couleur }), getSharedPluginData: () => '' } as VariableFigma;
 
   const appels: Record<string, number> = {};
   const compter = (nom: string): void => { appels[nom] = (appels[nom] ?? 0) + 1; };
@@ -107,7 +109,7 @@ function fichierUcm(options: OptionsDuFichier = {}) {
       async getVariableByIdAsync(id: string) {
         compter('getVariableByIdAsync');
         if (options.refusees?.has(id)) throw new Error('Accès refusé');
-        return [...variables, distante].find((variable) => variable.id === id) ?? null;
+        return [...variables, distante, supprimee].find((variable) => variable.id === id) ?? null;
       },
       async getVariableCollectionByIdAsync(id: string) {
         compter('getVariableCollectionByIdAsync');
@@ -345,7 +347,7 @@ test('une lecture refusée ne valide aucune acquisition : lire-structure relit F
 const CLE_DECLARATION = `${ESPACE_ARCHITECT}/${CLE_ARCHITECTURE_DU_FICHIER}`;
 const structureSansDemande = (f: Fichier) => { const message = structureEnvoyee(f); return message && message.type === 'structure' ? { ...message, demande: 0 } : undefined; };
 
-/** Un changement fait dans Figma sans qu'aucun événement n'atteigne le plugin : un alias du thème vise une variable supprimée. */
+/** Un changement fait dans Figma sans qu'aucun événement n'atteigne le plugin : un alias du thème vise une variable supprimée que Figma rend encore. */
 function changerEnDehors(f: Fichier): () => void {
   const variable = f.variables.find((candidate) => candidate.variableCollectionId === 'C:theme' && candidate.name === 'primary/solid/default');
   assert.ok(variable, 'la fixture porte primary/solid/default');

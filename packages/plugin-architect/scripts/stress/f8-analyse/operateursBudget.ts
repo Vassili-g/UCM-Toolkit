@@ -30,9 +30,9 @@ const boite = { x: 0, y: 0, width: 10, height: 10 };
 interface VariantDuMonde {
   /** Les layers que le relevé compte : la racine, ses descendants, une instance sans ce qu'elle contient. */
   readonly layers: number;
-  /** Les nœuds que seule l'instance contient : le relevé s'arrête à son seuil, `findAll` du moteur les compte. */
+  /** Les nœuds que seule l'instance contient : ni le relevé ni le moteur ne les comptent (`parcourirLesLayers` s'arrête à l'instance). */
   readonly imbriques?: number;
-  /** La lecture qui lève sur ce variant : `children` pour le relevé, `findAll` pour le moteur. */
+  /** La lecture qui lève sur ce variant : `children` pour le relevé et le moteur, `findAll` que plus aucun des deux n'emploie. */
   readonly leve?: 'parcourir' | 'compter';
 }
 
@@ -41,8 +41,8 @@ interface MondeDuBudget {
   readonly budget?: number;
 }
 
-/** Le décompte d'un variant selon le lecteur : le relevé s'arrête à l'instance, le moteur descend dedans. */
-const comptage = (variant: VariantDuMonde, lecteur: 'releve' | 'moteur'): number => variant.layers + (lecteur === 'moteur' ? variant.imbriques ?? 0 : 0);
+/** Le décompte d'un variant : la même fonction pour le relevé et le moteur (Q-F89-19), qui s'arrête à l'instance. */
+const comptage = (variant: VariantDuMonde, _lecteur: 'releve' | 'moteur'): number => variant.layers;
 
 interface Bati { readonly jeu: NoeudLu; readonly port: ReturnType<ReturnType<typeof atelierDeCalques>['port']>; readonly composants: NoeudLu[] }
 
@@ -300,7 +300,7 @@ function bd3(registre: Registre): void {
       attente: { statut: 'partielle', provisoires: 1, ecran },
     });
   cas('layersNonLus est un nombre : 231 layers lus sur 252', [releveCoupe(33)], { dit: [/a lu 231 layers sur 252/], nonDit: [JAMAIS_N_SUR_N] });
-  cas('layersNonLus est `inconnu` : la bannière le dit', [releveCoupe(33), degraderLaLecture({ layersNonLus: 'inconnu' })], { dit: [/n’a pas lu tout le composant/i], nonDit: [JAMAIS_N_SUR_N] }, P15);
+  cas('layersNonLus est `inconnu` avec 3 variants non lus : la bannière dit les variants lus, qu’elle sait compter', [releveCoupe(33), degraderLaLecture({ layersNonLus: 'inconnu' })], { dit: [/a lu 33 variants sur 36/i], nonDit: [JAMAIS_N_SUR_N] }, P15);
   cas('variants non lus sans layers comptés : 33 variants lus sur 36', [degraderLaLecture({ variantsNonLus: ['v34', 'v35', 'v36'] }), (b, lecteurs, s) => { const retenus = new Set(s.ordreInitial.slice(0, 33).map((v) => v.id)); (b.releve as { variants: unknown }).variants = b.releve.variants.filter((v) => retenus.has(v.id)); return lecteurs; }], { dit: [/a lu 33 variants sur 36/], nonDit: [JAMAIS_N_SUR_N] });
   cas('lectures manquées seules : 3 lectures ont échoué', [degraderLaLecture({ manquees: [{ layer: '20:1', champ: 'fills', motif: 'x' }, { layer: '20:2', champ: 'fills', motif: 'x' }, { layer: '20:3', champ: 'fills', motif: 'x' }] })], { dit: [/3 lectures ont échoué/], nonDit: [JAMAIS_N_SUR_N] });
   cas('lectures manquées avec coupe : les deux nombres sont dits', [releveCoupe(33), degraderLaLecture({ manquees: [{ layer: '20:1', champ: 'fills', motif: 'x' }, { layer: '20:2', champ: 'fills', motif: 'x' }] })], { dit: [/a lu 231 layers sur 252/, /2 lectures ont échoué/], nonDit: [JAMAIS_N_SUR_N] }, P15);

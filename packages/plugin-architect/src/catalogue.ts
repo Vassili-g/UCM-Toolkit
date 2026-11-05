@@ -8,7 +8,7 @@ import { CIBLES_DES_COLLECTIONS, CIBLES_DES_COULEURS_DE_COMPOSANT, variableDuThe
 import { lireLesLibraries, type LectureDesLibraries, type PortDeBibliotheque } from 'ucm-plugin-socle/src/bibliotheque';
 import { executerAuPlus } from 'ucm-plugin-socle/src/composant/analyse/limiteur';
 import { cleDeBibliotheque, convertirVariable, importerLesValeurs, type PortDeLecture, type ValeurDeLibrary } from './lecture';
-import type { Releve, ValeurSource } from './modele';
+import type { LectureManquee, Releve, ValeurSource, VariableRelevee } from './modele';
 
 /** La couche qui lie le plus de couches : celle du composant. */
 const ROLE_DU_COMPOSANT: Collection = (Object.keys(CIBLES_DES_COLLECTIONS) as Collection[]).sort((a, b) => CIBLES_DES_COLLECTIONS[b].length - CIBLES_DES_COLLECTIONS[a].length)[0];
@@ -56,8 +56,14 @@ export async function lireLeCatalogueDeLibrary(figma: PortDeBibliotheque, librar
   return { etat: 'lu', catalogue: { version: 1, library: { nom: library, cle: library }, collections, variables } };
 }
 
-/** Les variables locales du fichier, déjà lues : leurs valeurs sont présentes, sans library. */
-export function catalogueDuFichier(releve: Pick<Releve, 'collections' | 'variables'>, architecture: 'ucm' | 'libre'): CatalogueDeReference {
+/**
+ * Les variables du fichier, déjà lues : leurs valeurs sont présentes, sans library. `manquees` porte les cibles d'alias que la
+ * lecture n'a pas obtenues. Une cible `introuvable` ou `refusee` reste possiblement présente dans Figma : elle entre au catalogue
+ * en variable `inaccessible`, sans collection, sous l'identifiant que l'alias porte et avec le type de la variable qui la vise
+ * (Figma n'aliase qu'entre deux variables du même type). Seule une cible `supprimee` reste hors du catalogue, où le kit lit une
+ * suppression. Sans `manquees`, toute cible hors du lot passe pour supprimée : l'appelant qui a lu des cibles les passe.
+ */
+export function catalogueDuFichier(releve: Pick<Releve, 'collections' | 'variables'> & { readonly manquees?: readonly LectureManquee[] }, architecture: 'ucm' | 'libre'): CatalogueDeReference {
   const brutes = releve.collections.map((c) => ({ cle: c.id, nom: c.nom, modes: c.modes.map((m) => ({ id: m.id, nom: m.nom })), etat: 'lue' as const }));
   const cles = new Map(releve.variables.map((v) => [v.id, v.cle ?? v.id] as const));
   const variables: VariableDuCatalogue[] = releve.variables.map((v) => ({
@@ -70,7 +76,22 @@ export function catalogueDuFichier(releve: Pick<Releve, 'collections' | 'variabl
     scopes: [...v.portees],
     valeurs: Object.fromEntries(Object.entries(v.valeurs).map(([mode, valeur]) => [mode, valeurDuCatalogue(valeur, false, cles)])),
   }));
-  return { version: 1, library: null, collections: collectionsDeReference(brutes, architecture), variables };
+  return { version: 1, library: null, collections: collectionsDeReference(brutes, architecture), variables: [...variables, ...ciblesNonLues(releve.manquees ?? [], releve.variables)] };
+}
+
+/** Les cibles d'alias non prouvées absentes, une entrée `inaccessible` par identifiant que le catalogue ne porte pas déjà. */
+function ciblesNonLues(manquees: readonly LectureManquee[], variables: readonly VariableRelevee[]): VariableDuCatalogue[] {
+  const nonLues = new Set(manquees.filter((m) => m.genre === 'variable' && m.issue !== 'supprimee').map((m) => m.id));
+  if (nonLues.size === 0) return [];
+  const connues = new Set(variables.map((v) => v.id));
+  const entrees = new Map<string, VariableDuCatalogue>();
+  for (const v of variables) {
+    for (const valeur of Object.values(v.valeurs)) {
+      if (valeur.nature !== 'alias' || !nonLues.has(valeur.cible) || connues.has(valeur.cible) || entrees.has(valeur.cible)) continue;
+      entrees.set(valeur.cible, { cle: valeur.cible, nom: valeur.cible, collection: '', type: v.type as VariableDuCatalogue['type'], etat: 'inaccessible' });
+    }
+  }
+  return [...entrees.values()];
 }
 
 /**
@@ -86,6 +107,12 @@ export interface OptionsDeCatalogue {
    * rendu est partiel, que l'analyse jette. Absent, le chargement va au bout.
    */
   readonly annulee?: () => boolean;
+  /**
+   * Appelé quand les tokens se lisent dans le fichier faute de pouvoir lire les libraries : l'inventaire des libraries est illisible, ou
+   * sa lecture a levé. `library` est celle que le fichier a rangée, `null` sans choix. Un fichier sans library, ou dont la library reste à
+   * choisir, n'est pas un repli.
+   */
+  readonly repliSurLeFichier?: (library: string | null) => void;
 }
 
 /** Les tours d'import qui suivent les alias d'une library jusqu'à leurs cibles ; au-delà, la cible reste non chargée. */

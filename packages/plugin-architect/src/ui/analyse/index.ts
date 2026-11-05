@@ -77,6 +77,18 @@ const correctionsDe = (element: Pick<ElementDuPanneau, 'corrections'> & { readon
 /** Les constats que le designer a ignorés, informations exclues : elles n'ont ni carte, ni « Ne plus ignorer ». */
 const ignoresDe = (analyse: AnalyseRecue): Constat[] => analyse.tous.filter((constat) => analyse.ignores.includes(constat.id) && !estUneInformation(constat));
 
+/** La phrase d'une cause de lecture partielle. */
+function ligneDeCause(cause: AnalyseRecue['causes'][number]): string {
+  switch (cause.cause) {
+    case 'variants': return T.partielleCauses.variants(cause.lus, cause.total);
+    case 'layers': return T.partielleCauses.layers(cause.lus, cause.total);
+    case 'lectures': return T.partielleCauses.lectures(cause.nombre);
+    case 'declaration': return T.partielleCauses.declaration(cause.etat);
+    case 'catalogue': return T.partielleCauses.catalogue(cause.library);
+    default: return T.partielleCauses[cause.cause];
+  }
+}
+
 /** La bannière d'une analyse partielle : une ligne par cause, puis la portée des constats. */
 function alerteDeLaPartielle(causes: AnalyseRecue['causes']): HTMLElement {
   const alerte = creerAlerte('verifier', { titre: T.partielleTitre });
@@ -86,8 +98,7 @@ function alerteDeLaPartielle(causes: AnalyseRecue['causes']): HTMLElement {
     liste.className = 'causes';
     for (const cause of causes) {
       const ligne = document.createElement('li');
-      ligne.textContent = cause.cause === 'variants' || cause.cause === 'layers' ? T.partielleCauses[cause.cause](cause.lus, cause.total as never)
-        : cause.cause === 'lectures' ? T.partielleCauses.lectures(cause.nombre) : T.partielleCauses[cause.cause];
+      ligne.textContent = ligneDeCause(cause);
       liste.append(ligne);
     }
     corps.append(liste);
@@ -451,10 +462,18 @@ export function monterLePanneau(app: Application, vue: VueComposant, options: Op
     }
 
     const alertes: HTMLElement[] = [];
-    if (analyse.statut === 'partielle') alertes.push(alerteDeLaPartielle(analyse.causes));
-    else if (analyse.constats.length === 0 && ignoresDe(analyse).length === 0 && !aPreparer(analyse) && !aDesLiaisonsPreparees(analyse) && !analyse.perimee && analyse.ecriture === null) {
-      return [resume(lecture, P.analyseA(heure(analyse.recueA), analyse.dureeMs), analyse.variants.length), creerAlerte('tenu', { titre: T.aucunTitre(lecture.sujet.nom, variants), meta: T.aucunMeta })];
+    // La déclaration annoncée est illisible ou plus récente que le plugin : si l'analyse ne l'a pas dit, l'écran le dit.
+    const declaration = etat.architecture === 'illisible' || etat.architecture === 'future' ? etat.architecture : null;
+    const declarationIncertaine = declaration !== null && !analyse.causes.some(({ cause }) => cause === 'declaration')
+      ? [creerAlerte('verifier', { texte: T.declarationIncertaine(declaration) })] : [];
+    // Plusieurs états se superposent : arrêtée, annulée, périmée, partielle, complète, dans cet ordre (Q-F89-14). Les deux premiers ont
+    // rendu leur écran plus haut ; une analyse périmée garde sa liste sous la note « Actualisez » et ne montre plus la bannière partielle.
+    if (analyse.statut === 'partielle') {
+      if (!analyse.perimee) alertes.push(alerteDeLaPartielle(analyse.causes));
+    } else if (analyse.constats.length === 0 && ignoresDe(analyse).length === 0 && !aPreparer(analyse) && !aDesLiaisonsPreparees(analyse) && !analyse.perimee && analyse.ecriture === null) {
+      return [resume(lecture, P.analyseA(heure(analyse.recueA), analyse.dureeMs), analyse.variants.length), ...declarationIncertaine, creerAlerte('tenu', { titre: T.aucunTitre(lecture.sujet.nom, variants), meta: T.aucunMeta })];
     }
+    alertes.push(...declarationIncertaine);
     if (analyse.perimee) alertes.push(creerAlerte('info', { titre: T.perimeTitre, texte: `${T.perimeMeta} ${T.perimeTexte}` }));
     // Le refus d'un Actualiser pendant l'écriture : l'écriture affichée ne change pas, le panneau dit seulement pourquoi rien n'est parti.
     if (analyse.refusPendantEcriture && analyse.ecriture !== null) alertes.push(creerAlerte('info', { titre: T.occupeTitre, texte: T.occupeTexte }));

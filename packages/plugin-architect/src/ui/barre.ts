@@ -122,8 +122,8 @@ export function creerBarre(app: Application): Composant {
       analyserTexte.textContent = dejaAnalyse ? TEXTES.actualiser : TEXTES.analyser;
       const sansComposant = etat.composant.selectionConnue && etat.composant.selection === null;
       analyser.title = sansComposant ? TEXTES.selectionnerUnComposant : dejaAnalyse ? TEXTES.actualiserLAnalyseAide : TEXTES.analyserAide;
-      // Pas de relance pendant une analyse ni pendant l'écriture d'un lot ; sans library choisie, l'analyse n'a rien à lire.
-      analyser.disabled = sansComposant || analyseEnCours || (analyse?.ecriture ?? null) !== null || (!dejaAnalyse && libraryAChoisir(etat));
+      // Pas de relance pendant une analyse ni pendant l'écriture d'un lot ; sans library choisie, l'analyse n'a rien à lire, même pour Actualiser.
+      analyser.disabled = sansComposant || analyseEnCours || (analyse?.ecriture ?? null) !== null || libraryAChoisir(etat);
       constatsTexte.hidden = composant;
       constats.setAttribute('aria-pressed', String(etat.panneau.ouvert));
       constats.title = etat.panneau.ouvert ? TEXTES.constatsFermer : TEXTES.constatsOuvrir;

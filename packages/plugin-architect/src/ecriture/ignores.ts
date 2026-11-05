@@ -26,12 +26,17 @@ const PREFIXE_DU_ROLE = 'role-ucm:';
 /** La clé qui retire la proposition d'un constat sans l'ignorer. */
 export const cleDeLaProposition = (idDuConstat: string): string => `${PREFIXE}${idDuConstat}`;
 
-/** Les clés rangées ; une donnée illisible ou une lecture qui lève n'en donne aucune. */
-export function lireLesIgnores(api: PortDIgnores): string[] {
+/**
+ * Les clés rangées ; une donnée illisible ou une lecture qui lève n'en donne aucune. Avec `refuser`, l'une et l'autre lèvent : l'analyse
+ * d'un composant dit alors que les constats ignorés n'ont pas pu être lus, au lieu de les montrer tous sans le dire.
+ */
+export function lireLesIgnores(api: PortDIgnores, refuser = false): string[] {
   try {
     const brut: unknown = JSON.parse(api.root.getSharedPluginData(ESPACE_ARCHITECT, CLES_D_ARCHITECT.ignorer) || '[]');
+    if (refuser && !Array.isArray(brut)) throw new Error('Les constats ignorés rangés dans le fichier sont illisibles.');
     return Array.isArray(brut) ? brut.filter((cle): cle is string => typeof cle === 'string') : [];
-  } catch {
+  } catch (erreur) {
+    if (refuser) throw erreur;
     return [];
   }
 }

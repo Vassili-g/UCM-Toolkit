@@ -183,7 +183,7 @@ test('une lecture des libraries qui lève garde le repli sur les variables du fi
       const base = lectures(journal, false, releveLent(journal, 40));
       const lecteurs: Lecteurs = enAvance
         ? { ...base, bibliotheques: async () => { await attendre(5); journal.evenements.push('libraries:erreur'); throw new Error('réseau coupé'); } }
-        : { ...base, catalogue: (releve, jeton, ctx, cooperation) => catalogueDeFigma(releve, jeton, { ...ctx, figma: { ...(ctx.figma as object), teamLibrary: undefined } as never }, cooperation) };
+        : { ...base, catalogue: (releve, jeton, ctx, cooperation, libraries, inventaires, options) => catalogueDeFigma(releve, jeton, { ...ctx, figma: { ...(ctx.figma as object), teamLibrary: undefined } as never }, cooperation, libraries, inventaires, options) };
       const capture = await capturerLAnalyse(() => ({ b: { contexte, envoyes }, lectures: lecteurs }));
       return { capture, journal };
     };
@@ -191,7 +191,10 @@ test('une lecture des libraries qui lève garde le repli sur les variables du fi
     const erreur = await sortie(true);
     assert.deepEqual(erreur.capture, repli.capture);
     assert.equal(erreur.capture.catalogue?.library, null);
-    assert.equal(erreur.capture.messages.some((m) => m.type === 'analyse' && m.statut !== 'complete'), false);
+    // Q-F89-4 : un catalogue lu dans le fichier faute de library lisible rend l'analyse partielle, et le dit.
+    const finale = erreur.capture.messages.find((m) => m.type === 'analyse');
+    assert.equal(finale?.type === 'analyse' ? finale.statut : null, 'partielle');
+    assert.deepEqual(finale?.type === 'analyse' ? finale.causes : null, [{ cause: 'catalogue', library: null }]);
     assert.deepEqual(erreur.journal.evenements, ['releve:debut', 'libraries:erreur', 'releve:fin'], 'l’erreur survient pendant le relevé sans l’interrompre');
     await attendre(10);
     assert.deepEqual(rejets, []);

@@ -74,7 +74,7 @@ function operateursN(r: Registre): void {
   n('N3', { description: '`ignores` lève une `Error`', options: plan(lever('ignores')), attente: ignoresRefuses, rattachement: H13 });
   n('N3', {
     description: '`getSharedPluginData` lève sous le lecteur réel des ignorés',
-    options: { adaptateurs: [(_b, lecteurs, s) => { s.drapeaux.ignoresIllisibles = true; return { ...lecteurs, ignores: async (contexte) => lireLesIgnores(contexte.figma as never) }; }] },
+    options: { adaptateurs: [(_b, lecteurs, s) => { s.drapeaux.ignoresIllisibles = true; return { ...lecteurs, ignores: async (contexte) => lireLesIgnores(contexte.figma as never, true) }; }] },
     attente: ignoresRefuses, rattachement: H13,
   });
   n('N3', { description: '`ignores` rend une liste qui n’est pas un tableau', options: plan(rendre('ignores', { cle: 'x' })), attente: ignoresRefuses });

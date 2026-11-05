@@ -15,8 +15,11 @@ import type { Constat, IdentiteDAnalyse } from './commun';
 export type StatutDAnalyse = 'complete' | 'partielle' | 'annulee' | 'arretee';
 /**
  * Pourquoi une analyse est partielle : une cause par lecture qui n'est pas allée au bout. `variants` et `layers` disent la lecture du
- * composant (`total` est `null` quand le moteur ne sait pas ce qui reste), `lectures` le nombre de champs que Figma a refusés, les trois
- * autres une lecture du fichier refusée. Une lecture complète n'a aucune cause.
+ * composant (`total` est `null` quand le moteur ne sait pas ce qui reste), `lectures` le nombre de champs que Figma a refusés, `regles`,
+ * `niveau` et `ignores` une lecture du fichier refusée. `declaration` dit que la déclaration UCM ne se lit pas (`illisible`, y compris
+ * une lecture qui lève) ou vient d'une version plus récente (`future`). `catalogue` dit que les tokens se lisent dans le fichier faute de
+ * library lisible, ou qu'une collection de la library est inaccessible ; `library` est la library nommée, `null` quand aucune ne l'est.
+ * Une lecture complète n'a aucune cause.
  */
 export type CauseDePartielle =
   | { cause: 'variants'; lus: number; total: number }
@@ -24,7 +27,9 @@ export type CauseDePartielle =
   | { cause: 'lectures'; nombre: number }
   | { cause: 'regles' }
   | { cause: 'niveau' }
-  | { cause: 'ignores' };
+  | { cause: 'ignores' }
+  | { cause: 'declaration'; etat: 'illisible' | 'future' }
+  | { cause: 'catalogue'; library: string | null };
 /** Ce qui a rendu l'analyse périmée : une écriture du plugin, un changement du document, une autre sélection. */
 export type CauseDePeremption = 'ecriture' | 'document' | 'selection';
 
@@ -63,4 +68,6 @@ export type MessageDAnalyse =
       /** Pourquoi le statut est `partielle`, dans l'ordre où l'interface les dit ; absent ou vide quand l'analyse est complète. */
       causes?: readonly CauseDePartielle[]; demande?: number; progression?: ProgressionDAnalyse; mesure?: TraceDeMesure }
   | { type: 'perime'; analyse: IdentiteDAnalyse; cause: CauseDePeremption }
-  | { type: 'occupe'; analyse: IdentiteDAnalyse; demande?: number };
+  | { type: 'occupe'; analyse: IdentiteDAnalyse; demande?: number }
+  /** Plusieurs libraries portent des variables et aucune n'est choisie : l'analyse demandée ne part pas, l'écran demande le choix. */
+  | { type: 'library-a-choisir'; analyse: IdentiteDAnalyse; demande?: number };

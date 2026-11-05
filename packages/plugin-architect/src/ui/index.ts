@@ -424,6 +424,7 @@ function recevoir(message: PluginMessage): void {
     case 'analyse':
     case 'perime':
     case 'occupe':
+    case 'library-a-choisir':
     case 'corrections-appliquees':
     case 'ignores':
     case 'question-repondue':

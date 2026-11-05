@@ -51,7 +51,7 @@ Ce que les plugins partagent : ucm-plugin-socle, privé, lu en source.
 - exportableNodes.ts : parcours de l'arbre, hors dépendances composées
 - porteeDAnalyse.ts : mémoire des maîtres par instance, des styles par identifiant (`styleDeLaPortee`, `ressources.ts`, ou la mémoire de ressources de la demande quand les inventaires en portent une), des peintures copiées par nœud et champ (`peinturesDuNoeud`), des champs lus par nœud (`champDuNoeud`, `etatDuChamp` : `name`, `parent`, `children`, `layoutMode`, `boundVariables`, `visible`, `fills`, `componentPropertyReferences` et les autres champs que `champDuNoeud` reçoit, dans la mémoire de champs des inventaires de la demande, sinon dans celle de la portée), des plages de texte par nœud (`plagesDuNoeud` : un appel pour `listOptions` et `textStyleOverrides`) et du parcours brut, du parcours filtré et des chemins de texte par racine, et budget coopératif injectable partagé avec les lecteurs
 - mesure.ts : trace de chaque analyse : durées, compteurs, avancement de la barre
-- budget.ts : budget de layers et préfixe admis, voies synchrone et coopérative du même parcours
+- budget.ts : budget de layers et préfixe admis, voies synchrone et coopérative du même parcours ; `parcourirLesLayers` est l'unique décompte (relevé d'Architect et moteur), un décompte qui lève manque son variant sans couper les suivants
 - parsers.ts : propriétés Figma vers API publique (le modèle est dans `analyse/proprietesEtEtats.ts`)
 - merge*.ts : doc et icônes des règles, rangées sur leur axe
 - rulesModel.ts : modèle pur des règles d’usage
