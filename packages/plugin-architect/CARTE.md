@@ -84,7 +84,8 @@ Plugin UCM Architect : ucm-architect-plugin, privé, lecture et corrections apr�
 - variables.ts : `creerUneVariableAliasee`, seul appel à `createVariable` ; crée les seules variables manquantes d'une préparation dans la collection `components` reconnue par la déclaration UCM, alias de chaque mode compris ; une variable divergente reste telle quelle sans réponse ; un lot du journal de structure, un point d'annulation
 
 ## src/nomenclature/
-- session.ts : inventaire, lexique, règles et résultat, gardés dans le sandbox ; file des calculs ; `moteurMesure` note au journal du mode Tokens le lexique, les renommages et les questions
+- session.ts : inventaire, lexique, règles et résultat, gardés dans le sandbox ; file des calculs ; appelle `calcul.ts` par tranches ; `moteurMesure` note au journal du mode Tokens le lexique, les renommages et les questions
+- calcul.ts : calcul pur des noms, sans Figma ni journal : `calculerTout`, `recalculer`, `construireEtat` ; `calculerLeBilan` et `calculerLeBilanDirect` rendent le `Bilan` d'une `EntreeDuCalcul` (génération, inventaire, règles), sérialisable
 - tranches.ts : un générateur du kit mené par tranches de huit millisecondes, abandonné par une demande plus récente ; `mesure` compte les cessions, l'attente des pauses et la tranche la plus longue
 - lecture.ts : republie l'acquisition de l'inventaire du socle
 - lectureFigma.ts : collections et variables locales, variables qu'UCM Palettes a écrites et sa marque `nommage` ; `creerPortDeLecture` reçoit les locales du relevé en cours

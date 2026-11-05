@@ -6,6 +6,8 @@ import test from 'node:test';
 import { buildSync } from 'esbuild';
 import { getQuickJS } from 'quickjs-emscripten';
 import ts from 'typescript';
+import { calculerLeBilanDirect } from '../src/nomenclature/calcul';
+import { FIXTURES, entreeDeFixture } from './outils/fixturesDeNomenclature';
 
 test('le sandbox démarre et analyse des branches parallèles dans QuickJS', async () => {
   const bundle = buildSync({
@@ -100,4 +102,32 @@ test("aucune source du sandbox ne met un `yield` dans l'itérable d'un `for…of
     chercher(fichier, fichier, false);
   }
   assert.deepEqual(fautes, [], 'Écrire `const liste = yield* source();` puis `for (const x of liste)`.');
+});
+
+test('le calcul pur des noms rend dans QuickJS le même bilan que sous Node, sans Figma', async () => {
+  // Le module de calcul seul : ni `figma`, ni `setTimeout`, ni horloge. Un Worker de l'interface le charge de la même façon.
+  const bundle = buildSync({
+    entryPoints: [path.resolve(__dirname, '../src/nomenclature/calcul.ts')],
+    bundle: true, write: false, platform: 'browser', format: 'iife', globalName: 'CalculPur', target: 'chrome80', logLevel: 'silent',
+  }).outputFiles[0].text;
+  const quickjs = await getQuickJS();
+  for (const fixture of [FIXTURES[2], FIXTURES[3]]) {
+    // L'entrée traverse le moteur en JSON, comme elle traverserait un message ; Node calcule sur la même copie.
+    const entree = JSON.parse(JSON.stringify(await entreeDeFixture(fixture)));
+    const vm = quickjs.createVm();
+    try {
+      for (const code of [bundle, `var entree = ${JSON.stringify(entree)}; var bilan = JSON.stringify(CalculPur.calculerLeBilanDirect(entree));`, 'bilan']) {
+        const resultat = vm.evalCode(code);
+        if (resultat.error) {
+          const erreur = vm.dump(resultat.error);
+          resultat.error.dispose();
+          assert.fail(JSON.stringify(erreur));
+        }
+        if (code === 'bilan') assert.equal(vm.dump(resultat.value), JSON.stringify(calculerLeBilanDirect(entree)), fixture.nom);
+        resultat.value.dispose();
+      }
+    } finally {
+      vm.dispose();
+    }
+  }
 });
