@@ -924,3 +924,47 @@ test('C50 : un anneau dont le contour est d’opacité nulle ne compte pas comme
   assert.equal(sansAnneau(1), undefined);
   assert.ok(sansAnneau(0));
 });
+
+/* ---------- E9.1 et E9.5 : fonds translucides, valeurs hors gamme ---------- */
+
+const limiteDe = (constats: ReturnType<typeof cc>) => constats.filter((c) => c.limite).map((c) => `${c.code}:${String(c.faits.cause)}`);
+const texteSurRacineNue = (couleur: { r: number; g: number; b: number; a: number }) => releve([variant('a', [racine([]), texte([solide('fills', couleur)])])]);
+
+test('E9.1 : un fond de page Figma ou d’élévation d’alpha inférieur à 1 donne fond-indetermine, jamais un fond forcé opaque', () => {
+  const noir = gris(0);
+  const r = texteSurRacineNue(noir);
+  const opaque = cc(r, 'AA', { ...catalogueVide, fondDeLaPageFigma: gris(1) });
+  assert.deepEqual(limiteDe(opaque), ['C49:fond-de-repli']);
+  assert.deepEqual(limiteDe(cc(r, 'AA', { ...catalogueVide, fondDeLaPageFigma: { ...gris(1), a: 0.5 } })), ['C49:fond-indetermine']);
+  const theme = themeAvecFonds('page/border', 0.5, { fondsDElevation: { l: { page: gris(1), carte: gris(1) }, d: { page: { ...gris(0.1), a: 0.5 }, carte: gris(0.2) } } });
+  const enDark = releve([{ ...variant('a', [racine([]), texte([solide('fills', noir)])]), modesEffectifs: { ck: 'd' } }]);
+  assert.deepEqual(limiteDe(cc(enDark, 'AA', theme)), ['C49:fond-indetermine']);
+  assert.equal(parCode(cc(enDark, 'AA', theme), 'C49').length, 0);
+});
+
+test('E9.1 : la composition garde les flottants, un seul arrondi à 8 bits a lieu à la fin', () => {
+  const composee = composer([{ r: 0.31, g: 0.31, b: 0.31, a: 0.5 }], { r: 0.1, g: 0.1, b: 0.1, a: 1 });
+  assert.ok(composee);
+  assert.equal(composee.r, 0.31 * 0.5 + 0.1 * 0.5);
+  assert.notEqual(Math.round(composee.r * 255) / 255, composee.r, 'aucun arrondi intermédiaire');
+});
+
+test('E9.5 : un canal ou un alpha hors de [0, 1], ou NaN, donne couleur-hors-gamut et aucun verdict', () => {
+  const hors: [string, { r: number; g: number; b: number; a: number }][] = [
+    ['canal à 1,2', { r: 1.2, g: 0, b: 0, a: 1 }], ['canal à -0,1', { r: 0, g: -0.1, b: 0, a: 1 }], ['canal NaN', { r: 0, g: 0, b: Number.NaN, a: 1 }],
+    ['alpha à 1,5', { r: 0, g: 0, b: 0, a: 1.5 }], ['alpha à -0,2', { r: 0, g: 0, b: 0, a: -0.2 }], ['alpha NaN', { r: 0, g: 0, b: 0, a: Number.NaN }],
+  ];
+  for (const [quoi, couleur] of hors) {
+    const constats = cc(texteSurRacineNue(couleur), 'AA', { ...catalogueVide, fondDeLaPageFigma: gris(1) });
+    assert.deepEqual(limiteDe(constats), ['C49:couleur-hors-gamut'], quoi);
+    assert.equal(parCode(constats, 'C49').length, 0, quoi);
+  }
+  // Les bornes elles-mêmes tiennent dans [0, 1].
+  const sain = cc(releve([variant('a', [racine(), texte([solide('fills', { r: 0, g: 1, b: 0, a: 1 })])])]));
+  assert.equal(limiteDe(sain).length, 0);
+});
+
+test('E9.5 : une couleur hors gamme sur le fond d’un ancêtre donne la limite sur le texte', () => {
+  const r = releve([variant('a', [racine([solide('fills', { r: 2, g: 0, b: 0, a: 1 })]), texte([solide('fills', gris(0))])])]);
+  assert.deepEqual(limiteDe(cc(r)), ['C49:couleur-hors-gamut']);
+});

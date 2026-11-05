@@ -3,9 +3,9 @@
  * Une information dit ce que l'analyse n'a pas pu ou pas voulu mesurer ; elle n'a ni sévérité, ni statut, ni geste. La phrase est une
  * chaîne où les mots entre accents graves sont cités en code, comme celle d'un constat à faire dans Figma.
  *
- * Le kit rend cinq sortes d'information : les variants désactivés exclus du contraste (C53), une limite de lecture du contraste (C49,
+ * Le kit rend six sortes d'information : les variants désactivés exclus du contraste (C53), une limite de lecture du contraste (C49,
  * C50), le fond de repli pris sur la page Figma (C49, C50), la borne des combinaisons de modes (C49) et une règle d'icônes que le relevé
- * ne lit pas (C67). Un autre constat `info` garde la phrase qu'il porte, ou une phrase générique.
+ * ne lit pas (C67) et un texte à plusieurs text styles (C64). Un autre constat `info` garde la phrase qu'il porte, ou une phrase générique.
  */
 import type { Constat } from '../../messages/commun';
 import { lieuDe, nomsDesVariants, type ContexteDAFaire } from '../ignores/modele';
@@ -54,6 +54,7 @@ export function ligneDInformation(constat: Constat, contexte: ContexteDAFaire): 
   if (constat.code === 'C31' && faits.genre === 'et-autres') return sansLayer(TA.variantsAbsentsRestants(Number(faits.autres)));
   if (constat.code === 'C67' && faits.cause === 'icone-non-pilotee') return sansLayer(T.iconeNonPilotee(calque ?? ''));
   if (constat.code === 'C67' && faits.cause === 'icones-permises-non-lues') return { constat, phrase: T.iconesPermisesNonLues(texte(faits.propriete) ?? ''), lieu: lieuDe(constat, contexte) };
+  if (constat.code === 'C64' && faits.motif === 'styles-mixtes') return { constat, phrase: T.stylesMixtes(calque ?? ''), lieu: lieuDe(constat, contexte) };
   if (constat.code === 'C49' || constat.code === 'C50') {
     if (faits.cause === 'fond-de-repli') return { constat, phrase: T.fondDeRepli, lieu: lieuDe(constat, contexte) };
     if (faits.borne !== undefined) return { constat, phrase: T.pairesNonMesurees(texte(faits.combinaisonsNonMesurees) ?? '0', total(faits.combinaisonsMesurees, texte(faits.combinaisonsNonMesurees) ?? '0')), lieu: [] };

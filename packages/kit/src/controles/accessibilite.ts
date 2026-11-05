@@ -96,7 +96,7 @@ export const CIBLE_MINIMALE_PX = 24;
 export const CIBLE_TACTILE_PX = 44;
 export const TEXTE_MINIMAL_PX = 12;
 
-export type Cause = 'fond-indetermine' | 'degrade' | 'image' | 'peinture-superposee' | 'mode-illisible' | 'couleur-absente' | 'fond-de-repli';
+export type Cause = 'fond-indetermine' | 'degrade' | 'image' | 'peinture-superposee' | 'mode-illisible' | 'couleur-absente' | 'fond-de-repli' | 'couleur-hors-gamut';
 export type Rgba = { r: number; g: number; b: number; a: number };
 export type Combinaison = { modes: Map<string, string>; etiquette: string };
 export type Pile = { couches: Rgba[] } | { limite: Cause };
@@ -106,6 +106,11 @@ type Cible = {
 };
 
 const OPAQUE = 1 - 1e-9;
+
+/** Un canal ou un alpha de Figma tient dans [0, 1] ; NaN n'y tient pas. Une couleur qui en sort n'est jamais bornée en silence (Q-F7-5). */
+const dansLeGamut = (x: number): boolean => x >= 0 && x <= 1;
+const couleurDansLeGamut = (c: { r: number; g: number; b: number; a?: number }): boolean =>
+  dansLeGamut(c.r) && dansLeGamut(c.g) && dansLeGamut(c.b) && dansLeGamut(c.a ?? 1);
 
 export function controlerLAccessibilite(
   releve: ReleveDeComposant,
@@ -371,6 +376,7 @@ export function pileDePeintures(
     }
     if (!couleur) return { limite: 'couleur-absente' };
     const a = couleur.a * p.opacite * opaciteDuLayer;
+    if (!couleurDansLeGamut(couleur) || !dansLeGamut(a)) return { limite: 'couleur-hors-gamut' };
     couches.push({ r: couleur.r, g: couleur.g, b: couleur.b, a });
     if (a >= OPAQUE) break;
   }
@@ -523,13 +529,31 @@ type FondDeMesure = { nom?: NomDeFond; couleur: Rgba };
 
 const enOpaque = (c: CouleurResolue): Rgba => ({ r: c.r, g: c.g, b: c.b, a: 1 });
 
-/** Les fonds que le thème ou la page Figma offrent à un layer sans fond opaque, ou `null` quand le catalogue n'en donne aucun. */
-function fondsDeRepli(catalogue: CatalogueDeReference, variant: VariantLu, combinaison: Combinaison): FondDeMesure[] | null {
+/** Un fond de page ou d'élévation d'alpha inférieur à 1 n'est pas un fond : il laisse voir ce qu'il y a dessous (Q-F7-1). */
+function causeDuFondDeRepli(fonds: readonly CouleurResolue[]): Cause | null {
+  if (!fonds.every(couleurDansLeGamut)) return 'couleur-hors-gamut';
+  return fonds.some((fond) => (fond.a ?? 1) < OPAQUE) ? 'fond-indetermine' : null;
+}
+
+/**
+ * Les fonds que le thème ou la page Figma offrent à un layer sans fond opaque, `null` quand le catalogue n'en donne aucun, ou la
+ * limite quand celui qui s'applique n'est pas lisible comme fond. Les fonds d'élévation du mode priment, même translucides : la page
+ * Figma ne les remplace pas.
+ */
+function fondsDeRepli(catalogue: CatalogueDeReference, variant: VariantLu, combinaison: Combinaison): FondDeMesure[] | { limite: Cause } | null {
   const theme = catalogue.collections.find((c) => c.role === 'theme' && c.etat === 'lue');
   const mode = theme ? modeDeLaCollection(variant, combinaison, theme) : undefined;
   const elevation = mode !== undefined ? catalogue.fondsDElevation?.[mode] : undefined;
-  if (elevation) return [{ nom: 'page', couleur: enOpaque(elevation.page) }, { nom: 'carte', couleur: enOpaque(elevation.carte) }];
-  if (catalogue.fondDeLaPageFigma) return [{ nom: 'page-figma', couleur: enOpaque(catalogue.fondDeLaPageFigma) }];
+  if (elevation) {
+    const cause = causeDuFondDeRepli([elevation.page, elevation.carte]);
+    if (cause) return { limite: cause };
+    return [{ nom: 'page', couleur: enOpaque(elevation.page) }, { nom: 'carte', couleur: enOpaque(elevation.carte) }];
+  }
+  if (catalogue.fondDeLaPageFigma) {
+    const cause = causeDuFondDeRepli([catalogue.fondDeLaPageFigma]);
+    if (cause) return { limite: cause };
+    return [{ nom: 'page-figma', couleur: enOpaque(catalogue.fondDeLaPageFigma) }];
+  }
   return null;
 }
 
@@ -545,6 +569,7 @@ function fondsDeMesure(
   if (fond.limite !== 'fond-indetermine') return fond;
   const bases = fondsDeRepli(catalogue, variant, combinaison);
   if (!bases) return fond;
+  if ('limite' in bases) return bases;
   const pile = couchesDesAncetres(variant, memoireDuVariant(variant).parId, layer.parent || '', catalogue, combinaison);
   const couches = 'couches' in pile ? pile.couches : [];
   return { fonds: bases.map((base) => ({ nom: base.nom, couleur: composer(couches, base.couleur) ?? base.couleur })) };

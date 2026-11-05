@@ -84,7 +84,7 @@ export const GABARITS: Readonly<Record<NomDeFamille, Gabarit>> = {
   ],
   'controle-typographie': [
     'releve.jeu.nom', ...PROPRIETES, ...sous('releve.variants.*', 'id', 'nom', 'valeurs'),
-    ...sous(LAYERS, 'id', 'nom', 'type', 'parent', 'visible', 'peintures.*.champ', 'peintures.*.visible', 'peintures.*.opacite', 'peintures.*.opacity', 'instanceDe.nom', 'instanceDe.distante', 'instanceDe.pilotee', 'instanceDe.valeurs', 'texte.style'),
+    ...sous(LAYERS, 'id', 'nom', 'type', 'parent', 'visible', 'peintures.*.champ', 'peintures.*.visible', 'peintures.*.opacite', 'peintures.*.opacity', 'instanceDe.nom', 'instanceDe.distante', 'instanceDe.pilotee', 'instanceDe.valeurs', 'texte.style', 'texte.stylesMixtes'),
     ...liaisons(['champ', 'illisible', 'variable.cle', 'variable.nom', 'variable.collection'], ['champ', 'illisible', 'variable.cle', 'variable.nom', 'variable.collection']),
     ...COLLECTIONS, ...sous('catalogue.variables.*', 'cle', 'nom', 'collection', 'type', 'etat'),
   ],

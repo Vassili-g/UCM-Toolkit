@@ -74,6 +74,64 @@ test('C64 : un style différent de celui des autres variants unanimes est signal
   assert.equal(code(releve(partages), 'C64').length, 0);
 });
 
+/** Un variant à deux axes, dont `Size` (Small, Large) : l'axe de taille que C64 reconnaît. */
+const enTaille = (taille: string, etat: string, layers: LayerLu[]): VariantLu =>
+  ({ id: `${taille}-${etat}`, nom: `Size=${taille}, State=${etat}`, valeurs: { Size: taille, State: etat }, layers, modesEffectifs: {} });
+const axeDeTaille: ReleveDeComposant['proprietes'] = [
+  { nom: 'Size', type: 'VARIANT', valeurs: ['Small', 'Large'], defaut: 'Small' },
+  { nom: 'State', type: 'VARIANT', valeurs: ['default', 'hover', 'pressed', 'disabled'], defaut: 'default' },
+];
+
+test('C64 : avec un axe de taille, les styles se comparent dans une même valeur de taille (Q-F6-2)', () => {
+  const etats = ['default', 'hover', 'pressed', 'disabled'];
+  const grandsDifferents = [
+    ...etats.map((e) => enTaille('Small', e, [texte('Body/Small')])),
+    ...etats.map((e) => enTaille('Large', e, [texte('Body/Large')])),
+  ];
+  assert.equal(code(releve(grandsDifferents, axeDeTaille), 'C64').length, 0, 'le style propre à une taille ne se signale pas');
+  const unEcart = grandsDifferents.map((v, rang) => (rang === 5 ? enTaille('Large', 'hover', [texte('Body/Small')]) : v));
+  const constats = code(releve(unEcart, axeDeTaille), 'C64');
+  assert.equal(constats.length, 1);
+  assert.deepEqual(constats[0].variants, ['Size=Large, State=hover']);
+  assert.equal(constats[0].faits.styleAttendu, 'Body/Large');
+  // Sans axe de taille, la comparaison reste globale : deux styles voisins ne sont pas unanimes.
+  const sansAxe = unEcart.map((v) => ({ ...v, valeurs: { State: v.valeurs.State } }));
+  assert.equal(code(releve(sansAxe, axeDeTaille.slice(1)), 'C64').length, 0);
+});
+
+test('C64 : deux layers de même nom d’un variant se comparent chacun à son rang (N-44)', () => {
+  const deux = (premier: string, second: string): LayerLu[] => [texte(premier), texte(second)];
+  const permute = [variant('a', deux('Mono', 'Serif')), variant('b', deux('Mono', 'Serif')), variant('c', deux('Mono', 'Serif')), variant('d', deux('Serif', 'Mono'))];
+  const constats = code(releve(permute), 'C64');
+  assert.deepEqual(constats.map((c) => [c.faits.styleAttendu, c.faits.styleLu, c.variants]), [['Mono', 'Serif', ['d']], ['Serif', 'Mono', ['d']]]);
+  const unanimes = [variant('a', deux('Mono', 'Serif')), variant('b', deux('Mono', 'Serif')), variant('c', deux('Mono', 'Serif'))];
+  assert.equal(code(releve(unanimes), 'C64').length, 0);
+});
+
+test('C64 : un texte à plusieurs text styles reçoit l’information styles-mixtes, ni sans-style ni style-different (N-43)', () => {
+  const mixte = texte(null);
+  mixte.texte!.stylesMixtes = true;
+  const r = releve([variant('a', [texte('Body/Small')]), variant('b', [texte('Body/Small')]), variant('c', [texte('Body/Small')]), variant('d', [mixte])]);
+  const constats = code(r, 'C64');
+  assert.equal(constats.length, 1);
+  assert.equal(constats[0].type, 'info');
+  assert.equal(constats[0].faits.motif, 'styles-mixtes');
+  assert.deepEqual(constats[0].variants, ['d']);
+  // Un texte sans style, mixte ou non, ne pèse pas sur l'unanimité des autres.
+  const sansStyle = releve([variant('a', [texte('Body/Small')]), variant('b', [texte('Body/Small')]), variant('c', [texte('Body/Large')]), variant('d', [texte(null)])]);
+  assert.deepEqual(code(sansStyle, 'C64').map((c) => c.faits.motif), ['style-different', 'sans-style-ni-variables']);
+});
+
+test('C65 : les huit champs de typographie se jugent comme la taille et la graisse (Q-F6-7)', () => {
+  for (const champ of ['lineHeight', 'letterSpacing', 'fontFamily', 'fontStyle', 'paragraphSpacing', 'paragraphIndent']) {
+    const mauvais = code(releve([variant('a', [texte('S', [liaison(champ, 'dimension/14', 'primitives')])])]), 'C65');
+    assert.deepEqual(mauvais.map((c) => [c.faits.motif, c.faits.champ]), [['mauvaise-collection', champ]], champ);
+    const lie = (): LiaisonLue[] => [liaison(champ, 'body/small/x', 'typography')];
+    const manque = code(releve([variant('a', [texte('S', lie())]), variant('b', [texte('S', lie())]), variant('c', [texte('S')])]), 'C65');
+    assert.deepEqual(manque.map((c) => [c.faits.motif, c.faits.champ, c.variants]), [['sans-liaison-comme-les-autres', champ, ['c']]], champ);
+  }
+});
+
 test('C65 : une taille liée à une autre collection est signalée, une liaison de typographie passe', () => {
   const mauvais = code(releve([variant('a', [texte('S', [liaison('fontSize', 'dimension/14', 'primitives')])])]), 'C65');
   assert.equal(mauvais[0].faits.collectionAttendue, 'typography');
@@ -180,7 +238,7 @@ test('lire un champ des autres sources croît linéairement avec leur nombre', (
   const grand = mesurer(400);
   assert.ok(grand.styles < 400 * 8, `lectures de style : ${grand.styles}`);
   assert.ok(grand.styles / petit.styles < 5, `style ${petit.styles} -> ${grand.styles}`);
-  assert.ok(grand.liaisons < 400 * 24, `lectures de liaisons : ${grand.liaisons}`);
+  assert.ok(grand.liaisons < 400 * 32, `lectures de liaisons : ${grand.liaisons}`);
   assert.ok(grand.liaisons / petit.liaisons < 5, `liaisons ${petit.liaisons} -> ${grand.liaisons}`);
 });
 
@@ -213,8 +271,10 @@ test('C64 et C65 : sources sans texte, styles null et exclusions comme avant, su
     for (const s of sources) {
       const memeNom = sources.filter((o) => o.nom === s.nom && o !== s);
       if (!s.sansTexte) {
-        const unanime = unanimeDeReference(memeNom.filter((o) => !o.sansTexte).map((o) => o.style), -1);
-        if (unanime && s.style !== unanime) attendus.push(`C64:${s.nom}:style:${unanime}:${s.style ?? 'aucun'}|${s.variant}`);
+        // Un texte sans style ne vote pas ; sans variable, il reçoit seulement sans-style-ni-variables.
+        const unanime = unanimeDeReference(memeNom.filter((o) => !o.sansTexte && o.style !== null).map((o) => o.style), -1);
+        const sansStyleNiVariable = s.style === null && !s.lie.fontSize && !s.lie.fontWeight;
+        if (unanime && s.style !== unanime && !sansStyleNiVariable) attendus.push(`C64:${s.nom}:style:${unanime}:${s.style ?? 'aucun'}|${s.variant}`);
       }
       for (const champ of ['fontSize', 'fontWeight'] as const) {
         if (!s.sansTexte && s.lie[champ]) continue;

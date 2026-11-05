@@ -188,7 +188,7 @@ export function operateurM(base: ComposantDeContraste): CasAccessibilite[] {
     cas.push(faire(`M5-${numero('M5')}`, 'M5', {
       description: `${quoi} : une limite couleur-hors-gamut et aucun verdict, la couleur n'est pas bornée en silence`,
       degrader: (d) => texteLie(d, d.nouvelleVariable({ nom: 'test/v', collection: d.nouvelleCollection('Test', ['Mode 1']), valeurs: [{ brut: valeur }] })),
-      attendus: [limiteDuTexte('couleur-hors-gamut', cible)], verdict: 'mesure', question: 'Q-F7-5', hypothese: 'H16',
+      attendus: [limiteDuTexte('couleur-hors-gamut', cible)], hypothese: 'H16',
     }));
   }
 

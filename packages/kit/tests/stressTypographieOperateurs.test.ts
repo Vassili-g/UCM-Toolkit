@@ -86,9 +86,6 @@ test('les opérateurs S et I rendent les nombres de cas du plan : 43 S, 58 I, so
 
 test('les cas de F6 qui dépendent d\'une question non confirmée portent le verdict mesure et son identifiant', () => {
   assert.deepEqual(parQuestion(F6), {
-    'Q-F6-6': ['S1-5', 'S1-6', 'S1-7'],
-    'Q-F6-2': ['S2-5', 'S2-6', 'S2-7', 'S2-9', 'S2-12', 'S2-13'],
-    'Q-F6-7': ['S3-9', 'S3-10', 'S3-11'],
     'Q-F6-3': ['I6-17', 'I6-18', 'I6-19', 'I6-20', 'I6-21', 'I6-22', 'I6-23', 'I6-25', 'I6-28', 'I6-30', 'I6-31'],
   });
 });
@@ -105,28 +102,28 @@ test('chaque cas de F6 a un identifiant <opérateur>-<n> dans l\'ordre, une desc
   }
 });
 
-test('S1 : un texte sans style ni variable donne C64 sur un variant ou sur les 12 ; des styles mixtes restent en attente de Q-F6-6', () => {
+test('S1 : un texte sans style ni variable donne C64 sur un variant ou sur les 12 ; des styles mixtes donnent styles-mixtes (Q-F6-6)', () => {
   assert.deepEqual(cas('S1-1').attendus, [a64('Label', 'sans-style-ni-variables', [premier])]);
   assert.deepEqual(cas('S1-2').attendus, [a64('Label', 'sans-style-ni-variables', ['Size=Medium, State=hover'])]);
   assert.deepEqual(cas('S1-3').attendus, [a64('Label', 'sans-style-ni-variables', ['Size=Large, State=disabled'])]);
   assert.equal(cas('S1-4').attendus.length, 1, 'un même défaut sur 12 variants est un seul constat (P23)');
   assert.ok(cas('S1-4').attendus[0].cle.startsWith('Label|sans-style-ni-variables||@12 variants'));
   assert.deepEqual(['S1-5', 'S1-6', 'S1-7'].map((id) => [cas(id).verdict, cas(id).question, cas(id).attendus[0].cle]),
-    Array(3).fill(['mesure', 'Q-F6-6', 'Label|styles-mixtes||@Size=Medium, State=hover']));
+    Array(3).fill(['attendu', undefined, 'Label|styles-mixtes||@Size=Medium, State=hover']));
 });
 
 test('S2 : un style différent se juge dans son groupe de taille ; le groupe de taille, trois variants, un texte masqué et deux layers de même nom ont leur oracle', () => {
   assert.deepEqual(['S2-1', 'S2-2', 'S2-3', 'S2-4'].map((id) => cas(id).attendus),
     ['Size=Small, State=default', 'Size=Medium, State=hover', 'Size=Large, State=pressed', 'Size=Large, State=disabled'].map((nom) => [a64('Label', 'style-different', [nom], 'Label/Caption')]));
-  assert.deepEqual(['S2-5', 'S2-6', 'S2-7'].map((id) => [cas(id).verdict, cas(id).question, cas(id).attendus]), Array(3).fill(['mesure', 'Q-F6-2', []]));
+  assert.deepEqual(['S2-5', 'S2-6', 'S2-7'].map((id) => [cas(id).verdict, cas(id).question, cas(id).attendus]), Array(3).fill(['attendu', undefined, []]));
   assert.deepEqual(cas('S2-8').attendus, [], 'deux variants : un seul voisin ne fait pas une unanimité');
-  assert.equal(cas('S2-9').question, 'Q-F6-2');
+  assert.deepEqual([cas('S2-9').verdict, cas('S2-9').attendus], ['attendu', []], 'trois variants dont celui qui diffère est seul de sa taille');
   assert.deepEqual(cas('S2-10').attendus, [], 'trois styles différents : aucune unanimité');
   assert.deepEqual(cas('S2-11').attendus, [], 'deux layers de même nom aux styles unanimes');
   assert.deepEqual(cas('S2-12').attendus.map((attendu) => attendu.cle),
     ['Text|style-different||Label/Serif@Size=Medium, State=hover', 'Text|style-different||Label/Mono@Size=Medium, State=hover']);
-  assert.deepEqual([cas('S2-12').verdict, cas('S2-12').question], ['mesure', 'Q-F6-2']);
-  assert.deepEqual([cas('S2-13').verdict, cas('S2-13').attendus], ['mesure', []], 'un layer renommé');
+  assert.equal(cas('S2-12').verdict, 'attendu');
+  assert.deepEqual([cas('S2-13').verdict, cas('S2-13').attendus], ['attendu', []], 'un layer renommé');
   assert.deepEqual([cas('S2-14').attendus, cas('S2-15').attendus], [[], []], 'un texte masqué, un texte sous un parent masqué');
 });
 
@@ -134,7 +131,7 @@ test('S3 : une taille ou une graisse liée hors de typography donne mauvaise-col
   assert.deepEqual(cas('S3-1').attendus, [a65('Label', 'mauvaise-collection', [premier], 'fontSize', 'dimension/none')]);
   assert.deepEqual(['S3-1', 'S3-2', 'S3-3', 'S3-4', 'S3-5', 'S3-6', 'S3-7', 'S3-8'].map((id) => cas(id).attendus[0].code), Array(8).fill('C65'));
   assert.deepEqual(cas('S3-5').attendus, [a65('Label', 'mauvaise-collection', [premier], 'fontWeight', 'dimension/none')]);
-  assert.deepEqual(['S3-9', 'S3-10', 'S3-11'].map((id) => [cas(id).verdict, cas(id).question]), Array(3).fill(['mesure', 'Q-F6-7']));
+  assert.deepEqual(['S3-9', 'S3-10', 'S3-11'].map((id) => [cas(id).verdict, cas(id).question]), Array(3).fill(['attendu', undefined]));
   assert.deepEqual(['S3-12', 'S3-13', 'S3-14', 'S3-15'].map((id) => cas(id).attendus),
     [[a65('Label', 'sans-liaison-comme-les-autres', [premier], 'fontSize')], [a65('Label', 'sans-liaison-comme-les-autres', ['Size=Large, State=disabled'], 'fontSize')],
       [a65('Label', 'sans-liaison-comme-les-autres', [premier], 'fontWeight')], [a65('Label', 'sans-liaison-comme-les-autres', ['Size=Large, State=disabled'], 'fontWeight')]]);

@@ -137,7 +137,7 @@ export function operateurO(base: ComposantDeContraste): CasAccessibilite[] {
   cas.push(faire(`O4-${numero('O4')}`, 'O4', {
     description: 'page Figma d\'alpha 0,5 : un fond translucide est indéterminé et non forcé opaque (Q-F7-1)',
     degrader: (d) => { d.sansElevation(); d.pageFigma(BLANC, 0.5); d.scene({ fond: couleurDeHex(BLANC, 0.5) }); d.ajouterUnTexte('Texte', { peintures: [solide(NOIR)] }); },
-    attendus: limitesDuTexte(), verdict: 'mesure', question: 'Q-F7-1',
+    attendus: limitesDuTexte(),
   }));
   cas.push(faire(`O4-${numero('O4')}`, 'O4', {
     description: 'elevation/page et elevation/raised d\'alpha 0,5 : un fond translucide est indéterminé (Q-F7-1)',
@@ -145,7 +145,7 @@ export function operateurO(base: ComposantDeContraste): CasAccessibilite[] {
       for (const mode of Object.values(d.catalogue.fondsDElevation!)) { d.fixer(mode.page, 'a', 0.5); d.fixer(mode.carte, 'a', 0.5); }
       d.scene({ fond: couleurDeHex(BLANC, 0.5) }); d.ajouterUnTexte('Texte', { peintures: [solide(NOIR)] });
     },
-    attendus: limitesDuTexte(), verdict: 'mesure', question: 'Q-F7-1',
+    attendus: limitesDuTexte(),
   }));
   cas.push(faire(`O4-${numero('O4')}`, 'O4', {
     description: 'racine sans peinture : texte noir mesuré sur la page et la carte',
@@ -177,7 +177,7 @@ export function operateurO(base: ComposantDeContraste): CasAccessibilite[] {
         const zoneLayer = cadre(d, 'Zone', d.scene({ fond: couleurDeHex(c.fond) }), [solide(c.zone.couleur, { alpha: c.zone.alpha })]);
         d.ajouterUnTexte('Texte', { peintures: [solide(c.texte.couleur, { alpha: c.texte.alpha })] }, { parent: zoneLayer });
       },
-      attendus: attenduSurLeFond([texte], [zone, couleurDeHex(c.fond)], null, cible), verdict: 'mesure', question: 'Q-F7-1',
+      attendus: attenduSurLeFond([texte], [zone, couleurDeHex(c.fond)], null, cible),
     }));
   });
   return cas;

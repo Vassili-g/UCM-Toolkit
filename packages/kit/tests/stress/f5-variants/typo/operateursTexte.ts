@@ -7,9 +7,8 @@
  * est un seul constat (P23). Un constat de C67 qui ne fait que dire une limite (`icones-permises-non-lues`, `icone-non-pilotee`)
  * n'est jugé que si le cas l'attend (`mesurer.ts`).
  *
- * Q-F6-2 propose de comparer les styles à l'intérieur d'une même valeur de l'axe de taille. Le kit les compare tous ensemble
- * (H13) : un style qui sort de son groupe de taille ne donne alors rien tant que les autres tailles portent d'autres styles. Les
- * cas où le groupe de taille tranche attendent le constat de la proposition.
+ * Q-F6-2 : C64 compare les styles à l'intérieur d'une même valeur de l'axe de taille, au même rang parmi les layers de même nom.
+ * Un texte à styles mixtes reçoit l'information `styles-mixtes` (Q-F6-6). C65 juge les huit champs de typographie (Q-F6-7).
  */
 import type { Constat, LayerLu, LiaisonLue, VariableDuCatalogue, VariantLu } from '../../../../src/controles/index.js';
 import { attendu as attenduDeBase, cleDeConstat, Degradation, Numerotation, type CasDeVariants, type ZoneTouchee } from '../cas.js';
@@ -174,12 +173,13 @@ function textesSansStyle(base: ComposantDeBase, numero: Numerotation): CasDeVari
     attendus: () => [a64('Label', 'sans-style-ni-variables', variants.map((variant) => variant.nom))],
   });
   const mixte = (description: string, plusDePlages: boolean): CasDeVariants => casF6(base, {
-    id: numero.prochain('S1'), operateur: 'S1', verdict: 'mesure', question: 'Q-F6-6', hypothese: 'H14',
-    description: `${description} dans le variant ${variants[RANG_MILIEU].nom} : le relevé range style: null`,
+    id: numero.prochain('S1'), operateur: 'S1', hypothese: 'H14',
+    description: `${description} dans le variant ${variants[RANG_MILIEU].nom} : le relevé range style: null et stylesMixtes`,
     zones: [zoneDe('Label', variants[RANG_MILIEU])],
     degrader: (d) => {
       const texte = layerDe(d.releve.variants[RANG_MILIEU], 'Label').texte!;
       d.fixer(texte, 'style', null);
+      d.fixer(texte, 'stylesMixtes', true);
       if (plusDePlages) d.inserer(texte.plages, { debut: 10, fin: 14, fontSize: 14, fontWeight: 500, peintures: [], liaisons: [] });
     },
     attendus: () => [a64('Label', 'styles-mixtes', [variants[RANG_MILIEU].nom])],
@@ -220,7 +220,7 @@ function stylesDifferents(base: ComposantDeBase, numero: Numerotation): CasDeVar
     const paire = TAILLES.filter((taille) => taille !== seule);
     const style = styleDeTexteDeLaTaille(segmentDeLaValeur('taille', paire[0]));
     return casF6(base, {
-      id: numero.prochain('S2'), operateur: 'S2', verdict: 'mesure', question: 'Q-F6-2', hypothese: 'H13',
+      id: numero.prochain('S2'), operateur: 'S2', hypothese: 'H13',
       description: `${paire.join(' et ')} partagent ${style}, ${seule} garde le sien : le style suit la taille`,
       zones: variants.filter((variant) => paire.includes(variant.valeurs.Size)).map((variant) => zoneDe('Label', variant)),
       degrader: (d) => d.releve.variants.forEach((variant) => { if (paire.includes(variant.valeurs.Size)) d.fixer(layerDe(variant, 'Label').texte!, 'style', style); }),
@@ -236,7 +236,7 @@ function stylesDifferents(base: ComposantDeBase, numero: Numerotation): CasDeVar
     attendus: () => [],
   });
   const troisDontUn = casF6(base, {
-    id: numero.prochain('S2'), operateur: 'S2', verdict: 'mesure', question: 'Q-F6-2', hypothese: 'H13',
+    id: numero.prochain('S2'), operateur: 'S2', hypothese: 'H13',
     description: `trois variants dont ${nom(4)} (Label/Medium) diffère de ${nom(0)} et ${nom(1)} (Label/Small), qui sont d'autres tailles que lui`,
     zones: [zoneDe('Label', variants[4])], degrader: (d) => garderLesRangs(d, base, [0, 1, 4]),
     attendus: () => [],
@@ -250,7 +250,6 @@ function stylesDifferents(base: ComposantDeBase, numero: Numerotation): CasDeVar
 
   const deuxLayersDeMemeNom = (permuter: boolean): CasDeVariants => casF6(base, {
     id: numero.prochain('S2'), operateur: 'S2', hypothese: 'H24',
-    ...(permuter ? { verdict: 'mesure' as const, question: 'Q-F6-2' } : {}),
     description: permuter
       ? `deux layers Text de styles Label/Mono et Label/Serif dans chaque variant, permutés dans ${nom(RANG_MILIEU)}`
       : 'deux layers Text de styles Label/Mono et Label/Serif dans chaque variant',
@@ -269,7 +268,7 @@ function stylesDifferents(base: ComposantDeBase, numero: Numerotation): CasDeVar
   const memeNomUnanime = deuxLayersDeMemeNom(false);
   const memeNomPermute = deuxLayersDeMemeNom(true);
   const renomme = casF6(base, {
-    id: numero.prochain('S2'), operateur: 'S2', verdict: 'mesure', question: 'Q-F6-2', hypothese: 'H24',
+    id: numero.prochain('S2'), operateur: 'S2', hypothese: 'H24',
     description: `le layer Label du variant ${nom(RANG_MILIEU)} s'appelle Text : il n'a plus de voisin de même nom`,
     zones: [zoneDe('Label', variants[RANG_MILIEU])],
     degrader: (d) => d.fixer(layerDe(d.releve.variants[RANG_MILIEU], 'Label'), 'nom', 'Text'),
@@ -325,8 +324,8 @@ function tailleEtGraisse(base: ComposantDeBase, numero: Numerotation): CasDeVari
   })));
 
   const autres = AUTRES_CHAMPS.map((champ) => casF6(base, {
-    id: numero.prochain('S3'), operateur: 'S3', verdict: 'mesure', question: 'Q-F6-7',
-    description: `${champ} du texte Label de ${premier.nom} est lié à dimension/none, de primitives : C65 ne juge que fontSize et fontWeight`,
+    id: numero.prochain('S3'), operateur: 'S3',
+    description: `${champ} du texte Label de ${premier.nom} est lié à dimension/none, de primitives`,
     zones: [zoneDe('Label', premier)],
     degrader: (d) => { lierLeTexte(d, layerDe(d.releve.variants[RANG_PREMIER], 'Label'), champ, variableParNom(d, 'dimension/none')); },
     attendus: () => [a65('Label', 'mauvaise-collection', [premier.nom], champ, 'dimension/none')],

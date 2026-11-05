@@ -54,6 +54,7 @@ export const TEXTES_IGNORES = {
     pairesNonMesurees: (nonMesurees: string, total: string): string => `${nonMesurees} ${nonMesurees === '1' ? 'paire' : 'paires'} de couleurs non mesurée${nonMesurees === '1' ? '' : 's'} sur ${total}.`,
     iconeNonPilotee: (layer: string): string => `L’icône du layer \`${layer}\` n’est pilotée par aucune propriété : ses icônes ne sont pas contrôlées.`,
     iconesPermisesNonLues: (propriete: string): string => `Les icônes permises par \`${propriete}\` n’ont pas pu être lues : ses icônes ne sont pas contrôlées.`,
+    stylesMixtes: (layer: string): string => `Le layer ${layer} porte plusieurs text styles.`,
   },
   aFaireDuComposant: {
     ignores: 'Ignorés',

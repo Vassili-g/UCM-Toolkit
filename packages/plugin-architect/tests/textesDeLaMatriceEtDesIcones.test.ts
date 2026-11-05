@@ -65,3 +65,8 @@ test('E8.1 : sans token prévu par le variant, la couleur de l’icône garde le
   const carte = carteDAFaire(constat({ code: 'C66', faits: { calque: 'Icon', motif: 'couleur-hors-premier-plan', variable: 'neutral/surface/foreground' } }), contexte);
   assert.equal(carte.statut, 'Liez-la à un token icon ou foreground');
 });
+
+test('E8.3 : un texte à plusieurs text styles dit son layer dans la section Informations', () => {
+  const info = constat({ code: 'C64', type: 'info', faits: { calque: 'Label', motif: 'styles-mixtes' } });
+  assert.equal(ligneDInformation(info, contexte).phrase, 'Le layer Label porte plusieurs text styles.');
+});

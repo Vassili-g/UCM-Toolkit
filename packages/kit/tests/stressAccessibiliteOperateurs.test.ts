@@ -84,9 +84,7 @@ test('les cas qui dépendent d\'une question non confirmée portent le verdict m
     'Q-F7-3': ['G1-7', 'G1-8', 'G1-11', 'G1-12', 'G2-2'],
     'Q-F7-10': ['G3-9'],
     'Q-F7-2': ['O1-9', 'O1-10', 'O1-11', 'O1-12', 'O3-5', 'O5-1', 'O5-2', 'O5-3', 'O5-4', 'O5-5'],
-    'Q-F7-1': ['O4-10', 'O4-11', 'O6-1', 'O6-2', 'O6-3', 'O6-4', 'O6-5', 'O6-6'],
     'Q-F7-4': ['F6-1', 'F6-2', 'F6-3', 'F6-4'],
-    'Q-F7-5': ['M5-9', 'M5-10', 'M5-11', 'M5-12'],
     'Q-F7-6': ['M6-1', 'M6-2', 'M6-3', 'M6-4'],
     'Q-F7-7': ['Y1-10', 'Y1-11', 'Y1-12', 'Y1-13', 'Y1-14'],
   });
@@ -135,6 +133,7 @@ test('O : l\'alpha effectif compose le texte, une pile s\'arrête à l\'opaque, 
   // O4 : un fond d'alpha 0 est la page elle-même, en mode Dark ; la page Figma garde ses constats nommés `page-figma` et l'information de repli.
   assert.deepEqual(cas('O4-4').attendus.map((a) => [a.cle, a.fond, a.premierPlan]), [['texte|Texte|0-10|page', '#0B1020', '#000000'], ['texte|Texte|0-10|carte', '#131A2E', '#000000']]);
   assert.deepEqual(cas('O4-8').attendus.map((a) => a.cle), ['texte|Texte|0-10|page-figma', 'fond-de-repli']);
+  assert.deepEqual(['O4-10', 'O4-11'].map((id) => cas(id).attendus.map((a) => a.cle)), Array(2).fill(['limite:fond-indetermine|stroke|Root|', 'limite:fond-indetermine|texte|Texte|0-10']));
   assert.deepEqual(cas('O4-9').attendus.map((a) => a.cle), ['limite:fond-indetermine|stroke|Root|', 'limite:fond-indetermine|texte|Texte|0-10']);
   // O5 : le texte noir sous un parent à 50 % se mesure à l'alpha 0,5 ; le parent à 0 n'attend rien.
   assert.equal(cas('O5-1').attendus[0].premierPlan, '#808080');
@@ -169,7 +168,7 @@ test('M : une étiquette par combinaison de modes, 24 combinaisons pour 2, 3 et 
   assert.deepEqual(duOperateur('M4').map((c) => c.attendus[0].cle), [
     'texte|Texte|0-10|', 'texte|Texte|0-10|', 'texte|Texte|0-10|', ...Array(4).fill('limite:mode-illisible|texte|Texte|0-10'),
   ]);
-  // M5 : huit limites `mode-illisible`, puis quatre limites `couleur-hors-gamut` en attente de Q-F7-5.
+  // M5 : huit limites `mode-illisible`, puis quatre limites `couleur-hors-gamut` (Q-F7-5).
   assert.deepEqual(duOperateur('M5').map((c) => c.attendus[0].cle.split('|')[0]), [...Array(8).fill('limite:mode-illisible'), ...Array(4).fill('limite:couleur-hors-gamut')]);
   // M6 : la proposition mesure les deux modes du thème, donc la page et la carte échouent en Dark ; avec un mode, rien.
   assert.deepEqual(duOperateur('M6').map((c) => c.attendus.map((a) => a.cle)), [

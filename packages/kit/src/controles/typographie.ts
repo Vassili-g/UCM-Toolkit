@@ -16,8 +16,6 @@ import { axesDuReleveParEtapes, estLaFamilleCouleur, memeValeurDAxe, roleDuToken
 import type { LayerLu, LiaisonLue, ReleveDeComposant, VariantLu } from './releve.js';
 import { layersVisiblesDuVariant, peintureVisible } from './releve.js';
 
-/** Champs Figma de la taille et de la graisse d'un texte. */
-const CHAMPS_DE_TEXTE = ['fontSize', 'fontWeight'] as const;
 /** Au moins deux autres variants, pour qu'un « autre » ne soit pas simplement l'unique voisin. */
 const AUTRES_MINIMUM = 2;
 /** Les rôles de token dont la couleur est celle d'une icône (C17 les admet pour son fond, ou son trait sans fill visible). */
@@ -37,8 +35,8 @@ export function* controlerLaTypographieParEtapes(releve: ReleveDeComposant, cata
   const constats: Constat[] = [];
   const textes = yield* sources(variants, (l) => l.type === 'TEXT');
   const icones = yield* sources(variants, estUneIcone);
-  constats.push(...(yield* controlerLesTextes(textes, catalogue)));
-  constats.push(...(yield* controlerLesTailleEtGraisse(textes, catalogue)));
+  constats.push(...(yield* controlerLesTextes(textes, releve, catalogue)));
+  constats.push(...(yield* controlerLesLiaisonsDeTexte(textes, catalogue)));
   constats.push(...(yield* controlerLesIcones(icones, releve, catalogue)));
   constats.push(...(yield* controlerLesReglesIcones(icones, releve)));
   return constats;
@@ -122,25 +120,65 @@ export function valeurUnanimeHorsContribution<V>(frequences: Frequences<V>, prop
   return undefined;
 }
 
+/** Toutes les sources comptées portent la même valeur, et elles sont au moins `AUTRES_MINIMUM`. */
+function valeurUnanime<V>(frequences: Frequences<V>): V | undefined {
+  if (frequences.total < AUTRES_MINIMUM || frequences.parValeur.size !== 1) return undefined;
+  return frequences.parValeur.keys().next().value;
+}
+
 /* ---------- C64 ---------- */
 
 const styleDuTexte = (s: Source): string | null => s.layer.texte?.style ?? null;
 
-function* controlerLesTextes(textes: Map<string, Source[]>, catalogue: CatalogueDeReference): Generator<void, Constat[]> {
+/**
+ * Où un texte se compare : parmi les textes de même nom qui ont la même valeur de l'axe de taille (Q-F6-2, sans axe de taille, tous
+ * ensemble), et au même rang parmi les layers de ce nom dans son variant (N-44). Deux layers homonymes d'un variant ne mêlent
+ * donc pas leurs styles.
+ */
+function groupesDeComparaison(liste: readonly Source[], axeDeTaille: string | undefined): { cles: Map<Source, string>; groupes: Map<string, Source[]> } {
+  const cles = new Map<Source, string>();
+  const groupes = new Map<string, Source[]>();
+  const rangs = new Map<string, number>();
+  for (const source of liste) {
+    const rang = rangs.get(source.variant.id) ?? 0;
+    rangs.set(source.variant.id, rang + 1);
+    const cle = `${axeDeTaille === undefined ? '' : source.variant.valeurs[axeDeTaille] ?? ''}|${rang}`;
+    cles.set(source, cle);
+    const groupe = groupes.get(cle) ?? [];
+    groupe.push(source);
+    groupes.set(cle, groupe);
+  }
+  return { cles, groupes };
+}
+
+function* controlerLesTextes(textes: Map<string, Source[]>, releve: ReleveDeComposant, catalogue: CatalogueDeReference): Generator<void, Constat[]> {
   const groupes = new Map<string, Constat>();
   const base = { code: 'C64', type: 'verifier', famille: 'typographie' } as const;
+  const information = { code: 'C64', type: 'info', famille: 'typographie' } as const;
+  const axes = yield* axesDuReleveParEtapes(releve);
+  // Un texte à styles mixtes ou sans style n'a pas de style à comparer : il ne pèse pas sur les fréquences. Le second reçoit son propre constat.
+  const jugeable = (s: Source): boolean => s.layer.texte !== undefined && s.layer.texte.stylesMixtes !== true && styleDuTexte(s) !== null;
   for (const [nom, liste] of textes) {
-    const styles = yield* frequencesDuChamp(liste, styleDuTexte, (s) => s.layer.texte !== undefined);
+    const comparaison = groupesDeComparaison(liste, axes.taille?.nom);
+    const styles = new Map<string, Frequences<string | null>>();
+    for (const [cle, groupe] of comparaison.groupes) styles.set(cle, yield* frequencesDuChamp(groupe, styleDuTexte, jugeable));
     for (const source of liste) {
       yield;
       const { layer } = source;
       if (layer.texte === undefined) continue;
-      const typographie = liaisonsDuChamp(layer, CHAMPS_DE_TYPOGRAPHIE).some((l) => l.illisible || lieuDeLaVariable(catalogue, l)?.role === 'typography');
-      if (layer.texte.style === null && !typographie) {
-        ajouter(groupes, `C64:${nom}:sans-style`, source, { calque: nom, motif: 'sans-style-ni-variables' }, base);
+      if (layer.texte.stylesMixtes === true) {
+        ajouter(groupes, `C64:${nom}:styles-mixtes`, source, { calque: nom, motif: 'styles-mixtes' }, information);
+        continue;
       }
-      const attendu = valeurUnanimeHorsContribution(styles, styleDuTexte(source));
+      const typographie = liaisonsDuChamp(layer, CHAMPS_DE_TYPOGRAPHIE).some((l) => l.illisible || lieuDeLaVariable(catalogue, l)?.role === 'typography');
       const lu = layer.texte.style;
+      if (lu === null && !typographie) {
+        ajouter(groupes, `C64:${nom}:sans-style`, source, { calque: nom, motif: 'sans-style-ni-variables' }, base);
+        continue;
+      }
+      const frequences = styles.get(comparaison.cles.get(source)!)!;
+      // Un texte lié à des variables de typography, sans style, se compare à l'unanimité de ceux qui en ont un.
+      const attendu = lu === null ? valeurUnanime(frequences) : valeurUnanimeHorsContribution(frequences, lu);
       if (attendu && lu !== attendu) {
         ajouter(groupes, `C64:${nom}:style:${attendu}:${lu ?? 'aucun'}`, source,
           { calque: nom, motif: 'style-different', styleAttendu: attendu, styleLu: lu ?? 'aucun' }, base);
@@ -154,15 +192,16 @@ function* controlerLesTextes(textes: Map<string, Source[]>, catalogue: Catalogue
 
 const liaisonLee = (s: Source, champ: string): 'liee' | null => (liaisonsDuChamp(s.layer, [champ]).length > 0 ? 'liee' : null);
 
-function* controlerLesTailleEtGraisse(textes: Map<string, Source[]>, catalogue: CatalogueDeReference): Generator<void, Constat[]> {
+/** Les huit champs de `CHAMPS_DE_TYPOGRAPHIE` se jugent comme la taille et la graisse (Q-F6-7). */
+function* controlerLesLiaisonsDeTexte(textes: Map<string, Source[]>, catalogue: CatalogueDeReference): Generator<void, Constat[]> {
   const groupes = new Map<string, Constat>();
   const base = { code: 'C65', type: 'verifier', famille: 'typographie' } as const;
   for (const [nom, liste] of textes) {
     const liees = new Map<string, Frequences<'liee' | null>>();
-    for (const champ of CHAMPS_DE_TEXTE) liees.set(champ, yield* frequencesDuChamp(liste, (s) => liaisonLee(s, champ)));
+    for (const champ of CHAMPS_DE_TYPOGRAPHIE) liees.set(champ, yield* frequencesDuChamp(liste, (s) => liaisonLee(s, champ)));
     for (const source of liste) {
       yield;
-      for (const champ of CHAMPS_DE_TEXTE) {
+      for (const champ of CHAMPS_DE_TYPOGRAPHIE) {
         const liaisons = liaisonsDuChamp(source.layer, [champ]);
         for (const liaison of liaisons) {
           const lieu = lieuDeLaVariable(catalogue, liaison);

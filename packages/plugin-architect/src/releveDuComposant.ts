@@ -390,6 +390,7 @@ async function texteDe(lecteur: Lecteur, noeud: NoeudLu, liaisons: readonly Liai
   }
   return {
     style: unique ? await lecteur.style(unique, noeud.id) : null,
+    ...(identifiants.size > 1 ? { stylesMixtes: true } : {}),
     plages,
   };
 }

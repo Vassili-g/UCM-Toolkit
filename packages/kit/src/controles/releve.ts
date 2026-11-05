@@ -43,6 +43,8 @@ export interface LayerLu {
   valeursEnDur: { champ: string; valeur: number }[];
   texte?: {
     style: string | null;
+    /** Le texte porte plusieurs text styles : `style` vaut alors `null`, sans que le texte soit sans style. Absent : le lecteur ne l'a pas lu. */
+    stylesMixtes?: boolean;
     plages: { debut: number; fin: number; fontSize: number; fontWeight: number; peintures: PeintureLue[]; liaisons: LiaisonLue[] }[];
   };
   /** Posée sur le layer d'une instance de composant imbriqué ; les liaisons de ses descendants se jugent avec la sorte de l'instance la plus proche. */
