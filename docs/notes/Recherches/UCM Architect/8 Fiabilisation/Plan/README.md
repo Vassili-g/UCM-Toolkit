@@ -104,7 +104,7 @@ Les signes d'objet ont une seule définition dans `packages/kit/src/referentiel/
 | [A8](lots/A8.md) Palettes lit le kit | `implementeur` | A3c, A5, arbre de Palettes commité | [x] bd46a97c |
 | [A9](lots/A9.md) Le hub lit le kit | `implementeur` | A3b, A5 | [x] 3caafb11, cafa043d |
 | [A10](lots/A10.md) Glyphes des sorties texte | `executant` | A3b | [x] 8899b0fa, A10.2 reste |
-| [A11](lots/A11.md) Test de la loi des icônes | `implementeur` | A6 à A10 | [ ] |
+| [A11](lots/A11.md) Test de la loi des icônes | `implementeur` | A6 à A10 | [x] 5168cb9e |
 
 ## Phase B. Mode Composant
 
@@ -191,8 +191,8 @@ Règles propres à la phase E :
 | [E2d](lots/E2d.md) Idempotence et branches parallèles | `implementeur` | E2c | [x] fdca6a38, E2.10 en F2 |
 | [E3a](lots/E3a.md) Rôles proches et palette voisine | `implementeur` | E2d | [x] eae07fc6 |
 | [E3b](lots/E3b.md) Sens et modes | `implementeur-exigeant` | E3a | [x] eae07fc6 |
-| [E3c](lots/E3c.md) Doublons de rôle et d’échelle | `implementeur` | E3b | [ ] |
-| [E3d](lots/E3d.md) Cible des alias du thème | `implementeur` | E3c | [ ] |
+| [E3c](lots/E3c.md) Doublons de rôle et d’échelle | `implementeur` | E3b | [x] 60f567cf |
+| [E3d](lots/E3d.md) Cible des alias du thème | `implementeur` | E3c | [x] 60f567cf, recette de Palettes non lue |
 | [E3e](lots/E3e.md) Variables indisponibles, voisins et scopes | `implementeur` | E3c | [ ] |
 | [E3f](lots/E3f.md) Cartes de couches et thème absent | `implementeur` | E3e | [ ] |
 | [E4a](lots/E4a.md) Questions et cartes de structure | `implementeur` | E3f, C6 | [ ] |
