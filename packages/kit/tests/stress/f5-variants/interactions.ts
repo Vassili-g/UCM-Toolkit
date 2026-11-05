@@ -13,7 +13,7 @@
  */
 import type { AxeDuComposant } from '../../../src/controles/nommage.js';
 import type { ConstatAttendu } from '../commun/types.js';
-import { attendusDuModele, Degradation, rolesDeLaBase, type CasDeVariants } from './cas.js';
+import { attendusDuModele, c63DeuxAxesDeStyle, Degradation, rolesDeLaBase, type CasDeVariants } from './cas.js';
 import {
   avecLesCouchesF6, AXES_DE_P0, composantDeBase, composantP0, GRAINE_PAR_DEFAUT, liaisonVers, segmentDeLaValeur, styleDeTexteDeLaTaille, type AxeDeVariants,
 } from './composantDeBase.js';
@@ -90,10 +90,16 @@ function casDeCouple(spec: SpecDeCouple): CasMixte {
 
 /** L'oracle de F5 : le modèle de référence appliqué au composant dégradé. */
 const modele = (base: ComposantDeBase) => (d: Degradation): ConstatAttendu[] => attendusDuModele(d.composant, { roles: rolesDeLaBase(base) });
-const sansQuestion = (attendus: ConstatAttendu[]): ConstatAttendu[] => attendus.filter((constat) => constat.code !== 'C12' && constat.code !== 'C13');
 
 // ---------------------------------------------------------------------------------------------------------------------------
 // Couples de F5
+
+/**
+ * p18 (J3, `Kind`) a un axe de style dont les valeurs sont des termes de palette. Q-F5-2 lit un token à la position de l'axe tant que
+ * l'axe porte sa valeur ; une fois la valeur renommée, le segment qui reste n'est plus une valeur de l'axe, et la lecture le prend pour
+ * une palette. Aucune règle écrite ne départage ce cas : il reste en attente.
+ */
+const valeurDePaletteRenommee = (profil: Profil): { verdict?: 'mesure'; question?: string } => (profil.nom === 'p18' ? { verdict: 'mesure', question: 'Q-F5-2' } : {});
 
 function couplesDeValeurs(profil: Profil): CasMixte[] {
   const { f5 } = profil;
@@ -108,7 +114,7 @@ function couplesDeValeurs(profil: Profil): CasMixte[] {
 
   return [
     casDeCouple({
-      ...base, couple: 'V1+M1', description: `${style.propriete} : ${valeurRenommee} devient ${MOT_NEUF.style} et le premier variant qui la porte est retiré`,
+      ...base, couple: 'V1+M1', ...valeurDePaletteRenommee(profil), description: `${style.propriete} : ${valeurRenommee} devient ${MOT_NEUF.style} et le premier variant qui la porte est retiré`,
       degrader: (d) => {
         renommer(d, style, valeurRenommee, 'style');
         d.retirer(d.releve.variants, d.variantsOu({ [style.propriete]: MOT_NEUF.style })[0]);
@@ -116,7 +122,7 @@ function couplesDeValeurs(profil: Profil): CasMixte[] {
       attendus: modele(f5),
     }),
     casDeCouple({
-      ...base, couple: 'V1+O1', description: `${style.propriete} : ${valeurRenommee} devient ${MOT_NEUF.style}, et un token nomme l'état selected, que nul variant ne porte`,
+      ...base, couple: 'V1+O1', ...valeurDePaletteRenommee(profil), description: `${style.propriete} : ${valeurRenommee} devient ${MOT_NEUF.style}, et un token nomme l'état selected, que nul variant ne porte`,
       degrader: (d) => {
         renommer(d, style, valeurRenommee, 'style');
         const modeleDeToken = d.jetons({ nature: 'couleur', role: 'background', valeurs: d.carte.variants[0].valeurs })[0];
@@ -127,10 +133,10 @@ function couplesDeValeurs(profil: Profil): CasMixte[] {
       attendus: modele(f5),
     }),
     casDeCouple({
-      ...base, couple: 'V1+V1', verdict: 'mesure', question: 'Q-F5-4', hypothese: 'H5',
+      ...base, couple: 'V1+V1', hypothese: 'H5', ...valeurDePaletteRenommee(profil),
       description: `${autreDeStyle.propriete} : ${autreDeStyle.valeurs[0]} devient ${MOT_NEUF[autreDeStyle.segment!]}, et ${taille.propriete} : ${taille.valeurs[0]} devient ${MOT_NEUF.taille}`,
       degrader: (d) => { renommer(d, autreDeStyle, autreDeStyle.valeurs[0], autreDeStyle.segment!); renommer(d, taille, taille.valeurs[0], 'taille'); },
-      attendus: (d) => sansQuestion(modele(f5)(d)),
+      attendus: modele(f5),
     }),
     casDeCouple({
       ...base, couple: 'V3+V4', hypothese: 'H6',
@@ -174,10 +180,11 @@ function couplesDAxes(profil: Profil, graine: number): CasMixte[] {
 
   return [
     casDeCouple({
-      couple: 'A3+V1', profil, base: baseA3, famille: 'F5', verdict: 'mesure', question: 'Q-F5-3', hypothese: 'H4',
+      couple: 'A3+V1', profil, base: baseA3, famille: 'F5', hypothese: 'H4',
       description: `le second axe de rôle style, Appearance : ${second.valeurs[0]} devient ${MOT_NEUF.style}`,
       degrader: (d) => d.renommerLaValeur('Appearance', second.valeurs[0], MOT_NEUF.style),
-      attendus: modele(baseA3),
+      // Deux axes de style : le constat à faire de Q-F5-3, et le renommage de la valeur du second axe n'est jamais une question.
+      attendus: (d) => [...modele(baseA3)(d), c63DeuxAxesDeStyle(d.composant.releve.jeu.cle)],
     }),
     casDeCouple({
       couple: 'A4+V1', profil, base: baseA4, famille: 'F5', verdict: 'mesure', question: 'Q-F5-2', hypothese: 'H2',
@@ -272,7 +279,7 @@ function coupleMixte(profil: Profil): CasMixte {
   const style = axeDuRole(f6, 'style');
   const valeur = style.valeurs[1];
   return casDeCouple({
-    profil, base: f6, famille: 'F5+F6', couple: 'V1+I2',
+    profil, base: f6, famille: 'F5+F6', couple: 'V1+I2', ...valeurDePaletteRenommee(profil),
     description: `${style.propriete} : ${valeur} devient ${MOT_NEUF.style} (V1), et la taille de l'icône du premier variant n'est pas liée (I2)`,
     degrader: (d) => {
       d.renommerLaValeur(style.propriete, valeur, MOT_NEUF.style);

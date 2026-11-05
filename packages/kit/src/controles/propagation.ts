@@ -9,7 +9,7 @@
 import { natureDuChamp } from '../referentiel/architecture.js';
 import type { CatalogueDeReference, VariableDuCatalogue } from './catalogue.js';
 import type { Constat, Correction } from './constat.js';
-import { axesDuReleve, constatDuComposant, tokensDuComposant, type AxeDuComposant, type TokenDuComposant } from './nommage.js';
+import { axesDuReleve, constatDuComposant, segmentEcritPourLaValeur, tokensDuComposant, type AxeDuComposant, type TokenDuComposant } from './nommage.js';
 import { liaisonsPropres, type LayerLu, type LiaisonLue, type ReleveDeComposant, type VariantLu } from './releve.js';
 
 /** Les noms des ancêtres depuis la racine du variant, puis celui du layer. */
@@ -47,13 +47,14 @@ function layerHomologue(modele: VariantLu, layer: LayerLu, vise: VariantLu): Lay
   return duVise[0];
 }
 
-function nomVise(nom: string, token: TokenDuComposant | undefined, axes: Partial<Record<AxeDuComposant, { nom: string }>>, vise: VariantLu): string {
+/** Le nom du token que le variant visé lie : chaque segment d'axe prend l'écriture que les tokens du composant donnent à sa valeur. */
+function nomVise(nom: string, token: TokenDuComposant | undefined, axes: Partial<Record<AxeDuComposant, { nom: string }>>, vise: VariantLu, tokens: readonly TokenDuComposant[]): string {
   if (!token) return nom;
   const segments = [...token.segments];
   for (const [axe, propriete] of Object.entries(axes) as [AxeDuComposant, { nom: string }][]) {
     const rang = token.lecture.findIndex((segment) => segment.role === axe);
     const valeur = vise.valeurs[propriete.nom];
-    if (rang >= 0 && rang < segments.length && valeur) segments[rang] = valeur;
+    if (rang >= 0 && rang < segments.length && valeur) segments[rang] = segmentEcritPourLaValeur(tokens, rang, axe, valeur);
   }
   return segments.join('/');
 }
@@ -181,7 +182,7 @@ function constatDeLaPropagation(
   const peinture = liaison.champ === 'fills' || liaison.champ === 'strokes';
   // Le variant visé n'a pas cette peinture : elle est propre au modèle (Q-F3-7). Celle d'une plage de texte vit dans la plage.
   if (peinture && !peintureDuLayer(homologue, liaison.champ, liaison.plage !== undefined, liaison.indice)) return undefined;
-  const nom = nomVise(source.nom, token, axes, vise);
+  const nom = nomVise(source.nom, token, axes, vise, tokensDuComposant(releve, catalogue));
   const candidats = catalogue.variables.filter((variable) => variable.nom === nom && variable.collection === source.collection && variable.etat === 'presente');
   if (candidats.length !== 1) return question(candidats);
   const correction: Correction = {

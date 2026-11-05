@@ -17,7 +17,9 @@ import type { Constat, LayerLu, LiaisonLue, ReleveDeComposant, VariableDuCatalog
 import { REGISTRE_PALETTES_COMPOSANT } from '../../../src/referentiel/architecture.js';
 import { formeReconnue, termeReconnu } from '../../../src/referentiel/reconnaissance.js';
 import { termePourCategorie, type Registre } from '../../../src/referentiel/termes.js';
+import { ecritureDuVariant } from '../../../src/referentiel/ecriture-des-mots.js';
 import { REGISTRE_ETATS, REGISTRE_TAILLES } from '../../../src/referentiel/vocabulaire.js';
+import { CODES_DE_LA_PORTEE } from './composantDeBase.js';
 import type { CasDeStress, ConstatAttendu } from '../commun/types.js';
 import type { ComposantDeBase } from './portF3.js';
 
@@ -256,7 +258,7 @@ export function cleDeConstat(constat: Constat): string {
   const { faits } = constat;
   switch (constat.code) {
     case 'C7': return `${faits.axe}=${faits.valeur}`;
-    case 'C8': case 'C10': return `${faits.segment}>${faits.attendu}`;
+    case 'C8': case 'C10': return faits.cote === 'variant' ? `variant|${faits.propriete}=${faits.valeur}>${faits.attendu}` : `${faits.segment}>${faits.attendu}`;
     case 'C9': return `${faits.segment}>${faits.valeur}`;
     case 'C12': case 'C13': return `${faits.propriete}=${faits.avant}`;
     case 'C31': return trier(faits as Record<string, string>);
@@ -274,6 +276,13 @@ export const c7 = (axe: string, valeur: string): ConstatAttendu => attendu('C7',
 export const c8 = (segment: string, canonique: string): ConstatAttendu => attendu('C8', `${segment}>${canonique}`);
 export const c9 = (segment: string, valeur: string): ConstatAttendu => attendu('C9', `${segment}>${valeur}`);
 export const c10 = (segment: string, canonique: string): ConstatAttendu => attendu('C10', `${segment}>${canonique}`);
+/** La valeur d'un variant qui s'écrit autrement qu'en toutes lettres (`S`, `Error`) : C10 pour la taille, C8 pour la palette (Q-F5-5, Q-F5-6). */
+export const variantCorrige = (code: 'C8' | 'C10', propriete: string, valeur: string, mot: string, avecCorrection = true): ConstatAttendu => ({
+  ...attendu(code, `variant|${propriete}=${valeur}>${mot}`),
+  ...(avecCorrection ? { forme: 'correction' as const, apres: { nom: mot } } : {}),
+});
+/** Deux axes portent le style : un constat à faire, sans fusion (Q-F5-3). */
+export const c63DeuxAxesDeStyle = (jeu: string): ConstatAttendu => attendu('C63', `C63:${jeu}:deux-axes-de-style`);
 export const question = (axe: string, valeur: string, candidats: readonly string[]): ConstatAttendu =>
   attendu(candidats.length === 1 ? 'C12' : 'C13', `${axe}=${valeur}`, { candidats });
 export const c31 = (combinaison: Readonly<Record<string, string>>): ConstatAttendu => attendu('C31', trier(combinaison));
@@ -319,6 +328,8 @@ function registreDuRole(role: AxeDuComposant): Registre | undefined {
 /** Même valeur d'axe : même forme, ou même terme du registre du rôle. Deux valeurs hors registre ne sont égales que par la forme. */
 export function egale(role: AxeDuComposant, segment: string, valeur: string): boolean {
   if (formeReconnue(segment) === formeReconnue(valeur)) return true;
+  // Le point et la barre d'une valeur deviennent un tiret dans le token (Q-F5-10).
+  if (formeReconnue(valeur.replace(/[./]/g, '-')) === formeReconnue(segment)) return true;
   const registre = registreDuRole(role);
   const terme = registre && termeReconnu(registre, segment)?.id;
   return !!terme && terme === termeReconnu(registre, valeur)?.id;
@@ -360,11 +371,16 @@ export function attendusDuModele(composant: ComposantDeBase, options: OptionsDuM
   };
 
   // C7 : une valeur d'axe qu'aucun token ne nomme, alors que d'autres tokens nomment l'axe.
+  const axesOuverts = new Set<AxeDuModele>();
   for (const axe of axes) {
     if (!axe.role) continue;
     const segments = tokens.map((token) => token.segments[axe.role!]).filter((segment): segment is string => segment !== undefined);
     if (!segments.length) continue;
-    for (const valeur of axe.valeurs) if (!segments.some((segment) => egale(axe.role!, segment, valeur))) ajouter(c7(axe.nom, valeur));
+    for (const valeur of axe.valeurs) {
+      if (segments.some((segment) => egale(axe.role!, segment, valeur))) continue;
+      axesOuverts.add(axe);
+      ajouter(c7(axe.nom, valeur));
+    }
   }
 
   // C8, C9 et C10 : un constat par segment à renommer.
@@ -373,8 +389,9 @@ export function attendusDuModele(composant: ComposantDeBase, options: OptionsDuM
     for (const [role, segment] of Object.entries(token.segments) as [AxeDuComposant, string][]) {
       const registre = registreDuRole(role);
       const terme = registre && termeReconnu(registre, segment);
-      if (terme && (role === 'etat' || role === 'taille')) {
-        const canonique = termePourCategorie(terme, 'groupes').id;
+      if (terme && (role === 'etat' || role === 'taille' || role === 'palette')) {
+        // Un token écrit une taille par son identifiant (`sm`), un état par sa forme de dossier, une palette par son identifiant.
+        const canonique = role === 'taille' || role === 'palette' ? terme.id : termePourCategorie(terme, 'groupes').id;
         if (formeReconnue(segment) !== formeReconnue(canonique)) ajouter(role === 'taille' ? c10(segment, canonique) : c8(segment, canonique));
         continue;
       }
@@ -393,7 +410,8 @@ export function attendusDuModele(composant: ComposantDeBase, options: OptionsDuM
     });
 
   // C12 et C13 : une valeur de variant qu'aucun token ne couvre, alors que les autres axes concordent. Les candidats sont les segments que nul variant ne porte.
-  for (const axe of axes) {
+  // Avec deux axes ouverts, C7 reste seul (Q-F5-4).
+  for (const axe of axesOuverts.size > 1 ? [] : axes) {
     if (!axe.role || axeDuRole(axe.role) !== axe) continue;
     const role = axe.role;
     const portees = dedoublonner(releve.variants.map((variant) => variant.valeurs[axe.nom]).filter((valeur): valeur is string => !!valeur && axe.valeurs.includes(valeur)));
@@ -405,6 +423,18 @@ export function attendusDuModele(composant: ComposantDeBase, options: OptionsDuM
       const orphelins = dedoublonner(voisins.map((token) => token.segments[role]!))
         .filter((segment) => !releve.variants.some((variant) => variant.valeurs[axe.nom] !== undefined && egale(role, segment, variant.valeurs[axe.nom])));
       if (orphelins.length) ajouter(question(axe.nom, valeur, orphelins));
+    }
+  }
+
+  // Une taille ou une palette de variant s'écrit en toutes lettres : `S`, `sm`, `Middle` et `Error` se corrigent (Q-F5-5, Q-F5-6).
+  for (const axe of axes) {
+    if (axe.role !== 'taille' && axe.role !== 'palette') continue;
+    for (const valeur of axe.valeurs) {
+      const ecriture = ecritureDuVariant(axe.role, valeur);
+      if (!ecriture?.correction) continue;
+      // La correction renomme la valeur dans le jeu ; elle manque quand le mot entier est déjà une valeur de l'axe.
+      const renommable = !!releve.jeu.id && !axe.valeurs.includes(ecriture.variant) && releve.variants.some((variant) => variant.valeurs[axe.nom] === valeur);
+      ajouter(variantCorrige(axe.role === 'taille' ? 'C10' : 'C8', axe.nom, valeur, ecriture.variant, renommable));
     }
   }
 
@@ -499,7 +529,8 @@ export function casDegrade(base: ComposantDeBase, spec: SpecDeCas): CasDeVariant
     id: spec.id, famille: 'F5', operateur: spec.operateur, verdict: spec.verdict ?? 'attendu',
     ...(spec.question ? { question: spec.question } : {}),
     get attendus() { return (memoire ??= calculer()); },
-    ...(spec.codesJuges ? { codesJuges: spec.codesJuges } : {}),
+    // Les deux contrôles de F5 émettent aussi les constats C63 de Q-F5-3, que les cas A3 et les tests du kit jugent à part.
+    codesJuges: spec.codesJuges ?? CODES_DE_LA_PORTEE,
     ...(spec.hypothese ? { hypothese: spec.hypothese } : {}), ...(spec.ecartConnu ? { ecartConnu: spec.ecartConnu } : {}),
     entree: {
       description: `${spec.operateur} : ${spec.description}`, zones: spec.zones,

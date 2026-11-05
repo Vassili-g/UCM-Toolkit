@@ -39,11 +39,11 @@ function tokensInutilises(base: ComposantDeBase, numero: Numerotation): CasDeVar
   return JETONS_NON_LIES.map(([nature, nom]) => casDegrade(base, {
     id: numero.prochain('O2'), operateur: 'O2',
     description: `le token ${nature === 'couleur' ? 'de couleur' : 'de taille'} ${nom} n'est lié par aucun layer`,
-    zones: nature === 'couleur' ? Object.entries(premier).map(([axe, valeur]) => ({ axe, valeur })) : [{ axe: 'Size', valeur: 'sm' }],
+    zones: nature === 'couleur' ? Object.entries(premier).map(([axe, valeur]) => ({ axe, valeur })) : [{ axe: 'Size', valeur: 'Small' }],
     degrader: (d) => {
       const [jeton] = nature === 'couleur'
         ? d.jetons({ nature, role: nom, valeurs: premier })
-        : d.jetons({ nature, propriete: nom, valeurs: { Size: 'sm' } });
+        : d.jetons({ nature, propriete: nom, valeurs: { Size: 'Small' } });
       d.delier(jeton.cle);
     },
   }));
@@ -59,7 +59,7 @@ function liaisonsIllisibles(base: ComposantDeBase, numero: Numerotation): CasDeV
   const specs: readonly (readonly [champ: 'fills' | 'strokes' | 'width', role: string])[] = [['fills', 'background'], ['strokes', 'border'], ['width', 'gap']];
   return specs.map(([champ, role]) => {
     const jeton = base.carte.jetons.find((entree) => entree.role === role && Object.entries(premier).every(([axe, valeur]) => entree.valeurs[axe] === valeur))
-      ?? base.carte.jetons.find((entree) => entree.propriete === role && entree.valeurs.Size === 'sm')!;
+      ?? base.carte.jetons.find((entree) => entree.propriete === role && entree.valeurs.Size === 'Small')!;
     const nom = champ === 'width' ? jeton.nom.replace(/\/gap$/, '/width') : jeton.nom;
     return casDegrade(base, {
       id: numero.prochain('O3'), operateur: 'O3', ecartConnu: 'E-33',
@@ -78,7 +78,7 @@ function liaisonsIllisibles(base: ComposantDeBase, numero: Numerotation): CasDeV
 /** O4 : un hôte sans axe `Size`, dont un wrapper de dimensions porte la taille et lie le token. */
 function tokensDeWrapper(numero: Numerotation): CasDeVariants[] {
   const hote = composantDeBase('Button', AXES_DE_P0.filter((axe) => axe.nom !== 'Size'));
-  const tokens: readonly (readonly [taille: string, forme: string, propriete: string, champ: string])[] = [['sm', 'small', 'gap', 'itemSpacing'], ['md', 'medium', 'radius', 'cornerRadius']];
+  const tokens: readonly (readonly [taille: string, forme: string, propriete: string, champ: string])[] = [['Small', 'sm', 'gap', 'itemSpacing'], ['Medium', 'md', 'radius', 'cornerRadius']];
   return tokens.map(([taille, forme, propriete, champ]) => casDegrade(hote, {
     id: numero.prochain('O4'), operateur: 'O4', ecartConnu: 'E-33',
     description: `le token size/${forme}/${propriete} n'est lié que par le variant Size=${taille} du wrapper de dimensions`,
@@ -89,7 +89,7 @@ function tokensDeWrapper(numero: Numerotation): CasDeVariants[] {
       const liaison: LiaisonLue = { champ, porteur: 'w:1', variable: { id: `VariableID:${jeton.cle}`, cle: jeton.cle, nom: jeton.nom, collection: jeton.collection, distante: false } };
       d.fixer(d.releve, 'wrappers', [{
         id: 'w:0', cle: 'wrapper-cle', nom: 'SizeWrapper',
-        proprietes: [{ nom: 'Size', type: 'VARIANT', valeurs: ['sm', 'md'], defaut: 'sm' }],
+        proprietes: [{ nom: 'Size', type: 'VARIANT', valeurs: ['Small', 'Medium'], defaut: 'Small' }],
         variants: [{ id: 'w:1', nom: `Size=${taille}`, valeurs: { Size: taille }, liaisons: [liaison] }],
       }]);
     },
@@ -113,12 +113,12 @@ function tokensRetires(base: ComposantDeBase, numero: Numerotation): CasDeVarian
 }
 
 const NOMS_ILLISIBLES: readonly (readonly [description: string, nom: string])[] = [
-  ['les segments d\'état et de palette sont échangés', 'button/color/default/solid/small/primary/background'],
-  ['un segment de trop s\'ajoute avant le rôle', 'button/color/primary/solid/small/default/extra/background'],
-  ['la famille color est absente', 'button/primary/solid/small/default/background'],
-  ['le préfixe devient BtnPrimary, un autre composant', 'BtnPrimary/color/primary/solid/small/default/background'],
+  ['les segments d\'état et de palette sont échangés', 'button/color/default/solid/sm/primary/background'],
+  ['un segment de trop s\'ajoute avant le rôle', 'button/color/primary/solid/sm/default/extra/background'],
+  ['la famille color est absente', 'button/primary/solid/sm/default/background'],
+  ['le préfixe devient BtnPrimary, un autre composant', 'BtnPrimary/color/primary/solid/sm/default/background'],
   ['le nom se réduit à button/colours', 'button/colours'],
-  ['le rôle devient glow, que le registre ne connaît pas', 'button/color/primary/solid/small/default/glow'],
+  ['le rôle devient glow, que le registre ne connaît pas', 'button/color/primary/solid/sm/default/glow'],
 ];
 
 /** O6 : le token de fond du premier variant prend un nom illisible. Q-F5-8 propose C32 `nom-illisible` ; un autre préfixe n'est plus un token du composant. */

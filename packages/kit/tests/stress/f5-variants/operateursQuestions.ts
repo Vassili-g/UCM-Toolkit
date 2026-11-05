@@ -8,7 +8,7 @@ import type { ComposantDeBase } from './portF3.js';
 /** Q1 : deux valeurs renommées dans le même axe, trois axes. */
 const DEUX_VALEURS: readonly (readonly [axe: string, premiere: readonly [string, string], seconde: readonly [string, string]])[] = [
   ['Color', ['primary', 'Brand'], ['secondary', 'Accent']],
-  ['Size', ['sm', 'Compact'], ['md', 'Cozy']],
+  ['Size', ['Small', 'Compact'], ['Medium', 'Cozy']],
   ['State', ['default', 'Idle'], ['hover', 'Over']],
 ];
 
@@ -21,18 +21,17 @@ export function operateursQuestions(base: ComposantDeBase, _graine: number): Cas
     zones: [{ axe, valeur: ancienne1 }, { axe, valeur: ancienne2 }],
     degrader: (d) => { d.renommerLaValeur(axe, ancienne1, neuve1); d.renommerLaValeur(axe, ancienne2, neuve2); },
   }));
-  // Q-F5-4 propose C7 sans question quand deux axes sont ouverts : l'oracle retire les questions que le modèle déduirait.
+  // Q-F5-4 : deux axes ouverts donnent C7 sans question, parce que les autres axes ne concordent plus avec les tokens.
   const q2 = casDegrade(base, {
-    id: numero.prochain('Q2'), operateur: 'Q2', verdict: 'mesure', question: 'Q-F5-4', hypothese: 'H5',
-    description: 'Color : primary devient Brand, et Size : sm devient Compact, en même temps',
-    zones: [{ axe: 'Color', valeur: 'primary' }, { axe: 'Size', valeur: 'sm' }],
-    degrader: (d) => { d.renommerLaValeur('Color', 'primary', 'Brand'); d.renommerLaValeur('Size', 'sm', 'Compact'); },
-    ajuster: (attendus) => attendus.filter((constat) => constat.code !== 'C12' && constat.code !== 'C13'),
+    id: numero.prochain('Q2'), operateur: 'Q2', hypothese: 'H5',
+    description: 'Color : primary devient Brand, et Size : Small devient Compact, en même temps',
+    zones: [{ axe: 'Color', valeur: 'primary' }, { axe: 'Size', valeur: 'Small' }],
+    degrader: (d) => { d.renommerLaValeur('Color', 'primary', 'Brand'); d.renommerLaValeur('Size', 'Small', 'Compact'); },
   });
   const q3 = casDegrade(base, {
     id: numero.prochain('Q3'), operateur: 'Q3', hypothese: 'H5',
     description: 'Size : md devient Cozy ; l\'axe apparaît dans les tokens de couleur et dans ceux de taille, qui donnent le même candidat',
-    zones: [{ axe: 'Size', valeur: 'md' }], degrader: (d) => d.renommerLaValeur('Size', 'md', 'Cozy'),
+    zones: [{ axe: 'Size', valeur: 'Medium' }], degrader: (d) => d.renommerLaValeur('Size', 'Medium', 'Cozy'),
   });
   return [...q1, q2, q3];
 }

@@ -2,8 +2,7 @@
  * Les 60 profils de base de F5 (p01 à p60) : 10 jeux d'axes de design systems (J1 à J10), 3 écritures du nom d'axe et 2 écritures des
  * valeurs, dans l'ordre du produit (la dernière dimension varie le plus vite). P0 n'en fait pas partie, c'est `composantP0`.
  *
- * Le rôle d'un axe vient du corpus `corpus/axes-attestes.json` : le rôle de la colonne pour un nom `attendu`, la proposition de la
- * section 9 du plan pour un nom `mesure`. Un rôle n'a qu'une place dans les tokens : le premier axe du jeu qui le porte l'occupe, les
+ * Le rôle d'un axe vient du corpus `corpus/axes-attestes.json`. Un rôle n'a qu'une place dans les tokens : le premier axe du jeu qui le porte l'occupe, les
  * suivants (`Fill style` après `Variant`, `Shape` après `Appearance`) et les booléens (`Destructive`, `Danger`, `High contrast`)
  * n'écrivent aucun segment. Les variants portent toujours leur matrice complète.
  */
@@ -16,9 +15,8 @@ export interface AxeAttesteDuCorpus {
   readonly nom: string;
   readonly systeme: string | null;
   readonly composant: string | null;
-  readonly role: AxeDuComposant;
-  /** Pour une entrée `mesure` : le rôle que la section 9 propose, `null` quand le nom n'est pas un axe. */
-  readonly roleSelonLaProposition?: AxeDuComposant | null;
+  /** Le rôle que le nom doit recevoir ; `null` pour un nom qui n'est pas un axe (un booléen, Q-F5-1). */
+  readonly role: AxeDuComposant | null;
   readonly verdict: 'attendu' | 'mesure';
   readonly question?: string;
   readonly source: string;
@@ -35,7 +33,6 @@ export interface ValeurAttesteeDuCorpus {
   readonly question?: string;
   /** Le constat attendu pour un token écrit comme la valeur, ou `null`. */
   readonly constat: { readonly code: 'C8' | 'C10'; readonly attendu: string } | null;
-  readonly constatSelonLaProposition?: { readonly code: 'C8' | 'C10'; readonly attendu: string };
 }
 
 const lire = <T>(fichier: string): T => JSON.parse(readFileSync(new URL(`./corpus/${fichier}`, import.meta.url), 'utf8')) as T;
@@ -43,11 +40,11 @@ const lire = <T>(fichier: string): T => JSON.parse(readFileSync(new URL(`./corpu
 export const AXES_ATTESTES: readonly AxeAttesteDuCorpus[] = lire('axes-attestes.json');
 export const VALEURS_ATTESTEES: readonly ValeurAttesteeDuCorpus[] = lire('valeurs-attestees.json');
 
-/** Le rôle qu'un nom du corpus doit avoir : `attendu` donne le rôle du corpus, `mesure` celui de la proposition (ou `null`). */
+/** Le rôle qu'un nom du corpus doit avoir : `null` pour un nom qui n'est pas un axe. */
 export function roleDuCorpus(nom: string): AxeDuComposant | null {
   const entree = AXES_ATTESTES.find((axe) => axe.nom === nom);
   if (!entree) throw new Error(`Nom d'axe hors corpus : ${nom}`);
-  return entree.verdict === 'attendu' ? entree.role : entree.roleSelonLaProposition ?? null;
+  return entree.role;
 }
 
 export type EcritureDuNom = 'corpus' | 'minuscules' | 'initiales';
@@ -89,14 +86,22 @@ export const PROFILS: readonly ProfilDeVariants[] = Object.entries(JEUX_D_AXES).
   id: `p${String(rang + 1).padStart(2, '0')}`, ...profil,
 }));
 
-const UCM_DES_TAILLES: Readonly<Record<string, string>> = { small: 'sm', medium: 'md', large: 'lg', middle: 'md', micro: 'xs', slim: 'sm', s: 'sm', m: 'md', l: 'lg', xl: 'xl', '1': 'sm', '2': 'md', '3': 'lg', '4': 'xl' };
+const UCM_DES_TAILLES: Readonly<Record<string, string>> = {
+  small: 'Small', medium: 'Medium', large: 'Large', middle: 'Medium', micro: 'Extra Small', slim: 'Small', s: 'Small', m: 'Medium', l: 'Large',
+  sm: 'Small', md: 'Medium', lg: 'Large', xl: 'Extra Large', '1': 'Small', '2': 'Medium', '3': 'Large', '4': 'Extra Large',
+};
 const UCM_DES_ETATS: Readonly<Record<string, string>> = { rest: 'default', focused: 'focus', active: 'pressed' };
+const UCM_DES_PALETTES: Readonly<Record<string, string>> = { error: 'danger', critical: 'danger' };
 
-/** La forme UCM d'une valeur : minuscules, `sm` et `md` pour les tailles, `default` pour `rest`, `pressed` pour `active`. */
+/**
+ * La forme UCM d'une valeur (Q-F5-5, Q-F5-6) : une taille en toutes lettres (`Small`, `Extra Large`), `danger` pour `error`, `default`
+ * pour `rest`, `pressed` pour `active`, le reste en minuscules.
+ */
 export function formeUcm(role: AxeDuComposant | null, valeur: string): string {
   const minuscules = valeur.toLowerCase();
   if (role === 'taille') return UCM_DES_TAILLES[minuscules] ?? minuscules;
   if (role === 'etat') return UCM_DES_ETATS[minuscules] ?? minuscules;
+  if (role === 'palette') return UCM_DES_PALETTES[minuscules] ?? minuscules;
   return minuscules;
 }
 

@@ -13,7 +13,7 @@ export interface CandidatDeLongueur {
   variable: VariableDuCatalogue;
   /** La valeur en pixels de chaque mode, `undefined` si le mode ne se résout pas. */
   parMode: Readonly<Record<string, number | undefined>>;
-  /** La valeur commune à tous les modes ; absente si un mode ne se résout pas ou si les modes divergent. */
+  /** La valeur commune à tous les modes, à `EGALITE_EN_PIXELS` près ; absente si un mode ne se résout pas ou si les modes divergent. */
   exacte: number | undefined;
 }
 
@@ -27,7 +27,10 @@ export interface CandidatProche {
 export interface CandidatsDeLongueur {
   /** Les variables dont tous les modes valent la valeur cherchée, dans l'ordre du catalogue. */
   exacts: readonly VariableDuCatalogue[];
-  /** Sans exact seulement : au plus la variable la plus proche en dessous et la plus proche au-dessus, la plus basse d'abord. */
+  /**
+   * Sans exact seulement : les variables les plus proches en dessous, puis les plus proches au-dessus, les plus basses d'abord. Chaque
+   * côté en garde une seule, ou toutes celles qui sont à égalité de distance (Q-F3-11).
+   */
   proches: readonly CandidatProche[];
 }
 
@@ -66,6 +69,14 @@ function memoireDesResolutions(catalogue: CatalogueDeReference): MemoireDesResol
   memoiresDesResolutions.set(catalogue, neuve);
   return neuve;
 }
+
+/**
+ * Deux longueurs égales à 1e-6 px près sont la même longueur : Figma stocke des flottants 32 bits (Q-F3-11). Le second terme absorbe
+ * l'erreur des flottants sur un écart à la borne (`12 + 1e-6 - 12` vaut un peu plus que 1e-6).
+ */
+export const EGALITE_EN_PIXELS = 1e-6;
+const TOLERANCE = 1e-9;
+const memeLongueur = (a: number, b: number): boolean => Math.abs(a - b) <= EGALITE_EN_PIXELS + TOLERANCE;
 
 const croise = (a: ReadonlySet<string>, b: ReadonlySet<string>): boolean => {
   for (const cle of a) if (b.has(cle)) return true;
@@ -118,7 +129,7 @@ function* valeurCommune(parMode: Record<string, number | undefined> | undefined)
   if (valeurs.length === 0) return undefined;
   for (const valeur of valeurs) {
     yield;
-    if (valeur === undefined || valeur !== valeurs[0]) return undefined;
+    if (valeur === undefined || valeurs[0] === undefined || !memeLongueur(valeur, valeurs[0])) return undefined;
   }
   return valeurs[0];
 }
@@ -159,27 +170,29 @@ export function indexDeLongueurs(catalogue: CatalogueDeReference): IndexDeLongue
 /** Un token proche change le rendu : l'écart doit rester petit, en pixels et relativement à la valeur lue. */
 const ECART_MAX_EN_PIXELS = 2;
 const ECART_MAX_RELATIF = 0.1;
-/** Absorbe l'erreur des flottants sur une valeur à la borne. */
-const TOLERANCE = 1e-9;
 
-function* procheLe(candidats: readonly CandidatDeLongueur[], valeur: number, cote: 'dessous' | 'dessus'): Generator<void, CandidatProche | undefined> {
+/** Les plus proches d'un côté de la valeur ; à égalité de distance, tous, dans l'ordre des noms. */
+function* prochesDuCote(candidats: readonly CandidatDeLongueur[], valeur: number, cote: 'dessous' | 'dessus'): Generator<void, CandidatProche[]> {
   const borne = Math.min(ECART_MAX_EN_PIXELS, ECART_MAX_RELATIF * Math.max(Math.abs(valeur), 1)) + TOLERANCE;
-  let retenu: CandidatProche | undefined;
+  let retenus: CandidatProche[] = [];
   for (const { variable, exacte } of candidats) {
     yield;
-    if (exacte === undefined || exacte === valeur || (cote === 'dessous') !== (exacte < valeur)) continue;
+    if (exacte === undefined || memeLongueur(exacte, valeur) || (cote === 'dessous') !== (exacte < valeur)) continue;
     const ecart = Math.abs(exacte - valeur);
     if (!(ecart <= borne)) continue;
-    if (!retenu || (ecart - retenu.ecart || (variable.nom < retenu.variable.nom ? -1 : variable.nom > retenu.variable.nom ? 1 : 0)) < 0) {
-      retenu = { variable, valeur: exacte, ecart };
-    }
+    const meilleur = retenus[0]?.ecart;
+    if (meilleur !== undefined && ecart > meilleur && !memeLongueur(ecart, meilleur)) continue;
+    const candidat = { variable, valeur: exacte, ecart };
+    if (meilleur === undefined || (ecart < meilleur && !memeLongueur(ecart, meilleur))) retenus = [candidat];
+    else retenus.push(candidat);
   }
-  return retenu;
+  return retenus.sort((a, b) => (a.variable.nom < b.variable.nom ? -1 : a.variable.nom > b.variable.nom ? 1 : 0));
 }
 
 /**
  * Les candidats de `layout` pour une valeur en pixels, dans une famille. Sans exact, les proches : les variables dont la valeur
- * commune à tous les modes est écartée d'au plus `min(2, 0,1 × max(|v|, 1))` px, jamais pour une valeur nulle.
+ * commune à tous les modes est écartée d'au plus `min(2, 0,1 × max(|v|, 1))` px, jamais pour une valeur nulle. Un exact est un
+ * candidat dont la valeur est égale à 1e-6 px près.
  */
 export function candidatsDeLongueur(catalogue: CatalogueDeReference, famille: string, valeur: number): CandidatsDeLongueur {
   return classerLesCandidats(indexDeLongueurs(catalogue).get(famille) ?? [], valeur);
@@ -193,16 +206,15 @@ export function classerLesCandidats(candidats: readonly CandidatDeLongueur[], va
   return etape.value;
 }
 
-/** Cède entre candidats ; les exacts gardent leur ordre et chaque côté garde son premier meilleur proche. */
+/** Cède entre candidats ; les exacts gardent leur ordre et chaque côté garde ses meilleurs proches, tous s'ils sont à égalité. */
 export function* classerLesCandidatsParEtapes(candidats: readonly CandidatDeLongueur[], valeur: number): Generator<void, CandidatsDeLongueur> {
   const exacts: VariableDuCatalogue[] = [];
-  for (const candidat of candidats) {
+  for (const { variable, exacte } of candidats) {
     yield;
-    if (candidat.exacte === valeur) exacts.push(candidat.variable);
+    if (exacte !== undefined && memeLongueur(exacte, valeur)) exacts.push(variable);
   }
   if (exacts.length > 0 || valeur === 0) return { exacts, proches: [] };
-  const dessous = yield* procheLe(candidats, valeur, 'dessous');
-  const dessus = yield* procheLe(candidats, valeur, 'dessus');
-  const proches = [dessous, dessus].filter((candidat): candidat is CandidatProche => candidat !== undefined);
-  return { exacts, proches };
+  const dessous = yield* prochesDuCote(candidats, valeur, 'dessous');
+  const dessus = yield* prochesDuCote(candidats, valeur, 'dessus');
+  return { exacts, proches: [...dessous, ...dessus] };
 }

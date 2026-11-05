@@ -32,7 +32,7 @@ test('la résolution par étapes garde les modes et la priorité de la clé sur 
   assert.deepEqual(candidatDeLongueur(cat, alias), attendu);
 });
 
-test('le classement par étapes garde l’ordre exact et les égalités de proximité', () => {
+test('le classement par étapes garde l’ordre des exacts et montre toutes les égalités de proximité', () => {
   const z = variable('z', 'z', undefined);
   const a = variable('a', 'a', undefined);
   const egal = variable('egal', 'a', undefined);
@@ -43,7 +43,9 @@ test('le classement par étapes garde l’ordre exact et les égalités de proxi
   }
   assert.deepEqual(epuiser(classerLesCandidatsParEtapes(candidats, 12)), { exacts: [z, a, egal], proches: [] });
   assert.deepEqual(epuiser(classerLesCandidatsParEtapes(candidats, 13)), {
-    exacts: [], proches: [{ variable: a, valeur: 12, ecart: 1 }, { variable: haut, valeur: 14, ecart: 1 }],
+    exacts: [],
+    // À égalité de distance, chaque côté garde tous ses candidats, dans l'ordre des noms (Q-F3-11).
+    proches: [a, egal, z, haut].map((v) => ({ variable: v, valeur: v === haut ? 14 : 12, ecart: 1 })),
   });
 });
 
@@ -188,9 +190,9 @@ test('au plus le plus proche en dessous et le plus proche au-dessus, le plus bas
   assert.deepEqual(proches(catalogue([fixe('a', 'radius', 12), fixe('b', 'radius', 12.5)]), 'radius', 13), [['b', 12.5, 0.5]]);
 });
 
-test('à écart égal du même côté, l’ordre des noms départage', () => {
+test('à écart égal du même côté, les deux candidats sont montrés, dans l’ordre des noms (Q-F3-11)', () => {
   const cat = catalogue([fixe('z', 'radius', 14), fixe('a', 'radius', 14)]);
-  assert.deepEqual(proches(cat, 'radius', 13).map(([cle]) => cle), ['a']);
+  assert.deepEqual(proches(cat, 'radius', 13).map(([cle]) => cle), ['a', 'z']);
 });
 
 test('une valeur nulle n’a jamais de proche', () => {

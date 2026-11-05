@@ -59,12 +59,12 @@ function taillesDIcone(base: ComposantDeBase, numero: Numerotation): CasDeVarian
     cas('largeur et hauteur non liées', (d) => delier(d, icone(d), 'width', 'height'), () => [a66('Icon', 'taille-sans-variable', [premier.nom])]),
     cas('largeur et hauteur liées à layout/sizing/16', (d) => lierA(d, 'sizing/16'), () => horsIcone('sizing/16')),
     cas('largeur et hauteur liées à un token icon-size du composant', (d) => {
-      const modele = d.jetons({ nature: 'taille', propriete: 'gap', valeurs: { Size: 'sm' } })[0];
+      const modele = d.jetons({ nature: 'taille', propriete: 'gap', valeurs: { Size: 'Small' } })[0];
       lierA(d, d.cloner(modele, modele.nom.replace(/\/gap$/, '/icon-size')).nom);
     }, () => [], { mesure: true }),
     cas('largeur et hauteur liées à une variable de primitives', (d) => lierA(d, 'dimension/none'), () => horsIcone('dimension/none')),
     cas('seule la largeur est liée', (d) => delier(d, icone(d), 'height'), () => []),
-    cas('largeur et hauteur liées à deux variables de layout/icon', (d) => d.fixer(liaisonDe(d, 'height'), 'variable', variableLue(variableParNom(d, 'icon/large'))), () => []),
+    cas('largeur et hauteur liées à deux variables de layout/icon', (d) => d.fixer(liaisonDe(d, 'height'), 'variable', variableLue(variableParNom(d, 'icon/lg'))), () => []),
   ];
 }
 
@@ -84,7 +84,7 @@ function couleursDIcone(base: ComposantDeBase, numero: Numerotation): CasDeVaria
   return [
     cas('remplissage non lié', (d) => delier(d, icone(d), 'fills'), () => [a66('Icon', 'couleur-sans-variable', [premier.nom])]),
     cas('remplissage lié à theme/neutral/surface/border', (d) => lierA(d, 'neutral/surface/border'), () => [a66('Icon', 'couleur-hors-premier-plan', [premier.nom], { detail: 'neutral/surface/border' })]),
-    cas('remplissage lié à un token foreground du composant', (d) => lierA(d, d.jetons({ nature: 'couleur', role: 'foreground', valeurs: { Size: 'sm', State: 'default' } })[0].nom), () => [], { question: 'Q-F6-1', hypothese: 'H15' }),
+    cas('remplissage lié à un token foreground du composant', (d) => lierA(d, d.jetons({ nature: 'couleur', role: 'foreground', valeurs: { Size: 'Small', State: 'default' } })[0].nom), () => [], { question: 'Q-F6-1', hypothese: 'H15' }),
     cas('remplissage lié à une variable de primitives', (d) => lierA(d, 'color/primary/light/500'), () => [a66('Icon', 'couleur-hors-premier-plan', [premier.nom], { detail: 'color/primary/light/500' })]),
     cas('couleur portée par un trait lié à theme/neutral/surface/foreground', (d) => {
       const layer = icone(d);

@@ -1,20 +1,23 @@
 /**
  * Les 180 faux positifs de F5 et F6 (section 4 du plan) : des composants valides, où le kit ne doit rien dire.
  *
- *   FP1  60 profils (10 jeux d'axes, 3 écritures du nom, 2 écritures des valeurs) : zéro constat de la portée et lecture complète.
- *   FP2  88 valeurs attestées, une par composant à un axe, le token écrit comme la valeur. L'oracle vient des registres, pas du
- *        champ `constat` du corpus : une valeur dont le terme du registre a une autre forme de dossier attend C8 ou C10 avec cette
- *        forme (`XXL` attend C10 `2xl`) ; `Small`, `Medium` et `Large` sont les formes de dossier de `REGISTRE_TAILLES`, donc zéro
- *        constat, alors que le plan les compte parmi les formes tolérées. Une palette hors forme canonique attend C8 selon Q-F5-5.
- *   FP3  9 valeurs limites : 4 à point ou à barre (Q-F5-10), 5 à accent.
+ *   FP1  60 profils (10 jeux d'axes, 3 écritures du nom, 2 écritures des valeurs) : lecture complète, et les seuls constats que les
+ *        décisions donnent. Un variant qui écrit `S`, `sm`, `Middle` ou `error` reçoit sa correction vers le mot entier (Q-F5-5, Q-F5-6),
+ *        un token qui l'écrit de même reçoit C8 ou C10, et un jeu à deux axes de style reçoit le constat à faire de Q-F5-3.
+ *   FP2  88 valeurs attestées, une par composant à un axe, le token écrit comme la valeur. L'oracle vient du modèle de référence, pas du
+ *        champ `constat` du corpus : un token qui écrit un terme du registre autrement que par son identifiant attend C8 ou C10 avec
+ *        cet identifiant (`Small` attend C10 `sm`, `XXL` attend C10 `2xl`, `error` attend C8 `danger`), et une taille ou une palette de
+ *        variant qui n'est pas le mot entier attend sa correction (`S`, `Error`).
+ *   FP3  9 valeurs limites : 4 à point ou à barre, que le token écrit avec un tiret (Q-F5-10), 5 à accent.
  *   FP4  23 composants de F6 : 5 textes, 6 icônes, 10 non-icônes de I6 posées comme layers, 2 composants sans texte ni icône.
  */
 import { formeReconnue, termeReconnu } from '../../../src/referentiel/reconnaissance.js';
 import { REGISTRE_PALETTES_COMPOSANT } from '../../../src/referentiel/architecture.js';
-import { c8, casDegrade, Numerotation, type CasDeVariants, type Degradation } from './cas.js';
-import { avecLesCouchesF6, composantDeBase, composantF6, GRAINE_PAR_DEFAUT, type AxeDeVariants } from './composantDeBase.js';
+import { segmentDeToken } from '../../../src/referentiel/ecriture-des-mots.js';
+import { attendusDuModele, c63DeuxAxesDeStyle, casDegrade, Numerotation, rolesDeLaBase, type CasDeVariants, type Degradation } from './cas.js';
+import { avecLesCouchesF6, CODES_DE_LA_PORTEE, composantDeBase, composantF6, GRAINE_PAR_DEFAUT, type AxeDeVariants } from './composantDeBase.js';
 import { composantValide, type ComposantDeBase } from './portF3.js';
-import { axesDuProfil, composantDuProfil, PROFILS, VALEURS_ATTESTEES, type ProfilDeVariants } from './profils.js';
+import { axesDuProfil, composantDuProfil, PROFILS, roleDuCorpus, VALEURS_ATTESTEES, JEUX_D_AXES, type ProfilDeVariants } from './profils.js';
 import { NON_ICONES } from './typo/definitionsDIcone.js';
 import { casF6, delierLeChamp, layerDe, layerNeuf, lierLeTexte, variableParNom, type CasMixte } from './typo/operateursTexte.js';
 import type { AxeDuComposant } from '../../../src/controles/nommage.js';
@@ -24,7 +27,7 @@ import type { AxeDuComposant } from '../../../src/controles/nommage.js';
 
 /**
  * Un profil dont l'axe de style porte des termes du registre des palettes (`primary`, `danger`) et qui n'a pas d'axe de palette : le
- * segment de style de ses tokens est ambigu pour la grammaire (hypothèse 2).
+ * segment de style de ses tokens est ambigu pour la grammaire (hypothèse 2). Le nom de l'axe décide (Q-F5-2).
  */
 function styleAValeursDePalette(profil: ProfilDeVariants): boolean {
   const axes = axesDuProfil(profil);
@@ -32,16 +35,31 @@ function styleAValeursDePalette(profil: ProfilDeVariants): boolean {
     && axes.some((axe) => axe.segment === 'style' && axe.valeurs.some((valeur) => termeReconnu(REGISTRE_PALETTES_COMPOSANT, valeur) !== undefined));
 }
 
+/** Le nombre d'axes du jeu dont le nom porte le style (`Variant` et `Fill style`, `Appearance` et `Shape`). */
+const axesDeStyle = (profil: ProfilDeVariants): number => JEUX_D_AXES[profil.jeu].axes.filter(([nom]) => roleDuCorpus(nom) === 'style').length;
+
 function profils(graine: number, numero: Numerotation): CasDeVariants[] {
-  return PROFILS.map((profil: ProfilDeVariants): CasMixte => ({
-    id: numero.prochain('FP1'), famille: 'F5', operateur: 'FP1', verdict: 'attendu', attendus: [],
-    ...(styleAValeursDePalette(profil) ? { hypothese: 'H2' } : {}),
-    controles: ['nommage', 'oublis'], verifierLaLecture: true,
+  return PROFILS.map((profil: ProfilDeVariants): CasMixte => {
+    let memoire: CasDeVariants['attendus'] | undefined;
+    return {
+      id: numero.prochain('FP1'), famille: 'F5', operateur: 'FP1', verdict: 'attendu',
+      get attendus() {
+        if (!memoire) {
+          const composant = composantDuProfil(profil, graine);
+          const jeu = composant.releve.jeu.cle;
+          memoire = [...attendusDuModele(composant, { roles: rolesDeLaBase(composant) }), ...(axesDeStyle(profil) > 1 ? [c63DeuxAxesDeStyle(jeu)] : [])];
+        }
+        return memoire;
+      },
+      codesJuges: [...CODES_DE_LA_PORTEE, 'C63'],
+      ...(styleAValeursDePalette(profil) ? { hypothese: 'H2' } : {}),
+      controles: ['nommage', 'oublis'], verifierLaLecture: true,
     entree: {
       description: `FP1 : ${profil.id}, ${profil.jeu} ${profil.composant}, nom d'axe ${profil.ecritureDuNom}, valeurs ${profil.ecritureDesValeurs}`, zones: [],
       materialiser: () => { const composant = composantDuProfil(profil, graine); return { composant, base: composant, annuler: () => undefined }; },
     },
-  }));
+    };
+  });
 }
 
 // ---------------------------------------------------------------------------------------------------------------------------
@@ -51,35 +69,26 @@ const AXE_DE_LA_CATEGORIE: Readonly<Record<'taille' | 'etat' | 'palette' | 'styl
   taille: ['Size', 'taille'], etat: ['State', 'etat'], palette: ['Color', 'palette'], style: ['Style', 'style'],
 };
 
-/** Un composant à un axe et un variant, dont les tokens écrivent la valeur telle quelle. */
-function composantDUneValeur(valeur: string, categorie: keyof typeof AXE_DE_LA_CATEGORIE, graine: number): { composant: ComposantDeBase; axe: string } {
+/** Un composant à un axe et un variant, dont les tokens écrivent la valeur telle quelle, ou avec un tiret pour un point et une barre. */
+function composantDUneValeur(valeur: string, categorie: keyof typeof AXE_DE_LA_CATEGORIE, graine: number, ecritureDuSegment?: (valeur: string) => string): { composant: ComposantDeBase; axe: string } {
   const [axe, role] = AXE_DE_LA_CATEGORIE[categorie];
   const axes: AxeDeVariants[] = [{ nom: axe, valeurs: [valeur], segment: role }];
   return {
     axe,
     composant: composantValide({
       jeu: 'Button', axes, scopes: 'larges', imbriques: true, plages: 2, modesDeTaille: 1, graine,
-      ecritureDesValeurs: (_propriete, ecrite) => ecrite,
+      ecritureDesValeurs: (_propriete, ecrite) => ecritureDuSegment?.(ecrite) ?? ecrite,
     }),
   };
-}
-
-/** Q-F5-5 : la forme canonique que `REGISTRE_PALETTES_COMPOSANT` retient pour une palette écrite autrement. */
-function paletteCanonique(valeur: string): string | undefined {
-  const terme = termeReconnu(REGISTRE_PALETTES_COMPOSANT, valeur);
-  return terme && formeReconnue(terme.id) !== formeReconnue(valeur) ? terme.id : undefined;
 }
 
 function valeursAttestees(graine: number, numero: Numerotation): CasDeVariants[] {
   return VALEURS_ATTESTEES.map((entree) => {
     const { composant, axe } = composantDUneValeur(entree.valeur, entree.categorie, graine);
-    const propose = entree.categorie === 'palette' ? paletteCanonique(entree.valeur) : undefined;
     return casDegrade(composant, {
       id: numero.prochain('FP2'), operateur: 'FP2',
-      ...(propose ? { verdict: 'mesure' as const, question: 'Q-F5-5', hypothese: 'H7' } : {}),
       description: `${axe} : l'unique valeur ${entree.valeur} (${entree.categorie}), écrite telle quelle dans les tokens`,
       zones: [{ axe, valeur: entree.valeur }], degrader: () => undefined,
-      ...(propose ? { ajuster: (attendus) => [...attendus, c8(entree.valeur, propose)] } : {}),
     });
   });
 }
@@ -90,17 +99,16 @@ const VALEURS_LIMITES: readonly (readonly [valeur: string, categorie: keyof type
 ];
 
 /**
- * Q-F5-10 propose que le point et la barre deviennent un tiret dans le segment attendu et que C7 ne parle pas d'un token absent : le
- * seul constat que l'oracle en déduit est qu'aucun C7 ne sort, donc il n'attend rien. Le modèle ne lit pas un segment qui contient une
- * barre, d'où l'oracle écrit.
+ * Q-F5-10 : le segment du token remplace le point et la barre par un tiret (`1.5` donne `1-5`), et le variant se compare au segment
+ * ainsi écrit : aucun C7. Le token d'une valeur à accent s'écrit tel quel.
  */
 function valeursLimites(graine: number, numero: Numerotation): CasDeVariants[] {
   return VALEURS_LIMITES.map(([valeur, categorie, pointOuBarre]) => {
-    const { composant, axe } = composantDUneValeur(valeur, categorie, graine);
+    const { composant, axe } = composantDUneValeur(valeur, categorie, graine, pointOuBarre ? (ecrite) => segmentDeToken(ecrite) : undefined);
     return casDegrade(composant, {
       id: numero.prochain('FP3'), operateur: 'FP3',
-      ...(pointOuBarre ? { verdict: 'mesure' as const, question: 'Q-F5-10', hypothese: 'H12', attendus: [] } : {}),
-      description: `${axe} : l'unique valeur ${valeur}, ${pointOuBarre ? 'à point ou à barre' : 'à accent'}, écrite telle quelle dans les tokens`,
+      ...(pointOuBarre ? { hypothese: 'H12' } : {}),
+      description: `${axe} : l'unique valeur ${valeur}, ${pointOuBarre ? 'à point ou à barre, écrite avec un tiret' : 'à accent, écrite telle quelle'} dans les tokens`,
       zones: [{ axe, valeur }], degrader: () => undefined,
     });
   });
@@ -171,7 +179,7 @@ function composantsSansTexteNiIcone(graine: number, numero: Numerotation): CasDe
   };
   return [
     sansTexteNiIcone('Divider', [], 'Divider : un séparateur sans texte ni icône', false),
-    sansTexteNiIcone('Badge', [{ nom: 'Size', valeurs: ['sm', 'md'], segment: 'taille' }], 'Badge : un point sans texte ni icône', true),
+    sansTexteNiIcone('Badge', [{ nom: 'Size', valeurs: ['Small', 'Medium'], segment: 'taille' }], 'Badge : un point sans texte ni icône', true),
   ];
 }
 

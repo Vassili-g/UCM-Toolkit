@@ -116,18 +116,18 @@ test('C9 compare casse et séparateur sans confondre deux valeurs différentes',
   assert.deepEqual(controlerNommage(composant, catalogue('button/color/IconLeft/background')), []);
 });
 
-test('C10 reconnaît md comme forme de variable de medium et accepte le mot entier dans le dossier', () => {
-  const composant = releve('Button', [axe('Size', ['medium'])]);
-  assert.deepEqual(controlerNommage(composant, catalogue('button/size/md/padding-x')).map(({ code, faits }) => [code, faits.segment, faits.attendu]), [['C10', 'md', 'medium']]);
-  assert.deepEqual(controlerNommage(composant, catalogue('button/size/medium/padding-x')), []);
+test('C10 attend l’abréviation dans le token (Q-F5-6) : md est tenu, medium reçoit C10 vers md', () => {
+  const composant = releve('Button', [axe('Size', ['Medium'])]);
+  assert.deepEqual(controlerNommage(composant, catalogue('button/size/medium/padding-x')).map(({ code, faits }) => [code, faits.segment, faits.attendu]), [['C10', 'medium', 'md']]);
+  assert.deepEqual(controlerNommage(composant, catalogue('button/size/md/padding-x')), []);
 });
 
-test('C10 lit l’écriture des dossiers : le mot entier est tenu dans un dossier', () => {
+test('C10 lit l’écriture des dossiers : l’abréviation est tenue, le mot entier reçoit C10 à la casse des autres dossiers', () => {
   const composant = releve('Button', [axe('Size', ['Large'])]);
   const lire = (nom: string) => controlerNommage(composant, catalogue(nom)).map(({ code, faits }) => [code, faits.segment, faits.attendu]);
-  assert.deepEqual(lire('Button/Size/Large/radius'), []);
-  assert.deepEqual(lire('Button/Size/lg/radius'), [['C10', 'lg', 'Large']]);
-  assert.deepEqual(lire('button/size/lg/radius'), [['C10', 'lg', 'large']]);
+  assert.deepEqual(lire('Button/Size/lg/radius'), []);
+  assert.deepEqual(lire('Button/Size/Large/radius'), [['C10', 'Large', 'Lg']]);
+  assert.deepEqual(lire('button/size/large/radius'), [['C10', 'large', 'lg']]);
 });
 
 test('C11 reconnaît les noms de l’axe d’état sans attribuer ce rôle à Variant', () => {
@@ -761,9 +761,9 @@ test('table T : le relevé Button couvre les 216 variants et les écarts de surv
   ];
   assert.equal(r.variants.length, 216);
   assert.ok(constats.some(({ code, variants }) => code === 'C16' && variants.includes('contained-primary-hover-medium')));
-  // Dans un dossier, `md` reçoit C10 (le mot entier est attendu) et `medium` est tenu (lot K2).
-  assert.ok(constats.some(({ code, faits }) => code === 'C10' && faits.token === 'button/color/primary/contained/md/default/background' && faits.attendu === 'medium'));
-  assert.ok(!constats.some(({ code, faits }) => code === 'C10' && faits.token === 'button/size/medium/padding-x'));
+  // Dans un token, `medium` reçoit C10 (l'abréviation est attendue) et `md` est tenu (Q-F5-6).
+  assert.ok(constats.some(({ code, faits }) => code === 'C10' && faits.token === 'button/size/medium/padding-x' && faits.attendu === 'md'));
+  assert.ok(!constats.some(({ code, faits }) => code === 'C10' && faits.token === 'button/color/primary/contained/md/default/background'));
   // Le layer `padding` est lié directement à une primitive : C80 depuis le lot K1 (c'était C20).
   assert.ok(constats.some(({ code, faits }) => code === 'C80' && faits.token === 'dimension/14'));
   // Le label de `text-primary-focus-small` porte `button/color/primary/text/sm/focus/foreground` : ses valeurs sont les siennes, C21 ne le vise plus (lot K1).

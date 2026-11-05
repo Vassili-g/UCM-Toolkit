@@ -22,7 +22,7 @@ function retraits(base: ComposantDeBase, graine: number, numero: Numerotation): 
     [0], [variants.length - 1], ...rangsTires.map((rang) => [rang]),
     ...[0, 1].map((rang) => echantillon(tirer(`deux-${rang}`), variants.map((_, i) => i), 2)),
   ];
-  const parAxe: readonly (readonly [axe: string, valeur: string])[] = [['Color', 'danger'], ['Size', 'lg'], ['State', 'disabled']];
+  const parAxe: readonly (readonly [axe: string, valeur: string])[] = [['Color', 'danger'], ['Size', 'Large'], ['State', 'disabled']];
   const cas: CasDeVariants[] = [];
   for (const retires of rangs) {
     const noms = retires.map((rang) => variants[rang].nom);
@@ -185,16 +185,16 @@ function axesDegeneres(base: ComposantDeBase, numero: Numerotation): CasDeVarian
   return [
     casDegrade(base, {
       id: numero.prochain('M4'), operateur: 'M4', hypothese: 'H10',
-      description: `Size : la valeur sm figure deux fois, et le variant ${retire.nom} est retiré`,
-      zones: [{ axe: 'Size', valeur: 'sm' }],
-      degrader: (d) => { d.inserer(d.propriete('Size').valeurs!, 'sm'); d.retirer(d.releve.variants, d.releve.variants.find((v) => v.id === retire.id)!); },
+      description: `Size : la valeur Small figure deux fois, et le variant ${retire.nom} est retiré`,
+      zones: [{ axe: 'Size', valeur: 'Small' }],
+      degrader: (d) => { d.inserer(d.propriete('Size').valeurs!, 'Small'); d.retirer(d.releve.variants, d.releve.variants.find((v) => v.id === retire.id)!); },
     }),
     casDegrade(base, {
       id: numero.prochain('M4'), operateur: 'M4', description: 'Size : une valeur vide s\'ajoute à la propriété', zones: [{ axe: 'Size', valeur: '' }],
       degrader: (d) => d.inserer(d.propriete('Size').valeurs!, ''), attendus: [], codesJuges: [],
     }),
     casDegrade(base, {
-      id: numero.prochain('M4'), operateur: 'M4', description: 'Size : la propriété VARIANT n\'a pas de valeurs', zones: [{ axe: 'Size', valeur: 'sm' }],
+      id: numero.prochain('M4'), operateur: 'M4', description: 'Size : la propriété VARIANT n\'a pas de valeurs', zones: [{ axe: 'Size', valeur: 'Small' }],
       degrader: (d) => d.fixer(d.propriete('Size'), 'valeurs', undefined), attendus: [], codesJuges: [],
     }),
   ];

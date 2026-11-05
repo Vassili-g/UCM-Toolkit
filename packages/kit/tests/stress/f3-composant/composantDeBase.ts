@@ -16,8 +16,8 @@ import { controlerCouches, controlerLaStructure, controlerLeTheme, controlerMapp
 import { axeDePropriete, etatReconnu, type AxeDuComposant } from '../../../src/controles/nommage.js';
 import type { Convention } from '../../../src/referentiel/conventions.js';
 import { assembler, decouperSegment, motsAvecCasse } from '../../../src/referentiel/ecriture-des-mots.js';
-import { formeReconnue } from '../../../src/referentiel/reconnaissance.js';
-import { CRANS } from '../../../src/referentiel/vocabulaire.js';
+import { formeReconnue, termeReconnu } from '../../../src/referentiel/reconnaissance.js';
+import { CRANS, REGISTRE_TAILLES } from '../../../src/referentiel/vocabulaire.js';
 import { graineDe, melanger, mulberry32 } from '../commun/prng.js';
 import {
   PROPRIETES_DE_TAILLE, ROLES_DE_COULEUR,
@@ -254,7 +254,9 @@ export function construireLeComposant(spec: SpecDeComposant): ComposantDeBase {
       if (famille === 'size' && role !== 'taille') continue;
       const axe = axeDuSegment(role);
       if (!axe || valeurs[axe.propriete] === undefined) continue;
-      segments.push(ecrireLaValeur(axe.propriete, valeurs[axe.propriete]));
+      // Un token écrit une taille par son identifiant (`sm`) quand la spec ne dit rien, le variant la dit en toutes lettres (Q-F5-6).
+      const ecrite = role === 'taille' && !spec.ecritureDesValeurs ? termeReconnu(REGISTRE_TAILLES, valeurs[axe.propriete])?.id : undefined;
+      segments.push(ecrite ?? ecrireLaValeur(axe.propriete, valeurs[axe.propriete]));
       portees[axe.propriete] = valeurs[axe.propriete];
     }
     return { segments, portees };

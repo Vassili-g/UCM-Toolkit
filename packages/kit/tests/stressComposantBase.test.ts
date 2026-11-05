@@ -77,17 +77,17 @@ test('chaque layer ne se lie qu\'aux tokens de son composant ; seules les instan
 
 test('la carte rend le token attendu par layer, champ et variant', () => {
   const { releve, carte } = composantDuProfil(PROFIL_P0);
-  const variant = releve.variants.find((entree) => entree.valeurs.Palette === 'danger' && entree.valeurs.Style === 'outline' && entree.valeurs.State === 'hover' && entree.valeurs.Size === 'medium')!;
+  const variant = releve.variants.find((entree) => entree.valeurs.Palette === 'danger' && entree.valeurs.Style === 'outline' && entree.valeurs.State === 'hover' && entree.valeurs.Size === 'Medium')!;
   const layer = (nom: string) => variant.layers.find((entree) => entree.nom === nom)!.id;
   const fond = liaisonAttendue(carte, { variant: variant.id, layer: layer('Root'), champ: 'fills', indice: 0 })!;
-  assert.equal(fond.nom, 'button/color/danger/outline/medium/hover/background');
+  assert.equal(fond.nom, 'button/color/danger/outline/md/hover/background');
   assert.equal(fond.role, 'background');
   assert.equal(carte.jetons.find((jeton) => jeton.cle === fond.cle)!.cible.nom, 'danger/surface/hover');
-  assert.equal(liaisonAttendue(carte, { variant: variant.id, layer: layer('Root'), champ: 'paddingTop' })!.nom, 'button/size/medium/padding-y');
+  assert.equal(liaisonAttendue(carte, { variant: variant.id, layer: layer('Root'), champ: 'paddingTop' })!.nom, 'button/size/md/padding-y');
   assert.equal(liaisonAttendue(carte, { variant: variant.id, layer: layer('Label'), champ: 'fills', plage: { debut: 5, fin: 10 } })!.role, 'text');
   assert.equal(liaisonAttendue(carte, { variant: variant.id, layer: layer('.Bar'), champ: 'fills', indice: 0 })!.origine, 'heritee');
-  assert.equal(jetonDe(carte, { role: 'ring' }, { Palette: 'primary' })?.nom, 'button/color/primary/solid/small/default/ring');
-  assert.equal(jetonDe(carte, { propriete: 'gap' }, { Size: 'small' })?.nom, 'button/size/small/gap');
+  assert.equal(jetonDe(carte, { role: 'ring' }, { Palette: 'primary' })?.nom, 'button/color/primary/solid/sm/default/ring');
+  assert.equal(jetonDe(carte, { propriete: 'gap' }, { Size: 'Small' })?.nom, 'button/size/sm/gap');
 });
 
 test('button-216 se construit en moins de 2 s et compte 216 variants', () => {

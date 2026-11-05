@@ -613,10 +613,8 @@
     "systeme": null,
     "composant": null,
     "source": "plan 3.2",
-    "verdict": "mesure",
-    "question": "Q-F5-5",
-    "constat": null,
-    "constatSelonLaProposition": {
+    "verdict": "attendu",
+    "constat": {
       "code": "C8",
       "attendu": "danger"
     }
@@ -648,10 +646,8 @@
     "systeme": null,
     "composant": null,
     "source": "plan 3.2",
-    "verdict": "mesure",
-    "question": "Q-F5-5",
-    "constat": null,
-    "constatSelonLaProposition": {
+    "verdict": "attendu",
+    "constat": {
       "code": "C8",
       "attendu": "success"
     }
@@ -683,10 +679,8 @@
     "systeme": null,
     "composant": null,
     "source": "plan 3.2",
-    "verdict": "mesure",
-    "question": "Q-F5-5",
-    "constat": null,
-    "constatSelonLaProposition": {
+    "verdict": "attendu",
+    "constat": {
       "code": "C8",
       "attendu": "info"
     }
@@ -718,10 +712,8 @@
     "systeme": null,
     "composant": null,
     "source": "docs/references/design-systems/mui/sources/composant__mui-material__Button__Button.js.txt",
-    "verdict": "mesure",
-    "question": "Q-F5-5",
-    "constat": null,
-    "constatSelonLaProposition": {
+    "verdict": "attendu",
+    "constat": {
       "code": "C8",
       "attendu": "danger"
     }

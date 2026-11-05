@@ -39,14 +39,14 @@ export const JEUX_DE_VARIANTS: Readonly<Record<FormeDeJeu, JeuDeVariants>> = {
     jeu: 'Button',
     axes: [
       { nom: 'Palette', valeurs: ['primary', 'neutral', 'danger'] }, { nom: 'Style', valeurs: ['solid', 'outline'] },
-      { nom: 'State', valeurs: ['default', 'hover', 'disabled'] }, { nom: 'Size', valeurs: ['small', 'medium'] },
+      { nom: 'State', valeurs: ['default', 'hover', 'disabled'] }, { nom: 'Size', valeurs: ['Small', 'Medium'] },
     ],
   },
   'button-216': {
     jeu: 'Button',
     axes: [
       { nom: 'Style', valeurs: ['contained', 'outlined', 'text'] }, { nom: 'Palette', valeurs: ['primary', 'secondary', 'neutral', 'info', 'success', 'danger'] },
-      { nom: 'State', valeurs: ['default', 'hover', 'focus', 'disabled'] }, { nom: 'Size', valeurs: ['small', 'medium', 'large'] },
+      { nom: 'State', valeurs: ['default', 'hover', 'focus', 'disabled'] }, { nom: 'Size', valeurs: ['Small', 'Medium', 'Large'] },
     ],
   },
   'switch-4': { jeu: 'Switch', axes: [{ nom: 'State', valeurs: ['default', 'hover', 'pressed', 'disabled'] }] },

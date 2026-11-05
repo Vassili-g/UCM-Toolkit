@@ -69,12 +69,8 @@ test('chaque cas a un identifiant <opérateur>-<n>, une description, des zones, 
   assert.ok(duOperateur('X1').every((entree) => entree.attendus.length === 0));
 });
 
-test('les cas qui dépendent d\'une question non confirmée portent le verdict mesure et son identifiant', () => {
-  assert.deepEqual(mesures('Z3'), [['Z3-1', 'Q-F3-11'], ['Z3-2', 'Q-F3-11'], ['Z3-3', 'Q-F3-11'], ['Z3-5', 'Q-F3-11'], ['Z3-6', 'Q-F3-11'], ['Z3-7', 'Q-F3-11'], ['Z3-9', 'Q-F3-11']]);
-  assert.deepEqual(mesures('Z4'), [['Z4-3', 'Q-F3-11']]);
-  assert.deepEqual(mesures('Z5'), [['Z5-6', 'Z5-6'], ['Z5-7', 'Q-08'], ['Z5-12', 'Q-F3-14']]);
-  assert.deepEqual(mesures('Z8'), [['Z8-6', 'Q-F3-13'], ['Z8-11', 'Q-F3-13'], ['Z8-12', 'Q-F3-13'], ['Z8-14', 'Q-F3-13'], ['Z8-15', 'Q-F3-13'], ['Z8-16', 'Q-F3-13'], ['Z8-17', 'Q-F3-13']]);
-  assert.deepEqual([...mesures('Z1'), ...mesures('Z2'), ...mesures('Z6'), ...mesures('Z7'), ...mesures('X1'), ...mesures('X2')], []);
+test('les décisions Q-F3-11, Q-F3-13 et Q-F3-14 sont acquises : aucun cas de Z ne porte le verdict mesure', () => {
+  assert.deepEqual(['Z1', 'Z2', 'Z3', 'Z4', 'Z5', 'Z6', 'Z7', 'Z8', 'X1', 'X2'].flatMap(mesures), []);
   assert.deepEqual(mesures('A2'), [['A2-1', 'Q-F3-3'], ['A2-2', 'Q-F3-3'], ['A2-3', 'Q-F3-3'], ['A2-4', 'Q-F3-3']]);
   assert.deepEqual(['A1', 'A3', 'A4', 'A5', 'A6', 'A7', 'A8', 'A9'].flatMap(mesures), []);
 });
@@ -104,10 +100,10 @@ test('Z3 à Z8 : les oracles du plan, écrits à la main', () => {
   assert.deepEqual(duOperateur('Z4').map(formes), [['C29:question'], ['C29:correction'], ['C29:question'], ['C29:question'], ['C29:question'], ['C29:question']]);
   assert.deepEqual(duOperateur('Z4').map((entree) => entree.attendus[0].candidats?.length), [2, undefined, 2, 2, 1, 2]);
   assert.deepEqual(duOperateur('Z5').map((entree) => entree.attendus[0].forme),
-    ['a-faire', 'a-faire', 'a-faire', 'correction', 'a-faire', 'a-faire', 'a-faire', 'correction', 'a-faire', 'a-faire', 'a-faire', 'a-faire', 'correction']);
+    ['a-faire', 'a-faire', 'a-faire', 'correction', 'a-faire', 'correction', 'a-faire', 'correction', 'a-faire', 'a-faire', 'a-faire', 'a-faire', 'correction']);
   assert.deepEqual(duOperateur('Z6').map((entree) => entreeDeTaille(entree).recherche), ['incomplete', 'incomplete', 'incomplete', 'incomplete', 'ordinaire']);
   assert.deepEqual(duOperateur('Z6').map((entree) => entree.attendus[0].forme), ['a-faire', 'a-faire', 'a-faire', 'a-faire', 'correction']);
-  assert.deepEqual(duOperateur('Z7').map((entree) => entree.attendus.length), [0, 0, 0, 1, 0, 0, 1, 0, 0, 1, 1, 2]);
+  assert.deepEqual(duOperateur('Z7').map((entree) => entree.attendus.length), [1, 1, 0, 1, 0, 0, 1, 0, 0, 1, 1, 2]);
   const z7 = cas('Z7-12').attendus;
   assert.notEqual(z7[0].cle, z7[1].cle, 'deux C29 distincts pour un même identifiant de layer');
   // Z8 : correction pour la propriété du registre dans la famille `size`, aucun candidat pour les quatre autres propriétés.

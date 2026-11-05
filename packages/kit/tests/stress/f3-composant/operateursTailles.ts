@@ -12,9 +12,9 @@
  * ici (`PROPRIETES_DU_CHAMP`), d'après le registre des propriétés, sans lire `corrections.ts`. La borne de proximité (`borneDeProximite`)
  * est recalculée de même, indépendamment de `candidatsDeLongueur.ts`.
  *
- * Les cas portent la famille `F4`. Les cas qui dépendent d'une question non confirmée (Q-F3-11, Q-F3-13, Q-F3-14, Q-08) portent
- * `mesure`. `Z5-6` (token sans segment de taille) porte `mesure` sous son propre identifiant : le plan n'y attend aucune correction,
- * alors que la règle « une seule réponse exacte donne une correction » (section 2.2) en attendrait une. Un cas Z2 déclare sa borne
+ * Les cas portent la famille `F4`. Les décisions Q-F3-11 (égalité à 1e-6 px près, égalité de distance), Q-F3-13 (familles `sizes` et
+ * propriété `border-radius`) et Q-F3-14 (modes divergents) sont acquises : aucun cas ne porte `mesure`. `Z5-6` (token sans segment de
+ * taille) attend une correction : un segment absent vaut pour toutes les valeurs de l'axe, et un seul token répond (section 2.2). Un cas Z2 déclare sa borne
  * dans `entree.borne`, un cas Z6 dit dans `entree.recherche` si le constat porte `recherche: incomplete` (`ConstatAttendu` n'a pas ce fait).
  */
 import type { LayerLu, VariableDuCatalogue } from '../../../src/controles/index.js';
@@ -222,7 +222,7 @@ export function operateursTailles(base: ComposantDeBase, graine: number = GRAINE
       const exact = exacteAUnMicron(delta);
       ajouter(registre, 'Z3', contexte.degradation, resultat(
         decrire('Z3', contexte, `${sens === 'valeur' ? 'valeur lue' : 'token'} décalé de ${delta} px`),
-        [exact ? correctionVers(contexte, contexte.jeton) : questionSur(contexte, [contexte.jeton])], exact ? 'Q-F3-11' : undefined,
+        [exact ? correctionVers(contexte, contexte.jeton) : questionSur(contexte, [contexte.jeton])],
       ));
     }
   }
@@ -230,7 +230,7 @@ export function operateursTailles(base: ComposantDeBase, graine: number = GRAINE
     const contexte = ouvrir('Z3', 'cornerRadius', 0.1 + 0.2);
     if (contexte) {
       ecrire(contexte.degradation, contexte.variable, 0.3);
-      ajouter(registre, 'Z3', contexte.degradation, resultat(decrire('Z3', contexte, 'token à 0,3'), [correctionVers(contexte, contexte.jeton)], 'Q-F3-11'));
+      ajouter(registre, 'Z3', contexte.degradation, resultat(decrire('Z3', contexte, 'token à 0,3'), [correctionVers(contexte, contexte.jeton)]));
     }
   }
 
@@ -254,12 +254,12 @@ export function operateursTailles(base: ComposantDeBase, graine: number = GRAINE
     }
   }
   {
-    // 3. Deux proches du même côté à égalité : Q-F3-11 les montre tous les deux.
+    // 3. Deux proches du même côté à égalité : les deux sont montrés (Q-F3-11).
     const contexte = ouvrir('Z4', 'cornerRadius', 12);
     if (contexte) {
       ecrire(contexte.degradation, contexte.variable, 11);
       const autre = clone(contexte, nomVoisin(contexte, { sansTaille: true }), 11);
-      ajouter(registre, 'Z4', contexte.degradation, resultat(decrire('Z4', contexte, 'deux proches à égalité (11 et 11)'), [questionSur(contexte, [contexte.jeton, autre])], 'Q-F3-11'));
+      ajouter(registre, 'Z4', contexte.degradation, resultat(decrire('Z4', contexte, 'deux proches à égalité (11 et 11)'), [questionSur(contexte, [contexte.jeton, autre])]));
     }
   }
   {
@@ -334,16 +334,17 @@ export function operateursTailles(base: ComposantDeBase, graine: number = GRAINE
     }
   }
   {
-    // Le plan attend « C29 » sans correction pour ce cas ; le code dit qu'un segment absent vaut pour toutes les valeurs de l'axe.
+    // Un segment absent vaut pour toutes les valeurs de l'axe : l'unique token à 12 est une correction exacte.
     const contexte = unCas5();
     if (contexte) {
       neutraliser(contexte.degradation, contexte.variable);
-      clone(contexte, nomVoisin(contexte, { sansTaille: true }), 12);
-      ajouter(registre, 'Z5', contexte.degradation, resultat(decrire('Z5', contexte, 'seul token à 12 : sans segment de taille'), [constat(contexte, 'a-faire')], 'Z5-6'));
+      const token = clone(contexte, nomVoisin(contexte, { sansTaille: true }), 12);
+      ajouter(registre, 'Z5', contexte.degradation, resultat(decrire('Z5', contexte, 'seul token à 12 : sans segment de taille'), [correctionVers(contexte, token)]));
     }
   }
   {
-    // Un axe hors liste : `Type` n'a pas de segment lu. Le jeu est celui de badge-9, avec les réglages de la base.
+    // `Type` est un axe de style (E1a), mais la forme des tokens de taille n'a pas de position de style : sa valeur se lit comme un
+    // élément, qui ne nomme pas `Root`. Le jeu est celui de badge-9, avec les réglages de la base.
     bases.badge ??= construireLeComposant({ ...base.spec, ...JEUX_DE_VARIANTS['badge-9'] });
     const contexte = unCas5('cornerRadius', bases.badge);
     const axeType = axeDeSegment(bases.badge.carte, 'style');
@@ -351,7 +352,7 @@ export function operateursTailles(base: ComposantDeBase, graine: number = GRAINE
       neutraliser(contexte.degradation, contexte.variable);
       const valeurDeType = contexte.variant.valeurs[axeType.propriete].toLowerCase();
       clone(contexte, nomVoisin(contexte, { element: valeurDeType }), 12);
-      ajouter(registre, 'Z5', contexte.degradation, resultat(decrire('Z5', contexte, `seul token à 12 : segment ${valeurDeType} de l'axe ${axeType.propriete}`), [constat(contexte, 'a-faire')], 'Q-08'));
+      ajouter(registre, 'Z5', contexte.degradation, resultat(decrire('Z5', contexte, `seul token à 12 : segment ${valeurDeType} de l'axe ${axeType.propriete}`), [constat(contexte, 'a-faire')]));
     }
   }
   {
@@ -402,7 +403,7 @@ export function operateursTailles(base: ComposantDeBase, graine: number = GRAINE
       ecrire(contexte.degradation, contexte.variable, [12, egaux ? 12 : 16]);
       ajouter(registre, 'Z5', contexte.degradation, resultat(
         decrire('Z5', contexte, egaux ? 'token à deux modes égaux (12 et 12)' : 'token à deux modes divergents (12 et 16)'),
-        [egaux ? correctionVers(contexte, contexte.jeton) : constat(contexte, 'a-faire')], egaux ? undefined : 'Q-F3-14',
+        [egaux ? correctionVers(contexte, contexte.jeton) : constat(contexte, 'a-faire')],
       ));
     }
   }
@@ -465,8 +466,9 @@ export function operateursTailles(base: ComposantDeBase, graine: number = GRAINE
     const sur: Contexte = { ...contexte, layer };
     ajouter(registre, 'Z7', sur.degradation, resultat(`Z7 : ${description}, cornerRadius = 20 du variant ${contexte.variant.nom}`, jugee ? [constat(sur, 'a-faire')] : []));
   };
-  surUnLayerAjoute('layer masqué', { nom: 'Box', type: 'FRAME', visible: false }, false);
-  surUnLayerAjoute('ancêtre masqué', { nom: 'Box', type: 'FRAME' }, false, { visible: false });
+  // Un layer masqué ou sous un ancêtre masqué est jugé comme un autre (Q-F3-1).
+  surUnLayerAjoute('layer masqué', { nom: 'Box', type: 'FRAME', visible: false }, true);
+  surUnLayerAjoute('ancêtre masqué', { nom: 'Box', type: 'FRAME' }, true, { visible: false });
   surUnLayerAjoute('instance imbriquée', { nom: 'Nested', type: 'INSTANCE' }, false);
   surUnLayerAjoute('instance sans parent', { nom: 'Orphan', type: 'INSTANCE', parent: null }, true);
   {
@@ -536,7 +538,6 @@ export function operateursTailles(base: ComposantDeBase, graine: number = GRAINE
       ajouter(registre, 'Z8', contexte.degradation, resultat(
         decrire('Z8', contexte, `token ${token.nom}`),
         [lit ? correctionVers(contexte, token) : constat(contexte, 'a-faire')],
-        (famille === 'sizes' && lit) || sorte === 'borderRadius' ? 'Q-F3-13' : undefined,
       ));
     }
   }

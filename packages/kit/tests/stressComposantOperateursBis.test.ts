@@ -116,7 +116,7 @@ test('U2 à U4 : des témoins sans constat, le même token quel que soit l\'ordr
   // Cinq ordres, trois rôles : l'ordre des propriétés du relevé change, le nom du token attendu reste celui de la grammaire.
   const ordres = new Set(u3.map((entree) => entree.entree.base.releve.proprietes.filter((p) => p.type === 'VARIANT').map((p) => p.nom).join()));
   assert.equal(ordres.size, 5);
-  assert.ok(u3.every((entree) => /^button\/color\/(primary|neutral|danger)\/(solid|outline)\/(small|medium)\/(default|hover|disabled)\/(background|foreground|border)$/.test(entree.attendus[0].apres!.nom!)));
+  assert.ok(u3.every((entree) => /^button\/color\/(primary|neutral|danger)\/(solid|outline)\/(sm|md)\/(default|hover|disabled)\/(background|foreground|border)$/.test(entree.attendus[0].apres!.nom!)));
   assert.deepEqual(duOperateur('U4').map((entree) => entree.attendus[0].forme), ['a-faire', 'a-faire', 'correction', 'question', 'correction', 'correction']);
   assert.equal(cas('U4-4').attendus[0].candidats!.length, 2);
   assert.ok(cas('U4-3').attendus[0].apres!.nom!.endsWith('/text'));

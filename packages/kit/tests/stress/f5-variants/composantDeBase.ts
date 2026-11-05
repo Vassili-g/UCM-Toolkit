@@ -4,9 +4,9 @@
  *
  * Un token de couleur se nomme `<jeu>/color/<palette>/<style>/<taille>/<état>/<rôle>` pour les axes présents, un token de taille
  * `<jeu>/size/<taille>/<propriété>`. Le segment d'un token égale la valeur du variant, sauf pour un terme de taille ou d'état que
- * le registre connaît : le token l'écrit alors sous la forme que le registre retient pour un dossier (`sm` s'écrit `small`,
- * `Rest` s'écrit `default`), parce que `REGISTRE_TAILLES` donne `small`, `medium` et `large` aux dossiers et fait de `sm`, `md`
- * et `lg` des formes tolérées (C10). Palette et style s'écrivent comme la valeur, caractère pour caractère.
+ * le registre connaît. Le variant écrit la taille en toutes lettres (`Small`, `Medium`, `Large`) et le token par son identifiant
+ * (`sm`, `md`, `lg`), selon Q-F5-6 ; un état s'écrit sous la forme que le registre retient pour un dossier (`Rest` s'écrit
+ * `default`). Palette et style s'écrivent comme la valeur, caractère pour caractère.
  */
 import { controlerNommage, tokensDuComposant, type AxeDuComposant } from '../../../src/controles/nommage.js';
 import { controlerOublis } from '../../../src/controles/oublis.js';
@@ -14,7 +14,7 @@ import { controlerLaTypographie } from '../../../src/controles/typographie.js';
 import type { CatalogueDeReference, Constat, LayerLu, LiaisonLue, ReleveDeComposant, VariableDuCatalogue } from '../../../src/controles/index.js';
 import { termeReconnu } from '../../../src/referentiel/reconnaissance.js';
 import { termePourCategorie } from '../../../src/referentiel/termes.js';
-import { REGISTRE_ETATS, REGISTRE_TAILLES } from '../../../src/referentiel/vocabulaire.js';
+import { REGISTRE_ETATS, REGISTRE_TAILLES, TAILLES_DE_VARIANT } from '../../../src/referentiel/vocabulaire.js';
 import { composantValide, type AxeDeSpec, type CarteDuComposant, type ComposantDeBase, type SpecDeComposant } from './portF3.js';
 
 /** La graine de F5 et F6 (section 3.5 du plan). Elle tire l'échelle des tokens de taille et les rangs des cas tirés. */
@@ -32,17 +32,18 @@ export interface AxeDeVariants extends AxeDeSpec {
 export const AXES_DE_P0: readonly AxeDeVariants[] = [
   { nom: 'Style', valeurs: ['solid', 'outline'], segment: 'style' },
   { nom: 'Color', valeurs: ['primary', 'secondary', 'danger'], segment: 'palette' },
-  { nom: 'Size', valeurs: ['sm', 'md', 'lg'], segment: 'taille' },
+  { nom: 'Size', valeurs: ['Small', 'Medium', 'Large'], segment: 'taille' },
   { nom: 'State', valeurs: ['default', 'hover', 'pressed', 'disabled'], segment: 'etat' },
 ];
 
 /**
- * Le segment qu'un token écrit pour une valeur d'axe : la forme de dossier du terme, pour un état ou une taille que le registre
- * connaît, sinon la valeur telle quelle.
+ * Le segment qu'un token écrit pour une valeur d'axe : l'identifiant du terme pour une taille que le registre connaît (`Small` donne
+ * `sm`), la forme de dossier pour un état, sinon la valeur telle quelle.
  */
 export function segmentDeLaValeur(role: AxeDuComposant | null, valeur: string): string {
-  if (role === 'taille' || role === 'etat') {
-    const terme = termeReconnu(role === 'taille' ? REGISTRE_TAILLES : REGISTRE_ETATS, valeur);
+  if (role === 'taille') return termeReconnu(REGISTRE_TAILLES, valeur)?.id ?? valeur;
+  if (role === 'etat') {
+    const terme = termeReconnu(REGISTRE_ETATS, valeur);
     if (terme) return termePourCategorie(terme, 'groupes').id;
   }
   return valeur;
@@ -101,12 +102,12 @@ export const CODES_DE_F6: readonly `C${number}`[] = ['C64', 'C65', 'C66', 'C67']
 /** Les axes de la base de F6 : `Size` et `State` de P0, soit 12 variants. */
 export const AXES_DE_F6: readonly AxeDeVariants[] = AXES_DE_P0.filter((axe) => axe.nom === 'Size' || axe.nom === 'State');
 
-const PIXELS_DES_ICONES: Readonly<Record<string, number>> = { small: 12, medium: 16, large: 20 };
+const PIXELS_DES_ICONES: Readonly<Record<string, number>> = { sm: 12, md: 16, lg: 20 };
 const VARIABLE_DE_PREMIER_PLAN = 'neutral/surface/foreground';
 export const PROPRIETE_D_ICONE = 'Icon#1:2';
 
-/** Le style de texte d'une valeur de taille : `Label/Small` pour le segment `small`. */
-export const styleDeTexteDeLaTaille = (segment: string): string => `Label/${segment.charAt(0).toUpperCase()}${segment.slice(1)}`;
+/** Le style de texte d'une valeur de taille : `Label/Small` pour le segment `sm`. */
+export const styleDeTexteDeLaTaille = (segment: string): string => `Label/${TAILLES_DE_VARIANT[segment]?.variant ?? `${segment.charAt(0).toUpperCase()}${segment.slice(1)}`}`;
 
 export function variableLue(variable: VariableDuCatalogue): LiaisonLue['variable'] {
   return { id: `VariableID:${variable.cle}`, cle: variable.cle, nom: variable.nom, collection: variable.collection, distante: false };
@@ -130,7 +131,7 @@ export function avecLesCouchesF6(composant: ComposantDeBase): ComposantDeBase {
   const releve = structuredClone(composant.releve);
   const catalogue = structuredClone(composant.catalogue);
   const axeTaille = composant.carte.axes.find((axe) => axe.segment === 'taille');
-  const segmentDeTaille = (valeurs: Readonly<Record<string, string>>): string => (axeTaille ? segmentDeLaValeur('taille', valeurs[axeTaille.propriete]) : 'medium');
+  const segmentDeTaille = (valeurs: Readonly<Record<string, string>>): string => (axeTaille ? segmentDeLaValeur('taille', valeurs[axeTaille.propriete]) : 'md');
   const collectionDe = (role: string) => catalogue.collections.find((collection) => collection.role === role)!;
   const ajouter = (cle: string, nom: string, role: 'layout' | 'typography', valeur: number): VariableDuCatalogue => {
     const collection = collectionDe(role);

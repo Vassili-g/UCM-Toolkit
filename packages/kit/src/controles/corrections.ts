@@ -1,11 +1,12 @@
 /** Propositions fondées sur une règle écrite et des faits relus. */
 import type { Collection } from '../referentiel/architecture.js';
 import { estLAxeDEtats, formeReconnue, termeReconnu } from '../referentiel/reconnaissance.js';
+import { modeDuThemeReconnu } from '../referentiel/theme.js';
 import { REGISTRE_ROLES } from '../referentiel/vocabulaire.js';
 import { collectionParCle, type CatalogueDeReference, type VariableDuCatalogue } from './catalogue.js';
-import { candidatDeLongueurParEtapes, classerLesCandidatsParEtapes, type CandidatDeLongueur } from './candidatsDeLongueur.js';
+import { candidatDeLongueurParEtapes, classerLesCandidatsParEtapes, EGALITE_EN_PIXELS, type CandidatDeLongueur } from './candidatsDeLongueur.js';
 import type { Constat, Correction } from './constat.js';
-import { axesDuReleve, axesDuReleveParEtapes, estLaFamilleCouleur, etatReconnu, memeValeurDAxe, segmentDAxe, tokensDuComposant, tokensDuComposantParEtapes, type AxeDuComposant, type TokenDuComposant } from './nommage.js';
+import { axesDuReleve, axesDuReleveParEtapes, estLaFamilleCouleur, etatReconnu, memeValeurDAxe, segmentDAxe, segmentEcritPourLaValeur, tokensDuComposant, tokensDuComposantParEtapes, type AxeDuComposant, type TokenDuComposant } from './nommage.js';
 import { rolesAdmisDuLayer } from './mapping.js';
 import { lectureManquee, peintureVisible, type LayerLu, type LiaisonLue, type PeintureLue, type ReleveDeComposant, type VariantLu } from './releve.js';
 
@@ -64,8 +65,9 @@ export function* proposerLesCorrectionsParEtapes(releve: ReleveDeComposant, cata
     enrichis.push(proposition ? { ...constat, ...proposition } : constat);
     yield;
   }
+  const tailles = yield* constatsDeTailleSelonLeMode(index, catalogue);
   const corriges = new Set(enrichis.filter((constat) => constat.correction && LIAISON_A_SEGMENTS.includes(constat.code)).map(cleSansIndice));
-  return [...gardes.filter((constat) => constat.code !== 'C16' && !(CONSTATS_QUI_CEDENT.includes(constat.code) && corriges.has(cleSansIndice(constat)))), ...enrichis];
+  return [...gardes.filter((constat) => constat.code !== 'C16' && !(CONSTATS_QUI_CEDENT.includes(constat.code) && corriges.has(cleSansIndice(constat)))), ...enrichis, ...tailles];
 }
 
 /** Les constats d'une liaison qui cèdent à la carte d'un segment faux : l'écart à la majorité (C21) et le texte de surface sans fond (C59). */
@@ -144,7 +146,7 @@ function* corrigerEnsemble(constat: Constat, autres: readonly Constat[], releve:
     const segmentActuel = axe && segmentDAxe(token, axe[0]);
     const rang = axe ? token.lecture.findIndex((segment) => segment.role === axe[0]) : -1;
     if (!axe || !valeur || !segmentActuel || rang < 0 || rang >= segments.length) return undefined;
-    segments[rang] = valeur;
+    segments[rang] = segmentEcritPourLaValeur(tokens, rang, axe[0], valeur);
     noms.push(`${axe[1].nom}=${valeur}`);
     if (axe[0] === 'etat' && etatReconnu(valeur) === 'hover' && etatReconnu(segmentActuel) === 'default') versHover = true;
   }
@@ -334,6 +336,37 @@ function* constatsDeValeursEnDurParEtapes(releve: ReleveDeComposant): Generator<
   return resultat;
 }
 
+/**
+ * Un token de taille du composant garde la même valeur en Light et en Dark (Q-F3-14). Un token dont les deux valeurs, alias suivis,
+ * diffèrent de plus de 1e-6 px est une erreur à signaler : deux réponses sont possibles (garder la valeur de Light ou celle de Dark),
+ * donc le constat ne porte ni correction ni question. Un mode qui ne se résout pas en nombre, une variable non chargée ou une
+ * collection sans mode Light ou sans mode Dark ne prouvent rien.
+ */
+function* constatsDeTailleSelonLeMode(index: IndexDeCorrection, catalogue: CatalogueDeReference): Generator<void, Constat[]> {
+  const constats: Constat[] = [];
+  // Pas de `yield*` dans la source d'un `for…of` : QuickJS compile mal cette forme (nomenclatureSandboxQuickjs.test.ts).
+  const tokens = yield* index.tokens();
+  for (const token of tokens) {
+    yield;
+    if (!token.lecture.some((segment) => segment.role === 'famille' && segment.terme === 'size')) continue;
+    const { variable } = token;
+    if (variable.type !== 'FLOAT' || variable.etat !== 'presente') continue;
+    const modes = collectionParCle(catalogue, variable.collection)?.modes ?? [];
+    const clair = modes.find((mode) => modeDuThemeReconnu(mode.nom) === 'light');
+    const sombre = modes.find((mode) => modeDuThemeReconnu(mode.nom) === 'dark');
+    if (!clair || !sombre) continue;
+    const { parMode } = yield* candidatDeLongueurParEtapes(catalogue, variable);
+    const valeurClair = parMode[clair.id];
+    const valeurSombre = parMode[sombre.id];
+    if (valeurClair === undefined || valeurSombre === undefined || Math.abs(valeurClair - valeurSombre) <= EGALITE_EN_PIXELS + 1e-9) continue;
+    constats.push({
+      id: `C63:${variable.cle}:taille-selon-le-mode`, code: 'C63', type: 'corriger', famille: 'tailles', variants: [], layers: [],
+      faits: { genre: 'taille-selon-le-mode', variable: variable.nom, cle: variable.cle, modeClair: clair.nom, valeurClair, modeSombre: sombre.nom, valeurSombre },
+    });
+  }
+  return constats;
+}
+
 type FamilleDeLayout = 'sizing' | 'radius' | 'stroke';
 
 function familleLayoutCompatible(champ: string): FamilleDeLayout | undefined {
@@ -428,7 +461,7 @@ function* corrigerAxe(constat: Constat, releve: ReleveDeComposant, catalogue: Ca
   const segments = nomToken.split('/');
   const rang = token.lecture.findIndex((segment) => segment.role === axe[0]);
   if (rang < 0 || rang >= segments.length) return undefined;
-  segments[rang] = valeur;
+  segments[rang] = segmentEcritPourLaValeur(tokens, rang, axe[0], valeur);
   const nomCible = segments.join('/');
   const candidats = presentesDeLaCollection(index, nomCible, liaison.variable.collection);
   const etatHover = axe[0] === 'etat' && etatReconnu(valeur) === 'hover' && etatReconnu(segmentActuel) === 'default';

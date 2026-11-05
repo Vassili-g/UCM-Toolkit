@@ -2,13 +2,14 @@
 import { reconnaitreLeChemin, type SegmentReconnu } from '../referentiel/grammaire.js';
 import { estLAxeDEtats, formeReconnue, termeReconnu } from '../referentiel/reconnaissance.js';
 import type { NomANormaliser } from '../referentiel/conventions.js';
-import { categorieDuSegment } from '../referentiel/ecriture-des-mots.js';
+import { categorieDuSegment, ecritureDuVariant, segmentDeToken, type RoleDeValeur } from '../referentiel/ecriture-des-mots.js';
+import { variableDuThemeReconnue } from '../referentiel/theme.js';
 import { termePourCategorie, type Registre } from '../referentiel/termes.js';
 import {
   FAMILLES_PRIMITIVES, INTERRUPTEURS, NOMS_D_AXES, NOMS_D_AXES_FRANCAIS, REGISTRE_PALETTES_COMPOSANT, REGISTRE_STYLES_COMPOSANT, type RoleDAxe,
 } from '../referentiel/architecture.js';
-import { REGISTRE_ETATS, REGISTRE_TAILLES } from '../referentiel/vocabulaire.js';
-import { collectionParCle, type CatalogueDeReference, type VariableDuCatalogue } from './catalogue.js';
+import { REGISTRE_ETATS, REGISTRE_GROUPES, REGISTRE_TAILLES } from '../referentiel/vocabulaire.js';
+import { collectionParCle, variableDuCatalogue, type CatalogueDeReference, type VariableDuCatalogue } from './catalogue.js';
 import type { Constat } from './constat.js';
 import type { ReleveDeComposant } from './releve.js';
 
@@ -153,7 +154,11 @@ function figer(tokens: TokenDuComposant[]): TokenDuComposant[] {
  */
 function* calculerLesTokensParEtapes(releve: ReleveDeComposant, catalogue: CatalogueDeReference, nomDuJeu: string, types?: readonly VariableDuCatalogue['type'][]): Generator<void, TokenDuComposant[]> {
   const axes = yield* axesDuReleveParEtapes(releve);
-  const valeursDAxes = Object.fromEntries(Object.entries(axes).map(([axe, propriete]) => [axe, propriete.valeurs ?? []]));
+  // Un token écrit une valeur de variant par son segment (`Small` donne `sm`, `1.5` donne `1-5`) : la grammaire accepte les deux écritures.
+  const valeursDAxes = Object.fromEntries((Object.entries(axes) as [AxeDuComposant, ProprieteDAxe][]).map(([axe, propriete]) => [
+    axe, (propriete.valeurs ?? []).flatMap((valeur) => [valeur, segmentDeToken(valeur, roleDeValeur(axe))]),
+  ]));
+  const reclameParLAxe = (role: string, segment: string): boolean => (valeursDAxes[role] ?? []).some((valeur) => formeReconnue(valeur) === formeReconnue(segment));
   const tokens: TokenDuComposant[] = [];
   let parcourues = 0;
   for (const variable of catalogue.variables) {
@@ -167,11 +172,22 @@ function* calculerLesTokensParEtapes(releve: ReleveDeComposant, catalogue: Catal
     const segments = nom.split('/');
     const pourLaGrammaire = [...segments];
     if (segments.length > 1 && estLaFamilleCouleur(segments[1])) pourLaGrammaire[1] = 'color';
+    else if (segments.length > 1 && estLaFamilleTaille(segments[1])) {
+      pourLaGrammaire[1] = 'size';
+      if (estLaProprieteArrondi(segments[segments.length - 1])) pourLaGrammaire[segments.length - 1] = 'radius';
+    }
     const lire = (axesSupplementaires: Record<string, readonly string[]> = {}) => reconnaitreLeChemin('components', pourLaGrammaire, {
       themes: 'chemin',
       axes: { ...valeursDAxes, ...axesSupplementaires },
     });
     let reconnu = lire();
+    // Le nom de l'axe décide (Q-F5-2) : une valeur de l'axe est lue à la position de cet axe avant tout terme d'un autre registre.
+    if (!reconnu.conforme && reconnu.raison === 'ambigu') {
+      const reclames = reconnu.lectures.map((lecture) => lecture.segments.filter((lu) => reclameParLAxe(lu.role, lu.segment)).length);
+      const meilleur = Math.max(...reclames);
+      const retenues = reconnu.lectures.filter((_, rang) => reclames[rang] === meilleur);
+      if (retenues.length === 1) reconnu = { conforme: true, forme: retenues[0].forme, segments: retenues[0].segments };
+    }
     if (!reconnu.conforme && axes.style) {
       for (const segment of segments.slice(2)) {
         reconnu = lire({ style: [...(axes.style.valeurs ?? []), segment] });
@@ -211,9 +227,16 @@ export function registreDeLAxe(axe: AxeDuComposant): Registre | undefined {
   return REGISTRE_STYLES_COMPOSANT;
 }
 
-/** Égalité de forme, puis même terme reconnu des deux côtés ; deux valeurs inconnues ne sont pas égales. */
+/** Le rôle dont une valeur de variant a une écriture décidée ; `undefined` pour un style, que le registre ne nomme pas. */
+const roleDeValeur = (axe: AxeDuComposant): RoleDeValeur | undefined => (axe === 'style' ? undefined : axe);
+
+/**
+ * Égalité de forme, puis le segment que le token écrit pour la valeur (`16/9` donne `16-9`, `Small` donne `sm`), puis même terme reconnu
+ * des deux côtés ; deux valeurs inconnues ne sont pas égales.
+ */
 export function memeValeurDAxe(axe: AxeDuComposant, segment: string, valeur: string): boolean {
   if (formeReconnue(segment) === formeReconnue(valeur)) return true;
+  if (formeReconnue(segmentDeToken(valeur, roleDeValeur(axe))) === formeReconnue(segment)) return true;
   const registre = registreDeLAxe(axe);
   const terme = registre && termeReconnu(registre, segment)?.id;
   return !!terme && terme === termeReconnu(registre, valeur)?.id;
@@ -232,6 +255,16 @@ export function tailleReconnue(valeur: string): string | undefined {
 /** Vrai quand le segment écrit la famille `color`, sous l'une de ses formes tolérées (`Colors`, `colour`). */
 export function estLaFamilleCouleur(segment: string): boolean {
   return termeReconnu(FAMILLES_PRIMITIVES, segment)?.id === 'color';
+}
+
+/** Vrai quand le segment écrit la famille `size` du composant, sous l'une de ses formes tolérées (`Sizes`). */
+export function estLaFamilleTaille(segment: string): boolean {
+  return termeReconnu(REGISTRE_GROUPES, segment)?.id === 'size';
+}
+
+/** Vrai quand le segment écrit la propriété `radius`, sous l'une de ses formes tolérées (`border-radius`). */
+export function estLaProprieteArrondi(segment: string): boolean {
+  return termeReconnu(REGISTRE_GROUPES, segment)?.id === 'radius';
 }
 
 /** Un token appartient au jeu quand son premier segment a la forme du nom du jeu. */
@@ -259,6 +292,8 @@ export function* controlerNommageParEtapes(releve: ReleveDeComposant, catalogue:
   const tokens = yield* tokensDuComposantParEtapes(releve, catalogue);
   const axes = yield* axesDuReleveParEtapes(releve);
   const constats: Constat[] = [];
+  /** Les axes dont une valeur n'a aucun token : deux axes ouverts à la fois ne posent aucune question (Q-F5-4). */
+  const axesOuverts = new Set<AxeDuComposant>();
 
   for (const [axe, propriete] of Object.entries(axes) as [AxeDuComposant, ProprieteDAxe][]) {
     yield;
@@ -272,6 +307,7 @@ export function* controlerNommageParEtapes(releve: ReleveDeComposant, catalogue:
     for (const valeur of propriete.valeurs ?? []) {
       yield;
       if (yield* contientUnSegment(segments, (segment) => memeValeurDAxe(axe, segment, valeur))) continue;
+      axesOuverts.add(axe);
       constats.push(constatDuComposant('C7', 'variants', 'verifier', `${axe}:${valeur}`, { axe: propriete.nom, valeur }));
     }
   }
@@ -295,15 +331,22 @@ export function* controlerNommageParEtapes(releve: ReleveDeComposant, catalogue:
     if (segments.length > 1 && estLaFamilleCouleur(segments[1]) && formeReconnue(segments[1]) !== 'color') {
       formeToleree('C8', segments[1], 'color', variable.nom);
     }
+    // Les tailles se lisent comme les couleurs : la famille `sizes` et la propriété `border-radius` sont lues, et C8 demande l'harmonisation (Q-F3-13).
+    if (segments.length > 1 && estLaFamilleTaille(segments[1])) {
+      if (formeReconnue(segments[1]) !== 'size') formeToleree('C8', segments[1], 'size', variable.nom);
+      const derniere = segments[segments.length - 1];
+      if (segments.length > 2 && estLaProprieteArrondi(derniere) && formeReconnue(derniere) !== 'radius') formeToleree('C8', derniere, 'radius', variable.nom);
+    }
     for (const [rang, reconnu] of lecture.entries()) {
       yield;
       const axe = reconnu.role;
       if (axe !== 'etat' && axe !== 'taille' && axe !== 'palette' && axe !== 'style') continue;
       const segment = segments[rang];
-      const registre = axe === 'etat' ? REGISTRE_ETATS : axe === 'taille' ? REGISTRE_TAILLES : null;
+      const registre = axe === 'etat' ? REGISTRE_ETATS : axe === 'taille' ? REGISTRE_TAILLES : axe === 'palette' ? REGISTRE_PALETTES_COMPOSANT : null;
       const terme = registre ? termeReconnu(registre, segment) : undefined;
       const categorie = categorieDuSegment(nomDeVariable(variable, segments), rang);
-      const ecrit = terme ? termePourCategorie(terme, categorie).id : undefined;
+      // Le token écrit une taille par son identifiant (`sm`), non par le mot entier que prend un dossier de Nomenclature (Q-F5-6).
+      const ecrit = terme ? (axe === 'taille' ? terme.id : termePourCategorie(terme, categorie).id) : undefined;
       if (terme && ecrit !== undefined && formeReconnue(segment) !== formeReconnue(ecrit)) {
         formeToleree(axe === 'taille' ? 'C10' : 'C8', segment, ecritureAttendue(ecrit, segments, rang, categorie), variable.nom);
         continue;
@@ -317,6 +360,10 @@ export function* controlerNommageParEtapes(releve: ReleveDeComposant, catalogue:
     }
   }
   constats.push(...formes.values());
+  constats.push(...(yield* controlerLEcritureDesValeurs(releve, axes)));
+  constats.push(...(yield* controlerLesAxesDeStyle(releve, catalogue, tokens)));
+  // Deux axes ouverts : les tokens des autres axes ne disent plus quels noms sont les bons, C7 reste seul (Q-F5-4).
+  if (axesOuverts.size > 1) return constats;
   for (const [axe, propriete] of Object.entries(axes) as [AxeDuComposant, ProprieteDAxe][]) {
     yield;
     const anciennes = new Set<string>();
@@ -364,9 +411,11 @@ export function* controlerNommageParEtapes(releve: ReleveDeComposant, catalogue:
           const noms = candidatsParFamille.get(famille) ?? new Set<string>();
           for (const token of groupe) {
             yield;
-            noms.add(segmentDAxe(token, axe)!);
+            // Une valeur que l'axe porte déjà n'est pas un nom à rendre à la valeur renommée (N-35).
+            const segment = segmentDAxe(token, axe)!;
+            if (!(propriete.valeurs ?? []).some((presente) => memeValeurDAxe(axe, segment, presente))) noms.add(segment);
           }
-          candidatsParFamille.set(famille, noms);
+          if (noms.size) candidatsParFamille.set(famille, noms);
         }
       }
       if (dejaCouverte) continue;
@@ -380,7 +429,8 @@ export function* controlerNommageParEtapes(releve: ReleveDeComposant, catalogue:
         }
       }
       const uniques = [...nomsUniques];
-      const candidatUnique = candidatsParFamille.size === 1 && uniques.length === 1;
+      if (!uniques.length) continue;
+      const candidatUnique = uniques.length === 1;
       const code = candidatUnique ? 'C12' : 'C13';
       const identifiant = `${releve.jeu.cle}:${propriete.nom}:${ancienne}`;
       const id = `${code}:${identifiant}`;
@@ -420,6 +470,95 @@ function correspondAuxAutresAxes(
     const valeur = variant.valeurs[propriete.nom];
     if (!valeur) return false;
     const segment = segmentDAxe(token, axe);
-    return !!segment && formeReconnue(segment) === formeReconnue(valeur);
+    return !!segment && memeValeurDAxe(axe, segment, valeur);
   });
+}
+
+/**
+ * Le segment que les tokens du composant écrivent à ce rang pour cette valeur d'axe : `Medium` donne `md` quand un token l'écrit ainsi
+ * (Q-F5-6), `1.5` donne `1-5` (Q-F5-10). Quand aucun token, ou plusieurs écritures distinctes, la désignent, la valeur reste telle quelle.
+ */
+export function segmentEcritPourLaValeur(tokens: readonly TokenDuComposant[], rang: number, axe: AxeDuComposant, valeur: string): string {
+  const ecritures = new Set<string>();
+  for (const token of tokens) {
+    if (token.lecture[rang]?.role !== axe) continue;
+    const segment = token.segments[rang];
+    if (memeValeurDAxe(axe, segment, valeur)) ecritures.add(segment);
+  }
+  return ecritures.size === 1 ? [...ecritures][0] : valeur;
+}
+
+/** Les ids des variants qui portent cette valeur de cette propriété, dans l'ordre du relevé. */
+function variantsDeLaValeur(releve: ReleveDeComposant, propriete: string, valeur: string): string[] {
+  return releve.variants.filter((variant) => variant.valeurs[propriete] === valeur).map(({ id }) => id);
+}
+
+/**
+ * Une taille ou une palette de variant s'écrit en toutes lettres, une majuscule à chaque mot (`Small`, `Extra Large`, `Danger`) ; `S`,
+ * `sm`, `Middle` et `Error` se corrigent vers ce mot (Q-F5-5, Q-F5-6). C10 pour la taille, C8 pour la palette. La correction renomme la
+ * valeur dans le jeu ; elle manque quand le mot entier est déjà une valeur de la propriété, car deux variants prendraient le même nom.
+ * Un terme inconnu, une casse seule (`small`) et un état ne donnent rien.
+ */
+function* controlerLEcritureDesValeurs(releve: ReleveDeComposant, axes: Partial<Record<AxeDuComposant, ProprieteDAxe>>): Generator<void, Constat[]> {
+  const constats: Constat[] = [];
+  for (const [axe, propriete] of Object.entries(axes) as [AxeDuComposant, ProprieteDAxe][]) {
+    yield;
+    if (axe !== 'taille' && axe !== 'palette') continue;
+    for (const valeur of propriete.valeurs ?? []) {
+      yield;
+      const ecriture = ecritureDuVariant(axe, valeur);
+      if (!ecriture?.correction) continue;
+      const variants = variantsDeLaValeur(releve, propriete.nom, valeur);
+      const identifiant = `${releve.jeu.cle}:${propriete.nom}:${valeur}`;
+      const constat = constatDuComposant(axe === 'taille' ? 'C10' : 'C8', axe === 'taille' ? 'tailles' : 'variants', 'corriger',
+        `valeur:${identifiant}`, { jeu: releve.jeu.nom, propriete: propriete.nom, valeur, attendu: ecriture.variant, cote: 'variant' }, variants);
+      const dejaPresente = (propriete.valeurs ?? []).includes(ecriture.variant);
+      if (releve.jeu.id && variants.length && !dejaPresente) {
+        constat.correction = {
+          id: constat.id, sorte: 'nom-de-valeur', cible: { layer: releve.jeu.id, champ: propriete.nom }, avant: valeur,
+          apres: { nom: ecriture.variant },
+          aRelire: { regle: `Une ${axe === 'taille' ? 'taille' : 'palette'} de variant s'écrit en toutes lettres (${ecriture.variant}).`, avant: valeur },
+        };
+      }
+      constats.push(constat);
+    }
+  }
+  return constats;
+}
+
+/** Les dossiers du thème que le style fixe : `subtle` vise `surface`, `solid` vise `solid` (Q-F5-3). */
+const DOSSIER_DU_STYLE: Readonly<Record<string, string>> = { subtle: 'surface', solid: 'solid' };
+
+/**
+ * Deux axes de style (Q-F5-3) : un constat à faire demande de les réunir en un seul axe (`Variant=Solid, Subtle, Outline`), sans fusion,
+ * puisque le designer choisit les combinaisons qui gardent un style. Puis les tokens des styles `subtle` et `solid` : une couleur du
+ * style `subtle` qui vise un rôle de `solid`, ou l'inverse, est un écart ; les autres dossiers (`disabled`, `ring`) ne se jugent pas.
+ */
+function* controlerLesAxesDeStyle(releve: ReleveDeComposant, catalogue: CatalogueDeReference, tokens: readonly TokenDuComposant[]): Generator<void, Constat[]> {
+  const constats: Constat[] = [];
+  const styles = releve.proprietes.filter((propriete) => propriete.type === 'VARIANT' && axeDePropriete(propriete.nom) === 'style');
+  if (styles.length > 1) {
+    constats.push(constatDuComposant('C63', 'variants', 'corriger', `${releve.jeu.cle}:deux-axes-de-style`, {
+      genre: 'deux-axes-de-style', jeu: releve.jeu.nom, axes: styles.map(({ nom }) => nom).join(', '),
+    }));
+  }
+  for (const token of tokens) {
+    yield;
+    const style = token.lecture.findIndex((segment) => segment.role === 'style');
+    const attendu = style < 0 ? undefined : DOSSIER_DU_STYLE[formeReconnue(token.segments[style])];
+    if (!attendu || token.variable.type !== 'COLOR') continue;
+    for (const valeur of Object.values(token.variable.valeurs ?? {})) {
+      yield;
+      if (!('alias' in valeur)) continue;
+      const cible = variableDuCatalogue(catalogue, valeur.alias);
+      if (cible === 'absente' || collectionParCle(catalogue, cible.collection)?.role !== 'theme') continue;
+      const dossier = variableDuThemeReconnue(cible.nom)?.split('/')[0];
+      if (dossier !== 'solid' && dossier !== 'surface') continue;
+      if (dossier === attendu) continue;
+      constats.push(constatDuComposant('C63', 'liaisons', 'corriger', `${token.variable.cle}:style-et-dossier:${cible.cle}`, {
+        genre: 'style-et-dossier', variable: token.variable.nom, cle: token.variable.cle, style: token.segments[style], cible: cible.nom, dossier, attendu,
+      }));
+    }
+  }
+  return constats;
 }

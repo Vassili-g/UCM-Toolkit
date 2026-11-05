@@ -6,7 +6,7 @@
  */
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { c10, c7, c8, type CasDeVariants } from './stress/f5-variants/cas.js';
+import { variantCorrige, c10, c7, c8, type CasDeVariants } from './stress/f5-variants/cas.js';
 import { composantF6, composantP0, constatsDeLaPortee, constatsDeTypographie, GRAINE_PAR_DEFAUT, verifierLaLecture, avecLesCouchesF6 } from './stress/f5-variants/composantDeBase.js';
 import { fauxPositifs } from './stress/f5-variants/fauxPositifs.js';
 import { interactions, COUPLES } from './stress/f5-variants/interactions.js';
@@ -23,7 +23,7 @@ const F6 = tousLesCasDeF6(P0);
 const FP = fauxPositifs();
 const INTERACTIONS = interactions();
 
-const premier = 'Size=sm, State=default';
+const premier = 'Size=Small, State=default';
 const parId = (liste: readonly CasDeVariants[], id: string): CasDeVariants => liste.find((entree) => entree.id === id)!;
 const cas = (id: string): CasDeVariants => parId(F6, id);
 const duOperateur = (operateur: string): CasDeVariants[] => F6.filter((entree) => entree.operateur === operateur);
@@ -48,17 +48,17 @@ test('la base de F6 compte 12 variants, un style par taille et une icône de lib
   assert.deepEqual(verifierLaLecture(base), { sansLecture: [], malLus: [] });
   for (const variant of base.releve.variants) {
     const label = variant.layers.find((layer) => layer.nom === 'Label')!;
-    assert.equal(label.texte!.style, { sm: 'Label/Small', md: 'Label/Medium', lg: 'Label/Large' }[variant.valeurs.Size]!, variant.nom);
+    assert.equal(label.texte!.style, { Small: 'Label/Small', Medium: 'Label/Medium', Large: 'Label/Large' }[variant.valeurs.Size]!, variant.nom);
     const icone = variant.layers.find((layer) => layer.nom === 'Icon')!;
     assert.deepEqual([icone.type, icone.instanceDe!.distante, icone.instanceDe!.pilotee], ['INSTANCE', true, 'Icon#1:2']);
     assert.deepEqual(icone.liaisons.map((liaison) => [liaison.champ, liaison.variable.nom]).sort(),
-      [['fills', 'neutral/surface/foreground'], ['height', `icon/${{ sm: 'small', md: 'medium', lg: 'large' }[variant.valeurs.Size]}`], ['width', `icon/${{ sm: 'small', md: 'medium', lg: 'large' }[variant.valeurs.Size]}`]]);
+      [['fills', 'neutral/surface/foreground'], ['height', `icon/${{ Small: 'sm', Medium: 'md', Large: 'lg' }[variant.valeurs.Size]}`], ['width', `icon/${{ Small: 'sm', Medium: 'md', Large: 'lg' }[variant.valeurs.Size]}`]]);
     assert.ok(!variant.layers.some((layer) => layer.nom === 'Glyph'), 'Glyph est retiré');
   }
   assert.ok(base.releve.proprietes.some((propriete) => propriete.type === 'INSTANCE_SWAP' && propriete.nom === 'Icon#1:2'));
 });
 
-test('les couches de F6 se posent sur P0 et sur p18 sans constat de la portée ni de typographie, et sans toucher au composant de F5', { todo: "Q-F5-2, E7a : la valeur primary d'un axe de style se lit à la position du style" }, () => {
+test('les couches de F6 se posent sur P0 et sur p18 sans constat de la portée ni de typographie, et sans toucher au composant de F5', () => {
   const avant = JSON.stringify({ releve: P0.releve, catalogue: P0.catalogue });
   // La lecture de p18 n'est pas complète : l'axe Kind y porte des termes de palette (hypothèse 2), ce que le profil FP1 mesure.
   for (const composant of [avecLesCouchesF6(P0), avecLesCouchesF6(composantDuProfil(profilParId('p18')))]) {
@@ -109,24 +109,24 @@ test('chaque cas de F6 a un identifiant <opérateur>-<n> dans l\'ordre, une desc
 
 test('S1 : un texte sans style ni variable donne C64 sur un variant ou sur les 12 ; des styles mixtes restent en attente de Q-F6-6', () => {
   assert.deepEqual(cas('S1-1').attendus, [a64('Label', 'sans-style-ni-variables', [premier])]);
-  assert.deepEqual(cas('S1-2').attendus, [a64('Label', 'sans-style-ni-variables', ['Size=md, State=hover'])]);
-  assert.deepEqual(cas('S1-3').attendus, [a64('Label', 'sans-style-ni-variables', ['Size=lg, State=disabled'])]);
+  assert.deepEqual(cas('S1-2').attendus, [a64('Label', 'sans-style-ni-variables', ['Size=Medium, State=hover'])]);
+  assert.deepEqual(cas('S1-3').attendus, [a64('Label', 'sans-style-ni-variables', ['Size=Large, State=disabled'])]);
   assert.equal(cas('S1-4').attendus.length, 1, 'un même défaut sur 12 variants est un seul constat (P23)');
   assert.ok(cas('S1-4').attendus[0].cle.startsWith('Label|sans-style-ni-variables||@12 variants'));
   assert.deepEqual(['S1-5', 'S1-6', 'S1-7'].map((id) => [cas(id).verdict, cas(id).question, cas(id).attendus[0].cle]),
-    Array(3).fill(['mesure', 'Q-F6-6', 'Label|styles-mixtes||@Size=md, State=hover']));
+    Array(3).fill(['mesure', 'Q-F6-6', 'Label|styles-mixtes||@Size=Medium, State=hover']));
 });
 
 test('S2 : un style différent se juge dans son groupe de taille ; le groupe de taille, trois variants, un texte masqué et deux layers de même nom ont leur oracle', () => {
   assert.deepEqual(['S2-1', 'S2-2', 'S2-3', 'S2-4'].map((id) => cas(id).attendus),
-    ['Size=sm, State=default', 'Size=md, State=hover', 'Size=lg, State=pressed', 'Size=lg, State=disabled'].map((nom) => [a64('Label', 'style-different', [nom], 'Label/Caption')]));
+    ['Size=Small, State=default', 'Size=Medium, State=hover', 'Size=Large, State=pressed', 'Size=Large, State=disabled'].map((nom) => [a64('Label', 'style-different', [nom], 'Label/Caption')]));
   assert.deepEqual(['S2-5', 'S2-6', 'S2-7'].map((id) => [cas(id).verdict, cas(id).question, cas(id).attendus]), Array(3).fill(['mesure', 'Q-F6-2', []]));
   assert.deepEqual(cas('S2-8').attendus, [], 'deux variants : un seul voisin ne fait pas une unanimité');
   assert.equal(cas('S2-9').question, 'Q-F6-2');
   assert.deepEqual(cas('S2-10').attendus, [], 'trois styles différents : aucune unanimité');
   assert.deepEqual(cas('S2-11').attendus, [], 'deux layers de même nom aux styles unanimes');
   assert.deepEqual(cas('S2-12').attendus.map((attendu) => attendu.cle),
-    ['Text|style-different||Label/Serif@Size=md, State=hover', 'Text|style-different||Label/Mono@Size=md, State=hover']);
+    ['Text|style-different||Label/Serif@Size=Medium, State=hover', 'Text|style-different||Label/Mono@Size=Medium, State=hover']);
   assert.deepEqual([cas('S2-12').verdict, cas('S2-12').question], ['mesure', 'Q-F6-2']);
   assert.deepEqual([cas('S2-13').verdict, cas('S2-13').attendus], ['mesure', []], 'un layer renommé');
   assert.deepEqual([cas('S2-14').attendus, cas('S2-15').attendus], [[], []], 'un texte masqué, un texte sous un parent masqué');
@@ -138,8 +138,8 @@ test('S3 : une taille ou une graisse liée hors de typography donne mauvaise-col
   assert.deepEqual(cas('S3-5').attendus, [a65('Label', 'mauvaise-collection', [premier], 'fontWeight', 'dimension/none')]);
   assert.deepEqual(['S3-9', 'S3-10', 'S3-11'].map((id) => [cas(id).verdict, cas(id).question]), Array(3).fill(['mesure', 'Q-F6-7']));
   assert.deepEqual(['S3-12', 'S3-13', 'S3-14', 'S3-15'].map((id) => cas(id).attendus),
-    [[a65('Label', 'sans-liaison-comme-les-autres', [premier], 'fontSize')], [a65('Label', 'sans-liaison-comme-les-autres', ['Size=lg, State=disabled'], 'fontSize')],
-      [a65('Label', 'sans-liaison-comme-les-autres', [premier], 'fontWeight')], [a65('Label', 'sans-liaison-comme-les-autres', ['Size=lg, State=disabled'], 'fontWeight')]]);
+    [[a65('Label', 'sans-liaison-comme-les-autres', [premier], 'fontSize')], [a65('Label', 'sans-liaison-comme-les-autres', ['Size=Large, State=disabled'], 'fontSize')],
+      [a65('Label', 'sans-liaison-comme-les-autres', [premier], 'fontWeight')], [a65('Label', 'sans-liaison-comme-les-autres', ['Size=Large, State=disabled'], 'fontWeight')]]);
   assert.deepEqual(['S3-16', 'S3-17', 'S3-18', 'S3-19', 'S3-20', 'S3-21'].map((id) => cas(id).attendus), Array(6).fill([]), 'liaisons valides, autre champ, illisible, collection absente');
 });
 
@@ -192,8 +192,11 @@ test('les 180 faux positifs : 60 profils, 88 valeurs attestées, 9 valeurs limit
   assert.deepEqual(['FP1', 'FP2', 'FP3', 'FP4'].map(compte), [60, 88, 9, 23]);
   for (const operateur of ['FP1', 'FP2', 'FP3', 'FP4']) FP.filter((entree) => entree.operateur === operateur).forEach((entree, rang) => assert.equal(entree.id, `${operateur}-${rang + 1}`));
   assert.equal(new Set(FP.map((entree) => entree.id)).size, 180);
-  assert.deepEqual(parQuestion(FP), { 'Q-F5-5': ['FP2-59', 'FP2-62', 'FP2-65', 'FP2-68'], 'Q-F5-10': ['FP3-1', 'FP3-2', 'FP3-3', 'FP3-4'] });
-  assert.ok(FP.slice(0, 60).every((entree) => entree.attendus.length === 0));
+  assert.deepEqual(parQuestion(FP), {}, 'Q-F5-5 et Q-F5-10 sont tranchées');
+  // Les 60 profils ne portent que les constats des décisions : une taille ou une palette de variant mal écrite, deux axes de style.
+  const profilsAvecConstats = FP.slice(0, 60).filter((entree) => entree.attendus.length > 0);
+  assert.equal(profilsAvecConstats.length, 30);
+  assert.ok(profilsAvecConstats.every((entree) => entree.attendus.every((attendu) => attendu.code === 'C63' || attendu.cle.startsWith('variant|') || attendu.code === 'C8')));
   assert.ok(FP.filter((entree) => entree.operateur === 'FP4').every((entree) => entree.attendus.length === 0));
 });
 
@@ -203,17 +206,19 @@ test('FP2 : l\'oracle d\'une valeur attestée vient des registres, pas du corpus
   assert.deepEqual(fp2('Rest').attendus, [c8('Rest', 'default')]);
   assert.deepEqual(fp2('Hovered').attendus, [c8('Hovered', 'hover')]);
   assert.deepEqual(fp2('Disable').attendus, [c8('Disable', 'disabled')]);
-  // Small, Medium et Large sont les formes de dossier du registre des tailles : le plan les compte à tort parmi les formes tolérées.
-  assert.deepEqual([fp2('Small').attendus, fp2('Medium').attendus, fp2('Large').attendus], [[], [], []]);
+  // Un token écrit la taille par son identifiant : `Small`, `Medium` et `Large` reçoivent C10 vers `sm`, `md` et `lg` (Q-F5-6).
+  assert.deepEqual([fp2('Small').attendus, fp2('Medium').attendus, fp2('Large').attendus], [[c10('Small', 'sm')], [c10('Medium', 'md')], [c10('Large', 'lg')]]);
   assert.deepEqual([fp2('Primary').attendus, fp2('Solid').attendus, fp2('Default').attendus, fp2('Mini').attendus], [[], [], [], []]);
-  assert.deepEqual([fp2('Critical').verdict, fp2('Critical').attendus], ['mesure', [c8('Critical', 'danger')]]);
-  assert.deepEqual([fp2('Error', 'palette').verdict, fp2('Error', 'palette').attendus.map((attendu) => attendu.cle)], ['mesure', ['Error>danger']]);
+  // Une palette tolérée reçoit C8 dans le token, et le variant qui l'écrit reçoit sa correction vers le mot entier (Q-F5-5).
+  assert.deepEqual([fp2('Critical').verdict, fp2('Critical').attendus], ['attendu', [c8('Critical', 'danger'), variantCorrige('C8', 'Color', 'Critical', 'Danger')]]);
+  assert.deepEqual([fp2('Error', 'palette').verdict, fp2('Error', 'palette').attendus.map((attendu) => attendu.cle)], ['attendu', ['Error>danger', 'variant|Color=Error>Danger']]);
   assert.deepEqual([fp2('Error', 'etat').verdict, fp2('Error', 'etat').attendus], ['attendu', []], 'Error est un état sans forme tolérée');
-  assert.equal(FP.filter((entree) => entree.operateur === 'FP2' && entree.attendus.length > 0).length, 13);
+  assert.equal(FP.filter((entree) => entree.operateur === 'FP2' && entree.attendus.length > 0).length, 24);
 });
 
-test('FP3 et FP4 : quatre valeurs à point ou à barre en attente de Q-F5-10, 23 composants de F6 sans constat attendu', () => {
-  assert.deepEqual(FP.filter((entree) => entree.operateur === 'FP3').map((entree) => entree.verdict), [...Array(4).fill('mesure'), ...Array(5).fill('attendu')]);
+test('FP3 et FP4 : quatre valeurs à point ou à barre écrites avec un tiret (Q-F5-10), 23 composants de F6 sans constat attendu', () => {
+  assert.deepEqual(FP.filter((entree) => entree.operateur === 'FP3').map((entree) => entree.verdict), Array(9).fill('attendu'));
+  assert.ok(FP.filter((entree) => entree.operateur === 'FP3').every((entree) => entree.attendus.length === 0));
   assert.deepEqual(FP.filter((entree) => entree.operateur === 'FP4').map((entree) => entree.ecartConnu), [...Array(11).fill(undefined), ...Array(10).fill('E-26'), undefined, undefined]);
   assert.deepEqual(FP.filter((entree) => entree.operateur === 'FP4').slice(11, 21).map((entree) => entree.entree.description.split(' ')[4]),
     ['Silicone', 'Silicon', 'Lexicon', 'Semiconductor', 'Iconoclast', 'Iconography', 'IconButton', 'icon-container', 'icon-label', 'Icon']);
@@ -223,7 +228,9 @@ test('les 32 interactions sont les 16 couples du plan sur P0 et sur p18, chacun 
   assert.equal(INTERACTIONS.length, 32);
   assert.deepEqual(INTERACTIONS.map((entree) => entree.id), COUPLES.flatMap((couple) => [`${couple}-P0`, `${couple}-p18`]));
   assert.equal(COUPLES.length, 16);
-  assert.deepEqual(parQuestion(INTERACTIONS), { 'Q-F5-4': ['V1+V1-P0', 'V1+V1-p18'], 'Q-F5-3': ['A3+V1-P0', 'A3+V1-p18'], 'Q-F5-2': ['A4+V1-P0', 'A4+V1-p18'], 'Q-F6-5': ['I2+I3-P0', 'I2+I3-p18'] });
+  assert.deepEqual(parQuestion(INTERACTIONS), {
+    'Q-F5-2': ['V1+M1-p18', 'V1+O1-p18', 'V1+V1-p18', 'A4+V1-P0', 'A4+V1-p18', 'V1+I2-p18'], 'Q-F6-5': ['I2+I3-P0', 'I2+I3-p18'],
+  });
   for (const entree of INTERACTIONS) assert.ok(entree.entree.description.startsWith(`${entree.operateur} sur ${entree.id.endsWith('p18') ? 'p18' : 'P0'} :`), entree.id);
 });
 
@@ -237,7 +244,7 @@ test('V1+M1, V1+O1 et V1+V1 : les constats de chaque dégradation restent indép
   assert.equal(m1.find((attendu) => attendu.code === 'C31')!.cle, `Color=${retire.Color}|Size=${retire.Size}|State=${retire.State}|Style=Tonal`);
   const o1 = interaction('V1+O1', 'P0').attendus;
   assert.deepEqual(o1.find((attendu) => attendu.code === 'C12')!.candidats, ['outline'], 'l\'orphelin d\'un autre axe n\'entre pas dans les candidats');
-  assert.ok(o1.some((attendu) => attendu.cle === 'button/color/primary/solid/small/selected/background|sans-variant'));
+  assert.ok(o1.some((attendu) => attendu.cle === 'button/color/primary/solid/sm/selected/background|sans-variant'));
   const v1 = interaction('V1+V1', 'P0');
   assert.deepEqual(v1.attendus.filter((attendu) => attendu.code === 'C7').map((attendu) => attendu.cle).sort(), ['Color=Destructive', 'Size=Compact']);
   assert.ok(v1.attendus.every((attendu) => attendu.code !== 'C12' && attendu.code !== 'C13'));
@@ -246,15 +253,16 @@ test('V1+M1, V1+O1 et V1+V1 : les constats de chaque dégradation restent indép
 test('V3+V4, M1+O5, A3+V1, O2+M1 et A4+V1 : C8 seul, C31 de la combinaison retirée, rien pour le second axe, sans-variant plutôt qu\'inutilisé', () => {
   for (const profil of ['P0', 'p18'] as const) {
     assert.deepEqual(interaction('V3+V4', profil).attendus, [c8('hovered', 'hover')]);
-    assert.deepEqual(interaction('A3+V1', profil).attendus, []);
+    // Le renommage d'une valeur du second axe de style ne pose aucune question : seul le constat à faire de Q-F5-3 reste.
+    assert.deepEqual(interaction('A3+V1', profil).attendus.map((attendu) => attendu.code), ['C63']);
     assert.equal(codes(interaction('M1+O5', profil)).C31, 1);
     assert.equal(codes(interaction('O2+M1', profil)).C31, 1);
   }
   const m1o5 = interaction('M1+O5', 'P0').attendus;
-  const retire = P0.releve.variants.find((variant) => variant.valeurs.Size === 'lg')!;
-  assert.ok(m1o5.some((attendu) => attendu.cle === c7('Size', 'lg').cle));
+  const retire = P0.releve.variants.find((variant) => variant.valeurs.Size === 'Large')!;
+  assert.ok(m1o5.some((attendu) => attendu.cle === c7('Size', 'Large').cle));
   assert.ok(!m1o5.some((attendu) => attendu.code === 'C33' && attendu.cle.startsWith(`${retire.id}|`)), 'C33 ne vise que les variants présents');
-  assert.ok(interaction('O2+M1', 'P0').attendus.some((attendu) => attendu.cle === 'button/color/primary/solid/small/default/border|sans-variant'));
+  assert.ok(interaction('O2+M1', 'P0').attendus.some((attendu) => attendu.cle === 'button/color/primary/solid/sm/default/border|sans-variant'));
   assert.ok(!interaction('O2+M1', 'P0').attendus.some((attendu) => attendu.cle.endsWith('/border|inutilise')));
   assert.ok(interaction('A4+V1', 'P0').attendus.some((attendu) => attendu.cle === c7('Variant', 'Tonal').cle));
   assert.ok(interaction('A4+V1', 'p18').attendus.some((attendu) => attendu.cle === c7('Kind', 'Tonal').cle));

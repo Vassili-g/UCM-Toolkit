@@ -219,7 +219,7 @@ function stylesDifferents(base: ComposantDeBase, numero: Numerotation): CasDeVar
     attendus: () => [a64('Label', 'style-different', [nom(rang)], STYLE_DE_L_ECART)],
   }));
 
-  const TAILLES: readonly string[] = ['sm', 'md', 'lg'];
+  const TAILLES: readonly string[] = ['Small', 'Medium', 'Large'];
   const proprePourUneTaille = TAILLES.slice().reverse().map((seule) => {
     const paire = TAILLES.filter((taille) => taille !== seule);
     const style = styleDeTexteDeLaTaille(segmentDeLaValeur('taille', paire[0]));

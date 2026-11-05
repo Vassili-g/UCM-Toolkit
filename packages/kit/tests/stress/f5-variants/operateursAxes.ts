@@ -3,13 +3,13 @@
  * viennent d'un autre registre (Q-F5-2). A1 et A2 ne portent aucun composant : `mesurer.ts` compare `axeDePropriete(nom)` au rôle
  * du cas. A3 et A4 fabriquent leur composant.
  *
- * Le rôle d'un nom `attendu` est celui du corpus ; celui d'un nom `mesure` est la proposition de la section 9 du plan. Selon Q-F5-1,
- * `Type`, `Kind` et `Shape` valent `style`, `Density` et `Spacing` valent `taille`, et un booléen n'est pas un axe. Selon Q-F5-9, un
- * nom français vaut son équivalent anglais.
+ * Le rôle d'un nom est celui du corpus. Selon Q-F5-1, `Type`, `Kind` et `Shape` valent `style`, `Density` et `Spacing` valent `taille`,
+ * et un booléen n'est pas un axe. Selon Q-F5-9, un nom français vaut son équivalent anglais.
  */
 import type { AxeDuComposant } from '../../../src/controles/nommage.js';
-import { casDegrade, Numerotation, type CasDeVariants } from './cas.js';
-import { composantDeBase, type AxeDeVariants } from './composantDeBase.js';
+import type { ConstatAttendu } from '../commun/types.js';
+import { c63DeuxAxesDeStyle, casDegrade, Numerotation, type CasDeVariants } from './cas.js';
+import { CODES_DE_LA_PORTEE, composantDeBase, type AxeDeVariants } from './composantDeBase.js';
 import type { ComposantDeBase } from './portF3.js';
 import { AXES_ATTESTES, roleDuCorpus } from './profils.js';
 
@@ -52,7 +52,7 @@ interface Paire {
 const PAIRES: readonly Paire[] = [
   { premier: ['Variant', ['solid', 'outline']], second: ['Appearance', ['subtle', 'strong']], role: 'style' },
   { premier: ['Style', ['solid', 'outline']], second: ['Hierarchy', ['high', 'low']], role: 'style' },
-  { premier: ['Size', ['sm', 'lg']], second: ['Density', ['compact', 'comfortable']], role: 'taille' },
+  { premier: ['Size', ['Small', 'Large']], second: ['Density', ['compact', 'comfortable']], role: 'taille' },
   { premier: ['Color', ['primary', 'danger']], second: ['Tone', ['soft', 'vivid']], role: 'palette' },
   { premier: ['Color', ['primary', 'danger']], second: ['Intent', ['info', 'warning']], role: 'palette' },
   { premier: ['State', ['default', 'hover']], second: ['Status', ['info', 'warning']], role: 'etat' },
@@ -62,14 +62,17 @@ const PAIRES: readonly Paire[] = [
 
 /**
  * Deux axes du même rôle. La grammaire des tokens n'a qu'une place par rôle : les tokens s'écrivent pour le premier axe, le second
- * n'a pas de segment. Q-F5-3 propose de contrôler le premier et de dire par une information que le second ne l'est pas ; cette
- * information n'est aucun des codes de F5, donc l'oracle n'attend aucun constat.
+ * n'a pas de segment. Q-F5-3 tranche pour le style : un constat à faire (C63, genre `deux-axes-de-style`) demande de réunir les deux axes,
+ * sans fusion. Pour la taille, la palette et l'état, aucune décision n'est écrite : le cas reste en attente.
  */
 function deuxAxesDuMemeRole(numero: Numerotation): CasDeVariants[] {
   return PAIRES.map(({ premier, second, role }) => {
     const axes: AxeDeVariants[] = [{ nom: premier[0], valeurs: premier[1], segment: role }, { nom: second[0], valeurs: second[1], segment: null }];
-    return casDegrade(composantDeBase('Button', axes), {
-      id: numero.prochain('A3'), operateur: 'A3', verdict: 'mesure', question: 'Q-F5-3', hypothese: 'H4',
+    const base = composantDeBase('Button', axes);
+    const decide = role === 'style';
+    return casDegrade(base, {
+      id: numero.prochain('A3'), operateur: 'A3', hypothese: 'H4',
+      ...(decide ? { codesJuges: [...CODES_DE_LA_PORTEE, 'C63'], ajuster: (attendus: ConstatAttendu[]) => [...attendus, c63DeuxAxesDeStyle(base.releve.jeu.cle)] } : { verdict: 'mesure' as const, question: 'Q-F5-3' }),
       description: `les axes ${premier[0]} et ${second[0]} ont le rôle ${role} ; seul ${premier[0]} écrit un segment`,
       zones: [{ axe: second[0], valeur: second[1][0] }], degrader: () => undefined,
     });
@@ -88,8 +91,8 @@ interface AxeDAutreRegistre {
 const AXES_D_AUTRE_REGISTRE: readonly AxeDAutreRegistre[] = [
   { origine: 'Primer', nom: 'Variant', valeurs: ['default', 'primary', 'danger'], role: 'style', verdict: 'attendu', hypothese: 'H2' },
   { origine: 'Atlaskit', nom: 'Appearance', valeurs: ['default', 'primary', 'subtle', 'warning', 'danger', 'discovery'], role: 'style', verdict: 'attendu', hypothese: 'H2' },
-  { origine: 'Carbon', nom: 'Kind', valeurs: ['primary', 'secondary', 'tertiary', 'ghost', 'danger'], role: 'style', verdict: 'mesure', hypothese: 'H2' },
-  { origine: 'Ant Design', nom: 'Type', valeurs: ['primary', 'default', 'dashed', 'text', 'link'], role: 'style', verdict: 'mesure', hypothese: 'H2' },
+  { origine: 'Carbon', nom: 'Kind', valeurs: ['primary', 'secondary', 'tertiary', 'ghost', 'danger'], role: 'style', verdict: 'attendu', hypothese: 'H2' },
+  { origine: 'Ant Design', nom: 'Type', valeurs: ['primary', 'default', 'dashed', 'text', 'link'], role: 'style', verdict: 'attendu', hypothese: 'H2' },
   { origine: 'sévérité', nom: 'Status', valeurs: ['info', 'success', 'warning', 'danger'], role: 'etat', verdict: 'attendu', hypothese: 'H3' },
   { origine: 'Spectrum', nom: 'Variant', valeurs: ['accent', 'primary', 'secondary', 'negative'], role: 'style', verdict: 'attendu', hypothese: 'H2' },
 ];
@@ -98,7 +101,7 @@ const AXES_D_AUTRE_REGISTRE: readonly AxeDAutreRegistre[] = [
 function valeursDUnAutreRegistre(numero: Numerotation): CasDeVariants[] {
   return AXES_D_AUTRE_REGISTRE.map(({ origine, nom, valeurs, role, verdict, hypothese }) => {
     const compagnons: AxeDeVariants[] = [
-      { nom: 'Size', valeurs: ['sm', 'md', 'lg'], segment: 'taille' },
+      { nom: 'Size', valeurs: ['Small', 'Medium', 'Large'], segment: 'taille' },
       ...(role === 'etat' ? [] : [{ nom: 'State', valeurs: ['default', 'hover', 'pressed', 'disabled'], segment: 'etat' as const }]),
     ];
     const base = composantDeBase('Button', [{ nom, valeurs, segment: role }, ...compagnons]);

@@ -398,10 +398,19 @@ et entre au catalogue avec sa collection et ses modes. Si `components` reste
 illisible, ou si un token du composant dont la propriété sert le champ n'est pas
 chargé, C29 le dit (`faits.recherche = 'incomplete'`) au lieu de conclure.
 
+Deux longueurs égales à 1e-6 px près sont la même longueur : Figma stocke des
+flottants 32 bits, donc `0,1 + 0,2` et `0,3` se valent. Un token dont les modes
+valent la valeur lue à cette tolérance près est un candidat exact.
+
 Sans token exact, C29 pose une question proche (`faits.proche = 1`) quand un
 token de `components` du composant, pour la propriété du champ, a une valeur, la même dans tous les modes, qui diffère de
-la valeur lue d'au plus `min(2, 0,1 × max(|v|, 1))` px. Elle propose au plus la
-plus proche en dessous et la plus proche au-dessus, jamais pour une valeur 0.
+la valeur lue d'au plus `min(2, 0,1 × max(|v|, 1))` px. Elle propose la
+plus proche en dessous et la plus proche au-dessus, jamais pour une valeur 0 ;
+à égalité de distance sur un côté, tous les tokens à égalité sont proposés,
+dans l'ordre des noms. Un token écrit `sizes` pour `size`, ou `border-radius`
+pour `radius`, se lit comme les autres et reçoit C8. Un token de taille dont la
+valeur diffère entre Light et Dark donne un C63 `taille-selon-le-mode`, sans
+correction ni question : le designer choisit la valeur à garder.
 Un token proche change le rendu : ce n'est pas une correction, rien n'est coché,
 et la question montre l'écart de chaque candidat. Les questions identiques de
 plusieurs variants se montrent en une carte, qui envoie une réponse par

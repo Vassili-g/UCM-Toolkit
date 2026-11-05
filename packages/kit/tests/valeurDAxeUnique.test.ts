@@ -65,10 +65,12 @@ function catalogue(...noms: string[]): CatalogueDeReference {
 const codesDesLecteurs = (r: ReleveDeComposant, c: CatalogueDeReference): string[] =>
   [...controlerNommage(r, c), ...controlerMapping(r, c), ...controlerOublis(r, c)].map(({ code }) => code);
 
-test('un jeu Color=Error lié à Color/Danger/… ne rend ni C7, ni C15, ni C17, ni C18, ni C32, ni C33', () => {
+test('un jeu Color=Error lié à Color/Danger/… ne rend que C8, qui renomme Error en Danger (Q-F5-5)', () => {
   const r = releve([axe('Color', ['Error'])], [variant('error', { Color: 'Error' }, 'v0')]);
   const c = catalogue('Button/Color/Danger/Background');
-  assert.deepEqual(codesDesLecteurs(r, c), []);
+  assert.deepEqual(codesDesLecteurs(r, c), ['C8']);
+  const [constat] = controlerNommage(r, c);
+  assert.deepEqual([constat.faits.valeur, constat.faits.attendu, constat.correction?.sorte, constat.correction?.apres.nom], ['Error', 'Danger', 'nom-de-valeur', 'Danger']);
 });
 
 test('un jeu dont la palette n’est écrite par aucun terme reconnu garde ses constats', () => {

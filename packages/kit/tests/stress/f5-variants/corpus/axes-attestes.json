@@ -28,9 +28,7 @@
     "systeme": null,
     "composant": null,
     "role": "taille",
-    "roleSelonLaProposition": "taille",
-    "verdict": "mesure",
-    "question": "Q-F5-1",
+    "verdict": "attendu",
     "source": "plan 3.2"
   },
   {
@@ -38,9 +36,7 @@
     "systeme": null,
     "composant": null,
     "role": "taille",
-    "roleSelonLaProposition": "taille",
-    "verdict": "mesure",
-    "question": "Q-F5-1",
+    "verdict": "attendu",
     "source": "plan 3.2"
   },
   {
@@ -87,20 +83,16 @@
     "nom": "Loading",
     "systeme": null,
     "composant": null,
-    "role": "etat",
-    "roleSelonLaProposition": null,
-    "verdict": "mesure",
-    "question": "Q-F5-1",
+    "role": null,
+    "verdict": "attendu",
     "source": "plan 3.2"
   },
   {
     "nom": "Selected",
     "systeme": null,
     "composant": null,
-    "role": "etat",
-    "roleSelonLaProposition": null,
-    "verdict": "mesure",
-    "question": "Q-F5-1",
+    "role": null,
+    "verdict": "attendu",
     "source": "plan 3.2"
   },
   {
@@ -148,9 +140,7 @@
     "systeme": null,
     "composant": null,
     "role": "palette",
-    "roleSelonLaProposition": "palette",
-    "verdict": "mesure",
-    "question": "Q-F5-9",
+    "verdict": "attendu",
     "source": "plan 3.2"
   },
   {
@@ -158,9 +148,7 @@
     "systeme": null,
     "composant": null,
     "role": "palette",
-    "roleSelonLaProposition": "palette",
-    "verdict": "mesure",
-    "question": "Q-F5-9",
+    "verdict": "attendu",
     "source": "plan 3.2"
   },
   {
@@ -168,29 +156,23 @@
     "systeme": null,
     "composant": null,
     "role": "palette",
-    "roleSelonLaProposition": "palette",
-    "verdict": "mesure",
-    "question": "Q-F5-9",
+    "verdict": "attendu",
     "source": "plan 3.2"
   },
   {
     "nom": "Destructive",
     "systeme": "untitled-ui",
     "composant": "Button",
-    "role": "palette",
-    "roleSelonLaProposition": null,
-    "verdict": "mesure",
-    "question": "Q-F5-1",
+    "role": null,
+    "verdict": "attendu",
     "source": "plan 3.2"
   },
   {
     "nom": "Danger",
     "systeme": "ant-design",
     "composant": "Button",
-    "role": "palette",
-    "roleSelonLaProposition": null,
-    "verdict": "mesure",
-    "question": "Q-F5-1",
+    "role": null,
+    "verdict": "attendu",
     "source": "plan 3.2"
   },
   {
@@ -246,9 +228,7 @@
     "systeme": null,
     "composant": null,
     "role": "style",
-    "roleSelonLaProposition": "style",
-    "verdict": "mesure",
-    "question": "Q-F5-9",
+    "verdict": "attendu",
     "source": "plan 3.2"
   },
   {
@@ -256,9 +236,7 @@
     "systeme": null,
     "composant": null,
     "role": "style",
-    "roleSelonLaProposition": "style",
-    "verdict": "mesure",
-    "question": "Q-F5-9",
+    "verdict": "attendu",
     "source": "plan 3.2"
   },
   {
@@ -266,9 +244,7 @@
     "systeme": null,
     "composant": null,
     "role": "style",
-    "roleSelonLaProposition": "style",
-    "verdict": "mesure",
-    "question": "Q-F5-9",
+    "verdict": "attendu",
     "source": "plan 3.2"
   },
   {
@@ -276,9 +252,7 @@
     "systeme": "ant-design",
     "composant": "Button",
     "role": "style",
-    "roleSelonLaProposition": "style",
-    "verdict": "mesure",
-    "question": "Q-F5-1",
+    "verdict": "attendu",
     "source": "plan 3.2"
   },
   {
@@ -286,9 +260,7 @@
     "systeme": "carbon",
     "composant": "Button",
     "role": "style",
-    "roleSelonLaProposition": "style",
-    "verdict": "mesure",
-    "question": "Q-F5-1",
+    "verdict": "attendu",
     "source": "plan 3.2"
   },
   {
@@ -296,19 +268,15 @@
     "systeme": "fluent-2",
     "composant": "Button",
     "role": "style",
-    "roleSelonLaProposition": "style",
-    "verdict": "mesure",
-    "question": "Q-F5-1",
+    "verdict": "attendu",
     "source": "plan 3.2"
   },
   {
     "nom": "High contrast",
     "systeme": "radix",
     "composant": "Button",
-    "role": "style",
-    "roleSelonLaProposition": null,
-    "verdict": "mesure",
-    "question": "Q-F5-1",
+    "role": null,
+    "verdict": "attendu",
     "source": "docs/references/design-systems/radix/sources/composant__radix-ui-themes__src__components___internal__base-button.css.txt"
   }
 ]
