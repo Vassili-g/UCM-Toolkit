@@ -60,6 +60,7 @@ Les tests du monorepo lui-même.
 - finsDeLigne.test.mjs : aucun fichier texte en CRLF dans l'index
 - registreDesDocuments.test.ts : chaque document Markdown du dépôt a un emplacement dans le registre de `.agents/domiciles.json`
 - verifierConservation.test.mjs : garde de la réécriture d'AGENTS.md relève et compare ses atomes
+- iconesDuKit.test.ts : un tracé d'icône s'écrit seulement dans `signes.ts` du kit et `FORMES` du socle ; une exception se déclare avec son motif
 - inventaireInvariants.test.ts : accord des fichiers d'invariants avec le code, dans les deux sens
 - textesEcrits.test.mjs : aucun catalogue de textes des plugins ne porte `TODO(texte)`
 - cartes.test.ts : chaque chemin des cartes existe, et la section `tests/` liste exactement les tests de `tests/`
