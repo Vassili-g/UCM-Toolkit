@@ -3,8 +3,8 @@
  * attendu, les constructeurs d'attendus et la fabrique de cas. Un cas ne garde que des fermetures : `materialiser()` copie P0,
  * applique la dégradation et rend la copie avec son `annuler()`.
  *
- * Un constat de contraste se range par (usage, layer, plage de texte, fond nommé) : il groupe des variants et des modes, et son
- * identifiant porte aussi le seuil et le niveau, que le cas compare à part. Les attendus se rédigent avec `oracleContraste.ts` seul.
+ * Un constat de contraste se range par (usage, layer, fond nommé) : il groupe des variants, des modes et des plages de texte, et son
+ * identifiant ne porte ni la plage ni le niveau (Q-F7-12), que le cas compare à part. Les attendus se rédigent avec `oracleContraste.ts` seul.
  */
 import type { Cause, NiveauWcag } from '../../../src/controles/accessibilite.js';
 import type { Constat } from '../../../src/controles/index.js';
@@ -108,14 +108,10 @@ export const HYPOTHESES: Readonly<Record<string, string>> = {
 export const CLE_DE_REPLI = 'fond-de-repli';
 export const CLE_DE_BORNE = 'borne';
 
-export const cleDeContraste = (usage: Usage, layer: string, plage = '', fond = ''): string => `${usage}|${layer}|${plage}|${fond}`;
-export const cleDeLimite = (cause: CauseAttendue, usage: Usage, layer: string, plage = ''): string => `limite:${cause}|${usage}|${layer}|${plage}`;
+/** La plage de texte ne fait pas partie de l'identifiant d'un constat (Q-F7-12) : le paramètre reste pour la lisibilité des cas, la clé l'ignore. */
+export const cleDeContraste = (usage: Usage, layer: string, _plage = '', fond = ''): string => `${usage}|${layer}||${fond}`;
+export const cleDeLimite = (cause: CauseAttendue, usage: Usage, layer: string, _plage = ''): string => `limite:${cause}|${usage}|${layer}|`;
 export const cleDeTaille = (layer: string, fontSize: number): string => `taille|${layer}|${fontSize}`;
-
-const plageDansLIdentifiant = (constat: Constat, usage: string, calque: string): string => {
-  const reste = constat.id.slice(`${constat.code}:${calque}:${usage}:`.length);
-  return /^(\d+-\d+)(?=:)/.exec(reste)?.[1] ?? '';
-};
 
 /** La clé que `comparer` calcule pour un constat émis. */
 export function cleDeConstat(constat: Constat): string {
@@ -128,9 +124,8 @@ export function cleDeConstat(constat: Constat): string {
   if (constat.code === 'C51') return `anneau|${faits.calque}|${faits.strokeWeight}`;
   if (constat.code === 'C52') return `cible|${faits.largeur}x${faits.hauteur}|${faits.seuil}`;
   const [usage, calque] = [String(faits.usage), String(faits.calque)];
-  const plage = plageDansLIdentifiant(constat, usage, calque);
-  if (constat.limite && faits.cause) return cleDeLimite(faits.cause as CauseAttendue, usage as Usage, calque, plage);
-  return cleDeContraste(usage as Usage, calque, plage, faits.fondNomme === undefined ? '' : String(faits.fondNomme));
+  if (constat.limite && faits.cause) return cleDeLimite(faits.cause as CauseAttendue, usage as Usage, calque);
+  return cleDeContraste(usage as Usage, calque, '', faits.fondNomme === undefined ? '' : String(faits.fondNomme));
 }
 
 // ---------------------------------------------------------------------------------------------------------------------------

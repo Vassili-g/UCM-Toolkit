@@ -86,7 +86,7 @@ export function operateurY(base: ComposantDeContraste): CasAccessibilite[] {
   for (const [variable, element] of auDela) {
     cas.push(faire(`Y1-${numero('Y1')}`, 'Y1', {
       description: `texte de seuil ${element.seuil} (${element.niveau}) lié à primary/${variable}, dont la garantie vise un autre seuil ou un autre niveau`, niveau: element.niveau,
-      degrader: surLaVariable(element, `primary/${variable}`), attendus: attendus(element, 'verifier', variable), verdict: 'mesure', question: 'Q-F7-7', hypothese: 'H5',
+      degrader: surLaVariable(element, `primary/${variable}`), attendus: attendus(element, 'verifier', variable), hypothese: 'H5',
     }));
   }
 

@@ -81,12 +81,7 @@ test('les cas qui dépendent d\'une question non confirmée portent le verdict m
   const parQuestion: Record<string, string[]> = {};
   for (const entree of TOUS.filter((autre) => autre.verdict === 'mesure')) (parQuestion[entree.question!] ??= []).push(entree.id);
   assert.deepEqual(parQuestion, {
-    'Q-F7-3': ['G1-7', 'G1-8', 'G1-11', 'G1-12', 'G2-2'],
     'Q-F7-10': ['G3-9'],
-    'Q-F7-2': ['O1-9', 'O1-10', 'O1-11', 'O1-12', 'O3-5', 'O5-1', 'O5-2', 'O5-3', 'O5-4', 'O5-5'],
-    'Q-F7-4': ['F6-1', 'F6-2', 'F6-3', 'F6-4'],
-    'Q-F7-6': ['M6-1', 'M6-2', 'M6-3', 'M6-4'],
-    'Q-F7-7': ['Y1-10', 'Y1-11', 'Y1-12', 'Y1-13', 'Y1-14'],
   });
 });
 
@@ -94,7 +89,7 @@ test('S : une paire juste sous le seuil donne un constat au rapport tronqué, un
   // Texte AA sur blanc : #7C7290 (4,500000635) passe, #9A6C5A (4,499999851) échoue et s'affiche 4,49.
   assert.deepEqual(cas('S1-1').attendus, []);
   assert.deepEqual(cas('S1-2').attendus.map(({ code, cle, rapport, seuil, niveau, type, premierPlan, fond, variants }) => ({ code, cle, rapport, seuil, niveau, type, premierPlan, fond, variants })),
-    [{ code: 'C49', cle: 'texte|Texte|0-10|', rapport: 4.49, seuil: 4.5, niveau: 'AA', type: 'corriger', premierPlan: '#9A6C5A', fond: '#FFFFFF', variants: [cible] }]);
+    [{ code: 'C49', cle: 'texte|Texte||', rapport: 4.49, seuil: 4.5, niveau: 'AA', type: 'corriger', premierPlan: '#9A6C5A', fond: '#FFFFFF', variants: [cible] }]);
   // Les dix lignes de S1 ont huit paires chacune ; la ligne AAA du contour attend 3, la ligne de l'anneau le code C50.
   assert.equal(duOperateur('S1').filter((c) => c.attendus.length > 0).length, 40);
   assert.deepEqual([cas('S1-50').attendus[0].cle, cas('S1-50').attendus[0].seuil], ['stroke|Contour||', 3]);
@@ -103,14 +98,14 @@ test('S : une paire juste sous le seuil donne un constat au rapport tronqué, un
   assert.deepEqual(duOperateur('S2').map((c) => c.attendus.length), [0, 1, 0, 1, 0, 1, 0, 1]);
   assert.deepEqual([cas('S2-2').attendus[0].rapport, cas('S2-4').attendus[0].rapport, cas('S2-6').attendus[0].rapport], [4.47, 6.89, 2.99]);
   // S3 : 5,0:1 échoue en texte AAA seul, 3,9:1 en grand texte AAA seul.
-  assert.deepEqual(duOperateur('S3').map((c) => c.attendus.map((a) => `${a.cle}@${a.niveau}`)), [[], ['texte|Texte|0-10|@AAA'], [], ['grand-texte|Texte|0-10|@AAA'], [], [], [], []]);
+  assert.deepEqual(duOperateur('S3').map((c) => c.attendus.map((a) => `${a.cle}@${a.niveau}`)), [[], ['texte|Texte||@AAA'], [], ['grand-texte|Texte||@AAA'], [], [], [], []]);
 });
 
 test('G : la classe du texte suit 14 pt = 56/3 px, la taille minimale suit la frontière 11,99 / 12', () => {
   const seuilDe = (id: string): number | undefined => cas(id).attendus[0]?.seuil;
   // G1 : 18,65 à 700 est un petit texte (seuil 4,5) ; 18,67 à 700 un grand texte (aucun constat) ; 18,66 à 700 attend le seuil 4,5 en attente de Q-F7-3.
   assert.deepEqual([seuilDe('G1-3'), seuilDe('G1-19'), seuilDe('G1-7'), seuilDe('G1-25')], [4.5, undefined, 4.5, undefined]);
-  assert.equal(cas('G1-7').verdict, 'mesure');
+  assert.equal(cas('G1-7').verdict, 'attendu');
   assert.equal(cas('G1-6').verdict, 'attendu');
   // G2 : 4,0:1 échoue partout en AAA, au seuil 7 pour un texte et 4,5 pour un grand texte.
   assert.deepEqual(duOperateur('G2').map((c) => c.attendus[0].seuil), [7, 7, 7, 4.5, 7, 4.5, 4.5, 4.5]);
@@ -131,26 +126,26 @@ test('O : l\'alpha effectif compose le texte, une pile s\'arrête à l\'opaque, 
   assert.equal(cas('O2-3').attendus[0].premierPlan, '#858585');
   assert.equal(cas('O2-5').attendus[0].premierPlan, '#B6B6B6');
   // O4 : un fond d'alpha 0 est la page elle-même, en mode Dark ; la page Figma garde ses constats nommés `page-figma` et l'information de repli.
-  assert.deepEqual(cas('O4-4').attendus.map((a) => [a.cle, a.fond, a.premierPlan]), [['texte|Texte|0-10|page', '#0B1020', '#000000'], ['texte|Texte|0-10|carte', '#131A2E', '#000000']]);
-  assert.deepEqual(cas('O4-8').attendus.map((a) => a.cle), ['texte|Texte|0-10|page-figma', 'fond-de-repli']);
-  assert.deepEqual(['O4-10', 'O4-11'].map((id) => cas(id).attendus.map((a) => a.cle)), Array(2).fill(['limite:fond-indetermine|stroke|Root|', 'limite:fond-indetermine|texte|Texte|0-10']));
-  assert.deepEqual(cas('O4-9').attendus.map((a) => a.cle), ['limite:fond-indetermine|stroke|Root|', 'limite:fond-indetermine|texte|Texte|0-10']);
+  assert.deepEqual(cas('O4-4').attendus.map((a) => [a.cle, a.fond, a.premierPlan]), [['texte|Texte||page', '#0B1020', '#000000'], ['texte|Texte||carte', '#131A2E', '#000000']]);
+  assert.deepEqual(cas('O4-8').attendus.map((a) => a.cle), ['texte|Texte||page-figma', 'fond-de-repli']);
+  assert.deepEqual(['O4-10', 'O4-11'].map((id) => cas(id).attendus.map((a) => a.cle)), Array(2).fill(['limite:fond-indetermine|stroke|Root|', 'limite:fond-indetermine|texte|Texte|']));
+  assert.deepEqual(cas('O4-9').attendus.map((a) => a.cle), ['limite:fond-indetermine|stroke|Root|', 'limite:fond-indetermine|texte|Texte|']);
   // O5 : le texte noir sous un parent à 50 % se mesure à l'alpha 0,5 ; le parent à 0 n'attend rien.
   assert.equal(cas('O5-1').attendus[0].premierPlan, '#808080');
   assert.deepEqual(cas('O5-4').attendus, []);
 });
 
 test('F : un dégradé, une image ou un mode de fusion rend une limite sans verdict ; un fond lisible rend le verdict normal', () => {
-  assert.deepEqual(duOperateur('F1').map((c) => c.attendus.map((a) => a.cle)), Array(8).fill(['limite:degrade|texte|Texte|0-10']));
-  assert.deepEqual(duOperateur('F2').map((c) => c.attendus.map((a) => a.cle)), Array(4).fill(['limite:image|texte|Texte|0-10']));
-  const limites = duOperateur('F3').map((c) => c.attendus[0].cle === 'limite:peinture-superposee|texte|Texte|0-10');
+  assert.deepEqual(duOperateur('F1').map((c) => c.attendus.map((a) => a.cle)), Array(8).fill(['limite:degrade|texte|Texte|']));
+  assert.deepEqual(duOperateur('F2').map((c) => c.attendus.map((a) => a.cle)), Array(4).fill(['limite:image|texte|Texte|']));
+  const limites = duOperateur('F3').map((c) => c.attendus[0].cle === 'limite:peinture-superposee|texte|Texte|');
   assert.equal(limites.filter(Boolean).length, 19);
-  assert.deepEqual([cas('F3-1').attendus[0].cle, cas('F3-2').attendus[0].cle, cas('F3-4').attendus[0].cle], ['texte|Texte|0-10|', 'texte|Texte|0-10|', 'limite:peinture-superposee|texte|Texte|0-10']);
-  assert.equal(cas('F3-22').attendus[0].cle, 'texte|Texte|0-10|');
+  assert.deepEqual([cas('F3-1').attendus[0].cle, cas('F3-2').attendus[0].cle, cas('F3-4').attendus[0].cle], ['texte|Texte||', 'texte|Texte||', 'limite:peinture-superposee|texte|Texte|']);
+  assert.equal(cas('F3-22').attendus[0].cle, 'texte|Texte||');
   assert.deepEqual(duOperateur('F4').map((c) => c.attendus[0].cle.startsWith('limite:')), [true, true, false, false, false, true]);
   assert.deepEqual(duOperateur('F5').map((c) => c.attendus.length), [0, 0, 0, 0, 1, 1]);
-  assert.deepEqual(cas('F6-2').attendus.map((a) => a.cle), ['limite:fond-indetermine|texte|Texte|0-10', 'fond-de-repli']);
-  assert.deepEqual([cas('F7-1').attendus[0].cle, cas('F7-2').attendus[0].cle], ['limite:peinture-superposee|texte|Texte|0-10', 'limite:couleur-absente|texte|Texte|0-10']);
+  assert.deepEqual(cas('F6-2').attendus.map((a) => a.cle), ['limite:fond-indetermine|texte|Texte|', 'fond-de-repli']);
+  assert.deepEqual([cas('F7-1').attendus[0].cle, cas('F7-2').attendus[0].cle], ['limite:peinture-superposee|texte|Texte|', 'limite:couleur-absente|texte|Texte|']);
 });
 
 test('M : une étiquette par combinaison de modes, 24 combinaisons pour 2, 3 et 4 modes, dix renvois au plus', () => {
@@ -166,21 +161,21 @@ test('M : une étiquette par combinaison de modes, 24 combinaisons pour 2, 3 et 
   assert.deepEqual(duOperateur('M3').map((c) => c.attendus[0].rapports?.length), [6, 24, 2, 4]);
   // M4 : lisible jusqu'à 10 renvois, limite au-delà et pour les cycles.
   assert.deepEqual(duOperateur('M4').map((c) => c.attendus[0].cle), [
-    'texte|Texte|0-10|', 'texte|Texte|0-10|', 'texte|Texte|0-10|', ...Array(4).fill('limite:mode-illisible|texte|Texte|0-10'),
+    'texte|Texte||', 'texte|Texte||', 'texte|Texte||', ...Array(4).fill('limite:mode-illisible|texte|Texte|'),
   ]);
   // M5 : huit limites `mode-illisible`, puis quatre limites `couleur-hors-gamut` (Q-F7-5).
   assert.deepEqual(duOperateur('M5').map((c) => c.attendus[0].cle.split('|')[0]), [...Array(8).fill('limite:mode-illisible'), ...Array(4).fill('limite:couleur-hors-gamut')]);
   // M6 : la proposition mesure les deux modes du thème, donc la page et la carte échouent en Dark ; avec un mode, rien.
   assert.deepEqual(duOperateur('M6').map((c) => c.attendus.map((a) => a.cle)), [
-    ['texte|Texte|0-10|page', 'texte|Texte|0-10|carte'], [], ['texte|Texte|0-10|page', 'texte|Texte|0-10|carte'], ['texte|Texte|0-10|page', 'texte|Texte|0-10|carte'],
+    ['texte|Texte||page', 'texte|Texte||carte'], [], ['texte|Texte||page', 'texte|Texte||carte'], ['texte|Texte||page', 'texte|Texte||carte'],
   ]);
-  assert.deepEqual(duOperateur('M7').map((c) => c.attendus[0].cle), ['texte|Texte|0-10|', 'limite:mode-illisible|texte|Texte|0-10']);
+  assert.deepEqual(duOperateur('M7').map((c) => c.attendus[0].cle), ['texte|Texte||', 'limite:mode-illisible|texte|Texte|']);
 });
 
 test('Y : la garantie nomme la page et la carte pour six des sept variables ; hors du thème et non reconnue, tout est à vérifier', () => {
   const types = (id: string): string => [...new Set(cas(id).attendus.map((a) => a.type))].join();
   assert.deepEqual(duOperateur('Y1').slice(0, 7).map((c) => types(c.id)), ['verifier', 'corriger', 'corriger', 'corriger', 'corriger', 'corriger', 'corriger']);
-  assert.deepEqual(cas('Y1-1').attendus.map((a) => [a.cle, a.variableDuTheme]), [['texte|Texte|0-10|page', 'solid/foreground'], ['texte|Texte|0-10|carte', 'solid/foreground']]);
+  assert.deepEqual(cas('Y1-1').attendus.map((a) => [a.cle, a.variableDuTheme]), [['texte|Texte||page', 'solid/foreground'], ['texte|Texte||carte', 'solid/foreground']]);
   assert.deepEqual([types('Y1-8'), types('Y1-9'), cas('Y1-8').attendus[0].variableDuTheme, cas('Y1-9').attendus[0].variableDuTheme], ['verifier', 'verifier', '', '']);
   // Q-F7-7 : le seuil ou le niveau que la garantie ne vise pas se vérifie.
   assert.deepEqual(duOperateur('Y1').slice(9).map((c) => [types(c.id), c.attendus[0].seuil, c.attendus[0].niveau]), [

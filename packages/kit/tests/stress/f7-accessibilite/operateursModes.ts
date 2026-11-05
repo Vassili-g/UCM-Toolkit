@@ -108,7 +108,7 @@ export function operateurM(base: ComposantDeContraste): CasAccessibilite[] {
         const racine = d.scene({ racineEnDur: true });
         d.remplacerLesPeintures(racine, 'fills', [solide(BLANC)]);
         d.lier(racine, d.nouvelleVariable({ nom: 'test/fond', collection: b, valeurs: fonds }), { indice: 0 });
-        d.lier(racine, d.nouvelleVariable({ nom: 'test/trait', collection: c, valeurs: ['#808080', '#808080', '#808080', '#808080'] }), { champ: 'strokes', indice: 0 });
+        d.lier(racine, d.nouvelleVariable({ nom: 'test/trait', collection: c, valeurs: ['#808080', '#808081', '#808082', '#808083'] }), { champ: 'strokes', indice: 0 });
         const texte = d.ajouterUnTexte('Texte', { peintures: [solide(NOIR)] });
         d.lier(texte, d.nouvelleVariable({ nom: 'test/texte', collection: a, valeurs: textes }), { plage: 0 });
       },
@@ -126,9 +126,10 @@ export function operateurM(base: ComposantDeContraste): CasAccessibilite[] {
       degrader: (d) => {
         const collection = (role: string) => d.catalogue.collections.find((c) => c.role === role)!;
         const brands = brandsUnique ? d.nouvelleCollection('brands-un-mode', ['Mode 1'], 'brands') : collection('brands');
-        const primitive = d.nouvelleVariable({ nom: 'test/primitive', collection: collection('primitives'), valeurs: [CLAIR] });
-        const deBrands = d.nouvelleVariable({ nom: 'test/brands', collection: brands, valeurs: brands.modes.map(() => ({ alias: primitive.cle })) });
-        const duTheme = d.nouvelleVariable({ nom: 'test/theme', collection: collection('theme'), valeurs: [{ alias: deBrands.cle }, { alias: deBrands.cle }] });
+        // Chaque mode lit une variable différente, de même couleur : aucune collection ne sort du produit (Q-F7-11).
+        const primitives = ['test/primitive', 'test/primitive-bis'].map((nom) => d.nouvelleVariable({ nom, collection: collection('primitives'), valeurs: [CLAIR] }));
+        const [deBrands, deBrandsBis] = ['test/brands', 'test/brands-bis'].map((nom) => d.nouvelleVariable({ nom, collection: brands, valeurs: brands.modes.map((_, rang) => ({ alias: primitives[rang === 0 ? 0 : 1].cle })) }));
+        const duTheme = d.nouvelleVariable({ nom: 'test/theme', collection: collection('theme'), valeurs: [{ alias: deBrands.cle }, { alias: deBrandsBis.cle }] });
         const decomposant = d.nouvelleVariable({ nom: 'test/components', collection: collection('components'), valeurs: [{ alias: duTheme.cle }] });
         texteLie(d, decomposant);
       },
@@ -208,7 +209,7 @@ export function operateurM(base: ComposantDeContraste): CasAccessibilite[] {
     ['texte noir lié à une autre collection à un mode', (d) => { texteLie(d, d.nouvelleVariable({ nom: 'test/texte', collection: d.nouvelleCollection('Autre', ['Mode 1']), valeurs: [NOIR] }), { fond: fondTranslucide }); }, repli()],
   ];
   for (const [description, degrader, attendus] of m6) {
-    cas.push(faire(`M6-${numero('M6')}`, 'M6', { description, degrader, attendus, verdict: 'mesure', question: 'Q-F7-6', hypothese: 'H6' }));
+    cas.push(faire(`M6-${numero('M6')}`, 'M6', { description, degrader, attendus, hypothese: 'H6' }));
   }
 
   // M7 : une couleur liée à une variable de library, lue ou non.

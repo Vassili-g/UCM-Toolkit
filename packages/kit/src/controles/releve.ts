@@ -133,15 +133,8 @@ export function layersVisiblesDuVariant(variant: VariantLu): LayerLu[] {
       if (!courant.visible) { resultat = false; break; }
       courant = courant.parent === null ? undefined : parId.get(courant.parent);
     }
-    // Un layer n'est masqué que par lui-même ou un ancêtre : on mémorise le verdict de la chaîne parcourue.
-    if (resultat) for (const l of chaine) verdicts.set(l.id, true);
-    else {
-      let masque = false;
-      for (let i = chaine.length - 1; i >= 0; i--) {
-        if (!chaine[i].visible) masque = true;
-        verdicts.set(chaine[i].id, !masque);
-      }
-    }
+    // Un verdict masqué vaut pour toute la chaîne parcourue : chaque layer qu'elle contient est le masqué ou l'un de ses descendants.
+    for (const l of chaine) verdicts.set(l.id, resultat);
     return resultat;
   };
   return variant.layers.filter(estVisible);

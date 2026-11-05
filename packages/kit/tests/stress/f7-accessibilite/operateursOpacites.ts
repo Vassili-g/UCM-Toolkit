@@ -44,7 +44,7 @@ export function operateurO(base: ComposantDeContraste): CasAccessibilite[] {
   for (const [quoi, poser] of zeros) {
     cas.push(faire(`O1-${numero('O1')}`, 'O1', {
       description: `texte sur blanc, ${quoi} : rien n'est lisible, ni verdict ni constat`,
-      degrader: (d) => { d.scene(); poser(d); }, attendus: [], verdict: 'mesure', question: 'Q-F7-2', hypothese: 'H3',
+      degrader: (d) => { d.scene(); poser(d); }, attendus: [], hypothese: 'H3',
     }));
   }
 
@@ -94,7 +94,7 @@ export function operateurO(base: ComposantDeContraste): CasAccessibilite[] {
   o3('un ancêtre à opacité 0,5 sur sa propre peinture opaque, qui contient aussi le texte (Q-F7-2)', (d) => {
     const r = d.scene({ fond: couleurDeHex(sombre) });
     return cadre(d, 'Zone', r, [solide(BLANC)], 0.5);
-  }, [couleurDeHex(BLANC, 0.5), couleurDeHex(sombre)], { verdict: 'mesure', question: 'Q-F7-2', hypothese: 'H2' }, [couleurDeHex(gris, 0.5)]);
+  }, [couleurDeHex(BLANC, 0.5), couleurDeHex(sombre)], { hypothese: 'H2' }, [couleurDeHex(gris, 0.5)]);
   o3('deux peintures translucides empilées sur le même cadre', (d) => {
     const r = d.scene({ fond: couleurDeHex(sombre) });
     return cadre(d, 'Zone', r, [solide(BLANC, { alpha: 0.5, indice: 0 }), solide('#0000FF', { alpha: 0.5, indice: 1 })]);
@@ -158,7 +158,7 @@ export function operateurO(base: ComposantDeContraste): CasAccessibilite[] {
     cas.push(faire(`O5-${numero('O5')}`, 'O5', {
       description, degrader: (d) => { const parent = poser(d); d.ajouterUnTexte('Texte', { peintures: [solide(NOIR)] }, { parent }); },
       attendus: effectif === 0 ? [] : attenduSurLeFond([couleurDeHex(NOIR, effectif)], fond, null, cible),
-      verdict: 'mesure', question: 'Q-F7-2', hypothese: 'H2',
+      hypothese: 'H2',
     }));
   };
   o5('parent à 50 % d\'opacité', (d) => cadre(d, 'Parent', d.scene(), [], 0.5), 0.5);

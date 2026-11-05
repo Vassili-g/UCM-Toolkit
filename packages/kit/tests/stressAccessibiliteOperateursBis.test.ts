@@ -64,13 +64,10 @@ test('les cas qui dépendent d\'une question non confirmée portent le verdict m
   for (const entree of LOT_2.filter((autre) => autre.verdict === 'mesure')) (parQuestion[entree.question!] ??= []).push(entree.id);
   assert.deepEqual(parQuestion, {
     'Q-F3-4': [...Array.from({ length: 20 }, (_, rang) => `I1-${rang + 5}`), 'I2-3', 'I2-4'],
-    'Q-F7-2': ['R1-8'],
     'Q-F7-8': ['R1-12', 'R1-13', 'R1-14'],
     'Q-F7-9': ['R2-10', 'R2-11', 'R2-12', 'R2-13', 'R2-14', 'R2-15', 'R4-9', 'R4-10', 'R5-11', 'R5-12'],
     'E-40': ['Z2-9', 'Z2-10', 'Z2-11'],
     'Q-F7-10': ['X1-5', 'X1-6', 'X1-7', 'X1-8', 'X1-9', 'X1-10', 'X2-6', 'X2-7', 'X2-8', 'X2-9', 'X3-1', 'X3-2', 'X3-3', 'X3-4'],
-    'Q-F7-11': ['Q2-2', 'Q4-1', 'Q4-2'],
-    'Q-F7-12': ['T2-2'],
   });
 });
 
@@ -150,32 +147,31 @@ test('Q : la borne sonne si et seulement si le total dépasse 5 000, les comptes
   assert.deepEqual(duOperateur('Q1').map((c) => nonMesurees(c.id)), [undefined, undefined, 1, undefined, 2 * 2501 - 5000, undefined, 51 * 100 - 5000, 216 * 24 - 5000]);
   assert.deepEqual(duOperateur('Q1').map((c) => c.attendus.length), [0, 0, 1, 0, 1, 0, 1, 1]);
   // Q2 : le troisième variant échoue à son dernier rang mesuré (constat) ou au premier non mesuré (aucun constat, borne de 1 000).
-  assert.deepEqual(cas('Q2-1').attendus.map((a) => a.cle), ['texte|Texte|0-10|', 'borne']);
+  assert.deepEqual(cas('Q2-1').attendus.map((a) => a.cle), ['texte|Texte||', 'borne']);
   assert.deepEqual(cas('Q2-2').attendus.map((a) => a.cle), ['borne']);
   assert.equal(nonMesurees('Q2-2'), 1000);
   assert.equal(nonMesurees('Q2-3'), 7000 - 5000);
-  assert.deepEqual(cas('Q2-4').attendus.map((a) => a.cle), ['texte|Texte|0-10|', 'borne']);
+  assert.deepEqual(cas('Q2-4').attendus.map((a) => a.cle), ['texte|Texte||', 'borne']);
   // Q3 : 720 combinaisons sans borne, 10^6 - 5 000 en nombre, 10^20 - 5 000 en chaîne de chiffres exacts.
   assert.deepEqual([nonMesurees('Q3-1'), nonMesurees('Q3-2'), nonMesurees('Q3-3')], [undefined, 995000, '99999999999999995000']);
   // Q4 : une collection dont le mode ne change pas la couleur lue sort du produit, donc un seul mode est rapporté.
   assert.deepEqual(duOperateur('Q4').map((c) => c.attendus[0].autresModes), [0, 0]);
   // Q5 : les variants désactivés restent hors du compte ; sans couleur liée, le total vaut 1.
   assert.deepEqual(cas('Q5-1').attendus.map((a) => [a.cle, a.exclus]), [['C53', 2]]);
-  assert.deepEqual(cas('Q5-2').attendus.map((a) => a.cle), ['texte|Texte|0-10|']);
+  assert.deepEqual(cas('Q5-2').attendus.map((a) => a.cle), ['texte|Texte||']);
 });
 
 test('T et L : un constat par plage qui échoue au seuil de sa classe, aucune exception sur une entrée dégradée', () => {
-  assert.deepEqual(cles('T1-1'), ['texte|Label|0-5|', 'texte|Label|5-10|']);
-  assert.deepEqual(cles('T1-2'), ['texte|Label|4-7|']);
+  assert.deepEqual(cles('T1-1'), ['texte|Label||']);
+  assert.deepEqual(cles('T1-2'), ['texte|Label||']);
   // Une plage de 24 px à 3,95:1 passe le seuil de 3 ; la plage de 14 px échoue au seuil de 4,5.
-  assert.deepEqual(cas('T1-3').attendus.map((a) => [a.cle, a.seuil]), [['texte|Label|5-10|', 4.5]]);
-  assert.deepEqual(cas('T1-4').attendus.map((a) => [a.cle, a.seuil]), [['texte|Label|5-10|', 4.5]]);
+  assert.deepEqual(cas('T1-3').attendus.map((a) => [a.cle, a.seuil]), [['texte|Label||', 4.5]]);
+  assert.deepEqual(cas('T1-4').attendus.map((a) => [a.cle, a.seuil]), [['texte|Label||', 4.5]]);
   assert.deepEqual(cles('T1-5'), []);
   assert.deepEqual(cas('T1-6').attendus.map((a) => [a.mode, a.autresModes]), [['theme en Light', 0]]);
   assert.equal(cas('T1-8').layersUniques, true);
   // T2 : deux tailles, deux constats ; deux longueurs de plage, un seul groupe attendu (Q-F7-12).
-  assert.deepEqual(duOperateur('T2').map((c) => c.attendus.map((a) => a.cle)), [['texte|Label|0-10|', 'grand-texte|Label|0-10|'], ['texte|Label||']]);
-  assert.equal(cas('T2-2').question, 'Q-F7-12');
+  assert.deepEqual(duOperateur('T2').map((c) => c.attendus.map((a) => a.cle)), [['texte|Label||', 'grand-texte|Label||'], ['texte|Label||']]);
   // L1 : vingt entrées dégradées, aucun constat attendu ; le cycle de `parent` ne finit pas et se mesure à part.
   assert.deepEqual(duOperateur('L1').map((c) => c.attendus.length), Array(20).fill(0));
   assert.deepEqual(duOperateur('L1').filter((c) => c.risqueDeBoucle).map((c) => c.id), ['L1-13']);
@@ -223,26 +219,26 @@ test('les interactions : sept couples sur P0, Pα et le profil tiré, soit 21 ca
 });
 
 test('chaque couple d\'interactions a son oracle propre, écrit à la main', () => {
-  // O4 et M6 : le repli mesure les deux modes du thème, donc la page et la carte échouent en Dark. Sur le profil tiré, qui n'a que Light, le texte noir passe. En attente de Q-F7-6.
-  assert.deepEqual([interaction('O4+M6-p013').verdict, interaction('O4+M6-p013').question], ['mesure', 'Q-F7-6']);
-  assert.deepEqual(interaction('O4+M6-p013').attendus.map((a) => a.cle), ['texte|Texte|0-10|page', 'texte|Texte|0-10|carte']);
+  // O4 et M6 : le repli mesure les deux modes du thème, donc la page et la carte échouent en Dark. Sur le profil tiré, qui n'a que Light, le texte noir passe.
+  assert.equal(interaction('O4+M6-p013').verdict, 'attendu');
+  assert.deepEqual(interaction('O4+M6-p013').attendus.map((a) => a.cle), ['texte|Texte||page', 'texte|Texte||carte']);
   assert.deepEqual(interaction('O4+M6-p042').attendus, []);
   // F1 et M5 : deux limites de causes distinctes, aucun verdict.
-  assert.deepEqual(interaction('F1+M5-p013').attendus.map((a) => a.cle), ['limite:degrade|texte|Texte|0-10', 'limite:mode-illisible|texte|Autre|0-10']);
+  assert.deepEqual(interaction('F1+M5-p013').attendus.map((a) => a.cle), ['limite:degrade|texte|Texte|', 'limite:mode-illisible|texte|Autre|']);
   // X1 et Q1 : trois variants désactivés de 5 001 combinaisons ne consomment rien ; le variant actif de 10 passe.
   assert.deepEqual(interaction('X1+Q1-p013').attendus.map((a) => [a.cle, a.exclus]), [['C53', 3]]);
   // G1 et S3 en AAA : seuil 4,5 pour le grand texte à 3,9:1, seuil 7 pour le texte à 5:1.
-  assert.deepEqual(interaction('G1+S3-p013').attendus.map((a) => [a.cle, a.seuil, a.niveau]), [['grand-texte|Grand|0-10|', 4.5, 'AAA'], ['texte|Petit|0-10|', 7, 'AAA']]);
+  assert.deepEqual(interaction('G1+S3-p013').attendus.map((a) => [a.cle, a.seuil, a.niveau]), [['grand-texte|Grand||', 4.5, 'AAA'], ['texte|Petit||', 7, 'AAA']]);
   assert.equal(interaction('G1+S3-p013').entree.niveau, 'AAA');
   // R4 et R5 : l'anneau invisible d'épaisseur 1 donne `C50:sans-anneau` et aucun C51.
   assert.deepEqual(interaction('R4+R5-p013').attendus.map((a) => a.cle), ['sans-anneau']);
   // Y1 et O4 : un constat sur la page et un sur la carte, corriger, chacun avec la variable du thème.
   assert.deepEqual(interaction('Y1+O4-p013').attendus.map((a) => [a.cle, a.type, a.variableDuTheme]), [
-    ['texte|Texte|0-10|page', 'corriger', 'surface/foreground'], ['texte|Texte|0-10|carte', 'corriger', 'surface/foreground'],
+    ['texte|Texte||page', 'corriger', 'surface/foreground'], ['texte|Texte||carte', 'corriger', 'surface/foreground'],
   ]);
   // T1 et M1 : une plage échoue en Light, l'autre en Dark ; un seul mode sur le profil tiré, donc la seconde plage n'échoue pas.
-  assert.deepEqual(interaction('T1+M1-p013').attendus.map((a) => [a.cle, a.mode]), [['texte|Label|0-5|', 'theme en Light'], ['texte|Label|5-10|', 'theme en Dark']]);
-  assert.deepEqual(interaction('T1+M1-p042').attendus.map((a) => a.cle), ['texte|Label|0-5|']);
+  assert.deepEqual(interaction('T1+M1-p013').attendus.map((a) => [a.cle, a.mode]), [['texte|Label||', 'theme en Light']]);
+  assert.deepEqual(interaction('T1+M1-p042').attendus.map((a) => a.cle), ['texte|Label||']);
 });
 
 test('quelques interactions passent par le kit : X1 et Q1, G1 et S3, R4 et R5, F1 et M5 donnent les constats de leurs deux opérateurs', () => {

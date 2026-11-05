@@ -32,7 +32,7 @@ const COUPLES: readonly (readonly [string, Couple])[] = [
       description: 'texte noir en dur sur un fond blanc d\'alpha 0,1, sans ancêtre opaque',
       degrader: (d) => { d.scene({ fond, racineEnDur: true }); d.ajouterUnTexte('Texte', { peintures: [solide(NOIR)] }); },
       attendus: attendusSurPageEtCarte({ usage: 'texte', seuil: 4.5, cible: nomDeLaCible(base), premierPlan: () => [couleurDeHex(NOIR)], fond: [fond], modes: modesDuProfil(base) }),
-      verdict: 'mesure', question: 'Q-F7-6', hypothese: 'H6',
+      hypothese: 'H6',
     };
   }],
   // Un dégradé en fond et une couleur illisible ailleurs : deux limites de causes distinctes, aucun verdict.
@@ -107,7 +107,7 @@ const COUPLES: readonly (readonly [string, Couple])[] = [
       }),
     };
   }],
-  // Deux plages liées à des tokens qui échouent chacune dans un seul mode : un constat par plage, au pire mode de la plage.
+  // Deux plages liées à des tokens qui échouent chacune dans un seul mode, au même rapport : un seul constat, celui de la première plage (Q-F7-12).
   ['T1+M1', (base) => {
     const cible = nomDeLaCible(base);
     const modes = modesDuProfil(base);
@@ -130,7 +130,7 @@ const COUPLES: readonly (readonly [string, Couple])[] = [
         d.lier(texte, d.nouvelleVariable({ nom: 'test/a', collection: theme, valeurs: [ECHEC, NOIR].slice(0, theme.modes.length) }), { plage: 0 });
         d.lier(texte, d.nouvelleVariable({ nom: 'test/b', collection: theme, valeurs: [NOIR, ECHEC].slice(0, theme.modes.length) }), { plage: 1 });
       },
-      attendus: [...plage(0, 5, 'light'), ...plage(5, 10, 'dark')],
+      attendus: [...plage(0, 5, 'light'), ...plage(5, 10, 'dark')].slice(0, 1),
     };
   }],
 ];

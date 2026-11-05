@@ -209,7 +209,7 @@ const SCENARIOS: readonly Scenario[] = [
   {
     nom: 'l’ajout d’un calque lié',
     projections: ['controle-mapping', 'controle-couches', 'controle-oublis', 'controle-accessibilite', 'controle-typographie', 'controle-theme'],
-    constatsAuMoins: ['controle-accessibilite', 'controle-typographie', 'controle-theme'],
+    constatsAuMoins: ['controle-typographie', 'controle-theme'], // Sa plage n'a aucune couleur : l'accessibilité ne la juge pas (E9b).
     modifier: ({ releve }) => {
       const racine = releve.variants[0].layers[0];
       releve.variants[0].layers.push({

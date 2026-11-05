@@ -22,6 +22,8 @@ export interface CollectionDeBorne { readonly modes: number; readonly echecs?: r
 export interface VarianteDeBorne { readonly etat?: 'Default' | 'Disabled'; readonly via: readonly number[] }
 export interface SpecDeBorne { readonly collections: readonly CollectionDeBorne[]; readonly variantes: readonly VarianteDeBorne[] }
 
+/** Un noir distinct par mode : une collection dont tous les modes lisent la même couleur sort du produit (Q-F7-11), ce que seul Q4 veut. */
+const nuanceDeNoir = (rang: number): string => `#00${(rang >> 8).toString(16).padStart(2, '0')}${(rang & 255).toString(16).padStart(2, '0')}`;
 const nomDuVariant = (rang: number): string => `Q=${rang}`;
 const nomDuTexte = (rang: number): string => (rang === 0 ? 'Texte' : `Texte ${rang}`);
 const identifiantsDeModes = (n: number): string[] => Array.from({ length: n }, (_, rang) => `m${rang}`);
@@ -32,7 +34,7 @@ export function poserLaBorne(d: Degradation, spec: SpecDeBorne): void {
   const variables = spec.collections.map((collection, rang) => {
     const posee = d.nouvelleCollection(`Col${rang}`, identifiantsDeModes(collection.modes));
     const echecs = new Set(collection.echecs ?? []);
-    return d.nouvelleVariable({ nom: `borne/${rang}`, collection: posee, valeurs: Array.from({ length: collection.modes }, (_, mode) => (echecs.has(mode) ? ECHEC : NOIR)) });
+    return d.nouvelleVariable({ nom: `borne/${rang}`, collection: posee, valeurs: Array.from({ length: collection.modes }, (_, mode) => (echecs.has(mode) ? ECHEC : nuanceDeNoir(mode))) });
   });
   spec.variantes.forEach((entree, rang) => {
     const variant = { id: `q:${rang}`, nom: nomDuVariant(rang), valeurs: { State: entree.etat ?? 'Default', Q: String(rang) }, layers: [], modesEffectifs: {} };
@@ -97,13 +99,13 @@ export function operateurQ(base: ComposantDeContraste): CasAccessibilite[] {
     sur('Q1', `${variants} variant${variants > 1 ? 's' : ''} × ${modes} combinaisons = ${variants * modes}`, uniforme(variants, modes));
   }
 
-  // Q2 : un variant qui échoue à un rang mesuré donne un constat, à un rang non mesuré aucun, et la borne ne le dit pas (Q-F7-11).
+  // Q2 : un variant qui échoue à un rang mesuré donne un constat, à un rang non mesuré aucun, et la borne dit le nombre de variants non mesurés (Q-F7-11).
   const troisVariants = (rangDeLEchec: number): SpecDeBorne => ({
     collections: [{ modes: 2000 }, { modes: 2000 }, { modes: 2000, echecs: [rangDeLEchec] }], variantes: [{ via: [0] }, { via: [1] }, { via: [2] }],
   });
   sur('Q2', 'trois variants de 2 000 combinaisons, le troisième échoue à son 1 000e et dernier rang mesuré', troisVariants(999));
   sur('Q2', 'trois variants de 2 000 combinaisons, le troisième échoue à son 1 001e rang, le premier non mesuré', troisVariants(1000), {
-    attendus: attendusDeLaBorne(troisVariants(1000)).attendus.map((a) => (a.cle === 'borne' ? borneAttendue(1000, { variantsNonMesures: 1 }) : a)), verdict: 'mesure', question: 'Q-F7-11', hypothese: 'H12',
+    attendus: attendusDeLaBorne(troisVariants(1000)).attendus.map((a) => (a.cle === 'borne' ? borneAttendue(1000, { variantsNonMesures: 1 }) : a)), hypothese: 'H12',
   });
   sur('Q2', 'un variant à deux collections de 100 et 70 modes (7 000 combinaisons), la seconde échoue à son mode 25 : au milieu du produit coupé', {
     collections: [{ modes: 100 }, { modes: 70, echecs: [25] }], variantes: [{ via: [0, 1] }],
@@ -118,13 +120,13 @@ export function operateurQ(base: ComposantDeContraste): CasAccessibilite[] {
   sur('Q3', 'trois collections de 100 modes : 1 000 000 combinaisons', lesModes(100, 100, 100));
   sur('Q3', 'dix collections de 100 modes : 10^20 combinaisons, au-delà de 2^53', lesModes(...Array(10).fill(100)));
 
-  // Q4 : une collection dont le mode ne change pas la couleur lue devrait sortir du produit (Q-F7-11).
+  // Q4 : une collection dont le mode ne change pas la couleur lue sort du produit (Q-F7-11).
   for (const modes of [2, 3]) {
     const spec: SpecDeBorne = { collections: [{ modes, echecs: Array.from({ length: modes }, (_, rang) => rang) }], variantes: [{ via: [0] }] };
     const rapport = rapportDeHex(ECHEC, BLANC);
     sur('Q4', `une collection de ${modes} modes dont la couleur #CCCCCC ne change pas`, spec, {
       attendus: [contrasteAttendu({ usage: 'texte', layer: 'Texte', plage: '0-10', rapport, seuil: 4.5, variants: [nomDuVariant(0)], premierPlan: ECHEC, fondHex: BLANC, autresModes: 0 })],
-      verdict: 'mesure', question: 'Q-F7-11', hypothese: 'H13',
+      hypothese: 'H13',
     });
   }
 

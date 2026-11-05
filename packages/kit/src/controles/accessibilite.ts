@@ -98,12 +98,18 @@ export const TEXTE_MINIMAL_PX = 12;
 
 export type Cause = 'fond-indetermine' | 'degrade' | 'image' | 'peinture-superposee' | 'mode-illisible' | 'couleur-absente' | 'fond-de-repli' | 'couleur-hors-gamut';
 export type Rgba = { r: number; g: number; b: number; a: number };
-export type Combinaison = { modes: Map<string, string>; etiquette: string };
+/**
+ * Une combinaison de modes. `sansTheme` n'existe que si les modes du thème sont entrés dans le produit pour le seul repli : la même
+ * combinaison sans eux, pour une cible qui ne se mesure pas sur le repli.
+ */
+export type Combinaison = { modes: Map<string, string>; etiquette: string; sansTheme?: { etiquette: string; cle: string } };
 export type Pile = { couches: Rgba[] } | { limite: Cause };
 type Cible = {
   layer: LayerLu; code: 'C49' | 'C50'; usage: 'texte' | 'grand-texte' | 'icone' | 'stroke' | 'anneau';
-  champ: 'fills' | 'strokes'; peintures: PeintureLue[]; liaisons: LiaisonLue[]; seuil: number; plage?: { debut: number; fin: number };
+  champ: 'fills' | 'strokes'; peintures: PeintureLue[]; liaisons: LiaisonLue[]; seuil: number;
 };
+/** Un fond que le relevé ne permet pas de calculer. `sansRepli` : même la page et la carte du thème ne le remplacent pas. */
+type LimiteDeFond = { limite: Cause; sansRepli?: true };
 
 const OPAQUE = 1 - 1e-9;
 
@@ -145,19 +151,23 @@ export function* controlerLAccessibiliteParEtapes(
   let reste = BORNE_DE_COMBINAISONS;
   let nonMesurees = compte(0);
   let mesureesTotal = 0;
+  let variantsNonMesures = 0;
   for (const variant of mesures) {
     yield;
-    const { prises, total } = yield* combinaisonsDeModes(variant, catalogue, Math.max(0, reste));
+    const cibles = yield* ciblesDeContraste(variant, options.niveau, catalogue);
+    const { prises, total } = yield* combinaisonsDeModes(variant, catalogue, Math.max(0, reste), cibles);
     reste -= prises.length;
     mesureesTotal += prises.length;
-    nonMesurees = additionner(nonMesurees, retirer(total, prises.length));
-    if (prises.length > 0) yield* mesurerLeVariant(variant, prises, catalogue, options.niveau, groupes, limites);
+    const sansMesure = retirer(total, prises.length);
+    if (!estNul(sansMesure)) variantsNonMesures++;
+    nonMesurees = additionner(nonMesurees, sansMesure);
+    if (prises.length > 0) yield* mesurerLeVariant(variant, cibles, prises, catalogue, options.niveau, groupes, limites);
   }
   constats.push(...[...groupes.values()].map((g) => g.constat), ...limites.values());
   if (!estNul(nonMesurees)) {
     constats.push({
       id: 'C49:borne', code: 'C49', type: 'info', famille: 'contraste', variants: [], layers: [], limite: true,
-      faits: { borne: BORNE_DE_COMBINAISONS, combinaisonsMesurees: mesureesTotal, combinaisonsNonMesurees: compteEnFait(nonMesurees) },
+      faits: { borne: BORNE_DE_COMBINAISONS, combinaisonsMesurees: mesureesTotal, combinaisonsNonMesurees: compteEnFait(nonMesurees), variantsNonMesures },
     });
   }
 
@@ -187,8 +197,9 @@ function layersVisibles(variant: VariantLu): readonly LayerLu[] {
   return memoire.visibles;
 }
 
+/** Le grand texte commence à 24 px, ou à 14 pt (56/3 px) en graisse 700 ou plus ; 18,66 px reste un petit texte (Q-F7-3). */
 function estGrandTexte(fontSize: number, fontWeight: number): boolean {
-  return fontSize >= 24 || (fontSize >= 18.66 && fontWeight >= 700);
+  return fontSize >= 24 || (fontSize >= 56 / 3 && fontWeight >= 700);
 }
 
 function aUnePeintureVisible(layer: LayerLu, champ: 'fills' | 'strokes'): boolean {
@@ -197,18 +208,42 @@ function aUnePeintureVisible(layer: LayerLu, champ: 'fills' | 'strokes'): boolea
 
 /* ---------- Couleurs et modes ---------- */
 
+/** `variables` reçoit, par collection, les variables que les chaînes d'alias atteignent. */
 function collectionsAtteintes(
   catalogue: CatalogueDeReference, cle: string, vues: Set<string>, atteintes: Map<string, CollectionDuCatalogue>,
+  variables?: Map<string, VariableDuCatalogue[]>,
 ): void {
   if (vues.has(cle)) return;
   vues.add(cle);
   const variable = variableDuCatalogue(catalogue, cle);
   if (variable === 'absente') return;
   const collection = collectionDuCatalogue(catalogue, variable.collection);
-  if (collection !== 'absente') atteintes.set(collection.cle, collection);
-  for (const valeur of Object.values(variable.valeurs ?? {})) {
-    if ('alias' in valeur) collectionsAtteintes(catalogue, valeur.alias, vues, atteintes);
+  if (collection !== 'absente') {
+    atteintes.set(collection.cle, collection);
+    if (variables) variables.set(collection.cle, [...(variables.get(collection.cle) ?? []), variable]);
   }
+  for (const valeur of Object.values(variable.valeurs ?? {})) {
+    if ('alias' in valeur) collectionsAtteintes(catalogue, valeur.alias, vues, atteintes, variables);
+  }
+}
+
+/** Aucun mode de la collection ne change une valeur que les variables atteintes lisent : elle sort du produit des modes (Q-F7-11). */
+function collectionInerte(collection: CollectionDuCatalogue, variables: readonly VariableDuCatalogue[]): boolean {
+  if (collection.modes.length < 2 || collection.etat !== 'lue') return false;
+  return variables.every((variable) => {
+    if (variable.etat !== 'presente' || !variable.valeurs) return false;
+    const valeurs = collection.modes.map((mode) => variable.valeurs![mode.id]);
+    if (valeurs.some((valeur) => valeur === undefined)) return false;
+    const signature = JSON.stringify(valeurs[0]);
+    return valeurs.every((valeur) => JSON.stringify(valeur) === signature);
+  });
+}
+
+/** Un fond de page ou d'élévation du thème sert à mesurer une cible dont les ancêtres ne portent aucun fond opaque. */
+function leRepliSertA(variant: VariantLu, cible: Cible, catalogue: CatalogueDeReference): boolean {
+  if (!catalogue.fondsDElevation || Object.keys(catalogue.fondsDElevation).length === 0) return false;
+  const fond = fondEffectif(variant, cible.layer, catalogue, { modes: new Map(), etiquette: '' });
+  return 'limite' in fond && fond.limite === 'fond-indetermine' && !fond.sansRepli;
 }
 
 function liaisonsDeCouleur(layer: LayerLu): LiaisonLue[] {
@@ -229,13 +264,19 @@ function modeEffectif(variant: VariantLu, collection: CollectionDuCatalogue): st
  * Le total est un `Compte` exact : un produit peut dépasser les entiers qu'un flottant représente.
  */
 function* combinaisonsDeModes(
-  variant: VariantLu, catalogue: CatalogueDeReference, limite: number,
+  variant: VariantLu, catalogue: CatalogueDeReference, limite: number, cibles: readonly Cible[],
 ): Generator<void, { prises: Combinaison[]; total: Compte }> {
   const atteintes = new Map<string, CollectionDuCatalogue>();
+  const variables = new Map<string, VariableDuCatalogue[]>();
   const vues = new Set<string>();
   for (const layer of layersVisibles(variant)) {
-    for (const liaison of liaisonsDeCouleur(layer)) collectionsAtteintes(catalogue, liaison.variable.cle, vues, atteintes);
+    for (const liaison of liaisonsDeCouleur(layer)) collectionsAtteintes(catalogue, liaison.variable.cle, vues, atteintes, variables);
   }
+  for (const [cle, collection] of atteintes) if (collectionInerte(collection, variables.get(cle) ?? [])) atteintes.delete(cle);
+  // Dès que le repli sert, les modes du thème entrent dans le produit, même si aucune couleur ne les atteint (Q-F7-6).
+  const theme = catalogue.collections.find((c) => c.role === 'theme' && c.etat === 'lue');
+  const themeDuRepli = theme && !atteintes.has(theme.cle) && cibles.some((cible) => leRepliSertA(variant, cible, catalogue)) ? theme : null;
+  if (themeDuRepli) atteintes.set(themeDuRepli.cle, themeDuRepli);
   const colonnes: { collection: CollectionDuCatalogue; modes: CollectionDuCatalogue['modes'] }[] = [];
   let total = compte(1);
   for (const collection of atteintes.values()) {
@@ -252,13 +293,19 @@ function* combinaisonsDeModes(
     yield;
     const modes = new Map<string, string>();
     const etiquettes: string[] = [];
+    const sansTheme: string[] = [];
+    const sansThemeModes: string[] = [];
     for (let i = 0; i < colonnes.length; i++) {
       const { collection } = colonnes[i];
       const mode = colonnes[i].modes[rangs[i]];
       modes.set(collection.cle, mode.id);
       etiquettes.push(`${collection.nom} en ${mode.nom}`);
+      if (collection !== themeDuRepli) { sansTheme.push(etiquettes[i]); sansThemeModes.push(mode.id); }
     }
-    prises.push({ modes, etiquette: etiquettes.join(', ') });
+    prises.push({
+      modes, etiquette: etiquettes.join(', '),
+      ...(themeDuRepli ? { sansTheme: { etiquette: sansTheme.join(', '), cle: sansThemeModes.join(SEPARATEUR) } } : {}),
+    });
     for (let i = colonnes.length - 1; i >= 0; i--) {
       rangs[i] += 1;
       if (rangs[i] < colonnes[i].modes.length) break;
@@ -352,7 +399,10 @@ function resoudreLaCouleur(
   return Object.freeze({ r: c.r, g: c.g, b: c.b, a: typeof c.a === 'number' ? c.a : 1 });
 }
 
-/** Les couches unies d'une liste de peintures, de la plus haute à la première opaque. */
+/**
+ * Les couches unies d'une liste de peintures, de la plus haute à la première opaque. `opaciteDuLayer` est l'opacité effective du
+ * layer : le produit de la sienne et de celles de ses ancêtres. Une peinture d'alpha effectif nul n'est pas une couche.
+ */
 export function pileDePeintures(
   peintures: PeintureLue[], liaisons: LiaisonLue[], opaciteDuLayer: number,
   catalogue: CatalogueDeReference, variant: VariantLu, combinaison: Combinaison,
@@ -377,6 +427,7 @@ export function pileDePeintures(
     if (!couleur) return { limite: 'couleur-absente' };
     const a = couleur.a * p.opacite * opaciteDuLayer;
     if (!couleurDansLeGamut(couleur) || !dansLeGamut(a)) return { limite: 'couleur-hors-gamut' };
+    if (a === 0) continue;
     couches.push({ r: couleur.r, g: couleur.g, b: couleur.b, a });
     if (a >= OPAQUE) break;
   }
@@ -409,9 +460,18 @@ interface MemoireDuVariant {
   readonly layers: readonly LayerLu[];
   readonly nombreDeLayers: number;
   readonly parId: Map<string, LayerLu>;
+  /** L'opacité effective de chaque layer déjà demandée : le produit des opacités de la chaîne qui monte jusqu'à la racine. */
+  readonly opacites: Map<string, number>;
+  /** Par identifiant de layer : ses frères plus bas qui peuvent lui servir de fond, du plus proche au plus bas. */
+  readonly freres: Map<string, readonly FrereDeFond[]>;
   visibles?: readonly LayerLu[];
+  /** Le rang de chaque layer parmi ses frères, et les frères qui peuvent faire fond, par parent. */
+  ordre?: { readonly rang: ReadonlyMap<string, number>; readonly candidats: ReadonlyMap<string, readonly { frere: LayerLu; rang: number }[]> };
   fonds?: FondsMemorises;
 }
+
+/** Un frère plus bas dans l'ordre d'empilement qui recouvre la boîte du layer, en entier ou en partie. */
+interface FrereDeFond { readonly frere: LayerLu; readonly recouvre: 'tout' | 'partie' }
 
 /** Les fonds d'un variant pour un catalogue, avec la même règle de validité que l'index des variables. */
 interface FondsMemorises {
@@ -422,7 +482,7 @@ interface FondsMemorises {
   readonly nombreDeCollections: number;
   /** Par identifiant du premier ancêtre : les collections que les liaisons de remplissage de sa chaîne peuvent atteindre. */
   readonly chaines: Map<string, CollectionDuCatalogue[]>;
-  readonly fonds: Map<string, Rgba | { limite: Cause }>;
+  readonly fonds: Map<string, Rgba | LimiteDeFond>;
 }
 
 const memoiresDesVariants = new WeakMap<VariantLu, MemoireDuVariant>();
@@ -433,9 +493,80 @@ function memoireDuVariant(variant: VariantLu): MemoireDuVariant {
   const { layers } = variant;
   const connue = memoiresDesVariants.get(variant);
   if (connue && connue.layers === layers && connue.nombreDeLayers === layers.length) return connue;
-  const neuve: MemoireDuVariant = { layers, nombreDeLayers: layers.length, parId: new Map(layers.map((l) => [l.id, l] as const)) };
+  const neuve: MemoireDuVariant = {
+    layers, nombreDeLayers: layers.length, parId: new Map(layers.map((l) => [l.id, l] as const)), opacites: new Map(), freres: new Map(),
+  };
   memoiresDesVariants.set(variant, neuve);
   return neuve;
+}
+
+/** L'opacité qui s'applique à un layer : la sienne multipliée par celles de tous ses ancêtres (Q-F7-2). Un cycle de `parent` s'arrête au premier layer déjà vu. */
+function opaciteEffective(variant: VariantLu, layer: LayerLu): number {
+  const memoire = memoireDuVariant(variant);
+  const connue = memoire.opacites.get(layer.id);
+  if (connue !== undefined) return connue;
+  let produit = 1;
+  const vus = new Set<string>();
+  let courant: LayerLu | undefined = layer;
+  while (courant && !vus.has(courant.id)) {
+    vus.add(courant.id);
+    produit *= courant.opacite;
+    courant = courant.parent ? memoire.parId.get(courant.parent) : undefined;
+  }
+  memoire.opacites.set(layer.id, produit);
+  return produit;
+}
+
+const TYPES_DE_FOND = new Set(['RECTANGLE', 'FRAME', 'ELLIPSE', 'COMPONENT', 'INSTANCE']);
+/** Les boîtes du relevé sont absolues et en pixels ; cette tolérance absorbe l'arrondi des flottants. */
+const TOLERANCE_DE_BOITE = 0.01;
+
+const boiteLue = (d: LayerLu['dimensions'] | undefined): d is LayerLu['dimensions'] =>
+  d !== undefined && [d.x, d.y, d.largeur, d.hauteur].every(Number.isFinite) && d.largeur > 0 && d.hauteur > 0;
+
+/**
+ * Les frères d'un layer, plus bas que lui dans l'ordre d'empilement (l'ordre du tableau `layers` est celui de Figma, du bas vers le
+ * haut), qui montrent un remplissage visible sous sa boîte, du plus proche au plus bas. Seuls les rectangles, cadres, ellipses et
+ * instances comptent comme fond. Une boîte que le relevé n'a pas lue (sans position) ne donne aucun frère (Q-F7-4).
+ */
+function freresDeFond(variant: VariantLu, layer: LayerLu): readonly FrereDeFond[] {
+  const memoire = memoireDuVariant(variant);
+  const connus = memoire.freres.get(layer.id);
+  if (connus) return connus;
+  if (!memoire.ordre) {
+    const rang = new Map<string, number>();
+    const candidats = new Map<string, { frere: LayerLu; rang: number }[]>();
+    const compteurs = new Map<string, number>();
+    for (const l of variant.layers) {
+      const parent = l.parent ?? '';
+      const n = compteurs.get(parent) ?? 0;
+      compteurs.set(parent, n + 1);
+      rang.set(l.id, n);
+      if (!TYPES_DE_FOND.has(l.type) || !l.visible || !aUnePeintureVisible(l, 'fills') || opaciteEffective(variant, l) === 0 || !boiteLue(l.dimensions)) continue;
+      const liste = candidats.get(parent);
+      if (liste) liste.push({ frere: l, rang: n });
+      else candidats.set(parent, [{ frere: l, rang: n }]);
+    }
+    memoire.ordre = { rang, candidats };
+  }
+  const trouves: FrereDeFond[] = [];
+  const boite = layer.dimensions;
+  const candidats = memoire.ordre.candidats.get(layer.parent ?? '') ?? [];
+  const mien = memoire.ordre.rang.get(layer.id) ?? 0;
+  if (boiteLue(boite)) {
+    for (let i = candidats.length - 1; i >= 0; i--) {
+      if (candidats[i].rang >= mien) continue;
+      const frere = candidats[i].frere;
+      const autre = frere.dimensions;
+      const largeur = Math.min(autre.x + autre.largeur, boite.x + boite.largeur) - Math.max(autre.x, boite.x);
+      const hauteur = Math.min(autre.y + autre.hauteur, boite.y + boite.hauteur) - Math.max(autre.y, boite.y);
+      if (largeur <= TOLERANCE_DE_BOITE || hauteur <= TOLERANCE_DE_BOITE) continue;
+      const tout = largeur >= boite.largeur - TOLERANCE_DE_BOITE && hauteur >= boite.hauteur - TOLERANCE_DE_BOITE;
+      trouves.push({ frere, recouvre: tout ? 'tout' : 'partie' });
+    }
+  }
+  memoire.freres.set(layer.id, trouves);
+  return trouves;
 }
 
 function fondsDuVariant(memoire: MemoireDuVariant, catalogue: CatalogueDeReference): FondsMemorises {
@@ -471,15 +602,18 @@ function collectionsDeLaChaine(
 }
 
 /**
- * Le fond d'un layer : les remplissages de ses ancêtres composés jusqu'au premier opaque. Il ne dépend que de la chaîne des
- * ancêtres, donc du premier d'entre eux, et du mode choisi pour chaque collection que leurs liaisons peuvent atteindre : les layers
- * de même parent, dans toute combinaison qui s'accorde sur ces modes, partagent le résultat, rendu gelé. Opacités, peintures et
- * visibilités des ancêtres sont celles du tableau `layers` du variant.
+ * Le fond d'un layer : les remplissages de ses frères plus bas qui recouvrent sa boîte, puis ceux de ses ancêtres, composés jusqu'à
+ * la première couche opaque. Sans frère de fond, il ne dépend que de la chaîne des ancêtres, donc du premier d'entre eux, et du mode
+ * choisi pour chaque collection que leurs liaisons peuvent atteindre : les layers de même parent, dans toute combinaison qui s'accorde
+ * sur ces modes, partagent le résultat, rendu gelé. Avec un frère de fond, le résultat se calcule à chaque appel. Opacités, peintures
+ * et visibilités sont celles du tableau `layers` du variant.
  */
 export function fondEffectif(
   variant: VariantLu, layer: LayerLu, catalogue: CatalogueDeReference, combinaison: Combinaison,
-): Rgba | { limite: Cause } {
+): Rgba | LimiteDeFond {
   const memoire = memoireDuVariant(variant);
+  const freres = freresDeFond(variant, layer);
+  if (freres.length > 0) return Object.freeze(calculerLeFond(variant, layer, freres, catalogue, combinaison));
   const fonds = fondsDuVariant(memoire, catalogue);
   const depart = layer.parent || '';
   let collections = fonds.chaines.get(depart);
@@ -490,18 +624,38 @@ export function fondEffectif(
   const signature = [depart, ...collections.map((collection) => modeDeLaCollection(variant, combinaison, collection) ?? SANS_MODE)].join(SEPARATEUR);
   const connu = fonds.fonds.get(signature);
   if (connu !== undefined) return connu;
-  const fond = Object.freeze(calculerLeFond(variant, memoire.parId, depart, catalogue, combinaison));
+  const fond = Object.freeze(calculerLeFond(variant, layer, freres, catalogue, combinaison));
   if (fonds.fonds.size >= PLAFOND_DE_FONDS) fonds.fonds.clear();
   fonds.fonds.set(signature, fond);
   return fond;
 }
 
 function calculerLeFond(
-  variant: VariantLu, parId: ReadonlyMap<string, LayerLu>, depart: string, catalogue: CatalogueDeReference, combinaison: Combinaison,
-): Rgba | { limite: Cause } {
-  const pile = couchesDesAncetres(variant, parId, depart, catalogue, combinaison);
+  variant: VariantLu, layer: LayerLu, freres: readonly FrereDeFond[], catalogue: CatalogueDeReference, combinaison: Combinaison,
+): Rgba | LimiteDeFond {
+  const pile = couchesDuFond(variant, layer, freres, catalogue, combinaison);
   if ('limite' in pile) return pile;
   return composer(pile.couches, null) ?? { limite: 'fond-indetermine' };
+}
+
+/**
+ * Les couches sous un layer, de la plus haute à la première opaque comprise : ses frères de fond, du plus proche au plus bas, puis
+ * ses ancêtres. Un frère qui ne recouvre la boîte qu'en partie laisse le fond indéterminé, et la page du thème ne le remplace pas.
+ */
+function couchesDuFond(
+  variant: VariantLu, layer: LayerLu, freres: readonly FrereDeFond[], catalogue: CatalogueDeReference, combinaison: Combinaison,
+): { couches: Rgba[] } | LimiteDeFond {
+  const couches: Rgba[] = [];
+  for (const { frere, recouvre } of freres) {
+    if (recouvre === 'partie') return { limite: 'fond-indetermine', sansRepli: true };
+    const pile = pileDePeintures(frere.peintures.filter((p) => p.champ === 'fills'), liaisonsPropres(frere), opaciteEffective(variant, frere), catalogue, variant, combinaison);
+    if ('limite' in pile) return pile;
+    couches.push(...pile.couches);
+    if (pile.couches.some((c) => c.a >= OPAQUE)) return { couches };
+  }
+  const ancetres = couchesDesAncetres(variant, memoireDuVariant(variant).parId, layer.parent || '', catalogue, combinaison);
+  if ('limite' in ancetres) return ancetres;
+  return { couches: [...couches, ...ancetres.couches] };
 }
 
 /** Les couches des ancêtres, de la plus haute à la première opaque comprise. */
@@ -510,10 +664,12 @@ function couchesDesAncetres(
 ): Pile {
   const couches: Rgba[] = [];
   let courant = depart ? parId.get(depart) : undefined;
-  while (courant) {
+  const vus = new Set<string>();
+  while (courant && !vus.has(courant.id)) {
+    vus.add(courant.id);
     if (courant.visible) {
       const fills = courant.peintures.filter((p) => p.champ === 'fills');
-      const pile = pileDePeintures(fills, liaisonsPropres(courant), courant.opacite, catalogue, variant, combinaison);
+      const pile = pileDePeintures(fills, liaisonsPropres(courant), opaciteEffective(variant, courant), catalogue, variant, combinaison);
       if ('limite' in pile) return pile;
       couches.push(...pile.couches);
       if (pile.couches.some((c) => c.a >= OPAQUE)) break;
@@ -566,11 +722,11 @@ function fondsDeMesure(
 ): { fonds: FondDeMesure[] } | { limite: Cause } {
   const fond = fondEffectif(variant, layer, catalogue, combinaison);
   if (!('limite' in fond)) return { fonds: [{ couleur: fond }] };
-  if (fond.limite !== 'fond-indetermine') return fond;
+  if (fond.limite !== 'fond-indetermine' || fond.sansRepli) return { limite: fond.limite };
   const bases = fondsDeRepli(catalogue, variant, combinaison);
-  if (!bases) return fond;
+  if (!bases) return { limite: fond.limite };
   if ('limite' in bases) return bases;
-  const pile = couchesDesAncetres(variant, memoireDuVariant(variant).parId, layer.parent || '', catalogue, combinaison);
+  const pile = couchesDuFond(variant, layer, freresDeFond(variant, layer), catalogue, combinaison);
   const couches = 'couches' in pile ? pile.couches : [];
   return { fonds: bases.map((base) => ({ nom: base.nom, couleur: composer(couches, base.couleur) ?? base.couleur })) };
 }
@@ -593,10 +749,17 @@ function variableDuThemeAtteinte(
   return null;
 }
 
-/** Garanti seulement quand la garantie de la variable du thème nomme ce fond ; la page Figma n'est jamais garantie. */
-function estGaranti(variableDuTheme: string | null, fond: NomDeFond): boolean {
+/**
+ * Garanti seulement quand la garantie de la variable du thème vise le même type de seuil (texte ou non-texte), le niveau demandé
+ * et ce fond. Les garanties du thème se jugent au niveau AA : un texte demandé en AAA n'est pas couvert. La page Figma n'est jamais
+ * garantie (Q-F7-7).
+ */
+function estGaranti(variableDuTheme: string | null, fond: NomDeFond, usage: Cible['usage'], niveau: NiveauWcag): boolean {
   if (!variableDuTheme || fond === 'page-figma') return false;
+  const texte = usage === 'texte' || usage === 'grand-texte';
+  if (texte && niveau !== 'AA') return false;
   return GARANTIES.some((g) => g.premier.variable === variableDuTheme
+    && g.seuil === (texte ? 'texte' : 'nonTexte')
     && g.fonds.some((f) => (fond === 'page' ? 'fondDeLaPage' in f : 'fondDeLaCarte' in f)));
 }
 
@@ -614,20 +777,24 @@ function rolesLiesDuLayer(layer: LayerLu, catalogue: CatalogueDeReference): stri
   return roles;
 }
 
-/** Cède par layer visible et par plage de texte ; la liste rendue est celle de la voie synchrone. */
+/**
+ * Cède par layer visible et par plage de texte ; la liste rendue est celle de la voie synchrone. Un layer d'opacité effective nulle
+ * et une plage vide n'ont rien à mesurer.
+ */
 function* ciblesDeContraste(variant: VariantLu, niveau: NiveauWcag, catalogue: CatalogueDeReference): Generator<void, Cible[]> {
   const cibles: Cible[] = [];
   for (const layer of layersVisibles(variant)) {
     yield;
+    if (opaciteEffective(variant, layer) === 0) continue;
     if (layer.type === 'TEXT') {
       for (const plage of layer.texte?.plages ?? []) {
         yield;
+        if (plage.fin <= plage.debut) continue;
         const grand = estGrandTexte(plage.fontSize, plage.fontWeight);
         cibles.push({
           layer, code: 'C49', usage: grand ? 'grand-texte' : 'texte', champ: 'fills',
           peintures: plage.peintures, liaisons: plage.liaisons,
           seuil: grand ? SEUILS_D_ACCESSIBILITE.grandTexte[niveau] : SEUILS_D_ACCESSIBILITE.texte[niveau],
-          plage: { debut: plage.debut, fin: plage.fin },
         });
       }
       continue;
@@ -651,13 +818,27 @@ function* ciblesDeContraste(variant: VariantLu, niveau: NiveauWcag, catalogue: C
 
 type GroupeMesure = { constat: Constat; pire: number };
 
+/** Les combinaisons qui ne diffèrent que par le mode du thème n'en font qu'une, la première, étiquetée sans le thème. */
+function sansLeTheme(combinaisons: Combinaison[]): Combinaison[] {
+  const vues = new Set<string>();
+  const gardees: Combinaison[] = [];
+  for (const combinaison of combinaisons) {
+    const { etiquette, cle } = combinaison.sansTheme!;
+    if (vues.has(cle)) continue;
+    vues.add(cle);
+    gardees.push({ modes: combinaison.modes, etiquette });
+  }
+  return gardees;
+}
+
 function* mesurerLeVariant(
-  variant: VariantLu, combinaisons: Combinaison[], catalogue: CatalogueDeReference, niveau: NiveauWcag,
+  variant: VariantLu, cibles: readonly Cible[], toutes: Combinaison[], catalogue: CatalogueDeReference, niveau: NiveauWcag,
   groupes: Map<string, GroupeMesure>, limites: Map<string, Constat>,
 ): Generator<void, void> {
-  const cibles = yield* ciblesDeContraste(variant, niveau, catalogue);
   for (const cible of cibles) {
     yield;
+    // Les modes du thème n'entrent dans la mesure d'une cible que si le repli la mesure ; sinon ils ne changent rien à ce qu'elle lit.
+    const combinaisons = !toutes[0]?.sansTheme || leRepliSertA(variant, cible, catalogue) ? toutes : sansLeTheme(toutes);
     type Mesure = { pire: { rapport: number; etiquette: string; premierPlan: string; fond: string; combinaison: Combinaison } | null; echecs: number; rapports: [string, number][] };
     const mesures = new Map<NomDeFond | '', Mesure>();
     const causes = new Set<Cause>();
@@ -666,8 +847,9 @@ function* mesurerLeVariant(
       yield;
       const choisis = fondsDeMesure(variant, cible.layer, catalogue, combinaison);
       if ('limite' in choisis) { causes.add(choisis.limite); continue; }
-      const pile = pileDePeintures(cible.peintures, cible.liaisons, cible.layer.opacite, catalogue, variant, combinaison);
+      const pile = pileDePeintures(cible.peintures, cible.liaisons, opaciteEffective(variant, cible.layer), catalogue, variant, combinaison);
       if ('limite' in pile) { causes.add(pile.limite); continue; }
+      if (pile.couches.length === 0) continue;
       for (const fond of choisis.fonds) {
         const premier = composer(pile.couches, fond.couleur);
         if (!premier) continue;
@@ -695,7 +877,8 @@ function* mesurerLeVariant(
         });
       }
     }
-    const base = `${cible.code}:${cible.layer.nom}:${cible.usage}${cible.plage ? `:${cible.plage.debut}-${cible.plage.fin}` : ''}`;
+    // L'identifiant ne porte ni la plage de texte ni le niveau : un constat ignoré le reste quand le texte ou le niveau change (Q-F7-12).
+    const base = `${cible.code}:${cible.layer.nom}:${cible.usage}`;
     for (const cause of causes) {
       const cle = `${base}:limite:${cause}`;
       const existant = limites.get(cle);
@@ -711,9 +894,9 @@ function* mesurerLeVariant(
     }
     for (const [nom, { pire, echecs, rapports }] of mesures) {
       if (!pire) continue;
-      const cle = `${base}:${cible.seuil}:${niveau}${nom ? `:${nom}` : ''}`;
+      const cle = `${base}${nom ? `:${nom}` : ''}`;
       const existant = groupes.get(cle);
-      const sur = nom ? surUnFondNomme(cible, nom, catalogue, variant, pire.combinaison) : null;
+      const sur = nom ? surUnFondNomme(cible, nom, niveau, catalogue, variant, pire.combinaison) : null;
       if (existant) {
         if (!existant.constat.variants.includes(variant.nom)) existant.constat.variants.push(variant.nom);
         if (!existant.constat.layers.includes(cible.layer.id)) existant.constat.layers.push(cible.layer.id);
@@ -736,7 +919,7 @@ function* mesurerLeVariant(
 
 /** Sévérité et faits d'un échec sur la page, la carte ou la page Figma : le garanti se corrige, le reste se vérifie. */
 function surUnFondNomme(
-  cible: Cible, fond: NomDeFond, catalogue: CatalogueDeReference, variant: VariantLu, combinaison: Combinaison,
+  cible: Cible, fond: NomDeFond, niveau: NiveauWcag, catalogue: CatalogueDeReference, variant: VariantLu, combinaison: Combinaison,
 ): { type: 'corriger' | 'verifier'; faits: Record<string, string> } {
   let variableDuTheme: string | null = null;
   for (const liaison of cible.liaisons) {
@@ -744,7 +927,7 @@ function surUnFondNomme(
     variableDuTheme = variableDuThemeAtteinte(catalogue, variant, combinaison, liaison.variable.cle);
     if (variableDuTheme) break;
   }
-  const garanti = estGaranti(variableDuTheme, fond);
+  const garanti = estGaranti(variableDuTheme, fond, cible.usage, niveau);
   return {
     type: garanti ? 'corriger' : 'verifier',
     faits: { fondNomme: fond, variableDuTheme: variableDuTheme ?? '', garanti: garanti ? 'oui' : 'non' },
@@ -773,7 +956,8 @@ function* anneauxDuVariant(variant: VariantLu, catalogue: CatalogueDeReference):
   const anneaux: LayerLu[] = [];
   for (const layer of layersVisibles(variant)) {
     yield;
-    if (estUnAnneau(layer, rolesLiesDuLayer(layer, catalogue)) && layer.type !== 'TEXT' && layer.peintures.some(peintureVisible)) anneaux.push(layer);
+    if (estUnAnneau(layer, rolesLiesDuLayer(layer, catalogue)) && layer.type !== 'TEXT' && opaciteEffective(variant, layer) !== 0
+      && layer.peintures.some((p) => peintureVisible(p) && (layer.liaisons.some((l) => l.champ === p.champ && (l.indice ?? 0) === p.indice) || (p.couleur?.a ?? 1) !== 0))) anneaux.push(layer);
   }
   return anneaux;
 }
@@ -869,7 +1053,7 @@ function* controlerLeTexteMinimal(variants: VariantLu[]): Generator<void, Consta
       if (layer.type !== 'TEXT') continue;
       for (const plage of layer.texte?.plages ?? []) {
         yield;
-        if (plage.fontSize >= TEXTE_MINIMAL_PX) continue;
+        if (plage.fin <= plage.debut || plage.fontSize >= TEXTE_MINIMAL_PX) continue;
         const id = `C49:taille:${layer.nom}:${plage.fontSize}`;
         const existant = groupes.get(id);
         if (existant) {

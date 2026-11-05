@@ -47,7 +47,7 @@ export function operateurR(base: ComposantDeContraste): CasAccessibilite[] {
   const peintures: [string, ReturnType<typeof solide>[], AttenduAcc[], Partial<{ verdict: 'mesure'; question: string; hypothese: string }>][] = [
     ['peinture masquée', [contour(FAIBLE, { visible: false })], [], {}],
     ['peinture d\'opacité 0', [contour(FAIBLE, { opacite: 0 })], [], {}],
-    ['peinture d\'alpha 0', [contour(FAIBLE, { alpha: 0 })], [], { verdict: 'mesure', question: 'Q-F7-2', hypothese: 'H3' }],
+    ['peinture d\'alpha 0', [contour(FAIBLE, { alpha: 0 })], [], { hypothese: 'H3' }],
     ['peinture translucide #606060 d\'alpha 0,5', [contour('#606060', { alpha: 0.5 })],
       [contrasteAttendu({ usage: 'stroke', layer: 'Contour', rapport: composee.rapport, seuil: SEUIL, variants: [cible], premierPlan: composee.premierPlan, fondHex: composee.fond })], {}],
     ['peinture en dégradé', [peintureDeType('GRADIENT_LINEAR', { champ: 'strokes' })],

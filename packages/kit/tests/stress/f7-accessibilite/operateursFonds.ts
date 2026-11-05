@@ -121,7 +121,7 @@ export function operateurF(base: ComposantDeContraste): CasAccessibilite[] {
   ];
   for (const [description, degrader, attendus] of f6) {
     cas.push(faire(`F6-${numero('F6')}`, 'F6', {
-      description, degrader, attendus: [...attendus, repliAttendu(BLANC)], verdict: 'mesure', question: 'Q-F7-4', hypothese: 'H4',
+      description, degrader, attendus: [...attendus, repliAttendu(BLANC)], hypothese: 'H4',
     }));
   }
 

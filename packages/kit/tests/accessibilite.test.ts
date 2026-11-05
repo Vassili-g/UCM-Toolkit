@@ -6,13 +6,13 @@ import {
   type CatalogueDeReference, type LayerLu, type LiaisonLue, type PeintureLue, type ReleveDeComposant, type VariantLu,
 } from '../src/controles/index';
 import { collectionDuCatalogue, variableDuCatalogue } from '../src/controles/catalogue';
-import { liaisonsPropres } from '../src/controles/releve';
+import { layersVisiblesDuVariant, liaisonsPropres } from '../src/controles/releve';
 import { composer, couleurDeLiaison, fondEffectif, pileDePeintures, type Combinaison } from '../src/controles/accessibilite';
 
 const gris = (v: number) => ({ r: v, g: v, b: v, a: 1 });
 const solide = (champ: 'fills' | 'strokes', couleur: { r: number; g: number; b: number; a: number }, opacite = 1): PeintureLue =>
   ({ champ, indice: 0, type: 'SOLID', visible: true, opacite, blendMode: 'NORMAL', couleur });
-const dims = (largeur = 100, hauteur = 48) => ({ x: 0, y: 0, largeur, hauteur });
+const dims = (largeur = 100, hauteur = 48, x = 0) => ({ x, y: 0, largeur, hauteur });
 
 function racine(fond: PeintureLue[] = [solide('fills', gris(1))], d = dims()): LayerLu {
   return { id: 'r', nom: 'Root', type: 'FRAME', parent: null, visible: true, opacite: 1, dimensions: d, peintures: fond, liaisons: [], valeursEnDur: [] };
@@ -135,7 +135,7 @@ test('le produit des modes conserve l’ordre effectif et les faits de contraste
   v.modesEffectifs = { c1: 'm1', c2: 'm1' };
   const r = releve([v]);
   const attendu = [{
-    id: 'C49:Label:texte:0-5:4.5:AA', code: 'C49', type: 'corriger', famille: 'contraste', variants: ['a'], layers: ['t'],
+    id: 'C49:Label:texte', code: 'C49', type: 'corriger', famille: 'contraste', variants: ['a'], layers: ['t'],
     faits: {
       usage: 'texte', champ: 'fills', calque: 'Label', rapport: 1, seuil: 4.5, niveau: 'AA',
       mode: 'c1 en M1, c2 en M1', autresModes: 1, premierPlan: '#FFFFFF', fond: '#FFFFFF',
@@ -179,7 +179,8 @@ test('texte mixte : une mesure par plage', () => {
   t.texte!.plages.push({ debut: 5, fin: 9, fontSize: 14, fontWeight: 400, peintures: [solide('fills', gris(0.7))], liaisons: [] });
   const constats = parCode(cc(releve([variant('a', [racine(), t])])), 'C49');
   assert.equal(constats.length, 1);
-  assert.match(constats[0].id, /5-9/);
+  assert.equal(constats[0].id, 'C49:Label:texte');
+  assert.equal(constats[0].faits.premierPlan, '#B3B3B3', 'la plage qui échoue donne le rapport');
 });
 
 test('fond composé : une peinture translucide du parent se compose sur la première peinture opaque', () => {
@@ -301,7 +302,7 @@ test('borne : au-delà, un constat d information compte les combinaisons non mes
     collections: ['c1', 'c2', 'c3'].map(collection),
     variables: ['c1', 'c2', 'c3'].map((c) => ({
       cle: `v${c}`, nom: `v${c}`, collection: c, type: 'COLOR' as const, etat: 'presente' as const,
-      valeurs: Object.fromEntries(modes.map((m) => [m.id, { valeur: gris(0) }])),
+      valeurs: Object.fromEntries(modes.map((m, rang) => [m.id, { valeur: gris(rang / 1000) }])),
     })),
   };
   const t = texte([solide('fills', gris(0))]);
@@ -403,7 +404,7 @@ function fixtureDeModes(tailles: number[], onLitLeNom?: () => void) {
     version: 1, library: null, collections,
     variables: collections.map((c, i) => ({
       cle: `v${c.cle}`, nom: `v${c.cle}`, collection: c.cle, type: 'COLOR' as const, etat: 'presente' as const,
-      valeurs: Object.fromEntries(c.modes.map((m) => [m.id, { valeur: gris(i === 0 && m.id === 'm4' ? 0.97 : 0.9) }])),
+      valeurs: Object.fromEntries(c.modes.map((m, rang) => [m.id, { valeur: gris(i === 0 && m.id === 'm4' ? 0.97 : 0.9 + rang / 10_000) }])),
     })),
   };
   const t = texte([solide('fills', gris(0))]);
@@ -683,9 +684,9 @@ function arbreDeFonds(options: OptionsDArbre = {}): VariantLu {
   const racineLiee: LayerLu = { ...base, id: 'R', nom: 'Root', parent: null, peintures: [solide('fills', gris(1))], liaisons: [lie('R', 'xa')] };
   const layers: LayerLu[] = [
     racineLiee,
-    { ...base, id: 'M', nom: 'Mid', parent: intermediaire ? 'F' : parentM, visible: visibleM, opacite: opaciteM, peintures: [solide('fills', gris(0.5), 0.5)], liaisons: [lie('M', 'yb')] },
+    { ...base, id: 'M', nom: 'Mid', parent: intermediaire ? 'F' : parentM, visible: visibleM, opacite: opaciteM, dimensions: dims(100, 48, parentM === null ? 500 : 0), peintures: [solide('fills', gris(0.5), 0.5)], liaisons: [lie('M', 'yb')] },
     { ...texte([solide('fills', gris(0))], 14, 400, 'T'), parent: 'M' },
-    { ...texte([solide('fills', gris(0))], 14, 400, 'S'), parent: 'R' },
+    { ...texte([solide('fills', gris(0))], 14, 400, 'S'), parent: 'R', dimensions: { x: 500, y: 0, largeur: 40, hauteur: 16 } },
   ];
   if (intermediaire) layers.push({ ...base, id: 'F', nom: 'Frame', parent: 'R', peintures: [], liaisons: [] });
   return variant('v', layers);
@@ -967,4 +968,199 @@ test('E9.5 : un canal ou un alpha hors de [0, 1], ou NaN, donne couleur-hors-gam
 test('E9.5 : une couleur hors gamme sur le fond d’un ancêtre donne la limite sur le texte', () => {
   const r = releve([variant('a', [racine([solide('fills', { r: 2, g: 0, b: 0, a: 1 })]), texte([solide('fills', gris(0))])])]);
   assert.deepEqual(limiteDe(cc(r)), ['C49:couleur-hors-gamut']);
+});
+
+/* ---------- E9.2 à E9.4, E9.6, E9.7 et E9.11 : opacités, grand texte, fonds, modes, garanties, identifiants ---------- */
+
+const cadreSansPeinture = (id: string, parent: string | null, opacite = 1, visible = true): LayerLu =>
+  ({ id, nom: id, type: 'FRAME', parent, visible, opacite, dimensions: dims(), peintures: [], liaisons: [], valeursEnDur: [] });
+const texteDans = (parent: string, couleur: PeintureLue[] = [solide('fills', gris(0))], id = 't'): LayerLu => ({ ...texte(couleur, 14, 400, id), parent });
+
+test('E9.2 : l’opacité d’un ancêtre s’applique au texte qu’il contient, celle du grand-parent aussi', () => {
+  const sous = (opacites: number[]) => {
+    const chaine = opacites.map((o, i) => cadreSansPeinture(`p${i}`, i === 0 ? 'r' : `p${i - 1}`, o));
+    return parCode(cc(releve([variant('a', [racine(), ...chaine, texteDans(`p${opacites.length - 1}`)])])), 'C49');
+  };
+  assert.equal(sous([1]).length, 0, 'un texte noir opaque passe');
+  const [parent] = sous([0.5]);
+  assert.equal(parent.faits.premierPlan, '#808080', 'noir à 50 % sur blanc');
+  assert.equal(parent.type, 'corriger');
+  assert.equal(sous([0.5, 1])[0].faits.premierPlan, '#808080', 'le grand-parent à 50 %');
+  assert.equal(sous([0.5, 0.5])[0].faits.premierPlan, '#BFBFBF', 'le produit des opacités, 25 %');
+});
+
+test('E9.2 : un layer d’alpha effectif nul n’est pas mesuré et ne donne ni verdict ni limite', () => {
+  const clair = [solide('fills', gris(0.9))];
+  const mesures = (layers: LayerLu[]) => cc(releve([variant('a', [racine(), ...layers])])).filter((c) => c.code === 'C49' && !c.id.startsWith('C49:taille'));
+  assert.equal(mesures([texteDans('r', clair)]).length, 1, 'le texte clair échoue');
+  assert.deepEqual(mesures([cadreSansPeinture('p', 'r', 0), texteDans('p', clair)]), [], 'parent à 0');
+  assert.deepEqual(mesures([cadreSansPeinture('g', 'r', 0), cadreSansPeinture('p', 'g'), texteDans('p', clair)]), [], 'grand-parent à 0');
+  assert.deepEqual(mesures([{ ...texteDans('r', clair), opacite: 0 }]), [], 'layer à 0');
+  assert.deepEqual(mesures([texteDans('r', [solide('fills', { ...gris(0.9), a: 0 })])]), [], 'alpha de la couleur à 0');
+  assert.deepEqual(mesures([texteDans('r', [])]), [], 'plage sans peinture');
+  assert.deepEqual(
+    mesures([texteDans('r', [{ ...solide('fills', gris(0.9)), type: 'GRADIENT_LINEAR' }]), { ...texteDans('r', clair, 'u'), opacite: 0 }]).map((c) => c.faits.cause),
+    ['degrade'], 'seul le layer visible garde sa limite',
+  );
+});
+
+test('E9.2 : un anneau d’opacité 0 ou de couleur d’alpha 0 ne compte pas comme anneau', () => {
+  const anneau = (o: { opacite?: number; alpha?: number }): LayerLu => ({
+    id: 'f', nom: 'Focus ring', type: 'RECTANGLE', parent: 'r', visible: true, opacite: o.opacite ?? 1, dimensions: dims(),
+    peintures: [solide('strokes', { ...gris(0), a: o.alpha ?? 1 })], strokeWeight: 2, liaisons: [], valeursEnDur: [],
+  });
+  const sansAnneau = (o: { opacite?: number; alpha?: number }) =>
+    cc(releve([variant('f', [racine(), anneau(o)], { State: 'focus' })], ['default', 'focus'])).find((c) => c.id === 'C50:sans-anneau');
+  assert.equal(sansAnneau({}), undefined);
+  assert.ok(sansAnneau({ opacite: 0 }));
+  assert.ok(sansAnneau({ alpha: 0 }));
+});
+
+test('E9.3 : le grand texte gras commence à 14 pt (56/3 px) en graisse 700, 18,66 px reste un petit texte', () => {
+  const lumiere = (x: number) => (x <= 0.04045 ? x / 12.92 : ((x + 0.055) / 1.055) ** 2.4);
+  let v = 0;
+  while (1.05 / (lumiere(v) + 0.05) > 3.5) v += 0.0005;
+  const seuil = (taille: number, graisse: number) =>
+    parCode(cc(releve([variant('a', [racine(), texte([solide('fills', gris(v))], taille, graisse)])])), 'C49')[0]?.faits.seuil;
+  assert.equal(seuil(18.66, 700), 4.5);
+  assert.equal(seuil(18.664, 900), 4.5);
+  assert.equal(seuil(56 / 3, 700), undefined, 'grand texte à 3,5:1 passe le seuil de 3');
+  assert.equal(seuil(18.67, 700), undefined);
+  assert.equal(seuil(56 / 3, 699), 4.5);
+  assert.equal(seuil(23.99, 400), 4.5);
+  assert.equal(seuil(24, 400), undefined);
+});
+
+test('E9.4 : un layer visible sous un parent visible sous un grand-parent masqué n’est pas visible', () => {
+  const v = variant('a', [racine(), cadreSansPeinture('g', 'r', 1, false), cadreSansPeinture('p', 'g'), texteDans('p', [solide('fills', gris(0.9))])]);
+  assert.deepEqual(layersVisiblesDuVariant(v).map((l) => l.id), ['r']);
+  assert.deepEqual(parCode(cc(releve([v])), 'C49'), [], 'aucun constat sur un texte masqué par un ancêtre');
+  const ordreInverse = variant('b', [racine(), cadreSansPeinture('p', 'g'), cadreSansPeinture('g', 'r', 1, false), texteDans('p', [solide('fills', gris(0.9))])]);
+  assert.deepEqual(layersVisiblesDuVariant(ordreInverse).map((l) => l.id), ['r']);
+});
+
+const fondFrere = (largeur: number, o: { couleur?: PeintureLue[]; type?: string; visible?: boolean; x?: number } = {}): LayerLu => ({
+  id: 'fond', nom: 'Fond', type: o.type ?? 'RECTANGLE', parent: 'r', visible: o.visible ?? true, opacite: 1,
+  dimensions: { x: o.x ?? 0, y: 0, largeur, hauteur: 48 }, peintures: o.couleur ?? [solide('fills', gris(0.1))], liaisons: [], valeursEnDur: [],
+});
+const texteBlanc = (): LayerLu => ({ ...texte([solide('fills', gris(1))]), parent: 'r', dimensions: { x: 12, y: 16, largeur: 24, hauteur: 16 } });
+const sansFond = { ...catalogueVide, fondDeLaPageFigma: gris(1) };
+
+test('E9.4 : un frère plus bas qui couvre la boîte du texte est son fond', () => {
+  const sur = (layers: LayerLu[]) => cc(releve([variant('a', [racine([]), ...layers])]), 'AA', sansFond);
+  const clair = [solide('fills', gris(0.9))];
+  assert.deepEqual(parCode(sur([fondFrere(48), texteBlanc()]), 'C49'), [], 'blanc sur un frère sombre passe');
+  const sur_clair = parCode(sur([fondFrere(48, { couleur: clair }), texteBlanc()]), 'C49');
+  assert.equal(sur_clair.length, 1, 'blanc sur un frère clair échoue');
+  assert.equal(sur_clair[0].faits.fond, '#E6E6E6');
+  assert.equal(sur_clair[0].faits.fondNomme, undefined, 'le fond est celui du frère, pas la page Figma');
+  assert.equal(parCode(sur([texteBlanc(), fondFrere(48, { couleur: clair })]), 'C49')[0].faits.fondNomme, 'page-figma', 'un frère au-dessus ne sert pas de fond');
+  assert.equal(parCode(sur([fondFrere(48, { couleur: clair, visible: false }), texteBlanc()]), 'C49')[0].faits.fondNomme, 'page-figma', 'un frère masqué ne sert pas de fond');
+  assert.equal(parCode(sur([fondFrere(48, { couleur: clair, type: 'VECTOR' }), texteBlanc()]), 'C49')[0].faits.fondNomme, 'page-figma', 'un vecteur n’est pas un fond');
+  assert.equal(parCode(sur([fondFrere(48, { couleur: clair, x: 100 }), texteBlanc()]), 'C49')[0].faits.fondNomme, 'page-figma', 'un frère à côté ne couvre rien');
+});
+
+test('E9.4 : un frère qui ne couvre le texte qu’en partie laisse le fond indéterminé, sans repli sur la page Figma', () => {
+  const constats = cc(releve([variant('a', [racine([]), fondFrere(20, { couleur: [solide('fills', gris(0.9))] }), texteBlanc()])]), 'AA', sansFond);
+  assert.equal(parCode(constats, 'C49').length, 0);
+  assert.ok(constats.some((c) => c.limite && c.code === 'C49' && c.faits.cause === 'fond-indetermine' && c.faits.calque === 'Label'));
+});
+
+test('E9.4 : un frère translucide se compose sur la page Figma', () => {
+  const constats = cc(releve([variant('a', [racine([]), fondFrere(48, { couleur: [solide('fills', gris(0), 0.5)] }), texteBlanc()])]), 'AA', sansFond);
+  const [c] = parCode(constats, 'C49');
+  assert.equal(c.faits.fond, '#808080', 'noir à 50 % sur la page blanche');
+  assert.equal(c.faits.fondNomme, 'page-figma');
+});
+
+const themeADeuxModes = (): CatalogueDeReference => ({
+  ...catalogueVide,
+  collections: [{ cle: 'ck', nom: 'theme', role: 'theme', etat: 'lue', modes: [{ id: 'l', nom: 'Light' }, { id: 'd', nom: 'Dark' }] }],
+  fondsDElevation: { l: { page: gris(1), carte: gris(1) }, d: { page: gris(0), carte: gris(0.1) } },
+});
+
+test('E9.6 : le repli mesure chaque mode du thème, même pour un texte en dur', () => {
+  const catalogue = themeADeuxModes();
+  const constats = cc(releve([variant('a', [racine([]), texteDans('r', [solide('fills', gris(0.1))])])]), 'AA', catalogue);
+  const mesures = parCode(constats, 'C49');
+  assert.deepEqual(mesures.map((c) => c.faits.fondNomme).sort(), ['carte', 'page']);
+  for (const c of mesures) assert.match(String(c.faits.mode), /theme en Dark/, 'le texte sombre échoue sur les fonds sombres');
+  assert.equal(mesures[0].faits.autresModes, 0);
+});
+
+test('E9.6 : une cible mesurée sur un fond opaque n’hérite pas des modes du thème du repli', () => {
+  const catalogue = themeADeuxModes();
+  const cadre: LayerLu = { ...racine([solide('fills', gris(1))]), id: 'cadre', parent: null, peintures: [solide('fills', gris(1)), solide('strokes', gris(0.9))], strokeWeight: 1 };
+  const t: LayerLu = { ...texte([solide('fills', gris(0.9))]), parent: 'cadre' };
+  const mesures = parCode(cc(releve([variant('a', [cadre, t])]), 'AA', catalogue), 'C49');
+  assert.equal(mesures.length, 1);
+  assert.equal(mesures[0].faits.mode, '', 'le texte sur fond opaque ne dépend d’aucun mode');
+});
+
+test('E9.6 : au-delà de la borne, le constat dit le nombre de variants non mesurés', () => {
+  const { cat, t } = fixtureDeModes([10, 10, 20]);
+  const variants = [0, 1, 2].map((i) => variant(`v${i}`, [racine(), { ...t, id: `t${i}` }]));
+  const borne = cc(releve(variants), 'AA', cat).find((c) => c.id === 'C49:borne')!;
+  assert.equal(borne.faits.variantsNonMesures, 1, 'le troisième variant est coupé au milieu');
+  assert.equal(cc(releve([variants[0], variants[1]]), 'AA', cat).find((c) => c.id === 'C49:borne'), undefined);
+});
+
+test('E9.6 : une collection dont aucun mode ne change une valeur lue sort du produit des modes', () => {
+  const modes = [{ id: 'm0', nom: 'M0' }, { id: 'm1', nom: 'M1' }, { id: 'm2', nom: 'M2' }];
+  type Valeurs3 = Record<string, { valeur: ReturnType<typeof gris> }>;
+  const catalogue = (valeurs: Valeurs3): CatalogueDeReference => ({
+    ...catalogueVide,
+    collections: [{ cle: 'c', nom: 'c', role: null, etat: 'lue', modes }],
+    variables: [{ cle: 'v', nom: 'v', collection: 'c', type: 'COLOR', etat: 'presente', valeurs }],
+  });
+  const t = texte([solide('fills', gris(0.9))]);
+  t.texte!.plages[0].liaisons = [{ champ: 'fills', indice: 0, porteur: 't', variable: { id: 'v', cle: 'v', nom: 'v', collection: 'c', distante: false } }];
+  const mesure = (valeurs: Valeurs3) => parCode(cc(releve([variant('a', [racine(), t])]), 'AA', catalogue(valeurs)), 'C49')[0].faits;
+  const constant = mesure({ m0: { valeur: gris(0.9) }, m1: { valeur: gris(0.9) }, m2: { valeur: gris(0.9) } });
+  assert.equal(constant.autresModes, 0);
+  assert.equal(constant.mode, '');
+  const variable = mesure({ m0: { valeur: gris(0.9) }, m1: { valeur: gris(0.8) }, m2: { valeur: gris(0.9) } });
+  assert.equal(variable.autresModes, 2);
+  assert.match(String(variable.mode), /^c en /);
+});
+
+test('E9.7 : la garantie du thème ne couvre que le même type de seuil et le niveau demandé', () => {
+  const catalogue = themeAvecFonds('surface/foreground', grisAuRapport(0.1, 2.7), { fondsDElevation: FONDS_SOMBRES });
+  const lie = { champ: 'fills', indice: 0, porteur: 'u', variable: { id: 'v', cle: 'jeton', nom: 'x', collection: 'c', distante: false } };
+  const types = (niveau: 'AA' | 'AAA', usage: 'texte' | 'contour') => {
+    const t: LayerLu = usage === 'texte'
+      ? {
+        ...texte([solide('fills', gris(0))], 14, 400, 'u'), parent: 'r',
+        texte: { style: null, plages: [{ debut: 0, fin: 5, fontSize: 14, fontWeight: 400, peintures: [solide('fills', gris(0))], liaisons: [lie] }] },
+      }
+      : {
+        id: 'u', nom: 'Bord', type: 'RECTANGLE', parent: 'r', visible: true, opacite: 1, dimensions: dims(), peintures: [solide('strokes', gris(0))],
+        strokeWeight: 1, valeursEnDur: [], liaisons: [{ ...lie, champ: 'strokes' }],
+      };
+    const v = variant('a', [racine([]), t]);
+    v.modesEffectifs = { ck: 'd' };
+    return cc(releve([v]), niveau, catalogue).filter((c) => c.faits.fondNomme === 'page').map((c) => c.type);
+  };
+  assert.deepEqual(types('AA', 'texte'), ['corriger'], 'texte AA : même type de seuil, même niveau');
+  assert.deepEqual(types('AAA', 'texte'), ['verifier'], 'texte AAA : la garantie vise AA');
+  assert.deepEqual(types('AA', 'contour'), ['verifier'], 'contour : la garantie de surface/foreground vise le texte');
+});
+
+test('E9.11 : l’identifiant d’un constat de contraste ne porte ni la plage ni le niveau', () => {
+  const t = texte([solide('fills', gris(0.9))]);
+  t.texte!.plages.push({ debut: 5, fin: 9, fontSize: 14, fontWeight: 400, peintures: [solide('fills', gris(0.8))], liaisons: [] });
+  const aa = parCode(cc(releve([variant('a', [racine(), t])]), 'AA'), 'C49');
+  assert.deepEqual(aa.map((c) => c.id), ['C49:Label:texte'], 'deux plages de même usage, un seul constat');
+  assert.equal(aa[0].faits.premierPlan, '#E6E6E6', 'celui de la plage la plus faible');
+  const longue = { ...t, texte: { ...t.texte!, plages: [{ ...t.texte!.plages[0], fin: 12 }] } };
+  assert.equal(parCode(cc(releve([variant('a', [racine(), longue])]), 'AA'), 'C49')[0].id, 'C49:Label:texte');
+  assert.equal(parCode(cc(releve([variant('a', [racine(), t])]), 'AAA'), 'C49')[0].id, 'C49:Label:texte');
+  const degrade = texte([{ ...solide('fills', gris(0.9)), type: 'GRADIENT_LINEAR' }]);
+  assert.equal(cc(releve([variant('a', [racine(), degrade])])).find((c) => c.limite)!.id, 'C49:Label:texte:limite:degrade');
+});
+
+test('E9.11 : une plage vide ne donne ni constat de contraste ni constat de taille', () => {
+  const t = texte([solide('fills', gris(0.9))], 8);
+  t.texte!.plages = [{ ...t.texte!.plages[0], debut: 5, fin: 5 }];
+  assert.deepEqual(cc(releve([variant('a', [racine(), t])])), []);
 });

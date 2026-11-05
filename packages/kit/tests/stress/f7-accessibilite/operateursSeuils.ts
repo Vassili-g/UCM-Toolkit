@@ -78,9 +78,6 @@ function texteDeG(d: Degradation, couleur: string, taille: number, graisse: numb
   d.poserLaPaire('texte', couleur, BLANC, { fontSize: taille, fontWeight: graisse });
 }
 
-/** Les tailles 18,66 et 18,664 en graisse 700 et plus : la définition actuelle (18,66) et celle de la proposition (56/3) divergent. */
-const estSousQF73 = (taille: number, graisse: number): boolean => taille > 18.65 && taille < 56 / 3 && graisse >= 700;
-
 /** G1 (28), G2 (8) et G3 (9). */
 export function operateurG(base: ComposantDeContraste): CasAccessibilite[] {
   const faire = fabrique(base);
@@ -100,7 +97,7 @@ export function operateurG(base: ComposantDeContraste): CasAccessibilite[] {
         attendus: atteintLeSeuil(rapport, seuil) ? [] : [contrasteAttendu({
           usage: 'texte', layer: 'Texte', plage: PLAGE_DU_TEXTE, rapport, seuil, niveau: 'AA', variants: [cible], premierPlan: troisCinq, fondHex: BLANC,
         })],
-        hypothese: 'H11', ...(estSousQF73(taille, graisse) ? { verdict: 'mesure' as const, question: 'Q-F7-3' } : {}),
+        hypothese: 'H11',
       }));
     }
   }
@@ -118,7 +115,7 @@ export function operateurG(base: ComposantDeContraste): CasAccessibilite[] {
         attendus: [contrasteAttendu({
           usage: seuil === 4.5 ? 'grand-texte' : 'texte', layer: 'Texte', plage: PLAGE_DU_TEXTE, rapport, seuil, niveau: 'AAA', variants: [cible], premierPlan: quatre, fondHex: BLANC,
         })],
-        hypothese: 'H11', ...(estSousQF73(taille, graisse) ? { verdict: 'mesure' as const, question: 'Q-F7-3' } : {}),
+        hypothese: 'H11',
       }));
     }
   }

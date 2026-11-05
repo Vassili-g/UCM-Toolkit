@@ -287,7 +287,8 @@ test('annuler pendant la matérialisation des modes arrête avant la fin du prod
     collections: ['c1', 'c2', 'c3'].map((cle) => ({ cle, nom: cle, role: null, etat: 'lue', modes })),
     variables: ['c1', 'c2', 'c3'].map((cle) => ({
       cle, nom: cle, collection: cle, type: 'COLOR', etat: 'presente',
-      valeurs: Object.fromEntries(modes.map(({ id }) => [id, { valeur: { r: 1, g: 1, b: 1, a: 1 } }])),
+      // Un blanc légèrement différent par mode : une collection dont tous les modes lisent la même couleur sort du produit.
+      valeurs: Object.fromEntries(modes.map(({ id }, rang) => [id, { valeur: { r: 1, g: 1, b: 1 - rang / 1000, a: 1 } }])),
     })),
   };
   texte.texte!.plages[0].liaisons = catalogue.variables.map((variable, indice) => ({

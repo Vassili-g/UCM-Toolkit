@@ -38,8 +38,8 @@ export function operateurT(base: ComposantDeContraste): CasAccessibilite[] {
 
   // T1 : chaque plage se juge à sa couleur, sa taille et sa graisse.
   cas.push(faire(`T1-${numero('T1')}`, 'T1', {
-    description: `deux plages de couleurs différentes, ${FAIBLE} et ${AUTRE}, qui échouent toutes deux`, degrader: texteDePlages(plage(0, 5, FAIBLE), plage(5, 10, AUTRE)),
-    attendus: [...attenduDePlage(0, 5, FAIBLE), ...attenduDePlage(5, 10, AUTRE)],
+    description: `deux plages de couleurs différentes, ${FAIBLE} et ${AUTRE}, qui échouent toutes deux : un constat, à la pire (Q-F7-12)`, degrader: texteDePlages(plage(0, 5, FAIBLE), plage(5, 10, AUTRE)),
+    attendus: attenduDePlage(0, 5, FAIBLE),
   }));
   cas.push(faire(`T1-${numero('T1')}`, 'T1', {
     description: `trois plages dont la deuxième seule échoue (${FAIBLE})`, degrader: texteDePlages(plage(0, 4, NOIR), plage(4, 7, FAIBLE), plage(7, 10, NOIR)), attendus: attenduDePlage(4, 7, FAIBLE),
@@ -70,7 +70,7 @@ export function operateurT(base: ComposantDeContraste): CasAccessibilite[] {
     degrader: (d) => {
       d.scene({ racineEnDur: true });
       const texte = d.ajouterUnLayer({ nom: 'Label', type: 'TEXT', plages: [plage(0, 5, FAIBLE), plage(5, 10, NOIR)] });
-      d.lier(texte, d.nouvelleVariable({ nom: 'test/plage', collection: themeDuCatalogue(d.catalogue), valeurs: [NOIR, NOIR] }), { plage: 1 });
+      d.lier(texte, d.nouvelleVariable({ nom: 'test/plage', collection: themeDuCatalogue(d.catalogue), valeurs: [NOIR, '#000001'] }), { plage: 1 });
     },
     attendus: attenduDePlage(0, 5, FAIBLE, 14, 400, [cible], { autresModes: 1 }),
   }));
@@ -95,7 +95,7 @@ export function operateurT(base: ComposantDeContraste): CasAccessibilite[] {
   cas.push(faire(`T2-${numero('T2')}`, 'T2', {
     description: `Label de 14 px en ${FAIBLE}, de 10 caractères dans un variant et de 12 dans l'autre : un seul groupe`,
     degrader: (d) => { labelDans(d, 0, [plage(0, 10, FAIBLE)]); labelDans(d, 1, [plage(0, 12, FAIBLE)]); },
-    attendus: [{ ...attenduDePlage(0, 10, FAIBLE, 14, 400, [v0.nom, v1.nom])[0], cle: 'texte|Label||' }], verdict: 'mesure', question: 'Q-F7-12', hypothese: 'H14',
+    attendus: attenduDePlage(0, 10, FAIBLE, 14, 400, [v0.nom, v1.nom]), hypothese: 'H14',
   }));
   return cas;
 }
