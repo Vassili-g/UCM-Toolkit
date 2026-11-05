@@ -234,7 +234,7 @@ G1a et G2 peuvent tourner ensemble, sans fichier commun.
 
 | Lot | Agent | Dépend de | État |
 |---|---|---|---|
-| [G0](lots/G0.md) Mesure par phase | `implementeur`, puis le mainteneur | rien | [ ] |
+| [G0](lots/G0.md) Mesure par phase | `implementeur`, puis le mainteneur | rien | [x] e95a7d51, G0.5 au mainteneur |
 | [G1a](lots/G1a.md) Calcul des noms sans le sandbox | `implementeur-exigeant` | G0 | [ ] |
 | [G1b](lots/G1b.md) Calcul des noms dans un Worker de l’interface | `implementeur-exigeant` | G1a | [ ] |
 | [G1c](lots/G1c.md) Recalculs, simulations et projections dans le Worker | `implementeur-exigeant` | G1b | [ ] |
