@@ -206,7 +206,7 @@ Règles propres à la phase E :
 | [E6](lots/E6.md) Tailles du composant | `implementeur` | E5d | [x] 388f8059, carte de E6.3 reste |
 | [E7a](lots/E7a.md) Axes et valeurs | `implementeur-exigeant` | E6, E1a | [x] 388f8059, textes de E7.3 et E7.4 restent |
 | [E7b](lots/E7b.md) Matrice et tokens sans emploi | `implementeur` | E7a | [x] b0558daf |
-| [E8a](lots/E8a.md) Icônes du composant | `implementeur-exigeant` | E7b, E1b | [x] b0558daf, Size des instances non lue par Architect |
+| [E8a](lots/E8a.md) Icônes du composant | `implementeur-exigeant` | E7b, E1b | [x] b0558daf, reliquat des valeurs d'instance fait dans 7f363fc7 |
 | [E8b](lots/E8b.md) Styles de texte | `implementeur` | E8a | [x] 2e80ec58 |
 | [E9a](lots/E9a.md) Composition et valeurs de couleur | `implementeur` | E8b | [x] 2e80ec58, phrase de couleur-hors-gamut reste |
 | [E9b](lots/E9b.md) Visibilité et fond du texte | `implementeur` | E9a | [ ] |
