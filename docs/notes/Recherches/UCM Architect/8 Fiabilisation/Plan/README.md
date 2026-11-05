@@ -241,7 +241,7 @@ G1a et G2 peuvent tourner ensemble, sans fichier commun.
 | [G2](lots/G2.md) Structure affichée avant les noms | `implementeur-exigeant` | G0 | [x] 218e3e75 |
 | [G3](lots/G3.md) Messages fidèles aux étapes | `implementeur` | G2 | [x] 62c797a8 |
 | [G4](lots/G4.md) Pas synchrones bornés | `implementeur` | G1b | [ ] ad3bd578, 1926b45c, G4.1 et G4.2 faits, G4.3 reste ouvert |
-| [G6](lots/G6.md) Contrôles de structure dans le Worker | `implementeur-exigeant` | G1c, E11b | [ ] 4588f1cc, partie Worker ; branchement après E11b |
+| [G6](lots/G6.md) Contrôles de structure dans le Worker | `implementeur-exigeant` | G1c, E11b | [x] 4588f1cc, bec71fd0 |
 | [G5](lots/G5.md) Mesure de l’attente | `verificateur`, puis le mainteneur | G1c, G2, G3, G4, G6 | [ ] premier essai mesuré |
 
 ## Phase F. Clôture
