@@ -9,6 +9,7 @@
  */
 import { creerPastilleDeCompte } from 'ucm-plugin-socle/src/ui/Alerte';
 import { createSettingsButton } from 'ucm-plugin-socle/src/ui/EnTete';
+import { creerSvgDuSigne } from 'ucm-plugin-socle/src/ui/Signe';
 import type { Disposition } from '../fenetre';
 import type { Constat } from '../messages/commun';
 import type { Application, Composant } from './application';
@@ -16,20 +17,6 @@ import { aDesLiaisonsPreparees, calculEnCours, aPreparer, libraryAChoisir, selec
 import { estUneInformation } from './panneau/elements';
 import { TEXTES } from './textes';
 import { estHorsUcm } from './vues/horsUcm';
-
-const ESPACE_SVG = 'http://www.w3.org/2000/svg';
-
-/** L'icône d'un panneau latéral : un cadre coupé par un trait vertical. */
-function iconeDuPanneau(): SVGSVGElement {
-  const svg = document.createElementNS(ESPACE_SVG, 'svg');
-  for (const [nom, valeur] of Object.entries({ viewBox: '0 0 16 16', width: '14', height: '14', fill: 'none', stroke: 'currentColor', 'stroke-width': '1.3', 'aria-hidden': 'true' })) svg.setAttribute(nom, valeur);
-  const cadre = document.createElementNS(ESPACE_SVG, 'rect');
-  for (const [nom, valeur] of Object.entries({ x: '1.5', y: '2.5', width: '13', height: '11', rx: '1.5' })) cadre.setAttribute(nom, valeur);
-  const trait = document.createElementNS(ESPACE_SVG, 'path');
-  trait.setAttribute('d', 'M10 2.5v11');
-  svg.append(cadre, trait);
-  return svg;
-}
 
 const DISPOSITIONS: readonly Disposition[] = ['large', 'etroite'];
 
@@ -107,7 +94,7 @@ export function creerBarre(app: Application): Composant {
   const constatsTexte = document.createElement('span');
   constatsTexte.textContent = TEXTES.constats;
   let pastille: HTMLElement | null = null;
-  constats.append(iconeDuPanneau(), constatsTexte);
+  constats.append(creerSvgDuSigne('panneau-lateral', 14), constatsTexte);
   constats.addEventListener('click', () => app.basculerLePanneau());
 
   lecture.append(actualiser, annuler, analyser, constats, configuration);

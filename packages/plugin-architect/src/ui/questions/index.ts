@@ -18,6 +18,7 @@ import { poserLeLieuEnrichi, poserLeTexteEnrichi } from '../ignores/texte';
 import { creerBoutonSelectionner } from '../structure/carte';
 import { TEXTES } from '../textes';
 import { reponsesDuGroupe, type CarteDeQuestion, type GroupeDeQuestions, type MorceauDEffet, type MorceauDeTitre, type ReponseProposee } from './modele';
+import { glypheDe } from 'ucm-plugin-socle/src/ui/Signe';
 
 const T = TEXTES.questionsDuComposant;
 
@@ -149,7 +150,7 @@ export function monterLesQuestions(options: OptionsDesQuestions): Questions {
     const fleche = document.createElement('span');
     fleche.className = 'fleche';
     fleche.setAttribute('aria-hidden', 'true');
-    fleche.textContent = '→';
+    fleche.textContent = glypheDe('avant-apres');
     const nouveau = document.createElement('span');
     nouveau.className = 'nouveau';
     poserLEffet(nouveau, carte.nouveau);

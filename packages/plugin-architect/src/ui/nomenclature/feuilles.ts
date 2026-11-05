@@ -21,6 +21,7 @@ import { motAffiche } from './listeDesTermes';
 import { carteDeConflit } from './questions';
 import type { ReglesMontees } from './regles';
 import { TEXTES } from '../textes/nomenclature';
+import { glypheDe } from 'ucm-plugin-socle/src/ui/Signe';
 
 /** Le délai après lequel une saisie calme demande sa simulation. */
 const DELAI_DE_SIMULATION = 250;
@@ -225,8 +226,8 @@ function creerChemin(ligne: LigneVue): HTMLElement {
 
 function creerChange(avant: string, apres: string, autres: number): HTMLElement {
   const change = el('span', 'change');
-  change.append(el('code', 'avant', avant), el('span', 'fleche', '→'), el('code', 'apres', apres));
-  if (autres > 0) change.append(el('span', 'plus', `+${autres}`));
+  change.append(el('code', 'avant', avant), el('span', 'fleche', glypheDe('avant-apres')), el('code', 'apres', apres));
+  if (autres > 0) change.append(el('span', 'plus', `${glypheDe('ajouter')}${autres}`));
   return change;
 }
 
@@ -548,7 +549,7 @@ export function monterFeuilles(coquille: Coquille, regles: ReglesMontees): void 
         compte.className = 'compte-jeton';
         jeton.append(compte);
         if (retirable) {
-          const retirer = creerUnBoutonNu('×', () => envoyer({ type: 'retirer-remplace', terme: donnees.mot, remplace: mot }, 'relire'), TEXTES.retirerLeTerme(mot));
+          const retirer = creerUnBoutonNu(glypheDe('fermer'), () => envoyer({ type: 'retirer-remplace', terme: donnees.mot, remplace: mot }, 'relire'), TEXTES.retirerLeTerme(mot));
           retirer.className = 'retirer-jeton';
           jeton.append(retirer);
         }
@@ -597,7 +598,7 @@ export function monterFeuilles(coquille: Coquille, regles: ReglesMontees): void 
         poserLesSegments(avant, ligne.ancien, ligne.marques, 'ancien');
         const apres = el('span');
         apres.className = 'chemin-apres';
-        const fleche = el('span', '', '→ ');
+        const fleche = el('span', '', `${glypheDe('avant-apres')} `);
         fleche.className = 'fleche-ligne';
         apres.append(fleche);
         poserLesSegments(apres, ligne.nouveau, ligne.marques, 'nouveau');

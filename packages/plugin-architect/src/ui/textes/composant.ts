@@ -1,5 +1,6 @@
 /** Les textes de la vue Composant : les mots et les glyphes de MAQUETTE-VUE-COMPOSANT.html. Les sortes d'objet sont des signes du socle, pas des glyphes. */
 import type { Nature } from '../../composant';
+import { glypheDe } from 'ucm-plugin-socle/src/ui/Signe';
 
 /** « 42 s », « 2 min 22 s », « 3 min » ; sous la seconde, « moins d’une seconde ». */
 export function dureeLisible(ms: number): string {
@@ -43,14 +44,14 @@ export const TEXTES_COMPOSANT = {
     natures: { couleur: 'Couleur', forme: 'Forme', espacement: 'Espacement', taille: 'Taille', texte: 'Texte', autre: 'Autre' } satisfies Record<Nature, string>,
     libelles: { texte: 'Texte', fond: 'Fond', contour: 'Stroke', effet: 'Effet', rayon: 'Rayon', epaisseur: 'Épaisseur', opacite: 'Opacité', ecart: 'Écart', marge: 'Marge', taille: 'Taille', police: 'Texte', style: 'Style' } as Record<string, string>,
     glyphes: {
-      miette: '›',
-      ecart: '≠',
+      miette: glypheDe('separateur'),
+      ecart: glypheDe('ecart'),
     },
     fois: (nombre: number) => `×${nombre}`,
   },
   variants: {
     titre: 'Variants',
-    autres: (nombre: number) => `+${nombre}`,
+    autres: (nombre: number) => `${glypheDe('ajouter')}${nombre}`,
     nonLu: 'non lu',
     tous: 'Tous les variants',
     nombre: (n: number) => `${n} variant${n > 1 ? 's' : ''}`,

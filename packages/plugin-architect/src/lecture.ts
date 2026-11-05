@@ -104,6 +104,17 @@ export interface PortDeLecture {
   importVariableByKeyAsync(cle: string): Promise<VariableFigma>;
 }
 
+/** Le même port sans import par clé : l'import abonne le fichier à la variable, ce qu'une lecture que le designer n'a pas demandée ne fait pas. */
+export function portSansImportParCle(port: PortDeLecture): PortDeLecture {
+  return {
+    getLocalVariableCollectionsAsync: () => port.getLocalVariableCollectionsAsync(),
+    getLocalVariablesAsync: () => port.getLocalVariablesAsync(),
+    getVariableByIdAsync: (id) => port.getVariableByIdAsync(id),
+    getVariableCollectionByIdAsync: (id) => port.getVariableCollectionByIdAsync(id),
+    importVariableByKeyAsync: () => Promise.reject(new Error('Cette lecture n’importe aucune variable de library.')),
+  };
+}
+
 /**
  * La clé publiée que porte l'identifiant d'une variable de bibliothèque,
  * `VariableID:<clé>/<node>`. Un identifiant local, `VariableID:<node>`, n'en

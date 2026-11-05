@@ -10,6 +10,7 @@ import type { Convention } from '@ucm-kit/core/referentiel';
 import type { Bilan, CollectionDuJournal, LigneDImport, LigneDuJournal } from '../../messages/nomenclature';
 import { poserLesSegments, specimenDeConvention } from './aAppliquer';
 import { TEXTES } from '../textes/nomenclature';
+import { glypheDe } from 'ucm-plugin-socle/src/ui/Signe';
 
 type DernierRenommage = NonNullable<Bilan['dernierRenommage']>;
 type DernierImport = NonNullable<Bilan['dernierImport']>;
@@ -130,7 +131,7 @@ function ligneDeRenommage(ligne: LigneDuJournal): HTMLElement {
     const actuel = ligne.aujourdhui ?? ligne.ancien;
     const marques = segmentsQuiChangent(actuel, ligne.ancien);
     poserLesSegments(chemin, actuel, marques, 'ancien');
-    apres.append(fleche('→ ', true));
+    apres.append(fleche(`${glypheDe('avant-apres')} `, true));
     poserLesSegments(apres, ligne.ancien, marques, 'nouveau');
   }
   if (ligne.type === 'collection') chemin.append(document.createTextNode(' '), meta(TEXTES.uneCollection));
@@ -156,7 +157,7 @@ function ecritureEnJetons(place: 'groupes' | 'variables', convention: Convention
 }
 
 function termeEnJetons(terme: string, formes: readonly string[]): Node[] {
-  return [...formes.map(jeton), fleche('→', false), jeton(terme)];
+  return [...formes.map(jeton), fleche(glypheDe('avant-apres'), false), jeton(terme)];
 }
 
 /** Les lignes de règle à montrer : celles dont les deux côtés diffèrent. `autres` compte les clés que le diff ne détaille pas. */

@@ -15,11 +15,14 @@ import { TAILLE_PAR_DEFAUT } from './fenetre';
 import type { PluginMessage, UiRequest } from './messages';
 import { analysesLanceesParLeDesigner, annulerLaPrelecture, fermerLaSession, operationEnCours, surChangementDeStyle, surInterruptionDePage, surChangementDuDocument, surSelection } from './sandbox/analyse';
 import { declarer, envoyerLaSelection, ouvrirLaFenetre, sujetDeLaSelectionCourante } from './sandbox/commun';
+import { reperDesLectures } from './sandbox/acquisition';
 import { abandonnerLesLibrariesAnticipees, rafraichirLesLibraries } from './sandbox/anticipation';
 import { creerLeSuivi, type Contexte } from './sandbox/contexte';
 import { DOMAINES, tableDesTypes } from './sandbox/index';
 import { annoncerLOuverture } from './sandbox/nomenclature';
-import { creerLaPrelecture } from './sandbox/prelecture';
+import { portDeLecture } from './sandbox/lectureDeFigma';
+import { creerLaPrelecture, creerLaPrelectureDesTokens } from './sandbox/prelecture';
+import { espaceDuProfil } from '@ucm-kit/core/format';
 
 figma.showUI(__html__, { themeColors: false, visible: false, width: TAILLE_PAR_DEFAUT.largeur, height: TAILLE_PAR_DEFAUT.hauteur });
 
@@ -29,6 +32,7 @@ function versUi(message: PluginMessage): void {
 
 const surLesNoeuds = (evenement: NodeChangeEvent): void => {
   prelecture.surChangement();
+  prelectureDesTokens.surChangement();
   surChangementDuDocument(evenement.nodeChanges.map((changement) => ({
     type: changement.type,
     id: changement.node.id,
@@ -39,6 +43,7 @@ const surLesNoeuds = (evenement: NodeChangeEvent): void => {
 
 const surLesStyles = (evenement: StyleChangeEvent): void => {
   prelecture.surChangement();
+  prelectureDesTokens.surChangement();
   surChangementDeStyle(evenement.styleChanges, contexte);
 };
 
@@ -72,10 +77,24 @@ const prelecture = creerLaPrelecture({
   maintenant: () => Date.now(),
 });
 
+// Le candidat de prélecture du relevé Tokens (D5) : construit, jamais lancé. Aucun appel à `lancer()` n'existe tant que le mainteneur
+// n'a pas comparé les interactions avec et sans lui dans Figma (D5b). Les arrêts ci-dessous sont déjà branchés : une demande du
+// designer passe avant lui, et un événement de Figma le périme.
+const prelectureDesTokens = creerLaPrelectureDesTokens({
+  port: portDeLecture(figma),
+  fichier: () => figma.root.name,
+  espace: () => espaceDuProfil(figma.root.documentColorProfile),
+  respirer: () => new Promise((resolve) => setTimeout(resolve, 0)),
+  demandePrioritaire: () => operationEnCours() !== null,
+  repere: reperDesLectures,
+  maintenant: () => Date.now(),
+});
+
 const domaineDe = tableDesTypes();
 const ouverture = ouvrirLaFenetre(contexte);
 
 function aLaSelection(): void {
+  prelectureDesTokens.surChangement();
   const { sujetId, origine } = envoyerLaSelection(contexte);
   surSelection(sujetId, origine, contexte);
   prelecture.surSelection();
@@ -84,6 +103,7 @@ function aLaSelection(): void {
 async function traiterMessage(message: UiRequest): Promise<void> {
   const domaine = domaineDe.get(message.type);
   if (domaine === undefined) return;
+  prelectureDesTokens.cederLaPlace();
   await (DOMAINES[domaine as keyof typeof DOMAINES].traiter as (demande: UiRequest, contexte: Contexte) => Promise<void>)(message, contexte);
   if (message.type === 'lire-preferences') {
     await ouverture;
@@ -109,6 +129,7 @@ figma.on('close', () => {
   figma.off('currentpagechange', aLaPage);
   suivi.fermer();
   prelecture.fermer();
+  prelectureDesTokens.fermer();
   abandonnerLesLibrariesAnticipees();
   fermerLaSession();
 });

@@ -159,19 +159,19 @@ test('« Autre terme… » montre l’avant → après de la saisie et n’enreg
 });
 
 test('la ligne de réussite d’une paire dit ce qui change et ce que Renommages reçoit', () => {
-  assert.deepEqual(ligneFaite(paire(), { type: 'garder', rang: 1 }), { avant: 'outline', separateur: '→', apres: 'outlined', detail: '8 variables ajoutées aux renommages' });
-  assert.deepEqual(ligneFaite(paire(), { type: 'garder', rang: 0 }), { avant: 'outlined', separateur: '→', apres: 'outline', detail: '24 variables ajoutées aux renommages' });
-  assert.deepEqual(ligneFaite(paire(), { type: 'autre', terme: 'solid' }), { avant: 'outline, outlined', separateur: '→', apres: 'solid', detail: '32 variables ajoutées aux renommages' });
-  assert.deepEqual(ligneFaite(paire(), { type: 'distincts' }), { avant: 'outline', separateur: '≠', apres: 'outlined', detail: 'Gardés séparés' });
+  assert.deepEqual(ligneFaite(paire(), { type: 'garder', rang: 1 }), { avant: 'outline', separateur: 'avant-apres', apres: 'outlined', detail: '8 variables ajoutées aux renommages' });
+  assert.deepEqual(ligneFaite(paire(), { type: 'garder', rang: 0 }), { avant: 'outlined', separateur: 'avant-apres', apres: 'outline', detail: '24 variables ajoutées aux renommages' });
+  assert.deepEqual(ligneFaite(paire(), { type: 'autre', terme: 'solid' }), { avant: 'outline, outlined', separateur: 'avant-apres', apres: 'solid', detail: '32 variables ajoutées aux renommages' });
+  assert.deepEqual(ligneFaite(paire(), { type: 'distincts' }), { avant: 'outline', separateur: 'ecart', apres: 'outlined', detail: 'Gardés séparés' });
   assert.deepEqual(ligneFaite(paire(), { type: 'plus-tard' }), { avant: 'outline, outlined', separateur: null, apres: null, detail: 'Remis à plus tard' });
   assert.equal(ligneFaite(paire(), { type: 'voulu' }), null);
 });
 
 test('la ligne de réussite des autres questions', () => {
-  assert.deepEqual(ligneFaite(faute, { type: 'corriger', mots: ['contrasthovered'] }), { avant: 'contrashovered', separateur: '→', apres: 'contrasthovered', detail: '1 variable ajoutée aux renommages' });
-  assert.deepEqual(ligneFaite(colles, { type: 'corriger', mots: ['v', 'spacing', 'small'] }), { avant: 'vspacingsmall', separateur: '→', apres: 'v-spacing-small', detail: '3 variables ajoutées aux renommages' });
+  assert.deepEqual(ligneFaite(faute, { type: 'corriger', mots: ['contrasthovered'] }), { avant: 'contrashovered', separateur: 'avant-apres', apres: 'contrasthovered', detail: '1 variable ajoutée aux renommages' });
+  assert.deepEqual(ligneFaite(colles, { type: 'corriger', mots: ['v', 'spacing', 'small'] }), { avant: 'vspacingsmall', separateur: 'avant-apres', apres: 'v-spacing-small', detail: '3 variables ajoutées aux renommages' });
   assert.deepEqual(ligneFaite(faute, { type: 'voulu' }), { avant: 'contrashovered', separateur: null, apres: null, detail: 'Écriture gardée' });
-  assert.deepEqual(ligneFaite(collection(null), { type: 'collection', cible: 'typography' }), { avant: 'Typo Tokens', separateur: '→', apres: 'typography', detail: '1 collection ajoutée aux renommages' });
+  assert.deepEqual(ligneFaite(collection(null), { type: 'collection', cible: 'typography' }), { avant: 'Typo Tokens', separateur: 'avant-apres', apres: 'typography', detail: '1 collection ajoutée aux renommages' });
   assert.deepEqual(ligneFaite(collection(null), { type: 'collection', cible: null }), { avant: 'Typo Tokens', separateur: null, apres: null, detail: 'Nom gardé' });
   assert.equal(ligneFaite(collection(null), { type: 'distincts' }), null);
 });

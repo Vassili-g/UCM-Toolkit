@@ -1,3 +1,5 @@
+import { glypheDe } from 'ucm-plugin-socle/src/ui/Signe';
+
 type Cran = number | 'texteDesBoutons' | undefined;
 
 const cranClair = (cran: Cran): string => (cran === 'texteDesBoutons' ? 'texte des boutons' : `cran ${cran}`);
@@ -9,7 +11,7 @@ export const TEXTES_PREPARATION = {
   preparationAlerteTexte: (nom: string) => `${nom} n’a pas de tokens. Ses couleurs sont en dur.`,
   preparationAlerteMeta: (variants: number, layers: number, nom: string) => [`${variants} variants, ${layers} layers`, `Préparez les tokens de ${nom}`] as const,
   preparationFermer: 'Fermer',
-  preparationSymboleFermer: '×',
+  preparationSymboleFermer: glypheDe('fermer'),
   preparationTitre: (nom: string) => `Préparer les tokens de ${nom}`,
   preparationDescription: 'Chaque choix vise des tokens du thème, remplis par UCM Palettes. Le cran dit quelle nuance de la palette le token reçoit.',
   preparationAction: 'Préparer',

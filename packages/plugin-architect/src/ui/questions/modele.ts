@@ -13,6 +13,7 @@
 import type { Constat, Correction } from '../../messages/commun';
 import { lieuDesVariants, type MorceauDeLieu } from '../composant/variants';
 import { TEXTES } from '../textes';
+import { glypheDe } from 'ucm-plugin-socle/src/ui/Signe';
 
 const T = TEXTES.questionsDuComposant;
 
@@ -193,7 +194,7 @@ function questionProche(constat: Constat, id: string, candidats: readonly Candid
   const propositions: ReponseProposee[] = candidats.map((candidat, rang) => {
     const cible = cibles[rang] as number;
     return {
-      libelle: T.adopter(cible, cible > valeur ? '+' : '−', Number(Math.abs(cible - valeur).toFixed(2))),
+      libelle: T.adopter(cible, cible > valeur ? glypheDe('ajouter') : glypheDe('retirer'), Number(Math.abs(cible - valeur).toFixed(2))),
       reponse: reponseDe(candidat), token: sansPrefixe(candidat.nom, contexte.composant),
     };
   });

@@ -173,7 +173,7 @@ export function champAutreTerme(question: QuestionDePaire): ChampAutreTerme {
 /** Ce que la ligne de réussite montre : « avant → après », ou un seul terme, et son détail. */
 export interface LigneFaite {
   readonly avant: string;
-  readonly separateur: '→' | '≠' | null;
+  readonly separateur: 'avant-apres' | 'ecart' | null;
   readonly apres: string | null;
   readonly detail: string;
 }
@@ -188,12 +188,12 @@ export function ligneFaite(question: QuestionVue, reponse: Reponse): LigneFaite 
         case 'garder': {
           const garde = question.termes[reponse.rang];
           const remplace = question.termes[reponse.rang === 0 ? 1 : 0];
-          return { avant: remplace.mot, separateur: '→', apres: garde.mot, detail: TEXTES.ajouteesAAppliquer(remplace.nombre, 0) };
+          return { avant: remplace.mot, separateur: 'avant-apres', apres: garde.mot, detail: TEXTES.ajouteesAAppliquer(remplace.nombre, 0) };
         }
         case 'autre':
-          return { avant: mots, separateur: '→', apres: reponse.terme, detail: TEXTES.ajouteesAAppliquer(premier.nombre + second.nombre, 0) };
+          return { avant: mots, separateur: 'avant-apres', apres: reponse.terme, detail: TEXTES.ajouteesAAppliquer(premier.nombre + second.nombre, 0) };
         case 'distincts':
-          return { avant: premier.mot, separateur: '≠', apres: second.mot, detail: TEXTES.gardesSepares };
+          return { avant: premier.mot, separateur: 'ecart', apres: second.mot, detail: TEXTES.gardesSepares };
         case 'plus-tard':
           return { avant: mots, separateur: null, apres: null, detail: TEXTES.remisAPlusTard };
         default:
@@ -203,7 +203,7 @@ export function ligneFaite(question: QuestionVue, reponse: Reponse): LigneFaite 
     case 'ecriture-du-terme':
       switch (reponse.type) {
         case 'corriger':
-          return { avant: question.terme.mot, separateur: '→', apres: reponse.mots.join('-'), detail: TEXTES.ajouteesAAppliquer(question.terme.nombre, 0) };
+          return { avant: question.terme.mot, separateur: 'avant-apres', apres: reponse.mots.join('-'), detail: TEXTES.ajouteesAAppliquer(question.terme.nombre, 0) };
         case 'voulu':
           return { avant: question.terme.mot, separateur: null, apres: null, detail: TEXTES.ecritureGardee };
         case 'plus-tard':
@@ -216,7 +216,7 @@ export function ligneFaite(question: QuestionVue, reponse: Reponse): LigneFaite 
         case 'collection':
           return reponse.cible === null
             ? { avant: question.nom, separateur: null, apres: null, detail: TEXTES.nomGarde }
-            : { avant: question.nom, separateur: '→', apres: reponse.cible, detail: TEXTES.ajouteesAAppliquer(0, 1) };
+            : { avant: question.nom, separateur: 'avant-apres', apres: reponse.cible, detail: TEXTES.ajouteesAAppliquer(0, 1) };
         case 'plus-tard':
           return { avant: question.nom, separateur: null, apres: null, detail: TEXTES.remisAPlusTard };
         default:

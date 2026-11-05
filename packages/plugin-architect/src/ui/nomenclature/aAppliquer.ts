@@ -43,6 +43,7 @@ import { TEXTES } from '../textes/nomenclature';
 import { creerLaSuiteDuPied } from './suiteDuPied';
 import { creerLesGestesDeSection, type CompteDesRenommages, type IssueDesRenommages, type PontDesRenommages } from '../tokens/cochage';
 import { creerHoteDeCartes, type CarteDeSection } from '../virtualisation';
+import { glypheDe } from 'ucm-plugin-socle/src/ui/Signe';
 
 type Pastille = 'nouveau' | 'bloque' | 'protege' | 'non-verifie';
 
@@ -95,7 +96,7 @@ function fabriquerChange(avant: string, apres: string, autres: number): HTMLElem
   codeAvant.textContent = avant;
   const fleche = document.createElement('span');
   fleche.className = 'fleche';
-  fleche.textContent = '→';
+  fleche.textContent = glypheDe('avant-apres');
   const codeApres = document.createElement('code');
   codeApres.className = 'apres';
   codeApres.textContent = apres;
@@ -103,7 +104,7 @@ function fabriquerChange(avant: string, apres: string, autres: number): HTMLElem
   if (autres > 0) {
     const plus = document.createElement('span');
     plus.className = 'plus';
-    plus.textContent = `+${autres}`;
+    plus.textContent = `${glypheDe('ajouter')}${autres}`;
     change.append(plus);
   }
   return change;
@@ -172,7 +173,7 @@ function fabriquerLaTete(groupe: GroupeVue): HTMLElement {
   }
   const fleche = document.createElement('span');
   fleche.className = 'fleche';
-  fleche.textContent = '→';
+  fleche.textContent = glypheDe('avant-apres');
   tete.append(fabriquerJeton(groupe.avant, 'retire'), fleche, fabriquerJeton(groupe.apres, 'retenu'));
   return tete;
 }
@@ -208,7 +209,7 @@ function fabriquerLaLigne(ligne: LigneVue, caseACocher: HTMLInputElement): HTMLE
   apres.className = 'chemin-apres';
   const fleche = document.createElement('span');
   fleche.className = 'fleche-ligne';
-  fleche.textContent = '→ ';
+  fleche.textContent = `${glypheDe('avant-apres')} `;
   apres.append(fleche);
   poserLesSegments(apres, ligne.nouveau, ligne.marques, 'nouveau');
   diff.append(caseACocher, avant, apres);

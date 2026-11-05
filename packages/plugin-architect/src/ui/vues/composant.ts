@@ -37,7 +37,7 @@ import {
 } from '../../composant';
 import { creerChevron } from 'ucm-plugin-socle/src/ui/Chevron';
 import { creerChemin } from 'ucm-plugin-socle/src/ui/Chemin';
-import { creerSigne } from 'ucm-plugin-socle/src/ui/Signe';
+import { creerSigne, creerSvgDuSigne } from 'ucm-plugin-socle/src/ui/Signe';
 import { indexer, type Index } from '../../indexation';
 import type { PluginMessage, SujetSelectionne } from '../../messages';
 import { espaceDuReleve, texteDeValeur, type Couleur } from '../../modele';
@@ -60,8 +60,6 @@ const T = TEXTES.composant;
 /** La place de l'image dans la zone d'aperçu, en pixels. */
 const LARGEUR_DE_LAPERCU = 310;
 const HAUTEUR_DE_LAPERCU = 170;
-
-const SVG = 'http://www.w3.org/2000/svg';
 
 /** Une correction cochée dans le panneau : la liaison de `avant` passe à `apres` sur ces layers. */
 export interface CorrectionAffichee {
@@ -96,25 +94,6 @@ const estClaire = (couleur: Couleur, espace: ReturnType<typeof espaceDuReleve>):
   const affichee = versSrgb(couleur, espace).couleur;
   return (affichee.r * 299 + affichee.g * 587 + affichee.b * 114) * 0.255 > 150;
 };
-
-function icone(largeur: number, tracer: (svg: SVGSVGElement) => void): SVGSVGElement {
-  const svg = document.createElementNS(SVG, 'svg');
-  svg.setAttribute('width', String(largeur));
-  svg.setAttribute('height', String(largeur));
-  svg.setAttribute('viewBox', `0 0 ${largeur} ${largeur}`);
-  svg.setAttribute('fill', 'none');
-  svg.setAttribute('stroke', 'currentColor');
-  svg.setAttribute('stroke-width', '1.4');
-  svg.setAttribute('aria-hidden', 'true');
-  tracer(svg);
-  return svg;
-}
-
-function trace(svg: SVGSVGElement, balise: 'path' | 'circle', attributs: Record<string, string>): void {
-  const forme = document.createElementNS(SVG, balise);
-  for (const [nom, valeur] of Object.entries(attributs)) forme.setAttribute(nom, valeur);
-  svg.append(forme);
-}
 
 /** Le nœud d'une ligne de token, qui survit aux dessins tant que la clé de la ligne existe. */
 interface EntreeDeLigne {
@@ -296,10 +275,7 @@ export function creerVueComposant(app: Application): VueComposant {
     const bloc = document.createElement('div');
     bloc.className = 'vc-vide';
     const centre = document.createElement('div');
-    if (avecPictogramme) centre.append(icone(44, (svg) => {
-      svg.setAttribute('stroke-dasharray', '3 3');
-      trace(svg, 'path', { d: 'M22 4 40 22 22 40 4 22Z' });
-    }));
+    if (avecPictogramme) centre.append(creerSvgDuSigne('vide', 44, { epaisseur: 0.5 }));
     const phrase = document.createElement('p');
     phrase.textContent = texte;
     centre.append(phrase);
@@ -389,10 +365,7 @@ export function creerVueComposant(app: Application): VueComposant {
     chercher.setAttribute('aria-pressed', String(filtreOuvert));
     chercher.setAttribute('aria-label', T.filtrer);
     chercher.title = T.filtrer;
-    chercher.append(icone(13, (svg) => {
-      trace(svg, 'circle', { cx: '5.5', cy: '5.5', r: '4' });
-      trace(svg, 'path', { d: 'm8.5 8.5 3.5 3.5' });
-    }));
+    chercher.append(creerSvgDuSigne('loupe', 13));
     chercher.addEventListener('click', () => {
       filtreOuvert = !filtreOuvert;
       filtre = '';

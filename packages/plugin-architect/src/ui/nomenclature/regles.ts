@@ -45,6 +45,7 @@ import {
 } from './listeDesTermes';
 import { telecharger } from './telechargement';
 import { TEXTES } from '../textes/nomenclature';
+import { glypheDe } from 'ucm-plugin-socle/src/ui/Signe';
 
 /** Le délai après lequel une saisie calme déclenche la recherche. */
 const DELAI_DE_SAISIE = 200;
@@ -249,7 +250,7 @@ function creerJetonDeFiltre(filtre: FiltreActif, auRetrait: () => void): HTMLEle
   const retirer = document.createElement('button');
   retirer.type = 'button';
   retirer.className = 'retirer-jeton';
-  retirer.textContent = '×';
+  retirer.textContent = glypheDe('fermer');
   retirer.setAttribute('aria-label', TEXTES.retirerLeFiltre(filtre.libelle));
   retirer.addEventListener('click', auRetrait);
   const jeton = document.createElement('span');

@@ -33,6 +33,7 @@ import { cleDeRegleRecue, ligneDeRegleRecue, sansDoublon, type RegleRecue } from
 import { TEXTES } from '../textes/nomenclature';
 import { TEXTES_TOKENS } from '../textes/tokens';
 import { creerHoteDeCartes, type CarteDeSection } from '../virtualisation';
+import { glypheDe } from 'ucm-plugin-socle/src/ui/Signe';
 
 /** Une entrée de la liste : son élément, et ce que l'écran peut en faire. */
 interface Entree {
@@ -91,7 +92,7 @@ function fabriquerRenommage(ligne: LigneVue): HTMLElement {
   const fleche = document.createElement('span');
   fleche.className = 'fleche';
   fleche.setAttribute('aria-hidden', 'true');
-  fleche.textContent = '→';
+  fleche.textContent = glypheDe('avant-apres');
   const nouveau = document.createElement('span');
   nouveau.className = 'nouveau';
   poserLesSegments(nouveau, ligne.nouveau, ligne.marques, 'seg-nouveau');
@@ -109,7 +110,7 @@ function fabriquerMotCite(mot: string, sorte: 'retire' | 'retenu'): HTMLElement 
 }
 
 /** « avant → après », ou le seul terme quand la réponse n'en remplace aucun. */
-function fabriquerChange(avant: string, separateur: '→' | '≠' | null, apres: string | null): HTMLElement {
+function fabriquerChange(avant: string, separateur: 'avant-apres' | 'ecart' | null, apres: string | null): HTMLElement {
   const change = document.createElement('span');
   change.className = 'change';
   const codeAvant = document.createElement('code');
@@ -119,7 +120,7 @@ function fabriquerChange(avant: string, separateur: '→' | '≠' | null, apres:
     codeAvant.className = 'avant';
     const fleche = document.createElement('span');
     fleche.className = 'fleche';
-    fleche.textContent = separateur;
+    fleche.textContent = glypheDe(separateur);
     const codeApres = document.createElement('code');
     codeApres.className = 'apres';
     codeApres.textContent = apres;
@@ -197,7 +198,7 @@ function fabriquerEffet(avant: string, apres: string, detail: string): { readonl
   const note = document.createElement('span');
   note.className = 'meta';
   function poser(nouvelAvant: string, nouvelApres: string, nouveauDetail: string): void {
-    element.replaceChildren(fabriquerChange(nouvelAvant, '→', nouvelApres), note);
+    element.replaceChildren(fabriquerChange(nouvelAvant, 'avant-apres', nouvelApres), note);
     note.textContent = nouveauDetail;
   }
   poser(avant, apres, detail);
@@ -353,7 +354,7 @@ export function monterATrancher(coquille: Coquille): ATrancher {
       nom.textContent = carte.nom;
       const fleche = document.createElement('span');
       fleche.className = 'fleche';
-      fleche.textContent = '→';
+      fleche.textContent = glypheDe('avant-apres');
       const selecteur = document.createElement('select');
       selecteur.className = 'input choix-collection';
       selecteur.setAttribute('aria-label', TEXTES.collectionUcm);
@@ -493,7 +494,7 @@ export function monterATrancher(coquille: Coquille): ATrancher {
     for (const bloc of carte.blocs) {
       const effet = document.createElement('div');
       effet.className = 'effet';
-      if (bloc.avant !== null && bloc.apres !== null) effet.append(fabriquerChange(bloc.avant, '→', bloc.apres));
+      if (bloc.avant !== null && bloc.apres !== null) effet.append(fabriquerChange(bloc.avant, 'avant-apres', bloc.apres));
       const explication = document.createElement('span');
       explication.className = 'meta';
       poserLeTexte(explication, bloc.explication);
@@ -588,7 +589,7 @@ export function monterATrancher(coquille: Coquille): ATrancher {
         if (demanderUnGeste(reprise.cle, { type: 'reprendre', question: reprise.cle }, 'reprendre')) reprendre.disabled = true;
       });
       reprendre.setAttribute('aria-label', TEXTES.reprendreLaQuestion(reprise.avant, reprise.apres));
-      rang.append(fabriquerChange(reprise.avant, reprise.apres === null ? null : '→', reprise.apres), reprendre);
+      rang.append(fabriquerChange(reprise.avant, reprise.apres === null ? null : 'avant-apres', reprise.apres), reprendre);
       corps.append(rang);
     }
 
