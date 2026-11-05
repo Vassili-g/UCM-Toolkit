@@ -24,7 +24,7 @@ const c82 = (id: string, faits: Constat['faits'], plus: Partial<Constat> = {}): 
 const texte = (morceaux: readonly (string | { chemin: string })[]): string => morceaux.map((morceau) => (typeof morceau === 'string' ? morceau : `\`${morceau.chemin}\``)).join('');
 
 test('les constats de C82 vont sous leurs intertitres, dans l’ordre de la maquette', () => {
-  assert.deepEqual(GROUPES, ['manquantes', 'crans', 'alias', 'modes', 'valeurs', 'couches', 'types', 'rangement']);
+  assert.deepEqual(GROUPES, ['manquantes', 'crans', 'alias', 'modes', 'valeurs', 'couches', 'types', 'rangement', 'scopes']);
   const lus = lireLesConstats([
     c82('C82:type:theme|primary/ring', { genre: 'type', variable: 'primary/ring', type: 'FLOAT' }),
     c82('C82:mal-rangee:brands|x', { genre: 'mal-rangee', variable: 'primary/surface/default', collection: 'brands' }),

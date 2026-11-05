@@ -486,11 +486,12 @@ export function cocherUneLigneAMain(ecran: Ecran): string | null {
 
 // P13 -----------------------------------------------------------------------------------------------------------------------
 
-/** P13 : après une lecture qui échoue, l'écran dit que la lecture n'a pas abouti et n'affiche pas « Rien à régler ». */
+/** P13 : après une lecture qui échoue, l'écran dit que la lecture n'a pas abouti (`TEXTES.lectureDeStructureEchouee`). */
 export function controlerLEchecDeLecture(ecran: Ecran, quand: string): Verification {
   const v = verification();
-  verifier(v, !ecran.texteAFaire().includes(TEXTES.rienAFaireDansFigma), {
-    propriete: 'P13', sorte: 'echec-tu', detail: `${quand} : l'onglet dit « ${TEXTES.rienAFaireDansFigma} » alors que la lecture n'a pas abouti`,
+  const texte = ecran.texteAFaire();
+  verifier(v, Object.values(TEXTES.lectureDeStructureEchouee).some((phrase) => texte.includes(phrase)), {
+    propriete: 'P13', sorte: 'echec-tu', detail: `${quand} : l'onglet ne dit pas que la lecture n'a pas abouti`,
   });
   return v;
 }

@@ -95,8 +95,10 @@ export function monterLesCorrections({ element, hotes, auChangement, questionsSe
   let ids: string[] = [];
   /** Les identifiants de chaque catégorie, pour les gestes d'une section. */
   let idsParCategorie: Readonly<Record<CategorieDeCorrection, readonly string[]>> = { manquantes: [], crans: [], modes: [], scopes: [] };
-  /** Le nom créé par chaque ligne de variable manquante, pour nommer celles que l'application saute. */
+  /** Le nom créé par chaque ligne de variable manquante, pour distinguer les créations des autres lignes. */
   let creations = new Map<string, string>();
+  /** La variable que chaque ligne de correction vise, pour nommer celles que l'application saute. */
+  let designations = new Map<string, string>();
   /** Les lignes cochées : une ligne qui n'y est pas est décochée, donc toute ligne arrive décochée, relecture comprise. */
   const cochees = new Set<string>();
   /** Les cartes dépliées par le designer : une lecture qui revient ne les replie pas. */
@@ -333,6 +335,12 @@ export function monterLesCorrections({ element, hotes, auChangement, questionsSe
       idsParCategorie = { manquantes: idsDe(variables), crans: idsDe(crans), modes: idsDe(modes), scopes: idsDe(scopes) };
       ids = CATEGORIES.flatMap((categorie) => idsParCategorie[categorie]);
       creations = new Map(variables.flatMap((carte) => carte.lignes.map((ligne) => [ligne.id, ligne.nom] as const)));
+      designations = new Map([
+        ...creations,
+        ...crans.flatMap((carte) => carte.lignes.map((ligne) => [ligne.id, ligne.variable] as const)),
+        ...modes.flatMap((carte) => carte.lignes.map((ligne) => [ligne.id, carte.variable] as const)),
+        ...scopes.flatMap((carte) => carte.lignes.map((ligne) => [ligne.id, ligne.avant] as const)),
+      ]);
       cases.clear();
       casesDeCarte.length = 0;
       for (const id of [...cochees]) if (!ids.includes(id)) cochees.delete(id);
@@ -356,11 +364,17 @@ export function monterLesCorrections({ element, hotes, auChangement, questionsSe
       const texte = document.createDocumentFragment();
       texte.append(TEXTES.ecrites(ecrites, sautees.length));
       const suites: HTMLElement[] = [];
+      // Chaque motif de saut a sa phrase (E-24) : celle d'une ligne que l'écran connaît cite sa variable, les autres la disent une fois.
+      const dits = new Set<string>();
       for (const { id, motif } of sautees) {
-        const nom = creations.get(id);
+        const nom = designations.get(id);
         const phrase = TEXTES.motifDeSaut[motif];
-        if (nom === undefined || phrase === undefined) continue;
-        suites.push(suiteDuResultat(creerCheminEnPhrase(nom), ' ', phrase));
+        if (phrase === undefined) continue;
+        if (nom !== undefined) suites.push(suiteDuResultat(creerCheminEnPhrase(nom), ' ', phrase));
+        else if (!dits.has(motif)) {
+          dits.add(motif);
+          suites.push(suiteDuResultat(phrase));
+        }
       }
       if (envoyees.some((id) => creations.has(id) && !sautee.has(id))) suites.push(suiteDuResultat(TEXTES.publierLaLibrary));
       texte.append(...suites);

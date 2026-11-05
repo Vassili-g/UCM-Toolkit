@@ -49,6 +49,7 @@ const CATEGORIE_DU_GENRE: Readonly<Record<string, IdDeCategorie>> = {
   'theme-en-double': 'rangement',
   'role-en-double': 'valeurs',
   'cible-inaccessible': 'alias',
+  scopes: 'scopes',
 };
 
 const constatDe = (id: string, faits: Constat['faits']): Constat => ({ id, code: 'C82', type: 'corriger', famille: 'liaisons', variants: [], layers: [], faits });
@@ -92,8 +93,8 @@ test('chaque genre de constat à régler dans Figma a une seule catégorie, et n
   for (const constat of constats) {
     assert.deepEqual(placements.filter(([id]) => id === idDeLaCarte(constat)).map(([, categorie]) => categorie), [CATEGORIE_DU_GENRE[genreDe(constat)]], genreDe(constat));
   }
-  assert.equal(Object.keys(CATEGORIE_DU_GENRE).length, 21);
-  assert.deepEqual(GROUPES, ['manquantes', 'crans', 'alias', 'modes', 'valeurs', 'couches', 'types', 'rangement']);
+  assert.equal(Object.keys(CATEGORIE_DU_GENRE).length, 22);
+  assert.deepEqual(GROUPES, ['manquantes', 'crans', 'alias', 'modes', 'valeurs', 'couches', 'types', 'rangement', 'scopes']);
 });
 
 test('les constats des états de galerie sont tous rangés, chacun dans la catégorie de son genre', () => {

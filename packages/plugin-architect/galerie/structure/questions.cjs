@@ -52,7 +52,21 @@ const roleEnDouble = constat(
 const themeEnDouble = constat('C82:theme-en-double:theme-copy', 'C82', 'corriger', { genre: 'theme-en-double', collection: 'theme (copy)', reference: 'theme' });
 const cibleInaccessible = constat('C63:brands:cible-inaccessible', 'C63', 'info', { genre: 'cible-inaccessible', collection: 'brands', cibles: 3, alias: 12 });
 
+/**
+ * Lots E4b et E4c. Un constat de scopes dont la proposition est retirée garde sa carte, et le rôle écrit deux fois porte la clé de
+ * chaque variable : ses choix « Garder … » deviennent des boutons qui fusionnent.
+ */
+const scopesSansProposition = [
+  constat('C63:cle-ring:scopes', 'C63', 'corriger', { variable: 'primary/ring', scopes: 'ALL_SCOPES' }),
+  constat('C82:scopes:brands|cle-rouge', 'C82', 'corriger', { genre: 'scopes', variable: 'primary/red/500', scopes: 'ALL_SCOPES,TEXT_FILL' }),
+];
+const roleEnDoubleFusion = constat(
+  'C82:role-en-double:theme:primary/surface/default', 'C82', 'verifier',
+  { genre: 'role-en-double', variable: 'surface/default', groupe: 'primary', variables: 2 },
+  { question: { id: 'C82:role-en-double:theme:primary/surface/default', candidats: [{ cle: 'cle-theme-1', nom: 'primary/surface/default' }, { cle: 'cle-theme-2', nom: 'primary/surface/Default' }] } },
+);
+
 /** Les genres qui n'avaient pas de carte, dans l'ordre des catégories. */
 const genresSansCarte = [variableInconnue, rampeAutrePalette, brancheDeMode, roleEnDouble, themeEnDouble, cibleInaccessible];
 
-module.exports = { sensPartage, couches, themeNonReconnu, genresSansCarte };
+module.exports = { sensPartage, couches, themeNonReconnu, genresSansCarte, scopesSansProposition, roleEnDoubleFusion };

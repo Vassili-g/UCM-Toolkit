@@ -342,6 +342,80 @@ ETATS.push(
 );
 
 /*
+ * Lots E4b et E4c. Une lecture qui n'aboutit pas le dit ; chaque motif de saut a sa phrase ; un constat de scopes sans sa proposition
+ * garde sa carte ; le rôle écrit deux fois se fusionne d'un clic sur « Garder … ».
+ */
+const echec = (cause) => [
+  preferences(), releve(integrite.releveDeBase()),
+  { message: messages.initial(true) }, { message: messages.bilan(1, bilans.rienAFaire) },
+  { message: { ...integrite.reponse([], 1), echec: cause }, attendre: '#panneau-a-appliquer .alerte' },
+  { clic: '.puce-x' },
+];
+const idsDeScopes = integrite.libraryEtScopes.filter((constat) => constat.correction && constat.correction.sorte === 'scope').map((constat) => constat.correction.id);
+const choixDeFusion = '#panneau-a-appliquer .constat-choix-ligne button';
+
+ETATS.push(
+  {
+    id: 't-lecture-impossible', titre: 'Tokens, lecture des variables impossible', quand: 'Le plugin n’a pas pu lire les variables du fichier : le sandbox répond sans constat et le dit.',
+    regarder: 'En tête de l’onglet Constats, une alerte « À vérifier » : « Le plugin n’a pas pu lire les variables du fichier. Actualisez pour relancer la lecture. » ; aucune catégorie de structure n’est tenue ; seule Noms se montre ; aucune ligne ne dit que rien n’est à régler.',
+    existe: true,
+    atteinte: echec('lecture-levee'),
+  },
+  {
+    id: 't-lecture-library', titre: 'Tokens, library de tokens illisible', quand: 'Le fichier déclare UCM, mais le sandbox n’a aucun catalogue à contrôler.',
+    regarder: 'En tête de l’onglet Constats, une alerte « À vérifier » : « Le plugin n’a pas pu lire la library de tokens. Vérifiez-la dans la Configuration, puis actualisez. » ; aucune catégorie de structure n’est tenue.',
+    existe: true,
+    atteinte: echec('catalogue-absent'),
+  },
+  {
+    id: 't-lecture-refusee', titre: 'Tokens, lecture refusée par Figma', quand: 'Figma refuse au plugin la lecture des variables locales.',
+    regarder: 'En tête de l’onglet Constats, une alerte « À vérifier » : « Figma a refusé la lecture des variables. Actualisez pour relancer la lecture. » ; aucune catégorie de structure n’est tenue.',
+    existe: true,
+    atteinte: echec('refus-de-figma'),
+  },
+  {
+    id: 't-motifs-de-saut', titre: 'Tokens, corrections de scopes sautées', quand: 'Le designer a coché les corrections de scopes avant Appliquer ; le sandbox en a sauté trois : une autre écriture était en cours, Figma a refusé, le plugin ne sait pas l’écrire.',
+    regarder: 'La ligne verte « 0 corrections écrites, 3 sautées. » et, dessous, une phrase grise par correction sautée : la variable, puis « Une autre écriture était en cours. Relancez Appliquer. », « Figma a refusé l’écriture. Recommencez, ou faites-la dans la fenêtre Variables. » ou « Le plugin ne sait pas écrire cette correction. Faites-la dans la fenêtre Variables. ».',
+    existe: true,
+    atteinte: [
+      ...ouvertIntegrite(integrite.releveDeBase(), integrite.libraryEtScopes, CARTES_DE_CORRECTION), toutCocher, appliquerLaStructure,
+      creation(0, [{ id: idsDeScopes[0], motif: 'occupe' }, { id: idsDeScopes[1], motif: 'erreur' }, { id: idsDeScopes[2] ?? idsDeScopes[0], motif: 'non-pris-en-charge' }]), relecture,
+    ],
+  },
+  {
+    id: 't-scopes-sans-proposition', titre: 'Tokens, scopes sans proposition', quand: 'Le designer a retiré la proposition de deux constats de scopes : ils restent à régler, sans correction à cocher.',
+    regarder: 'Dans la section Scopes, deux cartes à corriger sans case ni bouton d’écriture : « Aujourd’hui, son scope est Show in all. » et « Aujourd’hui, ses scopes sont Show in all, Text fill. », chacune avec sa variable en lieu et « Ouvrir la fiche » une fois dépliée.',
+    existe: true,
+    atteinte: ouvertEnTete(e4a.scopesSansProposition, CARTES_A_FAIRE),
+  },
+  {
+    id: 't-fusion-de-variables', titre: 'Tokens, rôle écrit deux fois', quand: 'La palette primary écrit surface/default deux fois : le kit pose la question, chaque variable porte sa clé.',
+    regarder: 'Dans Valeurs, une carte « 2 variables portent le rôle surface/default. » ; ses deux choix sont des boutons texte, « Garder primary/surface/default » et « Garder primary/surface/Default » ; aucune case n’est cochée et le pied ne propose rien.',
+    existe: true,
+    atteinte: ouvertEnTete([e4a.roleEnDoubleFusion], CARTES_A_FAIRE),
+  },
+  {
+    id: 't-fusion-ecrite', titre: 'Tokens, fusion écrite', quand: 'Le designer a cliqué « Garder primary/surface/default » : le sandbox a fusionné, la relecture ne trouve plus de doublon.',
+    regarder: 'La ligne verte « 1 correction écrite. » en tête de l’onglet ; la carte du rôle en double a disparu après la relecture.',
+    existe: true,
+    atteinte: [
+      ...ouvertEnTete([e4a.roleEnDoubleFusion], CARTES_A_FAIRE), { clic: choixDeFusion },
+      { message: { type: 'structure-appliquee', demande: 2, ecrites: 1, sautees: [], sansAnnulation: [] }, attendre: '#panneau-a-appliquer .resultat:not([hidden])' }, relecture,
+    ],
+  },
+  {
+    id: 't-fusion-sautee', titre: 'Tokens, fusion sautée', quand: 'Le designer a cliqué « Garder … » ; Figma a refusé une écriture en route.',
+    regarder: 'La ligne verte « 0 corrections écrites, 1 sautée. » et, dessous, « Figma a refusé l’écriture. Recommencez, ou faites-la dans la fenêtre Variables. » ; la carte du rôle en double reste, ses boutons aussi.',
+    existe: true,
+    atteinte: [
+      ...ouvertEnTete([e4a.roleEnDoubleFusion], CARTES_A_FAIRE), { clic: choixDeFusion },
+      { message: { type: 'structure-appliquee', demande: 2, ecrites: 0, sautees: [{ id: e4a.roleEnDoubleFusion.id, motif: 'erreur' }], sansAnnulation: [] }, attendre: '#panneau-a-appliquer .resultat:not([hidden])' },
+      { message: integrite.reponse([e4a.roleEnDoubleFusion], 3) },
+    ],
+  },
+);
+
+/*
  * Actualiser dans le mode Tokens. Le clic prend la demande 2 du relevé ; l'analyse des noms qu'il relance prend la demande 7 de la frontière
  * (le bilan 1 a fait lire quatre groupes, demandes 2 à 5, et les termes, demande 6) et la relecture de la structure la demande 2 du domaine.
  * Le message de lecture prend la place des constats tant que ces trois réponses manquent ; la durée paraît à la dernière.

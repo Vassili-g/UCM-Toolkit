@@ -153,7 +153,7 @@ const dans = (noeuds: Node[]): DocumentFragment => {
   return morceau;
 };
 
-const ecritLaLigne = (ligne: LigneDeCarte): boolean => ligne.correction.sorte === 'liaison' || ligne.correction.sorte === 'regles' || ligne.correction.sorte === 'nom-de-valeur';
+const ecritLaLigne = (ligne: LigneDeCarte): boolean => ligne.correction.sorte === 'liaison' || ligne.correction.sorte === 'regles' || ligne.correction.sorte === 'nom-de-valeur' || ligne.correction.sorte === 'alias-de-mode';
 
 export function monterLesCorrections(options: OptionsDesCorrections): Corrections {
   let entree: EntreeDesCorrections | null = null;

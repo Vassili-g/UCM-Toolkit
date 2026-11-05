@@ -5,8 +5,9 @@
  * `appliquer-corrections` retrouve chaque identifiant dans l'analyse courante.
  * Une identité qui n'est plus la courante, ou une analyse périmée, n'écrit rien
  * et saute tout (`analyse-perimee`). Une correction de sorte `liaison` ou
- * `regles` ou `nom-de-valeur` s'écrit (`ecriture/liaisons.ts`, `ecriture/noms-de-valeurs.ts`) ; les autres sortes sont sautées
- * (`non-pris-en-charge`) jusqu'à leurs lots. Une seule opération court à la
+ * `regles` ou `nom-de-valeur` s'écrit (`ecriture/liaisons.ts`, `ecriture/noms-de-valeurs.ts`). Un `alias-de-mode` s'écrit seulement
+ * quand son constat est un C63 (`ecriture/structure.ts`, avec le journal de structure que l'Historique défait) ; les autres sortes
+ * sont sautées (`non-pris-en-charge`). Une seule opération court à la
  * fois, analyse comprise : une demande reçue pendant ce temps rend `occupe`. Le
  * lot écrit, `corrections-appliquees` part, puis l'analyse est périmée.
  *
@@ -21,6 +22,7 @@ import { proposerLaPropagation, type Correction } from '@ucm-kit/core/controles'
 
 import { ecrireLeLot, type ResultatDUnLot } from '../ecriture/liaisons';
 import { selectionnerLesLayers } from '../ecriture/selection';
+import { ecrireLaStructure, type ResultatDEcritureDeStructure } from '../ecriture/structure';
 import type { DemandeDeCorrections } from '../messages/corrections';
 import {
   analyseCourante, catalogueDeLAnalyse, constatDeLAnalyse, correctionsDeLAnalyse, perimerApresUneEcriture, prendreLaPlaceDUneEcriture, releveDeLAnalyse, retenirLaPropagation,
@@ -33,11 +35,14 @@ export const TYPES: readonly DemandeDeCorrections['type'][] = ['appliquer-correc
 /** Les écritures du domaine : le sandbox donne celles de Figma, les tests des doubles. */
 export interface Ecritures {
   lot(corrections: readonly Correction[]): Promise<ResultatDUnLot>;
+  /** Les alias de mode : `nomsLus` donne le nom que l'analyse a lu sur la variable de chaque correction. Absent, ils sont sautés `non-pris-en-charge`. */
+  structure?(corrections: readonly Correction[], nomsLus: ReadonlyMap<string, string>): Promise<ResultatDEcritureDeStructure>;
   selectionner(layers: readonly string[]): Promise<unknown>;
 }
 
 const ECRITURES_DE_FIGMA: Ecritures = {
   lot: (corrections) => ecrireLeLot(corrections),
+  structure: (corrections, nomsLus) => ecrireLaStructure(corrections, { nomsLus }),
   selectionner: (layers) => selectionnerLesLayers(layers, retenirLaSelectionDuPlugin),
 };
 
@@ -60,11 +65,12 @@ const pluriel = (nombre: number): string => (nombre > 1 ? 's' : '');
  * La ligne de réussite : ce qui est écrit, puis les corrections sautées et
  * pourquoi. `8 layers liés, 1 instance de règles créée` quand rien n'est sauté.
  */
-export function resumeDuLot(liaisons: number, regles: number, sautees: readonly { motif: string }[], noms = 0): string {
+export function resumeDuLot(liaisons: number, regles: number, sautees: readonly { motif: string }[], noms = 0, alias = 0): string {
   const ecrit = [
     liaisons > 0 ? `${liaisons} layer${pluriel(liaisons)} lié${pluriel(liaisons)}` : '',
     regles > 0 ? `${regles} instance${pluriel(regles)} de règles créée${pluriel(regles)}` : '',
     noms > 0 ? `${noms} valeur${pluriel(noms)} de variante renommée${pluriel(noms)}` : '',
+    alias > 0 ? `${alias} correction${pluriel(alias)} de structure` : '',
   ].filter((morceau) => morceau !== '').join(', ');
   if (sautees.length === 0) return ecrit === '' ? 'Aucune correction écrite' : ecrit;
   const parMotif = new Map<string, number>();
@@ -120,7 +126,7 @@ async function appliquer(demande: Extract<DemandeDeCorrections, { type: 'appliqu
   }
   const ids = [...new Set(demande.ids)];
   const sautees: { id: string; motif: string }[] = [];
-  const compte = { liaison: 0, regles: 0, 'nom-de-valeur': 0 };
+  const compte = { liaison: 0, regles: 0, 'nom-de-valeur': 0, 'alias-de-mode': 0 };
   let ecrit = false;
   try {
     const connues = correctionsDeLAnalyse(demande.analyse);
@@ -128,11 +134,30 @@ async function appliquer(demande: Extract<DemandeDeCorrections, { type: 'appliqu
       sautees.push(...ids.map((id) => ({ id, motif: 'analyse-perimee' })));
     } else {
       const aEcrire: Correction[] = [];
+      const alias: Correction[] = [];
+      const nomsLus = new Map<string, string>();
       for (const id of ids) {
         const correction = connues.get(id);
+        const constat = correction?.sorte === 'alias-de-mode' ? constatDeLAnalyse(demande.analyse, id) : null;
         if (!correction) sautees.push({ id, motif: 'correction-inconnue' });
         else if (correction.sorte === 'liaison' || correction.sorte === 'regles' || correction.sorte === 'nom-de-valeur') aEcrire.push(correction);
-        else sautees.push({ id, motif: 'non-pris-en-charge' });
+        // Le C63 d'un token qui vise `brands` par un segment de mode : la correction est exacte (une cible, un sens établi) ; aucun autre alias ne s'écrit d'ici.
+        else if (ecritures.structure && correction.sorte === 'alias-de-mode' && constat?.code === 'C63' && typeof constat.faits.variable === 'string') {
+          alias.push(correction);
+          nomsLus.set(id, constat.faits.variable);
+        } else sautees.push({ id, motif: 'non-pris-en-charge' });
+      }
+      if (alias.length > 0 && ecritures.structure) {
+        try {
+          const lot = await ecritures.structure(alias, nomsLus);
+          compte['alias-de-mode'] += lot.ecrites.length;
+          ecrit = lot.ecrites.length > 0;
+          sautees.push(...lot.sautees);
+        } catch {
+          // Le lot a pu écrire avant de lever : l'analyse se périme dans tous les cas.
+          ecrit = true;
+          sautees.push(...alias.map(({ id }) => ({ id, motif: 'erreur' })));
+        }
       }
       if (aEcrire.length > 0) {
         try {
@@ -141,7 +166,7 @@ async function appliquer(demande: Extract<DemandeDeCorrections, { type: 'appliqu
             const sorte = connues.get(id)?.sorte;
             if (sorte === 'liaison' || sorte === 'regles' || sorte === 'nom-de-valeur') compte[sorte] += 1;
           }
-          ecrit = lot.ecrites.length > 0;
+          ecrit = ecrit || lot.ecrites.length > 0;
           sautees.push(...lot.sautees);
         } catch {
           // Le lot a pu écrire avant de lever : l'analyse se périme dans tous les cas.
@@ -153,9 +178,9 @@ async function appliquer(demande: Extract<DemandeDeCorrections, { type: 'appliqu
     contexte.envoyer({
       type: 'corrections-appliquees',
       analyse: demande.analyse,
-      ecrites: compte.liaison + compte.regles + compte['nom-de-valeur'],
+      ecrites: compte.liaison + compte.regles + compte['nom-de-valeur'] + compte['alias-de-mode'],
       sautees,
-      resume: resumeDuLot(compte.liaison, compte.regles, sautees, compte['nom-de-valeur']),
+      resume: resumeDuLot(compte.liaison, compte.regles, sautees, compte['nom-de-valeur'], compte['alias-de-mode']),
     });
     if (ecrit) perimerApresUneEcriture(contexte);
   } finally {

@@ -19,7 +19,7 @@ import { TEXTES } from '../textes';
 export type Morceau = string | { readonly chemin: string };
 
 /** L'ordre des intertitres de « À faire dans Figma ». */
-export const GROUPES = ['manquantes', 'crans', 'alias', 'modes', 'valeurs', 'couches', 'types', 'rangement'] as const;
+export const GROUPES = ['manquantes', 'crans', 'alias', 'modes', 'valeurs', 'couches', 'types', 'rangement', 'scopes'] as const;
 
 export type GroupeDeConstat = (typeof GROUPES)[number];
 
@@ -36,6 +36,8 @@ export interface ChoixDeCarte {
   readonly libelle: string;
   /** La couleur du texte que le choix dessine (un bouton et un encadré) ; `null` quand le choix n'a pas de dessin. */
   readonly dessin: 'noir' | 'blanc' | null;
+  /** Le choix qui fusionne les variables d'un rôle en double (E4.4) : le constat et la clé de la variable gardée. Absent, le choix ne s'écrit pas d'ici. */
+  readonly fusion?: { readonly constat: string; readonly garder: string };
 }
 
 export interface ConstatAFaire {
@@ -61,13 +63,13 @@ type GenreDeConstat =
   | 'alias-supprime' | 'library-inactive' | 'sans-valeur-en-mode' | 'valeur-vide' | 'doublons' | 'couleur-sans-alias'
   | 'variable-absente' | 'cran-absent' | 'cran' | 'couche' | 'valeur-directe' | 'mode-du-theme' | 'type' | 'mal-rangee'
   | 'variable-inconnue' | 'rampe-autre-palette' | 'branche-de-mode' | 'sens-partage' | 'theme-en-double' | 'role-en-double' | 'cible-inaccessible'
-  | 'theme-non-reconnu';
+  | 'theme-non-reconnu' | 'scopes';
 
 const GENRES_DECLARES: readonly GenreDeConstat[] = [
   'alias-supprime', 'library-inactive', 'sans-valeur-en-mode', 'couleur-sans-alias',
   'variable-absente', 'cran-absent', 'cran', 'couche', 'valeur-directe', 'mode-du-theme', 'type', 'mal-rangee',
   'variable-inconnue', 'rampe-autre-palette', 'branche-de-mode', 'sens-partage', 'theme-en-double', 'role-en-double', 'cible-inaccessible',
-  'theme-non-reconnu',
+  'theme-non-reconnu', 'scopes',
 ];
 
 const GROUPE_DU_GENRE: Readonly<Record<GenreDeConstat, GroupeDeConstat>> = {
@@ -93,6 +95,7 @@ const GROUPE_DU_GENRE: Readonly<Record<GenreDeConstat, GroupeDeConstat>> = {
   'role-en-double': 'valeurs',
   'cible-inaccessible': 'alias',
   'theme-non-reconnu': 'rangement',
+  scopes: 'scopes',
 };
 
 /** Ce que l'écran sait du relevé : le nom entier d'une variable par sa clé, et sa clé par son nom entier. */
@@ -106,6 +109,8 @@ function genreDe(constat: Constat): GenreDeConstat | null {
   if (typeof genre === 'string' && (GENRES_DECLARES as readonly string[]).includes(genre)) return genre as GenreDeConstat;
   if (typeof soeurs === 'number') return 'valeur-vide';
   if (typeof doublons === 'number') return 'doublons';
+  // C63 scopes n'écrit pas `genre` : son identifiant et son fait `scopes` le disent. Sans sa correction (proposition ignorée), il garde sa carte (E-21).
+  if (constat.code === 'C63' && constat.id.endsWith(':scopes') && typeof constat.faits.scopes === 'string') return 'scopes';
   return null;
 }
 
@@ -141,8 +146,8 @@ function variableDe(constat: Constat, genre: GenreDeConstat, noms: Noms): Variab
 interface Lecture {
   readonly constat: Constat;
   readonly variable: VariableLue | null;
-  /** Les candidats d'une question, en chemins. */
-  readonly candidats: readonly { readonly chemin: string }[];
+  /** Les candidats d'une question, en chemins ; `cle` quand le kit la donne. */
+  readonly candidats: readonly { readonly chemin: string; readonly cle?: string }[];
 }
 
 /** Les genres dont le fait `variable` n'est pas une variable à ouvrir : un rôle, une liste ou rien. */
@@ -205,7 +210,9 @@ function choixDe(genre: GenreDeConstat, lecture: Lecture): readonly ChoixDeCarte
     return [{ libelle: TEXTES.garderLeTexteSurLesBoutons(motDuTexte(actuel)), dessin: null }, { libelle: TEXTES.passerAuTexte(motDuTexte(autre)), dessin: null }];
   }
   if (genre === 'rampe-autre-palette' || genre === 'branche-de-mode') return candidats.map(({ chemin }): ChoixDeCarte => ({ libelle: TEXTES.viser(chemin), dessin: null }));
-  if (genre === 'role-en-double') return candidats.map(({ chemin }): ChoixDeCarte => ({ libelle: TEXTES.garder(chemin), dessin: null }));
+  if (genre === 'role-en-double') {
+    return candidats.map(({ chemin, cle }): ChoixDeCarte => ({ libelle: TEXTES.garder(chemin), dessin: null, ...(cle === undefined ? {} : { fusion: { constat: constat.id, garder: cle } }) }));
+  }
   return [];
 }
 
@@ -288,6 +295,10 @@ function phraseDe(genre: GenreDeConstat, lecture: Lecture): readonly Morceau[] {
       return [TEXTES.variableDuThemeSansCouleur];
     case 'mal-rangee':
       return [TEXTES.variableDuThemeMalRangee(fait(constat, 'collection'))];
+    case 'scopes': {
+      const scopes = fait(constat, 'scopes').split(',').filter((scope) => scope !== '');
+      return [`${TEXTES.scopesDeLaVariableSansProposition(scopes.length)}${scopes.length === 0 ? TEXTES.aucunScope : scopes.map(TEXTES.scopeDeFigma).join(TEXTES.virgule)}.`];
+    }
   }
 }
 
@@ -346,6 +357,8 @@ function statutDe(genre: GenreDeConstat, lecture: Lecture): string | null {
       return TEXTES.recreerEnCouleur;
     case 'mal-rangee':
       return TEXTES.deplacerDansLeTheme;
+    case 'scopes':
+      return null;
   }
 }
 
@@ -442,7 +455,7 @@ export function lireLesConstats(constats: readonly Constat[], noms: Noms): reado
       continue;
     }
     const variable = variableDe(constat, genre, noms);
-    const candidats = (constat.question?.candidats ?? []).map(({ cle, nom }) => ({ chemin: (cle ? noms.nom(cle) : null) ?? nom }));
+    const candidats = (constat.question?.candidats ?? []).map(({ cle, nom }) => ({ chemin: (cle ? noms.nom(cle) : null) ?? nom, ...(cle ? { cle } : {}) }));
     const lecture: Lecture = { constat, variable, candidats };
     lus.push({
       id: constat.id,

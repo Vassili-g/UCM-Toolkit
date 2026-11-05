@@ -378,7 +378,7 @@ test('lire-structure rend les constats du kit et leurs corrections ; hors UCM, d
   assert.deepEqual(message.constats.filter(({ code }) => code !== 'C82').map(({ code }) => code), ['C63'], 'le thème partiel reçoit aussi des C82');
   assert.deepEqual(message.corrections.map(({ id, sorte }) => [id, sorte]), [['C63:k-defaut:scopes', 'scope']]);
   const hors = contexteDeTest();
-  await traiterAvec(acces(null))({ type: 'lire-structure', demande: 4 }, hors.contexte);
+  await traiterAvec({ ...acces(null), horsUcm: () => true })({ type: 'lire-structure', demande: 4 }, hors.contexte);
   assert.deepEqual(hors.envoyes, [{ type: 'structure', demande: 4, constats: [], corrections: [], ignores: { constats: [], roles: [] } }]);
 });
 

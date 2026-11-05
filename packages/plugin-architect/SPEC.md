@@ -538,6 +538,27 @@ le DOM que les cartes visibles. Une carte sortie de l'écran garde son état (ca
 d'Ignorer) et le retrouve au retour. Les compteurs, « Tout cocher » et Appliquer comptent les
 cartes hors du DOM. Sous la puce Questions, une liste longue ne garde que les cartes à question.
 
+Une lecture de structure qui n'aboutit pas ne se lit pas comme « rien à régler ». Le message `structure`
+porte `echec` : `lecture-levee` quand l'accès à Figma lève, `refus-de-figma` quand Figma refuse la lecture
+des variables locales ou d'une variable, `catalogue-absent` quand un fichier UCM n'a pas de catalogue. L'onglet
+Constats pose alors une alerte à vérifier en tête et ne déclare aucune catégorie tenue, car une catégorie sans
+carte n'a pas été lue. Un constat de scopes dont la proposition est retirée (« Ne plus proposer ») garde sa
+carte dans Scopes, sans correction ni case ; l'ignorer le range sous Ignorés. Chaque motif de saut d'une
+écriture de structure se dit à l'écran par sa phrase de `TEXTES.motifDeSaut` ; les motifs qui n'en ont pas
+encore attendent leur texte.
+
+Deux variables du même rôle dans une palette (`role-en-double`) se fusionnent sur le clic de « Garder … »
+(Q-F2-6, option C), jamais cochées d'avance. Le sandbox relie à la variable gardée chaque token et chaque
+layer du fichier qui visaient l'autre, fait de l'autre un alias de la gardée dans chaque mode et la marque
+`a-retirer` dans ses données partagées. Rien n'est supprimé : les fichiers qui emploient la library gardent
+leur liaison, et la variable retirée rend la couleur de la gardée. La fusion se défait depuis l'Historique.
+La proposition de retirer ensuite la variable marquée, quand plus rien ne l'emploie, n'existe pas : le
+plugin ne voit pas les usages des autres fichiers, et le critère de retrait attend la preuve du mainteneur.
+
+L'alias de mode que le C63 du mode Composant propose pour un token qui vise `brands` par un segment de mode
+s'écrit comme celui du mode Tokens, dans le journal de structure : sa carte nomme le token, le mode et la
+nouvelle cible, et sa case arrive décochée.
+
 ## Interface
 
 L'interface est en français et toujours sombre. Les modes Light, Dark ou

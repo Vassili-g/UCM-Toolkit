@@ -27,6 +27,10 @@
  * La relecture complète garde donc les voisins et les candidats justes, et rend le même message qu'un Actualiser (`tests/relectureApresAppliquer.test.ts`).
  * Un Ctrl+Z de Figma ou un changement à la main ne se signale pas : seule la lecture suivante, d'Actualiser ou d'Appliquer, les voit.
  *
+ * Une lecture qui n'aboutit pas ne rend pas des listes vides sans le dire : `structure` porte `echec` (`lecture-levee` quand l'accès lève,
+ * `refus-de-figma` quand Figma refuse la lecture des variables ou d'une variable, `catalogue-absent` quand un fichier UCM n'a pas de
+ * catalogue), et l'écran ne déclare alors aucune catégorie tenue (E-23).
+ *
  * Ignorer (Q6) : `ignorer-constat-de-structure` range un constat du dernier `structure` envoyé, pour sa palette ;
  * `ignorer-role` range un rôle du thème, pour tout le fichier ; `retablir-*` retire la clé. Chacune refiltre la dernière lecture
  * de structure si elle est fraîche, sinon relit Figma, et répond `structure` sous son propre numéro. Une demande faite pendant une autre écriture, un constat inconnu, un
@@ -40,9 +44,9 @@ import { ESPACE_ARCHITECT } from '@ucm-kit/core/referentiel';
 
 import { catalogueDuFichier } from '../catalogue';
 import { ignorerUnConstat, ignorerUnRole, lireLesIgnores, nePlusIgnorer, retablirUnRole, rolesIgnoresDe, separerLesIgnores, type PortDIgnores, type ResultatDIgnorer } from '../ecriture/ignores';
-import { ecrireLaStructure, type ResultatDEcritureDeStructure } from '../ecriture/structure';
+import { ecrireLaStructure, fusionnerLesVariables, type DemandeDeFusion, type ResultatDEcritureDeStructure, type ResultatDeFusion } from '../ecriture/structure';
 import { compterLesAppelsDuPort, idsDesLocales, lireLesVariables, mesurerUnePhaseDeTokens, type AppelsDePhase } from '../lecture';
-import type { DemandeDeStructure, IgnoresDeStructure } from '../messages/structure';
+import type { DemandeDeStructure, EchecDeLecture, IgnoresDeStructure } from '../messages/structure';
 import { fermerLaReprise, prendreLAcquisitionPourLaStructure, reperDesLectures, variablesDuCatalogue } from './acquisition';
 import { perimerApresUneEcriture, prendreLaPlaceDUneEcriture } from './analyse';
 import { lireLaDeclaration } from './commun';
@@ -50,7 +54,7 @@ import type { Contexte, Traiter } from './contexte';
 import { portDeLecture } from './lectureDeFigma';
 
 export const TYPES: readonly DemandeDeStructure['type'][] = [
-  'lire-structure', 'appliquer-structure', 'ignorer-constat-de-structure', 'retablir-constat-de-structure', 'ignorer-role', 'retablir-role',
+  'lire-structure', 'appliquer-structure', 'fusionner-variables', 'ignorer-constat-de-structure', 'retablir-constat-de-structure', 'ignorer-role', 'retablir-role',
 ];
 
 /** Les clés d'Ignorer du document : le sandbox donne celles de Figma, les tests des doubles. */
@@ -80,7 +84,14 @@ export interface Acces {
   /** `nomsLus` : le nom que l'analyse a lu sur la variable de chaque correction, par identifiant ; l'écriture saute celle dont la variable a été renommée. */
   ecrire(corrections: readonly Correction[], nomsLus?: ReadonlyMap<string, string>): Promise<ResultatDEcritureDeStructure>;
   rangement(contexte: Contexte): RangementDeStructure;
+  /** Fusionne des variables du même rôle (E4.4). Absent, la demande est sautée `correction-inconnue`. */
+  fusionner?(demande: DemandeDeFusion): Promise<ResultatDeFusion>;
+  /** Vrai quand le fichier ne déclare pas UCM : un catalogue absent n'y est pas un échec. Absent, tout fichier compte comme UCM. */
+  horsUcm?(contexte: Contexte): boolean;
 }
+
+/** Le refus de Figma de lire les variables locales : `lecture-levee` ne le couvre pas, l'écran dit que Figma a refusé. */
+export class RefusDeFigma extends Error {}
 
 /**
  * Le catalogue par lecture de Figma : les variables locales, chacune relue par identifiant, puis les cibles de leurs alias. Le
@@ -88,7 +99,8 @@ export interface Acces {
  */
 export async function catalogueParLesLectures(figma: PluginAPI, appels: AppelsDePhase = {}): Promise<CatalogueDeReference | null> {
   const port = compterLesAppelsDuPort(portDeLecture(figma), appels);
-  const locales = await port.getLocalVariablesAsync();
+  let locales: Awaited<ReturnType<typeof port.getLocalVariablesAsync>>;
+  try { locales = await port.getLocalVariablesAsync(); } catch { throw new RefusDeFigma('Figma refuse la lecture des variables'); }
   const lues = await lireLesVariables(port, locales.map((variable) => variable.id), { annulee: () => false }, idsDesLocales(locales));
   if (!lues) return null;
   const catalogue = catalogueDuFichier({ collections: [...lues.collections.values()], variables: [...lues.variables.values()] }, 'ucm');
@@ -116,7 +128,9 @@ export const ACCES_DE_FIGMA: Acces = {
     return { ecriture: (brut && lireEcriture(brut)) || null, cles: lireLesIgnores(figma) };
   },
   ecrire: (corrections, nomsLus) => ecrireLaStructure(corrections, { nomsLus }),
+  fusionner: (demande) => fusionnerLesVariables(demande),
   rangement: ({ figma }) => rangementDeFigma(figma as unknown as PortDIgnores),
+  horsUcm: ({ figma }) => lireLaDeclaration(figma) !== 'ucm',
 };
 
 /** Les corrections du dernier `structure` envoyé, par identifiant. */
@@ -170,7 +184,7 @@ function controler(catalogue: CatalogueDeReference, ecriture: EcritureChoisie | 
 }
 
 /** Sépare les ignorés, retient les corrections et envoie `structure` : la fin commune de la lecture complète et du refiltrage. */
-function rendre(numero: number, contexte: Contexte, tous: readonly Constat[], cles: readonly string[], roles: readonly VariableDuTheme[]): void {
+function rendre(numero: number, contexte: Contexte, tous: readonly Constat[], cles: readonly string[], roles: readonly VariableDuTheme[], echec?: EchecDeLecture): void {
   const separes = separerLesIgnores(tous, cles);
   const constats = separes.visibles;
   const ignores: IgnoresDeStructure = {
@@ -180,28 +194,32 @@ function rendre(numero: number, contexte: Contexte, tous: readonly Constat[], cl
   const corrections = constats.flatMap((constat) => (constat.correction ? [constat.correction] : []));
   retenues = new Map(corrections.map((correction) => [correction.id, correction] as const));
   envoyes = new Map([...constats, ...ignores.constats].map((constat) => [constat.id, constat] as const));
-  contexte.envoyer({ type: 'structure', demande: numero, constats, corrections, ignores });
+  contexte.envoyer({ type: 'structure', demande: numero, constats, corrections, ignores, ...(echec ? { echec } : {}) });
 }
 
 async function lireLaStructure(numero: number, acces: Acces, contexte: Contexte, appels: AppelsDePhase, depuisLeReleve: boolean): Promise<void> {
   gardee = null;
   const reper = reperDesLectures();
   let catalogue: CatalogueDeReference | null = null;
+  let echec: EchecDeLecture | undefined;
   try { catalogue = await mesurerUnePhaseDeTokens('lire-le-catalogue', (appelsDuCatalogue) => {
     const lecture = acces.catalogue(contexte, appelsDuCatalogue, depuisLeReleve);
     return lecture.finally(() => { for (const [nom, n] of Object.entries(appelsDuCatalogue)) appels[nom] = (appels[nom] ?? 0) + n; });
-  }); } catch { catalogue = null; }
+  }); } catch (erreur) { catalogue = null; echec = erreur instanceof RefusDeFigma ? 'refus-de-figma' : 'lecture-levee'; }
   if (!catalogue) {
-    rendre(numero, contexte, [], [], []);
+    let horsUcm = false;
+    try { horsUcm = acces.horsUcm?.(contexte) ?? false; } catch { /* une déclaration illisible ne rend pas le fichier hors UCM */ }
+    rendre(numero, contexte, [], [], [], echec ?? (horsUcm ? undefined : 'catalogue-absent'));
     return;
   }
+  if (cataloguesAvecUnRefus.has(catalogue)) echec = 'refus-de-figma';
   let reglages: Awaited<ReturnType<Acces['reglages']>> = { ecriture: null, cles: [] };
   let lus = true;
   try { reglages = await acces.reglages(contexte); } catch { lus = false; /* sans réglages : aucune création, aucun constat écarté */ }
   const roles = rolesIgnoresDe(reglages.cles);
   const tous = controler(catalogue, reglages.ecriture, roles);
   if (lus && !cataloguesAvecUnRefus.has(catalogue) && reper === reperDesLectures()) gardee = { catalogue, ecriture: reglages.ecriture, roles, tous, reper };
-  rendre(numero, contexte, tous, reglages.cles, roles);
+  rendre(numero, contexte, tous, reglages.cles, roles, echec);
 }
 
 /**
@@ -225,7 +243,7 @@ async function refiltrerLaLectureGardee(numero: number, acces: Acces, contexte: 
   return true;
 }
 
-type DemandeDIgnorerDeStructure = Exclude<DemandeDeStructure, { type: 'lire-structure' | 'appliquer-structure' }>;
+type DemandeDIgnorerDeStructure = Exclude<DemandeDeStructure, { type: 'lire-structure' | 'appliquer-structure' | 'fusionner-variables' }>;
 
 /** Range ou retire la clé que la demande désigne, puis refiltre la lecture gardée ou relit la structure. */
 async function ignorer(demande: DemandeDIgnorerDeStructure, acces: Acces, contexte: Contexte): Promise<void> {
@@ -254,6 +272,7 @@ export function traiterAvec(acces: Acces): Traiter<DemandeDeStructure> {
   return async (demande, contexte) => {
     if (demande.type === 'lire-structure') await lire(demande.demande, acces, contexte, true);
     else if (demande.type === 'appliquer-structure') await appliquer(demande, acces, contexte);
+    else if (demande.type === 'fusionner-variables') await fusionner(demande, acces, contexte);
     else await ignorer(demande, acces, contexte);
   };
 }
@@ -306,6 +325,47 @@ async function appliquer(demande: Extract<DemandeDeStructure, { type: 'appliquer
     retenues = new Map();
     contexte.envoyer({ type: 'structure-appliquee', demande: demande.demande, ecrites, sautees, sansAnnulation });
     if (ecrit) perimerApresUneEcriture(contexte);
+  } finally {
+    place.liberer();
+  }
+}
+
+/**
+ * Fusionne les variables du constat `role-en-double` que la dernière lecture a envoyé, dans la candidate `garder` (E4.4). Le constat et
+ * ses candidates viennent de la lecture, jamais de la demande : un constat inconnu, une clé qui n'est pas candidate ou une question
+ * à une seule variable saute `correction-inconnue`. Le résultat part comme celui d'Appliquer (`structure-appliquee`), sous l'identifiant
+ * du constat : l'écran dit le motif d'un saut, relit la structure, et le sandbox périme l'analyse d'un composant quand une écriture a eu lieu.
+ */
+async function fusionner(demande: Extract<DemandeDeStructure, { type: 'fusionner-variables' }>, acces: Acces, contexte: Contexte): Promise<void> {
+  fermerLaReprise();
+  const id = demande.constat;
+  const repondre = (ecrites: number, motif?: string): void => contexte.envoyer({
+    type: 'structure-appliquee', demande: demande.demande, ecrites, sautees: motif === undefined ? [] : [{ id, motif }], sansAnnulation: [],
+  });
+  const place = await prendreLaPlaceDUneEcriture({ sujet: 'structure', generation: 0 });
+  if ('occupe' in place) {
+    repondre(0, 'occupe');
+    return;
+  }
+  try {
+    const constat = envoyes.get(id);
+    const candidates = constat?.faits.genre === 'role-en-double' ? constat.question?.candidats ?? [] : [];
+    const garde = candidates.find(({ cle }) => cle !== undefined && cle === demande.garder);
+    const autres = candidates.filter((candidate) => candidate !== garde);
+    if (!acces.fusionner || !garde || garde.cle === undefined || autres.length === 0 || autres.some(({ cle }) => cle === undefined)) {
+      repondre(0, 'correction-inconnue');
+      return;
+    }
+    // Une écriture, même refusée ou levée, a pu changer des variables : la lecture gardée ne sert plus.
+    gardee = null;
+    let resultat: ResultatDeFusion;
+    try {
+      resultat = await acces.fusionner({ garde: { cle: garde.cle, nom: garde.nom }, autres: autres.map(({ cle, nom }) => ({ cle: cle as string, nom })) });
+    } catch {
+      resultat = { ecrite: false, motif: 'erreur', touchee: true, tokens: 0, layers: 0 };
+    }
+    repondre(resultat.ecrite ? 1 : 0, resultat.ecrite ? undefined : resultat.motif ?? 'erreur');
+    if (resultat.touchee) perimerApresUneEcriture(contexte);
   } finally {
     place.liberer();
   }

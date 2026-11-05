@@ -87,7 +87,11 @@ export const estCleDuJournalDeStructure = (cle: string): boolean => cle === CLE_
 export type LigneDeStructure =
   | { readonly sorte: 'scopes'; readonly variable: string; readonly nom: string; readonly avant: readonly string[]; readonly apres: readonly string[] }
   | { readonly sorte: 'alias-de-mode'; readonly variable: string; readonly nom: string; readonly mode: string; readonly avant: string; readonly apres: string }
-  | { readonly sorte: 'creation'; readonly variable: string; readonly nom: string; readonly collection: string };
+  | { readonly sorte: 'creation'; readonly variable: string; readonly nom: string; readonly collection: string }
+  // Une fusion (E4.4) : `variable` est la variable retirée, que `marque` signale à retirer ; `lien-de-layer` relie un emplacement du layer
+  // `variable` à la variable gardée (`apres`) au lieu de la retirée (`avant`) ; les alias des tokens et de la variable retirée sont des lignes `alias-de-mode`.
+  | { readonly sorte: 'marque'; readonly variable: string; readonly nom: string }
+  | { readonly sorte: 'lien-de-layer'; readonly variable: string; readonly nom: string; readonly emplacement: string; readonly avant: string; readonly apres: string };
 
 export interface JournalDeStructure { readonly heure: string; readonly lignes: readonly LigneDeStructure[] }
 
@@ -103,6 +107,9 @@ function lireUneLigne(brut: unknown): LigneDeStructure | undefined {
     case 'alias-de-mode':
       return estTexte(brut.mode) && estTexte(brut.avant) && estTexte(brut.apres) ? { sorte: 'alias-de-mode', variable, nom, mode: brut.mode, avant: brut.avant, apres: brut.apres } : undefined;
     case 'creation': return estTexte(brut.collection) ? { sorte: 'creation', variable, nom, collection: brut.collection } : undefined;
+    case 'marque': return { sorte: 'marque', variable, nom };
+    case 'lien-de-layer':
+      return estTexte(brut.emplacement) && estTexte(brut.avant) && estTexte(brut.apres) ? { sorte: 'lien-de-layer', variable, nom, emplacement: brut.emplacement, avant: brut.avant, apres: brut.apres } : undefined;
     default: return undefined;
   }
 }

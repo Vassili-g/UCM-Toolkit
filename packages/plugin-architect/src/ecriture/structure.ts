@@ -26,6 +26,13 @@
  * changé depuis est sautée et reste au journal. Une variable créée n'est supprimée que si aucune autre variable du fichier ne la vise
  * en alias et qu'aucun layer du fichier ne lui est lié ; les usages des autres fichiers échappent au plugin (`LIMITE_DES_USAGES`).
  *
+ * Une fusion (E4.4, `fusionnerLesVariables`) réunit des variables du même rôle dans une palette : chaque token et chaque layer du fichier
+ * qui visaient une variable retirée visent la variable gardée, puis la variable retirée devient un alias de la gardée dans chaque mode
+ * et porte la marque `a-retirer` (données partagées de la variable). Rien n'est supprimé : les autres fichiers qui emploient la library
+ * gardent leur liaison, et la variable retirée donne la couleur de la gardée. Le journal prévoit toutes les lignes avant la première
+ * écriture ; une écriture que Figma refuse en cours de route laisse la fusion `erreur`, ses lignes faites au journal, et un nouvel
+ * essai finit le reste. Un emplacement d'un layer qu'on ne sait pas réécrire refuse la fusion entière (`non-pris-en-charge`).
+ *
  * Seul `liaisons.ts` importe une variable : la variable visée d'un alias se cherche ici parmi les variables locales.
  */
 import type { Correction } from '@ucm-kit/core/controles';
@@ -65,32 +72,40 @@ export interface VariableEcrivable {
   readonly valuesByMode: Readonly<Record<string, unknown>>;
   setValueForMode(mode: string, valeur: unknown): void;
   remove(): void;
+  getSharedPluginData?(espace: string, cle: string): string;
+  setSharedPluginData?(espace: string, cle: string, valeur: string): void;
 }
 
-/** Un nœud tel que la recherche d'usages le lit. */
+/** Un nœud tel que la recherche d'usages le lit, et la fusion le réécrit. */
 export interface NoeudDUsage {
   readonly id: string;
+  readonly name?: string;
   readonly type?: string;
   readonly boundVariables?: unknown;
-  readonly fills?: unknown;
-  readonly strokes?: unknown;
-  readonly effects?: unknown;
-  getStyledTextSegments?(champs: string[]): ReadonlyArray<{ boundVariables?: unknown; fills?: unknown }>;
+  fills?: unknown;
+  strokes?: unknown;
+  effects?: unknown;
+  getStyledTextSegments?(champs: string[]): ReadonlyArray<{ start?: number; end?: number; boundVariables?: unknown; fills?: unknown }>;
+  setBoundVariable?(champ: string, variable: unknown): void;
+  setRangeFills?(debut: number, fin: number, peintures: unknown[]): void;
 }
 
 /** Ce que l'écriture demande à Figma : les doubles des tests le remplacent. */
 export interface ApiDeStructure {
   readonly root: {
     getSharedPluginData(espace: string, cle: string): string;
-    findAll(filtre: (noeud: NoeudDUsage) => boolean): readonly { readonly id: string }[];
+    findAll(filtre: (noeud: NoeudDUsage) => boolean): readonly NoeudDUsage[];
   };
   loadAllPagesAsync(): Promise<void>;
+  getNodeByIdAsync?(id: string): Promise<NoeudDUsage | null>;
   readonly variables: {
     getLocalVariablesAsync(): Promise<readonly VariableEcrivable[]>;
     getVariableByIdAsync(id: string): Promise<{ readonly key: string } | null>;
     getLocalVariableCollectionsAsync(): Promise<readonly CollectionEcrivable[]>;
     createVariable(nom: string, collection: CollectionEcrivable, type: string): VariableEcrivable;
     createVariableAlias(variable: VariableEcrivable): unknown;
+    setBoundVariableForPaint?(peinture: unknown, champ: 'color', variable: object): unknown;
+    setBoundVariableForEffect?(effet: unknown, champ: string, variable: object): unknown;
   };
   commitUndo(): void;
 }
@@ -276,6 +291,230 @@ async function ecrireLesCorrections(corrections: readonly Correction[], options:
   return { ecrites, sautees, sansAnnulation };
 }
 
+// La fusion
+
+/** La clé des données partagées d'une variable que la fusion a retirée de l'usage : sa valeur dit la variable gardée. */
+export const CLE_A_RETIRER = 'a-retirer';
+
+export type MotifDeFusionSaute = MotifDeStructureSaute | 'non-pris-en-charge';
+
+/** Une variable de la fusion telle que la lecture l'a vue : sa clé, et le nom que l'analyse lui a lu. */
+export interface VariableDeFusion { readonly cle: string; readonly nom: string }
+
+export interface DemandeDeFusion {
+  readonly garde: VariableDeFusion;
+  readonly autres: readonly VariableDeFusion[];
+}
+
+export interface ResultatDeFusion {
+  /** Vrai quand chaque variable retirée est un alias de la gardée, marquée, et que tous les tokens et layers sont reliés. */
+  readonly ecrite: boolean;
+  /** Pourquoi la fusion n'est pas écrite en entier. */
+  readonly motif?: MotifDeFusionSaute;
+  /** Vrai quand une écriture a eu lieu, même sans fusion complète : l'analyse d'un composant se périme. */
+  readonly touchee: boolean;
+  /** Les alias de tokens et les liens de layers écrits. */
+  readonly tokens: number;
+  readonly layers: number;
+}
+
+const peintureLiee = (peinture: unknown): string | null => (estUnObjet(peinture) && estUnObjet(peinture.boundVariables) ? aliasExact(peinture.boundVariables.color) : null);
+
+/**
+ * Les emplacements d'un nœud lié à la variable `id`. Un emplacement se réécrit : `champ:<champ>` (champ numérique), `fills:<rang>` et
+ * `strokes:<rang>` (peinture), `effets:<rang>:<champ>`, `plage:<début>-<fin>:<rang>` (peinture d'une plage de texte). `autre:…` est lié
+ * à un endroit que la fusion ne sait pas réécrire.
+ */
+function emplacementsLies(noeud: NoeudDUsage, id: string): string[] {
+  const liste: string[] = [];
+  const lies = noeud.boundVariables;
+  if (estUnObjet(lies)) {
+    for (const [champ, valeur] of Object.entries(lies)) {
+      if (champ === 'fills' || champ === 'strokes' || champ === 'effects') continue;
+      if (aliasExact(valeur) === id) liste.push(`champ:${champ}`);
+      else if (contientUnAlias(valeur, id)) liste.push(`autre:${champ}`);
+    }
+  }
+  for (const nom of ['fills', 'strokes'] as const) {
+    const peintures = noeud[nom];
+    if (!Array.isArray(peintures)) continue;
+    peintures.forEach((peinture, rang) => {
+      if (peintureLiee(peinture) === id) liste.push(`${nom}:${rang}`);
+      else if (contientUnAlias(peinture, id)) liste.push(`autre:${nom}:${rang}`);
+    });
+  }
+  if (Array.isArray(noeud.effects)) {
+    noeud.effects.forEach((effet, rang) => {
+      const effetLie = estUnObjet(effet) && estUnObjet(effet.boundVariables) ? effet.boundVariables : {};
+      for (const [champ, valeur] of Object.entries(effetLie)) {
+        if (aliasExact(valeur) === id) liste.push(`effets:${rang}:${champ}`);
+        else if (contientUnAlias(valeur, id)) liste.push(`autre:effets:${rang}:${champ}`);
+      }
+    });
+  }
+  if (noeud.type === 'TEXT' && typeof noeud.getStyledTextSegments === 'function') {
+    for (const segment of noeud.getStyledTextSegments(['fills'])) {
+      if (!Array.isArray(segment.fills)) continue;
+      segment.fills.forEach((peinture, rang) => {
+        if (peintureLiee(peinture) === id) liste.push(`plage:${segment.start}-${segment.end}:${rang}`);
+        else if (contientUnAlias(peinture, id)) liste.push(`autre:plage:${segment.start}-${segment.end}:${rang}`);
+      });
+    }
+  }
+  return liste;
+}
+
+/** Vrai quand le nœud est lié à la variable `id` en un endroit quelconque : le filtre de `findAll`. */
+function estLieA(noeud: NoeudDUsage, id: string): boolean {
+  if (contientUnAlias(noeud.boundVariables, id) || contientUnAlias(noeud.fills, id) || contientUnAlias(noeud.strokes, id) || contientUnAlias(noeud.effects, id)) return true;
+  if (noeud.type !== 'TEXT' || typeof noeud.getStyledTextSegments !== 'function') return false;
+  return noeud.getStyledTextSegments(['boundVariables', 'fills']).some((segment) => contientUnAlias(segment.boundVariables, id) || contientUnAlias(segment.fills, id));
+}
+
+/** Lie `emplacement` du nœud à `variable`. Lève si Figma refuse ou si le nœud ne sait pas porter cette liaison. */
+function relier(api: ApiDeStructure, noeud: NoeudDUsage, emplacement: string, variable: VariableEcrivable): void {
+  const [sorte, a = '', b = ''] = emplacement.split(':');
+  if (sorte === 'champ') {
+    if (!noeud.setBoundVariable) throw new Error('Ce layer ne se lie pas à une variable.');
+    noeud.setBoundVariable(a, variable);
+    return;
+  }
+  if (sorte === 'fills' || sorte === 'strokes') {
+    const peintures = noeud[sorte];
+    if (!Array.isArray(peintures) || !api.variables.setBoundVariableForPaint) throw new Error('Ce layer ne lie pas une peinture.');
+    const copie = [...peintures];
+    copie[Number(a)] = api.variables.setBoundVariableForPaint(copie[Number(a)], 'color', variable);
+    noeud[sorte] = copie;
+    return;
+  }
+  if (sorte === 'effets') {
+    if (!Array.isArray(noeud.effects) || !api.variables.setBoundVariableForEffect) throw new Error('Ce layer ne lie pas un effet.');
+    const copie = [...noeud.effects];
+    copie[Number(a)] = api.variables.setBoundVariableForEffect(copie[Number(a)], b, variable);
+    noeud.effects = copie;
+    return;
+  }
+  if (sorte === 'plage') {
+    const [debut, fin] = a.split('-').map(Number);
+    const segment = noeud.getStyledTextSegments?.(['fills']).find((candidat) => candidat.start === debut && candidat.end === fin);
+    if (!segment || !Array.isArray(segment.fills) || !noeud.setRangeFills || !api.variables.setBoundVariableForPaint) throw new Error('Ce layer ne lie pas une plage de texte.');
+    const copie = [...segment.fills];
+    copie[Number(b)] = api.variables.setBoundVariableForPaint(copie[Number(b)], 'color', variable);
+    noeud.setRangeFills(debut, fin, copie);
+    return;
+  }
+  throw new Error('Emplacement inconnu.');
+}
+
+interface EtapeDeFusion { readonly ligne: LigneDeStructure; readonly ecrire: () => void; readonly sorte: 'token' | 'layer' | 'variable' | 'marque' }
+
+/**
+ * Fusionne `autres` dans `garde`. Relit tout avant d'écrire : les variables existent, portent le nom lu, sont locales, de même collection
+ * et de même type ; aucune ne vise la gardée par un alias qui ferait une boucle ; chaque valeur d'une variable retirée est un alias
+ * exact (une valeur directe ne se journalise pas). Le fichier entier se parcourt pour trouver les layers liés : un parcours qui lève
+ * refuse la fusion (`erreur`), car un usage inconnu resterait lié à une variable retirée.
+ */
+export function fusionnerLesVariables(demande: DemandeDeFusion, options: OptionsDeStructure = {}): Promise<ResultatDeFusion> {
+  return pendantUneEcriture(() => fusionner(demande, options));
+}
+
+async function fusionner(demande: DemandeDeFusion, options: OptionsDeStructure): Promise<ResultatDeFusion> {
+  const api = options.api ?? apiDeFigma();
+  const sans = (motif: MotifDeFusionSaute): ResultatDeFusion => ({ ecrite: false, motif, touchee: false, tokens: 0, layers: 0 });
+  if (lireLArchitectureDuFichier(api.root.getSharedPluginData(ESPACE_ARCHITECT, CLE_ARCHITECTURE_DU_FICHIER)) !== 'ucm') return sans('non-ucm');
+  const stockage = options.stockage ?? creerPortDeRegles(figma);
+  const nouveauLot = options.lot ?? identifiantDeLot;
+  const heure = (options.heure ?? heureActuelle)();
+
+  let locales: readonly VariableEcrivable[];
+  try { locales = await api.variables.getLocalVariablesAsync(); } catch { return sans('erreur'); }
+  const garde = trouverLaVariable(locales, demande.garde.cle);
+  const retirees = demande.autres.map(({ cle }) => trouverLaVariable(locales, cle));
+  if (!garde || garde.remote || demande.autres.length === 0 || retirees.some((variable) => !variable || variable.remote)) return sans('objet-change');
+  const aRetirer = retirees as VariableEcrivable[];
+  if (garde.name !== demande.garde.nom || aRetirer.some((variable, rang) => variable.name !== demande.autres[rang]!.nom)) return sans('objet-change');
+  if (aRetirer.some((variable) => variable.id === garde.id || variable.variableCollectionId !== garde.variableCollectionId || variable.resolvedType !== garde.resolvedType)) return sans('objet-change');
+  if (!api.variables.setBoundVariableForPaint || !api.variables.setBoundVariableForEffect) return sans('non-pris-en-charge');
+  const ids = new Set(aRetirer.map(({ id }) => id));
+  // La gardée qui vise une variable retirée ferait une boucle avec l'alias de la retirée.
+  if (Object.values(garde.valuesByMode).some((valeur) => { const vise = aliasExact(valeur); return vise !== null && ids.has(vise); })) return sans('fait-faux');
+  if (aRetirer.some((variable) => Object.values(variable.valuesByMode).some((valeur) => aliasExact(valeur) === null))) return sans('fait-faux');
+
+  let noeuds: readonly NoeudDUsage[];
+  try {
+    await api.loadAllPagesAsync();
+    noeuds = api.root.findAll((noeud) => [...ids].some((id) => estLieA(noeud, id)));
+  } catch { return sans('erreur'); }
+
+  const etapes: EtapeDeFusion[] = [];
+  const alias = api.variables.createVariableAlias(garde);
+  // 1. Les tokens du fichier qui visaient une variable retirée.
+  for (const variable of locales) {
+    if (ids.has(variable.id) || variable.id === garde.id || variable.remote) continue;
+    for (const [mode, valeur] of Object.entries(variable.valuesByMode)) {
+      const vise = aliasExact(valeur);
+      if (vise === null || !ids.has(vise)) continue;
+      etapes.push({ sorte: 'token', ligne: { sorte: 'alias-de-mode', variable: variable.id, nom: variable.name, mode, avant: vise, apres: garde.id }, ecrire: () => variable.setValueForMode(mode, alias) });
+    }
+  }
+  // 2. Les layers.
+  for (const noeud of noeuds) {
+    for (const retiree of aRetirer) {
+      for (const emplacement of emplacementsLies(noeud, retiree.id)) {
+        if (emplacement.startsWith('autre:')) return sans('non-pris-en-charge');
+        etapes.push({ sorte: 'layer', ligne: { sorte: 'lien-de-layer', variable: noeud.id, nom: noeud.name ?? '', emplacement, avant: retiree.id, apres: garde.id }, ecrire: () => relier(api, noeud, emplacement, garde) });
+      }
+    }
+  }
+  // 3. Chaque variable retirée devient un alias de la gardée dans chaque mode, puis porte la marque.
+  for (const retiree of aRetirer) {
+    for (const [mode, valeur] of Object.entries(retiree.valuesByMode)) {
+      const avant = aliasExact(valeur)!;
+      if (avant === garde.id) continue;
+      etapes.push({ sorte: 'variable', ligne: { sorte: 'alias-de-mode', variable: retiree.id, nom: retiree.name, mode, avant, apres: garde.id }, ecrire: () => retiree.setValueForMode(mode, alias) });
+    }
+    const marque = JSON.stringify({ garde: garde.key });
+    if (retiree.getSharedPluginData?.(ESPACE_ARCHITECT, CLE_A_RETIRER) !== marque) {
+      etapes.push({
+        sorte: 'marque', ligne: { sorte: 'marque', variable: retiree.id, nom: retiree.name },
+        ecrire: () => {
+          if (!retiree.setSharedPluginData) throw new Error('Cette variable ne porte pas de données partagées.');
+          retiree.setSharedPluginData(ESPACE_ARCHITECT, CLE_A_RETIRER, marque);
+        },
+      });
+    }
+  }
+  if (etapes.length === 0) return sans('deja-la');
+
+  const prevu = rangerLeJournalDeStructure(stockage, { heure, lignes: etapes.map(({ ligne }) => ligne) }, nouveauLot());
+  if (!prevu) return sans('journal-impossible');
+
+  const faites: EtapeDeFusion[] = [];
+  let ratees = 0;
+  for (const etape of etapes) {
+    try {
+      etape.ecrire();
+      faites.push(etape);
+    } catch {
+      ratees += 1;
+    }
+  }
+  if (faites.length === 0) {
+    retirer(stockage, prevu);
+    return { ecrite: false, motif: 'erreur', touchee: false, tokens: 0, layers: 0 };
+  }
+  // Si la réécriture échoue, le journal prévu reste valide : l'annulation reconnaît une ligne jamais écrite à son état d'avant.
+  const reecrit = ratees === 0 ? undefined : rangerLeJournalDeStructure(stockage, { heure, lignes: faites.map(({ ligne }) => ligne) }, nouveauLot());
+  nettoyerLeJournalDeStructure(stockage, (reecrit ?? prevu).cles);
+  try {
+    api.commitUndo();
+  } catch {
+    // Les écritures sont faites : un point d'annulation refusé ne les retire pas.
+  }
+  const compte = (sorte: EtapeDeFusion['sorte']): number => faites.filter((etape) => etape.sorte === sorte).length;
+  return { ecrite: ratees === 0, ...(ratees === 0 ? {} : { motif: 'erreur' as const }), touchee: true, tokens: compte('token'), layers: compte('layer') };
+}
+
 // L'annulation
 
 export type MotifDAnnulationSaute = 'objet-change' | 'usage-ajoute' | 'usage-illisible' | 'erreur';
@@ -309,6 +548,21 @@ async function unLayerLieA(api: ApiDeStructure, id: string): Promise<boolean> {
 async function defaireLaLigne(api: ApiDeStructure, ligne: LigneDeStructure): Promise<SortDeLaLigne> {
   const locales = await api.variables.getLocalVariablesAsync();
   const variable = locales.find((candidate) => candidate.id === ligne.variable);
+  if (ligne.sorte === 'lien-de-layer') {
+    const noeud = await api.getNodeByIdAsync?.(ligne.variable);
+    const avant = locales.find((candidate) => candidate.id === ligne.avant);
+    if (!noeud || !avant) return 'objet-change';
+    if (emplacementsLies(noeud, ligne.avant).includes(ligne.emplacement)) return 'retablie';
+    if (!emplacementsLies(noeud, ligne.apres).includes(ligne.emplacement)) return 'objet-change';
+    relier(api, noeud, ligne.emplacement, avant);
+    return 'defaite';
+  }
+  if (ligne.sorte === 'marque') {
+    if (!variable || variable.remote || !variable.getSharedPluginData || !variable.setSharedPluginData) return 'objet-change';
+    if (variable.getSharedPluginData(ESPACE_ARCHITECT, CLE_A_RETIRER) === '') return 'retablie';
+    variable.setSharedPluginData(ESPACE_ARCHITECT, CLE_A_RETIRER, '');
+    return 'defaite';
+  }
   if (ligne.sorte === 'creation') {
     if (!variable) return 'retablie';
     if (variable.remote || variable.name !== ligne.nom || variable.variableCollectionId !== ligne.collection) return 'objet-change';
@@ -359,7 +613,7 @@ async function defaireLeDernierLot(options: OptionsDeStructure): Promise<Resulta
     try { sort = await defaireLaLigne(api, ligne); } catch { sort = 'erreur'; }
     if (sort === 'defaite') defaites += 1;
     else if (sort !== 'retablie') {
-      sautees.push({ variable: ligne.variable, sorte: ligne.sorte, motif: sort });
+      sautees.push({ variable: ligne.sorte === 'lien-de-layer' && ligne.nom !== '' ? ligne.nom : ligne.variable, sorte: ligne.sorte, motif: sort });
       restantes.unshift(ligne);
     }
   }

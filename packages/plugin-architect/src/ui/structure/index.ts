@@ -7,11 +7,12 @@
  * Le panneau tire le compte de l'onglet des cartes que ce module lui livre.
  * Le lien « Télécharger le rapport d'analyse » est au pied des onglets (`rapport.ts`) ; il joint la durée du rendu mesurée ici.
  */
-import type { DemandeDeStructure, IgnoresDeStructure, MessageDeStructure } from '../../messages/structure';
+import type { DemandeDeStructure, EchecDeLecture, IgnoresDeStructure, MessageDeStructure } from '../../messages/structure';
 import type { Constat, Correction } from '../../messages/commun';
 import type { Coquille } from '../nomenclature/coquille';
 import { QUESTIONS } from '../tokens/panneau';
 import { creerAlerte } from 'ucm-plugin-socle/src/ui/Alerte';
+import { TEXTES } from '../textes';
 import { monterLePied } from '../tokens/cochage';
 import { monterAFaire } from './aFaire';
 import { poserLesMorceaux } from './carte';
@@ -56,7 +57,7 @@ export function monterStructure(coquille: Coquille, { envoyer, noms, ouvrirLaFic
   let demandeDApplication: number | null = null;
   /** Les lignes du dernier lot envoyé : la ligne verte du résultat en tire la demande de publier la library. */
   let envoyees: readonly string[] = [];
-  let recu: { readonly constats: readonly Constat[]; readonly corrections: readonly Correction[]; readonly ignores: IgnoresDeStructure } | null = null;
+  let recu: { readonly constats: readonly Constat[]; readonly corrections: readonly Correction[]; readonly ignores: IgnoresDeStructure; readonly echec?: EchecDeLecture } | null = null;
 
   /** Un geste d'Ignorer prend un numéro neuf : la réponse est la relecture de la structure, et celle d'une lecture plus ancienne est laissée. */
   const demanderAvec = (message: (numero: number) => DemandeDeStructure): void => {
@@ -86,6 +87,11 @@ export function monterStructure(coquille: Coquille, { envoyer, noms, ouvrirLaFic
     ignorerDansLeFichier: (role) => demanderAvec((numero) => ({ type: 'ignorer-role', demande: numero, role })),
     nePlusIgnorerLeConstat: (constat) => demanderAvec((numero) => ({ type: 'retablir-constat-de-structure', demande: numero, constat })),
     nePlusIgnorerLeRole: (role) => demanderAvec((numero) => ({ type: 'retablir-role', demande: numero, role })),
+    fusionner(constat, garder) {
+      envoyees = [constat];
+      demandeDApplication = nouvelleDemande();
+      envoyer({ type: 'fusionner-variables', demande: demandeDApplication, constat, garder });
+    },
   }, questionsSeules);
   const hoteDuResultat = document.createElement('div');
   hoteDuResultat.className = 'page-stack';
@@ -96,7 +102,11 @@ export function monterStructure(coquille: Coquille, { envoyer, noms, ouvrirLaFic
   const hoteDeLInformation = document.createElement('div');
   hoteDeLInformation.className = 'page-stack';
   hoteDeLInformation.hidden = true;
-  tokens.haut.append(hoteDeLInformation, hoteDuResultat);
+  /** L'échec de la lecture (E4.2) : l'alerte tient la place du « tout est bon » que des listes vides laisseraient croire. */
+  const hoteDeLEchec = document.createElement('div');
+  hoteDeLEchec.className = 'page-stack';
+  hoteDeLEchec.hidden = true;
+  tokens.haut.append(hoteDeLEchec, hoteDeLInformation, hoteDuResultat);
   const pied = monterLePied({
     hote: tokens.pied,
     renommages: coquille.renommages(),
@@ -127,7 +137,11 @@ export function monterStructure(coquille: Coquille, { envoyer, noms, ouvrirLaFic
       poserLesMorceaux(phrase, information.phrase);
       hoteDeLInformation.replaceChildren(creerAlerte('info', { texte: phrase, meta: information.statut }));
     }
-    tokens.poserLaStructure(recu ? { constats: recu.constats, corrections: recu.corrections, noms } : null);
+    const echec = recu?.echec;
+    hoteDeLEchec.hidden = echec === undefined;
+    if (echec === undefined) hoteDeLEchec.replaceChildren();
+    else hoteDeLEchec.replaceChildren(creerAlerte('verifier', { texte: TEXTES.lectureDeStructureEchouee[echec] }));
+    tokens.poserLaStructure(recu ? { constats: recu.constats, corrections: recu.corrections, noms, partielle: echec !== undefined } : null);
   }
 
   function demander(): void {
@@ -143,7 +157,7 @@ export function monterStructure(coquille: Coquille, { envoyer, noms, ouvrirLaFic
         if (message.demande !== demande) return;
         mesures.noterLaTaille('structure', JSON.stringify(message).length);
         const debut = horloge();
-        recu = { constats: message.constats, corrections: message.corrections, ignores: message.ignores };
+        recu = { constats: message.constats, corrections: message.corrections, ignores: message.ignores, ...(message.echec ? { echec: message.echec } : {}) };
         rendre();
         mesures.noterLeRendu(horloge() - debut);
         rapport?.poser(true);

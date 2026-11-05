@@ -30,6 +30,8 @@ export interface GestesDIgnorer {
   readonly ignorerDansLeFichier: (role: string) => void;
   readonly nePlusIgnorerLeConstat: (constat: string) => void;
   readonly nePlusIgnorerLeRole: (role: string) => void;
+  /** Fusionne les variables d'un rôle en double dans celle que le designer garde ; absent, les choix restent des lignes. */
+  readonly fusionner?: (constat: string, garder: string) => void;
 }
 
 export interface AFaire {
@@ -133,17 +135,23 @@ function creerLeDessin(texte: 'noir' | 'blanc'): HTMLElement {
 }
 
 /** Les réponses d'une question, sous la phrase : aucune n'est cochée, le designer la fait dans la fenêtre Variables. */
-function creerLesChoix(choix: readonly ChoixDeCarte[]): HTMLElement {
+function creerLesChoix(choix: readonly ChoixDeCarte[], gestes: GestesDIgnorer): HTMLElement {
   const liste = document.createElement('span');
   liste.className = 'constat-choix';
   liste.setAttribute('role', 'list');
-  for (const { libelle, dessin } of choix) {
+  for (const { libelle, dessin, fusion } of choix) {
     const ligne = document.createElement('span');
     ligne.className = 'constat-choix-ligne';
     ligne.setAttribute('role', 'listitem');
     const mot = document.createElement('span');
     mot.textContent = libelle;
-    ligne.append(...(dessin === null ? [mot] : [creerLeDessin(dessin), mot]));
+    // Une fusion s'écrit sur un clic du designer, jamais cochée d'avance : le choix devient un bouton texte qui porte le libellé.
+    if (fusion && gestes.fusionner) {
+      const fusionner = gestes.fusionner;
+      ligne.append(boutonTexte(libelle, libelle, () => fusionner(fusion.constat, fusion.garder)));
+    } else {
+      ligne.append(...(dessin === null ? [mot] : [creerLeDessin(dessin), mot]));
+    }
     liste.append(ligne);
   }
   return liste;
@@ -222,7 +230,7 @@ export function monterAFaire(
       statut.textContent = constat.statut;
       meta.push(document.createElement('br'), statut);
     }
-    if (constat.choix.length > 0) meta.push(document.createElement('br'), creerLesChoix(constat.choix));
+    if (constat.choix.length > 0) meta.push(document.createElement('br'), creerLesChoix(constat.choix, gestes));
     if (constat.variables.length > 0) {
       const voir = document.createElement('span');
       voir.className = 'constat-voir';

@@ -122,6 +122,21 @@ const appliquer = { clic: '.corrections-pied .btn-primary' };
 const lot = { type: 'corrections-appliquees', analyse: IDENTITE, ecrites: 9, sautees: [], resume: '8 layers liés, 1 instance de règles créée' };
 const perime = (cause) => ({ message: { type: 'perime', analyse: IDENTITE, cause } });
 
+/**
+ * Lot E4b (E4.5). Un token du composant vise une primitive de `brands` par un segment de mode : le C63 du thème propose l'alias du thème,
+ * et la correction part à l'écriture de structure (journal de structure, Historique).
+ */
+const aliasDeMode = {
+  id: 'C63:cle-fond:m-dark:theme', code: 'C63', type: 'corriger', famille: 'liaisons', variants: [], layers: [],
+  faits: { variable: 'Alert/colors/info/standard/background', mode: 'Dark', cible: 'brands/primary/dark/300' },
+  correction: {
+    id: 'C63:cle-fond:m-dark:theme', sorte: 'alias-de-mode', cible: { variable: 'cle-fond', mode: 'm-dark' }, avant: 'cle-brands', apres: { cle: 'cle-theme', nom: 'primary/surface/default' },
+    aRelire: { axes: { mode: 'Dark' }, regle: 'Un composant UCM vise le thème, pas une primitive à segment de mode.', avant: 'cle-brands' },
+  },
+};
+const analyseAliasDeMode = { type: 'analyse', analyse: IDENTITE, statut: 'complete', constats: [aliasDeMode], lecture: null, variants: variantsAlert };
+const lotDAlias = { type: 'corrections-appliquees', analyse: IDENTITE, ecrites: 1, sautees: [], resume: '1 correction de structure' };
+
 const ETATS = [
   {
     id: 'c-corrections', titre: 'Corrections du composant', quand: 'Alert est analysé : 24 constats, dont 9 portent une correction ; le designer ouvre le panneau.',
@@ -152,6 +167,18 @@ const ETATS = [
     id: 'c-carte-modele-ailleurs', titre: 'La carte d’un modèle que la vue ne lit pas', quand: 'Le variant modèle n’est pas celui que la vue affiche : ses layers sont absents de la lecture. Le designer ouvre le panneau, puis la carte par son chevron.',
     regarder: 'La carte a son chevron ; la liste donne les layers et les tokens du modèle error et outlined, tirés du constat et non de la vue : container fill et icon fill.',
     existe: true, atteinte: [...panneauDuModele(analyseModeleAilleurs), { clic: '.bloc-constat .bloc-bouton' }],
+  },
+  {
+    id: 'c-alias-de-mode', titre: 'Alias de mode d’un token du composant', quand: 'Le token Alert/colors/info/standard/background vise en Dark une primitive de brands : le C63 propose l’alias du thème.',
+    regarder: 'Dans Couleurs, une carte « Lier Alert/colors/info/standard/background à primary/surface/default », avec « En Dark » en gris et sa case décochée ; dépliée, la ligne brands/primary/dark/300 devient primary/surface/default ; aucun layer cité ; le pied dit « Aucune correction cochée ».',
+    existe: true,
+    atteinte: [preferences(), etroite, choisir(alertCorrections), composant(alertCorrections), apercu(alertCorrections), { message: analyseAliasDeMode }, { message: aucunIgnore }, { clic: '.bouton-panneau' }, { clic: '.bloc .bloc-bouton' }],
+  },
+  {
+    id: 'c-alias-de-mode-ecrit', titre: 'Après l’écriture d’un alias de mode', quand: 'Le designer coche la carte et clique Appliquer tout : le sandbox écrit l’alias, rend la ligne de réussite, puis périme l’analyse.',
+    regarder: 'La ligne de réussite « 1 correction de structure » avec « Ctrl+Z dans Figma défait ce lot. » ; l’alerte du composant changé ; la carte reste, inactive.',
+    existe: true,
+    atteinte: [preferences(), etroite, choisir(alertCorrections), composant(alertCorrections), apercu(alertCorrections), { message: analyseAliasDeMode }, { message: aucunIgnore }, { clic: '.bouton-panneau' }, toutCocher, appliquer, { message: lotDAlias }, perime('ecriture')],
   },
   {
     id: 'c-clic', titre: 'Un constat cliqué', quand: 'Le designer choisit la puce Couleurs et ouvre la carte « info devient success ». Ouvrir une carte ne sélectionne rien dans Figma.',

@@ -17,8 +17,12 @@ const SCOPES_DE_FIGMA: ReadonlyArray<readonly [string, string]> = [
 ];
 
 export const TEXTES_STRUCTURE = {
-  // Onglet
-  rienAFaireDansFigma: 'Rien à régler dans la fenêtre Variables de Figma.',
+  // Onglet : une lecture qui n'a pas abouti ne dit jamais que rien n'est à régler (E4.2)
+  lectureDeStructureEchouee: {
+    'lecture-levee': 'Le plugin n’a pas pu lire les variables du fichier. Actualisez pour relancer la lecture.',
+    'catalogue-absent': 'Le plugin n’a pas pu lire la library de tokens. Vérifiez-la dans la Configuration, puis actualisez.',
+    'refus-de-figma': 'Figma a refusé la lecture des variables. Actualisez pour relancer la lecture.',
+  } as Readonly<Record<string, string>>,
   // Intertitres
   groupeAlias: 'Alias',
   groupeModes: 'Modes',
@@ -135,6 +139,7 @@ export const TEXTES_STRUCTURE = {
   reserve: (nombre: number): string => (nombre > 1 ? 'UCM réserve ces variables' : 'UCM réserve cette variable'),
   auxFonds: ' aux fonds.',
   aCesScopes: ' à ces scopes : ',
+  scopesDeLaVariableSansProposition: (scopes: number): string => `Aujourd’hui, ${scopes > 1 ? 'ses scopes sont' : 'son scope est'} `,
   aujourdhuiSujet: (scopes: number, variables: number): string => `Aujourd’hui, ${variables > 1 ? 'leur' : 'son'} ${scopes > 1 ? 'scopes sont' : 'scope est'} `,
   virgule: ', ',
   legendeAujourdhui: 'Aujourd’hui',
@@ -156,6 +161,10 @@ export const TEXTES_STRUCTURE = {
   },
   publierLaLibrary: 'Publiez la library pour voir ces variables dans les fichiers de composants.',
   motifDeSaut: {
+    occupe: 'Une autre écriture était en cours. Relancez Appliquer.',
+    'correction-inconnue': 'Cette correction ne correspond plus au fichier. Actualisez, puis recommencez.',
+    'non-pris-en-charge': 'Le plugin ne sait pas écrire cette correction. Faites-la dans la fenêtre Variables.',
+    erreur: 'Figma a refusé l’écriture. Recommencez, ou faites-la dans la fenêtre Variables.',
     'deja-la': 'Cette variable existe déjà, avec les mêmes alias.',
     'existe-divergente': 'Une variable de ce nom existe déjà, avec d’autres alias.',
   } as Readonly<Record<string, string>>,

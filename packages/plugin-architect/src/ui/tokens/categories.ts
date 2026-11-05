@@ -9,7 +9,7 @@ import {
 import { TEXTES } from '../textes';
 import { TEXTES_TOKENS } from '../textes/tokens';
 
-export type IdDeCategorie = 'noms' | GroupeDeConstat | 'scopes';
+export type IdDeCategorie = 'noms' | GroupeDeConstat;
 type CorrectionDeStructure = CarteDeVariables | CarteDeCrans | CarteDeModes | CarteDeScopes;
 
 export type CarteDeCategorie =
@@ -41,12 +41,12 @@ const STRUCTURE: Readonly<Record<GroupeDeConstat, { readonly libelle: string; re
   couches: { libelle: TEXTES.groupeCouches, signe: 'couches' },
   types: { libelle: TEXTES.groupeTypes, signe: 'types' },
   rangement: { libelle: TEXTES.groupeRangement, signe: 'rangement' },
+  scopes: { libelle: TEXTES.groupeScopes, signe: 'scope' },
 };
 
 const CATEGORIES: readonly DefinitionDeCategorie[] = [
   { id: 'noms', libelle: TEXTES_TOKENS.categorieNoms, signe: 'nom', famille: 'rubrique-tokens' },
   ...GROUPES.map((id) => ({ id, ...STRUCTURE[id], famille: 'rubrique-tokens' as const })),
-  { id: 'scopes', libelle: TEXTES.groupeScopes, signe: 'scope', famille: 'rubrique-tokens' },
 ];
 
 export interface DonneesDesCategories {

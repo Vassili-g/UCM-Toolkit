@@ -105,7 +105,7 @@ export interface ContexteDeCartes {
   readonly liaisons?: ContexteDAFaire['liaisons'];
 }
 
-type Genre = 'modele' | 'regles' | 'nom' | 'tailles' | 'texte' | 'jetons' | 'lier';
+type Genre = 'modele' | 'regles' | 'nom' | 'tailles' | 'texte' | 'jetons' | 'lier' | 'alias';
 
 const segments = (nom: string): string[] => nom.split('/');
 
@@ -141,6 +141,8 @@ function genreDe(constat: Constat, correction: Correction, contexte: ContexteDeC
   if (correction.sorte === 'regles' && correction.apres.nom === 'ajouter') return { cle: `regles:ajouter:${correction.cible.layer ?? ''}`, genre: 'regles', section: 'regles' };
   if (correction.sorte === 'regles') return { cle: `regles:${correction.id}`, genre: 'regles', section: 'regles' };
   if (correction.sorte === 'nom-de-valeur') return { cle: `nom:${correction.cible.champ ?? ''}:${correction.avant ?? ''}:${correction.apres.nom}`, genre: 'nom', section: 'noms' };
+  // Un alias de mode change la cible d'un token du composant (C63) : il n'a pas de layer, sa carte nomme le token.
+  if (correction.sorte === 'alias-de-mode') return { cle: `alias:${correction.apres.nom}`, genre: 'alias', section: 'liaisons' };
   if (constat.code === 'C59') return { cle: `texte:${constat.code}`, genre: 'texte', section: 'liaisons' };
   if (constat.famille === 'tailles') return { cle: `tailles:${TEXTES.correctionsDuComposant.famille(correction.cible.champ ?? '')}`, genre: 'tailles', section: 'tailles' };
   const unique = correction.avant === null ? null : segmentUnique(sansPrefixe(correction.avant, contexte.composant), sansPrefixe(correction.apres.nom, contexte.composant));
@@ -161,7 +163,9 @@ function ligneDe(constat: Constat, correction: Correction, contexte: ContexteDeC
   }
   const apres = sansPrefixe(correction.apres.nom, contexte.composant);
   const apresSegments = segments(apres);
-  if (correction.avant === null) {
+  // Pour un alias de mode, `avant` est la clé de la cible lue : le diff montre son nom, que le constat porte.
+  const nomAvant = correction.sorte === 'alias-de-mode' ? texte(constat.faits.cible) ?? correction.avant : correction.avant;
+  if (nomAvant === null) {
     const variant = contexte.variants.find((candidat) => constat.variants.includes(candidat.id) || constat.variants.includes(candidat.nom));
     const paires = variant ? pairesDuNom(variant.nom) : [];
     const valeurs = new Set(paires.map(([, valeur]) => valeur.toLowerCase()));
@@ -171,7 +175,7 @@ function ligneDe(constat: Constat, correction: Correction, contexte: ContexteDeC
       marquesAvant: [], marquesApres: apresSegments.flatMap((segment, rang) => (ajout === segment || (ajout === null && valeurs.has(segment.toLowerCase())) ? [rang] : [])),
     };
   }
-  const avant = sansPrefixe(correction.avant, contexte.composant);
+  const avant = sansPrefixe(nomAvant, contexte.composant);
   const a = segments(avant);
   const rangs = a.length !== apresSegments.length ? a.map((_, rang) => rang) : a.flatMap((segment, rang) => (segment === apresSegments[rang] ? [] : [rang]));
   return { id: correction.id, constat, correction, avant, variant: [], apres, marquesAvant: rangs, marquesApres: a.length !== apresSegments.length ? apresSegments.map((_, rang) => rang) : rangs };
@@ -245,6 +249,9 @@ function carteDe(cle: string, genre: Genre, section: SectionDeCorrections, ligne
   } else if (genre === 'nom') {
     phrase = [T.renommer, premiere.avant, T.en, premiere.apres];
     meta = [premiere.correction.cible.champ ?? ''];
+  } else if (genre === 'alias') {
+    phrase = [T.lier(texte(faitsPremiers.variable) ?? contexte.composant), { chemin: premiere.apres }];
+    meta = [TEXTES.enMode(texte(faitsPremiers.mode) ?? '')];
   } else {
     phrase = [T.lier(noms[0] ?? 'le layer'), { chemin: premiere.apres }];
   }

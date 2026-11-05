@@ -266,6 +266,14 @@ export function atelierDEcriture(options: OptionsDeLEcriture = {}) {
       journal.push(`mode:${variable.id}:${mode}:${valeur.id}`);
       valeurs = { ...valeurs, [mode]: valeur };
     };
+    // Les données partagées de la variable : la marque d'une fusion y vit. `refusees` retient `marque:<id>` pour faire lever l'écriture.
+    const marques = new Map<string, string>();
+    brut.getSharedPluginData = (espace: string, cle: string) => marques.get(`${espace}/${cle}`) ?? '';
+    brut.setSharedPluginData = (espace: string, cle: string, valeur: string) => {
+      if (options.refusees?.has(`marque:${variable.id}`)) throw new Error('Figma refuse');
+      journal.push(`marque:${variable.id}:${valeur}`);
+      marques.set(`${espace}/${cle}`, valeur);
+    };
     brut.remove = () => {
       if (options.refusees?.has(variable.id)) throw new Error('Figma refuse');
       journal.push(`supprimer:${variable.id}`);
@@ -341,6 +349,10 @@ export function atelierDEcriture(options: OptionsDeLEcriture = {}) {
         journal.push(`peinture:${variable.key}`);
         return { ...peinture, boundVariables: { ...(peinture.boundVariables as object), color: { type: 'VARIABLE_ALIAS', id: variable.id } } };
       },
+      setBoundVariableForEffect(effet: Record<string, unknown>, champ: string, variable: VariableDEcriture) {
+        journal.push(`effet:${variable.key}`);
+        return { ...effet, boundVariables: { ...(effet.boundVariables as object), [champ]: { type: 'VARIABLE_ALIAS', id: variable.id } } };
+      },
     },
     commitUndo() {
       journal.push('commitUndo');
@@ -380,7 +392,7 @@ export function atelierDEcriture(options: OptionsDeLEcriture = {}) {
     /** Un layer écrivable ; `parent` est la page par défaut. Chaque écriture entre dans `journal`. */
     layer(id: string, type: string, champs: Record<string, unknown> = {}, parent: Record<string, unknown> = page): Record<string, unknown> {
       const brut: Record<string, unknown> = { id, type, name: `Layer ${id}`, parent, boundVariables: {}, ...champs };
-      for (const champ of ['fills', 'strokes']) {
+      for (const champ of ['fills', 'strokes', 'effects']) {
         let valeur = brut[champ];
         delete brut[champ];
         Object.defineProperty(brut, champ, {

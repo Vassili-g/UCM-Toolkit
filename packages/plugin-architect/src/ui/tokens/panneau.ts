@@ -30,8 +30,11 @@ export type ChoixDuSommaire = 'tout' | typeof QUESTIONS | IdDeCategorie;
 /** Les catégories dont le domaine structure monte le corps : toutes sauf Noms. */
 export type CategorieDeStructure = Exclude<IdDeCategorie, 'noms'>;
 
-/** Ce que le domaine structure rend à la lecture : les constats et corrections reçus, et les noms qui les écrivent. */
-export type StructureLue = Pick<DonneesDesCategories, 'constats' | 'corrections' | 'noms'>;
+/**
+ * Ce que le domaine structure rend à la lecture : les constats et corrections reçus, et les noms qui les écrivent. `partielle` est vrai
+ * quand la lecture n'a pas abouti : une catégorie sans carte n'a pas été lue, elle ne se dit pas tenue.
+ */
+export type StructureLue = Pick<DonneesDesCategories, 'constats' | 'corrections' | 'noms'> & { readonly partielle?: boolean };
 
 /** Les trois conteneurs que Nomenclature remplit : le panneau les attache dans la section Noms. */
 export interface HotesDeNomenclature {
@@ -178,7 +181,7 @@ export function monterLePanneauDesTokens({ racine, nomenclature, auChangement }:
       corrections: structure?.corrections ?? [],
       noms: structure?.noms ?? SANS_NOMS,
       // Tant que le bilan ou la structure manque, une catégorie vide n'a pas été lue : elle ne se montre pas tenue.
-      partielle: structure === null || donnees.bilan === null,
+      partielle: structure === null || structure.partielle === true || donnees.bilan === null,
     });
     vues = vuesDe(categories, donnees);
     // Une section longue arrive repliée : le choix est pris une fois, à sa première apparition avec des cartes.
@@ -343,7 +346,7 @@ export function monterLePanneauDesTokens({ racine, nomenclature, auChangement }:
     },
     poserLaStructure(suivante) {
       if (suivante === null && structure === null) return;
-      if (suivante && structure && suivante.constats === structure.constats && suivante.corrections === structure.corrections && suivante.noms === structure.noms) return;
+      if (suivante && structure && suivante.constats === structure.constats && suivante.corrections === structure.corrections && suivante.noms === structure.noms && suivante.partielle === structure.partielle) return;
       structure = suivante;
       recalculer();
       rendre();
