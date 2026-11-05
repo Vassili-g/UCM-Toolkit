@@ -202,7 +202,7 @@ const SCENARIOS: readonly Scenario[] = [
   },
   {
     nom: 'le nom d’un calque',
-    projections: ['controle-mapping', 'controle-couches', 'controle-accessibilite', 'controle-typographie', 'controle-theme'],
+    projections: ['controle-mapping', 'controle-couches', 'controle-oublis', 'controle-accessibilite', 'controle-typographie', 'controle-theme'],
     constatsAuMoins: ['controle-accessibilite'],
     modifier: (donnees) => { premierLayer(donnees, 'Root').nom = 'Racine'; },
   },
@@ -327,10 +327,10 @@ test('une famille dont la projection est égale est reprise, les autres se calcu
   assert.deepEqual(peinture.reprises, ['controle-nommage', 'controle-mapping', 'controle-couches', 'controle-oublis', 'controle-typographie', 'controle-theme']);
 });
 
-test('la reprise suit la projection : un nom de calque rejoue cinq familles, un texte une seule', async () => {
+test('la reprise suit la projection : un nom de calque rejoue six familles, un texte une seule', async () => {
   const { entree } = entreeRetenue();
   const nom = await famillesRejouees(entree, SCENARIOS[3].modifier);
-  assert.deepEqual(nom.rejouees, ['controle-mapping', 'controle-couches', 'controle-accessibilite', 'controle-typographie', 'controle-theme', 'controle-structure']);
+  assert.deepEqual(nom.rejouees, ['controle-mapping', 'controle-couches', 'controle-oublis', 'controle-accessibilite', 'controle-typographie', 'controle-theme', 'controle-structure']);
   const niveau = await famillesRejouees(entree, SCENARIOS[9].modifier);
   assert.deepEqual(niveau.rejouees, ['controle-accessibilite', 'controle-structure']);
 });

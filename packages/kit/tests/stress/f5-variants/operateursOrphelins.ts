@@ -3,7 +3,7 @@
  *
  * O3 et O4 testent E-33 et P10 : un token que seule une liaison illisible ou un wrapper de dimensions lie n'est jamais accusé.
  * O4 part d'un hôte sans axe `Size`, parce que `oublis.ts` ne confie à un wrapper que les rôles d'axe que l'hôte n'a pas. O6 attend
- * la proposition de Q-F5-8 : un token du composant au nom illisible donne C32, motif `nom-illisible`.
+ * la décision de Q-F5-8 : un token du composant au nom illisible donne C32, motif `nom-illisible`.
  */
 import type { LiaisonLue } from '../../../src/controles/index.js';
 import { c32, casDegrade, Numerotation, type CasDeVariants } from './cas.js';
@@ -50,8 +50,8 @@ function tokensInutilises(base: ComposantDeBase, numero: Numerotation): CasDeVar
 }
 
 /**
- * O3 : la liaison qui lie le token est illisible. Le relevé la note dans `lecture.manquees` et ne la porte pas, donc le token n'a
- * aucune liaison connue, et C32 ne doit pas l'accuser (P10, E-33).
+ * O3 : la liaison qui lie le token est illisible. Comme le lecteur d'Architect, le relevé la porte avec `illisible: true` et une
+ * variable sans clé, et la note dans `lecture.manquees` : le token n'a aucune liaison connue, et C32 ne doit pas l'accuser (P10, E-33).
  */
 function liaisonsIllisibles(base: ComposantDeBase, numero: Numerotation): CasDeVariants[] {
   const premier = base.releve.variants[0].valeurs;
@@ -69,6 +69,8 @@ function liaisonsIllisibles(base: ComposantDeBase, numero: Numerotation): CasDeV
         if (champ === 'width') d.cloner(d.variable(jeton.cle), nom);
         else d.delier(jeton.cle);
         d.inserer(d.releve.lecture.manquees, { layer: racine, champ, motif: 'illisible' });
+        const layerRacine = d.releve.variants[0].layers.find((layer) => layer.id === racine)!;
+        d.inserer(layerRacine.liaisons, { champ, porteur: racine, illisible: true, variable: { id: 'VariableID:9:9', cle: '', nom: '', collection: '', distante: false } });
       },
       ajuster: (attendus) => attendus.filter((constat) => !(constat.code === 'C32' && constat.cle.startsWith(`${nom}|`))),
     });
@@ -121,11 +123,11 @@ const NOMS_ILLISIBLES: readonly (readonly [description: string, nom: string])[] 
   ['le rôle devient glow, que le registre ne connaît pas', 'button/color/primary/solid/sm/default/glow'],
 ];
 
-/** O6 : le token de fond du premier variant prend un nom illisible. Q-F5-8 propose C32 `nom-illisible` ; un autre préfixe n'est plus un token du composant. */
+/** O6 : le token de fond du premier variant prend un nom illisible. Q-F5-8 donne C32 `nom-illisible` ; un autre préfixe n'est plus un token du composant. */
 function nomsIllisibles(base: ComposantDeBase, numero: Numerotation): CasDeVariants[] {
   const premier = base.releve.variants[0].valeurs;
   return NOMS_ILLISIBLES.map(([description, nom]) => casDegrade(base, {
-    id: numero.prochain('O6'), operateur: 'O6', verdict: 'mesure', question: 'Q-F5-8', hypothese: 'H11',
+    id: numero.prochain('O6'), operateur: 'O6', hypothese: 'H11',
     description: `${description} : ${nom}`,
     zones: Object.entries(premier).map(([axe, valeur]) => ({ axe, valeur })),
     degrader: (d) => d.fixer(d.jetons({ nature: 'couleur', role: 'background', valeurs: premier })[0], 'nom', nom),

@@ -261,7 +261,10 @@ export function cleDeConstat(constat: Constat): string {
     case 'C8': case 'C10': return faits.cote === 'variant' ? `variant|${faits.propriete}=${faits.valeur}>${faits.attendu}` : `${faits.segment}>${faits.attendu}`;
     case 'C9': return `${faits.segment}>${faits.valeur}`;
     case 'C12': case 'C13': return `${faits.propriete}=${faits.avant}`;
-    case 'C31': return trier(faits as Record<string, string>);
+    case 'C31':
+      if (faits.genre === 'au-dela-de-la-borne') return `information-de-borne|total=${faits.combinaisons}|variants=${faits.variants}`;
+      if (faits.genre === 'et-autres') return `et-autres|autres=${faits.autres}`;
+      return trier(faits as Record<string, string>);
     case 'C32': return `${faits.token}|${faits.motif}`;
     case 'C33': return `${constat.variants[0]}|${faits.famille}`;
     default: return constat.id;
@@ -288,9 +291,16 @@ export const question = (axe: string, valeur: string, candidats: readonly string
 export const c31 = (combinaison: Readonly<Record<string, string>>): ConstatAttendu => attendu('C31', trier(combinaison));
 export const c32 = (token: string, motif: 'sans-variant' | 'inutilise' | 'nom-illisible'): ConstatAttendu => attendu('C32', `${token}|${motif}`);
 export const c33 = (variant: string, famille: string): ConstatAttendu => attendu('C33', `${variant}|${famille}`);
-/** L'information que le plan attend au-delà de la borne (Q-F5-7) : le kit n'en émet aucune, donc elle reste un manque en attente. */
+/** L'information au-delà de la borne (Q-F5-7) : le total des combinaisons et le nombre de variants. */
 export const informationDeBorne = (total: number, variants: number): ConstatAttendu =>
   attendu('C31', `information-de-borne|total=${total}|variants=${variants}`);
+export const PLAFOND_DE_C31 = 200;
+export const etAutres = (autres: number): ConstatAttendu => attendu('C31', `et-autres|autres=${autres}`);
+/** Sous la borne : un C31 par combinaison absente jusqu'à 200, puis une ligne qui compte les autres (Q-F5-7). */
+export const c31Plafonnes = (absentes: readonly Readonly<Record<string, string>>[]): ConstatAttendu[] => [
+  ...absentes.slice(0, PLAFOND_DE_C31).map((combinaison) => c31(combinaison)),
+  ...(absentes.length > PLAFOND_DE_C31 ? [etAutres(absentes.length - PLAFOND_DE_C31)] : []),
+];
 
 // ---------------------------------------------------------------------------------------------------------------------------
 // Modèle de référence
@@ -338,8 +348,8 @@ export function egale(role: AxeDuComposant, segment: string, valeur: string): bo
 const dedoublonner = (valeurs: readonly string[]): string[] => [...new Set(valeurs)];
 
 /**
- * Les constats que les règles 4.1 et 4.4 attendent du composant dégradé, sans C31 ni information de borne au-delà de 4 096
- * combinaisons déclarées. `lecture complete` coupe C31, C32 et C33 (P9).
+ * Les constats que les règles 4.1 et 4.4 attendent du composant dégradé. Au-delà de 4 096 combinaisons déclarées, une information
+ * remplace les C31 ; en deçà, 200 C31 au plus. `lecture complete` coupe C31, C32 et C33 (P9).
  */
 export function attendusDuModele(composant: ComposantDeBase, options: OptionsDuModele): ConstatAttendu[] {
   const { releve, catalogue } = composant;
@@ -448,8 +458,8 @@ export function attendusDuModele(composant: ComposantDeBase, options: OptionsDuM
     const presentes = new Set(releve.variants.map((variant) => trier(Object.fromEntries(declarees.map((axe) => [axe.nom, variant.valeurs[axe.nom] ?? ''])))));
     let combinaisons: Record<string, string>[] = [{}];
     for (const axe of declarees) combinaisons = combinaisons.flatMap((debut) => axe.valeurs.map((valeur) => ({ ...debut, [axe.nom]: valeur })));
-    for (const combinaison of combinaisons) if (!presentes.has(trier(combinaison))) ajouter(c31(combinaison));
-  }
+    for (const constat of c31Plafonnes(combinaisons.filter((combinaison) => !presentes.has(trier(combinaison))))) ajouter(constat);
+  } else if (declarees.length > 0) ajouter(informationDeBorne(total, releve.variants.length));
 
   if (collection?.etat !== 'lue') return constats;
   const liees = new Set<string>();

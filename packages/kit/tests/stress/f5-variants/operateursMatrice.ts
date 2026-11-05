@@ -4,11 +4,11 @@
  *
  * Retirer un variant de P0 retire aussi la combinaison de ses tokens de couleur : chacun n'a plus de variant qui porte ses segments,
  * donc l'oracle attend C32 `sans-variant` en plus de C31 (règle 4.4 : « token sans variant qui porte ses segments »). Au-delà de 4 096
- * combinaisons déclarées, la proposition de Q-F5-7 est une information qui donne le total et le nombre de variants ; le kit n'en
- * émet aucune, donc `informationDeBorne` reste un manque en attente.
+ * combinaisons déclarées, une information donne le total et le nombre de variants (Q-F5-7). En deçà, 200 C31 au plus, puis une ligne
+ * « et N autres ». M3 fait aussi le compte des étapes de la matrice de 16 x 16 x 16 variants (N-41).
  */
 import type { CatalogueDeReference, ReleveDeComposant, VariantLu } from '../../../src/controles/index.js';
-import { BORNE_DE_COMBINAISONS, c31, casDegrade, Degradation, informationDeBorne, Numerotation, type CasDeVariants, type ZoneTouchee } from './cas.js';
+import { BORNE_DE_COMBINAISONS, c31Plafonnes, casDegrade, Degradation, informationDeBorne, Numerotation, type CasDeVariants, type ZoneTouchee } from './cas.js';
 import type { ComposantDeBase } from './portF3.js';
 import { echantillon, entier, graineDe, mulberry32 } from '../commun/prng.js';
 
@@ -151,8 +151,8 @@ function matriceFabriquee(spec: SpecDeMatrice, graine: number, numero: Numerotat
   };
   const sousLaBorne = declarees <= BORNE_DE_COMBINAISONS;
   return {
-    id: numero.prochain('M3'), famille: 'F5', operateur: 'M3', verdict: sousLaBorne ? 'attendu' : 'mesure', ...(sousLaBorne ? {} : { question: 'Q-F5-7' }),
-    attendus: sousLaBorne ? absentes().map((combinaison) => c31(combinaison)) : [informationDeBorne(declarees, variants.length)],
+    id: numero.prochain('M3'), famille: 'F5', operateur: 'M3', verdict: 'attendu',
+    attendus: sousLaBorne ? c31Plafonnes(absentes()) : [informationDeBorne(declarees, variants.length)],
     hypothese: spec.hypothese, ecartConnu: 'E-44',
     entree: {
       description: `M3 : ${spec.description} (${declarees} combinaisons déclarées, ${variants.length} variants)`,

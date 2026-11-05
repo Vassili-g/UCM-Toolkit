@@ -28,12 +28,8 @@ export interface CasMixte extends CasDeVariants {
 export const HYPOTHESES_F6: Readonly<Record<string, string>> = {
   H13: 'hypothèse 13 (C64 compare tous les variants sans tenir compte de l\'axe de taille)',
   H14: 'hypothèse 14 (un texte à styles mixtes reçoit sans-style-ni-variables)',
-  H15: 'hypothèse 15 (une icône liée aux tokens du composant reçoit taille-hors-icone et couleur-hors-premier-plan)',
-  H16: 'hypothèse 16 (une icône dont la couleur est liée par strokes reçoit couleur-sans-variable)',
   H17: 'hypothèse 17 (Silicone, Lexicon, IconButton sont jugés comme des icônes ; Pictogram, Glyph, icône ne le sont jamais)',
   H18: 'hypothèse 18 (C17 attend icon pour un fond nommé IconButton ou Silicone)',
-  H19: 'hypothèse 19 (toute INSTANCE_SWAP est une icône)',
-  H20: 'hypothèse 20 (taille-hors-icone range le constat dans Tailles)',
   H21: 'hypothèse 21 (le texte de sans-style-ni-variables parle des autres variants)',
   H22: 'hypothèse 22 (C67 affiche la propriété avec son suffixe #id)',
   H23: 'hypothèse 23 (les cartes de question arrivent cochées ou sans Ignorer)',
@@ -54,7 +50,7 @@ export function variantsEnCle(noms: readonly string[]): string {
 export function cleDeConstatDeTypographie(constat: Constat): string {
   const { faits } = constat;
   const motif = String(faits.motif ?? faits.cause ?? '');
-  const detail = String(faits.variable ?? faits.styleLu ?? faits.propriete ?? '');
+  const detail = String(faits.variable ?? faits.styleLu ?? faits.propriete ?? faits.valeur ?? '');
   return `${[faits.calque, motif, faits.champ ?? '', detail].join('|')}@${variantsEnCle(constat.variants)}`;
 }
 

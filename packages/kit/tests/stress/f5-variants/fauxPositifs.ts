@@ -15,11 +15,11 @@ import { formeReconnue, termeReconnu } from '../../../src/referentiel/reconnaiss
 import { REGISTRE_PALETTES_COMPOSANT } from '../../../src/referentiel/architecture.js';
 import { segmentDeToken } from '../../../src/referentiel/ecriture-des-mots.js';
 import { attendusDuModele, c63DeuxAxesDeStyle, casDegrade, Numerotation, rolesDeLaBase, type CasDeVariants, type Degradation } from './cas.js';
-import { avecLesCouchesF6, CODES_DE_LA_PORTEE, composantDeBase, composantF6, GRAINE_PAR_DEFAUT, type AxeDeVariants } from './composantDeBase.js';
+import { avecLesCouchesF6, CODES_DE_LA_PORTEE, composantDeBase, composantF6, GRAINE_PAR_DEFAUT, liaisonVers, type AxeDeVariants } from './composantDeBase.js';
 import { composantValide, type ComposantDeBase } from './portF3.js';
 import { axesDuProfil, composantDuProfil, PROFILS, roleDuCorpus, VALEURS_ATTESTEES, JEUX_D_AXES, type ProfilDeVariants } from './profils.js';
 import { NON_ICONES } from './typo/definitionsDIcone.js';
-import { casF6, delierLeChamp, layerDe, layerNeuf, lierLeTexte, variableParNom, type CasMixte } from './typo/operateursTexte.js';
+import { casF6, layerDe, layerNeuf, lierLeTexte, variableParNom, type CasMixte } from './typo/operateursTexte.js';
 import type { AxeDuComposant } from '../../../src/controles/nommage.js';
 
 // ---------------------------------------------------------------------------------------------------------------------------
@@ -143,13 +143,14 @@ function composantsDeTypographie(graine: number, numero: Numerotation): CasDeVar
     cas('icône dont le remplissage est lié sans indice de peinture', (d) => {
       for (const variant of d.releve.variants) d.fixer(layerDe(variant, 'Icon').liaisons.find((liaison) => liaison.champ === 'fills')!, 'indice', undefined);
     }),
-    cas('icône dont seule la largeur est liée', (d) => { for (const variant of d.releve.variants) delierLeChamp(d, layerDe(variant, 'Icon'), 'height'); }),
-    ...['lucide/chevron-down', 'check_circle', 'ph-caret-down'].map((nom) => cas(`icône d'une library, nommée ${nom}`, (d) => {
+    cas('icône dont la largeur est liée à layout/sizing/16 : la taille vient de Size', (d) => {
       for (const variant of d.releve.variants) {
         const icone = layerDe(variant, 'Icon');
-        d.fixer(icone.instanceDe!, 'nom', nom);
-        d.fixer(icone, 'nom', nom);
+        d.inserer(icone.liaisons, liaisonVers(icone.id, 'width', variableParNom(d, 'sizing/16')));
       }
+    }),
+    ...['lucide/chevron-down', 'check_circle', 'ph-caret-down'].map((nom) => cas(`instance d'Icon dont le layer s'appelle ${nom}`, (d) => {
+      for (const variant of d.releve.variants) d.fixer(layerDe(variant, 'Icon'), 'nom', nom);
     })),
   ];
   const nonIcones = NON_ICONES.map((definition) => cas(`le layer ${definition.nom} (${definition.type}) n'est pas une icône`, (d) => {

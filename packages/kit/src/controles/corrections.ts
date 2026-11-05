@@ -1,12 +1,11 @@
 /** Propositions fondées sur une règle écrite et des faits relus. */
 import type { Collection } from '../referentiel/architecture.js';
-import { estLAxeDEtats, formeReconnue, termeReconnu } from '../referentiel/reconnaissance.js';
+import { estLAxeDEtats, formeReconnue } from '../referentiel/reconnaissance.js';
 import { modeDuThemeReconnu } from '../referentiel/theme.js';
-import { REGISTRE_ROLES } from '../referentiel/vocabulaire.js';
 import { collectionParCle, type CatalogueDeReference, type VariableDuCatalogue } from './catalogue.js';
 import { candidatDeLongueurParEtapes, classerLesCandidatsParEtapes, EGALITE_EN_PIXELS, type CandidatDeLongueur } from './candidatsDeLongueur.js';
 import type { Constat, Correction } from './constat.js';
-import { axesDuReleve, axesDuReleveParEtapes, estLaFamilleCouleur, etatReconnu, memeValeurDAxe, segmentDAxe, segmentEcritPourLaValeur, tokensDuComposant, tokensDuComposantParEtapes, type AxeDuComposant, type TokenDuComposant } from './nommage.js';
+import { axesDuReleve, axesDuReleveParEtapes, estLaFamilleCouleur, etatReconnu, memeValeurDAxe, roleDuToken, segmentDAxe, segmentEcritPourLaValeur, tokenVautPourLeLayer, tokensDuComposant, tokensDuComposantParEtapes, type AxeDuComposant, type TokenDuComposant } from './nommage.js';
 import { rolesAdmisDuLayer } from './mapping.js';
 import { lectureManquee, peintureVisible, type LayerLu, type LiaisonLue, type PeintureLue, type ReleveDeComposant, type VariantLu } from './releve.js';
 
@@ -515,22 +514,9 @@ function* corrigerLiaisonManquante(constat: Constat, releve: ReleveDeComposant, 
       const { variable } = token;
       if (variable.type !== 'COLOR' || variable.etat !== 'presente' || token.lecture.length === 0) continue;
       if (!estLaFamilleCouleur(variable.nom.split('/')[1] ?? '')) continue;
-      const role = token.lecture.find((segment) => segment.role === 'role')?.terme ?? termeReconnu(REGISTRE_ROLES, token.segments.at(-1) ?? '')?.id;
+      const role = roleDuToken(token);
       if (!role || !roles.includes(role)) continue;
-      let compatible = true;
-      for (const segment of token.lecture) {
-        if (segment.role === 'element') {
-          if (formeReconnue(segment.segment) !== formeReconnue(layer.nom)) { compatible = false; break; }
-          continue;
-        }
-        if (segment.role !== 'palette' && segment.role !== 'style' && segment.role !== 'taille' && segment.role !== 'etat') continue;
-        const axe = axes[segment.role];
-        // Le jeu n'a pas cet axe : le segment du token ne se compare à rien.
-        if (!axe) continue;
-        const valeur = variant.valeurs[axe.nom];
-        if (!valeur || !memeValeurDAxe(segment.role, segment.segment, valeur)) { compatible = false; break; }
-      }
-      if (compatible) candidats.push(variable);
+      if (tokenVautPourLeLayer(token, axes, variant, layer.nom)) candidats.push(variable);
     }
     index.candidatsDeCouleur.set(cleDeCache, candidats);
   }

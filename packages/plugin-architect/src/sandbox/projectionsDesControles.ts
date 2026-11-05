@@ -67,10 +67,11 @@ export const GABARITS: Readonly<Record<NomDeFamille, Gabarit>> = {
   'controle-oublis': [
     'releve.jeu.nom', 'releve.lecture.variantsNonLus', 'releve.lecture.layersNonLus', ...PROPRIETES,
     ...sous('releve.variants.*', 'id', 'nom', 'valeurs'),
-    `${LIAISONS_DU_LAYER}.variable.cle`,
+    `${LAYERS}.nom`,
+    ...liaisons(['variable.cle', 'champ', 'illisible'], ['champ', 'illisible']),
     ...sous('releve.wrappers.*.proprietes.*', 'nom', 'type', 'valeurs'),
-    'releve.wrappers.*.variants.*.valeurs', 'releve.wrappers.*.variants.*.liaisons.*.variable.cle',
-    ...COLLECTIONS, 'catalogue.collections.*.etat', ...sous('catalogue.variables.*', 'cle', 'nom', 'collection'),
+    'releve.wrappers.*.variants.*.valeurs', ...sous('releve.wrappers.*.variants.*.liaisons.*', 'variable.cle', 'champ', 'illisible'),
+    ...COLLECTIONS, 'catalogue.collections.*.etat', ...sous('catalogue.variables.*', 'cle', 'nom', 'collection', 'type'),
   ],
   'controle-accessibilite': [
     'niveau', ...sous('releve.lecture.manquees.*', 'layer', 'champ'), ...PROPRIETES,
@@ -82,10 +83,10 @@ export const GABARITS: Readonly<Record<NomDeFamille, Gabarit>> = {
     'catalogue.fondsDElevation', 'catalogue.fondDeLaPageFigma',
   ],
   'controle-typographie': [
-    ...sous('releve.proprietes.*', 'nom', 'type'), 'releve.variants.*.nom',
-    ...sous(LAYERS, 'id', 'nom', 'type', 'parent', 'visible', 'instanceDe.nom', 'instanceDe.distante', 'instanceDe.pilotee', 'texte.style'),
+    'releve.jeu.nom', ...PROPRIETES, ...sous('releve.variants.*', 'id', 'nom', 'valeurs'),
+    ...sous(LAYERS, 'id', 'nom', 'type', 'parent', 'visible', 'peintures.*.champ', 'peintures.*.visible', 'peintures.*.opacite', 'peintures.*.opacity', 'instanceDe.nom', 'instanceDe.distante', 'instanceDe.pilotee', 'instanceDe.valeurs', 'texte.style'),
     ...liaisons(['champ', 'illisible', 'variable.cle', 'variable.nom', 'variable.collection'], ['champ', 'illisible', 'variable.cle', 'variable.nom', 'variable.collection']),
-    ...COLLECTIONS, ...sous('catalogue.variables.*', 'cle', 'nom', 'collection'),
+    ...COLLECTIONS, ...sous('catalogue.variables.*', 'cle', 'nom', 'collection', 'type', 'etat'),
   ],
   'controle-theme': [
     'releve.jeu.nom', 'releve.variants.*.id',

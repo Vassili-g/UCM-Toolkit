@@ -19,6 +19,7 @@ import {
 } from './composantDeBase.js';
 import type { ComposantDeBase } from './portF3.js';
 import { axesDuProfil, composantDuProfil, profilParId } from './profils.js';
+import { autreTailleDuPremierVariant } from './typo/operateursIcones.js';
 import {
   a64, a65, a66, a67, delierLeChamp, layerDe, lierLeTexte, variableParNom, type CasMixte, type ControleDeStress,
 } from './typo/operateursTexte.js';
@@ -240,15 +241,15 @@ function couplesDeTypographie(profil: Profil): CasMixte[] {
     }),
     casDeCouple({
       ...base, couple: 'I1+I2',
-      description: `l'icône de ${A.nom} est une instance locale (I1) et sa taille n'est pas liée (I2)`,
-      degrader: (d) => { d.fixer(icone(d).instanceDe!, 'distante', false); delierLeChamp(d, icone(d), 'width'); delierLeChamp(d, icone(d), 'height'); },
-      attendus: (d) => [a66('Icon', 'instance-locale', [nomsDe(d, 0)]), a66('Icon', 'taille-sans-variable', [nomsDe(d, 0)])],
+      description: `l'icône de ${A.nom} est une instance du composant Chevron (I1) et sa propriété Size n'est pas celle du variant (I2)`,
+      degrader: (d) => { d.fixer(icone(d).instanceDe!, 'nom', 'Chevron'); d.fixer(icone(d).instanceDe!.valeurs!, 'Size', autreTailleDuPremierVariant(d)); },
+      attendus: (d) => [a66('Icon', 'autre-composant', [nomsDe(d, 0)]), a66('Icon', 'taille-differente', [nomsDe(d, 0)], { detail: autreTailleDuPremierVariant(d) })],
     }),
     casDeCouple({
       ...base, couple: 'I1+I5',
-      description: `l'icône de ${A.nom} est une instance locale (I1) que pilote Missing#9:9, absente du jeu (I5)`,
-      degrader: (d) => { d.fixer(icone(d).instanceDe!, 'distante', false); d.fixer(icone(d).instanceDe!, 'pilotee', 'Missing#9:9'); },
-      attendus: (d) => [a66('Icon', 'instance-locale', [nomsDe(d, 0)]), a67('Icon', 'propriete-absente', [nomsDe(d, 0)], 'Missing#9:9')],
+      description: `l'icône de ${A.nom} est une instance du composant Chevron (I1) que pilote Missing#9:9, absente du jeu (I5)`,
+      degrader: (d) => { d.fixer(icone(d).instanceDe!, 'nom', 'Chevron'); d.fixer(icone(d).instanceDe!, 'pilotee', 'Missing#9:9'); },
+      attendus: (d) => [a66('Icon', 'autre-composant', [nomsDe(d, 0)]), a67('Icon', 'propriete-absente', [nomsDe(d, 0)], 'Missing#9:9')],
     }),
     casDeCouple({
       ...base, couple: 'S1+I6', hypothese: 'H17',
@@ -257,18 +258,18 @@ function couplesDeTypographie(profil: Profil): CasMixte[] {
       attendus: (d) => [a64('Silicone', 'sans-style-ni-variables', [nomsDe(d, 0)])],
     }),
     casDeCouple({
-      ...base, couple: 'I2+I3', verdict: 'mesure', question: 'Q-F6-5', hypothese: 'H16',
-      description: `l'icône de ${A.nom} n'a pas de taille liée (I2) et sa couleur est portée par un trait lié à un premier plan (I3)`,
+      ...base, couple: 'I2+I3',
+      description: `la propriété Size de l'icône de ${A.nom} n'est pas celle du variant (I2) et sa couleur est portée par un trait lié à un premier plan du composant (I3)`,
       degrader: (d) => {
         const layer = icone(d);
-        delierLeChamp(d, layer, 'width');
-        delierLeChamp(d, layer, 'height');
+        d.fixer(layer.instanceDe!.valeurs!, 'Size', autreTailleDuPremierVariant(d));
         delierLeChamp(d, layer, 'fills');
         d.retirer(layer.peintures, layer.peintures.find((peinture) => peinture.champ === 'fills')!);
         d.inserer(layer.peintures, { champ: 'strokes', indice: 0, type: 'SOLID', visible: true, opacite: 1, blendMode: 'NORMAL', couleur: { r: 0.2, g: 0.4, b: 0.8, a: 1 } });
-        d.inserer(layer.liaisons, liaisonVers(layer.id, 'strokes', variableParNom(d, 'neutral/surface/foreground'), { indice: 0 }));
+        const premierPlan = d.jetons({ nature: 'couleur', role: 'foreground', valeurs: d.releve.variants[0].valeurs })[0];
+        d.inserer(layer.liaisons, liaisonVers(layer.id, 'strokes', variableParNom(d, premierPlan.nom), { indice: 0 }));
       },
-      attendus: (d) => [a66('Icon', 'taille-sans-variable', [nomsDe(d, 0)])],
+      attendus: (d) => [a66('Icon', 'taille-differente', [nomsDe(d, 0)], { detail: autreTailleDuPremierVariant(d) })],
     }),
   ];
 }
@@ -280,13 +281,12 @@ function coupleMixte(profil: Profil): CasMixte {
   const valeur = style.valeurs[1];
   return casDeCouple({
     profil, base: f6, famille: 'F5+F6', couple: 'V1+I2', ...valeurDePaletteRenommee(profil),
-    description: `${style.propriete} : ${valeur} devient ${MOT_NEUF.style} (V1), et la taille de l'icône du premier variant n'est pas liée (I2)`,
+    description: `${style.propriete} : ${valeur} devient ${MOT_NEUF.style} (V1), et la propriété Size de l'icône du premier variant n'est pas celle du variant (I2)`,
     degrader: (d) => {
       d.renommerLaValeur(style.propriete, valeur, MOT_NEUF.style);
-      delierLeChamp(d, layerDe(d.releve.variants[0], 'Icon'), 'width');
-      delierLeChamp(d, layerDe(d.releve.variants[0], 'Icon'), 'height');
+      d.fixer(layerDe(d.releve.variants[0], 'Icon').instanceDe!.valeurs!, 'Size', autreTailleDuPremierVariant(d));
     },
-    attendus: (d) => [...attendusDuModele(d.composant, { roles: rolesDeLaBase(f6) }), a66('Icon', 'taille-sans-variable', [d.releve.variants[0].nom])],
+    attendus: (d) => [...attendusDuModele(d.composant, { roles: rolesDeLaBase(f6) }), a66('Icon', 'taille-differente', [d.releve.variants[0].nom], { detail: autreTailleDuPremierVariant(d) })],
   });
 }
 

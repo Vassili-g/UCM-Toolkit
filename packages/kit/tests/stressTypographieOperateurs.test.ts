@@ -39,7 +39,7 @@ const parQuestion = (liste: readonly CasDeVariants[]): Record<string, string[]> 
   return resultat;
 };
 
-test('la base de F6 compte 12 variants, un style par taille et une icône de library pilotée, sans constat hors la limite de C67', () => {
+test('la base de F6 compte 12 variants, un style par taille et une instance d\'Icon pilotée, sans constat hors la limite de C67', () => {
   assert.equal(base.releve.variants.length, 12);
   assert.deepEqual(base.carte.axes.map((axe) => axe.propriete), ['Size', 'State']);
   assert.deepEqual(constatsDeTypographie(base.releve, base.catalogue).map((constat) => [constat.id, constat.type, constat.limite]),
@@ -51,8 +51,9 @@ test('la base de F6 compte 12 variants, un style par taille et une icône de lib
     assert.equal(label.texte!.style, { Small: 'Label/Small', Medium: 'Label/Medium', Large: 'Label/Large' }[variant.valeurs.Size]!, variant.nom);
     const icone = variant.layers.find((layer) => layer.nom === 'Icon')!;
     assert.deepEqual([icone.type, icone.instanceDe!.distante, icone.instanceDe!.pilotee], ['INSTANCE', true, 'Icon#1:2']);
-    assert.deepEqual(icone.liaisons.map((liaison) => [liaison.champ, liaison.variable.nom]).sort(),
-      [['fills', 'neutral/surface/foreground'], ['height', `icon/${{ Small: 'sm', Medium: 'md', Large: 'lg' }[variant.valeurs.Size]}`], ['width', `icon/${{ Small: 'sm', Medium: 'md', Large: 'lg' }[variant.valeurs.Size]}`]]);
+    assert.deepEqual(icone.liaisons.map((liaison) => [liaison.champ, liaison.variable.nom]),
+      [['fills', `button/color/${{ Small: 'sm', Medium: 'md', Large: 'lg' }[variant.valeurs.Size]}/${variant.valeurs.State}/icon`]], 'le remplissage suit le token icon du composant, ni largeur ni hauteur');
+    assert.deepEqual(icone.instanceDe!.valeurs, { Size: variant.valeurs.Size }, 'la propriété Size vaut la taille du variant');
     assert.ok(!variant.layers.some((layer) => layer.nom === 'Glyph'), 'Glyph est retiré');
   }
   assert.ok(base.releve.proprietes.some((propriete) => propriete.type === 'INSTANCE_SWAP' && propriete.nom === 'Icon#1:2'));
@@ -88,9 +89,6 @@ test('les cas de F6 qui dépendent d\'une question non confirmée portent le ver
     'Q-F6-6': ['S1-5', 'S1-6', 'S1-7'],
     'Q-F6-2': ['S2-5', 'S2-6', 'S2-7', 'S2-9', 'S2-12', 'S2-13'],
     'Q-F6-7': ['S3-9', 'S3-10', 'S3-11'],
-    'Q-F6-1': ['I2-3', 'I3-3'],
-    'Q-F6-5': ['I3-5'],
-    'Q-F6-4': ['I5-4', 'I5-5', 'I5-6', 'I5-7'],
     'Q-F6-3': ['I6-17', 'I6-18', 'I6-19', 'I6-20', 'I6-21', 'I6-22', 'I6-23', 'I6-25', 'I6-28', 'I6-30', 'I6-31'],
   });
 });
@@ -143,17 +141,15 @@ test('S3 : une taille ou une graisse liée hors de typography donne mauvaise-col
   assert.deepEqual(['S3-16', 'S3-17', 'S3-18', 'S3-19', 'S3-20', 'S3-21'].map((id) => cas(id).attendus), Array(6).fill([]), 'liaisons valides, autre champ, illisible, collection absente');
 });
 
-test('I1 à I3 : l\'icône qui n\'est pas une instance de library, sa taille et sa couleur donnent le motif de C66 qui les décrit', () => {
-  assert.deepEqual(['I1-1', 'I1-2', 'I1-3', 'I1-4'].map((id) => cas(id).attendus),
-    ['instance-locale', 'pas-une-instance', 'pas-une-instance', 'pas-une-instance'].map((motif) => [a66('Icon', motif, [premier])]));
-  assert.deepEqual(cas('I2-1').attendus, [a66('Icon', 'taille-sans-variable', [premier])]);
-  assert.deepEqual(cas('I2-2').attendus, [a66('Icon', 'taille-hors-icone', [premier], { champ: 'width', detail: 'sizing/16' }), a66('Icon', 'taille-hors-icone', [premier], { champ: 'height', detail: 'sizing/16' })]);
-  assert.deepEqual([cas('I2-3').verdict, cas('I2-3').question, cas('I2-3').attendus], ['mesure', 'Q-F6-1', []]);
-  assert.deepEqual(cas('I2-4').attendus.map((attendu) => attendu.cle.split('|').slice(1, 4).join('|')), [`taille-hors-icone|width|dimension/none@${premier}`, `taille-hors-icone|height|dimension/none@${premier}`]);
-  assert.deepEqual([cas('I2-5').attendus, cas('I2-6').attendus], [[], []], 'largeur seule liée, deux variables de layout/icon');
+test('I1 à I3 : l\'icône qui n\'est pas une instance d\'Icon, sa propriété Size et sa couleur donnent le motif de C66 qui les décrit', () => {
+  assert.deepEqual(['I1-1', 'I1-2'].map((id) => cas(id).attendus), ['autre-composant', 'pas-une-instance'].map((motif) => [a66('Icon', motif, [premier])]));
+  assert.deepEqual(['I1-3', 'I1-4'].map((id) => cas(id).attendus), [[], []], 'un frame et un composant principal ne sont pas des icônes');
+  assert.deepEqual(cas('I2-1').attendus, [a66('Icon', 'taille-differente', [premier], { detail: 'Medium' })]);
+  assert.deepEqual(['I2-2', 'I2-3', 'I2-4', 'I2-5', 'I2-6'].map((id) => cas(id).attendus), Array(5).fill([]), 'abréviation, Size non lue, 24, largeur et hauteur liées ou non');
+  assert.deepEqual(['I2-1', 'I2-2', 'I2-3', 'I2-4', 'I2-5', 'I2-6'].map((id) => cas(id).verdict), Array(6).fill('attendu'));
   assert.deepEqual(cas('I3-1').attendus, [a66('Icon', 'couleur-sans-variable', [premier])]);
   assert.deepEqual(cas('I3-2').attendus, [a66('Icon', 'couleur-hors-premier-plan', [premier], { detail: 'neutral/surface/border' })]);
-  assert.deepEqual([cas('I3-3').question, cas('I3-3').attendus, cas('I3-5').question, cas('I3-5').attendus], ['Q-F6-1', [], 'Q-F6-5', []]);
+  assert.deepEqual([cas('I3-3').verdict, cas('I3-3').attendus, cas('I3-5').verdict, cas('I3-5').attendus], ['attendu', [], 'attendu', []]);
   assert.deepEqual(cas('I3-4').attendus, [a66('Icon', 'couleur-hors-premier-plan', [premier], { detail: 'color/primary/light/500' })]);
 });
 
@@ -166,7 +162,7 @@ test('I4 et I5 : un constat par nom de layer, aucun pour une icône masquée, un
   assert.deepEqual(cas('I5-1').attendus, [a67('Icon', 'propriete-absente', [premier], 'Missing#9:9')]);
   assert.ok(cas('I5-2').attendus[0].cle.startsWith('Icon|propriete-absente||Icon#1:2@12 variants'));
   assert.deepEqual(cas('I5-3').attendus, [a67('Icon', 'icone-non-pilotee', [premier])]);
-  assert.deepEqual(['I5-4', 'I5-5', 'I5-6', 'I5-7'].map((id) => [cas(id).verdict, cas(id).question, cas(id).attendus]), Array(4).fill(['mesure', 'Q-F6-4', []]));
+  assert.deepEqual(['I5-4', 'I5-5', 'I5-6', 'I5-7'].map((id) => [cas(id).verdict, cas(id).question, cas(id).attendus]), Array(4).fill(['attendu', undefined, []]));
 });
 
 test('I6 : 31 layers, 10 non-icônes, 6 icônes, 7 ambiguës et 8 couples ; les trois définitions se comparent sans pinner le kit', () => {
@@ -229,7 +225,7 @@ test('les 32 interactions sont les 16 couples du plan sur P0 et sur p18, chacun 
   assert.deepEqual(INTERACTIONS.map((entree) => entree.id), COUPLES.flatMap((couple) => [`${couple}-P0`, `${couple}-p18`]));
   assert.equal(COUPLES.length, 16);
   assert.deepEqual(parQuestion(INTERACTIONS), {
-    'Q-F5-2': ['V1+M1-p18', 'V1+O1-p18', 'V1+V1-p18', 'A4+V1-P0', 'A4+V1-p18', 'V1+I2-p18'], 'Q-F6-5': ['I2+I3-P0', 'I2+I3-p18'],
+    'Q-F5-2': ['V1+M1-p18', 'V1+O1-p18', 'V1+V1-p18', 'A4+V1-P0', 'A4+V1-p18', 'V1+I2-p18'],
   });
   for (const entree of INTERACTIONS) assert.ok(entree.entree.description.startsWith(`${entree.operateur} sur ${entree.id.endsWith('p18') ? 'p18' : 'P0'} :`), entree.id);
 });
@@ -275,12 +271,12 @@ test('les couples de F6 : deux constats distincts, mauvaise-collection seul, seu
   assert.deepEqual(interaction('S2+S1', 'P0').attendus, [a64('Label', 'style-different', [nomA], 'Label/Caption'), a64('Label', 'sans-style-ni-variables', [nomB])]);
   assert.deepEqual(interaction('S3+S3', 'P0').attendus, [a65('Label', 'mauvaise-collection', [nomA], 'fontSize', 'dimension/none')]);
   assert.deepEqual(interaction('S2+S2', 'P0').attendus, [a64('Label', 'style-different', [nomA], 'Label/Caption')]);
-  assert.deepEqual(interaction('I1+I2', 'P0').attendus, [a66('Icon', 'instance-locale', [nomA]), a66('Icon', 'taille-sans-variable', [nomA])]);
-  assert.deepEqual(interaction('I1+I5', 'P0').attendus, [a66('Icon', 'instance-locale', [nomA]), a67('Icon', 'propriete-absente', [nomA], 'Missing#9:9')]);
+  assert.deepEqual(interaction('I1+I2', 'P0').attendus, [a66('Icon', 'autre-composant', [nomA]), a66('Icon', 'taille-differente', [nomA], { detail: 'Medium' })]);
+  assert.deepEqual(interaction('I1+I5', 'P0').attendus, [a66('Icon', 'autre-composant', [nomA]), a67('Icon', 'propriete-absente', [nomA], 'Missing#9:9')]);
   assert.deepEqual(interaction('S1+I6', 'P0').attendus, [a64('Silicone', 'sans-style-ni-variables', [nomA])]);
-  assert.deepEqual(interaction('I2+I3', 'P0').attendus, [a66('Icon', 'taille-sans-variable', [nomA])]);
+  assert.deepEqual(interaction('I2+I3', 'P0').attendus, [a66('Icon', 'taille-differente', [nomA], { detail: 'Medium' })]);
   const v1i2 = interaction('V1+I2', 'P0').attendus;
-  assert.ok(v1i2.some((attendu) => attendu.cle === c7('Style', 'Tonal').cle) && v1i2.some((attendu) => attendu.cle === a66('Icon', 'taille-sans-variable', [nomA]).cle), 'l\'union des deux oracles');
+  assert.ok(v1i2.some((attendu) => attendu.cle === c7('Style', 'Tonal').cle) && v1i2.some((attendu) => attendu.cle === a66('Icon', 'taille-differente', [nomA], { detail: 'Medium' }).cle), 'l\'union des deux oracles');
   assert.deepEqual(interaction('S1+I6', 'p18').attendus.length, 1);
 });
 

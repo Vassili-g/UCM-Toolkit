@@ -47,7 +47,11 @@ export interface LayerLu {
   };
   /** Posée sur le layer d'une instance de composant imbriqué ; les liaisons de ses descendants se jugent avec la sorte de l'instance la plus proche. */
   sorte?: SorteDImbrique;
-  instanceDe?: { cle: string; nom: string; distante: boolean; pilotee: string | null };
+  instanceDe?: {
+    cle: string; nom: string; distante: boolean; pilotee: string | null;
+    /** Les valeurs que l'instance donne aux propriétés de variant de son composant (`Size` vaut `Small`). Absentes : le lecteur ne les a pas lues, et aucun contrôle ne les juge. */
+    valeurs?: Record<string, string>;
+  };
 }
 
 export interface VariantLu {

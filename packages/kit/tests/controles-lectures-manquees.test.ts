@@ -42,7 +42,7 @@ test('lectureManquee : vrai pour le layer et le champ consignés, faux pour les 
   assert.equal(lectureManquee(r, 'autre', 'dimensions'), false);
 });
 
-test('C66 : une couleur et une taille liées par une variable illisible ne sont ni « sans variable » ni jugées', () => {
+test('C66 : une couleur liée par une variable illisible n\'est ni « sans variable » ni jugée', () => {
   const icone = (id: string, liaisons: LiaisonLue[]) => layer(id, 'icon', 'INSTANCE', 'r', {
     liaisons, instanceDe: { cle: 'c', nom: 'Icon', distante: true, pilotee: null },
   });
@@ -50,7 +50,7 @@ test('C66 : une couleur et une taille liées par une variable illisible ne sont 
   assert.deepEqual(typographie(lie, 'C66'), []);
 
   const sans = releve([variant('a', [icone('i', [])])]);
-  assert.deepEqual(typographie(sans, 'C66').map((c) => c.faits.motif).sort(), ['couleur-sans-variable', 'taille-sans-variable']);
+  assert.deepEqual(typographie(sans, 'C66').map((c) => c.faits.motif), ['couleur-sans-variable']);
 });
 
 test('C64 et C65 : une liaison de typographie illisible compte comme liée', () => {

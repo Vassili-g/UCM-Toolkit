@@ -94,7 +94,7 @@ export function verifierLaLecture(composant: ComposantDeBase): { sansLecture: st
 }
 
 // ---------------------------------------------------------------------------------------------------------------------------
-// Base de F6 : texte à style par taille, icône en instance de library
+// Base de F6 : texte à style par taille, icône en instance d'Icon
 
 /** Les codes que `controlerLaTypographie` émet. */
 export const CODES_DE_F6: readonly `C${number}`[] = ['C64', 'C65', 'C66', 'C67'];
@@ -102,8 +102,6 @@ export const CODES_DE_F6: readonly `C${number}`[] = ['C64', 'C65', 'C66', 'C67']
 /** Les axes de la base de F6 : `Size` et `State` de P0, soit 12 variants. */
 export const AXES_DE_F6: readonly AxeDeVariants[] = AXES_DE_P0.filter((axe) => axe.nom === 'Size' || axe.nom === 'State');
 
-const PIXELS_DES_ICONES: Readonly<Record<string, number>> = { sm: 12, md: 16, lg: 20 };
-const VARIABLE_DE_PREMIER_PLAN = 'neutral/surface/foreground';
 export const PROPRIETE_D_ICONE = 'Icon#1:2';
 
 /** Le style de texte d'une valeur de taille : `Label/Small` pour le segment `sm`. */
@@ -122,10 +120,10 @@ export function liaisonVers(porteur: string, champ: string, variable: VariableDu
 }
 
 /**
- * La base de F6 sur un composant de F5 : le texte `Label` prend un style par valeur de taille, et l'icône devient une instance de
- * library que `Icon#1:2` pilote, dont la taille se lie à `layout/icon/<taille>` et la couleur à `theme/neutral/surface/foreground`
- * (la forme que C66 accepte, Q-F6-1). Cette liaison directe ne passe plus par les tokens `icon` du composant, qui n'ont plus de
- * lecteur : la base les retire pour que C32 reste muet. `Glyph`, l'instance imbriquée de F3 que C66 jugerait aussi, est retiré.
+ * La base de F6 sur un composant de F5 : le texte `Label` prend un style par valeur de taille, et l'icône devient une instance
+ * d'`Icon` que `Icon#1:2` pilote, dont la propriété `Size` vaut la taille du variant et dont le remplissage suit le token `icon` du
+ * composant (la forme que C66 accepte, Q-F6-1, option A). Elle ne lie ni largeur ni hauteur. `Glyph`, l'instance imbriquée de F3
+ * que C66 jugerait aussi, est retiré.
  */
 export function avecLesCouchesF6(composant: ComposantDeBase): ComposantDeBase {
   const releve = structuredClone(composant.releve);
@@ -140,24 +138,21 @@ export function avecLesCouchesF6(composant: ComposantDeBase): ComposantDeBase {
     return variable;
   };
 
-  const tailles = [...new Set(releve.variants.map((variant) => segmentDeTaille(variant.valeurs)))];
-  const icones = new Map(tailles.map((segment) => [segment, ajouter(`kf6-icone-${segment}`, `icon/${segment}`, 'layout', PIXELS_DES_ICONES[segment] ?? 24)]));
   ajouter('kf6-graisse', 'label/md/font-weight', 'typography', 500);
-  const premierPlan = catalogue.variables.find((variable) => variable.nom === VARIABLE_DE_PREMIER_PLAN)!;
-  const jetonsDIcone = new Set(composant.carte.jetons.filter((jeton) => jeton.role === 'icon').map((jeton) => jeton.cle));
-  catalogue.variables = catalogue.variables.filter((variable) => !jetonsDIcone.has(variable.cle));
 
   for (const variant of releve.variants) {
     const racine = variant.layers.find((layer) => layer.nom === 'Root')!;
     const ancienne = variant.layers.find((layer) => layer.nom === 'Icon')!;
     variant.layers.find((layer) => layer.nom === 'Label')!.texte!.style = styleDeTexteDeLaTaille(segmentDeTaille(variant.valeurs));
-    const taille = icones.get(segmentDeTaille(variant.valeurs))!;
     const icone: LayerLu = {
       id: ancienne.id, nom: 'Icon', type: 'INSTANCE', parent: racine.id, visible: true, opacite: 1, dimensions: ancienne.dimensions,
       peintures: [{ champ: 'fills', indice: 0, type: 'SOLID', visible: true, opacite: 1, blendMode: 'NORMAL', couleur: { r: 0.2, g: 0.4, b: 0.8, a: 1 } }],
-      liaisons: [liaisonVers(ancienne.id, 'width', taille), liaisonVers(ancienne.id, 'height', taille), liaisonVers(ancienne.id, 'fills', premierPlan, { indice: 0 })],
+      liaisons: ancienne.liaisons,
       valeursEnDur: ancienne.valeursEnDur,
-      instanceDe: { cle: 'lib-icone', nom: 'Icon', distante: true, pilotee: PROPRIETE_D_ICONE },
+      instanceDe: {
+        cle: 'lib-icone', nom: 'Icon', distante: true, pilotee: PROPRIETE_D_ICONE,
+        ...(axeTaille ? { valeurs: { Size: variant.valeurs[axeTaille.propriete] } } : {}),
+      },
     };
     variant.layers = variant.layers.filter((layer) => layer.nom !== 'Glyph').map((layer) => (layer.id === ancienne.id ? icone : layer));
   }
@@ -167,8 +162,7 @@ export function avecLesCouchesF6(composant: ComposantDeBase): ComposantDeBase {
   const carte: CarteDuComposant = {
     ...composant.carte,
     variants: composant.carte.variants.map((variant) => { const layers = { ...variant.layers }; delete layers.Glyph; return { ...variant, layers }; }),
-    liaisons: composant.carte.liaisons.filter((liaison) => liaison.nomDuLayer !== 'Icon' && liaison.nomDuLayer !== 'Glyph'),
-    jetons: composant.carte.jetons.filter((jeton) => jeton.role !== 'icon'),
+    liaisons: composant.carte.liaisons.filter((liaison) => liaison.nomDuLayer !== 'Glyph'),
   };
   return { ...composant, releve, catalogue, carte };
 }

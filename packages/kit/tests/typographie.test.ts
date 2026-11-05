@@ -10,9 +10,13 @@ import { frequencesDuChamp, valeurUnanimeHorsContribution } from '../src/control
 const dims = { x: 0, y: 0, largeur: 20, hauteur: 20 };
 const liaison = (champ: string, nom: string, collection: string): LiaisonLue =>
   ({ champ, porteur: 'x', variable: { id: nom, cle: `k:${nom}`, nom, collection, distante: false } });
+/** Le token de premier plan du composant `x-alert` : celui que le fill d'une icône suit (Q-F6-1). */
+const PREMIER_PLAN = 'x-alert/color/foreground';
 const catalogue: CatalogueDeReference = {
-  version: 1, library: null, variables: [],
+  version: 1, library: null,
+  variables: [{ cle: `k:${PREMIER_PLAN}`, nom: PREMIER_PLAN, collection: 'components', type: 'COLOR', etat: 'presente' }],
   collections: [
+    { cle: 'components', nom: 'components', role: 'components', modes: [], etat: 'lue' },
     { cle: 'typography', nom: 'typography', role: 'typography', modes: [], etat: 'lue' },
     { cle: 'layout', nom: 'layout', role: 'layout', modes: [], etat: 'lue' },
     { cle: 'theme', nom: 'theme', role: 'theme', modes: [], etat: 'lue' },
@@ -26,9 +30,7 @@ function texte(style: string | null, liaisons: LiaisonLue[] = []): LayerLu {
     texte: { style, plages: [{ debut: 0, fin: 3, fontSize: 14, fontWeight: 400, peintures: [], liaisons }] },
   };
 }
-function icone(over: Partial<LayerLu> = {}, liaisons: LiaisonLue[] = [
-  liaison('width', 'icon/md', 'layout'), liaison('height', 'icon/md', 'layout'), liaison('fills', 'foreground/default', 'theme'),
-]): LayerLu {
+function icone(over: Partial<LayerLu> = {}, liaisons: LiaisonLue[] = [liaison('fills', PREMIER_PLAN, 'components')]): LayerLu {
   return {
     id: `i${Math.random()}`, nom: 'icon', type: 'INSTANCE', parent: 'r', visible: true, opacite: 1, dimensions: dims,
     peintures: [], liaisons, valeursEnDur: [], instanceDe: { cle: 'c', nom: 'Icon', distante: true, pilotee: null }, ...over,
@@ -86,17 +88,16 @@ test('C65 : une valeur sans liaison alors que les autres variants en ont une est
   assert.equal(code(releve([variant('a', [texte('S')]), variant('b', [texte('S')]), variant('c', [texte('S')])]), 'C65').length, 0);
 });
 
-test('C66 : une icône qui n\'est pas une instance de la library est signalée, une instance distante passe', () => {
+test('C66 : une icône qui n\'est pas une instance d\'Icon est signalée, une instance d\'Icon passe', () => {
   const mauvais = code(releve([variant('a', [icone({ type: 'VECTOR', instanceDe: undefined })])]), 'C66');
   assert.ok(mauvais.some((c) => c.faits.motif === 'pas-une-instance'));
   assert.equal(code(releve([variant('a', [icone()])]), 'C66').length, 0);
 });
 
-test('C66 : taille et couleur hors variables d\'icône ou de premier plan sont signalées', () => {
+test('C66 : une couleur hors des tokens de premier plan du composant est signalée, la taille ne se juge plus par une liaison', () => {
   const l = [liaison('width', 'sizing/md', 'layout'), liaison('fills', 'background/default', 'theme')];
   const c = code(releve([variant('a', [icone({}, l)])]), 'C66').map((x) => x.faits.motif);
-  assert.ok(c.includes('taille-hors-icone'));
-  assert.ok(c.includes('couleur-hors-premier-plan'));
+  assert.deepEqual(c, ['couleur-hors-premier-plan']);
   assert.ok(code(releve([variant('a', [icone({}, [])])]), 'C66').some((x) => x.faits.motif === 'couleur-sans-variable'));
 });
 

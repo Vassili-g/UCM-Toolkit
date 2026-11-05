@@ -8,7 +8,7 @@ import { termePourCategorie, type Registre } from '../referentiel/termes.js';
 import {
   FAMILLES_PRIMITIVES, INTERRUPTEURS, NOMS_D_AXES, NOMS_D_AXES_FRANCAIS, REGISTRE_PALETTES_COMPOSANT, REGISTRE_STYLES_COMPOSANT, type RoleDAxe,
 } from '../referentiel/architecture.js';
-import { REGISTRE_ETATS, REGISTRE_GROUPES, REGISTRE_TAILLES } from '../referentiel/vocabulaire.js';
+import { REGISTRE_ETATS, REGISTRE_GROUPES, REGISTRE_ROLES, REGISTRE_TAILLES } from '../referentiel/vocabulaire.js';
 import { collectionParCle, variableDuCatalogue, type CatalogueDeReference, type VariableDuCatalogue } from './catalogue.js';
 import type { Constat } from './constat.js';
 import type { ReleveDeComposant } from './releve.js';
@@ -217,6 +217,33 @@ function ecritureAttendue(attendu: string, segments: readonly string[], rang: nu
 export function segmentDAxe(token: TokenDuComposant, axe: AxeDuComposant): string | undefined {
   const rang = token.lecture.findIndex((segment) => segment.role === axe);
   return rang < 0 ? undefined : token.segments[rang];
+}
+
+/** Le rôle du token (`foreground`, `icon`, `background`…) : celui que la grammaire lit, sinon le terme que son dernier segment écrit. */
+export function roleDuToken(token: TokenDuComposant): string | undefined {
+  return token.lecture.find((segment) => segment.role === 'role')?.terme ?? termeReconnu(REGISTRE_ROLES, token.segments.at(-1) ?? '')?.id;
+}
+
+/**
+ * Le token vaut pour ce layer de ce variant quand chaque segment d'axe vaut la valeur du variant et que son élément éventuel nomme le
+ * layer. Un axe que le jeu n'a pas, ou un variant qui n'en a pas la valeur, ne se compare à rien. Les candidats de C25 et de C66 se
+ * départagent par cette règle.
+ */
+export function tokenVautPourLeLayer(
+  token: TokenDuComposant, axes: Partial<Record<AxeDuComposant, ProprieteDAxe>>, variant: { readonly valeurs: Readonly<Record<string, string>> }, nomDuLayer: string,
+): boolean {
+  for (const segment of token.lecture) {
+    if (segment.role === 'element') {
+      if (formeReconnue(segment.segment) !== formeReconnue(nomDuLayer)) return false;
+      continue;
+    }
+    if (segment.role !== 'palette' && segment.role !== 'style' && segment.role !== 'taille' && segment.role !== 'etat') continue;
+    const axe = axes[segment.role];
+    if (!axe) continue;
+    const valeur = variant.valeurs[axe.nom];
+    if (!valeur || !memeValeurDAxe(segment.role, segment.segment, valeur)) return false;
+  }
+  return true;
 }
 
 /** Le registre dont les termes nomment les valeurs de l'axe ; les styles n'ont aucun terme canonique. */

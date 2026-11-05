@@ -435,7 +435,7 @@ test('une entrée invalidée rejoue le moteur et ne rejoue que les requêtes don
   assert.equal(JSON.stringify(analysee.affiche), JSON.stringify(actualisee.affiche));
 });
 
-test('une peinture changée sur une entrée invalidée ne rejoue que l’accessibilité, les couches (C81 lit quels champs sont peints), et les corrections et la projection qui les suivent', async () => {
+test('une peinture changée sur une entrée invalidée ne rejoue que l’accessibilité, les couches (C81 lit quels champs sont peints), la typographie (C66 lit si un fill est visible), et les corrections et la projection qui les suivent', async () => {
   const fichier = fichierDeDepart();
   const appels = { moteur: 0 };
   await mesuree(fichier, appels, 'analyser');
@@ -446,7 +446,7 @@ test('une peinture changée sur une entrée invalidée ne rejoue que l’accessi
   const analysee = await mesuree(fichier, appels, 'analyser');
   assert.equal(appels.moteur, 2, 'le moteur est rejoué');
   // Le moteur de la fixture nomme le nombre de peintures : ses constats changent, donc les corrections et la projection aussi.
-  assert.deepEqual(analysee.reprises, { non: 4, rejouees: 4 });
+  assert.deepEqual(analysee.reprises, { non: 3, rejouees: 5 });
   const actualisee = await mesuree(fichier, appels, 'actualiser');
   assert.deepEqual(actualisee.reprises, { non: 0, rejouees: 8 });
   assert.equal(JSON.stringify(analysee.affiche), JSON.stringify(actualisee.affiche));
@@ -458,11 +458,11 @@ const REQUETES = ['controle-accessibilite', 'controle-couches', 'controle-mappin
 /** Le banc des mutations locales d'un calque, sur une entrée invalidée par le journal : chaque requête est comptée sous son nom, reprise ou rejouée. */
 const MUTATIONS_LOCALES: ReadonlyArray<{ nom: string; mutation: string; rejouees: string[] }> = [
   // C81 juge un layer en dur par ses peintures : en ajouter une rejoue les couches.
-  { nom: 'peinture', mutation: 'peinture d’un calque', rejouees: ['controle-accessibilite', 'controle-couches', 'corrections', 'projection'] },
+  { nom: 'peinture', mutation: 'peinture d’un calque', rejouees: ['controle-accessibilite', 'controle-couches', 'controle-typographie', 'corrections', 'projection'] },
   { nom: 'taille du texte', mutation: 'texte d’un calque', rejouees: ['controle-accessibilite', 'corrections', 'projection'] },
   // Les constats de contraste nomment la plage de texte (`0-5`) : sa fin change leurs identifiants, donc les corrections et la projection.
   { nom: 'contenu du texte', mutation: 'contenu d’un texte', rejouees: ['controle-accessibilite', 'corrections', 'projection'] },
-  { nom: 'nom d’un calque', mutation: 'nom d’un calque', rejouees: ['controle-accessibilite', 'controle-couches', 'controle-mapping', 'controle-typographie', 'corrections', 'projection'] },
+  { nom: 'nom d’un calque', mutation: 'nom d’un calque', rejouees: ['controle-accessibilite', 'controle-couches', 'controle-mapping', 'controle-oublis', 'controle-typographie', 'corrections', 'projection'] },
   { nom: 'ajout d’un calque', mutation: 'ajout d’un calque', rejouees: ['controle-accessibilite', 'controle-couches', 'controle-mapping', 'controle-oublis', 'controle-typographie', 'corrections', 'projection'] },
 ];
 
@@ -534,7 +534,7 @@ test('la trace dit si le moteur est repris, ou pourquoi il ne l’est pas', asyn
   assert.deepEqual((await mesuree(incomplet, appels, 'analyser')).moteur, ['nonReprise:catalogue-inaccessible=1']);
 });
 
-test('un nom de calque changé rejoue les quatre familles qui le lisent (mapping, couches, accessibilité, typographie), pas le nommage ni les oublis', async () => {
+test('un nom de calque changé rejoue les cinq familles qui le lisent (mapping, couches, oublis, accessibilité, typographie), pas le nommage', async () => {
   const fichier = fichierDeDepart();
   const appels = { moteur: 0 };
   await mesuree(fichier, appels, 'analyser');
@@ -542,7 +542,7 @@ test('un nom de calque changé rejoue les quatre familles qui le lisent (mapping
   mutation.muter(fichier);
   mutation.evenements?.(contexteDesEvenements(fichier));
   const analysee = await mesuree(fichier, appels, 'analyser');
-  assert.deepEqual(analysee.reprises, { non: 2, rejouees: 6 }, 'quatre familles, les corrections et la projection');
+  assert.deepEqual(analysee.reprises, { non: 1, rejouees: 7 }, 'cinq familles, les corrections et la projection');
   const actualisee = await mesuree(fichier, appels, 'actualiser');
   assert.equal(JSON.stringify(analysee.affiche), JSON.stringify(actualisee.affiche));
 });

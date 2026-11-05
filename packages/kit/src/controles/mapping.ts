@@ -1,11 +1,10 @@
 /** Écarts entre les liaisons lues et les axes, rôles et portées du composant. */
 import { estUneIcone, estUneInstanceDIcone, roleQueLeLayerDesigne } from '../referentiel/layers.js';
-import { formeDuChemin, formeReconnue, termeReconnu } from '../referentiel/reconnaissance.js';
-import { REGISTRE_ROLES } from '../referentiel/vocabulaire.js';
+import { formeDuChemin, formeReconnue } from '../referentiel/reconnaissance.js';
 import { collectionParCle, variableDuCatalogue, type CatalogueDeReference, type VariableDuCatalogue } from './catalogue.js';
 import type { Constat } from './constat.js';
-import { axesDuReleveParEtapes, constatDuComposant, estDuComposant, memeValeurDAxe, segmentDAxe, tokensDuComposantParEtapes, type AxeDuComposant, type ProprieteDAxe, type TokenDuComposant } from './nommage.js';
-import type { LayerLu, LiaisonLue, ReleveDeComposant, VariantLu } from './releve.js';
+import { axesDuReleveParEtapes, constatDuComposant, estDuComposant, memeValeurDAxe, roleDuToken, segmentDAxe, tokensDuComposantParEtapes, type AxeDuComposant, type ProprieteDAxe, type TokenDuComposant } from './nommage.js';
+import { peintureVisible, type LayerLu, type LiaisonLue, type ReleveDeComposant, type VariantLu } from './releve.js';
 
 export interface LiaisonDuComposant { variant: VariantLu; layer: LayerLu; liaison: LiaisonLue }
 
@@ -35,7 +34,8 @@ function layerPeint(layer: LayerLu, liaison: LiaisonLue): { nom: string; type: s
  * Un layer que son nom désigne (`Divider`, `Separator`, `Ring`, `Focus ring`) n'admet que ce rôle, sur son fond comme sur son trait
  * (Q-F3-3) ; un autre rôle reçoit un constat, et un token `divider`, `ring` ou `icon` posé sur un autre layer en reçoit un aussi.
  * `background`, `foreground`, `text` et `border` ne regardent pas le nom. Une icône prend `icon` ou `foreground`, un texte `foreground`
- * ou `text`, un trait `border` ou `foreground`. Un texte ne désigne aucun rôle par son nom.
+ * ou `text`, un trait `border` ou `foreground`, sauf le trait d'une icône sans fill visible, qui tient lieu de couleur et prend
+ * `icon` ou `foreground` (Q-F6-5). Un texte ne désigne aucun rôle par son nom.
  */
 export function rolesAdmisDuLayer(layer: LayerLu, champ: string, plage?: unknown, surcharge?: LiaisonLue['surcharge']): readonly string[] | undefined {
   if (champ !== 'fills' && champ !== 'strokes') return undefined;
@@ -43,7 +43,10 @@ export function rolesAdmisDuLayer(layer: LayerLu, champ: string, plage?: unknown
   const texte = peint.type === 'TEXT' || (champ === 'fills' && !!plage);
   const designe = texte ? undefined : roleQueLeLayerDesigne(peint);
   if (designe === 'divider' || designe === 'ring') return [designe];
-  if (champ === 'strokes') return ['border', 'foreground'];
+  if (champ === 'strokes') {
+    const traceSansFill = !surcharge && estUneIcone(layer) && !layer.peintures.some((peinture) => peinture.champ === 'fills' && peintureVisible(peinture));
+    return traceSansFill ? ['icon', 'foreground'] : ['border', 'foreground'];
+  }
   if (texte) return ['foreground', 'text'];
   if (surcharge ? estUneIcone(surcharge) || estUneInstanceDIcone(layer) : estUneIcone(layer)) return ['icon', 'foreground'];
   return ['background'];
@@ -203,8 +206,7 @@ export function* controlerMappingParEtapes(releve: ReleveDeComposant, catalogue:
           ...(liaison.plage ? { plageDebut: liaison.plage.debut, plageFin: liaison.plage.fin } : {}),
         }, [variant.id], [layer.id]));
       }
-      const role = token.lecture.find((segment) => segment.role === 'role')?.terme
-        ?? termeReconnu(REGISTRE_ROLES, token.segments.at(-1) ?? '')?.id;
+      const role = roleDuToken(token);
       const admis = rolesAdmisDuLayer(layer, liaison.champ, liaison.plage, liaison.surcharge);
       // `inverse` qualifie un fond inversé, il ne dit rien du layer qu'il colore (Q-F3-3).
       if (role && role !== 'inverse' && admis && !admis.includes(role)) {

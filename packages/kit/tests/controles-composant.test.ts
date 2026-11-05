@@ -4,7 +4,7 @@ import { liaisonsDuReleve } from '../src/controles/mapping.js';
 import {
   axeDePropriete, axesDesProprietes, axesDuReleve, axesDuReleveParEtapes, tokensDuComposant, tokensDuComposantParEtapes,
   controlerNommage, controlerNommageParEtapes, controlerMapping, controlerMappingParEtapes, controlerCouches, controlerCouchesParEtapes, controlerOublis, controlerOublisParEtapes,
-  type CatalogueDeReference, type ReleveDeComposant, type VariantLu, type WrapperLu,
+  type CatalogueDeReference, type Constat, type ReleveDeComposant, type VariantLu, type WrapperLu,
 } from '../src/controles/index.js';
 
 function releve(nom: string, proprietes: ReleveDeComposant['proprietes'] = []): ReleveDeComposant {
@@ -621,21 +621,23 @@ test('les oublis par étapes conservent les identifiants, faits et ordre de C31 
   assert.deepEqual(controlerOublis(r, c), attendu);
 });
 
-test('la matrice des oublis conserve sa borne de 4 096 combinaisons', () => {
+test('la matrice des oublis conserve sa borne de 4 096 combinaisons, 200 constats au plus et une information au-delà', () => {
   const valeurs = Array.from({ length: 16 }, (_, i) => String(i));
   const r = releve('Button', ['A', 'B', 'C'].map((nom) => axe(nom, valeurs)));
   const c = catalogue();
   const calcul = controlerOublisParEtapes(r, c);
   let resultat = calcul.next();
   while (!resultat.done) resultat = calcul.next();
-  assert.equal(resultat.value.length, 4096);
+  assert.equal(resultat.value.length, 201);
   assert.deepEqual(resultat.value, controlerOublis(r, c));
   r.proprietes.push(axe('D', ['0', '1']));
-  assert.deepEqual(controlerOublis(r, c), []);
+  const information = [{ id: 'C31:au-dela-de-la-borne', type: 'info', faits: { genre: 'au-dela-de-la-borne', variants: 0, combinaisons: 8192 } }];
+  const resume = (constats: Constat[]) => constats.map(({ id, type, faits }) => ({ id, type, faits }));
+  assert.deepEqual(resume(controlerOublis(r, c)), information);
   const depasse = controlerOublisParEtapes(r, c);
   let fin = depasse.next();
   while (!fin.done) fin = depasse.next();
-  assert.deepEqual(fin.value, []);
+  assert.deepEqual(resume(fin.value), information);
 });
 
 for (const passe of ['C31', 'C32', 'C33', 'liaisons'] as const) {

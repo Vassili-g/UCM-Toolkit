@@ -7,20 +7,21 @@
  * jamais jugée.
  */
 import { CHAMPS_DE_TYPOGRAPHIE } from '../referentiel/architecture.js';
-import { estUneIcone } from '../referentiel/layers.js';
+import { estUneIcone, estUneInstanceDIcone } from '../referentiel/layers.js';
+import { formeReconnue } from '../referentiel/reconnaissance.js';
 import type { CatalogueDeReference } from './catalogue.js';
 import { collectionDuCatalogue, variableDuCatalogue } from './catalogue.js';
 import type { Constat } from './constat.js';
+import { axesDuReleveParEtapes, estLaFamilleCouleur, memeValeurDAxe, roleDuToken, tailleReconnue, tokensDuComposantParEtapes, tokenVautPourLeLayer, type ProprieteDAxe, type TokenDuComposant } from './nommage.js';
 import type { LayerLu, LiaisonLue, ReleveDeComposant, VariantLu } from './releve.js';
-import { layersVisiblesDuVariant } from './releve.js';
+import { layersVisiblesDuVariant, peintureVisible } from './releve.js';
 
 /** Champs Figma de la taille et de la graisse d'un texte. */
 const CHAMPS_DE_TEXTE = ['fontSize', 'fontWeight'] as const;
-const CHAMPS_DE_TAILLE = ['width', 'height'];
 /** Au moins deux autres variants, pour qu'un « autre » ne soit pas simplement l'unique voisin. */
 const AUTRES_MINIMUM = 2;
-const SEGMENT_D_ICONE = 'icon';
-const SEGMENTS_DE_PREMIER_PLAN = ['icon', 'foreground'];
+/** Les rôles de token dont la couleur est celle d'une icône (C17 les admet pour son fond, ou son trait sans fill visible). */
+const ROLES_DE_PREMIER_PLAN: readonly string[] = ['icon', 'foreground'];
 
 type Source = { variant: VariantLu; layer: LayerLu };
 
@@ -38,7 +39,7 @@ export function* controlerLaTypographieParEtapes(releve: ReleveDeComposant, cata
   const icones = yield* sources(variants, estUneIcone);
   constats.push(...(yield* controlerLesTextes(textes, catalogue)));
   constats.push(...(yield* controlerLesTailleEtGraisse(textes, catalogue)));
-  constats.push(...(yield* controlerLesIcones(icones, catalogue)));
+  constats.push(...(yield* controlerLesIcones(icones, releve, catalogue)));
   constats.push(...(yield* controlerLesReglesIcones(icones, releve)));
   return constats;
 }
@@ -61,6 +62,8 @@ function* sources(variants: VariantLu[], garde: (l: LayerLu) => boolean): Genera
 function ajouter(groupes: Map<string, Constat>, id: string, source: Source, faits: Constat['faits'], base: Omit<Constat, 'id' | 'variants' | 'layers' | 'faits'>): void {
   const existant = groupes.get(id);
   if (existant) {
+    // Les variants d'un même constat n'attendent pas tous le même token : le constat ne nomme alors aucun token attendu.
+    if (existant.faits.attendu !== undefined && existant.faits.attendu !== faits.attendu) delete existant.faits.attendu;
     if (!existant.variants.includes(source.variant.nom)) existant.variants.push(source.variant.nom);
     existant.layers.push(source.layer.id);
     return;
@@ -180,50 +183,92 @@ function* controlerLesTailleEtGraisse(textes: Map<string, Source[]>, catalogue: 
 
 /* ---------- C66 ---------- */
 
-function estUneTailleDIcone(catalogue: CatalogueDeReference, liaison: LiaisonLue): boolean | null {
-  const lieu = lieuDeLaVariable(catalogue, liaison);
-  if (lieu === null || lieu.role === null) return null;
-  return lieu.role === 'layout' && liaison.variable.nom.split('/').includes(SEGMENT_D_ICONE);
-}
-
-function estUnPremierPlan(catalogue: CatalogueDeReference, liaison: LiaisonLue): boolean | null {
-  const lieu = lieuDeLaVariable(catalogue, liaison);
-  if (lieu === null || lieu.role === null) return null;
-  return lieu.role === 'theme' && liaison.variable.nom.split('/').some((s) => SEGMENTS_DE_PREMIER_PLAN.includes(s));
-}
-
-function* controlerLesIcones(icones: Map<string, Source[]>, catalogue: CatalogueDeReference): Generator<void, Constat[]> {
+/**
+ * L'icône est une instance d'`Icon`, son remplissage suit un token de premier plan du composant, et sa propriété `Size` suit la taille
+ * du variant (Q-F6-1, option A). Sa taille ne se lie plus à `layout` : l'instance la tient de `Size`.
+ */
+function* controlerLesIcones(icones: Map<string, Source[]>, releve: ReleveDeComposant, catalogue: CatalogueDeReference): Generator<void, Constat[]> {
   const groupes = new Map<string, Constat>();
   const base = { code: 'C66', type: 'verifier', famille: 'typographie' } as const;
+  if (icones.size === 0) return [];
+  const axes = yield* axesDuReleveParEtapes(releve);
+  const tokens = yield* tokensDuComposantParEtapes(releve, catalogue);
+  const parCle = new Map(tokens.map((token) => [token.variable.cle, token]));
+  const candidats = new Map<string, string>();
+  /** Les tokens de premier plan qui valent pour ce layer de ce variant, par nom et séparés par une virgule. */
+  const attenduPour = (source: Source): string => {
+    const cle = `${source.variant.id}|${formeReconnue(source.layer.nom)}`;
+    let noms = candidats.get(cle);
+    if (noms === undefined) {
+      noms = tokens
+        .filter((token) => estUnTokenDePremierPlan(token) && tokenVautPourLeLayer(token, axes, source.variant, source.layer.nom))
+        .map((token) => token.variable.nom).join(',');
+      candidats.set(cle, noms);
+    }
+    return noms;
+  };
   for (const [nom, liste] of icones) {
     for (const source of liste) {
       yield;
       const { layer } = source;
-      if (!layer.instanceDe?.distante) {
-        ajouter(groupes, `C66:${nom}:pas-de-library`, source,
-          { calque: nom, motif: layer.instanceDe ? 'instance-locale' : 'pas-une-instance' }, base);
+      if (!estUneInstanceDIcone(layer)) {
+        const composant = layer.instanceDe?.nom;
+        ajouter(groupes, `C66:${nom}:${composant === undefined ? 'pas-une-instance' : `autre-composant:${composant}`}`, source,
+          { calque: nom, motif: composant === undefined ? 'pas-une-instance' : 'autre-composant', ...(composant === undefined ? {} : { composant }) }, base);
       }
-      const tailles = liaisonsDuChamp(layer, CHAMPS_DE_TAILLE);
-      if (tailles.length === 0) {
-        ajouter(groupes, `C66:${nom}:taille-sans-variable`, source, { calque: nom, motif: 'taille-sans-variable' }, base);
+      const taille = tailleEcriteParLInstance(layer, axes.taille);
+      const duVariant = axes.taille ? source.variant.valeurs[axes.taille.nom] : undefined;
+      if (taille !== undefined && duVariant !== undefined && !memeValeurDAxe('taille', taille, duVariant)) {
+        ajouter(groupes, `C66:${nom}:taille:${taille}:${duVariant}`, source, { calque: nom, motif: 'taille-differente', valeur: taille, taille: duVariant }, base);
       }
-      for (const liaison of tailles) {
-        if (estUneTailleDIcone(catalogue, liaison) !== false) continue;
-        ajouter(groupes, `C66:${nom}:taille:${liaison.champ}:${liaison.variable.nom}`, source,
-          { calque: nom, motif: 'taille-hors-icone', champ: liaison.champ, variable: liaison.variable.nom }, base);
-      }
-      const couleurs = layer.liaisons.filter((l) => l.champ === 'fills');
+      // Sans fill visible, le trait d'une icône à tracé tient lieu de couleur (Q-F6-5).
+      const champ = tientLieuDeCouleur(layer) ? 'strokes' : 'fills';
+      const couleurs = layer.liaisons.filter((l) => l.champ === champ);
+      const attendu = attenduPour(source);
       if (couleurs.length === 0) {
-        ajouter(groupes, `C66:${nom}:couleur-sans-variable`, source, { calque: nom, motif: 'couleur-sans-variable' }, base);
+        ajouter(groupes, `C66:${nom}:couleur-sans-variable`, source, { calque: nom, motif: 'couleur-sans-variable', ...(attendu ? { attendu } : {}) }, base);
       }
       for (const liaison of couleurs) {
-        if (estUnPremierPlan(catalogue, liaison) !== false) continue;
+        if (estUnPremierPlan(catalogue, parCle, liaison) !== false) continue;
         ajouter(groupes, `C66:${nom}:couleur:${liaison.variable.nom}`, source,
-          { calque: nom, motif: 'couleur-hors-premier-plan', variable: liaison.variable.nom }, base);
+          { calque: nom, motif: 'couleur-hors-premier-plan', variable: liaison.variable.nom, ...(attendu ? { attendu } : {}) }, base);
       }
     }
   }
   return [...groupes.values()];
+}
+
+function estUnTokenDePremierPlan(token: TokenDuComposant): boolean {
+  const { variable } = token;
+  return variable.type === 'COLOR' && variable.etat === 'presente' && token.lecture.length > 0
+    && estLaFamilleCouleur(token.segments[1] ?? '') && ROLES_DE_PREMIER_PLAN.includes(roleDuToken(token) ?? '');
+}
+
+/** Un layer sans fill visible dont un trait se voit : ce trait porte la couleur de l'icône. */
+function tientLieuDeCouleur(layer: LayerLu): boolean {
+  return !layer.peintures.some((p) => p.champ === 'fills' && peintureVisible(p)) && layer.peintures.some((p) => p.champ === 'strokes' && peintureVisible(p));
+}
+
+/** La valeur de `Size` que l'instance écrit, quand le lecteur l'a lue et qu'elle dit une taille : un terme du registre ou une valeur de l'axe de taille. */
+function tailleEcriteParLInstance(layer: LayerLu, axeDeTaille: ProprieteDAxe | undefined): string | undefined {
+  const valeurs = layer.instanceDe?.valeurs;
+  if (!valeurs || !axeDeTaille) return undefined;
+  const nom = Object.keys(valeurs).find((propriete) => formeReconnue(propriete) === 'size');
+  const valeur = nom === undefined ? undefined : valeurs[nom];
+  if (valeur === undefined) return undefined;
+  const dit = tailleReconnue(valeur) !== undefined || (axeDeTaille.valeurs ?? []).some((autre) => memeValeurDAxe('taille', valeur, autre));
+  return dit ? valeur : undefined;
+}
+
+/**
+ * Vrai si la liaison vise un token de premier plan du composant. `null` quand la variable ne se situe pas : un fichier sans rôle de
+ * collection ou une variable absente du catalogue n'est jamais jugé.
+ */
+function estUnPremierPlan(catalogue: CatalogueDeReference, tokens: ReadonlyMap<string, TokenDuComposant>, liaison: LiaisonLue): boolean | null {
+  const lieu = lieuDeLaVariable(catalogue, liaison);
+  if (lieu === null || lieu.role === null) return null;
+  const token = tokens.get(liaison.variable.cle);
+  return token !== undefined && estUnTokenDePremierPlan(token);
 }
 
 /* ---------- C67 ---------- */

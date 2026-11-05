@@ -95,10 +95,10 @@ test('chaque cas a un identifiant <opérateur>-<n>, une description qui commence
 test('les cas qui dépendent d\'une question non confirmée portent le verdict mesure et son identifiant', () => {
   const parQuestion: Record<string, number> = {};
   for (const entree of TOUS.filter((autre) => autre.verdict === 'mesure')) parQuestion[entree.question!] = (parQuestion[entree.question!] ?? 0) + 1;
-  // Restent en attente : le second axe de taille, de palette ou d'état (Q-F5-3), la forme tolérée d'un état dans un variant (Q-F5-5), la borne et les noms illisibles.
-  assert.deepEqual(parQuestion, { 'Q-F5-3': 4, 'Q-F5-5': 6, 'Q-F5-8': 7, 'Q-F5-7': 6 });
-  assert.deepEqual(duOperateur('M3').filter((entree) => entree.verdict === 'mesure').map((entree) => entree.id), ['M3-4', 'M3-5', 'M3-6', 'M3-7', 'M3-8', 'M3-9']);
-  assert.deepEqual(duOperateur('O6').map((entree) => entree.question), Array(6).fill('Q-F5-8'));
+  // Restent en attente : le second axe de taille, de palette ou d'état (Q-F5-3), la forme tolérée d'un état dans un variant (Q-F5-5) et la famille `Colours`.
+  assert.deepEqual(parQuestion, { 'Q-F5-3': 4, 'Q-F5-5': 6, 'Q-F5-8': 1 });
+  assert.deepEqual(duOperateur('M3').filter((entree) => entree.verdict === 'mesure'), [], 'la borne est décidée (Q-F5-7)');
+  assert.deepEqual(duOperateur('O6').map((entree) => entree.verdict), Array(6).fill('attendu'), 'le nom illisible est décidé (Q-F5-8)');
   assert.equal(cas('V4-12').verdict, 'mesure');
   assert.equal(cas('V4-11').verdict, 'attendu');
 });
@@ -189,10 +189,11 @@ test('M1 : un variant retiré donne C31 et ses six tokens de couleur sans varian
   assert.deepEqual(parCode('M2-1'), {});
 });
 
-test('M3 : sous la borne, C31 exact ; au-delà, l\'information de borne en attente de Q-F5-7', () => {
+test('M3 : sous la borne, 200 C31 au plus et une ligne « et N autres » ; au-delà, l\'information de borne (Q-F5-7)', () => {
   assert.deepEqual(cas('M3-1').attendus, []);
   assert.equal(cas('M3-2').attendus.length, 1);
-  assert.equal(cas('M3-3').attendus.length, 4096);
+  assert.equal(cas('M3-3').attendus.length, 201);
+  assert.equal(cas('M3-3').attendus[200].cle, 'et-autres|autres=3896');
   assert.deepEqual(cas('M3-4').attendus.map((attendu) => attendu.cle), ['information-de-borne|total=4097|variants=4097']);
   assert.deepEqual(cas('M3-7').attendus.map((attendu) => attendu.cle), ['information-de-borne|total=1048576|variants=0']);
   assert.deepEqual(cas('M3-9').attendus.map((attendu) => attendu.cle), ['information-de-borne|total=25920|variants=300']);

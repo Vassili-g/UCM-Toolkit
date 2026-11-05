@@ -13,6 +13,7 @@ import type { MorceauDeLieu } from '../composant/variants';
 import { TEXTES } from '../textes';
 
 const T = TEXTES.informationsDuPanneau;
+const TA = TEXTES.aFaireDuComposant;
 
 export interface LigneDInformation {
   readonly constat: Constat;
@@ -48,6 +49,9 @@ export function ligneDInformation(constat: Constat, contexte: ContexteDAFaire): 
   const calque = texte(faits.calque);
   const sansLayer = (phrase: string): LigneDInformation => ({ constat, phrase, lieu: lieuDe(constat, contexte, { sansLayer: true }) });
   if (constat.code === 'C53') return sansLayer(T.variantsExclus(etatExclu(constat, contexte)));
+  // Les deux informations de C31 portent `faits.genre` : un variant absent (type `verifier`) y porte ses paires, dont un axe pourrait s'appeler `genre`.
+  if (constat.code === 'C31' && faits.genre === 'au-dela-de-la-borne') return sansLayer(TA.variantsAuDelaDeLaBorne(Number(faits.variants), Number(faits.combinaisons)));
+  if (constat.code === 'C31' && faits.genre === 'et-autres') return sansLayer(TA.variantsAbsentsRestants(Number(faits.autres)));
   if (constat.code === 'C67' && faits.cause === 'icone-non-pilotee') return sansLayer(T.iconeNonPilotee(calque ?? ''));
   if (constat.code === 'C67' && faits.cause === 'icones-permises-non-lues') return { constat, phrase: T.iconesPermisesNonLues(texte(faits.propriete) ?? ''), lieu: lieuDe(constat, contexte) };
   if (constat.code === 'C49' || constat.code === 'C50') {

@@ -25,7 +25,7 @@ const texte = (morceaux: readonly (string | { chemin: string })[]): string => mo
 const unique = (constats: readonly Constat[]): ConstatAFaire => lireLesConstats(constats, SANS_NOMS)[0];
 
 function monter(constats: readonly ConstatAFaire[]): Record<(typeof GROUPES)[number], HTMLElement> {
-  const hotes = Object.fromEntries(GROUPES.map((groupe) => [groupe, document.createElement('div')])) as Record<(typeof GROUPES)[number], HTMLElement>;
+  const hotes = Object.fromEntries(GROUPES.map((groupe) => [groupe, document.createElement('div')])) as unknown as Record<(typeof GROUPES)[number], HTMLElement>;
   monterAFaire(hotes, document.createElement('div'), () => {}, gestes).poser(constats);
   return hotes;
 }
@@ -161,7 +161,7 @@ const contexte: ContexteDAFaire = {
   variants: [{ id: 'v1', nom: 'Size=Small, State=Default' }],
   layers: new Map([['l1', 'label'], ['l2', 'Divider']]),
 };
-const duComposant = (code: string, faits: Constat['faits'], plus: Partial<Constat> = {}): Constat => ({ id: `${code}:x`, code, type: 'corriger', famille: 'liaisons', variants: ['v1'], layers: ['l1'], faits, ...plus });
+const duComposant = (code: string, faits: Constat['faits'], plus: Partial<Constat> = {}): Constat => ({ id: `${code}:x`, code: code as `C${number}`, type: 'corriger', famille: 'liaisons', variants: ['v1'], layers: ['l1'], faits, ...plus });
 
 test('E5.1 : un layer masqué le dit avant la phrase du constat, par lui-même ou par son ancêtre', () => {
   const seul = carteDAFaire(duComposant('C25', { calque: 'label', champ: 'fills', masque: 'layer' }), contexte);

@@ -298,12 +298,6 @@ function precise(constat: Constat, contexte: ContexteDAFaire): Contenu | null {
         : { phrase: T.mauvaiseCouche(token, couche), lieu, statut: T.mauvaiseCoucheStatut(admises) };
     }
     case 'C31':
-      // Un constat d'information (borne, ligne « et N autres ») porte `faits.genre` ; un variant absent y porte ses paires, dont un axe pourrait s'appeler `genre`.
-      if (constat.type === 'info') {
-        return faits.genre === 'et-autres'
-          ? { phrase: T.variantsAbsentsRestants(nombre(faits.autres) ?? 0), lieu: T.sectionVariants, statut: null }
-          : { phrase: T.variantsAuDelaDeLaBorne(nombre(faits.variants) ?? 0, nombre(faits.combinaisons) ?? 0), lieu: T.sectionVariants, statut: T.variantsAuDelaDeLaBorneStatut };
-      }
       return { phrase: T.variantAbsent(Object.entries(faits).map(([propriete, valeur]) => `${propriete}=${valeur}`).join(', ')), lieu: T.sectionVariants, statut: T.variantAbsentStatut };
     case 'C32': {
       const token = sansPrefixe(texte(faits.token) ?? '', contexte.composant);
