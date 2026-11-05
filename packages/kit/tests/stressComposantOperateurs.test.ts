@@ -58,7 +58,7 @@ test('chaque cas a un identifiant <opérateur>-<n>, une description, des zones e
 test('les cas qui dépendent d\'une question non confirmée portent le verdict mesure et son identifiant', () => {
   const mesures = TOUS.filter((entree) => entree.verdict === 'mesure').map((entree) => [entree.id, entree.question]);
   assert.deepEqual(mesures, [
-    ['L5-1', 'Q-F3-12'], ['L5-2', 'Q-F3-12'], ['K1-9', 'Q-F3-8'], ['K1-10', 'Q-F3-8'],
+    ['L5-1', 'Q-F3-12'], ['L5-2', 'Q-F3-12'],
     ['K3-4', 'Q-F3-15'], ['K3-8', 'Q-F3-15'], ['K3-12', 'Q-F3-15'],
   ]);
 });

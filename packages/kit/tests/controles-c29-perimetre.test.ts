@@ -46,11 +46,18 @@ test('un padding à 8 sur la racine visible reste un C29 corrigé par le token d
   assert.equal(resultat[0].correction?.apres.cle, 'size-8');
 });
 
-test('un padding dans un groupe masqué ne donne aucun C29, ni sous le parent masqué ni sur le layer masqué', () => {
+test('un padding dans un groupe masqué ou sur un layer masqué donne un C29 qui dit que le layer est masqué (Q-F3-1)', () => {
   const dur = { valeursEnDur: [{ champ: 'paddingLeft', valeur: 8 }] };
-  const sousParent = releve([layer('racine', null), layer('groupe', 'racine', { visible: false }), layer('enfant', 'groupe', dur)]);
-  assert.deepEqual(c29(sousParent), []);
-  assert.deepEqual(c29(releve([layer('racine', null), layer('masque', 'racine', { visible: false, ...dur })])), []);
+  const sousParent = c29(releve([layer('racine', null), layer('groupe', 'racine', { visible: false }), layer('enfant', 'groupe', dur)]));
+  assert.equal(sousParent.length, 1);
+  assert.deepEqual(sousParent[0].layers, ['enfant']);
+  assert.equal(sousParent[0].faits.masque, 'ancetre');
+  assert.equal(sousParent[0].faits.ancetre, 'groupe');
+  const surLeLayer = c29(releve([layer('racine', null), layer('masque', 'racine', { visible: false, ...dur })]));
+  assert.equal(surLeLayer.length, 1);
+  assert.equal(surLeLayer[0].faits.masque, 'layer');
+  assert.equal('ancetre' in surLeLayer[0].faits, false);
+  assert.equal('masque' in c29(releve([layer('racine', null, dur)]))[0].faits, false);
 });
 
 test('un rayon à 0, un padding à 0 et un strokeWeight à 0 ne donnent aucun C29', () => {

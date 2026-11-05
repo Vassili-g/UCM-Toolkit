@@ -2,7 +2,7 @@
  * Les opérateurs de dégradation des cibles et des couches (K1 à K4 : C19, C80, C20, C18) des stress tests F3. Un layer se lie
  * seulement aux tokens de son composant, qui visent `theme` pour les couleurs et `layout` ou `typography` pour les tailles :
  * K1 lie le token d'un autre composant, K2 saute le token pour une variable d'une autre collection, K3 déplace la cible d'un
- * alias, K4 change les scopes du token lié. Les cas qui dépendent de Q-F3-8 et de Q-F3-15 portent le verdict `mesure`.
+ * alias, K4 change les scopes du token lié. Les cas qui dépendent de Q-F3-15 portent le verdict `mesure`.
  */
 import type { CollectionDuCatalogue, VariableDuCatalogue } from '../../../src/controles/index.js';
 import type { ConstatAttendu } from '../commun/types.js';
@@ -35,7 +35,6 @@ export function operateursCibles(base: ComposantDeBase, graine: number = GRAINE_
     registre.ajouter('K1', degradation, {
       description: `K1 : ${CIBLES[cible].layer} (${cible}) du variant ${variant.nom} lié à ${etranger.nom}`,
       attendus: [attendu('C19', 'a-faire', lieuDe(deBase, etranger.nom)), ...attendusDePortee(deBase, CIBLES[cible].sorte, etranger)],
-      ...(cible === 'glyph' ? { verdict: 'mesure' as const, question: 'Q-F3-8' } : {}),
     });
   };
   for (const composant of ['alert', 'button-group']) for (const cible of LIAISONS_DE_COULEUR) autreComposant(cible, composant);
@@ -229,9 +228,9 @@ export function operateursCibles(base: ComposantDeBase, graine: number = GRAINE_
   }, false);
 
   // K4. Scopes du token lié : 6 cibles × 4 jeux. Un clone dédié du token porte le jeu, pour qu'une seule liaison le lise.
-  const CIBLES_K4: readonly { libelle: string; cible?: NomDeCible; ajout?: { layer: NomDeLayer; champ: 'fills' | 'strokes' }; sorte: SorteDeCible; role: 'background' | 'foreground' | 'icon' | 'border' }[] = [
+  const CIBLES_K4: readonly { libelle: string; cible?: NomDeCible; ajout?: { layer: NomDeLayer; champ: 'fills' | 'strokes' }; sorte: SorteDeCible; role: 'background' | 'foreground' | 'icon' | 'border' | 'ring' }[] = [
     { libelle: 'fond de Root', cible: 'fond', sorte: 'cadre', role: 'background' },
-    { libelle: 'fond d\'un RECTANGLE (Ring)', ajout: { layer: 'Ring', champ: 'fills' }, sorte: 'forme', role: 'background' },
+    { libelle: 'fond d\'un RECTANGLE (Ring)', ajout: { layer: 'Ring', champ: 'fills' }, sorte: 'forme', role: 'ring' },
     { libelle: 'fond de Icon (VECTOR)', cible: 'icone', sorte: 'forme', role: 'icon' },
     { libelle: 'texte plein (Label)', ajout: { layer: 'Label', champ: 'fills' }, sorte: 'texte', role: 'foreground' },
     { libelle: 'plage de texte (Label)', cible: 'texte', sorte: 'texte', role: 'foreground' },

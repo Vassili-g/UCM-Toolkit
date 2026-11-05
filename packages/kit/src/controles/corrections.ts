@@ -1,11 +1,13 @@
 /** Propositions fondées sur une règle écrite et des faits relus. */
 import type { Collection } from '../referentiel/architecture.js';
-import { estLAxeDEtats, formeReconnue } from '../referentiel/reconnaissance.js';
+import { estLAxeDEtats, formeReconnue, termeReconnu } from '../referentiel/reconnaissance.js';
+import { REGISTRE_ROLES } from '../referentiel/vocabulaire.js';
 import { collectionParCle, type CatalogueDeReference, type VariableDuCatalogue } from './catalogue.js';
 import { candidatDeLongueurParEtapes, classerLesCandidatsParEtapes, type CandidatDeLongueur } from './candidatsDeLongueur.js';
 import type { Constat, Correction } from './constat.js';
-import { axesDuReleve, axesDuReleveParEtapes, estDuComposant, estLaFamilleCouleur, etatReconnu, memeValeurDAxe, segmentDAxe, tokensDuComposant, tokensDuComposantParEtapes, type AxeDuComposant, type TokenDuComposant } from './nommage.js';
-import { layersVisiblesDuVariant, lectureManquee, type LayerLu, type LiaisonLue, type ReleveDeComposant, type VariantLu } from './releve.js';
+import { axesDuReleve, axesDuReleveParEtapes, estLaFamilleCouleur, etatReconnu, memeValeurDAxe, segmentDAxe, tokensDuComposant, tokensDuComposantParEtapes, type AxeDuComposant, type TokenDuComposant } from './nommage.js';
+import { rolesAdmisDuLayer } from './mapping.js';
+import { lectureManquee, peintureVisible, type LayerLu, type LiaisonLue, type PeintureLue, type ReleveDeComposant, type VariantLu } from './releve.js';
 
 /**
  * Enrichit les constats avec une correction exacte ou une question non tranchée. C15 et C17 cèdent la place à C22 et C24, qui
@@ -62,7 +64,8 @@ interface IndexDeCorrection {
   axes(): ReturnType<typeof axesDuReleve>;
   axesParEtapes(): Generator<void, ReturnType<typeof axesDuReleve>>;
   tokens(): Generator<void, ReturnType<typeof tokensDuComposant>>;
-  couleursDuComposant(): Generator<void, readonly VariableDuCatalogue[]>;
+  /** Les candidats de C25 par variant, rôles admis et forme du nom du layer : deux layers qui partagent ces trois valeurs partagent leurs candidats. */
+  readonly candidatsDeCouleur: Map<string, VariableDuCatalogue[]>;
   /** Le catalogue permet de conclure qu'aucun token de `components` ne manque à la recherche de C29. */
   tokensDeTailleLus(): boolean;
 }
@@ -88,30 +91,12 @@ function* indexerLeReleve(releve: ReleveDeComposant, catalogue: CatalogueDeRefer
     yield;
   }
   let axes: ReturnType<typeof axesDuReleve> | undefined;
-  let couleurs: VariableDuCatalogue[] | undefined;
   let lus: boolean | undefined;
   return {
-    layers, variants, variablesParNom,
+    layers, variants, variablesParNom, candidatsDeCouleur: new Map(),
     axes: () => (axes ??= axesDuReleve(releve)),
     axesParEtapes: () => axesDuReleveParEtapes(releve),
     tokens: () => tokensDuComposantParEtapes(releve, catalogue),
-    // Cède toutes les 256 variables parcourues ; le cache n'est rangé qu'à la fin, donc construit une fois pour tous les calques.
-    couleursDuComposant: function* () {
-      if (couleurs === undefined) {
-        const lues: VariableDuCatalogue[] = [];
-        let parcourues = 0;
-        for (const variable of catalogue.variables) {
-          parcourues += 1;
-          if (parcourues % 256 === 0) yield;
-          if (variable.etat === 'presente' && variable.type === 'COLOR'
-            && collectionParCle(catalogue, variable.collection)?.role === 'components'
-            && estDuComposant(variable.nom, releve.jeu.nom)
-            && estLaFamilleCouleur(variable.nom.split('/')[1] ?? '')) lues.push(variable);
-        }
-        couleurs = lues;
-      }
-      return couleurs;
-    },
     tokensDeTailleLus: () => (lus ??= collectionDesComposantsLue(catalogue)),
   };
 }
@@ -121,27 +106,99 @@ function presentesDeLaCollection(index: IndexDeCorrection, nom: string, collecti
   return (index.variablesParNom.get(nom) ?? []).filter((variable) => variable.collection === collection && variable.etat === 'presente');
 }
 
+/**
+ * C25 juge toute peinture unie visible d'un layer qu'aucune liaison ne lie, quel que soit son type, y compris sur un layer masqué ou
+ * sous un ancêtre masqué (Q-F3-1) : le constat dit alors que le layer est masqué. Il saute le fond d'une instance imbriquée, dont la
+ * peinture vient de son composant principal (Q-F3-2), la peinture d'opacité nulle et le champ dont la lecture a échoué (N-12).
+ */
 function* constatsManquantsParEtapes(releve: ReleveDeComposant): Generator<void, Constat[]> {
   const resultat: Constat[] = [];
   for (const variant of releve.variants) {
+    const masques = masquesDuVariant(variant);
     for (const layer of variant.layers) {
       yield;
-      if (formeReconnue(layer.nom) !== 'title' || layer.type !== 'TEXT') continue;
-      const peinture = yield* premierePeintureSansLiaison(layer);
-      if (!peinture) continue;
-      resultat.push({
-        id: `C25:${variant.id}:${layer.id}:${peinture.champ}:${peinture.indice}`, code: 'C25', type: 'corriger', famille: 'liaisons',
-        variants: [variant.id], layers: [layer.id], faits: { calque: layer.nom, champ: peinture.champ, indice: peinture.indice },
-      });
+      if (layer.type === 'INSTANCE' && layer.parent !== null) continue;
+      const peintures = yield* peinturesSansLiaison(releve, layer);
+      for (const { peinture, plage } of peintures) {
+        const lieu = plage ? `p${plage.debut}-${plage.fin}` : String(peinture.indice);
+        resultat.push({
+          id: `C25:${variant.id}:${layer.id}:${peinture.champ}:${lieu}`, code: 'C25', type: 'corriger', famille: 'liaisons',
+          variants: [variant.id], layers: [layer.id],
+          faits: {
+            calque: layer.nom, champ: peinture.champ,
+            ...(plage ? { plageDebut: plage.debut, plageFin: plage.fin } : { indice: peinture.indice }),
+            ...faitsDeMasquage(masques.get(layer.id)),
+          },
+        });
+      }
     }
   }
   return resultat;
 }
 
+/** Comment un layer est masqué : par lui-même, ou par l'ancêtre le plus proche qui l'est. Absent : le layer se voit. */
+type Masquage = { readonly par: 'layer' } | { readonly par: 'ancetre'; readonly ancetre: string };
+
+/** Le masquage de chaque layer masqué du variant. Un parent absent du variant ne masque pas ; un cycle de `parent` s'arrête au premier layer revu. */
+function masquesDuVariant(variant: VariantLu): Map<string, Masquage> {
+  const parId = new Map(variant.layers.map((layer) => [layer.id, layer]));
+  const masques = new Map<string, Masquage>();
+  for (const layer of variant.layers) {
+    if (!layer.visible) { masques.set(layer.id, { par: 'layer' }); continue; }
+    const vus = new Set([layer.id]);
+    let parent = layer.parent === null ? undefined : parId.get(layer.parent);
+    while (parent && !vus.has(parent.id)) {
+      if (!parent.visible) { masques.set(layer.id, { par: 'ancetre', ancetre: parent.nom }); break; }
+      vus.add(parent.id);
+      parent = parent.parent === null ? undefined : parId.get(parent.parent);
+    }
+  }
+  return masques;
+}
+
+/** Les faits qui disent au designer que le layer est masqué (Q-F3-1) : `masque` vaut `layer` ou `ancetre`, et `ancetre` nomme alors le parent masqué. */
+function faitsDeMasquage(masquage: Masquage | undefined): Record<string, string> {
+  if (!masquage) return {};
+  return masquage.par === 'layer' ? { masque: 'layer' } : { masque: 'ancetre', ancetre: masquage.ancetre };
+}
+
+interface PeintureASuivre { peinture: PeintureLue; plage?: { debut: number; fin: number } }
+
+/** Cède toutes les 256 peintures et liaisons parcourues ; une liaison de surcharge ne lie pas la peinture du layer. */
+function* peinturesSansLiaison(releve: ReleveDeComposant, layer: LayerLu): Generator<void, PeintureASuivre[]> {
+  const trouvees: PeintureASuivre[] = [];
+  let parcourues = 0;
+  const jugee = (peinture: PeintureLue): boolean => peinture.type === 'SOLID' && peintureVisible(peinture) && !lectureManquee(releve, layer.id, peinture.champ);
+  const liee = function* (peinture: PeintureLue, plage?: { debut: number; fin: number }): Generator<void, boolean> {
+    for (const liaison of layer.liaisons) {
+      parcourues += 1;
+      if (parcourues % 256 === 0) yield;
+      if (liaison.surcharge || liaison.champ !== peinture.champ) continue;
+      if (plage ? liaison.plage?.debut === plage.debut && liaison.plage.fin === plage.fin : liaison.indice === peinture.indice) return true;
+    }
+    return false;
+  };
+  for (const peinture of layer.peintures) {
+    parcourues += 1;
+    if (parcourues % 256 === 0) yield;
+    if (jugee(peinture) && !(yield* liee(peinture))) trouvees.push({ peinture });
+  }
+  for (const plage of layer.texte?.plages ?? []) {
+    for (const peinture of plage.peintures) {
+      parcourues += 1;
+      if (parcourues % 256 === 0) yield;
+      const debutFin = { debut: plage.debut, fin: plage.fin };
+      if (jugee(peinture) && !(yield* liee(peinture, debutFin))) trouvees.push({ peinture, plage: debutFin });
+    }
+  }
+  return trouvees;
+}
+
 /**
  * C29 ne juge que les longueurs que le designer a écrites. La largeur et la hauteur du relevé viennent de la boîte calculée
- * (hug, fill) : rien ne prouve qu'une taille soit fixée, donc aucune n'est jugée. Un zéro n'est pas une taille à lier, un layer
- * masqué ne se voit pas, et une valeur d'instance vient de son maître. Un champ dont la lecture a échoué n'est pas un constat.
+ * (hug, fill) : rien ne prouve qu'une taille soit fixée, donc aucune n'est jugée. Un zéro n'est pas une taille à lier, et une valeur
+ * d'instance vient de son maître. Un layer masqué ou sous un ancêtre masqué est jugé comme un autre, et le constat le dit (Q-F3-1).
+ * Un champ dont la lecture a échoué n'est pas un constat.
  */
 function constatsDeValeursEnDur(releve: ReleveDeComposant): Constat[] {
   const calcul = constatsDeValeursEnDurParEtapes(releve);
@@ -153,7 +210,8 @@ function constatsDeValeursEnDur(releve: ReleveDeComposant): Constat[] {
 function* constatsDeValeursEnDurParEtapes(releve: ReleveDeComposant): Generator<void, Constat[]> {
   const resultat: Constat[] = [];
   for (const variant of releve.variants) {
-    for (const layer of layersVisiblesDuVariant(variant)) {
+    const masques = masquesDuVariant(variant);
+    for (const layer of variant.layers) {
       yield;
       if (layer.type === 'INSTANCE' && layer.parent !== null) continue;
       for (const valeur of layer.valeursEnDur) {
@@ -161,7 +219,7 @@ function* constatsDeValeursEnDurParEtapes(releve: ReleveDeComposant): Generator<
         if (!familleLayoutCompatible(valeur.champ) || valeur.valeur === 0 || lectureManquee(releve, layer.id, valeur.champ)) continue;
         resultat.push({
           id: `C29:${variant.id}:${layer.id}:${valeur.champ}:${valeur.valeur}`, code: 'C29', type: 'corriger', famille: 'tailles',
-          variants: [variant.id], layers: [layer.id], faits: { calque: layer.nom, champ: valeur.champ, valeur: valeur.valeur },
+          variants: [variant.id], layers: [layer.id], faits: { calque: layer.nom, champ: valeur.champ, valeur: valeur.valeur, ...faitsDeMasquage(masques.get(layer.id)) },
         });
       }
     }
@@ -288,57 +346,67 @@ function corrigerRole(constat: Constat, releve: ReleveDeComposant, catalogue: Ca
   return { correction: correctionDeLiaison(constat, layer, liaison, candidats[0], `Le rôle ${role} est attendu pour ce layer.`, axesDuVariant(constat, index)) };
 }
 
-/** Cède toutes les 256 peintures et liaisons parcourues ; une liaison de surcharge ne lie pas la peinture du layer. */
-function* premierePeintureSansLiaison(layer: LayerLu): Generator<void, LayerLu['peintures'][number] | undefined> {
-  let parcourues = 0;
-  for (const peinture of layer.peintures) {
-    parcourues += 1;
-    if (parcourues % 256 === 0) yield;
-    if (!peinture.visible || peinture.type !== 'SOLID') continue;
-    let liee = false;
-    for (const liaison of layer.liaisons) {
-      parcourues += 1;
-      if (parcourues % 256 === 0) yield;
-      if (liaison.surcharge || liaison.champ !== peinture.champ || liaison.indice !== peinture.indice) continue;
-      liee = true;
-      break;
-    }
-    if (!liee) return peinture;
-  }
-  return undefined;
-}
-
+/**
+ * Les rôles que la table de `mapping.ts` admet pour la peinture sont les candidats : un token de `components` qui se lit, dont le rôle
+ * est l'un d'eux, dont chaque segment d'axe vaut celui du variant, et dont l'élément éventuel nomme le layer. Un token qui ne se lit
+ * pas ne se départage pas. Un seul candidat donne une correction, sinon une question sans réponse cochée (N-11, E-25).
+ */
 function* corrigerLiaisonManquante(constat: Constat, releve: ReleveDeComposant, catalogue: CatalogueDeReference, index: IndexDeCorrection): Generator<void, Pick<Constat, 'correction' | 'question'> | undefined> {
   const layer = layerDuConstat(constat, index);
   const variant = variantDuConstat(constat, index);
-  const peinture = layer ? yield* premierePeintureSansLiaison(layer) : undefined;
-  if (!layer || !variant || !peinture) return undefined;
-  const roleAttendu = layer.type === 'TEXT' ? 'foreground' : /icon/i.test(layer.nom) ? 'icon' : 'background';
-  const rolesPossibles = formeReconnue(layer.nom) === 'title' ? new Set([roleAttendu, 'title']) : new Set([roleAttendu]);
-  const axes = yield* index.axesParEtapes();
-  const valeursAxes = Object.values(axes).map((propriete) => variant.valeurs[propriete.nom]).filter((valeur): valeur is string => !!valeur);
-  const suffixes = [...rolesPossibles].map((role) => `/${[...valeursAxes, role].join('/')}`);
-  const couleurs = yield* index.couleursDuComposant();
-  const candidats: VariableDuCatalogue[] = [];
-  let parcourues = 0;
-  for (const variable of couleurs) {
-    parcourues += 1;
-    if (parcourues % 256 === 0) yield;
-    if (suffixes.some((suffixe) => variable.nom.endsWith(suffixe))) candidats.push(variable);
+  const champ = chaine(constat.faits.champ);
+  const indice = typeof constat.faits.indice === 'number' ? constat.faits.indice : undefined;
+  const debut = typeof constat.faits.plageDebut === 'number' ? constat.faits.plageDebut : undefined;
+  const fin = typeof constat.faits.plageFin === 'number' ? constat.faits.plageFin : undefined;
+  if (!layer || !variant || (champ !== 'fills' && champ !== 'strokes')) return undefined;
+  const plage = debut !== undefined && fin !== undefined ? { debut, fin } : undefined;
+  const roles = rolesAdmisDuLayer(layer, champ, plage);
+  if (!roles) return undefined;
+  const cleDeCache = JSON.stringify([variant.id, roles, formeReconnue(layer.nom)]);
+  let candidats = index.candidatsDeCouleur.get(cleDeCache);
+  if (!candidats) {
+    candidats = [];
+    const axes = yield* index.axesParEtapes();
+    const tokens = yield* index.tokens();
+    let parcourus = 0;
+    for (const token of tokens) {
+      parcourus += 1;
+      if (parcourus % 256 === 0) yield;
+      const { variable } = token;
+      if (variable.type !== 'COLOR' || variable.etat !== 'presente' || token.lecture.length === 0) continue;
+      if (!estLaFamilleCouleur(variable.nom.split('/')[1] ?? '')) continue;
+      const role = token.lecture.find((segment) => segment.role === 'role')?.terme ?? termeReconnu(REGISTRE_ROLES, token.segments.at(-1) ?? '')?.id;
+      if (!role || !roles.includes(role)) continue;
+      let compatible = true;
+      for (const segment of token.lecture) {
+        if (segment.role === 'element') {
+          if (formeReconnue(segment.segment) !== formeReconnue(layer.nom)) { compatible = false; break; }
+          continue;
+        }
+        if (segment.role !== 'palette' && segment.role !== 'style' && segment.role !== 'taille' && segment.role !== 'etat') continue;
+        const axe = axes[segment.role];
+        // Le jeu n'a pas cet axe : le segment du token ne se compare à rien.
+        if (!axe) continue;
+        const valeur = variant.valeurs[axe.nom];
+        if (!valeur || !memeValeurDAxe(segment.role, segment.segment, valeur)) { compatible = false; break; }
+      }
+      if (compatible) candidats.push(variable);
+    }
+    index.candidatsDeCouleur.set(cleDeCache, candidats);
   }
   if (candidats.length !== 1) {
     const choix: { cle: string; nom: string }[] = [];
     for (const candidat of candidats) {
-      parcourues += 1;
-      if (parcourues % 256 === 0) yield;
+      if (choix.length % 256 === 255) yield;
       choix.push({ cle: candidat.cle, nom: candidat.nom });
     }
     return { question: { id: constat.id, candidats: choix } };
   }
   return { correction: {
-    id: constat.id, sorte: 'liaison', cible: { layer: layer.id, champ: peinture.champ, indice: peinture.indice }, avant: null,
-    apres: { cle: candidats[0].cle, nom: candidats[0].nom },
-    aRelire: { axes: variant.valeurs, regle: `Une peinture visible reçoit un token components dont le rôle est ${roleAttendu}.`, avant: null },
+    id: constat.id, sorte: 'liaison',
+    cible: { layer: layer.id, champ, ...(plage ? { plage } : { indice: indice ?? 0 }) },
+    avant: null, apres: { cle: candidats[0].cle, nom: candidats[0].nom },
+    aRelire: { axes: variant.valeurs, regle: `Une peinture visible reçoit un token components dont le rôle est ${roles[0]}${roles.length > 1 ? ` ou ${roles.slice(1).join(', ')}` : ''}.`, avant: null },
   } };
 }
 

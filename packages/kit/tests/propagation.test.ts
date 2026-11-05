@@ -62,11 +62,9 @@ test('le variant visé reçoit la variable dont les segments d’axe prennent se
   assert.match(constat.correction?.aRelire.regle ?? '', /Severity=info, Variant=standard/);
 });
 
-test('un champ lié à une autre variable garde son nom dans avant', () => {
+test('un champ déjà lié à une autre variable n’est pas réécrit (Q-F3-6)', () => {
   const r = releve([MODELE, VISE([layer('v-1', 'container', null, { cle: 'k-info', nom: NOMS.infoStandard })])]);
-  const [constat] = proposerLaPropagation(r, CATALOGUE, 'm');
-  assert.equal(constat.correction?.avant, NOMS.infoStandard);
-  assert.equal(constat.correction?.cible.variable, 'k-info');
+  assert.deepEqual(proposerLaPropagation(r, CATALOGUE, 'm'), []);
 });
 
 test('un nom absent du catalogue donne une question sans réponse cochée', () => {
@@ -88,7 +86,7 @@ test('deux candidats donnent une question', () => {
   assert.deepEqual(constat.question?.candidats.map(({ cle }) => cle), ['a', 'b']);
 });
 
-test('deux layers homonymes dont le rang est introuvable donnent une question', () => {
+test('deux layers homonymes sous le même parent du modèle donnent une question qui nomme les homonymes du variant visé (Q-F3-7)', () => {
   const modele = variant('m', { Severity: 'info', Variant: 'standard' }, [
     layer('m-0', 'racine', null),
     layer('m-1', 'ligne', 'm-0', { cle: 'k-info', nom: NOMS.infoStandard }),
@@ -100,25 +98,85 @@ test('deux layers homonymes dont le rang est introuvable donnent une question', 
   for (const constat of constats) {
     assert.equal(constat.correction, undefined);
     assert.deepEqual(constat.question?.candidats, []);
-    assert.deepEqual(constat.layers, []);
+    assert.deepEqual(constat.layers, ['v-1']);
+    assert.equal(constat.faits.homonymes, 1);
   }
 });
 
-test('le rang parmi les homonymes désigne le layer visé', () => {
-  const modele = variant('m', { Severity: 'info', Variant: 'standard' }, [
-    layer('m-1', 'ligne', null),
-    layer('m-2', 'ligne', null, { cle: 'k-info', nom: NOMS.infoStandard }),
-  ]);
+test('deux layers homonymes dans le variant visé donnent une question qui les nomme tous les deux (Q-F3-7)', () => {
+  const modele = variant('m', { Severity: 'info', Variant: 'standard' }, [layer('m-1', 'ligne', null, { cle: 'k-info', nom: NOMS.infoStandard })]);
   const vise = VISE([layer('v-1', 'ligne', null), layer('v-2', 'ligne', null)]);
-  const [constat] = proposerLaPropagation(releve([modele, vise]), CATALOGUE, 'm');
-  assert.deepEqual(constat.layers, ['v-2']);
+  const [constat, ...autres] = proposerLaPropagation(releve([modele, vise]), CATALOGUE, 'm');
+  assert.equal(autres.length, 0);
+  assert.equal(constat.correction, undefined);
+  assert.deepEqual(constat.question?.candidats, []);
+  assert.deepEqual(constat.layers, ['v-1', 'v-2']);
+  assert.equal(constat.faits.homonymes, 2);
+});
+
+test('un layer qui n’existe que dans un variant ne donne aucun constat, dans le modèle comme dans le variant visé (Q-F3-7)', () => {
+  const modele = variant('m', { Severity: 'info', Variant: 'standard' }, [
+    layer('m-1', 'container', null, { cle: 'k-info', nom: NOMS.infoStandard }),
+    layer('m-2', 'badge', null, { cle: 'k-info', nom: NOMS.infoStandard }),
+  ]);
+  const vise = VISE([layer('v-1', 'container', null, { cle: 'k-error', nom: NOMS.errorOutlined }), layer('v-2', 'extra', null)]);
+  assert.deepEqual(proposerLaPropagation(releve([modele, vise]), CATALOGUE, 'm'), []);
+});
+
+test('un layer visé sans la peinture du modèle ne donne aucun constat (Q-F3-7)', () => {
+  const sansPeinture = { ...layer('v-1', 'container', null), peintures: [] };
+  assert.deepEqual(proposerLaPropagation(releve([MODELE, VISE([sansPeinture])]), CATALOGUE, 'm'), []);
+});
+
+test('une liaison directe à theme ou un token au nom illisible n’est pas recopié (Q-F3-6)', () => {
+  const modele = variant('m', { Severity: 'info', Variant: 'standard' }, [layer('m-1', 'container', null, { cle: 'k-theme', nom: 'surface/default' })]);
+  const theme = { ...variable('k-theme', 'surface/default'), collection: 'theme' };
+  const c = {
+    ...CATALOGUE,
+    collections: [...CATALOGUE.collections, { cle: 'theme', nom: 'theme', role: 'theme' as const, modes: [], etat: 'lue' as const }],
+    variables: [...CATALOGUE.variables, theme],
+  };
+  assert.deepEqual(proposerLaPropagation(releve([modele, VISE([layer('v-1', 'container', null)])]), c, 'm'), []);
+  const illisible = variant('m', { Severity: 'info', Variant: 'standard' }, [layer('m-1', 'container', null, { cle: 'k-libre', nom: 'alert/fond-libre' })]);
+  assert.deepEqual(proposerLaPropagation(releve([illisible, VISE([layer('v-1', 'container', null)])]), catalogue([variable('k-libre', 'alert/fond-libre')]), 'm'), []);
+});
+
+function texte(id: string, plages: { debut: number; fin: number }[], liees: boolean): LayerLu {
+  const lieeA = { id: 'k-error', cle: 'k-error', nom: NOMS.errorOutlined, collection: 'components', distante: false };
+  return {
+    ...layer(id, 'label', null), type: 'TEXT', peintures: [],
+    liaisons: liees ? plages.map((plage) => ({ champ: 'fills', plage, porteur: id, variable: lieeA })) : [],
+    texte: {
+      style: null,
+      plages: plages.map((plage) => ({
+        ...plage, fontSize: 14, fontWeight: 500, liaisons: [],
+        peintures: [{ champ: 'fills' as const, indice: 0, type: 'SOLID', visible: true, opacite: 1, blendMode: 'NORMAL' }],
+      })),
+    },
+  };
+}
+
+test('une plage de texte nue reçoit une correction, une plage déjà liée aucun constat (N-09)', () => {
+  const plages = [{ debut: 0, fin: 5 }, { debut: 5, fin: 10 }];
+  const source = { id: 'k-info', cle: 'k-info', nom: NOMS.infoStandard, collection: 'components', distante: false };
+  const modele = variant('m', { Severity: 'info', Variant: 'standard' }, [
+    { ...texte('m-1', plages, false), liaisons: plages.map((plage) => ({ champ: 'fills', plage, porteur: 'm-1', variable: source })) },
+  ]);
+  const nue = proposerLaPropagation(releve([modele, VISE([texte('v-1', plages, false)])]), CATALOGUE, 'm');
+  assert.equal(nue.length, 2);
+  for (const constat of nue) {
+    assert.equal(constat.question, undefined);
+    assert.equal(constat.correction?.apres.cle, 'k-error');
+  }
+  assert.deepEqual(nue.map(({ correction }) => correction?.cible.plage), plages);
+  assert.deepEqual(proposerLaPropagation(releve([modele, VISE([texte('v-1', plages, true)])]), CATALOGUE, 'm'), []);
 });
 
 test('une liaison sans segment d’axe vise la même variable', () => {
-  const modele = variant('m', { Severity: 'info', Variant: 'standard' }, [layer('m-1', 'container', null, { cle: 'k-gap', nom: 'alert/layout/gap' })]);
+  const modele = variant('m', { Severity: 'info', Variant: 'standard' }, [layer('m-1', 'container', null, { cle: 'k-fond', nom: 'alert/colors/background' })]);
   const vise = VISE([layer('v-1', 'container', null)]);
-  const [constat] = proposerLaPropagation(releve([modele, vise]), catalogue([variable('k-gap', 'alert/layout/gap')]), 'm');
-  assert.equal(constat.correction?.apres.cle, 'k-gap');
+  const [constat] = proposerLaPropagation(releve([modele, vise]), catalogue([variable('k-fond', 'alert/colors/background')]), 'm');
+  assert.equal(constat.correction?.apres.cle, 'k-fond');
 });
 
 test('un variant modèle inconnu ne donne rien', () => {

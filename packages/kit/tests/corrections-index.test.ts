@@ -80,9 +80,10 @@ export function fixture(): { releve: ReleveDeComposant; catalogue: CatalogueDeRe
 /**
  * Empreinte de la sortie de `proposerLesCorrections` sur cette fixture, recalculée quand C29 a cessé de chercher dans `layout`
  * (lot K1 de la recette v1). La précédente, prise au commit 34c64a65 avant les index, ne vaut plus : la règle a changé la
- * sortie de C29, et la fixture, ses variables de taille.
+ * sortie de C29, et la fixture, ses variables de taille. Reprise au lot E5a : C29 juge le layer masqué `frame-9` des variants impairs
+ * (Q-F3-1) et C25 choisit ses candidats d'après la lecture des tokens (N-11).
  */
-const EMPREINTE_DE_HEAD = '91f3dfff55816e3b6a470faf59b414e39b99c0f4fd4ef9799748d978ba7673fe';
+const EMPREINTE_DE_HEAD = '1606a99aca49b426676354e00249c1f8c95dad1d221022348a7c45252dd5ebd5';
 
 test('les index rendent la sortie de la version sans index, sur 90 variants', () => {
   const { releve, catalogue, constats } = fixture();

@@ -1,7 +1,9 @@
 /**
  * Propagation depuis un variant modèle (C24) : le designer lie un variant de référence, les autres
  * reprennent ses liaisons en substituant les segments d'axe du nom de la variable.
- * Une liaison n'est exacte que si le layer visé est unique et le nom visé a un seul candidat au
+ * Elle ne recopie que les tokens du composant dont le nom se lit (Q-F3-6), sur une peinture ou un champ nu : une liaison déjà posée
+ * ne se réécrit pas. Un layer qui n'existe que dans un variant ne donne rien (Q-F3-7) ; deux layers homonymes sous un même parent
+ * donnent une question, `faits.homonymes` en dit le nombre. Une liaison n'est exacte que si le nom visé a un seul candidat au
  * catalogue ; sinon le constat porte une question sans réponse cochée.
  */
 import { natureDuChamp } from '../referentiel/architecture.js';
@@ -31,15 +33,18 @@ function memeChamp(a: { champ: string; indice?: number; plage?: { debut: number;
   return a.champ === b.champ && a.indice === b.indice && a.plage?.debut === b.plage?.debut && a.plage?.fin === b.plage?.fin;
 }
 
-/** Le layer du variant visé qui occupe le même chemin et le même rang que `layer` dans le modèle, ou la raison de son absence. */
-function layerHomologue(modele: VariantLu, layer: LayerLu, vise: VariantLu): LayerLu | 'absent' | 'ambigu' {
+/**
+ * Le layer du variant visé qui occupe le même chemin que `layer` dans le modèle, `absent` s'il n'en a pas, ou la liste de ses homonymes
+ * à ce chemin quand le modèle ou le variant visé en compte plusieurs : rien ne dit lequel suit lequel.
+ */
+function layerHomologue(modele: VariantLu, layer: LayerLu, vise: VariantLu): LayerLu | 'absent' | LayerLu[] {
   const cle = cleDuChemin(cheminDuLayer(modele, layer));
   const memeChemin = (variant: VariantLu) => variant.layers.filter((candidat) => cleDuChemin(cheminDuLayer(variant, candidat)) === cle);
   const duModele = memeChemin(modele);
   const duVise = memeChemin(vise);
   if (duVise.length === 0) return 'absent';
-  if (duVise.length !== duModele.length) return 'ambigu';
-  return duVise[duModele.findIndex(({ id }) => id === layer.id)] ?? 'absent';
+  if (duVise.length > 1 || duModele.length > 1) return duVise;
+  return duVise[0];
 }
 
 function nomVise(nom: string, token: TokenDuComposant | undefined, axes: Partial<Record<AxeDuComposant, { nom: string }>>, vise: VariantLu): string {
@@ -64,6 +69,7 @@ function propositions(releve: ReleveDeComposant, catalogue: CatalogueDeReference
       const source = catalogue.variables.find(({ cle }) => cle === liaison.variable.cle);
       if (!source || source.etat !== 'presente') continue;
       const token = tokens.find((entree) => entree.variable.cle === source.cle);
+      if (!token || token.lecture.length === 0) continue;
       for (const vise of releve.variants) {
         if (vise.id === modele.id) continue;
         const constat = constatDeLaPropagation(releve, catalogue, modele, layer, liaison, source, token, axes, vise);
@@ -151,39 +157,47 @@ export function constatsDeModele(releve: ReleveDeComposant, catalogue: Catalogue
 
 function constatDeLaPropagation(
   releve: ReleveDeComposant, catalogue: CatalogueDeReference, modele: VariantLu, layer: LayerLu, liaison: LiaisonLue,
-  source: VariableDuCatalogue, token: TokenDuComposant | undefined, axes: Partial<Record<AxeDuComposant, { nom: string }>>, vise: VariantLu,
+  source: VariableDuCatalogue, token: TokenDuComposant, axes: Partial<Record<AxeDuComposant, { nom: string }>>, vise: VariantLu,
 ): Constat | undefined {
   const homologue = layerHomologue(modele, layer, vise);
+  if (homologue === 'absent') return undefined;
   const indiceDansLId = liaison.plage ? `p${liaison.plage.debut}-${liaison.plage.fin}` : liaison.indice === undefined ? '' : String(liaison.indice);
   const constat: Constat = {
-    id: `C24:modele:${vise.id}:${typeof homologue === 'string' ? layer.id : homologue.id}:${liaison.champ}:${indiceDansLId}`,
-    code: 'C24', type: 'corriger', famille: 'liaisons', variants: [vise.id], layers: typeof homologue === 'string' ? [] : [homologue.id],
+    id: `C24:modele:${vise.id}:${Array.isArray(homologue) ? layer.id : homologue.id}:${liaison.champ}:${indiceDansLId}`,
+    code: 'C24', type: 'corriger', famille: 'liaisons', variants: [vise.id], layers: Array.isArray(homologue) ? homologue.map(({ id }) => id) : [homologue.id],
     faits: {
-      modele: modele.nom, calque: typeof homologue === 'string' ? layer.nom : homologue.nom, champ: liaison.champ,
+      modele: modele.nom, calque: Array.isArray(homologue) ? layer.nom : homologue.nom, champ: liaison.champ,
       ...(liaison.indice === undefined ? {} : { indice: liaison.indice }),
       ...(liaison.plage ? { plageDebut: liaison.plage.debut, plageFin: liaison.plage.fin } : {}),
+      ...(Array.isArray(homologue) ? { homonymes: homologue.length } : {}),
     },
   };
   const question = (candidats: readonly VariableDuCatalogue[]): Constat => ({
     ...constat, question: { id: constat.id, candidats: candidats.map(({ cle, nom }) => ({ cle, nom })) },
   });
-  if (typeof homologue === 'string') return question([]);
+  if (Array.isArray(homologue)) return question([]);
+  // Une liaison déjà posée, sur le bon token ou sur un autre, n'est pas une peinture nue : la propagation ne la réécrit pas (Q-F3-6).
+  if (homologue.liaisons.some((entree) => !entree.surcharge && memeChamp(entree, liaison))) return undefined;
   const peinture = liaison.champ === 'fills' || liaison.champ === 'strokes';
-  if (peinture && !homologue.peintures.some((entree) => entree.champ === liaison.champ && entree.indice === liaison.indice)) return question([]);
+  // Le variant visé n'a pas cette peinture : elle est propre au modèle (Q-F3-7). Celle d'une plage de texte vit dans la plage.
+  if (peinture && !peintureDuLayer(homologue, liaison.champ, liaison.plage !== undefined, liaison.indice)) return undefined;
   const nom = nomVise(source.nom, token, axes, vise);
   const candidats = catalogue.variables.filter((variable) => variable.nom === nom && variable.collection === source.collection && variable.etat === 'presente');
   if (candidats.length !== 1) return question(candidats);
-  const lie = homologue.liaisons.find((entree) => memeChamp(entree, liaison));
-  if (lie && lie.variable.cle === candidats[0].cle) return undefined;
   const correction: Correction = {
     id: constat.id, sorte: 'liaison',
     cible: {
       layer: homologue.id, champ: liaison.champ,
       ...(liaison.indice === undefined ? {} : { indice: liaison.indice }), ...(liaison.plage ? { plage: liaison.plage } : {}),
-      ...(lie ? { variable: lie.variable.cle } : {}),
     },
-    avant: lie?.variable.nom ?? null, apres: { cle: candidats[0].cle, nom: candidats[0].nom },
-    aRelire: { axes: vise.valeurs, regle: `Le variant modèle ${modele.nom} lie ce champ à ${source.nom} ; les segments d’axe prennent les valeurs de ce variant.`, avant: lie?.variable.nom ?? null },
+    avant: null, apres: { cle: candidats[0].cle, nom: candidats[0].nom },
+    aRelire: { axes: vise.valeurs, regle: `Le variant modèle ${modele.nom} lie ce champ à ${source.nom} ; les segments d’axe prennent les valeurs de ce variant.`, avant: null },
   };
   return { ...constat, correction };
+}
+
+/** Le layer porte une peinture de ce champ : la sienne, ou celle d'une de ses plages de texte quand la liaison vise une plage. */
+function peintureDuLayer(layer: LayerLu, champ: string, deLaPlage: boolean, indice: number | undefined): boolean {
+  if (deLaPlage) return (layer.texte?.plages ?? []).some((plage) => plage.peintures.some((entree) => entree.champ === champ));
+  return layer.peintures.some((entree) => entree.champ === champ && entree.indice === indice);
 }

@@ -404,11 +404,27 @@ test('C80 : la liaison tenue du composant principal d’une pièce interne passe
   assert.deepEqual(codes(controlerCouches(ring('instance', 'fills'), couleurLayout)), ['C80']);
   const couleurBouton = catalogueEtendu({ nom: 'Button/Color/Focus/ring', collection: 'components' });
   assert.deepEqual(codes(controlerCouches(ring('instance', 'fills'), couleurBouton)), []);
-  // Une primitive reste jugée, et un détail d'implémentation ne profite pas de l'exception.
-  assert.deepEqual(codes(controlerCouches(ring('composant-principal', 'topLeftRadius'), catalogueEtendu({ nom: 'dimension/8', collection: 'primitives', type: 'FLOAT' }))), ['C80']);
-  const detail = ring('composant-principal', 'topLeftRadius');
+  // Q-F3-8 : une liaison héritée sans changement n'est jamais jugée, quelle que soit la sorte ; la surcharge de l'hôte l'est.
+  assert.deepEqual(codes(controlerCouches(ring('composant-principal', 'topLeftRadius'), catalogueEtendu({ nom: 'dimension/8', collection: 'primitives', type: 'FLOAT' }))), []);
+  assert.deepEqual(codes(controlerCouches(ring('instance', 'topLeftRadius'), catalogueEtendu({ nom: 'dimension/8', collection: 'primitives', type: 'FLOAT' }))), ['C80']);
+  for (const sorte of ['detail', 'dependance', 'piece-interne', 'wrapper-de-dimensions'] as const) {
+    const herite = ring('composant-principal', 'topLeftRadius');
+    herite.variants[0].layers[0].sorte = sorte;
+    assert.deepEqual(codes(controlerCouches(herite, layout)), [], sorte);
+  }
+  const detail = ring('instance', 'topLeftRadius');
   detail.variants[0].layers[0].sorte = 'detail';
   assert.deepEqual(codes(controlerCouches(detail, layout)), ['C80']);
+});
+
+test('C19 : un token d’un autre composant tenu sans changement par l’instance n’est pas jugé, celui de l’hôte l’est (Q-F3-8)', () => {
+  const r = releve('Button');
+  r.variants = [variante('default', {}, 'v0', { champ: 'fills', nom: 'Glyph', type: 'INSTANCE' })];
+  const autre = catalogueEtendu({ nom: 'Alert/Color/background', collection: 'components' });
+  r.variants[0].layers[0].liaisons[0].provenance = 'composant-principal';
+  assert.deepEqual(codes(controlerMapping(r, autre)), []);
+  r.variants[0].layers[0].liaisons[0].provenance = 'instance';
+  assert.ok(codes(controlerMapping(r, autre)).includes('C19'));
 });
 
 test('C80 : un layer descendant d’une pièce interne prend la sorte de l’instance la plus proche', () => {

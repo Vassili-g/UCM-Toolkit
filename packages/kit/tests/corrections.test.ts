@@ -90,7 +90,7 @@ test('C25 garde les faits et candidats ordonnés en excluant les autres couleurs
   const r = releve({ State: 'hover' }, layer({ name: 'title', type: 'TEXT', painted: true }));
   const variable = (cle: string, nom: string): CatalogueDeReference['variables'][number] => ({ cle, nom, collection: 'components', type: 'COLOR', etat: 'presente' });
   const c = catalogue([
-    variable('fg', 'alert/color/hover/foreground'), variable('title', 'alert/color/hover/title'),
+    variable('fg', 'alert/color/hover/foreground'), variable('texte', 'alert/color/hover/text'),
     variable('etat', 'alert/color/default/foreground'), variable('autre', 'other/color/hover/foreground'),
     { ...variable('non-chargee', 'alert/color/hover/foreground'), etat: 'non-chargee' },
     { ...variable('float', 'alert/color/hover/foreground'), type: 'FLOAT' },
@@ -98,7 +98,7 @@ test('C25 garde les faits et candidats ordonnés en excluant les autres couleurs
   const attendu = [{
     id: 'C25:variant-1:layer-1:fills:0', code: 'C25', type: 'corriger', famille: 'liaisons', variants: ['variant-1'], layers: ['layer-1'],
     faits: { calque: 'title', champ: 'fills', indice: 0 },
-    question: { id: 'C25:variant-1:layer-1:fills:0', candidats: [{ cle: 'fg', nom: 'alert/color/hover/foreground' }, { cle: 'title', nom: 'alert/color/hover/title' }] },
+    question: { id: 'C25:variant-1:layer-1:fills:0', candidats: [{ cle: 'fg', nom: 'alert/color/hover/foreground' }, { cle: 'texte', nom: 'alert/color/hover/text' }] },
   }];
   const calcul = proposerLesCorrectionsParEtapes(r, c, []);
   let resultat = calcul.next();
@@ -234,15 +234,15 @@ test('C24 cible la plage exacte du constat quand une même variable est liée à
   assert.deepEqual(corrections.map(({ correction }) => correction?.cible.plage), [{ debut: 0, fin: 5 }, { debut: 5, fin: 10 }]);
 });
 
-test('un layer title avec title et foreground possibles reste une question', () => {
+test('un layer title avec text et foreground possibles reste une question', () => {
   const r = releve({ Severity: 'info', Variant: 'standard' }, layer({ name: 'title', type: 'TEXT', painted: true }));
   const c = catalogue([
     { cle: 'fg', nom: 'alert/color/info/standard/foreground', collection: 'components', type: 'COLOR', etat: 'presente' },
-    { cle: 'title', nom: 'alert/color/info/standard/title', collection: 'components', type: 'COLOR', etat: 'presente' },
+    { cle: 'texte', nom: 'alert/color/info/standard/text', collection: 'components', type: 'COLOR', etat: 'presente' },
   ]);
   const resultat = proposerLesCorrections(r, c, []);
   const c25 = resultat.find(({ code }) => code === 'C25');
-  assert.deepEqual(c25?.question?.candidats.map(({ cle }) => cle), ['fg', 'title']);
+  assert.deepEqual(c25?.question?.candidats.map(({ cle }) => cle), ['fg', 'texte']);
   assert.equal(c25?.correction, undefined);
 });
 

@@ -61,9 +61,8 @@ test('chaque cas a un identifiant <opérateur>-<n>, une description, des zones, 
 
 test('les cas qui dépendent d\'une question non confirmée portent le verdict mesure et son identifiant', () => {
   const mesures = (operateur: string) => duOperateur(operateur).filter((entree) => entree.verdict === 'mesure').map((entree) => [entree.id, entree.question]);
-  assert.deepEqual(mesures('M2'), [['M2-6', 'Q-F3-7'], ['M2-9', 'Q-F3-6'], ['M2-10', 'Q-F3-6'], ['M2-11', 'Q-F3-6'], ['M2-14', 'Q-F3-7']]);
-  assert.deepEqual(mesures('U1'), [['U1-11', 'Q-F3-4'], ['U1-12', 'Q-F3-4'], ['U1-21', 'Q-F3-2'], ['U1-22', 'Q-F3-2']]);
-  assert.deepEqual(mesures('U2'), [['U2-8', 'Q-F3-1'], ['U2-9', 'Q-F3-1']]);
+  // Q-F3-1, Q-F3-2, Q-F3-4, Q-F3-6 et Q-F3-7 sont tranchées : les opérateurs M2, U1 et U2 n'ont plus de cas `mesure`.
+  assert.deepEqual([...mesures('M2'), ...mesures('U1'), ...mesures('U2')], []);
   assert.deepEqual(mesures('T2'), [['T2-1', 'Q-F3-8'], ['T2-2', 'Q-F3-8'], ['T2-3', 'Q-F3-9'], ['T2-4', 'Q-F3-9']]);
   assert.deepEqual(mesures('S1'), [['S1-5', 'S1-5']]);
   assert.deepEqual([...mesures('M1'), ...mesures('U3'), ...mesures('U4'), ...mesures('S2'), ...mesures('S3')], []);
@@ -88,7 +87,7 @@ test('M2 : un C24 avec correction par liaison retirée et un C81 par sorte, un o
   for (const entree of m2) assert.ok(modeleDuCas(entree), entree.id);
   assert.deepEqual(codes(cas('M2-7')), ['C24:question']);
   assert.deepEqual(cas('M2-7').attendus[0].candidats, []);
-  assert.ok(cas('M2-7').attendus[0].cle.startsWith(`${cas('M2-7').attendus[0].cle.split('|')[0]}||fills`), 'homologue ambigu : aucun layer');
+  assert.notEqual(cas('M2-7').attendus[0].cle.split('|')[1], '', 'homologue ambigu : la question nomme le premier homonyme du variant visé (Q-F3-7)');
   assert.deepEqual(cas('M2-12').attendus[0].candidats?.length, 2);
   assert.equal(cas('M2-8').attendus.filter((a) => a.code === 'C24').length, 13);
   assert.deepEqual([6, 9, 10, 11, 13, 14, 16].map((rang) => cas(`M2-${rang}`).attendus.length), [0, 0, 0, 0, 0, 0, 0]);
@@ -108,12 +107,12 @@ test('U1 : un C25 par type de layer, une correction avec un seul candidat, une q
   }
   const role = (id: string) => cas(id).attendus[0].apres!.nom!.split('/').at(-1);
   assert.deepEqual(['U1-1', 'U1-3', 'U1-5', 'U1-7', 'U1-9', 'U1-11', 'U1-13', 'U1-15', 'U1-17', 'U1-19'].map(role),
-    ['background', 'border', 'background', 'background', 'icon', 'icon', 'icon', 'foreground', 'foreground', 'foreground']);
+    ['background', 'border', 'ring', 'background', 'icon', 'background', 'background', 'foreground', 'foreground', 'foreground']);
   assert.ok(cas('U1-4').attendus[0].cle.endsWith('|strokes||'));
 });
 
 test('U2 à U4 : des témoins sans constat, le même token quel que soit l\'ordre des axes, un choix de candidat par cas', () => {
-  assert.ok(duOperateur('U2').every((entree) => entree.attendus.length === 0));
+  assert.deepEqual(duOperateur('U2').map((entree) => entree.attendus.map((a) => `${a.code}:${a.forme}`)), [[], [], [], [], [], [], [], ['C25:a-faire'], ['C25:a-faire']], 'les sept témoins, puis les layers masqués jugés (Q-F3-1)');
   const u3 = duOperateur('U3');
   assert.ok(u3.every((entree) => codes(entree).join() === 'C25:correction'));
   // Cinq ordres, trois rôles : l'ordre des propriétés du relevé change, le nom du token attendu reste celui de la grammaire.

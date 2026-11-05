@@ -210,8 +210,8 @@ export function operateursModele(base: ComposantDeBase, graine: number = GRAINE_
     }
     return retirees;
   };
-  const ajouter = (degradation: Degradation, description: string, attendus: ConstatAttendu[], mesure?: string): void => {
-    ajouterAvecCodes(registre, 'M2', degradation, { description: `M2 : ${description}`, attendus, ...(mesure ? { verdict: 'mesure' as const, question: mesure } : {}) }, CODES_DE_M2);
+  const ajouter = (degradation: Degradation, description: string, attendus: ConstatAttendu[]): void => {
+    ajouterAvecCodes(registre, 'M2', degradation, { description: `M2 : ${description}`, attendus }, CODES_DE_M2);
     Object.assign(registre.cas.at(-1)!.entree, { modele: modele.id });
   };
   const fond = (liaison: LiaisonAttendue): boolean => liaison.nomDuLayer === 'Root' && liaison.champ === 'fills';
@@ -242,20 +242,22 @@ export function operateursModele(base: ComposantDeBase, graine: number = GRAINE_
     ajouter(degradation, `deux modèles à égalité (${modele.nom} et ${autres[0].nom}), les autres variants nus`, complet(degradation, autres.slice(1)));
   }
 
-  // 6. Un layer propre au modèle : Q-F3-7 propose qu'aucun constat ne sorte pour les variants qui ne l'ont pas.
+  // 6. Un layer propre au modèle : aucun constat ne sort pour les variants qui ne l'ont pas (Q-F3-7).
   {
     const degradation = new Degradation(base);
     const extra = ajouterUnLayer(degradation, modele.id, { nom: 'Badge', type: 'FRAME', peintures: [peintureUnie('fills')] });
     lierLaPeinture(degradation, modele.id, extra, 'fills', degradation.variable(jetonCouleur(carte, modele, 'background')!.cle));
-    ajouter(degradation, `layer Badge propre au modèle ${modele.nom}`, [], 'Q-F3-7');
+    ajouter(degradation, `layer Badge propre au modèle ${modele.nom}`, []);
   }
-  // 7. Deux layers homonymes sous le parent dans un variant visé : l'homologue est ambigu, une question sans candidat.
+  // 7. Deux layers homonymes sous le parent dans un variant visé : l'homologue est ambigu, une question sans candidat (Q-F3-7).
+  // La question nomme les homonymes du variant visé, dont le premier est le layer de la base.
   if (carte.variants[0].layers.Icon) {
     const variant = registre.tirer('M2', autres);
     const degradation = new Degradation(base);
+    const premier = degradation.layer(variant.id, 'Icon');
     ajouterUnLayer(degradation, variant.id, { nom: 'Icon', type: 'VECTOR', peintures: [peintureUnie('fills')] });
     ajouter(degradation, `deux layers Icon dans le variant ${variant.nom}`,
-      [attendu('C24', 'question', { variant: variant.id, layer: '', champ: 'fills', token: '' }, { candidats: [] })]);
+      [attendu('C24', 'question', { variant: variant.id, layer: premier.id, champ: 'fills', token: '' }, { candidats: [] })]);
   }
   // 8. Un variant nu sauf le fond de Root, déjà lié au bon token : rien pour cette liaison.
   {
@@ -263,7 +265,7 @@ export function operateursModele(base: ComposantDeBase, graine: number = GRAINE_
     const degradation = new Degradation(base);
     ajouter(degradation, `variant ${variant.nom} nu, sauf le fond de Root déjà lié au bon token`, complet(degradation, [variant], (liaison) => !fond(liaison)));
   }
-  // 9. Le fond de Root d'un variant visé est lié à un autre token : Q-F3-6 ne veut pas qu'il soit écrasé.
+  // 9. Le fond de Root d'un variant visé est lié à un autre token : la propagation ne l'écrase pas (Q-F3-6).
   {
     const variant = registre.tirer('M2', autres);
     const degradation = new Degradation(base);
@@ -272,24 +274,24 @@ export function operateursModele(base: ComposantDeBase, graine: number = GRAINE_
       .find((jeton) => jeton !== undefined && jeton.cle !== juste.cle);
     if (autre) {
       degradation.lierA(racine(variant), degradation.variable(autre.cle));
-      ajouter(degradation, `fond de Root du variant ${variant.nom} lié à ${autre.nom}`, [], 'Q-F3-6');
+      ajouter(degradation, `fond de Root du variant ${variant.nom} lié à ${autre.nom}`, []);
     }
   }
-  // 10. Le token du modèle porte un nom que la grammaire ne lit pas : Q-F3-6 ne le propage pas.
+  // 10. Le token du modèle porte un nom que la grammaire ne lit pas : la propagation ne le recopie pas (Q-F3-6).
   {
     const degradation = new Degradation(base);
     const source = degradation.variable(jetonCouleur(carte, modele, 'background')!.cle);
     degradation.lierA(racine(modele), degradation.cloner(source, { nom: `${source.nom.split('/')[0]}/color/fond-libre` }));
     nus(degradation, autres, fond);
-    ajouter(degradation, 'fond de Root du modèle lié à un token au nom illisible, fonds des autres variants nus', [], 'Q-F3-6');
+    ajouter(degradation, 'fond de Root du modèle lié à un token au nom illisible, fonds des autres variants nus', []);
   }
-  // 11. Le modèle lie son fond directement à theme : Q-F3-6 ne le propage pas.
+  // 11. Le modèle lie son fond directement à theme : la propagation ne le recopie pas (Q-F3-6).
   {
     const degradation = new Degradation(base);
     const direct = degradation.variable(jetonCouleur(carte, modele, 'background')!.cible.cle);
     degradation.lierA(racine(modele), direct);
     nus(degradation, autres, fond);
-    ajouter(degradation, `fond de Root du modèle lié directement à theme/${direct.nom}, fonds des autres variants nus`, [], 'Q-F3-6');
+    ajouter(degradation, `fond de Root du modèle lié directement à theme/${direct.nom}, fonds des autres variants nus`, []);
   }
   // 12. Deux variables portent le nom visé : une question à deux candidats, aucune correction.
   {
@@ -308,14 +310,14 @@ export function operateursModele(base: ComposantDeBase, graine: number = GRAINE_
     nus(degradation, autres, fond);
     ajouter(degradation, 'variable du fond du modèle non chargée, fonds des autres variants nus', []);
   }
-  // 14. La peinture manque chez le variant visé : Q-F3-7 propose qu'aucun constat ne sorte.
+  // 14. La peinture manque chez le variant visé : aucun constat ne sort (Q-F3-7).
   {
     const variant = registre.tirer('M2', autres);
     const degradation = new Degradation(base);
     const layer = degradation.layer(variant.id, 'Root');
     delier(degradation, racine(variant));
     degradation.retirer(layer.peintures, layer.peintures.find((peinture) => peinture.champ === 'fills')!);
-    ajouter(degradation, `fond de Root du variant ${variant.nom} sans peinture`, [], 'Q-F3-7');
+    ajouter(degradation, `fond de Root du variant ${variant.nom} sans peinture`, []);
   }
   // 15. Les plages de texte du variant visé ne sont pas celles du modèle : la correction reprend celles du modèle.
   {

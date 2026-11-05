@@ -1,5 +1,5 @@
 /** Écarts entre les liaisons lues et les axes, rôles et portées du composant. */
-import { estUnNomDAnneau, estUneIcone, estUneInstanceDIcone } from '../referentiel/layers.js';
+import { estUneIcone, estUneInstanceDIcone, roleQueLeLayerDesigne } from '../referentiel/layers.js';
 import { formeDuChemin, formeReconnue, termeReconnu } from '../referentiel/reconnaissance.js';
 import { REGISTRE_ROLES } from '../referentiel/vocabulaire.js';
 import { collectionParCle, variableDuCatalogue, type CatalogueDeReference, type VariableDuCatalogue } from './catalogue.js';
@@ -31,21 +31,21 @@ function layerPeint(layer: LayerLu, liaison: LiaisonLue): { nom: string; type: s
 }
 
 /**
- * Le layer que la liaison peint est une icône selon la définition du référentiel. Une surcharge peint un layer de l'instance : il
- * est une icône s'il l'est lui-même, ou si l'instance qui le porte est celle d'un composant Icon, dont le tracé intérieur garde un nom libre.
+ * Les rôles admis pour une peinture du layer, ou de l'une de ses plages de texte : le premier est celui qu'une correction pose.
+ * Un layer que son nom désigne (`Divider`, `Separator`, `Ring`, `Focus ring`) n'admet que ce rôle, sur son fond comme sur son trait
+ * (Q-F3-3) ; un autre rôle reçoit un constat, et un token `divider`, `ring` ou `icon` posé sur un autre layer en reçoit un aussi.
+ * `background`, `foreground`, `text` et `border` ne regardent pas le nom. Une icône prend `icon` ou `foreground`, un texte `foreground`
+ * ou `text`, un trait `border` ou `foreground`. Un texte ne désigne aucun rôle par son nom.
  */
-function estUneIconePeinte(layer: LayerLu, liaison: LiaisonLue): boolean {
-  if (!liaison.surcharge) return estUneIcone(layer);
-  return estUneIcone(liaison.surcharge) || estUneInstanceDIcone(layer);
-}
-
-/** Les rôles admis pour la liaison : le premier est celui qu'une correction pose. Une icône prend `icon` ou `foreground`. */
-function rolesAdmis(layer: LayerLu, liaison: LiaisonLue): readonly string[] | undefined {
-  const peint = layerPeint(layer, liaison);
-  if (liaison.champ === 'strokes') return estUnNomDAnneau(peint.nom) ? ['ring'] : ['border', 'foreground'];
-  if (liaison.champ !== 'fills') return undefined;
-  if (peint.type === 'TEXT' || liaison.plage) return ['foreground', 'text'];
-  if (estUneIconePeinte(layer, liaison)) return ['icon', 'foreground'];
+export function rolesAdmisDuLayer(layer: LayerLu, champ: string, plage?: unknown, surcharge?: LiaisonLue['surcharge']): readonly string[] | undefined {
+  if (champ !== 'fills' && champ !== 'strokes') return undefined;
+  const peint = surcharge ?? layer;
+  const texte = peint.type === 'TEXT' || (champ === 'fills' && !!plage);
+  const designe = texte ? undefined : roleQueLeLayerDesigne(peint);
+  if (designe === 'divider' || designe === 'ring') return [designe];
+  if (champ === 'strokes') return ['border', 'foreground'];
+  if (texte) return ['foreground', 'text'];
+  if (surcharge ? estUneIcone(surcharge) || estUneInstanceDIcone(layer) : estUneIcone(layer)) return ['icon', 'foreground'];
   return ['background'];
 }
 
@@ -197,8 +197,9 @@ export function* controlerMappingParEtapes(releve: ReleveDeComposant, catalogue:
       }
       const role = token.lecture.find((segment) => segment.role === 'role')?.terme
         ?? termeReconnu(REGISTRE_ROLES, token.segments.at(-1) ?? '')?.id;
-      const admis = rolesAdmis(layer, liaison);
-      if (role && admis && !admis.includes(role)) {
+      const admis = rolesAdmisDuLayer(layer, liaison.champ, liaison.plage, liaison.surcharge);
+      // `inverse` qualifie un fond inversé, il ne dit rien du layer qu'il colore (Q-F3-3).
+      if (role && role !== 'inverse' && admis && !admis.includes(role)) {
         constats.push(constatDuComposant('C17', 'liaisons', 'corriger', lieu, {
           token: variable.nom, role, attendu: admis[0], champ: liaison.champ,
           ...(liaison.surcharge ? { surcharge: liaison.surcharge.id, calque: liaison.surcharge.nom } : {}),
@@ -208,7 +209,8 @@ export function* controlerMappingParEtapes(releve: ReleveDeComposant, catalogue:
       }
     } else {
       const collection = collectionParCle(catalogue, variable.collection);
-      if (collection?.role === 'components' && !estDuComposant(variable.nom, releve.jeu.nom)) {
+      // Une liaison que l'instance tient sans changement de son composant principal n'est pas celle de l'hôte (Q-F3-8).
+      if (collection?.role === 'components' && liaison.provenance !== 'composant-principal' && !estDuComposant(variable.nom, releve.jeu.nom)) {
         constats.push(constatDuComposant('C19', 'liaisons', 'corriger', lieu, { token: variable.nom, composant: releve.jeu.nom }, [variant.id], [layer.id]));
       }
     }

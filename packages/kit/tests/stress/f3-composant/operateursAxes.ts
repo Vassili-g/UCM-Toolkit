@@ -188,7 +188,7 @@ export class Registre {
  * Chaque code publie ses faits à sa façon : C19 et C20 n'ont pas de champ, et seuls C16, C22 et C24 ont la plage de texte. La clé
  * d'un constat reprend donc ce que son code publie ; `cleAttendue` fait de même pour l'oracle.
  */
-const CODES_A_PLAGE: readonly string[] = ['C15', 'C16', 'C17', 'C22', 'C24'];
+const CODES_A_PLAGE: readonly string[] = ['C15', 'C16', 'C17', 'C22', 'C24', 'C25'];
 const CODES_SANS_CHAMP: readonly string[] = ['C19', 'C20'];
 
 export interface LieuDeConstat { readonly variant: string; readonly layer: string; readonly champ: string; readonly plageDebut?: number; readonly token: string }

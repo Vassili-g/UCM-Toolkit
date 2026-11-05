@@ -3,9 +3,10 @@
  * que les opérateurs de modèle (`operateursModele.ts`) et de thème (`operateursTheme.ts`) réutilisent : ajouter un layer, poser une
  * peinture, délier une liaison, retirer un token.
  *
- * L'oracle suit Q-06 : toute peinture unie visible, sur un layer visible hors instance imbriquée, sans liaison de cette peinture
- * donne un C25, quel que soit le type du layer. Le token proposé vient des rôles que la table de `mapping.ts` admet pour le layer
- * (fond `background`, trait `border`, icône `icon` ou `foreground`, texte et plage `foreground` ou `text`). Une correction n'est
+ * L'oracle suit Q-06, Q-F3-1 et Q-F3-2 : toute peinture unie visible et d'opacité non nulle, sur un layer visible ou masqué hors
+ * instance imbriquée, sans liaison de cette peinture donne un C25, quel que soit le type du layer. Le token proposé vient des rôles
+ * que la table de `mapping.ts` admet pour le layer (fond `background`, trait `border` ou `foreground`, icône `icon` ou `foreground`,
+ * texte et plage `foreground` ou `text`, layer nommé `Ring` son seul rôle). Une correction n'est
  * exacte que si un seul token de ces rôles porte les valeurs d'axe du variant ; sinon l'oracle attend une question sans candidat
  * présélectionné. Un cas « candidat unique » retire donc du catalogue les tokens des autres rôles admis.
  */
@@ -95,11 +96,11 @@ export function retirerLeToken(degradation: Degradation, variant: string, role: 
 // ---------------------------------------------------------------------------------------------------------------------------
 // Rôles et candidats
 
-export type RoleDeTable = 'background' | 'border' | 'icon' | 'foreground';
+export type RoleDeTable = 'background' | 'border' | 'icon' | 'foreground' | 'ring';
 
 /** Les rôles que la table admet en plus du premier : ils comptent comme candidats, donc un cas « unique » les retire. */
 const ROLES_ALTERNATIFS: Readonly<Record<RoleDeTable, readonly RoleDeCouleur[]>> = {
-  background: [], border: ['foreground'], icon: ['foreground'], foreground: ['text'],
+  background: [], border: ['foreground'], icon: ['foreground'], foreground: ['text'], ring: [],
 };
 
 /** Prépare le catalogue : un seul token candidat pour ce rôle, ou aucun. */
@@ -109,8 +110,8 @@ export function preparerLesCandidats(degradation: Degradation, variant: string, 
 }
 
 /** Le C25 attendu : une correction vers le token du rôle pour ce variant s'il est le seul candidat, sinon une question sans candidat. */
-export function attenduC25(degradation: Degradation, variant: string, layer: LayerLu, champ: 'fills' | 'strokes', role: RoleDeTable, avecCandidat: boolean): ConstatAttendu {
-  const lieu = { variant, layer: layer.id, champ, token: '' };
+export function attenduC25(degradation: Degradation, variant: string, layer: LayerLu, champ: 'fills' | 'strokes', role: RoleDeTable, avecCandidat: boolean, plageDebut?: number): ConstatAttendu {
+  const lieu = { variant, layer: layer.id, champ, ...(plageDebut === undefined ? {} : { plageDebut }), token: '' };
   const jeton = jetonCouleur(degradation.carte, degradation.carte.variants.find((entree) => entree.id === variant)!, role)!;
   return avecCandidat ? attendu('C25', 'correction', lieu, { apres: { cle: jeton.cle, nom: jeton.nom } }) : attendu('C25', 'question', lieu, { candidats: [] });
 }
@@ -124,9 +125,9 @@ interface TypeDePeinture {
   readonly champ: 'fills' | 'strokes';
   /** Pose la peinture en dur et rend le layer qui la porte, ou `undefined` si le profil n'a pas ce layer. */
   readonly poser: (degradation: Degradation, variant: string) => LayerLu | undefined;
-  /** Q-F3-4 : l'icône n'a pas de définition unique. Q-F3-2 : l'instance est une frontière. */
-  readonly question?: 'Q-F3-4' | 'Q-F3-2';
-  /** L'oracle provisoire de Q-F3-2 : aucun C25 pour le fond d'une instance. */
+  /** La peinture est celle d'une plage de texte : le constat porte le début de cette plage. */
+  readonly plage?: true;
+  /** Q-F3-2 : l'instance est une frontière, aucun C25 pour son fond. */
   readonly sansC25?: true;
 }
 
@@ -145,15 +146,15 @@ const avecLeLayer = (nom: NomDeLayer, action: (degradation: Degradation, layer: 
 const TYPES_DE_PEINTURE: readonly TypeDePeinture[] = [
   { libelle: 'fond de Root (FRAME)', role: 'background', champ: 'fills', poser: (d, v) => delierLaCible(d, v, 'fond') },
   { libelle: 'trait de Root (FRAME)', role: 'border', champ: 'strokes', poser: (d, v) => delierLaCible(d, v, 'trait') },
-  { libelle: 'fond de Ring (RECTANGLE)', role: 'background', champ: 'fills', poser: avecLeLayer('Ring', (d, layer) => d.inserer(layer.peintures, peintureUnie('fills'))) },
+  { libelle: 'fond de Ring (RECTANGLE)', role: 'ring', champ: 'fills', poser: avecLeLayer('Ring', (d, layer) => d.inserer(layer.peintures, peintureUnie('fills'))) },
   { libelle: 'fond de Dot (ELLIPSE)', role: 'background', champ: 'fills', poser: nouveauSeul('Dot', 'ELLIPSE') },
   { libelle: 'fond de Icon (VECTOR nommé icon)', role: 'icon', champ: 'fills', poser: (d, v) => delierLaCible(d, v, 'icone') },
-  { libelle: 'fond de Shape (VECTOR nommé autrement)', role: 'icon', champ: 'fills', poser: nouveauSeul('Shape', 'VECTOR'), question: 'Q-F3-4' },
-  { libelle: 'fond de Union (BOOLEAN_OPERATION)', role: 'icon', champ: 'fills', poser: nouveauSeul('Union', 'BOOLEAN_OPERATION') },
+  { libelle: 'fond de Shape (VECTOR nommé autrement)', role: 'background', champ: 'fills', poser: nouveauSeul('Shape', 'VECTOR') },
+  { libelle: 'fond de Union (BOOLEAN_OPERATION)', role: 'background', champ: 'fills', poser: nouveauSeul('Union', 'BOOLEAN_OPERATION') },
   { libelle: 'texte title (TEXT)', role: 'foreground', champ: 'fills', poser: nouveauSeul('title', 'TEXT') },
   { libelle: 'texte Label (TEXT)', role: 'foreground', champ: 'fills', poser: avecLeLayer('Label', (d, layer) => d.inserer(layer.peintures, peintureUnie('fills'))) },
-  { libelle: 'plage de texte de Label', role: 'foreground', champ: 'fills', poser: (d, v) => delierLaCible(d, v, 'texte') },
-  { libelle: 'fond de Glyph (INSTANCE)', role: 'background', champ: 'fills', poser: avecLeLayer('Glyph', (d, layer) => d.inserer(layer.peintures, peintureUnie('fills'))), question: 'Q-F3-2', sansC25: true },
+  { libelle: 'plage de texte de Label', role: 'foreground', champ: 'fills', poser: (d, v) => delierLaCible(d, v, 'texte'), plage: true },
+  { libelle: 'fond de Glyph (INSTANCE)', role: 'background', champ: 'fills', poser: avecLeLayer('Glyph', (d, layer) => d.inserer(layer.peintures, peintureUnie('fills'))), sansC25: true },
 ];
 
 // ---------------------------------------------------------------------------------------------------------------------------
@@ -202,20 +203,20 @@ export function operateursPeinture(base: ComposantDeBase, graine: number = GRAIN
       preparerLesCandidats(degradation, variant.id, type.role, avecCandidat);
       ajouterAvecCodes(registre, 'U1', degradation, {
         description: `U1 : ${type.libelle} du variant ${variant.nom}, peinture en dur, ${avecCandidat ? 'un candidat' : 'aucun candidat'}`,
-        attendus: type.sansC25 ? [] : [attenduC25(degradation, variant.id, layer, type.champ, type.role, avecCandidat)],
-        ...(type.question ? { verdict: 'mesure' as const, question: type.question } : {}),
+        attendus: type.sansC25 ? [] : [attenduC25(degradation, variant.id, layer, type.champ, type.role, avecCandidat, type.plage ? liaisonDeCible(degradation.carte, variant.id, 'texte')?.plage?.debut : undefined)],
       }, CODES_DE_U);
     }
   }
 
-  // U2. Témoins : une peinture qu'aucune règle de Q-06 ne juge. Le layer porté est un TEXT nommé title, le seul que le kit juge déjà.
-  const temoin = (libelle: string, poser: (degradation: Degradation, variant: string) => void, question?: string): void => {
+  // U2. Témoins : une peinture qu'aucune règle de Q-06 ne juge, puis deux layers masqués que Q-F3-1 fait juger comme les autres.
+  // Le layer porté est un TEXT nommé title.
+  const temoin = (libelle: string, poser: (degradation: Degradation, variant: string) => LayerLu | void, jugee = false): void => {
     const variant = registre.tirer('U2', carte.variants);
     const degradation = new Degradation(base);
-    poser(degradation, variant.id);
+    const layer = poser(degradation, variant.id);
     ajouterAvecCodes(registre, 'U2', degradation, {
-      description: `U2 : ${libelle}, variant ${variant.nom}`, attendus: [],
-      ...(question ? { verdict: 'mesure' as const, question } : {}),
+      description: `U2 : ${libelle}, variant ${variant.nom}`,
+      attendus: jugee && layer ? [attendu('C25', 'a-faire', { variant: variant.id, layer: layer.id, champ: 'fills', token: '' })] : [],
     }, CODES_DE_U);
   };
   const titre = (degradation: Degradation, variant: string, peinture: PeintureLue, changements: Partial<SpecDeLayer> = {}): LayerLu =>
@@ -236,11 +237,11 @@ export function operateursPeinture(base: ComposantDeBase, graine: number = GRAIN
     const layer = titre(d, v, peintureUnie('fills'));
     d.inserer(d.releve.lecture.manquees, { layer: layer.id, champ: 'fills', motif: 'peintures mixtes ou illisibles' });
   });
-  temoin('layer masqué', (d, v) => { titre(d, v, peintureUnie('fills'), { visible: false }); }, 'Q-F3-1');
-  temoin('ancêtre masqué', (d, v) => {
+  temoin('layer masqué (jugé, Q-F3-1)', (d, v) => titre(d, v, peintureUnie('fills'), { visible: false }), true);
+  temoin('ancêtre masqué (jugé, Q-F3-1)', (d, v) => {
     const enveloppe = ajouterUnLayer(d, v, { nom: 'Wrap', type: 'FRAME', visible: false });
-    titre(d, v, peintureUnie('fills'), { parent: enveloppe.id });
-  }, 'Q-F3-1');
+    return titre(d, v, peintureUnie('fills'), { parent: enveloppe.id });
+  }, true);
 
   // U3. Cinq ordres de propriétés × fond, texte, trait : le token proposé ne dépend pas de l'ordre des axes du jeu.
   for (const [libelleDOrdre, ordre] of ORDRES_DE_PROPRIETES) {

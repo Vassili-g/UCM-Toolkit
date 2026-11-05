@@ -21,6 +21,6 @@ E3.5 et E3.6 faits. Rien n'est commité.
 
 - `packages/kit/src/controles/integrite.ts` : `controlerLesThemesEnDouble` (`theme-en-double`, sans correction) ; `Prefixe.doublons` et question `role-en-double` (une candidate par variable), chaque variable du rôle étant jugée.
 - `packages/kit/src/controles/structure.ts` : `controlerLesEchelles` compare toutes les échelles de `layout`, alias résolus, à 1e-6 ; `cible-inaccessible` (information, par collection) sans library choisie.
-- Régressions : `tests/integrite.structure.test.ts` (14, 15), `tests/structure.test.ts` (échelles, cible inaccessible) ; elles échouent sur les sources de HEAD (vérifié). Oracles `tests/stress/f2-structure/` passés de `mesure` à `attendu` (X1, X2, L2-9, L2-10, E1-8).
-- `npm run test --workspace @ucm-kit/core` : 7 échecs hors lot (4 dans `corrections*.test.ts`, 2 C29 et C80 dans `controles-*.test.ts`, le chrono de « 32 000 noms »), les six premiers aussi sur HEAD ; `npm run typecheck` passe.
+- Régressions : `tests/integrite.structure.test.ts` (14, 15), `tests/structure.test.ts` (échelles, cible inaccessible) ; elles échouent sur les sources d’avant le lot (vérifié). Oracles `tests/stress/f2-structure/` passés de `mesure` à `attendu` (X1, X2, L2-9, L2-10, E1-8).
+- `npm run test --workspace @ucm-kit/core` : 7 échecs hors lot (4 dans `corrections*.test.ts`, 2 C29 et C80 dans `controles-*.test.ts`, le chrono de « 32 000 noms »), les six premiers aussi sur les sources d’avant le lot ; `npm run typecheck` passe.
 - Reste : l'écriture de la fusion (E4.4), l'affichage des trois genres (E4a).
