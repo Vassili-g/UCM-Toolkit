@@ -195,7 +195,7 @@ Règles propres à la phase E :
 | [E3d](lots/E3d.md) Cible des alias du thème | `implementeur` | E3c | [x] 60f567cf, recette de Palettes non lue |
 | [E3e](lots/E3e.md) Variables indisponibles, voisins et scopes | `implementeur` | E3c | [x] 62ace337, N-08 en E10b |
 | [E3f](lots/E3f.md) Cartes de couches et thème absent | `implementeur` | E3e | [x] 62ace337 |
-| [E4a](lots/E4a.md) Questions et cartes de structure | `implementeur` | E3f, C6 | [ ] |
+| [E4a](lots/E4a.md) Questions et cartes de structure | `implementeur` | E3f, C6 | [x] 04b9f6c2, parent des homonymes à écrire dans le kit |
 | [E4b](lots/E4b.md) Échecs, ignorés et alias à écrire | `implementeur` | E4a, E3d | [ ] |
 | [E4c](lots/E4c.md) Fusion de variables | `implementeur-exigeant` | E4b, E3c | [ ] |
 | [E5a](lots/E5a.md) Layers masqués et rôles | `implementeur` | E1b | [x] 28d4fc6d, interface E5.1 et E5.3 en E4a |
