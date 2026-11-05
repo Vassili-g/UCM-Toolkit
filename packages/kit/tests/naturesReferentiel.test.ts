@@ -1,8 +1,34 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { CRANS, NUMEROS_DE_PALETTE, naturesDesNoms, type NatureDeSegment, type NomLu } from '../src/referentiel/index.js';
+import { naturesDesNomsParEtapes } from '../src/referentiel/natures.js';
 
 const COLLECTIONS = ['components', 'primitives', 'utility', 'brands', 'theme', 'layout'];
+
+test('les natures cèdent pendant leurs parcours et gardent les exclusions globales', () => {
+  const noms = [collection('components'), collection('primitives'), ...rampe('primitives', 'Zircon/light'),
+    ...Array.from({ length: 450 }, (_, rang) => variable('components', `Widget${rang}/foreground`)),
+    variable('theme', 'Widget0/value')];
+  const options = { ordinaires: new Set(['widget1']) };
+  const attendues = naturesDesNoms(noms, options);
+  const vus = new Set<string>();
+  const suivis = noms.map((nom) => new Proxy(nom, { get(cible, cle, receveur) {
+    vus.add(cible.id);
+    return Reflect.get(cible, cle, receveur);
+  } }));
+  const calcul = naturesDesNomsParEtapes(suivis, options);
+  let pauses = 0;
+  for (;;) {
+    vus.clear();
+    const etape = calcul.next();
+    assert.ok(vus.size <= 20, `${vus.size} noms dans un seul pas`);
+    if (etape.done) { assert.deepEqual(etape.value, attendues); break; }
+    pauses++;
+  }
+  assert.ok(pauses > 30);
+  assert.deepEqual(attendues.get(noms.find((nom) => nom.nom === 'Widget0/foreground')!.id), [null, null]);
+  assert.deepEqual(attendues.get(noms.find((nom) => nom.nom === 'Widget1/foreground')!.id), [null, null]);
+});
 const idDeCollection = (nom: string): string => JSON.stringify(['collection', nom]);
 
 function collection(nom: string): NomLu {

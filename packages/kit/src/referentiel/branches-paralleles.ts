@@ -2,7 +2,7 @@
 import type { Lexique } from './harmonisation.js';
 import { memeConcept, opposes, termeConnu, termeOuVarianteConnu } from './termes-connus.js';
 
-const TAILLE_D_UN_LOT = 200;
+const TAILLE_D_UN_LOT = 10;
 const SEPARATEUR = '\u0001';
 const BRANCHES_MAXIMALES_PAR_CLE = 50;
 const ENTREES_MAXIMALES_PAR_CLE = 200;
@@ -27,10 +27,14 @@ function ajouter(candidats: Map<string, Candidate>, a: string, ida: string, b: s
   candidats.set(cle, candidat);
 }
 
-function frereDansUneMemeBranche(a: ReadonlySet<string> | undefined, b: ReadonlySet<string> | undefined): boolean {
+function* frereDansUneMemeBranche(a: ReadonlySet<string> | undefined, b: ReadonlySet<string> | undefined): Generator<void, boolean> {
   if (!a || !b) return false;
   const [petit, grand] = a.size <= b.size ? [a, b] : [b, a];
-  for (const parent of petit) if (grand.has(parent)) return true;
+  let lus = 0;
+  for (const parent of petit) {
+    if (grand.has(parent)) return true;
+    if (++lus % TAILLE_D_UN_LOT === 0) yield;
+  }
   return false;
 }
 
@@ -50,6 +54,7 @@ export function* detecterBranchesParalleles(lexique: Lexique): Generator<void, r
     if (nom.categorie === 'collections') continue;
     const segments = nom.nom.split('/').map((segment) => segment.toLowerCase());
     for (let b = 0; b < segments.length; b++) {
+      if (++operations % TAILLE_D_UN_LOT === 0) yield;
       const prefixe = segments.slice(0, b).join('/');
       const base = [nom.portee, segments.length, b, prefixe].join(SEPARATEUR);
       (parents.get(segments[b]) ?? parents.set(segments[b], new Set()).get(segments[b])!).add(`${nom.portee}${SEPARATEUR}${prefixe}`);
@@ -57,6 +62,7 @@ export function* detecterBranchesParalleles(lexique: Lexique): Generator<void, r
       const cleIdentique = `${base}${SEPARATEUR}${reste.join('/')}`;
       (identiques.get(cleIdentique) ?? identiques.set(cleIdentique, new Set()).get(cleIdentique)!).add(segments[b]);
       for (let j = 0; j < reste.length; j++) {
+        if (++operations % TAILLE_D_UN_LOT === 0) yield;
         if (!lettres.test(reste[j])) continue;
         const cle = `${base}${SEPARATEUR}${j}${SEPARATEUR}${reste.map((segment, rang) => rang === j ? '*' : segment).join('/')}`;
         (masques.get(cle) ?? masques.set(cle, []).get(cle)!).push({ branche: segments[b], mot: reste[j], id: nom.id });
@@ -67,9 +73,11 @@ export function* detecterBranchesParalleles(lexique: Lexique): Generator<void, r
   const tailles = new Map<string, number>();
   const nombreIdentiques = new Map<string, number>();
   for (const [cle, branches] of identiques) {
+    if (++operations % TAILLE_D_UN_LOT === 0) yield;
     for (const branche of branches) {
       const cleDeTaille = `${brancheDeLaCle(cle)}${SEPARATEUR}${branche}`;
       tailles.set(cleDeTaille, (tailles.get(cleDeTaille) ?? 0) + 1);
+      if (++operations % TAILLE_D_UN_LOT === 0) yield;
     }
     if (branches.size < 2 || branches.size > BRANCHES_MAXIMALES_PAR_CLE) continue;
     const tri = [...branches].sort();
@@ -81,16 +89,17 @@ export function* detecterBranchesParalleles(lexique: Lexique): Generator<void, r
   }
   const candidats = new Map<string, Candidate>();
   for (const [cle, entrees] of masques) {
+    if (++operations % TAILLE_D_UN_LOT === 0) yield;
     if (entrees.length < 2 || entrees.length > ENTREES_MAXIMALES_PAR_CLE) continue;
     for (let i = 0; i < entrees.length; i++) for (let j = i + 1; j < entrees.length; j++) {
+      if (++operations % TAILLE_D_UN_LOT === 0) yield;
       const x = entrees[i], y = entrees[j];
-      if (x.branche === y.branche || x.mot === y.mot || frereDansUneMemeBranche(parents.get(x.mot), parents.get(y.mot))) continue;
+      if (x.branche === y.branche || x.mot === y.mot || (yield* frereDansUneMemeBranche(parents.get(x.mot), parents.get(y.mot)))) continue;
       const [premiere, seconde] = x.branche < y.branche ? [x.branche, y.branche] : [y.branche, x.branche];
       const communs = nombreIdentiques.get(`${brancheDeLaCle(cle)}${SEPARATEUR}${premiere}${SEPARATEUR}${seconde}`) ?? 0;
       const plusGrande = Math.max(tailles.get(`${brancheDeLaCle(cle)}${SEPARATEUR}${premiere}`) ?? 0, tailles.get(`${brancheDeLaCle(cle)}${SEPARATEUR}${seconde}`) ?? 0);
       if (communs < NOMS_MINIMAUX_SANS_TERME_CONNU || communs < plusGrande * PART_MINIMALE_DE_SOUS_CHEMINS_COMMUNS) continue;
       ajouter(candidats, x.mot, x.id, y.mot, y.id);
-      if (++operations % TAILLE_D_UN_LOT === 0) yield;
     }
   }
   for (const nom of lexique.noms.values()) {
@@ -107,16 +116,17 @@ export function* detecterBranchesParalleles(lexique: Lexique): Generator<void, r
   }
   const meilleurs = new Map<string, { partenaire: string; nombre: number; egalite: boolean }>();
   for (const candidat of candidats.values()) {
+    if (++operations % TAILLE_D_UN_LOT === 0) yield;
     const nombre = candidat.couples.size;
     for (const [mot, autre] of [[candidat.mots[0], candidat.mots[1]], [candidat.mots[1], candidat.mots[0]]] as const) {
       const actuel = meilleurs.get(mot);
       if (!actuel || nombre > actuel.nombre) meilleurs.set(mot, { partenaire: autre, nombre, egalite: false });
       else if (nombre === actuel.nombre) actuel.egalite = true;
     }
-    if (++operations % TAILLE_D_UN_LOT === 0) yield;
   }
   const resultat: PaireDeBranches[] = [];
   for (const candidat of candidats.values()) {
+    if (++operations % TAILLE_D_UN_LOT === 0) yield;
     const [a, b] = candidat.mots;
     const meilleurA = meilleurs.get(a)!, meilleurB = meilleurs.get(b)!;
     if (meilleurA.egalite || meilleurB.egalite || meilleurA.partenaire !== b || meilleurB.partenaire !== a) continue;
@@ -125,7 +135,12 @@ export function* detecterBranchesParalleles(lexique: Lexique): Generator<void, r
     if (termeConnu(a) && termeConnu(b) && !memeConcept(a, b)) continue;
     const connu = [a, b].some((mot) => mot.split('-').some(termeOuVarianteConnu));
     if (candidat.couples.size < NOMS_MINIMAUX_SANS_TERME_CONNU && !connu) continue;
-    resultat.push({ mots: candidat.mots, noms: new Set([...candidat.nomsDuMot[0], ...candidat.nomsDuMot[1]]), nomsDuMot: candidat.nomsDuMot });
+    const noms = new Set<string>();
+    for (const groupe of candidat.nomsDuMot) for (const nom of groupe) {
+      noms.add(nom);
+      if (++operations % TAILLE_D_UN_LOT === 0) yield;
+    }
+    resultat.push({ mots: candidat.mots, noms, nomsDuMot: candidat.nomsDuMot });
   }
   return resultat;
 }

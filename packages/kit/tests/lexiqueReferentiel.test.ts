@@ -206,6 +206,23 @@ test('la préparation et la normalisation cèdent après au plus deux cents noms
   assert.equal(lexique.detection.variables.total, 450);
 });
 
+test('le lexique ne lit pas plus de vingt noms entre deux cessions', () => {
+  const vus = new Set<string>();
+  const noms: NomLu[] = Array.from({ length: 450 }, (_, rang) => ({
+    id: `${rang}`, categorie: 'variables', portee: 'components',
+    get nom() { vus.add(`${rang}`); return `Widget${rang}/State Hover/Font Size`; },
+  }));
+  const preparation = commencerLexique();
+  preparation.ajouter(noms);
+  const calcul = preparation.terminer();
+  for (;;) {
+    vus.clear();
+    const etape = calcul.next();
+    assert.ok(vus.size <= 20, `${vus.size} noms dans un seul pas`);
+    if (etape.done) { assert.equal(etape.value.noms.size, 450); break; }
+  }
+});
+
 test('un grand groupe de collision cède aussi pendant la lecture de ses identifiants', () => {
   const lus = new Set<string>();
   const noms: NomLu[] = Array.from({ length: 1000 }, (_, rang) => ({

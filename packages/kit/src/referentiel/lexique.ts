@@ -2,14 +2,15 @@
 import type { CategorieDeNom, Convention, ConventionsParCategorie } from './conventions.js';
 import { assembler, categorieDuSegment, commencerDetectionDesConventions, decouperSegment, motsAvecCasse, termesDuSegment } from './ecriture-des-mots.js';
 import type { ChangementDeTerme, CleDeRegle, Collision, IndexDuVocabulaire, Lexique, Mots, NomLu, Occurrence, OccurrenceDeTerme, PlageDeTerme, PreparationDuLexique, Renommage, ResultatDuLexique } from './harmonisation.js';
-import { naturesDesNoms } from './natures.js';
+import { naturesDesNomsParEtapes } from './natures.js';
 import { collectionUcmReconnue } from './normalisation.js';
 
 const TAILLE_D_UN_LOT = 200;
+const NOMS_COPIES_PAR_PAS = 20;
 
 /**
- * Ajoute les noms sans analyse ; `terminer` indexe et détecte par lots de deux cents noms.
- * `ordinaires` : les termes que le fichier traite comme des mots ordinaires, jamais comme des noms (voir `naturesDesNoms`).
+ * Ajoute les noms sans analyse ; `terminer` calcule les natures par étapes et indexe un nom par pas.
+ * `ordinaires` : les termes que le fichier traite comme des mots ordinaires, jamais comme des noms (voir `naturesDesNomsParEtapes`).
  */
 export function commencerLexique(options: { readonly ordinaires?: ReadonlySet<string> } = {}): PreparationDuLexique {
   const recus: NomLu[] = [];
@@ -25,21 +26,20 @@ export function commencerLexique(options: { readonly ordinaires?: ReadonlySet<st
       const portees = new Map<string, string[]>();
       const detection = commencerDetectionDesConventions();
       let traites = 0;
-      // La nature d'un segment dépend de tous les noms du fichier : elle se calcule avant le premier lot,
-      // en un seul pas (`naturesDesNoms` ne cède pas). Les noms sont lus par lots avant ce calcul.
+      // La nature d'un segment dépend de tous les noms du fichier : elle précède l'indexation des termes.
       const lus: NomLu[] = [];
       for (const nom of recus) {
         lus.push({ ...nom });
-        if (++traites % TAILLE_D_UN_LOT === 0) yield;
+        if (++traites % NOMS_COPIES_PAR_PAS === 0) yield;
       }
-      const natures = naturesDesNoms(lus, { ordinaires: options.ordinaires });
+      yield;
+      const natures = yield* naturesDesNomsParEtapes(lus, { ordinaires: options.ordinaires });
       const ordinaires = options.ordinaires ?? new Set<string>();
       const estOrdinaire = (decoupe: Mots): boolean => {
         if (decoupe.length < 2 || ordinaires.size === 0) return false;
         const minuscules = decoupe.map((mot) => mot.toLowerCase());
         return ordinaires.has(minuscules.join('-')) || ordinaires.has(minuscules.join(''));
       };
-      traites = 0;
       for (const nom of recus) {
         noms.set(nom.id, nom);
         const ids = portees.get(nom.portee) ?? [];
@@ -78,7 +78,7 @@ export function commencerLexique(options: { readonly ordinaires?: ReadonlySet<st
         });
         termes.set(nom.id, plagesDuNom);
         detection.ajouter(nom, mots);
-        if (++traites % TAILLE_D_UN_LOT === 0) yield;
+        yield;
       }
       return { noms, mots, occurrences, natures, termes, occurrencesDesTermes, portees, detection: detection.resultat() };
     },

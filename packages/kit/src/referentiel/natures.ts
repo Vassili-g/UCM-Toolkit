@@ -13,6 +13,7 @@ import { ABREVIATIONS, CRANS, MODES, NUMEROS_DE_PALETTE, PROFILS, REGISTRES, SYN
 
 export type NatureDeSegment = 'composant' | 'palette';
 type Nature = NatureDeSegment | null;
+const TAILLE_D_UN_LOT = 20;
 
 /** Un chemin porte une palette à partir de ce nombre de crans différents. UCM Palettes détecte les palettes du fichier sur ce seuil. */
 export const SEUIL_DE_PALETTE = 5;
@@ -65,13 +66,34 @@ export function naturesDesNoms(
   noms: Iterable<NomLu>,
   options: { readonly ordinaires?: ReadonlySet<string> } = {},
 ): ReadonlyMap<string, readonly Nature[]> {
-  const tous = [...noms];
-  const collectionsUcm = new Map(tous.filter((nom) => nom.categorie === 'collections').map((nom) => [nom.id, collectionUcmReconnue(nom.nom)]));
+  const calcul = naturesDesNomsParEtapes(noms, options);
+  let etape = calcul.next();
+  while (!etape.done) etape = calcul.next();
+  return etape.value;
+}
+
+/** Calcule les mêmes natures avec des cessions pendant chaque parcours de l'inventaire. */
+export function* naturesDesNomsParEtapes(
+  noms: Iterable<NomLu>,
+  options: { readonly ordinaires?: ReadonlySet<string> } = {},
+): Generator<void, ReadonlyMap<string, readonly Nature[]>> {
+  const tous: NomLu[] = [];
+  const collectionsUcm = new Map<string, ReturnType<typeof collectionUcmReconnue>>();
+  let operations = 0;
+  for (const nom of noms) {
+    tous.push(nom);
+    if (nom.categorie === 'collections') collectionsUcm.set(nom.id, collectionUcmReconnue(nom.nom));
+    if (++operations % TAILLE_D_UN_LOT === 0) yield;
+  }
+  yield;
   const cransParChemin = new Map<string, Set<string>>();
   const cheminsDeclares = new Set<string>();
   const candidats = new Map<string, { readonly lu: NomEtSegments; readonly rang: number; readonly cle: string }[]>();
 
-  const lus = tous.filter((nom) => nom.categorie !== 'collections').map((nom): NomEtSegments => {
+  const lus: NomEtSegments[] = [];
+  for (const nom of tous) {
+    if (++operations % TAILLE_D_UN_LOT === 0) yield;
+    if (nom.categorie === 'collections') continue;
     const segments = nom.nom.split('/');
     const minuscules = segments.map((segment) => segment.toLowerCase());
     const dansComponents = collectionsUcm.get(nom.portee) === 'components';
@@ -81,10 +103,12 @@ export function naturesDesNoms(
       if (minuscules[rang] === DOSSIER_DES_COMPOSANTS) return null;
       return (rang === 0 && dansComponents) || minuscules[rang - 1] === DOSSIER_DES_COMPOSANTS ? 'composant' : null;
     });
-    return { nom, segments, minuscules, natures };
-  });
+    lus.push({ nom, segments, minuscules, natures });
+  }
+  yield;
 
   for (const lu of lus) {
+    if (++operations % TAILLE_D_UN_LOT === 0) yield;
     const numeros = collectionsUcm.get(lu.nom.portee) === 'primitives' ? numerosDePalette : crans;
     const rang = candidatDePalette(lu.minuscules, numeros);
     if (rang < 0 || !lu.segments[rang]) continue;
@@ -100,12 +124,24 @@ export function naturesDesNoms(
     memeChemin.push({ lu, rang, cle });
     candidats.set(cle, memeChemin);
   }
+  yield;
   for (const [cle, variables] of candidats) {
+    if (++operations % TAILLE_D_UN_LOT === 0) yield;
     if (!cheminsDeclares.has(cle) && (cransParChemin.get(cle)?.size ?? 0) < SEUIL_DE_PALETTE) continue;
-    for (const { lu, rang } of variables) lu.natures[rang] ??= 'palette';
+    for (const { lu, rang } of variables) {
+      lu.natures[rang] ??= 'palette';
+      if (++operations % TAILLE_D_UN_LOT === 0) yield;
+    }
   }
 
-  const sansNature = new Set(lus.flatMap((lu) => lu.minuscules.filter((_, rang) => lu.natures[rang] === null)));
+  yield;
+  const sansNature = new Set<string>();
+  for (const lu of lus) {
+    for (let rang = 0; rang < lu.minuscules.length; rang++) {
+      if (lu.natures[rang] === null) sansNature.add(lu.minuscules[rang]);
+      if (++operations % TAILLE_D_UN_LOT === 0) yield;
+    }
+  }
   const ordinaires = options.ordinaires ?? new Set<string>();
   const formesOrdinaires = new Map<string, boolean>();
   const estOrdinaire = (segment: string, minuscule: string): boolean => {
@@ -120,13 +156,19 @@ export function naturesDesNoms(
   };
 
   const resultat = new Map<string, readonly Nature[]>();
-  for (const nom of tous) if (nom.categorie === 'collections') resultat.set(nom.id, nom.nom.split('/').map(() => null));
+  yield;
+  for (const nom of tous) {
+    if (nom.categorie === 'collections') resultat.set(nom.id, nom.nom.split('/').map(() => null));
+    if (++operations % TAILLE_D_UN_LOT === 0) yield;
+  }
+  yield;
   for (const lu of lus) {
     resultat.set(lu.nom.id, lu.natures.map((nature, rang) => {
       if (!nature) return null;
       const minuscule = lu.minuscules[rang];
       return motDuReferentiel(minuscule) || sansNature.has(minuscule) || estOrdinaire(lu.segments[rang], minuscule) ? null : nature;
     }));
+    yield;
   }
   return resultat;
 }

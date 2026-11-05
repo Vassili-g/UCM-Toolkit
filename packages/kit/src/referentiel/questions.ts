@@ -7,7 +7,7 @@ import { detecterBranchesParalleles } from './branches-paralleles.js';
 import { decouperPourQuestions, distanceUnOuEchange, opposes, termeConnu, termeDeComposant, termeOuFormeConnu, termesADeuxLettres, termesAUneLettre } from './termes-connus.js';
 import { ABREVIATIONS, FORMES_D_UN_MEME_MOT, MOTS_DISTINCTS, REGISTRES, SYNONYMES_COURANTS } from './vocabulaire.js';
 
-const TAILLE_D_UN_LOT = 200;
+const TAILLE_D_UN_LOT = 10;
 const comparer = (a: string, b: string): number => a < b ? -1 : a > b ? 1 : 0;
 const lettres = /\p{L}/u;
 const uniquementDesLettres = /^\p{L}+$/u;
@@ -179,7 +179,7 @@ function* trierQuestions(questions: Question[]): Generator<void, Question[]> {
   return source;
 }
 
-/** Détecte par tranches de deux cents noms et borne aussi les comparaisons internes. */
+/** Détecte les questions avec des cessions pendant les parcours et les comparaisons internes. */
 export function* detecterParEtapes(lexique: Lexique, index: IndexDuVocabulaire, dejaJuge: DejaJuge,
   options: { readonly seuil?: number; readonly maximum?: number } = {}): Generator<void, ResultatDesQuestions> {
   const observes = new Map<string, MotObserve>();
@@ -345,6 +345,7 @@ export function* detecterParEtapes(lexique: Lexique, index: IndexDuVocabulaire, 
   const parCleProche = new Map<string, string[]>();
   const parLettres = new Map<string, string[]>();
   for (const observe of observes.values()) {
+    yield;
     const mot = observe.mot;
     if ([...mot].length < LONGUEUR_MINIMALE_D_UNE_FAUTE_A_UNE_LETTRE || !uniquementDesLettres.test(mot) || termeOuFormeConnu(mot) || termesAUneLettre(mot).length > 0) continue;
     for (const cle of [mot, ...suppressions(mot)]) {
@@ -372,6 +373,7 @@ export function* detecterParEtapes(lexique: Lexique, index: IndexDuVocabulaire, 
     // et seules les formes des segments où ils diffèrent portent la collision (`colors` n'est pas en cause si `radius` et `border-radius` se rejoignent).
     const miens = avant.split('/');
     for (const occupant of occupants) {
+      if (++operations % TAILLE_D_UN_LOT === 0) yield;
       if (occupant.avant === avant) continue;
       const siens = occupant.avant.split('/');
       for (const { forme, par, rang } of formes) {
@@ -433,7 +435,7 @@ export function* detecterParEtapes(lexique: Lexique, index: IndexDuVocabulaire, 
 
   // Une faute d'un terme connu (D1, D2) : une lettre, ou deux au-dessus de leur seuil, sans place partagée ni nombre d'emplois minimal, même si le terme manque au fichier.
   for (const observe of observes.values()) {
-    if (++operations % TAILLE_D_UN_LOT === 0) yield;
+    yield;
     const mot = observe.mot;
     const longueur = [...mot].length;
     if (longueur < LONGUEUR_MINIMALE_D_UNE_FAUTE_A_UNE_LETTRE || voulus.has(mot) || termesUcm.has(mot) || !uniquementDesLettres.test(mot)

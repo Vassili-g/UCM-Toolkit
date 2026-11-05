@@ -4,6 +4,7 @@ import test from 'node:test';
 import { commencerLexique, detecterLesQuestions, detecterParEtapes, indexerVocabulaire,
   LONGUEUR_MINIMALE_D_UNE_FAUTE_A_DEUX_LETTRES, LONGUEUR_MINIMALE_D_UNE_FAUTE_A_UNE_LETTRE, SYNONYMES_COURANTS,
   type DejaJuge, type NomLu, type Question } from '../src/referentiel/index.js';
+import { detecterBranchesParalleles } from '../src/referentiel/branches-paralleles.js';
 
 const index = indexerVocabulaire({ personnalises: [], ecartsUcm: [] }).index;
 const vide: DejaJuge = { distincts: [], plusTard: [], voulus: [], collectionsGardees: [] };
@@ -471,4 +472,53 @@ test('le générateur cède au plus tous les deux cents noms', () => {
   assert.ok(lus - precedent <= 200);
   assert.ok(pauses >= 5);
   assert.deepEqual(etape.value.questions, []);
+});
+
+test('les questions cèdent avant onze recherches de remplacements', () => {
+  const source = lexique(Array.from({ length: 450 }, (_, rang) => nom(`${rang}`, `group${rang}/value${rang}`)));
+  let recherches = 0;
+  const surveille = { remplacements: (...args: Parameters<typeof index.remplacements>) => {
+    recherches++;
+    return index.remplacements(...args);
+  } };
+  const calcul = detecterParEtapes(source, surveille, vide);
+  for (;;) {
+    recherches = 0;
+    const etape = calcul.next();
+    assert.ok(recherches <= 10, `${recherches} recherches dans un seul pas`);
+    if (etape.done) { assert.deepEqual(etape.value, { questions: [], autres: [] }); break; }
+  }
+});
+
+test('les branches cèdent pendant le parcours des masques sans candidat', () => {
+  const source = lexique(Array.from({ length: 450 }, (_, rang) => nom(`${rang}`, `group${rang}/section${rang}/value${rang}`)));
+  const iterer = Map.prototype[Symbol.iterator];
+  const descripteur = Object.getOwnPropertyDescriptor(Map.prototype, Symbol.iterator)!;
+  let visites = 0;
+  Object.defineProperty(Map.prototype, Symbol.iterator, { ...descripteur, value: function* (this: Map<unknown, unknown>) {
+    for (const entree of iterer.call(this)) { visites++; yield entree; }
+  } });
+  try {
+    const calcul = detecterBranchesParalleles(source);
+    for (;;) {
+      visites = 0;
+      const etape = calcul.next();
+      assert.ok(visites <= 20, `${visites} entrées de tables dans un seul pas`);
+      if (etape.done) { assert.deepEqual(etape.value, []); break; }
+    }
+  } finally { Object.defineProperty(Map.prototype, Symbol.iterator, descripteur); }
+});
+
+test('les masques d’un nom long se construisent entre plusieurs cessions', () => {
+  let lectures = 0;
+  const source = lexique([nom('long', Array.from({ length: 40 }, (_, rang) => `group${rang}`).join('/'))]);
+  const original = source.noms.get('long')!;
+  const suivi = { ...original, get id() { lectures++; return 'long'; } };
+  const calcul = detecterBranchesParalleles({ ...source, noms: new Map([['long', suivi]]) });
+  for (;;) {
+    lectures = 0;
+    const etape = calcul.next();
+    assert.ok(lectures <= 20, `${lectures} masques dans un seul pas`);
+    if (etape.done) { assert.deepEqual(etape.value, []); break; }
+  }
 });
