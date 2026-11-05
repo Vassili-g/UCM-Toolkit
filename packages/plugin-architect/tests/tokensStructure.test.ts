@@ -5,6 +5,8 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
+import { grouperLesCouches } from '@ucm-kit/core/controles';
+
 import type { Constat, Correction } from '../src/messages/commun';
 import type { Bilan } from '../src/messages/nomenclature';
 
@@ -40,6 +42,13 @@ const CATEGORIE_DU_GENRE: Readonly<Record<string, IdDeCategorie>> = {
   'mode-du-theme': 'modes',
   type: 'types',
   'mal-rangee': 'rangement',
+  'variable-inconnue': 'manquantes',
+  'rampe-autre-palette': 'crans',
+  'branche-de-mode': 'modes',
+  'sens-partage': 'crans',
+  'theme-en-double': 'rangement',
+  'role-en-double': 'valeurs',
+  'cible-inaccessible': 'alias',
 };
 
 const constatDe = (id: string, faits: Constat['faits']): Constat => ({ id, code: 'C82', type: 'corriger', famille: 'liaisons', variants: [], layers: [], faits });
@@ -61,7 +70,10 @@ function constatsDesFixtures(): Constat[] {
 
 /** Un constat par genre, sans correction : les faits que sa phrase lit, et rien de plus. */
 function constatsDeTousLesGenres(): Constat[] {
-  const faits = { variable: 'primary/ring', mode: 'light', collection: 'theme', rampe: 'primary/light', cran: 50, variables: 'primary/ring', manque: 'dark', cible: 'color/red/500' };
+  const faits = {
+    variable: 'primary/ring', mode: 'light', collection: 'theme', rampe: 'primary/light', cran: 50, variables: 'primary/ring', manque: 'dark', cible: 'color/red/500',
+    coucheCible: 'primitives', roles: 'primary/ring', groupe: 'primary', reference: 'theme', rampeDeLaPalette: 'primary/dark',
+  };
   return [
     ...Object.keys(CATEGORIE_DU_GENRE).filter((genre) => genre !== 'valeur-vide' && genre !== 'doublons').map((genre) => constatDe(`C82:${genre}:x`, { genre, ...faits })),
     constatDe('C63:vide', { soeurs: 3, variable: 'primary/ring', mode: 'light' }),
@@ -74,11 +86,13 @@ test('chaque genre de constat à régler dans Figma a une seule catégorie, et n
   assert.equal(constats.length, Object.keys(CATEGORIE_DU_GENRE).length, 'un constat par genre');
   const categories = lireLesCategories({ nomenclature: null, constats, corrections: [], noms: SANS_NOMS, partielle: false });
   const placements = categories.flatMap((categorie) => categorie.cartes.flatMap((carte) => (carte.sorte === 'constat' ? [[carte.constat.id, categorie.id] as const] : [])));
-  assert.deepEqual(placements.map(([id]) => id).sort(), constats.map(({ id }) => id).sort(), 'chaque constat paraît une seule fois');
+  // Les constats `couche` d'une même collection et d'une même couche forment une seule carte, qui prend l'identifiant du groupe.
+  const idDeLaCarte = (constat: Constat): string => (genreDe(constat) === 'couche' ? grouperLesCouches([constat])[0].id : constat.id);
+  assert.deepEqual(placements.map(([id]) => id).sort(), constats.map(idDeLaCarte).sort(), 'chaque constat paraît une seule fois');
   for (const constat of constats) {
-    assert.deepEqual(placements.filter(([id]) => id === constat.id).map(([, categorie]) => categorie), [CATEGORIE_DU_GENRE[genreDe(constat)]], genreDe(constat));
+    assert.deepEqual(placements.filter(([id]) => id === idDeLaCarte(constat)).map(([, categorie]) => categorie), [CATEGORIE_DU_GENRE[genreDe(constat)]], genreDe(constat));
   }
-  assert.equal(Object.keys(CATEGORIE_DU_GENRE).length, 14);
+  assert.equal(Object.keys(CATEGORIE_DU_GENRE).length, 21);
   assert.deepEqual(GROUPES, ['manquantes', 'crans', 'alias', 'modes', 'valeurs', 'couches', 'types', 'rangement']);
 });
 
@@ -92,8 +106,9 @@ test('les constats des états de galerie sont tous rangés, chacun dans la caté
   }
   const aRegler = constats.filter((constat) => !constat.correction);
   assert.ok(aRegler.length >= 15, 'les fixtures couvrent plusieurs constats');
-  assert.deepEqual([...rangesParConstat.keys()].sort(), aRegler.map(({ id }) => id).sort(), 'seuls les constats sans correction deviennent des cartes À faire');
-  for (const constat of aRegler) assert.deepEqual(rangesParConstat.get(constat.id), [CATEGORIE_DU_GENRE[genreDe(constat)]], constat.id);
+  const idDeLaCarte = (constat: Constat): string => (genreDe(constat) === 'couche' ? grouperLesCouches(aRegler).find((groupe) => groupe.constats.includes(constat.id))!.id : constat.id);
+  assert.deepEqual([...rangesParConstat.keys()].sort(), [...new Set(aRegler.map(idDeLaCarte))].sort(), 'seuls les constats sans correction deviennent des cartes À faire');
+  for (const constat of aRegler) assert.deepEqual(rangesParConstat.get(idDeLaCarte(constat)), [CATEGORIE_DU_GENRE[genreDe(constat)]], constat.id);
   assert.ok(new Set(aRegler.map(genreDe)).size >= 9, 'les fixtures portent la plupart des genres');
 });
 

@@ -38,8 +38,45 @@ const etatsDeRegles = constatsDeRegles.flatMap((constat, rang) => {
   ];
 });
 
+/*
+ * Lot E4a. Les constats du composant qui n'avaient que le repli « Constat Cxx » : un layer masqué, un layer dont le nom annonce un rôle,
+ * deux layers homonymes, une taille qui change selon le mode, deux axes de style, un style sur les couleurs d'un autre dossier et la valeur
+ * d'un variant écrite autrement. Leurs faits suivent ceux que le kit écrit (`controles/corrections.ts`, `propagation.ts`, `nommage.ts`).
+ */
+const constatDuComposant = (id, code, type, famille, faits, reste = {}) => ({ id, code, type, famille, variants: [], layers: [], faits, ...reste });
+const constatsDeE4a = [
+  constatDuComposant('C25:masque', 'C25', 'corriger', 'liaisons', { calque: 'message', champ: 'fills', masque: 'ancetre', ancetre: 'icon-wrapper' }),
+  constatDuComposant('C29:masque', 'C29', 'corriger', 'tailles', { calque: 'icon', champ: 'width', valeur: 16, masque: 'layer' }),
+  constatDuComposant('C17:divider', 'C17', 'corriger', 'liaisons', { token: 'alert/colors/info/standard/background', role: 'background', attendu: 'divider', champ: 'fills', calque: 'Divider' }),
+  constatDuComposant('C24:homonymes', 'C24', 'corriger', 'liaisons', { modele: nomDeVariant('info', 'standard'), calque: 'title', champ: 'fills', homonymes: 2 }, { question: { id: 'C24:homonymes', candidats: [] } }),
+  constatDuComposant('C63:taille-selon-le-mode', 'C63', 'corriger', 'tailles', { genre: 'taille-selon-le-mode', variable: 'alert/sizes/md/height', cle: 'k:height', modeClair: 'Light', valeurClair: 48, modeSombre: 'Dark', valeurSombre: 52 }),
+  constatDuComposant('C63:deux-axes-de-style', 'C63', 'corriger', 'variants', { genre: 'deux-axes-de-style', jeu: 'Alert', axes: 'Variant, Style' }),
+  constatDuComposant('C63:style-et-dossier', 'C63', 'corriger', 'liaisons', { genre: 'style-et-dossier', variable: 'alert/colors/info/subtle/background', style: 'subtle', dossier: 'solid', attendu: 'surface' }),
+  constatDuComposant('C10:variant', 'C10', 'corriger', 'tailles', { jeu: 'Alert', propriete: 'Size', valeur: 'S', attendu: 'Small', cote: 'variant' }),
+];
+function nomDeVariant(severity, style) {
+  return `Severity=${severity}, Variant=${style}`;
+}
+/** Une liaison dont deux segments sont faux, sur un layer masqué : la question dit aussi ce que la même réponse règle. */
+const questionFusionnee = constatDuComposant('C22:fusion', 'C22', 'corriger', 'liaisons', {
+  calque: 'message', champ: 'fills', axe: 'State', valeur: 'disabled', token: 'alert/colors/info/standard/foreground', segment: 'default',
+  masque: 'layer', autresEcarts: 'rôle border',
+}, { question: { id: 'C22:fusion', candidats: [{ cle: 'cle-border', nom: 'alert/colors/info/disabled/border' }, { cle: 'cle-foreground', nom: 'alert/colors/info/disabled/foreground' }] } });
+
 const ETATS = [
   ...etatsDeRegles,
+  {
+    id: 'c-afaire-sans-phrase', titre: 'À faire dans Figma, constats qui n’avaient pas de phrase', quand: 'Alert est analysé ; le panneau montre Tout, avec un layer masqué, un rôle annoncé par le nom d’un layer, deux layers homonymes, une taille qui change selon le mode, deux axes de style, un style sur un autre dossier et une valeur de variant mal écrite.',
+    regarder: 'Aucune carte ne dit « Constat Cxx » : « Le layer message est dans icon-wrapper, qui est masqué. », « Le layer Divider porte le nom d’un divider. » avec « Renommez le layer dans Figma s’il n’est pas un divider », « Deux layers s’appellent title. Architect ne sait pas lequel lier. », « … vaut 48 px en Light et 52 px en Dark. », « Les axes Variant et Style décrivent tous deux le style. », « Le style subtle utilise les couleurs de solid. » et « La valeur S de Size s’écrit Small dans UCM. » ; chaque carte dit où la régler.',
+    existe: true,
+    atteinte: [...ouvrirLePanneau.slice(0, 5), { message: { ...analyseDeQuestions, constats: constatsDeE4a } }, ignores([]), { clic: '.bouton-panneau' }, tout],
+  },
+  {
+    id: 'q-fusionnee', titre: 'Question à deux segments faux, layer masqué', quand: 'Le designer choisit la puce Couleurs ; le layer message est masqué et sa liaison se trompe d’état et de rôle.',
+    regarder: 'Sous la ligne grise de la question, « Le layer message est masqué. » puis « La correction règle aussi rôle border. » ; les deux candidats gardent leurs boutons, aucun n’est choisi d’avance.',
+    existe: true,
+    atteinte: [...ouvrirLePanneau.slice(0, 5), { message: { ...analyseDeQuestions, constats: [questionFusionnee] } }, ignores([]), { clic: '.bouton-panneau' }, { clic: '.puce-element[data-element="couleurs"]' }],
+  },
   {
     id: 'c-afaire', titre: 'À faire dans Figma', quand: 'Alert est analysé ; le panneau montre Tout. Un constat est déjà ignoré.',
     regarder: 'Les constats à faire en fin de leur section ; sur chaque carte un liseré, une icône et un mot de la couleur du type (octogone rouge, triangle orange, cercle jaune) ; la phrase, le lieu, où régler ; en bas la section Ignorés et une carte muette.',

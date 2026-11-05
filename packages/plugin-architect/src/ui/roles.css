@@ -69,4 +69,9 @@
   --sombre-encre: #111111;
   --sombre-cadre-survol: #ff5fa2;
   --sombre-cadre-portee: #4c9bff;
+  /* Les dessins de la question du texte des boutons : une surface foncée, une claire, et le texte noir ou blanc qu'elles portent. */
+  --dessin-surface-foncee: #2f4a7d;
+  --dessin-surface-claire: #d4dcef;
+  --dessin-texte-noir: #111111;
+  --dessin-texte-blanc: #ffffff;
 }

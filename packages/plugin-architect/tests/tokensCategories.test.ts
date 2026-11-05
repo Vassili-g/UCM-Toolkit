@@ -41,7 +41,7 @@ const SIGNES_ATTENDUS = ['nom', 'a-creer', 'cran', 'rompue', 'mode', 'valeurs', 
 
 for (const [id, attendus] of [
   ['a-appliquer', [7, 0, 0, 0, 0, 0, 0, 0, 0, 0]],
-  ['t-integrite-a-faire', [0, 2, 1, 0, 2, 0, 5, 1, 1, 0]],
+  ['t-integrite-a-faire', [0, 2, 1, 0, 2, 0, 4, 1, 1, 0]],
   ['t-structure', [7, 0, 0, 2, 2, 2, 1, 0, 0, 1]],
 ] as const) {
   test(`${id} rend les dix catégories, signes et nombres de cartes`, () => {

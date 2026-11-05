@@ -233,3 +233,81 @@ button.bloc-bouton {
 .ligne-de-liste {
   padding-bottom: var(--espace-controle);
 }
+
+/* Les réponses d'une question sous sa phrase, sans aucune cochée. */
+.constat-choix {
+  display: grid;
+  gap: var(--espace-serre);
+  padding-top: var(--espace-serre);
+  color: var(--texte);
+}
+
+.constat-choix-ligne {
+  display: flex;
+  align-items: center;
+  gap: var(--espace-controle);
+}
+
+/* La liste des variables que la carte groupée des couches déplie, et la ligne qui l'annonce. */
+.constat-variables {
+  display: grid;
+  gap: var(--espace-serre);
+  padding: var(--espace-controle) 0;
+}
+
+.constat-voir {
+  color: var(--texte-marque);
+}
+
+/* Un bouton et un encadré dessinés dans la couleur de texte que le choix donne, chacun sous sa légende. */
+.sens-dessin {
+  display: inline-flex;
+  gap: var(--espace-controle);
+}
+
+.sens-figure {
+  display: grid;
+  justify-items: center;
+  gap: 2px;
+}
+
+.sens-bouton,
+.sens-encadre {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 22px;
+  border-radius: 4px;
+}
+
+.sens-bouton.texte-blanc,
+.sens-encadre.texte-noir {
+  background: var(--dessin-surface-foncee);
+}
+
+.sens-bouton.texte-noir,
+.sens-encadre.texte-blanc {
+  background: var(--dessin-surface-claire);
+}
+
+.sens-trait {
+  width: 22px;
+  height: 3px;
+  border-radius: 2px;
+}
+
+.sens-bouton.texte-blanc .sens-trait,
+.sens-encadre.texte-noir .sens-trait {
+  background: var(--dessin-texte-blanc);
+}
+
+.sens-bouton.texte-noir .sens-trait,
+.sens-encadre.texte-blanc .sens-trait {
+  background: var(--dessin-texte-noir);
+}
+
+.sens-legende {
+  color: var(--texte-second);
+  font-size: 10px;
+}

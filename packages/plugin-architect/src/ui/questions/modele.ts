@@ -65,6 +65,21 @@ export interface ContexteDeQuestions {
 const texte = (valeur: string | number | undefined): string | null => (typeof valeur === 'string' && valeur !== '' ? valeur : null);
 const nombre = (valeur: string | number | undefined): number | null => (typeof valeur === 'number' && Number.isFinite(valeur) ? valeur : null);
 
+/**
+ * Ce que la carte ajoute à sa ligne grise quand le constat le dit : le layer est masqué (Q-F3-1), et la réponse règle d'autres segments
+ * de la même liaison (`autresEcarts`, Q-F3-16). Vide sinon.
+ */
+function faitsAjoutes(constat: Constat, layer: string): string {
+  const masque = TEXTES.carteDuComposant.masquage(layer, texte(constat.faits.masque), texte(constat.faits.ancetre));
+  const autres = texte(constat.faits.autresEcarts);
+  return [masque, autres === null ? '' : TEXTES.carteDuComposant.reglesAussi(autres)].filter((phrase) => phrase !== '').join(' ');
+}
+
+const avecLesFaits = (constat: Constat, layer: string, meta: string): string => {
+  const ajoutes = faitsAjoutes(constat, layer);
+  return ajoutes === '' ? meta : `${meta} ${ajoutes}`;
+};
+
 /** La famille de layout dont C29 cherche un token, d'après le champ lu : la règle du kit (`familleLayoutCompatible`). */
 function familleDeLayout(champ: string): string {
   if (/radius/i.test(champ)) return 'radius';
@@ -122,7 +137,7 @@ function questionDEtat(constat: Constat, id: string, candidats: readonly { reado
     id, constat, origine: null, lieu: noms.length === 0 ? [] : lieuDesVariants(noms),
     titre: [T.lierLe(champ), { variant }, T.a, { chemin: premier.nom, vus: [etat] }, T.finDeLaQuestion],
     titreEnTexte: `${T.lierLe(champ)}${variant}${T.a}${premier.nom}${T.finDeLaQuestion}`,
-    meta: `${T.layerSuivi(layer)}${T.lieAuRepos}`,
+    meta: avecLesFaits(constat, layer, `${T.layerSuivi(layer)}${T.lieAuRepos}`),
     indice,
     ancien: effetDuSegment(actuel, segment, false),
     nouveau: effetDuSegment(premier.nom, etat, true),
@@ -167,7 +182,7 @@ function questionDeLiaison(constat: Constat, id: string, candidats: readonly { r
     id, constat, origine: null, lieu: noms.length === 0 ? [] : lieuDesVariants(noms), indice: null,
     titre: [T.lier, { olive: layer }, T.a, { chemin: nom, vus: [layer] }, T.finDeLaQuestion],
     titreEnTexte: `${T.lier}${layer}${T.a}${nom}${T.finDeLaQuestion}`,
-    meta: `${noms.length === 0 ? `${lieu.charAt(0).toUpperCase()}${lieu.slice(1)}` : lieu}${suite}`,
+    meta: avecLesFaits(constat, layer, `${noms.length === 0 ? `${lieu.charAt(0).toUpperCase()}${lieu.slice(1)}` : lieu}${suite}`),
     ancien: [lie !== null ? sansPrefixe(lie, contexte.composant) : `${layer}, ${TEXTES.correctionsDuComposant.enDur(texte(constat.faits.champ) ?? 'fills')}`],
     nouveau: effetDuChemin(nom, layer),
     principal: { libelle: T.boutonLier, reponse: reponseDe(premier) },
@@ -202,7 +217,7 @@ function questionProche(constat: Constat, id: string, candidats: readonly Candid
     id, constat, origine: null, lieu: [], indice: null,
     titre: [T.leDeLayer(propriete), { olive: layer }, T.vautSansToken(valeur, famille)],
     titreEnTexte: `${T.leDeLayer(propriete)}${layer}${T.vautSansToken(valeur, famille)}`,
-    meta: T.lierChangeLeRendu,
+    meta: avecLesFaits(constat, layer, T.lierChangeLeRendu),
     ancien: [], nouveau: [],
     principal: propositions[0], autres: propositions.slice(1),
     reponseEnTexte: (correction) => {

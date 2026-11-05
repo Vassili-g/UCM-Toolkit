@@ -9,6 +9,7 @@
  * retrouve la variable par son nom entier. Un constat C82 n'a pas `cle` : son identifiant la porte (`C82:<genre>:<clé>[:<mode>]`), et
  * le fait `variable` est le nom sans la collection.
  */
+import { grouperLesCouches } from '@ucm-kit/core/controles';
 import { MODES, ciblesAdmises, collectionUcmReconnue, modeDuThemeReconnu, variableDuThemeReconnue } from '@ucm-kit/core/referentiel';
 import type { TypeDAlerte } from 'ucm-plugin-socle/src/ui/Alerte';
 import type { Constat, Correction } from '../../messages/commun';
@@ -30,6 +31,13 @@ export interface FaitDeConstat {
   readonly valeur: readonly Morceau[];
 }
 
+/** Une réponse que la carte d'une question propose. Elle ne s'écrit pas d'ici : le designer la fait dans la fenêtre Variables. */
+export interface ChoixDeCarte {
+  readonly libelle: string;
+  /** La couleur du texte que le choix dessine (un bouton et un encadré) ; `null` quand le choix n'a pas de dessin. */
+  readonly dessin: 'noir' | 'blanc' | null;
+}
+
 export interface ConstatAFaire {
   readonly id: string;
   readonly type: TypeDAlerte;
@@ -43,15 +51,23 @@ export interface ConstatAFaire {
   readonly variable: { readonly nom: string; readonly cle: string | null } | null;
   /** Le rôle du thème qu'une palette n'a pas (`surface/subtle`), pour Ignorer « Dans tout le fichier » ; `null` pour tout autre constat. */
   readonly role: string | null;
+  /** Les réponses d'une question, sans aucune cochée ; vide pour un constat sans choix. */
+  readonly choix: readonly ChoixDeCarte[];
+  /** Les noms entiers que la carte groupée de QV-3 déplie ; vide pour toute autre carte. */
+  readonly variables: readonly string[];
 }
 
 type GenreDeConstat =
   | 'alias-supprime' | 'library-inactive' | 'sans-valeur-en-mode' | 'valeur-vide' | 'doublons' | 'couleur-sans-alias'
-  | 'variable-absente' | 'cran-absent' | 'cran' | 'couche' | 'valeur-directe' | 'mode-du-theme' | 'type' | 'mal-rangee';
+  | 'variable-absente' | 'cran-absent' | 'cran' | 'couche' | 'valeur-directe' | 'mode-du-theme' | 'type' | 'mal-rangee'
+  | 'variable-inconnue' | 'rampe-autre-palette' | 'branche-de-mode' | 'sens-partage' | 'theme-en-double' | 'role-en-double' | 'cible-inaccessible'
+  | 'theme-non-reconnu';
 
 const GENRES_DECLARES: readonly GenreDeConstat[] = [
   'alias-supprime', 'library-inactive', 'sans-valeur-en-mode', 'couleur-sans-alias',
   'variable-absente', 'cran-absent', 'cran', 'couche', 'valeur-directe', 'mode-du-theme', 'type', 'mal-rangee',
+  'variable-inconnue', 'rampe-autre-palette', 'branche-de-mode', 'sens-partage', 'theme-en-double', 'role-en-double', 'cible-inaccessible',
+  'theme-non-reconnu',
 ];
 
 const GROUPE_DU_GENRE: Readonly<Record<GenreDeConstat, GroupeDeConstat>> = {
@@ -69,6 +85,14 @@ const GROUPE_DU_GENRE: Readonly<Record<GenreDeConstat, GroupeDeConstat>> = {
   'mode-du-theme': 'modes',
   type: 'types',
   'mal-rangee': 'rangement',
+  'variable-inconnue': 'manquantes',
+  'rampe-autre-palette': 'crans',
+  'branche-de-mode': 'modes',
+  'sens-partage': 'crans',
+  'theme-en-double': 'rangement',
+  'role-en-double': 'valeurs',
+  'cible-inaccessible': 'alias',
+  'theme-non-reconnu': 'rangement',
 };
 
 /** Ce que l'écran sait du relevé : le nom entier d'une variable par sa clé, et sa clé par son nom entier. */
@@ -122,7 +146,9 @@ interface Lecture {
 }
 
 /** Les genres dont le fait `variable` n'est pas une variable à ouvrir : un rôle, une liste ou rien. */
-const SANS_VARIABLE: readonly GenreDeConstat[] = ['doublons', 'variable-absente', 'cran-absent', 'mode-du-theme'];
+const SANS_VARIABLE: readonly GenreDeConstat[] = [
+  'doublons', 'variable-absente', 'cran-absent', 'mode-du-theme', 'branche-de-mode', 'sens-partage', 'theme-en-double', 'role-en-double', 'cible-inaccessible', 'theme-non-reconnu',
+];
 
 const libelleDuMode = (nom: string): string => TEXTES.libelleDuMode(modeDuThemeReconnu(nom) ?? nom);
 
@@ -137,6 +163,56 @@ function ciblesAttenduesDe({ variable }: Lecture): string | null {
   if (!variable?.entier) return null;
   const couche = collectionUcmReconnue(variable.nom.split('/')[0]);
   return couche ? TEXTES.attendues(ciblesAdmises(couche, 'couleur')) : null;
+}
+
+/** Le texte qu'une cible de `utility/neutral` ou la valeur lue d'un alias porte : `white` est blanc, `black` est noir ; `null` pour tout autre cran. */
+function texteDeLaCouleur(valeur: string): 'noir' | 'blanc' | null {
+  const fin = valeur.split('/').at(-1)?.toLowerCase();
+  return fin === 'white' ? 'blanc' : fin === 'black' ? 'noir' : null;
+}
+
+const motDuTexte = (texte: 'noir' | 'blanc'): string => (texte === 'noir' ? TEXTES.texteNoir : TEXTES.texteBlanc);
+
+/** La question du texte des boutons d'une palette : `solid/foreground` à contre-sens des autres rôles. */
+function estLeTexteDesBoutons({ constat, variable }: Lecture): boolean {
+  return constat.question !== undefined && variable !== null && variableDuThemeReconnue(variable.nom) === 'solid/foreground';
+}
+
+/** La palette d'une variable de rôle `solid/foreground` : son nom sans la collection ni le rôle. */
+function paletteDe({ variable }: Lecture): string {
+  if (variable === null) return '';
+  return variable.nom.split('/').slice(variable.entier ? 1 : 0, -2).join('/');
+}
+
+/** Les deux couleurs de texte que les candidats proposent, dans l'ordre du kit ; blanc puis noir si le kit n'en nomme pas deux. */
+function couleursProposees(candidats: Lecture['candidats']): ('noir' | 'blanc')[] {
+  const lues = candidats.flatMap(({ chemin }) => texteDeLaCouleur(chemin) ?? []);
+  return lues.length === 2 && lues[0] !== lues[1] ? lues : ['blanc', 'noir'];
+}
+
+/**
+ * Les réponses d'une question de structure. Le texte des boutons se décrit par le rendu (noir ou blanc), jamais par le sens. Quand le
+ * kit ne dit pas la couleur actuelle du texte (palette partagée, cran numérique), aucune réponse ne garde rien : chacune passe à une couleur.
+ */
+function choixDe(genre: GenreDeConstat, lecture: Lecture): readonly ChoixDeCarte[] {
+  const { constat, candidats } = lecture;
+  if (genre === 'sens-partage') return couleursProposees(candidats).map((texte): ChoixDeCarte => ({ libelle: TEXTES.passerAuTexte(motDuTexte(texte)), dessin: texte }));
+  if (genre === 'cran' && estLeTexteDesBoutons(lecture)) {
+    const couleurs = couleursProposees(candidats);
+    const actuel = texteDeLaCouleur(fait(constat, 'avant'));
+    if (actuel === null) return couleurs.map((texte): ChoixDeCarte => ({ libelle: TEXTES.passerAuTexte(motDuTexte(texte)), dessin: null }));
+    const autre = actuel === 'noir' ? 'blanc' : 'noir';
+    return [{ libelle: TEXTES.garderLeTexteSurLesBoutons(motDuTexte(actuel)), dessin: null }, { libelle: TEXTES.passerAuTexte(motDuTexte(autre)), dessin: null }];
+  }
+  if (genre === 'rampe-autre-palette' || genre === 'branche-de-mode') return candidats.map(({ chemin }): ChoixDeCarte => ({ libelle: TEXTES.viser(chemin), dessin: null }));
+  if (genre === 'role-en-double') return candidats.map(({ chemin }): ChoixDeCarte => ({ libelle: TEXTES.garder(chemin), dessin: null }));
+  return [];
+}
+
+/** Le mode du thème que la cible écrit dans son chemin (`primary/dark/300` donne Dark) ; vide si elle n'en écrit aucun. */
+function modeDeLaBranche(constat: Constat): string {
+  const segment = fait(constat, 'cible').split('/').find((candidat) => modeDuThemeReconnu(candidat) !== undefined);
+  return segment === undefined ? '' : libelleDuMode(segment);
 }
 
 function phraseDe(genre: GenreDeConstat, lecture: Lecture): readonly Morceau[] {
@@ -163,7 +239,37 @@ function phraseDe(genre: GenreDeConstat, lecture: Lecture): readonly Morceau[] {
       const { debut, fin } = TEXTES.rampeSansCran(fait(constat, 'cran'));
       return [debut, { chemin: fait(constat, 'rampe') }, fin];
     }
+    case 'variable-inconnue': {
+      const roles = fait(constat, 'roles').split(', ');
+      const { debut, milieu, fin } = TEXTES.nomProcheDUnRole(roles.length);
+      return [debut, { chemin: lecture.variable?.nom ?? fait(constat, 'variable') }, milieu, { chemin: roles.join(TEXTES.ou) }, fin];
+    }
+    case 'rampe-autre-palette': {
+      const { debut, milieu, fin } = TEXTES.rampeDUneAutrePalette;
+      return [debut, { chemin: fait(constat, 'rampeDeLaPalette') }, milieu, { chemin: fait(constat, 'rampe') }, fin];
+    }
+    case 'branche-de-mode':
+      return [TEXTES.brancheDeMode(libelleDuMode(fait(constat, 'mode')), modeDeLaBranche(constat))];
+    case 'sens-partage':
+      return [TEXTES.texteSurLaPalettePartagee(fait(constat, 'groupe'))];
+    case 'theme-en-double': {
+      const { debut, milieu, fin } = TEXTES.themeEnDouble;
+      return [debut, { chemin: fait(constat, 'reference') }, milieu, { chemin: fait(constat, 'collection') }, fin];
+    }
+    case 'role-en-double': {
+      const { debut, fin } = TEXTES.rolesEnDouble(Number(constat.faits.variables));
+      return [debut, { chemin: fait(constat, 'variable') }, fin];
+    }
+    case 'cible-inaccessible': {
+      const { debut, fin } = TEXTES.ciblesNonLues;
+      return [debut, { chemin: fait(constat, 'collection') }, fin];
+    }
+    case 'theme-non-reconnu': {
+      const { debut, fin } = TEXTES.themeNonReconnu;
+      return [debut, { chemin: 'theme' }, fin];
+    }
     case 'cran':
+      if (estLeTexteDesBoutons(lecture)) return [TEXTES.texteSurLesBoutons(paletteDe(lecture))];
       return [constat.question ? TEXTES.cranSansSens : TEXTES.attendLeCranAujourdhui(libelleDuMode(fait(constat, 'mode')), constat.faits.attendu ?? '', constat.faits.avant ?? '')];
     case 'couche': {
       const attendues = ciblesAttenduesDe(lecture);
@@ -206,6 +312,21 @@ function statutDe(genre: GenreDeConstat, lecture: Lecture): string | null {
       return TEXTES.ajouterLeCran;
     case 'cran':
       return constat.question ? TEXTES.choisirLaCible : TEXTES.changerSaCible;
+    case 'variable-inconnue':
+      return TEXTES.renommerSiCeRole(fait(constat, 'roles').split(', ').join(TEXTES.ou));
+    case 'rampe-autre-palette':
+    case 'branche-de-mode':
+      return lecture.candidats.length > 0 ? null : TEXTES.choisirLaCible;
+    case 'sens-partage':
+      return TEXTES.choisirLaCible;
+    case 'theme-en-double':
+      return TEXTES.supprimerOuRenommerLaCopie;
+    case 'role-en-double':
+      return TEXTES.supprimerLesAutres;
+    case 'cible-inaccessible':
+      return TEXTES.choisirLaLibrary;
+    case 'theme-non-reconnu':
+      return TEXTES.themeNonReconnuStatut;
     case 'couche': {
       const attendues = ciblesAttenduesDe(lecture);
       return attendues === null ? TEXTES.autreCible : TEXTES.choisirUneCibleDans(attendues);
@@ -228,8 +349,9 @@ function statutDe(genre: GenreDeConstat, lecture: Lecture): string | null {
   }
 }
 
-function faitsDe(genre: GenreDeConstat, { constat, candidats }: Lecture): readonly FaitDeConstat[] {
-  if (genre === 'cran' && candidats.length > 0) {
+function faitsDe(genre: GenreDeConstat, lecture: Lecture): readonly FaitDeConstat[] {
+  const { constat, candidats } = lecture;
+  if (genre === 'cran' && candidats.length > 0 && !estLeTexteDesBoutons(lecture)) {
     return [{ etiquette: TEXTES.enMode(libelleDuMode(fait(constat, 'mode'))), valeur: candidats.flatMap((candidat, rang) => (rang === 0 ? [candidat] : [TEXTES.ou, candidat])) }];
   }
   if (genre === 'couche') {
@@ -251,6 +373,16 @@ function lieuDe(genre: GenreDeConstat, lecture: Lecture): readonly Morceau[] {
       return candidats.flatMap((morceau, rang) => (rang === 0 ? [morceau] : [TEXTES.et, morceau]));
     case 'couleur-sans-alias':
       return variable ? [{ chemin: variable.nom }, `, ${fait(constat, 'valeur')}`] : [];
+    case 'sens-partage':
+      return [TEXTES.enMode(libelleDuMode(fait(constat, 'mode')))];
+    case 'cran':
+      return variable ? [{ chemin: variable.nom }, ...(estLeTexteDesBoutons(lecture) ? [`, ${libelleDuMode(fait(constat, 'mode'))}`] : [])] : [];
+    case 'role-en-double':
+      return fait(constat, 'groupe') === '' ? [] : [{ chemin: fait(constat, 'groupe') }];
+    case 'theme-en-double':
+    case 'cible-inaccessible':
+    case 'theme-non-reconnu':
+      return [];
     case 'variable-absente': {
       const groupe = fait(constat, 'groupe');
       return [{ chemin: groupe === '' ? COLLECTION_DU_THEME : `${COLLECTION_DU_THEME}/${groupe}` }];
@@ -271,13 +403,44 @@ function lieuDe(genre: GenreDeConstat, lecture: Lecture): readonly Morceau[] {
   }
 }
 
+/**
+ * La carte groupée des couches (QV-3) : une carte par collection source et par couche visée, qui compte les variables et les modes.
+ * Le statut est celui de la carte d'une variable seule ; le dépliage liste les variables.
+ */
+function carteDeCouche(groupe: ReturnType<typeof grouperLesCouches>[number], type: TypeDAlerte): ConstatAFaire {
+  const collection = groupe.collection === '' ? COLLECTION_DU_THEME : groupe.collection;
+  const couche = collectionUcmReconnue(collection);
+  const attendues = couche ? TEXTES.attendues(ciblesAdmises(couche, 'couleur')) : null;
+  const { debut, milieu, suite, fin } = TEXTES.variablesQuiVisentUneCouche(groupe.variables.length, groupe.modes.length);
+  return {
+    id: groupe.id,
+    type,
+    groupe: 'couches',
+    phrase: [debut, { chemin: collection }, milieu, { chemin: groupe.coucheCible }, `${suite}${fin}`],
+    lieu: [],
+    statut: attendues === null ? TEXTES.autreCible : TEXTES.choisirUneCibleDans(attendues),
+    faits: [],
+    variable: null,
+    role: null,
+    choix: [],
+    variables: groupe.variables.map((nom) => `${collection}/${nom}`),
+  };
+}
+
 /** Les constats à régler dans Figma : ceux que le contrôle ne corrige pas, rangés par intertitre dans l'ordre où le sandbox les rend. */
 export function lireLesConstats(constats: readonly Constat[], noms: Noms): readonly ConstatAFaire[] {
   const lus: ConstatAFaire[] = [];
+  const groupesDeCouches = new Map(grouperLesCouches(constats).map((groupe) => [groupe.constats[0], groupe] as const));
+  const dansUnGroupe = new Set(grouperLesCouches(constats).flatMap((groupe) => groupe.constats));
   for (const constat of constats) {
     if (constat.correction) continue;
     const genre = genreDe(constat);
-    if (genre === null) continue;
+    if (genre === null || genre === 'theme-non-reconnu') continue;
+    if (genre === 'couche' && dansUnGroupe.has(constat.id)) {
+      const groupe = groupesDeCouches.get(constat.id);
+      if (groupe) lus.push(carteDeCouche(groupe, constat.type));
+      continue;
+    }
     const variable = variableDe(constat, genre, noms);
     const candidats = (constat.question?.candidats ?? []).map(({ cle, nom }) => ({ chemin: (cle ? noms.nom(cle) : null) ?? nom }));
     const lecture: Lecture = { constat, variable, candidats };
@@ -291,9 +454,23 @@ export function lireLesConstats(constats: readonly Constat[], noms: Noms): reado
       faits: faitsDe(genre, lecture),
       variable: SANS_VARIABLE.includes(genre) || variable === null ? null : { nom: variable.nom, cle: variable.cle },
       role: genre === 'variable-absente' ? (variableDuThemeReconnue(fait(constat, 'variable')) ?? null) : null,
+      choix: choixDe(genre, lecture),
+      variables: [],
     });
   }
   return GROUPES.flatMap((groupe) => lus.filter((lu) => lu.groupe === groupe));
+}
+
+/** L'information de QV-4 : aucune collection n'est reconnue comme `theme`. Elle se montre en tête du mode Tokens, hors des cartes ; `null` sans ce constat. */
+export interface InformationDuTheme {
+  readonly phrase: readonly Morceau[];
+  readonly statut: string;
+}
+
+export function lireLInformationDuTheme(constats: readonly Constat[]): InformationDuTheme | null {
+  if (!constats.some((constat) => genreDe(constat) === 'theme-non-reconnu')) return null;
+  const { debut, fin } = TEXTES.themeNonReconnu;
+  return { phrase: [debut, { chemin: 'theme' }, fin], statut: TEXTES.themeNonReconnuStatut };
 }
 
 /** Une ligne d'une carte de corrections : le nom entier avant et le nom entier après. */

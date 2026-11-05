@@ -82,12 +82,12 @@ test('type et rangement citent la variable entière', () => {
 
 test('une couche dit les collections attendues de la collection de la variable ; la clé se retrouve malgré les « : » du mode', () => {
   const [couche, directe] = lireLesConstats([
-    c82('C82:couche:theme|primary/page/border:m-light', { genre: 'couche', variable: 'primary/page/border', mode: 'light', cible: 'color/red/500', coucheCible: 'primitives' }),
+    c82('C82:couche:theme|primary/page/border:m-light', { genre: 'couche', variable: 'primary/page/border', mode: 'light', cible: 'color/red/500', coucheCible: 'primitives', collection: 'theme' }),
     c82('C82:valeur-directe:theme|primary/page/border:m-dark', { genre: 'valeur-directe', variable: 'primary/page/border', mode: 'dark' }),
   ], { ...noms, nom: (cle) => (cle === 'theme|primary/page/border' ? 'theme/primary/page/border' : null) });
-  assert.equal(texte(couche.phrase), 'Cette couleur vise primitives. UCM attend brands ou utility.');
+  assert.equal(texte(couche.phrase), '1 variable de `theme` vise `primitives`, sur 1 mode.');
   assert.equal(couche.statut, 'Choisissez une cible dans brands ou utility dans la fenêtre Variables');
-  assert.equal(texte(couche.lieu), '`theme/primary/page/border`, light');
+  assert.deepEqual(couche.variables, ['theme/primary/page/border']);
   assert.equal(directe.statut, 'Liez-la à une couleur de brands ou utility dans la fenêtre Variables');
   assert.equal(texte(directe.phrase), 'Cette couleur n’est pas un alias.');
 });

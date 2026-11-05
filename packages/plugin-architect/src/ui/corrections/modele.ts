@@ -249,6 +249,15 @@ function carteDe(cle: string, genre: Genre, section: SectionDeCorrections, ligne
     phrase = [T.lier(noms[0] ?? 'le layer'), { chemin: premiere.apres }];
   }
 
+  // Le layer masqué et les segments que la même correction règle aussi s'ajoutent à la ligne grise (Q-F3-1, Q-F3-16).
+  for (const ligne of lignes) {
+    const layer = ligne.correction.cible.layer;
+    const nom = layer === undefined ? null : nomDuLayer(ligne.constat, layer, contexte);
+    const masque = ligne.constat === null ? '' : TEXTES.carteDuComposant.masquage(nom ?? '', texte(ligne.constat.faits.masque), texte(ligne.constat.faits.ancetre));
+    const autres = ligne.constat === null ? null : texte(ligne.constat.faits.autresEcarts);
+    for (const phrase of [masque, autres === null ? '' : TEXTES.carteDuComposant.reglesAussi(autres)]) if (phrase !== '' && !meta.includes(` ${phrase}`)) meta.push(` ${phrase}`);
+  }
+
   const proprietes = uniques(lignes.flatMap((ligne) => {
     const layer = ligne.correction.cible.layer;
     const nom = layer === undefined ? null : nomDuLayer(ligne.constat, layer, contexte);

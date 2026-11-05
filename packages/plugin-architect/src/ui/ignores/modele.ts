@@ -24,6 +24,7 @@ import { carteDeQuestion } from '../questions/modele';
 import { TEXTES } from '../textes';
 
 const T = TEXTES.aFaireDuComposant;
+const TC = TEXTES.carteDuComposant;
 
 /** La sorte de liaisons que porte une carte de modèle (C81) : les couleurs ou les tailles. */
 export type SorteDeModele = 'couleurs' | 'tailles';
@@ -297,9 +298,16 @@ function precise(constat: Constat, contexte: ContexteDAFaire): Contenu | null {
         : { phrase: T.mauvaiseCouche(token, couche), lieu, statut: T.mauvaiseCoucheStatut(admises) };
     }
     case 'C31':
+      // Un constat d'information (borne, ligne « et N autres ») porte `faits.genre` ; un variant absent y porte ses paires, dont un axe pourrait s'appeler `genre`.
+      if (constat.type === 'info') {
+        return faits.genre === 'et-autres'
+          ? { phrase: T.variantsAbsentsRestants(nombre(faits.autres) ?? 0), lieu: T.sectionVariants, statut: null }
+          : { phrase: T.variantsAuDelaDeLaBorne(nombre(faits.variants) ?? 0, nombre(faits.combinaisons) ?? 0), lieu: T.sectionVariants, statut: T.variantsAuDelaDeLaBorneStatut };
+      }
       return { phrase: T.variantAbsent(Object.entries(faits).map(([propriete, valeur]) => `${propriete}=${valeur}`).join(', ')), lieu: T.sectionVariants, statut: T.variantAbsentStatut };
     case 'C32': {
       const token = sansPrefixe(texte(faits.token) ?? '', contexte.composant);
+      if (faits.motif === 'nom-illisible') return { phrase: T.tokenIllisible(token), lieu: T.sectionTokens, statut: T.tokenIllisibleStatut };
       return faits.motif === 'sans-variant'
         ? { phrase: T.tokenSansVariant(token), lieu: T.sectionTokens, statut: T.tokenSansVariantStatut }
         : { phrase: T.tokenInutilise(token), lieu: T.sectionTokens, statut: T.tokenInutiliseStatut };
@@ -372,18 +380,20 @@ function icone(constat: Constat, contexte: ContexteDAFaire): Contenu | null {
   const { faits } = constat;
   const lieu = lieuDe(constat, contexte);
   const token = texte(faits.variable) ?? '';
+  // Les tokens que le variant prévoit, un par nom, écrits pour se mettre entre accents graves : « a` ou `b ».
+  const attendu = (texte(faits.attendu) ?? '').split(',').filter(Boolean).join('` ou `');
   switch (faits.motif) {
     case 'pas-une-instance':
-    case 'instance-locale':
-      return { phrase: T.iconeSansLibrary, lieu, statut: T.iconeSansLibraryStatut };
-    case 'taille-sans-variable':
-      return { phrase: T.iconeSansTaille, lieu, statut: T.iconeTailleStatut };
-    case 'taille-hors-icone':
-      return { phrase: T.iconeTailleHorsIcon(token), lieu, statut: T.iconeTailleStatut };
+    case 'autre-composant':
+      return { phrase: T.iconePasUneInstance, lieu, statut: T.iconePasUneInstanceStatut };
+    case 'taille-differente':
+      return { phrase: T.iconeTailleDifferente(texte(faits.valeur) ?? '', texte(faits.taille) ?? ''), lieu, statut: T.iconeTailleDifferenteStatut(texte(faits.taille) ?? '') };
     case 'couleur-sans-variable':
-      return { phrase: T.iconeSansCouleur, lieu, statut: T.iconeCouleurStatut };
+      return { phrase: T.iconeSansCouleur, lieu, statut: attendu === '' ? T.iconeCouleurStatut : T.iconeCouleurAutreTokenStatut(attendu) };
     case 'couleur-hors-premier-plan':
-      return { phrase: T.iconeCouleurHorsPremierPlan(token), lieu, statut: T.iconeCouleurStatut };
+      return attendu === ''
+        ? { phrase: T.iconeCouleurHorsPremierPlan(token), lieu, statut: T.iconeCouleurStatut }
+        : { phrase: T.iconeCouleurAutreToken(token, attendu), lieu, statut: T.iconeCouleurAutreTokenStatut(attendu) };
     default:
       return null;
   }
@@ -407,6 +417,10 @@ function liaisonOuNom(constat: Constat, contexte: ContexteDAFaire): Contenu | nu
       return { phrase: T.valeurSansToken(`${texte(faits.axe) ?? ''}=${texte(faits.valeur) ?? ''}`), lieu: T.sectionTokens, statut: T.valeurSansTokenStatut };
     case 'C8':
     case 'C10':
+      // Le côté variant : le kit nomme la valeur du jeu (`faits.valeur`) et son écriture UCM, sans token ni segment.
+      if (faits.cote === 'variant') {
+        return { phrase: TC.valeurDeVariant(texte(faits.valeur) ?? '', texte(faits.propriete) ?? '', texte(faits.attendu) ?? ''), lieu: T.sectionVariants, statut: null };
+      }
       return {
         phrase: T.formeToleree(token(faits.token), texte(faits.segment) ?? '', texte(faits.attendu) ?? '', nombreDeTokens),
         lieu: T.sectionTokens, statut: T.formeTolereeStatut(nombreDeTokens),
@@ -427,8 +441,16 @@ function liaisonOuNom(constat: Constat, contexte: ContexteDAFaire): Contenu | nu
     }
     case 'C17':
     case 'C24': {
+      // Deux layers du même nom sous un même parent : le kit ne sait pas lequel lier (E5.4).
+      if (faits.modele !== undefined && nombre(faits.homonymes) !== null) {
+        return { phrase: TC.homonymes(texte(faits.calque) ?? '', texte(faits.parent)), lieu: lieuDe(constat, contexte, { sansLayer: true }), statut: TC.homonymesStatut };
+      }
       if (faits.modele !== undefined) return { phrase: T.sansModele(texte(faits.modele) ?? ''), lieu: surLeLayer, statut: T.sansModeleStatut };
       const attendu = texte(faits.attendu) ?? '';
+      // Le nom du layer annonce un autre rôle (`Divider`, `Ring`) : seul un renommage dans Figma peut changer la réponse (E5.3).
+      if (attendu === 'divider' || attendu === 'ring') {
+        return { phrase: TC.nomDeLayerDUnRole(calqueDe(constat, contexte) ?? '', attendu), lieu: sansLayer, statut: TC.nomDeLayerDUnRoleStatut(attendu) };
+      }
       return { phrase: T.autreRole(champPeint(faits), token(faits.token), texte(faits.role) ?? '', attendu), lieu: surLeLayer, statut: T.autreRoleStatut(attendu) };
     }
     case 'C18':
@@ -466,7 +488,7 @@ function liaisonOuNom(constat: Constat, contexte: ContexteDAFaire): Contenu | nu
     case 'C60':
       return { phrase: T.aliasDUnAutreMode(texte(faits.variable) ?? '', texte(faits.mode) ?? '', texte(faits.cible) ?? ''), lieu: T.sectionTokens, statut: T.aliasDUnAutreModeStatut };
     case 'C63':
-      return structure(constat);
+      return structure(constat, contexte);
     case 'C65': {
       const propriete = T.proprieteDeFigma(texte(faits.champ) ?? '');
       const layer = calqueDe(constat, contexte) ?? '';
@@ -482,7 +504,7 @@ function liaisonOuNom(constat: Constat, contexte: ContexteDAFaire): Contenu | nu
 }
 
 /** C63 : la structure d'une variable du composant, par genre, avec les gestes du mode Tokens. */
-function structure(constat: Constat): Contenu | null {
+function structure(constat: Constat, contexte: ContexteDAFaire): Contenu | null {
   const { faits } = constat;
   const variable = texte(faits.variable) ?? '';
   const mode = texte(faits.mode) ?? '';
@@ -495,6 +517,15 @@ function structure(constat: Constat): Contenu | null {
       return { phrase: T.sansValeurEnMode(variable, mode), lieu: T.sectionTokens, statut: TEXTES.donnerUneValeurEnMode(mode) };
     case 'couleur-sans-alias':
       return { phrase: T.couleurSansAlias(variable), lieu: T.sectionTokens, statut: TEXTES.lierALaCouleur };
+    case 'taille-selon-le-mode':
+      return {
+        phrase: TC.tailleSelonLeMode(sansPrefixe(variable, contexte.composant), nombre(faits.valeurClair) ?? 0, nombre(faits.valeurSombre) ?? 0),
+        lieu: T.sectionTokens, statut: TC.tailleSelonLeModeStatut,
+      };
+    case 'deux-axes-de-style':
+      return { phrase: TC.deuxAxesDeStyle((texte(faits.axes) ?? '').split(', ')), lieu: T.sectionVariants, statut: TC.deuxAxesDeStyleStatut };
+    case 'style-et-dossier':
+      return { phrase: TC.styleEtDossier(texte(faits.style) ?? '', texte(faits.dossier) ?? ''), lieu: T.sectionTokens, statut: TC.styleEtDossierStatut(texte(faits.attendu) ?? '') };
     default:
       return null;
   }
@@ -504,7 +535,9 @@ function structure(constat: Constat): Contenu | null {
 export function carteDAFaire(constat: Constat, contexte: ContexteDAFaire): CarteDAFaire {
   const section = SECTION_DE_LA_FAMILLE[constat.famille];
   const exacte = precise(constat, contexte);
-  if (exacte) return { constat, section, faits: [], ...exacte, lieu: typeof exacte.lieu === 'string' ? (exacte.lieu === '' ? [] : [exacte.lieu]) : exacte.lieu };
+  // Un layer masqué le dit avant le reste (Q-F3-1) : le designer ne cherche pas un layer qu'il ne voit pas.
+  const masque = TC.masquage(calqueDe(constat, contexte) ?? '', texte(constat.faits.masque), texte(constat.faits.ancetre));
+  if (exacte) return { constat, section, faits: [], ...exacte, phrase: masque === '' ? exacte.phrase : `${masque} ${exacte.phrase}`, lieu: typeof exacte.lieu === 'string' ? (exacte.lieu === '' ? [] : [exacte.lieu]) : exacte.lieu };
   const { faits } = constat;
   // Un constat ignoré qui porte une question (C12, C13) n'a pas de phrase propre : il garde le titre de sa question.
   const phrase = texte(faits.titre) ?? texte(faits.message) ?? carteDeQuestion(constat, contexte)?.titreEnTexte ?? T.sansPhrase(constat.code);

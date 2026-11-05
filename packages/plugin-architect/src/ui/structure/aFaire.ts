@@ -16,7 +16,7 @@ import { createButton } from 'ucm-plugin-socle/src/ui/Button';
 import { TEXTES } from '../textes';
 import { creerHoteDeCartes, type CarteDeSection } from '../virtualisation';
 import { creerCarte, creerIntertitre, poserLesMorceaux } from './carte';
-import { GROUPES, type ConstatAFaire, type GroupeDeConstat, type Morceau } from './lecture';
+import { GROUPES, type ChoixDeCarte, type ConstatAFaire, type GroupeDeConstat, type Morceau } from './lecture';
 
 /** Ce que le fichier écarte : les constats ignorés pour leur palette et les rôles ignorés dans tout le fichier. */
 export interface IgnoresLus {
@@ -103,10 +103,66 @@ function creerLeMenuIgnorer(constat: ConstatAFaire, role: string, gestes: Gestes
   return hote;
 }
 
+/** Le dessin d'un choix de texte : un bouton et un encadré portent le texte noir ou blanc, chacun sous sa légende. */
+function creerLeDessin(texte: 'noir' | 'blanc'): HTMLElement {
+  const dessin = document.createElement('span');
+  dessin.className = 'sens-dessin';
+  const bouton = document.createElement('span');
+  bouton.className = 'sens-bouton';
+  const encadre = document.createElement('span');
+  encadre.className = 'sens-encadre';
+  // Un littéral par classe : la loi des styles ne lit que les classes écrites en toutes lettres.
+  for (const forme of [bouton, encadre]) {
+    if (texte === 'noir') forme.classList.add('texte-noir');
+    else forme.classList.add('texte-blanc');
+    const trait = document.createElement('span');
+    trait.className = 'sens-trait';
+    forme.append(trait);
+  }
+  const sousSaLegende = (forme: HTMLElement, legende: string): HTMLElement => {
+    const figure = document.createElement('span');
+    figure.className = 'sens-figure';
+    const mot = document.createElement('span');
+    mot.className = 'sens-legende';
+    mot.textContent = legende;
+    figure.append(forme, mot);
+    return figure;
+  };
+  dessin.append(sousSaLegende(bouton, TEXTES.dessinBouton), sousSaLegende(encadre, TEXTES.dessinEncadre));
+  return dessin;
+}
+
+/** Les réponses d'une question, sous la phrase : aucune n'est cochée, le designer la fait dans la fenêtre Variables. */
+function creerLesChoix(choix: readonly ChoixDeCarte[]): HTMLElement {
+  const liste = document.createElement('span');
+  liste.className = 'constat-choix';
+  liste.setAttribute('role', 'list');
+  for (const { libelle, dessin } of choix) {
+    const ligne = document.createElement('span');
+    ligne.className = 'constat-choix-ligne';
+    ligne.setAttribute('role', 'listitem');
+    const mot = document.createElement('span');
+    mot.textContent = libelle;
+    ligne.append(...(dessin === null ? [mot] : [creerLeDessin(dessin), mot]));
+    liste.append(ligne);
+  }
+  return liste;
+}
+
 function creerLeCorps(constat: ConstatAFaire, ouvrirLaFiche: (variable: { nom: string; cle: string | null }) => void, gestes: GestesDIgnorer): HTMLElement | null {
-  const { faits, variable, role } = constat;
-  if (faits.length === 0 && !variable && role === null) return null;
+  const { faits, variable, role, variables } = constat;
+  if (faits.length === 0 && !variable && role === null && variables.length === 0) return null;
   const corps = document.createElement('div');
+  if (variables.length > 0) {
+    const liste = document.createElement('div');
+    liste.className = 'constat-variables';
+    for (const nom of variables) {
+      const ligne = document.createElement('div');
+      poserLesMorceaux(ligne, [{ chemin: nom }]);
+      liste.append(ligne);
+    }
+    corps.append(liste);
+  }
   if (faits.length > 0) {
     const liste = document.createElement('div');
     liste.className = 'constat-faits';
@@ -165,6 +221,13 @@ export function monterAFaire(
       statut.className = 'constat-statut';
       statut.textContent = constat.statut;
       meta.push(document.createElement('br'), statut);
+    }
+    if (constat.choix.length > 0) meta.push(document.createElement('br'), creerLesChoix(constat.choix));
+    if (constat.variables.length > 0) {
+      const voir = document.createElement('span');
+      voir.className = 'constat-voir';
+      voir.textContent = TEXTES.voirLesVariablesDuGroupe(constat.variables.length);
+      meta.push(document.createElement('br'), voir);
     }
     const { element } = creerCarte({
       tete: [entete],

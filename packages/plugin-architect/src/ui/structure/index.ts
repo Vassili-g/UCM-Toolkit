@@ -11,10 +11,12 @@ import type { DemandeDeStructure, IgnoresDeStructure, MessageDeStructure } from 
 import type { Constat, Correction } from '../../messages/commun';
 import type { Coquille } from '../nomenclature/coquille';
 import { QUESTIONS } from '../tokens/panneau';
+import { creerAlerte } from 'ucm-plugin-socle/src/ui/Alerte';
 import { monterLePied } from '../tokens/cochage';
 import { monterAFaire } from './aFaire';
+import { poserLesMorceaux } from './carte';
 import { monterLesCorrections } from './corrections';
-import { GROUPES, lireLesConstats, lireLesCorrections, type GroupeDeConstat, type Noms } from './lecture';
+import { GROUPES, lireLInformationDuTheme, lireLesConstats, lireLesCorrections, type GroupeDeConstat, type Noms } from './lecture';
 import { creerLesMesuresDuPanneau, monterLeRapportDeTokens } from './rapport';
 
 export interface OptionsDeStructure {
@@ -88,7 +90,11 @@ export function monterStructure(coquille: Coquille, { envoyer, noms, ouvrirLaFic
   let recompter = (): void => {};
   const corrections = monterLesCorrections({ element: hoteDuResultat, hotes: hotesDeCorrections, auChangement: () => recompter(), questionsSeules });
   for (const categorie of Object.keys(hotesDeCorrections) as (keyof typeof hotesDeCorrections)[]) tokens.poserLesGestes(categorie, corrections.gestes[categorie]);
-  tokens.haut.append(hoteDuResultat);
+  /** L'information de QV-4 : en tête du mode Tokens, avant la ligne verte du résultat. */
+  const hoteDeLInformation = document.createElement('div');
+  hoteDeLInformation.className = 'page-stack';
+  hoteDeLInformation.hidden = true;
+  tokens.haut.append(hoteDeLInformation, hoteDuResultat);
   const pied = monterLePied({
     hote: tokens.pied,
     renommages: coquille.renommages(),
@@ -111,6 +117,14 @@ export function monterStructure(coquille: Coquille, { envoyer, noms, ouvrirLaFic
     const questions = new Set(recu?.constats.filter((constat) => constat.question).map(({ id }) => id));
     aFaire.poser(constats, recu ? { constats: lireLesConstats(recu.ignores.constats, noms), roles: recu.ignores.roles } : undefined, questions);
     corrections.poser(recu ? lireLesCorrections(recu.corrections, noms, recu.constats) : null);
+    const information = recu ? lireLInformationDuTheme(recu.constats) : null;
+    hoteDeLInformation.hidden = information === null;
+    if (information === null) hoteDeLInformation.replaceChildren();
+    else {
+      const phrase = document.createDocumentFragment();
+      poserLesMorceaux(phrase, information.phrase);
+      hoteDeLInformation.replaceChildren(creerAlerte('info', { texte: phrase, meta: information.statut }));
+    }
     tokens.poserLaStructure(recu ? { constats: recu.constats, corrections: recu.corrections, noms } : null);
   }
 

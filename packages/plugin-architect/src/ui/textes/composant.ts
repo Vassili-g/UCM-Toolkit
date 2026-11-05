@@ -12,7 +12,31 @@ export function dureeLisible(ms: number): string {
   return reste === 0 ? `${minutes} min` : `${minutes} min ${reste} s`;
 }
 
+/** Une liste de mots : « a », « a et b », « a, b et c ». */
+const liste = (mots: readonly string[]): string => (mots.length < 2 ? mots.join('') : `${mots.slice(0, -1).join(', ')} et ${mots[mots.length - 1]}`);
+
 export const TEXTES_COMPOSANT = {
+  // Les constats du composant qui n'avaient pas de phrase : layers masqués, rôles de layer, homonymes, segments fusionnés, tailles et axes
+  carteDuComposant: {
+    /** La phrase du masquage d'un constat (`faits.masque` vaut `layer` ou `ancetre`) ; vide quand le layer est visible. */
+    masquage: (layer: string, masque: string | null, ancetre: string | null): string => {
+      if (masque === 'layer') return `Le layer ${layer} est masqué.`;
+      return masque === 'ancetre' && ancetre !== null ? `Le layer ${layer} est dans ${ancetre}, qui est masqué.` : '';
+    },
+    nomDeLayerDUnRole: (layer: string, role: string): string => `Le layer ${layer} porte le nom d’un ${role}.`,
+    nomDeLayerDUnRoleStatut: (role: string): string => `Renommez le layer dans Figma s’il n’est pas un ${role}`,
+    homonymes: (nom: string, parent: string | null): string => `Deux layers s’appellent ${nom}${parent === null ? '' : ` sous ${parent}`}. Architect ne sait pas lequel lier.`,
+    homonymesStatut: 'Renommez l’un des deux dans Figma',
+    /** « La correction règle aussi State=disabled et rôle border. » ; `ecarts` est la liste que le kit joint par des virgules. */
+    reglesAussi: (ecarts: string): string => `La correction règle aussi ${liste(ecarts.split(', ').filter((ecart) => ecart !== ''))}.`,
+    tailleSelonLeMode: (token: string, clair: number, sombre: number): string => `${token} vaut ${clair} px en Light et ${sombre} px en Dark.`,
+    tailleSelonLeModeStatut: 'Donnez-lui la même valeur dans les deux modes, dans la fenêtre Variables',
+    deuxAxesDeStyle: (axes: readonly string[]): string => `Les axes ${liste(axes)} décrivent tous${axes.length === 2 ? ' deux' : ''} le style.`,
+    deuxAxesDeStyleStatut: 'Gardez un seul axe de style dans les propriétés du composant',
+    styleEtDossier: (valeur: string, dossierLu: string): string => `Le style ${valeur} utilise les couleurs de ${dossierLu}.`,
+    styleEtDossierStatut: (dossierAttendu: string): string => `Liez-le aux couleurs de ${dossierAttendu}`,
+    valeurDeVariant: (valeur: string, axe: string, attendue: string): string => `La valeur ${valeur} de ${axe} s’écrit ${attendue} dans UCM.`,
+  },
   // Vue composant : les mots et les glyphes de MAQUETTE-VUE-COMPOSANT.html
   composant: {
     vide: 'Sélectionnez un composant',

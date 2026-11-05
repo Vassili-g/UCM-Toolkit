@@ -9,12 +9,12 @@ Fichiers : `packages/plugin-architect/src/ui/structure/`, `packages/plugin-archi
 `packages/plugin-architect/galerie/etats/`.
 Ajoutez les régressions voisines de chaque autorité modifiée.
 
-- [ ] E4.1 La question du sens décrit le rendu (Q-F2-3). « Garder le texte noir sur les boutons » ou « Passer au texte blanc ». Pour une
+- [x] E4.1 La question du sens décrit le rendu (Q-F2-3). « Garder le texte noir sur les boutons » ou « Passer au texte blanc ». Pour une
   palette partagée, un bouton et un encadré dessinés dans chaque couleur, jamais « sens normal » ni « sens inverse ».
-- [ ] E4.6 Carte groupée de QV-3, avec la liste des variables qui se déplie. Information de QV-4 en tête du mode Tokens, avec la conséquence sur l'intégrité non contrôlée.
-- [ ] E4.7 États de galerie de chaque écran changé.
+- [x] E4.6 Carte groupée de QV-3, avec la liste des variables qui se déplie. Information de QV-4 en tête du mode Tokens, avec la conséquence sur l'intégrité non contrôlée.
+- [x] E4.7 États de galerie de chaque écran changé.
 
-- [ ] E4.8 Textes des genres sans carte, venus de E3, E5, E6 et E7a (leurs « Avancement » donnent les faits). Posez chaque texte dans
+- [x] E4.8 Textes des genres sans carte, venus de E3, E5, E6 et E7a (leurs « Avancement » donnent les faits). Posez chaque texte dans
   `src/ui/textes/structure.ts` ou `src/ui/textes/composant.ts`, branchez-le à la place du repli `sansPhrase`, et donnez-lui un état de galerie.
   Aucune nouvelle sorte de correction : un geste sans correction exacte reste une phrase d’action.
 
@@ -55,4 +55,29 @@ Mode Composant :
 
 ## Avancement
 
-Pas commencé.
+E4.1, E4.6, E4.7 et E4.8 faites, non commitées. Rien n'est écrit dans le kit.
+
+Fait :
+
+- E4.1. `src/ui/structure/lecture.ts` : la question de `solid/foreground` à contre-sens s'intitule `Texte sur les boutons ${palette}` et propose `Garder le texte ${actuel} sur les boutons` et `Passer au texte ${autre}` (l'actuel vient de `faits.avant`, `white` ou `black`). Le genre `sens-partage` s'intitule `Texte sur ${palette}, que les boutons et les encadrés partagent` ; chaque réponse dessine un bouton et un encadré légendés « Bouton » et « Encadré » (`aFaire.ts` `creerLeDessin`). Aucune réponse n'est cochée.
+- E4.6. Les constats `couche` forment une carte par collection et par couche visée (`grouperLesCouches` du kit) : `${n} variables de collection visent couche, sur ${modes} modes.`, statut de la carte non groupée, « Voir les ${n} variables » qui déplie la liste. `theme-non-reconnu` quitte les cartes : `lireLInformationDuTheme` et une alerte d'information dans `tokens.haut` (`structure/index.ts`), avant la ligne verte.
+- E4.8, mode Tokens : `variable-inconnue`, `rampe-autre-palette`, `branche-de-mode`, `theme-en-double`, `role-en-double` et `cible-inaccessible` ont leur phrase, leur action et leurs choix (`Viser …`, `Garder …`). Leurs catégories : Variables manquantes, Crans, Modes, Rangement, Valeurs, Alias. Textes dans `textes/structure.ts`.
+- E4.8, mode Composant : textes dans `textes/composant.ts` (`carteDuComposant`), branchés dans `ignores/modele.ts` (layer masqué avant la phrase, rôle annoncé par le nom du layer, homonymes, `taille-selon-le-mode`, `deux-axes-de-style`, `style-et-dossier`, C8 et C10 d'un variant), `questions/modele.ts` et `corrections/modele.ts` (layer masqué et « La correction règle aussi … » sur la ligne grise des cartes de question et de correction).
+- E4.7. Galerie : `t-sens-partage`, `t-couches-groupees`, `t-theme-non-reconnu`, `t-questions-de-structure` (`etats/structure.cjs`, constats dans `structure/questions.cjs`), `c-afaire-sans-phrase` et `q-fusionnee` (`etats/ignores.cjs`). `t-sens-inconnu` et `t-integrite-a-faire` montrent déjà les cartes changées du kit réel.
+
+Décisions prises :
+
+- Les réponses d'une question de structure sont des lignes sans case et sans bouton. Aucune sorte de correction n'existe pour elles (règle de la note), le designer les applique dans la fenêtre Variables.
+- Quand le kit ne dit pas la couleur actuelle du texte (palette partagée, cran numérique), aucune réponse ne dit « Garder » : les deux disent « Passer au texte blanc » et « Passer au texte noir ».
+- Le parent des homonymes n'est dans aucun fait du kit. La phrase garde `sous ${parent}` si `faits.parent` existe, sinon elle s'arrête à `Deux layers s’appellent ${nom}.` Le kit doit écrire `parent` pour que la phrase soit complète.
+- `Lier à ${token}` et `Renommer en ${attendue}` : les cartes existantes les disent déjà (`lier`, `lierA`, `renommer … en` du catalogue des corrections). Aucun texte nouveau.
+- Les gestes sans écriture (renommer un layer, viser une cible) restent des phrases d'action ; aucune sorte de correction n'est ajoutée.
+- Fichiers hors de la liste du lot, touchés parce que le repli `sansPhrase` et les cartes de question y vivent : `src/ui/ignores/modele.ts` (autour des modifications d'une autre session, qui restent intactes), `src/ui/questions/modele.ts`, `src/ui/corrections/modele.ts`, `src/ui/styles/structure.css` et `src/ui/roles.css` (dessins des réponses).
+
+Tests : `tests/questionsEtCartesDeStructure.test.ts` (18 tests, un par case ou genre) ; `tests/structureLecture.test.ts`, `tests/tokensStructure.test.ts` et `tests/tokensCategories.test.ts` suivent la carte groupée des couches (5 cartes de Couches deviennent 4 dans `t-integrite-a-faire`).
+
+Commandes : `npm run typecheck` rend 0. `npm run test:paquet -- architect` : 2071 tests, 10 échecs, tous dans les gabarits de projection (`projectionsDesControles`, `controle-typographie`, banc de mutations, `annuler pendant les couleurs C25`), venus des modifications en cours de `packages/kit/src/controles/oublis.ts` et de `src/sandbox/projectionsDesControles.ts` par une autre session. `npm run galerie:plugin -- architect` construit les états (129 états, 0 situation sans écran).
+
+Documents : `CARTE.md` (galerie, structure, ignores, textes), `SPEC.md` (catégories du mode Tokens), `invariants/explorateur.md` (une règle sur les questions de structure) de `packages/plugin-architect`.
+
+Reste : relecture dans la galerie par le mainteneur ; `parent` des homonymes à écrire côté kit.

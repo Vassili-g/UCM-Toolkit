@@ -302,4 +302,43 @@ ETATS.push(
   },
 );
 
+/*
+ * Lot E4a. La question du texte des boutons décrit le rendu, les couches d'une collection forment une carte, l'information de QV-4 passe
+ * en tête du mode Tokens, et les genres de structure qui n'avaient que le repli ont leur carte (`structure/questions.cjs`).
+ */
+const e4a = require('../structure/questions.cjs');
+const ouvertEnTete = (constats, attendre) => [
+  preferences(), releve(integrite.releveDeBase()),
+  { message: messages.initial(true) }, { message: messages.bilan(1, bilans.rienAFaire) },
+  { message: integrite.reponse(constats, 1), attendre },
+  { clic: '.puce-x' },
+];
+
+ETATS.push(
+  {
+    id: 't-sens-partage', titre: 'Tokens, texte des boutons d’une palette partagée', quand: 'Les variables de secondary se répartissent entre les deux tables : UCM ne sait pas quel texte les boutons portent.',
+    regarder: 'Dans Crans, une carte à vérifier par mode : « Texte sur secondary, que les boutons et les encadrés partagent » ; dessous, deux réponses, « Passer au texte blanc » et « Passer au texte noir », chacune avec un bouton et un encadré dessinés dans la couleur, légendés « Bouton » et « Encadré » ; aucune réponse n’est cochée ; la ligne grise dit le mode.',
+    existe: true,
+    atteinte: ouvertEnTete(e4a.sensPartage, CARTES_A_FAIRE),
+  },
+  {
+    id: 't-couches-groupees', titre: 'Tokens, couches groupées', quand: 'Huit couleurs de theme visent primitives sur deux modes, une vise layout ; le designer ouvre la première carte.',
+    regarder: 'Dans Couches, une carte par couple de collection et de couche visée : « 4 variables de theme visent primitives, sur 2 modes. » et « 1 variable de theme vise layout, sur 1 mode. » ; sous la phrase, « Choisissez une cible dans brands ou utility dans la fenêtre Variables » puis « Voir les 4 variables » ; la carte ouverte liste les quatre variables, une par ligne.',
+    existe: true,
+    atteinte: [...ouvertEnTete(e4a.couches, CARTES_A_FAIRE), { clic: '#panneau-a-appliquer .bloc-constat .bloc-bouton' }],
+  },
+  {
+    id: 't-theme-non-reconnu', titre: 'Tokens, aucune collection theme', quand: 'Le fichier a des collections UCM mais aucune ne se lit comme theme ; il garde un constat de rangement.',
+    regarder: 'En tête de l’onglet Constats, sous le sommaire et avant les sections, une alerte d’information : « Aucune collection n’est reconnue comme theme. L’intégrité UCM n’est pas contrôlée. » et, en gris, « Répondez à la question de collection dans la section Noms » ; l’information n’est pas une carte et ne compte pas.',
+    existe: true,
+    atteinte: ouvertEnTete([e4a.themeNonReconnu, ...integrite.sansEcriture.slice(0, 1)], '#panneau-a-appliquer .alerte'),
+  },
+  {
+    id: 't-questions-de-structure', titre: 'Tokens, questions et cartes de structure', quand: 'Une variable au nom proche d’un rôle, une rampe d’une autre palette, une branche de mode, un rôle en double, deux collections theme et des cibles non lues.',
+    regarder: 'Variables manquantes : « Le nom … ressemble au rôle … » ; Crans : la rampe d’une autre palette avec « Viser … » pour chaque candidat ; Modes : « En Dark, cette variable vise la branche Light de sa palette. » avec deux « Viser … » ; Valeurs : « 2 variables portent le rôle … » avec « Garder … » ; Rangement : « Deux collections se lisent comme theme : … » ; Alias : « Les cibles rangées dans brands ne sont pas lues … » ; chaque carte dit où le régler.',
+    existe: true,
+    atteinte: ouvertEnTete(e4a.genresSansCarte, CARTES_A_FAIRE),
+  },
+);
+
 module.exports = { ETATS };
