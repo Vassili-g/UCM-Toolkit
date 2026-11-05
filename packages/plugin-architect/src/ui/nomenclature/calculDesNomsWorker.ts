@@ -34,21 +34,54 @@ interface Portee {
   onmessage: ((evenement: { readonly data: RequeteDuTravailleur }) => void) | null;
 }
 
-export function servirLesCalculs(portee: Portee): void {
+export interface OptionsDuServiceDesCalculs {
+  /**
+   * Remet l'exécution d'un travail à plus tard, pour que les travaux arrivés entre-temps rejoignent la file. Absent, le travail
+   * s'exécute à l'arrivée du message : un test d'atelier n'a pas de file à ordonner.
+   */
+  readonly differer?: (rappel: () => void) => void;
+}
+
+/**
+ * Le Worker sert un travail à la fois. Les contrôles de structure passent avant les autres travaux en attente, car la structure s'affiche
+ * la première : un calcul de noms arrivé avant eux ne les retarde que de ce qu'il a déjà commencé. Les autres travaux gardent leur ordre
+ * d'arrivée, celui qui lie une génération de noms à ses lectures et ses simulations.
+ */
+export function servirLesCalculs(portee: Portee, options: OptionsDuServiceDesCalculs = {}): void {
   const atelier = creerAtelier();
-  portee.onmessage = ({ data }) => {
-    if (!data || data.type !== 'travailler') return;
-    const { demande, generation, revision, travail } = data;
-    const recuA = Date.now();
+  const differer = options.differer ?? ((rappel) => rappel());
+  const file: { readonly requete: RequeteDuTravailleur; readonly recuA: number }[] = [];
+  let prevu = false;
+
+  function servirLeSuivant(): void {
+    prevu = false;
+    const rang = file.findIndex(({ requete }) => requete.travail.sorte === 'controler');
+    const [suivant] = file.splice(rang >= 0 ? rang : 0, 1);
+    if (!suivant) return;
+    const { demande, generation, revision, travail } = suivant.requete;
     try {
+      const calculDebutA = Date.now();
       const resultat = atelier.executer(travail, generation, (etape) => portee.postMessage({ type: 'etape', demande, generation, revision, etape }));
-      portee.postMessage({ type: 'resultat', demande, generation, revision, resultat, recuA, calculDebutA: recuA, calculFinA: Date.now() });
+      portee.postMessage({ type: 'resultat', demande, generation, revision, resultat, recuA: suivant.recuA, calculDebutA, calculFinA: Date.now() });
     } catch {
       portee.postMessage({ type: 'echec', demande, generation, revision });
     }
+    if (file.length > 0) prevoir();
+  }
+
+  function prevoir(): void {
+    if (prevu) return;
+    prevu = true;
+    differer(servirLeSuivant);
+  }
+
+  portee.onmessage = ({ data }) => {
+    if (!data || data.type !== 'travailler') return;
+    file.push({ requete: data, recuA: Date.now() });
+    prevoir();
   };
   portee.postMessage({ type: 'demarre' });
 }
 
 // Le bundle du Worker l'exécute dans sa propre portée ; importé par un test ou par l'écran, le module ne fait rien.
-if (typeof (globalThis as { importScripts?: unknown }).importScripts === 'function') servirLesCalculs(globalThis as unknown as Portee);
+if (typeof (globalThis as { importScripts?: unknown }).importScripts === 'function') servirLesCalculs(globalThis as unknown as Portee, { differer: (rappel) => { setTimeout(rappel, 0); } });

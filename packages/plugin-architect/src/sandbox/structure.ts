@@ -3,7 +3,10 @@
  * écrit les corrections que l'on coche.
  *
  * `lire-structure` rend `structure` : les constats de `controlerLeCatalogue` et de `controlerLIntegriteUcm` du kit sur le
- * catalogue du fichier, et les corrections que ces constats portent. C82 ne propose une création que si le fichier a choisi son
+ * catalogue du fichier, et les corrections que ces constats portent. Le Worker de l'interface mène les deux contrôles
+ * (`nomenclature/controlesDistants.ts`), le sandbox les mène lui-même quand le Worker manque ou ne répond pas, avec les mêmes constats
+ * dans le même ordre. L'envoi part dès que les réglages sont lus et le sandbox reste libre pendant l'attente : une lecture plus
+ * récente qui commence entre-temps répond seule, la plus ancienne ne touche ni aux corrections retenues ni à la lecture gardée. C82 ne propose une création que si le fichier a choisi son
  * écriture dans Nomenclature, et n'omet que les rôles que le fichier n'ignore pas. Un constat ignoré par son identifiant n'est pas
  * rendu, ni sa correction ; une proposition retirée garde le constat sans correction. Hors UCM, ou quand la lecture échoue, les
  * listes sont vides. Le sandbox retient ces corrections, par identifiant : `appliquer-structure` n'écrit que celles-là
@@ -38,7 +41,7 @@
  * rendue dit ce qui est resté. Le message `structure` porte `ignores` : les constats écartés pour leur palette et les rôles écartés.
  */
 import { VARIABLES_DU_THEME, type VariableDuTheme } from '@ucm-kit/core/emplois';
-import { controlerLIntegriteUcm, controlerLeCatalogue, type CatalogueDeReference, type Constat, type Correction } from '@ucm-kit/core/controles';
+import type { CatalogueDeReference, Constat, Correction } from '@ucm-kit/core/controles';
 import { CLE_ECRITURE, lireEcriture, lireEntree, type EcritureChoisie } from '@ucm-kit/core/protocoles';
 import { ESPACE_ARCHITECT } from '@ucm-kit/core/referentiel';
 
@@ -47,11 +50,13 @@ import { ignorerUnConstat, ignorerUnRole, lireLesIgnores, nePlusIgnorer, retabli
 import { ecrireLaStructure, fusionnerLesVariables, type DemandeDeFusion, type ResultatDEcritureDeStructure, type ResultatDeFusion } from '../ecriture/structure';
 import { compterLesAppelsDuPort, idsDesLocales, lireLesVariables, mesurerUnePhaseDeTokens, type AppelsDePhase } from '../lecture';
 import type { DemandeDeStructure, EchecDeLecture, IgnoresDeStructure } from '../messages/structure';
+import { creerControlesDistants, type ControlesDistants } from '../nomenclature/controlesDistants';
 import { fermerLaReprise, prendreLAcquisitionPourLaStructure, reperDesLectures, variablesDuCatalogue } from './acquisition';
 import { perimerApresUneEcriture, prendreLaPlaceDUneEcriture } from './analyse';
 import { lireLaDeclaration } from './commun';
 import type { Contexte, Traiter } from './contexte';
 import { portDeLecture } from './lectureDeFigma';
+import { portDuCalculDistant } from './nomenclature';
 
 export const TYPES: readonly DemandeDeStructure['type'][] = [
   'lire-structure', 'appliquer-structure', 'fusionner-variables', 'ignorer-constat-de-structure', 'retablir-constat-de-structure', 'ignorer-role', 'retablir-role',
@@ -86,6 +91,8 @@ export interface Acces {
   rangement(contexte: Contexte): RangementDeStructure;
   /** Fusionne des variables du même rôle (E4.4). Absent, la demande est sautée `correction-inconnue`. */
   fusionner?(demande: DemandeDeFusion): Promise<ResultatDeFusion>;
+  /** Les contrôles de structure : le Worker de l'interface, repli sur le sandbox. Absent, le sandbox les mène lui-même. */
+  controles?(contexte: Contexte): ControlesDistants;
   /** Vrai quand le fichier ne déclare pas UCM : un catalogue absent n'y est pas un échec. Absent, tout fichier compte comme UCM. */
   horsUcm?(contexte: Contexte): boolean;
 }
@@ -175,12 +182,20 @@ export function oublierLaLectureGardee(): void {
   gardee = null;
 }
 
-/** Les constats des deux contrôles du kit sur le catalogue, pour les rôles ignorés et l'écriture donnés. */
-function controler(catalogue: CatalogueDeReference, ecriture: EcritureChoisie | null, roles: readonly VariableDuTheme[]): Constat[] {
-  return sansDoublon([
-    ...mesurerUnePhaseDeTokens('controler-le-catalogue', () => controlerLeCatalogue(catalogue)),
-    ...mesurerUnePhaseDeTokens('controler-l-integrite', () => controlerLIntegriteUcm(catalogue, { ecriture, rolesIgnores: [...roles] })),
-  ]);
+/**
+ * Le numéro de la dernière lecture de structure ou du dernier refiltrage commencé. Les contrôles attendent le Worker et `code.ts` ne met
+ * pas les messages en file : une lecture suspendue sur cet `await` peut croiser une autre, et seule la plus récente répond.
+ */
+let numeroDeLecture = 0;
+
+/**
+ * Les constats des deux contrôles du kit sur le catalogue, pour les rôles ignorés et l'écriture donnés. Le Worker de l'interface les
+ * mène ; l'envoi part avant le premier `await`. Le port note `controler-le-catalogue` et `controler-l-integrite` avec leur voie.
+ */
+async function controler(numero: number, acces: Acces, contexte: Contexte, catalogue: CatalogueDeReference, ecriture: EcritureChoisie | null, roles: readonly VariableDuTheme[]): Promise<Constat[]> {
+  const controles = acces.controles?.(contexte) ?? creerControlesDistants({ port: null });
+  const { constats } = await controles.controler(numero, { catalogue, ecriture, roles });
+  return sansDoublon([...constats.catalogue, ...constats.integrite]);
 }
 
 /** Sépare les ignorés, retient les corrections et envoie `structure` : la fin commune de la lecture complète et du refiltrage. */
@@ -199,6 +214,7 @@ function rendre(numero: number, contexte: Contexte, tous: readonly Constat[], cl
 
 async function lireLaStructure(numero: number, acces: Acces, contexte: Contexte, appels: AppelsDePhase, depuisLeReleve: boolean): Promise<void> {
   gardee = null;
+  const lecture = ++numeroDeLecture;
   const reper = reperDesLectures();
   let catalogue: CatalogueDeReference | null = null;
   let echec: EchecDeLecture | undefined;
@@ -217,30 +233,36 @@ async function lireLaStructure(numero: number, acces: Acces, contexte: Contexte,
   let lus = true;
   try { reglages = await acces.reglages(contexte); } catch { lus = false; /* sans réglages : aucune création, aucun constat écarté */ }
   const roles = rolesIgnoresDe(reglages.cles);
-  const tous = controler(catalogue, reglages.ecriture, roles);
+  const tous = await controler(numero, acces, contexte, catalogue, reglages.ecriture, roles);
+  // Une lecture plus récente a commencé pendant les contrôles : elle répond, celle-ci ne touche ni aux corrections retenues ni à la lecture gardée.
+  if (lecture !== numeroDeLecture) return;
   if (lus && !cataloguesAvecUnRefus.has(catalogue) && reper === reperDesLectures()) gardee = { catalogue, ecriture: reglages.ecriture, roles, tous, reper };
   rendre(numero, contexte, tous, reglages.cles, roles, echec);
 }
 
 /**
  * Refiltre la lecture gardée avec les clés d'Ignorer relues, sans lire de variable. Rend faux, sans rien envoyer, quand rien n'est
- * gardé, qu'une écriture ou un Actualiser est passé, ou que les réglages ne se lisent pas : l'appelant relit alors Figma.
+ * gardé, qu'une écriture ou un Actualiser est passé, qu'une lecture plus récente a commencé pendant les contrôles ou que les réglages
+ * ne se lisent pas : l'appelant relit alors Figma.
  */
 async function refiltrerLaLectureGardee(numero: number, acces: Acces, contexte: Contexte): Promise<boolean> {
+  const lecture = ++numeroDeLecture;
   const garde = gardee;
   if (!garde || garde.reper !== reperDesLectures()) return false;
   let reglages: Awaited<ReturnType<Acces['reglages']>>;
   try { reglages = await acces.reglages(contexte); } catch { return false; }
   if (garde.reper !== reperDesLectures()) return false;
-  await mesurerUnePhaseDeTokens('lire-structure', () => {
+  let sansEnvoi = false;
+  await mesurerUnePhaseDeTokens('lire-structure', async () => {
     const roles = rolesIgnoresDe(reglages.cles);
     // Les rôles ignorés (ou l'écriture choisie) ont changé : C82 se recalcule sur le catalogue gardé. Sinon les constats sont ceux de la lecture.
     const memeSource = roles.join('|') === garde.roles.join('|') && JSON.stringify(reglages.ecriture) === JSON.stringify(garde.ecriture);
-    const tous = memeSource ? garde.tous : controler(garde.catalogue, reglages.ecriture, roles);
+    const tous = memeSource ? garde.tous : await controler(numero, acces, contexte, garde.catalogue, reglages.ecriture, roles);
+    if (lecture !== numeroDeLecture || garde.reper !== reperDesLectures()) { sansEnvoi = true; return; }
     if (!memeSource) gardee = { ...garde, ecriture: reglages.ecriture, roles, tous };
     rendre(numero, contexte, tous, reglages.cles, roles);
   });
-  return true;
+  return !sansEnvoi;
 }
 
 type DemandeDIgnorerDeStructure = Exclude<DemandeDeStructure, { type: 'lire-structure' | 'appliquer-structure' | 'fusionner-variables' }>;
@@ -371,4 +393,13 @@ async function fusionner(demande: Extract<DemandeDeStructure, { type: 'fusionner
   }
 }
 
-export const traiter = traiterAvec(ACCES_DE_FIGMA);
+/**
+ * Les accès du plugin : ceux de Figma, avec les contrôles confiés au Worker de l'interface. `ACCES_DE_FIGMA` les laisse au sandbox, pour que
+ * les tests qui lisent un faux Figma n'attendent pas une interface qui ne répond pas (`DELAI_DES_CONTROLES_DISTANTS`).
+ */
+export const ACCES_AVEC_LE_WORKER: Acces = {
+  ...ACCES_DE_FIGMA,
+  controles: (contexte) => creerControlesDistants({ port: portDuCalculDistant(contexte) }),
+};
+
+export const traiter = traiterAvec(ACCES_AVEC_LE_WORKER);

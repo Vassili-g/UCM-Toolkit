@@ -16,8 +16,11 @@ import { oublierLAcquisition } from '../src/sandbox/acquisition';
 import { catalogueDeFigma, reinitialiserLAnalyse } from '../src/sandbox/analyse';
 import { annulees, traiter as traiterLArbre } from '../src/sandbox/arbre';
 import type { Contexte } from '../src/sandbox/contexte';
-import { oublierLaLectureGardee, traiter } from '../src/sandbox/structure';
+import { ACCES_DE_FIGMA, oublierLaLectureGardee, traiterAvec } from '../src/sandbox/structure';
 import { collectionFigma, portDeTest, variableFigma } from './figmaDeTest';
+
+/** Le sandbox mène les contrôles : le faux Figma n'a pas d'interface qui réponde. */
+const traiter = traiterAvec(ACCES_DE_FIGMA);
 
 const alias = (id: string) => ({ type: 'VARIABLE_ALIAS', id });
 const couleur = { r: 0.2, g: 0.4, b: 0.6, a: 1 };

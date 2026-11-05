@@ -11,7 +11,10 @@ import { estSupprimee, lireLesVariables, lireLeReleve } from '../src/lecture';
 import { lireLeComposant } from '../src/lectureDuComposant';
 import type { PluginMessage } from '../src/messages';
 import type { Contexte } from '../src/sandbox/contexte';
-import { traiter } from '../src/sandbox/structure';
+import { ACCES_DE_FIGMA, traiterAvec } from '../src/sandbox/structure';
+
+/** Le sandbox mène les contrôles : le faux Figma n'a pas d'interface qui réponde. */
+const traiter = traiterAvec(ACCES_DE_FIGMA);
 import { atelierDeCalques, collectionFigma, portDeTest, variableFigma } from './figmaDeTest';
 
 const sansAnnulation = { annulee: () => false };
