@@ -32,6 +32,40 @@ Fin : `npm run test:paquet -- architect` passe. Les régressions couvrent les ca
 
 ## Avancement
 
+En cours (Codex, S2). Ne pas reprendre.
+
+Lecture S2 faite. `packages/plugin-architect/scripts/stress/f2-structure/chaine.ts` fournit les conteneurs de Constats mais pas `tokens.choix`. Le harnais sera modifié pour suivre le contrat courant du panneau. La coquille de production reste hors du lot. E4c est relu, son second constat de retrait ne relève pas de S2.
+
+Le build du kit passe. Avant correction, les 28 cas du harnais lèvent dans `tokens.attente`, ajouté par G2 depuis la demande S2. Le double doit fournir aussi `attente` et `surAttente`. `packages/plugin-architect/tests/stressChaineStructure.test.ts` ajoute trois régressions P13 (lecture levée, catalogue absent, refus de Figma).
+
+Prochaine action : `npx tsx --test packages/plugin-architect/tests/stressChaineStructure.test.ts`.
+
+Les trois régressions échouent avant correction dans `tokens.attente`. `packages/plugin-architect/scripts/stress/f2-structure/chaine.ts` `lancerLaChaine` fournit maintenant le choix Tout et l'absence d'attente de structure et de noms. Le harnais et le nouveau test sont modifiés, non commités.
+
+Prochaines actions : `npx tsx --test packages/plugin-architect/tests/stressChaineStructure.test.ts`, puis `npm run stress:structure --workspace ucm-architect-plugin`.
+
+Les trois régressions passent. Le harnais retrouve P13, 3 cas sur 4 passent (D1-1, D1-2, D1-4). D1-3 garde les deux écarts de réglages déjà signalés par E4b. Le harnais complet compte 28 cas, 15 tiennent, 13 restent en écart et aucune exception. Les écarts P11, P14 et P9 restent hors de S2.
+
+Prochaine action : `npx tsx --test packages/plugin-architect/tests/stressChaineStructure.test.ts` après retrait temporaire des trois membres du double, puis restauration et relance du même test.
+
+Retrait vérifié, 3 échecs sur 3. La réparation est restaurée, 3 tests sur 3 passent.
+
+Prochaines actions : `npm run typecheck --workspace ucm-architect-plugin`, `npm run test:paquet -- architect`, puis `npm run agents:diff`.
+
+`npm run agents:diff` ne relève aucun chemin supprimé. Les documents d'Architect déjà relus pour S1 restent valables pour ce double ; `packages/kit/invariants/referentiel.md`, la règle C63 de `packages/kit/invariants/versionnage.md` et `packages/kit/README.md` sont relus pour les changements concurrents signalés. Aucune règle du produit ne change dans S2. Le diff du harnais est relu, `git diff --check` passe.
+
+Le contrôle TypeScript échoue hors lot dans `packages/plugin-architect/tests/calculDesNomsClient.test.ts`, ligne 80, avec 3 accès à `never`. Les tests Architect tournent encore.
+
+Prochaine action : `npm run typecheck --workspace ucm-architect-plugin` pour vérifier l'arbre concurrent une seconde fois.
+
+La seconde vérification TypeScript reproduit les 3 erreurs hors lot. Les tests Architect rendent 2 208 tests, 2 204 réussites, 4 échecs hors lot. Les deux échecs déjà signalés en S1 restent présents. Deux autres apparaissent dans `packages/plugin-architect/tests/lectureAnticipeeDesLibraries.test.ts` et `packages/plugin-architect/tests/nomenclatureSession.test.ts`.
+
+Prochaines actions : `npx tsx --test packages/plugin-architect/tests/lectureAnticipeeDesLibraries.test.ts`, puis `npx tsx --test packages/plugin-architect/tests/nomenclatureSession.test.ts`.
+
+La lecture anticipée passe seule (21 tests sur 21). La session de Nomenclature reproduit son échec seule (26 réussites sur 27). Ces fichiers restent inchangés. Le harnais réparé, son test et ce lot sont prêts à commiter.
+
+Prochaine action : `npm run build --workspace @ucm-kit/core`, puis `npm run stress:structure --workspace ucm-architect-plugin`.
+
 E4.3 et E4.5 faites, non commitées. E4.2 reste ouverte : la lecture en échec est faite, mais cinq motifs de saut attendent leur texte. Rien n'est écrit dans le kit.
 
 Fait :

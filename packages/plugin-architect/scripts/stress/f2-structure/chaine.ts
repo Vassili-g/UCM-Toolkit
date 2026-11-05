@@ -11,7 +11,7 @@
  *
  * `monterStructure` demande une coquille de Nomenclature que le harnais ne monte pas. Le harnais lui donne le double de `tests/rapport.test.ts`
  * et les conteneurs qu'il lit, tous rangés sous une même racine. Ce double a `tokens` (`hote`, `ignores`, `haut`, `pied`, `poserLaStructure`,
- * `poserLesGestes`) et `renommages`, sans renommage. Les boutons de section que le panneau poserait sous chaque bande sont gardés par catégorie. Un geste d'Ignorer qui n'a pas de bouton à
+ * `poserLesGestes`, `choix`, `attente`, `surAttente`) et `renommages`, sans renommage. Le sommaire reste sur Tout et aucune analyse n'est en attente. Les boutons de section que le panneau poserait sous chaque bande sont gardés par catégorie. Un geste d'Ignorer qui n'a pas de bouton à
  * l'écran remplace la prochaine demande de l'interface par la demande du geste, sous le même numéro, comme `demanderAvec` de
  * `ui/structure/index.ts`. Le sandbox garde un état global (`reinitialiserLAnalyse`) : les chaînes se lancent l'une après l'autre.
  */
@@ -163,7 +163,13 @@ export async function lancerLaChaine(parametres: ParametresDeChaine): Promise<Ch
   const pied = conteneur();
   const gestes = new Map<string, ElementDeTest>();
   const coquille = {
-    tokens: { hote, ignores, haut, pied, poserLaStructure() {}, poserLesGestes: (id: string, element: unknown) => { if (element === null) gestes.delete(id); else gestes.set(id, comme(element)); } },
+    tokens: {
+      hote, ignores, haut, pied, poserLaStructure() {},
+      choix: () => 'tout',
+      attente: () => ({ structure: false, noms: false }),
+      surAttente: () => () => {},
+      poserLesGestes: (id: string, element: unknown) => { if (element === null) gestes.delete(id); else gestes.set(id, comme(element)); },
+    },
     pied: new ElementDeTest('DIV'),
     renommages: () => SANS_RENOMMAGES,
   };
