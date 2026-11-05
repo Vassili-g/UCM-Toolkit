@@ -239,8 +239,18 @@ export function* calculerLeBilan(entree: EntreeDuCalcul, moteur: Moteur = moteur
   return construireEtat(entree.generation, entree.inventaire, entree.regles, calcul).projection.bilan();
 }
 
-/** Mène `calculerLeBilan` sans céder : pour un Worker, un test ou un moteur qui n'a pas besoin de tranches. */
-export function calculerLeBilanDirect(entree: EntreeDuCalcul, moteur: Moteur = moteurDuKit): Bilan {
-  const calcul = calculerLeBilan(entree, moteur);
+/** Mène un calcul du kit jusqu'au bout sans céder : pour un Worker, un test ou un moteur qui n'a pas besoin de tranches. */
+export function menerSansCeder<T>(calcul: Generator<void, T>): T {
   for (let etape = calcul.next(); ; etape = calcul.next()) if (etape.done) return etape.value;
+}
+
+/** Mène `calculerLeBilan` sans céder. */
+export function calculerLeBilanDirect(entree: EntreeDuCalcul, moteur: Moteur = moteurDuKit): Bilan {
+  return menerSansCeder(calculerLeBilan(entree, moteur));
+}
+
+/** L'état complet que le calcul de `entree` donne, sans céder : le Worker le garde pour répondre aux lectures et aux gestes. */
+export function calculerLEtatDirect(entree: EntreeDuCalcul, moteur: Moteur = moteurDuKit): Etat {
+  const calcul = menerSansCeder(calculerTout(moteur, entree.inventaire, entree.regles));
+  return construireEtat(entree.generation, entree.inventaire, entree.regles, calcul);
 }

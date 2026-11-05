@@ -1,19 +1,19 @@
 /**
- * Le port par lequel la session confie le calcul des noms à l'interface (un Worker) : il envoie l'entrée, attend la réponse de la demande,
- * et rend le bilan ou la raison du repli. Une réponse qui ne porte pas la demande, la génération et la révision de la requête en attente
- * est ignorée ; sans réponse avant `delai`, la requête se replie et la session calcule dans le sandbox.
+ * Le port par lequel la session confie un travail des noms à l'interface (un Worker) : il envoie le travail, attend la réponse de la demande,
+ * et rend le résultat ou la raison du repli. Une réponse qui ne porte pas la demande, la génération et la révision de la requête en attente
+ * est ignorée ; sans réponse avant `delai`, la requête se replie et la session travaille dans le sandbox.
+ *
+ * Plusieurs requêtes peuvent attendre ensemble, une par numéro de demande : les lectures de l'écran ne passent pas par la file des calculs.
  *
  * Le module n'importe ni `figma`, ni le journal : le sandbox lui donne la révision de l'acquisition et la porte d'envoi.
  */
-import type { Bilan } from '../messages/nomenclature';
-import type { CauseDeRepli, MesureDuCalculDistant, MessageDeCalculDesNoms, ReponseDuCalculDesNoms } from '../messages/calculDesNoms';
-import type { EntreeDuCalcul } from './calcul';
+import type { CauseDeRepli, MesureDuCalculDistant, MessageDeCalculDesNoms, ReponseDuCalculDesNoms, ResultatDuTravail, TravailDesNoms } from '../messages/calculDesNoms';
 
 /** Le délai, en millisecondes, après lequel le sandbox renonce au Worker : un calcul de 2 415 variables y prend moins de 3 s. */
 export const DELAI_DU_CALCUL_DISTANT = 120_000;
 
 export type IssueDuCalculDistant =
-  | { readonly type: 'calcule'; readonly bilan: Bilan; readonly mesure: MesureDuCalculDistant; readonly envoyeA: number; readonly recuA: number }
+  | { readonly type: 'calcule'; readonly resultat: ResultatDuTravail; readonly mesure: MesureDuCalculDistant; readonly envoyeA: number; readonly recuA: number }
   | { readonly type: 'repli'; readonly cause: CauseDeRepli }
   | { readonly type: 'annule' };
 
@@ -24,7 +24,7 @@ export interface RequeteDistante {
 }
 
 export interface PortDeCalculDistant {
-  calculer(requete: { readonly demande: number; readonly generation: number; readonly entree: EntreeDuCalcul }): RequeteDistante;
+  calculer(requete: { readonly demande: number; readonly generation: number; readonly travail: TravailDesNoms }): RequeteDistante;
 }
 
 export interface OptionsDuPortDistant {
@@ -59,7 +59,7 @@ export function creerPortDistant(options: OptionsDuPortDistant): PortDistantDuSa
   const attente = new Map<number, EnAttente>();
 
   return {
-    calculer({ demande, generation, entree }) {
+    calculer({ demande, generation, travail }) {
       const revision = options.revision();
       const envoyeA = maintenant();
       let fin: (issue: IssueDuCalculDistant) => void = () => {};
@@ -76,7 +76,7 @@ export function creerPortDistant(options: OptionsDuPortDistant): PortDistantDuSa
       attente.set(demande, { generation, revision, envoyeA, fin: conclure });
       arreter = planifier(() => conclure({ type: 'repli', cause: 'delai' }), delai);
       try {
-        options.envoyer({ type: 'calcul-des-noms', demande, generation, revision, envoyeA, entree });
+        options.envoyer({ type: 'calcul-des-noms', demande, generation, revision, envoyeA, travail });
       } catch {
         conclure({ type: 'repli', cause: 'indisponible' });
       }
@@ -86,7 +86,7 @@ export function creerPortDistant(options: OptionsDuPortDistant): PortDistantDuSa
       const requete = attente.get(reponse.demande);
       if (!requete || requete.generation !== reponse.generation || requete.revision !== reponse.revision) return;
       if (reponse.type === 'noms-non-calcules') requete.fin({ type: 'repli', cause: reponse.cause });
-      else requete.fin({ type: 'calcule', bilan: reponse.bilan, mesure: reponse.mesure, envoyeA: requete.envoyeA, recuA: maintenant() });
+      else requete.fin({ type: 'calcule', resultat: reponse.resultat, mesure: reponse.mesure, envoyeA: requete.envoyeA, recuA: maintenant() });
     },
   };
 }

@@ -6,7 +6,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { estCalculDesNoms, type MessageDeCalculDesNoms, type ReponseDuCalculDesNoms } from '../src/messages/calculDesNoms';
+import { estCalculDesNoms, estReponseDuCalculDesNoms, type MessageDeCalculDesNoms, type ReponseDuCalculDesNoms } from '../src/messages/calculDesNoms';
 import type { Bilan } from '../src/messages/nomenclature';
 import { calculerLeBilanDirect } from '../src/nomenclature/calcul';
 import { creerCalculateurDeNoms, type TravailleurDeNoms } from '../src/ui/nomenclature/calculDesNoms';
@@ -28,11 +28,14 @@ function fauxTravailleur() {
   return travailleur;
 }
 
-const ENTREE = { generation: 3, inventaire: { entrees: [] }, regles: {} } as unknown as MessageDeCalculDesNoms['entree'];
-const requete = (demande: number, generation = 3, revision = 'r1'): MessageDeCalculDesNoms => ({ type: 'calcul-des-noms', demande, generation, revision, envoyeA: 100, entree: ENTREE });
+const ENTREE = { generation: 3, inventaire: { entrees: [] }, regles: {} } as unknown as Extract<MessageDeCalculDesNoms['travail'], { sorte: 'calculer' }>['entree'];
+const CALCULER: MessageDeCalculDesNoms['travail'] = { sorte: 'calculer', entree: ENTREE };
+const LIRE: MessageDeCalculDesNoms['travail'] = { sorte: 'lire', lecture: { type: 'fiche', demande: 1, generation: 3, terme: 'quux' } };
+const requete = (demande: number, generation = 3, revision = 'r1', travail: MessageDeCalculDesNoms['travail'] = CALCULER): MessageDeCalculDesNoms =>
+  ({ type: 'calcul-des-noms', demande, generation, revision, envoyeA: 100, travail });
 const BILAN = { generation: 3, groupes: [], questions: [] } as unknown as Bilan;
 const bilan = (demande: number, generation = 3, revision = 'r1', recuA = 5, finA = 9): ReponseDuTravailleur =>
-  ({ type: 'bilan', demande, generation, revision, bilan: BILAN, recuA, calculDebutA: recuA, calculFinA: finA });
+  ({ type: 'resultat', demande, generation, revision, resultat: { sorte: 'bilan', bilan: BILAN }, recuA, calculDebutA: recuA, calculFinA: finA });
 
 function client(options: { travailleur?: ReturnType<typeof fauxTravailleur> | null; fabriquer?: () => TravailleurDeNoms | null; delai?: number } = {}) {
   const reponses: ReponseDuCalculDesNoms[] = [];
@@ -52,13 +55,13 @@ function client(options: { travailleur?: ReturnType<typeof fauxTravailleur> | nu
 test('le client passe l\'entrée au Worker et rend le bilan avec les heures du trajet', () => {
   const { calculateur, reponses, travailleur, delais } = client();
   calculateur.recevoir(requete(7));
-  assert.deepEqual(travailleur!.requetes, [{ type: 'calculer', demande: 7, generation: 3, revision: 'r1', entree: ENTREE }]);
+  assert.deepEqual(travailleur!.requetes, [{ type: 'travailler', demande: 7, generation: 3, revision: 'r1', travail: CALCULER }]);
   assert.equal(delais.length, 1);
   assert.equal(delais[0].ms, 5000, 'le démarrage a un délai');
   travailleur!.repondre({ type: 'demarre' });
   assert.equal(delais[0].annule, true, 'un Worker démarré annule le délai');
   travailleur!.repondre(bilan(7));
-  assert.deepEqual(reponses, [{ type: 'noms-calcules', demande: 7, generation: 3, revision: 'r1', bilan: BILAN, mesure: { recuA: 1010, demarrage: true, travailleurRecuA: 5, calculDebutA: 5, calculFinA: 9 } }]);
+  assert.deepEqual(reponses, [{ type: 'noms-calcules', demande: 7, generation: 3, revision: 'r1', resultat: { sorte: 'bilan', bilan: BILAN }, mesure: { recuA: 1010, demarrage: true, travailleurRecuA: 5, calculDebutA: 5, calculFinA: 9 } }]);
   // Le Worker vit encore : la requête suivante ne le recrée pas et ne compte pas de démarrage.
   calculateur.recevoir(requete(8, 4));
   travailleur!.repondre(bilan(8, 4));
@@ -152,23 +155,53 @@ test('sans source embarquée, le client replie tout de suite : Node, galerie san
   assert.deepEqual(reponses.map((reponse) => (reponse as { cause?: string }).cause), ['indisponible']);
 });
 
+test('plusieurs requêtes attendent ensemble ; un nouveau calcul de bilan ne remplace que les calculs de bilan en attente', () => {
+  const { calculateur, reponses, travailleur } = client();
+  calculateur.recevoir(requete(1, 3));
+  calculateur.recevoir(requete(2, 3, 'r1', LIRE));
+  calculateur.recevoir(requete(3, 3, 'r1', LIRE));
+  calculateur.recevoir(requete(4, 4));
+  travailleur!.repondre(bilan(1, 3));
+  assert.equal(reponses.length, 0, 'le calcul de bilan remplacé par la demande 4 n\'est plus attendu');
+  travailleur!.repondre(bilan(3, 3));
+  travailleur!.repondre(bilan(2, 3));
+  travailleur!.repondre(bilan(4, 4));
+  assert.deepEqual(reponses.map((reponse) => reponse.demande), [3, 2, 4], 'chaque lecture reçoit sa réponse, dans l\'ordre où le Worker les rend');
+});
+
+test('un Worker jeté répond `echec` à toutes les requêtes qu\'il laisse en attente', () => {
+  const { calculateur, reponses, travailleur } = client();
+  calculateur.recevoir(requete(1));
+  calculateur.recevoir(requete(2, 3, 'r1', LIRE));
+  travailleur!.repondre({ type: 'demarre' });
+  travailleur!.onerror?.({});
+  assert.deepEqual(reponses.map((reponse) => [reponse.type, reponse.demande, (reponse as { cause?: string }).cause]), [['noms-non-calcules', 1, 'echec'], ['noms-non-calcules', 2, 'echec']]);
+});
+
 test('le Worker rend le bilan du calcul pur, avec les heures de son calcul, et `echec` sur une entrée qu\'il ne sait pas lire', async () => {
   const entree = await entreeDeFixture(FIXTURES[2], 4);
   const envoyes: ReponseDuTravailleur[] = [];
   const portee = { postMessage: (message: ReponseDuTravailleur) => { envoyes.push(message); }, onmessage: null as null | ((evenement: { data: RequeteDuTravailleur }) => void) };
   servirLesCalculs(portee);
   assert.deepEqual(envoyes, [{ type: 'demarre' }]);
-  portee.onmessage!({ data: { type: 'calculer', demande: 9, generation: 4, revision: 'r', entree: JSON.parse(JSON.stringify(entree)) } });
+  portee.onmessage!({ data: { type: 'travailler', demande: 9, generation: 4, revision: 'r', travail: { sorte: 'calculer', entree: JSON.parse(JSON.stringify(entree)) } } });
   const reponse = envoyes[1];
-  assert.ok(reponse.type === 'bilan');
-  assert.equal(JSON.stringify(reponse.bilan), JSON.stringify(calculerLeBilanDirect(entree)));
+  assert.ok(reponse.type === 'resultat');
+  assert.equal(JSON.stringify(reponse.resultat), JSON.stringify({ sorte: 'bilan', bilan: calculerLeBilanDirect(entree) }));
   assert.deepEqual([reponse.demande, reponse.generation, reponse.revision], [9, 4, 'r']);
   assert.ok(reponse.calculFinA >= reponse.calculDebutA);
-  portee.onmessage!({ data: { type: 'calculer', demande: 10, generation: 4, revision: 'r', entree: {} as never } });
+  portee.onmessage!({ data: { type: 'travailler', demande: 10, generation: 4, revision: 'r', travail: { sorte: 'calculer', entree: {} as never } } });
   assert.deepEqual(envoyes[2], { type: 'echec', demande: 10, generation: 4, revision: 'r' });
 });
 
 test('le sandbox et l\'écran reconnaissent la forme des messages du calcul', () => {
   assert.equal(estCalculDesNoms(requete(1)), true);
-  for (const faux of [null, {}, { ...requete(1), demande: 0 }, { ...requete(1), revision: 3 }, { ...requete(1), entree: null }, { ...requete(1), type: 'bilan' }]) assert.equal(estCalculDesNoms(faux), false);
+  for (const faux of [null, {}, { ...requete(1), demande: 0 }, { ...requete(1), revision: 3 }, { ...requete(1), travail: null }, { ...requete(1), travail: { sorte: 'inconnue' } }, { ...requete(1), type: 'bilan' }]) assert.equal(estCalculDesNoms(faux), false);
+  const mesure = { recuA: 1, demarrage: false, travailleurRecuA: 2, calculDebutA: 3, calculFinA: 4 };
+  const reponse = (resultat: unknown) => ({ type: 'noms-calcules', demande: 1, generation: 3, revision: 'r', resultat, mesure });
+  for (const bon of [{ sorte: 'bilan', bilan: BILAN }, { sorte: 'message', message: { type: 'fiche' } }, { sorte: 'ecritures', ecritures: [], regles: {} }, { sorte: 'refus', conflits: [] },
+    { sorte: 'erreur', code: 'echec' }, { sorte: 'renommages', renommages: [] }, { sorte: 'perimee' }]) assert.equal(estReponseDuCalculDesNoms(reponse(bon)), true, JSON.stringify(bon));
+  for (const mauvais of [null, {}, { sorte: 'bilan', bilan: { ...BILAN, generation: 9 } }, { sorte: 'message', message: null }, { sorte: 'ecritures', ecritures: {} }, { sorte: 'inconnue' }]) {
+    assert.equal(estReponseDuCalculDesNoms(reponse(mauvais)), false, JSON.stringify(mauvais));
+  }
 });

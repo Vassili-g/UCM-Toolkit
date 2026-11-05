@@ -1,17 +1,17 @@
 /**
- * Le client du Worker de calcul des noms. Le sandbox envoie l'entrée du calcul (`calcul-des-noms`) ; le client la passe au Worker et rend au
- * sandbox le bilan (`noms-calcules`), ou la raison pour laquelle il n'y en a pas (`noms-non-calcules`), après quoi le sandbox calcule lui-même.
+ * Le client du Worker des noms. Le sandbox envoie un travail (`calcul-des-noms`) : calcul du bilan, lecture, simulation, geste. Le client le
+ * passe au Worker et rend au sandbox le résultat (`noms-calcules`), ou la raison pour laquelle il n'y en a pas (`noms-non-calcules`), après
+ * quoi le sandbox travaille lui-même.
  *
  * Le Worker naît de la source que le build embarque dans le bundle de l'écran (`__SOURCE_DU_WORKER_DE_NOMS__`), lancée depuis un `Blob` : le
  * plugin est un seul fichier HTML, sans second fichier à servir. Il naît à la première requête, une seule fois. S'il ne naît pas (source
  * absente, politique de contenu qui refuse le `Blob`), ne répond pas au démarrage, ou plante, le client le jette et répond `indisponible`,
- * `demarrage` ou `echec` ; il ne le relance pas dans la même session.
+ * `demarrage` ou `echec` ; il ne le relance pas dans la même session. Un Worker jeté perd l'état qu'il gardait : le sandbox calcule alors lui-même.
  *
- * Seule la dernière requête reçue est attendue : la réponse d'une requête remplacée, et toute réponse dont la demande, la génération ou la
- * révision diffère, sont ignorées.
+ * Plusieurs requêtes attendent ensemble, une par numéro de demande. Un nouveau calcul de bilan remplace ceux qui attendent encore : la
+ * réponse d'une analyse remplacée, et toute réponse dont la demande, la génération ou la révision diffère, sont ignorées.
  */
-import { estCalculDesNoms, type MesureDuCalculDistant, type MessageDeCalculDesNoms, type ReponseDuCalculDesNoms } from '../../messages/calculDesNoms';
-import type { Bilan } from '../../messages/nomenclature';
+import { estCalculDesNoms, type MesureDuCalculDistant, type MessageDeCalculDesNoms, type ReponseDuCalculDesNoms, type ResultatDuTravail } from '../../messages/calculDesNoms';
 import type { ReponseDuTravailleur, RequeteDuTravailleur } from './calculDesNomsWorker';
 
 export { estCalculDesNoms };
@@ -43,7 +43,7 @@ export interface OptionsDuCalculateurDeNoms {
 }
 
 export interface CalculateurDeNoms {
-  /** Reçoit l'entrée du sandbox. */
+  /** Reçoit le travail du sandbox. */
   recevoir(message: MessageDeCalculDesNoms): void;
   /** Vrai tant que le Worker peut servir : il n'a pas été jeté. */
   disponible(): boolean;
@@ -57,6 +57,7 @@ function travailleurEmbarque(): TravailleurDeNoms | null {
 }
 
 interface Attendue {
+  readonly sorte: string;
   readonly demande: number;
   readonly generation: number;
   readonly revision: string;
@@ -77,8 +78,8 @@ export function creerCalculateurDeNoms(options: OptionsDuCalculateurDeNoms): Cal
   let jete = false;
   let demarre = false;
   let arreterLeDelai: () => void = () => {};
-  /** La requête dont la réponse est attendue : la dernière reçue. */
-  let attendue: Attendue | null = null;
+  /** Les requêtes dont la réponse est attendue, par numéro de demande. */
+  const attendues = new Map<number, Attendue>();
 
   const identite = (requete: Attendue) => ({ demande: requete.demande, generation: requete.generation, revision: requete.revision });
 
@@ -86,12 +87,12 @@ export function creerCalculateurDeNoms(options: OptionsDuCalculateurDeNoms): Cal
     jete = true;
     arreterLeDelai();
     arreterLeDelai = () => {};
-    const aRepondre = attendue;
-    attendue = null;
+    const aRepondre = [...attendues.values()];
+    attendues.clear();
     const courant = travailleur;
     travailleur = null;
     try { courant?.terminate(); } catch { /* un Worker déjà mort n'a rien à fermer */ }
-    if (aRepondre) options.envoyer({ type: 'noms-non-calcules', ...identite(aRepondre), cause });
+    for (const requete of aRepondre) options.envoyer({ type: 'noms-non-calcules', ...identite(requete), cause });
   }
 
   function creer(): TravailleurDeNoms | null {
@@ -106,9 +107,9 @@ export function creerCalculateurDeNoms(options: OptionsDuCalculateurDeNoms): Cal
         arreterLeDelai = () => {};
         return;
       }
-      const requete = attendue;
-      if (!requete || data.demande !== requete.demande || data.generation !== requete.generation || data.revision !== requete.revision) return;
-      attendue = null;
+      const requete = attendues.get(data.demande);
+      if (!requete || data.generation !== requete.generation || data.revision !== requete.revision) return;
+      attendues.delete(requete.demande);
       if (data.type === 'echec') {
         options.envoyer({ type: 'noms-non-calcules', ...identite(requete), cause: 'echec' });
         return;
@@ -116,7 +117,7 @@ export function creerCalculateurDeNoms(options: OptionsDuCalculateurDeNoms): Cal
       const mesure: MesureDuCalculDistant = {
         recuA: requete.recuA, demarrage: requete.demarrage, travailleurRecuA: data.recuA, calculDebutA: data.calculDebutA, calculFinA: data.calculFinA,
       };
-      options.envoyer({ type: 'noms-calcules', ...identite(requete), bilan: data.bilan as Bilan, mesure });
+      options.envoyer({ type: 'noms-calcules', ...identite(requete), resultat: data.resultat as ResultatDuTravail, mesure });
     };
     // Un script qui ne charge pas, une exception hors du calcul ou un message illisible : le Worker n'est plus fiable.
     neuf.onerror = () => { if (travailleur === neuf) jeter(demarre ? 'echec' : 'demarrage'); };
@@ -128,7 +129,7 @@ export function creerCalculateurDeNoms(options: OptionsDuCalculateurDeNoms): Cal
   return {
     recevoir(message) {
       const recuA = maintenant();
-      const requete: Attendue = { demande: message.demande, generation: message.generation, revision: message.revision, recuA, demarrage: false };
+      const requete: Attendue = { sorte: message.travail.sorte, demande: message.demande, generation: message.generation, revision: message.revision, recuA, demarrage: false };
       if (jete) {
         options.envoyer({ type: 'noms-non-calcules', ...identite(requete), cause: 'indisponible' });
         return;
@@ -140,10 +141,12 @@ export function creerCalculateurDeNoms(options: OptionsDuCalculateurDeNoms): Cal
         options.envoyer({ type: 'noms-non-calcules', ...identite(requete), cause: 'indisponible' });
         return;
       }
-      attendue = { ...requete, demarrage: cree };
+      // Une analyse plus récente remplace celles qui attendent encore : leur réponse ne servirait plus.
+      if (requete.sorte === 'calculer') for (const [demande, ancienne] of [...attendues]) if (ancienne.sorte === 'calculer') attendues.delete(demande);
+      attendues.set(requete.demande, { ...requete, demarrage: cree });
       if (cree) arreterLeDelai = planifier(() => { if (!demarre) jeter('demarrage'); }, delaiDeDemarrage);
       try {
-        actif.postMessage({ type: 'calculer', demande: message.demande, generation: message.generation, revision: message.revision, entree: message.entree });
+        actif.postMessage({ type: 'travailler', demande: message.demande, generation: message.generation, revision: message.revision, travail: message.travail });
       } catch {
         jeter('echec');
       }

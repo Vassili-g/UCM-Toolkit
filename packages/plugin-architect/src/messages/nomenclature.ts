@@ -8,7 +8,7 @@ import type { DemandeDeTaille } from 'ucm-plugin-socle/src/ui/ResizeGrip';
 import type { EcritureChoisie } from '@ucm-kit/core/protocoles';
 import type { CauseDeProtection, MotifDeChemin } from '@ucm-kit/core/nommage';
 import { estConventions } from '../nomenclature/conventions';
-import { estReponseDuCalculDesNoms, type CauseDeRepli, type MesureDuCalculDistant, type MessageDeCalculDesNoms } from './calculDesNoms';
+import { estReponseDuCalculDesNoms, type CauseDeRepli, type MesureDuCalculDistant, type MessageDeCalculDesNoms, type ResultatDuTravail } from './calculDesNoms';
 
 export type { CauseDeProtection, EcritureChoisie, MotifDeChemin };
 
@@ -90,8 +90,8 @@ export type DemandeDeNomenclature =
   | { readonly type: 'exporter'; readonly demande: number }
   | { readonly type: 'importer'; readonly demande: number; readonly texte: string }
   | { readonly type: 'configurer'; readonly demande: number; readonly collectionsExclues: readonly string[] }
-  /** La réponse du Worker de l'écran à `calcul-des-noms` (`ReponseDuCalculDesNoms`) : le sandbox ne la range pas dans sa file de demandes. */
-  | { readonly type: 'noms-calcules'; readonly demande: number; readonly generation: number; readonly revision: string; readonly bilan: Bilan; readonly mesure: MesureDuCalculDistant }
+  /** La réponse du Worker de l'écran à un travail `calcul-des-noms` (`ReponseDuCalculDesNoms`) : le sandbox ne la range pas dans sa file de demandes. */
+  | { readonly type: 'noms-calcules'; readonly demande: number; readonly generation: number; readonly revision: string; readonly resultat: ResultatDuTravail; readonly mesure: MesureDuCalculDistant }
   | { readonly type: 'noms-non-calcules'; readonly demande: number; readonly generation: number; readonly revision: string; readonly cause: Exclude<CauseDeRepli, 'delai'> };
 export type UiMessage = DemandeDeNomenclature | DemandeDeTaille;
 
@@ -248,7 +248,7 @@ export type MessageDeNomenclature =
   | { readonly type: 'regles-exportees'; readonly demande: number; readonly texte: string }
   | { readonly type: 'erreur'; readonly demande: number; readonly code: CodeDErreur; readonly architecture?: ArchitectureDuFichier }
   | MessageDeReglesRecues
-  /** L'entrée du calcul des noms, que l'écran passe à son Worker : l'écran la lit lui-même (`ui/nomenclature/calculDesNoms.ts`), avant `estMessageDeNomenclature`. */
+  /** Le travail des noms (calcul, lecture, geste), que l'écran passe à son Worker : l'écran le lit lui-même (`ui/nomenclature/calculDesNoms.ts`), avant `estMessageDeNomenclature`. */
   | MessageDeCalculDesNoms;
 
 /** Une règle préparée depuis un composant : le terme qui disparaît, le terme voulu, et un nom réel du composant avant et après. */

@@ -1,6 +1,6 @@
 /**
- * La session du sandbox : elle garde l'inventaire, le lexique, le vocabulaire indexé, le résultat, les questions et
- * les règles du fichier, et n'envoie à l'écran que le `Bilan` et les pages demandées.
+ * La session du sandbox : elle garde l'inventaire, les règles du fichier et, selon qui a mené le calcul, l'état complet (lexique, vocabulaire
+ * indexé, résultat, questions), et n'envoie à l'écran que le `Bilan` et les pages demandées.
  *
  * Protocole (voir le plan de la refonte, « Règles du protocole ») :
  * - les calculs passent un à un ; `analyser` et `configurer` ne gardent que leur dernière demande, et une demande
@@ -9,14 +9,13 @@
  * - chaque calcul abouti change de génération et se termine par un `bilan`, un `refus` ou une `erreur`,
  *   sauf une application ou une annulation refusée, qui répond par `application` seule.
  *
- * Le calcul des noms (lexique, renommages, questions, projection) est dans `calcul.ts`, pur et sans Figma ; la session le mène
- * par tranches et le note au journal. `Moteur` permet à un test de compter les appels du kit.
+ * Deux voies mènent le calcul des noms (lexique, renommages, questions, projection, dans `calcul.ts`, pur et sans Figma) :
+ * - le Worker de l'écran, par le port `calcul` : il garde l'état complet de la génération (`atelier.ts`) et répond aux lectures, aux simulations,
+ *   aux préparations de geste et aux recalculs ; la session ne garde alors que l'entrée du calcul (`distant`) ;
+ * - le sandbox, par tranches, quand le port manque ou se replie : la session garde l'état complet (`etat`). Un travail que le Worker n'a pas rendu
+ *   refait le calcul de la génération courante dans le sandbox (`completerLEtat`), puis la session reste sur cette voie jusqu'à la prochaine analyse.
+ * Le sandbox lit, relit et écrit seul les objets de Figma et le stockage des règles. `Moteur` permet à un test de compter les appels du kit.
  */
-import {
-  COLLECTIONS, REGISTRES, REGISTRES_ARCHITECTURE, decouperSegment,
-  type ConflitDeVocabulaire, type Lexique, type Mots,
-  type Collection, type Question,
-} from '@ucm-kit/core/referentiel';
 import { type Inventaire } from '@ucm-kit/core/nommage';
 import {
   annulerLeDernierRenommage, appliquerLesRenommages, reglesFuturesDuStockage,
@@ -25,24 +24,27 @@ import {
 import { chronometrerUnAppel, mesurerUnePhaseDeTokens, noterUnPassageDeTokens, type AppelsDePhase, type PhaseDeTokens } from '../lecture';
 import { lireInventaire, type PortDeLecture } from './lecture';
 import type {
-  Bilan, CodeDErreur, DemandeDeNomenclature, EffetVue, GesteSurLesRegles, MessageDeNomenclature, Reponse, ResultatVue,
+  Bilan, CodeDErreur, DemandeDeNomenclature, MessageDeNomenclature, ResultatVue, Selection,
 } from '../messages/nomenclature';
-import type { CauseDeRepli } from '../messages/calculDesNoms';
+import type { CauseDeRepli, DemandeDeLecture, RenommageAEcrire, ResultatDuTravail, TravailDePreparation, TravailDesNoms } from '../messages/calculDesNoms';
 import type { PortDeCalculDistant } from './distant';
-import { conflitVue, effetDEcriture, effetDeTerme, type EntreeDeProjection } from './projection';
 import {
-  calculerTout, construireEtat, jointure, moteurDuKit, motsDe, motsDuTermeUcm, premierLancement, recalculer,
+  calculerTout, construireEtat, moteurDuKit, motsDe, motsDuTermeUcm, premierLancement, recalculer,
   type Calcul, type Etat, type Moteur,
 } from './calcul';
 import {
-  CLE_EXCLUES, cleDuTermeOrdinaire, cleEcart, cleOrdinaire, clePlusTard, cleReponse, cleTerme, cleVoulu, cleDistinct, defaireReponse,
-  defaireLImport, estMot, exporterLesRegles, importerLesRegles, lireLesRegles, lireLeStockage, preparerImport, preparerReponse, rangerLesEcritures,
-  serialiserRegle, vocabulaireDuFichier,
-  type Ecriture, type ReglesDuFichier,
+  ErreurDeProtocole, conclureLaSimulation, debuterLaSimulation, employe, messageDeSimulation, preparerLeGeste,
+  renommagesDeLaSelection, repondreALaLecture,
+  type PreparationDeGeste,
+} from './gestes';
+import {
+  exporterLesRegles, importerLesRegles, lireLesRegles, lireLeStockage, preparerImport, rangerLesEcritures, serialiserRegle,
+  type ReglesDuFichier,
 } from './regles';
+import { conflitVue } from './projection';
 import { mener, pauseParDefaut, type MesureDeTranches, type OptionsDeTranches, type ResultatDeTranches } from './tranches';
 
-export { motsDe, motsDuTermeUcm, moteurDuKit, type Moteur };
+export { employe, motsDe, motsDuTermeUcm, moteurDuKit, type Moteur };
 
 /**
  * Mène `interne` pas à pas en notant au journal du mode Tokens sa phase : début, fin, temps passé à calculer et plus long pas.
@@ -92,9 +94,9 @@ export interface OptionsDeSession {
   readonly envoyer: (message: MessageDeNomenclature) => void;
   readonly moteur?: Moteur;
   /**
-   * Le calcul des noms hors du sandbox. Sans lui, ou quand il se replie, la session mène le calcul par tranches. Le bilan qu'il rend
-   * est celui de la session ; la session ne garde alors que l'entrée du calcul, et refait le calcul complet à la première lecture
-   * ou au premier geste qui en a besoin.
+   * Le Worker qui garde l'état et mène les calculs, les lectures et les simulations hors du sandbox. Sans lui, ou quand il se replie, la session
+   * travaille elle-même : par tranches pour un calcul, sur son état complet pour une lecture. Après un bilan du Worker, la session ne garde que
+   * l'entrée du calcul ; elle refait le calcul complet seulement si le Worker ne répond plus à un travail.
    */
   readonly calcul?: PortDeCalculDistant;
   readonly tranches?: OptionsDeTranches;
@@ -112,10 +114,6 @@ const TYPES_DE_CALCUL: ReadonlySet<DemandeDeNomenclature['type']> = new Set(['no
 /** Pour ces calculs, une demande plus récente de même sorte écarte la précédente. */
 const DERNIERE_INTENTION: ReadonlySet<DemandeDeNomenclature['type']> = new Set(['noms-analyser', 'configurer']);
 
-class ErreurDeProtocole extends Error {
-  constructor(readonly code: CodeDErreur) { super(code); }
-}
-
 // Les règles qui comptent pour le calcul
 
 /**
@@ -125,137 +123,6 @@ class ErreurDeProtocole extends Error {
 const signatureDuCalcul = (regles: ReglesDuFichier): string =>
   JSON.stringify([regles.ecriture ?? null, regles.ecritureDeLaV1, regles.termes, regles.ecartsUcm, regles.ordinaires, regles.collectionsExclues, regles.collectionsRenommees]);
 
-/** L'identifiant UCM d'un terme écrit `disable` ou `extra-small` ; à défaut, le terme lui-même. */
-function identifiantUcm(terme: string): string {
-  const cle = motsDe(terme).join('-');
-  for (const registre of [...REGISTRES, ...REGISTRES_ARCHITECTURE]) {
-    for (const candidat of registre.termes) if (decouperSegment(candidat.id).map((mot) => mot.toLowerCase()).join('-') === cle) return candidat.id;
-  }
-  return cle;
-}
-
-// Les règles qu'un geste ou une réponse écrit
-
-/** Les mots d'un terme que le fichier va garder : vide ou refusé par `estMot`, le terme arrête le geste ou la réponse. */
-function motsRetenus(texte: string): Mots {
-  const mots = motsDe(texte);
-  if (mots.length === 0 || !mots.every(estMot)) throw new ErreurDeProtocole('mot-refuse');
-  return mots;
-}
-
-function termeAvec(regles: ReglesDuFichier, mots: Mots, ajouts: readonly Mots[]): Ecriture {
-  const existant = regles.termes.find((terme) => jointure(terme.terme) === jointure(mots));
-  const remplace = new Map((existant?.remplace ?? []).map((forme) => [jointure(forme), forme]));
-  for (const ajout of ajouts) if (jointure(ajout) !== jointure(mots)) remplace.set(jointure(ajout), ajout);
-  return serialiserRegle({
-    type: 'terme',
-    terme: { terme: mots, remplace: [...remplace.values()], ...(existant?.definition ? { definition: existant.definition } : {}) },
-  });
-}
-
-function ecrituresDuGeste(geste: GesteSurLesRegles, regles: ReglesDuFichier, courant: ReadonlyMap<string, string>): Ecriture[] {
-  switch (geste.type) {
-    case 'architecture': return [serialiserRegle(geste)];
-    case 'ecriture':
-      return [serialiserRegle({ type: 'ecriture', ecriture: geste.ecriture })];
-    case 'remplacer-par':
-      return [termeAvec(regles, motsRetenus(geste.par), [motsRetenus(geste.terme)])];
-    case 'remplace-termes': {
-      // La liste de l'écran remplace celle du fichier ; une liste vide supprime la règle si elle ne porte pas de définition.
-      const mots = motsRetenus(geste.terme);
-      const existant = regles.termes.find((terme) => jointure(terme.terme) === jointure(mots));
-      const formes = geste.termes.map(motsDe).filter((forme) => forme.length > 0);
-      if (formes.some((forme) => !forme.every(estMot))) throw new ErreurDeProtocole('mot-refuse');
-      const liste = new Map(formes.filter((forme) => jointure(forme) !== jointure(mots)).map((forme) => [jointure(forme), forme]));
-      if (liste.size === 0 && !existant?.definition) return existant ? [{ cle: cleTerme(existant.terme), texte: null }] : [];
-      return [serialiserRegle({
-        type: 'terme',
-        terme: { terme: existant?.terme ?? mots, remplace: [...liste.values()], ...(existant?.definition ? { definition: existant.definition } : {}) },
-      })];
-    }
-    case 'retirer-remplace': {
-      // Comme `remplace-termes` : une règle sans forme remplacée reste quand elle porte une définition.
-      const mots = motsDe(geste.terme);
-      const existant = regles.termes.find((terme) => jointure(terme.terme) === jointure(mots));
-      if (!existant) return [];
-      const reste = existant.remplace.filter((forme) => jointure(forme) !== jointure(motsDe(geste.remplace)));
-      return [reste.length === 0 && !existant.definition ? { cle: cleTerme(existant.terme), texte: null } : serialiserRegle({ type: 'terme', terme: { ...existant, remplace: reste } })];
-    }
-    case 'supprimer': {
-      const existant = regles.termes.find((terme) => jointure(terme.terme) === jointure(motsDe(geste.terme)));
-      return existant ? [{ cle: cleTerme(existant.terme), texte: null }] : [];
-    }
-    case 'ecart-ucm': {
-      const id = identifiantUcm(geste.terme);
-      return geste.actif ? [serialiserRegle({ type: 'ecart', id })] : [{ cle: cleEcart(id), texte: null }];
-    }
-    case 'terme-ordinaire': {
-      const cle = cleDuTermeOrdinaire(motsRetenus(geste.terme));
-      return geste.actif ? [serialiserRegle({ type: 'ordinaire', cle })] : [{ cle: cleOrdinaire(cle), texte: null }];
-    }
-    case 'retirer-distinct':
-      return [{ cle: cleDistinct(geste.termes[0], geste.termes[1]), texte: null }];
-    case 'retirer-voulu':
-      return [{ cle: cleVoulu(motsDe(geste.terme)), texte: null }];
-    case 'reprendre':
-      return [{ cle: clePlusTard(geste.question), texte: null }, ...(courant.has(cleReponse(geste.question)) ? [{ cle: cleReponse(geste.question), texte: null }] : [])];
-    case 'annuler-reponse':
-      return defaireReponse(geste.question, courant) ?? [];
-    case 'annuler-import':
-      return defaireLImport(courant);
-  }
-}
-
-/** Vrai quand le premier mot de la forme figure dans le lexique du fichier. */
-export const employe = (lexique: Lexique, forme: string): boolean => lexique.occurrences.has(motsDe(forme)[0] ?? '');
-
-/** Les écritures d'une réponse, avant `preparerReponse`. Une réponse qui ne convient pas à la question est une erreur. */
-function ecrituresDeLaReponse(question: Question, reponse: Reponse, regles: ReglesDuFichier, lexique: Lexique): Ecriture[] {
-  if (reponse.type === 'plus-tard') return [serialiserRegle({ type: 'plus-tard', cle: question.cle })];
-  const echec = (): never => { throw new ErreurDeProtocole('echec'); };
-  switch (question.type) {
-    case 'paire': {
-      const [a, b] = [question.termes[0].mot, question.termes[1].mot];
-      if (reponse.type === 'garder') return [termeAvec(regles, motsRetenus(question.termes[reponse.rang].mot), [motsRetenus(question.termes[reponse.rang === 0 ? 1 : 0].mot)])];
-      if (reponse.type === 'autre') return [termeAvec(regles, motsRetenus(reponse.terme), [motsRetenus(a), motsRetenus(b)])];
-      if (reponse.type === 'distincts') {
-        // La clé d'une paire joint ses termes par `|`.
-        if (a.includes('|') || b.includes('|')) throw new ErreurDeProtocole('mot-refuse');
-        return [serialiserRegle({ type: 'distinct', termes: [a, b] })];
-      }
-      return echec();
-    }
-    case 'ecriture-du-terme': {
-      if (reponse.type === 'voulu') return [serialiserRegle({ type: 'voulu', mots: motsRetenus(question.terme.mot) })];
-      const corrige = reponse.type === 'corriger' ? reponse.mots.join(' ') : echec();
-      return [termeAvec(regles, motsRetenus(corrige), [motsRetenus(question.terme.mot)])];
-    }
-    case 'collection':
-      if (reponse.type !== 'collection') return echec();
-      if (reponse.cible === null) return [serialiserRegle({ type: 'collection', id: question.collectionId })];
-      const cible = (COLLECTIONS as readonly string[]).includes(reponse.cible) ? reponse.cible as Collection : echec();
-      return [serialiserRegle({ type: 'collection', id: question.collectionId, cible })];
-  }
-}
-
-/** Le terme que l'effet d'un geste met en avant : le mot qui disparaît des noms, puis celui qui le remplace. */
-function termeDeLEffet(geste: GesteSurLesRegles, regles: ReglesDuFichier, lexique: Lexique): { readonly avant: string; readonly apres: string } | null {
-  switch (geste.type) {
-    case 'remplacer-par': return { avant: geste.terme, apres: geste.par };
-    case 'remplace-termes': return { avant: geste.termes[0] ?? geste.terme, apres: geste.terme };
-    case 'retirer-remplace': return { avant: geste.remplace, apres: geste.terme };
-    case 'supprimer': {
-      const existant = regles.termes.find((terme) => jointure(terme.terme) === jointure(motsDe(geste.terme)));
-      return { avant: existant?.remplace[0]?.join('-') ?? geste.terme, apres: geste.terme };
-    }
-    case 'ecart-ucm': {
-      const forme = motsDuTermeUcm(identifiantUcm(geste.terme)).slice(1).find((mots) => employe(lexique, mots.join('-')));
-      return { avant: forme?.join('-') ?? geste.terme, apres: geste.terme };
-    }
-    default: return null;
-  }
-}
-
 /** Le fichier a déjà reçu une écriture : l'écran s'ouvre sur le travail plutôt que sur l'invitation. */
 export function fichierDejaAnalyse(port: PortDeRegles): boolean {
   try {
@@ -263,6 +130,42 @@ export function fichierDejaAnalyse(port: PortDeRegles): boolean {
   } catch {
     return false;
   }
+}
+
+// Les renommages à écrire
+
+type EntreeDInventaire = Inventaire['entrees'][number];
+
+/** Le renommage que le sandbox demandera à l'écriture : l'objet de Figma que l'entrée désigne, avec l'ancien et le nouveau nom. */
+function demandeDeRenommage(renommage: RenommageAEcrire, entree: EntreeDInventaire): RenommageDemande {
+  const commun = { id: renommage.id, ancienNom: renommage.ancienNom, nouveauNom: renommage.nouveauNom };
+  return entree.cible.type === 'collection'
+    ? { ...commun, type: 'collection', figmaId: entree.cible.collectionId }
+    : { ...commun, type: 'variable', figmaId: entree.cible.variableId, collectionId: entree.cible.collectionId };
+}
+
+/** Les renommages de l'état du sandbox ; un identifiant que l'inventaire ne porte plus est laissé de côté. */
+function demandesDeRenommage(renommages: readonly RenommageAEcrire[], inventaire: Inventaire): RenommageDemande[] {
+  const entrees = new Map(inventaire.entrees.map((entree) => [entree.nom.id, entree]));
+  return renommages.flatMap((renommage): RenommageDemande[] => {
+    const entree = entrees.get(renommage.id);
+    return entree ? [demandeDeRenommage(renommage, entree)] : [];
+  });
+}
+
+/**
+ * Les renommages que le Worker rend, vérifiés contre l'inventaire que le sandbox a lu : chacun doit désigner une entrée de cet inventaire sous
+ * l'ancien nom que le Worker annonce. Un seul écart rend `null`, et le sandbox calcule lui-même ce qu'il écrira.
+ */
+function demandesVerifiees(renommages: readonly RenommageAEcrire[], inventaire: Inventaire): RenommageDemande[] | null {
+  const entrees = new Map(inventaire.entrees.map((entree) => [entree.nom.id, entree]));
+  const demandes: RenommageDemande[] = [];
+  for (const renommage of renommages) {
+    const entree = entrees.get(renommage.id);
+    if (!entree || entree.nom.nom !== renommage.ancienNom || typeof renommage.nouveauNom !== 'string') return null;
+    demandes.push(demandeDeRenommage(renommage, entree));
+  }
+  return demandes;
 }
 
 // La session
@@ -283,15 +186,24 @@ interface CalculDistant {
   complet: Promise<Etat | null> | null;
 }
 
+/** Ce que le Worker rend à une requête : un résultat, l'abandon de l'attente, ou la cause du repli (`null` sans Worker). */
+type Confie = { readonly resultat: ResultatDuTravail } | 'abandonne' | { readonly repli: CauseDeRepli | null };
+
+/** Les travaux qui créent une génération : le journal les note en entier, avec le passage englobant `calcul-des-noms`. */
+const TRAVAUX_DE_CALCUL: ReadonlySet<TravailDesNoms['sorte']> = new Set(['calculer', 'recalculer']);
+
 export function creerSession(options: OptionsDeSession): Session {
   const { port, envoyer } = options;
   const moteur = options.moteur ?? moteurDuKit;
   const tranches = options.tranches ?? {};
   const pause = tranches.pause ?? pauseParDefaut;
 
+  /** L'état complet de la génération courante quand le sandbox l'a calculé. */
   let etat: Etat | null = null;
-  /** La génération courante quand le Worker a mené le calcul ; `etat` est alors `null` jusqu'à ce qu'une lecture ou un geste le refasse. */
+  /** La génération courante quand le Worker a mené le calcul ; `etat` est alors `null` jusqu'à ce que le Worker manque un travail. */
   let distant: CalculDistant | null = null;
+  /** Pourquoi le dernier travail confié au Worker s'est replié, pour le journal du calcul que le sandbox refait. */
+  let causeDuRepli: CauseDeRepli | 'relecture' = 'relecture';
   let compteur = 0;
   let enCours: Passage | null = null;
   let tourne = false;
@@ -301,17 +213,6 @@ export function creerSession(options: OptionsDeSession): Session {
   const erreur = (demande: number, code: CodeDErreur): void => envoyer({ type: 'erreur', demande, code });
   const generationCourante = (): number | null => etat?.generation ?? distant?.generation ?? null;
   const envoyerLeBilan = (demande: number, courant: Etat): void => envoyer({ type: 'bilan', demande, bilan: courant.projection.bilan() });
-
-  /** Valide les écritures sur le stockage relu : les règles qui en résultent, ou les conflits du vocabulaire. */
-  function essayer(courant: ReadonlyMap<string, string>, ecritures: readonly Ecriture[]): { readonly regles: ReglesDuFichier; readonly conflits: readonly ConflitDeVocabulaire[] } {
-    const suivant = new Map(courant);
-    for (const { cle, texte } of ecritures) {
-      if (texte === null || texte === '') suivant.delete(cle);
-      else suivant.set(cle, texte);
-    }
-    const regles = lireLesRegles(suivant);
-    return { regles, conflits: moteur.indexerVocabulaire(vocabulaireDuFichier(regles)).conflits };
-  }
 
   /** Enregistre l'état d'un calcul abouti et envoie le `bilan` : les groupes du premier lancement sont déjà vus. */
   function valider(demande: number, base: Etat | null, inventaire: Inventaire, regles: ReglesDuFichier, calcul: Calcul): Etat {
@@ -332,24 +233,32 @@ export function creerSession(options: OptionsDeSession): Session {
     return suivant;
   }
 
-  /** Enregistre la génération que le Worker a calculée et envoie son bilan, tel qu'il l'a rendu. */
-  function validerLeCalculDistant(demande: number, inventaire: Inventaire, regles: ReglesDuFichier, bilan: Bilan): void {
-    const generation = ++compteur;
+  /** La génération `generation` est celle que le Worker a calculée : la session n'en garde que l'entrée. */
+  function poserLaGenerationDistante(generation: number, inventaire: Inventaire, regles: ReglesDuFichier): void {
+    compteur = generation;
     etat = null;
     distant = { generation, inventaire, regles, complet: null };
+    causeDuRepli = 'relecture';
+  }
+
+  /** Enregistre la génération que le Worker a calculée et envoie son bilan, tel qu'il l'a rendu. */
+  function validerLeCalculDistant(demande: number, inventaire: Inventaire, regles: ReglesDuFichier, bilan: Bilan): void {
+    poserLaGenerationDistante(compteur + 1, inventaire, regles);
     envoyer({ type: 'bilan', demande, bilan });
   }
 
   /**
-   * L'état complet de la génération courante, que les lectures et les gestes demandent. Quand le Worker a mené le calcul, le sandbox le refait
-   * ici, par tranches, la première fois ; les demandes suivantes attendent le même calcul. Rend `null` si la génération change entre-temps.
+   * L'état complet de la génération courante, que les gestes et les lectures demandent quand le Worker ne les a pas servis. Quand le Worker a mené
+   * le calcul, le sandbox le refait ici, par tranches, la première fois ; les demandes suivantes attendent le même calcul. Rend `null` si la
+   * génération change entre-temps.
    */
   function completerLEtat(demande: number): Promise<Etat | null> {
     if (etat) return Promise.resolve(etat);
     const source = distant;
     if (!source) return Promise.resolve(null);
+    const cause = causeDuRepli;
     source.complet ??= (async () => {
-      const calcul = await menerLeCalculDe(demande, () => distant !== source, (moteurDuPassage) => calculerTout(moteurDuPassage, source.inventaire, source.regles), 'relecture');
+      const calcul = await menerLeCalculDe(demande, () => distant !== source, (moteurDuPassage) => calculerTout(moteurDuPassage, source.inventaire, source.regles), cause);
       if (calcul.abandonne) return null;
       const complet = construireEtat(source.generation, source.inventaire, source.regles, calcul.valeur);
       if (distant === source) {
@@ -393,36 +302,58 @@ export function creerSession(options: OptionsDeSession): Session {
     menerLeCalculDe(passage.demande.demande, () => passage.abandonne, calcul, repli);
 
   /**
-   * Confie le calcul au Worker quand la session en a un. Rend son bilan, `'abandonne'` si une demande plus récente a remplacé la
-   * demande pendant l'attente, ou la cause du repli : le sandbox fait alors le calcul lui-même. La cause est `null` sans Worker.
+   * Confie `travail` au Worker quand la session en a un. Rend son résultat, `'abandonne'` si une demande plus récente a remplacé le passage
+   * pendant l'attente, ou la cause du repli : le sandbox fait alors le travail lui-même. La cause est `null` sans Worker.
+   * Le journal note la voie `worker` : les quatre phases et le passage englobant pour un calcul, la seule phase de calcul pour le reste.
    */
-  async function calculerAilleurs(passage: Passage, inventaire: Inventaire, regles: ReglesDuFichier): Promise<{ readonly bilan: Bilan } | 'abandonne' | { readonly repli: CauseDeRepli | null }> {
+  async function confier(demande: number, generation: number, travail: TravailDesNoms, passage?: Passage): Promise<Confie> {
     if (!options.calcul) return { repli: null };
-    const demande = passage.demande.demande;
-    const generation = compteur + 1;
     const debut = Date.now();
     let issue;
     try {
-      const requete = options.calcul.calculer({ demande, generation, entree: { generation, inventaire, regles } });
-      passage.interrompre = requete.annuler;
+      const requete = options.calcul.calculer({ demande, generation, travail });
+      if (passage) passage.interrompre = requete.annuler;
       issue = await requete.issue;
     } catch {
       issue = { type: 'repli', cause: 'echec' } as const;
     } finally {
-      passage.interrompre = undefined;
+      if (passage) passage.interrompre = undefined;
     }
-    if (passage.abandonne || issue.type === 'annule') return 'abandonne';
-    if (issue.type === 'repli') return { repli: issue.cause };
-    if (issue.bilan.generation !== generation) return { repli: 'echec' };
+    if (passage?.abandonne) return 'abandonne';
+    if (issue.type === 'annule') return passage ? 'abandonne' : { repli: 'echec' };
+    if (issue.type === 'repli') {
+      causeDuRepli = issue.cause;
+      return { repli: issue.cause };
+    }
     const { mesure } = issue;
-    // Le transfert court jusqu'au Worker quand il tournait déjà ; sinon il s'arrête à l'interface et le démarrage prend la suite.
-    const finDuTransfert = mesure.demarrage ? mesure.recuA : mesure.travailleurRecuA;
-    noterUnPassageDeTokens({ phase: 'worker-transfert', debut: issue.envoyeA, fin: finDuTransfert, demande });
-    if (mesure.demarrage) noterUnPassageDeTokens({ phase: 'worker-demarrage', debut: mesure.recuA, fin: mesure.travailleurRecuA, demande });
-    noterUnPassageDeTokens({ phase: 'worker-calcul', debut: mesure.calculDebutA, fin: mesure.calculFinA, demande });
-    noterUnPassageDeTokens({ phase: 'worker-retour', debut: mesure.calculFinA, fin: issue.recuA, demande });
-    noterUnPassageDeTokens({ phase: 'calcul-des-noms', debut, fin: issue.recuA, demande, voie: 'worker' });
-    return { bilan: issue.bilan };
+    if (TRAVAUX_DE_CALCUL.has(travail.sorte)) {
+      // Le transfert court jusqu'au Worker quand il tournait déjà ; sinon il s'arrête à l'interface et le démarrage prend la suite.
+      const finDuTransfert = mesure.demarrage ? mesure.recuA : mesure.travailleurRecuA;
+      noterUnPassageDeTokens({ phase: 'worker-transfert', debut: issue.envoyeA, fin: finDuTransfert, demande });
+      if (mesure.demarrage) noterUnPassageDeTokens({ phase: 'worker-demarrage', debut: mesure.recuA, fin: mesure.travailleurRecuA, demande });
+      noterUnPassageDeTokens({ phase: 'worker-calcul', debut: mesure.calculDebutA, fin: mesure.calculFinA, demande });
+      noterUnPassageDeTokens({ phase: 'worker-retour', debut: mesure.calculFinA, fin: issue.recuA, demande });
+      noterUnPassageDeTokens({ phase: 'calcul-des-noms', debut, fin: issue.recuA, demande, voie: 'worker' });
+    } else {
+      noterUnPassageDeTokens({ phase: 'worker-calcul', debut: mesure.calculDebutA, fin: mesure.calculFinA, demande, voie: 'worker' });
+    }
+    return { resultat: issue.resultat };
+  }
+
+  /** Le Worker a rendu un résultat que la session ne sait pas lire, ou ne garde plus la génération : le sandbox travaille lui-même. */
+  function replier(): false {
+    causeDuRepli = 'echec';
+    return false;
+  }
+
+  /** Confie le calcul du bilan au Worker. Rend son bilan, `'abandonne'`, ou la cause du repli. */
+  async function calculerAilleurs(passage: Passage, inventaire: Inventaire, regles: ReglesDuFichier): Promise<{ readonly bilan: Bilan } | 'abandonne' | { readonly repli: CauseDeRepli | null }> {
+    const generation = compteur + 1;
+    const rendu = await confier(passage.demande.demande, generation, { sorte: 'calculer', entree: { generation, inventaire, regles } }, passage);
+    if (rendu === 'abandonne' || 'repli' in rendu) return rendu;
+    const { resultat } = rendu;
+    if (resultat.sorte !== 'bilan' || resultat.bilan.generation !== generation) return { repli: 'echec' };
+    return { bilan: resultat.bilan };
   }
 
   /** Les appels que `lireInventaire` fait au port de lecture, comptés pour la mesure du mode Tokens. */
@@ -472,32 +403,84 @@ export function creerSession(options: OptionsDeSession): Session {
     }
   }
 
-  /** Recalcule depuis l'état courant après que les règles sont écrites. */
-  async function recalculerDepuisLesRegles(passage: Passage, base: Etat, regles: ReglesDuFichier): Promise<void> {
+  /**
+   * Recalcule dans le Worker après que les règles sont écrites. Rend vrai quand la demande est traitée (bilan envoyé, ou passage abandonné),
+   * faux quand le sandbox doit recalculer : pas de Worker, travail non rendu, ou état changé pendant l'attente.
+   */
+  async function recalculerAuDehors(passage: Passage, regles: ReglesDuFichier): Promise<boolean> {
+    const source = distant;
+    if (!source) return false;
+    const demande = passage.demande.demande;
+    const generation = compteur + 1;
+    const rendu = await confier(demande, generation, { sorte: 'recalculer', base: source.generation, regles }, passage);
+    if (rendu === 'abandonne') return true;
+    if ('repli' in rendu) return false;
+    const { resultat } = rendu;
+    if (resultat.sorte !== 'bilan' || resultat.bilan.generation !== generation) return replier();
+    // Le sandbox a refait l'état complet pendant l'attente : sa génération reste la courante, et il recalcule depuis elle.
+    if (distant !== source) return false;
+    // Les groupes déjà vus ne changent qu'à l'analyse : un geste garde la pastille « Nouveau » de la session.
+    const reglesDeLEtat: ReglesDuFichier = { ...regles, vus: source.regles.vus };
+    if (!(premierLancement(source.regles) && !premierLancement(regles))) {
+      poserLaGenerationDistante(generation, source.inventaire, reglesDeLEtat);
+      envoyer({ type: 'bilan', demande, bilan: resultat.bilan });
+      return true;
+    }
+    // Le premier choix d'écriture marque tous les groupes comme vus, puis le Worker refait la projection avec les règles relues.
+    rangerLesEcritures(port.regles, [serialiserRegle({ type: 'vus', groupes: resultat.bilan.groupes.map((groupe) => groupe.cle) })]);
+    const relues = lireRegles();
+    poserLaGenerationDistante(generation, source.inventaire, relues);
+    const suite = await confier(demande, generation, { sorte: 'adopter', regles: relues });
+    if (typeof suite === 'object' && 'resultat' in suite && suite.resultat.sorte === 'bilan' && suite.resultat.bilan.generation === generation) {
+      envoyer({ type: 'bilan', demande, bilan: suite.resultat.bilan });
+      return true;
+    }
+    const complet = await completerLEtat(demande);
+    if (complet) envoyerLeBilan(demande, complet);
+    return true;
+  }
+
+  /** Recalcule après que les règles sont écrites : dans le Worker quand il garde la génération, sinon depuis l'état du sandbox. */
+  async function recalculerDepuisLesRegles(passage: Passage, regles: ReglesDuFichier): Promise<void> {
+    if (await recalculerAuDehors(passage, regles)) return;
+    const base = await exiger(passage);
     const calcul = await menerLeCalcul(passage, (moteurDuPassage) => recalculer(moteurDuPassage, base, regles, true));
     if (calcul.abandonne) return;
     valider(passage.demande.demande, base, base.inventaire, regles, calcul.valeur);
   }
 
-  /** Écrit les règles que `preparer` demande, sauf conflit de vocabulaire, puis recalcule. */
-  async function modifierLesRegles(passage: Passage, preparer: (base: Etat, courant: ReadonlyMap<string, string>, regles: ReglesDuFichier) => Ecriture[]): Promise<void> {
-    const base = await exiger(passage);
+  /** Les écritures d'un geste, préparées par le Worker. Rend `null` quand le sandbox doit les préparer : pas de Worker, travail non rendu. */
+  async function preparerAuDehors(passage: Passage, preparation: TravailDePreparation, courant: ReadonlyMap<string, string>): Promise<PreparationDeGeste | null> {
+    const source = distant;
+    if (!source) return null;
+    const rendu = await confier(passage.demande.demande, source.generation, { sorte: 'preparer', preparation, courant: [...courant] });
+    if (rendu === 'abandonne' || 'repli' in rendu) return null;
+    const { resultat } = rendu;
+    if (resultat.sorte === 'erreur') throw new ErreurDeProtocole(resultat.code);
+    if (resultat.sorte === 'refus') return { sorte: 'refus', conflits: resultat.conflits };
+    if (resultat.sorte === 'ecritures') return { sorte: 'ecritures', ecritures: resultat.ecritures, regles: resultat.regles };
+    replier();
+    return null;
+  }
+
+  /** Écrit les règles que `travail` demande, sauf conflit de vocabulaire, puis recalcule. */
+  async function modifierLesRegles(passage: Passage, travail: TravailDePreparation): Promise<void> {
+    if (!distant) await exiger(passage);
     if (reglesFuturesDuStockage(port.regles).length > 0) throw new ErreurDeProtocole('regles-futures');
     const courant = lireLeStockage(port.regles);
-    const ecritures = preparer(base, courant, lireLesRegles(courant));
-    const { regles, conflits } = essayer(courant, ecritures);
-    if (conflits.length > 0) {
-      envoyer({ type: 'refus', demande: passage.demande.demande, conflits: conflits.map(conflitVue) });
+    const preparation = await preparerAuDehors(passage, travail, courant) ?? preparerLeGeste(moteur, travail, await exiger(passage), courant);
+    if (preparation.sorte === 'refus') {
+      envoyer({ type: 'refus', demande: passage.demande.demande, conflits: preparation.conflits });
       return;
     }
     try {
-      rangerLesEcritures(port.regles, ecritures);
+      rangerLesEcritures(port.regles, preparation.ecritures);
     } catch (cause) {
       if (passage.demande.type !== 'regle' || passage.demande.geste.type !== 'architecture') throw cause;
       envoyer({ type: 'erreur', demande: passage.demande.demande, code: 'echec', architecture: lireRegles().architecture });
       return;
     }
-    await recalculerDepuisLesRegles(passage, base, regles);
+    await recalculerDepuisLesRegles(passage, preparation.regles);
   }
 
   async function importer(passage: Passage, texte: string): Promise<void> {
@@ -514,21 +497,7 @@ export function creerSession(options: OptionsDeSession): Session {
       throw new ErreurDeProtocole('import-partiel');
     }
     if (generationCourante() === null) return rafraichir(passage, false);
-    return recalculerDepuisLesRegles(passage, await exiger(passage), lireRegles());
-  }
-
-  function demandesDeRenommage(base: Etat, ids: readonly string[]): RenommageDemande[] {
-    const renommages = new Map(base.resultat.renommages.map((renommage) => [renommage.id, renommage]));
-    const entrees = new Map(base.inventaire.entrees.map((entree) => [entree.nom.id, entree]));
-    return ids.flatMap((id): RenommageDemande[] => {
-      const renommage = renommages.get(id);
-      const entree = entrees.get(id);
-      if (!renommage || !entree) return [];
-      const commun = { id, ancienNom: renommage.ancienNom, nouveauNom: renommage.nouveauNom };
-      return entree.cible.type === 'collection'
-        ? [{ ...commun, type: 'collection', figmaId: entree.cible.collectionId }]
-        : [{ ...commun, type: 'variable', figmaId: entree.cible.variableId, collectionId: entree.cible.collectionId }];
-    });
+    return recalculerDepuisLesRegles(passage, lireRegles());
   }
 
   const resultatVue = (sorte: ResultatVue['sorte'], resultat: ResultatEcriture): ResultatVue => {
@@ -548,15 +517,39 @@ export function creerSession(options: OptionsDeSession): Session {
     if (resultat.statut !== 'refuse') await rafraichir(passage, false);
   }
 
+  /**
+   * Les renommages que la sélection coche et les règles du calcul qui les a produits, pris dans le Worker et vérifiés contre l'inventaire du
+   * sandbox. Rend `null` quand le sandbox doit les calculer lui-même : pas de Worker, travail non rendu, renommage que l'inventaire ne confirme pas.
+   */
+  async function renommagesAuDehors(passage: Passage, generation: number, selection: Selection): Promise<{ readonly demandes: RenommageDemande[]; readonly regles: ReglesDuFichier } | null> {
+    const source = distant;
+    if (!source || source.generation !== generation) return null;
+    const rendu = await confier(passage.demande.demande, generation, { sorte: 'renommages', selection });
+    if (rendu === 'abandonne' || 'repli' in rendu) return null;
+    if (rendu.resultat.sorte !== 'renommages' || distant !== source) {
+      if (rendu.resultat.sorte !== 'renommages') replier();
+      return null;
+    }
+    const demandes = demandesVerifiees(rendu.resultat.renommages, source.inventaire);
+    if (!demandes) {
+      replier();
+      return null;
+    }
+    return { demandes, regles: source.regles };
+  }
+
   async function appliquer(passage: Passage, demande: Extract<DemandeDeNomenclature, { type: 'appliquer' }>): Promise<void> {
     if (generationCourante() === null) throw new ErreurDeProtocole('echec');
     if (demande.generation !== generationCourante()) throw new ErreurDeProtocole('generation-perimee');
-    const base = await exiger(passage);
-    const demandes = demandesDeRenommage(base, base.projection.identifiants(demande.selection));
+    let aEcrire = await renommagesAuDehors(passage, demande.generation, demande.selection);
+    if (!aEcrire) {
+      const base = await exiger(passage);
+      aEcrire = { demandes: demandesDeRenommage(renommagesDeLaSelection(base, demande.selection), base.inventaire), regles: base.regles };
+    }
     const session = await port.ecriture.ouvrir();
     // Aucune attente après `ouvrir` : la signature se compare juste avant l'écriture synchrone.
-    if (signatureDuCalcul(lireRegles()) !== signatureDuCalcul(base.regles)) throw new ErreurDeProtocole('regles-modifiees');
-    const resultat = appliquerLesRenommages({ demandes, session, stockage: port.regles, heure: options.heure });
+    if (signatureDuCalcul(lireRegles()) !== signatureDuCalcul(aEcrire.regles)) throw new ErreurDeProtocole('regles-modifiees');
+    const resultat = appliquerLesRenommages({ demandes: aEcrire.demandes, session, stockage: port.regles, heure: options.heure });
     await conclureUneEcriture(passage, 'application', resultat);
   }
 
@@ -566,26 +559,13 @@ export function creerSession(options: OptionsDeSession): Session {
     await conclureUneEcriture(passage, 'annulation', resultat);
   }
 
-  async function configurer(passage: Passage, collectionsExclues: readonly string[]): Promise<void> {
-    await modifierLesRegles(passage, (base) => {
-      const connues = new Set(base.inventaire.entrees.map((entree) => entree.cible.collectionId));
-      const ids = collectionsExclues.filter((id) => connues.has(id));
-      return ids.length > 0 ? [serialiserRegle({ type: 'exclues', ids })] : [{ cle: CLE_EXCLUES, texte: null }];
-    });
-  }
-
   async function executer(passage: Passage): Promise<void> {
     const demande = passage.demande;
     switch (demande.type) {
       case 'noms-analyser': return rafraichir(passage, true);
-      case 'regle': return modifierLesRegles(passage, (_base, courant, regles) => ecrituresDuGeste(demande.geste, regles, courant));
-      case 'noms-repondre':
-        return modifierLesRegles(passage, (base, courant, regles) => {
-          const question = [...base.questions.questions, ...base.questions.autres].find((candidate) => candidate.cle === demande.question);
-          if (!question) throw new ErreurDeProtocole('echec');
-          return preparerReponse(question.cle, ecrituresDeLaReponse(question, demande.reponse, regles, base.lexique), courant);
-        });
-      case 'configurer': return configurer(passage, demande.collectionsExclues);
+      case 'regle': return modifierLesRegles(passage, { sorte: 'geste', geste: demande.geste });
+      case 'noms-repondre': return modifierLesRegles(passage, { sorte: 'reponse', question: demande.question, reponse: demande.reponse });
+      case 'configurer': return modifierLesRegles(passage, { sorte: 'configurer', collectionsExclues: demande.collectionsExclues });
       case 'importer': return importer(passage, demande.texte);
       case 'appliquer': return appliquer(passage, demande);
       case 'annuler-dernier': return annulerLeDernier(passage);
@@ -642,61 +622,57 @@ export function creerSession(options: OptionsDeSession): Session {
     return null;
   }
 
+  /**
+   * Envoie la réponse que le Worker a calculée pour `demande`, sauf si la génération a changé pendant l'attente : l'écran reçoit alors l'erreur
+   * d'une génération périmée. Rend faux quand le sandbox doit répondre lui-même : pas de Worker ou de génération chez lui, travail non rendu.
+   */
+  async function repondreAuDehors(demande: number, generation: number, travail: TravailDesNoms, type: MessageDeNomenclature['type']): Promise<boolean> {
+    const source = distant;
+    if (!source || source.generation !== generation) return false;
+    const rendu = await confier(demande, generation, travail);
+    if (rendu === 'abandonne' || 'repli' in rendu) return false;
+    const { resultat } = rendu;
+    if (resultat.sorte === 'erreur') {
+      erreur(demande, generationCourante() === generation ? resultat.code : 'generation-perimee');
+      return true;
+    }
+    if (resultat.sorte !== 'message' || resultat.message.type !== type || !('demande' in resultat.message) || resultat.message.demande !== demande) return replier();
+    if (generationCourante() !== generation) erreur(demande, 'generation-perimee');
+    else envoyer(resultat.message);
+    return true;
+  }
+
+  const lireAuDehors = (lecture: DemandeDeLecture): Promise<boolean> =>
+    repondreAuDehors(lecture.demande, lecture.generation, { sorte: 'lire', lecture }, lecture.type);
+
   async function simuler(demande: Extract<DemandeDeNomenclature, { type: 'simuler' }>): Promise<void> {
+    if (distant && distant.generation === demande.generation) {
+      const courant = [...lireLeStockage(port.regles)];
+      const travail: TravailDesNoms = { sorte: 'simuler', demande: demande.demande, geste: demande.geste, courant };
+      if (await repondreAuDehors(demande.demande, demande.generation, travail, 'simulation')) return;
+    }
     const base = await etatDeLaGeneration(demande.demande, demande.generation);
     if (!base) return;
-    const courant = lireLeStockage(port.regles);
-    const ecritures = ecrituresDuGeste(demande.geste, lireLesRegles(courant), courant);
-    const { regles, conflits } = essayer(courant, ecritures);
-    if (conflits.length > 0) {
-      envoyer({ type: 'simulation', demande: demande.demande, generation: base.generation, effet: null, conflit: conflitVue(conflits[0]) });
+    const debut = debuterLaSimulation(moteur, base, demande.geste, lireLeStockage(port.regles));
+    if (debut.sorte === 'repond') {
+      envoyer(messageDeSimulation(demande.demande, base, debut.effet, debut.conflit));
       return;
     }
-    const terme = termeDeLEffet(demande.geste, regles, base.lexique);
-    let effet: EffetVue | null = null;
-    if (demande.geste.type === 'ecriture' || terme) {
-      const calcul = await mener(recalculer(moteur, base, regles, false), () => generationCourante() !== base.generation, tranches);
-      if (calcul.abandonne) return erreur(demande.demande, 'generation-perimee');
-      const simulee: EntreeDeProjection = { ...base.entree, regles, resultat: calcul.valeur.resultat, ecriture: calcul.valeur.ecriture };
-      effet = demande.geste.type === 'ecriture' ? effetDEcriture(simulee) : effetDeTerme(base.entree, simulee, terme!);
-    }
-    envoyer({ type: 'simulation', demande: demande.demande, generation: base.generation, effet, conflit: null });
+    const calcul = await mener(recalculer(moteur, base, debut.regles, false), () => generationCourante() !== base.generation, tranches);
+    if (calcul.abandonne) return erreur(demande.demande, 'generation-perimee');
+    envoyer(messageDeSimulation(demande.demande, base, conclureLaSimulation(base, demande.geste, debut, calcul.valeur), null));
   }
 
   async function lire(demande: DemandeDeNomenclature): Promise<void> {
     switch (demande.type) {
-      case 'lignes': {
-        const courant = await etatDeLaGeneration(demande.demande, demande.generation);
-        if (!courant) return;
-        const page = courant.projection.lignes(demande.groupe, demande.debut);
-        envoyer({ type: 'lignes', demande: demande.demande, generation: courant.generation, groupe: demande.groupe, debut: demande.debut, ...page });
-        return;
-      }
-      case 'termes': {
-        const courant = await etatDeLaGeneration(demande.demande, demande.generation);
-        if (!courant) return;
-        const { recherche, types, origines, places, tri, section, place, debut } = demande;
-        const page = courant.projection.termes({ recherche, types, origines, places, tri, section, place, debut });
-        envoyer({ type: 'termes', demande: demande.demande, generation: courant.generation, ...page });
-        return;
-      }
-      case 'fiche': {
-        const courant = await etatDeLaGeneration(demande.demande, demande.generation);
-        if (!courant) return;
-        envoyer({ type: 'fiche', demande: demande.demande, generation: courant.generation, fiche: courant.projection.fiche(demande.terme) });
-        return;
-      }
-      case 'noms-selection': {
-        const courant = await etatDeLaGeneration(demande.demande, demande.generation);
-        if (!courant) return;
-        envoyer({ type: 'noms-selection', demande: demande.demande, generation: courant.generation, principaux: courant.projection.principaux([...demande.exclus, ...demande.inclus]) });
-        return;
-      }
+      case 'lignes':
+      case 'termes':
+      case 'fiche':
+      case 'noms-selection':
       case 'diagnostic': {
+        if (await lireAuDehors(demande)) return;
         const courant = await etatDeLaGeneration(demande.demande, demande.generation);
-        if (!courant) return;
-        const texte = JSON.stringify({ version: 1, ...courant.projection.diagnostic(), regles: JSON.parse(exporterLesRegles(courant.regles)) }, null, 2);
-        envoyer({ type: 'diagnostic', demande: demande.demande, generation: courant.generation, texte });
+        if (courant) envoyer(repondreALaLecture(demande, courant));
         return;
       }
       case 'simuler':
