@@ -25,8 +25,10 @@ import {
 import { chronometrerUnAppel, mesurerUnePhaseDeTokens, noterUnPassageDeTokens, type AppelsDePhase, type PhaseDeTokens } from '../lecture';
 import { lireInventaire, type PortDeLecture } from './lecture';
 import type {
-  CodeDErreur, DemandeDeNomenclature, EffetVue, GesteSurLesRegles, MessageDeNomenclature, Reponse, ResultatVue,
+  Bilan, CodeDErreur, DemandeDeNomenclature, EffetVue, GesteSurLesRegles, MessageDeNomenclature, Reponse, ResultatVue,
 } from '../messages/nomenclature';
+import type { CauseDeRepli } from '../messages/calculDesNoms';
+import type { PortDeCalculDistant } from './distant';
 import { conflitVue, effetDEcriture, effetDeTerme, type EntreeDeProjection } from './projection';
 import {
   calculerTout, construireEtat, jointure, moteurDuKit, motsDe, motsDuTermeUcm, premierLancement, recalculer,
@@ -89,6 +91,12 @@ export interface OptionsDeSession {
   readonly port: PortDeSession;
   readonly envoyer: (message: MessageDeNomenclature) => void;
   readonly moteur?: Moteur;
+  /**
+   * Le calcul des noms hors du sandbox. Sans lui, ou quand il se replie, la session mène le calcul par tranches. Le bilan qu'il rend
+   * est celui de la session ; la session ne garde alors que l'entrée du calcul, et refait le calcul complet à la première lecture
+   * ou au premier geste qui en a besoin.
+   */
+  readonly calcul?: PortDeCalculDistant;
   readonly tranches?: OptionsDeTranches;
   /** Heure du journal ; l'heure courante par défaut. */
   readonly heure?: () => string;
@@ -263,6 +271,16 @@ interface Passage {
   readonly demande: DemandeDeCalcul;
   readonly fin: () => void;
   abandonne: boolean;
+  /** Arrête l'attente du Worker quand une demande plus récente abandonne ce passage. */
+  interrompre?: () => void;
+}
+
+/** Ce que la session garde d'un calcul que le Worker a mené : l'entrée, sans lexique ni résultat. `complet` est le calcul refait dans le sandbox. */
+interface CalculDistant {
+  readonly generation: number;
+  readonly inventaire: Inventaire;
+  readonly regles: ReglesDuFichier;
+  complet: Promise<Etat | null> | null;
 }
 
 export function creerSession(options: OptionsDeSession): Session {
@@ -272,6 +290,8 @@ export function creerSession(options: OptionsDeSession): Session {
   const pause = tranches.pause ?? pauseParDefaut;
 
   let etat: Etat | null = null;
+  /** La génération courante quand le Worker a mené le calcul ; `etat` est alors `null` jusqu'à ce qu'une lecture ou un geste le refasse. */
+  let distant: CalculDistant | null = null;
   let compteur = 0;
   let enCours: Passage | null = null;
   let tourne = false;
@@ -279,10 +299,7 @@ export function creerSession(options: OptionsDeSession): Session {
 
   const lireRegles = (): ReglesDuFichier => lireLesRegles(lireLeStockage(port.regles));
   const erreur = (demande: number, code: CodeDErreur): void => envoyer({ type: 'erreur', demande, code });
-  const exiger = (): Etat => {
-    if (!etat) throw new ErreurDeProtocole('echec');
-    return etat;
-  };
+  const generationCourante = (): number | null => etat?.generation ?? distant?.generation ?? null;
   const envoyerLeBilan = (demande: number, courant: Etat): void => envoyer({ type: 'bilan', demande, bilan: courant.projection.bilan() });
 
   /** Valide les écritures sur le stockage relu : les règles qui en résultent, ou les conflits du vocabulaire. */
@@ -310,8 +327,45 @@ export function creerSession(options: OptionsDeSession): Session {
       suivant = construireEtat(suivant.generation, inventaire, lireRegles(), calcul);
     }
     etat = suivant;
+    distant = null;
     envoyerLeBilan(demande, suivant);
     return suivant;
+  }
+
+  /** Enregistre la génération que le Worker a calculée et envoie son bilan, tel qu'il l'a rendu. */
+  function validerLeCalculDistant(demande: number, inventaire: Inventaire, regles: ReglesDuFichier, bilan: Bilan): void {
+    const generation = ++compteur;
+    etat = null;
+    distant = { generation, inventaire, regles, complet: null };
+    envoyer({ type: 'bilan', demande, bilan });
+  }
+
+  /**
+   * L'état complet de la génération courante, que les lectures et les gestes demandent. Quand le Worker a mené le calcul, le sandbox le refait
+   * ici, par tranches, la première fois ; les demandes suivantes attendent le même calcul. Rend `null` si la génération change entre-temps.
+   */
+  function completerLEtat(demande: number): Promise<Etat | null> {
+    if (etat) return Promise.resolve(etat);
+    const source = distant;
+    if (!source) return Promise.resolve(null);
+    source.complet ??= (async () => {
+      const calcul = await menerLeCalculDe(demande, () => distant !== source, (moteurDuPassage) => calculerTout(moteurDuPassage, source.inventaire, source.regles), 'relecture');
+      if (calcul.abandonne) return null;
+      const complet = construireEtat(source.generation, source.inventaire, source.regles, calcul.valeur);
+      if (distant === source) {
+        etat = complet;
+        distant = null;
+      }
+      return complet;
+    })();
+    return source.complet;
+  }
+
+  /** L'état complet que le geste de `passage` lit, ou l'erreur de protocole qui le refuse. */
+  async function exiger(passage: Passage): Promise<Etat> {
+    const complet = await completerLEtat(passage.demande.demande);
+    if (!complet) throw new ErreurDeProtocole(generationCourante() === null ? 'echec' : 'generation-perimee');
+    return complet;
   }
 
   /** Relit Figma et refait tout le calcul. */
@@ -319,16 +373,56 @@ export function creerSession(options: OptionsDeSession): Session {
     return mesurerUnePhaseDeTokens('rafraichir', (appels) => relire(passage, avecProgression, appels), Date.now, passage.demande.demande);
   }
 
-  /** Mène un calcul par tranches et note au journal ses cessions, son attente et sa tranche synchrone la plus longue. */
-  async function menerLeCalcul<T>(passage: Passage, calcul: (moteurDuPassage: Moteur) => Generator<void, T>): Promise<ResultatDeTranches<T>> {
-    const demande = passage.demande.demande;
+  /**
+   * Mène un calcul par tranches et note au journal ses cessions, son attente et sa tranche synchrone la plus longue, avec la voie `sandbox`.
+   * `repli` dit pourquoi le Worker n'a pas mené ce calcul.
+   */
+  async function menerLeCalculDe<T>(
+    demande: number, abandonne: () => boolean, calcul: (moteurDuPassage: Moteur) => Generator<void, T>, repli?: CauseDeRepli | 'relecture',
+  ): Promise<ResultatDeTranches<T>> {
     const mesure: MesureDeTranches = { cessions: 0, attenteMs: 0, pasMaxMs: 0 };
     const debut = Date.now();
     try {
-      return await mener(calcul(moteurMesure(moteur, demande)), () => passage.abandonne, { ...tranches, mesure });
+      return await mener(calcul(moteurMesure(moteur, demande)), abandonne, { ...tranches, mesure });
     } finally {
-      noterUnPassageDeTokens({ phase: 'calcul-des-noms', debut, fin: Date.now(), demande, ...mesure });
+      noterUnPassageDeTokens({ phase: 'calcul-des-noms', debut, fin: Date.now(), demande, ...mesure, voie: 'sandbox', ...(repli ? { repli } : {}) });
     }
+  }
+
+  const menerLeCalcul = <T>(passage: Passage, calcul: (moteurDuPassage: Moteur) => Generator<void, T>, repli?: CauseDeRepli): Promise<ResultatDeTranches<T>> =>
+    menerLeCalculDe(passage.demande.demande, () => passage.abandonne, calcul, repli);
+
+  /**
+   * Confie le calcul au Worker quand la session en a un. Rend son bilan, `'abandonne'` si une demande plus récente a remplacé la
+   * demande pendant l'attente, ou la cause du repli : le sandbox fait alors le calcul lui-même. La cause est `null` sans Worker.
+   */
+  async function calculerAilleurs(passage: Passage, inventaire: Inventaire, regles: ReglesDuFichier): Promise<{ readonly bilan: Bilan } | 'abandonne' | { readonly repli: CauseDeRepli | null }> {
+    if (!options.calcul) return { repli: null };
+    const demande = passage.demande.demande;
+    const generation = compteur + 1;
+    const debut = Date.now();
+    let issue;
+    try {
+      const requete = options.calcul.calculer({ demande, generation, entree: { generation, inventaire, regles } });
+      passage.interrompre = requete.annuler;
+      issue = await requete.issue;
+    } catch {
+      issue = { type: 'repli', cause: 'echec' } as const;
+    } finally {
+      passage.interrompre = undefined;
+    }
+    if (passage.abandonne || issue.type === 'annule') return 'abandonne';
+    if (issue.type === 'repli') return { repli: issue.cause };
+    if (issue.bilan.generation !== generation) return { repli: 'echec' };
+    const { mesure } = issue;
+    // Le transfert court jusqu'au Worker quand il tournait déjà ; sinon il s'arrête à l'interface et le démarrage prend la suite.
+    const finDuTransfert = mesure.demarrage ? mesure.recuA : mesure.travailleurRecuA;
+    noterUnPassageDeTokens({ phase: 'worker-transfert', debut: issue.envoyeA, fin: finDuTransfert, demande });
+    if (mesure.demarrage) noterUnPassageDeTokens({ phase: 'worker-demarrage', debut: mesure.recuA, fin: mesure.travailleurRecuA, demande });
+    noterUnPassageDeTokens({ phase: 'worker-calcul', debut: mesure.calculDebutA, fin: mesure.calculFinA, demande });
+    noterUnPassageDeTokens({ phase: 'worker-retour', debut: mesure.calculFinA, fin: issue.recuA, demande });
+    noterUnPassageDeTokens({ phase: 'calcul-des-noms', debut, fin: issue.recuA, demande, voie: 'worker' });
+    return { bilan: issue.bilan };
   }
 
   /** Les appels que `lireInventaire` fait au port de lecture, comptés pour la mesure du mode Tokens. */
@@ -359,11 +453,19 @@ export function creerSession(options: OptionsDeSession): Session {
       pause,
       avancement: avecProgression ? ({ lues, total }) => envoyer({ type: 'lecture', demande: demande.demande, lues, total }) : undefined,
     }), Date.now, demande.demande);
-    const calcul = await menerLeCalcul(passage, (moteurDuPassage) => calculerTout(moteurDuPassage, inventaire, regles));
-    if (calcul.abandonne) return;
-    const suivant = valider(demande.demande, null, inventaire, regles, calcul.valeur);
+    const ailleurs = await calculerAilleurs(passage, inventaire, regles);
+    if (ailleurs === 'abandonne') return;
+    let bilan: Bilan;
+    if ('bilan' in ailleurs) {
+      bilan = ailleurs.bilan;
+      validerLeCalculDistant(demande.demande, inventaire, regles, bilan);
+    } else {
+      const calcul = await menerLeCalcul(passage, (moteurDuPassage) => calculerTout(moteurDuPassage, inventaire, regles), ailleurs.repli ?? undefined);
+      if (calcul.abandonne) return;
+      bilan = valider(demande.demande, null, inventaire, regles, calcul.valeur).projection.bilan();
+    }
     if (avecProgression && !premierLancement(regles)) {
-      const groupes = suivant.projection.bilan().groupes.map((groupe) => groupe.cle);
+      const groupes = bilan.groupes.map((groupe) => groupe.cle);
       if (groupes.some((cle) => !regles.vus.includes(cle))) {
         rangerLesEcritures(port.regles, [serialiserRegle({ type: 'vus', groupes: [...regles.vus, ...groupes] })]);
       }
@@ -379,7 +481,7 @@ export function creerSession(options: OptionsDeSession): Session {
 
   /** Écrit les règles que `preparer` demande, sauf conflit de vocabulaire, puis recalcule. */
   async function modifierLesRegles(passage: Passage, preparer: (base: Etat, courant: ReadonlyMap<string, string>, regles: ReglesDuFichier) => Ecriture[]): Promise<void> {
-    const base = exiger();
+    const base = await exiger(passage);
     if (reglesFuturesDuStockage(port.regles).length > 0) throw new ErreurDeProtocole('regles-futures');
     const courant = lireLeStockage(port.regles);
     const ecritures = preparer(base, courant, lireLesRegles(courant));
@@ -411,8 +513,8 @@ export function creerSession(options: OptionsDeSession): Session {
     } catch {
       throw new ErreurDeProtocole('import-partiel');
     }
-    if (!etat) return rafraichir(passage, false);
-    return recalculerDepuisLesRegles(passage, etat, lireRegles());
+    if (generationCourante() === null) return rafraichir(passage, false);
+    return recalculerDepuisLesRegles(passage, await exiger(passage), lireRegles());
   }
 
   function demandesDeRenommage(base: Etat, ids: readonly string[]): RenommageDemande[] {
@@ -447,8 +549,9 @@ export function creerSession(options: OptionsDeSession): Session {
   }
 
   async function appliquer(passage: Passage, demande: Extract<DemandeDeNomenclature, { type: 'appliquer' }>): Promise<void> {
-    const base = exiger();
-    if (demande.generation !== base.generation) throw new ErreurDeProtocole('generation-perimee');
+    if (generationCourante() === null) throw new ErreurDeProtocole('echec');
+    if (demande.generation !== generationCourante()) throw new ErreurDeProtocole('generation-perimee');
+    const base = await exiger(passage);
     const demandes = demandesDeRenommage(base, base.projection.identifiants(demande.selection));
     const session = await port.ecriture.ouvrir();
     // Aucune attente après `ouvrir` : la signature se compare juste avant l'écriture synchrone.
@@ -516,7 +619,10 @@ export function creerSession(options: OptionsDeSession): Session {
           attente[rang].fin();
           attente.splice(rang, 1);
         }
-        if (enCours?.demande.type === demande.type) enCours.abandonne = true;
+        if (enCours?.demande.type === demande.type) {
+          enCours.abandonne = true;
+          enCours.interrompre?.();
+        }
       }
       attente.push({ demande, fin: resoudre, abandonne: false });
       if (!tourne) void tourner();
@@ -526,15 +632,18 @@ export function creerSession(options: OptionsDeSession): Session {
   // Les lectures
 
   /** L'état de la génération demandée, ou l'erreur qui répond à la lecture. */
-  function etatDeLaGeneration(demande: number, generation: number): Etat | null {
-    if (etat && etat.generation === generation) return etat;
+  async function etatDeLaGeneration(demande: number, generation: number): Promise<Etat | null> {
+    if (generationCourante() === generation) {
+      const complet = await completerLEtat(demande);
+      if (complet && complet.generation === generation) return complet;
+    }
     const analyseEnCours = enCours?.demande.type === 'noms-analyser' || attente.some((passage) => passage.demande.type === 'noms-analyser');
-    erreur(demande, !etat && analyseEnCours ? 'analyse-en-cours' : 'generation-perimee');
+    erreur(demande, generationCourante() === null && analyseEnCours ? 'analyse-en-cours' : 'generation-perimee');
     return null;
   }
 
   async function simuler(demande: Extract<DemandeDeNomenclature, { type: 'simuler' }>): Promise<void> {
-    const base = etatDeLaGeneration(demande.demande, demande.generation);
+    const base = await etatDeLaGeneration(demande.demande, demande.generation);
     if (!base) return;
     const courant = lireLeStockage(port.regles);
     const ecritures = ecrituresDuGeste(demande.geste, lireLesRegles(courant), courant);
@@ -546,7 +655,7 @@ export function creerSession(options: OptionsDeSession): Session {
     const terme = termeDeLEffet(demande.geste, regles, base.lexique);
     let effet: EffetVue | null = null;
     if (demande.geste.type === 'ecriture' || terme) {
-      const calcul = await mener(recalculer(moteur, base, regles, false), () => etat?.generation !== base.generation, tranches);
+      const calcul = await mener(recalculer(moteur, base, regles, false), () => generationCourante() !== base.generation, tranches);
       if (calcul.abandonne) return erreur(demande.demande, 'generation-perimee');
       const simulee: EntreeDeProjection = { ...base.entree, regles, resultat: calcul.valeur.resultat, ecriture: calcul.valeur.ecriture };
       effet = demande.geste.type === 'ecriture' ? effetDEcriture(simulee) : effetDeTerme(base.entree, simulee, terme!);
@@ -557,14 +666,14 @@ export function creerSession(options: OptionsDeSession): Session {
   async function lire(demande: DemandeDeNomenclature): Promise<void> {
     switch (demande.type) {
       case 'lignes': {
-        const courant = etatDeLaGeneration(demande.demande, demande.generation);
+        const courant = await etatDeLaGeneration(demande.demande, demande.generation);
         if (!courant) return;
         const page = courant.projection.lignes(demande.groupe, demande.debut);
         envoyer({ type: 'lignes', demande: demande.demande, generation: courant.generation, groupe: demande.groupe, debut: demande.debut, ...page });
         return;
       }
       case 'termes': {
-        const courant = etatDeLaGeneration(demande.demande, demande.generation);
+        const courant = await etatDeLaGeneration(demande.demande, demande.generation);
         if (!courant) return;
         const { recherche, types, origines, places, tri, section, place, debut } = demande;
         const page = courant.projection.termes({ recherche, types, origines, places, tri, section, place, debut });
@@ -572,19 +681,19 @@ export function creerSession(options: OptionsDeSession): Session {
         return;
       }
       case 'fiche': {
-        const courant = etatDeLaGeneration(demande.demande, demande.generation);
+        const courant = await etatDeLaGeneration(demande.demande, demande.generation);
         if (!courant) return;
         envoyer({ type: 'fiche', demande: demande.demande, generation: courant.generation, fiche: courant.projection.fiche(demande.terme) });
         return;
       }
       case 'noms-selection': {
-        const courant = etatDeLaGeneration(demande.demande, demande.generation);
+        const courant = await etatDeLaGeneration(demande.demande, demande.generation);
         if (!courant) return;
         envoyer({ type: 'noms-selection', demande: demande.demande, generation: courant.generation, principaux: courant.projection.principaux([...demande.exclus, ...demande.inclus]) });
         return;
       }
       case 'diagnostic': {
-        const courant = etatDeLaGeneration(demande.demande, demande.generation);
+        const courant = await etatDeLaGeneration(demande.demande, demande.generation);
         if (!courant) return;
         const texte = JSON.stringify({ version: 1, ...courant.projection.diagnostic(), regles: JSON.parse(exporterLesRegles(courant.regles)) }, null, 2);
         envoyer({ type: 'diagnostic', demande: demande.demande, generation: courant.generation, texte });

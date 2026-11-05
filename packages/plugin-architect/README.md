@@ -234,7 +234,7 @@ données du document : rangez-le dans `_local/`, hors de git.
 ```sh
 npm run build:plugin -- architect
 cd packages/plugin-architect
-npx esbuild src/ui/index.ts --bundle --outfile=dist/ui.js --format=iife --platform=browser --target=chrome80 --minify "--banner:js=globalThis.UCM_ARCHITECT_MESURER=true;globalThis.UCM_ARCHITECT_CAPTURER=true;"
+node scripts/build-ui-js.cjs "--banner:js=globalThis.UCM_ARCHITECT_MESURER=true;globalThis.UCM_ARCHITECT_CAPTURER=true;"
 node scripts/build-ui.cjs
 ```
 

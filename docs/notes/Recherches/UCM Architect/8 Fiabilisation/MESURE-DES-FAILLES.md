@@ -568,6 +568,37 @@ Pour des tailles multipliées par 2,5 puis 2,8, l'index multiplie ses lectures p
 
 Durée du rejeu (`npm run stress:rejeu -- --chrono`, médiane de 11 passes, une exécution) : premier fichier réel 41,8 ms pour `controlerLeCatalogue` (8 constats) et 53,1 ms pour `controlerLIntegriteUcm` (4 483 constats) sur 2 415 variables ; second fichier 1,3 ms et 0,0 ms (1 constat chacun) sur 755 variables. Les 35 ms et 39 ms de D0 portaient sur le kit d'avant les lots E : il rend depuis 8 constats C63 de plus sur le premier fichier et 2 constats sur le second, qui en rendait 0. La durée dans Figma attend le rapport du mode Tokens que télécharge le mainteneur.
 
+### Attente mesurée dans Figma (G0.5)
+
+Le mainteneur a exporté le rapport du mode Tokens après une analyse à froid puis un Actualiser, sur un fichier client de 2 415 variables.
+Le rapport reste dans `_local/mesures-figma/`. Les durées viennent du journal par phase de G0 et des repères de l’interface.
+
+| Étape, en ms depuis le clic | À froid | Actualiser |
+|---|---:|---:|
+| Relevé reçu | 608 | 516 |
+| Structure reçue | 3 486 | 3 590 |
+| Structure rendue | 3 547 | 3 639 |
+| Noms reçus | 19 008 | 67 883 |
+| Affichage complet | 19 098 | 68 125 |
+
+| Phase | À froid | Actualiser |
+|---|---:|---:|
+| Contrôles du catalogue | 884 | 789 |
+| Contrôles de l’intégrité | 1 780 | 1 706 |
+| Inventaire des noms | 1 023 | 3 020 |
+| Lexique, temps actif | 6 520 | 6 177 |
+| Questions, temps actif | 2 937 | 4 022 |
+| Calcul des noms, total | 13 497 | 61 394 |
+| Calcul des noms, attente aux cessions | 3 688 | 50 924 |
+| Plus long pas synchrone | 1 331 | 1 094 |
+
+Le calcul actif des noms prend environ 10 s dans Figma. Le banc de la recherche en donnait 28 s dans QuickJS et 0,8 s sous Node.
+Le moteur de Figma est donc environ trois fois plus rapide que le banc, et dix fois plus lent que Node.
+La structure est prête après 3,5 s, mais l’écran la montrait seulement avec les noms, ce que G2 corrige.
+Pendant Actualiser, 51 s sur 61 s du calcul des noms se passent à attendre la fin des 111 cessions, soit 459 ms par cession,
+contre 38 ms à froid. La cession est un `setTimeout` de 0 ms dans `src/nomenclature/tranches.ts`. Sa cause n’est pas établie.
+Le Worker de G1b retire ces cessions du sandbox. Sous Chromium, il calcule le même bilan en 510 à 535 ms.
+
 ### Mode Composant
 
 `npx tsx packages/plugin-architect/scripts/stress/f8-analyse/rejeuDeBase.ts` analyse sans panne les 5 sources de `rejeu.ts`, en 7 secondes. Les 5 fichiers sont le même Button, au même état : 90 variants, 198 layers, statut `complete` et les mêmes 7 constats.

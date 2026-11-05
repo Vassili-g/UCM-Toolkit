@@ -43,7 +43,9 @@ const MESSAGES_DU_SANDBOX = new Set(['preferences', 'preferences-rangees', 'prog
   // La préparation des tokens et la création de ses variables.
   'plan-de-preparation', 'preparations', 'preparation-texte', 'texte-refuse', 'variables-creees', 'liaisons-preparees',
   // Le bilan de Nomenclature, que les tests jouent avant d'ouvrir la Configuration ou la préparation.
-  'initial', 'bilan']);
+  'initial', 'bilan',
+  // L'entrée du calcul des noms, que le sandbox confie au Worker de l'écran.
+  'calcul-des-noms']);
 
 /** Les demandes qu'un explorateur en lecture seule peut envoyer. */
 const DEMANDES_PERMISES = new Set(['lire-preferences', 'ranger-preferences', 'lire-releve', 'lire-structure', 'annuler', 'lire-composant', 'changer-disposition', 'resize',
@@ -52,7 +54,9 @@ const DEMANDES_PERMISES = new Set(['lire-preferences', 'ranger-preferences', 'li
   // La préparation des tokens et la création de ses variables.
   'preparer', 'lire-preparations', 'lire-texte', 'creer-variables', 'abandonner-preparation', 'copier-preparation', 'lier-preparation',
   // La lecture des noms que Nomenclature demande dès que son bilan arrive : l'analyse, les lignes d'un groupe et les termes.
-  'noms-analyser', 'lignes', 'termes']);
+  'noms-analyser', 'lignes', 'termes',
+  // La réponse du Worker de l'écran au calcul des noms.
+  'noms-calcules', 'noms-non-calcules']);
 
 export async function ouvrir({ largeur = 1360, hauteur = 800, classe = '', presse = true } = {}) {
   const contexte = await navigateur.newContext({ viewport: { width: largeur, height: hauteur }, permissions: presse ? ['clipboard-read', 'clipboard-write'] : [] });

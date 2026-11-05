@@ -8,6 +8,7 @@ import type { DemandeDeTaille } from 'ucm-plugin-socle/src/ui/ResizeGrip';
 import type { EcritureChoisie } from '@ucm-kit/core/protocoles';
 import type { CauseDeProtection, MotifDeChemin } from '@ucm-kit/core/nommage';
 import { estConventions } from '../nomenclature/conventions';
+import { estReponseDuCalculDesNoms, type CauseDeRepli, type MesureDuCalculDistant, type MessageDeCalculDesNoms } from './calculDesNoms';
 
 export type { CauseDeProtection, EcritureChoisie, MotifDeChemin };
 
@@ -88,7 +89,10 @@ export type DemandeDeNomenclature =
   | { readonly type: 'annuler-dernier'; readonly demande: number }
   | { readonly type: 'exporter'; readonly demande: number }
   | { readonly type: 'importer'; readonly demande: number; readonly texte: string }
-  | { readonly type: 'configurer'; readonly demande: number; readonly collectionsExclues: readonly string[] };
+  | { readonly type: 'configurer'; readonly demande: number; readonly collectionsExclues: readonly string[] }
+  /** La réponse du Worker de l'écran à `calcul-des-noms` (`ReponseDuCalculDesNoms`) : le sandbox ne la range pas dans sa file de demandes. */
+  | { readonly type: 'noms-calcules'; readonly demande: number; readonly generation: number; readonly revision: string; readonly bilan: Bilan; readonly mesure: MesureDuCalculDistant }
+  | { readonly type: 'noms-non-calcules'; readonly demande: number; readonly generation: number; readonly revision: string; readonly cause: Exclude<CauseDeRepli, 'delai'> };
 export type UiMessage = DemandeDeNomenclature | DemandeDeTaille;
 
 /**
@@ -243,7 +247,9 @@ export type MessageDeNomenclature =
   | { readonly type: 'application'; readonly demande: number; readonly resultat: ResultatVue }
   | { readonly type: 'regles-exportees'; readonly demande: number; readonly texte: string }
   | { readonly type: 'erreur'; readonly demande: number; readonly code: CodeDErreur; readonly architecture?: ArchitectureDuFichier }
-  | MessageDeReglesRecues;
+  | MessageDeReglesRecues
+  /** L'entrée du calcul des noms, que l'écran passe à son Worker : l'écran la lit lui-même (`ui/nomenclature/calculDesNoms.ts`), avant `estMessageDeNomenclature`. */
+  | MessageDeCalculDesNoms;
 
 /** Une règle préparée depuis un composant : le terme qui disparaît, le terme voulu, et un nom réel du composant avant et après. */
 export interface RegleRecue {
@@ -266,11 +272,11 @@ export interface MessageDeReglesRecues {
  * Les `type` des messages que le sandbox envoie à l'écran des noms. L'interface d'Architect s'en sert pour
  * lui confier ces messages ; `Record` oblige à lister chaque membre de `MessageDeNomenclature`.
  */
-const TYPES_DES_MESSAGES: Readonly<Record<Exclude<MessageDeNomenclature, MessageDeReglesRecues>['type'], true>> = {
+const TYPES_DES_MESSAGES: Readonly<Record<Exclude<MessageDeNomenclature, MessageDeReglesRecues | MessageDeCalculDesNoms>['type'], true>> = {
   initial: true, lecture: true, bilan: true, lignes: true, termes: true, fiche: true, 'noms-selection': true, diagnostic: true,
   simulation: true, refus: true, application: true, 'regles-exportees': true, erreur: true,
 };
-export const estMessageDeNomenclature = (brut: { readonly type: string }): brut is Exclude<MessageDeNomenclature, MessageDeReglesRecues> => Object.prototype.hasOwnProperty.call(TYPES_DES_MESSAGES, brut.type);
+export const estMessageDeNomenclature = (brut: { readonly type: string }): brut is Exclude<MessageDeNomenclature, MessageDeReglesRecues | MessageDeCalculDesNoms> => Object.prototype.hasOwnProperty.call(TYPES_DES_MESSAGES, brut.type);
 
 type Objet = Readonly<Record<string, unknown>>;
 const entierPositif = (valeur: unknown): boolean => typeof valeur === 'number' && Number.isSafeInteger(valeur) && valeur > 0;
@@ -346,6 +352,7 @@ export function estUiMessage(brut: unknown): brut is UiMessage {
     case 'appliquer': return genere && estSelection(brut.selection);
     case 'importer': return chaine(brut.texte) && (brut.texte as string).length <= LIMITE_D_IMPORT;
     case 'configurer': return chaines(brut.collectionsExclues);
+    case 'noms-calcules': case 'noms-non-calcules': return estReponseDuCalculDesNoms(brut);
     default: return false;
   }
 }

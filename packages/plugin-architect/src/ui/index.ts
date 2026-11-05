@@ -26,6 +26,7 @@ import { monterCreation } from './preparation/creation';
 import { accueilVisible, collectionDuFiltre, etatInitial, poserReleve } from './etat';
 import { monterNomenclature } from './nomenclature';
 import { monterBibliotheque } from './bibliotheque';
+import { creerCalculateurDeNoms, estCalculDesNoms } from './nomenclature/calculDesNoms';
 import { estReglesRecues } from './nomenclature/reglesRecues';
 import { creerActualisation, joindreLesReperes, texteDeLaLecture } from './tokens/actualisation';
 import { monterStructure } from './structure';
@@ -462,8 +463,15 @@ function recevoir(message: PluginMessage): void {
   }
 }
 
+/** Le calcul des noms que le sandbox confie à un Worker : le bilan lui revient par `versSandbox`, sans passer par l'écran de Nomenclature. */
+const calculDesNoms = creerCalculateurDeNoms({ envoyer: versSandbox });
+
 window.addEventListener('message', (evenement: MessageEvent) => {
   const brut: unknown = evenement.data?.pluginMessage;
+  if (estCalculDesNoms(brut)) {
+    calculDesNoms.recevoir(brut);
+    return;
+  }
   if (estReglesRecues(brut)) {
     nomenclature.poserLesReglesRecues(brut.regles);
     return;

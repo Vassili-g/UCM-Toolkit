@@ -627,7 +627,15 @@ export function mesurerLePortDeLecture(variables: PortDeLecture): PortDeLecture 
  */
 export type PhaseDeTokens =
   | 'lire-releve' | 'lire-structure' | 'lire-le-catalogue' | 'controler-le-catalogue' | 'controler-l-integrite' | 'rafraichir'
-  | 'appels-locaux' | 'cibles-et-imports' | 'inventaire' | 'calcul-des-noms' | 'lexique' | 'renommages' | 'questions' | 'bilan';
+  | 'appels-locaux' | 'cibles-et-imports' | 'inventaire' | 'calcul-des-noms' | 'lexique' | 'renommages' | 'questions' | 'bilan'
+  | 'worker-transfert' | 'worker-demarrage' | 'worker-calcul' | 'worker-retour';
+
+/**
+ * Qui a mené le calcul des noms d'une demande : le Worker de l'interface ou le sandbox. `repli` dit pourquoi le sandbox l'a mené quand le
+ * Worker avait été tenté (`indisponible`, `demarrage`, `echec`, `delai`), ou `relecture` quand il a refait un calcul que le Worker avait rendu,
+ * pour répondre à une lecture ou à un geste.
+ */
+export type VoieDuCalcul = 'worker' | 'sandbox';
 
 /** Les phases qui contiennent d'autres phases du journal. */
 export const PHASES_ENGLOBANTES: ReadonlySet<PhaseDeTokens> = new Set<PhaseDeTokens>(['lire-releve', 'lire-structure', 'rafraichir', 'inventaire', 'calcul-des-noms']);
@@ -645,7 +653,8 @@ const CATEGORIE_DE_LA_METHODE: Readonly<Record<string, CategorieDAppels>> = {
 /**
  * Un passage dans une phase. `debut` et `fin` sont des heures en millisecondes depuis 1970, comparables à celles que l'interface note ;
  * `demande` est le numéro de la demande de l'écran, ou `null` quand le sandbox ne l'a pas reçu. Les champs facultatifs décrivent un
- * calcul mené par tranches : cessions, attente des pauses, plus long pas synchrone, temps passé à calculer. Ni nom de variable ni identifiant.
+ * calcul mené par tranches : cessions, attente des pauses, plus long pas synchrone, temps passé à calculer ; `voie` et `repli` disent qui a mené
+ * le calcul des noms. Les phases `worker-*` partagent l'horloge du sandbox, de l'interface et du Worker. Ni nom de variable ni identifiant.
  */
 export interface PassageDeTokens {
   readonly phase: PhaseDeTokens;
@@ -659,6 +668,8 @@ export interface PassageDeTokens {
   readonly attenteMs?: number;
   readonly pasMaxMs?: number;
   readonly actifMs?: number;
+  readonly voie?: VoieDuCalcul;
+  readonly repli?: string;
 }
 
 /** Les appels d'une phase, par méthode de l'API Figma. */
@@ -700,6 +711,8 @@ export interface PassageANoter {
   readonly attenteMs?: number;
   readonly pasMaxMs?: number;
   readonly actifMs?: number;
+  readonly voie?: VoieDuCalcul;
+  readonly repli?: string;
 }
 
 /** Range un passage que la phase n'a pas chronométré elle-même : un calcul mené par tranches. */
