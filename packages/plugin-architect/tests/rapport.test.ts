@@ -19,7 +19,7 @@ import { contenuDuRapportDeTokens, nomDuRapportDeTokens } from '../src/ui/telech
 import type { Contexte } from '../src/sandbox/contexte';
 import { DOMAINES, tableDesTypes } from '../src/sandbox/index';
 import { traiter } from '../src/sandbox/rapport';
-import { creerApplication } from '../src/ui/application';
+import { creerApplication, DELAI_DU_RAPPORT_DE_TOKENS_MS, DELAI_DU_RAPPORT_DU_COMPOSANT_MS } from '../src/ui/application';
 import { monterLePanneau } from '../src/ui/analyse';
 import { monterStructure } from '../src/ui/structure';
 import { SANS_RENOMMAGES } from '../src/ui/tokens/cochage';
@@ -319,4 +319,70 @@ test('la structure mesure la taille de releve et de structure et le rendu, et mo
   const { mesures } = JSON.parse(telechargements[0].contenu) as { mesures: { passages: Array<{ phase: string; ms: number }>; tailles: Record<string, number> } };
   assert.deepEqual(mesures.passages, [{ phase: 'rendu', ms: 5, appels: {} }]);
   assert.deepEqual(mesures.tailles, { releve: 999, structure: JSON.stringify(message).length });
+});
+
+// Un sandbox qui ne répond pas (code.js plus ancien que ui.html ignore le type de la demande)
+
+function appliSansReponse(): ReturnType<typeof creerApplication> {
+  (globalThis as { parent?: unknown }).parent = { postMessage() {} };
+  return creerApplication({} as never, () => ({}) as never);
+}
+
+test('sans réponse du sandbox, la demande de tokens rend null au bout du délai, une seule fois, et une réponse tardive est ignorée', (contexte) => {
+  contexte.mock.timers.enable({ apis: ['setTimeout'] });
+  const app = appliSansReponse();
+  const retours: Array<string | null> = [];
+  app.preparerLeRapportDeTokens((mesures) => retours.push(mesures));
+  contexte.mock.timers.tick(DELAI_DU_RAPPORT_DE_TOKENS_MS - 1);
+  assert.deepEqual(retours, []);
+  contexte.mock.timers.tick(1);
+  assert.deepEqual(retours, [null]);
+  app.recevoirLeRapport({ type: 'rapport-de-tokens-pret', demande: 1, mesures: '{}' });
+  contexte.mock.timers.tick(DELAI_DU_RAPPORT_DE_TOKENS_MS);
+  assert.deepEqual(retours, [null]);
+});
+
+test('la réponse du sandbox arrête la minuterie, et une nouvelle demande remplace l’ancienne et la sienne', (contexte) => {
+  contexte.mock.timers.enable({ apis: ['setTimeout'] });
+  const app = appliSansReponse();
+  const retours: Array<string | null> = [];
+  app.preparerLeRapportDeTokens((mesures) => retours.push(`premier:${mesures}`));
+  app.recevoirLeRapport({ type: 'rapport-de-tokens-pret', demande: 1, mesures: 'a' });
+  contexte.mock.timers.tick(DELAI_DU_RAPPORT_DE_TOKENS_MS * 2);
+  assert.deepEqual(retours, ['premier:a']);
+  app.preparerLeRapportDeTokens((mesures) => retours.push(`deuxième:${mesures}`));
+  contexte.mock.timers.tick(DELAI_DU_RAPPORT_DE_TOKENS_MS / 2);
+  app.preparerLeRapportDeTokens((mesures) => retours.push(`troisième:${mesures}`));
+  contexte.mock.timers.tick(DELAI_DU_RAPPORT_DE_TOKENS_MS - 1);
+  assert.deepEqual(retours, ['premier:a']);
+  contexte.mock.timers.tick(1);
+  assert.deepEqual(retours, ['premier:a', 'troisième:null']);
+});
+
+test('sans réponse du sandbox, la demande du composant rend null au bout de son délai, plus long', (contexte) => {
+  contexte.mock.timers.enable({ apis: ['setTimeout'] });
+  const app = appliSansReponse();
+  const retours: Array<string | null> = [];
+  app.preparerLeRapport('1:2', (capture) => retours.push(capture));
+  contexte.mock.timers.tick(DELAI_DU_RAPPORT_DE_TOKENS_MS);
+  assert.deepEqual(retours, []);
+  contexte.mock.timers.tick(DELAI_DU_RAPPORT_DU_COMPOSANT_MS - DELAI_DU_RAPPORT_DE_TOKENS_MS);
+  assert.deepEqual(retours, [null]);
+});
+
+test('le lien du mode Tokens, sans réponse du sandbox, écrit la ligne d’échec au lieu de rester sur « Préparation du rapport… »', (contexte) => {
+  contexte.mock.timers.enable({ apis: ['setTimeout'] });
+  const app = appliSansReponse();
+  const telechargements: unknown[] = [];
+  const rapport = monterLeRapportDeTokens({
+    preparer: (auRetour) => app.preparerLeRapportDeTokens(auRetour), mesures: creerLesMesuresDuPanneau(), telecharger: (...args) => telechargements.push(args),
+  });
+  const lien = (): ElementDeTest => comme(comme(rapport.element).querySelector('.lien-rapport'));
+  lien().clic();
+  assert.equal(lien().textContent, 'Préparation du rapport…');
+  contexte.mock.timers.tick(DELAI_DU_RAPPORT_DE_TOKENS_MS);
+  assert.equal(lien().textContent, 'Télécharger le rapport d’analyse');
+  assert.equal(lien().disabled, false);
+  assert.equal(comme(comme(rapport.element).querySelector('.note-rapport')).textContent, 'Le rapport n’a pas pu être préparé.');
+  assert.equal(telechargements.length, 0);
 });

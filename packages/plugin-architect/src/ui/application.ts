@@ -97,9 +97,9 @@ export interface Application {
   ignorer(constat: Constat): void;
   /** Rend ce constat à À faire dans Figma. */
   nePlusIgnorer(constat: Constat): void;
-  /** Demande la description du composant analysé ; `auRetour` reçoit sa capture en JSON, ou `null` quand le sandbox n'a pu la lire. Une demande plus récente remplace celle-ci, dont la réponse est ignorée. */
+  /** Demande la description du composant analysé ; `auRetour` reçoit sa capture en JSON, ou `null` quand le sandbox n'a pu la lire. Une demande plus récente remplace celle-ci, dont la réponse est ignorée. Sans réponse au bout de `DELAI_DU_RAPPORT_DU_COMPOSANT_MS`, `auRetour` reçoit `null`. */
   preparerLeRapport(sujet: string, auRetour: (capture: string | null) => void): void;
-  /** Demande les mesures du mode Tokens ; `auRetour` les reçoit en JSON, ou `null` quand le sandbox n'a pu les rendre. Même remplacement que `preparerLeRapport`. */
+  /** Demande les mesures du mode Tokens ; `auRetour` les reçoit en JSON, ou `null` quand le sandbox n'a pu les rendre. Même remplacement que `preparerLeRapport` ; sans réponse au bout de `DELAI_DU_RAPPORT_DE_TOKENS_MS`, `auRetour` reçoit `null`. */
   preparerLeRapportDeTokens(auRetour: (mesures: string | null) => void): void;
   /** La réponse du sandbox à `preparerLeRapport` ou à `preparerLeRapportDeTokens`. */
   recevoirLeRapport(message: MessageDeRapport): void;
@@ -126,9 +126,22 @@ export interface Branchements {
   readonly disposer: (disposition: Disposition) => void;
 }
 
+/**
+ * Le temps qu'une demande de rapport attend le sandbox avant de rendre `null` : un sandbox qui ne connaît pas la demande (code.js
+ * plus ancien que ui.html) l'ignore sans répondre, et le lien resterait sur « Préparation du rapport… » sans fin. Le journal du mode
+ * Tokens se rend en moins d'une milliseconde ; la capture d'un composant lit son arbre et peut durer plus longtemps.
+ */
+export const DELAI_DU_RAPPORT_DE_TOKENS_MS = 20_000;
+export const DELAI_DU_RAPPORT_DU_COMPOSANT_MS = 120_000;
+
 export function creerApplication(etat: Etat, branchements: () => Branchements): Application {
   let compteur = 0;
-  let rapportAttendu: { readonly demande: number; readonly auRetour: (capture: string | null) => void } | null = null;
+  let rapportAttendu: { readonly demande: number; readonly auRetour: (capture: string | null) => void; readonly minuterie: ReturnType<typeof setTimeout> } | null = null;
+  /** Une demande de rapport remplace la précédente, dont la minuterie s'arrête ; sans réponse au bout de `delai`, `auRetour` reçoit `null`. */
+  const attendreLeRapport = (demande: number, delai: number, auRetour: (capture: string | null) => void): void => {
+    if (rapportAttendu !== null) clearTimeout(rapportAttendu.minuterie);
+    rapportAttendu = { demande, auRetour, minuterie: setTimeout(() => app.recevoirLeRapport({ type: 'rapport-echoue', demande }), delai) };
+  };
   const toutes: readonly Zone[] = ['barre', 'arbre', 'table', 'fiche', 'vue', 'pied'];
 
   const app: Application = {
@@ -288,17 +301,18 @@ export function creerApplication(etat: Etat, branchements: () => Branchements): 
     },
     preparerLeRapport(sujet, auRetour) {
       const demande = app.nouvelleDemande();
-      rapportAttendu = { demande, auRetour };
+      attendreLeRapport(demande, DELAI_DU_RAPPORT_DU_COMPOSANT_MS, auRetour);
       versSandbox({ type: 'preparer-le-rapport', demande, sujet });
     },
     preparerLeRapportDeTokens(auRetour) {
       const demande = app.nouvelleDemande();
-      rapportAttendu = { demande, auRetour };
+      attendreLeRapport(demande, DELAI_DU_RAPPORT_DE_TOKENS_MS, auRetour);
       versSandbox({ type: 'preparer-le-rapport-de-tokens', demande });
     },
     recevoirLeRapport(message) {
       if (rapportAttendu === null || rapportAttendu.demande !== message.demande) return;
-      const { auRetour } = rapportAttendu;
+      const { auRetour, minuterie } = rapportAttendu;
+      clearTimeout(minuterie);
       rapportAttendu = null;
       auRetour(message.type === 'rapport-pret' ? message.capture : message.type === 'rapport-de-tokens-pret' ? message.mesures : null);
     },
