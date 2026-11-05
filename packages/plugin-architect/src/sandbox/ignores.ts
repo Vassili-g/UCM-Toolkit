@@ -8,13 +8,13 @@
  * rien et rend la liste telle qu'elle était. Le sandbox retire du lot
  * « Appliquer » la correction d'un constat écarté et la y remet avec lui ; la
  * réponse `ignores` sépare les constats ignorés des propositions retirées.
- * Écarter ne périme pas l'analyse.
+ * Écarter ne périme pas l'analyse ; une analyse périmée ne se laisse plus écarter.
  */
 import type { Constat } from '@ucm-kit/core/controles';
 
 import { constatsIgnores, ignorerUnConstat, nePlusIgnorer, propositionsRetirees, type PortDIgnores, type ResultatDIgnorer } from '../ecriture/ignores';
 import type { DemandeDIgnores } from '../messages/ignores';
-import { analyseCourante, analyseFinalisee, constatDeLAnalyse, fixerUneCorrection, prendreLaPlaceDUneEcriture } from './analyse';
+import { analyseFinaliseeNonPerimee, analyseCourante, constatDeLAnalyse, fixerUneCorrection, prendreLaPlaceDUneEcriture } from './analyse';
 import type { Contexte, Traiter } from './contexte';
 
 export const TYPES: readonly DemandeDIgnores['type'][] = ['ignorer', 'ne-plus-ignorer'];
@@ -34,7 +34,7 @@ export function traiterAvec(rangement: (contexte: Contexte) => Rangement): Trait
   return async (demande, contexte) => {
     const courante = analyseCourante();
     if (!courante || courante.sujet !== demande.analyse.sujet || courante.generation !== demande.analyse.generation) return;
-    if (!analyseFinalisee(demande.analyse)) return;
+    if (!analyseFinaliseeNonPerimee(demande.analyse)) return;
     const place = await prendreLaPlaceDUneEcriture(demande.analyse);
     if ('occupe' in place) {
       contexte.envoyer({ type: 'occupe', analyse: await place.occupe });

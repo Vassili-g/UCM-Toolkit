@@ -7,7 +7,7 @@ import { CLES_D_ARCHITECT, ESPACE_ARCHITECT, texteDeLArchitectureDuFichier } fro
 
 import { cleDUnRoleIgnore, constatsIgnores, ignorerUnConstat, ignorerUnRole, lireLesIgnores, retablirUnRole, rolesIgnoresDe, separerLesIgnores, type PortDIgnores } from '../src/ecriture/ignores';
 import type { PluginMessage } from '../src/messages';
-import { commencerUneAnalyse, correctionsDeLAnalyse, reinitialiserLAnalyse, retenirLesCorrections } from '../src/sandbox/analyse';
+import { commencerUneAnalyse, correctionsDeLAnalyse, reinitialiserLAnalyse, retenirLesCorrections, surSelection } from '../src/sandbox/analyse';
 import type { Contexte } from '../src/sandbox/contexte';
 import { rangementDeFigma, traiterAvec } from '../src/sandbox/ignores';
 import { atelierDEcriture } from './figmaDeTest';
@@ -81,6 +81,17 @@ test('une identité périmée ou un constat inconnu est ignoré sans écriture n
   await b.traiter({ type: 'ignorer', analyse: b.analyse, constat: 'inconnu', portee: 'constat' }, b.contexte);
   assert.deepEqual(b.a.journal, []);
   assert.deepEqual(b.envoyes, []);
+});
+
+test('QV-2 : sur une analyse périmée, Ignorer et Ne plus ignorer n’écrivent rien et ne répondent pas', async () => {
+  const b = banc();
+  await b.traiter({ type: 'ignorer', analyse: b.analyse, constat: 'C22:a', portee: 'constat' }, b.contexte);
+  surSelection('Autre', 'figma', b.contexte);
+  b.envoyes.length = 0;
+  await b.traiter({ type: 'ignorer', analyse: b.analyse, constat: 'C30:b', portee: 'constat' }, b.contexte);
+  await b.traiter({ type: 'ne-plus-ignorer', analyse: b.analyse, constat: 'C22:a' }, b.contexte);
+  assert.deepEqual(rangees(b.a), ['C22:a']);
+  assert.deepEqual(b.envoyes.filter((message) => message.type === 'ignores'), []);
 });
 
 test('l’analyse suivante filtre les constats ignorés et retire la proposition de ceux dont elle est rangée', () => {

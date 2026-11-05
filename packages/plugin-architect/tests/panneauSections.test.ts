@@ -895,3 +895,18 @@ test('Q-F89-14 : quand plusieurs états se superposent, un seul écran suit l’
   assert.match(bannieres(annulee), /L’analyse a été annulée\./);
   assert.doesNotMatch(bannieres(annulee), /a changé|partielle/);
 });
+
+test('N-23 : le provisoire dessine les cartes de corrections et de règles, sans case active ni pied, et le final les remplace', () => {
+  const banc = monter(constatsAlert, { statut: 'provisoire', progression: { lus: 11, total: 11, phase: 'imbriques', fraction: 0.35 } });
+  const cartesProvisoires = boutonsDeCartes(banc.racine);
+  assert.ok(cartesProvisoires.length > 0, 'les cartes de corrections sont dessinées');
+  assert.ok(cartesProvisoires.every((bouton) => bouton.disabled === true), 'aucune carte n’autorise l’écriture');
+  const casesActives = banc.racine.querySelectorAll('input').filter((champ) => champ.disabled !== true);
+  assert.equal(casesActives.length, 0, 'aucune case n’est active');
+  assert.equal(banc.racine.querySelector('.corrections-pied'), null);
+  assert.equal(sections(banc).some((section) => bande(section).classes.has('tenue')), false);
+  banc.actualiser({ statut: 'complete', progression: null });
+  assert.ok(boutonsDeCartes(banc.racine).length >= cartesProvisoires.length, 'le final garde les cartes');
+  assert.ok(boutonsDeCartes(banc.racine).every((bouton) => bouton.disabled === true), 'aucune case n’est cochée : Appliquer reste inactif');
+  assert.notEqual(banc.racine.querySelector('.corrections-pied'), null);
+});

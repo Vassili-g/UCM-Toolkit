@@ -512,6 +512,8 @@ function seriesF9D1(cas: CasDeChaine[]): void {
     dit(j, alertesDe(photo.vue), /composants imbriqués est en cours/, 'que l’analyse des composants imbriqués continue', 'muet');
     j.verifier(photo.vue.tenues.length === 0, 'aucune section tenue avant le résultat final', `tenues : ${photo.vue.tenues.join(', ')}`, 'accusation');
     j.verifier(photo.vue.casesActives === 0 && (photo.vue.pied === null || photo.vue.appliquerInactif === true), 'aucune écriture n’est permise tant que le final manque', 'une case ou Appliquer est actif', 'cochee');
+    const cartes = photo.vue.cartes.corrections + photo.vue.cartes.questions + photo.vue.cartes.aFaire;
+    j.verifier(cartes > 0, 'les cartes du provisoire sont dessinées (N-23)', `${cartes} carte(s), ${photo.vue.sections.length} section(s)`, 'faux-constat');
     j.verifier(photo.barre.analyserInactif, 'Analyser est inactif pendant le calcul', 'Analyser est actif', 'muet');
   });
   ecran('analyse arrêtée', 'P13', { plan: lever('moteur') }, async (c, j) => {

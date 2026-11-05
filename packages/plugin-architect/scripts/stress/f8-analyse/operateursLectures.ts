@@ -148,7 +148,7 @@ function operateursN(r: Registre): void {
   const sansSujet: Attente = { statuts: ['arretee'], bloquant: true, retenue: false, provisoires: 0 };
   n('N9', { description: '`sujet` lève', options: plan(lever('sujet')), attente: sansSujet, plus: aucunComposant });
   n('N9', { description: '`sujet` rend `null`', options: plan(rendre('sujet', null)), attente: sansSujet, plus: aucunComposant });
-  n('N9', { description: '`sujet` rend un sujet sans nœud', options: plan(rendre('sujet', { cle: 'Button', noeud: null, noeuds: [] })), attente: sansSujet, plus: aucunComposant, question: 'à trancher' });
+  n('N9', { description: '`sujet` rend un sujet sans nœud', options: plan(rendre('sujet', { cle: 'Button', noeud: null, noeuds: [] })), attente: sansSujet, plus: aucunComposant });
 
   declarationsN11(r);
 }

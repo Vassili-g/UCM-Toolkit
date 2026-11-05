@@ -476,3 +476,30 @@ test('N-71 : une analyse annulée pendant la lecture des règles laisse le modè
   assert.equal(finale?.type === 'analyse' ? finale.statut : null, 'annulee');
   assert.equal(JSON.stringify([...modelesDeLAnalyse()]), avant);
 });
+
+test('QV-1 : un sujet sans nœud s’arrête sur « Aucun composant n’est sélectionné », sans statut complète', async () => {
+  const { lectures } = preparer();
+  const b = banc();
+  let releves = 0;
+  await traiterAvec({
+    ...lectures,
+    sujet: async () => ({ cle: 'Button', noeud: null as never, noeuds: [] }),
+    releve: async (...appel) => { releves += 1; return lectures.releve(...appel); },
+  })({ type: 'analyser', demande: 3 }, b.contexte);
+  const finale = b.envoyes.find((message) => message.type === 'analyse');
+  assert.equal(finale?.type === 'analyse' ? finale.statut : null, 'arretee');
+  assert.match(String(finale?.type === 'analyse' ? finale.constats[0]?.faits.message : ''), /Aucun composant n’est sélectionné/);
+  assert.equal(releves, 0, 'le relevé n’est pas lu');
+});
+
+test('N-75 : la réinitialisation remet la génération des identités à zéro', async () => {
+  const { demander } = preparer();
+  const generations = async (): Promise<number[]> => {
+    const b = banc();
+    await traiterAvec(preparer().lectures)({ type: 'analyser', demande: 1 }, b.contexte);
+    return b.envoyes.flatMap((message) => (message.type === 'analyse-commencee' ? [message.analyse.generation] : []));
+  };
+  await demander();
+  reinitialiserLAnalyse();
+  assert.deepEqual(await generations(), [1]);
+});

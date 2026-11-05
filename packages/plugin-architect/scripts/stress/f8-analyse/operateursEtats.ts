@@ -338,8 +338,8 @@ function operateursIg(r: Registre): void {
     flux: async (s) => { s.surMessage.push((m) => { if (m.type === 'analyse-provisoire') s.garder(ignorerParLeSandbox(s, m.constats[0].id)); }); await s.demander(); },
     attente: { statuts: ['complete'] }, plus: sansEcriture,
   });
-  ig('ignorer sur une analyse périmée : à trancher, rien n’est rangé tant que l’analyse n’est pas applicable', {
-    options: avecUnModele, extra: brut, question: 'à trancher',
+  ig('ignorer sur une analyse périmée : refusé, rien n’est rangé (QV-2)', {
+    options: avecUnModele, extra: brut,
     flux: async (s) => { await s.demander(); s.evenement('noeud'); await ignorerParLeSandbox(s, s.observer().constats[0].id); },
     attente: { statuts: ['complete'], perimes: ['document'] }, plus: sansEcriture,
   });

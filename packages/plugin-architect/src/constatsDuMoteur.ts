@@ -20,6 +20,7 @@
  * `variants`, les autres dans `layers`.
  */
 import type { Constat, TypeDAlerte } from '@ucm-kit/core/controles';
+import { natureDuChamp } from '@ucm-kit/core/referentiel';
 import type { ResultatInterne } from 'ucm-plugin-socle/src/composant/analyse/resultat';
 import type { FamilleDePoint } from 'ucm-plugin-socle/src/composant/contract/famillesDePoint';
 import { sorteDuPointDeRegles } from 'ucm-plugin-socle/src/composant/contract/extractRules';
@@ -66,11 +67,19 @@ function regleDe(point: PointACorriger): Regle | null {
     && ((!regle.titre && !regle.elements) || regle.titre?.test(titre) || regle.elements?.test(elements))) ?? null;
 }
 
+/** Le champ de texte qu'un titre du moteur nomme avec ses mots, ou null ; `natureDuChamp` décide ensuite de sa nature. */
+function champDeTexteDuTitre(nu: string): string | null {
+  if (/\bfont\b/i.test(nu) || /style de /i.test(nu) && /texte/i.test(nu) || /\btext style/i.test(nu)) return 'fontFamily';
+  if (/line ?height/i.test(nu)) return 'lineHeight';
+  if (/letter ?spacing/i.test(nu)) return 'letterSpacing';
+  return null;
+}
+
 /** La famille de ce qu'un point de variable lie, lue sur son titre sans les noms entre « ». */
 function familleDeLaVariable(titre: string): Constat['famille'] {
   const nu = titreSansLesNoms(titre);
   if (/\b(?:opacity|opacité)\b|effet|effect/i.test(nu)) return 'tokens';
-  if (/\bfont\b|line ?height|letter ?spacing|style de texte|text style/i.test(nu)) return 'typographie';
+  if (natureDuChamp(champDeTexteDuTitre(nu) ?? '', 'FLOAT') === 'typographie') return 'typographie';
   if (/padding|\bgap\b|radius|stroke ?weight|(?:min|max)(?:width|height)|\bwidth\b|\bheight\b|spacing/i.test(nu)) return 'tailles';
   return 'liaisons';
 }

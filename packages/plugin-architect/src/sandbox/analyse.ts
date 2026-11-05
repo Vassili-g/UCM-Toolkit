@@ -796,6 +796,11 @@ export function analyseFinalisee(identite: IdentiteDAnalyse): boolean {
   return courante !== null && courante.finalisee && memeIdentite(courante.identite, identite);
 }
 
+/** Comme `analyseFinalisee`, et non périmée : Ignorer et Ne plus ignorer s'y limitent, comme les cases à cocher (QV-2). */
+export function analyseFinaliseeNonPerimee(identite: IdentiteDAnalyse): boolean {
+  return analyseFinalisee(identite) && courante?.perimee === false;
+}
+
 /** Oublie l'analyse courante, sans toucher à la génération. */
 export function oublierLAnalyse(): void {
   courante = null;
@@ -2001,7 +2006,7 @@ async function analyser(contexte: Contexte, lecteurs: Lecteurs, demandeRecue: Ex
     rejouerLesEvenementsRecus(contexte);
     courant.progresser('sujet');
     if (courant.jeton.leve) return rendre('annulee', [], null);
-    if (!sujet) return rendre('arretee', [bloquant('Aucun composant n’est sélectionné.')], null);
+    if (!sujet || !sujet.noeud) return rendre('arretee', [bloquant('Aucun composant n’est sélectionné.')], null);
     const { jeton } = courant;
 
     phase('releve');
@@ -2349,6 +2354,7 @@ export function fermerLaSession(): void {
 /** Pour les tests : oublie l'opération en cours et l'analyse courante. */
 export function reinitialiserLAnalyse(): void {
   operation = null;
+  generation = 0;
   entreeDeLaPrelecture = null;
   bilanDeLaPrelecture.clear();
   analysesDuDesigner = 0;
