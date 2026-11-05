@@ -83,7 +83,7 @@ Elles ne désignent pas un script npm supplémentaire.
 | C | C1 à C6 | Mode Tokens en deux onglets, Constats et Règles (section 1) |
 | D | D0 à D7 | Vitesse de l'analyse du mode Tokens |
 | E | E1 à E12 | Corrections tirées des réponses V2, famille par famille |
-| G | G0 à G5 | Attente avant les constats du mode Tokens |
+| G | G0 à G6 | Attente avant les constats du mode Tokens |
 | F | F1 à F3 | Clôture, publication, recette |
 
 ## Phase A. Les icônes dans le kit
@@ -241,7 +241,8 @@ G1a et G2 peuvent tourner ensemble, sans fichier commun.
 | [G2](lots/G2.md) Structure affichée avant les noms | `implementeur-exigeant` | G0 | [x] 218e3e75 |
 | [G3](lots/G3.md) Messages fidèles aux étapes | `implementeur` | G2 | [x] 62c797a8 |
 | [G4](lots/G4.md) Pas synchrones bornés | `implementeur` | G1b | [ ] ad3bd578, 1926b45c, G4.1 et G4.2 faits, G4.3 reste ouvert |
-| [G5](lots/G5.md) Mesure de l’attente | `verificateur`, puis le mainteneur | G1c, G2, G3, G4 | [ ] |
+| [G6](lots/G6.md) Contrôles de structure dans le Worker | `implementeur-exigeant` | G1c, E11b | [ ] |
+| [G5](lots/G5.md) Mesure de l’attente | `verificateur`, puis le mainteneur | G1c, G2, G3, G4, G6 | [ ] premier essai mesuré |
 
 ## Phase F. Clôture
 

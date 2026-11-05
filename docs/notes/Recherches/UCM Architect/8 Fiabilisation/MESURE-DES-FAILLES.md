@@ -599,6 +599,29 @@ Pendant Actualiser, 51 s sur 61 s du calcul des noms se passent à attendre la f
 contre 38 ms à froid. La cession est un `setTimeout` de 0 ms dans `src/nomenclature/tranches.ts`. Sa cause n’est pas établie.
 Le Worker de G1b retire ces cessions du sandbox. Sous Chromium, il calcule le même bilan en 510 à 535 ms.
 
+### Attente avec le Worker (G5.2, premier essai)
+
+Même fichier, plugin construit après G3. Figma autorise le Worker : le journal note la voie `worker` pour chaque calcul des noms.
+
+| Étape, en ms depuis le clic | À froid | Actualiser |
+|---|---:|---:|
+| Structure rendue | 3 372 | 3 397 |
+| Noms rendus | 4 371 | 3 747 |
+
+| Phase | À froid | Actualiser |
+|---|---:|---:|
+| Contrôles du catalogue | 870 | 856 |
+| Contrôles de l’intégrité | 1 735 | 1 439 |
+| Inventaire des noms | 516 | 2 801 |
+| Transfert vers le Worker | 122 | 200 |
+| Démarrage du Worker | 47 | |
+| Calcul dans le Worker | 241 | 202 |
+
+Le calcul des noms passe de 13 497 ms à 412 ms, transfert compris. L’affichage complet passe de 19,1 s à 4,4 s à froid,
+et de 68,1 s à 3,7 s pour Actualiser. Les contrôles de structure, qui restent dans le sandbox, prennent maintenant l’essentiel
+de l’attente. Pendant Actualiser, l’inventaire des noms dure 2,8 s contre 0,5 s à froid, car il attend la fin de ces contrôles.
+Aucune cession n’a lieu dans le sandbox sur cette voie : l’attente de 459 ms par cession de G4.3 ne s’y produit plus.
+
 ### Mode Composant
 
 `npx tsx packages/plugin-architect/scripts/stress/f8-analyse/rejeuDeBase.ts` analyse sans panne les 5 sources de `rejeu.ts`, en 7 secondes. Les 5 fichiers sont le même Button, au même état : 90 variants, 198 layers, statut `complete` et les mêmes 7 constats.
