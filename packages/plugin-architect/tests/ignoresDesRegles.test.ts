@@ -1,8 +1,8 @@
-/** Les trois cartes de règles : Ignorer, Ne plus proposer, retour depuis les Ignorés et correction décochée. */
+/** Les trois cartes de règles : Ignorer, Ne plus proposer après une nouvelle analyse, retour depuis les Ignorés et correction décochée. */
 import assert from 'node:assert/strict';
 import test, { beforeEach, afterEach } from 'node:test';
 
-import type { Constat } from '@ucm-kit/core/controles';
+import type { Constat, ReleveDeComposant } from '@ucm-kit/core/controles';
 
 import { poserLeDom, comme, type ElementDeTest } from './domDeTest';
 import { atelierDEcriture } from './figmaDeTest';
@@ -12,10 +12,11 @@ poserLeDom();
 import { monterLePanneau } from '../src/ui/analyse';
 import { recevoirUneAnalyse, type AnalyseRecue } from '../src/ui/composant/analyse';
 import type { PluginMessage } from '../src/messages';
-import { commencerUneAnalyse, correctionsDeLAnalyse, reinitialiserLAnalyse, retenirLesCorrections } from '../src/sandbox/analyse';
+import { commencerUneAnalyse, correctionsDeLAnalyse, reinitialiserLAnalyse, retenirLesCorrections, traiterAvec as analyserAvec } from '../src/sandbox/analyse';
 import { rangementDeFigma, traiterAvec } from '../src/sandbox/ignores';
 import type { Contexte } from '../src/sandbox/contexte';
-import type { PortDIgnores } from '../src/ecriture/ignores';
+import { lireLesIgnores, type PortDIgnores } from '../src/ecriture/ignores';
+import type { ReleveDesRegles } from '../src/regles';
 
 const { constatsDeRegles } = require('../galerie/etats/ignores.cjs') as { constatsDeRegles: Constat[] };
 const { alertCorrections } = require('../galerie/etats/corrections.cjs');
@@ -115,6 +116,68 @@ for (const constat of constatsDeRegles) {
     assert.equal(correctionsDeLAnalyse(analyse)?.has(constat.correction!.id), true);
     await traiter({ type: 'ignorer', analyse, constat: constat.id, portee: 'proposition' }, contexte);
     assert.deepEqual(envoyes.at(-1), { type: 'ignores', analyse, constats: [], propositions: [constat.id] });
+  });
+
+  test(`${nom} reste sans proposition après une nouvelle analyse du fichier`, async () => {
+    const banc = monter([]);
+    banc.etat.analyse = { ...banc.etat.analyse, identite: { sujet: 'Alert', generation: 0 } };
+    const atelier = atelierDEcriture();
+    const envoyes: PluginMessage[] = [];
+    const contexte: Contexte = {
+      figma: atelier.api as never, surveillerLeDocument() {},
+      envoyer(message) {
+        envoyes.push(message);
+        switch (message.type) {
+          case 'analyse-commencee': case 'analyse-en-cours': case 'analyse-provisoire': case 'analyse': case 'ignores':
+            banc.recevoir(message);
+        }
+      },
+    };
+    const propriete = String(constat.faits.propriete ?? 'Size');
+    const tag = propriete === 'Dismissible' ? 'boolean' : 'prop';
+    const modele: ReleveDesRegles['modele'] = { nom: 'Alert', sections: [{ tag, elements: [
+      { genre: 'regle', tag, cible: tag === 'boolean' ? propriete : `${propriete}.Small` },
+    ] }] };
+    const regles: ReleveDesRegles = {
+      composant: { id: 'jeu', nom: 'Alert' }, instancePresente: constat.code !== 'C43', modele,
+      proprietes: [propriete], documentees: constat.faits.ecart === 'sans-valeur' ? [propriete] : [],
+      presentes: [], manquantes: modele,
+    };
+    const releve: ReleveDeComposant = {
+      version: 1, jeu: { id: 'jeu', cle: 'Alert', nom: 'Alert' }, proprietes: [],
+      variants: [{ id: alertCorrections.sujet.variants[0].id, nom: 'Size=Small', valeurs: { Size: 'Small' }, layers: [], modesEffectifs: {} }],
+      lecture: { layersLus: 0, layersNonLus: 0, variantsNonLus: [], manquees: [] }, espaceDeCouleur: 'srgb',
+    };
+    const analyser = analyserAvec({
+      sujet: async () => ({ cle: 'Alert', noeud: { id: 'jeu' } as never, noeuds: ['jeu'] }),
+      releve: async () => ({ statut: 'lu', releve }),
+      catalogue: async () => ({ version: 1, library: null, collections: [], variables: [] }),
+      moteur: async () => ({ etat: 'calculee', interne: {
+        warnings: [], parties: new Map(), localisations: new Map(), couverture: { etat: 'complete' },
+      } as never }),
+      regles: async () => regles,
+      ignores: async () => lireLesIgnores(atelier.api as unknown as PortDIgnores),
+    });
+    await analyser({ type: 'analyser' }, contexte);
+    const premiere = banc.etat.analyse.identite;
+    const lu = banc.etat.analyse.constats.find(({ code, famille }) => code === constat.code && famille === 'regles');
+    assert.ok(lu?.correction);
+    assert.ok(casesDeRegles(banc.racine).length > 0, `${banc.etat.analyse.statut} ${banc.racine.textContent}`);
+    bouton(banc.racine, 'Ne plus proposer').clic();
+    const ignorer = traiterAvec(() => rangementDeFigma(atelier.api as unknown as PortDIgnores));
+    await ignorer({ type: 'ignorer', analyse: premiere, constat: lu.id, portee: 'proposition' }, contexte);
+    assert.equal(casesDeRegles(banc.racine).length, 0);
+
+    await analyser({ type: 'analyser', intention: 'actualiser' }, contexte);
+    const suivante = banc.etat.analyse.identite;
+    assert.ok(suivante.generation > premiere.generation);
+    assert.equal(banc.etat.analyse.statut, 'complete');
+    assert.ok(envoyes.some((message) => message.type === 'ignores' && message.analyse.generation === suivante.generation && message.propositions?.includes(lu.id)));
+    assert.equal(banc.etat.analyse.constats.find(({ id }) => id === lu.id)?.correction, undefined);
+    assert.ok(banc.etat.analyse.constats.some(({ id }) => id === lu.id));
+    assert.equal(casesDeRegles(banc.racine).length, 0);
+    assert.equal(banc.racine.querySelector('.muette'), null);
+    assert.equal(bouton(banc.racine, 'Ignorer').disabled, false);
   });
 }
 
