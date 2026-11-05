@@ -215,8 +215,8 @@ Règles propres à la phase E :
 | [E9e](lots/E9e.md) Désactivés et limites de lecture | `implementeur` | E9d | [x] 84f0b680, E9.12 dans dd850138 |
 | [E10a](lots/E10a.md) Règles d’usage | `implementeur` | E9e, B2 | [x] ac1f5384, textes de C45 et C43 restent |
 | [E10b](lots/E10b.md) Points du moteur et dédoublonnage | `implementeur-exigeant` | E10a, E5d, E6 | [x] ac1f5384 |
-| [E11a](lots/E11a.md) Lectures refusées | `implementeur` | E10b, B6 | [ ] |
-| [E11b](lots/E11b.md) Ordre, budget et library à choisir | `implementeur-exigeant` | E11a, B7 | [ ] |
+| [E11a](lots/E11a.md) Lectures refusées | `implementeur` | E10b, B6 | [x] 6a1d1b3b |
+| [E11b](lots/E11b.md) Ordre, budget et library à choisir | `implementeur-exigeant` | E11a, B7 | [x] 6a1d1b3b |
 | [E11c](lots/E11c.md) Sujet, cycle et résultat provisoire | `implementeur` | E11b | [ ] |
 | [E12](lots/E12.md) Rejeu complet et cibles | `verificateur`, puis la conversation principale | E11c, E0b, E3d, E4c, D7.1, D5a | [ ] |
 
