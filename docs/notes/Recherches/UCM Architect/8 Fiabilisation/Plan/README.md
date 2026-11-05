@@ -211,8 +211,8 @@ Règles propres à la phase E :
 | [E9a](lots/E9a.md) Composition et valeurs de couleur | `implementeur` | E8b | [x] 2e80ec58, phrase de couleur-hors-gamut reste |
 | [E9b](lots/E9b.md) Visibilité et fond du texte | `implementeur` | E9a | [x] 477f3511 |
 | [E9c](lots/E9c.md) Modes, garanties et identifiants | `implementeur` | E9b | [x] 477f3511, texte de C49:borne reste |
-| [E9d](lots/E9d.md) Contours et anneaux | `implementeur` | E9c, E1b | [ ] |
-| [E9e](lots/E9e.md) Désactivés et limites de lecture | `implementeur` | E9d | [ ] |
+| [E9d](lots/E9d.md) Contours et anneaux | `implementeur` | E9c, E1b | [x] 84f0b680 |
+| [E9e](lots/E9e.md) Désactivés et limites de lecture | `implementeur` | E9d | [x] 84f0b680, E9.12 attend la lecture des effets et du mode de fusion |
 | [E10a](lots/E10a.md) Règles d’usage | `implementeur` | E9e, B2 | [ ] |
 | [E10b](lots/E10b.md) Points du moteur et dédoublonnage | `implementeur-exigeant` | E10a, E5d, E6 | [ ] |
 | [E11a](lots/E11a.md) Lectures refusées | `implementeur` | E10b, B6 | [ ] |
