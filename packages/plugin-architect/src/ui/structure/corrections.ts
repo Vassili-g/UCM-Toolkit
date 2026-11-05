@@ -5,6 +5,10 @@
  * pied commun (`tokens/cochage.ts`) compte les lignes cochées et envoie leurs identifiants, que le sandbox relit avant d'écrire.
  * « Tout cocher » et « Tout décocher » de chaque catégorie sont rendus ici, et le panneau les pose sous la bande de la section. Le
  * designer voit le scope tel que la fenêtre Edit variable de Figma le nomme.
+ *
+ * Une catégorie de plus de `SEUIL_DE_LISTE` cartes les range dans une liste virtuelle (`virtualisation.ts`). Les cases cochées et les
+ * cartes dépliées vivent dans des ensembles du module, et « Tout cocher » les lit : une carte hors du DOM compte comme les autres.
+ * Une carte créée à son arrivée à l'écran prend ses cases dans ces ensembles.
  */
 import { creerAlerte } from 'ucm-plugin-socle/src/ui/Alerte';
 import { creerTermeFigma } from 'ucm-plugin-socle/src/ui/Terme';
@@ -12,6 +16,7 @@ import { creerChemin, creerCheminEnPhrase, creerSegmentAncien, creerSegmentNouve
 import { creerColonnes, creerLigneDeDiff, creerResultat } from 'ucm-plugin-socle/src/ui/Changement';
 import { TEXTES } from '../textes';
 import { creerLesGestesDeSection } from '../tokens/cochage';
+import { creerHoteDeCartes, type CarteDeSection, type HoteDeCartes } from '../virtualisation';
 import { creerCarte, poserLesMorceaux } from './carte';
 import {
   segmentsQuiChangent,
@@ -55,6 +60,8 @@ export interface OptionsDeCorrections {
   readonly hotes: Readonly<Record<CategorieDeCorrection, HTMLElement>>;
   /** Appelée quand les lignes ou les cases changent : le pied commun se recompte. */
   readonly auChangement: () => void;
+  /** Vrai quand la puce Questions du sommaire isole les cartes qui posent une question : aucune correction n'en est une. */
+  readonly questionsSeules?: () => boolean;
 }
 
 /** Un chemin écrit en texte, dont les segments qui changent prennent la couleur de leur colonne. */
@@ -79,7 +86,7 @@ const libelles = (scopes: readonly string[]): string => scopes.map(TEXTES.scopeD
 
 const CATEGORIES: readonly CategorieDeCorrection[] = ['manquantes', 'crans', 'modes', 'scopes'];
 
-export function monterLesCorrections({ element, hotes, auChangement }: OptionsDeCorrections): CorrectionsDeStructure {
+export function monterLesCorrections({ element, hotes, auChangement, questionsSeules }: OptionsDeCorrections): CorrectionsDeStructure {
   element.hidden = true;
   const resultat = document.createElement('div');
   resultat.hidden = true;
@@ -96,6 +103,7 @@ export function monterLesCorrections({ element, hotes, auChangement }: OptionsDe
   const deplies = new Set<string>();
   const cases = new Map<string, HTMLInputElement>();
   const casesDeCarte: { readonly element: HTMLInputElement; readonly ids: readonly string[] }[] = [];
+  const listes = Object.fromEntries(CATEGORIES.map((categorie) => [categorie, creerHoteDeCartes(hotes[categorie], questionsSeules)])) as Record<CategorieDeCorrection, HoteDeCartes>;
   const gestes = Object.fromEntries(CATEGORIES.map((categorie) => {
     const deLaCategorie = creerLesGestesDeSection(() => cocherLes(idsParCategorie[categorie], true), () => cocherLes(idsParCategorie[categorie], false));
     deLaCategorie.hidden = true;
@@ -104,11 +112,13 @@ export function monterLesCorrections({ element, hotes, auChangement }: OptionsDe
 
   function rafraichir(): void {
     for (const [id, caseACocher] of cases) caseACocher.checked = cochees.has(id);
-    for (const { element: caseACocher, ids: deLaCarte } of casesDeCarte) {
-      const nombre = deLaCarte.filter((id) => cochees.has(id)).length;
-      caseACocher.checked = nombre === deLaCarte.length;
-      caseACocher.indeterminate = nombre > 0 && nombre < deLaCarte.length;
-    }
+    for (const carte of casesDeCarte) accorderLaCaseDeCarte(carte);
+  }
+
+  function accorderLaCaseDeCarte({ element: caseACocher, ids: deLaCarte }: { readonly element: HTMLInputElement; readonly ids: readonly string[] }): void {
+    const nombre = deLaCarte.filter((id) => cochees.has(id)).length;
+    caseACocher.checked = nombre === deLaCarte.length;
+    caseACocher.indeterminate = nombre > 0 && nombre < deLaCarte.length;
   }
 
   /** Coche ou décoche ces lignes, remet les cases d'accord, puis prévient le pied commun. */
@@ -127,6 +137,7 @@ export function monterLesCorrections({ element, hotes, auChangement }: OptionsDe
     caseACocher.className = 'case';
     caseACocher.setAttribute('aria-label', libelle);
     caseACocher.addEventListener('change', () => cocherLes(deLaCarte, caseACocher.checked));
+    accorderLaCaseDeCarte({ element: caseACocher, ids: deLaCarte });
     return caseACocher;
   }
 
@@ -141,6 +152,7 @@ export function monterLesCorrections({ element, hotes, auChangement }: OptionsDe
     const caseACocher = ligne.querySelector('input') as HTMLInputElement;
     caseACocher.setAttribute('aria-label', TEXTES.caseDeCorrection(nom));
     caseACocher.addEventListener('change', () => cocherLes([id], caseACocher.checked));
+    caseACocher.checked = cochees.has(id);
     cases.set(id, caseACocher);
     return ligne;
   }
@@ -324,10 +336,11 @@ export function monterLesCorrections({ element, hotes, auChangement }: OptionsDe
       cases.clear();
       casesDeCarte.length = 0;
       for (const id of [...cochees]) if (!ids.includes(id)) cochees.delete(id);
-      hotes.manquantes.replaceChildren(...variables.map(carteDeVariables));
-      hotes.crans.replaceChildren(...crans.map(carteDeCrans));
-      hotes.modes.replaceChildren(...modes.map(carteDeModes));
-      hotes.scopes.replaceChildren(...scopes.map(carteDeScopes));
+      const cartes = <Carte extends { readonly cle: string }>(liste: readonly Carte[], creer: (carte: Carte) => HTMLElement): CarteDeSection[] => liste.map((carte) => ({ cle: carte.cle, creer: () => creer(carte) }));
+      listes.manquantes.poser(cartes(variables, carteDeVariables), true);
+      listes.crans.poser(cartes(crans, carteDeCrans), true);
+      listes.modes.poser(cartes(modes, carteDeModes), true);
+      listes.scopes.poser(cartes(scopes, carteDeScopes), true);
       for (const categorie of CATEGORIES) gestes[categorie].hidden = idsParCategorie[categorie].length === 0;
       element.hidden = ids.length === 0 && resultat.hidden;
       rafraichir();

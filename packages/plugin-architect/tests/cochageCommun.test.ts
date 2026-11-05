@@ -17,6 +17,9 @@ import { creerLaSuiteDuPied } from '../src/ui/nomenclature/suiteDuPied';
 import { resumeDuPied, monterLePied, type CompteDesRenommages, type IssueDesRenommages, type PontDesRenommages, type SourceDeStructure } from '../src/ui/tokens/cochage';
 import { monterLePanneauDesTokens } from '../src/ui/tokens/panneau';
 import { monterLesCorrections, type CategorieDeCorrection } from '../src/ui/structure/corrections';
+import { monterStructure } from '../src/ui/structure';
+import type { Coquille } from '../src/ui/nomenclature/coquille';
+import type { DemandeDeStructure } from '../src/messages/structure';
 import { lireLesCorrections, type CorrectionsLues, type Noms } from '../src/ui/structure/lecture';
 import { TEXTES } from '../src/ui/textes';
 
@@ -233,6 +236,7 @@ function monterLePiedDeTest(depart: { compte?: CompteDesRenommages; ids?: string
       banc.journal.push('structure');
       banc.ecritures.push(ids);
     },
+    relire: () => banc.journal.push('relire'),
   };
   Object.assign(banc, { pied: monterLePied({ hote, renommages, structure: source }) });
   return banc;
@@ -335,12 +339,30 @@ test('sans nom coché, Appliquer n’écrit que les corrections de structure, sa
   assert.deepEqual(banc.suites, []);
 });
 
-test('sans correction de structure cochée, Appliquer n’écrit que les renommages et rouvre le pied à leur fin', () => {
+test('sans correction de structure cochée, Appliquer n’écrit que les renommages, relit la structure et rouvre le pied à leur fin', () => {
   const banc = monterLePiedDeTest({ compte: PRET(3) });
   boutonAppliquer(banc).clic();
+  assert.deepEqual(banc.journal, ['renommages'], 'la structure n’est relue qu’après les renommages');
   banc.suites[0]('ecrit');
-  assert.deepEqual(banc.journal, ['renommages']);
+  assert.deepEqual(banc.journal, ['renommages', 'relire'], 'les constats gardés citent les anciens noms : la structure est relue');
+  assert.deepEqual(banc.ecritures, [], 'aucune correction de structure n’est écrite');
   assert.equal(banc.pied.enCours(), false);
+});
+
+for (const issue of ['echec', 'abandon'] as const) {
+  test(`une issue « ${issue} » des renommages ne relit pas la structure`, () => {
+    const banc = monterLePiedDeTest({ compte: PRET(3) });
+    boutonAppliquer(banc).clic();
+    banc.suites[0](issue);
+    assert.deepEqual(banc.journal, ['renommages']);
+  });
+}
+
+test('avec des corrections de structure cochées, Appliquer les écrit et ne demande pas de relecture à part', () => {
+  const banc = monterLePiedDeTest({ compte: PRET(3), ids: ['a'] });
+  boutonAppliquer(banc).clic();
+  banc.suites[0]('ecrit');
+  assert.deepEqual(banc.journal, ['renommages', 'structure'], 'le retour de la structure relit déjà (structure/index.ts)');
 });
 
 test('Appliquer reste inactif tant que les renommages sont occupés ou que le filtre charge ses noms', () => {
@@ -362,6 +384,39 @@ test('un second appui sur Appliquer pendant l’écriture n’envoie rien de plu
   boutonAppliquer(banc).clic();
   boutonAppliquer(banc).clic();
   assert.deepEqual(banc.journal, ['renommages']);
+});
+
+// ---------------------------------------------------------------------------------------------------------------------------
+// Appliquer de renommages seuls, de bout en bout : le domaine structure relit après le bilan
+
+function monterLaStructureAvecUnPont() {
+  const racine = element();
+  const tokens = monterLePanneauDesTokens({ racine, nomenclature: { questions: element(), renommages: element(), remises: element() }, auChangement() {} });
+  const suites: ((issue: IssueDesRenommages) => void)[] = [];
+  const pont: PontDesRenommages = {
+    compte: () => PRET(3), groupes: () => 1, occupe: () => false, toutCocher() {}, toutDecocher() {},
+    appliquer: (suite) => { suites.push(suite); },
+    abonner: () => () => {},
+  };
+  const envoyes: DemandeDeStructure[] = [];
+  monterStructure({ pied: element(), tokens, renommages: () => pont } as unknown as Coquille, { envoyer: (message) => envoyes.push(message), noms: SANS_NOMS, ouvrirLaFiche() {} });
+  return { suites, envoyes, appliquer: comme(tokens.pied) };
+}
+
+test('des renommages écrits sans correction cochée envoient lire-structure : le panneau ne garde pas les anciens noms', () => {
+  const { suites, envoyes, appliquer } = monterLaStructureAvecUnPont();
+  assert.deepEqual(envoyes, []);
+  comme(appliquer.querySelector('.btn-primary')).clic();
+  assert.deepEqual(envoyes, [], 'rien n’est demandé avant la fin des renommages');
+  suites[0]('ecrit');
+  assert.deepEqual(envoyes, [{ type: 'lire-structure', demande: 1 }]);
+});
+
+test('un refus des renommages ne demande pas de relecture de la structure', () => {
+  const { suites, envoyes, appliquer } = monterLaStructureAvecUnPont();
+  comme(appliquer.querySelector('.btn-primary')).clic();
+  suites[0]('echec');
+  assert.deepEqual(envoyes, []);
 });
 
 // ---------------------------------------------------------------------------------------------------------------------------

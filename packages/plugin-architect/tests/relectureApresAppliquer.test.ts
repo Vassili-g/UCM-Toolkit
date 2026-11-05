@@ -166,9 +166,9 @@ function monde() {
   const ecritures: string[][] = [];
   const acces: Acces = {
     ...ACCES_DE_FIGMA,
-    ecrire: (corrections) => {
+    ecrire: (corrections, nomsLus) => {
       ecritures.push(corrections.map(({ id }) => id));
-      return ecrireLaStructure(corrections, { api, stockage, heure: () => 'h', lot: () => `lot-${(lot += 1)}` });
+      return ecrireLaStructure(corrections, { api, stockage, heure: () => 'h', lot: () => `lot-${(lot += 1)}`, nomsLus });
     },
   };
   return {
@@ -301,14 +301,39 @@ test('renommage écrit par Nomenclature : la relecture suit les noms, comme un A
   assert.ok(!apres.constats.some(({ id }) => id === f.cran), 'le jugement de cran de la variable renommée a disparu');
 });
 
-test('renommage puis correction de structure dans le même Appliquer : les deux se relisent, comme un Actualiser', async () => {
+test('renommage puis correction de structure dans le même Appliquer : la correction de la variable renommée saute, la relecture la propose de nouveau', async () => {
   const f = fichierAvecUnAliasFaux();
-  await actualiser(f.m, 1);
+  const avant = await actualiser(f.m, 1);
+  const visees = f.defaut.valuesByMode['C:theme:light'];
+  // Le renommage garde le rôle reconnu (la casse seule change) : la cible de l'alias et les scopes lus tiennent encore, mais le nom lu n'est plus celui de la variable.
   pendantUneEcriture(() => { f.defaut.name = 'Primary/Surface/Default'; });
   await appliquer(f.m, 3, [f.cran, f.scope]);
-  assert.equal(reponse(f.m).ecrites, 2, 'la correction retrouve sa variable par sa clé, nom changé');
+  assert.deepEqual(f.m.ecritures.at(-1), [f.cran, f.scope], 'les deux corrections partent à l’écriture');
+  assert.equal(reponse(f.m).ecrites, 1, 'seule la correction de la variable qui n’a pas été renommée s’écrit');
+  assert.deepEqual(reponse(f.m).sautees, [{ id: f.cran, motif: 'objet-change' }], 'la variable renommée n’est pas écrite');
+  assert.equal(f.defaut.valuesByMode['C:theme:light'], visees, 'l’alias de la variable renommée n’a pas changé');
+  assert.ok(identifiants(avant).includes(f.cran));
   const apres = await relireEtComparer(f.m, 4);
-  assert.ok(!apres.constats.some(({ id }) => id === f.cran || id === f.scope));
+  assert.ok(!apres.constats.some(({ id }) => id === f.scope), 'la correction écrite a disparu');
+});
+
+test('un renommage entre la lecture et l’écriture saute la correction de scope, sans rien écrire', async () => {
+  const f = fichierAvecUnAliasFaux();
+  await actualiser(f.m, 1);
+  pendantUneEcriture(() => { f.fautive.name = 'primary/solid/survol'; });
+  await appliquer(f.m, 3, [f.scope]);
+  assert.equal(reponse(f.m).ecrites, 0);
+  assert.deepEqual(reponse(f.m).sautees, [{ id: f.scope, motif: 'objet-change' }]);
+  assert.deepEqual(f.fautive.scopes, ['TEXT_FILL'], 'les scopes calculés pour l’ancien rôle ne sont pas écrits');
+  await relireEtComparer(f.m, 4);
+});
+
+test('sans renommage, la correction d’une variable qui garde son nom s’écrit', async () => {
+  const f = fichierAvecUnAliasFaux();
+  await actualiser(f.m, 1);
+  await appliquer(f.m, 3, [f.scope, f.cran]);
+  assert.equal(reponse(f.m).ecrites, 2);
+  assert.deepEqual(reponse(f.m).sautees, []);
 });
 
 test('écriture partielle : une correction périmée et une écriture refusée sont sautées, une création s’écrit, la relecture propose le reste', async () => {

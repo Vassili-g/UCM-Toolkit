@@ -89,7 +89,7 @@ Les lecteurs de `src/ui/structure/lecture.ts` gardent le classement des faits. `
 Une correction `alias-de-mode` va dans Crans quand son constat porte le genre `cran`, sinon dans Modes. Une correction `scope` va dans Scopes.
 Le code C63 seul ne détermine aucune catégorie.
 
-Toutes les cases de l'onglet arrivent décochées : un seul pied compte les noms cochés de Noms et les corrections de structure cochées. Appliquer écrit d'abord les renommages, puis les corrections de structure par identifiant de variable, que le sandbox relit avant d'écrire. Un échec des renommages arrête les corrections. Chaque section qui a des cases porte « Tout cocher » et « Tout décocher » ; le pied porte « Tout cocher » global.
+Toutes les cases de l'onglet arrivent décochées : un seul pied compte les noms cochés de Noms et les corrections de structure cochées. Appliquer écrit d'abord les renommages, puis les corrections de structure par identifiant de variable, que le sandbox relit avant d'écrire. Un échec des renommages arrête les corrections. Quand des renommages sont écrits et qu'aucune correction n'est cochée, Appliquer relit la structure après le `bilan` des renommages ; un refus, une erreur ou un abandon ne relit rien. Avant d'écrire une correction de scope ou d'alias de mode, le sandbox vérifie que la variable porte encore le nom lu avec le constat ; sinon il saute la correction en `objet-change`, et la relecture la propose de nouveau si elle tient. Chaque section qui a des cases porte « Tout cocher » et « Tout décocher » ; le pied porte « Tout cocher » global.
 
 ## Lecture
 
@@ -521,7 +521,12 @@ d'autres fichiers échappent à l'Historique. L'onglet Constats range sous
 cibles supprimées et les libraries non activées. La section Noms range les questions,
 puis les renommages, puis les questions remises à plus tard et les autres
 pistes. Au-delà de 20 cartes, elle arrive repliée ; sa bande ou la puce Noms
-la déplie.
+la déplie. Ce repli est distinct de la liste virtuelle : un conteneur de plus de 50 cartes
+(constats ou corrections d'une catégorie, questions ou renommages de Noms ; les intertitres ne
+comptent pas) pose ses cartes dans une liste de 480 px de haut qui défile seule et ne garde dans
+le DOM que les cartes visibles. Une carte sortie de l'écran garde son état (case, dépliage, menu
+d'Ignorer) et le retrouve au retour. Les compteurs, « Tout cocher » et Appliquer comptent les
+cartes hors du DOM. Sous la puce Questions, une liste longue ne garde que les cartes à question.
 
 ## Interface
 

@@ -220,3 +220,16 @@ button.bloc-bouton {
   color: var(--texte-second);
   font-weight: 400;
 }
+
+/*
+ * Une section de plus de 50 cartes les range dans une liste virtuelle (`virtualisation.ts`) : la liste défile seule, à hauteur bornée.
+ * L'enveloppe de chaque carte tient l'espacement, car la liste mesure l'enveloppe : un écart extérieur fausserait la hauteur des cartes
+ * absentes.
+ */
+.liste-de-cartes {
+  max-height: 480px;
+}
+
+.ligne-de-liste {
+  padding-bottom: var(--espace-controle);
+}

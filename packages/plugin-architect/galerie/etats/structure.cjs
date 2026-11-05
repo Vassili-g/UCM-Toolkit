@@ -222,4 +222,84 @@ ETATS.push({
   ],
 });
 
+/*
+ * Les listes virtuelles (D6b) : une section de plus de 50 cartes range ses cartes dans une liste qui défile seule, à hauteur bornée, et
+ * ne garde dans le DOM que les cartes à l'écran. Le bandeau et la puce disent toujours le nombre entier de cartes.
+ */
+const bilanTresLong = { ...bilans.travail, groupes: Array.from({ length: 120 }, (_, rang) => ({ ...renommageDeBase, cle: `terme:t${rang}`, avant: `t${rang}`, apres: `terme-${rang}`, variables: 4 })) };
+/** 60 variables du thème portent une valeur directe : une carte de constat chacune, sous Couches. */
+const constatsTresLongs = Array.from({ length: 60 }, (_, rang) => ({
+  id: `C82:valeur-directe:long-${rang}:light`, code: 'C82', type: 'corriger', famille: 'liaisons', variants: [], layers: [],
+  faits: { genre: 'valeur-directe', variable: `theme/primary/surface/etat-${rang}`, mode: 'light' },
+}));
+const ouvrirNoms = { clic: '.section-element[data-element="noms"] .bande-element', attendre: '.liste-de-cartes' };
+
+ETATS.push(
+  {
+    id: 't-liste-longue-noms', cadre: 'constats', titre: 'Tokens, Noms de 120 renommages en liste virtuelle', quand: 'Le fichier a 120 renommages ; la section Noms arrive repliée, et le designer l’ouvre.',
+    regarder: 'La bande de Noms et la puce disent 123 ; la section ouverte ne montre que les cartes à l’écran, dans une liste à hauteur bornée qui défile seule, avec les intertitres de section en tête ; « Tout cocher » et « Tout décocher » sont sous la bande ; le pied dit « Aucune correction cochée » ; les sections de structure suivent la liste.',
+    existe: true,
+    atteinte: [
+      preferences(), releve(integrite.releveAuxEcarts()),
+      { message: messages.initial(true) }, { message: messages.bilan(1, bilanTresLong), attendre: '.liste' },
+      { message: integrite.reponse(integrite.aFaire, 1), attendre: CARTES_A_FAIRE },
+      { clic: '.puce-x' },
+      ouvrirNoms,
+    ],
+  },
+  {
+    id: 't-liste-longue-noms-cochee', cadre: 'constats', titre: 'Tokens, Noms de 120 renommages, tout coché', quand: 'Le designer appuie sur « Tout cocher » du pied avec la liste de 120 renommages ouverte.',
+    regarder: 'Les cartes à l’écran sont cochées ; le pied compte les noms des 120 cartes, y compris celles qui ne sont pas dans le DOM : « 480 noms cochés » avec les corrections de structure ; Appliquer est actif.',
+    existe: true,
+    atteinte: [
+      preferences(), releve(integrite.releveAuxEcarts()),
+      { message: messages.initial(true) }, { message: messages.bilan(1, bilanTresLong), attendre: '.liste' },
+      { message: integrite.reponse([], 1) },
+      { clic: '.puce-x' },
+      ouvrirNoms,
+      { clic: '#panneau-a-appliquer .corrections-pied .cocher-global' },
+    ],
+  },
+  {
+    id: 't-liste-longue-constats', cadre: 'constats', titre: 'Tokens, Couches de 60 constats en liste virtuelle', quand: 'Le fichier a 60 variables du thème à valeur directe : Couches dépasse 50 cartes.',
+    regarder: 'La bande de Couches et la puce disent 60 ; les cartes sont dans une liste à hauteur bornée, qui défile seule ; chaque carte a son liseré, son icône et son mot ; les sections courtes sont en cartes ordinaires.',
+    existe: true,
+    atteinte: [
+      preferences(), releve(integrite.releveAuxEcarts()),
+      { message: messages.initial(true) }, { message: messages.bilan(1, bilans.rienAFaire) },
+      { message: integrite.reponse([...integrite.aFaire, ...constatsTresLongs], 1), attendre: '.liste-de-cartes' },
+      { clic: '.puce-x' },
+    ],
+  },
+);
+
+/*
+ * Le mode Tokens à deux onglets, sans carte (C6.1). « Tout tenu » : le bilan et la structure sont lus et rien n'est à faire ; chaque
+ * catégorie est tenue, sans sommaire ni pied. « Partielle » : la structure n'est pas encore lue, donc aucune catégorie ne se dit tenue
+ * et seules les cartes de Noms se montrent (Q-F89-16).
+ */
+ETATS.push(
+  {
+    id: 't-constats-tout-tenu', cadre: 'constats', titre: 'Tokens, Constats, toutes les catégories tenues', quand: 'Le fichier n’a ni renommage, ni question, ni constat : le bilan et la structure sont lus.',
+    regarder: 'Les dix catégories sont tenues, de Noms à Scopes : une coche grise et le nom, sans nombre ni chevron ; ni sommaire, ni pied, ni « Tout cocher » ; aucune section ouverte.',
+    existe: true,
+    atteinte: [
+      preferences(), releve(integrite.releveAuxEcarts()),
+      { message: messages.initial(true) }, { message: messages.bilan(1, bilans.rienAFaire) },
+      { message: integrite.reponse([], 1), attendre: '.bande-element.tenue' },
+      { clic: '.puce-x' },
+    ],
+  },
+  {
+    id: 't-constats-partielle', cadre: 'constats', titre: 'Tokens, Constats, structure pas encore lue', quand: 'Le bilan de Nomenclature est arrivé, la lecture de la structure ne l’est pas encore.',
+    regarder: 'Seule la section Noms se montre, avec ses cartes ; aucune catégorie de structure n’est tenue : une catégorie sans carte n’a pas encore été lue ; le sommaire compte les seules cartes de Noms.',
+    existe: true,
+    atteinte: [
+      preferences(), releve(integrite.releveAuxEcarts()),
+      { message: messages.initial(true) }, { message: messages.bilan(1, bilans.travail), attendre: '.liste' },
+      { clic: '.puce-x' },
+    ],
+  },
+);
+
 module.exports = { ETATS };

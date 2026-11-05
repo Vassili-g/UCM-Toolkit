@@ -69,6 +69,14 @@ export class NoeudDeTest {
     nouveaux.forEach((enfant) => { enfant.parent = parent; });
     this.parent = null;
   }
+  /** Insère les enfants juste avant ce nœud, dans son parent. */
+  before(...enfants: Enfant[]): void {
+    const parent = this.parent;
+    if (!parent) return;
+    const nouveaux = this.recevoir(enfants);
+    parent.childNodes.splice(parent.childNodes.indexOf(this), 0, ...nouveaux);
+    nouveaux.forEach((enfant) => { enfant.parent = parent; });
+  }
   remove(): void {
     this.retirer();
   }

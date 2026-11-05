@@ -6,6 +6,10 @@
  * mode Composant prépare s'y rangent en tête, sous leur intertitre. Les cartes
  * viennent sous l'intertitre « Questions » ; « Plus tard » et « Autres pistes »
  * vont dans `panneaux.remises`, que la section Noms place après les renommages.
+ *
+ * Au-delà de `SEUIL_DE_LISTE` cartes, la liste est virtuelle (`virtualisation.ts`) : une carte n'est créée qu'à son arrivée à l'écran,
+ * d'après les réponses, les saisies et les attentes que ce module garde par clé de question. Un bilan, une réponse ou un refus repose
+ * la liste et recrée les cartes visibles.
  */
 import { createButton } from 'ucm-plugin-socle/src/ui/Button';
 import { creerChevron } from 'ucm-plugin-socle/src/ui/Chevron';
@@ -28,6 +32,7 @@ import {
 import { cleDeRegleRecue, ligneDeRegleRecue, sansDoublon, type RegleRecue } from './reglesRecues';
 import { TEXTES } from '../textes/nomenclature';
 import { TEXTES_TOKENS } from '../textes/tokens';
+import { creerHoteDeCartes, type CarteDeSection } from '../virtualisation';
 
 /** Une entrée de la liste : son élément, et ce que l'écran peut en faire. */
 interface Entree {
@@ -258,6 +263,7 @@ export function monterATrancher(coquille: Coquille): ATrancher {
   message.hidden = true;
   const liste = document.createElement('div');
   liste.className = 'liste';
+  const hote = creerHoteDeCartes(liste);
   const vueVide = document.createElement('div');
   const sectionPlusTard = document.createElement('div');
   const sectionPistes = document.createElement('div');
@@ -624,21 +630,32 @@ export function monterATrancher(coquille: Coquille): ATrancher {
     return vue;
   }
 
+  /** L'entrée d'une clé, créée à la première demande d'après l'état gardé ici ; `null` quand ni réponse ni question ne la porte. */
+  function entreeDe(cle: string): Entree | null {
+    const connue = entrees.get(cle);
+    if (connue) return connue;
+    const entree = construire(cle);
+    if (!entree) return null;
+    if (enCours.has(cle)) entree.figer();
+    entrees.set(cle, entree);
+    return entree;
+  }
+
   function rendre(): void {
     ordre = composerLaListe(ordre, [...questions.keys()], new Set(lignes.keys()));
     entrees = new Map();
-    for (const cle of ordre) {
-      const entree = construire(cle);
-      if (!entree) continue;
-      if (enCours.has(cle)) entree.figer();
-      entrees.set(cle, entree);
-    }
+    const valides = ordre.filter((cle) => lignes.has(cle) || questions.has(cle));
+    const intertitre = (cle: string, texte: string): CarteDeSection => ({ cle: `intertitre:${cle}`, intertitre: true, creer: () => fabriquerIntertitre(texte) });
     // Les règles reçues portent leur intertitre, puis « Noms du fichier » ; sans règle reçue, les questions du fichier prennent « Questions ».
-    const delaRegle = recues.length === 0
-      ? (entrees.size === 0 ? [] : [fabriquerIntertitre(TEXTES_TOKENS.questions)])
-      : [fabriquerIntertitre(TEXTES.reglesRecues.intertitre), ...recues.map(creerCarteRecue), ...(entrees.size === 0 ? [] : [fabriquerIntertitre(TEXTES.reglesRecues.intertitreDuFichier)])];
-    liste.replaceChildren(...delaRegle, ...[...entrees.values()].map((entree) => entree.element));
-    liste.hidden = entrees.size === 0 && recues.length === 0;
+    const delaRegle: CarteDeSection[] = recues.length === 0
+      ? (valides.length === 0 ? [] : [intertitre('questions', TEXTES_TOKENS.questions)])
+      : [
+          intertitre('recues', TEXTES.reglesRecues.intertitre),
+          ...recues.map((regle): CarteDeSection => ({ cle: `recue:${cleDeRegleRecue(regle)}`, creer: () => creerCarteRecue(regle) })),
+          ...(valides.length === 0 ? [] : [intertitre('fichier', TEXTES.reglesRecues.intertitreDuFichier)]),
+        ];
+    hote.poser([...delaRegle, ...valides.map((cle): CarteDeSection => ({ cle, creer: () => entreeDe(cle)!.element }))], true);
+    liste.hidden = valides.length === 0 && recues.length === 0;
     const ligneVide = ligneDeLaVueVide(questions.size, plusTard.length);
     vueVide.hidden = ligneVide === null || recues.length > 0;
     vueVide.replaceChildren(...(ligneVide === null ? [] : [creerVueVide(ligneVide)]));
@@ -646,7 +663,10 @@ export function monterATrancher(coquille: Coquille): ATrancher {
     sectionPlusTard.replaceChildren(...(plusTard.length === 0 ? [] : [creerSectionPlusTard()]));
     sectionPistes.hidden = autresPistes === 0;
     sectionPistes.replaceChildren(...(autresPistes === 0 ? [] : [creerSectionDesPistes()]));
-    if (aFocaliser) entrees.get(aFocaliser.cle)?.focaliser(aFocaliser.sur);
+    if (aFocaliser) {
+      hote.montrer(aFocaliser.cle);
+      entreeDe(aFocaliser.cle)?.focaliser(aFocaliser.sur);
+    }
     aFocaliser = null;
   }
 

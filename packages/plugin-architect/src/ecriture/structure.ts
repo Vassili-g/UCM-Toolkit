@@ -4,9 +4,12 @@
  * aussi, par le journal de structure, ce que ces écritures et les créations de variables ont fait.
  *
  * Le fichier doit toujours déclarer UCM, relu au début du lot, sinon rien n'est écrit (`non-ucm`). Chaque correction relit ensuite ce
- * que l'analyse avait lu : la variable existe (`objet-change`), ses scopes ou l'alias du mode sont ceux de `aRelire.avant`
- * (`fait-faux`), la variable visée se trouve parmi les variables locales (`cible-introuvable`). Une écriture de Figma qui lève saute
- * la correction (`erreur`) ; les autres s'écrivent.
+ * que l'analyse avait lu : la variable existe (`objet-change`), elle porte encore le nom que l'analyse a lu (`objet-change` ; l'appelant
+ * donne ces noms dans `nomsLus`, et sans lui le nom n'est pas vérifié), ses scopes ou l'alias du mode sont ceux de `aRelire.avant`
+ * (`fait-faux`), la variable visée se trouve parmi les variables locales (`cible-introuvable`). Un renommage entre la lecture et
+ * l'écriture saute donc la correction : les scopes et la cible de l'alias viennent du rôle de l'ancien nom, et la relecture qui suit
+ * propose la correction de nouveau si elle tient encore. Une écriture de Figma qui lève saute la correction (`erreur`) ; les autres
+ * s'écrivent.
  *
  * Une création relit la collection (locale, de rôle `theme`, qui porte les modes visés : `objet-change` sinon) puis le nom. Une
  * variable de ce nom qui est une couleur et vise déjà les mêmes cibles dans chaque mode saute la correction en `deja-la` ; une
@@ -99,6 +102,11 @@ export interface OptionsDeStructure {
   readonly heure?: () => string;
   /** Identifiant de lot, sans `:` ; un identifiant neuf à chaque appel par défaut. */
   readonly lot?: () => string;
+  /**
+   * Le nom que chaque correction de scope ou d'alias de mode a lu sur sa variable, par identifiant de correction. Donné, il est
+   * exigé : une correction absente de la table, ou dont la variable porte un autre nom, saute en `objet-change`.
+   */
+  readonly nomsLus?: ReadonlyMap<string, string>;
 }
 
 const apiDeFigma = (): ApiDeStructure => figma as unknown as ApiDeStructure;
@@ -176,10 +184,12 @@ function planifierUneCreation(
 
 async function planifier(
   api: ApiDeStructure, collections: readonly CollectionEcrivable[], locales: readonly VariableEcrivable[], correction: Correction,
+  nomsLus: ReadonlyMap<string, string> | undefined,
 ): Promise<Plan | MotifDeStructureSaute> {
   if (correction.sorte === 'variable') return planifierUneCreation(api, collections, locales, correction);
   const variable = trouverLaVariable(locales, correction.cible.variable);
   if (!variable || variable.remote) return 'objet-change';
+  if (nomsLus && nomsLus.get(correction.id) !== variable.name) return 'objet-change';
   if (correction.sorte === 'scope') {
     const lus = [...variable.scopes];
     if (!memeEnsemble(lus, listeDeScopes(correction.aRelire.avant ?? ''))) return 'fait-faux';
@@ -227,7 +237,7 @@ async function ecrireLesCorrections(corrections: readonly Correction[], options:
     const collections = aEcrire.some(({ sorte }) => sorte === 'variable') ? await api.variables.getLocalVariableCollectionsAsync() : [];
     for (const correction of aEcrire) {
       let plan: Plan | MotifDeStructureSaute;
-      try { plan = await planifier(api, collections, locales, correction); } catch { plan = 'erreur'; }
+      try { plan = await planifier(api, collections, locales, correction, options.nomsLus); } catch { plan = 'erreur'; }
       if (typeof plan === 'string') sautees.push({ id: correction.id, motif: plan });
       else plans.push(plan);
     }

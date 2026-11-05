@@ -6,6 +6,11 @@
  * Ce que le designer a coché vit dans `selection.ts` ; ce module le reflète dans
  * les cases. Il n'a pas de pied : le pied commun de l'onglet (`tokens/cochage.ts`)
  * lit son compte par le pont `PontDesRenommages` et lui demande d'écrire.
+ *
+ * Au-delà de `SEUIL_DE_LISTE` cartes, les cartes vont dans une liste virtuelle (`virtualisation.ts`) et ne sont créées qu'à leur
+ * première apparition à l'écran. Une carte créée est gardée avec ses noms chargés, sa case et son dépliage, jusqu'au prochain bilan ;
+ * les boucles de ce module ne parcourent que les cartes créées, et une carte nouvelle prend l'état du modèle, du filtre et de la
+ * carte ciblée à sa création. Le seuil de repli de la section Noms (`tokens/panneau.ts`) est une autre règle.
  */
 import { CONVENTIONS, REGISTRE_CASSES, REGISTRE_SEPARATEURS, libelleDuTerme, termeRetenu, type Convention } from '@ucm-kit/core/referentiel';
 import { createButton } from 'ucm-plugin-socle/src/ui/Button';
@@ -37,6 +42,7 @@ import { creerLaReserve, type Reserve } from './renommages';
 import { TEXTES } from '../textes/nomenclature';
 import { creerLaSuiteDuPied } from './suiteDuPied';
 import { creerLesGestesDeSection, type CompteDesRenommages, type IssueDesRenommages, type PontDesRenommages } from '../tokens/cochage';
+import { creerHoteDeCartes, type CarteDeSection } from '../virtualisation';
 
 type Pastille = 'nouveau' | 'bloque' | 'protege' | 'non-verifie';
 
@@ -356,7 +362,13 @@ export function monterAAppliquer(coquille: Coquille, { appartient }: OptionsDeCo
   const reserve = creerLaReserve(frontiere);
   let bilan: Bilan | null = null;
   let modele: ModeleDeSelection = creerSelection([]);
+  /** Les cartes créées : toutes dans une section courte, celles venues à l'écran dans une liste longue. */
   let cartes: CarteDeGroupe[] = [];
+  const cartesParCle = new Map<string, CarteDeGroupe>();
+  /** La carte des noms non renommés, créée avec le bilan. */
+  let nonRenommes: HTMLElement | null = null;
+  /** Les clés des éléments posés dans la liste : sans changement, la liste n'est pas reposée et le focus reste. */
+  let clesPosees: string | null = null;
   let annonce: Annonce | null = null;
   /** Ce que le designer a demandé en dernier et dont la réponse n'est pas revenue. */
   let attente: Attente | null = null;
@@ -364,7 +376,6 @@ export function monterAAppliquer(coquille: Coquille, { appartient }: OptionsDeCo
   let lectureDeLaSelection: { readonly demande: number; readonly interroges: IdentifiantsInterroges } | null = null;
   let confirmation: { fermer(): void } | null = null;
   const deplies = new Set<string>();
-  let intertitres: { readonly element: HTMLElement; readonly cartes: readonly CarteDeGroupe[] }[] = [];
   let nonRenommesDeplie = false;
   let boutonAnnuler: HTMLButtonElement | null = null;
   /** La demande de renommage que le pied commun a lancée et dont il attend l'issue. */
@@ -378,6 +389,7 @@ export function monterAAppliquer(coquille: Coquille, { appartient }: OptionsDeCo
   const liste = document.createElement('div');
   liste.className = 'liste';
   coquille.panneaux.aAppliquer.contenu.append(ligneDuResultat, liste);
+  const hote = creerHoteDeCartes(liste);
   const gestes = creerLesGestesDeSection(() => cocherToutes(true), () => cocherToutes(false));
   gestes.hidden = true;
   coquille.tokens.poserLesGestes('noms', gestes);
@@ -418,17 +430,68 @@ export function monterAAppliquer(coquille: Coquille, { appartient }: OptionsDeCo
     synchroniser();
   }
 
-  /** Montre dans chaque carte les noms du filtre, cache les cartes sans nom retenu, et pose le compte de l'onglet. */
+  /** Les noms du filtre pour une carte : `null` sans filtre ou tant que ses pages ne sont pas toutes lues. */
+  function nomsRetenusPar(cle: string): readonly LigneVue[] | null {
+    const filtre = leFiltre();
+    return filtre && reserve.complete(cle) ? reserve.lignesDuGroupe(cle).filter(filtre.retient) : null;
+  }
+
+  /** Montre dans la carte les noms du filtre et la cache quand aucun de ses noms n'est retenu. */
+  function ajusterLaCarte(carte: CarteDeGroupe): void {
+    const lignes = nomsRetenusPar(carte.groupe.cle);
+    carte.filtrer(lignes);
+    carte.element.hidden = lignes !== null && lignes.length === 0;
+  }
+
+  /** Marque la carte que « Voir dans Corrections » vient d'ouvrir : bordure et fond bleus. */
+  function marquerLaCarteCiblee(carte: CarteDeGroupe): void {
+    const { onglet, carteDemandee } = coquille.etat();
+    carte.element.classList.toggle('carte-ciblee', onglet === 'a-appliquer' && carte.groupe.cle === carteDemandee);
+  }
+
+  /** La carte d'un groupe, créée à la première demande avec l'état du modèle, du filtre et de la carte ciblée. */
+  function obtenirLaCarte(groupe: GroupeVue): CarteDeGroupe {
+    let carte = cartesParCle.get(groupe.cle);
+    if (!carte) {
+      carte = creerCarte(groupe, bilan?.generation ?? 0);
+      cartesParCle.set(groupe.cle, carte);
+      cartes.push(carte);
+      ajusterLaCarte(carte);
+      carte.rafraichir();
+      marquerLaCarteCiblee(carte);
+    }
+    return carte;
+  }
+
+  /** Les intertitres, les cartes que le filtre garde et la carte des noms non renommés, dans l'ordre de la liste. */
+  function lesElements(): CarteDeSection[] {
+    const elements: CarteDeSection[] = [];
+    const groupes = bilan?.groupes ?? [];
+    for (const { sorte, groupes: dedans } of sectionsDansLOrdre(groupes.map((groupe) => ({ groupe, regle: groupe.regle })))) {
+      const gardes = dedans.filter(({ groupe }) => nomsRetenusPar(groupe.cle)?.length !== 0);
+      if (gardes.length === 0) continue;
+      elements.push({ cle: `intertitre:${sorte}`, intertitre: true, creer: () => fabriquerIntertitre(TITRES_DES_SECTIONS[sorte]) });
+      for (const { groupe } of gardes) elements.push({ cle: groupe.cle, creer: () => obtenirLaCarte(groupe).element });
+    }
+    const noms = nonRenommes;
+    if (noms) elements.push({ cle: 'non-renommes', intertitre: true, creer: () => noms });
+    return elements;
+  }
+
+  function poserLesCartes(): void {
+    const elements = lesElements();
+    const cles = elements.map(({ cle }) => cle).join('\u0000');
+    if (cles === clesPosees) return;
+    clesPosees = cles;
+    hote.poser(elements, true);
+  }
+
+  /** Montre dans chaque carte les noms du filtre, retire les cartes sans nom retenu, et pose le compte de l'onglet. */
   function appliquerLeFiltre(): void {
     const filtre = leFiltre();
     if (filtre) reserve.charger();
-    for (const carte of cartes) {
-      const cle = carte.groupe.cle;
-      const lignes = filtre && reserve.complete(cle) ? reserve.lignesDuGroupe(cle).filter(filtre.retient) : null;
-      carte.filtrer(lignes);
-      carte.element.hidden = lignes !== null && lignes.length === 0;
-    }
-    for (const { element, cartes: dedans } of intertitres) element.hidden = dedans.every((carte) => carte.element.hidden);
+    for (const carte of cartes) ajusterLaCarte(carte);
+    poserLesCartes();
     const sousFiltre = nomsDuFiltre();
     coquille.poserLeCompteDesCorrections(sousFiltre ? sousFiltre.variables + sousFiltre.collections : null);
     synchroniser();
@@ -685,20 +748,13 @@ export function monterAAppliquer(coquille: Coquille, { appartient }: OptionsDeCo
     collection: TEXTES.intertitreCollections,
   };
 
-  function reconstruire(): void {
+  /** Oublie les cartes du bilan précédent. La liste se pose au rappel de la réserve, que `reserve.reinitialiser` appelle. */
+  function oublierLesCartes(): void {
     const groupes = bilan?.groupes ?? [];
-    const generation = bilan?.generation ?? 0;
-    cartes = groupes.map((groupe) => creerCarte(groupe, generation));
-    const enfants: HTMLElement[] = [];
-    intertitres = [];
-    for (const { sorte, groupes: dedans } of sectionsDansLOrdre(cartes.map((carte) => ({ carte, regle: carte.groupe.regle })))) {
-      const intertitre = fabriquerIntertitre(TITRES_DES_SECTIONS[sorte]);
-      intertitres.push({ element: intertitre, cartes: dedans.map(({ carte }) => carte) });
-      enfants.push(intertitre, ...dedans.map(({ carte }) => carte.element));
-    }
-    const nonRenommes = bilan ? creerNonRenommes(bilan.bloques, bilan.protections) : null;
-    if (nonRenommes) enfants.push(nonRenommes);
-    liste.replaceChildren(...enfants);
+    cartes = [];
+    cartesParCle.clear();
+    clesPosees = null;
+    nonRenommes = bilan ? creerNonRenommes(bilan.bloques, bilan.protections) : null;
     // Un groupe disparu ne garde pas son état déplié.
     for (const cle of [...deplies]) if (!groupes.some((groupe) => groupe.cle === cle)) deplies.delete(cle);
   }
@@ -828,7 +884,7 @@ export function monterAAppliquer(coquille: Coquille, { appartient }: OptionsDeCo
     modele = reconcilier(modele, nouveau.groupes);
     attente = null;
     lectureDeLaSelection = null;
-    reconstruire();
+    oublierLesCartes();
     reserve.reinitialiser(nouveau);
     appliquerLeFiltre();
     rendreLaLigneDuResultat();
@@ -911,7 +967,12 @@ export function monterAAppliquer(coquille: Coquille, { appartient }: OptionsDeCo
     }
   });
 
-  coquille.surCarteDemandee((cle) => cartes.find((carte) => carte.groupe.cle === cle)?.deplier());
+  coquille.surCarteDemandee((cle) => {
+    const groupe = bilan?.groupes.find((candidat) => candidat.cle === cle);
+    if (!groupe) return;
+    hote.montrer(cle);
+    obtenirLaCarte(groupe).deplier();
+  });
   coquille.lierLesRenommages({
     compte: compter,
     groupes: () => modele.ordre.length,
@@ -929,8 +990,7 @@ export function monterAAppliquer(coquille: Coquille, { appartient }: OptionsDeCo
 
   /** La carte qu'un clic dans la table ou « Voir dans Corrections » vient d'ouvrir prend la bordure et le fond bleus. */
   function cibler(): void {
-    const { onglet, carteDemandee } = coquille.etat();
-    for (const carte of cartes) carte.element.classList.toggle('carte-ciblee', onglet === 'a-appliquer' && carte.groupe.cle === carteDemandee);
+    for (const carte of cartes) marquerLaCarteCiblee(carte);
   }
 
   let filtreMontre = coquille.filtre();

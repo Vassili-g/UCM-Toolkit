@@ -7,10 +7,14 @@
  * Ignorer (Q6) : la carte d'un rôle absent d'une palette offre un menu à deux choix, « Pour cette palette » et « Dans tout le fichier ».
  * Les constats ignorés pour leur palette et les rôles ignorés partout se rangent sous l'intertitre Ignorés, en cartes muettes, chacune
  * avec « Ne plus ignorer ».
+ *
+ * Un conteneur de plus de `SEUIL_DE_LISTE` cartes les range dans une liste virtuelle (`virtualisation.ts`) : seules les cartes à l'écran
+ * existent dans le DOM. Une carte créée est gardée avec son menu d'Ignorer jusqu'à la lecture suivante.
  */
 import { creerGravite, marquerDuTon } from 'ucm-plugin-socle/src/ui/Alerte';
 import { createButton } from 'ucm-plugin-socle/src/ui/Button';
 import { TEXTES } from '../textes';
+import { creerHoteDeCartes, type CarteDeSection } from '../virtualisation';
 import { creerCarte, creerIntertitre, poserLesMorceaux } from './carte';
 import { GROUPES, type ConstatAFaire, type GroupeDeConstat, type Morceau } from './lecture';
 
@@ -137,9 +141,13 @@ export function monterAFaire(
   hoteDesIgnores: HTMLElement,
   ouvrirLaFiche: (variable: { nom: string; cle: string | null }) => void,
   gestes: GestesDIgnorer,
+  /** Vrai quand la puce Questions du sommaire isole les cartes qui posent une question. */
+  questionsSeules: () => boolean = () => false,
 ): AFaire {
   /** Les constats dépliés par le designer : un nouveau message ne les replie pas. */
   const deplies = new Set<string>();
+  const lignes = Object.fromEntries(GROUPES.map((groupe) => [groupe, creerHoteDeCartes(hotes[groupe], questionsSeules)])) as Record<GroupeDeConstat, ReturnType<typeof creerHoteDeCartes>>;
+  const ligneDesIgnores = creerHoteDeCartes(hoteDesIgnores);
 
   function creerLaCarte(constat: ConstatAFaire, question: boolean): HTMLElement {
     const entete = document.createElement('span');
@@ -220,13 +228,21 @@ export function monterAFaire(
     poser(constats, ignores, questions = new Set()) {
       for (const groupe of GROUPES) {
         const duGroupe = (constats ?? []).filter((constat) => constat.groupe === groupe);
-        hotes[groupe].replaceChildren(...duGroupe.map((constat) => creerLaCarte(constat, questions.has(constat.id))));
+        lignes[groupe].poser(duGroupe.map((constat): CarteDeSection => ({
+          cle: constat.id,
+          question: questions.has(constat.id),
+          creer: () => creerLaCarte(constat, questions.has(constat.id)),
+        })), true);
       }
       const ecartes = ignores !== undefined && (ignores.roles.length > 0 || ignores.constats.length > 0);
       hoteDesIgnores.hidden = !ecartes;
-      hoteDesIgnores.replaceChildren(...(ignores && ecartes
-        ? [creerIntertitre(TEXTES.aFaireDuComposant.ignores), ...ignores.roles.map(creerLaCarteDuRole), ...ignores.constats.map(creerLaCarteIgnoree)]
-        : []));
+      ligneDesIgnores.poser(ignores && ecartes
+        ? [
+            { cle: 'intertitre', intertitre: true, creer: () => creerIntertitre(TEXTES.aFaireDuComposant.ignores) },
+            ...ignores.roles.map((role): CarteDeSection => ({ cle: `role:${role}`, creer: () => creerLaCarteDuRole(role) })),
+            ...ignores.constats.map((constat): CarteDeSection => ({ cle: `constat:${constat.id}`, creer: () => creerLaCarteIgnoree(constat) })),
+          ]
+        : [], true);
     },
   };
 }

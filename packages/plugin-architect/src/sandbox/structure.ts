@@ -77,7 +77,8 @@ export interface Acces {
   catalogue(contexte: Contexte, appels?: AppelsDePhase, depuisLeReleve?: boolean): Promise<CatalogueDeReference | null>;
   /** L'écriture choisie dans Nomenclature, `null` tant qu'elle n'y est pas rangée, et les clés d'Ignorer du fichier. */
   reglages(contexte: Contexte): Promise<{ readonly ecriture: EcritureChoisie | null; readonly cles: readonly string[] }>;
-  ecrire(corrections: readonly Correction[]): Promise<ResultatDEcritureDeStructure>;
+  /** `nomsLus` : le nom que l'analyse a lu sur la variable de chaque correction, par identifiant ; l'écriture saute celle dont la variable a été renommée. */
+  ecrire(corrections: readonly Correction[], nomsLus?: ReadonlyMap<string, string>): Promise<ResultatDEcritureDeStructure>;
   rangement(contexte: Contexte): RangementDeStructure;
 }
 
@@ -114,7 +115,7 @@ export const ACCES_DE_FIGMA: Acces = {
     const brut = texte ? lireEntree(texte) : undefined;
     return { ecriture: (brut && lireEcriture(brut)) || null, cles: lireLesIgnores(figma) };
   },
-  ecrire: (corrections) => ecrireLaStructure(corrections),
+  ecrire: (corrections, nomsLus) => ecrireLaStructure(corrections, { nomsLus }),
   rangement: ({ figma }) => rangementDeFigma(figma as unknown as PortDIgnores),
 };
 
@@ -257,6 +258,16 @@ export function traiterAvec(acces: Acces): Traiter<DemandeDeStructure> {
   };
 }
 
+/** Le nom que la dernière lecture a lu sur la variable de chaque correction : le fait `variable` du constat qui la porte. */
+function nomsLues(corrections: readonly Correction[]): ReadonlyMap<string, string> {
+  const noms = new Map<string, string>();
+  for (const { id } of corrections) {
+    const nom = envoyes.get(id)?.faits.variable;
+    if (typeof nom === 'string') noms.set(id, nom);
+  }
+  return noms;
+}
+
 async function appliquer(demande: Extract<DemandeDeStructure, { type: 'appliquer-structure' }>, acces: Acces, contexte: Contexte): Promise<void> {
   fermerLaReprise();
   const ids = [...new Set(demande.ids)];
@@ -281,7 +292,7 @@ async function appliquer(demande: Extract<DemandeDeStructure, { type: 'appliquer
       // Une écriture, même refusée ou levée, a pu changer des variables : la lecture gardée ne sert plus, quelle que soit l'écriture.
       gardee = null;
       try {
-        const lot = await acces.ecrire(aEcrire);
+        const lot = await acces.ecrire(aEcrire, nomsLues(aEcrire));
         ecrites = lot.ecrites.length;
         ecrit = ecrites > 0;
         sautees.push(...lot.sautees);

@@ -13,6 +13,7 @@ import { creerSigne } from 'ucm-plugin-socle/src/ui/Signe';
 import type { Bilan } from '../../messages/nomenclature';
 import { creerBande, creerBandeTenue, creerGroupeDePuces, creerPuce } from '../panneau/rendu';
 import { TEXTES_TOKENS } from '../textes/tokens';
+import { rafraichirLesListesDe } from '../virtualisation';
 import { lireLesCategories, type CategorieDeTokens, type DonneesDesCategories, type IdDeCategorie } from './categories';
 
 export const QUESTIONS = 'questions';
@@ -273,6 +274,8 @@ export function monterLePanneauDesTokens({ racine, nomenclature, auChangement }:
       ...tenues.map(creerLaSectionTenue),
       ...(tout ? [ignores] : []),
     );
+    // Les sections viennent d'être rattachées : leurs listes longues retrouvent leur position et se redessinent.
+    rafraichirLesListesDe(liste);
   }
 
   return {

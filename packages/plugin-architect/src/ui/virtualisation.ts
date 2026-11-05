@@ -20,6 +20,8 @@
  * retient son `data-focus` et le rend à la carte quand elle revient. Une carte
  * qui reste dans la portion n'est jamais recréée, donc garde son focus tel quel.
  * Le DOM reste borné par la portion visible, sans dépendre du nombre de cartes.
+ *
+ * `creerHoteDeCartes` (lot D6b) branche les sections du mode Tokens sur cette liste : voir sa description plus bas.
  */
 
 export interface ListeVirtuelle {
@@ -245,5 +247,122 @@ export function creerListeDeCartes<Etat>(hauteurEstimee: number, role: string, s
     },
     rafraichir: () => dessiner(true),
     rendues: () => rendues.length,
+  };
+}
+
+/** Au-delà de ce nombre de cartes, une section range ses cartes dans une liste virtuelle. */
+export const SEUIL_DE_LISTE = 50;
+
+/** La hauteur que la liste prête à une carte tant qu'elle ne l'a pas mesurée. */
+const HAUTEUR_ESTIMEE_D_UNE_CARTE = 72;
+
+/** Une carte, ou un intertitre, d'une section : sa clé, et de quoi la créer quand elle arrive à l'écran. */
+export interface CarteDeSection {
+  /** Identifie la carte d'une pose à l'autre. */
+  readonly cle: string;
+  /** Vrai pour une carte qui pose une question : seule elle reste dans une liste virtuelle sous la puce Questions. */
+  readonly question?: boolean;
+  /** Vrai pour un intertitre, ou un élément de queue qui n'est pas une carte : le seuil ne le compte pas. */
+  readonly intertitre?: boolean;
+  /** Appelée à la première apparition de la carte dans une liste virtuelle, à chaque pose dans une section courte. */
+  creer(): HTMLElement;
+}
+
+export interface HoteDeCartes {
+  /** Remplace les cartes. `garder` conserve la position de défilement d'une liste virtuelle. */
+  poser(cartes: readonly CarteDeSection[], garder?: boolean): void;
+  /** Fait défiler la liste virtuelle jusqu'à la carte et la rend ; sans effet dans une section courte. */
+  montrer(cle: string): void;
+  /** Vrai quand la section range ses cartes dans une liste virtuelle. */
+  virtuelle(): boolean;
+  /** Les cartes présentes dans le DOM de l'hôte. */
+  rendues(): number;
+}
+
+/** Ce que `rafraichirLesListesDe` demande à chaque liste : retrouver sa position et se redessiner après un déplacement dans le DOM. */
+const rafraichissements = new WeakMap<HTMLElement, () => void>();
+
+/**
+ * À appeler après avoir rattaché des sections : un élément détaché perd sa position de défilement et ne mesure plus rien. Chaque liste
+ * sous `racine` retrouve sa position, relit le filtre des questions et se redessine.
+ */
+export function rafraichirLesListesDe(racine: HTMLElement): void {
+  for (const liste of Array.from(racine.querySelectorAll<HTMLElement>('.liste-de-cartes'))) rafraichissements.get(liste)?.();
+}
+
+/**
+ * Pose les cartes d'une section dans `hote`. Une section de `SEUIL_DE_LISTE` cartes ou moins les pose telles quelles. Au-delà, l'hôte
+ * ne contient qu'une liste de cartes à hauteur bornée, et chaque carte est créée à sa première apparition puis gardée, hors du DOM
+ * quand elle sort de l'écran, jusqu'à la pose suivante : elle revient avec son état. `questionsSeules` dit si la puce Questions du
+ * sommaire isole les cartes qui posent une question ; la liste ne garde alors que celles-là, car la feuille de style ne peut pas
+ * cacher des cartes que la liste compte dans sa hauteur.
+ */
+export function creerHoteDeCartes(hote: HTMLElement, questionsSeules: () => boolean = () => false): HoteDeCartes {
+  let cartes: readonly CarteDeSection[] = [];
+  let affichees: readonly CarteDeSection[] = [];
+  let creees = new Map<string, HTMLElement>();
+  let liste: ListeDeCartes<null> | null = null;
+  let position = 0;
+  let sousLeFiltre = false;
+
+  /** La carte dans une enveloppe qui tient l'espacement : la liste mesure la carte, espacement compris. */
+  function enveloppe(carte: CarteDeSection): HTMLElement {
+    let ligne = creees.get(carte.cle);
+    if (!ligne) {
+      ligne = document.createElement('div');
+      ligne.className = 'ligne-de-liste';
+      ligne.append(carte.creer());
+      creees.set(carte.cle, ligne);
+    }
+    return ligne;
+  }
+
+  function creerLaListe(): ListeDeCartes<null> {
+    const nouvelle = creerListeDeCartes<null>(HAUTEUR_ESTIMEE_D_UNE_CARTE, 'group', () => null);
+    nouvelle.element.classList.add('liste-de-cartes');
+    nouvelle.element.addEventListener('scroll', () => {
+      position = nouvelle.element.scrollTop;
+    });
+    rafraichissements.set(nouvelle.element, rafraichir);
+    return nouvelle;
+  }
+
+  function afficher(garder: boolean): void {
+    sousLeFiltre = questionsSeules();
+    if (cartes.filter(({ intertitre }) => intertitre !== true).length <= SEUIL_DE_LISTE) {
+      liste = null;
+      hote.replaceChildren(...cartes.map((carte) => carte.creer()));
+      return;
+    }
+    liste ??= creerLaListe();
+    if (!hote.contains(liste.element)) hote.replaceChildren(liste.element);
+    const gardees = garder && !sousLeFiltre;
+    affichees = sousLeFiltre ? cartes.filter(({ question }) => question === true) : cartes;
+    if (!gardees) position = 0;
+    liste.poser(affichees.map(({ cle }) => cle), (rang) => enveloppe(affichees[rang]), gardees);
+  }
+
+  function rafraichir(): void {
+    if (!liste) return;
+    if (questionsSeules() !== sousLeFiltre) {
+      afficher(false);
+      return;
+    }
+    liste.element.scrollTop = position;
+    liste.rafraichir();
+  }
+
+  return {
+    poser(nouvelles, garder = false) {
+      cartes = nouvelles;
+      creees = new Map();
+      afficher(garder);
+    },
+    montrer(cle) {
+      const rang = affichees.findIndex((carte) => carte.cle === cle);
+      if (liste && rang >= 0) liste.montrer(rang);
+    },
+    virtuelle: () => liste !== null,
+    rendues: () => (liste ? liste.rendues() : hote.childElementCount),
   };
 }

@@ -5,7 +5,8 @@
  * Toutes les cases arrivent décochées. Appliquer écrit d'abord les renommages, puis les corrections de structure par leur identifiant :
  * le sandbox relit chaque variable avant d'écrire, donc il voit les noms que les renommages ont changés. Les corrections de structure
  * ne partent qu'une fois les renommages écrits et le fichier relu. Un refus, une erreur ou une confirmation refusée des renommages
- * arrête l'application : les corrections de structure restent cochées et rien n'est envoyé pour elles.
+ * arrête l'application : les corrections de structure restent cochées et rien n'est envoyé pour elles. Des renommages écrits sans
+ * correction cochée relisent quand même la structure : ses constats citent des noms que les renommages viennent de changer.
  */
 import { createButton } from 'ucm-plugin-socle/src/ui/Button';
 import { TEXTES } from '../textes';
@@ -62,6 +63,8 @@ export interface SourceDeStructure {
   toutCocher(): void;
   /** Envoie les corrections ; le pied reste occupé jusqu'à `structureRevenue`. */
   ecrire(ids: readonly string[]): void;
+  /** Demande une nouvelle lecture de la structure, sans rien écrire. */
+  relire(): void;
 }
 
 export interface OptionsDuPied {
@@ -162,6 +165,8 @@ export function monterLePied({ hote, renommages, structure }: OptionsDuPied): Pi
 
   function ecrireLaStructure(ids: readonly string[]): void {
     if (ids.length === 0) {
+      // Seuls des renommages ont été écrits : les constats gardés citent les anciens noms, et leurs corrections visent les anciens rôles.
+      structure.relire();
       terminer();
       return;
     }

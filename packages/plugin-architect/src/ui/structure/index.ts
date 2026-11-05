@@ -10,6 +10,7 @@
 import type { DemandeDeStructure, IgnoresDeStructure, MessageDeStructure } from '../../messages/structure';
 import type { Constat, Correction } from '../../messages/commun';
 import type { Coquille } from '../nomenclature/coquille';
+import { QUESTIONS } from '../tokens/panneau';
 import { monterLePied } from '../tokens/cochage';
 import { monterAFaire } from './aFaire';
 import { monterLesCorrections } from './corrections';
@@ -71,6 +72,8 @@ export function monterStructure(coquille: Coquille, { envoyer, noms, ouvrirLaFic
   };
   const hotesDeCorrections = { manquantes: sousHote('manquantes'), crans: sousHote('crans'), modes: sousHote('modes'), scopes: sousHote('scopes') };
   const hotesDAFaire = Object.fromEntries(GROUPES.map((groupe) => [groupe, sousHote(groupe)])) as Record<GroupeDeConstat, HTMLElement>;
+  /** Les listes longues ne gardent que les cartes à question sous la puce Questions du sommaire. */
+  const questionsSeules = (): boolean => tokens.choix() === QUESTIONS;
   const aFaire = monterAFaire(hotesDAFaire, tokens.ignores, ({ nom, cle }) => {
     const cible = cle ?? noms.cle(nom);
     if (cible !== null) ouvrirLaFiche(cible);
@@ -79,11 +82,11 @@ export function monterStructure(coquille: Coquille, { envoyer, noms, ouvrirLaFic
     ignorerDansLeFichier: (role) => demanderAvec((numero) => ({ type: 'ignorer-role', demande: numero, role })),
     nePlusIgnorerLeConstat: (constat) => demanderAvec((numero) => ({ type: 'retablir-constat-de-structure', demande: numero, constat })),
     nePlusIgnorerLeRole: (role) => demanderAvec((numero) => ({ type: 'retablir-role', demande: numero, role })),
-  });
+  }, questionsSeules);
   const hoteDuResultat = document.createElement('div');
   hoteDuResultat.className = 'page-stack';
   let recompter = (): void => {};
-  const corrections = monterLesCorrections({ element: hoteDuResultat, hotes: hotesDeCorrections, auChangement: () => recompter() });
+  const corrections = monterLesCorrections({ element: hoteDuResultat, hotes: hotesDeCorrections, auChangement: () => recompter(), questionsSeules });
   for (const categorie of Object.keys(hotesDeCorrections) as (keyof typeof hotesDeCorrections)[]) tokens.poserLesGestes(categorie, corrections.gestes[categorie]);
   tokens.haut.append(hoteDuResultat);
   const pied = monterLePied({
@@ -93,6 +96,7 @@ export function monterStructure(coquille: Coquille, { envoyer, noms, ouvrirLaFic
       idsCoches: corrections.idsCoches,
       lignes: corrections.nombre,
       toutCocher: () => corrections.toutCocher(),
+      relire: demander,
       ecrire(ids) {
         envoyees = ids;
         demandeDApplication = nouvelleDemande();
