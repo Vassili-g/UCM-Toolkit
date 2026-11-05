@@ -622,6 +622,29 @@ et de 68,1 s à 3,7 s pour Actualiser. Les contrôles de structure, qui restent 
 de l’attente. Pendant Actualiser, l’inventaire des noms dure 2,8 s contre 0,5 s à froid, car il attend la fin de ces contrôles.
 Aucune cession n’a lieu dans le sandbox sur cette voie : l’attente de 459 ms par cession de G4.3 ne s’y produit plus.
 
+### Attente après G6 (G5.2)
+
+Même fichier, plugin construit après G6. Les contrôles de structure et le calcul des noms passent tous deux par le Worker.
+
+| Étape, en ms depuis le clic | Avant G1, à froid | Avant G1, Actualiser | Après G6, à froid | Après G6, Actualiser |
+|---|---:|---:|---:|---:|
+| Relevé reçu | 608 | 516 | 757 | 660 |
+| Structure rendue | 3 547 | 3 639 | 2 267 | 1 786 |
+| Noms rendus | 19 008 | 67 883 | 2 553 | 2 314 |
+
+| Phase après G6 | À froid | Actualiser |
+|---|---:|---:|
+| Démarrage du Worker | 839 | |
+| Transfert du catalogue | 98 | 366 |
+| Contrôles du catalogue, dans le Worker | 124 | 27 |
+| Contrôles de l’intégrité, dans le Worker | 169 | 46 |
+| Inventaire des noms | 624 | 730 |
+| Transfert de l’inventaire | 211 | 237 |
+| Calcul des noms, dans le Worker | 336 | 589 |
+
+L’affichage complet passe de 19,1 s à 2,6 s à froid, et de 68,1 s à 2,3 s pour Actualiser. Le démarrage du Worker coûte
+0,84 s à froid, car il part au premier calcul. Un démarrage à l’ouverture du plugin retirerait ce temps de l’attente.
+
 ### Mode Composant
 
 `npx tsx packages/plugin-architect/scripts/stress/f8-analyse/rejeuDeBase.ts` analyse sans panne les 5 sources de `rejeu.ts`, en 7 secondes. Les 5 fichiers sont le même Button, au même état : 90 variants, 198 layers, statut `complete` et les mêmes 7 constats.
