@@ -214,12 +214,13 @@ function chaine() {
     envoyer: (message) => envois.push(message as UiRequest), noms: { nom: () => null, cle: () => null }, ouvrirLaFiche: () => {},
     apresLaStructure: () => actualisation.recevoir('structure'),
   });
-  const app = creerApplication(etat, () => ({ rendre() {}, actualiser: () => actualisation.commencer() }) as never);
+  const app = creerApplication(etat, () => ({ rendre() {}, actualiser: (auDemarrage: boolean) => actualisation.commencer(!auDemarrage) }) as never);
   const barre = creerBarre(app);
+  const demarrer = () => app.actualiser(true);
   const actualiser = lu(comme(barre.element).querySelector('.barre-lecture .bouton-discret'));
   const racineDesConstats = lu(coquille.panneaux.constats.contenu);
   return {
-    envois, coquille, actualisation, etat, racineDesConstats, actualiser,
+    envois, coquille, actualisation, etat, racineDesConstats, actualiser, demarrer,
     avancer: (ms: number) => { temps += ms; },
     /** Le sandbox rend le relevé de la dernière demande, comme `case 'releve'` de l'entrée : la structure part en réponse. */
     releveRendu() {
@@ -270,5 +271,29 @@ test('au premier lancement, sans bilan, Actualiser ne lance pas l’analyse des 
   banc.releveRendu();
   banc.structureRendue();
   assert.equal(lu(banc.racineDesConstats.querySelector('.accueil')).hidden, true);
+  assert.notEqual(banc.racineDesConstats.querySelector('.arch-resume .meta'), null);
+});
+
+test('à l’ouverture, la durée paraît après la première analyse sans que le chargement prenne la place des constats', () => {
+  const banc = chaine();
+  banc.demarrer();
+  assert.deepEqual(banc.types(), ['lire-releve']);
+  assert.equal(lu(banc.racineDesConstats.querySelector('.accueil')).hidden, true, 'le chargement de l’ouverture reste celui d’avant');
+  banc.avancer(2_000);
+  banc.releveRendu();
+  assert.equal(banc.racineDesConstats.querySelector('.arch-resume .meta'), null);
+  banc.avancer(1_000);
+  banc.structureRendue();
+  assert.equal(lu(banc.racineDesConstats.querySelector('.arch-resume .meta')).textContent, 'analysé à 14:32 en 3 s');
+});
+
+test('à l’ouverture, une analyse des noms demandée par l’ouverture est attendue avant la durée', () => {
+  const banc = chaine();
+  banc.demarrer();
+  banc.releveRendu();
+  banc.coquille.frontiere.analyser();
+  banc.structureRendue();
+  assert.equal(banc.racineDesConstats.querySelector('.arch-resume .meta'), null);
+  banc.coquille.frontiere.recevoir(bilanDe(1, 1));
   assert.notEqual(banc.racineDesConstats.querySelector('.arch-resume .meta'), null);
 });

@@ -77,7 +77,7 @@ export interface Application {
   filtrer(filtres: Partial<Filtres>): void;
   /** Passe de l'explorateur de tokens à la vue composant, ou l'inverse. Le sandbox donne à la fenêtre la taille de la disposition. */
   changerDisposition(disposition: Disposition): void;
-  /** Relit les variables du fichier. `auDemarrage` : la lecture de l'ouverture, qui ne relance pas les noms et ne montre ni chargement ni durée dans l'onglet Constats. */
+  /** Relit les variables du fichier. `auDemarrage` : la lecture de l'ouverture, qui ne montre pas de chargement dans l'onglet Constats mais en montre la durée. */
   actualiser(auDemarrage?: boolean): void;
   /** Lance l'analyse du composant sélectionné ; `actualiser` dit au sandbox de ne reprendre aucun résultat précédent. */
   analyser(intention?: IntentionDAnalyse): void;
@@ -122,8 +122,8 @@ export interface Branchements {
   readonly fermerLaConfiguration?: () => void;
   readonly configurationOuverte?: () => boolean;
   readonly montrerDansLaTable: (variable: string) => void;
-  /** Appelé au geste Actualiser du designer, après l'envoi de `lire-releve` : relance les noms et suit la fin de l'analyse. */
-  readonly actualiser?: () => void;
+  /** Appelé après l'envoi de `lire-releve`, au geste Actualiser comme à l'ouverture (`auDemarrage`) : relance les noms et suit la fin de l'analyse. */
+  readonly actualiser?: (auDemarrage: boolean) => void;
   readonly rendre: (zones: readonly Zone[]) => void;
   readonly annoncer: (texte: string, zoneDeSecours?: string) => void;
   readonly disposer: (disposition: Disposition) => void;
@@ -248,7 +248,7 @@ export function creerApplication(etat: Etat, branchements: () => Branchements): 
       etat.lecture = { statut: 'en-cours', demande, phase: 'collections', fait: 0, total: 1 };
       versSandbox({ type: 'lire-releve', demande });
       // L'analyse des noms part après la lecture des variables, qu'elle reprend pendant qu'elle lit (`sandbox/acquisition.ts`).
-      if (!auDemarrage) branchements().actualiser?.();
+      branchements().actualiser?.(auDemarrage);
       app.rendre(['barre', 'pied', 'table']);
     },
     analyser(intention = 'analyser') {

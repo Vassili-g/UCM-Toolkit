@@ -367,4 +367,11 @@ ETATS.push(
   },
 );
 
+ETATS.push({
+  id: 't-duree-ouverture', titre: 'Tokens, durée après l’ouverture', quand: 'Le plugin vient de s’ouvrir : le relevé, les noms et la structure sont lus, sans Actualiser.',
+  regarder: 'Tout en haut de l’onglet Constats, au-dessus du sommaire, la ligne grise « analysé à 14:32 en 3 s » ; aucun message de lecture n’a pris la place des constats.',
+  existe: true,
+  atteinte: ouvert().map((etape, rang, etapes) => (rang === etapes.length - 1 ? { ...etape, attendre: '#panneau-a-appliquer .arch-resume' } : etape)),
+});
+
 module.exports = { ETATS };

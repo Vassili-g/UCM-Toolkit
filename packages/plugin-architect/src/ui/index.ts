@@ -288,7 +288,7 @@ branchements = {
     bibliotheque.suivre();
   },
   montrerDansLaTable: (variable) => table.montrer(variable),
-  actualiser: () => actualisation.commencer(),
+  actualiser: (auDemarrage) => actualisation.commencer(!auDemarrage),
   ouvrirLaConfiguration: () => nomenclature.coquille.ouvrirLaConfiguration(),
   fermerLaConfiguration: () => nomenclature.coquille.fermerLaConfiguration(),
   configurationOuverte: () => nomenclature.coquille.etat().ecran === 'configuration',

@@ -33,8 +33,11 @@ export interface OptionsDActualisation {
 }
 
 export interface Actualisation {
-  /** Un Actualiser part : le suivi recommence, et les noms sont relancés si le fichier en a un bilan. */
-  commencer(): void;
+  /**
+   * Une lecture part : le suivi recommence, et les noms sont relancés si le fichier en a un bilan. `avecChargement` faux (la lecture de
+   * l'ouverture) : le message de lecture ne prend pas la place des constats, mais la durée paraît à la fin.
+   */
+  commencer(avecChargement?: boolean): void;
   /** Une part est arrivée ; sans effet si elle n'est pas attendue. La dernière montre la durée. */
   recevoir(part: PartDeLActualisation): void;
   /** Un `bilan` neuf arrive d'une analyse des noms que l'écran avait lui-même demandée pendant l'actualisation : elle compte aussi. */
@@ -50,13 +53,15 @@ export function creerActualisation({ panneau, lecture, relancerLesNoms, horloge 
   let attendues = new Set<PartDeLActualisation>();
   let debut = 0;
   let suivie = false;
+  let chargement = true;
 
   function poser(): void {
-    panneau.poserLeChargement(suivie ? texteDeLaLecture(lecture()) : null);
+    panneau.poserLeChargement(suivie && chargement ? texteDeLaLecture(lecture()) : null);
   }
 
   return {
-    commencer() {
+    commencer(avecChargement = true) {
+      chargement = avecChargement;
       attendues = new Set<PartDeLActualisation>(['releve', 'structure']);
       debut = horloge();
       suivie = true;
