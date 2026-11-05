@@ -32,8 +32,6 @@ Fin : `npm run test:paquet -- architect` passe. Les régressions couvrent les ca
 
 ## Avancement
 
-En cours (Codex, S2). Ne pas reprendre.
-
 Lecture S2 faite. `packages/plugin-architect/scripts/stress/f2-structure/chaine.ts` fournit les conteneurs de Constats mais pas `tokens.choix`. Le harnais sera modifié pour suivre le contrat courant du panneau. La coquille de production reste hors du lot. E4c est relu, son second constat de retrait ne relève pas de S2.
 
 Le build du kit passe. Avant correction, les 28 cas du harnais lèvent dans `tokens.attente`, ajouté par G2 depuis la demande S2. Le double doit fournir aussi `attente` et `surAttente`. `packages/plugin-architect/tests/stressChaineStructure.test.ts` ajoute trois régressions P13 (lecture levée, catalogue absent, refus de Figma).
@@ -63,6 +61,8 @@ La seconde vérification TypeScript reproduit les 3 erreurs hors lot. Les tests 
 Prochaines actions : `npx tsx --test packages/plugin-architect/tests/lectureAnticipeeDesLibraries.test.ts`, puis `npx tsx --test packages/plugin-architect/tests/nomenclatureSession.test.ts`.
 
 La lecture anticipée passe seule (21 tests sur 21). La session de Nomenclature reproduit son échec seule (26 réussites sur 27). Ces fichiers restent inchangés. Le harnais réparé, son test et ce lot sont prêts à commiter.
+
+Fait, commit 9a5f32ab.
 
 Prochaine action : `npm run build --workspace @ucm-kit/core`, puis `npm run stress:structure --workspace ucm-architect-plugin`.
 
