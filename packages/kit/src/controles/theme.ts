@@ -1,10 +1,12 @@
 /** Contrôles des rôles peints et des alias de mode du thème UCM. */
-import { formeDuChemin, formeReconnue } from '../referentiel/reconnaissance.js';
-import { TABLE_DES_DOSSIERS, type ModeDuTheme, type SensDuTheme } from '../emplois/dossiers.js';
+import { formeDuChemin, formeReconnue, termeReconnu } from '../referentiel/reconnaissance.js';
+import { CIBLES_ABSOLUES_DU_NEUTRE, cranDeLaVariable, type ModeDuTheme, type VariableDuTheme } from '../emplois/dossiers.js';
+import { REGISTRE_COULEURS_ABSOLUES } from '../referentiel/architecture.js';
 import { GARANTIES, etatDuFond } from '../emplois/garanties.js';
 import { modeDuThemeReconnu, variableDuThemeReconnue } from '../referentiel/theme.js';
-import { collectionParCle, variableParCle, type CatalogueDeReference, type VariableDuCatalogue } from './catalogue.js';
+import { cheminDansLaCollection, collectionParCle, variableParCle, type CatalogueDeReference, type VariableDuCatalogue } from './catalogue.js';
 import type { Constat, Correction, Question } from './constat.js';
+import { lesJumelles, lesPrefixes, lireLeSens, type ModeLu, type SensLu } from './integrite.js';
 import type { LayerLu, LiaisonLue, ReleveDeComposant, VariantLu } from './releve.js';
 
 /** Détecte une couleur `surface/foreground` sans fond de surface dans un composant. Les alias de mode sont dans `controlerLesModes`. */
@@ -99,10 +101,18 @@ function* estFondDeSurface(liaison: LiaisonLue, catalogue: CatalogueDeReference)
   return !!variable && collection(catalogue, variable)?.role === 'theme' && FONDS_DE_SURFACE.has(variableDuThemeReconnue(variable.nom) ?? '');
 }
 
-/** Les alias de mode du thème, sans composant. */
+/**
+ * Les alias de mode du thème, sans composant. La branche de mode d'une cible se lit dans son chemin (`primary/dark/300`, comme
+ * l'écrit UCM Palettes), que les modes de la collection cible s'appellent Light et Dark ou portent des noms de marque. Une
+ * cible qui vise la branche de l'autre mode reçoit une correction quand le sens de la palette et la table donnent une seule
+ * variable dans la bonne branche, sinon une question qui porte le genre `branche-de-mode`. Le texte des boutons ne reçoit jamais de correction.
+ */
 export function controlerLesModes(catalogue: CatalogueDeReference): Constat[] {
   const resultats: Constat[] = [];
   for (const theme of catalogue.collections.filter((entree) => entree.role === 'theme' && entree.etat === 'lue')) {
+    let lecture: ReturnType<typeof lesPrefixes> | undefined;
+    // Deux modes de `theme` qui se lisent comme le même mode (`Light` en double) : aucune branche n'est la bonne, `mode-du-theme` le dit.
+    const modesUcm = theme.modes.map((entree) => modeDuThemeReconnu(entree.nom));
     for (const variable of catalogue.variables.filter((entree) => entree.collection === theme.cle && entree.etat === 'presente')) {
       const cleTheme = variableDuThemeReconnue(variable.nom);
       if (!cleTheme) continue;
@@ -113,24 +123,31 @@ export function controlerLesModes(catalogue: CatalogueDeReference): Constat[] {
         if (!cible) continue;
         const collectionCible = collection(catalogue, cible);
         if (!collectionCible) continue;
-        const segmentMode = cible.nom.split('/').findIndex((segment) => collectionCible.modes.some((modeCible) => formeReconnue(modeCible.nom) === formeReconnue(segment)));
-        if (segmentMode < 0) continue;
-        const modeCible = collectionCible.modes.find((entree) => formeReconnue(entree.nom) === formeReconnue(cible.nom.split('/')[segmentMode]));
+        const segmentsCible = cible.nom.split('/');
+        const branchesDeMarque = collectionCible.role === 'brands' || collectionCible.role === 'utility';
+        const rangMode = segmentsCible.findIndex((segment) => modeDuThemeReconnu(segment) !== undefined
+          && (branchesDeMarque || collectionCible.modes.some((modeCible) => formeReconnue(modeCible.nom) === formeReconnue(segment))));
+        if (rangMode < 0) continue;
         const modeUcm = modeDuThemeReconnu(mode.nom);
-        const modeActuel = modeCible && modeDuThemeReconnu(modeCible.nom);
-        if (!modeUcm || !modeActuel || modeActuel === modeUcm) continue;
+        const modeActuel = modeDuThemeReconnu(segmentsCible[rangMode]);
+        if (!modeUcm || !modeActuel || modeActuel === modeUcm || modesUcm.filter((reconnu) => reconnu === modeUcm).length > 1) continue;
         const id = `C60:${variable.cle}:${mode.id}`;
         const constat: Constat = { id, code: 'C60', type: 'corriger', famille: 'liaisons', variants: [], layers: [], faits: { variable: variable.nom, mode: mode.nom, cible: cible.nom } };
-        const cycle = aliasEnBoucle(catalogue, cible.cle, modeCible.nom);
-        const formesCibles = cycle ? [] : formesDeCiblesAttendues(cible, modeCible.nom, modeUcm, cleTheme, collectionCible.modes);
+        const cycle = aliasEnBoucle(catalogue, cible.cle, segmentsCible[rangMode]);
+        lecture ??= lesPrefixes(catalogue, theme);
+        const sens = sensDeLaPalette(catalogue, lecture, variable, cleTheme, { id: mode.id, nom: mode.nom, ucm: modeUcm });
+        const formesCibles = cycle ? [] : formesDeCiblesAttendues(cible, rangMode, modeActuel, modeUcm, cleTheme, sens);
         const candidats = catalogue.variables.filter((entree) => entree.collection === cible.collection && entree.etat === 'presente' && formesCibles.includes(formeDuChemin(entree.nom)));
-        if (candidats.length === 1 && !cycle && !aliasEnBoucle(catalogue, candidats[0].cle, mode.nom, variable.cle)) {
+        if (candidats.length === 1 && cleTheme !== 'solid/foreground' && !cycle && !aliasEnBoucle(catalogue, candidats[0].cle, mode.nom, variable.cle)) {
           constat.correction = {
             id, sorte: 'alias-de-mode', cible: { variable: variable.cle, mode: mode.id }, avant: valeur.alias,
             apres: { cle: candidats[0].cle, nom: candidats[0].nom },
             aRelire: { axes: { mode: mode.nom }, regle: `La cible de ${cleTheme} suit le mode ${mode.nom} et sa valeur dans TABLE_DES_DOSSIERS.`, avant: valeur.alias },
           };
-        } else constat.question = question(constat, candidats);
+        } else {
+          constat.faits.genre = 'branche-de-mode';
+          constat.question = question(constat, candidats);
+        }
         resultats.push(constat);
       }
     }
@@ -138,28 +155,44 @@ export function controlerLesModes(catalogue: CatalogueDeReference): Constat[] {
   return resultats;
 }
 
-/** Les formes reconnues des noms attendus : comme la reconnaissance du fichier, elles ne dépendent pas de la casse ni du séparateur. */
-function formesDeCiblesAttendues(cible: VariableDuCatalogue, modeActuel: string, modeVise: ModeDuTheme, cle: string, modes: readonly { id: string; nom: string }[]): string[] {
-  const cranActuel = Number(cible.nom.split('/').at(-1));
-  if (!Number.isFinite(cranActuel)) return [];
-  const sensPossibles = (['normal', 'inverse'] as const).filter((sens) => TABLE_DES_DOSSIERS[modeDuThemeReconnu(modeActuel) ?? 'light'][sens][cle as keyof typeof TABLE_DES_DOSSIERS.light.normal] === cranActuel);
-  const rangMode = cible.nom.split('/').findIndex((segment) => modes.some((mode) => formeReconnue(mode.nom) === formeReconnue(segment)));
-  if (rangMode < 0) return [];
-  const formes = new Set<string>();
-  for (const sens of sensPossibles) {
-    const cran = valeurDuDossier(modeVise, sens, cle);
-    if (typeof cran !== 'number') continue;
-    const segments = cible.nom.split('/').map(formeReconnue);
-    segments[rangMode] = modeVise;
-    segments[segments.length - 1] = String(cran);
-    formes.add(segments.join('/'));
-  }
-  return [...formes];
+/** Le sens que les autres variables du groupe établissent dans ce mode ; `null` pour une variable hors palette, dont la cible ne dépend pas du sens. */
+function sensDeLaPalette(catalogue: CatalogueDeReference, lecture: ReturnType<typeof lesPrefixes>, variable: VariableDuCatalogue, role: VariableDuTheme, mode: ModeLu): SensLu | null {
+  const chemin = cheminDansLaCollection(variable, catalogue);
+  const groupe = chemin.slice(0, chemin.length - role.split('/').length);
+  const prefixe = lecture.prefixes.get(formeDuChemin(groupe));
+  return prefixe && groupe.length > 0 ? lireLeSens(mode.ucm, lesJumelles(catalogue, prefixe, mode).vise) : null;
 }
 
-function valeurDuDossier(mode: ModeDuTheme, sens: SensDuTheme, cle: string): number | 'texteDesBoutons' | undefined {
-  if (!Object.prototype.hasOwnProperty.call(TABLE_DES_DOSSIERS[mode][sens], cle)) return undefined;
-  return TABLE_DES_DOSSIERS[mode][sens][cle as keyof typeof TABLE_DES_DOSSIERS.light.normal];
+/**
+ * Les formes reconnues des noms attendus dans la bonne branche : comme la reconnaissance du fichier, elles ne dépendent ni de la casse
+ * ni du séparateur. Un sens établi donne le cran de la table sans regarder le cran actuel, qui peut être celui de l'autre branche ou
+ * celui du mode de la variable. Sans sens établi, un sens reste candidat quand sa table donne le cran actuel dans l'une des deux branches.
+ */
+function formesDeCiblesAttendues(
+  cible: VariableDuCatalogue, rangMode: number, modeActuel: ModeDuTheme, modeVise: ModeDuTheme, role: VariableDuTheme, sens: SensLu | null,
+): string[] {
+  const segments = cible.nom.split('/').map(formeReconnue);
+  const dernier = segments[segments.length - 1];
+  if (rangMode === segments.length - 1) return [];
+  const dansLaBonneBranche = (fin: string): string => {
+    const copie = [...segments];
+    copie[rangMode] = modeVise;
+    copie[copie.length - 1] = fin;
+    return copie.join('/');
+  };
+  if (role.startsWith('elevation/')) return [dansLaBonneBranche(dernier)];
+  if (role in CIBLES_ABSOLUES_DU_NEUTRE) return [dansLaBonneBranche(CIBLES_ABSOLUES_DU_NEUTRE[role as keyof typeof CIBLES_ABSOLUES_DU_NEUTRE][modeVise])];
+  if (role === 'solid/foreground') return termeReconnu(REGISTRE_COULEURS_ABSOLUES, dernier) ? ['white', 'black'].map(dansLaBonneBranche) : [];
+  const cranActuel = Number(dernier);
+  if (!Number.isFinite(cranActuel)) return [];
+  const possibles = sens === 'normal' || sens === 'inverse' ? [sens] : (['normal', 'inverse'] as const).filter((candidat) =>
+    cranDeLaVariable(role, modeActuel, candidat) === cranActuel || cranDeLaVariable(role, modeVise, candidat) === cranActuel);
+  const formes = new Set<string>();
+  for (const candidat of possibles) {
+    const cran = cranDeLaVariable(role, modeVise, candidat);
+    if (typeof cran === 'number') formes.add(dansLaBonneBranche(String(cran)));
+  }
+  return [...formes];
 }
 
 function aliasEnBoucle(catalogue: CatalogueDeReference, cle: string, nomMode: string, source?: string): boolean {

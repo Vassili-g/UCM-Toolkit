@@ -64,7 +64,6 @@ export function operateursCrans(base: ThemeDeBase, graine: number = GRAINE_PAR_D
       registre.ajouter('K2', degradation, {
         description: `K2 ${palette.id} ${role} en ${mode} : aliasé vers la rampe de ${voisine.id} au cran ${cran}`,
         attendus: [attendu('C82', 'rampe-autre-palette', variable.nom, nomDe(mode), 'question')],
-        verdict: 'mesure', question: 'Q-F2-2',
       });
     }
   }
@@ -86,7 +85,6 @@ export function operateursCrans(base: ThemeDeBase, graine: number = GRAINE_PAR_D
     registre.ajouter('K3', degradation, {
       description: `K3 ${palette.id} solid/foreground en ${mode} : ${inversee} au lieu de ${absolueDe(variable, mode)}`,
       attendus: [attendu('C82', 'cran', variable.nom, nomDe(mode), 'question', { candidats: [carte.absolues[mode].white.nom, carte.absolues[mode].black.nom] })],
-      verdict: 'mesure', question: 'Q-F2-3',
     });
   }
   for (const role of ['scale/0', 'scale/1000', 'page/foreground-main'] as const) {
@@ -105,8 +103,8 @@ export function operateursCrans(base: ThemeDeBase, graine: number = GRAINE_PAR_D
     }
   }
 
-  // K4. Un sens ambigu. La moitié des rôles qui votent passe sur le cran du sens inverse. Sans autre rôle, le plan attend une
-  // réponse à Q-F2-3 ; avec un rôle sur un cran d'aucune table, il attend une question à deux candidats sur ce rôle.
+  // K4. Un sens partagé. La moitié des rôles qui votent passe sur le cran du sens inverse. Q-F2-3 : une question par mode sur le texte
+  // des boutons (blanc ou noir), jamais une correction ; avec un rôle sur un cran d'aucune table, une question à deux candidats de plus sur ce rôle.
   const votants = (mode: ModeDuTheme, sauf?: VariableDuTheme): VariableDuTheme[] =>
     ROLES_A_CRAN.filter((role) => role !== sauf && cranDeTable(role, mode, 'normal') !== cranDeTable(role, mode, 'inverse'));
   const melanger = (degradation: Degradation, mode: ModeDuTheme, sauf?: VariableDuTheme): VariableDuTheme[] => {
@@ -115,13 +113,16 @@ export function operateursCrans(base: ThemeDeBase, graine: number = GRAINE_PAR_D
     for (const role of inverses) degradation.viser(palette.roles[role].cle, mode, palette.rampes[mode][cranDeTable(role, mode, 'inverse')!].cle);
     return inverses;
   };
+  const sensPartage = (mode: ModeDuTheme) => attendu('C82', 'sens-partage', palette.groupe.join('/'), nomDe(mode), 'question', {
+    candidats: [carte.absolues[mode].white.nom, carte.absolues[mode].black.nom],
+  });
   for (const mode of MODES_DU_THEME) {
     const degradation = registre.degrader();
     const inverses = melanger(degradation, mode);
     degradation.zone({ palette: palette.id, role: '(palette)', mode });
     registre.ajouter('K4', degradation, {
       description: `K4 ${palette.id} en ${mode} : ${inverses.length} rôles sur ${votants(mode).length} passent au cran du sens inverse`,
-      attendus: [], verdict: 'mesure', question: 'Q-F2-3',
+      attendus: [sensPartage(mode)],
     });
   }
   for (const mode of MODES_DU_THEME) {
@@ -133,7 +134,7 @@ export function operateursCrans(base: ThemeDeBase, graine: number = GRAINE_PAR_D
     const candidats = (['normal', 'inverse'] as const).map((sens) => palette.rampes[mode][cranDeTable(ROLE_HORS_TABLE, mode, sens)!].nom);
     registre.ajouter('K4', degradation, {
       description: `K4 ${palette.id} en ${mode} : ${inverses.length} rôles au cran du sens inverse, ${ROLE_HORS_TABLE} au cran ${CRAN_HORS_TABLE}`,
-      attendus: [attendu('C82', 'cran', variable.nom, nomDe(mode), 'question', { candidats })],
+      attendus: [attendu('C82', 'cran', variable.nom, nomDe(mode), 'question', { candidats }), sensPartage(mode)],
     });
   }
   return registre.cas;

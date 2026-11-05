@@ -55,13 +55,9 @@ test('chaque cas a un identifiant <opérateur>-<n>, une description, des zones, 
 });
 
 test('les cas qui dépendent d\'une question non confirmée portent le verdict mesure et son identifiant', () => {
+  // Q-F2-2, Q-F2-3 et Q-F2-4 sont décidées (E3a, E3b) : K2, K3-1, K3-2, K4 et M1 sont des cas `attendu`.
   const mesures = TOUS.filter((entree) => entree.verdict === 'mesure').map((entree) => [entree.id, entree.question]);
-  assert.deepEqual(mesures, [
-    ...Array.from({ length: 10 }, (_, rang) => [`K2-${rang + 1}`, 'Q-F2-2']),
-    ['K3-1', 'Q-F2-3'], ['K3-2', 'Q-F2-3'], ['K4-1', 'Q-F2-3'], ['K4-2', 'Q-F2-3'],
-    ...Array.from({ length: 12 }, (_, rang) => [`M1-${rang + 1}`, 'Q-F2-4']),
-    ['M4-8', 'Q-F2-sans-numero'],
-  ]);
+  assert.deepEqual(mesures, [['M4-8', 'Q-F2-sans-numero']]);
 });
 
 test('R1 : un variable-absente avec création du rôle sous son nom, et un alias-supprime par couleur de composant qui le visait', () => {
@@ -138,14 +134,16 @@ test('K2 à K4 : une question sans correction, une correction vers la couleur ab
   assert.equal(cas('K3-3').attendus[0].apres?.cle, 'utility|neutral/light/white');
   assert.equal(cas('K3-3').details![0].avant, 'utility|neutral/light/black');
   assert.equal(cas('K3-8').attendus[0].apres?.cle, 'utility|neutral/dark/white');
-  assert.deepEqual(duOperateur('K4').map((entree) => entree.attendus.length), [0, 0, 1, 1]);
+  // Q-F2-3 : un sens partagé rend une question par mode sur le texte des boutons ; un rôle hors table y ajoute sa question à deux candidats.
+  assert.deepEqual(duOperateur('K4').map((entree) => entree.attendus.length), [1, 1, 2, 2]);
+  assert.deepEqual(cas('K4-1').attendus.map((attendu) => [attendu.cle, attendu.candidats]), [['sens-partage|primary|light', ['neutral/light/white', 'neutral/light/black']]]);
   assert.deepEqual([cas('K4-3').attendus[0].forme, cas('K4-3').attendus[0].candidats], ['question', ['primary/light/700', 'primary/light/800']]);
   assert.deepEqual(cas('K4-4').attendus[0].candidats, ['primary/dark/700', 'primary/dark/800']);
   assert.equal(cas('K4-3').attendus[0].cle, 'cran|primary/page/border|light');
 });
 
 test('M1 à M4 : C60 avec une correction vers la bonne branche, sans correction quand la cible manque, mode-du-theme par mode manquant', () => {
-  // M1-1 est de la place « chemin » (mesure Q-F2-4, hypothèse 1). M1-13 est de la place « modes ».
+  // M1-1 est de la place « chemin » (Q-F2-4, hypothèse 1). M1-13 est de la place « modes ».
   assert.equal(cas('M1-1').attendus[0].cle, '-|primary/solid/default|light');
   assert.equal(cas('M1-1').attendus[0].apres?.cle, 'brands|primary/light/700');
   assert.equal(cas('M1-1').details![0].avant, 'brands|primary/dark/700');
@@ -155,7 +153,7 @@ test('M1 à M4 : C60 avec une correction vers la bonne branche, sans correction 
   assert.equal(cas('M1-1').entree.theme.catalogue.collections.find((collection) => collection.cle === 'brands')!.modes[0].nom, 'Marque A');
   // M2. Une question sans candidat, puis la cible qui boucle, qui est aussi une couche non admise.
   for (const entree of duOperateur('M2').slice(0, 4)) assert.deepEqual([entree.attendus[0].forme, entree.attendus[0].candidats], ['question', []], entree.id);
-  assert.deepEqual(cles(cas('M2-5')), ['C60|-|primary/surface/default|light', 'C82|couche|primary/dark/200|dark']);
+  assert.deepEqual(cles(cas('M2-5')), ['C60|branche-de-mode|primary/surface/default|light', 'C82|couche|primary/dark/200|dark']);
   // M3. Le cran du mode du rôle dans l'autre branche. surface/default en Light est au 100, donc la cible fautive est `dark/100`.
   assert.equal(cas('M3-1').details![0].avant, 'brands|primary/dark/100');
   assert.equal(cas('M3-1').attendus[0].apres?.cle, 'brands|primary/light/100');

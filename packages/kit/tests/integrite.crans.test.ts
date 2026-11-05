@@ -75,12 +75,15 @@ test('6. une variable du neutre qui vise la mauvaise couleur absolue se corrige 
   assert.equal(constat.correction?.apres.nom, 'neutral/light/white');
 });
 
-test('7. solid/foreground noir en Light vote pour l’autre sens : la palette est ambiguë, et une cible lue dans l’une des tables ne rend rien', () => {
+test('7. solid/foreground noir en Light ne vote pas et ne se corrige pas : il rend une question à deux réponses, le blanc et le noir (Q-F2-3)', () => {
   const catalogue = avecAlias(catalogueDeStructure(), 'primary/solid/foreground', MODE_LIGHT, cleDeLaFixture('utility', 'neutral/light/black'));
   const lus = crans(catalogue).filter((constat) => constat.faits.mode === 'light' && String(constat.faits.variable).startsWith('primary/'));
-  assert.deepEqual(lus.map((constat) => constat.faits.variable), ['primary/surface/foreground']);
+  assert.deepEqual(lus.map((constat) => constat.faits.variable), ['primary/solid/foreground', 'primary/surface/foreground']);
   assert.equal(lus[0].correction, undefined);
-  assert.equal(lus[0].question?.candidats.length, 2);
+  assert.equal(lus[0].type, 'verifier');
+  assert.deepEqual(lus[0].question?.candidats.map(({ nom }) => nom), ['neutral/light/white', 'neutral/light/black']);
+  // Le sens reste le sens normal : surface/foreground garde sa correction vers la 700.
+  assert.equal(lus[1].correction?.apres.nom, 'primary/light/700');
 });
 
 test('8. un alias vers l’autre branche de mode ne rend pas de C82 : C60 le rend', () => {
@@ -89,13 +92,12 @@ test('8. un alias vers l’autre branche de mode ne rend pas de C82 : C60 le ren
   assert.deepEqual(lus.map((constat) => constat.faits.mode), ['dark']);
 });
 
-test('9. un groupe aux votes contraires rend une question à deux candidats, sans correction', () => {
+test('9. un rôle déplacé sur le cran de l’autre table ne retourne pas le sens : il reçoit sa correction, et les autres gardent la leur (N-25)', () => {
   const catalogue = avecAlias(catalogueDeStructure(), 'primary/solid/pressed', MODE_LIGHT, cleDeLaFixture('brands', 'primary/light/500'));
-  const constat = du(crans(catalogue), 'primary/surface/foreground', 'light');
-  assert.equal(constat.correction, undefined);
-  assert.equal(constat.question?.id, constat.id);
-  assert.deepEqual(constat.question?.candidats.map(({ nom }) => nom), ['primary/light/700', 'primary/light/900']);
-  assert.equal(constat.question?.indice, 'UCM ne sait pas si cette palette met un texte blanc ou noir sur ses boutons.');
+  const lus = crans(catalogue).filter((constat) => constat.faits.mode === 'light' && String(constat.faits.variable).startsWith('primary/'));
+  assert.equal(du(lus, 'primary/solid/pressed', 'light').correction?.apres.nom, 'primary/light/900');
+  assert.equal(du(lus, 'primary/surface/foreground', 'light').correction?.apres.nom, 'primary/light/700');
+  assert.equal(controlerLIntegriteUcm(catalogue, { ecriture }).some((constat) => constat.faits.genre === 'sens-partage'), false);
 });
 
 /** Un groupe sans vote : deux variables seulement, dont le cran n'est dans aucune table, qui visent la rampe de `primary` en Light. */
@@ -143,4 +145,47 @@ test('12. une rampe de library donne le constat de cran, sans correction', () =>
 test('13. un rôle ignoré n’est cité par aucun constat de cran', () => {
   const constats = controlerLIntegriteUcm(catalogueDeStructure(), { ecriture, rolesIgnores: ['surface/default'] }).filter((constat) => constat.faits.genre === 'cran');
   assert.equal(constats.some((constat) => String(constat.faits.variable).endsWith('/surface/default')), false);
+});
+
+test('14. page/foreground ou page/border déplacé sur le cran de l’autre table garde son cran faux visible (N-25)', () => {
+  for (const role of ['page/foreground', 'page/border']) {
+    const catalogue = avecAlias(catalogueDeStructure(), `primary/${role}`, MODE_LIGHT, cleDeLaFixture('brands', 'primary/light/800'));
+    const constat = du(crans(catalogue), `primary/${role}`, 'light');
+    assert.equal(constat.faits.avant, 800);
+    assert.equal(constat.correction?.apres.nom, 'primary/light/700');
+  }
+});
+
+test('15. une palette dont les rôles se répartissent entre les deux tables rend une question par mode sur le texte des boutons, sans correction (Q-F2-3)', () => {
+  let catalogue = catalogueDeStructure();
+  catalogue = avecAlias(catalogue, 'primary/solid/hover', MODE_LIGHT, cleDeLaFixture('brands', 'primary/light/600'));
+  catalogue = avecAlias(catalogue, 'primary/solid/pressed', MODE_LIGHT, cleDeLaFixture('brands', 'primary/light/500'));
+  const constats = controlerLIntegriteUcm(catalogue, { ecriture });
+  const partages = constats.filter((constat) => constat.faits.genre === 'sens-partage');
+  assert.equal(partages.length, 1);
+  assert.deepEqual([partages[0].faits.groupe, partages[0].faits.mode, partages[0].type], ['primary', 'light', 'verifier']);
+  assert.equal(partages[0].correction, undefined);
+  assert.deepEqual(partages[0].question?.candidats.map(({ nom }) => nom), ['neutral/light/white', 'neutral/light/black']);
+  // Les rôles sur le cran de l’une des deux tables passent sans bruit tant que la palette n’a pas choisi.
+  assert.equal(crans(catalogue).some((constat) => constat.faits.mode === 'light' && ['primary/solid/hover', 'primary/solid/pressed'].includes(String(constat.faits.variable))), false);
+});
+
+test('16. un rôle sur la rampe d’une autre palette, au bon cran, rend une question sans correction ni cran (Q-F2-2)', () => {
+  const catalogue = avecAlias(catalogueDeStructure(), 'primary/surface/default', MODE_LIGHT, cleDeLaFixture('brands', 'secondary/light/100'));
+  const constats = controlerLIntegriteUcm(catalogue, { ecriture });
+  const etrangeres = constats.filter((constat) => constat.faits.genre === 'rampe-autre-palette');
+  assert.equal(etrangeres.length, 1);
+  assert.deepEqual([etrangeres[0].faits.variable, etrangeres[0].faits.mode, etrangeres[0].type], ['primary/surface/default', 'light', 'verifier']);
+  assert.equal(etrangeres[0].correction, undefined);
+  assert.deepEqual(etrangeres[0].question?.candidats.map(({ nom }) => nom), ['primary/light/100', 'secondary/light/100']);
+  assert.equal(crans(catalogue).some((constat) => constat.faits.variable === 'primary/surface/default' && constat.faits.mode === 'light'), false);
+});
+
+test('17. deux variables sur la rampe d’une autre palette ne votent pas pour le sens', () => {
+  let catalogue = catalogueDeStructure();
+  catalogue = avecAlias(catalogue, 'primary/solid/hover', MODE_LIGHT, cleDeLaFixture('brands', 'secondary/light/600'));
+  catalogue = avecAlias(catalogue, 'primary/solid/pressed', MODE_LIGHT, cleDeLaFixture('brands', 'secondary/light/500'));
+  const constats = controlerLIntegriteUcm(catalogue, { ecriture });
+  assert.equal(constats.filter((constat) => constat.faits.genre === 'rampe-autre-palette').length, 2);
+  assert.equal(constats.some((constat) => constat.faits.genre === 'sens-partage'), false);
 });

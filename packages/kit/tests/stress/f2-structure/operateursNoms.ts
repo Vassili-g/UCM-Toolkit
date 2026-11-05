@@ -3,9 +3,8 @@
  * faute, Q2 sous un synonyme, Q3 ajoute un nom sans rapport avec un rôle.
  *
  * Le plan veut, pour une faute ou un synonyme, une question qui nomme le rôle proche, sans réponse présélectionnée, et aucune
- * création du rôle absent (P15). Le kit n'a pas de genre pour cela : l'oracle invente `variable-inconnue`, que le rapport compte
- * comme un manque. La création du rôle absent que le kit propose à la place est un faux constat `variable-absente`
- * (hypothèse 4 de la section 6.1). Q3 dépend de Q-F2-1 : la décision provisoire attend une information, sans question ni correction.
+ * création du rôle absent (P15). Le kit rend cette question avec le genre `variable-inconnue` (E3.1) et ne crée plus le rôle absent
+ * (hypothèse 4 de la section 6.1). Q3, selon Q-F2-1, ne rend rien : ni information, ni question, ni terme à ajouter à la main.
  */
 import { VARIABLES_DE_PALETTE, type VariableDuTheme } from '../../../src/emplois/dossiers.js';
 import { MODES_DU_THEME, paletteDeCarte } from './carte.js';
@@ -79,15 +78,14 @@ export function operateursNoms(base: ThemeDeBase, graine: number = GRAINE_PAR_DE
     renommer('Q2', role, 'primary', `${primary.groupe.join('/')}/${synonyme}`, `synonyme ${synonyme}`);
   }
 
-  // Q3. Un nom qui ne ressemble à aucun rôle : le plan attend une information grise (Q-F2-1).
+  // Q3. Un nom qui ne ressemble à aucun rôle : le mainteneur a décidé qu'il ne rend rien (Q-F2-1).
   for (const nom of NOMS_SANS_PROXIMITE) {
     const degradation: Degradation = registre.degrader();
     const variable = ajouterUneVariable(degradation, 'theme', nom, { alias: primary.rampes.light[300].cle });
     for (const mode of MODES_DU_THEME) degradation.viser(variable.cle, mode, primary.rampes[mode][300].cle);
     degradation.zone({ palette: 'primary', role: '(nom)', mode: 'les-deux' });
     registre.ajouter('Q3', degradation, {
-      description: `Q3 theme ${nom} ne ressemble à aucun rôle`, attendus: [attendu('C82', 'variable-inconnue', nom, '', 'a-faire')],
-      verdict: 'mesure', question: 'Q-F2-1',
+      description: `Q3 theme ${nom} ne ressemble à aucun rôle`, attendus: [],
     });
   }
   return registre.cas;

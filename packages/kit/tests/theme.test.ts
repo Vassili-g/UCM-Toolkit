@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import { controlerLeTheme as fondsDuComposant, controlerLeThemeParEtapes, controlerLesModes } from '../src/controles/theme.js';
 import type { CatalogueDeReference, LayerLu, ReleveDeComposant } from '../src/controles/index.js';
+import { MODE_DARK, MODE_LIGHT, catalogueDeStructure, cleDeLaFixture } from './fixtures/catalogueDeStructure.js';
 
 const modes = [{ id: 'light', nom: 'Light' }, { id: 'dark', nom: 'Dark' }];
 function cat(collections: CatalogueDeReference['collections'], variables: CatalogueDeReference['variables']): CatalogueDeReference {
@@ -182,4 +183,81 @@ test('C59 ne juge pas un texte posé sur un fond lié à une variable illisible'
   const r = { ...releve(texte), variants: [{ id: 'v1', nom: 'Alert', valeurs: {}, modesEffectifs: {}, layers: [fond, texte] }] };
   const c = cat([collection('themes', 'theme')], [{ cle: 'fg-surface', nom: 'success/surface/foreground', collection: 'themes', type: 'COLOR', etat: 'presente' }]);
   assert.equal(controlerLeTheme(r, c).find(({ code }) => code === 'C59'), undefined);
+});
+
+// ---------------------------------------------------------------------------------------------------------------------------
+// C60 sur un catalogue de structure : le mode est dans le chemin de la rampe (`primary/dark/300`, comme l'écrit UCM Palettes).
+
+const structure = (alias: Record<string, { mode: string; cible: string }>, sansVariables: readonly string[] = [], modesDeMarque?: string[]): CatalogueDeReference => {
+  const base = catalogueDeStructure();
+  return {
+    ...base,
+    collections: modesDeMarque
+      ? base.collections.map((entree) => (entree.cle === 'brands' ? { ...entree, modes: entree.modes.map((mode, rang) => ({ ...mode, nom: modesDeMarque[rang] })) } : entree))
+      : base.collections,
+    variables: base.variables.filter((entree) => !sansVariables.includes(entree.cle)).map((entree) => {
+      const reglage = alias[entree.nom];
+      return reglage && entree.collection === 'theme' ? { ...entree, valeurs: { ...entree.valeurs, [reglage.mode]: { alias: reglage.cible } } } : entree;
+    }),
+  };
+};
+const modesDe = (catalogue: CatalogueDeReference, variable: string) => controlerLesModes(catalogue).filter((constat) => constat.faits.variable === variable);
+
+test('C60 trouve la branche de mode dans le chemin de la rampe, même quand les modes de la marque portent un autre nom (N-24)', () => {
+  const catalogue = structure({ 'primary/surface/default': { mode: MODE_LIGHT, cible: cleDeLaFixture('brands', 'primary/dark/200') } });
+  const [constat, ...autres] = modesDe(catalogue, 'primary/surface/default');
+  assert.equal(autres.length, 0);
+  assert.equal(constat.code, 'C60');
+  assert.equal(constat.correction?.avant, cleDeLaFixture('brands', 'primary/dark/200'));
+  assert.deepEqual(constat.correction?.apres, { cle: cleDeLaFixture('brands', 'primary/light/100'), nom: 'primary/light/100' });
+});
+
+test('C60 corrige un alias vers l’autre branche au cran du propre mode du rôle : la bonne branche au cran de la table (N-26)', () => {
+  for (const modesDeMarque of [undefined, ['light', 'dark']]) {
+    const catalogue = structure({ 'primary/surface/default': { mode: MODE_LIGHT, cible: cleDeLaFixture('brands', 'primary/dark/100') } }, [], modesDeMarque);
+    const [constat] = modesDe(catalogue, 'primary/surface/default');
+    assert.equal(constat.correction?.apres.nom, 'primary/light/100', String(modesDeMarque));
+    assert.equal(constat.question, undefined, String(modesDeMarque));
+  }
+});
+
+test('C60 lit le sens de la palette : un cran fautif qui vaut pour les deux sens reçoit la correction du sens établi (N-27)', () => {
+  const catalogue = structure({ 'primary/surface/foreground': { mode: MODE_LIGHT, cible: cleDeLaFixture('brands', 'primary/dark/950') } }, [], ['light', 'dark']);
+  const [constat] = modesDe(catalogue, 'primary/surface/foreground');
+  assert.equal(constat.question, undefined);
+  assert.equal(constat.correction?.apres.nom, 'primary/light/700');
+});
+
+test('C60 ne corrige jamais le texte des boutons : il pose une question qui porte le blanc et le noir de la bonne branche', () => {
+  const catalogue = structure({ 'primary/solid/foreground': { mode: MODE_LIGHT, cible: cleDeLaFixture('utility', 'neutral/dark/white') } });
+  const [constat] = modesDe(catalogue, 'primary/solid/foreground');
+  assert.equal(constat.correction, undefined);
+  assert.equal(constat.faits.genre, 'branche-de-mode');
+  assert.deepEqual(constat.question?.candidats.map(({ nom }) => nom).sort(), ['neutral/light/black', 'neutral/light/white']);
+});
+
+test('toute question C60 a un genre : la cible attendue absente, l’alias qui boucle (E-20)', () => {
+  const absente = structure({ 'primary/surface/default': { mode: MODE_LIGHT, cible: cleDeLaFixture('brands', 'primary/dark/200') } }, [cleDeLaFixture('brands', 'primary/light/100')]);
+  const [sansCible] = modesDe(absente, 'primary/surface/default');
+  assert.equal(sansCible.correction, undefined);
+  assert.deepEqual([sansCible.faits.genre, sansCible.question?.candidats], ['branche-de-mode', []]);
+  const boucle = structure({ 'primary/surface/default': { mode: MODE_LIGHT, cible: cleDeLaFixture('brands', 'primary/dark/200') } });
+  const surBoucle: CatalogueDeReference = {
+    ...boucle,
+    variables: boucle.variables.map((entree) => (entree.cle === cleDeLaFixture('brands', 'primary/dark/200')
+      ? { ...entree, valeurs: { 'm-marque-a': { alias: entree.cle }, 'm-marque-b': { alias: entree.cle } } } : entree)),
+  };
+  const [enBoucle] = modesDe(surBoucle, 'primary/surface/default');
+  assert.deepEqual([enBoucle.correction, enBoucle.faits.genre], [undefined, 'branche-de-mode']);
+});
+
+test('C60 ne dit rien d’un alias dans la bonne branche, ni quand deux modes de theme se lisent comme le même', () => {
+  const bonne = structure({ 'primary/surface/default': { mode: MODE_LIGHT, cible: cleDeLaFixture('brands', 'primary/light/100') } });
+  assert.deepEqual(controlerLesModes(bonne), []);
+  const doublon: CatalogueDeReference = {
+    ...bonne,
+    collections: bonne.collections.map((entree) => (entree.cle === 'theme' ? { ...entree, modes: [{ id: MODE_LIGHT, nom: 'light' }, { id: MODE_DARK, nom: 'Light' }] } : entree)),
+  };
+  const mauvaise = structure({ 'primary/surface/default': { mode: MODE_LIGHT, cible: cleDeLaFixture('brands', 'primary/dark/200') } });
+  assert.deepEqual(controlerLesModes({ ...mauvaise, collections: doublon.collections }), []);
 });

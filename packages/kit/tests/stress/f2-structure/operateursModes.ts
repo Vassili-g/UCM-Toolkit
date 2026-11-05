@@ -58,7 +58,7 @@ export function operateursModes(base: ThemeDeBase, graine: number = GRAINE_PAR_D
         registre.ajouter('M1', degradation, {
           description: `M1 ${palette.id} ${role} en ${mode} vise la branche ${autre} (place ${place})`,
           attendus: [constat], details: [{ pour: cleComplete(constat), avant: cleDeplacee }],
-          ...(place === 'chemin' ? { verdict: 'mesure', question: 'Q-F2-4', hypothese: 'H1' } : {}),
+          ...(place === 'chemin' ? { hypothese: 'H1' } : {}),
         });
       }
     }
@@ -75,7 +75,7 @@ export function operateursModes(base: ThemeDeBase, graine: number = GRAINE_PAR_D
     degradation.zone({ palette: palette.id, role, mode });
     registre.ajouter('M2', degradation, {
       description: `M2 ${palette.id} ${role} en ${mode} vise la branche ${autre}, la cible attendue est retirée`,
-      attendus: [attendu('C60', null, variable.nom, nomDe(mode), 'question', { candidats: [] })],
+      attendus: [attendu('C60', 'branche-de-mode', variable.nom, nomDe(mode), 'question', { candidats: [] })],
     });
   }
   {
@@ -90,7 +90,7 @@ export function operateursModes(base: ThemeDeBase, graine: number = GRAINE_PAR_D
     registre.ajouter('M2', degradation, {
       description: `M2 ${palette.id} surface/default en light vise la branche dark, dont la variable s'aliase elle-même`,
       attendus: [
-        attendu('C60', null, variable.nom, nomDe('light'), 'question', { candidats: [] }),
+        attendu('C60', 'branche-de-mode', variable.nom, nomDe('light'), 'question', { candidats: [] }),
         attendu('C82', 'couche', cible.nom, nomDe('dark'), 'a-faire'),
       ],
     });

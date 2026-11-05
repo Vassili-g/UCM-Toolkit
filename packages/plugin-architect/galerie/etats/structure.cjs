@@ -72,7 +72,7 @@ ETATS.push(
     atteinte: ouvertIntegrite(integrite.releveDeBase(), integrite.sansEcriture.slice(0, 3), CARTES_A_FAIRE),
   },
   {
-    id: 't-sens-inconnu', titre: 'Tokens, sens de la palette inconnu', quand: 'Une palette vise des crans contraires : UCM ne sait pas quel texte elle met sur ses boutons.',
+    id: 't-sens-inconnu', titre: 'Tokens, texte des boutons à contre-sens', quand: 'Le texte des boutons de primary vise le noir en Light quand les autres rôles de la palette attendent le blanc : UCM ne corrige pas ce choix et pose la question.',
     regarder: 'Une carte à vérifier dans la section Crans, dépliée : la phrase de la question, la variable en lieu, les deux cibles possibles en Light.',
     existe: true,
     atteinte: [...ouvertIntegrite(integrite.releveAuxEcarts(), integrite.sensInconnu, CARTES_A_FAIRE), { clic: '#panneau-a-appliquer .bloc-constat .bloc-bouton' }],

@@ -220,3 +220,69 @@ test('hors collection theme lue, le contrôle ne rend rien', () => {
   assert.deepEqual(controlerLIntegriteUcm({ ...catalogue, collections: catalogue.collections.map((collection) => (collection.role === 'theme' ? { ...collection, etat: 'inaccessible' as const } : collection)) }), []);
   assert.deepEqual(controlerLIntegriteUcm({ ...catalogue, collections: catalogue.collections.map((collection) => ({ ...collection, role: null })) }), []);
 });
+
+/** Le même catalogue, avec une variable de `theme` sous un autre nom ; sa clé ne change pas. */
+const avecNom = (catalogue: CatalogueDeReference, nom: string, nouveau: string): CatalogueDeReference => ({
+  ...catalogue,
+  variables: catalogue.variables.map((entree) => (entree.cle === cleDeLaFixture('theme', nom) ? { ...entree, nom: nouveau } : entree)),
+});
+const inconnues = (catalogue: CatalogueDeReference): Constat[] =>
+  controlerLIntegriteUcm(catalogue, { ecriture: avecEcriture('minuscules', 'tiret') }).filter((constat) => constat.faits.genre === 'variable-inconnue');
+
+test('14. une faute dans le dernier segment d’un rôle rend une question qui nomme le rôle, et ne crée pas le rôle absent (E-19, Q-F2-1)', () => {
+  const catalogue = avecNom(catalogueDeStructure(), 'primary/solid/default', 'primary/solid/deault');
+  const questions = inconnues(catalogue);
+  assert.equal(questions.length, 1);
+  assert.deepEqual([questions[0].code, questions[0].type, questions[0].faits.variable], ['C82', 'verifier', 'primary/solid/deault']);
+  assert.equal(questions[0].correction, undefined);
+  assert.deepEqual(questions[0].question?.candidats.map(({ nom }) => nom), ['primary/solid/default']);
+  assert.equal(absentes(catalogue).some((constat) => constat.faits.groupe === 'primary' && constat.faits.variable === 'solid/default'), false);
+});
+
+test('15. une lettre retirée, remplacée ou échangée, un dossier fautif ou un synonyme donnent la même question', () => {
+  const cas: [string, string, string][] = [
+    ['primary/solid/hover', 'primary/solid/hver', 'primary/solid/hover'],
+    ['primary/solid/hover', 'primary/solid/hxver', 'primary/solid/hover'],
+    ['primary/solid/hover', 'primary/solid/hvoer', 'primary/solid/hover'],
+    ['primary/surface/default', 'primary/surfce/default', 'primary/surface/default'],
+    ['primary/surface/border', 'primary/surface/outline', 'primary/surface/border'],
+    ['primary/page/foreground', 'primary/page/text', 'primary/page/foreground'],
+    ['primary/solid/pressed', 'primary/solid/active', 'primary/solid/pressed'],
+    ['primary/page/divider', 'primary/page/separator', 'primary/page/divider'],
+    ['primary/ring', 'primary/focus', 'primary/ring'],
+    ['primary/surface/default', 'primary/surface/bg', 'primary/surface/default'],
+  ];
+  for (const [role, nom, proche] of cas) {
+    const catalogue = avecNom(catalogueDeStructure(), role, nom);
+    const questions = inconnues(catalogue);
+    assert.deepEqual(questions.map((constat) => constat.question?.candidats.map(({ nom: candidat }) => candidat)), [[proche]], nom);
+    assert.equal(questions[0].correction, undefined, nom);
+    const [groupe, ...reste] = role.split('/');
+    assert.equal(absentes(catalogue).some((constat) => constat.faits.groupe === groupe && constat.faits.variable === reste.join('/')), false, nom);
+  }
+});
+
+test('16. la question écrit le rôle proche comme le nom fautif : même casse, même séparateur', () => {
+  const catalogue = avecNom(catalogueDeStructure(), 'primary/page/foreground', 'primary/Page/Foregrund');
+  assert.deepEqual(inconnues(catalogue).map((constat) => constat.question?.candidats.map(({ nom }) => nom)), [['primary/Page/Foreground']]);
+});
+
+test('17. une variable loin de tout rôle ne rend rien, et le rôle absent se crée comme avant (Q-F2-1)', () => {
+  const loin = avecNom(catalogueDeStructure(), 'primary/page/foreground', 'primary/page/xyz');
+  assert.deepEqual(inconnues(loin), []);
+  assert.ok(absentes(loin).some((constat) => constat.faits.groupe === 'primary' && constat.faits.variable === 'page/foreground'));
+  const racine = { ...catalogueDeStructure() };
+  const avecIdentite: CatalogueDeReference = {
+    ...racine,
+    variables: [...racine.variables, { cle: cleDeLaFixture('theme', 'custom/accent'), nom: 'custom/accent', collection: 'theme', type: 'COLOR', etat: 'presente' }],
+  };
+  assert.deepEqual(inconnues(avecIdentite), []);
+  assert.equal(absentes(avecIdentite).length, 23);
+});
+
+test('18. un rôle ignoré n’est pas proposé comme rôle proche', () => {
+  const catalogue = avecNom(catalogueDeStructure(), 'primary/solid/default', 'primary/solid/deault');
+  const questions = controlerLIntegriteUcm(catalogue, { ecriture: avecEcriture('minuscules', 'tiret'), rolesIgnores: ['solid/default'] })
+    .filter((constat) => constat.faits.genre === 'variable-inconnue');
+  assert.deepEqual(questions, []);
+});

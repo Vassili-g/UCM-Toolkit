@@ -1,6 +1,6 @@
 /**
  * Les données des états du contrôle d'intégrité C82 en mode Tokens : variables manquantes, crans, constats à régler dans Figma,
- * sens inconnu, application d'une création. Les constats sortent du vrai `controlerLIntegriteUcm` du kit, joué sur le catalogue de
+ * texte des boutons à contre-sens, application d'une création. Les constats sortent du vrai `controlerLIntegriteUcm` du kit, joué sur le catalogue de
  * sa fixture (`packages/kit/tests/fixtures/catalogueDeStructure.ts`) : 11 palettes dans `theme`, sans `surface/subtle` ni
  * `surface/divider`, `neutral` sans `page/foreground`, des crans de `surface` en Dark à l'ancienne table. Le relevé de l'explorateur
  * reprend les mêmes variables sous les mêmes identifiants, que les cartes retrouvent par `Noms`.
@@ -40,13 +40,14 @@ function avec(catalogue, ...variables) {
   return { ...catalogue, variables: [...catalogue.variables.filter((entree) => !cles.has(entree.cle)), ...variables] };
 }
 
-/** Un fichier aux écarts de toute sorte : un groupe sans alias, une rampe sans cran, un type, un rangement, une couche, une valeur directe, un sens inconnu. */
+/** Un fichier aux écarts de toute sorte : un groupe sans alias, une rampe sans cran, un type, un rangement, une couche, une valeur directe, un texte des boutons à contre-sens. */
 function catalogueAuxEcarts() {
   let catalogue = catalogueDeStructure();
   const absent = cleDeLaFixture('brands', 'primary/light/50');
   catalogue = { ...catalogue, variables: catalogue.variables.filter((entree) => entree.cle !== absent) };
   const direct = (nom) => variable('theme', nom, { [MODE_LIGHT]: { valeur: '#B15152' }, [MODE_DARK]: { valeur: '#B15152' } });
-  const solidePresse = catalogue.variables.find((entree) => entree.cle === cleDeLaFixture('theme', 'primary/solid/pressed'));
+  // Q-F2-3 : le texte des boutons ne vote pas et ne se corrige jamais ; noir en Light, il rend une question à deux réponses.
+  const texteDesBoutons = catalogue.variables.find((entree) => entree.cle === cleDeLaFixture('theme', 'primary/solid/foreground'));
   catalogue = avec(
     catalogue,
     direct('tertiary/ring'),
@@ -55,7 +56,7 @@ function catalogueAuxEcarts() {
     variable('primitives', 'color/red/500'),
     variable('theme', 'primary/page/border', { [MODE_LIGHT]: { alias: cleDeLaFixture('primitives', 'color/red/500') }, [MODE_DARK]: { alias: cleDeLaFixture('primitives', 'color/red/500') } }),
     variable('theme', 'primary/page/divider', { [MODE_LIGHT]: { alias: cleDeLaFixture('brands', 'primary/light/300') }, [MODE_DARK]: { valeur: '#E2B0B0' } }),
-    { ...solidePresse, valeurs: { ...solidePresse.valeurs, [MODE_LIGHT]: { alias: cleDeLaFixture('brands', 'primary/light/500') } } },
+    { ...texteDesBoutons, valeurs: { ...texteDesBoutons.valeurs, [MODE_LIGHT]: { alias: cleDeLaFixture('utility', 'neutral/light/black') } } },
   );
   return catalogue;
 }

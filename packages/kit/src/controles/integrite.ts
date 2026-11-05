@@ -9,14 +9,15 @@
  */
 import {
   NIVEAUX_D_ELEVATION_DU_THEME, SUPPORT_DES_VARIABLES, VARIABLES_DE_PALETTE, VARIABLES_DU_NEUTRE, VARIABLES_GLOBALES,
-  cibleDeLaVariable, sensDeLaPalette,
-  type CibleDeVariable, type ModeDuTheme, type SensDeduit, type VariableDePalette, type VariableDuTheme,
+  cibleDeLaVariable, cranDeLaVariable,
+  type CibleDeVariable, type ModeDuTheme, type SensDuTheme, type VariableDePalette, type VariableDuTheme,
 } from '../emplois/dossiers.js';
 import type { EcritureChoisie } from '../protocoles/nommage.js';
 import { COLLECTIONS_SANS_PORTEE, FAMILLES_UTILITY, REGISTRE_COULEURS_ABSOLUES, ciblesAdmises } from '../referentiel/architecture.js';
-import type { Convention } from '../referentiel/conventions.js';
-import { assembler, decouperSegment, motsAvecCasse } from '../referentiel/ecriture-des-mots.js';
+import type { Casse, Convention, Separateur } from '../referentiel/conventions.js';
+import { assembler, decouperSegment, frontieres, motsAvecCasse } from '../referentiel/ecriture-des-mots.js';
 import { formeDuChemin, formeReconnue, termeReconnu } from '../referentiel/reconnaissance.js';
+import { distanceUnOuEchange, memeConcept } from '../referentiel/termes-connus.js';
 import { MODES } from '../referentiel/vocabulaire.js';
 import { modeDuThemeReconnu, variableDuThemeReconnue } from '../referentiel/theme.js';
 import { cheminDansLaCollection, collectionParCle, variableParCle, type CatalogueDeReference, type CollectionDuCatalogue, type VariableDuCatalogue } from './catalogue.js';
@@ -30,7 +31,7 @@ export interface OptionsDIntegrite {
 }
 
 /** Les variables d'un préfixe de `theme` : un groupe de palette quand il porte une variable de palette. */
-interface Prefixe {
+export interface Prefixe {
   readonly segments: readonly string[];
   /** Le premier segment des noms du groupe quand ils redisent la collection (`theme/primary/…`) : la variable créée le garde. */
   readonly collectionEcrite: string | undefined;
@@ -40,15 +41,22 @@ interface Prefixe {
   readonly jumelles: Map<ModeDuTheme, Jumelles>;
 }
 
-/** Les rampes que visent les variables d'un groupe dans un mode, et les crans qu'elles visent. */
-interface Jumelles {
+/**
+ * Les rampes que visent les variables d'un groupe dans un mode, et les crans qu'elles visent. `vise` ne garde que les variables qui
+ * suivent la rampe de leur palette : une variable sur la rampe d'une autre palette est dans `etrangeres` et ne vote pas pour le sens.
+ */
+export interface Jumelles {
   readonly rampes: Map<string, Rampe>;
   readonly vise: Partial<Record<VariableDePalette, CibleDeVariable>>;
+  /** La rampe que la majorité nette des variables vise, quand il y en a une. */
+  readonly principale?: Rampe;
+  /** Les clés des variables qui visent une autre rampe que `principale`. */
+  readonly etrangeres: ReadonlySet<string>;
 }
 
-interface Rampe { readonly collection: string; readonly segments: readonly string[]; readonly distante: boolean }
+export interface Rampe { readonly collection: string; readonly segments: readonly string[]; readonly distante: boolean }
 
-interface ModeLu { readonly id: string; readonly nom: string; readonly ucm: ModeDuTheme }
+export interface ModeLu { readonly id: string; readonly nom: string; readonly ucm: ModeDuTheme }
 
 type Resolution =
   | { readonly etat: 'trouvee'; readonly cible: { readonly cle: string; readonly nom: string }; readonly vise: string | number }
@@ -70,7 +78,10 @@ export function controlerLIntegriteUcm(catalogue: CatalogueDeReference, options:
   const themes = catalogue.collections.filter((collection) => collection.role === 'theme' && collection.etat === 'lue');
   if (themes.length === 0) return [];
   const index = indexerLesCibles(catalogue);
-  return [...themes.flatMap((theme) => controlerUnTheme(catalogue, theme, index, options)), ...controlerLaStructure(catalogue, themes)];
+  return [
+    ...themes.flatMap((theme) => controlerUnTheme(catalogue, theme, index, options)),
+    ...controlerLaStructure(catalogue, themes),
+  ];
 }
 
 function indexerLesCibles(catalogue: CatalogueDeReference): IndexDesCibles {
@@ -94,13 +105,9 @@ function indexerLesCibles(catalogue: CatalogueDeReference): IndexDesCibles {
 }
 
 function controlerUnTheme(catalogue: CatalogueDeReference, theme: CollectionDuCatalogue, index: IndexDesCibles, options: OptionsDIntegrite): Constat[] {
-  const modes: ModeLu[] = [];
-  let modeInconnu = false;
-  for (const mode of theme.modes) {
-    const ucm = modeDuThemeReconnu(mode.nom);
-    if (ucm) modes.push({ id: mode.id, nom: mode.nom, ucm }); else modeInconnu = true;
-  }
-  const { prefixes, collectionEcrite } = lesPrefixes(catalogue, theme);
+  const modes = modesDuTheme(theme);
+  const modeInconnu = modes.length < theme.modes.length;
+  const { prefixes, collectionEcrite, inconnues } = lesPrefixes(catalogue, theme);
   const ignores = new Set<VariableDuTheme>(options.rolesIgnores ?? []);
   const ecriture = options.ecriture ?? null;
   const constats: Constat[] = [];
@@ -112,7 +119,22 @@ function controlerUnTheme(catalogue: CatalogueDeReference, theme: CollectionDuCa
     if (connu) connu.variables.push(libelle); else cransAbsents.set(cle, { rampe, cran, variables: [libelle] });
   };
 
+  // Un nom proche d'un rôle (Q-F2-1) : la question passe avant la création du rôle, qui doublonnerait la variable fautive.
+  const protegees = new Set<string>();
+  for (const variable of inconnues) {
+    const proches = rolesProches(catalogue, variable, prefixes, ignores);
+    if (proches.length === 0) continue;
+    for (const { role, prefixe } of proches) protegees.add(`${formeDuChemin(prefixe)}\0${role}`);
+    const id = `C82:variable-inconnue:${variable.cle}`;
+    constats.push({
+      id, code: 'C82', type: 'verifier', famille: 'liaisons', variants: [], layers: [],
+      faits: { genre: 'variable-inconnue', variable: variable.nom, roles: proches.map(({ role }) => role).join(', ') },
+      question: { id, candidats: proches.map(({ nom }) => ({ nom })) },
+    });
+  }
+
   const absente = (prefixe: Prefixe, groupe: boolean, role: VariableDuTheme): void => {
+    if (protegees.has(`${formeDuChemin(prefixe.segments)}\0${role}`)) return;
     const resolutions = modes.map((mode) => ({ mode, resolution: resoudre(catalogue, index, prefixe, groupe, role, mode) }));
     const manques = resolutions.flatMap(({ resolution }) => (resolution.etat === 'cran-absent' ? [resolution] : []));
     const nom = ecriture ? nomCree(prefixe, role, ecriture) : undefined;
@@ -163,6 +185,11 @@ function controlerUnTheme(catalogue: CatalogueDeReference, theme: CollectionDuCa
         if (jugement.cranAbsent) noterLeCranAbsent(jugement.cranAbsent.rampe, jugement.cranAbsent.cran, [...prefixe.segments, role].join('/'));
       }
     }
+    if (groupe) {
+      for (const mode of modes) {
+        if (lireLeSens(mode.ucm, lesJumelles(catalogue, prefixe, mode).vise) === 'partage') constats.push(constatDeSensPartage(catalogue, index, theme, prefixe, mode));
+      }
+    }
   }
 
   for (const [cle, manque] of cransAbsents) {
@@ -174,14 +201,165 @@ function controlerUnTheme(catalogue: CatalogueDeReference, theme: CollectionDuCa
   return constats;
 }
 
+/** Les modes de `theme` que l'écriture UCM reconnaît (`Light`, `dark`…), avec leur identifiant. */
+export function modesDuTheme(theme: CollectionDuCatalogue): ModeLu[] {
+  return theme.modes.flatMap((mode) => {
+    const ucm = modeDuThemeReconnu(mode.nom);
+    return ucm ? [{ id: mode.id, nom: mode.nom, ucm }] : [];
+  });
+}
+
+// ---------------------------------------------------------------------------------------------------------------------------
+// Rôles proches (Q-F2-1)
+
+type Proximite = 'exact' | 'proche';
+
+/**
+ * Les mots que le designer écrit pour un mot de rôle sans que le vocabulaire courant les relie : `text` pour `foreground`, `bg` pour
+ * `default` (le fond d'un dossier), `focus` pour `ring`. Les autres synonymes de rôle (`outline`, `separator`, `muted`, `active`,
+ * `hovered`) viennent de `memeConcept`.
+ */
+const SYNONYMES_DE_ROLE: readonly (readonly string[])[] = [['foreground', 'text'], ['default', 'bg', 'background'], ['ring', 'focus']];
+
+const memeMot = (lu: string, voulu: string): boolean =>
+  lu === voulu || memeConcept(lu, voulu) || SYNONYMES_DE_ROLE.some((groupe) => groupe.includes(lu) && groupe.includes(voulu));
+
+/**
+ * Un segment qui n'est pas celui du rôle mais en reste proche : une lettre ajoutée, retirée, remplacée ou échangée, ou un
+ * synonyme du vocabulaire (`hovered` pour `hover`, `outline` pour `border`). Un nombre n'est jamais proche (`scale/{cran}`).
+ */
+function proximiteDuSegment(segment: string, attendu: string): Proximite | undefined {
+  const lu = formeReconnue(segment);
+  const voulu = formeReconnue(attendu);
+  if (lu === voulu) return 'exact';
+  if (NOMBRE.test(lu)) return undefined;
+  const motsLus = lu.split('-');
+  const motsVoulus = voulu.split('-');
+  if (motsLus.length === motsVoulus.length && motsLus.every((mot, rang) => memeMot(mot, motsVoulus[rang]))) return 'proche';
+  if (lu.length < 3 || voulu.length < 4) return undefined;
+  return distanceUnOuEchange(lu, voulu) ? 'proche' : undefined;
+}
+
+/** Le segment d'un rôle écrit comme le modèle : sa casse et son séparateur (`foreground-main` pour `Foreground-mian`). */
+function ecrireCommeLeModele(modele: string, identifiant: string): string {
+  const capitales = [...modele].filter((lettre) => lettre !== lettre.toLowerCase()).length;
+  const premiereEnCapitale = /^\p{Lu}/u.test(modele);
+  const casse: Casse = capitales === 0 ? 'minuscules' : premiereEnCapitale ? (capitales > 1 ? 'PascalCase' : 'initiale') : 'camelCase';
+  const separateur: Separateur = modele.includes('_') ? 'tiret-bas' : modele.includes('-') ? 'tiret' : /\s/u.test(modele) ? 'espace'
+    : frontieres(modele).includes('\0') ? 'camelCase' : 'tiret';
+  return assembler(identifiant, motsAvecCasse(decouperSegment(identifiant), casse), separateur);
+}
+
+interface RoleProche { readonly role: VariableDuTheme; readonly prefixe: readonly string[]; readonly nom: string }
+
+/**
+ * Les rôles du thème dont une variable inconnue est proche, dans le même groupe : le dernier segment est proche et son dossier
+ * exact, ou le dossier est proche et le dernier segment exact. Le groupe est une palette connue ou la racine (variables globales).
+ * Une variable loin de tout rôle ne donne rien.
+ */
+function rolesProches(
+  catalogue: CatalogueDeReference, variable: VariableDuCatalogue, prefixes: ReadonlyMap<string, Prefixe>, ignores: ReadonlySet<VariableDuTheme>,
+): RoleProche[] {
+  const chemin = cheminDansLaCollection(variable, catalogue);
+  const segmentsDuNom = variable.nom.split('/');
+  const trouves: RoleProche[] = [];
+  for (const longueur of [1, 2]) {
+    if (chemin.length < longueur) continue;
+    const prefixe = chemin.slice(0, chemin.length - longueur);
+    const groupe = prefixes.get(formeDuChemin(prefixe));
+    let roles: readonly VariableDuTheme[];
+    if (prefixe.length === 0) roles = [...VARIABLES_GLOBALES, ...NIVEAUX_D_ELEVATION_DU_THEME.map((niveau): VariableDuTheme => `elevation/${niveau}`)];
+    else if (groupe && [...groupe.presentes.keys()].some(estUneVariableDePalette)) {
+      roles = estLeNeutre(prefixe) ? [...VARIABLES_DE_PALETTE, ...VARIABLES_DU_NEUTRE.filter((role) => !role.startsWith('scale/'))] : VARIABLES_DE_PALETTE;
+    } else continue;
+    const queue = chemin.slice(chemin.length - longueur);
+    for (const role of roles) {
+      const attendus = role.split('/');
+      if (attendus.length !== longueur || ignores.has(role)) continue;
+      const proximites = attendus.map((attendu, rang) => proximiteDuSegment(queue[rang], attendu));
+      const proches = proximites.filter((proximite) => proximite === 'proche').length;
+      if (proximites.some((proximite) => proximite === undefined) || proches !== 1) continue;
+      const debut = segmentsDuNom.length - longueur;
+      const nom = [...segmentsDuNom.slice(0, debut), ...attendus.map((attendu, rang) => (proximites[rang] === 'exact' ? segmentsDuNom[debut + rang] : ecrireCommeLeModele(segmentsDuNom[debut + rang], attendu)))].join('/');
+      trouves.push({ role, prefixe, nom });
+    }
+  }
+  return trouves;
+}
+
+/** Le blanc et le noir de `utility/neutral` dans le mode : les deux réponses à une question sur le texte des boutons. */
+function candidatsDuTexteDesBoutons(catalogue: CatalogueDeReference, index: IndexDesCibles, mode: ModeLu): { cle: string; nom: string }[] {
+  return (['white', 'black'] as const).flatMap((absolue) => {
+    const resolution = chercherDansUtility(catalogue, index, ['neutral', mode.ucm, absolue], absolue);
+    return resolution.etat === 'trouvee' ? [resolution.cible] : [];
+  });
+}
+
+/** La palette dont les variables se répartissent entre les deux sens (Q-F2-3) : la question porte le texte des boutons, jamais une correction. */
+function constatDeSensPartage(catalogue: CatalogueDeReference, index: IndexDesCibles, theme: CollectionDuCatalogue, prefixe: Prefixe, mode: ModeLu): Constat {
+  const groupe = prefixe.segments.join('/');
+  const id = `C82:sens-partage:${theme.cle}:${formeDuChemin(prefixe.segments)}:${mode.id}`;
+  return {
+    id, code: 'C82', type: 'verifier', famille: 'liaisons', variants: [], layers: [],
+    faits: { genre: 'sens-partage', variable: groupe, groupe, mode: mode.nom },
+    question: { id, candidats: candidatsDuTexteDesBoutons(catalogue, index, mode) },
+  };
+}
+
+/**
+ * Une variable sur la rampe d'une autre palette (Q-F2-2) : le kit ne devine pas la palette voulue. La question propose la même
+ * nuance dans la rampe de la palette, quand elle existe, et la rampe actuelle.
+ */
+function constatDeRampeEtrangere(index: IndexDesCibles, jumelles: Jumelles, variable: VariableDuCatalogue, mode: ModeLu, lue: CibleLue): Constat {
+  const principale = jumelles.principale!;
+  const id = `C82:rampe-autre-palette:${variable.cle}:${mode.id}`;
+  const cran = 'cran' in lue.visee ? lue.visee.cran : undefined;
+  const propres = cran === undefined ? [] : index.parChemin.get(`${principale.collection}\0${formeDuChemin([...principale.segments, String(cran)])}`) ?? [];
+  const candidats = [...(propres.length === 1 && !propres[0].distante ? [propres[0]] : []), lue.cible].map(({ cle, nom }) => ({ cle, nom }));
+  return {
+    id, code: 'C82', type: 'verifier', famille: 'liaisons', variants: [], layers: [],
+    faits: { genre: 'rampe-autre-palette', variable: variable.nom, mode: mode.nom, rampe: lue.rampe.segments.join('/'), rampeDeLaPalette: principale.segments.join('/') },
+    question: { id, candidats },
+  };
+}
+
 interface JugementDeCran { readonly constat?: Constat; readonly cranAbsent?: { readonly rampe: readonly string[]; readonly cran: number } }
 
 const texteDeLaCible = (cible: CibleDeVariable): string => ('cran' in cible ? `le cran ${cible.cran}` : `la couleur ${cible.absolue}`);
 
+/** Le sens que les crans d'une palette établissent dans un mode : `partage` quand les variables se répartissent entre les deux tables. */
+export type SensLu = SensDuTheme | 'partage' | 'inconnu';
+
 /**
- * Le cran qu'une variable de `theme` vise dans un mode, contre celui que la table lui donne. Le sens de la palette vient de
- * toutes ses variables (`jumelles.vise`). Un sens inconnu ou ambigu ne tranche que si les deux sens donnent la même cible ; sinon
- * une cible lue dans l'une des deux tables passe sans bruit, et une cible lue dans aucune des deux devient une question.
+ * Le sens d'une palette dans un mode, lu sur les crans de ses variables (Q-F2-3). Une variable dont le cran diffère entre les deux
+ * tables vote pour le sens dont la table donne son cran ; une variable sur aucune des deux ne vote pas, ni `solid/foreground`, dont
+ * la couleur est un choix du designer. Les votes d'un seul sens établissent ce sens. Une minorité d'une voix contre trois au
+ * moins est une variable déplacée, et le sens reste celui de la majorité ; au-delà, la palette est `partage`.
+ */
+export function lireLeSens(mode: ModeDuTheme, vise: Jumelles['vise']): SensLu {
+  let normal = 0;
+  let inverse = 0;
+  for (const [variable, cible] of Object.entries(vise) as [VariableDePalette, CibleDeVariable][]) {
+    if (variable === 'solid/foreground' || !('cran' in cible)) continue;
+    const pourLeNormal = cranDeLaVariable(variable, mode, 'normal');
+    const pourLInverse = cranDeLaVariable(variable, mode, 'inverse');
+    if (pourLeNormal === pourLInverse) continue;
+    if (cible.cran === pourLeNormal) normal += 1;
+    else if (cible.cran === pourLInverse) inverse += 1;
+  }
+  if (normal + inverse === 0) return 'inconnu';
+  if (inverse === 0) return 'normal';
+  if (normal === 0) return 'inverse';
+  const majorite: SensDuTheme = normal > inverse ? 'normal' : 'inverse';
+  return Math.max(normal, inverse) >= 3 && Math.min(normal, inverse) === 1 ? majorite : 'partage';
+}
+
+/**
+ * Le cran qu'une variable de `theme` vise dans un mode, contre celui que la table lui donne. Le sens de la palette vient des
+ * variables qui suivent sa rampe (`jumelles.vise`). Un sens inconnu ou partagé ne tranche que si les deux sens donnent la même
+ * cible ; sinon une cible lue dans l'une des deux tables passe sans bruit (la palette partagée a sa propre question), et une cible
+ * lue dans aucune des deux devient une question. Une variable sur la rampe d'une autre palette est une question de rampe, jamais un
+ * cran. Le texte des boutons ne reçoit jamais de correction : à contre-sens des crans, il devient une question à deux réponses.
  */
 function jugerLeCran(
   catalogue: CatalogueDeReference, index: IndexDesCibles, jumelles: Jumelles | undefined,
@@ -191,11 +369,21 @@ function jugerLeCran(
   const normal = cibleDeLaVariable(role, mode.ucm, 'normal');
   const inverse = cibleDeLaVariable(role, mode.ucm, 'inverse');
   if (!lue || !normal || !inverse || variable.distante) return undefined;
-  const sens: SensDeduit = memeCible(normal, inverse) ? 'normal' : jumelles ? sensDeLaPalette(mode.ucm, jumelles.vise) : 'inconnu';
+  if (jumelles?.principale && jumelles.etrangeres.has(variable.cle)) return { constat: constatDeRampeEtrangere(index, jumelles, variable, mode, lue) };
+  const sens: SensLu = memeCible(normal, inverse) ? 'normal' : jumelles ? lireLeSens(mode.ucm, jumelles.vise) : 'inconnu';
   const id = `C82:cran:${variable.cle}:${mode.id}`;
   const faits: Constat['faits'] = { genre: 'cran', variable: variable.nom, mode: mode.nom, avant: valeurVisee(lue.visee) };
   const constat: Constat = { id, code: 'C82', type: 'corriger', famille: 'liaisons', variants: [], layers: [], faits };
-  if (sens === 'ambigu' || sens === 'inconnu') {
+  if (role === 'solid/foreground') {
+    if (sens !== 'normal' && sens !== 'inverse') return undefined;
+    const attendue = sens === 'normal' ? normal : inverse;
+    if (memeCible(lue.visee, attendue)) return undefined;
+    faits.attendu = valeurVisee(attendue);
+    constat.type = 'verifier';
+    constat.question = { id, candidats: candidatsDuTexteDesBoutons(catalogue, index, mode) };
+    return { constat };
+  }
+  if (sens === 'partage' || sens === 'inconnu') {
     if (memeCible(lue.visee, normal) || memeCible(lue.visee, inverse)) return undefined;
     faits.attendu = `${valeurVisee(normal)} ou ${valeurVisee(inverse)}`;
     const candidats: { cle: string; nom: string }[] = [];
@@ -248,14 +436,20 @@ function viser(
  * Les préfixes de `theme`, par forme du chemin : le préfixe vide porte les variables globales. `collectionEcrite` est la
  * collection redite par la première variable reconnue, pour les variables globales que le fichier n'a pas encore.
  */
-function lesPrefixes(catalogue: CatalogueDeReference, theme: CollectionDuCatalogue): { prefixes: Map<string, Prefixe>; collectionEcrite: string | undefined } {
+export function lesPrefixes(
+  catalogue: CatalogueDeReference, theme: CollectionDuCatalogue,
+): { prefixes: Map<string, Prefixe>; collectionEcrite: string | undefined; inconnues: VariableDuCatalogue[] } {
   const prefixes = new Map<string, Prefixe>();
+  const inconnues: VariableDuCatalogue[] = [];
   let collectionDuTheme: string | undefined;
   let premiere = true;
   for (const variable of catalogue.variables) {
     if (variable.collection !== theme.cle || variable.etat !== 'presente') continue;
     const role = variableDuThemeReconnue(variable.nom);
-    if (!role) continue;
+    if (!role) {
+      if (!variable.distante) inconnues.push(variable);
+      continue;
+    }
     const chemin = cheminDansLaCollection(variable, catalogue);
     const longueur = role.split('/').length;
     if (chemin.length < longueur) continue;
@@ -275,7 +469,7 @@ function lesPrefixes(catalogue: CatalogueDeReference, theme: CollectionDuCatalog
       if (!prefixe.dossiers.has(formeDuDossier)) prefixe.dossiers.set(formeDuDossier, dossier);
     }
   }
-  return { prefixes, collectionEcrite: collectionDuTheme };
+  return { prefixes, collectionEcrite: collectionDuTheme, inconnues };
 }
 
 function estUneVariableDePalette(role: VariableDuTheme): role is VariableDePalette {
@@ -321,23 +515,39 @@ function cibleLue(catalogue: CatalogueDeReference, variable: VariableDuCatalogue
   return absolue === 'white' || absolue === 'black' ? { cible, rampe, visee: { absolue } } : undefined;
 }
 
-/** Les variables du groupe qui visent une rampe de `brands` ou de `utility` dans ce mode, et ce qu'elles visent. */
-function lesJumelles(catalogue: CatalogueDeReference, prefixe: Prefixe, mode: ModeLu): Jumelles {
+/**
+ * Les variables du groupe qui visent une rampe de `brands` ou de `utility` dans ce mode, et ce qu'elles visent. La rampe de la
+ * palette est celle que trois variables au moins visent, avec plus du double de voix que toutes les autres rampes ensemble ; une
+ * variable sur une autre rampe est étrangère et ne vote pas pour le sens.
+ */
+export function lesJumelles(catalogue: CatalogueDeReference, prefixe: Prefixe, mode: ModeLu): Jumelles {
   const connues = prefixe.jumelles.get(mode.ucm);
   if (connues) return connues;
   const rampes = new Map<string, Rampe>();
-  const vise: Partial<Record<VariableDePalette, CibleDeVariable>> = {};
+  const comptes = new Map<string, number>();
+  const lues: { role: VariableDuTheme; variable: VariableDuCatalogue; visee: CibleDeVariable; rampe: string | undefined }[] = [];
   for (const [role, variable] of prefixe.presentes) {
     if (variable.distante) continue;
     const lue = cibleLue(catalogue, variable, mode);
     if (!lue) continue;
+    let cleDeRampe: string | undefined;
     if ('cran' in lue.visee) {
-      const cle = `${lue.rampe.collection}\0${formeDuChemin(lue.rampe.segments)}`;
-      if (!rampes.has(cle)) rampes.set(cle, lue.rampe);
+      cleDeRampe = `${lue.rampe.collection}\0${formeDuChemin(lue.rampe.segments)}`;
+      if (!rampes.has(cleDeRampe)) rampes.set(cleDeRampe, lue.rampe);
+      comptes.set(cleDeRampe, (comptes.get(cleDeRampe) ?? 0) + 1);
     }
-    if (estUneVariableDePalette(role) && !(role in vise)) vise[role] = lue.visee;
+    lues.push({ role, variable, visee: lue.visee, rampe: cleDeRampe });
   }
-  const jumelles = { rampes, vise };
+  const [premiere] = [...comptes].sort((a, b) => b[1] - a[1]);
+  const autres = premiere ? [...comptes.values()].reduce((somme, voix) => somme + voix, 0) - premiere[1] : 0;
+  const cleDeLaPrincipale = premiere && premiere[1] >= 3 && premiere[1] > 2 * autres ? premiere[0] : undefined;
+  const vise: Partial<Record<VariableDePalette, CibleDeVariable>> = {};
+  const etrangeres = new Set<string>();
+  for (const { role, variable, visee, rampe } of lues) {
+    if (cleDeLaPrincipale !== undefined && rampe !== undefined && rampe !== cleDeLaPrincipale) etrangeres.add(variable.cle);
+    else if (estUneVariableDePalette(role) && !(role in vise)) vise[role] = visee;
+  }
+  const jumelles: Jumelles = { rampes, vise, etrangeres, ...(cleDeLaPrincipale === undefined ? {} : { principale: rampes.get(cleDeLaPrincipale) }) };
   prefixe.jumelles.set(mode.ucm, jumelles);
   return jumelles;
 }
@@ -360,7 +570,7 @@ function resoudre(catalogue: CatalogueDeReference, index: IndexDesCibles, prefix
   }
   let cible = normal;
   if (!memeCible(normal, inverse)) {
-    const sens = jumelles ? sensDeLaPalette(mode.ucm, jumelles.vise) : 'inconnu';
+    const sens = jumelles ? lireLeSens(mode.ucm, jumelles.vise) : 'inconnu';
     if (sens !== 'normal' && sens !== 'inverse') return { etat: 'sans-correction', raison: 'sens-inconnu' };
     cible = sens === 'normal' ? normal : inverse;
   }

@@ -65,7 +65,7 @@ test('les cas qui dépendent d\'une question non confirmée portent le verdict m
     ['Y4-16', 'Q-F2-sans-numero'], ['Y4-17', 'Q-F2-sans-numero'], ['Y4-18', 'Q-F2-sans-numero'],
     ['X1-1', 'Q-F2-5'], ['X1-2', 'Q-F2-5'], ['X1-3', 'Q-F2-5'], ['X1-4', 'Q-F2-5'],
     ['X2-1', 'Q-F2-6'], ['X2-2', 'Q-F2-6'], ['X2-3', 'Q-F2-6'], ['X2-4', 'Q-F2-6'],
-    ['E1-8', 'Q-F2-8'], ['Q3-1', 'Q-F2-1'], ['Q3-2', 'Q-F2-1'], ['Q3-3', 'Q-F2-1'], ['Q3-4', 'Q-F2-1'],
+    ['E1-8', 'Q-F2-8'],
   ]);
 });
 
@@ -211,8 +211,9 @@ test('Q1 à Q3 : une question qui nomme le rôle proche, sans présélection ; l
     'primary/surface/outline', 'primary/page/text', 'primary/solid/active', 'primary/solid/hovered',
     'primary/page/separator', 'primary/focus', 'primary/surface/muted', 'primary/surface/bg',
   ]);
-  assert.deepEqual(duOperateur('Q3').map((entree) => cles(entree)[0].split('|')[2]), ['primary/page/xyz', 'identity', 'custom/accent', 'tertiary-note']);
-  assert.ok(duOperateur('Q3').every((entree) => entree.attendus[0].forme === 'a-faire'));
+  // Q3 (Q-F2-1) : un nom loin de tout rôle ne rend rien.
+  assert.equal(duOperateur('Q3').length, 4);
+  assert.ok(duOperateur('Q3').every((entree) => entree.attendus.length === 0 && entree.verdict === 'attendu'));
 });
 
 test('les 85 faux positifs : 72 profils et 13 thèmes ciblés bien formés, aucun constat attendu', () => {
