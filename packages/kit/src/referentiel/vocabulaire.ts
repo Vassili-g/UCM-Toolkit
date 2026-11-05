@@ -92,6 +92,7 @@ export const MOTS_DISTINCTS: readonly (readonly [string, string])[] = [
   ['slide', 'slider'], ['small', 'xsmall'], ['star', 'start'], ['step', 'stop'], ['stop', 'top'], ['string', 'strong'],
   ['subtle', 'subtler'], ['swatch', 'switch'], ['tab', 'tag'], ['table', 'tablet'], ['thick', 'tick'], ['three', 'tree'],
   ['tile', 'time'], ['tile', 'title'], ['tip', 'top'], ['width', 'with'], ['xlarge', 'xxlarge'], ['xxl', 'xxs'], ['xxl', 'xxxl'],
+  ['constant', 'content'], ['selected', 'selector'], ['subtitle', 'subtle'],
 ];
 
 export const ECHELLES_DE_TAILLES = [

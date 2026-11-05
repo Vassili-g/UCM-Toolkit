@@ -522,6 +522,18 @@
     [
       "xxl",
       "xxxl"
+    ],
+    [
+      "constant",
+      "content"
+    ],
+    [
+      "selected",
+      "selector"
+    ],
+    [
+      "subtitle",
+      "subtle"
     ]
   ]
 }

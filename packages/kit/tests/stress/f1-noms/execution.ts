@@ -16,7 +16,7 @@ import { echantillon, graineDe, melanger, mulberry32 } from '../commun/prng.js';
 import { convertir, MODES_DE_CHEMINS, MODES_DE_COLLECTIONS, RACINE_DU_DEPOT, segmentsDuNom, type Systeme } from './corpus.js';
 import { creerLeDetecteur } from './detecteur.js';
 import {
-  chargerLesClassements, collisionsSansQuestion, creerLeContexteOracle, jugerUneFaute, juger, type ContexteOracle, type Sortie, type Verdict,
+  chargerLesClassements, collisionsSansQuestion, creerLeContexteOracle, dispense, estUneCollisionDeChemin, QUESTION_AXE_D_ETAT, ECART_AXE_D_ETAT, ECART_NOM_DE_COMPOSANT, estUneFormeDAxeDEtat, ECART_MUTANT_UCM, ECART_SYNONYME_EN_CASSE_MIXTE, ECART_TERME_UCM_NON_UNIQUE, QUESTION_SYNONYME_EN_CASSE_MIXTE, estUnTermeUcm, jugerUneFaute, juger, termesUcmDuMot, type ContexteOracle, type Sortie, type Verdict,
 } from './oracle.js';
 import {
   creerLeContexte, enInventaire, genererLesScenarios, squelette, STRATES, type Contexte, type Scenario,
@@ -213,26 +213,62 @@ export function sortieDeLaPasse(passe: PasseReelle, systeme: Systeme): Sortie {
 }
 
 function jugerUnePasse(passe: PasseReelle, systeme: Systeme, ctx: ContexteOracle): Verdict[] {
-  const sortie = sortieDeLaPasse(passe, systeme);
-  return passe.cas.map((cas) => jugerUnSite(cas, sortie, ctx));
+  return jugerLesSitesDeLaPasse(passe, systeme, sortieDeLaPasse(passe, systeme), ctx);
 }
 
-function jugerUnSite(cas: Scenario, sortie: Sortie, ctx: ContexteOracle): Verdict {
+/** Les verdicts des sites d'une passe sur la sortie du kit : le jugement de S16, repris tel quel pour Slice. */
+export function jugerLesSitesDeLaPasse(passe: PasseReelle, systeme: Systeme, sortie: Sortie, ctx: ContexteOracle): Verdict[] {
+  return passe.cas.map((cas) => {
+    const segments = segmentsDuNom(systeme.noms[cas.site!.indice].nom, 'tirets');
+    const { rang } = cas.site!;
+    // `natures.ts` : un composant est un élément à la racine de `components`, ou l'enfant direct d'un segment `components`.
+    const nomDeComposant = rang < segments.length - 1 && segments[rang].toLowerCase() !== 'components'
+      && ((cas.site!.collection === 'components' && rang === 0) || (rang > 0 && segments[rang - 1].toLowerCase() === 'components'));
+    return jugerUnSite(cas, sortie, ctx, morceauxDuSegment(segments[rang]).length > 1, nomDeComposant);
+  });
+}
+
+/**
+ * `enCasseMixte` : le mot du site est un morceau d'un segment en casse mixte (`controlItemBgAmctive`). Le kit lit la faute d'un tel morceau (E14, `morceauxDeCasse`),
+ * mais non sa synonymie : PLAN-VOCABULAIRE ne fait pas de `wrap` un terme de `TileLinksWrap`. Le mainteneur n'a pas tranché le cas des synonymes (Q-E14-3).
+ */
+function jugerUnSite(cas: Scenario, sortie: Sortie, ctx: ContexteOracle, enCasseMixte: boolean, nomDeComposant: boolean): Verdict {
+  const verdict = jugerLeSite(cas, sortie, ctx);
+  const site = cas.site!;
+  const propriete = cas.attendus[0].propriete;
+  if (nomDeComposant) return dispense([verdict], ECART_NOM_DE_COMPOSANT)[0];
+  if (propriete === 'P-10' && estUneFormeDAxeDEtat(site.mutant)) return dispense([verdict], ECART_AXE_D_ETAT, QUESTION_AXE_D_ETAT)[0];
+  if (propriete === 'P-14') {
+    // Q-F5 : un synonyme seul ne pose une question que si son terme UCM est unique, et un terme UCM n'est pas une faute (E2c).
+    if (estUnTermeUcm(site.mutant)) return dispense([verdict], ECART_MUTANT_UCM)[0];
+    if (termesUcmDuMot(site.mutant).length !== 1) return dispense([verdict], ECART_TERME_UCM_NON_UNIQUE)[0];
+    if (enCasseMixte) return dispense([verdict], ECART_SYNONYME_EN_CASSE_MIXTE, QUESTION_SYNONYME_EN_CASSE_MIXTE)[0];
+  }
+  return verdict;
+}
+
+function jugerLeSite(cas: Scenario, sortie: Sortie, ctx: ContexteOracle): Verdict {
   const site = cas.site!;
   const id = `${site.systeme}:${site.indice}`;
   const { propriete } = cas.attendus[0];
   if (propriete === 'P-01') return jugerUneFaute(cas, sortie, ctx, site.mutant, site.mot, ['P-01']);
   const renommage = sortie.renommages.find((r) => r.id === id && r.termes.some((terme) => terme.avant.join('-').toLowerCase() === site.mutant.toLowerCase()));
   const enCollision = sortie.collisions.some((collision) => collision.ids.includes(id));
+  const enJeuDe = (q: Question) => new Set(q.type === 'paire' ? q.termes.map((t) => t.mot.toLowerCase()) : q.type === 'ecriture-du-terme' ? [q.terme.mot.toLowerCase(), ...q.proposition] : [q.nom.toLowerCase()]);
+  // E2c, E-08 : quand le renommage du mutant est retiré parce que son nom est pris, la question oppose le mutant à son terme UCM, pas au mot d'origine.
+  const termesDuMutant = enCollision ? termesUcmDuMot(site.mutant) : [];
+  // Q-F5 : un synonyme employé seul est opposé à son terme UCM unique (`down` à `pressed`), jamais au synonyme d'origine absent du fichier.
   const question = sortie.questions.find((q) => {
-    const enJeu = new Set(q.type === 'paire' ? q.termes.map((t) => t.mot.toLowerCase()) : q.type === 'ecriture-du-terme' ? [q.terme.mot.toLowerCase(), ...q.proposition] : [q.nom.toLowerCase()]);
-    return enJeu.has(site.mutant.toLowerCase()) && enJeu.has(site.mot);
+    const enJeu = enJeuDe(q);
+    return enJeu.has(site.mutant.toLowerCase()) && (enJeu.has(site.mot) || (propriete === 'P-14' ? termesUcmDuMot(site.mutant) : termesDuMutant).some((terme) => enJeu.has(terme)));
   });
-  const ok = !!renommage || !!question;
+  // Un renommage retiré par un conflit de chemin a sa carte dans « Bloqués » (P-20) : la session désigne le mot sans question.
+  const carte = sortie.collisions.some((collision) => estUneCollisionDeChemin(collision) && collision.ids.includes(id));
+  const ok = !!renommage || !!question || carte;
   return {
     cas: cas.id, strate: cas.strate, operateur: cas.operateur, proprietes: [propriete], role: 'oracle', attendu: true, issue: ok ? 'detecte' : 'manque',
     mot: site.mutant, reference: site.mot, axes: cas.axes,
-    detail: renommage ? `renommage ${renommage.ancienNom} -> ${renommage.nouveauNom}` : question ? `question ${question.cle}` : `${site.mutant} ne donne ni renommage ni question`,
+    detail: renommage ? `renommage ${renommage.ancienNom} -> ${renommage.nouveauNom}` : question ? `question ${question.cle}` : carte ? 'carte de résolution du conflit de chemin' : `${site.mutant} ne donne ni renommage ni question`,
     ecarts: ok ? [] : [enCollision ? 'E-08' : 'nouveau'],
   };
 }
@@ -377,24 +413,32 @@ function premierCas(contexte: Contexte, strate: string, retenir: (cas: Scenario)
   return undefined;
 }
 
-/** Les six cas que le plan nomme en 6.1 : chacun doit sortir manqué sur le kit actuel. */
+type IssueDeTemoin = 'detecte' | 'manque';
+
+/**
+ * Les cas que le plan nomme en 6.1, avec ce que les décisions de E2 en attendent : le plan les attendait manqués sur le kit d'avant E2,
+ * et E2b, E2c et E2d les ont corrigés. `bordre` et `paddng` ont 6 lettres : Q-F4 (E2.5) fixe à 7 la longueur d'une faute d'une lettre, ces deux
+ * mots restent sans question, et `backgorund` (E-03) et `paddign` (E-04) portent les mêmes écarts au-dessus du seuil.
+ */
 export function executerLesTemoins(contexte: Contexte, ctx: ContexteOracle): Temoin[] {
   const separator = premierCas(contexte, 'S13', (cas) => cas.axes.terme === 'meme-dossier' && cas.axes.type === 'variable' && cas.axes.frequence === 1 && cas.attendus[0].mot === 'separator' && cas.attendus[0].reference === 'divider');
   const thin = premierCas(contexte, 'S5', (cas) => cas.attendus[0].mot === formeComposee('separator', 'thin', 'suffixe') && cas.axes.terme === 'avec');
   const pluriel = premierCas(contexte, 'S7', (cas) => cas.attendus[0].mot === 'separators' && cas.axes.type === 'variable' && cas.attendus[0].propriete === 'P-13' && cas.terme.endsWith(':separator'));
-  const candidats: { nom: string; ecart: string; attendu: string; cas: Scenario | undefined }[] = [
-    { nom: '`backgrond` dans `theme`, k = 4', ecart: 'E-01', attendu: 'P-01 manqué', cas: fichierDeFaute(contexte, 'temoin/backgrond/k=4', 'M-02', 'background', 'backgrond', 1, 4, 'P-01') },
-    { nom: '`separator` près de `divider`, même dossier', ecart: 'E-08', attendu: 'P-11 manqué', cas: separator },
-    { nom: '`bordre` (échange), k = 8', ecart: 'E-03', attendu: 'P-01 manqué', cas: fichierDeFaute(contexte, 'temoin/bordre/k=8', 'M-04', 'border', 'bordre', 1, 8, 'P-01') },
-    { nom: '`paddng`, k = 8', ecart: 'E-04', attendu: 'P-04 manqué', cas: fichierDeFaute(contexte, 'temoin/paddng/k=8', 'M-02', 'padding', 'paddng', 1, 8, 'P-04') },
-    { nom: '`separator-thin`', ecart: 'E-09', attendu: 'P-12 manqué', cas: thin },
-    { nom: '`separators`', ecart: 'E-10', attendu: 'P-13 manqué', cas: pluriel },
+  const candidats: { nom: string; ecart: string; propriete: string; issue: IssueDeTemoin; cas: Scenario | undefined }[] = [
+    { nom: '`backgrond` dans `theme`, k = 4', ecart: 'E-01', propriete: 'P-01', issue: 'detecte', cas: fichierDeFaute(contexte, 'temoin/backgrond/k=4', 'M-02', 'background', 'backgrond', 1, 4, 'P-01') },
+    { nom: '`separator` près de `divider`, même dossier', ecart: 'E-08', propriete: 'P-11', issue: 'detecte', cas: separator },
+    { nom: '`bordre` (échange, 6 lettres), k = 8', ecart: 'E-03', propriete: 'P-01', issue: 'manque', cas: fichierDeFaute(contexte, 'temoin/bordre/k=8', 'M-04', 'border', 'bordre', 1, 8, 'P-01') },
+    { nom: '`backgorund` (échange, 10 lettres), k = 8', ecart: 'E-03', propriete: 'P-01', issue: 'detecte', cas: fichierDeFaute(contexte, 'temoin/backgorund/k=8', 'M-04', 'background', 'backgorund', 1, 8, 'P-01') },
+    { nom: '`paddng` (6 lettres), k = 8', ecart: 'E-04', propriete: 'P-04', issue: 'manque', cas: fichierDeFaute(contexte, 'temoin/paddng/k=8', 'M-02', 'padding', 'paddng', 1, 8, 'P-04') },
+    { nom: '`paddign` (échange, 7 lettres), k = 8', ecart: 'E-04', propriete: 'P-04', issue: 'detecte', cas: fichierDeFaute(contexte, 'temoin/paddign/k=8', 'M-04', 'padding', 'paddign', 1, 8, 'P-04') },
+    { nom: '`separator-thin`', ecart: 'E-09', propriete: 'P-12', issue: 'detecte', cas: thin },
+    { nom: '`separators`', ecart: 'E-10', propriete: 'P-13', issue: 'detecte', cas: pluriel },
   ];
-  return candidats.map(({ nom, ecart, attendu, cas }) => {
+  return candidats.map(({ nom, ecart, propriete, issue, cas }) => {
+    const attendu = `${propriete} ${issue === 'detecte' ? 'détecté' : 'manqué'}`;
     if (!cas) return { nom, ecart, attendu, verdict: undefined, conforme: false };
     const [verdict] = juger(cas, executerUnCas(cas), ctx);
-    const manque = verdict?.issue === 'manque';
-    return { nom, ecart, attendu, verdict, conforme: manque && verdict.proprietes.includes(attendu.slice(0, 4)) };
+    return { nom, ecart, attendu, verdict, conforme: verdict?.issue === issue && verdict.proprietes.includes(propriete) };
   });
 }
 

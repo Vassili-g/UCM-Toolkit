@@ -84,11 +84,23 @@ type IndexDesRetraits = Map<string, string[]>;
 const indexDesRetraits = new Map<number, IndexDesRetraits>();
 /** Les termes des registres de composant (`padding`, `width`, `height`, `gap`) ne servent pas au découpage, mais une faute les vise (E-04). */
 const termesDeComposant = new Set(REGISTRES_COMPOSANTS.flatMap((registre) => registre.termes.map((terme) => terme.id.toLowerCase())));
-const termesDeReference = [...new Set([...termesConnus, ...termesDeComposant])].filter((terme) => /^\p{L}{3,}$/u.test(terme));
+/** Les termes de plusieurs mots écrits sans séparateur : `fontstyle` pour `font-style`, `paddingx` pour `padding-x`. */
+const formesSoudees = new Map([...termesConnus, ...termesDeComposant].filter((terme) => /^\p{L}+(-\p{L}+)+$/u.test(terme)).map((terme) => [terme.replace(/-/g, ''), terme] as const));
+const termesDeReference = [...new Set([...termesConnus, ...termesDeComposant, ...formesSoudees.keys()])].filter((terme) => /^\p{L}{3,}$/u.test(terme));
+
+/** Le terme à tirets dont `terme` est la forme soudée (`font-style` pour `fontstyle`), ou `terme` quand il n'en est pas une. */
+export function termeAvecSesTirets(terme: string): string {
+  return formesSoudees.get(terme.toLowerCase()) ?? terme;
+}
 
 /** Vrai pour un terme d'un registre de composant : `padding` n'est pas une faute, et `paddng` en est une (E-04). */
 export function termeDeComposant(mot: string): boolean {
   return termesDeComposant.has(mot.toLowerCase());
+}
+
+/** Vrai pour un terme de plusieurs mots écrit sans séparateur : une autre écriture du terme, jamais une faute de l'un de ses mots (S9). */
+export function termeSoude(mot: string): boolean {
+  return formesSoudees.has(mot.toLowerCase());
 }
 
 function indexer(fois: 1 | 2): IndexDesRetraits {

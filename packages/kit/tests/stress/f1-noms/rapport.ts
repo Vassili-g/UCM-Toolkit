@@ -284,5 +284,5 @@ export function ecrireLeRapport(mesure: Mesure, dossier: string, fauxPositifs?: 
 export function resteDesEcarts(mesure: Mesure): number {
   const verdicts = compter(mesure.verdicts.filter((verdict) => verdict.role === 'oracle'));
   const stabilite = mesure.stabilite ? mesure.stabilite.p21.echecs + mesure.stabilite.p22.echecs : 0;
-  return verdicts.manques + verdicts.fp + stabilite + mesure.squelette.questions + mesure.squelette.renommages + mesure.temoins.filter((temoin) => temoin.verdict?.issue === 'manque').length;
+  return verdicts.manques + verdicts.fp + stabilite + mesure.squelette.questions + mesure.squelette.renommages + mesure.temoins.filter((temoin) => !temoin.conforme).length;
 }

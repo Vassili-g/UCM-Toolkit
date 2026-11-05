@@ -19,16 +19,21 @@ const decompositions = new Map([...termesDecomposables, ...COLLECTIONS, ...Objec
   return mots.length > 1 ? [[mots.join('').toLowerCase(), mots] as const] : [];
 }));
 
-/** Découpe un segment, sans deviner les mots d'une forme soudée absente du registre. */
+/**
+ * Découpe un segment, sans deviner les mots d'une forme soudée absente du registre. Une forme soudée que le registre connaît (`fontfamily`)
+ * se coupe où qu'elle soit : seule (`fontfamily`) ou jointe à d'autres mots (`fontfamily-thin`), sans quoi le renommage vers `font-family`
+ * ne la reconnaîtrait que seule (E14, S5).
+ */
 export function decouperSegment(segment: string): string[] {
-  const mots = frontieres(segment).split(/[-_\s\0]+/u).filter(Boolean);
-  const decomposition = mots.length === 1 ? decompositions.get(segment.toLowerCase()) : undefined;
-  if (!decomposition) return mots.flatMap(trancherUnBlocSoude);
-  let debut = 0;
-  return decomposition.map((mot) => {
-    const morceau = segment.slice(debut, debut + mot.length);
-    debut += mot.length;
-    return morceau;
+  return frontieres(segment).split(/[-_\s\0]+/u).filter(Boolean).flatMap((mot) => {
+    const decomposition = decompositions.get(mot.toLowerCase());
+    if (!decomposition) return trancherUnBlocSoude(mot);
+    let debut = 0;
+    return decomposition.map((morceau) => {
+      const tranche = mot.slice(debut, debut + morceau.length);
+      debut += morceau.length;
+      return tranche;
+    });
   });
 }
 

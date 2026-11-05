@@ -36,7 +36,7 @@ test('le dictionnaire du kit est celui de formes.json, couple pour couple', () =
   assert.deepEqual(FORMES_D_UN_MEME_MOT.map(cle).sort(), formes.memeMot.map(cle).sort());
   assert.deepEqual(MOTS_DISTINCTS.map(cle).sort(), formes.motsDistincts.map(cle).sort());
   assert.equal(FORMES_D_UN_MEME_MOT.length, 32);
-  assert.equal(MOTS_DISTINCTS.length, 98);
+  assert.equal(MOTS_DISTINCTS.length, 101);
 });
 
 test('un couple n’est classé qu’une fois, et le classement ne contredit ni les synonymes ni les abréviations', () => {

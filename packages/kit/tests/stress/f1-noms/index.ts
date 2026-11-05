@@ -25,7 +25,7 @@ import {
   candidatsADistanceUn, candidatsAmbigus, candidatsDeFormes, candidatsDeSynonymes, construireLeDictionnaire, vocabulaireDeReference,
 } from './dictionnaire.js';
 import { creerLeDetecteur } from './detecteur.js';
-import { mesurer, regrouperLesPasses, sortieDeLaPasse, verifierLaStabilite } from './execution.js';
+import { jugerLesSitesDeLaPasse, mesurer, regrouperLesPasses, sortieDeLaPasse, verifierLaStabilite } from './execution.js';
 import {
   CERTAINES, CLASSES, comptesParClasseEtType, creerLeContexteDeClassement, ecrireLesFauxPositifs, executerUnePasse, mesurerLeKit, mesurerLesFauxPositifs,
   sectionDuRapport, type MesureDesFauxPositifs, type Passe,
@@ -165,26 +165,8 @@ function exigerUnDossierIgnore(dossier: string): void {
   if (resultat.status !== 0) throw new Error(`${dossier} n'est pas ignoré par Git : le mode Slice n'écrit rien.`);
 }
 
-/** Même jugement que `jugerUnSite` d'`execution.ts` (non exporté) : la faute ou le synonyme muté du site donne un renommage ou une question. */
-function jugerUnSiteDeSlice(cas: Scenario, sortie: Sortie, ctx: ContexteOracle): Verdict {
-  const site = cas.site!;
-  const id = `${site.systeme}:${site.indice}`;
-  const { propriete } = cas.attendus[0];
-  if (propriete === 'P-01') return jugerUneFaute(cas, sortie, ctx, site.mutant, site.mot, ['P-01']);
-  const renommage = sortie.renommages.find((r) => r.id === id && r.termes.some((terme) => terme.avant.join('-').toLowerCase() === site.mutant.toLowerCase()));
-  const enCollision = sortie.collisions.some((collision) => collision.ids.includes(id));
-  const question = sortie.questions.find((q) => {
-    const enJeu = new Set(q.type === 'paire' ? q.termes.map((t) => t.mot.toLowerCase()) : q.type === 'ecriture-du-terme' ? [q.terme.mot.toLowerCase(), ...q.proposition] : [q.nom.toLowerCase()]);
-    return enJeu.has(site.mutant.toLowerCase()) && enJeu.has(site.mot);
-  });
-  const ok = !!renommage || !!question;
-  return {
-    cas: cas.id, strate: cas.strate, operateur: cas.operateur, proprietes: [propriete], role: 'oracle', attendu: true, issue: ok ? 'detecte' : 'manque',
-    mot: site.mutant, reference: site.mot, axes: cas.axes, detail: ok ? 'détecté' : 'ni renommage ni question', ecarts: ok ? [] : [enCollision ? 'E-08' : 'nouveau'],
-  };
-}
-
-interface ComptesDeMutation { cas: number; detectes: number; manques: number }
+/** `attendus` : les cas que l'oracle juge ; `hors` : ceux qu'une décision écrite de E2 dispense (seuil de 7 lettres, nom de composant, terme UCM) ou qui attendent le mainteneur. */
+interface ComptesDeMutation { cas: number; attendus: number; detectes: number; manques: number; hors: number }
 
 /** Rend le nombre de manqués, de faux positifs certains et d'échecs de stabilité, pour `--attendre-zero`. */
 function lancerLaSlice(options: Options, corpus: readonly Systeme[], slice: Systeme): number {
@@ -220,38 +202,44 @@ function lancerLaSlice(options: Options, corpus: readonly Systeme[], slice: Syst
   const verdicts: Verdict[] = [];
   for (const unePasse of passes) {
     const sortie = sortieDeLaPasse(unePasse, slice);
-    verdicts.push(...unePasse.cas.map((cas) => jugerUnSiteDeSlice(cas, sortie, ctx)));
+    verdicts.push(...jugerLesSitesDeLaPasse(unePasse, slice, sortie, ctx));
   }
   const parOperateur: Record<string, ComptesDeMutation> = {};
   for (const verdict of verdicts) {
-    const comptes = parOperateur[verdict.operateur] ?? (parOperateur[verdict.operateur] = { cas: 0, detectes: 0, manques: 0 });
+    const comptes = parOperateur[verdict.operateur] ?? (parOperateur[verdict.operateur] = { cas: 0, attendus: 0, detectes: 0, manques: 0, hors: 0 });
     comptes.cas++;
-    if (verdict.issue === 'detecte') comptes.detectes++;
-    else if (verdict.issue === 'manque') comptes.manques++;
+    if (verdict.role !== 'oracle') comptes.hors++;
+    else {
+      comptes.attendus++;
+      if (verdict.issue === 'detecte') comptes.detectes++;
+      else if (verdict.issue === 'manque') comptes.manques++;
+    }
   }
-  const detectes = verdicts.filter((verdict) => verdict.issue === 'detecte').length, manques = verdicts.filter((verdict) => verdict.issue === 'manque').length;
-  console.log(`Mutations (S16) : ${verdicts.length} cas en ${passes.length} passes, ${detectes} détectés, ${manques} manqués`);
-  for (const [operateur, c] of Object.entries(parOperateur).sort()) console.log(`  ${operateur} : ${c.cas} cas, ${c.detectes} détectés, ${c.manques} manqués`);
+  const oracle = verdicts.filter((verdict) => verdict.role === 'oracle');
+  const attendus = oracle.length, detectes = oracle.filter((verdict) => verdict.issue === 'detecte').length, manques = oracle.filter((verdict) => verdict.issue === 'manque').length;
+  const hors = verdicts.length - attendus;
+  console.log(`Mutations (S16) : ${verdicts.length} cas en ${passes.length} passes, ${attendus} attendus, ${detectes} détectés, ${manques} manqués, ${hors} hors attendu`);
+  for (const [operateur, c] of Object.entries(parOperateur).sort()) console.log(`  ${operateur} : ${c.cas} cas, ${c.attendus} attendus, ${c.detectes} détectés, ${c.manques} manqués, ${c.hors} hors attendu`);
 
   // Ces sorties ne citent que des comptes et des identifiants de cas ; `faux-positifs.csv` et `a-juger.csv` portent des exemples, donc des noms de Slice
   const certains = resultat.lignes.filter((ligne) => CERTAINES.has(ligne.classe)).reduce((somme, ligne) => somme + ligne.nombre, 0);
   const rapport = {
     graine: options.graine, noms: slice.noms.length, collections, alias, fauxPositifs: { lignes: resultat.lignes.length, parClasse, parType, certains },
     stabilite: { fichiers: stabilite.fichiers, noms: stabilite.noms, p21: stabilite.p21, p22: stabilite.p22, echecs: stabilite.echecs.map((echec) => echec.propriete) },
-    mutations: { cas: verdicts.length, passes: passes.length, detectes, manques, parOperateur },
-    cas: verdicts.map((verdict) => ({ id: verdict.cas, operateur: verdict.operateur, issue: verdict.issue })),
+    mutations: { cas: verdicts.length, passes: passes.length, attendus, detectes, manques, hors, parOperateur },
+    cas: verdicts.map((verdict) => ({ id: verdict.cas, operateur: verdict.operateur, role: verdict.role, issue: verdict.issue })),
   };
   writeFileSync(join(dossier, 'rapport.json'), `${JSON.stringify(rapport)}\n`, 'utf8');
-  writeFileSync(join(dossier, 'manques.csv'), `${['cas,operateur,propriete,mutant,reference,ecart', ...verdicts.filter((verdict) => verdict.issue === 'manque')
-    .map((verdict) => [verdict.cas, verdict.operateur, verdict.proprietes[0], verdict.mot, verdict.reference, verdict.ecarts[0]].join(','))].join('\n')}\n`, 'utf8');
+  writeFileSync(join(dossier, 'manques.csv'), `${['cas,operateur,propriete,mutant,reference,role,ecart', ...verdicts.filter((verdict) => verdict.issue === 'manque')
+    .map((verdict) => [verdict.cas, verdict.operateur, verdict.proprietes[0], verdict.mot, verdict.reference, verdict.role, verdict.ecarts[0]].join(','))].join('\n')}\n`, 'utf8');
   writeFileSync(join(dossier, 'rapport.md'), `${[
     '# Mesure sur Slice', '',
     `${slice.noms.length} noms, ${collections} collections, ${alias} alias, graine ${options.graine}.`, '',
     `Faux positifs : ${CLASSES.map((classe) => `${classe} ${parClasse[classe]}`).join(', ')}.`,
     `Idempotence : P-21 ${stabilite.p21.reussis}/${stabilite.fichiers}, P-22 ${stabilite.p22.reussis}/${stabilite.fichiers} (${stabilite.noms} noms tirés).`,
-    `Mutations : ${verdicts.length} cas, ${detectes} détectés, ${manques} manqués.`, '',
-    '| Opérateur | Cas | Détectés | Manqués |', '| --- | --- | --- | --- |',
-    ...Object.entries(parOperateur).sort().map(([operateur, c]) => `| ${operateur} | ${c.cas} | ${c.detectes} | ${c.manques} |`),
+    `Mutations : ${verdicts.length} cas, ${attendus} attendus, ${detectes} détectés, ${manques} manqués, ${hors} hors attendu (décision écrite de E2 ou question au mainteneur).`, '',
+    '| Opérateur | Cas | Attendus | Détectés | Manqués | Hors attendu |', '| --- | --- | --- | --- | --- | --- |',
+    ...Object.entries(parOperateur).sort().map(([operateur, c]) => `| ${operateur} | ${c.cas} | ${c.attendus} | ${c.detectes} | ${c.manques} | ${c.hors} |`),
   ].join('\n')}\n`, 'utf8');
   console.log(`${(Date.now() - debut) / 1000} s, sorties sous ${dossier}`);
   return manques + certains + stabilite.p21.echecs + stabilite.p22.echecs;

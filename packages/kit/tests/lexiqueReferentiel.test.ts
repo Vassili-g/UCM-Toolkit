@@ -6,7 +6,7 @@ import {
   commencerLexique, detecterLesQuestions, indexerVocabulaire, normaliserLeLexique, normaliserLesNoms, normaliserParEtapes, porteesTouchees,
   type ConventionsParCategorie, type Lexique, type NomLu,
 } from '../src/referentiel/index.js';
-import { assembler } from '../src/referentiel/ecriture-des-mots.js';
+import { assembler, decouperSegment } from '../src/referentiel/ecriture-des-mots.js';
 
 const conventions: ConventionsParCategorie = {
   variables: { casse: 'minuscules', separateur: 'tiret' },
@@ -319,4 +319,13 @@ test('un mot qui ne commence pas par une lettre ne fait pas renommer le second p
   assert.equal(premier, 'toolbar/@media(orientation:landscape)/minHeight');
   assert.equal(renommer(premier!), undefined);
   assert.equal(renommer('x/(orientation: Landscape)'), 'x/(orientation:landscape)');
+});
+
+test('une forme soudée du registre se coupe aussi jointe à d’autres mots, et le renommage la remplace (E14, S5)', () => {
+  assert.deepEqual(decouperSegment('fontfamily-thin'), ['font', 'family', 'thin']);
+  assert.deepEqual(decouperSegment('thin-fontfamily'), ['thin', 'font', 'family']);
+  assert.deepEqual(decouperSegment('fontfamily'), ['font', 'family']);
+  const noms = [variable('a', 'text/fontfamily-thin/base'), variable('b', 'text/thin-lineheight/base'), variable('c', 'text/font-weight/base')];
+  const rendu = normaliserLeLexique(preparer(noms), conventions, indexUcm).renommages.map(({ ancienNom, nouveauNom }) => [ancienNom, nouveauNom]);
+  assert.deepEqual(rendu, [['text/fontfamily-thin/base', 'text/font-family-thin/base'], ['text/thin-lineheight/base', 'text/thin-line-height/base']]);
 });

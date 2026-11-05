@@ -14,9 +14,9 @@ import {
   convertir, DOSSIER_DE_SLICE, fichiersEnFuite, ID_DE_SLICE, lireLesSystemes, motsASurveiller, RACINE_DU_DEPOT, systemeDepuisTokens,
 } from './stress/f1-noms/corpus.js';
 import { CERTAINES, classer, creerLeContexteDeClassement, lignesAJuger, PLAFOND_A_JUGER, type LigneDeFauxPositif } from './stress/f1-noms/faux-positifs.js';
-import { chargerLesClassements, clePaire, creerLeContexteOracle, juger } from './stress/f1-noms/oracle.js';
+import { chargerLesClassements, clePaire, creerLeContexteOracle, ECART_SEPARATEUR_SEUL, ECART_SOUS_LE_SEUIL, juger, QUESTION_AXE_D_ETAT, QUESTION_TERME_DE_COMPOSANT } from './stress/f1-noms/oracle.js';
 import { creerLeDetecteur } from './stress/f1-noms/detecteur.js';
-import { executerUnCas, REGLES_FIXES, secondPassage } from './stress/f1-noms/execution.js';
+import { executerLesTemoins, executerUnCas, REGLES_FIXES, secondPassage } from './stress/f1-noms/execution.js';
 import { mutationsDe, OPERATEURS_DE_FAUTE } from './stress/f1-noms/mutations.js';
 import {
   bilanDesScenarios, CAS_DU_PLAN, creerLeContexte, enInventaire, genererLesScenarios, MARGE_DU_PLAN, PAIRES_DISTINCTES_ECRITES, squelette,
@@ -219,4 +219,42 @@ test('S8 : la casse ne change aucun verdict ; une faute sous le seuil de longueu
   assert.deepEqual([...lectures].sort(), ['informatif/manque', 'oracle/detecte'], 'des termes sous et au-dessus du seuil');
   for (const [terme, parCasse] of parTerme) assert.equal(new Set(parCasse.values()).size, 1, `${terme} : ${[...parCasse].join(', ')}`);
   assert.deepEqual([...[...parTerme.values()][0].keys()].sort(), ['initiale', 'interne', 'majuscules', 'pascal']);
+});
+
+// E14.2 : l'oracle suit les décisions écrites de E2 ; chaque test fixe une décision citée dans oracle.ts.
+
+let contexteDeLOracle: ReturnType<typeof creerLeContexteOracle> | undefined;
+function verdictsDe(strate: string, retenir: (id: string) => boolean) {
+  contexteDeLOracle ??= creerLeContexteOracle(contexte, creerLeDetecteur(contexte.vocabulaire, contexte.motsDuDictionnaire), chargerLesClassements());
+  const ctx = contexteDeLOracle;
+  const cas = [...genererLesScenarios(contexte, { strates: [strate] })].filter((unCas) => retenir(unCas.id));
+  assert.ok(cas.length > 0, `aucun cas ${strate}`);
+  return cas.flatMap((unCas) => juger(unCas, executerUnCas(unCas), ctx));
+}
+
+test('Q-F4 : une faute d’une lettre sous le seuil de longueur est mesurée, jamais jugée (S1)', () => {
+  const sous = verdictsDe('S1', (id) => id.startsWith('S1/M-03/size/') && id.includes('/m=1/k=8/'));
+  assert.ok(sous.every((v) => v.role === 'informatif' && v.ecarts.includes(ECART_SOUS_LE_SEUIL)), 'quatre lettres');
+  const au_dessus = verdictsDe('S1', (id) => id.startsWith('S1/M-03/background/') && id.includes('/m=1/k=8/'));
+  assert.ok(au_dessus.every((v) => v.role === 'oracle' && v.issue === 'detecte'), au_dessus.map((v) => v.detail).join(' ; '));
+});
+
+test('les cas du plan sortent comme les décisions de E2 les attendent', () => {
+  const detecteur = creerLeDetecteur(contexte.vocabulaire, contexte.motsDuDictionnaire);
+  const temoins = executerLesTemoins(contexte, creerLeContexteOracle(contexte, detecteur, chargerLesClassements()));
+  assert.equal(temoins.length, 8);
+  for (const temoin of temoins) assert.ok(temoin.conforme, `${temoin.nom} : ${temoin.verdict?.detail}`);
+  assert.deepEqual(temoins.filter((temoin) => temoin.verdict?.issue === 'manque').map((temoin) => temoin.nom.split(' ')[0]), ['`bordre`', '`paddng`'], 'les deux mots de six lettres');
+});
+
+test('E2c : une forme d’un axe d’états dans une variable attend le mainteneur, et fontfamily près de font-family est une collision de séparateur', () => {
+  const axes = verdictsDe('S5', (id) => id.includes('axes-etat:status/'));
+  assert.ok(axes.every((v) => v.role === 'provisoire' && v.provisoire === QUESTION_AXE_D_ETAT));
+  const lettres = verdictsDe('S6', (id) => id.includes('tolere:familles-primitives:fontfamily|font-family/parente=freres'));
+  assert.ok(lettres.every((v) => v.role === 'informatif' && v.ecarts.includes(ECART_SEPARATEUR_SEUL)));
+});
+
+test('E2c, E-04 : un mot collé dont une partie est un terme de composant attend le mainteneur (S10)', () => {
+  const composant = verdictsDe('S10', (id) => id.startsWith('S10/M-14/padding+width/'));
+  assert.ok(composant.every((v) => v.role === 'provisoire' && v.provisoire === QUESTION_TERME_DE_COMPOSANT));
 });

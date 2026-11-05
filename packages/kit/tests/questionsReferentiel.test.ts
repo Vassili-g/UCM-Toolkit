@@ -522,3 +522,40 @@ test('les masques d’un nom long se construisent entre plusieurs cessions', () 
     if (etape.done) { assert.deepEqual(etape.value, []); break; }
   }
 });
+
+// E14 : trois défauts du kit que le rejeu final de F1 a mesurés, chacun avec la régression qui échoue sans sa correction.
+
+test('une faute dans un morceau de casse mixte est lue, sans que ses voisins soient connus (S16)', () => {
+  const [faute, ...autres] = fautes([nom('a', 'colorFillConrent'), nom('b', 'Card/bodyPaddingfSM')]);
+  assert.equal(faute?.terme.mot, 'conrent');
+  assert.deepEqual(faute?.proposition, ['content']);
+  assert.deepEqual(autres.map((q) => q.terme.mot), ['paddingf']);
+  assert.deepEqual(fautes([nom('c', 'Menu/darkDeangerItemColor')]).map((q) => [q.terme.mot, q.proposition[0]]), [['deanger', 'danger']]);
+});
+
+test('les morceaux de casse mixte ne servent qu’à la faute : aucun terme, aucune paire, aucune faute sous le seuil (S16, PLAN-VOCABULAIRE)', () => {
+  const noms = [nom('a', 'StressTest/Info/TileLinksWrap/Sizes/Gap-x'), nom('b', 'colorFillSecondary'), nom('c', 'Tree/titleHeigt')];
+  assert.deepEqual(questions(noms), [], 'une tuile, un lien, un mot de six lettres : rien');
+  assert.deepEqual(fautes([nom('d', 'Tree/titleHeight')]), [], 'un morceau juste');
+});
+
+test('un terme de plusieurs mots écrit sans séparateur n’est pas une faute de son premier mot (S9)', () => {
+  assert.deepEqual(fautes([nom('a', 'spacing/paddingx'), nom('b', 'spacing/paddingy'), nom('c', 'spacing/padding-top')]), []);
+  assert.deepEqual(fautes([nom('d', 'spacing/paddingz')]).map((q) => q.terme.mot), ['paddingz'], 'une vraie lettre en trop reste une faute');
+});
+
+test('une collection dont seule la casse est fausse, ou une ancienne forme à la casse fausse, propose la collection UCM (Q-F8)', () => {
+  const collection = (nomDeLaCollection: string) => questions([{ id: 'c1', nom: nomDeLaCollection, categorie: 'collections', portee: 'document' }]).find((q) => q.type === 'collection');
+  for (const [ecrite, attendue] of [['thEme', 'theme'], ['primiTives', 'primitives'], ['thme', 'theme'], ['layOuts', 'layout'], ['colorutIlities', 'utility']]) {
+    const question = collection(ecrite);
+    assert.equal(question?.type === 'collection' && question.proposee, attendue, ecrite);
+  }
+});
+
+test('une faute dans la forme soudée d’un terme de plusieurs mots est lue, et la question propose le terme à tirets (S9)', () => {
+  const lues = (chemin: string) => fautes([nom('a', chemin)]).map((q) => [q.terme.mot, q.proposition[0], q.reference?.mot]);
+  assert.deepEqual(lues('type/fontsttyle'), [['fontsttyle', 'font-style', 'font-style']]);
+  assert.deepEqual(lues('type/borderwiddth'), [['borderwiddth', 'border-width', 'border-width']]);
+  assert.deepEqual(lues('type/foregroundmaain'), [['foregroundmaain', 'foreground-main', 'foreground-main']]);
+  assert.deepEqual(lues('type/fontstyle'), [], 'le terme soudé lui-même est juste');
+});

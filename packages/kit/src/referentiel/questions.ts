@@ -1,10 +1,10 @@
 /** Questions de nomenclature fondées sur les noms et les alias du lexique. */
-import { COLLECTIONS, REGISTRES_ARCHITECTURE } from './architecture.js';
+import { COLLECTIONS, FORMES_ANCIENNES_DES_COLLECTIONS, REGISTRES_ARCHITECTURE } from './architecture.js';
 import { categorieDuSegment } from './ecriture-des-mots.js';
 import type { DejaJuge, IndexDuVocabulaire, Lexique, Mots, NomLu, Question, Remplacement, ResultatDesQuestions, TermeEnQuestion, IndiceDePaire } from './harmonisation.js';
 import { collectionUcmReconnue } from './normalisation.js';
 import { detecterBranchesParalleles } from './branches-paralleles.js';
-import { decouperPourQuestions, distanceUnOuEchange, opposes, termeConnu, termeDeComposant, termeOuFormeConnu, termesADeuxLettres, termesAUneLettre } from './termes-connus.js';
+import { decouperPourQuestions, distanceUnOuEchange, opposes, termeAvecSesTirets, termeConnu, termeDeComposant, termeOuFormeConnu, termeSoude, termesADeuxLettres, termesAUneLettre } from './termes-connus.js';
 import { ABREVIATIONS, FORMES_D_UN_MEME_MOT, MOTS_DISTINCTS, REGISTRES, SYNONYMES_COURANTS } from './vocabulaire.js';
 
 const TAILLE_D_UN_LOT = 10;
@@ -62,6 +62,16 @@ function clePaire(a: string, b: string): string {
 
 function motJuge(mot: string): string {
   return mot.trim().toLowerCase().replace(/\s+/gu, '-');
+}
+
+/**
+ * Les morceaux d'un mot de casse mixte (`controlItemBgAmctive` : `control`, `Item`, `Bg`, `Amctive`). Le kit ne les lit pas comme des mots du
+ * fichier : `TileLinksWrap` ne fait pas de `wrap` un terme (PLAN-VOCABULAIRE). Seule la faute d'un terme connu les lit, au seuil de longueur
+ * des autres fautes : un morceau d'au moins 7 lettres à une lettre d'un terme se corrige sans que ses voisins soient connus.
+ */
+function morceauxDeCasse(mot: string): string[] {
+  const morceaux = mot.replace(/(\p{Ll}|\p{N})(\p{Lu})/gu, '$1\0$2').replace(/(\p{Lu})(\p{Lu}\p{Ll})/gu, '$1\0$2').split('\0');
+  return morceaux.length > 1 ? morceaux : [];
 }
 
 const distinctsDuDictionnaire = new Set(MOTS_DISTINCTS.map(([a, b]) => clePaire(a, b)));
@@ -183,6 +193,8 @@ function* trierQuestions(questions: Question[]): Generator<void, Question[]> {
 export function* detecterParEtapes(lexique: Lexique, index: IndexDuVocabulaire, dejaJuge: DejaJuge,
   options: { readonly seuil?: number; readonly maximum?: number } = {}): Generator<void, ResultatDesQuestions> {
   const observes = new Map<string, MotObserve>();
+  /** Les morceaux de casse mixte d'au moins 7 lettres : lus pour la faute seulement, jamais pour les paires ni les mots collés. */
+  const morceauxObserves = new Map<string, MotObserve>();
   const collections: NomLu[] = [];
   const aRenommer: { readonly nom: NomLu; readonly avant: string; readonly apres: string; readonly formes: readonly { forme: string; par: string; rang: number }[] }[] = [];
   const nomsParPortee = new Map<string, Map<string, { readonly id: string; readonly avant: string }[]>>();
@@ -249,8 +261,8 @@ export function* detecterParEtapes(lexique: Lexique, index: IndexDuVocabulaire, 
       }
       if (mots.length === 1 && segment.toLowerCase() === mots[0] && positionsCouvertes.size === 0) segmentsSoudes.add(mots[0]);
       let places: string[] | undefined;
-      function observer(mot: string): void {
-        const entree = observes.get(mot) ?? { mot, noms: new Set<string>(), lieux: new Map<string, string | null>(), exemples: [], types: new Set<'variable' | 'groupe'>() };
+      function observer(mot: string, dans: Map<string, MotObserve> = observes): void {
+        const entree = dans.get(mot) ?? { mot, noms: new Set<string>(), lieux: new Map<string, string | null>(), exemples: [], types: new Set<'variable' | 'groupe'>() };
         entree.types.add(categorie === 'variables' && rang === segments.length - 1 ? 'variable' : 'groupe');
         entree.noms.add(nom.id);
         if (entree.exemples.length < 2 && !entree.exemples.includes(nom.id)) entree.exemples.push(nom.id);
@@ -259,7 +271,7 @@ export function* detecterParEtapes(lexique: Lexique, index: IndexDuVocabulaire, 
           if (!entree.lieux.has(place)) entree.lieux.set(place, nom.id);
           else if (entree.lieux.get(place) !== nom.id) entree.lieux.set(place, null);
         }
-        observes.set(mot, entree);
+        dans.set(mot, entree);
       }
       let plat = 0;
       for (const unite of mots) {
@@ -270,6 +282,10 @@ export function* detecterParEtapes(lexique: Lexique, index: IndexDuVocabulaire, 
         const mot = unite.toLowerCase();
         if (couverte || !lettres.test(mot)) continue;
         observer(mot);
+        for (const morceau of morceauxDeCasse(unite)) {
+          const bas = morceau.toLowerCase();
+          if ([...bas].length >= LONGUEUR_MINIMALE_D_UNE_FAUTE_A_UNE_LETTRE && uniquementDesLettres.test(bas)) observer(bas, morceauxObserves);
+        }
         if (++operations % TAILLE_D_UN_LOT === 0) yield;
       }
       if (++operations % TAILLE_D_UN_LOT === 0) yield;
@@ -434,18 +450,20 @@ export function* detecterParEtapes(lexique: Lexique, index: IndexDuVocabulaire, 
   }
 
   // Une faute d'un terme connu (D1, D2) : une lettre, ou deux au-dessus de leur seuil, sans place partagée ni nombre d'emplois minimal, même si le terme manque au fichier.
-  for (const observe of observes.values()) {
+  const aLire = [...observes.values(), ...[...morceauxObserves.values()].filter((morceau) => !observes.has(morceau.mot))];
+  for (const observe of aLire) {
     yield;
     const mot = observe.mot;
     const longueur = [...mot].length;
     if (longueur < LONGUEUR_MINIMALE_D_UNE_FAUTE_A_UNE_LETTRE || voulus.has(mot) || termesUcm.has(mot) || !uniquementDesLettres.test(mot)
-      || termeOuFormeConnu(mot) || termeDeComposant(mot) || pluralDeComposant(mot) || !motsApplicables.has(mot)) continue;
+      || termeOuFormeConnu(mot) || termeDeComposant(mot) || termeSoude(mot) || pluralDeComposant(mot) || !motsApplicables.has(mot)) continue;
     const aUneLettre = termesAUneLettre(mot);
     const proches = aUneLettre.length > 0 ? aUneLettre : longueur >= LONGUEUR_MINIMALE_D_UNE_FAUTE_A_DEUX_LETTRES ? termesADeuxLettres(mot) : [];
     let reference: string | undefined;
     for (const proche of proches) {
       // N-02 : un terme proche qui est une forme tolérée (`attention`) vaut son terme UCM (`warning`), que le renommage lui substitue.
-      const candidat = termeUcmDeLaForme(proche) ?? proche;
+      // Un terme de plusieurs mots écrit soudé (`fontstyle`) vaut le terme à tirets (`font-style`) : `fontsttyle` en est la faute (S9).
+      const candidat = termeUcmDeLaForme(proche) ?? termeAvecSesTirets(proche);
       // Une négation (`inactive` pour `active`) nomme l'état opposé : jamais une faute.
       if (opposes(mot, proche) || distincts.has(clePaire(mot, proche)) || distincts.has(clePaire(mot, candidat)) || voulus.has(proche) || voulus.has(candidat)) continue;
       const employe = observes.get(candidat)?.noms.size ?? 0;
@@ -480,7 +498,14 @@ export function* detecterParEtapes(lexique: Lexique, index: IndexDuVocabulaire, 
     if (plusTard.has(cle)) continue;
     const nombre = lexique.portees.get(id)?.length ?? 0;
     // Q-F8, E-15 : une collection à une lettre d'une collection UCM (`thme`) propose celle-ci, sans la présélectionner côté interface.
-    const proches = COLLECTIONS.filter((collection) => distanceUnOuEchange(nom.nom.trim().toLowerCase(), collection));
+    // Une majuscule au milieu (`thEme`) ne laisse que la casse à corriger : la collection UCM est proposée comme pour une lettre de différence.
+    // Il en va de même d'une ancienne forme (`layOuts` pour `layouts`) : sa collection actuelle est proposée.
+    const ecrite = nom.nom.trim().toLowerCase();
+    const sansSeparateur = (mot: string): string => mot.replace(/[-_\s]+/gu, '');
+    const proches = [...new Set([
+      ...COLLECTIONS.filter((collection) => ecrite === collection || distanceUnOuEchange(ecrite, collection)),
+      ...Object.entries(FORMES_ANCIENNES_DES_COLLECTIONS).filter(([forme]) => sansSeparateur(forme) === sansSeparateur(ecrite)).map(([, collection]) => collection),
+    ])];
     questions.push({ type: 'collection', cle, collectionId: id, nom: nom.nom, nombre, ...(proches.length === 1 ? { proposee: proches[0] } : {}), score: nombre });
   }
   const seuil = options.seuil ?? 2;
