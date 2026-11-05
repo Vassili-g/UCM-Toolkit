@@ -528,6 +528,46 @@ R4 reste sans preuve sur fichier réel : aucun des deux fichiers ne reçoit de c
 
 Les deux contrôles du kit prennent moins de 0,1 s sur 2 415 variables. Le temps d'un Actualiser vient donc des lectures dans Figma, que D1 réduit. Le lot D3 (8d4111ce) indexe la voisine de `controlerLesAliasesManquants` : 40 ms deviennent 11 ms sur un banc de 3 000 variables à 1 000 alias manquants, avec des constats identiques sur 428 catalogues. La durée dans Figma attend le rapport du mode Tokens (10956167), que le mainteneur télécharge.
 
+#### Compteurs et croissance locale, lots D0.3, D0.4, D1.4 et D3.3
+
+Les compteurs ne dépendent pas de la charge de la machine ; ils viennent du kit construit dans `packages/kit/dist` et des sources du dépôt tels qu'ils sont, avec les lots E déjà commités dans le kit. Les durées sont prises sous charge (deux autres agents travaillaient, la machine affichait 58 % de processeur) et se reprennent en D7.1.
+
+Acquisition d'un Actualiser, appels natifs sur la fixture de 73 variables (`tests/acquisitionDesVariables.test.ts`) :
+
+| Appel | Avant D1 | Après D1 |
+|---|---|---|
+| `getLocalVariablesAsync` | 3 | 1 |
+| `getLocalVariableCollectionsAsync` | 2 | 1 |
+| `getVariableByIdAsync` | 75 | 1 |
+| `getVariableCollectionByIdAsync` | 5 | 1 |
+
+Sur le rejeu converti en objets de Figma (`tests/acquisitionDuRejeu.test.ts`), `lire-structure` lit 0 variable par identifiant avec l'acquisition du relevé, contre 2 415 (premier fichier) et 755 (second fichier) sans elle. Le message `structure` est égal dans les deux cas : 4 888 constats et 104 corrections pour le premier fichier, 2 constats pour le second. Ces constats viennent de la conversion en objets de Figma, qui perd les valeurs des types composés ; ils ne sont pas ceux du rejeu du kit.
+
+Contrôles du kit sur catalogues fabriqués (`npx tsx packages/plugin-architect/scripts/mesure/croissanceDuKit.ts`, 6 palettes, 30 % d'alias manquants, graine 7). Les lectures comptent les accès à `cle`, `nom` et `collection` des variables. Médiane de 11 passes après une passe d'échauffement, deux exécutions :
+
+| Variables | `controlerLeCatalogue` : constats, lectures, ms | `controlerLIntegriteUcm` : constats, lectures, ms |
+|---|---|---|
+| 257 | 139, 43 972, 19,9 puis 19,6 | 126, 3 802, 8,2 puis 5,8 |
+| 432 | 186, 81 343, 26,8 puis 21,5 | 239, 5 874, 11,2 puis 9,3 |
+| 782 | 257, 148 634, 42,5 puis 43,7 | 467, 10 145, 14,8 puis 18,9 |
+| 1 482 | 454, 259 396, 77,1 puis 64,0 | 873, 18 400, 32,9 puis 24,0 |
+| 2 882 | 819, 505 877, 182,2 puis 154,4 | 1 711, 35 125, 58,8 puis 47,9 |
+| 5 682 | 1 547, 982 943, 304,6 puis 268,0 | 3 374, 68 651, 112,0 puis 101,3 |
+
+Pour 22 fois plus de variables, les lectures de `controlerLeCatalogue` sont multipliées par 22,4 et celles de `controlerLIntegriteUcm` par 18,1. La croissance est linéaire.
+
+`controlerLesAliasesManquants`, index des voisines contre l'ancienne recherche (`tests/croissanceDuKit.test.ts`, lectures de `cle`, `nom` et `collection`) :
+
+| Variables | Constats | Index | Ancienne recherche |
+|---|---|---|---|
+| 362 | 115 | 4 366 | 129 802 |
+| 922 | 237 | 9 423 | 600 797 |
+| 2 602 | 695 | 24 931 | 4 139 283 |
+
+Pour des tailles multipliées par 2,5 puis 2,8, l'index multiplie ses lectures par 2,2 puis 2,6 et l'ancienne recherche par 4,6 puis 6,9. Les constats de l'index sont égaux à ceux de l'ancienne recherche sur 80 catalogues fabriqués (plus de 2 000 alias manquants) et sur les deux fichiers du rejeu.
+
+Durée du rejeu (`npm run stress:rejeu -- --chrono`, médiane de 11 passes, une exécution) : premier fichier réel 41,8 ms pour `controlerLeCatalogue` (8 constats) et 53,1 ms pour `controlerLIntegriteUcm` (4 483 constats) sur 2 415 variables ; second fichier 1,3 ms et 0,0 ms (1 constat chacun) sur 755 variables. Les 35 ms et 39 ms de D0 portaient sur le kit d'avant les lots E : il rend depuis 8 constats C63 de plus sur le premier fichier et 2 constats sur le second, qui en rendait 0. La durée dans Figma attend le rapport du mode Tokens que télécharge le mainteneur.
+
 ### Mode Composant
 
 `npx tsx packages/plugin-architect/scripts/stress/f8-analyse/rejeuDeBase.ts` analyse sans panne les 5 sources de `rejeu.ts`, en 7 secondes. Les 5 fichiers sont le même Button, au même état : 90 variants, 198 layers, statut `complete` et les mêmes 7 constats.

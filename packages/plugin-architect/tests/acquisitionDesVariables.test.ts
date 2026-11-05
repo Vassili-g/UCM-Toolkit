@@ -9,10 +9,12 @@ import test, { beforeEach } from 'node:test';
 
 import type { Correction } from '@ucm-kit/core/controles';
 import { VARIABLES_DE_PALETTE, cranDeLaVariable } from '@ucm-kit/core/emplois';
+import { entreeDeNommage } from '@ucm-kit/core/protocoles';
 import { CLE_ARCHITECTURE_DU_FICHIER, ESPACE_ARCHITECT, texteDeLArchitectureDuFichier } from '@ucm-kit/core/referentiel';
 
 import { catalogueDuFichier } from '../src/catalogue';
 import type { PortDeRegles } from '../src/ecriture/journal';
+import { rangerLaLibrary } from '../src/ecriture/configuration';
 import { annulerLeDernierRenommage, appliquerLesRenommages, creerPortDeRegles, type SessionEcriture } from '../src/ecriture/noms';
 import { annulerLeDernierLotDeStructure, ecrireLaStructure, type ApiDeStructure } from '../src/ecriture/structure';
 import { creerLesVariables, type ApiDeVariables } from '../src/ecriture/variables';
@@ -116,7 +118,7 @@ function fichierUcm(options: OptionsDuFichier = {}) {
   };
   const envoyes: PluginMessage[] = [];
   const contexte: Contexte = { figma: figma as unknown as PluginAPI, envoyer: (message) => envoyes.push(message), surveillerLeDocument: () => {} };
-  return { figma: figma as unknown as PluginAPI, appels, envoyes, contexte, nombreDeLocales: variables.length, distante };
+  return { figma: figma as unknown as PluginAPI, appels, envoyes, contexte, nombreDeLocales: variables.length, distante, donnees, variables };
 }
 
 type Fichier = ReturnType<typeof fichierUcm>;
@@ -336,6 +338,148 @@ test('une lecture refusée ne valide aucune acquisition : lire-structure relit F
   assert.equal(acquisitionCourante(), null);
   await lireLaStructure(avecRefus);
   assert.equal(appelsDe('lire-structure')?.getVariableByIdAsync, avecRefus.nombreDeLocales + 1);
+});
+
+// D1.4 : les événements qui imposent une acquisition neuve
+
+const CLE_DECLARATION = `${ESPACE_ARCHITECT}/${CLE_ARCHITECTURE_DU_FICHIER}`;
+const structureSansDemande = (f: Fichier) => { const message = structureEnvoyee(f); return message && message.type === 'structure' ? { ...message, demande: 0 } : undefined; };
+
+/** Un changement fait dans Figma sans qu'aucun événement n'atteigne le plugin : un alias du thème vise une variable supprimée. */
+function changerEnDehors(f: Fichier): () => void {
+  const variable = f.variables.find((candidate) => candidate.variableCollectionId === 'C:theme' && candidate.name === 'primary/solid/default');
+  assert.ok(variable, 'la fixture porte primary/solid/default');
+  const valeurs = variable.valuesByMode as Record<string, unknown>;
+  const avant = valeurs['C:theme:light'];
+  valeurs['C:theme:light'] = alias('VariableID:supprimee');
+  return () => { valeurs['C:theme:light'] = avant; };
+}
+
+test('un changement fait dans Figma sans événement se voit au prochain Actualiser, et Ctrl+Z aussi, comme sur un fichier neuf', async () => {
+  const f = fichierUcm();
+  await lireLeReleve(f, 1);
+  await lireLaStructure(f, 2);
+  const initial = structureSansDemande(f);
+
+  const annuler = changerEnDehors(f);
+  await lireLeReleve(f, 3);
+  await lireLaStructure(f, 4);
+  const change = structureSansDemande(f);
+  const neufChange = fichierUcm();
+  changerEnDehors(neufChange);
+  await lireLeReleve(neufChange, 1);
+  await lireLaStructure(neufChange, 2);
+  assert.notDeepEqual(change, initial, 'le changement produit un constat de plus');
+  assert.deepEqual(change, structureSansDemande(neufChange), 'le message est celui d’un fichier neuf portant le changement');
+
+  annuler();
+  await lireLeReleve(f, 5);
+  await lireLaStructure(f, 6);
+  assert.deepEqual(structureSansDemande(f), initial, 'après Ctrl+Z, un Actualiser rend le message d’avant');
+  assert.equal(appelsDe('lire-structure')?.getVariableByIdAsync, undefined, 'sans lecture par identifiant : l’acquisition est neuve');
+  assert.equal(f.appels.getLocalVariablesAsync, 3, 'un getLocalVariablesAsync par Actualiser');
+});
+
+test('un lire-structure qui suit la consommation de la reprise lit Figma et voit un changement fait entre-temps', async () => {
+  const f = fichierUcm();
+  await lireLeReleve(f, 1);
+  await lireLaStructure(f, 2);
+  const initial = structureSansDemande(f);
+  changerEnDehors(f);
+  await lireLaStructure(f, 3);
+  assert.equal(appelsDe('lire-structure')?.getVariableByIdAsync, f.nombreDeLocales + 2, 'la reprise est consommée : Figma est lu (les locales, la cible de library et la cible supprimée)');
+  assert.notDeepEqual(structureSansDemande(f), initial);
+});
+
+test('une déclaration changée entre le relevé et lire-structure est lue à neuf, et consomme la reprise', async () => {
+  const f = fichierUcm();
+  await lireLeReleve(f, 1);
+  f.donnees.set(CLE_DECLARATION, texteDeLArchitectureDuFichier(false));
+  await lireLaStructure(f, 2);
+  const horsUcm = structureEnvoyee(f);
+  assert.ok(horsUcm && horsUcm.type === 'structure');
+  assert.deepEqual([horsUcm.constats, horsUcm.corrections], [[], []], 'hors UCM, aucun contrôle ne tourne');
+  assert.equal(appelsDe('lire-structure')?.getVariableByIdAsync, undefined);
+
+  f.donnees.set(CLE_DECLARATION, texteDeLArchitectureDuFichier(true));
+  await lireLaStructure(f, 3);
+  assert.equal(appelsDe('lire-structure')?.getVariableByIdAsync, f.nombreDeLocales + 1, 'la reprise est consommée par la demande hors UCM');
+  const neuf = fichierUcm();
+  await lireLeReleve(neuf, 1);
+  await lireLaStructure(neuf, 2);
+  assert.deepEqual(structureSansDemande(f), structureSansDemande(neuf));
+});
+
+test('un vocabulaire rangé entre deux Actualiser passe dans le second relevé, sur une acquisition neuve', async () => {
+  const f = fichierUcm();
+  await lireLeReleve(f, 1);
+  const premier = f.envoyes.filter((message) => message.type === 'releve').at(-1);
+  assert.ok(premier && premier.type === 'releve');
+  assert.equal(premier.releve.vocabulaire, undefined, 'aucune écriture rangée : aucun vocabulaire');
+  const acquisitionAvant = acquisitionCourante()!;
+
+  const ecriture = entreeDeNommage({ type: 'ecriture', ecriture: { groupes: { casse: 'minuscules', separateur: 'tiret' }, variables: { casse: 'minuscules', separateur: 'tiret' } } });
+  const terme = entreeDeNommage({ type: 'terme', terme: { terme: ['pill'], remplace: [['chip']] } });
+  for (const entree of [ecriture, terme]) f.donnees.set(`${ESPACE_ARCHITECT}/${entree.cle}`, entree.texte);
+  await lireLeReleve(f, 2);
+  const second = f.envoyes.filter((message) => message.type === 'releve').at(-1);
+  assert.ok(second && second.type === 'releve');
+  assert.deepEqual(second.releve.vocabulaire?.personnalises.map((personnalise) => personnalise.terme), [['pill']]);
+  assert.equal(f.appels.getLocalVariablesAsync, 2, 'le second Actualiser lit Figma');
+  const acquisitionApres = acquisitionCourante()!;
+  assert.notEqual(acquisitionApres, acquisitionAvant);
+  assert.equal(acquisitionApres.revision, acquisitionAvant.revision + 1);
+  assert.deepEqual(acquisitionApres.lues, acquisitionAvant.lues, 'le vocabulaire n’entre pas dans l’acquisition : les variables lues sont les mêmes');
+});
+
+test('une library rangée entre le relevé et lire-structure ne change rien au mode Tokens, dont le catalogue n’en porte aucune', async () => {
+  const f = fichierUcm();
+  await lireLeReleve(f, 1);
+  assert.equal(catalogueDuFichier(variablesDuCatalogue(acquisitionCourante()!), 'ucm').library, null);
+  assert.ok(rangerLaLibrary(f.figma as never, 'Autre library'));
+  await lireLaStructure(f, 2);
+  assert.equal(appelsDe('lire-structure')?.getVariableByIdAsync, undefined, 'la reprise tient : la library ne la périme pas');
+  const neuf = fichierUcm();
+  await lireLeReleve(neuf, 1);
+  await lireLaStructure(neuf, 2);
+  assert.deepEqual(structureSansDemande(f), structureSansDemande(neuf));
+});
+
+test('une lecture refusée puis redevenue disponible : l’Actualiser suivant acquiert, et le message est celui d’un fichier sans refus', async () => {
+  const refusees = new Set<string>();
+  const f = fichierUcm({ refusees });
+  refusees.add(f.distante.id);
+  await lireLeReleve(f, 1);
+  assert.equal(acquisitionCourante(), null, 'un refus ne valide aucune acquisition');
+  await lireLaStructure(f, 2);
+  assert.equal(appelsDe('lire-structure')?.getVariableByIdAsync, f.nombreDeLocales + 1, 'la demande suivante lit Figma');
+  const avecRefus = structureSansDemande(f);
+
+  refusees.clear();
+  await lireLeReleve(f, 3);
+  assert.ok(acquisitionCourante(), 'la variable est lisible : l’acquisition est valide');
+  await lireLaStructure(f, 4);
+  assert.equal(appelsDe('lire-structure')?.getVariableByIdAsync, undefined, 'lire-structure reprend l’acquisition');
+  const neuf = fichierUcm();
+  await lireLeReleve(neuf, 1);
+  await lireLaStructure(neuf, 2);
+  assert.deepEqual(structureSansDemande(f), structureSansDemande(neuf));
+  assert.notDeepEqual(structureSansDemande(f), avecRefus, 'le refus changeait le message (la cible de library manquait)');
+});
+
+test('une lecture de structure refusée n’est pas gardée pour Ignorer, qui relit Figma jusqu’à ce qu’une lecture sans refus soit gardée', async () => {
+  const refusees = new Set<string>();
+  const f = fichierUcm({ refusees });
+  refusees.add(f.distante.id);
+  await lireLaStructure(f, 1);
+  await traiterAvec(ACCES_DE_FIGMA)({ type: 'ignorer-role', demande: 2, role: 'surface/subtle' }, f.contexte);
+  assert.equal(appelsDe('lire-structure')?.getVariableByIdAsync, f.nombreDeLocales + 1, 'Ignorer relit Figma : la lecture refusée n’était pas gardée');
+
+  refusees.clear();
+  await traiterAvec(ACCES_DE_FIGMA)({ type: 'retablir-role', demande: 3, role: 'surface/subtle' }, f.contexte);
+  assert.equal(appelsDe('lire-structure')?.getVariableByIdAsync, f.nombreDeLocales + 1, 'la lecture refusée précédente n’est toujours pas gardée');
+  await traiterAvec(ACCES_DE_FIGMA)({ type: 'ignorer-role', demande: 4, role: 'surface/subtle' }, f.contexte);
+  assert.equal(appelsDe('lire-structure')?.getVariableByIdAsync, undefined, 'la lecture sans refus est gardée : Ignorer refiltre sans lire');
 });
 
 test('l’acquisition garde des objets convertis, pas ceux de Figma', async () => {
