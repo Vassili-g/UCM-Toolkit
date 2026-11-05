@@ -83,6 +83,7 @@ Elles ne désignent pas un script npm supplémentaire.
 | C | C1 à C6 | Mode Tokens en deux onglets, Constats et Règles (section 1) |
 | D | D0 à D7 | Vitesse de l'analyse du mode Tokens |
 | E | E1 à E12 | Corrections tirées des réponses V2, famille par famille |
+| G | G0 à G5 | Attente avant les constats du mode Tokens |
 | F | F1 à F3 | Clôture, publication, recette |
 
 ## Phase A. Les icônes dans le kit
@@ -219,10 +220,33 @@ Règles propres à la phase E :
 | [E11c](lots/E11c.md) Sujet, cycle et résultat provisoire | `implementeur` | E11b | [ ] |
 | [E12](lots/E12.md) Rejeu complet et cibles | `verificateur`, puis la conversation principale | E11c, E0b, E3d, E4c, D7.1, D5a | [ ] |
 
+## Phase G. Attente avant les constats du mode Tokens
+
+[RECHERCHE-ATTENTE-ANALYSE.md](../RECHERCHE-ATTENTE-ANALYSE.md) établit la cause probable des 30 secondes d’attente. Le calcul des noms
+(lexique, renommages, questions) prend 0,8 s sous Node et 30 s dans QuickJS sur le même fichier de 2 415 variables, avec des lectures
+immédiates. Le sandbox de Figma exécute QuickJS. L’interface du plugin exécute un moteur de navigateur. La phase déplace ce calcul pur
+dans un Worker de l’interface, garde le sandbox en repli, et affiche la structure sans attendre les noms. Les écritures restent
+dans le sandbox, qui relit les objets avant d’écrire.
+
+G0 mesure d’abord chaque phase dans Figma : l’écart entre QuickJS sous WebAssembly et le moteur de Figma reste à prouver. La variante
+qui mémorise le découpage n’est pas retenue, car elle ne donne aucun gain global stable. G2 et G3 ne dépendent pas du Worker.
+G1a et G2 peuvent tourner ensemble, sans fichier commun.
+
+| Lot | Agent | Dépend de | État |
+|---|---|---|---|
+| [G0](lots/G0.md) Mesure par phase | `implementeur`, puis le mainteneur | rien | [ ] |
+| [G1a](lots/G1a.md) Calcul des noms sans le sandbox | `implementeur-exigeant` | G0 | [ ] |
+| [G1b](lots/G1b.md) Calcul des noms dans un Worker de l’interface | `implementeur-exigeant` | G1a | [ ] |
+| [G1c](lots/G1c.md) Recalculs, simulations et projections dans le Worker | `implementeur-exigeant` | G1b | [ ] |
+| [G2](lots/G2.md) Structure affichée avant les noms | `implementeur-exigeant` | G0 | [ ] |
+| [G3](lots/G3.md) Messages fidèles aux étapes | `implementeur` | G2 | [ ] |
+| [G4](lots/G4.md) Pas synchrones bornés | `implementeur` | G1b | [ ] |
+| [G5](lots/G5.md) Mesure de l’attente | `verificateur`, puis le mainteneur | G1c, G2, G3, G4 | [ ] |
+
 ## Phase F. Clôture
 
 | Lot | Agent | Dépend de | État |
 |---|---|---|---|
-| [F1](lots/F1.md) Vérification du dépôt | `verificateur` | A11, E12.1, E12.2, E12.4 | [ ] |
+| [F1](lots/F1.md) Vérification du dépôt | `verificateur` | A11, E12.1, E12.2, E12.4, G5.1 | [ ] |
 | [F2](lots/F2.md) Publication finale | conversation principale | F1 | [ ] |
 | [F3](lots/F3.md) Recette Figma | mainteneur | F1, build disponible | [ ] |
