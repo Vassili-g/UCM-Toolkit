@@ -3,7 +3,7 @@
  * reprennent ses liaisons en substituant les segments d'axe du nom de la variable.
  * Elle ne recopie que les tokens du composant dont le nom se lit (Q-F3-6), sur une peinture ou un champ nu : une liaison déjà posée
  * ne se réécrit pas. Un layer qui n'existe que dans un variant ne donne rien (Q-F3-7) ; deux layers homonymes sous un même parent
- * donnent une question, `faits.homonymes` en dit le nombre. Une liaison n'est exacte que si le nom visé a un seul candidat au
+ * donnent une question, `faits.homonymes` en dit le nombre et `faits.parent` nomme leur parent lu. Une liaison n'est exacte que si le nom visé a un seul candidat au
  * catalogue ; sinon le constat porte une question sans réponse cochée.
  */
 import { natureDuChamp } from '../referentiel/architecture.js';
@@ -162,6 +162,7 @@ function constatDeLaPropagation(
 ): Constat | undefined {
   const homologue = layerHomologue(modele, layer, vise);
   if (homologue === 'absent') return undefined;
+  const parent = Array.isArray(homologue) ? vise.layers.find(({ id }) => id === homologue[0].parent) : undefined;
   const indiceDansLId = liaison.plage ? `p${liaison.plage.debut}-${liaison.plage.fin}` : liaison.indice === undefined ? '' : String(liaison.indice);
   const constat: Constat = {
     id: `C24:modele:${vise.id}:${Array.isArray(homologue) ? layer.id : homologue.id}:${liaison.champ}:${indiceDansLId}`,
@@ -170,7 +171,7 @@ function constatDeLaPropagation(
       modele: modele.nom, calque: Array.isArray(homologue) ? layer.nom : homologue.nom, champ: liaison.champ,
       ...(liaison.indice === undefined ? {} : { indice: liaison.indice }),
       ...(liaison.plage ? { plageDebut: liaison.plage.debut, plageFin: liaison.plage.fin } : {}),
-      ...(Array.isArray(homologue) ? { homonymes: homologue.length } : {}),
+      ...(Array.isArray(homologue) ? { homonymes: homologue.length, ...(parent ? { parent: parent.nom } : {}) } : {}),
     },
   };
   const question = (candidats: readonly VariableDuCatalogue[]): Constat => ({

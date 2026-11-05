@@ -100,6 +100,7 @@ test('deux layers homonymes sous le même parent du modèle donnent une question
     assert.deepEqual(constat.question?.candidats, []);
     assert.deepEqual(constat.layers, ['v-1']);
     assert.equal(constat.faits.homonymes, 1);
+    assert.equal(constat.faits.parent, 'racine');
   }
 });
 
@@ -112,6 +113,23 @@ test('deux layers homonymes dans le variant visé donnent une question qui les n
   assert.deepEqual(constat.question?.candidats, []);
   assert.deepEqual(constat.layers, ['v-1', 'v-2']);
   assert.equal(constat.faits.homonymes, 2);
+});
+
+test('la question des homonymes nomme leur parent dans le variant visé', () => {
+  const modele = variant('m', { Severity: 'info', Variant: 'standard' }, [
+    layer('m-0', 'racine', null), layer('m-parent', 'contenu', 'm-0'),
+    layer('m-ligne', 'ligne', 'm-parent', { cle: 'k-info', nom: NOMS.infoStandard }),
+  ]);
+  const vise = VISE([
+    layer('v-0', 'racine', null), layer('v-parent', 'contenu', 'v-0'),
+    layer('v-1', 'ligne', 'v-parent'), layer('v-2', 'ligne', 'v-parent'),
+  ]);
+  const [constat] = proposerLaPropagation(releve([modele, vise]), CATALOGUE, 'm');
+  assert.equal(constat.faits.parent, 'contenu');
+  assert.equal(constat.faits.homonymes, 2);
+  assert.deepEqual(constat.layers, ['v-1', 'v-2']);
+  assert.deepEqual(constat.question?.candidats, []);
+  assert.equal(constat.correction, undefined);
 });
 
 test('un layer qui n’existe que dans un variant ne donne aucun constat, dans le modèle comme dans le variant visé (Q-F3-7)', () => {

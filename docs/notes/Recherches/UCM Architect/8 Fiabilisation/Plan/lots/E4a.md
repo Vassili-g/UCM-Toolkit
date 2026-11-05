@@ -55,6 +55,22 @@ Mode Composant :
 
 ## Avancement
 
+En cours (Codex). Ne pas reprendre.
+
+Le reliquat porte sur `packages/kit/src/controles/propagation.ts`. Le lecteur et les tests voisins sont lus, avec les documents de `agents:lire`. Le constat des homonymes contient leur nombre, mais aucun nom de parent.
+
+Le nouveau test échoue sans correction, car `faits.parent` vaut `undefined` au lieu de `contenu`. Le constat prend maintenant le nom du parent des layers du variant visé. Un parent absent du relevé ne produit aucun nom supposé. Le cas des homonymes du modèle vérifie aussi `racine`.
+
+Les 20 tests de propagation passent. La carte et l'invariant du kit portent le fait `parent`. La carte d'Architect le lisait déjà, sans changement de texte ni d'écran.
+
+Le test échoue après retrait de la correction, puis les 20 tests de propagation passent après sa remise. Le build du kit et le typecheck global rendent 0.
+
+Les tests du kit donnent 1 660 succès et 23 échecs. Le test « 32 000 noms » passe seul (3 273,6 ms de détection). Les trois fichiers d'accessibilité sont relancés chacun seul. `accessibilite.test.ts` et `stressAccessibiliteOperateurs.test.ts` passent après les écritures de l'autre session. `stressAccessibiliteOperateursBis.test.ts` échoue encore. Aucun de ces fichiers n'est modifié par ce reliquat.
+
+Architect donne 2 143 succès et les 7 échecs d'accessibilité déjà reproduits seuls en E8a. `agents:diff` a été lancé. Ses documents liés ont été relus. Le contrôle de style ne rend aucun refus. Les journaux locaux sont dans `_local/codex-r2-*`.
+
+Prochaine action prévue. Commiter les chemins du reliquat et noter son hash dans le tableau du plan.
+
 E4.1, E4.6, E4.7 et E4.8 faites, non commitées. Rien n'est écrit dans le kit.
 
 Fait :
@@ -69,7 +85,7 @@ Décisions prises :
 
 - Les réponses d'une question de structure sont des lignes sans case et sans bouton. Aucune sorte de correction n'existe pour elles (règle de la note), le designer les applique dans la fenêtre Variables.
 - Quand le kit ne dit pas la couleur actuelle du texte (palette partagée, cran numérique), aucune réponse ne dit « Garder » : les deux disent « Passer au texte blanc » et « Passer au texte noir ».
-- Le parent des homonymes n'est dans aucun fait du kit. La phrase garde `sous ${parent}` si `faits.parent` existe, sinon elle s'arrête à `Deux layers s’appellent ${nom}.` Le kit doit écrire `parent` pour que la phrase soit complète.
+- Le kit écrit le nom du parent des homonymes dans `faits.parent` quand il est lu. La phrase garde `sous ${parent}` si ce fait existe, sinon elle s'arrête à `Deux layers s’appellent ${nom}.`
 - `Lier à ${token}` et `Renommer en ${attendue}` : les cartes existantes les disent déjà (`lier`, `lierA`, `renommer … en` du catalogue des corrections). Aucun texte nouveau.
 - Les gestes sans écriture (renommer un layer, viser une cible) restent des phrases d'action ; aucune sorte de correction n'est ajoutée.
 - Fichiers hors de la liste du lot, touchés parce que le repli `sansPhrase` et les cartes de question y vivent : `src/ui/ignores/modele.ts` (autour des modifications d'une autre session, qui restent intactes), `src/ui/questions/modele.ts`, `src/ui/corrections/modele.ts`, `src/ui/styles/structure.css` et `src/ui/roles.css` (dessins des réponses).
@@ -80,4 +96,4 @@ Commandes : `npm run typecheck` rend 0. `npm run test:paquet -- architect` : 207
 
 Documents : `CARTE.md` (galerie, structure, ignores, textes), `SPEC.md` (catégories du mode Tokens), `invariants/explorateur.md` (une règle sur les questions de structure) de `packages/plugin-architect`.
 
-Reste : relecture dans la galerie par le mainteneur ; `parent` des homonymes à écrire côté kit.
+Reste : relecture dans la galerie par le mainteneur.

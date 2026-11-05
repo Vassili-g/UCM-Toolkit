@@ -1,5 +1,7 @@
 # Versionnage
 
+- **Une propagation entre layers homonymes nomme leur parent lu sans proposer de liaison.** `faits.parent` porte le nom du parent du variant visé, seulement s'il figure dans le relevé. Autorité : `src/controles/propagation.ts` `constatDeLaPropagation`. Tests : `tests/propagation.test.ts`.
+
 - **Un changement de forme du JSON incrémente `contractVersion` et met à jour la spec et les consommateurs.**
 - **Le kit qui connaît une nouvelle version du format de tokens sort avec la CLI et l'adaptateur, le kit en premier, avant le plugin qui la produit.** Spec : [compatibilité](../../../docs/format/COMPATIBILITE.md#lordre-dune-nouvelle-version-du-format-de-tokens)
 - **`schema/ucm-contract.schema.json` est dérivé de `src/format/types.ts` par `npm run schema`, jamais rédigé.** Il décrit la forme et ignore la cohérence : renvois internes, format des valeurs tokenisées. Il ne remplace aucun contrôle du consommateur. Sa propre `description` énonce ses limites.
