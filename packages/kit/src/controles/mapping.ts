@@ -1,5 +1,5 @@
 /** Écarts entre les liaisons lues et les axes, rôles et portées du composant. */
-import { estUneIcone, estUneInstanceDIcone, roleQueLeLayerDesigne } from '../referentiel/layers.js';
+import { estUneIcone, roleQueLeLayerDesigne } from '../referentiel/layers.js';
 import { formeDuChemin, formeReconnue } from '../referentiel/reconnaissance.js';
 import { collectionParCle, variableDuCatalogue, type CatalogueDeReference, type VariableDuCatalogue } from './catalogue.js';
 import type { Constat } from './constat.js';
@@ -35,7 +35,8 @@ function layerPeint(layer: LayerLu, liaison: LiaisonLue): { nom: string; type: s
  * (Q-F3-3) ; un autre rôle reçoit un constat, et un token `divider`, `ring` ou `icon` posé sur un autre layer en reçoit un aussi.
  * `background`, `foreground`, `text` et `border` ne regardent pas le nom. Une icône prend `icon` ou `foreground`, un texte `foreground`
  * ou `text`, un trait `border` ou `foreground`, sauf le trait d'une icône sans fill visible, qui tient lieu de couleur et prend
- * `icon` ou `foreground` (Q-F6-5). Un texte ne désigne aucun rôle par son nom.
+ * `icon` ou `foreground` (Q-F6-5). Un texte ne désigne aucun rôle par son nom. Le tracé intérieur d'une instance qui est une icône, posée
+ * comme composant d'icône ou pilotée par un échange d'instance, reste une icône sous le nom libre que Figma lui donne (E1.3).
  */
 export function rolesAdmisDuLayer(layer: LayerLu, champ: string, plage?: unknown, surcharge?: LiaisonLue['surcharge']): readonly string[] | undefined {
   if (champ !== 'fills' && champ !== 'strokes') return undefined;
@@ -48,7 +49,7 @@ export function rolesAdmisDuLayer(layer: LayerLu, champ: string, plage?: unknown
     return traceSansFill ? ['icon', 'foreground'] : ['border', 'foreground'];
   }
   if (texte) return ['foreground', 'text'];
-  if (surcharge ? estUneIcone(surcharge) || estUneInstanceDIcone(layer) : estUneIcone(layer)) return ['icon', 'foreground'];
+  if (estUneIcone(layer) || (surcharge && estUneIcone(surcharge))) return ['icon', 'foreground'];
   return ['background'];
 }
 

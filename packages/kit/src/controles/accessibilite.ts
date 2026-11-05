@@ -145,15 +145,17 @@ export function* controlerLAccessibiliteParEtapes(
   const groupes = new Map<string, GroupeMesure>();
   const desactives: VariantLu[] = [];
   const mesures: VariantLu[] = [];
-  let ecriture = '';
+  const ecritures = new Map<string, number>();
   const nonLus = new Set(releve.lecture.variantsNonLus);
   for (const v of releve.variants) {
     if (nonLus.has(v.nom)) continue;
     const ecrit = ecritureDeLaDesactivation(v);
     if (ecrit === null) { mesures.push(v); continue; }
     desactives.push(v);
-    ecriture ||= ecrit;
+    ecritures.set(ecrit, (ecritures.get(ecrit) ?? 0) + 1);
   }
+  // Plusieurs écritures de la désactivation : la plus répandue, puis l'ordre alphabétique, pour que l'ordre des variants ne change pas le fait.
+  const ecriture = [...ecritures].sort(([a, x], [b, y]) => y - x || (a < b ? -1 : a > b ? 1 : 0))[0]?.[0] ?? '';
 
   // C53 exclut le contraste, les cibles et l'anneau ; le texte sous 12 px se juge encore (Q-F7-10).
   if (desactives.length > 0) {

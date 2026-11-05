@@ -30,7 +30,7 @@ const ANNEAU: Element = { usage: 'anneau', niveau: 'AA', seuil: 3 };
 function poserLElement(d: Degradation, element: Element): ReturnType<Degradation['racine']> {
   switch (element.usage) {
     case 'texte': return d.ajouterUnTexte('Texte', { peintures: [solide('#000000')] });
-    case 'icone': return d.ajouterUnLayer({ nom: 'Pictogramme', type: 'VECTOR', peintures: [solide('#000000')] });
+    case 'icone': return d.ajouterUnLayer({ nom: 'Pictogram', type: 'VECTOR', peintures: [solide('#000000')] });
     case 'stroke': return d.ajouterUnLayer({ nom: 'Contour', peintures: [solide('#000000', { champ: 'strokes' })], strokeWeight: 1 });
     default: return d.ajouterUnLayer({ nom: 'Ring', peintures: [solide('#000000', { champ: 'strokes' })], strokeWeight: 2 });
   }
@@ -96,7 +96,7 @@ export function operateurY(base: ComposantDeContraste): CasAccessibilite[] {
     const theme = themeDuCatalogue(d.catalogue);
     const [a, b] = [d.nouvelleVariable({ nom: premiere, collection: theme, valeurs: [ECHEC, REUSSITE] }), d.nouvelleVariable({ nom: seconde, collection: theme, valeurs: [ECHEC, REUSSITE] })];
     const icone = d.ajouterUnLayer({
-      nom: 'Pictogramme', type: 'VECTOR', peintures: champDuSecond === 'fills' ? [solide('#000000', { indice: 0 }), solide('#000000', { indice: 1 })] : [solide('#000000')],
+      nom: 'Pictogram', type: 'VECTOR', peintures: champDuSecond === 'fills' ? [solide('#000000', { indice: 0 }), solide('#000000', { indice: 1 })] : [solide('#000000')],
     });
     if (champDuSecond === 'fills') {
       d.lier(icone, a, { champ: 'fills', indice: 0 });

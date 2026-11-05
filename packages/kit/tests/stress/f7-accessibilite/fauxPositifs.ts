@@ -46,7 +46,7 @@ export function themesCibles(base: ComposantDeContraste, graine: number): CasAcc
   ajouter(faire, 'variant désactivé dont l\'icône est à 1,5:1', (d) => {
     const v = d.variantOu({ State: 'Disabled' });
     d.scene({ variant: v });
-    d.ajouterUnLayer({ variant: v, nom: 'Pictogramme', type: 'VECTOR', peintures: [solide(DESACTIVE)] });
+    d.ajouterUnLayer({ variant: v, nom: 'Pictogram', type: 'VECTOR', peintures: [solide(DESACTIVE)] });
   });
   // Le composant tel que le profil le fabrique, aux deux niveaux.
   ajouter(faire, 'fond opaque lié et texte conforme, niveau AA', () => undefined, { niveau: 'AA' });

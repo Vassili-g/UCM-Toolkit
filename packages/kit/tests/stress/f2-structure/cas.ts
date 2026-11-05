@@ -99,10 +99,20 @@ export function cleDeConstat(constat: Constat): string {
     const variable = [texte(faits.groupe), texte(faits.variable)].filter((segment) => segment !== '').join('/');
     return cleAttendue(genre, variable, '', typeof faits.raison === 'string' ? faits.raison : undefined);
   }
-  if (genre === 'cran-absent') return cleAttendue(genre, `${texte(faits.rampe)}/${texte(faits.cran)}`);
+  if (genre === 'cran-absent') return cleAttendue(genre, `${collectionDuCran(constat)}${texte(faits.rampe)}/${texte(faits.cran)}`);
   if (genre === 'mode-du-theme') return cleAttendue(genre, texte(faits.collection), texte(faits.manque));
   if (genre === 'theme-en-double' || genre === 'cible-inaccessible') return cleAttendue(genre, texte(faits.collection));
   return cleAttendue(genre, texte(faits.variable ?? faits.cle), texte(faits.mode));
+}
+
+/**
+ * L'identifiant d'un cran absent porte la clé de la collection `theme` qui le dit (`C82:cran-absent:<collection>:<rampe>/<cran>`, N-30) :
+ * deux collections `theme` disent chacune leur cran absent. La clé de rattachement garde la collection d'origine muette et préfixe
+ * la clé d'une copie.
+ */
+function collectionDuCran(constat: Constat): string {
+  const collection = constat.id.split(':')[2];
+  return collection === undefined || collection === 'theme' ? '' : `${collection}:`;
 }
 
 /** La clé d'un constat attendu, construite comme `cleDeConstat` lit un constat émis. */

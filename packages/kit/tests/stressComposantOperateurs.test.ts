@@ -30,6 +30,13 @@ test('les opérateurs rendent les nombres de cas de la section 3.3 du plan : 60 
   assert.deepEqual([L.length, R.length, K.length], [60, 27, 63]);
 });
 
+test('R : lier le fond de Root à un autre rôle ne juge pas C59, que les textes sans fond de surface font naître à raison (Q-F3-9, Q-F3-10)', () => {
+  const duFond = [...duOperateur('R1'), ...duOperateur('R2')].filter((entree) => entree.entree.description.includes('Root (fond)'));
+  assert.ok(duFond.length >= 7);
+  assert.ok(duFond.every((entree) => !entree.codesJuges!.includes('C59') && entree.codesJuges!.includes('C24')));
+  assert.ok([...duOperateur('R1'), ...duOperateur('R2')].filter((entree) => !duFond.includes(entree)).every((entree) => entree.codesJuges!.includes('C59')));
+});
+
 test('chaque cas a un identifiant <opérateur>-<n>, une description, des zones et un verdict cohérent', () => {
   assert.equal(new Set(TOUS.map((entree) => entree.id)).size, TOUS.length);
   for (const operateur of ['L1', 'L2', 'L3', 'L4', 'L5', 'R1', 'R2', 'K1', 'K2', 'K3', 'K4']) {

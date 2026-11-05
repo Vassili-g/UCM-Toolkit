@@ -11,6 +11,7 @@ import { comparer } from './stress/commun/comparer.js';
 import { cleDeConstat, type CasAccessibilite } from './stress/f7-accessibilite/cas.js';
 import { composantDeContraste } from './stress/f7-accessibilite/composantDeContraste.js';
 import { pairesTropJustes } from './stress/f7-accessibilite/couleursDeStress.js';
+import { rejouerLaRelation } from './stress/f7-accessibilite/metamorphiques.js';
 import { GENERATEURS, tousLesCas } from './stress/f7-accessibilite/operateurs.js';
 import { composantDuProfil, constatsDuProfil, constatsInterdits, PROFIL_ALPHA, PROFIL_P0, PROFILS, profilTire } from './stress/f7-accessibilite/profils.js';
 
@@ -215,4 +216,12 @@ test('la dégradation de M2-3 supprime le mode effectif et l\'annulation le reme
 test('une même graine rend les mêmes cas, et un autre composant de la même spec les mêmes oracles', () => {
   const autre = tousLesCas(composantDeContraste(PROFIL_P0, 7107), 7107);
   assert.deepEqual(autre.map((c) => [c.id, c.attendus]), TOUS.map((c) => [c.id, c.attendus]));
+});
+
+test('F6 : l’ordre des layers est leur empilement, donc la relation d’ordre ne s’applique pas aux quatre cas du frère', () => {
+  for (const id of ['F6-1', 'F6-2', 'F6-3', 'F6-4']) {
+    const entree = cas(id);
+    assert.deepEqual(entree.sansRelation, ['ordre'], id);
+    assert.equal(rejouerLaRelation(entree, 'ordre', [], 7107).issue, 'ignore', id);
+  }
 });

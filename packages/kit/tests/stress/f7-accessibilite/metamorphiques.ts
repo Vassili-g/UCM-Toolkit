@@ -35,9 +35,10 @@ function melangerLOrdre(composant: ComposantDeContraste, graine: number, identif
   for (const variant of variants) variant.layers.splice(0, variant.layers.length, ...melanger(tirer, variant.layers));
 }
 
-/** Passe en capitales les noms de variants, de layers, de propriétés et de leurs valeurs, en place. */
+/** Passe en capitales les noms de variants, de layers, de propriétés et de leurs valeurs, en place, avec les noms de variants que la lecture dit non lus. */
 function changerLaCasse(composant: ComposantDeContraste): void {
   const { releve } = composant;
+  releve.lecture.variantsNonLus = releve.lecture.variantsNonLus.map((nom) => nom.toUpperCase());
   for (const propriete of releve.proprietes) {
     propriete.nom = propriete.nom.toUpperCase();
     if (propriete.valeurs) propriete.valeurs = propriete.valeurs.map((valeur) => valeur.toUpperCase());

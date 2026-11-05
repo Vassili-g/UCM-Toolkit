@@ -196,7 +196,7 @@ export const tailleAttendue = (layer: string, fontSize: number, variants?: reado
   ({ code: 'C49', cle: cleDeTaille(layer, fontSize), forme: 'a-faire', type: 'verifier', seuil: 12, fontSize, ...detail({ variants }) });
 
 /** Le layer que `Degradation.poserLaPaire` pose pour chaque usage, et la plage du texte (0 à 10). */
-export const LAYER_DE_L_USAGE: Readonly<Record<Usage, string>> = { texte: 'Texte', 'grand-texte': 'Texte', icone: 'Pictogramme', stroke: 'Contour', anneau: 'Ring' };
+export const LAYER_DE_L_USAGE: Readonly<Record<Usage, string>> = { texte: 'Texte', 'grand-texte': 'Texte', icone: 'Pictogram', stroke: 'Contour', anneau: 'Ring' };
 export const PLAGE_DU_TEXTE = '0-10';
 
 /** Le constat d'une paire opaque posée par `poserLaPaire` : un seul si le rapport est sous le seuil de l'usage, aucun sinon. */

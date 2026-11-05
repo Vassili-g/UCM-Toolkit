@@ -3,13 +3,18 @@
  * la table de l'inventaire 4.2 (`CIBLES` de `operateursAxes.ts`) : fond `background`, trait `border`, texte `foreground`,
  * icône `icon`, anneau `ring`. Un token d'un autre rôle porte aussi d'autres scopes : l'oracle ajoute alors le C18 que la règle
  * de scope du plan donne, parce que le token lié est vraiment incompatible avec le champ.
+ *
+ * Lier le fond de Root à un autre rôle retire le fond de surface des textes du variant : si leurs tokens visent `surface/foreground`,
+ * C59 les accuse à raison (Q-F3-9, Q-F3-10), selon la palette que le tirage choisit. Les cas qui touchent le fond ne jugent donc pas C59,
+ * que T1 et T2 mesurent.
  */
 import type { ConstatAttendu } from '../commun/types.js';
 import { type RoleDeCouleur } from './carte.js';
 import { GRAINE_PAR_DEFAUT, type ComposantDeBase } from './composantDeBase.js';
 import {
-  attendu, attendusDePortee, CIBLES, Degradation, jetonCouleur, lieuDe, liaisonDeCible, Registre, type CasDeComposant, type NomDeCible,
+  attendu, attendusDePortee, CIBLES, CODES_JUGES, Degradation, jetonCouleur, lieuDe, liaisonDeCible, Registre, type CasDeComposant, type NomDeCible,
 } from './operateursAxes.js';
+import { ajouterAvecCodes } from './operateursPeinture.js';
 
 /** R1 : pour chaque cible, les rôles que la table ne lui admet pas. 5 + 4 + 4 + 4 + 5 = 22 cas. */
 const ROLES_REFUSES: readonly (readonly [NomDeCible, readonly RoleDeCouleur[]])[] = [
@@ -52,10 +57,12 @@ export function operateursRoles(base: ComposantDeBase, graine: number = GRAINE_P
     } else {
       c24 = attendu('C24', 'correction', lieu, { apres: juste });
     }
-    registre.ajouter(operateur, degradation, {
+    const resultat = {
       description: `${operateur} : ${CIBLES[cible].layer} (${cible}) du variant ${variant.nom} lié au rôle ${roleFaux}, ${CIBLES[cible].role} attendu`,
       attendus: [c24, ...attendusDePortee(deBase, CIBLES[cible].sorte, variableFausse)],
-    });
+    };
+    if (cible === 'fond') ajouterAvecCodes(registre, operateur, degradation, resultat, CODES_JUGES.filter((code) => code !== 'C59'));
+    else registre.ajouter(operateur, degradation, resultat);
   };
 
   for (const [cible, roles] of ROLES_REFUSES) for (const role of roles) lierAUnAutreRole('R1', cible, role, 'correction');

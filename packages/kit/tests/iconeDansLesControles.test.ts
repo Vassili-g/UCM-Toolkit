@@ -102,6 +102,16 @@ test('C17 lit l\'instance d\'Icon que la surcharge peint : le tracé intérieur 
   assert.deepEqual(controlerMapping(releve([hote]), catalogue).filter((c) => c.code === 'C17'), []);
 });
 
+test('C17 lit aussi l’instance pilotée par un échange d’instance : son tracé intérieur nommé Vector est une icône, celui d’un composant ordinaire non', () => {
+  const lie = (hote: LayerLu): LayerLu => ({
+    ...hote, liaisons: [{ champ: 'fills', indice: 0, porteur: hote.id, surcharge: { id: `${hote.id};v`, nom: 'Vector', type: 'VECTOR' }, variable: { id: 'icone', cle: 'icone', nom: 'button/color/primary/icon', collection: 'components', distante: false } }],
+  });
+  const refus = (hote: LayerLu) => controlerMapping(releve([lie(hote)]), catalogue).filter((c) => c.code === 'C17').flatMap((c) => c.layers);
+  assert.deepEqual(refus(instance('p', 'Slot', 'Chevron', 'Icon#1:2')), []);
+  assert.deepEqual(refus(instance('q', 'Slot', 'Chevron', 'Image#2:3')), ['q']);
+  assert.deepEqual(refus(instance('r2', 'Badge', 'Badge')), ['r2']);
+});
+
 test('un anneau se reconnaît à son nom : Ring, Focus ring, focus-ring, .Ring ; pas Focus, outline ni Ring Wrapper (Q-F7-9)', () => {
   const anneau = (nom: string): LayerLu => layer(nom, nom, 'FRAME', {
     peintures: [{ ...BLANC, champ: 'strokes' }], strokeWeight: 2,

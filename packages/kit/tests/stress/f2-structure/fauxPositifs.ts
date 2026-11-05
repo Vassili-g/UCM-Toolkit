@@ -1,17 +1,20 @@
 /**
  * Les faux positifs du stress test F2 (section 4 du plan, propriété P1) : 85 thèmes écrits justes, dont aucun des deux contrôles du
  * mode Tokens ne doit rien dire. Le cas `A0-<n>` est le n-ième des 72 profils de base ; les cas `A1` à `A7` sont les 13 thèmes
- * ciblés. Aucun cas n'attend de constat : tout constat émis est un faux constat.
+ * ciblés. Aucun cas n'attend de constat, sauf A1 quand la collection `theme` change de nom au point de ne plus être reconnue : le
+ * kit dit alors `theme-non-reconnu` (E3.9, QV-4), une information qui n'est pas un faux constat.
  *
  * Les cas A0 ne dégradent rien. Les thèmes ciblés partent de P0, sauf A3, qui part d'un profil large pour renommer trois marques.
  * Le plan veut aussi les groupes `tertiary` et `success/soft` : le profil large porte déjà `tertiary` et les statuts à deux niveaux.
- * Les thèmes A1 renomment une collection ; le kit ne reconnaît pas `themes`, donc ce thème-là n'a aucune collection `theme`.
+ * Les thèmes A1 renomment une collection ; le kit ne reconnaît pas `themes`, donc ce thème-là n'a aucune collection `theme` et reçoit
+ * l'information `theme-non-reconnu`.
  */
 import { collectionsDeReference, type CatalogueDeReference, type CollectionDuCatalogue } from '../../../src/controles/index.js';
 import {
-  COULEUR_DIRECTE, Degradation, Registre, ajouterUnMode, collectionDuCas,
+  COULEUR_DIRECTE, Degradation, Registre, ajouterUnMode, attendu, collectionDuCas,
   type CasDeStructure,
 } from './cas.js';
+import type { ConstatAttendu } from '../commun/types.js';
 import { GRAINE_PAR_DEFAUT, PROFILS_DE_THEME, themeDuProfil, type ProfilDeTheme, type ThemeDeBase } from './themeUcm.js';
 
 /** Un cas par profil : le thème du profil lui-même, sans dégradation ni zone. */
@@ -69,8 +72,8 @@ function catalogueLibre(): CatalogueDeReference {
 export function fauxPositifsCibles(base: ThemeDeBase, graine: number = GRAINE_PAR_DEFAUT): CasDeStructure[] {
   const registre = new Registre(base, graine);
   const { carte } = base;
-  const ajouter = (operateur: string, degradation: Degradation, description: string): void =>
-    registre.ajouter(operateur, degradation, { description: `${operateur} ${description}`, attendus: [] });
+  const ajouter = (operateur: string, degradation: Degradation, description: string, attendus: readonly ConstatAttendu[] = []): void =>
+    registre.ajouter(operateur, degradation, { description: `${operateur} ${description}`, attendus });
   const zone = (degradation: Degradation): void => degradation.zone({ palette: null, role: '(fichier)', mode: 'les-deux' });
 
   // A1. Les écritures de la collection `theme`, et les formes anciennes de `brands`, de `utility` et de `layout`.
@@ -78,7 +81,9 @@ export function fauxPositifsCibles(base: ThemeDeBase, graine: number = GRAINE_PA
     const degradation = registre.degrader();
     renommerLaCollection(degradation, cle, nom);
     zone(degradation);
-    ajouter('A1', degradation, `collection ${cle} écrite ${nom}`);
+    // Aucune collection ne se lit comme `theme` alors que les autres gardent leur rôle : l'intégrité UCM n'est pas contrôlée, et le kit le dit.
+    const nonReconnu = cle === 'theme' && collectionDuCas(degradation, cle).role !== 'theme';
+    ajouter('A1', degradation, `collection ${cle} écrite ${nom}`, nonReconnu ? [attendu('C82', 'theme-non-reconnu', '', '', 'a-faire')] : []);
   }
 
   // A2. Les modes de `theme` écrits Light et Dark, puis en majuscules complètes.

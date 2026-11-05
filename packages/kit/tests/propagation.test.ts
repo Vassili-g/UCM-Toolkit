@@ -146,6 +146,17 @@ test('un layer visé sans la peinture du modèle ne donne aucun constat (Q-F3-7)
   assert.deepEqual(proposerLaPropagation(releve([MODELE, VISE([sansPeinture])]), CATALOGUE, 'm'), []);
 });
 
+test('un champ dont la lecture a échoué ne reçoit aucune proposition et ne compte pas dans C81 (P18)', () => {
+  const vise = VISE([layer('v-1', 'container', null)]);
+  const lecture = { layersLus: 2, layersNonLus: 0, variantsNonLus: [], manquees: [{ layer: 'v-1', champ: 'fills', motif: 'peintures mixtes ou illisibles' }] };
+  const sansLecture = { ...releve([MODELE, vise]), lecture };
+  assert.deepEqual(proposerLaPropagation(sansLecture, CATALOGUE, 'm'), []);
+  assert.deepEqual(candidatsDeModele(sansLecture, CATALOGUE), []);
+  // Le même variant lu en entier reçoit la correction : seule la lecture manquée la retire.
+  assert.equal(proposerLaPropagation(releve([MODELE, vise]), CATALOGUE, 'm').length, 1);
+  assert.equal(candidatsDeModele(releve([MODELE, vise]), CATALOGUE).length, 1);
+});
+
 test('une liaison directe à theme ou un token au nom illisible n’est pas recopié (Q-F3-6)', () => {
   const modele = variant('m', { Severity: 'info', Variant: 'standard' }, [layer('m-1', 'container', null, { cle: 'k-theme', nom: 'surface/default' })]);
   const theme = { ...variable('k-theme', 'surface/default'), collection: 'theme' };

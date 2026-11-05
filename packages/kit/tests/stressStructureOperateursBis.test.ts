@@ -151,7 +151,13 @@ test('Y1 à Y4 : la couche visée, la valeur directe, le type et le rangement, a
 test('X1 à X6 : deux collections theme, un rôle en double, des variables illisibles, un fichier libre, des entrées malformées', () => {
   const themes = (id: string) => cas(id).entree.theme.catalogue.collections.filter((collection) => collection.role === 'theme').length;
   assert.deepEqual(['X1-1', 'X1-2', 'X1-3', 'X1-4'].map(themes), [2, 2, 2, 1]);
-  assert.deepEqual(cles(cas('X1-1')), ['C82|theme-en-double|Theme|', 'C82|cran-absent|primary/light/50|']);
+  // Chaque collection `theme` dit son cran absent sous son propre identifiant (N-30) ; une copie incomplète reçoit ses rôles absents (N-31).
+  assert.deepEqual(cles(cas('X1-1')), ['C82|theme-en-double|Theme|', 'C82|cran-absent|primary/light/50|', 'C82|cran-absent|theme-2:primary/light/50|']);
+  assert.deepEqual(cles(cas('X1-2')), [
+    'C82|theme-en-double|THEME|', ...['solid/hover', 'solid/foreground', 'surface/hover', 'surface/subtle', 'surface/border', 'page/foreground', 'page/divider']
+      .map((role) => `C82|variable-absente|primary/${role}|`),
+  ]);
+  assert.ok(cas('X1-2').details!.every((detail) => detail.creation!.collection === 'theme-3'));
   assert.deepEqual(cles(cas('X1-4')), ['C82|theme-en-double|Theme (copy)|']);
   const variablesDe = (id: string, collection: string) => cas(id).entree.theme.catalogue.variables.filter((v) => v.collection === collection).length;
   assert.ok(variablesDe('X1-2', 'theme-3') > 0 && variablesDe('X1-2', 'theme-3') < variablesDe('X1-2', 'theme'));
@@ -162,7 +168,8 @@ test('X1 à X6 : deux collections theme, un rôle en double, des variables illis
   assert.deepEqual(cles(cas('X2-2')), ['C82|role-en-double|primary/solid/hover|', 'C82|cran|primary/solid/hover|light', 'C82|cran|primary/solid/hover|dark']);
   assert.equal(cas('X2-2').hypothese, 'H5');
   assert.deepEqual(duOperateur('X2').map((entree) => entree.entree.theme.catalogue.variables.filter((v) => v.cle.startsWith('theme|primary/solid/hover')).length), [2, 2, 2, 2]);
-  assert.deepEqual(duOperateur('X3').map((entree) => entree.attendus.length), [0, 0, 0]);
+  // Une collection inaccessible que des alias visent donne l'information `cible-inaccessible` (Q-F2-8) ; une collection lue, rien.
+  assert.deepEqual(duOperateur('X3').map(cles), [['C63|cible-inaccessible|theme|'], ['C63|cible-inaccessible|brands|'], []]);
   assert.deepEqual(cas('X3-1').entree.theme.catalogue.collections.find((c) => c.cle === 'theme')?.etat, 'inaccessible');
   assert.equal(cas('X3-3').entree.theme.catalogue.variables.filter((v) => v.collection === 'theme').every((v) => v.etat === 'non-chargee'), true);
   assert.ok(cas('X5-1').entree.theme.catalogue.collections.every((collection) => collection.role === null));
@@ -213,12 +220,14 @@ test('Q1 à Q3 : une question qui nomme le rôle proche, sans présélection ; l
   assert.ok(duOperateur('Q3').every((entree) => entree.attendus.length === 0 && entree.verdict === 'attendu'));
 });
 
-test('les 85 faux positifs : 72 profils et 13 thèmes ciblés bien formés, aucun constat attendu', () => {
+test('les 85 faux positifs : 72 profils et 13 thèmes ciblés bien formés, aucun constat attendu sauf l’information du thème non reconnu', () => {
   assert.equal(FAUX_POSITIFS.length, 85);
   const parOperateur = Object.fromEntries([...new Set(FAUX_POSITIFS.map((entree) => entree.operateur))].map((operateur) => [operateur, FAUX_POSITIFS.filter((entree) => entree.operateur === operateur).length]));
   assert.deepEqual(parOperateur, { A0: 72, A1: 6, A2: 2, A3: 1, A4: 1, A5: 1, A6: 1, A7: 1 });
   assert.equal(new Set(FAUX_POSITIFS.map((entree) => entree.id)).size, 85);
-  assert.ok(FAUX_POSITIFS.every((entree) => entree.famille === 'F2' && entree.verdict === 'attendu' && entree.attendus.length === 0 && entree.entree.description.startsWith(entree.operateur)));
+  // A1-2 renomme `theme` en `themes` : aucune collection n'est reconnue comme `theme`, et le kit le dit (E3.9).
+  assert.deepEqual(cles(cas('A1-2')), ['C82|theme-non-reconnu||']);
+  assert.ok(FAUX_POSITIFS.every((entree) => entree.famille === 'F2' && entree.verdict === 'attendu' && (entree.id === 'A1-2' || entree.attendus.length === 0) && entree.entree.description.startsWith(entree.operateur)));
   const profils = FAUX_POSITIFS.slice(0, 72);
   assert.deepEqual(profils.map((entree) => entree.entree.theme.profil.id), PROFILS_DE_THEME.map((profil) => profil.id));
   assert.equal(profils[13].entree.theme.profil.id, 'p14');

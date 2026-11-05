@@ -6,18 +6,21 @@
  * ses votes de sens, donc le seul constat attendu est celui de la sonde. X1 duplique la collection `theme`, X2 duplique un rôle dans
  * une palette, X3 rend des variables illisibles, X5 déclare le fichier libre et X6 donne aux contrôles des entrées malformées. Le
  * kit rend pour X1 un constat `theme-en-double` (Q-F2-5) et pour X2 une question `role-en-double` (Q-F2-6), et pour X6 seulement
- * l'absence d'exception (`codesJuges` vide : aucun constat n'y compte comme faux).
+ * l'absence d'exception (`codesJuges` vide : aucun constat n'y compte comme faux). Chaque collection `theme` est jugée pour elle-même
+ * (N-30, N-31) : une copie incomplète reçoit ses `variable-absente`, et chaque copie dit son cran absent. Une collection inaccessible
+ * que des alias visent reçoit l'information `cible-inaccessible` (Q-F2-8), car aucune library n'est choisie.
  *
  * Le plan compte 6 paires admises dans Y1 ; le référentiel (`ciblesAdmises`) n'en donne que 5 sur les 25 couples, donc Y1 garde
  * 26 cas avec 20 paires interdites et 5 admises.
  */
 import { ciblesAdmises, type Collection } from '../../../src/referentiel/architecture.js';
 import { collectionsDeReference, type CollectionDuCatalogue, type VariableDuCatalogue } from '../../../src/controles/index.js';
-import { VARIABLES_DE_PALETTE, type VariableDuTheme } from '../../../src/emplois/dossiers.js';
+import { SUPPORT_DES_VARIABLES, VARIABLES_DE_PALETTE, type VariableDuTheme } from '../../../src/emplois/dossiers.js';
 import type { ConstatAttendu } from '../commun/types.js';
 import { MODES_DU_THEME, paletteDeCarte } from './carte.js';
 import {
-  COULEUR_DIRECTE, QUESTION_SANS_NUMERO, Registre, ajouterUnMode, ajouterUneCollection, ajouterUneVariable, attendu, collectionDuCas, leRole,
+  COULEUR_DIRECTE, QUESTION_SANS_NUMERO, Registre, ajouterUnMode, ajouterUneCollection, ajouterUneVariable, attenduDeVariableAbsente, attendu,
+  cleComplete, collectionDuCas, leRole,
   type CasDeStructure, type Degradation,
 } from './cas.js';
 import { GRAINE_PAR_DEFAUT, type ThemeDeBase } from './themeUcm.js';
@@ -171,18 +174,30 @@ export function operateursStructure(base: ThemeDeBase, graine: number = GRAINE_P
     degradation.zone({ palette: null, role: '(theme)', mode: 'les-deux' });
     registre.ajouter('X1', degradation, {
       description: 'X1 copie complète nommée Theme, avec surface/subtle de primary et le cran 50 de sa rampe retirés',
-      attendus: [unTheme('Theme'), attendu('C82', 'cran-absent', 'primary/light/50', '', 'a-faire')],
+      // Le cran 50 manque à la rampe que les deux thèmes visent : chaque collection `theme` le dit, sous son propre identifiant (N-30).
+      attendus: [unTheme('Theme'), attendu('C82', 'cran-absent', 'primary/light/50', '', 'a-faire'), attendu('C82', 'cran-absent', 'theme-2:primary/light/50', '', 'a-faire')],
     });
   }
   {
     const degradation = registre.degrader();
     const gardees = new Set<string>(VARIABLES_DE_PALETTE.filter((_, rang) => rang % 2 === 0).map((role) => leRole(base, 'primary', role).nom));
     for (const role of Object.values(carte.globales)) gardees.add(role.nom);
-    copierLeTheme(degradation, 'theme-3', 'THEME', modesClairSombre('3'), (variable) => gardees.has(variable.nom));
+    const modes = modesClairSombre('3');
+    copierLeTheme(degradation, 'theme-3', 'THEME', modes, (variable) => gardees.has(variable.nom));
     degradation.zone({ palette: null, role: '(theme)', mode: 'les-deux' });
+    // La copie est une collection `theme` : ses sept rôles de rang impair manquent, et chacun reçoit sa création dans la copie (N-31).
+    const manquants = VARIABLES_DE_PALETTE.filter((role) => !gardees.has(leRole(base, 'primary', role).nom)).map((role) => leRole(base, 'primary', role));
+    const absents = manquants.map((role) => attenduDeVariableAbsente(base, primary, role));
     registre.ajouter('X1', degradation, {
       description: 'X1 copie nommée THEME des rôles de rang pair de primary et des variables globales',
-      attendus: [unTheme('THEME')],
+      attendus: [unTheme('THEME'), ...absents.map(({ attendu: absent }) => absent)],
+      details: manquants.map((role, rang) => ({
+        pour: cleComplete(absents[rang].attendu),
+        creation: {
+          collection: 'theme-3', nom: role.nom, scopes: SUPPORT_DES_VARIABLES[role.role].portees,
+          alias: Object.fromEntries(MODES_DU_THEME.map((mode, rangDuMode) => [modes[rangDuMode].id, role.cibles[mode].cle])),
+        },
+      })),
     });
   }
   {
@@ -234,7 +249,9 @@ export function operateursStructure(base: ThemeDeBase, graine: number = GRAINE_P
     for (const variable of degradation.catalogue.variables.filter((entree) => collections.includes(entree.collection))) degradation.fixer(variable, 'etat', etat);
     if (collectionEtat) for (const cle of collections) degradation.fixer(collectionDuCas(degradation, cle), 'etat', collectionEtat);
     degradation.zone({ palette: null, role: '(lecture)', mode: 'les-deux' });
-    registre.ajouter('X3', degradation, { description: `X3 ${description}`, attendus: [] });
+    // Les alias qui visent une collection inaccessible ne sont pas jugés, mais le kit le dit, par collection (Q-F2-8, aucune library choisie).
+    const informations = collectionEtat ? collections.map((cle) => attendu('C63', 'cible-inaccessible', collectionDuCas(degradation, cle).nom, '', 'a-faire')) : [];
+    registre.ajouter('X3', degradation, { description: `X3 ${description}`, attendus: informations });
   };
   illisibles('collection theme inaccessible, variables non chargées', ['theme'], 'non-chargee', 'inaccessible');
   illisibles('collection brands inaccessible, variables non chargées', ['brands'], 'non-chargee', 'inaccessible');

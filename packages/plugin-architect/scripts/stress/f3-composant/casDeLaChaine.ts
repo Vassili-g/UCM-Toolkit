@@ -555,7 +555,7 @@ function casDeLaDoubleCorrection(): CasDeChaine {
 // ---------------------------------------------------------------------------------------------------------------------------
 // D6. États
 
-function composantPropre(): { releve: ReleveDeComposant; catalogue: CatalogueDeReference } {
+export function composantPropre(): { releve: ReleveDeComposant; catalogue: CatalogueDeReference } {
   const profil = PROFILS_DE_BASE.find((candidat) => candidat.forme === 'divider-1' && candidat.scopes === 'larges' && !candidat.imbriques && candidat.plages === 1 && candidat.modesDeTaille === 1)!;
   const base = composantDuProfil(profil);
   return { releve: base.releve as unknown as ReleveDeComposant, catalogue: base.catalogue as unknown as CatalogueDeReference };
@@ -586,7 +586,17 @@ function casDEtat(n: number): CasDeChaine {
       const chaine = await lancerLaChaine({ releve: fusion.composant.releve, catalogue: sansRole });
       ajouterLesVerifications(v, controlerHorsUcm(chaine, 'collections sans rôle'));
     } else if (n === 4) {
-      const chaine = await lancerLaChaine({ ...composantPropre(), reference: { library: null, nom: null, candidates: 2 } });
+      // Deux libraries portent des variables, aucune n'est rangée et aucune liaison ne les départage : le sandbox s'arrête sur
+      // `library-a-choisir` sans rendre d'analyse (E11.5, Q-F89-20), et l'écran demande le choix.
+      const variable = (cle: string) => [{ cle, nom: 'couleur', type: 'COLOR' as const }];
+      const libraries = {
+        etat: 'lue' as const, illisibles: [],
+        collections: [{ cle: 'lib-a', nom: 'Couleurs', library: 'Library A', variables: variable('va') }, { cle: 'lib-b', nom: 'Couleurs', library: 'Library B', variables: variable('vb') }],
+      };
+      const chaine = await lancerLaChaine({ ...composantPropre(), libraries, reference: { library: null, nom: null, candidates: 2 } });
+      verifier(v, chaine.messages.some((message) => message.type === 'library-a-choisir') && !chaine.messages.some((message) => message.type === 'analyse'), {
+        propriete: 'P18', sorte: 'accusation', detail: `le sandbox a rendu ${chaine.messages.map((message) => message.type).join(', ')} au lieu de library-a-choisir seul`,
+      });
       const texte = chaine.ecran.texte();
       verifier(v, /Choisissez la library/.test(texte), { propriete: 'P18', sorte: 'accusation', detail: `l'écran ne demande pas de choisir la library : « ${texte.slice(0, 120)} »` });
       verifier(v, chaine.ecran.cartesDeCorrections().length + chaine.ecran.cartesAFaire().length === 0, { propriete: 'P18', sorte: 'accusation', detail: 'des cartes s\'affichent avant le choix de la library' });

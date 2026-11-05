@@ -13,6 +13,7 @@
 import type { CatalogueDeReference, Constat, Correction, ReleveDeComposant } from '@ucm-kit/core/controles';
 import { texteDeLArchitectureDuFichier } from '@ucm-kit/core/referentiel';
 import type { ResultatInterne } from 'ucm-plugin-socle/src/composant/analyse/resultat';
+import type { LectureDesLibraries } from 'ucm-plugin-socle/src/bibliotheque';
 import type { ResultatSansPublication } from 'ucm-plugin-socle/src/composant/contract/exportComponent';
 import { phraseDe, type PointACorriger } from 'ucm-plugin-socle/src/composant/contract/localisation';
 
@@ -54,10 +55,12 @@ export interface ParametresDeChaine {
   readonly ignores?: 'echec' | readonly string[];
   /** La library que la Configuration annonce ; absente : aucune annonce. */
   readonly reference?: Etat['reference'];
+  /** Les libraries activées que le sandbox lit pendant le relevé ; absentes : aucune lecture, donc aucun choix à faire. */
+  readonly libraries?: LectureDesLibraries;
 }
 
 type MessageRecuParLInterface = Parameters<typeof recevoirUneAnalyse>[1];
-const TYPES_RECUS = new Set<string>(['analyse-commencee', 'analyse-en-cours', 'analyse-provisoire', 'analyse', 'perime', 'occupe', 'corrections-appliquees', 'ignores', 'question-repondue', 'modele-propose', 'liaisons-preparees']);
+const TYPES_RECUS = new Set<string>(['analyse-commencee', 'analyse-en-cours', 'analyse-provisoire', 'analyse', 'perime', 'occupe', 'library-a-choisir', 'corrections-appliquees', 'ignores', 'question-repondue', 'modele-propose', 'liaisons-preparees']);
 
 function moteurDouble(moteur: ParametresDeChaine['moteur']): ResultatSansPublication {
   const points = moteur?.points ?? [];
@@ -115,6 +118,7 @@ export async function lancerLaChaine(parametres: ParametresDeChaine): Promise<Ch
   const lecteurs: Lecteurs = {
     sujet: async () => ({ cle: releve.jeu.cle, noeud: { id: releve.jeu.id } as never, noeuds }),
     releve: async () => ({ statut: 'lu', releve }),
+    ...(parametres.libraries ? { bibliotheques: async () => parametres.libraries! } : {}),
     catalogue: async () => catalogue,
     moteur: async () => moteurDouble(parametres.moteur),
     ignores: async () => {
@@ -171,7 +175,10 @@ export function ecranDuProvisoire(chaine: Chaine): Ecran {
     if (message.type === 'analyse') break;
     if (TYPES_RECUS.has(message.type)) recevoirUneAnalyse(etat, message as MessageRecuParLInterface);
   }
-  return new Ecran(etat, chaine.ecran.lecture);
+  // L'application redessine à chaque message : l'écran neuf se dessine une fois, comme après le dernier message du provisoire.
+  const ecran = new Ecran(etat, chaine.ecran.lecture);
+  ecran.mettreAJour();
+  return ecran;
 }
 
 /** La lecture du composant que la vue Composant donnerait : le jeu, ses variants et le nom de chaque layer. */

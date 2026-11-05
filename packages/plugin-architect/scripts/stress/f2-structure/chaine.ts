@@ -15,7 +15,7 @@
  * l'écran remplace la prochaine demande de l'interface par la demande du geste, sous le même numéro, comme `demanderAvec` de
  * `ui/structure/index.ts`. Le sandbox garde un état global (`reinitialiserLAnalyse`) : les chaînes se lancent l'une après l'autre.
  */
-import type { CatalogueDeReference, Constat, Correction } from '@ucm-kit/core/controles';
+import { grouperLesCouches, type CatalogueDeReference, type Constat, type Correction } from '@ucm-kit/core/controles';
 import type { EcritureChoisie } from '@ucm-kit/core/protocoles';
 import { texteDeLArchitectureDuFichier } from '@ucm-kit/core/referentiel';
 
@@ -24,7 +24,7 @@ import type { DemandeDeStructure, MessageDeStructure } from '../../../src/messag
 import { reinitialiserLAnalyse } from '../../../src/sandbox/analyse';
 import type { Contexte } from '../../../src/sandbox/contexte';
 import { traiterAvec, type Acces } from '../../../src/sandbox/structure';
-import { GROUPES, lireLesConstats, lireLesCorrections, type Noms } from '../../../src/ui/structure/lecture';
+import { GROUPES, lireLesConstats, lireLesCorrections, lireLInformationDuTheme, type Noms } from '../../../src/ui/structure/lecture';
 import { TEXTES } from '../../../src/ui/textes';
 import { comme, ElementDeTest, poserLeDom } from '../../../tests/domDeTest';
 
@@ -336,14 +336,21 @@ function lignesLues(message: MessageDeStructureRecu, noms: Noms): string[] {
 /**
  * P9 : tout constat émis et non ignoré se lit à l'écran, dans `lireLesConstats` s'il n'a pas de correction, par la ligne de sa correction
  * dans `lireLesCorrections` sinon. Le DOM confirme les comptes : une carte « À faire » par constat lu, une case par ligne de correction.
+ * Deux constats se lisent sans carte à leur identifiant : un constat de couche, que la carte groupée de sa collection et de sa couche
+ * visée porte (QV-3, E4.6), et `theme-non-reconnu`, que l'information en tête du mode Tokens porte (QV-4).
  */
 export function controlerLAffichage(chaine: Chaine, noms: Noms): Verification {
   const v = verification();
   const message = chaine.derniere();
   const lus = new Set(lireLesConstats(message.constats, noms).map(({ id }) => id));
+  const portes = new Set(lus);
+  for (const groupe of grouperLesCouches(message.constats)) if (lus.has(groupe.id)) groupe.constats.forEach((id) => portes.add(id));
+  const informationDuTheme = lireLInformationDuTheme(message.constats) !== null;
   const lignes = new Set(lignesLues(message, noms));
   for (const constat of message.constats) {
-    const vu = constat.correction ? lignes.has(constat.correction.id) : lus.has(constat.id);
+    const vu = constat.correction
+      ? lignes.has(constat.correction.id)
+      : portes.has(constat.id) || (informationDuTheme && constat.faits.genre === 'theme-non-reconnu');
     verifier(v, vu, {
       propriete: 'P9', sorte: 'non-affiche',
       detail: `${genreDuConstat(constat)} ${constat.id} ${constat.correction ? 'a une correction sans ligne' : 'sans correction n\'a pas de carte'} à l'écran`,
@@ -364,7 +371,8 @@ export function controlerLAffichage(chaine: Chaine, noms: Noms): Verification {
 /**
  * P10 : tout genre émis appartient à `GENRES_DECLARES` et à `GROUPE_DU_GENRE`. Ces deux tables ne sont pas exportées : la sonde passe
  * un constat sans sa correction dans `lireLesConstats`, comme l'écran le fait pour une proposition ignorée, et attend une entrée rangée
- * sous un intertitre de `GROUPES`. Un constat de C60 ou de C63 `scopes` n'a pas de genre, donc la sonde ne le trouve pas.
+ * sous un intertitre de `GROUPES`. Un constat de C60 ou de C63 `scopes` n'a pas de genre, donc la sonde ne le trouve pas. L'information
+ * `theme-non-reconnu` n'a pas de carte : elle se lit par `lireLInformationDuTheme`.
  */
 export function controlerLesGenres(constats: readonly Constat[], noms: Noms): Verification {
   const v = verification();
@@ -374,7 +382,8 @@ export function controlerLesGenres(constats: readonly Constat[], noms: Noms): Ve
     if (vus.has(genre)) continue;
     vus.add(genre);
     const lus = lireLesConstats([sansCorrection(constat)], noms);
-    verifier(v, lus.length === 1 && GROUPES.includes(lus[0].groupe), {
+    const informationDuTheme = constat.faits.genre === 'theme-non-reconnu' && lireLInformationDuTheme([constat]) !== null;
+    verifier(v, informationDuTheme || (lus.length === 1 && GROUPES.includes(lus[0].groupe)), {
       propriete: 'P10', sorte: 'genre-non-declare',
       detail: `${genre} (${constat.id}) n'a ni genre déclaré ni groupe : sans correction, l'écran ne l'affiche pas`,
     });

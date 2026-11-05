@@ -269,7 +269,7 @@ export class Degradation {
 
   /**
    * Pose sur la scène un premier plan en dur sur un fond opaque, du layer que l'usage désigne : `Texte` (14 px, ou 24 px en grand
-   * texte), `Pictogramme` (VECTOR rempli), `Contour` (RECTANGLE tracé à 1 px) ou `Ring` (RECTANGLE tracé à 2 px).
+   * texte), `Pictogram` (VECTOR rempli), `Contour` (RECTANGLE tracé à 1 px) ou `Ring` (RECTANGLE tracé à 2 px).
    */
   poserLaPaire(usage: Usage, premierPlan: string, fond: string, o: { variant?: VariantLu; fontSize?: number; fontWeight?: number } = {}): LayerLu {
     const variant = o.variant ?? this.cible;
@@ -277,7 +277,7 @@ export class Degradation {
     switch (usage) {
       case 'texte': case 'grand-texte':
         return this.ajouterUnTexte('Texte', { peintures: [solide(premierPlan)], fontSize: o.fontSize ?? (usage === 'texte' ? 14 : 24), fontWeight: o.fontWeight ?? 400 }, { variant });
-      case 'icone': return this.ajouterUnLayer({ nom: 'Pictogramme', type: 'VECTOR', peintures: [solide(premierPlan)], variant });
+      case 'icone': return this.ajouterUnLayer({ nom: 'Pictogram', type: 'VECTOR', peintures: [solide(premierPlan)], variant });
       case 'stroke': return this.ajouterUnLayer({ nom: 'Contour', peintures: [solide(premierPlan, { champ: 'strokes' })], strokeWeight: 1, variant });
       case 'anneau': return this.ajouterUnLayer({ nom: 'Ring', peintures: [solide(premierPlan, { champ: 'strokes' })], strokeWeight: 2, variant });
     }

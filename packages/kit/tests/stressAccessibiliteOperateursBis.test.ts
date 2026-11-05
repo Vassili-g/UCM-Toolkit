@@ -84,11 +84,11 @@ test('I : un VECTOR est une icône quel que soit son nom, un RECTANGLE nommé ic
   assert.deepEqual(duOperateur('I3').map((c) => c.attendus[0].cle), ['icone|Divider||', 'icone|Separator||', 'icone|Chevron||', 'icone|Glyph||']);
   assert.deepEqual(duOperateur('I5').map((c) => c.attendus.map((a) => a.cle)), [['anneau|ring||'], ['anneau|Focus ring||']]);
   // I4 : un fill et un stroke donnent un constat d'icône et un constat de contour ; deux fills, celui du dessus ; un fill noir d'alpha 0,2 se compose en gris clair (1,60).
-  assert.deepEqual(cas('I4-1').attendus.map(({ code, cle, rapport }) => [code, cle, rapport]), [['C49', 'icone|Pictogramme||', 1.98], ['C50', 'stroke|Pictogramme||', 2.61]]);
+  assert.deepEqual(cas('I4-1').attendus.map(({ code, cle, rapport }) => [code, cle, rapport]), [['C49', 'icone|Pictogram||', 1.98], ['C50', 'stroke|Pictogram||', 2.61]]);
   assert.deepEqual([cas('I4-2').attendus[0].premierPlan, cas('I4-2').attendus[0].rapport], ['#A8A8A8', 2.37]);
   assert.deepEqual([cas('I4-3').attendus[0].premierPlan, cas('I4-3').attendus[0].rapport], ['#CCCCCC', 1.6]);
   // I6 : un fill masqué ne donne rien, un stroke seul relève de C50.
-  assert.deepEqual([cles('I6-1'), cles('I6-2')], [[], ['stroke|Pictogramme||']]);
+  assert.deepEqual([cles('I6-1'), cles('I6-2')], [[], ['stroke|Pictogram||']]);
 });
 
 test('R : le contour d\'épaisseur non nulle et de peinture visible, l\'anneau reconnu par son nom, C51 donne l\'épaisseur lue', () => {
@@ -265,6 +265,15 @@ test('les relations : l\'ordre mélangé et la casse changée laissent les const
   const emis = controlerLAccessibilite(composant.releve, composant.catalogue, { niveau: 'AA' });
   assert.deepEqual([rejouerLaRelation(borne, 'ordre', emis, GRAINE).issue, rejouerLaRelation(borne, 'casse', emis, GRAINE).issue], ['ignore', 'tenue']);
   assert.equal(rejouerLaRelation(cas('L1-13'), 'casse', [], GRAINE).issue, 'ignore');
+});
+
+test('les relations tiennent sur les désactivés d’écritures mêlées (C53) et sur un variant non lu dont le nom change de casse (P8)', () => {
+  for (const id of ['X1-1', 'X1-3', 'X1-4', 'X1-5', 'X2-2', 'X2-3', 'X2-4', 'X2-5', 'X2-8', 'X2-9', 'L2-5']) {
+    const entree = cas(id);
+    const { composant } = entree.entree.materialiser();
+    const emis = controlerLAccessibilite(composant.releve, composant.catalogue, { niveau: entree.entree.niveau });
+    for (const relation of RELATIONS) assert.equal(rejouerLaRelation(entree, relation, emis, GRAINE).issue, 'tenue', `${id} ${relation}`);
+  }
 });
 
 test('dégrader puis annuler redonne la base, pour un cas sur douze du lot 2 et le premier de chaque opérateur', () => {

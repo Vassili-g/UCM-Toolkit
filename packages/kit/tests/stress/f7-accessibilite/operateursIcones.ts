@@ -96,21 +96,21 @@ export function operateurI(base: ComposantDeContraste): CasAccessibilite[] {
     description: `icône avec un fill ${FAIBLE} et un stroke ${GRIS} de 1 px : un constat d'icône et un constat de contour`,
     degrader: (d) => {
       d.scene();
-      d.ajouterUnLayer({ nom: 'Pictogramme', type: 'VECTOR', peintures: [solide(FAIBLE), solide(GRIS, { champ: 'strokes' })], strokeWeight: 1 });
+      d.ajouterUnLayer({ nom: 'Pictogram', type: 'VECTOR', peintures: [solide(FAIBLE), solide(GRIS, { champ: 'strokes' })], strokeWeight: 1 });
     },
-    attendus: [iconeAttendue('Pictogramme', cible), contourAttendu('Pictogramme', cible, GRIS)],
+    attendus: [iconeAttendue('Pictogram', cible), contourAttendu('Pictogram', cible, GRIS)],
   }));
   cas.push(faire(`I4-${numero('I4')}`, 'I4', {
     description: 'icône à deux fills opaques : #404040 dessous, #A8A8A8 dessus, la peinture du dessus décide',
-    degrader: (d) => { d.scene(); d.ajouterUnLayer({ nom: 'Pictogramme', type: 'VECTOR', peintures: [solide('#404040', { indice: 0 }), solide('#A8A8A8', { indice: 1 })] }); },
-    attendus: [iconeAttendue('Pictogramme', cible, '#A8A8A8')],
+    degrader: (d) => { d.scene(); d.ajouterUnLayer({ nom: 'Pictogram', type: 'VECTOR', peintures: [solide('#404040', { indice: 0 }), solide('#A8A8A8', { indice: 1 })] }); },
+    attendus: [iconeAttendue('Pictogram', cible, '#A8A8A8')],
   }));
   {
     const mesure = mesurerLaPaire([couleurDeHex('#000000', 0.2)], [couleurDeHex(BLANC)], null)!;
     cas.push(faire(`I4-${numero('I4')}`, 'I4', {
       description: 'icône à fill noir d\'alpha 0,2, composé sur le fond blanc',
-      degrader: (d) => { d.scene(); d.ajouterUnLayer({ nom: 'Pictogramme', type: 'VECTOR', peintures: [solide('#000000', { alpha: 0.2 })] }); },
-      attendus: [contrasteAttendu({ usage: 'icone', layer: 'Pictogramme', rapport: mesure.rapport, seuil: SEUIL, variants: [cible], premierPlan: mesure.premierPlan, fondHex: mesure.fond })],
+      degrader: (d) => { d.scene(); d.ajouterUnLayer({ nom: 'Pictogram', type: 'VECTOR', peintures: [solide('#000000', { alpha: 0.2 })] }); },
+      attendus: [contrasteAttendu({ usage: 'icone', layer: 'Pictogram', rapport: mesure.rapport, seuil: SEUIL, variants: [cible], premierPlan: mesure.premierPlan, fondHex: mesure.fond })],
     }));
   }
 
@@ -127,12 +127,12 @@ export function operateurI(base: ComposantDeContraste): CasAccessibilite[] {
   // I6 : sans fill visible, une icône n'a pas de constat d'icône ; son stroke seul relève de C50.
   cas.push(faire(`I6-${numero('I6')}`, 'I6', {
     description: 'icône dont le fill est masqué : aucun constat',
-    degrader: (d) => { d.scene(); d.ajouterUnLayer({ nom: 'Pictogramme', type: 'VECTOR', peintures: [solide(FAIBLE, { visible: false })] }); }, attendus: [],
+    degrader: (d) => { d.scene(); d.ajouterUnLayer({ nom: 'Pictogram', type: 'VECTOR', peintures: [solide(FAIBLE, { visible: false })] }); }, attendus: [],
   }));
   cas.push(faire(`I6-${numero('I6')}`, 'I6', {
     description: `icône à stroke seul ${GRIS} de 1 px : un constat de contour, aucun d'icône`,
-    degrader: (d) => { d.scene(); d.ajouterUnLayer({ nom: 'Pictogramme', type: 'VECTOR', peintures: [solide(GRIS, { champ: 'strokes' })], strokeWeight: 1 }); },
-    attendus: [contourAttendu('Pictogramme', cible, GRIS)],
+    degrader: (d) => { d.scene(); d.ajouterUnLayer({ nom: 'Pictogram', type: 'VECTOR', peintures: [solide(GRIS, { champ: 'strokes' })], strokeWeight: 1 }); },
+    attendus: [contourAttendu('Pictogram', cible, GRIS)],
   }));
   return cas;
 }

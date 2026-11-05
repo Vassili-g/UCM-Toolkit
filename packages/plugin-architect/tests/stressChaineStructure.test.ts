@@ -1,4 +1,4 @@
-/** Vérifie les trois échecs de lecture P13 sur la chaîne F2 et son faux panneau de Constats. */
+/** Vérifie les échecs de lecture P13 (D1) et l’affichage P9 d’un constat de couche (D5-1) sur la chaîne F2 et son faux panneau de Constats. */
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
@@ -13,3 +13,10 @@ for (const id of ['D1-1', 'D1-2', 'D1-4']) {
     assert.deepEqual(resultat.ecran, []);
   });
 }
+
+test('F2 D5-1 : P9 lit un constat de couche par la carte groupée et le tient pour affiché', async () => {
+  const definition = casDeLaChaine().find((cas) => cas.id === 'D5-1');
+  assert.ok(definition);
+  const resultat = await definition.executer();
+  assert.deepEqual(resultat.ecran.filter((ecart) => ecart.propriete === 'P9'), []);
+});

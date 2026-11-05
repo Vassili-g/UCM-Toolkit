@@ -1,6 +1,8 @@
 # Versionnage
 
 - **Une propagation entre layers homonymes nomme leur parent lu sans proposer de liaison.** `faits.parent` porte le nom du parent du variant visé, seulement s'il figure dans le relevé. Autorité : `src/controles/propagation.ts` `constatDeLaPropagation`. Tests : `tests/propagation.test.ts`.
+- **Un champ dont la lecture a échoué ne reçoit aucune proposition de propagation et ne compte pas dans C81.** Le relevé ne dit pas qu'il est en dur. Autorité : `src/controles/propagation.ts` `constatDeLaPropagation` (`lectureManquee`). Tests : `tests/propagation.test.ts`.
+- **L'écriture de la désactivation que C53 porte dans `faits.ecriture` est la plus répandue parmi les variants désactivés, à égalité la première par ordre alphabétique.** L'ordre des variants ne change aucun fait. Autorité : `src/controles/accessibilite.ts` `controlerLAccessibiliteParEtapes`. Tests : `tests/accessibilite.test.ts` (E9.10).
 
 - **Un changement de forme du JSON incrémente `contractVersion` et met à jour la spec et les consommateurs.**
 - **Le kit qui connaît une nouvelle version du format de tokens sort avec la CLI et l'adaptateur, le kit en premier, avant le plugin qui la produit.** Spec : [compatibilité](../../../docs/format/COMPATIBILITE.md#lordre-dune-nouvelle-version-du-format-de-tokens)

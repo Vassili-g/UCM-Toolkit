@@ -1243,6 +1243,17 @@ test('E9.10 : disabled, disable, Disabled=True et Enabled=False sont exclus, Ina
   }
 });
 
+test('E9.10 : plusieurs écritures de la désactivation donnent la plus répandue, quel que soit l’ordre des variants (P8)', () => {
+  const desactive = (id: string, valeurs: Record<string, string>) => variant(id, [racine(), texteFaible(`t-${id}`)], valeurs);
+  const variants = [desactive('a', { State: 'disabled' }), desactive('b', { State: 'Disabled' }), desactive('c', { State: 'Disabled' })];
+  const ecriture = (liste: ReturnType<typeof variant>[]) => cc(releve(liste, ['default', 'hover'])).find((c) => c.code === 'C53')?.faits.ecriture;
+  assert.equal(ecriture(variants), 'State=Disabled');
+  assert.equal(ecriture([...variants].reverse()), 'State=Disabled');
+  // À égalité, l'ordre alphabétique décide.
+  assert.equal(ecriture([desactive('d', { State: 'disabled' }), desactive('e', { State: 'Disabled' })]), 'State=Disabled');
+  assert.equal(ecriture([desactive('e', { State: 'Disabled' }), desactive('d', { State: 'disabled' })]), 'State=Disabled');
+});
+
 test('E9.10 : un texte sous 12 px se juge encore dans un variant désactivé, sa cible ne se juge pas', () => {
   const petit = texte([solide('fills', gris(0))], 11);
   const constats = cc(releve([variant('v', [racine(undefined, dims(20, 20)), petit], { Disabled: 'True' }), variant('w', [racine()], { Disabled: 'False' })], ['default', 'hover']));

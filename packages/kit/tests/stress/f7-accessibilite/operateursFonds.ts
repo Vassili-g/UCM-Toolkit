@@ -119,9 +119,10 @@ export function operateurF(base: ComposantDeContraste): CasAccessibilite[] {
     ['un frère au-dessus du texte', (d) => { sansFond(d); texteBlanc(d); frere(d, clair); }, surLaPageFigma([])],
     ['un frère translucide dessous qui couvre le texte', (d) => { sansFond(d); frere(d, '#2563EB', { alpha: 0.5 }); texteBlanc(d); }, surLaPageFigma([couleurDeHex('#2563EB', 0.5)])],
   ];
+  // L'ordre des layers d'un parent est leur empilement : le mélanger place le frère dessus ou dessous, donc change le fond (Q-F7-4).
   for (const [description, degrader, attendus] of f6) {
     cas.push(faire(`F6-${numero('F6')}`, 'F6', {
-      description, degrader, attendus: [...attendus, repliAttendu(BLANC)], hypothese: 'H4',
+      description, degrader, attendus: [...attendus, repliAttendu(BLANC)], hypothese: 'H4', sansRelation: ['ordre'],
     }));
   }
 

@@ -10,7 +10,7 @@ import { natureDuChamp } from '../referentiel/architecture.js';
 import type { CatalogueDeReference, VariableDuCatalogue } from './catalogue.js';
 import type { Constat, Correction } from './constat.js';
 import { axesDuReleve, constatDuComposant, segmentEcritPourLaValeur, tokensDuComposant, type AxeDuComposant, type TokenDuComposant } from './nommage.js';
-import { liaisonsPropres, type LayerLu, type LiaisonLue, type ReleveDeComposant, type VariantLu } from './releve.js';
+import { lectureManquee, liaisonsPropres, type LayerLu, type LiaisonLue, type ReleveDeComposant, type VariantLu } from './releve.js';
 
 /** Les noms des ancêtres depuis la racine du variant, puis celui du layer. */
 function cheminDuLayer(variant: VariantLu, layer: LayerLu): string[] {
@@ -178,6 +178,8 @@ function constatDeLaPropagation(
     ...constat, question: { id: constat.id, candidats: candidats.map(({ cle, nom }) => ({ cle, nom })) },
   });
   if (Array.isArray(homologue)) return question([]);
+  // La lecture de ce champ a échoué (peinture mixte, refus) : le relevé ne dit pas qu'il est en dur, donc rien ne se propose (P18).
+  if (lectureManquee(releve, homologue.id, liaison.champ)) return undefined;
   // Une liaison déjà posée, sur le bon token ou sur un autre, n'est pas une peinture nue : la propagation ne la réécrit pas (Q-F3-6).
   if (homologue.liaisons.some((entree) => !entree.surcharge && memeChamp(entree, liaison))) return undefined;
   const peinture = liaison.champ === 'fills' || liaison.champ === 'strokes';

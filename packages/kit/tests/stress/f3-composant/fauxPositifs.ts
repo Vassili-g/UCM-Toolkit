@@ -7,7 +7,8 @@
  * Les cas A0 ne dégradent rien : leur composant est le profil lui-même, sans zone. Les thèmes A1 reconstruisent le composant avec
  * l'écriture de valeur d'axe qu'ils testent, donc leur base est la reconstruction et leur dégradation une copie sans écriture. Les
  * autres thèmes ajoutent des layers, des tokens ou des états de lecture, et `annuler` les retire. Les quatre rôles de A2 qui
- * dépendent de Q-F3-3 (`divider`, `inverse`, `ring` en fond) portent `mesure`.
+ * dépendent de Q-F3-3 (`divider`, `inverse`, `ring` en fond) sont tranchés : un rôle `divider` ou `ring` se pose sur le layer que son nom
+ * désigne (`Divider`, `Separator`, `Ring`, `Focus ring`), `inverse` colore n'importe quel layer.
  *
  * Les tokens qu'un thème ajoute portent un segment d'élément (`button/color/<élément>/…/<rôle>`), pour qu'ils ne reprennent pas le
  * nom d'un token de la base ; leurs scopes sont `ALL_SCOPES` quand le thème ne teste pas le scope, pour ne pas mêler C18 à un rôle.
@@ -93,11 +94,9 @@ const modesDesComposants = (degradation: Degradation) => degradation.catalogue.c
 export function fauxPositifsCibles(base: ComposantDeBase, graine: number = GRAINE_PAR_DEFAUT): CasDeComposant[] {
   const registre = new Registre(base, graine, FAMILLE_DE_A);
   const carte = base.carte;
-  const ajouter = (operateur: string, degradation: Degradation, description: string, question?: string): void => {
+  const ajouter = (operateur: string, degradation: Degradation, description: string): void => {
     if (degradation.zones.length === 0) degradation.zones.push({ variant: degradation.base.carte.variants[0].id, layer: degradation.base.carte.variants[0].layers.Root!, champ: 'fills' });
-    ajouterAvecCodes(registre, operateur, degradation, {
-      description: `${operateur} : ${description}`, attendus: [], ...(question ? { verdict: 'mesure' as const, question } : {}),
-    }, CODES_DE_LA_PORTEE);
+    ajouterAvecCodes(registre, operateur, degradation, { description: `${operateur} : ${description}`, attendus: [] }, CODES_DE_LA_PORTEE);
   };
   const unVariant = (operateur: string, depart: ComposantDeBase = base): VariantDeCarte => registre.tirer(operateur, depart.carte.variants);
 
@@ -133,36 +132,36 @@ export function fauxPositifsCibles(base: ComposantDeBase, graine: number = GRAIN
   }
 
   // A2. Rôles légitimes : un layer ajouté (ou un trait ou un texte rebranché) porte un rôle que la table risque de refuser.
-  const roles: readonly (readonly [libelle: string, poser: (degradation: Degradation, variant: VariantDeCarte) => void, question?: string])[] = [
-    ['divider sur un RECTANGLE nommé Divider', (d, v) => { layerLie(d, v, { nom: 'Divider', type: 'RECTANGLE' }, 'fills', tokenAElement(d, v, 'background', 'divider', 'divider', ['ALL_SCOPES'])); }, 'Q-F3-3'],
-    ['divider sur le trait de Root', (d, v) => { d.lierA(liaisonDeCible(d.carte, v.id, 'trait')!, tokenAElement(d, v, 'border', 'edge', 'divider', ['ALL_SCOPES'])); }, 'Q-F3-3'],
-    ['inverse sur le texte Label', (d, v) => { d.lierA(liaisonDeCible(d.carte, v.id, 'texte')!, tokenAElement(d, v, 'foreground', 'label', 'inverse', ['ALL_SCOPES'])); }, 'Q-F3-3'],
-    ['ring en fond d\'un layer nommé ring', (d, v) => { layerLie(d, v, { nom: 'ring', type: 'RECTANGLE' }, 'fills', tokenAElement(d, v, 'ring', 'halo', 'ring', ['ALL_SCOPES'])); }, 'Q-F3-3'],
+  const roles: readonly (readonly [libelle: string, poser: (degradation: Degradation, variant: VariantDeCarte) => void])[] = [
+    ['divider sur un RECTANGLE nommé Divider', (d, v) => { layerLie(d, v, { nom: 'Divider', type: 'RECTANGLE' }, 'fills', tokenAElement(d, v, 'background', 'divider', 'divider', ['ALL_SCOPES'])); }],
+    ['divider sur le trait d’un layer nommé Separator', (d, v) => { layerLie(d, v, { nom: 'Separator', type: 'FRAME' }, 'strokes', tokenAElement(d, v, 'border', 'edge', 'divider', ['ALL_SCOPES'])); }],
+    ['inverse sur le texte Label', (d, v) => { d.lierA(liaisonDeCible(d.carte, v.id, 'texte')!, tokenAElement(d, v, 'foreground', 'label', 'inverse', ['ALL_SCOPES'])); }],
+    ['ring en fond d\'un layer nommé ring', (d, v) => { layerLie(d, v, { nom: 'ring', type: 'RECTANGLE' }, 'fills', tokenAElement(d, v, 'ring', 'halo', 'ring', ['ALL_SCOPES'])); }],
     ['border sur un trait', (d, v) => { layerLie(d, v, { nom: 'Edge', type: 'FRAME' }, 'strokes', tokenAElement(d, v, 'border', 'edge', 'border', ['STROKE_COLOR'])); }],
     ['foreground sur un trait', (d, v) => { layerLie(d, v, { nom: 'Edge', type: 'FRAME' }, 'strokes', tokenAElement(d, v, 'foreground', 'edge', 'foreground', ['ALL_SCOPES'])); }],
     ['text sur une plage', (d, v) => { texteLie(d, v, 'Caption', tokenAElement(d, v, 'text', 'caption', 'text', ['ALL_FILLS'])); }],
-    ['foreground sur une icône', (d, v) => { layerLie(d, v, { nom: 'Pict', type: 'VECTOR' }, 'fills', tokenAElement(d, v, 'foreground', 'pict', 'foreground', ['ALL_SCOPES'])); }],
+    ['foreground sur une icône', (d, v) => { layerLie(d, v, { nom: 'Pictogram', type: 'VECTOR' }, 'fills', tokenAElement(d, v, 'foreground', 'pict', 'foreground', ['ALL_SCOPES'])); }],
   ];
-  for (const [libelle, poser, question] of roles) {
+  for (const [libelle, poser] of roles) {
     const variant = unVariant('A2');
     const degradation = new Degradation(base);
     poser(degradation, variant);
     degradation.zones.push({ variant: variant.id, layer: variant.layers.Root!, champ: 'fills' });
-    ajouter('A2', degradation, `${libelle}, variant ${variant.nom}`, question);
+    ajouter('A2', degradation, `${libelle}, variant ${variant.nom}`);
   }
 
   // A3. Scopes précis : un layer de chaque type lié à un token du scope qui lui convient ; ALL_SCOPES sur chaque type.
   const scopes: readonly (readonly [libelle: string, poser: (degradation: Degradation, variant: VariantDeCarte) => void])[] = [
     ['FRAME_FILL sur un FRAME', (d, v) => { layerLie(d, v, { nom: 'Box', type: 'FRAME' }, 'fills', tokenAElement(d, v, 'background', 'box', 'background', ['FRAME_FILL'])); }],
     ['SHAPE_FILL sur un RECTANGLE', (d, v) => { layerLie(d, v, { nom: 'Plate', type: 'RECTANGLE' }, 'fills', tokenAElement(d, v, 'background', 'plate', 'background', ['SHAPE_FILL'])); }],
-    ['SHAPE_FILL sur un VECTOR', (d, v) => { layerLie(d, v, { nom: 'Pict', type: 'VECTOR' }, 'fills', tokenAElement(d, v, 'icon', 'pict', 'icon', ['SHAPE_FILL'])); }],
+    ['SHAPE_FILL sur un VECTOR', (d, v) => { layerLie(d, v, { nom: 'Pictogram', type: 'VECTOR' }, 'fills', tokenAElement(d, v, 'icon', 'pict', 'icon', ['SHAPE_FILL'])); }],
     ['TEXT_FILL sur un TEXT', (d, v) => { texteLie(d, v, 'Caption', tokenAElement(d, v, 'foreground', 'caption', 'foreground', ['TEXT_FILL'])); }],
     ['STROKE_COLOR sur un trait', (d, v) => { layerLie(d, v, { nom: 'Edge', type: 'FRAME' }, 'strokes', tokenAElement(d, v, 'border', 'edge', 'border', ['STROKE_COLOR'])); }],
     ['ALL_SCOPES sur chaque type', (d, v) => {
       const tout = ['ALL_SCOPES'];
       layerLie(d, v, { nom: 'Box', type: 'FRAME' }, 'fills', tokenAElement(d, v, 'background', 'box', 'background', tout));
       layerLie(d, v, { nom: 'Plate', type: 'RECTANGLE' }, 'fills', tokenAElement(d, v, 'background', 'plate', 'background', tout));
-      layerLie(d, v, { nom: 'Pict', type: 'VECTOR' }, 'fills', tokenAElement(d, v, 'icon', 'pict', 'icon', tout));
+      layerLie(d, v, { nom: 'Pictogram', type: 'VECTOR' }, 'fills', tokenAElement(d, v, 'icon', 'pict', 'icon', tout));
       texteLie(d, v, 'Caption', tokenAElement(d, v, 'foreground', 'caption', 'foreground', tout));
       layerLie(d, v, { nom: 'Edge', type: 'FRAME' }, 'strokes', tokenAElement(d, v, 'border', 'edge', 'border', tout));
     }],
@@ -211,7 +210,7 @@ export function fauxPositifsCibles(base: ComposantDeBase, graine: number = GRAIN
       d.fixer(layer, 'instanceDe', { cle: 'lib-badge', nom: 'Badge', distante: true, pilotee: null });
       const jeton = d.variable(jetonCouleur(d.carte, v, 'icon')!.cle);
       d.inserer(layer.liaisons, {
-        champ: 'fills', indice: 0, porteur: layer.id, surcharge: { id: `${layer.id};30:6`, nom: 'Vector', type: 'VECTOR' }, provenance: 'instance', variable: variableLue(jeton),
+        champ: 'fills', indice: 0, porteur: layer.id, surcharge: { id: `${layer.id};30:6`, nom: 'Glyph', type: 'VECTOR' }, provenance: 'instance', variable: variableLue(jeton),
       });
     }],
     ['instance pilotée par INSTANCE_SWAP', (d, v) => {
@@ -232,9 +231,14 @@ export function fauxPositifsCibles(base: ComposantDeBase, graine: number = GRAIN
     ajouter('A5', degradation, `${libelle}, variant ${variant.nom}`);
   }
 
-  // A6. Tailles : ce que C29 ne juge pas.
+  // A6. Tailles : ce que C29 ne juge pas. Un layer masqué avec un rayon en dur est jugé (Q-F3-1) : Z7 le porte, et le cas A6 garde un
+  // layer masqué dont le rayon est déjà lié.
   const tailles: readonly (readonly [libelle: string, poser: (degradation: Degradation, variant: VariantDeCarte) => void])[] = [
-    ['layer masqué qui porte un rayon de 20', (d, v) => { const layer = ajouterUnLayer(d, v.id, { nom: 'Box', type: 'FRAME', visible: false }); d.inserer(layer.valeursEnDur, { champ: 'cornerRadius', valeur: 20 }); }],
+    ['layer masqué dont le rayon est déjà lié', (d, v) => {
+      const layer = ajouterUnLayer(d, v.id, { nom: 'Box', type: 'FRAME', visible: false });
+      const jeton = d.carte.jetons.find((entree) => entree.propriete === 'radius' && v.valeurs && Object.entries(entree.valeurs).every(([propriete, valeur]) => v.valeurs[propriete] === valeur))!;
+      d.inserer(layer.liaisons, { champ: 'cornerRadius', porteur: layer.id, variable: variableLue(d.variable(jeton.cle)) });
+    }],
     ['instance imbriquée qui porte une marge de 20', (d, v) => { const layer = ajouterUnLayer(d, v.id, { nom: 'Nested', type: 'INSTANCE' }); d.inserer(layer.valeursEnDur, { champ: 'paddingLeft', valeur: 20 }); }],
     ['rayon de valeur 0 sur un layer ajouté', (d, v) => { const layer = ajouterUnLayer(d, v.id, { nom: 'Box', type: 'FRAME' }); d.inserer(layer.valeursEnDur, { champ: 'cornerRadius', valeur: 0 }); }],
     ['largeur et hauteur fixes de 20 sur Label', (d, v) => {
@@ -278,7 +282,7 @@ export function fauxPositifsCibles(base: ComposantDeBase, graine: number = GRAIN
     // Une fratrie dont chaque variant a son token par palette : un second anneau lié au token de Ring de chaque variant.
     const degradation = new Degradation(base);
     for (const variant of carte.variants) {
-      layerLie(degradation, variant, { nom: 'Ring2', type: 'RECTANGLE' }, 'strokes', degradation.variable(jetonCouleur(carte, variant, 'ring')!.cle));
+      layerLie(degradation, variant, { nom: 'Focus ring', type: 'RECTANGLE' }, 'strokes', degradation.variable(jetonCouleur(carte, variant, 'ring')!.cle));
     }
     ajouter('A7', degradation, 'fratrie à tokens distincts par palette, un second anneau dans chaque variant');
   }

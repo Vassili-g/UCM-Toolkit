@@ -69,10 +69,9 @@ test('chaque cas a un identifiant <opérateur>-<n>, une description, des zones, 
   assert.ok(duOperateur('X1').every((entree) => entree.attendus.length === 0));
 });
 
-test('les décisions Q-F3-11, Q-F3-13 et Q-F3-14 sont acquises : aucun cas de Z ne porte le verdict mesure', () => {
+test('les décisions Q-F3-3, Q-F3-11, Q-F3-13 et Q-F3-14 sont acquises : aucun cas de Z ni de A ne porte le verdict mesure', () => {
   assert.deepEqual(['Z1', 'Z2', 'Z3', 'Z4', 'Z5', 'Z6', 'Z7', 'Z8', 'X1', 'X2'].flatMap(mesures), []);
-  assert.deepEqual(mesures('A2'), [['A2-1', 'Q-F3-3'], ['A2-2', 'Q-F3-3'], ['A2-3', 'Q-F3-3'], ['A2-4', 'Q-F3-3']]);
-  assert.deepEqual(['A1', 'A3', 'A4', 'A5', 'A6', 'A7', 'A8', 'A9'].flatMap(mesures), []);
+  assert.deepEqual(['A1', 'A2', 'A3', 'A4', 'A5', 'A6', 'A7', 'A8', 'A9'].flatMap(mesures), []);
 });
 
 test('Z1 : un C29 par champ, une correction vers le token de la propriété sauf pour counterAxisSpacing', () => {
