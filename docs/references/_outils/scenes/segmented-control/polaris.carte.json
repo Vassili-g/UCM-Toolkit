@@ -1,0 +1,39 @@
+{
+  "paquets": [
+    "@shopify/polaris@13.9.5",
+    "@shopify/polaris-icons@9.3.1",
+    "react@18.3.1",
+    "react-dom@18.3.1"
+  ],
+  "installe": [
+    "@shopify/polaris-icons@9.3.1",
+    "@shopify/polaris@13.9.5",
+    "react-dom@18.3.1/client",
+    "react@18.3.1"
+  ],
+  "imports": {
+    "@shopify/polaris": "https://ga.jspm.io/npm:@shopify/polaris@13.9.5/build/esm/index.js",
+    "@shopify/polaris-icons": "https://ga.jspm.io/npm:@shopify/polaris-icons@9.3.1/dist/index.mjs",
+    "react": "https://ga.jspm.io/npm:react@18.3.1/index.js",
+    "react-dom/client": "https://ga.jspm.io/npm:react-dom@18.3.1/client.js"
+  },
+  "scopes": {
+    "https://ga.jspm.io/": {
+      "@babel/runtime/helpers/esm/assertThisInitialized": "https://ga.jspm.io/npm:@babel/runtime@7.29.10/helpers/esm/assertThisInitialized.js",
+      "@babel/runtime/helpers/esm/extends": "https://ga.jspm.io/npm:@babel/runtime@7.29.10/helpers/esm/extends.js",
+      "@babel/runtime/helpers/esm/inheritsLoose": "https://ga.jspm.io/npm:@babel/runtime@7.29.10/helpers/esm/inheritsLoose.js",
+      "@babel/runtime/helpers/esm/objectWithoutPropertiesLoose": "https://ga.jspm.io/npm:@babel/runtime@7.29.10/helpers/esm/objectWithoutPropertiesLoose.js",
+      "@babel/runtime/helpers/interopRequireDefault": "https://ga.jspm.io/npm:@babel/runtime@7.29.10/helpers/interopRequireDefault.js",
+      "@shopify/polaris-tokens": "https://ga.jspm.io/npm:@shopify/polaris-tokens@9.4.2/dist/esm/build/index.mjs",
+      "deepmerge": "https://ga.jspm.io/npm:deepmerge@4.3.1/dist/cjs.js",
+      "dom-helpers/addClass": "https://ga.jspm.io/npm:dom-helpers@5.2.1/cjs/addClass.js",
+      "dom-helpers/removeClass": "https://ga.jspm.io/npm:dom-helpers@5.2.1/cjs/removeClass.js",
+      "prop-types": "https://ga.jspm.io/npm:prop-types@15.8.1/index.js",
+      "react-dom": "https://ga.jspm.io/npm:react-dom@18.3.1/index.js",
+      "react-fast-compare": "https://ga.jspm.io/npm:react-fast-compare@3.2.2/index.js",
+      "react-transition-group": "https://ga.jspm.io/npm:react-transition-group@4.4.5/esm/index.js",
+      "scheduler": "https://ga.jspm.io/npm:scheduler@0.23.2/index.js"
+    }
+  },
+  "feuilles": []
+}

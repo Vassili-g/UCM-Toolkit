@@ -102,3 +102,11 @@ Les tests de ce dossier tournent avec les tests racine :
 ```sh
 node scripts/run-tests.cjs
 ```
+
+## Suivi du gabarit court
+
+Le gabarit 2 remplace les quinze sections du premier guide par cinq : `galerie`, `comprendre`, `dessiner`, `questions`, `sources`. Il est livré pour `segmented-control` : `guide.ts`, `guide.schema.json`, `gabarit.html`, les scènes de `_outils/scenes/segmented-control/` (Ant Design, Carbon, Polaris, Radix, Spectrum) et leur carte d'imports, que `guide.ts carte` demande à JSPM.
+
+- La skill `guide-composant` décrit encore les quinze sections et leurs étapes. Elle reste à réécrire d'après le gabarit 2.
+- Aucun autre composant n'a de guide au gabarit 2.
+- Une scène charge ses paquets depuis JSPM à l'ouverture de la page, donc la galerie demande le réseau.

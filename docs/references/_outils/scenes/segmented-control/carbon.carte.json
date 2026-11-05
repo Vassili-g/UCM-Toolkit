@@ -1,0 +1,37 @@
+{
+  "paquets": [
+    "@carbon/web-components@2.66.0",
+    "@carbon/icons@11.91.0",
+    "@carbon/icon-helpers@10.47.0"
+  ],
+  "installe": [
+    "@carbon/icon-helpers@10.47.0",
+    "@carbon/icons@11.91.0/es/grid/16.js",
+    "@carbon/icons@11.91.0/es/list/16.js",
+    "@carbon/icons@11.91.0/es/table/16.js",
+    "@carbon/web-components@2.66.0/es/components/content-switcher/index.js"
+  ],
+  "imports": {
+    "@carbon/icon-helpers": "https://ga.jspm.io/npm:@carbon/icon-helpers@10.47.0/es/index.js",
+    "@carbon/icons/es/grid/16.js": "https://ga.jspm.io/npm:@carbon/icons@11.91.0/es/grid/16.js",
+    "@carbon/icons/es/list/16.js": "https://ga.jspm.io/npm:@carbon/icons@11.91.0/es/list/16.js",
+    "@carbon/icons/es/table/16.js": "https://ga.jspm.io/npm:@carbon/icons@11.91.0/es/table/16.js",
+    "@carbon/web-components/es/components/content-switcher/index.js": "https://ga.jspm.io/npm:@carbon/web-components@2.66.0/es/components/content-switcher/index.js"
+  },
+  "scopes": {
+    "https://ga.jspm.io/": {
+      "@floating-ui/core": "https://ga.jspm.io/npm:@floating-ui/core@1.8.0/dist/floating-ui.core.mjs",
+      "@floating-ui/dom": "https://ga.jspm.io/npm:@floating-ui/dom@1.8.0/dist/floating-ui.dom.mjs",
+      "@floating-ui/utils": "https://ga.jspm.io/npm:@floating-ui/utils@0.2.12/dist/floating-ui.utils.mjs",
+      "@floating-ui/utils/dom": "https://ga.jspm.io/npm:@floating-ui/utils@0.2.12/dist/floating-ui.utils.dom.mjs",
+      "@lit/reactive-element": "https://ga.jspm.io/npm:@lit/reactive-element@2.1.2/reactive-element.js",
+      "@lit/reactive-element/decorators/": "https://ga.jspm.io/npm:@lit/reactive-element@2.1.2/decorators/",
+      "lit": "https://ga.jspm.io/npm:lit@3.3.3/index.js",
+      "lit-element/lit-element.js": "https://ga.jspm.io/npm:lit-element@4.2.2/lit-element.js",
+      "lit-html": "https://ga.jspm.io/npm:lit-html@3.3.3/lit-html.js",
+      "lit-html/": "https://ga.jspm.io/npm:lit-html@3.3.3/",
+      "lit/": "https://ga.jspm.io/npm:lit@3.3.3/"
+    }
+  },
+  "feuilles": []
+}

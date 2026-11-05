@@ -15,8 +15,8 @@ import { REGISTRE_ETATS } from '@ucm-kit/core/referentiel';
 
 import { extraireSysteme, feuillesDtcg, SYSTEMES_A_NOMS } from '../docs/references/design-systems/_outils/extraire.mjs';
 import {
-  ANCRES, CONTEXTE_REEL, CRITERES, GABARIT, calculerGuide, chargerIndex, chargerSystemes, composer, ecrireReleve, etat, fichesDe,
-  lireCouleur, moisEntre, relever, verifierFiches, verifierIndex, type Contexte, type Guide,
+  ANCRES, CONTEXTE_REEL, GABARIT, aInstaller, calculerGuide, chargerIndex, chargerSystemes, ecrireReleve, etat, fichesDe,
+  importsDeScene, moisEntre, relever, verifierFiches, verifierIndex, type Contexte,
 } from '../docs/references/_outils/guide';
 
 const reel = CONTEXTE_REEL;
@@ -124,19 +124,18 @@ test('la taille des valeurs reste sous 5 Mo', () => {
 
 /* -------------------------------------------------------------------- gabarit */
 
-test('le gabarit garde les quinze sections dans l’ordre et une palette lisible', () => {
+test('le gabarit garde ses cinq sections dans l’ordre et une palette claire lisible', () => {
   const gabarit = readFileSync(path.join(reel.references, '_outils', 'gabarit.html'), 'utf8');
   assert.deepEqual([...gabarit.matchAll(/<section id="([a-z]+)">/g)].map((m) => m[1]), [...ANCRES]);
   assert.deepEqual([...gabarit.matchAll(/<!-- @@([a-z]+)@@ -->/g)].map((m) => m[1]), [...ANCRES]);
-  assert.deepEqual([...gabarit.matchAll(/<li><a href="#([a-z]+)">/g)].map((m) => m[1]), [...ANCRES]);
-  assert.equal(ANCRES.length, 15);
-  assert.ok(!/<iframe|<script|<img|https?:\/\//.test(gabarit.replace(/<html[^>]*>/, '')), 'ni iframe, ni script, ni image, ni ressource distante');
+  assert.ok(!/<iframe|<img|https?:\/\/|<script[^>]*src=/.test(gabarit), 'le gabarit ne charge rien lui-même : seules les scènes rendues chargent leurs paquets');
+  assert.match(gabarit, /color-scheme: light/);
 
   const palette = Object.fromEntries([...gabarit.matchAll(/--([a-z-]+):\s*(#[0-9a-f]{6});/g)].map((m) => [m[1], lireHexa(m[2])!]));
   for (const [texte, fond, seuil] of [
     ['texte', 'fond', 7], ['texte', 'surface', 7], ['texte', 'surface-haute', 7], ['discret', 'fond', 4.5], ['discret', 'surface', 4.5],
-    ['discret', 'surface-haute', 4.5], ['accent', 'fond', 4.5], ['accent', 'surface-haute', 4.5], ['ok', 'surface-haute', 4.5],
-    ['alerte', 'surface-haute', 4.5], ['erreur', 'surface-haute', 4.5],
+    ['discret', 'surface-haute', 4.5], ['accent', 'fond', 4.5], ['accent', 'surface-haute', 4.5], ['ok', 'surface', 4.5],
+    ['alerte', 'surface', 4.5], ['erreur', 'surface', 4.5],
   ] as [string, string, number][]) {
     assert.ok(contraste(palette[texte], palette[fond]) >= seuil, `${texte} sur ${fond}`);
   }
@@ -144,29 +143,33 @@ test('le gabarit garde les quinze sections dans l’ordre et une palette lisible
 
 /* ---------------------------------------------------------------- calculs purs */
 
-test('les couleurs publiées se lisent, se composent et se comparent', () => {
-  assert.deepEqual(lireCouleur('#0f62fe')?.rgb, [15, 98, 254]);
-  assert.equal(lireCouleur('#0515240F')?.alpha, 15 / 255);
-  assert.deepEqual(lireCouleur('rgba(0, 0, 0, 0.05)'), { rgb: [0, 0, 0], alpha: 0.05 });
-  assert.deepEqual(lireCouleur('rgb(59, 99, 251)')?.rgb, [59, 99, 251]);
-  assert.deepEqual(lireCouleur('0 0% 100%')?.rgb, [255, 255, 255]);
-  assert.deepEqual(lireCouleur('hsl(0 0% 0% / 50%)'), { rgb: [0, 0, 0], alpha: 0.5 });
-  assert.deepEqual(lireCouleur('oklch(1 0 0)')?.rgb, [255, 255, 255]);
-  assert.deepEqual(lireCouleur('white')?.rgb, [255, 255, 255]);
-  assert.equal(lireCouleur('color-mix(in srgb, red, blue)'), null);
-  assert.equal(lireCouleur(null), null);
-  assert.deepEqual(composer({ rgb: [0, 0, 0], alpha: 0.5 }, [255, 255, 255]), [128, 128, 128]);
+test('les dates se comparent en mois entiers', () => {
   assert.equal(moisEntre('2026-01-10', '2027-01-09'), 11);
   assert.equal(moisEntre('2026-01-10', '2027-02-10'), 13);
 });
 
+test('une scène est rattachée aux versions déclarées de ses paquets', () => {
+  const code = [
+    "import { createElement as h } from 'react';",
+    "import { createRoot } from 'react-dom/client';",
+    "import Icone from '@scope/lib/icons/Liste';",
+    "import './local.js';",
+    "import 'https://exemple.test/x.js';",
+  ].join('\n');
+  assert.deepEqual(importsDeScene(code), ['react', 'react-dom/client', '@scope/lib/icons/Liste']);
+  assert.deepEqual(aInstaller(code, ['react@19.2.0', 'react-dom@19.2.0', '@scope/lib@1.0.0']), {
+    installe: ['@scope/lib@1.0.0/icons/Liste', 'react-dom@19.2.0/client', 'react@19.2.0'],
+    erreurs: [],
+  });
+  // react-dom ne doit pas se rattacher à react, qui est un préfixe de son nom sans la barre.
+  assert.deepEqual(aInstaller(code, ['react@19.2.0', '@scope/lib@1.0.0']).erreurs, ['l\'import react-dom/client ne correspond à aucun paquet déclaré']);
+});
+
 /* ------------------------------------------------------------- guide d'essai */
 
-interface Fixture { ctx: Contexte; ecrire: (chemin: string, contenu: unknown) => void; guide: Guide }
+interface Fixture { ctx: Contexte; ecrire: (chemin: string, contenu: unknown) => void; guide: ReturnType<typeof guideDEssai> }
 
-const ETATS = REGISTRE_ETATS.termes.map((t) => t.id);
-
-function fiche(systeme: string, lu: string, avecTokens: boolean) {
+function fiche(systeme: string, lu: string) {
   return {
     composant: 'button',
     systeme,
@@ -175,51 +178,58 @@ function fiche(systeme: string, lu: string, avecTokens: boolean) {
     variantes: ['primary'],
     tailles: { md: '40px' },
     anatomie: ['libellé'],
-    etats: ETATS.slice(0, 2),
+    etats: REGISTRE_ETATS.termes.slice(0, 2).map((terme) => terme.id),
     clavier: ['Entrée active le bouton.'],
     regles: ['Un seul bouton principal par zone.'],
     redaction: ['Le libellé commence par un verbe.'],
     particularites: [],
-    ...(avecTokens ? { tokens: [
-      { variante: 'primary', etat: 'default', role: 'background', token: 'btn.bg' },
-      { variante: 'primary', etat: 'default', role: 'foreground', token: 'btn.fg' },
-      { variante: 'primary', etat: 'default', role: 'border', token: 'btn.border' },
-    ] } : {}),
   };
 }
 
-function guideDEssai(): Guide {
-  const point = (texte: string, systemes: string[]) => ({ texte, systemes });
+function guideDEssai() {
   return {
-    gabarit: 1,
+    gabarit: 2,
     composant: 'button',
     date: '2026-03-01',
-    definition: { resume: 'Lance une action dans la page.', quandLUtiliser: ['Pour enregistrer ou envoyer.'], voisins: [{ id: 'link', choisirSi: 'L’élément mène à une autre page.' }] },
-    anatomie: { parties: [{ nom: 'Libellé', obligatoire: true, systemes: ['alpha', 'beta'] }, { nom: 'Icône', obligatoire: false, systemes: ['alpha'] }] },
-    variantes: {
-      emphase: [{ nom: 'primary', locaux: { alpha: 'primary', beta: 'filled' } }],
-      statut: [{ nom: 'danger', locaux: { alpha: 'danger' } }],
-      tailles: [{ nom: 'md', locaux: { alpha: 'md' } }],
+    resume: 'Lance une action dans la page.',
+    cas: [{ id: 'repos', titre: 'Au repos' }, { id: 'long', titre: 'Libellé long', largeur: 200 }],
+    galerie: [{
+      systeme: 'alpha',
+      composant: 'Button',
+      paquets: ['lib-a@1.0.0'],
+      points: ['Le libellé reste sur une ligne.', 'Le focus suit le contour.', 'Le bouton désactivé reste focalisable.'],
+    }],
+    absences: [{ systeme: 'beta', raison: 'Pas de paquet web publié.' }],
+    comprendre: [{
+      titre: 'Le bouton désactivé',
+      constat: 'Deux systèmes le traitent différemment.',
+      options: [
+        { nom: 'Focalisable', detail: 'Le lecteur d’écran le trouve.', systemes: ['alpha'] },
+        { nom: 'Hors du parcours', detail: '', systemes: ['beta'] },
+      ],
+      decider: 'Garder le bouton désactivé dans le parcours du clavier, ou non.',
+    }],
+    dessiner: {
+      tableaux: [{
+        titre: 'Bouton',
+        colonnes: ['Principal', 'Secondaire'],
+        lignes: [
+          { nom: 'Repos', cellules: ['oui', 'oui'], pourquoi: 'Les deux emphases de base.' },
+          { nom: 'Désactivé', cellules: ['Si le produit en a besoin', 'non'], pourquoi: 'Le secondaire se masque.' },
+        ],
+      }],
+      proprietes: [{ nom: 'Taille', valeurs: '32 · 40 px', note: 'Deux tailles suffisent.' }],
     },
-    etats: ETATS.map((etat) => ({ etat, ceQuiChange: 'La couleur de fond change.', systemes: ['alpha', 'beta'] })),
-    clavier: { touches: [{ touche: 'Entrée', effet: 'Active le bouton.', systemes: ['alpha', 'beta', 'gamma'] }], focus: [point('Le focus reste visible.', ['alpha'])], interactions: [] },
-    accessibilite: {
-      aria: { role: 'button', attributs: ['aria-disabled'], nomAccessible: 'Le libellé visible.' },
-      criteres: Object.keys(CRITERES).map((critere) => ({ critere, sApplique: true, exigence: 'Exigence du critère.', pratique: 'Pratique relevée.' })),
-    },
-    redaction: { regles: [point('Le libellé commence par un verbe.', ['alpha', 'beta', 'gamma'])] },
-    proposition: [
-      { segments: [{ genre: 'variante', valeur: 'primary' }, { genre: 'etat', valeur: 'default' }, { genre: 'role', valeur: 'background' }], note: 'Fond au repos.' },
-      { segments: [{ genre: 'variante', valeur: 'primary' }, { genre: 'etat', valeur: 'normal' }, { genre: 'role', valeur: 'background' }] },
-    ],
-    choix: [{ question: 'Le bouton désactivé reste-t-il focalisable ?', options: { a: 'Non.', b: 'Oui.' }, systemes: { alpha: 'a', beta: 'b' } }],
-    rappels: {
-      regle: [point('Un seul bouton principal par zone.', ['alpha'])], etat: [], comportement: [], accessibilite: [], redaction: [], tokens: [],
-    },
-    exemples: [{ idee: 'Un bouton sans fond au repos.', systeme: 'alpha', source: 'https://exemple.test/alpha/button' }],
     questions: [{ question: 'UCM publie-t-il un état de chargement ?', options: ['état du registre', 'propriété booléenne'], dependDe: 'Le registre des états du kit.' }],
   };
 }
+
+const TABLE_ALPHA = {
+  paquets: ['lib-a@1.0.0'],
+  installe: ['lib-a@1.0.0'],
+  imports: { 'lib-a': 'https://cdn.exemple.test/npm:lib-a@1.0.0/index.js' },
+  feuilles: ['https://cdn.exemple.test/npm:lib-a@1.0.0/style.css'],
+};
 
 function fabriquer(): Fixture {
   const dir = mkdtempSync(path.join(os.tmpdir(), 'references-'));
@@ -227,121 +237,94 @@ function fabriquer(): Fixture {
     mkdirSync(path.dirname(path.join(dir, chemin)), { recursive: true });
     writeFileSync(path.join(dir, chemin), typeof contenu === 'string' ? contenu : `${JSON.stringify(contenu, null, 2)}\n`);
   };
-  const systeme = (id: string, roles: string[], tokens: string | null, modes: unknown, tableDeTokens = false) => ({
-    id, nom: id.toUpperCase(), editeur: 'Éditeur d’essai', roles, tokens, ...(tableDeTokens ? { tableDeTokens } : {}),
-    documentation: `https://exemple.test/${id}`, licences: { code: 'MIT', documentation: 'non vérifiée' }, modes,
+  const systeme = (id: string, roles: string[]) => ({
+    id, nom: id.toUpperCase(), editeur: 'Éditeur d’essai', roles, tokens: null,
+    documentation: `https://exemple.test/${id}`, licences: { code: 'MIT', documentation: 'non vérifiée' }, modes: null,
   });
-  ecrire('systemes.json', [
-    systeme('alpha', ['tokens', 'composants'], 'design-systems/alpha', { light: { nom: 'light', page: 'page' }, dark: { nom: 'dark', page: 'page' } }, true),
-    systeme('beta', ['tokens', 'composants'], 'design-systems/beta', null),
-    systeme('gamma', ['comportement'], null, null),
-  ]);
-  ecrire('design-systems/alpha/noms.json', ['btn.bg', 'btn.border', 'btn.fg', 'page'].map((nom) => ({ nom, type: 'color', couche: 'composant' })));
-  const ligne = (nom: string, mode: string, resolue: string) => ({ nom, mode, valeur: resolue, resolue });
-  ecrire('design-systems/alpha/valeurs.json', [
-    ligne('btn.bg', 'dark', '#000000'), ligne('btn.bg', 'light', '#ffffff'),
-    ligne('btn.border', 'dark', '#ffffff'), ligne('btn.border', 'light', '#000000'),
-    ligne('btn.fg', 'dark', '#ffffff'), ligne('btn.fg', 'light', '#000000'),
-    ligne('page', 'dark', '#000000'), ligne('page', 'light', '#ffffff'),
-  ]);
-  ecrire('design-systems/beta/noms.json', [{ nom: 'beta.btn', type: 'color', couche: null }]);
-  ecrire('design-systems/sources.json', [
-    { systeme: 'alpha', url: 'https://exemple.test/a', version: 'alpha@1.0.0', originalPath: 'tokens.json', localFile: 'alpha/sources/tokens.json.txt', sha256: 'a'.repeat(64), licence: 'MIT' },
-  ]);
-  const index = [
+  ecrire('systemes.json', [systeme('alpha', ['composants']), systeme('beta', ['composants']), systeme('gamma', ['comportement'])]);
+  ecrire('composants/index.json', [
     {
       id: 'button', nom: 'Bouton', definition: 'Lance une action.', voisins: ['link'],
       systemes: {
-        alpha: { nom: 'Button', url: 'https://exemple.test/alpha/button', motifs: ['^btn\\.'] },
+        alpha: { nom: 'Button', url: 'https://exemple.test/alpha/button' },
         beta: { nom: 'Filled', url: 'https://exemple.test/beta/button' },
         gamma: { nom: 'Button pattern', url: 'https://exemple.test/gamma/button' },
       },
     },
     { id: 'link', nom: 'Lien', definition: 'Mène ailleurs.', voisins: ['button'], systemes: {} },
-  ];
-  ecrire('composants/index.json', index);
-  ecrire('composants/button/alpha.json', fiche('alpha', '2026-01-10', true));
-  ecrire('composants/button/beta.json', fiche('beta', '2026-01-10', false));
-  ecrire('composants/button/gamma.json', fiche('gamma', '2026-01-10', false));
+  ]);
+  ecrire('composants/button/alpha.json', fiche('alpha', '2026-01-10'));
+  ecrire('composants/button/beta.json', fiche('beta', '2026-01-10'));
+  ecrire('_outils/scenes/scene.js', 'function monter(rendre) { for (const c of CAS) rendre(c.id, document.body, () => {}); }\n');
+  ecrire('_outils/scenes/button/alpha.js', "import { Bouton } from 'lib-a';\n\nmonter((cas, hote) => { hote.append(Bouton(cas)); });\n");
+  ecrire('_outils/scenes/button/alpha.carte.json', TABLE_ALPHA);
   const guide = guideDEssai();
   ecrire('analyses/button.json', guide);
   return { ctx: { references: dir, racine: reel.racine }, ecrire, guide };
 }
 
-test('le guide d’essai se rend avec ses comptes, ses contrastes et ses quinze sections', () => {
+test('le guide d’essai se rend avec sa galerie, ses différences et ses variantes', () => {
   const { ctx } = fabriquer();
-  assert.deepEqual(verifierIndex(ctx, chargerIndex(ctx)), []);
-  assert.deepEqual(verifierFiches(ctx, 'button'), []);
   const rendu = calculerGuide(ctx, 'button');
   assert.deepEqual(rendu.erreurs, []);
   const html = rendu.html!;
   assert.deepEqual([...html.matchAll(/<section id="([a-z]+)">/g)].map((m) => m[1]), [...ANCRES]);
   assert.ok(!html.includes('@@') && !html.includes('{{'));
-  assert.ok(html.includes('<meta name="ucm-gabarit" content="1">'));
-  // m compte les deux systèmes au rôle composants ; gamma (comportement) ne compte pas.
-  assert.ok(html.includes('2 sur 2'), 'Libellé : alpha et beta');
-  assert.ok(html.includes('1 sur 2'), 'Icône : alpha seul');
-  assert.match(html, /Pas de tokens de composant :[^<]*(<[^>]*>)*BETA/);
-  // Texte noir sur fond blanc : 21 ; fond blanc sur page blanche : 1.
-  assert.ok(html.includes('texte/fond 21,00'));
-  assert.ok(html.includes('fond/page 1,00'));
-  assert.ok(html.includes('contour/page 21,00'));
-  // Le même mode sombre, inversé.
-  assert.equal(html.match(/texte\/fond 21,00/g)?.length, 2);
-  // Un état hors registre ou toléré est signalé sans bloquer.
-  assert.ok(rendu.alertes.some((a) => /normal est toléré, le registre dit default/.test(a)), rendu.alertes.join('\n'));
+  assert.ok(html.includes('<meta name="ucm-gabarit" content="2">'));
+  // La scène est un document complet dans son cadre : table d'imports, `process`, puis les cas du guide.
+  const scene = /srcdoc="([^"]*)"/.exec(html)![1].replace(/&quot;/g, '"').replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&amp;/g, '&');
+  assert.match(scene, /<script type="importmap">\{"imports":\{"lib-a":"https:\/\/cdn\.exemple\.test\/npm:lib-a@1\.0\.0\/index\.js"/);
+  assert.ok(scene.includes('"https://cdn.exemple.test/npm:lib-a@1.0.0/style.css":"data:text/javascript,'), 'une feuille importée devient un module qui la lie');
+  assert.ok(scene.includes('globalThis.process'));
+  assert.ok(scene.includes('const CAS = [{"id":"repos","titre":"Au repos"},{"id":"long","titre":"Libellé long","largeur":200}];'));
+  assert.ok(html.includes('lib-a@1.0.0'));
+  assert.ok(html.includes('Pas de paquet web publié.'), 'un système sans scène garde sa carte et sa raison');
+  assert.ok(html.includes('<a href="#beta">BETA</a>'), 'une option renvoie à la carte de son système');
+  assert.ok(html.includes('<td class="oui">À dessiner</td>') && html.includes('<td class="si">Si le produit en a besoin</td>'));
   assert.equal(calculerGuide(ctx, 'button').html, html, 'rendu déterministe');
 });
 
-test('le relevé suit les motifs de l’index et se réécrit à l’identique', () => {
-  const { ctx } = fabriquer();
-  const releve = relever(ctx, 'button')!;
-  assert.deepEqual(Object.keys(releve.systemes), ['alpha']);
-  assert.deepEqual(releve.systemes.alpha.tokens.map((t) => t.nom), ['btn.bg', 'btn.border', 'btn.fg']);
-  assert.deepEqual(releve.systemes.alpha.tokens[0].valeurs, { dark: '#000000', light: '#ffffff' });
-  assert.equal(releve.systemes.alpha.version, 'alpha@1.0.0');
-  assert.equal(ecrireReleve(releve), ecrireReleve(relever(ctx, 'button')!));
-});
-
-test('un guide incomplet, une fiche ancienne ou un token inconnu sont refusés', () => {
+test('un guide incomplet, une scène sans table à jour ou une carte manquante sont refusés', () => {
   const sansSection = fabriquer();
   const { questions: _questions, ...incomplet } = sansSection.guide;
   sansSection.ecrire('analyses/button.json', incomplet);
   assert.ok(calculerGuide(sansSection.ctx, 'button').erreurs.some((e) => /questions/.test(e)));
 
-  const sansEtat = fabriquer();
-  sansEtat.ecrire('analyses/button.json', { ...sansEtat.guide, etats: sansEtat.guide.etats && [{ etat: 'default', ceQuiChange: 'Rien.', systemes: ['alpha'] }] });
-  assert.ok(calculerGuide(sansEtat.ctx, 'button').erreurs.length > 0, 'les six états du registre sont exigés');
+  const sansScene = fabriquer();
+  sansScene.ecrire('analyses/button.json', { ...sansScene.guide, galerie: [{ ...sansScene.guide.galerie[0], systeme: 'gamma' }] });
+  assert.ok(calculerGuide(sansScene.ctx, 'button').erreurs.some((e) => /gamma : scène absente/.test(e)));
 
-  const inconnu = fabriquer();
-  inconnu.ecrire('analyses/button.json', { ...inconnu.guide, exemples: [{ idee: 'Une idée.', systeme: 'zeta', source: 'https://exemple.test/z' }] });
-  assert.ok(calculerGuide(inconnu.ctx, 'button').erreurs.some((e) => /zeta/.test(e)));
+  const perimee = fabriquer();
+  perimee.ecrire('analyses/button.json', { ...perimee.guide, galerie: [{ ...perimee.guide.galerie[0], paquets: ['lib-a@1.0.1'] }] });
+  assert.ok(calculerGuide(perimee.ctx, 'button').erreurs.some((e) => /table d'imports périmée, lancer guide\.ts carte button/.test(e)));
+
+  const enDur = fabriquer();
+  enDur.ecrire('_outils/scenes/button/alpha.js', "import { Bouton } from 'lib-a';\nfeuille('https://cdn.exemple.test/npm:lib-a@0.9.0/style.css');\n");
+  assert.ok(calculerGuide(enDur.ctx, 'button').erreurs.some((e) => /lib-a@0\.9\.0, absent des paquets déclarés/.test(e)));
+
+  const oubli = fabriquer();
+  oubli.ecrire('analyses/button.json', { ...oubli.guide, absences: [] });
+  const erreurs = calculerGuide(oubli.ctx, 'button').erreurs;
+  assert.ok(erreurs.some((e) => /beta : alias non nul dans l'index, sans scène ni raison/.test(e)), erreurs.join('\n'));
+  assert.ok(erreurs.some((e) => /comprendre 1 : beta n'a pas de carte/.test(e)));
+
+  const cellules = fabriquer();
+  const t = cellules.guide.dessiner.tableaux[0];
+  cellules.ecrire('analyses/button.json', { ...cellules.guide, dessiner: { ...cellules.guide.dessiner, tableaux: [{ ...t, lignes: [{ ...t.lignes[0], cellules: ['oui'] }] }] } });
+  assert.ok(calculerGuide(cellules.ctx, 'button').erreurs.some((e) => /1 cellules pour 2 colonnes/.test(e)));
 
   const ancienne = fabriquer();
-  ancienne.ecrire('composants/button/beta.json', fiche('beta', '2024-01-10', false));
-  assert.ok(calculerGuide(ancienne.ctx, 'button').erreurs.some((e) => /beta.*plus de 12 mois/.test(e)));
-  ancienne.ecrire('analyses/button.json', { ...ancienne.guide, absences: [{ systeme: 'beta', raison: 'La page a changé et la relecture attend.' }] });
-  const avecRaison = calculerGuide(ancienne.ctx, 'button');
-  assert.deepEqual(avecRaison.erreurs, []);
-  assert.ok(avecRaison.html!.includes('La page a changé et la relecture attend.'));
-
-  const faux = fabriquer();
-  faux.ecrire('composants/button/alpha.json', { ...fiche('alpha', '2026-01-10', true), tokens: [{ variante: 'primary', etat: 'default', role: 'background', token: 'btn.absent' }] });
-  assert.ok(verifierFiches(faux.ctx, 'button').some((e) => /btn\.absent/.test(e)));
-
-  const horsTable = fabriquer();
-  horsTable.ecrire('design-systems/beta/noms.json', ['btn.bg', 'btn.border', 'btn.fg'].map((nom) => ({ nom, type: 'color', couche: null })));
-  horsTable.ecrire('composants/button/beta.json', fiche('beta', '2026-01-10', true));
-  assert.ok(verifierFiches(horsTable.ctx, 'button').some((e) => /beta n'est pas marqué tableDeTokens/.test(e)), 'table tokens réservée aux systèmes marqués');
+  ancienne.ecrire('composants/button/alpha.json', fiche('alpha', '2024-01-10'));
+  assert.ok(calculerGuide(ancienne.ctx, 'button').erreurs.some((e) => /alpha.*plus de 12 mois/.test(e)));
 
   const sansAlias = fabriquer();
-  sansAlias.ecrire('composants/button/gamma.json', fiche('beta', '2026-01-10', false));
+  sansAlias.ecrire('composants/button/gamma.json', fiche('beta', '2026-01-10'));
   assert.ok(verifierFiches(sansAlias.ctx, 'button').length > 0, 'le champ systeme doit suivre le nom du fichier');
 });
 
 test('la prose d’un guide passe le contrôle de style', () => {
   const { ctx, guide, ecrire } = fabriquer();
-  ecrire('analyses/button.json', { ...guide, definition: { ...(guide.definition as object), resume: 'Lance une action — dans la page.' } });
+  ecrire('analyses/button.json', { ...guide, resume: 'Lance une action — dans la page.' });
   assert.ok(calculerGuide(ctx, 'button').erreurs.some((e) => /analyses\/button/.test(e)));
 });
 
@@ -350,8 +333,8 @@ test('etat dit ce qui existe, ce qui manque et ce qui est ancien', () => {
   assert.equal(etat(ctx, 'Zeta').trouve, false);
   const recent = etat(ctx, 'button', '2026-03-01');
   assert.equal(recent.trouve, true);
-  assert.match(recent.texte, /alpha\s+tokens?.*fiche lue le 2026-01-10 \(1 mois\)|alpha\s+composants\s+fiche lue le 2026-01-10 \(1 mois\)/);
-  assert.match(recent.texte, /Relevé de tokens : absent/);
+  assert.match(recent.texte, /alpha\s+composants\s+fiche lue le 2026-01-10 \(1 mois\)/);
+  assert.match(recent.texte, /Relevé de tokens : aucun motif/);
   assert.match(etat(ctx, 'Filled', '2027-06-01').texte, /ANCIENNE \(16 mois\)/, 'un nom local retrouve le composant');
   assert.match(etat(ctx, 'bouton', '2026-03-01').texte, /Guide : analyses\/button\.json présent, HTML absent/);
 });

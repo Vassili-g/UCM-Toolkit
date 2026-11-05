@@ -5,54 +5,33 @@
  *   npx tsx docs/references/_outils/guide.ts etat <nom>
  *   npx tsx docs/references/_outils/guide.ts relever <id> | --tous
  *   npx tsx docs/references/_outils/guide.ts verifier <id> | --tous
+ *   npx tsx docs/references/_outils/guide.ts carte <id>
  *   npx tsx docs/references/_outils/guide.ts rendre <id> | --tous
  *
  * `etat` dit ce qui existe pour un nom de composant, à la date du jour : c'est
- * la seule commande qui lit l'horloge. `relever`, `verifier` et `rendre` ne
- * dépendent que des fichiers, pour qu'un test refuse un relevé ou une page qui
- * ne suit plus ses données. Les noms, les tokens, les couleurs, les contrastes
- * et les comptes « n sur m » viennent d'ici ; l'agent n'écrit que la synthèse.
+ * la seule commande qui lit l'horloge. `carte` est la seule qui lit le réseau :
+ * elle demande à JSPM la table d'imports de chaque scène et l'enregistre à côté
+ * d'elle. `relever`, `verifier` et `rendre` ne dépendent que des fichiers, pour
+ * qu'un test refuse un relevé ou une page qui ne suit plus ses données.
  */
 import { existsSync, mkdirSync, readFileSync, readdirSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import Ajv from 'ajv';
 import type { ValidateFunction } from 'ajv';
-import { REGISTRES, REGISTRES_ARCHITECTURE } from '@ucm-kit/core/referentiel';
-import { atteintLeSeuil, contraste, ecrireContraste, lineaireVersRgb8, lireHexa, oklchVersLineaire } from 'ucm-couleur';
 import { fautesDuDocument } from '../../../scripts/controle-style.mjs';
 
 /** Version du gabarit : un guide rendu pour une autre version est périmé. */
-export const GABARIT = 1;
+export const GABARIT = 2;
 
-/** Les quinze sections, dans l'ordre du gabarit. */
-export const ANCRES = [
-  'entete', 'definition', 'noms', 'anatomie', 'variantes', 'etats', 'clavier', 'accessibilite',
-  'redaction', 'tokens', 'choix', 'rappels', 'exemples', 'questions', 'sources',
-] as const;
-
-/** Les seize critères WCAG 2.2 de la section 8. */
-export const CRITERES: Record<string, string> = {
-  '1.4.1': 'Utilisation de la couleur',
-  '1.4.3': 'Contraste (minimum)',
-  '1.4.4': 'Redimensionnement du texte',
-  '1.4.11': 'Contraste du contenu non textuel',
-  '1.4.12': 'Espacement du texte',
-  '2.1.1': 'Clavier',
-  '2.4.3': 'Parcours du focus',
-  '2.4.7': 'Visibilité du focus',
-  '2.4.11': 'Focus non masqué (minimum)',
-  '2.4.13': 'Apparence du focus (AAA, indicatif)',
-  '2.5.3': 'Étiquette dans le nom',
-  '2.5.7': 'Mouvements de glissement',
-  '2.5.8': 'Taille de la cible (minimum)',
-  '3.3.2': 'Étiquettes ou instructions',
-  '4.1.2': 'Nom, rôle et valeur',
-  '4.1.3': 'Messages d’état',
-};
+/** Les sections, dans l'ordre du gabarit. */
+export const ANCRES = ['galerie', 'comprendre', 'dessiner', 'questions', 'sources'] as const;
 
 /** Au-delà, une fiche est ancienne : `etat` la signale, `rendre` la refuse sans raison écrite. */
 export const MOIS_DE_VALIDITE = 12;
+
+/** Le générateur de tables d'imports : il résout tout l'arbre des dépendances vers une seule version de chaque paquet. */
+const GENERATEUR = 'https://api.jspm.io/generate';
 
 const DOSSIER = path.dirname(fileURLToPath(import.meta.url));
 const REFERENCES = path.resolve(DOSSIER, '..');
@@ -61,7 +40,7 @@ const RACINE = path.resolve(REFERENCES, '..', '..');
 export interface Contexte {
   /** `docs/references`, ou un dossier de même forme. */
   references: string;
-  /** Racine du dépôt : le kit y donne la version des registres. */
+  /** Racine du dépôt. */
   racine: string;
 }
 export const CONTEXTE_REEL: Contexte = { references: REFERENCES, racine: RACINE };
@@ -79,7 +58,7 @@ export interface Systeme {
   /**
    * Seul un système marqué remplit la table `tokens` de ses fiches : le
    * mainteneur l'a réservée aux systèmes qui publient des tokens de composant
-   * en fichier. Les autres restent hors du nuancier.
+   * en fichier.
    */
   tableDeTokens?: boolean;
   documentation: string;
@@ -122,29 +101,40 @@ export interface Releve {
   }>;
 }
 
-type Point = { texte: string; systemes: string[] };
-type SansObjet = { sansObjet: string };
-type Variante = { nom: string; locaux: Record<string, string> };
+export interface Cas { id: string; titre: string; largeur?: number }
+export interface Carte {
+  id: string;
+  composant: string;
+  paquets: string[];
+  points: string[];
+  note?: string;
+}
 export interface Guide {
   gabarit: number;
   composant: string;
   date: string;
+  resume: string;
+  cas: Cas[];
+  galerie: Carte[];
   absences?: { systeme: string; raison: string }[];
-  definition: SansObjet | { resume: string; quandLUtiliser: string[]; voisins: { id: string; choisirSi: string }[] };
-  anatomie: SansObjet | { parties: { nom: string; obligatoire: boolean; systemes: string[] }[] };
-  variantes: SansObjet | { emphase: Variante[]; statut: Variante[]; tailles: Variante[] };
-  etats: SansObjet | { etat: string; ceQuiChange: string; systemes: string[] }[];
-  clavier: SansObjet | { touches: { touche: string; effet: string; systemes: string[] }[]; focus: Point[]; interactions: Point[] };
-  accessibilite: SansObjet | {
-    aria: { role: string; attributs: string[]; nomAccessible: string };
-    criteres: { critere: string; sApplique: boolean; exigence: string; pratique: string }[];
+  comprendre: { titre: string; constat: string; options: { nom: string; detail: string; systemes: string[] }[]; decider: string }[];
+  dessiner: {
+    tableaux: { titre: string; colonnes: string[]; lignes: { nom: string; cellules: string[]; pourquoi: string }[]; note?: string }[];
+    proprietes: { nom: string; valeurs: string; note: string }[];
   };
-  redaction: SansObjet | { regles: Point[] };
-  proposition: SansObjet | { segments: { genre: string; valeur: string }[]; note?: string }[];
-  choix: SansObjet | { question: string; options: Record<string, string>; systemes: Record<string, string> }[];
-  rappels: SansObjet | Record<'regle' | 'etat' | 'comportement' | 'accessibilite' | 'redaction' | 'tokens', Point[]>;
-  exemples: { idee: string; systeme: string; source: string }[];
   questions: { question: string; options: string[]; dependDe: string }[];
+}
+// Le JSON nomme le système `systeme` ; le type le relit sous ce nom.
+type CarteJson = Omit<Carte, 'id'> & { systeme: string };
+type GuideJson = Omit<Guide, 'galerie'> & { galerie: CarteJson[] };
+
+/** Ce que `carte` enregistre pour une scène : la table d'imports et les feuilles que ses modules importent. */
+export interface TableDImports {
+  paquets: string[];
+  installe: string[];
+  imports: Record<string, string>;
+  scopes?: Record<string, Record<string, string>>;
+  feuilles: string[];
 }
 
 /* --------------------------------------------------------------- lectures */
@@ -216,75 +206,10 @@ export function moisEntre(a: string, b: string): number {
 }
 const aujourdhui = (): string => new Date().toISOString().slice(0, 10);
 
-/* ----------------------------------------------------------------- couleurs */
-
-export interface Couleur { rgb: [number, number, number]; alpha: number }
-
-const NOMMEES: Record<string, Couleur> = {
-  white: { rgb: [255, 255, 255], alpha: 1 },
-  black: { rgb: [0, 0, 0], alpha: 1 },
-  transparent: { rgb: [0, 0, 0], alpha: 0 },
-};
-const borner255 = (x: number): number => Math.min(255, Math.max(0, Math.round(x)));
-const nombre = (t: string): number => (t.endsWith('%') ? Number(t.slice(0, -1)) / 100 : Number(t));
-
-function hslVersRgb(h: number, s: number, l: number): [number, number, number] {
-  const a = s * Math.min(l, 1 - l);
-  const f = (n: number): number => {
-    const k = (n + h / 30) % 12;
-    return l - a * Math.max(-1, Math.min(k - 3, 9 - k, 1));
-  };
-  return [borner255(255 * f(0)), borner255(255 * f(8)), borner255(255 * f(4))];
-}
-
-/**
- * Lit une couleur publiée : hexa, `rgb()`, `hsl()` (et la forme nue `H S% L%` de
- * shadcn), `oklch()`, mots `white`, `black` et `transparent`. Rend null pour le
- * reste (`color-mix`, dégradé, espace P3), qui n'entre pas dans un contraste.
- */
-export function lireCouleur(texte: string | null): Couleur | null {
-  if (texte === null) return null;
-  const t = texte.trim().toLowerCase();
-  if (t in NOMMEES) return NOMMEES[t];
-  const long = /^#([0-9a-f]{8})$/.exec(t) ?? /^#([0-9a-f]{4})$/.exec(t);
-  if (long) {
-    const c = long[1].length === 4 ? long[1].split('').map((x) => x + x).join('') : long[1];
-    const rgb = lireHexa(c.slice(0, 6));
-    return rgb ? { rgb: [rgb[0], rgb[1], rgb[2]], alpha: parseInt(c.slice(6), 16) / 255 } : null;
-  }
-  const hexa = lireHexa(t.startsWith('#') ? t : 'x');
-  if (hexa) return { rgb: [hexa[0], hexa[1], hexa[2]], alpha: 1 };
-  const fonction = /^(rgba?|hsla?|oklch)\(\s*([^)]*)\)$/.exec(t);
-  const corps = fonction ? fonction[2] : /^[\d.]+\s+[\d.]+%\s+[\d.]+%$/.test(t) ? t : null;
-  if (corps === null) return null;
-  const [valeurs, alphaTexte] = corps.split('/').map((x) => x.trim());
-  const parts = valeurs.split(/[\s,]+/).filter(Boolean);
-  let alpha = alphaTexte !== undefined ? nombre(alphaTexte) : 1;
-  const genre = fonction ? fonction[1] : 'hsl';
-  if (parts.length === 4 && alphaTexte === undefined) alpha = nombre(parts[3]);
-  if (parts.length < 3 || [...parts.slice(0, 3), alpha].some((p) => Number.isNaN(typeof p === 'number' ? p : nombre(p)))) return null;
-  if (genre.startsWith('rgb')) {
-    const canal = (p: string): number => (p.endsWith('%') ? 2.55 * Number(p.slice(0, -1)) : Number(p));
-    return { rgb: [borner255(canal(parts[0])), borner255(canal(parts[1])), borner255(canal(parts[2]))], alpha };
-  }
-  if (genre === 'oklch') {
-    const L = parts[0].endsWith('%') ? Number(parts[0].slice(0, -1)) / 100 : Number(parts[0]);
-    const rgb = lineaireVersRgb8(oklchVersLineaire({ L, C: Number(parts[1]), H: Number(parts[2].replace('deg', '')) }));
-    return { rgb: [rgb[0], rgb[1], rgb[2]], alpha };
-  }
-  return { rgb: hslVersRgb(Number(parts[0].replace('deg', '')) % 360, nombre(parts[1]), nombre(parts[2])), alpha };
-}
-
-/** Compose une couleur translucide sur un fond opaque. */
-export function composer(devant: Couleur, fond: [number, number, number]): [number, number, number] {
-  const a = Math.min(1, Math.max(0, devant.alpha));
-  return [0, 1, 2].map((i) => borner255(a * devant.rgb[i] + (1 - a) * fond[i])) as [number, number, number];
-}
-
 /* --------------------------------------------------------- index et fiches */
 
 const normaliser = (t: string): string =>
-  t.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+  t.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
 
 /** Cherche un composant par `id`, par nom français ou par nom local dans un système. */
 export function trouverComposant(index: EntreeIndex[], requete: string): EntreeIndex | null {
@@ -415,455 +340,301 @@ export function relever(ctx: Contexte, id: string): Releve | null {
 export const ecrireReleve = (r: Releve): string => `${JSON.stringify(r, null, 2)}\n`;
 const fichierReleve = (ctx: Contexte, id: string): string => path.join(ctx.references, 'composants', id, 'tokens.json');
 
-/* ------------------------------------------------------------- registres */
+/* ------------------------------------------------------------------ scènes */
 
-const TOUS_LES_REGISTRES = [...REGISTRES, ...REGISTRES_ARCHITECTURE];
-function termesDuRegistre(id: string): readonly { id: string; toleres?: readonly string[] }[] {
-  return TOUS_LES_REGISTRES.find((r) => r.id === id)?.termes ?? [];
+const dossierDesScenes = (ctx: Contexte): string => path.join(ctx.references, '_outils', 'scenes');
+const fichierScene = (ctx: Contexte, id: string, systeme: string): string => path.join(dossierDesScenes(ctx), id, `${systeme}.js`);
+const fichierTable = (ctx: Contexte, id: string, systeme: string): string => path.join(dossierDesScenes(ctx), id, `${systeme}.carte.json`);
+
+/** Sépare `@scope/nom@1.2.3` en nom et version. */
+function lirePaquet(paquet: string): { nom: string; version: string } {
+  const i = paquet.lastIndexOf('@');
+  return { nom: paquet.slice(0, i), version: paquet.slice(i + 1) };
 }
-const ORDRE_DES_ETATS = termesDuRegistre('etats').map((t) => t.id);
 
-/** Dit si `valeur` est un terme du registre, un terme toléré, ou absent. */
-function jugerTerme(registre: string, valeur: string): { etat: 'registre' | 'tolere' | 'absent'; prefere?: string } {
-  const termes = termesDuRegistre(registre);
-  if (termes.some((t) => t.id === valeur)) return { etat: 'registre' };
-  const tolere = termes.find((t) => t.toleres?.includes(valeur));
-  return tolere ? { etat: 'tolere', prefere: tolere.id } : { etat: 'absent' };
+/** Les spécificateurs nus qu'une scène importe : `react`, `antd`, `@react-spectrum/s2/icons/ViewList`. */
+export function importsDeScene(code: string): string[] {
+  const vus = new Set<string>();
+  for (const m of code.matchAll(/^\s*import\s+(?:[^'";]*?\s+from\s+)?['"]([^'"]+)['"]/gm)) {
+    if (!/^(\.|\/|[a-z]+:)/.test(m[1])) vus.add(m[1]);
+  }
+  return [...vus];
+}
+
+/** Ce qu'il faut demander au générateur : chaque import, rattaché à la version figée de son paquet. */
+export function aInstaller(code: string, paquets: string[]): { installe: string[]; erreurs: string[] } {
+  const connus = paquets.map(lirePaquet).sort((a, b) => b.nom.length - a.nom.length);
+  const installe: string[] = [];
+  const erreurs: string[] = [];
+  for (const specificateur of importsDeScene(code)) {
+    const p = connus.find((x) => specificateur === x.nom || specificateur.startsWith(`${x.nom}/`));
+    if (!p) erreurs.push(`l'import ${specificateur} ne correspond à aucun paquet déclaré`);
+    else installe.push(`${p.nom}@${p.version}${specificateur.slice(p.nom.length)}`);
+  }
+  return { installe: installe.sort(), erreurs };
+}
+
+/** Les versions qu'une scène écrit en dur dans une adresse (`npm:paquet@1.2.3`) : elles doivent suivre les paquets déclarés. */
+function versionsEnDur(code: string): string[] {
+  return [...code.matchAll(/npm:((?:@[a-z0-9-._~]+\/)?[a-z0-9-._~]+@\d+\.\d+\.\d+)/g)].map((m) => m[1]);
+}
+
+const echapperScript = (code: string): string => code.replace(/<\/script/gi, '<\\/script');
+
+/**
+ * Le document d'une scène, en un seul fichier : sa table d'imports, la coquille
+ * commune, les données du composant, puis la scène. Les imports de feuilles CSS
+ * sont remplacés par un module qui lie la feuille, parce qu'un navigateur refuse
+ * un `.css` chargé comme module ; `process` est défini pour les paquets qui le
+ * lisent, comme le ferait un bundler.
+ */
+function documentDeScene(ctx: Contexte, id: string, systeme: string, cas: Cas[], table: TableDImports): string {
+  const imports: Record<string, string> = { ...table.imports };
+  for (const f of table.feuilles) {
+    imports[f] = `data:text/javascript,${encodeURIComponent(`const l=document.createElement("link");l.rel="stylesheet";l.href=${JSON.stringify(f)};document.head.append(l);`)}`;
+  }
+  const carte = JSON.stringify({ imports, ...(table.scopes ? { scopes: table.scopes } : {}) });
+  const commun = path.join(dossierDesScenes(ctx), id, 'commun.js');
+  const code = [
+    `const CAS = ${JSON.stringify(cas)};`,
+    readFileSync(path.join(dossierDesScenes(ctx), 'scene.js'), 'utf8'),
+    existsSync(commun) ? readFileSync(commun, 'utf8') : '',
+    readFileSync(fichierScene(ctx, id, systeme), 'utf8'),
+  ].join('\n');
+  return '<!doctype html><html lang="fr"><head><meta charset="utf-8">'
+    + `<script type="importmap">${echapperScript(carte)}</script>`
+    + '<script>globalThis.process = { env: { NODE_ENV: "production" } };</script>'
+    + `</head><body><script type="module">${echapperScript(code)}</script></body></html>`;
 }
 
 /* ------------------------------------------------------------------- rendu */
 
 const esc = (t: unknown): string =>
   String(t).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
-
-const estSansObjet = (x: unknown): x is SansObjet => !!x && typeof x === 'object' && 'sansObjet' in (x as object);
-const sansObjet = (x: SansObjet): string => `<p class="sans-objet">Sans objet : ${esc(x.sansObjet)}</p>`;
-const liste = (items: string[]): string => (items.length ? `<ul>${items.map((i) => `<li>${i}</li>`).join('')}</ul>` : '<p class="discret">Aucun point.</p>');
 const tableau = (entetes: string[], lignes: string[][]): string =>
   `<div class="table-wrap"><table><thead><tr>${entetes.map((h) => `<th>${h}</th>`).join('')}</tr></thead><tbody>${
-    lignes.map((l) => `<tr>${l.map((c) => `<td>${c}</td>`).join('')}</tr>`).join('')}</tbody></table></div>`;
+    lignes.map((l) => `<tr>${l.join('')}</tr>`).join('')}</tbody></table></div>`;
+const td = (contenu: string, classe = ''): string => `<td${classe ? ` class="${classe}"` : ''}>${contenu}</td>`;
 
 interface Calcul {
   ctx: Contexte;
   guide: Guide;
-  index: EntreeIndex[];
   entree: EntreeIndex;
   systemes: Systeme[];
   fiches: Map<string, Fiche>;
-  /** Systèmes au rôle composants qui ont une fiche : le `m` des comptes. */
-  m: string[];
-  alertes: string[];
+  tables: Map<string, TableDImports>;
 }
 
 const nomDuSysteme = (c: Calcul, id: string): string => c.systemes.find((s) => s.id === id)?.nom ?? id;
-const tagSysteme = (c: Calcul, id: string): string => `<span class="tag${c.m.includes(id) ? '' : ' autre'}">${esc(nomDuSysteme(c, id))}</span>`;
-const accord = (c: Calcul, ids: string[]): string => {
-  const n = ids.filter((i) => c.m.includes(i)).length;
-  return `<span class="pill n">${n} sur ${c.m.length}</span> ${ids.map((i) => tagSysteme(c, i)).join('')}`;
-};
-const points = (c: Calcul, items: Point[]): string => liste(items.map((p) => `${esc(p.texte)} ${accord(c, p.systemes)}`));
-const parLocal = (c: Calcul, locaux: Record<string, string>, ajout?: (sid: string, local: string) => string): string =>
-  Object.keys(locaux).sort().map((sid) => `<span class="tag">${esc(nomDuSysteme(c, sid))} : ${esc(locaux[sid])}${ajout ? esc(ajout(sid, locaux[sid])) : ''}</span>`).join('');
+const lienSysteme = (c: Calcul, id: string): string => `<a href="#${esc(id)}">${esc(nomDuSysteme(c, id))}</a>`;
 
-function sectionEntete(c: Calcul): string {
-  const lectures = [...c.fiches.values()].map((f) => f.lu).sort();
-  return `<dl class="meta"><dt>Composant</dt><dd>${esc(c.entree.nom)} <code>${esc(c.entree.id)}</code></dd>`
-    + `<dt>Date du guide</dt><dd>${esc(c.guide.date)}</dd>`
-    + `<dt>Gabarit</dt><dd>${GABARIT}</dd>`
-    + `<dt>Fiches</dt><dd>${c.fiches.size} (${c.m.length} de systèmes au rôle composants)</dd>`
-    + `<dt>Plus ancienne lecture</dt><dd>${lectures.length ? esc(lectures[0]) : 'aucune fiche'}</dd></dl>`;
+function sectionGalerie(c: Calcul): string {
+  const cartes = c.guide.galerie.map((g) => {
+    const document = documentDeScene(c.ctx, c.guide.composant, g.id, c.guide.cas, c.tables.get(g.id)!);
+    return `<article class="systeme" id="${esc(g.id)}"><header><h3>${esc(nomDuSysteme(c, g.id))}</h3>`
+      + `<span class="paquets">${esc(g.composant)} · ${g.paquets.map(esc).join(' · ')}</span></header>`
+      + `<div class="scene"><iframe title="${esc(`${g.composant}, ${nomDuSysteme(c, g.id)}`)}" srcdoc="${esc(document)}"></iframe></div>`
+      + `<ol>${g.points.map((p) => `<li>${esc(p)}</li>`).join('')}</ol>`
+      + (g.note ? `<p class="note">${esc(g.note)}</p>` : '')
+      + '</article>';
+  });
+  const absences = (c.guide.absences ?? []).map((a) => `<article class="systeme absent" id="${esc(a.systeme)}">`
+    + `<header><h3>${esc(nomDuSysteme(c, a.systeme))}</h3><span class="paquets">${esc(c.entree.systemes[a.systeme]?.nom ?? '')}</span></header>`
+    + `<p>${esc(a.raison)}</p></article>`);
+  const titres = c.guide.cas.map((x) => x.titre.toLowerCase()).join(', ');
+  return `<p class="chapeau">Les vrais composants, chargés depuis leur paquet à la version écrite sur la carte. Chaque scène montre les mêmes cas : ${esc(titres)}. `
+    + 'Survolez, cliquez, et utilisez Tab puis les flèches.</p>'
+    + `<div class="galerie">${[...cartes, ...absences].join('')}</div>`;
 }
 
-function sectionDefinition(c: Calcul, erreurs: string[]): string {
-  const d = c.guide.definition;
-  if (estSansObjet(d)) return sansObjet(d);
-  for (const v of d.voisins) if (!c.index.some((e) => e.id === v.id)) erreurs.push(`definition : le voisin ${v.id} n'est pas dans l'index`);
-  return `<p>${esc(d.resume)}</p><h3>Quand l'utiliser</h3>${liste(d.quandLUtiliser.map(esc))}<h3>Voisins</h3>`
-    + tableau(['Voisin', 'Choisir ce voisin si'], d.voisins.map((v) => {
-      const e = c.index.find((x) => x.id === v.id);
-      return [`${esc(e?.nom ?? v.id)} <code>${esc(v.id)}</code>`, esc(v.choisirSi)];
-    }));
+function sectionComprendre(c: Calcul): string {
+  return '<p class="chapeau">Les différences entre systèmes qui changent ce qu\'il faut dessiner.</p><div class="differences">'
+    + c.guide.comprendre.map((d) => `<article class="diff"><h3>${esc(d.titre)}</h3><p>${esc(d.constat)}</p>`
+      + `<div class="options">${d.options.map((o) => `<div><b>${esc(o.nom)}</b><span>${o.detail ? `${esc(o.detail)} ` : ''}${o.systemes.map((s) => lienSysteme(c, s)).join(', ')}.</span></div>`).join('')}</div>`
+      + `<p class="decider"><b>À décider :</b> ${esc(d.decider)}</p></article>`).join('')
+    + '</div>';
 }
 
-function sectionNoms(c: Calcul): string {
-  const lignes = c.systemes
-    .filter((s) => s.roles.some((r) => r === 'composants' || r === 'comportement' || r === 'nommage' || r === 'redaction'))
-    .map((s) => {
-      const a = c.entree.systemes[s.id];
-      if (a === null) return [esc(s.nom), '<span class="pill">absent, vérifié</span>', ''];
-      if (a === undefined) return [esc(s.nom), '<span class="pill alerte">non vérifié</span>', ''];
-      return [esc(s.nom), esc(a.nom), `<a href="${esc(a.url)}">page</a>${a.note ? ` <span class="discret">${esc(a.note)}</span>` : ''}`];
-    });
-  return tableau(['Système', 'Nom local', 'Page'], lignes);
-}
-
-function sectionAnatomie(c: Calcul): string {
-  const a = c.guide.anatomie;
-  if (estSansObjet(a)) return sansObjet(a);
-  return tableau(['Partie', 'Présence', 'Accord'], a.parties.map((p) => [esc(p.nom), p.obligatoire ? 'obligatoire' : 'facultative', accord(c, p.systemes)]));
-}
-
-function sectionVariantes(c: Calcul, alertes: string[]): string {
-  const v = c.guide.variantes;
-  if (estSansObjet(v)) return sansObjet(v);
-  const tableDe = (titre: string, items: Variante[], registre?: string): string => {
-    if (!items.length) return '';
-    return `<h3>${titre}</h3>${tableau(['Variante', 'Noms dans les systèmes'], items.map((i) => {
-      let signe = '';
-      if (registre) {
-        const j = jugerTerme(registre, i.nom);
-        if (j.etat !== 'registre') {
-          signe = ` <span class="pill alerte">${j.etat === 'tolere' ? `toléré, le registre dit ${esc(j.prefere)}` : `hors registre des ${registre}`}</span>`;
-          alertes.push(`variantes : ${i.nom} ${j.etat === 'tolere' ? `est toléré, le registre dit ${j.prefere}` : `est hors registre des ${registre}`}`);
-        }
-      }
-      return [`${esc(i.nom)}${signe}`, parLocal(c, i.locaux)];
-    }))}`;
+function sectionDessiner(c: Calcul): string {
+  const d = c.guide.dessiner;
+  const cellule = (v: string): string => {
+    if (v === 'oui') return td('À dessiner', 'oui');
+    if (v === 'non') return td('Non', 'non');
+    return td(esc(v), 'si');
   };
-  const tailles = v.tailles.length
-    ? `<h3>Tailles</h3>${tableau(['Taille', 'Nom local et hauteur par système'], v.tailles.map((t) => [
-      esc(t.nom),
-      parLocal(c, t.locaux, (sid, local) => (c.fiches.get(sid)?.tailles[local] ? ` · ${c.fiches.get(sid)?.tailles[local]}` : '')),
-    ]))}`
+  const tableaux = d.tableaux.map((t) => `<h3>${esc(t.titre)}</h3>`
+    + tableau(['', ...t.colonnes.map(esc), 'Pourquoi'], t.lignes.map((l) => [td(esc(l.nom)), ...l.cellules.map(cellule), td(esc(l.pourquoi))]))
+    + (t.note ? `<p>${esc(t.note)}</p>` : ''));
+  const proprietes = d.proprietes.length
+    ? `<h3>Propriétés</h3><div class="proprietes">${d.proprietes.map((p) => `<div class="prop"><b>${esc(p.nom)}</b><span class="valeurs">${esc(p.valeurs)}</span><span>${esc(p.note)}</span></div>`).join('')}</div>`
     : '';
-  return tableDe('Emphase', v.emphase) + tableDe('Statut', v.statut, 'statuts') + tailles;
-}
-
-function sectionEtats(c: Calcul): string {
-  const e = c.guide.etats;
-  if (estSansObjet(e)) return sansObjet(e);
-  const lignes = [...e].sort((a, b) => {
-    const ia = ORDRE_DES_ETATS.indexOf(a.etat);
-    const ib = ORDRE_DES_ETATS.indexOf(b.etat);
-    return (ia < 0 ? 99 : ia) - (ib < 0 ? 99 : ib) || (a.etat < b.etat ? -1 : 1);
-  });
-  return tableau(['État', 'Ce qui change', 'Accord'], lignes.map((l) => [
-    `<code>${esc(l.etat)}</code>${jugerTerme('etats', l.etat).etat === 'absent' ? ' <span class="pill">propre au composant</span>' : ''}`,
-    esc(l.ceQuiChange),
-    accord(c, l.systemes),
-  ]));
-}
-
-function sectionClavier(c: Calcul): string {
-  const k = c.guide.clavier;
-  if (estSansObjet(k)) return sansObjet(k);
-  return `<h3>Touches</h3>${tableau(['Touche', 'Effet', 'Accord'], k.touches.map((t) => [`<code>${esc(t.touche)}</code>`, esc(t.effet), accord(c, t.systemes)]))}`
-    + `<h3>Focus</h3>${points(c, k.focus)}<h3>Interactions</h3>${points(c, k.interactions)}`;
-}
-
-function sectionAccessibilite(c: Calcul): string {
-  const a = c.guide.accessibilite;
-  if (estSansObjet(a)) return sansObjet(a);
-  const ordre = Object.keys(CRITERES);
-  return `<dl class="meta"><dt>Rôle ARIA</dt><dd><code>${esc(a.aria.role)}</code></dd>`
-    + `<dt>Attributs</dt><dd>${a.aria.attributs.map((x) => `<code>${esc(x)}</code>`).join(' ') || 'aucun'}</dd>`
-    + `<dt>Nom accessible</dt><dd>${esc(a.aria.nomAccessible)}</dd></dl>`
-    + `<h3>Critères WCAG 2.2</h3>${tableau(['Critère', 'S’applique', 'Exigence', 'Pratique relevée'],
-      [...a.criteres].sort((x, y) => ordre.indexOf(x.critere) - ordre.indexOf(y.critere)).map((k) => [
-        `<code>${esc(k.critere)}</code> ${esc(CRITERES[k.critere] ?? '')}`,
-        k.sApplique ? '<span class="pill ok">oui</span>' : '<span class="pill">non</span>',
-        esc(k.exigence),
-        esc(k.pratique),
-      ]))}`;
-}
-
-function sectionRedaction(c: Calcul): string {
-  const r = c.guide.redaction;
-  return estSansObjet(r) ? sansObjet(r) : points(c, r.regles);
-}
-
-/* ------------------------------------------------------------------ nuancier */
-
-type Teinte = { texte: string; css: string } | null;
-interface MesureDeMode {
-  fond: Teinte;
-  texte: Teinte;
-  texteFond: number | null;
-  fondPage: number | null;
-  contourPage: number | null;
-}
-
-/** La valeur résolue d'un token dans un mode, ou `null` quand le système ne la publie pas. */
-function valeurDuToken(ctx: Contexte, s: Systeme, nom: string, mode: string | null): LigneDeValeurs | null {
-  const lignes = valeursDe(ctx, s).filter((v) => v.nom === nom);
-  return lignes.find((v) => v.mode === mode) ?? lignes.find((v) => v.mode === null) ?? null;
-}
-
-function couleurDuToken(ctx: Contexte, s: Systeme, nom: string, mode: string | null, sur: [number, number, number] | null): { texte: string; rgb: [number, number, number] | null } | null {
-  const ligne = valeurDuToken(ctx, s, nom, mode);
-  if (!ligne?.resolue) return null;
-  const base = lireCouleur(ligne.resolue);
-  if (!base) return { texte: ligne.resolue, rgb: null };
-  const alpha = ligne.alpha !== undefined ? base.alpha * ligne.alpha : base.alpha;
-  if (alpha < 1 && !sur) return { texte: ligne.resolue, rgb: null };
-  return { texte: ligne.alpha !== undefined ? `${ligne.resolue}, opacité ${ligne.alpha}` : ligne.resolue, rgb: alpha < 1 && sur ? composer({ rgb: base.rgb, alpha }, sur) : base.rgb };
-}
-
-const rapport = (a: [number, number, number] | null, b: [number, number, number] | null): number | null => (a && b ? contraste(a, b) : null);
-
-function mesurer(ctx: Contexte, s: Systeme, jetons: JetonDeFiche[], mode: 'light' | 'dark'): MesureDeMode | null {
-  const m = s.modes?.[mode];
-  if (!m) return null;
-  const page = m.page ? couleurDuToken(ctx, s, m.page, m.nom, null)?.rgb ?? null : null;
-  const de = (roles: string[]): { texte: string; rgb: [number, number, number] | null } | null => {
-    const j = jetons.find((x) => roles.includes(x.role));
-    return j ? couleurDuToken(ctx, s, j.token, m.nom, null) : null;
-  };
-  const fondBrut = jetons.find((x) => x.role === 'background');
-  const fond = fondBrut ? couleurDuToken(ctx, s, fondBrut.token, m.nom, page) : null;
-  const jetonTexte = jetons.find((x) => x.role === 'foreground' || x.role === 'text');
-  const texte = jetonTexte ? couleurDuToken(ctx, s, jetonTexte.token, m.nom, fond?.rgb ?? page) : null;
-  const contour = de(['border', 'ring']);
-  const teinte = (x: { texte: string; rgb: [number, number, number] | null } | null): Teinte =>
-    x ? { texte: x.texte, css: x.rgb ? `rgb(${x.rgb.join(',')})` : '' } : null;
-  return {
-    fond: teinte(fond),
-    texte: teinte(texte),
-    texteFond: rapport(texte?.rgb ?? null, fond?.rgb ?? null),
-    fondPage: rapport(fond?.rgb ?? null, page),
-    contourPage: rapport(contour?.rgb ?? null, page),
-  };
-}
-
-const mesure = (nom: string, v: number | null, seuil: number): string => {
-  if (v === null) return `<span class="mesure">${nom} —</span>`;
-  const atteint = atteintLeSeuil(v, seuil);
-  return `<span class="mesure">${nom} ${ecrireContraste(v)} <span class="pill ${atteint ? 'ok' : 'alerte'}">${atteint ? '≥' : '&lt;'} ${String(seuil).replace('.', ',')}</span></span>`;
-};
-const pastille = (t: Teinte): string => (t?.css ? `<span class="sw" style="background:${t.css}"></span>` : '');
-
-function celluleDuNuancier(c: Calcul, s: Systeme, jetons: JetonDeFiche[]): string {
-  if (!jetons.length) return '<span class="discret">aucun token</span>';
-  return (['light', 'dark'] as const).map((mode) => {
-    const m = mesurer(c.ctx, s, jetons, mode);
-    if (!m) return `<span class="cellule"><span class="mode">${mode}</span><span class="mesure">mode non publié</span></span>`;
-    return `<span class="cellule"><span class="mode"><strong>${mode}</strong></span>`
-      + `<span class="mode">${pastille(m.fond)}${m.fond ? esc(m.fond.texte) : 'fond non résolu'}</span>`
-      + `<span class="mode">${pastille(m.texte)}${m.texte ? esc(m.texte.texte) : 'texte non résolu'}</span>`
-      + `${mesure('texte/fond', m.texteFond, 4.5)}${mesure('fond/page', m.fondPage, 3)}${m.contourPage !== null ? mesure('contour/page', m.contourPage, 3) : ''}</span>`;
-  }).join('');
-}
-
-function nuancier(c: Calcul): string {
-  const avecTable = [...c.fiches.values()].filter((f) => f.tokens?.length && c.m.includes(f.systeme)).sort((a, b) => (a.systeme < b.systeme ? -1 : 1));
-  const sans = c.m.filter((id) => !avecTable.some((f) => f.systeme === id));
-  const sansTable = sans.length
-    ? `<p class="discret">Pas de tokens de composant : ${sans.map((id) => tagSysteme(c, id)).join('')}</p>`
-    : '';
-  if (!avecTable.length) return `<p class="discret">Aucun système n'a de table de tokens de composant pour ce composant.</p>${sansTable}`;
-
-  const v = c.guide.variantes;
-  const lignesDeVariantes: Variante[] = !estSansObjet(v) && (v.emphase.length || v.statut.length)
-    ? [...v.emphase, ...v.statut]
-    : [...new Set(avecTable.flatMap((f) => f.tokens!.map((t) => t.variante)).filter((x) => x !== '*'))].sort().map((nom) => ({ nom, locaux: {} }));
-  const etatsPresents = [...new Set(avecTable.flatMap((f) => f.tokens!.map((t) => t.etat)))];
-  etatsPresents.sort((a, b) => {
-    const ia = ORDRE_DES_ETATS.indexOf(a);
-    const ib = ORDRE_DES_ETATS.indexOf(b);
-    return (ia < 0 ? 99 : ia) - (ib < 0 ? 99 : ib) || (a < b ? -1 : 1);
-  });
-  const entetes = ['État', ...avecTable.map((f) => esc(nomDuSysteme(c, f.systeme)))];
-  const blocs = lignesDeVariantes.map((variante) => {
-    const lignes = etatsPresents.map((etat) => [
-      `<code>${esc(etat)}</code>`,
-      ...avecTable.map((f) => {
-        const s = c.systemes.find((x) => x.id === f.systeme)!;
-        const local = variante.locaux[f.systeme] ?? variante.nom;
-        const jetons = f.tokens!.filter((t) => t.etat === etat && (t.variante === local || t.variante === '*'));
-        return celluleDuNuancier(c, s, jetons);
-      }),
-    ]);
-    return `<h3>${esc(variante.nom)}</h3>${tableau(entetes, lignes)}`;
-  });
-  return `${blocs.join('')}${sansTable}`;
-}
-
-function relevesDeTokens(c: Calcul): string {
-  const releve = relever(c.ctx, c.entree.id);
-  const entrees = Object.entries(releve?.systemes ?? {});
-  if (!entrees.length) return '<p class="discret">Aucun motif de token dans l\'index pour ce composant.</p>';
-  return entrees.map(([sid, r]) => {
-    const s = c.systemes.find((x) => x.id === sid)!;
-    const modes = [...new Set(r.tokens.flatMap((t) => Object.keys(t.valeurs)))].sort();
-    const lignes = r.tokens.map((t) => [
-      `<code>${esc(t.nom)}</code>`,
-      esc(t.couche ?? '—'),
-      modes.map((m) => {
-        const val = t.valeurs[m];
-        const col = lireCouleur(val ?? null);
-        return `<span class="tag">${esc(m)} : ${col ? `<span class="sw" style="background:rgb(${col.rgb.join(',')})"></span>` : ''}${esc(val ?? '—')}</span>`;
-      }).join(''),
-    ]);
-    return `<details><summary>${esc(s.nom)} : ${r.tokens.length} tokens (${esc(r.version)})</summary>`
-      + `<p class="discret">Motifs : ${r.motifs.map((m) => `<code>${esc(m)}</code>`).join(' ')}</p>${tableau(['Token', 'Couche', 'Valeurs résolues'], lignes)}</details>`;
-  }).join('');
-}
-
-function proposition(c: Calcul, alertes: string[]): string {
-  const p = c.guide.proposition;
-  if (estSansObjet(p)) return sansObjet(p);
-  const registreDe: Record<string, string> = { statut: 'statuts', taille: 'tailles', etat: 'etats', role: 'roles' };
-  return tableau(['Nom UCM proposé', 'Note', 'Signalement'], p.map((item) => {
-    const nom = `components/${c.entree.id}/${item.segments.map((s) => s.valeur).join('/')}`;
-    const signes = item.segments.flatMap((s) => {
-      const registre = registreDe[s.genre];
-      if (!registre) return [];
-      const j = jugerTerme(registre, s.valeur);
-      if (j.etat === 'registre') return [];
-      const message = j.etat === 'tolere' ? `${s.valeur} est toléré, le registre dit ${j.prefere}` : `${s.valeur} est absent du registre des ${registre}`;
-      alertes.push(`proposition ${nom} : ${message}`);
-      return [`<span class="pill alerte">${esc(message)}</span>`];
-    });
-    return [`<code>${esc(nom)}</code>`, esc(item.note ?? ''), signes.join(' ')];
-  }));
-}
-
-function sectionTokens(c: Calcul, alertes: string[]): string {
-  return `<h3>Relevé par système</h3>${relevesDeTokens(c)}<h3>Nuancier comparé</h3>${nuancier(c)}<h3>Proposition de tokens UCM</h3>${proposition(c, alertes)}`;
-}
-
-function sectionChoix(c: Calcul, erreurs: string[]): string {
-  const ch = c.guide.choix;
-  if (estSansObjet(ch)) return sansObjet(ch);
-  return ch.map((q, i) => {
-    for (const [sid, option] of Object.entries(q.systemes)) {
-      if (!(option in q.options)) erreurs.push(`choix ${i + 1} : ${sid} cite l'option ${option}, qui n'existe pas`);
-    }
-    const lignes = Object.keys(q.options).sort().map((cle) => [
-      `<code>${esc(cle)}</code>`,
-      esc(q.options[cle]),
-      accord(c, Object.keys(q.systemes).filter((sid) => q.systemes[sid] === cle).sort()),
-    ]);
-    const non = c.m.filter((id) => !(id in q.systemes));
-    return `<h3>${esc(q.question)}</h3>${tableau(['Option', 'Description', 'Systèmes'], lignes)}`
-      + (non.length ? `<p class="discret">Non documenté : ${non.map((id) => tagSysteme(c, id)).join('')}</p>` : '');
-  }).join('') || '<p class="discret">Aucun choix divergent.</p>';
-}
-
-const CATEGORIES_DE_RAPPELS: [keyof Extract<Guide['rappels'], Record<string, Point[]>>, string][] = [
-  ['regle', 'Règle'], ['etat', 'État'], ['comportement', 'Comportement'], ['accessibilite', 'Accessibilité'], ['redaction', 'Rédaction'], ['tokens', 'Tokens'],
-];
-function sectionRappels(c: Calcul): string {
-  const r = c.guide.rappels;
-  if (estSansObjet(r)) return sansObjet(r);
-  return CATEGORIES_DE_RAPPELS.map(([cle, titre]) => `<h3>${titre}</h3>${points(c, r[cle])}`).join('');
-}
-
-function sectionExemples(c: Calcul): string {
-  const e = c.guide.exemples;
-  if (!e.length) return '<p class="discret">Aucune idée retenue.</p>';
-  return liste(e.map((x) => `${esc(x.idee)} ${tagSysteme(c, x.systeme)} <a href="${esc(x.source)}">source</a>`));
+  return `<div class="dessin">${tableaux.join('')}${proprietes}</div>`;
 }
 
 function sectionQuestions(c: Calcul): string {
-  return tableau(['Question', 'Options', 'Ce qui en dépend'], c.guide.questions.map((q) => [esc(q.question), liste(q.options.map(esc)), esc(q.dependDe)]));
+  if (!c.guide.questions.length) return '<p class="discret">Aucune question ouverte.</p>';
+  return tableau(['Question', 'Options', 'Ce qui en dépend'], c.guide.questions.map((q) => [
+    td(esc(q.question)), td(q.options.length ? `<ul>${q.options.map((o) => `<li>${esc(o)}</li>`).join('')}</ul>` : ''), td(esc(q.dependDe)),
+  ]));
 }
 
 function sectionSources(c: Calcul): string {
   const fiches = [...c.fiches.values()].sort((a, b) => (a.systeme < b.systeme ? -1 : 1));
-  const absences = c.guide.absences ?? [];
-  const sources = sourcesDe(c.ctx);
-  const systemesLus = new Set([...fiches.map((f) => f.systeme), ...Object.keys(relever(c.ctx, c.entree.id)?.systemes ?? {})]);
-  const fichiers = sources.filter((s) => systemesLus.has(s.systeme))
-    .sort((a, b) => (a.systeme + a.originalPath < b.systeme + b.originalPath ? -1 : 1));
-  const kit = lireSiPresent<{ version?: string }>(path.join(c.ctx.racine, 'packages', 'kit', 'package.json'), {}).version ?? 'inconnue';
-  return `<h3>Fiches</h3>${tableau(['Système', 'Lue le', 'Pages'], fiches.map((f) => [
-    esc(nomDuSysteme(c, f.systeme)), esc(f.lu), f.pages.map((p) => `<a href="${esc(p)}">${esc(p)}</a>`).join('<br>'),
-  ]))}`
-    + (absences.length ? `<h3>Fiches absentes ou anciennes</h3>${liste(absences.map((a) => `${tagSysteme(c, a.systeme)} ${esc(a.raison)}`))}` : '')
-    + `<h3>Fichiers de tokens</h3>${fichiers.length ? tableau(['Système', 'Fichier', 'Version', 'SHA-256'], fichiers.map((s) => [
-      esc(nomDuSysteme(c, s.systeme)), `<code>${esc(s.originalPath)}</code>${s.usage ? ' <span class="pill">composant</span>' : ''}`, esc(s.version), `<code>${esc(s.sha256)}</code>`,
-    ])) : '<p class="discret">Aucun fichier de tokens lu.</p>'}`
-    + `<h3>Registres</h3><p>Version du kit des registres : <code>${esc(kit)}</code>.</p>`;
+  const paquets = c.guide.galerie.flatMap((g) => g.paquets.map((p) => [g.id, p] as [string, string]));
+  return '<details><summary>Fiches lues et paquets chargés</summary>'
+    + `<h3>Fiches</h3>${tableau(['Système', 'Lue le', 'Pages'], fiches.map((f) => [
+      td(esc(nomDuSysteme(c, f.systeme))), td(esc(f.lu)), td(f.pages.map((p) => `<a href="${esc(p)}">${esc(p)}</a>`).join('<br>')),
+    ]))}`
+    + `<h3>Paquets</h3>${tableau(['Système', 'Paquet'], paquets.map(([sid, p]) => {
+      const { nom, version } = lirePaquet(p);
+      return [td(esc(nomDuSysteme(c, sid))), td(`<a href="https://www.npmjs.com/package/${esc(nom)}/v/${esc(version)}"><code>${esc(p)}</code></a>`)];
+    }))}`
+    + '</details>';
 }
 
 /* ------------------------------------------------------------- orchestration */
 
-export interface Rendu { erreurs: string[]; alertes: string[]; html: string | null }
+export interface Rendu { erreurs: string[]; html: string | null }
 
-/** Valide un guide et en calcule le HTML. Aucune lecture de l'horloge. */
+/** Valide un guide et en calcule le HTML. Ni horloge, ni réseau. */
 export function calculerGuide(ctx: Contexte, id: string): Rendu {
   const fichierGuide = path.join(ctx.references, 'analyses', `${id}.json`);
-  if (!existsSync(fichierGuide)) return { erreurs: [`analyses/${id}.json : fichier absent`], alertes: [], html: null };
-  const guide = lireJson<Guide>(fichierGuide);
-  const erreurs = erreursDuSchema('guide', guide).map((e) => `analyses/${id}.json : ${e}`);
-  if (erreurs.length) return { erreurs, alertes: [], html: null };
+  if (!existsSync(fichierGuide)) return { erreurs: [`analyses/${id}.json : fichier absent`], html: null };
+  const json = lireJson<GuideJson>(fichierGuide);
+  const erreurs = erreursDuSchema('guide', json).map((e) => `analyses/${id}.json : ${e}`);
+  if (erreurs.length) return { erreurs, html: null };
+  const guide: Guide = { ...json, galerie: json.galerie.map(({ systeme, ...reste }) => ({ id: systeme, ...reste })) };
 
   const index = chargerIndex(ctx);
   const erreursIndex = verifierIndex(ctx, index);
-  if (erreursIndex.length) return { erreurs: erreursIndex, alertes: [], html: null };
+  if (erreursIndex.length) return { erreurs: erreursIndex, html: null };
   const entree = index.find((e) => e.id === id);
-  if (!entree) return { erreurs: [`${id} : absent de l'index`], alertes: [], html: null };
+  if (!entree) return { erreurs: [`${id} : absent de l'index`], html: null };
   if (guide.gabarit !== GABARIT) erreurs.push(`gabarit ${guide.gabarit} : le script rend le gabarit ${GABARIT}`);
   if (guide.composant !== id) erreurs.push(`le champ composant vaut ${guide.composant}`);
   if (!lireDate(guide.date)) erreurs.push(`date invalide ${guide.date}`);
 
   const systemes = chargerSystemes(ctx);
-  const erreursDeFiche = verifierFiches(ctx, id);
-  erreurs.push(...erreursDeFiche);
+  erreurs.push(...verifierFiches(ctx, id));
   const fiches = new Map(fichesDe(ctx, id).map(({ fiche }) => [fiche.systeme, fiche] as [string, Fiche]));
-  const roleComposants = (sid: string): boolean => !!systemes.find((s) => s.id === sid)?.roles.includes('composants');
-  const m = [...fiches.keys()].filter(roleComposants).sort();
-  const c: Calcul = { ctx, guide, index, entree, systemes, fiches, m, alertes: [] };
-
-  const connu = (sid: string, ou: string): void => {
-    if (!systemes.some((s) => s.id === sid)) erreurs.push(`${ou} : le système ${sid} n'est pas dans systemes.json`);
+  const connu = (sid: string, ou: string): boolean => {
+    if (systemes.some((s) => s.id === sid)) return true;
+    erreurs.push(`${ou} : le système ${sid} n'est pas dans systemes.json`);
+    return false;
   };
-  const ids: [string, string[]][] = [];
-  const g = guide;
-  if (!estSansObjet(g.anatomie)) g.anatomie.parties.forEach((p) => ids.push(['anatomie', p.systemes]));
-  if (!estSansObjet(g.variantes)) [...g.variantes.emphase, ...g.variantes.statut, ...g.variantes.tailles].forEach((v) => ids.push(['variantes', Object.keys(v.locaux)]));
-  if (!estSansObjet(g.etats)) g.etats.forEach((e) => ids.push(['etats', e.systemes]));
-  if (!estSansObjet(g.clavier)) {
-    g.clavier.touches.forEach((t) => ids.push(['clavier', t.systemes]));
-    [...g.clavier.focus, ...g.clavier.interactions].forEach((p) => ids.push(['clavier', p.systemes]));
-  }
-  if (!estSansObjet(g.redaction)) g.redaction.regles.forEach((p) => ids.push(['redaction', p.systemes]));
-  if (!estSansObjet(g.choix)) g.choix.forEach((q) => ids.push(['choix', Object.keys(q.systemes)]));
-  if (!estSansObjet(g.rappels)) Object.values(g.rappels).forEach((pts) => pts.forEach((p) => ids.push(['rappels', p.systemes])));
-  g.exemples.forEach((x) => ids.push(['exemples', [x.systeme]]));
-  (g.absences ?? []).forEach((a) => ids.push(['absences', [a.systeme]]));
-  for (const [ou, liste_] of ids) liste_.forEach((sid) => connu(sid, ou));
 
-  const absents = new Set((g.absences ?? []).map((a) => a.systeme));
+  // Galerie : chaque carte a sa scène et une table d'imports qui suit ses paquets.
+  const tables = new Map<string, TableDImports>();
+  const montres = new Set<string>();
+  for (const g of guide.galerie) {
+    if (!connu(g.id, 'galerie')) continue;
+    if (montres.has(g.id)) erreurs.push(`galerie : ${g.id} apparaît deux fois`);
+    montres.add(g.id);
+    const scene = fichierScene(ctx, id, g.id);
+    if (!existsSync(scene)) {
+      erreurs.push(`galerie / ${g.id} : scène absente, écrire _outils/scenes/${id}/${g.id}.js`);
+      continue;
+    }
+    const code = readFileSync(scene, 'utf8');
+    const attendu = aInstaller(code, g.paquets);
+    erreurs.push(...attendu.erreurs.map((e) => `galerie / ${g.id} : ${e}`));
+    for (const v of versionsEnDur(code)) if (!g.paquets.includes(v)) erreurs.push(`galerie / ${g.id} : la scène charge ${v}, absent des paquets déclarés`);
+    const table = lireSiPresent<TableDImports | null>(fichierTable(ctx, id, g.id), null);
+    if (!table || table.installe.join() !== attendu.installe.join()) {
+      erreurs.push(`galerie / ${g.id} : table d'imports ${table ? 'périmée' : 'absente'}, lancer guide.ts carte ${id}`);
+      continue;
+    }
+    tables.set(g.id, table);
+  }
+  const absents = new Set<string>();
+  for (const a of guide.absences ?? []) {
+    if (!connu(a.systeme, 'absences')) continue;
+    if (montres.has(a.systeme)) erreurs.push(`absences : ${a.systeme} a aussi une scène`);
+    absents.add(a.systeme);
+  }
   for (const s of systemes.filter((x) => x.roles.includes('composants') && entree.systemes[x.id])) {
+    if (!montres.has(s.id) && !absents.has(s.id)) erreurs.push(`${s.id} : alias non nul dans l'index, sans scène ni raison dans absences`);
     const f = fiches.get(s.id);
-    if (!f && !absents.has(s.id)) erreurs.push(`${s.id} : alias non nul dans l'index, sans fiche ni raison dans absences`);
-    else if (f && moisEntre(f.lu, g.date) > MOIS_DE_VALIDITE && !absents.has(s.id)) {
-      erreurs.push(`${s.id} : fiche lue le ${f.lu}, plus de ${MOIS_DE_VALIDITE} mois avant le guide, sans raison dans absences`);
+    if (f && moisEntre(f.lu, guide.date) > MOIS_DE_VALIDITE) {
+      erreurs.push(`${s.id} : fiche lue le ${f.lu}, plus de ${MOIS_DE_VALIDITE} mois avant le guide`);
     }
   }
 
-  const alertes: string[] = [];
+  // Une option renvoie à une carte de la page.
+  guide.comprendre.forEach((d, i) => d.options.forEach((o) => o.systemes.forEach((sid) => {
+    if (!montres.has(sid) && !absents.has(sid)) erreurs.push(`comprendre ${i + 1} : ${sid} n'a pas de carte dans la galerie`);
+  })));
+  for (const t of guide.dessiner.tableaux) {
+    for (const l of t.lignes) {
+      if (l.cellules.length !== t.colonnes.length) erreurs.push(`dessiner / ${t.titre} / ${l.nom} : ${l.cellules.length} cellules pour ${t.colonnes.length} colonnes`);
+    }
+  }
+  erreurs.push(...fautesDeStyle(`analyses/${id}`, { ...json, galerie: json.galerie.map((g) => ({ ...g, paquets: undefined })) }));
+  if (erreurs.length) return { erreurs, html: null };
+
+  const c: Calcul = { ctx, guide, entree, systemes, fiches, tables };
   const sections: Record<(typeof ANCRES)[number], string> = {
-    entete: sectionEntete(c),
-    definition: sectionDefinition(c, erreurs),
-    noms: sectionNoms(c),
-    anatomie: sectionAnatomie(c),
-    variantes: sectionVariantes(c, alertes),
-    etats: sectionEtats(c),
-    clavier: sectionClavier(c),
-    accessibilite: sectionAccessibilite(c),
-    redaction: sectionRedaction(c),
-    tokens: sectionTokens(c, alertes),
-    choix: sectionChoix(c, erreurs),
-    rappels: sectionRappels(c),
-    exemples: sectionExemples(c),
+    galerie: sectionGalerie(c),
+    comprendre: sectionComprendre(c),
+    dessiner: sectionDessiner(c),
     questions: sectionQuestions(c),
     sources: sectionSources(c),
   };
-  erreurs.push(...fautesDeStyle(`analyses/${id}`, guide));
-  if (erreurs.length) return { erreurs, alertes, html: null };
-
   let html = readFileSync(path.join(DOSSIER, 'gabarit.html'), 'utf8')
     .replace(/\{\{titre\}\}/g, esc(entree.nom))
+    .replace(/\{\{resume\}\}/g, esc(guide.resume))
+    .replace(/\{\{date\}\}/g, esc(guide.date))
     .replace(/\{\{gabarit\}\}/g, String(GABARIT));
   for (const ancre of ANCRES) html = html.replace(`<!-- @@${ancre}@@ -->`, () => sections[ancre]);
-  if (html.includes('@@')) return { erreurs: ['gabarit : une ancre reste sans contenu'], alertes, html: null };
-  return { erreurs: [], alertes, html };
+  if (html.includes('@@') || html.includes('{{')) return { erreurs: ['gabarit : une ancre reste sans contenu'], html: null };
+  return { erreurs: [], html };
 }
 
 const fichierHtml = (ctx: Contexte, id: string): string => path.join(ctx.references, 'analyses', `${id}.html`);
+
+/* -------------------------------------------------------- tables d'imports */
+
+interface ReponseDuGenerateur { map?: { imports?: Record<string, string>; scopes?: Record<string, Record<string, string>> }; staticDeps?: string[]; error?: string }
+
+/** Demande au générateur la table d'imports de chaque scène du guide et l'écrit à côté d'elle. */
+export async function ecrireCartes(ctx: Contexte, id: string): Promise<string[]> {
+  const fichierGuide = path.join(ctx.references, 'analyses', `${id}.json`);
+  if (!existsSync(fichierGuide)) return [`analyses/${id}.json : fichier absent`];
+  const json = lireJson<GuideJson>(fichierGuide);
+  const erreurs: string[] = [];
+  for (const g of json.galerie ?? []) {
+    const scene = fichierScene(ctx, id, g.systeme);
+    if (!existsSync(scene)) {
+      erreurs.push(`${g.systeme} : scène absente`);
+      continue;
+    }
+    const { installe, erreurs: e } = aInstaller(readFileSync(scene, 'utf8'), g.paquets);
+    if (e.length) {
+      erreurs.push(...e.map((x) => `${g.systeme} : ${x}`));
+      continue;
+    }
+    const reponse = await fetch(GENERATEUR, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ install: installe, env: ['browser', 'production', 'module'] }),
+    });
+    const r = (await reponse.json()) as ReponseDuGenerateur;
+    if (!reponse.ok || r.error || !r.map?.imports) {
+      erreurs.push(`${g.systeme} : le générateur répond ${reponse.status} ${r.error ?? ''}`.trim());
+      continue;
+    }
+    const table: TableDImports = {
+      paquets: g.paquets,
+      installe,
+      imports: r.map.imports,
+      ...(r.map.scopes ? { scopes: r.map.scopes } : {}),
+      feuilles: (r.staticDeps ?? []).filter((u) => u.endsWith('.css')).sort(),
+    };
+    writeFileSync(fichierTable(ctx, id, g.systeme), `${JSON.stringify(table, null, 2)}\n`);
+    process.stdout.write(`${id} / ${g.systeme} : ${Object.keys(table.imports).length} imports, ${table.feuilles.length} feuilles\n`);
+  }
+  return erreurs;
+}
 
 /* --------------------------------------------------------------------- état */
 
@@ -917,12 +688,21 @@ function idsVises(ctx: Contexte, argument: string | undefined): string[] {
   return argument ? [argument] : [];
 }
 
-export function lancer(args: string[], ctx: Contexte = CONTEXTE_REEL): number {
+export async function lancer(args: string[], ctx: Contexte = CONTEXTE_REEL): Promise<number> {
   const [commande, ...reste] = args;
   if (commande === 'etat') {
     const r = etat(ctx, reste.join(' '));
     process.stdout.write(r.texte);
     return 0;
+  }
+  if (commande === 'carte') {
+    if (!reste[0]) {
+      process.stderr.write('Usage : guide.ts carte <id>\n');
+      return 2;
+    }
+    const erreurs = await ecrireCartes(ctx, reste[0]);
+    erreurs.forEach((e) => process.stderr.write(`${e}\n`));
+    return erreurs.length ? 1 : 0;
   }
   if (commande === 'relever' || commande === 'verifier' || commande === 'rendre') {
     const ids = idsVises(ctx, reste[0]);
@@ -954,7 +734,6 @@ export function lancer(args: string[], ctx: Contexte = CONTEXTE_REEL): number {
         else process.stdout.write(`${id} : fiches valides\n`);
       } else {
         const rendu = calculerGuide(ctx, id);
-        rendu.alertes.forEach((a) => process.stdout.write(`Signalement : ${a}\n`));
         if (rendu.html === null) {
           rendu.erreurs.forEach((e) => process.stderr.write(`${e}\n`));
           echec = 1;
@@ -967,10 +746,10 @@ export function lancer(args: string[], ctx: Contexte = CONTEXTE_REEL): number {
     }
     return echec;
   }
-  process.stderr.write('Usage : guide.ts etat <nom> | relever <id> | verifier <id> | rendre <id>\n');
+  process.stderr.write('Usage : guide.ts etat <nom> | relever <id> | verifier <id> | carte <id> | rendre <id>\n');
   return 2;
 }
 
 if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
-  process.exitCode = lancer(process.argv.slice(2));
+  void lancer(process.argv.slice(2)).then((code) => { process.exitCode = code; });
 }
