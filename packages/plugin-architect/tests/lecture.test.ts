@@ -261,10 +261,14 @@ test('mesurer une phase du mode Tokens range sa durée et ses appels, qu’elle 
   }, horloge);
   assert.equal(rendue, 3);
   assert.throws(() => mesurerUnePhaseDeTokens('controler-l-integrite', () => { throw new Error('boum'); }, horloge), /boum/u);
+  const sansDemande = { demande: null, englobante: false };
   assert.deepEqual(passagesDuModeTokens(), [
-    { phase: 'controler-le-catalogue', ms: 7, appels: {} },
-    { phase: 'lire-structure', ms: 40, appels: { getLocalVariablesAsync: 1, getVariableByIdAsync: 2 } },
-    { phase: 'controler-l-integrite', ms: 0, appels: {} },
+    { phase: 'controler-le-catalogue', ms: 7, debut: 100, fin: 107, ...sansDemande, appels: {} },
+    // Les appels locaux et les cibles de la phase deviennent leurs propres passages, du premier début au dernier retour.
+    { phase: 'lire-structure', ms: 40, debut: 107, fin: 147, demande: null, englobante: true, appels: { getLocalVariablesAsync: 1, getVariableByIdAsync: 2 } },
+    { phase: 'appels-locaux', ms: 0, debut: 107, fin: 107, ...sansDemande, appels: { appels: 1 } },
+    { phase: 'cibles-et-imports', ms: 0, debut: 107, fin: 107, ...sansDemande, appels: { appels: 2 } },
+    { phase: 'controler-l-integrite', ms: 0, debut: 147, fin: 147, ...sansDemande, appels: {} },
   ]);
   for (let i = 0; i < PASSAGES_RETENUS + 5; i++) mesurerUnePhaseDeTokens('rafraichir', () => i, horloge);
   assert.equal(passagesDuModeTokens().length, PASSAGES_RETENUS, 'le journal garde les derniers passages');

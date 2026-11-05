@@ -20,7 +20,7 @@ async function lireReleve(demande: number, { figma, envoyer }: Contexte): Promis
     const issue = await mesurerUnePhaseDeTokens('lire-releve', (appels) => lireLeReleveAcquis(compterLesAppelsDuPort(portDeLecture(figma), appels), figma.root.name, revision + 1, {
       annulee: () => annulees.has(demande),
       progression: (phase, fait, total) => envoyer({ type: 'progression', demande, phase, fait, total }),
-    }, () => Date.now(), espaceDuProfil(figma.root.documentColorProfile), (locales) => acquisition.offrirLesLocales(locales)));
+    }, () => Date.now(), espaceDuProfil(figma.root.documentColorProfile), (locales) => acquisition.offrirLesLocales(locales)), Date.now, demande);
     if (issue.statut === 'annule') {
       acquisition.annuler();
       envoyer({ type: 'annulation', demande });

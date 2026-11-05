@@ -27,7 +27,7 @@ import { accueilVisible, collectionDuFiltre, etatInitial, poserReleve } from './
 import { monterNomenclature } from './nomenclature';
 import { monterBibliotheque } from './bibliotheque';
 import { estReglesRecues } from './nomenclature/reglesRecues';
-import { creerActualisation, texteDeLaLecture } from './tokens/actualisation';
+import { creerActualisation, joindreLesReperes, texteDeLaLecture } from './tokens/actualisation';
 import { monterStructure } from './structure';
 import type { Noms } from './structure/lecture';
 import { versSandbox } from './pont';
@@ -160,11 +160,15 @@ const actualisation = creerActualisation({
 nomenclature.coquille.abonner((message) => {
   // Une analyse des noms que le designer ou l'ouverture vient de demander pendant l'actualisation compte comme celle qu'Actualiser relance.
   if (message.type === 'analyse-demandee') actualisation.attendreLesNoms();
-  else if (message.type === 'bilan' || message.type === 'erreur') actualisation.recevoir('noms');
+  else if (message.type === 'bilan' || message.type === 'erreur') {
+    // Les écouteurs passent après le rendu de l'écran : le repère vient avant la fin de l'actualisation qu'il peut déclencher.
+    actualisation.noter('noms-rendus');
+    actualisation.recevoir('noms');
+  }
 });
 const structure = monterStructure(nomenclature.coquille, {
-  envoyer: versSandbox, noms, ouvrirLaFiche: (cle) => app.suivre(cle), preparerLeRapport: (auRetour) => app.preparerLeRapportDeTokens(auRetour),
-  apresLaStructure: () => actualisation.recevoir('structure'),
+  envoyer: versSandbox, noms, ouvrirLaFiche: (cle) => app.suivre(cle), preparerLeRapport: (auRetour) => app.preparerLeRapportDeTokens((mesures) => auRetour(mesures === null ? null : joindreLesReperes(mesures, actualisation.reperes()))),
+  apresLaStructure: () => { actualisation.noter('structure-rendue'); actualisation.recevoir('structure'); },
 });
 
 /** Un fichier sans variable locale montre la library dont il tire les siennes ; ses onglets de renommage se grisent, et l'alerte dit où les renommer. */
@@ -334,10 +338,12 @@ function recevoir(message: PluginMessage): void {
     return;
   }
   if (estMessageDeNomenclature(message)) {
+    if (message.type === 'bilan' || message.type === 'erreur') actualisation.noter('noms-recus');
     nomenclature.recevoir(message);
     return;
   }
   if (message.type === 'structure' || message.type === 'structure-appliquee') {
+    actualisation.noter('structure-recue');
     structure.recevoir(message);
     return;
   }
@@ -357,6 +363,7 @@ function recevoir(message: PluginMessage): void {
     case 'releve':
       if (!demandeCourante(message.demande)) return;
       etat.lecture = { statut: 'attente' };
+      actualisation.noter('releve-recu');
       structure.noterLaTaille('releve', JSON.stringify(message).length);
       poserReleve(etat, message.releve);
       // Le fichier a des variables locales : la library s'oublie avant le rendu, sinon l'arbre garde son titre de library.

@@ -21,6 +21,7 @@ import { creerLeSuivi, type Contexte } from './sandbox/contexte';
 import { DOMAINES, tableDesTypes } from './sandbox/index';
 import { annoncerLOuverture } from './sandbox/nomenclature';
 import { portDeLecture } from './sandbox/lectureDeFigma';
+import { poserLaDemandeDeTokens } from './lecture';
 import { creerLaPrelecture, creerLaPrelectureDesTokens } from './sandbox/prelecture';
 import { espaceDuProfil } from '@ucm-kit/core/format';
 
@@ -104,6 +105,8 @@ async function traiterMessage(message: UiRequest): Promise<void> {
   const domaine = domaineDe.get(message.type);
   if (domaine === undefined) return;
   prelectureDesTokens.cederLaPlace();
+  // Les phases du journal du mode Tokens que ce message ouvre avant sa première attente portent son numéro.
+  poserLaDemandeDeTokens('demande' in message && typeof message.demande === 'number' ? message.demande : null);
   await (DOMAINES[domaine as keyof typeof DOMAINES].traiter as (demande: UiRequest, contexte: Contexte) => Promise<void>)(message, contexte);
   if (message.type === 'lire-preferences') {
     await ouverture;

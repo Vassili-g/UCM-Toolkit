@@ -526,7 +526,7 @@ R4 reste sans preuve sur fichier réel : aucun des deux fichiers ne reçoit de c
 | Premier fichier réel | 2 415 | 35 ms | 39 ms |
 | Intencial Tokens | 755 | 0,9 ms | 0 ms, aucune collection `theme` reconnue |
 
-Les deux contrôles du kit prennent moins de 0,1 s sur 2 415 variables. Le temps d'un Actualiser vient donc des lectures dans Figma, que D1 réduit. Le lot D3 (8d4111ce) indexe la voisine de `controlerLesAliasesManquants` : 40 ms deviennent 11 ms sur un banc de 3 000 variables à 1 000 alias manquants, avec des constats identiques sur 428 catalogues. La durée dans Figma attend le rapport du mode Tokens (10956167), que le mainteneur télécharge.
+Les deux contrôles du kit prennent moins de 0,1 s sur 2 415 variables. Ces contrôles ne couvrent pas le lexique, les renommages et les questions de Nomenclature, qui retardent le bilan des noms. Le lot D3 (8d4111ce) indexe la voisine de `controlerLesAliasesManquants` : 40 ms deviennent 11 ms sur un banc de 3 000 variables à 1 000 alias manquants, avec des constats identiques sur 428 catalogues. La durée dans Figma attend le rapport du mode Tokens (10956167), que le mainteneur télécharge.
 
 #### Compteurs et croissance locale, lots D0.3, D0.4, D1.4 et D3.3
 

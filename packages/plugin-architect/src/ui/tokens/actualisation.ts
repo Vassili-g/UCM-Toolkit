@@ -5,6 +5,9 @@
  * (`TEXTES.panneau.analyseA`). Une lecture échouée ou annulée abandonne le suivi : les constats reviennent, sans durée.
  *
  * Il ne parle pas au sandbox : `relancerLesNoms` est injecté, et rend faux quand le fichier n'a pas de bilan.
+ *
+ * Il tient aussi les repères du rapport (`Repere`) : l'heure, en millisecondes depuis 1970 comme les phases du sandbox, du départ de
+ * l'actualisation, de la réception puis du rendu des constats de structure et des noms, et de la fin du rendu complet.
  */
 import type { Lecture } from '../etat';
 import { TEXTES } from '../textes';
@@ -20,6 +23,15 @@ export function texteDeLaLecture(lecture: Lecture): string {
   return TEXTES.lectureEnCours;
 }
 
+/** Les moments que l'interface note pour une actualisation. `affichage-complet` : la dernière part est rendue et le chargement se retire. */
+export type NomDeRepere = 'depart' | 'releve-recu' | 'structure-recue' | 'structure-rendue' | 'noms-recus' | 'noms-rendus' | 'affichage-complet';
+
+/** Un repère : son nom, son heure en millisecondes depuis 1970, et le numéro de l'actualisation qui l'a noté. */
+export interface Repere { readonly repere: NomDeRepere; readonly a: number; readonly actualisation: number }
+
+/** Les repères que le rapport garde : une actualisation en note six au plus. */
+export const REPERES_RETENUS = 120;
+
 export interface OptionsDActualisation {
   readonly panneau: Pick<PanneauDesTokens, 'poserLeChargement' | 'poserLeResume'>;
   /** La lecture en cours de l'application, relue à chaque `rafraichir` pour le texte de progression. */
@@ -28,7 +40,7 @@ export interface OptionsDActualisation {
   readonly relancerLesNoms: () => boolean;
   /** L'horloge de la durée, en millisecondes. */
   readonly horloge?: () => number;
-  /** L'heure affichée, en millisecondes depuis 1970. */
+  /** L'heure affichée et celle des repères, en millisecondes depuis 1970. */
   readonly maintenant?: () => number;
 }
 
@@ -47,6 +59,10 @@ export interface Actualisation {
   /** Redessine le message : le texte de progression a pu changer. */
   rafraichir(): void;
   enCours(): boolean;
+  /** Note un repère à l'heure courante, sous l'actualisation en cours ou la dernière commencée. */
+  noter(repere: NomDeRepere): void;
+  /** Les repères notés, du plus ancien au plus récent. */
+  reperes(): readonly Repere[];
 }
 
 export function creerActualisation({ panneau, lecture, relancerLesNoms, horloge = () => globalThis.performance?.now() ?? Date.now(), maintenant = Date.now }: OptionsDActualisation): Actualisation {
@@ -54,6 +70,12 @@ export function creerActualisation({ panneau, lecture, relancerLesNoms, horloge 
   let debut = 0;
   let suivie = false;
   let chargement = true;
+  let numero = 0;
+  const reperes: Repere[] = [];
+  function noter(repere: NomDeRepere): void {
+    reperes.push({ repere, a: maintenant(), actualisation: numero });
+    if (reperes.length > REPERES_RETENUS) reperes.splice(0, reperes.length - REPERES_RETENUS);
+  }
 
   function poser(): void {
     panneau.poserLeChargement(suivie && chargement ? texteDeLaLecture(lecture()) : null);
@@ -62,6 +84,8 @@ export function creerActualisation({ panneau, lecture, relancerLesNoms, horloge 
   return {
     commencer(avecChargement = true) {
       chargement = avecChargement;
+      numero += 1;
+      noter('depart');
       attendues = new Set<PartDeLActualisation>(['releve', 'structure']);
       debut = horloge();
       suivie = true;
@@ -75,6 +99,7 @@ export function creerActualisation({ panneau, lecture, relancerLesNoms, horloge 
     recevoir(part) {
       if (!suivie || !attendues.delete(part) || attendues.size > 0) return;
       suivie = false;
+      noter('affichage-complet');
       panneau.poserLeResume(TEXTES.panneau.analyseA(heureLisible(maintenant()), Math.max(0, horloge() - debut)));
       poser();
     },
@@ -88,5 +113,21 @@ export function creerActualisation({ panneau, lecture, relancerLesNoms, horloge 
       if (suivie) poser();
     },
     enCours: () => suivie,
+    noter,
+    reperes: () => reperes.slice(),
   };
+}
+
+/**
+ * Ajoute les repères de l'interface aux mesures du sandbox (le JSON de `rapport-de-tokens-pret`) ; un JSON illisible reste tel quel.
+ * Le rapport garde ainsi sur une même ligne de temps les phases du sandbox et ce que l'écran a reçu et rendu.
+ */
+export function joindreLesReperes(mesures: string, reperes: readonly Repere[]): string {
+  try {
+    const base = JSON.parse(mesures) as unknown;
+    if (typeof base !== 'object' || base === null || Array.isArray(base)) return mesures;
+    return JSON.stringify({ ...base, reperes });
+  } catch {
+    return mesures;
+  }
 }

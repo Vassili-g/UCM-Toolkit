@@ -717,11 +717,11 @@ export async function capturerSiDemande(demande: { readonly capturer?: boolean }
   }
 }
 
-export const VERSION_DES_MESURES_DE_TOKENS = 1;
+export const VERSION_DES_MESURES_DE_TOKENS = 2;
 
 /**
- * Les mesures du mode Tokens que le rapport d'analyse joint : la durée et les appels à l'API Figma de chaque passage dans
- * `lire-releve`, `lire-structure` (avec `lire-le-catalogue` et les deux contrôles du kit) et `rafraichir` de Nomenclature.
+ * Les mesures du mode Tokens que le rapport d'analyse joint : pour chaque passage, la phase, son début et sa fin, le numéro de la demande
+ * et les appels à l'API Figma. Les phases sont celles de `PhaseDeTokens`, et une phase englobante ne s'additionne pas à ses sous-phases.
  * Des nombres et des noms de phase ou de méthode, jamais un nom de variable ni de collection.
  */
 export function mesuresDuModeTokens(): { readonly version: number; readonly mode: 'tokens'; readonly passages: readonly PassageDeTokens[] } {

@@ -25,7 +25,7 @@ import {
   annulerLeDernierRenommage, appliquerLesRenommages, reglesFuturesDuStockage,
   type PortDeRegles, type PortEcriture, type RenommageDemande, type ResultatEcriture,
 } from '../ecriture/noms';
-import { mesurerUnePhaseDeTokens } from '../lecture';
+import { chronometrerUnAppel, mesurerUnePhaseDeTokens, noterUnPassageDeTokens, type AppelsDePhase, type PhaseDeTokens } from '../lecture';
 import { lireInventaire, type PortDeLecture } from './lecture';
 import type {
   CodeDErreur, DemandeDeNomenclature, EcritureChoisie, EffetVue, GesteSurLesRegles, MessageDeNomenclature, Reponse, ResultatVue,
@@ -38,7 +38,7 @@ import {
   vocabulaireDuFichier,
   type Ecriture, type ReglesDuFichier,
 } from './regles';
-import { mener, pauseParDefaut, type OptionsDeTranches } from './tranches';
+import { mener, pauseParDefaut, type MesureDeTranches, type OptionsDeTranches, type ResultatDeTranches } from './tranches';
 
 export interface Moteur {
   readonly commencerLexique: typeof commencerLexique;
@@ -48,6 +48,43 @@ export interface Moteur {
   readonly porteesTouchees: typeof porteesTouchees;
 }
 export const moteurDuKit: Moteur = { commencerLexique, indexerVocabulaire, normaliserParEtapes, detecterParEtapes, porteesTouchees };
+
+/**
+ * Mène `interne` pas à pas en notant au journal du mode Tokens sa phase : début, fin, temps passé à calculer et plus long pas.
+ * Deux lectures de l'horloge par pas, jamais une par variable. Le passage se note aussi quand le calcul est abandonné ou lève.
+ */
+function* chronometrer<T>(phase: PhaseDeTokens, demande: number, interne: Generator<void, T>): Generator<void, T> {
+  const debut = Date.now();
+  let actifMs = 0;
+  let pasMaxMs = 0;
+  try {
+    for (;;) {
+      const avant = Date.now();
+      const etape = interne.next();
+      const pas = Date.now() - avant;
+      actifMs += pas;
+      if (pas > pasMaxMs) pasMaxMs = pas;
+      if (etape.done) return etape.value;
+      yield;
+    }
+  } finally {
+    interne.return(undefined as never);
+    noterUnPassageDeTokens({ phase, debut, fin: Date.now(), demande, actifMs, pasMaxMs });
+  }
+}
+
+/** Le moteur dont le lexique, les renommages et les questions se notent au journal sous la demande `demande` ; ses résultats ne changent pas. */
+function moteurMesure(moteur: Moteur, demande: number): Moteur {
+  return {
+    ...moteur,
+    commencerLexique: (options) => {
+      const preparation = moteur.commencerLexique(options);
+      return { ...preparation, ajouter: (noms) => preparation.ajouter(noms), terminer: () => chronometrer('lexique', demande, preparation.terminer()) };
+    },
+    normaliserParEtapes: (lexique, conventions, index, options) => chronometrer('renommages', demande, moteur.normaliserParEtapes(lexique, conventions, index, options)),
+    detecterParEtapes: (lexique, index, dejaJuge, options) => chronometrer('questions', demande, moteur.detecterParEtapes(lexique, index, dejaJuge, options)),
+  };
+}
 
 export interface PortDeSession {
   readonly lecture: PortDeLecture;
@@ -456,6 +493,10 @@ export function creerSession(options: OptionsDeSession): Session {
 
   /** Enregistre l'état d'un calcul abouti et envoie le `bilan` : les groupes du premier lancement sont déjà vus. */
   function valider(demande: number, base: Etat | null, inventaire: Inventaire, regles: ReglesDuFichier, calcul: Calcul): Etat {
+    return mesurerUnePhaseDeTokens('bilan', () => validerLeCalcul(demande, base, inventaire, regles, calcul), Date.now, demande);
+  }
+
+  function validerLeCalcul(demande: number, base: Etat | null, inventaire: Inventaire, regles: ReglesDuFichier, calcul: Calcul): Etat {
     // Les groupes déjà vus ne changent qu'à l'analyse : un geste garde la pastille « Nouveau » de la session.
     let suivant = construireEtat(++compteur, inventaire, base ? { ...regles, vus: base.regles.vus } : regles, calcul);
     if (base && premierLancement(base.regles) && !premierLancement(regles)) {
@@ -470,17 +511,29 @@ export function creerSession(options: OptionsDeSession): Session {
 
   /** Relit Figma et refait tout le calcul. */
   function rafraichir(passage: Passage, avecProgression: boolean): Promise<void> {
-    return mesurerUnePhaseDeTokens('rafraichir', (appels) => relire(passage, avecProgression, appels));
+    return mesurerUnePhaseDeTokens('rafraichir', (appels) => relire(passage, avecProgression, appels), Date.now, passage.demande.demande);
+  }
+
+  /** Mène un calcul par tranches et note au journal ses cessions, son attente et sa tranche synchrone la plus longue. */
+  async function menerLeCalcul<T>(passage: Passage, calcul: (moteurDuPassage: Moteur) => Generator<void, T>): Promise<ResultatDeTranches<T>> {
+    const demande = passage.demande.demande;
+    const mesure: MesureDeTranches = { cessions: 0, attenteMs: 0, pasMaxMs: 0 };
+    const debut = Date.now();
+    try {
+      return await mener(calcul(moteurMesure(moteur, demande)), () => passage.abandonne, { ...tranches, mesure });
+    } finally {
+      noterUnPassageDeTokens({ phase: 'calcul-des-noms', debut, fin: Date.now(), demande, ...mesure });
+    }
   }
 
   /** Les appels que `lireInventaire` fait au port de lecture, comptés pour la mesure du mode Tokens. */
-  const compterLaLecture = (appels: Record<string, number>): PortDeLecture => ({
+  const compterLaLecture = (appels: Record<string, number>, suivi: AppelsDePhase): PortDeLecture => ({
     ...port.lecture,
-    collections: () => { appels.collections = (appels.collections ?? 0) + 1; return port.lecture.collections(); },
-    variables: () => { appels.variables = (appels.variables ?? 0) + 1; return port.lecture.variables(); },
+    collections: () => { appels.collections = (appels.collections ?? 0) + 1; return chronometrerUnAppel(suivi, 'appels-locaux', () => port.lecture.collections()); },
+    variables: () => { appels.variables = (appels.variables ?? 0) + 1; return chronometrerUnAppel(suivi, 'appels-locaux', () => port.lecture.variables()); },
     // Des listes reprises d'une autre lecture n'appellent pas Figma : aucun appel à compter.
     locales: port.lecture.locales ? async () => {
-      const locales = await port.lecture.locales!();
+      const locales = await chronometrerUnAppel(suivi, 'appels-locaux', () => port.lecture.locales!());
       if (!locales.viaUneAutreLecture) {
         appels.collections = (appels.collections ?? 0) + 1;
         appels.variables = (appels.variables ?? 0) + 1;
@@ -497,11 +550,11 @@ export function creerSession(options: OptionsDeSession): Session {
   async function relire(passage: Passage, avecProgression: boolean, appels: Record<string, number>): Promise<void> {
     const { demande } = passage;
     const regles = lireRegles();
-    const inventaire = await lireInventaire(compterLaLecture(appels), {
+    const inventaire = await mesurerUnePhaseDeTokens('inventaire', (suivi) => lireInventaire(compterLaLecture(appels, suivi), {
       pause,
       avancement: avecProgression ? ({ lues, total }) => envoyer({ type: 'lecture', demande: demande.demande, lues, total }) : undefined,
-    });
-    const calcul = await mener(calculerTout(moteur, inventaire, regles), () => passage.abandonne, tranches);
+    }), Date.now, demande.demande);
+    const calcul = await menerLeCalcul(passage, (moteurDuPassage) => calculerTout(moteurDuPassage, inventaire, regles));
     if (calcul.abandonne) return;
     const suivant = valider(demande.demande, null, inventaire, regles, calcul.valeur);
     if (avecProgression && !premierLancement(regles)) {
@@ -514,7 +567,7 @@ export function creerSession(options: OptionsDeSession): Session {
 
   /** Recalcule depuis l'état courant après que les règles sont écrites. */
   async function recalculerDepuisLesRegles(passage: Passage, base: Etat, regles: ReglesDuFichier): Promise<void> {
-    const calcul = await mener(recalculer(moteur, base, regles, true), () => passage.abandonne, tranches);
+    const calcul = await menerLeCalcul(passage, (moteurDuPassage) => recalculer(moteurDuPassage, base, regles, true));
     if (calcul.abandonne) return;
     valider(passage.demande.demande, base, base.inventaire, regles, calcul.valeur);
   }

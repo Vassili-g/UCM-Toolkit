@@ -6,8 +6,17 @@
 /** Durée maximale d'une tranche, en millisecondes. */
 export const DUREE_D_UNE_TRANCHE = 8;
 
+/** Ce que `mener` note de son propre cours : les cessions, le temps passé à attendre les pauses, et la tranche synchrone la plus longue. */
+export interface MesureDeTranches {
+  cessions: number;
+  attenteMs: number;
+  pasMaxMs: number;
+}
+
 export interface OptionsDeTranches {
   readonly duree?: number;
+  /** Remplie par `mener` quand elle est donnée ; une horloge en millisecondes suffit à la tenir. */
+  readonly mesure?: MesureDeTranches;
   readonly maintenant?: () => number;
   readonly pause?: () => Promise<void>;
 }
@@ -25,6 +34,7 @@ export async function mener<T>(calcul: Generator<void, T>, abandonne: () => bool
   const duree = options.duree ?? DUREE_D_UNE_TRANCHE;
   const maintenant = options.maintenant ?? Date.now;
   const pause = options.pause ?? pauseParDefaut;
+  const mesure = options.mesure;
   if (abandonne()) {
     calcul.return(undefined as never);
     return { abandonne: true };
@@ -32,9 +42,16 @@ export async function mener<T>(calcul: Generator<void, T>, abandonne: () => bool
   let debut = maintenant();
   for (;;) {
     const etape = calcul.next();
-    if (etape.done) return { abandonne: false, valeur: etape.value };
-    if (maintenant() - debut < duree) continue;
+    if (etape.done) {
+      if (mesure) mesure.pasMaxMs = Math.max(mesure.pasMaxMs, maintenant() - debut);
+      return { abandonne: false, valeur: etape.value };
+    }
+    const ecoule = maintenant() - debut;
+    if (ecoule < duree) continue;
+    const avantLaPause = maintenant();
+    if (mesure) { mesure.cessions += 1; mesure.pasMaxMs = Math.max(mesure.pasMaxMs, ecoule); }
     await pause();
+    if (mesure) mesure.attenteMs += maintenant() - avantLaPause;
     if (abandonne()) {
       calcul.return(undefined as never);
       return { abandonne: true };

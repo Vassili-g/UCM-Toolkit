@@ -621,37 +621,125 @@ export function mesurerLePortDeLecture(variables: PortDeLecture): PortDeLecture 
   };
 }
 
-/** Les phases que le mode Tokens mesure ; `lire-structure` englobe `lire-le-catalogue` et les deux contrôles du kit. */
-export type PhaseDeTokens = 'lire-releve' | 'lire-structure' | 'lire-le-catalogue' | 'controler-le-catalogue' | 'controler-l-integrite' | 'rafraichir';
+/**
+ * Les phases que le mode Tokens mesure. Une phase englobante (`PHASES_ENGLOBANTES`) contient d'autres phases du journal : additionner
+ * leurs durées compterait deux fois le même travail. `controler-le-catalogue` et `controler-l-integrite` sont les contrôles de structure.
+ */
+export type PhaseDeTokens =
+  | 'lire-releve' | 'lire-structure' | 'lire-le-catalogue' | 'controler-le-catalogue' | 'controler-l-integrite' | 'rafraichir'
+  | 'appels-locaux' | 'cibles-et-imports' | 'inventaire' | 'calcul-des-noms' | 'lexique' | 'renommages' | 'questions' | 'bilan';
 
-/** Un passage dans une phase : sa durée et les appels à l'API Figma qu'il a faits, par méthode. Ni nom de variable ni identifiant. */
-export interface PassageDeTokens { readonly phase: PhaseDeTokens; readonly ms: number; readonly appels: Readonly<Record<string, number>> }
+/** Les phases qui contiennent d'autres phases du journal. */
+export const PHASES_ENGLOBANTES: ReadonlySet<PhaseDeTokens> = new Set<PhaseDeTokens>(['lire-releve', 'lire-structure', 'rafraichir', 'inventaire', 'calcul-des-noms']);
+
+/** Les deux sortes d'appels à l'API Figma dont le journal garde le début du premier et la fin du dernier. */
+export type CategorieDAppels = 'appels-locaux' | 'cibles-et-imports';
+const CATEGORIE_DE_LA_METHODE: Readonly<Record<string, CategorieDAppels>> = {
+  getLocalVariableCollectionsAsync: 'appels-locaux',
+  getLocalVariablesAsync: 'appels-locaux',
+  getVariableByIdAsync: 'cibles-et-imports',
+  getVariableCollectionByIdAsync: 'cibles-et-imports',
+  importVariableByKeyAsync: 'cibles-et-imports',
+};
+
+/**
+ * Un passage dans une phase. `debut` et `fin` sont des heures en millisecondes depuis 1970, comparables à celles que l'interface note ;
+ * `demande` est le numéro de la demande de l'écran, ou `null` quand le sandbox ne l'a pas reçu. Les champs facultatifs décrivent un
+ * calcul mené par tranches : cessions, attente des pauses, plus long pas synchrone, temps passé à calculer. Ni nom de variable ni identifiant.
+ */
+export interface PassageDeTokens {
+  readonly phase: PhaseDeTokens;
+  readonly ms: number;
+  readonly debut: number;
+  readonly fin: number;
+  readonly demande: number | null;
+  readonly englobante: boolean;
+  readonly appels: Readonly<Record<string, number>>;
+  readonly cessions?: number;
+  readonly attenteMs?: number;
+  readonly pasMaxMs?: number;
+  readonly actifMs?: number;
+}
 
 /** Les appels d'une phase, par méthode de l'API Figma. */
 export type AppelsDePhase = Record<string, number>;
 
-/** Le journal garde les derniers passages : Ignorer et Appliquer en ajoutent à chaque geste. */
-export const PASSAGES_RETENUS = 60;
+/** Le journal garde les derniers passages : chaque analyse en ajoute une douzaine, Ignorer et Appliquer quelques-uns. */
+export const PASSAGES_RETENUS = 400;
 const journalDeTokens: PassageDeTokens[] = [];
 
 /** Les derniers passages du mode Tokens, du plus ancien au plus récent. */
 export const passagesDuModeTokens = (): readonly PassageDeTokens[] => journalDeTokens.slice();
 
+/** La demande que le sandbox est en train de recevoir : `code.ts` la pose juste avant d'aiguiller le message. */
+let demandeCourante: number | null = null;
+export function poserLaDemandeDeTokens(demande: number | null): void {
+  demandeCourante = demande;
+}
+
+/** Les phases ouvertes, pour qu'une sous-phase lancée après une attente retrouve la demande de son parent. */
+const ouvertes: Array<{ readonly phase: PhaseDeTokens; readonly demande: number | null }> = [];
+const PARENT_DE_LA_PHASE: Partial<Record<PhaseDeTokens, PhaseDeTokens>> = {
+  'lire-le-catalogue': 'lire-structure', 'controler-le-catalogue': 'lire-structure', 'controler-l-integrite': 'lire-structure',
+};
+
 /** Vide le journal ; les tests l'appellent entre deux cas. */
 export function oublierLesPassagesDuModeTokens(): void {
   journalDeTokens.length = 0;
+  ouvertes.length = 0;
+  demandeCourante = null;
 }
+
+export interface PassageANoter {
+  readonly phase: PhaseDeTokens;
+  readonly debut: number;
+  readonly fin: number;
+  readonly demande?: number | null;
+  readonly appels?: Readonly<Record<string, number>>;
+  readonly cessions?: number;
+  readonly attenteMs?: number;
+  readonly pasMaxMs?: number;
+  readonly actifMs?: number;
+}
+
+/** Range un passage que la phase n'a pas chronométré elle-même : un calcul mené par tranches. */
+export function noterUnPassageDeTokens(passage: PassageANoter): void {
+  const { phase, debut, fin, demande, appels, ...mesures } = passage;
+  journalDeTokens.push({ phase, ms: fin - debut, debut, fin, demande: demande ?? null, englobante: PHASES_ENGLOBANTES.has(phase), appels: { ...appels }, ...mesures });
+  if (journalDeTokens.length > PASSAGES_RETENUS) journalDeTokens.splice(0, journalDeTokens.length - PASSAGES_RETENUS);
+}
+
+interface SuiviDePhase {
+  readonly horloge: () => number;
+  readonly categories: Map<CategorieDAppels, { debut: number; fin: number; appels: number }>;
+}
+const suivis = new WeakMap<AppelsDePhase, SuiviDePhase>();
 
 /**
  * Chronomètre `travail` et range son passage dans le journal, qu'il rende une valeur ou une promesse, et qu'il lève ou non.
- * `travail` reçoit le compteur d'appels de la phase ; le comportement et la valeur rendue ne changent pas.
+ * `travail` reçoit le compteur d'appels de la phase ; le comportement et la valeur rendue ne changent pas. Les appels locaux, les cibles et
+ * les imports que `compterLesAppelsDuPort` ou `chronometrerUnAppel` voient passer par ce compteur deviennent leurs propres passages :
+ * le début du premier, la fin du dernier, le nombre d'appels. `demande` est le numéro de la demande de l'écran ; sans lui, le passage
+ * prend celui de sa phase parente, puis celui que `poserLaDemandeDeTokens` a posé.
  */
-export function mesurerUnePhaseDeTokens<T>(phase: PhaseDeTokens, travail: (appels: AppelsDePhase) => T, horloge: () => number = Date.now): T {
+export function mesurerUnePhaseDeTokens<T>(phase: PhaseDeTokens, travail: (appels: AppelsDePhase) => T, horloge: () => number = Date.now, demande?: number | null): T {
   const appels: AppelsDePhase = {};
+  const parent = PARENT_DE_LA_PHASE[phase];
+  const rattachee = parent === undefined ? undefined : [...ouvertes].reverse().find((ouverte) => ouverte.phase === parent)?.demande;
+  const numero = demande ?? rattachee ?? demandeCourante;
+  const suivi: SuiviDePhase = { horloge, categories: new Map() };
+  suivis.set(appels, suivi);
+  const ouverte = { phase, demande: numero };
+  ouvertes.push(ouverte);
   const debut = horloge();
   const noter = (): void => {
-    journalDeTokens.push({ phase, ms: horloge() - debut, appels: { ...appels } });
-    if (journalDeTokens.length > PASSAGES_RETENUS) journalDeTokens.splice(0, journalDeTokens.length - PASSAGES_RETENUS);
+    const fin = horloge();
+    const place = ouvertes.indexOf(ouverte);
+    if (place >= 0) ouvertes.splice(place, 1);
+    noterUnPassageDeTokens({ phase, debut, fin, demande: numero, appels });
+    for (const [categorie, { debut: premier, fin: dernier, appels: nombre }] of suivi.categories) {
+      noterUnPassageDeTokens({ phase: categorie, debut: premier, fin: dernier, demande: numero, appels: { appels: nombre } });
+    }
   };
   let rendu: T;
   try { rendu = travail(appels); } catch (erreur) { noter(); throw erreur; }
@@ -660,11 +748,25 @@ export function mesurerUnePhaseDeTokens<T>(phase: PhaseDeTokens, travail: (appel
   return rendu;
 }
 
+/** Appelle `appel` et retient dans `appels` le début du premier appel de sa catégorie et la fin du dernier ; hors d'une phase mesurée, l'appel passe tel quel. */
+export function chronometrerUnAppel<T>(appels: AppelsDePhase, categorie: CategorieDAppels, appel: () => Promise<T>): Promise<T> {
+  const suivi = suivis.get(appels);
+  if (!suivi) return appel();
+  const debut = suivi.horloge();
+  const clore = (): void => {
+    const fin = suivi.horloge();
+    const retenue = suivi.categories.get(categorie);
+    if (retenue) { retenue.appels += 1; retenue.fin = Math.max(retenue.fin, fin); } else suivi.categories.set(categorie, { debut, fin, appels: 1 });
+  };
+  return appel().then((valeur) => { clore(); return valeur; }, (erreur: unknown) => { clore(); throw erreur; });
+}
+
 /** Le port de lecture, avec un compte des appels par méthode dans `appels` ; les appels passent tels quels. */
 export function compterLesAppelsDuPort(port: PortDeLecture, appels: AppelsDePhase): PortDeLecture {
-  const compte = <A extends unknown[], R>(nom: string, appel: (...arguments_: A) => R) => (...arguments_: A): R => {
+  const compte = <A extends unknown[], R>(nom: string, appel: (...arguments_: A) => Promise<R>) => (...arguments_: A): Promise<R> => {
     appels[nom] = (appels[nom] ?? 0) + 1;
-    return appel(...arguments_);
+    const categorie = CATEGORIE_DE_LA_METHODE[nom];
+    return categorie ? chronometrerUnAppel(appels, categorie, () => appel(...arguments_)) : appel(...arguments_);
   };
   return {
     getLocalVariableCollectionsAsync: compte('getLocalVariableCollectionsAsync', () => port.getLocalVariableCollectionsAsync()),
