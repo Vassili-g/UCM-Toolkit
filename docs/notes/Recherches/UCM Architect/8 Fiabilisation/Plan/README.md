@@ -193,15 +193,15 @@ Règles propres à la phase E :
 | [E3b](lots/E3b.md) Sens et modes | `implementeur-exigeant` | E3a | [x] eae07fc6 |
 | [E3c](lots/E3c.md) Doublons de rôle et d’échelle | `implementeur` | E3b | [x] 60f567cf |
 | [E3d](lots/E3d.md) Cible des alias du thème | `implementeur` | E3c | [x] 60f567cf, recette de Palettes non lue |
-| [E3e](lots/E3e.md) Variables indisponibles, voisins et scopes | `implementeur` | E3c | [ ] |
-| [E3f](lots/E3f.md) Cartes de couches et thème absent | `implementeur` | E3e | [ ] |
+| [E3e](lots/E3e.md) Variables indisponibles, voisins et scopes | `implementeur` | E3c | [x] 62ace337, N-08 en E10b |
+| [E3f](lots/E3f.md) Cartes de couches et thème absent | `implementeur` | E3e | [x] 62ace337 |
 | [E4a](lots/E4a.md) Questions et cartes de structure | `implementeur` | E3f, C6 | [ ] |
 | [E4b](lots/E4b.md) Échecs, ignorés et alias à écrire | `implementeur` | E4a, E3d | [ ] |
 | [E4c](lots/E4c.md) Fusion de variables | `implementeur-exigeant` | E4b, E3c | [ ] |
 | [E5a](lots/E5a.md) Layers masqués et rôles | `implementeur` | E1b | [x] 28d4fc6d, interface E5.1 et E5.3 en E4a |
 | [E5b](lots/E5b.md) Propagation et héritage | `implementeur` | E5a | [x] 28d4fc6d, texte des homonymes reste |
-| [E5c](lots/E5c.md) Texte et fond de page | `implementeur` | E5b | [ ] |
-| [E5d](lots/E5d.md) Liaisons, alias de composant et scopes | `implementeur` | E5c | [ ] |
+| [E5c](lots/E5c.md) Texte et fond de page | `implementeur` | E5b | [x] 62ace337 |
+| [E5d](lots/E5d.md) Liaisons, alias de composant et scopes | `implementeur` | E5c | [x] 62ace337, texte de E5.7 reste |
 | [E6](lots/E6.md) Tailles du composant | `implementeur` | E5d | [ ] |
 | [E7a](lots/E7a.md) Axes et valeurs | `implementeur-exigeant` | E6, E1a | [ ] |
 | [E7b](lots/E7b.md) Matrice et tokens sans emploi | `implementeur` | E7a | [ ] |
