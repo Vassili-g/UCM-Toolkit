@@ -20,8 +20,6 @@ Fin : `npm run test --workspace @ucm-kit/core` passe. Les régressions ciblées 
 
 ## Avancement
 
-En cours (Codex). Ne pas reprendre.
-
 Le reliquat `gray`/`grey` est déjà implémenté dans `questions.ts` par E2d (`fdca6a38`). Son avancement décrit une question `synonymes` quand les deux formes sont observées à une place partagée. La décision Q-F6 laisse le designer choisir dans le plugin. Aucun terme UCM unique ne justifie un renommage automatique.
 
 Le test ajouté vérifie deux emplois de `gray` et un de `grey`, leur absence de terme UCM, les formes seules et les réponses « voulu », « termes différents » et « plus tard ». Il échoue quand la passe `FORMES_D_UN_MEME_MOT` est retirée. La passe est remise sans modification de source. Les 44 tests de `questionsReferentiel.test.ts` passent. L'invariant du référentiel décrit ce cas. La ligne de carte le décrivait déjà.
@@ -34,7 +32,7 @@ La relance d'Architect donne 2 145 succès et 8 échecs, tous hors reliquat. Les
 
 Le typecheck global échoue maintenant dans le mode Tokens d'une autre session (`poserLeChargement`, puis `poserLAttente`). La relance isolée d'Architect confirme des erreurs dans `packages/plugin-architect/tests/actualisationDuModeTokens.test.ts` et `packages/plugin-architect/tests/mesureParPhase.test.ts`. Aucun fichier en cause n'est corrigé ici.
 
-Prochaine action prévue. Commiter le test et l'invariant de `gray`/`grey`, puis noter le hash dans le tableau du plan.
+Le reliquat est commité dans `db488483`. Aucun changement de source n'était nécessaire pour ce cas déjà traité par E2d.
 
 E2.6 et E2.7 sont écrits et cochés. Le cas `gray`/`grey` est implémenté par E2d et sa régression est complétée ici.
 

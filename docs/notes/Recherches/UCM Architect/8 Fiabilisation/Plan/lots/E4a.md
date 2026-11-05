@@ -55,8 +55,6 @@ Mode Composant :
 
 ## Avancement
 
-En cours (Codex). Ne pas reprendre.
-
 Le reliquat porte sur `packages/kit/src/controles/propagation.ts`. Le lecteur et les tests voisins sont lus, avec les documents de `agents:lire`. Le constat des homonymes contient leur nombre, mais aucun nom de parent.
 
 Le nouveau test échoue sans correction, car `faits.parent` vaut `undefined` au lieu de `contenu`. Le constat prend maintenant le nom du parent des layers du variant visé. Un parent absent du relevé ne produit aucun nom supposé. Le cas des homonymes du modèle vérifie aussi `racine`.
@@ -69,9 +67,9 @@ Les tests du kit donnent 1 660 succès et 23 échecs. Le test « 32 000 noms » 
 
 Architect donne 2 143 succès et les 7 échecs d'accessibilité déjà reproduits seuls en E8a. `agents:diff` a été lancé. Ses documents liés ont été relus. Le contrôle de style ne rend aucun refus. Les journaux locaux sont dans `_local/codex-r2-*`.
 
-Prochaine action prévue. Commiter les chemins du reliquat et noter son hash dans le tableau du plan.
+Le reliquat est commité dans `99a44d82`. Le parent des homonymes est disponible pour la carte d'Architect.
 
-E4.1, E4.6, E4.7 et E4.8 faites, non commitées. Rien n'est écrit dans le kit.
+E4.1, E4.6, E4.7 et E4.8 sont faites dans `04b9f6c2`. Le parent des homonymes est ajouté dans le kit par le reliquat `99a44d82`.
 
 Fait :
 

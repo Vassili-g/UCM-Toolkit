@@ -30,8 +30,6 @@ Fin : `npm run test --workspace @ucm-kit/core` passe. Les régressions ciblées 
 
 ## Avancement
 
-En cours (Codex). Ne pas reprendre.
-
 Le reliquat commence par la lecture du lecteur, du type `LayerLu` et des tests voisins. `agents:lire` rend le domaine explorateur. La branche est `main` et les fichiers de ce reliquat étaient propres.
 
 Le test `C66 compare` échoue sans correction. Les deux instances rendent `undefined` au lieu de leur valeur de `Size`. Le lecteur copie maintenant `variantProperties` par la mémoire de champs, avec une cession par propriété. Une lecture refusée conserve le maître et ajoute une manquée.
@@ -46,7 +44,7 @@ Les premières compilations et le premier typecheck échouent dans `packages/kit
 
 Le typecheck global rend 0. Les trois fichiers en échec ont été relancés chacun seul et échouent encore. Aucun n'a été corrigé. Les journaux locaux sont dans `_local/codex-r1-*`.
 
-Prochaine action prévue. Commiter les seuls chemins du reliquat, puis noter son hash dans ce lot et dans le tableau du plan.
+Le reliquat est commité dans `7f363fc7`. La lecture des valeurs d'instance et sa documentation sont terminées. La validation runtime reste au mainteneur dans Figma.
 
 E8.1, E8.2 et E8.5 faites côté kit, avec leurs textes. Le lecteur d'Architect remplit `instanceDe.valeurs` pour déclencher `taille-differente`. E8.6 reste pour F2.
 
