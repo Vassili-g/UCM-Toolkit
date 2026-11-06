@@ -96,8 +96,9 @@ test('buildStateModel ne traduit pas « active », qui nomme souvent un état s�
   assert.equal(warnings.length, 1);
 });
 
-test('buildStateModel publie un axe states comme un axe state ou status', () => {
-  for (const axe of ['state', 'states', 'status']) {
+test('buildStateModel publie un axe states comme un axe state, et ne lit pas status comme un axe d’états (E16.4)', () => {
+  assert.equal(buildStateModel(['tone', 'status'], [{ tone: 'a', status: 'default' }, { tone: 'a', status: 'disabled' }], []), null);
+  for (const axe of ['state', 'states']) {
     const warnings: string[] = [];
     const model = buildStateModel(
       ['tone', axe],
@@ -113,12 +114,12 @@ test('buildStateModel publie un axe states comme un axe state ou status', () => 
 
 test('buildStateModel conserve un état inconnu et avertit sans bloquer', () => {
   const warnings: string[] = [];
-  const model = buildStateModel(['status'], [{ status: 'loading' }, { status: 'default' }], warnings);
+  const model = buildStateModel(['state'], [{ state: 'loading' }, { state: 'default' }], warnings);
 
   assert.equal(model?.states.loading.selector, undefined);
   assert.deepEqual(model?.precedence, ['default', 'loading']);
   assert.deepEqual(warnings, [
-    'Propriété de variante « status » : l\'état « loading » n\'est pas reconnu. Le développeur ne saura pas quand afficher ce variant. Renommez cette valeur en default, hover, focus, pressed ou disabled, puis réexportez.',
+    'Propriété de variante « state » : l\'état « loading » n\'est pas reconnu. Le développeur ne saura pas quand afficher ce variant. Renommez cette valeur en default, hover, focus, pressed ou disabled, puis réexportez.',
   ]);
 });
 

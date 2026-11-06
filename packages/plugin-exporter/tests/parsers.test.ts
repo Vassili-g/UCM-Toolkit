@@ -47,8 +47,8 @@ test('extractContractProps exclut State et expose disabled', () => {
   });
 });
 
-test('un axe State, States ou Status sort des props, et sa valeur Disable donne disabled', () => {
-  for (const nomDeLAxe of ['State', 'States', 'Status']) {
+test('un axe State ou States sort des props, et sa valeur Disable donne disabled ; Status reste une prop (E16.4)', () => {
+  for (const nomDeLAxe of ['State', 'States']) {
     const definitions = {
       Tone: { type: 'VARIANT', defaultValue: 'A', variantOptions: ['A', 'B'] },
       [nomDeLAxe]: {
@@ -63,6 +63,11 @@ test('un axe State, States ou Status sort des props, et sa valeur Disable donne 
       disabled: { type: 'boolean', default: false },
     }, nomDeLAxe);
   }
+  // E16.4 : `status` n'a pas le sens de `state`, donc l'axe `Status` est une prop enum comme les autres.
+  const definitions = {
+    Status: { type: 'VARIANT', defaultValue: 'Default', variantOptions: ['Default', 'Hover', 'Disable'] },
+  } as unknown as ComponentPropertyDefinitions;
+  assert.deepEqual(extractContractProps(definitions), { status: { type: 'enum', values: ['default', 'hover', 'disable'] } });
 });
 
 test('extractContractProps expose iconLeft/iconRight comme booléens indépendants', () => {

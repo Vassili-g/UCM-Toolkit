@@ -88,6 +88,39 @@ const termesDeComposant = new Set(REGISTRES_COMPOSANTS.flatMap((registre) => reg
 const formesSoudees = new Map([...termesConnus, ...termesDeComposant].filter((terme) => /^\p{L}+(-\p{L}+)+$/u.test(terme)).map((terme) => [terme.replace(/-/g, ''), terme] as const));
 const termesDeReference = [...new Set([...termesConnus, ...termesDeComposant, ...formesSoudees.keys()])].filter((terme) => /^\p{L}{3,}$/u.test(terme));
 
+/** Les termes de plusieurs mots, joints par un trait d'union (`focus-ring`, `border-radius`, `padding-x`) : ceux dont le pluriel est une question (E16.5). */
+export function termesCompose(): ReadonlySet<string> {
+  return new Set(formesSoudees.values());
+}
+
+const LONGUEUR_MINIMALE_D_UN_TERME_COLLE = 3;
+const termesSimplesPourLeDecoupage = new Set([...termesConnus, ...termesDeComposant].filter((terme) => terme.length >= LONGUEUR_MINIMALE_D_UN_TERME_COLLE && /^\p{L}+$/u.test(terme)));
+/**
+ * E16.8, Q-E14-2 : coupe un mot collé en termes exacts du kit quand l'un d'eux au moins est un terme de composant (`paddingwidth` : `padding`,
+ * `width`). `decouperPourQuestions` garde ces termes hors de son découpage, pour que le renommage ne les sépare pas ; la question de mot collé les lit.
+ * Rend le découpage au plus petit nombre de morceaux, ou `undefined` quand le mot ne se coupe pas ainsi.
+ */
+export function decouperEnTermesAvecUnTermeDeComposant(mot: string): string[] | undefined {
+  const minuscule = mot.toLowerCase();
+  if (minuscule.length < LONGUEUR_MINIMALE_D_UN_TERME_COLLE * 2 || minuscule.length > LONGUEUR_MAXIMALE_D_UN_BLOC) return undefined;
+  const solutions = new Map<number, string[] | null>();
+  function depuis(debut: number): string[] | null {
+    if (debut === minuscule.length) return [];
+    if (solutions.has(debut)) return solutions.get(debut)!;
+    let meilleur: string[] | null = null;
+    for (let fin = debut + LONGUEUR_MINIMALE_D_UN_TERME_COLLE; fin <= minuscule.length; fin++) {
+      const morceau = minuscule.slice(debut, fin);
+      if (!termesSimplesPourLeDecoupage.has(morceau)) continue;
+      const suite = depuis(fin);
+      if (suite && (!meilleur || suite.length + 1 < meilleur.length)) meilleur = [morceau, ...suite];
+    }
+    solutions.set(debut, meilleur);
+    return meilleur;
+  }
+  const decoupe = depuis(0);
+  return decoupe && decoupe.length > 1 && decoupe.some(termeDeComposant) ? decoupe : undefined;
+}
+
 /** Le terme à tirets dont `terme` est la forme soudée (`font-style` pour `fontstyle`), ou `terme` quand il n'en est pas une. */
 export function termeAvecSesTirets(terme: string): string {
   return formesSoudees.get(terme.toLowerCase()) ?? terme;

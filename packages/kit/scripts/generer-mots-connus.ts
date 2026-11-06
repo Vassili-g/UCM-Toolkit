@@ -1,6 +1,6 @@
 /**
- * Génère `src/referentiel/mots-connus-donnees.ts` : les mots de 4 à 6 lettres que `motConnu` (`src/referentiel/mots-connus.ts`) lit
- * pour décider qu'un mot proche d'un terme du kit est un vrai mot, donc pas une faute (E15).
+ * Génère `src/referentiel/mots-connus-donnees.ts` : les mots de 3 à 6 lettres que `motConnu` (`src/referentiel/mots-connus.ts`) lit
+ * pour décider qu'un mot proche d'un terme du kit est un vrai mot, donc pas une faute (E15, E16.2 pour les mots de 3 lettres).
  *
  * Deux listes. Les mots anglais courants viennent de Scowl (Spell Checker Oriented Word Lists, Kevin Atkinson), dans les fichiers
  * `english-`, `american-` et `british-words.<taille>` jusqu'à la taille demandée (35 par défaut). Les segments des noms viennent des
@@ -21,7 +21,7 @@ const SORTIE = join(RACINE, 'packages/kit/src/referentiel/mots-connus-donnees.ts
 const DOSSIER_DES_SYSTEMES = join(RACINE, 'docs/references/design-systems');
 const TAILLES = [10, 20, 35, 40, 50, 55, 60, 70];
 const FAMILLES = ['english', 'american', 'british'];
-const LONGUEUR_MINIMALE = 4;
+const LONGUEUR_MINIMALE = 3;
 const LONGUEUR_MAXIMALE = 6;
 const COLONNES = 110;
 
@@ -45,7 +45,7 @@ export function motsAnglais(dossier: string, taille: number): string[] {
   return [...mots].sort();
 }
 
-/** Les segments, par système (`ucm` exclu : ses mots sont les termes du kit), de 4 à 6 lettres. */
+/** Les segments, par système (`ucm` exclu : ses mots sont les termes du kit), de 3 à 6 lettres. */
 export function segmentsParSysteme(dossier: string = DOSSIER_DES_SYSTEMES): Map<string, string[]> {
   const parSysteme = new Map<string, string[]>();
   for (const entree of readdirSync(dossier, { withFileTypes: true })) {

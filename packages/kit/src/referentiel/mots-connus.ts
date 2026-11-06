@@ -1,7 +1,7 @@
 /**
  * Les mots courants que le kit ne prend jamais pour une faute : mots anglais de Scowl et segments des noms de design systems
- * (`mots-connus-donnees.ts`, généré par `packages/kit/scripts/generer-mots-connus.ts`). La règle des fautes de 4 à 6 lettres
- * (`questions.ts`, E15) le lit pour un seul mot à la fois, quand ce mot est à une lettre d'un terme du kit. Le texte de licence de Scowl
+ * (`mots-connus-donnees.ts`, généré par `packages/kit/scripts/generer-mots-connus.ts`). La règle des fautes de 3 à 6 lettres
+ * (`questions.ts`, E15 et E16.2) le lit pour un seul mot à la fois, quand ce mot est à une lettre d'un terme du kit. Le texte de licence de Scowl
  * est dans `mots-connus.LICENCE.txt`.
  */
 import { MOTS_ANGLAIS, SEGMENTS_DES_SYSTEMES } from './mots-connus-donnees.js';

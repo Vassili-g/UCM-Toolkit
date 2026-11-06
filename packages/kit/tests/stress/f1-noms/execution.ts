@@ -16,7 +16,7 @@ import { echantillon, graineDe, melanger, mulberry32 } from '../commun/prng.js';
 import { convertir, MODES_DE_CHEMINS, MODES_DE_COLLECTIONS, RACINE_DU_DEPOT, segmentsDuNom, type Systeme } from './corpus.js';
 import { creerLeDetecteur } from './detecteur.js';
 import {
-  chargerLesClassements, collisionsSansQuestion, creerLeContexteOracle, dispense, estUneCollisionDeChemin, QUESTION_AXE_D_ETAT, ECART_AXE_D_ETAT, ECART_NOM_DE_COMPOSANT, estUneFormeDAxeDEtat, ECART_MUTANT_UCM, ECART_SYNONYME_EN_CASSE_MIXTE, ECART_TERME_UCM_NON_UNIQUE, QUESTION_SYNONYME_EN_CASSE_MIXTE, estUnTermeUcm, jugerUneFaute, juger, termesUcmDuMot, type ContexteOracle, type Sortie, type Verdict,
+  chargerLesClassements, collisionsSansQuestion, creerLeContexteOracle, dispense, dispenseLesEchecs, estUneCollisionDeChemin, ECART_NOM_DE_COMPOSANT, ECART_MUTANT_UCM, ECART_SYNONYME_EN_CASSE_MIXTE, ECART_TERME_UCM_NON_UNIQUE, estUnTermeUcm, jugerUneFaute, juger, termesUcmDuMot, type ContexteOracle, type Sortie, type Verdict,
 } from './oracle.js';
 import {
   creerLeContexte, enInventaire, genererLesScenarios, squelette, STRATES, type Contexte, type Scenario,
@@ -230,19 +230,22 @@ export function jugerLesSitesDeLaPasse(passe: PasseReelle, systeme: Systeme, sor
 
 /**
  * `enCasseMixte` : le mot du site est un morceau d'un segment en casse mixte (`controlItemBgAmctive`). Le kit lit la faute d'un tel morceau (E14, `morceauxDeCasse`),
- * mais non sa synonymie : PLAN-VOCABULAIRE ne fait pas de `wrap` un terme de `TileLinksWrap`. Le mainteneur n'a pas tranché le cas des synonymes (Q-E14-3).
+ * mais non sa synonymie : PLAN-VOCABULAIRE ne fait pas de `wrap` un terme de `TileLinksWrap`. Le mainteneur a refusé la question de paire pour ces synonymes
+ * (Q-E14-3 refusée) : un échec reste informatif, un cas que le kit réussit reste détecté.
+ *
+ * `nomDeComposant` : le segment est le nom d'un composant. E16.1 : la faute d'un nom que le kit connaît (`site.mot` est un terme proche du mutant) est jugée comme
+ * une autre ; tout autre cas sur un nom de composant reste informatif.
  */
 function jugerUnSite(cas: Scenario, sortie: Sortie, ctx: ContexteOracle, enCasseMixte: boolean, nomDeComposant: boolean): Verdict {
   const verdict = jugerLeSite(cas, sortie, ctx);
   const site = cas.site!;
   const propriete = cas.attendus[0].propriete;
-  if (nomDeComposant) return dispense([verdict], ECART_NOM_DE_COMPOSANT)[0];
-  if (propriete === 'P-10' && estUneFormeDAxeDEtat(site.mutant)) return dispense([verdict], ECART_AXE_D_ETAT, QUESTION_AXE_D_ETAT)[0];
+  if (nomDeComposant && !(propriete === 'P-01' && ctx.detecteur.termesProches(site.mutant).includes(site.mot))) return dispense([verdict], ECART_NOM_DE_COMPOSANT)[0];
   if (propriete === 'P-14') {
     // Q-F5 : un synonyme seul ne pose une question que si son terme UCM est unique, et un terme UCM n'est pas une faute (E2c).
     if (estUnTermeUcm(site.mutant)) return dispense([verdict], ECART_MUTANT_UCM)[0];
     if (termesUcmDuMot(site.mutant).length !== 1) return dispense([verdict], ECART_TERME_UCM_NON_UNIQUE)[0];
-    if (enCasseMixte) return dispense([verdict], ECART_SYNONYME_EN_CASSE_MIXTE, QUESTION_SYNONYME_EN_CASSE_MIXTE)[0];
+    if (enCasseMixte) return dispenseLesEchecs([verdict], ECART_SYNONYME_EN_CASSE_MIXTE)[0];
   }
   return verdict;
 }

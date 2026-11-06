@@ -394,7 +394,7 @@ export interface OptionsDesFauxPositifs {
   readonly progression?: (message: string) => void;
 }
 
-/** E15.4 : les questions de faute du kit sur les noms justes, pour les mots de 4 à 6 lettres, dictionnaire sans le système mesuré. */
+/** E15.4, E16.2 : les questions de faute du kit sur les noms justes, pour les mots de 3 à 6 lettres, dictionnaire sans le système mesuré. */
 export interface FautesCourtes {
   readonly longueur: number;
   /** Lignes de faute classées FP-A ou FP-C : une par passe et par question, comme les autres comptes de ce fichier. */
@@ -402,7 +402,7 @@ export interface FautesCourtes {
   readonly pourMille: number;
   readonly mots: readonly string[];
 }
-export const LONGUEURS_DES_MOTS_COURTS = [4, 5, 6] as const;
+export const LONGUEURS_DES_MOTS_COURTS = [3, 4, 5, 6] as const;
 
 export function fautesCourtesParLongueur(lignes: readonly LigneDeFauxPositif[], noms: number): FautesCourtes[] {
   return LONGUEURS_DES_MOTS_COURTS.map((longueur) => {
@@ -520,7 +520,7 @@ export function sectionDuRapport(mesure: MesureDesFauxPositifs): string {
     `La règle Q-F9 retient L = ${mesure.retenueDeDeuxLettres ?? 'aucun'} pour une faute de deux lettres, avec le même budget et sans descendre sous la longueur d'une lettre.`,
     `Zéro faux positif certain sur le corpus et sur S15 (règle d'origine du plan) : L = ${mesure.sansFauxPositif ?? 'aucun de 3 à 10'}.`, '', courbe, '',
     ...(mesure.fautesCourtes ? [
-      'Fautes de 4 à 6 lettres du kit sur les noms justes (E15.4), dictionnaire sans le système mesuré, FP-A et FP-C :', '',
+      'Fautes de 3 à 6 lettres du kit sur les noms justes (E15.4, E16.2), dictionnaire sans le système mesuré, FP-A et FP-C :', '',
       table(['L', 'Faux positifs certains', 'Pour 1 000 noms', 'Mots'], mesure.fautesCourtes.map((l) => [l.longueur, l.certains, l.pourMille, l.mots.join(', ') || '.'])),
     ] : []),
   ].join('\n');

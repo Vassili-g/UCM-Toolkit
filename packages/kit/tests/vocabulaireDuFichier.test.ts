@@ -22,11 +22,14 @@ test('les formes tolérées UCM se remplacent, sans réécrire un identifiant re
     { debut: 0, fin: 1, par: ['pressed'], origine: 'ucm', cle: 'terme:pressed' },
     { debut: 2, fin: 3, par: ['disabled'], origine: 'ucm', cle: 'terme:disabled' },
   ]);
-  assert.deepEqual(index.remplacements(['status', 'states'], 'variables'), []);
-  assert.deepEqual(index.remplacements(['status', 'states'], 'proprietes'), [
-    { debut: 0, fin: 1, par: ['state'], origine: 'ucm', cle: 'terme:state' },
-    { debut: 1, fin: 2, par: ['state'], origine: 'ucm', cle: 'terme:state' },
-  ]);
+  // E16.4 : `states`, `etat` et `état` se remplacent aussi dans une variable ; `status` reste un mot à part.
+  for (const categorie of ['variables', 'groupes', 'proprietes'] as const) {
+    assert.deepEqual(index.remplacements(['status', 'states', 'etat', 'état'], categorie), [
+      { debut: 1, fin: 2, par: ['state'], origine: 'ucm', cle: 'terme:state' },
+      { debut: 2, fin: 3, par: ['state'], origine: 'ucm', cle: 'terme:state' },
+      { debut: 3, fin: 4, par: ['state'], origine: 'ucm', cle: 'terme:state' },
+    ], categorie);
+  }
 });
 
 test('un écart UCM retire ses formes tolérées et laisse agir le terme personnalisé', () => {

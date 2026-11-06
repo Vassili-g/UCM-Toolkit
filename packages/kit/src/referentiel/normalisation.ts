@@ -6,7 +6,7 @@
 import { COLLECTIONS, DESTINATION_DES_PALETTES, FORMES_ANCIENNES_DES_COLLECTIONS, REGISTRES_ARCHITECTURE, type Collection } from './architecture.js';
 import { type Casse, type Separateur, type Convention, type NomANormaliser, type ConventionsParCategorie, type CategorieDeNom } from './conventions.js';
 import { assembler, capitale, categorieDuSegment, commencerDetectionDesConventions, decouperSegment, motsAvecCasse } from './ecriture-des-mots.js';
-import { REGISTRES, REGISTRE_AXES_ETAT } from './vocabulaire.js';
+import { REGISTRES } from './vocabulaire.js';
 import { termePourCategorie } from './termes.js';
 import { formeReconnue } from './reconnaissance.js';
 
@@ -50,8 +50,7 @@ export function porteeDeLaGrammaire(nomDeCollection: string, groupe: readonly st
 
 /** Remplace les formes tolérées, y compris une suite de mots (`border-radius` → `radius`), comme le moteur d'UCM Architect. */
 function remplacerLesTermes(mots: readonly string[], categorie: CategorieDeNom): string[] {
-  const registres = [...REGISTRES, ...REGISTRES_ARCHITECTURE].filter((registre) => registre !== REGISTRE_AXES_ETAT || categorie === 'proprietes');
-  const formes = registres.flatMap((registre) => registre.termes).map((terme) => termePourCategorie(terme, categorie)).flatMap((terme) => (terme.toleres ?? [])
+  const formes = [...REGISTRES, ...REGISTRES_ARCHITECTURE].flatMap((registre) => registre.termes).map((terme) => termePourCategorie(terme, categorie)).flatMap((terme) => (terme.toleres ?? [])
     .map((tolere) => ({ source: decouperSegment(tolere).map((mot) => mot.toLowerCase()), id: terme.id })))
     .sort((a, b) => b.source.length - a.source.length);
   const resultat: string[] = [];

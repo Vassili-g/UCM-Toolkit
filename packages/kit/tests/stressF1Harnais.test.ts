@@ -15,7 +15,7 @@ import {
   convertir, DOSSIER_DE_SLICE, fichiersEnFuite, ID_DE_SLICE, lireLesSystemes, motsASurveiller, RACINE_DU_DEPOT, systemeDepuisTokens,
 } from './stress/f1-noms/corpus.js';
 import { CERTAINES, classer, creerLeContexteDeClassement, lignesAJuger, PLAFOND_A_JUGER, type LigneDeFauxPositif } from './stress/f1-noms/faux-positifs.js';
-import { chargerLesClassements, clePaire, creerLeContexteOracle, ECART_SEPARATEUR_SEUL, ECART_SOUS_LE_SEUIL, estSousLeSeuilDeLongueur, juger, QUESTION_AXE_D_ETAT, QUESTION_TERME_DE_COMPOSANT } from './stress/f1-noms/oracle.js';
+import { chargerLesClassements, clePaire, creerLeContexteOracle, ECART_SEPARATEUR_SEUL, ECART_SOUS_LE_SEUIL, estSousLeSeuilDeLongueur, juger } from './stress/f1-noms/oracle.js';
 import { creerLeDetecteur } from './stress/f1-noms/detecteur.js';
 import { executerLesTemoins, executerUnCas, REGLES_FIXES, secondPassage } from './stress/f1-noms/execution.js';
 import { mutationsDe, OPERATEURS_DE_FAUTE } from './stress/f1-noms/mutations.js';
@@ -65,8 +65,8 @@ test('le nombre de cas des strates rapides tient à 5 % du plan, et chaque ident
   }
 });
 
-test('la liste écrite à la main compte 30 paires de mots différents', () => {
-  assert.equal(PAIRES_DISTINCTES_ECRITES.length, 30);
+test('la liste écrite à la main compte 28 paires de mots différents (E16.6 : lable et solis sont des fautes, rangées en témoins)', () => {
+  assert.equal(PAIRES_DISTINCTES_ECRITES.length, 28);
   for (const [a, b] of PAIRES_DISTINCTES_ECRITES) assert.notEqual(a, b);
 });
 
@@ -211,7 +211,7 @@ test('S8 : la casse ne change aucun verdict ; une faute d’un mot connu ou de m
     const [verdict] = juger(cas, executerUnCas(cas), ctx);
     const faute = cas.axes.nature === 'fautif';
     if (!faute) assert.equal(verdict.issue, 'ok', `${cas.id} : ${verdict.detail}`);
-    else if (estSousLeSeuilDeLongueur(verdict.mot ?? '')) assert.equal(verdict.role, 'informatif', cas.id);
+    else if (estSousLeSeuilDeLongueur(verdict.mot ?? '', detecteur)) assert.equal(verdict.role, 'informatif', cas.id);
     else assert.equal(verdict.issue, 'detecte', `${cas.id} : ${verdict.detail}`);
     if (faute) parTerme.set(cas.terme, (parTerme.get(cas.terme) ?? new Map()).set(String(cas.axes.casse), `${verdict.role}/${verdict.issue}`));
   }
@@ -233,9 +233,15 @@ function verdictsDe(strate: string, retenir: (id: string) => boolean) {
   return cas.flatMap((unCas) => juger(unCas, executerUnCas(unCas), ctx));
 }
 
-test('Q-F4, E15 : une faute d’une lettre d’un mot de moins de quatre lettres est mesurée, jamais jugée ; à quatre lettres, elle est attendue (S1)', () => {
-  const sous = verdictsDe('S1', (id) => id.startsWith('S1/M-03/big/') && id.includes('/m=1/k=8/'));
-  assert.ok(sous.every((v) => v.role === 'informatif' && v.ecarts.includes(ECART_SOUS_LE_SEUIL)), sous.map((v) => v.detail).join(' ; '));
+test('Q-F4, E15, E16.2 : une faute d’une lettre est mesurée, jamais jugée, sous trois lettres, pour un mot connu ou à une lettre de plusieurs termes ; sinon elle est attendue (S1)', () => {
+  const detecteur = creerLeDetecteur(contexte.vocabulaire, contexte.motsDuDictionnaire);
+  const sous = verdictsDe('S1', (id) => id.startsWith('S1/M-03/big/') && id.includes('/m=1/k=8/') && !id.includes('variante=ajout'));
+  assert.ok(sous.length > 0);
+  const trois = verdictsDe('S1', (id) => id.includes('/m=1/k=8/')).filter((v) => [...(v.mot ?? '')].length === 3);
+  assert.ok(trois.length > 100, `${trois.length} mutants de 3 lettres`);
+  assert.ok(trois.every((v) => (v.role === 'informatif') === (motConnu(v.mot!) || detecteur.termesProches(v.mot!).length !== 1)), 'à 3 lettres, seul un mutant connu ou à une lettre de plusieurs termes reste informatif');
+  assert.ok(trois.every((v) => v.role !== 'informatif' || v.ecarts.length === 0 || v.ecarts.includes(ECART_SOUS_LE_SEUIL)));
+  assert.ok(trois.some((v) => v.role === 'oracle' && v.issue === 'detecte'), 'au moins un mutant de 3 lettres est attendu et détecté');
   const quatre = verdictsDe('S1', (id) => id.startsWith('S1/M-03/size/') && id.includes('/m=1/k=8/'));
   assert.ok(quatre.every((v) => v.role === 'oracle' && v.issue === 'detecte'), quatre.map((v) => v.detail).join(' ; '));
   const mots = verdictsDe('S1', (id) => id.includes('/m=1/k=8/')).filter((v) => [...(v.mot ?? '')].length >= 4 && [...(v.mot ?? '')].length < LONGUEUR_MINIMALE_D_UNE_FAUTE_A_UNE_LETTRE);
@@ -253,14 +259,16 @@ test('les cas du plan sortent comme les décisions de E2 les attendent', () => {
   assert.deepEqual(temoins.filter((temoin) => temoin.verdict?.issue === 'manque').map((temoin) => temoin.nom.split(' ')[0]), [], 'E15 : `bordre` et `paddng`, six lettres, sont lus');
 });
 
-test('E2c : une forme d’un axe d’états dans une variable attend le mainteneur, et fontfamily près de font-family est une collision de séparateur', () => {
-  const axes = verdictsDe('S5', (id) => id.includes('axes-etat:status/'));
-  assert.ok(axes.every((v) => v.role === 'provisoire' && v.provisoire === QUESTION_AXE_D_ETAT));
+test('E16.4 : etat, état et states se renomment en state dans une variable, status reste un mot à part, et fontfamily près de font-family est une collision de séparateur', () => {
+  const axes = verdictsDe('S5', (id) => id.includes('axes-etat:'));
+  assert.ok(axes.length > 0 && axes.every((v) => v.role === 'oracle' && v.issue === 'detecte'), axes.filter((v) => v.issue !== 'detecte').map((v) => v.detail).join(' ; '));
+  assert.ok(![...genererLesScenarios(contexte, { strates: ['S5'] })].some((cas) => cas.id.includes('axes-etat:status/')), 'status n’est plus une forme tolérée de state');
   const lettres = verdictsDe('S6', (id) => id.includes('tolere:familles-primitives:fontfamily|font-family/parente=freres'));
   assert.ok(lettres.every((v) => v.role === 'informatif' && v.ecarts.includes(ECART_SEPARATEUR_SEUL)));
 });
 
-test('E2c, E-04 : un mot collé dont une partie est un terme de composant attend le mainteneur (S10)', () => {
-  const composant = verdictsDe('S10', (id) => id.startsWith('S10/M-14/padding+width/'));
-  assert.ok(composant.every((v) => v.role === 'provisoire' && v.provisoire === QUESTION_TERME_DE_COMPOSANT));
+test('E16.8 : un mot collé dont une partie est un terme de composant donne la question de mot collé (S10)', () => {
+  const composant = verdictsDe('S10', (id) => /^S10[/]M-14[/][^/]*(padding|width|height|gap)[^/]*[/]/.test(id));
+  assert.ok(composant.length >= 10, `${composant.length} verdicts`);
+  assert.ok(composant.every((v) => v.role === 'oracle' && v.issue === 'detecte'), composant.filter((v) => v.issue !== 'detecte').map((v) => v.detail).join(' ; '));
 });

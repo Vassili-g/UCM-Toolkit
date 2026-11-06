@@ -11,7 +11,7 @@ import { CATEGORIES_DE_NOM, type CategorieDeNom } from './conventions.js';
 import { termesDuSegment } from './ecriture-des-mots.js';
 import { cleDeRegleDuTerme, type ConflitDeVocabulaire, type IndexDuVocabulaire, type Mots, type OrigineDuTerme, type Remplacement, type VocabulaireDuFichier } from './harmonisation.js';
 import { decouperSegment } from './normalisation.js';
-import { REGISTRES, REGISTRE_AXES_ETAT } from './vocabulaire.js';
+import { REGISTRES } from './vocabulaire.js';
 import { termePourCategorie } from './termes.js';
 
 type Entree = {
@@ -19,7 +19,6 @@ type Entree = {
   readonly par: Mots;
   readonly origine: OrigineDuTerme;
   readonly cle: string;
-  readonly proprietesSeulement: boolean;
 };
 
 function cleDesMots(mots: Mots): string {
@@ -86,7 +85,6 @@ function indexerPourCategorie(vocabulaire: VocabulaireDuFichier, categorie: Cate
         if (cle === cleDesMots(canonique)) continue;
         const entree: Entree = {
           source, par: canonique, origine: 'ucm', cle: `terme:${original.id}`,
-          proprietesSeulement: registre === REGISTRE_AXES_ETAT,
         };
         if (!entrees.has(cle)) entrees.set(cle, entree);
       }
@@ -113,7 +111,7 @@ function indexerPourCategorie(vocabulaire: VocabulaireDuFichier, categorie: Cate
         }
         continue;
       }
-      entrees.set(cle, { source, par, origine: 'personnalise', cle: cleRegle, proprietesSeulement: false });
+      entrees.set(cle, { source, par, origine: 'personnalise', cle: cleRegle });
     }
   }
 
@@ -141,7 +139,6 @@ function trouverLesRemplacements(candidats: readonly Entree[], mots: Mots, categ
   const prises = new Set<number>();
   const resultats: Trouve[] = [];
   for (const entree of candidats) {
-    if (entree.proprietesSeulement && categorie !== 'proprietes') continue;
     for (let debut = 0; debut <= mots.length - entree.source.length; debut++) {
       if (entree.source.some((mot, rang) => prises.has(debut + rang) || mot.toLowerCase() !== mots[debut + rang].toLowerCase())) continue;
       const fin = debut + entree.source.length;

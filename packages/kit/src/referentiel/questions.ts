@@ -5,7 +5,7 @@ import type { DejaJuge, IndexDuVocabulaire, Lexique, Mots, NomLu, Question, Remp
 import { motConnu } from './mots-connus.js';
 import { collectionUcmReconnue } from './normalisation.js';
 import { detecterBranchesParalleles } from './branches-paralleles.js';
-import { decouperPourQuestions, distanceUnOuEchange, opposes, termeAvecSesTirets, termeConnu, termeDeComposant, termeOuFormeConnu, termeSoude, termesADeuxLettres, termesAUneLettre } from './termes-connus.js';
+import { decouperEnTermesAvecUnTermeDeComposant, decouperPourQuestions, distanceUnOuEchange, opposes, termeAvecSesTirets, termeConnu, termeDeComposant, termeOuFormeConnu, termeSoude, termesADeuxLettres, termesAUneLettre, termesCompose } from './termes-connus.js';
 import { ABREVIATIONS, FORMES_D_UN_MEME_MOT, MOTS_DISTINCTS, REGISTRES, SYNONYMES_COURANTS } from './vocabulaire.js';
 
 const TAILLE_D_UN_LOT = 10;
@@ -20,11 +20,13 @@ const uniquementDesLettres = /^\p{L}+$/u;
  */
 export const LONGUEUR_MINIMALE_D_UNE_FAUTE_A_UNE_LETTRE = 7;
 /**
- * E15. De cette longueur jusqu'à `LONGUEUR_MINIMALE_D_UNE_FAUTE_A_UNE_LETTRE` (exclue), un mot à une lettre d'un terme connu est une faute
- * tant qu'il n'est pas lui-même un mot connu (`motConnu`). `colr` est une faute de `color`, `colon` et `next` n'en sont pas. Un mot plus court
- * n'est jamais une faute (`bg`, `sm`, `bgg`). Le dictionnaire n'est lu que pour un mot qui a déjà un terme proche.
+ * E15, E16.2. De cette longueur jusqu'à `LONGUEUR_MINIMALE_D_UNE_FAUTE_A_UNE_LETTRE` (exclue), un mot à une lettre d'un terme connu est une faute
+ * tant qu'il n'est pas lui-même un mot connu (`motConnu`). `colr` est une faute de `color`, `colon` et `next` n'en sont pas. Un mot de deux
+ * lettres ou moins n'est jamais une faute (`bg`, `sm`). À trois lettres, la faute exige en plus qu'un seul terme du kit soit à une lettre du mot
+ * (`tex` près de `text` ; `gop` touche `gap` et `top`, il reste muet). Une abréviation du kit (`btn`) est un terme connu, donc jamais une
+ * faute. Le dictionnaire n'est lu que pour un mot qui a déjà un terme proche.
  */
-export const LONGUEUR_MINIMALE_D_UNE_FAUTE_D_UN_MOT_COURT = 4;
+export const LONGUEUR_MINIMALE_D_UNE_FAUTE_D_UN_MOT_COURT = 3;
 /** Même règle pour un mot fautif de deux lettres (Q-F9) : 8 (40 mots, 0,67 pour 1 000 ; 7 lettres : 78 mots, 1,31). Jamais sous la longueur d'une lettre. */
 export const LONGUEUR_MINIMALE_D_UNE_FAUTE_A_DEUX_LETTRES = 8;
 const termesUcm = new Set([...REGISTRES, ...REGISTRES_ARCHITECTURE]
@@ -57,6 +59,10 @@ function termeUcmDuSynonyme(mot: string): string | undefined {
   const termes = ucmDuSynonyme.get(mot);
   return termes?.size === 1 ? [...termes][0] : undefined;
 }
+
+/** E16.5 : les termes composés du kit (`focus-ring`, `border-radius`, `padding-x`), et pour chacun ses pluriels (`focus-rings`) vers lui. */
+const singuliersDesComposes = new Map<string, string>();
+for (const composee of [...termesCompose()]) for (const fin of ['s', 'es']) singuliersDesComposes.set(composee + fin, composee);
 
 type MotObserve = { readonly mot: string; readonly noms: Set<string>; readonly lieux: Map<string, string | null>; readonly exemples: string[];
   /** Variable (dernier segment d'un nom de variable) ou groupe : un pluriel ne se compare qu'à un mot du même type (décision S06). */
@@ -200,8 +206,10 @@ function* trierQuestions(questions: Question[]): Generator<void, Question[]> {
 export function* detecterParEtapes(lexique: Lexique, index: IndexDuVocabulaire, dejaJuge: DejaJuge,
   options: { readonly seuil?: number; readonly maximum?: number } = {}): Generator<void, ResultatDesQuestions> {
   const observes = new Map<string, MotObserve>();
-  /** Les morceaux de casse mixte d'au moins 4 lettres, lus pour la faute seulement, jamais pour les paires ni les mots collés. */
+  /** Les morceaux de casse mixte d'au moins 3 lettres, lus pour la faute seulement, jamais pour les paires ni les mots collés. */
   const morceauxObserves = new Map<string, MotObserve>();
+  /** Les mots des noms de composant (E16.1), lus pour la faute seulement, comme les morceaux de casse mixte. */
+  const nomsDeComposant = new Map<string, MotObserve>();
   const collections: NomLu[] = [];
   const aRenommer: { readonly nom: NomLu; readonly avant: string; readonly apres: string; readonly formes: readonly { forme: string; par: string; rang: number }[] }[] = [];
   const nomsParPortee = new Map<string, Map<string, { readonly id: string; readonly avant: string }[]>>();
@@ -209,6 +217,12 @@ export function* detecterParEtapes(lexique: Lexique, index: IndexDuVocabulaire, 
   const cacheRemplacements = new Map<string, readonly Remplacement[]>();
   const cacheReels = new Map<string, { readonly sansFrontieres: readonly Remplacement[]; readonly reels: readonly Remplacement[] }>();
   const gardesEntiers = new Map<string, { forme: string; par: string; noms: Set<string> }>();
+  /** E16.3 : les formes tolérées qu'un registre remplace, avec les noms qui les portent. Elles ne sont pas observées : le renommage les couvre. */
+  const formesRemplacees = new Map<string, Set<string>>();
+  /** E16.5 : un pluriel de terme composé (`focus-rings`), avec son singulier et les noms qui le portent. */
+  const plurielsComposes = new Map<string, { readonly base: string; readonly noms: Set<string> }>();
+  /** Les mots que ces pluriels contiennent : leur question de pluriel simple (`rings`) ferait double emploi. */
+  const motsDesPlurielsComposes = new Map<string, Set<string>>();
   const cacheContextes: CacheDeContextes = new Map();
   let operations = 0;
   for (const nom of lexique.noms.values()) {
@@ -218,8 +232,23 @@ export function* detecterParEtapes(lexique: Lexique, index: IndexDuVocabulaire, 
     // Le nom tel qu'il est, et tel que les formes tolérées des registres le renommeraient : deux noms qui visent le même nom se bloquent (E-08).
     const avant: string[] = [], apres: string[] = [], formes: { forme: string; par: string; rang: number }[] = [];
     for (const [rang, segment] of segments.entries()) {
-      // Un nom de composant ou de palette n'est pas un mot du vocabulaire : aucune question ne le porte.
-      if (natures?.[rang]) { avant.push(segment.toLowerCase()); apres.push(segment.toLowerCase()); continue; }
+      // Un nom de composant ou de palette n'est pas un mot du vocabulaire : aucune paire ni mot collé ne le porte. E16.1 : la faute d'un nom de composant
+      // que le kit connaît (`btton` près de `button`) est lue, aux seuils des autres fautes ; un nom que le kit ne connaît pas n'a aucun terme proche et reste muet.
+      if (natures?.[rang]) {
+        avant.push(segment.toLowerCase()); apres.push(segment.toLowerCase());
+        if (natures[rang] === 'composant') {
+          // Les mots du nom, et les morceaux de casse mixte d'un nom comme `BackTop` : la faute d'un morceau (`BackTlp`) se lit comme celle d'un mot.
+          const unites = decouperPourQuestions(segment).flatMap((mot) => mot.split('-')).flatMap((mot) => [mot, ...morceauxDeCasse(mot)]);
+          for (const unite of [...unites, ...morceauxDeCasse(segment)].map((mot) => mot.toLowerCase())) {
+            if ([...unite].length < LONGUEUR_MINIMALE_D_UNE_FAUTE_D_UN_MOT_COURT || !uniquementDesLettres.test(unite)) continue;
+            const entree = nomsDeComposant.get(unite) ?? { mot: unite, noms: new Set<string>(), lieux: new Map<string, string | null>(), exemples: [], types: new Set<'variable' | 'groupe'>() };
+            entree.noms.add(nom.id);
+            if (entree.exemples.length < 2 && !entree.exemples.includes(nom.id)) entree.exemples.push(nom.id);
+            nomsDeComposant.set(unite, entree);
+          }
+        }
+        continue;
+      }
       const mots = decouperPourQuestions(segment);
       const motsPlats = mots.flatMap((mot) => mot.split('-'));
       const categorie = categorieDuSegment(nom, rang);
@@ -230,9 +259,28 @@ export function* detecterParEtapes(lexique: Lexique, index: IndexDuVocabulaire, 
         cacheRemplacements.set(cleCache, remplacements);
       }
       const positionsCouvertes = new Set<number>();
-      for (const remplacement of remplacements) for (let i = remplacement.debut; i < remplacement.fin; i++) {
-        positionsCouvertes.add(i);
-        if (++operations % TAILLE_D_UN_LOT === 0) yield;
+      for (const remplacement of remplacements) {
+        for (let i = remplacement.debut; i < remplacement.fin; i++) {
+          positionsCouvertes.add(i);
+          if (++operations % TAILLE_D_UN_LOT === 0) yield;
+        }
+        if (remplacement.origine !== 'ucm') continue;
+        const forme = motsPlats.slice(remplacement.debut, remplacement.fin).join('-').toLowerCase();
+        if (forme === remplacement.par.join('-').toLowerCase()) continue;
+        const noms = formesRemplacees.get(forme) ?? new Set<string>();
+        noms.add(nom.id);
+        formesRemplacees.set(forme, noms);
+      }
+      if (motsPlats.length > 1) for (let debut = 0; debut < motsPlats.length - 1; debut++) for (let fin = debut + 2; fin <= Math.min(motsPlats.length, debut + 3); fin++) {
+        if (positionsCouvertes.size > 0 && [...positionsCouvertes].some((position) => position >= debut && position < fin)) continue;
+        const fenetre = motsPlats.slice(debut, fin).join('-').toLowerCase();
+        const pluriel = singuliersDesComposes.get(fenetre);
+        if (pluriel === undefined) continue;
+        const entree = plurielsComposes.get(fenetre) ?? { base: pluriel, noms: new Set<string>() };
+        entree.noms.add(nom.id);
+        plurielsComposes.set(fenetre, entree);
+        const dernier = motsPlats[fin - 1].toLowerCase();
+        motsDesPlurielsComposes.set(dernier, (motsDesPlurielsComposes.get(dernier) ?? new Set<string>()).add(nom.id));
       }
       // Le renommage lit les blocs gardés entiers (`status-2`) : il ne remplace que ce que `frontieres` laisse passer (lexique.ts).
       const decoupe = lexique.mots.get(segment) ?? motsPlats;
@@ -424,6 +472,28 @@ export function* detecterParEtapes(lexique: Lexique, index: IndexDuVocabulaire, 
     if (!observes.has(par)) segmentsObserves.set(par, { mot: par, noms: new Set(nomsDuTerme), lieux: new Map(), exemples: [...nomsDuTerme].slice(0, 2), types: new Set() });
     paires.set(cle, { mots: [forme, par].sort(comparer) as [string, string], indices: new Set<IndiceDePaire>(['synonymes']) });
   }
+  // E16.3 : deux termes UCM synonymes dans le même fichier (`error` et `danger`) donnent une question de choix, même sans place partagée : le kit ne tranche pas.
+  const choixDuDesigner = new Set<string>();
+  const ucmOuForme = (mot: string): boolean => termesUcm.has(mot) || ucmDeLaForme.has(mot);
+  const employes = (mot: string): Set<string> | undefined => {
+    const lus = observes.get(mot)?.noms, remplaces = formesRemplacees.get(mot);
+    return lus || remplaces ? new Set([...lus ?? [], ...remplaces ?? []]) : undefined;
+  };
+  for (const groupe of SYNONYMES_COURANTS) {
+    yield;
+    const presents = groupe.filter((mot) => ucmOuForme(mot) && employes(mot));
+    for (let i = 0; i < presents.length; i++) for (let j = i + 1; j < presents.length; j++) {
+      const [a, b] = [presents[i], presents[j]].sort(comparer) as [string, string];
+      const cle = clePaire(a, b);
+      if (paires.has(cle) || distincts.has(cle) || voulus.has(a) || voulus.has(b)) continue;
+      for (const mot of [a, b]) if (!observes.has(mot)) {
+        const noms = employes(mot)!;
+        segmentsObserves.set(mot, { mot, noms, lieux: new Map(), exemples: [...noms].slice(0, 2), types: new Set() });
+      }
+      paires.set(cle, { mots: [a, b], indices: new Set<IndiceDePaire>(['synonymes']) });
+      choixDuDesigner.add(cle);
+    }
+  }
   for (const { forme, par, noms, autres, exemples } of bloques.values()) ajouterUneForme(forme, par, noms, autres, exemples);
   for (const { forme, par, noms } of gardesEntiers.values()) ajouterUneForme(forme, par, noms, new Set(), [...noms].slice(0, 2));
   // Q-F5 : un synonyme employé seul donne une question quand un seul terme UCM du groupe le remplace ; une forme tolérée qu'aucun renommage ne couvre
@@ -436,15 +506,29 @@ export function* detecterParEtapes(lexique: Lexique, index: IndexDuVocabulaire, 
     if (ucm !== undefined) { ajouterUneForme(mot, ucm, observe.noms, new Set(), observe.exemples); continue; }
     if (termeConnu(mot) || termeDeComposant(mot)) continue;
     for (const fin of ['s', 'es']) {
-      if (!mot.endsWith(fin) || mot.length <= fin.length + 2) continue;
+      if (!mot.endsWith(fin)) continue;
       const base = mot.slice(0, -fin.length);
+      // E16.5 : le pluriel d'une abréviation (`bgs`) est une question comme les autres ; sa base peut n'avoir que deux lettres.
+      if (mot.length <= fin.length + (Object.prototype.hasOwnProperty.call(ABREVIATIONS, base) ? 1 : 2)) continue;
       if (observes.has(base) || !(termeConnu(base) || termeDeComposant(base))) continue;
+      // Un mot qui n'existe qu'à l'intérieur d'un pluriel composé (`rings` dans `focus-rings`) a sa question avec le terme composé.
+      if ([...observe.noms].every((id) => motsDesPlurielsComposes.get(mot)?.has(id))) continue;
       const cle = clePaire(mot, base);
       if (paires.has(cle) || distincts.has(cle) || voulus.has(mot) || voulus.has(base)) continue;
       synthetiques.add(base);
       segmentsObserves.set(base, { mot: base, noms: new Set(), lieux: new Map(), exemples: [], types: new Set() });
       paires.set(cle, { mots: [mot, base].sort(comparer) as [string, string], indices: new Set<IndiceDePaire>(['pluriel']) });
     }
+  }
+  // E16.5 : le pluriel d'un terme composé (`focus-rings`, `selected-falses`) sans son singulier au fichier donne la même question de pluriel.
+  for (const [pluriel, { base, noms }] of plurielsComposes) {
+    if (++operations % TAILLE_D_UN_LOT === 0) yield;
+    const cle = clePaire(pluriel, base);
+    if (paires.has(cle) || distincts.has(cle) || voulus.has(pluriel) || voulus.has(base) || observes.has(base)) continue;
+    synthetiques.add(base);
+    segmentsObserves.set(pluriel, { mot: pluriel, noms: new Set(noms), lieux: new Map(), exemples: [...noms].slice(0, 2), types: new Set() });
+    segmentsObserves.set(base, { mot: base, noms: new Set(), lieux: new Map(), exemples: [], types: new Set() });
+    paires.set(cle, { mots: [pluriel, base].sort(comparer) as [string, string], indices: new Set<IndiceDePaire>(['pluriel']) });
   }
   const observe = (mot: string): MotObserve => observes.get(mot) ?? segmentsObserves.get(mot)!;
 
@@ -453,8 +537,10 @@ export function* detecterParEtapes(lexique: Lexique, index: IndexDuVocabulaire, 
   for (const [cle, candidate] of paires) {
     if (plusTard.has(cle) || !candidate.mots.every((mot) => motsApplicables.has(mot) || (synthetiques.has(mot) && !observes.has(mot)))) continue;
     const [a, b] = candidate.mots.map(observe) as [MotObserve, MotObserve];
-    const propose: 0 | 1 = terme(a).ucm !== terme(b).ucm ? (terme(a).ucm ? 0 : 1)
-      : a.noms.size >= b.noms.size ? 0 : 1;
+    // E16.3 : le terme le plus employé passe en premier ; à égalité, le terme UCM.
+    const propose: 0 | 1 = choixDuDesigner.has(cle) ? (a.noms.size !== b.noms.size ? (a.noms.size > b.noms.size ? 0 : 1) : (terme(a).ucm || !terme(b).ucm ? 0 : 1))
+      : terme(a).ucm !== terme(b).ucm ? (terme(a).ucm ? 0 : 1)
+        : a.noms.size >= b.noms.size ? 0 : 1;
     const indice = ordreIndices.find((valeur) => candidate.indices.has(valeur))!;
     questions.push({ type: 'paire', cle, indice, termes: [terme(a), terme(b)], propose,
       score: yield* scoreDesNoms(a, b, candidate.indices.size) });
@@ -462,7 +548,7 @@ export function* detecterParEtapes(lexique: Lexique, index: IndexDuVocabulaire, 
   }
 
   // Une faute d'un terme connu (D1, D2) : une lettre, ou deux au-dessus de leur seuil, sans place partagée ni nombre d'emplois minimal, même si le terme manque au fichier.
-  const aLire = [...observes.values(), ...[...morceauxObserves.values()].filter((morceau) => !observes.has(morceau.mot))];
+  const aLire = [...observes.values(), ...[...morceauxObserves.values(), ...nomsDeComposant.values()].filter((morceau) => !observes.has(morceau.mot))];
   for (const observe of aLire) {
     yield;
     const mot = observe.mot;
@@ -470,7 +556,9 @@ export function* detecterParEtapes(lexique: Lexique, index: IndexDuVocabulaire, 
     if (longueur < LONGUEUR_MINIMALE_D_UNE_FAUTE_D_UN_MOT_COURT || voulus.has(mot) || termesUcm.has(mot) || !uniquementDesLettres.test(mot)
       || termeOuFormeConnu(mot) || termeDeComposant(mot) || termeSoude(mot) || pluralDeComposant(mot) || !motsApplicables.has(mot)) continue;
     const aUneLettre = termesAUneLettre(mot);
-    const proches = aUneLettre.length > 0 ? aUneLettre : longueur >= LONGUEUR_MINIMALE_D_UNE_FAUTE_A_DEUX_LETTRES ? termesADeuxLettres(mot) : [];
+    // E16.2 : trois lettres exigent qu'un seul terme du kit soit à une lettre du mot. Une abréviation du kit (`btn`) est déjà écartée par `termeOuFormeConnu`.
+    if (longueur === LONGUEUR_MINIMALE_D_UNE_FAUTE_D_UN_MOT_COURT && aUneLettre.length !== 1) continue;
+    const proches =aUneLettre.length > 0 ? aUneLettre : longueur >= LONGUEUR_MINIMALE_D_UNE_FAUTE_A_DEUX_LETTRES ? termesADeuxLettres(mot) : [];
     let reference: string | undefined;
     for (const proche of proches) {
       // N-02 : un terme proche qui est une forme tolérée (`attention`) vaut son terme UCM (`warning`), que le renommage lui substitue.
@@ -495,8 +583,11 @@ export function* detecterParEtapes(lexique: Lexique, index: IndexDuVocabulaire, 
     if (++operations % TAILLE_D_UN_LOT === 0) yield;
     const observe = observes.get(mot);
     if (!observe || voulus.has(mot) || termesUcm.has(mot) || !motsApplicables.has(mot)) continue;
-    const proposition = yield* decoupageAtteste(mot, observe, observes);
-    if (proposition?.some((partie) => voulus.has(partie) || [...partie].length < 3) || (proposition && !proposition.some(termeOuFormeConnu))) continue;
+    const attestee = yield* decoupageAtteste(mot, observe, observes);
+    const attesteeValable = attestee && !attestee.some((partie) => voulus.has(partie) || [...partie].length < 3) && attestee.some(termeOuFormeConnu);
+    // E16.8 (Q-E14-2) : sans découpage attesté au fichier, le mot collé qui se coupe en termes exacts dont un terme de composant (`paddingwidth`) donne la question.
+    const proposition = attesteeValable ? attestee : (attestee ? undefined : decouperEnTermesAvecUnTermeDeComposant(mot));
+    if (proposition?.some((partie) => voulus.has(partie))) continue;
     const cle = `ecriture-du-terme:mots-colles:${[mot, ...(proposition ?? [])].sort(comparer).join('|')}`;
     if (proposition && !plusTard.has(cle)) questions.push({ type: 'ecriture-du-terme', cle, indice: 'mots-colles',
       terme: terme(observe), proposition, score: observe.noms.size });

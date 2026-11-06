@@ -13,8 +13,8 @@ import { COLLECTIONS, FORMES_ANCIENNES_DES_COLLECTIONS } from '../../../src/refe
 import type { Collision, Question, Renommage } from '../../../src/referentiel/index.js';
 import { motConnu } from '../../../src/referentiel/mots-connus.js';
 import { LONGUEUR_MINIMALE_D_UNE_FAUTE_A_UNE_LETTRE, LONGUEUR_MINIMALE_D_UNE_FAUTE_D_UN_MOT_COURT } from '../../../src/referentiel/questions.js';
-import { ABREVIATIONS, REGISTRE_AXES_ETAT, REGISTRES, SYNONYMES_COURANTS } from '../../../src/referentiel/vocabulaire.js';
-import { REGISTRES_ARCHITECTURE, REGISTRES_COMPOSANTS } from '../../../src/referentiel/architecture.js';
+import { ABREVIATIONS, REGISTRES, SYNONYMES_COURANTS } from '../../../src/referentiel/vocabulaire.js';
+import { REGISTRES_ARCHITECTURE } from '../../../src/referentiel/architecture.js';
 import { decouperPourQuestions } from '../../../src/referentiel/termes-connus.js';
 import { motsDeDetection, type Detecteur } from './detecteur.js';
 import { mutationsDe, OPERATEURS_DE_FAUTE } from './mutations.js';
@@ -206,40 +206,26 @@ for (const registre of [...REGISTRES, ...REGISTRES_ARCHITECTURE]) {
 export const termesUcmDeLaForme = (mot: string): readonly string[] => [...(TERMES_DES_FORMES_TOLEREES.get(mot.toLowerCase()) ?? [])];
 
 /**
- * Q-F4 et E2.5 (E2b), puis E15 : une faute d'une lettre se juge sur la longueur du mot fautif. De 7 lettres, le kit la lit toujours. De 4 à 6
- * lettres, il la lit sauf si le mutant est un mot connu (`motConnu`) : `colon` près de `color` est un mot, pas une faute. Sous 4 lettres, `bgg` et
- * `top` ne sont jamais des fautes. Le kit se tait alors volontairement : le cas est mesuré, jamais jugé (rôle `informatif`, comme M-06 en S3).
+ * Q-F4 et E2.5 (E2b), puis E15 et E16.2 : une faute d'une lettre se juge sur la longueur du mot fautif. De 7 lettres, le kit la lit toujours. De 4 à
+ * 6 lettres, il la lit sauf si le mutant est un mot connu (`motConnu`) : `colon` près de `color` est un mot, pas une faute. À 3 lettres, il la lit
+ * aussi quand un seul terme du kit est à une lettre du mutant (`tex` près de `text`) : `tet` touche `text` et `txt`, il reste muet. Sous 3 lettres,
+ * `bg` et `md` ne sont jamais des fautes. Le kit se tait alors volontairement : le cas est mesuré, jamais jugé (rôle `informatif`, comme M-06 en S3).
+ * Sans détecteur, un mutant de 3 lettres n'est écarté que par le dictionnaire.
  */
-export const ECART_SOUS_LE_SEUIL = `faute de moins de ${LONGUEUR_MINIMALE_D_UNE_FAUTE_D_UN_MOT_COURT} lettres, ou mutant de moins de ${LONGUEUR_MINIMALE_D_UNE_FAUTE_A_UNE_LETTRE} lettres qui est un mot connu (Q-F4, E15)`;
-export const estSousLeSeuilDeLongueur = (mot: string): boolean => {
+export const ECART_SOUS_LE_SEUIL = `faute de moins de ${LONGUEUR_MINIMALE_D_UNE_FAUTE_D_UN_MOT_COURT} lettres, mutant de moins de ${LONGUEUR_MINIMALE_D_UNE_FAUTE_A_UNE_LETTRE} lettres qui est un mot connu, ou mutant de ${LONGUEUR_MINIMALE_D_UNE_FAUTE_D_UN_MOT_COURT} lettres à une lettre de plusieurs termes (Q-F4, E15, E16.2)`;
+export const estSousLeSeuilDeLongueur = (mot: string, detecteur?: Detecteur): boolean => {
   const longueur = [...mot].length;
-  return longueur < LONGUEUR_MINIMALE_D_UNE_FAUTE_D_UN_MOT_COURT || (longueur < LONGUEUR_MINIMALE_D_UNE_FAUTE_A_UNE_LETTRE && motConnu(mot));
+  if (longueur < LONGUEUR_MINIMALE_D_UNE_FAUTE_D_UN_MOT_COURT) return true;
+  if (longueur === LONGUEUR_MINIMALE_D_UNE_FAUTE_D_UN_MOT_COURT && detecteur && detecteur.termesProches(mot).length !== 1) return true;
+  return longueur < LONGUEUR_MINIMALE_D_UNE_FAUTE_A_UNE_LETTRE && motConnu(mot);
 };
 
 /**
- * `remplacerLesTermes` (`normalisation.ts`) n'applique les formes de `REGISTRE_AXES_ETAT` (`states`, `status`, `etat`) qu'aux propriétés de
- * variant. Dans un nom de variable, `status` reste `status` : le kit ne le renomme ni ne le questionne, et l'oracle ne l'attend pas.
+ * Le premier segment d'un nom de la collection `components` est le nom du composant (nature `composant`, `natures.ts`). Aucune paire ni aucun mot
+ * collé ne le porte. E16.1 : la faute d'un nom de composant que le kit connaît (`btton` près de `button`) est lue ; la faute d'un nom que le kit ne
+ * connaît pas n'a aucun terme proche et reste muette, donc elle n'est pas attendue.
  */
-export const ECART_AXE_D_ETAT = "forme d'un axe d'états : le registre ne s'applique qu'aux propriétés";
-/** E2c, « Reste » : le kit ne pose pas de question « faute de décision » ; le mainteneur la prend (E14, Q-E14-1). */
-export const QUESTION_AXE_D_ETAT = 'Q-E14-1';
-const FORMES_D_AXE_D_ETAT = new Set(REGISTRE_AXES_ETAT.termes.flatMap((terme) => (terme.toleres ?? []).map((forme) => forme.toLowerCase())));
-export const estUneFormeDAxeDEtat = (mot: string): boolean => FORMES_D_AXE_D_ETAT.has(mot.toLowerCase());
-
-/**
- * E2c, E-04 : les termes de `REGISTRES_COMPOSANTS` (`padding`, `width`, `height`, `gap`) lisent une faute mais n'entrent pas dans le
- * découpage des mots collés. Un mot collé dont une partie est l'un d'eux n'est donc pas attendu.
- */
-/**
- * Le premier segment d'un nom de la collection `components` est le nom du composant (nature `composant`, `natures.ts`) : « un nom de composant
- * n'est pas un mot du vocabulaire », aucune question ne le porte (`questions.ts`). Une faute dans ce segment n'est donc pas attendue.
- */
-export const ECART_NOM_DE_COMPOSANT = 'nom de composant : aucune question ne porte un nom propre';
-
-export const ECART_TERME_DE_COMPOSANT = 'partie qui est un terme de composant, hors du découpage des mots collés (E2c, E-04)';
-/** E2c a choisi de garder ces termes hors du découpage ; le mainteneur n'a pas tranché (E14, Q-E14-2). */
-export const QUESTION_TERME_DE_COMPOSANT = 'Q-E14-2';
-const TERMES_DE_COMPOSANT = new Set(REGISTRES_COMPOSANTS.flatMap((registre) => registre.termes.map((terme) => terme.id.toLowerCase())));
+export const ECART_NOM_DE_COMPOSANT = "nom de composant que le kit ne connaît pas : aucun terme proche, la question n'a rien à proposer (E16.1)";
 /**
  * S13 range la collision de casse ou de séparateur parmi les verdicts `informatif` (`s13`, natures `casse` et `separateur`) : deux noms qui
  * ne diffèrent que par le séparateur ne posent pas de question « même mot ? », la carte « Bloqués » les montre. `fontfamily` et `font-family`
@@ -248,12 +234,10 @@ const TERMES_DE_COMPOSANT = new Set(REGISTRES_COMPOSANTS.flatMap((registre) => r
 export const ECART_SEPARATEUR_SEUL = 'collision de séparateur : mêmes lettres, aucune question « même mot ? » (S13, nature séparateur)';
 export const neDifferentQueParLeSeparateur = (a: string, b: string): boolean => a.toLowerCase().replace(/[-_ ]/g, '') === b.toLowerCase().replace(/[-_ ]/g, '');
 
-export const estUnTermeDeComposant = (mot: string): boolean => TERMES_DE_COMPOSANT.has(mot.toLowerCase());
-
 /** Une faute `mot` attendue près de `reference` : une question faute sur `mot` dont la référence est `reference` ou un autre terme proche. */
 export function jugerUneFaute(cas: Pick<Scenario, 'id' | 'strate' | 'operateur' | 'axes' | 'oracle' | 'provisoire'>, sortie: Sortie, ctx: ContexteOracle,
   mot: string, reference: string, proprietes: readonly string[], donne: Partial<Option> = {}): Verdict {
-  const extra: Partial<Option> = donne.role === undefined && estSousLeSeuilDeLongueur(mot) ? { role: 'informatif', ecarts: [ECART_SOUS_LE_SEUIL], ...donne } : donne;
+  const extra: Partial<Option> = donne.role === undefined && estSousLeSeuilDeLongueur(mot, ctx.detecteur) ? { role: 'informatif', ecarts: [ECART_SOUS_LE_SEUIL], ...donne } : donne;
   const proches = ctx.detecteur.termesProches(mot);
   if (!proches.includes(reference)) {
     return verdict({ ...cas, oracle: false }, sortie, { proprietes, attendu: true, ok: !!fauteSur(sortie, mot), mot, reference,
@@ -288,6 +272,10 @@ export const dispense = (verdicts: readonly Verdict[], ecart: string, question?:
     return { ...v, role: 'informatif' as const, ecarts: echec ? [ecart] : v.ecarts };
   });
 
+/** Comme `dispense` sans question en attente, mais seuls les échecs passent en `informatif` : un cas que le kit réussit reste compté détecté. */
+export const dispenseLesEchecs = (verdicts: readonly Verdict[], ecart: string): Verdict[] =>
+  verdicts.map((v) => (v.role === 'oracle' && (v.issue === 'manque' || v.issue === 'faux-positif') ? { ...v, role: 'informatif' as const, ecarts: [ecart] } : v));
+
 const horsPlacePartagee = (sortie: Sortie, mot: string, reference: string) => !partagentUnePlace(sortie.noms, mot, reference);
 
 function s1ou2(cas: Scenario, sortie: Sortie, ctx: ContexteOracle): Verdict[] {
@@ -321,11 +309,6 @@ function s4(cas: Scenario, sortie: Sortie): Verdict[] {
 // ---------------------------------------------------------------------------------------------------------------- S5, S6
 
 function s5(cas: Scenario, sortie: Sortie): Verdict[] {
-  if (estUneFormeDAxeDEtat(cas.terme.split(':')[1])) return dispense(s5Brut(cas, sortie), ECART_AXE_D_ETAT, QUESTION_AXE_D_ETAT);
-  return s5Brut(cas, sortie);
-}
-
-function s5Brut(cas: Scenario, sortie: Sortie): Verdict[] {
   const { mot, reference } = cas.attendus[0];
   const morceaux = mot!.split('-').filter((morceau) => !['thin', 'strong', '2'].includes(morceau));
   const nom = sortie.noms.findIndex((n) => contient(n.nom, mot!));
@@ -355,8 +338,7 @@ export function termesUcmDuMot(mot: string): readonly string[] {
   return [...ucm];
 }
 
-export const ECART_SYNONYME_EN_CASSE_MIXTE = 'synonyme dans un mot de casse mixte : le kit ne lit pas ses morceaux comme des mots (PLAN-VOCABULAIRE)';
-export const QUESTION_SYNONYME_EN_CASSE_MIXTE = 'Q-E14-3';
+export const ECART_SYNONYME_EN_CASSE_MIXTE = 'synonyme dans un mot de casse mixte : le kit ne lit pas ses morceaux comme des mots, Q-E14-3 refusée (PLAN-VOCABULAIRE)';
 export const ECART_MUTANT_UCM = 'le mutant est un terme UCM : le nom reste juste (Q-F5)';
 export const ECART_TERME_UCM_NON_UNIQUE = 'terme UCM non unique : information sans action, que le kit ne pose pas (Q-F5)';
 export const estUnTermeUcm = (mot: string): boolean => IDENTIFIANTS_UCM.has(mot.toLowerCase());
@@ -384,7 +366,6 @@ function s6(cas: Scenario, sortie: Sortie, ctx: ContexteOracle): Verdict[] {
   if (!analyse) throw new Error(`S6 : terme illisible ${cas.terme}`);
   const [, source, a, b] = analyse;
   const verdicts = s6Brut(cas, sortie, ctx);
-  if (source.startsWith('tolere') && estUneFormeDAxeDEtat(a)) return dispense(verdicts, ECART_AXE_D_ETAT, QUESTION_AXE_D_ETAT);
   return source.startsWith('tolere') && neDifferentQueParLeSeparateur(a, b) ? dispense(verdicts, ECART_SEPARATEUR_SEUL) : verdicts;
 }
 
@@ -458,12 +439,7 @@ function traitementDeLaPaire(sortie: Sortie, a: string, b: string): { trouve: bo
   return { trouve: false, detail: 'ni question ni renommage' };
 }
 
-/**
- * E2c, « Reste » : `bgs` (une abréviation) et le pluriel d'un terme composé (`focus-rings`, `selected-falses`) sont des mots que le découpage ne
- * rattache pas à leur singulier. Le kit ne pose pas de question de pluriel pour eux, et le mainteneur ne l'a pas décidée.
- */
-export const ECART_PLURIEL_D_UN_TERME_COMPOSE = "pluriel d'une abréviation ou d'un terme composé : aucune question de pluriel (E2c, « Reste »)";
-export const QUESTION_PLURIEL_D_UN_TERME_COMPOSE = 'Q-E14-5';
+// E16.5 (Q-E14-5) : `bgs` (une abréviation) et le pluriel d'un terme composé (`focus-rings`, `selected-falses`) donnent la question de pluriel, comme les autres termes.
 
 function s7(cas: Scenario, sortie: Sortie, ctx: ContexteOracle): Verdict[] {
   const { propriete, mot, reference } = cas.attendus[0];
@@ -472,10 +448,9 @@ function s7(cas: Scenario, sortie: Sortie, ctx: ContexteOracle): Verdict[] {
   if (propriete === 'P-13' && cas.terme.includes(':') && !cas.terme.startsWith('dictionnaire:')) {
     const renomme = renommeLeMot(sortie, mot!);
     const question = questionAutour(sortie, [mot!]);
-    const jugee = [verdict(cas, sortie, { proprietes: ['P-13'], attendu: true, ok: !!renomme || !!question, mot, reference,
+    return [verdict(cas, sortie, { proprietes: ['P-13'], attendu: true, ok: !!renomme || !!question, mot, reference,
       role: informatif ? 'informatif' : undefined, cle: question?.cle,
       detail: renomme ? `renommage ${renomme.ancienNom} -> ${renomme.nouveauNom}` : question ? `question ${question.cle}` : `ni renommage ni question pour ${mot}`, ecarts: ['E-10'] })];
-    return dispense(jugee, ECART_PLURIEL_D_UN_TERME_COMPOSE, QUESTION_PLURIEL_D_UN_TERME_COMPOSE);
   }
   const cle = clePaire(mot!, reference!);
   const traitement = traitementDeLaPaire(sortie, mot!, reference!);
@@ -547,10 +522,10 @@ function jugerUnSoude(cas: Scenario, sortie: Sortie, soude: string, reference: s
     ecarts: ['nouveau'], ...extra });
 }
 
+/** E16.8 (Q-E14-2) : un mot collé dont une partie est un terme de composant (`paddingwidth`) donne la question de mot collé, comme les autres. */
 function s10(cas: Scenario, sortie: Sortie): Verdict[] {
   const { mot, reference } = cas.attendus[0];
-  const verdicts = [jugerUnSoude(cas, sortie, mot!, reference!)];
-  return reference!.split(' ').some(estUnTermeDeComposant) ? dispense(verdicts, ECART_TERME_DE_COMPOSANT, QUESTION_TERME_DE_COMPOSANT) : verdicts;
+  return [jugerUnSoude(cas, sortie, mot!, reference!)];
 }
 
 // ---------------------------------------------------------------------------------------------------------------- S11
@@ -597,14 +572,14 @@ function s11(cas: Scenario, sortie: Sortie, ctx: ContexteOracle): Verdict[] {
     const reponse = reponseDeBranches(sortie, a!, b!, nature);
     const jugees = [verdict(cas, sortie, { proprietes: ['P-18'], attendu: true, ok: reponse.ok, mot: b, reference: a, cle: reponse.cle, role: dispositionDuLot2 ? 'informatif' : undefined,
       detail: `${reponse.detail} (${parametres}${dispositionDuLot2 ? ', disposition du lot 2' : ''})`, ecarts: ecart })];
-    return nature === 'faute' && estSousLeSeuilDeLongueur(b!) ? dispense(jugees, ECART_SOUS_LE_SEUIL) : jugees;
+    return nature === 'faute' && estSousLeSeuilDeLongueur(b!, ctx.detecteur) ? dispense(jugees, ECART_SOUS_LE_SEUIL) : jugees;
   }
   if (nature === 'distincts') {
     const attendu = attenduPourLaPaire(a!, b!, ctx);
     if (attendu === 'question') {
       const jugees = [verdict(cas, sortie, { proprietes: ['P-18'], attendu: true, ok: !!question, mot: b, reference: a, cle: question?.cle,
         detail: `${question ? `question ${question.cle}` : `aucune question sur ${a} et ${b}`}, paire que le classement tient pour une forme du même mot (${parametres})`, ecarts: ['nouveau'] })];
-      return estSousLeSeuilDeLongueur(b!) && estSousLeSeuilDeLongueur(a!) ? dispense(jugees, ECART_SOUS_LE_SEUIL) : jugees;
+      return estSousLeSeuilDeLongueur(b!, ctx.detecteur) && estSousLeSeuilDeLongueur(a!, ctx.detecteur) ? dispense(jugees, ECART_SOUS_LE_SEUIL) : jugees;
     }
   }
   // Une paire que ni formes.json ni l'écriture à la main du plan ne classe n'attend pas le silence : comme en S15, elle est mesurée sans être jugée.
@@ -684,7 +659,6 @@ export function collisionsSansQuestion(sortie: Sortie): Collision[] {
 function s13(cas: Scenario, sortie: Sortie, ctx: ContexteOracle): Verdict[] {
   const { mot: forme, reference: terme } = cas.attendus[0];
   const verdicts = s13Brut(cas, sortie, ctx);
-  if (forme !== undefined && estUneFormeDAxeDEtat(forme)) return dispense(verdicts, ECART_AXE_D_ETAT, QUESTION_AXE_D_ETAT);
   return forme !== undefined && terme !== undefined && neDifferentQueParLeSeparateur(forme, terme) ? dispense(verdicts, ECART_SEPARATEUR_SEUL) : verdicts;
 }
 
@@ -758,9 +732,9 @@ function s15(cas: Scenario, sortie: Sortie, ctx: ContexteOracle): Verdict[] {
 export const ECART_CANDIDATS_MULTIPLES = "la question ne liste qu'un terme : un champ de candidats n'existe pas dans `Question`";
 export const QUESTION_CANDIDATS_MULTIPLES = 'Q-E14-4';
 
-function s17(cas: Scenario, sortie: Sortie): Verdict[] {
+function s17(cas: Scenario, sortie: Sortie, ctx: ContexteOracle): Verdict[] {
   const { mot } = cas.attendus[0];
-  if (estSousLeSeuilDeLongueur(mot!)) return dispense(s17Brut(cas, sortie), ECART_SOUS_LE_SEUIL);
+  if (estSousLeSeuilDeLongueur(mot!, ctx.detecteur)) return dispense(s17Brut(cas, sortie), ECART_SOUS_LE_SEUIL);
   return dispense(s17Brut(cas, sortie), ECART_CANDIDATS_MULTIPLES, QUESTION_CANDIDATS_MULTIPLES);
 }
 
@@ -778,7 +752,7 @@ function s17Brut(cas: Scenario, sortie: Sortie): Verdict[] {
 
 const JUGES: Readonly<Record<string, (cas: Scenario, sortie: Sortie, ctx: ContexteOracle) => Verdict[]>> = {
   S1: s1ou2, S2: s1ou2, S3: s3, S4: (cas, sortie) => s4(cas, sortie), S5: (cas, sortie) => s5(cas, sortie), S6: s6, S7: s7, S8: s8, S9: s9,
-  S10: (cas, sortie) => s10(cas, sortie), S11: s11, S12: (cas, sortie) => s12(cas, sortie), S13: s13, S14: s14, S15: s15, S17: (cas, sortie) => s17(cas, sortie),
+  S10: (cas, sortie) => s10(cas, sortie), S11: s11, S12: (cas, sortie) => s12(cas, sortie), S13: s13, S14: s14, S15: s15, S17: s17,
 };
 
 /** Les verdicts d'un cas synthétique (toutes les strates sauf S16, jugée site par site par `execution.ts`). */

@@ -75,8 +75,12 @@ test('le modèle d’états sépare les avertissements des termes tolérés, dan
   ]);
 });
 
-test('un axe État ou Etat est l’axe d’états : il quitte les props et le modèle d’états le publie', () => {
-  for (const nom of ['State', 'States', 'Status', 'État', 'Etat']) {
+test('un axe État ou Etat est l’axe d’états : il quitte les props et le modèle d’états le publie ; Status reste une prop (E16.4)', () => {
+  const { modele: statut } = lireLeModeleDeProprietes(definitions({
+    'Status#1:1': { type: 'VARIANT', defaultValue: 'Default', variantOptions: ['Default', 'Hover'] },
+  }));
+  assert.deepEqual(Object.keys(statut.props), ['status']);
+  for (const nom of ['State', 'States', 'État', 'Etat']) {
     const { modele } = lireLeModeleDeProprietes(definitions({
       [`${nom}#1:1`]: { type: 'VARIANT', defaultValue: 'Default', variantOptions: ['Default', 'Hover'] },
     }));

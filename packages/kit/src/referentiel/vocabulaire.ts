@@ -93,6 +93,9 @@ export const MOTS_DISTINCTS: readonly (readonly [string, string])[] = [
   ['subtle', 'subtler'], ['swatch', 'switch'], ['tab', 'tag'], ['table', 'tablet'], ['thick', 'tick'], ['three', 'tree'],
   ['tile', 'time'], ['tile', 'title'], ['tip', 'top'], ['width', 'with'], ['xlarge', 'xxlarge'], ['xxl', 'xxs'], ['xxl', 'xxxl'],
   ['constant', 'content'], ['selected', 'selector'], ['subtitle', 'subtle'],
+  ['cap', 'gap'], ['colon', 'color'], ['focus', 'locus'], ['fill', 'film'], ['next', 'text'], ['icon', 'iron'], ['bold', 'bolt'],
+  ['mate', 'mute'], ['tent', 'tint'], ['tone', 'zone'], ['base', 'vase'], ['pace', 'race'], ['sire', 'size'], ['card', 'cord'],
+  ['nose', 'rose'], ['mask', 'task'], ['wide', 'wine'], ['pill', 'pull'],
 ];
 
 export const ECHELLES_DE_TAILLES = [
@@ -155,7 +158,7 @@ export const ETATS_FRANCAIS_INTERACTIFS: readonly string[] = ['survol'];
 export const REGISTRE_AXES_ETAT: Registre = {
   id: 'axes-etat', extensible: false,
   termes: [
-    { id: 'state', toleres: ['states', 'status', 'etat', 'état'], libelle: { fr: 'État', en: 'State' }, definition: { fr: 'Axe qui décrit les états du composant.', en: 'Axis describing component states.' } },
+    { id: 'state', toleres: ['states', 'etat', 'état'], libelle: { fr: 'État', en: 'State' }, definition: { fr: 'Axe qui décrit les états du composant.', en: 'Axis describing component states.' } },
   ],
 };
 

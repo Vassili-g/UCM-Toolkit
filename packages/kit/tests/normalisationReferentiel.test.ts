@@ -89,12 +89,18 @@ test('les termes tolérés restent inchangés sans option et respectent la casse
   assert.equal(normaliserLesNoms([nom('Press')], {}, { termesUcm: true }).propositions[0].nouveauNom, 'Pressed');
 });
 
-test('les axes tolérés ne se remplacent que dans les propriétés', () => {
-  const noms = ['collections', 'variables', 'proprietes', 'valeurs'].flatMap((categorie) => ['status', 'states'].map((mot) => nom(mot, `${categorie}-${mot}`, 'scope', categorie as CategorieDeNom)));
+test('les formes tolérées de l’axe d’états se remplacent dans chaque catégorie, sauf status (E16.4)', () => {
+  const noms = ['collections', 'variables', 'proprietes', 'valeurs'].flatMap((categorie) => ['status', 'states'].map((mot) => nom(`${categorie}-${mot}`, `${categorie}-${mot}`, 'scope', categorie as CategorieDeNom)));
   const resultat = normaliserLesNoms(noms, {}, { termesUcm: true });
-  assert.equal(resultat.propositions.length, 0);
-  assert.deepEqual(resultat.collisions, [{ categorie: 'proprietes', portee: 'scope', nom: 'state', ids: ['proprietes-status', 'proprietes-states'] }]);
-  assert.equal(normaliserLesNoms([nom('status', 'prop', 'button', 'proprietes')], {}, { termesUcm: true }).propositions[0].nouveauNom, 'state');
+  assert.deepEqual(resultat.propositions.map((proposition) => [proposition.id, proposition.nouveauNom]), [
+    ['collections-states', 'collections-state'], ['variables-states', 'variables-state'], ['proprietes-states', 'proprietes-state'], ['valeurs-states', 'valeurs-state'],
+  ]);
+  assert.deepEqual(resultat.collisions, []);
+  assert.equal(normaliserLesNoms([nom('status', 'prop', 'button', 'proprietes')], {}, { termesUcm: true }).propositions.length, 0);
+  assert.equal(normaliserLesNoms([nom('status/success', 'v', 'button', 'variables')], {}, { termesUcm: true }).propositions.length, 0, 'status/success ne change pas');
+  for (const [ancien, categorie, attendu] of [['button/etat/hover', 'variables', 'button/state/hover'], ['button/states/hover', 'groupes', 'button/state/hover'], ['état', 'proprietes', 'state']] as const) {
+    assert.equal(normaliserLesNoms([nom(ancien, ancien, 'button', categorie)], {}, { termesUcm: true }).propositions[0]?.nouveauNom, attendu, ancien);
+  }
 });
 
 test('les collisions incluent les noms inchangés et respectent catégorie et portée', () => {

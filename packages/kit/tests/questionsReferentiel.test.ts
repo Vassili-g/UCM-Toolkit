@@ -47,7 +47,9 @@ test('abréviations et synonymes utilisent les tables du référentiel', () => {
   assert.equal(contenu?.type === 'paire' && contenu.termes[contenu.propose].mot, 'foreground');
   assert.equal(contenu?.score, 4);
   // Formes tolérées du référentiel (décisions C01 et T03) : remplacées sans question tant que rien ne bloque le renommage.
-  assert.deepEqual(paires([nom('a', 'palette/bg/solid'), nom('c', 'states/danger/solid'), nom('d', 'states/error/solid', 'collection-2')]), []);
+  assert.deepEqual(paires([nom('a', 'palette/bg/solid'), nom('c', 'states/danger/solid')]), []);
+  // E16.3 : `error` et `danger` dans le même fichier, même sans place partagée, demandent au designer de choisir.
+  assert.deepEqual(paires([nom('a', 'palette/bg/solid'), nom('c', 'states/danger/solid'), nom('d', 'states/error/solid', 'collection-2')]), ['paire:danger|error']);
   // E-08 : quand le terme UCM occupe déjà le nom visé, le renommage est retiré pour collision et une question prend le relais.
   assert.deepEqual(paires([nom('a', 'palette/bg/solid'), nom('b', 'palette/background/solid'),
     nom('c', 'states/danger/solid'), nom('d', 'states/error/solid')]), ['paire:background|bg', 'paire:danger|error']);
@@ -131,12 +133,10 @@ test('une faute ou un mot collé d’un seul nom arrive dans les questions, pas 
   assert.equal(motColle?.score, 1);
 });
 
-test('un mot de moins de quatre lettres ne donne jamais de faute (E15)', () => {
+test('un mot de deux lettres ou moins ne donne jamais de faute (E15, E16.2)', () => {
   assert.equal(LONGUEUR_MINIMALE_D_UNE_FAUTE_A_UNE_LETTRE, 7);
-  assert.equal(LONGUEUR_MINIMALE_D_UNE_FAUTE_D_UN_MOT_COURT, 4);
-  assert.equal(motConnu('bgg'), false, 'bgg n’est pas dans le dictionnaire : seule sa longueur le protège');
-  assert.deepEqual(fautes([nom('a', 'button/bgg/text')]), [], 'trois lettres, à une lettre de bg et de bgs');
-  assert.deepEqual(fautes([nom('a', 'button/sm/text'), nom('b', 'button/smm/text')]), [], 'deux et trois lettres');
+  assert.equal(LONGUEUR_MINIMALE_D_UNE_FAUTE_D_UN_MOT_COURT, 3);
+  assert.deepEqual(fautes([nom('a', 'button/sm/text'), nom('b', 'button/gp/text'), nom('c', 'button/md/text'), nom('d', 'button/bg/text')]), [], 'deux lettres');
   assert.deepEqual(fautes([nom('a', 'set/cot/value'), nom('b', 'set/cat/value')]), [], 'cat et cot ne sont pas des termes connus');
   assert.equal(fautes([nom('a', 'button/warnning/text')]).length, 1, 'sept lettres : la règle d’E2b ne change pas');
 });
@@ -156,13 +156,14 @@ test('un mot de 4 à 6 lettres à une lettre d’un terme connu est une faute s�
 
 test('un mot connu ne devient jamais une faute (E15)', () => {
   for (const mot of ['next', 'colon', 'color', 'text', 'icon', 'item', 'hover', 'colors']) assert.deepEqual(fautes([nom('a', `button/${mot}/text`)]), [], mot);
-  // Sans le dictionnaire, `next` serait une faute de `text` et `colon` une faute de `color`.
+  // Sans le dictionnaire, `cover` serait une faute de `hover` et `dagger` une faute de `danger`. `next` et `colon` restent muets sans lui depuis E16.6 : ils sont des mots distincts de `text` et de `color`.
   remplacerLesMotsConnus([]);
   try {
-    assert.deepEqual(fautes([nom('a', 'button/next/text')]).map((q) => q.proposition[0]), ['text']);
-    assert.deepEqual(fautes([nom('a', 'button/colon/text')]).map((q) => q.proposition[0]), ['color']);
+    assert.deepEqual(fautes([nom('a', 'button/cover/text')]).map((q) => q.proposition[0]), ['hover']);
+    assert.deepEqual(fautes([nom('a', 'button/dagger/text')]).map((q) => q.proposition[0]), ['danger']);
+    assert.deepEqual(fautes([nom('a', 'button/next/text')]), [], 'E16.6');
   } finally { remplacerLesMotsConnus(); }
-  assert.deepEqual(fautes([nom('a', 'button/next/text')]), []);
+  assert.deepEqual(fautes([nom('a', 'button/cover/text')]), []);
 });
 
 test('au-dessus de six lettres, le dictionnaire n’est pas lu (E15)', () => {
@@ -176,11 +177,12 @@ test('au-dessus de six lettres, le dictionnaire n’est pas lu (E15)', () => {
 
 test('le dictionnaire des mots connus tient son format (E15)', () => {
   for (const mot of ['next', 'colon', 'under', 'light', 'shadow', 'radius', 'border']) assert.ok(motConnu(mot), mot);
-  for (const mot of ['colr', 'hovr', 'bordr', 'bgg', 'sm', 'backgrond']) assert.equal(motConnu(mot), false, mot);
+  for (const mot of ['colr', 'hovr', 'bordr', 'tex', 'gao', 'sm', 'backgrond']) assert.equal(motConnu(mot), false, mot);
+  for (const mot of ['cap', 'cat', 'btn', 'cjk']) assert.ok(motConnu(mot), `${mot} : un mot anglais ou un segment de design system de 3 lettres (E16.2)`);
   assert.ok(motConnu('NEXT'), 'la casse ne change rien');
   const mots = motsAnglaisConnus();
   assert.ok(mots.length >= 10_000 && mots.length <= 20_000, `${mots.length} mots anglais`);
-  assert.ok(mots.every((mot) => /^[a-z]{4,6}$/.test(mot)), 'minuscules, de 4 à 6 lettres');
+  assert.ok(mots.every((mot) => /^[a-z]{3,6}$/.test(mot)), 'minuscules, de 3 à 6 lettres (E16.2)');
   assert.equal(new Set(mots).size, mots.length, 'sans doublon');
   assert.ok(readFileSync(new URL('../src/referentiel/mots-connus-donnees.ts', import.meta.url)).length <= 200_000, '200 Ko au plus');
   assert.match(readFileSync(new URL('../src/referentiel/mots-connus.LICENCE.txt', import.meta.url), 'utf8'), /Kevin Atkinson/u, 'la notice de licence est à côté du module');
@@ -360,7 +362,7 @@ test('une forme tolérée dont le renommage est bloqué par une collision pose u
   assert.equal(question.cle, 'paire:divider|separator');
   assert.equal(question.indice, 'synonymes');
   assert.equal(question.termes[question.propose].mot, 'divider', 'le terme UCM est proposé');
-  assert.deepEqual(questions([nom('a', 'theme/separator/fill'), nom('b', 'theme/divider/stroke')]), [], 'aucune collision, le renommage passe sans question');
+  assert.deepEqual(paires([nom('a', 'theme/separator/fill'), nom('b', 'theme/divider/stroke')]), ['paire:divider|separator'], 'E16.3 : sans collision, les deux termes UCM dans le fichier posent la question de choix');
   assert.deepEqual(questions([nom('a', 'theme/separator/fill')]), [], 'seule, la forme se renomme');
   assert.deepEqual(paires(freres, { ...vide, distincts: [['divider', 'separator']] }), []);
   assert.deepEqual(paires(freres, { ...vide, plusTard: ['paire:divider|separator'] }), []);
@@ -622,4 +624,77 @@ test('une faute dans la forme soudée d’un terme de plusieurs mots est lue, et
   assert.deepEqual(lues('type/borderwiddth'), [['borderwiddth', 'border-width', 'border-width']]);
   assert.deepEqual(lues('type/foregroundmaain'), [['foregroundmaain', 'foreground-main', 'foreground-main']]);
   assert.deepEqual(lues('type/fontstyle'), [], 'le terme soudé lui-même est juste');
+});
+
+// E16.1 (nom de composant), E16.2 (trois lettres), E16.3 (synonymes UCM), E16.4 (axe d'états), E16.5 (pluriels), E16.8 (termes de composant collés).
+
+test('la faute d’un nom de composant que le kit connaît est lue, un nom inconnu reste muet (E16.1)', () => {
+  const noms = (composant: string) => [nom('a', `components/${composant}/background`)];
+  assert.equal(lexique(noms('btton')).natures.get('a')?.[1], 'composant', 'le segment est bien un nom de composant');
+  for (const faute of ['btton', 'buttono', 'btuton']) assert.deepEqual(fautes(noms(faute)).map((q) => [q.terme.mot, q.proposition[0]]), [[faute, 'button']], faute);
+  assert.deepEqual(fautes(noms('buttons')), [], 'un pluriel reste un pluriel');
+  assert.deepEqual(paires(noms('buttons')), [], 'un nom de composant ne fait pas de paire');
+  assert.deepEqual(fautes(noms('chip')), [], 'un composant que le kit ne connaît pas');
+  assert.deepEqual(fautes(noms('button')), []);
+  assert.deepEqual(fautes(noms('Switch')), [], 'un mot connu du dictionnaire');
+  assert.deepEqual(fautes(noms('BackTlp')).map((q) => [q.terme.mot, q.proposition[0]]), [['tlp', 'top']], 'le morceau d’un nom en casse mixte');
+  assert.deepEqual(fautes(noms('BackTop')), []);
+  assert.deepEqual(fautes(noms('ButtonGroup')), []);
+});
+
+test('trois lettres : une faute quand le mot est inconnu et qu’un seul terme du kit est à une lettre de lui (E16.2)', () => {
+  const proposition = (mot: string) => fautes([nom('a', `button/${mot}/text`)]).map((q) => q.proposition[0]);
+  assert.deepEqual(proposition('tex'), ['text']);
+  assert.deepEqual(proposition('sze'), ['size']);
+  assert.deepEqual(proposition('gao'), ['gap']);
+  for (const mot of ['bg', 'btn', 'md', 'gp', 'txt']) assert.deepEqual(proposition(mot), [], `${mot} n'est pas une faute`);
+  // Un mot connu du dictionnaire n'est pas une faute : `age` est un mot, à une lettre de `page` seulement.
+  assert.ok(motConnu('age'));
+  assert.deepEqual(proposition('age'), []);
+  remplacerLesMotsConnus([]);
+  try { assert.deepEqual(proposition('age'), ['page']); } finally { remplacerLesMotsConnus(); }
+  // Deux termes du kit à une lettre (`gap` et `top`) : le kit ne choisit pas.
+  assert.equal(motConnu('gop'), false);
+  assert.deepEqual(proposition('gop'), []);
+  // Aucun terme à une lettre.
+  assert.deepEqual(proposition('zqx'), []);
+});
+
+test('deux termes UCM synonymes dans le même fichier donnent une question de choix, un seul n’en donne pas (E16.3)', () => {
+  const ensemble = [nom('a', 'colors/danger/fill'), nom('b', 'layout/error/fill', 'collection-2'), nom('c', 'layout/error/stroke', 'collection-2')];
+  const question = questions(ensemble).find((q) => q.type === 'paire');
+  assert.ok(question?.type === 'paire');
+  assert.equal(question.cle, 'paire:danger|error');
+  assert.equal(question.indice, 'synonymes');
+  assert.equal(question.termes[question.propose].mot, 'error', 'le terme le plus employé passe en premier');
+  assert.deepEqual(question.termes.map((terme) => [terme.mot, terme.nombre]), [['danger', 1], ['error', 2]]);
+  assert.deepEqual(paires([nom('a', 'colors/danger/fill')]), [], 'danger seul');
+  assert.deepEqual(paires([nom('a', 'colors/error/fill')]), [], 'error seul');
+  assert.deepEqual(paires([nom('a', 'colors/divider/fill'), nom('b', 'layout/separator/fill')]), ['paire:divider|separator']);
+  assert.deepEqual(paires(ensemble, { ...vide, distincts: [['danger', 'error']] }), []);
+  assert.deepEqual(paires(ensemble, { ...vide, voulus: ['error'] }), []);
+  assert.deepEqual(paires(ensemble, { ...vide, plusTard: ['paire:danger|error'] }), []);
+});
+
+test('une abréviation ou un terme composé au pluriel donne la question de pluriel (E16.5)', () => {
+  assert.deepEqual(paires([nom('a', 'button/bgs/fill')]), ['paire:bg|bgs']);
+  assert.deepEqual(paires([nom('a', 'button/focus-rings/fill')]), ['paire:focus-ring|focus-rings'], 'une seule question, pas `ring` et `rings`');
+  assert.deepEqual(paires([nom('a', 'button/selected-falses/fill')]), ['paire:selected-false|selected-falses']);
+  assert.deepEqual(paires([nom('a', 'button/bg/fill')]), [], 'le singulier seul');
+  assert.deepEqual(paires([nom('a', 'button/focus-ring/fill')]), []);
+  assert.deepEqual(paires([nom('a', 'button/bgs/fill')], { ...vide, distincts: [['bg', 'bgs']] }), []);
+  assert.deepEqual(paires([nom('a', 'button/rings/fill')]), ['paire:ring|rings'], 'un pluriel simple garde sa question');
+});
+
+test('un mot collé de termes exacts dont un terme de composant donne la question « écrire padding-width » (E16.8)', () => {
+  const colle = (chemin: string) => questions([nom('a', chemin)]).filter((q) => q.type === 'ecriture-du-terme' && q.indice === 'mots-colles');
+  const [question] = colle('button/paddingwidth');
+  assert.ok(question?.type === 'ecriture-du-terme');
+  assert.deepEqual(question.proposition, ['padding', 'width']);
+  assert.equal(question.cle, 'ecriture-du-terme:mots-colles:padding|paddingwidth|width');
+  assert.deepEqual(colle('button/padding'), [], 'un terme de composant seul');
+  assert.deepEqual(colle('button/paddingx'), [], 'le terme soudé padding-x');
+  assert.deepEqual(colle('button/iconsizee'), [], 'aucun terme de composant exact');
+  assert.deepEqual(questions([nom('a', 'button/paddingwidth')], { ...vide, voulus: ['padding'] }).filter((q) => q.type === 'ecriture-du-terme'), []);
+  assert.deepEqual(questions([nom('a', 'button/paddingwidth')], { ...vide, plusTard: [question.cle] }).filter((q) => q.type === 'ecriture-du-terme'), []);
 });

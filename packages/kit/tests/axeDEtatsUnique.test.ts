@@ -8,22 +8,24 @@ import {
   type CatalogueDeReference, type Constat, type LayerLu, type ReleveDeComposant, type VariantLu,
 } from '../src/controles/index.js';
 
-const AXES_D_ETATS = ['State', 'States', 'Status', 'État', 'Etat', 'STATE', 'état'];
+// E16.4 : `status` n'a pas le sens de `state`, il sort des formes tolérées.
+const AXES_D_ETATS = ['State', 'States', 'État', 'Etat', 'STATE', 'état'];
 
-test('estLAxeDEtats reconnaît State, States, Status, État et Etat, et rien d’autre', () => {
+test('estLAxeDEtats reconnaît State, States, État et Etat, et rien d’autre, Status compris (E16.4)', () => {
   for (const nom of AXES_D_ETATS) assert.equal(estLAxeDEtats(nom), true, nom);
-  for (const nom of ['Size', 'State Type', 'Stateful', 'Statut', 'Color', '']) assert.equal(estLAxeDEtats(nom), false, nom);
+  for (const nom of ['Size', 'State Type', 'Stateful', 'Statut', 'Status', 'status', 'Color', '']) assert.equal(estLAxeDEtats(nom), false, nom);
 });
 
 test('STATE_AXIS_NAMES est la liste du registre : l’identifiant, puis ses formes tolérées', () => {
   const [terme] = REGISTRE_AXES_ETAT.termes;
   assert.deepEqual(STATE_AXIS_NAMES, [terme.id, ...(terme.toleres ?? [])]);
-  assert.deepEqual(STATE_AXIS_NAMES, ['state', 'states', 'status', 'etat', 'état']);
+  assert.deepEqual(STATE_AXIS_NAMES, ['state', 'states', 'etat', 'état']); // E16.4 : sans `status`
 });
 
 test('le nommage lit l’axe d’états sous chaque écriture', () => {
   for (const nom of AXES_D_ETATS) assert.equal(axeDePropriete(nom), 'etat', nom);
   assert.equal(axeDePropriete('Size'), 'taille');
+  assert.notEqual(axeDePropriete('Status'), 'etat', 'E16.4 : Status est un mot à part');
 });
 
 const racine = (largeur: number): LayerLu => ({
