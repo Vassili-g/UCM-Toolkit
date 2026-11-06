@@ -11,13 +11,16 @@ const path = require('path');
 /**
  * Chaque processus compile dans son propre fichier : les tests tournent en parallèle, et un processus qui lisait le fichier commun
  * pendant qu'un autre le réécrivait recevait un module tronqué (`projetLibre is not a function`). La copie sous le nom commun sert
- * à `tests/interface/aide.mjs`, que `test:ui` lance seul.
+ * à `tests/interface/aide.mjs`, que `test:ui` lance seul. Le fichier propre s'efface une fois chargé.
  */
+const fichierDuProcessus = (nom) => path.resolve(__dirname, `../../dist/${nom}.${process.pid}.cjs`);
 function compiler(entree, nom) {
-  const propre = path.resolve(__dirname, `../../dist/${nom}.${process.pid}.cjs`);
+  const propre = fichierDuProcessus(nom);
   require('esbuild').buildSync({ entryPoints: [entree], outfile: propre, bundle: true, format: 'cjs', platform: 'node' });
   try { require('fs').copyFileSync(propre, path.resolve(__dirname, `../../dist/${nom}.cjs`)); } catch { /* un autre processus copie le même contenu */ }
-  return require(propre);
+  const module = require(propre);
+  require('fs').rmSync(propre, { force: true });
+  return module;
 }
 const { projetLibre, cinqCollections, grandReleve, constructeur, alias, nombre, couleur, composantSimple, composantComplexe, composantBouton, composantInterrompu, composantSansToken, peinturesDe } = compiler(path.resolve(__dirname, '../../tests/fixtures.ts'), 'galerie-fixtures');
 const { imagePng } = require('../image.cjs');
@@ -87,4 +90,4 @@ const alertAvecEcart = { ...alert, liaisons: alert.liaisons.map((liaison) => (li
 /** Alert lu depuis un jeu de trois variants. */
 const alertAVariants = { ...alert, sujet: { ...alert.sujet, type: 'COMPONENT_SET', variants: [{ id: alert.calques[0].id, nom: 'info · standard' }, { id: 'alert:erreur', nom: 'error · standard' }, { id: 'alert:succes', nom: 'success · standard' }] } };
 
-module.exports = { compiler, projetLibre, cinqCollections, grandReleve, constructeur, alias, nombre, couleur, composantSimple, composantComplexe, composantBouton, composantInterrompu, composantSansToken, peinturesDe, imagePng, releve, libre, displayP3, multimarque, preferences, inspecter, groupe, chevron, releveProfond, releveLong, alert, stressTest, bouton, tag, avatar, etroite, choisir, sansSelection, bascule, composant, apercu, ouvrir, ligne, calqueNomme, alertAvecEcart, alertAVariants };
+module.exports = { compiler, fichierDuProcessus, projetLibre, cinqCollections, grandReleve, constructeur, alias, nombre, couleur, composantSimple, composantComplexe, composantBouton, composantInterrompu, composantSansToken, peinturesDe, imagePng, releve, libre, displayP3, multimarque, preferences, inspecter, groupe, chevron, releveProfond, releveLong, alert, stressTest, bouton, tag, avatar, etroite, choisir, sansSelection, bascule, composant, apercu, ouvrir, ligne, calqueNomme, alertAvecEcart, alertAVariants };
