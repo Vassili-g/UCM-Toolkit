@@ -82,6 +82,15 @@ const toutCocher = clic('#panneau-a-appliquer .cocher-global');
 const piedCommun = '#panneau-a-appliquer .corrections-pied';
 const appliquer = [toutCocher, clic(`${piedCommun} .btn-primary`, '.feuille'), clic('.feuille-groupe .btn-primary')];
 
+/** Une faute à une lettre de deux termes du fichier : `stat` proche de `state` (la référence) et de `status` (E17). */
+const fauteDeDeuxTermes = {
+  type: 'ecriture-du-terme', cle: 'ecriture-du-terme:faute:stat', indice: 'faute',
+  terme: { mot: 'stat', nombre: 2, ucm: false, exemples: [{ id: 'v14', ancien: 'Badge/stat/default', nouveau: 'Badge/stat/default', marques: [1], aussi: [] }] },
+  proposition: ['state'], reference: { mot: 'state', nombre: 31 }, autres: ['status'],
+  effet: { id: 'v14', ancien: 'Badge/stat/default', nouveau: 'Badge/state/default', marques: [1], aussi: [] },
+};
+const bilanFauteDeDeuxTermes = { ...bilans.travail, questions: [fauteDeDeuxTermes] };
+
 const ETATS = [
   {
     id: 't-renommages', titre: 'Tokens, Corrections filtrées par l’arbre', quand: 'La collection Interface passe à UCM : le designer clique le terme vert background d’une ligne du tableau des tokens, pendant que la lecture des noms d’écriture continue.',
@@ -204,6 +213,9 @@ const ETATS = [
   etat('a-trancher', 'Questions', 'Le designer choisit la puce Questions du sommaire.',
     'Seule la section Noms reste, avec ses questions : la paire de termes face à face, la proposition bordée de bleu, puis la faute et l’échelle ; Autres pistes en bas.',
     [...ouvert(bilans.travail), clic('[data-element="questions"]', '.carte.question')]),
+  etat('a-trancher-faute-de-deux-termes', 'Questions, faute proche de deux termes', 'Le terme stat est à une lettre de state et de status.',
+    'Le titre « Corriger stat en state ? » ; le détail finit par « status est aussi à une lettre. » ; le pied porte Corriger (bordé), Corriger en status, C’est voulu, puis Plus tard ; rien n’est choisi avant le clic.',
+    [...ouvert(bilanFauteDeDeuxTermes), clic('[data-element="questions"]', '.carte.question')]),
   etat('a-trancher-collection-et-plus-tard', 'Questions, collection et Plus tard', 'La liste porte une collection, des mots collés, et des questions remises à plus tard.',
     'La carte de collection avec son choix, la carte des mots collés, la section Plus tard dépliée avec Reprendre.',
     [...ouvert(bilans.collectionsEtPlusTard), clic('[data-element="questions"]', '.carte.question'), clic('.tete-bouton:has(.plus-tard-titre)')]),

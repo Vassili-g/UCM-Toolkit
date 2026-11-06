@@ -18,7 +18,7 @@ export type Suite =
   | { readonly sorte: 'choisir'; readonly reponse: (cible: string) => Reponse };
 
 export interface ActionDeCarte {
-  readonly id: 'remplacer' | 'garder' | 'termes-differents' | 'autre-terme' | 'corriger' | 'separer' | 'voulu' | 'seul-mot' | 'renommer' | 'garder-ce-nom' | 'plus-tard';
+  readonly id: 'remplacer' | 'garder' | 'termes-differents' | 'autre-terme' | 'corriger' | 'corriger-en' | 'separer' | 'voulu' | 'seul-mot' | 'renommer' | 'garder-ce-nom' | 'plus-tard';
   readonly libelle: string;
   /** Un bouton `borde` a un contour, un bouton `texte` n'en a pas. Une carte n'a qu'un bouton bordé. */
   readonly poids: 'borde' | 'texte';
@@ -102,17 +102,20 @@ function carteDePaire(question: QuestionDePaire): CarteDeQuestion {
 function carteDEcriture(question: QuestionDEcriture): CarteDeQuestion {
   const faute = question.indice === 'faute';
   const titre = faute ? TEXTES.titreDeFaute : TEXTES.titreDeMotsColles;
+  const autres = faute ? question.autres ?? [] : [];
+  const detailDeBase = faute && question.reference ? TEXTES.detailDeFaute(question.reference) : TEXTES.detailAvecIndice(faute ? TEXTES.indiceDeFaute : TEXTES.indiceDeMotsColles, TEXTES.detailDuTerme(question.terme.nombre, question.reference));
   return {
     forme: 'proposition',
     cle: question.cle,
     titre: { avant: titre.avant, ancien: question.terme.mot, entre: titre.entre, nouveau: question.proposition.join('-') },
     ucm: false,
-    detail: faute && question.reference ? TEXTES.detailDeFaute(question.reference) : TEXTES.detailAvecIndice(faute ? TEXTES.indiceDeFaute : TEXTES.indiceDeMotsColles, TEXTES.detailDuTerme(question.terme.nombre, question.reference)),
+    detail: autres.length > 0 ? `${detailDeBase} ${TEXTES.detailDesAutresTermes(autres)}` : detailDeBase,
     voir: faute ? { libelle: TEXTES.voirLesVariables(question.terme.nombre), recherche: question.terme.mot } : null,
     effet: question.effet,
     pied: {
       actions: [
         { id: faute ? 'corriger' : 'separer', libelle: faute ? TEXTES.corriger : TEXTES.separer, poids: 'borde', suite: repondre({ type: 'corriger', mots: question.proposition }) },
+        ...autres.map((autre): ActionDeCarte => ({ id: 'corriger-en', libelle: TEXTES.corrigerEn(autre), poids: 'texte', suite: repondre({ type: 'corriger', mots: autre.split('-') }) })),
         { id: faute ? 'voulu' : 'seul-mot', libelle: faute ? TEXTES.cEstVoulu : TEXTES.cEstUnSeulMot, poids: 'texte', suite: repondre({ type: 'voulu' }) },
       ],
       plusTard,

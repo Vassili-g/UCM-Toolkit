@@ -411,6 +411,12 @@ export const TEXTES = {
 
   /** « Une lettre d'écart. background est employé dans 40 variables. » : l'indice, puis la référence ; le nombre du terme est dans le lien qui suit. */
   detailDeFaute: (reference: { readonly mot: string; readonly nombre: number }): string => `${INDICE_DE_FAUTE}. ${reference.mot} est employé dans ${nombreDeNoms(reference.nombre, 0)}.`,
+  /** « status est aussi à une lettre. » ; deux termes ou plus, la liste est jointe par des virgules puis « et ». */
+  detailDesAutresTermes: (termes: readonly string[]): string => {
+    const liste = termes.length > 1 ? `${termes.slice(0, -1).join(', ')} et ${termes[termes.length - 1]}` : termes[0];
+    return `${liste} ${termes.length > 1 ? 'sont' : 'est'} aussi à une lettre.`;
+  },
+  corrigerEn: (mot: string): string => `Corriger en ${mot}`,
   voirLesVariables: (nombre: number): string => (nombre > 1 ? `Voir les ${nombre} variables` : 'Voir la variable'),
   filtrerLeTableau: 'Filtrer le tableau des tokens',
 

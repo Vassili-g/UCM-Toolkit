@@ -86,7 +86,8 @@ export interface TermeEnQuestion { readonly mot: string; readonly nombre: number
 export type IndiceDePaire = 'terminaison' | 'pluriel' | 'abreviation' | 'synonymes' | 'branches-paralleles' | 'ecriture-proche';
 export type Question =
   | { readonly type: 'paire'; readonly cle: string; readonly indice: IndiceDePaire; readonly termes: readonly [TermeEnQuestion, TermeEnQuestion]; readonly propose: 0 | 1; readonly score: number; readonly cibleAlias?: string }
-  | { readonly type: 'ecriture-du-terme'; readonly cle: string; readonly indice: 'faute' | 'mots-colles'; readonly terme: TermeEnQuestion; readonly proposition: Mots; readonly reference?: { readonly mot: string; readonly nombre: number }; readonly score: number }
+  /** `autres` : les autres termes à une lettre de `terme`, dans l'ordre de choix de la référence (E17). */
+  | { readonly type: 'ecriture-du-terme'; readonly cle: string; readonly indice: 'faute' | 'mots-colles'; readonly terme: TermeEnQuestion; readonly proposition: Mots; readonly reference?: { readonly mot: string; readonly nombre: number }; readonly autres?: readonly string[]; readonly score: number }
   | { readonly type: 'collection'; readonly cle: string; readonly collectionId: string; readonly nom: string; readonly nombre: number; readonly proposee?: Collection; readonly score: number };
 export interface DejaJuge {
   readonly distincts: readonly (readonly [string, string])[];

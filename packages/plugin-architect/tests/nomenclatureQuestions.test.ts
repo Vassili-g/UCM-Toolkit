@@ -112,6 +112,30 @@ test('un terme mal écrit propose de corriger, avec le nombre et la référence'
   assert.equal(poidsDuPied(carte).filter((poids) => poids === 'borde').length, 1);
 });
 
+test('une faute proche de plusieurs termes propose chacun : une action par autre terme, et leur liste au détail', () => {
+  const unAutre = carteDeQuestion({ ...faute, autres: ['status'] });
+  if (unAutre.forme !== 'proposition') throw new Error('forme inattendue');
+  assert.equal(texteDuTitre(unAutre.titre), 'Corriger contrashovered en contrasthovered ?');
+  assert.equal(unAutre.detail, 'Une lettre d’écart. contrasthovered est employé dans 14 variables. status est aussi à une lettre.');
+  assert.deepEqual(unAutre.pied.actions.map((action) => [action.libelle, action.poids]), [['Corriger', 'borde'], ['Corriger en status', 'texte'], ['C’est voulu', 'texte']]);
+  const action = unAutre.pied.actions[1];
+  assert.deepEqual(action.suite.sorte === 'repondre' && action.suite.reponse, { type: 'corriger', mots: ['status'] });
+
+  const deuxAutres = carteDeQuestion({ ...faute, autres: ['status', 'stage'] });
+  if (deuxAutres.forme !== 'proposition') throw new Error('forme inattendue');
+  assert.equal(deuxAutres.detail, 'Une lettre d’écart. contrasthovered est employé dans 14 variables. status et stage sont aussi à une lettre.');
+  assert.deepEqual(deuxAutres.pied.actions.map((a) => a.libelle), ['Corriger', 'Corriger en status', 'Corriger en stage', 'C’est voulu']);
+  assert.equal(poidsDuPied(deuxAutres).filter((poids) => poids === 'borde').length, 1);
+  assert.equal(TEXTES.detailDesAutresTermes(['a', 'b', 'c']), 'a, b et c sont aussi à une lettre.');
+});
+
+test('des mots collés ignorent `autres`, et une faute sans `autres` garde sa carte', () => {
+  const carte = carteDeQuestion({ ...colles, autres: ['status'] });
+  assert.deepEqual(carte.forme === 'proposition' && carte.pied.actions.map((a) => a.libelle), ['Séparer', 'C’est un seul mot']);
+  const sans = carteDeQuestion({ ...faute, autres: [] });
+  assert.deepEqual(sans.forme === 'proposition' && sans.pied.actions.map((a) => a.libelle), ['Corriger', 'C’est voulu']);
+});
+
 test('des mots collés se séparent par des tirets, sans référence', () => {
   const carte = carteDeQuestion(colles);
   if (carte.forme !== 'proposition') throw new Error('forme inattendue');

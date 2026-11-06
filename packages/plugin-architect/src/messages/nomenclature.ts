@@ -126,7 +126,7 @@ export interface TermeVue { readonly mot: string; readonly nombre: number; reado
 /** `effet` : un nom réel du terme remplacé et ce même nom après le oui, `null` si aucun exemple ne l'emploie. */
 export type QuestionVue =
   | { readonly type: 'paire'; readonly cle: string; readonly indice: IndiceDePaire; readonly termes: readonly [TermeVue, TermeVue]; readonly propose: 0 | 1; readonly cibleCommune: string | null; readonly effet: LigneVue | null }
-  | { readonly type: 'ecriture-du-terme'; readonly cle: string; readonly indice: 'faute' | 'mots-colles'; readonly terme: TermeVue; readonly proposition: readonly string[]; readonly reference: { readonly mot: string; readonly nombre: number } | null; readonly effet: LigneVue | null }
+  | { readonly type: 'ecriture-du-terme'; readonly cle: string; readonly indice: 'faute' | 'mots-colles'; readonly terme: TermeVue; readonly proposition: readonly string[]; readonly reference: { readonly mot: string; readonly nombre: number } | null; readonly autres?: readonly string[]; readonly effet: LigneVue | null }
   | { readonly type: 'collection'; readonly cle: string; readonly nom: string; readonly nombre: number; readonly proposee: string | null };
 export interface LigneDEcriture { readonly convention: Convention; readonly suivent: number; readonly total: number; readonly exemple: LigneVue | null }
 /** `protegees` compte les variables de la collection que `causeDeProtection` empêche de renommer, toutes causes, collection exclue comprise. */

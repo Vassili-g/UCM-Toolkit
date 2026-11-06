@@ -285,6 +285,14 @@ test('les questions deviennent des vues, les questions mises de côté vont à p
   assert.equal(bilan.plusTard[0].type === 'collection' && bilan.plusTard[0].proposee, null);
 });
 
+test('une faute proche de plusieurs termes transmet `autres` ; sans `autres`, la vue n’en porte pas', () => {
+  const avec: Question = { ...(questionsDeTest[1] as Extract<Question, { type: 'ecriture-du-terme' }>), autres: ['state', 'stage'] };
+  const bilan = projeter(calculer(fichierDeBase, { questions: { questions: [avec, questionsDeTest[1]], autres: [] } })).bilan();
+  const [pluriel, seule] = bilan.questions;
+  assert.deepEqual(pluriel.type === 'ecriture-du-terme' && pluriel.autres, ['state', 'stage']);
+  assert.equal(seule.type === 'ecriture-du-terme' && 'autres' in seule, false);
+});
+
 test('sans nom de cible, la paire n’a pas de cible commune', () => {
   const bilan = projeter(calculer(fichierDeBase, { questions: { questions: [questionsDeTest[0]], autres: [] } })).bilan();
   assert.equal(bilan.questions[0].type === 'paire' && bilan.questions[0].cibleCommune, null);

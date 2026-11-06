@@ -610,6 +610,7 @@ export function projeter(entree: EntreeDeProjection): Projection {
         return {
           type: 'ecriture-du-terme', cle: question.cle, indice: question.indice, terme: termeVue(question.terme),
           proposition: [...question.proposition], reference: question.reference ?? null,
+          ...(question.autres && question.autres.length > 0 ? { autres: [...question.autres] } : {}),
           effet: effetDuRemplacement(question.terme, question.proposition),
         };
       case 'collection':
