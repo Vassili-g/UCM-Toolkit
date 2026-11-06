@@ -10,7 +10,7 @@
  *   the output created from the scripts, and its documentation for any purpose is hereby granted without fee, provided that the above
  *   copyright notice appears in all copies and that both that copyright notice and this permission notice appear in supporting
  *   documentation. Kevin Atkinson makes no representations about the suitability of this array for any purpose. It is provided "as is"
- *   without express or implied warranty. Les niveaux jusqu'à 35 viennent de Moby Words II, de la liste de Brian Kelk et du paquet 12Dicts
+ *   without express or implied warranty. Les niveaux jusqu'à 35 viennent de Moby Words (deuxième version), de la liste de Brian Kelk et du paquet 12Dicts
  *   (domaine public) ; les formes fléchies viennent de WordNet (Princeton University, notice dans le texte complet).
  */
 
