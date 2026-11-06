@@ -222,8 +222,8 @@ Règles propres à la phase E :
 | [E13](lots/E13.md) Écarts du rejeu final | `implementeur-exigeant` | E12.1, E12.2 | [x] 6650e77f, Q-F3-4 et pictogramme au mainteneur |
 | [E14](lots/E14.md) Écarts de F1 au rejeu final | `implementeur-exigeant` | E12.1 | [x] dead4948, 7d3e7178, Q-E14-1 à Q-E14-6 au mainteneur |
 | [E15](lots/E15.md) Fautes des mots courts | `implementeur-exigeant` | E14 | [x] b6017dc1, mesure Figma au mainteneur |
-| [E16](lots/E16.md) Fautes de 3 lettres, noms de composant et synonymes UCM | `implementeur-exigeant` | E15 | [ ] |
-| [E17](lots/E17.md) Faute proche de plusieurs termes | `implementeur-exigeant` | E17a rien, E17b E16 | [ ] |
+| [E16](lots/E16.md) Fautes de 3 lettres, noms de composant et synonymes UCM | `implementeur-exigeant` | E15 | [x] 64ab9b09, format 1e7b5ed0 |
+| [E17](lots/E17.md) Faute proche de plusieurs termes | `implementeur-exigeant` | E17a rien, E17b E16 | [x] 6b943c24, 30238dad |
 
 ## Phase G. Attente avant les constats du mode Tokens
 

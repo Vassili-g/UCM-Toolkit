@@ -18,8 +18,8 @@
     "sha256": "d743619e94cdfd8ade00cc20d2cffd8f67d5bfb1b9b91d28af23d1569e5f4926"
   },
   "kit": {
-    "version": "0.15.1",
-    "sha256Registres": "1fcca7b12e3b632de02c8ea0344a1eb2bae9e93759b33139d7527e7e43123086"
+    "version": "0.15.2",
+    "sha256Registres": "9b42475449e6a9db56e3d995b5dbe46f541a5d5bbe5b396141b531d1501aad00"
   },
   "comptes": {
     "noms": 1300,

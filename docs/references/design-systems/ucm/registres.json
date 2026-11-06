@@ -141,7 +141,6 @@
     "id": "state",
     "toleres": [
      "states",
-     "status",
      "etat",
      "état"
     ]
