@@ -11,7 +11,8 @@ import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { COLLECTIONS, FORMES_ANCIENNES_DES_COLLECTIONS } from '../../../src/referentiel/architecture.js';
 import type { Collision, Question, Renommage } from '../../../src/referentiel/index.js';
-import { LONGUEUR_MINIMALE_D_UNE_FAUTE_A_UNE_LETTRE } from '../../../src/referentiel/questions.js';
+import { motConnu } from '../../../src/referentiel/mots-connus.js';
+import { LONGUEUR_MINIMALE_D_UNE_FAUTE_A_UNE_LETTRE, LONGUEUR_MINIMALE_D_UNE_FAUTE_D_UN_MOT_COURT } from '../../../src/referentiel/questions.js';
 import { ABREVIATIONS, REGISTRE_AXES_ETAT, REGISTRES, SYNONYMES_COURANTS } from '../../../src/referentiel/vocabulaire.js';
 import { REGISTRES_ARCHITECTURE, REGISTRES_COMPOSANTS } from '../../../src/referentiel/architecture.js';
 import { decouperPourQuestions } from '../../../src/referentiel/termes-connus.js';
@@ -205,11 +206,15 @@ for (const registre of [...REGISTRES, ...REGISTRES_ARCHITECTURE]) {
 export const termesUcmDeLaForme = (mot: string): readonly string[] => [...(TERMES_DES_FORMES_TOLEREES.get(mot.toLowerCase()) ?? [])];
 
 /**
- * Q-F4 et E2.5 (E2b) : une faute d'une lettre se juge sur la longueur du mot fautif, au seuil de 7 lettres. En dessous, `top` et `tip`
- * sont deux mots et le kit se tait volontairement : le cas est mesuré, jamais jugé (rôle `informatif`, comme M-06 en S3).
+ * Q-F4 et E2.5 (E2b), puis E15 : une faute d'une lettre se juge sur la longueur du mot fautif. De 7 lettres, le kit la lit toujours. De 4 à 6
+ * lettres, il la lit sauf si le mutant est un mot connu (`motConnu`) : `colon` près de `color` est un mot, pas une faute. Sous 4 lettres, `bgg` et
+ * `top` ne sont jamais des fautes. Le kit se tait alors volontairement : le cas est mesuré, jamais jugé (rôle `informatif`, comme M-06 en S3).
  */
-export const ECART_SOUS_LE_SEUIL = `faute de moins de ${LONGUEUR_MINIMALE_D_UNE_FAUTE_A_UNE_LETTRE} lettres (Q-F4)`;
-export const estSousLeSeuilDeLongueur = (mot: string): boolean => [...mot].length < LONGUEUR_MINIMALE_D_UNE_FAUTE_A_UNE_LETTRE;
+export const ECART_SOUS_LE_SEUIL = `faute de moins de ${LONGUEUR_MINIMALE_D_UNE_FAUTE_D_UN_MOT_COURT} lettres, ou mutant de moins de ${LONGUEUR_MINIMALE_D_UNE_FAUTE_A_UNE_LETTRE} lettres qui est un mot connu (Q-F4, E15)`;
+export const estSousLeSeuilDeLongueur = (mot: string): boolean => {
+  const longueur = [...mot].length;
+  return longueur < LONGUEUR_MINIMALE_D_UNE_FAUTE_D_UN_MOT_COURT || (longueur < LONGUEUR_MINIMALE_D_UNE_FAUTE_A_UNE_LETTRE && motConnu(mot));
+};
 
 /**
  * `remplacerLesTermes` (`normalisation.ts`) n'applique les formes de `REGISTRE_AXES_ETAT` (`states`, `status`, `etat`) qu'aux propriétés de
@@ -262,8 +267,12 @@ export function jugerUneFaute(cas: Pick<Scenario, 'id' | 'strate' | 'operateur' 
   const detail = ok ? `question faute ${mot} -> ${ref}`
     : (!question ? `aucune question faute pour ${mot}` : `question faute pour ${mot} avec la référence ${ref ?? '-'}, attendu ${canoniques.length > 0 ? canoniques.join(' ou ') : reference}`)
       + (referenceRenommee ? ` (le kit renomme lui-même ${reference})` : '');
-  return verdict(cas, sortie, { proprietes, attendu: true, ok, mot, reference, detail, cle: ok ? question!.cle : undefined,
+  const jugee = verdict(cas, sortie, { proprietes, attendu: true, ok, mot, reference, detail, cle: ok ? question!.cle : undefined,
     ...extra });
+  // E15 : un mot de 4 à 6 lettres touche souvent deux termes. Le kit pose alors la question sur l'un d'eux, un terme proche et valable, et la question
+  // ne liste qu'un terme (Q-E14-4) : le cas attend la réponse du mainteneur, il n'est ni manqué ni faux.
+  const refValable = ref !== undefined && proches.some((proche) => proche === ref || termesUcmDeLaForme(proche).includes(ref.toLowerCase()));
+  return !ok && question && refValable ? dispense([jugee], ECART_CANDIDATS_MULTIPLES, QUESTION_CANDIDATS_MULTIPLES)[0] : jugee;
 }
 
 /**
@@ -549,7 +558,7 @@ function s10(cas: Scenario, sortie: Sortie): Verdict[] {
 /** Ce que le plan attend d'une paire de mots : une question, le silence, ou rien que l'on sache dire. */
 export function attenduPourLaPaire(a: string, b: string, ctx: ContexteOracle): 'question' | 'aucune' | 'inconnu' {
   const cle = clePaire(a, b);
-  // `label|lable` est une vraie faute que le plan tient pour témoin ; à 5 lettres, Q-F4 la laisse sans question : `estSousLeSeuilDeLongueur` la dispense.
+  // `label|lable` est une vraie faute que le plan tient pour témoin ; si `lable` était un mot connu, E15 la laisserait sans question et `estSousLeSeuilDeLongueur` la dispenserait.
   if (cle === 'label|lable') return 'question';
   if (ctx.classements.memeMot.has(cle)) return 'question';
   if (ctx.classements.motsDistincts.has(cle)) return 'aucune';

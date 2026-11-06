@@ -228,6 +228,19 @@ export function decouperUnBloc(bloc: string): string[] {
   return decoupe && decoupe.morceaux.length > 1 && decoupe.exacts > 0 ? [...decoupe.morceaux] : [bloc];
 }
 
+/**
+ * Les mots d'un nom, en minuscules et en lettres seules : le nom est coupé aux non-lettres, aux passages de minuscule à majuscule et aux sigles,
+ * puis chaque morceau par `decouperPourQuestions`. Le script de génération des mots connus et la mesure des faux positifs (E15.4) l'appellent.
+ */
+export function motsDUnNom(nom: string): string[] {
+  return nom.split(/[^\p{L}\p{N}]+/u)
+    .flatMap((morceau) => morceau.replace(/(\p{Ll}|\p{N})(\p{Lu})/gu, '$1\0$2').replace(/(\p{Lu})(\p{Lu}\p{Ll})/gu, '$1\0$2').split('\0'))
+    .filter((morceau) => /^\p{L}+$/u.test(morceau))
+    .flatMap((morceau) => decouperPourQuestions(morceau.toLowerCase()))
+    .flatMap((mot) => mot.split('-'))
+    .filter((mot) => /^[a-z]+$/u.test(mot));
+}
+
 /** Recolle un nombre et le `xs` ou `xl` qui le suit : `5xl` est une taille, pas `5` et `xl`. */
 function rassemblerLesTailles(morceaux: readonly string[]): string[] {
   const resultat: string[] = [];

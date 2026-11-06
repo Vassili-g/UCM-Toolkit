@@ -4,6 +4,7 @@ import test from 'node:test';
 import { nomsSelonLesReglesSync } from '../src/nommage/index.js';
 import { lireReglesDeNommage } from '../src/protocoles/nommage.js';
 import { LONGUEUR_MINIMALE_D_UNE_FAUTE_A_UNE_LETTRE } from '../src/referentiel/index.js';
+import { motConnu } from '../src/referentiel/mots-connus.js';
 import { detecterLesQuestions, type DejaJuge } from '../src/referentiel/index.js';
 import { distanceUnOuEchange } from '../src/referentiel/termes-connus.js';
 import { readdirSync, readFileSync } from 'node:fs';
@@ -14,7 +15,7 @@ import {
   convertir, DOSSIER_DE_SLICE, fichiersEnFuite, ID_DE_SLICE, lireLesSystemes, motsASurveiller, RACINE_DU_DEPOT, systemeDepuisTokens,
 } from './stress/f1-noms/corpus.js';
 import { CERTAINES, classer, creerLeContexteDeClassement, lignesAJuger, PLAFOND_A_JUGER, type LigneDeFauxPositif } from './stress/f1-noms/faux-positifs.js';
-import { chargerLesClassements, clePaire, creerLeContexteOracle, ECART_SEPARATEUR_SEUL, ECART_SOUS_LE_SEUIL, juger, QUESTION_AXE_D_ETAT, QUESTION_TERME_DE_COMPOSANT } from './stress/f1-noms/oracle.js';
+import { chargerLesClassements, clePaire, creerLeContexteOracle, ECART_SEPARATEUR_SEUL, ECART_SOUS_LE_SEUIL, estSousLeSeuilDeLongueur, juger, QUESTION_AXE_D_ETAT, QUESTION_TERME_DE_COMPOSANT } from './stress/f1-noms/oracle.js';
 import { creerLeDetecteur } from './stress/f1-noms/detecteur.js';
 import { executerLesTemoins, executerUnCas, REGLES_FIXES, secondPassage } from './stress/f1-noms/execution.js';
 import { mutationsDe, OPERATEURS_DE_FAUTE } from './stress/f1-noms/mutations.js';
@@ -200,7 +201,7 @@ test('P-21 : une question que le renommage fait naître est révélée, pas nouv
   assert.deepEqual(passage.revelees, ['paire:line|lines']);
 });
 
-test('S8 : la casse ne change aucun verdict ; une faute sous le seuil de longueur n’est pas attendue (N-03)', () => {
+test('S8 : la casse ne change aucun verdict ; une faute d’un mot connu ou de moins de quatre lettres n’est pas attendue (N-03, E15)', () => {
   const detecteur = creerLeDetecteur(contexte.vocabulaire, contexte.motsDuDictionnaire);
   const ctx = creerLeContexteOracle(contexte, detecteur, chargerLesClassements());
   const parTerme = new Map<string, Map<string, string>>();
@@ -210,13 +211,13 @@ test('S8 : la casse ne change aucun verdict ; une faute sous le seuil de longueu
     const [verdict] = juger(cas, executerUnCas(cas), ctx);
     const faute = cas.axes.nature === 'fautif';
     if (!faute) assert.equal(verdict.issue, 'ok', `${cas.id} : ${verdict.detail}`);
-    else if ([...(verdict.mot ?? '')].length < LONGUEUR_MINIMALE_D_UNE_FAUTE_A_UNE_LETTRE) assert.equal(verdict.role, 'informatif', cas.id);
+    else if (estSousLeSeuilDeLongueur(verdict.mot ?? '')) assert.equal(verdict.role, 'informatif', cas.id);
     else assert.equal(verdict.issue, 'detecte', `${cas.id} : ${verdict.detail}`);
     if (faute) parTerme.set(cas.terme, (parTerme.get(cas.terme) ?? new Map()).set(String(cas.axes.casse), `${verdict.role}/${verdict.issue}`));
   }
   assert.equal(parTerme.size, 12);
   const lectures = new Set([...parTerme.values()].flatMap((parCasse) => [...parCasse.values()]));
-  assert.deepEqual([...lectures].sort(), ['informatif/manque', 'oracle/detecte'], 'des termes sous et au-dessus du seuil');
+  assert.deepEqual([...lectures].sort(), ['oracle/detecte'], 'E15 : de 4 lettres au moins, chaque terme de l’échantillon est détecté');
   for (const [terme, parCasse] of parTerme) assert.equal(new Set(parCasse.values()).size, 1, `${terme} : ${[...parCasse].join(', ')}`);
   assert.deepEqual([...[...parTerme.values()][0].keys()].sort(), ['initiale', 'interne', 'majuscules', 'pascal']);
 });
@@ -232,9 +233,14 @@ function verdictsDe(strate: string, retenir: (id: string) => boolean) {
   return cas.flatMap((unCas) => juger(unCas, executerUnCas(unCas), ctx));
 }
 
-test('Q-F4 : une faute d’une lettre sous le seuil de longueur est mesurée, jamais jugée (S1)', () => {
-  const sous = verdictsDe('S1', (id) => id.startsWith('S1/M-03/size/') && id.includes('/m=1/k=8/'));
-  assert.ok(sous.every((v) => v.role === 'informatif' && v.ecarts.includes(ECART_SOUS_LE_SEUIL)), 'quatre lettres');
+test('Q-F4, E15 : une faute d’une lettre d’un mot de moins de quatre lettres est mesurée, jamais jugée ; à quatre lettres, elle est attendue (S1)', () => {
+  const sous = verdictsDe('S1', (id) => id.startsWith('S1/M-03/big/') && id.includes('/m=1/k=8/'));
+  assert.ok(sous.every((v) => v.role === 'informatif' && v.ecarts.includes(ECART_SOUS_LE_SEUIL)), sous.map((v) => v.detail).join(' ; '));
+  const quatre = verdictsDe('S1', (id) => id.startsWith('S1/M-03/size/') && id.includes('/m=1/k=8/'));
+  assert.ok(quatre.every((v) => v.role === 'oracle' && v.issue === 'detecte'), quatre.map((v) => v.detail).join(' ; '));
+  const mots = verdictsDe('S1', (id) => id.includes('/m=1/k=8/')).filter((v) => [...(v.mot ?? '')].length >= 4 && [...(v.mot ?? '')].length < LONGUEUR_MINIMALE_D_UNE_FAUTE_A_UNE_LETTRE);
+  assert.ok(mots.length > 100, `${mots.length} mutants de 4 à 6 lettres`);
+  assert.ok(mots.every((v) => (v.role === 'informatif') === motConnu(v.mot!)), 'seul un mutant connu reste informatif');
   const au_dessus = verdictsDe('S1', (id) => id.startsWith('S1/M-03/background/') && id.includes('/m=1/k=8/'));
   assert.ok(au_dessus.every((v) => v.role === 'oracle' && v.issue === 'detecte'), au_dessus.map((v) => v.detail).join(' ; '));
 });
@@ -244,7 +250,7 @@ test('les cas du plan sortent comme les décisions de E2 les attendent', () => {
   const temoins = executerLesTemoins(contexte, creerLeContexteOracle(contexte, detecteur, chargerLesClassements()));
   assert.equal(temoins.length, 8);
   for (const temoin of temoins) assert.ok(temoin.conforme, `${temoin.nom} : ${temoin.verdict?.detail}`);
-  assert.deepEqual(temoins.filter((temoin) => temoin.verdict?.issue === 'manque').map((temoin) => temoin.nom.split(' ')[0]), ['`bordre`', '`paddng`'], 'les deux mots de six lettres');
+  assert.deepEqual(temoins.filter((temoin) => temoin.verdict?.issue === 'manque').map((temoin) => temoin.nom.split(' ')[0]), [], 'E15 : `bordre` et `paddng`, six lettres, sont lus');
 });
 
 test('E2c : une forme d’un axe d’états dans une variable attend le mainteneur, et fontfamily près de font-family est une collision de séparateur', () => {

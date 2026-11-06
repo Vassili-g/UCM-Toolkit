@@ -2,6 +2,7 @@
 import { COLLECTIONS, FORMES_ANCIENNES_DES_COLLECTIONS, REGISTRES_ARCHITECTURE } from './architecture.js';
 import { categorieDuSegment } from './ecriture-des-mots.js';
 import type { DejaJuge, IndexDuVocabulaire, Lexique, Mots, NomLu, Question, Remplacement, ResultatDesQuestions, TermeEnQuestion, IndiceDePaire } from './harmonisation.js';
+import { motConnu } from './mots-connus.js';
 import { collectionUcmReconnue } from './normalisation.js';
 import { detecterBranchesParalleles } from './branches-paralleles.js';
 import { decouperPourQuestions, distanceUnOuEchange, opposes, termeAvecSesTirets, termeConnu, termeDeComposant, termeOuFormeConnu, termeSoude, termesADeuxLettres, termesAUneLettre } from './termes-connus.js';
@@ -18,6 +19,12 @@ const uniquementDesLettres = /^\p{L}+$/u;
  * positif certain pour 1 000 noms vaut 7 (20 mots, 0,34 pour 1 000 ; 6 lettres : 100 mots, 1,68).
  */
 export const LONGUEUR_MINIMALE_D_UNE_FAUTE_A_UNE_LETTRE = 7;
+/**
+ * E15. De cette longueur jusqu'à `LONGUEUR_MINIMALE_D_UNE_FAUTE_A_UNE_LETTRE` (exclue), un mot à une lettre d'un terme connu est une faute
+ * tant qu'il n'est pas lui-même un mot connu (`motConnu`). `colr` est une faute de `color`, `colon` et `next` n'en sont pas. Un mot plus court
+ * n'est jamais une faute (`bg`, `sm`, `bgg`). Le dictionnaire n'est lu que pour un mot qui a déjà un terme proche.
+ */
+export const LONGUEUR_MINIMALE_D_UNE_FAUTE_D_UN_MOT_COURT = 4;
 /** Même règle pour un mot fautif de deux lettres (Q-F9) : 8 (40 mots, 0,67 pour 1 000 ; 7 lettres : 78 mots, 1,31). Jamais sous la longueur d'une lettre. */
 export const LONGUEUR_MINIMALE_D_UNE_FAUTE_A_DEUX_LETTRES = 8;
 const termesUcm = new Set([...REGISTRES, ...REGISTRES_ARCHITECTURE]
@@ -66,8 +73,8 @@ function motJuge(mot: string): string {
 
 /**
  * Les morceaux d'un mot de casse mixte (`controlItemBgAmctive` : `control`, `Item`, `Bg`, `Amctive`). Le kit ne les lit pas comme des mots du
- * fichier : `TileLinksWrap` ne fait pas de `wrap` un terme (PLAN-VOCABULAIRE). Seule la faute d'un terme connu les lit, au seuil de longueur
- * des autres fautes : un morceau d'au moins 7 lettres à une lettre d'un terme se corrige sans que ses voisins soient connus.
+ * fichier : `TileLinksWrap` ne fait pas de `wrap` un terme (PLAN-VOCABULAIRE). Seule la faute d'un terme connu les lit, aux seuils de longueur
+ * des autres fautes (E15, dès 4 lettres, sauf mot connu). Un morceau à une lettre d'un terme se corrige sans que ses voisins soient connus.
  */
 function morceauxDeCasse(mot: string): string[] {
   const morceaux = mot.replace(/(\p{Ll}|\p{N})(\p{Lu})/gu, '$1\0$2').replace(/(\p{Lu})(\p{Lu}\p{Ll})/gu, '$1\0$2').split('\0');
@@ -193,7 +200,7 @@ function* trierQuestions(questions: Question[]): Generator<void, Question[]> {
 export function* detecterParEtapes(lexique: Lexique, index: IndexDuVocabulaire, dejaJuge: DejaJuge,
   options: { readonly seuil?: number; readonly maximum?: number } = {}): Generator<void, ResultatDesQuestions> {
   const observes = new Map<string, MotObserve>();
-  /** Les morceaux de casse mixte d'au moins 7 lettres : lus pour la faute seulement, jamais pour les paires ni les mots collés. */
+  /** Les morceaux de casse mixte d'au moins 4 lettres, lus pour la faute seulement, jamais pour les paires ni les mots collés. */
   const morceauxObserves = new Map<string, MotObserve>();
   const collections: NomLu[] = [];
   const aRenommer: { readonly nom: NomLu; readonly avant: string; readonly apres: string; readonly formes: readonly { forme: string; par: string; rang: number }[] }[] = [];
@@ -284,9 +291,14 @@ export function* detecterParEtapes(lexique: Lexique, index: IndexDuVocabulaire, 
         observer(mot);
         for (const morceau of morceauxDeCasse(unite)) {
           const bas = morceau.toLowerCase();
-          if ([...bas].length >= LONGUEUR_MINIMALE_D_UNE_FAUTE_A_UNE_LETTRE && uniquementDesLettres.test(bas)) observer(bas, morceauxObserves);
+          if ([...bas].length >= LONGUEUR_MINIMALE_D_UNE_FAUTE_D_UN_MOT_COURT && uniquementDesLettres.test(bas)) observer(bas, morceauxObserves);
         }
         if (++operations % TAILLE_D_UN_LOT === 0) yield;
+      }
+      // Le découpage des mots peut garder la lettre en trop avec le morceau suivant (`colorwWhite` donne `color` et `wWhite`) : les morceaux du segment entier sont lus aussi.
+      if (positionsCouvertes.size === 0) for (const morceau of morceauxDeCasse(segment)) {
+        const bas = morceau.toLowerCase();
+        if ([...bas].length >= LONGUEUR_MINIMALE_D_UNE_FAUTE_D_UN_MOT_COURT && uniquementDesLettres.test(bas)) observer(bas, morceauxObserves);
       }
       if (++operations % TAILLE_D_UN_LOT === 0) yield;
     }
@@ -455,7 +467,7 @@ export function* detecterParEtapes(lexique: Lexique, index: IndexDuVocabulaire, 
     yield;
     const mot = observe.mot;
     const longueur = [...mot].length;
-    if (longueur < LONGUEUR_MINIMALE_D_UNE_FAUTE_A_UNE_LETTRE || voulus.has(mot) || termesUcm.has(mot) || !uniquementDesLettres.test(mot)
+    if (longueur < LONGUEUR_MINIMALE_D_UNE_FAUTE_D_UN_MOT_COURT || voulus.has(mot) || termesUcm.has(mot) || !uniquementDesLettres.test(mot)
       || termeOuFormeConnu(mot) || termeDeComposant(mot) || termeSoude(mot) || pluralDeComposant(mot) || !motsApplicables.has(mot)) continue;
     const aUneLettre = termesAUneLettre(mot);
     const proches = aUneLettre.length > 0 ? aUneLettre : longueur >= LONGUEUR_MINIMALE_D_UNE_FAUTE_A_DEUX_LETTRES ? termesADeuxLettres(mot) : [];
@@ -471,7 +483,8 @@ export function* detecterParEtapes(lexique: Lexique, index: IndexDuVocabulaire, 
         || (termesUcm.has(candidat) === termesUcm.has(reference)
           && (employe > (observes.get(reference)?.noms.size ?? 0) || (employe === (observes.get(reference)?.noms.size ?? 0) && comparer(candidat, reference) < 0)))) reference = candidat;
     }
-    if (reference === undefined) continue;
+    // E15 : de 4 à 6 lettres, la faute ne vaut que pour un mot que le dictionnaire ne connaît pas ; il n'est lu que pour un mot qui a déjà une référence.
+    if (reference === undefined || (longueur < LONGUEUR_MINIMALE_D_UNE_FAUTE_A_UNE_LETTRE && motConnu(mot))) continue;
     const cle = `ecriture-du-terme:faute:${[mot, reference].sort(comparer).join('|')}`;
     if (plusTard.has(cle)) continue;
     const employee = observes.get(reference);

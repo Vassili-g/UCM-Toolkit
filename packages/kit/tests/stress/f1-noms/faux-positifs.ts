@@ -13,7 +13,9 @@ import { join } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import type { Question } from '../../../src/referentiel/index.js';
+import { motsAnglaisConnus, remplacerLesMotsConnus } from '../../../src/referentiel/mots-connus.js';
 import { varianteConnue } from '../../../src/referentiel/termes-connus.js';
+import { segmentsParSysteme } from '../../../scripts/generer-mots-connus.js';
 import { convertir, MODES_DE_CHEMINS, MODES_DE_COLLECTIONS, RACINE_DU_DEPOT, type ModeDeChemins, type ModeDeCollections, type Systeme } from './corpus.js';
 import { construireLeDictionnaire } from './dictionnaire.js';
 import { creerLeDetecteur, motsDeDetection } from './detecteur.js';
@@ -178,10 +180,21 @@ function differenceDeMots(avant: string, apres: string): { retires: string[]; aj
   return { retires, ajoutes };
 }
 
+let segmentsDesSystemes: Map<string, string[]> | undefined;
+/**
+ * Les mots connus du kit pour la passe d'un système (E15.4) : les mots anglais, et les segments de tous les autres design systems.
+ * Sans cette exclusion, les mots du système mesuré seraient dans le dictionnaire du kit et la mesure des fautes de 4 à 6 lettres serait circulaire.
+ */
+export function motsConnusSans(id: string): string[] {
+  segmentsDesSystemes ??= segmentsParSysteme();
+  return [...motsAnglaisConnus(), ...[...segmentsDesSystemes].filter(([systeme]) => systeme !== id).flatMap(([, segments]) => segments)];
+}
+
 /** Une passe : le calcul du kit sur le système converti, puis le classement de chaque question et de chaque renommage. */
 export function executerUnePasse(passe: Passe, systemes: readonly Systeme[], contexte: ContexteDeClassement): ResultatDePasse {
   const converti = convertir(passe.systeme, passe.chemins, passe.collections);
-  const calcul = calculer(converti.inventaire, REGLES_DETECTEES);
+  remplacerLesMotsConnus(motsConnusSans(passe.systeme.id));
+  const calcul = (() => { try { return calculer(converti.inventaire, REGLES_DETECTEES); } finally { remplacerLesMotsConnus(); } })();
   const du = { dictionnaireDesAutres: dictionnaireSans(systemes, passe.systeme.id), nomsPropres: nomsPropresDe(converti.inventaire) };
   const lignes: LigneDeFauxPositif[] = [];
   for (const question of calcul.questions) {
@@ -381,10 +394,29 @@ export interface OptionsDesFauxPositifs {
   readonly progression?: (message: string) => void;
 }
 
+/** E15.4 : les questions de faute du kit sur les noms justes, pour les mots de 4 à 6 lettres, dictionnaire sans le système mesuré. */
+export interface FautesCourtes {
+  readonly longueur: number;
+  /** Lignes de faute classées FP-A ou FP-C : une par passe et par question, comme les autres comptes de ce fichier. */
+  readonly certains: number;
+  readonly pourMille: number;
+  readonly mots: readonly string[];
+}
+export const LONGUEURS_DES_MOTS_COURTS = [4, 5, 6] as const;
+
+export function fautesCourtesParLongueur(lignes: readonly LigneDeFauxPositif[], noms: number): FautesCourtes[] {
+  return LONGUEURS_DES_MOTS_COURTS.map((longueur) => {
+    const retenues = lignes.filter((ligne) => ligne.type === 'faute' && CERTAINES.has(ligne.classe) && [...ligne.mot].length === longueur);
+    const certains = retenues.reduce((somme, ligne) => somme + ligne.nombre, 0);
+    return { longueur, certains, pourMille: noms === 0 ? 0 : Math.round((certains / noms) * 1000 * 100) / 100, mots: [...new Set(retenues.map((ligne) => `${ligne.mot}->${ligne.reference} (${ligne.systeme})`))].sort() };
+  });
+}
+
 export interface MesureDesFauxPositifs {
   readonly passes: number;
   readonly noms: number;
   readonly lignes: readonly LigneDeFauxPositif[];
+  readonly fautesCourtes?: readonly FautesCourtes[];
   readonly courbe: readonly LigneDeCourbe[];
   readonly retenue: number | undefined;
   /** Seuil des fautes de deux lettres (Q-F9). */
@@ -414,7 +446,7 @@ export async function mesurerLesFauxPositifs(systemes: readonly Systeme[], optio
   const mesures = await enfants;
   const courbe = courbeDuSeuil(scenarios, contexte, candidats, new Map(mesures.map((mesure, rang) => [LONGUEURS_DU_SEUIL[rang], mesure])));
   dire(`seuil : ${LONGUEURS_DU_SEUIL.length} longueurs, L retenu ${longueurRetenue(courbe) ?? 'aucun'} (une lettre), ${longueurRetenueDeDeuxLettres(courbe) ?? 'aucun'} (deux lettres)`);
-  return { passes: passes.length, noms, lignes, courbe, retenue: longueurRetenue(courbe), retenueDeDeuxLettres: longueurRetenueDeDeuxLettres(courbe), sansFauxPositif: longueurSansFauxPositif(courbe), dureeMs: Date.now() - debut };
+  return { passes: passes.length, noms, lignes, fautesCourtes: fautesCourtesParLongueur(lignes, noms), courbe, retenue: longueurRetenue(courbe), retenueDeDeuxLettres: longueurRetenueDeDeuxLettres(courbe), sansFauxPositif: longueurSansFauxPositif(courbe), dureeMs: Date.now() - debut };
 }
 
 // ---------------------------------------------------------------------------------------------------------------- sorties
@@ -486,6 +518,10 @@ export function sectionDuRapport(mesure: MesureDesFauxPositifs): string {
     `${mesure.passes} passes, ${mesure.noms} noms, ${mesure.lignes.length} lignes de sortie (${(mesure.dureeMs / 1000).toFixed(1)} s).`, '', types, '',
     `La règle Q-F4 retient L = ${mesure.retenue ?? 'aucun (le budget n\'est tenu pour aucune longueur de 3 à 8)'} : la plus petite longueur sous ${BUDGET_Q_F4} faux positif certain pour 1 000 noms.`,
     `La règle Q-F9 retient L = ${mesure.retenueDeDeuxLettres ?? 'aucun'} pour une faute de deux lettres, avec le même budget et sans descendre sous la longueur d'une lettre.`,
-    `Zéro faux positif certain sur le corpus et sur S15 (règle d'origine du plan) : L = ${mesure.sansFauxPositif ?? 'aucun de 3 à 10'}.`, '', courbe,
+    `Zéro faux positif certain sur le corpus et sur S15 (règle d'origine du plan) : L = ${mesure.sansFauxPositif ?? 'aucun de 3 à 10'}.`, '', courbe, '',
+    ...(mesure.fautesCourtes ? [
+      'Fautes de 4 à 6 lettres du kit sur les noms justes (E15.4), dictionnaire sans le système mesuré, FP-A et FP-C :', '',
+      table(['L', 'Faux positifs certains', 'Pour 1 000 noms', 'Mots'], mesure.fautesCourtes.map((l) => [l.longueur, l.certains, l.pourMille, l.mots.join(', ') || '.'])),
+    ] : []),
   ].join('\n');
 }

@@ -417,8 +417,9 @@ type IssueDeTemoin = 'detecte' | 'manque';
 
 /**
  * Les cas que le plan nomme en 6.1, avec ce que les décisions de E2 en attendent : le plan les attendait manqués sur le kit d'avant E2,
- * et E2b, E2c et E2d les ont corrigés. `bordre` et `paddng` ont 6 lettres : Q-F4 (E2.5) fixe à 7 la longueur d'une faute d'une lettre, ces deux
- * mots restent sans question, et `backgorund` (E-03) et `paddign` (E-04) portent les mêmes écarts au-dessus du seuil.
+ * et E2b, E2c et E2d les ont corrigés. `bordre` et `paddng` ont 6 lettres : Q-F4 (E2.5) fixait à 7 la longueur d'une faute d'une lettre et les laissait
+ * sans question ; E15 lit une faute de 4 à 6 lettres tant que le mutant n'est pas un mot connu, donc les deux sont détectés, comme `backgorund`
+ * (E-03) et `paddign` (E-04) au-dessus de 7 lettres.
  */
 export function executerLesTemoins(contexte: Contexte, ctx: ContexteOracle): Temoin[] {
   const separator = premierCas(contexte, 'S13', (cas) => cas.axes.terme === 'meme-dossier' && cas.axes.type === 'variable' && cas.axes.frequence === 1 && cas.attendus[0].mot === 'separator' && cas.attendus[0].reference === 'divider');
@@ -427,9 +428,9 @@ export function executerLesTemoins(contexte: Contexte, ctx: ContexteOracle): Tem
   const candidats: { nom: string; ecart: string; propriete: string; issue: IssueDeTemoin; cas: Scenario | undefined }[] = [
     { nom: '`backgrond` dans `theme`, k = 4', ecart: 'E-01', propriete: 'P-01', issue: 'detecte', cas: fichierDeFaute(contexte, 'temoin/backgrond/k=4', 'M-02', 'background', 'backgrond', 1, 4, 'P-01') },
     { nom: '`separator` près de `divider`, même dossier', ecart: 'E-08', propriete: 'P-11', issue: 'detecte', cas: separator },
-    { nom: '`bordre` (échange, 6 lettres), k = 8', ecart: 'E-03', propriete: 'P-01', issue: 'manque', cas: fichierDeFaute(contexte, 'temoin/bordre/k=8', 'M-04', 'border', 'bordre', 1, 8, 'P-01') },
+    { nom: '`bordre` (échange, 6 lettres), k = 8', ecart: 'E-03', propriete: 'P-01', issue: 'detecte', cas: fichierDeFaute(contexte, 'temoin/bordre/k=8', 'M-04', 'border', 'bordre', 1, 8, 'P-01') },
     { nom: '`backgorund` (échange, 10 lettres), k = 8', ecart: 'E-03', propriete: 'P-01', issue: 'detecte', cas: fichierDeFaute(contexte, 'temoin/backgorund/k=8', 'M-04', 'background', 'backgorund', 1, 8, 'P-01') },
-    { nom: '`paddng` (6 lettres), k = 8', ecart: 'E-04', propriete: 'P-04', issue: 'manque', cas: fichierDeFaute(contexte, 'temoin/paddng/k=8', 'M-02', 'padding', 'paddng', 1, 8, 'P-04') },
+    { nom: '`paddng` (6 lettres), k = 8', ecart: 'E-04', propriete: 'P-04', issue: 'detecte', cas: fichierDeFaute(contexte, 'temoin/paddng/k=8', 'M-02', 'padding', 'paddng', 1, 8, 'P-04') },
     { nom: '`paddign` (échange, 7 lettres), k = 8', ecart: 'E-04', propriete: 'P-04', issue: 'detecte', cas: fichierDeFaute(contexte, 'temoin/paddign/k=8', 'M-04', 'padding', 'paddign', 1, 8, 'P-04') },
     { nom: '`separator-thin`', ecart: 'E-09', propriete: 'P-12', issue: 'detecte', cas: thin },
     { nom: '`separators`', ecart: 'E-10', propriete: 'P-13', issue: 'detecte', cas: pluriel },

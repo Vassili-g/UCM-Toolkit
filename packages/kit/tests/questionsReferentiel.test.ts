@@ -2,9 +2,10 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import test from 'node:test';
 import { commencerLexique, detecterLesQuestions, detecterParEtapes, indexerVocabulaire,
-  LONGUEUR_MINIMALE_D_UNE_FAUTE_A_DEUX_LETTRES, LONGUEUR_MINIMALE_D_UNE_FAUTE_A_UNE_LETTRE, SYNONYMES_COURANTS,
+  LONGUEUR_MINIMALE_D_UNE_FAUTE_A_DEUX_LETTRES, LONGUEUR_MINIMALE_D_UNE_FAUTE_A_UNE_LETTRE, LONGUEUR_MINIMALE_D_UNE_FAUTE_D_UN_MOT_COURT, SYNONYMES_COURANTS,
   type DejaJuge, type NomLu, type Question } from '../src/referentiel/index.js';
 import { detecterBranchesParalleles } from '../src/referentiel/branches-paralleles.js';
+import { motConnu, motsAnglaisConnus, remplacerLesMotsConnus } from '../src/referentiel/mots-connus.js';
 
 const index = indexerVocabulaire({ personnalises: [], ecartsUcm: [] }).index;
 const vide: DejaJuge = { distincts: [], plusTard: [], voulus: [], collectionsGardees: [] };
@@ -130,12 +131,59 @@ test('une faute ou un mot collé d’un seul nom arrive dans les questions, pas 
   assert.equal(motColle?.score, 1);
 });
 
-test('un mot sous le seuil de longueur d’une lettre ne donne pas de faute', () => {
+test('un mot de moins de quatre lettres ne donne jamais de faute (E15)', () => {
   assert.equal(LONGUEUR_MINIMALE_D_UNE_FAUTE_A_UNE_LETTRE, 7);
-  assert.deepEqual(fautes([nom('a', 'button/sucess/text')]), [], 'six lettres');
-  assert.deepEqual(fautes([nom('a', 'button/warnng/text')]), [], 'six lettres');
-  assert.equal(fautes([nom('a', 'button/warnning/text')]).length, 1, 'sept lettres');
+  assert.equal(LONGUEUR_MINIMALE_D_UNE_FAUTE_D_UN_MOT_COURT, 4);
+  assert.equal(motConnu('bgg'), false, 'bgg n’est pas dans le dictionnaire : seule sa longueur le protège');
+  assert.deepEqual(fautes([nom('a', 'button/bgg/text')]), [], 'trois lettres, à une lettre de bg et de bgs');
+  assert.deepEqual(fautes([nom('a', 'button/sm/text'), nom('b', 'button/smm/text')]), [], 'deux et trois lettres');
   assert.deepEqual(fautes([nom('a', 'set/cot/value'), nom('b', 'set/cat/value')]), [], 'cat et cot ne sont pas des termes connus');
+  assert.equal(fautes([nom('a', 'button/warnning/text')]).length, 1, 'sept lettres : la règle d’E2b ne change pas');
+});
+
+// E15
+test('un mot de 4 à 6 lettres à une lettre d’un terme connu est une faute s’il n’est pas un mot connu (E15)', () => {
+  const proposition = (mot: string) => fautes([nom('a', `button/${mot}/text`)]).map((q) => q.proposition[0]);
+  assert.deepEqual(proposition('colr'), ['color'], 'quatre lettres, lettre retirée');
+  assert.deepEqual(proposition('hovr'), ['hover'], 'quatre lettres, lettre retirée');
+  assert.deepEqual(proposition('bordr'), ['border'], 'cinq lettres, lettre retirée');
+  assert.deepEqual(proposition('bordre'), ['border'], 'six lettres, échange de deux voisines');
+  assert.deepEqual(proposition('sucess'), ['success'], 'six lettres, lettre retirée');
+  assert.deepEqual(proposition('warnng'), ['warning'], 'six lettres, lettre retirée');
+  assert.deepEqual(proposition('gapp'), ['gap'], 'quatre lettres près d’un terme de trois lettres');
+  assert.deepEqual(proposition('icom'), ['icon'], 'quatre lettres, lettre remplacée');
+});
+
+test('un mot connu ne devient jamais une faute (E15)', () => {
+  for (const mot of ['next', 'colon', 'color', 'text', 'icon', 'item', 'hover', 'colors']) assert.deepEqual(fautes([nom('a', `button/${mot}/text`)]), [], mot);
+  // Sans le dictionnaire, `next` serait une faute de `text` et `colon` une faute de `color`.
+  remplacerLesMotsConnus([]);
+  try {
+    assert.deepEqual(fautes([nom('a', 'button/next/text')]).map((q) => q.proposition[0]), ['text']);
+    assert.deepEqual(fautes([nom('a', 'button/colon/text')]).map((q) => q.proposition[0]), ['color']);
+  } finally { remplacerLesMotsConnus(); }
+  assert.deepEqual(fautes([nom('a', 'button/next/text')]), []);
+});
+
+test('au-dessus de six lettres, le dictionnaire n’est pas lu (E15)', () => {
+  // `backgrond` n’est dans aucune liste ; un dictionnaire qui le connaîtrait ne doit pas le taire.
+  remplacerLesMotsConnus(['backgrond', 'warnning']);
+  try {
+    assert.equal(fautes([nom('a', 'button/backgrond/text')]).length, 1);
+    assert.equal(fautes([nom('a', 'button/warnning/text')]).length, 1);
+  } finally { remplacerLesMotsConnus(); }
+});
+
+test('le dictionnaire des mots connus tient son format (E15)', () => {
+  for (const mot of ['next', 'colon', 'under', 'light', 'shadow', 'radius', 'border']) assert.ok(motConnu(mot), mot);
+  for (const mot of ['colr', 'hovr', 'bordr', 'bgg', 'sm', 'backgrond']) assert.equal(motConnu(mot), false, mot);
+  assert.ok(motConnu('NEXT'), 'la casse ne change rien');
+  const mots = motsAnglaisConnus();
+  assert.ok(mots.length >= 10_000 && mots.length <= 20_000, `${mots.length} mots anglais`);
+  assert.ok(mots.every((mot) => /^[a-z]{4,6}$/.test(mot)), 'minuscules, de 4 à 6 lettres');
+  assert.equal(new Set(mots).size, mots.length, 'sans doublon');
+  assert.ok(readFileSync(new URL('../src/referentiel/mots-connus-donnees.ts', import.meta.url)).length <= 200_000, '200 Ko au plus');
+  assert.match(readFileSync(new URL('../src/referentiel/mots-connus.LICENCE.txt', import.meta.url), 'utf8'), /Kevin Atkinson/u, 'la notice de licence est à côté du module');
 });
 
 test('un mot juste, une forme ou un mot jugé ne donne pas de faute', () => {
@@ -175,7 +223,6 @@ test('une faute de deux lettres donne une question au-dessus de son seuil (Q-F9)
 
 test('une faute de deux lettres sous son seuil ne donne rien, et une lettre garde la priorité', () => {
   assert.deepEqual(fautes([nom('a', 'button/divdr/text')]), [], 'cinq lettres');
-  assert.deepEqual(fautes([nom('a', 'button/warnng/text')]), [], 'six lettres');
   assert.deepEqual(fautes([nom('a', 'button/warnnxg/text')]), [], 'sept lettres, deux éditions : sous le seuil de deux lettres');
   assert.deepEqual(fautes([nom('a', 'button/backgrond/text')]).map((q) => q.proposition[0]), ['background'], 'une lettre');
 });
@@ -533,10 +580,22 @@ test('une faute dans un morceau de casse mixte est lue, sans que ses voisins soi
   assert.deepEqual(fautes([nom('c', 'Menu/darkDeangerItemColor')]).map((q) => [q.terme.mot, q.proposition[0]]), [['deanger', 'danger']]);
 });
 
-test('les morceaux de casse mixte ne servent qu’à la faute : aucun terme, aucune paire, aucune faute sous le seuil (S16, PLAN-VOCABULAIRE)', () => {
-  const noms = [nom('a', 'StressTest/Info/TileLinksWrap/Sizes/Gap-x'), nom('b', 'colorFillSecondary'), nom('c', 'Tree/titleHeigt')];
-  assert.deepEqual(questions(noms), [], 'une tuile, un lien, un mot de six lettres : rien');
+test('les morceaux de casse mixte ne servent qu’à la faute : aucun terme, aucune paire, aucune faute d’un mot connu (S16, PLAN-VOCABULAIRE)', () => {
+  const noms = [nom('a', 'StressTest/Info/TileLinksWrap/Sizes/Gap-x'), nom('b', 'colorFillSecondary')];
+  assert.deepEqual(questions(noms), [], 'une tuile, un lien, un mot courant : rien');
   assert.deepEqual(fautes([nom('d', 'Tree/titleHeight')]), [], 'un morceau juste');
+});
+
+// E15
+test('une faute de 4 à 6 lettres dans un morceau de casse mixte est lue, un morceau connu non (S16)', () => {
+  const proposition = (chemin: string) => fautes([nom('a', chemin)]).map((q) => [q.terme.mot, q.proposition[0]]);
+  assert.deepEqual(proposition('Tree/titleHeigt'), [['heigt', 'height']], 'six lettres');
+  assert.deepEqual(proposition('Button/linkHovr'), [['hovr', 'hover']], 'quatre lettres');
+  assert.deepEqual(proposition('colorBgTextk'), [['textk', 'text']], 'cinq lettres');
+  assert.deepEqual(proposition('colorwWhite'), [['colorw', 'color']], 'le découpage des mots garde la lettre en trop avec le morceau suivant');
+  assert.deepEqual(proposition('colorIinfoTextActive'), [['iinfo', 'info']], 'cinq lettres au milieu du segment');
+  assert.deepEqual(proposition('Menu/itemNext'), [], 'next est un mot connu');
+  assert.deepEqual(proposition('Menu/itemColon'), [], 'colon est un mot connu');
 });
 
 test('un terme de plusieurs mots écrit sans séparateur n’est pas une faute de son premier mot (S9)', () => {
