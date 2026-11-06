@@ -155,7 +155,7 @@ Une capture absente se compte absente. Une comparaison locale ne prouve pas la f
 | [D4a](lots/D4a.md) Ignorer sans acquisition | `implementeur` | D3 | [x] e91eac2e |
 | [D4b](lots/D4b.md) Relecture après Appliquer | `implementeur-exigeant` | D4a | [x] 96ce02a6, voie complète |
 | [D5a](lots/D5a.md) Candidat de prélecture | `implementeur` | D4b | [x] f3f676b7 |
-| [D5b](lots/D5b.md) Mesure de prélecture | mainteneur | D5a, build disponible | [ ] |
+| [D5b](lots/D5b.md) Mesure de prélecture | mainteneur | D5a, build disponible | abandonnée, prélecture inactive |
 | [D6a](lots/D6a.md) Virtualisation des cartes | `implementeur` | D4b | [x] 2756fac9 |
 | [D6b](lots/D6b.md) Branchement des sections | `implementeur` | D6a | [x] 303d8903 |
 | [D7](lots/D7.md) Mesure finale | `verificateur`, puis le mainteneur | D6b, D5a | [ ] |
@@ -222,6 +222,7 @@ Règles propres à la phase E :
 | [E13](lots/E13.md) Écarts du rejeu final | `implementeur-exigeant` | E12.1, E12.2 | [x] 6650e77f, Q-F3-4 et pictogramme au mainteneur |
 | [E14](lots/E14.md) Écarts de F1 au rejeu final | `implementeur-exigeant` | E12.1 | [x] dead4948, 7d3e7178, Q-E14-1 à Q-E14-6 au mainteneur |
 | [E15](lots/E15.md) Fautes des mots courts | `implementeur-exigeant` | E14 | [x] b6017dc1, mesure Figma au mainteneur |
+| [E16](lots/E16.md) Fautes de 3 lettres, noms de composant et synonymes UCM | `implementeur-exigeant` | E15 | [ ] |
 
 ## Phase G. Attente avant les constats du mode Tokens
 
