@@ -158,7 +158,7 @@ Une capture absente se compte absente. Une comparaison locale ne prouve pas la f
 | [D5b](lots/D5b.md) Mesure de prélecture | mainteneur | D5a, build disponible | abandonnée, prélecture inactive |
 | [D6a](lots/D6a.md) Virtualisation des cartes | `implementeur` | D4b | [x] 2756fac9 |
 | [D6b](lots/D6b.md) Branchement des sections | `implementeur` | D6a | [x] 303d8903 |
-| [D7](lots/D7.md) Mesure finale | `verificateur`, puis le mainteneur | D6b, D5a | [ ] |
+| [D7](lots/D7.md) Mesure finale | `verificateur`, puis le mainteneur | D6b, D5a | [ ] D7.1 faite, D7.2 remplacée par G5.2 |
 
 ## Phase E. Corrections tirées des réponses V2
 
@@ -246,7 +246,7 @@ G1a et G2 peuvent tourner ensemble, sans fichier commun.
 | [G3](lots/G3.md) Messages fidèles aux étapes | `implementeur` | G2 | [x] 62c797a8 |
 | [G4](lots/G4.md) Pas synchrones bornés | `implementeur` | G1b | [ ] ad3bd578, 1926b45c, G4.1 et G4.2 faits, G4.3 reste ouvert |
 | [G6](lots/G6.md) Contrôles de structure dans le Worker | `implementeur-exigeant` | G1c, E11b | [x] 4588f1cc, bec71fd0 |
-| [G5](lots/G5.md) Mesure de l’attente | `verificateur`, puis le mainteneur | G1c, G2, G3, G4, G6 | [ ] premier essai mesuré |
+| [G5](lots/G5.md) Mesure de l’attente | `verificateur`, puis le mainteneur | G1c, G2, G3, G4, G6 | [x] G5.1 et G5.2 faites |
 
 ## Phase F. Clôture
 

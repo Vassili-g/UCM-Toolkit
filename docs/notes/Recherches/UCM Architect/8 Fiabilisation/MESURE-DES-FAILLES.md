@@ -568,6 +568,33 @@ Pour des tailles multipliées par 2,5 puis 2,8, l'index multiplie ses lectures p
 
 Durée du rejeu (`npm run stress:rejeu -- --chrono`, médiane de 11 passes, une exécution) : premier fichier réel 41,8 ms pour `controlerLeCatalogue` (8 constats) et 53,1 ms pour `controlerLIntegriteUcm` (4 483 constats) sur 2 415 variables ; second fichier 1,3 ms et 0,0 ms (1 constat chacun) sur 755 variables. Les 35 ms et 39 ms de D0 portaient sur le kit d'avant les lots E : il rend depuis 8 constats C63 de plus sur le premier fichier et 2 constats sur le second, qui en rendait 0. La durée dans Figma attend le rapport du mode Tokens que télécharge le mainteneur.
 
+#### Après la phase D, lot D7.1
+
+Même banc, kit 0.15.1 reconstruit (`npm run build --workspace @ucm-kit/core`), machine peu chargée. Les deux sources du rejeu sont présentes : aucune source absente. Les compteurs sont ceux de D0.3 à l'unité près.
+
+| Entrée | Variables | Compteur | Avant (D0) | Après (D7.1) |
+|---|---|---|---|---|
+| Fixture d'acquisition, `getLocalVariablesAsync` | 73 | appels | 3 | 1 (inchangé depuis D1) |
+| Fixture d'acquisition, `getVariableByIdAsync` | 73 | appels | 75 | 1 (inchangé depuis D1) |
+| Catalogue fabriqué | 257 | lectures `controlerLeCatalogue`, `controlerLIntegriteUcm` | 43 972, 3 802 | 43 972, 3 802 |
+| Catalogue fabriqué | 5 682 | lectures `controlerLeCatalogue`, `controlerLIntegriteUcm` | 982 943, 68 651 | 982 943, 68 651 |
+| Premier fichier réel | 2 415 | constats (`controlerLeCatalogue`, `controlerLIntegriteUcm`) | 8, 4 483 | 8, 4 483 |
+| Second fichier réel | 755 | constats (`controlerLeCatalogue`, `controlerLIntegriteUcm`) | 1, 1 | 1, 1 |
+
+Le rapport `resume.txt` de `npm run stress:rejeu` est identique entre deux exécutions : 4 491 constats au premier fichier (8 C63, 4 483 C82), 2 au second, 61 défauts injectés sur 61 détectés au premier fichier, 45 sur 45 au second, 7 947 et 576 alias résolus, 0 exception. Les trois tests d'acquisition et de croissance (`acquisitionDesVariables`, `acquisitionDuRejeu`, `croissanceDuKit`) passent.
+
+Durées, médiane de 11 passes après échauffement (le catalogue fabriqué est la moyenne de deux exécutions) :
+
+| Variables | `controlerLeCatalogue` D0 | D7.1 | `controlerLIntegriteUcm` D0 | D7.1 |
+|---|---|---|---|---|
+| 257 | 19,6 à 19,9 ms | 11,2 à 12,4 ms | 5,8 à 8,2 ms | 4,5 à 4,9 ms |
+| 2 882 | 154,4 à 182,2 ms | 85,3 à 90,9 ms | 47,9 à 58,8 ms | 35,4 à 37,6 ms |
+| 5 682 | 268,0 à 304,6 ms | 166,0 à 173,8 ms | 101,3 à 112,0 ms | 69,0 à 74,2 ms |
+| 2 415 (premier fichier réel) | 41,8 ms | 30,1 ms | 53,1 ms | 36,1 ms |
+| 755 (second fichier réel) | 1,3 ms | 0,7 ms | 0,0 ms | 0,0 ms |
+
+Les durées D0 avaient été prises sous charge de la machine, donc l'écart ne dit pas ce que les lots D ont gagné : D3 n'a changé que `controlerLesAliasesManquants`, dont les lectures ne bougent pas ici. Ce banc ne mesure ni Actualiser, ni Ignorer, ni Appliquer, ni Figma. Le gain Figma de D7.2 passe par G5.2, plus bas.
+
 ### Attente mesurée dans Figma (G0.5)
 
 Le mainteneur a exporté le rapport du mode Tokens après une analyse à froid puis un Actualiser, sur un fichier client de 2 415 variables.
@@ -644,6 +671,27 @@ Même fichier, plugin construit après G6. Les contrôles de structure et le cal
 
 L’affichage complet passe de 19,1 s à 2,6 s à froid, et de 68,1 s à 2,3 s pour Actualiser. Le démarrage du Worker coûte
 0,84 s à froid, car il part au premier calcul. Un démarrage à l’ouverture du plugin retirerait ce temps de l’attente.
+
+### Attente par voie, banc local (G5.1)
+
+Le banc de la recherche (`_local/recherche-attente/mesurer.mjs`, kit 0.15.1 après G4) passe le même relevé dans la session de Nomenclature, une fois sous Node et une fois dans QuickJS. La voie Node tient lieu du Worker : le moteur de l'interface exécute le même calcul pur (`creerAtelier`), sans le transfert du message. La voie QuickJS est celle du sandbox. Les bilans des deux voies sont identiques. Le banc compte les phases par générateur du kit : `lexique` (lexique), `normaliserParEtapes` (renommages), `detecterParEtapes` (questions). Les pauses du banc se résolvent tout de suite, donc l'attente aux cessions de Figma n'y paraît pas.
+
+| Phase, en ms | Source 1 Node | Source 1 QuickJS | Source 2 Node | Source 2 QuickJS | Figma avant G1, à froid (G0.5) |
+|---|---:|---:|---:|---:|---:|
+| Variables | 2 415 | 2 415 | 755 | 755 | 2 415 |
+| Lexique | 152 | 12 502 | 34 | 3 221 | 6 520 |
+| Renommages | 26 | 218 | 7 | 67 | non mesuré |
+| Questions | 348 | 8 382 | 64 | 1 732 | 2 937 |
+| Bilan complet | 625 | 22 815 | 132 | 5 614 | 13 497 |
+| Plus long pas | 6 | 37 | 2 | 35 | 1 331 |
+| Contrôles du catalogue | 25,8 | 1 984 | 0,7 | 8 | 884 |
+| Contrôles de l'intégrité | 32,6 | 1 965 | 0,0 | 0 | 1 780 |
+
+Les contrôles de structure se chronomètrent à part (`_local/recherche-attente/controles-vm-g5.cjs`, médiane de 11 passes, le même bundle sous Node puis sous QuickJS, constats égaux : 8 et 4 483, 1 et 1). QuickJS les rend 60 à 77 fois plus lents que Node sur le premier fichier ; Figma les rendait 34 à 54 fois plus lents que Node (884 et 1 780 ms). Le plus long pas se lit comme le maximum des trois générateurs ; celui de Figma (1 331 ms) vient du journal par phase de G0 et recouvre aussi le travail de l'hôte.
+
+Après G6 (section précédente), Figma mesure le calcul des noms dans le Worker à 336 ms à froid et 589 ms pour Actualiser, contre 625 ms sous Node ici : les deux voies sont du même ordre. Le sandbox QuickJS du banc donne 22,8 s sur le premier fichier, contre 13,5 s dans Figma avant G1.
+
+Ce que le banc ne sépare pas : le transfert vers le Worker (98 à 366 ms dans Figma), son démarrage (839 ms à froid), le rendu et les attentes aux cessions du sandbox. `stress:rejeu` ne passe que les contrôles du kit sous Node : le rejeu de D0 n'a pas de voie QuickJS, d'où le chronomètre ajouté ci-dessus. Aucune mesure n'a été inventée pour ces phases.
 
 ### Mode Composant
 
