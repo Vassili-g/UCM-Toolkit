@@ -40,8 +40,8 @@ export const DEPENDANCES_DE_PROPRIETES_ET_ETATS = {
 } as const;
 
 /**
- * Les noms, une fois normalisés, d'un axe d'états : `State`, `States`, `Status`,
- * `État` ou `Etat` dans Figma. Le registre du kit les possède ; `isStateProperty`
+ * Les noms, une fois normalisés, d'un axe d'états : `State`, `States`, `État` ou
+ * `Etat` dans Figma (`Status` reste une prop). Le registre du kit les possède ; `isStateProperty`
  * en retire l'axe des props et `lireLeModeleDEtats` le publie par la même
  * fonction, donc les deux lectures ne peuvent pas diverger.
  */

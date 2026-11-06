@@ -1561,7 +1561,7 @@
         "precedence"
       ],
       "additionalProperties": false,
-      "description": "Modèle d'interaction déduit d'un axe Figma `State` ou `Status`."
+      "description": "Modèle d'interaction déduit d'un axe Figma `State`, `States`, `État` ou `Etat` ; un axe `Status` reste une prop."
     },
     "StateDescriptor": {
       "type": "object",

@@ -46,12 +46,12 @@ test('mergePropDescriptions documente l’axe d’états, que stateModel publie 
   assert.deepEqual(warnings, []);
 });
 
-/** Un axe nommé `Status` porte les mêmes états, donc la même documentation. */
+/** Un axe nommé `État` porte les mêmes états, donc la même documentation. */
 test('mergePropDescriptions suit le nom réel de l’axe d’états', () => {
-  const stateModel = modeleEtats('status');
+  const stateModel = modeleEtats('état');
   const warnings: string[] = [];
 
-  mergePropDescriptions({}, stateModel, { status: { default: 'État au repos.' } }, warnings);
+  mergePropDescriptions({}, stateModel, { 'état': { default: 'État au repos.' } }, warnings);
 
   assert.equal(stateModel.states.default.description, 'État au repos.');
   assert.deepEqual(warnings, []);

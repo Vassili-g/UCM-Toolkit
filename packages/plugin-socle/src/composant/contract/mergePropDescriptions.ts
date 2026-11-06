@@ -28,7 +28,7 @@ function unknownValueWarning(propName: string, value: string): PointACorriger {
 /**
  * Documente les états d'interaction, là où le contrat les publie déjà.
  *
- * L'axe `State`/`Status` est exclu des props (le développeur ne choisit pas
+ * L'axe `State` est exclu des props (le développeur ne choisit pas
  * `hover`) mais `stateModel` le publie avec toutes ses valeurs, et les arbres
  * de variantes en sont indexés. Sa documentation a donc un propriétaire.
  */

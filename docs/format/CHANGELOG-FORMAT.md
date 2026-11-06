@@ -260,6 +260,13 @@ normalisée (`état` ou `etat`), et sort de `props` ; ses règles `@prop` le sui
 Les contrats déjà fusionnés restent inchangés. Les valeurs françaises comme
 `Défaut` et `Survol` ne deviennent pas pour autant des états UCM reconnus.
 
+L'axe de variants `Status` n'est plus un axe d'états : il nomme un résultat
+(succès, erreur), pas un état d'interaction. Classe 6, comme l'ajout d'`État` :
+ni nouveau champ ni changement de `contractVersion`. Au réexport, un axe
+`Status` sort de `stateModel` et devient une prop enum de `props`, avec ses
+valeurs et ses règles `@prop`. Les contrats déjà fusionnés restent inchangés. Un
+code qui lisait `stateModel` pour un tel composant lit désormais `props.status`.
+
 La fenêtre de lecture porte la 13.0 et la 14.0.
 
 **Ce qui ne change pas** : tout le reste de la 13.0. L'absence d'auto layout

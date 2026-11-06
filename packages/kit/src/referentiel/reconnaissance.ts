@@ -74,7 +74,7 @@ export function termeReconnu(registre: Registre, segment: string): Terme | undef
 }
 
 /**
- * Vrai quand le nom d'une propriété de variant est l'axe d'états (`State`, `States`, `Status`, `État`, `Etat`).
+ * Vrai quand le nom d'une propriété de variant est l'axe d'états (`State`, `States`, `État`, `Etat`) ; `Status` nomme un résultat et n'en est pas (E16.4).
  * Vit ici et non dans `vocabulaire.ts` : `vocabulaire.ts` importerait ce module, dont la chaîne revient à `architecture.ts`, qui lit `vocabulaire.ts` au chargement.
  */
 export function estLAxeDEtats(nom: string): boolean {

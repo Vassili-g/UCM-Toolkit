@@ -138,7 +138,7 @@ export type StateDescriptor = {
   description?: string;
 };
 
-/** Modèle d'interaction déduit d'un axe Figma `State` ou `Status`. */
+/** Modèle d'interaction déduit d'un axe Figma `State`, `States`, `État` ou `Etat` ; un axe `Status` reste une prop. */
 export type StateModel = {
   /** Nom normalisé de l'axe Figma qui porte les états. */
   axis: string;

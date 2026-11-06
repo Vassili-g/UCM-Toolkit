@@ -133,7 +133,7 @@ export const REGLES: Regle[] = [
   },
   {
     fiche: 'D-03',
-    raison: "Un nom de propriété ne se compare pas au littéral `'state'` : `estLAxeDEtats` reconnaît aussi `States`, `Status`, `État` et `Etat`.",
+    raison: "Un nom de propriété ne se compare pas au littéral `'state'` : `estLAxeDEtats` reconnaît aussi `States`, `État` et `Etat`.",
     motif: /[!=]==\s*(['"])state\1/,
     proprietaires: ['packages/kit/src/referentiel/vocabulaire.ts'],
     exceptions: [],
