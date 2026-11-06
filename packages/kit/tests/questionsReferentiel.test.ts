@@ -660,6 +660,25 @@ test('trois lettres : une faute quand le mot est inconnu et qu’un seul terme d
   assert.deepEqual(proposition('zqx'), []);
 });
 
+test('une faute près de plusieurs termes les liste tous : la référence, puis `autres` dans l’ordre de choix (E17.1)', () => {
+  // `lext` est à une lettre de `left` et de `text` ; le fichier emploie `text` et `left`, le plus employé (`text`, 2 noms) passe en premier.
+  const ensemble = [nom('a', 'button/text/fill'), nom('b', 'button/text/stroke'), nom('c', 'button/left/fill'), nom('d', 'button/lext/x')];
+  const faute = fautes(ensemble).find((q) => q.terme.mot === 'lext');
+  assert.ok(faute?.type === 'ecriture-du-terme');
+  assert.equal(faute.proposition[0], 'text');
+  assert.equal(faute.reference?.mot, 'text');
+  assert.deepEqual(faute.autres, ['left']);
+  // Une faute qui n'a qu'un terme proche ne porte pas `autres`.
+  const seule = fautes([nom('a', 'button/btton/x')])[0];
+  assert.equal(seule?.type === 'ecriture-du-terme' ? seule.autres : 'absent', undefined);
+});
+
+test('un mot de trois lettres près d’un terme de deux lettres l’a pour candidat (E17.1)', () => {
+  const faute = fautes([nom('a', 'button/bgg/text')]).find((q) => q.terme.mot === 'bgg');
+  assert.ok(faute?.type === 'ecriture-du-terme');
+  assert.deepEqual([faute.proposition[0], ...(faute.autres ?? [])], ['background', 'lg'], '`bg` (terme de 2 lettres, forme de `background`) puis `big` (forme de `lg`)');
+});
+
 test('deux termes UCM synonymes dans le même fichier donnent une question de choix, un seul n’en donne pas (E16.3)', () => {
   const ensemble = [nom('a', 'colors/danger/fill'), nom('b', 'layout/error/fill', 'collection-2'), nom('c', 'layout/error/stroke', 'collection-2')];
   const question = questions(ensemble).find((q) => q.type === 'paire');

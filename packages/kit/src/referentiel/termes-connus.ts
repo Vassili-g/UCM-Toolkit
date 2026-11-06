@@ -171,6 +171,13 @@ export function termesAUneLettre(mot: string): readonly string[] {
   return chercher(minuscule, 1, (terme) => distanceUnOuEchange(minuscule, terme));
 }
 
+/** Les termes connus de deux lettres à une lettre d'un mot de trois lettres (`bg` pour `bgg`) : l'index des termes de trois lettres au moins ne les voit pas (E17.1). */
+export function termesDeDeuxLettresAUneLettre(mot: string): readonly string[] {
+  const minuscule = mot.toLowerCase();
+  if ([...minuscule].length !== 3) return [];
+  return [...termesConnus].filter((terme) => [...terme].length === 2 && distanceUn(minuscule, terme)).sort();
+}
+
 /** Les termes connus, sans trait d'union, à deux éditions exactement du mot. Un échange de deux voisines compte pour une. */
 export function termesADeuxLettres(mot: string): readonly string[] {
   const minuscule = mot.toLowerCase();

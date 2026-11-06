@@ -5,7 +5,7 @@ import type { DejaJuge, IndexDuVocabulaire, Lexique, Mots, NomLu, Question, Remp
 import { motConnu } from './mots-connus.js';
 import { collectionUcmReconnue } from './normalisation.js';
 import { detecterBranchesParalleles } from './branches-paralleles.js';
-import { decouperEnTermesAvecUnTermeDeComposant, decouperPourQuestions, distanceUnOuEchange, opposes, termeAvecSesTirets, termeConnu, termeDeComposant, termeOuFormeConnu, termeSoude, termesADeuxLettres, termesAUneLettre, termesCompose } from './termes-connus.js';
+import { decouperEnTermesAvecUnTermeDeComposant, decouperPourQuestions, distanceUnOuEchange, opposes, termeAvecSesTirets, termeConnu, termeDeComposant, termeOuFormeConnu, termeSoude, termesADeuxLettres, termesAUneLettre, termesCompose, termesDeDeuxLettresAUneLettre } from './termes-connus.js';
 import { ABREVIATIONS, FORMES_D_UN_MEME_MOT, MOTS_DISTINCTS, REGISTRES, SYNONYMES_COURANTS } from './vocabulaire.js';
 
 const TAILLE_D_UN_LOT = 10;
@@ -558,26 +558,29 @@ export function* detecterParEtapes(lexique: Lexique, index: IndexDuVocabulaire, 
     const aUneLettre = termesAUneLettre(mot);
     // E16.2 : trois lettres exigent qu'un seul terme du kit soit à une lettre du mot. Une abréviation du kit (`btn`) est déjà écartée par `termeOuFormeConnu`.
     if (longueur === LONGUEUR_MINIMALE_D_UNE_FAUTE_D_UN_MOT_COURT && aUneLettre.length !== 1) continue;
-    const proches =aUneLettre.length > 0 ? aUneLettre : longueur >= LONGUEUR_MINIMALE_D_UNE_FAUTE_A_DEUX_LETTRES ? termesADeuxLettres(mot) : [];
-    let reference: string | undefined;
+    // E17.1 : un mot de 3 lettres est aussi proche d'un terme de 2 lettres (`bgg` près de `bg`), que l'index des termes de 3 lettres au moins ne voit pas.
+    const proches = aUneLettre.length > 0 ? (longueur === LONGUEUR_MINIMALE_D_UNE_FAUTE_D_UN_MOT_COURT ? [...aUneLettre, ...termesDeDeuxLettresAUneLettre(mot)] : aUneLettre)
+      : longueur >= LONGUEUR_MINIMALE_D_UNE_FAUTE_A_DEUX_LETTRES ? termesADeuxLettres(mot) : [];
+    const candidats = new Set<string>();
     for (const proche of proches) {
       // N-02 : un terme proche qui est une forme tolérée (`attention`) vaut son terme UCM (`warning`), que le renommage lui substitue.
       // Un terme de plusieurs mots écrit soudé (`fontstyle`) vaut le terme à tirets (`font-style`) : `fontsttyle` en est la faute (S9).
       const candidat = termeUcmDeLaForme(proche) ?? termeAvecSesTirets(proche);
       // Une négation (`inactive` pour `active`) nomme l'état opposé : jamais une faute.
       if (opposes(mot, proche) || distincts.has(clePaire(mot, proche)) || distincts.has(clePaire(mot, candidat)) || voulus.has(proche) || voulus.has(candidat)) continue;
-      const employe = observes.get(candidat)?.noms.size ?? 0;
-      if (reference === undefined || (termesUcm.has(candidat) && !termesUcm.has(reference))
-        || (termesUcm.has(candidat) === termesUcm.has(reference)
-          && (employe > (observes.get(reference)?.noms.size ?? 0) || (employe === (observes.get(reference)?.noms.size ?? 0) && comparer(candidat, reference) < 0)))) reference = candidat;
+      candidats.add(candidat);
     }
+    // Terme UCM d'abord, puis le plus employé, puis l'ordre alphabétique : le premier est la référence, les suivants sont `autres` (E17.1).
+    const employes = (candidat: string): number => observes.get(candidat)?.noms.size ?? 0;
+    const classes = [...candidats].sort((x, y) => Number(termesUcm.has(y)) - Number(termesUcm.has(x)) || employes(y) - employes(x) || comparer(x, y));
+    const reference = classes[0];
     // E15 : de 4 à 6 lettres, la faute ne vaut que pour un mot que le dictionnaire ne connaît pas ; il n'est lu que pour un mot qui a déjà une référence.
     if (reference === undefined || (longueur < LONGUEUR_MINIMALE_D_UNE_FAUTE_A_UNE_LETTRE && motConnu(mot))) continue;
     const cle = `ecriture-du-terme:faute:${[mot, reference].sort(comparer).join('|')}`;
     if (plusTard.has(cle)) continue;
     const employee = observes.get(reference);
     questions.push({ type: 'ecriture-du-terme', cle, indice: 'faute', terme: terme(observe), proposition: [reference],
-      reference: { mot: reference, nombre: employee?.noms.size ?? 0 }, score: yield* scoreDesNoms(observe, employee) });
+      reference: { mot: reference, nombre: employee?.noms.size ?? 0 }, ...(classes.length > 1 ? { autres: classes.slice(1).map((autre) => autre.toLowerCase()) } : {}), score: yield* scoreDesNoms(observe, employee) });
   }
   for (const mot of segmentsSoudes) {
     if (++operations % TAILLE_D_UN_LOT === 0) yield;

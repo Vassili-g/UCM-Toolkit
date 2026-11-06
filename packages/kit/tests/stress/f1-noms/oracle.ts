@@ -246,7 +246,10 @@ export function jugerUneFaute(cas: Pick<Scenario, 'id' | 'strate' | 'operateur' 
   const question = fauteSur(sortie, mot);
   const ref = question?.type === 'ecriture-du-terme' ? question.reference?.mot : undefined;
   const canoniques = termesUcmDeLaForme(reference);
-  const ok = !!question && (canoniques.length > 0 ? ref !== undefined && canoniques.includes(ref.toLowerCase()) : ref === reference || (ref !== undefined && proches.includes(ref)));
+  // E17.1 : la question liste le terme visé dans sa référence ou dans `autres` ; le designer choisit, donc la faute est détectée.
+  const listes = question?.type === 'ecriture-du-terme' ? [ref, ...(question.autres ?? [])].filter((terme): terme is string => terme !== undefined).map((terme) => terme.toLowerCase()) : [];
+  const termeVise = listes.includes(reference.toLowerCase()) || canoniques.some((canonique) => listes.includes(canonique));
+  const ok = !!question && (termeVise || (canoniques.length > 0 ? ref !== undefined && canoniques.includes(ref.toLowerCase()) : ref === reference || (ref !== undefined && proches.includes(ref))));
   const referenceRenommee = !ok && !!renommeLeMot(sortie, reference);
   const detail = ok ? `question faute ${mot} -> ${ref}`
     : (!question ? `aucune question faute pour ${mot}` : `question faute pour ${mot} avec la référence ${ref ?? '-'}, attendu ${canoniques.length > 0 ? canoniques.join(' ou ') : reference}`)
@@ -254,7 +257,7 @@ export function jugerUneFaute(cas: Pick<Scenario, 'id' | 'strate' | 'operateur' 
   const jugee = verdict(cas, sortie, { proprietes, attendu: true, ok, mot, reference, detail, cle: ok ? question!.cle : undefined,
     ...extra });
   // E15 : un mot de 4 à 6 lettres touche souvent deux termes. Le kit pose alors la question sur l'un d'eux, un terme proche et valable, et la question
-  // ne liste qu'un terme (Q-E14-4) : le cas attend la réponse du mainteneur, il n'est ni manqué ni faux.
+  // ne liste pas le terme visé : avant E17 elle n'en listait qu'un (Q-E14-4), le cas attend la réponse du mainteneur, il n'est ni manqué ni faux.
   const refValable = ref !== undefined && proches.some((proche) => proche === ref || termesUcmDeLaForme(proche).includes(ref.toLowerCase()));
   return !ok && question && refValable ? dispense([jugee], ECART_CANDIDATS_MULTIPLES, QUESTION_CANDIDATS_MULTIPLES)[0] : jugee;
 }
@@ -728,8 +731,8 @@ function s15(cas: Scenario, sortie: Sortie, ctx: ContexteOracle): Verdict[] {
     detail: traitement.trouve ? `${traitement.detail}, paire non classée` : 'aucune question, paire non classée' })];
 }
 
-/** E2c, « Reste » : lister tous les candidats demande un champ de `Question`, donc la projection et l'écran du plugin. Le mainteneur n'a pas tranché (Q-E14-4). */
-export const ECART_CANDIDATS_MULTIPLES = "la question ne liste qu'un terme : un champ de candidats n'existe pas dans `Question`";
+/** Q-E14-4, acceptée (E17) : la question liste la référence et `autres`. Un verdict qui reste ici ne trouve pas le terme visé dans cette liste. */
+export const ECART_CANDIDATS_MULTIPLES = "la question ne liste pas le terme visé, ni en référence ni dans `autres` (E17.1)";
 export const QUESTION_CANDIDATS_MULTIPLES = 'Q-E14-4';
 
 function s17(cas: Scenario, sortie: Sortie, ctx: ContexteOracle): Verdict[] {
@@ -742,7 +745,7 @@ function s17Brut(cas: Scenario, sortie: Sortie): Verdict[] {
   const { mot, reference } = cas.attendus[0];
   const candidats = reference!.split(',');
   const question = fauteSur(sortie, mot!);
-  const proposes = question?.type === 'ecriture-du-terme' ? new Set([...question.proposition, ...(question.reference ? [question.reference.mot] : [])]) : new Set<string>();
+  const proposes = question?.type === 'ecriture-du-terme' ? new Set([...question.proposition, ...(question.reference ? [question.reference.mot] : []), ...(question.autres ?? [])]) : new Set<string>();
   const ok = !!question && candidats.every((candidat) => proposes.has(candidat));
   return [verdict(cas, sortie, { proprietes: ['P-05'], attendu: true, ok, mot, reference, cle: ok ? question!.cle : undefined,
     detail: !question ? `aucune question faute pour ${mot}` : ok ? `question ${question.cle} liste ${candidats.join(', ')}` : `la question liste ${[...proposes].join(', ')}, attendu ${candidats.join(', ')}`, ecarts: ['E-06'] })];
