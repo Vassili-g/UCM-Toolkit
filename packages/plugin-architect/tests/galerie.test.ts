@@ -60,3 +60,11 @@ test('chaque script de la galerie se compile', () => {
   assert.ok(fs.readdirSync(dossier).includes('capturer.cjs'), 'capturer.cjs a quitté la galerie');
   for (const sous of ['', 'etats', 'nomenclature']) assert.deepEqual(scriptsQuiNeCompilentPas(path.join(dossier, sous)), []);
 });
+
+/** Les tests tournent en parallèle : un fichier de fixtures commun, réécrit par un processus pendant qu'un autre le lit, rendait un module tronqué. */
+test('chaque processus compile les fixtures de la galerie dans son propre fichier', () => {
+  const { compiler } = require(path.join(racine, 'galerie/etats/aide.cjs')) as { compiler: (entree: string, nom: string) => Record<string, unknown> };
+  const module = compiler(path.join(racine, 'tests/fixtures.ts'), 'galerie-fixtures-essai');
+  assert.equal(typeof module.projetLibre, 'function');
+  assert.ok(fs.existsSync(path.join(racine, `dist/galerie-fixtures-essai.${process.pid}.cjs`)));
+});

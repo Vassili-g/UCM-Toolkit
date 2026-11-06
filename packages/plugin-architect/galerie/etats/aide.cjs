@@ -8,10 +8,16 @@
  */
 const path = require('path');
 
+/**
+ * Chaque processus compile dans son propre fichier : les tests tournent en parallèle, et un processus qui lisait le fichier commun
+ * pendant qu'un autre le réécrivait recevait un module tronqué (`projetLibre is not a function`). La copie sous le nom commun sert
+ * à `tests/interface/aide.mjs`, que `test:ui` lance seul.
+ */
 function compiler(entree, nom) {
-  const compile = path.resolve(__dirname, `../../dist/${nom}.cjs`);
-  require('esbuild').buildSync({ entryPoints: [entree], outfile: compile, bundle: true, format: 'cjs', platform: 'node' });
-  return require(compile);
+  const propre = path.resolve(__dirname, `../../dist/${nom}.${process.pid}.cjs`);
+  require('esbuild').buildSync({ entryPoints: [entree], outfile: propre, bundle: true, format: 'cjs', platform: 'node' });
+  try { require('fs').copyFileSync(propre, path.resolve(__dirname, `../../dist/${nom}.cjs`)); } catch { /* un autre processus copie le même contenu */ }
+  return require(propre);
 }
 const { projetLibre, cinqCollections, grandReleve, constructeur, alias, nombre, couleur, composantSimple, composantComplexe, composantBouton, composantInterrompu, composantSansToken, peinturesDe } = compiler(path.resolve(__dirname, '../../tests/fixtures.ts'), 'galerie-fixtures');
 const { imagePng } = require('../image.cjs');
