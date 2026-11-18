@@ -19,7 +19,7 @@ Chaque case cochée porte le hash du commit qui la livre.
 La page vit dans `_local/inventaire-ucm/INVENTAIRE-UCM.html` tant qu'elle n'est pas générée.
 
 - [x] R1 (page locale, hors Git). Structure, textes, termes, marques à trois destinataires, erreurs relevées, extrait de contrat, tableau « Qui contrôle quoi ». Agent : `implementeur-exigeant`.
-- [ ] R2. Trajet du Button, rapport d'`ucm check`, cycle d'une demande, panneau des 7 collections avec menu latéral, feuille de route comme outil de décision, piste P21, annexes visuelles (icônes, marque, références, outillage), retours de design. Agent : `implementeur-exigeant`. Après R1.
+- [x] R2 (page locale, hors Git). Trajet du Button, rapport d'`ucm check`, cycle d'une demande, panneau des 7 collections avec menu latéral, feuille de route comme outil de décision, piste P21, annexes visuelles (icônes, marque, références, outillage), retours de design. Agent : `implementeur-exigeant`. Après R1.
 
 ## Phase C : catalogues dans le code
 
