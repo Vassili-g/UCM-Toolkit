@@ -394,7 +394,7 @@ async function lancerLeComposite(plus: Partial<ParametresDeChaine> = {}): Promis
 
 function notesDuComposite(chaine: Chaine): string[] {
   const attendus = [...new Set(composite().attendus.map((attendu) => attendu.code))].sort();
-  const emis = new Set(chaine.final().constats.map((constat) => constat.code));
+  const emis = new Set<string>(chaine.final().constats.map((constat) => constat.code));
   const absents = attendus.filter((code) => !emis.has(code));
   return [`composite : ${composite().retenus.length} cas fusionnés (${composite().retenus.map((c) => c.id).join(' ')})`, `codes attendus ${attendus.join(' ')}`, ...(absents.length > 0 ? [`codes absents des constats émis : ${absents.join(' ')}`] : [])];
 }

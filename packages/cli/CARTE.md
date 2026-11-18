@@ -8,7 +8,7 @@ Ligne de commande : @ucm-kit/cli, publiée.
 - tests/ : dont `recette.test.mjs`, sur des repositories temporaires
 
 ## src/
-- ucm.mjs : aiguillage et codes de sortie
+- ucm.mjs : aiguillage et codes de sortie ; `COMMANDES` (nom, usage, rôle, options) dont `ucm --help` est construit
 - init.mjs : installe ce qui manque, sans jamais écraser
 - check.mjs : lance le contrôle du kit, imprime, écrit le rapport
 - adaptateur.mjs : découvre l'adaptateur de stack installé dans le repo

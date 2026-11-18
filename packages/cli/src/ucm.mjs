@@ -38,59 +38,97 @@ function echecsDeTestsDepuis(env) {
   }
 }
 
-const AIDE = `ucm — la ligne de commande UCM
+/**
+ * Les commandes de `ucm`, dans l'ordre de l'aide : le nom que le développeur tape, son usage, son rôle en une phrase et ses options.
+ * `ucm --help` se construit depuis cette liste et d'elle seule : une commande ajoutée ici apparaît dans l'aide.
+ * Un retour à la ligne dans un `role` ou une `note` est celui de l'aide imprimée ; remplacé par une espace, le texte est la phrase.
+ */
+export const COMMANDES = [
+  {
+    nom: "init",
+    usage: "ucm init [--components <dossier>] [--tokens <dossier>] [--implementation <motif>] [--sans-agents] [--forge github|gitlab]",
+    role: "installe ce qui manque à ce repository, sans rien écraser",
+    options: [
+      { nom: "--components", role: "dossier sous lequel les contrats sont rangés" },
+      { nom: "--tokens", role: "dossier qui reçoit tokens.json" },
+      { nom: "--implementation", role: "où vit l'implémentation d'un contrat, {dir} et {id}\npour son dossier et son identifiant" },
+      { nom: "--sans-agents", role: "n'écrit ni les relais d'agent, ni .ucm/conventions.md,\nni les gabarits" },
+      {
+        nom: "--forge",
+        role: "la forge dont la CI est écrite ; sans elle, l'hôte du\nremote origin, puis la présence de .gitlab-ci.yml\ndécident, et GitHub sinon",
+      },
+    ],
+    note: "Les trois n'agissent qu'à la première installation : ucm init n'écrase\njamais un ucm.config.json existant.",
+  },
+  {
+    nom: "check",
+    usage: "ucm check [--base <sha>] [--report <chemin>]",
+    role: "contrôle les contrats et rend le rapport du designer",
+    options: [
+      { nom: "--base", role: "limite les états informatifs aux contrats modifiés depuis ce sha" },
+      { nom: "--report", role: "écrit le rapport markdown à ce chemin, en plus du terminal" },
+    ],
+  },
+  { nom: "icons", usage: "ucm icons", role: "liste les icônes que les contrats réclament", options: [] },
+  {
+    nom: "tokens css",
+    usage: "ucm tokens css --out <fichier> [--sans-modes]",
+    role: "écrit la feuille CSS des tokens et de leurs modes",
+    options: [
+      { nom: "--out", role: "la feuille à écrire, remplacée seulement si le fichier de\ntokens donne une feuille" },
+      { nom: "--sans-modes", role: "écrit la valeur par défaut de chaque token, pour un\nfichier exporté avant la déclaration des axes" },
+    ],
+  },
+  {
+    nom: "aides",
+    usage: "ucm aides [<aide> [--personnaliser [<chemin>]]]",
+    role: "liste les aides à l'implémentation et leur origine",
+    options: [
+      { nom: "<aide>", role: "imprime son sens, son écriture par défaut et sa preuve" },
+      { nom: "--personnaliser", role: "ajoute la section de l'aide au .ucm/conventions.md le\nplus proche du chemin, à éditer, sans rien écraser" },
+    ],
+  },
+  {
+    nom: "guide",
+    usage: "ucm guide <contrat> [--out <fichier>]",
+    role: "imprime ce qu'un agent lit avant d'implémenter un contrat",
+    options: [
+      { nom: "<contrat>", role: "le fichier .contract.json à implémenter" },
+      { nom: "--out", role: "écrit le guide dans ce fichier plutôt que dans le terminal" },
+    ],
+  },
+  {
+    nom: "rapport-gitlab",
+    usage: "ucm rapport-gitlab --projet <id> --merge-request <iid> --fichier <chemin> [--api <url>]",
+    role: "publie le rapport en note d'une merge request GitLab",
+    options: [
+      { nom: "--projet", role: "l'identifiant ou le chemin du projet GitLab" },
+      { nom: "--merge-request", role: "le numéro de la merge request dans ce projet" },
+      { nom: "--fichier", role: "le rapport écrit par ucm check --report" },
+      { nom: "--api", role: "l'API GitLab, https://gitlab.com/api/v4 par défaut" },
+    ],
+    note: "Le jeton se lit dans UCM_GITLAB_TOKEN. Sans lui, la commande le dit et\nsort en 0.",
+  },
+  { nom: "--help", usage: "ucm --help", role: "affiche cette aide", options: [] },
+];
 
-  ucm init            installe ce qui manque à ce repository, sans rien écraser
-  ucm check           contrôle les contrats et rend le rapport du designer
-  ucm icons           liste les icônes que les contrats réclament
-  ucm tokens css      écrit la feuille CSS des tokens et de leurs modes
-  ucm aides           liste les aides à l'implémentation et leur origine
-  ucm guide           imprime ce qu'un agent lit avant d'implémenter un contrat
-  ucm rapport-gitlab  publie le rapport en note d'une merge request GitLab
-  ucm --help          affiche cette aide
+/** Pose une marge devant chaque ligne d'un texte sauf la première, que sa tête précède déjà. */
+const sousLaMarge = (texte, marge) => texte.split("\n").join(`\n${marge}`);
 
-  ucm init [--components <dossier>] [--tokens <dossier>] [--implementation <motif>] [--sans-agents] [--forge github|gitlab]
-      --components      dossier sous lequel les contrats sont rangés
-      --tokens          dossier qui reçoit tokens.json
-      --implementation  où vit l'implémentation d'un contrat, {dir} et {id}
-                        pour son dossier et son identifiant
-      --sans-agents     n'écrit ni les relais d'agent, ni .ucm/conventions.md,
-                        ni les gabarits
-      --forge           la forge dont la CI est écrite ; sans elle, l'hôte du
-                        remote origin, puis la présence de .gitlab-ci.yml
-                        décident, et GitHub sinon
-      Les trois n'agissent qu'à la première installation : ucm init n'écrase
-      jamais un ucm.config.json existant.
+/** Le bloc d'une commande : son usage, ses options alignées sur la plus longue, puis sa note. */
+function blocDeLAide({ usage, options, note }) {
+  const largeur = Math.max(...options.map(({ nom }) => nom.length));
+  const lignes = options.map(({ nom, role }) => `      ${nom.padEnd(largeur)}  ${sousLaMarge(role, " ".repeat(8 + largeur))}`);
+  if (note) lignes.push(`      ${sousLaMarge(note, "      ")}`);
+  return [`  ${usage}`, ...lignes].join("\n");
+}
 
-  ucm check [--base <sha>] [--report <chemin>]
-      --base    limite les états informatifs aux contrats modifiés depuis ce sha
-      --report  écrit le rapport markdown à ce chemin, en plus du terminal
-
-  ucm tokens css --out <fichier> [--sans-modes]
-      --out         la feuille à écrire, remplacée seulement si le fichier de
-                    tokens donne une feuille
-      --sans-modes  écrit la valeur par défaut de chaque token, pour un
-                    fichier exporté avant la déclaration des axes
-
-  ucm aides [<aide> [--personnaliser [<chemin>]]]
-      <aide>           imprime son sens, son écriture par défaut et sa preuve
-      --personnaliser  ajoute la section de l'aide au .ucm/conventions.md le
-                       plus proche du chemin, à éditer, sans rien écraser
-
-  ucm guide <contrat> [--out <fichier>]
-      <contrat>  le fichier .contract.json à implémenter
-      --out      écrit le guide dans ce fichier plutôt que dans le terminal
-
-  ucm rapport-gitlab --projet <id> --merge-request <iid> --fichier <chemin> [--api <url>]
-      --projet         l'identifiant ou le chemin du projet GitLab
-      --merge-request  le numéro de la merge request dans ce projet
-      --fichier        le rapport écrit par ucm check --report
-      --api            l'API GitLab, https://gitlab.com/api/v4 par défaut
-      Le jeton se lit dans UCM_GITLAB_TOKEN. Sans lui, la commande le dit et
-      sort en 0.
-
-Codes de sortie : 0 tout est passé, 1 des contrôles ont échoué, 2 l'invocation
-ou la configuration est fautive.`;
+const AIDE = [
+  "ucm — la ligne de commande UCM",
+  COMMANDES.map(({ nom, role }) => `  ucm ${nom.padEnd(14)}  ${role}`).join("\n"),
+  ...COMMANDES.filter(({ options }) => options.length > 0).map(blocDeLAide),
+  "Codes de sortie : 0 tout est passé, 1 des contrôles ont échoué, 2 l'invocation\nou la configuration est fautive.",
+].join("\n\n");
 
 /** Rapporte aussi les pannes synchrones et les rejets des commandes asynchrones. */
 export function executer(arguments_, options = {}) {

@@ -78,7 +78,7 @@ export interface PanneauParElements {
   readonly informations: readonly Constat[];
 }
 
-const ELEMENT_DE_LA_FAMILLE: Readonly<Record<Constat['famille'], IdDElement>> = {
+export const ELEMENT_DE_LA_FAMILLE: Readonly<Record<Constat['famille'], IdDElement>> = {
   liaisons: 'couleurs', tailles: 'tailles', typographie: 'texte', tokens: 'tokens', export: 'tokens',
   variants: 'variants', visibilite: 'variants', regles: 'regles', contraste: 'a11y',
 };

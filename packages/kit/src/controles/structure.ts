@@ -3,6 +3,7 @@ import { formeDuChemin, formeReconnue } from '../referentiel/reconnaissance.js';
 import { modeDuThemeReconnu, variableDuThemeReconnue } from '../referentiel/theme.js';
 import { SUPPORT_DES_VARIABLES, cranDeLaVariable, type ModeDuTheme, type SensDuTheme } from '../emplois/dossiers.js';
 import { cheminDansLaCollection, collectionParCle, variableParCle, type CatalogueDeReference, type VariableDuCatalogue } from './catalogue.js';
+import type { CodeDeConstat } from './codes.js';
 import type { Constat, Correction, Question } from './constat.js';
 import { lesJumelles, lesPrefixes, lireLeSens, modesDuTheme, type SensLu } from './integrite.js';
 import { controlerLesModes } from './theme.js';
@@ -177,7 +178,7 @@ function controlerLesCouleursSansAlias(catalogue: CatalogueDeReference): Constat
   });
 }
 
-function constatGenre(code: `C${number}`, id: string, genre: string, faits: Constat['faits']): Constat {
+function constatGenre(code: CodeDeConstat, id: string, genre: string, faits: Constat['faits']): Constat {
   return { id: `${code}:${id}`, code, type: 'verifier', famille: 'liaisons', variants: [], layers: [], faits: { ...faits, genre } };
 }
 

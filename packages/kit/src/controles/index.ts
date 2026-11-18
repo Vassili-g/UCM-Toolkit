@@ -5,6 +5,8 @@ export type { CatalogueDeReference, CollectionDuCatalogue, CouleurResolue, Varia
 export { cheminComplet, cheminDansLaCollection, cheminDeLaVariable, collectionsDeReference, nomDansFigma, variableDuCatalogue, variableParCheminComplet, collectionDuCatalogue } from './catalogue.js';
 export type { Constat, Correction, CreationDeVariable, Question } from './constat.js';
 export type { TypeDAlerte } from '../referentiel/signaux.js';
+export type { CodeDeConstat } from './codes.js';
+export { CODES_DES_CONSTATS } from './codes.js';
 export type { NiveauWcag } from './accessibilite.js';
 export {
   controlerLAccessibilite, controlerLAccessibiliteParEtapes, BORNE_DE_COMBINAISONS, SEUILS_D_ACCESSIBILITE,

@@ -10,6 +10,7 @@ import {
 } from '../referentiel/architecture.js';
 import { REGISTRE_ETATS, REGISTRE_GROUPES, REGISTRE_ROLES, REGISTRE_TAILLES } from '../referentiel/vocabulaire.js';
 import { collectionParCle, variableDuCatalogue, type CatalogueDeReference, type VariableDuCatalogue } from './catalogue.js';
+import type { CodeDeConstat } from './codes.js';
 import type { Constat } from './constat.js';
 import type { ReleveDeComposant } from './releve.js';
 
@@ -301,7 +302,7 @@ export function estDuComposant(nom: string, jeu: string): boolean {
 }
 
 export function constatDuComposant(
-  code: `C${number}`, famille: Constat['famille'], type: Constat['type'],
+  code: CodeDeConstat, famille: Constat['famille'], type: Constat['type'],
   identifiant: string, faits: Constat['faits'], variants: string[] = [], layers: string[] = [],
 ): Constat {
   return { id: `${code}:${identifiant}`, code, type, famille, variants, layers, faits };

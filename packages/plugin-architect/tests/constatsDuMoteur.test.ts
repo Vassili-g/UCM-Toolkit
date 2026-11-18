@@ -2,13 +2,13 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import type { Constat } from '@ucm-kit/core/controles';
+import { CODES_DES_CONSTATS, type Constat } from '@ucm-kit/core/controles';
 import type { FamilleDePoint } from 'ucm-plugin-socle/src/composant/contract/famillesDePoint';
 import { phraseDe, type PointACorriger } from 'ucm-plugin-socle/src/composant/contract/localisation';
 
 import { chaineAvecLePointDuMoteur, trouverUneCollisionDEmpreinte } from '../scripts/stress/f8-analyse/operateursMoteur';
-import { constatsDuMoteur, sansLesDoublonsDuMoteur } from '../src/constatsDuMoteur';
-import { elementDuConstat } from '../src/ui/panneau/elements';
+import { TABLE_DU_MOTEUR, constatsDuMoteur, sansLesDoublonsDuMoteur } from '../src/constatsDuMoteur';
+import { ELEMENT_DE_LA_FAMILLE, elementDuConstat } from '../src/ui/panneau/elements';
 
 function moteurAvec(points: readonly PointACorriger[], noeuds: Record<number, string[]> = {}) {
   const phrases = points.map(phraseDe);
@@ -189,4 +189,19 @@ test('ignorer le constat du kit ne fait pas revenir le point C30 du moteur (Q-F8
   assert.deepEqual(sortie.constats.filter(({ code }) => code === 'C30'), []);
   const autre = await chaineAvecLePointDuMoteur({ operateur: 'Z1', code: 'C29', description: 'paddingLeft' }, { champ: 'itemSpacing' });
   assert.equal(autre.constats.filter(({ code }) => code === 'C30').length, 1, 'un autre champ du même layer garde son point');
+});
+
+test('chaque règle de la table du moteur prend une famille et un type que le catalogue des codes prévoit pour son code', () => {
+  for (const regle of TABLE_DU_MOTEUR) {
+    const entree = CODES_DES_CONSTATS.find(({ code }) => code === regle.code);
+    assert.ok(entree, `${regle.code} est absent du catalogue`);
+    assert.ok((entree.familles as readonly string[]).includes(regle.famille), `${regle.code} ne prévoit pas la famille ${regle.famille}`);
+    assert.ok((entree.types as readonly string[]).includes(regle.type), `${regle.code} ne prévoit pas le type ${regle.type}`);
+  }
+});
+
+test('chaque famille que le catalogue des codes cite a son élément dans le panneau', () => {
+  for (const { code, familles } of CODES_DES_CONSTATS) {
+    for (const famille of familles) assert.ok(ELEMENT_DE_LA_FAMILLE[famille], `${code} : la famille ${famille} n'a pas d'élément`);
+  }
 });

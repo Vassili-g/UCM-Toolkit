@@ -84,7 +84,7 @@ const contexte: ContexteDAFaire = {
   variants: [{ id: 'v1', nom: 'Color=Primary, Variant=Outlined, State=Default' }, { id: 'v2', nom: 'Color=Primary, Variant=Text, State=Focus' }],
   layers: new Map([['v1', 'Color=Primary, Variant=Outlined, State=Default'], ['l1', '.sizeWrapperButton']]),
 };
-const constat = (code: `C${number}`, faits: Constat['faits'], autres: Partial<Constat> = {}): Constat =>
+const constat = (code: Constat['code'], faits: Constat['faits'], autres: Partial<Constat> = {}): Constat =>
   ({ id: `${code}:x`, code, type: 'corriger', famille: 'liaisons', variants: ['v1'], layers: ['l1'], faits, ...autres });
 
 test('chaque constat que la recette a montré sans phrase reçoit sa phrase et son geste', () => {

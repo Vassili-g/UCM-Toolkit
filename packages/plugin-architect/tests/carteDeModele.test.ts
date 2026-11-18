@@ -178,14 +178,14 @@ test('pendant le provisoire « Proposer les liaisons » est inactif, et une anal
 });
 
 test('la réponse retire les C81 de `retires`, garde les autres constats et range les corrections dans la section ouverte', () => {
-  const autre: Constat = { id: 'C40:ailleurs', code: 'C40', type: 'corriger', famille: 'tokens', variants: [], layers: [], faits: {} };
+  const autre: Constat = { id: 'C32:ailleurs', code: 'C32', type: 'corriger', famille: 'tokens', variants: [], layers: [], faits: {} };
   const banc = monter([...constatsCarteDuModele, autre]);
   proposer(carteDe(banc, 'couleurs')).clic();
   recevoirUneAnalyse(banc.etat, modeleProposeApresLaCarte);
   banc.actualiser();
   const analyse = banc.etat.analyse!;
   assert.deepEqual(analyse.tous.filter((constat) => constat.code === 'C81'), []);
-  assert.ok(analyse.constats.some((constat) => constat.id === 'C40:ailleurs'));
+  assert.ok(analyse.constats.some((constat) => constat.id === 'C32:ailleurs'));
   assert.ok(modeleProposeApresLaCarte.constats.length > 0 && modeleProposeApresLaCarte.constats.every((constat) => analyse.constats.includes(constat)));
   // Le panneau n'a plus de carte de modèle : ni phrase « en dur », ni « Proposer les liaisons ».
   assert.equal(banc.racine.querySelectorAll('.bloc-phrase').filter((phrase) => /en dur dans/.test(phrase.textContent)).length, 0);
@@ -212,7 +212,7 @@ test('la section reste ouverte quand les corrections dépassent cinq points', ()
     },
   } as Constat));
   // Un point dans un autre élément : seule, la section s'ouvrirait d'elle-même.
-  const tokens: Constat = { id: 'C40:ailleurs', code: 'C40', type: 'corriger', famille: 'tokens', variants: [], layers: [], faits: {} };
+  const tokens: Constat = { id: 'C32:ailleurs', code: 'C32', type: 'corriger', famille: 'tokens', variants: [], layers: [], faits: {} };
   const banc = monter([COULEURS, tokens]);
   assert.equal(ouverte(banc, 'couleurs'), 'true');
   proposer(carteDe(banc, 'couleurs')).clic();

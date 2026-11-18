@@ -32,8 +32,8 @@ function catalogue(variables: CatalogueDeReference['variables'], extraCollection
   };
 }
 
-function constat(code: string, faits: Constat['faits']): Constat {
-  return { id: `${code}:test`, code: code as `C${number}`, type: 'corriger', famille: 'liaisons', variants: ['variant-1'], layers: ['layer-1'], faits };
+function constat(code: Constat['code'], faits: Constat['faits']): Constat {
+  return { id: `${code}:test`, code, type: 'corriger', famille: 'liaisons', variants: ['variant-1'], layers: ['layer-1'], faits };
 }
 
 test('C29 borne chaque avancée sur 2 000 tokens FLOAT et garde la lecture des tokens en cache', () => {

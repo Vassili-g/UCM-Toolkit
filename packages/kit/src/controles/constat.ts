@@ -1,5 +1,6 @@
 /** La forme des résultats que les contrôles rendent à Architect. */
 import type { TypeDAlerte } from '../referentiel/signaux.js';
+import type { CodeDeConstat } from './codes.js';
 
 /** Ce qu'une correction `variable` crée : une couleur de `theme`, un alias par mode, ses scopes. */
 export interface CreationDeVariable {
@@ -35,7 +36,7 @@ export interface Question {
 
 export interface Constat {
   id: string;
-  code: `C${number}`;
+  code: CodeDeConstat;
   type: TypeDAlerte;
   famille: 'liaisons' | 'tailles' | 'tokens' | 'variants' | 'contraste' | 'typographie' | 'regles' | 'visibilite' | 'export';
   variants: string[];

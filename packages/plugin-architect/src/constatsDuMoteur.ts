@@ -19,14 +19,15 @@
  * variants ou des calques : un nœud qui est un variant du relevé va dans
  * `variants`, les autres dans `layers`.
  */
-import type { Constat, TypeDAlerte } from '@ucm-kit/core/controles';
+import type { CodeDeConstat, Constat, TypeDAlerte } from '@ucm-kit/core/controles';
 import { natureDuChamp } from '@ucm-kit/core/referentiel';
 import type { ResultatInterne } from 'ucm-plugin-socle/src/composant/analyse/resultat';
 import type { FamilleDePoint } from 'ucm-plugin-socle/src/composant/contract/famillesDePoint';
 import { sorteDuPointDeRegles } from 'ucm-plugin-socle/src/composant/contract/extractRules';
 import type { PointACorriger } from 'ucm-plugin-socle/src/composant/contract/localisation';
 
-type CodeDuMoteur = 'C30' | 'C34' | 'C35' | 'C41' | 'C42' | 'C44';
+/** Les codes que la table donne à un point du moteur ; chacun figure au catalogue des codes du kit (`CODES_DES_CONSTATS`). */
+type CodeDuMoteur = Extract<CodeDeConstat, 'C30' | 'C34' | 'C35' | 'C41' | 'C42' | 'C44'>;
 
 interface Regle {
   readonly code: CodeDuMoteur;
