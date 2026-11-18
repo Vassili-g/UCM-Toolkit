@@ -23,8 +23,8 @@ La page vit dans `_local/inventaire-ucm/INVENTAIRE-UCM.html` tant qu'elle n'est 
 
 ## Phase C : catalogues dans le code
 
-- [ ] C1. Catalogue des codes de constat et commandes de la CLI. Agent : `implementeur-exigeant` (23 fichiers lisent les codes). Pendant R1.
-  - [ ] C1.1. `packages/kit/src/controles/codes.ts` exporte `CODES_DES_CONSTATS` : code, famille, types possibles, sens en une phrase. Le type `CodeDeConstat` remplace `` `C${number}` `` dans `constat.ts`.
+- [x] C1 (0822b7eb). Catalogue des codes de constat et commandes de la CLI. Agent : `implementeur-exigeant` (23 fichiers lisent les codes). Pendant R1.
+  - [ ] C1.1. `packages/kit/src/controles/codes.ts` exporte `CODES_DES_CONSTATS` : code, familles (un code peut en avoir plusieurs), types possibles, sens en une phrase. Le type `CodeDeConstat` remplace `` `C${number}` `` dans `constat.ts`.
   - [ ] C1.2. Un test relève les littéraux `code: 'Cnn'` de `packages/kit/src/` et de `packages/plugin-architect/src/` et les trouve tous au catalogue.
   - [ ] C1.3. `ELEMENT_DE_LA_FAMILLE` de `packages/plugin-architect/src/ui/panneau/elements.ts` est exporté.
   - [ ] C1.4. `packages/cli/src/ucm.mjs` exporte `COMMANDES`, d'où l'aide se construit sans changer sa sortie.
