@@ -32,7 +32,7 @@ La page vit dans `_local/inventaire-ucm/INVENTAIRE-UCM.html` tant qu'elle n'est 
 
 ## Phase O : outillage des vues
 
-- [ ] O1. Extraction, style des JSON, rappel des vues. Agent : `implementeur`. Après C1, pendant R2.
+- [x] O1 (ea201dd3). Extraction, style des JSON, rappel des vues. Agent : `implementeur`. Après C1, pendant R2.
   - [ ] O1.1. `docs/inventaire/extraire.ts` lit une section d'un Markdown par son titre et lève « ancre X absente de Y ». Test sur des chaînes de fixture.
   - [ ] O1.2. `scripts/controle-style.mjs` reçoit le juge `fautesDuJson`, qui parcourt les chaînes des JSON listés (`docs/inventaire/textes.json`, `pistes.json`, `decisions.json` de ce dossier). Une note du mainteneur (`decisions.json`, champ `note`) reste hors contrôle. Test dans `tests/styleMotifs.test.ts`.
   - [ ] O1.3. `diff()` de `scripts/agents-contexte.mjs` rend une 5e liste « Vues à régénérer », lue dans `docs/inventaire/sources.json` quand le fichier existe. `npm run vues` entre aux vérifications du domaine `explorateur` de `.agents/domiciles.json`.
