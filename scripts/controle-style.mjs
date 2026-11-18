@@ -636,6 +636,59 @@ export function fautesDeLaSource(chemin, contenu) {
   return fautesDesLignes(chemin, lignes);
 }
 
+/**
+ * Les JSON dont les chaînes se contrôlent comme du texte. Les fichiers
+ * peuvent être absents : la liste ne sert qu'à choisir le juge.
+ */
+export const JSON_CONTROLES = [
+  'docs/inventaire/textes.json',
+  'docs/notes/Recherches/Evolutions globales/pistes.json',
+  'docs/notes/Recherches/Evolutions globales/decisions.json',
+];
+
+/** Dans ces JSON, les champs de ce nom sont les mots du mainteneur et restent hors contrôle. */
+const CHAMPS_HORS_CONTROLE = {
+  'docs/notes/Recherches/Evolutions globales/decisions.json': ['note'],
+};
+
+/** Vrai si le chemin est un JSON que le contrôle juge. */
+export function estJsonControle(chemin) {
+  return JSON_CONTROLES.includes(chemin);
+}
+
+/**
+ * Les fautes des chaînes d'un JSON de `JSON_CONTROLES`, avec le chemin JSON de
+ * la chaîne fautive (`$.entrees[2].titre`) à la place du numéro de ligne.
+ * Un JSON illisible est un refus.
+ */
+export function fautesDuJson(chemin, contenu) {
+  let racineJson;
+  try {
+    racineJson = JSON.parse(contenu);
+  } catch (erreur) {
+    return [{ regle: 'json-illisible', niveau: 'refus', ou: chemin, extrait: String(erreur.message).slice(0, 160) }];
+  }
+  const ignores = CHAMPS_HORS_CONTROLE[chemin] ?? [];
+  const fautes = [];
+  const parcourir = (valeur, jsonPath) => {
+    if (typeof valeur === 'string') {
+      const lignes = valeur.split(/\r?\n/).map((texte, index) => ({
+        numero: index + 1,
+        texte: texte.replace(/`[^`\n]*`/g, ''),
+      }));
+      for (const faute of fautesDesLignes(chemin, lignes)) fautes.push({ ...faute, ou: `${chemin} ${jsonPath}` });
+    } else if (Array.isArray(valeur)) {
+      valeur.forEach((element, index) => parcourir(element, `${jsonPath}[${index}]`));
+    } else if (valeur !== null && typeof valeur === 'object') {
+      for (const [cle, element] of Object.entries(valeur)) {
+        if (!ignores.includes(cle)) parcourir(element, `${jsonPath}.${cle}`);
+      }
+    }
+  };
+  parcourir(racineJson, '$');
+  return fautes;
+}
+
 /** Les fautes d'une maquette HTML. */
 export function fautesDuHtml(chemin, contenu) {
   return fautesDesLignes(chemin, lignesDuHtml(contenu));
@@ -646,6 +699,7 @@ export function fautesDuFichier(chemin, contenu) {
   if (chemin.endsWith('.md')) return fautesDuDocument(chemin, contenu);
   if (chemin.endsWith('.html')) return fautesDuHtml(chemin, contenu);
   if (/\.(ts|tsx|mjs|cjs|js)$/.test(chemin)) return fautesDeLaSource(chemin, contenu);
+  if (estJsonControle(chemin)) return fautesDuJson(chemin, contenu);
   return [];
 }
 
@@ -707,7 +761,7 @@ export function estExclu(chemin) {
 export function fichiersAControler() {
   return fichiersSuivis()
     .filter((chemin) => !horsPerimetre(chemin) && !estExclu(chemin))
-    .filter((chemin) => EXTENSIONS_CONTROLEES.test(chemin));
+    .filter((chemin) => EXTENSIONS_CONTROLEES.test(chemin) || estJsonControle(chemin));
 }
 
 /**

@@ -20,7 +20,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 
-import { fautesDuFichier, horsPerimetre, racine, rapport } from './controle-style.mjs';
+import { estJsonControle, fautesDuFichier, horsPerimetre, racine, rapport } from './controle-style.mjs';
 
 /** Le JSON que le hook reçoit sur son entrée standard, ou rien. */
 async function demande() {
@@ -41,7 +41,7 @@ if (!vise) process.exit(0);
 
 const chemin = path.relative(racine, path.resolve(vise)).split(path.sep).join('/');
 if (chemin.startsWith('..') || horsPerimetre(chemin)) process.exit(0);
-if (!/\.(md|ts|tsx|mjs|cjs|html)$/.test(chemin)) process.exit(0);
+if (!/\.(md|ts|tsx|mjs|cjs|html)$/.test(chemin) && !estJsonControle(chemin)) process.exit(0);
 
 const complet = path.join(racine, chemin);
 if (!fs.existsSync(complet)) process.exit(0);

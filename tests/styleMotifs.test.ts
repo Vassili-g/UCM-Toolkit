@@ -297,3 +297,32 @@ test('le hook des réponses se replie sur le dernier message texte du transcript
     fs.rmSync(dossier, { recursive: true, force: true });
   }
 });
+
+test('les chaînes d’un JSON de la liste sont jugées, avec leur chemin JSON', () => {
+  const chemin = 'docs/inventaire/textes.json';
+  const json = JSON.stringify({ sections: [{ titre: 'Propre', texte: 'Un tiret — cadratin.' }] });
+  const trouvees = fautes(chemin, json);
+  assert.deepEqual(trouvees.map((faute) => faute.regle), ['tiret-cadratin']);
+  assert.equal(trouvees[0].ou, `${chemin} $.sections[0].texte`);
+  accepte(JSON.stringify({ sections: [{ texte: 'Un texte propre.' }] }), chemin);
+  assert.equal(regles(chemin, '{ pas du json', 'refus')[0], 'json-illisible');
+});
+
+test('les champs note de decisions.json restent hors contrôle, les autres champs non', () => {
+  const chemin = 'docs/notes/Recherches/Evolutions globales/decisions.json';
+  accepte(JSON.stringify({ decisions: [{ id: 'D1', note: 'Un mot — du mainteneur.' }] }), chemin);
+  assert.deepEqual(
+    fautes(chemin, JSON.stringify({ decisions: [{ id: 'D1', question: 'Une question — ouverte.' }] }))
+      .map((faute) => faute.ou),
+    [`${chemin} $.decisions[0].question`],
+  );
+  assert.equal(
+    fautes('docs/notes/Recherches/Evolutions globales/pistes.json', JSON.stringify({ note: 'Un — tiret.' })).length,
+    1,
+    'le champ note n’est exempté que dans decisions.json',
+  );
+});
+
+test('un JSON hors liste n’est pas contrôlé', () => {
+  accepte(JSON.stringify({ texte: 'Un tiret — cadratin.' }), 'docs/autre.json');
+});

@@ -66,6 +66,7 @@ Les tests du monorepo lui-même.
 - cartes.test.ts : chaque chemin des cartes existe, et la section `tests/` liste exactement les tests de `tests/`
 - referencesComposants.test.ts : registre des systèmes, extraction des noms et valeurs, schémas, guide d'essai et données réelles de `docs/references/`
 - styleDocumentaire.test.ts : tics de rédaction refusés sur tout le dépôt, hors `EXCLUS_DU_CONTROLE`
+- extraireInventaire.test.ts : `docs/inventaire/extraire.ts` rend une section, un tableau ou des sous-titres d'un Markdown, et lève sur un titre absent
 - styleMotifs.test.ts : chaque motif de style, le niveau refus ou signal, les hooks d'écriture et de réponse
 - pinDocumente.test.mjs : versions montrées par une commande copiable
 - registrePortableDocuments.test.ts : aucun document portable ne promet une stack

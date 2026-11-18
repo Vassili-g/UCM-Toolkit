@@ -27,6 +27,7 @@ import test from 'node:test';
 import {
   chargerManifeste,
   correspond,
+  diff,
   domaineDe,
   blocDomaines,
   documentDuDomaine,
@@ -257,4 +258,31 @@ test("chaque chaîne AGENTS.md racine puis AGENTS.md de paquet pèse au plus 32 
     .filter(({ taille }) => taille > 32768)
     .map(({ p, taille }) => `${p} : ${taille} octets`);
   assert.deepEqual(lourdes, []);
+});
+
+test("diff nomme les vues à régénérer dont une source change, et « aucune » sans sources.json", () => {
+  const statuts = { modifies: ['packages/plugin-architect/src/messages/constats.ts'], supprimes: ['docs/format/FORMAT.md'] };
+  const citeurs = () => [];
+  const sans = diff(manifeste, statuts, contexte, citeurs);
+  assert.deepEqual(sans['Vues à régénérer'], []);
+  assert.deepEqual(diff(manifeste, statuts, contexte, citeurs, null)['Vues à régénérer'], []);
+
+  const sources = {
+    vues: {
+      'docs/inventaire/index.html': ['packages/plugin-architect/src/messages/**', 'docs/format/FORMAT.md'],
+      'docs/autre/index.html': ['packages/kit/src/**'],
+    },
+  };
+  assert.deepEqual(diff(manifeste, statuts, contexte, citeurs, sources)['Vues à régénérer'], [
+    'docs/inventaire/index.html : npm run vues',
+  ]);
+  assert.deepEqual(
+    diff(manifeste, { modifies: ['README.md'], supprimes: [] }, contexte, citeurs, sources)['Vues à régénérer'],
+    [],
+  );
+});
+
+test("le domaine explorateur demande npm run vues, les codes de constat nourrissant l'inventaire", () => {
+  const explorateur = (manifeste.domaines as Domaine[] & { verifications: string[] }[]).find((d) => d.id === 'explorateur') as unknown as { verifications: string[] };
+  assert.ok(explorateur.verifications.includes('npm run vues'));
 });

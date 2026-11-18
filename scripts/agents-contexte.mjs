@@ -148,10 +148,13 @@ export function lireStatuts(sortieGit) {
 }
 
 /**
- * Les quatre listes de `diff`. `citeurs(chemin)` rend les fichiers Markdown
- * qui contiennent le chemin littéral.
+ * Les cinq listes de `diff`. `citeurs(chemin)` rend les fichiers Markdown
+ * qui contiennent le chemin littéral. `sources` est le contenu de
+ * `docs/inventaire/sources.json` (`{ vues: { <vue>: [<chemin ou motif>] } }`),
+ * ou `null` s'il n'existe pas : une vue est à régénérer quand une de ses
+ * sources correspond à un fichier modifié ou supprimé.
  */
-export function diff(manifeste, { modifies, supprimes }, contexte, citeurs) {
+export function diff(manifeste, { modifies, supprimes }, contexte, citeurs, sources) {
   const domiciles = new Set();
   const lies = new Set();
   const verifications = new Set();
@@ -164,12 +167,18 @@ export function diff(manifeste, { modifies, supprimes }, contexte, citeurs) {
   }
   const citant = new Set();
   for (const chemin of supprimes) for (const doc of citeurs(chemin)) citant.add(doc);
+  const vues = new Set();
+  for (const [vue, motifs] of Object.entries(sources?.vues ?? {})) {
+    const touche = [...modifies, ...supprimes].some((chemin) => motifs.some((motif) => correspond(motif, chemin)));
+    if (touche) vues.add(`${vue} : npm run vues`);
+  }
   const trie = (ensemble) => [...ensemble].sort();
   return {
     "Domiciles à relire": trie(domiciles),
     "Documents liés": trie(lies),
     "Vérifications": trie(verifications),
     "Documents qui citent un chemin supprimé ou renommé": trie(citant),
+    "Vues à régénérer": trie(vues),
   };
 }
 
@@ -245,6 +254,11 @@ function citeursGit(racine) {
   };
 }
 
+function sourcesDesVues(racine) {
+  const fichier = join(racine, "docs", "inventaire", "sources.json");
+  return existsSync(fichier) ? JSON.parse(readFileSync(fichier, "utf8")) : null;
+}
+
 function afficherListes(listes) {
   const blocs = Object.entries(listes).map(
     ([titre, liste]) => `${titre}\n${liste.length ? liste.map((l) => `  ${l}`).join("\n") : "  (aucun)"}`,
@@ -296,7 +310,7 @@ export function executer(argv, racine = RACINE) {
     const statuts = lireStatuts(suivi.sortie);
     const nouveaux = git(["ls-files", "--others", "--exclude-standard"], racine).sortie;
     for (const chemin of nouveaux.split(/\r?\n/).filter(Boolean)) statuts.modifies.push(chemin);
-    afficherListes(diff(manifeste, statuts, contexteDisque(racine), citeursGit(racine)));
+    afficherListes(diff(manifeste, statuts, contexteDisque(racine), citeursGit(racine), sourcesDesVues(racine)));
     return 0;
   }
   if (commande === "ecrire-index") {
