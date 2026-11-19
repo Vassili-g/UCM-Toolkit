@@ -10,10 +10,8 @@ const GLYPHES = Object.fromEntries(TYPES_D_ALERTE.map(({ id, texte }) => [id, te
 /**
  * Ce relevé de parité porte-t-il un écart ?
  *
- * L'écart accuse le code, pas le contrat. Il ne bloque rien : le geste
- * correctif appartient à un développeur, jamais à l'export ni au designer qui
- * l'a produit, et refuser sa pull request arrêterait la seule personne
- * incapable de la débloquer.
+ * L'écart accuse le code, pas le contrat : le geste correctif appartient à un
+ * développeur, jamais à l'export ni au designer qui l'a produit.
  *
  * `implementationAbsente` n'est même pas un écart : un contrat peut être
  * versionné avant le début de l'implémentation.
@@ -43,9 +41,8 @@ export function aUnEcartDeParite(bilan) {
 /**
  * Avertit qu'une implémentation s'écarte du contrat qu'elle devrait suivre.
  *
- * **Avertissement, jamais blocage**, à la règle écrite plus haut : réexporter
- * depuis Figma n'y changerait rien, et une implémentation régénérée à froid est
- * attendue en écart tant que la mesure n'a pas été refaite.
+ * Réexporter depuis Figma n'y changerait rien, et une implémentation régénérée
+ * à froid est attendue en écart tant que la mesure n'a pas été refaite.
  *
  * Le périmètre suit la même règle que les autres états informatifs : sur une
  * pull request, seuls les contrats qu'elle modifie parlent (cf.
@@ -61,61 +58,92 @@ export function sectionEcartsDeParite(bilans) {
       title: `Le code est en retard sur le contrat : \`${bilan.fichier}\``,
       summary: "Le contrat est valide. C'est l'implémentation qui ne le suit pas encore.",
       detailsTitle: "Écarts détectés",
-      details: detailsDeLEcart(bilan.parite),
+      details: ecartsIdentifiesDeParite(bilan.parite).map(({ texte }) => texte),
       action: bilan.parite.fonctionAbsente
         ? "Un développeur doit nommer la fonction comme le fichier ou l'exporter par défaut."
         : "Un développeur doit mettre à jour l'API ou le rendu du composant pour suivre le contrat.",
-      status: "**Votre design n'est pas en cause** et réexporter depuis Figma n'y changerait rien. Cet écart n'empêche pas la fusion.",
+      status: "**Votre design n'est pas en cause** et réexporter depuis Figma n'y changerait rien.",
     }),
   ]);
 }
 
 /**
- * Détaille l'écart, sans en accumuler les conséquences.
+ * Chaque écart du relevé, identifié par un genre et ses coordonnées, pour
+ * qu'une dérogation puisse viser un écart exact.
  *
  * Une interface ou une fonction absente rend tout le reste faux : chaque prop
- * paraîtrait manquante et chaque dépendance non rendue. Une seule cause exacte
- * vaut mieux qu'une liste d'accusations dérivées.
+ * paraîtrait manquante et chaque dépendance non rendue. Elle est donc seule,
+ * et non dérogeable : aucune autre comparaison n'a eu lieu.
+ *
+ * `niveau` vaut `"ecart"` ou `"avertissement"`. Une composition rendue au
+ * moins une fois, mais pas le nombre de fois attendu, avertit : le comptage est
+ * statique et ignore les boucles. Rendue zéro fois, c'est un écart.
  */
-function detailsDeLEcart(parite) {
+export function ecartsIdentifiesDeParite(parite) {
   if (parite.interfaceAbsente) {
-    return [`L'interface \`${parite.interfaceAbsente}\` est absente.`];
+    return [{
+      genre: "interface-absente",
+      coordonnees: { interface: parite.interfaceAbsente },
+      derogeable: false,
+      niveau: "ecart",
+      texte: `L'interface \`${parite.interfaceAbsente}\` est absente.`,
+    }];
   }
   if (parite.fonctionAbsente) {
-    return [`La fonction \`${parite.fonctionAbsente}\` est introuvable.`];
+    return [{
+      genre: "fonction-introuvable",
+      coordonnees: { fonction: parite.fonctionAbsente },
+      derogeable: false,
+      niveau: "ecart",
+      texte: `La fonction \`${parite.fonctionAbsente}\` est introuvable.`,
+    }];
   }
+  const ecart = (genre, coordonnees, texte) => ({ genre, coordonnees, derogeable: true, niveau: "ecart", texte });
   return [
-    ...parite.manquantes.map(
-      (nom) => `La propriété \`${nom}\` de Figma n'existe pas dans le code : le composant ne peut pas la recevoir.`,
-    ),
-    ...parite.typesIncorrects.map(
-      ({ prop, attendu, recu }) => {
-        if (attendu === "boolean") {
-          return `La propriété \`${prop}\` vaut oui ou non dans Figma, et le code attend \`${recu}\`.`;
-        }
-        if (attendu === "enum") {
-          return `La propriété \`${prop}\` propose des variantes dans Figma, et le code attend \`${recu}\`.`;
-        }
-        return `La propriété \`${prop}\` n'a pas dans le code le type que le contrat déclare : le code attend \`${recu}\`.`;
-      },
-    ),
-    ...(parite.valeursNonImplementees ?? []).flatMap(({ valeurs }) => valeurs.map(
-      (valeur) => `La variante \`${valeur}\` n'est pas implémentée dans le code.`,
+    ...parite.manquantes.map((prop) => ecart(
+      "prop-absente",
+      { prop },
+      `La propriété \`${prop}\` de Figma n'existe pas dans le code : le composant ne peut pas la recevoir.`,
     )),
-    ...parite.booleensNonUtilises.map(
-      (nom) => `La propriété \`${nom}\` de Figma n'a aucun effet dans le code : l'activer ou non ne change rien à l'affichage.`,
-    ),
-    ...(parite.enumsSansEffet ?? []).map(({ prop, valeurs }) => (
-      `La propriété \`${prop}\` de Figma n'a aucun effet dans le code : ${consequenceSansEffet(valeurs)}.`
+    ...parite.typesIncorrects.map(({ prop, attendu, recu }) => ecart(
+      "type-incorrect",
+      { prop },
+      attendu === "boolean"
+        ? `La propriété \`${prop}\` vaut oui ou non dans Figma, et le code attend \`${recu}\`.`
+        : attendu === "enum"
+          ? `La propriété \`${prop}\` propose des variantes dans Figma, et le code attend \`${recu}\`.`
+          : `La propriété \`${prop}\` n'a pas dans le code le type que le contrat déclare : le code attend \`${recu}\`.`,
+    )),
+    ...(parite.valeursNonImplementees ?? []).flatMap(({ prop, valeurs }) => valeurs.map((valeur) => ecart(
+      "valeur-non-implementee",
+      { prop, valeur },
+      `La variante \`${valeur}\` n'est pas implémentée dans le code.`,
+    ))),
+    ...parite.booleensNonUtilises.map((prop) => ecart(
+      "booleen-sans-effet",
+      { prop },
+      `La propriété \`${prop}\` de Figma n'a aucun effet dans le code : l'activer ou non ne change rien à l'affichage.`,
+    )),
+    ...(parite.enumsSansEffet ?? []).map(({ prop, valeurs }) => ecart(
+      "enum-sans-effet",
+      { prop },
+      `La propriété \`${prop}\` de Figma n'a aucun effet dans le code : ${consequenceSansEffet(valeurs)}.`,
     )),
     // Le comptage ne suit pas une boucle. Dire cette limite dans le message
-    // même évite qu'un écart attendu se lise comme une faute, et évite surtout
-    // le mécanisme d'exception qu'il aurait fallu pour le taire.
-    ...parite.compositionsIncorrectes.map(
-      ({ component, attendu, rendu }) =>
-        `Le contrat déclare ${libelleNombre(attendu, "occurrence")} de \`${component}\`, mais le composant en rend ${rendu}. `
-        + `Le comptage est statique ; si les occurrences viennent d'une boucle, cet écart est attendu.`,
-    ),
+    // même évite qu'un écart attendu se lise comme une faute.
+    ...parite.compositionsIncorrectes.map(({ component, attendu, rendu }) => {
+      const texte = `Le contrat déclare ${libelleNombre(attendu, "occurrence")} de \`${component}\`, mais le composant en rend ${rendu}. `
+        + `Le comptage est statique ; si les occurrences viennent d'une boucle, cet écart est attendu.`;
+      return rendu === 0
+        ? ecart("composition-non-rendue", { composant: component }, texte)
+        : {
+          genre: "composition-comptage",
+          coordonnees: { composant: component },
+          derogeable: false,
+          niveau: "avertissement",
+          texte,
+        };
+    }),
   ];
 }
 
@@ -137,15 +165,12 @@ function consequenceSansEffet(valeurs) {
     : `${listeDeValeurs(valeurs)} s'affichent de la même façon`;
 }
 
-/**
- * Rappel terminal, sous son propre verdict : l'écart n'entre pas dans le
- * compte des contrats fautifs et ne refuse rien.
- */
+/** Rappel terminal, sous son propre verdict : l'écart n'entre pas dans le compte des contrats fautifs. */
 export function resumeTerminalEcartsDeParite(bilans) {
   const concernes = bilans.filter(aUnEcartDeParite);
   return concernes.length === 0
     ? null
     : `${GLYPHES.corriger.brut} ${libelleNombre(concernes.length, "composant")} en retard sur ${concernes.length === 1 ? "son" : "leur"} contrat.` +
       "\n  Un développeur doit mettre à jour l'API ou le rendu ; le code doit rendre exactement la cardinalité déclarée, ni moins ni plus." +
-      "\n  Ne réexportez pas depuis Figma : le contrat est valide, et la fusion n'est pas bloquée.";
+      "\n  Ne réexportez pas depuis Figma : le contrat est valide.";
 }

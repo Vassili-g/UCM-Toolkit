@@ -153,6 +153,7 @@ export {
  */
 export {
   pariteEnEcart,
+  ecartsIdentifiesDeParite,
   aUnEcartDeParite,
   sectionEcartsDeParite,
   resumeTerminalEcartsDeParite,

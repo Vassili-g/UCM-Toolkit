@@ -55,6 +55,7 @@ declare module "@ucm-kit/core/lecteurs/navigateur" {
     sectionContrastes,
     resumeTerminalContrastes,
     pariteEnEcart,
+    ecartsIdentifiesDeParite,
     aUnEcartDeParite,
     sectionEcartsDeParite,
     resumeTerminalEcartsDeParite,

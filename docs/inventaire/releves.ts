@@ -375,7 +375,7 @@ export function rapportDuButton() {
     titre: prendre(/### [^ ]+ (.*)\n/, 'titre'),
     ecart: prendre(/\n- (La propriété `size`[^\n]*)/, 'écart'),
     action: prendre(/#### Action\n\n([^\n]*)/, 'action'),
-    fin: prendre(/(Cet écart n'empêche pas la fusion\.)/, 'fin'),
+    fin: prendre(/\n(\*\*Votre design n'est pas en cause\*\*[^\n]*)/, 'fin').replace(/\*\*/g, ''),
   };
 }
 

@@ -599,10 +599,34 @@ declare module "@ucm-kit/core/lecteurs" {
   /** Ce relevé de parité porte-t-il un écart ? */
   export function pariteEnEcart(ecarts: EcartsDeParite): boolean;
 
+  export type GenreDEcartDeParite =
+    | "interface-absente"
+    | "fonction-introuvable"
+    | "prop-absente"
+    | "type-incorrect"
+    | "valeur-non-implementee"
+    | "booleen-sans-effet"
+    | "enum-sans-effet"
+    | "composition-non-rendue"
+    | "composition-comptage";
+
+  /** Un écart de parité identifié ; `coordonnees` désigne l'écart exact (`prop`, `valeur`, `composant`…). */
+  export interface EcartIdentifieDeParite {
+    genre: GenreDEcartDeParite;
+    coordonnees: Record<string, string>;
+    /** `false` pour une interface absente, une fonction introuvable et un avertissement de comptage. */
+    derogeable: boolean;
+    niveau: "ecart" | "avertissement";
+    texte: string;
+  }
+
+  /** Les écarts d'un relevé de parité, un objet par écart. */
+  export function ecartsIdentifiesDeParite(ecarts: EcartsDeParite): EcartIdentifieDeParite[];
+
   /** Idem, sur un bilan de contrat. */
   export function aUnEcartDeParite(bilan: unknown): boolean;
 
-  /** La section des écarts contrat ↔ code, qui avertit sans jamais bloquer. */
+  /** La section des écarts contrat ↔ code, qui s'annonce en avertissement. */
   export function sectionEcartsDeParite(bilans: ReadonlyArray<unknown>): string[];
 
   /** Le rappel terminal des écarts contrat ↔ code. */

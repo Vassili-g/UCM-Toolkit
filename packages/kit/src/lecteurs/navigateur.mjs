@@ -24,5 +24,5 @@ export { libelleNombre, rendreDiagnostic } from "./diagnostic-markdown.mjs";
 export { bilanEstBloquant, enteteDuVerdict } from "./verdict-bilan.mjs";
 export { sectionTokensManquants, resumeTerminalTokensManquants } from "./diagnostic-tokens.mjs";
 export { constatsDesContrastes, sectionContrastes, resumeTerminalContrastes } from "./diagnostic-contrastes.mjs";
-export { pariteEnEcart, aUnEcartDeParite, sectionEcartsDeParite, resumeTerminalEcartsDeParite } from "./diagnostic-parite.mjs";
+export { pariteEnEcart, ecartsIdentifiesDeParite, aUnEcartDeParite, sectionEcartsDeParite, resumeTerminalEcartsDeParite } from "./diagnostic-parite.mjs";
 export { repartirEchecs, diagnosticEchecsDeTests, resumeTerminalEchecsDeTests } from "./diagnostic-tests.mjs";

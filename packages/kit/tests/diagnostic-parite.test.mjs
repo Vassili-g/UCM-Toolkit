@@ -6,6 +6,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import {
   aUnEcartDeParite,
+  ecartsIdentifiesDeParite,
   resumeTerminalEcartsDeParite,
   sectionEcartsDeParite,
 } from "../src/lecteurs/diagnostic-parite.mjs";
@@ -116,7 +117,7 @@ test("chaque composant en écart a sa propre section", () => {
   assert.equal(section.match(/^### ⚠️ /gm).length, 2);
 });
 
-test("le rappel terminal compte les composants et dit qu'il ne bloque pas", () => {
+test("le rappel terminal compte les composants",() => {
   assert.equal(resumeTerminalEcartsDeParite([bilan()]), null);
 
   const resume = resumeTerminalEcartsDeParite([
@@ -129,7 +130,7 @@ test("le rappel terminal compte les composants et dit qu'il ne bloque pas", () =
     resumeTerminalEcartsDeParite([enSurplus]),
     /^⚠ 1 composant en retard sur son contrat\./,
   );
-  assert.match(resume, /n'est pas bloquée/);
+  assert.doesNotMatch(resume, /bloqu/i);
   assert.match(resume, /Ne réexportez pas depuis Figma/);
 });
 
@@ -210,4 +211,56 @@ test("aucune ligne du rapport n'emploie le vocabulaire du code", () => {
   assert.doesNotMatch(section, /\benums?\b/i);
   assert.doesNotMatch(section, /\bboole?an\b/i);
   assert.doesNotMatch(section, /lue? par le composant/i);
+});
+
+const parite = (surcharge) => bilan(surcharge).parite;
+
+test("chaque genre d'écart porte son genre et ses coordonnées", () => {
+  const ecarts = ecartsIdentifiesDeParite(parite({
+    manquantes: ["libelle"],
+    typesIncorrects: [{ prop: "actif", attendu: "boolean", recu: "string" }],
+    valeursNonImplementees: [{ prop: "ton", valeurs: ["warning", "info"] }],
+    booleensNonUtilises: ["ouvert"],
+    enumsSansEffet: [{ prop: "taille", valeurs: ["s", "m"] }],
+    compositionsIncorrectes: [{ component: "Alert", attendu: 2, rendu: 0 }],
+  }));
+
+  assert.deepEqual(
+    ecarts.map(({ genre, coordonnees, derogeable }) => ({ genre, coordonnees, derogeable })),
+    [
+      { genre: "prop-absente", coordonnees: { prop: "libelle" }, derogeable: true },
+      { genre: "type-incorrect", coordonnees: { prop: "actif" }, derogeable: true },
+      { genre: "valeur-non-implementee", coordonnees: { prop: "ton", valeur: "warning" }, derogeable: true },
+      { genre: "valeur-non-implementee", coordonnees: { prop: "ton", valeur: "info" }, derogeable: true },
+      { genre: "booleen-sans-effet", coordonnees: { prop: "ouvert" }, derogeable: true },
+      { genre: "enum-sans-effet", coordonnees: { prop: "taille" }, derogeable: true },
+      { genre: "composition-non-rendue", coordonnees: { composant: "Alert" }, derogeable: true },
+    ],
+  );
+  assert.ok(ecarts.every(({ niveau, texte }) => niveau === "ecart" && texte.length > 0));
+});
+
+test("une interface absente et une fonction introuvable ne se dérogent pas", () => {
+  const avecInterface = ecartsIdentifiesDeParite(parite({ interfaceAbsente: "ButtonProps", manquantes: ["a"] }));
+  const [fonctionAbsente] = ecartsIdentifiesDeParite(parite({ fonctionAbsente: "Button" }));
+
+  assert.equal(avecInterface.length, 1);
+  assert.equal(avecInterface[0].genre, "interface-absente");
+  assert.equal(avecInterface[0].derogeable, false);
+  assert.equal(fonctionAbsente.genre, "fonction-introuvable");
+  assert.equal(fonctionAbsente.derogeable, false);
+});
+
+test("une composition rendue une fois pour trois avertit, zéro fois fait un écart", () => {
+  const [partielle] = ecartsIdentifiesDeParite(parite({
+    compositionsIncorrectes: [{ component: "Alert", attendu: 3, rendu: 1 }],
+  }));
+  const [nulle] = ecartsIdentifiesDeParite(parite({
+    compositionsIncorrectes: [{ component: "Alert", attendu: 3, rendu: 0 }],
+  }));
+
+  assert.equal(partielle.niveau, "avertissement");
+  assert.notEqual(partielle.genre, "composition-non-rendue");
+  assert.equal(nulle.niveau, "ecart");
+  assert.equal(nulle.genre, "composition-non-rendue");
 });
