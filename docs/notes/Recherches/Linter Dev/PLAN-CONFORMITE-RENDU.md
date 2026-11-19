@@ -1,8 +1,9 @@
 # Vérification générique du rendu, côté développeur
 
 **Statut : recherche proposée pour une prochaine phase.** Aucun vérificateur
-générique de rendu n’est implémenté et aucune décision de réalisation n’est
-prise. Les points marqués **[À décider]** sont ouverts.
+générique de rendu n’est implémenté. Le mainteneur a décidé la règle de
+sévérité, écrite au §7. Les autres points marqués **[À décider]** sont
+ouverts.
 
 Cette note conserve le détail de la piste. Elle distingue les contrôles déjà
 disponibles des blocs qui restent à concevoir ; elle ne sert ni de changelog, ni
@@ -465,25 +466,49 @@ garanties qu'ils n'ont pas.
 
 ---
 
-## 7. Règle de sévérité proposée
+## 7. Règle de sévérité
 
 | Niveau | Signification | Exemples |
 |---|---|---|
-| **Bloquant** | Un écart a été constaté. | Token inexistant, option manquante, et tout écart de rendu constaté par le vérificateur : couleur comme disposition. |
+| **Bloquant** | Un écart a été constaté. | Token inexistant, option manquante, et tout écart de rendu constaté par le vérificateur dans une des quatre familles ci-dessous. |
 | **Avertissement** | La vérification n'a pas pu avoir lieu. Ce n'est pas un écart moins grave, c'est un trou dans la preuve. | Composant impossible à afficher, état d'interaction non couvert. Les diagnostics de l’Exporter conservent leur propre sémantique. |
 | **Informatif** | État d'avancement, aucune action attendue. | Contrat sans composant associé, nombre de combinaisons vérifiées. |
 
-**Point à discuter :** faut-il traiter la disposition et l'architecture
-différemment des couleurs ? La proposition dit non : dès lors que l'écart est
-constaté sur un affichage réel, la nature de la donnée ne change rien. Un
-contrôle constaté mais non bloquant ne sera jamais corrigé.
+### Ce que le mainteneur a décidé
 
-### [À décider]
+- Un écart du code bloque la fusion sur quatre familles : couleurs et tokens,
+  dimensions et espacements, typographie, structure et ordre. La nature de la
+  donnée ne change pas le verdict : un écart constaté sur un affichage réel
+  bloque, couleur comme disposition. Tout ce que le contrat ne décrit pas reste
+  libre dans le code : enveloppes, props non visuelles, placement par le parent,
+  animations.
+- La mesure automatique du rendu bloque. La validation visuelle du designer ne
+  bloque jamais. Un rendu validé devient la capture de référence, et un
+  changement du code seul qui la modifie bloque.
+- Un développeur peut poser une dérogation motivée. Elle passe, le rapport
+  l'affiche, et elle attend la relecture du designer.
+- Une demande de tokens seuls passe toujours, et le designer la fusionne seul.
+- Un contrat peut arriver avant son code. Un composant que la demande du
+  designer met en retard sur son contrat est marqué en retard, et la
+  prochaine demande d'un développeur sur ce composant bloque.
 
-Le vérificateur bloque-t-il dès sa mise en service, ou avertit-il pendant une
-période d'observation ?
+Le code publié applique l'ancienne règle : un token absent et un écart de
+parité avertissent. Un verdict qui bloque ces écarts reste à livrer, et les
+documents distinguent ce que fait la CLI publiée de la règle décidée.
 
----
+### Ce qui reste ouvert
+
+- **Ce que le linter refuse en plus.** Une valeur écrite en dur est refusée.
+  Une prop, une variante ou un élément absents du contrat sont à trancher. La
+  recherche propose de tenir un élément pour visuel s'il peint ou prend de la
+  place.
+- **Le token retiré par une demande de tokens seuls.** « Une demande de tokens
+  seuls passe toujours » contredit le blocage d'un token retiré que le code
+  cite.
+- **Le délai d'un composant en retard.** Avant la mise en production, ou un
+  nombre de jours : le délai n'est pas fixé.
+- **La forme de la dérogation.** Fichier ou section de configuration, portée,
+  motif, auteur, expiration.
 
 ## 8. Ordre proposé
 
@@ -515,7 +540,7 @@ contrôles restent des recommandations.
 4. Le laisse-t-on en production ?
 5. Quelles clauses le vérificateur générique doit-il prouver pour valoir la
    relecture humaine d'une reconstruction à froid ?
-6. Le vérificateur bloque-t-il dès sa mise en service ?
+6. Faut-il une période d'observation avant que le vérificateur bloque ? Le §7 décide qu'il bloque, sans fixer de période.
 7. Couvre-t-on les états d'interaction, et à quel moment ?
 8. Que fait-on d'un composant impossible à afficher seul ?
 9. Installe-t-on les règles d'éditeur ?

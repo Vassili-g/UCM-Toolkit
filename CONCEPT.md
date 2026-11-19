@@ -91,12 +91,16 @@ porte pour chacun ce qu'il lit, ce qu'il écrit et où.
 | Kit et CLI | Le kit définit le format et les lecteurs ; le CLI installe la configuration manquante, contrôle le repository et produit le CSS des tokens |
 | Adaptateur TypeScript | Contrôle la parité des implémentations TypeScript avec les contrats et dérive les types de leurs variantes |
 
-Un outil s’applique à deux périmètres. Le périmètre **agnostique** est le
-défaut : l’outil accepte n’importe quelle structure de variables et de
-collections. Le périmètre **full UCM** est une option : l’outil suit
-l’architecture de référence UCM, dont les définitions (crans, modes, états,
-collections, rôles des variables du thème) sont écrites une seule fois dans
-`packages/kit/src/referentiel/`. Ce document ne les recopie pas.
+Un outil s’applique à deux périmètres. Le périmètre **full UCM** est la
+règle : l’outil suit l’architecture de référence UCM, dont les définitions
+(crans, modes, états, collections, rôles des variables du thème) sont écrites
+une seule fois dans `packages/kit/src/referentiel/`. Ce document ne les recopie
+pas. Le périmètre **agnostique** accepte n’importe quelle structure de
+variables et de collections ; seul l’Exporter l’offre, en option. `ucm check`
+suit l’architecture full UCM comme les autres outils, mais il n’impose encore
+aucune structure de variables.
+
+Le flux va de Figma vers le code, jamais en sens inverse.
 
 ## 4. Les invariants
 
@@ -121,7 +125,19 @@ Il ne redécrit ni leurs tokens, ni leur structure interne.
 ### Un contrat peut précéder le code
 
 Le contrat peut être fusionné avant l’implémentation. La parité devient
-obligatoire dès que le composant correspondant existe.
+obligatoire dès que le composant correspondant existe. Un composant que la
+demande du designer met en retard sur son contrat est marqué « en retard sur
+son contrat » ; la demande passe.
+
+### Le code reste libre hors du contrat
+
+Un écart du code bloque la fusion sur quatre familles : couleurs et tokens,
+dimensions et espacements, typographie, structure et ordre. Tout ce que le
+contrat ne décrit pas reste libre dans le code : enveloppes, props non
+visuelles, placement par le parent, animations. La CLI publiée avertit encore
+d’un token absent et d’un écart de parité sans bloquer ; le [guide des
+designers](./docs/guides/POUR-LES-DESIGNERS.md#6-ce-qui-bloque-la-fusion-et-ce-qui-avertit)
+donne la règle décidée et ses cas.
 
 ### Les divergences doivent être visibles
 

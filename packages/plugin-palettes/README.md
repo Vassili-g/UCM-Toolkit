@@ -18,7 +18,7 @@ npm run build --workspace ucm-palettes-plugin
 Dans Figma Desktop, ouvrez `Plugins > Development > Import plugin from manifest`
 et choisissez `packages/plugin-palettes/dist/manifest.json`.
 
-## Trois onglets
+## Quatre onglets
 
 Le plugin s'ouvre sur **Création** dans un fichier sans palette, sur
 **Gestion** sinon.
@@ -27,6 +27,7 @@ Le plugin s'ouvre sur **Création** dans un fichier sans palette, sur
 |---|---|---|
 | Création | La palette ouverte | Nommer, choisir la référence, régler, essayer sur l'interface de test |
 | Vérification | La palette ouverte, le verdict de toutes | Lire le verdict, les messages et les garanties de contraste |
+| Comparaison | Les palettes du fichier | Cocher des palettes, les voir côte à côte, repérer celles dont les rampes sont trop proches, régler leur teinte, leur saturation et leur luminosité |
 | Gestion | Le fichier | Écrire chaque palette dans les variables, créer sa planche, suivre leur état |
 
 Pour voir comment le moteur fabrique ses rampes, ouvrez la [planche du moteur](../couleur/planche/PLANCHE-DU-MOTEUR.html), qui les compare à celles de Tailwind 3.4.
@@ -156,11 +157,10 @@ page et y déplace les planches déjà créées.
 
 Les modifications de palette sont enregistrées dans les données du document.
 L'écriture des tokens et le dessin des planches restent des gestes distincts.
-La recette courante utilise le format **10**, défini dans [le moteur de
-couleur](../couleur/README.md). Une recette au format 9 se lit telle quelle ;
-au format 8, le plugin lui ajoute le texte des boutons par défaut. Les deux se
-rangent au format 10 au prochain enregistrement. Une recette antérieure ne se
-convertit pas.
+La recette courante utilise le format **12**, défini dans [le moteur de
+couleur](../couleur/README.md). Le plugin lit les formats 8 à 11 et les range
+au format 12 au prochain enregistrement. Une recette antérieure au format 8 ne
+se convertit pas.
 
 En bas de Gestion, la carte « Palettes et réglages » propose l'export de la
 recette JSON et du rapport de vérification. L'import présente les différences

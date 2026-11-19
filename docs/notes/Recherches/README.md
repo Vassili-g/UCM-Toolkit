@@ -12,7 +12,7 @@ produit, partir des références de [docs/README.md](../../README.md) et du code
 
 | Sujet | Utilité | Statut |
 |---|---|---|
-| [Hub UCM][hub] | Rassembler l'exploration des palettes, variables, contrastes et règles dans une page locale. | Partiellement implémenté. Le banc existe ; l'inspecteur, les fiches de règles et les outils de tokens du plan restent à réaliser. |
+| [Hub UCM][hub] | Rassembler l'exploration des palettes, variables, contrastes et règles dans une page locale. | Storybook remplacera le Hub UCM ; le moment reste ouvert. Dans le code, le banc existe ; l'inspecteur, les fiches de règles et les outils de tokens du plan ne sont pas réalisés. |
 | [Palettes : recette v10][palettes-v10] | Corriger les décalages du nuancier et les interactions de l'onglet Comparaison. | Modifications retenues implémentées. L'accueil partagé du nuancier est abandonné ; les tests d'interface de I1 restent à réécrire. La proximité des palettes suit désormais le plan des crans clairs. |
 | [UCM Architect : vitesse d'analyse][vitesse] | Réduire les lectures répétées et le délai d'affichage des constats, avec annulation et reprise. | Partiellement implémenté. Retrait de l'ancien chemin de production encore ouvert ; signatures, worker et échanges différentiels abandonnés. |
 | [UCM Architect : fusion et préparation][architect] | Réunir l'exploration des variables, leur nommage et la préparation des tokens d'un composant. | Implémenté pour le périmètre retenu. L'adaptation des noms de préparation à la convention Figma reste conditionnelle. |

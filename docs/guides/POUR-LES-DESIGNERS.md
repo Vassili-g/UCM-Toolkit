@@ -193,7 +193,7 @@ que le repository ne lit pas encore. Le message s'adresse alors à un
 développeur, qui doit mettre l'outillage à jour ; réexporter n'y changerait
 rien.
 
-| Contrôle | Ce qu'il vérifie | Verdict |
+| Contrôle | Ce qu'il vérifie | Verdict de la CLI publiée |
 |---|---|---|
 | Validité | Le contrat est lisible et complet | Bloque |
 | Version | La version du contrat entre dans la fenêtre de lecture du repository | Bloque |
@@ -202,16 +202,68 @@ rien.
 | Tokens | Les tokens cités existent dans `tokens.json` | Avertit, sauf si le fichier de tokens manque ou ne se lit pas |
 | Parité code | Le code expose bien les props du contrat | Avertit |
 
-Un écart avec le code attend un développeur, donc il avertit et laisse
-fusionner. Un token supprimé du design system aussi : les tokens font foi, donc
-un ancien contrat ne retient pas leur évolution.
+La CLI publiée applique encore l'ancienne règle. Un écart avec le code attend
+un développeur, donc il avertit et laisse fusionner, y compris un token
+supprimé du design system. La règle décidée, qui fait bloquer cet écart, suit
+ci-dessous, et la CLI ne l'applique pas encore.
 
 Le rapport relaie en plus deux choses qu'il ne mesure pas lui-même : les
 avertissements que l'export a écrits dans le contrat, et le verdict des tests du
 repository quand celui-ci le transmet.
 
+### La règle décidée
+
+Un écart du code bloque la fusion sur quatre familles : les couleurs et les
+tokens, les dimensions et les espacements, la typographie, la structure et
+l'ordre. Tout ce que le contrat ne décrit pas reste libre dans le code : les
+enveloppes, les props non visuelles, le placement par le parent et les
+animations.
+
+La mesure automatique du rendu bloque. Votre validation visuelle ne bloque
+jamais : un rendu que vous validez devient la capture de référence, et un
+changement du code seul qui modifie cette capture bloque. Le linter, qui
+n'existe pas encore, refusera une valeur écrite en dur dans le code.
+
+Un développeur peut poser une dérogation motivée. Elle laisse passer la
+demande, le rapport l'affiche, et elle attend votre relecture.
+
+Une demande qui ne contient que des tokens passe toujours. Vous exportez
+`tokens.json` et vous la fusionnez seul, à condition que le repository vous
+désigne propriétaire de ce fichier dans un `CODEOWNERS`.
+
 **Un contrat peut arriver avant le code.** L'absence d'implémentation est un
-état d'avancement autorisé, pas une erreur.
+état d'avancement autorisé, pas une erreur. À l'inverse, un composant que votre
+demande met en retard sur son contrat est marqué « en retard sur son contrat » :
+la demande passe, et la prochaine demande d'un développeur sur ce composant
+bloque.
+
+Les huit cas suivants donnent le verdict de la règle décidée, puis celui de la
+CLI publiée.
+
+| Cas | Règle décidée | CLI publiée |
+|---|---|---|
+| Vous changez la valeur d'un token (demande de tokens seuls) | Passe | Passe |
+| Vous ajoutez une variante au contrat (demande de contrat seul) | Passe, le composant est marqué en retard sur son contrat | Passe, sans marque |
+| Vous retirez un token que le code ou le contrat cite encore | Ouvert, voir ci-dessous | Avertit si le contrat le cite |
+| Le développeur écrit un écart dans une des quatre familles | Bloque | Avertit pour les props et les tokens ; le reste n'est pas comparé |
+| Le contrat arrive avant son code | Passe | Passe |
+| Un changement du code seul modifie une capture de référence | Bloque | Aucune capture n'existe |
+| Une demande change le contrat et ses captures | Passe, les captures attendent votre validation | Aucune capture n'existe |
+| Le développeur pose une dérogation motivée | Passe, le rapport l'affiche, elle attend votre relecture | Aucune dérogation n'existe |
+
+Quatre points restent ouverts :
+
+- le délai d'un composant en retard sur son contrat ;
+- le sort d'un token que votre demande retire alors que le code le cite : la
+  règle « une demande de tokens seuls passe toujours » et le blocage d'un token
+  absent se contredisent ;
+- la forme de la dérogation ;
+- ce que le linter refuse en plus d'une valeur écrite en dur.
+
+Le [plan de conformité du rendu](../notes/Recherches/Linter%20Dev/PLAN-CONFORMITE-RENDU.md#7-règle-de-sévérité)
+garde ces questions.
+
+### Rendre le blocage effectif
 
 Sur GitHub, une pull request rouge n'est bloquée que si la protection de la
 branche de base exige le check `contrats`. GitHub n'offre cette protection

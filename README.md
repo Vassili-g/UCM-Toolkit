@@ -20,8 +20,8 @@ La [page de l'inventaire](./docs/inventaire/INVENTAIRE-UCM.html) montre le proje
 Les plugins s'utilisent séparément. Palettes écrit les couleurs ; l'exporteur
 publie les variables locales en tokens DTCG ; UCM Architect parcourt, renomme et corrige les variables, et analyse les composants. Il fonctionne aussi
 sans contrat UCM. [CONCEPT.md](./CONCEPT.md#les-produits-et-les-deux-périmètres)
-donne le rôle de chaque produit et distingue le périmètre agnostique, par
-défaut, du périmètre full UCM, en option.
+donne le rôle de chaque produit et distingue le périmètre full UCM, que suivent
+les outils, du périmètre agnostique, que seul l'exporteur offre en option.
 
 ## Les dépôts UCM
 

@@ -345,7 +345,7 @@ par une, en relisant ce que vous avez observé.
 | 2. Un export depuis Figma ouvre une pull request | Étapes 4 et 5 |
 | 3. La CI publie un rapport lisible par un designer | Étape 4 |
 | 4. Un contrat d'une version non lue est refusé, avec un message qui dit qui corrige | à provoquer, voir ci-dessous |
-| 5. Une référence de token disparue avertit sans bloquer | à provoquer, voir ci-dessous |
+| 5. Une référence de token disparue avertit sans bloquer (CLI publiée) | à provoquer, voir ci-dessous |
 | 6. L'absence d'implémentation est un état d'avancement autorisé | Étape 5 |
 | 7. Un contrat réellement cassé bloque | à provoquer, voir ci-dessous |
 
@@ -363,7 +363,10 @@ qu'un développeur doit mettre à jour l'outillage du repository, pas qu'un
 designer doit réexporter.
 
 **Critère 5.** Dans `tokens.json`, supprimez un token que le contrat cite.
-Attendu : un avertissement, la fusion reste possible.
+Attendu : un avertissement, la fusion reste possible. Cet attendu suit la CLI
+publiée. La règle décidée ne dit pas encore si ce cas bloque, puisqu'une
+demande de tokens seuls passe toujours. Quand la CLI l'applique, ce critère
+change d'attendu.
 
 **Critère 7.** Dans le contrat, supprimez le bloc `props` en entier. Attendu :
 la fusion est bloquée, et le message dit ce qui manque et ce qu'il faut

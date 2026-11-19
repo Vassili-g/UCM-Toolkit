@@ -32,8 +32,8 @@
       "id": "libre-dans-le-code",
       "genre": "carte",
       "texte": "Tout ce que le contrat ne décrit pas reste libre dans le code : enveloppes, props non visuelles, placement par le parent, animations.",
-      "domicileCible": "CONCEPT.md#4. Les invariants",
-      "ecrite": "non",
+      "domicileCible": "CONCEPT.md#Le code reste libre hors du contrat",
+      "ecrite": "oui",
       "pistes": []
     },
     {
@@ -41,7 +41,7 @@
       "genre": "carte",
       "texte": "La validation visuelle du designer ne bloque jamais.",
       "domicileCible": "docs/guides/POUR-LES-DESIGNERS.md#6. Ce qui bloque la fusion et ce qui avertit",
-      "ecrite": "non",
+      "ecrite": "oui",
       "pistes": []
     },
     {
@@ -49,8 +49,8 @@
       "genre": "liste",
       "pour": "developpeur",
       "texte": "Un rendu validé par le designer devient la capture de référence. Un changement du code seul qui la modifie bloque (P10, P20).",
-      "domicileCible": "docs/notes/Recherches/Linter Dev/PLAN-CONFORMITE-RENDU.md",
-      "ecrite": "non",
+      "domicileCible": "docs/notes/Recherches/Linter Dev/PLAN-CONFORMITE-RENDU.md#7. Règle de sévérité",
+      "ecrite": "oui",
       "pistes": [
         "P10",
         "P20"
@@ -70,8 +70,8 @@
       "genre": "liste",
       "pour": "developpeur",
       "texte": "Storybook remplace le Hub UCM (P5, P9). Le sommaire des recherches garde encore le plan du Hub.",
-      "domicileCible": "ROADMAP.md",
-      "ecrite": "non",
+      "domicileCible": "docs/notes/Recherches/README.md#Sujets",
+      "ecrite": "partiel",
       "pistes": [
         "P5",
         "P9"
@@ -83,7 +83,7 @@
       "pour": "designer developpeur",
       "texte": "Le flux va de Figma vers le code seulement. Les outils suivent l'architecture full UCM, et seul l'Exporter est agnostique, en option (P5).",
       "domicileCible": "CONCEPT.md#Les produits et les deux périmètres",
-      "ecrite": "partiel",
+      "ecrite": "oui",
       "pistes": [
         "P5"
       ]
@@ -94,7 +94,7 @@
       "pour": "designer",
       "texte": "Le designer exporte `tokens.json` et fusionne seul une demande de tokens, grâce à un fichier `CODEOWNERS` (P17). Elle passe toujours.",
       "domicileCible": "docs/guides/POUR-LES-DESIGNERS.md#6. Ce qui bloque la fusion et ce qui avertit",
-      "ecrite": "non",
+      "ecrite": "partiel",
       "pistes": [
         "P17"
       ]
@@ -116,7 +116,7 @@
       "pour": "developpeur",
       "texte": "Un token absent, une prop du code qui s'écarte du contrat et un écart de parité bloquent la fusion (P19). Une dérogation motivée laisse passer un écart de parité.",
       "domicileCible": "docs/guides/POUR-LES-DESIGNERS.md#6. Ce qui bloque la fusion et ce qui avertit",
-      "ecrite": "non",
+      "ecrite": "oui",
       "pistes": [
         "P19"
       ]
@@ -127,7 +127,7 @@
       "pour": "developpeur",
       "texte": "La couleur rendue, les dimensions, la typographie, la structure et l'ordre rendus bloquent après comparaison du rendu au contrat (P10, P20).",
       "domicileCible": "docs/guides/POUR-LES-DESIGNERS.md#6. Ce qui bloque la fusion et ce qui avertit",
-      "ecrite": "non",
+      "ecrite": "oui",
       "pistes": [
         "P10",
         "P20"
@@ -139,7 +139,7 @@
       "pour": "developpeur",
       "texte": "Une valeur écrite en dur dans le code bloque, par le linter (P6).",
       "domicileCible": "docs/guides/POUR-LES-DESIGNERS.md#6. Ce qui bloque la fusion et ce qui avertit",
-      "ecrite": "non",
+      "ecrite": "oui",
       "pistes": [
         "P6"
       ]
@@ -150,7 +150,7 @@
       "pour": "developpeur",
       "texte": "Une demande qui ne modifie que le contrat marque le composant en retard sur son contrat, et la demande passe (P2).",
       "domicileCible": "docs/guides/POUR-LES-DESIGNERS.md#6. Ce qui bloque la fusion et ce qui avertit",
-      "ecrite": "non",
+      "ecrite": "oui",
       "pistes": [
         "P2"
       ]
@@ -161,8 +161,8 @@
       "pour": "developpeur",
       "titre": "Ce que le linter refuse en plus",
       "texte": "Une prop, une variante ou un élément absents du contrat. La recherche propose : un élément est visuel s'il peint ou prend de la place.",
-      "domicileCible": "docs/notes/Recherches/Linter Dev/PLAN-CONFORMITE-RENDU.md",
-      "ecrite": "non",
+      "domicileCible": "docs/notes/Recherches/Linter Dev/PLAN-CONFORMITE-RENDU.md#7. Règle de sévérité",
+      "ecrite": "partiel",
       "pistes": [
         "P6",
         "P10"
@@ -174,8 +174,8 @@
       "pour": "developpeur",
       "titre": "Token retiré par une demande de tokens seuls",
       "texte": "« Une demande de tokens seuls passe toujours » contredit le blocage d'un token retiré que le code cite.",
-      "domicileCible": "docs/notes/Recherches/Linter Dev/PLAN-CONFORMITE-RENDU.md",
-      "ecrite": "non",
+      "domicileCible": "docs/notes/Recherches/Linter Dev/PLAN-CONFORMITE-RENDU.md#7. Règle de sévérité",
+      "ecrite": "partiel",
       "pistes": [
         "P2",
         "P19"
@@ -187,8 +187,8 @@
       "pour": "developpeur",
       "titre": "Délai du composant en retard",
       "texte": "Le composant qu'une demande du designer casse est marqué en retard, et la prochaine demande d'un développeur dessus bloque. Le délai n'est pas fixé.",
-      "domicileCible": "docs/notes/Recherches/Linter Dev/PLAN-CONFORMITE-RENDU.md",
-      "ecrite": "non",
+      "domicileCible": "docs/notes/Recherches/Linter Dev/PLAN-CONFORMITE-RENDU.md#7. Règle de sévérité",
+      "ecrite": "partiel",
       "pistes": [
         "P2",
         "P19"
@@ -200,8 +200,8 @@
       "pour": "developpeur",
       "titre": "Forme de la dérogation",
       "texte": "Fichier ou section de configuration, portée, motif, auteur, expiration.",
-      "domicileCible": "docs/notes/Recherches/Linter Dev/PLAN-CONFORMITE-RENDU.md",
-      "ecrite": "non",
+      "domicileCible": "docs/notes/Recherches/Linter Dev/PLAN-CONFORMITE-RENDU.md#7. Règle de sévérité",
+      "ecrite": "partiel",
       "pistes": [
         "P19",
         "P20"
@@ -265,7 +265,7 @@
       "titre": "Périmètre d'`ucm check`",
       "texte": "Seul l'Exporter est agnostique, mais `ucm check` accepte aujourd'hui toute structure.",
       "domicileCible": "CONCEPT.md#Les produits et les deux périmètres",
-      "ecrite": "non",
+      "ecrite": "oui",
       "pistes": [
         "P5",
         "P12"

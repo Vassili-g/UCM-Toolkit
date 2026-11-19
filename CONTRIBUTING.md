@@ -295,9 +295,9 @@ Quatre bornes, sans quoi la table ne tient pas :
 
 La table des rangs, la borne des deux moyens et le rôle de la couleur
 sémantique valent pour UCM Palettes. La règle des deux cartes décrit l’écran
-d’UCM Exporter. UCM Palettes a trois onglets, Création, Vérification et
-Gestion, portés par `ongletCreation.ts`, `ongletVerification.ts` et
-`ongletGestion.ts`. Création et Vérification partagent la barre du sélecteur,
+d’UCM Exporter. UCM Palettes a quatre onglets, Création, Vérification, Comparaison et
+Gestion, portés par `ongletCreation.ts`, `ongletVerification.ts`,
+`ongletHarmonisation.ts` et `ongletGestion.ts`. Création et Vérification partagent la barre du sélecteur,
 qui se place dans l’onglet actif. L’onglet Création applique celles-ci :
 
 - dans un fichier sans palette, un encart au fond teinté de la couleur de

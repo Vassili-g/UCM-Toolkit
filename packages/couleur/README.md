@@ -26,12 +26,13 @@ importent depuis `ucm-couleur` pour utiliser ces fonctions et leurs types.
 
 ## Recette et déterminisme
 
-`FORMAT_RECETTE` vaut **10** : la recette porte `texteDesBoutons`, blanc ou noir
+`FORMAT_RECETTE` vaut **12**, la version courante de `FENETRE_DE_LA_RECETTE` : la recette porte `texteDesBoutons`, blanc ou noir
 pour chaque thème, et `figees` peut porter les couleurs de deux intensités
 (`{ soft, vivid }`). `classerRecette` distingue une recette absente, courante,
 future ou illisible. Une recette absente propose les valeurs par défaut. Une
-recette au format 9 se lit telle quelle ; au format 8, `classerRecette` lui
-ajoute `texteDesBoutons` par défaut. Les deux passent au format 10. Une version
+recette aux formats 8 à 11 se lit, et `classerRecette` la fait monter d'un format
+à la fois jusqu'au format 12 ; au format 8, il lui ajoute `texteDesBoutons` par
+défaut. Une version
 antérieure à 8 est refusée sans conversion. Le format de recette est distinct des formats de contrat et de
 tokens d'UCM.
 

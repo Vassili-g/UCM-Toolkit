@@ -207,8 +207,12 @@ introuvable. La section « A repository with no contract at all » de
   met à jour son lecteur de valeurs, pour la classe 10 ;
 - **peut fusionner** : un contrat hors de la fenêtre de lecture bloque, comme un
   `tokens.json` d'une version future ou d'une marque invalide. Rien d'autre ici
-  ne bloque. Un écart entre le contrat et le code avertit sans
-  refuser la fusion, parce qu'il porte sur le code et non sur l'artefact déposé.
+  ne bloque, parce que cette politique ne juge que l'artefact déposé. Un écart
+  entre le contrat et le code relève d'une autre règle. Il bloque sur quatre
+  familles, couleurs et tokens, dimensions et espacements, typographie,
+  structure et ordre, et la CLI publiée l'avertit encore sans refuser la
+  fusion. Le [guide des designers](../guides/POUR-LES-DESIGNERS.md#6-ce-qui-bloque-la-fusion-et-ce-qui-avertit)
+  donne les cas.
 
 ## Ce que cette politique ne fait pas
 

@@ -45,7 +45,7 @@ un composant composé. Couvrir un catalogue entier n'en fait pas partie.
 | Forges | Le plugin publie sur GitHub et sur gitlab.com : une branche, un fichier et une demande de fusion par export. `ucm init` écrit la CI de la forge du repository. Le parcours GitLab de la [recette](./docs/guides/RECETTE.md#parcours-gitlab) a été joué sur un projet gitlab.com |
 | Interopérabilité | JSON Schema publié dans `schema/`, dérivé de `types.ts`. Il décrit la forme, jamais la cohérence. Il ne bloque aucune fusion |
 | Corpus de recette | Le Playground contient quatre contrats en 13.0 et leurs implémentations jetables. Le build de l'exporteur produit désormais du 14.0 ; ce corpus ne prouve donc pas les ajouts de cette version |
-| Palettes | Création, Vérification et Gestion, recette 9 avec le texte des boutons par thème, Color shift borné, palettes grises, interface anglaise et française, écriture des variables et reprise de palettes locales |
+| Palettes | Création, Vérification, Comparaison et Gestion, recette au format 12 (lue dès le format 8) avec le texte des boutons par thème, Color shift borné, palettes grises, interface anglaise et française, écriture des variables et reprise de palettes locales |
 | Couleurs du thème | Le kit tient la table en dossiers `solid`, `surface` et `page`, ses deux sens et ses neuf garanties, que Palettes et UCM Architect lisent ; `ucm check` n'en garde que la mesure des contrastes, en information. L'architecture cible n'est pas encore déployée dans les exports des deux consommateurs |
 | UCM Architect | Remplace l'explorateur et Nomenclature. En mode Tokens, il parcourt les variables de toute architecture, résout leurs chaînes par mode, renomme selon les règles de nommage et corrige scopes et alias de mode d'un fichier UCM. En mode Composant, il analyse un jeu de variants avec les contrôles du kit, propose les seules corrections exactes, pose une question pour le reste et prépare les tokens du composant. Les variables s'écrivent par un journal que l'Historique défait ; un lot sur un composant se défait par Ctrl+Z. Le calcul des noms et les contrôles de structure du mode Tokens tournent dans un Worker de l'interface, avec le sandbox en repli : dans Figma, l'analyse d'un fichier de 2 415 variables passe de 19 s à 2,6 s, et Actualiser de 68 s à 2,3 s. Ses tests portent sur des relevés fabriqués, sur des harnais de familles de failles (`MESURE-DES-FAILLES.md` du dossier [8 Fiabilisation](./docs/notes/Recherches/UCM%20Architect/8%20Fiabilisation/)), sur l'interface compilée dans Chromium et sur la comparaison de la galerie avec la [maquette](./docs/notes/Recherches/UCM%20Architect/2%20Maquettes/MAQUETTE-ARCHITECT.html) |
 
@@ -162,7 +162,10 @@ décision correcte sur un cas réel.
 L'adaptateur TypeScript avertit lorsqu'une union omet une valeur publiée ou
 lorsqu'un enum déclaré n'a aucun effet dans le composant. Il ne prétend pas
 analyser les branches, les tables, les valeurs transmises ni les règles métier.
-Ces écarts restent non bloquants.
+La CLI publiée laisse ces écarts non bloquants. La règle décidée fait bloquer
+l'écart de parité, comme tout écart du code sur quatre familles ; le [guide des
+designers](./docs/guides/POUR-LES-DESIGNERS.md#6-ce-qui-bloque-la-fusion-et-ce-qui-avertit)
+donne les cas, et la CLI ne l'applique pas encore.
 
 Le défaut d'un axe vient uniquement d'une règle Figma `@default`. Son absence
 laisse le choix au développeur. La parité statique ne compare pas ce défaut à
@@ -213,8 +216,8 @@ Le MVP est validé lorsque :
 - un composé réutilise réellement plusieurs dépendances et passe la parité ;
 - les contrats invalides, les versions incompatibles et les tests rouges
   empêchent la fusion avec un diagnostic actionnable ;
-- les écarts de parité statique couverts avertissent sans accuser le contrat ni
-  bloquer la fusion ;
+- les écarts de parité statique couverts bloquent la demande d'un développeur
+  sans accuser le contrat (la CLI publiée les avertit encore) ;
 - un contrat peut précéder son code sans désactiver les contrôles futurs ;
 - un agent en contexte froid n'invente ni prop, ni variante, ni token ;
 - les limites non vérifiables sont documentées sans être présentées comme des
