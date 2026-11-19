@@ -324,7 +324,7 @@ test("critère 7 — un contrat illisible bloque et renvoie vers l'export", () =
 
 /**
  * Un fichier vidé de sa substance est du JSON parfaitement valide, et c'est
- * précisément le piège : sans contrôle de champs, il passerait au vert — zéro
+ * précisément le piège : sans contrôle de champs, il passerait au vert, avec zéro
  * référence citée, donc zéro référence manquante.
  *
  * Il n'a pas non plus une version « trop ancienne » : il n'en a pas du tout.

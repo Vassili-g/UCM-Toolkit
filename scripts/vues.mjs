@@ -55,7 +55,7 @@ const VUES = [
       (await charger("docs/notes/Recherches/Archi Tokens Multi-marques/generer-reference.ts")).genererReference(),
   },
   {
-    // Lit le fichier de référence que l'entrée précédente vient d'écrire : l'ordre de VUES compte.
+    // Cette entrée lit le fichier de référence que l'entrée précédente écrit, donc elle vient après elle.
     fichier: "docs/notes/Recherches/Archi Tokens Multi-marques/donnees-vue-illustree.js",
     contenu: async () => {
       const dossier = "docs/notes/Recherches/Archi Tokens Multi-marques/";

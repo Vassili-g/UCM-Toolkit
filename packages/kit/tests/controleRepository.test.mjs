@@ -298,7 +298,7 @@ export function Widget(_props: WidgetProps) {
 /**
  * Ce constat a été scindé : l'existence au noyau, la comparaison à
  * l'adaptateur. Le message promettait un `.tsx`, ce qui est faux dans un repo
- * Swift — et faux sur la pull request d'export elle-même, la seule que le
+ * Swift, et faux sur la pull request d'export elle-même, la seule que le
  * designer lise. Le mot a été retiré ; l'attente ci-dessous est la nouvelle
  * formulation, et c'est elle qui rend la correction visible ici.
  */

@@ -1190,7 +1190,7 @@ export function controlerRepository(racine, {
     analyser(chemin, contexte, erreursGraphe.get(chemin) ?? []),
   );
   // La validation reste globale. Seuls les états informatifs sont limités à ce
-  // que la demande touche, afin qu'un export ne parle pas d'un autre composant.
+  // que la demande touche, pour qu'un export ne parle pas d'un autre composant.
   const { bilans: bilansDuRapport, concerne: concerneUcm } = perimetreDeLaDemande(bilans, cheminsModifies, {
     motif, tokensModifies, cheminTokens: sourceTokens,
   });
