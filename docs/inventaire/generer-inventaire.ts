@@ -1,6 +1,6 @@
 /**
- * Génère `INVENTAIRE-UCM.html`, la page qui montre ce que contient le dépôt : le trajet d'un composant, le modèle, ce que UCM attend
- * dans Figma, le contrat, les outils, les contrôles, la feuille de route. La page est autonome : ses données y sont écrites, elle
+ * Génère `INVENTAIRE-UCM.html`, la page qui montre ce que contient le dépôt : le concept UCM, les outils, le parcours d'un composant,
+ * l'architecture des variables Figma, le contrat, ce qui est vérifié, la feuille de route. La page est autonome : ses données y sont écrites, elle
  * ne charge aucune ressource. Elle n'a autorité sur rien ; chaque section nomme le fichier qui définit ce qu'elle montre.
  *
  * Le gabarit (`gabarit.html`), la feuille de style (`page.css`) et le script (`page.js`) portent le texte écrit à la main. Un
@@ -109,41 +109,42 @@ function annexes(): string {
     job.declencheurs.map((nom) => (nom === 'push' ? `push sur ${job.branches}` : nom === 'pull_request' ? 'pull request' : nom === 'workflow_dispatch' ? 'lancement à la main' : nom)).join(', ');
 
   return `<!-- Un pli par élément visuel, lu dans le dépôt par releves.ts : signesEtAlertes (kit : signes.ts, svgDuSigne ; socle : Alerte.ts), signauxDuLangage (kit : signaux.ts), iconesDuContratDeRecette (fixture Button 13.0), marque, references, outillage (docs/marque/, docs/references/, .agents/skills/, .claude/agents/, package.json, .github/workflows/). -->
-  <details class="pli" id="annexe-icones" data-pour="toolkit"><summary>Jeu d'icônes UCM <span class="doux">${nombreDeSignes} icônes en ${familles.length} familles</span></summary><div class="contenu">
-    <p>Les trois plugins et le Hub dessinent leur interface avec ce jeu : types de variables, usages, objets Figma, rubriques, verdicts, pictogrammes de Palettes et interface. Le kit porte le tracé, le libellé et l'emploi de chaque signe, et un tracé appartient à un seul signe. Le socle les dessine en 14, 16 ou 24 px. Le dépôt n'en fournit aucun à une application.</p>
+  <details class="pli" id="annexe-icones"><summary>Jeu d'icônes UCM <span class="doux">${nombreDeSignes} icônes en ${familles.length} familles</span></summary><div class="contenu">
+    <p>Le jeu d'icônes que les trois plugins et le Hub dessinent dans leur interface : types de variables, usages, objets Figma, rubriques, verdicts, pictogrammes de Palettes et interface. Le kit porte le tracé, le libellé et l'emploi de chaque signe, et un tracé appartient à un seul signe. Le socle les dessine en 14, 16 ou 24 px. Le dépôt n'en fournit aucun à une application.</p>
     <p class="defini">Défini dans <code>packages/kit/src/referentiel/signes.ts</code> et dessiné par <code>packages/plugin-socle/src/ui/Signe.ts</code>. La planche <code>packages/plugin-socle/galerie/planche/</code> montre tous les signes.</p>
     ${famillesHtml}
   </div></details>
-  <details class="pli" id="annexe-alertes" data-pour="toolkit"><summary>Formes d'alerte <span class="doux">${alertes.length}</span></summary><div class="contenu">
+  <details class="pli" id="annexe-alertes"><summary>Formes d'alerte <span class="doux">${alertes.length}</span></summary><div class="contenu">
+    <p>Les formes que les plugins dessinent pour chaque type d'alerte d'un constat, avec une couleur, un signe et un mot. Elles servent à lire la gravité d'un constat d'un coup d'œil, de la même façon dans chaque plugin.</p>
     <p class="defini">Défini dans <code>packages/plugin-socle/src/ui/Alerte.ts</code> et <code>packages/kit/src/referentiel/signaux.ts</code>.</p>
     ${alertesHtml}
   </div></details>
-  <details class="pli" id="annexe-signaux" data-pour="toolkit"><summary>Signaux du langage visuel <span class="doux">${signaux.length}</span></summary><div class="contenu">
+  <details class="pli" id="annexe-signaux"><summary>Signaux du langage visuel <span class="doux">${signaux.length}</span></summary><div class="contenu">
     <p>Un signal dit ce qu'un texte désigne : un terme, un chemin, un changement, une alerte, une action. Chaque plugin le dessine de la même façon.</p>
     <p class="defini">Défini dans <code>packages/kit/src/referentiel/signaux.ts</code>. La planche <code>packages/plugin-socle/galerie/planche/</code> les dessine avec les composants du socle.</p>
     <div class="defile"><table><tr><th>Rendu</th><th>Signal</th><th>Sens</th></tr>${lignesDesSignaux}</table></div>
   </div></details>
-  <details class="pli" id="annexe-icones-composants" data-pour="designer developpeur"><summary>Icônes des composants <span class="doux">aucune fournie</span></summary><div class="contenu">
-    <p>Le designer place les icônes comme instances du composant <code>Icon</code> de son fichier, et Architect le vérifie (C66). Le contrat liste celles qu'un composant emploie. <code>ucm icons</code> en donne la liste au développeur, qui fournit lui-même les fichiers.</p>
+  <details class="pli" id="annexe-icones-composants"><summary>Icônes des composants <span class="doux">aucune fournie</span></summary><div class="contenu">
+    <p>Les icônes qu'emploie le contrat de recette du Button, lues dans son champ <code>icons</code>. Elles montrent ce que le développeur fournit lui-même. Le designer place les icônes comme instances du composant <code>Icon</code> de son fichier, et Architect le vérifie (C66). Le contrat liste celles qu'un composant emploie. <code>ucm icons</code> en donne la liste au développeur, qui fournit lui-même les fichiers.</p>
     <p class="defini">Défini dans <code>packages/kit/src/format/types.ts</code> (champ <code>icons</code>) et <code>packages/cli/src/</code>.</p>
     <p class="source">${iconesDeComposant.icones.length} icônes du contrat de recette <code>${iconesDeComposant.chemin.replace('packages/kit/fixtures/contrats/', '')}</code>.</p>
     <div class="defile"><table><tr><th>Nom dans Figma</th><th>Emplacement</th><th>Propriété d'affichage</th></tr>${lignesDesIcones}</table></div>
   </div></details>
-  <details class="pli" id="annexe-marque" data-pour="toolkit"><summary>Marque <span class="doux">${logos.length} logos et ${cartes.length} cartes</span></summary><div class="contenu">
-    <p>Les logos et les cartes du toolkit, de l'Exporter, de Palettes et d'Architect présentent les outils sur la Community et dans les README.</p>
+  <details class="pli" id="annexe-marque"><summary>Marque <span class="doux">${logos.length} logos et ${cartes.length} cartes</span></summary><div class="contenu">
+    <p>Les fichiers SVG de la marque. Les logos et les cartes du toolkit, de l'Exporter, de Palettes et d'Architect présentent les outils sur la Community et dans les README.</p>
     <p class="defini">Défini dans <code>docs/marque/logos/</code> et <code>docs/marque/cartes/</code>. Les fichiers sont générés par <code>${marque.script}</code>.</p>
     <div class="marques-grille">${logos.map(figureDeMarque).join('')}</div>
     <div class="marques-grille cartes">${cartes.map(figureDeMarque).join('')}</div>
   </div></details>
-  <details class="pli" id="annexe-references" data-pour="toolkit"><summary>Références des design systems <span class="doux">${references.systemes.length} systèmes, ${references.analyses.length} guide</span></summary><div class="contenu">
-    <p>Les noms et les valeurs de chaque système sont figés. Ils servent à fixer la nomenclature UCM et à écrire le guide d'un composant avant de le dessiner.</p>
+  <details class="pli" id="annexe-references"><summary>Références des design systems <span class="doux">${references.systemes.length} systèmes, ${references.analyses.length} guide</span></summary><div class="contenu">
+    <p>Les design systems du marché que le dépôt a relevés, avec le rôle de chacun. Les noms et les valeurs de chaque système sont figés. Ils servent à fixer la nomenclature UCM et à écrire le guide d'un composant avant de le dessiner.</p>
     <p class="defini">Défini dans <code>docs/references/systemes.json</code>, <code>docs/references/README.md</code>, <code>docs/references/composants/</code> et <code>docs/references/analyses/</code>.</p>
     <div class="defile"><table><tr><th>Rôle</th><th>Apport</th></tr>${lignesDesRoles}</table></div>
     <div class="defile"><table><tr><th>Système</th><th>Rôles</th><th>Fiches de composants</th></tr>${lignesDesSystemes}</table></div>
     <p>Guides de <code>docs/references/analyses/</code> : ${listeDeCodes(references.analyses)}. La skill <code>guide-composant</code> les écrit. ${echapper(references.skillGuide)}</p>
   </div></details>
-  <details class="pli" id="annexe-outillage" data-pour="toolkit"><summary>Outillage des agents du dépôt <span class="doux">${outils.skills.length} skills, ${outils.agents.length} agents, ${outils.scripts.length} scripts</span></summary><div class="contenu">
-    <p>Un guide <code>AGENTS.md</code> et une carte par paquet, un domicile par fichier source et un contrôle de style rejoué à chaque écriture font travailler les agents sans perdre les règles du dépôt. L'agent d'une application reçoit autre chose : la skill <code>ucm-implementer</code>, les gabarits, les aides et le guide d'un contrat.</p>
+  <details class="pli" id="annexe-outillage"><summary>Outillage des agents du dépôt <span class="doux">${outils.skills.length} skills, ${outils.agents.length} agents, ${outils.scripts.length} scripts</span></summary><div class="contenu">
+    <p>Les skills, les agents, les scripts npm et les jobs de CI qui font travailler les agents de code sur UCM-Toolkit, lus dans le dépôt à la génération. Un guide <code>AGENTS.md</code> et une carte par paquet, un domicile par fichier source et un contrôle de style rejoué à chaque écriture font travailler les agents sans perdre les règles du dépôt. L'agent d'une application reçoit autre chose : la skill <code>ucm-implementer</code>, les gabarits, les aides et le guide d'un contrat.</p>
     <p class="defini">Défini dans <code>AGENTS.md</code>, <code>.agents/skills/</code>, <code>.claude/agents/</code>, <code>package.json</code> et <code>.github/workflows/</code>.</p>
     <h4>Skills</h4>
     <div class="defile"><table><tr><th>Skill</th><th>Rôle</th></tr>${outils.skills.map((skill) => `<tr><td><code>${skill.nom}</code></td><td>${avecCode(skill.description)}</td></tr>`).join('')}</table></div>
@@ -165,21 +166,28 @@ function avecPistes(texte: string, identifiants: ReadonlySet<string>, ou: string
 }
 
 const lienDePistes = (ids: readonly string[]): string => ids.map((id) => `<a href="#piste-${id}">${id}</a>`).join(', ');
-const attributPour = (pour: string | undefined): string => (pour ? ` data-pour="${pour}"` : '');
 
-/** Les règles décidées que la page rend : un trou par règle de carte, des lignes pour la liste et pour les décisions transverses. */
+/** Les termes du glossaire qu'emploient les règles décidées : leur première occurrence renvoie à sa définition. */
+const TERMES_DES_REGLES: readonly [string, string][] = [['<code>CODEOWNERS</code>', 'g-codeowners'], ['dérogation', 'g-derogation']];
+const avecTermes = (html: string): string =>
+  TERMES_DES_REGLES.reduce((texte, [terme, ancre]) => texte.replace(terme, `<a class="terme" href="#${ancre}">${terme}</a>`), html);
+
+/** Les règles décidées que la page rend : un trou par règle de carte, des lignes pour les règles des contrôles, pour les autres règles et pour les questions ouvertes. */
 function blocsDesRegles(decisions: releves.Decisions, identifiants: ReadonlySet<string>): Record<string, string> {
   const rendu: Record<string, string> = {};
   for (const regle of decisions.regles) {
     if (regle.genre === 'carte') rendu[`regle:${regle.id}`] = avecPistes(regle.texte, identifiants, `decisions.json, règle ${regle.id}`);
   }
-  rendu['lignes-regles'] = decisions.regles
-    .filter((regle) => regle.genre === 'liste')
-    .map((regle) => `<li${attributPour(regle.pour)}>${avecPistes(regle.texte, identifiants, `decisions.json, règle ${regle.id}`)}</li>`)
-    .join('\n    ');
+  const lignes = (genre: releves.Regle['genre']): string =>
+    decisions.regles
+      .filter((regle) => regle.genre === genre)
+      .map((regle) => `<li>${avecTermes(avecPistes(regle.texte, identifiants, `decisions.json, règle ${regle.id}`))}</li>`)
+      .join('\n    ');
+  rendu['lignes-decidees'] = lignes('tableau');
+  rendu['lignes-regles'] = lignes('liste');
   rendu['lignes-transverses'] = decisions.regles
     .filter((regle) => regle.genre === 'transverse')
-    .map((regle) => `<tr data-decision="${regle.id}"${attributPour(regle.pour)}><td>${avecCode(regle.titre ?? regle.id)}</td><td data-l="Fait">${avecCode(regle.texte)}</td><td data-l="Pistes">${lienDePistes(regle.pistes)}</td></tr>`)
+    .map((regle) => `<tr data-decision="${regle.id}"><td>${avecCode(regle.titre ?? regle.id)}</td><td data-l="Fait">${avecCode(regle.texte)}</td><td data-l="Pistes">${lienDePistes(regle.pistes)}</td></tr>`)
     .join('\n    ');
   return rendu;
 }
@@ -239,7 +247,6 @@ async function valeurs(): Promise<Record<string, string>> {
   const rapport = releves.rapportDuButton();
   const recette = releves.contratsDeRecette();
   const tailles = releves.registreDesTailles();
-  const terracota = couleurs.palettes[0];
   const listeDePistes = releves.pistes();
   const identifiantsDePistes = new Set(listeDePistes.map((piste) => piste.id));
   const decisions = releves.decisions(identifiantsDePistes);
@@ -248,8 +255,6 @@ async function valeurs(): Promise<Record<string, string>> {
   const registres = lignesDesRegistres();
   const fautes = releves.longueursDeFaute();
   const accessibilite = releves.seuilsDAccessibilite();
-  const cran700 = couleurs.crans.indexOf(700);
-  if (cran700 === -1) throw new Error('Le cran 700 a disparu des crans de la recette de démonstration');
 
   const liste: Record<string, string> = {
     // Versions
@@ -276,9 +281,7 @@ async function valeurs(): Promise<Record<string, string>> {
     'proprietes:nombre': String(releves.nombreDeProprietesDeComposant()),
     'lignes-garanties': lignesDesGaranties(),
     'lignes-familles': lignesDesFamilles(),
-    // Les couleurs de Terracota et les fonds
-    'terracota:700': terracota.intensites.soft['light-normal'][cran700],
-    'terracota:700:dark': terracota.intensites.soft['dark-normal'][cran700],
+    // Les fonds de page
     'fond:light': couleurs.fonds.light,
     'fond:dark': couleurs.fonds.dark,
     // Les registres du référentiel
@@ -301,7 +304,8 @@ async function valeurs(): Promise<Record<string, string>> {
     'palettes:nuances': palettes.nuances,
     'composant:sections': String(composant.nombre),
     'composant:sections-liste': composant.liste,
-    // Les règles décidées
+    // Les pistes et les règles décidées
+    'pistes:nombre': String(listeDePistes.length),
     ...blocsDesRegles(decisions, identifiantsDePistes),
     // Les codes de constat
     'codes:nombre': String(codes.length),
@@ -393,7 +397,7 @@ async function couvertureDeLaPage(page: string, employes: ReadonlySet<string>): 
     };
   }
   const entrees = (await releves.pointsDEntree()).map(({ entree }) => entree);
-  univers["points d'entrée du kit"] = { attendus: entrees, montres: entrees.filter((entree) => employes.has(`export:${entree}`)), aCompleter: "la section « Les points d'entrée » de docs/inventaire/gabarit.html, ou docs/inventaire/couverture.ts" };
+  univers["points d'entrée du kit"] = { attendus: entrees, montres: entrees.filter((entree) => employes.has(`export:${entree}`)), aCompleter: "l'annexe « Les points d'entrée du kit » de docs/inventaire/gabarit.html, ou docs/inventaire/couverture.ts" };
   const paquets = releves.dossiersDe('packages');
   univers.paquets = { attendus: paquets, montres: paquets.filter((dossier) => employes.has(`tests:${dossier}`)), aCompleter: 'PAQUETS dans docs/inventaire/releves.ts et le gabarit, ou docs/inventaire/couverture.ts' };
   const dossiersDeDocs = releves.dossiersDe('docs');
@@ -401,9 +405,9 @@ async function couvertureDeLaPage(page: string, employes: ReadonlySet<string>): 
   const recherches = releves.dossiersDe('docs/notes/Recherches');
   univers['dossiers de docs/notes/Recherches/'] = { attendus: recherches, montres: recherches.filter((dossier) => page.includes(dossier)), aCompleter: "la section « Autres sources » de docs/inventaire/gabarit.html, ou docs/inventaire/couverture.ts" };
   const skills = releves.dossiersDeSkills();
-  univers.skills = { attendus: skills, montres: skills.filter((nom) => page.includes(`<code>${nom}</code>`)), aCompleter: "l'annexe « Voir l'outillage des agents » (releves.ts, outillage), ou docs/inventaire/couverture.ts" };
+  univers.skills = { attendus: skills, montres: skills.filter((nom) => page.includes(`<code>${nom}</code>`)), aCompleter: "l'annexe « Outillage des agents du dépôt » (releves.ts, outillage), ou docs/inventaire/couverture.ts" };
   const commandes = (await releves.commandes()).map((commande) => commande.nom);
-  univers['commandes de la CLI'] = { attendus: commandes, montres: commandes.filter((nom) => page.includes(`<code>ucm ${nom}</code>`)), aCompleter: 'COMMANDES dans packages/cli/src/ucm.mjs et la section des outils de docs/inventaire/gabarit.html, ou docs/inventaire/couverture.ts' };
+  univers['commandes de la CLI'] = { attendus: commandes, montres: commandes.filter((nom) => page.includes(`<code>ucm ${nom}</code>`)), aCompleter: 'COMMANDES dans packages/cli/src/ucm.mjs et la carte de la CLI dans docs/inventaire/gabarit.html, ou docs/inventaire/couverture.ts' };
   const codes = releves.codesDesConstats().map(([code]) => code);
   univers['codes de constat'] = { attendus: codes, montres: codes.filter((code) => nomme(page, code)), aCompleter: 'CODES_DES_CONSTATS dans packages/kit/src/controles/codes.ts, ou docs/inventaire/couverture.ts' };
   return { univers };

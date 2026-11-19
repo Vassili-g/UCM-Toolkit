@@ -14,180 +14,340 @@
   <div class="titre">Inventaire UCM Toolkit</div>
   <div class="date">Généré depuis le code du dépôt</div>
   <ol>
-    <li><a href="#vue">Le trajet d'un composant</a></li>
-    <li><a href="#modele">Le modèle</a></li>
-    <li><a href="#figma">Ce que UCM attend dans Figma</a></li>
-    <li><a href="#contrat">Le contrat et les tokens</a></li>
+    <li><a href="#concept">Le concept UCM</a></li>
     <li><a href="#outils">Les outils</a></li>
-    <li><a href="#controles">Ce qui est contrôlé</a></li>
+    <li><a href="#parcours">Le parcours d'un composant</a></li>
+    <li><a href="#architecture">Les variables Figma</a></li>
+    <li><a href="#contrat">Le contrat</a></li>
+    <li><a href="#controles">Ce qui est vérifié</a></li>
     <li><a href="#suite">La suite</a></li>
     <li><a href="#developpeurs">Expliquer UCM</a></li>
     <li><a href="#annexes">Annexes</a></li>
   </ol>
-  <div class="filtre-pour" role="group" aria-labelledby="pour-titre">
-    <span class="pour-titre" id="pour-titre">Afficher pour</span>
-    <button type="button" class="filtre" id="pour-tout" hidden>Tout montrer</button>
-    <span class="annonce" id="annonce-pour" aria-live="polite"></span>
-    <span class="legende-pour">Designer : ce qui se passe dans Figma. Développeur : ce qui arrive dans le repository de l'application. Toolkit : ce qui reste dans UCM-Toolkit.</span>
-  </div>
   <div class="outils-nav">
     <button class="bouton" id="tout-deplier">Tout déplier</button>
   </div>
 </nav>
 
 <main>
-<!-- 1. Le trajet d'un composant -->
-<section class="partie" id="vue" data-pour-garde>
+<!-- 1. Le concept UCM : le problème général, la réponse, les deux promesses, le flux, les principes, ce qui manque. -->
+<section class="partie" id="concept">
   <h1>Ce que contient UCM Toolkit</h1>
   <p class="versions doux">Versions publiées : kit {{version:kit}}, CLI {{version:cli}}, adaptateur {{version:adaptateur}}, <a class="terme" href="#g-contrat14" title="Le numéro du format du contrat. ucm check accepte les contrats {{contrats:lus}}.">contrat {{contrat}}</a>.</p>
-  <h2><span class="num">1</span>Le trajet d'un composant</h2>
+  <h2><span class="num">1</span>Le concept UCM</h2>
   <p class="defini">Défini dans <code>CONCEPT.md</code> et <code>ROADMAP.md</code>.</p>
-  <p class="chapeau">Un designer ajoute une variante <code>danger</code> à son bouton. Plus tard, personne ne sait si le code la rend ni si son token existe encore. UCM publie pour chaque composant Figma un <a class="terme" href="#g-contrat" title="Le fichier &lt;Id&gt;.contract.json que l'Exporter écrit pour un composant Figma, avec ses props, ses variants et le token de chaque couleur et dimension.">contrat</a> JSON, rangé à côté de son code. Le <a class="terme" href="#g-ci" title="Les contrôles qui tournent à chaque demande de fusion, sur GitHub Actions ou GitLab CI. Ici, ucm check.">CI</a> de l'application compare le contrat, les <a class="terme" href="#g-token" title="Une variable Figma publiée sous son chemin, comme theme/primary/solid/default.">tokens</a> et le code à chaque demande de fusion. Figma fait foi pour le visuel. Le code fait foi pour le comportement et l'accessibilité.</p>
+  <p class="chapeau">Dans un design system, un composant existe à plusieurs endroits : la maquette Figma, le code, les <a class="terme" href="#g-token" title="Une variable Figma publiée sous son chemin, comme theme/primary/solid/default.">tokens</a> et la documentation. Ces versions divergent quand aucun outil ne les compare. Une variante dessinée manque au code, un token cité a disparu, et l'équipe ne sait plus quelle version fait foi.</p>
+  <p class="intro">UCM publie pour chaque composant Figma un <a class="terme" href="#g-contrat" title="Le fichier &lt;Id&gt;.contract.json que l'Exporter écrit pour un composant Figma, avec ses props, ses variants et le token de chaque couleur et dimension.">contrat</a> JSON, rangé à côté de son code dans le <a class="terme" href="#g-depot" title="Dans cette page, le dépôt désigne UCM-Toolkit et le repository désigne celui de l'application.">repository</a> de l'application. Le contrat cite chaque couleur et chaque dimension par le nom de son token, et <code>tokens.json</code> donne la valeur de chaque token. À chaque demande de fusion, le <a class="terme" href="#g-ci" title="Les contrôles qui tournent à chaque demande de fusion, sur GitHub Actions ou GitLab CI. Ici, ucm check.">CI</a> compare le contrat, les tokens et le code.</p>
 
-  <div class="deux colonnes-etat">
-    <div class="carte"><h4><span class="etat livre">Fonctionne</span></h4>
-      <ul class="liste">
-        <li>Palettes et Architect préparent les couleurs, les noms et les composants dans Figma.</li>
-        <li>L'Exporter publie le contrat et <code>tokens.json</code> dans le <a class="terme" href="#g-depot" title="Dans cette page, le dépôt désigne UCM-Toolkit et le repository désigne celui de l'application.">repository</a> de l'application, par <a class="terme" href="#g-pr" title="Le nom GitHub et le nom GitLab d'une demande de fusion d'une branche dans main.">pull request</a>.</li>
-        <li><code>ucm check</code> refuse un contrat illisible.</li></ul></div>
-    <div class="carte"><h4><span class="etat manque">Manque</span></h4>
-      <ul class="liste">
-        <li>Aucun outil ne compare le rendu d'un composant à son contrat. Les <a class="terme" href="#g-piste" title="Une piste est un chantier proposé. Le rang est son ordre de priorité, de 0 à 5.">pistes</a> <a href="#piste-P9">P9</a>, <a href="#piste-P10">P10</a> et <a href="#piste-P20">P20</a> comblent ce trou.</li>
-        <li>Un écart du code avertit sans bloquer la fusion.</li></ul></div>
+  <ol class="flux" aria-label="Le flux d'un composant, de Figma au CI">
+    <li><b>Figma</b><span>Le designer dessine le composant et prépare ses variables avec les plugins UCM.</span></li>
+    <li><b>Contrat et tokens</b><span>Un plugin publie <code>&lt;Id&gt;.contract.json</code> et <code>tokens.json</code> par <a class="terme" href="#g-pr" title="Le nom GitHub et le nom GitLab d'une demande de fusion d'une branche dans main.">pull request</a>.</span></li>
+    <li><b>Repository</b><span>Le contrat est rangé à côté du code du composant.</span></li>
+    <li><b>CI</b><span><code>ucm check</code> compare le contrat, les tokens et le code à chaque demande de fusion.</span></li>
+  </ol>
+
+  <h3>Les deux promesses</h3>
+  <div class="grille deux-cartes">
+    <div class="carte"><h4>Robustesse</h4><p>Un écart entre Figma et le code est détecté avant la fusion, avec un diagnostic qui dit quoi corriger.</p></div>
+    <div class="carte"><h4>Confiance</h4><p>Un développeur ou un agent emploie un composant sans inventer son API visuelle, car le contrat donne ses props, ses variantes et ses tokens.</p></div>
   </div>
+  <p class="doux">Chaque <a class="terme" href="#g-piste" title="Une piste est un chantier proposé. Le rang est son ordre de priorité, de 0 à 5.">piste</a> de la feuille de route sert l'une des deux promesses.</p>
 
-  <h3>Le trajet d'un Button</h3>
-  <p class="defini">Défini dans <code>{{bouton:chemin}}</code>.</p>
-  <!-- V1. Le trajet : la variable CSS vient de tokenCssVariable (kit) et les rampes de donneesDesPalettes (releves.ts), par DONNEES. Les stations viennent de TRAJET dans le script de la page. -->
-  <div id="trajet-button" class="trajet"></div>
-
-  <div class="ruban-zones" role="group" aria-label="La chaîne de Figma au code">
-    <div class="zone"><span class="zone-titre">Préparer dans Figma</span>
-      <div class="ruban"><span>Couleurs</span><span class="main">À la main<small>brands, utility, layout, typography</small></span><span>Noms</span><span>Composant</span></div></div>
-    <div class="zone"><span class="zone-titre">Publier</span>
-      <div class="ruban"><span>Export</span></div></div>
-    <div class="zone"><span class="zone-titre">Contrôler et coder</span>
-      <div class="ruban"><span>CI</span><span>Code</span><span class="trou">Rendu ✕</span></div></div>
-  </div>
-  <p class="intro">Le contrat cite chaque couleur et dimension par le nom de son token. <code>tokens.json</code> donne la valeur de chaque token.</p>
-
-  <details class="pli"><summary>Ce que chaque étape permet et ne permet pas <span class="doux">outil par outil</span></summary><div class="contenu">
-  <div class="defile"><table>
-    <tr><th>Étape</th><th>Outil</th><th>Permet</th><th>Ne permet pas</th></tr>
-    <tr data-pour="designer"><td class="etape">Couleurs<small>Figma</small></td><td>UCM Palettes</td><td>Calculer des palettes Light et Dark de {{crans:nombre}} <a class="terme" href="#g-cran" title="Une des {{crans:nombre}} nuances d'une palette, numérotées de 50, la plus proche du fond, à 950.">crans</a>, en <a class="terme" href="#g-intensite" title="Le réglage de saturation d'une palette, Soft ou Vivid. Vivid prend {{palettes:part-vivid}} de la saturation possible, Soft {{palettes:part-soft}}. Une palette grise n'a qu'une intensité, dite unique.">intensité</a> Soft ou Vivid, qui tiennent les {{garanties:nombre}} <a class="terme" href="#g-garantie" title="Un contraste minimal entre deux variables du thème. G1 : le texte d'un bouton plein atteint 4,5:1 sur son fond.">garanties</a> de contraste. Les écrire en <a class="terme" href="#g-primitive" title="Une variable qui porte une couleur ou une taille brute. Les autres collections la visent par alias.">variables primitives</a>.</td><td>Juger le contraste en <a class="terme" href="#g-wcag" title="WCAG 2 est la norme de contraste en vigueur, avec 4,5:1 pour un texte. APCA est la méthode prévue pour WCAG 3.">APCA</a>. Écrire hors de <code>primitives</code>.</td></tr>
-    <tr data-pour="designer"><td class="etape">À la main<small>Figma</small></td><td>aucun</td><td>Poser <code>brands</code>, <code>utility</code>, <code>layout</code> et <code>typography</code> dans Figma.</td><td>Aucun outil ne les écrit ni ne les modifie.</td></tr>
-    <tr data-pour="designer"><td class="etape">Noms<small>Figma</small></td><td>UCM Architect, <a class="terme" href="#g-vues" title="Les deux vues d'Architect. La vue Tokens parcourt les variables du fichier. La vue Composant analyse un jeu de variants.">vue Tokens</a></td><td>Renommer toutes les variables selon une convention choisie. Vérifier et compléter les {{theme:variables}} variables du thème, leurs crans, leurs <a class="terme" href="#g-alias" title="Une variable qui vise une autre variable au lieu de porter une valeur. Un alias de mode vise une variable différente en Light et en Dark.">alias</a> de <a class="terme" href="#g-mode" title="Un mode est une colonne de valeurs d'une collection Figma, par exemple Light et Dark. Le thème est la collection theme, qui porte les {{theme:variables}} variables d'usage.">mode</a> et leurs <a class="terme" href="#g-scope" title="Ce qui limite les champs où le designer peut lier une variable : remplissage, contour, rayon.">scopes</a>.</td><td>Écrire dans une variable de bibliothèque.</td></tr>
-    <tr data-pour="designer"><td class="etape">Composant<small>Figma</small></td><td>UCM Architect, vue Composant</td><td>Analyser les <a class="terme" href="#g-liaison" title="Ce qui relie une propriété d'un calque à une variable.">liaisons</a>, les tailles, le texte, les icônes, les contrastes, les cibles et les <a class="terme" href="#g-regles" title="Le bloc .componentRules posé à côté du composant dans Figma pour dire quand l'employer. L'Exporter les publie dans intent.">règles d'usage</a>. Proposer les seules corrections exactes.</td><td>Lire plus d'un composant ou plus de 2 000 calques à la fois.</td></tr>
-    <tr data-pour="designer developpeur"><td class="etape">Export<small>Figma et forge</small></td><td>UCM Contract Exporter</td><td>Publier un contrat {{contrat}} par composant et un <code>tokens.json</code> <a class="terme" href="#g-dtcg" title="Design Tokens Community Group, auteur du format standard de tokens.json.">DTCG</a> sur une <a class="terme" href="#g-forge" title="Le service qui héberge le repository et ses demandes de fusion, GitHub ou GitLab.">forge</a>, par pull request GitHub ou merge request gitlab.com.</td><td>Exporter plusieurs composants d'un coup. Publier vers un GitLab auto-hébergé. Prouver le {{contrat}} : les <a class="terme" href="#g-recette-contrats" title="Les {{recette-contrats:nombre}} contrats réels Button, Alert, TileLink et StressTest, exportés depuis Figma, que les tests du dépôt font lire par les lecteurs.">contrats de recette</a> sont au nombre de {{recette-contrats:nombre}}, tous en {{recette-contrats:version}}.</td></tr>
-    <tr data-pour="developpeur"><td class="etape">CI<small>repository</small></td><td><code>ucm check</code></td><td>Bloquer un contrat illisible, hors fenêtre de version, à composition cassée, dont un token de typographie a un type faux, ou un fichier de tokens absent.</td><td>Bloquer un écart avec le code : il avertit (<a href="#piste-P19">P19</a>). Contrôler l'architecture des tokens (<a href="#piste-P12">P12</a>). Empêcher la fusion sans <a class="terme" href="#g-protection" title="Le réglage de la forge qui interdit de fusionner une demande dont le CI est rouge. Sans lui, un échec reste un avis.">protection de branche</a> (<a href="#piste-P17">P17</a>).</td></tr>
-    <tr data-pour="developpeur"><td class="etape">Code<small>repository</small></td><td>CLI, adaptateur TypeScript</td><td>Produire la feuille CSS des tokens et de leurs modes, les types des variantes et un guide du contrat pour un agent. Contrôler la <a class="terme" href="#g-parite" title="La parité compare les props du contrat à celles du composant TypeScript.">parité</a> des props du code.</td><td>Générer le code : un agent l'écrit avec la skill <code>ucm-implementer</code>. Lire un autre langage que TypeScript.</td></tr>
-    <tr class="trou" data-pour="developpeur"><td class="etape">Rendu<small>navigateur</small></td><td>aucun</td><td>Rien.</td><td>Comparer le rendu au contrat ou à Figma. Aucun linter, aucune story, aucun Storybook n'existe.</td></tr>
-  </table></div>
-  </div></details>
-</section>
-
-<!-- 2. Le modèle -->
-<section class="partie" id="modele">
-  <h2><span class="num">2</span>Le modèle</h2>
-  <p class="defini">Défini dans <code>CONCEPT.md</code> §2 à §7.</p>
-  <p class="chapeau">UCM tient deux promesses. Robustesse (R) : un écart entre Figma et le code est détecté avant la fusion. Confiance (C) : un développeur ou un agent emploie un composant sans inventer son API visuelle. Chaque piste de la feuille de route sert l'une des deux.</p>
-  <div class="defile"><table>
-    <tr><th>Principe</th><th>Ce qu'il garantit</th></tr>
-    <tr data-pour="developpeur"><td><b>Composant unifié</b></td><td><code>Button.contract.json</code> et <code>Button.tsx</code> vivent dans le même dossier. Les tokens restent dans un fichier DTCG commun. Le CI contrôle leurs relations.</td></tr>
-    <tr><td colspan="2"><b>Un propriétaire par information</b></td></tr>
-    <tr data-pour="designer"><td>Figma</td><td>Fait foi pour le visuel : tokens, variantes, états, dimensions, icônes, règles d'usage.</td></tr>
-    <tr data-pour="developpeur"><td>Le code</td><td>Fait foi pour le comportement, les événements et l'accessibilité.</td></tr>
-    <tr data-pour="developpeur"><td>Le CI</td><td>Juge si le contrat, les tokens et le code s'accordent. Il bloque aujourd'hui un contrat illisible et avertit d'un écart du code.</td></tr>
-    <tr data-pour="designer developpeur"><td>Le contenu <a class="terme" href="#g-normatif" title="Un champ normatif oblige le code, et un contrôle peut le lui opposer. Un champ indicatif montre seulement le contenu de la maquette.">indicatif</a></td><td><code>samples</code> montre le contenu de la maquette. Aucun contrôle ne le compare au code.</td></tr>
-    <tr data-pour="designer developpeur"><td><b><a class="terme" href="#g-full" title="Un outil full UCM exige l'architecture de référence : {{collections:nombre}} collections, {{crans:nombre}} crans, {{theme:variables}} variables de thème. Un outil agnostique accepte toute structure.">Full UCM</a>, Exporter agnostique en option</b></td><td>Les outils suivent l'architecture de référence du kit. Seul l'Exporter accepte, en option, toute structure de variables. UCM vise un design system neuf qui suit ses règles.<span class="nota">CONCEPT.md fait encore de l'agnostique le défaut de chaque outil. <code>ucm check</code> et la navigation d'Architect acceptent aujourd'hui toute structure (<a href="#piste-P5">P5</a>, <a href="#piste-P12">P12</a>).</span></td></tr>
-    <tr data-pour="designer developpeur"><td>Tokens en références</td><td>Le contrat cite <span class="chemin">{components.button.color.primary.contained.default.background}</span>, jamais la valeur. Le même chemin va de Figma au code.</td></tr>
-    <tr data-pour="developpeur"><td>Noms traçables</td><td>Le nom Figma lisible reste dans le contrat, à côté de l'identifiant de code.</td></tr>
-    <tr data-pour="developpeur"><td>Composition sans copie</td><td>Un composant composé cite ses dépendances sans recopier leurs tokens ni leur structure.</td></tr>
-    <tr data-pour="developpeur"><td>Contrat avant le code</td><td>Le contrat se fusionne avant l'implémentation. La parité s'applique dès que le code existe.</td></tr>
-    <tr data-pour="designer"><td>Divergences visibles</td><td>Une information ambiguë produit un <a class="terme" href="#g-diagnostic" title="Un message de l'Exporter rangé dans le contrat, sous meta.diagnostics. C'est toujours un avertissement.">diagnostic</a>. Seules les préconditions d'un contrat cohérent bloquent l'export.</td></tr>
-    <tr data-pour="developpeur"><td>Contrat autosuffisant</td><td>Le contrat se lit sans Figma. Une <a class="terme" href="#g-perte" title="Quand l'Exporter ne sait pas décrire une propriété Figma dans le format, il l'écrit dans meta.diagnostics et passe meta.coverage.portable à partial.">perte de projection</a> est écrite dans <code>meta.diagnostics</code> et passe <code>meta.coverage.portable</code> à <code>partial</code>.</td></tr>
-  </table></div>
-
-  <h3>Questions de fond</h3>
-  <p class="defini">Défini dans <code>CONCEPT.md</code>.</p>
-  <dl class="def questions">
-    <dt data-pour="developpeur">Pourquoi un contrat JSON plutôt que l'API Figma ou Code Connect ?</dt><dd>Le CI lit le contrat sans accès à Figma, et le contrat est versionné à côté du code. Code Connect relie un composant Figma à son code sans décrire les obligations visuelles. Les deux se complètent.</dd>
-    <dt data-pour="developpeur">Le code lit-il le contrat à l'exécution ?</dt><dd>Non. Le développeur écrit le composant contre le contrat. Le build en dérive des types et des variables CSS.</dd>
+  <h3>Les principes</h3>
+  <dl class="def principes">
+    <dt>Une information, un propriétaire</dt><dd>Figma fait foi pour le visuel : tokens, variantes, états, dimensions, icônes et règles d'usage. Le code fait foi pour le comportement, les événements et l'accessibilité. Le CI juge si les deux s'accordent.</dd>
+    <dt>Le composant unifié</dt><dd>Le contrat et le code du composant vivent dans le même dossier. Les tokens restent dans un fichier <a class="terme" href="#g-dtcg" title="Design Tokens Community Group, auteur du format standard de tokens.json.">DTCG</a> commun.</dd>
+    <dt>Le code écrit contre le contrat</dt><dd>Le développeur écrit le composant à partir du contrat. Le build en dérive des types et des variables CSS, et le code ne lit jamais le contrat à l'exécution.</dd>
+    <dt><a class="terme" href="#g-full" title="Un outil full UCM exige l'architecture de référence : {{collections:nombre}} collections, {{crans:nombre}} crans, {{theme:variables}} variables de thème. Un outil agnostique accepte toute structure.">Full UCM</a></dt><dd>Les outils suivent l'architecture de référence du kit, et seul le plugin d'export accepte en option toute structure de variables. UCM vise un design system neuf qui suit ses règles.<span class="nota">CONCEPT.md fait encore de l'agnostique le défaut de chaque outil (<a href="#piste-P5">P5</a>). <code>ucm check</code> accepte aujourd'hui toute structure (<a href="#piste-P12">P12</a>).</span></dd>
   </dl>
+
+  <h3>Ce qu'UCM ne fait pas encore</h3>
+  <ul class="liste manques">
+    <li>Aucun outil ne compare le rendu d'un composant à son contrat ou à Figma (<a href="#piste-P9">P9</a>, <a href="#piste-P10">P10</a>, <a href="#piste-P20">P20</a>).</li>
+    <li>Un écart entre le code et le contrat avertit sans bloquer la fusion (<a href="#piste-P19">P19</a>).</li>
+    <li>Une demande rouge reste fusionnable, car le plan GitHub actuel n'offre pas la <a class="terme" href="#g-protection" title="Le réglage de la forge qui interdit de fusionner une demande dont le CI est rouge. Sans lui, un échec reste un avis.">protection de branche</a> (<a href="#piste-P17">P17</a>).</li>
+    <li>Aucun contrat réel n'est encore au format {{contrat}}. Les {{recette-contrats:nombre}} <a class="terme" href="#g-recette-contrats" title="Les {{recette-contrats:nombre}} contrats réels Button, Alert, TileLink et StressTest, exportés depuis Figma, que les tests du dépôt font lire par les lecteurs.">contrats de recette</a> sont en {{recette-contrats:version}} (<a href="#piste-P1">P1</a>).</li>
+    <li>La version du plugin d'export publiée sur la Figma Community est ancienne et écrit <code>tokens.json</code> au format 1 (<a href="#piste-P14">P14</a>).</li>
+  </ul>
 </section>
 
-<!-- 3. Ce que UCM attend dans Figma -->
-<section class="partie" id="figma">
-  <h2><span class="num">3</span>Ce que UCM attend dans Figma</h2>
-  <p class="defini">Défini dans <code>packages/kit/src/referentiel/</code> et <code>packages/kit/src/emplois/</code>.</p>
-  <p class="intro">Les plugins importent ces définitions. Un registre extensible accepte des termes nouveaux, un registre figé non.</p>
+<!-- 2. Les outils : les cinq cartes dans l'ordre du flux, puis les paquets sans carte. Logos : logosDesOutils (releves.ts). -->
+<section class="partie" id="outils">
+  <h2><span class="num">2</span>Les outils</h2>
+  <p class="defini">Défini dans le <code>README.md</code> et le <code>SPEC.md</code> de chaque paquet, et <code>packages/adapter-typescript/src/parite.mjs</code> pour l'adaptateur.</p>
+  <p class="intro">Cinq outils tiennent ce flux. Le designer ouvre les trois plugins Figma dans l'ordre des cartes. Le développeur installe les deux paquets npm dans le repository de l'application.</p>
 
-  <h3 data-pour="designer developpeur">Les {{collections:nombre}} collections</h3>
+  <div class="produits">
+  <div class="fiche" id="outil-palettes">
+    <div class="tete">{{logo:palettes}}<div class="nom"><b>UCM Palettes</b><span class="etat livre">livré</span><span class="canal">Plugin Figma, privé</span></div></div>
+    <p class="role">Gère toutes les couleurs d'un design system UCM et garantit leur fiabilité. Il calcule chaque palette en Light et en Dark, vérifie ses contrastes, repère les palettes trop proches et écrit les couleurs en variables dans Figma.</p>
+    <dl class="faits">
+      <dt>Lit</dt><dd>Une couleur de référence par palette</dd>
+      <dt>Écrit</dt><dd>Les <a class="terme" href="#g-primitive" title="Une variable qui porte une couleur ou une taille brute. Les autres collections la visent par alias.">variables primitives</a> <span class="chemin"><span class="c">primitives</span>/color/{palette}/{soft|vivid}/{light|dark}/<span class="v">{cran}</span></span>, les <a class="terme" href="#g-planche" title="Un cadre Figma où Palettes dessine les nuances d'une palette.">planches</a> et la <a class="terme" href="#g-recette-palette" title="L'ensemble des réglages d'une palette, que Palettes enregistre dans le fichier Figma.">recette de palette</a> dans le fichier</dd>
+      <dt>N'écrit jamais</dt><dd><code>theme</code>, <code>brands</code>, <code>utility</code>, les alias, les bibliothèques</dd>
+    </dl>
+    <details><summary>Onglets et écritures</summary>
+      <div class="defile"><table>
+        <tr><th>Onglet</th><th>Le designer</th><th>Écrit</th></tr>
+        <tr><td>Création</td><td>Nomme la palette, choisit la référence, {{palettes:nuances}} nuances, une intensité ou Soft et Vivid, règle « Réglage global » et « Color shift »</td><td>recette</td></tr>
+        <tr><td>Vérification</td><td>Lit le <a class="terme" href="#g-verdict" title="Le mot a trois sens. Dans Palettes, le verdict dit si la palette tient les {{garanties:nombre}} garanties. Dans l'Exporter, le « Contrôle avant publication » prend sa place. Dans ucm check, le verdict dit si la demande peut fusionner.">verdict</a> et les {{garanties:nombre}} garanties sur 6 fonds</td><td>rien</td></tr>
+        <tr><td>Comparaison</td><td>Repère les palettes trop proches, compare en gris, lit la roue des teintes, simule trois visions</td><td>recette</td></tr>
+        <tr><td>Gestion</td><td>Relie la recette au fichier, reprend les palettes présentes ou de bibliothèque, synchronise</td><td>variables, planches</td></tr>
+        <tr><td>Configuration (panneau)</td><td>Règle les fonds de page, le texte des boutons, les courbes, les seuils, la langue</td><td>recette</td></tr>
+      </table></div>
+      <p>44 variables par palette à deux intensités quand Light et Dark sont dans le nom, 22 quand Light et Dark sont des modes Figma. Une palette existante se reprend dès 5 variables dont le dernier segment est un nombre. Palettes pose une marque <code>nommage</code> que lit Architect. Le README annonce 3 onglets, le code en a 4.</p>
+    </details>
+  </div>
+
+  <div class="fiche" id="outil-architect">
+    <div class="tete">{{logo:architect}}<div class="nom"><b>UCM Architect</b><span class="etat livre">livré</span><span class="canal">Plugin Figma, privé</span></div></div>
+    <p class="role">Explore, renomme et corrige les variables, analyse un composant.</p>
+    <dl class="faits">
+      <dt>Lit</dt><dd>Les variables d'un fichier déclaré UCM, un composant</dd>
+      <dt>Écrit</dt><dd>Les noms des variables, la structure du thème, le composant</dd>
+      <dt>N'écrit jamais</dt><dd>Une variable de bibliothèque</dd>
+    </dl>
+    <details><summary>Vues et règles de conduite</summary>
+      <div class="defile"><table>
+        <tr><th>Vue</th><th class="n">Fenêtre</th><th>Le designer</th></tr>
+        <tr><td>Tokens</td><td class="n">1360 × 800</td><td>Parcourt les collections (<code>terme:</code>, <code>vise:</code>, chaîne d'alias, « Utilisée par »). Lit les constats en 10 catégories : Noms, Variables manquantes, Crans, Alias, Modes, Valeurs, Couches, Types, Rangement, Scopes. Renomme avec Nomenclature.</td></tr>
+        <tr><td>Composant</td><td class="n">500 × 760</td><td>Analyse un jeu de variants en {{composant:sections}} sections : {{composant:sections-liste}}. Prépare les tokens du composant en 5 étapes. L'accessibilité juge une cible à partir de {{accessibilite:cible}} px ({{accessibilite:tactile}} px au toucher) et un texte à partir de {{accessibilite:texte}} px.</td></tr>
+      </table></div>
+      <ul class="liste">
+        <li>La vue Tokens parcourt les variables de toute architecture, même hors UCM.</li>
+        <li>Une correction n'est proposée que si une règle écrite donne un seul candidat. Sinon, une question sans réponse cochée.</li>
+        <li>Les corrections arrivent décochées. « Appliquer tout » forme un seul lot : Ctrl+Z défait le composant, l'Historique les variables.</li>
+        <li>Un layer se lie aux tokens de son propre composant, jamais directement à <code>layout</code> ou <code>theme</code>.</li>
+        <li>Sur un fichier de 2 415 variables, l'analyse prend 2,6 s et Actualiser 2,3 s.</li></ul>
+    </details>
+  </div>
+
+  <div class="fiche" id="outil-exporter">
+    <div class="tete">{{logo:exporter}}<div class="nom"><b>UCM Contract Exporter</b><span class="etat livre">livré</span><span class="etat partiel">version Community ancienne</span><span class="canal">Plugin Figma, Figma Community</span></div></div>
+    <p class="role">Publie le contrat d'un composant et <code>tokens.json</code> dans le repository de l'application.</p>
+    <dl class="faits">
+      <dt>Lit</dt><dd>Le composant sélectionné. Sans sélection, les variables.</dd>
+      <dt>Écrit</dt><dd><code>&lt;Id&gt;.contract.json</code> ou <code>tokens.json</code>, sur une branche avec une demande de fusion par fichier, ou en téléchargement. Dans Figma, l'instance <code>.componentRules</code> seulement.</dd>
+      <dt>Réseau</dt><dd><code>api.github.com</code> et <code>gitlab.com</code> seulement</dd>
+    </dl>
+    <details><summary>Fonctions</summary>
+      <ul class="liste">
+        <li><b>Créer les règles d'usage</b> : pose une instance <code>.componentRules</code> avec un marqueur <code>[À compléter]</code> par propriété. Seul geste qui écrit dans Figma.</li>
+        <li><b>Contrôle avant publication</b>. Si <code>tokens.json</code> n'est pas encore sur la branche principale, l'Exporter demande de faire fusionner les tokens d'abord, car le CI refuserait le composant.</li>
+        <li>Un contenu identique n'ouvre pas de seconde demande.</li>
+        <li>Le moteur d'extraction vit dans le socle (<code>plugin-socle/src/composant/</code>).</li></ul>
+    </details>
+  </div>
+
+  <div class="fiche" id="outil-cli">
+    <div class="tete">{{logo:cli}}<div class="nom"><b>CLI</b><span class="etat livre">livré</span><span class="canal">Paquet npm <span class="mono">@ucm-kit/cli</span></span></div></div>
+    <p class="role">Contrôle les contrats à chaque demande de fusion. Ne demande pas de <code>package.json</code>.</p>
+    <dl class="faits">
+      <dt>Lit</dt><dd>Les contrats, <code>tokens.json</code>, le code par l'adaptateur</dd>
+      <dt>Écrit</dt><dd>La configuration du repository, le rapport, la feuille CSS, le guide d'un contrat</dd>
+    </dl>
+    <h4>Limites</h4>
+    <ul class="liste">
+      <li>Sans adaptateur, le rapport dit que le code n'a pas été lu. Sans <a class="terme" href="#g-lockfile" title="package-lock.json fige les versions installées. Le workflow n'installe les dépendances que s'il existe.">lockfile</a>, le workflow saute <code>npm ci</code> et l'adaptateur ne se charge pas, ce qui est le cas d'intencial-library, la bibliothèque de production (<a href="#piste-P18">P18</a>).</li>
+      <li>Le contraste ne sait pas si un texte est grand, d'où une information seulement.</li></ul>
+    <details><summary>Commandes</summary>
+      <div class="defile"><table>
+        <tr><th>Commande</th><th>Rôle</th></tr>
+        {{lignes-commandes}}
+      </table></div>
+    </details>
+  </div>
+
+  <div class="fiche" id="outil-adaptateur">
+    <div class="tete">{{logo:adaptateur}}<div class="nom"><b>Adaptateur TypeScript</b><span class="etat livre">livré</span><span class="canal">Paquet npm <span class="mono">@ucm-kit/adapter-typescript</span></span></div></div>
+    <p class="role">Compare les props du code à celles du contrat. Paquet séparé parce que <code>typescript</code> pèse 23 Mo.</p>
+    <dl class="faits">
+      <dt>Lit</dt><dd>Le code TypeScript et le contrat du composant</dd>
+      <dt>Écrit</dt><dd>Les types des variantes</dd>
+    </dl>
+    <h4>Ce qu'il ne voit pas</h4>
+    <ul class="liste">
+      <li>Une union plus large que le contrat.</li><li>Une dépendance rendue par <code>.map()</code>.</li><li>Le défaut d'un axe dans le code.</li><li>Les couleurs, tailles et polices rendues.</li><li>Une interface nommée autrement que <code>ButtonProps</code> donne le seul écart « interface absente », et aucune prop n'est comparée.</li></ul>
+    <details><summary>Huit écarts, tous en avertissement</summary>
+      <ul class="liste">
+        <li>Interface absente.</li><li>Fonction absente.</li><li>Prop du contrat absente du code.</li><li>Type incompatible, jugé pour les booléens et les enums.</li><li>Valeur du contrat que le code n'offre pas.</li><li>Booléen jamais lu.</li><li>Enum sans effet.</li><li>Nombre d'occurrences d'une dépendance faux dans le JSX.</li></ul>
+    </details>
+  </div>
+  </div>
+
+  <h3>Les paquets sans carte</h3>
+  <div class="defile"><table>
+    <tr><th>Paquet</th><th>Rôle</th><th>Distribution</th></tr>
+    <tr><td><b>Kit</b></td><td>Format, référentiel, contrôles, <a class="terme" href="#g-lecteur" title="Une fonction du kit qui lit un contrat ou tokens.json et rend un bilan. La CLI s'en sert dans le CI.">lecteurs</a>. Tous les outils en dépendent. {{entrees:Mot}} <a class="terme" href="#g-entree" title="Un chemin d'import du kit, comme @ucm-kit/core/lecteurs.">points d'entrée</a>, listés en annexe.</td><td>npm {{version:kit}}</td></tr>
+    <tr><td><b>Socle</b></td><td>Code partagé des plugins : build, langage visuel, galerie, moteur d'extraction</td><td>privé, en source</td></tr>
+    <tr><td><b>Moteur de couleur</b></td><td>Rampes, contrastes, garanties, harmonisation. Sans Figma ni DOM. Lu par Palettes, Architect, Hub.</td><td>privé</td></tr>
+    <tr><td><b>Hub UCM</b></td><td>Page locale des sorties du kit et du moteur, <span class="etat partiel">partiel</span>. Storybook la remplacera (<a href="#piste-P9">P9</a>).</td><td>privé</td></tr>
+  </table></div>
+</section>
+
+<!-- 3. Le parcours d'un composant : huit étapes en trois couloirs ; un clic sur une étape montre sa carte dessous (page.js). -->
+<section class="partie" id="parcours">
+  <h2><span class="num">3</span>Le parcours d'un composant</h2>
+  <p class="defini">Défini dans <code>CONCEPT.md</code> §5 et le <code>README.md</code> de chaque outil.</p>
+  <p class="intro">Le parcours suit un composant de ses premières couleurs dans Figma jusqu'à son code, en huit étapes. Chaque étape nomme qui agit, avec quel outil, et ce qu'elle produit. Cliquez sur une étape pour afficher son détail.</p>
+  <div class="parcours" role="tablist" aria-label="Les huit étapes du parcours">
+    <div class="couloir"><span class="couloir-titre">Le designer, dans Figma</span>
+      <div class="etapes">
+        <button type="button" class="etape" role="tab" id="onglet-etape-1" aria-selected="true" aria-controls="etape-1"><span class="n">1</span><b>Couleurs</b><small>UCM Palettes</small></button>
+        <button type="button" class="etape main" role="tab" id="onglet-etape-2" aria-selected="false" aria-controls="etape-2" tabindex="-1"><span class="n">2</span><b>Variables à la main</b><small>aucun outil</small></button>
+        <button type="button" class="etape" role="tab" id="onglet-etape-3" aria-selected="false" aria-controls="etape-3" tabindex="-1"><span class="n">3</span><b>Thème et noms</b><small>UCM Architect</small></button>
+        <button type="button" class="etape" role="tab" id="onglet-etape-4" aria-selected="false" aria-controls="etape-4" tabindex="-1"><span class="n">4</span><b>Composant</b><small>UCM Architect</small></button>
+      </div></div>
+    <div class="couloir"><span class="couloir-titre">La forge et le CI</span>
+      <div class="etapes">
+        <button type="button" class="etape" role="tab" id="onglet-etape-5" aria-selected="false" aria-controls="etape-5" tabindex="-1"><span class="n">5</span><b>Publication</b><small>Contract Exporter</small></button>
+        <button type="button" class="etape" role="tab" id="onglet-etape-6" aria-selected="false" aria-controls="etape-6" tabindex="-1"><span class="n">6</span><b>Contrôle</b><small><code>ucm check</code></small></button>
+      </div></div>
+    <div class="couloir"><span class="couloir-titre">Le développeur, dans le repository</span>
+      <div class="etapes">
+        <button type="button" class="etape" role="tab" id="onglet-etape-7" aria-selected="false" aria-controls="etape-7" tabindex="-1"><span class="n">7</span><b>Code</b><small>CLI et adaptateur</small></button>
+        <button type="button" class="etape trou" role="tab" id="onglet-etape-8" aria-selected="false" aria-controls="etape-8" tabindex="-1"><span class="n">8</span><b>Rendu</b><small>aucun contrôle</small></button>
+      </div></div>
+  </div>
+
+  <div class="etape-carte" id="etape-1" role="tabpanel" aria-labelledby="onglet-etape-1">
+    <h4><span class="n">1</span>Couleurs</h4>
+    <dl class="faits">
+      <dt>Qui</dt><dd>Le designer, dans Figma, avec <a href="#outil-palettes">UCM Palettes</a></dd>
+      <dt>Ce qui se passe</dt><dd>Palettes calcule pour chaque couleur de marque et chaque statut une palette Light et Dark de {{crans:nombre}} <a class="terme" href="#g-cran" title="Une des {{crans:nombre}} nuances d'une palette, numérotées de 50, la plus proche du fond, à 950.">crans</a>, en <a class="terme" href="#g-intensite" title="Le réglage de saturation d'une palette, Soft ou Vivid. Vivid prend {{palettes:part-vivid}} de la saturation possible, Soft {{palettes:part-soft}}. Une palette grise n'a qu'une intensité, dite unique.">intensité</a> Soft ou Vivid. Chaque palette tient les {{garanties:nombre}} <a class="terme" href="#g-garantie" title="Un contraste minimal entre deux variables du thème. G1 : le texte d'un bouton plein atteint 4,5:1 sur son fond.">garanties</a> de contraste.</dd>
+      <dt>Ce qui en sort</dt><dd>Les variables de couleur de la collection <code>primitives</code>, et une planche par palette.</dd>
+    </dl>
+  </div>
+  <div class="etape-carte" id="etape-2" role="tabpanel" aria-labelledby="onglet-etape-2" hidden>
+    <h4><span class="n">2</span>Variables à la main</h4>
+    <dl class="faits">
+      <dt>Qui</dt><dd>Le designer, dans Figma, sans outil</dd>
+      <dt>Ce qui se passe</dt><dd>Le designer pose les collections <code>brands</code>, <code>utility</code>, <code>layout</code> et <code>typography</code> : les palettes de marque, le neutre et les statuts, les tailles, les rayons et les réglages de texte. Aucun outil ne les écrit ni ne les modifie (<a href="#piste-P21">P21</a>).</dd>
+      <dt>Ce qui en sort</dt><dd>Des <a class="terme" href="#g-alias" title="Une variable qui vise une autre variable au lieu de porter une valeur. Un alias de mode vise une variable différente en Light et en Dark.">alias</a> vers les primitives, et les tailles et les textes du design system.</dd>
+    </dl>
+  </div>
+  <div class="etape-carte" id="etape-3" role="tabpanel" aria-labelledby="onglet-etape-3" hidden>
+    <h4><span class="n">3</span>Thème et noms</h4>
+    <dl class="faits">
+      <dt>Qui</dt><dd>Le designer, dans Figma, avec <a href="#outil-architect">UCM Architect</a>, <a class="terme" href="#g-vues" title="Les deux vues d'Architect. La vue Tokens parcourt les variables du fichier. La vue Composant analyse un jeu de variants.">vue Tokens</a></dd>
+      <dt>Ce qui se passe</dt><dd>Architect renomme les variables selon la convention choisie. Il vérifie et complète les {{theme:variables}} variables du thème, leurs crans, leurs alias de <a class="terme" href="#g-mode" title="Un mode est une colonne de valeurs d'une collection Figma, par exemple Light et Dark. Le thème est la collection theme, qui porte les {{theme:variables}} variables d'usage.">mode</a> et leurs <a class="terme" href="#g-scope" title="Ce qui limite les champs où le designer peut lier une variable : remplissage, contour, rayon.">scopes</a>.</dd>
+      <dt>Ce qui en sort</dt><dd>La collection <code>theme</code>, qui vise <code>brands</code> et <code>utility</code>, et des noms conformes à la grammaire.</dd>
+    </dl>
+  </div>
+  <div class="etape-carte" id="etape-4" role="tabpanel" aria-labelledby="onglet-etape-4" hidden>
+    <h4><span class="n">4</span>Composant</h4>
+    <dl class="faits">
+      <dt>Qui</dt><dd>Le designer, dans Figma, avec <a href="#outil-architect">UCM Architect</a>, vue Composant</dd>
+      <dt>Ce qui se passe</dt><dd>Architect analyse un jeu de <a class="terme" href="#g-axe" title="Un axe est une propriété de variant (Color, Size, State). Une variante est une valeur d'axe (primary). Un variant est une combinaison de variantes.">variants</a> : <a class="terme" href="#g-liaison" title="Ce qui relie une propriété d'un calque à une variable.">liaisons</a>, tailles, texte, icônes, contrastes, cibles et <a class="terme" href="#g-regles" title="Le bloc .componentRules posé à côté du composant dans Figma pour dire quand l'employer. L'Exporter les publie dans intent.">règles d'usage</a>. Il propose les seules corrections exactes, pose une question pour le reste, puis prépare les tokens du composant.</dd>
+      <dt>Ce qui en sort</dt><dd>Les variables du composant dans <code>components</code>, et des calques liés aux tokens de leur composant.</dd>
+    </dl>
+  </div>
+  <div class="etape-carte" id="etape-5" role="tabpanel" aria-labelledby="onglet-etape-5" hidden>
+    <h4><span class="n">5</span>Publication</h4>
+    <dl class="faits">
+      <dt>Qui</dt><dd>Le designer, avec <a href="#outil-exporter">UCM Contract Exporter</a>, vers la <a class="terme" href="#g-forge" title="Le service qui héberge le repository et ses demandes de fusion, GitHub ou GitLab.">forge</a></dd>
+      <dt>Ce qui se passe</dt><dd>L'Exporter publie <code>tokens.json</code> d'abord, puis le contrat du composant. Chaque fichier part sur sa branche, avec sa demande de fusion, sur GitHub ou gitlab.com. L'Exporter ne fusionne jamais seul.</dd>
+      <dt>Ce qui en sort</dt><dd><code>tokens.json</code> au format DTCG et <code>&lt;Id&gt;.contract.json</code> en contrat {{contrat}}, dans le repository de l'application.</dd>
+    </dl>
+  </div>
+  <div class="etape-carte" id="etape-6" role="tabpanel" aria-labelledby="onglet-etape-6" hidden>
+    <h4><span class="n">6</span>Contrôle</h4>
+    <dl class="faits">
+      <dt>Qui</dt><dd>Le CI de la forge, avec <code>ucm check</code> de la <a href="#outil-cli">CLI</a></dd>
+      <dt>Ce qui se passe</dt><dd>À chaque demande de fusion, <code>ucm check</code> lit le contrat, <code>tokens.json</code> et le code. Un contrat illisible bloque la fusion. Un token absent ou un écart du code avertit.</dd>
+      <dt>Ce qui en sort</dt><dd>Un rapport en commentaire de la demande, montré dans la <a href="#controles">partie 6</a>.</dd>
+    </dl>
+  </div>
+  <div class="etape-carte" id="etape-7" role="tabpanel" aria-labelledby="onglet-etape-7" hidden>
+    <h4><span class="n">7</span>Code</h4>
+    <dl class="faits">
+      <dt>Qui</dt><dd>Le développeur ou son agent, avec la <a href="#outil-cli">CLI</a> et l'<a href="#outil-adaptateur">adaptateur TypeScript</a></dd>
+      <dt>Ce qui se passe</dt><dd><code>ucm tokens css</code> produit la feuille CSS des tokens et de leurs modes. L'adaptateur génère les types des variantes. Le développeur écrit le composant contre le contrat, avec <code>ucm guide</code> et la skill <code>ucm-implementer</code>. L'adaptateur compare ensuite les props du code à celles du contrat.</dd>
+      <dt>Ce qui en sort</dt><dd>Le composant codé, et sa <a class="terme" href="#g-parite" title="La parité compare les props du contrat à celles du composant TypeScript.">parité</a> contrôlée en avertissement.</dd>
+    </dl>
+  </div>
+  <div class="etape-carte trou" id="etape-8" role="tabpanel" aria-labelledby="onglet-etape-8" hidden>
+    <h4><span class="n">8</span>Rendu</h4>
+    <dl class="faits">
+      <dt>Qui</dt><dd>Aucun outil</dd>
+      <dt>Ce qui se passe</dt><dd>Aucun outil ne compare le rendu du composant dans un navigateur à son contrat ou à Figma. <a href="#piste-P9">P9</a> monte les <a class="terme" href="#g-storybook" title="Un atelier qui affiche chaque composant isolé. Une story montre un composant dans une combinaison de props.">stories</a>, <a href="#piste-P10">P10</a> compare le rendu et <a href="#piste-P20">P20</a> le fait bloquer.</dd>
+      <dt>Ce qui en sort</dt><dd>Aucun constat.</dd>
+    </dl>
+  </div>
+  <p class="legende-parcours doux">Une étape en pointillés gris est un geste fait à la main. Une étape en pointillés roses est un contrôle absent.</p>
+</section>
+
+<!-- 4. L'architecture des variables Figma : collection, schéma des collections lu des primitives vers les composants, panneau, thème, noms, termes. -->
+<section class="partie" id="architecture">
+  <h2><span class="num">4</span>L'architecture des variables Figma</h2>
+  <p class="defini">Défini dans <code>packages/kit/src/referentiel/</code> et <code>packages/kit/src/emplois/</code>.</p>
+  <p class="intro">Dans Figma, une variable porte une couleur ou un nombre, que le designer lie à un calque. Une <a class="terme" href="#g-collection" title="Un groupe de variables Figma qui partagent les mêmes modes, comme Light et Dark. UCM en attend {{collections:nombre}}.">collection de variables</a> regroupe des variables qui partagent les mêmes modes, comme Light et Dark. Un alias est une variable qui vise une variable d'une autre collection au lieu de porter une valeur. UCM range les variables d'un design system en {{collections:nombre}} collections, des valeurs brutes de <code>primitives</code> jusqu'aux variables de chaque composant. Le kit écrit ces définitions une seule fois, et Palettes, Architect et l'Exporter les importent.</p>
+
+  <h3>Les {{collections:nombre}} collections de variables</h3>
   <p class="defini">Défini dans <code>packages/kit/src/referentiel/architecture.ts</code>.</p>
-  <div class="outils-schema seul-ecran"><button type="button" class="bouton" id="suivre-button" aria-pressed="false">Suivre le Button</button></div>
+  <div class="suivre seul-ecran" role="group" aria-label="Suivre une valeur d'un composant"><span class="doux">Suivre une valeur d'un composant</span>
+    <button type="button" class="filtre" data-chemin="couleur" aria-pressed="false">Couleur</button>
+    <button type="button" class="filtre" data-chemin="taille" aria-pressed="false">Taille</button>
+    <button type="button" class="filtre" data-chemin="texte" aria-pressed="false">Texte</button></div>
   <div class="carte seul-ecran" style="padding:10px">
-  <svg class="schema" viewBox="0 0 760 275" role="img" aria-label="Les collections, leur rédacteur et les collections qu'elles peuvent viser">
+  <svg class="schema" viewBox="0 0 760 275" role="img" aria-label="Les collections, de primitives aux composants, avec le sens de leurs alias">
     <defs><marker id="pointe" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" style="fill: var(--doux)"/></marker><marker id="pointe-rose" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" style="fill: var(--rose)"/></marker></defs>
-    <g class="cb" data-col="components" tabindex="0" role="button" aria-pressed="false" aria-label="Ouvrir components dans le panneau des variables"><rect class="boite architect" x="10" y="110" width="150" height="58" rx="8"/><text x="85" y="131" text-anchor="middle">components</text><text class="petit" x="85" y="147" text-anchor="middle">Architect écrit</text><text class="petit" x="85" y="160" text-anchor="middle">scope oui</text></g>
-    <g class="cb" data-col="theme" tabindex="0" role="button" aria-pressed="false" aria-label="Ouvrir theme dans le panneau des variables"><rect class="boite architect" x="205" y="20" width="150" height="58" rx="8"/><text x="280" y="41" text-anchor="middle">theme</text><text class="petit" x="280" y="57" text-anchor="middle">Architect écrit</text><text class="petit" x="280" y="70" text-anchor="middle">scope oui</text></g>
-    <g class="cb" data-col="layout" tabindex="0" role="button" aria-pressed="false" aria-label="Ouvrir layout dans le panneau des variables"><rect class="boite main" x="205" y="110" width="150" height="58" rx="8"/><text x="280" y="131" text-anchor="middle">layout</text><text class="petit" x="280" y="147" text-anchor="middle">à la main</text><text class="petit" x="280" y="160" text-anchor="middle">scope oui</text></g>
-    <g class="cb" data-col="typography" tabindex="0" role="button" aria-pressed="false" aria-label="Ouvrir typography dans le panneau des variables"><rect class="boite main" x="205" y="200" width="150" height="58" rx="8"/><text x="280" y="221" text-anchor="middle">typography</text><text class="petit" x="280" y="237" text-anchor="middle">à la main</text><text class="petit" x="280" y="250" text-anchor="middle">scope oui</text></g>
-    <g class="cb" data-col="brands" tabindex="0" role="button" aria-pressed="false" aria-label="Ouvrir brands dans le panneau des variables"><rect class="boite main" x="400" y="0" width="150" height="58" rx="8"/><text x="475" y="21" text-anchor="middle">brands</text><text class="petit" x="475" y="37" text-anchor="middle">à la main</text><text class="petit" x="475" y="50" text-anchor="middle">scope non</text></g>
-    <g class="cb" data-col="utility" tabindex="0" role="button" aria-pressed="false" aria-label="Ouvrir utility dans le panneau des variables"><rect class="boite main" x="400" y="70" width="150" height="58" rx="8"/><text x="475" y="91" text-anchor="middle">utility</text><text class="petit" x="475" y="107" text-anchor="middle">à la main</text><text class="petit" x="475" y="120" text-anchor="middle">scope non</text></g>
-    <g class="cb" data-col="primitives" tabindex="0" role="button" aria-pressed="false" aria-label="Ouvrir primitives dans le panneau des variables"><rect class="boite palettes" x="600" y="110" width="150" height="58" rx="8"/><text x="675" y="131" text-anchor="middle">primitives</text><text class="petit" x="675" y="147" text-anchor="middle">Palettes écrit (color)</text><text class="petit" x="675" y="160" text-anchor="middle">scope non</text></g>
-    <path class="fleche" data-suivi="1" d="M160 125 C180 100, 185 60, 203 54"/><text class="etiquette" x="166" y="86">couleur</text>
-    <path class="fleche" d="M160 139 L203 139"/><path class="fleche" d="M160 153 C180 180, 185 225, 203 229"/><text class="etiquette" x="150" y="204">taille, texte</text>
-    <path class="fleche" data-suivi="1" d="M355 44 L398 29"/><path class="fleche" d="M355 58 L398 92"/>
-    <path class="fleche" data-suivi="1" d="M550 29 C580 40, 590 105, 598 123"/><path class="fleche" d="M550 99 C575 105, 585 120, 598 130"/>
-    <path class="fleche" d="M355 139 L598 139"/><path class="fleche" d="M355 229 C470 229, 560 190, 598 153"/>
+    <g class="cb" data-col="primitives" data-chemins="couleur taille texte" tabindex="0" role="button" aria-pressed="false" aria-label="Ouvrir primitives dans le panneau des variables"><rect class="boite palettes" x="10" y="110" width="150" height="58" rx="8"/><text x="85" y="131" text-anchor="middle">primitives</text><text class="petit" x="85" y="147" text-anchor="middle">Palettes écrit (color)</text><text class="petit" x="85" y="160" text-anchor="middle">scope non</text></g>
+    <g class="cb" data-col="brands" data-chemins="couleur" tabindex="0" role="button" aria-pressed="false" aria-label="Ouvrir brands dans le panneau des variables"><rect class="boite main" x="210" y="0" width="150" height="58" rx="8"/><text x="285" y="21" text-anchor="middle">brands</text><text class="petit" x="285" y="37" text-anchor="middle">à la main</text><text class="petit" x="285" y="50" text-anchor="middle">scope non</text></g>
+    <g class="cb" data-col="utility" data-chemins="couleur" tabindex="0" role="button" aria-pressed="false" aria-label="Ouvrir utility dans le panneau des variables"><rect class="boite main" x="210" y="70" width="150" height="58" rx="8"/><text x="285" y="91" text-anchor="middle">utility</text><text class="petit" x="285" y="107" text-anchor="middle">à la main</text><text class="petit" x="285" y="120" text-anchor="middle">scope non</text></g>
+    <g class="cb" data-col="theme" data-chemins="couleur" tabindex="0" role="button" aria-pressed="false" aria-label="Ouvrir theme dans le panneau des variables"><rect class="boite architect" x="405" y="20" width="150" height="58" rx="8"/><text x="480" y="41" text-anchor="middle">theme</text><text class="petit" x="480" y="57" text-anchor="middle">Architect écrit</text><text class="petit" x="480" y="70" text-anchor="middle">scope oui</text></g>
+    <g class="cb" data-col="layout" data-chemins="taille" tabindex="0" role="button" aria-pressed="false" aria-label="Ouvrir layout dans le panneau des variables"><rect class="boite main" x="405" y="110" width="150" height="58" rx="8"/><text x="480" y="131" text-anchor="middle">layout</text><text class="petit" x="480" y="147" text-anchor="middle">à la main</text><text class="petit" x="480" y="160" text-anchor="middle">scope oui</text></g>
+    <g class="cb" data-col="typography" data-chemins="texte" tabindex="0" role="button" aria-pressed="false" aria-label="Ouvrir typography dans le panneau des variables"><rect class="boite main" x="405" y="200" width="150" height="58" rx="8"/><text x="480" y="221" text-anchor="middle">typography</text><text class="petit" x="480" y="237" text-anchor="middle">à la main</text><text class="petit" x="480" y="250" text-anchor="middle">scope oui</text></g>
+    <g class="cb" data-col="components" data-chemins="couleur taille texte" tabindex="0" role="button" aria-pressed="false" aria-label="Ouvrir components dans le panneau des variables"><rect class="boite architect" x="600" y="110" width="150" height="58" rx="8"/><text x="675" y="131" text-anchor="middle">components</text><text class="petit" x="675" y="147" text-anchor="middle">Architect écrit</text><text class="petit" x="675" y="160" text-anchor="middle">scope oui</text></g>
+    <path class="fleche" data-chemin="couleur" d="M160 123 C170 105, 180 40, 208 29"/><path class="fleche" data-chemin="couleur" d="M160 130 C175 120, 185 105, 208 99"/>
+    <path class="fleche" data-chemin="taille" d="M160 139 L403 139"/><path class="fleche" data-chemin="texte" d="M160 153 C200 190, 290 229, 403 229"/>
+    <path class="fleche" data-chemin="couleur" d="M360 29 L403 44"/><path class="fleche" data-chemin="couleur" d="M360 92 L403 58"/>
+    <path class="fleche" data-chemin="couleur" d="M555 54 C575 60, 580 100, 598 125"/><text class="etiquette" x="606" y="100">couleur</text>
+    <path class="fleche" data-chemin="taille" d="M555 139 L598 139"/><path class="fleche" data-chemin="texte" d="M555 229 C575 225, 580 180, 598 153"/><text class="etiquette" x="606" y="200">taille, texte</text>
   </svg>
   </div>
+  <div class="chaines seul-ecran">
+    <div class="chaine-valeur" data-chemin="couleur" hidden><p>Une couleur part d'une primitive, que <code>brands</code> vise, puis <code>theme</code>, puis la variable du composant. Le neutre et les statuts passent par <code>utility</code> au lieu de <code>brands</code>.</p>
+      <ol class="maillons"><li><span class="chemin"><span class="c">primitives</span>/color/terracota/soft/light/<span class="v">700</span></span></li><li><span class="chemin"><span class="c">brands</span>/primary/light/<span class="v">700</span></span></li><li><span class="chemin"><span class="c">theme</span>/primary/solid/<span class="v">default</span></span></li><li><span class="chemin"><span class="c">components</span>/{Composant}/color/primary/default/<span class="v">background</span></span></li></ol></div>
+    <div class="chaine-valeur" data-chemin="taille" hidden><p>Une taille part d'une valeur posée dans <code>layout</code>, ou d'une primitive que <code>layout</code> vise. La variable du composant vise la variable de <code>layout</code>.</p>
+      <ol class="maillons"><li><span class="chemin"><span class="c">primitives</span>/<span class="v">…</span></span></li><li><span class="chemin"><span class="c">layout</span>/radius/<span class="v">md</span></span></li><li><span class="chemin"><span class="c">components</span>/{Composant}/size/md/<span class="v">radius</span></span></li></ol></div>
+    <div class="chaine-valeur" data-chemin="texte" hidden><p>Un réglage de texte part d'une primitive, que <code>typography</code> vise, puis une variable de texte du composant.</p>
+      <ol class="maillons"><li><span class="chemin"><span class="c">primitives</span>/font-size/<span class="v">base</span></span></li><li><span class="chemin"><span class="c">typography</span>/body/md/<span class="v">font-size</span></span></li><li><span class="chemin"><span class="c">components</span>/{Composant}/<span class="v">…</span></span></li></ol></div>
+  </div>
   <div class="legende-schema">
+    <div class="seul-ecran"><svg width="34" height="18" aria-hidden="true"><path d="M2 9 L27 9" style="stroke:var(--doux)" stroke-width="1.3"/><path d="M26 5 L32 9 L26 13 z" style="fill:var(--doux)"/></svg><p>Une flèche va de la collection qui fournit la valeur à la collection dont les variables la visent par alias. Le mot en italique restreint le type : les couleurs de <code>components</code> viennent de <code>theme</code>, ses tailles et ses textes de <code>layout</code> et <code>typography</code>.</p></div>
     <div class="seul-ecran"><svg width="34" height="18" aria-hidden="true"><rect x="1" y="2" width="32" height="14" rx="4" fill="none" style="stroke:var(--olive)" stroke-width="1.8"/></svg><p>Palettes écrit la collection.</p></div>
     <div class="seul-ecran"><svg width="34" height="18" aria-hidden="true"><rect x="1" y="2" width="32" height="14" rx="4" fill="none" style="stroke:var(--bleu)" stroke-width="1.8"/></svg><p>Architect crée et corrige ses variables.</p></div>
     <div class="seul-ecran"><svg width="34" height="18" aria-hidden="true"><rect x="1" y="2" width="32" height="14" rx="4" fill="none" style="stroke:var(--ambre)" stroke-width="1.8" stroke-dasharray="4 3"/></svg><p>Aucun outil n'écrit la collection, le designer pose ses variables à la main.</p></div>
-    <div class="seul-ecran"><svg width="34" height="18" aria-hidden="true"><path d="M2 9 L27 9" style="stroke:var(--doux)" stroke-width="1.3"/><path d="M26 5 L32 9 L26 13 z" style="fill:var(--doux)"/></svg><p>Une variable de la collection de départ peut être un alias d'une variable de la collection d'arrivée. Le mot en italique restreint le type : les couleurs de <code>components</code> visent <code>theme</code>, ses tailles et textes visent <code>layout</code> et <code>typography</code>.</p></div>
     <div><span class="scope" aria-hidden="true">scope</span><p>Les variables d'une collection « scope oui » portent des scopes Figma, qui limitent les champs où le designer peut les lier. Une collection « scope non » sert seulement de source aux alias.</p></div>
   </div>
   <div class="defile seul-mobile"><table>
-    <tr><th>Collection</th><th>Peut viser</th><th>Écrite par</th><th>Scope</th></tr>
-    <tr><td>components</td><td>theme (couleur), layout et typography (le reste)</td><td>Architect</td><td>oui</td></tr>
-    <tr><td>theme</td><td>brands, utility</td><td>Architect</td><td>oui</td></tr>
+    <tr><th>Collection</th><th>Reçoit ses valeurs de</th><th>Écrite par</th><th>Scope</th></tr>
+    <tr><td>primitives</td><td>rien, elle porte les valeurs brutes</td><td>Palettes (color)</td><td>non</td></tr>
     <tr><td>brands, utility</td><td>primitives</td><td>à la main</td><td>non</td></tr>
     <tr><td>layout, typography</td><td>primitives</td><td>à la main</td><td>oui</td></tr>
-    <tr><td>primitives</td><td>rien</td><td>Palettes (color)</td><td>non</td></tr>
+    <tr><td>theme</td><td>brands, utility</td><td>Architect</td><td>oui</td></tr>
+    <tr><td>components</td><td>theme (couleur), layout et typography (le reste)</td><td>Architect</td><td>oui</td></tr>
   </table></div>
   <p class="doux">Les collections se reconnaissent par leur nom seulement dans un fichier déclaré UCM. Anciens noms encore lus : <code>color-brands</code>, <code>color-utilities</code>, <code>layouts</code>. Les modes Light et Dark se placent dans le chemin ou en modes Figma.</p>
 
-  <details class="pli"><summary>Ce que chaque outil écrit dans Figma <span class="doux">Palettes, Architect, Exporter</span></summary><div class="contenu">
-<div class="defile"><table>
-    <tr><th>Produit</th><th>Écrit</th><th>N'écrit jamais</th><th>Réseau</th></tr>
-    <tr><td><b>Palettes</b></td><td><code>primitives/color</code>, <a class="terme" href="#g-planche" title="Un cadre Figma où Palettes dessine les nuances d'une palette.">planches</a>, <a class="terme" href="#g-recette-palette" title="L'ensemble des réglages d'une palette, que Palettes enregistre dans le fichier Figma.">recette de palette</a> dans le document</td><td><code>theme</code>, <code>brands</code>, <code>utility</code>, alias, bibliothèques</td><td>aucun</td></tr>
-    <tr><td><b>Architect</b></td><td>Noms, scopes, alias de mode, variables de <code>components</code> et <code>theme</code>, liaisons, valeurs de variant, instance de règles</td><td>Une variable de bibliothèque</td><td>aucun</td></tr>
-    <tr><td><b>Exporter</b></td><td>L'instance <code>.componentRules</code> seulement</td><td>Variables, composants</td><td><code>api.github.com</code>, <code>gitlab.com</code></td></tr>
-  </table></div>
-  </div></details>
-
-  <details class="pli"><summary>Le Button ici <span class="doux">de <code>background</code> à <code>{{terracota:700}}</code></span></summary><div class="contenu">
-    <p><span class="chemin"><span class="c">components</span>/Button/color/primary/contained/default/<span class="v">background</span></span> vise <span class="chemin"><span class="c">theme</span>/primary/solid/<span class="v">default</span></span>, qui vise <span class="chemin"><span class="c">brands</span>/primary/light/<span class="v">700</span></span>, qui vise <span class="chemin"><span class="c">primitives</span>/color/terracota/soft/light/<span class="v">700</span></span> = <span class="cran-reel"><i style="background:{{terracota:700}}"></i>{{terracota:700}}</span> (Dark <span class="cran-reel"><i style="background:{{terracota:700:dark}}"></i>{{terracota:700:dark}}</span>).</p>
-  </div></details>
-
-  <h3 data-pour="designer developpeur">Crans, modes, intensités</h3>
+  <h3>Crans, modes, intensités</h3>
   <p class="defini">Défini dans <code>packages/kit/src/referentiel/vocabulaire.ts</code>.</p>
   <div class="rampe" id="rampe-light"></div>
   <div class="rampe" id="rampe-dark"></div>
   <p class="source">Les {{crans:nombre}} crans avec la clarté OKLCH des courbes par défaut du moteur, sans teinte. Le cran 50 reste le plus proche du fond dans les deux modes.</p>
+  <p class="doux">Un registre extensible accepte des termes nouveaux, un registre figé non.</p>
   <div class="defile"><table>
     <tr><th>Définition</th><th>Valeurs</th><th>Registre</th></tr>
     <tr><td>Crans</td><td>50 à 950, {{crans:nombre}} crans. Une palette à 13 nuances ajoute 1000 et 1050.</td><td>figé</td></tr>
     <tr><td>Modes</td><td><code>light</code>, <code>dark</code>, plus les modes de marque</td><td>extensible</td></tr>
     <tr><td>Intensités</td><td><code>soft</code>, <code>vivid</code>. Sans intensité choisie, la valeur est <code>unique</code>.</td><td>figé</td></tr>
-    <tr data-pour="designer"><td>Texte des boutons</td><td>Blanc ou noir par thème. Défaut Light blanc, Dark noir.</td><td><b>réglable</b></td></tr>
+    <tr><td>Texte des boutons</td><td>Blanc ou noir par thème. Défaut Light blanc, Dark noir.</td><td><b>réglable</b></td></tr>
     <tr><td>Élévation</td><td><code>page</code>, <code>raised</code></td><td>figé</td></tr>
   </table></div>
 
   <!-- A1. Panneau des variables : REFERENCE (referencePourLePanneau, releves.ts : architecture.ts, dossiers.ts, garanties.ts) et DONNEES (donneesDesPalettes : palettes de démonstration du hub, carte Dark). Modèle : « Le panneau des variables » de docs/notes/Recherches/Archi Tokens Multi-marques/VUE-ILLUSTREE-MULTIMARQUES.html. -->
-  <h3 data-pour="designer developpeur">Le panneau des variables</h3>
+  <h3>Le panneau des variables</h3>
   <p class="defini">Défini dans <code>packages/kit/src/referentiel/architecture.ts</code> et <code>packages/kit/src/emplois/dossiers.ts</code>.</p>
   <p class="intro">Le panneau reprend celui des variables de Figma : une collection par entrée du menu, une colonne par mode, et dans chaque cellule l'alias visé et sa couleur. Le survol d'un alias donne la primitive qu'il vise à son tour. Les trois choix valent pour toutes les collections. Les couleurs viennent du moteur du dépôt, pour les six palettes de démonstration du Hub au préréglage Tailwind.</p>
   <div class="choix-theme">
@@ -209,16 +369,16 @@
   <div class="apercus" id="apercus"></div>
   <p class="doux">Le panneau montre les {{theme:variables}} variables du thème ; les 4 propres au neutre apparaissent avec la palette Slate.</p>
 
-  <h3 data-pour="designer developpeur">Le thème : {{theme:variables}} variables et {{garanties:nombre}} garanties</h3>
+  <h3>Le thème : {{theme:variables}} variables et {{garanties:nombre}} garanties</h3>
   <p class="defini">Défini dans <code>packages/kit/src/emplois/garanties.ts</code>, et <code>packages/couleur/src/</code> pour le calcul des couleurs.</p>
   <p class="intro">Chaque variable du thème vise un cran de la palette. Le <a class="terme" href="#g-sens" title="Deux choix de texte des boutons. Light blanc et Dark noir donnent le sens normal. Light noir et Dark blanc donnent le sens inverse, qui change le cran visé par certaines variables du thème.">sens</a> vient du texte des boutons : Light blanc et Dark noir donnent le sens normal, l'autre choix le sens inverse. La colonne G nomme la garantie que tient la variable.</p>
-  <div class="defile" id="tableau-garanties" data-pour="designer"><table>
+  <div class="defile" id="tableau-garanties"><table>
     <tr><th>G</th><th>Couleur</th><th>Sur les fonds</th><th>Seuil</th></tr>
     {{lignes-garanties}}
   </table></div>
-  <p class="doux" data-pour="designer">Une garantie se juge dans une palette, jamais entre deux. Les garanties visent le niveau AA. Architect mesure le composant en AA ou en AAA (7:1 pour un texte) selon sa Configuration. Palettes les tient par construction.</p>
+  <p class="doux">Une garantie se juge dans une palette, jamais entre deux. Les garanties visent le niveau AA du contraste <a class="terme" href="#g-wcag" title="WCAG 2 est la norme de contraste en vigueur, avec 4,5:1 pour un texte. APCA est la méthode prévue pour WCAG 3.">WCAG</a>. Architect mesure le composant en AA ou en AAA (7:1 pour un texte) selon sa Configuration. Palettes les tient par construction.</p>
 
-  <details class="pli" data-pour="toolkit"><summary>Le calcul des couleurs <span class="doux">moteur ucm-couleur, valeurs par défaut</span></summary><div class="contenu">
+  <details class="pli"><summary>Le calcul des couleurs <span class="doux">moteur ucm-couleur, valeurs par défaut</span></summary><div class="contenu">
     <div class="defile"><table>
       <tr><th>Règle</th><th>Valeur</th></tr>
       <tr><td>Chroma d'un cran</td><td>Une part du plafond sRGB de sa clarté et de sa teinte, bornée par l'enveloppe de l'intensité. Bosse des jaunes à 100°, creux des cyans à 195°.</td></tr>
@@ -228,14 +388,14 @@
       <tr><td>Référence gardée</td><td>Octets exacts au cran le plus proche. En Dark normal, une référence sur le 700 qui manque G9 glisse au 600.</td></tr>
       <tr><td>Sens inverse</td><td>Inverse les crans 500 à 800. Une correction des textes déplace la clarté par pas de 0,001 jusqu'au seuil.</td></tr>
       <tr><td>Palettes trop proches</td><td>Distance sous 1, presque identiques sous 0,2</td></tr>
-      <tr data-pour="designer"><td><a class="terme" href="#g-reglage" title="Le Réglage global change la teinte, la saturation et la luminosité de toute la palette. Le Color shift les fait varier le long de la rampe, du cran clair au cran foncé.">Color shift</a></td><td>Teinte ±90°, saturation ±1, clarté ±0,15</td></tr>
-      <tr data-pour="designer"><td>Réglages en Comparaison</td><td>Teinte ±30°, clarté −0,1 à +0,1</td></tr>
-      <tr data-pour="designer"><td>Fonds de page</td><td>Light <code>{{fond:light}}</code>, Dark <code>{{fond:dark}}</code></td></tr>
+      <tr><td><a class="terme" href="#g-reglage" title="Le Réglage global change la teinte, la saturation et la luminosité de toute la palette. Le Color shift les fait varier le long de la rampe, du cran clair au cran foncé.">Color shift</a></td><td>Teinte ±90°, saturation ±1, clarté ±0,15</td></tr>
+      <tr><td>Réglages en Comparaison</td><td>Teinte ±30°, clarté −0,1 à +0,1</td></tr>
+      <tr><td>Fonds de page</td><td>Light <code>{{fond:light}}</code>, Dark <code>{{fond:dark}}</code></td></tr>
       <tr><td>Garantie des courbes</td><td>Testée sur 360 teintes. Les curseurs s'arrêtent là où une garantie tomberait.</td></tr>
     </table></div>
   </div></details>
 
-  <h3 data-pour="designer developpeur">La grammaire des noms</h3>
+  <h3>La grammaire des noms</h3>
   <p class="defini">Défini dans <code>packages/kit/src/referentiel/grammaire.ts</code>.</p>
   <p class="intro">Le nom Figma ne contient pas la collection : le kit la place en tête pour lire le chemin. Les crochets marquent un segment facultatif.</p>
   <div class="defile"><table>
@@ -243,19 +403,16 @@
     <tr><td>primitives</td><td class="mono doux">color/palette/[intensité/]mode/cran · dimension/none|full · font-size/base</td><td><span class="chemin"><span class="c">primitives</span>/color/terracota/soft/light/<span class="v">600</span></span></td></tr>
     <tr><td>brands</td><td class="mono doux">identity/palette · palette/mode/cran</td><td><span class="chemin"><span class="c">brands</span>/primary/light/<span class="v">700</span></span></td></tr>
     <tr><td>utility</td><td class="mono doux">neutral/mode/cran · elevation/mode/page|raised · statut/intensité/mode/cran</td><td><span class="chemin"><span class="c">utility</span>/danger/soft/light/<span class="v">500</span></span></td></tr>
-    <tr><td>theme</td><td class="mono doux">palette/dossier/variable · disabled/… · elevation/… · scale/cran</td><td><span class="chemin"><span class="c">theme</span>/primary/solid/<span class="v">default</span></span></td></tr>
     <tr><td>layout</td><td class="mono doux">icon/taille · sizing/numéro · radius|stroke/valeur</td><td><span class="chemin"><span class="c">layout</span>/radius/<span class="v">md</span></span></td></tr>
     <tr><td>typography</td><td class="mono doux">famille/taille/propriété</td><td><span class="chemin"><span class="c">typography</span>/body/md/<span class="v">font-size</span></span></td></tr>
-    <tr><td>components</td><td class="mono doux">Composant/color/[élément]/[palette]/[style]/[taille]/[état]/rôle · Composant/size/[élément]/[taille]/[état]/propriété</td><td><span class="chemin"><span class="c">components</span>/Button/size/md/<span class="v">padding-x</span></span></td></tr>
+    <tr><td>theme</td><td class="mono doux">palette/dossier/variable · disabled/… · elevation/… · scale/cran</td><td><span class="chemin"><span class="c">theme</span>/primary/solid/<span class="v">default</span></span></td></tr>
+    <tr><td>components</td><td class="mono doux">Composant/color/[élément]/[palette]/[style]/[taille]/[état]/rôle · Composant/size/[élément]/[taille]/[état]/propriété</td><td><span class="chemin"><span class="c">components</span>/{Composant}/size/md/<span class="v">padding-x</span></span></td></tr>
   </table></div>
-  <p data-pour="designer">Le designer choisit une convention pour les groupes et une pour les variables, parmi sept : <code>tiret</code>, <code>bas</code>, <code>espace</code>, <code>camel</code>, <code>pascal</code>, <code>soude</code>, <code>inchange</code>. Architect détecte la convention dominante. Le renommage appliqué deux fois ne change plus rien.</p>
+  <p>Le designer choisit une convention pour les groupes et une pour les variables, parmi sept : <code>tiret</code>, <code>bas</code>, <code>espace</code>, <code>camel</code>, <code>pascal</code>, <code>soude</code>, <code>inchange</code>. Architect détecte la convention dominante. Le renommage appliqué deux fois ne change plus rien.</p>
 
-  <h3 data-pour="designer">Les termes reconnus</h3>
+  <h3>Les termes reconnus</h3>
   <p class="defini">Défini dans <code>packages/kit/src/referentiel/vocabulaire.ts</code>.</p>
-  <p class="intro">Une <b>forme tolérée</b> se renomme vers l'identifiant. Un <b>synonyme</b> donne une question sans réponse cochée. Deux termes du même groupe présents dans le fichier, comme <code>error</code> et <code>danger</code>, donnent aussi une question. Un <a class="terme" href="#g-axe" title="Un axe est une propriété de variant (Color, Size, State). Une variante est une valeur d'axe (primary). Un variant est une combinaison de variantes.">variant</a> s'écrit en mots entiers, son token en abrégé.</p>
-  <details class="pli"><summary>Le Button ici <span class="doux"><code>error</code>, <code>big</code>, <code>press</code></span></summary><div class="contenu">
-    <p>Le contrat de recette du Button porte <code>color=error</code>, <code>size=big</code> et <code>state=press</code>. Architect propose <code>error</code> en <code>danger</code>, <code>big</code> en <code>lg</code> (token) ou <code>Large</code> (variant), <code>press</code> en <code>pressed</code>.</p>
-  </div></details>
+  <p class="intro">Une <b>forme tolérée</b> se renomme vers l'identifiant. Un synonyme donne une question sans réponse cochée. Deux termes du même groupe présents dans le fichier, comme <code>error</code> et <code>danger</code>, donnent aussi une question. Un variant s'écrit en mots entiers, son token en abrégé.</p>
   <details class="pli"><summary>Tailles, états, statuts, rôles <span class="doux">registres extensibles</span></summary><div class="contenu">
     <div class="defile"><table>
       <tr><th>Identifiant</th><th>Forme tolérée, renommée</th><th>Synonyme, question</th><th>En variant</th></tr>
@@ -287,14 +444,14 @@
       <tr><td>style</td><td class="mono">style, variant, appearance, type, kind, shape, hierarchy, emphasis, fill-style, variante, apparence, hiérarchie</td></tr>
       <tr><td>état</td><td class="mono">state, état</td></tr>
     </table></div>
-    <p>Interrupteurs, qui ne pilotent aucun segment de token : <code>destructive</code>, <code>danger</code>, <code>high-contrast</code>, <code>loading</code>, <code>selected</code>. Deux axes de style dans un composant donnent le <a class="terme" href="#g-constat" title="Une remarque d'Architect ou de l'Exporter sur un composant, avec un code de {{codes:plage}} et un type d'alerte.">constat</a> C63.</p>
+    <p>Interrupteurs, qui ne pilotent aucun segment de token : <code>destructive</code>, <code>danger</code>, <code>high-contrast</code>, <code>loading</code>, <code>selected</code>. Deux axes de style dans un composant donnent le constat C63.</p>
     <div class="defile"><table>
       <tr><th>Collection</th><th>Familles</th></tr>
       {{lignes-familles}}
     </table></div>
     <p>Propriétés de composant, {{proprietes:nombre}} termes : <code>padding</code>, <code>gap</code>, <code>width</code>, <code>height</code>, <code>border-width</code>, <code>radius</code>, <code>icon-size</code>, et <code>padding</code>, <code>gap</code>, <code>border-width</code> suivis de <code>x</code>, <code>y</code>, <code>top</code>, <code>right</code>, <code>bottom</code> ou <code>left</code>.</p>
   </div></details>
-  <details class="pli" data-pour="toolkit"><summary>Les {{registres:nombre}} registres du référentiel <span class="doux">termes reconnus, registres extensibles, listes fermées</span></summary><div class="contenu">
+  <details class="pli"><summary>Les {{registres:nombre}} registres du référentiel <span class="doux">termes reconnus, registres extensibles, listes fermées</span></summary><div class="contenu">
     <p class="defini">Défini dans <code>packages/kit/src/referentiel/</code>.</p>
     <div class="defile"><table>
       <tr><th>Registre</th><th class="n">Termes</th><th>Extensible</th></tr>
@@ -313,23 +470,14 @@
       <li>Les questions de paire ont 6 indices : terminaison, pluriel, abréviation, synonymes, branches parallèles, écriture proche.</li>
     </ul>
   </div></details>
-
-  <h3>Composition et règles d'usage</h3>
-  <p class="defini">Défini dans <code>packages/kit/src/referentiel/composition.ts</code>.</p>
-  <div class="grille">
-    <div class="carte" id="carte-imbrique" data-pour="designer developpeur"><h4>{{imbriques:nombre}} sortes d'imbriqué</h4><p>Testées dans cet ordre. <b>Dépendance</b> : ses règles la nomment. <b>Wrapper de dimensions</b> : ses dimensions sont liées à <code>layout</code>. <b>Pièce interne</b> : son nom commence par <code>.</code> ou <code>_</code>, sans contrat ni collection. <b>Détail</b> : le reste.</p></div>
-    <div class="carte" data-pour="designer"><h4>Layers et icônes</h4><p>Seuls <code>divider</code>, <code>ring</code> et <code>icon</code> désignent un layer par son nom. L'icône est une instance du composant <code>Icon</code>. Son remplissage suit le token <code>icon</code> ou <code>foreground</code> de l'hôte, sa <code>Size</code> la taille du variant.</p></div>
-    <div class="carte" data-pour="designer developpeur"><h4>Règles d'usage</h4><p>Trois maîtres Figma : <code>.componentRules</code>, <code>.rulesSection</code>, <code>.ruleItem</code>. 8 tags : usage, prop, boolean, do, dont, pairs, icons, default. Une règle qui contient <code>[À compléter]</code> ne se publie pas.</p></div>
-  </div>
 </section>
 
-<!-- 4. Le contrat et les tokens -->
-<section class="partie" id="contrat" data-pour="developpeur">
-  <h2><span class="num">4</span>Le contrat et les tokens</h2>
-  <p class="defini">Défini dans <code>packages/kit/src/format/types.ts</code> et <code>docs/format/FORMAT.md</code>.</p>
-  <div class="carte button-ici"><h4>Le Button ici</h4>
-    <p>Extrait de <code>{{bouton:chemin}}</code> ({{bouton:octets}} octets, {{bouton:props}} props, {{bouton:variants}} variants). Aucun contrat {{contrat}} réel n'existe encore (<a href="#piste-P1">P1</a>).</p>
-    <div class="contrat-annote">
+<!-- 5. Le contrat : l'extrait annoté du contrat de recette du Button, les invariants, la composition, ce qu'il ne décrit pas. -->
+<section class="partie" id="contrat">
+  <h2><span class="num">5</span>Le contrat</h2>
+  <p class="defini">Défini dans <code>packages/kit/src/format/types.ts</code>, <code>docs/format/FORMAT.md</code> et <code>CONCEPT.md</code> §4.</p>
+  <p class="intro">Le contrat est le fichier JSON que l'Exporter publie pour un composant, à côté de son code. L'extrait vient de <code>{{bouton:chemin}}</code>, le contrat de recette du Button exporté de Figma ({{bouton:octets}} octets, {{bouton:props}} props, {{bouton:variants}} variants).</p>
+  <div class="contrat-annote">
 <pre class="codebloc" aria-label="Extrait du contrat du Button"><span class="l">{</span>
 <span class="l">  "name": "Button",</span>
 <span class="l"><span class="p">1</span>  "meta": { "contractVersion": "{{bouton:version}}", "coverage": { "portable": "complete" } },</span>
@@ -355,17 +503,16 @@
 <span class="l">    "usage": "Action déclenchant une opération ; le choix des variantes dépend de l'importance et du contexte."</span>
 <span class="l">  }</span>
 <span class="l">}</span></pre>
-      <ol class="notes-contrat">
-        <li><span class="pastille">1</span><div><code>meta.coverage.portable</code> vaut <code>complete</code> ou <code>partial</code>. Il passe à <code>partial</code> quand l'Exporter ne sait pas décrire une propriété Figma.</div></li>
-        <li><span class="pastille">2</span><div><code>props</code> : les props que le code doit exposer. La parité les compare à celles du composant TypeScript.</div></li>
-        <li><span class="pastille">3</span><div><code>variants</code> : une entrée par variant dessiné dans Figma, jamais une matrice cartésienne.</div></li>
-        <li><span class="pastille">4</span><div><code>tokens</code> : un nom de token, jamais une valeur. La valeur vit dans <code>tokens.json</code>.</div></li>
-        <li><span class="pastille">5</span><div><code>stateModel</code> : l'état qui l'emporte quand deux s'appliquent. Ici <code>disable</code> passe avant <code>press</code>, <code>focus</code>, <code>hover</code> et <code>default</code>.</div></li>
-        <li><span class="pastille">6</span><div><code>intent</code> : la règle d'usage que le designer écrit dans Figma.</div></li>
-      </ol>
-    </div>
-    <p class="doux">Ce contrat {{bouton:version}} écrit <code>colors</code> et <code>error</code>. La grammaire actuelle écrit <code>color</code> et <code>danger</code>, et Architect proposerait ces deux renommages.</p>
+    <ol class="notes-contrat">
+      <li><span class="pastille">1</span><div><code>meta.coverage.portable</code> vaut <code>complete</code> ou <code>partial</code>. Il passe à <code>partial</code> quand l'Exporter ne sait pas décrire une propriété Figma.</div></li>
+      <li><span class="pastille">2</span><div><code>props</code> : les props que le code doit exposer. La parité les compare à celles du composant TypeScript.</div></li>
+      <li><span class="pastille">3</span><div><code>variants</code> : une entrée par variant dessiné dans Figma, jamais une matrice cartésienne.</div></li>
+      <li><span class="pastille">4</span><div><code>tokens</code> : un nom de token, jamais une valeur. La valeur vit dans <code>tokens.json</code>.</div></li>
+      <li><span class="pastille">5</span><div><code>stateModel</code> : l'état qui l'emporte quand deux s'appliquent. Ici <code>disable</code> passe avant <code>press</code>, <code>focus</code>, <code>hover</code> et <code>default</code>.</div></li>
+      <li><span class="pastille">6</span><div><code>intent</code> : la règle d'usage que le designer écrit dans Figma.</div></li>
+    </ol>
   </div>
+  <p class="doux">Ce contrat {{bouton:version}} écrit <code>colors</code> et <code>error</code>. La grammaire actuelle écrit <code>color</code> et <code>danger</code>, et Architect proposerait ces deux renommages.</p>
 
   <details class="pli"><summary>Tous les champs du contrat <span class="doux">ce que chaque champ porte</span></summary><div class="contenu">
     <div class="defile"><table>
@@ -382,7 +529,26 @@
     </table></div>
   </div></details>
 
-  <div class="carte"><h4>Ce que le contrat ne décrit pas</h4>
+  <h3>Ce que le contrat garantit</h3>
+  <dl class="def">
+    <dt>Tokens en références</dt><dd>Le contrat cite <span class="chemin">{components.button.color.primary.contained.default.background}</span>, jamais la valeur. Le même chemin va de Figma au code.</dd>
+    <dt>Noms traçables</dt><dd>Le nom Figma lisible reste dans le contrat, à côté de l'identifiant de code.</dd>
+    <dt>Composition sans copie</dt><dd>Un composant composé cite ses dépendances sans recopier leurs tokens ni leur structure.</dd>
+    <dt>Contrat avant le code</dt><dd>Le contrat se fusionne avant l'implémentation. La parité s'applique dès que le code existe.</dd>
+    <dt>Divergences visibles</dt><dd>Une information ambiguë produit un <a class="terme" href="#g-diagnostic" title="Un message de l'Exporter rangé dans le contrat, sous meta.diagnostics. C'est toujours un avertissement.">diagnostic</a>. Seules les préconditions d'un contrat cohérent bloquent l'export.</dd>
+    <dt>Contrat autosuffisant</dt><dd>Le contrat se lit sans Figma. Une <a class="terme" href="#g-perte" title="Quand l'Exporter ne sait pas décrire une propriété Figma dans le format, il l'écrit dans meta.diagnostics et passe meta.coverage.portable à partial.">perte de projection</a> est écrite dans <code>meta.diagnostics</code> et passe <code>meta.coverage.portable</code> à <code>partial</code>.</dd>
+    <dt>Champs <a class="terme" href="#g-normatif" title="Un champ normatif oblige le code, et un contrôle peut le lui opposer. Un champ indicatif montre seulement le contenu de la maquette.">normatifs</a></dt><dd>Chaque champ oblige le code, et un contrôle peut le lui opposer. Seul <code>samples</code> est indicatif : il montre le contenu de la maquette.</dd>
+  </dl>
+
+  <h3>Composition et règles d'usage</h3>
+  <p class="defini">Défini dans <code>packages/kit/src/referentiel/composition.ts</code>.</p>
+  <div class="grille">
+    <div class="carte" id="carte-imbrique"><h4>{{imbriques:nombre}} sortes d'imbriqué</h4><p>Testées dans cet ordre. <b>Dépendance</b> : ses règles la nomment. <b>Wrapper de dimensions</b> : ses dimensions sont liées à <code>layout</code>. <b>Pièce interne</b> : son nom commence par <code>.</code> ou <code>_</code>, sans contrat ni collection. <b>Détail</b> : le reste.</p></div>
+    <div class="carte"><h4>Layers et icônes</h4><p>Seuls <code>divider</code>, <code>ring</code> et <code>icon</code> désignent un layer par son nom. L'icône est une instance du composant <code>Icon</code>. Son remplissage suit le token <code>icon</code> ou <code>foreground</code> de l'hôte, sa <code>Size</code> la taille du variant.</p></div>
+    <div class="carte"><h4>Règles d'usage</h4><p>Trois maîtres Figma : <code>.componentRules</code>, <code>.rulesSection</code>, <code>.ruleItem</code>. 8 tags : usage, prop, boolean, do, dont, pairs, icons, default. Une règle qui contient <code>[À compléter]</code> ne se publie pas.</p></div>
+  </div>
+
+  <div class="carte bloc"><h4>Ce que le contrat ne décrit pas</h4>
     <p>Le comportement, les événements, le clavier, l'accessibilité et les attributs natifs : le code en répond. Les assets et les images. Un mode fixé sur un calque. L'adresse du fichier Figma, qu'un Storybook comparé à Figma réclamera sous la clé <code>figmaFileKey</code> de <code>ucm.config.json</code> (<a href="#piste-P9">P9</a>).</p>
     <p>{{regle:libre-dans-le-code}}</p></div>
 
@@ -392,172 +558,43 @@
       <tr><td>Contrat</td><td class="n">{{contrat}}</td><td>{{contrats:lus}}. Hors fenêtre, le designer réexporte ou le mainteneur met à jour les paquets.</td></tr>
       <tr><td>Schéma JSON</td><td class="n">suit le contrat</td><td>Dérivé de <code>types.ts</code>. Il décrit la forme, jamais la cohérence.</td></tr>
       <tr><td>tokens.json</td><td class="n">{{tokens:format}}</td><td>{{tokens:lus}}. DTCG module 2025.10, lu par Style Dictionary 5. Style Dictionary 4 écrit <code>[object Object]</code> sans échouer.</td></tr>
-      <tr data-pour="toolkit"><td>@ucm-kit/core</td><td class="n">{{version:kit}}</td><td>0.x : aucune compatibilité promise.</td></tr>
+      <tr><td>@ucm-kit/core</td><td class="n">{{version:kit}}</td><td>0.x : aucune compatibilité promise.</td></tr>
       <tr><td>@ucm-kit/cli</td><td class="n">{{version:cli}}</td><td><a class="terme" href="#g-epingler" title="Écrire une version exacte, sans ^, pour que npm n'en installe jamais une autre.">Épingle</a> le kit {{version:kit}}. Le repository l'installe en version exacte, sans <code>^</code>.</td></tr>
       <tr><td>@ucm-kit/adapter-typescript</td><td class="n">{{version:adaptateur}}</td><td>Épingle le kit {{version:kit}}.</td></tr>
-      <tr data-pour="designer"><td>Recette Palettes</td><td class="n">{{recette}}</td><td>Lit {{recette:lue}}, en migrant une étape par format.</td></tr>
+      <tr><td>Recette Palettes</td><td class="n">{{recette}}</td><td>Lit {{recette:lue}}, en migrant une étape par format.</td></tr>
     </table></div>
     <p class="doux">Contrat 12.0 : rotation, défaut posé par le designer. 13.0 : <code>textTransform</code>. 14.0 : effets, opacité, position dans un conteneur sans auto layout. <code>COMPATIBILITE.md</code> range les changements en {{classes}} classes, et une mineure n'est jamais présumée compatible.</p>
   </div></details>
 </section>
 
-<!-- 5. Les outils -->
-<section class="partie" id="outils">
-  <h2><span class="num">5</span>Les outils</h2>
-  <p class="defini">Défini dans le <code>README.md</code> et le <code>SPEC.md</code> de chaque paquet.</p>
-  <div class="defile"><table>
-    <tr><th>Paquet</th><th>Rôle</th><th>Distribution</th><th>À noter</th></tr>
-    <tr data-pour="toolkit"><td><b>Socle</b></td><td>Code partagé des plugins : build, langage visuel, galerie, moteur d'extraction</td><td>privé, en source</td><td class="doux">périmètre sans objet</td></tr>
-    <tr data-pour="toolkit"><td><b>Kit</b></td><td>Format, référentiel, contrôles, <a class="terme" href="#g-lecteur" title="Une fonction du kit qui lit un contrat ou tokens.json et rend un bilan. La CLI s'en sert dans le CI.">lecteurs</a>. Tous en dépendent. {{entrees:Mot}} <a class="terme" href="#g-entree" title="Un chemin d'import du kit, comme @ucm-kit/core/lecteurs.">points d'entrée</a>, listés en annexe.</td><td>npm {{version:kit}}</td><td></td></tr>
-    <tr data-pour="toolkit"><td><b>Moteur de couleur</b></td><td>Rampes, contrastes, garanties, harmonisation. Sans Figma ni DOM. Lu par Palettes, Architect, Hub.</td><td>privé</td><td class="doux">périmètre sans objet</td></tr>
-    <tr data-pour="toolkit"><td><b>Hub UCM</b></td><td>Page locale des sorties du kit et du moteur. Storybook la remplacera (<a href="#piste-P9">P9</a>).</td><td>privé</td><td><span class="etat partiel">partiel</span></td></tr>
-  </table></div>
-  <div class="legende"><span class="etat livre">livré</span><span class="etat partiel">partiel</span></div>
-
-  <h3>Les cinq outils que le designer ou le développeur manipule</h3>
-  <p class="defini">Défini dans <code>packages/adapter-typescript/src/parite.mjs</code> pour l'adaptateur.</p>
-
-  <!-- Cartes d'outil : logo, nom, canal, rôle, ce que l'outil lit et écrit, limites ; le détail reste replié. Logos : logosDesOutils (releves.ts). -->
-  <div class="produits">
-  <div class="fiche" data-pour="designer">
-    <div class="tete">{{logo:palettes}}<div class="nom"><b>UCM Palettes</b><span class="etat livre">livré</span><span class="canal">Plugin Figma, privé</span></div></div>
-    <p class="role">Calcule les rampes Light et Dark d'une palette.</p>
-    <dl class="faits">
-      <dt>Lit</dt><dd>Une couleur de référence</dd>
-      <dt>Écrit</dt><dd><span class="chemin"><span class="c">primitives</span>/color/{palette}/{soft|vivid}/{light|dark}/<span class="v">{cran}</span></span> et les planches</dd>
-    </dl>
-    <h4>Limites</h4>
-    <ul class="liste">
-      <li>Contraste WCAG 2 seulement. APCA attend WCAG 3.</li>
-      <li>Ne produit pas tokens.json. Aucune pastille de planche n'est liée à une variable. Planches toujours en français.</li>
-      <li data-pour="toolkit">Les tests d'interface de la Comparaison restent à réécrire.</li></ul>
-    <details><summary>Onglets et écritures</summary>
-      <div class="defile"><table>
-        <tr><th>Onglet</th><th>Le designer</th><th>Écrit</th></tr>
-        <tr><td>Création</td><td>Nomme la palette, choisit la référence, {{palettes:nuances}} nuances, une intensité ou Soft et Vivid, règle « Réglage global » et « Color shift »</td><td>recette</td></tr>
-        <tr><td>Vérification</td><td>Lit le <a class="terme" href="#g-verdict" title="Le mot a trois sens. Dans Palettes, le verdict dit si la palette tient les {{garanties:nombre}} garanties. Dans l'Exporter, le « Contrôle avant publication » prend sa place. Dans ucm check, le verdict dit si la demande peut fusionner.">verdict</a> et les {{garanties:nombre}} garanties sur 6 fonds</td><td>rien</td></tr>
-        <tr><td>Comparaison</td><td>Repère les palettes trop proches, compare en gris, lit la roue des teintes, simule trois visions</td><td>recette</td></tr>
-        <tr><td>Gestion</td><td>Relie la recette au fichier, reprend les palettes présentes ou de bibliothèque, synchronise</td><td>variables, planches</td></tr>
-        <tr><td>Configuration (panneau)</td><td>Règle les fonds de page, le texte des boutons, les courbes, les seuils, la langue</td><td>recette</td></tr>
-      </table></div>
-      <p>44 variables par palette à deux intensités quand Light et Dark sont dans le nom, 22 quand Light et Dark sont des modes Figma. Une palette existante se reprend dès 5 variables dont le dernier segment est un nombre. Palettes pose une marque <code>nommage</code> que lit Architect. Le README annonce 3 onglets, le code en a 4.</p>
-    </details>
-  </div>
-
-  <div class="fiche" data-pour="designer">
-    <div class="tete">{{logo:architect}}<div class="nom"><b>UCM Architect</b><span class="etat livre">livré</span><span class="canal">Plugin Figma, privé</span></div></div>
-    <p class="role">Explore, renomme et corrige les variables, analyse un composant.</p>
-    <dl class="faits">
-      <dt>Lit</dt><dd>Les variables d'un fichier déclaré UCM, un composant</dd>
-      <dt>Écrit</dt><dd>Les noms des variables, la structure du thème, le composant</dd>
-    </dl>
-    <h4>Limites</h4>
-    <ul class="liste">
-      <li>Le designer actualise après un changement de variables, que Figma ne signale pas.</li>
-      <li>Une variable de bibliothèque non utilisée n'est pas lue. Les usages dans d'autres fichiers ne sont pas vus.</li>
-      <li>Un composant à la fois, 2 000 calques au plus. Interface en français, toujours sombre.</li></ul>
-    <details><summary>Le Button ici</summary>
-      <p>Le remplissage du variant Color=Primary, Variant=Contained, State=Default est en dur : C25. Lié à <span class="chemin"><span class="c">components</span>/Button/color/primary/contained/default/<span class="v">background</span></span>, il passe.</p>
-    </details>
-    <details><summary>Vues et règles de conduite</summary>
-      <div class="defile"><table>
-        <tr><th>Vue</th><th class="n">Fenêtre</th><th>Le designer</th></tr>
-        <tr><td>Tokens</td><td class="n">1360 × 800</td><td>Parcourt les collections (<code>terme:</code>, <code>vise:</code>, chaîne d'alias, « Utilisée par »). Lit les constats en 10 catégories : Noms, Variables manquantes, Crans, Alias, Modes, Valeurs, Couches, Types, Rangement, Scopes. Renomme avec Nomenclature.</td></tr>
-        <tr><td>Composant</td><td class="n">500 × 760</td><td>Analyse un jeu de variants en {{composant:sections}} sections : {{composant:sections-liste}}. Prépare les tokens du composant en 5 étapes. L'accessibilité juge une cible à partir de {{accessibilite:cible}} px ({{accessibilite:tactile}} px au toucher) et un texte à partir de {{accessibilite:texte}} px.</td></tr>
-      </table></div>
-      <ul class="liste">
-        <li>Une correction n'est proposée que si une règle écrite donne un seul candidat. Sinon, une question sans réponse cochée.</li>
-        <li>Les corrections arrivent décochées. « Appliquer tout » forme un seul lot : Ctrl+Z défait le composant, l'Historique les variables.</li>
-        <li>Un layer se lie aux tokens de son propre composant, jamais directement à <code>layout</code> ou <code>theme</code>.</li>
-        <li>Sur un fichier de 2 415 variables, l'analyse prend 2,6 s et Actualiser 2,3 s.</li></ul>
-    </details>
-  </div>
-
-  <div class="fiche" data-pour="designer developpeur">
-    <div class="tete">{{logo:exporter}}<div class="nom"><b>UCM Contract Exporter</b><span class="etat livre">livré</span><span class="etat partiel">version Community ancienne</span><span class="canal">Plugin Figma, Figma Community</span></div></div>
-    <p class="role">Publie contrats et tokens.</p>
-    <dl class="faits">
-      <dt>Lit</dt><dd>Le composant sélectionné. Sans sélection, les variables.</dd>
-      <dt>Écrit</dt><dd><code>&lt;Id&gt;.contract.json</code> ou <code>tokens.json</code>, sur une branche avec une demande de fusion par fichier, ou en téléchargement</dd>
-    </dl>
-    <h4>Limites</h4>
-    <ul class="liste">
-      <li>Un composant par export, aucune fusion automatique.</li>
-      <li>Une instance détachée redevient un FRAME, sans diagnostic. <code>SLOT</code> et <code>INSTANCE_SWAP</code> sont éprouvés seulement par des tests synthétiques.</li>
-      <li>La version publiée sur la Figma Community écrit encore <code>tokens.json</code> au format 1. Le build du dépôt écrit le format 2, celui que décrit cette page. La CLI lit les deux, mais <code>ucm tokens css</code> refuse un fichier à modes au format 1 (<a href="#piste-P14">P14</a>).</li></ul>
-    <details><summary>Fonctions</summary>
-      <ul class="liste">
-        <li><b>Créer les règles d'usage</b> : pose une instance <code>.componentRules</code> avec un marqueur <code>[À compléter]</code> par propriété. Seul geste qui écrit dans Figma.</li>
-        <li><b>Contrôle avant publication</b>. Si <code>tokens.json</code> n'est pas encore sur la branche principale, l'Exporter demande de faire fusionner les tokens d'abord, car le CI refuserait le composant.</li>
-        <li>Un contenu identique n'ouvre pas de seconde demande.</li>
-        <li data-pour="toolkit">Le moteur d'extraction vit dans le socle (<code>plugin-socle/src/composant/</code>).</li></ul>
-    </details>
-  </div>
-
-  <div class="fiche" data-pour="developpeur">
-    <div class="tete">{{logo:cli}}<div class="nom"><b>CLI</b><span class="etat livre">livré</span><span class="canal">Paquet npm <span class="mono">@ucm-kit/cli</span></span></div></div>
-    <p class="role">Contrôle les contrats à chaque demande de fusion. Ne demande pas de <code>package.json</code>.</p>
-    <dl class="faits">
-      <dt>Lit</dt><dd>Les contrats, <code>tokens.json</code>, le code par l'adaptateur</dd>
-      <dt>Écrit</dt><dd>La configuration du repository, le rapport, la feuille CSS, le guide d'un contrat</dd>
-    </dl>
-    <h4>Limites</h4>
-    <ul class="liste">
-      <li>Sans adaptateur, le rapport dit que le code n'a pas été lu. Sans <a class="terme" href="#g-lockfile" title="package-lock.json fige les versions installées. Le workflow n'installe les dépendances que s'il existe.">lockfile</a>, le workflow saute <code>npm ci</code> et l'adaptateur ne se charge pas, ce qui est le cas d'intencial-library (<a href="#piste-P18">P18</a>).</li>
-      <li>Le contraste ne sait pas si un texte est grand, d'où une information seulement.</li></ul>
-    <details><summary>Commandes</summary>
-      <div class="defile"><table>
-        <tr><th>Commande</th><th>Rôle</th></tr>
-        {{lignes-commandes}}
-      </table></div>
-    </details>
-  </div>
-
-  <div class="fiche" data-pour="developpeur">
-    <div class="tete">{{logo:adaptateur}}<div class="nom"><b>Adaptateur TypeScript</b><span class="etat livre">livré</span><span class="canal">Paquet npm <span class="mono">@ucm-kit/adapter-typescript</span></span></div></div>
-    <p class="role">Compare les props du code à celles du contrat. Paquet séparé parce que <code>typescript</code> pèse 23 Mo.</p>
-    <dl class="faits">
-      <dt>Lit</dt><dd>Le code TypeScript et le contrat du composant</dd>
-      <dt>Écrit</dt><dd>Les types des variantes</dd>
-    </dl>
-    <h4>Ce qu'il ne voit pas</h4>
-    <ul class="liste">
-      <li>Une union plus large que le contrat.</li><li>Une dépendance rendue par <code>.map()</code>.</li><li>Le défaut d'un axe dans le code.</li><li>Les couleurs, tailles et polices rendues.</li><li>Une interface nommée autrement que <code>ButtonProps</code> donne le seul écart « interface absente », et aucune prop n'est comparée.</li></ul>
-    <details><summary>Huit écarts, tous en avertissement</summary>
-      <ul class="liste">
-        <li>Interface absente.</li><li>Fonction absente.</li><li>Prop du contrat absente du code.</li><li>Type incompatible, jugé pour les booléens et les enums.</li><li>Valeur du contrat que le code n'offre pas.</li><li>Booléen jamais lu.</li><li>Enum sans effet.</li><li>Nombre d'occurrences d'une dépendance faux dans le JSX.</li></ul>
-    </details>
-  </div>
-  </div>
-</section>
-
-<!-- 6. Ce qui est contrôlé, et ce qui ne l'est pas -->
+<!-- 6. Ce qui est vérifié, et où : dans Figma avec Architect, puis à la demande de fusion avec ucm check. Rapport : rapportDuButton (releves.ts) ; règles décidées : decisions.json, genre tableau. -->
 <section class="partie" id="controles">
-  <h2><span class="num">6</span>Ce qui est contrôlé, et ce qui ne l'est pas</h2>
+  <h2><span class="num">6</span>Ce qui est vérifié, et où</h2>
   <p class="defini">Défini dans <code>packages/kit/src/controles/</code> et <code>packages/kit/src/lecteurs/</code>.</p>
-  <p class="intro">Cinq types d'alerte, du plus fort au plus calme : <span class="alerte a-bloquant">bloquant</span> <span class="alerte a-corriger">corriger</span> <span class="alerte a-verifier">vérifier</span> <span class="alerte a-info">info</span> <span class="alerte a-tenu">tenu</span>.</p>
+  <p class="intro">Un composant est vérifié à deux moments. Dans Figma, Architect l'analyse avant l'export. À chaque demande de fusion, <code>ucm check</code> lit le contrat, <code>tokens.json</code> et le code dans le CI du repository.</p>
 
-  <!-- V4. Cycle d'une demande. Source : packages/kit/src/lecteurs/verdict-bilan.mjs (bilanEstBloquant) et les décisions du mainteneur (pistes P17, P19, P9, P10, P20). -->
-  <h3 data-pour="designer developpeur">Le cycle d'une demande</h3>
-  <p class="defini">Défini dans <code>packages/kit/src/lecteurs/controle-repository.mjs</code>.</p>
-  <div class="cycle" role="group" aria-label="Le cycle d'une demande de fusion">
-    <span class="col-titre">Designer</span><span class="col-titre">CI d'intencial-library</span><span class="col-titre">Développeur</span>
-    <div class="demande"><b>Demande de tokens</b><p>Le designer exporte <code>tokens.json</code> et le fusionne seul, grâce à un fichier <a class="terme" href="#g-codeowners" title="Un fichier GitHub qui désigne qui doit approuver une demande selon les fichiers touchés."><code>CODEOWNERS</code></a> (<a href="#piste-P17">P17</a>).</p></div>
-    <div class="ci"><div><span class="quand">Aujourd'hui</span><div class="pastilles"><span><span class="verdict v-passe">passe</span></span></div></div><div><span class="quand">Décidé</span><div class="pastilles"><span><span class="verdict v-passe">passe toujours</span></span></div></div></div>
-    <div></div>
-    <div class="demande"><b>Demande de contrat</b><p>L'Exporter demande de fusionner les tokens d'abord.</p></div>
-    <div class="ci"><div><span class="quand">Aujourd'hui</span><div class="pastilles"><span><span class="verdict v-bloque">bloque</span><span class="txt">contrat illisible</span></span><span><span class="verdict v-avertit">avertit</span><span class="txt">token absent</span></span></div></div><div><span class="quand">Décidé</span><div class="pastilles"><span><span class="verdict v-bloque">bloque</span><span class="txt">contrat illisible</span></span><span><span class="verdict v-bloque">bloque</span><span class="txt">token absent, <a href="#piste-P19">P19</a></span></span></div></div></div>
-    <div></div>
-    <div></div>
-    <div class="ci"><div><span class="quand">Aujourd'hui</span><div class="pastilles"><span><span class="verdict v-avertit">avertit</span><span class="txt">écart de parité</span></span></div></div><div><span class="quand">Décidé</span><div class="pastilles"><span><span class="verdict v-bloque">bloque</span><span class="txt">écart de parité, sauf <a class="terme" href="#g-derogation" title="Une exception motivée qu'un développeur écrit pour laisser passer un écart, en attendant la relecture du designer.">dérogation</a> motivée, <a href="#piste-P19">P19</a></span></span></div></div></div>
-    <div class="demande"><b>Demande de code</b><p>Le développeur s'aide d'<code>ucm guide</code>, des {{aides}} aides et de la skill <code>ucm-implementer</code>.</p></div>
-  </div>
-  <div class="bande-rose"><span class="verdict v-non">non contrôlé</span>Aucun contrôle ne vérifie le rendu dans un navigateur. <a href="#piste-P9">P9</a> monte les stories, <a href="#piste-P10">P10</a> compare et <a href="#piste-P20">P20</a> bloque.</div>
+  <h3>Dans Figma, avec Architect</h3>
+  <p class="defini">Défini dans <code>packages/kit/src/controles/codes.ts</code>.</p>
+  <p>Architect range chaque remarque en <a class="terme" href="#g-constat" title="Une remarque d'Architect ou de l'Exporter sur un composant, avec un code de {{codes:plage}} et un type d'alerte.">constat</a>, avec un code et un type d'alerte. Ses constats couvrent les couleurs et leurs tokens (C15 à C25, C30, C41), le contraste (C49), les dimensions et les espacements (C29), la typographie (C64, C65), la structure et l'ordre des calques (C31, C34, C35). Cinq types d'alerte vont du plus fort au plus calme : <span class="alerte a-bloquant">bloquant</span> <span class="alerte a-corriger">corriger</span> <span class="alerte a-verifier">vérifier</span> <span class="alerte a-info">info</span> <span class="alerte a-tenu">tenu</span>.</p>
+  <details class="pli" id="codes-constats"><summary>Les {{codes:nombre}} codes d'Architect et de l'Exporter, de {{codes:plage}} <span class="doux">rangés par section du panneau d'Architect</span></summary><div class="contenu">
+    <p>Le catalogue <code>packages/kit/src/controles/codes.ts</code> liste ces codes, avec leurs familles, leurs types et leur sens. Un constat de liaison sur un champ de taille va dans « Tailles et forme ». Hors C60, C63 et C82, les constats de la vue Tokens n'ont pas de code ici.</p>
+    <div class="filtres" id="filtres-section"><span class="etiquette">Section</span></div>
+    <div class="filtres" id="filtres-type"><span class="etiquette">Type</span></div>
+    <div class="filtres"><input type="search" id="recherche-controles" placeholder="Chercher un code ou un mot" aria-label="Chercher un contrôle"><span class="compte" id="compte"></span></div>
+    <div class="defile"><table id="table-controles"><thead><tr><th>Code</th><th>Section</th><th>Ce qu'il signale</th><th>Type</th></tr></thead><tbody></tbody></table></div>
+  </div></details>
+  <details class="pli"><summary>Autres familles de codes <span class="doux">tokens.json, contrat, Palettes</span></summary><div class="contenu">
+    <ul class="liste">
+      <li><b>Axes de tokens.json</b>, 9 codes : <code>axes-absents</code>, <code>axe-inconnu</code>, <code>modes-divergents</code>, <code>axe-ecarte</code>…</li>
+      <li><b>Diagnostics du contrat</b> (<code>meta.diagnostics</code>) : toujours <code>warning</code>, message en français pour le designer.</li>
+      <li><b>Alertes de Palettes</b> : intensités confondues (seuil {{palettes:seuil-confondues}}), palettes proches ({{palettes:seuil-proches}}), référence plus terne ou plus vive, fond hors courbe. 49 règles refusent une recette mal formée.</li>
+    </ul>
+  </div></details>
 
   <!-- V3. Rapport d'ucm check. Phrases : rapportDuButton (releves.ts) : diagnostic-parite.mjs (sectionEcartsDeParite), controle-repository.mjs pour « Aucun blocage détecté », verdict-bilan.mjs pour « Les contrôles du repository bloquent la fusion ». -->
-  <h3 data-pour="designer developpeur">Le rapport d'<code>ucm check</code>, aujourd'hui et après P19</h3>
-  <p class="defini">Défini dans <code>packages/kit/src/lecteurs/diagnostic-parite.mjs</code>.</p>
-  <p class="intro">Une demande modifie <code>Button.tsx</code>, qui n'a pas de prop <code>size</code>.</p>
+  <h3>À la demande de fusion, avec <code>ucm check</code></h3>
+  <p class="defini">Défini dans <code>packages/kit/src/lecteurs/diagnostic-parite.mjs</code> et <code>packages/kit/src/lecteurs/verdict-bilan.mjs</code>.</p>
+  <p class="intro"><code>ucm check</code> écrit son rapport en commentaire de la demande. Dans l'exemple, une demande modifie <code>Button.tsx</code>, qui n'a pas de prop <code>size</code>.</p>
   <div class="rapports">
     <figure class="rapport"><figcaption>Aujourd'hui (CLI {{version:cli}})</figcaption>
       <div class="pr"><div class="pr-tete">ucm check</div>
@@ -580,82 +617,81 @@
           <ul><li>{{rapport:ecart}}</li></ul>
         </div>
         <div class="pr-fusion"><span class="bouton-fusion grise">Fusionner</span></div></div>
-      <p class="doux">Si la demande ne modifie que <code>Button.contract.json</code>, le composant est marqué en retard sur son contrat, et la demande passe.</p></figure>
+      <p class="doux">Si la demande ne modifie que <code>Button.contract.json</code>, le composant est marqué <a class="terme" href="#g-retard" title="Se dit d'un composant dont le code ne suit pas encore son contrat.">en retard sur son contrat</a>, et la demande passe.</p></figure>
   </div>
 
-  <h3 data-pour="designer developpeur">Qui contrôle quoi</h3>
-  <p class="defini">Défini dans <code>packages/kit/src/lecteurs/verdict-bilan.mjs</code>.</p>
-  <div class="defile"><table class="qui-controle">
-    <tr><th>Ce qui peut diverger</th><th>Dans Figma (Architect, Exporter)</th><th>CI aujourd'hui</th><th>CI décidé</th><th>Piste</th></tr>
-    <tr><td>Couleurs et tokens</td><td>C15 à C25, C30, C41</td><td><span class="verdict v-avertit">avertit</span><span class="txt">Token absent</span></td><td><span class="verdict v-bloque">bloque</span></td><td><a href="#piste-P19">P19</a></td></tr>
-    <tr><td>Couleur rendue</td><td>C49 (contraste)</td><td><span class="verdict v-non">non contrôlé</span></td><td><span class="verdict v-bloque">bloque</span></td><td><a href="#piste-P10">P10</a>, <a href="#piste-P20">P20</a></td></tr>
-    <tr><td>Dimensions et espacements</td><td>C29</td><td><span class="verdict v-non">non contrôlé</span></td><td><span class="verdict v-bloque">bloque</span></td><td><a href="#piste-P10">P10</a>, <a href="#piste-P20">P20</a></td></tr>
-    <tr><td>Typographie</td><td>C64, C65</td><td><span class="verdict v-bloque">bloque</span><span class="txt">Type des tokens de typographie</span></td><td><span class="verdict v-bloque">bloque</span><span class="txt">Rendu</span></td><td><a href="#piste-P10">P10</a>, <a href="#piste-P20">P20</a></td></tr>
-    <tr><td>Structure et ordre</td><td>C31, C34, C35</td><td><span class="verdict v-bloque">bloque</span><span class="txt">Composition (contrat de chaque imbriqué, aucun cycle)</span></td><td><span class="verdict v-bloque">bloque</span><span class="txt">Ordre rendu</span></td><td><a href="#piste-P10">P10</a>, <a href="#piste-P20">P20</a></td></tr>
-    <tr><td>Props du code</td><td class="doux">sans objet</td><td><span class="verdict v-avertit">avertit</span></td><td><span class="verdict v-bloque">bloque</span></td><td><a href="#piste-P19">P19</a></td></tr>
-    <tr><td>Valeur écrite en dur dans le code</td><td class="doux">sans objet</td><td><span class="verdict v-non">non contrôlé</span></td><td><span class="verdict v-bloque">bloque</span><span class="txt">par le linter</span></td><td><a href="#piste-P6">P6</a></td></tr>
-    <tr><td>Fusion d'une demande rouge</td><td class="doux">sans objet</td><td>possible, sans protection de branche</td><td>impossible</td><td><a href="#piste-P17">P17</a></td></tr>
-  </table></div>
-  <p class="doux">{{regle:validation-visuelle-sans-blocage}}</p>
-  <details class="pli"><summary>Ce que <code>ucm check</code> bloque déjà <span class="doux">et ce que la décision change</span></summary><div class="contenu">
-    <p><code>ucm check</code> bloque aussi un contrat incomplet ou hors de la fenêtre {{contrats:fenetre}}, et un fichier de tokens absent ou illisible. Il rend le contraste des couleurs du contrat en information seulement. <code>bilanEstBloquant</code> (<code>lecteurs/verdict-bilan.mjs</code>) ne compte ni les tokens absents ni la parité (<a href="#piste-P19">P19</a>). Le guide du designer (<code>POUR-LES-DESIGNERS.md</code> §6) décrit le comportement actuel. <a href="#piste-P2">P2</a> le réécrira selon la décision.</p>
+  <h3>Ce que <code>ucm check</code> fait de chaque écart aujourd'hui</h3>
+  <div class="verifs">
+    <div class="carte"><h4><span class="verdict v-bloque">bloque</span></h4>
+      <ul class="liste">
+        <li>Un contrat illisible, incomplet ou hors de la fenêtre {{contrats:fenetre}}.</li>
+        <li>Une composition cassée, quand le contrat d'un <a class="terme" href="#g-imbrique" title="Une instance d'un autre composant, placée dans le composant.">imbriqué</a> manque ou qu'un cycle apparaît.</li>
+        <li>Un token de typographie dont le type est faux.</li>
+        <li>Un fichier de tokens absent ou illisible.</li></ul></div>
+    <div class="carte"><h4><span class="verdict v-avertit">avertit sans bloquer</span></h4>
+      <ul class="liste">
+        <li>Un token cité par le contrat et absent de <code>tokens.json</code>.</li>
+        <li>Un écart de parité entre les props du code et le contrat.</li>
+        <li>Le contraste des couleurs du contrat, en information seulement, car <code>ucm check</code> ne sait pas si un texte est grand.</li></ul></div>
+    <div class="carte"><h4><span class="verdict v-non">non vérifié</span></h4>
+      <ul class="liste">
+        <li>Le rendu dans un navigateur : couleur, dimensions, typographie, structure et ordre (<a href="#piste-P9">P9</a>, <a href="#piste-P10">P10</a>, <a href="#piste-P20">P20</a>).</li>
+        <li>Une valeur écrite en dur dans le code (<a href="#piste-P6">P6</a>).</li>
+        <li>La fusion d'une demande rouge, que seule une protection de branche empêche (<a href="#piste-P17">P17</a>).</li></ul></div>
+  </div>
+  <p class="doux"><code>bilanEstBloquant</code> (<code>lecteurs/verdict-bilan.mjs</code>) ne compte ni les tokens absents ni la parité.</p>
+
+  <h3>Les règles décidées, pas encore dans le code</h3>
+  <p class="defini">Défini dans <code>docs/notes/Recherches/Evolutions globales/decisions.json</code>.</p>
+  <ul class="liste">
+    {{lignes-decidees}}
+  </ul>
+  <p class="doux">{{regle:validation-visuelle-sans-blocage}} Le guide du designer (<code>POUR-LES-DESIGNERS.md</code> §6) décrit le comportement actuel, et <a href="#piste-P2">P2</a> le réécrira selon ces règles.</p>
+</section>
+
+<!-- 7. La suite : une liste des pistes par rang, avec décision et note sur la ligne et la fiche dépliable ; le graphe ; les questions ouvertes. Source : PISTES et DECISIONS dans le script de la page. -->
+<section class="partie" id="suite">
+  <h2><span class="num">7</span>La suite</h2>
+  <p class="defini">Défini dans <code>ROADMAP.md</code> et <code>docs/notes/Recherches/Evolutions globales/PISTES-EVOLUTION.md</code>.</p>
+  <p class="intro">La feuille de route range {{pistes:nombre}} pistes par rang, de ce qui précède l'ouverture du projet à ce qui peut attendre. Chaque ligne donne ce qui arrive si on ne fait pas la piste, son coût et la décision. Un clic sur la ligne ouvre la fiche de la piste.</p>
+  <p class="doux">Le coût se compte en travail d'agent (<code>S</code> moins d'une demi-journée, <code>M</code> un lot, <code>L</code> plusieurs lots, <code>XL</code> un projet), puis en temps du mainteneur. Plusieurs pistes préparent les <a class="terme" href="#g-module" title="Un outil installé dans le repository de l'application, comme le linter, le générateur de stories ou le vérificateur de rendu, qui lit les contrats.">modules consommateurs</a> d'intencial-library, la bibliothèque de production.</p>
+  <div class="ecart-decisions" id="ecart-decisions" role="status" hidden><span id="ecart-compte"></span><span class="doux">Elles restent dans ce navigateur jusqu'à l'enregistrement.</span><button class="bouton" id="enregistrer-decisions">Enregistrer dans le dépôt</button><button class="bouton" id="revenir-au-depot">Revenir à la version du dépôt</button><span id="ecart-message" class="doux"></span></div>
+  <div class="bilan-decisions"><span id="bilan-decisions"></span><button class="bouton" id="deplier-pistes">Déplier les {{pistes:nombre}} fiches</button><button class="bouton" id="copier-decisions" title="Met les décisions en texte, à coller dans une conversation ou un document">Copier les décisions</button><button class="bouton" id="effacer-decisions">Effacer les décisions</button></div>
+  <textarea id="export-decisions" class="export" hidden readonly aria-label="Décisions en texte"></textarea>
+  <div id="pistes" class="pistes"></div>
+  <!-- V6. Graphe des dépendances : calculé au rendu depuis PISTES (profondeur, chemin critique). -->
+  <details class="pli" id="graphe"><summary>Le graphe des dépendances <span class="doux">{{pistes:nombre}} pistes, chemin critique en rose</span></summary><div class="contenu graphe">
+    <div id="graphe-pistes" class="seul-ecran"></div>
+    <ul id="graphe-liste" class="graphe-liste seul-mobile"></ul>
+    <p class="legende-graphe" id="legende-chemin"></p>
   </div></details>
-  <details class="pli"><summary>Les règles décidées qui ne sont pas dans le tableau</summary><div class="contenu">
+
+  <h3>Questions ouvertes</h3>
+  <p class="defini">Défini dans <code>docs/notes/Recherches/Linter Dev/PLAN-CONFORMITE-RENDU.md</code>.</p>
+  <p class="intro">Une question ouverte est une décision qui touche plusieurs pistes à la fois. Les questions propres à une piste sont dans sa fiche.</p>
+  <div class="defile"><table class="empile">
+    <tr><th>Question</th><th>Fait</th><th>Pistes</th><th>Choix</th></tr>
+    {{lignes-transverses}}
+  </table></div>
+  <details class="pli"><summary>Les autres règles décidées <span class="doux">hors des contrôles</span></summary><div class="contenu">
     <ul class="liste">
       {{lignes-regles}}
     </ul>
   </div></details>
 </section>
 
-<!-- 7. La suite -->
-<section class="partie" id="suite" data-pour-garde>
-  <h2><span class="num">7</span>La suite</h2>
-  <p class="defini">Défini dans <code>ROADMAP.md</code>.</p>
-  <div class="encadre" data-pour="toolkit">7 pistes de rang 0 précèdent l'ouverture du projet à d'autres contributeurs. Le dépôt contredit encore la règle de blocage décidée.</div>
-  <p class="intro">Des <a class="terme" href="#g-module" title="Un outil installé dans le repository de l'application, comme le linter, le générateur de stories ou le vérificateur de rendu, qui lit les contrats.">modules consommateurs</a> s'ajoutent au toolkit, écrits en React et TypeScript, avec ou sans agent de code. intencial-library, la bibliothèque de production, porte les contrats, les composants et leur Storybook.</p>
-  <div class="legende"><span class="etat decidee">décidée, à faire</span><span class="etat propose">proposée par une recherche</span><span class="etat ouvert">question ouverte</span></div>
-
-  <div class="carte button-ici"><h4>Le Button ici</h4>
-    <p>Pour que le rapport du Button bloque : <a href="#piste-P17">P17</a>, <a href="#piste-P2">P2</a>, <a href="#piste-P19">P19</a>. Pour qu'un padding faux du Button bloque : <a href="#piste-P10">P10</a>, <a href="#piste-P9">P9</a>, <a href="#piste-P20">P20</a>.</p></div>
-
-  <h3 id="feuille">La feuille de route</h3>
-  <p class="defini">Défini dans <code>docs/notes/Recherches/Evolutions globales/PISTES-EVOLUTION.md</code>.</p>
-  <div class="ecart-decisions" id="ecart-decisions" role="status" hidden><span id="ecart-compte"></span><button class="bouton" id="enregistrer-decisions">Enregistrer dans le dépôt</button><button class="bouton" id="revenir-au-depot">Revenir à la version du dépôt</button><span id="ecart-message" class="doux"></span></div>
-  <p class="intro">22 pistes, rangées par rang d'implémentation. R et C sont les promesses de la partie 2. La complexité se compte en travail d'agent : <code>S</code> moins d'une demi-journée, <code>M</code> un lot, <code>L</code> plusieurs lots, <code>XL</code> un projet.</p>
-  <div class="bilan-decisions"><span id="bilan-decisions"></span><button class="bouton" id="deplier-pistes">Déplier les 22 pistes</button><button class="bouton" id="copier-decisions">Copier les décisions</button><button class="bouton" id="effacer-decisions">Effacer les décisions</button></div>
-  <p class="doux">Les décisions et les notes restent dans ce navigateur tant qu'elles ne sont pas enregistrées dans le dépôt. « Copier les décisions » les met en texte, à coller dans une conversation ou un document.</p>
-  <textarea id="export-decisions" class="export" hidden readonly aria-label="Décisions en texte"></textarea>
-  <!-- V6. Graphe des dépendances : calculé au rendu depuis PISTES (profondeur, chemin critique). Source : PISTES et TITRES_COURTS dans le script de la page. -->
-  <details class="pli" id="graphe"><summary>Le graphe des dépendances <span class="doux">22 pistes, chemin critique en rose</span></summary><div class="contenu graphe">
-    <div id="graphe-pistes" class="seul-ecran"></div>
-    <ul id="graphe-liste" class="graphe-liste seul-mobile"></ul>
-    <p class="legende-graphe" id="legende-chemin"></p>
-  </div></details>
-  <!-- A. Vue d'ensemble : une ligne par piste. Source : PISTES (raisonImportance, complexite, coutHumain, dependances). -->
-  <div class="defile" id="vue-ensemble"><table class="ensemble empile"><thead><tr><th>Piste</th><th>Si on ne fait pas</th><th>Coût (agent, mainteneur)</th><th>Attend</th><th>Débloque</th><th>Décision</th></tr></thead><tbody id="corps-ensemble"></tbody></table></div>
-  <details class="pli" id="fiches"><summary>Les 22 fiches <span class="doux">pourquoi, fichiers touchés, critères de fin, questions, risques</span></summary><div class="contenu"><div id="pistes"></div></div></details>
-  <div class="encadre neutre" data-pour="toolkit">Chaque module lit le contrat et le référentiel et n'en recopie aucune liste. Un module qui recopie une règle crée une seconde source de vérité, ce que <code>referentielUnique.test.ts</code> refuse déjà dans le dépôt.</div>
-
-  <h3>Les décisions transverses</h3>
-  <p class="defini">Défini dans <code>docs/notes/Recherches/Linter Dev/PLAN-CONFORMITE-RENDU.md</code>.</p>
-  <p class="intro">Les questions propres à une piste sont dans sa fiche. Celles-ci touchent plusieurs pistes.</p>
-  <div class="defile"><table class="empile">
-    <tr><th>Décision</th><th>Fait</th><th>Pistes</th><th>Choix</th></tr>
-    {{lignes-transverses}}
-  </table></div>
-</section>
-
 <!-- 8. Expliquer UCM à des développeurs -->
-<section class="partie" id="developpeurs" data-pour-garde>
+<section class="partie" id="developpeurs">
   <h2><span class="num">8</span>Expliquer UCM à des développeurs</h2>
-  <p class="defini">Défini dans <code>docs/guides/RECETTE.md</code>.</p>
+  <p class="defini">Défini dans <code>CONCEPT.md</code> et <code>docs/guides/RECETTE.md</code>.</p>
   <p class="intro">Réponses tirées du dépôt et des décisions du mainteneur.</p>
   <dl class="def questions">
-    <dt data-pour="toolkit">L'API du kit est-elle stable ?</dt><dd>Non, elle est en 0.x. La piste <a href="#piste-P3">P3</a> fige les symboles importés, {{noms:importes}} aujourd'hui sur {{noms:uniques}} noms exportés.</dd>
-    <dt data-pour="designer developpeur">Que se passe-t-il quand le designer change un token ?</dt><dd>Sa valeur change dans <code>tokens.json</code>, et la demande passe. Le code suit une fois la feuille régénérée par <code>ucm tokens css</code>. Un token cité par un contrat puis retiré avertit aujourd'hui, et bloquera une fois la règle de blocage codée (<a href="#piste-P19">P19</a>).</dd>
-    <dt data-pour="developpeur">Un contrat peut-il arriver avant le code ?</dt><dd>Oui. Il est fusionné « à implémenter », et la parité s'applique dès que le composant existe.</dd>
-    <dt data-pour="toolkit">Comment tester sans Figma ?</dt><dd><code>npm test</code> couvre le moteur, les lecteurs sur des contrats fabriqués et la CLI sur des repositories temporaires. Ce qui touche Figma et une vraie forge se rejoue dans UCM-Playground, l'application de recette sur GitHub. Un agent ne peut pas exporter depuis Figma.</dd>
-    <dt data-pour="toolkit">Peut-on modifier le kit ?</dt><dd>Le cœur a un seul mainteneur, et un changement du kit se décide avec lui. Les modules importeront seulement l'API que <a href="#piste-P3">P3</a> fige.</dd>
+    <dt>Pourquoi un contrat JSON plutôt que l'API Figma ou Code Connect ?</dt><dd>Le CI lit le contrat sans accès à Figma, et le contrat est versionné à côté du code. Code Connect relie un composant Figma à son code sans décrire les obligations visuelles. Les deux se complètent.</dd>
+    <dt>L'API du kit est-elle stable ?</dt><dd>Non, elle est en 0.x. La piste <a href="#piste-P3">P3</a> fige les symboles importés, {{noms:importes}} aujourd'hui sur {{noms:uniques}} noms exportés.</dd>
+    <dt>Que se passe-t-il quand le designer change un token ?</dt><dd>Sa valeur change dans <code>tokens.json</code>, et la demande passe. Le code suit une fois la feuille régénérée par <code>ucm tokens css</code>. Un token cité par un contrat puis retiré avertit aujourd'hui, et bloquera une fois la règle de blocage codée (<a href="#piste-P19">P19</a>).</dd>
+    <dt>Un contrat peut-il arriver avant le code ?</dt><dd>Oui. Il est fusionné « à implémenter », et la parité s'applique dès que le composant existe.</dd>
+    <dt>Comment tester sans Figma ?</dt><dd><code>npm test</code> couvre le moteur, les lecteurs sur des contrats fabriqués et la CLI sur des repositories temporaires. Ce qui touche Figma et une vraie forge se rejoue dans UCM-Playground, l'application de recette sur GitHub. Un agent ne peut pas exporter depuis Figma.</dd>
+    <dt>Peut-on modifier le kit ?</dt><dd>Le cœur a un seul mainteneur, et un changement du kit se décide avec lui. Les modules importeront seulement l'API que <a href="#piste-P3">P3</a> fige.</dd>
   </dl>
 
   <details class="pli" id="glossaire"><summary>Glossaire <span class="doux">les termes de cette page</span></summary><div class="contenu">
@@ -667,6 +703,7 @@
     <dt id="g-ci">CI</dt><dd>Les contrôles qui tournent à chaque demande de fusion, sur GitHub Actions ou GitLab CI. Ici, <code>ucm check</code>.</dd>
     <dt id="g-codeowners"><code>CODEOWNERS</code></dt><dd>Un fichier GitHub qui désigne qui doit approuver une demande selon les fichiers touchés.</dd>
     <dt id="g-codex">Codex</dt><dd>L'agent de code d'OpenAI. Il lit <code>AGENTS.md</code> à la racine du dépôt.</dd>
+    <dt id="g-collection">Collection de variables</dt><dd>Un groupe de variables Figma qui partagent les mêmes modes, comme Light et Dark. UCM en attend {{collections:nombre}}.</dd>
     <dt id="g-constat">Constat</dt><dd>Une remarque d'Architect ou de l'Exporter sur un composant, avec un code de {{codes:plage}} et un type d'alerte. <a href="#codes-constats">Les {{codes:nombre}} codes</a>.</dd>
     <dt id="g-contrat">Contrat</dt><dd>Le fichier <code>&lt;Id&gt;.contract.json</code> que l'Exporter écrit pour un composant Figma, avec ses props, ses variants et le token de chaque couleur et dimension.</dd>
     <dt id="g-contrat14">Contrat {{contrat}}</dt><dd>Le numéro du format du contrat. <code>ucm check</code> accepte les contrats {{contrats:lus}}.</dd>
@@ -719,48 +756,20 @@
   </div></details>
 </section>
 
-<!-- 9. Annexes -->
+<!-- 9. Annexes : chaque pli commence par une phrase qui dit ce qu'il est, d'où il vient et à quoi il sert. -->
 <section class="partie" id="annexes">
   <h2><span class="num">9</span>Annexes</h2>
   <p class="defini">Défini dans <code>docs/marque/</code>, <code>docs/references/</code>, <code>.agents/</code>, <code>.claude/agents/</code> et <code>.github/workflows/</code>.</p>
+  <p class="intro">Les annexes rassemblent les listes de référence du dépôt. Chaque pli dit ce qu'il montre, de quel fichier il vient et à quoi il sert.</p>
 
   {{annexes}}
-  <details class="pli"><summary>Autres éléments</summary><div class="contenu">
-    <div class="defile"><table>
-      <tr><th>Élément</th><th>Contenu</th><th>Sert à</th><th>Où</th></tr>
-      <tr data-pour="designer"><td><b>Kit de règles Figma</b></td><td>Les trois maîtres <code>.componentRules</code>, <code>.rulesSection</code>, <code>.ruleItem</code>, publiés en fichier Community.</td><td>Poser les règles d'usage que l'Exporter publie</td><td><code>docs/guides/KIT-DE-REGLES.md</code></td></tr>
-      <tr data-pour="toolkit"><td><b>Vues générées</b></td><td>La planche du moteur (Tailwind 3.4 face aux intensités Soft et Vivid), la vue illustrée de l'architecture multi-marques, le Hub, la galerie des états de chaque plugin. <code>npm run vues</code> les régénère, et un test refuse une vue périmée.</td><td>Voir les sorties du moteur et chaque écran des plugins hors de Figma</td><td><code>packages/couleur/planche/PLANCHE-DU-MOTEUR.html</code>, <code>Archi Tokens Multi-marques/</code>, <code>packages/*/galerie/</code></td></tr>
-      <tr data-pour="developpeur"><td><b>Aides pour l'application</b></td><td>{{aides}} fiches d'implémentation (états, focus clavier, icône, modes, ombre, typographie…), la skill <code>ucm-implementer</code> et les gabarits que <code>ucm init</code> installe.</td><td>Guider un développeur ou son agent qui écrit un composant contre son contrat</td><td><code>packages/cli/aides/</code></td></tr>
-      <tr data-pour="toolkit"><td><b>Reconstruction à froid</b></td><td>La skill <code>consommer-contrat</code> reconstruit un composant depuis son seul contrat.</td><td>Prouver pendant la recette que le contrat suffit</td><td><code>.agents/skills/consommer-contrat/</code></td></tr>
-      <tr data-pour="designer"><td><b>Guides</b></td><td>Pour les designers (préparer, exporter, lire les messages, ce qui bloque) et pour le kit de règles.</td><td>Utiliser les outils sans lire le code</td><td><code>docs/guides/</code></td></tr>
-      <tr data-pour="toolkit"><td><b>CI du dépôt et publication</b></td><td>Un job de tests et de build, un job qui rend la feuille des tokens dans Chromium, Firefox et WebKit, une publication npm sans jeton (OIDC), un contrôle des versions épinglées.</td><td>Garder le dépôt vert et publier les trois paquets npm</td><td><code>.github/workflows/</code>, <code>scripts/pins-servis.mjs</code>, skill <code>publier-paquets</code></td></tr>
-      <tr data-pour="toolkit"><td><b>Bancs de charge</b></td><td>Des milliers de cas générés pour les noms, la structure et l'analyse, et le rejeu de fichiers réels.</td><td>Mesurer les faux positifs et les manques des contrôles avant une modification</td><td><code>packages/kit/tests/stress/</code>, <code>npm run stress:rejeu</code></td></tr>
-      <tr data-pour="toolkit"><td><b><a class="terme" href="#g-recette-externe" title="Le rejeu, hors du dépôt, de Figma, d'une forge et d'une vraie demande de fusion, dans UCM-Playground pour GitHub et dans un projet GitLab de recette.">Recette externe</a></b></td><td>UCM-Playground, l'application de recette sur GitHub, et un projet GitLab de recette rejouent Figma, la forge et une vraie demande de fusion.</td><td>Prouver ce que les tests du dépôt ne peuvent pas ouvrir</td><td><code>docs/guides/RECETTE.md</code></td></tr>
-    </table></div>
-  </div></details>
-
-  <details class="pli" id="codes-constats" data-pour="designer"><summary>Les {{codes:nombre}} codes d'Architect et de l'Exporter, de {{codes:plage}} <span class="doux">rangés par section du panneau d'Architect</span></summary><div class="contenu">
-    <p>Le catalogue <code>packages/kit/src/controles/codes.ts</code> liste ces codes, avec leurs familles, leurs types et leur sens. Un constat de liaison sur un champ de taille va dans « Tailles et forme ». Hors C60, C63 et C82, les constats de la vue Tokens n'ont pas de code ici.</p>
-    <div class="filtres" id="filtres-section"><span class="etiquette">Section</span></div>
-    <div class="filtres" id="filtres-type"><span class="etiquette">Type</span></div>
-    <div class="filtres"><input type="search" id="recherche-controles" placeholder="Chercher un code ou un mot" aria-label="Chercher un contrôle"><span class="compte" id="compte"></span></div>
-    <div class="defile"><table id="table-controles"><thead><tr><th>Code</th><th>Section</th><th>Ce qu'il signale</th><th>Type</th></tr></thead><tbody></tbody></table></div>
-  </div></details>
-
-  <details class="pli"><summary>Autres familles de codes <span class="doux">tokens.json, contrat, Palettes</span></summary><div class="contenu">
-    <ul class="liste">
-      <li data-pour="developpeur"><b>Axes de tokens.json</b>, 9 codes : <code>axes-absents</code>, <code>axe-inconnu</code>, <code>modes-divergents</code>, <code>axe-ecarte</code>…</li>
-      <li data-pour="designer developpeur"><b>Diagnostics du contrat</b> (<code>meta.diagnostics</code>) : toujours <code>warning</code>, message en français pour le designer.</li>
-      <li data-pour="designer"><b>Alertes de Palettes</b> : intensités confondues (seuil {{palettes:seuil-confondues}}), palettes proches ({{palettes:seuil-proches}}), référence plus terne ou plus vive, fond hors courbe. 49 règles refusent une recette mal formée.</li>
-    </ul>
-  </div></details>
-
-  <details class="pli" data-pour="toolkit"><summary>Les {{entrees:nombre}} points d'entrée du kit <span class="doux">{{noms:uniques}} noms uniques, la CLI et l'adaptateur en importent {{noms:importes}}</span></summary><div class="contenu">
+  <details class="pli" id="annexe-entrees"><summary>Les {{entrees:nombre}} points d'entrée du kit <span class="doux">{{noms:uniques}} noms uniques, la CLI et l'adaptateur en importent {{noms:importes}}</span></summary><div class="contenu">
+    <p>Les chemins d'import de <code>@ucm-kit/core</code>, lus dans <code>packages/kit/package.json</code>, avec le nombre de noms que chacun exporte. Ils disent ce qu'un outil peut importer du kit, et ce que la piste <a href="#piste-P3">P3</a> doit figer.</p>
     <div class="defile"><table>
       <tr><th>Point d'entrée</th><th class="n">Exports</th><th>Contenu</th></tr>
       <tr><td><code>./format</code></td><td class="n">{{export:./format}}</td><td>Types du contrat, versions, noms de code et de variable CSS, grammaire de <code>ucm.config.json</code></td></tr>
       <tr><td><code>./emplois</code></td><td class="n">{{export:./emplois}}</td><td>Table du thème, {{garanties:nombre}} garanties, contraste WCAG, sans dépendance</td></tr>
-      <tr><td><code>./referentiel</code></td><td class="n">{{export:./referentiel}}</td><td>Toutes les définitions UCM (partie 3)</td></tr>
+      <tr><td><code>./referentiel</code></td><td class="n">{{export:./referentiel}}</td><td>Toutes les définitions UCM (partie 4)</td></tr>
       <tr><td><code>./controles</code></td><td class="n">{{export:./controles}}</td><td>Contrôles, corrections, préparation des tokens</td></tr>
       <tr><td><code>./protocoles</code></td><td class="n">{{export:./protocoles}}</td><td>Données échangées entre plugins : recette, nommage, architecture</td></tr>
       <tr><td><code>./nommage</code></td><td class="n">{{export:./nommage}}</td><td>Calcul des noms selon les règles du fichier</td></tr>
@@ -770,7 +779,8 @@
     <p>Les deux points d'entrée des lecteurs partagent la plupart de leurs noms, d'où {{noms:total}} exports pour {{noms:uniques}} noms uniques. Une définition UCM se modifie dans <code>src/referentiel/</code> seulement, et un test refuse sa copie ailleurs. <code>emplois</code> n'a aucune dépendance. Le kit n'importe rien du moteur de couleur. Chaque modification du référentiel change la version du kit.</p>
   </div></details>
 
-  <details class="pli" data-pour="toolkit"><summary>Fichiers de test des paquets <span class="doux">nombre de fichiers par paquet</span></summary><div class="contenu">
+  <details class="pli" id="annexe-tests"><summary>Fichiers de test des paquets <span class="doux">nombre de fichiers par paquet</span></summary><div class="contenu">
+    <p>Le nombre de fichiers <code>*.test.*</code> de chaque dossier de <code>packages/</code>, compté à la génération. Il donne l'étendue des tests que <code>npm test</code> lance pour chaque paquet.</p>
     <div class="defile"><table>
       <tr><th>Paquet</th><th class="n">Fichiers de test</th></tr>
       <tr><td>UCM Palettes</td><td class="n">{{tests:plugin-palettes}}</td></tr>
@@ -785,9 +795,25 @@
     </table></div>
   </div></details>
 
-  <details class="pli"><summary>Autres sources <span class="doux">fichiers relus pour cette page, hors des lignes « Défini dans »</span></summary><div class="contenu">
+  <details class="pli" id="annexe-autres"><summary>Autres éléments du dépôt <span class="doux">guides, vues générées, aides, CI</span></summary><div class="contenu">
+    <p>Les éléments du dépôt qu'aucune partie ne montre, avec le dossier où ils vivent. La liste sert à retrouver un guide, une vue ou un outil sans parcourir le dépôt.</p>
+    <div class="defile"><table>
+      <tr><th>Élément</th><th>Contenu</th><th>Sert à</th><th>Où</th></tr>
+      <tr><td><b>Kit de règles Figma</b></td><td>Les trois maîtres <code>.componentRules</code>, <code>.rulesSection</code>, <code>.ruleItem</code>, publiés en fichier Community.</td><td>Poser les règles d'usage que l'Exporter publie</td><td><code>docs/guides/KIT-DE-REGLES.md</code></td></tr>
+      <tr><td><b>Vues générées</b></td><td>La planche du moteur (Tailwind 3.4 face aux intensités Soft et Vivid), la vue illustrée de l'architecture multi-marques, le Hub, la galerie des états de chaque plugin. <code>npm run vues</code> les régénère, et un test refuse une vue périmée.</td><td>Voir les sorties du moteur et chaque écran des plugins hors de Figma</td><td><code>packages/couleur/planche/PLANCHE-DU-MOTEUR.html</code>, <code>Archi Tokens Multi-marques/</code>, <code>packages/*/galerie/</code></td></tr>
+      <tr><td><b>Aides pour l'application</b></td><td>{{aides}} fiches d'implémentation (états, focus clavier, icône, modes, ombre, typographie…), la skill <code>ucm-implementer</code> et les gabarits que <code>ucm init</code> installe.</td><td>Guider un développeur ou son agent qui écrit un composant contre son contrat</td><td><code>packages/cli/aides/</code></td></tr>
+      <tr><td><b>Reconstruction à froid</b></td><td>La skill <code>consommer-contrat</code> reconstruit un composant depuis son seul contrat.</td><td>Prouver pendant la recette que le contrat suffit</td><td><code>.agents/skills/consommer-contrat/</code></td></tr>
+      <tr><td><b>Guides</b></td><td>Pour les designers (préparer, exporter, lire les messages, ce qui bloque) et pour le kit de règles.</td><td>Utiliser les outils sans lire le code</td><td><code>docs/guides/</code></td></tr>
+      <tr><td><b>CI du dépôt et publication</b></td><td>Un job de tests et de build, un job qui rend la feuille des tokens dans Chromium, Firefox et WebKit, une publication npm sans jeton (OIDC), un contrôle des versions épinglées.</td><td>Garder le dépôt vert et publier les trois paquets npm</td><td><code>.github/workflows/</code>, <code>scripts/pins-servis.mjs</code>, skill <code>publier-paquets</code></td></tr>
+      <tr><td><b>Bancs de charge</b></td><td>Des milliers de cas générés pour les noms, la structure et l'analyse, et le rejeu de fichiers réels.</td><td>Mesurer les faux positifs et les manques des contrôles avant une modification</td><td><code>packages/kit/tests/stress/</code>, <code>npm run stress:rejeu</code></td></tr>
+      <tr><td><b><a class="terme" href="#g-recette-externe" title="Le rejeu, hors du dépôt, de Figma, d'une forge et d'une vraie demande de fusion, dans UCM-Playground pour GitHub et dans un projet GitLab de recette.">Recette externe</a></b></td><td>UCM-Playground, l'application de recette sur GitHub, et un projet GitLab de recette rejouent Figma, la forge et une vraie demande de fusion.</td><td>Prouver ce que les tests du dépôt ne peuvent pas ouvrir</td><td><code>docs/guides/RECETTE.md</code></td></tr>
+    </table></div>
+  </div></details>
+
+  <details class="pli" id="annexe-sources"><summary>Autres sources <span class="doux">fichiers relus pour cette page, hors des lignes « Défini dans »</span></summary><div class="contenu">
+    <p>Les fichiers que la génération de cette page relit en plus de ceux que nomme chaque ligne « Défini dans ». La liste sert à savoir quel fichier relire quand une partie paraît fausse.</p>
     <ul class="liste">
-      <li>Modèle : <code>packages/kit/src/referentiel/produits.ts</code>.</li>
+      <li>Concept : <code>packages/kit/src/referentiel/produits.ts</code>.</li>
       <li>Contrat : <code>CHANGELOG-FORMAT.md</code>, <code>COMPATIBILITE.md</code>, <code>packages/kit/schema/ucm-contract.schema.json</code>.</li>
       <li>Outils : <code>AGENTS.md</code>, <code>CARTE.md</code>, <code>manifest.json</code> de chaque paquet.</li>
       <li>Contrôles : <code>plugin-architect/src/ui/panneau/elements.ts</code>, <code>lecteurs/verdict-bilan.mjs</code>, <code>lecteurs/diagnostic-parite.mjs</code>, <code>docs/guides/POUR-LES-DESIGNERS.md</code> §6.</li>

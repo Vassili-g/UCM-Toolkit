@@ -21,7 +21,7 @@
     });
   });
 
-  // Rampes calculées par packages/couleur pour les palettes de démonstration du hub (sens normal et inverse), cartes et variable CSS du Button.
+  // Rampes calculées par packages/couleur pour les palettes de démonstration du hub (sens normal et inverse) et couleur des cartes.
   var DONNEES = {{js:DONNEES}};
   // Références du kit : collections et cibles, familles, table du thème par mode et par sens, garanties.
   // Sources : packages/kit/src/referentiel/architecture.ts, packages/kit/src/emplois/dossiers.ts, packages/kit/src/emplois/garanties.ts.
@@ -48,7 +48,11 @@
     layout: ['les familles sizing, radius, stroke et icon, et leurs chemins', 'Le kit ne définit aucune valeur de référence pour cette collection.'],
     typography: ['les familles display à label, et leurs chemins', 'Le kit ne définit aucune valeur de référence pour cette collection.']
   };
-  var COLLECTIONS = REFERENCE.collections.map(function (c) { return c.nom; });
+  // L'ordre du schéma, des primitives aux composants : une collection vient après celles qu'elle vise.
+  var CIBLES = {}; REFERENCE.collections.forEach(function (c) { CIBLES[c.nom] = c.cibles; });
+  function etage(nom) { return CIBLES[nom].length ? 1 + Math.max.apply(null, CIBLES[nom].map(etage)) : 0; }
+  var COLLECTIONS = REFERENCE.collections.map(function (c, i) { return { nom: c.nom, etage: etage(c.nom), rang: i }; })
+    .sort(function (a, b) { return a.etage - b.etage || a.rang - b.rang; }).map(function (c) { return c.nom; });
   var etatPanneau = { collection: 'theme', ouverts: {} };
   var choixPalette = document.getElementById('choix-palette'), choixIntensite = document.getElementById('choix-intensite'), choixSens = document.getElementById('choix-sens');
   DONNEES.palettes.forEach(function (p, i) { var o = document.createElement('option'); o.value = i; o.textContent = p.nom + ' (' + ROLES[i][1] + ')'; choixPalette.appendChild(o); });
@@ -168,8 +172,8 @@
           return cellule({ alias: 'theme/primary/' + nomTheme.replace(/\/([^/]+)$/, '/<b>$1</b>'), primitive: '', hexa: hexa, note: 'vise ' + chaine + ', qui vise ' + fin });
         }) };
       };
-      groupes.push({ id: 'components/couleur', titre: 'Button/color/primary/contained/default', ouvert: true, lignes: [ligne('solid/default', 'background'), ligne('solid/foreground', 'foreground')] });
-      groupes.push({ id: 'components/taille', titre: 'Button/size/md', ouvert: true, lignes: [
+      groupes.push({ id: 'components/couleur', titre: '{Composant}/color/primary/default', ouvert: true, lignes: [ligne('solid/default', 'background'), ligne('solid/foreground', 'foreground')] });
+      groupes.push({ id: 'components/taille', titre: '{Composant}/size/md', ouvert: true, lignes: [
         { nom: 'padding-x', vide: 'vise layout/sizing, variable à choisir' },
         { nom: 'radius', vide: 'vise layout/radius, variable à choisir' }] });
     } else if (collection === 'layout') {
@@ -279,100 +283,41 @@
     var b = e.target.closest && e.target.closest('.cb');
     if (b && (e.key === 'Enter' || e.key === ' ')) { e.preventDefault(); selectionnerCollection(b.getAttribute('data-col'), true); }
   });
-  // « Suivre le Button » : le trajet components, theme, brands, primitives en rose, avec la variable visée sur chaque flèche.
-  var NS = 'http://www.w3.org/2000/svg';
-  var boutonSuivre = document.getElementById('suivre-button');
-  function etiquetteSvg(x, y, ancre, texte, classe) {
-    var t = document.createElementNS(NS, 'text'); t.setAttribute('x', x); t.setAttribute('y', y); t.setAttribute('text-anchor', ancre); t.setAttribute('class', classe || 'suivi halo');
-    t.textContent = texte; return t;
+  // « Suivre une valeur d'un composant » : la couleur, la taille ou le texte, des primitives jusqu'au composant, en rose sur le schéma, et la chaîne d'exemple dessous.
+  // Un second clic sur le choix actif l'éteint.
+  var choixDuChemin = document.querySelectorAll('.suivre button[data-chemin]'), cheminSuivi = '';
+  function suivreLaValeur(chemin) {
+    cheminSuivi = chemin;
+    schema.classList.toggle('suit', !!chemin);
+    choixDuChemin.forEach(function (b) { b.setAttribute('aria-pressed', b.getAttribute('data-chemin') === chemin); });
+    schema.querySelectorAll('.cb').forEach(function (g) { g.classList.toggle('suivie', !!chemin && (g.getAttribute('data-chemins') || '').split(' ').indexOf(chemin) !== -1); });
+    schema.querySelectorAll('.fleche').forEach(function (f) { f.classList.toggle('suivie', !!chemin && f.getAttribute('data-chemin') === chemin); });
+    document.querySelectorAll('.chaine-valeur').forEach(function (c) { c.hidden = c.getAttribute('data-chemin') !== chemin; });
   }
-  function suivreLeButton(actif) {
-    schema.classList.toggle('suit', actif);
-    boutonSuivre.setAttribute('aria-pressed', actif);
-    boutonSuivre.textContent = actif ? 'Ne plus suivre le Button' : 'Suivre le Button';
-    schema.querySelectorAll('.suivi, .suivi-groupe').forEach(function (n) { n.parentNode.removeChild(n); });
-    schema.querySelectorAll('.cb').forEach(function (b) { b.classList.toggle('suivie', actif && ['components', 'theme', 'brands', 'primitives'].indexOf(b.getAttribute('data-col')) !== -1); });
-    schema.querySelectorAll('.fleche[data-suivi]').forEach(function (f) { f.classList.toggle('suivie', actif); });
-    if (!actif) return;
-    var it = intensiteDe(0), s = choixSens.value, hexa = hexaDuCran(0, it, s, 'light', 700);
-    var chemin = nomDeLaPrimitive(0, it, 'light', 700).split('/');
-    var groupe = document.createElementNS(NS, 'g'); groupe.setAttribute('class', 'suivi-groupe');
-    groupe.appendChild(etiquetteSvg(190, 62, 'end', 'theme/primary/solid/default'));
-    groupe.appendChild(etiquetteSvg(396, 12, 'end', 'brands/primary/light/700'));
-    groupe.appendChild(etiquetteSvg(606, 50, 'start', chemin.slice(0, 3).join('/') + '/'));
-    groupe.appendChild(etiquetteSvg(606, 62, 'start', chemin.slice(3).join('/')));
-    var pastille = document.createElementNS(NS, 'circle'); pastille.setAttribute('cx', 598); pastille.setAttribute('cy', 123); pastille.setAttribute('r', 6); pastille.setAttribute('fill', hexa); pastille.setAttribute('stroke', 'var(--rose)'); pastille.setAttribute('stroke-width', 1.5);
-    groupe.appendChild(pastille);
-    groupe.appendChild(etiquetteSvg(606, 76, 'start', hexa));
-    schema.appendChild(groupe);
-  }
-  boutonSuivre.addEventListener('click', function () { suivreLeButton(boutonSuivre.getAttribute('aria-pressed') !== 'true'); });
+  choixDuChemin.forEach(function (b) {
+    b.addEventListener('click', function () { var c = b.getAttribute('data-chemin'); suivreLaValeur(cheminSuivi === c ? '' : c); });
+  });
 
-  // V1. Le trajet d'un Button, de Figma au code : 8 stations en trois couloirs.
-  // Les valeurs entre accolades viennent de DONNEES : {clair} et {sombre} (Terracota, Soft, cran 700), {reference}, {css} (tokenCssVariable du kit).
-  var TRAJET = {
-    couloirs: [['Designer,', 'dans Figma'], ['Forge et CI'], ['Développeur,', 'dans le repository']],
-    stations: [
-      { couloir: 0, col: 0, outil: ['UCM Palettes'], objet: ['primitives/color/', 'terracota/soft/light/700'], pastille: true, note: '{clair}, Dark {sombre}',
-        longue: '`primitives/color/terracota/soft/light/700` = {clair}, Dark {sombre}, référence {reference}.' },
-      { couloir: 0, col: 1, outil: ['À la main'], objet: ['brands/primary/', 'light/700'], pastille: true, note: 'alias de la primitive', style: 'main',
-        longue: '`brands/primary/light/700`, alias de la primitive. Aucun outil ne l’écrit.' },
-      { couloir: 0, col: 2, outil: ['Architect', 'vue Tokens'], objet: ['theme/primary/', 'solid/default'], pastille: true, note: 'vise brands, G2',
-        longue: '`theme/primary/solid/default` vise `brands/primary/light/700`. Garantie G2 (3:1 sur la page).' },
-      { couloir: 0, col: 3, outil: ['Architect', 'vue Composant'], objet: ['components/Button/', '…/default/background'], pastille: true, note: 'press vers pressed',
-        longue: '`components/Button/color/primary/contained/default/background` vise `theme/primary/solid/default`. Le remplissage du variant Primary, Contained, Default y est lié. Corrections proposées : `press` en `pressed`, `error` en `danger`.' },
-      { couloir: 1, col: 3, outil: ['Contract Exporter'], objet: ['tokens.json', 'Button.contract.json'], note: 'deux pull requests',
-        longue: 'Deux pull requests, `tokens.json` d’abord, puis `Button.contract.json`.' },
-      { couloir: 1, col: 4, outil: ['ucm check'], objet: ['commentaire de', 'pull request'], note: 'illisible bloque',
-        longue: 'Rapport en commentaire de la pull request. Un contrat illisible bloque. Un token absent avertit.' },
-      { couloir: 2, col: 4, outil: ['CLI et adaptateur'], objet: ['--components-button-', '…-default-background'], note: 'types, parité avertit',
-        longue: '`ucm tokens css` donne `{css}`. Les types des variantes sont générés. `Button.tsx` est écrit contre le contrat, et la parité est contrôlée, elle avertit.' },
-      { couloir: 2, col: 5, outil: ['Personne'], objet: ['rendu non comparé', ''], note: 'pistes P9, P10, P20', style: 'trou',
-        longue: 'Le rendu dans un navigateur n’est comparé par personne. Pistes P9, P10 et P20.' }
-    ]
-  };
-  (function () {
-    var zone = document.getElementById('trajet-button'); if (!zone) return;
-    var t = DONNEES.palettes[0], cran = DONNEES.crans.indexOf(700);
-    var valeurs = { clair: t.intensites.soft['light-normal'][cran], sombre: t.intensites.soft['dark-normal'][cran], reference: t.reference, css: DONNEES.bouton.variableCss };
-    var remplir = function (s) { return s.replace(/\{(\w+)\}/g, function (m, k) { return valeurs[k]; }); };
-    var LB = 150, HB = 84, PX = 168, X0 = 128, HC = 100, GAP = 4, largeur = X0 + 5 * PX + LB + 12, hauteur = 3 * HC + 2 * GAP + 16;
-    var posDe = function (s) { return { x: X0 + s.col * PX, y: 8 + s.couloir * (HC + GAP) + 8 }; };
-    var svg = '<svg class="schema-trajet" viewBox="0 0 ' + largeur + ' ' + hauteur + '" role="img" aria-label="Le trajet du Button en huit stations, de Palettes au rendu dans un navigateur">' +
-      '<defs><marker id="pointe-trajet" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0 0 L10 5 L0 10 z" style="fill: var(--doux)"/></marker></defs>';
-    TRAJET.couloirs.forEach(function (c, i) {
-      var y = 8 + i * (HC + GAP);
-      svg += '<rect class="couloir" x="0" y="' + y + '" width="' + (largeur - 4) + '" height="' + HC + '" rx="8"/>' +
-        c.map(function (ligne, k) { return '<text class="titre-couloir" x="10" y="' + (y + 24 + k * 14) + '">' + esc(ligne) + '</text>'; }).join('');
+  // Le parcours d'un composant : un clic sur une étape montre sa carte sous les couloirs ; les flèches du clavier passent d'une étape à l'autre.
+  var etapes = Array.prototype.slice.call(document.querySelectorAll('.parcours [role="tab"]'));
+  function montrerLEtape(onglet, focaliser) {
+    etapes.forEach(function (t) {
+      var actif = t === onglet;
+      t.setAttribute('aria-selected', actif);
+      t.tabIndex = actif ? 0 : -1;
+      document.getElementById(t.getAttribute('aria-controls')).hidden = !actif;
     });
-    TRAJET.stations.forEach(function (s, i) {
-      var p = posDe(s);
-      if (i > 0) {
-        var q = posDe(TRAJET.stations[i - 1]);
-        svg += q.y === p.y
-          ? '<path class="lien" d="M' + (q.x + LB) + ' ' + (q.y + HB / 2) + ' L' + (p.x - 1) + ' ' + (p.y + HB / 2) + '"/>'
-          : '<path class="lien" d="M' + (q.x + LB / 2) + ' ' + (q.y + HB) + ' L' + (p.x + LB / 2) + ' ' + (p.y - 1) + '"/>';
-      }
+    if (focaliser) onglet.focus();
+  }
+  etapes.forEach(function (t, i) {
+    t.addEventListener('click', function () { montrerLEtape(t, false); });
+    t.addEventListener('keydown', function (e) {
+      var pas = e.key === 'ArrowRight' || e.key === 'ArrowDown' ? 1 : e.key === 'ArrowLeft' || e.key === 'ArrowUp' ? -1 : 0;
+      if (!pas) return;
+      e.preventDefault();
+      montrerLEtape(etapes[(i + pas + etapes.length) % etapes.length], true);
     });
-    TRAJET.stations.forEach(function (s, i) {
-      var p = posDe(s), l = 0;
-      svg += '<g>' +
-        '<rect class="station' + (s.style ? ' ' + s.style : '') + '" x="' + p.x + '" y="' + p.y + '" width="' + LB + '" height="' + HB + '" rx="8"/>' +
-        '<text class="numero" x="' + (p.x + LB - 8) + '" y="' + (p.y + 15) + '" text-anchor="end">' + (i + 1) + '</text>' +
-        '<text class="outil" x="' + (p.x + 8) + '" y="' + (p.y + 17) + '">' + esc(s.outil[0]) + '</text>' +
-        (s.outil[1] ? '<text class="outil-suite" x="' + (p.x + 8) + '" y="' + (p.y + 30) + '">' + esc(s.outil[1]) + '</text>' : '') +
-        s.objet.map(function (ligne, k) { return ligne ? '<text class="objet" x="' + (p.x + 8) + '" y="' + (p.y + 46 + k * 11) + '">' + esc(ligne) + '</text>' : ''; }).join('') +
-        (s.pastille ? '<rect class="echantillon" x="' + (p.x + 8) + '" y="' + (p.y + 66) + '" width="11" height="11" rx="3" fill="' + valeurs.clair + '"/>' : '') +
-        '<text class="note' + (s.style === 'trou' ? ' rose' : '') + '" x="' + (p.x + (s.pastille ? 24 : 8)) + '" y="' + (p.y + 75) + '">' + esc(remplir(s.note)) + '</text></g>';
-    });
-    svg += '</svg>';
-    var liste = '<ol class="chaine seul-mobile">' + TRAJET.stations.map(function (s) {
-      return '<li><b>' + esc(s.outil.join(', ')) + '</b> ' + esc(remplir(s.longue)).replace(/`([^`]+)`/g, '<code>$1</code>') + '</li>';
-    }).join('') + '</ol>';
-    var detail = '<details class="pli seul-ecran"><summary>Le détail de chaque station</summary><div class="contenu">' + liste.replace(' seul-mobile', '') + '</div></details>';
-    zone.innerHTML = '<div class="seul-ecran">' + svg + '</div>' + detail + liste +
-      '<p class="legende-trajet doux">Les pointillés gris marquent un geste fait à la main. Les pointillés roses marquent un contrôle absent.</p>';
-  })();
+  });
 
   // Feuille de route : les pistes viennent de pistes.json (docs/notes/Recherches/Evolutions globales/), rangées par rang puis par importance.
   var PISTES = {{js:PISTES}};
@@ -472,15 +417,14 @@
     var oui = 0, non = 0, t = 0;
     PISTES.forEach(function (x) { var c = choixDe(x.id); if (c === 'oui') oui++; else if (c === 'non') non++; });
     TRANSVERSES.forEach(function (x) { if (choixDe(x.id)) t++; });
-    document.getElementById('bilan-decisions').textContent = oui + ' on fait · ' + non + ' on ne fait pas · ' + (PISTES.length - oui - non) + ' à décider · ' + t + ' décisions transverses sur ' + TRANSVERSES.length;
+    document.getElementById('bilan-decisions').textContent = oui + ' on fait · ' + non + ' on ne fait pas · ' + (PISTES.length - oui - non) + ' à décider · ' + t + ' questions ouvertes tranchées sur ' + TRANSVERSES.length;
   }
   function marquerLaPiste(d, id) {
-    var c = choixDe(id), zone = d.querySelector('.choix-zone'), i = incoherencesDe(id);
-    zone.innerHTML = c === 'oui' ? '<span class="choix-piste oui">On fait</span>' : c === 'non' ? '<span class="choix-piste non">On ne fait pas</span>' : '';
+    var c = choixDe(id), i = incoherencesDe(id);
     d.classList.toggle('decide-non', c === 'non');
     d.querySelector('.coherence').innerHTML = (i.ecartee ? '<span class="etat manque">' + i.ecartee + '</span> ' : '') + (i.attend ? '<span class="etat ouvert">' + i.attend + '</span>' : '');
   }
-  // Le champ de note tient une ligne et grandit avec son texte ; une fiche fermée n'a pas de hauteur à mesurer.
+  // Le champ de note tient une ligne et grandit avec son texte ; un champ caché n'a pas de hauteur à mesurer.
   function grandir(z) { if (z.scrollHeight > 0) { z.style.height = 'auto'; z.style.height = z.scrollHeight + 'px'; } }
   var radios = {};
   function lierLesChoix(racine) {
@@ -495,7 +439,7 @@
       grandir(z);
       z.addEventListener('input', function () {
         decisions[cle] = decisions[cle] || {}; decisions[cle].note = z.value;
-        // Une seule note par piste : le champ de la vue d'ensemble et celui de la fiche se recopient.
+        // Deux champs d'une même clé se recopient.
         document.querySelectorAll('textarea[data-note="' + cle + '"]').forEach(function (autre) { if (autre !== z) { autre.value = z.value; grandir(autre); } });
         grandir(z);
         garder();
@@ -612,10 +556,20 @@
     synchroniserLesChoix();
     afficherLEcart();
     bilan();
-    zonePistes.querySelectorAll('details.piste').forEach(function (d) { marquerLaPiste(d, d.id.replace('piste-', '')); });
+    zonePistes.querySelectorAll('.piste').forEach(function (d) { marquerLaPiste(d, d.id.replace('piste-', '')); });
     dessinerLeGraphe();
   }
+  // La liste des pistes : un titre par rang, puis une ligne par piste avec le titre, ce qui arrive si on ne la fait pas, le coût,
+  // la décision et la note. Un clic sur la partie gauche de la ligne ouvre la fiche dessous.
   var zonePistes = document.getElementById('pistes');
+  // Le texte de la ligne est dans un bouton : un identifiant de piste y reste du texte, un lien n'y a pas sa place.
+  function texteDeLigne(t) { return esc(t).replace(/`([^`]+)`/g, '<code>$1</code>'); }
+  function liensVers(ids) { return ids.map(function (id) { return '<a href="#piste-' + id + '">' + id + '</a>'; }).join(', '); }
+  function ouvrirLaFiche(d, ouvert) {
+    var b = d.querySelector('.piste-bascule');
+    b.setAttribute('aria-expanded', ouvert);
+    document.getElementById(b.getAttribute('aria-controls')).hidden = !ouvert;
+  }
   var parRang = {};
   PISTES.forEach(function (x) { (parRang[x.rang] = parRang[x.rang] || []).push(x); });
   Object.keys(parRang).sort().forEach(function (rang) {
@@ -623,7 +577,7 @@
     h.textContent = 'Rang ' + rang + ' · ' + (RANGS[rang] || '');
     zonePistes.appendChild(h);
     parRang[rang].forEach(function (x) {
-      var d = document.createElement('details'); d.className = 'piste'; d.id = 'piste-' + x.id;
+      var d = document.createElement('div'); d.className = 'piste'; d.id = 'piste-' + x.id;
       var points = '<div class="defile points"><table><tr><th>Action</th><th>Chemin</th><th>Quoi</th></tr>' + x.points.map(function (pt) {
         return '<tr><td>' + esc(pt.action) + '</td><td><code>' + esc(pt.chemin) + '</code></td><td>' + txt(pt.quoi) + '</td></tr>';
       }).join('') + '</table></div>';
@@ -631,46 +585,41 @@
       var imp = IMPORTANCES[x.importance], etat = ETATS[x.etat] || ETATS['ouvert'], prof = PROFONDEUR[x.id];
       var meta = '<span class="imp">importance <span aria-hidden="true">' + imp[0] + '</span> ' + imp[1] + '</span> · complexité ' + TAILLES[x.complexite] + ' (' + x.complexite + ') · ' +
         (prof === 0 ? 'sans prérequis' : prof + (prof === 1 ? ' étape' : ' étapes') + ' de prérequis') + ' · ' + PROMESSES[x.promesse] + ' · ' + (PORTEURS[x.porteur] || esc(x.porteur)) + ' · <span class="etat ' + etat[0] + '">' + etat[1] + '</span>';
-      d.innerHTML = '<summary><span class="id">' + x.id + '</span><span class="titre">' + txt(x.titre) + '<small>' + txt(x.resume) + '</small>' +
-        '<small class="sinon"><b>Si on ne fait pas</b>' + txt(premierePhrase(x.raisonImportance)) + '</small><span class="meta">' + meta + '</span><span class="coherence"></span></span>' +
-        '<span class="marques"><span class="choix-zone"></span></span></summary>' +
-        '<div class="corps-piste">' +
-        '<div class="decider">' + boutonsDe(x.id, 'fiche', OPTIONS) +
-          '<textarea data-note="' + x.id + '" aria-label="Note sur la fiche ' + x.id + '" placeholder="Note : condition, priorité, réponse à une question…"></textarea></div>' +
-        '<h4>Pourquoi</h4><p>' + txt(x.raisonImportance) + '</p>' +
-        '<h4>Complexité ' + TAILLES[x.complexite] + '</h4><p>' + txt(x.raisonComplexite) + '</p>' +
-        '<h4>Temps du mainteneur</h4><p>' + txt(x.coutHumain) + '</p>' +
-        '<h4>Dépend de</h4><p>' + (x.dependances.length ? x.dependances.map(function (id) { return '<a href="#piste-' + id + '">' + id + '</a>'; }).join(', ') : 'rien') + '</p>' +
-        '<h4>Points touchés</h4>' + points +
-        '<h4>Critères de fin</h4>' + liste(x.criteresDeFin, 'criteres') +
-        '<h4>Questions au mainteneur</h4>' + liste(x.questions) +
-        '<h4>Risques</h4>' + liste(x.risques) +
+      var directs = DIRECTS[x.id], total = Object.keys(DESCENDANTES[x.id]).length;
+      d.innerHTML = '<div class="piste-ligne">' +
+          '<button type="button" class="piste-bascule" aria-expanded="false" aria-controls="fiche-' + x.id + '">' +
+            '<span class="id">' + x.id + '</span>' +
+            '<span class="titre">' + texteDeLigne(x.titre) +
+              '<small class="sinon"><b>Si on ne fait pas</b> ' + texteDeLigne(premierePhrase(x.raisonImportance)) + '</small>' +
+              '<small class="cout"><b>Coût</b> ' + x.complexite + ' · ' + texteDeLigne(x.coutHumain) + '</small>' +
+              '<span class="coherence"></span></span>' +
+          '</button>' +
+          '<div class="choix-ligne">' + boutonsDe(x.id, 'piste', OPTIONS) + champNote(x.id, 'Note sur ' + x.id) + '</div>' +
+        '</div>' +
+        '<div class="fiche-piste" id="fiche-' + x.id + '" hidden>' +
+          '<p class="meta">' + meta + '</p>' +
+          '<p>' + txt(x.resume) + '</p>' +
+          '<h4>Pourquoi</h4><p>' + txt(x.raisonImportance) + '</p>' +
+          '<h4>Complexité ' + TAILLES[x.complexite] + '</h4><p>' + txt(x.raisonComplexite) + '</p>' +
+          '<h4>Dépend de</h4><p>' + (x.dependances.length ? liensVers(x.dependances) : 'rien') + '</p>' +
+          '<h4>Débloque</h4><p>' + (directs.length ? liensVers(directs) + ', ' + total + ' au total' : 'rien') + '</p>' +
+          '<h4>Points touchés</h4>' + points +
+          '<h4>Critères de fin</h4>' + liste(x.criteresDeFin, 'criteres') +
+          '<h4>Questions au mainteneur</h4>' + liste(x.questions) +
+          '<h4>Risques</h4>' + liste(x.risques) +
         '</div>';
       zonePistes.appendChild(d);
     });
   });
-  // Vue d'ensemble : une ligne par piste, dans l'ordre de la feuille de route.
-  (function () {
-    var corps = document.getElementById('corps-ensemble');
-    var rangCourant = null;
-    corps.innerHTML = PISTES.map(function (x) {
-      var entete = '';
-      if (x.rang !== rangCourant) { rangCourant = x.rang; entete = '<tr class="rang-ligne"><td colspan="6">Rang ' + x.rang + ' · ' + (RANGS[x.rang] || '') + '</td></tr>'; }
-      var directs = DIRECTS[x.id], total = Object.keys(DESCENDANTES[x.id]).length;
-      return entete + '<tr><td><a href="#piste-' + x.id + '"><b>' + x.id + '</b></a> ' + txt(x.titre) + '</td>' +
-        '<td class="sinon" data-l="Si on ne fait pas">' + txt(premierePhrase(x.raisonImportance)) + '</td>' +
-        '<td data-l="Coût"><b>' + x.complexite + '</b> · ' + txt(x.coutHumain) + '</td>' +
-        '<td data-l="Attend">' + (x.dependances.length ? x.dependances.map(function (id) { return '<a href="#piste-' + id + '">' + id + '</a>'; }).join(', ') : 'rien') + '</td>' +
-        '<td data-l="Débloque">' + (directs.length ? directs.map(function (id) { return '<a href="#piste-' + id + '">' + id + '</a>'; }).join(', ') + ', ' + total + ' au total' : 'rien') + '</td>' +
-        '<td class="choix-ligne">' + boutonsDe(x.id, 'ensemble', OPTIONS) + champNote(x.id, 'Note sur ' + x.id) + '</td></tr>';
-    }).join('');
-  })();
-  // Décisions transverses : mêmes boutons et une note par ligne, enregistrés avec les décisions des pistes.
+  zonePistes.addEventListener('click', function (e) {
+    var b = e.target.closest('.piste-bascule'); if (b) ouvrirLaFiche(b.closest('.piste'), b.getAttribute('aria-expanded') !== 'true');
+  });
+  // Questions ouvertes : mêmes boutons et une note par ligne, enregistrés avec les décisions des pistes.
   document.querySelectorAll('tr[data-decision]').forEach(function (tr) {
     var cle = tr.getAttribute('data-decision');
     TRANSVERSES.push({ id: cle, titre: tr.cells[0].textContent.trim() });
     var td = document.createElement('td'); td.className = 'choix-ligne';
-    td.innerHTML = boutonsDe(cle, 'transverse', OPTIONS_T[cle] || OPTIONS) + champNote(cle, 'Note sur la décision ' + cle);
+    td.innerHTML = boutonsDe(cle, 'transverse', OPTIONS_T[cle] || OPTIONS) + champNote(cle, 'Note sur la question ' + cle);
     tr.appendChild(td);
   });
   lierLesChoix(document.getElementById('suite'));
@@ -711,19 +660,20 @@
     document.getElementById('legende-chemin').textContent = 'Le chemin rose compte ' + CHEMIN.length + ' pistes, de ' + CHEMIN[0] + ' à ' + CHEMIN[CHEMIN.length - 1] + '. Il fixe le délai le plus court avant la dernière piste du graphe. La complexité (S, M, L, XL) est en haut à droite de chaque boîte.';
   }
   afficher();
-  // Un lien vers une piste la déplie.
+  // Un lien vers une piste ouvre sa fiche, et les plis qui la contiennent.
   function ouvrirLaPiste() {
     var cible = location.hash && document.getElementById(location.hash.slice(1));
+    if (!cible) return;
     for (var n = cible; n; n = n.parentElement) if (n.tagName === 'DETAILS') n.open = true;
-    if (cible && cible.scrollIntoView) cible.scrollIntoView();
+    if (cible.classList.contains('piste')) ouvrirLaFiche(cible, true);
+    if (cible.scrollIntoView) cible.scrollIntoView();
   }
   window.addEventListener('hashchange', ouvrirLaPiste); ouvrirLaPiste();
   var pistesOuvertes = false;
   document.getElementById('deplier-pistes').addEventListener('click', function () {
     pistesOuvertes = !pistesOuvertes;
-    document.getElementById('fiches').open = pistesOuvertes;
-    zonePistes.querySelectorAll('details.piste').forEach(function (d) { d.open = pistesOuvertes; });
-    this.textContent = pistesOuvertes ? 'Replier les pistes' : 'Déplier les ' + PISTES.length + ' pistes';
+    zonePistes.querySelectorAll('.piste').forEach(function (d) { ouvrirLaFiche(d, pistesOuvertes); });
+    this.textContent = pistesOuvertes ? 'Replier les fiches' : 'Déplier les ' + PISTES.length + ' fiches';
   });
   document.getElementById('copier-decisions').addEventListener('click', function () {
     function libelle(cle) {
@@ -734,7 +684,7 @@
     function note(cle) { var n = (decisions[cle] || {}).note; return n ? '. Note : ' + n.replace(/\s+/g, ' ').trim() : ''; }
     var lignes = PISTES.map(function (x) { return '- ' + x.id + ' ' + x.titre + ' : ' + libelle(x.id) + note(x.id); });
     var texte = 'Décisions sur la feuille de route\n' + lignes.join('\n') +
-      '\n\nDécisions transverses\n' + TRANSVERSES.map(function (t) { return '- ' + t.titre + ' : ' + libelle(t.id) + note(t.id); }).join('\n');
+      '\n\nQuestions ouvertes\n' + TRANSVERSES.map(function (t) { return '- ' + t.titre + ' : ' + libelle(t.id) + note(t.id); }).join('\n');
     var inc = toutesLesIncoherences();
     if (inc.length) texte += '\n\nIncohérences\n' + inc.map(function (l) { return '- ' + l; }).join('\n');
     var zone = document.getElementById('export-decisions');
@@ -789,162 +739,12 @@
   recherche.addEventListener('input', filtrer);
   filtrer();
 
-  // Destinataires. data-pour vaut pour tout ce que l'élément contient, sauf un descendant marqué ;
-  // un h3 marqué prête sa marque aux éléments qui le suivent jusqu'au titre suivant.
-  // Un élément qui porte la même marque que son titre ou son conteneur marqué ne reçoit pas de pictogramme.
-  var POUR = { designer: 'Designer', developpeur: 'Développeur', toolkit: 'Toolkit' };
-  var ORDRE = ['designer', 'developpeur', 'toolkit'];
-  var DEFINITIONS = { designer: 'Ce qui se passe dans Figma', developpeur: 'Ce qui arrive dans le repository de l\u2019application', toolkit: 'Ce qui reste dans UCM-Toolkit' };
-  var principal = document.querySelector('main');
-  function lire(el) {
-    if (!el) return [];
-    return (el.getAttribute('data-pour') || el.getAttribute('data-pour-herite') || '').split(/\s+/).filter(function (m) { return POUR[m]; });
-  }
-  var BORDS = { designer: 'var(--pour-designer)', developpeur: 'var(--pour-developpeur)', toolkit: 'var(--pour-toolkit)' };
-  function groupe(liste, avecMot) {
-    var g = document.createElement('span'); g.className = 'pours' + (avecMot ? ' avec-mot' : '');
-    var l = document.createElement('span'); l.className = 'lecteur'; l.textContent = 'Pour'; g.appendChild(l);
-    liste.forEach(function (m) {
-      var s = document.createElement('span'); s.className = 'pour pour-' + m; s.title = 'Pour ' + POUR[m];
-      var mot = document.createElement('span'); mot.className = 'mot'; mot.textContent = POUR[m]; s.appendChild(mot);
-      g.appendChild(s);
-    });
-    return g;
-  }
-  // Un liseré de 3 px par marque, dans l'ordre des pictogrammes, sauf sur la carte d'un outil (.fiche), qui garde ses pictogrammes seuls. Deux liserés sont séparés par un vide de 2 px à la couleur du fond de l'élément.
-  function liseret(el, liste) {
-    el.setAttribute('data-pour-bord', liste.length);
-    var ombres = [];
-    liste.forEach(function (m, i) {
-      if (i) ombres.push('inset ' + (3 + 5 * (i - 1) + 2) + 'px 0 0 var(--liseret-fond)');
-      ombres.push('inset ' + (3 + 5 * i) + 'px 0 0 ' + BORDS[m]);
-    });
-    el.style.setProperty('--liseret', ombres.join(', '));
-  }
-  function memeMarque(a, b) { return a.length > 0 && a.length === b.length && a.every(function (m) { return b.indexOf(m) !== -1; }); }
-  // La marque du titre qui précède l'élément : le h3 le plus proche, sinon celle de la partie.
-  function marqueDuTitre(el) {
-    for (var n = el; n && n !== principal; n = n.parentElement) {
-      for (var s = n.previousElementSibling; s; s = s.previousElementSibling) {
-        if (s.tagName === 'H3') return lire(s);
-        if (s.tagName === 'H2') return lire(s.parentElement);
-      }
-    }
-    return [];
-  }
-  function muet(el) {
-    if (el.tagName === 'SECTION' || el.tagName === 'H3') return false;
-    var liste = lire(el);
-    if (memeMarque(liste, marqueDuTitre(el))) return true;
-    var parent = el.parentElement && el.parentElement.closest('[data-pour]');
-    return !!parent && parent.tagName !== 'SECTION' && memeMarque(liste, lire(parent));
-  }
-  function poser(el) {
-    if (muet(el)) return;
-    var liste = lire(el), t = el.tagName;
-    var g = groupe(liste, t === 'SECTION' || t === 'H3' || t === 'DETAILS');
-    if (t === 'TR') { var c = el.querySelector(':scope > td:not(.n)') || el.querySelector(':scope > td'); c.insertBefore(g, c.firstChild); liseret(el, liste); }
-    else if (t === 'SECTION') el.querySelector('h2').appendChild(g);
-    else if (t === 'DETAILS') { el.querySelector('summary').appendChild(g); liseret(el, liste); }
-    else if (el.classList.contains('fiche')) el.querySelector('.tete').appendChild(g);
-    else if (el.classList.contains('carte')) { (el.querySelector('h4') || el).appendChild(g); liseret(el, liste); }
-    else if (el.classList.contains('defile')) el.querySelector('th').appendChild(g);
-    else if (t === 'DT') { el.insertBefore(g, el.firstChild); liseret(el, liste); }
-    else if (t === 'H3') el.appendChild(g);
-    else el.insertBefore(g, el.firstChild);
-  }
-  principal.querySelectorAll('[data-pour]').forEach(poser);
-  var TITRE = /^H[1-3]$/;
-  function suite(h) { var l = []; for (var s = h.nextElementSibling; s && !TITRE.test(s.tagName); s = s.nextElementSibling) l.push(s); return l; }
-  var titres = Array.prototype.slice.call(principal.querySelectorAll('h3'));
-  titres.forEach(function (h) {
-    if (!h.hasAttribute('data-pour')) return;
-    suite(h).forEach(function (s) { if (!s.hasAttribute('data-pour')) s.setAttribute('data-pour-herite', h.getAttribute('data-pour')); });
-  });
-  function porteur(el) { return el.closest('[data-pour], [data-pour-herite]'); }
-  var unites = Array.prototype.slice.call(principal.querySelectorAll('[data-pour], [data-pour-herite], tr, li, p, dt, .carte, details, .encadre, .defile, .fiche'))
-    .filter(function (el) {
-      if (el.tagName === 'H3') return false;
-      if (el.tagName === 'TR' && !el.querySelector(':scope > td')) return false;
-      return !!porteur(el);
-    });
-  var estUnite = new Set(unites), parentDe = new Map();
-  unites.forEach(function (u) { for (var p = u.parentElement; p && p !== principal; p = p.parentElement) if (estUnite.has(p)) { parentDe.set(u, p); break; } });
-  function contientUnite(el) { return unites.some(function (x) { return x === el || el.contains(x); }); }
-  function vivant(el) { return unites.some(function (x) { return (x === el || el.contains(x)) && !x.closest('.hors-pour'); }); }
-  var marquees = Array.prototype.slice.call(principal.querySelectorAll('[data-pour]'));
-  var choix = [], boutonsPour = {};
-  var zonePour = document.querySelector('.filtre-pour'), tout = document.getElementById('pour-tout'), annonce = document.getElementById('annonce-pour');
-  function choisi(el) { return lire(el).some(function (m) { return choix.indexOf(m) !== -1; }); }
-  function appliquer() {
-    var actif = choix.length > 0;
-    principal.querySelectorAll('.hors-pour').forEach(function (e) { e.classList.remove('hors-pour'); });
-    if (actif) {
-      var porte = new Set();
-      for (var i = unites.length - 1; i >= 0; i--) {
-        var u = unites[i], propre = choisi(porteur(u)), ok = propre || porte.has(u);
-        if (!ok) { u.classList.add('hors-pour'); if (u.tagName === 'DT' && u.nextElementSibling) u.nextElementSibling.classList.add('hors-pour'); }
-        else { if (parentDe.has(u)) porte.add(parentDe.get(u)); if (!propre && u.tagName === 'DETAILS') u.open = true; }
-      }
-      var conteneurs = Array.prototype.slice.call(principal.querySelectorAll('.defile, ul, dl, .grille, details, .deux > div, .fiche'));
-      for (var j = conteneurs.length - 1; j >= 0; j--) {
-        var c = conteneurs[j], dedans = unites.filter(function (x) { return x !== c && c.contains(x); });
-        if (dedans.length && dedans.every(function (x) { return x.closest('.hors-pour'); })) c.classList.add('hors-pour');
-      }
-      principal.querySelectorAll('h4').forEach(function (h) {
-        var s = h.nextElementSibling;
-        if (!h.closest('.carte') && s && s.classList.contains('hors-pour')) h.classList.add('hors-pour');
-      });
-      titres.forEach(function (h) {
-        if (h.hasAttribute('data-pour-garde')) return;
-        var l = suite(h).filter(contientUnite);
-        if (l.length && !l.some(vivant)) { h.classList.add('hors-pour'); suite(h).forEach(function (s) { s.classList.add('hors-pour'); }); }
-      });
-      principal.querySelectorAll('section.partie').forEach(function (s) {
-        if (!s.hasAttribute('data-pour-garde') && contientUnite(s) && !vivant(s)) s.classList.add('hors-pour');
-      });
-    }
-    ORDRE.forEach(function (m) { boutonsPour[m].setAttribute('aria-pressed', choix.indexOf(m) !== -1); });
-    tout.hidden = !actif;
-    var n = marquees.filter(choisi).length;
-    annonce.textContent = actif
-      ? n + ' éléments sur ' + marquees.length + ' pour ' + choix.map(function (m) { return POUR[m]; }).join(' et ')
-      : marquees.length + ' éléments marqués, tous affichés';
-    document.querySelectorAll('nav.sommaire ol a').forEach(function (a) {
-      var s = document.querySelector(a.getAttribute('href')), nb = a.querySelector('.nb');
-      if (!s) return;
-      if (!nb) { nb = document.createElement('span'); nb.className = 'nb'; a.appendChild(nb); }
-      var dedans = marquees.filter(function (e) { return s.contains(e); });
-      nb.textContent = actif && dedans.length ? dedans.filter(choisi).length : '';
-      a.classList.toggle('vide', actif && s.classList.contains('hors-pour'));
-    });
-  }
-  function ecrireAdresse() {
-    try { var u = new URL(location.href); if (choix.length) u.searchParams.set('pour', choix.join(',')); else u.searchParams.delete('pour'); history.replaceState(null, '', u); } catch (e) {}
-  }
-  ORDRE.forEach(function (m, i) {
-    var n = marquees.filter(function (e) { return lire(e).indexOf(m) !== -1; }).length;
-    var b = document.createElement('button'); b.type = 'button'; b.className = 'filtre pour-' + m; b.title = DEFINITIONS[m];
-    b.setAttribute('aria-pressed', 'false'); b.setAttribute('aria-label', POUR[m] + ', ' + n + ' éléments');
-    b.innerHTML = '<span class="signe-pour" aria-hidden="true"></span>' + POUR[m] + ' <span class="nb" aria-hidden="true">' + n + '</span>';
-    b.addEventListener('click', function () {
-      var k = choix.indexOf(m); if (k === -1) choix.push(m); else choix.splice(k, 1);
-      choix.sort(function (x, y) { return ORDRE.indexOf(x) - ORDRE.indexOf(y); });
-      appliquer(); ecrireAdresse();
-    });
-    zonePour.insertBefore(b, tout); boutonsPour[m] = b;
-    if (i === 1) { var sep = document.createElement('span'); sep.className = 'separateur'; sep.setAttribute('aria-hidden', 'true'); zonePour.insertBefore(sep, tout); }
-  });
-  tout.addEventListener('click', function () { choix = []; appliquer(); ecrireAdresse(); });
-  try { choix = (new URLSearchParams(location.search).get('pour') || '').split(',').filter(function (m) { return POUR[m]; }); } catch (e) { choix = []; }
-  appliquer();
-
-
   // Tout déplier ou replier.
   var deplie = false;
   document.getElementById('tout-deplier').addEventListener('click', function () {
     deplie = !deplie;
     document.querySelectorAll('details').forEach(function (d) { d.open = deplie; });
+    zonePistes.querySelectorAll('.piste').forEach(function (d) { ouvrirLaFiche(d, deplie); });
     this.textContent = deplie ? 'Tout replier' : 'Tout déplier';
   });
 

@@ -10,7 +10,7 @@ import { existsSync, readdirSync, readFileSync, statSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-import { TOKENS_FORMAT_VERSION, VERSIONS_DE_TOKENS_LUES, CONTRACT_VERSION, tokenCssVariable } from '@ucm-kit/core/format';
+import { TOKENS_FORMAT_VERSION, VERSIONS_DE_TOKENS_LUES, CONTRACT_VERSION } from '@ucm-kit/core/format';
 import { VERSION_CONTRAT_MINIMALE, sectionEcartsDeParite } from '@ucm-kit/core/lecteurs';
 import { FENETRE_DE_LA_RECETTE } from '@ucm-kit/core/protocoles';
 import * as controlesBrut from '@ucm-kit/core/controles';
@@ -223,7 +223,6 @@ export function donneesDesPalettes() {
     fonds: base.fonds,
     palettes,
     cartes: Object.fromEntries(MODES.map((mode) => [mode, ecrireHexa(couleurDeLaCarte(base, mode))])),
-    bouton: { variableCss: tokenCssVariable('components.button.color.primary.contained.default.background') },
   };
 }
 
@@ -450,7 +449,7 @@ export function marque() {
 }
 
 /**
- * Le logo de chaque carte d'outil de la partie 5. La CLI et l'adaptateur n'ont pas de logo propre : ils sont des paquets
+ * Le logo de chaque carte d'outil de la partie 2. La CLI et l'adaptateur n'ont pas de logo propre : ils sont des paquets
  * `@ucm-kit` d'UCM Toolkit et prennent son logo, avec le signe du kit qui nomme leur geste (la demande de fusion que la CLI
  * contrôle, la property de variant que l'adaptateur compare).
  */
