@@ -603,7 +603,9 @@
       "questions": [
         "Le générateur vit-il dans le toolkit (définition) ou dans la bibliothèque (intégration) ?",
         "Quand le Hub s'arrête-t-il, et que deviennent ses pages de palettes et de tokens ?",
-        "Quelle version de `CSF` cibler (`CSF` 3 ou `CSF` Next) ?"
+        "Quelle version de `CSF` cibler (`CSF` 3 ou `CSF` Next) ?",
+        "La prise `@ucm-kit/core/modules` publie-t-elle aussi des données du référentiel, comme les crans des palettes ou les icônes, pour qu'un Storybook ou un autre module les affiche ? Aujourd'hui, elle ne publie que 7 fonctions et le type `Contract`, et ces données restent dans les portes réservées au toolkit.",
+        "Le Storybook porte-t-il une page de suivi pour les développeurs : composants en retard sur leur contrat et depuis quand, dérogations à valider, écarts de parité ? Sans elle, un développeur n'apprend un retard que par le rapport de la demande de fusion du designer."
       ],
       "risques": [
         "Un composant qui exige un contexte applicatif ne se monte pas seul : il doit apparaître compté, jamais omis.",
@@ -854,7 +856,8 @@
       "questions": [
         "Le vérificateur bloque-t-il dès sa mise en service, ou avertit-il pendant une période d'observation ?",
         "Où le designer valide-t-il un rendu, et où cette validation s'enregistre-t-elle ?",
-        "Playwright avec captures dans Git, ou Chromatic payant ?"
+        "Playwright avec captures dans Git, ou Chromatic payant ?",
+        "Une prévisualisation des composants modifiés, publiée sur la demande de fusion, laisse-t-elle le designer bloquer la fusion sur le rendu ?"
       ],
       "risques": [
         "Les polices de Linux en CI rendent autrement que la machine du designer : captures instables.",
