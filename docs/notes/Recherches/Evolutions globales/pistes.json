@@ -60,79 +60,6 @@
       ]
     },
     {
-      "id": "P2",
-      "titre": "Écrire la règle de blocage",
-      "titreCourt": "Règle de blocage",
-      "sujet": "Règle de blocage",
-      "recherche": "docs/notes/Recherches/Linter Dev/PLAN-CONFORMITE-RENDU.md",
-      "resume": "Réécrire les textes qui disent qu'un écart du code avertit : POUR-LES-DESIGNERS.md §6, COMPATIBILITE.md, ROADMAP.md et RECETTE.md, selon les quatre familles décidées.",
-      "importance": "critique",
-      "raisonImportance": "Quatre documents du dépôt disent encore qu'un écart du code avertit, alors que la décision le fait bloquer.",
-      "rang": 0,
-      "dependances": [
-        "P17"
-      ],
-      "complexite": "m",
-      "raisonComplexite": "Sept fichiers sont touchés, dont cinq à modifier et deux à vérifier. Les contrôles de style et de liens du dépôt s'appliquent, sans code.",
-      "coutHumain": "Relire cinq documents réécrits et répondre à quatre questions.",
-      "porteur": "mainteneur",
-      "promesse": "R",
-      "etat": "à faire",
-      "points": [
-        {
-          "chemin": "docs/guides/POUR-LES-DESIGNERS.md",
-          "action": "modifier",
-          "quoi": "§6, lignes 188 à 226 : lignes « Tokens : Avertit » et « Parité code : Avertit », et la phrase « Un écart avec le code attend un développeur, donc il avertit »."
-        },
-        {
-          "chemin": "docs/format/COMPATIBILITE.md",
-          "action": "modifier",
-          "quoi": "Lignes 208 à 211 : « Un écart entre le contrat et le code avertit sans refuser la fusion »."
-        },
-        {
-          "chemin": "ROADMAP.md",
-          "action": "modifier",
-          "quoi": "§4 « Ces écarts restent non bloquants » et le critère de sortie « les écarts de parité statique couverts avertissent sans accuser le contrat ni bloquer la fusion »."
-        },
-        {
-          "chemin": "docs/guides/RECETTE.md",
-          "action": "modifier",
-          "quoi": "Critère 5 de l'étape 7 : « Une référence de token disparue avertit sans bloquer »."
-        },
-        {
-          "chemin": "CONCEPT.md",
-          "action": "vérifier",
-          "quoi": "§4 « Un contrat peut précéder le code » et « Les divergences doivent être visibles » restent vrais avec l'état « en retard sur son contrat »."
-        },
-        {
-          "chemin": "docs/notes/Recherches/Linter Dev/PLAN-CONFORMITE-RENDU.md",
-          "action": "modifier",
-          "quoi": "§7 : remplacer le [À décider] sur la sévérité par la décision."
-        },
-        {
-          "chemin": "packages/cli/aides/controles.md",
-          "action": "vérifier",
-          "quoi": "Texte d'aide servi par la CLI sur les verdicts."
-        }
-      ],
-      "criteresDeFin": [
-        "Le §6 liste les quatre familles qui bloquent et ce qui reste libre (enveloppes, props non visuelles, placement par le parent, animations).",
-        "Le §6 donne les huit cas : valeur de token, variante ajoutée, token retiré, écart du développeur, contrat avant code, capture modifiée, contrat et captures changés, dérogation.",
-        "`npm test` passe à la racine, dont `tests/docLinks.test.ts` et `tests/styleDocumentaire.test.ts`.",
-        "`npm run agents:diff` ne liste aucun document resté faux."
-      ],
-      "questions": [
-        "Une demande de tokens seuls qui retire un token encore cité par le code passe-t-elle (« tokens seuls passe toujours ») ou bloque-t-elle ?",
-        "Un contrat exporté qui cite un token absent de `tokens.json` bloque-t-il la demande d'export du designer ?",
-        "Quel délai pour un composant « en retard sur son contrat » : avant la mise en production, ou un nombre de jours ?",
-        "Les textes annoncent-ils le blocage avant la version de la CLI qui l'applique (P19), ou paraissent-ils avec elle ?"
-      ],
-      "risques": [
-        "Un texte publié avant P19 annonce un blocage que la CLI 0.1.150 n'applique pas.",
-        "Le critère 5 de RECETTE.md change d'attendu : une recette jouée entre P2 et P19 échoue sur ce point."
-      ]
-    },
-    {
       "id": "P1",
       "titre": "Contrats réels dans intencial-library",
       "titreCourt": "Contrats réels",
@@ -141,9 +68,7 @@
       "importance": "critique",
       "raisonImportance": "Le dépôt n'a aucun dossier `src/components` ni contrat, et aucun contrat 14.0 n'existe nulle part : un module n'aurait rien contre quoi coder ni tester.",
       "rang": 0,
-      "dependances": [
-        "P2"
-      ],
+      "dependances": [],
       "complexite": "m",
       "raisonComplexite": "Les exports et les pins tiennent en un lot ; la recette compte une heure et demie, et RECETTE.md est écrit pour UCM-Playground.",
       "coutHumain": "Exporter 3 ou 4 composants depuis Figma, relire leurs pull requests et rejouer la recette d'une heure et demie.",
@@ -195,221 +120,6 @@
       "risques": [
         "Sans `package.json` ni lockfile, `ucm.yml` saute `npm ci` : l'adaptateur TypeScript ne se charge pas et la parité reste muette.",
         "Le passage de 0.1.48 à 0.1.150 change le texte des rapports déjà publiés sur les pull requests."
-      ]
-    },
-    {
-      "id": "P3",
-      "titre": "API figée du kit",
-      "titreCourt": "API figée du kit",
-      "sujet": "API du kit",
-      "recherche": "docs/notes/Recherches/Evolutions globales/DECISION-API-PUBLIQUE.md",
-      "resume": "Publier la prise `@ucm-kit/core/modules`, qui republie 8 noms que les modules importent, gardée par un test, avec un `CHANGELOG` du kit et des numéros de version qui disent la rupture.",
-      "importance": "haute",
-      "raisonImportance": "Un module qui importe un symbole non listé casse à une montée du kit sans avertissement, car la CLI épingle le kit en version exacte (0.15.2) et aucun journal des versions n'existe.",
-      "rang": 0,
-      "dependances": [],
-      "complexite": "m",
-      "raisonComplexite": "Le relevé est mesurable par script ; le test et le journal tiennent en un lot avec la montée de version du kit.",
-      "coutHumain": "Aucune décision : la partie 2 de la décision sur l'API publique répond aux trois questions de la piste.",
-      "porteur": "mainteneur",
-      "promesse": "R",
-      "etat": "à faire",
-      "points": [
-        {
-          "chemin": "packages/kit/src/modules/index.mjs",
-          "action": "créer",
-          "quoi": "Republie les 7 fonctions sous leur nom d'origine, depuis `@ucm-kit/core/lecteurs` et `@ucm-kit/core/format`."
-        },
-        {
-          "chemin": "packages/kit/src/modules/index.d.mts",
-          "action": "créer",
-          "quoi": "Déclare les 7 fonctions et le type `Contract` ; `vueExacteDuVariant` y reçoit un type de retour à la place de `unknown`."
-        },
-        {
-          "chemin": "packages/kit/package.json",
-          "action": "modifier",
-          "quoi": "`exports` reçoit `./modules` ; `files` reçoit `src/modules` ; version 0.17.0."
-        },
-        {
-          "chemin": "packages/kit/tests/apiPublique.test.mjs",
-          "action": "créer",
-          "quoi": "Noms comparés à la version précédente, exemples d'appel sur `fixtures/`, entrée de journal exigée."
-        },
-        {
-          "chemin": "tests/modulesParLaPrise.test.mjs",
-          "action": "créer",
-          "quoi": "Un paquet hors du toolkit n'importe que `@ucm-kit/core/modules`."
-        },
-        {
-          "chemin": "packages/kit/CHANGELOG.md",
-          "action": "créer",
-          "quoi": "Première entrée à 0.17.0, genre « ajout », la prise et ses 8 noms."
-        },
-        {
-          "chemin": "packages/kit/invariants/versionnage.md",
-          "action": "modifier",
-          "quoi": "Règles de la table des numéros, du préavis, du référentiel hors de la prise et de la décision avec le mainteneur."
-        },
-        {
-          "chemin": "packages/kit/README.md",
-          "action": "modifier",
-          "quoi": "Section « Status » : seule `./modules` est promise, les autres portes servent le toolkit ; un module épingle le kit de sa CLI."
-        },
-        {
-          "chemin": "packages/cli/src/guide.mjs",
-          "action": "modifier",
-          "quoi": "Nommer un `@ucm-kit/core` installé dans le repository à une autre version que celui de la CLI."
-        },
-        {
-          "chemin": "packages/cli/tests/",
-          "action": "modifier",
-          "quoi": "Cas d'un kit installé à une autre version."
-        },
-        {
-          "chemin": "packages/cli/package.json et packages/adapter-typescript/package.json",
-          "action": "modifier",
-          "quoi": "Épingler `0.17.0` et monter leur numéro (skill `publier-paquets`)."
-        }
-      ],
-      "criteresDeFin": [
-        "`node scripts/run-tests.cjs` passe dans `packages/kit` avec `apiPublique.test.mjs`.",
-        "Retirer un nom de la prise fait échouer le test (mutation vérifiée une fois).",
-        "Modifier un résultat attendu sans entrée « rupture » fait échouer le test (mutation vérifiée une fois).",
-        "`packages/kit/CHANGELOG.md` porte l'entrée de la 0.17.0.",
-        "`npm test` passe à la racine, dont `versionSuitLeContenu` et `modulesParLaPrise`."
-      ],
-      "questions": [],
-      "risques": [
-        "Un module qui importe une autre porte du kit casse à une montée sans avertissement : le test `modulesParLaPrise` et la règle ESLint du guide P4 le refusent.",
-        "Le relevé donne 41 valeurs et 1 type sur 433 noms, et ces noms ne sont plus la liste : la prise compte 8 noms à l'ouverture."
-      ]
-    },
-    {
-      "id": "P4",
-      "titre": "Guide d'entrée des modules",
-      "titreCourt": "Guide des modules",
-      "sujet": "Modules consommateurs",
-      "recherche": "docs/notes/Recherches/Evolutions globales/PLAN-API-MODULES.md",
-      "resume": "Écrire `docs/guides/MODULES.md` : où brancher un module, ce qu'il importe (la prise `@ucm-kit/core/modules`), comment le tester, avec un renvoi d'une ligne depuis AGENTS.md.",
-      "importance": "haute",
-      "raisonImportance": "Sans guide, un contributeur et son agent découvrent seuls que `ucm.config.json` lit trois champs et que la CLI ne charge que l'adaptateur TypeScript.",
-      "rang": 0,
-      "dependances": [
-        "P3",
-        "P2"
-      ],
-      "complexite": "m",
-      "raisonComplexite": "Un document d'une page, une ligne dans AGENTS.md sous sa limite d'octets et les contrôles de style.",
-      "coutHumain": "Accorder le nouveau document et répondre à trois questions : langue, monorepo, passage par `ucm check`.",
-      "porteur": "mainteneur",
-      "promesse": "C",
-      "etat": "à faire",
-      "points": [
-        {
-          "chemin": "docs/guides/MODULES.md",
-          "action": "créer",
-          "quoi": "`docs/guides/**` est déjà au registre ; AGENTS.md exige quand même l'accord du mainteneur pour un nouveau document."
-        },
-        {
-          "chemin": "AGENTS.md",
-          "action": "modifier",
-          "quoi": "Une ligne de renvoi ; le fichier pèse 11 378 octets pour 12 288 permis par `tests/domiciles.test.ts` ligne 248."
-        },
-        {
-          "chemin": "docs/README.md",
-          "action": "modifier",
-          "quoi": "Section « Utiliser les outils »."
-        },
-        {
-          "chemin": "packages/cli/src/adaptateur.mjs",
-          "action": "vérifier",
-          "quoi": "Source du fait : seul `@ucm-kit/adapter-typescript` est découvert."
-        },
-        {
-          "chemin": "packages/kit/src/format/configuration.ts",
-          "action": "vérifier",
-          "quoi": "Source du fait : trois champs de chemin, une clé `modules` serait ignorée."
-        },
-        {
-          "chemin": "packages/kit/fixtures/contrats/",
-          "action": "vérifier",
-          "quoi": "Contrats fabriqués que le guide désigne pour tester un module."
-        }
-      ],
-      "criteresDeFin": [
-        "`docs/guides/MODULES.md` existe, cite la prise `@ucm-kit/core/modules`, la règle d'épinglage sur le kit de la CLI et la règle `no-restricted-imports`.",
-        "AGENTS.md pèse au plus 12 288 octets.",
-        "`npm test` passe, dont `tests/registreDesDocuments.test.ts`, `tests/docLinks.test.ts` et `tests/styleDocumentaire.test.ts`."
-      ],
-      "questions": [
-        "Les modules s'écrivent-ils en français comme le kit, ou en anglais comme le format ?",
-        "Monorepo ou dépôts séparés pour les modules ?",
-        "Un module passe-t-il par `ucm check`, ou tourne-t-il seul dans le CI ?"
-      ],
-      "risques": [
-        "Un guide écrit avant P3 et P19 décrit une API et un verdict qui changent ensuite."
-      ]
-    },
-    {
-      "id": "P5",
-      "titre": "Aligner les textes sur les décisions",
-      "titreCourt": "Textes alignés",
-      "sujet": "Documentation",
-      "resume": "Corriger CONCEPT.md (agnostique par défaut), le sommaire des recherches (Hub en cours) et le README de Palettes (onglets et format de recette).",
-      "importance": "moyenne",
-      "raisonImportance": "Un contributeur qui lit CONCEPT.md croit que tous les outils acceptent toute structure, alors que seul l'Exporter le fait en option.",
-      "rang": 0,
-      "dependances": [
-        "P9"
-      ],
-      "complexite": "s",
-      "raisonComplexite": "Cinq passages connus dans cinq fichiers, sans code.",
-      "coutHumain": "Relire cinq passages corrigés et répondre à une question : le périmètre d'`ucm check`.",
-      "porteur": "mainteneur",
-      "promesse": "C",
-      "etat": "à faire",
-      "points": [
-        {
-          "chemin": "CONCEPT.md",
-          "action": "modifier",
-          "quoi": "§3, paragraphe après le tableau des produits : « Le périmètre agnostique est le défaut »."
-        },
-        {
-          "chemin": "README.md",
-          "action": "modifier",
-          "quoi": "Ligne 21 : le périmètre agnostique."
-        },
-        {
-          "chemin": "docs/notes/Recherches/README.md",
-          "action": "modifier",
-          "quoi": "Ligne 15 : Hub « Partiellement implémenté », à remplacer par le sort décidé en P9."
-        },
-        {
-          "chemin": "packages/plugin-palettes/README.md",
-          "action": "modifier",
-          "quoi": "Lignes 21 à 30 « Trois onglets » sans la Comparaison (`src/ui/index.ts` en crée quatre) ; lignes 159 à 162 « format 10 » alors que `FENETRE_DE_LA_RECETTE` vaut courante 12, première 8."
-        },
-        {
-          "chemin": "ROADMAP.md",
-          "action": "modifier",
-          "quoi": "Ligne 47 : Palettes « recette 9 »."
-        },
-        {
-          "chemin": "packages/kit/src/referentiel/produits.ts",
-          "action": "vérifier",
-          "quoi": "Le rôle de chaque produit reste cohérent avec CONCEPT.md."
-        }
-      ],
-      "criteresDeFin": [
-        "`grep -n \"agnostique est le défaut\" CONCEPT.md` ne rend rien.",
-        "Le README de Palettes nomme quatre onglets et le format 12.",
-        "`npm test` à la racine et `npm run agents:diff` passent."
-      ],
-      "questions": [
-        "`ucm check` suit-il l'architecture full UCM, ou reste-t-il agnostique comme l'Exporter ?"
-      ],
-      "risques": [
-        "Le statut du Hub change encore si P9 n'est pas décidé : écrire seulement ce qui est décidé."
       ]
     },
     {
@@ -486,8 +196,6 @@
       "raisonImportance": "`bilanEstBloquant` ne compte ni les tokens absents ni la parité, donc le CI laisse fusionner tout écart du code quelle que soit la règle écrite.",
       "rang": 1,
       "dependances": [
-        "P2",
-        "P3",
         "P18"
       ],
       "complexite": "l",
@@ -585,7 +293,7 @@
         "Un push sur `main` sans `--base` juge-t-il tous les composants « en retard » ou bloquants ?",
         "Une implémentation présente sans adaptateur installé est-elle un avertissement (trou de preuve) ou un blocage ?",
         "Quelle forme pour la dérogation : fichier, portée (composant, combinaison, famille), motif, auteur, expiration ?",
-        "Les questions de P2 sur le token retiré et le délai « en retard ».",
+        "Les questions ouvertes sur le token retiré et sur le délai « en retard ».",
         "La dépendance à P18 tient au dernier critère. Sans lui, P19 se fait en parallèle de P1. La garde-t-on ?"
       ],
       "risques": [
@@ -772,9 +480,7 @@
       "importance": "moyenne",
       "raisonImportance": "Un module TypeScript compile contre une signature fausse et reçoit une autre forme à l'exécution.",
       "rang": 1,
-      "dependances": [
-        "P3"
-      ],
+      "dependances": [],
       "complexite": "m",
       "raisonComplexite": "Un test qui compile un appel par nom de la prise `@ucm-kit/core/modules` (8 signatures) tient en un lot ; convertir les 26 lecteurs (6 536 lignes) en TypeScript serait L.",
       "coutHumain": "Répondre à une question : convertir les lecteurs en TypeScript ou garder `.mjs` avec JSDoc.",
@@ -825,8 +531,6 @@
       "raisonImportance": "Aucun contrôle n'exerce le rendu (ROADMAP.md, « La preuve du rendu reste ciblée ») : sans comparateur, dimensions, typographie et structure ne bloquent jamais.",
       "rang": 2,
       "dependances": [
-        "P2",
-        "P3",
         "P1"
       ],
       "complexite": "l",
@@ -905,8 +609,7 @@
       "rang": 2,
       "dependances": [
         "P1",
-        "P18",
-        "P3"
+        "P18"
       ],
       "complexite": "l",
       "raisonComplexite": "Un générateur dans le toolkit, un montage React propre au projet (providers, icônes, contenus) et une clé de configuration publiée dans le kit.",
@@ -978,8 +681,6 @@
       "raisonImportance": "Sans linter, une valeur écrite en dur passe pour conforme au vérificateur quand elle égale un token, et une nouvelle valeur du designer ne se propage pas.",
       "rang": 2,
       "dependances": [
-        "P3",
-        "P4",
         "P18",
         "P1"
       ],
@@ -1107,58 +808,6 @@
       ]
     },
     {
-      "id": "P12",
-      "titre": "Contrôle de l'architecture des tokens dans le CI",
-      "titreCourt": "Contrôle d'architecture",
-      "sujet": "Architecture des tokens",
-      "resume": "Faire juger `tokens.json` par les contrôles d'architecture du kit (C82 de `integrite.ts`, `structure.ts`), en information.",
-      "importance": "moyenne",
-      "raisonImportance": "Un module n'en dépend pas pour coder ; la décision « full UCM » rend le contrôle utile pour détecter une architecture cassée avant la fusion.",
-      "rang": 3,
-      "dependances": [
-        "P19"
-      ],
-      "complexite": "m",
-      "raisonComplexite": "Les contrôles existent mais lisent un `CatalogueDeReference` de variables Figma : il faut une projection de `tokens.json` vers ce catalogue.",
-      "coutHumain": "Répondre à deux questions : périmètre d'`ucm check`, niveau d'information du contrôle.",
-      "porteur": "mainteneur",
-      "promesse": "R",
-      "etat": "ouvert",
-      "points": [
-        {
-          "chemin": "packages/kit/src/controles/integrite.ts",
-          "action": "vérifier",
-          "quoi": "`controlerLIntegriteUcm` (C82) lit le seul catalogue."
-        },
-        {
-          "chemin": "packages/kit/src/controles/structure.ts",
-          "action": "vérifier",
-          "quoi": "`controlerLeCatalogue` : scopes, échelles, alias de mode."
-        },
-        {
-          "chemin": "packages/kit/src/lecteurs/ (projection DTCG vers catalogue)",
-          "action": "créer",
-          "quoi": "Construire un `CatalogueDeReference` depuis `tokens.json`."
-        },
-        {
-          "chemin": "packages/kit/src/lecteurs/controle-repository.mjs",
-          "action": "modifier",
-          "quoi": "Section d'information, comme `diagnostic-contrastes.mjs`."
-        }
-      ],
-      "criteresDeFin": [
-        "`ucm check` sur le `tokens.json` d'intencial-library rend les constats C82 en information.",
-        "Une demande de tokens seuls reste verte."
-      ],
-      "questions": [
-        "`ucm check` fait-il partie des outils full UCM, ou reste-t-il agnostique ?",
-        "Ce contrôle reste-t-il une information ?"
-      ],
-      "risques": [
-        "Un constat d'architecture bloquant contredirait « une demande de tokens seuls passe toujours »."
-      ]
-    },
-    {
       "id": "P8",
       "titre": "Intégration automatique des contrats dans le code",
       "titreCourt": "Intégration auto",
@@ -1224,8 +873,7 @@
       "raisonImportance": "Le diff aide la revue sans rien bloquer ; la revue du plan d'implémenteur juge qu'on peut démarrer sans lui (décision 8).",
       "rang": 4,
       "dependances": [
-        "P1",
-        "P3"
+        "P1"
       ],
       "complexite": "l",
       "raisonComplexite": "Le plan compte les lots L0 à L8 et une porte humaine H1.",

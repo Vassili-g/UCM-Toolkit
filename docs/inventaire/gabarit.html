@@ -58,7 +58,7 @@
     <dt>Une information, un propriétaire</dt><dd>Figma fait foi pour le visuel : tokens, variantes, états, dimensions, icônes et règles d'usage. Le code fait foi pour le comportement, les événements et l'accessibilité. Le CI juge si les deux s'accordent.</dd>
     <dt>Le composant unifié</dt><dd>Le contrat et le code du composant vivent dans le même dossier. Les tokens restent dans un fichier <a class="terme" href="#g-dtcg" title="Design Tokens Community Group, auteur du format standard de tokens.json.">DTCG</a> commun.</dd>
     <dt>Le code écrit contre le contrat</dt><dd>Le développeur écrit le composant à partir du contrat. Le build en dérive des types et des variables CSS, et le code ne lit jamais le contrat à l'exécution.</dd>
-    <dt><a class="terme" href="#g-full" title="Un outil full UCM exige l'architecture de référence : {{collections:nombre}} collections, {{crans:nombre}} crans, {{theme:variables}} variables de thème. Un outil agnostique accepte toute structure.">Full UCM</a></dt><dd>Les outils suivent l'architecture de référence du kit, et seul le plugin d'export accepte en option toute structure de variables. UCM vise un design system neuf qui suit ses règles.<span class="nota">CONCEPT.md fait encore de l'agnostique le défaut de chaque outil (<a href="#piste-P5">P5</a>). <code>ucm check</code> accepte aujourd'hui toute structure (<a href="#piste-P12">P12</a>).</span></dd>
+    <dt><a class="terme" href="#g-full" title="Un outil full UCM exige l'architecture de référence : {{collections:nombre}} collections, {{crans:nombre}} crans, {{theme:variables}} variables de thème. Un outil agnostique accepte toute structure.">Full UCM</a></dt><dd>Les outils suivent l'architecture de référence du kit, et seul le plugin d'export accepte en option toute structure de variables. UCM vise un design system neuf qui suit ses règles.<span class="nota"><code>ucm check</code> juge l'architecture de <code>tokens.json</code> en information, sans rien bloquer.</span></dd>
   </dl>
 
   <h3>Ce qu'UCM ne fait pas encore</h3>
@@ -607,7 +607,7 @@
           <p>{{rapport:fin}}</p>
         </div>
         <div class="pr-fusion"><span class="bouton-fusion">Fusionner</span></div></div></figure>
-    <figure class="rapport"><figcaption>Après <a href="#piste-P17">P17</a>, <a href="#piste-P2">P2</a> et <a href="#piste-P19">P19</a> (forme visée)</figcaption>
+    <figure class="rapport"><figcaption>Après <a href="#piste-P17">P17</a> et <a href="#piste-P19">P19</a> (forme visée)</figcaption>
       <div class="pr"><div class="pr-tete">ucm check</div>
         <div class="pr-corps">
           <p class="pr-titre bloquant">{{rapport:rouge}}</p>
@@ -645,7 +645,7 @@
   <ul class="liste">
     {{lignes-decidees}}
   </ul>
-  <p class="doux">{{regle:validation-visuelle-sans-blocage}} Le guide du designer (<code>POUR-LES-DESIGNERS.md</code> §6) décrit le comportement actuel, et <a href="#piste-P2">P2</a> le réécrira selon ces règles.</p>
+  <p class="doux">{{regle:validation-visuelle-sans-blocage}} Le guide du designer (<code>POUR-LES-DESIGNERS.md</code> §6) décrit ces règles et le comportement actuel de la CLI.</p>
 </section>
 
 <!-- 7. La suite : une liste des pistes par rang, avec décision et note sur la ligne et la fiche dépliable ; le graphe ; les questions ouvertes. Source : PISTES et DECISIONS dans le script de la page. -->
@@ -686,7 +686,7 @@
   <p class="intro">Réponses tirées du dépôt et des décisions du mainteneur.</p>
   <dl class="def questions">
     <dt>Pourquoi un contrat JSON plutôt que l'API Figma ou Code Connect ?</dt><dd>Le CI lit le contrat sans accès à Figma, et le contrat est versionné à côté du code. Code Connect relie un composant Figma à son code sans décrire les obligations visuelles. Les deux se complètent.</dd>
-    <dt>L'API du kit est-elle stable ?</dt><dd>Non, elle est en 0.x. La piste <a href="#piste-P3">P3</a> fige les symboles importés, {{noms:importes}} aujourd'hui sur {{noms:uniques}} noms exportés.</dd>
+    <dt>L'API du kit est-elle stable ?</dt><dd>Une seule porte est promise aux modules, <code>@ucm-kit/core/modules</code>. Un test refuse qu'elle change sans entrée au journal du kit, et le chiffre du milieu de la version monte à chaque rupture. Les autres portes servent les outils UCM et changent librement. Le guide <code>docs/guides/MODULES.md</code> le détaille.</dd>
     <dt>Que se passe-t-il quand le designer change un token ?</dt><dd>Sa valeur change dans <code>tokens.json</code>, et la demande passe. Le code suit une fois la feuille régénérée par <code>ucm tokens css</code>. Un token cité par un contrat puis retiré avertit aujourd'hui, et bloquera une fois la règle de blocage codée (<a href="#piste-P19">P19</a>).</dd>
     <dt>Un contrat peut-il arriver avant le code ?</dt><dd>Oui. Il est fusionné « à implémenter », et la parité s'applique dès que le composant existe.</dd>
     <dt>Comment tester sans Figma ?</dt><dd><code>npm test</code> couvre le moteur, les lecteurs sur des contrats fabriqués et la CLI sur des repositories temporaires. Ce qui touche Figma et une vraie forge se rejoue dans UCM-Playground, l'application de recette sur GitHub. Un agent ne peut pas exporter depuis Figma.</dd>

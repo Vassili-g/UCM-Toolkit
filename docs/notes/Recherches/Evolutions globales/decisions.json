@@ -1,26 +1,6 @@
 {
   "version": 1,
   "pistes": {
-    "P2": {
-      "choix": "oui",
-      "note": "On peut actualiser ça."
-    },
-    "P3": {
-      "choix": "oui",
-      "note": "En cours de recherche par Opus."
-    },
-    "P4": {
-      "choix": "oui",
-      "note": "Ok pour faire."
-    },
-    "P5": {
-      "choix": "oui",
-      "note": "Ok."
-    },
-    "P12": {
-      "choix": "oui",
-      "note": ""
-    },
     "P17": {
       "choix": "oui",
       "note": "On le fait mais plus tard, ce n'est pas prioritaire pour le moment."
@@ -69,11 +49,10 @@
       "id": "storybook-remplace-le-hub",
       "genre": "liste",
       "pour": "developpeur",
-      "texte": "Storybook remplace le Hub UCM (P5, P9). Le sommaire des recherches garde encore le plan du Hub.",
+      "texte": "Storybook remplacera le Hub UCM (P9) ; le moment reste ouvert.",
       "domicileCible": "docs/notes/Recherches/README.md#Sujets",
       "ecrite": "partiel",
       "pistes": [
-        "P5",
         "P9"
       ]
     },
@@ -81,12 +60,10 @@
       "id": "flux-de-figma-vers-le-code",
       "genre": "liste",
       "pour": "designer developpeur",
-      "texte": "Le flux va de Figma vers le code seulement. Les outils suivent l'architecture full UCM, et seul l'Exporter est agnostique, en option (P5).",
+      "texte": "Le flux va de Figma vers le code seulement. Les outils suivent l'architecture full UCM, et seul l'Exporter est agnostique, en option.",
       "domicileCible": "CONCEPT.md#Les produits et les deux périmètres",
       "ecrite": "oui",
-      "pistes": [
-        "P5"
-      ]
+      "pistes": []
     },
     {
       "id": "demande-de-tokens-sans-blocage",
@@ -148,12 +125,10 @@
       "id": "composant-en-retard-passe",
       "genre": "tableau",
       "pour": "developpeur",
-      "texte": "Une demande qui ne modifie que le contrat marque le composant en retard sur son contrat, et la demande passe (P2).",
+      "texte": "Une demande qui ne modifie que le contrat marque le composant en retard sur son contrat, et la demande passe.",
       "domicileCible": "docs/guides/POUR-LES-DESIGNERS.md#6. Ce qui bloque la fusion et ce qui avertit",
       "ecrite": "oui",
-      "pistes": [
-        "P2"
-      ]
+      "pistes": []
     },
     {
       "id": "T1",
@@ -177,7 +152,6 @@
       "domicileCible": "docs/notes/Recherches/Linter Dev/PLAN-CONFORMITE-RENDU.md#7. Règle de sévérité",
       "ecrite": "partiel",
       "pistes": [
-        "P2",
         "P19"
       ]
     },
@@ -190,7 +164,6 @@
       "domicileCible": "docs/notes/Recherches/Linter Dev/PLAN-CONFORMITE-RENDU.md#7. Règle de sévérité",
       "ecrite": "partiel",
       "pistes": [
-        "P2",
         "P19"
       ]
     },
@@ -228,7 +201,6 @@
       "domicileCible": "CONCEPT.md",
       "ecrite": "non",
       "pistes": [
-        "P4",
         "P6",
         "P9",
         "P18"
@@ -242,9 +214,7 @@
       "texte": "`ucm.config.json` lit trois champs. Une clé `modules` n'activerait rien.",
       "domicileCible": "docs/notes/Recherches/Linter Dev/PLAN-CONFORMITE-RENDU.md",
       "ecrite": "non",
-      "pistes": [
-        "P4"
-      ]
+      "pistes": []
     },
     {
       "id": "T8",
@@ -254,9 +224,7 @@
       "texte": "Code du kit en français, format en anglais, README de la CLI en anglais.",
       "domicileCible": "CONTRIBUTING.md",
       "ecrite": "non",
-      "pistes": [
-        "P4"
-      ]
+      "pistes": []
     },
     {
       "id": "T9",
@@ -266,10 +234,7 @@
       "texte": "Seul l'Exporter est agnostique, mais `ucm check` accepte aujourd'hui toute structure.",
       "domicileCible": "CONCEPT.md#Les produits et les deux périmètres",
       "ecrite": "oui",
-      "pistes": [
-        "P5",
-        "P12"
-      ]
+      "pistes": []
     },
     {
       "id": "T10",
