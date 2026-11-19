@@ -295,7 +295,7 @@ async function valeurs(): Promise<Record<string, string>> {
     'js:REFERENCE': pourLeScript(reference),
     'js:C': pourLeScript(codes),
     'js:PISTES': pourLeScript(listeDePistes),
-    'js:DECISIONS': pourLeScript({ pistes: decisions.pistes, transverses: decisions.transverses, regles: decisions.regles.filter((regle) => regle.options).map((regle) => ({ id: regle.id, options: regle.options })) }),
+    'js:DECISIONS': pourLeScript(decisions),
   };
   for (const paquet of paquets) liste[`tests:${paquet.dossier}`] = String(paquet.fichiersDeTest);
   for (const entree of entrees) liste[`export:${entree.entree}`] = String(entree.noms.length);

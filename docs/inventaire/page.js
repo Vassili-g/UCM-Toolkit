@@ -428,8 +428,25 @@
     if (r.options) OPTIONS_T[r.id] = r.options.map(function (o) { return [o.valeur, o.libelle]; }).concat([['', 'À décider']]);
   });
   var TRANSVERSES = [];
-  var decisions = {};
-  try { decisions = JSON.parse(localStorage.getItem(CLE_DECISIONS) || '{}') || {}; } catch (e) { decisions = {}; }
+  // Les décisions de travail : l'état du dépôt, avec par-dessus l'écart gardé dans ce navigateur.
+  function duDepot() {
+    var base = {};
+    ['pistes', 'transverses'].forEach(function (groupe) {
+      Object.keys(DECISIONS_DU_DEPOT[groupe] || {}).forEach(function (cle) {
+        var d = DECISIONS_DU_DEPOT[groupe][cle];
+        base[cle] = { choix: d.choix || '', note: d.note || '' };
+      });
+    });
+    return base;
+  }
+  var decisions = duDepot();
+  try {
+    var local = JSON.parse(localStorage.getItem(CLE_DECISIONS) || '{}') || {};
+    Object.keys(local).forEach(function (cle) {
+      var d = decisions[cle] || { choix: '', note: '' };
+      decisions[cle] = { choix: typeof local[cle].choix === 'string' ? local[cle].choix : d.choix, note: typeof local[cle].note === 'string' ? local[cle].note : d.note };
+    });
+  } catch (e) { decisions = duDepot(); }
   function choixDe(cle) { return (decisions[cle] || {}).choix || ''; }
   function listeDe(ids, mot) { return ids.length < 2 ? ids.join('') : ids.slice(0, -1).join(', ') + ' et ' + ids[ids.length - 1]; }
   // Ce qui contredit une décision : un prérequis écarté, ou une décision attendue sur un prérequis.
@@ -484,9 +501,106 @@
       return '<label class="option"><input type="radio" name="d-' + contexte + '-' + cle + '" data-cle="' + cle + '" value="' + o[0] + '"> ' + o[1] + '</label>';
     }).join('') + '</div>';
   }
-  function garder() { try { localStorage.setItem(CLE_DECISIONS, JSON.stringify(decisions)); } catch (e) {} afficher(); }
+  function vide(d) { return !d || (!d.choix && !d.note); }
+  function memes(a, b) { return vide(a) ? vide(b) : !vide(b) && (a.choix || '') === (b.choix || '') && (a.note || '') === (b.note || ''); }
+  // Les décisions qui diffèrent de celles du dépôt (choix ou note).
+  function ecart() {
+    var base = duDepot(), cles = {}, ecarts = {};
+    Object.keys(base).concat(Object.keys(decisions)).forEach(function (cle) { cles[cle] = 1; });
+    Object.keys(cles).forEach(function (cle) { if (!memes(decisions[cle], base[cle])) ecarts[cle] = { choix: (decisions[cle] || {}).choix || '', note: (decisions[cle] || {}).note || '' }; });
+    return ecarts;
+  }
+  var messageEcart = '';
+  function garder() {
+    messageEcart = '';
+    try { localStorage.setItem(CLE_DECISIONS, JSON.stringify(ecart())); } catch (e) {}
+    afficher();
+  }
+  function afficherLEcart() {
+    var n = Object.keys(ecart()).length;
+    document.getElementById('ecart-decisions').hidden = !n;
+    document.getElementById('ecart-compte').textContent = n + (n > 1 ? ' décisions pas encore dans le dépôt' : ' décision pas encore dans le dépôt');
+    document.getElementById('ecart-message').textContent = messageEcart;
+  }
+  // Le decisions.json complet : les règles du dépôt inchangées, les choix du dépôt fusionnés avec l'écart local, clés triées.
+  function contenuDuDepot() {
+    var sortie = { version: DECISIONS_DU_DEPOT.version, pistes: {}, transverses: {}, regles: DECISIONS_DU_DEPOT.regles };
+    var estTransverse = {};
+    DECISIONS_DU_DEPOT.regles.forEach(function (r) { if (r.genre === 'transverse') estTransverse[r.id] = 1; });
+    Object.keys(decisions).sort(function (a, b) { return a.localeCompare(b, 'fr', { numeric: true }); }).forEach(function (cle) {
+      if (vide(decisions[cle])) return;
+      sortie[estTransverse[cle] ? 'transverses' : 'pistes'][cle] = { choix: decisions[cle].choix || '', note: decisions[cle].note || '' };
+    });
+    return JSON.stringify(sortie, null, 2) + '\n';
+  }
+  var NOM_FICHIER = 'decisions.json', CHEMIN_FICHIER = 'docs/notes/Recherches/Evolutions globales/decisions.json';
+  function baseDePoignees(mode, f) {
+    return new Promise(function (ok, ko) {
+      var ouverture = indexedDB.open('inventaire-ucm', 1);
+      ouverture.onupgradeneeded = function () { ouverture.result.createObjectStore('poignees'); };
+      ouverture.onerror = function () { ko(ouverture.error); };
+      ouverture.onsuccess = function () {
+        try {
+          var tx = ouverture.result.transaction('poignees', mode), req = f(tx.objectStore('poignees'));
+          tx.oncomplete = function () { ouverture.result.close(); ok(req && req.result); };
+          tx.onerror = function () { ko(tx.error); };
+        } catch (e) { ko(e); }
+      };
+    });
+  }
+  function poigneeGardee() { try { return baseDePoignees('readonly', function (m) { return m.get('decisions'); }).catch(function () { return null; }); } catch (e) { return Promise.resolve(null); } }
+  function garderLaPoignee(h) { try { return baseDePoignees('readwrite', function (m) { return m.put(h, 'decisions'); }).catch(function () {}); } catch (e) { return Promise.resolve(); } }
+  function telecharger(texte) {
+    var a = document.createElement('a');
+    a.href = 'data:application/json;charset=utf-8,' + encodeURIComponent(texte);
+    a.download = NOM_FICHIER;
+    document.body.appendChild(a); a.click(); a.remove();
+    return 'Fichier téléchargé. Déposez-le dans ' + CHEMIN_FICHIER + ', lancez `npm run vues`, puis commitez.';
+  }
+  function ecrire(h, texte) {
+    return h.createWritable().then(function (w) { return w.write(texte).then(function () { return w.close(); }); });
+  }
+  function permise(h) {
+    if (!h.queryPermission) return Promise.resolve(true);
+    return h.queryPermission({ mode: 'readwrite' }).then(function (p) {
+      return p === 'granted' ? true : h.requestPermission({ mode: 'readwrite' }).then(function (q) { return q === 'granted'; });
+    });
+  }
+  // Chrome et Edge réécrivent le même fichier ; sans cette API, ou si l'écriture échoue, le fichier se télécharge.
+  function enregistrerDansLeDepot() {
+    var texte, dit = function (m) { messageEcart = m; afficherLEcart(); };
+    try { texte = contenuDuDepot(); } catch (e) { dit('Enregistrement impossible : ' + e.message); return; }
+    var reussi = function () { dit('Enregistré dans ' + NOM_FICHIER + '. Lancez `npm run vues`, puis commitez.'); };
+    var repli = function (e) {
+      if (e && e.name === 'AbortError') { dit('Enregistrement annulé.'); return; }
+      try { dit(telecharger(texte)); } catch (e2) { dit('Enregistrement impossible : ' + e2.message); }
+    };
+    if (!window.showSaveFilePicker) { repli(); return; }
+    var choisir = function () {
+      return window.showSaveFilePicker({ suggestedName: NOM_FICHIER, types: [{ description: 'JSON', accept: { 'application/json': ['.json'] } }] })
+        .then(function (h) { return garderLaPoignee(h).then(function () { return ecrire(h, texte); }); });
+    };
+    try {
+      poigneeGardee().then(function (h) {
+        if (!h) return choisir();
+        return permise(h).then(function (ok) { return ok ? ecrire(h, texte) : choisir(); });
+      }).then(reussi, repli);
+    } catch (e) { repli(e); }
+  }
+  function poserLesNotes() {
+    document.querySelectorAll('textarea[data-note]').forEach(function (z) { z.value = (decisions[z.getAttribute('data-note')] || {}).note || ''; });
+  }
+  function revenirAuDepot() {
+    if (!confirm('Revenir à la version du dépôt ? Les décisions et notes de ce navigateur qui diffèrent seront perdues.')) return;
+    try { localStorage.removeItem(CLE_DECISIONS); } catch (e) {}
+    decisions = duDepot();
+    messageEcart = '';
+    poserLesNotes();
+    afficher();
+  }
   function afficher() {
     synchroniserLesChoix();
+    afficherLEcart();
     bilan();
     zonePistes.querySelectorAll('details.piste').forEach(function (d) { marquerLaPiste(d, d.id.replace('piste-', '')); });
     dessinerLeGraphe();
@@ -624,6 +738,8 @@
     document.querySelectorAll('#suite textarea[data-note]').forEach(function (z) { z.value = ''; });
     garder();
   });
+  document.getElementById('enregistrer-decisions').addEventListener('click', enregistrerDansLeDepot);
+  document.getElementById('revenir-au-depot').addEventListener('click', revenirAuDepot);
 
   // Codes des contrôles, lus dans CODES_DES_CONSTATS (kit). La section suit ELEMENT_DE_LA_FAMILLE de plugin-architect/src/ui/panneau/elements.ts.
   var C = {{js:C}};

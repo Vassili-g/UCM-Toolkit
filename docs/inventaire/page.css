@@ -210,6 +210,9 @@ ol.notes-contrat li { display: grid; grid-template-columns: 20px minmax(0, 1fr);
 
 
 .bilan-decisions { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin: 10px 0 4px; font-size: .88rem; }
+.ecart-decisions { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin: 10px 0; padding: 8px 12px; font-size: .88rem; border: 1px solid var(--trait); border-radius: 8px; background: var(--surface); }
+.ecart-decisions[hidden] { display: none; }
+.ecart-decisions #ecart-message { flex-basis: 100%; }
 .bilan-decisions #bilan-decisions { margin-right: auto; }
 textarea.export { width: 100%; min-height: 160px; font: .8rem/1.5 ui-monospace, Consolas, monospace; background: var(--surface); color: var(--texte); border: 1px solid var(--trait); border-radius: 8px; padding: 8px; }
 details.piste .meta { display: block; margin-top: 4px; font-size: .82rem; color: var(--doux); font-weight: 400; }

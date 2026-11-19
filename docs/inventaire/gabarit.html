@@ -603,9 +603,10 @@
 
   <h3 id="feuille">La feuille de route</h3>
   <p class="defini">Défini dans <code>docs/notes/Recherches/Evolutions globales/PISTES-EVOLUTION.md</code>.</p>
+  <div class="ecart-decisions" id="ecart-decisions" role="status" hidden><span id="ecart-compte"></span><button class="bouton" id="enregistrer-decisions">Enregistrer dans le dépôt</button><button class="bouton" id="revenir-au-depot">Revenir à la version du dépôt</button><span id="ecart-message" class="doux"></span></div>
   <p class="intro">21 pistes, rangées par rang d'implémentation. R et C sont les promesses de la partie 2. La complexité se compte en travail d'agent : <code>S</code> moins d'une demi-journée, <code>M</code> un lot, <code>L</code> plusieurs lots, <code>XL</code> un projet.</p>
   <div class="bilan-decisions"><span id="bilan-decisions"></span><button class="bouton" id="deplier-pistes">Déplier les 21 pistes</button><button class="bouton" id="copier-decisions">Copier les décisions</button><button class="bouton" id="effacer-decisions">Effacer les décisions</button></div>
-  <p class="doux">Les décisions et les notes restent dans ce navigateur. « Copier les décisions » les met en texte, à coller dans une conversation ou un document.</p>
+  <p class="doux">Les décisions et les notes restent dans ce navigateur tant qu'elles ne sont pas enregistrées dans le dépôt. « Copier les décisions » les met en texte, à coller dans une conversation ou un document.</p>
   <textarea id="export-decisions" class="export" hidden readonly aria-label="Décisions en texte"></textarea>
   <!-- V6. Graphe des dépendances : calculé au rendu depuis PISTES (profondeur, chemin critique). Source : PISTES et TITRES_COURTS dans le script de la page. -->
   <details class="pli" id="graphe"><summary>Le graphe des dépendances <span class="doux">21 pistes, chemin critique en rose</span></summary><div class="contenu graphe">

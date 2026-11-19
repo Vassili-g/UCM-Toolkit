@@ -700,6 +700,21 @@ export function pistes(): Piste[] {
   return contenu.pistes;
 }
 
+/** Les choix enregistrés d'un `decisions.json` : chaque identifiant est connu, chaque choix est permis. Lève une erreur qui nomme l'identifiant fautif. */
+export function validerLesChoix(contenu: Decisions, identifiants: ReadonlySet<string>): void {
+  const transverses = new Map(contenu.regles.filter((regle) => /^T\d+$/.test(regle.id)).map((regle) => [regle.id, regle]));
+  for (const [id, decision] of Object.entries(contenu.pistes)) {
+    if (!identifiants.has(id)) AVEC_ECHEC(CHEMIN_DES_DECISIONS, `pistes, ${id}`, "cette piste n'existe pas dans pistes.json");
+    if (!['oui', 'non', ''].includes(decision.choix)) AVEC_ECHEC(CHEMIN_DES_DECISIONS, `pistes, ${id}, champ choix`, `« ${decision.choix} » n'est ni oui, ni non, ni vide`);
+  }
+  for (const [id, decision] of Object.entries(contenu.transverses)) {
+    const regle = transverses.get(id);
+    if (!regle) AVEC_ECHEC(CHEMIN_DES_DECISIONS, `transverses, ${id}`, "cette décision transverse n'a pas de règle T* dans regles");
+    const permis = regle?.options ? regle.options.map((option) => option.valeur) : ['oui', 'non'];
+    if (decision.choix !== '' && !permis.includes(decision.choix)) AVEC_ECHEC(CHEMIN_DES_DECISIONS, `transverses, ${id}, champ choix`, `« ${decision.choix} » n'est pas parmi ${permis.join(', ')} ou vide`);
+  }
+}
+
 /** Les décisions que le dépôt porte : les choix (vides au départ) et les règles décidées, validés. */
 export function decisions(identifiants: ReadonlySet<string>): Decisions {
   const contenu = json(CHEMIN_DES_DECISIONS) as Decisions;
@@ -716,6 +731,7 @@ export function decisions(identifiants: ReadonlySet<string>): Decisions {
     const [fichier] = regle.domicileCible.split('#');
     if (!existsSync(path.join(RACINE, fichier))) AVEC_ECHEC(CHEMIN_DES_DECISIONS, `règle ${regle.id}, champ domicileCible`, `${fichier} n'existe pas dans le dépôt`);
   }
+  validerLesChoix(contenu, identifiants);
   return contenu;
 }
 

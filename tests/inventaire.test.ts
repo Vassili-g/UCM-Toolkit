@@ -13,7 +13,7 @@ import { motifVersRegex } from '../scripts/agents-contexte.mjs';
 import { EXCLUSIONS } from '../docs/inventaire/couverture';
 import { sectionDe } from '../docs/inventaire/extraire';
 import { CHEMIN_DE_L_INVENTAIRE, genererInventaireEtCouverture } from '../docs/inventaire/generer-inventaire';
-import { CHEMIN_DES_DECISIONS } from '../docs/inventaire/releves';
+import { CHEMIN_DES_DECISIONS, validerLesChoix, type Decisions, type Regle } from '../docs/inventaire/releves';
 
 const racine = path.resolve(__dirname, '..');
 const sansRetourChariot = (texte: string): string => texte.replace(/\r\n/g, '\n');
@@ -106,4 +106,36 @@ test("une règle décidée écrite renvoie à un document dont l'ancre existe", 
     }
   }
   assert.deepEqual(sansAncre, [], "Une règle marquée « oui » renvoie à une section qui n'existe pas (decisions.json)");
+});
+
+// ---------- Validation de decisions.json (G3.3) ----------
+
+const regleTransverse = (id: string, options?: { valeur: string; libelle: string }[]): Regle => ({ id, genre: 'transverse', texte: 't', domicileCible: 'CONTRIBUTING.md', ecrite: 'non', pistes: [], ...(options ? { options } : {}) });
+const decisionsFictives = (pistes: Decisions['pistes'], transverses: Decisions['transverses']): Decisions => ({
+  version: 1,
+  pistes,
+  transverses,
+  regles: [regleTransverse('T1'), regleTransverse('T10', [{ valeur: 'avant', libelle: 'Avant' }, { valeur: 'apres', libelle: 'Après' }])],
+});
+const connues = new Set(['P1', 'P2']);
+
+test('decisions.json : des choix valides passent', () => {
+  validerLesChoix(decisionsFictives({ P1: { choix: 'oui', note: 'a' }, P2: { choix: '', note: '' } }, { T1: { choix: 'non', note: '' }, T10: { choix: 'avant', note: '' } }), connues);
+});
+
+test('decisions.json : une piste inconnue nomme son identifiant', () => {
+  assert.throws(() => validerLesChoix(decisionsFictives({ P99: { choix: 'oui', note: '' } }, {}), connues), /P99/);
+});
+
+test('decisions.json : une décision transverse sans règle T* nomme son identifiant', () => {
+  assert.throws(() => validerLesChoix(decisionsFictives({}, { T42: { choix: 'oui', note: '' } }), connues), /T42/);
+});
+
+test('decisions.json : un choix de piste hors oui, non, vide nomme la piste', () => {
+  assert.throws(() => validerLesChoix(decisionsFictives({ P1: { choix: 'peut-être', note: '' } }, {}), connues), /P1.*peut-être/);
+});
+
+test('decisions.json : T10 accepte ses options et refuse oui', () => {
+  assert.throws(() => validerLesChoix(decisionsFictives({}, { T10: { choix: 'oui', note: '' } }), connues), /T10/);
+  assert.throws(() => validerLesChoix(decisionsFictives({}, { T1: { choix: 'avant', note: '' } }), connues), /T1/);
 });
