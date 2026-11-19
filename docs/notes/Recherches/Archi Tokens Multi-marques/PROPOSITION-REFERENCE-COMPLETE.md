@@ -22,8 +22,8 @@ Le kit sait aujourd'hui écrire et lire les noms des 7 collections, et il conna�
 le contenu complet de `theme`. Il ne dit pas quelles variables `brands`,
 `utility`, `layout` et `typography` doivent contenir, ni avec quelles valeurs.
 Le nouvel export du mainteneur suit déjà la structure attendue de `brands`,
-`utility` et `theme`. Les écarts qui restent touchent `layout`, `typography` et
-les noms de quelques groupes. Le tableau suivant résume la proposition pour
+`utility` et `theme`. Les seuls écarts qui restent sont l'écriture soudée des
+groupes de texte (`fontsize`) et le nom des tailles d'icône. Le tableau suivant résume la proposition pour
 deux marques. Tous les noms proposés ont été passés à la grammaire actuelle du
 kit (`reconnaitreLeChemin`), et aucun n'est refusé.
 
@@ -33,26 +33,23 @@ kit (`reconnaitreLeChemin`), et aucun n'est refusé.
 | `brands` | Par marque, `primary` et `secondary` en Light et en Dark, et les deux couleurs de charte | 46, une colonne par marque | Conforme |
 | `utility` | Le neutre, quatre statuts en `soft` et `vivid`, deux niveaux d'élévation | 206 | Conforme |
 | `theme` | Les 24 rôles du kit pour chaque palette | 295, en Light et en Dark | Présent, à comparer à la table du kit |
-| `layout` | Espacements, rayons, épaisseurs de contour, tailles d'icône | 37 | Espacements conformes ; rayon nul, noms des contours et icônes à revoir |
-| `typography` | 15 styles de texte, 5 réglages chacun | 75 | 4 réglages, sans police |
-| `components` | Rien d'imposé, car ses variables naissent des composants dessinés | 0 | Les tailles d'icône y sont rangées sous un nom que la grammaire refuse |
+| `layout` | Espacements, rayons, épaisseurs de contour | 31 | Conforme |
+| `typography` | 15 styles de texte, 4 réglages chacun | 60 | Conforme |
+| `components` | Rien d'imposé, car ses variables naissent des composants dessinés | 0 | Les tailles d'icône y restent pour l'instant, sous un nom que la grammaire refuse |
 
-Sur les six choix de designer, le nouvel export en a fait deux, en contredit
-deux et en laisse deux ouverts. La partie 6 donne l'état de chacun et la
-recommandation.
+Le mainteneur a tranché les six choix de designer, et la partie 6
+les détaille. La référence suit le nouvel export sur chacun d'eux.
 
-1. L'espacement numéroté par pas de 4 px, avec `sizing/2` à 8 px. Le nouvel
-   export l'a fait.
-2. Un rayon `none` à 0 px en plus des 9 rayons. Le nouvel export le laisse
-   ouvert.
-3. Les épaisseurs de contour nommées `sm` et `md` (1 et 2 px). Le nouvel export
-   les nomme `outline-weight` et `ring-weight`.
-4. Les icônes dans `layout`, en 5 tailles de 16 à 32 px. Le nouvel export en
-   garde 6 dans `components`.
-5. Une police dans chaque style de texte, et `body/lg` séparé de `body/md` par
-   la taille. Le nouvel export le laisse ouvert.
-6. `identity` en alias vers un cran Light. Le nouvel export l'a fait, et le
-   designer confirme que ces crans portent la couleur de charte.
+1. L'espacement garde ses 20 crans par pas de 4 px, `sizing/2` à 8 px.
+2. Aucun rayon nul : une mesure de 0 n'a pas de token.
+3. Les épaisseurs gardent leurs noms `outline-weight` et `ring-weight`, car le
+   contour et l'anneau de focus désignent deux usages différents.
+4. Les tailles d'icône restent dans `components` pour l'instant, hors de la
+   référence.
+5. Les styles de texte gardent leurs 4 réglages, sans police, et `body/lg` reste
+   comme dans l'export, pour l'instant.
+6. `identity` vise le cran que le designer choisit pour chaque marque. Ce cran
+   change d'une palette à l'autre.
 
 Le rôle d'Architect dans `brands` et `utility` est décidé, et la partie 4 le
 décrit. Architect vérifie chaque lien, crée un lien manquant quand une seule
@@ -81,8 +78,8 @@ Le nouvel export garde des noms que la référence écrit autrement.
 |---|---|---|
 | `primitives/fontsize/base`, `lineheight`, `letterspacing`, `fontweight`, `fontfamily` | `primitives/font-size/base`, `line-height`, `letter-spacing`, `font-weight`, `font-family` | La grammaire tolère la forme soudée, et Nomenclature la renomme |
 | `typography/body/large/font-size` | `typography/body/lg/font-size` | La grammaire tolère `large`, `medium`, `small`, et Nomenclature les renomme |
-| `layout/stroke/outline-weight`, `ring-weight` | `layout/stroke/sm`, `md` (proposé, partie 3.5) | La grammaire admet les deux écritures |
-| `components/icon/size/base` | `layout/icon/md` (proposé, partie 3.5) | La grammaire refuse le nom actuel, qui finit sans propriété |
+| `layout/stroke/outline-weight`, `ring-weight` | inchangés (partie 6) | Contour et anneau de focus, deux usages différents |
+| `components/icon/size/base` | inchangé pour l'instant (partie 6) | La grammaire refuse le nom actuel, qui finit sans propriété |
 
 Trois écarts du nouvel export restent hors des noms.
 
@@ -201,7 +198,7 @@ inversé, et Architect lit ce sens dans les alias.
 
 ### 3.5 `layout`
 
-`layout` porte 37 variables, toutes des alias vers `primitives/dimension`. La
+`layout` porte 31 variables, toutes des alias vers `primitives/dimension`. La
 préparation d'Architect cherche, pour chaque marge, écart, rayon ou contour
 d'un composant, la variable de `layout` qui vaut exactement la mesure. Une
 mesure sans variable reste en dur. Une échelle trop courte laisse donc des
@@ -240,10 +237,8 @@ la virgule (`0,5`), que la feuille CSS écrit `--layout-sizing-0-5`.
 | Primer | 4 | 3, 6, 12, `full` |
 | Figma SDS | 4 | 4, 8, 16, `full` |
 
-La proposition garde les 9 rayons et ajoute `none` à 0 px, soit 10. Fluent,
-Polaris, Material 3 et Spectrum publient un rayon nul. Un composant à coins
-droits qui vise un rayon de `layout` garde alors le même token quand une marque
-arrondit ses coins.
+La référence garde les 9 rayons de l'export. Le mainteneur a écarté un rayon
+nul : une mesure de 0 n'a pas de token.
 
 #### Épaisseurs de contour, `stroke`
 
@@ -257,14 +252,9 @@ arrondit ses coins.
 | Figma SDS | contour 1, anneau de focus 2 |
 | Material 3 | contour 1, focus 2 |
 
-La proposition garde les deux valeurs et les nomme `stroke/sm` 1 et
-`stroke/md` 2. Le kit range `outline` parmi les synonymes de `border`, et
-`ring` est un rôle de couleur du registre `REGISTRE_ROLES`. Un nom de taille
-laisse ces deux mots aux couleurs, et le token du composant dit l'usage
-(`components/button/size/border-width`). Les deux valeurs sont celles de Figma
-SDS et de Material 3 pour le contour et l'anneau de focus. Une troisième
-épaisseur, `stroke/lg` à 4 px comme chez Primer, Polaris et Spectrum, entrera
-le jour où un composant la demande.
+La référence garde les deux noms de l'export, `outline-weight` à 1 px et
+`ring-weight` à 2 px. Le mainteneur a écarté des noms de taille : le contour et
+l'anneau de focus désignent deux usages différents, et leur nom dit cet usage.
 
 #### Tailles d'icône, `icon`
 
@@ -274,22 +264,16 @@ le jour où un composant la demande.
 | Figma SDS | 24, 32, 40 |
 | Material 3, dans ses composants | 18, 20, 24 |
 
-La proposition est `layout/icon/xs` 16, `icon/sm` 20, `icon/md` 24,
-`icon/lg` 28, `icon/xl` 32, en alias vers `primitives/dimension`. Le kit range
-les tailles d'icône dans la famille `icon` de `layout`. La forme
-`components/<composant>/size/...` doit finir par une propriété, donc la
-grammaire refuse `components/icon/size/base`. Cinq tailles correspondent aux
-cinq mots de variant que le kit connaît (`Extra Small` à `Extra Large`), que le
-composant `Icon` emploie dans sa propriété `Size`. Le kit n'a pas de mot de
-variant pour `2xs`, et `base` n'est pas une taille du registre, donc 14 px sort
-et `base` devient `md`. Les cinq valeurs sont aussi les hauteurs de ligne de
-cinq styles (`label/lg`, `body/sm`, `title/sm`, `title/md`, `title/lg`), et une
-icône posée à côté d'un texte prend sa hauteur de ligne.
+Les tailles d'icône restent pour l'instant dans `components/icon/size`, hors
+de la référence, par décision du mainteneur. La grammaire refuse
+`components/icon/size/base`, car la forme `components/<composant>/size/...` doit
+finir par une propriété. Ce refus reste un constat connu, à reprendre quand les
+icônes changeront de place.
 
 ### 3.6 `typography`
 
 `typography` porte 15 styles, de `display` à `label`, en `lg`, `md` et `sm`,
-avec 5 réglages chacun, soit 75 alias vers `primitives`. Les familles sont
+avec 4 réglages chacun, soit 60 alias vers `primitives`. Les familles sont
 celles de Material 3, que le kit a reprises. Les lignes `body` viennent du
 nouvel export, les autres de l'ancien.
 
@@ -304,20 +288,16 @@ nouvel export, les autres de l'ancien.
 | `title/lg` | 24, 32, 600, -0,25 | 22, 28, 400 | comme l'export |
 | `title/md` | 20, 28, 600, -0,25 | 16, 24, 500 | comme l'export |
 | `title/sm` | 18, 24, 600, 0 | 14, 20, 500 | comme l'export |
-| `body/lg` | 16, 24, 600 | 16, 24, 400 | 18, 28, 400, 0 |
+| `body/lg` | 16, 24, 600 | 16, 24, 400 | comme l'export |
 | `body/md` | 16, 22, 400 | 14, 20, 400 | comme l'export |
 | `body/sm` | 14, 20, 400 | 12, 16, 400 | comme l'export |
 | `label/lg` | 14, 16, 600, 0 | 14, 20, 500 | comme l'export |
 | `label/md` | 12, 14, 600, 0,25 | 12, 16, 500 | comme l'export |
 | `label/sm` | 10, 12, 600, 0,25 | 11, 16, 500 | comme l'export |
 
-Deux changements sont proposés. Chaque style reçoit `font-family`, qui vise
-`primitives/font-family/base`. Le registre du kit compte cette propriété,
-Figma la lie à une variable, et la feuille CSS d'un style en a besoin. `body/lg`
-et `body/md` ont la même taille dans l'export, et la graisse 600 les sépare.
-Material 3, Primer et Figma SDS séparent leurs tailles de corps par la taille,
-à graisse égale. La proposition met `body/lg` à 18 px, interligne 28, graisse
-400, trois valeurs que `primitives` porte déjà.
+La référence reprend les styles de l'export sans changement. Le mainteneur a
+reporté deux idées : une police (`font-family`) dans chaque style, et une
+taille propre à `body/lg`, que seule la graisse sépare aujourd'hui de `body/md`.
 
 L'interligne égal à la taille des quatre plus grands styles suit Tailwind, qui
 met l'interligne à 1 à partir de `5xl`. Les labels gardent un interligne serré
@@ -340,9 +320,7 @@ bouton de l'ancien export.
 | `components/button/size/sm/padding-y` | `layout/sizing/1` (4) |
 | `components/button/size/sm/gap` | `layout/sizing/2` (8) |
 
-Le composant `Icon` garde ses propres tokens s'il en a besoin, sous une forme
-que la grammaire admet (`components/icon/size/md/width`), en alias vers
-`layout/icon/md`.
+Le composant `Icon` garde pour l'instant ses tailles dans `components/icon/size`.
 
 ## 4. Architect dans `brands` et `utility`
 
@@ -420,7 +398,7 @@ attendu et les valeurs de départ, et il les dérive au lieu de les recopier.
 |---|---|---|
 | `variablesAttendues(collection, contexte)` | Les noms attendus de `brands`, `utility` et `theme`, pour des marques, des thèmes et des profils donnés | `FORMES_DES_CHEMINS`, `CRANS`, `REGISTRE_STATUTS`, `PROFILS`, `VARIABLES_DU_THEME` |
 | `CIBLES_DE_L_ELEVATION` | Le cran ou la couleur absolue visée par chaque niveau, par thème | aucune donnée existante |
-| `ECHELLES_DE_REFERENCE` | Les 37 variables de `layout`, les 75 de `typography`, les 61 valeurs hors couleur de `primitives`, avec leurs alias | aucune donnée existante |
+| `ECHELLES_DE_REFERENCE` | Les 31 variables de `layout`, les 60 de `typography`, les 61 valeurs hors couleur de `primitives`, avec leurs alias | aucune donnée existante |
 
 Quatre lecteurs la lisent.
 
@@ -454,32 +432,26 @@ Un écart entre un export réel et la référence se voit à trois endroits.
   Un écart de `layout` ou de `typography` s'y lit comme un écart à la
   proposition, jamais comme une faute.
 
-## 6. Les choix qui restent au mainteneur
+## 6. Les choix du mainteneur
 
-| Choix | Nouvel export | Recommandation | Conséquence dans Figma |
-|---|---|---|---|
-| 1. Espacement | Fait : 20 crans par pas de 4, `sizing/2` à 8 px | Garder tel quel | Aucune |
-| 2. Rayons | Ouvert : 9 rayons, sans `none` | Ajouter `radius/none` à 0 px | Une variable de plus |
-| 3. Contours | Contredit : `outline-weight` 1, `ring-weight` 2 | `stroke/sm` 1, `stroke/md` 2 | Deux renommages ; `outline` et `ring` restent aux couleurs |
-| 4. Icônes | Contredit : 6 tailles de 14 à 32 px dans `components/icon/size` | `layout/icon/xs` à `xl`, soit 16, 20, 24, 28, 32 | Cinq variables déplacées vers `layout`, 14 px retiré, `base` renommé `md` |
-| 5. Texte | Ouvert : pas de police, `body/lg` à 16, 24, 600 | `font-family` dans les 15 styles, `body/lg` à 18, 28, 400 | 15 variables de plus, et le corps large change d'aspect |
-| 6. Charte | Fait : `identity` vise les crans Light 600 et 900 | Confirmer que ce sont les crans où Palettes a ancré la couleur saisie | Aucune si c'est le cas |
+Le mainteneur a tranché les six choix.
 
-Quatre choix restent ouverts (2 à 5), et le sixième demande une confirmation.
+| Choix | Décision | Conséquence pour la référence |
+|---|---|---|
+| 1. Espacement | Garder les 20 crans par pas de 4 px | Conforme à l'export |
+| 2. Rayon nul | Aucun : une mesure de 0 n'a pas de token | 9 rayons, sans `none` |
+| 3. Noms des contours | Garder `outline-weight` et `ring-weight`, qui désignent deux usages différents | Conforme à l'export |
+| 4. Icônes | Rester dans `components/icon/size` pour l'instant | Hors de la référence |
+| 5. Texte | Ni police ni changement de `body/lg` pour l'instant | 4 réglages par style, comme l'export |
+| 6. Charte | `identity` vise le cran que le designer choisit, qui change d'une palette à l'autre | Aucun cran imposé |
 
-Aucun nouvel export n'est nécessaire pour écrire la référence. Les valeurs de
-`layout` et de `typography` viennent du nouvel export, et les couleurs viennent
-de Palettes. Le lot 5 relit le nouvel export pour quatre points que le relevé
-ne couvre pas.
+Aucun nouvel export n'est nécessaire pour écrire la référence, et aucune
+décision ne demande de migration du fichier Figma. Le lot 5 relit le nouvel
+export pour trois points que le relevé ne couvre pas.
 
 - Les 12 styles de `typography` hors `body`, comparés à la partie 3.6.
 - Les mesures du bouton, comparées à la partie 3.7.
 - Les alias de `theme`, comparés à la table du kit, sans constat C82.
-- Les crans d'`identity`, comparés aux crans d'ancrage de la recette de
-  Palettes.
-
-Un export suivant, après les migrations des choix 2 à 5, vérifiera `radius/none`,
-les noms de `stroke`, les icônes dans `layout` et la police des styles.
 
 ## 7. Ce que devient la piste P21
 
@@ -488,15 +460,13 @@ autres, et le lot 4 ne dépend que de lui.
 
 | Lot | Agent | Fichiers | Critères de fin |
 |---|---|---|---|
-| 1. La référence dans le kit | `implementeur` | `packages/kit/src/referentiel/reference.ts`, `index.ts`, `packages/kit/tests/reference.test.ts`, `packages/kit/invariants/referentiel.md`, `packages/kit/CARTE.md`, `docs/inventaire/couverture.ts`, version du kit | Les trois exports de la partie 5 ; les comptes 46, 206, 295, 37, 75 et 61 tenus par le test ; chaque nom passe `reconnaitreLeChemin` avec une seule forme ; `controlerLesEchelles` ne rend rien sur la référence |
+| 1. La référence dans le kit | `implementeur` | `packages/kit/src/referentiel/reference.ts`, `index.ts`, `packages/kit/tests/reference.test.ts`, `packages/kit/invariants/referentiel.md`, `packages/kit/CARTE.md`, `docs/inventaire/couverture.ts`, version du kit | Les trois exports de la partie 5 ; les comptes 46, 206, 295, 31, 60 et 61 tenus par le test ; chaque nom passe `reconnaitreLeChemin` avec une seule forme ; `controlerLesEchelles` ne rend rien sur la référence |
 | 2. C82 dans `brands` et `utility` | `implementeur-exigeant` (Architect et `ucm check` lisent C82) | `packages/kit/src/controles/integrite.ts`, ses tests, `packages/kit/src/lecteurs/diagnostic-architecture.mjs` | Les genres de la partie 4 : lien manquant avec correction quand la branche désigne une palette, question sans réponse cochée quand elle est absente, rampe à compléter quand `primitives` n'a pas le cran ; aucun constat sur `layout` ni `typography` ; un fichier sans collection `brands` ne reçoit rien ; le nouvel export, rejoué en fixture anonymisée, ne reçoit aucun constat sur `brands` ni `utility` |
 | 3. Architect crée les alias | `implementeur-exigeant` (interface au pixel près) | `packages/plugin-architect/src/` (Variables manquantes, questions de palette, écriture du journal), `packages/plugin-architect/SPEC.md` section Intégrité, ses invariants, la galerie des états | Une création écrit des alias seulement, sans scope (`COLLECTIONS_SANS_PORTEE`) ; aucune case cochée d'avance ; l'Historique défait le lot ; une palette absente renvoie vers Palettes ; un état de galerie par carte nouvelle |
 | 4. Générateur et vue illustrée | `implementeur` | `docs/notes/Recherches/Archi Tokens Multi-marques/generer-reference.ts`, `generer-vue-illustree.ts`, `donnees-vue-illustree.js`, `VUE-ILLUSTREE-MULTIMARQUES.html`, `README.md` du dossier, `scripts/vues.mjs`, `tests/vueIllustree.test.ts`, `docs/references/design-systems/_outils/ucm.mjs` et `ucm/noms.json` | Le générateur écrit un `tokens.json` au format 2 depuis la référence, avec des palettes calculées par `packages/couleur` ; la vue lit ce fichier ; `npm run vues` le régénère ; le test refuse une vue périmée et les noms `color-brands`, `color-utilities`, `layouts`, `colors`, `press` |
-| 5. Comparaison au nouvel export | `verificateur`, avec le droit de lire l'export, puis la conversation principale | Mode `--comparer` du générateur, aucun fichier suivi pour le rapport | La liste des écarts du nouvel export à la référence, rendue au mainteneur sans nom de marque, dont les quatre points de la partie 6 ; les choix 2 à 6 reportés dans la référence s'il les a changés |
+| 5. Comparaison au nouvel export | `verificateur`, avec le droit de lire l'export, puis la conversation principale | Mode `--comparer` du générateur, aucun fichier suivi pour le rapport | La liste des écarts du nouvel export à la référence, rendue au mainteneur sans nom de marque, dont les trois points de la partie 6 |
 
-Les migrations du fichier Figma restent au mainteneur, qui ajoute
-`radius/none`, renomme `stroke`, déplace les icônes vers `layout` et ajoute
-`font-family`.
+Les décisions de la partie 6 ne demandent aucune migration du fichier Figma.
 
 Ce que les tests doivent imposer, au-delà de la partie 5, tient en six règles.
 

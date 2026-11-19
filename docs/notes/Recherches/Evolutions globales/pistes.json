@@ -284,7 +284,8 @@
         "Un test : une demande de tokens seuls rend `bloquant: false`.",
         "Un test : une dérogation avec motif rend `bloquant: false` et l'affiche « à valider ».",
         "`node scripts/run-tests.cjs` passe dans `packages/kit`, `packages/cli` et à la racine, dont `versionSuitLeContenu`.",
-        "Le kit, la CLI et l'adaptateur sont servis par le registre."
+        "Le kit, la CLI et l'adaptateur sont servis par le registre.",
+        "Le workflow qu'écrit `ucm init` lance la CLI installée par le repository, sans recopier son numéro de version dans `ucm.yml`."
       ],
       "questions": [],
       "risques": [
@@ -411,7 +412,7 @@
       "dependances": [],
       "complexite": "l",
       "raisonComplexite": "Un générateur est à créer, la référence touche le kit, la vue illustrée et un test racine, et trois questions de conception restent ouvertes.",
-      "coutHumain": "Répondre aux cinq choix de la partie 6 de la proposition.",
+      "coutHumain": "Aucun geste. Les six choix sont tranchés, et la référence suit l'export actuel.",
       "porteur": "mainteneur",
       "promesse": "C",
       "etat": "proposé",
@@ -452,13 +453,7 @@
         "La vue illustrée et le panneau de cette page lisent la même référence, et un test refuse une vue périmée.",
         "Aucun nom ancien (`color-brands`, `colors`, `press`) ne reste dans les données de la vue illustrée."
       ],
-      "questions": [
-        "Ajouter un rayon `radius/none` à 0 px ?",
-        "Renommer les contours `outline-weight` et `ring-weight` en `stroke/sm` et `stroke/md` ?",
-        "Ranger les tailles d'icône dans `layout/icon`, en 5 tailles de 16 à 32 px ?",
-        "Donner `font-family` à chaque style de texte, et passer `body/lg` à 18 px, interligne 28, graisse 400 ?",
-        "Les crans 600 et 900 d'`identity` sont-ils ceux de la couleur de charte ?"
-      ],
+      "questions": [],
       "risques": [
         "Une échelle de référence imposée gêne une équipe qui en a déjà une : la référence décrit le full UCM, l'Exporter reste agnostique en option."
       ]
