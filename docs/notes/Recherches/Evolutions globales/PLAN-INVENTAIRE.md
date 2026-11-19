@@ -50,7 +50,7 @@ La page vit dans `_local/inventaire-ucm/INVENTAIRE-UCM.html` tant qu'elle n'est 
   - [ ] G2.1. `pistes.json` et `decisions.json` dans ce dossier. Les règles décidées et les décisions transverses viennent de `decisions.json`, clé `regles`, avec `domicileCible` et `ecrite`. Les textes restent dans `docs/inventaire/gabarit.html`, que le contrôle de style lit déjà : pas de `textes.json`. Les nombres des textes du gabarit sont des trous remplis depuis le code.
   - [ ] G2.2. `docs/inventaire/couverture.ts` et ses `EXCLUSIONS` nommées une par une. Le générateur lit le kit à travers un `Proxy`. Le test refuse un export sans place, une exclusion d'un nom montré ou disparu, une source qui n'existe pas.
   - Fin : un export ajouté au kit sans place fait échouer `tests/inventaire.test.ts` avec son nom. Un tiret cadratin dans `textes.json` est refusé.
-- [ ] G3. Décisions versionnées. Agent : `implementeur`. Après G2.
+- [x] G3 (33d54de6). Décisions versionnées. Agent : `implementeur`. Après G2.
   - [ ] G3.1. La page compare `decisions.json` embarqué et le `localStorage`, et affiche « N décisions pas encore dans le dépôt ».
   - [ ] G3.2. « Enregistrer dans le dépôt » écrit `decisions.json` par `showSaveFilePicker`, avec téléchargement en repli. « Revenir à la version du dépôt » efface l'écart local.
   - [ ] G3.3. Le générateur refuse un identifiant de piste inconnu et un choix hors `oui`, `non` ou vide.
