@@ -48,7 +48,7 @@ function erreursDeLEntree(entree, chemin) {
   if (GENRES_NON_DEROGEABLES.has(ecart.genre)) {
     return [...erreurs, `${chemin}.ecart.genre : \`${ecart.genre}\` ne se déroge pas, il empêche toute autre comparaison.`];
   }
-  const attendues = COORDONNEES_PAR_GENRE[ecart.genre];
+  const attendues = Object.hasOwn(COORDONNEES_PAR_GENRE, ecart.genre) ? COORDONNEES_PAR_GENRE[ecart.genre] : undefined;
   if (!attendues) return [...erreurs, `${chemin}.ecart.genre : genre inconnu \`${ecart.genre}\`.`];
   for (const cle of Object.keys(ecart)) {
     if (cle !== "genre" && !attendues.includes(cle)) erreurs.push(`${chemin}.ecart.${cle} : coordonnée inconnue pour \`${ecart.genre}\`.`);

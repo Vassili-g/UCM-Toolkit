@@ -53,6 +53,14 @@ test("un genre inconnu ou non dérogeable est refusé", () => {
   }
 });
 
+test("un genre qui est un nom de l'objet de base est un genre inconnu, jamais une exception", () => {
+  for (const genre of ["constructor", "toString", "__proto__", "hasOwnProperty"]) {
+    const { derogations, erreurs } = lire(entree({ ecart: { genre, prop: "variant" } }));
+    assert.deepEqual(derogations, [], genre);
+    assert.match(erreurs[0], /^derogations\[0\]\.ecart\.genre : genre inconnu/, genre);
+  }
+});
+
 test("une entrée refusée n'empêche pas de lire les autres", () => {
   const { derogations, erreurs } = lire(entree({ par: "" }), entree());
   assert.equal(derogations.length, 1);
