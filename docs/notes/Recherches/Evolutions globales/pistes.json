@@ -5,6 +5,7 @@
       "id": "P17",
       "titre": "Verrou de fusion sur intencial-library",
       "titreCourt": "Verrou de fusion",
+      "sujet": "Règle de blocage",
       "resume": "Rendre le check `contrats` obligatoire sur `main` d'intencial-library et poser un `CODEOWNERS` qui laisse le designer fusionner seul une demande de tokens.",
       "importance": "critique",
       "raisonImportance": "Sans protection de branche, une pull request rouge reste fusionnable : ROADMAP.md et POUR-LES-DESIGNERS.md §6 le disent, et toute règle de blocage reste un conseil.",
@@ -62,6 +63,8 @@
       "id": "P2",
       "titre": "Écrire la règle de blocage",
       "titreCourt": "Règle de blocage",
+      "sujet": "Règle de blocage",
+      "recherche": "docs/notes/Recherches/Linter Dev/PLAN-CONFORMITE-RENDU.md",
       "resume": "Réécrire les textes qui disent qu'un écart du code avertit : POUR-LES-DESIGNERS.md §6, COMPATIBILITE.md, ROADMAP.md et RECETTE.md, selon les quatre familles décidées.",
       "importance": "critique",
       "raisonImportance": "Quatre documents du dépôt disent encore qu'un écart du code avertit, alors que la décision le fait bloquer.",
@@ -133,6 +136,7 @@
       "id": "P1",
       "titre": "Contrats réels dans intencial-library",
       "titreCourt": "Contrats réels",
+      "sujet": "Bibliothèque de production",
       "resume": "Exporter 3 ou 4 composants en contrat 14.0 dans intencial-library, passer son workflow de la CLI 0.1.48 à 0.1.150 et rejouer la recette externe.",
       "importance": "critique",
       "raisonImportance": "Le dépôt n'a aucun dossier `src/components` ni contrat, et aucun contrat 14.0 n'existe nulle part : un module n'aurait rien contre quoi coder ni tester.",
@@ -197,74 +201,96 @@
       "id": "P3",
       "titre": "API figée du kit",
       "titreCourt": "API figée du kit",
-      "resume": "Lister dans `packages/kit/api-publique.json` les symboles que la CLI, l'adaptateur et les futurs modules importent, garder la liste par un test, et ouvrir un `CHANGELOG` du kit.",
+      "sujet": "API du kit",
+      "recherche": "docs/notes/Recherches/Evolutions globales/DECISION-API-PUBLIQUE.md",
+      "resume": "Publier la prise `@ucm-kit/core/modules`, qui republie 8 noms que les modules importent, gardée par un test, avec un `CHANGELOG` du kit et des numéros de version qui disent la rupture.",
       "importance": "haute",
       "raisonImportance": "Un module qui importe un symbole non listé casse à une montée du kit sans avertissement, car la CLI épingle le kit en version exacte (0.15.2) et aucun journal des versions n'existe.",
       "rang": 0,
       "dependances": [],
       "complexite": "m",
       "raisonComplexite": "Le relevé est mesurable par script ; le test et le journal tiennent en un lot avec la montée de version du kit.",
-      "coutHumain": "Répondre à trois questions : étendue de la liste, import direct du kit, sens d'une version mineure en 0.x.",
+      "coutHumain": "Aucune décision : la partie 2 de la décision sur l'API publique répond aux trois questions de la piste.",
       "porteur": "mainteneur",
       "promesse": "R",
       "etat": "à faire",
       "points": [
         {
-          "chemin": "packages/kit/api-publique.json",
+          "chemin": "packages/kit/src/modules/index.mjs",
           "action": "créer",
-          "quoi": "Relevé : 40 valeurs nommées (15 de `format`, 23 de `lecteurs`, 2 de `referentiel`), le type `AdaptateurDImplementation` et le fichier `schema/ucm-contract.schema.json`, sur 432 noms uniques exportés par 8 points d'entrée."
+          "quoi": "Republie les 7 fonctions sous leur nom d'origine, depuis `@ucm-kit/core/lecteurs` et `@ucm-kit/core/format`."
+        },
+        {
+          "chemin": "packages/kit/src/modules/index.d.mts",
+          "action": "créer",
+          "quoi": "Déclare les 7 fonctions et le type `Contract` ; `vueExacteDuVariant` y reçoit un type de retour à la place de `unknown`."
+        },
+        {
+          "chemin": "packages/kit/package.json",
+          "action": "modifier",
+          "quoi": "`exports` reçoit `./modules` ; `files` reçoit `src/modules` ; version 0.17.0."
         },
         {
           "chemin": "packages/kit/tests/apiPublique.test.mjs",
           "action": "créer",
-          "quoi": "Échoue si la CLI ou l'adaptateur importe un symbole absent de la liste, ou si un symbole listé disparaît des exports."
+          "quoi": "Noms comparés à la version précédente, exemples d'appel sur `fixtures/`, entrée de journal exigée."
+        },
+        {
+          "chemin": "tests/modulesParLaPrise.test.mjs",
+          "action": "créer",
+          "quoi": "Un paquet hors du toolkit n'importe que `@ucm-kit/core/modules`."
         },
         {
           "chemin": "packages/kit/CHANGELOG.md",
           "action": "créer",
-          "quoi": "Le registre de `.agents/domiciles.json` accepte déjà `packages/*/CHANGELOG.md`."
+          "quoi": "Première entrée à 0.17.0, genre « ajout », la prise et ses 8 noms."
         },
         {
           "chemin": "packages/kit/invariants/versionnage.md",
           "action": "modifier",
-          "quoi": "Règle : retirer ou changer un symbole listé monte la version mineure et écrit une entrée de journal."
-        },
-        {
-          "chemin": "packages/kit/package.json",
-          "action": "vérifier",
-          "quoi": "Le champ `files` publie-t-il `api-publique.json` ?"
+          "quoi": "Règles de la table des numéros, du préavis, du référentiel hors de la prise et de la décision avec le mainteneur."
         },
         {
           "chemin": "packages/kit/README.md",
           "action": "modifier",
-          "quoi": "Renvoyer à la liste et au journal."
+          "quoi": "Section « Status » : seule `./modules` est promise, les autres portes servent le toolkit ; un module épingle le kit de sa CLI."
         },
         {
-          "chemin": "tests/versionSuitLeContenu.test.mjs",
-          "action": "vérifier",
-          "quoi": "Un changement de `packages/kit/` demande une montée de version."
+          "chemin": "packages/cli/src/guide.mjs",
+          "action": "modifier",
+          "quoi": "Nommer un `@ucm-kit/core` installé dans le repository à une autre version que celui de la CLI."
+        },
+        {
+          "chemin": "packages/cli/tests/",
+          "action": "modifier",
+          "quoi": "Cas d'un kit installé à une autre version."
+        },
+        {
+          "chemin": "packages/cli/package.json et packages/adapter-typescript/package.json",
+          "action": "modifier",
+          "quoi": "Épingler `0.17.0` et monter leur numéro (skill `publier-paquets`)."
         }
       ],
       "criteresDeFin": [
-        "`node scripts/run-tests.cjs` dans `packages/kit` passe avec `apiPublique.test.mjs`.",
-        "Retirer un symbole listé fait échouer le test (mutation vérifiée une fois).",
-        "`packages/kit/CHANGELOG.md` porte une entrée pour la version publiée."
+        "`node scripts/run-tests.cjs` passe dans `packages/kit` avec `apiPublique.test.mjs`.",
+        "Retirer un nom de la prise fait échouer le test (mutation vérifiée une fois).",
+        "Modifier un résultat attendu sans entrée « rupture » fait échouer le test (mutation vérifiée une fois).",
+        "`packages/kit/CHANGELOG.md` porte l'entrée de la 0.17.0.",
+        "`npm test` passe à la racine, dont `versionSuitLeContenu` et `modulesParLaPrise`."
       ],
-      "questions": [
-        "La liste couvre-t-elle seulement les 41 imports actuels, ou aussi ce que le linter, le générateur de stories et le comparateur importeront ?",
-        "Les modules importent-ils le kit directement, avec un pin exact comme la CLI ?",
-        "En 0.x, une version mineure du kit vaut-elle rupture ?"
-      ],
+      "questions": [],
       "risques": [
-        "Une liste trop étroite pousse les modules vers des symboles privés.",
-        "Un premier relevé annonçait 48 symboles sur 477 ; celui-ci donne 41 imports sur 432 noms uniques : recompter avant de figer."
+        "Un module qui importe une autre porte du kit casse à une montée sans avertissement : le test `modulesParLaPrise` et la règle ESLint du guide P4 le refusent.",
+        "Le relevé donne 41 valeurs et 1 type sur 433 noms, et ces noms ne sont plus la liste : la prise compte 8 noms à l'ouverture."
       ]
     },
     {
       "id": "P4",
       "titre": "Guide d'entrée des modules",
       "titreCourt": "Guide des modules",
-      "resume": "Écrire `docs/guides/MODULES.md` : où brancher un module, ce qu'il importe, comment le tester, avec un renvoi d'une ligne depuis AGENTS.md.",
+      "sujet": "Modules consommateurs",
+      "recherche": "docs/notes/Recherches/Evolutions globales/PLAN-API-MODULES.md",
+      "resume": "Écrire `docs/guides/MODULES.md` : où brancher un module, ce qu'il importe (la prise `@ucm-kit/core/modules`), comment le tester, avec un renvoi d'une ligne depuis AGENTS.md.",
       "importance": "haute",
       "raisonImportance": "Sans guide, un contributeur et son agent découvrent seuls que `ucm.config.json` lit trois champs et que la CLI ne charge que l'adaptateur TypeScript.",
       "rang": 0,
@@ -311,7 +337,7 @@
         }
       ],
       "criteresDeFin": [
-        "`docs/guides/MODULES.md` existe et cite `api-publique.json`.",
+        "`docs/guides/MODULES.md` existe, cite la prise `@ucm-kit/core/modules`, la règle d'épinglage sur le kit de la CLI et la règle `no-restricted-imports`.",
         "AGENTS.md pèse au plus 12 288 octets.",
         "`npm test` passe, dont `tests/registreDesDocuments.test.ts`, `tests/docLinks.test.ts` et `tests/styleDocumentaire.test.ts`."
       ],
@@ -328,6 +354,7 @@
       "id": "P5",
       "titre": "Aligner les textes sur les décisions",
       "titreCourt": "Textes alignés",
+      "sujet": "Documentation",
       "resume": "Corriger CONCEPT.md (agnostique par défaut), le sommaire des recherches (Hub en cours) et le README de Palettes (onglets et format de recette).",
       "importance": "moyenne",
       "raisonImportance": "Un contributeur qui lit CONCEPT.md croit que tous les outils acceptent toute structure, alors que seul l'Exporter le fait en option.",
@@ -389,6 +416,7 @@
       "id": "P18",
       "titre": "Socle React et TypeScript d'intencial-library",
       "titreCourt": "Socle React et TS",
+      "sujet": "Bibliothèque de production",
       "resume": "Créer `package.json`, lockfile, `tsconfig.json` et `src/components/` dans intencial-library, installer la CLI et l'adaptateur, et générer la feuille CSS des tokens.",
       "importance": "critique",
       "raisonImportance": "Le dépôt ne contient que `tokens.json` : sans lockfile, `ucm.yml` saute `npm ci`, l'adaptateur ne se charge pas et aucun module n'a de projet où s'exécuter.",
@@ -451,6 +479,8 @@
       "id": "P19",
       "titre": "Verdict de ucm check selon la demande",
       "titreCourt": "Verdict de ucm check",
+      "sujet": "Règle de blocage",
+      "recherche": "docs/notes/Recherches/Linter Dev/PLAN-CONFORMITE-RENDU.md",
       "resume": "Faire bloquer `ucm check` sur un écart du code quand la demande touche le code du composant, et marquer « en retard sur son contrat » quand seul le contrat change, avec une dérogation motivée qui passe.",
       "importance": "critique",
       "raisonImportance": "`bilanEstBloquant` ne compte ni les tokens absents ni la parité, donc le CI laisse fusionner tout écart du code quelle que soit la règle écrite.",
@@ -568,6 +598,7 @@
       "id": "P22",
       "titre": "Pièces internes décrites en entier dans le contrat de l'hôte",
       "titreCourt": "Pièces internes complètes",
+      "sujet": "Format du contrat",
       "resume": "Une pièce interne, dont le nom commence par `.` ou `_`, n'a ni contrat ni collection. Le contrat de son composant hôte doit la décrire comme un composant : toutes ses variantes, toutes ses propriétés, et ce que chaque variante dessine.",
       "importance": "critique",
       "raisonImportance": "Aujourd'hui l'Exporter parcourt la pièce interne comme une partie de l'hôte : le contrat montre seulement l'état où chaque variant de l'hôte la pose. Ses autres variantes et ses propriétés manquent, si bien qu'un développeur ou un agent invente l'API de la pièce, que le code doit pourtant écrire comme un sous-composant (`.Ring`, `.sizeWrapperButton`).",
@@ -672,6 +703,8 @@
       "id": "P21",
       "titre": "Architecture de référence complète dans le kit",
       "titreCourt": "Architecture complète",
+      "sujet": "Architecture des tokens",
+      "recherche": "docs/notes/Recherches/Archi Tokens Multi-marques/README.md",
       "resume": "Le kit définit les 7 collections, leurs cibles, leurs familles et la grammaire de leurs noms, et le contenu complet de theme. Il ne définit ni les variables attendues de brands, utility, layout et typography, ni leurs valeurs de référence, et aucun outil n'écrit ces quatre collections.",
       "importance": "haute",
       "raisonImportance": "Sans architecture de référence complète, un nouveau design system UCM se monte à la main, et la seule vue complète du dépôt (`VUE-ILLUSTREE-MULTIMARQUES.html`) vient d'un export figé aux anciens noms.",
@@ -733,7 +766,9 @@
       "id": "P15",
       "titre": "Types vérifiés des lecteurs",
       "titreCourt": "Types des lecteurs",
-      "resume": "Faire vérifier les signatures des déclarations écrites à la main `index.d.mts` (607 lignes) et `navigateur.d.mts` (65 lignes), dont un test ne compare aujourd'hui que les noms.",
+      "sujet": "API du kit",
+      "recherche": "docs/notes/Recherches/Evolutions globales/DECISION-API-PUBLIQUE.md",
+      "resume": "Faire vérifier les 8 signatures de la prise `@ucm-kit/core/modules` plutôt que les 672 lignes des déclarations écrites à la main `index.d.mts` et `navigateur.d.mts`, dont un test ne compare aujourd'hui que les noms.",
       "importance": "moyenne",
       "raisonImportance": "Un module TypeScript compile contre une signature fausse et reçoit une autre forme à l'exécution.",
       "rang": 1,
@@ -741,7 +776,7 @@
         "P3"
       ],
       "complexite": "m",
-      "raisonComplexite": "Un test qui compile un appel par symbole de `api-publique.json` tient en un lot ; convertir les 26 lecteurs (6 536 lignes) en TypeScript serait L.",
+      "raisonComplexite": "Un test qui compile un appel par nom de la prise `@ucm-kit/core/modules` (8 signatures) tient en un lot ; convertir les 26 lecteurs (6 536 lignes) en TypeScript serait L.",
       "coutHumain": "Répondre à une question : convertir les lecteurs en TypeScript ou garder `.mjs` avec JSDoc.",
       "porteur": "mainteneur",
       "promesse": "R",
@@ -765,11 +800,11 @@
         {
           "chemin": "packages/kit/tests/ (test de signatures)",
           "action": "créer",
-          "quoi": "Compiler avec `tsc` un appel typé de chaque symbole listé, ou générer les déclarations depuis le JSDoc et comparer."
+          "quoi": "Compiler avec `tsc` un appel typé de chaque nom de la prise, ou générer les déclarations depuis le JSDoc et comparer."
         }
       ],
       "criteresDeFin": [
-        "Un test échoue quand la signature déclarée d'un symbole listé diffère de son usage réel (mutation vérifiée une fois).",
+        "Un test échoue quand la signature déclarée d'un nom de la prise diffère de son usage réel (mutation vérifiée une fois).",
         "`npm run typecheck` passe."
       ],
       "questions": [
@@ -783,6 +818,8 @@
       "id": "P10",
       "titre": "Comparateur du rendu au contrat",
       "titreCourt": "Comparateur de rendu",
+      "sujet": "Vérification du rendu",
+      "recherche": "docs/notes/Recherches/Linter Dev/PLAN-CONFORMITE-RENDU.md",
       "resume": "Écrire dans le kit le format de l'observation normalisée et la fonction qui compare une observation, une combinaison et le contrat, plus une feuille de tokens à valeur unique par token.",
       "importance": "haute",
       "raisonImportance": "Aucun contrôle n'exerce le rendu (ROADMAP.md, « La preuve du rendu reste ciblée ») : sans comparateur, dimensions, typographie et structure ne bloquent jamais.",
@@ -830,9 +867,9 @@
           "quoi": "Unicité des valeurs de la feuille."
         },
         {
-          "chemin": "packages/kit/api-publique.json",
+          "chemin": "packages/kit/src/modules/index.mjs",
           "action": "modifier",
-          "quoi": "Ajouter les symboles du comparateur."
+          "quoi": "Ajouter à la prise `@ucm-kit/core/modules` le comparateur et le format d'un écart, avec leurs déclarations dans `index.d.mts`."
         },
         {
           "chemin": "docs/notes/Recherches/Linter Dev/PLAN-CONFORMITE-RENDU.md",
@@ -861,6 +898,7 @@
       "id": "P9",
       "titre": "Storybook généré, vitrine à la place du Hub",
       "titreCourt": "Storybook généré",
+      "sujet": "Modules consommateurs",
       "resume": "Générer une story par entrée exacte de `variants`, monter le Storybook dans intencial-library, ajouter `figmaFileKey` à `ucm.config.json` et retirer le Hub.",
       "importance": "haute",
       "raisonImportance": "Le vérificateur de rendu a besoin d'un montage de chaque combinaison, et l'équipe n'a pas d'autre vitrine que le Hub, que la décision remplace.",
@@ -933,6 +971,8 @@
       "id": "P6",
       "titre": "Linter ESLint, premier module",
       "titreCourt": "Linter ESLint",
+      "sujet": "Modules consommateurs",
+      "recherche": "docs/notes/Recherches/Evolutions globales/PISTES-EVOLUTION.md",
       "resume": "Livrer deux règles décidées (valeur en dur, token inconnu) avec leur cœur dans le kit et leur plugin dans la bibliothèque, puis trancher les deux règles ouvertes (variante non publiée, élément visuel en plus).",
       "importance": "haute",
       "raisonImportance": "Sans linter, une valeur écrite en dur passe pour conforme au vérificateur quand elle égale un token, et une nouvelle valeur du designer ne se propage pas.",
@@ -966,9 +1006,9 @@
           "quoi": "Réutiliser `isTokenReference`, `tokenCssVariable` (format), `indexerTokensDtcg` et `collecterReferences` (lecteurs)."
         },
         {
-          "chemin": "packages/kit/api-publique.json",
+          "chemin": "packages/kit/src/modules/index.mjs",
           "action": "modifier",
-          "quoi": "Symboles lus par le linter."
+          "quoi": "Ajouter à la prise `@ucm-kit/core/modules` la fonction qui rend les constats d'un fichier, et sa déclaration dans `index.d.mts`, à la place de quatre pièces."
         },
         {
           "chemin": "../intencial-library/.github/workflows/ucm.yml",
@@ -1000,6 +1040,8 @@
       "id": "P20",
       "titre": "Vérificateur de rendu dans le CI",
       "titreCourt": "Vérificateur de rendu",
+      "sujet": "Vérification du rendu",
+      "recherche": "docs/notes/Recherches/Linter Dev/PLAN-CONFORMITE-RENDU.md",
       "resume": "Observer chaque story dans un navigateur, appeler le comparateur, garder les captures validées et faire entrer les écarts dans le rapport unique.",
       "importance": "haute",
       "raisonImportance": "C'est la seule pièce qui fait bloquer dimensions, typographie et structure, et qui garde une capture validée contre un changement du code seul.",
@@ -1068,6 +1110,7 @@
       "id": "P12",
       "titre": "Contrôle de l'architecture des tokens dans le CI",
       "titreCourt": "Contrôle d'architecture",
+      "sujet": "Architecture des tokens",
       "resume": "Faire juger `tokens.json` par les contrôles d'architecture du kit (C82 de `integrite.ts`, `structure.ts`), en information.",
       "importance": "moyenne",
       "raisonImportance": "Un module n'en dépend pas pour coder ; la décision « full UCM » rend le contrôle utile pour détecter une architecture cassée avant la fusion.",
@@ -1119,6 +1162,8 @@
       "id": "P8",
       "titre": "Intégration automatique des contrats dans le code",
       "titreCourt": "Intégration auto",
+      "sujet": "Modules consommateurs",
+      "recherche": "docs/notes/Recherches/Optimisation Tokens/Formalisation de la solution/PLAN-IMPLEMENTEUR.md",
       "resume": "Faire écrire un composant par un agent qui corrige jusqu'à un rapport vide du linter et du vérificateur, au lieu du compilateur des lots 0 à 6.",
       "importance": "moyenne",
       "raisonImportance": "La revue du plan d'implémenteur estime le compilateur à 34 à 61 sessions sans volume pour l'amortir ; la boucle agent ne vaut qu'avec le vérificateur.",
@@ -1172,6 +1217,8 @@
       "id": "P11",
       "titre": "Diff sémantique de deux exports",
       "titreCourt": "Diff sémantique",
+      "sujet": "Outils de revue",
+      "recherche": "docs/notes/Recherches/Diff Sémantique/PLAN-DIFF-SEMANTIQUE.md",
       "resume": "Exécuter PLAN-DIFF-SEMANTIQUE.md : `ucm diff --base` compare contrats et tokens entre une révision et l'arbre de travail.",
       "importance": "basse",
       "raisonImportance": "Le diff aide la revue sans rien bloquer ; la revue du plan d'implémenteur juge qu'on peut démarrer sans lui (décision 8).",
@@ -1224,6 +1271,8 @@
       "id": "P13",
       "titre": "Éditeur, MCP, autres langages et Code Connect",
       "titreCourt": "Éditeur, MCP, autres",
+      "sujet": "Outils de revue",
+      "recherche": "docs/notes/Recherches/Evolutions globales/PISTES-EVOLUTION.md",
       "resume": "Regrouper les pistes PISTES-EVOLUTION.md §2.5, §3.2 (écarts dans l'éditeur au-delà du linter) et §4.2 (serveur MCP), et l'ouverture de la CLI à d'autres adaptateurs.",
       "importance": "basse",
       "raisonImportance": "La stack décidée est React et TypeScript, et un agent de code lit déjà les fichiers du dépôt : rien ne bloque les modules sans ces pistes.",
@@ -1265,6 +1314,7 @@
       "id": "P16",
       "titre": "Index des décisions citées dans le code",
       "titreCourt": "Index des décisions",
+      "sujet": "Documentation",
       "resume": "Relier chaque identifiant de décision cité dans `packages/*/src` à sa source : 58 identifiants Q-F… dans 25 fichiers, 28 N-… dans 13, 11 E-… dans 8.",
       "importance": "basse",
       "raisonImportance": "Un contributeur qui lit `(Q-F5-6)` ne trouve pas la décision, mais le code reste correct sans l'index.",

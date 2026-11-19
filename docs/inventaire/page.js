@@ -321,6 +321,7 @@
 
   // Feuille de route : les pistes viennent de pistes.json (docs/notes/Recherches/Evolutions globales/), rangées par rang puis par importance.
   var PISTES = {{js:PISTES}};
+  var SUJETS = {{js:SUJETS}};
   PISTES.forEach(function (x) { x.complexite = x.complexite.toUpperCase(); });
   // Les décisions que le dépôt porte (decisions.json) : la base de comparaison avec le choix gardé dans ce navigateur.
   var DECISIONS_DU_DEPOT = {{js:DECISIONS}};
@@ -565,6 +566,15 @@
   // Le texte de la ligne est dans un bouton : un identifiant de piste y reste du texte, un lien n'y a pas sa place.
   function texteDeLigne(t) { return esc(t).replace(/`([^`]+)`/g, '<code>$1</code>'); }
   function liensVers(ids) { return ids.map(function (id) { return '<a href="#piste-' + id + '">' + id + '</a>'; }).join(', '); }
+  // Le sujet de la piste : un label avant le titre, lien vers la recherche sur GitHub quand la piste en a une. Il est hors du bouton, pour ne pas ouvrir la fiche.
+  function labelDuSujet(x) {
+    var c = SUJETS[x.sujet], style = ' style="color:' + c.texte + ';background:' + c.fond + '"';
+    if (!x.recherche) return '<span class="sujet"' + style + '>' + esc(x.sujet) + '</span>';
+    var url = 'https://github.com/Vassili-g/UCM-Toolkit/blob/main/' + x.recherche.split('/').map(encodeURIComponent).join('/');
+    var nom = x.recherche.split('/').pop();
+    return '<a class="sujet" href="' + url + '" target="_blank" rel="noopener" title="' + esc(nom) + '" aria-label="' + esc(x.sujet + ' : ouvrir ' + nom + ' sur GitHub, nouvel onglet') + '"' + style + '>' + esc(x.sujet) +
+      ' <svg viewBox="0 0 12 12" width="10" height="10" aria-hidden="true" focusable="false"><path d="M4 2h6v6M10 2 3 9" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></a>';
+  }
   function ouvrirLaFiche(d, ouvert) {
     var b = d.querySelector('.piste-bascule');
     b.setAttribute('aria-expanded', ouvert);
@@ -587,13 +597,14 @@
         (prof === 0 ? 'sans prérequis' : prof + (prof === 1 ? ' étape' : ' étapes') + ' de prérequis') + ' · ' + PROMESSES[x.promesse] + ' · ' + (PORTEURS[x.porteur] || esc(x.porteur)) + ' · <span class="etat ' + etat[0] + '">' + etat[1] + '</span>';
       var directs = DIRECTS[x.id], total = Object.keys(DESCENDANTES[x.id]).length;
       d.innerHTML = '<div class="piste-ligne">' +
+          '<div class="piste-gauche">' + labelDuSujet(x) +
           '<button type="button" class="piste-bascule" aria-expanded="false" aria-controls="fiche-' + x.id + '">' +
             '<span class="id">' + x.id + '</span>' +
             '<span class="titre">' + texteDeLigne(x.titre) +
               '<small class="sinon"><b>Si on ne fait pas</b> ' + texteDeLigne(premierePhrase(x.raisonImportance)) + '</small>' +
               '<small class="cout"><b>Coût</b> ' + x.complexite + ' · ' + texteDeLigne(x.coutHumain) + '</small>' +
               '<span class="coherence"></span></span>' +
-          '</button>' +
+          '</button></div>' +
           '<div class="choix-ligne">' + boutonsDe(x.id, 'piste', OPTIONS) + champNote(x.id, 'Note sur ' + x.id) + '</div>' +
         '</div>' +
         '<div class="fiche-piste" id="fiche-' + x.id + '" hidden>' +

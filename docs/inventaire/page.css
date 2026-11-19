@@ -382,6 +382,10 @@ dl.def.principes { grid-template-columns: 240px 1fr; }
 /* 7. Les pistes : une ligne par piste, la décision et la note à droite, la fiche dessous. */
 .piste { border: 1px solid var(--trait); border-radius: 10px; background: var(--surface); margin: 6px 0; }
 .piste-ligne { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 8px 16px; align-items: start; padding: 9px 12px; }
+.piste-gauche { display: grid; gap: 4px; min-width: 0; }
+.sujet { justify-self: start; margin-left: 60px; display: inline-flex; align-items: center; gap: 4px; font-size: .72rem; font-weight: 600; line-height: 1.4; padding: 1px 8px; border-radius: 999px; text-decoration: none; max-width: 100%; }
+a.sujet:hover { text-decoration: underline; }
+a.sujet:focus-visible { outline: 2px solid var(--texte); outline-offset: 2px; }
 .piste-bascule { all: unset; box-sizing: border-box; cursor: pointer; display: grid; grid-template-columns: 52px minmax(0, 1fr); gap: 2px 8px; align-items: baseline; border-radius: 6px; }
 .piste-bascule:focus-visible { outline: 2px solid var(--texte); outline-offset: 3px; }
 .piste-bascule .id { font-family: ui-monospace, Consolas, monospace; font-weight: 700; color: var(--doux); white-space: nowrap; }
@@ -410,6 +414,7 @@ dl.def.principes { grid-template-columns: 240px 1fr; }
   .parcours { grid-template-columns: 1fr; }
   .parcours .etapes { grid-auto-flow: row; grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .piste-ligne { grid-template-columns: minmax(0, 1fr); }
+  .sujet { margin-left: 0; }
   .piste-ligne .choix-ligne { min-width: 0; }
   .fiche-piste { padding-left: 14px; }
 }

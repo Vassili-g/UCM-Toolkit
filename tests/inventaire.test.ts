@@ -31,11 +31,12 @@ test("la page de l'inventaire est autonome et tient sous 1 Mo", async () => {
   const page = await generee();
   assert.ok(Buffer.byteLength(page) < 1_000_000);
   assert.deepEqual(page.match(/\bsrc=|<link|@import/g), null);
-  assert.deepEqual(page.match(/href="(?!#)[^"]*"/g), null);
+  // Seul le label de sujet d'une piste sort de la page, vers un document du dépôt sur GitHub ; le script le compose.
+  assert.deepEqual(page.match(/href="(?!#|' \+ url)[^"]*"/g), null);
   const url = [...page.matchAll(/url\((?!#|data:|"data:)[^)]{0,20}/g)].map((trouve) => trouve[0]);
   assert.deepEqual(url, [], 'une feuille de style charge une ressource');
   const adresses = [...new Set([...page.matchAll(/https?:\/\/[^"' )<]*/g)].map((trouve) => trouve[0]))];
-  assert.deepEqual(adresses, ['http://www.w3.org/2000/svg'], 'seul l\'espace de noms SVG est une adresse');
+  assert.deepEqual(adresses, ['http://www.w3.org/2000/svg', 'https://github.com/Vassili-g/UCM-Toolkit/blob/main/'], "seuls l'espace de noms SVG et le dépôt sur GitHub sont des adresses");
 });
 
 test("la page de l'inventaire dit qu'elle est générée", async () => {

@@ -344,6 +344,7 @@ async function valeurs(): Promise<Record<string, string>> {
     'js:REFERENCE': pourLeScript(reference),
     'js:C': pourLeScript(codes),
     'js:PISTES': pourLeScript(listeDePistes),
+    'js:SUJETS': pourLeScript(releves.SUJETS),
     'js:DECISIONS': pourLeScript(decisions),
   };
   for (const paquet of paquets) liste[`tests:${paquet.dossier}`] = String(paquet.fichiersDeTest);

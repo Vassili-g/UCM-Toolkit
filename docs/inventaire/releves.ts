@@ -673,6 +673,8 @@ export interface Piste {
   id: string;
   titre: string;
   titreCourt: string;
+  sujet: string;
+  recherche?: string;
   dependances: string[];
   rang: number;
   points: { chemin: string; action: string; quoi: string }[];
@@ -698,6 +700,19 @@ export interface Decisions {
   regles: Regle[];
 }
 
+/** Les sujets d'une piste et leur couleur (texte sur fond, contraste d'au moins 4,5:1). Seul endroit qui les liste. */
+export const SUJETS: Record<string, { texte: string; fond: string }> = {
+  'Règle de blocage': { texte: '#86198f', fond: '#fae8ff' },
+  'Vérification du rendu': { texte: '#155e75', fond: '#cffafe' },
+  'API du kit': { texte: '#3730a3', fond: '#e0e7ff' },
+  'Modules consommateurs': { texte: '#115e59', fond: '#ccfbf1' },
+  'Bibliothèque de production': { texte: '#78350f', fond: '#f0e0cc' },
+  'Architecture des tokens': { texte: '#5b21b6', fond: '#ede9fe' },
+  'Format du contrat': { texte: '#065f46', fond: '#a7f3d0' },
+  Documentation: { texte: '#3f6212', fond: '#d9f99d' },
+  'Outils de revue': { texte: '#075985', fond: '#bae6fd' },
+};
+
 const AVEC_ECHEC = (fichier: string, ou: string, message: string): never => {
   throw new Error(`${fichier}, ${ou} : ${message}`);
 };
@@ -716,6 +731,11 @@ export function pistes(): Piste[] {
   for (const piste of contenu.pistes) {
     if (ids.has(piste.id)) AVEC_ECHEC(CHEMIN_DES_PISTES, `piste ${piste.id}, champ id`, 'identifiant déjà pris');
     ids.add(piste.id);
+  }
+  for (const piste of contenu.pistes) {
+    if (typeof piste.sujet !== 'string' || piste.sujet === '') AVEC_ECHEC(CHEMIN_DES_PISTES, `piste ${piste.id}, champ sujet`, 'obligatoire');
+    if (!(piste.sujet in SUJETS)) AVEC_ECHEC(CHEMIN_DES_PISTES, `piste ${piste.id}, champ sujet`, `« ${piste.sujet} » n'est pas dans SUJETS de releves.ts`);
+    if (piste.recherche !== undefined && !existsSync(path.join(RACINE, piste.recherche))) AVEC_ECHEC(CHEMIN_DES_PISTES, `piste ${piste.id}, champ recherche`, `${piste.recherche} n'existe pas dans le dépôt`);
   }
   const crees = new Set(contenu.pistes.flatMap((piste) => piste.points.filter((point) => point.action === 'créer').map((point) => point.chemin)));
   for (const piste of contenu.pistes) {
