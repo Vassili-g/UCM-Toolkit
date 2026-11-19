@@ -18,7 +18,7 @@ Le mainteneur ne porte pas cette connaissance. Une décision n'est livrée que s
 - [x] M0 (b14cbe15). Pistes à jour. Conversation principale, après la piste P12 en cours.
   - [x] Dans `pistes.json` : P3 reçoit les points, critères et risques de la partie 3 de la décision ; ses trois questions disparaissent. P4, P6, P10 et P15 citent `@ucm-kit/core/modules` à la place de `api-publique.json`.
   - [x] `npm run vues`.
-- [ ] M1. La prise et ses garde-fous. Agent : `implementeur-exigeant` (le kit, la CLI et l'adaptateur lisent la même règle). Après P12.
+- [x] M1 (82b12725). La prise et ses garde-fous. Agent : `implementeur-exigeant` (le kit, la CLI et l'adaptateur lisent la même règle). Après P12.
   - [ ] M1.1. `packages/kit/src/modules/` (`index.mjs`, `index.d.mts`) republie les 7 fonctions et le type `Contract` de la décision, sous leur nom d'origine. `packages/kit/package.json` : porte `./modules` et fichiers publiés.
   - [ ] M1.2. `packages/kit/tests/apiPublique.test.mjs` : noms de la prise comparés à la version précédente lue dans Git, un exemple d'appel par nom sur `packages/kit/fixtures/`, entrée du journal exigée pour tout changement de la prise, chiffre du milieu exigé pour une rupture.
   - [ ] M1.3. `tests/modulesParLaPrise.test.mjs` : un paquet qui se déclare module n'importe que `@ucm-kit/core/modules`.
