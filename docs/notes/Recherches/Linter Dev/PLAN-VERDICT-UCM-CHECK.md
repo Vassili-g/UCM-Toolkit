@@ -16,6 +16,6 @@ Ce plan met en œuvre [DECISION-VERDICT-UCM-CHECK.md](./DECISION-VERDICT-UCM-CHE
 - [x] 3 (bd04e26a). Règle du verdict, avec les 20 cas V-01 à V-20 et deux mutations vérifiées (`implementeur-exigeant`). Après les lots 1 et 2.
 - [x] 4 (31d34d5d). Branchement et rapport (`implementeur-exigeant`). Les phrases destinées au designer s'écrivent d'abord dans la conversation principale (skill `rediger-diagnostics-ucm`).
 - [x] 5 (54810f28). Mesures de la CLI (`implementeur-exigeant`). Ajoute le critère de la piste P19 : le workflow qu'écrit `ucm init` lance la CLI installée, sans recopier son numéro dans `ucm.yml`.
-- [ ] 6. Consommateur (`implementeur`).
+- [x] 6 (29924f65). Consommateur (`implementeur`).
 - [ ] 7. Documents (`implementeur`).
 - [ ] 8. Publication commune avec P21 (conversation principale, skill `publier-paquets`). Un `verificateur` lance `npm test`, `npm run typecheck` et `npm run build` avant. Le kit monte le dernier chiffre, la CLI le chiffre du milieu.
