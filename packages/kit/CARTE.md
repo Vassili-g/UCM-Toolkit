@@ -4,6 +4,7 @@ Le format et ses lecteurs : @ucm-kit/core, publié.
 
 ## ./
 - invariants/ : les invariants du paquet, un fichier par groupe
+- CHANGELOG.md : journal de la prise `@ucm-kit/core/modules`, une entrée par changement
 - schema/ : schéma commité, publié en `@ucm-kit/core/schema`
 - tests/ : `.test.ts` pour le format, `.test.mjs` pour les lecteurs
 
@@ -41,6 +42,12 @@ Sous-chemin sans dépendance : vocabulaire qu'UCM Palettes et `ucm check` partag
 - contraste.ts : contraste WCAG 2 et sa comparaison au seuil à dix décimales, contraste tronqué et écrit, encre noire ou blanche d'un fond
 - couleur.ts : une couleur de Figma en octets bornés (`versOctet`, `versRgb8`) et en hexadécimal majuscule (`hexaDeFigma`)
 - index.ts : ce que le sous-chemin publie
+
+## src/modules/
+La prise : seule porte que le kit promet au code des autres ; republie depuis `lecteurs` et `format`.
+
+- index.mjs : les 7 fonctions, sous leur nom d'origine
+- index.d.mts : leurs signatures et le type `Contract`
 
 ## src/lecteurs/
 Ce qui juge un contrat écrit ; `ajv` et `node:fs`.

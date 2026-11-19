@@ -19,6 +19,8 @@
     "dist",
     "schema",
     "src/lecteurs",
+    "src/modules",
+    "CHANGELOG.md",
     "README.md"
   ],
   "exports": {
@@ -53,6 +55,10 @@
     "./lecteurs/navigateur": {
       "types": "./src/lecteurs/navigateur.d.mts",
       "default": "./src/lecteurs/navigateur.mjs"
+    },
+    "./modules": {
+      "types": "./src/modules/index.d.mts",
+      "default": "./src/modules/index.mjs"
     },
     "./schema": "./schema/ucm-contract.schema.json",
     "./package.json": "./package.json"

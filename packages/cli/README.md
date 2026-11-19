@@ -404,8 +404,9 @@ overwritten.
 writes to `<file>`:
 
 1. what to read again first: conventions anomalies, copied sections whose
-   default writing changed, and `@ucm-kit/cli` pins that differ between the two
-   relays, the workflow and `package.json`;
+   default writing changed, `@ucm-kit/cli` pins that differ between the two
+   relays, the workflow and `package.json`, and an `@ucm-kit/core` installed in
+   the repository at another version than the one this CLI runs with;
 2. the procedure, `procedure.md`;
 3. the text before the first section of the closest conventions file;
 4. the target contract's version, portable coverage and export diagnostics,

@@ -766,6 +766,7 @@
     <p>Les chemins d'import de <code>@ucm-kit/core</code>, lus dans <code>packages/kit/package.json</code>, avec le nombre de noms que chacun exporte. Ils disent ce qu'un outil peut importer du kit, et ce que la piste <a href="#piste-P3">P3</a> doit figer.</p>
     <div class="defile"><table>
       <tr><th>Point d'entrée</th><th class="n">Exports</th><th>Contenu</th></tr>
+      <tr><td><code>./modules</code></td><td class="n">{{export:./modules}}</td><td>La seule porte promise aux modules des développeurs : lire la configuration, les contrats et les tokens comme <code>ucm check</code>. Ses règles sont dans <code>packages/kit/invariants/versionnage.md</code>.</td></tr>
       <tr><td><code>./format</code></td><td class="n">{{export:./format}}</td><td>Types du contrat, versions, noms de code et de variable CSS, grammaire de <code>ucm.config.json</code></td></tr>
       <tr><td><code>./emplois</code></td><td class="n">{{export:./emplois}}</td><td>Table du thème, {{garanties:nombre}} garanties, contraste WCAG, sans dépendance</td></tr>
       <tr><td><code>./referentiel</code></td><td class="n">{{export:./referentiel}}</td><td>Toutes les définitions UCM (partie 4)</td></tr>

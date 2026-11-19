@@ -19,3 +19,10 @@ gh workflow run publish.yml -f paquet="@ucm-kit/adapter-typescript"
 - **Une exécution intermédiaire finit rouge, par construction.** `scripts/pins-servis.mjs` tourne après la publication et exige que toutes les versions épinglées par la documentation soient servies ; tant qu'un paquet de la série n'est pas parti, son pin manque. Seule la dernière exécution passe au vert.
 - **Le paquet publié se constate par `npm view <paquet>@<version> version`,** jamais par la couleur du run.
 - **Une version ne se publie qu'une fois.** Relancer sans monter le numéro rend 409, comportement voulu.
+
+## Quel chiffre monter
+
+- **Le kit monte le chiffre du milieu (0.17.0 vers 0.18.0) quand la prise `@ucm-kit/core/modules` casse ou que le format change, le dernier chiffre pour tout le reste.** Casse : nom retiré ou renommé, signature changée, résultat différent pour la même entrée. Format : nouvelle majeure de `CONTRACT_VERSION`, nouvelle `TOKENS_FORMAT_VERSION`. Ajout d'un nom, dépréciation et changement interne : dernier chiffre. `packages/kit/tests/apiPublique.test.mjs` refuse un chiffre du milieu qui ne monte pas. Règles : `packages/kit/invariants/versionnage.md`.
+- **Le journal `packages/kit/CHANGELOG.md` s'écrit avant de monter, pour tout changement de la prise** : `ajout`, `déprécié` ou `rupture`, avec « Décidé par ... ». Un changement interne n'y figure pas. Une montée du chiffre du milieu pour le format renvoie à `docs/format/CHANGELOG-FORMAT.md`. Le test nomme l'entrée qui manque.
+- **L'agent ne décide ni d'un ajout, ni d'une dépréciation, ni d'une rupture de la prise** : il rend la question au mainteneur.
+- **`@ucm-kit/cli` et `@ucm-kit/adapter-typescript` montent leur dernier chiffre à chaque nouveau kit qu'ils épinglent.** Ils épinglent la même version exacte du kit ; un module en épingle la même.

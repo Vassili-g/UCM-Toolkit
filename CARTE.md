@@ -90,6 +90,7 @@ Les tests du monorepo lui-même.
 - monorepoCoherent.test.mjs : chaque paquet lit le kit d'à côté, jamais le registre
 - kitCompileAJour.test.mjs : un plugin ne se construit pas sur un kit compilé périmé
 - portesDocumentees.test.mjs : chaque porte publique du kit est décrite dans son README
+- modulesParLaPrise.test.mjs : un paquet qui se déclare module (`"ucmModule": true`) importe le kit par `@ucm-kit/core/modules` seulement, à la version exacte de la CLI
 - pluginsSepares.test.ts : aucun des quatre plugins n'importe un autre
 - referentielUnique.test.ts : aucune liste littérale ne recopie une donnée du référentiel, dans les paquets, `tests/` et `docs/inventaire/*.ts`
 - reglesUniques.test.ts : une règle que porte une fonction unique n'est recopiée nulle part

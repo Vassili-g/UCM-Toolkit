@@ -4,11 +4,12 @@
  */
 import assert from "node:assert/strict";
 import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+import { createRequire } from "node:module";
 import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
 import test from "node:test";
 
-import { guide } from "../src/guide.mjs";
+import { guide, noyauEnDesaccord } from "../src/guide.mjs";
 import { executer } from "../src/ucm.mjs";
 
 /** Un contrat 13.0 dont les deux variants partagent une vue, et qui compose `dependances`. */
@@ -190,6 +191,32 @@ test("des pins de @ucm-kit/cli qui diffèrent sont nommés fichier par fichier ;
 
   const archive = lancer({ ...DEUX_CONTRATS, ".agents/skills/ucm-implementer/SKILL.md": relais("0.1.33"), "package.json": { devDependencies: { "@ucm-kit/cli": "file:../archives/ucm-kit-cli-0.1.33.tgz" } } });
   assert.doesNotMatch(archive.sortie, /À relire/, "une archive installée ne porte pas de numéro à comparer");
+});
+
+test("un @ucm-kit/core installé dans le repository à une autre version que celui de la CLI est nommé", () => {
+  const installe = (version) => ({ "node_modules/@ucm-kit/core/package.json": { name: "@ucm-kit/core", version } });
+  const deLaCli = createRequire(import.meta.url)("@ucm-kit/core/package.json").version;
+
+  const ecart = lancer({ ...DEUX_CONTRATS, ...installe("0.0.1") });
+  assert.equal(ecart.code, 0);
+  const aRelire = ecart.sortie.slice(0, ecart.sortie.indexOf("## Procédure"));
+  assert.match(aRelire, /## À relire avant de commencer/);
+  assert.ok(aRelire.includes(`⚠ Le @ucm-kit/core installé dans ce repository (0.0.1) n'est pas celui de cette CLI (${deLaCli})`), aRelire);
+
+  assert.doesNotMatch(lancer({ ...DEUX_CONTRATS, ...installe(deLaCli) }).sortie, /À relire/, "la même version ne dit rien");
+  assert.doesNotMatch(lancer(DEUX_CONTRATS).sortie, /À relire/, "un repository sans kit installé ne dit rien");
+});
+
+test("noyauEnDesaccord compare à la version donnée, et se tait sur un manifeste illisible", () => {
+  const racine = repository({ "node_modules/@ucm-kit/core/package.json": { version: "0.17.0" } });
+  try {
+    assert.deepEqual(noyauEnDesaccord(racine, "0.17.0"), []);
+    assert.match(noyauEnDesaccord(racine, "0.18.0").join(" "), /(0.17.0).*(0.18.0)/);
+    writeFileSync(join(racine, "node_modules/@ucm-kit/core/package.json"), "pas du JSON");
+    assert.deepEqual(noyauEnDesaccord(racine, "0.18.0"), []);
+  } finally {
+    rmSync(racine, { recursive: true, force: true });
+  }
 });
 
 test("le guide ne demande jamais de lancer le guide", () => {

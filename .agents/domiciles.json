@@ -258,13 +258,22 @@
       "fichier": "packages/kit/invariants/versionnage.md",
       "chemins": [
         "packages/kit/src/**",
-        "packages/kit/src/format/types.ts"
+        "packages/kit/src/format/types.ts",
+        "packages/kit/src/modules/**",
+        "packages/kit/package.json",
+        "packages/kit/CHANGELOG.md",
+        "packages/kit/tests/apiPublique.test.mjs",
+        "packages/kit/tests/prise-exemples.mjs",
+        "packages/kit/tests/prise-attendus.json",
+        "tests/modulesParLaPrise.test.mjs"
       ],
       "specs": [
         "docs/format/COMPATIBILITE.md#lordre-dune-nouvelle-version-du-format-de-tokens"
       ],
       "lies": [
-        "packages/kit/README.md"
+        "packages/kit/README.md",
+        "packages/kit/CHANGELOG.md",
+        ".agents/skills/publier-paquets/SKILL.md"
       ],
       "verifications": [
         "npm run test --workspace @ucm-kit/core",

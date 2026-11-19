@@ -129,11 +129,12 @@ must follow them. In `ucm.config.json`, a `modes.color-brands` key is still
 read as `modes.brands` once the token file has a `brands` axis, and the CLI
 prints a note that asks to rename the key.
 
-## The nine entry points
+## The ten entry points
 
 ```js
 import { CONTRACT_VERSION, codeIdentifier, normalizeName } from "@ucm-kit/core/format";
 import { GARANTIES, TABLE_DES_DOSSIERS, atteintLeSeuil, contraste } from "@ucm-kit/core/emplois";
+import { lireConfiguration, verdictDeVersion } from "@ucm-kit/core/modules";
 import { champsInvalidesDuContrat, verdictDeVersion } from "@ucm-kit/core/lecteurs";
 import { lireLeSchema, CHEMIN_DU_SCHEMA } from "@ucm-kit/core/lecteurs";
 import { champsInvalidesDuContrat, indexerTokensDtcg } from "@ucm-kit/core/lecteurs/navigateur";
@@ -142,6 +143,14 @@ import { variableDuCatalogue } from "@ucm-kit/core/controles";
 import { classerLaDonnee, lireLeSuiviComplet } from "@ucm-kit/core/protocoles";
 import { nomsSelonLesReglesSync } from "@ucm-kit/core/nommage";
 ```
+
+**`@ucm-kit/core/modules`** is the only entry point promised to code outside
+this repository: a linter, a Storybook addon, a render checker. It republishes,
+under their own names, 7 functions and the `Contract` type: `lireConfiguration`,
+`trouverContrats`, `verdictDeVersion`, `vueExacteDuVariant`,
+`indexerTokensDtcg`, `isTokenReference` and `tokenCssVariable`. They read the
+same contracts and tokens as `ucm check`, so a module gives the same verdict.
+Every change to it is written in [CHANGELOG.md](./CHANGELOG.md).
 
 **`@ucm-kit/core/format`** gives the shape of a contract, its version, the
 naming rules, and the shape of a token reference. **This subpath depends on
@@ -215,7 +224,16 @@ returns a verdict.
 
 ## Status
 
-**0.x, the public surface is not frozen.** Pin an exact version, without `^`.
+**0.x. Only `@ucm-kit/core/modules` is promised.** The other entry points serve
+the UCM toolkit (CLI, adapter, plugins) and change without notice. Pin an exact
+version, without `^`. A module pins the exact version of this package that the
+CLI of its repository pins, so that one kit judges the repository; `ucm guide`
+names an installed `@ucm-kit/core` that differs from the CLI's.
+
+The middle number (0.17 to 0.18) rises when `@ucm-kit/core/modules` breaks or
+the contract or token format changes. Every other change raises the last number.
+A name to be removed is marked deprecated in one published version, and removed
+in a later one. [CHANGELOG.md](./CHANGELOG.md) lists each change to the promise.
 
 The exported symbols are French: `champsInvalidesDuContrat` reads as "invalid
 fields of the contract", `verdictDeVersion` as "version verdict".

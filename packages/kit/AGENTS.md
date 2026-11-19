@@ -11,7 +11,7 @@ Le format et ses lecteurs : @ucm-kit/core, publié.
 | [Portée et forme du contrat](../plugin-exporter/invariants/portee-du-contrat.md) | `src/format/**` |
 | [Tokens et variables](../plugin-exporter/invariants/tokens-et-variables.md) | `src/format/names.ts`, `src/format/tokens.ts`, `src/format/chemins-de-tokens.ts`, `src/format/axes-de-collections.ts`, `src/lecteurs/modes-tokens.mjs` |
 | [Diagnostics](../plugin-exporter/invariants/diagnostics.md) | `src/lecteurs/**`, `src/format/version.ts`, `src/lecteurs/diagnostic-contrastes.mjs`, `src/lecteurs/perimetre-rapport.mjs` |
-| [Versionnage](./invariants/versionnage.md) | tout le paquet (défaut), `src/format/types.ts` |
+| [Versionnage](./invariants/versionnage.md) | tout le paquet (défaut), `src/format/types.ts`, `src/modules/**`, `package.json`, `CHANGELOG.md`, `tests/apiPublique.test.mjs`, `tests/prise-exemples.mjs`, `tests/prise-attendus.json` |
 | [Corpus de test](./invariants/corpus-de-test.md) | `fixtures/**` |
 | [Référentiel](./invariants/referentiel.md) | `src/referentiel/**` |
 | [Moteur de couleur](../couleur/invariants/moteur-de-couleur.md) | `src/emplois/**`, `src/referentiel/theme.ts` |

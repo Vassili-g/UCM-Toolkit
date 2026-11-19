@@ -1,0 +1,119 @@
+{
+  "lireConfiguration : un repository sans ucm.config.json rend la configuration par défaut": {
+    "nom": "lireConfiguration",
+    "resultat": {
+      "configuration": {
+        "components": "components",
+        "tokens": "tokens.json",
+        "implementation": "{dir}/{id}.tsx"
+      },
+      "chemin": null,
+      "erreur": null
+    }
+  },
+  "trouverContrats : les contrats de la version 13.0": {
+    "nom": "trouverContrats",
+    "resultat": [
+      "contrats/13.0/Alert.contract.json",
+      "contrats/13.0/Button.contract.json",
+      "contrats/13.0/StressTest.contract.json",
+      "contrats/13.0/TileLink.contract.json"
+    ]
+  },
+  "verdictDeVersion : 13.0 se lit": {
+    "nom": "verdictDeVersion",
+    "resultat": "ok"
+  },
+  "verdictDeVersion : 12.0 est ancien": {
+    "nom": "verdictDeVersion",
+    "resultat": "ancien"
+  },
+  "verdictDeVersion : 15.0 est récent": {
+    "nom": "verdictDeVersion",
+    "resultat": "recent"
+  },
+  "vueExacteDuVariant : la vue du premier variant de TileLink": {
+    "nom": "vueExacteDuVariant",
+    "resultat": {
+      "structure": {
+        "layout": "flex-row",
+        "sizing": {
+          "width": "{components.tilelink.sizes.width}",
+          "height": "{components.tilelink.sizes.height}"
+        },
+        "justifyContent": "center",
+        "alignItems": "center",
+        "children": [
+          {
+            "slot": "icon",
+            "figmaLayer": "chess",
+            "optional": true,
+            "size": "{components.tilelink.sizes.icon}"
+          }
+        ]
+      },
+      "typography": [],
+      "composes": [],
+      "icons": {
+        "chess": {
+          "figmaName": "chess",
+          "slotPath": [
+            "icon"
+          ]
+        }
+      },
+      "paintPlacements": {
+        "fills": {
+          "background": [
+            []
+          ],
+          "foreground": [
+            [
+              "icon"
+            ]
+          ]
+        }
+      },
+      "effects": []
+    }
+  },
+  "indexerTokensDtcg : les feuilles du fichier de tokens d'origine": {
+    "nom": "indexerTokensDtcg",
+    "resultat": {
+      "feuilles": 40,
+      "premieres": [
+        "primitives.color.red",
+        "primitives.color.transparent",
+        "primitives.color.half"
+      ],
+      "rouge": {
+        "$value": "#ff0000",
+        "$type": "color"
+      },
+      "demi": {
+        "$value": "0.5px",
+        "$type": "dimension"
+      }
+    }
+  },
+  "isTokenReference : une référence complète": {
+    "nom": "isTokenReference",
+    "resultat": true
+  },
+  "isTokenReference : un nom sans point n'en est pas une": {
+    "nom": "isTokenReference",
+    "resultat": false
+  },
+  "isTokenReference : sans accolades": {
+    "nom": "isTokenReference",
+    "resultat": false
+  },
+  "tokenCssVariable : un chemin de composant": {
+    "nom": "tokenCssVariable",
+    "resultat": "--components-button-sizes-medium-gap"
+  },
+  "tokenCssVariable : une virgule décimale": {
+    "nom": "tokenCssVariable",
+    "resultat": "--layouts-sizing-0-5"
+  }
+}

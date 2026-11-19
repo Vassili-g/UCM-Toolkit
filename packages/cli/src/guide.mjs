@@ -12,6 +12,7 @@
  * incohérent, 2 invocation, configuration ou contrat illisible.
  */
 import { existsSync, mkdirSync, readFileSync, statSync, writeFileSync } from "node:fs";
+import { createRequire } from "node:module";
 import { dirname, join, relative, resolve } from "node:path";
 
 import { NOM_CONFIGURATION, etatDuFormatDeTokens } from "@ucm-kit/core/format";
@@ -227,6 +228,30 @@ export function pinsEnDesaccord(racine) {
   ];
 }
 
+/** La version de `@ucm-kit/core` que cette CLI embarque : celle qui juge le repository avec elle. */
+const versionDuNoyauDeLaCli = () => createRequire(import.meta.url)("@ucm-kit/core/package.json").version;
+
+/**
+ * Le `@ucm-kit/core` installé dans le repository, nommé quand sa version n'est
+ * pas celle de la CLI : deux kits peuvent juger le même contrat autrement, et
+ * le module qui appelle l'un laisse `ucm check` appeler l'autre. Rend une
+ * ligne, ou rien si le repository n'installe pas le kit ou s'il le tient à la
+ * même version.
+ */
+export function noyauEnDesaccord(racine, versionDeLaCli = versionDuNoyauDeLaCli()) {
+  let installee;
+  try {
+    installee = lireJson(join(racine, "node_modules", "@ucm-kit", "core", "package.json")).version;
+  } catch {
+    return [];
+  }
+  if (typeof installee !== "string" || installee === versionDeLaCli) return [];
+  return [
+    `${GLYPHES.corriger.brut} Le @ucm-kit/core installé dans ce repository (${installee}) n'est pas celui de cette CLI (${versionDeLaCli}) : `
+      + "épinglez le même numéro des deux côtés.",
+  ];
+}
+
 /**
  * Les modes qui touchent le contrat : un refus quand le fichier de tokens est
  * incohérent, sinon le texte de la section.
@@ -374,6 +399,7 @@ export function guide(arguments_, {
   alerter = console.error,
   ecrireFichier = writeFileSync,
   catalogue = catalogueDesAides(),
+  versionDuNoyau = versionDuNoyauDeLaCli(),
 } = {}) {
   const { options, erreur } = lireArgumentsGuide(arguments_);
   if (erreur) {
@@ -439,7 +465,7 @@ export function guide(arguments_, {
   const caracteristiques = caracteristiquesDuContrat(contrat, contratsParNom, modes.cones);
   const { aides, nonTranches } = aidesDuContrat(caracteristiques, catalogue, conventions);
 
-  const aRelire = [...avertissements(conventions, cheminConventions, racine, catalogue), ...pinsEnDesaccord(racine)];
+  const aRelire = [...avertissements(conventions, cheminConventions, racine, catalogue), ...pinsEnDesaccord(racine), ...noyauEnDesaccord(racine, versionDuNoyau)];
   const icones = entreesCitees(contrat.icons, iconesUtilisees(contrat));
   const parties = [
     ["à relire", aRelire.length === 0 ? "" : ["## À relire avant de commencer", "", ...aRelire, ""].join("\n")],
