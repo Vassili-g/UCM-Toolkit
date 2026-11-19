@@ -18,4 +18,4 @@ Ce plan met en œuvre [DECISION-VERDICT-UCM-CHECK.md](./DECISION-VERDICT-UCM-CHE
 - [x] 5 (54810f28). Mesures de la CLI (`implementeur-exigeant`). Ajoute le critère de la piste P19 : le workflow qu'écrit `ucm init` lance la CLI installée, sans recopier son numéro dans `ucm.yml`.
 - [x] 6 (29924f65). Consommateur (`implementeur`).
 - [x] 7 (b0c35d08). Documents (`implementeur`).
-- [ ] 8. Publication commune avec P21 (conversation principale, skill `publier-paquets`). Un `verificateur` lance `npm test`, `npm run typecheck` et `npm run build` avant. Le kit monte le dernier chiffre, la CLI le chiffre du milieu.
+- [x] 8 (21b78694, publiés : core 0.17.1, cli 0.2.0, adapter-typescript 0.2.11). Publication commune avec P21 (conversation principale, skill `publier-paquets`). Un `verificateur` lance `npm test`, `npm run typecheck` et `npm run build` avant. Le kit monte le dernier chiffre, la CLI le chiffre du milieu.
