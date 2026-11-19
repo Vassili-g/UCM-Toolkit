@@ -67,8 +67,8 @@ Ce qui juge un contrat écrit ; `ajv` et `node:fs`.
 - implementation.mjs : où se trouve une implémentation, et si elle est là
 - trouver-contrats.mjs : retrouver les contrats d'un dossier
 - controle-repository.mjs : contrôle complet et rapport du designer
-- verdict-bilan.mjs : ce qui refuse une fusion, et titre de ce refus
-- perimetre-rapport.mjs : ce que la demande de fusion touche, et si elle concerne UCM
+- verdict-bilan.mjs : ce qui refuse une fusion et son titre ; `verdictDeLaDemande`, l'état de chaque composant et le verdict selon la demande, les rangs, les dérogations et l'adaptateur
+- perimetre-rapport.mjs : ce que la demande de fusion touche, si elle concerne UCM, et son genre (`genreDeLaDemande`)
 - avertissements-export.mjs : ce que l'export n'a pas su décrire
 - diagnostic-tokens.mjs : références que la source de tokens ne porte pas
 - diagnostic-contrastes.mjs : contraste de chaque couleur d'un contrat contre son fond, en information

@@ -503,6 +503,82 @@ declare module "@ucm-kit/core/lecteurs" {
     avecAvertissements?: boolean,
   ): string[];
 
+  /** Un état de composant ; `etat` est le premier de `constats`, du plus grave au plus léger. */
+  export type EtatDeComposant =
+    | "contrat-invalide"
+    | "tokens-absents"
+    | "ecart"
+    | "code-non-verifie"
+    | "en-retard-sur-son-contrat"
+    | "en-retard-sur-les-tokens"
+    | "deroge-a-valider"
+    | "pas-encore-d-implementation"
+    | "conforme";
+
+  export const ETATS_DE_COMPOSANT: readonly EtatDeComposant[];
+
+  /** Ce que la demande modifie : tokens seuls, contrats et tokens, code, ou rien (contrôle sans base). */
+  export type GenreDeDemande = "tokens-seuls" | "contrats-et-tokens" | "code" | "sans-base";
+
+  /** Un composant à juger : son bilan, son export et le rang de ses deux fichiers (0 : modifié par la demande ou non enregistré ; `null` : inconnu). */
+  export interface ComposantAJuger {
+    id: string;
+    bilan: unknown;
+    /** `meta.exportedAt` du contrat. */
+    exportedAt?: string;
+    rangContrat?: number | null;
+    rangCode?: number | null;
+  }
+
+  export interface VerdictDeComposant {
+    id: string;
+    etat: EtatDeComposant;
+    constats: EtatDeComposant[];
+    /** Vrai si la demande refuse ce composant ; un état grave ne bloque pas toute demande. */
+    bloquant: boolean;
+    /** Pourquoi le code n'a pas été comparé, `null` s'il l'a été. */
+    lecture: "fichier-non-lu" | "adaptateur-absent" | "adaptateur-casse" | "sans-adaptateur" | null;
+    /** Les écarts qu'aucune dérogation ne couvre. */
+    ecarts: EcartIdentifieDeParite[];
+    avertissements: EcartIdentifieDeParite[];
+    derogations: {
+      couvertes: { ecart: EcartIdentifieDeParite; derogation: Derogation }[];
+      tombees: Derogation[];
+      sansObjet: Derogation[];
+    };
+  }
+
+  export interface VerdictDeLaDemande {
+    demande: GenreDeDemande;
+    bloquant: boolean;
+    composants: VerdictDeComposant[];
+    erreursDeDerogations: string[];
+    tokensIllisibles: boolean;
+    /** Une copie sans historique complet n'est pas jugée : code de sortie 2 et geste. */
+    erreurDInvocation: { code: 2; geste: string } | null;
+  }
+
+  /**
+   * Le verdict de `ucm check` : l'état de chaque composant et `bloquant`, par la
+   * règle du dernier modifié. Pure ; les rangs, les dérogations et l'adaptateur
+   * attendu sont des entrées.
+   */
+  export function verdictDeLaDemande(entree: {
+    demande: GenreDeDemande;
+    composants?: readonly ComposantAJuger[];
+    rangTokens?: number | null;
+    tokensIllisibles?: boolean;
+    derogations?: { derogations: readonly Derogation[]; erreurs: readonly string[] };
+    adaptateurAttendu?: "present" | "absent" | "casse" | "sans-adaptateur";
+    historique?: "complet" | "superficiel" | "aucun";
+  }): VerdictDeLaDemande;
+
+  /** Le genre d'une demande d'après les fichiers qu'elle modifie (`undefined` : sans base). */
+  export function genreDeLaDemande(
+    cheminsModifies: string | undefined,
+    options?: { cheminTokens?: string; tokensModifies?: boolean },
+  ): GenreDeDemande;
+
   /**
    * Ce que la demande de fusion touche : les états informatifs qu'elle peut
    * publier, et si elle concerne UCM. Sans liste, tous les bilans restent
@@ -511,8 +587,8 @@ declare module "@ucm-kit/core/lecteurs" {
   export function perimetreDeLaDemande<T extends { relatif: string }>(
     bilans: readonly T[],
     cheminsModifies: string | undefined,
-    options?: { motif?: string; tokensModifies?: boolean },
-  ): { bilans: readonly T[]; concerne: boolean };
+    options?: { motif?: string; tokensModifies?: boolean; cheminTokens?: string },
+  ): { bilans: readonly T[]; concerne: boolean; genre: GenreDeDemande };
 
   /** Le marqueur qui identifie le commentaire du rapport sur une demande de fusion. */
   export const MARQUEUR_RAPPORT: string;

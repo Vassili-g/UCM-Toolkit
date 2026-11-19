@@ -40,8 +40,8 @@ function normaliserChemin(chemin) {
  * demandes où le rapport doit parler, la seconde parce que lui seul nomme le
  * dossier que le contrôle a cherché.
  */
-export function perimetreDeLaDemande(bilans, cheminsModifies, { motif, tokensModifies = false } = {}) {
-  if (cheminsModifies === undefined) return { bilans, concerne: true };
+export function perimetreDeLaDemande(bilans, cheminsModifies, { motif, tokensModifies = false, cheminTokens } = {}) {
+  if (cheminsModifies === undefined) return { bilans, concerne: true, genre: "sans-base" };
 
   const modifies = new Set(
     cheminsModifies
@@ -59,5 +59,39 @@ export function perimetreDeLaDemande(bilans, cheminsModifies, { motif, tokensMod
     || [...modifies].some((chemin) => chemin.endsWith(".contract.json"))
     || retenus.length > 0;
 
-  return { bilans: retenus, concerne };
+  return { bilans: retenus, concerne, genre: genreDeLaDemande(cheminsModifies, { cheminTokens, tokensModifies }) };
+}
+
+/**
+ * Le genre d'une demande, qui décide de ce dont elle répond (autorité :
+ * `verdictDeLaDemande`, `verdict-bilan.mjs`).
+ *
+ * - `"sans-base"` : pas de liste de fichiers, un contrôle local ou un envoi
+ *   direct ;
+ * - `"code"` : elle modifie au moins un fichier qui n'est ni un contrat ni
+ *   `tokens.json`, y compris `ucm.config.json` et `.ucm/derogations.json` ;
+ * - `"contrats-et-tokens"` : elle ne modifie que des contrats, avec ou sans
+ *   `tokens.json`. Une demande sans aucun fichier se classe ici : elle ne
+ *   modifie rien dont elle puisse répondre ;
+ * - `"tokens-seuls"` : elle ne modifie que `tokens.json`.
+ *
+ * `cheminTokens` est la source de tokens de `ucm.config.json`. Sans lui, un
+ * `tokens.json` modifié compte comme un fichier de code. `tokensModifies`, le
+ * relevé de Git, suffit aussi à dire que `tokens.json` a changé.
+ */
+export function genreDeLaDemande(cheminsModifies, { cheminTokens, tokensModifies = false } = {}) {
+  if (cheminsModifies === undefined) return "sans-base";
+
+  const tokens = cheminTokens === undefined ? undefined : normaliserChemin(cheminTokens);
+  const modifies = cheminsModifies
+    .split(/\r?\n/)
+    .map(normaliserChemin)
+    .filter(Boolean);
+  const contrats = modifies.filter((chemin) => chemin.endsWith(".contract.json"));
+  const autres = modifies.filter((chemin) => !chemin.endsWith(".contract.json") && chemin !== tokens);
+
+  if (autres.length > 0) return "code";
+  if (contrats.length > 0) return "contrats-et-tokens";
+  const tokensTouches = Boolean(tokensModifies) || (tokens !== undefined && modifies.includes(tokens));
+  return tokensTouches ? "tokens-seuls" : "contrats-et-tokens";
 }

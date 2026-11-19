@@ -6,7 +6,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import { join } from "node:path";
-import { perimetreDeLaDemande } from "../src/lecteurs/perimetre-rapport.mjs";
+import { genreDeLaDemande, perimetreDeLaDemande } from "../src/lecteurs/perimetre-rapport.mjs";
 
 const MOTIF = "{dir}/{id}.tsx";
 
@@ -119,4 +119,63 @@ test("un bilan écrit avec des antislashs désigne le contrat que git nomme avec
   );
 
   assert.deepEqual(selection.map((bilan) => bilan.fichier), ["Alert.contract.json"]);
+});
+
+/**
+ * Le genre décide de ce dont la demande répond (`verdictDeLaDemande`). Un
+ * fichier qui n'est ni un contrat ni `tokens.json` en fait une demande de
+ * code : `ucm.config.json` et `.ucm/derogations.json` aussi.
+ */
+const TOKENS = "src/tokens/tokens.json";
+const CONTRAT = "src/components/Button/Button.contract.json";
+const genre = (chemins, options = {}) => genreDeLaDemande(chemins, { cheminTokens: TOKENS, ...options });
+
+test("sans liste de fichiers, la demande est sans base", () => {
+  assert.equal(genreDeLaDemande(undefined, { cheminTokens: TOKENS }), "sans-base");
+  assert.equal(perimetreDeLaDemande(bilans, undefined, { motif: MOTIF }).genre, "sans-base");
+});
+
+test("un tokens.json seul est une demande de tokens seuls", () => {
+  assert.equal(genre(TOKENS), "tokens-seuls");
+  assert.equal(genre(`${TOKENS}
+`), "tokens-seuls");
+});
+
+test("des contrats, avec ou sans tokens.json, sont une demande de contrats et tokens", () => {
+  assert.equal(genre(CONTRAT), "contrats-et-tokens");
+  assert.equal(genre(`${CONTRAT}
+${TOKENS}`), "contrats-et-tokens");
+  assert.equal(genre(`${CONTRAT}
+src/components/Alert/Alert.contract.json`), "contrats-et-tokens");
+});
+
+test("tout autre fichier fait une demande de code, avec ou sans contrat", () => {
+  assert.equal(genre("src/components/Button/Button.tsx"), "code");
+  assert.equal(genre(`${CONTRAT}
+src/components/Button/Button.tsx`), "code");
+  assert.equal(genre(`${TOKENS}
+README.md`), "code");
+  assert.equal(genre("ucm.config.json"), "code");
+  assert.equal(genre(".ucm/derogations.json"), "code");
+});
+
+test("le chemin de tokens se compare sans `./` ni antislash", () => {
+  assert.equal(genreDeLaDemande("src/tokens/tokens.json", { cheminTokens: ".\\src\\tokens\\tokens.json" }), "tokens-seuls");
+  assert.equal(genreDeLaDemande("src/tokens/tokens.json", { cheminTokens: "./src/tokens/tokens.json" }), "tokens-seuls");
+});
+
+test("sans chemin de tokens, tokens.json compte comme du code", () => {
+  assert.equal(genreDeLaDemande(TOKENS), "code");
+});
+
+test("une demande sans fichier ne répond de rien : elle se juge comme une demande du designer", () => {
+  assert.equal(genre(""), "contrats-et-tokens");
+});
+
+test("le périmètre rend le genre de la demande", () => {
+  const { genre: rendu } = perimetre(`${TOKENS}
+src/components/Button/Button.tsx`, { cheminTokens: TOKENS });
+
+  assert.equal(rendu, "code");
+  assert.equal(perimetre(TOKENS, { cheminTokens: TOKENS, tokensModifies: true }).genre, "tokens-seuls");
 });

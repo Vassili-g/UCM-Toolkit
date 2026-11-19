@@ -21,7 +21,7 @@ export { BORNE_DES_CYCLES, axesDeTokens, axesDuContrat, conesDesAxes, contextesD
 export { CARACTERISTIQUES, CHAMPS, SANS_AIDE, caracteristiquesDuContrat } from "./caracteristiques.mjs";
 export { avertissementsCorrigeables, TITRE_AVERTISSEMENTS, sectionAvertissementsExport, resumeTerminalAvertissements } from "./avertissements-export.mjs";
 export { libelleNombre, rendreDiagnostic } from "./diagnostic-markdown.mjs";
-export { bilanEstBloquant, enteteDuVerdict } from "./verdict-bilan.mjs";
+export { bilanEstBloquant, enteteDuVerdict, verdictDeLaDemande, ETATS_DE_COMPOSANT } from "./verdict-bilan.mjs";
 export { sectionTokensManquants, resumeTerminalTokensManquants } from "./diagnostic-tokens.mjs";
 export { constatsDesContrastes, sectionContrastes, resumeTerminalContrastes } from "./diagnostic-contrastes.mjs";
 export { pariteEnEcart, ecartsIdentifiesDeParite, aUnEcartDeParite, sectionEcartsDeParite, resumeTerminalEcartsDeParite } from "./diagnostic-parite.mjs";
