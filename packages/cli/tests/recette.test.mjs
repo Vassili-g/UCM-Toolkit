@@ -483,3 +483,42 @@ test("GitLab — un repository vide avec --forge gitlab reçoit les deux fichier
     rmSync(racine, { recursive: true, force: true });
   }
 });
+
+/**
+ * P19, lot 6 : un écart du code bloque, prouvé par le processus réel.
+ *
+ * Le repository temporaire charge l'adaptateur TypeScript par un relais dans
+ * `node_modules`, comme un consommateur qui l'a installé. Le contrat promet la
+ * valeur `danger` que le code n'implémente pas : la commande rend 1.
+ */
+test("verdict — un écart du code sur son contrat bloque la fusion", () => {
+  const widget = {
+    ...contrat("Widget"),
+    props: { variant: { type: "enum", values: ["normal", "danger"], default: "normal" } },
+    variants: ["normal", "danger"].map((variant, rang) => ({
+      nodeId: `1:${rang + 2}`, figmaName: variant, values: { variant }, tokens: {}, view: "v1",
+    })),
+  };
+  widget.structure = { view: "st1", variantAxes: ["variant"] };
+  surLeRepo({ composants: { Widget: widget }, implementation: "{dir}/{id}.tsx" }, (racine) => {
+    const adaptateur = join(racine, "node_modules", "@ucm-kit", "adapter-typescript");
+    mkdirSync(adaptateur, { recursive: true });
+    writeFileSync(join(adaptateur, "package.json"), JSON.stringify({ main: "index.mjs", type: "module" }), "utf8");
+    const source = new URL("../../adapter-typescript/src/index.mjs", import.meta.url).href;
+    writeFileSync(join(adaptateur, "index.mjs"), `export { adaptateurTypeScript } from ${JSON.stringify(source)};\n`, "utf8");
+    writeFileSync(
+      join(racine, "tsconfig.json"),
+      JSON.stringify({ compilerOptions: { strict: true, jsx: "preserve" }, include: ["components/**/*"] }),
+      "utf8",
+    );
+    writeFileSync(
+      join(racine, "components", "Widget", "Widget.tsx"),
+      'export interface WidgetProps { variant: "normal" }\nexport function Widget({ variant }: WidgetProps) { return variant; }\n',
+      "utf8",
+    );
+    const { code, rapport } = controler(racine);
+
+    assert.equal(code, 1, rapport ?? "aucun rapport");
+    assert.match(rapport, /^## ❌ Les contrôles du repository bloquent la fusion$/m);
+  });
+});

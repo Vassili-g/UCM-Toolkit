@@ -62,6 +62,15 @@ re-exported. The lower bound moves up by one version with each contract
 version. `VERSION_CONTRAT_MINIMALE` and `VERSION_CONTRAT_MAXIMALE` expose the
 range in code.
 
+## A tighter verdict, and exceptions
+
+`controlerRepository` blocks a gap between the code and its contract. This
+tightened verdict is class 6 of `docs/format/COMPATIBILITE.md`. A developer
+covers one precise gap in `.ucm/derogations.json`, a list of entries with
+`composant`, `ecart`, `export`, `motif` and `par`. An entry stops applying when
+the contract's `meta.exportedAt` differs from its `export`, and the kit refuses
+an unknown field or a gap kind that cannot be waived.
+
 ## A repository with no contract at all
 
 Right after `ucm init` nothing has been exported: there is no token file, and

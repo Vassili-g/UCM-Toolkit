@@ -245,8 +245,18 @@ the code or at the token file.
 | Composition: every nested component has its own contract, the lists agree, no cycles | Blocks |
 | Typography tokens have the expected type | Blocks |
 | Every `{token.path}` cited exists in the token file | Warns, but a missing or unreadable token file blocks |
-| The code exposes the props the contract declares, with a stack adapter installed | Warns |
+| The code exposes the props the contract declares, with a stack adapter installed | Blocks a pull request that touches the code or a contract with a gap; otherwise reports the lag |
 | Each text, icon, border or ring colour reaches its contrast against its background | Information, never blocks |
+
+A gap in the code now blocks the merge. This tightened verdict is class 6 of
+`docs/format/COMPATIBILITE.md`: the format does not change, but a pipeline that
+stayed green on a gap turns red. A component whose contract was exported after
+its code is reported as behind its contract and does not block the designer's
+export. A developer who accepts a precise gap writes it in
+`.ucm/derogations.json`. Each entry names `composant`, `ecart` (its `genre` and
+coordinates), `export` (the `meta.exportedAt` of the contract), `motif` and
+`par`; an unknown field refuses the entry. An entry stops applying when the
+next export changes `meta.exportedAt`. An agent never writes this file.
 
 The direction of a version gap names who fixes it. A contract that is too old
 is re-exported by the designer. A contract that is too new needs this package
