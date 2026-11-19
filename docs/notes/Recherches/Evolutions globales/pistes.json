@@ -132,11 +132,12 @@
       "raisonImportance": "Le dépôt ne contient que `tokens.json` : sans lockfile, `ucm.yml` saute `npm ci`, l'adaptateur ne se charge pas et aucun module n'a de projet où s'exécuter.",
       "rang": 1,
       "dependances": [
-        "P1"
+        "P1",
+        "P19"
       ],
       "complexite": "m",
       "raisonComplexite": "Un projet React et TypeScript standard, plus les lignes qu'`ucm init` demande d'ajouter.",
-      "coutHumain": "Répondre à deux questions : monorepo ou bibliothèque seule, nom et registre de publication.",
+      "coutHumain": "Aucun geste : intencial-library reste une bibliothèque seule, privée et non publiée pour l'instant.",
       "porteur": "développeurs",
       "promesse": "R",
       "etat": "proposé",
@@ -175,12 +176,10 @@
       "criteresDeFin": [
         "`npm ci` puis `npx ucm check` dans intencial-library chargent l'adaptateur et le rapport contient la section de parité.",
         "`npx ucm tokens css` écrit une feuille avec les attributs des modes `intencial` et `marque-2`.",
-        "`tsc --noEmit` passe dans le job `contrats`."
+        "`tsc --noEmit` passe dans le job `contrats`.",
+        "intencial-library épingle la CLI qui contient P19, en version exacte."
       ],
-      "questions": [
-        "intencial-library devient-elle un monorepo qui héberge aussi les modules, ou un dépôt de bibliothèque seul ?",
-        "Sous quel nom et sur quel registre la bibliothèque de production se publie-t-elle ?"
-      ],
+      "questions": [],
       "risques": [
         "L'adaptateur cherche une interface nommée d'après le composant (`nomInterfaceAttendue`). Une interface nommée autrement que `ButtonProps` donne le seul écart « interface absente », et aucune prop n'est comparée."
       ]
@@ -190,17 +189,15 @@
       "titre": "Verdict de ucm check selon la demande",
       "titreCourt": "Verdict de ucm check",
       "sujet": "Règle de blocage",
-      "recherche": "docs/notes/Recherches/Linter Dev/PLAN-CONFORMITE-RENDU.md",
+      "recherche": "docs/notes/Recherches/Linter Dev/DECISION-VERDICT-UCM-CHECK.md",
       "resume": "Faire bloquer `ucm check` sur un écart du code quand la demande touche le code du composant, et marquer « en retard sur son contrat » quand seul le contrat change, avec une dérogation motivée qui passe.",
       "importance": "critique",
       "raisonImportance": "`bilanEstBloquant` ne compte ni les tokens absents ni la parité, donc le CI laisse fusionner tout écart du code quelle que soit la règle écrite.",
       "rang": 1,
-      "dependances": [
-        "P18"
-      ],
+      "dependances": [],
       "complexite": "l",
       "raisonComplexite": "Trois verdicts dépendent du périmètre de la demande, un fichier de dérogations est à concevoir, et kit, CLI et adaptateur se publient ensemble.",
-      "coutHumain": "Répondre à cinq questions, dont la forme de la dérogation et le délai « en retard ».",
+      "coutHumain": "Relire la partie 1 de la décision, puis les dérogations que le rapport de chaque export montre.",
       "porteur": "mainteneur",
       "promesse": "R",
       "etat": "à faire",
@@ -287,15 +284,9 @@
         "Un test : une demande de tokens seuls rend `bloquant: false`.",
         "Un test : une dérogation avec motif rend `bloquant: false` et l'affiche « à valider ».",
         "`node scripts/run-tests.cjs` passe dans `packages/kit`, `packages/cli` et à la racine, dont `versionSuitLeContenu`.",
-        "Le kit, la CLI et l'adaptateur sont servis par le registre, et intencial-library épingle la nouvelle CLI."
+        "Le kit, la CLI et l'adaptateur sont servis par le registre."
       ],
-      "questions": [
-        "Un push sur `main` sans `--base` juge-t-il tous les composants « en retard » ou bloquants ?",
-        "Une implémentation présente sans adaptateur installé est-elle un avertissement (trou de preuve) ou un blocage ?",
-        "Quelle forme pour la dérogation : fichier, portée (composant, combinaison, famille), motif, auteur, expiration ?",
-        "Les questions ouvertes sur le token retiré et sur le délai « en retard ».",
-        "La dépendance à P18 tient au dernier critère. Sans lui, P19 se fait en parallèle de P1. La garde-t-on ?"
-      ],
+      "questions": [],
       "risques": [
         "Après la fusion d'une variante par le designer, le CI de `main` devient rouge si le push n'a pas de base.",
         "Un délai « en retard » non encodé n'est jamais appliqué.",
