@@ -592,6 +592,16 @@
     b.setAttribute('aria-expanded', ouvert);
     document.getElementById(b.getAttribute('aria-controls')).hidden = !ouvert;
   }
+  // Les pistes livrées (toutes les cases de leur plan cochées) ne sont pas dans PISTES : une ligne les nomme, avec le lien vers leur plan.
+  var LIVREES = {{js:LIVREES}};
+  if (LIVREES.length) {
+    var ligneLivrees = document.getElementById('pistes-livrees');
+    ligneLivrees.innerHTML = '<span class="etat livre">' + (LIVREES.length > 1 ? 'Livrées' : 'Livrée') + '</span> ' + LIVREES.map(function (x) {
+      var url = lienGitHub(x.plan);
+      return '<a href="' + url + '" target="_blank" rel="noopener">' + x.id + ' ' + esc(x.titreCourt) + '</a>';
+    }).join(', ') + (LIVREES.length > 1 ? '. Elles ont quitté la suite.' : '. Elle a quitté la suite.');
+    ligneLivrees.hidden = false;
+  }
   var parRang = {};
   PISTES.forEach(function (x) { (parRang[x.rang] = parRang[x.rang] || []).push(x); });
   Object.keys(parRang).sort().forEach(function (rang) {

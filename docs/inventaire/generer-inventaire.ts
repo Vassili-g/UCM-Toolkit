@@ -249,6 +249,12 @@ async function valeurs(): Promise<Record<string, string>> {
   const tailles = releves.registreDesTailles();
   const listeDePistes = releves.pistes();
   const identifiantsDePistes = new Set(listeDePistes.map((piste) => piste.id));
+  // Une piste dont le plan a toutes ses cases cochées est livrée : elle quitte la suite et son graphe, et une dépendance vers elle est tenue.
+  const livrees = listeDePistes.filter((piste) => piste.avancement !== undefined && piste.avancement.faites === piste.avancement.total);
+  const idsLivres = new Set(livrees.map((piste) => piste.id));
+  const pistesASuivre = listeDePistes
+    .filter((piste) => !idsLivres.has(piste.id))
+    .map((piste) => ({ ...piste, dependances: piste.dependances.filter((id) => !idsLivres.has(id)) }));
   const decisions = releves.decisions(identifiantsDePistes);
   const palettes = releves.reglagesDePalettes();
   const composant = releves.sectionsDuComposant();
@@ -305,7 +311,7 @@ async function valeurs(): Promise<Record<string, string>> {
     'composant:sections': String(composant.nombre),
     'composant:sections-liste': composant.liste,
     // Les pistes et les règles décidées
-    'pistes:nombre': String(listeDePistes.length),
+    'pistes:nombre': String(pistesASuivre.length),
     ...blocsDesRegles(decisions, identifiantsDePistes),
     // Les codes de constat
     'codes:nombre': String(codes.length),
@@ -343,7 +349,8 @@ async function valeurs(): Promise<Record<string, string>> {
     'js:DONNEES': pourLeScript(couleurs),
     'js:REFERENCE': pourLeScript(reference),
     'js:C': pourLeScript(codes),
-    'js:PISTES': pourLeScript(listeDePistes),
+    'js:PISTES': pourLeScript(pistesASuivre),
+    'js:LIVREES': pourLeScript(livrees.map(({ id, titreCourt, plan }) => ({ id, titreCourt, plan }))),
     'js:SUJETS': pourLeScript(releves.SUJETS),
     'js:DECISIONS': pourLeScript(decisions),
   };

@@ -128,6 +128,16 @@ test('une piste avec un plan compte ses cases cochées sur le total', () => {
   }
 });
 
+test('une piste livrée quitte la suite et reste nommée par son plan', async () => {
+  const page = await generee();
+  const lire = (nom: string): { id: string; dependances?: string[] }[] => JSON.parse(new RegExp(`var ${nom} = (\\[.*?\\]);\\n`).exec(page)![1]);
+  const suivies = lire('PISTES'), livrees = lire('LIVREES');
+  for (const piste of pistes().filter((candidate) => candidate.avancement !== undefined && candidate.avancement.faites === candidate.avancement.total)) {
+    assert.ok(livrees.some(({ id }) => id === piste.id), `${piste.id} manque à la ligne des livrées`);
+    assert.ok(!suivies.some(({ id, dependances }) => id === piste.id || dependances!.includes(piste.id)), `${piste.id} reste dans la suite`);
+  }
+});
+
 test('decisions.json : des choix valides passent', () => {
   validerLesChoix(decisionsFictives({ P1: { choix: 'oui', note: 'a' }, P2: { choix: '', note: '' } }, { T1: { choix: 'non', note: '' }, T10: { choix: 'avant', note: '' } }), connues);
 });
