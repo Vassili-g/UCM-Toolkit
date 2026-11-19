@@ -15,7 +15,7 @@ Le mainteneur ne porte pas cette connaissance. Une décision n'est livrée que s
 
 ## Lots
 
-- [x] M0. Pistes à jour. Conversation principale, après la piste P12 en cours.
+- [x] M0 (b14cbe15). Pistes à jour. Conversation principale, après la piste P12 en cours.
   - [x] Dans `pistes.json` : P3 reçoit les points, critères et risques de la partie 3 de la décision ; ses trois questions disparaissent. P4, P6, P10 et P15 citent `@ucm-kit/core/modules` à la place de `api-publique.json`.
   - [x] `npm run vues`.
 - [ ] M1. La prise et ses garde-fous. Agent : `implementeur-exigeant` (le kit, la CLI et l'adaptateur lisent la même règle). Après P12.
