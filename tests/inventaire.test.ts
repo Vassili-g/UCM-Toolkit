@@ -13,7 +13,7 @@ import { motifVersRegex } from '../scripts/agents-contexte.mjs';
 import { EXCLUSIONS } from '../docs/inventaire/couverture';
 import { sectionDe } from '../docs/inventaire/extraire';
 import { CHEMIN_DE_L_INVENTAIRE, genererInventaireEtCouverture } from '../docs/inventaire/generer-inventaire';
-import { CHEMIN_DES_DECISIONS, validerLesChoix, type Decisions, type Regle } from '../docs/inventaire/releves';
+import { CHEMIN_DES_DECISIONS, pistes, validerLesChoix, type Decisions, type Regle } from '../docs/inventaire/releves';
 
 const racine = path.resolve(__dirname, '..');
 const sansRetourChariot = (texte: string): string => texte.replace(/\r\n/g, '\n');
@@ -31,7 +31,7 @@ test("la page de l'inventaire est autonome et tient sous 1 Mo", async () => {
   const page = await generee();
   assert.ok(Buffer.byteLength(page) < 1_000_000);
   assert.deepEqual(page.match(/\bsrc=|<link|@import/g), null);
-  // Seul le label de sujet d'une piste sort de la page, vers un document du dépôt sur GitHub ; le script le compose.
+  // Seuls le label de sujet et le statut d'une piste en cours sortent de la page, vers un document du dépôt sur GitHub ; le script les compose.
   assert.deepEqual(page.match(/href="(?!#|' \+ url)[^"]*"/g), null);
   const url = [...page.matchAll(/url\((?!#|data:|"data:)[^)]{0,20}/g)].map((trouve) => trouve[0]);
   assert.deepEqual(url, [], 'une feuille de style charge une ressource');
@@ -119,6 +119,14 @@ const decisionsFictives = (pistes: Decisions['pistes'], transverses: Decisions['
   regles: [regleTransverse('T1'), regleTransverse('T10', [{ valeur: 'avant', libelle: 'Avant' }, { valeur: 'apres', libelle: 'Après' }])],
 });
 const connues = new Set(['P1', 'P2']);
+
+test('une piste avec un plan compte ses cases cochées sur le total', () => {
+  for (const piste of pistes().filter((candidate) => candidate.plan !== undefined)) {
+    const cases = readFileSync(path.join(racine, piste.plan!), 'utf8').split(/\r?\n/).filter((ligne) => /^\s*- \[[ x]\]/.test(ligne));
+    assert.ok(cases.length > 0, `${piste.id} : le plan n'a aucune case`);
+    assert.deepEqual(piste.avancement, { faites: cases.filter((ligne) => /^\s*- \[x\]/.test(ligne)).length, total: cases.length }, piste.id);
+  }
+});
 
 test('decisions.json : des choix valides passent', () => {
   validerLesChoix(decisionsFictives({ P1: { choix: 'oui', note: 'a' }, P2: { choix: '', note: '' } }, { T1: { choix: 'non', note: '' }, T10: { choix: 'avant', note: '' } }), connues);

@@ -338,6 +338,18 @@
   }
   function premierePhrase(t) { var m = String(t).match(/^[\s\S]*?[.!?](?=\s|$)/); return m ? m[0] : t; }
   var ETATS = { 'à faire': ['decidee', 'décidée, à faire'], 'proposé': ['propose', 'proposée par une recherche'], 'ouvert': ['ouvert', 'question ouverte'] };
+  // Une piste dont le plan a au moins une case cochée est en cours : son avancement remplace la décision, qui est prise.
+  function enCours(x) { return !!x.avancement && x.avancement.faites > 0; }
+  function etatDAvancement(x) {
+    var a = x.avancement, fini = a.faites === a.total;
+    return [fini ? 'livre' : 'partiel', (fini ? 'Livrée' : 'En cours') + ' · ' + a.faites + '/' + a.total + ' étapes'];
+  }
+  function lienGitHub(chemin) { return 'https://github.com/Vassili-g/UCM-Toolkit/blob/main/' + chemin.split('/').map(encodeURIComponent).join('/'); }
+  // Le statut est un lien vers le plan, qui porte les cases.
+  function labelDAvancement(x) {
+    var e = etatDAvancement(x), nom = x.plan.split('/').pop(), url = lienGitHub(x.plan);
+    return '<div class="options"><a class="etat ' + e[0] + '" href="' + url + '" target="_blank" rel="noopener" title="' + esc(nom) + '" aria-label="' + esc(e[1] + ' : ouvrir ' + nom + ' sur GitHub, nouvel onglet') + '">' + e[1] + '</a></div>';
+  }
 
   // Le graphe : prérequis, profondeur (nombre d'étapes de prérequis), descendantes et chemin critique, calculés depuis PISTES.
   var PAR_ID = {}, PROFONDEUR = {}, DIRECTS = {}, ASCENDANTES = {}, DESCENDANTES = {};
@@ -393,7 +405,7 @@
       decisions[cle] = { choix: typeof local[cle].choix === 'string' ? local[cle].choix : d.choix, note: typeof local[cle].note === 'string' ? local[cle].note : d.note };
     });
   } catch (e) { decisions = duDepot(); }
-  function choixDe(cle) { return (decisions[cle] || {}).choix || ''; }
+  function choixDe(cle) { return PAR_ID[cle] && enCours(PAR_ID[cle]) ? 'oui' : (decisions[cle] || {}).choix || ''; }
   function listeDe(ids, mot) { return ids.length < 2 ? ids.join('') : ids.slice(0, -1).join(', ') + ' et ' + ids[ids.length - 1]; }
   // Ce qui contredit une décision : un prérequis écarté, ou une décision attendue sur un prérequis.
   function incoherencesDe(id) {
@@ -415,10 +427,10 @@
     return lignes;
   }
   function bilan() {
-    var oui = 0, non = 0, t = 0;
-    PISTES.forEach(function (x) { var c = choixDe(x.id); if (c === 'oui') oui++; else if (c === 'non') non++; });
+    var e = 0, oui = 0, non = 0, t = 0;
+    PISTES.forEach(function (x) { var c = choixDe(x.id); if (enCours(x)) e++; else if (c === 'oui') oui++; else if (c === 'non') non++; });
     TRANSVERSES.forEach(function (x) { if (choixDe(x.id)) t++; });
-    document.getElementById('bilan-decisions').textContent = oui + ' on fait · ' + non + ' on ne fait pas · ' + (PISTES.length - oui - non) + ' à décider · ' + t + ' questions ouvertes tranchées sur ' + TRANSVERSES.length;
+    document.getElementById('bilan-decisions').textContent = e + ' en cours · ' + oui + ' on fait · ' + non + ' on ne fait pas · ' + (PISTES.length - e - oui - non) + ' à décider · ' + t + ' questions ouvertes tranchées sur ' + TRANSVERSES.length;
   }
   function marquerLaPiste(d, id) {
     var c = choixDe(id), i = incoherencesDe(id);
@@ -570,7 +582,7 @@
   function labelDuSujet(x) {
     var c = SUJETS[x.sujet], style = ' style="color:' + c.texte + ';background:' + c.fond + '"';
     if (!x.recherche) return '<span class="sujet"' + style + '>' + esc(x.sujet) + '</span>';
-    var url = 'https://github.com/Vassili-g/UCM-Toolkit/blob/main/' + x.recherche.split('/').map(encodeURIComponent).join('/');
+    var url = lienGitHub(x.recherche);
     var nom = x.recherche.split('/').pop();
     return '<a class="sujet" href="' + url + '" target="_blank" rel="noopener" title="' + esc(nom) + '" aria-label="' + esc(x.sujet + ' : ouvrir ' + nom + ' sur GitHub, nouvel onglet') + '"' + style + '>' + esc(x.sujet) +
       ' <svg viewBox="0 0 12 12" width="10" height="10" aria-hidden="true" focusable="false"><path d="M4 2h6v6M10 2 3 9" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></a>';
@@ -592,7 +604,7 @@
         return '<tr><td>' + esc(pt.action) + '</td><td><code>' + esc(pt.chemin) + '</code></td><td>' + txt(pt.quoi) + '</td></tr>';
       }).join('') + '</table></div>';
       var liste = function (a, cls) { return a.length ? '<ul' + (cls ? ' class="' + cls + '"' : '') + '>' + a.map(function (t) { return '<li>' + txt(t) + '</li>'; }).join('') + '</ul>' : '<p class="doux">Aucune.</p>'; };
-      var imp = IMPORTANCES[x.importance], etat = ETATS[x.etat] || ETATS['ouvert'], prof = PROFONDEUR[x.id];
+      var imp = IMPORTANCES[x.importance], etat = enCours(x) ? etatDAvancement(x) : ETATS[x.etat] || ETATS['ouvert'], prof = PROFONDEUR[x.id];
       var meta = '<span class="imp">importance <span aria-hidden="true">' + imp[0] + '</span> ' + imp[1] + '</span> · complexité ' + TAILLES[x.complexite] + ' (' + x.complexite + ') · ' +
         (prof === 0 ? 'sans prérequis' : prof + (prof === 1 ? ' étape' : ' étapes') + ' de prérequis') + ' · ' + PROMESSES[x.promesse] + ' · ' + (PORTEURS[x.porteur] || esc(x.porteur)) + ' · <span class="etat ' + etat[0] + '">' + etat[1] + '</span>';
       var directs = DIRECTS[x.id], total = Object.keys(DESCENDANTES[x.id]).length;
@@ -605,7 +617,7 @@
               '<small class="cout"><b>Coût</b> ' + x.complexite + ' · ' + texteDeLigne(x.coutHumain) + '</small>' +
               '<span class="coherence"></span></span>' +
           '</button></div>' +
-          '<div class="choix-ligne">' + boutonsDe(x.id, 'piste', OPTIONS) + champNote(x.id, 'Note sur ' + x.id) + '</div>' +
+          '<div class="choix-ligne">' + (enCours(x) ? labelDAvancement(x) : boutonsDe(x.id, 'piste', OPTIONS)) + champNote(x.id, 'Note sur ' + x.id) + '</div>' +
         '</div>' +
         '<div class="fiche-piste" id="fiche-' + x.id + '" hidden>' +
           '<p class="meta">' + meta + '</p>' +

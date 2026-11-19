@@ -260,6 +260,8 @@ h3 + .defini { margin-top: -4px; }
 /* La colonne des décisions porte les trois choix sur une ligne (3 cibles de 28 px, 6 px entre elles) et la note dessous. */
 .choix-ligne { display: grid; gap: 6px; min-width: 300px; }
 .choix-ligne .options { display: flex; flex-wrap: wrap; gap: 6px; }
+.choix-ligne a.etat { min-height: 28px; box-sizing: border-box; padding: 0 10px 0 8px; text-decoration: none; }
+.choix-ligne a.etat:hover { text-decoration: underline; }
 .choix-ligne label.option { display: inline-flex; align-items: center; gap: 6px; box-sizing: border-box; min-height: 28px; padding: 0 10px; border: 1px solid var(--trait); border-radius: 6px; background: var(--surface); font-size: .8rem; cursor: pointer; white-space: nowrap; }
 .choix-ligne label.option:has(input:checked) { border-color: var(--texte); font-weight: 600; }
 .choix-ligne textarea.note { display: block; box-sizing: border-box; width: 100%; min-height: 28px; resize: none; overflow: hidden; field-sizing: content; font: inherit; font-size: .82rem; line-height: 1.35; background: var(--surface); color: var(--texte); border: 1px solid var(--trait); border-radius: 6px; padding: 4px 8px; }

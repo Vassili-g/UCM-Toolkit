@@ -675,6 +675,10 @@ export interface Piste {
   titreCourt: string;
   sujet: string;
   recherche?: string;
+  /** Le plan d'implémentation de la piste : ses cases cochées font son avancement. */
+  plan?: string;
+  /** Calculé depuis `plan` : les cases cochées et le total. */
+  avancement?: { faites: number; total: number };
   dependances: string[];
   rang: number;
   points: { chemin: string; action: string; quoi: string }[];
@@ -723,6 +727,15 @@ function cheminDuDepot(chemin: string): boolean {
   return /^[\w.@ -]+(\/[\w.@ -]+)*(\.[a-z]+|\/)$/i.test(chemin);
 }
 
+/** Les cases d'un plan, une par étape : `- [x]` est faite, `- [ ]` reste à faire. Un plan sans case est refusé. */
+function avancementDuPlan(piste: Piste): { faites: number; total: number } {
+  const chemin = path.join(RACINE, piste.plan!);
+  if (!existsSync(chemin)) AVEC_ECHEC(CHEMIN_DES_PISTES, `piste ${piste.id}, champ plan`, `${piste.plan} n'existe pas dans le dépôt`);
+  const cases = readFileSync(chemin, 'utf8').split(/\r?\n/).flatMap((ligne) => /^\s*- \[([ x])\]/.exec(ligne)?.[1] ?? []);
+  if (cases.length === 0) AVEC_ECHEC(CHEMIN_DES_PISTES, `piste ${piste.id}, champ plan`, `${piste.plan} n'a aucune case à cocher`);
+  return { faites: cases.filter((etat) => etat === 'x').length, total: cases.length };
+}
+
 /** Les pistes de la feuille de route, validées : identifiants uniques, dépendances connues, chemins existants, aucun cycle. */
 export function pistes(): Piste[] {
   const contenu = json(CHEMIN_DES_PISTES) as { version: number; pistes: Piste[] };
@@ -736,6 +749,7 @@ export function pistes(): Piste[] {
     if (typeof piste.sujet !== 'string' || piste.sujet === '') AVEC_ECHEC(CHEMIN_DES_PISTES, `piste ${piste.id}, champ sujet`, 'obligatoire');
     if (!(piste.sujet in SUJETS)) AVEC_ECHEC(CHEMIN_DES_PISTES, `piste ${piste.id}, champ sujet`, `« ${piste.sujet} » n'est pas dans SUJETS de releves.ts`);
     if (piste.recherche !== undefined && !existsSync(path.join(RACINE, piste.recherche))) AVEC_ECHEC(CHEMIN_DES_PISTES, `piste ${piste.id}, champ recherche`, `${piste.recherche} n'existe pas dans le dépôt`);
+    if (piste.plan !== undefined) piste.avancement = avancementDuPlan(piste);
   }
   const crees = new Set(contenu.pistes.flatMap((piste) => piste.points.filter((point) => point.action === 'créer').map((point) => point.chemin)));
   for (const piste of contenu.pistes) {

@@ -32,6 +32,7 @@
       "ROADMAP.md",
       "docs/notes/Recherches/README.md",
       "docs/notes/Recherches/Evolutions globales/pistes.json",
+      "docs/notes/Recherches/**/PLAN-*.md",
       "docs/notes/Recherches/Evolutions globales/decisions.json"
     ]
   }
