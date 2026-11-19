@@ -15,7 +15,7 @@
   },
   "extracteur": {
     "fichier": "docs/references/design-systems/_outils/ucm.mjs",
-    "sha256": "1bc6ed04d9e760c04f40ffc819643f419f7f4cd061efd91bdae11f57c5e67edc"
+    "sha256": "56b4d04b6796b05f17672957cddc24e34950c071d29beab310408b54140d7c71"
   },
   "kit": {
     "version": "0.17.1",
