@@ -14,6 +14,7 @@ export * from './normalisation.js';
 export { ecritureDuVariant, segmentDeToken } from './ecriture-des-mots.js';
 export type { EcritureDeVariant, RoleDeValeur } from './ecriture-des-mots.js';
 export * from './theme.js';
+export * from './reference.js';
 export * from './contraste.js';
 export * from './produits.js';
 export * from './regles.js';

@@ -1078,7 +1078,7 @@ a.sujet:focus-visible { outline: 2px solid var(--texte); outline-offset: 2px; }
           <ul><li>La propriété <code>size</code> de Figma n'existe pas dans le code : le composant ne peut pas la recevoir.</li></ul>
           <p class="pr-mini">Action</p>
           <p>Un développeur doit mettre à jour l'API ou le rendu du composant pour suivre le contrat.</p>
-          <p>Cet écart n'empêche pas la fusion.</p>
+          <p>Votre design n'est pas en cause et réexporter depuis Figma n'y changerait rien.</p>
         </div>
         <div class="pr-fusion"><span class="bouton-fusion">Fusionner</span></div></div></figure>
     <figure class="rapport"><figcaption>Après <a href="#piste-P17">P17</a> et <a href="#piste-P19">P19</a> (forme visée)</figcaption>
@@ -1316,21 +1316,21 @@ a.sujet:focus-visible { outline: 2px solid var(--texte); outline-offset: 2px; }
     <h4>Jobs des workflows</h4>
     <div class="defile"><table><tr><th>Job</th><th>Déclencheur</th><th>Ce qu'il lance</th></tr><tr><td><code>ci.yml</code>, job <code>test</code></td><td>push sur main, pull request</td><td><code>npm test</code>, <code>npm run build</code></td></tr><tr><td><code>ci.yml</code>, job <code>cascade</code></td><td>push sur main, pull request</td><td><code>npm run cascade</code>, <code>npm run test:ui --workspace ucm-exporter-plugin</code>, <code>npm run test:ui --workspace ucm-palettes-plugin</code>, <code>npm run test:ui --workspace ucm-architect-plugin</code></td></tr><tr><td><code>publish.yml</code>, job <code>publish</code></td><td>lancement à la main</td><td><code>npm test</code>, <code>npm publish --workspace "$PAQUET"</code>, <code>node scripts/pins-servis.mjs</code></td></tr></table></div>
   </div></details>
-  <details class="pli" id="annexe-entrees"><summary>Les 9 points d'entrée du kit <span class="doux">437 noms uniques, la CLI et l'adaptateur en importent 40</span></summary><div class="contenu">
+  <details class="pli" id="annexe-entrees"><summary>Les 9 points d'entrée du kit <span class="doux">441 noms uniques, la CLI et l'adaptateur en importent 40</span></summary><div class="contenu">
     <p>Les chemins d'import de <code>@ucm-kit/core</code>, lus dans <code>packages/kit/package.json</code>, avec le nombre de noms que chacun exporte. Ils disent ce qu'un outil peut importer du kit, et ce que la piste <a href="#piste-P3">P3</a> doit figer.</p>
     <div class="defile"><table>
       <tr><th>Point d'entrée</th><th class="n">Exports</th><th>Contenu</th></tr>
       <tr><td><code>./modules</code></td><td class="n">7</td><td>La seule porte promise aux modules des développeurs : lire la configuration, les contrats et les tokens comme <code>ucm check</code>. Ses règles sont dans <code>packages/kit/invariants/versionnage.md</code>.</td></tr>
       <tr><td><code>./format</code></td><td class="n">46</td><td>Types du contrat, versions, noms de code et de variable CSS, grammaire de <code>ucm.config.json</code></td></tr>
       <tr><td><code>./emplois</code></td><td class="n">41</td><td>Table du thème, 9 garanties, contraste WCAG, sans dépendance</td></tr>
-      <tr><td><code>./referentiel</code></td><td class="n">207</td><td>Toutes les définitions UCM (partie 4)</td></tr>
+      <tr><td><code>./referentiel</code></td><td class="n">210</td><td>Toutes les définitions UCM (partie 4)</td></tr>
       <tr><td><code>./controles</code></td><td class="n">55</td><td>Contrôles, corrections, préparation des tokens</td></tr>
       <tr><td><code>./protocoles</code></td><td class="n">46</td><td>Données échangées entre plugins : recette, nommage, architecture</td></tr>
       <tr><td><code>./nommage</code></td><td class="n">19</td><td>Calcul des noms selon les règles du fichier</td></tr>
-      <tr><td><code>./lecteurs</code></td><td class="n">68</td><td>Validation de contrat, tokens, parité, rapport, verdict, en <code>.mjs</code> avec Node</td></tr>
-      <tr><td><code>./lecteurs/navigateur</code></td><td class="n">51</td><td>Les mêmes lecteurs sans Node</td></tr>
+      <tr><td><code>./lecteurs</code></td><td class="n">69</td><td>Validation de contrat, tokens, parité, rapport, verdict, en <code>.mjs</code> avec Node</td></tr>
+      <tr><td><code>./lecteurs/navigateur</code></td><td class="n">52</td><td>Les mêmes lecteurs sans Node</td></tr>
     </table></div>
-    <p>Les deux points d'entrée des lecteurs partagent la plupart de leurs noms, d'où 540 exports pour 437 noms uniques. Une définition UCM se modifie dans <code>src/referentiel/</code> seulement, et un test refuse sa copie ailleurs. <code>emplois</code> n'a aucune dépendance. Le kit n'importe rien du moteur de couleur. Chaque modification du référentiel change la version du kit.</p>
+    <p>Les deux points d'entrée des lecteurs partagent la plupart de leurs noms, d'où 545 exports pour 441 noms uniques. Une définition UCM se modifie dans <code>src/referentiel/</code> seulement, et un test refuse sa copie ailleurs. <code>emplois</code> n'a aucune dépendance. Le kit n'importe rien du moteur de couleur. Chaque modification du référentiel change la version du kit.</p>
   </div></details>
 
   <details class="pli" id="annexe-tests"><summary>Fichiers de test des paquets <span class="doux">nombre de fichiers par paquet</span></summary><div class="contenu">
@@ -1343,7 +1343,7 @@ a.sujet:focus-visible { outline: 2px solid var(--texte); outline-offset: 2px; }
       <tr><td>Socle</td><td class="n">36</td></tr>
       <tr><td>CLI</td><td class="n">10</td></tr>
       <tr><td>Adaptateur TypeScript</td><td class="n">3</td></tr>
-      <tr><td>Kit</td><td class="n">121</td></tr>
+      <tr><td>Kit</td><td class="n">122</td></tr>
       <tr><td>Moteur de couleur</td><td class="n">34</td></tr>
       <tr><td>Hub UCM</td><td class="n">1</td></tr>
     </table></div>
