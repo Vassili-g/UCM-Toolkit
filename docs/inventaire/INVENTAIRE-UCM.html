@@ -457,17 +457,17 @@ a.sujet:focus-visible { outline: 2px solid var(--texte); outline-offset: 2px; }
 <!-- 1. Le concept UCM : le problème général, la réponse, les deux promesses, le flux, les principes, ce qui manque. -->
 <section class="partie" id="concept">
   <h1>Ce que contient UCM Toolkit</h1>
-  <p class="versions doux">Versions publiées : kit 0.17.0, CLI 0.1.152, adaptateur 0.2.10, <a class="terme" href="#g-contrat14" title="Le numéro du format du contrat. ucm check accepte les contrats 13.0 et 14.0.">contrat 14.0</a>.</p>
+  <p class="versions doux">Versions publiées : kit 0.17.1, CLI 0.2.0, adaptateur 0.2.11, <a class="terme" href="#g-contrat14" title="Le numéro du format du contrat. ucm check accepte les contrats 13.0 et 14.0.">contrat 14.0</a>.</p>
   <h2><span class="num">1</span>Le concept UCM</h2>
   <p class="defini">Défini dans <code>CONCEPT.md</code> et <code>ROADMAP.md</code>.</p>
   <p class="chapeau">Dans un design system, un composant existe à plusieurs endroits : la maquette Figma, le code, les <a class="terme" href="#g-token" title="Une variable Figma publiée sous son chemin, comme theme/primary/solid/default.">tokens</a> et la documentation. Ces versions divergent quand aucun outil ne les compare. Une variante dessinée manque au code, un token cité a disparu, et l'équipe ne sait plus quelle version fait foi.</p>
-  <p class="intro">UCM publie pour chaque composant Figma un <a class="terme" href="#g-contrat" title="Le fichier &lt;Id&gt;.contract.json que l'Exporter écrit pour un composant Figma, avec ses props, ses variants et le token de chaque couleur et dimension.">contrat</a> JSON, rangé à côté de son code dans le <a class="terme" href="#g-depot" title="Dans cette page, le dépôt désigne UCM-Toolkit et le repository désigne celui de l'application.">repository</a> de l'application. Le contrat cite chaque couleur et chaque dimension par le nom de son token, et <code>tokens.json</code> donne la valeur de chaque token. À chaque demande de fusion, le <a class="terme" href="#g-ci" title="Les contrôles qui tournent à chaque demande de fusion, sur GitHub Actions ou GitLab CI. Ici, ucm check.">CI</a> compare le contrat, les tokens et le code.</p>
+  <p class="intro">UCM publie pour chaque composant Figma un <a class="terme" href="#g-contrat" title="Le fichier &lt;Id&gt;.contract.json que l'Exporter écrit pour un composant Figma, avec ses props, ses variants et le token de chaque couleur et dimension.">contrat</a> JSON, rangé à côté de son code dans le <a class="terme" href="#g-depot" title="Dans cette page, le dépôt désigne UCM-Toolkit et le repository désigne celui de l'application.">repository</a> de l'application. Le contrat cite chaque couleur et chaque dimension par le nom de son token, et <code>tokens.json</code> donne la valeur de chaque token. À chaque pull request, le <a class="terme" href="#g-ci" title="Les contrôles qui tournent à chaque pull request, sur GitHub Actions ou GitLab CI. Ici, ucm check.">CI</a> compare le contrat, les tokens et le code.</p>
 
   <ol class="flux" aria-label="Le flux d'un composant, de Figma au CI">
     <li><b>Figma</b><span>Le designer dessine le composant et prépare ses variables avec les plugins UCM.</span></li>
-    <li><b>Contrat et tokens</b><span>Un plugin publie <code>&lt;Id&gt;.contract.json</code> et <code>tokens.json</code> par <a class="terme" href="#g-pr" title="Le nom GitHub et le nom GitLab d'une demande de fusion d'une branche dans main.">pull request</a>.</span></li>
+    <li><b>Contrat et tokens</b><span>Un plugin publie <code>&lt;Id&gt;.contract.json</code> et <code>tokens.json</code> par <a class="terme" href="#g-pr" title="Le nom GitHub et le nom GitLab de la proposition d'intégrer une branche dans main.">pull request</a>.</span></li>
     <li><b>Repository</b><span>Le contrat est rangé à côté du code du composant.</span></li>
-    <li><b>CI</b><span><code>ucm check</code> compare le contrat, les tokens et le code à chaque demande de fusion.</span></li>
+    <li><b>CI</b><span><code>ucm check</code> compare le contrat, les tokens et le code à chaque pull request.</span></li>
   </ol>
 
   <h3>Les deux promesses</h3>
@@ -489,7 +489,7 @@ a.sujet:focus-visible { outline: 2px solid var(--texte); outline-offset: 2px; }
   <ul class="liste manques">
     <li>Aucun outil ne compare le rendu d'un composant à son contrat ou à Figma (<a href="#piste-P9">P9</a>, <a href="#piste-P10">P10</a>, <a href="#piste-P20">P20</a>).</li>
     <li>Un écart entre le code et le contrat avertit sans bloquer la fusion (<a href="#piste-P19">P19</a>).</li>
-    <li>Une demande rouge reste fusionnable, car le plan GitHub actuel n'offre pas la <a class="terme" href="#g-protection" title="Le réglage de la forge qui interdit de fusionner une demande dont le CI est rouge. Sans lui, un échec reste un avis.">protection de branche</a> (<a href="#piste-P17">P17</a>).</li>
+    <li>Une pull request rouge reste fusionnable, car le plan GitHub actuel n'offre pas la <a class="terme" href="#g-protection" title="Le réglage de la forge qui interdit de fusionner une pull request dont le CI est rouge. Sans lui, un échec reste un avis.">protection de branche</a> (<a href="#piste-P17">P17</a>).</li>
     <li>Aucun contrat réel n'est encore au format 14.0. Les 4 <a class="terme" href="#g-recette-contrats" title="Les 4 contrats réels Button, Alert, TileLink et StressTest, exportés depuis Figma, que les tests du dépôt font lire par les lecteurs.">contrats de recette</a> sont en 13.0 (<a href="#piste-P1">P1</a>).</li>
   </ul>
 </section>
@@ -513,7 +513,7 @@ a.sujet:focus-visible { outline: 2px solid var(--texte); outline-offset: 2px; }
       <div class="defile"><table>
         <tr><th>Onglet</th><th>Le designer</th><th>Écrit</th></tr>
         <tr><td>Création</td><td>Nomme la palette, choisit la référence, 11 ou 13 nuances, une intensité ou Soft et Vivid, règle « Réglage global » et « Color shift »</td><td>recette</td></tr>
-        <tr><td>Vérification</td><td>Lit le <a class="terme" href="#g-verdict" title="Le mot a trois sens. Dans Palettes, le verdict dit si la palette tient les 9 garanties. Dans l'Exporter, le « Contrôle avant publication » prend sa place. Dans ucm check, le verdict dit si la demande peut fusionner.">verdict</a> et les 9 garanties sur 6 fonds</td><td>rien</td></tr>
+        <tr><td>Vérification</td><td>Lit le <a class="terme" href="#g-verdict" title="Le mot a trois sens. Dans Palettes, le verdict dit si la palette tient les 9 garanties. Dans l'Exporter, le « Contrôle avant publication » prend sa place. Dans ucm check, le verdict dit si la pull request peut fusionner.">verdict</a> et les 9 garanties sur 6 fonds</td><td>rien</td></tr>
         <tr><td>Comparaison</td><td>Repère les palettes trop proches, compare en gris, lit la roue des teintes, simule trois visions</td><td>recette</td></tr>
         <tr><td>Gestion</td><td>Relie la recette au fichier, reprend les palettes présentes ou de bibliothèque, synchronise</td><td>variables, planches</td></tr>
         <tr><td>Configuration (panneau)</td><td>Règle les fonds de page, le texte des boutons, les courbes, les seuils, la langue</td><td>recette</td></tr>
@@ -550,7 +550,7 @@ a.sujet:focus-visible { outline: 2px solid var(--texte); outline-offset: 2px; }
     <p class="role">Publie le contrat d'un composant et <code>tokens.json</code> dans le repository de l'application.</p>
     <dl class="faits">
       <dt>Lit</dt><dd>Le composant sélectionné. Sans sélection, les variables.</dd>
-      <dt>Écrit</dt><dd><code>&lt;Id&gt;.contract.json</code> ou <code>tokens.json</code>, sur une branche avec une demande de fusion par fichier, ou en téléchargement. Dans Figma, l'instance <code>.componentRules</code> seulement.</dd>
+      <dt>Écrit</dt><dd><code>&lt;Id&gt;.contract.json</code> ou <code>tokens.json</code>, sur une branche avec une pull request par fichier, ou en téléchargement. Dans Figma, l'instance <code>.componentRules</code> seulement.</dd>
       <dt>Réseau</dt><dd><code>api.github.com</code> et <code>gitlab.com</code> seulement</dd>
     </dl>
     <details><summary>Fonctions</summary>
@@ -564,7 +564,7 @@ a.sujet:focus-visible { outline: 2px solid var(--texte); outline-offset: 2px; }
 
   <div class="fiche" id="outil-cli">
     <div class="tete"><span class="logo" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><mask id="m-outil-cli-decoupe"><rect width="100" height="100" rx="22.5" fill="#fff"/></mask></defs><g mask="url(#m-outil-cli-decoupe)"><rect width="100" height="100" fill="#1a1030"/><path d="M-246.73 9L348.8 82.12L350.63 67.24L-244.9 -5.89Z" fill="#ff6f5e"/><path d="M237.33 -180.48L-123.76 298.71L-111.78 307.73L249.31 -171.45Z" fill="#3fc4e0"/><path d="M159.4 333.47L-75.04 -218.83L-88.85 -212.97L145.59 339.33Z" fill="#c04ad8"/><path d="M65.65 47.36L82.84 49.47L93.26 35.64L76.07 33.52Z" fill="#ffd0b8"/><path d="M19.23 41.66L36.42 43.77L29.66 27.83L12.46 25.71Z" fill="#ff7ab8"/><path d="M47.93 70.87L37.5 84.71L44.27 100.65L54.7 86.82Z" fill="#a8b4ff"/></g></svg><span class="logo-signe"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" width="12" height="12" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="4" cy="3.5" r="1.6"/><circle cx="4" cy="12.5" r="1.6"/><circle cx="12" cy="12.5" r="1.6"/><path d="M4 5.1v5.8M4 6.5c0 3.5 8 2 8 4.4"/></svg></span></span><div class="nom"><b>CLI</b><span class="etat livre">livré</span><span class="canal">Paquet npm <span class="mono">@ucm-kit/cli</span></span></div></div>
-    <p class="role">Contrôle les contrats à chaque demande de fusion. Ne demande pas de <code>package.json</code>.</p>
+    <p class="role">Contrôle les contrats à chaque pull request. Ne demande pas de <code>package.json</code>.</p>
     <dl class="faits">
       <dt>Lit</dt><dd>Les contrats, <code>tokens.json</code>, le code par l'adaptateur</dd>
       <dt>Écrit</dt><dd>La configuration du repository, le rapport, la feuille CSS, le guide d'un contrat</dd>
@@ -608,7 +608,7 @@ a.sujet:focus-visible { outline: 2px solid var(--texte); outline-offset: 2px; }
   <h3>Les paquets sans carte</h3>
   <div class="defile"><table>
     <tr><th>Paquet</th><th>Rôle</th><th>Distribution</th></tr>
-    <tr><td><b>Kit</b></td><td>Format, référentiel, contrôles, <a class="terme" href="#g-lecteur" title="Une fonction du kit qui lit un contrat ou tokens.json et rend un bilan. La CLI s'en sert dans le CI.">lecteurs</a>. Tous les outils en dépendent. Neuf <a class="terme" href="#g-entree" title="Un chemin d'import du kit, comme @ucm-kit/core/lecteurs.">points d'entrée</a>, listés en annexe.</td><td>npm 0.17.0</td></tr>
+    <tr><td><b>Kit</b></td><td>Format, référentiel, contrôles, <a class="terme" href="#g-lecteur" title="Une fonction du kit qui lit un contrat ou tokens.json et rend un bilan. La CLI s'en sert dans le CI.">lecteurs</a>. Tous les outils en dépendent. Neuf <a class="terme" href="#g-entree" title="Un chemin d'import du kit, comme @ucm-kit/core/lecteurs.">points d'entrée</a>, listés en annexe.</td><td>npm 0.17.1</td></tr>
     <tr><td><b>Socle</b></td><td>Code partagé des plugins : build, langage visuel, galerie, moteur d'extraction</td><td>privé, en source</td></tr>
     <tr><td><b>Moteur de couleur</b></td><td>Rampes, contrastes, garanties, harmonisation. Sans Figma ni DOM. Lu par Palettes, Architect, Hub.</td><td>privé</td></tr>
     <tr><td><b>Hub UCM</b></td><td>Page locale des sorties du kit et du moteur, <span class="etat partiel">partiel</span>. Storybook la remplacera (<a href="#piste-P9">P9</a>).</td><td>privé</td></tr>
@@ -675,8 +675,8 @@ a.sujet:focus-visible { outline: 2px solid var(--texte); outline-offset: 2px; }
   <div class="etape-carte" id="etape-5" role="tabpanel" aria-labelledby="onglet-etape-5" hidden>
     <h4><span class="n">5</span>Publication</h4>
     <dl class="faits">
-      <dt>Qui</dt><dd>Le designer, avec <a href="#outil-exporter">UCM Contract Exporter</a>, vers la <a class="terme" href="#g-forge" title="Le service qui héberge le repository et ses demandes de fusion, GitHub ou GitLab.">forge</a></dd>
-      <dt>Ce qui se passe</dt><dd>L'Exporter publie <code>tokens.json</code> d'abord, puis le contrat du composant. Chaque fichier part sur sa branche, avec sa demande de fusion, sur GitHub ou gitlab.com. L'Exporter ne fusionne jamais seul.</dd>
+      <dt>Qui</dt><dd>Le designer, avec <a href="#outil-exporter">UCM Contract Exporter</a>, vers la <a class="terme" href="#g-forge" title="Le service qui héberge le repository et ses pull requests, GitHub ou GitLab.">forge</a></dd>
+      <dt>Ce qui se passe</dt><dd>L'Exporter publie <code>tokens.json</code> d'abord, puis le contrat du composant. Chaque fichier part sur sa branche, avec sa pull request, sur GitHub ou gitlab.com. L'Exporter ne fusionne jamais seul.</dd>
       <dt>Ce qui en sort</dt><dd><code>tokens.json</code> au format DTCG et <code>&lt;Id&gt;.contract.json</code> en contrat 14.0, dans le repository de l'application.</dd>
     </dl>
   </div>
@@ -684,7 +684,7 @@ a.sujet:focus-visible { outline: 2px solid var(--texte); outline-offset: 2px; }
     <h4><span class="n">6</span>Contrôle</h4>
     <dl class="faits">
       <dt>Qui</dt><dd>Le CI de la forge, avec <code>ucm check</code> de la <a href="#outil-cli">CLI</a></dd>
-      <dt>Ce qui se passe</dt><dd>À chaque demande de fusion, <code>ucm check</code> lit le contrat, <code>tokens.json</code> et le code. Un contrat illisible bloque la fusion. Un token absent ou un écart du code avertit.</dd>
+      <dt>Ce qui se passe</dt><dd>À chaque pull request, <code>ucm check</code> lit le contrat, <code>tokens.json</code> et le code. Un contrat illisible bloque la fusion. Un token absent ou un écart du code avertit.</dd>
       <dt>Ce qui en sort</dt><dd>Un rapport en commentaire de la demande, montré dans la <a href="#controles">partie 6</a>.</dd>
     </dl>
   </div>
@@ -1035,20 +1035,20 @@ a.sujet:focus-visible { outline: 2px solid var(--texte); outline-offset: 2px; }
       <tr><td>Contrat</td><td class="n">14.0</td><td>13.0 et 14.0. Hors fenêtre, le designer réexporte ou le mainteneur met à jour les paquets.</td></tr>
       <tr><td>Schéma JSON</td><td class="n">suit le contrat</td><td>Dérivé de <code>types.ts</code>. Il décrit la forme, jamais la cohérence.</td></tr>
       <tr><td>tokens.json</td><td class="n">2</td><td>1 et 2. DTCG module 2025.10, lu par Style Dictionary 5. Style Dictionary 4 écrit <code>[object Object]</code> sans échouer.</td></tr>
-      <tr><td>@ucm-kit/core</td><td class="n">0.17.0</td><td>0.x : aucune compatibilité promise.</td></tr>
-      <tr><td>@ucm-kit/cli</td><td class="n">0.1.152</td><td><a class="terme" href="#g-epingler" title="Écrire une version exacte, sans ^, pour que npm n'en installe jamais une autre.">Épingle</a> le kit 0.17.0. Le repository l'installe en version exacte, sans <code>^</code>.</td></tr>
-      <tr><td>@ucm-kit/adapter-typescript</td><td class="n">0.2.10</td><td>Épingle le kit 0.17.0.</td></tr>
+      <tr><td>@ucm-kit/core</td><td class="n">0.17.1</td><td>0.x : aucune compatibilité promise.</td></tr>
+      <tr><td>@ucm-kit/cli</td><td class="n">0.2.0</td><td><a class="terme" href="#g-epingler" title="Écrire une version exacte, sans ^, pour que npm n'en installe jamais une autre.">Épingle</a> le kit 0.17.1. Le repository l'installe en version exacte, sans <code>^</code>.</td></tr>
+      <tr><td>@ucm-kit/adapter-typescript</td><td class="n">0.2.11</td><td>Épingle le kit 0.17.1.</td></tr>
       <tr><td>Recette Palettes</td><td class="n">12</td><td>Lit 8 à 12, en migrant une étape par format.</td></tr>
     </table></div>
     <p class="doux">Contrat 12.0 : rotation, défaut posé par le designer. 13.0 : <code>textTransform</code>. 14.0 : effets, opacité, position dans un conteneur sans auto layout. <code>COMPATIBILITE.md</code> range les changements en 12 classes, et une mineure n'est jamais présumée compatible.</p>
   </div></details>
 </section>
 
-<!-- 6. Ce qui est vérifié, et où : dans Figma avec Architect, puis à la demande de fusion avec ucm check. Rapport : rapportDuButton (releves.ts) ; règles décidées : decisions.json, genre tableau. -->
+<!-- 6. Ce qui est vérifié, et où : dans Figma avec Architect, puis dans la pull request avec ucm check. Rapport : rapportDuButton (releves.ts) ; règles décidées : decisions.json, genre tableau. -->
 <section class="partie" id="controles">
   <h2><span class="num">6</span>Ce qui est vérifié, et où</h2>
   <p class="defini">Défini dans <code>packages/kit/src/controles/</code> et <code>packages/kit/src/lecteurs/</code>.</p>
-  <p class="intro">Un composant est vérifié à deux moments. Dans Figma, Architect l'analyse avant l'export. À chaque demande de fusion, <code>ucm check</code> lit le contrat, <code>tokens.json</code> et le code dans le CI du repository.</p>
+  <p class="intro">Un composant est vérifié à deux moments. Dans Figma, Architect l'analyse avant l'export. À chaque pull request, <code>ucm check</code> lit le contrat, <code>tokens.json</code> et le code dans le CI du repository.</p>
 
   <h3>Dans Figma, avec Architect</h3>
   <p class="defini">Défini dans <code>packages/kit/src/controles/codes.ts</code>.</p>
@@ -1069,11 +1069,11 @@ a.sujet:focus-visible { outline: 2px solid var(--texte); outline-offset: 2px; }
   </div></details>
 
   <!-- V3. Rapport d'ucm check. Phrases : rapportDuButton (releves.ts) : diagnostic-parite.mjs (sectionEcartsDeParite), controle-repository.mjs pour « Aucun blocage détecté », verdict-bilan.mjs pour « Les contrôles du repository bloquent la fusion ». -->
-  <h3>À la demande de fusion, avec <code>ucm check</code></h3>
+  <h3>Dans la pull request, avec <code>ucm check</code></h3>
   <p class="defini">Défini dans <code>packages/kit/src/lecteurs/diagnostic-parite.mjs</code> et <code>packages/kit/src/lecteurs/verdict-bilan.mjs</code>.</p>
-  <p class="intro"><code>ucm check</code> écrit son rapport en commentaire de la demande. Dans l'exemple, une demande modifie <code>Button.tsx</code>, qui n'a pas de prop <code>size</code>.</p>
+  <p class="intro">Une pull request (merge request sur GitLab) propose d'intégrer une branche dans <code>main</code>. L'Exporter en ouvre une pour chaque contrat ou <code>tokens.json</code> exporté depuis Figma, et un développeur en ouvre une quand il modifie le code. À chaque envoi sur la branche, le CI lance <code>ucm check</code>, qui écrit son rapport en commentaire de la pull request et fait échouer le job quand le rapport bloque. Dans l'exemple, une pull request modifie <code>Button.tsx</code>, qui n'a pas de prop <code>size</code>.</p>
   <div class="rapports">
-    <figure class="rapport"><figcaption>Aujourd'hui (CLI 0.1.152)</figcaption>
+    <figure class="rapport"><figcaption>Aujourd'hui (CLI 0.2.0)</figcaption>
       <div class="pr"><div class="pr-tete">ucm check</div>
         <div class="pr-corps">
           <p class="pr-titre tenu">Aucun blocage détecté</p>
@@ -1114,7 +1114,7 @@ a.sujet:focus-visible { outline: 2px solid var(--texte); outline-offset: 2px; }
       <ul class="liste">
         <li>Le rendu dans un navigateur : couleur, dimensions, typographie, structure et ordre (<a href="#piste-P9">P9</a>, <a href="#piste-P10">P10</a>, <a href="#piste-P20">P20</a>).</li>
         <li>Une valeur écrite en dur dans le code (<a href="#piste-P6">P6</a>).</li>
-        <li>La fusion d'une demande rouge, que seule une protection de branche empêche (<a href="#piste-P17">P17</a>).</li></ul></div>
+        <li>La fusion d'une pull request rouge, que seule une protection de branche empêche (<a href="#piste-P17">P17</a>).</li></ul></div>
   </div>
   <p class="doux"><code>bilanEstBloquant</code> (<code>lecteurs/verdict-bilan.mjs</code>) ne compte ni les tokens absents ni la parité.</p>
 
@@ -1183,7 +1183,7 @@ a.sujet:focus-visible { outline: 2px solid var(--texte); outline-offset: 2px; }
   <dl class="def questions">
     <dt>Pourquoi un contrat JSON plutôt que l'API Figma ou Code Connect ?</dt><dd>Le CI lit le contrat sans accès à Figma, et le contrat est versionné à côté du code. Code Connect relie un composant Figma à son code sans décrire les obligations visuelles. Les deux se complètent.</dd>
     <dt>L'API du kit est-elle stable ?</dt><dd>Une seule porte est promise aux modules, <code>@ucm-kit/core/modules</code>. Un test refuse qu'elle change sans entrée au journal du kit, et le chiffre du milieu de la version monte à chaque rupture. Les autres portes servent les outils UCM et changent librement. Le guide <code>docs/guides/MODULES.md</code> le détaille.</dd>
-    <dt>Que se passe-t-il quand le designer change un token ?</dt><dd>Sa valeur change dans <code>tokens.json</code>, et la demande passe. Le code suit une fois la feuille régénérée par <code>ucm tokens css</code>. Un token cité par un contrat puis retiré avertit aujourd'hui, et bloquera une fois la règle de blocage codée (<a href="#piste-P19">P19</a>).</dd>
+    <dt>Que se passe-t-il quand le designer change un token ?</dt><dd>Sa valeur change dans <code>tokens.json</code>, et la pull request passe. Le code suit une fois la feuille régénérée par <code>ucm tokens css</code>. Un token cité par un contrat puis retiré avertit aujourd'hui, et bloquera une fois la règle de blocage codée (<a href="#piste-P19">P19</a>).</dd>
     <dt>Un contrat peut-il arriver avant le code ?</dt><dd>Oui. Il est fusionné « à implémenter », et la parité s'applique dès que le composant existe.</dd>
     <dt>Comment tester sans Figma ?</dt><dd><code>npm test</code> couvre le moteur, les lecteurs sur des contrats fabriqués et la CLI sur des repositories temporaires. Ce qui touche Figma et une vraie forge se rejoue dans UCM-Playground, l'application de recette sur GitHub. Un agent ne peut pas exporter depuis Figma.</dd>
     <dt>Peut-on modifier le kit ?</dt><dd>Le cœur a un seul mainteneur, et un changement du kit se décide avec lui. Les modules importeront seulement l'API que <a href="#piste-P3">P3</a> fige.</dd>
@@ -1195,8 +1195,8 @@ a.sujet:focus-visible { outline: 2px solid var(--texte); outline-offset: 2px; }
     <dt id="g-alias">Alias</dt><dd>Une variable qui vise une autre variable au lieu de porter une valeur. Un alias de mode vise une variable différente en Light et en Dark.</dd>
     <dt id="g-api">API publique</dt><dd>Les fonctions et types qu'un paquet promet de garder stables. Le reste peut changer sans prévenir.</dd>
     <dt id="g-axe">Axe, variante, variant</dt><dd>Un axe est une propriété de variant (Color, Size, State). Une variante est une valeur d'axe (<code>primary</code>). Un variant est une combinaison de variantes.</dd>
-    <dt id="g-ci">CI</dt><dd>Les contrôles qui tournent à chaque demande de fusion, sur GitHub Actions ou GitLab CI. Ici, <code>ucm check</code>.</dd>
-    <dt id="g-codeowners"><code>CODEOWNERS</code></dt><dd>Un fichier GitHub qui désigne qui doit approuver une demande selon les fichiers touchés.</dd>
+    <dt id="g-ci">CI</dt><dd>Les contrôles qui tournent à chaque pull request, sur GitHub Actions ou GitLab CI. Ici, <code>ucm check</code>.</dd>
+    <dt id="g-codeowners"><code>CODEOWNERS</code></dt><dd>Un fichier GitHub qui désigne qui doit approuver une pull request selon les fichiers touchés.</dd>
     <dt id="g-codex">Codex</dt><dd>L'agent de code d'OpenAI. Il lit <code>AGENTS.md</code> à la racine du dépôt.</dd>
     <dt id="g-collection">Collection de variables</dt><dd>Un groupe de variables Figma qui partagent les mêmes modes, comme Light et Dark. UCM en attend 7.</dd>
     <dt id="g-constat">Constat</dt><dd>Une remarque d'Architect ou de l'Exporter sur un composant, avec un code de C7 à C82 et un type d'alerte. <a href="#codes-constats">Les 43 codes</a>.</dd>
@@ -1211,7 +1211,7 @@ a.sujet:focus-visible { outline: 2px solid var(--texte); outline-offset: 2px; }
     <dt id="g-retard">En retard sur son contrat</dt><dd>Se dit d'un composant dont le code ne suit pas encore son contrat. Cette expression est réservée à ce cas.</dd>
     <dt id="g-epingler">Épingler</dt><dd>Écrire une version exacte, sans <code>^</code>, pour que npm n'en installe jamais une autre.</dd>
     <dt id="g-symbole">Export, symbole</dt><dd>Un nom qu'un fichier rend utilisable par d'autres fichiers.</dd>
-    <dt id="g-forge">Forge</dt><dd>Le service qui héberge le repository et ses demandes de fusion, GitHub ou GitLab.</dd>
+    <dt id="g-forge">Forge</dt><dd>Le service qui héberge le repository et ses pull requests, GitHub ou GitLab.</dd>
     <dt id="g-full">Full UCM, agnostique</dt><dd>Un outil full UCM exige l'architecture de référence : 7 collections, 11 crans, 24 variables de thème. Un outil agnostique accepte toute structure.</dd>
     <dt id="g-garantie">Garantie</dt><dd>Un contraste minimal entre deux variables du thème. G1 : le texte d'un bouton plein atteint 4,5:1 sur son fond. <a href="#tableau-garanties">Tableau des 9 garanties</a>.</dd>
     <dt id="g-imbrique">Imbriqué</dt><dd>Une instance d'un autre composant, placée dans le composant. <a href="#carte-imbrique">Les 4 sortes d'imbriqué</a>.</dd>
@@ -1229,10 +1229,10 @@ a.sujet:focus-visible { outline: 2px solid var(--texte); outline-offset: 2px; }
     <dt id="g-piste">Piste, rang</dt><dd>Une piste est un chantier proposé. Le rang est son ordre de priorité, de 0 à 5.</dd>
     <dt id="g-planche">Planche</dt><dd>Un cadre Figma où Palettes dessine les nuances d'une palette.</dd>
     <dt id="g-entree">Point d'entrée</dt><dd>Un chemin d'import du kit, comme <code>@ucm-kit/core/lecteurs</code>.</dd>
-    <dt id="g-protection">Protection de branche</dt><dd>Le réglage de la forge qui interdit de fusionner une demande dont le CI est rouge. Sans lui, un échec reste un avis.</dd>
-    <dt id="g-pr">Pull request, merge request</dt><dd>Le nom GitHub et le nom GitLab d'une demande de fusion d'une branche dans <code>main</code>.</dd>
+    <dt id="g-protection">Protection de branche</dt><dd>Le réglage de la forge qui interdit de fusionner une pull request dont le CI est rouge. Sans lui, un échec reste un avis.</dd>
+    <dt id="g-pr">Pull request, merge request</dt><dd>Le nom GitHub et le nom GitLab de la proposition d'intégrer une branche dans <code>main</code>. Le CI y lance ses contrôles et la revue s'y fait avant la fusion.</dd>
     <dt id="g-recette-palette">Recette de palette</dt><dd>L'ensemble des réglages d'une palette, que Palettes enregistre dans le fichier Figma.</dd>
-    <dt id="g-recette-externe">Recette externe</dt><dd>Le rejeu, hors du dépôt, de Figma, d'une forge et d'une vraie demande de fusion, dans UCM-Playground pour GitHub et dans un projet GitLab de recette.</dd>
+    <dt id="g-recette-externe">Recette externe</dt><dd>Le rejeu, hors du dépôt, de Figma, d'une forge et d'une vraie pull request, dans UCM-Playground pour GitHub et dans un projet GitLab de recette.</dd>
     <dt id="g-reglage">Réglage global, Color shift</dt><dd>Le Réglage global change la teinte, la saturation et la luminosité de toute la palette. Le Color shift les fait varier le long de la rampe, du cran clair au cran foncé.</dd>
     <dt id="g-regles">Règles d'usage</dt><dd>Le bloc <code>.componentRules</code> posé à côté du composant dans Figma pour dire quand l'employer. L'Exporter les publie dans <code>intent</code>.</dd>
     <dt id="g-regression">Régression visuelle</dt><dd>Comparer une capture du rendu à une capture de référence validée, pour repérer un changement non voulu.</dd>
@@ -1243,7 +1243,7 @@ a.sujet:focus-visible { outline: 2px solid var(--texte); outline-offset: 2px; }
     <dt id="g-storybook">Storybook, story</dt><dd>Un atelier qui affiche chaque composant isolé. Une story montre un composant dans une combinaison de props.</dd>
     <dt id="g-token">Token</dt><dd>Une variable Figma publiée sous son chemin, comme <code>theme/primary/solid/default</code>.</dd>
     <dt id="g-primitive">Variable primitive</dt><dd>Une variable qui porte une couleur ou une taille brute. Les autres collections la visent par alias.</dd>
-    <dt id="g-verdict">Verdict</dt><dd>Le mot a trois sens. Dans Palettes, le verdict dit si la palette tient les 9 garanties. Dans l'Exporter, le « Contrôle avant publication » prend sa place. Dans <code>ucm check</code>, le verdict dit si la demande peut fusionner.</dd>
+    <dt id="g-verdict">Verdict</dt><dd>Le mot a trois sens. Dans Palettes, le verdict dit si la palette tient les 9 garanties. Dans l'Exporter, le « Contrôle avant publication » prend sa place. Dans <code>ucm check</code>, le verdict dit si la pull request peut fusionner.</dd>
     <dt id="g-v0x">Version 0.x</dt><dd>En semver, une version sous 1.0 n'engage aucune compatibilité. On épingle alors la version exacte.</dd>
     <dt id="g-vues">Vue Tokens, vue Composant</dt><dd>Les deux vues d'Architect. La vue Tokens parcourt les variables du fichier. La vue Composant analyse un jeu de variants.</dd>
     <dt id="g-wcag">WCAG, APCA</dt><dd>WCAG 2 est la norme de contraste en vigueur, avec 4,5:1 pour un texte. APCA est la méthode prévue pour WCAG 3.</dd>
@@ -1365,7 +1365,7 @@ a.sujet:focus-visible { outline: 2px solid var(--texte); outline-offset: 2px; }
       <tr><td><b>Guides</b></td><td>Pour les designers (préparer, exporter, lire les messages, ce qui bloque) et pour le kit de règles.</td><td>Utiliser les outils sans lire le code</td><td><code>docs/guides/</code></td></tr>
       <tr><td><b>CI du dépôt et publication</b></td><td>Un job de tests et de build, un job qui rend la feuille des tokens dans Chromium, Firefox et WebKit, une publication npm sans jeton (OIDC), un contrôle des versions épinglées.</td><td>Garder le dépôt vert et publier les trois paquets npm</td><td><code>.github/workflows/</code>, <code>scripts/pins-servis.mjs</code>, skill <code>publier-paquets</code></td></tr>
       <tr><td><b>Bancs de charge</b></td><td>Des milliers de cas générés pour les noms, la structure et l'analyse, et le rejeu de fichiers réels.</td><td>Mesurer les faux positifs et les manques des contrôles avant une modification</td><td><code>packages/kit/tests/stress/</code>, <code>npm run stress:rejeu</code></td></tr>
-      <tr><td><b><a class="terme" href="#g-recette-externe" title="Le rejeu, hors du dépôt, de Figma, d'une forge et d'une vraie demande de fusion, dans UCM-Playground pour GitHub et dans un projet GitLab de recette.">Recette externe</a></b></td><td>UCM-Playground, l'application de recette sur GitHub, et un projet GitLab de recette rejouent Figma, la forge et une vraie demande de fusion.</td><td>Prouver ce que les tests du dépôt ne peuvent pas ouvrir</td><td><code>docs/guides/RECETTE.md</code></td></tr>
+      <tr><td><b><a class="terme" href="#g-recette-externe" title="Le rejeu, hors du dépôt, de Figma, d'une forge et d'une vraie pull request, dans UCM-Playground pour GitHub et dans un projet GitLab de recette.">Recette externe</a></b></td><td>UCM-Playground, l'application de recette sur GitHub, et un projet GitLab de recette rejouent Figma, la forge et une vraie pull request.</td><td>Prouver ce que les tests du dépôt ne peuvent pas ouvrir</td><td><code>docs/guides/RECETTE.md</code></td></tr>
     </table></div>
   </div></details>
 
