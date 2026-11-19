@@ -137,7 +137,7 @@
       ],
       "complexite": "m",
       "raisonComplexite": "Un projet React et TypeScript standard, plus les lignes qu'`ucm init` demande d'ajouter.",
-      "coutHumain": "Aucun geste : intencial-library reste une bibliothèque seule, privée et non publiée pour l'instant.",
+      "coutHumain": "Aucun geste. intencial-library reste une bibliothèque seule, privée et non publiée pour l'instant.",
       "porteur": "développeurs",
       "promesse": "R",
       "etat": "proposé",
@@ -403,7 +403,7 @@
       "titre": "Architecture de référence complète dans le kit",
       "titreCourt": "Architecture complète",
       "sujet": "Architecture des tokens",
-      "recherche": "docs/notes/Recherches/Archi Tokens Multi-marques/README.md",
+      "recherche": "docs/notes/Recherches/Archi Tokens Multi-marques/PROPOSITION-REFERENCE-COMPLETE.md",
       "resume": "Le kit définit les 7 collections, leurs cibles, leurs familles et la grammaire de leurs noms, et le contenu complet de theme. Il ne définit ni les variables attendues de brands, utility, layout et typography, ni leurs valeurs de référence, et aucun outil n'écrit ces quatre collections.",
       "importance": "haute",
       "raisonImportance": "Sans architecture de référence complète, un nouveau design system UCM se monte à la main, et la seule vue complète du dépôt (`VUE-ILLUSTREE-MULTIMARQUES.html`) vient d'un export figé aux anciens noms.",
@@ -411,7 +411,7 @@
       "dependances": [],
       "complexite": "l",
       "raisonComplexite": "Un générateur est à créer, la référence touche le kit, la vue illustrée et un test racine, et trois questions de conception restent ouvertes.",
-      "coutHumain": "Répondre à trois questions : échelles de layout et de typography, primary et secondary de chaque marque, rôle d'Architect sur brands et utility.",
+      "coutHumain": "Répondre aux cinq choix de la partie 6 de la proposition.",
       "porteur": "mainteneur",
       "promesse": "C",
       "etat": "proposé",
@@ -453,9 +453,11 @@
         "Aucun nom ancien (`color-brands`, `colors`, `press`) ne reste dans les données de la vue illustrée."
       ],
       "questions": [
-        "Quelles échelles de référence pour layout (sizing, radius, stroke, icon) et typography (display à label, tailles sm à lg) ?",
-        "Une marque a-t-elle toujours primary et secondary ?",
-        "Architect doit-il créer brands et utility depuis la référence, ou seulement signaler l'écart ?"
+        "Ajouter un rayon `radius/none` à 0 px ?",
+        "Renommer les contours `outline-weight` et `ring-weight` en `stroke/sm` et `stroke/md` ?",
+        "Ranger les tailles d'icône dans `layout/icon`, en 5 tailles de 16 à 32 px ?",
+        "Donner `font-family` à chaque style de texte, et passer `body/lg` à 18 px, interligne 28, graisse 400 ?",
+        "Les crans 600 et 900 d'`identity` sont-ils ceux de la couleur de charte ?"
       ],
       "risques": [
         "Une échelle de référence imposée gêne une équipe qui en a déjà une : la référence décrit le full UCM, l'Exporter reste agnostique en option."
