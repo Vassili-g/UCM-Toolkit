@@ -1,6 +1,31 @@
 {
   "version": 1,
-  "pistes": {},
+  "pistes": {
+    "P2": {
+      "choix": "oui",
+      "note": "On peut actualiser ça."
+    },
+    "P3": {
+      "choix": "oui",
+      "note": "En cours de recherche par Opus."
+    },
+    "P4": {
+      "choix": "oui",
+      "note": "Ok pour faire."
+    },
+    "P5": {
+      "choix": "oui",
+      "note": "Ok."
+    },
+    "P12": {
+      "choix": "oui",
+      "note": ""
+    },
+    "P17": {
+      "choix": "oui",
+      "note": "On le fait mais plus tard, ce n'est pas prioritaire pour le moment."
+    }
+  },
   "transverses": {},
   "regles": [
     {

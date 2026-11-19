@@ -1169,56 +1169,6 @@
       ]
     },
     {
-      "id": "P7",
-      "titre": "Catalogue unique des codes de constat",
-      "titreCourt": "Catalogue des codes",
-      "resume": "Rassembler les 43 codes relevés de C7 à C82 (code, section, type, sens, geste attendu) dans un module du kit, aujourd'hui cités dans 35 fichiers, 13 de `packages/kit/src/controles/` et 22 de `packages/plugin-architect/src/`.",
-      "importance": "basse",
-      "raisonImportance": "Ces codes décrivent des constats sur les variants Figma d'Architect ; ni `ucm check` ni le linter n'en utilisent un.",
-      "rang": 4,
-      "dependances": [
-        "P3"
-      ],
-      "complexite": "m",
-      "raisonComplexite": "43 codes à décrire et 35 fichiers à faire lire depuis une seule table, sans changer un constat.",
-      "coutHumain": "Répondre à une question : codes des écarts du linter et du vérificateur.",
-      "porteur": "mainteneur",
-      "promesse": "C",
-      "etat": "proposé",
-      "points": [
-        {
-          "chemin": "packages/kit/src/controles/ (module des codes)",
-          "action": "créer",
-          "quoi": "Nom à fixer ; `catalogue.ts` porte déjà le catalogue des variables de référence."
-        },
-        {
-          "chemin": "packages/kit/src/controles/constat.ts",
-          "action": "modifier",
-          "quoi": "`code: C${number}` devient l'union des codes du catalogue."
-        },
-        {
-          "chemin": "packages/plugin-architect/src/constatsDuMoteur.ts",
-          "action": "modifier",
-          "quoi": "`CodeDuMoteur` lit le catalogue."
-        },
-        {
-          "chemin": "tests/reglesUniques.test.ts",
-          "action": "vérifier",
-          "quoi": "Unicité des règles entre paquets."
-        }
-      ],
-      "criteresDeFin": [
-        "Chaque code cité dans `packages/*/src` figure une fois dans le catalogue, et un test refuse un code absent.",
-        "`npm run test:paquet -- architect` passe sans changement d'attente."
-      ],
-      "questions": [
-        "Les écarts du linter et du vérificateur reçoivent-ils des codes dans le même espace ?"
-      ],
-      "risques": [
-        "Faible : déplacement de données à sortie identique."
-      ]
-    },
-    {
       "id": "P11",
       "titre": "Diff sémantique de deux exports",
       "titreCourt": "Diff sémantique",
