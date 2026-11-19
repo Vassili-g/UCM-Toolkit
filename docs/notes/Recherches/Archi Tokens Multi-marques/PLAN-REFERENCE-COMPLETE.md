@@ -11,7 +11,7 @@ Ce plan met en œuvre [PROPOSITION-REFERENCE-COMPLETE.md](./PROPOSITION-REFERENC
 
 ## Lots
 
-- [ ] 1. La référence dans le kit (`implementeur`).
+- [x] 1 (ae75122b). La référence dans le kit (`implementeur`).
 - [ ] 2. C82 dans `brands` et `utility` (`implementeur-exigeant`). Après le lot 1.
 - [ ] 3. Architect crée les alias (`implementeur-exigeant`). Après le lot 2.
 - [ ] 4. Générateur et vue illustrée (`implementeur`). Après le lot 1.

@@ -11,7 +11,7 @@ Ce plan met en œuvre [DECISION-VERDICT-UCM-CHECK.md](./DECISION-VERDICT-UCM-CHE
 
 ## Lots
 
-- [ ] 1. Écarts identifiés (`implementeur`).
+- [x] 1 (ae4c0323). Écarts identifiés (`implementeur`).
 - [ ] 2. Dérogations (`implementeur`).
 - [ ] 3. Règle du verdict, avec les 20 cas V-01 à V-20 et deux mutations vérifiées (`implementeur-exigeant`). Après les lots 1 et 2.
 - [ ] 4. Branchement et rapport (`implementeur-exigeant`). Les phrases destinées au designer s'écrivent d'abord dans la conversation principale (skill `rediger-diagnostics-ucm`).
