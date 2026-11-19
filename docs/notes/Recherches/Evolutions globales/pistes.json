@@ -676,6 +676,120 @@
       ]
     },
     {
+      "id": "P23",
+      "titre": "Sélection des tokens et sortie Style Dictionary dans UCM Exporter",
+      "titreCourt": "Sélection des tokens",
+      "sujet": "Modules consommateurs",
+      "recherche": "docs/notes/Recherches/Plugin Exporter/RECHERCHE-SELECTION-ET-STYLE-DICTIONARY.md",
+      "resume": "Aligner la bascule Composant et Tokens de l'Exporter sur celle d'UCM Architect, laisser cocher les collections et les modes exportés dans `tokens.json`, puis convertir ce fichier pour Style Dictionary par une commande de la CLI.",
+      "importance": "haute",
+      "raisonImportance": "Un repository consommateur ne remplace sa chaîne Supernova que si ses équipes choisissent les collections et les modes exportés et si son build Style Dictionary lit le résultat ; l'Exporter publie aujourd'hui toutes les variables locales, sans choix.",
+      "rang": 2,
+      "dependances": [
+        "P19"
+      ],
+      "complexite": "xl",
+      "raisonComplexite": "Neuf lots touchent le socle, l'Exporter, Architect, le kit et la CLI, avec une extension du format de tokens et une publication des trois paquets.",
+      "coutHumain": "Répondre aux dix questions de la recherche, fournir la configuration Style Dictionary du consommateur, puis réexporter les tokens depuis Figma pour la recette.",
+      "porteur": "mainteneur",
+      "promesse": "C",
+      "etat": "proposé",
+      "points": [
+        {
+          "chemin": "packages/plugin-socle/src/ui/Bascule.ts",
+          "action": "créer",
+          "quoi": "La bascule Tokens et Composant, sortie de `barre.ts` d'Architect et partagée par les deux plugins."
+        },
+        {
+          "chemin": "packages/plugin-architect/src/ui/barre.ts",
+          "action": "modifier",
+          "quoi": "Lignes 38 à 52 : employer la bascule du socle, sans changer son dessin."
+        },
+        {
+          "chemin": "packages/plugin-exporter/src/ui/index.ts",
+          "action": "modifier",
+          "quoi": "Une carte par mode à la place des deux cartes empilées (ligne 170), ouverture en Composant quand la sélection porte un composant."
+        },
+        {
+          "chemin": "packages/plugin-exporter/src/code.ts",
+          "action": "modifier",
+          "quoi": "`themeColors: false` (lignes 82 à 86) et le mode d'ouverture selon la sélection."
+        },
+        {
+          "chemin": "packages/plugin-exporter/src/tokens/selection.ts",
+          "action": "créer",
+          "quoi": "Fermeture des dépendances : une collection citée par un alias d'une collection cochée est exportée d'office."
+        },
+        {
+          "chemin": "packages/plugin-exporter/src/tokens/exportTokens.ts",
+          "action": "modifier",
+          "quoi": "`handleExportTokens` filtre collections et modes, garde le mode par défaut, écrit `com.ucm.selection` à la racine."
+        },
+        {
+          "chemin": "packages/plugin-exporter/src/ui/components/CarteTokens.ts",
+          "action": "modifier",
+          "quoi": "Liste des collections et des modes à cocher, dépendances grisées avec la collection qui les cite."
+        },
+        {
+          "chemin": "packages/plugin-exporter/src/config.ts",
+          "action": "modifier",
+          "quoi": "Rangement du choix sur le poste, par repository, et la sélection dans la clé de destination."
+        },
+        {
+          "chemin": "packages/kit/src/lecteurs/diagnostic-tokens.mjs",
+          "action": "modifier",
+          "quoi": "Nommer « collection non exportée » quand `com.ucm.selection` écarte la collection d'un token cité."
+        },
+        {
+          "chemin": "packages/cli/src/tokens-style-dictionary.mjs",
+          "action": "créer",
+          "quoi": "`ucm tokens style-dictionary --out <dossier>` : un fichier de base et un fichier par mode de chaque axe."
+        },
+        {
+          "chemin": "packages/cli/src/init.mjs",
+          "action": "modifier",
+          "quoi": "Ligne 371 : demander aussi de lancer la conversion avant le build Style Dictionary."
+        },
+        {
+          "chemin": "docs/format/FORMAT.md",
+          "action": "modifier",
+          "quoi": "Partie 2 : `com.ucm.selection`, et `com.ucm.axes` qui ne nomme que les modes exportés."
+        },
+        {
+          "chemin": "docs/format/CHANGELOG-FORMAT.md",
+          "action": "modifier",
+          "quoi": "Entrée de classe 12 pour `com.ucm.selection`, sans montée de `TOKENS_FORMAT_VERSION`."
+        },
+        {
+          "chemin": "CONTRIBUTING.md",
+          "action": "modifier",
+          "quoi": "Borne « une carte est une commande » : une carte par mode."
+        }
+      ],
+      "criteresDeFin": [
+        "La galerie de l'Exporter montre un état Composant et un état Tokens, et une sélection Figma vide ouvre le plugin en Tokens.",
+        "Un test : un export dont une collection est décochée ne porte aucun `\"$value\": null` de plus que l'export complet.",
+        "Un test : `com.ucm.axes` ne nomme que les modes exportés, et le mode par défaut ne se décoche pas.",
+        "Un test : un composant qui cite un token d'une collection écartée reçoit un avertissement qui nomme la collection.",
+        "Un test construit chaque fichier de `ucm tokens style-dictionary` avec Style Dictionary 5.8.0, sans `[object Object]` dans le CSS.",
+        "`npm run fidelite --workspace ucm-architect-plugin` ne rend aucun nouvel écart après le déplacement de la bascule."
+      ],
+      "questions": [
+        "Q1 : la bascule de l'Exporter reprend-elle celle d'Architect, avec son dessin de choix segmenté pour une navigation entre vues ?",
+        "Q4 : le choix des collections se range-t-il sur le poste, dans `ucm.config.json` ou dans le document Figma ?",
+        "Q5 : le designer peut-il choisir le mode de base d'une collection, comme dans Supernova ?",
+        "Q8 : une commande de la CLI qui ne lit que le format respecte-t-elle la règle « seul l'Exporter est agnostique » ?",
+        "Q9 : quelle version de Style Dictionary le build du consommateur emploie-t-il ?",
+        "Q10 : faut-il reproduire l'arborescence de l'exporteur Supernova ?"
+      ],
+      "risques": [
+        "Un axe écarté en entier fait sortir `ucm tokens css` en erreur quand `ucm.config.json` le déclare sous `modes` (`packages/cli/src/tokens-css.mjs`, ligne 123).",
+        "`primitives` écartée transforme chaque lien de `brands` et de `utility` en constat du diagnostic d'architecture (P21).",
+        "Un choix rangé sur le poste n'est pas partagé : deux designers qui exportent vers le même repository publient deux sélections différentes.",
+        "Le lot du diagnostic des tokens touche `diagnostic-tokens.mjs` et `controle-repository.mjs`, que P19 modifie."
+      ]
+    },
+    {
       "id": "P20",
       "titre": "Vérificateur de rendu dans le CI",
       "titreCourt": "Vérificateur de rendu",
