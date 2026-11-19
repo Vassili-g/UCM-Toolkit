@@ -32,6 +32,7 @@ Exemples tirés des corrections du mainteneur :
 3. Forme publiée : [FORMAT.md](./docs/format/FORMAT.md) ; lecture de Figma par l'exporteur : [SPEC.md](./packages/plugin-exporter/SPEC.md) ; ce que les versions précédentes publiaient : [CHANGELOG-FORMAT.md](./docs/format/CHANGELOG-FORMAT.md), dès qu'une tâche touche à la compatibilité.
 4. [CONTRIBUTING.md](./CONTRIBUTING.md) : règles de code et de test ; [Travailler avec des agents](./CONTRIBUTING.md#travailler-avec-des-agents) : `git status`, lots, vérifications.
 5. `packages/kit/src/format/types.ts` et les tests voisins : forme concrète.
+6. Un module consommateur du kit (linter, stories, rendu) : [MODULES.md](./docs/guides/MODULES.md), seule porte `@ucm-kit/core/modules`.
 
 Skills, dans `.agents/skills/`, à charger :
 

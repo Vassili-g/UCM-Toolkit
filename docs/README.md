@@ -20,6 +20,7 @@ La [page de l'inventaire](./inventaire/INVENTAIRE-UCM.html) montre le projet d'u
 | Implémenter un contrat | `ucm guide <contrat>`, décrit dans le [guide du CLI](../packages/cli/README.md#the-guide-of-a-contract) |
 | Ajouter la parité TypeScript | [Adaptateur](../packages/adapter-typescript/README.md) |
 | Appeler les lecteurs depuis du code | [Kit](../packages/kit/README.md) |
+| Écrire un module consommateur (linter, stories, rendu) | [Guide des modules](./guides/MODULES.md) |
 | Éprouver le parcours Figma, npm et CI | [Recette externe](./guides/RECETTE.md) |
 
 ## Contribuer

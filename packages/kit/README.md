@@ -150,7 +150,7 @@ under their own names, 7 functions and the `Contract` type: `lireConfiguration`,
 `trouverContrats`, `verdictDeVersion`, `vueExacteDuVariant`,
 `indexerTokensDtcg`, `isTokenReference` and `tokenCssVariable`. They read the
 same contracts and tokens as `ucm check`, so a module gives the same verdict.
-Every change to it is written in [CHANGELOG.md](./CHANGELOG.md).
+Every change to it is written in [CHANGELOG.md](./CHANGELOG.md). [The guide for module authors](https://github.com/Vassili-g/UCM-Toolkit/blob/main/docs/guides/MODULES.md) explains how to write one.
 
 **`@ucm-kit/core/format`** gives the shape of a contract, its version, the
 naming rules, and the shape of a token reference. **This subpath depends on
