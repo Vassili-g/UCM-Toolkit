@@ -471,56 +471,6 @@
       ]
     },
     {
-      "id": "P15",
-      "titre": "Types vérifiés des lecteurs",
-      "titreCourt": "Types des lecteurs",
-      "sujet": "API du kit",
-      "recherche": "docs/notes/Recherches/Evolutions globales/DECISION-API-PUBLIQUE.md",
-      "resume": "Faire vérifier les 8 signatures de la prise `@ucm-kit/core/modules` plutôt que les 672 lignes des déclarations écrites à la main `index.d.mts` et `navigateur.d.mts`, dont un test ne compare aujourd'hui que les noms.",
-      "importance": "moyenne",
-      "raisonImportance": "Un module TypeScript compile contre une signature fausse et reçoit une autre forme à l'exécution.",
-      "rang": 1,
-      "dependances": [],
-      "complexite": "m",
-      "raisonComplexite": "Un test qui compile un appel par nom de la prise `@ucm-kit/core/modules` (8 signatures) tient en un lot ; convertir les 26 lecteurs (6 536 lignes) en TypeScript serait L.",
-      "coutHumain": "Répondre à une question : convertir les lecteurs en TypeScript ou garder `.mjs` avec JSDoc.",
-      "porteur": "mainteneur",
-      "promesse": "R",
-      "etat": "proposé",
-      "points": [
-        {
-          "chemin": "packages/kit/src/lecteurs/index.d.mts",
-          "action": "modifier",
-          "quoi": "Corriger les signatures que le test trouve fausses."
-        },
-        {
-          "chemin": "packages/kit/src/lecteurs/navigateur.d.mts",
-          "action": "modifier",
-          "quoi": "Idem."
-        },
-        {
-          "chemin": "packages/kit/tests/declarationsDesLecteurs.test.mjs",
-          "action": "modifier",
-          "quoi": "Il compare les noms exportés et dit « Les signatures ne sont pas jugées ici »."
-        },
-        {
-          "chemin": "packages/kit/tests/ (test de signatures)",
-          "action": "créer",
-          "quoi": "Compiler avec `tsc` un appel typé de chaque nom de la prise, ou générer les déclarations depuis le JSDoc et comparer."
-        }
-      ],
-      "criteresDeFin": [
-        "Un test échoue quand la signature déclarée d'un nom de la prise diffère de son usage réel (mutation vérifiée une fois).",
-        "`npm run typecheck` passe."
-      ],
-      "questions": [
-        "Convertir les lecteurs en TypeScript, ce qui déplace `exports` de `src/lecteurs/*.mjs` vers `dist/`, ou garder `.mjs` avec JSDoc ?"
-      ],
-      "risques": [
-        "Une conversion complète touche tous les lecteurs que la CLI importe et demande une publication coordonnée."
-      ]
-    },
-    {
       "id": "P10",
       "titre": "Comparateur du rendu au contrat",
       "titreCourt": "Comparateur de rendu",
