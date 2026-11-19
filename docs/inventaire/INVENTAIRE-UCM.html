@@ -520,7 +520,7 @@ table.ensemble td.sinon { min-width: 200px; }
 <!-- 1. Le trajet d'un composant -->
 <section class="partie" id="vue" data-pour-garde>
   <h1>Ce que contient UCM Toolkit</h1>
-  <p class="versions doux">Versions publiées : kit 0.15.2, CLI 0.1.150, adaptateur 0.2.8, <a class="terme" href="#g-contrat14" title="Le numéro du format du contrat. ucm check accepte les contrats 13.0 et 14.0.">contrat 14.0</a>.</p>
+  <p class="versions doux">Versions publiées : kit 0.16.0, CLI 0.1.151, adaptateur 0.2.9, <a class="terme" href="#g-contrat14" title="Le numéro du format du contrat. ucm check accepte les contrats 13.0 et 14.0.">contrat 14.0</a>.</p>
   <h2><span class="num">1</span>Le trajet d'un composant</h2>
   <p class="defini">Défini dans <code>CONCEPT.md</code> et <code>ROADMAP.md</code>.</p>
   <p class="chapeau">Un designer ajoute une variante <code>danger</code> à son bouton. Plus tard, personne ne sait si le code la rend ni si son token existe encore. UCM publie pour chaque composant Figma un <a class="terme" href="#g-contrat" title="Le fichier &lt;Id&gt;.contract.json que l'Exporter écrit pour un composant Figma, avec ses props, ses variants et le token de chaque couleur et dimension.">contrat</a> JSON, rangé à côté de son code. Le <a class="terme" href="#g-ci" title="Les contrôles qui tournent à chaque demande de fusion, sur GitHub Actions ou GitLab CI. Ici, ucm check.">CI</a> de l'application compare le contrat, les <a class="terme" href="#g-token" title="Une variable Figma publiée sous son chemin, comme theme/primary/solid/default.">tokens</a> et le code à chaque demande de fusion. Figma fait foi pour le visuel. Le code fait foi pour le comportement et l'accessibilité.</p>
@@ -922,9 +922,9 @@ table.ensemble td.sinon { min-width: 200px; }
       <tr><td>Contrat</td><td class="n">14.0</td><td>13.0 et 14.0. Hors fenêtre, le designer réexporte ou le mainteneur met à jour les paquets.</td></tr>
       <tr><td>Schéma JSON</td><td class="n">suit le contrat</td><td>Dérivé de <code>types.ts</code>. Il décrit la forme, jamais la cohérence.</td></tr>
       <tr><td>tokens.json</td><td class="n">2</td><td>1 et 2. DTCG module 2025.10, lu par Style Dictionary 5. Style Dictionary 4 écrit <code>[object Object]</code> sans échouer.</td></tr>
-      <tr data-pour="toolkit"><td>@ucm-kit/core</td><td class="n">0.15.2</td><td>0.x : aucune compatibilité promise.</td></tr>
-      <tr><td>@ucm-kit/cli</td><td class="n">0.1.150</td><td><a class="terme" href="#g-epingler" title="Écrire une version exacte, sans ^, pour que npm n'en installe jamais une autre.">Épingle</a> le kit 0.15.2. Le repository l'installe en version exacte, sans <code>^</code>.</td></tr>
-      <tr><td>@ucm-kit/adapter-typescript</td><td class="n">0.2.8</td><td>Épingle le kit 0.15.2.</td></tr>
+      <tr data-pour="toolkit"><td>@ucm-kit/core</td><td class="n">0.16.0</td><td>0.x : aucune compatibilité promise.</td></tr>
+      <tr><td>@ucm-kit/cli</td><td class="n">0.1.151</td><td><a class="terme" href="#g-epingler" title="Écrire une version exacte, sans ^, pour que npm n'en installe jamais une autre.">Épingle</a> le kit 0.16.0. Le repository l'installe en version exacte, sans <code>^</code>.</td></tr>
+      <tr><td>@ucm-kit/adapter-typescript</td><td class="n">0.2.9</td><td>Épingle le kit 0.16.0.</td></tr>
       <tr data-pour="designer"><td>Recette Palettes</td><td class="n">12</td><td>Lit 8 à 12, en migrant une étape par format.</td></tr>
     </table></div>
     <p class="doux">Contrat 12.0 : rotation, défaut posé par le designer. 13.0 : <code>textTransform</code>. 14.0 : effets, opacité, position dans un conteneur sans auto layout. <code>COMPATIBILITE.md</code> range les changements en 12 classes, et une mineure n'est jamais présumée compatible.</p>
@@ -941,9 +941,9 @@ table.ensemble td.sinon { min-width: 200px; }
     <tr data-pour="designer"><td><b>UCM Architect</b></td><td>Explore, renomme, complète le thème, analyse un composant</td><td>privé</td><td></td></tr>
     <tr data-pour="designer developpeur"><td><b>Contract Exporter</b></td><td>Publie contrats et tokens</td><td>Figma Community</td><td><span class="etat partiel">version Community ancienne</span> <span class="nota">agnostique en option</span></td></tr>
     <tr data-pour="toolkit"><td><b>Socle</b></td><td>Code partagé des plugins : build, langage visuel, galerie, moteur d'extraction</td><td>privé, en source</td><td class="doux">périmètre sans objet</td></tr>
-    <tr data-pour="developpeur"><td><b>CLI</b></td><td>Installe, contrôle, produit le CSS et le guide</td><td>npm 0.1.150</td><td>agnostique aujourd'hui (<a href="#piste-P5">P5</a>, <a href="#piste-P12">P12</a>)</td></tr>
-    <tr data-pour="developpeur"><td><b>Adaptateur TypeScript</b></td><td>Parité statique des props, types des variantes</td><td>npm 0.2.8</td><td class="doux">périmètre sans objet</td></tr>
-    <tr data-pour="toolkit"><td><b>Kit</b></td><td>Format, référentiel, contrôles, <a class="terme" href="#g-lecteur" title="Une fonction du kit qui lit un contrat ou tokens.json et rend un bilan. La CLI s'en sert dans le CI.">lecteurs</a>. Tous en dépendent. Huit <a class="terme" href="#g-entree" title="Un chemin d'import du kit, comme @ucm-kit/core/lecteurs.">points d'entrée</a>, listés en annexe.</td><td>npm 0.15.2</td><td></td></tr>
+    <tr data-pour="developpeur"><td><b>CLI</b></td><td>Installe, contrôle, produit le CSS et le guide</td><td>npm 0.1.151</td><td>agnostique aujourd'hui (<a href="#piste-P5">P5</a>, <a href="#piste-P12">P12</a>)</td></tr>
+    <tr data-pour="developpeur"><td><b>Adaptateur TypeScript</b></td><td>Parité statique des props, types des variantes</td><td>npm 0.2.9</td><td class="doux">périmètre sans objet</td></tr>
+    <tr data-pour="toolkit"><td><b>Kit</b></td><td>Format, référentiel, contrôles, <a class="terme" href="#g-lecteur" title="Une fonction du kit qui lit un contrat ou tokens.json et rend un bilan. La CLI s'en sert dans le CI.">lecteurs</a>. Tous en dépendent. Huit <a class="terme" href="#g-entree" title="Un chemin d'import du kit, comme @ucm-kit/core/lecteurs.">points d'entrée</a>, listés en annexe.</td><td>npm 0.16.0</td><td></td></tr>
     <tr data-pour="toolkit"><td><b>Moteur de couleur</b></td><td>Rampes, contrastes, garanties, harmonisation. Sans Figma ni DOM. Lu par Palettes, Architect, Hub.</td><td>privé</td><td class="doux">périmètre sans objet</td></tr>
     <tr data-pour="toolkit"><td><b>Hub UCM</b></td><td>Page locale des sorties du kit et du moteur. Storybook la remplacera (<a href="#piste-P9">P9</a>).</td><td>privé</td><td><span class="etat partiel">partiel</span></td></tr>
   </table></div>
@@ -1077,7 +1077,7 @@ table.ensemble td.sinon { min-width: 200px; }
   <p class="defini">Défini dans <code>packages/kit/src/lecteurs/diagnostic-parite.mjs</code>.</p>
   <p class="intro">Une demande modifie <code>Button.tsx</code>, qui n'a pas de prop <code>size</code>.</p>
   <div class="rapports">
-    <figure class="rapport"><figcaption>Aujourd'hui (CLI 0.1.150)</figcaption>
+    <figure class="rapport"><figcaption>Aujourd'hui (CLI 0.1.151)</figcaption>
       <div class="pr"><div class="pr-tete">ucm check</div>
         <div class="pr-corps">
           <p class="pr-titre tenu">Aucun blocage détecté</p>
