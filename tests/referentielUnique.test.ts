@@ -10,7 +10,7 @@
  * dans `EXCEPTIONS` avec sa raison.
  *
  * Le dossier `tests/` de la racine est balayé aussi, sauf ce fichier, qui porte
- * le détecteur et ses exemples. Hors du contrôle : les `tests/` des paquets, qui
+ * le détecteur et ses exemples, comme les `.ts` de `docs/inventaire/`. Hors du contrôle : les `tests/` des paquets, qui
  * écrivent leurs attendus en clair à dessein. Les catalogues `i18n` sont lus
  * comme le reste.
  */
@@ -219,6 +219,10 @@ function fichiersControles(): string[] {
   for (const fichier of fichiersDeSource(path.join(racine, 'tests'))) {
     const rel = path.relative(racine, fichier).split(path.sep).join('/');
     if (!DETECTEURS.includes(rel)) relatifs.push(rel);
+  }
+  // Le générateur de l'inventaire et ses lectures ; `page.js` est du texte de page, hors du contrôle.
+  for (const fichier of fichiersDeSource(path.join(racine, 'docs', 'inventaire')).filter((chemin) => chemin.endsWith('.ts'))) {
+    relatifs.push(path.relative(racine, fichier).split(path.sep).join('/'));
   }
   return relatifs;
 }

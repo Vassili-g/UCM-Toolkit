@@ -6,14 +6,15 @@
  * l'empreinte des sources, le kit est reconstruit d'abord. Un fichier n'est
  * écrit que si son contenu change, fins de ligne mises à part.
  *
- * Les générateurs sont en TypeScript ; `tsx` les charge sans les compiler à part.
+ * Les générateurs sont en TypeScript ; `tsx` les charge sans les compiler à part. Le chargeur s'enregistre par l'import de
+ * `tsx`, comme `node --import tsx` : `tsImport` échoue sur un générateur CommonJS qui lit le kit compilé (Node 22.23, tsx 4.23).
  */
 import { spawnSync } from "node:child_process";
 import { readFileSync, writeFileSync, existsSync } from "node:fs";
 import { dirname, join, relative } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 
-import { tsImport } from "tsx/esm/api";
+import "tsx";
 
 import { verifierKit } from "./empreinte-du-kit.mjs";
 
@@ -30,7 +31,7 @@ function reconstruireLeKit() {
 }
 
 async function charger(chemin) {
-  return tsImport(pathToFileURL(join(racine, chemin)).href, import.meta.url);
+  return import(pathToFileURL(join(racine, chemin)).href);
 }
 
 /** Chaque vue : le fichier commité et le générateur qui rend son contenu. */
@@ -47,6 +48,10 @@ const VUES = [
     fichier: "docs/notes/Recherches/Archi Tokens Multi-marques/donnees-referentiel.js",
     contenu: async () =>
       (await charger("docs/notes/Recherches/Archi Tokens Multi-marques/generer-donnees-referentiel.ts")).genererDonneesReferentiel(),
+  },
+  {
+    fichier: "docs/inventaire/INVENTAIRE-UCM.html",
+    contenu: async () => (await charger("docs/inventaire/generer-inventaire.ts")).genererInventaire(),
   },
 ];
 

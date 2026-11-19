@@ -1,0 +1,273 @@
+{
+  "version": 1,
+  "pistes": {},
+  "transverses": {},
+  "regles": [
+    {
+      "id": "libre-dans-le-code",
+      "genre": "carte",
+      "texte": "Tout ce que le contrat ne décrit pas reste libre dans le code : enveloppes, props non visuelles, placement par le parent, animations.",
+      "domicileCible": "CONCEPT.md#4. Les invariants",
+      "ecrite": "non",
+      "pistes": []
+    },
+    {
+      "id": "validation-visuelle-sans-blocage",
+      "genre": "carte",
+      "texte": "La validation visuelle du designer ne bloque jamais.",
+      "domicileCible": "docs/guides/POUR-LES-DESIGNERS.md#6. Ce qui bloque la fusion et ce qui avertit",
+      "ecrite": "non",
+      "pistes": []
+    },
+    {
+      "id": "rendu-valide-devient-reference",
+      "genre": "liste",
+      "pour": "developpeur",
+      "texte": "Un rendu validé par le designer devient la capture de référence. Un changement du code seul qui la modifie bloque (P10, P20).",
+      "domicileCible": "docs/notes/Recherches/Linter Dev/PLAN-CONFORMITE-RENDU.md",
+      "ecrite": "non",
+      "pistes": [
+        "P10",
+        "P20"
+      ]
+    },
+    {
+      "id": "coeur-un-seul-mainteneur",
+      "genre": "liste",
+      "pour": "toolkit",
+      "texte": "Le cœur (kit, format, plugins) a un seul mainteneur. Un changement du kit se décide avec lui.",
+      "domicileCible": "CONTRIBUTING.md",
+      "ecrite": "non",
+      "pistes": []
+    },
+    {
+      "id": "storybook-remplace-le-hub",
+      "genre": "liste",
+      "pour": "developpeur",
+      "texte": "Storybook remplace le Hub UCM (P5, P9). Le sommaire des recherches garde encore le plan du Hub.",
+      "domicileCible": "ROADMAP.md",
+      "ecrite": "non",
+      "pistes": [
+        "P5",
+        "P9"
+      ]
+    },
+    {
+      "id": "flux-de-figma-vers-le-code",
+      "genre": "liste",
+      "pour": "designer developpeur",
+      "texte": "Le flux va de Figma vers le code seulement. Les outils suivent l'architecture full UCM, et seul l'Exporter est agnostique, en option (P5).",
+      "domicileCible": "CONCEPT.md#Les produits et les deux périmètres",
+      "ecrite": "partiel",
+      "pistes": [
+        "P5"
+      ]
+    },
+    {
+      "id": "demande-de-tokens-sans-blocage",
+      "genre": "tableau",
+      "pour": "designer",
+      "texte": "Le designer exporte `tokens.json` et fusionne seul une demande de tokens, grâce à un fichier `CODEOWNERS` (P17). Elle passe toujours.",
+      "domicileCible": "docs/guides/POUR-LES-DESIGNERS.md#6. Ce qui bloque la fusion et ce qui avertit",
+      "ecrite": "non",
+      "pistes": [
+        "P17"
+      ]
+    },
+    {
+      "id": "fusion-rouge-impossible",
+      "genre": "tableau",
+      "pour": "developpeur",
+      "texte": "Une demande dont le check `contrats` est rouge ne se fusionne pas : le check est exigé sur `main` (P17).",
+      "domicileCible": "docs/guides/POUR-LES-DESIGNERS.md#6. Ce qui bloque la fusion et ce qui avertit",
+      "ecrite": "non",
+      "pistes": [
+        "P17"
+      ]
+    },
+    {
+      "id": "ecart-de-code-bloque",
+      "genre": "tableau",
+      "pour": "developpeur",
+      "texte": "Un token absent, une prop du code qui s'écarte du contrat et un écart de parité bloquent la fusion (P19). Une dérogation motivée laisse passer un écart de parité.",
+      "domicileCible": "docs/guides/POUR-LES-DESIGNERS.md#6. Ce qui bloque la fusion et ce qui avertit",
+      "ecrite": "non",
+      "pistes": [
+        "P19"
+      ]
+    },
+    {
+      "id": "rendu-controle-par-le-verificateur",
+      "genre": "tableau",
+      "pour": "developpeur",
+      "texte": "La couleur rendue, les dimensions, la typographie, la structure et l'ordre rendus bloquent après comparaison du rendu au contrat (P10, P20).",
+      "domicileCible": "docs/guides/POUR-LES-DESIGNERS.md#6. Ce qui bloque la fusion et ce qui avertit",
+      "ecrite": "non",
+      "pistes": [
+        "P10",
+        "P20"
+      ]
+    },
+    {
+      "id": "valeur-en-dur-bloquee-par-le-linter",
+      "genre": "tableau",
+      "pour": "developpeur",
+      "texte": "Une valeur écrite en dur dans le code bloque, par le linter (P6).",
+      "domicileCible": "docs/guides/POUR-LES-DESIGNERS.md#6. Ce qui bloque la fusion et ce qui avertit",
+      "ecrite": "non",
+      "pistes": [
+        "P6"
+      ]
+    },
+    {
+      "id": "composant-en-retard-passe",
+      "genre": "tableau",
+      "pour": "developpeur",
+      "texte": "Une demande qui ne modifie que le contrat marque le composant en retard sur son contrat, et la demande passe (P2).",
+      "domicileCible": "docs/guides/POUR-LES-DESIGNERS.md#6. Ce qui bloque la fusion et ce qui avertit",
+      "ecrite": "non",
+      "pistes": [
+        "P2"
+      ]
+    },
+    {
+      "id": "T1",
+      "genre": "transverse",
+      "pour": "developpeur",
+      "titre": "Ce que le linter refuse en plus",
+      "texte": "Une prop, une variante ou un élément absents du contrat. La recherche propose : un élément est visuel s'il peint ou prend de la place.",
+      "domicileCible": "docs/notes/Recherches/Linter Dev/PLAN-CONFORMITE-RENDU.md",
+      "ecrite": "non",
+      "pistes": [
+        "P6",
+        "P10"
+      ]
+    },
+    {
+      "id": "T2",
+      "genre": "transverse",
+      "pour": "developpeur",
+      "titre": "Token retiré par une demande de tokens seuls",
+      "texte": "« Une demande de tokens seuls passe toujours » contredit le blocage d'un token retiré que le code cite.",
+      "domicileCible": "docs/notes/Recherches/Linter Dev/PLAN-CONFORMITE-RENDU.md",
+      "ecrite": "non",
+      "pistes": [
+        "P2",
+        "P19"
+      ]
+    },
+    {
+      "id": "T3",
+      "genre": "transverse",
+      "pour": "developpeur",
+      "titre": "Délai du composant en retard",
+      "texte": "Le composant qu'une demande du designer casse est marqué en retard, et la prochaine demande d'un développeur dessus bloque. Le délai n'est pas fixé.",
+      "domicileCible": "docs/notes/Recherches/Linter Dev/PLAN-CONFORMITE-RENDU.md",
+      "ecrite": "non",
+      "pistes": [
+        "P2",
+        "P19"
+      ]
+    },
+    {
+      "id": "T4",
+      "genre": "transverse",
+      "pour": "developpeur",
+      "titre": "Forme de la dérogation",
+      "texte": "Fichier ou section de configuration, portée, motif, auteur, expiration.",
+      "domicileCible": "docs/notes/Recherches/Linter Dev/PLAN-CONFORMITE-RENDU.md",
+      "ecrite": "non",
+      "pistes": [
+        "P19",
+        "P20"
+      ]
+    },
+    {
+      "id": "T5",
+      "genre": "transverse",
+      "pour": "developpeur",
+      "titre": "Marque des slots",
+      "texte": "La convention `data-ucm-slot` permet au vérificateur de retrouver les calques sans code propre à chaque composant.",
+      "domicileCible": "docs/notes/Recherches/Linter Dev/PLAN-CONFORMITE-RENDU.md",
+      "ecrite": "non",
+      "pistes": [
+        "P10"
+      ]
+    },
+    {
+      "id": "T6",
+      "genre": "transverse",
+      "pour": "toolkit",
+      "titre": "Un dépôt ou plusieurs",
+      "texte": "Le mainteneur préfère le monorepo. Une autre répartition range les définitions dans le toolkit et l'intégration dans intencial-library.",
+      "domicileCible": "CONCEPT.md",
+      "ecrite": "non",
+      "pistes": [
+        "P4",
+        "P6",
+        "P9",
+        "P18"
+      ]
+    },
+    {
+      "id": "T7",
+      "genre": "transverse",
+      "pour": "developpeur",
+      "titre": "Modules dans `ucm check`",
+      "texte": "`ucm.config.json` lit trois champs. Une clé `modules` n'activerait rien.",
+      "domicileCible": "docs/notes/Recherches/Linter Dev/PLAN-CONFORMITE-RENDU.md",
+      "ecrite": "non",
+      "pistes": [
+        "P4"
+      ]
+    },
+    {
+      "id": "T8",
+      "genre": "transverse",
+      "pour": "toolkit",
+      "titre": "Langue des modules",
+      "texte": "Code du kit en français, format en anglais, README de la CLI en anglais.",
+      "domicileCible": "CONTRIBUTING.md",
+      "ecrite": "non",
+      "pistes": [
+        "P4"
+      ]
+    },
+    {
+      "id": "T9",
+      "genre": "transverse",
+      "pour": "developpeur",
+      "titre": "Périmètre d'`ucm check`",
+      "texte": "Seul l'Exporter est agnostique, mais `ucm check` accepte aujourd'hui toute structure.",
+      "domicileCible": "CONCEPT.md#Les produits et les deux périmètres",
+      "ecrite": "non",
+      "pistes": [
+        "P5",
+        "P12"
+      ]
+    },
+    {
+      "id": "T10",
+      "genre": "transverse",
+      "pour": "developpeur",
+      "titre": "Ordre de P8 et P9",
+      "texte": "Cette page place P8, l'intégration automatique, après le vérificateur de rendu, parce que la boucle d'un agent qui corrige jusqu'à un rapport vide en a besoin. L'ordre décidé des modules met l'intégration avant Storybook.",
+      "options": [
+        {
+          "valeur": "apres",
+          "libelle": "P8 après le vérificateur (ordre de cette page)"
+        },
+        {
+          "valeur": "avant",
+          "libelle": "Intégration avant Storybook (ordre décidé des modules)"
+        }
+      ],
+      "domicileCible": "docs/notes/Recherches/Linter Dev/PLAN-CONFORMITE-RENDU.md",
+      "ecrite": "non",
+      "pistes": [
+        "P8",
+        "P9"
+      ]
+    }
+  ]
+}

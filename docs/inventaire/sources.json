@@ -1,0 +1,38 @@
+{
+  "vues": {
+    "docs/inventaire/INVENTAIRE-UCM.html": [
+      "docs/inventaire/generer-inventaire.ts",
+      "docs/inventaire/releves.ts",
+      "docs/inventaire/couverture.ts",
+      "docs/inventaire/extraire.ts",
+      "docs/inventaire/gabarit.html",
+      "docs/inventaire/page.css",
+      "docs/inventaire/page.js",
+      "package.json",
+      "packages/*/package.json",
+      "packages/*/tests/**",
+      "packages/kit/src/**",
+      "packages/kit/fixtures/contrats/**",
+      "packages/couleur/src/**",
+      "packages/hub/src/modele/modele.ts",
+      "packages/plugin-socle/src/ui/Alerte.ts",
+      "packages/plugin-architect/src/ui/panneau/elements.ts",
+      "packages/plugin-architect/src/ui/textes/elements.ts",
+      "packages/cli/src/**",
+      "packages/cli/aides/*.md",
+      "packages/adapter-typescript/src/**",
+      "docs/marque/**",
+      "docs/references/**",
+      ".agents/skills/*/SKILL.md",
+      ".claude/agents/*.md",
+      ".github/workflows/*.yml",
+      "docs/format/COMPATIBILITE.md",
+      "docs/format/CHANGELOG-FORMAT.md",
+      "CONCEPT.md",
+      "ROADMAP.md",
+      "docs/notes/Recherches/README.md",
+      "docs/notes/Recherches/Evolutions globales/pistes.json",
+      "docs/notes/Recherches/Evolutions globales/decisions.json"
+    ]
+  }
+}

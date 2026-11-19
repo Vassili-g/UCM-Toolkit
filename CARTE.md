@@ -13,6 +13,20 @@ La documentation classée par sujet.
 - design-systems/ : noms et valeurs des tokens de 15 systèmes du marché, figés par SHA-256, et noms d'UCM
 - _outils/ : `guide.ts` (`etat`, `relever`, `verifier`, `rendre`), schémas de l'index, des fiches et des guides, gabarit HTML
 
+## docs/inventaire/
+L'inventaire du dépôt, vue générée sans autorité : chaque section nomme le fichier qui définit ce qu'elle montre.
+
+- INVENTAIRE-UCM.html : la page générée et commitée ; `tests/inventaire.test.ts` la compare à `genererInventaire`
+- generer-inventaire.ts : `genererInventaire` (asynchrone : la CLI se lit par `import()`) assemble `gabarit.html`, `page.css` et `page.js` ; un `{{nom}}` sans valeur échoue (`npm run vues`)
+- releves.ts : ce que la page lit dans le kit compilé (à travers un `Proxy` qui relève chaque nom lu), le moteur de couleur, le hub, la CLI, le socle et les fichiers du dépôt ; valide `pistes.json` et `decisions.json`
+- couverture.ts : `EXCLUSIONS`, les noms que la page ne montre pas exprès, un groupe par raison
+- extraire.ts : une section, un tableau ou des sous-titres d'un Markdown, par son titre
+- gabarit.html : le texte de la page écrit à la main, avec ses trous `{{nom}}`
+- page.css : feuille de la page
+- page.js : script de la page : panneau des variables, trajet du Button, feuille de route, filtres, destinataires
+- package.json : marque le dossier en ESM, pour que `npm run vues` charge le générateur
+- sources.json : les fichiers dont la page dépend, lus par `npm run agents:diff` (« Vues à régénérer »)
+
 ## docs/notes/
 - Archives/ : notes archivées
 - Recherches/ : recherches et plans en cours
@@ -42,7 +56,7 @@ Procédures qu'un agent charge à la demande.
 - pins-servis.mjs : versions que le registre sert
 - run-tests.cjs : découvreur de tests
 - agents-contexte.mjs : documents à lire avant de modifier un fichier et à relire après, calculés depuis `.agents/domiciles.json`
-- vues.mjs : `npm run vues`, reconstruit le kit si besoin et régénère le hub, la planche et les données de la vue illustrée
+- vues.mjs : `npm run vues`, reconstruit le kit si besoin et régénère le hub, la planche, les données de la vue illustrée et l'inventaire
 - verifier-conservation.mjs : garde de conservation de la réécriture d'`AGENTS.md`
 
 ## .claude/
@@ -67,6 +81,7 @@ Les tests du monorepo lui-même.
 - referencesComposants.test.ts : registre des systèmes, extraction des noms et valeurs, schémas, guide d'essai et données réelles de `docs/references/`
 - styleDocumentaire.test.ts : tics de rédaction refusés sur tout le dépôt, hors `EXCLUS_DU_CONTROLE`
 - extraireInventaire.test.ts : `docs/inventaire/extraire.ts` rend une section, un tableau ou des sous-titres d'un Markdown, et lève sur un titre absent
+- inventaire.test.ts : la page de l'inventaire commitée égale la page régénérée, reste autonome sous 1 Mo, montre ou exclut chaque élément de ses univers (exports du kit, paquets, dossiers, skills, commandes, codes), et chaque source de `docs/inventaire/sources.json` désigne un fichier
 - styleMotifs.test.ts : chaque motif de style, le niveau refus ou signal, les hooks d'écriture et de réponse
 - pinDocumente.test.mjs : versions montrées par une commande copiable
 - registrePortableDocuments.test.ts : aucun document portable ne promet une stack
@@ -75,7 +90,7 @@ Les tests du monorepo lui-même.
 - kitCompileAJour.test.mjs : un plugin ne se construit pas sur un kit compilé périmé
 - portesDocumentees.test.mjs : chaque porte publique du kit est décrite dans son README
 - pluginsSepares.test.ts : aucun des quatre plugins n'importe un autre
-- referentielUnique.test.ts : aucune liste littérale ne recopie une donnée du référentiel
+- referentielUnique.test.ts : aucune liste littérale ne recopie une donnée du référentiel, dans les paquets, `tests/` et `docs/inventaire/*.ts`
 - reglesUniques.test.ts : une règle que porte une fonction unique n'est recopiée nulle part
 - vueIllustree.test.ts : vue illustrée montre le référentiel d'aujourd'hui
 - corpusUcm.test.ts : noms, registres et empreintes du corpus UCM suivent leurs sources
