@@ -427,7 +427,8 @@ test("montée de version — le repository épingle son outil et ne redéclare j
     const workflow = readFileSync(join(racine, ".github", "workflows", "ucm.yml"), "utf8");
     const configuration = readFileSync(join(racine, "ucm.config.json"), "utf8");
 
-    assert.match(workflow, /npx --yes @ucm-kit\/cli@\d+\.\d+\.\d+ check/);
+    assert.match(workflow, /node node_modules\/@ucm-kit\/cli\/src\/ucm\.mjs "\$@"/);
+    assert.doesNotMatch(workflow, /@ucm-kit\/cli@/);
     assert.doesNotMatch(workflow, /@ucm-kit\/cli@[\^~]/, "aucune plage de version");
     assert.doesNotMatch(
       configuration,
@@ -476,7 +477,8 @@ test("GitLab — un repository vide avec --forge gitlab reçoit les deux fichier
     for (const globale of ["workflow", "image", "variables", "stages", "default", "include"]) {
       assert.equal(globale in job, false, `clé globale ${globale}`);
     }
-    assert.match(job.ucm.script.join("\n"), /npx --yes @ucm-kit\/cli@\d+\.\d+\.\d+ check --report ci-report\.md/);
+    assert.match(job.ucm.script.join("\n"), /ucm check --report ci-report\.md/);
+    assert.match(job.ucm.script.join("\n"), /node node_modules\/@ucm-kit\/cli\/src\/ucm\.mjs "\$@"/);
   } finally {
     rmSync(racine, { recursive: true, force: true });
   }

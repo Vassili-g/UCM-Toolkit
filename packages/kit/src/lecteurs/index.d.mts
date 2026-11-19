@@ -773,12 +773,12 @@ declare module "@ucm-kit/core/lecteurs" {
    * disculper Figma sans l'avoir consulté.
    */
   export function diagnosticEchecsDeTests(
-    resultat: { echoue: boolean; echecs: readonly EchecDeTest[] },
+    resultat: { echoue: boolean; echecs: readonly EchecDeTest[]; bloquant?: boolean },
     avertissements?: readonly string[] | null,
   ): string[];
 
   /** Même constat, pour le terminal du développeur. */
   export function resumeTerminalEchecsDeTests(
-    resultat: { echoue: boolean; echecs: readonly EchecDeTest[] },
+    resultat: { echoue: boolean; echecs: readonly EchecDeTest[]; bloquant?: boolean },
   ): string[];
 }

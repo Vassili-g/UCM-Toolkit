@@ -378,12 +378,13 @@ const RESUME_DE_LECTURE = {
  *
  * Un écart qui bloque se lit pour tout composant, y compris un composant que la
  * demande ne touche pas (du code partagé crée l'écart ailleurs). Un écart que la
- * demande ne juge pas ne se lit que pour les composants qu'elle touche.
+ * demande ne juge pas se lit pour les composants qu'elle touche, et pour tous
+ * les composants dans une demande de tokens seuls.
  */
 function sectionsDuCode(entrees, { verdict, bilansDuRapport, maintenant }) {
   const { code: repondDuCode } = reponseDeLaDemande(verdict.demande);
   const lignes = [];
-  const dansLePerimetre = (entree) => bilansDuRapport.includes(entree.bilan);
+  const dansLePerimetre = (entree) => verdict.demande === "tokens-seuls" || bilansDuRapport.includes(entree.bilan);
 
   const ecarts = avecConstat(entrees, "ecart").filter((entree) => repondDuCode || dansLePerimetre(entree));
   if (ecarts.length > 0) {
@@ -518,6 +519,7 @@ function rapportMarkdown(bilans, fautifs, bilansDuRapport, contexte) {
     // propriété que l'export n'a pas pu décrire n'est citée par personne et ne
     // produit donc aucun écart : sans ce rappel, elle passerait sous un `✅`.
     lignes.push(...sectionAvertissementsExport(bilansDuRapport));
+    lignes.push(...diagnosticEchecsDeTests(echecsDeTests, bilansDuRapport.flatMap((bilan) => bilan.avertissements)));
     lignes.push(...sectionsDuCode(entrees, optionsDuCode));
     ajouterImplementationsEnAttente(lignes, bilansDuRapport);
     // En dernier : la coupe du rapport emporte d'abord l'information.
@@ -788,7 +790,7 @@ function terminalDuVerdict(entrees, { verdict, bilansDuRapport }) {
   const fil = [];
   const nombre = (liste) => libelleNombre(liste.length, "composant");
 
-  const ecarts = avecConstat(entrees, "ecart").filter((entree) => repondDuCode || bilansDuRapport.includes(entree.bilan));
+  const ecarts = avecConstat(entrees, "ecart").filter((entree) => repondDuCode || verdict.demande === "tokens-seuls" || bilansDuRapport.includes(entree.bilan));
   if (ecarts.length > 0) {
     fil.push(repondDuCode
       ? { flux: "error", texte: `
@@ -945,7 +947,7 @@ function demarrage({ dossierDeclare, dossierAbsent, sourceTokens, tokensAbsents,
   }
 
   const lignes = echecsDeTests.echoue
-    ? enteteDuVerdict([], false)
+    ? (echecsDeTests.bloquant === false ? [`## ${GLYPHES.tenu.forge} Aucun blocage détecté`, ""] : enteteDuVerdict([], false))
     : [
       `## ${GLYPHES.tenu.forge} Ce repository n'a pas encore reçu d'export`,
       "",
@@ -979,7 +981,7 @@ function demarrage({ dossierDeclare, dossierAbsent, sourceTokens, tokensAbsents,
   return {
     bilans: [],
     fautifs: [],
-    bloquant: echecsDeTests.echoue,
+    bloquant: echecsDeTests.echoue && echecsDeTests.bloquant !== false,
     rapport: finaliserRapport(lignes.join("\n")),
     terminal,
   };
@@ -1057,6 +1059,24 @@ export function controlerRepository(racine, {
 } = {}) {
   const sourceTokens = configuration.tokens;
   const motif = configuration.implementation;
+
+  const demande = genreDeLaDemande(cheminsModifies, { cheminTokens: sourceTokens, tokensModifies });
+  // Une copie sans historique complet n'est pas jugée : le contrôle le dit
+  // avant de lire un seul contrat.
+  const { erreurDInvocation } = verdictDeLaDemande({ demande, historique });
+  if (erreurDInvocation) {
+    return {
+      ...abandon(
+        "Le contrôle ne peut pas juger cette demande",
+        erreurDInvocation.geste,
+        [{ flux: "error", texte: `${GLYPHES.bloquant.brut} ${erreurDInvocation.geste}` }],
+        echecsDeTests,
+      ),
+      erreurDInvocation,
+    };
+  }
+
+  echecsDeTests = { ...echecsDeTests, bloquant: demande !== "tokens-seuls" };
 
   // Les contrats se cherchent avant que les tokens soient jugés, parce que leur
   // nombre décide de ce qu'un fichier de tokens absent signifie. Un contrat cite
@@ -1148,22 +1168,6 @@ export function controlerRepository(racine, {
     });
   }
 
-  const demande = genreDeLaDemande(cheminsModifies, { cheminTokens: sourceTokens, tokensModifies });
-  // Une copie sans historique complet n'est pas jugée : le contrôle le dit
-  // avant de lire un seul contrat.
-  const { erreurDInvocation } = verdictDeLaDemande({ demande, historique });
-  if (erreurDInvocation) {
-    return {
-      ...abandon(
-        "Le contrôle ne peut pas juger cette demande",
-        erreurDInvocation.geste,
-        [{ flux: "error", texte: `${GLYPHES.bloquant.brut} ${erreurDInvocation.geste}` }],
-        echecsDeTests,
-      ),
-      erreurDInvocation,
-    };
-  }
-
   const documents = contrats.flatMap((chemin) => {
     try {
       return [{ chemin, contrat: JSON.parse(readFileSync(chemin, "utf8").replace(/^﻿/, "")) }];
@@ -1179,7 +1183,12 @@ export function controlerRepository(racine, {
   // `cheminImplementation` accepte un motif à cette place. Le raccourci
   // `map(cheminImplementation)` ferait donc résoudre un motif valant `0`.
   const implementations = contrats.map((chemin) => cheminImplementation(chemin, motif));
-  const apiPublique = adaptateur.lireApiPublique(implementations, racine);
+  let apiPublique;
+  try { apiPublique = adaptateur.lireApiPublique(implementations, racine); } catch {
+    if (adaptateurAttendu !== "sans-adaptateur") adaptateurAttendu = "casse";
+    adaptateur = ADAPTATEUR_VIDE;
+    apiPublique = new Map();
+  }
 
   const contexte = {
     racine, motif, apiPublique, adaptateur,
@@ -1235,7 +1244,7 @@ export function controlerRepository(racine, {
   }));
   // Un contrat invalide ne refuse que s'il est de ceux dont la demande répond.
   const fautifs = bilans.filter((bilan, rang) => bilanEstBloquant(bilan) && entrees[rang].jugement.bloquant);
-  const bloquant = verdict.bloquant || echecsDeTests.echoue;
+  const bloquant = verdict.bloquant || (echecsDeTests.echoue && echecsDeTests.bloquant);
   // Le fichier des dérogations est un fichier de code : le modifier compte
   // comme toucher UCM, sans quoi un refus pour ses erreurs n'aurait pas de demande.
   const concerne = concerneUcm || modifies.has(CHEMIN_DES_DEROGATIONS);

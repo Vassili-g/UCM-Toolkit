@@ -46,7 +46,7 @@ for (const commande of [["check"], ["icons"], ["tokens", "css", "--out", "tokens
   });
 }
 
-test("check distingue un adaptateur installé invalide d'une panne du contrôle", async () => {
+test("un adaptateur installé invalide ne refuse pas un repository sans code ni contrat", async () => {
   const racine = repoVierge();
   try {
     const dossier = join(racine, "node_modules", "@ucm-kit", "adapter-typescript");
@@ -56,9 +56,8 @@ test("check distingue un adaptateur installé invalide d'une panne du contrôle"
     const lignes = [];
     assert.equal(await executer(["check"], {
       racine, env: {}, alerter: (texte) => lignes.push(texte),
-    }), 2);
-    assert.match(lignes.join("\n"), /adaptateur.*installé.*chargé/);
-    assert.match(lignes.join("\n"), /ne publie pas un adaptateur UCM valide/);
+    }), 0);
+    assert.doesNotMatch(lignes.join("\n"), /ne publie pas un adaptateur UCM valide/);
   } finally {
     rmSync(racine, { recursive: true, force: true });
   }
@@ -175,22 +174,24 @@ test("la configuration écrite ne porte aucun numéro de version", () => {
  * Trois propriétés le rendent utilisable dans un repository quelconque, et
  * chacune répond à une contrainte écrite ailleurs :
  *
- * - le paquet est épinglé exactement, une plage laisserait npm choisir
- *   une version que personne n'a essayée, et la CI d'un designer basculerait
- *   sans qu'un fichier du repo ait bougé ;
+ * - une stack Node exécute sa CLI installée : une mise à jour du paquet suffit,
+ *   sans numéro à recopier dans le workflow ;
  * - `npx --yes` reste suffisant sans lockfile ; un repo Node installe
  *   sa stack pour rendre son adaptateur visible ;
  * - le sha de base voyage par l'environnement, jamais par interpolation dans
  *   le shell.
  */
-test("init écrit un workflow portable qui installe seulement une stack déclarée", () => {
+test("init lance la CLI installée de la stack déclarée sans recopier sa version dans le workflow", () => {
   const racine = repoVierge();
   try {
     const resultat = init(racine);
     const workflow = readFileSync(join(racine, ".github/workflows/ucm.yml"), "utf8");
 
     assert.ok(resultat.ecrits.includes(".github/workflows/ucm.yml"));
-    assert.match(workflow, new RegExp(`npx --yes @ucm-kit/cli@${resultat.version}\\b`));
+    assert.match(workflow, /node node_modules\/@ucm-kit\/cli\/src\/ucm\.mjs "\$@"/);
+    assert.match(workflow, /if \[ -f package\.json \]; then/);
+    assert.match(workflow, /npx --yes @ucm-kit\/cli "\$@"/, 'le dossier sans stack Node garde le contrôle portable');
+    assert.doesNotMatch(workflow, /@ucm-kit\/cli@/, 'package.json est la seule version du contrôle');
     assert.doesNotMatch(workflow, /\^|~/, "aucune plage de version");
     assert.match(workflow, /if: hashFiles\('package-lock\.json'\) != ''/);
     assert.match(workflow, /run: npm ci/);

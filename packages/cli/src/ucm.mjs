@@ -11,7 +11,7 @@ import { pathToFileURL } from "node:url";
 
 import { lireConfiguration } from "@ucm-kit/core/lecteurs";
 
-import { chargerAdaptateur, NOM_ADAPTATEUR_TYPESCRIPT } from "./adaptateur.mjs";
+import { chargerAdaptateur } from "./adaptateur.mjs";
 import { aides } from "./aides.mjs";
 import { check } from "./check.mjs";
 import { guide } from "./guide.mjs";
@@ -205,15 +205,13 @@ function executerCommande(arguments_, {
         echecsDeTests: tests.valeur,
         ecrire,
         ...sorties,
-      }), (erreur) => {
-        const alerter = sorties.alerter ?? console.error;
-        alerter(
-          `L'adaptateur ${NOM_ADAPTATEUR_TYPESCRIPT} est installé mais n'a pas pu être chargé : `
-          + `${erreur?.message ?? erreur}\n`
-          + "Un développeur doit corriger son installation ou son tsconfig.json.",
-        );
-        return 2;
-      });
+      }), (erreurAdaptateur) => check(arguments_.slice(1), {
+        racine,
+        erreurAdaptateur,
+        echecsDeTests: tests.valeur,
+        ecrire,
+        ...sorties,
+      }));
   }
 
   if (commande === "tokens") {

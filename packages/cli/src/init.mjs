@@ -11,8 +11,8 @@
  *
  * **Elle n'écrit aucune version du format**, nulle part : la configuration
  * n'en porte aucune (voir `configuration.mjs` du kit), et le paquet installé
- * dit ce qu'il lit. Le seul numéro écrit est le pin de la CLI, dans le workflow
- * et dans les deux relais d'agent.
+ * dit ce qu'il lit. Les deux relais d'agent épinglent la CLI ; le workflow
+ * lance celle que le repository installe.
  *
  * **`--components`, `--tokens` et `--implementation` décident une seule fois.** Le
  * `ucm.config.json` écrit ici est la seule autorité sur l'endroit où les
@@ -261,7 +261,7 @@ function fichiers(version, chemins, { agents = true, gabarits = [], forge = "git
     },
     ...(forge === "gitlab"
       ? [
-        { chemin: CHEMIN_CI_GITLAB, contenu: workflowGitlab(version) },
+        { chemin: CHEMIN_CI_GITLAB, contenu: workflowGitlab() },
         {
           chemin: ".gitlab-ci.yml",
           contenu: `include:\n  - local: ${CHEMIN_CI_GITLAB}\n`,
@@ -269,7 +269,7 @@ function fichiers(version, chemins, { agents = true, gabarits = [], forge = "git
           rappel: `ajoutez \`- local: ${CHEMIN_CI_GITLAB}\` à sa liste \`include:\`. Sans cette ligne, le job ucm ne tourne jamais et aucune merge request n'est contrôlée.`,
         },
       ]
-      : [{ chemin: ".github/workflows/ucm.yml", contenu: workflow(version) }]),
+      : [{ chemin: ".github/workflows/ucm.yml", contenu: workflow() }]),
     ...(agents
       ? [
         { chemin: ".agents/skills/ucm-implementer/SKILL.md", contenu: relais(version) },
@@ -389,6 +389,19 @@ function lignesRestantes(racine, version, configuration) {
   return lignes;
 }
 
+/** Un repository Node utilise sa CLI installée ; un dossier sans stack Node garde le contrôle portable par npm. */
+function lancementUcm(marge) {
+  return [
+    'ucm() {',
+    '  if [ -f package.json ]; then',
+    '    node node_modules/@ucm-kit/cli/src/ucm.mjs "$@"',
+    '  else',
+    '    npx --yes @ucm-kit/cli "$@"',
+    '  fi',
+    '}',
+  ].map((ligne) => marge + ligne);
+}
+
 /**
  * Le workflow de contrôle, écrit pour un repository quelconque.
  *
@@ -417,8 +430,8 @@ function lignesRestantes(racine, version, configuration) {
  * la séparation ne borne que ce qu'une dépendance obtient. Une fourche reçoit
  * de GitHub un jeton en lecture seule, et son commentaire échoue.
  */
-function workflow(version) {
-  const commande = `npx --yes @ucm-kit/cli@${version} check --report ci-report.md`;
+function workflow() {
+  const commande = 'ucm check --report ci-report.md';
   return [
     "# Contrôle des contrats UCM.",
     "#",
@@ -467,6 +480,7 @@ function workflow(version) {
     "        env:",
     "          BASE_SHA: ${{ github.event.pull_request.base.sha }}",
     "        run: |",
+    ...lancementUcm('          '),
     '          if [ -n "$BASE_SHA" ]; then',
     `            ${commande} --base "$BASE_SHA"`,
     "          else",
@@ -581,8 +595,8 @@ function workflow(version) {
  * de `ucm`, et `allow_failure` garde le pipeline de la couleur du contrôle
  * quand GitLab refuse le jeton : le rapport reste dans les artefacts.
  */
-function workflowGitlab(version) {
-  const cli = `npx --yes @ucm-kit/cli@${version}`;
+function workflowGitlab() {
+  const cli = 'ucm';
   return [
     "# Contrôle des contrats UCM, inclus par .gitlab-ci.yml.",
     "#",
@@ -619,6 +633,7 @@ function workflowGitlab(version) {
     "    # noyau portable reste seul.",
     "    - if [ -f package-lock.json ]; then npm ci; fi",
     "    - |",
+    ...lancementUcm('      '),
     '      if [ -n "$CI_MERGE_REQUEST_DIFF_BASE_SHA" ]; then',
     `        ${cli} check --report ci-report.md --base "$CI_MERGE_REQUEST_DIFF_BASE_SHA"`,
     "      else",
@@ -660,7 +675,7 @@ function workflowGitlab(version) {
     "    # Depuis un dossier vide, npx ne lit ni configuration ni paquet laissés",
     "    # par un job précédent sur le runner.",
     "    - cd \"$(mktemp -d)\"",
-    `    - ${cli} rapport-gitlab --projet "$CI_PROJECT_ID" --merge-request "$CI_MERGE_REQUEST_IID" --fichier "$CI_PROJECT_DIR/ci-report.md" --api "$CI_API_V4_URL"`,
+    '    - npx --yes @ucm-kit/cli rapport-gitlab --projet "$CI_PROJECT_ID" --merge-request "$CI_MERGE_REQUEST_IID" --fichier "$CI_PROJECT_DIR/ci-report.md" --api "$CI_API_V4_URL"',
     "",
   ].join("\n");
 }

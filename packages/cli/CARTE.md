@@ -9,9 +9,10 @@ Ligne de commande : @ucm-kit/cli, publiée.
 
 ## src/
 - ucm.mjs : aiguillage et codes de sortie ; `COMMANDES` (nom, usage, rôle, options) dont `ucm --help` est construit
-- init.mjs : installe ce qui manque, sans jamais écraser
-- check.mjs : lance le contrôle du kit, imprime, écrit le rapport
-- adaptateur.mjs : découvre l'adaptateur de stack installé dans le repo
+- init.mjs : installe ce qui manque, sans jamais écraser ; workflows sans numéro de CLI recopié, exécution du paquet installé dans une stack Node et repli portable sans stack
+- check.mjs : passe les rangs Git et l’état de l’adaptateur au contrôle du kit, imprime, écrit le rapport ; 0 conforme, 1 refus, 2 invocation
+- adaptateur.mjs : découvre l'adaptateur de stack installé dans le repo ; table officielle des extensions et état attendu (`present`, `absent`, `casse`, `sans-adaptateur`)
+- rangs.mjs : rangs des contrats, des implémentations et des tokens sur le premier parent, avec dates et changements non commités ; détecte le clone superficiel
 - icons.mjs : icônes que les contrats du repo réclament
 - rapport-gitlab.mjs : note du rapport sur une merge request GitLab
 - tokens-css.mjs : feuille CSS des tokens et de leurs modes, depuis `tokens.json`

@@ -37,7 +37,9 @@ a range lets npx install a build this project has not tested.
 writes needs no `package.json`, so an iOS or Android repository, or a plain
 folder of contracts, can have its exports checked. When a `package-lock.json`
 exists, the workflow runs `npm ci` first, so `ucm check` finds a stack adapter
-the repository installed.
+the repository installed. It runs the CLI installed in `node_modules`, so
+updating the dependency does not require a second version edit in the workflow.
+Without a Node manifest, the portable check uses the CLI served by npm.
 
 ## Commands
 

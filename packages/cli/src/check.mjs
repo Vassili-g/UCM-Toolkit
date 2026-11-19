@@ -12,6 +12,8 @@ import { controlerRepository, lireConfiguration } from "@ucm-kit/core/lecteurs";
 import { NOM_CONFIGURATION } from "@ucm-kit/core/format";
 import { contratsDuDossier } from "./contrats.mjs";
 import { memeFichier } from "./tokens-css.mjs";
+import { etatDeLAdaptateur } from "./adaptateur.mjs";
+import { mesurerLesRangs } from "./rangs.mjs";
 
 /**
  * Lit les arguments de `ucm check`.
@@ -63,7 +65,7 @@ export function releveDuDiff(racine, base, sourceTokens, executer = execFileSync
   // et aucune extension de fichier ne s'écrit ici.
   let cheminsModifies;
   try {
-    cheminsModifies = git(["diff", "--name-only", "-z", base, "HEAD"]);
+    cheminsModifies = git(["diff", "--name-only", "-z", "--relative", base, "HEAD"]);
   } catch (erreur) {
     return {
       erreur: `Le diff depuis « ${base} » a échoué : ${erreur?.message ?? erreur}.\n`
@@ -106,7 +108,9 @@ export function releveDuDiff(racine, base, sourceTokens, executer = execFileSync
 export function check(arguments_, {
   racine = process.cwd(),
   adaptateur,
+  erreurAdaptateur,
   echecsDeTests,
+  maintenant = new Date(),
   ecrire = console.log,
   avertir = console.warn,
   alerter = console.error,
@@ -152,10 +156,25 @@ export function check(arguments_, {
     perimetre = releve;
   }
 
+  let mesures;
+  try {
+    mesures = mesurerLesRangs(racine, configuration, contratsDuDossier(resolve(racine, configuration.components)), {
+      base: options.base,
+      modifies: (perimetre.cheminsModifies ?? "").split("\n").filter(Boolean),
+      executer: executerGit,
+      maintenant,
+    });
+  } catch (erreur) {
+    alerter(erreur?.message ?? String(erreur));
+    return 2;
+  }
   const verdict = controlerRepository(racine, {
     configuration,
     adaptateur,
     echecsDeTests,
+    maintenant,
+    adaptateurAttendu: etatDeLAdaptateur(configuration.implementation, { adaptateur, erreurAdaptateur }),
+    ...mesures,
     ...perimetre,
   });
 
@@ -170,5 +189,5 @@ export function check(arguments_, {
     ecrireFichier(cible, `${verdict.rapport}\n`, "utf8");
   }
 
-  return verdict.bloquant ? 1 : 0;
+  return verdict.erreurDInvocation ? 2 : verdict.bloquant ? 1 : 0;
 }

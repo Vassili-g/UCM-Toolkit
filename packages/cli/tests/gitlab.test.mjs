@@ -85,7 +85,9 @@ test("pour GitLab, init écrit le job inclus et .gitlab-ci.yml, jamais de workfl
     ]);
     const script = job.ucm.script.join("\n");
     assert.match(script, /if \[ -f package-lock\.json \]; then npm ci; fi/);
-    assert.match(script, new RegExp(`@ucm-kit/cli@${resultat.version} check --report ci-report\\.md --base "\\$CI_MERGE_REQUEST_DIFF_BASE_SHA"`));
+    assert.match(script, /node node_modules\/@ucm-kit\/cli\/src\/ucm\.mjs "\$@"/);
+    assert.match(script, /ucm check --report ci-report\.md --base "\$CI_MERGE_REQUEST_DIFF_BASE_SHA"/);
+    assert.doesNotMatch(script, /@ucm-kit\/cli@/, 'la version vient du paquet installé');
     assert.deepEqual(job.ucm.artifacts, { when: "always", paths: ["ci-report.md"] });
 
     const note = job["ucm-rapport"];

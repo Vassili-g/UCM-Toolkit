@@ -60,15 +60,15 @@ function detailErreurTest({ composant, test, nomErreur, erreur }) {
  * anticipées, qui publient avant d'avoir lu le moindre contrat. Les confondre
  * ferait disculper Figma sans l'avoir consulté.
  */
-export function diagnosticEchecsDeTests({ echoue, echecs }, avertissements = null) {
+export function diagnosticEchecsDeTests({ echoue, echecs, bloquant = true }, avertissements = null) {
   if (!echoue) return [];
   if (echecs.length === 0) {
     return rendreDiagnostic({
-      severity: "error",
+      severity: bloquant ? "error" : "warning",
       title: "Les tests n'ont pas terminé",
       summary: "La suite s'est arrêtée avant de produire un résultat exploitable.",
       action: "Un développeur doit consulter les logs de la CI et corriger l'exécution des tests.",
-      status: "La fusion reste bloquée.",
+      status: bloquant ? "La fusion reste bloquée." : "Ce point ne bloque pas votre demande.",
     });
   }
 
@@ -90,7 +90,7 @@ export function diagnosticEchecsDeTests({ echoue, echecs }, avertissements = nul
         ];
 
     lignes.push(...rendreDiagnostic({
-      severity: "error",
+      severity: bloquant ? "error" : "warning",
       title: "Le code n'est plus conforme aux contrats",
       count: composants.length,
       itemSingular: "composant",
@@ -99,14 +99,14 @@ export function diagnosticEchecsDeTests({ echoue, echecs }, avertissements = nul
       detailsTitle: "Écarts détectés",
       details: rendu.map(detailEchecRendu),
       action,
-      status: "La fusion reste bloquée.",
+      status: bloquant ? "La fusion reste bloquée." : "Ce point ne bloque pas votre demande.",
     }));
   }
 
   if (testsComposants.length > 0) {
     const composants = [...new Set(testsComposants.map(({ composant }) => composant))];
     lignes.push(...rendreDiagnostic({
-      severity: "error",
+      severity: bloquant ? "error" : "warning",
       title: "Les tests n'ont pas pu vérifier la conformité",
       count: composants.length,
       itemSingular: "composant",
@@ -115,13 +115,13 @@ export function diagnosticEchecsDeTests({ echoue, echecs }, avertissements = nul
       detailsTitle: "Erreurs détectées",
       details: testsComposants.map(detailErreurTest),
       action: "Un développeur doit vérifier la lecture du contrat, puis corriger le test ou le code qui provoque l'erreur.",
-      status: "La fusion reste bloquée tant que ces tests ne produisent pas de résultat.",
+      status: bloquant ? "La fusion reste bloquée tant que ces tests ne produisent pas de résultat." : "Ce point ne bloque pas votre demande.",
     }));
   }
 
   if (gardeFous.length > 0) {
     lignes.push(...rendreDiagnostic({
-      severity: "error",
+      severity: bloquant ? "error" : "warning",
       title: gardeFous.length === 1
         ? "Un garde-fou du repository est en échec"
         : "Des garde-fous du repository sont en échec",
@@ -131,7 +131,7 @@ export function diagnosticEchecsDeTests({ echoue, echecs }, avertissements = nul
       detailsTitle: "Tests en échec",
       details: gardeFous.map(({ fichier, test }) => `\`${fichier ?? "?"}\` : ${test}`),
       action: "Un développeur du repository doit corriger ces contrôles.",
-      status: "La fusion reste bloquée.",
+      status: bloquant ? "La fusion reste bloquée." : "Ce point ne bloque pas votre demande.",
     }));
   }
 
@@ -139,15 +139,16 @@ export function diagnosticEchecsDeTests({ echoue, echecs }, avertissements = nul
 }
 
 /** Même constat, pour le terminal du développeur. */
-export function resumeTerminalEchecsDeTests({ echoue, echecs }) {
+export function resumeTerminalEchecsDeTests({ echoue, echecs, bloquant = true }) {
+  const signe = bloquant ? GLYPHES.bloquant.brut : GLYPHES.corriger.brut;
   if (!echoue) return [];
   if (echecs.length === 0) {
-    return [`${GLYPHES.bloquant.brut} La suite de tests n'a pas terminé. Consultez la sortie ci-dessus.`];
+    return [`${signe} La suite de tests n'a pas terminé. Consultez la sortie ci-dessus.`];
   }
   const { rendu, testsComposants } = repartirEchecs(echecs);
   const lignes = [
-    ...echecs.map(({ fichier, test }) => `${GLYPHES.bloquant.brut} ${fichier ?? "?"} : ${test}`),
-    `\n${GLYPHES.bloquant.brut} ${libelleNombre(echecs.length, "test")} en échec.`,
+    ...echecs.map(({ fichier, test }) => `${signe} ${fichier ?? "?"} : ${test}`),
+    `\n${signe} ${libelleNombre(echecs.length, "test")} en échec.`,
   ];
   if (rendu.length > 0) {
     lignes.push("  Assertions de rendu en échec : le composant et le contrat ne correspondent plus.");

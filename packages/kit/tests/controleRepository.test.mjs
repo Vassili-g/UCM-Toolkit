@@ -122,6 +122,32 @@ const DEMANDE_DE_TOKENS = { cheminsModifies: CONFIGURATION.tokens, tokensModifie
 const DEMANDE_DE_CONTRAT = { cheminsModifies: "src/components/Widget/Widget.contract.json" };
 const DEMANDE_DE_CODE = { cheminsModifies: "src/components/Widget/Widget.tsx" };
 
+for (const composants of [undefined, {}]) test(`V-04 : les tests du repository ne refusent pas les tokens seuls${composants ? ' sans contrat' : ''}`, () => {
+  const { bloquant, rapport } = verdict({
+    ...DEMANDE_DE_TOKENS, composants,
+    echecsDeTests: { echoue: true, echecs: [{ fichier: 'outillage.test.mjs', test: 'garde-fou' }] },
+  });
+  assert.equal(bloquant, false);
+  assert.match(rapport, /Un développeur du repository doit corriger ces contrôles/);
+  assert.match(rapport, /Ce point ne bloque pas votre demande/);
+  assert.doesNotMatch(rapport, /La fusion reste bloquée/);
+});
+
+test('V-19 : un clone superficiel reste une erreur d’invocation sans contrat', () => {
+  const resultat = verdict({ composants: {}, historique: 'superficiel' });
+  assert.equal(resultat.erreurDInvocation?.code, 2);
+});
+
+for (const [portee, attendu] of [[DEMANDE_DE_CONTRAT, false], [DEMANDE_DE_CODE, true]]) test(`V-16 : un adaptateur qui échoue à lire donne un constat, blocage ${attendu}`, () => {
+  const resultat = verdict({
+    ...portee, adaptateurAttendu: 'present',
+    adaptateur: { lireApiPublique() { throw new Error('tsconfig illisible'); } },
+  });
+  assert.equal(resultat.bloquant, attendu);
+  assert.equal(resultat.erreurDInvocation, null);
+  assert.match(resultat.rapport, /Un développeur doit installer/);
+});
+
 test("un rapport trop long pour un commentaire GitHub s'arrête avant la limite et dit où lire la suite", () => {
   // `gh pr comment` refuse un corps de plus de 65 536 caractères : les deux
   // tentatives du workflow échouaient, et la pull request restait sans un mot.
@@ -797,7 +823,7 @@ test("V-05 puis V-18 : l'envoi sur main qui suit reste vert tant que le contrat 
 });
 
 test("V-04 : une demande de tokens seuls passe malgré un écart du code qui existait déjà", () => {
-  const { bloquant, verdict: jugement } = verdict({
+  const { bloquant, rapport, terminal, verdict: jugement } = verdict({
     adaptateur: adaptateurDeParite({ manquantes: ["label"] }),
     ...DEMANDE_DE_TOKENS,
     // L'écart est antérieur : le code n'est pas plus ancien que le contrat.
@@ -806,6 +832,9 @@ test("V-04 : une demande de tokens seuls passe malgré un écart du code qui exi
 
   assert.equal(bloquant, false);
   assert.equal(jugement.composants[0].etat, "ecart");
+  assert.match(rapport, /Le code ne suit pas son contrat/);
+  assert.match(rapport, /Ce point ne bloque pas votre demande/);
+  assert.match(terminal.map(({ texte }) => texte).join('\n'), /le code ne suit pas son contrat/);
 });
 
 test("V-14 : une dérogation valide laisse passer une demande de code, et le rapport la donne à valider", () => {
