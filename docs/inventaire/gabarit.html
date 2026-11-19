@@ -425,9 +425,15 @@
   <h3>Les cinq outils que le designer ou le développeur manipule</h3>
   <p class="defini">Défini dans <code>packages/adapter-typescript/src/parite.mjs</code> pour l'adaptateur.</p>
 
+  <!-- Cartes d'outil : logo, nom, canal, rôle, ce que l'outil lit et écrit, limites ; le détail reste replié. Logos : logosDesOutils (releves.ts). -->
+  <div class="produits">
   <div class="fiche" data-pour="designer">
-    <div class="tete"><b>UCM Palettes</b><span class="etat livre">livré</span></div>
-    <p class="role">Calcule des rampes Light et Dark depuis une couleur de référence et écrit <span class="chemin"><span class="c">primitives</span>/color/{palette}/{soft|vivid}/{light|dark}/<span class="v">{cran}</span></span>.</p>
+    <div class="tete">{{logo:palettes}}<div class="nom"><b>UCM Palettes</b><span class="etat livre">livré</span><span class="canal">Plugin Figma, privé</span></div></div>
+    <p class="role">Calcule les rampes Light et Dark d'une palette.</p>
+    <dl class="faits">
+      <dt>Lit</dt><dd>Une couleur de référence</dd>
+      <dt>Écrit</dt><dd><span class="chemin"><span class="c">primitives</span>/color/{palette}/{soft|vivid}/{light|dark}/<span class="v">{cran}</span></span> et les planches</dd>
+    </dl>
     <h4>Limites</h4>
     <ul class="liste">
       <li>Contraste WCAG 2 seulement. APCA attend WCAG 3.</li>
@@ -447,8 +453,12 @@
   </div>
 
   <div class="fiche" data-pour="designer">
-    <div class="tete"><b>UCM Architect</b><span class="etat livre">livré</span></div>
-    <p class="role">Explore les variables d'un fichier déclaré UCM, les renomme, corrige la structure du thème et analyse un composant.</p>
+    <div class="tete">{{logo:architect}}<div class="nom"><b>UCM Architect</b><span class="etat livre">livré</span><span class="canal">Plugin Figma, privé</span></div></div>
+    <p class="role">Explore, renomme et corrige les variables, analyse un composant.</p>
+    <dl class="faits">
+      <dt>Lit</dt><dd>Les variables d'un fichier déclaré UCM, un composant</dd>
+      <dt>Écrit</dt><dd>Les noms des variables, la structure du thème, le composant</dd>
+    </dl>
     <h4>Limites</h4>
     <ul class="liste">
       <li>Le designer actualise après un changement de variables, que Figma ne signale pas.</li>
@@ -471,9 +481,13 @@
     </details>
   </div>
 
-  <div class="fiche" data-pour="designer developpeur">
-    <div class="tete"><b>UCM Contract Exporter</b><span class="etat livre">livré</span><span class="etat partiel">version Community ancienne</span></div>
-    <p class="role">Lit le composant sélectionné et écrit <code>&lt;Id&gt;.contract.json</code>. Sans sélection, écrit <code>tokens.json</code>. Ouvre une branche et une demande de fusion par fichier, ou propose un téléchargement.</p>
+  <div class="fiche large" data-pour="designer developpeur">
+    <div class="tete">{{logo:exporter}}<div class="nom"><b>UCM Contract Exporter</b><span class="etat livre">livré</span><span class="etat partiel">version Community ancienne</span><span class="canal">Plugin Figma, Figma Community</span></div></div>
+    <p class="role">Publie contrats et tokens.</p>
+    <dl class="faits">
+      <dt>Lit</dt><dd>Le composant sélectionné. Sans sélection, les variables.</dd>
+      <dt>Écrit</dt><dd><code>&lt;Id&gt;.contract.json</code> ou <code>tokens.json</code>, sur une branche avec une demande de fusion par fichier, ou en téléchargement</dd>
+    </dl>
     <h4>Limites</h4>
     <ul class="liste">
       <li>Un composant par export, aucune fusion automatique.</li>
@@ -489,8 +503,12 @@
   </div>
 
   <div class="fiche" data-pour="developpeur">
-    <div class="tete"><b>CLI</b><span class="paquet">@ucm-kit/cli</span><span class="etat livre">livré</span></div>
-    <p class="role">Installe la configuration d'un repository, contrôle les contrats à chaque demande de fusion, produit la feuille CSS et le guide d'un contrat. Ne demande pas de <code>package.json</code>.</p>
+    <div class="tete">{{logo:cli}}<div class="nom"><b>CLI</b><span class="etat livre">livré</span><span class="canal">Paquet npm <span class="mono">@ucm-kit/cli</span></span></div></div>
+    <p class="role">Contrôle les contrats à chaque demande de fusion. Ne demande pas de <code>package.json</code>.</p>
+    <dl class="faits">
+      <dt>Lit</dt><dd>Les contrats, <code>tokens.json</code>, le code par l'adaptateur</dd>
+      <dt>Écrit</dt><dd>La configuration du repository, le rapport, la feuille CSS, le guide d'un contrat</dd>
+    </dl>
     <h4>Limites</h4>
     <ul class="liste">
       <li>Sans adaptateur, le rapport dit que le code n'a pas été lu. Sans <a class="terme" href="#g-lockfile" title="package-lock.json fige les versions installées. Le workflow n'installe les dépendances que s'il existe.">lockfile</a>, le workflow saute <code>npm ci</code> et l'adaptateur ne se charge pas, ce qui est le cas d'intencial-library (<a href="#piste-P18">P18</a>).</li>
@@ -504,14 +522,20 @@
   </div>
 
   <div class="fiche" data-pour="developpeur">
-    <div class="tete"><b>Adaptateur TypeScript</b><span class="paquet">@ucm-kit/adapter-typescript</span><span class="etat livre">livré</span></div>
-    <p class="role">Compare les props du code aux props du contrat et génère les types des variantes. Paquet séparé parce que <code>typescript</code> pèse 23 Mo.</p>
-    <div class="deux">
-      <div><h4>Huit écarts, tous en avertissement</h4><ul class="liste">
-        <li>Interface absente.</li><li>Fonction absente.</li><li>Prop du contrat absente du code.</li><li>Type incompatible, jugé pour les booléens et les enums.</li><li>Valeur du contrat que le code n'offre pas.</li><li>Booléen jamais lu.</li><li>Enum sans effet.</li><li>Nombre d'occurrences d'une dépendance faux dans le JSX.</li></ul></div>
-      <div><h4>Ce qu'il ne voit pas</h4><ul class="liste">
-        <li>Une union plus large que le contrat.</li><li>Une dépendance rendue par <code>.map()</code>.</li><li>Le défaut d'un axe dans le code.</li><li>Les couleurs, tailles et polices rendues.</li><li>Une interface nommée autrement que <code>ButtonProps</code> donne le seul écart « interface absente », et aucune prop n'est comparée.</li></ul></div>
-    </div>
+    <div class="tete">{{logo:adaptateur}}<div class="nom"><b>Adaptateur TypeScript</b><span class="etat livre">livré</span><span class="canal">Paquet npm <span class="mono">@ucm-kit/adapter-typescript</span></span></div></div>
+    <p class="role">Compare les props du code à celles du contrat. Paquet séparé parce que <code>typescript</code> pèse 23 Mo.</p>
+    <dl class="faits">
+      <dt>Lit</dt><dd>Le code TypeScript et le contrat du composant</dd>
+      <dt>Écrit</dt><dd>Les types des variantes</dd>
+    </dl>
+    <h4>Ce qu'il ne voit pas</h4>
+    <ul class="liste">
+      <li>Une union plus large que le contrat.</li><li>Une dépendance rendue par <code>.map()</code>.</li><li>Le défaut d'un axe dans le code.</li><li>Les couleurs, tailles et polices rendues.</li><li>Une interface nommée autrement que <code>ButtonProps</code> donne le seul écart « interface absente », et aucune prop n'est comparée.</li></ul>
+    <details><summary>Huit écarts, tous en avertissement</summary>
+      <ul class="liste">
+        <li>Interface absente.</li><li>Fonction absente.</li><li>Prop du contrat absente du code.</li><li>Type incompatible, jugé pour les booléens et les enums.</li><li>Valeur du contrat que le code n'offre pas.</li><li>Booléen jamais lu.</li><li>Enum sans effet.</li><li>Nombre d'occurrences d'une dépendance faux dans le JSX.</li></ul>
+    </details>
+  </div>
   </div>
 </section>
 

@@ -299,10 +299,14 @@ async function valeurs(): Promise<Record<string, string>> {
   };
   for (const paquet of paquets) liste[`tests:${paquet.dossier}`] = String(paquet.fichiersDeTest);
   for (const entree of entrees) liste[`export:${entree.entree}`] = String(entree.noms.length);
+  for (const logo of releves.logosDesOutils()) {
+    const signe = logo.signe === null ? '' : `<span class="logo-signe">${logo.signe}</span>`;
+    liste[`logo:${logo.outil}`] = `<span class="logo" aria-hidden="true">${logo.svg}${signe}</span>`;
+  }
   return liste;
 }
 
-const PREFIXES_A_EMPLOYER = ['tests:', 'export:', 'regle:'];
+const PREFIXES_A_EMPLOYER = ['tests:', 'export:', 'regle:', 'logo:'];
 
 /** Remplace chaque `{{nom}}` par sa valeur et marque le nom comme employé. */
 function remplir(texte: string, fichier: string, liste: Record<string, string>, employes: Set<string>): string {
@@ -369,7 +373,7 @@ export async function genererInventaireEtCouverture(): Promise<{ page: string; c
   const html = remplir(lireDuDossier('gabarit.html'), 'gabarit.html', { ...liste, css, js }, employes);
   const oublies = Object.keys(liste).filter((nom) => PREFIXES_A_EMPLOYER.some((prefixe) => nom.startsWith(prefixe)) && !employes.has(nom));
   if (oublies.length) {
-    throw new Error(`Le gabarit n'emploie pas : ${oublies.join(', ')}. Un paquet, un point d'entrée du kit ou une règle décidée n'a pas sa place dans la page.`);
+    throw new Error(`Le gabarit n'emploie pas : ${oublies.join(', ')}. Un paquet, un point d'entrée du kit, une règle décidée ou un logo d'outil n'a pas sa place dans la page.`);
   }
   return { page: html, couverture: await couvertureDeLaPage(html, employes) };
 }

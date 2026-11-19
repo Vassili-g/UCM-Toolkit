@@ -401,6 +401,23 @@ export function signesEtAlertes() {
   return { familles, alertes };
 }
 
+/**
+ * Un SVG de `docs/marque/` sans taille fixe, ses identifiants préfixés : une même image posée deux fois dans la page garde des
+ * identifiants uniques. Un logo décoratif perd son `<title>`, car le nom du produit s'écrit à côté.
+ */
+function svgDeMarque(chemin: string, prefixe: string, decoratif: boolean): { titre: string; svg: string } {
+  let svg = lire(chemin).trim();
+  const titre = svg.match(/<title>([^<]*)<\/title>/)?.[1];
+  if (titre === undefined) throw new Error(`${chemin} n'a pas de <title>`);
+  const nom = decoratif ? '' : ` role="img" aria-label="${titre}"`;
+  svg = svg.replace(/^<svg ([^>]*)>/, (_tout, attributs: string) => `<svg ${attributs.replace(/\s(width|height)="[^"]*"/g, '')}${nom}>`);
+  if (decoratif) svg = svg.replace(/<title>[^<]*<\/title>/, '');
+  for (const id of new Set([...svg.matchAll(/\sid="([^"]+)"/g)].map((trouve) => trouve[1]))) {
+    svg = svg.split(`id="${id}"`).join(`id="${prefixe}${id}"`).split(`url(#${id})`).join(`url(#${prefixe}${id})`);
+  }
+  return { titre, svg };
+}
+
 /** Les logos et les cartes de `docs/marque/`, en SVG, avec des identifiants préfixés pour qu'aucun ne collisionne. */
 export function marque() {
   const script = 'docs/marque/generer-marque.mjs';
@@ -408,18 +425,30 @@ export function marque() {
   const fichiers: { nature: 'logo' | 'carte'; titre: string; svg: string }[] = [];
   for (const [dossier, nature] of [['logos', 'logo'], ['cartes', 'carte']] as const) {
     for (const fichier of liste(`docs/marque/${dossier}`).filter((nom) => nom.endsWith('.svg')).sort()) {
-      let svg = lire(`docs/marque/${dossier}/${fichier}`).trim();
-      const titre = svg.match(/<title>([^<]*)<\/title>/)?.[1];
-      if (titre === undefined) throw new Error(`docs/marque/${dossier}/${fichier} n'a pas de <title>`);
-      svg = svg.replace(/^<svg ([^>]*)>/, (_tout, attributs: string) => `<svg ${attributs.replace(/\s(width|height)="[^"]*"/g, '')} role="img" aria-label="${titre}">`);
-      const prefixe = `m-${nature}-${fichier.replace('.svg', '')}-`;
-      for (const id of new Set([...svg.matchAll(/\sid="([^"]+)"/g)].map((trouve) => trouve[1]))) {
-        svg = svg.split(`id="${id}"`).join(`id="${prefixe}${id}"`).split(`url(#${id})`).join(`url(#${prefixe}${id})`);
-      }
-      fichiers.push({ nature, titre, svg });
+      fichiers.push({ nature, ...svgDeMarque(`docs/marque/${dossier}/${fichier}`, `m-${nature}-${fichier.replace('.svg', '')}-`, false) });
     }
   }
   return { script, fichiers };
+}
+
+/**
+ * Le logo de chaque carte d'outil de la partie 5. La CLI et l'adaptateur n'ont pas de logo propre : ils sont des paquets
+ * `@ucm-kit` d'UCM Toolkit et prennent son logo, avec le signe du kit qui nomme leur geste (la demande de fusion que la CLI
+ * contrôle, la property de variant que l'adaptateur compare).
+ */
+export function logosDesOutils() {
+  const outils: { outil: string; fichier: string; signe?: string }[] = [
+    { outil: 'palettes', fichier: 'ucm-palettes' },
+    { outil: 'architect', fichier: 'ucm-token-explorer' },
+    { outil: 'exporter', fichier: 'ucm-contract-exporter' },
+    { outil: 'cli', fichier: 'ucm-toolkit', signe: 'fusion' },
+    { outil: 'adaptateur', fichier: 'ucm-toolkit', signe: 'prop-variant' },
+  ];
+  return outils.map(({ outil, fichier, signe }) => ({
+    outil,
+    svg: svgDeMarque(`docs/marque/logos/${fichier}.svg`, `m-outil-${outil}-`, true).svg,
+    signe: signe === undefined ? null : svgDuSigne(signe, 12),
+  }));
 }
 
 /** Les design systems de `docs/references/` : rôles, fiches de composants, guides. */

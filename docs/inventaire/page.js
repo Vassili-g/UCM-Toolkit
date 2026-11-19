@@ -802,7 +802,7 @@
     });
     return g;
   }
-  // Un liseré de 3 px par marque, dans l'ordre des pictogrammes. Deux liserés sont séparés par un vide de 2 px à la couleur du fond de l'élément.
+  // Un liseré de 3 px par marque, dans l'ordre des pictogrammes, sauf sur la carte d'un outil (.fiche), qui garde ses pictogrammes seuls. Deux liserés sont séparés par un vide de 2 px à la couleur du fond de l'élément.
   function liseret(el, liste) {
     el.setAttribute('data-pour-bord', liste.length);
     var ombres = [];
@@ -837,7 +837,7 @@
     if (t === 'TR') { var c = el.querySelector(':scope > td:not(.n)') || el.querySelector(':scope > td'); c.insertBefore(g, c.firstChild); liseret(el, liste); }
     else if (t === 'SECTION') el.querySelector('h2').appendChild(g);
     else if (t === 'DETAILS') { el.querySelector('summary').appendChild(g); liseret(el, liste); }
-    else if (el.classList.contains('fiche')) { el.querySelector('.tete').appendChild(g); liseret(el, liste); }
+    else if (el.classList.contains('fiche')) el.querySelector('.tete').appendChild(g);
     else if (el.classList.contains('carte')) { (el.querySelector('h4') || el).appendChild(g); liseret(el, liste); }
     else if (el.classList.contains('defile')) el.querySelector('th').appendChild(g);
     else if (t === 'DT') { el.insertBefore(g, el.firstChild); liseret(el, liste); }

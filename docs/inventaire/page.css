@@ -76,7 +76,7 @@ ul.liste li { margin: 3px 0; font-size: .92rem; }
 .a-info { color: var(--bleu); } .a-info::before { content: "i"; background: var(--bleu); }
 .a-tenu { color: var(--olive); } .a-tenu::before { content: "✓"; background: var(--olive); }
 /* Destinataires. Trois marques : Designer (violet), Développeur (sarcelle), Toolkit (gris).
-   Un bloc marqué reçoit un liseré à gauche et un pictogramme. Les h2, h3 et summary portent aussi le mot.
+   Un bloc marqué reçoit un liseré à gauche et un pictogramme ; la carte d'un outil (.fiche) reçoit le pictogramme seul. Les h2, h3 et summary portent aussi le mot.
    Un bloc à deux marques a deux liserés, séparés par un vide de 2 px à la couleur de son fond. */
 :root { --pour-designer: #7c3aed; --pour-developpeur: #0d9488; --pour-toolkit: #6b7280; }
 @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { --pour-designer: #a78bfa; --pour-developpeur: #2dd4bf; --pour-toolkit: #9aa3b2; } }
@@ -85,7 +85,7 @@ ul.liste li { margin: 3px 0; font-size: .92rem; }
 .pour-developpeur { --c: var(--pour-developpeur); --signe: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='none' stroke='%23000' stroke-width='1.7' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M5.5 4L1.5 8l4 4M10.5 4l4 4-4 4'/%3E%3C/svg%3E"); }
 .pour-toolkit { --c: var(--pour-toolkit); --signe: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='none' stroke='%23000' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M8 1.5l6 3.25v6.5L8 14.5l-6-3.25v-6.5z'/%3E%3Cpath d='M2 4.75L8 8l6-3.25M8 8v6.5'/%3E%3C/svg%3E"); }
 .pours { display: inline-flex; gap: 3px; vertical-align: -4px; margin-right: 7px; }
-h2 .pours, h3 .pours, .carte h4 .pours, .fiche .tete .pours, details > summary .pours { margin: 0 0 0 8px; }
+h2 .pours, h3 .pours, .carte h4 .pours, details > summary .pours { margin: 0 0 0 8px; }
 .pour { position: relative; display: inline-grid; place-items: center; width: 19px; height: 19px; border-radius: 5px; color: var(--c); background: color-mix(in srgb, var(--c) 15%, transparent); }
 .pour::before, .signe-pour { content: ""; display: inline-block; width: 12px; height: 12px; flex: 0 0 auto; background: currentColor; -webkit-mask: var(--signe) center / contain no-repeat; mask: var(--signe) center / contain no-repeat; }
 .signe-pour { color: var(--c); }
@@ -141,12 +141,24 @@ td .chemin { white-space: nowrap; }
 .rampe { display: grid; grid-template-columns: 52px repeat(11, 1fr); gap: 3px; margin: 4px 0; align-items: center; }
 .rampe .mode { font-size: .78rem; color: var(--doux); }
 .rampe div:not(.mode) { height: 30px; border-radius: 5px; display: grid; place-items: center; font-family: ui-monospace, Consolas, monospace; font-size: .72rem; font-weight: 600; }
-/* Fiches d'outils. */
-.fiche { background: var(--surface); border: 1px solid var(--trait); border-radius: 12px; padding: 14px 18px; margin-bottom: 12px; box-shadow: var(--ombre); }
-.fiche .tete { display: flex; flex-wrap: wrap; gap: 6px 10px; align-items: center; }
-.fiche .tete b { font-size: 1.05rem; }
-.fiche .tete .paquet { color: var(--doux); font-size: .82rem; }
-.fiche .role { margin: 4px 0 6px; font-size: .95rem; }
+/* Cartes d'outils : logo, nom et canal, rôle, ce que l'outil lit et écrit, limites, puis le détail replié.
+   Deux colonnes ; l'Exporter, qui relie le designer au développeur, prend la largeur entre les plugins et les paquets npm. */
+.produits { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; align-items: start; margin: 10px 0; }
+.produits > .large { grid-column: 1 / -1; }
+.fiche { background: var(--surface); border: 1px solid var(--trait); border-radius: 12px; padding: 16px 18px 12px; box-shadow: var(--ombre); min-width: 0; }
+.fiche .tete { display: flex; gap: 12px; align-items: center; margin-bottom: 10px; }
+.fiche .logo { position: relative; flex: none; width: 44px; height: 44px; }
+.fiche .logo > svg { display: block; width: 100%; height: 100%; }
+.fiche .logo-signe { position: absolute; right: -5px; bottom: -5px; display: grid; place-items: center; width: 20px; height: 20px; border-radius: 6px; background: var(--surface); border: 1px solid var(--trait); color: var(--texte); }
+.fiche .logo-signe svg { display: block; }
+.fiche .nom { flex: 1 1 auto; min-width: 0; display: flex; flex-wrap: wrap; align-items: center; gap: 2px 8px; }
+.fiche .nom b { font-size: 1.1rem; line-height: 1.3; letter-spacing: -.01em; }
+.fiche .nom .canal { flex-basis: 100%; color: var(--doux); font-size: .82rem; line-height: 1.4; overflow-wrap: anywhere; }
+.fiche .tete > .pours { flex: none; align-self: flex-start; margin: 0; }
+.fiche .role { margin: 0 0 8px; font-size: .95rem; }
+.fiche dl.faits { display: grid; grid-template-columns: max-content minmax(0, 1fr); gap: 4px 12px; align-items: baseline; margin: 0 0 4px; padding: 8px 0; border-top: 1px solid var(--trait); font-size: .9rem; }
+.fiche dl.faits dt { font-size: .74rem; text-transform: uppercase; letter-spacing: .06em; color: var(--doux); font-weight: 600; }
+.fiche dl.faits dd { margin: 0; min-width: 0; }
 .fiche h4 { font-size: .74rem; text-transform: uppercase; letter-spacing: .06em; color: var(--doux); margin: 10px 0 4px; }
 .fiche details { margin-top: 8px; border-top: 1px solid var(--trait); padding-top: 6px; }
 .fiche details > summary { cursor: pointer; font-size: .88rem; font-weight: 600; color: var(--doux); list-style: none; }
@@ -299,6 +311,8 @@ details.piste ul.criteres li::before { content: "☐ "; color: var(--doux); }
   .legende-schema > div { grid-template-columns: 34px minmax(0, 1fr); }
   main { padding: 20px 16px 80px; }
   .deux { grid-template-columns: 1fr; }
+  .produits { grid-template-columns: minmax(0, 1fr); }
+  .fiche { padding: 14px 14px 10px; }
   dl.def, dl.def.questions, dl.def.glossaire { grid-template-columns: 1fr; }
   dl.def dt { border-bottom: 0; }
   h1 { font-size: 1.6rem; }
@@ -314,18 +328,17 @@ td .verdict, td .etat { display: flex; width: fit-content; }
 td .verdict + .txt, td .etat + .txt { display: block; margin-top: 4px; }
 /* Liserés : un par marque, 3 px, séparés par un vide de 2 px à la couleur du fond. Le premier suit l'ordre des pictogrammes. */
 :root { --liseret-fond: var(--fond); }
-.pli, .carte, .fiche, .defile, dl.def, .panneau-figma { --liseret-fond: var(--surface); }
+.pli, .carte, .defile, dl.def, .panneau-figma { --liseret-fond: var(--surface); }
 dl.def dt { --liseret-fond: var(--surface-2); }
 tr.trou { --liseret-fond: var(--rose-fond); }
 .encadre { --liseret-fond: var(--ambre-fond); }
 .encadre.neutre { --liseret-fond: var(--bleu-fond); }
 [data-pour-bord][data-pour-bord] { box-shadow: var(--liseret); }
-.fiche[data-pour-bord], .carte[data-pour-bord] { box-shadow: var(--liseret), var(--ombre); }
+.carte[data-pour-bord] { box-shadow: var(--liseret), var(--ombre); }
 tr[data-pour-bord][data-pour-bord] { box-shadow: none; }
 tr[data-pour-bord] > td:first-child { box-shadow: var(--liseret); }
 tr[data-pour-bord="2"] > td:first-child { padding-left: 16px; }
 details.pli[data-pour-bord="2"] > summary { padding-left: 21px; }
-.fiche[data-pour-bord="2"] { padding-left: 23px; }
 .carte[data-pour-bord="2"] { padding-left: 21px; }
 dl.def dt[data-pour-bord="2"] { padding-left: 18px; }
 /* Source de chaque partie. */
