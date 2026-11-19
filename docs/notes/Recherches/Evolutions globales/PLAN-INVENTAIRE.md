@@ -40,14 +40,14 @@ La page vit dans `_local/inventaire-ucm/INVENTAIRE-UCM.html` tant qu'elle n'est 
 
 ## Phase G : génération
 
-- [ ] G1. Page générée depuis le code. Agent : `implementeur-exigeant`. Après R2 et O1.
+- [x] G1 (5df9c3ba). Page générée depuis le code. Agent : `implementeur-exigeant`. Après R2 et O1.
   - [ ] G1.1. `docs/inventaire/generer-inventaire.ts`, `page.css` et `page.js`, sur le modèle de `packages/couleur/planche/generer-planche.ts` : fonction pure, écriture au seul lancement direct, textes rendus en HTML statique, page autonome.
   - [ ] G1.2. Données du code à la place des constantes recopiées : `donneesDuReferentiel()` exportée de `Archi Tokens Multi-marques/generer-donnees-referentiel.ts`, table du thème, garanties, clarté des crans, rampes des palettes de démonstration, registres, signes, produits, versions, points d'entrée et exports, paquets, aides, skills, design systems, `CODES_DES_CONSTATS`, `COMMANDES`. Hash de commit et comptes de lignes retirés.
   - [ ] G1.3. Extraits de `ROADMAP.md`, `CONCEPT.md`, `CHANGELOG-FORMAT.md`, `COMPATIBILITE.md` et du sommaire des recherches par `extraire.ts`.
   - [ ] G1.4. Deux entrées dans `VUES` de `scripts/vues.mjs` : la page et `docs/inventaire/sources.json`. `tests/inventaire.test.ts` vérifie la fraîcheur, l'autonomie (seuls `url(data:` et `url(#`), la taille sous 1 Mo. Une ligne dans `CARTE.md`. `tests/referentielUnique.test.ts` balaie aussi `docs/inventaire/*.ts`.
   - Fin : un second `npm run vues` ne change rien, un octet changé dans la page fait échouer le test, `npx tsx --test tests/inventaire.test.ts tests/cartes.test.ts tests/styleDocumentaire.test.ts tests/referentielUnique.test.ts tests/vueIllustree.test.ts` passe.
-- [ ] G2. Données éditoriales et couverture. Agent : `implementeur`. Après G1.
-  - [ ] G2.1. `pistes.json` et `decisions.json` dans ce dossier, `docs/inventaire/textes.json`. Les règles décidées et les décisions transverses viennent de `decisions.json`, clé `regles`, avec `domicileCible` et `ecrite`. Les nombres des textes sont des trous remplis depuis le code.
+- [x] G2 (5df9c3ba). Données éditoriales et couverture. Agent : `implementeur`. Après G1.
+  - [ ] G2.1. `pistes.json` et `decisions.json` dans ce dossier. Les règles décidées et les décisions transverses viennent de `decisions.json`, clé `regles`, avec `domicileCible` et `ecrite`. Les textes restent dans `docs/inventaire/gabarit.html`, que le contrôle de style lit déjà : pas de `textes.json`. Les nombres des textes du gabarit sont des trous remplis depuis le code.
   - [ ] G2.2. `docs/inventaire/couverture.ts` et ses `EXCLUSIONS` nommées une par une. Le générateur lit le kit à travers un `Proxy`. Le test refuse un export sans place, une exclusion d'un nom montré ou disparu, une source qui n'existe pas.
   - Fin : un export ajouté au kit sans place fait échouer `tests/inventaire.test.ts` avec son nom. Un tiret cadratin dans `textes.json` est refusé.
 - [ ] G3. Décisions versionnées. Agent : `implementeur`. Après G2.
