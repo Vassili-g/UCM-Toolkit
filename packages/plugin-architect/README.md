@@ -66,7 +66,7 @@ l'analyse. Le pied de la fenêtre donne l'heure et le numéro du relevé.
 Le nom d'une variable est un chemin : les groupes en gris, le dernier segment en gris clair. Quand un renommage coché de Constats change un terme, la table montre le nom entier après l'application et ce terme en vert ; un clic sur lui ouvre sa carte dans Constats.
 
 Le centre ne montre plus que la table. Le panneau latéral de 640 px porte Nomenclature ; la fiche d'une variable s'ouvre sur lui.
-Les onglets du panneau latéral sont Constats et Règles. Constats range ses cartes par catégorie, dans un sommaire (Tout, une puce par catégorie, Questions) et des sections repliables. La collection choisie dans l'arbre filtre les renommages de la section Noms : une puce « collection » sous les onglets la nomme, et sa croix enlève le filtre. Sous le filtre, Appliquer n'écrit que les noms de cette collection. Les autres sections ne suivent pas ce filtre : leurs constats (variables manquantes, crans, alias, modes, valeurs, couches, types, rangement) disent chacun où le régler dans la fenêtre Variables, et « Ouvrir la fiche » montre la variable dans l'explorateur. Les sections Variables manquantes, Crans, Modes et Scopes portent aussi les corrections à appliquer : variables à créer dans theme, crans à corriger, modes et scopes, avec les cases de l'onglet Scope de Figma avant et après (Show in all, Frame fill, Shape fill…). Toutes les cases arrivent décochées. Au-delà de 50 cartes dans un conteneur, la liste défile sur 480 px ; au-delà de 20 cartes, Noms arrive repliée.
+Les onglets du panneau latéral sont Constats et Règles. Constats range ses cartes par catégorie, dans un sommaire (Tout, une puce par catégorie, Questions) et des sections repliables. La collection choisie dans l'arbre filtre les renommages de la section Noms : une puce « collection » sous les onglets la nomme, et sa croix enlève le filtre. Sous le filtre, Appliquer n'écrit que les noms de cette collection. Les autres sections ne suivent pas ce filtre : leurs constats (variables manquantes, crans, alias, modes, valeurs, couches, types, rangement) disent chacun où le régler dans la fenêtre Variables, et « Ouvrir la fiche » montre la variable dans l'explorateur. Les sections Variables manquantes, Crans, Modes et Scopes portent aussi les corrections à appliquer : variables à créer dans theme, brands et utility, crans à corriger, modes et scopes, avec les cases de l'onglet Scope de Figma avant et après (Show in all, Frame fill, Shape fill…). Toutes les cases arrivent décochées. Au-delà de 50 cartes dans un conteneur, la liste défile sur 480 px ; au-delà de 20 cartes, Noms arrive repliée.
 
 La [maquette de la navigation](https://github.com/Vassili-g/UCM-Toolkit/blob/202f46e/docs/notes/Recherches/Plugin%20Explorateur%20Tokens/Recette%201/MAQUETTE-RECETTE-1.html)
 montre la bascule des deux modes et la recherche dans l'arbre.
@@ -169,8 +169,10 @@ d'autres fichiers.
 
 ## Intégrité de la structure
 
-Le mode Tokens signale les variables manquantes du thème et les crans
-incorrects. **Appliquer** crée les variables dont les cibles sont certaines ;
+Le mode Tokens signale les variables manquantes du thème et les liens de
+brands et de utility vers primitives. Une branche sans palette ou une couleur
+de charte absente demande votre choix. Les réponses montrent les corrections
+à cocher dans Constats. Un cran ou une palette absent renvoie vers UCM Palettes. **Appliquer** crée les variables dont les cibles sont certaines ;
 l'Historique de la Configuration annule le lot. La
 [spécification](./SPEC.md#intégrité-de-la-structure-ucm) décrit les contrôles et
 leurs limites.

@@ -1,6 +1,6 @@
 /**
  * Écrit les corrections de structure du mode Tokens : les scopes d'une variable (sorte `scope`, `apres.nom` vide pour un ensemble
- * vide), la cible d'alias d'un mode (sorte `alias-de-mode`) et la création d'une couleur de `theme` (sorte `variable`). Défait
+ * vide), la cible d'alias d'un mode (sorte `alias-de-mode`) et la création d'alias dans `theme`, `brands` et `utility` (sorte `variable`). Défait
  * aussi, par le journal de structure, ce que ces écritures et les créations de variables ont fait.
  *
  * Le fichier doit toujours déclarer UCM, relu au début du lot, sinon rien n'est écrit (`non-ucm`). Chaque correction relit ensuite ce
@@ -11,7 +11,7 @@
  * propose la correction de nouveau si elle tient encore. Une écriture de Figma qui lève saute la correction (`erreur`) ; les autres
  * s'écrivent.
  *
- * Une création relit la collection (locale, de rôle `theme`, qui porte les modes visés : `objet-change` sinon) puis le nom. Une
+ * Une création relit la collection (locale, de rôle `theme`, `brands` ou `utility`, qui porte les modes visés : `objet-change` sinon) puis le nom. Une
  * variable de ce nom qui est une couleur et vise déjà les mêmes cibles dans chaque mode saute la correction en `deja-la` ; une
  * autre variable de ce nom la saute en `existe-divergente`. Aucune écriture dans ces deux cas : un second Appliquer ne double rien.
  *
@@ -36,7 +36,7 @@
  * Seul `liaisons.ts` importe une variable : la variable visée d'un alias se cherche ici parmi les variables locales.
  */
 import type { Correction } from '@ucm-kit/core/controles';
-import { CLE_ARCHITECTURE_DU_FICHIER, ESPACE_ARCHITECT, collectionUcmReconnue, lireLArchitectureDuFichier } from '@ucm-kit/core/referentiel';
+import { CLE_ARCHITECTURE_DU_FICHIER, COLLECTIONS_SANS_PORTEE, ESPACE_ARCHITECT, collectionUcmReconnue, lireLArchitectureDuFichier } from '@ucm-kit/core/referentiel';
 
 import { COUCHE_DES_COULEURS } from '../preparations';
 import { pendantUneEcriture } from '../sandbox/acquisition';
@@ -158,6 +158,7 @@ const ID_A_CREER = 'VariableID:0000:00000';
 
 interface Plan {
   readonly correction: Correction;
+  readonly ids?: readonly string[];
   /** Écrit, et rend la ligne du journal avec les identifiants réels : `ligne` elle-même quand rien n'était à découvrir. */
   readonly ecrire: () => LigneDeStructure;
   /** La ligne prévue, rangée avant la première écriture. */
@@ -170,7 +171,9 @@ function planifierUneCreation(
   const { creation } = correction;
   if (!creation) return 'objet-change';
   const collection = collections.find((candidate) => candidate.id === creation.collection);
-  if (!collection || collection.remote || collectionUcmReconnue(collection.name) !== COUCHE_DES_COULEURS) return 'objet-change';
+  const role = collection && collectionUcmReconnue(collection.name);
+  if (!collection || collection.remote || (role !== COUCHE_DES_COULEURS && role !== 'brands' && role !== 'utility') || creation.type !== 'COLOR') return 'objet-change';
+  if (role && (COLLECTIONS_SANS_PORTEE as readonly string[]).includes(role) && creation.scopes.length !== 0) return 'objet-change';
   const modes = Object.keys(creation.alias);
   if (modes.length === 0 || !modes.every((mode) => collection.modes.some(({ modeId }) => modeId === mode))) return 'objet-change';
   const cibles = new Map(modes.map((mode) => [mode, trouverLaVariable(locales, creation.alias[mode]?.cle)] as const));
@@ -184,7 +187,8 @@ function planifierUneCreation(
   }
   const visees: Record<string, VariableEcrivable> = {};
   for (const [mode, cible] of cibles) {
-    if (!cible) return 'cible-introuvable';
+    if (!cible || cible.remote || cible.resolvedType !== 'COLOR') return 'cible-introuvable';
+    if (role !== COUCHE_DES_COULEURS && collectionUcmReconnue(collections.find(({ id }) => id === cible.variableCollectionId)?.name ?? '') !== 'primitives') return 'cible-introuvable';
     visees[mode] = cible;
   }
   return {
@@ -213,10 +217,11 @@ async function planifier(
     return { correction, ecrire: () => { variable.scopes = [...apres]; return ligne; }, ligne };
   }
   const mode = correction.cible.mode;
-  if (!mode || !(mode in variable.valuesByMode)) return 'objet-change';
+  if (!mode || (!(mode in variable.valuesByMode) && !collections.find(({ id }) => id === variable.variableCollectionId)?.modes.some(({ modeId }) => modeId === mode))) return 'objet-change';
+  const absent = !(mode in variable.valuesByMode);
   const avant = aliasExact(variable.valuesByMode[mode]);
-  if (avant === null) return 'fait-faux';
-  const visee = locales.find((candidate) => candidate.id === avant) ?? await api.variables.getVariableByIdAsync(avant).catch(() => null);
+  if (avant === null && !(absent && correction.aRelire.avant === null)) return 'fait-faux';
+  const visee = locales.find((candidate) => candidate.id === avant) ?? (avant ? await api.variables.getVariableByIdAsync(avant).catch(() => null) : null);
   const cleAvant = visee?.key ? visee.key : avant;
   if (cleAvant !== correction.aRelire.avant) return 'fait-faux';
   const cible = trouverLaVariable(locales, correction.apres.cle);
@@ -249,12 +254,37 @@ async function ecrireLesCorrections(corrections: readonly Correction[], options:
   const plans: Plan[] = [];
   try {
     const locales = await api.variables.getLocalVariablesAsync();
-    const collections = aEcrire.some(({ sorte }) => sorte === 'variable') ? await api.variables.getLocalVariableCollectionsAsync() : [];
+    const collections = aEcrire.some(({ sorte }) => sorte === 'variable' || sorte === 'alias-de-mode') ? await api.variables.getLocalVariableCollectionsAsync() : [];
+    // Deux réponses de marque peuvent créer le même nom, chacune dans un mode : une seule variable reçoit les alias cochés.
+    const creations = new Map<string, Correction[]>();
     for (const correction of aEcrire) {
+      if (!correction.creation) continue;
+      const cle = JSON.stringify([correction.creation.collection, correction.creation.nom]);
+      creations.set(cle, [...(creations.get(cle) ?? []), correction]);
+    }
+    const vues = new Set<string>();
+    for (const initiale of aEcrire) {
+      let correction = initiale;
+      let ids = [correction.id];
+      if (correction.creation) {
+        const cle = JSON.stringify([correction.creation.collection, correction.creation.nom]);
+        if (vues.has(cle)) continue;
+        vues.add(cle);
+        const groupe = creations.get(cle)!;
+        ids = groupe.map(({ id }) => id);
+        const alias = { ...correction.creation.alias };
+        const conflit = groupe.some(({ creation }) => !creation || creation.type !== correction.creation!.type || !memeEnsemble(creation.scopes, correction.creation!.scopes) || Object.entries(creation.alias).some(([mode, cible]) => {
+          if (alias[mode] && alias[mode].cle !== cible.cle) return true;
+          alias[mode] = cible;
+          return false;
+        }));
+        if (conflit) { sautees.push(...ids.map((id) => ({ id, motif: 'objet-change' as const }))); continue; }
+        correction = { ...correction, creation: { ...correction.creation, alias } };
+      }
       let plan: Plan | MotifDeStructureSaute;
       try { plan = await planifier(api, collections, locales, correction, options.nomsLus); } catch { plan = 'erreur'; }
-      if (typeof plan === 'string') sautees.push({ id: correction.id, motif: plan });
-      else plans.push(plan);
+      if (typeof plan === 'string') sautees.push(...ids.map((id) => ({ id, motif: plan as MotifDeStructureSaute })));
+      else plans.push({ ...plan, ids });
     }
   } catch {
     return { ecrites, sautees: aEcrire.map(({ id }) => ({ id, motif: 'erreur' })), sansAnnulation: [] };
@@ -262,16 +292,16 @@ async function ecrireLesCorrections(corrections: readonly Correction[], options:
   if (plans.length === 0) return { ecrites, sautees, sansAnnulation: [] };
 
   const prevu = rangerLeJournalDeStructure(stockage, { heure, lignes: plans.map(({ ligne }) => ligne) }, nouveauLot());
-  if (!prevu) return { ecrites, sautees: [...sautees, ...plans.map(({ correction }) => ({ id: correction.id, motif: 'journal-impossible' as const }))], sansAnnulation: [] };
+  if (!prevu) return { ecrites, sautees: [...sautees, ...plans.flatMap(({ correction, ids }) => (ids ?? [correction.id]).map((id) => ({ id, motif: 'journal-impossible' as const })))], sansAnnulation: [] };
 
   const faites: LigneDeStructure[] = [];
   for (const plan of plans) {
     try {
       const ligne = plan.ecrire();
-      ecrites.push(plan.correction.id);
+      ecrites.push(...(plan.ids ?? [plan.correction.id]));
       faites.push(ligne);
     } catch {
-      sautees.push({ id: plan.correction.id, motif: 'erreur' });
+      sautees.push(...(plan.ids ?? [plan.correction.id]).map((id) => ({ id, motif: 'erreur' as const })));
     }
   }
   if (faites.length === 0) {
@@ -582,10 +612,12 @@ async function defaireLaLigne(api: ApiDeStructure, ligne: LigneDeStructure): Pro
     variable.scopes = [...ligne.avant];
     return 'defaite';
   }
-  if (!(ligne.mode in variable.valuesByMode)) return 'objet-change';
+  if (!(ligne.mode in variable.valuesByMode)) return ligne.avant === null ? 'retablie' : 'objet-change';
   const actuel = aliasExact(variable.valuesByMode[ligne.mode]);
   if (actuel === ligne.avant) return 'retablie';
   if (actuel !== ligne.apres) return 'objet-change';
+  // Figma ne permet pas d'effacer la valeur d'un mode local ; le journal conserve le lien et son absence initiale.
+  if (ligne.avant === null) return 'erreur';
   variable.setValueForMode(ligne.mode, { type: 'VARIABLE_ALIAS', id: ligne.avant });
   return 'defaite';
 }

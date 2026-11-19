@@ -205,10 +205,11 @@ export function monterLesCorrections({ element, hotes, auChangement, questionsSe
       const apres = document.createElement('span');
       apres.append(creerChemin(ligne.nom));
       for (const { mode, cible } of ligne.cibles) apres.append(document.createElement('br'), nouveau(TEXTES.cibleDuMode(mode, cible)));
-      apres.append(document.createElement('br'), nouveau(portees));
+      if (!carte.collection) apres.append(document.createElement('br'), nouveau(portees));
       return creerLaLigne(ligne.id, ligne.nom, [avant], [apres]);
     };
     corps.append(...carte.lignes.map(ligneDeCreation));
+    if (carte.collection) return carteDe(carte.cle, [TEXTES.creerLeLien.debut, creerCheminEnPhrase(carte.role), TEXTES.creerLeLien.dans, creerCheminEnPhrase(carte.collection)], [], carte.role, carte.lignes, corps);
     const { debut, fin } = TEXTES.creerDansPalettes(carte.lignes.length);
     const [premier, second] = carte.crans;
     const numeriques = carte.crans.every(({ valeur }) => typeof valeur === 'number');
@@ -261,13 +262,15 @@ export function monterLesCorrections({ element, hotes, auChangement, questionsSe
     );
     const action = document.createElement('span');
     action.className = 'bloc-phrase';
-    action.append(TEXTES.viserLaRampe(carte.mode));
+    const lien = TEXTES.viserLaVariable(ligne.apres, carte.mode);
+    action.append(carte.lien ? lien.debut : TEXTES.viserLaRampe(carte.mode));
     poserLesMorceaux(action, [{ chemin: carte.variable }]);
+    if (carte.lien) action.append(lien.fin);
     const caseDeCarte = creerLaCase(TEXTES.caseDeCarte(carte.variable), [ligne.id]);
     casesDeCarte.push({ element: caseDeCarte, ids: [ligne.id] });
     return creerCarte({
       tete: [action],
-      meta: [TEXTES.attendLeCran(carte.mode, carte.cran)],
+      meta: carte.lien ? [] : [TEXTES.attendLeCran(carte.mode, carte.cran)],
       caseACocher: caseDeCarte,
       corps,
       deplie: deplies.has(carte.cle),
@@ -347,7 +350,7 @@ export function monterLesCorrections({ element, hotes, auChangement, questionsSe
       const modes = lecture?.modes ?? [];
       const scopes = lecture?.scopes ?? [];
       const idsDe = (cartes: readonly { readonly lignes: readonly { readonly id: string }[] }[]): string[] => cartes.flatMap((carte) => carte.lignes.map(({ id }) => id));
-      idsParCategorie = { manquantes: idsDe(variables), crans: idsDe(crans), modes: idsDe(modes), scopes: idsDe(scopes) };
+      idsParCategorie = { manquantes: [...idsDe(variables), ...idsDe(modes.filter(({ groupe }) => groupe === 'manquantes'))], crans: [...idsDe(crans), ...idsDe(modes.filter(({ groupe }) => groupe === 'crans'))], modes: idsDe(modes.filter(({ groupe }) => !groupe)), scopes: idsDe(scopes) };
       ids = CATEGORIES.flatMap((categorie) => idsParCategorie[categorie]);
       creations = new Map(variables.flatMap((carte) => carte.lignes.map((ligne) => [ligne.id, ligne.nom] as const)));
       designations = new Map([
@@ -360,9 +363,9 @@ export function monterLesCorrections({ element, hotes, auChangement, questionsSe
       casesDeCarte.length = 0;
       for (const id of [...cochees]) if (!ids.includes(id)) cochees.delete(id);
       const cartes = <Carte extends { readonly cle: string }>(liste: readonly Carte[], creer: (carte: Carte) => HTMLElement): CarteDeSection[] => liste.map((carte) => ({ cle: carte.cle, creer: () => creer(carte) }));
-      listes.manquantes.poser(cartes(variables, carteDeVariables), true);
-      listes.crans.poser(cartes(crans, carteDeCrans), true);
-      listes.modes.poser(cartes(modes, carteDeModes), true);
+      listes.manquantes.poser([...cartes(variables, carteDeVariables), ...cartes(modes.filter(({ groupe }) => groupe === 'manquantes'), carteDeModes)], true);
+      listes.crans.poser([...cartes(crans, carteDeCrans), ...cartes(modes.filter(({ groupe }) => groupe === 'crans'), carteDeModes)], true);
+      listes.modes.poser(cartes(modes.filter(({ groupe }) => !groupe), carteDeModes), true);
       listes.scopes.poser(cartes(scopes, carteDeScopes), true);
       for (const categorie of CATEGORIES) gestes[categorie].hidden = idsParCategorie[categorie].length === 0;
       element.hidden = ids.length === 0 && resultat.hidden;

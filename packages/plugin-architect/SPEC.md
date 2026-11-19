@@ -26,7 +26,7 @@ qui ne déclare plus UCM au moment d'écrire ne reçoit rien.
 | Nom d'une variable ou d'une collection locale | Appliquer, section Noms de l'onglet Constats du mode Tokens | Historique de la Configuration |
 | Scopes d'une variable, cible d'alias dans un mode | Appliquer, sections Modes et Scopes de l'onglet Constats | Historique de la Configuration |
 | Variables créées dans `components` | Créer, depuis une préparation | Historique de la Configuration |
-| Variables manquantes créées dans `theme` | Appliquer, section Variables manquantes de l'onglet Constats du mode Tokens | Historique de la Configuration |
+| Variables manquantes créées dans `theme`, `brands` et `utility` | Appliquer, section Variables manquantes de l'onglet Constats du mode Tokens | Historique de la Configuration |
 | Liaison d'une variable à un layer du composant analysé | Appliquer, panneau des constats | Ctrl+Z dans Figma |
 | Nom d'une valeur de variante, instance de règles du composant | Appliquer, panneau des constats | Ctrl+Z dans Figma |
 | Constats et rôles ignorés, library choisie, déclaration UCM, clé du fichier des tokens | Ignorer, Configuration, ouverture du mode Tokens | Le geste inverse |
@@ -86,7 +86,7 @@ Chaque catégorie porte son signe de la famille `rubrique-tokens` du kit et son 
 Les questions précèdent les autres cartes. Une catégorie vide est tenue seulement si l'analyse est complète. Si tous les constats sont ignorés, aucune catégorie n'est tenue.
 
 Les lecteurs de `src/ui/structure/lecture.ts` gardent le classement des faits. `alias-supprime` et `library-inactive` vont dans Alias.
-Une correction `alias-de-mode` va dans Crans quand son constat porte le genre `cran`, sinon dans Modes. Une correction `scope` va dans Scopes.
+Une correction `alias-de-mode` va dans Crans quand son constat porte le genre `cran` ou `lien-a-corriger`, dans Variables manquantes pour `lien-manquant`, sinon dans Modes. Une correction `scope` va dans Scopes.
 Le code C63 seul ne détermine aucune catégorie.
 Les genres de structure que le kit rend sans correction ont leur carte : `variable-inconnue` va dans Variables manquantes, `rampe-autre-palette` et `sens-partage` dans Crans, `branche-de-mode` dans Modes, `role-en-double` dans Valeurs, `cible-inaccessible` dans Alias, `theme-en-double` dans Rangement. Les constats `couche` d'une même collection et d'une même couche visée forment une seule carte, qui compte les variables et les modes et déplie la liste des variables. `theme-non-reconnu` est une information en tête du mode Tokens, hors des cartes et de leurs nombres. Une question de structure montre ses réponses sans en cocher aucune ; la question du texte des boutons décrit le rendu, texte noir ou texte blanc, jamais le sens de la palette.
 
@@ -548,23 +548,54 @@ fichier emploie.
 Dans un fichier déclaré UCM, le mode Tokens contrôle le catalogue sans
 composant. `controlerLeCatalogue` du kit juge les scopes, les échelles et les
 alias de mode. `controlerLIntegriteUcm` (C82) compare aussi la structure à la
-table du thème, sans lire de recette Palettes ni de profil d'architecture.
-Sans collection `theme` lue, C82 ne rend aucun constat.
+table du thème et aux liens de `brands` et de `utility` vers `primitives`, sans
+lire de recette Palettes ni de profil d'architecture. Sans collection `theme`
+lue, les liens restent contrôlés ; `theme-non-reconnu` annonce l'absence du
+thème quand le fichier reconnaît une collection UCM.
 
 C82 signale les variables manquantes de `theme`, les crans visés, les couches
 des cibles, les couleurs directes hors de `primitives` et de `components`, les scopes des couches
 qui n'en portent pas, les modes manquants de `theme`, le type des variables du
 thème et les variables de palette rangées dans une autre couche. Les contrôles
-de couche, de valeur directe et de scopes de couche portent seulement sur les
+de couche et de valeur directe portent seulement sur les
 couleurs ; C63 contrôle les scopes des variables du thème.
 
-Une variable absente ne se crée que si les variables voisines et le
+Une variable absente de `theme` ne se crée que si les variables voisines et le
 référentiel donnent une cible unique dans chaque mode. La création conserve
 les noms des groupes du fichier, pose les alias et les scopes prévus et entre
 dans le journal de structure. Un cran absent de la rampe produit un constat
 de rampe à compléter dans Palettes. Une cible ambiguë, introuvable ou un sens
 inconnu reste sans correction, avec sa raison. Le sens de la palette vient
 des alias de ses variables présentes ; il ne se déduit pas de leur teinte.
+
+Dans `brands` et `utility`, C82 vérifie chaque branche dans chaque mode. Un
+lien manquant reçoit une création quand ses voisines désignent une seule
+palette et que `primitives` porte le cran attendu. Une variable présente sans
+valeur dans un mode reçoit la cible de ce seul mode. Un lien vers le mauvais
+cran ou le mauvais thème de la même palette reçoit une correction dans Crans.
+Une variable qui vise une autre palette que ses voisines reste intacte.
+
+Une branche absente pose la question `palette-a-choisir`. Ses réponses listent
+les palettes de `primitives` qui ont la forme attendue. Une couleur de charte
+absente pose `charte-a-choisir`, avec les 11 crans Light de la palette de sa
+famille. Aucune réponse n'est cochée. La réponse appelle
+`corrigerLaQuestionDeLien` du kit et montre les corrections exactes dans
+Constats, cases décochées, avec leur aperçu par mode. Elle n'écrit aucune
+variable avant Appliquer.
+
+Les créations de liens écrivent seulement des alias, sans scope, dans les
+modes nommés par les corrections. Architect ne crée jamais de couleur, de
+palette, de mode ni de collection et ne modifie aucune valeur de `primitives`.
+Il ne choisit jamais une palette par son nom ni sa teinte. Un cran ou une
+palette absent donne `rampe-a-completer`, sans correction ni case, avec un
+renvoi vers UCM Palettes. Ces constats et les deux questions vont dans Variables
+manquantes. Les créations passent par le journal de structure et l'Historique
+défait le lot entier.
+
+L'API Figma ne sait pas effacer la valeur d'un mode local. Si une variable
+existante n'avait aucune valeur dans le mode corrigé, l'Historique conserve le
+lien ajouté et compte cette ligne parmi les sautées. Les variables créées se
+suppriment à l'annulation selon la règle des usages ci-dessous.
 
 Un cran incorrect donne une correction quand la cible est unique, une
 question quand deux candidats restent. L'écriture relit la collection, les

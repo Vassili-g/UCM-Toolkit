@@ -7,6 +7,7 @@ import type { Constat, Correction } from './commun';
  */
 export type DemandeDeStructure =
   | { type: 'lire-structure'; demande: number }
+  | { type: 'repondre-au-lien'; demande: number; constat: string; choix: string }
   | { type: 'appliquer-structure'; demande: number; ids: readonly string[] }
   /** Fusionne les variables du constat `role-en-double` (E4.4) dans celle que `garder` désigne par sa clé ; la réponse est `structure-appliquee`. */
   | { type: 'fusionner-variables'; demande: number; constat: string; garder: string }

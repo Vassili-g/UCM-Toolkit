@@ -75,7 +75,7 @@ export function lireLesCategories({ nomenclature, constats, corrections, noms, p
   const lues = lireLesCorrections(corrections, noms, constats);
   for (const correction of lues.variables) ajouter('manquantes', { sorte: 'correction', correction, estUneQuestion: false });
   for (const correction of lues.crans) ajouter('crans', { sorte: 'correction', correction, estUneQuestion: false });
-  for (const correction of lues.modes) ajouter('modes', { sorte: 'correction', correction, estUneQuestion: false });
+  for (const correction of lues.modes) ajouter(correction.groupe ?? 'modes', { sorte: 'correction', correction, estUneQuestion: false });
   for (const correction of lues.scopes) ajouter('scopes', { sorte: 'correction', correction, estUneQuestion: false });
 
   return CATEGORIES.map((definition) => {

@@ -141,6 +141,7 @@ app.renommages = {
 
 /** Ce que l'écran de structure sait du relevé : le nom entier d'une variable (collection, puis nom), par son identifiant ou sa clé, et l'inverse. */
 const noms: Noms = {
+  mode(collection, id) { return etat.index?.collections.get(collection)?.modes.find((mode) => mode.id === id)?.nom ?? null; },
   nom(cle) {
     const variable = etat.index?.variables.get(cle) ?? [...(etat.index?.variables.values() ?? [])].find((candidate) => candidate.cle === cle);
     if (!variable) return null;

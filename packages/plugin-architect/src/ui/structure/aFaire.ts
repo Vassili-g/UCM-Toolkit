@@ -34,6 +34,7 @@ export interface GestesDIgnorer {
   readonly nePlusIgnorerLeConstat: (constat: string) => void;
   readonly nePlusIgnorerLeRole: (role: string) => void;
   /** Fusionne les variables d'un rôle en double dans celle que le designer garde ; absent, les choix restent des lignes. */
+  readonly repondreAuLien?: (constat: string, choix: string) => void;
   readonly fusionner?: (constat: string, garder: string) => void;
 }
 
@@ -159,14 +160,17 @@ function creerLesChoix(choix: readonly ChoixDeCarte[], gestes: GestesDIgnorer): 
   const liste = document.createElement('span');
   liste.className = 'constat-choix';
   liste.setAttribute('role', 'list');
-  for (const { libelle, dessin, fusion } of choix) {
+  for (const { libelle, dessin, fusion, lien } of choix) {
     const ligne = document.createElement('span');
     ligne.className = 'constat-choix-ligne';
     ligne.setAttribute('role', 'listitem');
     const mot = document.createElement('span');
     mot.textContent = libelle;
     // Une fusion s'écrit sur un clic du designer, jamais cochée d'avance : le choix devient un bouton texte qui porte le libellé.
-    if (fusion && gestes.fusionner) {
+    if (lien && gestes.repondreAuLien) {
+      const repondre = gestes.repondreAuLien;
+      ligne.append(boutonDeGeste(libelle, libelle, () => repondre(lien.constat, lien.choix)));
+    } else if (fusion && gestes.fusionner) {
       const fusionner = gestes.fusionner;
       ligne.append(boutonDeGeste(libelle, libelle, () => fusionner(fusion.constat, fusion.garder)));
     } else {

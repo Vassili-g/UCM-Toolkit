@@ -17,7 +17,7 @@
  * Après Appliquer (D4b), la relecture est complète : l'interface envoie `lire-structure` à la réponse `structure-appliquee`, et il lit
  * tout Figma. `appliquer-structure` ferme la reprise de l'acquisition du relevé et oublie la lecture gardée avant d'écrire ; l'écriture
  * périme l'acquisition même refusée ou levée (`pendantUneEcriture`), comme l'annulation de l'Historique. Avant d'écrire, l'écriture relit
- * les variables visées (existence, scopes, alias du mode, cible, collection de `theme`) et saute ce qui a changé depuis la lecture.
+ * les variables visées (existence, scopes, alias du mode, cible, collection de `theme`, `brands` ou `utility`) et saute ce qui a changé depuis la lecture.
  * Aucune relecture ciblée des variables écrites n'existe, parce que les contrôles du kit lisent plus que ces variables :
  * - scopes (`C63` scopes, `C82` scopes d'une couche) : la variable écrite et ses seuls constats ; aucun contrôle ne lit les scopes
  *   d'une autre variable. Le cas le plus local, mais il ne se relit pas seul : un lot mêle les sortes.
@@ -41,6 +41,7 @@
  * rendue dit ce qui est resté. Le message `structure` porte `ignores` : les constats écartés pour leur palette et les rôles écartés.
  */
 import { VARIABLES_DU_THEME, type VariableDuTheme } from '@ucm-kit/core/emplois';
+import { corrigerLaQuestionDeLien } from '@ucm-kit/core/controles';
 import type { CatalogueDeReference, Constat, Correction } from '@ucm-kit/core/controles';
 import { CLE_ECRITURE, lireEcriture, lireEntree, type EcritureChoisie } from '@ucm-kit/core/protocoles';
 import { ESPACE_ARCHITECT } from '@ucm-kit/core/referentiel';
@@ -59,7 +60,7 @@ import { portDeLecture } from './lectureDeFigma';
 import { portDuCalculDistant } from './nomenclature';
 
 export const TYPES: readonly DemandeDeStructure['type'][] = [
-  'lire-structure', 'appliquer-structure', 'fusionner-variables', 'ignorer-constat-de-structure', 'retablir-constat-de-structure', 'ignorer-role', 'retablir-role',
+  'lire-structure', 'repondre-au-lien', 'appliquer-structure', 'fusionner-variables', 'ignorer-constat-de-structure', 'retablir-constat-de-structure', 'ignorer-role', 'retablir-role',
 ];
 
 /** Les clés d'Ignorer du document : le sandbox donne celles de Figma, les tests des doubles. */
@@ -293,13 +294,37 @@ async function ignorer(demande: DemandeDIgnorerDeStructure, acces: Acces, contex
 export function traiterAvec(acces: Acces): Traiter<DemandeDeStructure> {
   return async (demande, contexte) => {
     if (demande.type === 'lire-structure') await lire(demande.demande, acces, contexte, true);
+    else if (demande.type === 'repondre-au-lien') await repondreAuLien(demande, acces, contexte);
     else if (demande.type === 'appliquer-structure') await appliquer(demande, acces, contexte);
     else if (demande.type === 'fusionner-variables') await fusionner(demande, acces, contexte);
     else await ignorer(demande, acces, contexte);
   };
 }
 
-/** Le nom que la dernière lecture a lu sur la variable de chaque correction : le fait `variable` du constat qui la porte. */
+/** Prépare les corrections de la réponse, sans écrire de variable. */
+async function repondreAuLien(demande: Extract<DemandeDeStructure, { type: 'repondre-au-lien' }>, acces: Acces, contexte: Contexte): Promise<void> {
+  if (!gardee || gardee.reper !== reperDesLectures()) await lire(demande.demande, acces, contexte);
+  let reglages: Awaited<ReturnType<Acces['reglages']>>;
+  try { reglages = await acces.reglages(contexte); } catch { await lire(demande.demande, acces, contexte); return; }
+  const lecture = gardee;
+  if (!lecture || lecture.reper !== reperDesLectures()) { await lire(demande.demande, acces, contexte); return; }
+  const constat = envoyes.get(demande.constat);
+  if (!lecture || !constat || !['palette-a-choisir', 'charte-a-choisir'].includes(String(constat.faits.genre))) return;
+  const corrections = corrigerLaQuestionDeLien(lecture.catalogue, constat, demande.choix, { ecriture: lecture.ecriture });
+  const propositions = corrections.map((correction): Constat => {
+    const faits: Record<string, string | number> = { ...constat.faits, genre: 'lien-manquant', variable: correction.creation?.nom ?? lecture.catalogue.variables.find(({ cle }) => cle === correction.cible.variable)?.nom ?? '' };
+    if (correction.creation) delete faits.mode;
+    return { ...constat, id: correction.id, type: 'corriger', question: undefined, correction, faits };
+  });
+  const cles = reglages.cles;
+  const tous = lecture.tous.filter(({ id }) => id !== constat.id);
+  if (propositions.length === 0) tous.push(constat);
+  tous.push(...propositions);
+  gardee = { ...lecture, tous };
+  rendre(demande.demande, contexte, tous, cles, lecture.roles);
+}
+
+/** Les noms lus avant les corrections, pour refuser une variable renommée depuis. */
 function nomsLues(corrections: readonly Correction[]): ReadonlyMap<string, string> {
   const noms = new Map<string, string>();
   for (const { id } of corrections) {

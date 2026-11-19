@@ -89,6 +89,7 @@ export function monterStructure(coquille: Coquille, { envoyer, noms, ouvrirLaFic
     ignorerDansLeFichier: (role) => demanderAvec((numero) => ({ type: 'ignorer-role', demande: numero, role })),
     nePlusIgnorerLeConstat: (constat) => demanderAvec((numero) => ({ type: 'retablir-constat-de-structure', demande: numero, constat })),
     nePlusIgnorerLeRole: (role) => demanderAvec((numero) => ({ type: 'retablir-role', demande: numero, role })),
+    repondreAuLien: (constat, choix) => demanderAvec((numero) => ({ type: 'repondre-au-lien', demande: numero, constat, choix })),
     fusionner(constat, garder) {
       envoyees = [constat];
       demandeDApplication = nouvelleDemande();

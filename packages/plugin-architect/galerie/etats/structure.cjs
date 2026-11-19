@@ -511,4 +511,21 @@ ETATS.push({
   atteinte: ouvert().map((etape, rang, etapes) => (rang === etapes.length - 1 ? { ...etape, attendre: '#panneau-a-appliquer .arch-resume' } : etape)),
 });
 
+const liens = require('../structure/liens.cjs');
+const ouvrirLesLiens = (cas, attendre) => ouvertIntegrite(cas.releve, cas.constats, attendre);
+for (const [id, nom, titre, quand, regarder, correction] of [
+  ['t-lien-manquant', 'lienManquant', 'Tokens, lien manquant dans brands', 'primary/light/300 manque dans brands, et ses voisines visent une seule palette par marque.', 'La création est décochée dans Variables manquantes ; son aperçu nomme les deux marques et leurs cibles dans primitives, sans ligne de scopes.', true],
+  ['t-lien-mode-manquant', 'modeManquant', 'Tokens, lien absent dans une marque', 'secondary/dark/700 existe dans brands, sans valeur pour marque-2.', 'La correction est décochée dans Variables manquantes ; seule la cible du mode marque-2 change.', true],
+  ['t-lien-a-corriger', 'lienACorriger', 'Tokens, cran incorrect dans utility', 'success/vivid/light/300 vise le cran 400 de sa palette.', 'La correction est décochée dans Crans ; le chemin avant et le chemin après montrent le cran qui change.', true],
+  ['t-palette-a-choisir', 'paletteAChoisir', 'Tokens, palette de marque à choisir', 'La branche secondary manque dans les deux marques.', 'Les questions de Variables manquantes proposent les palettes de primitives ; aucune réponse ni correction n’est cochée.', false],
+  ['t-charte-a-choisir', 'charteAChoisir', 'Tokens, couleur de charte à choisir', 'identity/primary manque dans brands.', 'Chaque marque reçoit une question de Variables manquantes ; les onze crans Light de sa palette sont proposés sans choix préalable.', false],
+  ['t-rampe-a-completer', 'rampeACompleter', 'Tokens, cran à créer dans Palettes', 'primary/light/300 manque dans brands, et son cran manque aussi dans primitives.', 'Le constat de Variables manquantes nomme le cran absent et renvoie vers UCM Palettes ; aucune case ni correction.', false],
+  ['t-palette-a-creer', 'paletteACreer', 'Tokens, palette à créer dans Palettes', 'La branche secondary manque, et aucune palette de primitives n’a sa forme.', 'Le constat de Variables manquantes renvoie vers UCM Palettes ; aucune réponse, case ni correction.', false],
+]) {
+  ETATS.push({
+    id, titre, quand, regarder, existe: true,
+    atteinte: [...ouvrirLesLiens(liens[nom], correction ? CARTES_DE_CORRECTION : CARTES_A_FAIRE), ...(correction ? [premiereCarte] : [])],
+  });
+}
+
 module.exports = { ETATS };

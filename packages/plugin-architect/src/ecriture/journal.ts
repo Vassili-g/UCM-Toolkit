@@ -86,7 +86,7 @@ export const estCleDuJournalDeStructure = (cle: string): boolean => cle === CLE_
  */
 export type LigneDeStructure =
   | { readonly sorte: 'scopes'; readonly variable: string; readonly nom: string; readonly avant: readonly string[]; readonly apres: readonly string[] }
-  | { readonly sorte: 'alias-de-mode'; readonly variable: string; readonly nom: string; readonly mode: string; readonly avant: string; readonly apres: string }
+  | { readonly sorte: 'alias-de-mode'; readonly variable: string; readonly nom: string; readonly mode: string; readonly avant: string | null; readonly apres: string }
   | { readonly sorte: 'creation'; readonly variable: string; readonly nom: string; readonly collection: string }
   // Une fusion (E4.4) : `variable` est la variable retirée, que `marque` signale à retirer ; `lien-de-layer` relie un emplacement du layer
   // `variable` à la variable gardée (`apres`) au lieu de la retirée (`avant`) ; les alias des tokens et de la variable retirée sont des lignes `alias-de-mode`.
@@ -105,7 +105,7 @@ function lireUneLigne(brut: unknown): LigneDeStructure | undefined {
   switch (brut.sorte) {
     case 'scopes': return estListe(brut.avant) && estListe(brut.apres) ? { sorte: 'scopes', variable, nom, avant: brut.avant, apres: brut.apres } : undefined;
     case 'alias-de-mode':
-      return estTexte(brut.mode) && estTexte(brut.avant) && estTexte(brut.apres) ? { sorte: 'alias-de-mode', variable, nom, mode: brut.mode, avant: brut.avant, apres: brut.apres } : undefined;
+      return estTexte(brut.mode) && (brut.avant === null || estTexte(brut.avant)) && estTexte(brut.apres) ? { sorte: 'alias-de-mode', variable, nom, mode: brut.mode, avant: brut.avant, apres: brut.apres } : undefined;
     case 'creation': return estTexte(brut.collection) ? { sorte: 'creation', variable, nom, collection: brut.collection } : undefined;
     case 'marque': return { sorte: 'marque', variable, nom };
     case 'lien-de-layer':

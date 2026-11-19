@@ -37,6 +37,7 @@ export interface ChoixDeCarte {
   /** La couleur du texte que le choix dessine (un bouton et un encadré) ; `null` quand le choix n'a pas de dessin. */
   readonly dessin: 'noir' | 'blanc' | null;
   /** Le choix qui fusionne les variables d'un rôle en double (E4.4) : le constat et la clé de la variable gardée. Absent, le choix ne s'écrit pas d'ici. */
+  readonly lien?: { readonly constat: string; readonly choix: string };
   readonly fusion?: { readonly constat: string; readonly garder: string };
 }
 
@@ -63,13 +64,13 @@ type GenreDeConstat =
   | 'alias-supprime' | 'library-inactive' | 'sans-valeur-en-mode' | 'valeur-vide' | 'doublons' | 'couleur-sans-alias'
   | 'variable-absente' | 'cran-absent' | 'cran' | 'couche' | 'valeur-directe' | 'mode-du-theme' | 'type' | 'mal-rangee'
   | 'variable-inconnue' | 'rampe-autre-palette' | 'branche-de-mode' | 'sens-partage' | 'theme-en-double' | 'role-en-double' | 'cible-inaccessible'
-  | 'theme-non-reconnu' | 'scopes';
+  | 'theme-non-reconnu' | 'scopes' | 'lien-manquant' | 'lien-a-corriger' | 'palette-a-choisir' | 'charte-a-choisir' | 'rampe-a-completer';
 
 const GENRES_DECLARES: readonly GenreDeConstat[] = [
   'alias-supprime', 'library-inactive', 'sans-valeur-en-mode', 'couleur-sans-alias',
   'variable-absente', 'cran-absent', 'cran', 'couche', 'valeur-directe', 'mode-du-theme', 'type', 'mal-rangee',
   'variable-inconnue', 'rampe-autre-palette', 'branche-de-mode', 'sens-partage', 'theme-en-double', 'role-en-double', 'cible-inaccessible',
-  'theme-non-reconnu', 'scopes',
+  'theme-non-reconnu', 'scopes', 'lien-manquant', 'lien-a-corriger', 'palette-a-choisir', 'charte-a-choisir', 'rampe-a-completer',
 ];
 
 const GROUPE_DU_GENRE: Readonly<Record<GenreDeConstat, GroupeDeConstat>> = {
@@ -96,12 +97,14 @@ const GROUPE_DU_GENRE: Readonly<Record<GenreDeConstat, GroupeDeConstat>> = {
   'cible-inaccessible': 'alias',
   'theme-non-reconnu': 'rangement',
   scopes: 'scopes',
+  'lien-manquant': 'manquantes', 'lien-a-corriger': 'crans', 'palette-a-choisir': 'manquantes', 'charte-a-choisir': 'manquantes', 'rampe-a-completer': 'manquantes',
 };
 
 /** Ce que l'écran sait du relevé : le nom entier d'une variable par sa clé, et sa clé par son nom entier. */
 export interface Noms {
   nom(cle: string): string | null;
   cle(nom: string): string | null;
+  mode?(collection: string, id: string): string | null;
 }
 
 function genreDe(constat: Constat): GenreDeConstat | null {
@@ -201,6 +204,7 @@ function couleursProposees(candidats: Lecture['candidats']): ('noir' | 'blanc')[
  */
 function choixDe(genre: GenreDeConstat, lecture: Lecture): readonly ChoixDeCarte[] {
   const { constat, candidats } = lecture;
+  if (genre === 'palette-a-choisir' || genre === 'charte-a-choisir') return candidats.map(({ chemin, cle }) => ({ libelle: genre === 'palette-a-choisir' ? TEXTES.utiliserLaPalette(chemin) : TEXTES.viser(chemin), dessin: null, lien: { constat: constat.id, choix: cle ?? chemin } }));
   if (genre === 'sens-partage') return couleursProposees(candidats).map((texte): ChoixDeCarte => ({ libelle: TEXTES.passerAuTexte(motDuTexte(texte)), dessin: texte }));
   if (genre === 'cran' && estLeTexteDesBoutons(lecture)) {
     const couleurs = couleursProposees(candidats);
@@ -225,6 +229,18 @@ function modeDeLaBranche(constat: Constat): string {
 function phraseDe(genre: GenreDeConstat, lecture: Lecture): readonly Morceau[] {
   const { constat } = lecture;
   switch (genre) {
+    case 'lien-manquant': {
+      const suite = TEXTES.raisonDuLien[fait(constat, 'raison')] ?? '';
+      return fait(constat, 'mode') ? [TEXTES.sansValeurEnMode(fait(constat, 'mode')), suite] : [{ chemin: fait(constat, 'collection') }, TEXTES.collectionSansVariable, { chemin: fait(constat, 'variable') }, `.${suite}`];
+    }
+    case 'lien-a-corriger':
+      return [fait(constat, 'raison') === 'autre-palette' ? TEXTES.lienAutrePalette : TEXTES.attendLeCranAujourdhui(fait(constat, 'mode'), fait(constat, 'attendu'), fait(constat, 'avant'))];
+    case 'palette-a-choisir':
+      return [TEXTES.debutDuMode(fait(constat, 'mode')), { chemin: `${fait(constat, 'collection')}/${fait(constat, 'groupe')}` }, TEXTES.neViseAucunePalette];
+    case 'charte-a-choisir':
+      return [TEXTES.debutDeCharte(fait(constat, 'mode')), { chemin: fait(constat, 'variable') }, TEXTES.charteSansCran(fait(constat, 'palette'))];
+    case 'rampe-a-completer':
+      return fait(constat, 'palette') ? [{ chemin: fait(constat, 'palette') }, TEXTES.paletteSansCrans(fait(constat, 'manque')), { chemin: fait(constat, 'manque') }, '.', TEXTES.variablesQuiEnOntBesoin(Number(constat.faits.variables), fait(constat, 'collection'))] : [TEXTES.aucunePaletteDeCetteForme, { chemin: `${fait(constat, 'collection')}/${fait(constat, 'groupe')}` }, '.'];
     case 'alias-supprime':
       return [TEXTES.aliasSupprime];
     case 'library-inactive':
@@ -305,6 +321,11 @@ function phraseDe(genre: GenreDeConstat, lecture: Lecture): readonly Morceau[] {
 function statutDe(genre: GenreDeConstat, lecture: Lecture): string | null {
   const { constat } = lecture;
   switch (genre) {
+    case 'lien-manquant': return fait(constat, 'mode') ? TEXTES.donnerUneValeurEnMode(fait(constat, 'mode')) : fait(constat, 'raison') === 'sans-ecriture' ? TEXTES.choisirLEcriture : TEXTES.creerLaVariable(fait(constat, 'variable'));
+    case 'lien-a-corriger': return TEXTES.changerSaCible;
+    case 'palette-a-choisir': return TEXTES.choisirSaPalette;
+    case 'charte-a-choisir': return TEXTES.choisirSonCranDeCharte;
+    case 'rampe-a-completer': return fait(constat, 'palette') ? TEXTES.completerLaPalette : TEXTES.creerSaPalette;
     case 'alias-supprime':
       return TEXTES.autreCible;
     case 'library-inactive':
@@ -499,6 +520,8 @@ export interface CarteDeModes {
   readonly mode: string;
   readonly variable: string;
   readonly cran: string;
+  readonly lien?: boolean;
+  readonly groupe?: 'manquantes' | 'crans';
   readonly lignes: readonly LigneDeCorrection[];
 }
 
@@ -547,6 +570,7 @@ export interface CarteDeVariables {
   readonly cle: string;
   /** L'identifiant du kit : `surface/subtle`. */
   readonly role: string;
+  readonly collection?: string;
   readonly crans: readonly { readonly mode: string; readonly valeur: CibleVisee }[];
   readonly scopes: readonly string[];
   readonly lignes: readonly LigneDeCreation[];
@@ -591,6 +615,11 @@ interface CarteEnCours<Ligne> {
   readonly lignes: Ligne[];
 }
 
+const estUneCollectionDeLiens = (nom: string): boolean => {
+  const role = collectionUcmReconnue(nom);
+  return role === 'brands' || role === 'utility';
+};
+
 /**
  * Les corrections de variables manquantes (une carte par rôle et par couple de crans), de crans (une carte par rôle, par mode, par cran
  * lu et par cran attendu), de modes (une carte chacune) et de scopes (une carte par dossier, par scope voulu et par scope actuel).
@@ -607,15 +636,17 @@ export function lireLesCorrections(corrections: readonly Correction[], noms: Nom
     const cle = correction.cible.variable;
     const nom = (cle ? noms.nom(cle) : null) ?? cle ?? '';
     const constat = parId.get(correction.id);
-    if (correction.sorte === 'variable' && correction.creation && constat) {
-      const role = String(constat.faits.variable ?? '');
-      const visees = cransDe(constat).sort((a, b) => rangDuMode(a.nom) - rangDuMode(b.nom));
+    if (correction.sorte === 'variable' && correction.creation && (constat || estUneCollectionDeLiens(correction.apres.collection ?? ''))) {
+      const estUnLien = estUneCollectionDeLiens(correction.apres.collection ?? '');
+      const role = estUnLien ? correction.creation.nom : String(constat?.faits.variable ?? '');
+      const visees = (constat ? cransDe(constat) : []).sort((a, b) => rangDuMode(a.nom) - rangDuMode(b.nom));
       const cibles = Object.values(correction.creation.alias);
-      const parMode = cransDe(constat).map(({ nom: mode }, rang) => ({ mode, cible: cibles[rang] })).sort((a, b) => rangDuMode(a.mode) - rangDuMode(b.mode));
-      const regroupe = [role, ...visees.map(({ valeur }) => valeur), correction.creation.scopes.join(',')].join('|');
+      const parMode = (estUnLien ? Object.entries(correction.creation.alias).map(([mode, cible]) => ({ mode: noms.mode?.(correction.creation!.collection, mode) ?? mode, cible })) : cransDe(constat!).map(({ nom: mode }, rang) => ({ mode, cible: cibles[rang] }))).sort((a, b) => rangDuMode(a.mode) - rangDuMode(b.mode));
+      const regroupe = [correction.apres.collection ?? '', role, ...visees.map(({ valeur }) => valeur), correction.creation.scopes.join(',')].join('|');
       const carte = variables.get(regroupe) ?? {
         cle: regroupe,
         role,
+        ...(estUnLien ? { collection: correction.apres.collection } : {}),
         crans: visees.map(({ nom: mode, valeur }) => ({ mode: TEXTES.libelleDuMode(modeDuThemeReconnu(mode) ?? mode), valeur })),
         scopes: [...correction.creation.scopes],
         lignes: [],
@@ -647,6 +678,8 @@ export function lireLesCorrections(corrections: readonly Correction[], noms: Nom
       modes.push({
         sorte: 'modes',
         cle: correction.id,
+        ...(constat?.faits.genre === 'lien-manquant' ? { groupe: 'manquantes' as const } : constat?.faits.genre === 'lien-a-corriger' ? { groupe: 'crans' as const } : {}),
+        lien: constat?.faits.genre === 'lien-manquant' || constat?.faits.genre === 'lien-a-corriger' || correction.id.startsWith('C82:lien-'),
         mode: correction.aRelire.axes?.mode ?? correction.cible.mode ?? '',
         variable: nom,
         cran: segments(apres).at(-1) ?? '',
