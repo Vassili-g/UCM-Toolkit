@@ -15,4 +15,4 @@ Ce plan met en œuvre [PROPOSITION-REFERENCE-COMPLETE.md](./PROPOSITION-REFERENC
 - [x] 2 (d641fc43). C82 dans `brands` et `utility` (`implementeur-exigeant`). Après le lot 1.
 - [x] 3 (f2d9edda). Architect crée les alias (`implementeur-exigeant`). Après le lot 2.
 - [x] 4 (7caae0cb). Générateur et vue illustrée (`implementeur`). Après le lot 1.
-- [ ] 5. Comparaison au nouvel export (`verificateur` qui lit `_local/exports-figma/`, puis la conversation principale). Après les lots 1 et 4.
+- [x] 5. Comparaison au nouvel export, rapport local (`verificateur` qui lit `_local/exports-figma/`, puis la conversation principale). Après les lots 1 et 4.
