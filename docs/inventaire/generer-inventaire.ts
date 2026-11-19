@@ -427,7 +427,10 @@ export async function genererInventaireEtCouverture(): Promise<{ page: string; c
   const employes = new Set<string>();
   const css = remplir(lireDuDossier('page.css'), 'page.css', liste, employes);
   const js = remplir(lireDuDossier('page.js'), 'page.js', liste, employes);
-  const html = remplir(lireDuDossier('gabarit.html'), 'gabarit.html', { ...liste, css, js }, employes);
+  const livrees = new Set(releves.pistes().filter(({ avancement }) => avancement !== undefined && avancement.faites === avancement.total).map(({ id }) => id));
+  // Une piste livrée n'a plus de fiche : un renvoi écrit à la main dans le gabarit reste du texte.
+  const html = remplir(lireDuDossier('gabarit.html'), 'gabarit.html', { ...liste, css, js }, employes)
+    .replace(/<a href="#piste-(P\d+)">([^<]*)<\/a>/g, (lien, id: string, texte: string) => (livrees.has(id) ? texte : lien));
   const oublies = Object.keys(liste).filter((nom) => PREFIXES_A_EMPLOYER.some((prefixe) => nom.startsWith(prefixe)) && !employes.has(nom));
   if (oublies.length) {
     throw new Error(`Le gabarit n'emploie pas : ${oublies.join(', ')}. Un paquet, un point d'entrée du kit, une règle décidée ou un logo d'outil n'a pas sa place dans la page.`);

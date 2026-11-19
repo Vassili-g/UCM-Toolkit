@@ -492,7 +492,6 @@ a.sujet:focus-visible { outline: 2px solid var(--texte); outline-offset: 2px; }
   <h3>Ce qu'UCM ne fait pas encore</h3>
   <ul class="liste manques">
     <li>Aucun outil ne compare le rendu d'un composant à son contrat ou à Figma (<a href="#piste-P9">P9</a>, <a href="#piste-P10">P10</a>, <a href="#piste-P20">P20</a>).</li>
-    <li>Un écart entre le code et le contrat avertit sans bloquer la fusion (<a href="#piste-P19">P19</a>).</li>
     <li>Une pull request rouge reste fusionnable, car le plan GitHub actuel n'offre pas la <a class="terme" href="#g-protection" title="Le réglage de la forge qui interdit de fusionner une pull request dont le CI est rouge. Sans lui, un échec reste un avis.">protection de branche</a> (<a href="#piste-P17">P17</a>).</li>
     <li>Aucun contrat réel n'est encore au format 14.0. Les 4 <a class="terme" href="#g-recette-contrats" title="Les 4 contrats réels Button, Alert, TileLink et StressTest, exportés depuis Figma, que les tests du dépôt font lire par les lecteurs.">contrats de recette</a> sont en 13.0 (<a href="#piste-P1">P1</a>).</li>
   </ul>
@@ -656,7 +655,7 @@ a.sujet:focus-visible { outline: 2px solid var(--texte); outline-offset: 2px; }
     <h4><span class="n">2</span>Variables à la main</h4>
     <dl class="faits">
       <dt>Qui</dt><dd>Le designer, dans Figma, sans outil</dd>
-      <dt>Ce qui se passe</dt><dd>Le designer pose les collections <code>brands</code>, <code>utility</code>, <code>layout</code> et <code>typography</code> : les palettes de marque, le neutre et les statuts, les tailles, les rayons et les réglages de texte. Aucun outil ne les écrit ni ne les modifie (<a href="#piste-P21">P21</a>).</dd>
+      <dt>Ce qui se passe</dt><dd>Le designer pose les collections <code>brands</code>, <code>utility</code>, <code>layout</code> et <code>typography</code> : les palettes de marque, le neutre et les statuts, les tailles, les rayons et les réglages de texte. Architect crée ensuite les alias de <code>brands</code> et de <code>utility</code> vers <code>primitives</code> (piste P21, livrée). Aucun outil n'écrit <code>layout</code> ni <code>typography</code>.</dd>
       <dt>Ce qui en sort</dt><dd>Des <a class="terme" href="#g-alias" title="Une variable qui vise une autre variable au lieu de porter une valeur. Un alias de mode vise une variable différente en Light et en Dark.">alias</a> vers les primitives, et les tailles et les textes du design system.</dd>
     </dl>
   </div>
@@ -1077,7 +1076,7 @@ a.sujet:focus-visible { outline: 2px solid var(--texte); outline-offset: 2px; }
   <p class="defini">Défini dans <code>packages/kit/src/lecteurs/diagnostic-parite.mjs</code> et <code>packages/kit/src/lecteurs/verdict-bilan.mjs</code>.</p>
   <p class="intro">Une pull request (merge request sur GitLab) propose d'intégrer une branche dans <code>main</code>. L'Exporter en ouvre une pour chaque contrat ou <code>tokens.json</code> exporté depuis Figma, et un développeur en ouvre une quand il modifie le code. À chaque envoi sur la branche, le CI lance <code>ucm check</code>, qui écrit son rapport en commentaire de la pull request et fait échouer le job quand le rapport bloque. Dans l'exemple, une pull request modifie <code>Button.tsx</code>, qui n'a pas de prop <code>size</code>.</p>
   <div class="a-revoir" role="note"><p class="a-revoir-titre">À revoir par le mainteneur</p>
-    <p>L'exemple de droite est une pull request de code : le développeur modifie <code>Button.tsx</code> sans ajouter <code>size</code>. Une pull request du designer qui ne change que <code>Button.contract.json</code> passe, et le composant devient « en retard sur son contrat » (V-05 de <a href="#piste-P19">P19</a>).</p>
+    <p>L'exemple de droite est une pull request de code : le développeur modifie <code>Button.tsx</code> sans ajouter <code>size</code>. Une pull request du designer qui ne change que <code>Button.contract.json</code> passe, et le composant devient « en retard sur son contrat » (V-05 de P19).</p>
     <p>Le point à trancher est V-11. Un développeur qui touche le code d'un composant en retard, pour corriger un bug par exemple, est bloqué tant qu'il ne rattrape pas le contrat ou ne pose pas de dérogation.</p>
     <p>La colonne de gauche décrit encore l'ancienne CLI, qui avertissait sans bloquer. La CLI 0.2.0 applique déjà la règle de droite, sauf le bouton grisé, qui attend la protection de branche de <a href="#piste-P17">P17</a>.</p></div>
   <div class="rapports">
@@ -1093,7 +1092,7 @@ a.sujet:focus-visible { outline: 2px solid var(--texte); outline-offset: 2px; }
           <p>Votre design n'est pas en cause et réexporter depuis Figma n'y changerait rien.</p>
         </div>
         <div class="pr-fusion"><span class="bouton-fusion">Fusionner</span></div></div></figure>
-    <figure class="rapport"><figcaption>Après <a href="#piste-P17">P17</a> et <a href="#piste-P19">P19</a> (forme visée)</figcaption>
+    <figure class="rapport"><figcaption>Après <a href="#piste-P17">P17</a> et P19 (forme visée)</figcaption>
       <div class="pr"><div class="pr-tete">ucm check</div>
         <div class="pr-corps">
           <p class="pr-titre bloquant">Les contrôles du repository bloquent la fusion</p>
@@ -1131,7 +1130,7 @@ a.sujet:focus-visible { outline: 2px solid var(--texte); outline-offset: 2px; }
   <ul class="liste">
     <li>Le designer exporte <code>tokens.json</code> et fusionne seul une demande de tokens, grâce à un fichier <a class="terme" href="#g-codeowners"><code>CODEOWNERS</code></a> (<a href="#piste-P17">P17</a>). Elle passe toujours.</li>
     <li>Une demande dont le check <code>contrats</code> est rouge ne se fusionne pas : le check est exigé sur <code>main</code> (<a href="#piste-P17">P17</a>).</li>
-    <li>Un token absent, une prop du code qui s'écarte du contrat et un écart de parité bloquent la fusion (<a href="#piste-P19">P19</a>). Une <a class="terme" href="#g-derogation">dérogation</a> motivée laisse passer un écart de parité.</li>
+    <li>Un token absent, une prop du code qui s'écarte du contrat et un écart de parité bloquent la fusion (P19). Une <a class="terme" href="#g-derogation">dérogation</a> motivée laisse passer un écart de parité.</li>
     <li>La couleur rendue, les dimensions, la typographie, la structure et l'ordre rendus bloquent après comparaison du rendu au contrat (<a href="#piste-P10">P10</a>, <a href="#piste-P20">P20</a>).</li>
     <li>Une valeur écrite en dur dans le code bloque, par le linter (<a href="#piste-P6">P6</a>).</li>
     <li>Une demande qui ne modifie que le contrat marque le composant en retard sur son contrat, et la demande passe.</li>
@@ -1163,9 +1162,9 @@ a.sujet:focus-visible { outline: 2px solid var(--texte); outline-offset: 2px; }
   <div class="defile"><table class="empile">
     <tr><th>Question</th><th>Fait</th><th>Pistes</th><th>Choix</th></tr>
     <tr data-decision="T1"><td>Ce que le linter refuse en plus</td><td data-l="Fait">Une prop, une variante ou un élément absents du contrat. La recherche propose : un élément est visuel s'il peint ou prend de la place.</td><td data-l="Pistes"><a href="#piste-P6">P6</a>, <a href="#piste-P10">P10</a></td></tr>
-    <tr data-decision="T2"><td>Token retiré par une demande de tokens seuls</td><td data-l="Fait">« Une demande de tokens seuls passe toujours » contredit le blocage d'un token retiré que le code cite.</td><td data-l="Pistes"><a href="#piste-P19">P19</a></td></tr>
-    <tr data-decision="T3"><td>Délai du composant en retard</td><td data-l="Fait">Le composant qu'une demande du designer casse est marqué en retard, et la prochaine demande d'un développeur dessus bloque. Le délai n'est pas fixé.</td><td data-l="Pistes"><a href="#piste-P19">P19</a></td></tr>
-    <tr data-decision="T4"><td>Forme de la dérogation</td><td data-l="Fait">Fichier ou section de configuration, portée, motif, auteur, expiration.</td><td data-l="Pistes"><a href="#piste-P19">P19</a>, <a href="#piste-P20">P20</a></td></tr>
+    <tr data-decision="T2"><td>Token retiré par une demande de tokens seuls</td><td data-l="Fait">« Une demande de tokens seuls passe toujours » contredit le blocage d'un token retiré que le code cite.</td><td data-l="Pistes">P19</td></tr>
+    <tr data-decision="T3"><td>Délai du composant en retard</td><td data-l="Fait">Le composant qu'une demande du designer casse est marqué en retard, et la prochaine demande d'un développeur dessus bloque. Le délai n'est pas fixé.</td><td data-l="Pistes">P19</td></tr>
+    <tr data-decision="T4"><td>Forme de la dérogation</td><td data-l="Fait">Fichier ou section de configuration, portée, motif, auteur, expiration.</td><td data-l="Pistes">P19, <a href="#piste-P20">P20</a></td></tr>
     <tr data-decision="T5"><td>Marque des slots</td><td data-l="Fait">La convention <code>data-ucm-slot</code> permet au vérificateur de retrouver les calques sans code propre à chaque composant.</td><td data-l="Pistes"><a href="#piste-P10">P10</a></td></tr>
     <tr data-decision="T6"><td>Un dépôt ou plusieurs</td><td data-l="Fait">Le mainteneur préfère le monorepo. Une autre répartition range les définitions dans le toolkit et l'intégration dans intencial-library.</td><td data-l="Pistes"><a href="#piste-P6">P6</a>, <a href="#piste-P9">P9</a>, <a href="#piste-P18">P18</a></td></tr>
     <tr data-decision="T7"><td>Modules dans <code>ucm check</code></td><td data-l="Fait"><code>ucm.config.json</code> lit trois champs. Une clé <code>modules</code> n'activerait rien.</td><td data-l="Pistes"></td></tr>
@@ -1191,7 +1190,7 @@ a.sujet:focus-visible { outline: 2px solid var(--texte); outline-offset: 2px; }
   <dl class="def questions">
     <dt>Pourquoi un contrat JSON plutôt que l'API Figma ou Code Connect ?</dt><dd>Le CI lit le contrat sans accès à Figma, et le contrat est versionné à côté du code. Code Connect relie un composant Figma à son code sans décrire les obligations visuelles. Les deux se complètent.</dd>
     <dt>L'API du kit est-elle stable ?</dt><dd>Une seule porte est promise aux modules, <code>@ucm-kit/core/modules</code>. Un test refuse qu'elle change sans entrée au journal du kit, et le chiffre du milieu de la version monte à chaque rupture. Les autres portes servent les outils UCM et changent librement. Le guide <code>docs/guides/MODULES.md</code> le détaille.</dd>
-    <dt>Que se passe-t-il quand le designer change un token ?</dt><dd>Sa valeur change dans <code>tokens.json</code>, et la pull request passe. Le code suit une fois la feuille régénérée par <code>ucm tokens css</code>. Un token cité par un contrat puis retiré avertit aujourd'hui, et bloquera une fois la règle de blocage codée (<a href="#piste-P19">P19</a>).</dd>
+    <dt>Que se passe-t-il quand le designer change un token ?</dt><dd>Sa valeur change dans <code>tokens.json</code>, et la pull request passe. Le code suit une fois la feuille régénérée par <code>ucm tokens css</code>. Un token cité par un contrat puis retiré avertit aujourd'hui, et bloquera une fois la règle de blocage codée (P19).</dd>
     <dt>Un contrat peut-il arriver avant le code ?</dt><dd>Oui. Il est fusionné « à implémenter », et la parité s'applique dès que le composant existe.</dd>
     <dt>Comment tester sans Figma ?</dt><dd><code>npm test</code> couvre le moteur, les lecteurs sur des contrats fabriqués et la CLI sur des repositories temporaires. Ce qui touche Figma et une vraie forge se rejoue dans UCM-Playground, l'application de recette sur GitHub. Un agent ne peut pas exporter depuis Figma.</dd>
     <dt>Peut-on modifier le kit ?</dt><dd>Le cœur a un seul mainteneur, et un changement du kit se décide avec lui. Les modules importeront seulement l'API que <a href="#piste-P3">P3</a> fige.</dd>

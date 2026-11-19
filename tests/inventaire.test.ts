@@ -13,7 +13,7 @@ import { motifVersRegex } from '../scripts/agents-contexte.mjs';
 import { EXCLUSIONS } from '../docs/inventaire/couverture';
 import { sectionDe } from '../docs/inventaire/extraire';
 import { CHEMIN_DE_L_INVENTAIRE, genererInventaireEtCouverture } from '../docs/inventaire/generer-inventaire';
-import { CHEMIN_DES_DECISIONS, pistes, validerLesChoix, type Decisions, type Regle } from '../docs/inventaire/releves';
+import { CHEMIN_DES_DECISIONS, compterLesCases, pistes, validerLesChoix, type Decisions, type Regle } from '../docs/inventaire/releves';
 
 const racine = path.resolve(__dirname, '..');
 const sansRetourChariot = (texte: string): string => texte.replace(/\r\n/g, '\n');
@@ -125,6 +125,18 @@ test('une piste avec un plan compte ses cases cochées sur le total', () => {
     const cases = readFileSync(path.join(racine, piste.plan!), 'utf8').split(/\r?\n/).filter((ligne) => /^\s*- \[[ x]\]/.test(ligne));
     assert.ok(cases.length > 0, `${piste.id} : le plan n'a aucune case`);
     assert.deepEqual(piste.avancement, { faites: cases.filter((ligne) => /^\s*- \[x\]/.test(ligne)).length, total: cases.length }, piste.id);
+  }
+});
+
+test('un plan compte ses étapes hors des blocs de code, avec [X] et les puces * et +', () => {
+  const plan = ['- [x] a', '- [X] b', '```md', '- [ ] exemple', '- [x] autre exemple', '```', '* [ ] c', '+ [x] d', '  - [ ] e'].join('\n');
+  assert.deepEqual(compterLesCases(plan), { faites: 3, total: 5 });
+});
+
+test("aucun lien de la page ne vise la fiche d'une piste livrée", async () => {
+  const page = await generee();
+  for (const piste of pistes().filter((candidate) => candidate.avancement !== undefined && candidate.avancement.faites === candidate.avancement.total)) {
+    assert.ok(!page.includes(`href="#piste-${piste.id}"`), `${piste.id} : un lien vise une fiche absente de la page`);
   }
 });
 

@@ -387,20 +387,37 @@ export function comparer(lu: Noeud, attendu: Noeud = documentDeLaReference()): s
   return lignes;
 }
 
-/** Une palette de couleur compte 22, 24 ou 44 variables selon sa forme ; un autre compte est un écart. */
+/**
+ * Une palette de couleur a l'une des formes de la référence : ses chemins sans le nom de la palette (crans Light et Dark, profils, `white` et `black`).
+ * Un autre ensemble est un écart, même quand son compte est celui d'une autre forme : un statut sans `vivid` compte 22 variables, comme une palette de marque.
+ */
 function ecartsDesPalettes(attendues: Map<string, string[]>, lues: Map<string, string[]>): string[] {
-  const compter = (variables: Map<string, string[]>): Map<string, number> => {
-    const comptes = new Map<string, number>();
+  const formes = (variables: Map<string, string[]>): Map<string, string[]> => {
+    const parPalette = new Map<string, string[]>();
     for (const chemin of variables.keys()) {
       if (!chemin.startsWith(debutDesCouleurs)) continue;
-      const palette = chemin.split('/')[1];
-      comptes.set(palette, (comptes.get(palette) ?? 0) + 1);
+      const [, palette, ...reste] = chemin.split('/');
+      parPalette.set(palette, [...(parPalette.get(palette) ?? []), reste.join('/')].sort());
     }
-    return comptes;
+    return parPalette;
   };
-  const admis = new Set(compter(attendues).values());
-  return [...compter(lues)].filter(([, nombre]) => !admis.has(nombre)).map(([palette, nombre]) => `  palette ${palette} : ${nombre} variables (formes attendues : ${[...admis].sort((x, y) => x - y).join(', ')})`);
+  const admises = new Map<string, string[]>();
+  for (const forme of formes(attendues).values()) admises.set(forme.join('|'), forme);
+  const comptes = [...new Set([...admises.values()].map((forme) => forme.length))].sort((x, y) => x - y).join(', ');
+  const lignes: string[] = [];
+  for (const [palette, forme] of formes(lues)) {
+    if (admises.has(forme.join('|'))) continue;
+    const proche = [...admises.values()].sort((x, y) => ecart(forme, x) - ecart(forme, y))[0];
+    const manquants = proche.filter((chemin) => !forme.includes(chemin));
+    const enTrop = forme.filter((chemin) => !proche.includes(chemin));
+    const detail = [...(manquants.length ? [`manquants : ${manquants.join(', ')}`] : []), ...(enTrop.length ? [`en trop : ${enTrop.join(', ')}`] : [])].join(' ; ');
+    lignes.push(`  palette ${palette} : ${forme.length} variables (formes attendues : ${comptes}), ${detail}`);
+  }
+  return lignes;
 }
+
+const ecart = (forme: readonly string[], autre: readonly string[]): number =>
+  autre.filter((chemin) => !forme.includes(chemin)).length + forme.filter((chemin) => !autre.includes(chemin)).length;
 
 if (require.main === module) {
   const arguments_ = process.argv.slice(2);

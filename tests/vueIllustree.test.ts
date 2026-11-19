@@ -11,7 +11,7 @@ import test from 'node:test';
 
 import { FORMES_ANCIENNES_DES_COLLECTIONS } from '@ucm-kit/core/referentiel';
 import { genererDonneesReferentiel } from '../docs/notes/Recherches/Archi Tokens Multi-marques/generer-donnees-referentiel';
-import { genererReference } from '../docs/notes/Recherches/Archi Tokens Multi-marques/generer-reference';
+import { comparer, documentDeLaReference, genererReference } from '../docs/notes/Recherches/Archi Tokens Multi-marques/generer-reference';
 import { genererDonneesVue } from '../docs/notes/Recherches/Archi Tokens Multi-marques/generer-vue-illustree';
 
 const dossier = path.resolve(__dirname, '..', 'docs', 'notes', 'Recherches', 'Archi Tokens Multi-marques');
@@ -55,4 +55,25 @@ test('la page ne recopie plus la table des crans', () => {
   const page = fs.readFileSync(path.join(dossier, 'VUE-ILLUSTREE-MULTIMARQUES.html'), 'utf8');
   assert.doesNotMatch(page, /<td class="n">\d{3}/, 'une cellule de cran est écrite en dur dans la page');
   assert.match(page, /donnees-referentiel\.js/);
+});
+
+const copieDeLaReference = (): Record<string, any> => JSON.parse(JSON.stringify(documentDeLaReference()));
+
+test('--comparer ne signale rien sur la référence elle-même', () => {
+  assert.deepEqual(comparer(copieDeLaReference()), []);
+});
+
+test("--comparer signale une palette de statut sans l'un de ses profils, même si son compte égale celui d'une palette de marque", () => {
+  const lu = copieDeLaReference();
+  const statut = Object.keys(lu.primitives.color).find((palette) => lu.primitives.color[palette].vivid)!;
+  delete lu.primitives.color[statut].vivid;
+  assert.ok(comparer(lu).some((ligne) => ligne.includes(`palette ${statut}`)), 'la palette sans vivid passe');
+});
+
+test('--comparer signale une palette dont un cran porte un autre nom que ceux de la référence', () => {
+  const lu = copieDeLaReference();
+  const [palette] = Object.keys(lu.primitives.color);
+  lu.primitives.color[palette].light['975'] = lu.primitives.color[palette].light['950'];
+  delete lu.primitives.color[palette].light['950'];
+  assert.ok(comparer(lu).some((ligne) => ligne.includes(`palette ${palette}`)), 'le cran 975 passe');
 });

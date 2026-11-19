@@ -64,7 +64,6 @@
   <h3>Ce qu'UCM ne fait pas encore</h3>
   <ul class="liste manques">
     <li>Aucun outil ne compare le rendu d'un composant à son contrat ou à Figma (<a href="#piste-P9">P9</a>, <a href="#piste-P10">P10</a>, <a href="#piste-P20">P20</a>).</li>
-    <li>Un écart entre le code et le contrat avertit sans bloquer la fusion (<a href="#piste-P19">P19</a>).</li>
     <li>Une pull request rouge reste fusionnable, car le plan GitHub actuel n'offre pas la <a class="terme" href="#g-protection" title="Le réglage de la forge qui interdit de fusionner une pull request dont le CI est rouge. Sans lui, un échec reste un avis.">protection de branche</a> (<a href="#piste-P17">P17</a>).</li>
     <li>Aucun contrat réel n'est encore au format {{contrat}}. Les {{recette-contrats:nombre}} <a class="terme" href="#g-recette-contrats" title="Les {{recette-contrats:nombre}} contrats réels Button, Alert, TileLink et StressTest, exportés depuis Figma, que les tests du dépôt font lire par les lecteurs.">contrats de recette</a> sont en {{recette-contrats:version}} (<a href="#piste-P1">P1</a>).</li>
   </ul>
@@ -221,7 +220,7 @@
     <h4><span class="n">2</span>Variables à la main</h4>
     <dl class="faits">
       <dt>Qui</dt><dd>Le designer, dans Figma, sans outil</dd>
-      <dt>Ce qui se passe</dt><dd>Le designer pose les collections <code>brands</code>, <code>utility</code>, <code>layout</code> et <code>typography</code> : les palettes de marque, le neutre et les statuts, les tailles, les rayons et les réglages de texte. Aucun outil ne les écrit ni ne les modifie (<a href="#piste-P21">P21</a>).</dd>
+      <dt>Ce qui se passe</dt><dd>Le designer pose les collections <code>brands</code>, <code>utility</code>, <code>layout</code> et <code>typography</code> : les palettes de marque, le neutre et les statuts, les tailles, les rayons et les réglages de texte. Architect crée ensuite les alias de <code>brands</code> et de <code>utility</code> vers <code>primitives</code> (piste P21, livrée). Aucun outil n'écrit <code>layout</code> ni <code>typography</code>.</dd>
       <dt>Ce qui en sort</dt><dd>Des <a class="terme" href="#g-alias" title="Une variable qui vise une autre variable au lieu de porter une valeur. Un alias de mode vise une variable différente en Light et en Dark.">alias</a> vers les primitives, et les tailles et les textes du design system.</dd>
     </dl>
   </div>

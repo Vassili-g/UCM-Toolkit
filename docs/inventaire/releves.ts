@@ -727,13 +727,31 @@ function cheminDuDepot(chemin: string): boolean {
   return /^[\w.@ -]+(\/[\w.@ -]+)*(\.[a-z]+|\/)$/i.test(chemin);
 }
 
-/** Les cases d'un plan, une par étape : `- [x]` est faite, `- [ ]` reste à faire. Un plan sans case est refusé. */
+/**
+ * Les cases d'un plan, une par étape : `- [x]` est faite, `- [ ]` reste à faire. Une case dans un bloc de code est un exemple, pas une étape ;
+ * `[X]` vaut `[x]`, comme sur GitHub, et `*` ou `+` ouvrent une liste comme `-`.
+ */
+export function compterLesCases(texte: string): { faites: number; total: number } {
+  let dansUnBloc = false;
+  let faites = 0;
+  let total = 0;
+  for (const ligne of texte.split(/\r?\n/)) {
+    if (/^\s*(```|~~~)/.test(ligne)) { dansUnBloc = !dansUnBloc; continue; }
+    const etat = dansUnBloc ? undefined : /^\s*[-*+] \[([ xX])\]/.exec(ligne)?.[1];
+    if (etat === undefined) continue;
+    total += 1;
+    if (etat !== ' ') faites += 1;
+  }
+  return { faites, total };
+}
+
+/** Un plan sans case est refusé. */
 function avancementDuPlan(piste: Piste): { faites: number; total: number } {
   const chemin = path.join(RACINE, piste.plan!);
   if (!existsSync(chemin)) AVEC_ECHEC(CHEMIN_DES_PISTES, `piste ${piste.id}, champ plan`, `${piste.plan} n'existe pas dans le dépôt`);
-  const cases = readFileSync(chemin, 'utf8').split(/\r?\n/).flatMap((ligne) => /^\s*- \[([ x])\]/.exec(ligne)?.[1] ?? []);
-  if (cases.length === 0) AVEC_ECHEC(CHEMIN_DES_PISTES, `piste ${piste.id}, champ plan`, `${piste.plan} n'a aucune case à cocher`);
-  return { faites: cases.filter((etat) => etat === 'x').length, total: cases.length };
+  const avancement = compterLesCases(readFileSync(chemin, 'utf8'));
+  if (avancement.total === 0) AVEC_ECHEC(CHEMIN_DES_PISTES, `piste ${piste.id}, champ plan`, `${piste.plan} n'a aucune case à cocher`);
+  return avancement;
 }
 
 /** Les pistes de la feuille de route, validées : identifiants uniques, dépendances connues, chemins existants, aucun cycle. */
