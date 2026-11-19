@@ -45,8 +45,10 @@ Trois outils servent plus rarement :
   MUI ne publie pas ses tokens dans un fichier, et ce script exécute le code du
   paquet : on le lance à la main. Tant qu'il n'a pas tourné avec cette version,
   `mui` n'a pas de `valeurs.json`.
-- `ucm.mjs` écrit `ucm/noms.json` depuis l’instantané de la
-  [vue illustrée multimarques](../../notes/Recherches/Archi%20Tokens%20Multi-marques/donnees-vue-illustree.js).
+- `ucm.mjs` écrit `ucm/noms.json` depuis les données de la
+  [vue illustrée multimarques](../../notes/Recherches/Archi%20Tokens%20Multi-marques/donnees-vue-illustree.js),
+  que `npm run vues` tire de la référence du kit. Après `npm run vues`, relancer
+  `ucm.mjs` pour mettre `ucm/` à jour.
   Il relève les registres de vocabulaire et d’architecture du kit compilé dans
   `ucm/registres.json`, avec la forme qu’un terme prend dans une catégorie
   (`identifiantParCategorie` : `large` dans un dossier, `lg` ailleurs). Depuis

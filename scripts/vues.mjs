@@ -50,6 +50,20 @@ const VUES = [
       (await charger("docs/notes/Recherches/Archi Tokens Multi-marques/generer-donnees-referentiel.ts")).genererDonneesReferentiel(),
   },
   {
+    fichier: "docs/notes/Recherches/Archi Tokens Multi-marques/tokens-reference.json",
+    contenu: async () =>
+      (await charger("docs/notes/Recherches/Archi Tokens Multi-marques/generer-reference.ts")).genererReference(),
+  },
+  {
+    // Lit le fichier de référence que l'entrée précédente vient d'écrire : l'ordre de VUES compte.
+    fichier: "docs/notes/Recherches/Archi Tokens Multi-marques/donnees-vue-illustree.js",
+    contenu: async () => {
+      const dossier = "docs/notes/Recherches/Archi Tokens Multi-marques/";
+      const source = JSON.parse(readFileSync(join(racine, dossier, "tokens-reference.json"), "utf8"));
+      return (await charger(`${dossier}generer-vue-illustree.ts`)).genererDonneesVue(source);
+    },
+  },
+  {
     fichier: "docs/inventaire/INVENTAIRE-UCM.html",
     contenu: async () => (await charger("docs/inventaire/generer-inventaire.ts")).genererInventaire(),
   },

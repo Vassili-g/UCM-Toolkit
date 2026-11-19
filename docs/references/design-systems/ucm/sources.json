@@ -1,38 +1,38 @@
 {
   "source": {
     "fichier": "docs/notes/Recherches/Archi Tokens Multi-marques/donnees-vue-illustree.js",
-    "sha256": "18d6c5c0201dba60975158d0e1d5ae760e734ece0f8be05292cbd61a774d5bdd",
+    "sha256": "a3e6444b0a9ae0ac36cf239b0c9b733c7bfd1bdb8fdffa12a91bbfd7eba3ee98",
     "modes": {
       "theme": [
         "light",
         "dark"
       ],
-      "color-brands": [
-        "intencial",
+      "brands": [
+        "marque-1",
         "marque-2"
       ]
     }
   },
   "extracteur": {
     "fichier": "docs/references/design-systems/_outils/ucm.mjs",
-    "sha256": "d743619e94cdfd8ade00cc20d2cffd8f67d5bfb1b9b91d28af23d1569e5f4926"
+    "sha256": "1bc6ed04d9e760c04f40ffc819643f419f7f4cd061efd91bdae11f57c5e67edc"
   },
   "kit": {
     "version": "0.17.0",
     "sha256Registres": "9b42475449e6a9db56e3d995b5dbe46f541a5d5bbe5b396141b531d1501aad00"
   },
   "comptes": {
-    "noms": 1300,
+    "noms": 995,
     "parCollection": {
-      "components": 369,
+      "components": 8,
+      "theme": 295,
       "brands": 46,
       "utility": 206,
+      "primitives": 349,
       "layout": 31,
-      "typography": 60,
-      "theme": 271,
-      "primitives": 317
+      "typography": 60
     },
-    "sansType": 24,
+    "sansType": 0,
     "registres": 25
   }
 }

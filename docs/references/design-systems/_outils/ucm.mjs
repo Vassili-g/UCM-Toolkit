@@ -1,4 +1,7 @@
-/** Extrait les noms de la vue illustrée et les registres du kit compilé, sans exécuter la source. */
+/**
+ * Extrait les noms UCM et les registres du kit compilé, sans exécuter la source. Les noms sortent des données de la vue illustrée,
+ * que `generer-vue-illustree.ts` tire de `tokens-reference.json`, que `generer-reference.ts` écrit depuis la référence du kit.
+ */
 import { createHash } from 'node:crypto';
 import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { relative, resolve } from 'node:path';
@@ -22,15 +25,15 @@ export function lireDonnees(texte) {
   return donnees;
 }
 
-/** Nom courant d'une collection de l'instantané, ou undefined si ni le nom courant ni une forme ancienne ne la désignent. */
+/** Nom courant d'une collection d'une source, ou undefined si ni le nom courant ni une forme ancienne ne la désignent. La source par défaut n'a que des noms courants ; la forme ancienne sert à une source qu'un export Figma d'avant le renommage a écrite. */
 export function collectionCourante(collection) {
   if (COLLECTIONS.includes(collection)) return collection;
   return Object.hasOwn(FORMES_ANCIENNES_DES_COLLECTIONS, collection) ? FORMES_ANCIENNES_DES_COLLECTIONS[collection] : undefined;
 }
 
 /**
- * Une entrée par variable, même si plusieurs modes la renseignent. Le nom garde la forme de l'instantané, qui vient
- * d'un export Figma et peut dater d'avant un renommage de collection ; la collection et la couche suivent le nom courant.
+ * Une entrée par variable, même si plusieurs modes la renseignent. Le nom garde la forme de la source ; la collection et la couche
+ * suivent le nom courant.
  */
 export function extraireNoms(donnees) {
   const entrees = new Map();

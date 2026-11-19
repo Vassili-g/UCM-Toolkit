@@ -1,7 +1,6 @@
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import test from 'node:test';
-import vm from 'node:vm';
 import {
   CONVENTIONS, FORMES_ANCIENNES_DES_COLLECTIONS, REGISTRE_CASSES, REGISTRE_SEPARATEURS, collectionUcmReconnue, decouperSegment,
   detecterLesConventions, normaliserLesNoms,
@@ -187,9 +186,9 @@ test('les collisions restent comparées sous la catégorie du nom', () => {
 });
 
 test('l’instantané propose exactement 60 press et 36 disable sans réécrire les données', () => {
-  const contexte = { window: {} as { VUE_DONNEES?: { collections: Record<string, Record<string, unknown>> } } };
-  vm.runInNewContext(readFileSync(new URL('../../../docs/notes/Recherches/Archi Tokens Multi-marques/donnees-vue-illustree.js', import.meta.url), 'utf8'), contexte);
-  const noms = Object.keys(contexte.window.VUE_DONNEES!.collections.components).map((chemin) => nom(chemin.split('.').slice(1).join('/'), chemin, 'components'));
+  // Les chemins de `components` d'un export d'avant la nomenclature, figés : la vue illustrée suit désormais la référence et n'a plus d'ancien nom.
+  const chemins = JSON.parse(readFileSync(new URL('./fixtures/cheminsDeComposantsDeLExport.json', import.meta.url), 'utf8')) as string[];
+  const noms = chemins.map((chemin) => nom(chemin.split('.').slice(1).join('/'), chemin, 'components'));
   assert.deepEqual(normaliserLesNoms(noms, { variables: tiret }).propositions, []);
   const resultat = normaliserLesNoms(noms, { variables: tiret }, { termesUcm: true });
   assert.deepEqual(resultat.collisions, []);

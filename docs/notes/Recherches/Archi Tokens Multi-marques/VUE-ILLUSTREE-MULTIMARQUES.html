@@ -126,15 +126,15 @@ footer ul{padding-left:18px;margin:6px 0 0}
 </div>
 <div class="logique">
   <section class="carte"><h3>1. Définir les valeurs</h3><p><code>primitives</code> contient les palettes nommées et leurs crans, séparés en <code>light</code> et <code>dark</code>. Les statuts disposent des intensités <code>soft</code> et <code>vivid</code>. Les dimensions et les valeurs typographiques y sont aussi définies.</p></section>
-  <section class="carte"><h3>2. Affecter les palettes</h3><p><code>color-brands</code> affecte une palette à <code>primary</code> et à <code>secondary</code> dans chaque mode de marque. <code>identity</code> expose les couleurs de charte. <code>color-utilities</code> affecte les palettes communes : neutre, statuts et niveaux d’élévation.</p></section>
-  <section class="carte"><h3>3. Choisir le thème</h3><p><code>theme</code> expose les rôles <code>solid</code>, <code>surface</code>, <code>page</code> et <code>ring</code>. Ses modes <code>light</code> et <code>dark</code> choisissent les alias adaptés. La marque se règle séparément dans <code>color-brands</code>.</p></section>
-  <section class="carte"><h3>4. Relier les composants</h3><p><code>components</code> nomme les propriétés des composants. Leurs couleurs utilisent les rôles de <code>theme</code> ; <code>layouts</code> et <code>typography</code> regroupent les dimensions et les réglages de texte par alias vers <code>primitives</code>.</p></section>
+  <section class="carte"><h3>2. Affecter les palettes</h3><p><code>brands</code> affecte une palette à <code>primary</code> et à <code>secondary</code> dans chaque mode de marque. <code>identity</code> expose les couleurs de charte. <code>utility</code> affecte les palettes communes : neutre, statuts et niveaux d’élévation.</p></section>
+  <section class="carte"><h3>3. Choisir le thème</h3><p><code>theme</code> expose les rôles <code>solid</code>, <code>surface</code>, <code>page</code> et <code>ring</code>. Ses modes <code>light</code> et <code>dark</code> choisissent les alias adaptés. La marque se règle séparément dans <code>brands</code>.</p></section>
+  <section class="carte"><h3>4. Relier les composants</h3><p><code>components</code> nomme les propriétés des composants. Leurs couleurs utilisent les rôles de <code>theme</code> ; <code>layout</code> et <code>typography</code> regroupent les dimensions et les réglages de texte par alias vers <code>primitives</code>.</p></section>
 </div>
 <div class="narrow">
   <p>Pour retrouver la valeur d’un rôle de marque, suivre ses alias :</p>
-  <div class="chaine" aria-label="Chaîne des alias"><code>components</code><span>→</span><code>theme</code><span>→</span><code>color-brands</code><span>→</span><code>primitives</code></div>
+  <div class="chaine" aria-label="Chaîne des alias"><code>components</code><span>→</span><code>theme</code><span>→</span><code>brands</code><span>→</span><code>primitives</code></div>
   <div class="tw"><table class="plain"><thead><tr><th>Collection</th><th>Alias permis vers</th><th>Portées Figma</th></tr></thead><tbody id="table-collections"></tbody></table></div>
-  <p>Un statut ou le neutre passe par <code>color-utilities</code> à la place de <code>color-brands</code>. <code>scale</code> expose les crans pour les besoins que les rôles ne couvrent pas.</p>
+  <p>Un statut ou le neutre passe par <code>utility</code> à la place de <code>brands</code>. <code>scale</code> expose les crans pour les besoins que les rôles ne couvrent pas.</p>
   <h2 id="variables">Le panneau des variables</h2>
   <p>Choisir une collection, puis déplier ses dossiers. Chaque colonne représente un mode. Cliquer sur un alias ouvre la variable visée ; sa pastille montre la couleur résolue dans le contexte de la colonne. Hors de leur collection, les aperçus utilisent le thème clair et la première marque.</p>
 </div>
@@ -142,7 +142,7 @@ footer ul{padding-left:18px;margin:6px 0 0}
   <nav class="fx-cols" id="fx-cols" aria-label="Collections"></nav>
   <div class="fx-main"><div class="fx-head" id="fx-head"></div><div class="fx-note" id="fx-note"></div><div class="fx-tw"><table><thead id="fx-thead"></thead><tbody id="fx-tbody"></tbody></table></div></div>
 </div></div>
-<p class="cap">Le panneau présente un instantané des variables de référence. <a href="generer-vue-illustree.ts">Le générateur</a> actualise ses données depuis un export <code>tokens.json</code>, sans recalculer les palettes ni modifier les alias.</p>
+<p class="cap">Le panneau présente la référence du kit pour deux marques inventées. <a href="generer-reference.ts">Le générateur</a> l’écrit dans <code>tokens-reference.json</code>, avec les palettes que calcule le moteur de couleur, et <a href="generer-vue-illustree.ts">ce convertisseur</a> en tire les données du panneau. <code>npm run vues</code> actualise les deux.</p>
 <div class="narrow">
   <h2 id="emplois">La table en dossiers</h2>
   <p id="sens-intro"></p>
@@ -170,9 +170,9 @@ footer ul{padding-left:18px;margin:6px 0 0}
 <p>Le focus ajoute <code>ring</code>. Un bouton indisponible utilise <code>disabled/*</code> : cet état se distingue du bouton non activé, qui reste cliquable. Cette composition utilise les variables existantes.</p>
 
 <h2 id="utilisation">Utiliser et vérifier les tokens</h2>
-<p>Dans Figma, régler la marque dans <code>color-brands</code> et le thème dans <code>theme</code>. Un cadre peut changer de thème tout en gardant la marque de son parent. À l’ajout d’une marque, renseigner chaque alias de sa colonne.</p>
+<p>Dans Figma, régler la marque dans <code>brands</code> et le thème dans <code>theme</code>. Un cadre peut changer de thème tout en gardant la marque de son parent. À l’ajout d’une marque, renseigner chaque alias de sa colonne.</p>
 <p>Un calque utilise <code>theme</code> ou <code>components</code> pour ses couleurs. Les collections intermédiaires de couleur ont des portées vides ; les portées de <code>theme</code> suivent ce que chaque variable peint.</p>
-<p>Côté code, <code>ucm tokens css</code> produit les propriétés CSS et les sélecteurs des axes. Les attributs par défaut sont <code>data-color-brands</code> et <code>data-theme</code>. Le champ <code>modes</code> de <code>ucm.config.json</code> peut renommer l’attribut de marque.</p>
+<p>Côté code, <code>ucm tokens css</code> produit les propriétés CSS et les sélecteurs des axes. Les attributs par défaut sont <code>data-brands</code> et <code>data-theme</code>. Le champ <code>modes</code> de <code>ucm.config.json</code> peut renommer l’attribut de marque.</p>
 <div class="tw"><table class="plain"><thead><tr><th>Outil</th><th>Rôle</th></tr></thead><tbody id="table-outils"></tbody></table></div>
 <p>La table et les garanties sont définies dans <a href="../../../../packages/kit/src/emplois/dossiers.ts"><code>dossiers.ts</code></a> et <a href="../../../../packages/kit/src/emplois/garanties.ts"><code>garanties.ts</code></a>. Les contrastes se mesurent sur les couleurs calculées ; le numéro d’un cran ne suffit pas à prouver un seuil.</p>
 <h2 id="signes">Signes et icônes</h2>
@@ -187,7 +187,7 @@ footer ul{padding-left:18px;margin:6px 0 0}
   var V=window.VUE_DONNEES, C=V.collections;
   var R=window.REFERENTIEL;
   var COLS=R.collections.map(function(c){return c.nom;}).filter(function(c){return C[c];});
-  var NOTES={components:"Les propriétés des composants, avec leurs alias tels qu’ils figurent dans les données du panneau.",theme:"Les rôles de couleur, les crans de scale, les couleurs désactivées et l’élévation. Un mode par thème.","color-brands":"Les palettes primary et secondary et les couleurs de charte. Un mode par marque.","color-utilities":"Les palettes communes aux marques : neutre, statuts et élévation.",primitives:"Les valeurs des palettes, des dimensions et de la typographie.",layouts:"Les tailles, les rayons et les épaisseurs, en alias vers primitives.",typography:"Les réglages de texte, en alias vers primitives."};
+  var NOTES={components:"La référence n’impose aucune variable de composant. Un bouton d’exemple montre les mesures qui visent layout.",theme:"Les rôles de couleur, les crans de scale, les couleurs désactivées et l’élévation. Un mode par thème.","brands":"Les palettes primary et secondary et les couleurs de charte. Un mode par marque.","utility":"Les palettes communes aux marques : neutre, statuts et élévation.",primitives:"Les valeurs des palettes, des dimensions et de la typographie.",layout:"Les tailles, les rayons et les épaisseurs, en alias vers primitives.",typography:"Les réglages de texte, en alias vers primitives."};
   var state={col:C.theme?"theme":COLS[0],ouverts:{}};
   var $=function(id){return document.getElementById(id);};
   function esc(s){return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/"/g,"&quot;");}
