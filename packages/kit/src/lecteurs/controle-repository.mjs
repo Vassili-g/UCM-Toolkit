@@ -16,20 +16,21 @@ import {
 
 import { avertissementsCorrigeables, resumeTerminalAvertissements, sectionAvertissementsExport } from "./avertissements-export.mjs";
 import { constatsDeLArchitecture, resumeTerminalArchitecture, sectionArchitecture } from "./diagnostic-architecture.mjs";
-import { aUnEcartDeParite, resumeTerminalEcartsDeParite, sectionEcartsDeParite } from "./diagnostic-parite.mjs";
+import { CHEMIN_DES_DEROGATIONS, lireDerogations } from "./derogations.mjs";
+import { aUnEcartDeParite } from "./diagnostic-parite.mjs";
 import { diagnosticEchecsDeTests, resumeTerminalEchecsDeTests } from "./diagnostic-tests.mjs";
 import { libelleNombre, rendreDiagnostic } from "./diagnostic-markdown.mjs";
 import { constatsDesContrastes, resumeTerminalContrastes, sectionContrastes } from "./diagnostic-contrastes.mjs";
 import { resumeTerminalTokensManquants, sectionTokensManquants } from "./diagnostic-tokens.mjs";
-import { cheminImplementation, implementationPresente } from "./implementation.mjs";
+import { cheminImplementation, identifiantDuContrat, implementationPresente } from "./implementation.mjs";
 import { collecterReferences, sansEchantillon } from "./references-token.mjs";
-import { perimetreDeLaDemande } from "./perimetre-rapport.mjs";
+import { genreDeLaDemande, perimetreDeLaDemande } from "./perimetre-rapport.mjs";
 import { indexerTokensDtcg, referencesAbsentes } from "./tokens-dtcg.mjs";
 import { erreursTypesTypographiques } from "./typography-token-types.mjs";
 import { trouverContrats } from "./trouver-contrats.mjs";
 import { champsInvalidesDuContrat } from "./validation-contrat.mjs";
 import { validerGrapheDesContrats } from "./validation-graphe-contrats.mjs";
-import { bilanEstBloquant, enteteDuVerdict } from "./verdict-bilan.mjs";
+import { bilanEstBloquant, enteteDuVerdict, verdictDeLaDemande } from "./verdict-bilan.mjs";
 import { VERSION_CONTRAT_MAXIMALE, VERSION_CONTRAT_MINIMALE, verdictDeVersion } from "./version-contrat.mjs";
 import { TYPES_D_ALERTE } from "@ucm-kit/core/referentiel";
 
@@ -284,43 +285,240 @@ function ajouterImplementationsEnAttente(lignes, bilans) {
     itemSingular: "composant",
     summary: "Ces contrats sont valides et peuvent être fusionnés avant leur implémentation :",
     items: attentes.map((bilan) => `\`${bilan.fichier}\``),
-    status: "La conformité sera vérifiée dès que l'implémentation du composant sera ajoutée, et signalée sans bloquer.",
+    status: "La conformité sera vérifiée dès que l'implémentation du composant sera ajoutée.",
   }));
+}
+
+/**
+ * Ce dont la demande répond, copie de la tête de `verdictDeLaDemande`
+ * (`verdict-bilan.mjs`), seule autorité : seules une demande de code et un
+ * contrôle sans base répondent du code ; une demande de contrats répond des
+ * contrats qu'elle modifie (rang 0). Le rapport en a besoin pour dire si un
+ * état bloque, que le verdict ne rend pas par cause. Les tests de
+ * `controleRepository.test.mjs` tiennent les deux lectures ensemble.
+ */
+function reponseDeLaDemande(demande) {
+  const code = demande === "code" || demande === "sans-base";
+  return { code, contrat: (rang) => code || (demande === "contrats-et-tokens" && rang === 0) };
+}
+
+/** Les écarts d'un composant, désignés par leur composant : « Button : La propriété… ». */
+const lignesDEcarts = (entree) => entree.jugement.ecarts.map(({ texte }) => `${entree.id} : ${texte}`);
+
+/** Ce que le rapport écrit d'une dérogation : son composant, l'écart, le motif et l'auteur. */
+const ligneDeDerogation = (id, designation, { motif, par }) => `${id} : ${designation} Motif : ${motif} (${par})`;
+
+/** Désigne un écart que la dérogation vise, quand l'écart lui-même n'est plus mesuré. */
+function designationDeLEcart({ genre, ...coordonnees }) {
+  const [prop, valeur] = [coordonnees.prop, coordonnees.valeur].map((nom) => (nom === undefined ? "" : `\`${nom}\``));
+  switch (genre) {
+    case "prop-absente": return `la propriété ${prop} n'existe pas dans le code.`;
+    case "type-incorrect": return `le type de la propriété ${prop} ne suit pas le contrat.`;
+    case "valeur-non-implementee": return `la variante ${valeur} de ${prop} n'est pas implémentée.`;
+    case "booleen-sans-effet":
+    case "enum-sans-effet": return `la propriété ${prop} n'a aucun effet dans le code.`;
+    case "composition-non-rendue": return `le composant \`${coordonnees.composant}\` n'est pas rendu.`;
+    default: return `écart \`${genre}\`.`;
+  }
+}
+
+/** « 12 jours » entre deux dates, ou `null` quand `depuis` manque ou n'est pas une date. */
+function ageEnJours(depuis, maintenant) {
+  const debut = depuis === undefined || depuis === null ? Number.NaN : Date.parse(depuis);
+  if (Number.isNaN(debut)) return null;
+  return Math.max(0, Math.floor((maintenant.getTime() - debut) / 86_400_000));
+}
+
+const libelleDuRetard = (entree, maintenant) => {
+  const jours = ageEnJours(entree.depuis, maintenant);
+  if (jours === null) return entree.id;
+  return jours === 0 ? `${entree.id}, depuis aujourd'hui` : `${entree.id}, depuis ${libelleNombre(jours, "jour")}`;
+};
+
+/** Les entrées dont un constat est présent, dans l'ordre des contrats. */
+const avecConstat = (entrees, constat) => entrees.filter((entree) => entree.jugement.constats.includes(constat));
+
+/**
+ * Les composants dont les tokens sont absents, répartis selon le verdict : ceux
+ * que la demande refuse, et ceux qui sont « en retard sur les tokens » (les
+ * tokens ont changé après le contrat) ou que la demande ne juge pas.
+ */
+function repartitionDesTokens(entrees, demande) {
+  const { contrat } = reponseDeLaDemande(demande);
+  const bloquants = [];
+  const retards = [];
+  for (const entree of entrees) {
+    const { constats } = entree.jugement;
+    if (constats.includes("tokens-absents") && contrat(entree.rangContrat)) bloquants.push(entree);
+    else if (constats.includes("tokens-absents") || constats.includes("en-retard-sur-les-tokens")) retards.push(entree);
+  }
+  const manquants = ({ id, bilan }) => ({ id, manquants: bilan.manquants });
+  return { bloquants: bloquants.map(manquants), retards: retards.map(manquants) };
+}
+
+/** Les sections des références de token : celle qui bloque d'abord, puis le retard. */
+function sectionsDesTokens(entrees, { demande, tokensModifies, sourceTokens }) {
+  const { bloquants, retards } = repartitionDesTokens(entrees, demande);
+  return [
+    ...sectionTokensManquants(bloquants, { bloquant: true, tokensModifies, sourceTokens }),
+    ...sectionTokensManquants(retards, { bloquant: false, tokensModifies, sourceTokens }),
+  ];
+}
+
+/** Ce que dit le rapport d'un adaptateur absent, cassé, ou d'un fichier qu'il ne lit pas. */
+const RESUME_DE_LECTURE = {
+  "adaptateur-absent": "L'adaptateur TypeScript n'est pas installé.",
+  "adaptateur-casse": "L'adaptateur TypeScript n'a pas pu se charger.",
+};
+
+/**
+ * Les sections qui parlent du code : l'écart qui bloque, le retard sur le
+ * contrat, les dérogations, l'adaptateur. Chacune suit l'ordre de la charte :
+ * titre, éléments, écarts, action, état de la fusion.
+ *
+ * Un écart qui bloque se lit pour tout composant, y compris un composant que la
+ * demande ne touche pas (du code partagé crée l'écart ailleurs). Un écart que la
+ * demande ne juge pas ne se lit que pour les composants qu'elle touche.
+ */
+function sectionsDuCode(entrees, { verdict, bilansDuRapport, maintenant }) {
+  const { code: repondDuCode } = reponseDeLaDemande(verdict.demande);
+  const lignes = [];
+  const dansLePerimetre = (entree) => bilansDuRapport.includes(entree.bilan);
+
+  const ecarts = avecConstat(entrees, "ecart").filter((entree) => repondDuCode || dansLePerimetre(entree));
+  if (ecarts.length > 0) {
+    lignes.push(...rendreDiagnostic({
+      severity: repondDuCode ? "error" : "warning",
+      title: "Le code ne suit pas son contrat",
+      count: ecarts.length,
+      itemSingular: "composant",
+      summary: repondDuCode ? "Cette demande modifie le code de ces composants, et il s'écarte de leur contrat." : undefined,
+      detailsTitle: "Écarts détectés",
+      details: ecarts.flatMap(lignesDEcarts),
+      action: "Un développeur doit mettre le code à jour, ou poser une dérogation motivée dans `.ucm/derogations.json`.",
+      status: repondDuCode ? "La fusion reste bloquée." : "Ce point ne bloque pas votre demande.",
+    }));
+  }
+
+  const retards = avecConstat(entrees, "en-retard-sur-son-contrat");
+  if (retards.length > 0) {
+    lignes.push(...rendreDiagnostic({
+      severity: "warning",
+      title: "Le code est en retard sur son contrat",
+      count: retards.length,
+      itemSingular: "composant",
+      summary: "Le contrat a changé après le code.",
+      items: retards.map((entree) => libelleDuRetard(entree, maintenant)),
+      action: "Un développeur doit mettre le code à jour la prochaine fois qu'il modifie ce composant.",
+      status: "Ce retard ne bloque pas la fusion.",
+    }));
+  }
+
+  const couvertes = entrees.flatMap((entree) => entree.jugement.derogations.couvertes.map((couverte) => ({ id: entree.id, ...couverte })));
+  if (couvertes.length > 0) {
+    lignes.push(...rendreDiagnostic({
+      severity: "warning",
+      title: `Des écarts du code sont acceptés par une dérogation (${couvertes.length})`,
+      items: couvertes.map(({ id, ecart, derogation }) => ligneDeDerogation(id, ecart.texte, derogation)),
+      action: "Le designer relit chaque motif. Pour refuser, il demande à un développeur de retirer la ligne de `.ucm/derogations.json`. Pour accepter, il change Figma pour que le contrat dise ce que fait le code.",
+      status: "Ces dérogations ne bloquent pas la fusion.",
+    }));
+  }
+
+  // Une dérogation ne tombe que par le contrat que cette demande remplace : un
+  // export plus ancien que la demande n'a rien d'une nouvelle.
+  const tombees = entrees
+    .filter((entree) => entree.rangContrat === 0)
+    .flatMap((entree) => entree.jugement.derogations.tombees.map((derogation) => ({ id: entree.id, derogation })));
+  if (tombees.length > 0) {
+    lignes.push(...rendreDiagnostic({
+      severity: "warning",
+      title: `Des dérogations ne s'appliquent plus (${tombees.length})`,
+      summary: "Cet export remplace la version du contrat que ces dérogations visaient.",
+      items: tombees.map(({ id, derogation }) => ligneDeDerogation(id, designationDeLEcart(derogation.ecart), derogation)),
+      action: "Un développeur doit mettre le code à jour, ou poser une nouvelle dérogation.",
+      status: "Ce changement ne bloque pas la fusion.",
+    }));
+  }
+
+  if (repondDuCode && verdict.erreursDeDerogations.length > 0) {
+    lignes.push(...rendreDiagnostic({
+      severity: "error",
+      title: `Le fichier des dérogations contient des erreurs (${verdict.erreursDeDerogations.length})`,
+      detailsTitle: "Écarts détectés",
+      details: verdict.erreursDeDerogations,
+      action: "Un développeur doit corriger `.ucm/derogations.json`.",
+      status: "La fusion reste bloquée.",
+    }));
+  }
+
+  for (const lecture of ["adaptateur-absent", "adaptateur-casse", "fichier-non-lu"]) {
+    const concernes = entrees.filter((entree) => entree.jugement.lecture === lecture);
+    if (concernes.length === 0) continue;
+    const fichiers = concernes.map(({ bilan }) => bilan.parite.implementationNonLue);
+    lignes.push(...rendreDiagnostic({
+      severity: repondDuCode ? "error" : "warning",
+      title: "Le code TypeScript n'est pas vérifié",
+      summary: lecture === "fichier-non-lu"
+        ? fichiers.map((fichier) => `L'adaptateur TypeScript ne lit pas \`${fichier}\`.`)
+        : RESUME_DE_LECTURE[lecture],
+      items: lecture === "fichier-non-lu" ? [] : fichiers.map((fichier) => `\`${fichier}\``),
+      action: "Un développeur doit installer `@ucm-kit/adapter-typescript` en version exacte et enregistrer `package-lock.json`.",
+      status: repondDuCode ? "La fusion reste bloquée." : "Ce point ne bloque pas votre demande.",
+    }));
+  }
+
+  const sansAdaptateur = entrees.filter((entree) => entree.jugement.lecture === "sans-adaptateur");
+  if (sansAdaptateur.length > 0) {
+    lignes.push(...rendreDiagnostic({
+      severity: "info",
+      title: "Le code de ces composants n'est pas vérifié",
+      count: sansAdaptateur.length,
+      itemSingular: "composant",
+      summary: "Aucun adaptateur UCM ne lit cette technologie.",
+      items: sansAdaptateur.map(({ id }) => `\`${id}\``),
+      action: "Un développeur compare le code au contrat à chaque modification.",
+      status: "Ce point ne bloque pas la fusion.",
+    }));
+  }
+  return lignes;
 }
 
 /** Rapport markdown destiné au designer : ce qui bloque, et quoi faire. */
 function rapportMarkdown(bilans, fautifs, bilansDuRapport, contexte) {
-  const { echecsDeTests, tokensModifies, sourceTokens, concerne, architecture } = contexte;
+  const { echecsDeTests, tokensModifies, sourceTokens, concerne, architecture, verdict, entrees, bloquant, maintenant } = contexte;
 
   // Une demande qui ne touche rien d'UCM n'a aucun geste à recevoir. Le
   // périmètre a déjà vidé toutes les sections informatives ; ce qui resterait
   // est un en-tête qui annonce un contrôle dont il ne rapporte rien. La borne
   // du refus est plus forte : un rapport qui bloque s'écrit toujours en entier.
-  if (fautifs.length === 0 && !echecsDeTests.echoue && !concerne) {
+  if (!bloquant && !concerne) {
     return finaliserRapport(RAPPORT_SANS_OBJET, { sansObjet: true });
   }
   // Une PR de tokens peut rendre obsolète n'importe quel contrat : dans ce
-  // cas, tous les écarts nouvellement visibles sont utiles. Dans une autre PR,
-  // on limite cet avertissement aux contrats effectivement modifiés.
-  const bilansTokensManquants = tokensModifies ? bilans : bilansDuRapport;
+  // cas, tous les contrastes nouvellement visibles sont utiles. Dans une autre
+  // PR, on limite cette information aux contrats effectivement modifiés.
+  const bilansDesContrastes = tokensModifies ? bilans : bilansDuRapport;
+  const optionsDesTokens = { demande: verdict.demande, tokensModifies, sourceTokens };
+  const optionsDuCode = { verdict, bilansDuRapport, maintenant };
 
   // Un rapport vert alors que la pull request est refusée est pire que pas de
   // rapport du tout : le designer chercherait la panne ailleurs. Le verdict
   // couvre donc aussi ce que ce module n'a pas exécuté lui-même.
-  if (fautifs.length === 0 && !echecsDeTests.echoue) {
+  if (!bloquant) {
     const tokens = bilans.reduce((somme, bilan) => somme + bilan.total, 0);
     const lignes = [
       `## ${GLYPHES.tenu.forge} Aucun blocage détecté`,
       "",
       `${libelleNombre(bilans.length, "contrat")} et ${libelleNombre(tokens, "référence")} de token contrôlés. Les contrôles bloquants sont passés.`,
     ];
-    lignes.push(...sectionTokensManquants(bilansTokensManquants, { tokensModifies, sourceTokens }));
-    lignes.push(...sectionContrastes(bilansTokensManquants));
+    lignes.push(...sectionsDesTokens(entrees, optionsDesTokens));
+    lignes.push(...sectionContrastes(bilansDesContrastes));
     // Le verdict est exact, mais il ne porte que sur ce qui a été exporté. Une
     // propriété que l'export n'a pas pu décrire n'est citée par personne et ne
     // produit donc aucun écart : sans ce rappel, elle passerait sous un `✅`.
     lignes.push(...sectionAvertissementsExport(bilansDuRapport));
-    lignes.push(...sectionEcartsDeParite(bilansDuRapport));
+    lignes.push(...sectionsDuCode(entrees, optionsDuCode));
     ajouterImplementationsEnAttente(lignes, bilansDuRapport);
     // En dernier : la coupe du rapport emporte d'abord l'information.
     lignes.push(...sectionArchitecture(architecture));
@@ -331,10 +529,10 @@ function rapportMarkdown(bilans, fautifs, bilansDuRapport, contexte) {
   // et il ne dit que ce qui est littéralement vrai : un contrat invalide est un
   // contrat illisible, incomplet, incompatible ou incohérent, jamais un code
   // en retard, jamais un test rouge ailleurs. `bilanEstBloquant` tient cette
-  // définition et rien d'autre n'entre dans `fautifs` ; `enteteDuVerdict` en
-  // tire le titre. Une référence absente des tokens et un écart de parité
-  // n'entrent dans aucun des deux verdicts : leurs sections avertissent sans
-  // laisser croire qu'elles retiennent la fusion.
+  // définition ; `fautifs` en retient les contrats que la demande juge, et
+  // `enteteDuVerdict` en tire le titre. Un écart de code, un token absent ou un
+  // adaptateur manquant refusent la demande sans rendre un contrat invalide :
+  // leurs sections disent chacune leur état, et le titre nomme le repository.
   const avertissements = bilansDuRapport.flatMap((bilan) => bilan.avertissements);
   const lignes = enteteDuVerdict(fautifs, avertissements.length > 0);
 
@@ -342,8 +540,8 @@ function rapportMarkdown(bilans, fautifs, bilansDuRapport, contexte) {
   // diagnostics qui suivent y renvoient au lieu de recopier les mêmes
   // citations à chaque section.
   lignes.push(...sectionAvertissementsExport(bilansDuRapport, { bloquant: true }));
-  lignes.push(...sectionTokensManquants(bilansTokensManquants, { tokensModifies, sourceTokens }));
-  lignes.push(...sectionContrastes(bilansTokensManquants));
+  lignes.push(...sectionsDesTokens(entrees, optionsDesTokens));
+  lignes.push(...sectionContrastes(bilansDesContrastes));
 
   for (const bilan of fautifs) {
     if (bilan.illisible) {
@@ -429,7 +627,7 @@ function rapportMarkdown(bilans, fautifs, bilansDuRapport, contexte) {
   // Figma sans l'avoir consulté.
   lignes.push(...diagnosticEchecsDeTests(echecsDeTests, avertissements));
 
-  lignes.push(...sectionEcartsDeParite(bilansDuRapport));
+  lignes.push(...sectionsDuCode(entrees, optionsDuCode));
   ajouterImplementationsEnAttente(lignes, bilansDuRapport);
   lignes.push(...sectionArchitecture(architecture));
   return finaliserRapport(lignes.join("\n"));
@@ -455,10 +653,26 @@ function listeDeProps(props) {
     : `${citees.slice(0, -1).join(", ")} et ${citees[citees.length - 1]}`;
 }
 
+/** Ce que la ligne du terminal dit du code d'un composant dont l'adaptateur a lu le fichier. */
+function etatDeLEcart(jugement, ecartDeParite) {
+  if (jugement.constats.includes("en-retard-sur-son-contrat")) return "code en retard sur son contrat";
+  if (jugement.constats.includes("deroge-a-valider")) return "code en écart, accepté par une dérogation";
+  return ecartDeParite ? "code en écart" : "code conforme";
+}
+
 /** Le fil du terminal, contrat par contrat, dans l'ordre où il s'écrit. */
-function terminalDesBilans(bilans) {
+function terminalDesBilans(bilans, entrees, demande) {
   const fil = [];
-  for (const bilan of bilans) {
+  const reponse = reponseDeLaDemande(demande);
+  for (const [rang, bilan] of bilans.entries()) {
+    const { jugement, rangContrat } = entrees[rang];
+    // Le terminal marque en ✗ ce que la demande refuse, et en ⚠ ce qu'elle
+    // laisse passer : le même constat ne porte pas deux symboles selon la
+    // demande qui le juge.
+    const ecartBloque = reponse.code && jugement.constats.includes("ecart");
+    const ligneDEcart = (texte) => (ecartBloque
+      ? { flux: "error", texte: `${GLYPHES.bloquant.brut} ${texte}` }
+      : { flux: "warn", texte: `${GLYPHES.corriger.brut} ${texte}` });
     if (bilan.illisible) {
       fil.push({ flux: "error", texte: `${GLYPHES.bloquant.brut} ${bilan.fichier} : JSON illisible (${bilan.relatif})` });
       continue;
@@ -475,8 +689,11 @@ function terminalDesBilans(bilans) {
           : `${GLYPHES.bloquant.brut} ${bilan.fichier} : contrat en ${bilan.version.valeur}. Ce repository lit les schémas ${VERSIONS_CONTRAT_SUPPORTEES}. Réexportez le composant depuis Figma.`,
       });
     }
+    const tokensBloquent = reponse.contrat(rangContrat) && jugement.constats.includes("tokens-absents");
     for (const token of bilan.manquants) {
-      fil.push({ flux: "warn", texte: `${GLYPHES.corriger.brut} ${bilan.fichier} : référence absente de la source de tokens → ${token}` });
+      fil.push(tokensBloquent
+        ? { flux: "error", texte: `${GLYPHES.bloquant.brut} ${bilan.fichier} : référence absente de la source de tokens → ${token}` }
+        : { flux: "warn", texte: `${GLYPHES.corriger.brut} ${bilan.fichier} : référence absente de la source de tokens → ${token}` });
     }
     for (const { chemin, reference, attendu, recu, feuille, mode, extension } of bilan.typesTypographiques) {
       const ou = extension === undefined ? `le mode ${mode}` : `le mode ${mode} de l'extension ${extension}`;
@@ -488,32 +705,29 @@ function terminalDesBilans(bilans) {
     for (const erreur of bilan.graphe) {
       fil.push({ flux: "error", texte: `${GLYPHES.bloquant.brut} ${bilan.fichier} : graphe de composition incohérent → ${erreur}` });
     }
-    // Le terminal marque la parité en ⚠ et non en ✗ : le rapport ne la compte
-    // pas parmi les contrats fautifs, et deux symboles contradictoires pour le
-    // même constat feraient chercher un blocage qui n'existe pas.
     if (bilan.parite.interfaceAbsente) {
-      fil.push({ flux: "warn", texte: `${GLYPHES.corriger.brut} ${bilan.fichier} : interface ${bilan.parite.interfaceAbsente} introuvable dans le composant` });
+      fil.push(ligneDEcart(`${bilan.fichier} : interface ${bilan.parite.interfaceAbsente} introuvable dans le composant`));
     }
     if (bilan.parite.fonctionAbsente) {
-      fil.push({ flux: "warn", texte: `${GLYPHES.corriger.brut} ${bilan.fichier} : fonction du composant ${bilan.parite.fonctionAbsente} introuvable → nommez-la comme le fichier, ou exportez-la par défaut` });
+      fil.push(ligneDEcart(`${bilan.fichier} : fonction du composant ${bilan.parite.fonctionAbsente} introuvable → nommez-la comme le fichier, ou exportez-la par défaut`));
     }
     for (const prop of bilan.parite.manquantes) {
-      fil.push({ flux: "warn", texte: `${GLYPHES.corriger.brut} ${bilan.fichier} : prop du contrat absente du composant → ${prop}` });
+      fil.push(ligneDEcart(`${bilan.fichier} : prop du contrat absente du composant → ${prop}`));
     }
     for (const { prop, attendu, recu } of bilan.parite.typesIncorrects) {
-      fil.push({ flux: "warn", texte: `${GLYPHES.corriger.brut} ${bilan.fichier} : type de prop incompatible → ${prop} doit être ${attendu}, reçu ${recu}` });
+      fil.push(ligneDEcart(`${bilan.fichier} : type de prop incompatible → ${prop} doit être ${attendu}, reçu ${recu}`));
     }
     for (const { prop, valeurs } of bilan.parite.valeursNonImplementees ?? []) {
-      fil.push({ flux: "warn", texte: `${GLYPHES.corriger.brut} ${bilan.fichier} : valeurs du contrat absentes de l'union du code → ${prop} : ${valeurs.join(", ")}` });
+      fil.push(ligneDEcart(`${bilan.fichier} : valeurs du contrat absentes de l'union du code → ${prop} : ${valeurs.join(", ")}`));
     }
     for (const { prop } of bilan.parite.enumsSansEffet ?? []) {
-      fil.push({ flux: "warn", texte: `${GLYPHES.corriger.brut} ${bilan.fichier} : prop enum déclarée mais non utilisée par le composant → ${prop}` });
+      fil.push(ligneDEcart(`${bilan.fichier} : prop enum déclarée mais non utilisée par le composant → ${prop}`));
     }
     for (const prop of bilan.parite.booleensNonUtilises) {
-      fil.push({ flux: "warn", texte: `${GLYPHES.corriger.brut} ${bilan.fichier} : prop BOOLEAN déclarée mais non utilisée par le composant → ${prop}` });
+      fil.push(ligneDEcart(`${bilan.fichier} : prop BOOLEAN déclarée mais non utilisée par le composant → ${prop}`));
     }
     for (const { component, attendu, rendu } of bilan.parite.compositionsIncorrectes) {
-      fil.push({ flux: "warn", texte: `${GLYPHES.corriger.brut} ${bilan.fichier} : cardinalité de composition incorrecte → ${component}, attendu ${attendu}, rendu ${rendu}` });
+      fil.push(ligneDEcart(`${bilan.fichier} : cardinalité de composition incorrecte → ${component}, attendu ${attendu}, rendu ${rendu}`));
     }
 
     const ecartDeParite = aUnEcartDeParite(bilan);
@@ -523,7 +737,9 @@ function terminalDesBilans(bilans) {
       && bilan.graphe.length === 0
       && !bilan.version;
     const aAvertir = bilan.manquants.length > 0 || ecartDeParite;
-    const marque = contratValide ? (aAvertir ? GLYPHES.corriger.brut : GLYPHES.tenu.brut) : GLYPHES.bloquant.brut;
+    const marque = !contratValide || jugement.bloquant
+      ? GLYPHES.bloquant.brut
+      : (aAvertir ? GLYPHES.corriger.brut : GLYPHES.tenu.brut);
     const etatDuCode = !bilan.pariteMesuree
       // L'analyse s'est arrêtée avant la parité : le contrat est illisible, ou
       // sa version n'est pas lue. Rien n'a été comparé, et le dire est la seule
@@ -537,7 +753,7 @@ function terminalDesBilans(bilans) {
         // rien tiré.
         : bilan.parite.implementationNonLue
           ? `implémentation présente, non lue par l'adaptateur (${bilan.parite.implementationNonLue})`
-          : `${ecartDeParite ? "code en écart" : "code conforme"}${limitesDeLecture(bilan.parite)}`;
+          : `${etatDeLEcart(jugement, ecartDeParite)}${limitesDeLecture(bilan.parite)}`;
     fil.push({
       flux: "log",
       texte: `${marque} ${bilan.fichier} : ${libelleNombre(bilan.total, "référence")} contrôlée${bilan.total === 1 ? "" : "s"}, ${etatDuCode} (${bilan.relatif})`,
@@ -558,6 +774,66 @@ function terminalDesFautifs(fautifs) {
   }
   if (fautifs.some((bilan) => bilan.graphe.length > 0)) {
     fil.push({ flux: "error", texte: "  Graphe de composition incohérent : ajoutez les contrats cibles, alignez les slots et supprimez les cycles." });
+  }
+  return fil;
+}
+
+/**
+ * Le rappel du terminal pour ce que le verdict de la demande a constaté sur le
+ * code : le même fait que les sections du rapport, avec le même état de la
+ * fusion. Un point qui bloque ne dit jamais qu'il ne bloque pas.
+ */
+function terminalDuVerdict(entrees, { verdict, bilansDuRapport }) {
+  const { code: repondDuCode } = reponseDeLaDemande(verdict.demande);
+  const fil = [];
+  const nombre = (liste) => libelleNombre(liste.length, "composant");
+
+  const ecarts = avecConstat(entrees, "ecart").filter((entree) => repondDuCode || bilansDuRapport.includes(entree.bilan));
+  if (ecarts.length > 0) {
+    fil.push(repondDuCode
+      ? { flux: "error", texte: `
+${GLYPHES.bloquant.brut} ${nombre(ecarts)} : le code ne suit pas son contrat.
+  Un développeur doit mettre le code à jour, ou poser une dérogation motivée dans \`${CHEMIN_DES_DEROGATIONS}\`. La fusion reste bloquée.` }
+      : { flux: "warn", texte: `
+${GLYPHES.corriger.brut} ${nombre(ecarts)} : le code ne suit pas son contrat. Un développeur doit le mettre à jour. Ce point ne bloque pas votre demande.` });
+  }
+  const retards = avecConstat(entrees, "en-retard-sur-son-contrat");
+  if (retards.length > 0) {
+    fil.push({ flux: "warn", texte: `
+${GLYPHES.corriger.brut} ${nombre(retards)} en retard sur ${retards.length === 1 ? "son" : "leur"} contrat. Un développeur met le code à jour à la prochaine modification. Ce retard ne bloque pas la fusion.` });
+  }
+  const acceptes = entrees.reduce((somme, entree) => somme + entree.jugement.derogations.couvertes.length, 0);
+  if (acceptes > 0) {
+    fil.push({ flux: "warn", texte: `
+${GLYPHES.corriger.brut} ${libelleNombre(acceptes, "écart")} du code ${acceptes === 1 ? "est accepté" : "sont acceptés"} par une dérogation. Le designer relit chaque motif. Ces dérogations ne bloquent pas la fusion.` });
+  }
+  const tombees = entrees.filter((entree) => entree.rangContrat === 0)
+    .reduce((somme, entree) => somme + entree.jugement.derogations.tombees.length, 0);
+  if (tombees > 0) {
+    fil.push({ flux: "warn", texte: `
+${GLYPHES.corriger.brut} ${libelleNombre(tombees, "dérogation")} ne s'applique${tombees === 1 ? "" : "nt"} plus : cet export remplace le contrat visé. Ce changement ne bloque pas la fusion.` });
+  }
+  if (repondDuCode) {
+    for (const erreur of verdict.erreursDeDerogations) {
+      fil.push({ flux: "error", texte: `${GLYPHES.bloquant.brut} ${erreur}` });
+    }
+  }
+  for (const lecture of ["adaptateur-absent", "adaptateur-casse", "fichier-non-lu"]) {
+    const concernes = entrees.filter((entree) => entree.jugement.lecture === lecture);
+    if (concernes.length === 0) continue;
+    const constat = lecture === "fichier-non-lu"
+      ? `l'adaptateur TypeScript ne lit pas ${concernes.map(({ bilan }) => bilan.parite.implementationNonLue).join(", ")}`
+      : RESUME_DE_LECTURE[lecture].replace(/\.$/, "").replace(/^L'a/, "l'a");
+    fil.push(repondDuCode
+      ? { flux: "error", texte: `
+${GLYPHES.bloquant.brut} Le code TypeScript n'est pas vérifié : ${constat}. Un développeur doit installer @ucm-kit/adapter-typescript en version exacte. La fusion reste bloquée.` }
+      : { flux: "warn", texte: `
+${GLYPHES.corriger.brut} Le code TypeScript n'est pas vérifié : ${constat}. Ce point ne bloque pas votre demande.` });
+  }
+  const sansAdaptateur = entrees.filter((entree) => entree.jugement.lecture === "sans-adaptateur");
+  if (sansAdaptateur.length > 0) {
+    fil.push({ flux: "log", texte: `
+${GLYPHES.info.brut} Le code de ${nombre(sansAdaptateur)} n'est pas vérifié : aucun adaptateur UCM ne lit cette technologie. Ce point ne bloque pas la fusion.` });
   }
   return fil;
 }
@@ -709,6 +985,36 @@ function demarrage({ dossierDeclare, dossierAbsent, sourceTokens, tokensAbsents,
   };
 }
 
+/** Uniformise les chemins Git (`/`) et Node sous Windows (`\`), comme `perimetre-rapport.mjs`. */
+const normaliserChemin = (chemin) => chemin.trim().replaceAll("\\", "/").replace(/^\.\/+/, "");
+
+/** Les fichiers que la demande modifie ; vide sans liste (contrôle sans base). */
+function fichiersModifies(cheminsModifies) {
+  return new Set(
+    (cheminsModifies ?? "").split(/\r?\n/).map(normaliserChemin).filter(Boolean),
+  );
+}
+
+/** Une valeur mesurée par l'appelant, `null` compris, ou le défaut quand il n'en donne pas. */
+const valeurOu = (valeur, parDefaut) => (valeur === undefined ? parDefaut : valeur);
+
+/**
+ * Lit `.ucm/derogations.json` à la racine. Un fichier absent n'est aucune
+ * dérogation ; un fichier qu'on ne peut pas ouvrir est une erreur à corriger, et
+ * jamais une absence.
+ */
+function lireLesDerogations(racine) {
+  let texte = null;
+  try {
+    texte = readFileSync(join(racine, CHEMIN_DES_DEROGATIONS), "utf8");
+  } catch (erreur) {
+    if (erreur?.code !== "ENOENT") {
+      return { derogations: [], erreurs: [`${CHEMIN_DES_DEROGATIONS} est illisible : ${erreur?.code ?? "lecture impossible"}.`] };
+    }
+  }
+  return lireDerogations(texte);
+}
+
 /**
  * Contrôle un repository et rend son verdict, sans rien écrire nulle part.
  *
@@ -716,6 +1022,27 @@ function demarrage({ dossierDeclare, dossierAbsent, sourceTokens, tokensAbsents,
  * ici. Son défaut, `ADAPTATEUR_VIDE`, n'est pas un mode dégradé : c'est le
  * noyau seul, qui répond « où » et « est-elle là » sans jamais prétendre avoir
  * lu du code.
+ *
+ * Le verdict (`bloquant`) vient de `verdictDeLaDemande` (`verdict-bilan.mjs`) :
+ * le dernier modifié répond. Trois options lui fournissent ce que la mesure de
+ * Git donne à la CLI, et chacune a un défaut sûr quand l'appelant ne mesure rien :
+ *
+ * - `rangs` : `{ tokens, composants: { <id>: { contrat, code, depuis } } }`.
+ *   Un rang vaut 0 pour un fichier que la demande modifie, puis croît vers le
+ *   passé ; `depuis` est la date ISO du changement de contrat, pour l'âge d'un
+ *   retard. Sans valeur, le rang vaut 0 pour un fichier que `cheminsModifies` ou
+ *   `tokensModifies` désigne, et 1 pour tout autre : deux fichiers non touchés
+ *   ont le même rang, donc aucun n'est en retard sur l'autre. `null` dit que
+ *   l'historique ne sait pas, et ne produit aucun retard ;
+ * - `adaptateurAttendu` : `"present"`, `"absent"`, `"casse"` ou
+ *   `"sans-adaptateur"` (défaut : aucun adaptateur officiel ne lit cette
+ *   technologie, un fichier non lu avertit sans bloquer) ;
+ * - `historique` : `"complet"` (défaut), `"superficiel"` (le contrôle refuse
+ *   de juger et rend `erreurDInvocation`) ou `"aucun"` (rangs ignorés).
+ *
+ * `maintenant` fixe la date de l'âge d'un retard (défaut : l'heure courante).
+ * `.ucm/derogations.json` se lit à la racine, et un fichier absent n'est
+ * aucune dérogation.
  */
 export function controlerRepository(racine, {
   configuration = CONFIGURATION_PAR_DEFAUT,
@@ -723,6 +1050,10 @@ export function controlerRepository(racine, {
   echecsDeTests = { echoue: false, echecs: [] },
   cheminsModifies,
   tokensModifies = false,
+  rangs = {},
+  adaptateurAttendu = "sans-adaptateur",
+  historique = "complet",
+  maintenant = new Date(),
 } = {}) {
   const sourceTokens = configuration.tokens;
   const motif = configuration.implementation;
@@ -817,6 +1148,22 @@ export function controlerRepository(racine, {
     });
   }
 
+  const demande = genreDeLaDemande(cheminsModifies, { cheminTokens: sourceTokens, tokensModifies });
+  // Une copie sans historique complet n'est pas jugée : le contrôle le dit
+  // avant de lire un seul contrat.
+  const { erreurDInvocation } = verdictDeLaDemande({ demande, historique });
+  if (erreurDInvocation) {
+    return {
+      ...abandon(
+        "Le contrôle ne peut pas juger cette demande",
+        erreurDInvocation.geste,
+        [{ flux: "error", texte: `${GLYPHES.bloquant.brut} ${erreurDInvocation.geste}` }],
+        echecsDeTests,
+      ),
+      erreurDInvocation,
+    };
+  }
+
   const documents = contrats.flatMap((chemin) => {
     try {
       return [{ chemin, contrat: JSON.parse(readFileSync(chemin, "utf8").replace(/^﻿/, "")) }];
@@ -842,23 +1189,67 @@ export function controlerRepository(racine, {
   const bilans = contrats.map((chemin) =>
     analyser(chemin, contexte, erreursGraphe.get(chemin) ?? []),
   );
-  const fautifs = bilans.filter(bilanEstBloquant);
-
   // La validation reste globale. Seuls les états informatifs sont limités à ce
   // que la demande touche, afin qu'un export ne parle pas d'un autre composant.
-  const { bilans: bilansDuRapport, concerne } = perimetreDeLaDemande(bilans, cheminsModifies, {
-    motif, tokensModifies,
+  const { bilans: bilansDuRapport, concerne: concerneUcm } = perimetreDeLaDemande(bilans, cheminsModifies, {
+    motif, tokensModifies, cheminTokens: sourceTokens,
   });
+
+  // `documents` ne garde que les contrats lisibles : on y retrouve l'export par
+  // le chemin, jamais par l'index.
+  const exports = new Map(documents.map(({ chemin, contrat }) => [chemin, contrat?.meta?.exportedAt ?? null]));
+  const modifies = fichiersModifies(cheminsModifies);
+  const rangDeLaDemande = (chemin) => (modifies.has(normaliserChemin(chemin)) ? 0 : 1);
+  const composants = contrats.map((chemin, rang) => {
+    const id = identifiantDuContrat(chemin);
+    const mesure = rangs.composants?.[id] ?? {};
+    const relatif = bilans[rang].relatif;
+    return {
+      id,
+      bilan: bilans[rang],
+      exportedAt: exports.get(chemin) ?? null,
+      rangContrat: valeurOu(mesure.contrat, rangDeLaDemande(relatif)),
+      rangCode: valeurOu(mesure.code, rangDeLaDemande(cheminImplementation(relatif, motif))),
+      depuis: mesure.depuis,
+    };
+  });
+  const rangTokens = valeurOu(rangs.tokens, tokensModifies ? 0 : rangDeLaDemande(sourceTokens));
+
+  const verdict = verdictDeLaDemande({
+    demande,
+    composants,
+    rangTokens,
+    // Un fichier de tokens illisible ou d'une version non lue a déjà refusé le
+    // contrôle plus haut : aucun contrat n'a été analysé contre lui.
+    tokensIllisibles: false,
+    derogations: lireLesDerogations(racine),
+    adaptateurAttendu,
+    historique,
+  });
+  const entrees = verdict.composants.map((jugement, rang) => ({
+    id: jugement.id,
+    jugement,
+    bilan: bilans[rang],
+    rangContrat: composants[rang].rangContrat,
+    depuis: composants[rang].depuis,
+  }));
+  // Un contrat invalide ne refuse que s'il est de ceux dont la demande répond.
+  const fautifs = bilans.filter((bilan, rang) => bilanEstBloquant(bilan) && entrees[rang].jugement.bloquant);
+  const bloquant = verdict.bloquant || echecsDeTests.echoue;
+  // Le fichier des dérogations est un fichier de code : le modifier compte
+  // comme toucher UCM, sans quoi un refus pour ses erreurs n'aurait pas de demande.
+  const concerne = concerneUcm || modifies.has(CHEMIN_DES_DEROGATIONS);
+
   const rapport = rapportMarkdown(bilans, fautifs, bilansDuRapport, {
     echecsDeTests, tokensModifies, sourceTokens, concerne, architecture,
+    verdict, entrees, bloquant, maintenant,
   });
 
-  const terminal = [...terminalDesBilans(bilans), ...terminalDesFautifs(fautifs)];
+  const terminal = [...terminalDesBilans(bilans, entrees, demande), ...terminalDesFautifs(fautifs)];
 
-  // L'écart contrat ↔ code se rappelle à part, sous son propre verdict : il
-  // n'entre pas dans le compte des contrats fautifs et ne refuse rien.
-  const resumeParite = resumeTerminalEcartsDeParite(bilans);
-  if (resumeParite) terminal.push({ flux: "warn", texte: `\n${resumeParite}` });
+  // Le code se rappelle à part, sous le verdict de la demande : un écart refuse
+  // une demande de code et laisse passer celle du designer.
+  terminal.push(...terminalDuVerdict(entrees, { verdict, bilansDuRapport }));
 
   // Les tests ont déjà affiché leur propre sortie ; ce rappel sert à ce que le
   // dernier mot du terminal dise la même chose que le rapport publié.
@@ -870,8 +1261,11 @@ export function controlerRepository(racine, {
   // pas la pull request, mais il ne doit pas non plus disparaître du fil.
   const resumeAvertissements = resumeTerminalAvertissements(bilansDuRapport);
   if (resumeAvertissements) terminal.push({ flux: "error", texte: `\n${resumeAvertissements}` });
-  const resumeTokensManquants = resumeTerminalTokensManquants(bilans, sourceTokens);
-  if (resumeTokensManquants) terminal.push({ flux: "warn", texte: `\n${resumeTokensManquants}` });
+  const { bloquants: tokensQuiBloquent, retards: tokensEnRetard } = repartitionDesTokens(entrees, demande);
+  const resumeTokensBloquants = resumeTerminalTokensManquants(tokensQuiBloquent, sourceTokens, { bloquant: true });
+  if (resumeTokensBloquants) terminal.push({ flux: "error", texte: `\n${resumeTokensBloquants}` });
+  const resumeTokensEnRetard = resumeTerminalTokensManquants(tokensEnRetard, sourceTokens);
+  if (resumeTokensEnRetard) terminal.push({ flux: "warn", texte: `\n${resumeTokensEnRetard}` });
   // Comme dans le rapport : une demande de tokens rappelle les contrastes de tous les contrats, une autre ceux qu'elle touche.
   const resumeContrastes = resumeTerminalContrastes(tokensModifies ? bilans : bilansDuRapport);
   if (resumeContrastes) terminal.push({ flux: "log", texte: `\n${resumeContrastes}` });
@@ -881,14 +1275,13 @@ export function controlerRepository(racine, {
   // Le rapport porte le verdict complet : le verdict couvre donc ce que ce
   // module a relayé comme ce qu'il a constaté, sans quoi la chaîne pourrait
   // finir au vert avec un rapport rouge.
-  const bloquant = fautifs.length > 0 || echecsDeTests.echoue;
   if (!bloquant) {
     terminal.push({
       flux: "log",
-      texte: `\n${GLYPHES.tenu.brut} Contrats valides.`
-        + " Les références absentes et les écarts contrat ↔ code éventuels ont été signalés sans bloquer.",
+      texte: `\n${GLYPHES.tenu.brut} ${bilans.every((bilan) => !bilanEstBloquant(bilan)) ? "Contrats valides." : "Aucun blocage pour cette demande."}`
+        + " Les retards et les points à valider éventuels ont été signalés sans bloquer.",
     });
   }
 
-  return { bilans, fautifs, rapport, terminal, bloquant };
+  return { bilans, fautifs, rapport, terminal, bloquant, verdict, erreurDInvocation: null };
 }

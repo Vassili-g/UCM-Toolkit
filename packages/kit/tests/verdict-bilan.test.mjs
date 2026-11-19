@@ -14,7 +14,7 @@ function bilan(overrides = {}) {
   };
 }
 
-test("une référence absente des tokens ne bloque pas le contrat", () => {
+test("une référence absente des tokens n'invalide pas le contrat : la demande juge le token, pas ce bilan", () => {
   assert.equal(bilanEstBloquant(bilan({ manquants: ["{ancien.token}"] })), false);
 });
 
@@ -26,11 +26,11 @@ test("les incohérences internes du contrat restent bloquantes", () => {
 
 /**
  * Le titre du rapport annonce des contrats invalides. Un `.tsx` qui s'écarte de
- * son contrat n'en rend aucun invalide : le verdict l'ignore, faute de quoi le
- * titre mentirait et la pull request d'un designer serait refusée pour un geste
- * qui ne lui appartient pas.
+ * son contrat n'en rend aucun invalide : `bilanEstBloquant` l'ignore, faute de
+ * quoi le titre mentirait. Ce que la demande en fait revient à
+ * `verdictDeLaDemande`, que `verdict-demande.test.mjs` tient.
  */
-test("un écart contrat ↔ code ne rend pas le contrat bloquant", () => {
+test("un écart contrat ↔ code n'invalide pas le contrat : la demande juge l'écart", () => {
   const enEcart = bilan({
     parite: {
       manquantes: ["disabled"],

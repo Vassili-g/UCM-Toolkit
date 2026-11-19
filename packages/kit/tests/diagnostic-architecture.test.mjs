@@ -147,7 +147,9 @@ test("les branches absentes de brands et de utility se comptent par genre, en in
   assert.match(texte, /^- Famille de brands ou de utility sans palette \(3\) : `brands\/secondary`, mode `marque-1` ; `brands\/secondary`, mode `marque-2` ; `utility\/warning`, mode `base`$/m);
   assert.match(texte, /Cette information ne bloque pas la fusion\.$/m);
 
-  const { bloquant, rapport } = verdict({ tokens });
+  // Le contrat jouet cite un token que ces fichiers n'ont pas : un contrôle sans
+  // base le refuserait, une demande de tokens seuls non.
+  const { bloquant, rapport } = verdict({ tokens, ...DEMANDE_DE_TOKENS });
   assert.equal(bloquant, false);
   assert.match(rapport, /Famille de brands ou de utility sans palette \(3\)/);
 });
@@ -178,6 +180,9 @@ function contrat() {
     rendering: { roles: {} },
   };
 }
+
+/** Une demande qui ne modifie que `tokens.json`, le genre « tokens seuls ». */
+const DEMANDE_DE_TOKENS = { cheminsModifies: CONFIGURATION.tokens, tokensModifies: true };
 
 function verdict({ avecContrat = true, tokens = TOKENS_UCM, ...portee } = {}) {
   const racine = mkdtempSync(join(tmpdir(), "ucm-architecture-"));
@@ -234,7 +239,7 @@ test("une demande qui ne touche pas les tokens ne reçoit pas la section", () =>
 });
 
 test("un fichier non UCM donne une seule ligne d'information et le verdict reste vert", () => {
-  const { bloquant, rapport } = verdict({ tokens: { couleurs: {}, espaces: {} } });
+  const { bloquant, rapport } = verdict({ tokens: { couleurs: {}, espaces: {} }, ...DEMANDE_DE_TOKENS });
   const lignes = rapport.split("\n").filter((ligne) => /architecture/.test(ligne));
 
   assert.equal(bloquant, false);

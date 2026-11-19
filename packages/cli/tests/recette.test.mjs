@@ -216,25 +216,28 @@ test("critère 5 — les références sont résolues sans la moindre chaîne CSS
 
     assert.equal(code, 0);
     assert.match(rapport, /1 contrat et 2 références de token contrôlés/);
-    assert.doesNotMatch(rapport, /tokens absents de la source/);
+    assert.doesNotMatch(rapport, /citent des tokens/);
   });
 });
 
 /**
- * Une référence disparue avertit sans bloquer (critère de réussite n° 5). Les
- * tokens sont la source de vérité, et un contrat exporté hier ne retient pas
- * leur évolution : refuser la fusion arrêterait le designer pour un fichier
- * qu'il n'a pas touché.
+ * Une référence disparue refuse un contrôle sans base (critère de réussite n° 5).
+ * Sans base, aucun fichier n'est plus récent qu'un autre : le contrat qui cite un
+ * token absent est refusé, et le rapport donne le geste du designer. Une demande
+ * de tokens qui retire ce token passe, en « retard sur les tokens » : le lot 5
+ * de P19 le rejoue sur un dépôt Git, `controleRepository.test.mjs` sur le
+ * contrôle seul (V-02).
  */
-test("critère 5 — une référence absente de la source avertit sans refuser la fusion", () => {
+test("critère 5 — une référence absente de la source refuse un contrôle sans base, et nomme le geste", () => {
   const disparu = { couleurs: { texte: { principal: { $type: "color", $value: "#111111" } } } };
   surLeRepo({ composants: { Badge: contrat("Badge") }, tokens: disparu }, (racine) => {
     const { code, rapport } = controler(racine);
 
-    assert.equal(code, 0, "un token retiré du design system ne refuse pas l'export");
-    assert.match(rapport, /^## ✅ Aucun blocage détecté$/m);
-    assert.match(rapport, /tokens absents de la source/);
+    assert.equal(code, 1, "sans base, un contrat qui cite un token absent refuse la fusion");
+    assert.match(rapport, /^## ❌ Les contrôles du repository bloquent la fusion$/m);
+    assert.match(rapport, /Des contrats citent des tokens absents/);
     assert.match(rapport, /opacites\.50%/);
+    assert.match(rapport, /Le designer doit fusionner d'abord la demande des tokens, puis relancer ce contrôle\./);
   });
 });
 

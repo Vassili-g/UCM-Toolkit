@@ -98,7 +98,7 @@ function verdict({ composants, tokens = TOKENS, casser, ...portee } = {}) {
   }
 }
 
-test("tout valide : rien ne bloque, et le rapport ne réclame qu'une information sur les tokens", () => {
+test("tout valide : rien ne bloque, et le rapport dit seulement que le code n'est pas lu et que l'architecture n'est pas jugée", () => {
   const { bloquant, rapport } = verdict();
 
   assert.equal(bloquant, false);
@@ -107,9 +107,20 @@ test("tout valide : rien ne bloque, et le rapport ne réclame qu'une information
     "<!-- ucm-rapport -->\n"
       + "## ✅ Aucun blocage détecté\n\n"
       + "1 contrat et 1 référence de token contrôlés. Les contrôles bloquants sont passés."
-      + "\n### ℹ️ `tokens.json` ne suit pas l'architecture UCM : aucune collection reconnue (1 collection lue), elle n'est pas jugée.\n",
+      + "\n### ℹ️ Le code de ces composants n'est pas vérifié (1 composant)\n\n"
+      + "Aucun adaptateur UCM ne lit cette technologie.\n\n"
+      + "- `Widget`\n\n"
+      + "#### Action\n\n"
+      + "Un développeur compare le code au contrat à chaque modification.\n\n"
+      + "Ce point ne bloque pas la fusion.\n\n"
+      + "### ℹ️ `tokens.json` ne suit pas l'architecture UCM : aucune collection reconnue (1 collection lue), elle n'est pas jugée.\n",
   );
 });
+
+/** Une demande qui ne modifie que `tokens.json` : le genre « tokens seuls ». */
+const DEMANDE_DE_TOKENS = { cheminsModifies: CONFIGURATION.tokens, tokensModifies: true };
+const DEMANDE_DE_CONTRAT = { cheminsModifies: "src/components/Widget/Widget.contract.json" };
+const DEMANDE_DE_CODE = { cheminsModifies: "src/components/Widget/Widget.tsx" };
 
 test("un rapport trop long pour un commentaire GitHub s'arrête avant la limite et dit où lire la suite", () => {
   // `gh pr comment` refuse un corps de plus de 65 536 caractères : les deux
@@ -119,16 +130,22 @@ test("un rapport trop long pour un commentaire GitHub s'arrête avant la limite 
     slot: `label${i}`,
     tokens: { color: `{couleurs.absentes.de.la.source.numero${i}}` },
   }));
-  const { bloquant, rapport } = verdict({ composants: { Widget: { contrat: document, tsx: TSX } }, tokens: {} });
+  // Une demande qui retire des tokens rend le contrat « en retard sur les
+  // tokens » : elle passe, et le rapport liste chaque référence retirée.
+  const { bloquant, rapport } = verdict({
+    composants: { Widget: { contrat: document, tsx: TSX } },
+    tokens: {},
+    ...DEMANDE_DE_TOKENS,
+  });
 
   assert.equal(bloquant, false);
   assert.ok(rapport.length <= 65_536, `${rapport.length} caractères`);
   assert.match(rapport, /^## ✅ Aucun blocage détecté$/m);
-  assert.match(rapport, /numero0\}/);
-  assert.doesNotMatch(rapport, /numero2999\}/);
+  assert.match(rapport, /numero0`/);
+  assert.doesNotMatch(rapport, /numero2999`/);
   assert.match(rapport, /La suite de ce rapport ne tient pas dans un commentaire/);
 
-  const court = verdict({ tokens: {} }).rapport;
+  const court = verdict({ tokens: {}, ...DEMANDE_DE_TOKENS }).rapport;
   assert.doesNotMatch(court, /ne tient pas/);
 });
 
@@ -137,14 +154,56 @@ test("un rapport trop long pour un commentaire GitHub s'arrête avant la limite 
  * DTCG, et non plus les variables CSS qu'elle produit : le scénario donne donc
  * un fichier de tokens vide, où la référence n'existe réellement pas.
  */
-test("référence absente des tokens : avertissement, et la fusion reste ouverte", () => {
+test("V-02 : une demande de tokens qui retire un token cité passe, et le rapport nomme le contrat à réexporter", () => {
+  const { bloquant, rapport, verdict: jugement } = verdict({ tokens: {}, ...DEMANDE_DE_TOKENS });
+
+  assert.equal(bloquant, false, "nul ne corrige en réexportant le contrat dans cette demande");
+  assert.ok(jugement.composants[0].constats.includes("en-retard-sur-les-tokens"));
+  assert.match(rapport, /^## ✅ Aucun blocage détecté$/m);
+  assert.match(rapport, /### ⚠️ Des contrats citent des tokens retirés \(1 contrat\)/);
+  assert.match(rapport, /Cette demande retire des tokens que ces contrats citent encore\./);
+  assert.match(rapport, /- Widget : `couleurs\.texte\.principal`/);
+  assert.match(rapport, /Le designer doit réexporter ces composants depuis Figma\./);
+  assert.match(rapport, /Ce retard ne bloque pas la fusion\./);
+});
+
+test("V-07 : un contrat que la demande modifie et qui cite un token absent bloque", () => {
+  const { bloquant, rapport, terminal } = verdict({ tokens: {}, ...DEMANDE_DE_CONTRAT });
+
+  assert.equal(bloquant, true);
+  assert.match(rapport, /^## ❌ Les contrôles du repository bloquent la fusion$/m);
+  assert.match(rapport, /### ❌ Des contrats citent des tokens absents \(1 contrat\)/);
+  assert.match(rapport, /- Widget : `couleurs\.texte\.principal`/);
+  assert.match(rapport, /Le designer doit fusionner d'abord la demande des tokens, puis relancer ce contrôle\./);
+  assert.match(rapport, /La fusion reste bloquée\./);
+  assert.match(terminal.map(({ texte }) => texte).join("\n"), /✗ Widget\.contract\.json : référence absente/);
+});
+
+test("une demande de contrats ne répond pas d'un contrat qu'elle ne modifie pas", () => {
+  const { bloquant, rapport } = verdict({
+    cheminsModifies: "src/components/Autre/Autre.contract.json",
+    tokens: {},
+    composants: {
+      Widget: { contrat: contrat(), tsx: TSX },
+      Autre: { contrat: { ...contrat(), name: "Autre" }, tsx: TSX },
+    },
+  });
+
+  // Les deux contrats citent le token absent, et seul `Autre` est modifié.
+  assert.equal(bloquant, true);
+  assert.match(rapport, /### ❌ Des contrats citent des tokens absents \(1 contrat\)\n[\s\S]*- Autre : [\s\S]*La fusion reste bloquée\./);
+  // `Widget` cite le même token, mais cette demande ne le modifie pas : son retard se lit à part.
+  const [bloque, reste] = rapport.split("### ⚠️ Des contrats citent des tokens retirés");
+  assert.doesNotMatch(bloque, /- Widget : /);
+  assert.match(reste, /- Widget : /);
+  assert.match(reste, /Ce retard ne bloque pas la fusion\./);
+});
+
+test("sans base, un contrat qui cite un token absent bloque", () => {
   const { bloquant, rapport } = verdict({ tokens: {} });
 
-  assert.equal(bloquant, false, "un token absent n'a jamais bloqué : nul ne le corrige en réexportant");
-  assert.match(rapport, /^## ✅ Aucun blocage détecté$/m);
-  assert.match(rapport, /### ⚠️ Des contrats utilisent des tokens absents de la source \(1 référence\)/);
-  assert.match(rapport, /- \*\*`Widget\.contract\.json`\*\* : `\{couleurs\.texte\.principal\}`/);
-  assert.match(rapport, /Cet avertissement ne bloque pas la fusion\./);
+  assert.equal(bloquant, true, "un contrôle sans base répond de tout le repository");
+  assert.match(rapport, /### ❌ Des contrats citent des tokens absents \(1 contrat\)/);
 });
 
 test("une collection `usage` ne se juge plus : un usage posé sur un autre support n'avertit pas", () => {
@@ -174,6 +233,7 @@ test("une référence sous un champ inconnu de 10 000 niveaux est relevée sans 
   const texte = `${source.slice(0, -1)},"extensionInconnue":${'{"suivante":'.repeat(profondeur)}`
     + `"{couleurs.profonde}"${"}".repeat(profondeur)}}`;
   const { bloquant, rapport } = verdict({
+    ...DEMANDE_DE_TOKENS,
     casser: (racine) => writeFileSync(
       join(racine, "src", "components", "Widget", "Widget.contract.json"),
       texte,
@@ -181,7 +241,7 @@ test("une référence sous un champ inconnu de 10 000 niveaux est relevée sans 
   });
 
   assert.equal(bloquant, false);
-  assert.match(rapport, /- \*\*`Widget\.contract\.json`\*\* : `\{couleurs\.profonde\}`/);
+  assert.match(rapport, /- Widget : `couleurs\.profonde`/);
 });
 
 /**
@@ -203,7 +263,7 @@ test("un nom que la projection CSS perdait est reconnu", () => {
   });
 
   assert.equal(bloquant, false);
-  assert.doesNotMatch(rapport, /tokens absents de la source/);
+  assert.doesNotMatch(rapport, /citent des tokens/);
 });
 
 /**
@@ -231,7 +291,7 @@ export function Widget(_props: WidgetProps) {
 
   assert.equal(bloquant, false, "le code n'est plus inspecté : rien ici ne peut bloquer");
   assert.match(rapport, /^## ✅ Aucun blocage détecté$/m);
-  assert.doesNotMatch(rapport, /utilise des tokens absents des contrats/);
+  assert.doesNotMatch(rapport, /citent des tokens/);
   assert.doesNotMatch(rapport, /construit des noms de tokens à l'exécution/);
 });
 
@@ -546,10 +606,10 @@ test("sans adaptateur, le noyau dit où est l'implémentation et rien de plus", 
  *
  * Ce faux adaptateur ne lit aucun langage : il rend un écart directement. Ce
  * qu'on vérifie est le CHEMIN — que le contrôle l'appelle, lui passe le chemin
- * d'implémentation résolu par le motif, et publie son verdict en
- * avertissement sans jamais bloquer.
+ * d'implémentation résolu par le motif, et publie son verdict : un écart refuse
+ * un contrôle sans base, qui répond de tout le repository.
  */
-test("un adaptateur branché est appelé, et son écart avertit sans bloquer", () => {
+test("un adaptateur branché est appelé, et son écart bloque un contrôle sans base", () => {
   const vus = [];
   const adaptateur = {
     lireApiPublique: (implementations) => {
@@ -579,10 +639,10 @@ test("un adaptateur branché est appelé, et son écart avertit sans bloquer", (
     const { bloquant, rapport } = controlerRepository(racine, { configuration: CONFIGURATION, adaptateur });
 
     assert.deepEqual(vus, [join(racine, "src", "components", "Widget", "Widget.tsx")]);
-    assert.equal(bloquant, false, "un code en retard n'a jamais refusé la pull request d'un designer");
-    assert.match(rapport, /^## ✅ Aucun blocage détecté$/m);
-    assert.match(rapport, /### ⚠️ Le code est en retard sur le contrat : `Widget\.contract\.json`/);
-    assert.match(rapport, /La propriété `label` de Figma n'existe pas dans le code/);
+    assert.equal(bloquant, true, "sans base, aucun fichier n'est plus récent qu'un autre");
+    assert.match(rapport, /^## ❌ Les contrôles du repository bloquent la fusion$/m);
+    assert.match(rapport, /### ❌ Le code ne suit pas son contrat \(1 composant\)/);
+    assert.match(rapport, /- Widget : La propriété `label` de Figma n'existe pas dans le code/);
   } finally {
     rmSync(racine, { recursive: true, force: true });
   }
@@ -645,6 +705,259 @@ test("un bilan écrit sans typesNonAnalyses reste lu", () => {
 
   assert.match(ligne, /code conforme \(/);
   assert.doesNotMatch(ligne, /sauf/);
+});
+
+/**
+ * La règle du dernier modifié, jouée de bout en bout. Chaque test porte
+ * l'identifiant de la ligne de la table de
+ * `docs/notes/Recherches/Linter Dev/DECISION-VERDICT-UCM-CHECK.md` qu'il tient ;
+ * `verdict-demande.test.mjs` tient la même table sur la fonction du verdict seule.
+ */
+const ECART_DE_VARIANTE = { valeursNonImplementees: [{ prop: "variant", valeurs: ["danger"] }] };
+const EXPORT = "2026-01-01T00:00:00.000Z";
+
+/** Écrit `.ucm/derogations.json` dans le repository jouet. */
+const ecrireDerogations = (contenu) => (racine) => {
+  mkdirSync(join(racine, ".ucm"), { recursive: true });
+  writeFileSync(join(racine, ".ucm", "derogations.json"), typeof contenu === "string" ? contenu : JSON.stringify(contenu));
+};
+
+const derogationDeLaVariante = (surcharge = {}) => ({
+  composant: "Widget",
+  ecart: { genre: "valeur-non-implementee", prop: "variant", valeur: "danger" },
+  export: EXPORT,
+  motif: "La variante danger attend la validation du texte d'erreur.",
+  par: "Camille",
+  ...surcharge,
+});
+
+test("V-10 : une demande qui modifie le code et laisse un écart bloque", () => {
+  const { bloquant, rapport, terminal, verdict: jugement } = verdict({
+    adaptateur: adaptateurDeParite({ manquantes: ["label"] }),
+    ...DEMANDE_DE_CODE,
+  });
+
+  assert.equal(bloquant, true);
+  assert.equal(jugement.composants[0].etat, "ecart");
+  assert.match(rapport, /^## ❌ Les contrôles du repository bloquent la fusion$/m);
+  assert.match(rapport, /### ❌ Le code ne suit pas son contrat \(1 composant\)/);
+  assert.match(rapport, /Cette demande modifie le code de ces composants, et il s'écarte de leur contrat\./);
+  assert.match(rapport, /- Widget : La propriété `label` de Figma n'existe pas dans le code/);
+  assert.match(rapport, /Un développeur doit mettre le code à jour, ou poser une dérogation motivée dans `\.ucm\/derogations\.json`\./);
+  assert.match(rapport, /La fusion reste bloquée\./);
+  assert.match(terminal.map(({ texte }) => texte).join("\n"), /✗ Widget\.contract\.json : prop du contrat absente du composant → label/);
+});
+
+test("V-12 : du code partagé qui crée un écart sur un composant dont le fichier n'a pas changé bloque", () => {
+  const { bloquant, rapport } = verdict({
+    adaptateur: adaptateurDeParite({ manquantes: ["label"] }),
+    cheminsModifies: "src/partage/utilitaires.ts",
+  });
+
+  assert.equal(bloquant, true);
+  assert.match(rapport, /### ❌ Le code ne suit pas son contrat \(1 composant\)/);
+});
+
+test("V-05 : une demande qui ne modifie que le contrat laisse le composant en retard sur son contrat", () => {
+  const { bloquant, rapport, verdict: jugement } = verdict({
+    adaptateur: adaptateurDeParite(ECART_DE_VARIANTE),
+    rangs: { composants: { Widget: { depuis: "2026-11-07T10:00:00.000Z" } } },
+    maintenant: new Date("2026-11-19T10:00:00.000Z"),
+    ...DEMANDE_DE_CONTRAT,
+  });
+
+  assert.equal(bloquant, false);
+  assert.ok(jugement.composants[0].constats.includes("en-retard-sur-son-contrat"));
+  assert.match(rapport, /^## ✅ Aucun blocage détecté$/m);
+  assert.match(rapport, /### ⚠️ Le code est en retard sur son contrat \(1 composant\)/);
+  assert.match(rapport, /Le contrat a changé après le code\./);
+  assert.match(rapport, /- Widget, depuis 12 jours/);
+  assert.match(rapport, /Un développeur doit mettre le code à jour la prochaine fois qu'il modifie ce composant\./);
+  assert.match(rapport, /Ce retard ne bloque pas la fusion\./);
+  assert.doesNotMatch(rapport, /Le code ne suit pas son contrat/);
+});
+
+test("V-05 : sans date de changement du contrat, le retard ne dit pas son âge", () => {
+  const { rapport } = verdict({ adaptateur: adaptateurDeParite(ECART_DE_VARIANTE), ...DEMANDE_DE_CONTRAT });
+
+  assert.match(rapport, /^- Widget$/m);
+  assert.doesNotMatch(rapport, /depuis/);
+});
+
+test("V-05 puis V-18 : l'envoi sur main qui suit reste vert tant que le contrat est plus récent que le code", () => {
+  const entree = {
+    adaptateur: adaptateurDeParite(ECART_DE_VARIANTE),
+    rangs: { composants: { Widget: { contrat: 1, code: 2 } } },
+  };
+
+  assert.equal(verdict(entree).bloquant, false);
+  assert.equal(verdict({ ...entree, rangs: { composants: { Widget: { contrat: 2, code: 1 } } } }).bloquant, true);
+  // Un historique qui ne dit rien ne produit aucun retard : l'écart reste un écart.
+  assert.equal(verdict({ ...entree, rangs: { composants: { Widget: { contrat: null, code: null } } } }).bloquant, true);
+});
+
+test("V-04 : une demande de tokens seuls passe malgré un écart du code qui existait déjà", () => {
+  const { bloquant, verdict: jugement } = verdict({
+    adaptateur: adaptateurDeParite({ manquantes: ["label"] }),
+    ...DEMANDE_DE_TOKENS,
+    // L'écart est antérieur : le code n'est pas plus ancien que le contrat.
+    rangs: { composants: { Widget: { contrat: 3, code: 1 } } },
+  });
+
+  assert.equal(bloquant, false);
+  assert.equal(jugement.composants[0].etat, "ecart");
+});
+
+test("V-14 : une dérogation valide laisse passer une demande de code, et le rapport la donne à valider", () => {
+  const { bloquant, rapport, verdict: jugement } = verdict({
+    adaptateur: adaptateurDeParite(ECART_DE_VARIANTE),
+    casser: ecrireDerogations({ derogations: [derogationDeLaVariante()] }),
+    ...DEMANDE_DE_CODE,
+  });
+
+  assert.equal(bloquant, false);
+  assert.equal(jugement.composants[0].etat, "deroge-a-valider");
+  assert.match(rapport, /### ⚠️ Des écarts du code sont acceptés par une dérogation \(1\)/);
+  assert.match(rapport, /- Widget : La variante `danger` n'est pas implémentée dans le code\. Motif : La variante danger attend la validation du texte d'erreur\. \(Camille\)/);
+  assert.match(rapport, /Le designer relit chaque motif\. Pour refuser, il demande à un développeur de retirer la ligne de `\.ucm\/derogations\.json`\. Pour accepter, il change Figma pour que le contrat dise ce que fait le code\./);
+  assert.match(rapport, /Ces dérogations ne bloquent pas la fusion\./);
+  assert.doesNotMatch(rapport, /Le code ne suit pas son contrat/);
+});
+
+test("le rapport d'une demande de contrat liste les dérogations à valider", () => {
+  const { bloquant, rapport } = verdict({
+    adaptateur: adaptateurDeParite(ECART_DE_VARIANTE),
+    casser: ecrireDerogations({ derogations: [derogationDeLaVariante()] }),
+    ...DEMANDE_DE_CONTRAT,
+  });
+
+  assert.equal(bloquant, false);
+  assert.match(rapport, /### ⚠️ Des écarts du code sont acceptés par une dérogation \(1\)/);
+  assert.match(rapport, /Motif : La variante danger attend la validation du texte d'erreur\. \(Camille\)/);
+});
+
+test("V-09 : la dérogation tombe quand l'export du contrat change", () => {
+  const { bloquant, rapport } = verdict({
+    adaptateur: adaptateurDeParite(ECART_DE_VARIANTE),
+    casser: ecrireDerogations({ derogations: [derogationDeLaVariante({ export: "2025-06-01T00:00:00.000Z" })] }),
+    ...DEMANDE_DE_CONTRAT,
+  });
+
+  assert.equal(bloquant, false);
+  assert.match(rapport, /### ⚠️ Des dérogations ne s'appliquent plus \(1\)/);
+  assert.match(rapport, /Cet export remplace la version du contrat que ces dérogations visaient\./);
+  assert.match(rapport, /- Widget : la variante `danger` de `variant` n'est pas implémentée\. Motif : La variante danger attend la validation du texte d'erreur\. \(Camille\)/);
+  assert.match(rapport, /Un développeur doit mettre le code à jour, ou poser une nouvelle dérogation\./);
+  assert.match(rapport, /Ce changement ne bloque pas la fusion\./);
+  assert.doesNotMatch(rapport, /acceptés par une dérogation/);
+});
+
+test("V-15 : un fichier de dérogations fautif bloque une demande de code et nomme l'entrée", () => {
+  const fautif = { derogations: [derogationDeLaVariante({ motif: "" })] };
+  const { bloquant, rapport } = verdict({ casser: ecrireDerogations(fautif), ...DEMANDE_DE_CODE });
+
+  assert.equal(bloquant, true);
+  assert.match(rapport, /### ❌ Le fichier des dérogations contient des erreurs \(1\)/);
+  assert.match(rapport, /- derogations\[0\]\.motif : champ vide ou qui n'est pas un texte\./);
+  assert.match(rapport, /Un développeur doit corriger `\.ucm\/derogations\.json`\./);
+  assert.match(rapport, /La fusion reste bloquée\./);
+
+  assert.equal(verdict({ casser: ecrireDerogations("{ pas du json"), ...DEMANDE_DE_CODE }).bloquant, true);
+  assert.equal(verdict({ casser: ecrireDerogations(fautif), ...DEMANDE_DE_CONTRAT }).bloquant, false);
+});
+
+test("V-16 : du code TypeScript sans adaptateur bloque une demande de code", () => {
+  const { bloquant, rapport } = verdict({ adaptateurAttendu: "absent", ...DEMANDE_DE_CODE });
+
+  assert.equal(bloquant, true);
+  assert.match(rapport, /### ❌ Le code TypeScript n'est pas vérifié/);
+  assert.match(rapport, /L'adaptateur TypeScript n'est pas installé\./);
+  assert.match(rapport, /Un développeur doit installer `@ucm-kit\/adapter-typescript` en version exacte et enregistrer `package-lock\.json`\./);
+  assert.match(rapport, /La fusion reste bloquée\./);
+
+  const casse = verdict({ adaptateurAttendu: "casse", ...DEMANDE_DE_CODE }).rapport;
+  assert.match(casse, /L'adaptateur TypeScript n'a pas pu se charger\./);
+  const nonLu = verdict({ adaptateurAttendu: "present", ...DEMANDE_DE_CODE }).rapport;
+  assert.match(nonLu, /L'adaptateur TypeScript ne lit pas `Widget\.tsx`\./);
+});
+
+test("V-04 : le même adaptateur absent laisse passer une demande de contrat, et le rapport le dit", () => {
+  const { bloquant, rapport } = verdict({ adaptateurAttendu: "absent", ...DEMANDE_DE_CONTRAT });
+
+  assert.equal(bloquant, false);
+  assert.match(rapport, /^## ✅ Aucun blocage détecté$/m);
+  assert.match(rapport, /### ⚠️ Le code TypeScript n'est pas vérifié/);
+  assert.match(rapport, /Ce point ne bloque pas votre demande\./);
+  assert.doesNotMatch(rapport, /La fusion reste bloquée\./);
+});
+
+test("V-17 : le code d'une technologie sans adaptateur passe, et le rapport nomme le composant", () => {
+  const { bloquant, rapport } = verdict({ adaptateurAttendu: "sans-adaptateur", ...DEMANDE_DE_CODE });
+
+  assert.equal(bloquant, false);
+  assert.match(rapport, /### ℹ️ Le code de ces composants n'est pas vérifié \(1 composant\)/);
+  assert.match(rapport, /Aucun adaptateur UCM ne lit cette technologie\./);
+  assert.match(rapport, /Un développeur compare le code au contrat à chaque modification\./);
+});
+
+test("V-19 : une copie sans historique complet n'est pas jugée", () => {
+  const { bloquant, bilans, erreurDInvocation, rapport } = verdict({ historique: "superficiel", ...DEMANDE_DE_CODE });
+
+  assert.equal(bloquant, true);
+  assert.deepEqual(bilans, []);
+  assert.equal(erreurDInvocation.code, 2);
+  assert.match(erreurDInvocation.geste, /git fetch --unshallow/);
+  assert.match(rapport, /^## ❌ Le contrôle ne peut pas juger cette demande$/m);
+});
+
+/**
+ * Un rapport qui refuse ne dit jamais qu'un point ne bloque pas : le designer y
+ * chercherait le point qui laisse passer. Chaque scénario refusé ci-dessous
+ * ne porte que des sections qui bloquent.
+ */
+test("un rapport bloquant ne dit pas « ne bloque pas la fusion » pour un point qui bloque", () => {
+  const interdit = /ne bloque(?:nt)? pas (?:la fusion|votre demande)|n'empêche(?:nt)? pas la fusion|sans bloquer/;
+  const refus = {
+    "V-10 écart du code": { adaptateur: adaptateurDeParite({ manquantes: ["label"] }), adaptateurAttendu: "present", ...DEMANDE_DE_CODE },
+    "V-07 token absent": { tokens: {}, composants: { Widget: { contrat: contrat() } }, ...DEMANDE_DE_CONTRAT },
+    "V-15 dérogations": { casser: ecrireDerogations("{ pas du json"), adaptateurAttendu: "present", ...DEMANDE_DE_CODE },
+    "V-16 adaptateur absent": { adaptateurAttendu: "absent", ...DEMANDE_DE_CODE },
+    "sans base": { adaptateur: adaptateurDeParite({ manquantes: ["label"] }), adaptateurAttendu: "present" },
+  };
+
+  for (const [nom, entree] of Object.entries(refus)) {
+    const { bloquant, rapport, terminal } = verdict(entree);
+    assert.equal(bloquant, true, nom);
+    assert.doesNotMatch(rapport, interdit, nom);
+    assert.doesNotMatch(terminal.map(({ texte }) => texte).join("\n"), interdit, nom);
+  }
+});
+
+/**
+ * Le rapport décide si un état bloque par une copie de la tête de
+ * `verdictDeLaDemande` (`reponseDeLaDemande`). Ce test tient les deux lectures
+ * ensemble : un état que le rapport écrit « bloquant » refuse la demande, et un
+ * état écrit « ne bloque pas votre demande » la laisse passer.
+ */
+test("le rapport et le verdict disent la même chose de ce qui bloque, pour chaque genre de demande", () => {
+  const demandes = {
+    "tokens-seuls": DEMANDE_DE_TOKENS,
+    "contrats-et-tokens": DEMANDE_DE_CONTRAT,
+    code: DEMANDE_DE_CODE,
+    "sans-base": {},
+  };
+  for (const [genre, demande] of Object.entries(demandes)) {
+    const lecture = verdict({ adaptateurAttendu: "absent", ...demande });
+    const ecart = verdict({ adaptateur: adaptateurDeParite({ manquantes: ["label"] }), ...demande });
+    const jugeLeCode = genre === "code" || genre === "sans-base";
+
+    assert.equal(lecture.verdict.demande, genre);
+    assert.equal(lecture.bloquant, jugeLeCode, `adaptateur absent, ${genre}`);
+    assert.equal(/La fusion reste bloquée\./.test(lecture.rapport), jugeLeCode, `adaptateur absent, ${genre}`);
+    assert.equal(/Ce point ne bloque pas votre demande\./.test(lecture.rapport), !jugeLeCode, `adaptateur absent, ${genre}`);
+    // Un écart ne bloque que la demande de code, à rangs égaux.
+    assert.equal(ecart.bloquant, jugeLeCode, `écart, ${genre}`);
+  }
 });
 
 /**
@@ -787,7 +1100,7 @@ test("le tokens.json d'origine figé passe le contrôle comme la forme d'origine
 
   assert.equal(bloquant, false);
   assert.match(rapport, /^## ✅ Aucun blocage détecté$/m);
-  assert.doesNotMatch(rapport, /absents de la source/);
+  assert.doesNotMatch(rapport, /citent des tokens/);
 });
 
 test("un mode qui cite un autre type sous un text style bloque, et le rapport nomme la feuille et le mode", () => {

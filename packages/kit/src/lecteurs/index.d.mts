@@ -468,6 +468,10 @@ declare module "@ucm-kit/core/lecteurs" {
     rapport: string;
     terminal: Array<{ flux: "log" | "warn" | "error"; texte: string }>;
     bloquant: boolean;
+    /** Le verdict de la demande, par composant ; absent quand le contrôle s'arrête avant de juger. */
+    verdict?: VerdictDeLaDemande;
+    /** Une copie sans historique complet n'est pas jugée : code de sortie 2 et geste. */
+    erreurDInvocation?: { code: 2; geste: string } | null;
   }
 
   /**
@@ -485,6 +489,22 @@ declare module "@ucm-kit/core/lecteurs" {
       echecsDeTests?: { echoue: boolean; echecs: readonly EchecDeTest[] };
       cheminsModifies?: string;
       tokensModifies?: boolean;
+      /**
+       * Ce que la mesure de Git donne : le rang du contrat et du code de chaque
+       * composant (0 : modifié par la demande), le rang des tokens, et la date ISO
+       * du changement du contrat. Défaut : 0 pour un fichier de `cheminsModifies`,
+       * 1 pour les autres, donc aucun retard ; `null` : inconnu, aucun retard.
+       */
+      rangs?: {
+        tokens?: number | null;
+        composants?: Record<string, { contrat?: number | null; code?: number | null; depuis?: string }>;
+      };
+      /** Défaut `"sans-adaptateur"` : un fichier non lu avertit sans bloquer. */
+      adaptateurAttendu?: "present" | "absent" | "casse" | "sans-adaptateur";
+      /** Défaut `"complet"` ; `"superficiel"` refuse de juger. */
+      historique?: "complet" | "superficiel" | "aucun";
+      /** La date de l'âge d'un retard ; défaut : l'heure courante. */
+      maintenant?: Date;
     },
   ): VerdictDeControle;
 
@@ -598,14 +618,15 @@ declare module "@ucm-kit/core/lecteurs" {
 
   /** La section des références que la source de tokens ne porte pas. */
   export function sectionTokensManquants(
-    bilans: ReadonlyArray<unknown>,
-    options: { tokensModifies?: boolean; sourceTokens: string },
+    entrees: ReadonlyArray<{ id?: string; fichier?: string; manquants: readonly string[] }>,
+    options?: { bloquant?: boolean; tokensModifies?: boolean; sourceTokens?: string },
   ): string[];
 
-  /** Le résumé terminal des références absentes. */
+  /** Le résumé terminal des références absentes, sous le verdict de la section correspondante. */
   export function resumeTerminalTokensManquants(
-    bilans: ReadonlyArray<unknown>,
+    entrees: ReadonlyArray<{ manquants: readonly string[] }>,
     sourceTokens: string,
+    options?: { bloquant?: boolean },
   ): string | null;
 
   /** Ce que le diagnostic des contrastes juge : une couleur contre son fond. */
