@@ -270,6 +270,10 @@ h3 + .defini { margin-top: -4px; }
 .choix-ligne .options { display: flex; flex-wrap: wrap; gap: 6px; }
 .choix-ligne a.etat { min-height: 28px; box-sizing: border-box; padding: 0 10px 0 8px; text-decoration: none; }
 .choix-ligne a.etat:hover { text-decoration: underline; }
+.a-revoir { margin: 12px 0; padding: 12px 16px; border: 2px solid var(--ambre); border-left-width: 6px; border-radius: 8px; background: var(--ambre-fond); color: var(--texte); }
+.a-revoir p { margin: 6px 0; font-size: .92rem; }
+.a-revoir .a-revoir-titre { margin-top: 0; font-weight: 700; color: var(--ambre); }
+.a-revoir .a-revoir-titre::before { content: "⚠ "; }
 .livrees { font-size: .9rem; }
 .livrees .etat { margin-right: 4px; }
 .choix-ligne label.option { display: inline-flex; align-items: center; gap: 6px; box-sizing: border-box; min-height: 28px; padding: 0 10px; border: 1px solid var(--trait); border-radius: 6px; background: var(--surface); font-size: .8rem; cursor: pointer; white-space: nowrap; }
@@ -1072,6 +1076,10 @@ a.sujet:focus-visible { outline: 2px solid var(--texte); outline-offset: 2px; }
   <h3>Dans la pull request, avec <code>ucm check</code></h3>
   <p class="defini">Défini dans <code>packages/kit/src/lecteurs/diagnostic-parite.mjs</code> et <code>packages/kit/src/lecteurs/verdict-bilan.mjs</code>.</p>
   <p class="intro">Une pull request (merge request sur GitLab) propose d'intégrer une branche dans <code>main</code>. L'Exporter en ouvre une pour chaque contrat ou <code>tokens.json</code> exporté depuis Figma, et un développeur en ouvre une quand il modifie le code. À chaque envoi sur la branche, le CI lance <code>ucm check</code>, qui écrit son rapport en commentaire de la pull request et fait échouer le job quand le rapport bloque. Dans l'exemple, une pull request modifie <code>Button.tsx</code>, qui n'a pas de prop <code>size</code>.</p>
+  <div class="a-revoir" role="note"><p class="a-revoir-titre">À revoir par le mainteneur</p>
+    <p>L'exemple de droite est une pull request de code : le développeur modifie <code>Button.tsx</code> sans ajouter <code>size</code>. Une pull request du designer qui ne change que <code>Button.contract.json</code> passe, et le composant devient « en retard sur son contrat » (V-05 de <a href="#piste-P19">P19</a>).</p>
+    <p>Le point à trancher est V-11. Un développeur qui touche le code d'un composant en retard, pour corriger un bug par exemple, est bloqué tant qu'il ne rattrape pas le contrat ou ne pose pas de dérogation.</p>
+    <p>La colonne de gauche décrit encore l'ancienne CLI, qui avertissait sans bloquer. La CLI 0.2.0 applique déjà la règle de droite, sauf le bouton grisé, qui attend la protection de branche de <a href="#piste-P17">P17</a>.</p></div>
   <div class="rapports">
     <figure class="rapport"><figcaption>Aujourd'hui (CLI 0.2.0)</figcaption>
       <div class="pr"><div class="pr-tete">ucm check</div>
