@@ -115,7 +115,6 @@ function annexes(): string {
     ${famillesHtml}
   </div></details>
   <details class="pli" id="annexe-alertes" data-pour="toolkit"><summary>Formes d'alerte <span class="doux">${alertes.length}</span></summary><div class="contenu">
-    <p>Chaque type d'alerte a sa forme, toujours accompagnée de sa couleur et d'un mot.</p>
     <p class="defini">Défini dans <code>packages/plugin-socle/src/ui/Alerte.ts</code> et <code>packages/kit/src/referentiel/signaux.ts</code>.</p>
     ${alertesHtml}
   </div></details>

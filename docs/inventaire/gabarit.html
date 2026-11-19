@@ -53,8 +53,7 @@
     <div class="carte"><h4><span class="etat manque">Manque</span></h4>
       <ul class="liste">
         <li>Aucun outil ne compare le rendu d'un composant à son contrat. Les <a class="terme" href="#g-piste" title="Une piste est un chantier proposé. Le rang est son ordre de priorité, de 0 à 5.">pistes</a> <a href="#piste-P9">P9</a>, <a href="#piste-P10">P10</a> et <a href="#piste-P20">P20</a> comblent ce trou.</li>
-        <li>Un écart du code avertit sans bloquer la fusion.</li>
-        <li>intencial-library, la bibliothèque de production qui recevra les contrats, n'en contient aucun.</li></ul></div>
+        <li>Un écart du code avertit sans bloquer la fusion.</li></ul></div>
   </div>
 
   <h3>Le trajet d'un Button</h3>
@@ -408,12 +407,7 @@
   <p class="defini">Défini dans le <code>README.md</code> et le <code>SPEC.md</code> de chaque paquet.</p>
   <div class="defile"><table>
     <tr><th>Paquet</th><th>Rôle</th><th>Distribution</th><th>À noter</th></tr>
-    <tr data-pour="designer"><td><b>UCM Palettes</b></td><td>Calcule les palettes, juge les garanties, écrit les primitives et les planches</td><td>privé, depuis dist</td><td></td></tr>
-    <tr data-pour="designer"><td><b>UCM Architect</b></td><td>Explore, renomme, complète le thème, analyse un composant</td><td>privé</td><td></td></tr>
-    <tr data-pour="designer developpeur"><td><b>Contract Exporter</b></td><td>Publie contrats et tokens</td><td>Figma Community</td><td><span class="etat partiel">version Community ancienne</span> <span class="nota">agnostique en option</span></td></tr>
     <tr data-pour="toolkit"><td><b>Socle</b></td><td>Code partagé des plugins : build, langage visuel, galerie, moteur d'extraction</td><td>privé, en source</td><td class="doux">périmètre sans objet</td></tr>
-    <tr data-pour="developpeur"><td><b>CLI</b></td><td>Installe, contrôle, produit le CSS et le guide</td><td>npm {{version:cli}}</td><td>agnostique aujourd'hui (<a href="#piste-P5">P5</a>, <a href="#piste-P12">P12</a>)</td></tr>
-    <tr data-pour="developpeur"><td><b>Adaptateur TypeScript</b></td><td>Parité statique des props, types des variantes</td><td>npm {{version:adaptateur}}</td><td class="doux">périmètre sans objet</td></tr>
     <tr data-pour="toolkit"><td><b>Kit</b></td><td>Format, référentiel, contrôles, <a class="terme" href="#g-lecteur" title="Une fonction du kit qui lit un contrat ou tokens.json et rend un bilan. La CLI s'en sert dans le CI.">lecteurs</a>. Tous en dépendent. {{entrees:Mot}} <a class="terme" href="#g-entree" title="Un chemin d'import du kit, comme @ucm-kit/core/lecteurs.">points d'entrée</a>, listés en annexe.</td><td>npm {{version:kit}}</td><td></td></tr>
     <tr data-pour="toolkit"><td><b>Moteur de couleur</b></td><td>Rampes, contrastes, garanties, harmonisation. Sans Figma ni DOM. Lu par Palettes, Architect, Hub.</td><td>privé</td><td class="doux">périmètre sans objet</td></tr>
     <tr data-pour="toolkit"><td><b>Hub UCM</b></td><td>Page locale des sorties du kit et du moteur. Storybook la remplacera (<a href="#piste-P9">P9</a>).</td><td>privé</td><td><span class="etat partiel">partiel</span></td></tr>
@@ -617,7 +611,7 @@
 <section class="partie" id="suite" data-pour-garde>
   <h2><span class="num">7</span>La suite</h2>
   <p class="defini">Défini dans <code>ROADMAP.md</code>.</p>
-  <div class="encadre" data-pour="toolkit">7 pistes de rang 0 précèdent l'ouverture du projet à d'autres contributeurs. Le dépôt contredit encore la règle de blocage décidée, et intencial-library n'a ni contrat ni projet TypeScript.</div>
+  <div class="encadre" data-pour="toolkit">7 pistes de rang 0 précèdent l'ouverture du projet à d'autres contributeurs. Le dépôt contredit encore la règle de blocage décidée.</div>
   <p class="intro">Des <a class="terme" href="#g-module" title="Un outil installé dans le repository de l'application, comme le linter, le générateur de stories ou le vérificateur de rendu, qui lit les contrats.">modules consommateurs</a> s'ajoutent au toolkit, écrits en React et TypeScript, avec ou sans agent de code. intencial-library, la bibliothèque de production, porte les contrats, les composants et leur Storybook.</p>
   <div class="legende"><span class="etat decidee">décidée, à faire</span><span class="etat propose">proposée par une recherche</span><span class="etat ouvert">question ouverte</span></div>
 
