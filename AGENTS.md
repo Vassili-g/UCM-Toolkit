@@ -50,6 +50,8 @@ Interface d'un plugin : lire d'abord [CONTRIBUTING.md](./CONTRIBUTING.md#interfa
 
 Maturité et priorités : [ROADMAP.md](./ROADMAP.md). Idées non décidées : [PISTES-EVOLUTION.md](./docs/notes/Recherches/Evolutions%20globales/PISTES-EVOLUTION.md).
 
+Vue d'ensemble générée pour le mainteneur : [INVENTAIRE-UCM.html](./docs/inventaire/INVENTAIRE-UCM.html). Un agent lit ses sources, pas la page.
+
 ## Routage
 
 `.agents/domiciles.json` donne à chaque fichier de `packages/*/src/` un seul domicile : le motif le plus long l'emporte, à égalité le dernier. `npm run agents:domicile -- <chemin>` le rend. Chaque paquet a un guide, qui liste ses invariants, et une carte :
@@ -85,6 +87,7 @@ Parcourir dans l'ordre ; s'arrêter à la première ligne qui convient.
 | Règle de travail : code, test, message, rédaction | `CONTRIBUTING.md` |
 | Procédure qu'un agent exécute | une skill existante de `.agents/skills/` |
 | Maturité, priorité, validation restante | `ROADMAP.md` |
+| Piste et décision de la feuille de route | `pistes.json` et `decisions.json` de `docs/notes/Recherches/Evolutions globales/` |
 | Recherche, plan, décision à prendre | le dossier existant de `docs/notes/Recherches/` qui traite le sujet |
 | Aucune ligne ne convient | ne rien écrire ; rendre la question |
 
@@ -109,7 +112,7 @@ npm run test:paquet -- socle          # les trois plugins, socle, couleur, hub, 
 - Chaque paquet a son `scripts/run-tests.cjs` (`build/run-tests.cjs` dans le socle), qui découvre `tests/*.test.ts` et `tests/*.test.mjs` de son dossier. Tout bug corrigé reçoit un test de régression.
 - `npm run cascade` charge la feuille des tokens dans Chromium, Firefox et WebKit, hors de `npm test`. Moteurs : `npx playwright install chromium firefox webkit` ; le job `cascade` de `ci.yml` le lance.
 - `packages/kit/src/format/types.ts` changé : lancer `npm run schema`, le schéma commité en est dérivé, et `packages/kit/tests/schema.test.ts` refuse une version périmée en la régénérant.
-- `npm run vues` : reconstruit le kit si son empreinte a changé, puis régénère le hub, la planche du moteur et les données de la vue illustrée ; écrit seulement ce qui change. Le test de fraîcheur de chaque page échoue avec « La vue n'est plus à jour » tant qu'elle est périmée.
+- `npm run vues` : reconstruit le kit si son empreinte a changé, puis régénère le hub, la planche du moteur et les données de la vue illustrée et l'inventaire ; écrit seulement ce qui change. Le test de fraîcheur de chaque page échoue avec « La vue n'est plus à jour » tant qu'elle est périmée.
 - `npm run agents:diff` : domiciles et documents liés à relire, vérifications à lancer, documents qui citent un chemin supprimé ou renommé.
 
 ### La frontière de recette

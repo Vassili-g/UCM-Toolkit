@@ -6,6 +6,7 @@ La forme de ce qui est publié est spécifiée dans
 [docs/format/FORMAT.md](./docs/format/FORMAT.md), le comportement du plugin dans
 [packages/plugin-exporter/SPEC.md](./packages/plugin-exporter/SPEC.md), et l’avancement dans
 [ROADMAP.md](./ROADMAP.md).
+La [page de l'inventaire](./docs/inventaire/INVENTAIRE-UCM.html) montre ces sources d'un coup d'œil.
 
 ## 1. Le problème
 

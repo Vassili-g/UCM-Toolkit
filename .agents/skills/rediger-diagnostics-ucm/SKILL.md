@@ -1,5 +1,6 @@
 ---
-name: rediger-diagnostics-ucm description: Rédiger ou revoir les erreurs,
+name: rediger-diagnostics-ucm
+description: Rédiger ou revoir les erreurs,
 avertissements et rapports CI destinés aux designers dans les projets UCM.
 Utiliser pour toute modification de texte visible dans le plugin ou une pull
 request.

@@ -20,6 +20,7 @@
     "stress:f1": "tsx packages/kit/tests/stress/f1-noms/index.ts",
     "stress:rejeu": "tsx packages/kit/tests/stress/rejeu-fichiers/index.ts",
     "vues": "node scripts/vues.mjs",
+    "inventaire": "node scripts/ouvrir-inventaire.mjs",
     "agents:lire": "node scripts/agents-contexte.mjs lire",
     "agents:domicile": "node scripts/agents-contexte.mjs domicile",
     "agents:diff": "node scripts/agents-contexte.mjs diff"

@@ -489,6 +489,7 @@ const PHRASES_DES_SCRIPTS: Readonly<Record<string, readonly [string, string]>> =
   'stress:f1': ['Lance le harnais de stress test des noms de Nomenclature, hors de `npm test`.', 'packages/kit/tests/stress/f1-noms/index.ts, commentaire d’en-tête'],
   'stress:rejeu': ['Rejoue des fichiers réels dans le mode Tokens et mesure les contrôles, hors de `npm test`.', 'packages/kit/tests/stress/rejeu-fichiers/index.ts, commentaire d’en-tête'],
   vues: ['Régénère le hub, la planche du moteur, les données de la vue illustrée et cet inventaire, et rend la liste de celles qui ont changé.', 'AGENTS.md, « Vérification » ; scripts/vues.mjs'],
+  inventaire: ['Ouvre la page de l’inventaire dans le navigateur par défaut.', 'scripts/ouvrir-inventaire.mjs, commentaire d’en-tête'],
   'agents:lire': ['Rend les fichiers à lire avant de modifier des chemins donnés, et seulement eux.', 'AGENTS.md, « Avant de modifier »'],
   'agents:domicile': ['Rend le domicile d’un fichier de `packages/*/src/`.', 'AGENTS.md, « Routage »'],
   'agents:diff': ['Rend les domiciles et documents à relire, les vérifications à lancer et les documents qui citent un chemin supprimé ou renommé.', 'AGENTS.md, « Vérification »'],

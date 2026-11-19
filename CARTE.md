@@ -57,6 +57,7 @@ Procédures qu'un agent charge à la demande.
 - run-tests.cjs : découvreur de tests
 - agents-contexte.mjs : documents à lire avant de modifier un fichier et à relire après, calculés depuis `.agents/domiciles.json`
 - vues.mjs : `npm run vues`, reconstruit le kit si besoin et régénère le hub, la planche, les données de la vue illustrée et l'inventaire
+- ouvrir-inventaire.mjs : `npm run inventaire`, ouvre la page de l'inventaire dans le navigateur par défaut
 - verifier-conservation.mjs : garde de conservation de la réécriture d'`AGENTS.md`
 
 ## .claude/
