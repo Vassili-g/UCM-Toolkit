@@ -74,6 +74,7 @@ Ce qui juge un contrat écrit ; `ajv` et `node:fs`.
 - diagnostic-contrastes.mjs : contraste de chaque couleur d'un contrat contre son fond, en information
 - diagnostic-architecture.mjs : `tokens.json` jugé par `controlerLIntegriteUcm` et `controlerLeCatalogue`, constats groupés par genre, en information
 - diagnostic-parite.mjs : écart contrat ↔ code : le juger et le dire
+- derogations.mjs : `.ucm/derogations.json` lu depuis son texte, validé, appliqué à des écarts de parité exacts
 - diagnostic-tests.mjs : ce qu'une suite de tests rouge dit au designer
 - diagnostic-markdown.mjs : rendu markdown d'un diagnostic
 - index.mjs : porte publique `@ucm-kit/core/lecteurs`

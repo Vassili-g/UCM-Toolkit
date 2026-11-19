@@ -632,6 +632,35 @@ declare module "@ucm-kit/core/lecteurs" {
   /** Le rappel terminal des écarts contrat ↔ code. */
   export function resumeTerminalEcartsDeParite(bilans: ReadonlyArray<unknown>): string | null;
 
+  /** Chemin fixe du fichier des dérogations, relatif à la racine du repository. */
+  export const CHEMIN_DES_DEROGATIONS: ".ucm/derogations.json";
+
+  /** Une dérogation : elle couvre un écart exact d'un composant, pour un export donné. */
+  export interface Derogation {
+    composant: string;
+    ecart: { genre: GenreDEcartDeParite } & Record<string, string>;
+    /** La valeur de `meta.exportedAt` du contrat à la pose. */
+    export: string;
+    motif: string;
+    par: string;
+  }
+
+  /** Lit le texte de `.ucm/derogations.json` (`null` si absent) ; ne lève pas, chaque refus nomme l'entrée fautive. */
+  export function lireDerogations(texte: string | null | undefined): { derogations: Derogation[]; erreurs: string[] };
+
+  /** Répartit les écarts d'un composant selon les dérogations valides de l'export courant. */
+  export function appliquerDerogations(
+    derogations: readonly Derogation[],
+    composant: string,
+    exportedAt: string,
+    ecarts: readonly EcartIdentifieDeParite[],
+  ): {
+    couverts: { ecart: EcartIdentifieDeParite; derogation: Derogation }[];
+    restants: EcartIdentifieDeParite[];
+    tombees: Derogation[];
+    sansObjet: Derogation[];
+  };
+
   /** Sépare ce qui concerne un composant exporté de ce qui concerne l'outillage. */
   export function repartirEchecs(echecs: readonly EchecDeTest[]): {
     rendu: EchecDeTest[];

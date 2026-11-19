@@ -160,6 +160,16 @@ export {
 } from "./diagnostic-parite.mjs";
 
 /**
+ * Les dérogations d'un repository : lire `.ucm/derogations.json` (texte donné,
+ * jamais un chemin), le valider et l'appliquer à des écarts identifiés.
+ */
+export {
+  CHEMIN_DES_DEROGATIONS,
+  lireDerogations,
+  appliquerDerogations,
+} from "./derogations.mjs";
+
+/**
  * Ce que le designer doit lire d'une suite de tests en échec.
  *
  * Lire du TAP, reconnaître un fichier de test, distinguer une assertion d'une

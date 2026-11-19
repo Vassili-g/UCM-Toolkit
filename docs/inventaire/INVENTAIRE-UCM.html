@@ -1316,7 +1316,7 @@ a.sujet:focus-visible { outline: 2px solid var(--texte); outline-offset: 2px; }
     <h4>Jobs des workflows</h4>
     <div class="defile"><table><tr><th>Job</th><th>Déclencheur</th><th>Ce qu'il lance</th></tr><tr><td><code>ci.yml</code>, job <code>test</code></td><td>push sur main, pull request</td><td><code>npm test</code>, <code>npm run build</code></td></tr><tr><td><code>ci.yml</code>, job <code>cascade</code></td><td>push sur main, pull request</td><td><code>npm run cascade</code>, <code>npm run test:ui --workspace ucm-exporter-plugin</code>, <code>npm run test:ui --workspace ucm-palettes-plugin</code>, <code>npm run test:ui --workspace ucm-architect-plugin</code></td></tr><tr><td><code>publish.yml</code>, job <code>publish</code></td><td>lancement à la main</td><td><code>npm test</code>, <code>npm publish --workspace "$PAQUET"</code>, <code>node scripts/pins-servis.mjs</code></td></tr></table></div>
   </div></details>
-  <details class="pli" id="annexe-entrees"><summary>Les 9 points d'entrée du kit <span class="doux">441 noms uniques, la CLI et l'adaptateur en importent 40</span></summary><div class="contenu">
+  <details class="pli" id="annexe-entrees"><summary>Les 9 points d'entrée du kit <span class="doux">444 noms uniques, la CLI et l'adaptateur en importent 40</span></summary><div class="contenu">
     <p>Les chemins d'import de <code>@ucm-kit/core</code>, lus dans <code>packages/kit/package.json</code>, avec le nombre de noms que chacun exporte. Ils disent ce qu'un outil peut importer du kit, et ce que la piste <a href="#piste-P3">P3</a> doit figer.</p>
     <div class="defile"><table>
       <tr><th>Point d'entrée</th><th class="n">Exports</th><th>Contenu</th></tr>
@@ -1327,10 +1327,10 @@ a.sujet:focus-visible { outline: 2px solid var(--texte); outline-offset: 2px; }
       <tr><td><code>./controles</code></td><td class="n">55</td><td>Contrôles, corrections, préparation des tokens</td></tr>
       <tr><td><code>./protocoles</code></td><td class="n">46</td><td>Données échangées entre plugins : recette, nommage, architecture</td></tr>
       <tr><td><code>./nommage</code></td><td class="n">19</td><td>Calcul des noms selon les règles du fichier</td></tr>
-      <tr><td><code>./lecteurs</code></td><td class="n">69</td><td>Validation de contrat, tokens, parité, rapport, verdict, en <code>.mjs</code> avec Node</td></tr>
-      <tr><td><code>./lecteurs/navigateur</code></td><td class="n">52</td><td>Les mêmes lecteurs sans Node</td></tr>
+      <tr><td><code>./lecteurs</code></td><td class="n">72</td><td>Validation de contrat, tokens, parité, rapport, verdict, en <code>.mjs</code> avec Node</td></tr>
+      <tr><td><code>./lecteurs/navigateur</code></td><td class="n">55</td><td>Les mêmes lecteurs sans Node</td></tr>
     </table></div>
-    <p>Les deux points d'entrée des lecteurs partagent la plupart de leurs noms, d'où 545 exports pour 441 noms uniques. Une définition UCM se modifie dans <code>src/referentiel/</code> seulement, et un test refuse sa copie ailleurs. <code>emplois</code> n'a aucune dépendance. Le kit n'importe rien du moteur de couleur. Chaque modification du référentiel change la version du kit.</p>
+    <p>Les deux points d'entrée des lecteurs partagent la plupart de leurs noms, d'où 551 exports pour 444 noms uniques. Une définition UCM se modifie dans <code>src/referentiel/</code> seulement, et un test refuse sa copie ailleurs. <code>emplois</code> n'a aucune dépendance. Le kit n'importe rien du moteur de couleur. Chaque modification du référentiel change la version du kit.</p>
   </div></details>
 
   <details class="pli" id="annexe-tests"><summary>Fichiers de test des paquets <span class="doux">nombre de fichiers par paquet</span></summary><div class="contenu">
@@ -1343,7 +1343,7 @@ a.sujet:focus-visible { outline: 2px solid var(--texte); outline-offset: 2px; }
       <tr><td>Socle</td><td class="n">36</td></tr>
       <tr><td>CLI</td><td class="n">10</td></tr>
       <tr><td>Adaptateur TypeScript</td><td class="n">3</td></tr>
-      <tr><td>Kit</td><td class="n">122</td></tr>
+      <tr><td>Kit</td><td class="n">123</td></tr>
       <tr><td>Moteur de couleur</td><td class="n">34</td></tr>
       <tr><td>Hub UCM</td><td class="n">1</td></tr>
     </table></div>
