@@ -129,7 +129,7 @@
       "sujet": "Bibliothèque de production",
       "recherche": "docs/notes/Recherches/Socle intencial-library/PLAN-SOCLE-INTENCIAL-LIBRARY.md",
       "plan": "docs/notes/Recherches/Socle intencial-library/PLAN-SOCLE-INTENCIAL-LIBRARY.md",
-      "resume": "Créer `package.json`, lockfile, `tsconfig.json` et `src/components/` dans intencial-library, installer la CLI et l'adaptateur, et générer la feuille CSS des tokens.",
+      "resume": "Créer `package.json`, lockfile, `tsconfig.json` et `src/components/` dans intencial-library, et installer la CLI et l'adaptateur. Le repository n'a pas besoin des tokens.",
       "importance": "critique",
       "raisonImportance": "Le dépôt ne contient que `tokens.json` : sans lockfile, `ucm.yml` saute `npm ci`, l'adaptateur ne se charge pas et aucun module n'a de projet où s'exécuter.",
       "rang": 1,
@@ -177,7 +177,6 @@
       ],
       "criteresDeFin": [
         "`npm ci` puis `npx ucm check` dans intencial-library chargent l'adaptateur et le rapport contient la section de parité.",
-        "`npx ucm tokens css` écrit une feuille avec les attributs des modes `intencial` et `marque-2`.",
         "`tsc --noEmit` passe dans le job `contrats`.",
         "intencial-library épingle la CLI qui contient P19, en version exacte."
       ],
