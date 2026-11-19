@@ -15,4 +15,4 @@ Ce plan suit la piste P18 de `docs/notes/Recherches/Evolutions globales/pistes.j
 - [ ] 3. `tokens.json` exporté depuis Figma et fusionné. Pull request #9 vers `dev`, ouverte.
 - [ ] 4. `npx ucm tokens css` écrit `src/tokens/tokens.css` avec les attributs des modes `intencial` et `marque-2`.
 - [ ] 5. `tsc --noEmit` passe dans le job `contrats` du CI.
-- [ ] 6. intencial-library épingle `@ucm-kit/cli` 0.2.0 et `@ucm-kit/adapter-typescript` 0.2.11, qui contiennent P19. La branche de la pull request #10 épingle encore 0.1.152 et 0.2.10.
+- [ ] 6. intencial-library épingle `@ucm-kit/cli` 0.2.0 et `@ucm-kit/adapter-typescript` 0.2.11, qui contiennent P19. La branche de la pull request #10 les épingle depuis le commit `e0618d9` ; `tsc --noEmit` et `ucm check` passent en local.
