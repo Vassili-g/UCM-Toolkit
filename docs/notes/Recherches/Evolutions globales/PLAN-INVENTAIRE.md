@@ -58,9 +58,9 @@ La page vit dans `_local/inventaire-ucm/INVENTAIRE-UCM.html` tant qu'elle n'est 
 
 ## Phase P : liens et publication
 
-- [ ] P1. Liens, version, publication. Agent : `implementeur` pour les liens, puis la skill `publier-paquets` dans la conversation principale.
-  - [ ] P1.1. Liens vers `docs/inventaire/INVENTAIRE-UCM.html` dans `README.md`, `docs/README.md` (en tête et dans la table des autorités), `AGENTS.md` (une phrase sous 300 octets, et « Où écrire » pour les pistes et les décisions), `CONCEPT.md`, `ROADMAP.md`. Script `npm run inventaire` qui ouvre la page.
-  - [ ] P1.2. Montée de version de `@ucm-kit/core` et `@ucm-kit/cli` (catalogue des codes, `COMMANDES`), puis publication.
+- [x] P1 (6014d1d2, dcd2cd80). Liens, version, publication. Agent : `implementeur` pour les liens, puis la skill `publier-paquets` dans la conversation principale.
+  - [x] P1.1 (6014d1d2). Liens vers `docs/inventaire/INVENTAIRE-UCM.html` dans `README.md`, `docs/README.md` (en tête et dans la table des autorités), `AGENTS.md` (une phrase sous 300 octets, et « Où écrire » pour les pistes et les décisions), `CONCEPT.md`, `ROADMAP.md`. Script `npm run inventaire` qui ouvre la page.
+  - [x] P1.2 (dcd2cd80, publiés : core 0.16.0, cli 0.1.151, adapter-typescript 0.2.9). Montée de version de `@ucm-kit/core` et `@ucm-kit/cli` (catalogue des codes, `COMMANDES`), puis publication.
   - Fin : `AGENTS.md` sous 12 288 octets, `npx tsx --test tests/domiciles.test.ts tests/docLinks.test.ts tests/styleDocumentaire.test.ts` passe, `npm test` passe en entier, paquets servis par le registre.
 
 ## Vérification de phase
