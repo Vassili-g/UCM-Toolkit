@@ -67,7 +67,6 @@
     <li>Un écart entre le code et le contrat avertit sans bloquer la fusion (<a href="#piste-P19">P19</a>).</li>
     <li>Une demande rouge reste fusionnable, car le plan GitHub actuel n'offre pas la <a class="terme" href="#g-protection" title="Le réglage de la forge qui interdit de fusionner une demande dont le CI est rouge. Sans lui, un échec reste un avis.">protection de branche</a> (<a href="#piste-P17">P17</a>).</li>
     <li>Aucun contrat réel n'est encore au format {{contrat}}. Les {{recette-contrats:nombre}} <a class="terme" href="#g-recette-contrats" title="Les {{recette-contrats:nombre}} contrats réels Button, Alert, TileLink et StressTest, exportés depuis Figma, que les tests du dépôt font lire par les lecteurs.">contrats de recette</a> sont en {{recette-contrats:version}} (<a href="#piste-P1">P1</a>).</li>
-    <li>La version du plugin d'export publiée sur la Figma Community est ancienne et écrit <code>tokens.json</code> au format 1 (<a href="#piste-P14">P14</a>).</li>
   </ul>
 </section>
 
@@ -123,7 +122,7 @@
   </div>
 
   <div class="fiche" id="outil-exporter">
-    <div class="tete">{{logo:exporter}}<div class="nom"><b>UCM Contract Exporter</b><span class="etat livre">livré</span><span class="etat partiel">version Community ancienne</span><span class="canal">Plugin Figma, Figma Community</span></div></div>
+    <div class="tete">{{logo:exporter}}<div class="nom"><b>UCM Contract Exporter</b><span class="etat livre">livré</span><span class="canal">Plugin Figma, Figma Community</span></div></div>
     <p class="role">Publie le contrat d'un composant et <code>tokens.json</code> dans le repository de l'application.</p>
     <dl class="faits">
       <dt>Lit</dt><dd>Le composant sélectionné. Sans sélection, les variables.</dd>
@@ -713,7 +712,7 @@
     <dt id="g-derogation">Dérogation</dt><dd>Une exception motivée qu'un développeur écrit pour laisser passer un écart, en attendant la relecture du designer.</dd>
     <dt id="g-diagnostic">Diagnostic</dt><dd>Un message de l'Exporter rangé dans le contrat, sous <code>meta.diagnostics</code>. C'est toujours un avertissement.</dd>
     <dt id="g-dtcg">DTCG</dt><dd>Design Tokens Community Group, auteur du format standard de <code>tokens.json</code>.</dd>
-    <dt id="g-retard">En retard sur son contrat</dt><dd>Se dit d'un composant dont le code ne suit pas encore son contrat. Cette expression est réservée à ce cas : la version Community de l'Exporter est dite ancienne.</dd>
+    <dt id="g-retard">En retard sur son contrat</dt><dd>Se dit d'un composant dont le code ne suit pas encore son contrat. Cette expression est réservée à ce cas.</dd>
     <dt id="g-epingler">Épingler</dt><dd>Écrire une version exacte, sans <code>^</code>, pour que npm n'en installe jamais une autre.</dd>
     <dt id="g-symbole">Export, symbole</dt><dd>Un nom qu'un fichier rend utilisable par d'autres fichiers.</dd>
     <dt id="g-forge">Forge</dt><dd>Le service qui héberge le repository et ses demandes de fusion, GitHub ou GitLab.</dd>

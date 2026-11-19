@@ -138,7 +138,6 @@
       "raisonImportance": "Le dépôt n'a aucun dossier `src/components` ni contrat, et aucun contrat 14.0 n'existe nulle part : un module n'aurait rien contre quoi coder ni tester.",
       "rang": 0,
       "dependances": [
-        "P14",
         "P2"
       ],
       "complexite": "m",
@@ -187,11 +186,9 @@
       ],
       "questions": [
         "Quels composants : Button, Alert, TileLink, et quel composé ?",
-        "La recette se joue-t-elle sur intencial-library ou reste-t-elle sur UCM-Playground ?",
-        "L'export se fait-il depuis la version Community (P14) ou depuis le build du dépôt ?"
+        "La recette se joue-t-elle sur intencial-library ou reste-t-elle sur UCM-Playground ?"
       ],
       "risques": [
-        "La version Community écrit `tokens.json` en format 1 : sur ce fichier à modes, `ucm tokens css` refuse « porte des modes sans déclarer ses axes » (`packages/cli/src/tokens-css.mjs`, lignes 637 à 644).",
         "Sans `package.json` ni lockfile, `ucm.yml` saute `npm ci` : l'adaptateur TypeScript ne se charge pas et la parité reste muette.",
         "Le passage de 0.1.48 à 0.1.150 change le texte des rapports déjà publiés sur les pull requests."
       ]
@@ -261,61 +258,6 @@
       "risques": [
         "Une liste trop étroite pousse les modules vers des symboles privés.",
         "Un premier relevé annonçait 48 symboles sur 477 ; celui-ci donne 41 imports sur 432 noms uniques : recompter avant de figer."
-      ]
-    },
-    {
-      "id": "P14",
-      "titre": "Publier l'Exporter actuel sur la Community",
-      "titreCourt": "Exporter Community",
-      "resume": "Publier sur la Figma Community le build du dépôt, qui écrit `tokens.json` en format 2 et des contrats 14.0.",
-      "importance": "haute",
-      "raisonImportance": "Un designer qui exporte les tokens depuis la Community écrase le `tokens.json` en format 2 d'intencial-library par un format 1, et la feuille CSS à modes ne se génère plus.",
-      "rang": 0,
-      "dependances": [],
-      "complexite": "m",
-      "raisonComplexite": "Le build existe ; la publication passe par la revue de Figma et demande de mettre à jour quatre documents.",
-      "coutHumain": "Publier le build sur la Figma Community et attendre la revue de Figma.",
-      "porteur": "mainteneur",
-      "promesse": "R",
-      "etat": "à faire",
-      "points": [
-        {
-          "chemin": "packages/plugin-exporter/",
-          "action": "vérifier",
-          "quoi": "`npm run build:plugin -- exporter`, puis publication de `dist/` sous l'identifiant 1678431364325816914."
-        },
-        {
-          "chemin": "packages/plugin-exporter/manifest.json",
-          "action": "vérifier",
-          "quoi": "Domaines `api.github.com` et `gitlab.com` seulement ; pas d'`enablePrivatePluginApi`."
-        },
-        {
-          "chemin": "ROADMAP.md",
-          "action": "modifier",
-          "quoi": "Ligne 63 (format 1 éprouvé en sRGB) et §5, lignes 177 à 190 (« Le plugin publié sur la Community produit la version 1 »)."
-        },
-        {
-          "chemin": "docs/format/COMPATIBILITE.md",
-          "action": "vérifier",
-          "quoi": "Ligne 159, étape 3 de l'ordre d'une nouvelle version : le kit 0.15.2 lit déjà les formats 1 et 2."
-        },
-        {
-          "chemin": "packages/plugin-exporter/README.md",
-          "action": "modifier",
-          "quoi": "Version servie par la Community."
-        }
-      ],
-      "criteresDeFin": [
-        "Un export depuis la version Community écrit `com.ucm.formatVersion: 2` et `com.ucm.axes` dans `tokens.json`.",
-        "Un contrat exporté depuis la Community porte `contractVersion` 14.0.",
-        "ROADMAP.md ne dit plus que la Community produit la version 1."
-      ],
-      "questions": [
-        "Quelle version de contrat la Community produit-elle aujourd'hui ? Le dépôt ne le consigne pas."
-      ],
-      "risques": [
-        "La revue de Figma impose un délai que le mainteneur ne contrôle pas.",
-        "Un designer resté sur une version installée avant la publication continue d'écrire le format 1."
       ]
     },
     {

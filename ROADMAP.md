@@ -177,8 +177,8 @@ compatibilité](./docs/format/COMPATIBILITE.md) relie le contrat, le schéma, le
 les paquets et les adaptateurs.
 
 L'alignement DTCG donne à `tokens.json` sa propre version. Le plugin publié sur
-la Community produit la version 1. Le build de développement produit la version
-2 et déclare les axes de modes. `@ucm-kit/core` lit les versions 1 et 2, et
+la Community produit la version 2 et déclare les axes de modes.
+`@ucm-kit/core` lit les versions 1 et 2, et
 `ucm tokens css` produit la feuille du consommateur depuis la version 2.
 
 Limite : aucun export d'un document Figma réglé sur Display P3 n'a été mesuré.
@@ -187,8 +187,8 @@ Le fichier simulé couvre ce profil dans les tests, jusqu'au CSS
 
 La version 2 ajoute les trois types que la version 1 laissait en `string` :
 `duration`, `cubicBezier` et `fontFamily`. Elle ajoute aussi les axes et les
-collections étendues expérimentales. La publication Community de ce build et
-le passage complet de la recette externe restent à faire.
+collections étendues expérimentales. Le passage complet de la recette externe
+reste à faire.
 
 ### 6. Passer la recette externe
 
