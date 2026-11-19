@@ -17,6 +17,7 @@ produit, partir des références de [docs/README.md](../../README.md) et du code
 | [UCM Architect : vitesse d'analyse][vitesse] | Réduire les lectures répétées et le délai d'affichage des constats, avec annulation et reprise. | Partiellement implémenté. Retrait de l'ancien chemin de production encore ouvert ; signatures, worker et échanges différentiels abandonnés. |
 | [UCM Architect : fusion et préparation][architect] | Réunir l'exploration des variables, leur nommage et la préparation des tokens d'un composant. | Implémenté pour le périmètre retenu. L'adaptation des noms de préparation à la convention Figma reste conditionnelle. |
 | [Exporter : sélection et Style Dictionary][exporter-selection] | Aligner la bascule Composant et Tokens sur celle d'UCM Architect, choisir les collections et les modes exportés, puis convertir `tokens.json` pour Style Dictionary. | Recherche proposée, non implémentée ; décisions du mainteneur attendues. |
+| [Socle d'intencial-library][socle-intencial] | Donner à intencial-library son socle React et TypeScript, la CLI et l'adaptateur UCM épinglés, et la feuille CSS des tokens. | En cours ; plan à cases suivi par l'inventaire. |
 | [Diff sémantique][diff] | Comparer deux ensembles de contrats et de tokens pour identifier les changements et les composants touchés. | Proposé, non implémenté ; périmètre de l'expérimentation à valider. |
 | [Conformité du rendu][rendu] | Comparer le rendu d'une implémentation aux obligations visuelles de son contrat. | Recherche proposée, non implémentée ; choix de réalisation ouverts. |
 | [Implémenteur de contrats][implementeur] | Produire et mettre à jour le code d'un composant à partir du contrat, avec moins de travail génératif. | Non réalisé. Le plan propose un compilateur ; sa revue recommande d'abord une preuve limitée et un contrôle de rendu autonome. Orientation à trancher. |
@@ -110,6 +111,7 @@ leurs plans.
 [anciens-noms-palettes]: https://github.com/Vassili-g/UCM-Toolkit/blob/da7f465d/docs/notes/Recherches/Plugin%20Architect/5%20Recette/PLAN-NOMS-DE-PALETTES.md
 [diff]: ./Diff%20Sémantique/PLAN-DIFF-SEMANTIQUE.md
 [exporter-selection]: ./Plugin%20Exporter/RECHERCHE-SELECTION-ET-STYLE-DICTIONARY.md
+[socle-intencial]: ./Socle%20intencial-library/PLAN-SOCLE-INTENCIAL-LIBRARY.md
 [rendu]: ./Linter%20Dev/PLAN-CONFORMITE-RENDU.md
 [implementeur]: ./Optimisation%20Tokens/README.md
 [reduction]: ./Optimisation%20Tokens/Recherches/PLAN-REDUCTION-TOKENS.md

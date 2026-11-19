@@ -338,8 +338,8 @@
   }
   function premierePhrase(t) { var m = String(t).match(/^[\s\S]*?[.!?](?=\s|$)/); return m ? m[0] : t; }
   var ETATS = { 'à faire': ['decidee', 'décidée, à faire'], 'proposé': ['propose', 'proposée par une recherche'], 'ouvert': ['ouvert', 'question ouverte'] };
-  // Une piste dont le plan a au moins une case cochée est en cours : son avancement remplace la décision, qui est prise.
-  function enCours(x) { return !!x.avancement && x.avancement.faites > 0; }
+  // Une piste reçoit son plan quand elle démarre : elle est alors en cours, même à 0 case cochée, et son avancement remplace la décision, qui est prise.
+  function enCours(x) { return !!x.avancement; }
   function etatDAvancement(x) {
     var a = x.avancement, fini = a.faites === a.total;
     return [fini ? 'livre' : 'partiel', (fini ? 'Livrée' : 'En cours') + ' · ' + a.faites + '/' + a.total + ' étapes'];

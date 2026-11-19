@@ -127,6 +127,8 @@
       "titre": "Socle React et TypeScript d'intencial-library",
       "titreCourt": "Socle React et TS",
       "sujet": "Bibliothèque de production",
+      "recherche": "docs/notes/Recherches/Socle intencial-library/PLAN-SOCLE-INTENCIAL-LIBRARY.md",
+      "plan": "docs/notes/Recherches/Socle intencial-library/PLAN-SOCLE-INTENCIAL-LIBRARY.md",
       "resume": "Créer `package.json`, lockfile, `tsconfig.json` et `src/components/` dans intencial-library, installer la CLI et l'adaptateur, et générer la feuille CSS des tokens.",
       "importance": "critique",
       "raisonImportance": "Le dépôt ne contient que `tokens.json` : sans lockfile, `ucm.yml` saute `npm ci`, l'adaptateur ne se charge pas et aucun module n'a de projet où s'exécuter.",
