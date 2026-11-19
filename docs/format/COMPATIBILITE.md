@@ -210,8 +210,7 @@ introuvable. La section « A repository with no contract at all » de
   ne bloque, parce que cette politique ne juge que l'artefact déposé. Un écart
   entre le contrat et le code relève d'une autre règle. Il bloque sur quatre
   familles, couleurs et tokens, dimensions et espacements, typographie,
-  structure et ordre, et la CLI publiée l'avertit encore sans refuser la
-  fusion. Le [guide des designers](../guides/POUR-LES-DESIGNERS.md#6-ce-qui-bloque-la-fusion-et-ce-qui-avertit)
+  structure et ordre, sauf quand le designer vient de changer le contrat. Le [guide des designers](../guides/POUR-LES-DESIGNERS.md#6-ce-qui-bloque-la-fusion-et-ce-qui-avertit)
   donne les cas.
 
 ## Ce que cette politique ne fait pas

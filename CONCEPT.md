@@ -134,10 +134,10 @@ son contrat » ; la demande passe.
 Un écart du code bloque la fusion sur quatre familles : couleurs et tokens,
 dimensions et espacements, typographie, structure et ordre. Tout ce que le
 contrat ne décrit pas reste libre dans le code : enveloppes, props non
-visuelles, placement par le parent, animations. La CLI publiée avertit encore
-d’un token absent et d’un écart de parité sans bloquer ; le [guide des
-designers](./docs/guides/POUR-LES-DESIGNERS.md#6-ce-qui-bloque-la-fusion-et-ce-qui-avertit)
-donne la règle décidée et ses cas.
+visuelles, placement par le parent, animations. La CLI bloque un écart de
+parité ou un token absent selon le dernier modifié, du contrat ou du code ; le
+[guide des designers](./docs/guides/POUR-LES-DESIGNERS.md#6-ce-qui-bloque-la-fusion-et-ce-qui-avertit)
+donne la règle et ses cas.
 
 ### Les divergences doivent être visibles
 

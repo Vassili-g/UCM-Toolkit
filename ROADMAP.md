@@ -162,10 +162,10 @@ décision correcte sur un cas réel.
 L'adaptateur TypeScript avertit lorsqu'une union omet une valeur publiée ou
 lorsqu'un enum déclaré n'a aucun effet dans le composant. Il ne prétend pas
 analyser les branches, les tables, les valeurs transmises ni les règles métier.
-La CLI publiée laisse ces écarts non bloquants. La règle décidée fait bloquer
-l'écart de parité, comme tout écart du code sur quatre familles ; le [guide des
+La CLI bloque l'écart de parité, comme tout écart du code sur quatre familles,
+sauf quand le designer vient de changer le contrat ; le [guide des
 designers](./docs/guides/POUR-LES-DESIGNERS.md#6-ce-qui-bloque-la-fusion-et-ce-qui-avertit)
-donne les cas, et la CLI ne l'applique pas encore.
+donne les cas.
 
 Le défaut d'un axe vient uniquement d'une règle Figma `@default`. Son absence
 laisse le choix au développeur. La parité statique ne compare pas ce défaut à
@@ -217,7 +217,7 @@ Le MVP est validé lorsque :
 - les contrats invalides, les versions incompatibles et les tests rouges
   empêchent la fusion avec un diagnostic actionnable ;
 - les écarts de parité statique couverts bloquent la demande d'un développeur
-  sans accuser le contrat (la CLI publiée les avertit encore) ;
+  sans accuser le contrat ;
 - un contrat peut précéder son code sans désactiver les contrôles futurs ;
 - un agent en contexte froid n'invente ni prop, ni variante, ni token ;
 - les limites non vérifiables sont documentées sans être présentées comme des

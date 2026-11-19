@@ -492,9 +492,8 @@ garanties qu'ils n'ont pas.
   designer met en retard sur son contrat est marqué en retard, et la
   prochaine demande d'un développeur sur ce composant bloque.
 
-Le code publié applique l'ancienne règle : un token absent et un écart de
-parité avertissent. Un verdict qui bloque ces écarts reste à livrer, et les
-documents distinguent ce que fait la CLI publiée de la règle décidée.
+La CLI applique cette règle pour le code, les tokens et la parité. La
+[décision sur le verdict](./DECISION-VERDICT-UCM-CHECK.md) la détaille.
 
 ### Ce qui reste ouvert
 
@@ -502,13 +501,8 @@ documents distinguent ce que fait la CLI publiée de la règle décidée.
   Une prop, une variante ou un élément absents du contrat sont à trancher. La
   recherche propose de tenir un élément pour visuel s'il peint ou prend de la
   place.
-- **Le token retiré par une demande de tokens seuls.** « Une demande de tokens
-  seuls passe toujours » contredit le blocage d'un token retiré que le code
-  cite.
-- **Le délai d'un composant en retard.** Avant la mise en production, ou un
-  nombre de jours : le délai n'est pas fixé.
-- **La forme de la dérogation.** Fichier ou section de configuration, portée,
-  motif, auteur, expiration.
+- **Les trois autres points** (token retiré, délai du retard, forme de la
+  dérogation) sont tranchés dans la [décision sur le verdict](./DECISION-VERDICT-UCM-CHECK.md).
 
 ## 8. Ordre proposé
 

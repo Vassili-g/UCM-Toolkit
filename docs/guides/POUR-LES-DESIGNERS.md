@@ -193,75 +193,108 @@ que le repository ne lit pas encore. Le message s'adresse alors à un
 développeur, qui doit mettre l'outillage à jour ; réexporter n'y changerait
 rien.
 
-| Contrôle | Ce qu'il vérifie | Verdict de la CLI publiée |
+| Contrôle | Ce qu'il vérifie | Verdict |
 |---|---|---|
 | Validité | Le contrat est lisible et complet | Bloque |
 | Version | La version du contrat entre dans la fenêtre de lecture du repository | Bloque |
 | Composition | Chaque composant imbriqué a son propre contrat, les listes concordent, aucun cycle | Bloque |
 | Typographie | Les tokens typographiques ont le type attendu | Bloque |
-| Tokens | Les tokens cités existent dans `tokens.json` | Avertit, sauf si le fichier de tokens manque ou ne se lit pas |
-| Parité code | Le code expose bien les props du contrat | Avertit |
-
-La CLI publiée applique encore l'ancienne règle. Un écart avec le code attend
-un développeur, donc il avertit et laisse fusionner, y compris un token
-supprimé du design system. La règle décidée, qui fait bloquer cet écart, suit
-ci-dessous, et la CLI ne l'applique pas encore.
+| Tokens | Les tokens cités existent dans `tokens.json` | Bloque, sauf pour un contrat en retard sur les tokens |
+| Parité code | Le code expose bien les props du contrat | Bloque, sauf pour un composant en retard sur son contrat |
 
 Le rapport relaie en plus deux choses qu'il ne mesure pas lui-même : les
 avertissements que l'export a écrits dans le contrat, et le verdict des tests du
 repository quand celui-ci le transmet.
 
-### La règle décidée
+### La règle appliquée
 
-Un écart du code bloque la fusion sur quatre familles : les couleurs et les
-tokens, les dimensions et les espacements, la typographie, la structure et
-l'ordre. Tout ce que le contrat ne décrit pas reste libre dans le code : les
-enveloppes, les props non visuelles, le placement par le parent et les
-animations.
+Le contrôle juge qui a changé en dernier, le contrat ou le code. Si le contrat
+d'un composant a changé après son code, le composant est « en retard sur son
+contrat » : l'écart n'est pas une faute du développeur, et rien ne bloque. Si le
+code a changé en même temps ou après, l'écart bloque. Un envoi direct sur
+`main` suit la même règle, donc la fusion d'une variante par vos soins ne rend
+jamais `main` rouge.
+
+Un écart du code bloque sur quatre familles : les couleurs et les tokens, les
+dimensions et les espacements, la typographie, la structure et l'ordre. Tout ce
+que le contrat ne décrit pas reste libre dans le code : les enveloppes, les
+props non visuelles, le placement par le parent et les animations.
 
 La mesure automatique du rendu bloque. Votre validation visuelle ne bloque
 jamais : un rendu que vous validez devient la capture de référence, et un
 changement du code seul qui modifie cette capture bloque. Le linter, qui
 n'existe pas encore, refusera une valeur écrite en dur dans le code.
 
-Un développeur peut poser une dérogation motivée. Elle laisse passer la
-demande, le rapport l'affiche, et elle attend votre relecture.
-
-Une demande qui ne contient que des tokens passe toujours. Vous exportez
-`tokens.json` et vous la fusionnez seul, à condition que le repository vous
-désigne propriétaire de ce fichier dans un `CODEOWNERS`.
+Une demande qui ne contient que des contrats et `tokens.json` n'est refusée que
+pour ses propres fichiers, jamais pour le code. Vous exportez `tokens.json` et
+vous la fusionnez seul, à condition que le repository vous désigne
+propriétaire de ce fichier dans un `CODEOWNERS`.
 
 **Un contrat peut arriver avant le code.** L'absence d'implémentation est un
-état d'avancement autorisé, pas une erreur. À l'inverse, un composant que votre
-demande met en retard sur son contrat est marqué « en retard sur son contrat » :
-la demande passe, et la prochaine demande d'un développeur sur ce composant
-bloque.
+état d'avancement autorisé, pas une erreur. Un composant en retard n'arrête
+personne tant que personne ne modifie son code. Le développeur qui le modifie
+le rattrape, ou pose une dérogation motivée. Le rapport affiche depuis combien
+de jours chaque composant est en retard ; aucun délai ne le fait expirer.
 
-Les huit cas suivants donnent le verdict de la règle décidée, puis celui de la
-CLI publiée.
+Un code TypeScript sans adaptateur bloque. L'adaptateur apprend au contrôle à
+lire le code. Sans lui, rien n'est prouvé, et le contrôle refuse la demande
+d'un développeur. Pour une technologie qu'aucun adaptateur ne lit, le rapport
+dit seulement « code présent, non vérifié ».
 
-| Cas | Règle décidée | CLI publiée |
+### Les cas, un par un
+
+| Votre demande, ou celle du développeur | Verdict | Ce que le rapport dit |
 |---|---|---|
-| Vous changez la valeur d'un token (demande de tokens seuls) | Passe | Passe |
-| Vous ajoutez une variante au contrat (demande de contrat seul) | Passe, le composant est marqué en retard sur son contrat | Passe, sans marque |
-| Vous retirez un token que le code ou le contrat cite encore | Ouvert, voir ci-dessous | Avertit si le contrat le cite |
-| Le développeur écrit un écart dans une des quatre familles | Bloque | Avertit pour les props et les tokens ; le reste n'est pas comparé |
-| Le contrat arrive avant son code | Passe | Passe |
-| Un changement du code seul modifie une capture de référence | Bloque | Aucune capture n'existe |
-| Une demande change le contrat et ses captures | Passe, les captures attendent votre validation | Aucune capture n'existe |
-| Le développeur pose une dérogation motivée | Passe, le rapport l'affiche, elle attend votre relecture | Aucune dérogation n'existe |
+| Vous changez la valeur d'un token (tokens seuls) | Passe | Rien de plus |
+| Vous retirez un token qu'un contrat cite (tokens seuls) | Passe | Les contrats à réexporter, « en retard sur les tokens » |
+| Votre `tokens.json` est illisible ou d'une version non lue | Bloque | Le geste à faire |
+| Vos tokens seuls arrivent alors qu'un écart du code existe déjà | Passe | L'écart, adressé à un développeur |
+| Vous ajoutez au contrat une variante que le code n'a pas | Passe | Le composant est « en retard sur son contrat » |
+| Votre contrat n'a pas encore de code | Passe | « Pas d'implémentation » |
+| Votre contrat cite un token absent de `tokens.json` | Bloque | Fusionner d'abord la demande des tokens, puis relancer |
+| Votre contrat est illisible, incomplet ou d'une version non lue | Bloque | Le geste à faire |
+| Votre contrat est celui d'un composant qui porte une dérogation | Passe | La dérogation tombe, avec son motif et son auteur |
+| Le développeur modifie le code et laisse un écart, même si la demande change aussi le contrat | Bloque | L'écart et le geste du développeur |
+| Le développeur corrige un bug dans un composant en retard sans rattraper le contrat | Bloque | L'écart à rattraper, ou la dérogation à poser |
+| Le développeur change du code partagé qui crée un écart ailleurs | Bloque | L'écart et le composant touché |
+| Le développeur change du code sans lien avec un composant en retard | Passe | Le retard, avec son âge |
+| Le développeur change du code avec une dérogation valide | Passe | La dérogation, « à valider par le designer » |
+| La dérogation n'a pas de motif ni d'auteur, est mal formée ou couvre un écart non dérogeable | Bloque | L'entrée fautive |
+| Du code TypeScript arrive sans adaptateur chargé, ou avec un fichier que l'adaptateur ne lit pas | Bloque | Le geste d'installation |
+| Le code d'une technologie qu'aucun adaptateur ne lit | Passe | « Code présent, non vérifié » |
+| Envoi direct sur `main`, sans demande de fusion | Juge l'état de `main` | Bloque sur un écart ni en retard ni dérogé, un contrat invalide, ou un contrat qui cite un token absent |
+| Contrôle lancé sur une copie sans historique complet | Erreur d'invocation (code 2) | Récupérer l'historique complet |
+| Contrôle lancé en local par un développeur ou son agent | Comme `main` | Les fichiers non enregistrés comptent comme les plus récents |
 
-Quatre points restent ouverts :
+Un changement du code seul qui modifie une capture de référence bloque. Une
+demande qui change le contrat et ses captures passe : les captures attendent
+votre validation.
 
-- le délai d'un composant en retard sur son contrat ;
-- le sort d'un token que votre demande retire alors que le code le cite : la
-  règle « une demande de tokens seuls passe toujours » et le blocage d'un token
-  absent se contredisent ;
-- la forme de la dérogation ;
-- ce que le linter refuse en plus d'une valeur écrite en dur.
+### Relire une dérogation
 
-Le [plan de conformité du rendu](../notes/Recherches/Linter%20Dev/PLAN-CONFORMITE-RENDU.md#7-règle-de-sévérité)
-garde ces questions.
+Une dérogation est une exception que le développeur écrit dans
+`.ucm/derogations.json`, pour un écart précis, avec son motif et son nom. Elle
+vaut pour l'export du contrat qu'elle nomme. Votre prochain export de ce
+composant la fait tomber, et elle n'a pas de date d'expiration.
+
+Vous la relisez dans trois rapports :
+
+- celui de la demande qui la pose l'affiche en tête ;
+- celui de chaque demande de contrat ou de tokens finit par la liste des
+  dérogations à valider, avec le composant, l'écart, le motif et l'auteur ;
+- celui de l'export qui la fait tomber la cite avec son motif, et dit que le
+  prochain développeur qui modifie ce composant devra rattraper l'écart.
+
+Pour l'accepter, vous changez Figma pour que le contrat dise ce que fait le
+code, puis vous exportez. Pour la refuser, vous demandez à un développeur, ou à
+son agent, de retirer la ligne du composant dans `.ucm/derogations.json` ; le
+rapport donne cette demande en une phrase à recopier. Une entrée qui ne
+correspond plus à aucun écart est signalée « sans objet » et ne retient rien.
+
+Un point reste ouvert : ce que le linter refuse en plus d'une valeur écrite en
+dur. La [décision sur le verdict](../notes/Recherches/Linter%20Dev/DECISION-VERDICT-UCM-CHECK.md)
+détaille la règle, et le [plan de conformité du rendu](../notes/Recherches/Linter%20Dev/PLAN-CONFORMITE-RENDU.md#7-règle-de-sévérité)
+garde le point du linter.
 
 ### Rendre le blocage effectif
 
