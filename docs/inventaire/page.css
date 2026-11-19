@@ -4,22 +4,7 @@
   --ambre: #a16207; --ambre-fond: #fef9e7; --bleu: #1d4ed8; --bleu-fond: #eef3ff;
   --orange: #c2410c; --orange-fond: #fff4ec; --violet: #6d28d9; --violet-fond: #f4f0ff;
   --code: #eef0f4; --ombre: 0 1px 2px rgb(0 0 0 / .05);
-}
-@media (prefers-color-scheme: dark) {
-  :root:not([data-theme="light"]) {
-    --fond: #0c1018; --surface: #131925; --surface-2: #19202e; --texte: #e6e8ec; --doux: #9aa3b2; --trait: #263042;
-    --rose: #f472b6; --rose-fond: #2a1121; --olive: #a3e635; --olive-fond: #18230e;
-    --ambre: #fbbf24; --ambre-fond: #2a210b; --bleu: #93b4ff; --bleu-fond: #121c33;
-    --orange: #fb923c; --orange-fond: #2a170b; --violet: #c4b5fd; --violet-fond: #1d1733;
-    --code: #1d2433; --ombre: 0 0 0 0 transparent;
-  }
-}
-:root[data-theme="dark"] {
-  --fond: #0c1018; --surface: #131925; --surface-2: #19202e; --texte: #e6e8ec; --doux: #9aa3b2; --trait: #263042;
-  --rose: #f472b6; --rose-fond: #2a1121; --olive: #a3e635; --olive-fond: #18230e;
-  --ambre: #fbbf24; --ambre-fond: #2a210b; --bleu: #93b4ff; --bleu-fond: #121c33;
-  --orange: #fb923c; --orange-fond: #2a170b; --violet: #c4b5fd; --violet-fond: #1d1733;
-  --code: #1d2433; --ombre: 0 0 0 0 transparent;
+  color-scheme: light;
 }
 * { box-sizing: border-box; }
 html { scroll-behavior: smooth; scroll-padding-top: 16px; }
@@ -79,8 +64,6 @@ ul.liste li { margin: 3px 0; font-size: .92rem; }
    Un bloc marqué reçoit un liseré à gauche et un pictogramme ; la carte d'un outil (.fiche) reçoit le pictogramme seul. Les h2, h3 et summary portent aussi le mot.
    Un bloc à deux marques a deux liserés, séparés par un vide de 2 px à la couleur de son fond. */
 :root { --pour-designer: #7c3aed; --pour-developpeur: #0d9488; --pour-toolkit: #6b7280; }
-@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { --pour-designer: #a78bfa; --pour-developpeur: #2dd4bf; --pour-toolkit: #9aa3b2; } }
-:root[data-theme="dark"] { --pour-designer: #a78bfa; --pour-developpeur: #2dd4bf; --pour-toolkit: #9aa3b2; }
 .pour-designer { --c: var(--pour-designer); --signe: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='none' stroke='%23000' stroke-width='1.7' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M10.5 2.5l3 3-8 8h-3v-3z'/%3E%3Cpath d='M9 4l3 3'/%3E%3C/svg%3E"); }
 .pour-developpeur { --c: var(--pour-developpeur); --signe: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='none' stroke='%23000' stroke-width='1.7' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M5.5 4L1.5 8l4 4M10.5 4l4 4-4 4'/%3E%3C/svg%3E"); }
 .pour-toolkit { --c: var(--pour-toolkit); --signe: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='none' stroke='%23000' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M8 1.5l6 3.25v6.5L8 14.5l-6-3.25v-6.5z'/%3E%3Cpath d='M2 4.75L8 8l6-3.25M8 8v6.5'/%3E%3C/svg%3E"); }
@@ -143,8 +126,7 @@ td .chemin { white-space: nowrap; }
 .rampe div:not(.mode) { height: 30px; border-radius: 5px; display: grid; place-items: center; font-family: ui-monospace, Consolas, monospace; font-size: .72rem; font-weight: 600; }
 /* Cartes d'outils : logo, nom et canal, rôle, ce que l'outil lit et écrit, limites, puis le détail replié.
    Deux colonnes ; l'Exporter, qui relie le designer au développeur, prend la largeur entre les plugins et les paquets npm. */
-.produits { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; align-items: start; margin: 10px 0; }
-.produits > .large { grid-column: 1 / -1; }
+.produits { display: grid; gap: 12px; margin: 10px 0; }
 .fiche { background: var(--surface); border: 1px solid var(--trait); border-radius: 12px; padding: 16px 18px 12px; box-shadow: var(--ombre); min-width: 0; }
 .fiche .tete { display: flex; gap: 12px; align-items: center; margin-bottom: 10px; }
 .fiche .logo { position: relative; flex: none; width: 44px; height: 44px; }
@@ -235,7 +217,7 @@ details.piste .meta .imp { font-weight: 600; color: var(--texte); }
 details.piste.decide-non > summary .titre { opacity: .55; }
 .decider { display: grid; gap: 6px; padding: 10px 12px; margin: 4px 0 6px; border: 1px solid var(--trait); border-radius: 8px; background: var(--surface-2); }
 .decider .options { display: flex; flex-wrap: wrap; gap: 6px; }
-.decider label.option { display: inline-flex; align-items: center; gap: 6px; border: 1px solid var(--trait); border-radius: 6px; padding: 3px 10px; background: var(--surface); font-size: .86rem; cursor: pointer; }
+.decider label.option { display: inline-flex; align-items: center; gap: 6px; box-sizing: border-box; min-height: 28px; border: 1px solid var(--trait); border-radius: 6px; padding: 0 10px; background: var(--surface); font-size: .86rem; cursor: pointer; }
 .decider label.option:has(input:checked) { border-color: var(--texte); font-weight: 600; }
 .decider textarea { font: inherit; font-size: .88rem; min-height: 54px; resize: vertical; background: var(--surface); color: var(--texte); border: 1px solid var(--trait); border-radius: 6px; padding: 6px 8px; }
 .rang-titre { font-size: .78rem; text-transform: uppercase; letter-spacing: .06em; color: var(--doux); font-weight: 600; margin: 18px 0 6px; }
@@ -311,7 +293,6 @@ details.piste ul.criteres li::before { content: "☐ "; color: var(--doux); }
   .legende-schema > div { grid-template-columns: 34px minmax(0, 1fr); }
   main { padding: 20px 16px 80px; }
   .deux { grid-template-columns: 1fr; }
-  .produits { grid-template-columns: minmax(0, 1fr); }
   .fiche { padding: 14px 14px 10px; }
   dl.def, dl.def.questions, dl.def.glossaire { grid-template-columns: 1fr; }
   dl.def dt { border-bottom: 0; }
@@ -423,15 +404,13 @@ details.piste > summary .titre small.sinon b { font-size: .72rem; text-transform
 details.piste > summary .coherence { display: block; margin-top: 4px; }
 /* Vue d'ensemble des pistes et décisions transverses. */
 table.ensemble td { vertical-align: top; font-size: .84rem; }
-table.ensemble td.sinon { min-width: 200px; }
-.choix-ligne { display: grid; gap: 4px; }
-.choix-ligne label.option { display: flex; align-items: center; gap: 6px; border: 1px solid var(--trait); border-radius: 6px; padding: 2px 8px; background: var(--surface); font-size: .8rem; cursor: pointer; width: fit-content; max-width: 100%; }
+table.ensemble td.sinon { min-width: 160px; }
+/* La colonne des décisions porte les trois choix sur une ligne (3 cibles de 28 px, 6 px entre elles) et la note dessous. */
+.choix-ligne { display: grid; gap: 6px; min-width: 300px; }
+.choix-ligne .options { display: flex; flex-wrap: wrap; gap: 6px; }
+.choix-ligne label.option { display: inline-flex; align-items: center; gap: 6px; box-sizing: border-box; min-height: 28px; padding: 0 10px; border: 1px solid var(--trait); border-radius: 6px; background: var(--surface); font-size: .8rem; cursor: pointer; white-space: nowrap; }
 .choix-ligne label.option:has(input:checked) { border-color: var(--texte); font-weight: 600; }
-.choix-ligne details > summary { cursor: pointer; font-size: .78rem; color: var(--doux); list-style: none; }
-.choix-ligne details > summary::-webkit-details-marker { display: none; }
-.choix-ligne details > summary::before { content: "›"; display: inline-block; width: 10px; }
-.choix-ligne details[open] > summary::before { transform: rotate(90deg); }
-.choix-ligne textarea { font: inherit; font-size: .82rem; width: 100%; min-width: 180px; min-height: 48px; resize: vertical; background: var(--surface); color: var(--texte); border: 1px solid var(--trait); border-radius: 6px; padding: 4px 6px; margin-top: 4px; }
+.choix-ligne textarea.note { display: block; box-sizing: border-box; width: 100%; min-height: 28px; resize: none; overflow: hidden; field-sizing: content; font: inherit; font-size: .82rem; line-height: 1.35; background: var(--surface); color: var(--texte); border: 1px solid var(--trait); border-radius: 6px; padding: 4px 8px; }
 /* A1. Le panneau des variables : menu des collections et table. */
 .fx { display: grid; grid-template-columns: 148px minmax(0, 1fr); }
 .fx-menu { display: flex; flex-direction: column; gap: 2px; padding: 8px; border-right: 1px solid var(--trait); background: var(--surface-2); }
@@ -470,6 +449,7 @@ table.ensemble td.sinon { min-width: 200px; }
 .signes-grille { display: grid; grid-template-columns: repeat(8, minmax(0, 1fr)); gap: 6px; }
 .signes-grille figure { margin: 0; text-align: center; padding: 6px 2px; border: 1px solid var(--trait); border-radius: 6px; background: var(--surface); }
 .signes-grille svg { display: block; margin: 0 auto 3px; color: var(--texte); }
+.signes-grille figure > svg { fill: none; stroke: currentColor; stroke-width: 1.4; stroke-linecap: round; stroke-linejoin: round; }
 .signes-grille figcaption { font-size: .68rem; line-height: 1.25; color: var(--doux); overflow-wrap: anywhere; }
 .signes-grille figcaption code { font-size: .64rem; padding: 0 2px; }
 .forme-alerte { --texte-sur-ton: var(--surface); }
@@ -479,6 +459,17 @@ table.ensemble td.sinon { min-width: 200px; }
 .marques-grille svg { display: block; width: 100%; height: auto; max-width: 160px; margin: 0 auto 4px; }
 .marques-grille.cartes svg { max-width: 100%; border-radius: 8px; border: 1px solid var(--trait); }
 .pli .pli { margin: 8px 0; }
+/* Le rendu des signaux du langage visuel : les couleurs de la page, pas celles des plugins. */
+.sg-figma { font-style: italic; color: var(--bleu); }
+.sg-groupe { color: var(--violet); font-weight: 600; } .sg-variable { color: var(--olive); font-weight: 600; }
+.sg-avant { border-radius: 3px; padding: 0 3px; } .sg-groupe.sg-avant { background: var(--violet-fond); } .sg-variable.sg-avant { background: var(--olive-fond); }
+.sg-puce, .sg-champ, .sg-decision, .sg-bouton, .sg-carte, .sg-fait { display: inline-block; border: 1px solid var(--trait); border-radius: 5px; padding: 0 8px; font-size: .8rem; }
+.sg-puce, .sg-champ { font-family: ui-monospace, Consolas, monospace; background: var(--surface-2); }
+.sg-arrive { color: var(--olive); font-weight: 600; background: var(--olive-fond); padding: 0 4px; border-radius: 3px; }
+.sg-part { color: var(--rose); font-weight: 600; background: var(--rose-fond); padding: 0 4px; border-radius: 3px; text-decoration: line-through; }
+.sg-carte { box-shadow: 0 0 0 2px var(--bleu); } .sg-fait { color: var(--olive); background: var(--olive-fond); border-color: transparent; font-weight: 600; }
+.sg-decision { color: var(--olive); font-weight: 600; } .sg-bouton { background: var(--texte); color: var(--surface); border-color: var(--texte); font-weight: 600; }
+.sg-bouton.second { background: var(--surface); color: var(--texte); border-color: var(--trait); } .sg-bouton.danger { background: var(--rose); border-color: var(--rose); color: var(--surface); }
 @media (max-width: 860px) {
   .rapports { grid-template-columns: 1fr; }
   .cycle { grid-template-columns: 1fr; }
@@ -489,5 +480,14 @@ table.ensemble td.sinon { min-width: 200px; }
   .fx-menu button { white-space: nowrap; flex: none; }
   .signes-grille { grid-template-columns: repeat(4, minmax(0, 1fr)); }
   .marques-grille { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-  table.ensemble { min-width: 640px; }
+  /* Sous 860 px, une ligne de piste ou de décision devient une pile : le titre, les choix et la note, puis le reste avec son libellé. */
+  table.empile { min-width: 0; }
+  table.empile, table.empile tbody, table.empile tr, table.empile td { display: block; }
+  table.empile tr:has(> th), table.empile thead { display: none; }
+  table.empile tr { display: flex; flex-direction: column; padding: 8px 10px; border-bottom: 1px solid var(--trait); }
+  table.empile td { order: 2; padding: 2px 0; border: 0; }
+  table.empile td:first-child { order: 0; }
+  table.empile td.choix-ligne { order: 1; min-width: 0; padding: 6px 0; }
+  table.empile td[data-l]::before { content: attr(data-l) " : "; color: var(--doux); font-size: .76rem; }
+  table.empile tr.rang-ligne { padding: 6px 10px; }
 }

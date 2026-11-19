@@ -32,7 +32,6 @@
   </div>
   <div class="outils-nav">
     <button class="bouton" id="tout-deplier">Tout déplier</button>
-    <button class="bouton" id="theme">Clair ou sombre</button>
   </div>
 </nav>
 
@@ -114,7 +113,6 @@
   <p class="defini">Défini dans <code>CONCEPT.md</code>.</p>
   <dl class="def questions">
     <dt data-pour="developpeur">Pourquoi un contrat JSON plutôt que l'API Figma ou Code Connect ?</dt><dd>Le CI lit le contrat sans accès à Figma, et le contrat est versionné à côté du code. Code Connect relie un composant Figma à son code sans décrire les obligations visuelles. Les deux se complètent.</dd>
-    <dt data-pour="designer developpeur">Qui a raison quand Figma et le code divergent ?</dt><dd>Figma pour le visuel, le code pour le comportement, les événements et l'accessibilité.</dd>
     <dt data-pour="developpeur">Le code lit-il le contrat à l'exécution ?</dt><dd>Non. Le développeur écrit le composant contre le contrat. Le build en dérive des types et des variables CSS.</dd>
   </dl>
 </section>
@@ -481,7 +479,7 @@
     </details>
   </div>
 
-  <div class="fiche large" data-pour="designer developpeur">
+  <div class="fiche" data-pour="designer developpeur">
     <div class="tete">{{logo:exporter}}<div class="nom"><b>UCM Contract Exporter</b><span class="etat livre">livré</span><span class="etat partiel">version Community ancienne</span><span class="canal">Plugin Figma, Figma Community</span></div></div>
     <p class="role">Publie contrats et tokens.</p>
     <dl class="faits">
@@ -604,14 +602,15 @@
     <tr><td>Valeur écrite en dur dans le code</td><td class="doux">sans objet</td><td><span class="verdict v-non">non contrôlé</span></td><td><span class="verdict v-bloque">bloque</span><span class="txt">par le linter</span></td><td><a href="#piste-P6">P6</a></td></tr>
     <tr><td>Fusion d'une demande rouge</td><td class="doux">sans objet</td><td>possible, sans protection de branche</td><td>impossible</td><td><a href="#piste-P17">P17</a></td></tr>
   </table></div>
-  <p class="doux">{{regle:libre-dans-le-code}} {{regle:validation-visuelle-sans-blocage}}</p>
+  <p class="doux">{{regle:validation-visuelle-sans-blocage}}</p>
   <details class="pli"><summary>Ce que <code>ucm check</code> bloque déjà <span class="doux">et ce que la décision change</span></summary><div class="contenu">
     <p><code>ucm check</code> bloque aussi un contrat incomplet ou hors de la fenêtre {{contrats:fenetre}}, et un fichier de tokens absent ou illisible. Il rend le contraste des couleurs du contrat en information seulement. <code>bilanEstBloquant</code> (<code>lecteurs/verdict-bilan.mjs</code>) ne compte ni les tokens absents ni la parité (<a href="#piste-P19">P19</a>). Le guide du designer (<code>POUR-LES-DESIGNERS.md</code> §6) décrit le comportement actuel. <a href="#piste-P2">P2</a> le réécrira selon la décision.</p>
   </div></details>
-  <h4>Les règles décidées qui ne sont pas dans le tableau</h4>
-  <ul class="liste">
-    {{lignes-regles}}
-  </ul>
+  <details class="pli"><summary>Les règles décidées qui ne sont pas dans le tableau</summary><div class="contenu">
+    <ul class="liste">
+      {{lignes-regles}}
+    </ul>
+  </div></details>
 </section>
 
 <!-- 7. La suite -->
@@ -628,25 +627,25 @@
   <h3 id="feuille">La feuille de route</h3>
   <p class="defini">Défini dans <code>docs/notes/Recherches/Evolutions globales/PISTES-EVOLUTION.md</code>.</p>
   <div class="ecart-decisions" id="ecart-decisions" role="status" hidden><span id="ecart-compte"></span><button class="bouton" id="enregistrer-decisions">Enregistrer dans le dépôt</button><button class="bouton" id="revenir-au-depot">Revenir à la version du dépôt</button><span id="ecart-message" class="doux"></span></div>
-  <p class="intro">21 pistes, rangées par rang d'implémentation. R et C sont les promesses de la partie 2. La complexité se compte en travail d'agent : <code>S</code> moins d'une demi-journée, <code>M</code> un lot, <code>L</code> plusieurs lots, <code>XL</code> un projet.</p>
-  <div class="bilan-decisions"><span id="bilan-decisions"></span><button class="bouton" id="deplier-pistes">Déplier les 21 pistes</button><button class="bouton" id="copier-decisions">Copier les décisions</button><button class="bouton" id="effacer-decisions">Effacer les décisions</button></div>
+  <p class="intro">22 pistes, rangées par rang d'implémentation. R et C sont les promesses de la partie 2. La complexité se compte en travail d'agent : <code>S</code> moins d'une demi-journée, <code>M</code> un lot, <code>L</code> plusieurs lots, <code>XL</code> un projet.</p>
+  <div class="bilan-decisions"><span id="bilan-decisions"></span><button class="bouton" id="deplier-pistes">Déplier les 22 pistes</button><button class="bouton" id="copier-decisions">Copier les décisions</button><button class="bouton" id="effacer-decisions">Effacer les décisions</button></div>
   <p class="doux">Les décisions et les notes restent dans ce navigateur tant qu'elles ne sont pas enregistrées dans le dépôt. « Copier les décisions » les met en texte, à coller dans une conversation ou un document.</p>
   <textarea id="export-decisions" class="export" hidden readonly aria-label="Décisions en texte"></textarea>
   <!-- V6. Graphe des dépendances : calculé au rendu depuis PISTES (profondeur, chemin critique). Source : PISTES et TITRES_COURTS dans le script de la page. -->
-  <details class="pli" id="graphe"><summary>Le graphe des dépendances <span class="doux">21 pistes, chemin critique en rose</span></summary><div class="contenu graphe">
+  <details class="pli" id="graphe"><summary>Le graphe des dépendances <span class="doux">22 pistes, chemin critique en rose</span></summary><div class="contenu graphe">
     <div id="graphe-pistes" class="seul-ecran"></div>
     <ul id="graphe-liste" class="graphe-liste seul-mobile"></ul>
     <p class="legende-graphe" id="legende-chemin"></p>
   </div></details>
   <!-- A. Vue d'ensemble : une ligne par piste. Source : PISTES (raisonImportance, complexite, coutHumain, dependances). -->
-  <div class="defile" id="vue-ensemble"><table class="ensemble"><thead><tr><th>Piste</th><th>Si on ne fait pas</th><th>Coût (agent, mainteneur)</th><th>Attend</th><th>Débloque</th><th>Décision</th></tr></thead><tbody id="corps-ensemble"></tbody></table></div>
-  <details class="pli" id="fiches"><summary>Les 21 fiches <span class="doux">pourquoi, fichiers touchés, critères de fin, questions, risques</span></summary><div class="contenu"><div id="pistes"></div></div></details>
+  <div class="defile" id="vue-ensemble"><table class="ensemble empile"><thead><tr><th>Piste</th><th>Si on ne fait pas</th><th>Coût (agent, mainteneur)</th><th>Attend</th><th>Débloque</th><th>Décision</th></tr></thead><tbody id="corps-ensemble"></tbody></table></div>
+  <details class="pli" id="fiches"><summary>Les 22 fiches <span class="doux">pourquoi, fichiers touchés, critères de fin, questions, risques</span></summary><div class="contenu"><div id="pistes"></div></div></details>
   <div class="encadre neutre" data-pour="toolkit">Chaque module lit le contrat et le référentiel et n'en recopie aucune liste. Un module qui recopie une règle crée une seconde source de vérité, ce que <code>referentielUnique.test.ts</code> refuse déjà dans le dépôt.</div>
 
   <h3>Les décisions transverses</h3>
   <p class="defini">Défini dans <code>docs/notes/Recherches/Linter Dev/PLAN-CONFORMITE-RENDU.md</code>.</p>
   <p class="intro">Les questions propres à une piste sont dans sa fiche. Celles-ci touchent plusieurs pistes.</p>
-  <div class="defile"><table>
+  <div class="defile"><table class="empile">
     <tr><th>Décision</th><th>Fait</th><th>Pistes</th><th>Choix</th></tr>
     {{lignes-transverses}}
   </table></div>
@@ -731,32 +730,19 @@
   <h2><span class="num">9</span>Annexes</h2>
   <p class="defini">Défini dans <code>docs/marque/</code>, <code>docs/references/</code>, <code>.agents/</code>, <code>.claude/agents/</code> et <code>.github/workflows/</code>.</p>
 
-  <details class="pli"><summary>Le reste du dépôt <span class="doux">ce que le dépôt contient en dehors des {{paquets:mot}} paquets</span></summary><div class="contenu">
-    <h4>Les icônes</h4>
-    <div class="defile"><table>
-      <tr><th>Sorte</th><th>Ce que le toolkit fait</th><th>Où</th></tr>
-      <tr data-pour="toolkit"><td><b>Jeu d'icônes UCM</b></td><td>{{signes:nombre}} icônes en {{signes:familles}} familles pour l'interface des trois plugins et du Hub : types de variables, usages, objets Figma, rubriques, verdicts, pictogrammes de Palettes, interface. Le kit porte le tracé, le libellé et l'emploi de chaque signe. Le socle les dessine en 14, 16 ou 24 px. Un tracé appartient à un seul signe. Aucune n'est fournie à une application.</td><td><code>kit/src/referentiel/signes.ts</code>, <code>plugin-socle/src/ui/Signe.ts</code></td></tr>
-      <tr data-pour="toolkit"><td><b>Formes d'alerte</b></td><td>{{alertes:nombre}} formes, une par type d'alerte (bloquant, corriger, vérifier, info, tenu), toujours avec couleur, forme et mot.</td><td><code>plugin-socle/src/ui/Alerte.ts</code></td></tr>
-      <tr data-pour="toolkit"><td><b>Planches</b></td><td>Une planche montre tous les signes, une autre les signaux du langage visuel.</td><td><code>plugin-socle/galerie/planche/</code></td></tr>
-      <tr data-pour="designer developpeur"><td><b>Icônes des composants</b></td><td>Le designer les place comme instances du composant <code>Icon</code> de son fichier, et Architect le vérifie (C66). Le contrat liste celles qu'un composant emploie (<code>icons</code>). <code>ucm icons</code> en donne la liste au développeur, qui fournit lui-même les fichiers d'icônes.</td><td><code>format/types.ts</code>, <code>cli/src/</code></td></tr>
-    </table></div>
-    <p class="doux">Les {{signes:nombre}} icônes de l'interface des plugins viennent du kit.</p>
-    <h4>Les autres éléments</h4>
+  {{annexes}}
+  <details class="pli"><summary>Autres éléments</summary><div class="contenu">
     <div class="defile"><table>
       <tr><th>Élément</th><th>Contenu</th><th>Sert à</th><th>Où</th></tr>
-      <tr data-pour="toolkit"><td><b>Marque</b></td><td>{{marque:logos}} logos et {{marque:cartes}} cartes SVG : toolkit, Exporter, Palettes, Architect. Un script les génère.</td><td>Présenter les outils, sur la Community et dans les README</td><td><code>docs/marque/</code></td></tr>
-      <tr data-pour="toolkit"><td><b>Références des design systems</b></td><td>{{systemes:nombre}} systèmes (Material 3, Carbon, Fluent 2, Spectrum, Atlassian, Polaris, Radix, shadcn…), leurs noms et valeurs figés, des fiches par composant, un guide rendu (segmented-control).</td><td>Fixer la nomenclature UCM, écrire le guide d'un composant avant de le dessiner</td><td><code>docs/references/</code>, skill <code>guide-composant</code></td></tr>
       <tr data-pour="designer"><td><b>Kit de règles Figma</b></td><td>Les trois maîtres <code>.componentRules</code>, <code>.rulesSection</code>, <code>.ruleItem</code>, publiés en fichier Community.</td><td>Poser les règles d'usage que l'Exporter publie</td><td><code>docs/guides/KIT-DE-REGLES.md</code></td></tr>
-      <tr data-pour="toolkit"><td><b>Vues générées</b></td><td>La planche du moteur (Tailwind 3.4 face aux intensités Soft et Vivid), la vue illustrée de l'architecture multi-marques, le Hub, la galerie des états de chaque plugin. <code>npm run vues</code> les régénère, et un test refuse une vue périmée.</td><td>Voir les sorties du moteur et chaque écran des plugins hors de Figma</td><td><code>packages/couleur/planche/</code>, <code>Archi Tokens Multi-marques/</code>, <code>packages/*/galerie/</code></td></tr>
+      <tr data-pour="toolkit"><td><b>Vues générées</b></td><td>La planche du moteur (Tailwind 3.4 face aux intensités Soft et Vivid), la vue illustrée de l'architecture multi-marques, le Hub, la galerie des états de chaque plugin. <code>npm run vues</code> les régénère, et un test refuse une vue périmée.</td><td>Voir les sorties du moteur et chaque écran des plugins hors de Figma</td><td><code>packages/couleur/planche/PLANCHE-DU-MOTEUR.html</code>, <code>Archi Tokens Multi-marques/</code>, <code>packages/*/galerie/</code></td></tr>
       <tr data-pour="developpeur"><td><b>Aides pour l'application</b></td><td>{{aides}} fiches d'implémentation (états, focus clavier, icône, modes, ombre, typographie…), la skill <code>ucm-implementer</code> et les gabarits que <code>ucm init</code> installe.</td><td>Guider un développeur ou son agent qui écrit un composant contre son contrat</td><td><code>packages/cli/aides/</code></td></tr>
       <tr data-pour="toolkit"><td><b>Reconstruction à froid</b></td><td>La skill <code>consommer-contrat</code> reconstruit un composant depuis son seul contrat.</td><td>Prouver pendant la recette que le contrat suffit</td><td><code>.agents/skills/consommer-contrat/</code></td></tr>
       <tr data-pour="designer"><td><b>Guides</b></td><td>Pour les designers (préparer, exporter, lire les messages, ce qui bloque) et pour le kit de règles.</td><td>Utiliser les outils sans lire le code</td><td><code>docs/guides/</code></td></tr>
-      <tr data-pour="toolkit"><td><b>Outillage des agents du dépôt</b></td><td>Guides <code>AGENTS.md</code> et cartes par paquet, un domicile par fichier source, <code>agents:lire</code> et <code>agents:diff</code>, {{skills:nombre}} skills, {{agents:nombre}} définitions d'agents, un contrôle de style rejoué à chaque écriture. L'agent d'une application reçoit autre chose : la skill <code>ucm-implementer</code>, les gabarits, les aides et le guide d'un contrat.</td><td>Faire travailler des agents de code sans perdre les règles du dépôt</td><td><code>AGENTS.md</code>, <code>.agents/</code>, <code>.claude/agents/</code>, <code>scripts/controle-style.mjs</code></td></tr>
       <tr data-pour="toolkit"><td><b>CI du dépôt et publication</b></td><td>Un job de tests et de build, un job qui rend la feuille des tokens dans Chromium, Firefox et WebKit, une publication npm sans jeton (OIDC), un contrôle des versions épinglées.</td><td>Garder le dépôt vert et publier les trois paquets npm</td><td><code>.github/workflows/</code>, <code>scripts/pins-servis.mjs</code>, skill <code>publier-paquets</code></td></tr>
       <tr data-pour="toolkit"><td><b>Bancs de charge</b></td><td>Des milliers de cas générés pour les noms, la structure et l'analyse, et le rejeu de fichiers réels.</td><td>Mesurer les faux positifs et les manques des contrôles avant une modification</td><td><code>packages/kit/tests/stress/</code>, <code>npm run stress:rejeu</code></td></tr>
       <tr data-pour="toolkit"><td><b><a class="terme" href="#g-recette-externe" title="Le rejeu, hors du dépôt, de Figma, d'une forge et d'une vraie demande de fusion, dans UCM-Playground pour GitHub et dans un projet GitLab de recette.">Recette externe</a></b></td><td>UCM-Playground, l'application de recette sur GitHub, et un projet GitLab de recette rejouent Figma, la forge et une vraie demande de fusion.</td><td>Prouver ce que les tests du dépôt ne peuvent pas ouvrir</td><td><code>docs/guides/RECETTE.md</code></td></tr>
     </table></div>
-    {{annexes}}
   </div></details>
 
   <details class="pli" id="codes-constats" data-pour="designer"><summary>Les {{codes:nombre}} codes d'Architect et de l'Exporter, de {{codes:plage}} <span class="doux">rangés par section du panneau d'Architect</span></summary><div class="contenu">

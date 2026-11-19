@@ -623,6 +623,110 @@
       ]
     },
     {
+      "id": "P22",
+      "titre": "Pièces internes décrites en entier dans le contrat de l'hôte",
+      "titreCourt": "Pièces internes complètes",
+      "resume": "Une pièce interne, dont le nom commence par `.` ou `_`, n'a ni contrat ni collection. Le contrat de son composant hôte doit la décrire comme un composant : toutes ses variantes, toutes ses propriétés, et ce que chaque variante dessine.",
+      "importance": "critique",
+      "raisonImportance": "Aujourd'hui l'Exporter parcourt la pièce interne comme une partie de l'hôte : le contrat montre seulement l'état où chaque variant de l'hôte la pose. Ses autres variantes et ses propriétés manquent, si bien qu'un développeur ou un agent invente l'API de la pièce, que le code doit pourtant écrire comme un sous-composant (`.Ring`, `.sizeWrapperButton`).",
+      "rang": 1,
+      "dependances": [],
+      "complexite": "l",
+      "raisonComplexite": "Le format du contrat change (nouvelle version majeure), avec le moteur d'extraction du socle, les types et le schéma du kit, les lecteurs, la validation et la parité. Une pièce partagée par plusieurs hôtes se décrit dans chacun d'eux.",
+      "coutHumain": "Décider la forme du bloc des pièces internes et le sort d'une pièce partagée par plusieurs hôtes ; réexporter les composants qui en ont.",
+      "porteur": "mainteneur",
+      "promesse": "C",
+      "etat": "proposé",
+      "points": [
+        {
+          "chemin": "docs/format/FORMAT.md",
+          "action": "modifier",
+          "quoi": "Section « Composition et dépendances » : une pièce interne n'est plus seulement parcourue, le contrat de l'hôte la décrit avec ses variantes, ses propriétés et leurs vues."
+        },
+        {
+          "chemin": "docs/format/CHANGELOG-FORMAT.md",
+          "action": "modifier",
+          "quoi": "Nouvelle version du contrat et sa classe de changement."
+        },
+        {
+          "chemin": "docs/format/COMPATIBILITE.md",
+          "action": "vérifier",
+          "quoi": "Classe du changement et ordre de sortie du kit, de la CLI et de l'Exporter."
+        },
+        {
+          "chemin": "CONCEPT.md",
+          "action": "modifier",
+          "quoi": "§2, phrase « chaque composant qui l'embarque publie ce qu'elle dessine » : dire qu'il publie aussi toutes ses variantes et propriétés."
+        },
+        {
+          "chemin": "packages/kit/src/format/types.ts",
+          "action": "modifier",
+          "quoi": "Type du bloc des pièces internes du contrat, sur le modèle des props, variants et vues d'un composant."
+        },
+        {
+          "chemin": "packages/kit/schema/ucm-contract.schema.json",
+          "action": "modifier",
+          "quoi": "Schéma régénéré par `npm run schema`."
+        },
+        {
+          "chemin": "packages/kit/src/format/version.ts",
+          "action": "modifier",
+          "quoi": "`CONTRACT_VERSION` monte."
+        },
+        {
+          "chemin": "packages/kit/src/referentiel/composition.ts",
+          "action": "vérifier",
+          "quoi": "`sorteDeLImbrique` : la pièce interne reste reconnue par son préfixe, après la dépendance et le wrapper de dimensions."
+        },
+        {
+          "chemin": "packages/plugin-socle/src/composant/contract/imbriques.ts",
+          "action": "modifier",
+          "quoi": "Relever le jeu de variants complet d'une pièce interne rencontrée, pas seulement l'instance posée."
+        },
+        {
+          "chemin": "packages/plugin-socle/src/composant/",
+          "action": "modifier",
+          "quoi": "Projection des variantes et propriétés de la pièce dans le contrat de l'hôte, et renvoi depuis chaque instance posée."
+        },
+        {
+          "chemin": "packages/kit/src/lecteurs/validation-contrat.mjs",
+          "action": "modifier",
+          "quoi": "Valider le bloc des pièces internes et les renvois des instances."
+        },
+        {
+          "chemin": "packages/adapter-typescript/src/parite.mjs",
+          "action": "vérifier",
+          "quoi": "Parité des props d'une pièce interne, si son code expose une interface."
+        },
+        {
+          "chemin": "packages/plugin-exporter/SPEC.md",
+          "action": "modifier",
+          "quoi": "Ce que l'Exporter lit d'une pièce interne et ce qu'il publie."
+        },
+        {
+          "chemin": "packages/kit/fixtures/contrats/",
+          "action": "créer",
+          "quoi": "Un contrat de fixture avec une pièce interne à plusieurs variantes, dont une que l'hôte n'emploie pas."
+        }
+      ],
+      "criteresDeFin": [
+        "Le contrat d'un hôte qui embarque une pièce interne à 3 variantes contient les 3 variantes et toutes les propriétés de la pièce, même si l'hôte n'en pose qu'une.",
+        "Chaque instance posée de la pièce renvoie à la variante qu'elle montre, sans recopier sa description.",
+        "`npm run schema` régénère le schéma, et `npm test` passe avec la nouvelle version du contrat.",
+        "Un réexport réel d'un composant avec une pièce interne (par exemple un Button avec `.Ring`) passe `ucm check`."
+      ],
+      "questions": [
+        "Le bloc des pièces internes se range-t-il à la racine du contrat de l'hôte, ou à côté de `composes` ?",
+        "Une pièce partagée par plusieurs hôtes (`.Ring`) se décrit-elle dans chaque hôte, ou une fois dans un fichier commun ?",
+        "Une pièce interne imbriquée dans une autre pièce interne se décrit-elle à plat dans l'hôte ?",
+        "Ses tokens restent-ils ceux de l'hôte, ou la pièce peut-elle lier `theme` et `layout` comme le permet aujourd'hui son maître ?"
+      ],
+      "risques": [
+        "Une pièce à beaucoup de variantes alourdit chaque contrat qui l'embarque : la décrire une fois par hôte, pas une fois par instance.",
+        "Un changement de version du contrat demande un réexport de tous les composants et une sortie coordonnée du kit, de la CLI et de l'Exporter."
+      ]
+    },
+    {
       "id": "P21",
       "titre": "Architecture de référence complète dans le kit",
       "titreCourt": "Architecture complète",

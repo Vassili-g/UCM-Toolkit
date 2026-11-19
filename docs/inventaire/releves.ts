@@ -70,6 +70,7 @@ const {
   LONGUEUR_MINIMALE_D_UNE_FAUTE_A_DEUX_LETTRES,
   LONGUEUR_MINIMALE_D_UNE_FAUTE_A_UNE_LETTRE,
   LONGUEUR_MINIMALE_D_UNE_FAUTE_D_UN_MOT_COURT,
+  SIGNAUX_DU_LANGAGE,
   SIGNES,
   TYPES_D_ALERTE,
   svgDuSigne,
@@ -401,6 +402,23 @@ export function signesEtAlertes() {
   return { familles, alertes };
 }
 
+/** Les signaux du langage visuel des plugins : identifiant, famille, libellé et sens, tels que le kit les définit. */
+export function signauxDuLangage() {
+  return SIGNAUX_DU_LANGAGE.map((signal) => ({ id: signal.id, famille: signal.famille, libelle: signal.libelle, sens: signal.sens }));
+}
+
+/** Les icônes que le contrat de recette Button 13.0 liste dans `icons` : le seul exemple réel d'un contrat qui en emploie. */
+export function iconesDuContratDeRecette() {
+  const chemin = 'packages/kit/fixtures/contrats/13.0/Button.contract.json';
+  const contrat = json(chemin) as { icons?: Record<string, { policy: string; figmaName: string; slot: string; visibilityProp?: string }> };
+  if (!contrat.icons || !Object.keys(contrat.icons).length) throw new Error(`${chemin} n'a plus de bloc icons`);
+  return {
+    chemin,
+    version: path.basename(path.dirname(chemin)),
+    icones: Object.entries(contrat.icons).map(([cle, icone]) => ({ cle, politique: icone.policy, nom: icone.figmaName, emplacement: icone.slot, propriete: icone.visibilityProp ?? null })),
+  };
+}
+
 /**
  * Un SVG de `docs/marque/` sans taille fixe, ses identifiants préfixés : une même image posée deux fois dans la page garde des
  * identifiants uniques. Un logo décoratif perd son `<title>`, car le nom du produit s'écrit à côté.
@@ -691,7 +709,7 @@ function cheminDuDepot(chemin: string): boolean {
   return /^[\w.@ -]+(\/[\w.@ -]+)*(\.[a-z]+|\/)$/i.test(chemin);
 }
 
-/** Les 21 pistes de la feuille de route, validées : identifiants uniques, dépendances connues, chemins existants, aucun cycle. */
+/** Les pistes de la feuille de route, validées : identifiants uniques, dépendances connues, chemins existants, aucun cycle. */
 export function pistes(): Piste[] {
   const contenu = json(CHEMIN_DES_PISTES) as { version: number; pistes: Piste[] };
   if (contenu.version !== 1) AVEC_ECHEC(CHEMIN_DES_PISTES, 'champ version', `la version ${contenu.version} n'est pas lue`);

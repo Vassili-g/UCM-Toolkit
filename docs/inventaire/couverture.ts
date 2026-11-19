@@ -32,10 +32,6 @@ export const EXCLUSIONS: Readonly<Record<string, GroupeExclu[]>> = {
       noms: ["AXES_DES_COLLECTIONS", "CIBLES_ABSOLUES_DU_NEUTRE", "CIBLES_DES_COULEURS_DE_COMPOSANT", "COUCHES_SANS_PALETTES", "CRANS", "DEFINITIONS_DES_VARIABLES", "ETAT_DU_FOND", "SEUILS_PAR_ROLE", "SEUILS_PAR_USAGE", "SEUIL_DE_PALETTE", "SEUIL_TEXTE_AAA", "SUPPORT_DES_VARIABLES", "TABLE_DES_DOSSIERS"],
     },
     {
-      motif: "Signaux du langage visuel des plugins : le lecteur de la page ne les emploie pas.",
-      noms: ["SIGNAUX_DU_LANGAGE"],
-    },
-    {
       motif: "Aide de calcul de couleur ou de contraste, appelée par le moteur ; la page montre ses résultats, pas son appel.",
       noms: ["aDixDecimales", "atteintLeSeuil", "contraste", "contrasteTronque", "decoder", "ecrireContraste", "encreLisible", "hexaDeFigma", "luminanceLineaire", "luminanceRelative", "niveauxWcag", "rapportDeLuminances", "rgb8VersLineaire", "versOctet", "versRgb8"],
     },

@@ -34,18 +34,55 @@ function lireDuDossier(nom: string): string {
   return readFileSync(path.join(dossier, nom), 'utf8').replace(/\r\n/g, '\n');
 }
 
-/** Les plis de l'annexe « Le reste du dépôt » : icônes, marque, références, outillage des agents. */
-function annexes(): { html: string; compte: Record<string, string> } {
+/** Comment chaque signal du langage visuel se dessine dans la page, avec les classes `sg-*` de page.css. Un signal sans rendu fait échouer la génération. */
+const RENDU_DES_SIGNAUX: Readonly<Record<string, string>> = {
+  'terme-figma': '<i class="sg-figma">Variant</i>',
+  'terme-ucm': '<b>solid</b>',
+  variant: '<span class="chemin"><span class="v">Size=md</span></span>',
+  groupe: '<span class="chemin">theme/primary/<span class="sg-groupe">solid</span>/default</span>',
+  variable: '<span class="chemin">theme/primary/solid/<span class="sg-variable">default</span></span>',
+  'groupe-mis-en-avant': '<span class="chemin">theme/primary/<span class="sg-groupe sg-avant">solid</span>/default</span>',
+  'variable-mise-en-avant': '<span class="chemin">theme/primary/solid/<span class="sg-variable sg-avant">default</span></span>',
+  'chemin-dans-une-phrase': 'La variable <span class="chemin">theme/info/page</span> vise…',
+  collection: '<span class="sg-puce">theme</span>',
+  couleur: '<span class="cran-reel"><i style="background:var(--bleu)"></i>#1D4ED8</span>',
+  arrive: '<span class="sg-arrive">background</span>',
+  part: '<span class="sg-part">bg</span>',
+  'carte-ciblee': '<span class="sg-carte">Button/bg</span>',
+  fait: '<span class="sg-fait">8 layers liés</span>',
+  alerte: '<span class="ft-corriger"><b>⚠ À corriger</b></span>',
+  decision: '<span class="sg-decision">✓ Renommé</span>',
+  recherche: '<span class="sg-champ">terme:background</span>',
+  'filtre-arbre': '<span class="sg-puce">Interface ×</span>',
+  action: '<span class="sg-bouton">Appliquer</span> <span class="sg-bouton second">Analyser</span> <span class="sg-bouton danger">Supprimer</span>',
+};
+
+/** Les plis de la partie Annexes : un par élément qui a un visuel (icônes, alertes, signaux, marque, références, outillage), avec sa description. */
+function annexes(): string {
   const { familles, alertes } = releves.signesEtAlertes();
   const nombreDeSignes = familles.reduce((somme, famille) => somme + famille.signes.length, 0);
+  const signaux = releves.signauxDuLangage();
+  const sansRendu = signaux.filter((signal) => !(signal.id in RENDU_DES_SIGNAUX)).map((signal) => signal.id);
+  const sansSignal = Object.keys(RENDU_DES_SIGNAUX).filter((id) => !signaux.some((signal) => signal.id === id));
+  if (sansRendu.length || sansSignal.length) {
+    throw new Error(`RENDU_DES_SIGNAUX (generer-inventaire.ts) ne suit plus signaux.ts. Sans rendu : ${sansRendu.join(', ') || 'aucun'}. Sans signal : ${sansSignal.join(', ') || 'aucun'}.`);
+  }
+  const iconesDeComposant = releves.iconesDuContratDeRecette();
   const marque = releves.marque();
   const logos = marque.fichiers.filter((fichier) => fichier.nature === 'logo');
   const cartes = marque.fichiers.filter((fichier) => fichier.nature === 'carte');
   const references = releves.references();
   const outils = releves.outillage();
 
+  // Les attributs de tracé communs aux signes passent dans page.css (`.signes-grille figure > svg`) : écrits dans chaque SVG, ils pèseraient 20 Ko.
+  const COMMUNS = ' xmlns="http://www.w3.org/2000/svg"';
+  const TRACE = ' fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"';
+  const allegerLeSigne = (svg: string): string => {
+    if (!svg.includes(COMMUNS) || !svg.includes(TRACE)) throw new Error('Le SVG d\x27un signe n\x27a plus les attributs communs que page.css reprend (generer-inventaire.ts, allegerLeSigne)');
+    return svg.replace(COMMUNS, '').replace(TRACE, '');
+  };
   const figureDeSigne = (signe: { id: string; libelle: string; svg: string }): string =>
-    `<figure>${signe.svg}<figcaption>${echapper(signe.libelle)}<br><code>${signe.id}</code></figcaption></figure>`;
+    `<figure>${allegerLeSigne(signe.svg)}<figcaption>${echapper(signe.libelle)}<br><code>${signe.id}</code></figcaption></figure>`;
   const famillesHtml = familles
     .map((famille) => {
       const reprises = famille.reprises.length
@@ -53,10 +90,16 @@ function annexes(): { html: string; compte: Record<string, string> } {
         : '';
       return `<div class="signes-famille"><h5>${echapper(famille.libelle)} <code>${famille.id}</code></h5><div class="signes-grille">${famille.signes.map(figureDeSigne).join('')}</div>${reprises}</div>`;
     })
-    .join('\n      ');
-  const alertesHtml = `<div class="signes-famille"><h5>Formes d'alerte <code>Alerte.ts</code></h5><div class="signes-grille">${alertes
+    .join('\n    ');
+  const alertesHtml = `<div class="signes-grille">${alertes
     .map((alerte) => `<figure><span class="forme-alerte ft-${alerte.id}">${alerte.svg}</span><figcaption>${echapper(alerte.libelle)}<br><code>${alerte.id}</code></figcaption></figure>`)
-    .join('')}</div></div>`;
+    .join('')}</div>`;
+  const lignesDesSignaux = signaux
+    .map((signal) => `<tr><td>${RENDU_DES_SIGNAUX[signal.id]}</td><td>${echapper(signal.libelle)}<br><code>${signal.id}</code></td><td>${echapper(signal.sens)}</td></tr>`)
+    .join('');
+  const lignesDesIcones = iconesDeComposant.icones
+    .map((icone) => `<tr><td><code>${icone.nom}</code></td><td><code>${icone.emplacement}</code></td><td>${icone.propriete === null ? '' : `<code>${icone.propriete}</code>`}</td></tr>`)
+    .join('');
   const figureDeMarque = (fichier: { svg: string; titre: string }): string => `<figure>${fichier.svg}<figcaption>${echapper(fichier.titre)}</figcaption></figure>`;
   const lignesDesRoles = Object.entries(references.roles).map(([role, apport]) => `<tr><td><code>${role}</code></td><td>${avecCode(apport)}</td></tr>`).join('');
   const lignesDesSystemes = references.systemes
@@ -65,48 +108,53 @@ function annexes(): { html: string; compte: Record<string, string> } {
   const declencheur = (job: { declencheurs: string[]; branches: string | null }): string =>
     job.declencheurs.map((nom) => (nom === 'push' ? `push sur ${job.branches}` : nom === 'pull_request' ? 'pull request' : nom === 'workflow_dispatch' ? 'lancement à la main' : nom)).join(', ');
 
-  const html = `<!-- Annexes visuelles, lues dans le dépôt par releves.ts. Icônes : signesEtAlertes (kit : signes.ts, svgDuSigne ; socle : Alerte.ts). Marque, références, outillage : marque, references, outillage (docs/marque/, docs/references/, .agents/skills/, .claude/agents/, package.json, .github/workflows/). -->
-    <details class="pli" id="annexe-icones" data-pour="toolkit"><summary>Voir le jeu d'icônes <span class="doux">${nombreDeSignes} icônes en ${familles.length} familles, ${alertes.length} formes d'alerte</span></summary><div class="contenu">
-      <p class="defini">Défini dans <code>packages/kit/src/referentiel/signes.ts</code> et <code>packages/plugin-socle/src/ui/Alerte.ts</code>.</p>
-      ${famillesHtml}
-      ${alertesHtml}
-    </div></details>
-    <details class="pli" id="annexe-marque" data-pour="toolkit"><summary>Voir la marque <span class="doux">${marque.fichiers.length} fichiers de marque</span></summary><div class="contenu">
-      <p class="defini">Défini dans <code>docs/marque/logos/</code> et <code>docs/marque/cartes/</code>. Les fichiers sont générés par <code>${marque.script}</code>.</p>
-      <div class="marques-grille">${logos.map(figureDeMarque).join('')}</div>
-      <div class="marques-grille cartes">${cartes.map(figureDeMarque).join('')}</div>
-    </div></details>
-    <details class="pli" id="annexe-references" data-pour="toolkit"><summary>Voir les références des design systems <span class="doux">${references.systemes.length} systèmes, ${references.analyses.length} guide</span></summary><div class="contenu">
-      <p class="defini">Défini dans <code>docs/references/systemes.json</code>, <code>docs/references/README.md</code>, <code>docs/references/composants/</code> et <code>docs/references/analyses/</code>.</p>
-      <div class="defile"><table><tr><th>Rôle</th><th>Apport</th></tr>${lignesDesRoles}</table></div>
-      <div class="defile"><table><tr><th>Système</th><th>Rôles</th><th>Fiches de composants</th></tr>${lignesDesSystemes}</table></div>
-      <p>Guides de <code>docs/references/analyses/</code> : ${listeDeCodes(references.analyses)}. La skill <code>guide-composant</code> les écrit. ${echapper(references.skillGuide)}</p>
-    </div></details>
-    <details class="pli" id="annexe-outillage" data-pour="toolkit"><summary>Voir l'outillage des agents <span class="doux">${outils.skills.length} skills, ${outils.agents.length} agents, ${outils.scripts.length} scripts, ${outils.jobs.length} jobs</span></summary><div class="contenu">
-      <p class="defini">Défini dans <code>.agents/skills/</code>, <code>.claude/agents/</code>, <code>package.json</code> et <code>.github/workflows/</code>.</p>
-      <h4>Skills</h4>
-      <div class="defile"><table><tr><th>Skill</th><th>Rôle</th></tr>${outils.skills.map((skill) => `<tr><td><code>${skill.nom}</code></td><td>${avecCode(skill.description)}</td></tr>`).join('')}</table></div>
-      <h4>Agents</h4>
-      <div class="defile"><table><tr><th>Agent</th><th>Modèle</th><th>Rôle</th></tr>${outils.agents.map((agent) => `<tr><td><code>${agent.nom}</code></td><td>${agent.modele}</td><td>${avecCode(agent.description)}</td></tr>`).join('')}</table></div>
-      <h4>Scripts npm de la racine</h4>
-      <div class="defile"><table><tr><th>Script</th><th>Ce qu'il fait</th><th>Source de la phrase</th></tr>${outils.scripts.map((script) => `<tr><td><code>npm run ${script.nom}</code></td><td>${avecCode(script.phrase)}</td><td class="doux">${echapper(script.source)}</td></tr>`).join('')}</table></div>
-      <h4>Jobs des workflows</h4>
-      <div class="defile"><table><tr><th>Job</th><th>Déclencheur</th><th>Ce qu'il lance</th></tr>${outils.jobs.map((job) => `<tr><td><code>${job.fichier}</code>, job <code>${job.id}</code></td><td>${echapper(declencheur(job))}</td><td>${job.lances.map((commande) => `<code>${echapper(commande)}</code>`).join(', ')}</td></tr>`).join('')}</table></div>
-    </div></details>`;
-  return {
-    html,
-    compte: {
-      'signes:nombre': String(nombreDeSignes),
-      'signes:familles': String(familles.length),
-      'alertes:nombre': String(alertes.length),
-      'marque:fichiers': String(marque.fichiers.length),
-      'marque:logos': String(logos.length),
-      'marque:cartes': String(cartes.length),
-      'systemes:nombre': String(references.systemes.length),
-      'skills:nombre': String(outils.skills.length),
-      'agents:nombre': String(outils.agents.length),
-    },
-  };
+  return `<!-- Un pli par élément visuel, lu dans le dépôt par releves.ts : signesEtAlertes (kit : signes.ts, svgDuSigne ; socle : Alerte.ts), signauxDuLangage (kit : signaux.ts), iconesDuContratDeRecette (fixture Button 13.0), marque, references, outillage (docs/marque/, docs/references/, .agents/skills/, .claude/agents/, package.json, .github/workflows/). -->
+  <details class="pli" id="annexe-icones" data-pour="toolkit"><summary>Jeu d'icônes UCM <span class="doux">${nombreDeSignes} icônes en ${familles.length} familles</span></summary><div class="contenu">
+    <p>Les trois plugins et le Hub dessinent leur interface avec ce jeu : types de variables, usages, objets Figma, rubriques, verdicts, pictogrammes de Palettes et interface. Le kit porte le tracé, le libellé et l'emploi de chaque signe, et un tracé appartient à un seul signe. Le socle les dessine en 14, 16 ou 24 px. Le dépôt n'en fournit aucun à une application.</p>
+    <p class="defini">Défini dans <code>packages/kit/src/referentiel/signes.ts</code> et dessiné par <code>packages/plugin-socle/src/ui/Signe.ts</code>. La planche <code>packages/plugin-socle/galerie/planche/</code> montre tous les signes.</p>
+    ${famillesHtml}
+  </div></details>
+  <details class="pli" id="annexe-alertes" data-pour="toolkit"><summary>Formes d'alerte <span class="doux">${alertes.length}</span></summary><div class="contenu">
+    <p>Chaque type d'alerte a sa forme, toujours accompagnée de sa couleur et d'un mot.</p>
+    <p class="defini">Défini dans <code>packages/plugin-socle/src/ui/Alerte.ts</code> et <code>packages/kit/src/referentiel/signaux.ts</code>.</p>
+    ${alertesHtml}
+  </div></details>
+  <details class="pli" id="annexe-signaux" data-pour="toolkit"><summary>Signaux du langage visuel <span class="doux">${signaux.length}</span></summary><div class="contenu">
+    <p>Un signal dit ce qu'un texte désigne : un terme, un chemin, un changement, une alerte, une action. Chaque plugin le dessine de la même façon.</p>
+    <p class="defini">Défini dans <code>packages/kit/src/referentiel/signaux.ts</code>. La planche <code>packages/plugin-socle/galerie/planche/</code> les dessine avec les composants du socle.</p>
+    <div class="defile"><table><tr><th>Rendu</th><th>Signal</th><th>Sens</th></tr>${lignesDesSignaux}</table></div>
+  </div></details>
+  <details class="pli" id="annexe-icones-composants" data-pour="designer developpeur"><summary>Icônes des composants <span class="doux">aucune fournie</span></summary><div class="contenu">
+    <p>Le designer place les icônes comme instances du composant <code>Icon</code> de son fichier, et Architect le vérifie (C66). Le contrat liste celles qu'un composant emploie. <code>ucm icons</code> en donne la liste au développeur, qui fournit lui-même les fichiers.</p>
+    <p class="defini">Défini dans <code>packages/kit/src/format/types.ts</code> (champ <code>icons</code>) et <code>packages/cli/src/</code>.</p>
+    <p class="source">${iconesDeComposant.icones.length} icônes du contrat de recette <code>${iconesDeComposant.chemin.replace('packages/kit/fixtures/contrats/', '')}</code>.</p>
+    <div class="defile"><table><tr><th>Nom dans Figma</th><th>Emplacement</th><th>Propriété d'affichage</th></tr>${lignesDesIcones}</table></div>
+  </div></details>
+  <details class="pli" id="annexe-marque" data-pour="toolkit"><summary>Marque <span class="doux">${logos.length} logos et ${cartes.length} cartes</span></summary><div class="contenu">
+    <p>Les logos et les cartes du toolkit, de l'Exporter, de Palettes et d'Architect présentent les outils sur la Community et dans les README.</p>
+    <p class="defini">Défini dans <code>docs/marque/logos/</code> et <code>docs/marque/cartes/</code>. Les fichiers sont générés par <code>${marque.script}</code>.</p>
+    <div class="marques-grille">${logos.map(figureDeMarque).join('')}</div>
+    <div class="marques-grille cartes">${cartes.map(figureDeMarque).join('')}</div>
+  </div></details>
+  <details class="pli" id="annexe-references" data-pour="toolkit"><summary>Références des design systems <span class="doux">${references.systemes.length} systèmes, ${references.analyses.length} guide</span></summary><div class="contenu">
+    <p>Les noms et les valeurs de chaque système sont figés. Ils servent à fixer la nomenclature UCM et à écrire le guide d'un composant avant de le dessiner.</p>
+    <p class="defini">Défini dans <code>docs/references/systemes.json</code>, <code>docs/references/README.md</code>, <code>docs/references/composants/</code> et <code>docs/references/analyses/</code>.</p>
+    <div class="defile"><table><tr><th>Rôle</th><th>Apport</th></tr>${lignesDesRoles}</table></div>
+    <div class="defile"><table><tr><th>Système</th><th>Rôles</th><th>Fiches de composants</th></tr>${lignesDesSystemes}</table></div>
+    <p>Guides de <code>docs/references/analyses/</code> : ${listeDeCodes(references.analyses)}. La skill <code>guide-composant</code> les écrit. ${echapper(references.skillGuide)}</p>
+  </div></details>
+  <details class="pli" id="annexe-outillage" data-pour="toolkit"><summary>Outillage des agents du dépôt <span class="doux">${outils.skills.length} skills, ${outils.agents.length} agents, ${outils.scripts.length} scripts</span></summary><div class="contenu">
+    <p>Un guide <code>AGENTS.md</code> et une carte par paquet, un domicile par fichier source et un contrôle de style rejoué à chaque écriture font travailler les agents sans perdre les règles du dépôt. L'agent d'une application reçoit autre chose : la skill <code>ucm-implementer</code>, les gabarits, les aides et le guide d'un contrat.</p>
+    <p class="defini">Défini dans <code>AGENTS.md</code>, <code>.agents/skills/</code>, <code>.claude/agents/</code>, <code>package.json</code> et <code>.github/workflows/</code>.</p>
+    <h4>Skills</h4>
+    <div class="defile"><table><tr><th>Skill</th><th>Rôle</th></tr>${outils.skills.map((skill) => `<tr><td><code>${skill.nom}</code></td><td>${avecCode(skill.description)}</td></tr>`).join('')}</table></div>
+    <h4>Agents</h4>
+    <div class="defile"><table><tr><th>Agent</th><th>Modèle</th><th>Rôle</th></tr>${outils.agents.map((agent) => `<tr><td><code>${agent.nom}</code></td><td>${agent.modele}</td><td>${avecCode(agent.description)}</td></tr>`).join('')}</table></div>
+    <h4>Scripts npm de la racine</h4>
+    <div class="defile"><table><tr><th>Script</th><th>Ce qu'il fait</th><th>Source de la phrase</th></tr>${outils.scripts.map((script) => `<tr><td><code>npm run ${script.nom}</code></td><td>${avecCode(script.phrase)}</td><td class="doux">${echapper(script.source)}</td></tr>`).join('')}</table></div>
+    <h4>Jobs des workflows</h4>
+    <div class="defile"><table><tr><th>Job</th><th>Déclencheur</th><th>Ce qu'il lance</th></tr>${outils.jobs.map((job) => `<tr><td><code>${job.fichier}</code>, job <code>${job.id}</code></td><td>${echapper(declencheur(job))}</td><td>${job.lances.map((commande) => `<code>${echapper(commande)}</code>`).join(', ')}</td></tr>`).join('')}</table></div>
+  </div></details>`;
 }
 
 /** Un identifiant de piste dans un texte devient un lien vers sa fiche ; un identifiant inconnu fait échouer la génération. */
@@ -132,7 +180,7 @@ function blocsDesRegles(decisions: releves.Decisions, identifiants: ReadonlySet<
     .join('\n    ');
   rendu['lignes-transverses'] = decisions.regles
     .filter((regle) => regle.genre === 'transverse')
-    .map((regle) => `<tr data-decision="${regle.id}"${attributPour(regle.pour)}><td>${avecCode(regle.titre ?? regle.id)}</td><td>${avecCode(regle.texte)}</td><td>${lienDePistes(regle.pistes)}</td></tr>`)
+    .map((regle) => `<tr data-decision="${regle.id}"${attributPour(regle.pour)}><td>${avecCode(regle.titre ?? regle.id)}</td><td data-l="Fait">${avecCode(regle.texte)}</td><td data-l="Pistes">${lienDePistes(regle.pistes)}</td></tr>`)
     .join('\n    ');
   return rendu;
 }
@@ -201,7 +249,6 @@ async function valeurs(): Promise<Record<string, string>> {
   const registres = lignesDesRegistres();
   const fautes = releves.longueursDeFaute();
   const accessibilite = releves.seuilsDAccessibilite();
-  const annexesDuDepot = annexes();
   const cran700 = couleurs.crans.indexOf(700);
   if (cran700 === -1) throw new Error('Le cran 700 a disparu des crans de la recette de démonstration');
 
@@ -286,8 +333,7 @@ async function valeurs(): Promise<Record<string, string>> {
     'rapport:action': avecCode(rapport.action),
     'rapport:fin': avecCode(rapport.fin),
     // Les blocs d'annexes
-    annexes: annexesDuDepot.html,
-    ...annexesDuDepot.compte,
+    annexes: annexes(),
     // Les données du script
     'js:crans': pourLeScript(clarte.crans),
     'js:clarte': pourLeScript(clarte.clarte),

@@ -480,6 +480,8 @@
     d.classList.toggle('decide-non', c === 'non');
     d.querySelector('.coherence').innerHTML = (i.ecartee ? '<span class="etat manque">' + i.ecartee + '</span> ' : '') + (i.attend ? '<span class="etat ouvert">' + i.attend + '</span>' : '');
   }
+  // Le champ de note tient une ligne et grandit avec son texte ; une fiche fermée n'a pas de hauteur à mesurer.
+  function grandir(z) { if (z.scrollHeight > 0) { z.style.height = 'auto'; z.style.height = z.scrollHeight + 'px'; } }
   var radios = {};
   function lierLesChoix(racine) {
     racine.querySelectorAll('input[type=radio][data-cle]').forEach(function (inp) {
@@ -490,12 +492,20 @@
     racine.querySelectorAll('textarea[data-note]').forEach(function (z) {
       var cle = z.getAttribute('data-note');
       z.value = (decisions[cle] || {}).note || '';
-      z.addEventListener('input', function () { decisions[cle] = decisions[cle] || {}; decisions[cle].note = z.value; garder(); });
+      grandir(z);
+      z.addEventListener('input', function () {
+        decisions[cle] = decisions[cle] || {}; decisions[cle].note = z.value;
+        // Une seule note par piste : le champ de la vue d'ensemble et celui de la fiche se recopient.
+        document.querySelectorAll('textarea[data-note="' + cle + '"]').forEach(function (autre) { if (autre !== z) { autre.value = z.value; grandir(autre); } });
+        grandir(z);
+        garder();
+      });
     });
   }
   function synchroniserLesChoix() {
     Object.keys(radios).forEach(function (cle) { radios[cle].forEach(function (inp) { inp.checked = inp.value === choixDe(cle); }); });
   }
+  function champNote(cle, nom) { return '<textarea class="note" rows="1" data-note="' + cle + '" aria-label="' + nom + '" placeholder="Note"></textarea>'; }
   function boutonsDe(cle, contexte, options) {
     return '<div class="options" role="radiogroup" aria-label="Décision sur ' + cle + '">' + options.map(function (o) {
       return '<label class="option"><input type="radio" name="d-' + contexte + '-' + cle + '" data-cle="' + cle + '" value="' + o[0] + '"> ' + o[1] + '</label>';
@@ -588,7 +598,7 @@
     } catch (e) { repli(e); }
   }
   function poserLesNotes() {
-    document.querySelectorAll('textarea[data-note]').forEach(function (z) { z.value = (decisions[z.getAttribute('data-note')] || {}).note || ''; });
+    document.querySelectorAll('textarea[data-note]').forEach(function (z) { z.value = (decisions[z.getAttribute('data-note')] || {}).note || ''; grandir(z); });
   }
   function revenirAuDepot() {
     if (!confirm('Revenir à la version du dépôt ? Les décisions et notes de ce navigateur qui diffèrent seront perdues.')) return;
@@ -626,7 +636,7 @@
         '<span class="marques"><span class="choix-zone"></span></span></summary>' +
         '<div class="corps-piste">' +
         '<div class="decider">' + boutonsDe(x.id, 'fiche', OPTIONS) +
-          '<textarea data-note="' + x.id + '" aria-label="Note sur ' + x.id + '" placeholder="Note : condition, priorité, réponse à une question…"></textarea></div>' +
+          '<textarea data-note="' + x.id + '" aria-label="Note sur la fiche ' + x.id + '" placeholder="Note : condition, priorité, réponse à une question…"></textarea></div>' +
         '<h4>Pourquoi</h4><p>' + txt(x.raisonImportance) + '</p>' +
         '<h4>Complexité ' + TAILLES[x.complexite] + '</h4><p>' + txt(x.raisonComplexite) + '</p>' +
         '<h4>Temps du mainteneur</h4><p>' + txt(x.coutHumain) + '</p>' +
@@ -648,11 +658,11 @@
       if (x.rang !== rangCourant) { rangCourant = x.rang; entete = '<tr class="rang-ligne"><td colspan="6">Rang ' + x.rang + ' · ' + (RANGS[x.rang] || '') + '</td></tr>'; }
       var directs = DIRECTS[x.id], total = Object.keys(DESCENDANTES[x.id]).length;
       return entete + '<tr><td><a href="#piste-' + x.id + '"><b>' + x.id + '</b></a> ' + txt(x.titre) + '</td>' +
-        '<td class="sinon">' + txt(premierePhrase(x.raisonImportance)) + '</td>' +
-        '<td><b>' + x.complexite + '</b> · ' + txt(x.coutHumain) + '</td>' +
-        '<td>' + (x.dependances.length ? x.dependances.map(function (id) { return '<a href="#piste-' + id + '">' + id + '</a>'; }).join(', ') : 'rien') + '</td>' +
-        '<td>' + (directs.length ? directs.map(function (id) { return '<a href="#piste-' + id + '">' + id + '</a>'; }).join(', ') + ', ' + total + ' au total' : 'rien') + '</td>' +
-        '<td class="choix-ligne">' + boutonsDe(x.id, 'ensemble', OPTIONS) + '</td></tr>';
+        '<td class="sinon" data-l="Si on ne fait pas">' + txt(premierePhrase(x.raisonImportance)) + '</td>' +
+        '<td data-l="Coût"><b>' + x.complexite + '</b> · ' + txt(x.coutHumain) + '</td>' +
+        '<td data-l="Attend">' + (x.dependances.length ? x.dependances.map(function (id) { return '<a href="#piste-' + id + '">' + id + '</a>'; }).join(', ') : 'rien') + '</td>' +
+        '<td data-l="Débloque">' + (directs.length ? directs.map(function (id) { return '<a href="#piste-' + id + '">' + id + '</a>'; }).join(', ') + ', ' + total + ' au total' : 'rien') + '</td>' +
+        '<td class="choix-ligne">' + boutonsDe(x.id, 'ensemble', OPTIONS) + champNote(x.id, 'Note sur ' + x.id) + '</td></tr>';
     }).join('');
   })();
   // Décisions transverses : mêmes boutons et une note par ligne, enregistrés avec les décisions des pistes.
@@ -660,11 +670,10 @@
     var cle = tr.getAttribute('data-decision');
     TRANSVERSES.push({ id: cle, titre: tr.cells[0].textContent.trim() });
     var td = document.createElement('td'); td.className = 'choix-ligne';
-    td.innerHTML = boutonsDe(cle, 'transverse', OPTIONS_T[cle] || OPTIONS) + '<details><summary>Note</summary><textarea data-note="' + cle + '" aria-label="Note sur la décision ' + cle + '"></textarea></details>';
+    td.innerHTML = boutonsDe(cle, 'transverse', OPTIONS_T[cle] || OPTIONS) + champNote(cle, 'Note sur la décision ' + cle);
     tr.appendChild(td);
   });
   lierLesChoix(document.getElementById('suite'));
-  document.querySelectorAll('#suite details > textarea[data-note]').forEach(function (z) { if (z.value) z.parentNode.open = true; });
   // Le graphe des dépendances : une colonne par profondeur, flèches du prérequis vers la piste, chemin critique en rose.
   var NSVG = 'http://www.w3.org/2000/svg';
   function dessinerLeGraphe() {
@@ -937,15 +946,6 @@
     deplie = !deplie;
     document.querySelectorAll('details').forEach(function (d) { d.open = deplie; });
     this.textContent = deplie ? 'Tout replier' : 'Tout déplier';
-  });
-
-  // Thème mémorisé pour ce navigateur seulement.
-  var racine = document.documentElement;
-  try { var t = localStorage.getItem('inventaire-theme'); if (t) racine.dataset.theme = t; } catch (e) {}
-  document.getElementById('theme').addEventListener('click', function () {
-    var sombre = racine.dataset.theme ? racine.dataset.theme === 'dark' : matchMedia('(prefers-color-scheme: dark)').matches;
-    racine.dataset.theme = sombre ? 'light' : 'dark';
-    try { localStorage.setItem('inventaire-theme', racine.dataset.theme); } catch (e) {}
   });
 
   // Sommaire : la partie visible est surlignée.
