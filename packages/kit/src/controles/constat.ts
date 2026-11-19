@@ -2,15 +2,15 @@
 import type { TypeDAlerte } from '../referentiel/signaux.js';
 import type { CodeDeConstat } from './codes.js';
 
-/** Ce qu'une correction `variable` crée : une couleur de `theme`, un alias par mode, ses scopes. */
+/** Ce qu'une correction `variable` crée : une couleur de `theme`, ou un alias vers `primitives` dans `brands` ou `utility`, un alias par mode, ses scopes. */
 export interface CreationDeVariable {
-  /** La clé de la collection `theme`. */
+  /** La clé de la collection où la variable naît : `theme`, `brands` ou `utility`. */
   readonly collection: string;
   /** Le nom complet de la variable à créer, sans la collection. */
   readonly nom: string;
   readonly type: 'COLOR';
   readonly scopes: readonly string[];
-  /** Par identifiant de mode de `theme` : la variable visée. */
+  /** Par identifiant de mode de la collection : la variable visée. Dans `brands`, un mode de marque que la réponse du designer ne couvre pas peut manquer. */
   readonly alias: Readonly<Record<string, { readonly cle: string; readonly nom: string }>>;
 }
 

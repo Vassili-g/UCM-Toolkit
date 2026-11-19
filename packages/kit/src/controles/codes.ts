@@ -66,7 +66,7 @@ export const CODES_DES_CONSTATS = [
   { code: 'C67', familles: ['regles'], types: ['corriger', 'info'], sens: 'La propriété d’échange d’instance qui pilote l’icône manque, ou ses icônes permises ne sont pas lues.' },
   { code: 'C80', familles: ['liaisons', 'tailles'], types: ['corriger'], sens: 'Un layer lie une couleur ou une taille directement à une variable qui n’est pas un token du composant.' },
   { code: 'C81', familles: ['liaisons', 'tailles'], types: ['corriger'], sens: 'Un variant lie des layers que d’autres variants gardent en dur.' },
-  { code: 'C82', familles: ['liaisons'], types: ['corriger', 'verifier', 'info'], sens: 'Le thème UCM s’écarte de sa définition : variable, cran, couche, scope ou mode absent ou faux.' },
+  { code: 'C82', familles: ['liaisons'], types: ['corriger', 'verifier', 'info'], sens: 'Le thème UCM, ou le lien de `brands` ou de `utility` vers `primitives`, s’écarte de sa définition : variable, cran, palette, couche, scope ou mode absent ou faux.' },
 ] as const satisfies readonly EntreeDuCatalogue[];
 
 export type CodeDeConstat = (typeof CODES_DES_CONSTATS)[number]['code'];

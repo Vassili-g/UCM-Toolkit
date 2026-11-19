@@ -22,7 +22,8 @@ import { collectionsDeReference, type CatalogueDeReference, type VariableDuCatal
 import type { EcritureChoisie } from '../../../src/protocoles/nommage.js';
 import type { Convention } from '../../../src/referentiel/conventions.js';
 import { assembler, decouperSegment, motsAvecCasse } from '../../../src/referentiel/ecriture-des-mots.js';
-import { CRANS, REGISTRE_STATUTS } from '../../../src/referentiel/vocabulaire.js';
+import { CIBLES_DE_L_ELEVATION } from '../../../src/referentiel/reference.js';
+import { CRANS, PROFILS, REGISTRE_STATUTS } from '../../../src/referentiel/vocabulaire.js';
 import { choisir, graineDe, mulberry32 } from '../commun/prng.js';
 import {
   MODES_DU_THEME,
@@ -128,6 +129,13 @@ function palettesDuProfil(palettes: PalettesDuProfil): SpecDePalette[] {
   ];
 }
 
+/**
+ * Les palettes que `brands` et `utility` portent dans tout fichier complet (partie 4 de la proposition de référence) : deux marques, le
+ * neutre, quatre statuts en `soft` et `vivid`. Un profil qui en omet ajoute leurs rampes sans rôle de thème : le contrôle C82 les
+ * attend dans `brands` et `utility`, et le thème ne les lit pas.
+ */
+const PALETTES_COMPLETES: readonly SpecDePalette[] = [marque('primary'), marque('secondary'), NEUTRE, ...STATUTS.flatMap((id) => PROFILS.map((profil) => statut(id, profil)))];
+
 /** Les palettes en sens inverse sur les deux modes ; aucune quand le profil est `normal`. */
 function palettesInverses(profil: ProfilDeTheme): readonly string[] {
   if (profil.sens === 'normal') return [];
@@ -143,7 +151,6 @@ const PORTEES_DU_COMPOSANT: Record<JetonDeComposantDeCarte['role'], readonly str
   background: ['ALL_FILLS'], foreground: ['ALL_FILLS'], border: ['STROKE_COLOR'], ring: ['STROKE_COLOR'],
 };
 const PAS_DE_L_ECHELLE = [4, 8, 12, 16, 24, 32] as const;
-const ELEVATIONS_CLAIRES: Record<ModeDuTheme, Record<'page' | 'raised', number>> = { light: { page: 50, raised: 100 }, dark: { page: 950, raised: 900 } };
 
 function couleurTiree(graine: number, etiquette: string): { r: number; g: number; b: number; a: number } {
   const tirer = mulberry32(graineDe(graine, etiquette));
@@ -162,6 +169,7 @@ export function themeDuProfil(profil: ProfilDeTheme, graine: number = GRAINE_PAR
   };
   const nomDe = (couche: Couche, segments: readonly string[]): string => [...(profil.collectionRedite ? [ecrire(couche)] : []), ...segments.map(ecrire)].join('/');
   const specs = palettesDuProfil(profil.palettes);
+  const specsDuFichier = [...specs, ...PALETTES_COMPLETES.filter((complete) => !specs.some((spec) => spec.id === complete.id))];
   const inverses = palettesInverses(profil);
 
   const nomsDeCouche: Record<Couche, string> = {
@@ -196,7 +204,7 @@ export function themeDuProfil(profil: ProfilDeTheme, graine: number = GRAINE_PAR
 
   // `primitives` : une couleur directe par cran, pour chaque palette et chaque mode ; les deux bornes du neutre.
   const primitives = new Map<string, VariableDeCarte>();
-  for (const spec of specs) {
+  for (const spec of specsDuFichier) {
     for (const mode of MODES_DU_THEME) {
       for (const cran of CRANS) {
         const segments = ['color', ...spec.segments, mode, String(cran)];
@@ -211,7 +219,7 @@ export function themeDuProfil(profil: ProfilDeTheme, graine: number = GRAINE_PAR
 
   // `brands` puis `utility` : une rampe par palette et par mode, en alias vers `primitives`.
   const rampes = new Map<string, Record<ModeDuTheme, Record<number, VariableDeCarte>>>();
-  for (const spec of specs.filter((entree) => entree.couche === 'brands')) {
+  for (const spec of specsDuFichier.filter((entree) => entree.couche === 'brands')) {
     const parMode = { light: {}, dark: {} } as Record<ModeDuTheme, Record<number, VariableDeCarte>>;
     for (const mode of MODES_DU_THEME) {
       for (const cran of CRANS) {
@@ -220,16 +228,19 @@ export function themeDuProfil(profil: ProfilDeTheme, graine: number = GRAINE_PAR
     }
     rampes.set(spec.id, parMode);
   }
+  // La couleur de charte de chaque famille : un cran Light de sa palette, choisi par le designer.
+  for (const [famille, cran] of [['primary', 600], ['secondary', 900]] as const) ajouter('brands', ['identity', famille], 'COLOR', alias(primitive(marque(famille), 'light', cran)), { distante: profil.rampes === 'distantes' ? true : undefined });
   const absoluesDUtility = { light: {}, dark: {} } as Record<ModeDuTheme, Record<CouleurAbsolue, VariableDeCarte>>;
   const elevations = { light: {}, dark: {} } as Record<ModeDuTheme, Record<'page' | 'raised', VariableDeCarte>>;
-  for (const spec of specs.filter((entree) => entree.couche === 'utility')) {
+  for (const spec of specsDuFichier.filter((entree) => entree.couche === 'utility')) {
     const parMode = { light: {}, dark: {} } as Record<ModeDuTheme, Record<number, VariableDeCarte>>;
     for (const mode of MODES_DU_THEME) {
       for (const cran of CRANS) parMode[mode][cran] = ajouter('utility', [...spec.segments, mode, String(cran)], 'COLOR', alias(primitive(spec, mode, cran)));
       if (spec.famille === 'neutre') {
         for (const couleur of ['white', 'black'] as const) absoluesDUtility[mode][couleur] = ajouter('utility', [...spec.segments, mode, couleur], 'COLOR', alias(primitivesAbsolues[couleur]));
         for (const niveau of NIVEAUX_D_ELEVATION_DU_THEME) {
-          elevations[mode][niveau] = ajouter('utility', ['elevation', mode, niveau], 'COLOR', alias(primitive(spec, mode, ELEVATIONS_CLAIRES[mode][niveau])));
+          const visee: CibleDeVariable = CIBLES_DE_L_ELEVATION[niveau][mode];
+          elevations[mode][niveau] = ajouter('utility', ['elevation', mode, niveau], 'COLOR', alias('absolue' in visee ? primitivesAbsolues[visee.absolue] : primitive(spec, mode, visee.cran)));
         }
       }
     }

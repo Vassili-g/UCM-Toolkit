@@ -65,7 +65,7 @@ export const EXCLUSIONS: Readonly<Record<string, GroupeExclu[]>> = {
   "export ./controles": [
     {
       motif: "Fonction d'un contrôle d'Architect ; la page montre ses constats par leurs codes de constat.",
-      noms: ["controlerCouches", "controlerCouchesParEtapes", "controlerLAccessibilite", "controlerLAccessibiliteParEtapes", "controlerLIntegriteUcm", "controlerLaStructure", "controlerLaStructureParEtapes", "controlerLaTypographie", "controlerLaTypographieParEtapes", "controlerLeCatalogue", "controlerLeTheme", "controlerLeThemeParEtapes", "controlerLesAliasesManquants", "controlerLesModes", "controlerMapping", "controlerMappingParEtapes", "controlerNommage", "controlerNommageParEtapes", "controlerOublis", "controlerOublisParEtapes"],
+      noms: ["controlerCouches", "controlerCouchesParEtapes", "controlerLAccessibilite", "controlerLAccessibiliteParEtapes", "controlerLIntegriteUcm", "corrigerLaQuestionDeLien", "controlerLaStructure", "controlerLaStructureParEtapes", "controlerLaTypographie", "controlerLaTypographieParEtapes", "controlerLeCatalogue", "controlerLeTheme", "controlerLeThemeParEtapes", "controlerLesAliasesManquants", "controlerLesModes", "controlerMapping", "controlerMappingParEtapes", "controlerNommage", "controlerNommageParEtapes", "controlerOublis", "controlerOublisParEtapes"],
     },
     {
       motif: "Aide de lecture du modèle de composant ou des variables, appelée par les contrôles.",

@@ -6,6 +6,11 @@
  * Une création n'est jamais devinée : sans jumelle aliasée, sans sens établi, sans écriture choisie ou avec une cible de
  * library, le constat reste sans correction et dit pourquoi dans le fait `raison`. Un cran n'est corrigé que si le sens de la
  * palette est établi ou si les deux sens donnent la même cible ; sinon la question porte les deux candidats.
+ *
+ * C82 juge aussi les liens de `brands` et de `utility` vers `primitives` (P21) : il n'écrit jamais une couleur, seulement des alias.
+ * Un lien absent ou faux reçoit sa correction quand les autres variables de la branche visent toutes la même palette et que
+ * `primitives` porte le cran voulu ; une branche absente en entier donne une question sur la palette, sans réponse cochée ; un cran
+ * ou une palette absente de `primitives` renvoie vers Palettes. `layout` et `typography` ne reçoivent aucun constat.
  */
 import {
   NIVEAUX_D_ELEVATION_DU_THEME, SUPPORT_DES_VARIABLES, VARIABLES_DE_PALETTE, VARIABLES_DU_NEUTRE, VARIABLES_GLOBALES,
@@ -13,13 +18,16 @@ import {
   type CibleDeVariable, type ModeDuTheme, type SensDuTheme, type VariableDePalette, type VariableDuTheme,
 } from '../emplois/dossiers.js';
 import type { EcritureChoisie } from '../protocoles/nommage.js';
-import { COLLECTIONS_SANS_PORTEE, FAMILLES_UTILITY, REGISTRE_COULEURS_ABSOLUES, ciblesAdmises } from '../referentiel/architecture.js';
+import {
+  COLLECTIONS_SANS_PORTEE, FAMILLES_BRANDS, FAMILLES_PRIMITIVES, FAMILLES_UTILITY, REGISTRE_COULEURS_ABSOLUES, REGISTRE_ELEVATIONS, ciblesAdmises,
+} from '../referentiel/architecture.js';
 import type { Casse, Convention, Separateur } from '../referentiel/conventions.js';
 import { assembler, decouperSegment, frontieres, motsAvecCasse } from '../referentiel/ecriture-des-mots.js';
 import { collectionUcmReconnue } from '../referentiel/normalisation.js';
 import { formeDuChemin, formeReconnue, termeReconnu } from '../referentiel/reconnaissance.js';
+import { CIBLES_DE_L_ELEVATION } from '../referentiel/reference.js';
 import { distanceUnOuEchange, memeConcept } from '../referentiel/termes-connus.js';
-import { MODES } from '../referentiel/vocabulaire.js';
+import { CRANS, MODES, PROFILS, REGISTRE_MODES, REGISTRE_PROFILS, REGISTRE_STATUTS } from '../referentiel/vocabulaire.js';
 import { modeDuThemeReconnu, variableDuThemeReconnue } from '../referentiel/theme.js';
 import { cheminDansLaCollection, collectionParCle, variableParCle, type CatalogueDeReference, type CollectionDuCatalogue, type VariableDuCatalogue } from './catalogue.js';
 import type { Constat, Correction } from './constat.js';
@@ -77,13 +85,15 @@ interface IndexDesCibles {
 
 const NOMBRE = /^\d+$/;
 
-/** Les contrôles d'intégrité UCM du catalogue, sans composant. Rend [] hors collection `theme` lue. */
+/** Les contrôles d'intégrité UCM du catalogue, sans composant. Rend [] sans collection `theme`, `brands` ni `utility` lue. */
 export function controlerLIntegriteUcm(catalogue: CatalogueDeReference, options: OptionsDIntegrite = {}): Constat[] {
   const themes = catalogue.collections.filter((collection) => collection.role === 'theme' && collection.etat === 'lue');
-  if (themes.length === 0) return fichierUcmSansTheme(catalogue) ? [themeNonReconnu()] : [];
+  const liens = controlerLesLiensDeCouleur(catalogue, options);
+  if (themes.length === 0) return [...(fichierUcmSansTheme(catalogue) ? [themeNonReconnu()] : []), ...liens];
   const index = indexerLesCibles(catalogue);
   return [
     ...themes.flatMap((theme) => controlerUnTheme(catalogue, theme, index, options)),
+    ...liens,
     ...controlerLaStructure(catalogue, themes),
     ...controlerLesThemesEnDouble(catalogue, themes),
   ];
@@ -668,6 +678,433 @@ function uneSeule(trouvees: readonly VariableDuCatalogue[], vise: string | numbe
   const [cible] = trouvees;
   if (cible.distante) return { etat: 'sans-correction', raison: 'cible-de-library', ...complement };
   return { etat: 'trouvee', cible: { cle: cible.cle, nom: cible.nom }, vise: vise ?? '' };
+}
+
+// ---------------------------------------------------------------------------------------------------------------------------
+// Les liens de couleur de `brands` et de `utility` vers `primitives` (P21, partie 4 de la proposition)
+//
+// Le contrôle ne crée jamais de couleur : il lit des alias vers `primitives` et ne propose que des alias. Une branche est une famille
+// de `brands` (`primary`, `secondary`) dans un mode de marque, ou une famille de `utility`, avec ses thèmes et ses profils.
+
+type FinDeCran = number | 'white' | 'black';
+
+/** Ce qu'une variable de `primitives` désigne dans sa palette : un profil facultatif, un thème (absent pour `white` et `black`), un cran ou une absolue. */
+interface Cible { readonly profil?: string; readonly theme?: ModeDuTheme; readonly fin: FinDeCran }
+
+interface LuDePrimitive extends Cible { readonly palette: string; readonly nom: string; readonly variable: VariableDuCatalogue }
+
+interface PaletteDePrimitives { readonly nom: string; readonly cellules: Map<string, LuDePrimitive> }
+
+interface Cellule { readonly chemin: readonly string[]; readonly cible: Cible }
+
+interface Branche {
+  readonly id: string;
+  /** `palette` : la palette se lit sur les alias de la branche. `elevation` : c'est celle du neutre, jamais une question. */
+  readonly sorte: 'palette' | 'elevation';
+  readonly cellules: readonly Cellule[];
+}
+
+type Lecture =
+  | { readonly etat: 'manquant' }
+  | { readonly etat: 'inconnu' }
+  | { readonly etat: 'alias'; readonly lu: LuDePrimitive };
+
+type Verdict =
+  | { readonly etat: 'ok' }
+  | { readonly etat: 'cible'; readonly cible: LuDePrimitive }
+  | { readonly etat: 'rampe'; readonly palette: PaletteDePrimitives; readonly manque: string }
+  | { readonly etat: 'sans-correction'; readonly raison: string };
+
+interface IndexDesLiens {
+  /** Les variables de `primitives` qui portent une couleur de palette, par clé de variable. */
+  readonly primitives: Map<string, LuDePrimitive>;
+  readonly palettes: Map<string, PaletteDePrimitives>;
+  /** Les variables de `brands` et de `utility` (toutes celles que le fichier nomme), par collection et chemin canonique. */
+  readonly parChemin: Map<string, VariableDuCatalogue>;
+  /** Un segment canonique tel que le fichier l'écrit, par collection : une variable créée reprend l'écriture de ses voisines. */
+  readonly ecrites: Map<string, string>;
+  readonly collectionEcrite: Map<string, string | undefined>;
+}
+
+interface NoteDeRampe { readonly collection: CollectionDuCatalogue; readonly palette: PaletteDePrimitives; readonly manques: Set<string>; readonly cellules: Set<string> }
+
+interface ModeDeLien { readonly id: string; readonly nom: string }
+
+const ABSOLUES = REGISTRE_COULEURS_ABSOLUES.termes.map((terme) => terme.id as 'white' | 'black');
+const STATUTS = REGISTRE_STATUTS.termes.map((terme) => terme.id);
+const FAMILLES_DE_MARQUE = FAMILLES_BRANDS.termes.map((terme) => terme.id).filter((famille) => famille !== 'identity');
+const REGISTRES_DES_LIENS = [FAMILLES_UTILITY, FAMILLES_BRANDS, REGISTRE_PROFILS, REGISTRE_MODES, REGISTRE_COULEURS_ABSOLUES, REGISTRE_ELEVATIONS] as const;
+
+const cellulesDeCrans = (prefixe: readonly string[], profil: string | undefined): Cellule[] => MODES.flatMap((theme) => CRANS.map((cran): Cellule => ({
+  chemin: [...prefixe, ...(profil === undefined ? [] : [profil]), theme, String(cran)], cible: { ...(profil === undefined ? {} : { profil }), theme, fin: cran },
+})));
+
+const BRANCHES = {
+  brands: FAMILLES_DE_MARQUE.map((famille): Branche => ({ id: famille, sorte: 'palette', cellules: cellulesDeCrans([famille], undefined) })),
+  utility: [
+    {
+      id: 'neutral', sorte: 'palette',
+      cellules: [
+        ...cellulesDeCrans(['neutral'], undefined),
+        ...MODES.flatMap((theme) => ABSOLUES.map((absolue): Cellule => ({ chemin: ['neutral', theme, absolue], cible: { fin: absolue } }))),
+      ],
+    },
+    ...STATUTS.map((statut): Branche => ({
+      id: statut, sorte: 'palette', cellules: PROFILS.flatMap((profil) => cellulesDeCrans([statut], profil)),
+    })),
+    {
+      id: 'elevation', sorte: 'elevation',
+      cellules: MODES.flatMap((theme) => (Object.keys(CIBLES_DE_L_ELEVATION) as (keyof typeof CIBLES_DE_L_ELEVATION)[]).map((niveau): Cellule => {
+        const cible = CIBLES_DE_L_ELEVATION[niveau][theme];
+        return { chemin: ['elevation', theme, niveau], cible: 'cran' in cible ? { theme, fin: cible.cran } : { fin: cible.absolue } };
+      })),
+    },
+  ],
+} satisfies Readonly<Record<string, readonly Branche[]>>;
+
+/** Les collections dont C82 juge les liens vers `primitives`. */
+type CollectionDeLien = keyof typeof BRANCHES;
+
+const canoniqueDuSegment = (segment: string): string => {
+  for (const registre of REGISTRES_DES_LIENS) {
+    const terme = termeReconnu(registre, segment);
+    if (terme) return terme.id;
+  }
+  return formeReconnue(segment);
+};
+
+const texteDeLaPrimitive = (cible: Cible): string => [cible.profil, cible.theme, cible.fin].filter((partie) => partie !== undefined).join('/');
+const cleDeLaCible = (cible: Cible): string => `${cible.profil ?? ''}|${cible.theme ?? ''}|${cible.fin}`;
+
+/** Lit le chemin d'une variable de `primitives` : `color/<palette>/[<profil>/]<thème>/<cran>` ou `color/<palette>/white|black`. Les thèmes en modes ne sont pas lus. */
+function lireLaPrimitive(segments: readonly string[], variable: VariableDuCatalogue): LuDePrimitive | undefined {
+  if (segments.length < 3 || termeReconnu(FAMILLES_PRIMITIVES, segments[0])?.id !== 'color') return undefined;
+  const reste = segments.slice(2);
+  const dernier = reste[reste.length - 1];
+  const palette = { palette: formeReconnue(segments[1]), nom: segments[1], variable };
+  if (reste.length === 1) {
+    const absolue = termeReconnu(REGISTRE_COULEURS_ABSOLUES, dernier)?.id;
+    return absolue === 'white' || absolue === 'black' ? { ...palette, fin: absolue } : undefined;
+  }
+  if (!NOMBRE.test(dernier) || reste.length > 3) return undefined;
+  const theme = modeDuThemeReconnu(reste[reste.length - 2]);
+  const profil = reste.length === 3 ? termeReconnu(REGISTRE_PROFILS, reste[0])?.id : undefined;
+  if (!theme || (reste.length === 3 && !profil)) return undefined;
+  return { ...palette, ...(profil === undefined ? {} : { profil }), theme, fin: Number(dernier) };
+}
+
+function indexerLesLiens(catalogue: CatalogueDeReference): IndexDesLiens {
+  const index: IndexDesLiens = { primitives: new Map(), palettes: new Map(), parChemin: new Map(), ecrites: new Map(), collectionEcrite: new Map() };
+  for (const variable of catalogue.variables) {
+    const collection = collectionParCle(catalogue, variable.collection);
+    if (!collection || collection.etat !== 'lue') continue;
+    const chemin = cheminDansLaCollection(variable, catalogue);
+    if (collection.role === 'primitives') {
+      if (variable.etat !== 'presente') continue;
+      const lu = lireLaPrimitive(chemin, variable);
+      if (!lu) continue;
+      index.primitives.set(variable.cle, lu);
+      let palette = index.palettes.get(lu.palette);
+      if (!palette) { palette = { nom: lu.nom, cellules: new Map() }; index.palettes.set(lu.palette, palette); }
+      if (!palette.cellules.has(cleDeLaCible(lu))) palette.cellules.set(cleDeLaCible(lu), lu);
+    } else if (collection.role === 'brands' || collection.role === 'utility') {
+      const canonique = chemin.map(canoniqueDuSegment);
+      const cle = `${collection.cle}\0${canonique.join('/')}`;
+      if (!index.parChemin.has(cle)) index.parChemin.set(cle, variable);
+      chemin.forEach((segment, rang) => {
+        const cleDuSegment = `${collection.cle}\0${canonique[rang]}`;
+        if (!index.ecrites.has(cleDuSegment)) index.ecrites.set(cleDuSegment, segment);
+      });
+      if (!index.collectionEcrite.has(collection.cle)) index.collectionEcrite.set(collection.cle, variable.nom.split('/').length > chemin.length ? variable.nom.split('/')[0] : undefined);
+    }
+  }
+  return index;
+}
+
+const variableDeLaCellule = (index: IndexDesLiens, collection: CollectionDuCatalogue, chemin: readonly string[]): VariableDuCatalogue | undefined =>
+  index.parChemin.get(`${collection.cle}\0${chemin.join('/')}`);
+
+/**
+ * Ce qu'une variable porte dans un mode. `manquant` : la variable n'existe pas, ou le mode n'a aucune valeur alors que le fichier en lit
+ * d'autres. `inconnu` : valeurs non lues, valeur directe, variable de library ou alias hors de `primitives` : un autre contrôle les juge,
+ * et elles ne votent pas pour la palette.
+ */
+function lireLeLien(index: IndexDesLiens, variable: VariableDuCatalogue | undefined, mode: ModeDeLien): Lecture {
+  if (!variable) return { etat: 'manquant' };
+  if (variable.etat !== 'presente' || variable.distante || variable.valeurs === undefined) return { etat: 'inconnu' };
+  const valeur = variable.valeurs[mode.id];
+  if (valeur === undefined) return { etat: 'manquant' };
+  const lu = 'alias' in valeur ? index.primitives.get(valeur.alias) : undefined;
+  return lu ? { etat: 'alias', lu } : { etat: 'inconnu' };
+}
+
+interface ContexteDeBranche {
+  readonly variables: (VariableDuCatalogue | undefined)[];
+  readonly lectures: Lecture[];
+  /** Les palettes que les alias de la branche visent, avec leur nombre de voix. */
+  readonly votes: Map<string, number>;
+}
+
+function contexteDeLaBranche(index: IndexDesLiens, collection: CollectionDuCatalogue, branche: Branche, mode: ModeDeLien): ContexteDeBranche {
+  const variables = branche.cellules.map((cellule) => variableDeLaCellule(index, collection, cellule.chemin));
+  const lectures = variables.map((variable) => lireLeLien(index, variable, mode));
+  const votes = new Map<string, number>();
+  for (const lecture of lectures) if (lecture.etat === 'alias') votes.set(lecture.lu.palette, (votes.get(lecture.lu.palette) ?? 0) + 1);
+  return { variables, lectures, votes };
+}
+
+const paletteUnique = (votes: ReadonlyMap<string, number>): string | undefined => (votes.size === 1 ? [...votes.keys()][0] : undefined);
+
+/** Les palettes que visent les autres cellules de la branche : celles-là seules disent la palette voulue pour la cellule jugée. */
+function palettesDesAutres(contexte: ContexteDeBranche, rang: number): Set<string> {
+  const propre = contexte.lectures[rang];
+  const autres = new Set<string>();
+  for (const [palette, voix] of contexte.votes) if (voix - (propre.etat === 'alias' && propre.lu.palette === palette ? 1 : 0) > 0) autres.add(palette);
+  return autres;
+}
+
+/**
+ * Le verdict d'une cellule. Les autres cellules de la branche doivent viser toutes la même palette, ou aucune (la cellule jugée donne alors
+ * la sienne). Une cellule sur une autre palette que les autres, ou une branche qui en vise plusieurs, ne reçoit jamais de correction.
+ * `elevation` passe la palette du neutre comme seule autre palette.
+ */
+function jugerLaCellule(index: IndexDesLiens, cellule: Cellule, lecture: Lecture, autres: ReadonlySet<string>): Verdict {
+  const lu = lecture.etat === 'alias' ? lecture.lu : undefined;
+  if (lu && autres.size === 1 && !autres.has(lu.palette)) return { etat: 'sans-correction', raison: 'autre-palette' };
+  if (lu && cleDeLaCible(lu) === cleDeLaCible(cellule.cible)) return { etat: 'ok' };
+  let nomDeLaPalette: string;
+  if (autres.size === 1) [nomDeLaPalette] = [...autres];
+  else if (autres.size === 0 && lu) nomDeLaPalette = lu.palette;
+  else return { etat: 'sans-correction', raison: autres.size === 0 ? 'sans-palette' : 'palettes-multiples' };
+  const palette = index.palettes.get(nomDeLaPalette)!;
+  const attendue = palette.cellules.get(cleDeLaCible(cellule.cible));
+  if (!attendue) return { etat: 'rampe', palette, manque: texteDeLaPrimitive(cellule.cible) };
+  if (attendue.variable.distante) return { etat: 'sans-correction', raison: 'cible-de-library' };
+  return { etat: 'cible', cible: attendue };
+}
+
+/** Les palettes de `primitives` qui portent toutes les variables que la branche attend, sans variable de library. */
+function palettesCandidates(index: IndexDesLiens, branche: Branche): PaletteDePrimitives[] {
+  return [...index.palettes.values()]
+    .filter((palette) => branche.cellules.every((cellule) => { const lu = palette.cellules.get(cleDeLaCible(cellule.cible)); return lu !== undefined && !lu.variable.distante; }))
+    .sort((a, b) => (a.nom < b.nom ? -1 : a.nom > b.nom ? 1 : 0));
+}
+
+function ecrireLeNomDuLien(index: IndexDesLiens, collection: CollectionDuCatalogue, chemin: readonly string[], ecriture: EcritureChoisie): string {
+  const debut = index.collectionEcrite.get(collection.cle);
+  const segments = chemin.map((segment, rang) => index.ecrites.get(`${collection.cle}\0${segment}`) ?? ecrire(segment, rang === chemin.length - 1 ? ecriture.variables : ecriture.groupes));
+  return [...(debut ? [debut] : []), ...segments].join('/');
+}
+
+const colonne = (collection: CollectionDuCatalogue, mode: ModeDeLien, faits: Constat['faits']): Constat['faits'] => ({
+  collection: collection.nom, mode: mode.nom, ...faits, cleDeCollection: collection.cle, idDuMode: mode.id,
+});
+
+const regleDuLien = (variable: string, cible: Cible, palette: string): string =>
+  `${variable} vise ${texteDeLaPrimitive(cible)} de la palette ${palette}, comme les autres variables de sa branche.`;
+
+/** `variable` : l'alias d'un mode d'une variable qui existe. Sans elle : la création de la variable, avec son alias dans chaque mode donné, jamais de scope. */
+function correctionDeLien(
+  constat: Constat, collection: CollectionDuCatalogue, variable: VariableDuCatalogue | undefined, nom: string | undefined,
+  alias: Record<string, { cle: string; nom: string }>, avant: string | null, regle: string,
+): Correction | undefined {
+  const [[idDuMode, cible] = []] = Object.entries(alias);
+  if (!idDuMode || !cible) return undefined;
+  if (variable) {
+    const mode = collection.modes.find(({ id }) => id === idDuMode)!;
+    return { id: constat.id, sorte: 'alias-de-mode', cible: { variable: variable.cle, mode: idDuMode }, avant, apres: { cle: cible.cle, nom: cible.nom }, aRelire: { axes: { mode: mode.nom }, regle, avant } };
+  }
+  if (!nom) return undefined;
+  return {
+    id: constat.id, sorte: 'variable', cible: {}, avant: null, apres: { nom, collection: collection.nom }, aRelire: { regle, avant: null },
+    creation: { collection: collection.cle, nom, type: 'COLOR', scopes: [], alias },
+  };
+}
+
+function notePourLaRampe(notes: Map<string, NoteDeRampe>, collection: CollectionDuCatalogue, palette: PaletteDePrimitives, manque: string, cellule: string): void {
+  const cle = `${collection.cle}\0${formeReconnue(palette.nom)}`;
+  let note = notes.get(cle);
+  if (!note) { note = { collection, palette, manques: new Set(), cellules: new Set() }; notes.set(cle, note); }
+  note.manques.add(manque);
+  note.cellules.add(cellule);
+}
+
+const constatDeLien = (id: string, type: Constat['type'], faits: Constat['faits']): Constat => ({ id, code: 'C82', type, famille: 'liaisons', variants: [], layers: [], faits });
+
+/**
+ * Les liens de `brands` et de `utility` vers `primitives`, collection par collection et mode par mode. Une cellule sans lien reçoit la
+ * création de son alias quand les autres cellules de sa branche visent toutes la même palette et que `primitives` porte le cran voulu ;
+ * un lien qui vise le mauvais cran ou le mauvais thème de cette palette reçoit un alias corrigé. Une branche absente en entier donne une
+ * question sur la palette, sans réponse cochée. Un cran ou une palette absente de `primitives` renvoie vers Palettes, sans correction.
+ * Une variable qui vise une autre palette que ses voisines reste telle quelle, avec son constat.
+ */
+function controlerLesLiensDeCouleur(catalogue: CatalogueDeReference, options: OptionsDIntegrite): Constat[] {
+  const collections = catalogue.collections.filter((collection): collection is CollectionDuCatalogue & { role: CollectionDeLien } =>
+    (collection.role === 'brands' || collection.role === 'utility') && collection.etat === 'lue' && collection.modes.length > 0);
+  if (collections.length === 0) return [];
+  const index = indexerLesLiens(catalogue);
+  const ecriture = options.ecriture ?? null;
+  const constats: Constat[] = [];
+  const notes = new Map<string, NoteDeRampe>();
+
+  for (const collection of collections) {
+    const branches = BRANCHES[collection.role];
+    const contextes = new Map<string, ContexteDeBranche[]>();
+    for (const branche of branches) contextes.set(branche.id, collection.modes.map((mode) => contexteDeLaBranche(index, collection, branche, mode)));
+    const neutre = contextes.get('neutral')?.map(({ votes }) => paletteUnique(votes));
+
+    for (const branche of branches) {
+      const parMode = contextes.get(branche.id)!;
+      const ecartes = new Set<number>();
+      if (branche.sorte === 'palette') {
+        collection.modes.forEach((mode, m) => {
+          if (!parMode[m].lectures.every(({ etat }) => etat === 'manquant')) return;
+          ecartes.add(m);
+          constats.push(constatDeLaBrancheAbsente(index, collection, branche, mode));
+        });
+      }
+      const autresDuMode = (m: number, rang: number): ReadonlySet<string> | undefined => {
+        if (branche.sorte === 'palette') return palettesDesAutres(parMode[m], rang);
+        const palette = neutre?.[m];
+        return palette === undefined ? undefined : new Set([palette]);
+      };
+
+      branche.cellules.forEach((cellule, rang) => {
+        const variable = parMode[0].variables[rang];
+        const jugements = collection.modes.flatMap((mode, m) => {
+          if (ecartes.has(m)) return [];
+          const autres = autresDuMode(m, rang);
+          const lecture = parMode[m].lectures[rang];
+          if (!autres || lecture.etat === 'inconnu') return [];
+          const verdict = jugerLaCellule(index, cellule, lecture, autres);
+          if (verdict.etat === 'ok' || (lecture.etat === 'alias' && verdict.etat === 'sans-correction' && verdict.raison === 'palettes-multiples')) return [];
+          return [{ mode, lecture, verdict }];
+        });
+        if (jugements.length === 0) return;
+        const nomVoulu = cellule.chemin.join('/');
+        const libelle = `${collection.cle}/${nomVoulu}`;
+        for (const { verdict } of jugements) if (verdict.etat === 'rampe') notePourLaRampe(notes, collection, verdict.palette, verdict.manque, libelle);
+        if (jugements.some(({ verdict }) => verdict.etat === 'rampe')) return;
+        const palette = jugements.flatMap(({ verdict }) => (verdict.etat === 'cible' ? [verdict.cible.nom] : []))[0];
+
+        if (!variable) {
+          const nom = ecriture ? ecrireLeNomDuLien(index, collection, cellule.chemin, ecriture) : undefined;
+          const faits: Constat['faits'] = { genre: 'lien-manquant', variable: nomVoulu, groupe: branche.id, collection: collection.nom, ...(palette ? { palette } : {}), ...(nom ? { nom } : {}) };
+          const constat = constatDeLien(`C82:lien-manquant:${collection.cle}:${nomVoulu}`, 'corriger', faits);
+          const sansCible = jugements.find(({ verdict }) => verdict.etat !== 'cible');
+          const raison = sansCible && sansCible.verdict.etat === 'sans-correction' ? sansCible.verdict.raison : !ecriture ? 'sans-ecriture' : undefined;
+          if (raison) faits.raison = raison;
+          else {
+            const alias: Record<string, { cle: string; nom: string }> = {};
+            for (const { mode, verdict } of jugements) if (verdict.etat === 'cible') alias[mode.id] = { cle: verdict.cible.variable.cle, nom: verdict.cible.variable.nom };
+            constat.correction = correctionDeLien(constat, collection, undefined, nom, alias, null, regleDuLien(libelle, cellule.cible, palette));
+          }
+          constats.push(constat);
+          return;
+        }
+
+        for (const { mode, lecture, verdict } of jugements) {
+          const manquant = lecture.etat === 'manquant';
+          const genre = manquant ? 'lien-manquant' : 'lien-a-corriger';
+          const faits: Constat['faits'] = {
+            genre, variable: variable.nom, groupe: branche.id, ...colonne(collection, mode, {}),
+            ...(lecture.etat === 'alias' ? { avant: texteDeLaPrimitive(lecture.lu), attendu: texteDeLaPrimitive(cellule.cible) } : {}),
+          };
+          const constat = constatDeLien(`C82:${genre}:${variable.cle}:${mode.id}`, 'corriger', faits);
+          if (verdict.etat === 'sans-correction') faits.raison = verdict.raison;
+          else if (verdict.etat === 'cible') {
+            faits.palette = verdict.cible.nom;
+            constat.correction = correctionDeLien(
+              constat, collection, variable, undefined, { [mode.id]: { cle: verdict.cible.variable.cle, nom: verdict.cible.variable.nom } },
+              lecture.etat === 'alias' ? lecture.lu.variable.cle : null, regleDuLien(libelle, cellule.cible, verdict.cible.nom),
+            );
+          }
+          constats.push(constat);
+        }
+      });
+    }
+
+    if (collection.role === 'brands') constats.push(...questionsDeCharte(index, collection, contextes, notes));
+  }
+
+  for (const [cle, note] of notes) {
+    constats.push(constatDeLien(`C82:rampe-a-completer:${cle.replace('\0', ':')}`, 'corriger', {
+      genre: 'rampe-a-completer', collection: note.collection.nom, palette: note.palette.nom, manque: [...note.manques].join(', '), variables: note.cellules.size,
+    }));
+  }
+  return constats;
+}
+
+/** Une branche sans aucune valeur dans le mode : la palette est un choix du designer, parmi celles de `primitives` qui ont la forme voulue. */
+function constatDeLaBrancheAbsente(index: IndexDesLiens, collection: CollectionDuCatalogue, branche: Branche, mode: ModeDeLien): Constat {
+  const candidates = palettesCandidates(index, branche);
+  const faits = colonne(collection, mode, { groupe: branche.id });
+  if (candidates.length === 0) return constatDeLien(`C82:rampe-a-completer:${collection.cle}:${mode.id}:${branche.id}`, 'corriger', { genre: 'rampe-a-completer', ...faits, manque: 'palette' });
+  const id = `C82:palette-a-choisir:${collection.cle}:${mode.id}:${branche.id}`;
+  return { ...constatDeLien(id, 'verifier', { genre: 'palette-a-choisir', ...faits }), question: { id, candidats: candidates.map(({ nom }) => ({ nom })) } };
+}
+
+/**
+ * La couleur de charte (`identity/<famille>`) d'une marque vise un cran Light de la palette de la famille : le cran est un choix du
+ * designer, la question liste les crans Light de la palette sans en cocher un. Sans palette établie pour la famille, rien n'est demandé.
+ */
+function questionsDeCharte(index: IndexDesLiens, collection: CollectionDuCatalogue, contextes: ReadonlyMap<string, ContexteDeBranche[]>, notes: Map<string, NoteDeRampe>): Constat[] {
+  const constats: Constat[] = [];
+  collection.modes.forEach((mode, m) => {
+    for (const famille of FAMILLES_DE_MARQUE) {
+      const nom = paletteUnique(contextes.get(famille)![m].votes);
+      const palette = nom === undefined ? undefined : index.palettes.get(nom);
+      if (!palette) continue;
+      const chemin = ['identity', famille];
+      if (lireLeLien(index, variableDeLaCellule(index, collection, chemin), mode).etat !== 'manquant') continue;
+      const lights = CRANS.flatMap((cran) => { const lu = palette.cellules.get(cleDeLaCible({ theme: 'light', fin: cran })); return lu && !lu.variable.distante ? [lu] : []; });
+      if (lights.length === 0) {
+        for (const cran of CRANS) notePourLaRampe(notes, collection, palette, `light/${cran}`, `${collection.cle}/identity/${famille}`);
+        continue;
+      }
+      const id = `C82:charte-a-choisir:${collection.cle}:${mode.id}:${famille}`;
+      constats.push({
+        ...constatDeLien(id, 'verifier', { genre: 'charte-a-choisir', ...colonne(collection, mode, { variable: chemin.join('/'), groupe: famille, palette: palette.nom }) }),
+        question: { id, candidats: lights.map(({ variable }) => ({ cle: variable.cle, nom: variable.nom })) },
+      });
+    }
+  });
+  return constats;
+}
+
+/**
+ * Les corrections que la réponse du designer rend exactes. `palette-a-choisir` : `choix` est le nom de la palette, une correction par
+ * variable de la branche que le mode n'a pas (création si la variable n'existe pas et qu'une écriture est choisie, sinon alias du mode).
+ * `charte-a-choisir` : `choix` est la clé du cran Light retenu. Un autre constat, ou un choix hors de la question, ne rend rien.
+ */
+export function corrigerLaQuestionDeLien(catalogue: CatalogueDeReference, constat: Constat, choix: string, options: OptionsDIntegrite = {}): Correction[] {
+  const collection = collectionParCle(catalogue, String(constat.faits.cleDeCollection ?? ''));
+  const mode = collection?.modes.find(({ id }) => id === constat.faits.idDuMode);
+  if (!collection || !mode || (collection.role !== 'brands' && collection.role !== 'utility')) return [];
+  const index = indexerLesLiens(catalogue);
+  const ecriture = options.ecriture ?? null;
+  const corriger = (chemin: readonly string[], cle: string, nom: string, regle: string): Correction | undefined => {
+    const variable = variableDeLaCellule(index, collection, chemin);
+    if (variable && lireLeLien(index, variable, mode).etat !== 'manquant') return undefined;
+    const sortie: Constat = { ...constat, id: `${constat.id}:${chemin.join('/')}`, faits: {} };
+    return correctionDeLien(sortie, collection, variable, ecriture ? ecrireLeNomDuLien(index, collection, chemin, ecriture) : undefined, { [mode.id]: { cle, nom } }, null, regle);
+  };
+  if (constat.faits.genre === 'charte-a-choisir') {
+    const lu = index.primitives.get(choix);
+    const groupe = String(constat.faits.groupe);
+    const correction = lu && lu.theme === 'light' && lu.profil === undefined && lu.palette === formeReconnue(String(constat.faits.palette))
+      ? corriger(['identity', groupe], lu.variable.cle, lu.variable.nom, `identity/${groupe} vise le cran ${lu.fin} Light de la palette ${lu.nom}, choisi par le designer.`) : undefined;
+    return correction ? [correction] : [];
+  }
+  if (constat.faits.genre !== 'palette-a-choisir') return [];
+  const branche = BRANCHES[collection.role].find(({ id }) => id === constat.faits.groupe);
+  const palette = index.palettes.get(formeReconnue(choix));
+  if (!branche || branche.sorte !== 'palette' || !palette || !palettesCandidates(index, branche).includes(palette)) return [];
+  return branche.cellules.flatMap((cellule) => {
+    const lu = palette.cellules.get(cleDeLaCible(cellule.cible))!;
+    const correction = corriger(cellule.chemin, lu.variable.cle, lu.variable.nom, regleDuLien(`${collection.cle}/${cellule.chemin.join('/')}`, cellule.cible, palette.nom));
+    return correction ? [correction] : [];
+  });
 }
 
 function constatDeStructure(genre: string, id: string, faits: Constat['faits']): Constat {

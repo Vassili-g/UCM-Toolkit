@@ -9,6 +9,9 @@
  * aucune collection n'est reconnue ne suit pas l'architecture UCM, et ne reçoit
  * qu'une ligne qui le dit.
  *
+ * Les écarts de `brands` et de `utility` (variable sans lien vers `primitives`, famille sans palette, cran de charte, palette à compléter)
+ * entrent dans le même rapport : le contrôle ne crée aucune couleur, donc le rapport ne décide d'aucune palette.
+ *
  * Le rapport groupe les constats par genre, avec leur nombre et au plus
  * `EXEMPLES_PAR_GENRE` exemples de `LONGUEUR_D_UN_EXEMPLE` caractères : la
  * section tient sous la limite d'un commentaire quel que soit le nombre d'écarts.
@@ -56,6 +59,11 @@ const GENRES = [
   { genre: "sens-partage", libelle: "Palette dont les variables suivent deux sens de lecture" },
   { genre: "rampe-autre-palette", libelle: "Variable du thème qui vise la palette d'une autre" },
   { genre: "branche-de-mode", libelle: "Variable du thème liée à la branche de l'autre mode" },
+  { genre: "lien-manquant", libelle: "Variable de brands ou de utility sans lien vers primitives" },
+  { genre: "lien-a-corriger", libelle: "Variable de brands ou de utility liée à un autre cran que celui attendu" },
+  { genre: "palette-a-choisir", libelle: "Famille de brands ou de utility sans palette", exemple: (f) => `${nomEcrit(`${f.collection}/${f.groupe}`)}${mode(f)}` },
+  { genre: "charte-a-choisir", libelle: "Couleur de charte sans cran choisi", exemple: (f) => `${nomEcrit(`${f.collection}/${f.variable}`)}${mode(f)}` },
+  { genre: "rampe-a-completer", libelle: "Palette de primitives à compléter dans Palettes", exemple: (f) => (f.palette === undefined ? `${nomEcrit(`${f.collection}/${f.groupe}`)}${mode(f)}, aucune palette` : `${nomEcrit(f.palette)}, ${nomEcrit(f.manque)}`) },
   { genre: "couche", libelle: "Variable liée à une collection que sa couche n'admet pas" },
   { genre: "valeur-directe", libelle: "Couleur écrite en dur là où une variable est attendue" },
   { genre: "scopes", libelle: "Scopes différents de ceux que la variable doit porter" },

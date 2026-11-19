@@ -16,6 +16,7 @@ import {
   sectionArchitecture,
 } from "../src/lecteurs/diagnostic-architecture.mjs";
 import { bilanEstBloquant } from "../src/lecteurs/verdict-bilan.mjs";
+import { tokensAnonymises } from "./fixtures/tokensDeLiens.ts";
 
 const couleur = (r) => ({ colorSpace: "srgb", components: [r, 0.2, 0.3], alpha: 1 });
 const px = (value) => ({ $type: "dimension", $value: { value, unit: "px" } });
@@ -127,6 +128,28 @@ test("un fichier que la projection ne sait pas lire n'est pas jugé et ne lève 
   assert.deepEqual(constatsDeLArchitecture(illisible), { etat: "non-jugee" });
   assert.deepEqual(constatsDeLArchitecture(null), { etat: "non-jugee" });
   assert.match(sectionArchitecture({ etat: "non-jugee" }).join("\n"), /n'a pas pu être jugée/);
+});
+
+test("un fichier complet dans brands et utility ne reçoit aucun écart sur ces collections", () => {
+  const architecture = constatsDeLArchitecture(tokensAnonymises());
+
+  assert.deepEqual(genres(architecture), { "theme-non-reconnu": 1 });
+});
+
+test("les branches absentes de brands et de utility se comptent par genre, en information et sans palette choisie", () => {
+  const tokens = tokensAnonymises();
+  delete tokens.brands.secondary;
+  delete tokens.utility.warning;
+  const architecture = constatsDeLArchitecture(tokens);
+
+  assert.deepEqual(genres(architecture), { "theme-non-reconnu": 1, "palette-a-choisir": 3 });
+  const texte = sectionArchitecture(architecture).join("\n");
+  assert.match(texte, /^- Famille de brands ou de utility sans palette \(3\) : `brands\/secondary`, mode `marque-1` ; `brands\/secondary`, mode `marque-2` ; `utility\/warning`, mode `base`$/m);
+  assert.match(texte, /Cette information ne bloque pas la fusion\.$/m);
+
+  const { bloquant, rapport } = verdict({ tokens });
+  assert.equal(bloquant, false);
+  assert.match(rapport, /Famille de brands ou de utility sans palette \(3\)/);
 });
 
 // ─── Le verdict de `controlerRepository` ────────────────────────────────────
