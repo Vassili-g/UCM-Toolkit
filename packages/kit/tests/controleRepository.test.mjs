@@ -98,7 +98,7 @@ function verdict({ composants, tokens = TOKENS, casser, ...portee } = {}) {
   }
 }
 
-test("tout valide : rien ne bloque, et un rapport qui ne réclame rien", () => {
+test("tout valide : rien ne bloque, et le rapport ne réclame qu'une information sur les tokens", () => {
   const { bloquant, rapport } = verdict();
 
   assert.equal(bloquant, false);
@@ -106,7 +106,8 @@ test("tout valide : rien ne bloque, et un rapport qui ne réclame rien", () => {
     rapport,
     "<!-- ucm-rapport -->\n"
       + "## ✅ Aucun blocage détecté\n\n"
-      + "1 contrat et 1 référence de token contrôlés. Les contrôles bloquants sont passés.",
+      + "1 contrat et 1 référence de token contrôlés. Les contrôles bloquants sont passés."
+      + "\n### ℹ️ `tokens.json` ne suit pas l'architecture UCM : aucune collection reconnue (1 collection lue), elle n'est pas jugée.\n",
   );
 });
 

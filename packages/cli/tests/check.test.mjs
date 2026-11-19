@@ -99,6 +99,24 @@ test("un repository aux emplacements par défaut est contrôlé sans configurati
   }
 });
 
+test("l'architecture de tokens.json se lit en information : le rapport la décrit et la commande sort en 0", () => {
+  const px = (value) => ({ $type: "dimension", $value: { value, unit: "px" } });
+  const racine = repoJouet({ tokens: { ...TOKENS, layouts: { sizing: { 1: px(4), 2: px(4) } } } });
+  try {
+    const { code, sortie } = lancer(racine, ["--report", "rapport.md"]);
+    const rapport = readFileSync(join(racine, "rapport.md"), "utf8");
+
+    assert.equal(code, 0);
+    assert.match(rapport, /^## ✅ Aucun blocage détecté$/m);
+    assert.match(rapport, /^### ℹ️ L'architecture de `tokens.json` s'écarte de celle d'UCM \(2 écarts\)$/m);
+    assert.match(rapport, /^- Crans d'une échelle qui valent la même chose \(1\) : `sizing`, mode `base`, 2 crans à 4$/m);
+    assert.match(sortie.log.join("\n"), /ℹ 2 écarts d'architecture dans tokens\.json/);
+    assert.match(sortie.log.join("\n"), /✓ Contrats valides\./);
+  } finally {
+    rmSync(racine, { recursive: true, force: true });
+  }
+});
+
 /**
  * Le 1 et le 2 ne se confondent jamais : un workflow qui les mélangerait ferait
  * lire « votre export est en défaut » à quelqu'un dont le seul tort est une

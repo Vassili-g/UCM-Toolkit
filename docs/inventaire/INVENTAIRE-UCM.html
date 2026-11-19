@@ -1172,7 +1172,7 @@ dl.def.principes { grid-template-columns: 240px 1fr; }
   <p class="intro">Réponses tirées du dépôt et des décisions du mainteneur.</p>
   <dl class="def questions">
     <dt>Pourquoi un contrat JSON plutôt que l'API Figma ou Code Connect ?</dt><dd>Le CI lit le contrat sans accès à Figma, et le contrat est versionné à côté du code. Code Connect relie un composant Figma à son code sans décrire les obligations visuelles. Les deux se complètent.</dd>
-    <dt>L'API du kit est-elle stable ?</dt><dd>Non, elle est en 0.x. La piste <a href="#piste-P3">P3</a> fige les symboles importés, 40 aujourd'hui sur 433 noms exportés.</dd>
+    <dt>L'API du kit est-elle stable ?</dt><dd>Non, elle est en 0.x. La piste <a href="#piste-P3">P3</a> fige les symboles importés, 40 aujourd'hui sur 437 noms exportés.</dd>
     <dt>Que se passe-t-il quand le designer change un token ?</dt><dd>Sa valeur change dans <code>tokens.json</code>, et la demande passe. Le code suit une fois la feuille régénérée par <code>ucm tokens css</code>. Un token cité par un contrat puis retiré avertit aujourd'hui, et bloquera une fois la règle de blocage codée (<a href="#piste-P19">P19</a>).</dd>
     <dt>Un contrat peut-il arriver avant le code ?</dt><dd>Oui. Il est fusionné « à implémenter », et la parité s'applique dès que le composant existe.</dd>
     <dt>Comment tester sans Figma ?</dt><dd><code>npm test</code> couvre le moteur, les lecteurs sur des contrats fabriqués et la CLI sur des repositories temporaires. Ce qui touche Figma et une vraie forge se rejoue dans UCM-Playground, l'application de recette sur GitHub. Un agent ne peut pas exporter depuis Figma.</dd>
@@ -1311,20 +1311,20 @@ dl.def.principes { grid-template-columns: 240px 1fr; }
     <h4>Jobs des workflows</h4>
     <div class="defile"><table><tr><th>Job</th><th>Déclencheur</th><th>Ce qu'il lance</th></tr><tr><td><code>ci.yml</code>, job <code>test</code></td><td>push sur main, pull request</td><td><code>npm test</code>, <code>npm run build</code></td></tr><tr><td><code>ci.yml</code>, job <code>cascade</code></td><td>push sur main, pull request</td><td><code>npm run cascade</code>, <code>npm run test:ui --workspace ucm-exporter-plugin</code>, <code>npm run test:ui --workspace ucm-palettes-plugin</code>, <code>npm run test:ui --workspace ucm-architect-plugin</code></td></tr><tr><td><code>publish.yml</code>, job <code>publish</code></td><td>lancement à la main</td><td><code>npm test</code>, <code>npm publish --workspace "$PAQUET"</code>, <code>node scripts/pins-servis.mjs</code></td></tr></table></div>
   </div></details>
-  <details class="pli" id="annexe-entrees"><summary>Les 8 points d'entrée du kit <span class="doux">433 noms uniques, la CLI et l'adaptateur en importent 40</span></summary><div class="contenu">
+  <details class="pli" id="annexe-entrees"><summary>Les 8 points d'entrée du kit <span class="doux">437 noms uniques, la CLI et l'adaptateur en importent 40</span></summary><div class="contenu">
     <p>Les chemins d'import de <code>@ucm-kit/core</code>, lus dans <code>packages/kit/package.json</code>, avec le nombre de noms que chacun exporte. Ils disent ce qu'un outil peut importer du kit, et ce que la piste <a href="#piste-P3">P3</a> doit figer.</p>
     <div class="defile"><table>
       <tr><th>Point d'entrée</th><th class="n">Exports</th><th>Contenu</th></tr>
       <tr><td><code>./format</code></td><td class="n">46</td><td>Types du contrat, versions, noms de code et de variable CSS, grammaire de <code>ucm.config.json</code></td></tr>
       <tr><td><code>./emplois</code></td><td class="n">41</td><td>Table du thème, 9 garanties, contraste WCAG, sans dépendance</td></tr>
       <tr><td><code>./referentiel</code></td><td class="n">207</td><td>Toutes les définitions UCM (partie 4)</td></tr>
-      <tr><td><code>./controles</code></td><td class="n">54</td><td>Contrôles, corrections, préparation des tokens</td></tr>
+      <tr><td><code>./controles</code></td><td class="n">55</td><td>Contrôles, corrections, préparation des tokens</td></tr>
       <tr><td><code>./protocoles</code></td><td class="n">46</td><td>Données échangées entre plugins : recette, nommage, architecture</td></tr>
       <tr><td><code>./nommage</code></td><td class="n">19</td><td>Calcul des noms selon les règles du fichier</td></tr>
-      <tr><td><code>./lecteurs</code></td><td class="n">65</td><td>Validation de contrat, tokens, parité, rapport, verdict, en <code>.mjs</code> avec Node</td></tr>
+      <tr><td><code>./lecteurs</code></td><td class="n">68</td><td>Validation de contrat, tokens, parité, rapport, verdict, en <code>.mjs</code> avec Node</td></tr>
       <tr><td><code>./lecteurs/navigateur</code></td><td class="n">51</td><td>Les mêmes lecteurs sans Node</td></tr>
     </table></div>
-    <p>Les deux points d'entrée des lecteurs partagent la plupart de leurs noms, d'où 529 exports pour 433 noms uniques. Une définition UCM se modifie dans <code>src/referentiel/</code> seulement, et un test refuse sa copie ailleurs. <code>emplois</code> n'a aucune dépendance. Le kit n'importe rien du moteur de couleur. Chaque modification du référentiel change la version du kit.</p>
+    <p>Les deux points d'entrée des lecteurs partagent la plupart de leurs noms, d'où 533 exports pour 437 noms uniques. Une définition UCM se modifie dans <code>src/referentiel/</code> seulement, et un test refuse sa copie ailleurs. <code>emplois</code> n'a aucune dépendance. Le kit n'importe rien du moteur de couleur. Chaque modification du référentiel change la version du kit.</p>
   </div></details>
 
   <details class="pli" id="annexe-tests"><summary>Fichiers de test des paquets <span class="doux">nombre de fichiers par paquet</span></summary><div class="contenu">
@@ -1337,7 +1337,7 @@ dl.def.principes { grid-template-columns: 240px 1fr; }
       <tr><td>Socle</td><td class="n">36</td></tr>
       <tr><td>CLI</td><td class="n">10</td></tr>
       <tr><td>Adaptateur TypeScript</td><td class="n">3</td></tr>
-      <tr><td>Kit</td><td class="n">118</td></tr>
+      <tr><td>Kit</td><td class="n">120</td></tr>
       <tr><td>Moteur de couleur</td><td class="n">34</td></tr>
       <tr><td>Hub UCM</td><td class="n">1</td></tr>
     </table></div>

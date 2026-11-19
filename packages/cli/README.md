@@ -265,6 +265,17 @@ information that never blocks the merge. The contract does not say whether a
 text is large, where the threshold drops to 3:1: a false signal stays
 information. A colour outside sRGB, or translucent, is not measured.
 
+The check also judges the architecture of `tokens.json`, with the two checks
+UCM Architect runs on a Figma file: the theme's variables, the layers they
+target, scopes, modes and the sizing scales. It applies without any option,
+because every tool except the Exporter follows the UCM architecture. Its
+findings are information and never block the merge, so a pull request that
+carries only tokens stays green. The report groups them by kind, with the count
+and three examples of each, in its last section, and only when the pull request
+changes `tokens.json` (without `--base`, always). A file where no collection has
+a UCM name gets one line saying the architecture is not judged. Composite tokens
+(typography, shadow, curve) are not Figma variables and are not judged.
+
 A gap with the code warns: a developer closes it, and the merge goes through. A
 token removed from the design system warns too, so an older contract does not
 hold back the tokens. A contract may land before the code that implements it.

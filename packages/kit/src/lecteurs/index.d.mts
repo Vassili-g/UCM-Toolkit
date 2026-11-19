@@ -569,6 +569,33 @@ declare module "@ucm-kit/core/lecteurs" {
   /** Le rappel du terminal, ou `null` sans écart. */
   export function resumeTerminalContrastes(bilans: ReadonlyArray<{ contrastes?: ConstatDeContraste[] }>): string | null;
 
+  /** Les constats d'un genre, avec leur nombre et au plus trois exemples déjà écrits. */
+  export interface GroupeDArchitecture {
+    /** Le genre que le contrôle écrit : `cran`, `scopes`, `alias-supprime`… */
+    genre: string;
+    nombre: number;
+    exemples: string[];
+  }
+
+  /**
+   * L'architecture d'un `tokens.json`. `non-ucm` : aucune collection n'a le nom
+   * d'une collection UCM. `non-jugee` : un contrôle n'a pas su lire le fichier.
+   * `jugee` : `total` vaut zéro quand l'architecture est conforme.
+   */
+  export type ArchitectureDesTokens =
+    | { etat: "non-ucm"; collections: number }
+    | { etat: "non-jugee" }
+    | { etat: "jugee"; collections: number; total: number; groupes: GroupeDArchitecture[] };
+
+  /** Passe les contrôles d'architecture d'UCM Architect sur un `tokens.json`. Ne lève jamais. */
+  export function constatsDeLArchitecture(tokens: unknown): ArchitectureDesTokens;
+
+  /** La section du rapport, non bloquante ; `[]` sans écart ni valeur à rendre. */
+  export function sectionArchitecture(architecture: ArchitectureDesTokens | null): string[];
+
+  /** Le rappel du terminal, ou `null` sans écart. */
+  export function resumeTerminalArchitecture(architecture: ArchitectureDesTokens | null): string | null;
+
   /** Ce relevé de parité porte-t-il un écart ? */
   export function pariteEnEcart(ecarts: EcartsDeParite): boolean;
 

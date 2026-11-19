@@ -25,4 +25,6 @@ export { candidatsDeModele, constatsDeModele, proposerLaPropagation, type Candid
 export { controlerLeTheme, controlerLeThemeParEtapes, controlerLesModes } from './theme.js';
 export { controlerLaStructure, controlerLaStructureParEtapes, controlerLeCatalogue, controlerLesAliasesManquants } from './structure.js';
 export { controlerLIntegriteUcm, grouperLesCouches } from './integrite.js';
+export { catalogueDepuisTokens } from './projection-dtcg.js';
+export type { BilanDeConversion, ConversionDeTokens } from './projection-dtcg.js';
 export type { GroupeDeCouche, OptionsDIntegrite } from './integrite.js';

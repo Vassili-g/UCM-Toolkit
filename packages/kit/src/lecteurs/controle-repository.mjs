@@ -15,6 +15,7 @@ import {
 } from "@ucm-kit/core/format";
 
 import { avertissementsCorrigeables, resumeTerminalAvertissements, sectionAvertissementsExport } from "./avertissements-export.mjs";
+import { constatsDeLArchitecture, resumeTerminalArchitecture, sectionArchitecture } from "./diagnostic-architecture.mjs";
 import { aUnEcartDeParite, resumeTerminalEcartsDeParite, sectionEcartsDeParite } from "./diagnostic-parite.mjs";
 import { diagnosticEchecsDeTests, resumeTerminalEchecsDeTests } from "./diagnostic-tests.mjs";
 import { libelleNombre, rendreDiagnostic } from "./diagnostic-markdown.mjs";
@@ -289,7 +290,7 @@ function ajouterImplementationsEnAttente(lignes, bilans) {
 
 /** Rapport markdown destiné au designer : ce qui bloque, et quoi faire. */
 function rapportMarkdown(bilans, fautifs, bilansDuRapport, contexte) {
-  const { echecsDeTests, tokensModifies, sourceTokens, concerne } = contexte;
+  const { echecsDeTests, tokensModifies, sourceTokens, concerne, architecture } = contexte;
 
   // Une demande qui ne touche rien d'UCM n'a aucun geste à recevoir. Le
   // périmètre a déjà vidé toutes les sections informatives ; ce qui resterait
@@ -321,6 +322,8 @@ function rapportMarkdown(bilans, fautifs, bilansDuRapport, contexte) {
     lignes.push(...sectionAvertissementsExport(bilansDuRapport));
     lignes.push(...sectionEcartsDeParite(bilansDuRapport));
     ajouterImplementationsEnAttente(lignes, bilansDuRapport);
+    // En dernier : la coupe du rapport emporte d'abord l'information.
+    lignes.push(...sectionArchitecture(architecture));
     return finaliserRapport(lignes.join("\n"));
   }
 
@@ -428,6 +431,7 @@ function rapportMarkdown(bilans, fautifs, bilansDuRapport, contexte) {
 
   lignes.push(...sectionEcartsDeParite(bilansDuRapport));
   ajouterImplementationsEnAttente(lignes, bilansDuRapport);
+  lignes.push(...sectionArchitecture(architecture));
   return finaliserRapport(lignes.join("\n"));
 }
 
@@ -650,7 +654,7 @@ function refusDuFormatDeTokens(format, tokens, { sourceTokens, cheminTokens, ech
  * repository qui n'a rien exporté republiait sa procédure d'accueil sur chaque
  * demande, jusqu'à son premier composant.
  */
-function demarrage({ dossierDeclare, dossierAbsent, sourceTokens, tokensAbsents, echecsDeTests, concerne }) {
+function demarrage({ dossierDeclare, dossierAbsent, sourceTokens, tokensAbsents, echecsDeTests, concerne, architecture }) {
   if (!concerne && !echecsDeTests.echoue) {
     return {
       bilans: [],
@@ -687,16 +691,21 @@ function demarrage({ dossierDeclare, dossierAbsent, sourceTokens, tokensAbsents,
     "",
   );
   lignes.push(...diagnosticEchecsDeTests(echecsDeTests));
+  lignes.push(...sectionArchitecture(architecture));
+
+  const terminal = [{
+    flux: "log",
+    texte: `${GLYPHES.tenu.brut} Aucun contrat dans ${dossierDeclare} : ce repository n'a pas encore reçu d'export. Rien à contrôler.`,
+  }];
+  const resumeArchitecture = resumeTerminalArchitecture(architecture);
+  if (resumeArchitecture) terminal.push({ flux: "log", texte: `\n${resumeArchitecture}` });
 
   return {
     bilans: [],
     fautifs: [],
     bloquant: echecsDeTests.echoue,
     rapport: finaliserRapport(lignes.join("\n")),
-    terminal: [{
-      flux: "log",
-      texte: `${GLYPHES.tenu.brut} Aucun contrat dans ${dossierDeclare} : ce repository n'a pas encore reçu d'export. Rien à contrôler.`,
-    }],
+    terminal,
   };
 }
 
@@ -787,8 +796,16 @@ export function controlerRepository(racine, {
     return refusDuFormatDeTokens(format, tokensDtcg, { sourceTokens, cheminTokens, echecsDeTests });
   }
 
+  // L'architecture est celle du fichier de tokens, pas d'un contrat : elle se dit
+  // dans le rapport d'une demande qui touche les tokens, ou d'un contrôle sans
+  // périmètre (`cheminsModifies` absent). Un fichier absent n'a rien à juger.
+  const architecture = tokensAbsents || !(tokensModifies || cheminsModifies === undefined)
+    ? null
+    : constatsDeLArchitecture(tokensDtcg);
+
   if (contrats.length === 0) {
     return demarrage({
+      architecture,
       dossierDeclare: configuration.components,
       dossierAbsent,
       sourceTokens,
@@ -833,7 +850,7 @@ export function controlerRepository(racine, {
     motif, tokensModifies,
   });
   const rapport = rapportMarkdown(bilans, fautifs, bilansDuRapport, {
-    echecsDeTests, tokensModifies, sourceTokens, concerne,
+    echecsDeTests, tokensModifies, sourceTokens, concerne, architecture,
   });
 
   const terminal = [...terminalDesBilans(bilans), ...terminalDesFautifs(fautifs)];
@@ -858,6 +875,8 @@ export function controlerRepository(racine, {
   // Comme dans le rapport : une demande de tokens rappelle les contrastes de tous les contrats, une autre ceux qu'elle touche.
   const resumeContrastes = resumeTerminalContrastes(tokensModifies ? bilans : bilansDuRapport);
   if (resumeContrastes) terminal.push({ flux: "log", texte: `\n${resumeContrastes}` });
+  const resumeArchitecture = resumeTerminalArchitecture(architecture);
+  if (resumeArchitecture) terminal.push({ flux: "log", texte: `\n${resumeArchitecture}` });
 
   // Le rapport porte le verdict complet : le verdict couvre donc ce que ce
   // module a relayé comme ce qu'il a constaté, sans quoi la chaîne pourrait

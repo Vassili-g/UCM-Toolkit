@@ -136,6 +136,16 @@ export {
 } from "./diagnostic-contrastes.mjs";
 
 /**
+ * L'architecture de `tokens.json` jugée par les contrôles d'UCM Architect : une
+ * information qui ne bloque jamais.
+ */
+export {
+  constatsDeLArchitecture,
+  sectionArchitecture,
+  resumeTerminalArchitecture,
+} from "./diagnostic-architecture.mjs";
+
+/**
  * L'écart contrat ↔ code : le juger et le dire.
  *
  * Le mesurer reste chez l'adaptateur ; décider si le relevé qu'il rend

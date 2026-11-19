@@ -68,6 +68,10 @@ export const EXCLUSIONS: Readonly<Record<string, GroupeExclu[]>> = {
       noms: ["axeDePropriete", "axesDesProprietes", "axesDuReleve", "axesDuReleveParEtapes", "candidatsDeModele", "cheminComplet", "cheminDansLaCollection", "cheminDeLaVariable", "clesDesTokensDeTailleAttendus", "collectionDuCatalogue", "collectionsDeReference", "constatsDeModele", "estUnInterrupteur", "grouperLesCouches", "layersVisiblesDuVariant", "lectureManquee", "nomDAxeEnAnglais", "nomDansFigma", "peintureVisible", "preparerLesTokens", "proposerLaPropagation", "proposerLesCorrections", "proposerLesCorrectionsParEtapes", "segmentDAxe", "tokensDuComposant", "tokensDuComposantParEtapes", "variableDuCatalogue", "variableParCheminComplet"],
     },
     {
+      motif: "Conversion d'un `tokens.json` en catalogue, appelée par `ucm check` avant les contrôles que la page montre par leurs codes.",
+      noms: ["catalogueDepuisTokens"],
+    },
+    {
       motif: "Borne ou seuil interne d'un contrôle d'Architect, sans intérêt pour le lecteur de la page.",
       noms: ["BORNE_DE_COMBINAISONS", "SEUILS_D_ACCESSIBILITE"],
     },

@@ -94,7 +94,7 @@ interne.
 | `ucm init` écrit le chemin `./node_modules/@ucm-kit/core/schema/ucm-contract.schema.json` dans le `.vscode/settings.json` du consommateur | `packages/cli/src/init.mjs` |
 | Les 6 paquets privés (trois plugins, socle, hub, couleur) dépendent du kit en `*` et importent 348 couples distincts de point d'entrée et de nom | relevé de leurs `src/` |
 | Aucun code d'UCM-Playground ni d'intencial-library n'importe le kit ; les deux le citent seulement dans `.vscode/settings.json` | recherche dans les deux dépôts |
-| Le workflow d'intencial-library lance `@ucm-kit/cli@0.1.48`, 103 versions derrière la 0.1.151 | `.github/workflows/ucm.yml` de la bibliothèque |
+| Le workflow d'intencial-library lance la CLI en version 0.1.48, 103 versions derrière la 0.1.151 | `.github/workflows/ucm.yml` de la bibliothèque |
 | Les README du kit, de la CLI et de l'adaptateur disent « 0.x, the public surface is not frozen. Pin an exact version » | leurs `README.md` |
 | `tests/versionSuitLeContenu.test.mjs` exige un nouveau numéro quand un fichier publié change, sans dire lequel des trois chiffres | le test |
 | Aucun `CHANGELOG.md` n'existe sous `packages/` ; le registre des documents accepte `packages/*/CHANGELOG.md` | `.agents/domiciles.json` |
