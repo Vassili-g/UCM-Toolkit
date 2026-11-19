@@ -26,7 +26,7 @@ Le mainteneur ne porte pas cette connaissance. Une décision n'est livrée que s
   - [ ] M1.5. Connaissance portée par le dépôt : les règles de la décision (prise unique, numéros, préavis, journal, référentiel hors de la prise, décision avec le mainteneur) entrent dans un fichier d'invariants du kit que `npm run agents:lire -- packages/kit/src/modules/index.mjs` rend ; la skill `.agents/skills/publier-paquets/SKILL.md` dit quel chiffre monter et quand écrire le journal ; `packages/kit/README.md` dit que seule `./modules` est promise.
   - [ ] M1.6. `packages/cli/src/guide.mjs` signale un `@ucm-kit/core` installé dans le repository à une autre version que celui de la CLI, avec son test.
   - Fin : les critères de fin de la partie 3 de la décision, `npm run test --workspace @ucm-kit/core`, `npm run test:paquet -- cli`, `npm run typecheck`. Seul `tests/versionSuitLeContenu.test.mjs` peut échouer avant M3.
-- [x] M2. Le guide des modules (P4). Agent : `implementeur`. Après M1.
+- [x] M2 (245da6a5). Le guide des modules (P4). Agent : `implementeur`. Après M1.
   - [x] `docs/guides/MODULES.md` : où brancher un module, la prise et ses 8 noms, l'épinglage sur le kit de la CLI, la règle ESLint `no-restricted-imports` qui refuse les autres portes, comment tester un module sur les contrats de `packages/kit/fixtures/contrats/`, comment demander un nom nouveau.
   - [x] Renvois d'une ligne depuis `AGENTS.md` (sous 12 288 octets), `docs/README.md` et `packages/kit/README.md`.
   - Fin : `npx tsx --test tests/domiciles.test.ts tests/docLinks.test.ts tests/styleDocumentaire.test.ts tests/registreDesDocuments.test.ts` passe.
