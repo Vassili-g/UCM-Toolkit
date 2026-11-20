@@ -781,6 +781,95 @@
     this.textContent = deplie ? 'Tout replier' : 'Tout déplier';
   });
 
+  // Produits cités : chaque nom d'un des cinq outils de la partie 2 devient une étiquette qui mène à sa carte. Le marquage passe après le
+  // rendu des pistes, sur le texte seul : un lien, du code, un titre, un bouton ou un résumé de pli gardent leur texte. Une carte ne
+  // s'étiquette pas elle-même. Un lien écrit vers une carte (href="#outil-…") prend la même étiquette.
+  var PRODUITS = [
+    ['exporter', /UCM Contract Exporter|Contract Exporter|Exporter/],
+    ['palettes', /UCM Palettes|Palettes/],
+    ['architect', /UCM Architect|Architect/],
+    ['adaptateur', /[Aa]daptateur TypeScript|adaptateur/],
+    ['cli', /CLI/],
+  ];
+  var NOM_DE_PRODUIT = new RegExp('(?<![\\p{L}\\d_@/.-])(' + PRODUITS.map(function (p) { return p[1].source; }).join('|') + ')(?![\\p{L}\\d_-])', 'gu');
+  var HORS_ETIQUETTE = 'a, code, pre, script, style, svg, button, summary, textarea, select, label, h1, h2, h3, h4, th, .chemin, .fiche .nom, .etat, .alerte, nav';
+  function produitDuNom(nom) {
+    for (var i = 0; i < PRODUITS.length; i++) if (new RegExp('^(' + PRODUITS[i][1].source + ')$').test(nom)) return PRODUITS[i][0];
+    return null;
+  }
+  // L'étiquette porte le nom court, avec une majuscule : « UCM Palettes » s'écrit « Palettes », « adaptateur » « Adaptateur ». Le titre de la carte garde le nom complet.
+  function etiqueter(lien, produit) {
+    var nom = lien.textContent.replace(/^UCM /, '');
+    lien.classList.add('produit', 'p-' + produit); lien.textContent = nom.charAt(0).toUpperCase() + nom.slice(1);
+  }
+  document.querySelectorAll('main a[href^="#outil-"]').forEach(function (a) {
+    var cible = document.getElementById(a.getAttribute('href').slice(1));
+    if (cible && cible.classList.contains('fiche') && !a.closest('.fiche .nom')) etiqueter(a, a.getAttribute('href').slice(7));
+  });
+  document.querySelectorAll('main .fiche[id^="outil-"]').forEach(function (f) { f.classList.add('p-' + f.id.slice(6)); });
+  var marcheur = document.createTreeWalker(document.querySelector('main'), NodeFilter.SHOW_TEXT, {
+    acceptNode: function (n) {
+      if (!n.parentElement || n.parentElement.closest(HORS_ETIQUETTE)) return NodeFilter.FILTER_REJECT;
+      NOM_DE_PRODUIT.lastIndex = 0;
+      return NOM_DE_PRODUIT.test(n.nodeValue) ? NodeFilter.FILTER_ACCEPT : NodeFilter.FILTER_REJECT;
+    }
+  });
+  var textes = [];
+  while (marcheur.nextNode()) textes.push(marcheur.currentNode);
+  textes.forEach(function (n) {
+    var carte = n.parentElement.closest('.fiche[id^="outil-"]'), soi = carte ? carte.id.slice(6) : null;
+    var morceaux = document.createDocumentFragment(), texte = n.nodeValue, depuis = 0, m;
+    NOM_DE_PRODUIT.lastIndex = 0;
+    while ((m = NOM_DE_PRODUIT.exec(texte))) {
+      var produit = produitDuNom(m[1]);
+      if (!produit || produit === soi) continue;
+      morceaux.appendChild(document.createTextNode(texte.slice(depuis, m.index)));
+      var a = document.createElement('a'); a.href = '#outil-' + produit; a.textContent = m[1]; etiqueter(a, produit);
+      morceaux.appendChild(a);
+      depuis = m.index + m[1].length;
+    }
+    if (depuis === 0) return;
+    morceaux.appendChild(document.createTextNode(texte.slice(depuis)));
+    n.parentNode.replaceChild(morceaux, n);
+  });
+  // La carte atteinte s'entoure un instant de la couleur du produit.
+  document.addEventListener('click', function (e) {
+    var a = e.target.closest && e.target.closest('a.produit');
+    if (!a) return;
+    var carte = document.getElementById(a.getAttribute('href').slice(1));
+    if (!carte) return;
+    carte.classList.remove('vise'); void carte.offsetWidth; carte.classList.add('vise');
+  });
+
+  // Revenir : un lien interne de la page garde l'endroit d'où l'on part. Le bouton ramène ce lien à la même hauteur d'écran,
+  // même si un pli s'est ouvert entre-temps, puis le souligne un instant. Les liens du sommaire ne comptent pas.
+  var depart = [], boutonRevenir = document.getElementById('revenir'), lieuRevenir = document.getElementById('revenir-lieu');
+  function lieuDe(el) {
+    var titres = document.querySelectorAll('main h2, main h3');
+    var lieu = '';
+    titres.forEach(function (t) { if (t.compareDocumentPosition(el) & Node.DOCUMENT_POSITION_FOLLOWING) lieu = t.textContent.replace(/^\d+/, '').trim(); });
+    return lieu;
+  }
+  function majRevenir() {
+    var dernier = depart[depart.length - 1];
+    boutonRevenir.hidden = !dernier;
+    if (dernier) lieuRevenir.textContent = dernier.lieu ? '« ' + dernier.lieu + ' »' : '';
+  }
+  document.addEventListener('click', function (e) {
+    var a = e.target.closest && e.target.closest('main a[href^="#"]');
+    if (!a || a.getAttribute('href').length < 2 || !document.getElementById(a.getAttribute('href').slice(1))) return;
+    depart.push({ lien: a, haut: a.getBoundingClientRect().top, lieu: lieuDe(a) });
+    if (depart.length > 30) depart.shift();
+    majRevenir();
+  });
+  boutonRevenir.addEventListener('click', function () {
+    var d = depart.pop();
+    majRevenir();
+    if (!d || !d.lien.isConnected) return;
+    window.scrollTo({ top: d.lien.getBoundingClientRect().top + window.scrollY - d.haut });
+    d.lien.classList.remove('revenir-ici'); void d.lien.offsetWidth; d.lien.classList.add('revenir-ici');
+  });
+
   // Sommaire : la partie visible est surlignée.
   var liens = document.querySelectorAll('nav.sommaire ol > li > a');
   var obs = new IntersectionObserver(function (entrees) {

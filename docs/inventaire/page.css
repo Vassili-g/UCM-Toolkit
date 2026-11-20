@@ -4,6 +4,11 @@
   --ambre: #a16207; --ambre-fond: #fef9e7; --bleu: #1d4ed8; --bleu-fond: #eef3ff;
   --orange: #c2410c; --orange-fond: #fff4ec; --violet: #6d28d9; --violet-fond: #f4f0ff;
   --code: #eef0f4; --ombre: 0 1px 2px rgb(0 0 0 / .05);
+  /* Produits : une teinte claire et une encre tirées de la couleur clef du logo (docs/marque/README.md). La CLI et l'adaptateur prennent celles du Toolkit. Contraste de l'encre sur sa teinte : 5,9:1 au moins. */
+  --p-palettes: #a3321f; --p-palettes-fond: #ffe9e4; --p-palettes-vif: #ff6f5e;
+  --p-architect: #6a2bb0; --p-architect-fond: #f2e9fc; --p-architect-vif: #8a3fd8;
+  --p-exporter: #17607e; --p-exporter-fond: #e1f2f8; --p-exporter-vif: #2f9fc4;
+  --p-toolkit: #2e2152; --p-toolkit-fond: #ebe8f3; --p-toolkit-vif: #c04ad8;
   color-scheme: light;
 }
 * { box-sizing: border-box; }
@@ -427,3 +432,22 @@ a.sujet:focus-visible { outline: 2px solid var(--texte); outline-offset: 2px; }
   .piste-ligne .choix-ligne { min-width: 0; }
   .fiche-piste { padding-left: 14px; }
 }
+
+/* Étiquette d'un produit cité dans le texte (page.js, « Produits cités ») : teinte et encre du logo, lien vers la carte de la partie 2. */
+a.produit { color: var(--encre, var(--texte)); background: var(--teinte, var(--surface-2)); font-weight: 600; text-decoration: none; padding: 0 .32em; border-radius: 4px; white-space: nowrap; box-decoration-break: clone; -webkit-box-decoration-break: clone; transition: background-color .15s; }
+a.produit:hover { background: color-mix(in srgb, var(--teinte, var(--surface-2)) 86%, var(--encre, var(--texte))); }
+a.produit:focus-visible { outline: 2px solid var(--vif); outline-offset: 1px; }
+.p-palettes { --encre: var(--p-palettes); --teinte: var(--p-palettes-fond); --vif: var(--p-palettes-vif); }
+.p-architect { --encre: var(--p-architect); --teinte: var(--p-architect-fond); --vif: var(--p-architect-vif); }
+.p-exporter { --encre: var(--p-exporter); --teinte: var(--p-exporter-fond); --vif: var(--p-exporter-vif); }
+.p-cli, .p-adaptateur { --encre: var(--p-toolkit); --teinte: var(--p-toolkit-fond); --vif: var(--p-toolkit-vif); }
+/* La carte atteinte par une étiquette s'entoure un instant de la couleur du produit. */
+.fiche.vise { animation: vise 1.8s ease-out; }
+@keyframes vise { from { box-shadow: 0 0 0 3px var(--vif); } to { box-shadow: 0 0 0 3px transparent; } }
+/* Retour au lien d'où l'on est parti (page.js, « Revenir »). */
+.revenir { position: fixed; right: 20px; bottom: 20px; z-index: 10; display: flex; align-items: center; gap: 8px; max-width: min(360px, calc(100vw - 32px)); background: var(--texte); color: var(--surface); border: 0; border-radius: 8px; padding: 8px 14px; font-size: .88rem; box-shadow: 0 4px 14px rgb(0 0 0 / .18); text-align: left; }
+.revenir:hover { background: #000; }
+.revenir small { color: #c9ced8; font-size: .8rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.revenir-ici { animation: revenir-ici 1.6s ease-out; border-radius: 4px; }
+@keyframes revenir-ici { from { outline: 2px solid var(--texte); outline-offset: 2px; } to { outline: 2px solid transparent; outline-offset: 2px; } }
+@media (max-width: 860px) { .revenir { right: 16px; bottom: 16px; } }
