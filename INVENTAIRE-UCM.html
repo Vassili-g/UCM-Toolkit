@@ -461,7 +461,7 @@ a.sujet:focus-visible { outline: 2px solid var(--texte); outline-offset: 2px; }
 <!-- 1. Le concept UCM : le problème général, la réponse, les deux promesses, le flux, les principes, ce qui manque. -->
 <section class="partie" id="concept">
   <h1>Ce que contient UCM Toolkit</h1>
-  <p class="versions doux">Versions publiées : kit 0.17.2, CLI 0.2.1, adaptateur 0.2.12, <a class="terme" href="#g-contrat14" title="Le numéro du format du contrat. ucm check accepte les contrats 13.0 et 14.0.">contrat 14.0</a>.</p>
+  <p class="versions doux">Versions publiées : kit 0.17.3, CLI 0.2.2, adaptateur 0.2.13, <a class="terme" href="#g-contrat14" title="Le numéro du format du contrat. ucm check accepte les contrats 13.0 et 14.0.">contrat 14.0</a>.</p>
   <h2><span class="num">1</span>Le concept UCM</h2>
   <p class="defini">Défini dans <code>CONCEPT.md</code> et <code>ROADMAP.md</code>.</p>
   <p class="chapeau">Dans un design system, un composant existe à plusieurs endroits : la maquette Figma, le code, les <a class="terme" href="#g-token" title="Une variable Figma publiée sous son chemin, comme theme/primary/solid/default.">tokens</a> et la documentation. Ces versions divergent quand aucun outil ne les compare. Une variante dessinée manque au code, un token cité a disparu, et l'équipe ne sait plus quelle version fait foi.</p>
@@ -611,7 +611,7 @@ a.sujet:focus-visible { outline: 2px solid var(--texte); outline-offset: 2px; }
   <h3>Les paquets sans carte</h3>
   <div class="defile"><table>
     <tr><th>Paquet</th><th>Rôle</th><th>Distribution</th></tr>
-    <tr><td><b>Kit</b></td><td>Format, référentiel, contrôles, <a class="terme" href="#g-lecteur" title="Une fonction du kit qui lit un contrat ou tokens.json et rend un bilan. La CLI s'en sert dans le CI.">lecteurs</a>. Tous les outils en dépendent. Neuf <a class="terme" href="#g-entree" title="Un chemin d'import du kit, comme @ucm-kit/core/lecteurs.">points d'entrée</a>, listés en annexe.</td><td>npm 0.17.2</td></tr>
+    <tr><td><b>Kit</b></td><td>Format, référentiel, contrôles, <a class="terme" href="#g-lecteur" title="Une fonction du kit qui lit un contrat ou tokens.json et rend un bilan. La CLI s'en sert dans le CI.">lecteurs</a>. Tous les outils en dépendent. Neuf <a class="terme" href="#g-entree" title="Un chemin d'import du kit, comme @ucm-kit/core/lecteurs.">points d'entrée</a>, listés en annexe.</td><td>npm 0.17.3</td></tr>
     <tr><td><b>Socle</b></td><td>Code partagé des plugins : build, langage visuel, galerie, moteur d'extraction</td><td>privé, en source</td></tr>
     <tr><td><b>Moteur de couleur</b></td><td>Rampes, contrastes, garanties, harmonisation. Sans Figma ni DOM. Lu par Palettes, Architect, Hub.</td><td>privé</td></tr>
     <tr><td><b>Hub UCM</b></td><td>Page locale des sorties du kit et du moteur, <span class="etat partiel">partiel</span>. Storybook la remplacera (<a href="#piste-P9">P9</a>).</td><td>privé</td></tr>
@@ -1038,9 +1038,9 @@ a.sujet:focus-visible { outline: 2px solid var(--texte); outline-offset: 2px; }
       <tr><td>Contrat</td><td class="n">14.0</td><td>13.0 et 14.0. Hors fenêtre, le designer réexporte ou le mainteneur met à jour les paquets.</td></tr>
       <tr><td>Schéma JSON</td><td class="n">suit le contrat</td><td>Dérivé de <code>types.ts</code>. Il décrit la forme, jamais la cohérence.</td></tr>
       <tr><td>tokens.json</td><td class="n">2</td><td>1 et 2. DTCG module 2025.10, lu par Style Dictionary 5. Style Dictionary 4 écrit <code>[object Object]</code> sans échouer.</td></tr>
-      <tr><td>@ucm-kit/core</td><td class="n">0.17.2</td><td>0.x : aucune compatibilité promise.</td></tr>
-      <tr><td>@ucm-kit/cli</td><td class="n">0.2.1</td><td><a class="terme" href="#g-epingler" title="Écrire une version exacte, sans ^, pour que npm n'en installe jamais une autre.">Épingle</a> le kit 0.17.2. Le repository l'installe en version exacte, sans <code>^</code>.</td></tr>
-      <tr><td>@ucm-kit/adapter-typescript</td><td class="n">0.2.12</td><td>Épingle le kit 0.17.2.</td></tr>
+      <tr><td>@ucm-kit/core</td><td class="n">0.17.3</td><td>0.x : aucune compatibilité promise.</td></tr>
+      <tr><td>@ucm-kit/cli</td><td class="n">0.2.2</td><td><a class="terme" href="#g-epingler" title="Écrire une version exacte, sans ^, pour que npm n'en installe jamais une autre.">Épingle</a> le kit 0.17.3. Le repository l'installe en version exacte, sans <code>^</code>.</td></tr>
+      <tr><td>@ucm-kit/adapter-typescript</td><td class="n">0.2.13</td><td>Épingle le kit 0.17.3.</td></tr>
       <tr><td>Recette Palettes</td><td class="n">12</td><td>Lit 8 à 12, en migrant une étape par format.</td></tr>
     </table></div>
     <p class="doux">Contrat 12.0 : rotation, défaut posé par le designer. 13.0 : <code>textTransform</code>. 14.0 : effets, opacité, position dans un conteneur sans auto layout. <code>COMPATIBILITE.md</code> range les changements en 12 classes, et une mineure n'est jamais présumée compatible.</p>
@@ -1078,9 +1078,9 @@ a.sujet:focus-visible { outline: 2px solid var(--texte); outline-offset: 2px; }
   <div class="a-revoir" role="note"><p class="a-revoir-titre">À revoir par le mainteneur</p>
     <p>L'exemple de droite est une pull request de code : le développeur modifie <code>Button.tsx</code> sans ajouter <code>size</code>. Une pull request du designer qui ne change que <code>Button.contract.json</code> passe, et le composant devient « en retard sur son contrat » (V-05 de P19).</p>
     <p>Le point à trancher est V-11. Un développeur qui touche le code d'un composant en retard, pour corriger un bug par exemple, est bloqué tant qu'il ne rattrape pas le contrat ou ne pose pas de dérogation.</p>
-    <p>La colonne de gauche décrit encore l'ancienne CLI, qui avertissait sans bloquer. La CLI 0.2.1 applique déjà la règle de droite, sauf le bouton grisé, qui attend la protection de branche de <a href="#piste-P17">P17</a>.</p></div>
+    <p>La colonne de gauche décrit encore l'ancienne CLI, qui avertissait sans bloquer. La CLI 0.2.2 applique déjà la règle de droite, sauf le bouton grisé, qui attend la protection de branche de <a href="#piste-P17">P17</a>.</p></div>
   <div class="rapports">
-    <figure class="rapport"><figcaption>Aujourd'hui (CLI 0.2.1)</figcaption>
+    <figure class="rapport"><figcaption>Aujourd'hui (CLI 0.2.2)</figcaption>
       <div class="pr"><div class="pr-tete">ucm check</div>
         <div class="pr-corps">
           <p class="pr-titre tenu">Aucun blocage détecté</p>

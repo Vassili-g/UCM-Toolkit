@@ -44,7 +44,7 @@ exacte de `@ucm-kit/core` que la CLI `@ucm-kit/cli` du repository épingle, sans
 `^`, sans `~`, sans lien :
 
 ```json
-{ "dependencies": { "@ucm-kit/core": "0.17.2" } }
+{ "dependencies": { "@ucm-kit/core": "0.17.3" } }
 ```
 
 Quand le kit installé diffère de celui de la CLI, `ucm guide <contrat>` ajoute à

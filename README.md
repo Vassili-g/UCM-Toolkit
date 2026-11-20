@@ -1,6 +1,6 @@
 # UCM Toolkit
 
-UCM Toolkit regroupe quatre plugins Figma et les outils qui contrôlent les
+UCM Toolkit regroupe trois plugins Figma et les outils qui contrôlent les
 contrats de composants dans un dépôt de code. Un contrat décrit le visuel
 exporté depuis Figma ; le développeur écrit le comportement du composant.
 
@@ -63,10 +63,10 @@ Le [README de l'exporteur](./packages/plugin-exporter/README.md) décrit ses
 commandes et sa connexion à GitHub ou GitLab. Le
 [guide designer](./docs/guides/POUR-LES-DESIGNERS.md) accompagne le premier export.
 
-Pour construire les quatre plugins localement, suivez la section
+Pour construire les trois plugins localement, suivez la section
 [Construction](#construire-le-plugin-depuis-ce-dépôt). Les README de
-[Palettes](./packages/plugin-palettes/README.md#ouvrir-le-plugin) et de
-[l'explorateur](./packages/plugin-architect/README.md#ouvrir-le-plugin)
+[Palettes](./packages/plugin-palettes/README.md#ouvrir-le-plugin) et
+d'[UCM Architect](./packages/plugin-architect/README.md#ouvrir-le-plugin)
 donnent leurs prérequis propres.
 
 ## Brancher un repository
@@ -74,7 +74,7 @@ donnent leurs prérequis propres.
 Avec Node 20 ou plus, à la racine du dépôt consommateur :
 
 ```sh
-npx --yes @ucm-kit/cli@0.2.1 init
+npx --yes @ucm-kit/cli@0.2.2 init
 ```
 
 `init` crée la configuration et la CI de la forge détectée, sans écraser les
@@ -91,7 +91,7 @@ consommateur peut utiliser une autre technologie que Node.
 Pour choisir d'autres chemins dès l'installation :
 
 ```sh
-npx --yes @ucm-kit/cli@0.2.1 init \
+npx --yes @ucm-kit/cli@0.2.2 init \
   --components src/components \
   --tokens src/tokens \
   --implementation '{dir}/{id}.vue'
@@ -100,7 +100,7 @@ npx --yes @ucm-kit/cli@0.2.1 init \
 Pour contrôler les exports sur le poste :
 
 ```sh
-npx --yes @ucm-kit/cli@0.2.1 check --report ci-report.md
+npx --yes @ucm-kit/cli@0.2.2 check --report ci-report.md
 ```
 
 Gardez une version exacte. Le [README du CLI](./packages/cli/README.md)
@@ -114,11 +114,11 @@ aussi le contraste de chaque couleur d'un composant contre son fond, dans
 chaque marque et chaque thème, quel que soit le nom des collections.
 La parité avec le code demande un adaptateur installé dans le dépôt consommateur.
 
-Un contrat illisible bloque le contrôle. Les écarts de références et de
-parité produisent des avertissements ; un contraste insuffisant reste une
-information, qui ne bloque pas la fusion. Le
-[détail des verdicts](./packages/cli/README.md#what-the-report-says) distingue
-chaque cas, notamment un fichier de tokens absent ou illisible.
+Un contrat illisible bloque le contrôle. Un écart de parité bloque la pull
+request qui touche le code ou le contrat. Les écarts de références produisent
+des avertissements ; un contraste insuffisant reste une information, qui ne
+bloque pas la fusion. Le [détail des verdicts](./packages/cli/README.md#what-the-report-says)
+distingue chaque cas, notamment un fichier de tokens absent ou illisible.
 
 Le contrôle statique ne prouve pas la fidélité visuelle. La
 [recette externe](./docs/guides/RECETTE.md) ajoute l'export réel et la comparaison
@@ -141,14 +141,11 @@ Dans Figma Desktop, ouvrez `Plugins > Development > Import plugin from manifest`
 | UCM Palettes | `packages/plugin-palettes/dist/manifest.json` |
 | UCM Architect | `packages/plugin-architect/dist/manifest.json` |
 
-L'explorateur demande encore un identifiant Figma propre ; son README décrit
-comment le renseigner.
-
 | Commande | Vérification ou sortie |
 |---|---|
-| `npm test` | Tests des huit paquets et contrôles du monorepo |
+| `npm test` | Tests des neuf paquets et contrôles du monorepo |
 | `npm run typecheck` | Types TypeScript |
-| `npm run build` | Kit et quatre plugins |
+| `npm run build` | Kit et trois plugins |
 | `npm run test:ui --workspace <plugin>` | Interactions dans Chromium |
 | `npm run galerie --workspace <plugin>` | États de l'interface hors de Figma |
 | `npm run schema` | JSON Schema dérivé des types du contrat |

@@ -37,7 +37,7 @@ Copiés depuis `UCM-Playground`, avant le réexport en 13.0, à l'état du commi
 | `TileLink.contract.json` | `7dbe4c0` | 2026-09-08 |
 
 Les fichiers sont pris dans l'objet Git du Playground (`git show`), pas dans sa
-copie de travail : le moteur écrit des LF (`src/contract/serializeJson.ts`),
+copie de travail : le moteur écrit des LF (`packages/plugin-socle/src/composant/contract/serializeJson.ts`),
 qu'une extraction Windows convertirait. `.gitattributes` les y maintient, sans
 quoi ces empreintes ne vaudraient plus rien.
 

@@ -7,7 +7,7 @@ contracts. It lives outside
 depends on the TypeScript compiler, a 23 MB dependency.
 
 ```sh
-npm install --save-dev @ucm-kit/adapter-typescript@0.2.12 @ucm-kit/cli@0.2.1
+npm install --save-dev @ucm-kit/adapter-typescript@0.2.13 @ucm-kit/cli@0.2.2
 npx ucm-typescript          # generates the types from the contracts
 npx --no-install ucm check  # checks the contracts, parity included
 ```
@@ -35,9 +35,6 @@ their occurrences in JSX. The props of `Button.tsx` come from an interface or a
 type alias named `ButtonProps`. The component is the function named `Button`,
 or the file's default export. A prop counts as read whether it is destructured
 in the signature or from `props` in the body.
-
-Every gap **warns without blocking**. The gap is in the code, so a developer
-closes it.
 
 ## The convention composition counting assumes
 

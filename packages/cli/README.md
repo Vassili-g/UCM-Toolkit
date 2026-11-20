@@ -16,7 +16,7 @@ matches them.
 Requires Node 20 or later. At the root of the repository:
 
 ```sh
-npx --yes @ucm-kit/cli@0.2.1 init
+npx --yes @ucm-kit/cli@0.2.2 init
 ```
 
 1. Commit and push the files `init` wrote.
@@ -27,7 +27,7 @@ npx --yes @ucm-kit/cli@0.2.1 init
 To run the check locally:
 
 ```sh
-npx --yes @ucm-kit/cli@0.2.1 check --report ci-report.md
+npx --yes @ucm-kit/cli@0.2.2 check --report ci-report.md
 ```
 
 `--yes` skips the npx confirmation prompt. Pin an exact version, without `^`:
@@ -80,7 +80,7 @@ contract would resolve to the same file. A repository that does not write React
 states its own extension:
 
 ```sh
-npx --yes @ucm-kit/cli@0.2.1 init --components Sources/DesignSystem --implementation '{dir}/{id}.swift'
+npx --yes @ucm-kit/cli@0.2.2 init --components Sources/DesignSystem --implementation '{dir}/{id}.swift'
 ```
 
 The three path options act only on a first install. `ucm init` never overwrites
@@ -190,7 +190,7 @@ directory. It writes a minimal report when the check stopped before writing
 one, then posts the report:
 
 ```sh
-npx --yes @ucm-kit/cli@0.2.1 rapport-gitlab --projet "$CI_PROJECT_ID" --merge-request "$CI_MERGE_REQUEST_IID" --fichier "$CI_PROJECT_DIR/ci-report.md" --api "$CI_API_V4_URL"
+npx --yes @ucm-kit/cli@0.2.2 rapport-gitlab --projet "$CI_PROJECT_ID" --merge-request "$CI_MERGE_REQUEST_IID" --fichier "$CI_PROJECT_DIR/ci-report.md" --api "$CI_API_V4_URL"
 ```
 
 | Option | Effect |
@@ -248,9 +248,8 @@ the code or at the token file.
 | The code exposes the props the contract declares, with a stack adapter installed | Blocks a pull request that touches the code or a contract with a gap; otherwise reports the lag |
 | Each text, icon, border or ring colour reaches its contrast against its background | Information, never blocks |
 
-A gap in the code now blocks the merge. This tightened verdict is class 6 of
-`docs/format/COMPATIBILITE.md`: the format does not change, but a pipeline that
-stayed green on a gap turns red. A component whose contract was exported after
+Blocking a gap in the code is class 6 of `docs/format/COMPATIBILITE.md`: the
+format does not change, but a pipeline that stayed green on a gap turns red. A component whose contract was exported after
 its code is reported as behind its contract and does not block the designer's
 export. A developer who accepts a precise gap writes it in
 `.ucm/derogations.json`. Each entry names `composant`, `ecart` (its `genre` and
@@ -288,8 +287,7 @@ changes `tokens.json` (without `--base`, always). A file where no collection has
 a UCM name gets one line saying the architecture is not judged. Composite tokens
 (typography, shadow, curve) are not Figma variables and are not judged.
 
-A gap with the code warns: a developer closes it, and the merge goes through. A
-token removed from the design system warns too, so an older contract does not
+A token removed from the design system warns too, so an older contract does not
 hold back the tokens. A contract may land before the code that implements it.
 
 A repository with no contract passes. Right after `ucm init`, `ucm check`

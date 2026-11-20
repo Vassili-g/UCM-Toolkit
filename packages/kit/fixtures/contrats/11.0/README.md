@@ -40,7 +40,7 @@ branche `main` du 4 septembre 2026.
 | `TileLink.contract.json` | `9329481` | 2026-09-02 |
 
 Les fichiers sont pris dans l'objet Git du Playground, pas dans sa copie de
-travail : le moteur écrit des LF (`src/contract/serializeJson.ts`), qu'une
+travail : le moteur écrit des LF (`packages/plugin-socle/src/composant/contract/serializeJson.ts`), qu'une
 extraction Windows convertirait. `.gitattributes` les y maintient, sans quoi ces
 empreintes ne vaudraient plus rien.
 

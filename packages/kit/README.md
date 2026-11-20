@@ -10,7 +10,7 @@ the repository that implements the component. The plugin and the readers both
 import the format from this package.
 
 ```sh
-npm install @ucm-kit/core@0.17.2
+npm install @ucm-kit/core@0.17.3
 ```
 
 Most repositories never call this package directly. They run
@@ -62,14 +62,12 @@ re-exported. The lower bound moves up by one version with each contract
 version. `VERSION_CONTRAT_MINIMALE` and `VERSION_CONTRAT_MAXIMALE` expose the
 range in code.
 
-## A tighter verdict, and exceptions
+## Gaps and exceptions
 
-`controlerRepository` blocks a gap between the code and its contract. This
-tightened verdict is class 6 of `docs/format/COMPATIBILITE.md`. A developer
-covers one precise gap in `.ucm/derogations.json`, a list of entries with
-`composant`, `ecart`, `export`, `motif` and `par`. An entry stops applying when
-the contract's `meta.exportedAt` differs from its `export`, and the kit refuses
-an unknown field or a gap kind that cannot be waived.
+`controlerRepository` blocks a gap between the code and its contract, class 6
+of `docs/format/COMPATIBILITE.md`. It honours the exceptions of
+`.ucm/derogations.json`, described in the README of `@ucm-kit/cli`, and refuses
+a gap kind that cannot be waived.
 
 ## A repository with no contract at all
 

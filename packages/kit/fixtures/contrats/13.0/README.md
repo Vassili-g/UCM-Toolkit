@@ -7,7 +7,7 @@ les rend utiles.
 
 La fenêtre de lecture porte deux versions, la courante et la précédente
 ([COMPATIBILITE.md](../../../../../docs/format/COMPATIBILITE.md)). Le moteur ne
-fabrique que la courante (`src/contract/exportComponent.ts`) : la précédente
+fabrique que la courante (`packages/plugin-socle/src/composant/contract/exportComponent.ts`) : la précédente
 n'est donc observable qu'à partir de contrats que plus rien ne sait produire.
 `tests/fenetre-de-lecture.test.mjs` les passe par tous les lecteurs, et
 `tests/refus-enregistres.test.mjs` mesure sur eux les contrôles qu'un élagage
@@ -35,7 +35,7 @@ Copiés depuis `UCM-Playground`, avant le réexport en 14.0, à l'état du commi
 | `TileLink.contract.json` | `c9e03ed` | 2026-09-11 |
 
 Les fichiers sont pris dans l'objet Git du Playground (`git show`), pas dans sa
-copie de travail : le moteur écrit des LF (`src/contract/serializeJson.ts`),
+copie de travail : le moteur écrit des LF (`packages/plugin-socle/src/composant/contract/serializeJson.ts`),
 qu'une extraction Windows convertirait. `.gitattributes` les y maintient, sans
 quoi ces empreintes ne vaudraient plus rien.
 
