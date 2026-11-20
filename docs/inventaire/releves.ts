@@ -682,6 +682,8 @@ export interface Piste {
   dependances: string[];
   rang: number;
   points: { chemin: string; action: string; quoi: string }[];
+  /** Les problèmes à régler sur le sujet : l'inventaire les affiche en tête de page. `avant` dit ce que chacun bloque. */
+  alertes?: { texte: string; avant: string }[];
   [champ: string]: unknown;
 }
 
@@ -754,6 +756,17 @@ function avancementDuPlan(piste: Piste): { faites: number; total: number } {
   return avancement;
 }
 
+/** Refuse un champ `alertes` qui n'est pas un tableau, ou une alerte dont `texte` ou `avant` est vide ou absent. */
+export function validerLesAlertes(piste: Piste): void {
+  if (piste.alertes === undefined) return;
+  if (!Array.isArray(piste.alertes)) AVEC_ECHEC(CHEMIN_DES_PISTES, `piste ${piste.id}, champ alertes`, 'doit être un tableau');
+  piste.alertes.forEach((alerte, rang) => {
+    for (const champ of ['texte', 'avant'] as const) {
+      if (typeof alerte?.[champ] !== 'string' || alerte[champ].trim() === '') AVEC_ECHEC(CHEMIN_DES_PISTES, `piste ${piste.id}, champ alertes[${rang}].${champ}`, 'obligatoire, non vide');
+    }
+  });
+}
+
 /** Les pistes de la feuille de route, validées : identifiants uniques, dépendances connues, chemins existants, aucun cycle. */
 export function pistes(): Piste[] {
   const contenu = json(CHEMIN_DES_PISTES) as { version: number; pistes: Piste[] };
@@ -767,6 +780,7 @@ export function pistes(): Piste[] {
     if (typeof piste.sujet !== 'string' || piste.sujet === '') AVEC_ECHEC(CHEMIN_DES_PISTES, `piste ${piste.id}, champ sujet`, 'obligatoire');
     if (!(piste.sujet in SUJETS)) AVEC_ECHEC(CHEMIN_DES_PISTES, `piste ${piste.id}, champ sujet`, `« ${piste.sujet} » n'est pas dans SUJETS de releves.ts`);
     if (piste.recherche !== undefined && !existsSync(path.join(RACINE, piste.recherche))) AVEC_ECHEC(CHEMIN_DES_PISTES, `piste ${piste.id}, champ recherche`, `${piste.recherche} n'existe pas dans le dépôt`);
+    validerLesAlertes(piste);
     if (piste.plan !== undefined) piste.avancement = avancementDuPlan(piste);
   }
   const crees = new Set(contenu.pistes.flatMap((piste) => piste.points.filter((point) => point.action === 'créer').map((point) => point.chemin)));

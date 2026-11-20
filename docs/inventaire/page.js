@@ -587,6 +587,13 @@
     return '<a class="sujet" href="' + url + '" target="_blank" rel="noopener" title="' + esc(nom) + '" aria-label="' + esc(x.sujet + ' : ouvrir ' + nom + ' sur GitHub, nouvel onglet') + '"' + style + '>' + esc(x.sujet) +
       ' <svg viewBox="0 0 12 12" width="10" height="10" aria-hidden="true" focusable="false"><path d="M4 2h6v6M10 2 3 9" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></a>';
   }
+  // Les alertes de la piste, en tête de sa fiche, avant les questions.
+  function alertesDeLaFiche(x) {
+    if (!x.alertes || !x.alertes.length) return '';
+    return '<div class="alertes-piste"><b>À régler</b><ul>' + x.alertes.map(function (a) {
+      return '<li>' + texteDeLigne(a.texte) + ' <span class="doux"><b>Bloque :</b> ' + texteDeLigne(a.avant) + '</span></li>';
+    }).join('') + '</ul></div>';
+  }
   function ouvrirLaFiche(d, ouvert) {
     var b = d.querySelector('.piste-bascule');
     b.setAttribute('aria-expanded', ouvert);
@@ -625,11 +632,13 @@
             '<span class="titre">' + texteDeLigne(x.titre) +
               '<small class="sinon"><b>Si on ne fait pas</b> ' + texteDeLigne(premierePhrase(x.raisonImportance)) + '</small>' +
               '<small class="cout"><b>Coût</b> ' + x.complexite + ' · ' + texteDeLigne(x.coutHumain) + '</small>' +
+              (x.alertes && x.alertes.length ? '<span class="repere-alerte">' + x.alertes.length + (x.alertes.length > 1 ? ' alertes' : ' alerte') + '</span>' : '') +
               '<span class="coherence"></span></span>' +
           '</button></div>' +
           '<div class="choix-ligne">' + (enCours(x) ? labelDAvancement(x) : boutonsDe(x.id, 'piste', OPTIONS)) + champNote(x.id, 'Note sur ' + x.id) + '</div>' +
         '</div>' +
         '<div class="fiche-piste" id="fiche-' + x.id + '" hidden>' +
+          alertesDeLaFiche(x) +
           '<p class="meta">' + meta + '</p>' +
           '<p>' + txt(x.resume) + '</p>' +
           '<h4>Pourquoi</h4><p>' + txt(x.raisonImportance) + '</p>' +

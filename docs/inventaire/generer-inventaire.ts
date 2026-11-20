@@ -57,6 +57,24 @@ const RENDU_DES_SIGNAUX: Readonly<Record<string, string>> = {
   action: '<span class="sg-bouton">Appliquer</span> <span class="sg-bouton second">Analyser</span> <span class="sg-bouton danger">Supprimer</span>',
 };
 
+/**
+ * Le bandeau « À régler » de la page : une ligne par alerte des pistes à suivre. Une piste livrée n'affiche pas ses alertes ;
+ * sans alerte, le bandeau n'existe pas. Le lien garde la forme `<a href="#piste-Pn">` pour que `genererInventaireEtCouverture` le retire d'une fiche absente.
+ */
+export function bandeauDesAlertes(listeDePistes: releves.Piste[], icone: string): string {
+  const lignes = listeDePistes.flatMap((piste) =>
+    (piste.alertes ?? []).map(
+      (alerte) =>
+        `<li><a href="#piste-${piste.id}">${piste.id} ${echapper(piste.titreCourt)}</a><span class="a-regler-texte">${avecCode(alerte.texte)}</span><span class="a-regler-avant"><b>Bloque :</b> ${avecCode(alerte.avant)}</span></li>`,
+    ),
+  );
+  if (!lignes.length) return '';
+  return `<div class="a-regler" id="a-regler" role="region" aria-labelledby="a-regler-titre">
+    <p class="a-regler-titre" id="a-regler-titre"><span class="forme-alerte ft-corriger">${icone}</span><span class="alerte-mot ft-corriger">À régler</span> <span class="doux">${lignes.length}</span></p>
+    <ul>${lignes.join('')}</ul>
+  </div>`;
+}
+
 /** Les plis de la partie Annexes : un par élément qui a un visuel (icônes, alertes, signaux, marque, références, outillage), avec sa description. */
 function annexes(): string {
   const { familles, alertes } = releves.signesEtAlertes();
@@ -341,6 +359,7 @@ async function valeurs(): Promise<Record<string, string>> {
     'rapport:ecart': avecCode(rapport.ecart),
     'rapport:action': avecCode(rapport.action),
     'rapport:fin': avecCode(rapport.fin),
+    'alertes:bandeau': bandeauDesAlertes(pistesASuivre, releves.signesEtAlertes().alertes.find((type) => type.id === 'corriger')!.svg),
     // Les blocs d'annexes
     annexes: annexes(),
     // Les données du script

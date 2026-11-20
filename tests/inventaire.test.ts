@@ -12,8 +12,8 @@ import test from 'node:test';
 import { motifVersRegex } from '../scripts/agents-contexte.mjs';
 import { EXCLUSIONS } from '../docs/inventaire/couverture';
 import { sectionDe } from '../docs/inventaire/extraire';
-import { CHEMIN_DE_L_INVENTAIRE, genererInventaireEtCouverture } from '../docs/inventaire/generer-inventaire';
-import { CHEMIN_DES_DECISIONS, compterLesCases, pistes, validerLesChoix, type Decisions, type Regle } from '../docs/inventaire/releves';
+import { CHEMIN_DE_L_INVENTAIRE, bandeauDesAlertes, genererInventaireEtCouverture } from '../docs/inventaire/generer-inventaire';
+import { CHEMIN_DES_DECISIONS, compterLesCases, pistes, validerLesAlertes, validerLesChoix, type Decisions, type Piste, type Regle } from '../docs/inventaire/releves';
 
 const racine = path.resolve(__dirname, '..');
 const sansRetourChariot = (texte: string): string => texte.replace(/\r\n/g, '\n');
@@ -148,6 +148,42 @@ test('une piste livrée quitte la suite et reste nommée par son plan', async ()
     assert.ok(livrees.some(({ id }) => id === piste.id), `${piste.id} manque à la ligne des livrées`);
     assert.ok(!suivies.some(({ id, dependances }) => id === piste.id || dependances!.includes(piste.id)), `${piste.id} reste dans la suite`);
   }
+});
+
+const pisteFictive = (alertes: unknown): Piste => ({ id: 'P1', titre: 'Titre', titreCourt: 'Court', sujet: 'Documentation', dependances: [], rang: 1, points: [], alertes: alertes as Piste['alertes'] });
+
+test("une alerte de pistes.json apparaît dans le bandeau « À régler » et sur la fiche de sa piste", async () => {
+  const page = await generee();
+  const avecAlertes = pistes().filter((piste) => piste.alertes?.length && !(piste.avancement && piste.avancement.faites === piste.avancement.total));
+  assert.ok(avecAlertes.length > 0, "aucune piste à suivre n'a d'alerte");
+  const bandeau = /<div class="a-regler" id="a-regler"[\s\S]*?<\/ul>/.exec(page)?.[0] ?? '';
+  const donnees = JSON.parse(/var PISTES = (\[.*?\]);\n/.exec(page)![1]) as Piste[];
+  for (const piste of avecAlertes) {
+    for (const alerte of piste.alertes!) {
+      const sansCode = alerte.texte.replace(/`/g, '');
+      assert.ok(bandeau.replace(/<\/?code>/g, '').includes(sansCode.replace(/&/g, '&amp;')), `${piste.id} : l'alerte manque au bandeau`);
+      assert.ok(bandeau.includes(`href="#piste-${piste.id}"`) && bandeau.includes('Bloque :'), `${piste.id} : le lien ou « Bloque : » manque`);
+    }
+    assert.deepEqual(donnees.find(({ id }) => id === piste.id)!.alertes, piste.alertes, `${piste.id} : ses alertes n'arrivent pas à sa fiche`);
+  }
+  assert.ok(page.includes('alertesDeLaFiche(x)') && page.includes('repere-alerte'), 'le script ne rend ni le repère ni les alertes de la fiche');
+});
+
+test("le bandeau « À régler » liste chaque alerte, et une page sans alerte n'en a pas", () => {
+  const bandeau = bandeauDesAlertes([pisteFictive([{ texte: 'Choisir `x`', avant: 'le lot 2' }]), { ...pisteFictive(undefined), id: 'P2' }], '<svg></svg>');
+  assert.match(bandeau, /id="a-regler"/);
+  assert.match(bandeau, /<a href="#piste-P1">P1 Court<\/a>.*Choisir <code>x<\/code>.*<b>Bloque :<\/b> le lot 2/);
+  assert.ok(!bandeau.includes('P2'));
+  assert.equal(bandeauDesAlertes([pisteFictive(undefined), pisteFictive([])], '<svg></svg>'), '');
+});
+
+test("pistes.json : une alerte sans texte, sans avant, ou un champ qui n'est pas un tableau échoue", () => {
+  validerLesAlertes(pisteFictive([{ texte: 'a', avant: 'b' }]));
+  validerLesAlertes(pisteFictive(undefined));
+  assert.throws(() => validerLesAlertes(pisteFictive([{ avant: 'b' }])), /P1.*alertes\[0\]\.texte/);
+  assert.throws(() => validerLesAlertes(pisteFictive([{ texte: 'a', avant: '  ' }])), /alertes\[0\]\.avant/);
+  assert.throws(() => validerLesAlertes(pisteFictive([{ texte: 'a', avant: 'b' }, { texte: '', avant: 'b' }])), /alertes\[1\]\.texte/);
+  assert.throws(() => validerLesAlertes(pisteFictive('texte')), /doit être un tableau/);
 });
 
 test('decisions.json : des choix valides passent', () => {
