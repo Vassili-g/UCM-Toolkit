@@ -164,6 +164,12 @@ export type PluginMessage =
       avertissement: string | null;
     }
   /**
+   * La page que le parcours des règles va charger, et le nombre de pages à
+   * charger. Sur un document de cent pages, la note de recherche resterait
+   * sinon la même pendant plusieurs minutes.
+   */
+  | { type: 'recherche-regles'; rang: number; total: number }
+  /**
    * Ligne de compte rendu. `level` conserve la distinction : un avertissement demande
    * un geste, une note n'en demande aucun.
    */

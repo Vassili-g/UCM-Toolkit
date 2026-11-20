@@ -229,6 +229,64 @@ test('le filtrage par type passe par findAllWithCriteria, jamais par un prédica
   ]);
 });
 
+test('un maître sur une page lointaine passe avant toute lecture d’instance hors de la page active', async (t) => {
+  // Les instances d'une page de design system se comptent par milliers : le
+  // document qui porte le maître ne doit en lire aucune hors de la page active.
+  const { compteurs } = documentDe(t, [
+    { nom: 'Composants', enfants: [noeud('FRAME', 'Root')] },
+    { nom: 'Doc', enfants: [porteurDeNom('INSTANCE', 'Chip')] },
+    { nom: 'Archives', enfants: [noeud('FRAME', 'Autre')] },
+    { nom: 'Règles', enfants: [porteurDeNom('COMPONENT', 'Chip', '.componentRules')] },
+  ]);
+
+  const trouvee = await chercherLaSourceDansLeDocument(rienAAttendre);
+
+  assert.equal(trouvee?.maitreLocal?.name, '.componentRules');
+  assert.equal(trouvee?.instanceSource, null);
+  assert.deepEqual(compteurs.parCriteres, [
+    'Composants:COMPONENT',
+    'Composants:INSTANCE',
+    'Doc:COMPONENT',
+    'Archives:COMPONENT',
+    'Règles:COMPONENT',
+  ]);
+});
+
+test('le second passage lit les instances sans recharger aucune page', async (t) => {
+  const { pages, compteurs } = documentDe(t, [
+    { nom: 'Composants', enfants: [noeud('FRAME', 'Root')] },
+    { nom: 'Illisible', enfants: [porteurDeNom('INSTANCE', 'Chip')] },
+    { nom: 'Brouillons', enfants: [noeud('FRAME', 'Autre')] },
+    { nom: 'Doc', enfants: [porteurDeNom('INSTANCE', 'Chip')] },
+  ]);
+  pages[1].loadAsync = async () => {
+    throw new Error('page illisible');
+  };
+
+  const trouvee = await chercherLaSourceDansLeDocument(rienAAttendre);
+
+  assert.equal(trouvee?.instanceSource?.name, '.componentRules');
+  assert.deepEqual(compteurs.charges, ['Brouillons', 'Doc']);
+  assert.ok(
+    !compteurs.parCriteres.includes('Illisible:INSTANCE'),
+    'une page qui n’a pas pu se charger a été relevée',
+  );
+});
+
+test('le suivi reçoit le rang de chaque page à charger et leur nombre', async (t) => {
+  documentDe(t, [
+    { nom: 'Composants', enfants: [noeud('FRAME', 'Root')] },
+    { nom: 'Brouillons', enfants: [noeud('FRAME', 'Autre')] },
+    { nom: 'Doc', enfants: [noeud('FRAME', 'Autre')] },
+    { nom: 'Archives', enfants: [noeud('FRAME', 'Autre')] },
+  ]);
+  const suivi: string[] = [];
+
+  await chercherLaSourceDansLeDocument(rienAAttendre, (rang, total) => suivi.push(`${rang}/${total}`));
+
+  assert.deepEqual(suivi, ['1/3', '2/3', '3/3']);
+});
+
 test('le drapeau des calques invisibles reprend sa valeur d’avant', async (t) => {
   documentDe(t, [
     { nom: 'Composants', enfants: [noeud('FRAME', 'Root')] },

@@ -15,6 +15,8 @@ type MessageCible = Extract<PluginMessage, { type: 'cible' }>;
 export interface CarteComposantUi extends CarteCommandeUi {
   afficher(message: MessageCible): void;
   marquerAnalysee(): void;
+  /** La page que le parcours des règles charge, sur le nombre à charger. */
+  suivreLaRecherche(rang: number, total: number): void;
 }
 
 /** La carte du composant porte un troisième geste, qui n'existe pas ailleurs. */
@@ -63,7 +65,9 @@ export function createCarteComposant({
   const recherche = document.createElement('p');
   recherche.className = 'creation-sans-source';
   recherche.hidden = true;
-  recherche.textContent = 'Recherche de vos règles dans les autres pages du document…';
+  const texteDeRecherche = document.createElement('span');
+  texteDeRecherche.textContent = 'Recherche de vos règles dans les autres pages du document…';
+  recherche.append(texteDeRecherche);
 
   const sansSource = document.createElement('p');
   sansSource.className = 'creation-sans-source';
@@ -156,6 +160,11 @@ export function createCarteComposant({
     marquerAnalysee() {
       analysee = true;
       rafraichirGeste();
+    },
+
+    suivreLaRecherche(rang: number, total: number) {
+      texteDeRecherche.textContent =
+        `Recherche de vos règles dans les autres pages du document (page ${rang} sur ${total})…`;
     },
 
     /** Sans résultat, la même cible s'analyse de nouveau. */

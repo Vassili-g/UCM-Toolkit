@@ -208,6 +208,8 @@ onmessage = (event: MessageEvent<{ pluginMessage?: PluginMessage }>) => {
     composant.afficher(message);
   }
 
+  if (message.type === 'recherche-regles') composant.suivreLaRecherche(message.rang, message.total);
+
   if (message.type === 'tokens') tokens.afficher(message);
 
   if (message.type === 'format-tokens') tokens.annoncerFormat(message.texte);

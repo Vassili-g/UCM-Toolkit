@@ -407,7 +407,12 @@ function offreSelonLeDocument(offre: Offre | null): Offre | null {
   if (offre !== 'sans-source') return offre;
   // Le parcours repart quand sa source a disparu, et la carte remontre alors sa
   // recherche plutôt qu'un bouton qui échouerait au clic.
-  if (oublierUneSourceDisparue()) void lancerLeParcours().catch(() => undefined);
+  // Le parcours relancé repose la carte en finissant, comme celui de
+  // l'ouverture : sans ce relevé, la note de recherche resterait affichée
+  // jusqu'au prochain changement de sélection.
+  if (oublierUneSourceDisparue()) {
+    void lancerLeParcours().then(() => reportSelectionState()).catch(signalerEchec);
+  }
   if (!parcoursAcheve) return offre;
   return sourceDuDocument ? 'creer' : 'document-sans-source';
 }
@@ -543,7 +548,10 @@ function laisserPasserLesOperations(): Promise<void> {
  * et le refus de `resoudreLesSources` reste le message qui compte au clic.
  */
 function lancerLeParcours(): Promise<ReleveDeSource | null> {
-  parcoursDesSources ??= chercherLaSourceDansLeDocument(laisserPasserLesOperations)
+  parcoursDesSources ??= chercherLaSourceDansLeDocument(
+    laisserPasserLesOperations,
+    (rang, total) => versUi({ type: 'recherche-regles', rang, total }),
+  )
     .catch(() => null)
     .then((trouvee) => {
       sourceDuDocument = trouvee;

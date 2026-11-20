@@ -538,6 +538,20 @@ const ETATS = [
     atteinte: [...ouverture('connecte'), aCreer('sans-source')],
   },
   {
+    id: 'creation-recherche-avance',
+    titre: 'La recherche des règles avance de page en page',
+    quand:
+      'La page active ne porte aucune source, et le plugin charge une à une les 87 autres pages du document.',
+    regarder:
+      'La note donne le rang de la page chargée et le total. Le lien vers le kit reste à sa place quand le texte s’allonge.',
+    existe: true,
+    atteinte: [
+      ...ouverture('connecte'),
+      aCreer('sans-source'),
+      { message: { type: 'recherche-regles', rang: 42, total: 87 } },
+    ],
+  },
+  {
     id: 'creation-en-cours',
     titre: 'Création des règles en cours',
     quand: 'Après le clic sur « Créer les règles d’usage », pendant la pose des sections.',

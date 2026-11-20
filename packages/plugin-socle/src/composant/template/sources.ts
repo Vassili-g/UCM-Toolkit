@@ -93,14 +93,20 @@ function nodesDeType(page: PageNode, type: 'COMPONENT' | 'INSTANCE'): SceneNode[
  *
  * La page doit être chargée avant l'appel.
  */
-function sourceDeLaPage(page: PageNode): ReleveDeSource | null {
+function sourceDeLaPage(
+  page: PageNode,
+  types: readonly ('COMPONENT' | 'INSTANCE')[],
+): ReleveDeSource | null {
   const avant = figma.skipInvisibleInstanceChildren;
   figma.skipInvisibleInstanceChildren = true;
   try {
     const porteLeNomDuMaitre = (node: SceneNode) =>
       nomCompacte(nomLisible(node) ?? '') === MAITRES_COMPACTES.conteneur;
-    const maitre = nodesDeType(page, 'COMPONENT').find(porteLeNomDuMaitre);
-    if (maitre) return { ...releveVide(), maitreLocal: maitre as ComponentNode };
+    if (types.includes('COMPONENT')) {
+      const maitre = nodesDeType(page, 'COMPONENT').find(porteLeNomDuMaitre);
+      if (maitre) return { ...releveVide(), maitreLocal: maitre as ComponentNode };
+    }
+    if (!types.includes('INSTANCE')) return null;
     const instance = nodesDeType(page, 'INSTANCE').find(porteLeNomDuMaitre);
     return instance ? { ...releveVide(), instanceSource: instance as InstanceNode } : null;
   } finally {
@@ -116,9 +122,12 @@ function sourceDeLaPage(page: PageNode): ReleveDeSource | null {
  * portent peut-être la source, et le document entier passerait pour sans source
  * jusqu'à la fermeture du plugin.
  */
-function sourceDeLaPageOuRien(page: PageNode): ReleveDeSource | null {
+function sourceDeLaPageOuRien(
+  page: PageNode,
+  types: readonly ('COMPONENT' | 'INSTANCE')[],
+): ReleveDeSource | null {
   try {
-    return sourceDeLaPage(page);
+    return sourceDeLaPage(page, types);
   } catch {
     return null;
   }
@@ -132,30 +141,46 @@ function sourceDeLaPageOuRien(page: PageNode): ReleveDeSource | null {
  * règles y vivent ne fait charger aucune autre page. Les suivantes se chargent
  * une par une. `avantChaquePage` rend la main avant le chargement, puis avant
  * le relevé : le sandbox n'a qu'un fil, et relever une page fraîchement chargée
- * le tient sans interruption.
+ * le tient sans interruption. `suivre` reçoit le rang de la page qui va se
+ * charger et le nombre de pages à charger, pour que l'interface montre que le
+ * parcours avance.
  *
- * Le parcours s'arrête à la première page qui porte une source. Il ne modifie
- * rien.
+ * Hors de la page active, un premier passage cherche le maître sur toutes les
+ * pages, et un second cherche une instance sur les pages déjà chargées. Les
+ * instances d'un design system se comptent par milliers sur une page, et lire
+ * leur nom tient le fil plusieurs secondes : le document qui porte le maître
+ * n'en paie aucune.
+ *
+ * Le parcours s'arrête à la première source trouvée. Il ne modifie rien.
  */
 export async function chercherLaSourceDansLeDocument(
   avantChaquePage: () => Promise<void>,
+  suivre: (rang: number, total: number) => void = () => {},
 ): Promise<ReleveDeSource | null> {
   const active = figma.currentPage;
-  const trouveeSurLActive = sourceDeLaPageOuRien(active);
+  const trouveeSurLActive = sourceDeLaPageOuRien(active, ['COMPONENT', 'INSTANCE']);
   if (trouveeSurLActive) return trouveeSurLActive;
 
   const pages = (figma.root.children ?? []).filter(
     (node): node is PageNode => node.type === 'PAGE' && node.id !== active.id,
   );
-  for (const page of pages) {
+  const chargees: PageNode[] = [];
+  for (const [index, page] of pages.entries()) {
+    suivre(index + 1, pages.length);
     await avantChaquePage();
     try {
       if (typeof page.loadAsync === 'function') await page.loadAsync();
     } catch {
       continue;
     }
+    chargees.push(page);
     await avantChaquePage();
-    const trouvee = sourceDeLaPageOuRien(page);
+    const trouvee = sourceDeLaPageOuRien(page, ['COMPONENT']);
+    if (trouvee) return trouvee;
+  }
+  for (const page of chargees) {
+    await avantChaquePage();
+    const trouvee = sourceDeLaPageOuRien(page, ['INSTANCE']);
     if (trouvee) return trouvee;
   }
   return null;
