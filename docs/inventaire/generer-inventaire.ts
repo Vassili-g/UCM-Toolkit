@@ -15,7 +15,7 @@ import { fileURLToPath, pathToFileURL } from 'node:url';
 import * as releves from './releves';
 
 const dossier = path.dirname(fileURLToPath(import.meta.url));
-export const CHEMIN_DE_L_INVENTAIRE = path.join(dossier, 'INVENTAIRE-UCM.html');
+export const CHEMIN_DE_L_INVENTAIRE = path.join(dossier, '..', '..', 'INVENTAIRE-UCM.html');
 
 const MOTS = ['zéro', 'un', 'deux', 'trois', 'quatre', 'cinq', 'six', 'sept', 'huit', 'neuf', 'dix', 'onze', 'douze'];
 const motDuNombre = (nombre: number): string => {

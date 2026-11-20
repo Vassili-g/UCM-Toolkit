@@ -64,7 +64,7 @@ const VUES = [
     },
   },
   {
-    fichier: "docs/inventaire/INVENTAIRE-UCM.html",
+    fichier: "INVENTAIRE-UCM.html",
     contenu: async () => (await charger("docs/inventaire/generer-inventaire.ts")).genererInventaire(),
   },
 ];

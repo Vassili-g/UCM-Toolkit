@@ -16,7 +16,7 @@ La documentation classée par sujet.
 ## docs/inventaire/
 L'inventaire du dépôt, vue générée sans autorité : chaque section nomme le fichier qui définit ce qu'elle montre.
 
-- INVENTAIRE-UCM.html : la page générée et commitée ; `tests/inventaire.test.ts` la compare à `genererInventaire`
+- ../../INVENTAIRE-UCM.html : la page générée, commitée à la racine du dépôt ; `tests/inventaire.test.ts` la compare à `genererInventaire`
 - generer-inventaire.ts : `genererInventaire` (asynchrone : la CLI se lit par `import()`) assemble `gabarit.html`, `page.css` et `page.js` ; un `{{nom}}` sans valeur échoue (`npm run vues`)
 - releves.ts : ce que la page lit dans le kit compilé (à travers un `Proxy` qui relève chaque nom lu), le moteur de couleur, le hub, la CLI, le socle et les fichiers du dépôt ; valide `pistes.json` et `decisions.json`
 - couverture.ts : `EXCLUSIONS`, les noms que la page ne montre pas exprès, un groupe par raison

@@ -6,7 +6,7 @@ et les recherches encore utiles.
 
 ## Utiliser les outils
 
-La [page de l'inventaire](./inventaire/INVENTAIRE-UCM.html) montre le projet d'un coup d'œil ; ouvrez-la par un double clic ou par `npm run inventaire`.
+La [page de l'inventaire](../INVENTAIRE-UCM.html), à la racine du dépôt, montre le projet d'un coup d'œil.
 
 | Tâche | Document |
 |---|---|
@@ -51,7 +51,7 @@ Les galeries et leurs commandes sont documentées dans chaque README de plugin.
 | `packages/*/invariants/*.md` | Invariants du produit, bornes et fichiers qui les appliquent ; [AGENTS.md](../AGENTS.md#routage) les indexe |
 | [CONTRIBUTING.md](../CONTRIBUTING.md) | Code, tests, rédaction et vérifications |
 | [ROADMAP.md](../ROADMAP.md) | Maturité, limites et validations restantes |
-| [Page de l'inventaire](./inventaire/INVENTAIRE-UCM.html) | Aucune : elle montre les sources qu'elle cite |
+| [Page de l'inventaire](../INVENTAIRE-UCM.html) | Aucune : elle montre les sources qu'elle cite |
 
 La spécification Palettes est encore rangée dans un dossier de recherche :
 son titre et ses identifiants d'exigences en font une référence du produit.

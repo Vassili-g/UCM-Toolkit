@@ -5,7 +5,7 @@ les principes, [docs/format/FORMAT.md](./docs/format/FORMAT.md) la forme publié
 [packages/plugin-exporter/SPEC.md](./packages/plugin-exporter/SPEC.md) le comportement du plugin,
 et [PISTES-EVOLUTION.md](./docs/notes/Recherches/Evolutions%20globales/PISTES-EVOLUTION.md) les
 options non engagées.
-La [page de l'inventaire](./docs/inventaire/INVENTAIRE-UCM.html) montre cet état d'un coup d'œil.
+La [page de l'inventaire](./INVENTAIRE-UCM.html) montre cet état d'un coup d'œil.
 
 Le projet est un **prototype avancé**. Les preuves durables portent sur les lois
 du moteur, vérifiées à chaque test. Les composants du corpus constatent un

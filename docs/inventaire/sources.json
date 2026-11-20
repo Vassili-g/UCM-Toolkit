@@ -1,6 +1,6 @@
 {
   "vues": {
-    "docs/inventaire/INVENTAIRE-UCM.html": [
+    "INVENTAIRE-UCM.html": [
       "docs/inventaire/generer-inventaire.ts",
       "docs/inventaire/releves.ts",
       "docs/inventaire/couverture.ts",

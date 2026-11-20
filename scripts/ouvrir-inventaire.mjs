@@ -1,5 +1,5 @@
 /**
- * `npm run inventaire` : ouvre `docs/inventaire/INVENTAIRE-UCM.html` dans le
+ * `npm run inventaire` : ouvre `INVENTAIRE-UCM.html`, à la racine du dépôt, dans le
  * navigateur par défaut, avec la commande de la plateforme (`start`, `open` ou
  * `xdg-open`). La page est commitée ; `npm run vues` la régénère.
  */
@@ -8,7 +8,7 @@ import { existsSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-const page = join(dirname(fileURLToPath(import.meta.url)), '..', 'docs', 'inventaire', 'INVENTAIRE-UCM.html');
+const page = join(dirname(fileURLToPath(import.meta.url)), '..', 'INVENTAIRE-UCM.html');
 if (!existsSync(page)) {
   console.error(`Page introuvable : ${page}. Lancer npm run vues.`);
   process.exit(1);

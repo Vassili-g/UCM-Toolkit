@@ -51,7 +51,7 @@ Interface d'un plugin : lire d'abord [CONTRIBUTING.md](./CONTRIBUTING.md#interfa
 
 Maturité et priorités : [ROADMAP.md](./ROADMAP.md). Idées non décidées : [PISTES-EVOLUTION.md](./docs/notes/Recherches/Evolutions%20globales/PISTES-EVOLUTION.md).
 
-Vue d'ensemble générée pour le mainteneur : [INVENTAIRE-UCM.html](./docs/inventaire/INVENTAIRE-UCM.html). Un agent lit ses sources, pas la page.
+Vue d'ensemble générée pour le mainteneur : [INVENTAIRE-UCM.html](./INVENTAIRE-UCM.html). Un agent lit ses sources, pas la page.
 
 ## Routage
 

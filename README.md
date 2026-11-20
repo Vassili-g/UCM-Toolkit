@@ -4,7 +4,7 @@ UCM Toolkit regroupe quatre plugins Figma et les outils qui contrôlent les
 contrats de composants dans un dépôt de code. Un contrat décrit le visuel
 exporté depuis Figma ; le développeur écrit le comportement du composant.
 
-La [page de l'inventaire](./docs/inventaire/INVENTAIRE-UCM.html) montre le projet d'un coup d'œil ; ouvrez-la par un double clic ou par `npm run inventaire`.
+La [page de l'inventaire](./INVENTAIRE-UCM.html) montre le projet d'un coup d'œil ; ouvrez-la par un double clic ou par `npm run inventaire`.
 
 ## Choisir un outil
 
