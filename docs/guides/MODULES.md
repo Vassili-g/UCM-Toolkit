@@ -143,4 +143,4 @@ Le kit est en 0.x. Règle : [versionnage.md](../../packages/kit/invariants/versi
 
 - Le chiffre du milieu monte quand la prise ou le format casse : nom retiré ou renommé, signature changée, résultat différent pour la même entrée, nouvelle majeure du contrat, nouvelle version des tokens. Une montée du milieu demande de relire le journal avant d'épingler.
 - Le dernier chiffre monte pour tout le reste : changement interne, ajout d'un nom ou d'un champ de résultat, dépréciation. Épingler la nouvelle version ne casse rien.
-- La 1.0 attend deux modules en service qui importent la prise, et trois mois sans rupture. En 1.0, l'ajout monte le chiffre du milieu, la rupture le premier, et l'interne le dernier.
+- Le mainteneur décide du passage en 1.0. En 1.0, l'ajout monte le chiffre du milieu, la rupture le premier, et l'interne le dernier.

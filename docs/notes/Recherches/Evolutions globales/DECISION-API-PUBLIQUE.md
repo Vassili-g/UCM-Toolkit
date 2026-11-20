@@ -59,8 +59,7 @@ idée au kit.
    sans accepter le suivant. `ucm guide` signale un écart.
 5. **Le sens des numéros.** Le kit reste en 0.x. Le chiffre du milieu (0.16
    vers 0.17) monte quand la prise casse ou que le format change. Tout le reste
-   monte le dernier chiffre. Le kit passe en 1.0 quand deux modules utilisent la
-   prise et qu'elle a tenu trois mois sans rupture.
+   monte le dernier chiffre. Le mainteneur décide du passage en 1.0.
 6. **Un journal et un préavis.** `packages/kit/CHANGELOG.md` note chaque
    changement de la prise. Un nom à retirer est annoncé dans une version, puis
    retiré dans une version suivante. Un test refuse une prise modifiée sans
@@ -297,8 +296,8 @@ une rupture. `^0.16.0` accepte 0.16.5 et refuse 0.17.0.
 | 3c. 1.0 tout de suite | bon | moyen, la prise n'a jamais servi et sa première forme changera | bon | bon | bon |
 | 3d. 1.0 à un signal observé, 3b jusque-là | bon | bon | bon | bon | bon |
 
-**Les options 3b et 3d sont retenues ensemble.** Jusqu'à la 1.0, le numéro se lit
-ainsi.
+**L'option 3b est retenue.** Le mainteneur décide du passage en 1.0, sans
+condition fixée d'avance. Jusqu'à la 1.0, le numéro se lit ainsi.
 
 | Changement | Numéro du kit en 0.x | Journal |
 |---|---|---|
@@ -322,15 +321,6 @@ L'option 3c perd sur M. Une prise jamais utilisée sera corrigée par le premier
 module, et une 2.0 quelques semaines après la 1.0 use le signal de stabilité.
 L'option 3a perd parce qu'un développeur qui passe de 0.16.0 à 0.16.40 ne sait pas
 s'il doit relire son code.
-
-#### Le signal du passage en 1.0
-
-Le kit passe en 1.0 quand ces deux conditions sont réunies :
-
-- deux modules en service importent la prise ;
-- la prise n'a connu aucune rupture pendant trois mois.
-
-Si les ruptures reviennent chaque mois, le kit reste en 0.x et la prise rétrécit.
 
 ### Qui décide, comment le prouver
 
@@ -404,7 +394,7 @@ Critères de fin :
 Les trois questions de P3 disparaissent, et la partie 2 y répond. La liste
 compte 8 noms à l'ouverture (question 1). Un module importe une porte réservée,
 à la version du kit de sa CLI (question 2). Le chiffre du milieu marque une
-rupture, et la 1.0 attend un signal (question 3).
+rupture, et le mainteneur décide du passage en 1.0 (question 3).
 
 Les deux risques de P3 changent. « Une liste trop étroite pousse les modules
 vers des symboles privés » se referme par le test de la racine et la règle ESLint

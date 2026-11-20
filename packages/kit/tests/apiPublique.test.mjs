@@ -433,7 +433,7 @@ test("la compilation voit une erreur de type quand elle existe", () => {
 
 test("le kit reste en 0.x : en 1.0, la table des numéros se décale d'un cran", () => {
   const { version } = JSON.parse(lireSource(CHEMINS.manifeste));
-  assert.equal(analyser(version)[0], 0, "le kit passe en 1.0 quand deux modules utilisent la prise et qu'elle a tenu trois mois sans rupture : "
+  assert.equal(analyser(version)[0], 0, "le mainteneur décide du passage en 1.0 : "
     + "décaler alors les règles de packages/kit/invariants/versionnage.md et de fautesDeLaPrise d'un cran");
 });
 
