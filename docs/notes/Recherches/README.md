@@ -19,6 +19,8 @@ produit, partir des références de [docs/README.md](../../README.md) et du code
 | [Exporter : sélection et Style Dictionary][exporter-selection] | Aligner la bascule Composant et Tokens sur celle d'UCM Architect, choisir les collections et les modes exportés, puis convertir `tokens.json` pour Style Dictionary. | Recherche proposée, non implémentée ; décisions du mainteneur attendues. |
 | [Socle d'intencial-library][socle-intencial] | Donner à intencial-library son socle React et TypeScript, la CLI et l'adaptateur UCM épinglés, et la feuille CSS des tokens. | En cours ; plan à cases suivi par l'inventaire. |
 | [Diff sémantique][diff] | Comparer deux ensembles de contrats et de tokens pour identifier les changements et les composants touchés. | Proposé, non implémenté ; périmètre de l'expérimentation à valider. |
+| [Pièces internes][pieces-internes] | Décrire dans le contrat de l'hôte toutes les variantes et propriétés d'une pièce interne (P22). | Recherche en cours, non implémentée ; quatre questions de format attendent le mainteneur. |
+| [Comparateur de rendu][comparateur-rendu] | Comparer un rendu observé dans un navigateur aux obligations du contrat (P10). | Recherche en cours, non implémentée ; quatre questions de conception attendent le mainteneur. |
 | [Conformité du rendu][rendu] | Comparer le rendu d'une implémentation aux obligations visuelles de son contrat. | Recherche proposée, non implémentée ; choix de réalisation ouverts. |
 | [Implémenteur de contrats][implementeur] | Produire et mettre à jour le code d'un composant à partir du contrat, avec moins de travail génératif. | Non réalisé. Le plan propose un compilateur ; sa revue recommande d'abord une preuve limitée et un contrôle de rendu autonome. Orientation à trancher. |
 | [Réduction du coût du chemin agent][reduction] | Réduire les lectures et les générations répétées lorsqu'un agent reconstruit un composant. | Plan partiellement remplacé par l'implémenteur. Le guide d'un agent est couvert par `ucm guide` et la skill `consommer-contrat`. |
@@ -110,6 +112,8 @@ leurs plans.
 [ancien-vocabulaire]: https://github.com/Vassili-g/UCM-Toolkit/blob/da7f465d/docs/notes/Recherches/Plugin%20Architect/5%20Recette/PLAN-VOCABULAIRE.md
 [anciens-noms-palettes]: https://github.com/Vassili-g/UCM-Toolkit/blob/da7f465d/docs/notes/Recherches/Plugin%20Architect/5%20Recette/PLAN-NOMS-DE-PALETTES.md
 [diff]: ./Diff%20Sémantique/PLAN-DIFF-SEMANTIQUE.md
+[pieces-internes]: ./Pièces%20internes/RECHERCHE-PIECES-INTERNES.md
+[comparateur-rendu]: ./Comparateur%20de%20rendu/RECHERCHE-COMPARATEUR-RENDU.md
 [exporter-selection]: ./Plugin%20Exporter/RECHERCHE-SELECTION-ET-STYLE-DICTIONARY.md
 [socle-intencial]: ./Socle%20intencial-library/PLAN-SOCLE-INTENCIAL-LIBRARY.md
 [rendu]: ./Linter%20Dev/PLAN-CONFORMITE-RENDU.md
