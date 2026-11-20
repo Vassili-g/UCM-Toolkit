@@ -19,6 +19,7 @@ Ligne de commande : @ucm-kit/cli, publiée.
 - aides.mjs : `ucm aides` : catalogue, une aide, copie dans les conventions
 - guide.mjs : `ucm guide` : procédure, diagnostics, API des dépendances, aides et modes
 - conventions.mjs : `.ucm/conventions.md` : fichier le plus proche, ses sections, ses anomalies
+- contrats.mjs : chemins des contrats d'un dossier, `[]` quand le dossier n'existe pas ; toute autre erreur remonte
 
 ## tests/
 - cascade/ : feuille des tokens rendue dans trois moteurs, par `npm run cascade`

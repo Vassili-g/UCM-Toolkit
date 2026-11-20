@@ -60,6 +60,7 @@ Plugin UCM Palettes : ucm-palettes-plugin, privé.
 - bibliotheques.ts : collections de bibliothèque et palettes que leurs noms de variables dessinent, sans leurs couleurs
 - gestion.ts : ce que Gestion montre des tokens : ce qu'une écriture créerait et remplacerait, simulation d'une destination, variables d'une palette supprimée
 - lot.ts : plan pur d'un lot entier : noms finaux, réservations, refus, créations, remplacements et renommages ; Gestion l'annonce et l'écriture l'exécute
+- conversion.ts : passage définitif d'une palette reprise au format du plugin ; ses variables restent les siennes quand la destination les accueille, sinon elles deviennent une sortie
 
 ## src/ui/
 - detailDesTokens.ts : détail de la ligne « Tokens Figma » d'une palette reprise du fichier, sans DOM
@@ -110,9 +111,22 @@ Plugin UCM Palettes : ucm-palettes-plugin, privé.
 - telechargement.ts : fichier proposé au designer, par un lien vers un blob
 - derive/ : carte « Color shift » : choix du profil à régler, onglets de grandeur, géométrie pure, graphe SVG et ses rails, glisser, clavier, préréglage de la teinte, lien, annulation et butée
 - textes.ts : types partagés par les vues (`Constat`, `Jugement`…) ; les textes sont dans `i18n/`
+- index.ts : point d'entrée de l'interface : en-tête du socle, onglets et panneau Configuration
+- index.html : page de l'iframe, qui charge `styles.css` et `index.ts`
+- styles.css : règles propres à Palettes ; le build place le `socle.css` de plugin-socle avant elles
+- pont.ts : seule porte d'envoi de l'interface vers le sandbox, symétrique de `versUi` dans `code.ts`
+- annulation.ts : annulation dans la session : ouverture de chaque palette, pile des recettes rangées et rétablissement, en valeurs seules
+- constats.ts : messages de l'interface, un bloc par message (trois parties, mesures, détail replié, liens vers les réglages), groupés par sévérité
+- modeleDesGaranties.ts : ce que la carte « Garanties de contraste » montre : G1 à G9 rangées dans les six colonnes de fonds, sans DOM ni texte
+- paletteReglee.ts : la palette figée posée sur les réglages que la reprise a trouvés
+- reglagesAvances.ts : dépliant « Réglages avancés » de la configuration de la palette : modèle, intensités, « Référence exacte dans » et résumé à droite
+- section.ts : section repliable de l'onglet Gestion : filet, chevron, titre, compte en pastille et résumé quand elle est repliée
 
 ## src/ui/derive/
 - reglette.ts : réglette bornée, commune au Color shift et au réglage global : piste peinte, zones hachurées, pouce arrêté sur la borne, marque par défaut, libellé, bouts nommés et pastille facultatifs
+- editeur.ts : carte « Color shift » : onglets de grandeur, graphe et deux réglettes, choix « Régler », préréglage de la teinte et « Tout par défaut »
+- geometrie.ts : géométrie pure du graphe : place d'un cran, du pivot et d'une valeur, et valeur d'une ordonnée
+- graphe.ts : graphe SVG : ligne de chaque profil, pivot, poignées sur leurs rails, rampes sans et avec Color shift
 
 ## scripts/
 - mesurer-glisser.mjs : coût d'un mouvement de poignée, hors des tests

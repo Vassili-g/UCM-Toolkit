@@ -23,9 +23,13 @@ Sous-chemin sans dépendance Node ni Figma.
 - identite.ts : « ces deux contrats sont-ils le même composant ? »
 - typography.ts : graisses et styles DTCG qu'un text style emploie
 - index.ts : ce que le sous-chemin publie
+- valeurs-figma.ts : ce que l'export écrit pour une valeur Figma de mouvement ou de couleur ; l'exporteur et `lecteurs/comparaison-dtcg.mjs` lisent ces règles
 
 ## src/protocoles/
 - nommage.ts : entrées de nommage que Nomenclature range et que Palettes relit : clés, écriture, lecture versionnée, rangement avec retour au texte d'avant et entrées futures (`futures`)
+- index.ts : ce que le sous-chemin publie
+- donnee.ts : classement commun d'une donnée que des plugins se partagent dans le fichier Figma : enveloppe, texte JSON et version, sans migration
+- palettes.ts : données qu'UCM Palettes range dans le fichier (recette, suivi des variables, marque `nommage`, marqueurs `palette` et `cle`), chacune avec son adresse, sa version et son classement
 
 ## src/nommage/
 Sous-chemin sans Figma : calcul de renommage sur un inventaire portable.
@@ -33,6 +37,7 @@ Sous-chemin sans Figma : calcul de renommage sur un inventaire portable.
 - inventaire.ts : forme de l'inventaire, `estProtegee`, `palettesLibres`, `causeDeProtection`
 - chemins-publies.ts : renommages qui feraient disparaître un token de `tokens.json` ou un axe de modes de l'export (`axesDeLExport`)
 - calcul.ts : `nomsSelonLesRegles` et sa version synchrone, qu'UCM Architect et UCM Palettes appellent ; `idsNonRenommables` en tire les noms figés
+- index.ts : ce que le sous-chemin publie
 
 ## src/emplois/
 Sous-chemin sans dépendance : vocabulaire qu'UCM Palettes et `ucm check` partagent.
@@ -81,6 +86,7 @@ Ce qui juge un contrat écrit ; `ajv` et `node:fs`.
 - index.d.mts : ce que cette porte promet à un consommateur TS
 - navigateur.mjs : porte `@ucm-kit/core/lecteurs/navigateur` : lecteurs sans Node ni Ajv, pour un plugin ou une page
 - navigateur.d.mts : ce que cette porte promet à un consommateur TS
+- comparaison-dtcg.mjs : dit si un token publié porte encore la valeur Figma, ramenée par l'appelant à une `ValeurFigmaPortable`, selon les règles de `format/valeurs-figma.ts`
 
 ## src/controles/
 - accessibilite.ts : `controlerLAccessibilite` : C49 à C53 ; la composition garde les flottants et n'arrondit qu'à 8 bits au rapport ; un fond de page Figma ou d'élévation d'alpha inférieur à 1 donne la limite `fond-indetermine`, un canal ou un alpha hors de [0, 1] ou NaN la limite `couleur-hors-gamut` ; l'opacité d'un layer est le produit de la sienne et de celles de ses ancêtres, et un layer d'opacité effective nulle n'est pas mesuré ; le grand texte gras commence à 56/3 px en graisse 700 ; un frère plus bas (rectangle, cadre, ellipse, instance) qui recouvre la boîte du texte est son fond, un recouvrement partiel donne `fond-indetermine` sans repli sur la page du thème ; les modes du thème entrent dans le produit des modes d'une cible mesurée sur le repli, et une collection dont aucun mode ne change une valeur lue en sort ; `C49:borne` porte `variantsNonMesures` ; une garantie du thème rend `corriger` seulement pour le même type de seuil, le niveau AA et ce fond ; l'identifiant d'un constat est `code:layer:usage[:fond]`, sans plage ni niveau, et une plage vide ne donne rien ; un contour muet quand le remplissage du layer atteint 3:1, un anneau rempli sans contour mesuré sur son remplissage, une instance d'anneau sans peinture propre reconnue par un descendant peint ; `Disabled=True`, `Enabled=False`, `disabled` et `disable` désactivent un variant (C53 porte `faits.ecriture`, l'écriture la plus répandue parmi les désactivés, à égalité la première par ordre alphabétique), le texte sous 12 px reste jugé ; le mode de fusion du layer ou d'un remplissage donne la limite `mode-de-fusion`, un flou d'arrière-plan visible sur le layer ou une couche de fond parcourue donne `flou-arriere-plan` ; des remplissages visibles superposés priment sur `degrade` et `image` ; un fill, un stroke, un texte ou le fond d'un ancêtre listé dans `lecture.manquees`, et un variant de `variantsNonLus`, ne sont pas jugés
@@ -98,6 +104,10 @@ Ce qui juge un contrat écrit ; `ajv` et `node:fs`.
 - releve.ts : les faits lus dans Figma avant tout jugement (`ReleveDeComposant`) ; `wrappers` porte, par jeu de wrapper de dimensions, ses axes et les liaisons de ses variants, sans le reste des layers ; `instanceDe.valeurs` porte les valeurs de propriété de variant que l'instance règle (`Size`), absentes tant que le lecteur ne les lit pas ; `texte.stylesMixtes` dit que le texte porte plusieurs text styles (`style` vaut alors `null`), absent tant que le lecteur ne le lit pas ; `LayerLu.blendMode` et `LayerLu.flouArrierePlan` portent le mode de fusion et le flou d'arrière-plan visible du layer, facultatifs pour les relevés existants
 - theme.ts : C59 (texte lié par un token de `components` dont l'alias, suivi de token en token, mène à `surface/foreground` du thème, sans fond de surface, `subtle` compris, sous lui ; correction vers l'unique token du même composant qui vise `page/foreground`, sinon question ; ni la liaison directe à `theme`, que C80 juge seul, ni la liaison tenue du composant principal) et C60 ; `controlerLesModes` lit la branche de mode d'une cible dans son chemin (`primary/dark/300`) ou dans les modes de sa collection, corrige vers la bonne branche au cran du sens lu (`lireLeSens`), et pose sinon une question de genre `branche-de-mode`, jamais une correction pour `solid/foreground`
 - typographie.ts : `controlerLaTypographie` : C64 (style de texte, comparé parmi les textes de même nom, de même valeur de l'axe de taille quand le composant en a un et de même rang dans leur variant ; un texte sans style ne vote pas ; `texte.stylesMixtes` donne une information `styles-mixtes` à la place de tout autre constat C64), C65 (les huit champs de `CHAMPS_DE_TYPOGRAPHIE` liés à `typography`), C66 (l'icône est une instance d'`Icon`, son fill ou, sans fill visible, son trait suit un token `icon` ou `foreground` du composant que le variant prévoit, `Size` de l'instance vaut la taille du variant quand le relevé la porte ; largeur et hauteur ne se jugent plus) et C67 (propriété d'échange d'instance de l'icône) ; un constat regroupe les variants et ne nomme `faits.attendu` que si tous attendent les mêmes tokens
+- index.ts : ce que le sous-chemin publie
+- catalogue.ts : les variables de référence et leur état de lecture, indépendamment de Figma (`CatalogueDeReference`, `cheminComplet`, `variableDuCatalogue`)
+- constat.ts : forme des résultats que les contrôles rendent à Architect (`Constat`, `Correction`, `Question`, `CreationDeVariable`)
+- structure.ts : contrôles des scopes et des structures UCM du catalogue
 
 ## src/referentiel/
 - branches-paralleles.ts : rapproche les branches et les alias ; cède pendant les masques, les comparaisons et les parcours rejetés
@@ -111,6 +121,24 @@ Ce qui juge un contrat écrit ; `ajv` et `node:fs`.
 - questions.ts : les questions de nomenclature : paires (synonymes, pluriel, terminaison, écriture proche), fautes à une et deux lettres selon `LONGUEUR_MINIMALE_D_UNE_FAUTE_D_UN_MOT_COURT` (3, avec `motConnu` jusqu'à 6 lettres, et à 3 lettres un seul terme du kit à une lettre), `autres` (les autres termes proches d'une faute, dans l'ordre de choix de la référence), `LONGUEUR_MINIMALE_D_UNE_FAUTE_A_UNE_LETTRE` (7) et `LONGUEUR_MINIMALE_D_UNE_FAUTE_A_DEUX_LETTRES` (8), formes tolérées bloquées par collision, blocs gardés entiers, mots collés, collections et leur `proposee` (une lettre, la casse seule ou une ancienne forme) ; une paire de `FORMES_D_UN_MEME_MOT` hors pluriel et terminaison (`gray`, `grey`) donne une question `synonymes` ; `morceauxDeCasse` lit les morceaux d'au moins 3 lettres d'un mot de casse mixte, et ceux du segment entier, pour la faute seulement ; les mots d'un nom de composant (`nomsDeComposant`) se lisent aussi pour la faute seulement ; deux termes UCM synonymes du fichier (`choixDuDesigner`) donnent une paire `synonymes` sans place partagée, le plus employé proposé ; le pluriel d'une abréviation (`bgs`) ou d'un terme composé (`focus-rings`) donne une paire `pluriel` ; un mot collé qui se coupe en termes exacts dont un terme de composant (`paddingwidth`) donne une question `mots-colles`
 - signes.ts : les signes des sortes d’objets (18 familles, dont `rubrique-tokens` pour les dix catégories du mode Tokens, `interface` pour les icônes d'interface des plugins, `type-de-terme` pour les icônes de Nomenclature, `verdict-palettes` pour les repères ⊣ ◆ ≈ de Palettes et `pictogramme-palettes` pour les 11 pictogrammes de ses cartes, identifiant, libellé, sens, `emploi`, `glyphe` pour dix signes dont `glypheDuSigne` rend le caractère, tracé SVG unique sur une grille de 16 sauf champs `grille` et `hauteur`, mot de repli), chaque famille porte sa `pose` et `POSE_DES_ALERTES` celle des alertes, les reprises entre familles et `svgDuSigne` ; données seules, la tuile se pose dans le socle ; chaque type d'alerte porte son repli `texte`, `brut` pour une sortie texte et `forge` pour un commentaire de forge
 - termes-connus.ts : termes connus, découpage des segments, `motsDUnNom`, `termesAUneLettre`, `termesADeuxLettres`, `termesDeDeuxLettresAUneLettre` (les termes de 2 lettres proches d'un mot de 3 lettres), `termeDeComposant`, `termeSoude` et `termeAvecSesTirets` (la forme soudée d'un terme de plusieurs mots), `termesCompose` et `decouperEnTermesAvecUnTermeDeComposant`
+- index.ts : ce que le sous-chemin publie : vocabulaire UCM et emplois de couleur
+- architecture.ts : les collections UCM (`COLLECTIONS`) et les formes de leurs chemins, composants compris
+- grammaire.ts : un chemin de variable du profil UCM lu segment par segment contre `FORMES_DES_CHEMINS` ; `porteeDeLaGrammaire` dit ce qui sort de son champ
+- vocabulaire.ts : identifiants retenus et formes tolérées dans les noms Figma (`CRANS`, `NUMEROS_DE_PALETTE`)
+- termes.ts : le vocabulaire bilingue partagé (`Terme` : libellé, définition, formes tolérées)
+- reconnaissance.ts : reconnaissance d'un terme quelle que soit son écriture, séparée de `termes.ts` pour éviter un cycle d'import
+- theme.ts : libellés et définitions des variables du thème, par support des emplois de couleur
+- contraste.ts : seuils de contraste du thème (`SEUILS_PAR_USAGE`, `SEUIL_TEXTE_AAA`) et niveaux de texte, comparés à dix décimales
+- conventions.ts : conventions de nommage par catégorie, casse et séparateur
+- ecriture-des-mots.ts : découpage et écriture des segments, pour les deux moteurs de normalisation
+- normalisation.ts : propose des noms logiques ; le plugin garde les identifiants techniques des propriétés Figma
+- harmonisation.ts : types du moteur d'harmonisation : lexique, vocabulaire du fichier, renommages, questions et clé de règle d'un terme
+- vocabulaire-du-fichier.ts : index des termes UCM et des termes propres au fichier ; résout une cible personnalisée jusqu'à sa forme terminale, et un retour sur sa propre pile est un conflit `cycle`
+- regles.ts : tags des règles d'usage reconnues dans Figma (`TAGS_DES_REGLES`), sans leur contenu libre
+- kit-de-regles.ts : grammaire du kit de règles Figma : noms des trois maîtres, calques lus par chaque règle, marqueur des textes d'aide et validateur d'un relevé
+- produits.ts : responsabilités des produits UCM et adresses des données partagées dans Figma, que `protocoles/` republie
+- recommandations.ts : conseils d'implémentation, sans champ normatif ; seuls l'index, les tests du kit et la vue illustrée les lisent
+- signaux.ts : sens des signaux communs aux interfaces UCM et aux rapports (`SIGNAUX_DU_LANGAGE`)
 
 ## scripts/
 - build-schema.ts : génère le schéma depuis `types.ts`
