@@ -48,7 +48,7 @@ relit chaque diff, fait relancer les vérifications par un `verificateur`, lance
 - [x] 0.2 Décision du mainteneur. L’explication pour le mainteneur vit dans un nouveau guide, `docs/guides/LINTER-UCM.md`, « vraiment bien écrit pour que ce soit très simple à comprendre, et avec le moins de texte possible ».
 - [x] 0.3 Décision du mainteneur. Les mots-clés que le contrat publie en clair (`stretch`, `uppercase`, `center`) comptent comme valeurs publiées. Tout réglage d’une liste monte le chiffre du milieu du kit.
 - [x] 0.4 Décision du mainteneur. Réalisation (b) avec un seul extracteur. La lecture du code vit une fois, dans `@ucm-kit/adapter-typescript`, et sert le plugin ESLint comme `ucm check`. Le juge reste dans le kit.
-- [x] 0.5 Décision du mainteneur. Écriture par défaut des références : `"var(--nom-exact)"` en toutes lettres, sans fonction de traduction. `ucm guide` donne le nom.
+- [x] 0.5 Décision du mainteneur. Écriture par défaut des références : `"var(--nom-exact)"` en toutes lettres, sans fonction de traduction. L’agent écrit `"{chemin}"` comme le contrat, puis lance `npx ucm tokens references <fichiers>`, qui remplace chaque référence par son nom exact. Ni l’agent ni `ucm guide` ne calculent ou ne listent les noms.
 - [x] 0.6 Décision du mainteneur. La chaîne d’un fichier d’implémentation qui ressemble à une valeur visuelle est jugée où qu’elle soit (définition au cadrage, §7).
 - [ ] 0.7 Conversation principale, avec le développeur. Faire relire les exemples d’échange du [cadrage, §6](./RECHERCHE-CADRAGE-P6.md#6-la-séparation-entre-kit-adaptateur-et-module). Obtenir la forme d’écriture des styles d’intencial-library (cadrage, §12, première question). Commit : `…`
   - Fichiers proposés : `packages/kit/src/lecteurs/controle-du-code.mjs`, `packages/kit/src/lecteurs/controle-du-code-listes.mjs` et `packages/adapter-typescript/src/usages.mjs`. `npm run agents:domicile -- <chemin>` rend `packages/plugin-exporter/invariants/diagnostics.md` pour les deux premiers.
@@ -62,16 +62,22 @@ mainteneur, et sa CLI doit être celle que Playground épingle à ce moment
 
 - [ ] 1.1 `implementeur-exigeant`. Aides et rendu du guide. Commit : `…`
   - `packages/cli/aides/composant.md`, ligne 34 : remplacer « Chaque référence `{chemin.du.token}` reste écrite en toutes lettres. » par « Chaque référence reste écrite en toutes lettres, sous la forme que l’aide `resolution-token` donne. »
-  - `packages/cli/aides/resolution-token.md` : ajouter une section « Écriture par défaut ». Une référence s’écrit en toutes lettres, `"var(--nom)"`, avec le nom que `ucm guide` imprime à côté d’elle. Le code ne contient aucune fonction qui traduit un chemin en nom. L’aide sort ainsi de la liste `ANCRAGES` de `packages/cli/tests/aides.test.mjs` (lignes 15 à 25).
+  - `packages/cli/aides/resolution-token.md` : ajouter une section « Écriture par défaut ». L’agent écrit chaque référence comme le contrat, `"{chemin}"`, puis lance `npx ucm tokens references <fichiers>`, qui la remplace par `"var(--nom)"`. Le code ne contient aucune fonction qui traduit un chemin en nom. La section « Preuve » ajoute `npx ucm tokens references --verifier <fichiers>`. L’aide sort ainsi de la liste `ANCRAGES` de `packages/cli/tests/aides.test.mjs` (lignes 15 à 25).
   - `packages/cli/src/guide.mjs`, `aidesDuContrat` (ligne 176) : avec `ecritures-par-defaut: non` et sans section `## resolution-token`, l’aide reste listée sous « Non tranché : demander au développeur », comme un ancrage. La règle nomme l’aide, comme le cas de `composant` à la ligne 182.
-  - `packages/cli/src/guide.mjs` : quand l’écriture par défaut de `resolution-token` s’imprime, ajouter la section « Noms CSS des références ». Une ligne par référence distincte du contrat, hors `samples` et `meta` (`collecterReferences` et `sansEchantillon`), avec le nom que `tokenCssVariable` donne. Aucune section quand le repository répond par sa propre section.
+  - Nouvelle commande `ucm tokens references <fichiers…>`, dans `packages/cli/src/tokens-references.mjs`, appelée par la branche `tokens` de `packages/cli/src/ucm.mjs` (ligne 217), avec son aide de commande. Elle lit `tokens.json` par `lireConfiguration` et `indexerTokensDtcg`, et calcule chaque nom par `tokenCssVariable`. Elle ne recopie aucune règle de nom.
+    - Elle remplace chaque chaîne entre guillemets dont tout le contenu est une référence, `"{chemin}"` ou `'{chemin}'`, par `"var(--nom)"`, en gardant les guillemets d’origine. Une référence prise dans une chaîne plus longue ou dans un gabarit n’est pas touchée, et la commande la signale.
+    - Une référence absente de `tokens.json` n’est pas remplacée. La commande la nomme avec son fichier et sa ligne, et sort en erreur.
+    - Deux chemins qui donnent le même nom CSS arrêtent la commande avant toute écriture, comme `ucm tokens css` (`packages/cli/src/tokens-css.mjs`, ligne 325).
+    - Un second passage ne change rien. Le fichier n’est réécrit que s’il change.
+    - `--verifier` n’écrit rien et sort en erreur s’il reste une référence à remplacer. C’est la commande de la « Preuve » de l’aide.
+  - `ucm guide` n’imprime aucune liste de noms CSS.
   - L’aide `modes` (« ne déclare aucune variable de token ») reste vraie et ne change pas.
-  - Fin : les cas G1 à G5 de la section [Cas de test](#cas-de-test) passent dans `packages/cli/tests/guide.test.mjs`, `aides.test.mjs` et `commande-aides.test.mjs`.
+  - Fin : les cas G1 à G8 de la section [Cas de test](#cas-de-test) passent dans `packages/cli/tests/guide.test.mjs`, `aides.test.mjs`, `commande-aides.test.mjs` et le nouveau `packages/cli/tests/tokens-references.test.mjs`, sur des fichiers fabriqués dans un dossier temporaire.
 - [ ] 1.2 `executant`, `verificateur`, puis conversation principale. Monter le dernier chiffre de `@ucm-kit/cli`, vérifier, commiter, publier la CLI seule selon `publier-paquets`. Commit : `…`
   - Fin : `npm view @ucm-kit/cli@<version> version` rend la version. Le mainteneur reçoit le numéro pour la correction 7.
 
 `.agents/skills/consommer-contrat/SKILL.md` ne change pas. Elle fait lire le
-guide et ses aides, donc elle reçoit la nouvelle écriture et la table des noms.
+guide et ses aides, donc elle reçoit la nouvelle écriture et la commande.
 
 ## Lot 2. Juge et extracteur, sans publication
 
@@ -218,7 +224,7 @@ ligne avec sa raison dans le même fichier, et le même geste.
 | Jugement | `preparerControle` dans la prise, ses types, ses exemples | Rien |
 | Plugin | L’esquisse du cadrage, §6 | Le plugin local, la conversion des décalages par `getLocFromIndex`, le niveau des messages, l’affichage des usages non analysés et des lectures incomplètes |
 | Forme des styles | L’extracteur lit les objets `style` et ceux annotés `CSSProperties` | La forme d’écriture des styles d’intencial-library, à donner au lot 0 |
-| Écriture des tokens (D14) | Écriture par défaut `"var(--nom-exact)"` et table des noms dans `ucm guide` (lot 1) | Accepte l’écriture par défaut, ou écrit sa section `## resolution-token` dans `.ucm/conventions.md` |
+| Écriture des tokens (D14) | Écriture par défaut `"var(--nom-exact)"` et commande `ucm tokens references` (lot 1). Le plugin ESLint pourra proposer la même correction par `--fix`, avec `tokenCssVariable` de la prise | Accepte l’écriture par défaut, ou écrit sa section `## resolution-token` dans `.ucm/conventions.md` |
 | Corpus | Tests sur contrats fabriqués et fixtures | Reprend les composants, les contrats et les tokens de Playground, sans constat restant |
 | TypeScript (D13) | L’adaptateur embarque son TypeScript 5.9 | Garde le projet en 6.0 (`~6.0.3` sur `dev` depuis la PR #11, `0036bc7`) tant que `@typescript-eslint/parser` refuse TypeScript 7 |
 | Tests | Cas de la section suivante | Tests `RuleTester` sur l’affichage et les positions |
@@ -297,11 +303,14 @@ sinon.
 
 | Cas | Situation | Résultat attendu |
 |---|---|---|
-| G1 | Contrat qui cite des tokens, sans conventions | « Écriture par défaut » de `resolution-token`, puis « Noms CSS des références », une ligne par référence distincte |
-| G2 | Section `## resolution-token` dans `.ucm/conventions.md` | réponse du repository, aucune table des noms |
-| G3 | `ecritures-par-defaut: non`, sans section | `resolution-token` listée sous « Non tranché », aucune table |
-| G4 | Référence `{café.fond}` | nom `--cafe-fond` dans la table |
-| G5 | `ucm aides resolution-token` | Sens, Écriture par défaut, Preuve |
+| G1 | Contrat qui cite des tokens, sans conventions | « Écriture par défaut » de `resolution-token`, qui nomme `ucm tokens references`. Aucune liste de noms CSS |
+| G2 | Section `## resolution-token` dans `.ucm/conventions.md` | réponse du repository |
+| G3 | `ecritures-par-defaut: non`, sans section | `resolution-token` listée sous « Non tranché » |
+| G4 | `ucm tokens references` sur `"{café.fond}"` et `'{a.b}'` | `"var(--cafe-fond)"` et `'var(--a-b)'`, guillemets gardés |
+| G5 | `ucm aides resolution-token` | Sens, Écriture par défaut, Preuve avec `--verifier` |
+| G6 | Référence absente de `tokens.json`, et référence dans un gabarit | aucune des deux remplacée, chacune nommée avec fichier et ligne, sortie en erreur |
+| G7 | Deux chemins qui donnent le même nom CSS | arrêt avant toute écriture, fichier inchangé |
+| G8 | Second passage, puis `--verifier` | aucun changement ; `--verifier` sort sans erreur, et en erreur sur un fichier qui garde un `"{chemin}"` |
 
 ## Vérifications et clôture
 
@@ -347,4 +356,4 @@ modifications en cours dans ces fichiers :
    - `questions` : « Quel nom la prise ajoute-t-elle pour lire l’état des composants, quand la page l’importe ? »
 7. Pour le mainteneur, avant les réimplémentations v14 de Playground. Le plan ne réalise aucune migration de Playground.
    - Dans `UCM-Playground/.ucm/conventions.md`, retirer la ligne « Traduire `{chemin.du.token}` » du tableau et la phrase « Il n’existe volontairement aucun helper partagé de résolution de token : chaque composant écrit ses références en toutes lettres. » La phrase suivante, sur `ucm tokens css` et l’absence de variable de token déclarée, reste vraie.
-   - Épingler la CLI publiée au lot 1 dans `UCM-Playground/package.json` (`@ucm-kit/cli`, aujourd’hui `0.1.50`), et dans `UCM-Playground/.agents/skills/ucm-implementer/SKILL.md` et `.claude/skills/ucm-implementer/SKILL.md`, qui lancent `npx --yes @ucm-kit/cli@0.1.50 guide`. Sans ce pin, l’agent lit l’ancien guide, sans écriture par défaut des références ni table des noms.
+   - Épingler la CLI publiée au lot 1 dans `UCM-Playground/package.json` (`@ucm-kit/cli`, aujourd’hui `0.1.50`), et dans `UCM-Playground/.agents/skills/ucm-implementer/SKILL.md` et `.claude/skills/ucm-implementer/SKILL.md`, qui lancent `npx --yes @ucm-kit/cli@0.1.50 guide`. Sans ce pin, l’agent lit l’ancien guide et n’a pas la commande `ucm tokens references`.

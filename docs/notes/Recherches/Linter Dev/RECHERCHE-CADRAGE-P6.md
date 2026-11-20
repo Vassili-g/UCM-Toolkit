@@ -415,24 +415,38 @@ correction automatique.
 
 ## 8. L’écriture `"var(--nom-exact)"`
 
-L’aide `resolution-token` reçoit une écriture par défaut. Une référence s’écrit
-en toutes lettres, `"var(--nom)"`, avec le nom que `ucm guide` imprime à côté
-d’elle. Le code ne contient aucune fonction qui traduit un chemin en nom.
+L’aide `resolution-token` reçoit une écriture par défaut. L’agent écrit chaque
+référence comme le contrat, `"{chemin}"`, puis lance
+`npx ucm tokens references <fichiers>`. La commande remplace chaque référence
+par `"var(--nom)"`, avec le nom que `tokenCssVariable` donne. Le code ne
+contient aucune fonction qui traduit un chemin en nom, et ni l’agent ni
+`ucm guide` ne calculent un nom.
 
 - Le mécanisme existe. Une aide a une section « Écriture par défaut », que `ucm guide` imprime sauf si `.ucm/conventions.md` répond par une section `## <aide>` ou porte `ecritures-par-defaut: non` (`packages/cli/src/guide.mjs`, lignes 172 à 184).
 - `resolution-token` est aujourd’hui un ancrage. Avec `ecritures-par-defaut: non` et sans section, un ancrage se liste sous « Non tranché : demander au développeur » (ligne 176). Une aide à écriture par défaut s’y tait. Le lot 1 garde donc `resolution-token` sous « Non tranché » dans ce cas, par une règle qui nomme l’aide, comme celle de `composant` (ligne 182). Un repository sans CSS reçoit toujours la question.
 - L’aide `modes` dit déjà « Chaque référence devient `var(--…)` » et « ne déclare aucune variable de token ». L’écriture par défaut la rejoint.
 - `.agents/skills/consommer-contrat/SKILL.md` fait lire le guide et ses aides, et ne change pas.
 
-`ucm guide` imprime la section « Noms CSS des références » : une ligne par
-référence distincte du contrat, hors `samples` et `meta`, avec le nom que
-`tokenCssVariable` donne. L’agent recopie le nom et ne le calcule jamais. La
-section coûte 1 203 caractères pour `TileLink`, 3 919 pour `Alert`, 9 264 pour
-`StressTest` et 32 435 pour `Button`, dont le contrat fait 54 605 caractères.
+Une commande plutôt qu’une liste dans le guide. La traduction d’une référence
+est exacte : une référence donne un seul nom. Une liste de tous les noms dans
+`ucm guide` aurait ajouté 32 435 caractères au guide de `Button`, dont le contrat
+fait 54 605 caractères, à chaque lecture par un agent. Une traduction par
+l’agent pourrait se tromper. La commande ne coûte rien au guide et ne se trompe
+pas.
+
+- Elle remplace seulement une chaîne dont tout le contenu est une référence, et garde ses guillemets.
+- Elle laisse et signale une référence absente de `tokens.json`, ou prise dans un gabarit.
+- Elle s’arrête avant toute écriture sur deux chemins au même nom CSS.
+- Un second passage ne change rien. `--verifier` sert de preuve à l’aide.
+
+Le plugin ESLint pourra proposer la même correction par `--fix`, avec
+`tokenCssVariable` de la prise. Cette correction est exacte, donc permise, à la
+différence du remplacement d’une valeur en dur par un token, où plusieurs
+tokens peuvent avoir la même valeur.
 
 Ce que la forme `"var(--nom)"` change par rapport à `"{chemin}"` :
 
-- La table du code n’est plus la copie littérale de `variants`. La relecture la compare au contrat par la table des noms du guide.
+- La table du code n’est plus la copie littérale de `variants`. La relecture retrouve chaque chemin par la règle de `tokenCssVariable`, et `ucm check` juge l’existence de chaque nom.
 - Le nom aplatit les segments : `components.button.sizes.medium.padding-x` devient `--components-button-sizes-medium-padding-x`. Le juge retrouve le chemin par l’index inverse, donc la règle « token inconnu » ne perd rien.
 - Une collision de noms rendrait un nom ambigu. `ucm tokens css` refuse déjà deux feuilles au même nom (`packages/cli/src/tokens-css.mjs`, ligne 325). Un repository qui génère sa feuille n’en a donc aucune. Le juge garde `nom-css-ambigu` pour un `tokens.json` que la feuille refuserait.
 - Le style reçoit des chaînes littérales. La règle « valeur en dur » juge alors la déclaration au lieu de la rendre non analysée.
@@ -513,14 +527,14 @@ versions publiées à l’exact et retire `overrides` et les archives.
 | L’extracteur unique, dans l’adaptateur | Une seule fonction lit le code, sur le tampon dans l’éditeur et sur le disque en CI : les deux rendent le même relevé | L’adaptateur embarque TypeScript 5.9 (`>=5.5.0 <6`) pour un projet en 6.0, et le plugin charge une seconde copie de TypeScript (218 ms, une fois par processus) | Une syntaxe que 5.9 ne lit pas, ou un style écrit hors d’un objet `style`. Absent : 0 erreur de lecture sur les quatre composants, styles tous en objets `style`. intencial-library n’a pas encore choisi sa forme de style (§5) | La lecture incomplète se rend en limite. La forme de style d’intencial-library est à donner au lot 0 ; une forme hors des objets rouvre ce choix |
 | La réalisation (b) | La règle du dernier modifié existe déjà dans `verdictDuComposant` (`verdict-bilan.mjs`, 168-220), sans forme de fichier ni étape de workflow | `ucm check` dépend de l’adaptateur pour juger le code | Une technologie sans adaptateur : son code reste « présent, non vérifié » (V-17). Absent : le corpus est en TSX | Un fichier fautif plus récent que son contrat bloque toute demande de code (V-12, V-18) |
 | Les chaînes visuelles, où qu’elles soient | Les valeurs de chaque combinaison vivent dans des tables : 19 des 25 parties visuelles du corpus sont hors d’une déclaration (§5) | Un texte peut contenir une longueur ou une couleur | Un libellé ou une valeur de prop en forme de valeur CSS. Absent : 0 faux positif sur 1 754 chaînes | La définition exclut phrases, noms de couleur et pourcentages hors déclaration, donc un nom de couleur en dur dans une table passe |
-| L’écriture `"var(--nom-exact)"` | Aucune fonction de traduction, donc aucune projection recopiée, et un style que le juge lit | La table du code cesse d’être la copie littérale du contrat | Une collision de noms CSS : `ucm tokens css` la refuse (`tokens-css.mjs`, 325). Un chemin non ASCII : le guide donne le nom exact. Absent : 376 références ASCII | La section des noms ajoute 32 435 caractères au guide de `Button` |
+| L’écriture `"var(--nom-exact)"` | Aucune fonction de traduction, donc aucune projection recopiée, et un style que le juge lit | La table du code cesse d’être la copie littérale du contrat | Une collision de noms CSS : `ucm tokens css` la refuse (`tokens-css.mjs`, 325). Un chemin non ASCII : la commande donne le nom exact. Absent : 376 références ASCII | Un agent qui oublie de lancer la commande laisse des `"{chemin}"` : `--verifier` et le juge les voient |
 | Le chiffre du milieu pour un réglage de liste | La même déclaration reçoit un autre verdict, donc une rupture selon `packages/kit/invariants/versionnage.md`, et `apiPublique.test.mjs` l’impose par l’exemple des listes | Un ajout ne casse aucun module et force pourtant trois publications et un nouvel épinglage | Des réglages fréquents. Absent du corpus | Chaque réglage demande trois publications et un nouvel épinglage |
 
 ## 11. Ordre de travail et cas du module
 
 | Étape | Responsable | Preuve attendue |
 |---|---|---|
-| Écriture par défaut et table des noms dans le guide | Mainteneur et ses agents | Lot 1 publié avant les réimplémentations v14 |
+| Écriture par défaut et commande `ucm tokens references` | Mainteneur et ses agents | Lot 1 publié avant les réimplémentations v14 |
 | Exemples d’échange et forme des styles | Développeur | Réponse écrite dans ce cadrage |
 | Juge et extracteur | Mainteneur et ses agents | Lot 2 commité, sans publication |
 | Reprise du corpus et plugin | Développeur | Tests `RuleTester` sur le corpus repris |
@@ -552,13 +566,12 @@ d’un fichier dans l’éditeur et compte les faux positifs par règle.
 | D11 | Plugin local dans intencial-library, extraction décidée après l’essai. |
 | D12 | Essai depuis des archives `npm pack`, puis une seule publication du juge et de l’extracteur. |
 | D13 | TypeScript 6.0 dans intencial-library tant que le parseur refuse TypeScript 7. |
-| D14 | Écriture par défaut `"var(--nom-exact)"`, nom donné par `ucm guide`. Le juge accepte aussi `"{chemin}"`. |
+| D14 | Écriture par défaut `"var(--nom-exact)"`, posée par la commande `ucm tokens references` sur les `"{chemin}"` que l’agent écrit. Le juge accepte aussi `"{chemin}"`. |
 | Choix du plan | Mots-clés publiés comptés comme valeurs publiées. Chiffre du milieu pour un réglage de liste. Guide `docs/guides/LINTER-UCM.md` et skill `regler-le-linter`. Réalisation (b) avec un seul extracteur dans l’adaptateur. Chaînes visuelles jugées où qu’elles soient. Seconde prise `@ucm-kit/adapter-typescript/usages`. |
 
 Questions restantes :
 
-- pour le développeur : la forme d’écriture des styles d’intencial-library, objets `style`, CSS Modules ou bibliothèque CSS-in-JS. L’extracteur ne lit que la première ;
-- pour le mainteneur : la section « Noms CSS des références » coûte 32 435 caractères pour `Button`. La garder entière, ou n’y lister que les références dont le nom diffère du chemin aux points remplacés par des tirets, soit aucune sur le corpus.
+- pour le développeur : la forme d’écriture des styles d’intencial-library, objets `style`, CSS Modules ou bibliothèque CSS-in-JS. L’extracteur ne lit que la première.
 
 ## 13. Rejouer les essais
 
