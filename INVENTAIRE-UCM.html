@@ -371,8 +371,9 @@ ol.flux li:not(:last-child)::after { content: "→"; position: absolute; right: 
 dl.def.principes { grid-template-columns: 240px 1fr; }
 .carte.bloc { margin: 14px 0; }
 /* 3. Le parcours : trois couloirs d'étapes, la carte de l'étape choisie dessous. */
-.parcours { display: grid; grid-template-columns: minmax(0, 4fr) minmax(0, 2fr) minmax(0, 2fr); gap: 10px; margin: 12px 0 0; }
-.parcours .couloir { display: grid; gap: 6px; align-content: start; background: var(--surface-2); border-radius: 10px; padding: 8px; }
+.parcours { display: grid; grid-template-columns: minmax(0, 4fr) minmax(0, 2fr) minmax(0, 2fr); grid-template-rows: auto auto; gap: 10px; margin: 12px 0 0; }
+/* Les couloirs partagent la rangée des titres : un titre sur deux lignes ne décale pas les étapes des autres. */
+.parcours .couloir { display: grid; grid-row: span 2; grid-template-rows: subgrid; row-gap: 6px; align-content: start; background: var(--surface-2); border-radius: 10px; padding: 8px; }
 .parcours .couloir-titre { font-size: .72rem; text-transform: uppercase; letter-spacing: .06em; color: var(--doux); font-weight: 600; padding: 0 2px; }
 .parcours .etapes { display: grid; grid-auto-flow: column; grid-auto-columns: minmax(0, 1fr); gap: 6px; }
 .etape { all: unset; box-sizing: border-box; cursor: pointer; display: grid; gap: 1px; align-content: start; min-height: 66px; padding: 7px 9px; background: var(--surface); border: 1.5px solid var(--trait); border-radius: 8px; font-size: .84rem; line-height: 1.3; }
