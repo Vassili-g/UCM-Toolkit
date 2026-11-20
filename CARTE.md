@@ -5,7 +5,7 @@ La documentation classée par sujet.
 
 - README.md : sommaire par profil de lecteur, et table des autorités
 - format/ : forme publiée, sa compatibilité et son historique
-- guides/ : geste du designer et recette externe
+- guides/ : geste du designer, recette externe, kit de règles et modules consommateurs
 
 ## docs/references/
 - README.md : trois couches, licences, fraîcheur et commandes des guides de composants
@@ -91,7 +91,7 @@ Les tests du monorepo lui-même.
 - kitCompileAJour.test.mjs : un plugin ne se construit pas sur un kit compilé périmé
 - portesDocumentees.test.mjs : chaque porte publique du kit est décrite dans son README
 - modulesParLaPrise.test.mjs : un paquet qui se déclare module (`"ucmModule": true`) importe le kit par `@ucm-kit/core/modules` seulement, à la version exacte de la CLI
-- pluginsSepares.test.ts : aucun des quatre plugins n'importe un autre
+- pluginsSepares.test.ts : aucun des trois plugins n'importe un autre
 - referentielUnique.test.ts : aucune liste littérale ne recopie une donnée du référentiel, dans les paquets, `tests/` et `docs/inventaire/*.ts`
 - reglesUniques.test.ts : une règle que porte une fonction unique n'est recopiée nulle part
 - vueIllustree.test.ts : vue illustrée montre le référentiel d'aujourd'hui

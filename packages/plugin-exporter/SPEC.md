@@ -895,7 +895,7 @@ qui tiennent, et une dernière ligne compte ceux qu'elle omet ; le compte rendu 
 plugin les liste tous.
 
 **Le schéma annoncé est lu dans le fichier déposé, jamais dans la constante du
-plugin.** `Schéma de contrat : 12.0` est le seul champ qui décide si le fichier
+plugin.** `Schéma de contrat : <version>` est le seul champ qui décide si le fichier
 entier est lisible par le dépôt, hors de la fenêtre que ses lecteurs
 supportent le contrat étant refusé en bloc, et il est enfoui au milieu d'un diff
 de plusieurs milliers de lignes. Sur la couverture, celui qui décide de

@@ -109,7 +109,7 @@ Plugin UCM Palettes : ucm-palettes-plugin, privé.
 - gestesDeLaRecette.ts : exporter la recette ou le rapport, importer avec l'écart, repartir de la recette par défaut
 - telechargement.ts : fichier proposé au designer, par un lien vers un blob
 - derive/ : carte « Color shift » : choix du profil à régler, onglets de grandeur, géométrie pure, graphe SVG et ses rails, glisser, clavier, préréglage de la teinte, lien, annulation et butée
-- textes.ts : tous les textes destinés au designer, provisoires jusqu'au point M2
+- textes.ts : types partagés par les vues (`Constat`, `Jugement`…) ; les textes sont dans `i18n/`
 
 ## src/ui/derive/
 - reglette.ts : réglette bornée, commune au Color shift et au réglage global : piste peinte, zones hachurées, pouce arrêté sur la borne, marque par défaut, libellé, bouts nommés et pastille facultatifs

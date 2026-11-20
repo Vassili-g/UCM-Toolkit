@@ -62,7 +62,6 @@ implémentés des pistes ouvertes. Aucun contrôle de contrat ne compare le rend
 | Les protections de branche sont indisponibles sur le plan GitHub actuel | La CI détecte l'écart sans empêcher la fusion. Une pull request rouge reste fusionnable |
 | Le manifeste du plugin ne déclare que `api.github.com` et `gitlab.com` | Une équipe sur une instance GitLab auto-hébergée ne publie pas depuis Figma. Sa CI, elle, fonctionne |
 | La version 1 du format de tokens n'est éprouvée qu'en sRGB | Un export Figma réel la produit, déposé par le plugin de la Community, et le CSS du consommateur ne bouge pas d'un bit. Le Display P3 n'a pas d'export réel : un écran qui ne le rend pas prive Figma du réglage de profil |
-| La recette d'UCM Architect dans Figma n'est pas consignée | Sa résolution des modes hérités, des collections étendues et des bibliothèques distantes, ses écritures de liaisons et leur annulation, et la préparation des tokens restent à confirmer sur un fichier réel |
 | Aucun cas mesuré de mode fixé dans un composant ne change une valeur publiée | Le contrat ne décrit pas encore un mode fixé sur un calque. Un cas réel doit montrer une perte avant l'ajout d'un champ |
 
 ## Fragilités connues
