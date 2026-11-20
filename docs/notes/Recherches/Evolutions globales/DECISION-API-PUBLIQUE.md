@@ -191,6 +191,11 @@ Storybook ou l'observation Playwright. Un module peut lire un champ du contrat d
 puisque [FORMAT.md](../../../format/FORMAT.md) et `contractVersion` le
 garantissent. Il ne refait jamais un calcul que le kit fait.
 
+La recherche de P6 détaille la
+[répartition du travail et des données](./PISTES-EVOLUTION.md#répartition-du-travail-et-des-données).
+Elle distingue les responsabilités décidées des échanges techniques encore à
+concevoir.
+
 #### La version que le module épingle
 
 | Option | R | M | S | D |

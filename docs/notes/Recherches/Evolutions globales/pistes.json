@@ -147,7 +147,7 @@
         {
           "chemin": "../intencial-library/package.json",
           "action": "créer",
-          "quoi": "`@ucm-kit/cli` et `@ucm-kit/adapter-typescript` en `devDependencies`, TypeScript entre 5.5 et 6 (contrainte de l'adaptateur), React."
+          "quoi": "`@ucm-kit/cli` et `@ucm-kit/adapter-typescript` en `devDependencies`, TypeScript 6.0 (`~6.0.3`), que `@typescript-eslint/parser` accepte ; l'adaptateur embarque son propre TypeScript `<6`, React."
         },
         {
           "chemin": "../intencial-library/package-lock.json",
@@ -619,8 +619,9 @@
       "titre": "Linter ESLint, premier module",
       "titreCourt": "Linter ESLint",
       "sujet": "Modules consommateurs",
-      "recherche": "docs/notes/Recherches/Evolutions globales/PISTES-EVOLUTION.md",
-      "resume": "Livrer deux règles décidées (valeur en dur, token inconnu) avec leur cœur dans le kit et leur plugin dans la bibliothèque, puis trancher les deux règles ouvertes (variante non publiée, élément visuel en plus).",
+      "recherche": "docs/notes/Recherches/Linter Dev/RECHERCHE-CADRAGE-P6.md",
+      "plan": "docs/notes/Recherches/Linter Dev/PLAN-IMPLEMENTATION-P6-KIT.md",
+      "resume": "Livrer deux règles décidées, token inconnu et valeur en dur : leur juge dans le kit, le plugin ESLint dans la bibliothèque, leur verdict dans `ucm check` et toutes les règles affichées dans l'inventaire. Les règles 3 et 4 (variante non publiée, élément visuel en plus) restent ouvertes.",
       "importance": "haute",
       "raisonImportance": "Sans linter, une valeur écrite en dur passe pour conforme au vérificateur quand elle égale un token, et une nouvelle valeur du designer ne se propage pas.",
       "rang": 2,
@@ -629,8 +630,8 @@
         "P1"
       ],
       "complexite": "l",
-      "raisonComplexite": "Deux règles syntaxiques font un lot ; les deux règles ouvertes demandent le contrat du fichier et l'analyse typée, soit un second lot au moins.",
-      "coutHumain": "Répondre à trois questions : règles 3 et 4 du linter, Stylelint, pixels permis.",
+      "raisonComplexite": "Quatre lots : le juge du kit, l'essai avec le développeur suivi d'une publication unique, le verdict dans `ucm check`, et les règles dans l'inventaire. Les règles 3 et 4 demandent le contrat du fichier et l'analyse typée, soit un lot de plus.",
+      "coutHumain": "Choisir entre les réalisations (a) et (b) du lot 3 du plan.",
       "porteur": "les deux",
       "promesse": "R",
       "etat": "proposé",
@@ -641,44 +642,60 @@
           "quoi": "Activation des règles UCM."
         },
         {
-          "chemin": "plugin ESLint UCM",
+          "chemin": "../intencial-library/ (plugin ESLint UCM)",
           "action": "créer",
-          "quoi": "Emplacement à décider : dans intencial-library, ou nouveau paquet du toolkit avec son AGENTS.md, sa CARTE.md et son entrée dans `.agents/domiciles.json`."
+          "quoi": "Plugin local de la bibliothèque ; son extraction se décide après l'essai."
         },
         {
-          "chemin": "packages/kit/src/lecteurs/ (cœur des règles)",
+          "chemin": "packages/kit/src/lecteurs/controle-du-code.mjs et controle-du-code-listes.mjs",
           "action": "créer",
-          "quoi": "Réutiliser `isTokenReference`, `tokenCssVariable` (format), `indexerTokensDtcg` et `collecterReferences` (lecteurs)."
+          "quoi": "Le juge `preparerControle`, et ses deux listes réglables : valeurs neutres et propriétés par famille."
         },
         {
           "chemin": "packages/kit/src/modules/index.mjs",
           "action": "modifier",
-          "quoi": "Ajouter à la prise `@ucm-kit/core/modules` la fonction qui rend les constats d'un fichier, et sa déclaration dans `index.d.mts`, à la place de quatre pièces."
+          "quoi": "Ajouter `preparerControle` à la prise `@ucm-kit/core/modules`, avec sa déclaration dans `index.d.mts`."
+        },
+        {
+          "chemin": "packages/adapter-typescript/src/",
+          "action": "modifier",
+          "quoi": "Lot 3, réalisation (b) : relever les chaînes citées et les déclarations de style, puis interroger le même juge pour qu'`ucm check` porte le verdict."
         },
         {
           "chemin": "../intencial-library/.github/workflows/ucm.yml",
           "action": "modifier",
-          "quoi": "Lancer `npx eslint` dans le CI."
+          "quoi": "Lancer ESLint sur les fichiers que la demande modifie, jusqu'au lot 3."
         },
         {
-          "chemin": "docs/notes/Recherches/Evolutions globales/PISTES-EVOLUTION.md",
+          "chemin": "docs/guides/LINTER-UCM.md",
+          "action": "créer",
+          "quoi": "Explication courte du linter pour le mainteneur : ce qu'il vérifie, ce qu'il ne voit pas, ce qui se règle."
+        },
+        {
+          "chemin": ".agents/skills/regler-le-linter/SKILL.md",
+          "action": "créer",
+          "quoi": "Geste d'un agent pour ajouter ou retirer une valeur d'une liste du linter."
+        },
+        {
+          "chemin": "docs/inventaire/",
           "action": "modifier",
-          "quoi": "§3.2 : consigner les règles retenues."
+          "quoi": "Lot 4 : afficher toutes les règles d'`ucm check` et du linter, lues dans le code."
         }
       ],
       "criteresDeFin": [
         "Les tests `RuleTester` des règles 1 et 2 passent.",
         "Le même constat apparaît dans l'éditeur et dans le CI sur un fichier de test.",
-        "Les faux positifs sont comptés sur les composants réels de P1."
+        "Les faux positifs et les usages non analysés sont comptés sur les composants réels de P1.",
+        "Une demande de `tokens.json` seul reste verte, et une demande de code qui touche un fichier fautif est rouge.",
+        "L'inventaire affiche les règles du linter, lues dans le code."
       ],
       "questions": [
-        "Le linter refuse-t-il une prop, une variante ou un élément absents du contrat (règles 3 et 4) ?",
-        "Installe-t-on Stylelint si les styles vivent dans des fichiers CSS ?",
-        "Quels pixels restent permis (grille, position) quand le contrat les publie ?"
+        "Le linter refuse-t-il une prop, une variante ou un élément absents du contrat (règles 3 et 4) ?"
       ],
       "risques": [
-        "Une règle « valeur en dur » sans exception pour la grille et le positionnement bloque du code conforme (PISTES-EVOLUTION.md §3.2).",
-        "Le cache du linter doit s'invalider à chaque réexport de contrat."
+        "Un code qui cite ses tokens par `token(\"{…}\")` laisse la règle « valeur en dur » sur des usages non analysés.",
+        "Le cache ESLint reste désactivé au premier lot ; le juge relit ses entrées à chaque préparation.",
+        "Deux extracteurs, ESLint et l'adaptateur, peuvent relever des usages différents."
       ]
     },
     {
@@ -864,6 +881,49 @@
       "risques": [
         "Les polices de Linux en CI rendent autrement que la machine du designer : captures instables.",
         "Le temps du job croît avec le nombre de combinaisons."
+      ]
+    },
+    {
+      "id": "P24",
+      "titre": "Page santé des composants dans Storybook",
+      "titreCourt": "Santé des composants",
+      "sujet": "Modules consommateurs",
+      "resume": "Une page de Storybook sert de hub. Pour chaque composant, elle affiche l'état que le kit calcule (conforme, en retard, écart, non analysé), les constats par règle et leurs nombres, et elle alerte quand l'implémentation s'écarte du contrat.",
+      "importance": "moyenne",
+      "raisonImportance": "Le rapport d'`ucm check` ne parle que de la demande en cours : rien ne montre l'état de toute la bibliothèque, ni les composants en retard sur leur contrat.",
+      "rang": 4,
+      "dependances": [
+        "P9",
+        "P6",
+        "P20"
+      ],
+      "complexite": "m",
+      "raisonComplexite": "Une page Storybook qui lit l'état des composants calculé par le kit ; l'état existe après le lot 3 de P6, et un nom s'ajoute à la prise quand la page l'importe.",
+      "coutHumain": "Dire quelles métriques la page montre en premier.",
+      "porteur": "développeurs",
+      "promesse": "C",
+      "etat": "proposé",
+      "points": [
+        {
+          "chemin": "../intencial-library/ (page santé de Storybook)",
+          "action": "créer",
+          "quoi": "Page hub : état de chaque composant, constats par règle, alertes."
+        },
+        {
+          "chemin": "packages/kit/src/modules/index.mjs",
+          "action": "modifier",
+          "quoi": "Ajouter à la prise le nom qui rend l'état des composants, quand la page l'importe."
+        }
+      ],
+      "criteresDeFin": [
+        "Un composant dont le code s'écarte de son contrat apparaît en alerte sur la page, sans geste manuel.",
+        "La page et le rapport d'`ucm check` donnent le même état pour chaque composant."
+      ],
+      "questions": [
+        "Quel nom la prise ajoute-t-elle pour lire l'état des composants, quand la page l'importe ?"
+      ],
+      "risques": [
+        "Une page qui recalculerait l'état elle-même divergerait du verdict d'`ucm check`."
       ]
     },
     {

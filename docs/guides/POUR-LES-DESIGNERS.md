@@ -222,8 +222,11 @@ props non visuelles, le placement par le parent et les animations.
 
 La mesure automatique du rendu bloque. Votre validation visuelle ne bloque
 jamais : un rendu que vous validez devient la capture de référence, et un
-changement du code seul qui modifie cette capture bloque. Le linter, qui
-n'existe pas encore, refusera une valeur écrite en dur dans le code.
+changement du code seul qui modifie cette capture bloque. Le linter, en
+préparation, refusera dans le code d'un composant un token absent de
+`tokens.json` et une valeur écrite en dur. Il ne bloque que la demande d'un
+développeur qui modifie ce code. Une demande de contrats ou de `tokens.json`
+seuls reste verte.
 
 Une demande qui ne contient que des contrats et `tokens.json` n'est refusée que
 pour ses propres fichiers, jamais pour le code. Vous exportez `tokens.json` et

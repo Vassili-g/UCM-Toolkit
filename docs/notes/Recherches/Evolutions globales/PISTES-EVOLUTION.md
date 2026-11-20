@@ -437,11 +437,15 @@ celle de [verdict-bilan.mjs](../../../../packages/kit/src/lecteurs/verdict-bilan
 
 ### 3.2. Signaler les écarts dans l’éditeur
 
+Le [cadrage de P6](../Linter%20Dev/RECHERCHE-CADRAGE-P6.md) compare les interfaces
+kit et module, rapporte les essais ESLint et Stylelint et propose le premier lot.
+
 **Besoin et appui dans le code.** Les lecteurs et l’adaptateur TypeScript
 produisent des relevés que le contrôle du repository agrège. Un linter pourrait
 les rendre pendant l’écriture et ajouter des contrôles sur les appels et les
-styles. L’autorité des règles communes resterait dans le kit ou l’adaptateur
-concerné.
+styles. La [décision sur l’API publique](./DECISION-API-PUBLIQUE.md#question-2-comment-un-module-reçoit-il-le-kit)
+place le cœur des règles du linter dans le kit et l’intégration ESLint dans le
+module.
 
 | Solution | Usage documenté | Limite pour UCM |
 |---|---|---|
@@ -453,10 +457,10 @@ concerné.
 [règles typées](https://typescript-eslint.io/developers/custom-rules/),
 [plugins Stylelint](https://stylelint.io/developer-guide/plugins/).
 
-**Direction proposée.** Commencer par des références littérales inconnues et
-des coordonnées de variants statiquement impossibles. Un contrôle des valeurs
-visuelles brutes demanderait de reconnaître leur emplacement : les pixels de
-grille et de positionnement autorisés par le contrat ne sont pas des défauts.
+**Direction retenue.** Le premier lot porte deux règles, token inconnu et
+valeur en dur, jugées au niveau du fichier ([cadrage](../Linter%20Dev/RECHERCHE-CADRAGE-P6.md)).
+Une valeur que le contrat publie en clair, comme un pixel de grille ou de
+position, passe. Les variantes impossibles restent hors du premier lot.
 Une référence hors contrat demanderait aussi de délimiter le code partagé et
 les dépendances composées.
 
@@ -471,6 +475,35 @@ Un projet sans analyse typée pourrait conserver les règles syntaxiques.
 L’essai vérifierait les mêmes constats dans l’éditeur et en CI, puis un
 réexport sans modification du code. Mesurer les faux positifs, la latence et
 les exceptions avant de rendre une règle bloquante.
+
+#### Répartition du travail et des données
+
+Le mainteneur porte les règles communes pour que tous les modules rendent les
+mêmes constats. Les développeurs portent l’intégration dans leur environnement.
+
+| Travail | Emplacement | Responsable |
+|---|---|---|
+| Définir les règles UCM, leurs exceptions et le calcul des constats | Kit | Mainteneur |
+| Exposer la fonction de contrôle par `@ucm-kit/core/modules` | Kit | Mainteneur, avec le développeur du module pour définir l’appel |
+| Brancher les constats dans ESLint et les afficher dans l’éditeur | Module | Développeurs |
+| Activer les règles et lancer le linter en CI | Configuration du repository consommateur | Développeurs |
+
+Les données suivent cette répartition.
+
+| Données | Emplacement et usage |
+|---|---|
+| Contrats et tokens exportés de Figma | Fichiers du repository consommateur. Le module les charge pour le contrôle. Le paquet npm ne fournit pas les données du projet. |
+| Champs du contrat | Le module peut les lire directement selon le format publié. Il appelle le kit pour les calculs déjà portés par celui-ci. |
+| Définitions du référentiel UCM | Internes au kit. Le module ne les importe pas et ne recopie ni conventions, ni crans, ni modes, ni seuils. |
+| Constats UCM | Calculés par le kit. Le module les présente dans ESLint. |
+
+La fonction prévue prépare le juge d’un fichier. Elle entre dans la prise
+après l’essai avec le développeur, selon la
+[décision sur les noms publics](./DECISION-API-PUBLIQUE.md#question-1-que-contient-la-liste-des-noms-promis).
+
+Les échanges sont décidés dans le [cadrage de P6](../Linter%20Dev/RECHERCHE-CADRAGE-P6.md),
+§6 et §8. Le module pose ses questions à un juge que le kit prépare pour le
+fichier, et aucune représentation ESLint n’entre dans le kit.
 
 ### 3.3. Comparer deux exports et identifier leur impact
 
