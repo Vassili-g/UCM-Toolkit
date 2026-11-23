@@ -18,7 +18,7 @@ produit, partir des références de [docs/README.md](../../README.md) et du code
 | [UCM Architect : fusion et préparation][architect] | Réunir l'exploration des variables, leur nommage et la préparation des tokens d'un composant. | Implémenté pour le périmètre retenu. L'adaptation des noms de préparation à la convention Figma reste conditionnelle. |
 | [Exporter : sélection et Style Dictionary][exporter-selection] | Aligner la bascule Composant et Tokens sur celle d'UCM Architect, choisir les collections et les modes exportés, puis convertir `tokens.json` pour Style Dictionary. | Recherche proposée, non implémentée ; décisions du mainteneur attendues. |
 | [Socle d'intencial-library][socle-intencial] | Donner à intencial-library son socle React et TypeScript, la CLI et l'adaptateur UCM épinglés, et la feuille CSS des tokens. | En cours ; plan à cases suivi par l'inventaire. |
-| [Roadmap de l'inventaire][roadmap] | Calculer l'état de chaque piste depuis son plan, afficher la Roadmap de l'inventaire et archiver les sujets terminés (P25). | Recherche faite et décidée ; plan à cases prêt, qui commence après la case 4.4 de P6. |
+| [Roadmap de l'inventaire][roadmap] | Calculer l'état de chaque piste depuis son plan, afficher la Roadmap de l'inventaire et archiver les sujets terminés (P25). | Implémenté : la section 7 de l'inventaire est la Roadmap ; P19 et P21 archivées. |
 | [Diff sémantique][diff] | Comparer deux ensembles de contrats et de tokens pour identifier les changements et les composants touchés. | Proposé, non implémenté ; périmètre de l'expérimentation à valider. |
 | [Pièces internes][pieces-internes] | Décrire dans le contrat de l'hôte toutes les variantes et propriétés d'une pièce interne (P22). | Recherche en cours, non implémentée ; quatre questions de format attendent le mainteneur. |
 | [Comparateur de rendu][comparateur-rendu] | Comparer un rendu observé dans un navigateur aux obligations du contrat (P10). | Recherche en cours, non implémentée ; quatre questions de conception attendent le mainteneur. |
@@ -26,6 +26,8 @@ produit, partir des références de [docs/README.md](../../README.md) et du code
 | [Implémenteur de contrats][implementeur] | Produire et mettre à jour le code d'un composant à partir du contrat, avec moins de travail génératif. | Non réalisé. Le plan propose un compilateur ; sa revue recommande d'abord une preuve limitée et un contrôle de rendu autonome. Orientation à trancher. |
 | [Réduction du coût du chemin agent][reduction] | Réduire les lectures et les générations répétées lorsqu'un agent reconstruit un composant. | Plan partiellement remplacé par l'implémenteur. Le guide d'un agent est couvert par `ucm guide` et la skill `consommer-contrat`. |
 | [Évolutions globales][evolutions] | Choisir les prochains usages des contrats et des tokens à partir des besoins des équipes. | Catalogue de propositions, dont certaines fonctions sont déjà livrées. Les autres essais ne sont pas des lots approuvés. |
+| [Module linter][module-linter] | Donner au développeur du module linter tout ce qu'UCM fournit, impose et laisse libre (P26). | Recherche en cours. |
+| [Parametres partages][parametres-partages] | Suivre chaque paramètre d'UCM de son producteur à son dernier lecteur, et garder chaque copie par un test (P27). | Recherche en cours. |
 
 La [spécification de Palettes][spec-palettes] demeure la référence de son
 comportement, même si elle est encore rangée dans le dossier de recherche.
@@ -126,6 +128,8 @@ Leurs recettes Figma reportées restent dans leurs plans.
 [concurrence]: ./Plugin%20Palettes/1%20Recherche%20initiale/RECHERCHE-CONCURRENCE-PALETTES.md
 [evolutions]: ./Evolutions%20globales/PISTES-EVOLUTION.md
 [spec-palettes]: ./Plugin%20Palettes/1%20Recherche%20initiale/RECHERCHE-PLUGIN-PALETTES.md
+[module-linter]: ./Module%20linter/RECHERCHE-MODULE-LINTER.md
+[parametres-partages]: ./Parametres%20partages/RECHERCHE-PARAMETRES-PARTAGES.md
 [recette-qualite-archive]: https://github.com/Vassili-g/UCM-Toolkit/blob/202f46e/docs/notes/Recherches/Plugin%20Palettes/Recette%20CRITIQUE%20de%20qualit%C3%A9/PLAN-IMPLEMENTATION.md
 [recette-moteur-archive]: https://github.com/Vassili-g/UCM-Toolkit/blob/202f46e/docs/notes/Recherches/Plugin%20Palettes/Recette%20moteur%20palettes/README.md
 [recette-texte-archive]: https://github.com/Vassili-g/UCM-Toolkit/blob/202f46e/docs/notes/Recherches/Plugin%20Palettes/Texte%20des%20boutons/README.md

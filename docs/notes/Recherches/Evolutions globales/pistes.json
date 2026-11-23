@@ -192,6 +192,7 @@
       "sujet": "Règle de blocage",
       "recherche": "docs/notes/Recherches/Linter Dev/DECISION-VERDICT-UCM-CHECK.md",
       "plan": "docs/notes/Recherches/Linter Dev/PLAN-VERDICT-UCM-CHECK.md",
+      "archive": "effe0494",
       "resume": "Faire bloquer `ucm check` sur un écart du code quand la demande touche le code du composant, et marquer « en retard sur son contrat » quand seul le contrat change, avec une dérogation motivée qui passe.",
       "importance": "critique",
       "raisonImportance": "`bilanEstBloquant` ne compte ni les tokens absents ni la parité, donc le CI laisse fusionner tout écart du code quelle que soit la règle écrite.",
@@ -400,6 +401,7 @@
       "sujet": "Architecture des tokens",
       "recherche": "docs/notes/Recherches/Archi Tokens Multi-marques/PROPOSITION-REFERENCE-COMPLETE.md",
       "plan": "docs/notes/Recherches/Archi Tokens Multi-marques/PLAN-REFERENCE-COMPLETE.md",
+      "archive": "effe0494",
       "resume": "Le kit définit les 7 collections, leurs cibles, leurs familles et la grammaire de leurs noms, et le contenu complet de theme. Il ne définit ni les variables attendues de brands, utility, layout et typography, ni leurs valeurs de référence, et aucun outil n'écrit ces quatre collections.",
       "importance": "haute",
       "raisonImportance": "Sans architecture de référence complète, un nouveau design system UCM se monte à la main, et la seule vue complète du dépôt (`VUE-ILLUSTREE-MULTIMARQUES.html`) vient d'un export figé aux anciens noms.",
@@ -597,23 +599,20 @@
     },
     {
       "id": "P6",
-      "titre": "Linter ESLint, premier module",
-      "titreCourt": "Linter ESLint",
+      "titre": "Préparation d'UCM pour le linter",
+      "titreCourt": "Préparation du linter",
       "sujet": "Modules consommateurs",
       "recherche": "docs/notes/Recherches/Linter Dev/RECHERCHE-CADRAGE-P6.md",
       "plan": "docs/notes/Recherches/Linter Dev/PLAN-IMPLEMENTATION-P6-KIT.md",
-      "resume": "Livrer deux règles décidées, token inconnu et valeur en dur, en une publication : l'écriture des références par les aides, leur juge dans le kit avec la dérogation des constats, la lecture du code dans l'adaptateur, leur verdict dans `ucm check`, la commande `ucm deroger` et toutes les règles affichées dans l'inventaire. Le plugin ESLint de la bibliothèque affiche les constats. Les règles 3 et 4 (variante non publiée, élément visuel en plus) restent ouvertes.",
+      "resume": "Côté UCM, livrer tout ce que le module linter appelle : le juge du code dans le kit (`preparerControle`), la lecture du code dans l'adaptateur (`lecteurDuCode`), la dérogation des constats et `ucm deroger`, l'écriture des références et `ucm tokens references`, le verdict des constats dans `ucm check` et les règles dans l'inventaire. Publié en kit 0.17.4, CLI 0.3.0, adaptateur 0.2.14. Le module lui-même est la piste P26.",
       "importance": "haute",
-      "raisonImportance": "Sans linter, une valeur écrite en dur passe pour conforme au vérificateur quand elle égale un token, et une nouvelle valeur du designer ne se propage pas.",
+      "raisonImportance": "Sans ce travail, le module linter n'a ni juge, ni lecture du code, ni verdict commun avec la CI.",
       "prio": 2,
-      "dependances": [
-        "P18",
-        "P1"
-      ],
+      "dependances": [],
       "complexite": "l",
       "raisonComplexite": "Trois vagues de travail et une publication : le juge, le lecteur du code et l'écriture des références ; le verdict d'`ucm check`, `ucm deroger` et la parité des aides ; les prises, l'inventaire et la documentation. Les règles 3 et 4 demandent le contrat du fichier et l'analyse typée, soit un lot de plus.",
-      "coutHumain": "Relire les choix du plan (D26 du cadrage). Le développeur donne la forme d'écriture des styles d'intencial-library et relit le contrat du plugin.",
-      "porteur": "les deux",
+      "coutHumain": "Retirer de Playground l'ancienne convention des références et épingler les versions publiées (case 4.5 du plan).",
+      "porteur": "mainteneur",
       "promesse": "R",
       "points": [
         {
@@ -683,17 +682,48 @@
         }
       ],
       "criteresDeFin": [
-        "Les tests `RuleTester` des règles 1 et 2 passent.",
-        "Le même constat apparaît dans l'éditeur et dans le CI sur un fichier de test.",
-        "Les faux positifs et les usages non analysés sont comptés sur les composants réels de P1.",
-        "Une demande de `tokens.json` seul reste verte, et une demande de code qui touche un fichier fautif est rouge.",
+        "`preparerControle` et `lecteurDuCode` sont publiés dans leurs prises, avec leurs types et leurs exemples.",
+        "`ucm check` bloque une valeur en dur ou un token inconnu dans le code d'un composant modifié, et `ucm deroger` écrit l'exception.",
+        "Une demande de `tokens.json` seul reste verte.",
         "L'inventaire affiche les règles du linter, lues dans le code."
       ],
       "risques": [
-        "Une bibliothèque qui écrit ses styles hors des objets `style` (CSS Modules, CSS-in-JS) laisse le linter presque sans rien à juger.",
-        "Un agent qui oublie `ucm tokens references` laisse des `\"{chemin}\"` dans le code ; `--verifier` et le juge les voient.",
-        "Le cache ESLint reste désactivé au premier lot ; le juge relit ses entrées à chaque préparation.",
-        "Une publication d'une autre session avant la fin de P6 exposerait un travail inachevé ; le verrou de la skill `publier-paquets` l'empêche."
+        "Un agent qui oublie `ucm tokens references` laisse des `\"{chemin}\"` dans le code ; `--verifier` et le juge les voient."
+      ]
+    },
+    {
+      "id": "P26",
+      "titre": "Module linter ESLint d'intencial-library",
+      "titreCourt": "Module linter",
+      "sujet": "Modules consommateurs",
+      "recherche": "docs/notes/Recherches/Module linter/RECHERCHE-MODULE-LINTER.md",
+      "resume": "Écrire le plugin ESLint qui affiche dans l'éditeur les constats du juge d'UCM (token inconnu, valeur en dur), sur les composants d'intencial-library. UCM fournit le juge, la lecture du code, les messages et la dérogation (P6) ; le développeur écrit le plugin, sa configuration et ses tests.",
+      "importance": "haute",
+      "raisonImportance": "Sans le module, le développeur ne voit un constat qu'au rapport de la CI, après sa demande de fusion.",
+      "prio": 2,
+      "dependances": [
+        "P18"
+      ],
+      "complexite": "m",
+      "raisonComplexite": "Le juge et la lecture du code existent : le plugin les appelle, convertit les positions et affiche les messages.",
+      "coutHumain": "Répondre aux questions du développeur sur la forme des styles et les règles 3 et 4.",
+      "porteur": "développeurs",
+      "promesse": "R",
+      "points": [
+        {
+          "chemin": "intencial-library, plugin ESLint local",
+          "action": "créer",
+          "quoi": "Le plugin, sa configuration et ses tests, selon la recherche de la piste."
+        }
+      ],
+      "criteresDeFin": [
+        "Les tests `RuleTester` des règles `token-inconnu` et `valeur-en-dur` passent.",
+        "Le même constat apparaît dans l'éditeur et dans le rapport d'`ucm check` sur un fichier de test.",
+        "Les faux positifs et les valeurs non jugées sont comptés sur les composants réels de P1.",
+        "Le temps d'analyse d'un fichier est mesuré dans l'éditeur."
+      ],
+      "risques": [
+        "Une bibliothèque qui écrit ses styles hors des objets `style` laisse le linter presque sans rien à juger."
       ]
     },
     {
@@ -876,7 +906,7 @@
       "prio": 4,
       "dependances": [
         "P9",
-        "P6",
+        "P26",
         "P20"
       ],
       "complexite": "m",
@@ -919,7 +949,7 @@
       "prio": 4,
       "dependances": [
         "P20",
-        "P6",
+        "P26",
         "P9"
       ],
       "complexite": "xl",
@@ -1017,7 +1047,7 @@
       "raisonImportance": "La stack décidée est React et TypeScript, et un agent de code lit déjà les fichiers du dépôt : rien ne bloque les modules sans ces pistes.",
       "prio": 5,
       "dependances": [
-        "P6",
+        "P26",
         "P20"
       ],
       "complexite": "xl",
@@ -1140,6 +1170,37 @@
       "risques": [
         "La lecture des plans par `git show` demande tout l'historique : le CI le clone déjà (`fetch-depth: 0`).",
         "Une suppression mal jugée perd un fait qu'aucun test ne garde : la confirmation du mainteneur la précède."
+      ]
+    },
+    {
+      "id": "P27",
+      "titre": "Audit des paramètres partagés entre les modules",
+      "titreCourt": "Paramètres partagés",
+      "sujet": "Cohérence du système",
+      "recherche": "docs/notes/Recherches/Parametres partages/RECHERCHE-PARAMETRES-PARTAGES.md",
+      "resume": "Suivre chaque paramètre d'UCM de son producteur à son dernier lecteur (plugins, format, kit, CLI, adaptateur, documentation, aides, inventaire, CI) : source unique, lecteurs, copies, garde. Rendre un rapport classé par promesse cassée et un inventaire des paramètres lisible par une machine.",
+      "importance": "haute",
+      "raisonImportance": "Une hypothèse différente entre deux maillons laisse passer un écart sans diagnostic, ou pousse un agent à inventer.",
+      "prio": 3,
+      "dependances": [],
+      "complexite": "l",
+      "raisonComplexite": "Tout le dépôt, hors Hub ; relevés et comparaisons par script.",
+      "coutHumain": "Discuter le rapport et trancher ses questions.",
+      "porteur": "mainteneur",
+      "promesse": "R",
+      "points": [
+        {
+          "chemin": "docs/notes/Recherches/ (dossier de la piste)",
+          "action": "créer",
+          "quoi": "Rapport d'audit et inventaire JSON des paramètres."
+        }
+      ],
+      "criteresDeFin": [
+        "Chaque paramètre partagé a une source, ses lecteurs et sa garde, ou une proposition de garde.",
+        "Le mainteneur a tranché les questions du rapport."
+      ],
+      "risques": [
+        "Une hypothèse implicite (casse, fin de ligne, séparateur décimal) n'a pas de constante à comparer : seul un test sur des données réelles la voit."
       ]
     }
   ]

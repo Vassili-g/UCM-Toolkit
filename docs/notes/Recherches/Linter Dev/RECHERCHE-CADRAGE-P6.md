@@ -242,10 +242,10 @@ objet gelé. `adaptateurTypeScript`, que charge `ucm check`, porte le même obje
 | `lecture` | `{ complete, erreurs }`, d’après les erreurs de syntaxe. Un fichier d’une autre extension rend `complete: false` et son `extension` |
 
 `debut` et `fin` sont des décalages dans le texte reçu. La normalisation React
-vit ici. `backgroundColor` devient `background-color`. Un nombre reçoit `px`,
-sauf `0` et sauf pour les propriétés sans unité de
+vit ici. `backgroundColor` devient `background-color`. Dans un objet de style,
+un nombre reçoit `px`, sauf `0` et sauf pour les propriétés sans unité de
 [React](https://react.dev/reference/react-dom/components/common#common-props)
-(`opacity: 0.5` reste `0.5`). Un commentaire, un texte JSX, un littéral de type,
+(`opacity: 0.5` reste `0.5`). Dans une table, un nombre garde sa forme écrite, porte `nombre: true` et `valeurEnStyle`, la valeur que React écrirait. Un commentaire, un texte JSX, un littéral de type,
 une clé d’objet et un spécificateur d’import ne sont pas des chaînes.
 
 Reconnaître une valeur visuelle est un jugement, donc l’adaptateur relève tout

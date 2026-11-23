@@ -959,6 +959,7 @@ export const SUJETS: Record<string, { texte: string; fond: string }> = {
   'Format du contrat': { texte: '#065f46', fond: '#a7f3d0' },
   Documentation: { texte: '#3f6212', fond: '#d9f99d' },
   'Outils de revue': { texte: '#075985', fond: '#bae6fd' },
+  'Cohérence du système': { texte: '#9f1239', fond: '#ffe4e6' },
 };
 
 const AVEC_ECHEC = (fichier: string, ou: string, message: string): never => {
