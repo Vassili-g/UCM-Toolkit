@@ -148,7 +148,7 @@ test("DR8 : la commande d'un constat, découpée comme un shell, écrit l'entré
   try {
     const coordonnees = { fichier: "components/Button/Button.tsx", valeur: "0 0 4px rgba(0, 0, 0, 0.5)" };
     const mots = decouper(commandeDeDerogation("Button", "valeur-en-dur", coordonnees));
-    assert.deepEqual(mots.slice(0, 3), ["npx", "ucm", "deroger"]);
+    assert.deepEqual(mots.slice(0, 3), ["npx", "@ucm-kit/cli", "deroger"]);
     const arguments_ = mots.slice(3);
     assert.equal(arguments_.at(-1), "…");
     arguments_[arguments_.length - 1] = "Ombre imposée par la charte";
@@ -162,4 +162,14 @@ test("DR8 : la commande d'un constat, découpée comme un shell, écrit l'entré
 
 test("N21 : les extensions de l'adaptateur déclarées dans la CLI sont celles que son lecteur lit", () => {
   assert.deepEqual([...EXTENSIONS_PAR_ADAPTATEUR[NOM_ADAPTATEUR_TYPESCRIPT]], [...adaptateurTypeScript.lecteurDuCode.extensions]);
+});
+
+test("I6 : un contrat avec BOM reçoit sa dérogation", () => {
+  const d = depot();
+  try {
+    writeFileSync(join(d.racine, "components/Button/Button.contract.json"), `﻿${JSON.stringify({ name: "Button", meta: { exportedAt: EXPORT } })}`);
+    const { code } = lancer(d, ["Button", "valeur-en-dur", "components/Button/Button.tsx", "#ff0000", "--motif", "Charte du partenaire"]);
+    assert.equal(code, 0);
+    assert.equal(lire(d).length, 1);
+  } finally { d.fermer(); }
 });

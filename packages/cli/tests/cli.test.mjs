@@ -19,6 +19,16 @@ import { iconesDuRepository } from "../src/icons.mjs";
 import { chargerAdaptateur } from "../src/adaptateur.mjs";
 import { catalogueDesAides } from "../src/aides.mjs";
 import { lireConventions } from "../src/conventions.mjs";
+import {
+  ARTEFACT_DU_RAPPORT,
+  CI_GITLAB,
+  CONVENTIONS,
+  FICHIERS_EPINGLES,
+  JOB_CONTROLE_GITHUB,
+  RAPPORT_CI,
+  WORKFLOW_GITHUB,
+} from "../src/fichiers-du-consommateur.mjs";
+import { EXTENSION_AXES_TOKENS } from "@ucm-kit/core/format";
 import { init, lireArgumentsInit, rendreInit } from "../src/init.mjs";
 import { executer } from "../src/ucm.mjs";
 
@@ -174,28 +184,26 @@ test("la configuration écrite ne porte aucun numéro de version", () => {
  * Trois propriétés le rendent utilisable dans un repository quelconque, et
  * chacune répond à une contrainte écrite ailleurs :
  *
- * - une stack Node exécute sa CLI installée : une mise à jour du paquet suffit,
- *   sans numéro à recopier dans le workflow ;
- * - `npx --yes` reste suffisant sans lockfile ; un repo Node installe
- *   sa stack pour rendre son adaptateur visible ;
+ * - une stack Node exécute sa CLI installée : une mise à jour du paquet suffit ;
+ * - `npx --yes` reste suffisant sans lockfile, sur la version que `init` a
+ *   écrite ; un repo Node installe sa stack pour rendre son adaptateur visible ;
  * - le sha de base voyage par l'environnement, jamais par interpolation dans
  *   le shell.
  */
-test("init lance la CLI installée de la stack déclarée sans recopier sa version dans le workflow", () => {
+test("init lance la CLI installée de la stack déclarée, et épingle celle du repli sans stack", () => {
   const racine = repoVierge();
   try {
     const resultat = init(racine);
-    const workflow = readFileSync(join(racine, ".github/workflows/ucm.yml"), "utf8");
+    const workflow = readFileSync(join(racine, WORKFLOW_GITHUB), "utf8");
 
-    assert.ok(resultat.ecrits.includes(".github/workflows/ucm.yml"));
+    assert.ok(resultat.ecrits.includes(WORKFLOW_GITHUB));
     assert.match(workflow, /node node_modules\/@ucm-kit\/cli\/src\/ucm\.mjs "\$@"/);
     assert.match(workflow, /if \[ -f package\.json \]; then/);
-    assert.match(workflow, /npx --yes @ucm-kit\/cli "\$@"/, 'le dossier sans stack Node garde le contrôle portable');
-    assert.doesNotMatch(workflow, /@ucm-kit\/cli@/, 'package.json est la seule version du contrôle');
+    assert.ok(workflow.includes(`npx --yes @ucm-kit/cli@${resultat.version} "$@"`), "le dossier sans stack Node garde le contrôle portable, sur la version écrite");
     assert.doesNotMatch(workflow, /\^|~/, "aucune plage de version");
     assert.match(workflow, /if: hashFiles\('package-lock\.json'\) != ''/);
     assert.match(workflow, /run: npm ci/);
-    assert.match(workflow, /--report ci-report\.md/);
+    assert.ok(workflow.includes(`--report ${RAPPORT_CI}`));
     assert.match(workflow, /BASE_SHA: \$\{\{ github\.event\.pull_request\.base\.sha \}\}/);
     assert.match(workflow, /--base "\$BASE_SHA"/);
     assert.match(workflow, /fetch-depth: 0/);
@@ -240,17 +248,17 @@ test("le filet, la transmission et la publication se relaient sur le même rappo
   const racine = repoVierge();
   try {
     init(racine);
-    const workflow = readFileSync(join(racine, ".github/workflows/ucm.yml"), "utf8");
+    const workflow = readFileSync(join(racine, WORKFLOW_GITHUB), "utf8");
     const { jobs } = parseYaml(workflow);
-    const ecriture = jobs.contrats.steps.find((pas) => pas.name === "Garantir un diagnostic même sans rapport");
-    const transmission = jobs.contrats.steps.find((pas) => pas.name === "Transmettre le rapport");
+    const ecriture = jobs[JOB_CONTROLE_GITHUB].steps.find((pas) => pas.name === "Garantir un diagnostic même sans rapport");
+    const transmission = jobs[JOB_CONTROLE_GITHUB].steps.find((pas) => pas.name === "Transmettre le rapport");
     const reception = jobs.commentaire.steps.find((pas) => pas.uses?.startsWith("actions/download-artifact@"));
     const publication = jobs.commentaire.steps.find((pas) => pas.name === "Publier le diagnostic sur la pull request");
 
     assert.match(ecriture.if, /^always\(\) && github\.event_name == 'pull_request' && hashFiles\('ci-report\.md'\) == ''$/);
     assert.equal(transmission.if, "always() && github.event_name == 'pull_request'", "le rapport part même quand le contrôle échoue");
     assert.equal(jobs.commentaire.if, "${{ !cancelled() && github.event_name == 'pull_request' }}");
-    assert.equal(jobs.commentaire.needs, "contrats");
+    assert.equal(jobs.commentaire.needs, JOB_CONTROLE_GITHUB);
 
     assert.match(ecriture.run, /cat > ci-report\.md <<EOF/, "le filet écrit le fichier transmis");
     assert.match(ecriture.run, /\$RUN_URL/, "le message minimal nomme l'endroit où regarder");
@@ -258,7 +266,8 @@ test("le filet, la transmission et la publication se relaient sur le même rappo
     // pour lui. Sans celui-ci, le commentaire qu'il crée reste introuvable, et
     // l'exécution suivante en empile un second au lieu de le remplacer.
     assert.match(ecriture.run, /<!-- ucm-rapport -->/, "le filet marque le rapport qu'il écrit");
-    assert.equal(transmission.with.path, "ci-report.md");
+    assert.equal(transmission.with.path, RAPPORT_CI);
+    assert.equal(transmission.with.name, ARTEFACT_DU_RAPPORT);
     assert.equal(reception.with.name, transmission.with.name, "la publication reçoit l'artefact transmis");
     assert.match(publication.run, /--body-file ci-report\.md/, "la publication lit le fichier transmis");
     assert.match(publication.run, /-f body="\$\(cat ci-report\.md\)"/, "le remplacement lit le même fichier");
@@ -280,7 +289,7 @@ test("le job qui exécute le code du repository n'écrit nulle part", () => {
     const { permissions, jobs } = parseYaml(readFileSync(join(racine, ".github/workflows/ucm.yml"), "utf8"));
 
     assert.deepEqual(permissions, { contents: "read" });
-    assert.equal(jobs.contrats.permissions, undefined, "contrats hérite de la lecture seule");
+    assert.equal(jobs[JOB_CONTROLE_GITHUB].permissions, undefined, "le job de contrôle hérite de la lecture seule");
     assert.deepEqual(jobs.commentaire.permissions, { "pull-requests": "write" });
 
     const commandes = jobs.commentaire.steps.map((pas) => `${pas.uses ?? ""} ${pas.run ?? ""}`).join("\n");
@@ -359,7 +368,7 @@ test("le rapport est ignoré, et un .gitignore existant reçoit la consigne au l
   const vierge = repoVierge();
   try {
     init(vierge);
-    assert.match(readFileSync(join(vierge, ".gitignore"), "utf8"), /^ci-report\.md$/m);
+    assert.ok(readFileSync(join(vierge, ".gitignore"), "utf8").split("\n").includes(RAPPORT_CI));
   } finally {
     rmSync(vierge, { recursive: true, force: true });
   }
@@ -370,7 +379,7 @@ test("le rapport est ignoré, et un .gitignore existant reçoit la consigne au l
     const resultat = init(habite);
 
     assert.equal(readFileSync(join(habite, ".gitignore"), "utf8"), "node_modules/\n");
-    assert.match(rendreInit(resultat), /ajoutez-y `ci-report\.md`/);
+    assert.ok(rendreInit(resultat).includes(`ajoutez-y \`${RAPPORT_CI}\``));
   } finally {
     rmSync(habite, { recursive: true, force: true });
   }
@@ -409,7 +418,7 @@ test("chaque fichier partagé conservé reçoit la ligne à ajouter à la main",
     // écrire dans le fichier qu'`init` n'a pas touché.
     assert.match(compte_rendu, /`\.gitattributes` existait déjà : ajoutez-y `\*\.contract\.json text eol=lf`/);
     assert.match(compte_rendu, /`\.vscode\/settings\.json` existait déjà : ajoutez-y l'association/);
-    assert.match(compte_rendu, /`\.gitignore` existait déjà : ajoutez-y `ci-report\.md`/);
+    assert.ok(compte_rendu.includes(`\`.gitignore\` existait déjà : ajoutez-y \`${RAPPORT_CI}\``));
   } finally {
     rmSync(habite, { recursive: true, force: true });
   }
@@ -743,7 +752,7 @@ test("--sans-agents n'écrit que les cinq fichiers de contrôle", () => {
   const racine = repoVierge();
   try {
     const { ecrits } = init(racine, { sansAgents: true });
-    assert.deepEqual(ecrits.sort(), [".gitattributes", ".github/workflows/ucm.yml", ".gitignore", ".vscode/settings.json", "ucm.config.json"]);
+    assert.deepEqual(ecrits.sort(), [".gitattributes", WORKFLOW_GITHUB, ".gitignore", ".vscode/settings.json", "ucm.config.json"]);
   } finally {
     rmSync(racine, { recursive: true, force: true });
   }
@@ -862,4 +871,107 @@ test("l'aide nomme la commande deroger et ses deux options", () => {
   const aide = lignes.join("\n");
   assert.match(aide, /ucm deroger <composant> <genre> <coordonnées…> --motif/);
   assert.match(aide, /--par/);
+});
+
+/**
+ * Ce que `ucm init` écrit chez le consommateur : l'épinglage des `npx`, les
+ * chemins de tokens, le schéma de l'éditeur, les lectures sans BOM et les
+ * filets. Chaque cas échoue sur le défaut qu'il garde (cas I1 à I8 du plan P27).
+ */
+const BOM = "\ufeff";
+
+test("I1 : chaque ligne npx des fichiers épinglés écrits porte @ucm-kit/cli@<version>, avec ou sans package.json", () => {
+  for (const forge of ["github", "gitlab"]) {
+    for (const avecManifeste of [false, true]) {
+      const racine = repoVierge();
+      try {
+        if (avecManifeste) writeFileSync(join(racine, "package.json"), "{}\n");
+        const { version, ecrits } = init(racine, { forge });
+        const epingles = FICHIERS_EPINGLES.filter((chemin) => ecrits.includes(chemin));
+        assert.ok(epingles.length >= 3, `${forge} : les fichiers épinglés sont écrits`);
+        for (const chemin of epingles) {
+          const lignes = readFileSync(join(racine, chemin), "utf8").split("\n").filter((ligne) => /\bnpx\b/.test(ligne) && !ligne.trim().startsWith("#"));
+          assert.ok(lignes.length > 0, `${chemin} contient un npx`);
+          for (const ligne of lignes) {
+            assert.ok(ligne.includes(`@ucm-kit/cli@${version}`), `${forge}, package.json ${avecManifeste} : ${chemin} : ${ligne}`);
+          }
+        }
+      } finally {
+        rmSync(racine, { recursive: true, force: true });
+      }
+    }
+  }
+});
+
+test("I2 : --tokens design écrit design/tokens.json dans .gitattributes, et le rappel nomme le même chemin", () => {
+  const racine = repoVierge();
+  try {
+    const lu = lireArgumentsInit(["--tokens", "design"]);
+    init(racine, { chemins: lu.chemins });
+    const lignes = readFileSync(join(racine, ".gitattributes"), "utf8").split("\n");
+    assert.ok(lignes.includes("design/tokens.json text eol=lf"));
+    assert.ok(!lignes.includes("tokens.json text eol=lf"));
+  } finally {
+    rmSync(racine, { recursive: true, force: true });
+  }
+});
+
+test("I3 : sans le schéma installé, la sortie nomme la ligne d'avertissement ; avec lui, aucune", () => {
+  const schema = "node_modules/@ucm-kit/core/schema/ucm-contract.schema.json";
+  const sans = repoVierge();
+  const avec = repoVierge();
+  try {
+    assert.ok(rendreInit(init(sans)).includes(
+      `L'éditeur ne valide aucun contrat tant que ${schema} manque : installez @ucm-kit/cli en devDependency.`,
+    ));
+    mkdirSync(join(avec, "node_modules/@ucm-kit/core/schema"), { recursive: true });
+    writeFileSync(join(avec, schema), "{}\n");
+    assert.doesNotMatch(rendreInit(init(avec)), /L'éditeur ne valide aucun contrat/);
+  } finally {
+    rmSync(sans, { recursive: true, force: true });
+    rmSync(avec, { recursive: true, force: true });
+  }
+});
+
+test("I4 : un package.json avec BOM garde ses rappels de pin et de script", () => {
+  const racine = repoVierge();
+  try {
+    writeFileSync(join(racine, "package.json"), `${BOM}${JSON.stringify({ scripts: { dev: "vite" } })}\n`);
+    const sortie = rendreInit(init(racine));
+    assert.match(sortie, /Ajoutez `"@ucm-kit\/cli": "[^"]+"` aux devDependencies/);
+    assert.match(sortie, /Lancez `ucm tokens css --out /);
+  } finally {
+    rmSync(racine, { recursive: true, force: true });
+  }
+});
+
+test("I5 : un tokens.json avec BOM garde la lecture des axes", () => {
+  const racine = repoVierge();
+  try {
+    writeFileSync(join(racine, "ucm.config.json"), `${JSON.stringify({ components: "components", tokens: "tokens.json" })}\n`);
+    writeFileSync(join(racine, "tokens.json"), `${BOM}${JSON.stringify({ $extensions: { [EXTENSION_AXES_TOKENS]: { theme: ["clair", "sombre"] } } })}\n`);
+    assert.match(rendreInit(init(racine)), /la section modes, facultative/i);
+  } finally {
+    rmSync(racine, { recursive: true, force: true });
+  }
+});
+
+test("I7 : les filets GitHub et GitLab disent la même phrase, avec « réexporter »", () => {
+  const phrase = "**Votre design n'est pas en cause** et réexporter depuis Figma n'y changerait rien.";
+  const github = repoVierge();
+  const gitlab = repoVierge();
+  try {
+    init(github, { forge: "github" });
+    init(gitlab, { forge: "gitlab" });
+    assert.ok(readFileSync(join(github, WORKFLOW_GITHUB), "utf8").includes(phrase));
+    assert.ok(readFileSync(join(gitlab, CI_GITLAB), "utf8").includes(phrase));
+  } finally {
+    rmSync(github, { recursive: true, force: true });
+    rmSync(gitlab, { recursive: true, force: true });
+  }
+});
+
+test("I8 : l'exemple de tête des conventions cite un composant de référence, aucun .ucm/gabarits/", () => {
+  assert.ok(!CONVENTIONS.includes(".ucm/gabarits/"));
+  assert.ok(CONVENTIONS.includes("Composant de référence : `src/components/Button/Button.tsx`."));
 });

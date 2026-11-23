@@ -10,6 +10,8 @@ import { fileURLToPath } from "node:url";
 import { VERSION_CONTRAT_MAXIMALE, VERSION_CONTRAT_MINIMALE } from "@ucm-kit/core/lecteurs";
 import { parse as lireYaml } from "yaml";
 
+import { CI_GITLAB, JOB_CONTROLE_GITLAB, JOB_NOTE_GITLAB, RAPPORT_CI } from "../src/fichiers-du-consommateur.mjs";
+
 /** Le fichier que `bin` désigne : le point d'entrée réel, pas un module voisin. */
 const BINAIRE = join(dirname(fileURLToPath(import.meta.url)), "..", "src", "ucm.mjs");
 
@@ -79,7 +81,7 @@ function ucm(racine, arguments_ = []) {
     encoding: "utf8",
   });
   if (execution.error) throw execution.error;
-  const chemin = join(racine, "ci-report.md");
+  const chemin = join(racine, RAPPORT_CI);
   return {
     code: execution.status,
     terminal: `${execution.stdout}${execution.stderr}`,
@@ -89,7 +91,7 @@ function ucm(racine, arguments_ = []) {
 
 /** `ucm check --report`, l'invocation exacte que le workflow écrit. */
 function controler(racine) {
-  return ucm(racine, ["check", "--report", "ci-report.md"]);
+  return ucm(racine, ["check", "--report", RAPPORT_CI]);
 }
 
 /**
@@ -428,7 +430,7 @@ test("montée de version — le repository épingle son outil et ne redéclare j
     const configuration = readFileSync(join(racine, "ucm.config.json"), "utf8");
 
     assert.match(workflow, /node node_modules\/@ucm-kit\/cli\/src\/ucm\.mjs "\$@"/);
-    assert.doesNotMatch(workflow, /@ucm-kit\/cli@/);
+    assert.match(workflow, /npx --yes @ucm-kit\/cli@\d+\.\d+\.\d+ "\$@"/, "le repli sans stack épingle une version exacte");
     assert.doesNotMatch(workflow, /@ucm-kit\/cli@[\^~]/, "aucune plage de version");
     assert.doesNotMatch(
       configuration,
@@ -458,7 +460,7 @@ test("GitLab — un repository au remote gitlab.com et au .gitlab-ci.yml existan
     assert.match(installation.terminal, /`\.gitlab-ci\.yml` existait déjà : ajoutez `- local: \.gitlab\/ucm\.gitlab-ci\.yml`/);
     assert.equal(readFileSync(join(racine, ".gitlab-ci.yml"), "utf8"), existant);
     assert.equal(existsSync(join(racine, ".github")), false);
-    assert.deepEqual(Object.keys(lireYaml(readFileSync(join(racine, ".gitlab", "ucm.gitlab-ci.yml"), "utf8"))), ["ucm", "ucm-rapport"]);
+    assert.deepEqual(Object.keys(lireYaml(readFileSync(join(racine, CI_GITLAB), "utf8"))), [JOB_CONTROLE_GITLAB, JOB_NOTE_GITLAB]);
   } finally {
     rmSync(racine, { recursive: true, force: true });
   }
@@ -473,11 +475,11 @@ test("GitLab — un repository vide avec --forge gitlab reçoit les deux fichier
     assert.equal(existsSync(join(racine, ".github")), false);
     const racineCi = lireYaml(readFileSync(join(racine, ".gitlab-ci.yml"), "utf8"));
     assert.deepEqual(racineCi, { include: [{ local: ".gitlab/ucm.gitlab-ci.yml" }] });
-    const job = lireYaml(readFileSync(join(racine, ".gitlab", "ucm.gitlab-ci.yml"), "utf8"));
+    const job = lireYaml(readFileSync(join(racine, CI_GITLAB), "utf8"));
     for (const globale of ["workflow", "image", "variables", "stages", "default", "include"]) {
       assert.equal(globale in job, false, `clé globale ${globale}`);
     }
-    assert.match(job.ucm.script.join("\n"), /ucm check --report ci-report\.md/);
+    assert.match(job.ucm.script.join("\n"), new RegExp(`ucm check --report ${RAPPORT_CI.replace(".", "\.")}`));
     assert.match(job.ucm.script.join("\n"), /node node_modules\/@ucm-kit\/cli\/src\/ucm\.mjs "\$@"/);
   } finally {
     rmSync(racine, { recursive: true, force: true });
@@ -557,7 +559,7 @@ test("verdict — une valeur en dur dans le code bloque la fusion, avec sa ligne
     assert.equal(code, 1, rapport ?? terminal);
     assert.match(rapport, /^## ❌ Les contrôles du repository bloquent la fusion$/m);
     assert.match(rapport, /^- Widget : `components\/Widget\/Widget\.tsx` ligne 3 : `color` reçoit `#ff0000`/m);
-    assert.match(rapport, /npx ucm deroger Widget valeur-en-dur components\/Widget\/Widget\.tsx '#ff0000' --motif "…"/);
+    assert.match(rapport, /npx @ucm-kit\/cli deroger Widget valeur-en-dur components\/Widget\/Widget\.tsx '#ff0000' --motif "…"/);
     assert.match(rapport, /Un développeur doit mettre le code à jour, ou lancer la commande donnée sous l'écart\./);
     assert.match(terminal, /✗ Widget : `components\/Widget\/Widget\.tsx` ligne 3 : /);
   });

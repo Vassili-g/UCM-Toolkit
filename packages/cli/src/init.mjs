@@ -26,6 +26,7 @@
 import { execFileSync } from "node:child_process";
 import { existsSync, mkdirSync, readFileSync, readdirSync, writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
+import { fileURLToPath } from "node:url";
 
 import {
   CONFIGURATION_PAR_DEFAUT,
@@ -34,10 +35,25 @@ import {
   NOM_CONFIGURATION,
   estCheminDuRepository,
 } from "@ucm-kit/core/format";
-import { MARQUEUR_RAPPORT, MARQUEUR_SANS_OBJET, lireConfiguration } from "@ucm-kit/core/lecteurs";
+import { MARQUEUR_RAPPORT, MARQUEUR_SANS_OBJET, lireConfiguration, lireJsonDuDepot } from "@ucm-kit/core/lecteurs";
 
 import { NOM_ADAPTATEUR_TYPESCRIPT } from "./adaptateur.mjs";
 import { CHEMIN_CONVENTIONS } from "./conventions.mjs";
+import {
+  ARTEFACT_DU_RAPPORT,
+  CI_GITLAB,
+  CI_GITLAB_RACINE,
+  CONVENTIONS,
+  FEUILLE_DES_TOKENS,
+  JOB_CONTROLE_GITHUB,
+  JOB_CONTROLE_GITLAB,
+  JOB_NOTE_GITLAB,
+  RAPPORT_CI,
+  RELAIS_D_AGENT,
+  VARIABLE_DU_JETON_GITLAB,
+  VERSION_DE_NODE,
+  WORKFLOW_GITHUB,
+} from "./fichiers-du-consommateur.mjs";
 import { TYPES_D_ALERTE } from "@ucm-kit/core/referentiel";
 
 const GLYPHES = Object.fromEntries(TYPES_D_ALERTE.map(({ id, texte }) => [id, texte]));
@@ -140,8 +156,11 @@ export function lireArgumentsInit(arguments_) {
 
 const FORGES = ["github", "gitlab"];
 
-/** Le fichier qu'`init` écrit pour GitLab, et que `.gitlab-ci.yml` inclut. */
-export const CHEMIN_CI_GITLAB = ".gitlab/ucm.gitlab-ci.yml";
+/** Le schéma que `.vscode/settings.json` désigne, relatif à la racine du repository. */
+const CHEMIN_DU_SCHEMA_INSTALLE = "node_modules/@ucm-kit/core/schema/ucm-contract.schema.json";
+
+/** Le message des deux filets, GitHub et GitLab : le designer lit la même phrase sur l'une et l'autre forge. */
+const MESSAGE_DU_FILET = "Les contrôles se sont arrêtés avant d'avoir pu analyser cet export : le rapport habituel n'a pas été produit. **Votre design n'est pas en cause** et réexporter depuis Figma n'y changerait rien.";
 
 /** L'URL du remote `origin`, ou `null` sans git ni remote. */
 function remoteOrigin(racine) {
@@ -172,14 +191,13 @@ export function forgeDuRepository(racine, { forge, git = remoteOrigin } = {}) {
   const hote = url ? hoteDuRemote(url) : null;
   if (hote === "github.com") return { nom: "github", signal: `l'hôte du remote origin, ${hote}` };
   if (hote === "gitlab.com" || hote?.startsWith("gitlab.")) return { nom: "gitlab", signal: `l'hôte du remote origin, ${hote}` };
-  if (existsSync(join(racine, ".gitlab-ci.yml"))) return { nom: "gitlab", signal: "la présence de .gitlab-ci.yml" };
+  if (existsSync(join(racine, CI_GITLAB_RACINE))) return { nom: "gitlab", signal: "la présence de .gitlab-ci.yml" };
   return { nom: "github", signal: "aucun signal, GitHub par défaut" };
 }
 
 /** La version de `@ucm-kit/cli`, lue dans son propre `package.json`. */
 function versionDuPaquet() {
-  const chemin = new URL("../package.json", import.meta.url);
-  return JSON.parse(readFileSync(chemin, "utf8")).version;
+  return lireJsonDuDepot(fileURLToPath(new URL("../package.json", import.meta.url))).version;
 }
 
 /**
@@ -200,6 +218,8 @@ function versionDuPaquet() {
  * lignes qu'on apprend à sauter.
  */
 function fichiers(version, chemins, { agents = true, gabarits = [], forge = "github" } = {}) {
+  // Le fichier de tokens que la configuration écrite désigne, pas un nom recopié.
+  const cheminDesTokens = { ...CONFIGURATION_PAR_DEFAUT, ...chemins }.tokens;
   return [
     {
       chemin: NOM_CONFIGURATION,
@@ -221,11 +241,11 @@ function fichiers(version, chemins, { agents = true, gabarits = [], forge = "git
         "# impossible à faire. Ce n'est pas une exigence des tests : ceux du kit",
         "# comparent le JSON analysé, pas les octets.",
         "*.contract.json text eol=lf",
-        "tokens.json text eol=lf",
+        `${cheminDesTokens} text eol=lf`,
         "",
       ].join("\n"),
-      marqueurs: ["*.contract.json", "tokens.json", "eol=lf"],
-      rappel: "ajoutez-y `*.contract.json text eol=lf` et `tokens.json text eol=lf`. Sans ces deux lignes, un export depuis une machine Windows rend un diff entier à chaque fois et la revue devient impossible à faire.",
+      marqueurs: ["*.contract.json", cheminDesTokens, "eol=lf"],
+      rappel: `ajoutez-y \`*.contract.json text eol=lf\` et \`${cheminDesTokens} text eol=lf\`. Sans ces deux lignes, un export depuis une machine Windows rend un diff entier à chaque fois et la revue devient impossible à faire.`,
     },
     {
       chemin: ".vscode/settings.json",
@@ -253,27 +273,26 @@ function fichiers(version, chemins, { agents = true, gabarits = [], forge = "git
         "# Le rapport de `ucm check --report`, réécrit à chaque exécution.",
         "# Commité, il montrerait le verdict d'un contrôle passé, pas celui du",
         "# code en cours.",
-        "ci-report.md",
+        RAPPORT_CI,
         "",
       ].join("\n"),
-      marqueurs: ["ci-report.md"],
-      rappel: "ajoutez-y `ci-report.md`. `ucm check --report` le réécrit à chaque exécution ; commité, il montrerait le verdict d'un contrôle passé, pas celui du code en cours.",
+      marqueurs: [RAPPORT_CI],
+      rappel: `ajoutez-y \`${RAPPORT_CI}\`. \`ucm check --report\` le réécrit à chaque exécution ; commité, il montrerait le verdict d'un contrôle passé, pas celui du code en cours.`,
     },
     ...(forge === "gitlab"
       ? [
-        { chemin: CHEMIN_CI_GITLAB, contenu: workflowGitlab() },
+        { chemin: CI_GITLAB, contenu: workflowGitlab(version) },
         {
-          chemin: ".gitlab-ci.yml",
-          contenu: `include:\n  - local: ${CHEMIN_CI_GITLAB}\n`,
-          marqueurs: [CHEMIN_CI_GITLAB],
-          rappel: `ajoutez \`- local: ${CHEMIN_CI_GITLAB}\` à sa liste \`include:\`. Sans cette ligne, le job ucm ne tourne jamais et aucune merge request n'est contrôlée.`,
+          chemin: CI_GITLAB_RACINE,
+          contenu: `include:\n  - local: ${CI_GITLAB}\n`,
+          marqueurs: [CI_GITLAB],
+          rappel: `ajoutez \`- local: ${CI_GITLAB}\` à sa liste \`include:\`. Sans cette ligne, le job ucm ne tourne jamais et aucune merge request n'est contrôlée.`,
         },
       ]
-      : [{ chemin: ".github/workflows/ucm.yml", contenu: workflow() }]),
+      : [{ chemin: WORKFLOW_GITHUB, contenu: workflow(version) }]),
     ...(agents
       ? [
-        { chemin: ".agents/skills/ucm-implementer/SKILL.md", contenu: relais(version) },
-        { chemin: ".claude/skills/ucm-implementer/SKILL.md", contenu: relais(version) },
+        ...RELAIS_D_AGENT.map((chemin) => ({ chemin, contenu: relais(version) })),
         { chemin: CHEMIN_CONVENTIONS.split("\\").join("/"), contenu: CONVENTIONS },
         ...gabarits,
       ]
@@ -297,36 +316,6 @@ function relais(version) {
     "",
   ].join("\n");
 }
-
-/** Le fichier de conventions : sa marche à suivre et son exemple, en commentaire que la lecture retire. */
-const CONVENTIONS = [
-  "<!-- ucm : marche à suivre, retirée à la lecture.",
-  "",
-  "Le texte avant la première section décrit la stack, l'architecture et le",
-  "gabarit ou le composant de référence du repository.",
-  "",
-  "Une section « ## <aide> » remplace l'écriture par défaut de cette aide, ou",
-  "répond à un ancrage. `ucm aides` liste les aides ; `ucm aides <aide>",
-  "--personnaliser` ajoute la section, à éditer.",
-  "",
-  "Une ligne « Contrôle : `commande` » ajoute la commande à la preuve de l'aide.",
-  "",
-  "« ecritures-par-defaut: non » en première ligne retire les écritures par",
-  "défaut, pour un repository qui n'écrit pas de CSS.",
-  "",
-  "Exemple :",
-  "",
-  "Stack : React 19, styles en objets `style` typés `CSSProperties`. Un composant par dossier, tests à côté.",
-  "Gabarit : `.ucm/gabarits/composant.tsx`.",
-  "",
-  "## contour-ring",
-  "",
-  "Classe `ring` de `src/styles/contours.module.css`.",
-  "",
-  "Contrôle : `npm run lint:css`",
-  "-->",
-  "",
-].join("\n");
 
 /**
  * Les gabarits qu'un adaptateur publie, à copier dans `.ucm/gabarits/`. Rend
@@ -354,7 +343,7 @@ function lignesRestantes(racine, version, configuration) {
   const lignes = [];
   let manifeste = null;
   try {
-    manifeste = JSON.parse(readFileSync(join(racine, "package.json"), "utf8"));
+    manifeste = lireJsonDuDepot(join(racine, "package.json"));
   } catch {
     // Un repository sans package.json lisible ne génère pas la feuille des tokens par npm.
   }
@@ -368,14 +357,14 @@ function lignesRestantes(racine, version, configuration) {
     if (!scripts.includes("ucm tokens css")) {
       lignes.push({
         fichier: "package.json",
-        ligne: "lancez `ucm tokens css --out src/generated/tokens.css` en tête des scripts dev et build, à la place de tout autre générateur de la même feuille.",
+        ligne: `lancez \`ucm tokens css --out ${FEUILLE_DES_TOKENS}\` en tête des scripts dev et build, à la place de tout autre générateur de la même feuille.`,
       });
-      lignes.push({ fichier: "l'entrée CSS de l'application", ligne: "importez la feuille générée, `src/generated/tokens.css`." });
+      lignes.push({ fichier: "l'entrée CSS de l'application", ligne: `importez la feuille générée, \`${FEUILLE_DES_TOKENS}\`.` });
     }
   }
   if (configuration && configuration.modes === undefined) {
     try {
-      const axes = JSON.parse(readFileSync(join(racine, configuration.tokens), "utf8"))?.$extensions?.[EXTENSION_AXES_TOKENS];
+      const axes = lireJsonDuDepot(join(racine, configuration.tokens))?.$extensions?.[EXTENSION_AXES_TOKENS];
       if (axes && typeof axes === "object" && Object.keys(axes).length > 0) {
         lignes.push({
           fichier: NOM_CONFIGURATION,
@@ -389,14 +378,17 @@ function lignesRestantes(racine, version, configuration) {
   return lignes;
 }
 
-/** Un repository Node utilise sa CLI installée ; un dossier sans stack Node garde le contrôle portable par npm. */
-function lancementUcm(marge) {
+/**
+ * Un repository Node utilise sa CLI installée ; un dossier sans stack Node garde le contrôle portable par npm,
+ * sur la version que `init` a écrite : un `npx` sans numéro prendrait la dernière publiée, que personne n'a essayée.
+ */
+function lancementUcm(marge, version) {
   return [
     'ucm() {',
     '  if [ -f package.json ]; then',
     '    node node_modules/@ucm-kit/cli/src/ucm.mjs "$@"',
     '  else',
-    '    npx --yes @ucm-kit/cli "$@"',
+    `    npx --yes @ucm-kit/cli@${version} "$@"`,
     '  fi',
     '}',
   ].map((ligne) => marge + ligne);
@@ -430,8 +422,8 @@ function lancementUcm(marge) {
  * la séparation ne borne que ce qu'une dépendance obtient. Une fourche reçoit
  * de GitHub un jeton en lecture seule, et son commentaire échoue.
  */
-function workflow() {
-  const commande = 'ucm check --report ci-report.md';
+function workflow(version) {
+  const commande = `ucm check --report ${RAPPORT_CI}`;
   return [
     "# Contrôle des contrats UCM.",
     "#",
@@ -455,7 +447,7 @@ function workflow() {
     "  contents: read",
     "",
     "jobs:",
-    "  contrats:",
+    `  ${JOB_CONTROLE_GITHUB}:`,
     "    runs-on: ubuntu-latest",
     "    steps:",
     "      # Le job exécute le code de la pull request : il n'a aucune raison de",
@@ -468,7 +460,7 @@ function workflow() {
     "",
     "      - uses: actions/setup-node@v4",
     "        with:",
-    "          node-version: 22",
+    `          node-version: ${VERSION_DE_NODE}`,
     "",
     "      # Un adaptateur appartient à la stack du repository. Sans lockfile,",
     "      # cette étape est absente de fait et le noyau portable reste seul.",
@@ -480,7 +472,7 @@ function workflow() {
     "        env:",
     "          BASE_SHA: ${{ github.event.pull_request.base.sha }}",
     "        run: |",
-    ...lancementUcm('          '),
+    ...lancementUcm('          ', version),
     '          if [ -n "$BASE_SHA" ]; then',
     `            ${commande} --base "$BASE_SHA"`,
     "          else",
@@ -489,26 +481,26 @@ function workflow() {
     "",
     "      # Le rapport dans le résumé du run : lisible sans dérouler un log.",
     "      - name: Publier le rapport dans le résumé du run",
-    "        if: always() && hashFiles('ci-report.md') != ''",
-    '        run: cat ci-report.md >> "$GITHUB_STEP_SUMMARY"',
+    `        if: always() && hashFiles('${RAPPORT_CI}') != ''`,
+    `        run: cat ${RAPPORT_CI} >> "$GITHUB_STEP_SUMMARY"`,
     "",
     "      # Filet : si le rapport manque, c'est que la CI s'est arrêtée avant le",
     "      # contrôle (checkout, installation, plantage). Une pull request refusée",
     "      # sans un mot laisse le designer sans recours ; ce message minimal nomme",
     "      # au moins l'endroit où regarder.",
     "      - name: Garantir un diagnostic même sans rapport",
-    "        if: always() && github.event_name == 'pull_request' && hashFiles('ci-report.md') == ''",
+    `        if: always() && github.event_name == 'pull_request' && hashFiles('${RAPPORT_CI}') == ''`,
     "        env:",
     "          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}",
     "        run: |",
-    "          cat > ci-report.md <<EOF",
+    `          cat > ${RAPPORT_CI} <<EOF`,
     // Le filet n'est pas passé par `ucm check` : il écrit lui-même le marqueur
     // que le noyau aurait posé. Sans lui, le commentaire qu'il crée ne serait
     // retrouvé par aucune exécution suivante, et chaque push en empilerait un.
     `          ${MARQUEUR_RAPPORT}`,
     `          ## ${GLYPHES.bloquant.forge} La vérification n'a pas pu rendre son diagnostic`,
     "",
-    "          Les contrôles se sont arrêtés avant d'avoir pu analyser cet export : le rapport habituel n'a pas été produit. **Votre design n'est pas en cause** et ré-exporter depuis Figma n'y changerait rien.",
+    `          ${MESSAGE_DU_FILET}`,
     "",
     "          **Action attendue :** un développeur doit ouvrir [l'exécution de la CI]($RUN_URL) pour en connaître la raison.",
     "          EOF",
@@ -519,12 +511,12 @@ function workflow() {
     "        if: always() && github.event_name == 'pull_request'",
     "        uses: actions/upload-artifact@v4",
     "        with:",
-    "          name: ucm-rapport",
-    "          path: ci-report.md",
+    `          name: ${ARTEFACT_DU_RAPPORT}`,
+    `          path: ${RAPPORT_CI}`,
     "          retention-days: 1",
     "",
     "  commentaire:",
-    "    needs: contrats",
+    `    needs: ${JOB_CONTROLE_GITHUB}`,
     "    # `!cancelled()` et non `always()` : un run annulé ne commente pas.",
     "    if: ${{ !cancelled() && github.event_name == 'pull_request' }}",
     "    runs-on: ubuntu-latest",
@@ -533,7 +525,7 @@ function workflow() {
     "    steps:",
     "      - uses: actions/download-artifact@v4",
     "        with:",
-    "          name: ucm-rapport",
+    `          name: ${ARTEFACT_DU_RAPPORT}`,
     "",
     "      - name: Publier le diagnostic sur la pull request",
     "        env:",
@@ -566,9 +558,9 @@ function workflow() {
     '          NOTE="$(gh api "repos/$GITHUB_REPOSITORY/issues/$NUMERO/comments" --paginate \\',
     `            --jq ".[] | select(.user.login == \\\"$COMPTE\\\") | select(.body | startswith(\\\"${MARQUEUR_RAPPORT}\\\")) | .id" | tail -n 1)"`,
     '          if [ -n "$NOTE" ]; then',
-    '            gh api --method PATCH "repos/$GITHUB_REPOSITORY/issues/comments/$NOTE" -f body="$(cat ci-report.md)"',
-    `          elif ! head -n 2 ci-report.md | grep -qF "${MARQUEUR_SANS_OBJET}"; then`,
-    '            gh pr comment "$NUMERO" -R "$GITHUB_REPOSITORY" --body-file ci-report.md',
+    `            gh api --method PATCH "repos/$GITHUB_REPOSITORY/issues/comments/$NOTE" -f body="$(cat ${RAPPORT_CI})"`,
+    `          elif ! head -n 2 ${RAPPORT_CI} | grep -qF "${MARQUEUR_SANS_OBJET}"; then`,
+    `            gh pr comment "$NUMERO" -R "$GITHUB_REPOSITORY" --body-file ${RAPPORT_CI}`,
     '          else',
     "            echo \"Cette demande de fusion ne touche aucun fichier suivi par UCM : aucun commentaire n'est créé.\"",
     '          fi',
@@ -595,7 +587,7 @@ function workflow() {
  * de `ucm`, et `allow_failure` garde le pipeline de la couleur du contrôle
  * quand GitLab refuse le jeton : le rapport reste dans les artefacts.
  */
-function workflowGitlab() {
+function workflowGitlab(version) {
   const cli = 'ucm';
   return [
     "# Contrôle des contrats UCM, inclus par .gitlab-ci.yml.",
@@ -609,13 +601,13 @@ function workflowGitlab() {
     "#",
     "# Un job rouge ne bloque la fusion que si « Pipelines must succeed » est",
     "# coché dans Settings > Merge requests. La note demande la variable",
-    "# UCM_GITLAB_TOKEN, masquée et non protégée. Tout pipeline d'une branche du",
+    `# ${VARIABLE_DU_JETON_GITLAB}, masquée et non protégée. Tout pipeline d'une branche du`,
     "# projet la lit : son jeton, de scope api, appartient à un compte de rôle",
     "# Reporter sur ce seul projet.",
     "#",
     "# Écrit par `ucm init`. Adaptez-le : il ne sera jamais réécrit par-dessus.",
-    "ucm:",
-    "  image: node:22",
+    `${JOB_CONTROLE_GITLAB}:`,
+    `  image: node:${VERSION_DE_NODE}`,
     "  # Le before_script d'un default: du projet tournerait avec le jeton de la",
     "  # note. Les variables globales, elles, restent héritées.",
     "  inherit:",
@@ -628,29 +620,29 @@ function workflowGitlab() {
     "    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH",
     "  script:",
     "    # Les scripts d'installation ne reçoivent pas le jeton de la note.",
-    "    - unset UCM_GITLAB_TOKEN",
+    `    - unset ${VARIABLE_DU_JETON_GITLAB}`,
     "    # Un adaptateur appartient à la stack du repository. Sans lockfile, le",
     "    # noyau portable reste seul.",
     "    - if [ -f package-lock.json ]; then npm ci; fi",
     "    - |",
-    ...lancementUcm('      '),
+    ...lancementUcm('      ', version),
     '      if [ -n "$CI_MERGE_REQUEST_DIFF_BASE_SHA" ]; then',
-    `        ${cli} check --report ci-report.md --base "$CI_MERGE_REQUEST_DIFF_BASE_SHA"`,
+    `        ${cli} check --report ${RAPPORT_CI} --base "$CI_MERGE_REQUEST_DIFF_BASE_SHA"`,
     "      else",
-    `        ${cli} check --report ci-report.md`,
+    `        ${cli} check --report ${RAPPORT_CI}`,
     "      fi",
     "  artifacts:",
     "    when: always",
     "    paths:",
-    "      - ci-report.md",
+    `      - ${RAPPORT_CI}`,
     "",
-    "ucm-rapport:",
-    "  image: node:22",
+    `${JOB_NOTE_GITLAB}:`,
+    `  image: node:${VERSION_DE_NODE}`,
     "  # Sans clone, le before_script d'un default: du projet échouerait.",
     "  inherit:",
     "    default: false",
     "  needs:",
-    "    - job: ucm",
+    `    - job: ${JOB_CONTROLE_GITLAB}`,
     "      artifacts: true",
     "  rules:",
     '    - if: $CI_PIPELINE_SOURCE == "merge_request_event"',
@@ -665,17 +657,17 @@ function workflowGitlab() {
     "    # Filet : sans rapport, `ucm` s'est arrêté avant le contrôle (clone,",
     "    # installation, plantage).",
     "    - |",
-    "      if [ ! -f ci-report.md ]; then",
+    `      if [ ! -f ${RAPPORT_CI} ]; then`,
     "        printf '%s\\n\\n%s\\n\\n%s\\n' \\",
     `          "## ${GLYPHES.bloquant.forge} La vérification n'a pas pu rendre son diagnostic" \\`,
-    "          \"Les contrôles se sont arrêtés avant d'avoir pu analyser cet export : le rapport habituel n'a pas été produit. **Votre design n'est pas en cause** et réexporter depuis Figma n'y changerait rien.\" \\",
+    `          "${MESSAGE_DU_FILET}" \\`,
     "          \"**Action attendue :** un développeur doit ouvrir [le pipeline de la CI]($CI_PIPELINE_URL) pour en connaître la raison.\" \\",
-    "          > ci-report.md",
+    `          > ${RAPPORT_CI}`,
     "      fi",
     "    # Depuis un dossier vide, npx ne lit ni configuration ni paquet laissés",
     "    # par un job précédent sur le runner.",
     "    - cd \"$(mktemp -d)\"",
-    '    - npx --yes @ucm-kit/cli rapport-gitlab --projet "$CI_PROJECT_ID" --merge-request "$CI_MERGE_REQUEST_IID" --fichier "$CI_PROJECT_DIR/ci-report.md" --api "$CI_API_V4_URL"',
+    `    - npx --yes @ucm-kit/cli@${version} rapport-gitlab --projet "$CI_PROJECT_ID" --merge-request "$CI_MERGE_REQUEST_IID" --fichier "$CI_PROJECT_DIR/${RAPPORT_CI}" --api "$CI_API_V4_URL"`,
     "",
   ].join("\n");
 }
@@ -701,7 +693,7 @@ function lignesGitlab(racine) {
   const lignes = [
     {
       fichier: "Settings > CI/CD > Variables",
-      ligne: "créez `UCM_GITLAB_TOKEN`, masquée et non protégée. Sa valeur : un jeton de scope api d'un compte de service membre de ce seul projet, au rôle Reporter, ou un jeton d'accès de projet au rôle Reporter si l'offre le permet. Sans cette variable, le rapport n'est pas publié sur la merge request. Non protégée, parce que les branches d'export ne le sont pas ; tout pipeline d'une branche la lit, et le rôle Reporter borne ce qu'on en tire à lire et commenter.",
+      ligne: `créez \`${VARIABLE_DU_JETON_GITLAB}\`, masquée et non protégée. Sa valeur : un jeton de scope api d'un compte de service membre de ce seul projet, au rôle Reporter, ou un jeton d'accès de projet au rôle Reporter si l'offre le permet. Sans cette variable, le rapport n'est pas publié sur la merge request. Non protégée, parce que les branches d'export ne le sont pas ; tout pipeline d'une branche la lit, et le rôle Reporter borne ce qu'on en tire à lire et commenter.`,
     },
     {
       fichier: "Settings > Merge requests",
@@ -709,11 +701,11 @@ function lignesGitlab(racine) {
     },
   ];
   try {
-    const ci = readFileSync(join(racine, ".gitlab-ci.yml"), "utf8");
+    const ci = readFileSync(join(racine, CI_GITLAB_RACINE), "utf8");
     const stages = blocDeRacine(ci, "stages");
     if (stages !== null && !/(?:^|[\s,\[])(?:-\s*)?test(?=$|[\s,\]])/m.test(stages)) {
       lignes.push({
-        fichier: ".gitlab-ci.yml",
+        fichier: CI_GITLAB_RACINE,
         ligne: "ajoutez `test` à `stages:`. Le job ucm s'y range, et GitLab refuse un pipeline dont un job vise un stage absent.",
       });
     }
@@ -721,7 +713,7 @@ function lignesGitlab(racine) {
     const exclutLesMr = /if:\s*[^\n]*merge_request_event[\s\S]{0,160}?when:\s*never/.test(workflow ?? '');
     if (workflow !== null && /^[ \t]+rules:/m.test(workflow) && (!workflow.includes("merge_request_event") || exclutLesMr)) {
       lignes.push({
-        fichier: ".gitlab-ci.yml",
+        fichier: CI_GITLAB_RACINE,
         ligne: "ajoutez `- if: $CI_PIPELINE_SOURCE == \"merge_request_event\"` en tête de `workflow:rules`. Sans cette règle, GitLab ne crée aucun pipeline de merge request et le job ucm ne contrôle aucun export.",
       });
     }
@@ -794,6 +786,8 @@ export function init(racine, {
       : null,
     version,
     forge,
+    // L'éditeur lit le schéma dans le paquet installé : `init` n'installe rien.
+    schemaInstalle: existsSync(join(racine, CHEMIN_DU_SCHEMA_INSTALLE)),
     agents: !sansAgents,
     // `absent` quand aucun adaptateur n'est installé, le message quand il n'a pas pu servir.
     adaptateur: erreurAdaptateur
@@ -846,6 +840,7 @@ export function rendreInit({
   chemins = null,
   version,
   forge = null,
+  schemaInstalle = true,
   agents = false,
   adaptateur = "absent",
   lignes: restantes = [],
@@ -872,6 +867,11 @@ export function rendreInit({
     lignes.push("");
     lignes.push(`CI écrite pour ${forge.nom === "gitlab" ? "GitLab" : "GitHub"}, d'après ${forge.signal}.`);
     lignes.push("L'option `--forge github` ou `--forge gitlab` en choisit une autre.");
+  }
+
+  if (!schemaInstalle) {
+    lignes.push("");
+    lignes.push(`L'éditeur ne valide aucun contrat tant que ${CHEMIN_DU_SCHEMA_INSTALLE} manque : installez @ucm-kit/cli en devDependency.`);
   }
 
   if (optionsIgnorees) {

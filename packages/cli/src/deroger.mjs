@@ -7,7 +7,7 @@ import { execFileSync } from "node:child_process";
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { dirname, resolve } from "node:path";
 
-import { CHEMIN_DES_DEROGATIONS, ajouterDerogation, coordonneesDuGenre, identifiantDuContrat, lireConfiguration } from "@ucm-kit/core/lecteurs";
+import { CHEMIN_DES_DEROGATIONS, ajouterDerogation, coordonneesDuGenre, identifiantDuContrat, lireConfiguration, lireJsonDuDepot } from "@ucm-kit/core/lecteurs";
 
 import { contratsDuDossier } from "./contrats.mjs";
 
@@ -55,7 +55,7 @@ export function deroger(arguments_, { racine = process.cwd(), ecrire = console.l
   if (!cheminContrat) return echec(`Le composant ${composant} n'a pas de contrat sous ${configuration.components}.`);
   let exportedAt;
   try {
-    exportedAt = JSON.parse(readFileSync(cheminContrat, "utf8"))?.meta?.exportedAt;
+    exportedAt = lireJsonDuDepot(cheminContrat)?.meta?.exportedAt;
   } catch {
     return echec(`Le contrat de ${composant} est illisible.`);
   }

@@ -2,8 +2,9 @@
  * Liste les icônes réclamées par les contrats, sans choisir de bibliothèque ni
  * juger leur couverture : cette correspondance appartient au consommateur.
  */
-import { readFileSync } from "node:fs";
 import { join, relative } from "node:path";
+
+import { lireJsonDuDepot } from "@ucm-kit/core/lecteurs";
 
 import { contratsDuDossier } from "./contrats.mjs";
 
@@ -20,7 +21,7 @@ export function iconesDuRepository(racine, dossierComponents) {
   for (const chemin of contratsDuDossier(join(racine, dossierComponents))) {
     let contrat;
     try {
-      contrat = JSON.parse(readFileSync(chemin, "utf8").replace(/^﻿/, ""));
+      contrat = lireJsonDuDepot(chemin);
     } catch {
       // Un contrat illisible est l'affaire de `ucm check`, pas de celle-ci.
       // Le lister ici produirait deux diagnostics du même défaut, dont un
