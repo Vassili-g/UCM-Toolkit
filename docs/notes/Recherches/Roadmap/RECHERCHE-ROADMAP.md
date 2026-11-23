@@ -196,3 +196,11 @@ Réponses du mainteneur :
 5. `npm run sujet` écrit le registre sans demander : décidé, la piste validée vaut accord.
 
 La prio 4 de P25 est validée.
+
+## Écarts de la page livrée avec la maquette A2 v2
+
+- La page garde, sous l'introduction, la phrase sur les tailles `S`, `M`, `L` et `XL` et les modules consommateurs.
+- Un point bleu suit le titre d'une piste qui a bougé depuis la dernière visite (décision 11), avec sa légende dans la ligne du compte.
+- La section 7 prend toute la largeur de la page, et les autres sections gardent 1000 px.
+- Sous 860 px, la table défile et la fiche passe sur une colonne.
+- Le premier archivage (P19, P21) a montré une limite du calcul : un chemin construit dans le code, comme `${dossier}generer-vue-illustree.ts` dans `scripts/vues.mjs`, n'est pas reconnu comme citation. La règle « un outil n'est jamais supprimé » l'a gardé.

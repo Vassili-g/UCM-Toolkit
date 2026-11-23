@@ -40,7 +40,7 @@ const PLANS_SANS_PISTE: { chemin: string; raison: string }[] = [
   ].map((nom) => ({ chemin: `${RECHERCHES}/UCM Architect/8 Fiabilisation/${nom}`, raison: LIVRE })),
 ];
 
-interface Piste { id: string; plan?: string; recherche?: string }
+interface Piste { id: string; plan?: string; recherche?: string; archive?: string }
 interface Plan { chemin: string; texte: string }
 
 function lirePistes(): Piste[] {
@@ -63,7 +63,7 @@ const existeIci = (chemin: string) => fs.existsSync(path.join(RACINE, chemin));
 const texteIci = (chemin: string) => (existeIci(chemin) ? fs.readFileSync(path.join(RACINE, chemin), 'utf8') : null);
 
 function plansDesPistes(pistes: Piste[]): Plan[] {
-  return pistes.flatMap((piste) => (piste.plan ? [{ chemin: piste.plan, texte: texteIci(piste.plan) ?? '' }] : []));
+  return pistes.flatMap((piste) => (piste.plan && !piste.archive ? [{ chemin: piste.plan, texte: texteIci(piste.plan) ?? '' }] : []));
 }
 
 function controlerHashes(plans: Plan[], existe: (hash: string) => boolean): string[] {
@@ -85,6 +85,8 @@ function controlerHashes(plans: Plan[], existe: (hash: string) => boolean): stri
 
 function controlerMarques(plans: Plan[], pistes: Piste[], texteDuPlan: (chemin: string) => string | null): string[] {
   const livree = (piste: Piste): boolean => {
+    // Une piste archivée est terminée : son plan ne vit plus que dans Git.
+    if (piste.archive) return true;
     const texte = piste.plan ? texteDuPlan(piste.plan) : null;
     return texte !== null && etatDuPlan(lireLePlan(texte)).livre;
   };
