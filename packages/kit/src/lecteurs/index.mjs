@@ -55,6 +55,7 @@ export { erreursTypesTypographiques } from "./typography-token-types.mjs";
 /** Ce que le fichier de tokens DTCG contient, et donc ce qui existe. */
 export {
   indexerTokensDtcg,
+  nomsCssDesTokens,
   cheminDeReference,
   referencesAbsentes,
 } from "./tokens-dtcg.mjs";

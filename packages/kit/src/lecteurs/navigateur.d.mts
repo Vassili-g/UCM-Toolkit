@@ -23,6 +23,7 @@ declare module "@ucm-kit/core/lecteurs/navigateur" {
     collecterReferences,
     erreursTypesTypographiques,
     indexerTokensDtcg,
+    nomsCssDesTokens,
     cheminDeReference,
     referencesAbsentes,
     comparerAuTokenPublie,

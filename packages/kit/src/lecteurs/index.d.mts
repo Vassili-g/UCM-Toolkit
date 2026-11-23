@@ -174,6 +174,9 @@ declare module "@ucm-kit/core/lecteurs" {
     typeHerite?: string,
   ): Map<string, unknown>;
 
+  /** Les chemins de chaque nom CSS, triés ; deux chemins pour un nom sont une collision. */
+  export function nomsCssDesTokens(index: Map<string, unknown>): Map<string, string[]>;
+
   /** Le chemin que désigne une référence, ou `null` si la chaîne n'en désigne aucun. */
   export function cheminDeReference(reference: unknown): string | null;
 

@@ -3,6 +3,7 @@ import test from "node:test";
 
 import {
   indexerTokensDtcg,
+  nomsCssDesTokens,
   cheminDeReference,
   referencesAbsentes,
 } from "../src/lecteurs/tokens-dtcg.mjs";
@@ -139,4 +140,20 @@ test("un groupe existant n'est pas un token qu'une référence puisse citer", ()
     referencesAbsentes(["{primitives.couleurs}"], index),
     ["{primitives.couleurs}"],
   );
+});
+
+test("deux chemins au même nom CSS forment une entrée à deux chemins triés", () => {
+  const index = indexerTokensDtcg({ layout: { size: { "50%": { $value: "50%" }, 50: { $value: "50px" } } } });
+  assert.deepEqual(nomsCssDesTokens(index).get("--layout-size-50"), ["layout.size.50", "layout.size.50%"]);
+});
+
+test("deux chemins distincts donnent deux entrées d'un chemin", () => {
+  const noms = nomsCssDesTokens(indexerTokensDtcg({ a: { b: { $value: "1px" }, c: { $value: "2px" } } }));
+  assert.deepEqual([...noms.entries()], [["--a-b", ["a.b"]], ["--a-c", ["a.c"]]]);
+});
+
+test("l'ordre des groupes du fichier ne change pas les chemins d'un nom", () => {
+  const avant = nomsCssDesTokens(indexerTokensDtcg({ x: { "y%": { $value: "1" } }, "x-y": { $value: "2" } }));
+  const apres = nomsCssDesTokens(indexerTokensDtcg({ "x-y": { $value: "2" }, x: { "y%": { $value: "1" } } }));
+  assert.deepEqual(avant.get("--x-y"), apres.get("--x-y"));
 });

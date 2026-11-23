@@ -16,6 +16,8 @@
  * diverger ; ce module en supprime le besoin.
  */
 
+import { tokenCssVariable } from "@ucm-kit/core/format";
+
 function estObjet(valeur) {
   return Boolean(valeur) && typeof valeur === "object" && !Array.isArray(valeur);
 }
@@ -66,6 +68,23 @@ export function indexerTokensDtcg(tokens, chemin = [], index = new Map(), typeHe
     }
   }
   return index;
+}
+
+/**
+ * Les chemins de chaque nom CSS que `tokenCssVariable` donne : une `Map` du nom
+ * vers ses chemins, triés. Un nom porté par deux chemins est une collision.
+ * `ucm tokens css`, `ucm tokens references` et le juge du code la lisent ici.
+ */
+export function nomsCssDesTokens(index) {
+  const parNom = new Map();
+  for (const chemin of index.keys()) {
+    const nom = tokenCssVariable(chemin);
+    const chemins = parNom.get(nom);
+    if (chemins) chemins.push(chemin);
+    else parNom.set(nom, [chemin]);
+  }
+  for (const chemins of parNom.values()) chemins.sort();
+  return parNom;
 }
 
 /**
