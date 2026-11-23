@@ -382,9 +382,9 @@ hors des deux échecs admis.
 
 ## Vague 3
 
-- [ ] 3.1 `implementeur-exigeant`. Les deux prises. Commit : avec 4.1.
-- [ ] 3.2 `implementeur`. Toutes les règles dans l’inventaire. Commit : `…`
-- [ ] 3.3 Conversation principale. Guide, skill, invariants, cartes. Commit : `…`
+- [x] 3.1 `implementeur-exigeant`. Les deux prises. Commit : `371b1eb7`
+- [x] 3.2 `implementeur`. Toutes les règles dans l’inventaire. Commit : `eef46c84`
+- [x] 3.3 Conversation principale. Guide, skill, invariants, cartes. Commit : `2e1f0204`
 
 ### Lot 3.1. Les deux prises
 
@@ -445,10 +445,12 @@ Conversation principale. Charger `rediger-pour-agents` pour la skill,
 
 ## Vague 4. Publication
 
-- [ ] 4.1 `executant`. Monter le kit et l’adaptateur à leur dernier chiffre suivant, la CLI au chiffre du milieu suivant, les pins de `@ucm-kit/core` dans la CLI et l’adaptateur, le titre de version des deux journaux, et chaque version citée par la documentation que `tests/pinDocumente.test.mjs` et `npm run agents:diff` désignent, selon `publier-paquets`. Commit : `…` (avec 3.1)
-- [ ] 4.2 `verificateur`. `npm run agents:diff`, `npm run build`, `npm run vues`, `npm test`, `npm run typecheck`. Tout passe, `versionSuitLeContenu` et `apiPublique` compris.
+- [x] 4.1 `executant`. Monter le kit et l’adaptateur à leur dernier chiffre suivant, la CLI au chiffre du milieu suivant, les pins de `@ucm-kit/core` dans la CLI et l’adaptateur, le titre de version des deux journaux, et chaque version citée par la documentation que `tests/pinDocumente.test.mjs` et `npm run agents:diff` désignent, selon `publier-paquets`. Commit : `371b1eb7`
+- [x] 4.2 `verificateur`. `npm run agents:diff`, `npm run build`, `npm run vues`, `npm test`, `npm run typecheck`. Tout passe, `versionSuitLeContenu` et `apiPublique` compris. Vérifié sur `371b1eb7`.
 - [ ] 4.3 Conversation principale. Relire le diff de 3.1 et 4.1. Retirer la puce « Verrou P6 » de `publier-paquets` dans le même commit que 3.1 et 4.1. Commiter par chemins explicites, pousser, puis publier le kit, la CLI et l’adaptateur, dans cet ordre, selon `publier-paquets`. Constater chaque version par `npm view <paquet>@<version> version`.
 - [ ] 4.4 Conversation principale. Mettre à jour l’alerte Playground de P6 dans `pistes.json` avec les versions publiées de la CLI et de l’adaptateur. Cocher les cases, `npm run vues`, commiter, pousser. Remettre au développeur les trois versions à épingler à l’exact. Commit : `…`
+
+- [ ] 4.5 (mainteneur). Retirer de `UCM-Playground/.ucm/conventions.md` la ligne « Traduire `{chemin.du.token}` » et la phrase « aucun helper partagé », puis épingler `@ucm-kit/cli` 0.3.0 et `@ucm-kit/adapter-typescript` 0.2.14 dans Playground, avant la réimplémentation à froid de ses composants en contrat v14.
 
 ## Étape F, facultative, retour du développeur
 

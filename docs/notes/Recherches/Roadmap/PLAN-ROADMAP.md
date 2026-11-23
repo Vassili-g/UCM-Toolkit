@@ -79,7 +79,7 @@ Fichiers que deux lots de vagues différentes écrivent, dans l'ordre :
 ## Vague 0
 
 - [x] 0.1 Conversation principale. Commiter ce dossier, la piste P25 de `pistes.json`, le motif du registre, la ligne du sommaire et `INVENTAIRE-UCM.html` régénéré. Commit : `8f76a1fc`
-- [x] 0.2 (mainteneur). Répondre aux cinq questions de la [recherche](./RECHERCHE-ROADMAP.md#questions-au-mainteneur).
+- [x] 0.2 (mainteneur). Répondre aux cinq questions de la [recherche](./RECHERCHE-ROADMAP.md#réponses-aux-questions).
 
 ## Vague 1
 
@@ -216,9 +216,9 @@ un chemin temporaire et vérifie que la page commence par `<!doctype html>`.
 
 Elle commence après la case 4.4 de P6.
 
-- [ ] 3.1 `implementeur-exigeant`. Données et générateur. Commit : `…`
-- [ ] 3.2 `implementeur-exigeant`. Interface de la Roadmap. Commit : `…`
-- [ ] 3.3 `executant`. Questions dans les recherches. Commit : `…`
+- [x] 3.1 `implementeur-exigeant`. Données et générateur. Commit : `0cd23904`
+- [x] 3.2 `implementeur-exigeant`. Interface de la Roadmap. Commit : `361529b0`
+- [x] 3.3 `executant`. Questions dans les recherches. Commit : `e3a57134`
 
 ### Contrat entre 3.1 et 3.2
 
