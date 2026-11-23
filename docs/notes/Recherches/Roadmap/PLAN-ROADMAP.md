@@ -354,7 +354,7 @@ de « Où écrire » qui nomme `prio`, `prioDuMainteneur` et les marques de case
 
 - [x] 5.1 Conversation principale. Premier archivage, P19 et P21, par la skill `archiver-un-sujet`. Commit : `2a7cb315`
 - [x] 5.2 (mainteneur). Confirmer la table des fichiers à supprimer de P19 et de P21. Confirmé : les deux plans supprimés, liens figés sur `effe0494`.
-- [ ] 5.3 Conversation principale. Clôture. Commit : `…`
+- [x] 5.3 Conversation principale. Clôture. Commit : `2a7cb315`, `cdc463cf`
 
 ### Lot 5.1. Premier archivage
 
