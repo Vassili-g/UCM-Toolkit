@@ -157,9 +157,9 @@ dépôt Git temporaire.
 
 ## Vague 2
 
-- [ ] 2.1 `implementeur`. Gardes des plans. Commit : `…`
-- [ ] 2.2 Conversation principale. Skill d'archivage et règles. Commit : `…`
-- [ ] 2.3 `implementeur`. `npm run inventaire` à jour. Commit : `…`
+- [x] 2.1 `implementeur`. Gardes des plans. Commit : `190b28d1`
+- [x] 2.2 Conversation principale. Skill d'archivage et règles. Commit : `7b714295`
+- [x] 2.3 `implementeur`. `npm run inventaire` à jour. Commit : `958ed409`
 
 ### Lot 2.1. Gardes des plans
 

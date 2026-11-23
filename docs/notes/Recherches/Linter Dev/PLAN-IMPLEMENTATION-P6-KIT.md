@@ -293,9 +293,9 @@ Fin : `npm run test:paquet -- cli` passe. `ucm --help` liste la commande.
 
 ## Vague 2
 
-- [ ] 2.1 `implementeur-exigeant`. Constats du code dans le verdict d’`ucm check`. Commit : `…`
-- [ ] 2.2 `implementeur`. `ucm deroger`, rangs du composant et procédure. Commit : `…`
-- [ ] 2.3 `implementeur`. Parité des aides et du juge. Commit : `…`
+- [x] 2.1 `implementeur-exigeant`. Constats du code dans le verdict d’`ucm check`. Commit : `1dbb9631`
+- [x] 2.2 `implementeur`. `ucm deroger`, rangs du composant et procédure. Commit : `b0f5270e`
+- [x] 2.3 `implementeur`. Parité des aides et du juge. Commit : `87644ae3`
 
 ### Lot 2.1. Constats du code dans le verdict
 
