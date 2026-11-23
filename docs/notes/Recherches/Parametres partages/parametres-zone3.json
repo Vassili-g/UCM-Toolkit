@@ -1,0 +1,837 @@
+{
+  "description": "Inventaire de la zone 3 de la piste P27, l'outillage des agents : chaque règle de travail que tiennent les hooks, les tests, les scripts, les skills et les définitions d'agents, avec la source de son verdict, ses lecteurs, ses copies et sa garde. Une règle sans garde ou avec une copie non gardée porte l'écart de ZONE-3-OUTILLAGE-AGENTS.md qui la décrit.",
+  "natures": {
+    "lecteur": [
+      "code",
+      "doc",
+      "aide",
+      "test",
+      "genere",
+      "inventaire",
+      "ci"
+    ]
+  },
+  "parametres": [
+    {
+      "id": "verdict-registre-documents",
+      "famille": "outillage",
+      "nom": "Verdict du registre pour un Markdown créé",
+      "source": {
+        "fichier": "scripts/hook-documents.mjs",
+        "symbole": "verdict du registre et branche _local/"
+      },
+      "lecteurs": [
+        {
+          "fichier": "tests/registreDesDocuments.test.ts",
+          "nature": "test"
+        },
+        {
+          "fichier": "scripts/agents-contexte.mjs",
+          "symbole": "correspond",
+          "nature": "code"
+        },
+        {
+          "fichier": "tests/styleMotifs.test.ts",
+          "nature": "test"
+        }
+      ],
+      "copies": [
+        {
+          "fichier": "scripts/hook-documents.mjs",
+          "ligne": 48,
+          "nature": "code"
+        },
+        {
+          "fichier": "CONTRIBUTING.md",
+          "ligne": 663,
+          "nature": "doc"
+        },
+        {
+          "fichier": "AGENTS.md",
+          "ligne": 97,
+          "nature": "doc"
+        },
+        {
+          "fichier": "tests/registreDesDocuments.test.ts",
+          "ligne": 12,
+          "nature": "test"
+        }
+      ],
+      "garde": {
+        "test": "tests/registreDesDocuments.test.ts",
+        "nature": "test-partiel"
+      },
+      "ecart": "PP-301"
+    },
+    {
+      "id": "chemins-sans-hook",
+      "famille": "outillage",
+      "nom": "Outils qui créent un fichier sans passer par un hook",
+      "source": {
+        "fichier": ".claude/settings.json",
+        "symbole": "matcher PreToolUse et PostToolUse"
+      },
+      "lecteurs": [
+        {
+          "fichier": "scripts/hook-documents.mjs",
+          "symbole": "tool_input.file_path",
+          "nature": "code"
+        },
+        {
+          "fichier": "scripts/hook-style.mjs",
+          "symbole": "tool_input.file_path",
+          "nature": "code"
+        }
+      ],
+      "copies": [
+        {
+          "fichier": "CONTRIBUTING.md",
+          "ligne": 556,
+          "nature": "doc"
+        },
+        {
+          "fichier": "CONTRIBUTING.md",
+          "ligne": 599,
+          "nature": "doc"
+        },
+        {
+          "fichier": "CARTE.md",
+          "ligne": 55,
+          "nature": "doc"
+        },
+        {
+          "fichier": ".claude/agents/implementeur.md",
+          "ligne": 49,
+          "nature": "doc"
+        }
+      ],
+      "garde": null,
+      "ecart": "PP-302"
+    },
+    {
+      "id": "domicile-de-l-outillage",
+      "famille": "outillage",
+      "nom": "Domicile des fichiers d'outillage des agents",
+      "source": {
+        "fichier": ".agents/domiciles.json",
+        "symbole": "domaines"
+      },
+      "lecteurs": [
+        {
+          "fichier": "scripts/agents-contexte.mjs",
+          "symbole": "domaineDe",
+          "nature": "code"
+        },
+        {
+          "fichier": "tests/domiciles.test.ts",
+          "nature": "test"
+        }
+      ],
+      "copies": [
+        {
+          "fichier": "AGENTS.md",
+          "ligne": 87,
+          "nature": "doc"
+        },
+        {
+          "fichier": "scripts/hook-documents.mjs",
+          "ligne": 58,
+          "nature": "code"
+        },
+        {
+          "fichier": "CONTRIBUTING.md",
+          "ligne": 533,
+          "nature": "doc"
+        }
+      ],
+      "garde": {
+        "test": "tests/domiciles.test.ts",
+        "nature": "test-partiel"
+      },
+      "ecart": "PP-303"
+    },
+    {
+      "id": "verifications-par-domaine",
+      "famille": "outillage",
+      "nom": "Commandes de vérification rendues par agents:diff",
+      "source": {
+        "fichier": ".agents/domiciles.json",
+        "symbole": "domaines[].verifications"
+      },
+      "lecteurs": [
+        {
+          "fichier": "scripts/agents-contexte.mjs",
+          "symbole": "diff",
+          "nature": "code"
+        },
+        {
+          "fichier": ".claude/agents/implementeur.md",
+          "nature": "doc"
+        },
+        {
+          "fichier": ".claude/agents/implementeur-exigeant.md",
+          "nature": "doc"
+        },
+        {
+          "fichier": ".claude/agents/executant.md",
+          "nature": "doc"
+        }
+      ],
+      "copies": [
+        {
+          "fichier": "CONTRIBUTING.md",
+          "ligne": 533,
+          "nature": "doc"
+        }
+      ],
+      "garde": null,
+      "ecart": "PP-304"
+    },
+    {
+      "id": "garde-de-conservation",
+      "famille": "outillage",
+      "nom": "Conservation des atomes d'une réécriture de fichier d'agent",
+      "source": {
+        "fichier": "scripts/verifier-conservation.mjs",
+        "symbole": "verifier-conservation --domaines"
+      },
+      "lecteurs": [
+        {
+          "fichier": ".agents/skills/rediger-pour-agents/SKILL.md",
+          "nature": "doc"
+        },
+        {
+          "fichier": "tests/verifierConservation.test.mjs",
+          "nature": "test"
+        }
+      ],
+      "copies": [
+        {
+          "fichier": ".agents/skills/rediger-pour-agents/SKILL.md",
+          "ligne": 134,
+          "nature": "doc"
+        },
+        {
+          "fichier": "CARTE.md",
+          "ligne": 64,
+          "nature": "doc"
+        }
+      ],
+      "garde": {
+        "test": "tests/verifierConservation.test.mjs",
+        "nature": "test-partiel"
+      },
+      "ecart": "PP-305"
+    },
+    {
+      "id": "interdiction-test-ui",
+      "famille": "outillage",
+      "nom": "Interdiction de lancer test:ui sans demande du mainteneur",
+      "source": {
+        "fichier": "CONTRIBUTING.md",
+        "symbole": "Travailler avec des agents"
+      },
+      "lecteurs": [
+        {
+          "fichier": ".claude/agents/verificateur.md",
+          "nature": "doc"
+        },
+        {
+          "fichier": ".claude/agents/implementeur.md",
+          "nature": "doc"
+        },
+        {
+          "fichier": ".claude/agents/implementeur-exigeant.md",
+          "nature": "doc"
+        },
+        {
+          "fichier": ".claude/agents/executant.md",
+          "nature": "doc"
+        }
+      ],
+      "copies": [
+        {
+          "fichier": "CLAUDE.md",
+          "ligne": 18,
+          "nature": "doc"
+        },
+        {
+          "fichier": "CONTRIBUTING.md",
+          "ligne": 536,
+          "nature": "doc"
+        },
+        {
+          "fichier": ".claude/agents/implementeur.md",
+          "ligne": 50,
+          "nature": "doc"
+        },
+        {
+          "fichier": ".claude/agents/implementeur-exigeant.md",
+          "ligne": 50,
+          "nature": "doc"
+        },
+        {
+          "fichier": ".claude/agents/executant.md",
+          "ligne": 51,
+          "nature": "doc"
+        },
+        {
+          "fichier": ".claude/agents/verificateur.md",
+          "ligne": 3,
+          "nature": "doc"
+        }
+      ],
+      "garde": null,
+      "ecart": "PP-306"
+    },
+    {
+      "id": "exceptions-du-controle-de-style",
+      "famille": "style",
+      "nom": "Fichiers exclus ou convertis du contrôle de style",
+      "source": {
+        "fichier": "scripts/controle-style.mjs",
+        "symbole": "EXCLUS_DU_CONTROLE et AGENTS_A_CONVERTIR"
+      },
+      "lecteurs": [
+        {
+          "fichier": "scripts/hook-style.mjs",
+          "symbole": "fautesDuFichier",
+          "nature": "code"
+        },
+        {
+          "fichier": "tests/styleDocumentaire.test.ts",
+          "nature": "test"
+        },
+        {
+          "fichier": "tests/styleMotifs.test.ts",
+          "nature": "test"
+        }
+      ],
+      "copies": [
+        {
+          "fichier": "CONTRIBUTING.md",
+          "ligne": 599,
+          "nature": "doc"
+        },
+        {
+          "fichier": ".agents/skills/rediger-pour-agents/SKILL.md",
+          "ligne": 35,
+          "nature": "doc"
+        }
+      ],
+      "garde": {
+        "test": "tests/styleMotifs.test.ts",
+        "nature": "test-partiel"
+      },
+      "ecart": "PP-307"
+    },
+    {
+      "id": "suffixes-de-test-decouverts",
+      "famille": "tests",
+      "nom": "Suffixes de fichiers de test lancés par chaque paquet",
+      "source": {
+        "fichier": "scripts/run-tests.cjs",
+        "symbole": "filter .test.ts et .test.mjs"
+      },
+      "lecteurs": [
+        {
+          "fichier": "packages/plugin-socle/build/run-tests.cjs",
+          "symbole": "lancerLesTests",
+          "nature": "code"
+        },
+        {
+          "fichier": "packages/cli/scripts/run-tests.cjs",
+          "nature": "code"
+        },
+        {
+          "fichier": "packages/kit/scripts/run-tests.cjs",
+          "nature": "code"
+        }
+      ],
+      "copies": [
+        {
+          "fichier": "packages/adapter-typescript/scripts/run-tests.cjs",
+          "ligne": 8,
+          "nature": "code"
+        },
+        {
+          "fichier": "packages/plugin-architect/scripts/run-tests.cjs",
+          "ligne": 5,
+          "nature": "code"
+        },
+        {
+          "fichier": "packages/plugin-exporter/scripts/run-tests.cjs",
+          "ligne": 5,
+          "nature": "code"
+        },
+        {
+          "fichier": "packages/plugin-palettes/scripts/run-tests.cjs",
+          "ligne": 5,
+          "nature": "code"
+        },
+        {
+          "fichier": "AGENTS.md",
+          "ligne": 115,
+          "nature": "doc"
+        },
+        {
+          "fichier": "CONTRIBUTING.md",
+          "ligne": 469,
+          "nature": "doc"
+        }
+      ],
+      "garde": null,
+      "ecart": "PP-308"
+    },
+    {
+      "id": "modele-des-sous-agents",
+      "famille": "agents",
+      "nom": "Modèle de chaque sous-agent",
+      "source": {
+        "fichier": ".claude/agents/verificateur.md",
+        "symbole": "model"
+      },
+      "lecteurs": [
+        {
+          "fichier": "CLAUDE.md",
+          "nature": "doc"
+        },
+        {
+          "fichier": ".claude/settings.json",
+          "symbole": "env.CLAUDE_CODE_SUBAGENT_MODEL",
+          "nature": "code"
+        }
+      ],
+      "copies": [
+        {
+          "fichier": "CLAUDE.md",
+          "ligne": 14,
+          "nature": "doc"
+        },
+        {
+          "fichier": "CLAUDE.md",
+          "ligne": 18,
+          "nature": "doc"
+        },
+        {
+          "fichier": ".claude/settings.json",
+          "ligne": 4,
+          "nature": "code"
+        },
+        {
+          "fichier": ".claude/agents/executant.md",
+          "ligne": 4,
+          "nature": "doc"
+        }
+      ],
+      "garde": null,
+      "ecart": "PP-309"
+    },
+    {
+      "id": "regles-ecrire-par-moment",
+      "famille": "style",
+      "nom": "Règles d'écriture appliquées à une réponse, à un fichier et à une relecture",
+      "source": {
+        "fichier": "AGENTS.md",
+        "symbole": "bloc Écrire"
+      },
+      "lecteurs": [
+        {
+          "fichier": "scripts/hook-reponse.mjs",
+          "symbole": "fautesDeReponse",
+          "nature": "code"
+        },
+        {
+          "fichier": "scripts/hook-style.mjs",
+          "symbole": "fautesDuFichier",
+          "nature": "code"
+        },
+        {
+          "fichier": ".agents/skills/relire-le-style/SKILL.md",
+          "nature": "doc"
+        }
+      ],
+      "copies": [
+        {
+          "fichier": "scripts/controle-style.mjs",
+          "ligne": 125,
+          "nature": "code"
+        },
+        {
+          "fichier": "CONTRIBUTING.md",
+          "ligne": 599,
+          "nature": "doc"
+        }
+      ],
+      "garde": {
+        "test": "tests/styleMotifs.test.ts",
+        "nature": "test-partiel"
+      },
+      "ecart": "PP-310"
+    },
+    {
+      "id": "usage-du-gras",
+      "famille": "style",
+      "nom": "Gras par section dans les fichiers d'agents",
+      "source": {
+        "fichier": "AGENTS.md",
+        "symbole": "bloc Écrire, puce sur le gras"
+      },
+      "lecteurs": [
+        {
+          "fichier": ".agents/skills/rediger-pour-agents/SKILL.md",
+          "nature": "doc"
+        }
+      ],
+      "copies": [
+        {
+          "fichier": "AGENTS.md",
+          "ligne": 18,
+          "nature": "doc"
+        },
+        {
+          "fichier": ".agents/skills/rediger-pour-agents/SKILL.md",
+          "ligne": 35,
+          "nature": "doc"
+        },
+        {
+          "fichier": "CLAUDE.md",
+          "ligne": 21,
+          "nature": "doc"
+        }
+      ],
+      "garde": null,
+      "ecart": "PP-311"
+    },
+    {
+      "id": "contenu-des-cartes",
+      "famille": "outillage",
+      "nom": "Fichiers de scripts, skills et agents que CARTE.md décrit",
+      "source": {
+        "fichier": "CARTE.md",
+        "symbole": "sections scripts/, .agents/skills/, .claude/"
+      },
+      "lecteurs": [
+        {
+          "fichier": "tests/cartes.test.ts",
+          "nature": "test"
+        },
+        {
+          "fichier": "scripts/agents-contexte.mjs",
+          "symbole": "lire",
+          "nature": "code"
+        }
+      ],
+      "copies": [
+        {
+          "fichier": "CARTE.md",
+          "ligne": 39,
+          "nature": "doc"
+        },
+        {
+          "fichier": "CARTE.md",
+          "ligne": 66,
+          "nature": "doc"
+        }
+      ],
+      "garde": {
+        "test": "tests/cartes.test.ts",
+        "nature": "test-partiel"
+      },
+      "ecart": "PP-312"
+    },
+    {
+      "id": "creation-de-skill-ou-de-document",
+      "famille": "outillage",
+      "nom": "Accord requis pour un nouveau document ou une nouvelle skill",
+      "source": {
+        "fichier": ".agents/domiciles.json",
+        "symbole": "registre"
+      },
+      "lecteurs": [
+        {
+          "fichier": "scripts/hook-documents.mjs",
+          "nature": "code"
+        },
+        {
+          "fichier": "tests/registreDesDocuments.test.ts",
+          "nature": "test"
+        },
+        {
+          "fichier": "scripts/nouveau-sujet.mjs",
+          "nature": "code"
+        }
+      ],
+      "copies": [
+        {
+          "fichier": "AGENTS.md",
+          "ligne": 97,
+          "nature": "doc"
+        },
+        {
+          "fichier": "CONTRIBUTING.md",
+          "ligne": 663,
+          "nature": "doc"
+        },
+        {
+          "fichier": ".agents/skills/archiver-un-sujet/SKILL.md",
+          "ligne": 23,
+          "nature": "doc"
+        },
+        {
+          "fichier": ".claude/agents/implementeur.md",
+          "ligne": 49,
+          "nature": "doc"
+        }
+      ],
+      "garde": {
+        "test": "tests/registreDesDocuments.test.ts",
+        "nature": "test-partiel"
+      },
+      "ecart": "PP-313"
+    },
+    {
+      "id": "prompt-d-un-implementeur",
+      "famille": "agents",
+      "nom": "Contenu du prompt d'un implémenteur et sections communes des définitions",
+      "source": {
+        "fichier": "CONTRIBUTING.md",
+        "symbole": "Ce que reçoit un implémenteur"
+      },
+      "lecteurs": [
+        {
+          "fichier": ".claude/agents/implementeur.md",
+          "nature": "doc"
+        },
+        {
+          "fichier": ".claude/agents/implementeur-exigeant.md",
+          "nature": "doc"
+        },
+        {
+          "fichier": ".claude/agents/executant.md",
+          "nature": "doc"
+        }
+      ],
+      "copies": [
+        {
+          "fichier": "CLAUDE.md",
+          "ligne": 22,
+          "nature": "doc"
+        },
+        {
+          "fichier": ".claude/agents/implementeur.md",
+          "ligne": 7,
+          "nature": "doc"
+        },
+        {
+          "fichier": ".claude/agents/implementeur-exigeant.md",
+          "ligne": 7,
+          "nature": "doc"
+        },
+        {
+          "fichier": ".claude/agents/executant.md",
+          "ligne": 7,
+          "nature": "doc"
+        }
+      ],
+      "garde": null,
+      "ecart": "PP-314"
+    },
+    {
+      "id": "extensions-jugees-par-le-style",
+      "famille": "style",
+      "nom": "Extensions de fichier que le contrôle de style juge",
+      "source": {
+        "fichier": "scripts/controle-style.mjs",
+        "symbole": "EXTENSIONS_CONTROLEES"
+      },
+      "lecteurs": [
+        {
+          "fichier": "scripts/hook-style.mjs",
+          "nature": "code"
+        },
+        {
+          "fichier": "tests/styleDocumentaire.test.ts",
+          "nature": "test"
+        }
+      ],
+      "copies": [
+        {
+          "fichier": "scripts/hook-style.mjs",
+          "ligne": 44,
+          "nature": "code"
+        },
+        {
+          "fichier": "scripts/controle-style.mjs",
+          "ligne": 701,
+          "nature": "code"
+        }
+      ],
+      "garde": null,
+      "ecart": "PP-315"
+    },
+    {
+      "id": "lecture-du-manifeste-par-les-hooks",
+      "famille": "outillage",
+      "nom": "Comportement d'un hook quand le manifeste est illisible",
+      "source": {
+        "fichier": "scripts/agents-contexte.mjs",
+        "symbole": "chargerManifeste"
+      },
+      "lecteurs": [
+        {
+          "fichier": "scripts/hook-documents.mjs",
+          "symbole": "chargerManifeste",
+          "nature": "code"
+        },
+        {
+          "fichier": "tests/registreDesDocuments.test.ts",
+          "nature": "test"
+        }
+      ],
+      "copies": [
+        {
+          "fichier": "scripts/hook-documents.mjs",
+          "ligne": 45,
+          "nature": "code"
+        }
+      ],
+      "garde": null,
+      "ecart": "PP-316"
+    },
+    {
+      "id": "references-des-skills",
+      "famille": "outillage",
+      "nom": "Documents, commandes et gestes cités par les skills",
+      "source": {
+        "fichier": ".agents/skills/rediger-diagnostics-ucm/SKILL.md",
+        "symbole": "renvoi au CONTRIBUTING.md"
+      },
+      "lecteurs": [
+        {
+          "fichier": "docs/inventaire/releves.ts",
+          "nature": "inventaire"
+        },
+        {
+          "fichier": "AGENTS.md",
+          "nature": "doc"
+        }
+      ],
+      "copies": [
+        {
+          "fichier": ".agents/skills/rediger-diagnostics-ucm/SKILL.md",
+          "ligne": 7,
+          "nature": "doc"
+        },
+        {
+          "fichier": ".agents/skills/guide-composant/SKILL.md",
+          "ligne": 82,
+          "nature": "doc"
+        },
+        {
+          "fichier": ".agents/skills/regler-le-linter/SKILL.md",
+          "ligne": 10,
+          "nature": "doc"
+        },
+        {
+          "fichier": ".agents/skills/archiver-un-sujet/SKILL.md",
+          "ligne": 22,
+          "nature": "doc"
+        }
+      ],
+      "garde": {
+        "test": "tests/docLinks.test.ts",
+        "nature": "test-partiel"
+      },
+      "ecart": "PP-317"
+    },
+    {
+      "id": "poids-des-guides-d-agents",
+      "famille": "outillage",
+      "nom": "Poids des AGENTS.md",
+      "source": {
+        "fichier": "tests/domiciles.test.ts",
+        "symbole": "12 288, 6 144 et 32 768 octets"
+      },
+      "lecteurs": [
+        {
+          "fichier": "AGENTS.md",
+          "nature": "doc"
+        },
+        {
+          "fichier": ".agents/skills/rediger-pour-agents/SKILL.md",
+          "nature": "doc"
+        }
+      ],
+      "copies": [
+        {
+          "fichier": ".agents/skills/rediger-pour-agents/SKILL.md",
+          "ligne": 103,
+          "nature": "doc"
+        }
+      ],
+      "garde": {
+        "test": "tests/domiciles.test.ts",
+        "nature": "test-de-la-copie"
+      }
+    },
+    {
+      "id": "ancres-et-liens-des-domaines",
+      "famille": "outillage",
+      "nom": "Ancres de specs, entrées de lies et cartes de .agents/domiciles.json",
+      "source": {
+        "fichier": ".agents/domiciles.json",
+        "symbole": "specs, lies, cartes"
+      },
+      "lecteurs": [
+        {
+          "fichier": "scripts/agents-contexte.mjs",
+          "symbole": "lire",
+          "nature": "code"
+        },
+        {
+          "fichier": "tests/cartes.test.ts",
+          "nature": "test"
+        }
+      ],
+      "copies": [],
+      "garde": {
+        "test": "tests/domiciles.test.ts",
+        "nature": "test-de-la-copie"
+      }
+    },
+    {
+      "id": "modeles-de-la-table-de-delegation",
+      "famille": "agents",
+      "nom": "Modèle nommé par la table de CLAUDE.md pour chaque agent",
+      "source": {
+        "fichier": ".claude/agents/executant.md",
+        "symbole": "model"
+      },
+      "lecteurs": [
+        {
+          "fichier": "CLAUDE.md",
+          "nature": "doc"
+        }
+      ],
+      "copies": [
+        {
+          "fichier": "CLAUDE.md",
+          "ligne": 14,
+          "nature": "doc"
+        },
+        {
+          "fichier": "CLAUDE.md",
+          "ligne": 18,
+          "nature": "doc"
+        },
+        {
+          "fichier": "CLAUDE.md",
+          "ligne": 19,
+          "nature": "doc"
+        }
+      ],
+      "garde": null
+    }
+  ]
+}
