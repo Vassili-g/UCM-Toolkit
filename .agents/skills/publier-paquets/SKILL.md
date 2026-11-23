@@ -5,6 +5,7 @@ description: "Publier @ucm-kit/core, @ucm-kit/cli ou @ucm-kit/adapter-typescript
 
 # Publier les paquets
 
+- **Verrou P27.** Ne publier ni `@ucm-kit/core`, ni `@ucm-kit/cli`, ni `@ucm-kit/adapter-typescript` tant que cette puce existe : `main` porte un travail de P27 non publié (`docs/notes/Recherches/Parametres partages/PLAN-CORRECTIONS-P27.md`). Rendre la question au mainteneur. La case 11.3 du plan la retire.
 - **Monter un numéro de version ne publie rien.** `publish.yml` se déclenche à la main, un paquet par exécution :
 
 ```sh

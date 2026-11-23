@@ -1179,6 +1179,7 @@
       "titreCourt": "Paramètres partagés",
       "sujet": "Cohérence du système",
       "recherche": "docs/notes/Recherches/Parametres partages/RECHERCHE-PARAMETRES-PARTAGES.md",
+      "plan": "docs/notes/Recherches/Parametres partages/PLAN-CORRECTIONS-P27.md",
       "resume": "Suivre chaque paramètre d'UCM de son producteur à son dernier lecteur (plugins, format, kit, CLI, adaptateur, documentation, aides, inventaire, CI) : source unique, lecteurs, copies, garde. Rendre un rapport classé par promesse cassée et un inventaire des paramètres lisible par une machine.",
       "importance": "haute",
       "raisonImportance": "Une hypothèse différente entre deux maillons laisse passer un écart sans diagnostic, ou pousse un agent à inventer.",
