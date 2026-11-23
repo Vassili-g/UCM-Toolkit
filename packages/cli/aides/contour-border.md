@@ -17,14 +17,16 @@ contour reste perceptible quand la plateforme force ses couleurs.
 ## Écriture par défaut
 
 `box-shadow: inset 0 0 0 <width> <color>` pour `inside`,
-`0 0 0 <width> <color>` pour `outside`, la demi-largeur de part et d'autre pour
-`center`. Plusieurs contours sur une même cible se composent dans une seule
+`box-shadow: 0 0 0 <width> <color>` pour `outside`, et pour `center`
+`box-shadow: inset 0 0 0 calc(<width> / 2) <color>, 0 0 0 calc(<width> / 2) <color>`.
+Plusieurs contours sur une même cible se composent dans une seule
 `box-shadow`, les tracés intérieurs d'abord.
 
 En couleurs forcées, `box-shadow` vaut `none`. Un contour de secours
 `outline: <width> solid transparent` le remplace, avec `outline-offset` selon
-`align` : moins la largeur pour `inside`, moins la demi-largeur pour `center`,
-`0` pour `outside`. Ce secours cède à l'`outline` d'un `ring` dans les seuls
+`align` : `outline-offset: calc(<width> * -1)` pour `inside`,
+`outline-offset: calc(<width> / -2)` pour `center`, `outline-offset: 0` pour
+`outside`. Ce secours cède à l'`outline` d'un `ring` dans les seuls
 états où le `ring` s'affiche, et n'est jamais remis à `none`, focus compris.
 
 ## Preuve

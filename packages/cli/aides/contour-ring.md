@@ -14,8 +14,9 @@ focus, il remplace l'indicateur natif et n'apparaît qu'au focus clavier.
 
 ## Écriture par défaut
 
-`outline: <width> solid <color>` ; `outline-offset` vaut `0` pour `outside`,
-moins la largeur pour `inside`, moins la demi-largeur pour `center`. Une largeur
+`outline: <width> solid <color>` ; `outline-offset: 0` pour `outside`,
+`outline-offset: calc(<width> * -1)` pour `inside`,
+`outline-offset: calc(<width> / -2)` pour `center`. Une largeur
 qui diffère par côté se rend par une ombre décalée par côté, exacte pour
 `inside` seulement ; signaler au développeur un autre alignement. Sur le même
 calque qu'un `border`, le `border` garde `box-shadow` et le `ring` garde
