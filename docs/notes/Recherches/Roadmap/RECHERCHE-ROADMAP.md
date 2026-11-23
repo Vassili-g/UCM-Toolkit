@@ -187,8 +187,12 @@ liste chaque piste avec cette date et un lien figé vers son plan.
 
 ## Questions au mainteneur
 
-1. T7 (une clé `modules` dans `ucm.config.json` n'activerait rien) : écrire le fait dans `PLAN-CONFORMITE-RENDU.md` et retirer T7 (proposé), ou en faire une question de P6.
-2. T8 (langue des modules) : écrire dans `CONTRIBUTING.md` « code du kit en français, format et README de la CLI en anglais » (proposé), ou laisser la question à P6.
-3. Les sujets déjà dans `docs/notes/Archives/` : les passer à la même procédure, sujet par sujet (proposé), ou les laisser.
-4. Les plans sans piste (`PLAN-HUB-UCM.md`, `PLAN-INVENTAIRE.md`, `PLAN-API-MODULES.md`, les plans d'UCM Architect et de Palettes) : archiver ceux qui sont finis et créer une piste pour les autres (proposé), ou les garder en exception nommée.
-5. `npm run sujet` écrit le registre sans demander : la piste validée vaut accord (proposé), ou le mainteneur confirme chaque dossier.
+Réponses du mainteneur :
+
+1. T7 (une clé `modules` dans `ucm.config.json` n'activerait rien) : décidé, le fait s'écrit dans `PLAN-CONFORMITE-RENDU.md` et T7 sort.
+2. T8 (langue des modules) : décidé, `CONTRIBUTING.md` écrit « code du kit en français, format et README de la CLI en anglais », et T8 sort.
+3. Les sujets déjà dans `docs/notes/Archives/` : décidé, ils passent à la même procédure, sujet par sujet.
+4. Les plans sans piste : décidé, ceux qui sont finis s'archivent et les autres reçoivent une piste. Le Hub UCM est abandonné : Storybook le remplace (P9, P24). `PLAN-HUB-UCM.md` s'archive comme sujet écarté, sans piste.
+5. `npm run sujet` écrit le registre sans demander : décidé, la piste validée vaut accord.
+
+La prio 4 de P25 est validée.
