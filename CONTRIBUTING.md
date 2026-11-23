@@ -664,6 +664,7 @@ endroit.
 | Une case de plan porte ses marques entre parenthèses après son numéro : `(hash)`, `(depot@hash)` pour un autre repository, `(mainteneur)` quand elle attend le mainteneur, `(attend Pn)` quand elle attend une autre piste. Un hash écrit en fin de case après « Commit », entre accents graves, vaut aussi. | `tests/plansDeRecherche.test.ts` |
 | Un agent ne change ni ne retire un `prioDuMainteneur` sans demande du mainteneur. | `tests/inventaire.test.ts` |
 | Un sujet livré s’archive par la skill `archiver-un-sujet`. | `tests/archiverSujet.test.ts` |
+| Le résumé d’une piste peut se découper par les étiquettes « Ce qu'il fait », « Où », « Quand », « Pourquoi » et « Ne voit pas », en tête de phrase et suivies de « : » ; la Roadmap les affiche en blocs. | `docs/inventaire/page.js` `ETIQUETTES_DU_RESUME` |
 
 ## API Figma et build
 

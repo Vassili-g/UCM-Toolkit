@@ -339,6 +339,17 @@
       return parId(m) || TERMINEES.some(function (x) { return x.id === m; }) ? '<a href="#piste-' + m + '">' + m + '</a>' : m;
     });
   }
+  // Un résumé de piste se découpe par ces étiquettes, écrites en tête de phrase et suivies de « : ». Seule liste du dépôt.
+  var ETIQUETTES_DU_RESUME = ["Ce qu'il fait", 'Où', 'Quand', 'Pourquoi', 'Ne voit pas'];
+  function resumeEnBlocs(t) {
+    var motif = new RegExp('(?:^|\\s)(' + ETIQUETTES_DU_RESUME.join('|') + ') : ', 'g');
+    var morceaux = String(t).split(motif);
+    if (morceaux.length < 3) return '<p class="resume">' + txt(t) + '</p>';
+    var tete = morceaux[0].trim() ? '<p class="resume">' + txt(morceaux[0].trim()) + '</p>' : '';
+    var blocs = '';
+    for (var i = 1; i < morceaux.length; i += 2) blocs += '<dt>' + esc(morceaux[i]) + '</dt><dd>' + txt(morceaux[i + 1].trim()) + '</dd>';
+    return tete + '<dl class="blocs-resume">' + blocs + '</dl>';
+  }
   function lienGitHub(chemin) { return 'https://github.com/Vassili-g/UCM-Toolkit/blob/main/' + chemin.split('/').map(encodeURIComponent).join('/'); }
 
   // Le repère « a bougé » : le navigateur garde la date de la dernière visite et celle d'avant. Une piste dont un lot est plus récent
@@ -424,7 +435,7 @@
     else if (p.recherche && p.questions.length) droite += '<h4>Questions de la recherche · ' + p.questions.length + '</h4>' + liste(p.questions);
     else droite += '<h4>Finie quand</h4>' + liste(p.criteresDeFin);
     droite += transverses(p) + '<h4>Dépend de</h4><p>' + liensDePistes(p.dependances) + '</p><h4>Débloque</h4><p>' + liensDePistes(p.debloque) + '</p>';
-    var gauche = '<p class="resume">' + txt(p.resume) + '</p>' +
+    var gauche = resumeEnBlocs(p.resume) +
       '<h4>Si on ne fait pas</h4><p>' + txt(p.raisonImportance) + '</p>' +
       '<h4>Ce que ça te demande</h4><p>' + txt(p.coutHumain) + '</p>' +
       (p.risques.length ? '<h4>Risques</h4>' + liste(p.risques) : '') + formulaireDePrio(p);
@@ -479,7 +490,7 @@
     racine.querySelectorAll('.segmente button').forEach(function (b) { b.setAttribute('aria-pressed', b.getAttribute('data-groupe') === etat.groupe); });
     racine.querySelector('.filtre-attente').setAttribute('aria-pressed', etat.filtre);
     var bouge = visibles.filter(aBouge).length;
-    racine.querySelector('.compte').innerHTML = visibles.length + (visibles.length > 1 ? ' pistes à venir' : ' piste à venir') + '<span class="prio-toi"></span>prio posée par toi' +
+    racine.querySelector('.compte').innerHTML = visibles.length + (visibles.length > 1 ? ' pistes à venir' : ' piste à venir') +
       (bouge ? '<span class="a-bouge"></span>a bougé depuis ta dernière visite' : '');
     if (produitsMarques) marquerLesProduits(tableau);
   }

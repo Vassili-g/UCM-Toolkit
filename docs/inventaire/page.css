@@ -430,6 +430,11 @@ details.lots-plus[open] > summary::before, details.lots-faits[open] > summary::b
 .fiche-rm p, .fiche-rm li { font-size: .9rem; margin: 2px 0; }
 .fiche-rm ul { margin: 2px 0; padding-left: 18px; }
 .fiche-rm .resume { font-size: .95rem; margin-top: 12px; }
+/* Résumé découpé par ses étiquettes (Ce qu'il fait, Où, Quand, Pourquoi, Ne voit pas) : l'étiquette en marge, le texte à côté. */
+.blocs-resume { display: grid; grid-template-columns: max-content 1fr; gap: 6px 12px; margin: 12px 0 4px; font-size: .95rem; }
+.blocs-resume dt { font-size: .72rem; font-weight: 700; letter-spacing: .04em; text-transform: uppercase; color: var(--violet); background: var(--violet-fond); border-radius: 4px; padding: 2px 7px; align-self: start; margin-top: 2px; }
+.blocs-resume dd { margin: 0; }
+.blocs-resume dd::first-letter { text-transform: uppercase; }
 /* Le formulaire de prio : il ne change rien dans la page, il donne à l'agent la consigne à écrire dans pistes.json. */
 .prio-form { display: flex; align-items: center; gap: 8px; margin-top: 16px; padding-top: 12px; border-top: 1px solid var(--trait); font-size: .85rem; }
 .prio-form label { font-weight: 600; }
