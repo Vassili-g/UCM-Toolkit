@@ -79,13 +79,13 @@ Fichiers que deux lots de vagues différentes écrivent, dans l'ordre :
 ## Vague 0
 
 - [x] 0.1 Conversation principale. Commiter ce dossier, la piste P25 de `pistes.json`, le motif du registre, la ligne du sommaire et `INVENTAIRE-UCM.html` régénéré. Commit : `8f76a1fc`
-- [ ] 0.2 (mainteneur). Répondre aux cinq questions de la [recherche](./RECHERCHE-ROADMAP.md#questions-au-mainteneur).
+- [x] 0.2 (mainteneur). Répondre aux cinq questions de la [recherche](./RECHERCHE-ROADMAP.md#questions-au-mainteneur).
 
 ## Vague 1
 
-- [ ] 1.1 `implementeur`. Lecture des plans. Commit : `…`
-- [ ] 1.2 `implementeur`. Un sujet, un dossier. Commit : `…`
-- [ ] 1.3 `implementeur`. Calcul de l'archivage. Commit : `…`
+- [x] 1.1 `implementeur`. Lecture des plans. Commit : `fadadf3d`
+- [x] 1.2 `implementeur`. Un sujet, un dossier. Commit : `179f1b7f`
+- [x] 1.3 `implementeur`. Calcul de l'archivage. Commit : `d7f8780a`
 
 ### Lot 1.1. Lecture des plans
 
