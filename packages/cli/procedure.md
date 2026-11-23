@@ -15,6 +15,8 @@ partie concernée. L'écriture ne l'emporte jamais sur le sens.
 
 ## Ordre de travail
 
+Un composant qui existe déjà se modifie à partir de son code : ne changer que ce que le contrat décrit, et garder le comportement, les événements et l'accessibilité.
+
 1. Lire le contrat cible une fois, puis le texte de tête des conventions : stack, architecture, gabarit ou
    composant de référence.
 2. Construire la surface publique depuis `props`.
@@ -26,8 +28,8 @@ partie concernée. L'écriture ne l'emporte jamais sur le sens.
 
 ## Ce qui ne se décide pas seul
 
-- Un ancrage sans réponse dans les conventions devient une question au
-  développeur, posée avant d'écrire la partie qui en dépend.
+- Un ancrage sans section `## <ancrage>` dans les conventions devient une question au
+  développeur, posée avant d'écrire la partie qui en dépend. Le texte de tête ne répond à aucun ancrage.
 - Un manque du contrat, une jointure ambiguë ou une donnée normative absente se
   rapportent au développeur avec le champ et la combinaison concernés. Rien ne
   s'invente pour les masquer.
@@ -36,12 +38,11 @@ partie concernée. L'écriture ne l'emporte jamais sur le sens.
 
 ## Ce qui ne se fait pas
 
-- Ouvrir une ancienne implémentation du composant, ou un composant voisin pris
-  comme modèle hors du gabarit que les conventions désignent.
+- Ouvrir un composant voisin pris comme modèle hors du gabarit que les conventions désignent.
 - Fusionner deux vues, déduire une propriété d'un nom, produire un produit
   cartésien, combler une clé absente.
 - Modifier le contrat, les tokens, un fichier généré ou un contrôle.
-- Écrire dans `.ucm/derogations.json` sans demande du développeur. Un constat se corrige d'abord dans le code. Si c'est impossible, proposer au développeur la commande `npx ucm deroger` que le constat donne, lui demander le motif, et ne la lancer qu'à sa demande.
+- Écrire dans `.ucm/derogations.json` sans demande du développeur. Un constat se corrige d'abord dans le code. Si c'est impossible, proposer au développeur la commande `ucm deroger` que le constat donne, lui demander le motif, et ne la lancer qu'à sa demande.
 - Rattraper un composant en retard sur son contrat. Ce n'est pas la tâche de l'agent, sauf demande explicite du développeur.
 
 ## Vérifier

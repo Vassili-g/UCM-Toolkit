@@ -14,11 +14,9 @@ autre vue ni avec la projection `structure`. Son arbre se construit depuis
 rien à publier ; sous un dictionnaire, la clé est une donnée, si bien que
 `stateModel.states.default: {}` existe.
 
-Chaque entrée de `props` s'expose sous son nom et son type. Un `default` publié
-s'applique tel quel ; son absence laisse le choix au développeur. Un booléen du
+Chaque entrée de `props` s'expose sous son nom et son type. Un `default` publié s'applique tel quel, sauf celui d'une prop `instance-swap`, qui nomme le composant choisi par défaut. Un `default` d'`instance-swap` en forme d'identifiant Figma, deux nombres séparés par `:` comme `12:345`, ne se recopie jamais : le composant par défaut se demande au développeur. L'absence d'un `default` laisse le choix au développeur. Un booléen du
 contrat se lit effectivement. Une prop `icon`, `string` ou `instance-swap`
-accepte aussi l'absence de valeur quand son défaut le permet. Une prop `slot`
-reçoit une API explicite, sans sémantique que le contrat ne publie pas. L'axe de
+accepte aussi l'absence de valeur quand son défaut le permet. Une prop `slot` reçoit une API explicite, sans sémantique que le contrat ne publie pas. Son `default` rapporte la maquette et ne se recopie pas. Les `settings` d'un slot (`minChildren`, `maxChildren`, `allowPreferredValuesOnly`, `stretchChildOnInsert`, `displayEmptyByDefault`) et les `preferredValues` d'un `slot` ou d'un `instance-swap` rapportent les réglages de la maquette : ils ne lient pas le code, et aucune borne ni liste ne s'impose à l'exécution. Le `type` et la `key` d'une valeur préférée identifient un composant Figma. L'axe de
 `stateModel` pilote l'état et ne devient pas une prop, sauf s'il figure aussi
 dans `props`.
 

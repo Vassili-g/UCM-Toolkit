@@ -18,7 +18,7 @@ le montre. `figmaName` est une identité, jamais un chemin de token.
 reçoivent les références. `textTransform` donne `text-transform`,
 `textDecorationLine` `text-decoration-line`, `fontStyle` `font-style`,
 `fontVariantCaps` `font-variant-caps`, `textWrapStyle` `text-wrap-style` et
-`textBox` `text-box`. `text-align` et `align-content` se posent sur le slot.
+`textBox` `text-box`. `text-align` et `align-content` se posent sur le slot. `paragraphIndent` donne `text-indent`, et `paragraphSpacing` l'espace entre deux paragraphes du même texte, en `margin-block-end` sur chaque paragraphe sauf le dernier.
 
 ## Preuve
 

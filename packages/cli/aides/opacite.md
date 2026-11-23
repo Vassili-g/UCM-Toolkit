@@ -16,5 +16,4 @@ celle que le contrat de la dépendance publie déjà.
 
 ## Preuve
 
-Relecture de chaque opacité contre la vue exacte, puis comparaison visuelle à la
-maquette.
+Relecture de chaque opacité contre la vue exacte. La comparaison visuelle à la maquette revient au développeur ou au designer, après l'écriture du composant.

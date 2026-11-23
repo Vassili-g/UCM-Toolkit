@@ -10,6 +10,10 @@ repository et nomme chaque composant dans son rapport, et le contrôle de types
 ou de syntaxe de la cible. Ce sont les deux à lancer. La suite complète du
 repository porte sur autre chose que le composant en cours.
 
+## Question
+
+Quelle commande de types ou de syntaxe lancer sur le composant, en plus d'`ucm check` ?
+
 ## Preuve
 
 `ucm check`, et la commande que les conventions du repository nomment.

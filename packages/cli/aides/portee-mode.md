@@ -10,6 +10,10 @@ l'attribut rend le mode hérité. Un contenu rendu hors de l'arbre de son
 déclencheur, comme une fenêtre superposée, reçoit les attributs effectifs de son
 point d'ouverture, et l'application les met à jour tant qu'il reste ouvert.
 
+## Question
+
+Comment le repository pose-t-il l'attribut d'un mode sur un contenu rendu hors de l'arbre de son déclencheur ?
+
 ## Preuve
 
 Relecture, puis ouverture d'un contenu superposé dans deux modes.

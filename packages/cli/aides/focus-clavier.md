@@ -9,6 +9,10 @@ Un état de focus répond au focus clavier, jamais au simple clic, et l'indicate
 du contrat remplace l'indicateur natif. Le moyen de distinguer les deux
 appartient à la plateforme et aux conventions du repository.
 
+## Question
+
+Comment le repository distingue-t-il le focus clavier du clic ?
+
 ## Preuve
 
 Navigation au clavier, puis clic sur le même composant.

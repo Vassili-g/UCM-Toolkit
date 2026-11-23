@@ -21,7 +21,7 @@ ASCII vise `--caf-fond`, une variable absente, sans erreur.
 ## Écriture par défaut
 
 Écrire chaque référence comme le contrat, `"{chemin}"`, puis lancer
-`npx ucm tokens references <fichiers>`, qui la remplace par `"var(--nom)"`. Le
+`ucm tokens references <fichiers>`, qui la remplace par `"var(--nom)"`. Le
 code ne contient aucune fonction qui traduit un chemin en nom.
 
 ## Preuve
@@ -29,4 +29,4 @@ code ne contient aucune fonction qui traduit un chemin en nom.
 `ucm check`, section tokens. Relecture : aucune valeur littérale à la place
 d'une référence, et aucune projection de nom qui s'écarte de
 `tokenCssVariable`. Quand le repository suit l'écriture par défaut,
-`npx ucm tokens references --verifier <fichiers>` sort sans erreur.
+`ucm tokens references --verifier <fichiers>` sort sans erreur.

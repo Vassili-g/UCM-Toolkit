@@ -31,5 +31,4 @@ la même `box-shadow`, le contour en premier.
 
 ## Preuve
 
-Relecture de chaque usage contre la vue exacte, puis comparaison visuelle à la
-maquette.
+Relecture de chaque usage contre la vue exacte. La comparaison visuelle à la maquette revient au développeur ou au designer, après l'écriture du composant.

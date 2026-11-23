@@ -114,3 +114,11 @@ test('D4 : chaque nombre recopié dans la documentation égale sa source', () =>
 
   exiger('docs/guides/RECETTE.md', /"contractVersion": "(\d+\.\d+)"` par/g, CONTRACT_VERSION);
 });
+
+test('l’étape 6 de la recette suit la skill consommer-contrat et sa grille', () => {
+  const recette = lire('docs/guides/RECETTE.md');
+  const debut = recette.indexOf('## Étape 6');
+  const etape = recette.slice(debut, recette.indexOf('\n## ', debut + 1));
+  assert.match(etape, /\.agents\/skills\/consommer-contrat\/SKILL\.md/);
+  for (const ligne of ['donnée transcrite à tort', 'donnée inventée', 'donnée manquante au contrat']) assert.ok(etape.includes(ligne), ligne);
+});

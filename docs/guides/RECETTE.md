@@ -272,7 +272,7 @@ Attendu :
 
 1. le compte rendu liste ce qui a été lu et ce qui manque ;
 2. une pull request s'ouvre, contenant
-   `components/Button/Button.contract.json` ;
+   `src/components/Button/Button.contract.json` ;
 3. la CI publie son rapport en commentaire.
 
 **Ce que le rapport doit dire :** l'implémentation est absente, et cette absence
@@ -300,12 +300,7 @@ Fusionnez la pull request.
 
 ## Étape 6 : reconstruire le composant
 
-Le contrat est arrivé, le code n'existe pas encore. Reconstruisez le composant à
-partir du seul contrat, sans regarder une implémentation antérieure. L'agent
-charge le relais `ucm-implementer` qu'`ucm init` a écrit à l'étape 3. Le relais
-lance `ucm guide`, qui imprime la procédure, les conventions, les aides, les
-diagnostics d'export et l'API des dépendances. L'agent lit ensuite le contrat
-cible dans son propre fichier.
+Le contrat est arrivé, le code n'existe pas encore. L'agent reconstruit le composant à froid en suivant la skill [`consommer-contrat`](../../.agents/skills/consommer-contrat/SKILL.md), et elle seule : chemin absent avant de commencer, aucune implémentation antérieure ni capture Figma, sources supplémentaires limitées aux types générés et aux points d'intégration que les conventions nomment, compte rendu des manques.
 
 Une fois `src/components/Button/Button.tsx` écrit :
 
@@ -314,8 +309,15 @@ npm run build
 npm run dev
 ```
 
-Ajoutez le composant à `src/App.tsx` pour le voir à l'écran, et comparez son
-rendu à la maquette Figma, variante par variante.
+> Ajoutez le composant à `src/App.tsx`. Vous comparez son rendu à la maquette Figma, variante par variante, et rangez chaque écart dans une ligne de cette grille.
+>
+> | Écart | Ce qu'il dit | Geste |
+> |---|---|---|
+> | donnée transcrite à tort | le contrat publie la valeur, et le code en rend une autre | défaut de l'agent ou de l'aide qui la décrit ; corriger l'aide |
+> | donnée inventée | le code rend une valeur que le contrat ne publie pas | défaut de l'agent ; son compte rendu devait la signaler |
+> | donnée manquante au contrat | la maquette montre une valeur que le contrat ne publie pas | défaut du contrat ; le compte rendu de l'agent la nomme |
+>
+> Un écart que le compte rendu de l'agent annonçait ne compte pas contre l'agent.
 
 Ouvrez enfin une pull request avec le composant. Le rapport de CI doit
 maintenant parler de la parité entre le contrat et le code. Tant que

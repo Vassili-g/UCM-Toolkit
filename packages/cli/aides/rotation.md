@@ -14,4 +14,4 @@ le flux lui réserve.
 
 ## Preuve
 
-Relecture, puis comparaison visuelle à la maquette.
+Relecture contre la vue exacte. La comparaison visuelle à la maquette revient au développeur ou au designer, après l'écriture du composant.
