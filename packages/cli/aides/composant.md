@@ -31,7 +31,8 @@ slot entier ; `visibilityTargets` masque seulement les descendants que leurs
 `variants` énumère les combinaisons qui existent. Elles se transcrivent en une
 table littérale, dans l'ordre de `structure.variantAxes`, sans produit
 cartésien, chemin interpolé ni valeur reprise d'une entrée voisine. Chaque
-référence `{chemin.du.token}` reste écrite en toutes lettres.
+référence reste écrite en toutes lettres, sous la forme que l'aide
+`resolution-token` donne.
 
 Comportement, accessibilité et événements ne sont pas dans le contrat : ils
 relèvent des conventions et de la relecture. Ce que l'export n'a pas su décrire

@@ -49,6 +49,7 @@ Without a Node manifest, the portable check uses the CLI served by npm.
 | [`ucm check`](#ucm-check) | Checks every contract and renders the report |
 | `ucm icons` | Lists the icons the contracts ask this repository to draw |
 | [`ucm tokens css --out <file>`](#the-token-stylesheet) | Writes the CSS stylesheet of the tokens and their modes |
+| [`ucm tokens references [--verifier] <files>`](#token-references-in-code) | Replaces `"{path}"` with `"var(--name)"` in code files |
 | [`ucm aides [<aide>]`](#implementation-guides) | Lists the implementation guides, or prints one |
 | [`ucm guide <contract>`](#the-guide-of-a-contract) | Prints what an agent reads before implementing that contract |
 | [`ucm rapport-gitlab`](#gitlab) | Posts the report as a note on a GitLab merge request |
@@ -310,6 +311,27 @@ the checked root rather than from the npx cache. Install
 for prop and composition parity in TypeScript projects. Without an adapter, the
 report says the implementation was not read, and never that it is conformant.
 
+## Token references in code
+
+`ucm tokens references <files>` rewrites every string literal whose whole
+content is a contract reference, `"{path}"`, into `"var(--name)"`. The name
+comes from the token file, the same rule as the stylesheet, and the quotes, line
+endings and byte order mark of the file stay as they are. A second run changes
+nothing.
+
+```sh
+npx --no-install ucm tokens references src/components/Button/Button.tsx
+npx --no-install ucm tokens references --verifier src/components/Button/Button.tsx
+```
+
+The command leaves a reference in place, names it with its file and line, and
+exits with 1 when the reference is absent from the token file, sits in a longer
+string or a template, or is the argument of a call. Two paths that give the same
+CSS name stop the command before any write, with exit 2. A repository whose
+`.ucm/conventions.md` has a `## resolution-token` section keeps its own writing:
+the command refuses to write there, and `--verifier` exits 0.
+`--verifier` writes nothing and exits with 1 when a reference remains.
+
 ## The token stylesheet
 
 `ucm tokens css --out <file>` reads the token file that `ucm.config.json`
@@ -379,7 +401,7 @@ repository answers them.
 anchor, in `.ucm/conventions.md`:
 
 ```md
-Stack: CSS Modules, one folder per component.
+Stack: React 19, styles as typed `CSSProperties` `style` objects. One folder per component, tests alongside.
 
 ## contour-ring
 <!-- ucm:copie contour-ring <version> <fingerprint> -->

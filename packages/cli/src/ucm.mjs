@@ -19,6 +19,7 @@ import { iconesDuRepository, rendreIcones } from "./icons.mjs";
 import { init, lireArgumentsInit, rendreInit } from "./init.mjs";
 import { rapportGitlab } from "./rapport-gitlab.mjs";
 import { tokensCss } from "./tokens-css.mjs";
+import { tokensReferences } from "./tokens-references.mjs";
 
 /** Le verdict de tests qu'un orchestrateur de stack peut transmettre au CLI. */
 function echecsDeTestsDepuis(env) {
@@ -77,6 +78,15 @@ export const COMMANDES = [
     options: [
       { nom: "--out", role: "la feuille à écrire, remplacée seulement si le fichier de\ntokens donne une feuille" },
       { nom: "--sans-modes", role: "écrit la valeur par défaut de chaque token, pour un\nfichier exporté avant la déclaration des axes" },
+    ],
+  },
+  {
+    nom: "tokens references",
+    usage: "ucm tokens references [--verifier] <fichiers…>",
+    role: "remplace \"{chemin}\" par \"var(--nom)\" dans le code",
+    options: [
+      { nom: "--verifier", role: "n'écrit rien, sort en 1 s'il reste une référence à\nremplacer ou un cas laissé" },
+      { nom: "<fichiers>", role: "les fichiers de code à réécrire" },
     ],
   },
   {
@@ -215,7 +225,8 @@ function executerCommande(arguments_, {
   }
 
   if (commande === "tokens") {
-    return tokensCss(arguments_.slice(1), {
+    const sousCommande = arguments_[1] === "references" ? tokensReferences : tokensCss;
+    return sousCommande(arguments_.slice(1).slice(arguments_[1] === "references" ? 1 : 0), {
       racine,
       ecrire,
       alerter: sorties.alerter ?? console.error,

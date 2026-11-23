@@ -316,7 +316,7 @@ const CONVENTIONS = [
   "",
   "Exemple :",
   "",
-  "Stack : React 19 et CSS Modules. Un composant par dossier, tests à côté.",
+  "Stack : React 19, styles en objets `style` typés `CSSProperties`. Un composant par dossier, tests à côté.",
   "Gabarit : `.ucm/gabarits/composant.tsx`.",
   "",
   "## contour-ring",

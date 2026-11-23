@@ -7,8 +7,8 @@ quand: reference-token
 
 Une référence `{chemin.du.token}` devient une valeur par le moyen que le
 repository fournit, et par aucun autre. Aucune couleur, dimension, famille ou
-graisse tokenisée ne s'écrit en dur. Les pixels de `structuralSize` et des
-pistes de grille sont les seules valeurs brutes prévues. Les références d'un
+graisse tokenisée ne s'écrit en dur. Seules les valeurs que le contrat publie
+en clair s'écrivent brutes. Les références d'un
 contrat se relèvent partout sauf dans `samples` et `meta`, dont une chaîne en
 forme de référence est un texte.
 
@@ -18,8 +18,15 @@ projection recopiée tient la même règle : l'accent tombe et la lettre reste.
 `café.fond` donne `--cafe-fond` ; une copie qui remplace tout caractère non
 ASCII vise `--caf-fond`, une variable absente, sans erreur.
 
+## Écriture par défaut
+
+Écrire chaque référence comme le contrat, `"{chemin}"`, puis lancer
+`npx ucm tokens references <fichiers>`, qui la remplace par `"var(--nom)"`. Le
+code ne contient aucune fonction qui traduit un chemin en nom.
+
 ## Preuve
 
 `ucm check`, section tokens. Relecture : aucune valeur littérale à la place
 d'une référence, et aucune projection de nom qui s'écarte de
-`tokenCssVariable`.
+`tokenCssVariable`. Quand le repository suit l'écriture par défaut,
+`npx ucm tokens references --verifier <fichiers>` sort sans erreur.

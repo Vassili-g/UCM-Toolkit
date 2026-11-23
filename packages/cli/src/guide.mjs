@@ -173,7 +173,9 @@ function aidesDuContrat(caracteristiques, catalogue, conventions) {
 
   for (const aide of employees) {
     const section = conventions?.sections.get(aide.nom);
-    if (aide.ancrage && !(section && section.texte !== "")) {
+    // Sans CSS, le repository écrit `ecritures-par-defaut: non` : la question lui revient.
+    const sansReponse = aide.ancrage || (aide.nom === "resolution-token" && !ecrituresParDefaut);
+    if (sansReponse && !(section && section.texte !== "")) {
       nonTranches.push(`- **${aide.nom}** : ${aide.sens.replace(/\s*\n\s*/g, " ")}`);
       continue;
     }

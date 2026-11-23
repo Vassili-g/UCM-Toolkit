@@ -22,7 +22,6 @@ const ANCRAGES = [
   "icone-composant",
   "identifiants",
   "portee-mode",
-  "resolution-token",
 ];
 
 /** Une aide lue : son en-tête à deux clés plates, et les titres de ses sections. */

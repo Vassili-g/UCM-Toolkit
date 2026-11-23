@@ -33,13 +33,14 @@ import {
   cyclesActifs,
   indexerTokensDtcg,
   lireConfiguration,
+  nomsCssDesTokens,
   sansEchantillon,
 } from "@ucm-kit/core/lecteurs";
 import { FORMES_ANCIENNES_DES_COLLECTIONS } from "@ucm-kit/core/referentiel";
 
 import { contratsDuDossier } from "./contrats.mjs";
 
-export const USAGE_TOKENS = "ucm tokens css --out <fichier> [--sans-modes]";
+export const USAGE_TOKENS = "ucm tokens css --out <fichier> [--sans-modes]\nucm tokens references [--verifier] <fichiers…>";
 
 const possede = (objet, cle) => Object.prototype.hasOwnProperty.call(objet, cle);
 const fini = (valeur) => typeof valeur === "number" && Number.isFinite(valeur);
@@ -311,20 +312,18 @@ export function feuilleDesTokens(document, { axes = [], attributs = new Map(), r
   const proprietaire = new Map();
   for (const axe of axes) for (const chemin of axe.feuilles) proprietaire.set(chemin, axe);
 
-  const parNom = new Map();
-  for (const chemin of index.keys()) {
-    const nom = tokenCssVariable(chemin);
+  for (const [nom, chemins] of nomsCssDesTokens(index)) {
     if (nom === "--") {
-      refus.push(`La feuille « ${chemin} » ne donne aucun nom CSS.`);
+      for (const chemin of chemins) refus.push(`La feuille « ${chemin} » ne donne aucun nom CSS.`);
       continue;
     }
     if (nom.startsWith(PREFIXE_DES_INTERMEDIAIRES)) {
-      refus.push(`La feuille « ${chemin} » donne la propriété « ${nom} », dont le préfixe ${PREFIXE_DES_INTERMEDIAIRES} est réservé aux collections étendues.`);
+      for (const chemin of chemins) {
+        refus.push(`La feuille « ${chemin} » donne la propriété « ${nom} », dont le préfixe ${PREFIXE_DES_INTERMEDIAIRES} est réservé aux collections étendues.`);
+      }
     }
-    if (parNom.has(nom)) {
-      refus.push(`Les feuilles « ${parNom.get(nom)} » et « ${chemin} » donnent la même propriété CSS « ${nom} ».`);
-    } else {
-      parNom.set(nom, chemin);
+    for (const chemin of chemins.slice(1)) {
+      refus.push(`Les feuilles « ${chemins[0]} » et « ${chemin} » donnent la même propriété CSS « ${nom} ».`);
     }
   }
 
@@ -482,7 +481,7 @@ export function lireArgumentsTokens(arguments_) {
   if (sousCommande !== "css") {
     return {
       erreur: sousCommande === undefined
-        ? "ucm tokens attend une sous-commande : css."
+        ? "ucm tokens attend une sous-commande : css ou references."
         : `Sous-commande inconnue : ${sousCommande}`,
     };
   }

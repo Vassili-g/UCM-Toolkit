@@ -845,3 +845,13 @@ test("un chemin donné en séparateurs Windows est rangé en séparateurs de rep
     { components: "src/components" },
   );
 });
+
+test("G13 : l'exemple de tête d'ucm init décrit des objets style typés", async () => {
+  const racine = mkdtempSync(join(tmpdir(), "ucm-init-tete-"));
+  try {
+    await executer(["init"], { racine, ecrire: () => {}, alerter: () => {} });
+    assert.match(readFileSync(join(racine, ".ucm", "conventions.md"), "utf8"), /Stack : React 19, styles en objets `style` typés `CSSProperties`\./);
+  } finally {
+    rmSync(racine, { recursive: true, force: true });
+  }
+});
