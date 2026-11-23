@@ -96,6 +96,26 @@ test('permet de est un signal, jamais un refus', () => {
   accepte('Le hook relit le fichier.');
 });
 
+test('une famille sans complément est un signal, une famille qualifiée n’en est pas un', () => {
+  const texte = 'Un écart du code bloque sur quatre familles : couleur et dimension.';
+  assert.deepEqual(regles(DOCUMENT, texte), []);
+  assert.deepEqual(regles(DOCUMENT, texte, 'signal'), ['famille-sans-complement']);
+  assert.deepEqual(regles('AGENTS.md', texte, 'signal'), []);
+  accepte('Une famille de propriétés CSS vaut pour trois propriétés.');
+  accepte('Les familles d’état restent séparées.');
+  accepte('La famille du constat porte le code.');
+  accepte('Quatre familles des propriétés CSS sont tokenisées.');
+});
+
+test('quatre familles de propriétés, ou une famille suivie d’un code, ne donnent aucun signal', () => {
+  assert.deepEqual(
+    regles(DOCUMENT, 'Un écart du code bloque sur quatre familles de propriétés CSS, `couleur`, `dimension`, `typographie` et `effet`.', 'signal'),
+    [],
+  );
+  assert.deepEqual(regles(DOCUMENT, 'La famille `couleur` est tokenisée.', 'signal'), []);
+  assert.deepEqual(regles(DOCUMENT, 'Le champ `famille` porte le nom.', 'signal'), []);
+});
+
 test('l’opposition à deux-points est un signal en forme étroite', () => {
   assert.deepEqual(
     regles(DOCUMENT, 'La table ne dit pas où une règle atterrira : elle dit où elle est.', 'signal'),

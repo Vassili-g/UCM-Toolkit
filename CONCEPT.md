@@ -131,8 +131,9 @@ son contrat » ; la demande passe.
 
 ### Le code reste libre hors du contrat
 
-Un écart du code bloque la fusion sur quatre familles : couleurs et tokens,
-dimensions et espacements, typographie, structure et ordre. Tout ce que le
+Un écart du code bloque la fusion sur quatre familles de propriétés CSS,
+`couleur`, `dimension`, `typographie` et `effet`, et sur la parité de l'API avec
+le contrat. Tout ce que le
 contrat ne décrit pas reste libre dans le code : enveloppes, props non
 visuelles, placement par le parent, animations. La CLI bloque un écart de
 parité ou un token absent selon le dernier modifié, du contrat ou du code ; le

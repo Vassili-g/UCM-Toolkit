@@ -87,7 +87,7 @@ type DtcgTree = { [key: string]: DtcgTree | DtcgLeaf };
  * de ligne Figma est au contraire une longueur : `line-height: 24` signifie
  * vingt-quatre fois la taille de police en CSS, là où Figma décrit 24 px.
  */
-const UNITLESS_GROUPS = new Set(['fontweight', 'opacity', 'zindex', 'aspectratio']);
+export const UNITLESS_GROUPS = new Set(['fontweight', 'opacity', 'zindex', 'aspectratio']);
 
 /** Scopes Figma qui désignent sans ambiguïté une longueur CSS. */
 const DIMENSION_SCOPES = new Set<VariableScope>([

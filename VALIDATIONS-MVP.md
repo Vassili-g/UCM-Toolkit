@@ -161,7 +161,7 @@ décision correcte sur un cas réel.
 L'adaptateur TypeScript avertit lorsqu'une union omet une valeur publiée ou
 lorsqu'un enum déclaré n'a aucun effet dans le composant. Il ne prétend pas
 analyser les branches, les tables, les valeurs transmises ni les règles métier.
-La CLI bloque l'écart de parité, comme tout écart du code sur quatre familles,
+La CLI bloque l'écart de parité, comme tout écart du code sur les quatre familles de propriétés CSS `couleur`, `dimension`, `typographie` et `effet`,
 sauf quand le designer vient de changer le contrat ; le [guide des
 designers](./docs/guides/POUR-LES-DESIGNERS.md#6-ce-qui-bloque-la-fusion-et-ce-qui-avertit)
 donne les cas.

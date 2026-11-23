@@ -172,6 +172,7 @@ export const NIVEAUX_DES_SIGNAUX = {
   'opposition-deux-points': { agent: 'signal', html: 'signal', autre: 'signal' },
   'deux-points-multiples': { agent: null, html: null, autre: 'signal' },
   fleche: { agent: 'refus', html: 'signal', autre: 'signal' },
+  'famille-sans-complement': { agent: null, html: null, autre: 'signal' },
 };
 
 /**
@@ -185,6 +186,11 @@ export const AGENTS_A_CONVERTIR = [
 ];
 
 const PERMET_DE = new RegExp(`${MOT}permet(?:tent)?\\s+(?:de${FIN_DE_MOT}|d['’])`, 'gi');
+/**
+ * « famille » suivie d’un code : `lignesDeProse` a retiré le code et laissé deux
+ * espaces, que le motif lit comme un complément.
+ */
+const FAMILLE_SANS_COMPLEMENT = /(?<![A-Za-zÀ-ÿ0-9_])familles?(?![A-Za-zÀ-ÿ0-9_])(?!\s{2}|\s+(?:(?:de|du|des)(?![A-Za-zÀ-ÿ0-9_])|d['’]|`))/gi;
 const OPPOSITION_A_DEUX_POINTS = /\b(?:ne|n['’])\s?[^.:;!?]{0,80}?\b(?:pas|plus|jamais|rien)\b[^.:;!?]{0,80}?\s:\s+(?:il|elle|ils|elles|on|c['’]est|ce|celui|celle|cela)\b/gi;
 
 /** Les fichiers lus par les agents. */
@@ -475,6 +481,7 @@ function signauxDesLignes(chemin, categorie, lignes) {
       if (new RegExp(OPPOSITION_A_DEUX_POINTS).test(texte)) signaler('opposition-deux-points', paragraphe, index, texte);
       if ((texte.match(/\s:(?=\s)/g) ?? []).length >= 2) signaler('deux-points-multiples', paragraphe, index, texte);
       if (texte.includes('→')) signaler('fleche', paragraphe, index, texte);
+      if (new RegExp(FAMILLE_SANS_COMPLEMENT).test(texte)) signaler('famille-sans-complement', paragraphe, index, texte);
     }
   }
   return fautes;
@@ -891,6 +898,8 @@ const MESSAGES = {
     + 'Écrire la règle seule.',
   'deux-points-multiples': 'Deux deux-points dans une phrase. Réserver les deux-points '
     + 'à l’annonce d’une liste ou d’une citation.',
+  'famille-sans-complement': 'Dire de quelle famille il s’agit, famille de propriétés, '
+    + 'famille de constats, famille de teinte ou famille de police.',
   fleche: 'Flèche dans une phrase. Écrire le verbe : « devient », « produit », « renvoie à ».',
   'tiret-cadratin': 'Tiret cadratin employé comme incise. Employer un point, un '
     + 'point-virgule, une virgule, deux points ou une parenthèse. Il reste admis '

@@ -215,14 +215,15 @@ code a changé en même temps ou après, l'écart bloque. Un envoi direct sur
 `main` suit la même règle, donc la fusion d'une variante par vos soins ne rend
 jamais `main` rouge.
 
-Un écart du code bloque sur quatre familles : les couleurs et les tokens, les
-dimensions et les espacements, la typographie, la structure et l'ordre. Tout ce
+Un écart du code bloque sur quatre familles de propriétés CSS, `couleur`,
+`dimension`, `typographie` et `effet` (opacité, ombres, flous), et sur la parité
+de l'API : les props et les variants que le contrat publie. Tout ce
 que le contrat ne décrit pas reste libre dans le code : les enveloppes, les
 props non visuelles, le placement par le parent et les animations.
 
-La mesure automatique du rendu bloque. Votre validation visuelle ne bloque
-jamais : un rendu que vous validez devient la capture de référence, et un
-changement du code seul qui modifie cette capture bloque. Le linter refuse
+Aucun contrôle ne mesure le rendu : relisez le rendu du composant dans la
+demande du développeur ([VALIDATIONS-MVP.md](../../VALIDATIONS-MVP.md)). Votre
+validation visuelle ne bloque jamais. Le linter refuse
 dans le code d'un composant un token absent de `tokens.json` et une valeur
 écrite en dur. Il ne bloque que la demande d'un développeur qui modifie ce
 code. Une demande de contrats ou de `tokens.json`
@@ -270,10 +271,6 @@ dit seulement « code présent, non vérifié ».
 | Envoi direct sur `main`, sans demande de fusion | Juge l'état de `main` | Bloque sur un écart ni en retard ni dérogé, un contrat invalide, ou un contrat qui cite un token absent |
 | Contrôle lancé sur une copie sans historique complet | Erreur d'invocation (code 2) | Récupérer l'historique complet |
 | Contrôle lancé en local par un développeur ou son agent | Comme `main` | Les fichiers non enregistrés comptent comme les plus récents |
-
-Un changement du code seul qui modifie une capture de référence bloque. Une
-demande qui change le contrat et ses captures passe : les captures attendent
-votre validation.
 
 ### Relire une dérogation
 

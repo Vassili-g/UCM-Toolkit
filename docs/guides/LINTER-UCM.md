@@ -27,7 +27,7 @@ couleur.
 
 ## Ce qui se règle
 
-Les listes (familles, propriétés, valeurs neutres) vivent dans un seul fichier,
+Les listes (familles de propriétés, propriétés, valeurs neutres) vivent dans un seul fichier,
 `packages/kit/src/lecteurs/controle-du-code-listes.mjs`. L'inventaire les
 affiche, section 6. Pour en changer une, dire à un agent : « Ajoute `auto` aux
 valeurs neutres du linter. » L'agent suit la skill `regler-le-linter`, et une
