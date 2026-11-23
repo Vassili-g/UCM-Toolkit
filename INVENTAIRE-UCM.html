@@ -162,8 +162,6 @@ dl.def dt:target, dl.def dt:target + dd { background: var(--ambre-fond); }
 .verdict { display: inline-flex; align-items: center; gap: 5px; font-size: .82rem; font-weight: 600; white-space: nowrap; }
 .verdict::before { display: inline-grid; place-items: center; width: 17px; height: 17px; border-radius: 50%; font-size: .72rem; color: var(--surface); }
 .v-bloque { color: var(--rose); } .v-bloque::before { content: "✕"; background: var(--rose); }
-.v-avertit { color: var(--ambre); } .v-avertit::before { content: "⚠"; background: var(--ambre); font-size: .6rem; }
-.v-non { color: var(--doux); } .v-non::before { content: "⊘"; background: var(--doux); }
 .contrat-annote { display: grid; grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr); gap: 14px; align-items: start; margin: 8px 0; }
 .codebloc { position: relative; margin: 0; background: var(--code); border-radius: 8px; padding: 10px 10px 10px 34px; overflow-x: auto; font: .76rem/1.6 ui-monospace, "JetBrains Mono", Consolas, monospace; white-space: pre; }
 .codebloc .p { position: absolute; left: 8px; }
@@ -410,9 +408,6 @@ dl.def.principes { grid-template-columns: 240px 1fr; }
 .etape-carte.trou h4 .n { background: var(--rose); }
 .etape-carte dl.faits { border-top: 0; padding: 0; margin: 0; }
 .legende-parcours { font-size: .82rem; margin: 6px 0 0; }
-/* 6. Ce que ucm check fait de chaque écart : trois cartes. */
-.verifs { display: grid; gap: 12px; grid-template-columns: repeat(3, minmax(0, 1fr)); margin: 10px 0; }
-.verifs .carte h4 .verdict { font-size: .88rem; }
 /* 7. Les pistes : une ligne par piste, la décision et la note à droite, la fiche dessous. */
 .piste { border: 1px solid var(--trait); border-radius: 10px; background: var(--surface); margin: 6px 0; }
 .piste-ligne { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 8px 16px; align-items: start; padding: 9px 12px; }
@@ -444,7 +439,7 @@ a.sujet:focus-visible { outline: 2px solid var(--texte); outline-offset: 2px; }
 @media (max-width: 860px) {
   ol.flux { grid-template-columns: 1fr; gap: 22px; }
   ol.flux li:not(:last-child)::after { content: "↓"; right: auto; left: 18px; top: auto; bottom: -21px; transform: none; }
-  .grille.deux-cartes, .verifs { grid-template-columns: 1fr; }
+  .grille.deux-cartes { grid-template-columns: 1fr; }
   .parcours { grid-template-columns: 1fr; }
   .parcours .etapes { grid-auto-flow: row; grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .piste-ligne { grid-template-columns: minmax(0, 1fr); }
@@ -498,7 +493,7 @@ a.produit:focus-visible { outline: 2px solid var(--vif); outline-offset: 1px; }
 <!-- 1. Le concept UCM : le problème général, la réponse, les deux promesses, le flux, les principes, ce qui manque. -->
 <section class="partie" id="concept">
   <h1>Ce que contient UCM Toolkit</h1>
-  <p class="versions doux">Versions publiées : kit 0.17.3, CLI 0.2.2, adaptateur 0.2.13, <a class="terme" href="#g-contrat14" title="Le numéro du format du contrat. ucm check accepte les contrats 13.0 et 14.0.">contrat 14.0</a>.</p>
+  <p class="versions doux">Versions publiées : kit 0.17.4, CLI 0.3.0, adaptateur 0.2.14, <a class="terme" href="#g-contrat14" title="Le numéro du format du contrat. ucm check accepte les contrats 13.0 et 14.0.">contrat 14.0</a>.</p>
   <div class="a-regler" id="a-regler" role="region" aria-labelledby="a-regler-titre">
     <p class="a-regler-titre" id="a-regler-titre"><span class="forme-alerte ft-corriger"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 12 12" width="24" height="24" aria-hidden="true"><path d="M6 .6l5.6 10.4H.4z" fill="currentColor"/><path d="M6 4.2v3.3" stroke-width="1.4" style="stroke:var(--texte-sur-ton);fill:none"/><circle cx="6" cy="9.1" r=".8" style="fill:var(--texte-sur-ton)"/></svg></span><span class="alerte-mot ft-corriger">À régler</span> <span class="doux">2</span></p>
     <ul><li><a href="#piste-P6">P6 Linter ESLint</a><span class="a-regler-texte">Obtenir du développeur la forme d'écriture des styles d'intencial-library et sa relecture du contrat du plugin. Le plan suppose les objets <code>style</code> et <code>CSSProperties</code> et publie sans attendre sa réponse. Une autre forme demandera une correction de l'adaptateur après publication.</span><span class="a-regler-avant"><b>Bloque :</b> la mise en service du linter dans intencial-library</span></li><li><a href="#piste-P6">P6 Linter ESLint</a><span class="a-regler-texte">Geste du mainteneur, après la publication de P6 : retirer de <code>UCM-Playground/.ucm/conventions.md</code> la ligne « Traduire <code>{chemin.du.token}</code> » et la phrase « aucun helper partagé », puis épingler la CLI et l'adaptateur que P6 publie.</span><span class="a-regler-avant"><b>Bloque :</b> la réimplémentation à froid des composants de Playground en contrat v14</span></li></ul>
@@ -654,7 +649,7 @@ a.produit:focus-visible { outline: 2px solid var(--vif); outline-offset: 1px; }
   <h3>Les paquets sans carte</h3>
   <div class="defile"><table>
     <tr><th>Paquet</th><th>Rôle</th><th>Distribution</th></tr>
-    <tr><td><b>Kit</b></td><td>Format, référentiel, contrôles, <a class="terme" href="#g-lecteur" title="Une fonction du kit qui lit un contrat ou tokens.json et rend un bilan. La CLI s'en sert dans le CI.">lecteurs</a>. Tous les outils en dépendent. Neuf <a class="terme" href="#g-entree" title="Un chemin d'import du kit, comme @ucm-kit/core/lecteurs.">points d'entrée</a>, listés en annexe.</td><td>npm 0.17.3</td></tr>
+    <tr><td><b>Kit</b></td><td>Format, référentiel, contrôles, <a class="terme" href="#g-lecteur" title="Une fonction du kit qui lit un contrat ou tokens.json et rend un bilan. La CLI s'en sert dans le CI.">lecteurs</a>. Tous les outils en dépendent. Neuf <a class="terme" href="#g-entree" title="Un chemin d'import du kit, comme @ucm-kit/core/lecteurs.">points d'entrée</a>, listés en annexe.</td><td>npm 0.17.4</td></tr>
     <tr><td><b>Socle</b></td><td>Code partagé des plugins : build, langage visuel, galerie, moteur d'extraction</td><td>privé, en source</td></tr>
     <tr><td><b>Moteur de couleur</b></td><td>Rampes, contrastes, garanties, harmonisation. Sans Figma ni DOM. Lu par Palettes, Architect, Hub.</td><td>privé</td></tr>
     <tr><td><b>Hub UCM</b></td><td>Page locale des sorties du kit et du moteur, <span class="etat partiel">partiel</span>. Storybook la remplacera (<a href="#piste-P9">P9</a>).</td><td>privé</td></tr>
@@ -1081,16 +1076,16 @@ a.produit:focus-visible { outline: 2px solid var(--vif); outline-offset: 1px; }
       <tr><td>Contrat</td><td class="n">14.0</td><td>13.0 et 14.0. Hors fenêtre, le designer réexporte ou le mainteneur met à jour les paquets.</td></tr>
       <tr><td>Schéma JSON</td><td class="n">suit le contrat</td><td>Dérivé de <code>types.ts</code>. Il décrit la forme, jamais la cohérence.</td></tr>
       <tr><td>tokens.json</td><td class="n">2</td><td>1 et 2. DTCG module 2025.10, lu par Style Dictionary 5. Style Dictionary 4 écrit <code>[object Object]</code> sans échouer.</td></tr>
-      <tr><td>@ucm-kit/core</td><td class="n">0.17.3</td><td>0.x : aucune compatibilité promise.</td></tr>
-      <tr><td>@ucm-kit/cli</td><td class="n">0.2.2</td><td><a class="terme" href="#g-epingler" title="Écrire une version exacte, sans ^, pour que npm n'en installe jamais une autre.">Épingle</a> le kit 0.17.3. Le repository l'installe en version exacte, sans <code>^</code>.</td></tr>
-      <tr><td>@ucm-kit/adapter-typescript</td><td class="n">0.2.13</td><td>Épingle le kit 0.17.3.</td></tr>
+      <tr><td>@ucm-kit/core</td><td class="n">0.17.4</td><td>0.x : aucune compatibilité promise.</td></tr>
+      <tr><td>@ucm-kit/cli</td><td class="n">0.3.0</td><td><a class="terme" href="#g-epingler" title="Écrire une version exacte, sans ^, pour que npm n'en installe jamais une autre.">Épingle</a> le kit 0.17.4. Le repository l'installe en version exacte, sans <code>^</code>.</td></tr>
+      <tr><td>@ucm-kit/adapter-typescript</td><td class="n">0.2.14</td><td>Épingle le kit 0.17.4.</td></tr>
       <tr><td>Recette Palettes</td><td class="n">12</td><td>Lit 8 à 12, en migrant une étape par format.</td></tr>
     </table></div>
     <p class="doux">Contrat 12.0 : rotation, défaut posé par le designer. 13.0 : <code>textTransform</code>. 14.0 : effets, opacité, position dans un conteneur sans auto layout. <code>COMPATIBILITE.md</code> range les changements en 12 classes, et une mineure n'est jamais présumée compatible.</p>
   </div></details>
 </section>
 
-<!-- 6. Ce qui est vérifié, et où : dans Figma avec Architect, puis dans la pull request avec ucm check. Rapport : rapportDuButton (releves.ts) ; règles décidées : decisions.json, genre tableau. -->
+<!-- 6. Ce qui est vérifié, et où : dans Figma avec Architect, dans la pull request avec ucm check (table des états : etatsDeComposant, releves.ts), puis le linter (controleDuCode, releves.ts). Rapport : rapportDuButton (releves.ts) ; règles décidées : decisions.json, genre tableau. -->
 <section class="partie" id="controles">
   <h2><span class="num">6</span>Ce qui est vérifié, et où</h2>
   <p class="defini">Défini dans <code>packages/kit/src/controles/</code> et <code>packages/kit/src/lecteurs/</code>.</p>
@@ -1121,9 +1116,9 @@ a.produit:focus-visible { outline: 2px solid var(--vif); outline-offset: 1px; }
   <div class="a-revoir" role="note"><p class="a-revoir-titre">À revoir par le mainteneur</p>
     <p>L'exemple de droite est une pull request de code : le développeur modifie <code>Button.tsx</code> sans ajouter <code>size</code>. Une pull request du designer qui ne change que <code>Button.contract.json</code> passe, et le composant devient « en retard sur son contrat » (V-05 de P19).</p>
     <p>Le point à trancher est V-11. Un développeur qui touche le code d'un composant en retard, pour corriger un bug par exemple, est bloqué tant qu'il ne rattrape pas le contrat ou ne pose pas de dérogation.</p>
-    <p>La colonne de gauche décrit encore l'ancienne CLI, qui avertissait sans bloquer. La CLI 0.2.2 applique déjà la règle de droite, sauf le bouton grisé, qui attend la protection de branche de <a href="#piste-P17">P17</a>.</p></div>
+    <p>La colonne de gauche décrit encore l'ancienne CLI, qui avertissait sans bloquer. La CLI 0.3.0 applique déjà la règle de droite, sauf le bouton grisé, qui attend la protection de branche de <a href="#piste-P17">P17</a>.</p></div>
   <div class="rapports">
-    <figure class="rapport"><figcaption>Aujourd'hui (CLI 0.2.2)</figcaption>
+    <figure class="rapport"><figcaption>Aujourd'hui (CLI 0.3.0)</figcaption>
       <div class="pr"><div class="pr-tete">ucm check</div>
         <div class="pr-corps">
           <p class="pr-titre tenu">Aucun blocage détecté</p>
@@ -1147,26 +1142,202 @@ a.produit:focus-visible { outline: 2px solid var(--vif); outline-offset: 1px; }
       <p class="doux">Si la demande ne modifie que <code>Button.contract.json</code>, le composant est marqué <a class="terme" href="#g-retard" title="Se dit d'un composant dont le code ne suit pas encore son contrat.">en retard sur son contrat</a>, et la demande passe.</p></figure>
   </div>
 
-  <h3>Ce que <code>ucm check</code> fait de chaque écart aujourd'hui</h3>
-  <div class="verifs">
-    <div class="carte"><h4><span class="verdict v-bloque">bloque</span></h4>
-      <ul class="liste">
-        <li>Un contrat illisible, incomplet ou hors de la fenêtre 13.0 à 14.0.</li>
-        <li>Une composition cassée, quand le contrat d'un <a class="terme" href="#g-imbrique" title="Une instance d'un autre composant, placée dans le composant.">imbriqué</a> manque ou qu'un cycle apparaît.</li>
-        <li>Un token de typographie dont le type est faux.</li>
-        <li>Un fichier de tokens absent ou illisible.</li></ul></div>
-    <div class="carte"><h4><span class="verdict v-avertit">avertit sans bloquer</span></h4>
-      <ul class="liste">
-        <li>Un token cité par le contrat et absent de <code>tokens.json</code>.</li>
-        <li>Un écart de parité entre les props du code et le contrat.</li>
-        <li>Le contraste des couleurs du contrat, en information seulement, car <code>ucm check</code> ne sait pas si un texte est grand.</li></ul></div>
-    <div class="carte"><h4><span class="verdict v-non">non vérifié</span></h4>
-      <ul class="liste">
-        <li>Le rendu dans un navigateur : couleur, dimensions, typographie, structure et ordre (<a href="#piste-P9">P9</a>, <a href="#piste-P10">P10</a>, <a href="#piste-P20">P20</a>).</li>
-        <li>Une valeur écrite en dur dans le code (<a href="#piste-P6">P6</a>).</li>
-        <li>La fusion d'une pull request rouge, que seule une protection de branche empêche (<a href="#piste-P17">P17</a>).</li></ul></div>
-  </div>
-  <p class="doux"><code>bilanEstBloquant</code> (<code>lecteurs/verdict-bilan.mjs</code>) ne compte ni les tokens absents ni la parité.</p>
+  <h3>Ce que <code>ucm check</code> décide pour chaque état d'un composant</h3>
+  <p class="defini">Calculé par <code>verdictDeLaDemande</code>, dans <code>packages/kit/src/lecteurs/verdict-bilan.mjs</code>.</p>
+  <p class="intro">Chaque composant a un état. Le tableau les range du plus grave au plus léger. Une demande de code modifie le code. Une demande de contrats modifie un contrat. Une demande de tokens seuls ne modifie que <code>tokens.json</code>. Chaque colonne dit si la demande est bloquée. La dernière colonne nomme ce qui décide du blocage.</p>
+  <div class="defile"><table class="empile">
+    <tr><th>État</th><th>Demande de code</th><th>Demande de contrats</th><th>Demande de tokens seuls</th><th>Pourquoi</th><th>Ce qui bloque</th></tr>
+    <tr><td>Contrat invalide<span class="nota"><code>contrat-invalide</code></span></td><td data-l="Demande de code"><span class="verdict v-bloque">bloque</span></td><td data-l="Demande de contrats"><span class="verdict v-bloque">bloque</span></td><td data-l="Demande de tokens seuls"><span class="verdict v-passe">passe</span></td><td data-l="Pourquoi">Le contrat est illisible, incomplet ou hors de la fenêtre de lecture, donc aucun outil ne peut le lire.</td><td data-l="Ce qui bloque">le contrat</td></tr>
+    <tr><td>Token absent de tokens.json<span class="nota"><code>tokens-absents</code></span></td><td data-l="Demande de code"><span class="verdict v-bloque">bloque</span></td><td data-l="Demande de contrats"><span class="verdict v-bloque">bloque</span></td><td data-l="Demande de tokens seuls"><span class="verdict v-passe">passe</span></td><td data-l="Pourquoi">Le contrat cite un token que tokens.json ne porte pas, donc le composant afficherait une valeur vide.</td><td data-l="Ce qui bloque"><code>tokens.json</code></td></tr>
+    <tr><td>Code en écart<span class="nota"><code>ecart</code></span></td><td data-l="Demande de code"><span class="verdict v-bloque">bloque</span></td><td data-l="Demande de contrats"><span class="verdict v-passe">passe</span></td><td data-l="Demande de tokens seuls"><span class="verdict v-passe">passe</span></td><td data-l="Pourquoi">Le code s'écarte du contrat ou de tokens.json et il est plus récent qu'eux. Le développeur le corrige.</td><td data-l="Ce qui bloque">la parité du code avec le contrat</td></tr>
+    <tr><td>Code non vérifié<span class="nota"><code>code-non-verifie</code></span></td><td data-l="Demande de code"><span class="verdict v-bloque">bloque</span></td><td data-l="Demande de contrats"><span class="verdict v-passe">passe</span></td><td data-l="Demande de tokens seuls"><span class="verdict v-passe">passe</span></td><td data-l="Pourquoi">L'adaptateur attendu manque, est ancien, ne se charge pas ou ne lit pas le fichier. Rien n'est prouvé.</td><td data-l="Ce qui bloque">la parité du code avec le contrat</td></tr>
+    <tr><td>Code en retard sur son contrat<span class="nota"><code>en-retard-sur-son-contrat</code></span></td><td data-l="Demande de code"><span class="verdict v-passe">passe</span></td><td data-l="Demande de contrats"><span class="verdict v-passe">passe</span></td><td data-l="Demande de tokens seuls"><span class="verdict v-passe">passe</span></td><td data-l="Pourquoi">Le contrat a changé après le code. Le développeur le rattrape à sa prochaine demande sur ce composant.</td><td data-l="Ce qui bloque">rien</td></tr>
+    <tr><td>En retard sur les tokens<span class="nota"><code>en-retard-sur-les-tokens</code></span></td><td data-l="Demande de code"><span class="verdict v-passe">passe</span></td><td data-l="Demande de contrats"><span class="verdict v-passe">passe</span></td><td data-l="Demande de tokens seuls"><span class="verdict v-passe">passe</span></td><td data-l="Pourquoi">tokens.json a changé après le contrat ou le code. Le designer réexporte le contrat, ou le développeur met le code à jour.</td><td data-l="Ce qui bloque">rien</td></tr>
+    <tr><td>Code en écart, accepté par une dérogation<span class="nota"><code>deroge-a-valider</code></span></td><td data-l="Demande de code"><span class="verdict v-passe">passe</span></td><td data-l="Demande de contrats"><span class="verdict v-passe">passe</span></td><td data-l="Demande de tokens seuls"><span class="verdict v-passe">passe</span></td><td data-l="Pourquoi">Une dérogation motivée couvre l'écart jusqu'au prochain export du contrat. Le designer relit son motif.</td><td data-l="Ce qui bloque">rien</td></tr>
+    <tr><td>Pas encore d'implémentation<span class="nota"><code>pas-encore-d-implementation</code></span></td><td data-l="Demande de code"><span class="verdict v-passe">passe</span></td><td data-l="Demande de contrats"><span class="verdict v-passe">passe</span></td><td data-l="Demande de tokens seuls"><span class="verdict v-passe">passe</span></td><td data-l="Pourquoi">Le contrat est arrivé avant le code, état autorisé.</td><td data-l="Ce qui bloque">rien</td></tr>
+    <tr><td>Code conforme<span class="nota"><code>conforme</code></span></td><td data-l="Demande de code"><span class="verdict v-passe">passe</span></td><td data-l="Demande de contrats"><span class="verdict v-passe">passe</span></td><td data-l="Demande de tokens seuls"><span class="verdict v-passe">passe</span></td><td data-l="Pourquoi">Aucun écart, aucun retard, aucune dérogation.</td><td data-l="Ce qui bloque">rien</td></tr>
+  </table></div>
+
+  <!-- V4. Le linter : une ligne par code de CODES_DU_CONTROLE_DU_CODE (controleDuCode, releves.ts), les listes dans un pli. Titres et introductions seuls écrits ici. -->
+  <h3>Dans l'éditeur et la CI, avec le linter</h3>
+  <p class="defini">Défini dans <code>packages/kit/src/lecteurs/controle-du-code-listes.mjs</code> et <code>packages/kit/src/lecteurs/derogations.mjs</code>.</p>
+  <p class="intro">Le linter lit le code d'un composant dans l'éditeur du développeur. <code>ucm check</code> le relit dans la CI avec les mêmes listes. Il compare chaque valeur du code au contrat et à <code>tokens.json</code>. Le tableau donne les 6 codes qu'il peut rendre.</p>
+  <div class="defile"><table class="empile">
+    <tr><th>Code</th><th>Règles</th><th>Niveau</th><th>Pourquoi</th><th>Dérogeable</th></tr>
+    <tr><td><code>token-inconnu</code></td><td data-l="Règles"><code>token-inconnu</code></td><td data-l="Niveau">écart</td><td data-l="Pourquoi">Une référence ou une variable ne nomme aucun token de tokens.json.</td><td data-l="Dérogeable">oui, par <code>fichier</code>, <code>reference</code></td></tr>
+    <tr><td><code>repli-en-dur</code></td><td data-l="Règles"><code>token-inconnu</code></td><td data-l="Niveau">écart</td><td data-l="Pourquoi">Un repli écrit en dur masque la variable que la feuille des tokens déclare.</td><td data-l="Dérogeable">oui, par <code>fichier</code>, <code>reference</code></td></tr>
+    <tr><td><code>nom-css-ambigu</code></td><td data-l="Règles"><code>token-inconnu</code></td><td data-l="Niveau">limite</td><td data-l="Pourquoi">Deux tokens portent le même nom CSS : le contrôle ne choisit pas.</td><td data-l="Dérogeable">non</td></tr>
+    <tr><td><code>valeur-en-dur</code></td><td data-l="Règles"><code>valeur-en-dur</code></td><td data-l="Niveau">écart</td><td data-l="Pourquoi">Le code écrit une valeur visuelle que le contrat ne publie pas.</td><td data-l="Dérogeable">oui, par <code>fichier</code>, <code>valeur</code></td></tr>
+    <tr><td><code>non-analyse</code></td><td data-l="Règles"><code>token-inconnu</code>, <code>valeur-en-dur</code></td><td data-l="Niveau">non analysé</td><td data-l="Pourquoi">Le code calcule la valeur ou le nom : le contrôle ne le suit pas.</td><td data-l="Dérogeable">non</td></tr>
+    <tr><td><code>desactivation-interdite</code></td><td data-l="Règles"><code>token-inconnu</code>, <code>valeur-en-dur</code></td><td data-l="Niveau">écart</td><td data-l="Pourquoi">Un commentaire désactive une règle UCM, que le contrôle juge sans le lire.</td><td data-l="Dérogeable">non</td></tr>
+  </table></div>
+  <p class="doux">Pour garder une valeur que le linter refuse, le développeur lance <code>ucm deroger</code> avec son motif.</p>
+  <details class="pli"><summary>Les listes du linter <span class="doux">familles, 68 propriétés, valeurs neutres, valeurs reconnues</span></summary><div class="contenu">
+    <p class="intro">Le linter applique ces listes. Chaque ligne a sa raison.</p>
+    <h4>Familles</h4>
+    <div class="defile"><table><tr><th>Famille</th><th>Pourquoi</th></tr>
+    <tr><td><code>couleur</code></td><td>Les rôles de rendu (fond, texte, icône, contour, anneau) sont des tokens de couleur.</td></tr>
+    <tr><td><code>dimension</code></td><td>Tailles, espacements, rayons, épaisseurs et décalages sont des tokens de dimension.</td></tr>
+    <tr><td><code>typographie</code></td><td>Les styles de texte publient la police, la taille, la graisse, l'interligne et leurs variantes.</td></tr>
+    <tr><td><code>effet</code></td><td>Le format 14.0 tokenise l'opacité, les ombres et les flous.</td></tr>
+    </table></div>
+    <h4>Propriétés par famille</h4>
+    <div class="defile"><table><tr><th>Propriété</th><th>Familles</th><th>Pourquoi</th></tr>
+    <tr><td><code>color</code></td><td><code>couleur</code></td><td>Couleur du texte, rôle <code>foreground</code>.</td></tr>
+    <tr><td><code>background</code></td><td><code>couleur</code></td><td>Fond, rôle <code>background</code>.</td></tr>
+    <tr><td><code>background-color</code></td><td><code>couleur</code></td><td>Fond, rôle <code>background</code>.</td></tr>
+    <tr><td><code>border-color</code></td><td><code>couleur</code></td><td>Couleur du contour, rôle <code>border</code>.</td></tr>
+    <tr><td><code>outline-color</code></td><td><code>couleur</code></td><td>Couleur de l'anneau de focus, rôle <code>ring</code>.</td></tr>
+    <tr><td><code>fill</code></td><td><code>couleur</code></td><td>Couleur d'une icône, rôle <code>icon</code>.</td></tr>
+    <tr><td><code>stroke</code></td><td><code>couleur</code></td><td>Couleur d'un trait d'icône, rôle <code>icon</code>.</td></tr>
+    <tr><td><code>text-decoration-color</code></td><td><code>couleur</code></td><td>Couleur du soulignement.</td></tr>
+    <tr><td><code>width</code></td><td><code>dimension</code></td><td>Largeur d'un élément.</td></tr>
+    <tr><td><code>height</code></td><td><code>dimension</code></td><td>Hauteur d'un élément.</td></tr>
+    <tr><td><code>min-width</code></td><td><code>dimension</code></td><td>Borne basse de largeur.</td></tr>
+    <tr><td><code>max-width</code></td><td><code>dimension</code></td><td>Borne haute de largeur.</td></tr>
+    <tr><td><code>min-height</code></td><td><code>dimension</code></td><td>Borne basse de hauteur.</td></tr>
+    <tr><td><code>max-height</code></td><td><code>dimension</code></td><td>Borne haute de hauteur.</td></tr>
+    <tr><td><code>padding</code></td><td><code>dimension</code></td><td>Marge intérieure.</td></tr>
+    <tr><td><code>padding-top</code></td><td><code>dimension</code></td><td>Marge intérieure, côté haut.</td></tr>
+    <tr><td><code>padding-right</code></td><td><code>dimension</code></td><td>Marge intérieure, côté droit.</td></tr>
+    <tr><td><code>padding-bottom</code></td><td><code>dimension</code></td><td>Marge intérieure, côté bas.</td></tr>
+    <tr><td><code>padding-left</code></td><td><code>dimension</code></td><td>Marge intérieure, côté gauche.</td></tr>
+    <tr><td><code>padding-inline</code></td><td><code>dimension</code></td><td>Marge intérieure, axe horizontal.</td></tr>
+    <tr><td><code>padding-block</code></td><td><code>dimension</code></td><td>Marge intérieure, axe vertical.</td></tr>
+    <tr><td><code>padding-inline-start</code></td><td><code>dimension</code></td><td>Marge intérieure, début de l'axe horizontal.</td></tr>
+    <tr><td><code>padding-inline-end</code></td><td><code>dimension</code></td><td>Marge intérieure, fin de l'axe horizontal.</td></tr>
+    <tr><td><code>padding-block-start</code></td><td><code>dimension</code></td><td>Marge intérieure, début de l'axe vertical.</td></tr>
+    <tr><td><code>padding-block-end</code></td><td><code>dimension</code></td><td>Marge intérieure, fin de l'axe vertical.</td></tr>
+    <tr><td><code>gap</code></td><td><code>dimension</code></td><td>Espace entre enfants.</td></tr>
+    <tr><td><code>row-gap</code></td><td><code>dimension</code></td><td>Espace entre lignes.</td></tr>
+    <tr><td><code>column-gap</code></td><td><code>dimension</code></td><td>Espace entre colonnes.</td></tr>
+    <tr><td><code>border-radius</code></td><td><code>dimension</code></td><td>Rayon des quatre coins.</td></tr>
+    <tr><td><code>border-top-left-radius</code></td><td><code>dimension</code></td><td>Rayon du coin haut gauche.</td></tr>
+    <tr><td><code>border-top-right-radius</code></td><td><code>dimension</code></td><td>Rayon du coin haut droit.</td></tr>
+    <tr><td><code>border-bottom-right-radius</code></td><td><code>dimension</code></td><td>Rayon du coin bas droit.</td></tr>
+    <tr><td><code>border-bottom-left-radius</code></td><td><code>dimension</code></td><td>Rayon du coin bas gauche.</td></tr>
+    <tr><td><code>border-width</code></td><td><code>dimension</code></td><td>Épaisseur du contour.</td></tr>
+    <tr><td><code>outline-width</code></td><td><code>dimension</code></td><td>Épaisseur de l'anneau de focus, rôle <code>ring</code>.</td></tr>
+    <tr><td><code>outline-offset</code></td><td><code>dimension</code></td><td>Décalage de l'anneau de focus.</td></tr>
+    <tr><td><code>top</code></td><td><code>dimension</code></td><td>Décalage haut d'un élément positionné.</td></tr>
+    <tr><td><code>right</code></td><td><code>dimension</code></td><td>Décalage droit d'un élément positionné.</td></tr>
+    <tr><td><code>bottom</code></td><td><code>dimension</code></td><td>Décalage bas d'un élément positionné.</td></tr>
+    <tr><td><code>left</code></td><td><code>dimension</code></td><td>Décalage gauche d'un élément positionné.</td></tr>
+    <tr><td><code>inset</code></td><td><code>dimension</code></td><td>Décalage des quatre côtés, champ <code>inset</code> du contrat.</td></tr>
+    <tr><td><code>inset-inline</code></td><td><code>dimension</code></td><td>Décalage de l'axe horizontal.</td></tr>
+    <tr><td><code>inset-block</code></td><td><code>dimension</code></td><td>Décalage de l'axe vertical.</td></tr>
+    <tr><td><code>grid-template-columns</code></td><td><code>dimension</code></td><td>Pistes de colonnes, champ <code>columnSizes</code>.</td></tr>
+    <tr><td><code>grid-template-rows</code></td><td><code>dimension</code></td><td>Pistes de lignes, champ <code>rowSizes</code>.</td></tr>
+    <tr><td><code>border</code></td><td><code>couleur</code>, <code>dimension</code></td><td>Raccourci d'épaisseur et de couleur du contour.</td></tr>
+    <tr><td><code>outline</code></td><td><code>couleur</code>, <code>dimension</code></td><td>Raccourci d'épaisseur et de couleur de l'anneau.</td></tr>
+    <tr><td><code>box-shadow</code></td><td><code>couleur</code>, <code>dimension</code></td><td>Ombre ou contour du rôle <code>border</code> ; couleur, décalage et flou.</td></tr>
+    <tr><td><code>text-shadow</code></td><td><code>couleur</code>, <code>dimension</code></td><td>Ombre du texte, écrite comme <code>box-shadow</code>.</td></tr>
+    <tr><td><code>font-family</code></td><td><code>typographie</code></td><td>Police, champ <code>fontFamily</code> d'un style de texte.</td></tr>
+    <tr><td><code>font-size</code></td><td><code>typographie</code></td><td>Taille de police, champ <code>fontSize</code>.</td></tr>
+    <tr><td><code>font-weight</code></td><td><code>typographie</code></td><td>Graisse, champ <code>fontWeight</code>.</td></tr>
+    <tr><td><code>line-height</code></td><td><code>typographie</code></td><td>Interligne, champ <code>lineHeight</code>.</td></tr>
+    <tr><td><code>letter-spacing</code></td><td><code>typographie</code></td><td>Interlettrage, champ <code>letterSpacing</code>.</td></tr>
+    <tr><td><code>text-transform</code></td><td><code>typographie</code></td><td>Casse, champ <code>literals.textTransform</code>.</td></tr>
+    <tr><td><code>font-variant-caps</code></td><td><code>typographie</code></td><td>Petites capitales, champ <code>literals.fontVariantCaps</code>.</td></tr>
+    <tr><td><code>text-decoration</code></td><td><code>typographie</code></td><td>Soulignement ou barré, champ <code>literals.textDecorationLine</code>.</td></tr>
+    <tr><td><code>text-decoration-line</code></td><td><code>typographie</code></td><td>Soulignement ou barré, champ <code>literals.textDecorationLine</code>.</td></tr>
+    <tr><td><code>font-style</code></td><td><code>typographie</code></td><td>Italique, champ <code>literals.fontStyle</code>.</td></tr>
+    <tr><td><code>text-wrap-style</code></td><td><code>typographie</code></td><td>Équilibrage des lignes, champ <code>literals.textWrapStyle</code>.</td></tr>
+    <tr><td><code>text-box</code></td><td><code>typographie</code></td><td>Rognage de la boîte de texte, champ <code>literals.textBox</code>.</td></tr>
+    <tr><td><code>text-align</code></td><td><code>typographie</code></td><td>Alignement du texte, champ <code>textAlign</code> d'un usage.</td></tr>
+    <tr><td><code>text-indent</code></td><td><code>typographie</code></td><td>Retrait de première ligne, champ <code>paragraphIndent</code>.</td></tr>
+    <tr><td><code>line-clamp</code></td><td><code>typographie</code></td><td>Nombre de lignes, champ <code>lineClamp</code> d'un usage.</td></tr>
+    <tr><td><code>-webkit-line-clamp</code></td><td><code>typographie</code></td><td>Nombre de lignes, écriture préfixée de <code>line-clamp</code>.</td></tr>
+    <tr><td><code>opacity</code></td><td><code>effet</code></td><td>Opacité, tokenisée par le format 14.0.</td></tr>
+    <tr><td><code>filter</code></td><td><code>effet</code></td><td>Flou de calque, tokenisé par le format 14.0.</td></tr>
+    <tr><td><code>backdrop-filter</code></td><td><code>effet</code></td><td>Flou d'arrière-plan, tokenisé par le format 14.0.</td></tr>
+    </table></div>
+    <h4>Valeurs neutres</h4>
+    <div class="defile"><table><tr><th>Valeur</th><th>Pourquoi</th></tr>
+    <tr><td><code>0</code></td><td>Zéro n'a pas d'unité et aucun token ne le remplace.</td></tr>
+    <tr><td><code>none</code></td><td>Aucune bordure, ombre ni filtre.</td></tr>
+    <tr><td><code>fit-content</code></td><td>Dimension par défaut d'un slot, que FORMAT.md lit comme l'absence de dimensionnement.</td></tr>
+    <tr><td><code>currentcolor</code></td><td>Reprend la couleur du texte.</td></tr>
+    <tr><td><code>transparent</code></td><td>Aucune couleur.</td></tr>
+    </table></div>
+    <h4>Valeurs reconnues</h4>
+    <div class="defile"><table><tr><th>Liste</th><th>Pourquoi</th><th class="n">Nombre</th><th>Valeurs</th></tr>
+    <tr><td>Unités de longueur</td><td>Une longueur écrite en dur est une valeur visuelle ; <code>fr</code> est la fraction de piste de grille.</td><td>50</td><td><span class="mono">cap, ch, em, ex, ic, lh, rcap, rch, rem, rex, ric, rlh, vh, vw, vmax, vmin, vb, vi, svh, svw, svmax, svmin, svb, svi, lvh, lvw, lvmax, lvmin, lvb, lvi, dvh, dvw, dvmax, dvmin, dvb, dvi, cqw, cqh, cqi, cqb, cqmin, cqmax, cm, mm, q, in, pt, pc, px, fr</span></td></tr>
+    <tr><td>Fonctions de couleur</td><td>Une fonction de couleur écrit une couleur en dur, quels que soient ses arguments.</td><td>12</td><td><span class="mono">rgb, rgba, hsl, hsla, hwb, lab, lch, oklab, oklch, color, color-mix, light-dark</span></td></tr>
+    <tr><td>Fonctions mathématiques</td><td>Une fonction mathématique se juge par ses arguments, et un nombre sans unité y passe parce qu'il multiplie ou divise.</td><td>4</td><td><span class="mono">calc, min, max, clamp</span></td></tr>
+    <tr><td>Noms de couleur</td><td>Un nom de couleur écrit une couleur en dur dans une déclaration.</td><td>148</td><td><span class="mono">aliceblue, antiquewhite, aqua, aquamarine, azure, beige, bisque, black, blanchedalmond, blue, blueviolet, brown, burlywood, cadetblue, chartreuse, chocolate, coral, cornflowerblue, cornsilk, crimson, cyan, darkblue, darkcyan, darkgoldenrod, darkgray, darkgreen, darkgrey, darkkhaki, darkmagenta, darkolivegreen, darkorange, darkorchid, darkred, darksalmon, darkseagreen, darkslateblue, darkslategray, darkslategrey, darkturquoise, darkviolet, deeppink, deepskyblue, dimgray, dimgrey, dodgerblue, firebrick, floralwhite, forestgreen, fuchsia, gainsboro, ghostwhite, gold, goldenrod, gray, green, greenyellow, grey, honeydew, hotpink, indianred, indigo, ivory, khaki, lavender, lavenderblush, lawngreen, lemonchiffon, lightblue, lightcoral, lightcyan, lightgoldenrodyellow, lightgray, lightgreen, lightgrey, lightpink, lightsalmon, lightseagreen, lightskyblue, lightslategray, lightslategrey, lightsteelblue, lightyellow, lime, limegreen, linen, magenta, maroon, mediumaquamarine, mediumblue, mediumorchid, mediumpurple, mediumseagreen, mediumslateblue, mediumspringgreen, mediumturquoise, mediumvioletred, midnightblue, mintcream, mistyrose, moccasin, navajowhite, navy, oldlace, olive, olivedrab, orange, orangered, orchid, palegoldenrod, palegreen, paleturquoise, palevioletred, papayawhip, peachpuff, peru, pink, plum, powderblue, purple, rebeccapurple, red, rosybrown, royalblue, saddlebrown, salmon, sandybrown, seagreen, seashell, sienna, silver, skyblue, slateblue, slategray, slategrey, snow, springgreen, steelblue, tan, teal, thistle, tomato, turquoise, violet, wheat, white, whitesmoke, yellow, yellowgreen</span></td></tr>
+    <tr><td>Mots de forme</td><td>Un mot de forme accompagne une longueur dans une chaîne sans dire autre chose qu'un style de trait.</td><td>12</td><td><span class="mono">solid, dashed, dotted, double, groove, ridge, inset, outset, hidden, auto, none, normal</span></td></tr>
+    <tr><td>Attributs sans valeur visuelle</td><td>La chaîne de cet attribut nomme une ancre, une clé ou une étiquette, jamais une valeur visuelle.</td><td>7</td><td><span class="mono">href, id, key, name, htmlFor, aria-, data-</span></td></tr>
+    </table></div>
+    <h4>Champs du contrat publiés en clair</h4>
+    <div class="defile"><table><tr><th>Champ</th><th>Famille</th><th>Pourquoi</th></tr>
+    <tr><td><code>sizing.width</code></td><td><code>dimension</code></td><td>Le contrat écrit <code>fit-content</code> ou <code>stretch</code> ; <code>stretch</code> s'écrit aussi <code>100%</code>.</td></tr>
+    <tr><td><code>sizing.height</code></td><td><code>dimension</code></td><td>Le contrat écrit <code>fit-content</code> ou <code>stretch</code> ; <code>stretch</code> s'écrit aussi <code>100%</code>.</td></tr>
+    <tr><td><code>structuralSize.width</code></td><td><code>dimension</code></td><td>Largeur en pixels d'un élément de structure, que le code recopie.</td></tr>
+    <tr><td><code>structuralSize.height</code></td><td><code>dimension</code></td><td>Hauteur en pixels d'un élément de structure, que le code recopie.</td></tr>
+    <tr><td><code>columnSizes</code></td><td><code>dimension</code></td><td>Pistes de colonnes (<code>1fr</code>, <code>fit-content(100%)</code>, <code>120px</code>, <code>auto</code>), que le code recopie.</td></tr>
+    <tr><td><code>rowSizes</code></td><td><code>dimension</code></td><td>Pistes de lignes (<code>1fr</code>, <code>fit-content(100%)</code>, <code>120px</code>, <code>auto</code>), que le code recopie.</td></tr>
+    <tr><td><code>inset</code></td><td><code>dimension</code></td><td>Décalages en pixels d'un enfant positionné, que le code recopie.</td></tr>
+    <tr><td><code>literals.textTransform</code></td><td><code>typographie</code></td><td>Casse du texte, écrite en clair.</td></tr>
+    <tr><td><code>literals.fontVariantCaps</code></td><td><code>typographie</code></td><td>Petites capitales, écrites en clair.</td></tr>
+    <tr><td><code>literals.textDecorationLine</code></td><td><code>typographie</code></td><td>Soulignement ou barré, écrit en clair.</td></tr>
+    <tr><td><code>literals.fontStyle</code></td><td><code>typographie</code></td><td>Italique, écrit en clair.</td></tr>
+    <tr><td><code>literals.textWrapStyle</code></td><td><code>typographie</code></td><td>Équilibrage des lignes, écrit en clair.</td></tr>
+    <tr><td><code>literals.textBox</code></td><td><code>typographie</code></td><td>Rognage de la boîte de texte, écrit en clair.</td></tr>
+    <tr><td><code>textAlign</code></td><td><code>typographie</code></td><td>Alignement du texte d'un usage, écrit en clair.</td></tr>
+    <tr><td><code>lineClamp</code></td><td><code>typographie</code></td><td>Nombre de lignes d'un usage, écrit en clair.</td></tr>
+    </table></div>
+    <h4>Champs du contrat sans famille de tokens</h4>
+    <div class="defile"><table><tr><th>Champ</th><th>Pourquoi</th></tr>
+    <tr><td><code>rotation</code></td><td>Une rotation n'appartient à aucune famille de tokens.</td></tr>
+    <tr><td><code>columnStart</code></td><td>Une place de grille n'est pas une valeur visuelle.</td></tr>
+    <tr><td><code>rowStart</code></td><td>Une place de grille n'est pas une valeur visuelle.</td></tr>
+    <tr><td><code>columnSpan</code></td><td>Une place de grille n'est pas une valeur visuelle.</td></tr>
+    <tr><td><code>rowSpan</code></td><td>Une place de grille n'est pas une valeur visuelle.</td></tr>
+    <tr><td><code>justifySelf</code></td><td>Un alignement de grille n'est pas une valeur visuelle.</td></tr>
+    <tr><td><code>alignSelf</code></td><td>Un alignement d'enfant n'est pas une valeur visuelle.</td></tr>
+    <tr><td><code>justifyContent</code></td><td>Un alignement de conteneur n'est pas une valeur visuelle.</td></tr>
+    <tr><td><code>alignItems</code></td><td>Un alignement de conteneur n'est pas une valeur visuelle.</td></tr>
+    <tr><td><code>alignContent</code></td><td>Un alignement de contenu n'est pas une valeur visuelle.</td></tr>
+    <tr><td><code>textOverflow</code></td><td>Le débordement du texte n'appartient à aucune famille de tokens.</td></tr>
+    <tr><td><code>flexGrow</code></td><td>Un facteur d'extension n'appartient à aucune famille de tokens.</td></tr>
+    <tr><td><code>position</code></td><td>Le mode de positionnement n'est pas une valeur visuelle.</td></tr>
+    <tr><td><code>layout</code></td><td>La direction de mise en page n'est pas une valeur visuelle.</td></tr>
+    <tr><td><code>columns</code></td><td>Un nombre de colonnes n'est pas une valeur visuelle.</td></tr>
+    <tr><td><code>rows</code></td><td>Un nombre de lignes n'est pas une valeur visuelle.</td></tr>
+    <tr><td><code>constraints.horizontal</code></td><td>Une contrainte Figma n'est pas une valeur visuelle.</td></tr>
+    <tr><td><code>constraints.vertical</code></td><td>Une contrainte Figma n'est pas une valeur visuelle.</td></tr>
+    <tr><td><code>align</code></td><td>Le côté du trait n'est pas une valeur visuelle.</td></tr>
+    <tr><td><code>type</code></td><td>Le type d'une prop, d'un effet ou d'un jeton de préférence décrit la forme du contrat.</td></tr>
+    <tr><td><code>kind</code></td><td>La nature d'un rôle décrit la forme du contrat.</td></tr>
+    <tr><td><code>policy</code></td><td>La politique d'une icône décrit la forme du contrat.</td></tr>
+    <tr><td><code>target</code></td><td>La cible d'une liaison décrit la forme du contrat.</td></tr>
+    <tr><td><code>severity</code></td><td>La sévérité d'un diagnostic décrit la forme du contrat.</td></tr>
+    <tr><td><code>portable</code></td><td>La couverture portable décrit la forme du contrat.</td></tr>
+    <tr><td><code>settings.minChildren</code></td><td>Un nombre d'enfants n'est pas une valeur visuelle.</td></tr>
+    <tr><td><code>settings.maxChildren</code></td><td>Un nombre d'enfants n'est pas une valeur visuelle.</td></tr>
+    </table></div>
+    <h4>Ce que le linter ne peut pas juger</h4>
+    <div class="defile"><table><tr><th>Code</th><th>Pourquoi</th></tr>
+    <tr><td><code>configuration-absente</code></td><td>Sans ucm.config.json, le contrôle ne sait pas où sont les contrats.</td></tr>
+    <tr><td><code>configuration-invalide</code></td><td>Une configuration invalide ne dit pas où sont les contrats.</td></tr>
+    <tr><td><code>contrats-introuvables</code></td><td>Sans le dossier des contrats, aucun composant n'est connu.</td></tr>
+    <tr><td><code>fichier-sans-chemin</code></td><td>Un texte sans fichier ne se rattache à aucun composant.</td></tr>
+    <tr><td><code>tokens-illisibles</code></td><td>Sans tokens.json, les références ne se jugent pas.</td></tr>
+    <tr><td><code>tokens-format-inconnu</code></td><td>Une version de tokens.json que ce kit ne lit pas ne se juge pas.</td></tr>
+    <tr><td><code>contrat-illisible</code></td><td>Un contrat illisible ne publie aucune valeur.</td></tr>
+    <tr><td><code>contrat-ancien</code></td><td>Un contrat plus ancien que la fenêtre de lecture se réexporte.</td></tr>
+    <tr><td><code>contrat-recent</code></td><td>Un contrat plus récent que ce kit demande de monter @ucm-kit/core.</td></tr>
+    <tr><td><code>contrats-multiples</code></td><td>Deux contrats pour le même fichier : le contrôle ne choisit pas.</td></tr>
+    <tr><td><code>fichier-partage</code></td><td>Un fichier importé par deux composants répond au contrat de chacun.</td></tr>
+    <tr><td><code>lecture-incomplete</code></td><td>Le fichier a une erreur de syntaxe : le reste se juge.</td></tr>
+    <tr><td><code>derogations-illisibles</code></td><td>Un fichier de dérogations invalide n'en applique aucune.</td></tr>
+    <tr><td><code>sans-adaptateur</code></td><td>Le lecteur du code ne lit pas cette extension.</td></tr>
+    </table></div>
+  </div></details>
+
+  <h3>Ce qui n'est pas vérifié</h3>
+  <p>Le rendu dans un navigateur : couleur, dimensions, typographie, structure et ordre (<a href="#piste-P9">P9</a>, <a href="#piste-P10">P10</a>, <a href="#piste-P20">P20</a>). La fusion d'une pull request rouge, que seule une protection de branche empêche (<a href="#piste-P17">P17</a>).</p>
 
   <h3>Les règles décidées, pas encore dans le code</h3>
   <p class="defini">Défini dans <code>docs/notes/Recherches/Evolutions globales/decisions.json</code>.</p>
@@ -1175,7 +1346,6 @@ a.produit:focus-visible { outline: 2px solid var(--vif); outline-offset: 1px; }
     <li>Une demande dont le check <code>contrats</code> est rouge ne se fusionne pas : le check est exigé sur <code>main</code> (<a href="#piste-P17">P17</a>).</li>
     <li>Un token absent, une prop du code qui s'écarte du contrat et un écart de parité bloquent la fusion (P19). Une <a class="terme" href="#g-derogation">dérogation</a> motivée laisse passer un écart de parité.</li>
     <li>La couleur rendue, les dimensions, la typographie, la structure et l'ordre rendus bloquent après comparaison du rendu au contrat (<a href="#piste-P10">P10</a>, <a href="#piste-P20">P20</a>).</li>
-    <li>Une valeur écrite en dur dans le code bloque, par le linter (<a href="#piste-P6">P6</a>).</li>
     <li>Une demande qui ne modifie que le contrat marque le composant en retard sur son contrat, et la demande passe.</li>
   </ul>
   <p class="doux">La validation visuelle du designer ne bloque jamais. Le guide du designer (<code>POUR-LES-DESIGNERS.md</code> §6) décrit ces règles et le comportement actuel de la CLI.</p>
@@ -1221,6 +1391,7 @@ a.produit:focus-visible { outline: 2px solid var(--vif); outline-offset: 1px; }
     <li>Le cœur (kit, format, plugins) a un seul mainteneur. Un changement du kit se décide avec lui.</li>
     <li>Storybook remplacera le Hub UCM (<a href="#piste-P9">P9</a>) ; le moment reste ouvert.</li>
     <li>Le flux va de Figma vers le code seulement. Les outils suivent l'architecture full UCM, et seul l'Exporter est agnostique, en option.</li>
+    <li>Une valeur écrite en dur dans le code d'un composant bloque la demande d'un développeur qui le modifie, par <code>ucm check</code> et le linter (<a href="#piste-P6">P6</a>).</li>
     </ul>
   </div></details>
 </section>
@@ -1233,7 +1404,7 @@ a.produit:focus-visible { outline: 2px solid var(--vif); outline-offset: 1px; }
   <dl class="def questions">
     <dt>Pourquoi un contrat JSON plutôt que l'API Figma ou Code Connect ?</dt><dd>Le CI lit le contrat sans accès à Figma, et le contrat est versionné à côté du code. Code Connect relie un composant Figma à son code sans décrire les obligations visuelles. Les deux se complètent.</dd>
     <dt>L'API du kit est-elle stable ?</dt><dd>Une seule porte est promise aux modules, <code>@ucm-kit/core/modules</code>. Un test refuse qu'elle change sans entrée au journal du kit, et le chiffre du milieu de la version monte à chaque rupture. Les autres portes servent les outils UCM et changent librement. Le guide <code>docs/guides/MODULES.md</code> le détaille.</dd>
-    <dt>Que se passe-t-il quand le designer change un token ?</dt><dd>Sa valeur change dans <code>tokens.json</code>, et la pull request passe. Le code suit une fois la feuille régénérée par <code>ucm tokens css</code>. Un token cité par un contrat puis retiré avertit aujourd'hui, et bloquera une fois la règle de blocage codée (P19).</dd>
+    <dt>Que se passe-t-il quand le designer change un token ?</dt><dd>Sa valeur change dans <code>tokens.json</code>, et la pull request passe. Le code suit une fois la feuille régénérée par <code>ucm tokens css</code>. Un token cité par un contrat puis retiré met le composant « en retard sur les tokens » : la section 6 dit ce que cet état bloque.</dd>
     <dt>Un contrat peut-il arriver avant le code ?</dt><dd>Oui. Il est fusionné « à implémenter », et la parité s'applique dès que le composant existe.</dd>
     <dt>Comment tester sans Figma ?</dt><dd><code>npm test</code> couvre le moteur, les lecteurs sur des contrats fabriqués et la CLI sur des repositories temporaires. Ce qui touche Figma et une vraie forge se rejoue dans UCM-Playground, l'application de recette sur GitHub. Un agent ne peut pas exporter depuis Figma.</dd>
     <dt>Peut-on modifier le kit ?</dt><dd>Le cœur a un seul mainteneur, et un changement du kit se décide avec lui. Les modules importeront seulement l'API que <a href="#piste-P3">P3</a> fige.</dd>
@@ -1359,11 +1530,11 @@ a.produit:focus-visible { outline: 2px solid var(--vif); outline-offset: 1px; }
     <div class="defile"><table><tr><th>Système</th><th>Rôles</th><th>Fiches de composants</th></tr><tr><td>Atlassian Design System</td><td><code>tokens</code> <code>composants</code> <code>redaction</code></td><td>non</td></tr><tr><td>Carbon</td><td><code>tokens</code> <code>composants</code> <code>redaction</code></td><td>oui, <code>segmented-control</code></td></tr><tr><td>Spectrum</td><td><code>tokens</code> <code>composants</code></td><td>oui, <code>segmented-control</code></td></tr><tr><td>Primer</td><td><code>tokens</code></td><td>non</td></tr><tr><td>Polaris</td><td><code>tokens</code> <code>composants</code> <code>redaction</code></td><td>oui, <code>segmented-control</code></td></tr><tr><td>Material Design 3</td><td><code>tokens</code> <code>composants</code></td><td>oui, <code>segmented-control</code></td></tr><tr><td>Fluent 2</td><td><code>tokens</code> <code>composants</code></td><td>non</td></tr><tr><td>Simple Design System</td><td><code>tokens</code></td><td>non</td></tr><tr><td>Radix Themes</td><td><code>tokens</code> <code>composants</code></td><td>oui, <code>segmented-control</code></td></tr><tr><td>Tailwind CSS</td><td><code>tokens</code></td><td>non</td></tr><tr><td>shadcn/ui</td><td><code>tokens</code></td><td>non</td></tr><tr><td>Material UI</td><td><code>tokens</code></td><td>non</td></tr><tr><td>Untitled UI</td><td><code>tokens</code></td><td>non</td></tr><tr><td>Ant Design</td><td><code>tokens</code> <code>composants</code></td><td>oui, <code>segmented-control</code></td></tr><tr><td>GOV.UK Design System</td><td><code>tokens</code> <code>comportement</code> <code>redaction</code></td><td>non</td></tr><tr><td>WAI-ARIA Authoring Practices Guide</td><td><code>comportement</code></td><td>oui, <code>segmented-control</code></td></tr><tr><td>React Aria Components</td><td><code>comportement</code></td><td>oui, <code>segmented-control</code></td></tr><tr><td>Open UI</td><td><code>nommage</code></td><td>non</td></tr></table></div>
     <p>Guides de <code>docs/references/analyses/</code> : <code>segmented-control</code>. La skill <code>guide-composant</code> les écrit. Écrire le guide d'un composant d'après les design systems du marché, avant de le créer dans UCM.</p>
   </div></details>
-  <details class="pli" id="annexe-outillage"><summary>Outillage des agents du dépôt <span class="doux">7 skills, 7 agents, 19 scripts</span></summary><div class="contenu">
+  <details class="pli" id="annexe-outillage"><summary>Outillage des agents du dépôt <span class="doux">8 skills, 7 agents, 19 scripts</span></summary><div class="contenu">
     <p>Les skills, les agents, les scripts npm et les jobs de CI qui font travailler les agents de code sur UCM-Toolkit, lus dans le dépôt à la génération. Un guide <code>AGENTS.md</code> et une carte par paquet, un domicile par fichier source et un contrôle de style rejoué à chaque écriture font travailler les agents sans perdre les règles du dépôt. L'agent d'une application reçoit autre chose : la skill <code>ucm-implementer</code>, les gabarits, les aides et le guide d'un contrat.</p>
     <p class="defini">Défini dans <code>AGENTS.md</code>, <code>.agents/skills/</code>, <code>.claude/agents/</code>, <code>package.json</code> et <code>.github/workflows/</code>.</p>
     <h4>Skills</h4>
-    <div class="defile"><table><tr><th>Skill</th><th>Rôle</th></tr><tr><td><code>archiver-un-sujet</code></td><td>Archiver le sujet d'une piste livrée de pistes.json : garder ses outils et ses faits uniques, supprimer ses autres documents après confirmation du mainteneur, figer les liens.</td></tr><tr><td><code>consommer-contrat</code></td><td>Reconstruire à froid un composant jetable depuis son contrat UCM.</td></tr><tr><td><code>guide-composant</code></td><td>Écrire le guide d'un composant d'après les design systems du marché, avant de le créer dans UCM.</td></tr><tr><td><code>publier-paquets</code></td><td>Publier @ucm-kit/core, @ucm-kit/cli ou @ucm-kit/adapter-typescript sur npm après une montée de version.</td></tr><tr><td><code>rediger-diagnostics-ucm</code></td><td>Rédiger ou revoir les erreurs, avertissements et rapports CI destinés aux designers dans les projets UCM.</td></tr><tr><td><code>rediger-pour-agents</code></td><td>Écrire ou réécrire un fichier lu par les agents (AGENTS.md, CLAUDE.md, invariants, cartes, définitions d'agents, skills) dans la forme compacte du dépôt, sans perdre aucune information.</td></tr><tr><td><code>relire-le-style</code></td><td>Relire un texte déjà écrit (document, plan, maquette, rapport long) pour y trouver les tours fautifs.</td></tr></table></div>
+    <div class="defile"><table><tr><th>Skill</th><th>Rôle</th></tr><tr><td><code>archiver-un-sujet</code></td><td>Archiver le sujet d'une piste livrée de pistes.json : garder ses outils et ses faits uniques, supprimer ses autres documents après confirmation du mainteneur, figer les liens.</td></tr><tr><td><code>consommer-contrat</code></td><td>Reconstruire à froid un composant jetable depuis son contrat UCM.</td></tr><tr><td><code>guide-composant</code></td><td>Écrire le guide d'un composant d'après les design systems du marché, avant de le créer dans UCM.</td></tr><tr><td><code>publier-paquets</code></td><td>Publier @ucm-kit/core, @ucm-kit/cli ou @ucm-kit/adapter-typescript sur npm après une montée de version.</td></tr><tr><td><code>rediger-diagnostics-ucm</code></td><td>Rédiger ou revoir les erreurs, avertissements et rapports CI destinés aux designers dans les projets UCM.</td></tr><tr><td><code>rediger-pour-agents</code></td><td>Écrire ou réécrire un fichier lu par les agents (AGENTS.md, CLAUDE.md, invariants, cartes, définitions d'agents, skills) dans la forme compacte du dépôt, sans perdre aucune information.</td></tr><tr><td><code>regler-le-linter</code></td><td>Ajouter ou retirer une valeur neutre, une propriété d'une famille ou une autre entrée des listes du contrôle du code (linter UCM et ucm check).</td></tr><tr><td><code>relire-le-style</code></td><td>Relire un texte déjà écrit (document, plan, maquette, rapport long) pour y trouver les tours fautifs.</td></tr></table></div>
     <h4>Agents</h4>
     <div class="defile"><table><tr><th>Agent</th><th>Modèle</th><th>Rôle</th></tr><tr><td><code>Explore</code></td><td>sonnet</td><td>Recherche en lecture seule dans le code du dépôt quand il faut balayer plusieurs dossiers ou conventions de nommage et que seule la conclusion compte.</td></tr><tr><td><code>chercheur</code></td><td>sonnet</td><td>Recherche sourcée sur une question précise (API Figma, outils du marché, littérature, plugins concurrents).</td></tr><tr><td><code>executant</code></td><td>haiku</td><td>Fait une modification mécanique à résultat unique listée par un plan validé : numéro de version, remplacement listé, renvoi de documentation.</td></tr><tr><td><code>implementeur-exigeant</code></td><td>sonnet</td><td>Implémente une tâche d'un plan validé qui touche plusieurs lecteurs d'une même règle, ou une interface à reproduire au pixel près.</td></tr><tr><td><code>implementeur</code></td><td>sonnet</td><td>Implémente un lot d'un plan validé (PLAN-IMPLEMENTATION.md, lots, phases) quand le lot a des critères vérifiables et touche un périmètre de fichiers connu.</td></tr><tr><td><code>releveur</code></td><td>sonnet</td><td>Écrit les fiches d'un composant pour une liste de systèmes, à l'étape 4 de la skill guide-composant.</td></tr><tr><td><code>verificateur</code></td><td>haiku</td><td>Lance des commandes de vérification (npm test, npm run typecheck, npm run build, test:ui, scripts de mesure ou de vérification d'une maquette, controle-style, docLinks) et rend un tableau des résultats.</td></tr></table></div>
     <h4>Scripts npm de la racine</h4>
@@ -1371,21 +1542,21 @@ a.produit:focus-visible { outline: 2px solid var(--vif); outline-offset: 1px; }
     <h4>Jobs des workflows</h4>
     <div class="defile"><table><tr><th>Job</th><th>Déclencheur</th><th>Ce qu'il lance</th></tr><tr><td><code>ci.yml</code>, job <code>test</code></td><td>push sur main, pull request</td><td><code>npm test</code>, <code>npm run build</code></td></tr><tr><td><code>ci.yml</code>, job <code>cascade</code></td><td>push sur main, pull request</td><td><code>npm run cascade</code>, <code>npm run test:ui --workspace ucm-exporter-plugin</code>, <code>npm run test:ui --workspace ucm-palettes-plugin</code>, <code>npm run test:ui --workspace ucm-architect-plugin</code></td></tr><tr><td><code>publish.yml</code>, job <code>publish</code></td><td>lancement à la main</td><td><code>npm test</code>, <code>npm publish --workspace "$PAQUET"</code>, <code>node scripts/pins-servis.mjs</code></td></tr></table></div>
   </div></details>
-  <details class="pli" id="annexe-entrees"><summary>Les 9 points d'entrée du kit <span class="doux">453 noms uniques, la CLI et l'adaptateur en importent 46</span></summary><div class="contenu">
+  <details class="pli" id="annexe-entrees"><summary>Les 9 points d'entrée du kit <span class="doux">454 noms uniques, la CLI et l'adaptateur en importent 46</span></summary><div class="contenu">
     <p>Les chemins d'import de <code>@ucm-kit/core</code>, lus dans <code>packages/kit/package.json</code>, avec le nombre de noms que chacun exporte. Ils disent ce qu'un outil peut importer du kit, et ce que la piste <a href="#piste-P3">P3</a> doit figer.</p>
     <div class="defile"><table>
       <tr><th>Point d'entrée</th><th class="n">Exports</th><th>Contenu</th></tr>
-      <tr><td><code>./modules</code></td><td class="n">7</td><td>La seule porte promise aux modules des développeurs : lire la configuration, les contrats et les tokens comme <code>ucm check</code>. Ses règles sont dans <code>packages/kit/invariants/versionnage.md</code>.</td></tr>
+      <tr><td><code>./modules</code></td><td class="n">8</td><td>La seule porte promise aux modules des développeurs : lire la configuration, les contrats et les tokens comme <code>ucm check</code>. Ses règles sont dans <code>packages/kit/invariants/versionnage.md</code>.</td></tr>
       <tr><td><code>./format</code></td><td class="n">46</td><td>Types du contrat, versions, noms de code et de variable CSS, grammaire de <code>ucm.config.json</code></td></tr>
       <tr><td><code>./emplois</code></td><td class="n">41</td><td>Table du thème, 9 garanties, contraste WCAG, sans dépendance</td></tr>
       <tr><td><code>./referentiel</code></td><td class="n">210</td><td>Toutes les définitions UCM (partie 4)</td></tr>
       <tr><td><code>./controles</code></td><td class="n">56</td><td>Contrôles, corrections, préparation des tokens</td></tr>
       <tr><td><code>./protocoles</code></td><td class="n">46</td><td>Données échangées entre plugins : recette, nommage, architecture</td></tr>
       <tr><td><code>./nommage</code></td><td class="n">19</td><td>Calcul des noms selon les règles du fichier</td></tr>
-      <tr><td><code>./lecteurs</code></td><td class="n">80</td><td>Validation de contrat, tokens, parité, rapport, verdict, en <code>.mjs</code> avec Node</td></tr>
+      <tr><td><code>./lecteurs</code></td><td class="n">81</td><td>Validation de contrat, tokens, parité, rapport, verdict, en <code>.mjs</code> avec Node</td></tr>
       <tr><td><code>./lecteurs/navigateur</code></td><td class="n">62</td><td>Les mêmes lecteurs sans Node</td></tr>
     </table></div>
-    <p>Les deux points d'entrée des lecteurs partagent la plupart de leurs noms, d'où 567 exports pour 453 noms uniques. Une définition UCM se modifie dans <code>src/referentiel/</code> seulement, et un test refuse sa copie ailleurs. <code>emplois</code> n'a aucune dépendance. Le kit n'importe rien du moteur de couleur. Chaque modification du référentiel change la version du kit.</p>
+    <p>Les deux points d'entrée des lecteurs partagent la plupart de leurs noms, d'où 569 exports pour 454 noms uniques. Une définition UCM se modifie dans <code>src/referentiel/</code> seulement, et un test refuse sa copie ailleurs. <code>emplois</code> n'a aucune dépendance. Le kit n'importe rien du moteur de couleur. Chaque modification du référentiel change la version du kit.</p>
   </div></details>
 
   <details class="pli" id="annexe-tests"><summary>Fichiers de test des paquets <span class="doux">nombre de fichiers par paquet</span></summary><div class="contenu">
@@ -1397,7 +1568,7 @@ a.produit:focus-visible { outline: 2px solid var(--vif); outline-offset: 1px; }
       <tr><td>Contract Exporter</td><td class="n">77</td></tr>
       <tr><td>Socle</td><td class="n">36</td></tr>
       <tr><td>CLI</td><td class="n">13</td></tr>
-      <tr><td>Adaptateur TypeScript</td><td class="n">4</td></tr>
+      <tr><td>Adaptateur TypeScript</td><td class="n">5</td></tr>
       <tr><td>Kit</td><td class="n">127</td></tr>
       <tr><td>Moteur de couleur</td><td class="n">34</td></tr>
       <tr><td>Hub UCM</td><td class="n">1</td></tr>
@@ -1763,7 +1934,7 @@ a.produit:focus-visible { outline: 2px solid var(--vif); outline-offset: 1px; }
   var SUJETS = {"Règle de blocage":{"texte":"#86198f","fond":"#fae8ff"},"Vérification du rendu":{"texte":"#155e75","fond":"#cffafe"},"API du kit":{"texte":"#3730a3","fond":"#e0e7ff"},"Modules consommateurs":{"texte":"#115e59","fond":"#ccfbf1"},"Bibliothèque de production":{"texte":"#78350f","fond":"#f0e0cc"},"Architecture des tokens":{"texte":"#5b21b6","fond":"#ede9fe"},"Format du contrat":{"texte":"#065f46","fond":"#a7f3d0"},"Documentation":{"texte":"#3f6212","fond":"#d9f99d"},"Outils de revue":{"texte":"#075985","fond":"#bae6fd"}};
   PISTES.forEach(function (x) { x.complexite = x.complexite.toUpperCase(); });
   // Les décisions que le dépôt porte (decisions.json) : la base de comparaison avec le choix gardé dans ce navigateur.
-  var DECISIONS_DU_DEPOT = {"version":1,"pistes":{"P17":{"choix":"oui","note":"On le fait mais plus tard, ce n'est pas prioritaire pour le moment."}},"transverses":{},"regles":[{"id":"libre-dans-le-code","genre":"carte","texte":"Tout ce que le contrat ne décrit pas reste libre dans le code : enveloppes, props non visuelles, placement par le parent, animations.","domicileCible":"CONCEPT.md#Le code reste libre hors du contrat","ecrite":"oui","pistes":[]},{"id":"validation-visuelle-sans-blocage","genre":"carte","texte":"La validation visuelle du designer ne bloque jamais.","domicileCible":"docs/guides/POUR-LES-DESIGNERS.md#6. Ce qui bloque la fusion et ce qui avertit","ecrite":"oui","pistes":[]},{"id":"rendu-valide-devient-reference","genre":"liste","pour":"developpeur","texte":"Un rendu validé par le designer devient la capture de référence. Un changement du code seul qui la modifie bloque (P10, P20).","domicileCible":"docs/notes/Recherches/Linter Dev/PLAN-CONFORMITE-RENDU.md#7. Règle de sévérité","ecrite":"oui","pistes":["P10","P20"]},{"id":"coeur-un-seul-mainteneur","genre":"liste","pour":"toolkit","texte":"Le cœur (kit, format, plugins) a un seul mainteneur. Un changement du kit se décide avec lui.","domicileCible":"CONTRIBUTING.md","ecrite":"non","pistes":[]},{"id":"storybook-remplace-le-hub","genre":"liste","pour":"developpeur","texte":"Storybook remplacera le Hub UCM (P9) ; le moment reste ouvert.","domicileCible":"docs/notes/Recherches/README.md#Sujets","ecrite":"partiel","pistes":["P9"]},{"id":"flux-de-figma-vers-le-code","genre":"liste","pour":"designer developpeur","texte":"Le flux va de Figma vers le code seulement. Les outils suivent l'architecture full UCM, et seul l'Exporter est agnostique, en option.","domicileCible":"CONCEPT.md#Les produits et les deux périmètres","ecrite":"oui","pistes":[]},{"id":"demande-de-tokens-sans-blocage","genre":"tableau","pour":"designer","texte":"Le designer exporte `tokens.json` et fusionne seul une demande de tokens, grâce à un fichier `CODEOWNERS` (P17). Elle passe toujours.","domicileCible":"docs/guides/POUR-LES-DESIGNERS.md#6. Ce qui bloque la fusion et ce qui avertit","ecrite":"partiel","pistes":["P17"]},{"id":"fusion-rouge-impossible","genre":"tableau","pour":"developpeur","texte":"Une demande dont le check `contrats` est rouge ne se fusionne pas : le check est exigé sur `main` (P17).","domicileCible":"docs/guides/POUR-LES-DESIGNERS.md#6. Ce qui bloque la fusion et ce qui avertit","ecrite":"non","pistes":["P17"]},{"id":"ecart-de-code-bloque","genre":"tableau","pour":"developpeur","texte":"Un token absent, une prop du code qui s'écarte du contrat et un écart de parité bloquent la fusion (P19). Une dérogation motivée laisse passer un écart de parité.","domicileCible":"docs/guides/POUR-LES-DESIGNERS.md#6. Ce qui bloque la fusion et ce qui avertit","ecrite":"oui","pistes":["P19"]},{"id":"rendu-controle-par-le-verificateur","genre":"tableau","pour":"developpeur","texte":"La couleur rendue, les dimensions, la typographie, la structure et l'ordre rendus bloquent après comparaison du rendu au contrat (P10, P20).","domicileCible":"docs/guides/POUR-LES-DESIGNERS.md#6. Ce qui bloque la fusion et ce qui avertit","ecrite":"oui","pistes":["P10","P20"]},{"id":"valeur-en-dur-bloquee-par-le-linter","genre":"tableau","pour":"developpeur","texte":"Une valeur écrite en dur dans le code bloque, par le linter (P6).","domicileCible":"docs/guides/POUR-LES-DESIGNERS.md#6. Ce qui bloque la fusion et ce qui avertit","ecrite":"oui","pistes":["P6"]},{"id":"composant-en-retard-passe","genre":"tableau","pour":"developpeur","texte":"Une demande qui ne modifie que le contrat marque le composant en retard sur son contrat, et la demande passe.","domicileCible":"docs/guides/POUR-LES-DESIGNERS.md#6. Ce qui bloque la fusion et ce qui avertit","ecrite":"oui","pistes":[]},{"id":"T1","genre":"transverse","pour":"developpeur","titre":"Ce que le linter refuse en plus","texte":"Une prop, une variante ou un élément absents du contrat. La recherche propose : un élément est visuel s'il peint ou prend de la place.","domicileCible":"docs/notes/Recherches/Linter Dev/PLAN-CONFORMITE-RENDU.md#7. Règle de sévérité","ecrite":"partiel","pistes":["P6","P10"]},{"id":"T2","genre":"transverse","pour":"developpeur","titre":"Token retiré par une demande de tokens seuls","texte":"« Une demande de tokens seuls passe toujours » contredit le blocage d'un token retiré que le code cite.","domicileCible":"docs/notes/Recherches/Linter Dev/PLAN-CONFORMITE-RENDU.md#7. Règle de sévérité","ecrite":"partiel","pistes":["P19"]},{"id":"T3","genre":"transverse","pour":"developpeur","titre":"Délai du composant en retard","texte":"Le composant qu'une demande du designer casse est marqué en retard, et la prochaine demande d'un développeur dessus bloque. Le délai n'est pas fixé.","domicileCible":"docs/notes/Recherches/Linter Dev/PLAN-CONFORMITE-RENDU.md#7. Règle de sévérité","ecrite":"partiel","pistes":["P19"]},{"id":"T4","genre":"transverse","pour":"developpeur","titre":"Forme de la dérogation","texte":"Fichier ou section de configuration, portée, motif, auteur, expiration.","domicileCible":"docs/notes/Recherches/Linter Dev/PLAN-CONFORMITE-RENDU.md#7. Règle de sévérité","ecrite":"partiel","pistes":["P19","P20"]},{"id":"T5","genre":"transverse","pour":"developpeur","titre":"Marque des slots","texte":"La convention `data-ucm-slot` permet au vérificateur de retrouver les calques sans code propre à chaque composant.","domicileCible":"docs/notes/Recherches/Linter Dev/PLAN-CONFORMITE-RENDU.md","ecrite":"non","pistes":["P10"]},{"id":"T6","genre":"transverse","pour":"toolkit","titre":"Un dépôt ou plusieurs","texte":"Le mainteneur préfère le monorepo. Une autre répartition range les définitions dans le toolkit et l'intégration dans intencial-library.","domicileCible":"CONCEPT.md","ecrite":"non","pistes":["P6","P9","P18"]},{"id":"T7","genre":"transverse","pour":"developpeur","titre":"Modules dans `ucm check`","texte":"`ucm.config.json` lit trois champs. Une clé `modules` n'activerait rien.","domicileCible":"docs/notes/Recherches/Linter Dev/PLAN-CONFORMITE-RENDU.md","ecrite":"non","pistes":[]},{"id":"T8","genre":"transverse","pour":"toolkit","titre":"Langue des modules","texte":"Code du kit en français, format en anglais, README de la CLI en anglais.","domicileCible":"CONTRIBUTING.md","ecrite":"non","pistes":[]},{"id":"T9","genre":"transverse","pour":"developpeur","titre":"Périmètre d'`ucm check`","texte":"Seul l'Exporter est agnostique, mais `ucm check` accepte aujourd'hui toute structure.","domicileCible":"CONCEPT.md#Les produits et les deux périmètres","ecrite":"oui","pistes":[]},{"id":"T10","genre":"transverse","pour":"developpeur","titre":"Ordre de P8 et P9","texte":"Cette page place P8, l'intégration automatique, après le vérificateur de rendu, parce que la boucle d'un agent qui corrige jusqu'à un rapport vide en a besoin. L'ordre décidé des modules met l'intégration avant Storybook.","options":[{"valeur":"apres","libelle":"P8 après le vérificateur (ordre de cette page)"},{"valeur":"avant","libelle":"Intégration avant Storybook (ordre décidé des modules)"}],"domicileCible":"docs/notes/Recherches/Linter Dev/PLAN-CONFORMITE-RENDU.md","ecrite":"non","pistes":["P8","P9"]}]};
+  var DECISIONS_DU_DEPOT = {"version":1,"pistes":{"P17":{"choix":"oui","note":"On le fait mais plus tard, ce n'est pas prioritaire pour le moment."}},"transverses":{},"regles":[{"id":"libre-dans-le-code","genre":"carte","texte":"Tout ce que le contrat ne décrit pas reste libre dans le code : enveloppes, props non visuelles, placement par le parent, animations.","domicileCible":"CONCEPT.md#Le code reste libre hors du contrat","ecrite":"oui","pistes":[]},{"id":"validation-visuelle-sans-blocage","genre":"carte","texte":"La validation visuelle du designer ne bloque jamais.","domicileCible":"docs/guides/POUR-LES-DESIGNERS.md#6. Ce qui bloque la fusion et ce qui avertit","ecrite":"oui","pistes":[]},{"id":"rendu-valide-devient-reference","genre":"liste","pour":"developpeur","texte":"Un rendu validé par le designer devient la capture de référence. Un changement du code seul qui la modifie bloque (P10, P20).","domicileCible":"docs/notes/Recherches/Linter Dev/PLAN-CONFORMITE-RENDU.md#7. Règle de sévérité","ecrite":"oui","pistes":["P10","P20"]},{"id":"coeur-un-seul-mainteneur","genre":"liste","pour":"toolkit","texte":"Le cœur (kit, format, plugins) a un seul mainteneur. Un changement du kit se décide avec lui.","domicileCible":"CONTRIBUTING.md","ecrite":"non","pistes":[]},{"id":"storybook-remplace-le-hub","genre":"liste","pour":"developpeur","texte":"Storybook remplacera le Hub UCM (P9) ; le moment reste ouvert.","domicileCible":"docs/notes/Recherches/README.md#Sujets","ecrite":"partiel","pistes":["P9"]},{"id":"flux-de-figma-vers-le-code","genre":"liste","pour":"designer developpeur","texte":"Le flux va de Figma vers le code seulement. Les outils suivent l'architecture full UCM, et seul l'Exporter est agnostique, en option.","domicileCible":"CONCEPT.md#Les produits et les deux périmètres","ecrite":"oui","pistes":[]},{"id":"demande-de-tokens-sans-blocage","genre":"tableau","pour":"designer","texte":"Le designer exporte `tokens.json` et fusionne seul une demande de tokens, grâce à un fichier `CODEOWNERS` (P17). Elle passe toujours.","domicileCible":"docs/guides/POUR-LES-DESIGNERS.md#6. Ce qui bloque la fusion et ce qui avertit","ecrite":"partiel","pistes":["P17"]},{"id":"fusion-rouge-impossible","genre":"tableau","pour":"developpeur","texte":"Une demande dont le check `contrats` est rouge ne se fusionne pas : le check est exigé sur `main` (P17).","domicileCible":"docs/guides/POUR-LES-DESIGNERS.md#6. Ce qui bloque la fusion et ce qui avertit","ecrite":"non","pistes":["P17"]},{"id":"ecart-de-code-bloque","genre":"tableau","pour":"developpeur","texte":"Un token absent, une prop du code qui s'écarte du contrat et un écart de parité bloquent la fusion (P19). Une dérogation motivée laisse passer un écart de parité.","domicileCible":"docs/guides/POUR-LES-DESIGNERS.md#6. Ce qui bloque la fusion et ce qui avertit","ecrite":"oui","pistes":["P19"]},{"id":"rendu-controle-par-le-verificateur","genre":"tableau","pour":"developpeur","texte":"La couleur rendue, les dimensions, la typographie, la structure et l'ordre rendus bloquent après comparaison du rendu au contrat (P10, P20).","domicileCible":"docs/guides/POUR-LES-DESIGNERS.md#6. Ce qui bloque la fusion et ce qui avertit","ecrite":"oui","pistes":["P10","P20"]},{"id":"valeur-en-dur-bloquee-par-le-linter","genre":"liste","pour":"developpeur","texte":"Une valeur écrite en dur dans le code d'un composant bloque la demande d'un développeur qui le modifie, par `ucm check` et le linter (P6).","domicileCible":"docs/guides/POUR-LES-DESIGNERS.md#6. Ce qui bloque la fusion et ce qui avertit","ecrite":"oui","pistes":["P6"]},{"id":"composant-en-retard-passe","genre":"tableau","pour":"developpeur","texte":"Une demande qui ne modifie que le contrat marque le composant en retard sur son contrat, et la demande passe.","domicileCible":"docs/guides/POUR-LES-DESIGNERS.md#6. Ce qui bloque la fusion et ce qui avertit","ecrite":"oui","pistes":[]},{"id":"T1","genre":"transverse","pour":"developpeur","titre":"Ce que le linter refuse en plus","texte":"Une prop, une variante ou un élément absents du contrat. La recherche propose : un élément est visuel s'il peint ou prend de la place.","domicileCible":"docs/notes/Recherches/Linter Dev/PLAN-CONFORMITE-RENDU.md#7. Règle de sévérité","ecrite":"partiel","pistes":["P6","P10"]},{"id":"T2","genre":"transverse","pour":"developpeur","titre":"Token retiré par une demande de tokens seuls","texte":"« Une demande de tokens seuls passe toujours » contredit le blocage d'un token retiré que le code cite.","domicileCible":"docs/notes/Recherches/Linter Dev/PLAN-CONFORMITE-RENDU.md#7. Règle de sévérité","ecrite":"partiel","pistes":["P19"]},{"id":"T3","genre":"transverse","pour":"developpeur","titre":"Délai du composant en retard","texte":"Le composant qu'une demande du designer casse est marqué en retard, et la prochaine demande d'un développeur dessus bloque. Le délai n'est pas fixé.","domicileCible":"docs/notes/Recherches/Linter Dev/PLAN-CONFORMITE-RENDU.md#7. Règle de sévérité","ecrite":"partiel","pistes":["P19"]},{"id":"T4","genre":"transverse","pour":"developpeur","titre":"Forme de la dérogation","texte":"Fichier ou section de configuration, portée, motif, auteur, expiration.","domicileCible":"docs/notes/Recherches/Linter Dev/PLAN-CONFORMITE-RENDU.md#7. Règle de sévérité","ecrite":"partiel","pistes":["P19","P20"]},{"id":"T5","genre":"transverse","pour":"developpeur","titre":"Marque des slots","texte":"La convention `data-ucm-slot` permet au vérificateur de retrouver les calques sans code propre à chaque composant.","domicileCible":"docs/notes/Recherches/Linter Dev/PLAN-CONFORMITE-RENDU.md","ecrite":"non","pistes":["P10"]},{"id":"T6","genre":"transverse","pour":"toolkit","titre":"Un dépôt ou plusieurs","texte":"Le mainteneur préfère le monorepo. Une autre répartition range les définitions dans le toolkit et l'intégration dans intencial-library.","domicileCible":"CONCEPT.md","ecrite":"non","pistes":["P6","P9","P18"]},{"id":"T7","genre":"transverse","pour":"developpeur","titre":"Modules dans `ucm check`","texte":"`ucm.config.json` lit trois champs. Une clé `modules` n'activerait rien.","domicileCible":"docs/notes/Recherches/Linter Dev/PLAN-CONFORMITE-RENDU.md","ecrite":"non","pistes":[]},{"id":"T8","genre":"transverse","pour":"toolkit","titre":"Langue des modules","texte":"Code du kit en français, format en anglais, README de la CLI en anglais.","domicileCible":"CONTRIBUTING.md","ecrite":"non","pistes":[]},{"id":"T9","genre":"transverse","pour":"developpeur","titre":"Périmètre d'`ucm check`","texte":"Seul l'Exporter est agnostique, mais `ucm check` accepte aujourd'hui toute structure.","domicileCible":"CONCEPT.md#Les produits et les deux périmètres","ecrite":"oui","pistes":[]},{"id":"T10","genre":"transverse","pour":"developpeur","titre":"Ordre de P8 et P9","texte":"Cette page place P8, l'intégration automatique, après le vérificateur de rendu, parce que la boucle d'un agent qui corrige jusqu'à un rapport vide en a besoin. L'ordre décidé des modules met l'intégration avant Storybook.","options":[{"valeur":"apres","libelle":"P8 après le vérificateur (ordre de cette page)"},{"valeur":"avant","libelle":"Intégration avant Storybook (ordre décidé des modules)"}],"domicileCible":"docs/notes/Recherches/Linter Dev/PLAN-CONFORMITE-RENDU.md","ecrite":"non","pistes":["P8","P9"]}]};
   var RANGS = ['Avant d’ouvrir le projet', 'Socle de la bibliothèque et verdict', 'Premiers modules', 'Vérification du rendu', 'Utile, sans urgence', 'Plus tard'];
   var IMPORTANCES = { critique: ['●●●', 'critique'], haute: ['●●', 'haute'], moyenne: ['●', 'moyenne'], basse: ['○', 'basse'] };
   var TAILLES = { S: 'petite', M: 'moyenne', L: 'grande', XL: 'un projet' };

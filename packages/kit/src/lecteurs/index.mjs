@@ -18,6 +18,13 @@ export {
 } from "./implementation.mjs";
 
 /**
+ * Juge le code d'un fichier contre le contrat, `tokens.json` et les
+ * dérogations. Le juge intérieur (`preparerControleDepuis`) et les listes
+ * restent dans leur module.
+ */
+export { preparerControle } from "./controle-du-code.mjs";
+
+/**
  * Ouvre `ucm.config.json` sur disque ; sa grammaire reste dans `format` pour
  * que le plugin Figma utilise la même autorité.
  */

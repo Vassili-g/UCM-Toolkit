@@ -7,7 +7,7 @@ contracts. It lives outside
 depends on the TypeScript compiler, a 23 MB dependency.
 
 ```sh
-npm install --save-dev @ucm-kit/adapter-typescript@0.2.13 @ucm-kit/cli@0.2.2
+npm install --save-dev @ucm-kit/adapter-typescript@0.2.14 @ucm-kit/cli@0.3.0
 npx ucm-typescript          # generates the types from the contracts
 npx --no-install ucm check  # checks the contracts, parity included
 ```
@@ -76,6 +76,14 @@ props. Each file exports one union per enum prop, such as `ButtonVariant`, and
 a component's props against these unions rather than against a hand-copied
 list, and run the command again after each export. An unreadable contract is
 skipped and named; `ucm check` reports why.
+
+## Code reader for modules
+
+`@ucm-kit/adapter-typescript/usages` serves one name, `lecteurDuCode`, which
+reads the strings, style declarations and `--name` variables a `.ts` or `.tsx`
+component writes. Pass it to `preparerControle` from `@ucm-kit/core/modules`,
+which judges them. Every change to it is written in
+[CHANGELOG.md](./CHANGELOG.md).
 
 ## Status
 

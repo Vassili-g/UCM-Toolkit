@@ -4,6 +4,22 @@ Ce journal note chaque changement de `@ucm-kit/core/modules`, la seule porte du 
 
 Une entrée a un genre (`ajout`, `déprécié` ou `rupture`), nomme les noms touchés entre accents graves, dit le geste à faire dans un module, et se termine par « Décidé par ... ». Les règles sont dans `invariants/versionnage.md`.
 
+## 0.17.4
+
+### ajout
+
+La prise gagne `preparerControle`, qui juge le code d'un fichier de composant. Un module lui donne le fichier et le lecteur du code, et reçoit des constats complets : message, position, règle et commande de dérogation. C'est la fonction qu'`ucm check` appelle, donc l'éditeur et la CI disent la même chose.
+
+- `preparerControle` lit `ucm.config.json`, les contrats, `tokens.json` et `.ucm/derogations.json` à chaque appel, et ne lève jamais : une panne de lecture devient une limite. Son option `texte` juge un texte non enregistré.
+- `ControleDuFichier` est son résultat : la racine, le fichier, les composants, les limites et les constats.
+- `Constat` est un constat ; le contenu de `faits` dépend de son `code`. `CodeDeConstat` liste les codes, et `RegleDuControle` les deux règles qu'un module affiche, `token-inconnu` et `valeur-en-dur`.
+- `Limite` est ce que le contrôle n'a pas pu juger, avec `CodeDeLimite` pour ses codes.
+- `LecteurDuCode` est le lecteur que `preparerControle` appelle. Ses résultats sont `UsagesDuCode`, `ChaineDuCode`, `DeclarationDuCode`, `DirectiveDuCode`, `LectureDuCode` et `FichiersDuComposant`.
+
+Geste pour un module : importer ces noms depuis `@ucm-kit/core/modules` et le lecteur depuis `@ucm-kit/adapter-typescript/usages`, écrire une règle par valeur de `regle`, et ne jamais afficher en erreur un constat qui porte `deroge`.
+
+Décidé par le mainteneur (Q7 A).
+
 ## 0.17.0
 
 ### ajout

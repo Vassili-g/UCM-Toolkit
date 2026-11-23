@@ -16,6 +16,7 @@ export {
   verdictDeVersion,
   vueExacteDuVariant,
   indexerTokensDtcg,
+  preparerControle,
 } from "@ucm-kit/core/lecteurs";
 
 export { isTokenReference, tokenCssVariable } from "@ucm-kit/core/format";

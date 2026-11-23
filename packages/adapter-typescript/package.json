@@ -1,6 +1,6 @@
 {
   "name": "@ucm-kit/adapter-typescript",
-  "version": "0.2.13",
+  "version": "0.2.14",
   "description": "Adaptateur TypeScript UCM : parité statique des composants et génération des types dérivés des contrats.",
   "type": "module",
   "license": "MIT",
@@ -20,6 +20,7 @@
   },
   "files": [
     "src",
+    "CHANGELOG.md",
     "README.md",
     "LICENSE"
   ],
@@ -28,6 +29,10 @@
       "types": "./src/index.d.mts",
       "default": "./src/index.mjs"
     },
+    "./usages": {
+      "types": "./src/usages.d.mts",
+      "default": "./src/usages.mjs"
+    },
     "./package.json": "./package.json"
   },
   "scripts": {
@@ -35,7 +40,7 @@
     "test": "node scripts/run-tests.cjs"
   },
   "dependencies": {
-    "@ucm-kit/core": "0.17.3",
+    "@ucm-kit/core": "0.17.4",
     "typescript": ">=5.5.0 <6"
   }
 }

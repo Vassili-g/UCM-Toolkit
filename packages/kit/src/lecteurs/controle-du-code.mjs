@@ -9,9 +9,9 @@
  * Les listes, les codes et les messages vivent dans
  * `controle-du-code-listes.mjs`.
  *
- * Les noms sortent par une liste `export { … }` en fin de fichier :
- * `surfaceLecteurs.test.mjs` exige sinon qu'`index.mjs` republie chaque
- * `export function`, et le plan P6 n'ouvre cette porte qu'au lot 3.1.
+ * `preparerControle` est la seule fonction de la prise. Les autres noms sortent
+ * par la liste `export { … }` en fin de fichier : `surfaceLecteurs.test.mjs`
+ * exigerait sinon qu'`index.mjs` les republie.
  */
 import { existsSync, readFileSync } from "node:fs";
 import { dirname, extname, isAbsolute, join, relative, resolve, sep } from "node:path";
@@ -604,7 +604,7 @@ function lireLesDerogations(racine) {
  * Rend `{ racine, fichier, composants, limites, constats }` ; `fichier` est
  * relatif à la racine, avec `/`.
  */
-function preparerControle(fichier, { texte, lecteur, racine } = {}) {
+export function preparerControle(fichier, { texte, lecteur, racine } = {}) {
   const vide = (limites, racineTrouvee = null, absolu = null) => ({
     racine: racineTrouvee,
     fichier: racineTrouvee !== null && absolu !== null ? enSlash(relative(racineTrouvee, absolu)) : null,
@@ -651,7 +651,6 @@ function preparerControle(fichier, { texte, lecteur, racine } = {}) {
 }
 
 export {
-  preparerControle,
   preparerControleDepuis,
   jugerChaine,
   jugerDeclaration,

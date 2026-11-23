@@ -10,3 +10,10 @@ Adaptateur opt-in : parité TS/TSX et types générés.
 - cli.mjs : commande `ucm-typescript`
 - index.mjs : ce que `ucm check` charge quand il le découvre
 - index.d.mts : ce que cette porte promet à un consommateur TS
+- usages.d.mts : seule déclaration de la porte `./usages`, qui publie `lecteurDuCode`
+
+## tests/
+- usagesPromis.test.mjs : la porte `./usages` comparée à sa version précédente dans Git, exemples d'appel, compilation avec `preparerControle`, entrée du journal
+
+## ./
+- CHANGELOG.md : journal de la porte `./usages`

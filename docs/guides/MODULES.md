@@ -22,8 +22,8 @@ Un module importe le kit par `@ucm-kit/core/modules`, et par aucune autre porte
 `lecteurs`, `lecteurs/navigateur`). Ces portes servent la CLI, l'adaptateur et
 les plugins, et changent sans préavis. Règle : [versionnage.md](../../packages/kit/invariants/versionnage.md).
 
-La prise a 8 noms, dont les signatures sont dans
-[`index.d.mts`](../../packages/kit/src/modules/index.d.mts) :
+Les signatures de la prise sont dans
+[`index.d.mts`](../../packages/kit/src/modules/index.d.mts). Elle publie :
 
 - `lireConfiguration(racine)` donne, d'après `ucm.config.json`, où sont les contrats, les tokens et le code ; sans fichier, la configuration par défaut.
 - `trouverContrats(dossier)` donne les chemins des `*.contract.json` d'un dossier, `node_modules` exclu.
@@ -33,9 +33,30 @@ La prise a 8 noms, dont les signatures sont dans
 - `isTokenReference(valeur)` dit si une valeur est une référence de token.
 - `tokenCssVariable(chemin)` donne le nom de la variable CSS d'un chemin de token.
 - `Contract` est le type TypeScript du contrat.
+- `preparerControle(fichier, options)` juge le code d'un fichier de composant et rend ses constats et ses limites (voir « Juger le code d'un composant »).
 
 Un module appelle `verdictDeVersion` avant de lire un contrat, puis traite
 `ancien` et `recent` comme deux messages différents.
+
+## Juger le code d'un composant
+
+Un module qui juge le code (le linter) importe deux noms, de deux paquets :
+
+```js
+import { lecteurDuCode } from "@ucm-kit/adapter-typescript/usages";
+import { preparerControle } from "@ucm-kit/core/modules";
+
+const controle = preparerControle(chemin, { texte, lecteur: lecteurDuCode });
+```
+
+- `lecteurDuCode` relève ce que le fichier écrit : chaînes, déclarations de style, variables `--nom`, commentaires qui désactivent une règle. Il lit la syntaxe et ne juge rien.
+- `preparerControle` relit `ucm.config.json`, les contrats, `tokens.json` et `.ucm/derogations.json` à chaque appel, juge le relevé et ne lève jamais. `texte` remplace le fichier du disque, pour juger un texte non enregistré. `racine` évite de remonter jusqu'au premier `ucm.config.json`. `ucm check` appelle la même fonction.
+- Le résultat est `{ racine, fichier, composants, limites, constats }`. Un constat porte `regle`, `code`, `niveau`, `composant`, `debut`, `fin`, `message` et `faits`, et selon le cas `coordonnees`, `commande` et `deroge`. Les formes de `faits` par `code`, les limites et leurs codes sont dans les types de [`index.d.mts`](../../packages/kit/src/modules/index.d.mts) (`ControleDuFichier`, `Constat`, `Limite`).
+- Un module écrit une règle par valeur de `regle`, affiche les limites en tête de fichier, n'affiche jamais en erreur un constat qui porte `deroge`, et affiche un constat `non-analyse` au plus en information.
+- `eslint-disable` ne cache aucun constat : un commentaire qui nomme une règle UCM donne `desactivation-interdite`, et `ucm check` juge le code sans lire les commentaires. Le cache d'ESLint reste désactivé.
+- Une correction automatique se limite à remplacer `"{chemin}"` par `"var(--nom)"` ; une valeur en dur ne se corrige jamais seule.
+
+Le plugin et la CLI emploient le même `@ucm-kit/core`, épinglé à l'exact. Le module emploie l'adaptateur que le repository installe pour `ucm check`, sans en déclarer un second. Les changements de la porte de l'adaptateur sont dans [`CHANGELOG.md`](../../packages/adapter-typescript/CHANGELOG.md).
 
 ## Épingler le kit
 
@@ -78,6 +99,9 @@ export default [
         patterns: [{
           group: ["@ucm-kit/core", "@ucm-kit/core/*", "!@ucm-kit/core/modules"],
           message: "Un module importe le kit par @ucm-kit/core/modules seulement.",
+        }, {
+          group: ["@ucm-kit/adapter-typescript", "@ucm-kit/adapter-typescript/*", "!@ucm-kit/adapter-typescript/usages"],
+          message: "Un module importe l'adaptateur par @ucm-kit/adapter-typescript/usages seulement.",
         }],
       }],
     },
@@ -87,7 +111,7 @@ export default [
 
 Le motif refuse `@ucm-kit/core` et toute sous-porte, et la négation
 `!@ucm-kit/core/modules` rétablit la prise. L'ordre compte : la négation vient
-après les motifs qu'elle excepte. La règle couvre `import`, `import type` et `export ... from`, mais pas `import()` ni `require()` : un module qui les emploie les garde par relecture.
+après les motifs qu'elle excepte. Le second motif fait de même pour l'adaptateur, dont la seule porte permise est `usages`. La règle couvre `import`, `import type` et `export ... from`, mais pas `import()` ni `require()` : un module qui les emploie les garde par relecture.
 
 ## Tester un module sur les contrats
 

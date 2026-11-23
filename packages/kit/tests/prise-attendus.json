@@ -115,5 +115,567 @@
   "tokenCssVariable : une virgule décimale": {
     "nom": "tokenCssVariable",
     "resultat": "--layouts-sizing-0-5"
+  },
+  "preparerControle : un nom de variable que tokens.json ne porte pas (échange 1 du cadrage)": {
+    "nom": "preparerControle",
+    "resultat": {
+      "fichier": "src/components/Button/Button.tsx",
+      "composants": [
+        "Button"
+      ],
+      "limites": [],
+      "constats": [
+        {
+          "regle": "token-inconnu",
+          "code": "token-inconnu",
+          "niveau": "ecart",
+          "composant": "Button",
+          "debut": 46,
+          "fin": 90,
+          "message": "`--components-button-sizes-medium-gapp` ne nomme aucun token de tokens.json, et aucun fichier du composant ne la déclare. Pour la garder, lancez `npx ucm deroger Button token-inconnu src/components/Button/Button.tsx --components-button-sizes-medium-gapp --motif \"…\"` avec votre raison à la place de `…`.",
+          "faits": {
+            "variable": "--components-button-sizes-medium-gapp"
+          },
+          "coordonnees": {
+            "fichier": "src/components/Button/Button.tsx",
+            "reference": "--components-button-sizes-medium-gapp"
+          },
+          "commande": "npx ucm deroger Button token-inconnu src/components/Button/Button.tsx --components-button-sizes-medium-gapp --motif \"…\""
+        }
+      ]
+    }
+  },
+  "preparerControle : une valeur en dur dans un fichier que le composant importe (échange 2)": {
+    "nom": "preparerControle",
+    "resultat": {
+      "fichier": "src/components/Button/Button.variants.ts",
+      "composants": [
+        "Button"
+      ],
+      "limites": [],
+      "constats": [
+        {
+          "regle": "valeur-en-dur",
+          "code": "valeur-en-dur",
+          "niveau": "ecart",
+          "composant": "Button",
+          "debut": 35,
+          "fin": 41,
+          "message": "`padding` reçoit `12px`, que le contrat de `Button` ne publie pas. Écrivez la référence de token que le contrat donne. Pour la garder, lancez `npx ucm deroger Button valeur-en-dur src/components/Button/Button.variants.ts 12px --motif \"…\"` avec votre raison à la place de `…`.",
+          "faits": {
+            "propriete": "padding",
+            "valeur": "12px",
+            "parties": [
+              "12px"
+            ],
+            "familles": [
+              "dimension"
+            ]
+          },
+          "coordonnees": {
+            "fichier": "src/components/Button/Button.variants.ts",
+            "valeur": "12px"
+          },
+          "commande": "npx ucm deroger Button valeur-en-dur src/components/Button/Button.variants.ts 12px --motif \"…\""
+        }
+      ]
+    }
+  },
+  "preparerControle : une valeur calculée par le code n'est pas jugée (échange 3)": {
+    "nom": "preparerControle",
+    "resultat": {
+      "fichier": "src/components/Button/Button.tsx",
+      "composants": [
+        "Button"
+      ],
+      "limites": [],
+      "constats": [
+        {
+          "regle": "valeur-en-dur",
+          "code": "non-analyse",
+          "niveau": "non-analyse",
+          "composant": "Button",
+          "debut": 37,
+          "fin": 51,
+          "message": "La valeur de `gap` est calculée par le code. Le contrôle ne la juge pas.",
+          "faits": {
+            "propriete": "gap",
+            "forme": "expression"
+          }
+        }
+      ]
+    }
+  },
+  "preparerControle : une dérogation de l'export courant couvre le constat": {
+    "nom": "preparerControle",
+    "resultat": {
+      "fichier": "src/components/Button/Button.tsx",
+      "composants": [
+        "Button"
+      ],
+      "limites": [],
+      "constats": [
+        {
+          "regle": "valeur-en-dur",
+          "code": "valeur-en-dur",
+          "niveau": "ecart",
+          "composant": "Button",
+          "debut": 0,
+          "fin": 1,
+          "message": "`padding` reçoit `12px`, que le contrat de `Button` ne publie pas. Écrivez la référence de token que le contrat donne.",
+          "faits": {
+            "propriete": "padding",
+            "valeur": "12px",
+            "parties": [
+              "12px"
+            ],
+            "familles": [
+              "dimension"
+            ]
+          },
+          "coordonnees": {
+            "fichier": "src/components/Button/Button.tsx",
+            "valeur": "12px"
+          },
+          "deroge": {
+            "motif": "Valeur du design en attente.",
+            "par": "Camille"
+          }
+        }
+      ]
+    }
+  },
+  "preparerControle : un commentaire qui désactive une règle UCM est un constat": {
+    "nom": "preparerControle",
+    "resultat": {
+      "fichier": "src/components/Button/Button.tsx",
+      "composants": [
+        "Button"
+      ],
+      "limites": [],
+      "constats": [
+        {
+          "regle": "valeur-en-dur",
+          "code": "desactivation-interdite",
+          "niveau": "ecart",
+          "composant": "Button",
+          "debut": 0,
+          "fin": 10,
+          "message": "Ce commentaire désactive une règle UCM. `ucm check` juge le code sans en tenir compte. Retirez-le, et dérogez si la valeur doit rester.",
+          "faits": {
+            "regle": "valeur-en-dur",
+            "directive": "// eslint-disable-next-line ucm/valeur-en-dur"
+          }
+        }
+      ]
+    }
+  },
+  "preparerControle : sans ucm.config.json, une limite et aucun constat": {
+    "nom": "preparerControle",
+    "resultat": {
+      "fichier": null,
+      "composants": [],
+      "limites": [
+        {
+          "code": "configuration-absente",
+          "composant": null,
+          "message": "Aucun ucm.config.json au-dessus de ce fichier. Le contrôle ne sait pas où sont les contrats.",
+          "faits": {}
+        }
+      ],
+      "constats": [],
+      "racineTrouvee": false
+    }
+  },
+  "preparerControle : sans lecteur du code, le fichier n'est pas lu": {
+    "nom": "preparerControle",
+    "resultat": {
+      "fichier": "src/components/Button/Button.tsx",
+      "composants": [
+        "Button"
+      ],
+      "limites": [
+        {
+          "code": "sans-adaptateur",
+          "composant": "Button",
+          "message": "Le lecteur du code ne lit pas les fichiers `.tsx`. Le code de `Button` n’est pas jugé.",
+          "faits": {
+            "composant": "Button",
+            "extension": ".tsx"
+          }
+        }
+      ],
+      "constats": []
+    }
+  },
+  "preparerControle : chaque valeur de VALEURS_NEUTRES, en déclaration et dans une chaîne": {
+    "nom": "preparerControle",
+    "resultat": {
+      "déclaration padding : 0": "passe",
+      "chaîne 12px 0": "valeur-en-dur 12px",
+      "déclaration padding : none": "passe",
+      "chaîne 12px none": "valeur-en-dur 12px",
+      "déclaration padding : fit-content": "passe",
+      "chaîne 12px fit-content": "valeur-en-dur 12px",
+      "déclaration padding : currentcolor": "passe",
+      "chaîne 12px currentcolor": "valeur-en-dur 12px",
+      "déclaration padding : transparent": "passe",
+      "chaîne 12px transparent": "valeur-en-dur 12px"
+    }
+  },
+  "preparerControle : chaque propriété de PROPRIETES_PAR_FAMILLE reçoit une couleur": {
+    "nom": "preparerControle",
+    "resultat": {
+      "déclaration color : #123456": "valeur-en-dur #123456 [couleur]",
+      "déclaration background : #123456": "valeur-en-dur #123456 [couleur]",
+      "déclaration background-color : #123456": "valeur-en-dur #123456 [couleur]",
+      "déclaration border-color : #123456": "valeur-en-dur #123456 [couleur]",
+      "déclaration outline-color : #123456": "valeur-en-dur #123456 [couleur]",
+      "déclaration fill : #123456": "valeur-en-dur #123456 [couleur]",
+      "déclaration stroke : #123456": "valeur-en-dur #123456 [couleur]",
+      "déclaration text-decoration-color : #123456": "valeur-en-dur #123456 [couleur]",
+      "déclaration width : #123456": "valeur-en-dur #123456 [dimension]",
+      "déclaration height : #123456": "valeur-en-dur #123456 [dimension]",
+      "déclaration min-width : #123456": "valeur-en-dur #123456 [dimension]",
+      "déclaration max-width : #123456": "valeur-en-dur #123456 [dimension]",
+      "déclaration min-height : #123456": "valeur-en-dur #123456 [dimension]",
+      "déclaration max-height : #123456": "valeur-en-dur #123456 [dimension]",
+      "déclaration padding : #123456": "valeur-en-dur #123456 [dimension]",
+      "déclaration padding-top : #123456": "valeur-en-dur #123456 [dimension]",
+      "déclaration padding-right : #123456": "valeur-en-dur #123456 [dimension]",
+      "déclaration padding-bottom : #123456": "valeur-en-dur #123456 [dimension]",
+      "déclaration padding-left : #123456": "valeur-en-dur #123456 [dimension]",
+      "déclaration padding-inline : #123456": "valeur-en-dur #123456 [dimension]",
+      "déclaration padding-block : #123456": "valeur-en-dur #123456 [dimension]",
+      "déclaration padding-inline-start : #123456": "valeur-en-dur #123456 [dimension]",
+      "déclaration padding-inline-end : #123456": "valeur-en-dur #123456 [dimension]",
+      "déclaration padding-block-start : #123456": "valeur-en-dur #123456 [dimension]",
+      "déclaration padding-block-end : #123456": "valeur-en-dur #123456 [dimension]",
+      "déclaration gap : #123456": "valeur-en-dur #123456 [dimension]",
+      "déclaration row-gap : #123456": "valeur-en-dur #123456 [dimension]",
+      "déclaration column-gap : #123456": "valeur-en-dur #123456 [dimension]",
+      "déclaration border-radius : #123456": "valeur-en-dur #123456 [dimension]",
+      "déclaration border-top-left-radius : #123456": "valeur-en-dur #123456 [dimension]",
+      "déclaration border-top-right-radius : #123456": "valeur-en-dur #123456 [dimension]",
+      "déclaration border-bottom-right-radius : #123456": "valeur-en-dur #123456 [dimension]",
+      "déclaration border-bottom-left-radius : #123456": "valeur-en-dur #123456 [dimension]",
+      "déclaration border-width : #123456": "valeur-en-dur #123456 [dimension]",
+      "déclaration outline-width : #123456": "valeur-en-dur #123456 [dimension]",
+      "déclaration outline-offset : #123456": "valeur-en-dur #123456 [dimension]",
+      "déclaration top : #123456": "valeur-en-dur #123456 [dimension]",
+      "déclaration right : #123456": "valeur-en-dur #123456 [dimension]",
+      "déclaration bottom : #123456": "valeur-en-dur #123456 [dimension]",
+      "déclaration left : #123456": "valeur-en-dur #123456 [dimension]",
+      "déclaration inset : #123456": "valeur-en-dur #123456 [dimension]",
+      "déclaration inset-inline : #123456": "valeur-en-dur #123456 [dimension]",
+      "déclaration inset-block : #123456": "valeur-en-dur #123456 [dimension]",
+      "déclaration grid-template-columns : #123456": "valeur-en-dur #123456 [dimension]",
+      "déclaration grid-template-rows : #123456": "valeur-en-dur #123456 [dimension]",
+      "déclaration border : #123456": "valeur-en-dur #123456 [couleur dimension]",
+      "déclaration outline : #123456": "valeur-en-dur #123456 [couleur dimension]",
+      "déclaration box-shadow : #123456": "valeur-en-dur #123456 [couleur dimension]",
+      "déclaration text-shadow : #123456": "valeur-en-dur #123456 [couleur dimension]",
+      "déclaration font-family : #123456": "valeur-en-dur #123456 [typographie]",
+      "déclaration font-size : #123456": "valeur-en-dur #123456 [typographie]",
+      "déclaration font-weight : #123456": "valeur-en-dur #123456 [typographie]",
+      "déclaration line-height : #123456": "valeur-en-dur #123456 [typographie]",
+      "déclaration letter-spacing : #123456": "valeur-en-dur #123456 [typographie]",
+      "déclaration text-transform : #123456": "valeur-en-dur #123456 [typographie]",
+      "déclaration font-variant-caps : #123456": "valeur-en-dur #123456 [typographie]",
+      "déclaration text-decoration : #123456": "valeur-en-dur #123456 [typographie]",
+      "déclaration text-decoration-line : #123456": "valeur-en-dur #123456 [typographie]",
+      "déclaration font-style : #123456": "valeur-en-dur #123456 [typographie]",
+      "déclaration text-wrap-style : #123456": "valeur-en-dur #123456 [typographie]",
+      "déclaration text-box : #123456": "valeur-en-dur #123456 [typographie]",
+      "déclaration text-align : #123456": "valeur-en-dur #123456 [typographie]",
+      "déclaration text-indent : #123456": "valeur-en-dur #123456 [typographie]",
+      "déclaration line-clamp : #123456": "valeur-en-dur #123456 [typographie]",
+      "déclaration -webkit-line-clamp : #123456": "valeur-en-dur #123456 [typographie]",
+      "déclaration opacity : #123456": "valeur-en-dur #123456 [effet]",
+      "déclaration filter : #123456": "valeur-en-dur #123456 [effet]",
+      "déclaration backdrop-filter : #123456": "valeur-en-dur #123456 [effet]"
+    }
+  },
+  "preparerControle : chaque unité de UNITES_DE_LONGUEUR": {
+    "nom": "preparerControle",
+    "resultat": {
+      "déclaration width : 13cap": "valeur-en-dur 13cap [dimension]",
+      "déclaration width : 13ch": "valeur-en-dur 13ch [dimension]",
+      "déclaration width : 13em": "valeur-en-dur 13em [dimension]",
+      "déclaration width : 13ex": "valeur-en-dur 13ex [dimension]",
+      "déclaration width : 13ic": "valeur-en-dur 13ic [dimension]",
+      "déclaration width : 13lh": "valeur-en-dur 13lh [dimension]",
+      "déclaration width : 13rcap": "valeur-en-dur 13rcap [dimension]",
+      "déclaration width : 13rch": "valeur-en-dur 13rch [dimension]",
+      "déclaration width : 13rem": "valeur-en-dur 13rem [dimension]",
+      "déclaration width : 13rex": "valeur-en-dur 13rex [dimension]",
+      "déclaration width : 13ric": "valeur-en-dur 13ric [dimension]",
+      "déclaration width : 13rlh": "valeur-en-dur 13rlh [dimension]",
+      "déclaration width : 13vh": "valeur-en-dur 13vh [dimension]",
+      "déclaration width : 13vw": "valeur-en-dur 13vw [dimension]",
+      "déclaration width : 13vmax": "valeur-en-dur 13vmax [dimension]",
+      "déclaration width : 13vmin": "valeur-en-dur 13vmin [dimension]",
+      "déclaration width : 13vb": "valeur-en-dur 13vb [dimension]",
+      "déclaration width : 13vi": "valeur-en-dur 13vi [dimension]",
+      "déclaration width : 13svh": "valeur-en-dur 13svh [dimension]",
+      "déclaration width : 13svw": "valeur-en-dur 13svw [dimension]",
+      "déclaration width : 13svmax": "valeur-en-dur 13svmax [dimension]",
+      "déclaration width : 13svmin": "valeur-en-dur 13svmin [dimension]",
+      "déclaration width : 13svb": "valeur-en-dur 13svb [dimension]",
+      "déclaration width : 13svi": "valeur-en-dur 13svi [dimension]",
+      "déclaration width : 13lvh": "valeur-en-dur 13lvh [dimension]",
+      "déclaration width : 13lvw": "valeur-en-dur 13lvw [dimension]",
+      "déclaration width : 13lvmax": "valeur-en-dur 13lvmax [dimension]",
+      "déclaration width : 13lvmin": "valeur-en-dur 13lvmin [dimension]",
+      "déclaration width : 13lvb": "valeur-en-dur 13lvb [dimension]",
+      "déclaration width : 13lvi": "valeur-en-dur 13lvi [dimension]",
+      "déclaration width : 13dvh": "valeur-en-dur 13dvh [dimension]",
+      "déclaration width : 13dvw": "valeur-en-dur 13dvw [dimension]",
+      "déclaration width : 13dvmax": "valeur-en-dur 13dvmax [dimension]",
+      "déclaration width : 13dvmin": "valeur-en-dur 13dvmin [dimension]",
+      "déclaration width : 13dvb": "valeur-en-dur 13dvb [dimension]",
+      "déclaration width : 13dvi": "valeur-en-dur 13dvi [dimension]",
+      "déclaration width : 13cqw": "valeur-en-dur 13cqw [dimension]",
+      "déclaration width : 13cqh": "valeur-en-dur 13cqh [dimension]",
+      "déclaration width : 13cqi": "valeur-en-dur 13cqi [dimension]",
+      "déclaration width : 13cqb": "valeur-en-dur 13cqb [dimension]",
+      "déclaration width : 13cqmin": "valeur-en-dur 13cqmin [dimension]",
+      "déclaration width : 13cqmax": "valeur-en-dur 13cqmax [dimension]",
+      "déclaration width : 13cm": "valeur-en-dur 13cm [dimension]",
+      "déclaration width : 13mm": "valeur-en-dur 13mm [dimension]",
+      "déclaration width : 13q": "valeur-en-dur 13q [dimension]",
+      "déclaration width : 13in": "valeur-en-dur 13in [dimension]",
+      "déclaration width : 13pt": "valeur-en-dur 13pt [dimension]",
+      "déclaration width : 13pc": "valeur-en-dur 13pc [dimension]",
+      "déclaration width : 13px": "valeur-en-dur 13px [dimension]",
+      "déclaration width : 13fr": "valeur-en-dur 13fr [dimension]"
+    }
+  },
+  "preparerControle : chaque fonction de FONCTIONS_DE_COULEUR": {
+    "nom": "preparerControle",
+    "resultat": {
+      "déclaration color : rgb(red, blue)": "valeur-en-dur rgb(red, blue) [couleur]",
+      "déclaration color : rgba(red, blue)": "valeur-en-dur rgba(red, blue) [couleur]",
+      "déclaration color : hsl(red, blue)": "valeur-en-dur hsl(red, blue) [couleur]",
+      "déclaration color : hsla(red, blue)": "valeur-en-dur hsla(red, blue) [couleur]",
+      "déclaration color : hwb(red, blue)": "valeur-en-dur hwb(red, blue) [couleur]",
+      "déclaration color : lab(red, blue)": "valeur-en-dur lab(red, blue) [couleur]",
+      "déclaration color : lch(red, blue)": "valeur-en-dur lch(red, blue) [couleur]",
+      "déclaration color : oklab(red, blue)": "valeur-en-dur oklab(red, blue) [couleur]",
+      "déclaration color : oklch(red, blue)": "valeur-en-dur oklch(red, blue) [couleur]",
+      "déclaration color : color(red, blue)": "valeur-en-dur color(red, blue) [couleur]",
+      "déclaration color : color-mix(red, blue)": "valeur-en-dur color-mix(red, blue) [couleur]",
+      "déclaration color : light-dark(red, blue)": "valeur-en-dur light-dark(red, blue) [couleur]"
+    }
+  },
+  "preparerControle : chaque fonction de FONCTIONS_MATHEMATIQUES": {
+    "nom": "preparerControle",
+    "resultat": {
+      "déclaration width : calc(10px, 5)": "valeur-en-dur 10px [dimension]",
+      "déclaration width : min(10px, 5)": "valeur-en-dur 10px [dimension]",
+      "déclaration width : max(10px, 5)": "valeur-en-dur 10px [dimension]",
+      "déclaration width : clamp(10px, 5)": "valeur-en-dur 10px [dimension]"
+    }
+  },
+  "preparerControle : une valeur de chaque classe, en déclaration et dans une chaîne": {
+    "nom": "preparerControle",
+    "resultat": {
+      "déclaration couleur": "valeur-en-dur #123456 [dimension]",
+      "chaîne couleur": "valeur-en-dur #123456",
+      "déclaration longueur": "valeur-en-dur 13px [dimension]",
+      "chaîne longueur": "valeur-en-dur 13px",
+      "déclaration nombre": "valeur-en-dur 5 [dimension]",
+      "chaîne nombre": "passe",
+      "déclaration pourcentage": "valeur-en-dur 50% [dimension]",
+      "chaîne pourcentage": "passe",
+      "déclaration fonction": "valeur-en-dur 13px [dimension]",
+      "chaîne fonction": "passe",
+      "déclaration identifiant": "passe",
+      "chaîne identifiant": "passe",
+      "déclaration nom de couleur": "valeur-en-dur red [dimension]",
+      "chaîne nom de couleur": "passe"
+    }
+  },
+  "preparerControle : chaque nom de NOMS_DE_COULEUR dans une propriété de couleur": {
+    "nom": "preparerControle",
+    "resultat": {
+      "déclaration color : aliceblue": "valeur-en-dur aliceblue [couleur]",
+      "déclaration color : antiquewhite": "valeur-en-dur antiquewhite [couleur]",
+      "déclaration color : aqua": "valeur-en-dur aqua [couleur]",
+      "déclaration color : aquamarine": "valeur-en-dur aquamarine [couleur]",
+      "déclaration color : azure": "valeur-en-dur azure [couleur]",
+      "déclaration color : beige": "valeur-en-dur beige [couleur]",
+      "déclaration color : bisque": "valeur-en-dur bisque [couleur]",
+      "déclaration color : black": "valeur-en-dur black [couleur]",
+      "déclaration color : blanchedalmond": "valeur-en-dur blanchedalmond [couleur]",
+      "déclaration color : blue": "valeur-en-dur blue [couleur]",
+      "déclaration color : blueviolet": "valeur-en-dur blueviolet [couleur]",
+      "déclaration color : brown": "valeur-en-dur brown [couleur]",
+      "déclaration color : burlywood": "valeur-en-dur burlywood [couleur]",
+      "déclaration color : cadetblue": "valeur-en-dur cadetblue [couleur]",
+      "déclaration color : chartreuse": "valeur-en-dur chartreuse [couleur]",
+      "déclaration color : chocolate": "valeur-en-dur chocolate [couleur]",
+      "déclaration color : coral": "valeur-en-dur coral [couleur]",
+      "déclaration color : cornflowerblue": "valeur-en-dur cornflowerblue [couleur]",
+      "déclaration color : cornsilk": "valeur-en-dur cornsilk [couleur]",
+      "déclaration color : crimson": "valeur-en-dur crimson [couleur]",
+      "déclaration color : cyan": "valeur-en-dur cyan [couleur]",
+      "déclaration color : darkblue": "valeur-en-dur darkblue [couleur]",
+      "déclaration color : darkcyan": "valeur-en-dur darkcyan [couleur]",
+      "déclaration color : darkgoldenrod": "valeur-en-dur darkgoldenrod [couleur]",
+      "déclaration color : darkgray": "valeur-en-dur darkgray [couleur]",
+      "déclaration color : darkgreen": "valeur-en-dur darkgreen [couleur]",
+      "déclaration color : darkgrey": "valeur-en-dur darkgrey [couleur]",
+      "déclaration color : darkkhaki": "valeur-en-dur darkkhaki [couleur]",
+      "déclaration color : darkmagenta": "valeur-en-dur darkmagenta [couleur]",
+      "déclaration color : darkolivegreen": "valeur-en-dur darkolivegreen [couleur]",
+      "déclaration color : darkorange": "valeur-en-dur darkorange [couleur]",
+      "déclaration color : darkorchid": "valeur-en-dur darkorchid [couleur]",
+      "déclaration color : darkred": "valeur-en-dur darkred [couleur]",
+      "déclaration color : darksalmon": "valeur-en-dur darksalmon [couleur]",
+      "déclaration color : darkseagreen": "valeur-en-dur darkseagreen [couleur]",
+      "déclaration color : darkslateblue": "valeur-en-dur darkslateblue [couleur]",
+      "déclaration color : darkslategray": "valeur-en-dur darkslategray [couleur]",
+      "déclaration color : darkslategrey": "valeur-en-dur darkslategrey [couleur]",
+      "déclaration color : darkturquoise": "valeur-en-dur darkturquoise [couleur]",
+      "déclaration color : darkviolet": "valeur-en-dur darkviolet [couleur]",
+      "déclaration color : deeppink": "valeur-en-dur deeppink [couleur]",
+      "déclaration color : deepskyblue": "valeur-en-dur deepskyblue [couleur]",
+      "déclaration color : dimgray": "valeur-en-dur dimgray [couleur]",
+      "déclaration color : dimgrey": "valeur-en-dur dimgrey [couleur]",
+      "déclaration color : dodgerblue": "valeur-en-dur dodgerblue [couleur]",
+      "déclaration color : firebrick": "valeur-en-dur firebrick [couleur]",
+      "déclaration color : floralwhite": "valeur-en-dur floralwhite [couleur]",
+      "déclaration color : forestgreen": "valeur-en-dur forestgreen [couleur]",
+      "déclaration color : fuchsia": "valeur-en-dur fuchsia [couleur]",
+      "déclaration color : gainsboro": "valeur-en-dur gainsboro [couleur]",
+      "déclaration color : ghostwhite": "valeur-en-dur ghostwhite [couleur]",
+      "déclaration color : gold": "valeur-en-dur gold [couleur]",
+      "déclaration color : goldenrod": "valeur-en-dur goldenrod [couleur]",
+      "déclaration color : gray": "valeur-en-dur gray [couleur]",
+      "déclaration color : green": "valeur-en-dur green [couleur]",
+      "déclaration color : greenyellow": "valeur-en-dur greenyellow [couleur]",
+      "déclaration color : grey": "valeur-en-dur grey [couleur]",
+      "déclaration color : honeydew": "valeur-en-dur honeydew [couleur]",
+      "déclaration color : hotpink": "valeur-en-dur hotpink [couleur]",
+      "déclaration color : indianred": "valeur-en-dur indianred [couleur]",
+      "déclaration color : indigo": "valeur-en-dur indigo [couleur]",
+      "déclaration color : ivory": "valeur-en-dur ivory [couleur]",
+      "déclaration color : khaki": "valeur-en-dur khaki [couleur]",
+      "déclaration color : lavender": "valeur-en-dur lavender [couleur]",
+      "déclaration color : lavenderblush": "valeur-en-dur lavenderblush [couleur]",
+      "déclaration color : lawngreen": "valeur-en-dur lawngreen [couleur]",
+      "déclaration color : lemonchiffon": "valeur-en-dur lemonchiffon [couleur]",
+      "déclaration color : lightblue": "valeur-en-dur lightblue [couleur]",
+      "déclaration color : lightcoral": "valeur-en-dur lightcoral [couleur]",
+      "déclaration color : lightcyan": "valeur-en-dur lightcyan [couleur]",
+      "déclaration color : lightgoldenrodyellow": "valeur-en-dur lightgoldenrodyellow [couleur]",
+      "déclaration color : lightgray": "valeur-en-dur lightgray [couleur]",
+      "déclaration color : lightgreen": "valeur-en-dur lightgreen [couleur]",
+      "déclaration color : lightgrey": "valeur-en-dur lightgrey [couleur]",
+      "déclaration color : lightpink": "valeur-en-dur lightpink [couleur]",
+      "déclaration color : lightsalmon": "valeur-en-dur lightsalmon [couleur]",
+      "déclaration color : lightseagreen": "valeur-en-dur lightseagreen [couleur]",
+      "déclaration color : lightskyblue": "valeur-en-dur lightskyblue [couleur]",
+      "déclaration color : lightslategray": "valeur-en-dur lightslategray [couleur]",
+      "déclaration color : lightslategrey": "valeur-en-dur lightslategrey [couleur]",
+      "déclaration color : lightsteelblue": "valeur-en-dur lightsteelblue [couleur]",
+      "déclaration color : lightyellow": "valeur-en-dur lightyellow [couleur]",
+      "déclaration color : lime": "valeur-en-dur lime [couleur]",
+      "déclaration color : limegreen": "valeur-en-dur limegreen [couleur]",
+      "déclaration color : linen": "valeur-en-dur linen [couleur]",
+      "déclaration color : magenta": "valeur-en-dur magenta [couleur]",
+      "déclaration color : maroon": "valeur-en-dur maroon [couleur]",
+      "déclaration color : mediumaquamarine": "valeur-en-dur mediumaquamarine [couleur]",
+      "déclaration color : mediumblue": "valeur-en-dur mediumblue [couleur]",
+      "déclaration color : mediumorchid": "valeur-en-dur mediumorchid [couleur]",
+      "déclaration color : mediumpurple": "valeur-en-dur mediumpurple [couleur]",
+      "déclaration color : mediumseagreen": "valeur-en-dur mediumseagreen [couleur]",
+      "déclaration color : mediumslateblue": "valeur-en-dur mediumslateblue [couleur]",
+      "déclaration color : mediumspringgreen": "valeur-en-dur mediumspringgreen [couleur]",
+      "déclaration color : mediumturquoise": "valeur-en-dur mediumturquoise [couleur]",
+      "déclaration color : mediumvioletred": "valeur-en-dur mediumvioletred [couleur]",
+      "déclaration color : midnightblue": "valeur-en-dur midnightblue [couleur]",
+      "déclaration color : mintcream": "valeur-en-dur mintcream [couleur]",
+      "déclaration color : mistyrose": "valeur-en-dur mistyrose [couleur]",
+      "déclaration color : moccasin": "valeur-en-dur moccasin [couleur]",
+      "déclaration color : navajowhite": "valeur-en-dur navajowhite [couleur]",
+      "déclaration color : navy": "valeur-en-dur navy [couleur]",
+      "déclaration color : oldlace": "valeur-en-dur oldlace [couleur]",
+      "déclaration color : olive": "valeur-en-dur olive [couleur]",
+      "déclaration color : olivedrab": "valeur-en-dur olivedrab [couleur]",
+      "déclaration color : orange": "valeur-en-dur orange [couleur]",
+      "déclaration color : orangered": "valeur-en-dur orangered [couleur]",
+      "déclaration color : orchid": "valeur-en-dur orchid [couleur]",
+      "déclaration color : palegoldenrod": "valeur-en-dur palegoldenrod [couleur]",
+      "déclaration color : palegreen": "valeur-en-dur palegreen [couleur]",
+      "déclaration color : paleturquoise": "valeur-en-dur paleturquoise [couleur]",
+      "déclaration color : palevioletred": "valeur-en-dur palevioletred [couleur]",
+      "déclaration color : papayawhip": "valeur-en-dur papayawhip [couleur]",
+      "déclaration color : peachpuff": "valeur-en-dur peachpuff [couleur]",
+      "déclaration color : peru": "valeur-en-dur peru [couleur]",
+      "déclaration color : pink": "valeur-en-dur pink [couleur]",
+      "déclaration color : plum": "valeur-en-dur plum [couleur]",
+      "déclaration color : powderblue": "valeur-en-dur powderblue [couleur]",
+      "déclaration color : purple": "valeur-en-dur purple [couleur]",
+      "déclaration color : rebeccapurple": "valeur-en-dur rebeccapurple [couleur]",
+      "déclaration color : red": "valeur-en-dur red [couleur]",
+      "déclaration color : rosybrown": "valeur-en-dur rosybrown [couleur]",
+      "déclaration color : royalblue": "valeur-en-dur royalblue [couleur]",
+      "déclaration color : saddlebrown": "valeur-en-dur saddlebrown [couleur]",
+      "déclaration color : salmon": "valeur-en-dur salmon [couleur]",
+      "déclaration color : sandybrown": "valeur-en-dur sandybrown [couleur]",
+      "déclaration color : seagreen": "valeur-en-dur seagreen [couleur]",
+      "déclaration color : seashell": "valeur-en-dur seashell [couleur]",
+      "déclaration color : sienna": "valeur-en-dur sienna [couleur]",
+      "déclaration color : silver": "valeur-en-dur silver [couleur]",
+      "déclaration color : skyblue": "valeur-en-dur skyblue [couleur]",
+      "déclaration color : slateblue": "valeur-en-dur slateblue [couleur]",
+      "déclaration color : slategray": "valeur-en-dur slategray [couleur]",
+      "déclaration color : slategrey": "valeur-en-dur slategrey [couleur]",
+      "déclaration color : snow": "valeur-en-dur snow [couleur]",
+      "déclaration color : springgreen": "valeur-en-dur springgreen [couleur]",
+      "déclaration color : steelblue": "valeur-en-dur steelblue [couleur]",
+      "déclaration color : tan": "valeur-en-dur tan [couleur]",
+      "déclaration color : teal": "valeur-en-dur teal [couleur]",
+      "déclaration color : thistle": "valeur-en-dur thistle [couleur]",
+      "déclaration color : tomato": "valeur-en-dur tomato [couleur]",
+      "déclaration color : turquoise": "valeur-en-dur turquoise [couleur]",
+      "déclaration color : violet": "valeur-en-dur violet [couleur]",
+      "déclaration color : wheat": "valeur-en-dur wheat [couleur]",
+      "déclaration color : white": "valeur-en-dur white [couleur]",
+      "déclaration color : whitesmoke": "valeur-en-dur whitesmoke [couleur]",
+      "déclaration color : yellow": "valeur-en-dur yellow [couleur]",
+      "déclaration color : yellowgreen": "valeur-en-dur yellowgreen [couleur]"
+    }
+  },
+  "preparerControle : chaque mot de MOTS_CLES_DE_FORME près d'une longueur dans une chaîne": {
+    "nom": "preparerControle",
+    "resultat": {
+      "chaîne 12px solid": "valeur-en-dur 12px",
+      "chaîne 12px dashed": "valeur-en-dur 12px",
+      "chaîne 12px dotted": "valeur-en-dur 12px",
+      "chaîne 12px double": "valeur-en-dur 12px",
+      "chaîne 12px groove": "valeur-en-dur 12px",
+      "chaîne 12px ridge": "valeur-en-dur 12px",
+      "chaîne 12px inset": "valeur-en-dur 12px",
+      "chaîne 12px outset": "valeur-en-dur 12px",
+      "chaîne 12px hidden": "valeur-en-dur 12px",
+      "chaîne 12px auto": "valeur-en-dur 12px",
+      "chaîne 12px none": "valeur-en-dur 12px",
+      "chaîne 12px normal": "valeur-en-dur 12px"
+    }
+  },
+  "preparerControle : chaque attribut de ATTRIBUTS_SANS_VALEUR_VISUELLE ne juge pas sa chaîne": {
+    "nom": "preparerControle",
+    "resultat": {
+      "chaîne href": "passe",
+      "chaîne id": "passe",
+      "chaîne key": "passe",
+      "chaîne name": "passe",
+      "chaîne htmlFor": "passe",
+      "chaîne aria-label": "passe",
+      "chaîne data-label": "passe"
+    }
   }
 }

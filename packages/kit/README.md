@@ -10,7 +10,7 @@ the repository that implements the component. The plugin and the readers both
 import the format from this package.
 
 ```sh
-npm install @ucm-kit/core@0.17.3
+npm install @ucm-kit/core@0.17.4
 ```
 
 Most repositories never call this package directly. They run
@@ -153,10 +153,12 @@ import { nomsSelonLesReglesSync } from "@ucm-kit/core/nommage";
 
 **`@ucm-kit/core/modules`** is the only entry point promised to code outside
 this repository: a linter, a Storybook addon, a render checker. It republishes,
-under their own names, 7 functions and the `Contract` type: `lireConfiguration`,
+under their own names, functions and types: `lireConfiguration`,
 `trouverContrats`, `verdictDeVersion`, `vueExacteDuVariant`,
-`indexerTokensDtcg`, `isTokenReference` and `tokenCssVariable`. They read the
-same contracts and tokens as `ucm check`, so a module gives the same verdict.
+`indexerTokensDtcg`, `isTokenReference`, `tokenCssVariable`, `Contract` and
+`preparerControle`, which judges the code of a component file and returns its
+findings. They read the same contracts and tokens as `ucm check`, so a module
+gives the same verdict.
 Every change to it is written in [CHANGELOG.md](./CHANGELOG.md). [The guide for module authors](https://github.com/Vassili-g/UCM-Toolkit/blob/main/docs/guides/MODULES.md) explains how to write one.
 
 **`@ucm-kit/core/format`** gives the shape of a contract, its version, the
