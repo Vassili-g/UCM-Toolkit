@@ -57,24 +57,6 @@ const RENDU_DES_SIGNAUX: Readonly<Record<string, string>> = {
   action: '<span class="sg-bouton">Appliquer</span> <span class="sg-bouton second">Analyser</span> <span class="sg-bouton danger">Supprimer</span>',
 };
 
-/**
- * Le bandeau « À régler » de la page : une ligne par alerte des pistes à suivre. Une piste livrée n'affiche pas ses alertes ;
- * sans alerte, le bandeau n'existe pas. Le lien garde la forme `<a href="#piste-Pn">` pour que `genererInventaireEtCouverture` le retire d'une fiche absente.
- */
-export function bandeauDesAlertes(listeDePistes: releves.Piste[], icone: string): string {
-  const lignes = listeDePistes.flatMap((piste) =>
-    (piste.alertes ?? []).map(
-      (alerte) =>
-        `<li><a href="#piste-${piste.id}">${piste.id} ${echapper(piste.titreCourt)}</a><span class="a-regler-texte">${avecCode(alerte.texte)}</span><span class="a-regler-avant"><b>Bloque :</b> ${avecCode(alerte.avant)}</span></li>`,
-    ),
-  );
-  if (!lignes.length) return '';
-  return `<div class="a-regler" id="a-regler" role="region" aria-labelledby="a-regler-titre">
-    <p class="a-regler-titre" id="a-regler-titre"><span class="forme-alerte ft-corriger">${icone}</span><span class="alerte-mot ft-corriger">À régler</span> <span class="doux">${lignes.length}</span></p>
-    <ul>${lignes.join('')}</ul>
-  </div>`;
-}
-
 /** Les plis de la partie Annexes : un par élément qui a un visuel (icônes, alertes, signaux, marque, références, outillage), avec sa description. */
 function annexes(): string {
   const { familles, alertes } = releves.signesEtAlertes();
@@ -183,14 +165,12 @@ function avecPistes(texte: string, identifiants: ReadonlySet<string>, ou: string
   });
 }
 
-const lienDePistes = (ids: readonly string[]): string => ids.map((id) => `<a href="#piste-${id}">${id}</a>`).join(', ');
-
 /** Les termes du glossaire qu'emploient les règles décidées : leur première occurrence renvoie à sa définition. */
 const TERMES_DES_REGLES: readonly [string, string][] = [['<code>CODEOWNERS</code>', 'g-codeowners'], ['dérogation', 'g-derogation']];
 const avecTermes = (html: string): string =>
   TERMES_DES_REGLES.reduce((texte, [terme, ancre]) => texte.replace(terme, `<a class="terme" href="#${ancre}">${terme}</a>`), html);
 
-/** Les règles décidées que la page rend : un trou par règle de carte, des lignes pour les règles des contrôles, pour les autres règles et pour les questions ouvertes. */
+/** Les règles décidées que la page rend : un trou par règle de carte, des lignes pour les règles des contrôles et pour les autres règles. Une règle transverse va dans la fiche de ses pistes (`releves.roadmap`). */
 function blocsDesRegles(decisions: releves.Decisions, identifiants: ReadonlySet<string>): Record<string, string> {
   const rendu: Record<string, string> = {};
   for (const regle of decisions.regles) {
@@ -203,10 +183,6 @@ function blocsDesRegles(decisions: releves.Decisions, identifiants: ReadonlySet<
       .join('\n    ');
   rendu['lignes-decidees'] = lignes('tableau');
   rendu['lignes-regles'] = lignes('liste');
-  rendu['lignes-transverses'] = decisions.regles
-    .filter((regle) => regle.genre === 'transverse')
-    .map((regle) => `<tr data-decision="${regle.id}"><td>${avecCode(regle.titre ?? regle.id)}</td><td data-l="Fait">${avecCode(regle.texte)}</td><td data-l="Pistes">${lienDePistes(regle.pistes)}</td></tr>`)
-    .join('\n    ');
   return rendu;
 }
 
@@ -299,7 +275,7 @@ function lignesDesFamilles(): string {
 }
 
 /** Toutes les valeurs que les trous du gabarit, de la feuille de style et du script réclament. */
-async function valeurs(): Promise<Record<string, string>> {
+async function valeurs(): Promise<{ liste: Record<string, string>; idsTermines: ReadonlySet<string> }> {
   const versions = releves.versions();
   const extraits = releves.extraitsDesDocuments(versions);
   const reference = releves.referencePourLePanneau();
@@ -314,15 +290,10 @@ async function valeurs(): Promise<Record<string, string>> {
   const rapport = releves.rapportDuButton();
   const recette = releves.contratsDeRecette();
   const tailles = releves.registreDesTailles();
-  const listeDePistes = releves.pistes();
-  const identifiantsDePistes = new Set(listeDePistes.map((piste) => piste.id));
-  // Une piste dont le plan a toutes ses cases cochées est livrée : elle quitte la suite et son graphe, et une dépendance vers elle est tenue.
-  const livrees = listeDePistes.filter((piste) => piste.avancement !== undefined && piste.avancement.faites === piste.avancement.total);
-  const idsLivres = new Set(livrees.map((piste) => piste.id));
-  const pistesASuivre = listeDePistes
-    .filter((piste) => !idsLivres.has(piste.id))
-    .map((piste) => ({ ...piste, dependances: piste.dependances.filter((id) => !idsLivres.has(id)) }));
+  const identifiantsDePistes = new Set(releves.pistes().map((piste) => piste.id));
   const decisions = releves.decisions(identifiantsDePistes);
+  // Une piste livrée, archivée ou écartée quitte la Roadmap pour la partie « Terminés ».
+  const { pistes: pistesASuivre, terminees } = releves.roadmap(decisions.regles.filter((regle) => regle.genre === 'transverse'));
   const palettes = releves.reglagesDePalettes();
   const composant = releves.sectionsDuComposant();
   const registres = lignesDesRegistres();
@@ -412,7 +383,6 @@ async function valeurs(): Promise<Record<string, string>> {
     'etat:en-retard-sur-les-tokens': echapper(releves.phraseDeLEtat('en-retard-sur-les-tokens')),
     'lignes-codes-linter': lignesDesCodesDuLinter(),
     ...tablesDuLinter(),
-    'alertes:bandeau': bandeauDesAlertes(pistesASuivre, releves.signesEtAlertes().alertes.find((type) => type.id === 'corriger')!.svg),
     // Les blocs d'annexes
     annexes: annexes(),
     // Les données du script
@@ -422,9 +392,8 @@ async function valeurs(): Promise<Record<string, string>> {
     'js:REFERENCE': pourLeScript(reference),
     'js:C': pourLeScript(codes),
     'js:PISTES': pourLeScript(pistesASuivre),
-    'js:LIVREES': pourLeScript(livrees.map(({ id, titreCourt, plan }) => ({ id, titreCourt, plan }))),
+    'js:TERMINEES': pourLeScript(terminees),
     'js:SUJETS': pourLeScript(releves.SUJETS),
-    'js:DECISIONS': pourLeScript(decisions),
   };
   for (const paquet of paquets) liste[`tests:${paquet.dossier}`] = String(paquet.fichiersDeTest);
   for (const entree of entrees) liste[`export:${entree.entree}`] = String(entree.noms.length);
@@ -432,7 +401,7 @@ async function valeurs(): Promise<Record<string, string>> {
     const signe = logo.signe === null ? '' : `<span class="logo-signe">${logo.signe}</span>`;
     liste[`logo:${logo.outil}`] = `<span class="logo" aria-hidden="true">${logo.svg}${signe}</span>`;
   }
-  return liste;
+  return { liste, idsTermines: new Set(terminees.map(({ id }) => id)) };
 }
 
 const PREFIXES_A_EMPLOYER = ['tests:', 'export:', 'regle:', 'logo:'];
@@ -497,14 +466,13 @@ async function couvertureDeLaPage(page: string, employes: ReadonlySet<string>): 
 
 /** Le contenu exact de `INVENTAIRE-UCM.html`, et ce que la page montre de chaque univers couvert. */
 export async function genererInventaireEtCouverture(): Promise<{ page: string; couverture: Couverture }> {
-  const liste = await valeurs();
+  const { liste, idsTermines } = await valeurs();
   const employes = new Set<string>();
   const css = remplir(lireDuDossier('page.css'), 'page.css', liste, employes);
   const js = remplir(lireDuDossier('page.js'), 'page.js', liste, employes);
-  const livrees = new Set(releves.pistes().filter(({ avancement }) => avancement !== undefined && avancement.faites === avancement.total).map(({ id }) => id));
-  // Une piste livrée n'a plus de fiche : un renvoi écrit à la main dans le gabarit reste du texte.
+  // Une piste terminée n'a plus de fiche : un renvoi écrit à la main dans le gabarit reste du texte.
   const html = remplir(lireDuDossier('gabarit.html'), 'gabarit.html', { ...liste, css, js }, employes)
-    .replace(/<a href="#piste-(P\d+)">([^<]*)<\/a>/g, (lien, id: string, texte: string) => (livrees.has(id) ? texte : lien));
+    .replace(/<a href="#piste-(P\d+)">([^<]*)<\/a>/g, (lien, id: string, texte: string) => (idsTermines.has(id) ? texte : lien));
   const oublies = Object.keys(liste).filter((nom) => PREFIXES_A_EMPLOYER.some((prefixe) => nom.startsWith(prefixe)) && !employes.has(nom));
   if (oublies.length) {
     throw new Error(`Le gabarit n'emploie pas : ${oublies.join(', ')}. Un paquet, un point d'entrée du kit, une règle décidée ou un logo d'outil n'a pas sa place dans la page.`);

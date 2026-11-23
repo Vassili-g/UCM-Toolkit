@@ -86,6 +86,8 @@ G. Extraction           réutilisation dans plusieurs repositories
 
 ---
 
+`ucm.config.json` lit trois champs. Une clé `modules` n'y activerait rien.
+
 ## Bloc A — Conventions
 
 ### À quoi ça sert

@@ -5,15 +5,18 @@
  * La génération lit le dépôt et dure plusieurs secondes : elle se fait une fois par fichier de test.
  */
 import assert from 'node:assert/strict';
-import { readdirSync, readFileSync } from 'node:fs';
+import { execFileSync } from 'node:child_process';
+import { mkdirSync, mkdtempSync, readdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { tmpdir } from 'node:os';
 import path from 'node:path';
 import test from 'node:test';
 
 import { motifVersRegex } from '../scripts/agents-contexte.mjs';
 import { EXCLUSIONS } from '../docs/inventaire/couverture';
 import { sectionDe } from '../docs/inventaire/extraire';
-import { CHEMIN_DE_L_INVENTAIRE, bandeauDesAlertes, genererInventaireEtCouverture } from '../docs/inventaire/generer-inventaire';
-import { CHEMIN_DES_DECISIONS, compterLesCases, pistes, validerLesAlertes, validerLesChoix, type Decisions, type Piste, type Regle } from '../docs/inventaire/releves';
+import { CHEMIN_DE_L_INVENTAIRE, genererInventaireEtCouverture } from '../docs/inventaire/generer-inventaire';
+import { lireLePlan } from '../docs/inventaire/plans';
+import { CHEMIN_DES_DECISIONS, CHEMIN_DES_PISTES, DEPOT_SUR_GITHUB, pistes, roadmap, type PisteEcrite, type Regle } from '../docs/inventaire/releves';
 
 const racine = path.resolve(__dirname, '..');
 const sansRetourChariot = (texte: string): string => texte.replace(/\r\n/g, '\n');
@@ -31,12 +34,14 @@ test("la page de l'inventaire est autonome et tient sous 1 Mo", async () => {
   const page = await generee();
   assert.ok(Buffer.byteLength(page) < 1_000_000);
   assert.deepEqual(page.match(/\bsrc=|<link|@import/g), null);
-  // Seuls le label de sujet et le statut d'une piste en cours sortent de la page, vers un document du dépôt sur GitHub ; le script les compose.
+  // Les seuls liens qui sortent de la page visent un document du dépôt sur GitHub : le script compose ceux de la recherche et du plan, le générateur écrit ceux des pistes terminées.
   assert.deepEqual(page.match(/href="(?!#|' \+ url)[^"]*"/g), null);
   const url = [...page.matchAll(/url\((?!#|data:|"data:)[^)]{0,20}/g)].map((trouve) => trouve[0]);
   assert.deepEqual(url, [], 'une feuille de style charge une ressource');
   const adresses = [...new Set([...page.matchAll(/https?:\/\/[^"' )<]*/g)].map((trouve) => trouve[0]))];
-  assert.deepEqual(adresses, ['http://www.w3.org/2000/svg', 'https://github.com/Vassili-g/UCM-Toolkit/blob/main/'], "seuls l'espace de noms SVG et le dépôt sur GitHub sont des adresses");
+  const lienDuDepot = (adresse: string): boolean => adresse.startsWith(`${DEPOT_SUR_GITHUB}/`) && /^(main|[0-9a-f]{7,40})\//.test(adresse.slice(DEPOT_SUR_GITHUB.length + 1));
+  const etrangeres = adresses.filter((adresse) => adresse !== 'http://www.w3.org/2000/svg' && !lienDuDepot(adresse));
+  assert.deepEqual(etrangeres, [], "seuls l'espace de noms SVG et le dépôt sur GitHub (sur main ou sur un commit) sont des adresses");
 });
 
 test("la page de l'inventaire dit qu'elle est générée", async () => {
@@ -58,7 +63,7 @@ test('chaque source de sources.json désigne au moins un fichier du dépôt', ()
   const { vues } = JSON.parse(readFileSync(path.join(racine, 'docs', 'inventaire', 'sources.json'), 'utf8')) as { vues: Record<string, string[]> };
   assert.deepEqual(Object.keys(vues), ['INVENTAIRE-UCM.html']);
   const donnees = ['pistes.json', 'decisions.json'].map((nom) => 'docs/notes/Recherches/Evolutions globales/' + nom);
-  assert.deepEqual([...donnees, 'docs/inventaire/couverture.ts'].filter((source) => !vues['INVENTAIRE-UCM.html'].includes(source)), [], 'sources.json oublie une source de la page');
+  assert.deepEqual([...donnees, 'docs/inventaire/couverture.ts', 'docs/notes/Recherches/**/*.md'].filter((source) => !vues['INVENTAIRE-UCM.html'].includes(source)), [], 'sources.json oublie une source de la page');
   const fichiers = fichiersDuDepot(racine);
   const sansFichier = vues['INVENTAIRE-UCM.html'].filter((motif) => !fichiers.some((fichier) => motifVersRegex(motif).test(fichier)));
   assert.deepEqual(sansFichier, [], "Ces sources ne désignent aucun fichier. Corriger docs/inventaire/sources.json.");
@@ -109,100 +114,257 @@ test("une règle décidée écrite renvoie à un document dont l'ancre existe", 
   assert.deepEqual(sansAncre, [], "Une règle marquée « oui » renvoie à une section qui n'existe pas (decisions.json)");
 });
 
-// ---------- Validation de decisions.json (G3.3) ----------
 
-const regleTransverse = (id: string, options?: { valeur: string; libelle: string }[]): Regle => ({ id, genre: 'transverse', texte: 't', domicileCible: 'CONTRIBUTING.md', ecrite: 'non', pistes: [], ...(options ? { options } : {}) });
-const decisionsFictives = (pistes: Decisions['pistes'], transverses: Decisions['transverses']): Decisions => ({
-  version: 1,
-  pistes,
-  transverses,
-  regles: [regleTransverse('T1'), regleTransverse('T10', [{ valeur: 'avant', libelle: 'Avant' }, { valeur: 'apres', libelle: 'Après' }])],
+// ---------- Données de la Roadmap : pistes.json, plans, recherches ----------
+
+const git = (dans: string, ...args: string[]): string => execFileSync('git', args, { cwd: dans, encoding: 'utf8' }).trim();
+
+/** Le plan d'une piste, lu comme l'inventaire le lit : au commit d'archive, ou dans l'arbre. */
+const planDeLaPiste = (piste: PisteEcrite): string =>
+  piste.archive === undefined ? readFileSync(path.join(racine, piste.plan!), 'utf8') : git(racine, 'show', `${piste.archive}:${piste.plan}`);
+
+/** La date du commit le plus récent que citent les lots faits d'un plan, lue sans passer par le lecteur de l'inventaire. */
+function dateDuDernierHash(plan: string): string {
+  const dates = lireLePlan(plan)
+    .filter((lot) => lot.fait)
+    .flatMap((lot) => lot.hashes.filter((hash) => hash.depot === null).map((hash) => git(racine, 'show', '-s', '--format=%cs', hash.hash)));
+  return dates.sort().at(-1)!;
+}
+
+const transversesDuDepot = (): Regle[] => (JSON.parse(readFileSync(path.join(racine, CHEMIN_DES_DECISIONS), 'utf8')) as { regles: Regle[] }).regles.filter((regle) => regle.genre === 'transverse');
+
+test('une piste de pistes.json sort avec ses champs du contrat, et P17 sort à la prio 4 posée par le mainteneur', () => {
+  const { pistes: aSuivre } = roadmap(transversesDuDepot());
+  const p17 = aSuivre.find((piste) => piste.id === 'P17')!;
+  assert.equal(p17.prio, 4);
+  assert.equal(p17.prioDeLAgent, 0);
+  assert.match(p17.prioPosee!.raison, /On le fait mais plus tard/);
+  for (const piste of aSuivre.filter((candidate) => candidate.id !== 'P17')) assert.equal(piste.prioPosee, null, `${piste.id} : aucune prio posée`);
+  assert.deepEqual(Object.keys(p17).sort(), [
+    'attentes', 'avancement', 'complexite', 'coutHumain', 'criteresDeFin', 'debloque', 'dependances', 'dernierLot', 'etat', 'id', 'importance', 'lots',
+    'plan', 'prio', 'prioDeLAgent', 'prioPosee', 'questions', 'raisonImportance', 'recherche', 'resume', 'risques', 'sujet', 'titre', 'titreCourt', 'transverses',
+  ]);
 });
-const connues = new Set(['P1', 'P2']);
 
-test('une piste avec un plan compte ses cases cochées sur le total', () => {
-  for (const piste of pistes().filter((candidate) => candidate.plan !== undefined)) {
-    const cases = readFileSync(path.join(racine, piste.plan!), 'utf8').split(/\r?\n/).filter((ligne) => /^\s*- \[[ x]\]/.test(ligne));
-    assert.ok(cases.length > 0, `${piste.id} : le plan n'a aucune case`);
-    assert.deepEqual(piste.avancement, { faites: cases.filter((ligne) => /^\s*- \[x\]/.test(ligne)).length, total: cases.length }, piste.id);
+test('P19 et P21 sortent dans TERMINEES avec la date de leur dernier hash et un lien vers leur plan', () => {
+  const { pistes: aSuivre, terminees } = roadmap(transversesDuDepot());
+  const ecrites = pistes();
+  for (const id of ['P19', 'P21']) {
+    const piste = ecrites.find((candidate) => candidate.id === id)!;
+    const sortie = terminees.find((candidate) => candidate.id === id);
+    assert.ok(sortie, `${id} manque à TERMINEES`);
+    assert.equal(sortie.date, dateDuDernierHash(planDeLaPiste(piste)), `${id} : date du dernier lot`);
+    assert.equal(sortie.ecartee, null);
+    assert.ok(sortie.lien!.startsWith(`${DEPOT_SUR_GITHUB}/`) && sortie.lien!.endsWith('.md'), `${id} : lien ${sortie.lien}`);
+    assert.ok(!aSuivre.some((candidate) => candidate.id === id || candidate.dependances.includes(id) || candidate.debloque.includes(id)), `${id} reste dans la suite`);
   }
 });
 
-test('un plan compte ses étapes hors des blocs de code, avec [X] et les puces * et +', () => {
-  const plan = ['- [x] a', '- [X] b', '```md', '- [ ] exemple', '- [x] autre exemple', '```', '* [ ] c', '+ [x] d', '  - [ ] e'].join('\n');
-  assert.deepEqual(compterLesCases(plan), { faites: 3, total: 5 });
-});
-
-test("aucun lien de la page ne vise la fiche d'une piste livrée", async () => {
-  const page = await generee();
-  for (const piste of pistes().filter((candidate) => candidate.avancement !== undefined && candidate.avancement.faites === candidate.avancement.total)) {
-    assert.ok(!page.includes(`href="#piste-${piste.id}"`), `${piste.id} : un lien vise une fiche absente de la page`);
-  }
-});
-
-test('une piste livrée quitte la suite et reste nommée par son plan', async () => {
-  const page = await generee();
-  const lire = (nom: string): { id: string; dependances?: string[] }[] => JSON.parse(new RegExp(`var ${nom} = (\\[.*?\\]);\\n`).exec(page)![1]);
-  const suivies = lire('PISTES'), livrees = lire('LIVREES');
-  for (const piste of pistes().filter((candidate) => candidate.avancement !== undefined && candidate.avancement.faites === candidate.avancement.total)) {
-    assert.ok(livrees.some(({ id }) => id === piste.id), `${piste.id} manque à la ligne des livrées`);
-    assert.ok(!suivies.some(({ id, dependances }) => id === piste.id || dependances!.includes(piste.id)), `${piste.id} reste dans la suite`);
-  }
-});
-
-const pisteFictive = (alertes: unknown): Piste => ({ id: 'P1', titre: 'Titre', titreCourt: 'Court', sujet: 'Documentation', dependances: [], rang: 1, points: [], alertes: alertes as Piste['alertes'] });
-
-test("une alerte de pistes.json apparaît dans le bandeau « À régler » et sur la fiche de sa piste", async () => {
-  const page = await generee();
-  const avecAlertes = pistes().filter((piste) => piste.alertes?.length && !(piste.avancement && piste.avancement.faites === piste.avancement.total));
-  assert.ok(avecAlertes.length > 0, "aucune piste à suivre n'a d'alerte");
-  const bandeau = /<div class="a-regler" id="a-regler"[\s\S]*?<\/ul>/.exec(page)?.[0] ?? '';
-  const donnees = JSON.parse(/var PISTES = (\[.*?\]);\n/.exec(page)![1]) as Piste[];
-  for (const piste of avecAlertes) {
-    for (const alerte of piste.alertes!) {
-      const sansCode = alerte.texte.replace(/`/g, '');
-      assert.ok(bandeau.replace(/<\/?code>/g, '').includes(sansCode.replace(/&/g, '&amp;')), `${piste.id} : l'alerte manque au bandeau`);
-      assert.ok(bandeau.includes(`href="#piste-${piste.id}"`) && bandeau.includes('Bloque :'), `${piste.id} : le lien ou « Bloque : » manque`);
+test("l'avancement et l'état de chaque piste suivent son plan et sa recherche", () => {
+  const ecrites = new Map(pistes().map((piste) => [piste.id, piste]));
+  for (const piste of roadmap(transversesDuDepot()).pistes) {
+    const source = ecrites.get(piste.id)!;
+    if (source.plan === undefined) {
+      assert.equal(piste.avancement, null, piste.id);
+      assert.equal(piste.lots, null, piste.id);
+      assert.equal(piste.etat, source.recherche === undefined ? 'idee' : 'recherche', piste.id);
+      continue;
     }
-    assert.deepEqual(donnees.find(({ id }) => id === piste.id)!.alertes, piste.alertes, `${piste.id} : ses alertes n'arrivent pas à sa fiche`);
+    const lots = lireLePlan(planDeLaPiste(source));
+    assert.deepEqual(piste.avancement, { faits: lots.filter((lot) => lot.fait).length, total: lots.length }, piste.id);
+    assert.equal(piste.lots!.length, lots.length, piste.id);
+    assert.equal(piste.etat, 'en-cours', piste.id);
+    assert.ok(piste.avancement!.faits < piste.avancement!.total, `${piste.id} est livrée : elle sort dans TERMINEES`);
+    assert.equal(piste.lots!.filter((lot) => lot.suivant).length, lots.some((lot) => !lot.fait && lot.marque === null) ? 1 : 0, piste.id);
   }
-  assert.ok(page.includes('alertesDeLaFiche(x)') && page.includes('repere-alerte'), 'le script ne rend ni le repère ni les alertes de la fiche');
 });
 
-test("le bandeau « À régler » liste chaque alerte, et une page sans alerte n'en a pas", () => {
-  const bandeau = bandeauDesAlertes([pisteFictive([{ texte: 'Choisir `x`', avant: 'le lot 2' }]), { ...pisteFictive(undefined), id: 'P2' }], '<svg></svg>');
-  assert.match(bandeau, /id="a-regler"/);
-  assert.match(bandeau, /<a href="#piste-P1">P1 Court<\/a>.*Choisir <code>x<\/code>.*<b>Bloque :<\/b> le lot 2/);
-  assert.ok(!bandeau.includes('P2'));
-  assert.equal(bandeauDesAlertes([pisteFictive(undefined), pisteFictive([])], '<svg></svg>'), '');
+test("les questions d'une piste qui a une recherche viennent de sa section « Questions au mainteneur »", () => {
+  const { pistes: aSuivre } = roadmap(transversesDuDepot());
+  const questions = (id: string): string[] => aSuivre.find((piste) => piste.id === id)!.questions;
+  assert.equal(questions('P23').length, 10);
+  assert.equal(questions('P23')[0], "Q1. La forme de la bascule de l'Exporter.");
+  assert.equal(questions('P20').length, 14);
+  assert.equal(questions('P22').length, 4);
+  assert.deepEqual(questions('P18'), [], "P18 n'a pas de section de questions");
+  // Une piste sans recherche garde les questions de pistes.json.
+  assert.equal(questions('P17').length, 3);
 });
 
-test("pistes.json : une alerte sans texte, sans avant, ou un champ qui n'est pas un tableau échoue", () => {
-  validerLesAlertes(pisteFictive([{ texte: 'a', avant: 'b' }]));
-  validerLesAlertes(pisteFictive(undefined));
-  assert.throws(() => validerLesAlertes(pisteFictive([{ avant: 'b' }])), /P1.*alertes\[0\]\.texte/);
-  assert.throws(() => validerLesAlertes(pisteFictive([{ texte: 'a', avant: '  ' }])), /alertes\[0\]\.avant/);
-  assert.throws(() => validerLesAlertes(pisteFictive([{ texte: 'a', avant: 'b' }, { texte: '', avant: 'b' }])), /alertes\[1\]\.texte/);
-  assert.throws(() => validerLesAlertes(pisteFictive('texte')), /doit être un tableau/);
+test('la page porte les pistes à suivre dans PISTES et les pistes terminées dans TERMINEES', async () => {
+  const page = await generee();
+  const lire = (nom: string): { id: string }[] => JSON.parse(new RegExp(`var ${nom} = (\\[.*?\\]);\\n`).exec(page)![1]);
+  const { pistes: aSuivre, terminees } = roadmap(transversesDuDepot());
+  assert.deepEqual(lire('PISTES').map(({ id }) => id), aSuivre.map(({ id }) => id));
+  assert.deepEqual(lire('TERMINEES').map(({ id }) => id), terminees.map(({ id }) => id));
+  for (const { id } of terminees) assert.ok(!page.includes(`href="#piste-${id}"`), `un lien vise la fiche de ${id}, terminée`);
 });
 
-test('decisions.json : des choix valides passent', () => {
-  validerLesChoix(decisionsFictives({ P1: { choix: 'oui', note: 'a' }, P2: { choix: '', note: '' } }, { T1: { choix: 'non', note: '' }, T10: { choix: 'avant', note: '' } }), connues);
+test("la page n'enregistre plus de décision : ni fichier, ni localStorage des décisions, ni graphe", async () => {
+  const page = await generee();
+  assert.ok(!page.includes('showSaveFilePicker'));
+  assert.ok(!page.includes("localStorage.setItem('inventaire-ucm-decisions'"));
+  assert.ok(!page.includes('id="graphe"'));
 });
 
-test('decisions.json : une piste inconnue nomme son identifiant', () => {
-  assert.throws(() => validerLesChoix(decisionsFictives({ P99: { choix: 'oui', note: '' } }, {}), connues), /P99/);
+test('decisions.json ne garde ni clé pistes, ni règle écrite de genre liste, ni question tranchée', () => {
+  const decisions = JSON.parse(readFileSync(path.join(racine, CHEMIN_DES_DECISIONS), 'utf8')) as { regles: Regle[] };
+  assert.deepEqual(Object.keys(decisions), ['version', 'regles']);
+  assert.deepEqual(decisions.regles.filter((regle) => regle.genre === 'liste' && regle.ecrite === 'oui').map((regle) => regle.id), []);
+  const restantes = decisions.regles.filter((regle) => /^T\d+$/.test(regle.id)).map((regle) => regle.id);
+  for (const tranchee of ['T2', 'T3', 'T4', 'T7', 'T8', 'T9']) assert.ok(!restantes.includes(tranchee), `${tranchee} est tranchée : elle sort de decisions.json`);
 });
 
-test('decisions.json : une décision transverse sans règle T* nomme son identifiant', () => {
-  assert.throws(() => validerLesChoix(decisionsFictives({}, { T42: { choix: 'oui', note: '' } }), connues), /T42/);
+// ---------- Les mêmes lectures sur un dépôt temporaire ----------
+
+const DEPOTS_TEMPORAIRES: string[] = [];
+
+/** Une piste complète de pistes.json ; `extra` remplace ou ajoute des champs. */
+const ecrite = (id: string, extra: Record<string, unknown> = {}): Record<string, unknown> => ({
+  id, titre: `Titre ${id}`, titreCourt: `Court ${id}`, sujet: 'Documentation', resume: 'Résumé.', importance: 'moyenne', raisonImportance: 'Parce que.',
+  prio: 2, dependances: [], complexite: 'm', coutHumain: 'Aucun.', points: [], criteresDeFin: [], risques: [], ...extra,
 });
 
-test('decisions.json : un choix de piste hors oui, non, vide nomme la piste', () => {
-  assert.throws(() => validerLesChoix(decisionsFictives({ P1: { choix: 'peut-être', note: '' } }, {}), connues), /P1.*peut-être/);
+function ecrireDans(base: string, chemin: string, contenu: string): void {
+  mkdirSync(path.dirname(path.join(base, chemin)), { recursive: true });
+  writeFileSync(path.join(base, chemin), contenu);
+}
+
+/** Un commit à la date donnée (AAAA-MM-JJ), rend son hash court. */
+function commiter(base: string, date: string): string {
+  const env = { ...process.env, GIT_AUTHOR_DATE: `${date}T12:00:00+00:00`, GIT_COMMITTER_DATE: `${date}T12:00:00+00:00` };
+  execFileSync('git', ['add', '-A'], { cwd: base });
+  execFileSync('git', ['-c', 'user.name=essai', '-c', 'user.email=essai@example.org', 'commit', '-q', '--allow-empty', '-m', `essai ${date}`], { cwd: base, env });
+  return git(base, 'rev-parse', '--short', 'HEAD');
+}
+
+/** Un dépôt Git temporaire avec ce `pistes.json` et ces fichiers, sans commit. */
+function depot(listeDePistes: Record<string, unknown>[], fichiers: Record<string, string> = {}): string {
+  const base = mkdtempSync(path.join(tmpdir(), 'roadmap-'));
+  DEPOTS_TEMPORAIRES.push(base);
+  execFileSync('git', ['init', '-q'], { cwd: base });
+  ecrireDans(base, CHEMIN_DES_PISTES, JSON.stringify({ version: 1, pistes: listeDePistes }, null, 2));
+  for (const [chemin, contenu] of Object.entries(fichiers)) ecrireDans(base, chemin, contenu);
+  return base;
+}
+
+test.after(() => {
+  for (const base of DEPOTS_TEMPORAIRES) rmSync(base, { recursive: true, force: true });
 });
 
-test('decisions.json : T10 accepte ses options et refuse oui', () => {
-  assert.throws(() => validerLesChoix(decisionsFictives({}, { T10: { choix: 'oui', note: '' } }), connues), /T10/);
-  assert.throws(() => validerLesChoix(decisionsFictives({}, { T1: { choix: 'avant', note: '' } }), connues), /T1/);
+test('une piste avec etat, alertes ou rang est refusée en nommant le champ', () => {
+  for (const [champ, valeur] of [['etat', 'proposé'], ['alertes', []], ['rang', 2]] as const) {
+    const base = depot([ecrite('P1', { [champ]: valeur })]);
+    assert.throws(() => pistes(base), new RegExp(`piste P1, champ ${champ}`));
+  }
+});
+
+test('prioDuMainteneur sans raison, ou à 6, est refusé ; une prio posée valide passe', () => {
+  assert.throws(() => pistes(depot([ecrite('P1', { prioDuMainteneur: { prio: 3 } })])), /champ prioDuMainteneur\.raison/);
+  assert.throws(() => pistes(depot([ecrite('P1', { prioDuMainteneur: { prio: 3, raison: '  ' } })])), /champ prioDuMainteneur\.raison/);
+  assert.throws(() => pistes(depot([ecrite('P1', { prioDuMainteneur: { prio: 6, raison: 'Plus tard.' } })])), /champ prioDuMainteneur\.prio/);
+  assert.throws(() => pistes(depot([ecrite('P1', { prio: 7 })])), /champ prio/);
+  assert.equal(pistes(depot([ecrite('P1', { prioDuMainteneur: { prio: 0, raison: 'Tout de suite.' } })]))[0].prioDuMainteneur?.prio, 0);
+});
+
+test('ecartee sans raison est refusé', () => {
+  assert.throws(() => pistes(depot([ecrite('P1', { ecartee: {} })])), /champ ecartee\.raison/);
+  assert.throws(() => pistes(depot([ecrite('P1', { ecartee: { raison: '' } })])), /champ ecartee\.raison/);
+});
+
+test("questions à côté d'une recherche est refusé", () => {
+  const base = depot([ecrite('P1', { recherche: 'R.md', questions: ['Une question ?'] })], { 'R.md': '# R\n' });
+  assert.throws(() => pistes(base), /piste P1, champ questions.*Questions au mainteneur/);
+});
+
+test("archive est refusé quand le plan n'existe pas à ce commit", () => {
+  const base = depot([ecrite('P1', { plan: 'PLAN.md', archive: 'HEAD' })], { 'PLAN.md': '- [x] 1. Fait.\n' });
+  commiter(base, '2026-01-01');
+  assert.equal(pistes(base).length, 1);
+  const sansPlan = depot([ecrite('P1', { plan: 'PLAN.md', archive: 'HEAD' })]);
+  commiter(sansPlan, '2026-01-01');
+  assert.throws(() => pistes(sansPlan), /piste P1, champ archive.*PLAN\.md n'existe pas au commit HEAD/);
+  const sansCommit = depot([ecrite('P1', { plan: 'PLAN.md', archive: 'abcdef1' })], { 'PLAN.md': '- [x] 1. Fait.\n' });
+  assert.throws(() => pistes(sansCommit), /champ archive/);
+});
+
+test('une piste archivée lit son plan au commit, sort dans TERMINEES avec la date de son dernier hash et un lien figé', () => {
+  const base = depot([ecrite('P1', { plan: 'PLAN.md' })], { 'a.txt': 'a\n' });
+  const premier = commiter(base, '2026-02-03');
+  ecrireDans(base, 'b.txt', 'b\n');
+  const second = commiter(base, '2026-03-04');
+  ecrireDans(base, 'PLAN.md', `# Plan\n\n- [x] 1 (${premier}). Un.\n- [x] 2 (${second}). Deux.\n`);
+  const archive = commiter(base, '2026-03-05');
+  // Le plan quitte l'arbre : seule la lecture au commit d'archive le retrouve.
+  rmSync(path.join(base, 'PLAN.md'));
+  const contenu = JSON.parse(readFileSync(path.join(base, CHEMIN_DES_PISTES), 'utf8'));
+  contenu.pistes[0].archive = archive;
+  ecrireDans(base, CHEMIN_DES_PISTES, JSON.stringify(contenu, null, 2));
+
+  const { pistes: aSuivre, terminees } = roadmap([], base);
+  assert.deepEqual(aSuivre, []);
+  assert.deepEqual(terminees, [{ id: 'P1', titreCourt: 'Court P1', date: '2026-03-04', lien: `${DEPOT_SUR_GITHUB}/${archive}/PLAN.md`, ecartee: null }]);
+});
+
+test('une piste écartée sort dans TERMINEES avec sa raison, et les pistes qui en dépendent la retirent de leurs dépendances', () => {
+  const base = depot([ecrite('P1', { ecartee: { raison: 'Storybook la remplace.' }, recherche: 'Dossier/R.md' }), ecrite('P2', { dependances: ['P1'] })], { 'Dossier/R.md': '# R\n' });
+  const { pistes: aSuivre, terminees } = roadmap([], base);
+  assert.deepEqual(terminees, [{ id: 'P1', titreCourt: 'Court P1', date: null, lien: `${DEPOT_SUR_GITHUB}/main/Dossier/R.md`, ecartee: 'Storybook la remplace.' }]);
+  assert.deepEqual(aSuivre.map(({ id, dependances }) => ({ id, dependances })), [{ id: 'P2', dependances: [] }]);
+});
+
+test("le lien d'une piste terminée encode le chemin de son plan", () => {
+  const base = depot([ecrite('P1', { plan: 'Dossier avec espace/Plan é.md' })], { 'Dossier avec espace/Plan é.md': '- [x] 1. Fait.\n' });
+  assert.equal(roadmap([], base).terminees[0].lien, `${DEPOT_SUR_GITHUB}/main/Dossier%20avec%20espace/Plan%20%C3%A9.md`);
+});
+
+test("l'état, l'avancement, les lots et les attentes se calculent depuis la recherche et le plan", () => {
+  const plan = ['# Plan', '', '## Vague 1', '', '- [x] 1.1 (HASH). Fait.', '- [ ] 1.2 (mainteneur). Choisir la forme.', '- [ ] 1.3 (attend P3). Après le contrat.', '- [ ] 1.4. Lot libre.', '  - [ ] sous-étape', ''].join('\n');
+  const base = depot(
+    [
+      ecrite('P1', { prio: 0 }),
+      ecrite('P2', { plan: 'PLAN.md', recherche: 'R2.md', dependances: ['P3'], importance: 'basse' }),
+      ecrite('P3', { recherche: 'R3.md', prio: 1 }),
+      ecrite('P4', { prio: 0, importance: 'critique', dependances: ['P1', 'P3'] }),
+    ],
+    { 'R2.md': '# R\n', 'R3.md': '# R\n\n## Questions au mainteneur\n\n- Une ?\n- [Deux ?](#deux)\n', 'a.txt': 'a\n', 'PLAN.md': plan },
+  );
+  const hash = commiter(base, '2026-04-05');
+  ecrireDans(base, 'PLAN.md', plan.replace('HASH', hash));
+  const { pistes: aSuivre } = roadmap([], base);
+  assert.deepEqual(aSuivre.map(({ id }) => id), ['P4', 'P1', 'P3', 'P2'], 'prio, puis importance');
+  const piste = (id: string) => aSuivre.find((candidate) => candidate.id === id)!;
+
+  assert.equal(piste('P1').etat, 'idee');
+  assert.deepEqual(piste('P1').attentes, [{ genre: 'toi', texte: 'À lancer, rien de commencé', detail: 'Prio 0 ou 1 sans recherche ni plan' }]);
+  assert.equal(piste('P3').etat, 'recherche');
+  assert.deepEqual(piste('P3').questions, ['Une ?', 'Deux ?']);
+  assert.equal(piste('P3').attentes[0].texte, 'Tes réponses, 2 questions');
+  assert.deepEqual(piste('P4').attentes.map(({ genre, texte }) => `${genre}:${texte}`), ['toi:À lancer, rien de commencé', 'piste:Après P1, P3']);
+  assert.deepEqual(piste('P4').dependances, ['P1', 'P3']);
+  assert.deepEqual(piste('P1').debloque, ['P4']);
+
+  const p2 = piste('P2');
+  assert.equal(p2.etat, 'en-cours');
+  assert.deepEqual(p2.avancement, { faits: 1, total: 4 }, 'la sous-étape ne compte pas');
+  assert.equal(p2.dernierLot, '2026-04-05');
+  assert.deepEqual(p2.lots!.map(({ numero, fait, marque, suivant, hash: h }) => ({ numero, fait, marque, suivant, h })), [
+    { numero: '1.1', fait: true, marque: '', suivant: false, h: hash },
+    { numero: '1.2', fait: false, marque: 'mainteneur', suivant: false, h: '' },
+    { numero: '1.3', fait: false, marque: 'attend P3', suivant: false, h: '' },
+    { numero: '1.4', fait: false, marque: '', suivant: true, h: '' },
+  ]);
+  assert.equal(p2.lots![0].groupe, 'Vague 1');
+  assert.deepEqual(p2.attentes.map(({ genre, texte, detail }) => ({ genre, texte, detail })), [
+    { genre: 'toi', texte: 'Ta décision, lot 1.2', detail: 'Choisir la forme.' },
+    { genre: 'piste', texte: 'Lot 1.3 attend P3', detail: 'Après le contrat.' },
+  ]);
+});
+
+test("une règle transverse va dans la fiche de chaque piste à suivre qu'elle nomme, sans les pistes terminées", () => {
+  const base = depot([ecrite('P1'), ecrite('P2'), ecrite('P3', { ecartee: { raison: 'Écartée.' } })]);
+  const regle: Regle = { id: 'T1', genre: 'transverse', titre: 'Sujet', texte: 'Texte.', domicileCible: 'CONTRIBUTING.md', ecrite: 'non', pistes: ['P1', 'P3'] };
+  const { pistes: aSuivre } = roadmap([regle], base);
+  assert.deepEqual(aSuivre.find(({ id }) => id === 'P1')!.transverses, [{ id: 'T1', titre: 'Sujet', texte: 'Texte.', pistes: ['P1'] }]);
+  assert.deepEqual(aSuivre.find(({ id }) => id === 'P2')!.transverses, []);
 });

@@ -185,7 +185,7 @@ plan existait encore. Le générateur lit le plan à ce commit par
 date du dernier hash coché. La partie « Terminés » de la Roadmap, repliée,
 liste chaque piste avec cette date et un lien figé vers son plan.
 
-## Questions au mainteneur
+## Réponses aux questions
 
 Réponses du mainteneur :
 

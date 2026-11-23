@@ -13,6 +13,8 @@ import os from 'node:os';
 import path from 'node:path';
 import test from 'node:test';
 
+import { etatDuPlan, lireLePlan } from '../docs/inventaire/plans';
+
 const racine = path.resolve(__dirname, '..');
 const RECHERCHES = 'docs/notes/Recherches';
 const REGISTRE = '.agents/domiciles.json';
@@ -23,6 +25,7 @@ interface Piste {
   id: string;
   recherche?: string;
   plan?: string;
+  archive?: string;
 }
 
 interface Depot {
@@ -42,22 +45,10 @@ function lireDepot(base: string): Depot {
   };
 }
 
-/** Cases de premier niveau hors blocs de code ; le lot 3.1 remplace ce comptage par `lireLePlan`. */
+/** Vrai si le plan existe et que toutes ses cases de premier niveau sont cochées (`etatDuPlan`, la règle de l'inventaire). */
 function planLivre(base: string, chemin: string): boolean {
   const fichier = path.join(base, chemin);
-  if (!fs.existsSync(fichier)) return false;
-  let dansUnBloc = false;
-  let total = 0;
-  let faites = 0;
-  for (const ligne of fs.readFileSync(fichier, 'utf8').split(/\r?\n/)) {
-    if (/^\s*(```|~~~)/.test(ligne)) dansUnBloc = !dansUnBloc;
-    if (dansUnBloc) continue;
-    const trouvee = /^[-*] \[([ xX])\]/.exec(ligne);
-    if (!trouvee) continue;
-    total += 1;
-    if (trouvee[1] !== ' ') faites += 1;
-  }
-  return total > 0 && faites === total;
+  return fs.existsSync(fichier) && etatDuPlan(lireLePlan(fs.readFileSync(fichier, 'utf8'))).livre;
 }
 
 /** Dossiers réels qui échappent à la règle, avec leur raison ; le lot 5.1 vide la liste. */
@@ -112,7 +103,7 @@ function controler(depot: Depot): string[] {
         echecs.push(`La piste ${piste.id} a son plan dans « ${CATALOGUE} », le dossier du catalogue : ${chemin}. ${geste('<Nom>', piste.id)}`);
         continue;
       }
-      if (champ === 'plan' && !EXCEPTIONS[nom] && !planLivre(depot.racine, chemin)) {
+      if (champ === 'plan' && !EXCEPTIONS[nom] && piste.archive === undefined && !planLivre(depot.racine, chemin)) {
         plansParDossier.set(nom, [...(plansParDossier.get(nom) ?? []), piste.id]);
       }
     }

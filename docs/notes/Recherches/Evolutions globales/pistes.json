@@ -9,14 +9,17 @@
       "resume": "Rendre le check `contrats` obligatoire sur `main` d'intencial-library et poser un `CODEOWNERS` qui laisse le designer fusionner seul une demande de tokens.",
       "importance": "critique",
       "raisonImportance": "Sans protection de branche, une pull request rouge reste fusionnable : ROADMAP.md et POUR-LES-DESIGNERS.md §6 le disent, et toute règle de blocage reste un conseil.",
-      "rang": 0,
+      "prio": 0,
+      "prioDuMainteneur": {
+        "prio": 4,
+        "raison": "On le fait mais plus tard, ce n'est pas prioritaire pour le moment."
+      },
       "dependances": [],
       "complexite": "s",
       "raisonComplexite": "Le travail est un réglage GitHub et un fichier `CODEOWNERS` ; le coût est la décision sur l'offre GitHub de l'organisation.",
       "coutHumain": "Décider de l'offre GitHub de l'organisation, régler la règle de la branche `main` et désigner les propriétaires de code.",
       "porteur": "mainteneur",
       "promesse": "R",
-      "etat": "ouvert",
       "points": [
         {
           "chemin": "GitHub, réglages d'intencial-library, règle de branche `main`",
@@ -67,14 +70,13 @@
       "resume": "Exporter 3 ou 4 composants en contrat 14.0 dans intencial-library, passer son workflow de la CLI 0.1.48 à 0.1.150 et rejouer la recette externe.",
       "importance": "critique",
       "raisonImportance": "Le dépôt n'a aucun dossier `src/components` ni contrat, et aucun contrat 14.0 n'existe nulle part : un module n'aurait rien contre quoi coder ni tester.",
-      "rang": 0,
+      "prio": 0,
       "dependances": [],
       "complexite": "m",
       "raisonComplexite": "Les exports et les pins tiennent en un lot ; la recette compte une heure et demie, et RECETTE.md est écrit pour UCM-Playground.",
       "coutHumain": "Exporter 3 ou 4 composants depuis Figma, relire leurs pull requests et rejouer la recette d'une heure et demie.",
       "porteur": "mainteneur",
       "promesse": "C",
-      "etat": "à faire",
       "points": [
         {
           "chemin": "../intencial-library/.github/workflows/ucm.yml",
@@ -132,7 +134,7 @@
       "resume": "Créer `package.json`, lockfile, `tsconfig.json` et `src/components/` dans intencial-library, et installer la CLI et l'adaptateur. Le repository n'a pas besoin des tokens.",
       "importance": "critique",
       "raisonImportance": "Le dépôt ne contient que `tokens.json` : sans lockfile, `ucm.yml` saute `npm ci`, l'adaptateur ne se charge pas et aucun module n'a de projet où s'exécuter.",
-      "rang": 1,
+      "prio": 1,
       "dependances": [
         "P1",
         "P19"
@@ -142,7 +144,6 @@
       "coutHumain": "Aucun geste. intencial-library reste une bibliothèque seule, privée et non publiée pour l'instant.",
       "porteur": "développeurs",
       "promesse": "R",
-      "etat": "proposé",
       "points": [
         {
           "chemin": "../intencial-library/package.json",
@@ -180,7 +181,6 @@
         "`tsc --noEmit` passe dans le job `contrats`.",
         "intencial-library épingle la CLI qui contient P19, en version exacte."
       ],
-      "questions": [],
       "risques": [
         "L'adaptateur cherche une interface nommée d'après le composant (`nomInterfaceAttendue`). Une interface nommée autrement que `ButtonProps` donne le seul écart « interface absente », et aucune prop n'est comparée."
       ]
@@ -195,14 +195,13 @@
       "resume": "Faire bloquer `ucm check` sur un écart du code quand la demande touche le code du composant, et marquer « en retard sur son contrat » quand seul le contrat change, avec une dérogation motivée qui passe.",
       "importance": "critique",
       "raisonImportance": "`bilanEstBloquant` ne compte ni les tokens absents ni la parité, donc le CI laisse fusionner tout écart du code quelle que soit la règle écrite.",
-      "rang": 1,
+      "prio": 1,
       "dependances": [],
       "complexite": "l",
       "raisonComplexite": "Trois verdicts dépendent du périmètre de la demande, un fichier de dérogations est à concevoir, et kit, CLI et adaptateur se publient ensemble.",
       "coutHumain": "Relire la partie 1 de la décision, puis les dérogations que le rapport de chaque export montre.",
       "porteur": "mainteneur",
       "promesse": "R",
-      "etat": "à faire",
       "points": [
         {
           "chemin": "packages/kit/src/lecteurs/verdict-bilan.mjs",
@@ -289,7 +288,6 @@
         "Le kit, la CLI et l'adaptateur sont servis par le registre.",
         "Le workflow qu'écrit `ucm init` lance la CLI installée par le repository, sans recopier son numéro de version dans `ucm.yml`."
       ],
-      "questions": [],
       "risques": [
         "Après la fusion d'une variante par le designer, le CI de `main` devient rouge si le push n'a pas de base.",
         "Un délai « en retard » non encodé n'est jamais appliqué.",
@@ -305,14 +303,13 @@
       "resume": "Une pièce interne, dont le nom commence par `.` ou `_`, n'a ni contrat ni collection. Le contrat de son composant hôte doit la décrire comme un composant : toutes ses variantes, toutes ses propriétés, et ce que chaque variante dessine.",
       "importance": "critique",
       "raisonImportance": "Aujourd'hui l'Exporter parcourt la pièce interne comme une partie de l'hôte : le contrat montre seulement l'état où chaque variant de l'hôte la pose. Ses autres variantes et ses propriétés manquent, si bien qu'un développeur ou un agent invente l'API de la pièce, que le code doit pourtant écrire comme un sous-composant (`.Ring`, `.sizeWrapperButton`).",
-      "rang": 1,
+      "prio": 1,
       "dependances": [],
       "complexite": "l",
       "raisonComplexite": "Le format du contrat change (nouvelle version majeure), avec le moteur d'extraction du socle, les types et le schéma du kit, les lecteurs, la validation et la parité.",
       "coutHumain": "Décider la forme du bloc des pièces internes et l'endroit où le designer écrit ses règles d'usage ; réexporter les composants qui en ont.",
       "porteur": "mainteneur",
       "promesse": "C",
-      "etat": "proposé",
       "points": [
         {
           "chemin": "docs/format/FORMAT.md",
@@ -391,12 +388,6 @@
         "`npm run schema` régénère le schéma, et `npm test` passe avec la nouvelle version du contrat.",
         "Un réexport réel d'un composant avec une pièce interne (par exemple un Button avec `.Ring`) passe `ucm check`."
       ],
-      "questions": [
-        "Le bloc des pièces internes se range-t-il à la racine du contrat de l'hôte, ou à côté de `composes` ?",
-        "Une pièce à propriétés a des règles d'usage sans avoir de contrat (décidé) : où le designer les pose-t-il, et l'export bloque-t-il quand elles manquent ?",
-        "Une pièce interne imbriquée dans une autre pièce interne se décrit-elle à plat dans l'hôte ?",
-        "Ses tokens restent-ils ceux de l'hôte, ou la pièce peut-elle lier `theme` et `layout` comme le permet aujourd'hui son maître ?"
-      ],
       "risques": [
         "Une pièce à beaucoup de variantes alourdit chaque contrat qui l'embarque : la décrire une fois par hôte, pas une fois par instance.",
         "Un changement de version du contrat demande un réexport de tous les composants et une sortie coordonnée du kit, de la CLI et de l'Exporter."
@@ -412,14 +403,13 @@
       "resume": "Le kit définit les 7 collections, leurs cibles, leurs familles et la grammaire de leurs noms, et le contenu complet de theme. Il ne définit ni les variables attendues de brands, utility, layout et typography, ni leurs valeurs de référence, et aucun outil n'écrit ces quatre collections.",
       "importance": "haute",
       "raisonImportance": "Sans architecture de référence complète, un nouveau design system UCM se monte à la main, et la seule vue complète du dépôt (`VUE-ILLUSTREE-MULTIMARQUES.html`) vient d'un export figé aux anciens noms.",
-      "rang": 1,
+      "prio": 1,
       "dependances": [],
       "complexite": "l",
       "raisonComplexite": "Un générateur est à créer, la référence touche le kit, la vue illustrée et un test racine, et trois questions de conception restent ouvertes.",
       "coutHumain": "Aucun geste. Les six choix sont tranchés, et la référence suit l'export actuel.",
       "porteur": "mainteneur",
       "promesse": "C",
-      "etat": "proposé",
       "points": [
         {
           "chemin": "packages/kit/src/referentiel/architecture.ts",
@@ -457,7 +447,6 @@
         "La vue illustrée et le panneau de cette page lisent la même référence, et un test refuse une vue périmée.",
         "Aucun nom ancien (`color-brands`, `colors`, `press`) ne reste dans les données de la vue illustrée."
       ],
-      "questions": [],
       "risques": [
         "Une échelle de référence imposée gêne une équipe qui en a déjà une : la référence décrit le full UCM, l'Exporter reste agnostique en option."
       ]
@@ -471,7 +460,7 @@
       "resume": "Écrire dans le kit le format de l'observation normalisée et la fonction qui compare une observation, une combinaison et le contrat, plus une feuille de tokens à valeur unique par token.",
       "importance": "haute",
       "raisonImportance": "Aucun contrôle n'exerce le rendu (ROADMAP.md, « La preuve du rendu reste ciblée ») : sans comparateur, dimensions, typographie et structure ne bloquent jamais.",
-      "rang": 2,
+      "prio": 2,
       "dependances": [
         "P1"
       ],
@@ -480,7 +469,6 @@
       "coutHumain": "Répondre à quatre questions de conception : `data-ucm-slot`, ordre des slots, états, passes de mesure.",
       "porteur": "mainteneur",
       "promesse": "R",
-      "etat": "proposé",
       "points": [
         {
           "chemin": "packages/kit/src/lecteurs/ (observation et comparateur)",
@@ -529,12 +517,6 @@
         "Deux tokens de même valeur sont distingués sous la feuille à valeur unique.",
         "Aucun test ni module du comparateur ne cite un nom de composant."
       ],
-      "questions": [
-        "Adopte-t-on `data-ucm-slot`, et reste-t-il en production ?",
-        "La famille « structure et ordre » se mesure-t-elle par l'ordre des slots dans le DOM ?",
-        "Couvre-t-on survol, focus et appui dès la première version ?",
-        "Une valeur unique de dimension ou de typographie change la géométrie : fait-on deux passages, un pour l'identité des tokens, un pour la géométrie ?"
-      ],
       "risques": [
         "La feuille à valeur unique déforme la mise en page et fausse les mesures de géométrie si un seul passage sert aux deux.",
         "Un comparateur plus précis que le contrat impose une écriture du code (règle du bloc B : `background` ou `background-color`)."
@@ -548,7 +530,7 @@
       "resume": "Générer une story par entrée exacte de `variants`, monter le Storybook dans intencial-library, ajouter `figmaFileKey` à `ucm.config.json` et retirer le Hub.",
       "importance": "haute",
       "raisonImportance": "Le vérificateur de rendu a besoin d'un montage de chaque combinaison, et l'équipe n'a pas d'autre vitrine que le Hub, que la décision remplace.",
-      "rang": 2,
+      "prio": 2,
       "dependances": [
         "P1",
         "P18"
@@ -558,7 +540,6 @@
       "coutHumain": "Répondre à trois questions : lieu du générateur, arrêt du Hub, version de `CSF`.",
       "porteur": "les deux",
       "promesse": "C",
-      "etat": "proposé",
       "points": [
         {
           "chemin": "générateur de stories",
@@ -624,7 +605,7 @@
       "resume": "Livrer deux règles décidées, token inconnu et valeur en dur, en une publication : l'écriture des références par les aides, leur juge dans le kit avec la dérogation des constats, la lecture du code dans l'adaptateur, leur verdict dans `ucm check`, la commande `ucm deroger` et toutes les règles affichées dans l'inventaire. Le plugin ESLint de la bibliothèque affiche les constats. Les règles 3 et 4 (variante non publiée, élément visuel en plus) restent ouvertes.",
       "importance": "haute",
       "raisonImportance": "Sans linter, une valeur écrite en dur passe pour conforme au vérificateur quand elle égale un token, et une nouvelle valeur du designer ne se propage pas.",
-      "rang": 2,
+      "prio": 2,
       "dependances": [
         "P18",
         "P1"
@@ -634,7 +615,6 @@
       "coutHumain": "Relire les choix du plan (D26 du cadrage). Le développeur donne la forme d'écriture des styles d'intencial-library et relit le contrat du plugin.",
       "porteur": "les deux",
       "promesse": "R",
-      "etat": "proposé",
       "points": [
         {
           "chemin": "packages/cli/aides/composant.md et resolution-token.md",
@@ -709,24 +689,11 @@
         "Une demande de `tokens.json` seul reste verte, et une demande de code qui touche un fichier fautif est rouge.",
         "L'inventaire affiche les règles du linter, lues dans le code."
       ],
-      "questions": [
-        "Le linter refuse-t-il une prop, une variante ou un élément absents du contrat (règles 3 et 4) ?"
-      ],
       "risques": [
         "Une bibliothèque qui écrit ses styles hors des objets `style` (CSS Modules, CSS-in-JS) laisse le linter presque sans rien à juger.",
         "Un agent qui oublie `ucm tokens references` laisse des `\"{chemin}\"` dans le code ; `--verifier` et le juge les voient.",
         "Le cache ESLint reste désactivé au premier lot ; le juge relit ses entrées à chaque préparation.",
         "Une publication d'une autre session avant la fin de P6 exposerait un travail inachevé ; le verrou de la skill `publier-paquets` l'empêche."
-      ],
-      "alertes": [
-        {
-          "texte": "Obtenir du développeur la forme d'écriture des styles d'intencial-library et sa relecture du contrat du plugin. Le plan suppose les objets `style` et `CSSProperties` et publie sans attendre sa réponse. Une autre forme demandera une correction de l'adaptateur après publication.",
-          "avant": "la mise en service du linter dans intencial-library"
-        },
-        {
-          "texte": "Geste du mainteneur, après la publication de P6 : retirer de `UCM-Playground/.ucm/conventions.md` la ligne « Traduire `{chemin.du.token}` » et la phrase « aucun helper partagé », puis épingler la CLI et l'adaptateur que P6 publie.",
-          "avant": "la réimplémentation à froid des composants de Playground en contrat v14"
-        }
       ]
     },
     {
@@ -738,7 +705,7 @@
       "resume": "Aligner la bascule Composant et Tokens de l'Exporter sur celle d'UCM Architect, laisser cocher les collections et les modes exportés dans `tokens.json`, puis convertir ce fichier pour Style Dictionary par une commande de la CLI.",
       "importance": "haute",
       "raisonImportance": "Un repository consommateur ne remplace sa chaîne Supernova que si ses équipes choisissent les collections et les modes exportés et si son build Style Dictionary lit le résultat ; l'Exporter publie aujourd'hui toutes les variables locales, sans choix.",
-      "rang": 2,
+      "prio": 2,
       "dependances": [
         "P19"
       ],
@@ -747,7 +714,6 @@
       "coutHumain": "Répondre aux dix questions de la recherche, fournir la configuration Style Dictionary du consommateur, puis réexporter les tokens depuis Figma pour la recette.",
       "porteur": "mainteneur",
       "promesse": "C",
-      "etat": "proposé",
       "points": [
         {
           "chemin": "packages/plugin-socle/src/ui/Bascule.ts",
@@ -828,14 +794,6 @@
         "Un test construit chaque fichier de `ucm tokens style-dictionary` avec Style Dictionary 5.8.0, sans `[object Object]` dans le CSS.",
         "`npm run fidelite --workspace ucm-architect-plugin` ne rend aucun nouvel écart après le déplacement de la bascule."
       ],
-      "questions": [
-        "Q1 : la bascule de l'Exporter reprend-elle celle d'Architect, avec son dessin de choix segmenté pour une navigation entre vues ?",
-        "Q4 : le choix des collections se range-t-il sur le poste, dans `ucm.config.json` ou dans le document Figma ?",
-        "Q5 : le designer peut-il choisir le mode de base d'une collection, comme dans Supernova ?",
-        "Q8 : une commande de la CLI qui ne lit que le format respecte-t-elle la règle « seul l'Exporter est agnostique » ?",
-        "Q9 : quelle version de Style Dictionary le build du consommateur emploie-t-il ?",
-        "Q10 : faut-il reproduire l'arborescence de l'exporteur Supernova ?"
-      ],
       "risques": [
         "Un axe écarté en entier fait sortir `ucm tokens css` en erreur quand `ucm.config.json` le déclare sous `modes` (`packages/cli/src/tokens-css.mjs`, ligne 123).",
         "`primitives` écartée transforme chaque lien de `brands` et de `utility` en constat du diagnostic d'architecture (P21).",
@@ -852,7 +810,7 @@
       "resume": "Observer chaque story dans un navigateur, appeler le comparateur, garder les captures validées et faire entrer les écarts dans le rapport unique.",
       "importance": "haute",
       "raisonImportance": "C'est la seule pièce qui fait bloquer dimensions, typographie et structure, et qui garde une capture validée contre un changement du code seul.",
-      "rang": 3,
+      "prio": 3,
       "dependances": [
         "P10",
         "P9",
@@ -864,7 +822,6 @@
       "coutHumain": "Répondre à trois questions : blocage ou période d'observation, lieu de validation du rendu, Playwright ou Chromatic.",
       "porteur": "les deux",
       "promesse": "R",
-      "etat": "proposé",
       "points": [
         {
           "chemin": "../intencial-library/ (observation des stories)",
@@ -903,12 +860,6 @@
         "Une demande qui change le contrat et les captures est verte, captures « à valider ».",
         "Une dérogation motivée rend le job vert et apparaît dans le rapport."
       ],
-      "questions": [
-        "Le vérificateur bloque-t-il dès sa mise en service, ou avertit-il pendant une période d'observation ?",
-        "Où le designer valide-t-il un rendu, et où cette validation s'enregistre-t-elle ?",
-        "Playwright avec captures dans Git, ou Chromatic payant ?",
-        "Une prévisualisation des composants modifiés, publiée sur la demande de fusion, laisse-t-elle le designer bloquer la fusion sur le rendu ?"
-      ],
       "risques": [
         "Les polices de Linux en CI rendent autrement que la machine du designer : captures instables.",
         "Le temps du job croît avec le nombre de combinaisons."
@@ -922,7 +873,7 @@
       "resume": "Une page de Storybook sert de hub. Pour chaque composant, elle affiche l'état que le kit calcule (conforme, en retard, écart, non analysé), les constats par règle et leurs nombres, et elle alerte quand l'implémentation s'écarte du contrat.",
       "importance": "moyenne",
       "raisonImportance": "Le rapport d'`ucm check` ne parle que de la demande en cours : rien ne montre l'état de toute la bibliothèque, ni les composants en retard sur leur contrat.",
-      "rang": 4,
+      "prio": 4,
       "dependances": [
         "P9",
         "P6",
@@ -933,7 +884,6 @@
       "coutHumain": "Dire quelles métriques la page montre en premier.",
       "porteur": "développeurs",
       "promesse": "C",
-      "etat": "proposé",
       "points": [
         {
           "chemin": "../intencial-library/ (page santé de Storybook)",
@@ -966,7 +916,7 @@
       "resume": "Faire écrire un composant par un agent qui corrige jusqu'à un rapport vide du linter et du vérificateur, au lieu du compilateur des lots 0 à 6.",
       "importance": "moyenne",
       "raisonImportance": "La revue du plan d'implémenteur estime le compilateur à 34 à 61 sessions sans volume pour l'amortir ; la boucle agent ne vaut qu'avec le vérificateur.",
-      "rang": 4,
+      "prio": 4,
       "dependances": [
         "P20",
         "P6",
@@ -977,7 +927,6 @@
       "coutHumain": "Répondre à deux questions : plafond de sessions, propriétaire des fichiers de l'agent. Mesurer le temps humain d'un réexport.",
       "porteur": "développeurs",
       "promesse": "C",
-      "etat": "proposé",
       "points": [
         {
           "chemin": "../intencial-library/.agents/skills/ucm-implementer/SKILL.md",
@@ -1004,10 +953,6 @@
         "Un agent produit un composant d'un contrat 14.0 réel et le CI rend un rapport vide sans retouche humaine.",
         "Le temps humain d'un réexport est mesuré avant et après."
       ],
-      "questions": [
-        "Quel plafond de sessions et quel horizon de remboursement (décision 21 de la revue) ?",
-        "Qui possède les fichiers produits par l'agent (décision 28) ?"
-      ],
       "risques": [
         "Le comportement ne se déduit pas du contrat (revue §2.2) : l'agent peut rendre un composant conforme au rendu et faux dans son action."
       ]
@@ -1021,7 +966,7 @@
       "resume": "Exécuter PLAN-DIFF-SEMANTIQUE.md : `ucm diff --base` compare contrats et tokens entre une révision et l'arbre de travail.",
       "importance": "basse",
       "raisonImportance": "Le diff aide la revue sans rien bloquer ; la revue du plan d'implémenteur juge qu'on peut démarrer sans lui (décision 8).",
-      "rang": 4,
+      "prio": 4,
       "dependances": [
         "P1"
       ],
@@ -1030,7 +975,6 @@
       "coutHumain": "Consigner la porte H1 et répondre à une question : l'entrée du diff dans le rapport.",
       "porteur": "mainteneur",
       "promesse": "R",
-      "etat": "proposé",
       "points": [
         {
           "chemin": "docs/notes/Recherches/Diff Sémantique/PLAN-DIFF-SEMANTIQUE.md",
@@ -1058,9 +1002,6 @@
         "Deux exécutions de `ucm diff --base <révision> --json` sur les mêmes entrées écrivent le même JSON.",
         "La porte H1 est consignée."
       ],
-      "questions": [
-        "Le diff entre-t-il dans le rapport de pull request, que le plan exclut ?"
-      ],
       "risques": [
         "Un résumé exact mais trop long n'est pas adopté (critère H1)."
       ]
@@ -1074,7 +1015,7 @@
       "resume": "Regrouper les pistes PISTES-EVOLUTION.md §2.5, §3.2 (écarts dans l'éditeur au-delà du linter) et §4.2 (serveur MCP), et l'ouverture de la CLI à d'autres adaptateurs.",
       "importance": "basse",
       "raisonImportance": "La stack décidée est React et TypeScript, et un agent de code lit déjà les fichiers du dépôt : rien ne bloque les modules sans ces pistes.",
-      "rang": 5,
+      "prio": 5,
       "dependances": [
         "P6",
         "P20"
@@ -1084,7 +1025,6 @@
       "coutHumain": "Répondre à deux questions : quelle piste d'abord, et les sièges Figma pour Code Connect.",
       "porteur": "les deux",
       "promesse": "C",
-      "etat": "ouvert",
       "points": [
         {
           "chemin": "packages/cli/src/adaptateur.mjs",
@@ -1100,10 +1040,6 @@
       "criteresDeFin": [
         "Un essai choisi est mesuré selon PISTES-EVOLUTION.md §6.3 avant tout paquet."
       ],
-      "questions": [
-        "Quelle piste d'abord, et sur quel besoin observé ?",
-        "L'équipe a-t-elle les sièges Figma que Code Connect exige ?"
-      ],
       "risques": [
         "Un serveur MCP double la skill et les lecteurs s'il ne sert pas des révisions identifiées."
       ]
@@ -1116,14 +1052,13 @@
       "resume": "Relier chaque identifiant de décision cité dans `packages/*/src` à sa source : 58 identifiants Q-F… dans 25 fichiers, 28 N-… dans 13, 11 E-… dans 8.",
       "importance": "basse",
       "raisonImportance": "Un contributeur qui lit `(Q-F5-6)` ne trouve pas la décision, mais le code reste correct sans l'index.",
-      "rang": 5,
+      "prio": 5,
       "dependances": [],
       "complexite": "m",
       "raisonComplexite": "Une centaine d'identifiants, dont une partie vit dans les archives ou l'historique Git.",
       "coutHumain": "Répondre à une question : un document nouveau ou une table dans un document existant.",
       "porteur": "mainteneur",
       "promesse": "C",
-      "etat": "proposé",
       "points": [
         {
           "chemin": "index des décisions",
@@ -1157,14 +1092,13 @@
       "resume": "Remplacer la section « La suite » de l'inventaire par une Roadmap dont l'état, l'avancement et l'attente se calculent depuis le plan de chaque piste. Le champ `etat` disparaît, `rang` devient `prio`, et le mainteneur pose une prio avec sa raison. Chaque sujet a son dossier de recherche, et un sujet livré s'archive par une skill.",
       "importance": "moyenne",
       "raisonImportance": "Le champ `etat` écrit à la main était faux pour 6 pistes sur 16, et le mainteneur ne pouvait pas se fier à la page pour suivre ses sujets.",
-      "rang": 4,
+      "prio": 4,
       "dependances": [],
       "complexite": "l",
       "raisonComplexite": "Cinq vagues : lecture des plans, gardes et scripts, données et interface de la page, renommage de `ROADMAP.md`, premier archivage. La vague 3 attend la case 4.4 de P6, qui écrit les mêmes fichiers de l'inventaire.",
       "coutHumain": "Répondre à cinq questions de la recherche, puis confirmer les fichiers supprimés au premier archivage.",
       "porteur": "mainteneur",
       "promesse": "C",
-      "etat": "à faire",
       "points": [
         {
           "chemin": "docs/inventaire/plans.ts",
@@ -1203,7 +1137,6 @@
         "Un test refuse un dossier de recherche non enregistré, un hash inconnu dans un plan et un plan sans piste.",
         "P19 et P21 sont archivées et figurent dans la partie « Terminés » avec leur date."
       ],
-      "questions": [],
       "risques": [
         "La lecture des plans par `git show` demande tout l'historique : le CI le clone déjà (`fetch-depth: 0`).",
         "Une suppression mal jugée perd un fait qu'aucun test ne garde : la confirmation du mainteneur la précède."

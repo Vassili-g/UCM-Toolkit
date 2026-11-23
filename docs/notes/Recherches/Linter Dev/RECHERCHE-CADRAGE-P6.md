@@ -735,3 +735,7 @@ Le parseur documente ses
 Stylelint 18 demande au moins Node 22.22.2 sur la branche 22 ou Node 24.15 sur
 la branche 24. Voir sa
 [migration](https://stylelint.io/migration-guide/to-18/#removed-support-for-end-of-life-and-older-versions-of-nodejs).
+
+## Questions au mainteneur
+
+- Le linter refuse-t-il une prop, une variante ou un élément absents du contrat (règles 3 et 4) ?

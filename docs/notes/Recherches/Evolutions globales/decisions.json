@@ -1,12 +1,5 @@
 {
   "version": 1,
-  "pistes": {
-    "P17": {
-      "choix": "oui",
-      "note": "On le fait mais plus tard, ce n'est pas prioritaire pour le moment."
-    }
-  },
-  "transverses": {},
   "regles": [
     {
       "id": "libre-dans-le-code",
@@ -23,18 +16,6 @@
       "domicileCible": "docs/guides/POUR-LES-DESIGNERS.md#6. Ce qui bloque la fusion et ce qui avertit",
       "ecrite": "oui",
       "pistes": []
-    },
-    {
-      "id": "rendu-valide-devient-reference",
-      "genre": "liste",
-      "pour": "developpeur",
-      "texte": "Un rendu validé par le designer devient la capture de référence. Un changement du code seul qui la modifie bloque (P10, P20).",
-      "domicileCible": "docs/notes/Recherches/Linter Dev/PLAN-CONFORMITE-RENDU.md#7. Règle de sévérité",
-      "ecrite": "oui",
-      "pistes": [
-        "P10",
-        "P20"
-      ]
     },
     {
       "id": "coeur-un-seul-mainteneur",
@@ -55,15 +36,6 @@
       "pistes": [
         "P9"
       ]
-    },
-    {
-      "id": "flux-de-figma-vers-le-code",
-      "genre": "liste",
-      "pour": "designer developpeur",
-      "texte": "Le flux va de Figma vers le code seulement. Les outils suivent l'architecture full UCM, et seul l'Exporter est agnostique, en option.",
-      "domicileCible": "CONCEPT.md#Les produits et les deux périmètres",
-      "ecrite": "oui",
-      "pistes": []
     },
     {
       "id": "demande-de-tokens-sans-blocage",
@@ -111,17 +83,6 @@
       ]
     },
     {
-      "id": "valeur-en-dur-bloquee-par-le-linter",
-      "genre": "liste",
-      "pour": "developpeur",
-      "texte": "Une valeur écrite en dur dans le code d'un composant bloque la demande d'un développeur qui le modifie, par `ucm check` et le linter (P6).",
-      "domicileCible": "docs/guides/POUR-LES-DESIGNERS.md#6. Ce qui bloque la fusion et ce qui avertit",
-      "ecrite": "oui",
-      "pistes": [
-        "P6"
-      ]
-    },
-    {
       "id": "composant-en-retard-passe",
       "genre": "tableau",
       "pour": "developpeur",
@@ -141,43 +102,6 @@
       "pistes": [
         "P6",
         "P10"
-      ]
-    },
-    {
-      "id": "T2",
-      "genre": "transverse",
-      "pour": "developpeur",
-      "titre": "Token retiré par une demande de tokens seuls",
-      "texte": "« Une demande de tokens seuls passe toujours » contredit le blocage d'un token retiré que le code cite.",
-      "domicileCible": "docs/notes/Recherches/Linter Dev/PLAN-CONFORMITE-RENDU.md#7. Règle de sévérité",
-      "ecrite": "partiel",
-      "pistes": [
-        "P19"
-      ]
-    },
-    {
-      "id": "T3",
-      "genre": "transverse",
-      "pour": "developpeur",
-      "titre": "Délai du composant en retard",
-      "texte": "Le composant qu'une demande du designer casse est marqué en retard, et la prochaine demande d'un développeur dessus bloque. Le délai n'est pas fixé.",
-      "domicileCible": "docs/notes/Recherches/Linter Dev/PLAN-CONFORMITE-RENDU.md#7. Règle de sévérité",
-      "ecrite": "partiel",
-      "pistes": [
-        "P19"
-      ]
-    },
-    {
-      "id": "T4",
-      "genre": "transverse",
-      "pour": "developpeur",
-      "titre": "Forme de la dérogation",
-      "texte": "Fichier ou section de configuration, portée, motif, auteur, expiration.",
-      "domicileCible": "docs/notes/Recherches/Linter Dev/PLAN-CONFORMITE-RENDU.md#7. Règle de sévérité",
-      "ecrite": "partiel",
-      "pistes": [
-        "P19",
-        "P20"
       ]
     },
     {
@@ -205,36 +129,6 @@
         "P9",
         "P18"
       ]
-    },
-    {
-      "id": "T7",
-      "genre": "transverse",
-      "pour": "developpeur",
-      "titre": "Modules dans `ucm check`",
-      "texte": "`ucm.config.json` lit trois champs. Une clé `modules` n'activerait rien.",
-      "domicileCible": "docs/notes/Recherches/Linter Dev/PLAN-CONFORMITE-RENDU.md",
-      "ecrite": "non",
-      "pistes": []
-    },
-    {
-      "id": "T8",
-      "genre": "transverse",
-      "pour": "toolkit",
-      "titre": "Langue des modules",
-      "texte": "Code du kit en français, format en anglais, README de la CLI en anglais.",
-      "domicileCible": "CONTRIBUTING.md",
-      "ecrite": "non",
-      "pistes": []
-    },
-    {
-      "id": "T9",
-      "genre": "transverse",
-      "pour": "developpeur",
-      "titre": "Périmètre d'`ucm check`",
-      "texte": "Seul l'Exporter est agnostique, mais `ucm check` accepte aujourd'hui toute structure.",
-      "domicileCible": "CONCEPT.md#Les produits et les deux périmètres",
-      "ecrite": "oui",
-      "pistes": []
     },
     {
       "id": "T10",

@@ -9,13 +9,16 @@
  * commit : c'est la seule écriture du script.
  *
  * Le jugement d'un fait unique et la suppression restent à l'agent et au
- * mainteneur. Le comptage des cases de `compterLesCases` est provisoire : le
- * lot 3.1 de P25 le remplace par `lireLePlan`.
+ * mainteneur. Un plan est livré selon `etatDuPlan`, la règle que l'inventaire
+ * applique (`docs/inventaire/plans.ts`) ; Node charge ce module TypeScript sans
+ * étape de build.
  */
 import { execFileSync } from "node:child_process";
 import { readFileSync, writeFileSync, existsSync } from "node:fs";
 import { dirname, join, resolve, posix } from "node:path";
 import { fileURLToPath } from "node:url";
+
+import { etatDuPlan, lireLePlan } from "../docs/inventaire/plans.ts";
 
 const racineDuDepot = join(dirname(fileURLToPath(import.meta.url)), "..");
 
@@ -39,28 +42,6 @@ export function fichiersSuivis(racine) {
     maxBuffer: 256 * 1024 * 1024,
   });
   return sortie.split("\0").filter(Boolean);
-}
-
-/**
- * Les cases de premier niveau d'un plan, hors blocs de code. Provisoire :
- * le lot 3.1 de P25 le remplace par `lireLePlan`.
- */
-export function compterLesCases(texte) {
-  let cochees = 0;
-  let total = 0;
-  let dansUnBloc = false;
-  for (const ligne of texte.split(/\r?\n/)) {
-    if (/^\s*(```|~~~)/.test(ligne)) {
-      dansUnBloc = !dansUnBloc;
-      continue;
-    }
-    if (dansUnBloc) continue;
-    const m = /^[-*+] \[([ xX])\]/.exec(ligne);
-    if (!m) continue;
-    total += 1;
-    if (m[1] !== " ") cochees += 1;
-  }
-  return { total, cochees };
 }
 
 /** Les écritures d'un chemin dans un lien : brute, espaces seuls encodés, encodée pour une URL. */
@@ -133,21 +114,19 @@ export function calculerArchivage(racine, id) {
   const piste = JSON.parse(lire(racine, FICHIER_PISTES)).pistes.find((p) => p.id === id);
   if (!piste) throw new Error(`Piste inconnue : ${id}.`);
   if (!piste.plan) throw new Error(`La piste ${id} n'a pas de plan : rien à archiver.`);
-  const { total, cochees } = compterLesCases(lire(racine, piste.plan));
-  if (total === 0 || cochees < total) {
+  const etat = etatDuPlan(lireLePlan(lire(racine, piste.plan)));
+  if (!etat.livre) {
     throw new Error(
-      `Le plan de ${id} n'est pas livré (${cochees} case(s) cochée(s) sur ${total}) : ${piste.plan}.`,
+      `Le plan de ${id} n'est pas livré (${etat.faits} case(s) cochée(s) sur ${etat.total}) : ${piste.plan}.`,
     );
   }
 
   const dossiers = [...new Set([piste.recherche, piste.plan].filter(Boolean).map((c) => posix.dirname(c)))];
   const suivis = fichiersSuivis(racine);
   const toutes = JSON.parse(lire(racine, FICHIER_PISTES)).pistes;
-  const livre = (p) => {
-    if (!p.plan) return false;
-    const n = compterLesCases(lire(racine, p.plan));
-    return n.total > 0 && n.cochees === n.total;
-  };
+  // Une piste archivée n'a plus son plan dans l'arbre, une piste écartée n'a rien à livrer : ni l'une ni l'autre ne partage le dossier.
+  const livre = (p) =>
+    p.archive !== undefined || p.ecartee !== undefined || (Boolean(p.plan) && etatDuPlan(lireLePlan(lire(racine, p.plan))).livre);
   const dansLeDossier = (c) => dossiers.some((d) => c.startsWith(`${d}/`));
   const fichiers = suivis.filter(dansLeDossier);
   const vivantes = toutes.filter(

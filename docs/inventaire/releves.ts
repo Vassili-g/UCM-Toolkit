@@ -6,6 +6,7 @@
  * section vide. Les phrases qu'aucun fichier ne porte (une par script npm) restent ici, et un script npm sans phrase fait échouer
  * la lecture, comme une phrase sans script.
  */
+import { execFileSync } from 'node:child_process';
 import { existsSync, readdirSync, readFileSync, statSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -17,7 +18,8 @@ import * as controlesBrut from '@ucm-kit/core/controles';
 import * as referentielBrut from '@ucm-kit/core/referentiel';
 import * as emploisBrut from '@ucm-kit/core/emplois';
 import type { FondDeGarantie } from '@ucm-kit/core/emplois';
-import { sectionDe, tableauDe } from './extraire';
+import { aUnTitreContenant, questionsDe, sectionContenant, sectionDe, tableauDe } from './extraire';
+import { dateDuDernierLot, etatDuPlan, lireLePlan, lotSuivant, type Lot } from './plans';
 import { ETATS_DE_COMPOSANT, TEXTES_DES_ETATS, verdictDeLaDemande } from '../../packages/kit/src/lecteurs/verdict-bilan.mjs';
 import {
   ATTRIBUTS_SANS_VALEUR_VISUELLE,
@@ -829,22 +831,37 @@ export function sectionsDuComposant(): { nombre: number; liste: string } {
 
 export const CHEMIN_DES_PISTES = 'docs/notes/Recherches/Evolutions globales/pistes.json';
 export const CHEMIN_DES_DECISIONS = 'docs/notes/Recherches/Evolutions globales/decisions.json';
+/** Le début d'un lien vers un fichier du dépôt ; le commit ou `main` et le chemin encodé le suivent. */
+export const DEPOT_SUR_GITHUB = 'https://github.com/Vassili-g/UCM-Toolkit/blob';
+const SECTION_DES_QUESTIONS = 'Questions au mainteneur';
 
-export interface Piste {
+/** Une piste telle que `pistes.json` l'écrit : le jugement seul, l'état et l'avancement se calculent depuis les plans. */
+export interface PisteEcrite {
   id: string;
   titre: string;
   titreCourt: string;
   sujet: string;
+  resume: string;
+  importance: string;
+  raisonImportance: string;
+  complexite: string;
+  coutHumain: string;
+  /** La prio de l'agent, de 0 (d'abord) à 5. */
+  prio: number;
+  /** La prio que le mainteneur a posée : elle prime sur `prio`. */
+  prioDuMainteneur?: { prio: number; raison: string };
+  /** Une piste que le mainteneur écarte, avec sa raison. */
+  ecartee?: { raison: string };
+  /** Le commit où le plan de la piste archivée existait encore. */
+  archive?: string;
   recherche?: string;
-  /** Le plan d'implémentation de la piste : ses cases cochées font son avancement. */
   plan?: string;
-  /** Calculé depuis `plan` : les cases cochées et le total. */
-  avancement?: { faites: number; total: number };
   dependances: string[];
-  rang: number;
   points: { chemin: string; action: string; quoi: string }[];
-  /** Les problèmes à régler sur le sujet : l'inventaire les affiche en tête de page. `avant` dit ce que chacun bloque. */
-  alertes?: { texte: string; avant: string }[];
+  criteresDeFin?: string[];
+  risques?: string[];
+  /** Les questions d'une piste sans recherche ; une piste qui a une recherche les porte dans sa section « Questions au mainteneur ». */
+  questions?: string[];
   [champ: string]: unknown;
 }
 
@@ -862,9 +879,73 @@ export interface Regle {
 
 export interface Decisions {
   version: 1;
-  pistes: Record<string, { choix: string; note: string }>;
-  transverses: Record<string, { choix: string; note: string }>;
   regles: Regle[];
+}
+
+/** Un lot de plan tel que la page le montre. `hash` est vide tant que le lot n'en cite aucun ; `depot@hash` pour un autre dépôt. */
+export interface LotAffiche {
+  groupe: string;
+  numero: string;
+  fait: boolean;
+  marque: 'mainteneur' | `attend P${number}` | '';
+  suivant: boolean;
+  texte: string;
+  hash: string;
+}
+
+export interface Attente {
+  /** `toi` attend le mainteneur, `piste` attend une autre piste. */
+  genre: 'toi' | 'piste';
+  texte: string;
+  detail: string;
+}
+
+export interface Transverse {
+  id: string;
+  titre: string;
+  texte: string;
+  pistes: string[];
+}
+
+/** Une piste à suivre, telle que la page la montre. */
+export interface Piste {
+  id: string;
+  titre: string;
+  titreCourt: string;
+  sujet: string;
+  /** La prio affichée : celle du mainteneur si elle existe, sinon celle de l'agent. */
+  prio: number;
+  prioDeLAgent: number;
+  prioPosee: { raison: string } | null;
+  importance: string;
+  complexite: string;
+  coutHumain: string;
+  resume: string;
+  raisonImportance: string;
+  risques: string[];
+  criteresDeFin: string[];
+  /** Les pistes à suivre dont celle-ci attend la livraison. */
+  dependances: string[];
+  debloque: string[];
+  recherche: string | null;
+  plan: string | null;
+  etat: 'idee' | 'recherche' | 'en-cours';
+  avancement: { faits: number; total: number } | null;
+  lots: LotAffiche[] | null;
+  attentes: Attente[];
+  questions: string[];
+  transverses: Transverse[];
+  /** La date (AAAA-MM-JJ) du commit le plus récent cité par un lot fait. */
+  dernierLot: string | null;
+}
+
+/** Une piste livrée, archivée ou écartée. */
+export interface Terminee {
+  id: string;
+  titreCourt: string;
+  date: string | null;
+  lien: string | null;
+  ecartee: string | null;
 }
 
 /** Les sujets d'une piste et leur couleur (texte sur fond, contraste d'au moins 4,5:1). Seul endroit qui les liste. */
@@ -890,72 +971,79 @@ function cheminDuDepot(chemin: string): boolean {
   return /^[\w.@ -]+(\/[\w.@ -]+)*(\.[a-z]+|\/)$/i.test(chemin);
 }
 
-/**
- * Les cases d'un plan, une par étape : `- [x]` est faite, `- [ ]` reste à faire. Une case dans un bloc de code est un exemple, pas une étape ;
- * `[X]` vaut `[x]`, comme sur GitHub, et `*` ou `+` ouvrent une liste comme `-`.
- */
-export function compterLesCases(texte: string): { faites: number; total: number } {
-  let dansUnBloc = false;
-  let faites = 0;
-  let total = 0;
-  for (const ligne of texte.split(/\r?\n/)) {
-    if (/^\s*(```|~~~)/.test(ligne)) { dansUnBloc = !dansUnBloc; continue; }
-    const etat = dansUnBloc ? undefined : /^\s*[-*+] \[([ xX])\]/.exec(ligne)?.[1];
-    if (etat === undefined) continue;
-    total += 1;
-    if (etat !== ' ') faites += 1;
+/** La sortie d'une commande Git lancée dans `racine`, ou `null` si elle échoue. */
+function git(racine: string, args: string[]): string | null {
+  try {
+    return execFileSync('git', args, { cwd: racine, encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'], maxBuffer: 64 * 1024 * 1024 });
+  } catch {
+    return null;
   }
-  return { faites, total };
 }
 
-/** Un plan sans case est refusé. */
-function avancementDuPlan(piste: Piste): { faites: number; total: number } {
-  const chemin = path.join(RACINE, piste.plan!);
-  if (!existsSync(chemin)) AVEC_ECHEC(CHEMIN_DES_PISTES, `piste ${piste.id}, champ plan`, `${piste.plan} n'existe pas dans le dépôt`);
-  const avancement = compterLesCases(readFileSync(chemin, 'utf8'));
-  if (avancement.total === 0) AVEC_ECHEC(CHEMIN_DES_PISTES, `piste ${piste.id}, champ plan`, `${piste.plan} n'a aucune case à cocher`);
-  return avancement;
+const dateDuCommitDans = (racine: string, hash: string): string | null => git(racine, ['show', '-s', '--format=%cs', hash])?.trim() || null;
+
+/** Les champs que `pistes.json` ne porte plus : chacun a son remplaçant. */
+const CHAMPS_RETIRES: Readonly<Record<string, string>> = {
+  etat: "retiré, l'état se calcule depuis la recherche et le plan",
+  alertes: 'retiré, une attente du mainteneur est une case « (mainteneur) » du plan',
+  rang: 'renommé prio',
+};
+
+const estUnePrio = (valeur: unknown): boolean => typeof valeur === 'number' && Number.isInteger(valeur) && valeur >= 0 && valeur <= 5;
+const estUnTexte = (valeur: unknown): boolean => typeof valeur === 'string' && valeur.trim() !== '';
+
+/** Les champs d'une piste, hors de ses liens avec les autres : retire, borne et exige selon la règle de chaque champ. */
+function validerUnePiste(piste: PisteEcrite, racine: string): void {
+  const ou = (champ: string): string => `piste ${piste.id}, champ ${champ}`;
+  for (const [champ, remplacant] of Object.entries(CHAMPS_RETIRES)) {
+    if (champ in piste) AVEC_ECHEC(CHEMIN_DES_PISTES, ou(champ), remplacant);
+  }
+  if (typeof piste.sujet !== 'string' || piste.sujet === '') AVEC_ECHEC(CHEMIN_DES_PISTES, ou('sujet'), 'obligatoire');
+  if (!(piste.sujet in SUJETS)) AVEC_ECHEC(CHEMIN_DES_PISTES, ou('sujet'), `« ${piste.sujet} » n'est pas dans SUJETS de releves.ts`);
+  if (!estUnePrio(piste.prio)) AVEC_ECHEC(CHEMIN_DES_PISTES, ou('prio'), 'doit être un entier de 0 à 5');
+  if (piste.prioDuMainteneur !== undefined) {
+    if (!estUnTexte(piste.prioDuMainteneur?.raison)) AVEC_ECHEC(CHEMIN_DES_PISTES, ou('prioDuMainteneur.raison'), 'obligatoire, non vide');
+    if (!estUnePrio(piste.prioDuMainteneur.prio)) AVEC_ECHEC(CHEMIN_DES_PISTES, ou('prioDuMainteneur.prio'), 'doit être un entier de 0 à 5');
+  }
+  if (piste.ecartee !== undefined && !estUnTexte(piste.ecartee?.raison)) AVEC_ECHEC(CHEMIN_DES_PISTES, ou('ecartee.raison'), 'obligatoire, non vide');
+  if (piste.recherche !== undefined && piste.questions !== undefined) {
+    AVEC_ECHEC(CHEMIN_DES_PISTES, ou('questions'), `retiré à côté d'une recherche : les questions se lisent dans la section « ${SECTION_DES_QUESTIONS} » de ${piste.recherche}`);
+  }
+  if (piste.archive !== undefined) {
+    if (!estUnTexte(piste.archive) || piste.plan === undefined) AVEC_ECHEC(CHEMIN_DES_PISTES, ou('archive'), 'un commit, et la piste garde son champ plan');
+    if (git(racine, ['cat-file', '-e', `${piste.archive}:${piste.plan}`]) === null) AVEC_ECHEC(CHEMIN_DES_PISTES, ou('archive'), `${piste.plan} n'existe pas au commit ${piste.archive}`);
+    return;
+  }
+  if (piste.recherche !== undefined && !existsSync(path.join(racine, piste.recherche))) AVEC_ECHEC(CHEMIN_DES_PISTES, ou('recherche'), `${piste.recherche} n'existe pas dans le dépôt`);
+  if (piste.plan !== undefined && !existsSync(path.join(racine, piste.plan))) AVEC_ECHEC(CHEMIN_DES_PISTES, ou('plan'), `${piste.plan} n'existe pas dans le dépôt`);
 }
 
-/** Refuse un champ `alertes` qui n'est pas un tableau, ou une alerte dont `texte` ou `avant` est vide ou absent. */
-export function validerLesAlertes(piste: Piste): void {
-  if (piste.alertes === undefined) return;
-  if (!Array.isArray(piste.alertes)) AVEC_ECHEC(CHEMIN_DES_PISTES, `piste ${piste.id}, champ alertes`, 'doit être un tableau');
-  piste.alertes.forEach((alerte, rang) => {
-    for (const champ of ['texte', 'avant'] as const) {
-      if (typeof alerte?.[champ] !== 'string' || alerte[champ].trim() === '') AVEC_ECHEC(CHEMIN_DES_PISTES, `piste ${piste.id}, champ alertes[${rang}].${champ}`, 'obligatoire, non vide');
-    }
-  });
-}
-
-/** Les pistes de la feuille de route, validées : identifiants uniques, dépendances connues, chemins existants, aucun cycle. */
-export function pistes(): Piste[] {
-  const contenu = json(CHEMIN_DES_PISTES) as { version: number; pistes: Piste[] };
+/**
+ * Les pistes que `pistes.json` écrit, validées : identifiants uniques, champs retirés refusés, prios bornées, dépendances connues, chemins existants,
+ * aucun cycle. Une piste archivée n'a plus ses documents dans l'arbre : son plan se contrôle au commit d'archive, et ses chemins ne sont pas vérifiés.
+ */
+export function pistes(racine: string = RACINE): PisteEcrite[] {
+  const contenu = JSON.parse(readFileSync(path.join(racine, CHEMIN_DES_PISTES), 'utf8')) as { version: number; pistes: PisteEcrite[] };
   if (contenu.version !== 1) AVEC_ECHEC(CHEMIN_DES_PISTES, 'champ version', `la version ${contenu.version} n'est pas lue`);
   const ids = new Set<string>();
   for (const piste of contenu.pistes) {
     if (ids.has(piste.id)) AVEC_ECHEC(CHEMIN_DES_PISTES, `piste ${piste.id}, champ id`, 'identifiant déjà pris');
     ids.add(piste.id);
   }
-  for (const piste of contenu.pistes) {
-    if (typeof piste.sujet !== 'string' || piste.sujet === '') AVEC_ECHEC(CHEMIN_DES_PISTES, `piste ${piste.id}, champ sujet`, 'obligatoire');
-    if (!(piste.sujet in SUJETS)) AVEC_ECHEC(CHEMIN_DES_PISTES, `piste ${piste.id}, champ sujet`, `« ${piste.sujet} » n'est pas dans SUJETS de releves.ts`);
-    if (piste.recherche !== undefined && !existsSync(path.join(RACINE, piste.recherche))) AVEC_ECHEC(CHEMIN_DES_PISTES, `piste ${piste.id}, champ recherche`, `${piste.recherche} n'existe pas dans le dépôt`);
-    validerLesAlertes(piste);
-    if (piste.plan !== undefined) piste.avancement = avancementDuPlan(piste);
-  }
+  for (const piste of contenu.pistes) validerUnePiste(piste, racine);
   const crees = new Set(contenu.pistes.flatMap((piste) => piste.points.filter((point) => point.action === 'créer').map((point) => point.chemin)));
   for (const piste of contenu.pistes) {
     for (const dependance of piste.dependances) {
       if (!ids.has(dependance)) AVEC_ECHEC(CHEMIN_DES_PISTES, `piste ${piste.id}, champ dependances`, `${dependance} n'existe pas`);
     }
+    if (piste.archive !== undefined) continue;
     piste.points.forEach((point, rang) => {
       if (point.action === 'créer' || crees.has(point.chemin)) return;
       // « a/b.ts et c.js » nomme deux fichiers : le second, sans dossier, est celui du premier.
       const [premier, ...autres] = point.chemin.split(' et ');
       const dossierDuPremier = premier.includes('/') ? premier.slice(0, premier.lastIndexOf('/') + 1) : '';
       for (const chemin of [premier, ...autres.map((autre) => (autre.includes('/') ? autre : dossierDuPremier + autre))]) {
-        if (cheminDuDepot(chemin) && !existsSync(path.join(RACINE, chemin))) {
+        if (cheminDuDepot(chemin) && !existsSync(path.join(racine, chemin))) {
           AVEC_ECHEC(CHEMIN_DES_PISTES, `piste ${piste.id}, champ points[${rang}].chemin`, `${chemin} n'existe pas dans le dépôt`);
         }
       }
@@ -974,22 +1062,132 @@ export function pistes(): Piste[] {
   return contenu.pistes;
 }
 
-/** Les choix enregistrés d'un `decisions.json` : chaque identifiant est connu, chaque choix est permis. Lève une erreur qui nomme l'identifiant fautif. */
-export function validerLesChoix(contenu: Decisions, identifiants: ReadonlySet<string>): void {
-  const transverses = new Map(contenu.regles.filter((regle) => /^T\d+$/.test(regle.id)).map((regle) => [regle.id, regle]));
-  for (const [id, decision] of Object.entries(contenu.pistes)) {
-    if (!identifiants.has(id)) AVEC_ECHEC(CHEMIN_DES_DECISIONS, `pistes, ${id}`, "cette piste n'existe pas dans pistes.json");
-    if (!['oui', 'non', ''].includes(decision.choix)) AVEC_ECHEC(CHEMIN_DES_DECISIONS, `pistes, ${id}, champ choix`, `« ${decision.choix} » n'est ni oui, ni non, ni vide`);
-  }
-  for (const [id, decision] of Object.entries(contenu.transverses)) {
-    const regle = transverses.get(id);
-    if (!regle) AVEC_ECHEC(CHEMIN_DES_DECISIONS, `transverses, ${id}`, "cette décision transverse n'a pas de règle T* dans regles");
-    const permis = regle?.options ? regle.options.map((option) => option.valeur) : ['oui', 'non'];
-    if (decision.choix !== '' && !permis.includes(decision.choix)) AVEC_ECHEC(CHEMIN_DES_DECISIONS, `transverses, ${id}, champ choix`, `« ${decision.choix} » n'est pas parmi ${permis.join(', ')} ou vide`);
-  }
+const ORDRE_D_IMPORTANCE = ['critique', 'haute', 'moyenne', 'basse'];
+
+const lienDuFichier = (commit: string, chemin: string): string => `${DEPOT_SUR_GITHUB}/${commit}/${chemin.split('/').map(encodeURIComponent).join('/')}`;
+
+/** Le texte du plan d'une piste : celui du commit d'archive pour une piste archivée, celui de l'arbre sinon. Un plan sans case est refusé. */
+function lotsDeLaPiste(piste: PisteEcrite, racine: string): Lot[] {
+  const texte = piste.archive !== undefined
+    ? git(racine, ['show', `${piste.archive}:${piste.plan}`])
+    : readFileSync(path.join(racine, piste.plan!), 'utf8');
+  const lots = lireLePlan((texte ?? '').replace(/\r\n/g, '\n'));
+  if (lots.length === 0) AVEC_ECHEC(CHEMIN_DES_PISTES, `piste ${piste.id}, champ plan`, `${piste.plan} n'a aucune case à cocher`);
+  return lots;
 }
 
-/** Les décisions que le dépôt porte : les choix (vides au départ) et les règles décidées, validés. */
+/** Les questions d'une piste : sa section « Questions au mainteneur » si elle a une recherche, son champ `questions` sinon. */
+function questionsDeLaPiste(piste: PisteEcrite, racine: string): string[] {
+  if (piste.recherche === undefined) return piste.questions ?? [];
+  const texte = readFileSync(path.join(racine, piste.recherche), 'utf8').replace(/\r\n/g, '\n');
+  return aUnTitreContenant(texte, SECTION_DES_QUESTIONS) ? questionsDe(sectionContenant(texte, piste.recherche, SECTION_DES_QUESTIONS)) : [];
+}
+
+function lotAffiche(lot: Lot, suivant: Lot | null): LotAffiche {
+  const [premier] = lot.hashes;
+  return {
+    groupe: lot.groupe,
+    numero: lot.numero,
+    fait: lot.fait,
+    marque: lot.marque === null ? '' : lot.marque === 'mainteneur' ? 'mainteneur' : (`attend ${lot.marque.attend}` as LotAffiche['marque']),
+    suivant: lot === suivant,
+    texte: lot.texte,
+    hash: premier === undefined ? '' : premier.depot === null ? premier.hash : `${premier.depot}@${premier.hash}`,
+  };
+}
+
+/** Ce que la piste attend, dans l'ordre : le mainteneur d'abord, puis une autre piste. */
+function attentesDeLaPiste(piste: Piste, lots: Lot[] | null): Attente[] {
+  const attentes: Attente[] = [];
+  const nonFaits = (lots ?? []).filter((lot) => !lot.fait);
+  const decision = nonFaits.find((lot) => lot.marque === 'mainteneur');
+  const bloque = nonFaits.find((lot) => lot.marque !== null && lot.marque !== 'mainteneur');
+  if (piste.etat === 'idee' && piste.prio <= 1) attentes.push({ genre: 'toi', texte: 'À lancer, rien de commencé', detail: 'Prio 0 ou 1 sans recherche ni plan' });
+  if (decision) attentes.push({ genre: 'toi', texte: `Ta décision, lot ${decision.numero}`, detail: decision.texte });
+  if (piste.etat === 'recherche' && piste.questions.length > 0) {
+    attentes.push({ genre: 'toi', texte: `Tes réponses, ${piste.questions.length} ${piste.questions.length > 1 ? 'questions' : 'question'}`, detail: 'Questions de la recherche' });
+  }
+  if (bloque && bloque.marque !== null && bloque.marque !== 'mainteneur') attentes.push({ genre: 'piste', texte: `Lot ${bloque.numero} attend ${bloque.marque.attend}`, detail: bloque.texte });
+  else if (piste.dependances.length > 0) attentes.push({ genre: 'piste', texte: `Après ${piste.dependances.join(', ')}`, detail: 'Prérequis pas encore livrés' });
+  return attentes;
+}
+
+/**
+ * Les pistes à suivre et les pistes terminées, calculées depuis `pistes.json`, les plans et les commits qu'ils citent. Une piste est terminée
+ * quand son plan est livré (toutes ses cases de premier niveau cochées), quand elle est archivée ou quand le mainteneur l'écarte. Les pistes à suivre
+ * se rangent par prio, puis par importance. `transverses` sont les règles de genre transverse de `decisions.json` : chacune va dans la fiche de chaque
+ * piste à suivre qu'elle nomme.
+ */
+export function roadmap(transverses: Regle[], racine: string = RACINE): { pistes: Piste[]; terminees: Terminee[] } {
+  const ecrites = pistes(racine);
+  const dates = new Map<string, string | null>();
+  const dateDuCommit = (hash: string): string | null => {
+    if (!dates.has(hash)) dates.set(hash, dateDuCommitDans(racine, hash));
+    return dates.get(hash)!;
+  };
+  const calculees = ecrites.map((ecrite) => {
+    const lots = ecrite.plan === undefined ? null : lotsDeLaPiste(ecrite, racine);
+    const livre = lots !== null && etatDuPlan(lots).livre;
+    return { ecrite, lots, termine: livre || ecrite.archive !== undefined || ecrite.ecartee !== undefined };
+  });
+  const terminees = new Set(calculees.filter(({ termine }) => termine).map(({ ecrite }) => ecrite.id));
+  const aSuivre = calculees.filter(({ termine }) => !termine);
+
+  const pistesASuivre = aSuivre.map(({ ecrite, lots }): Piste => {
+    const posee = ecrite.prioDuMainteneur;
+    const etat: Piste['etat'] = lots !== null ? 'en-cours' : ecrite.recherche !== undefined ? 'recherche' : 'idee';
+    const suivant = lots === null ? null : lotSuivant(lots);
+    const piste: Piste = {
+      id: ecrite.id,
+      titre: ecrite.titre,
+      titreCourt: ecrite.titreCourt,
+      sujet: ecrite.sujet,
+      prio: posee?.prio ?? ecrite.prio,
+      prioDeLAgent: ecrite.prio,
+      prioPosee: posee ? { raison: posee.raison } : null,
+      importance: ecrite.importance,
+      complexite: ecrite.complexite,
+      coutHumain: ecrite.coutHumain,
+      resume: ecrite.resume,
+      raisonImportance: ecrite.raisonImportance,
+      risques: ecrite.risques ?? [],
+      criteresDeFin: ecrite.criteresDeFin ?? [],
+      dependances: ecrite.dependances.filter((id) => !terminees.has(id)),
+      debloque: aSuivre.filter((autre) => autre.ecrite.dependances.includes(ecrite.id)).map((autre) => autre.ecrite.id),
+      recherche: ecrite.recherche ?? null,
+      plan: ecrite.plan ?? null,
+      etat,
+      avancement: lots === null ? null : { faits: etatDuPlan(lots).faits, total: lots.length },
+      lots: lots === null ? null : lots.map((lot) => lotAffiche(lot, suivant)),
+      attentes: [],
+      questions: questionsDeLaPiste(ecrite, racine),
+      transverses: transverses
+        .filter((regle) => regle.pistes.includes(ecrite.id))
+        .map((regle) => ({ id: regle.id, titre: regle.titre ?? regle.id, texte: regle.texte, pistes: regle.pistes.filter((id) => !terminees.has(id)) })),
+      dernierLot: lots === null ? null : dateDuDernierLot(lots, dateDuCommit),
+    };
+    piste.attentes = attentesDeLaPiste(piste, lots);
+    return piste;
+  });
+  pistesASuivre.sort((a, b) => a.prio - b.prio || ORDRE_D_IMPORTANCE.indexOf(a.importance) - ORDRE_D_IMPORTANCE.indexOf(b.importance));
+
+  const piecesTerminees = calculees
+    .filter(({ termine }) => termine)
+    .map(({ ecrite, lots }): Terminee => {
+      const document = ecrite.plan ?? ecrite.recherche;
+      return {
+        id: ecrite.id,
+        titreCourt: ecrite.titreCourt,
+        date: lots === null ? null : dateDuDernierLot(lots, dateDuCommit),
+        lien: document === undefined ? null : lienDuFichier(ecrite.archive ?? 'main', document),
+        ecartee: ecrite.ecartee?.raison ?? null,
+      };
+    });
+  piecesTerminees.sort((a, b) => (b.date ?? '').localeCompare(a.date ?? '') || a.id.localeCompare(b.id, 'fr', { numeric: true }));
+  return { pistes: pistesASuivre, terminees: piecesTerminees };
+}
+
+/** Les décisions que le dépôt porte : les règles décidées, validées. */
 export function decisions(identifiants: ReadonlySet<string>): Decisions {
   const contenu = json(CHEMIN_DES_DECISIONS) as Decisions;
   if (contenu.version !== 1) AVEC_ECHEC(CHEMIN_DES_DECISIONS, 'champ version', `la version ${contenu.version} n'est pas lue`);
@@ -1005,7 +1203,6 @@ export function decisions(identifiants: ReadonlySet<string>): Decisions {
     const [fichier] = regle.domicileCible.split('#');
     if (!existsSync(path.join(RACINE, fichier))) AVEC_ECHEC(CHEMIN_DES_DECISIONS, `règle ${regle.id}, champ domicileCible`, `${fichier} n'existe pas dans le dépôt`);
   }
-  validerLesChoix(contenu, identifiants);
   return contenu;
 }
 
