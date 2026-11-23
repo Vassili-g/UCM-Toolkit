@@ -27,12 +27,15 @@ function normaliserChemin(chemin) {
  * vide est au contraire une demande sans aucun fichier d'UCM, donc aucun
  * ancien état « implémentation en attente » n'y est repris.
  *
- * **Un bilan entre dans le périmètre par son contrat ou par son
- * implémentation.** Le contrat seul laissait passer la demande qui casse la
- * conformité dans le code : elle ne modifie aucun `*.contract.json`, donc
- * l'écart de parité qu'elle vient d'ouvrir disparaissait du rapport. L'adresse
- * de l'implémentation se résout par le motif de `ucm.config.json` ; aucune
- * extension n'est écrite ici, puisque le format ne connaît aucune stack.
+ * **Un bilan entre dans le périmètre par son contrat, par son implémentation ou
+ * par un autre fichier de son code.** Le contrat seul laissait passer la
+ * demande qui casse la conformité dans le code : elle ne modifie aucun
+ * `*.contract.json`, donc l'écart de parité qu'elle vient d'ouvrir disparaissait
+ * du rapport. L'adresse de l'implémentation se résout par le motif de
+ * `ucm.config.json` ; aucune extension n'est écrite ici, puisque le format ne
+ * connaît aucune stack. Les autres fichiers du composant viennent de
+ * `bilan.code.fichiers`, que l'adaptateur a relevés (relatifs à la racine) : une
+ * demande qui ne touche que `Button.variants.ts` concerne `Button`.
  *
  * **Un contrat se reconnaît à son nom, jamais à sa présence sur le disque.**
  * Une demande qui supprime un contrat, ou qui dépose un premier export hors du
@@ -52,7 +55,8 @@ export function perimetreDeLaDemande(bilans, cheminsModifies, { motif, tokensMod
 
   const retenus = bilans.filter((bilan) =>
     modifies.has(normaliserChemin(bilan.relatif))
-    || modifies.has(normaliserChemin(cheminImplementation(bilan.relatif, motif))));
+    || modifies.has(normaliserChemin(cheminImplementation(bilan.relatif, motif)))
+    || (bilan.code?.fichiers ?? []).some((fichier) => modifies.has(normaliserChemin(fichier))));
 
   const concerne = Boolean(tokensModifies)
     || modifies.has(NOM_CONFIGURATION)

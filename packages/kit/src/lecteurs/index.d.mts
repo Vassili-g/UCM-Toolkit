@@ -415,6 +415,77 @@ declare module "@ucm-kit/core/lecteurs" {
       nomInterface: string | null,
       options: { presente: boolean; chemin: string },
     ): EcartsDeParite;
+    /**
+     * Le lecteur du code des composants, que le contrôle appelle pour juger les
+     * valeurs en dur et les tokens inconnus. Absent d'un adaptateur ancien : le
+     * code n'est alors pas vérifié (`adaptateur-ancien`).
+     */
+    lecteurDuCode?: LecteurDuCode;
+  }
+
+  /** Chaîne relevée : `debut` et `fin` encadrent le littéral, guillemets compris ; un morceau de gabarit n'a que son texte. */
+  export interface ChaineDuCode {
+    texte: string;
+    debut: number;
+    fin: number;
+    /** Attribut JSX qui porte la chaîne, `null` hors d'un attribut. */
+    attribut: string | null;
+  }
+
+  /**
+   * Déclaration de style. `debut` et `fin` encadrent la valeur littérale,
+   * guillemets compris, ou toute la propriété quand la valeur est une expression.
+   */
+  export interface DeclarationDuCode {
+    /** Nom CSS (`background-color`) ; `null` pour une décomposition ou une clé calculée. */
+    propriete: string | null;
+    /**
+     * Valeur littérale ; `null` pour une expression. Un nombre reçoit `px` (sauf `0` et les propriétés
+     * sans unité de React) dans un objet de style, et garde sa forme écrite dans un autre objet.
+     */
+    valeur: string | null;
+    debut: number;
+    fin: number;
+    contexte: "style" | "objet";
+    /** `true` quand la valeur est un nombre littéral, pour distinguer `32` de `"32"`. */
+    nombre?: true;
+    /** Dans un objet qui n'est pas un style, avec `nombre`, la valeur que l'adaptateur aurait rendue en contexte `style` (`15` donne `"15px"` pour `fontSize`, `"1.5"` pour `lineHeight`). */
+    valeurEnStyle?: string;
+  }
+
+  export interface DirectiveDuCode {
+    texte: string;
+    debut: number;
+    fin: number;
+  }
+
+  export interface LectureDuCode {
+    complete: boolean;
+    erreurs: number;
+    /** Présente quand l'extension n'est pas lue. */
+    extension?: string;
+  }
+
+  /** Ce qu'un fichier écrit : chaînes, déclarations de style, variables `--nom` qu'il déclare et commentaires qui nomment une règle. */
+  export interface UsagesDuCode {
+    chaines: ChaineDuCode[];
+    declarations: DeclarationDuCode[];
+    /** Clés `--nom` des objets de style. */
+    variables: string[];
+    directives: DirectiveDuCode[];
+    lecture: LectureDuCode;
+  }
+
+  export interface FichiersDuComposant {
+    /** Chemins absolus : l'implémentation, puis ses imports relatifs triés. */
+    fichiers: string[];
+    lecture: LectureDuCode;
+  }
+
+  export interface LecteurDuCode {
+    releverUsages(texte: string, nomDuFichier: string): UsagesDuCode;
+    fichiersDuComposant(implementation: string): FichiersDuComposant;
+    extensions: readonly string[];
   }
 
   /**
@@ -540,6 +611,49 @@ declare module "@ucm-kit/core/lecteurs" {
 
   export const ETATS_DE_COMPOSANT: readonly EtatDeComposant[];
 
+  /** Ce que dit chaque état : `phrase` finit la ligne du terminal, `raison` explique l'état dans l'inventaire. */
+  export const TEXTES_DES_ETATS: Readonly<Record<EtatDeComposant, { readonly phrase: string; readonly raison: string }>>;
+
+  /** Un genre d'écart du code, tel que le juge le nomme. `desactivation-interdite` ne se déroge pas. */
+  export type GenreDEcartDuCode = "valeur-en-dur" | "token-inconnu" | "repli-en-dur" | "desactivation-interdite";
+
+  /** Un genre que `.ucm/derogations.json` peut couvrir. */
+  export type GenreDeDerogation = GenreDEcartDeParite | Exclude<GenreDEcartDuCode, "desactivation-interdite">;
+
+  /**
+   * Un constat de niveau `ecart` du juge du code, sous la forme d'un écart de
+   * parité. `coordonnees` vaut `{}` et `derogeable` `false` pour
+   * `desactivation-interdite`, que rien ne couvre.
+   */
+  export interface EcartIdentifieDuCode {
+    genre: GenreDEcartDuCode;
+    coordonnees: Record<string, string>;
+    derogeable: boolean;
+    niveau: "ecart";
+    /** Le message du constat, commande de dérogation comprise quand l'écart se déroge. */
+    texte: string;
+    /** `token-inconnu` ou `valeur-en-dur`, la règle qui affiche le constat. */
+    regle: string;
+    /** Relatif à la racine du repository, avec `/`. */
+    fichier: string;
+    /** À partir de 1. */
+    ligne: number;
+  }
+
+  /** Ce que le contrôle a lu du code d'un composant ; `bilan.code`. */
+  export interface CodeDuComposant {
+    /** Les fichiers du composant, relatifs à la racine, avec `/`. */
+    fichiers: string[];
+    /** Les constats de niveau `ecart`, y compris ceux qu'une dérogation couvre ; le verdict les répartit. */
+    ecarts: EcartIdentifieDuCode[];
+    /** Le nombre d'usages que le code calcule et que le juge ne suit pas. */
+    nonAnalyses: number;
+    /** Les limites du juge pour ce composant, et ses constats `nom-css-ambigu`. */
+    limites: Array<{ code: string; composant: string | null; message: string; faits: Record<string, unknown>; fichier?: string | null }>;
+    /** `adaptateur-ancien` : l'adaptateur n'a pas de `lecteurDuCode`. `lecture-incomplete` : un fichier a une erreur de syntaxe. */
+    lecture: "adaptateur-ancien" | "lecture-incomplete" | null;
+  }
+
   /** Ce que la demande modifie : tokens seuls, contrats et tokens, code, ou rien (contrôle sans base). */
   export type GenreDeDemande = "tokens-seuls" | "contrats-et-tokens" | "code" | "sans-base";
 
@@ -559,13 +673,19 @@ declare module "@ucm-kit/core/lecteurs" {
     constats: EtatDeComposant[];
     /** Vrai si la demande refuse ce composant ; un état grave ne bloque pas toute demande. */
     bloquant: boolean;
-    /** Pourquoi le code n'a pas été comparé, `null` s'il l'a été. */
-    lecture: "fichier-non-lu" | "adaptateur-absent" | "adaptateur-casse" | "sans-adaptateur" | null;
-    /** Les écarts qu'aucune dérogation ne couvre. */
-    ecarts: EcartIdentifieDeParite[];
+    /** La cause de chaque blocage ; `bloquant` en est la disjonction. */
+    bloquantPar: { contrat: boolean; tokens: boolean; parite: boolean; code: boolean };
+    /** Pourquoi le code n'a pas été comparé ou lu, `null` s'il l'a été. */
+    lecture: "fichier-non-lu" | "adaptateur-absent" | "adaptateur-casse" | "sans-adaptateur" | "adaptateur-ancien" | "lecture-incomplete" | null;
+    /** Les écarts qu'aucune dérogation ne couvre, de parité puis du code. */
+    ecarts: Array<EcartIdentifieDeParite | EcartIdentifieDuCode>;
+    /** Ceux de `ecarts` que `tokens.json`, plus récent que le code, met en retard sur les tokens. */
+    ecartsEnRetardSurLesTokens: EcartIdentifieDuCode[];
+    /** Le nombre d'usages que le code calcule et que le juge ne suit pas. */
+    nonAnalyses: number;
     avertissements: EcartIdentifieDeParite[];
     derogations: {
-      couvertes: { ecart: EcartIdentifieDeParite; derogation: Derogation }[];
+      couvertes: { ecart: EcartIdentifieDeParite | EcartIdentifieDuCode; derogation: Derogation }[];
       tombees: Derogation[];
       sansObjet: Derogation[];
     };
@@ -576,6 +696,8 @@ declare module "@ucm-kit/core/lecteurs" {
     bloquant: boolean;
     composants: VerdictDeComposant[];
     erreursDeDerogations: string[];
+    /** Les erreurs du fichier des dérogations refusent une demande qui répond du code. */
+    bloquantParLesDerogations: boolean;
     tokensIllisibles: boolean;
     /** Une copie sans historique complet n'est pas jugée : code de sortie 2 et geste. */
     erreurDInvocation: { code: 2; geste: string } | null;
@@ -738,7 +860,7 @@ declare module "@ucm-kit/core/lecteurs" {
   /** Une dérogation : elle couvre un écart exact d'un composant, pour un export donné. */
   export interface Derogation {
     composant: string;
-    ecart: { genre: GenreDEcartDeParite } & Record<string, string>;
+    ecart: { genre: GenreDeDerogation } & Record<string, string>;
     /** La valeur de `meta.exportedAt` du contrat à la pose. */
     export: string;
     motif: string;
@@ -753,10 +875,10 @@ declare module "@ucm-kit/core/lecteurs" {
     derogations: readonly Derogation[],
     composant: string,
     exportedAt: string,
-    ecarts: readonly EcartIdentifieDeParite[],
+    ecarts: ReadonlyArray<EcartIdentifieDeParite | EcartIdentifieDuCode>,
   ): {
-    couverts: { ecart: EcartIdentifieDeParite; derogation: Derogation }[];
-    restants: EcartIdentifieDeParite[];
+    couverts: { ecart: EcartIdentifieDeParite | EcartIdentifieDuCode; derogation: Derogation }[];
+    restants: Array<EcartIdentifieDeParite | EcartIdentifieDuCode>;
     tombees: Derogation[];
     sansObjet: Derogation[];
   };

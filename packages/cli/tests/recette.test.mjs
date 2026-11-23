@@ -522,3 +522,72 @@ test("verdict — un écart du code sur son contrat bloque la fusion", () => {
     assert.match(rapport, /^## ❌ Les contrôles du repository bloquent la fusion$/m);
   });
 });
+
+/**
+ * P6, lot 2.1 : un constat du code bloque, prouvé par le processus réel.
+ *
+ * `Widget.tsx` suit son contrat, mais il écrit `#ff0000` dans un objet de style
+ * alors que le contrat ne publie pas cette couleur. Le rapport donne le fichier,
+ * la ligne et la commande qui déroge ; une dérogation à l'export courant le laisse
+ * passer, et un réexport la fait tomber.
+ */
+const WIDGET_EN_DUR = "export interface WidgetProps { children?: unknown }\n"
+  + "export function Widget(_props: WidgetProps) { return null; }\n"
+  + 'export const style = { color: "#ff0000" };\n';
+
+function installerLAdaptateurTypeScript(racine) {
+  const adaptateur = join(racine, "node_modules", "@ucm-kit", "adapter-typescript");
+  mkdirSync(adaptateur, { recursive: true });
+  writeFileSync(join(adaptateur, "package.json"), JSON.stringify({ main: "index.mjs", type: "module" }), "utf8");
+  const source = new URL("../../adapter-typescript/src/index.mjs", import.meta.url).href;
+  writeFileSync(join(adaptateur, "index.mjs"), `export { adaptateurTypeScript } from ${JSON.stringify(source)};\n`, "utf8");
+  writeFileSync(
+    join(racine, "tsconfig.json"),
+    JSON.stringify({ compilerOptions: { strict: true, jsx: "preserve" }, include: ["components/**/*"] }),
+    "utf8",
+  );
+}
+
+test("verdict — une valeur en dur dans le code bloque la fusion, avec sa ligne et sa commande de dérogation", () => {
+  surLeRepo({ composants: { Widget: contrat("Widget") }, implementation: "{dir}/{id}.tsx" }, (racine) => {
+    installerLAdaptateurTypeScript(racine);
+    writeFileSync(join(racine, "components", "Widget", "Widget.tsx"), WIDGET_EN_DUR, "utf8");
+    const { code, rapport, terminal } = controler(racine);
+
+    assert.equal(code, 1, rapport ?? terminal);
+    assert.match(rapport, /^## ❌ Les contrôles du repository bloquent la fusion$/m);
+    assert.match(rapport, /^- Widget : `components\/Widget\/Widget\.tsx` ligne 3 : `color` reçoit `#ff0000`/m);
+    assert.match(rapport, /npx ucm deroger Widget valeur-en-dur components\/Widget\/Widget\.tsx '#ff0000' --motif "…"/);
+    assert.match(rapport, /Un développeur doit mettre le code à jour, ou lancer la commande donnée sous l'écart\./);
+    assert.match(terminal, /✗ Widget : `components\/Widget\/Widget\.tsx` ligne 3 : /);
+  });
+});
+
+test("verdict — une dérogation à l'export courant laisse passer le constat du code, un réexport la fait tomber", () => {
+  surLeRepo({ composants: { Widget: contrat("Widget") }, implementation: "{dir}/{id}.tsx" }, (racine) => {
+    installerLAdaptateurTypeScript(racine);
+    writeFileSync(join(racine, "components", "Widget", "Widget.tsx"), WIDGET_EN_DUR, "utf8");
+    const ecrireLaDerogation = (exportedAt) => {
+      mkdirSync(join(racine, ".ucm"), { recursive: true });
+      writeFileSync(join(racine, ".ucm", "derogations.json"), JSON.stringify({
+        derogations: [{
+          composant: "Widget",
+          ecart: { genre: "valeur-en-dur", fichier: "components/Widget/Widget.tsx", valeur: "#ff0000" },
+          export: exportedAt,
+          motif: "Le rouge attend le token du designer.",
+          par: "Camille",
+        }],
+      }), "utf8");
+    };
+
+    ecrireLaDerogation("2026-01-01T00:00:00.000Z");
+    const deroge = controler(racine);
+    assert.equal(deroge.code, 0, deroge.rapport ?? deroge.terminal);
+    assert.match(deroge.rapport, /Des écarts du code sont acceptés par une dérogation \(1\)/);
+    assert.match(deroge.rapport, /Motif : Le rouge attend le token du designer\. \(Camille\)/);
+
+    ecrireLaDerogation("2025-06-01T00:00:00.000Z");
+    const tombee = controler(racine);
+    assert.equal(tombee.code, 1, tombee.rapport ?? tombee.terminal);
+  });
+});

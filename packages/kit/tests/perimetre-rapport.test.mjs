@@ -179,3 +179,32 @@ src/components/Button/Button.tsx`, { cheminTokens: TOKENS });
   assert.equal(rendu, "code");
   assert.equal(perimetre(TOKENS, { cheminTokens: TOKENS, tokensModifies: true }).genre, "tokens-seuls");
 });
+
+/**
+ * Le périmètre du code (lot 2.1 du plan P6) : `bilan.code.fichiers` porte les
+ * fichiers du composant, relatifs à la racine, avec `/`.
+ */
+test("une PR qui ne touche qu'un fichier voisin de l'implémentation garde l'état du composant", () => {
+  const avecCode = bilans.map((bilan) => ({
+    ...bilan,
+    code: {
+      fichiers: [`src/components/${bilan.fichier.replace(".contract.json", "")}/${bilan.fichier.replace(".contract.json", ".tsx")}`, `src/components/${bilan.fichier.replace(".contract.json", "")}/${bilan.fichier.replace(".contract.json", ".variants.ts")}`],
+    },
+  }));
+  const { bilans: selection, concerne } = perimetreDeLaDemande(avecCode, "src/components/Button/Button.variants.ts", { motif: MOTIF });
+
+  assert.deepEqual(selection.map((bilan) => bilan.fichier), ["Button.contract.json"]);
+  assert.equal(concerne, true);
+});
+
+test("un fichier hors du code d'un composant ne le met pas dans la demande", () => {
+  const avecCode = bilans.map((bilan) => ({ ...bilan, code: { fichiers: [] } }));
+
+  assert.deepEqual(perimetreDeLaDemande(avecCode, "src/components/Button/Button.stories.tsx", { motif: MOTIF }).bilans, []);
+});
+
+test("un bilan sans code reste retenu par son implémentation", () => {
+  const { bilans: selection } = perimetre("src/components/Alert/Alert.tsx");
+
+  assert.deepEqual(selection.map((bilan) => bilan.fichier), ["Alert.contract.json"]);
+});

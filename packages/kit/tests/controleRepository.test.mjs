@@ -6,10 +6,11 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
-import { dirname, join } from "node:path";
+import { basename, dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 
 import { controlerRepository } from "../src/lecteurs/controle-repository.mjs";
+import { preparerControle } from "../src/lecteurs/controle-du-code.mjs";
 import {
   VERSION_CONTRAT_MAXIMALE,
   VERSION_CONTRAT_MINIMALE,
@@ -769,7 +770,8 @@ test("V-10 : une demande qui modifie le code et laisse un écart bloque", () => 
   assert.match(rapport, /### ❌ Le code ne suit pas son contrat \(1 composant\)/);
   assert.match(rapport, /Cette demande modifie le code de ces composants, et il s'écarte de leur contrat\./);
   assert.match(rapport, /- Widget : La propriété `label` de Figma n'existe pas dans le code/);
-  assert.match(rapport, /Un développeur doit mettre le code à jour, ou poser une dérogation motivée dans `\.ucm\/derogations\.json`\./);
+  assert.match(rapport, /Un développeur doit mettre le code à jour, ou lancer la commande donnée sous l'écart\./);
+  assert.match(rapport, /Pour la garder, lancez `npx ucm deroger Widget prop-absente label --motif "…"` avec votre raison à la place de `…`\./);
   assert.match(rapport, /La fusion reste bloquée\./);
   assert.match(terminal.map(({ texte }) => texte).join("\n"), /✗ Widget\.contract\.json : prop du contrat absente du composant → label/);
 });
@@ -1282,4 +1284,301 @@ test("les marqueurs et le saut de ligne du fichier tiennent dans la borne du com
   // et non la chaîne rendue, que les deux forges publient.
   assert.ok(`${rapport}\n`.length <= 65_536, `${rapport.length + 1} caractères publiés`);
   assert.match(rapport, /La suite de ce rapport ne tient pas dans un commentaire/);
+});
+
+/**
+ * Les constats du code, de bout en bout (lot 2.1 du plan P6). Le lecteur du code
+ * est factice : il rend un relevé fixé par fichier, ce qui prouve le chemin du
+ * contrôle (fichiers du composant, juge, dérogations, verdict, rapport) sans
+ * l'adaptateur TypeScript, que le kit n'importe pas.
+ */
+const CHEMIN_DU_CODE = "src/components/Widget/Widget.tsx";
+const CODE_EN_DUR = `${TSX}export const style = { color: "#ff0000" };\n`;
+const RELEVE_VIDE = { chaines: [], declarations: [], variables: [], directives: [], lecture: { complete: true, erreurs: 0 } };
+
+/** Le relevé d'un fichier qui écrit `color: "#ff0000"` : la valeur en dur de `CODE_EN_DUR`, à la ligne 3. */
+const releveEnDur = (source = CODE_EN_DUR) => ({
+  ...RELEVE_VIDE,
+  declarations: [{
+    propriete: "color",
+    valeur: "#ff0000",
+    debut: source.indexOf('"#ff0000"'),
+    fin: source.indexOf('"#ff0000"') + 9,
+    contexte: "style",
+  }],
+});
+
+/** Un lecteur du code factice : `releves` rend le relevé de chaque fichier par son nom, `fichiers` la liste du composant. */
+function lecteurFactice(releves, fichiers = (implementation) => [implementation]) {
+  return {
+    extensions: [".ts", ".tsx"],
+    releverUsages: (_texte, nom) => releves[basename(nom)] ?? RELEVE_VIDE,
+    fichiersDuComposant: (implementation) => ({ fichiers: fichiers(implementation), lecture: { complete: true, erreurs: 0 } }),
+  };
+}
+
+const adaptateurAvecCode = (lecteur) => ({ ...adaptateurDeParite({}), lecteurDuCode: lecteur });
+const ecrireLeCode = (source = CODE_EN_DUR) => (racine) => writeFileSync(join(racine, ...CHEMIN_DU_CODE.split("/")), source);
+
+const demandeDeCode = { adaptateur: adaptateurAvecCode(lecteurFactice({ "Widget.tsx": releveEnDur() })), adaptateurAttendu: "present", casser: ecrireLeCode() };
+
+test("un constat du code entre dans le bilan, avec son fichier, sa ligne et la commande qui le déroge", () => {
+  const { bilans, bloquant, rapport, terminal, verdict: jugement } = verdict({ ...demandeDeCode, ...DEMANDE_DE_CODE });
+
+  assert.deepEqual(bilans[0].code.fichiers, [CHEMIN_DU_CODE]);
+  assert.equal(bilans[0].code.lecture, null);
+  const [ecart] = bilans[0].code.ecarts;
+  assert.equal(ecart.genre, "valeur-en-dur");
+  assert.deepEqual(ecart.coordonnees, { fichier: CHEMIN_DU_CODE, valeur: "#ff0000" });
+  assert.equal(ecart.derogeable, true);
+  assert.equal(ecart.niveau, "ecart");
+  assert.equal(ecart.regle, "valeur-en-dur");
+  assert.equal(ecart.fichier, CHEMIN_DU_CODE);
+  assert.equal(ecart.ligne, 3);
+
+  assert.equal(bloquant, true);
+  assert.equal(jugement.composants[0].etat, "ecart");
+  assert.deepEqual(jugement.composants[0].bloquantPar, { contrat: false, tokens: false, parite: false, code: true });
+  assert.match(rapport, /^- Widget : `src\/components\/Widget\/Widget\.tsx` ligne 3 : `color` reçoit `#ff0000`/m);
+  assert.match(rapport, /lancez `npx ucm deroger Widget valeur-en-dur src\/components\/Widget\/Widget\.tsx '#ff0000' --motif "…"`/);
+  assert.match(rapport, /Un développeur doit mettre le code à jour, ou lancer la commande donnée sous l'écart\./);
+  assert.match(rapport, /La fusion reste bloquée\./);
+  assert.match(terminal.map(({ texte }) => texte).join("\n"), /✗ Widget : `src\/components\/Widget\/Widget\.tsx` ligne 3 : /);
+});
+
+test("S5 : ucm check et preparerControle rendent les mêmes constats d'un même fichier", () => {
+  const lecteur = lecteurFactice({ "Widget.tsx": releveEnDur() });
+  const racine = preparerRepo({ composants: { Widget: { contrat: contrat(), tsx: CODE_EN_DUR } }, tokens: TOKENS });
+  try {
+    const { bilans } = controlerRepository(racine, { configuration: CONFIGURATION, adaptateur: adaptateurAvecCode(lecteur), adaptateurAttendu: "present", ...DEMANDE_DE_CODE });
+    writeFileSync(join(racine, "ucm.config.json"), JSON.stringify(CONFIGURATION));
+    const juge = preparerControle(join(racine, ...CHEMIN_DU_CODE.split("/")), { lecteur, racine });
+
+    const vus = juge.constats.filter(({ niveau }) => niveau === "ecart");
+    assert.equal(vus.length, 1);
+    assert.deepEqual(
+      bilans[0].code.ecarts.map(({ genre, coordonnees, texte, regle }) => ({ genre, coordonnees, texte, regle })),
+      vus.map(({ code, coordonnees, message, regle }) => ({ genre: code, coordonnees, texte: message, regle })),
+    );
+  } finally {
+    rmSync(racine, { recursive: true, force: true });
+  }
+});
+
+test("V-26 : une dérogation du code pour l'export courant laisse passer, et le rapport la donne à valider", () => {
+  const derogation = {
+    composant: "Widget",
+    ecart: { genre: "valeur-en-dur", fichier: CHEMIN_DU_CODE, valeur: "#ff0000" },
+    export: EXPORT,
+    motif: "Le rouge attend le token du designer.",
+    par: "Camille",
+  };
+  const { bloquant, rapport, verdict: jugement } = verdict({
+    ...demandeDeCode,
+    ...DEMANDE_DE_CODE,
+    casser: (racine) => { ecrireLeCode()(racine); ecrireDerogations({ derogations: [derogation] })(racine); },
+  });
+
+  assert.equal(bloquant, false);
+  assert.equal(jugement.composants[0].etat, "deroge-a-valider");
+  assert.match(rapport, /### ⚠️ Des écarts du code sont acceptés par une dérogation \(1\)/);
+  assert.match(rapport, /- Widget : `src\/components\/Widget\/Widget\.tsx` ligne 3 : .* Motif : Le rouge attend le token du designer\. \(Camille\)/);
+  assert.doesNotMatch(rapport, /Le code ne suit pas son contrat/);
+});
+
+test("V-27 : une dérogation du code à l'export ancien tombe, et le constat bloque", () => {
+  const derogation = {
+    composant: "Widget",
+    ecart: { genre: "valeur-en-dur", fichier: CHEMIN_DU_CODE, valeur: "#ff0000" },
+    export: "2025-06-01T00:00:00.000Z",
+    motif: "Le rouge attend le token du designer.",
+    par: "Camille",
+  };
+  const { bloquant, verdict: jugement } = verdict({
+    ...demandeDeCode,
+    ...DEMANDE_DE_CODE,
+    casser: (racine) => { ecrireLeCode()(racine); ecrireDerogations({ derogations: [derogation] })(racine); },
+  });
+
+  assert.equal(bloquant, true);
+  assert.equal(jugement.composants[0].derogations.tombees.length, 1);
+});
+
+test("V-22 : un contrat plus récent que le code met le constat en retard, sans bloquer", () => {
+  const { bloquant, rapport, verdict: jugement } = verdict({
+    ...demandeDeCode,
+    ...DEMANDE_DE_CODE,
+    rangs: { composants: { Widget: { contrat: 1, code: 3 } } },
+  });
+
+  assert.equal(bloquant, false);
+  assert.equal(jugement.composants[0].etat, "en-retard-sur-son-contrat");
+  assert.match(rapport, /### ⚠️ Le code est en retard sur son contrat \(1 composant\)/);
+});
+
+test("V-23 : un tokens.json plus récent que le code donne la section du retard du code, et la section des tokens du designer reste vide", () => {
+  const { bloquant, rapport, terminal, verdict: jugement } = verdict({
+    ...demandeDeCode,
+    ...DEMANDE_DE_CODE,
+    rangs: { tokens: 1, composants: { Widget: { contrat: 6, code: 3 } } },
+  });
+
+  assert.equal(bloquant, false);
+  assert.equal(jugement.composants[0].etat, "en-retard-sur-les-tokens");
+  assert.match(rapport, /### ⚠️ Le code cite des tokens que tokens\.json n'a plus \(1 composant\)/);
+  assert.match(rapport, /Un développeur doit mettre le code à jour la prochaine fois qu'il modifie ce composant\./);
+  assert.match(rapport, /Ce retard ne bloque pas la fusion\./);
+  assert.doesNotMatch(rapport, /Le code ne suit pas son contrat/);
+  assert.doesNotMatch(rapport, /absent de la source de tokens|références? de token absentes?/i, "ce retard ne concerne aucune citation du contrat");
+  assert.match(terminal.map(({ texte }) => texte).join("\n"), /le code cite des tokens que tokens\.json n'a plus/);
+});
+
+test("V-24 : une demande de contrats passe malgré le constat, et le rapport ne dit pas qu'il bloque", () => {
+  const { bloquant, rapport } = verdict({
+    ...demandeDeCode,
+    ...DEMANDE_DE_CONTRAT,
+    // Le code est plus récent que le contrat : le constat n'est pas un retard.
+    rangs: { composants: { Widget: { contrat: 3, code: 1 } } },
+  });
+
+  assert.equal(bloquant, false);
+  assert.match(rapport, /### ⚠️ Le code ne suit pas son contrat \(1 composant\)/);
+  assert.match(rapport, /Ce point ne bloque pas votre demande\./);
+  assert.doesNotMatch(rapport, /La fusion reste bloquée\./);
+});
+
+test("V-28 : un adaptateur chargé sans lecteur du code laisse le code non vérifié", () => {
+  const ancien = { adaptateur: adaptateurDeParite({}), adaptateurAttendu: "present", casser: ecrireLeCode() };
+  const { bilans, bloquant, rapport, verdict: jugement } = verdict({ ...ancien, ...DEMANDE_DE_CODE });
+
+  assert.equal(bilans[0].code.lecture, "adaptateur-ancien");
+  assert.equal(bloquant, true);
+  assert.equal(jugement.composants[0].etat, "code-non-verifie");
+  assert.equal(jugement.composants[0].lecture, "adaptateur-ancien");
+  assert.match(rapport, /### ❌ Le code TypeScript n'est pas vérifié/);
+  assert.match(rapport, /L'adaptateur TypeScript installé ne sait pas lire le code des composants\./);
+  assert.match(rapport, /Un développeur doit installer `@ucm-kit\/adapter-typescript` en version exacte et enregistrer `package-lock\.json`\./);
+  assert.match(rapport, /La fusion reste bloquée\./);
+
+  assert.equal(verdict({ ...ancien, ...DEMANDE_DE_CONTRAT }).bloquant, false, "une demande du designer passe");
+  assert.equal(verdict({ adaptateur: adaptateurDeParite({}), adaptateurAttendu: "sans-adaptateur", ...DEMANDE_DE_CODE }).bloquant, false, "sans adaptateur attendu, aucune lecture n'est due");
+});
+
+test("V-29 : un fichier à erreur de syntaxe laisse le code non vérifié et bloque une demande de code", () => {
+  const lecteur = lecteurFactice({ "Widget.tsx": { ...RELEVE_VIDE, lecture: { complete: false, erreurs: 2 } } });
+  const { bilans, bloquant, rapport, verdict: jugement } = verdict({
+    adaptateur: adaptateurAvecCode(lecteur),
+    adaptateurAttendu: "present",
+    casser: ecrireLeCode(),
+    ...DEMANDE_DE_CODE,
+  });
+
+  assert.equal(bilans[0].code.lecture, "lecture-incomplete");
+  assert.equal(bloquant, true);
+  assert.equal(jugement.composants[0].etat, "code-non-verifie");
+  assert.match(rapport, /Un fichier de ces composants porte une erreur de syntaxe/);
+  assert.match(rapport, /Un développeur doit corriger l'erreur de syntaxe du fichier\./);
+  assert.match(rapport, /La fusion reste bloquée\./);
+});
+
+test("V-30 : une valeur calculée par le code se dit en une ligne chiffrée, sans changer l'état", () => {
+  const calculee = { ...RELEVE_VIDE, declarations: [{ propriete: "color", valeur: null, debut: 0, fin: 5, contexte: "style" }] };
+  const { bilans, bloquant, rapport, terminal, verdict: jugement } = verdict({
+    adaptateur: adaptateurAvecCode(lecteurFactice({ "Widget.tsx": calculee })),
+    adaptateurAttendu: "present",
+    casser: ecrireLeCode(),
+    ...DEMANDE_DE_CODE,
+  });
+
+  assert.equal(bilans[0].code.nonAnalyses, 1);
+  assert.equal(bloquant, false);
+  assert.equal(jugement.composants[0].etat, "conforme");
+  assert.match(rapport, /- `Widget` : 1 valeur calculée par le code, non jugée\./);
+  assert.match(terminal.map(({ texte }) => texte).join("\n"), /Widget : 1 valeur calculée par le code, non jugée\./);
+  assert.match(terminal.map(({ texte }) => texte).join("\n"), /code conforme/);
+});
+
+test("V-31 : un commentaire qui désactive une règle UCM bloque, sans commande de dérogation", () => {
+  const directive = { ...RELEVE_VIDE, directives: [{ texte: " eslint-disable-next-line ucm/valeur-en-dur", debut: 0, fin: 30 }] };
+  const { bloquant, rapport, bilans } = verdict({
+    adaptateur: adaptateurAvecCode(lecteurFactice({ "Widget.tsx": directive })),
+    adaptateurAttendu: "present",
+    casser: ecrireLeCode(),
+    ...DEMANDE_DE_CODE,
+  });
+
+  assert.equal(bilans[0].code.ecarts[0].genre, "desactivation-interdite");
+  assert.equal(bilans[0].code.ecarts[0].derogeable, false);
+  assert.equal(bloquant, true);
+  assert.match(rapport, /Ce commentaire désactive une règle UCM/);
+  assert.doesNotMatch(rapport, /npx ucm deroger/);
+});
+
+test("un fichier voisin du composant, modifié seul, met le composant dans la demande et son code au rang 0", () => {
+  const voisin = "src/components/Widget/Widget.variants.ts";
+  const source = 'export const rouge = { color: "#ff0000" };\n';
+  const lecteur = lecteurFactice(
+    { "Widget.variants.ts": releveEnDur(source) },
+    (implementation) => [implementation, join(dirname(implementation), "Widget.variants.ts")],
+  );
+  const { bilans, bloquant, rapport, verdict: jugement } = verdict({
+    adaptateur: adaptateurAvecCode(lecteur),
+    adaptateurAttendu: "present",
+    casser: (racine) => { ecrireLeCode(TSX)(racine); writeFileSync(join(racine, ...voisin.split("/")), source); },
+    cheminsModifies: voisin,
+  });
+
+  assert.deepEqual(bilans[0].code.fichiers, [CHEMIN_DU_CODE, voisin]);
+  assert.equal(bilans[0].code.ecarts[0].fichier, voisin);
+  assert.equal(bilans[0].code.ecarts[0].ligne, 1);
+  assert.equal(bloquant, true, "le fichier modifié est plus récent que le contrat");
+  assert.equal(jugement.demande, "code");
+  assert.match(rapport, /- Widget : `src\/components\/Widget\/Widget\.variants\.ts` ligne 1 : /);
+});
+
+test("un composant qui a plus de dix constats en liste dix, puis renvoie à ucm check", () => {
+  const source = `${TSX}${Array.from({ length: 12 }, (_, i) => `export const c${i} = { color: "#${String(i).padStart(2, "0")}0000" };\n`).join("")}`;
+  const declarations = Array.from({ length: 12 }, (_, i) => {
+    const valeur = `"#${String(i).padStart(2, "0")}0000"`;
+    const debut = source.indexOf(valeur);
+    return { propriete: "color", valeur: valeur.slice(1, -1), debut, fin: debut + valeur.length, contexte: "style" };
+  });
+  const { rapport } = verdict({
+    adaptateur: adaptateurAvecCode(lecteurFactice({ "Widget.tsx": { ...RELEVE_VIDE, declarations } })),
+    adaptateurAttendu: "present",
+    casser: ecrireLeCode(source),
+    ...DEMANDE_DE_CODE,
+  });
+
+  assert.equal(rapport.split("\n").filter((ligne) => ligne.startsWith("- Widget : `src/")).length, 10);
+  assert.match(rapport, /^- et 2 autres : lancez `npx ucm check` en local\.$/m);
+});
+
+test("S6 : le rapport dit bloquant exactement quand bloquantPar le dit, pour chaque genre de demande", () => {
+  const situations = {
+    "valeur en dur": demandeDeCode,
+    "adaptateur ancien": { adaptateur: adaptateurDeParite({}), adaptateurAttendu: "present", casser: ecrireLeCode() },
+    "écart de parité": { adaptateur: adaptateurDeParite({ manquantes: ["label"] }), adaptateurAttendu: "present", casser: ecrireLeCode() },
+    "contrat sans token": { tokens: {}, composants: { Widget: { contrat: contrat(), tsx: TSX } } },
+  };
+  const demandes = {
+    "tokens-seuls": DEMANDE_DE_TOKENS,
+    "contrats-et-tokens": DEMANDE_DE_CONTRAT,
+    code: DEMANDE_DE_CODE,
+    "sans-base": {},
+  };
+  for (const [nomDeLaSituation, situation] of Object.entries(situations)) {
+    for (const [genre, demande] of Object.entries(demandes)) {
+      const { bloquant, rapport, verdict: jugement } = verdict({ ...situation, ...demande });
+      const nom = `${nomDeLaSituation}, ${genre}`;
+      const bloqueParCause = jugement.composants.some(({ bloquantPar }) => Object.values(bloquantPar).some(Boolean));
+
+      assert.equal(jugement.demande, genre, nom);
+      assert.equal(bloquant, bloqueParCause, nom);
+      for (const { bloquant: composantBloquant, bloquantPar } of jugement.composants) {
+        assert.equal(composantBloquant, Object.values(bloquantPar).some(Boolean), nom);
+      }
+      assert.equal(/La fusion reste bloquée\./.test(rapport), bloquant, `${nom} : le rapport dit bloquant`);
+    }
+  }
 });

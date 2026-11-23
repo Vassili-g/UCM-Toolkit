@@ -76,3 +76,27 @@ test("la comparaison voit un nom de valeur décalé et ignore les types", () => 
   const source = ts.createSourceFile("x.d.mts", 'declare module "m" { export type UnType = 1; export interface Autre {} export function ancien(): void; export const present: number; export { UnType, repu } from "m2"; }', ts.ScriptTarget.Latest, true);
   assert.deepEqual([...valeursDeclarees(source, types)].sort(), ["ancien", "present", "repu"]);
 });
+
+/** Les littéraux d'un type union déclaré dans la déclaration, par son nom. */
+function litterauxDe(source, nom) {
+  for (const bloc of modulesDe(source)) {
+    for (const noeud of bloc.body.statements) {
+      if (ts.isTypeAliasDeclaration(noeud) && noeud.name.text === nom && ts.isUnionTypeNode(noeud.type)) {
+        return noeud.type.types.filter(ts.isLiteralTypeNode).map((type) => type.literal.text);
+      }
+    }
+  }
+  return null;
+}
+
+test("S7 : TEXTES_DES_ETATS, ETATS_DE_COMPOSANT et l'union EtatDeComposant disent les mêmes états", () => {
+  const declares = litterauxDe(lire("index.d.mts"), "EtatDeComposant");
+
+  assert.notEqual(declares, null, "l'union EtatDeComposant est introuvable dans index.d.mts");
+  assert.deepEqual([...declares].sort(), [...porte.ETATS_DE_COMPOSANT].sort());
+  assert.deepEqual(Object.keys(porte.TEXTES_DES_ETATS).sort(), [...porte.ETATS_DE_COMPOSANT].sort());
+  for (const [etat, { phrase, raison }] of Object.entries(porte.TEXTES_DES_ETATS)) {
+    assert.ok(phrase.trim() !== "" && raison.trim() !== "", `${etat} : phrase et raison non vides`);
+  }
+  assert.equal(navigateur.TEXTES_DES_ETATS, porte.TEXTES_DES_ETATS);
+});

@@ -118,7 +118,7 @@ export {
 } from "./controle-repository.mjs";
 
 /** Ce qui refuse une fusion, et le titre que ce refus mérite. */
-export { bilanEstBloquant, enteteDuVerdict, verdictDeLaDemande, ETATS_DE_COMPOSANT } from "./verdict-bilan.mjs";
+export { bilanEstBloquant, enteteDuVerdict, verdictDeLaDemande, ETATS_DE_COMPOSANT, TEXTES_DES_ETATS } from "./verdict-bilan.mjs";
 
 /** Ce que la demande de fusion touche : ses états informatifs, et si elle concerne UCM. */
 export { perimetreDeLaDemande, genreDeLaDemande } from "./perimetre-rapport.mjs";

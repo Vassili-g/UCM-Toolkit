@@ -407,3 +407,92 @@ test("un verdict de tests transmis par la stack atteint le rapport", async () =>
     rmSync(racine, { recursive: true, force: true });
   }
 });
+
+/**
+ * P6, lot 2.1 : le terminal dit les constats du code. L'adaptateur est factice :
+ * il suffit de prouver ce que `check` en tire, le relevé réel étant éprouvé par
+ * la recette (`recette.test.mjs`).
+ */
+const adaptateurSansCode = {
+  lireApiPublique: () => new Map(),
+  nomInterfaceAttendue: () => "WidgetProps",
+  ecartsDeParite: () => ({
+    implementationAbsente: false,
+    implementationNonLue: null,
+    interfaceAbsente: null,
+    fonctionAbsente: null,
+    manquantes: [],
+    typesIncorrects: [],
+    valeursNonImplementees: [],
+    booleensNonUtilises: [],
+    enumsSansEffet: [],
+    compositionsIncorrectes: [],
+  }),
+};
+
+/** Un repository jouet dont `Widget.tsx` existe, avec l'implémentation `.tsx` déclarée. */
+function repoAvecCode(source) {
+  const racine = repoJouet();
+  writeFileSync(join(racine, "ucm.config.json"), JSON.stringify({ implementation: "{dir}/{id}.tsx" }), "utf8");
+  writeFileSync(join(racine, "components", "Widget", "Widget.tsx"), source, "utf8");
+  return racine;
+}
+
+test("un adaptateur sans lecteur du code laisse le code non vérifié, et le terminal le dit", () => {
+  const racine = repoAvecCode("export function Widget() { return null; }\n");
+  try {
+    const sortie = { log: [], warn: [], error: [] };
+    const code = check([], {
+      racine,
+      adaptateur: adaptateurSansCode,
+      ecrire: (texte) => sortie.log.push(texte),
+      avertir: (texte) => sortie.warn.push(texte),
+      alerter: (texte) => sortie.error.push(texte),
+    });
+    const tout = [...sortie.log, ...sortie.warn, ...sortie.error].join("\n");
+
+    assert.equal(code, 1, tout);
+    assert.match(tout, /Widget\.contract\.json : .*code non vérifié/);
+    assert.match(tout, /l'adaptateur TypeScript installé ne sait pas lire le code des composants/);
+  } finally {
+    rmSync(racine, { recursive: true, force: true });
+  }
+});
+
+test("un constat du code sort en 1 et le terminal donne le fichier, la ligne et la commande", () => {
+  const source = 'export function Widget() { return null; }\nexport const style = { color: "#ff0000" };\n';
+  const racine = repoAvecCode(source);
+  try {
+    const debut = source.indexOf('"#ff0000"');
+    const adaptateur = {
+      ...adaptateurSansCode,
+      lecteurDuCode: {
+        extensions: [".tsx"],
+        releverUsages: () => ({
+          chaines: [],
+          declarations: [{ propriete: "color", valeur: "#ff0000", debut, fin: debut + 9, contexte: "style" }],
+          variables: [],
+          directives: [],
+          lecture: { complete: true, erreurs: 0 },
+        }),
+        fichiersDuComposant: (implementation) => ({ fichiers: [implementation], lecture: { complete: true, erreurs: 0 } }),
+      },
+    };
+    const sortie = { log: [], warn: [], error: [] };
+    const code = check([], {
+      racine,
+      adaptateur,
+      ecrire: (texte) => sortie.log.push(texte),
+      avertir: (texte) => sortie.warn.push(texte),
+      alerter: (texte) => sortie.error.push(texte),
+    });
+    const erreurs = sortie.error.join("\n");
+
+    assert.equal(code, 1, erreurs);
+    assert.match(erreurs, /✗ Widget : `components\/Widget\/Widget\.tsx` ligne 2 : `color` reçoit `#ff0000`/);
+    assert.match(erreurs, /npx ucm deroger Widget valeur-en-dur components\/Widget\/Widget\.tsx '#ff0000' --motif "…"/);
+    assert.match(erreurs, /Un développeur doit mettre le code à jour, ou lancer la commande donnée sous l'écart\. La fusion reste bloquée\./);
+  } finally {
+    rmSync(racine, { recursive: true, force: true });
+  }
+});

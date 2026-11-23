@@ -52,6 +52,7 @@ declare module "@ucm-kit/core/lecteurs/navigateur" {
     enteteDuVerdict,
     verdictDeLaDemande,
     ETATS_DE_COMPOSANT,
+    TEXTES_DES_ETATS,
     sectionTokensManquants,
     resumeTerminalTokensManquants,
     constatsDesContrastes,

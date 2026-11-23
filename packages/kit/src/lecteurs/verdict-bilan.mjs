@@ -16,13 +16,17 @@
  * - un contrat qui cite un token absent bloque seulement s'il n'est pas plus
  *   ancien que les tokens (sinon il est en retard sur les tokens) ;
  * - un code que personne ne lit alors qu'un adaptateur officiel est attendu
- *   bloque une demande de code, jamais une demande du designer.
+ *   bloque une demande de code, jamais une demande du designer ;
+ * - les constats du code (`bilan.code.ecarts`, rendus par `controle-repository.mjs`
+ *   d'après le juge du code) suivent la règle de la parité : ils bloquent une
+ *   demande de code, sauf s'ils sont dérogés, en retard sur le contrat, ou en
+ *   retard sur `tokens.json` quand il est plus récent que le code.
  *
  * Les rangs sont une entrée : 0 pour un fichier que la demande modifie ou
  * qu'on n'a pas enregistré, puis croissant vers le passé, `null` si
  * l'historique ne le dit pas. `bilanEstBloquant` garde la validité d'un contrat
- * seule ; le verdict du terminal ne change pas tant que
- * `controle-repository.mjs` n'appelle pas `verdictDeLaDemande`.
+ * seule. `TEXTES_DES_ETATS` porte la phrase du terminal et la raison de
+ * l'inventaire pour chaque état.
  */
 import { appliquerDerogations } from "./derogations.mjs";
 import { ecartsIdentifiesDeParite } from "./diagnostic-parite.mjs";
@@ -142,6 +146,49 @@ export const ETATS_DE_COMPOSANT = Object.freeze([
   "conforme",
 ]);
 
+/**
+ * Ce que chaque état dit, une seule fois : `phrase` finit la ligne d'un composant
+ * dans le terminal, `raison` explique l'état à qui lit l'inventaire.
+ */
+export const TEXTES_DES_ETATS = Object.freeze({
+  "contrat-invalide": Object.freeze({
+    phrase: "contrat invalide",
+    raison: "Le contrat est illisible, incomplet ou hors de la fenêtre de lecture, donc aucun outil ne peut le lire.",
+  }),
+  "tokens-absents": Object.freeze({
+    phrase: "token absent de tokens.json",
+    raison: "Le contrat cite un token que tokens.json ne porte pas, donc le composant afficherait une valeur vide.",
+  }),
+  ecart: Object.freeze({
+    phrase: "code en écart",
+    raison: "Le code s'écarte du contrat ou de tokens.json et il est plus récent qu'eux. Le développeur le corrige.",
+  }),
+  "code-non-verifie": Object.freeze({
+    phrase: "code non vérifié",
+    raison: "L'adaptateur attendu manque, est ancien, ne se charge pas ou ne lit pas le fichier. Rien n'est prouvé.",
+  }),
+  "en-retard-sur-son-contrat": Object.freeze({
+    phrase: "code en retard sur son contrat",
+    raison: "Le contrat a changé après le code. Le développeur le rattrape à sa prochaine demande sur ce composant.",
+  }),
+  "en-retard-sur-les-tokens": Object.freeze({
+    phrase: "en retard sur les tokens",
+    raison: "tokens.json a changé après le contrat ou le code. Le designer réexporte le contrat, ou le développeur met le code à jour.",
+  }),
+  "deroge-a-valider": Object.freeze({
+    phrase: "code en écart, accepté par une dérogation",
+    raison: "Une dérogation motivée couvre l'écart jusqu'au prochain export du contrat. Le designer relit son motif.",
+  }),
+  "pas-encore-d-implementation": Object.freeze({
+    phrase: "pas encore d'implémentation",
+    raison: "Le contrat est arrivé avant le code, état autorisé.",
+  }),
+  conforme: Object.freeze({
+    phrase: "code conforme",
+    raison: "Aucun écart, aucun retard, aucune dérogation.",
+  }),
+});
+
 /** Pourquoi le code n'est pas lu, selon l'adaptateur que la CLI attendait. */
 const LECTURE_SI_ATTENDU = { present: "fichier-non-lu", absent: "adaptateur-absent", casse: "adaptateur-casse" };
 
@@ -154,51 +201,82 @@ const plusRecent = (a, b) => typeof a === "number" && typeof b === "number" && a
  * avertit ; les trois autres lectures ratées sont un constat que le
  * développeur peut réparer.
  */
-function lectureDuCode(parite, adaptateurAttendu) {
+function lectureDeLaParite(parite, adaptateurAttendu) {
   if (!parite?.implementationNonLue) return null;
   return LECTURE_SI_ATTENDU[adaptateurAttendu] ?? "sans-adaptateur";
 }
+
+const AUCUN_BLOCAGE = Object.freeze({ contrat: false, tokens: false, parite: false, code: false });
 
 /**
  * Juge un composant sous une demande.
  *
  * `jugeLeCode` : la demande répond du code (demande de code, contrôle sans
  * base). `jugeLeContrat(rang)` : elle répond de ce contrat.
+ *
+ * Les écarts de parité et ceux du code passent ensemble par
+ * `appliquerDerogations`, donc une dérogation tombée ou sans objet se compte
+ * une fois. Un écart du code est « en retard » quand le contrat, ou à défaut
+ * `tokens.json`, est plus récent que le code ; la parité ne connaît que le
+ * contrat.
  */
 function verdictDuComposant(composant, { jugeLeCode, jugeLeContrat, rangTokens, adaptateurAttendu, derogations }) {
   const { id, bilan, exportedAt, rangContrat = null, rangCode = null } = composant;
   const rendu = {
     id,
     ecarts: [],
+    ecartsEnRetardSurLesTokens: [],
     avertissements: [],
     derogations: { couvertes: [], tombees: [], sansObjet: [] },
     lecture: null,
+    nonAnalyses: 0,
+    bloquantPar: AUCUN_BLOCAGE,
   };
 
   if (bilanEstBloquant(bilan)) {
-    return { ...rendu, etat: "contrat-invalide", constats: ["contrat-invalide"], bloquant: jugeLeContrat(rangContrat) };
+    const contrat = jugeLeContrat(rangContrat);
+    return {
+      ...rendu,
+      etat: "contrat-invalide",
+      constats: ["contrat-invalide"],
+      bloquant: contrat,
+      bloquantPar: { ...AUCUN_BLOCAGE, contrat },
+    };
   }
 
   const manquants = (bilan.manquants?.length ?? 0) > 0;
-  const enRetardSurLesTokens = manquants && plusRecent(rangTokens, rangContrat);
-  const tokensAbsents = manquants && !enRetardSurLesTokens;
+  const manquantsEnRetard = manquants && plusRecent(rangTokens, rangContrat);
+  const tokensAbsents = manquants && !manquantsEnRetard;
 
   const parite = bilan.parite;
+  const code = bilan.code ?? null;
+  const ecartsDuCode = code?.ecarts ?? [];
   const identifies = parite ? ecartsIdentifiesDeParite(parite) : [];
   const { couverts, restants, tombees, sansObjet } = appliquerDerogations(
     derogations.derogations,
     id,
     exportedAt,
-    identifies.filter(({ niveau }) => niveau === "ecart"),
+    [...identifies.filter(({ niveau }) => niveau === "ecart"), ...ecartsDuCode],
   );
+
   // Le contrat plus récent que le code : l'écart est celui du designer, pas du développeur.
-  const enRetardSurSonContrat = restants.length > 0 && plusRecent(rangContrat, rangCode);
-  const ecart = restants.length > 0 && !enRetardSurSonContrat;
-  const lecture = lectureDuCode(parite, adaptateurAttendu);
+  const contratPlusRecent = plusRecent(rangContrat, rangCode);
+  const restantsDuCode = restants.filter((ecart) => ecartsDuCode.includes(ecart));
+  const restantsDeParite = restants.filter((ecart) => !ecartsDuCode.includes(ecart));
+  const enRetardSurSonContrat = restants.length > 0 && contratPlusRecent;
+  // Les tokens plus récents que le code : le code cite ce que tokens.json n'a plus.
+  const ecartsEnRetardSurLesTokens = !contratPlusRecent && plusRecent(rangTokens, rangCode) ? restantsDuCode : [];
+  const enRetardSurLesTokens = manquantsEnRetard || ecartsEnRetardSurLesTokens.length > 0;
+  const ecartDeParite = restantsDeParite.length > 0 && !contratPlusRecent;
+  const ecartDuCode = restantsDuCode.length > ecartsEnRetardSurLesTokens.length && !contratPlusRecent;
+
+  const lectureDeParite = lectureDeLaParite(parite, adaptateurAttendu);
+  const lectureDuCodeLu = code?.lecture ?? null;
+  const lecture = lectureDeParite ?? lectureDuCodeLu;
 
   const presents = {
     "tokens-absents": tokensAbsents,
-    ecart,
+    ecart: ecartDeParite || ecartDuCode,
     "code-non-verifie": lecture !== null,
     "en-retard-sur-son-contrat": enRetardSurSonContrat,
     "en-retard-sur-les-tokens": enRetardSurLesTokens,
@@ -206,15 +284,23 @@ function verdictDuComposant(composant, { jugeLeCode, jugeLeContrat, rangTokens, 
     "pas-encore-d-implementation": Boolean(parite?.implementationAbsente),
   };
   const constats = ETATS_DE_COMPOSANT.filter((etat) => presents[etat]);
+  const bloquantPar = {
+    contrat: false,
+    tokens: tokensAbsents && jugeLeContrat(rangContrat),
+    parite: jugeLeCode && (ecartDeParite || (lectureDeParite !== null && lectureDeParite !== "sans-adaptateur")),
+    code: jugeLeCode && (ecartDuCode || lectureDuCodeLu !== null),
+  };
 
   return {
     ...rendu,
     etat: constats[0] ?? "conforme",
     constats: constats.length > 0 ? constats : ["conforme"],
-    bloquant: (tokensAbsents && jugeLeContrat(rangContrat))
-      || (jugeLeCode && (ecart || (lecture !== null && lecture !== "sans-adaptateur"))),
+    bloquant: Object.values(bloquantPar).some(Boolean),
+    bloquantPar,
     lecture,
+    nonAnalyses: code?.nonAnalyses ?? 0,
     ecarts: restants,
+    ecartsEnRetardSurLesTokens,
     avertissements: identifies.filter(({ niveau }) => niveau === "avertissement"),
     derogations: { couvertes: couverts, tombees, sansObjet },
   };
@@ -239,9 +325,14 @@ function verdictDuComposant(composant, { jugeLeCode, jugeLeContrat, rangTokens, 
  * - `historique` : `"complet"`, `"superficiel"` ou `"aucun"` (pas de dépôt Git).
  *
  * Sortie : `{ demande, bloquant, composants, erreursDeDerogations,
- * tokensIllisibles, erreurDInvocation }`. Chaque composant porte `id`, `etat`,
- * `constats`, `bloquant`, `lecture`, `ecarts` (restants, hors dérogation),
- * `avertissements` et `derogations` (`couvertes`, `tombees`, `sansObjet`).
+ * bloquantParLesDerogations, tokensIllisibles, erreurDInvocation }`. Chaque
+ * composant porte `id`, `etat`, `constats`, `bloquant`, `bloquantPar`
+ * (`contrat`, `tokens`, `parite`, `code` : la cause de chaque blocage, dont
+ * `bloquant` est la disjonction), `lecture`, `ecarts` (restants, parité et code,
+ * hors dérogation), `ecartsEnRetardSurLesTokens` (ceux du code que `tokens.json`,
+ * plus récent que le code, met en retard), `nonAnalyses` (le nombre d'usages que
+ * le code calcule et que le juge ne suit pas), `avertissements` et
+ * `derogations` (`couvertes`, `tombees`, `sansObjet`).
  * Une copie superficielle n'est pas jugée : `erreurDInvocation` porte le code 2
  * et le geste, et `bloquant` vaut `true`.
  *
@@ -264,6 +355,7 @@ export function verdictDeLaDemande({
       bloquant: true,
       composants: [],
       erreursDeDerogations: [],
+      bloquantParLesDerogations: false,
       tokensIllisibles: false,
       erreurDInvocation: {
         code: 2,
@@ -291,14 +383,16 @@ export function verdictDeLaDemande({
     contexte,
   ));
   const erreursDeDerogations = derogations.erreurs ?? [];
+  const bloquantParLesDerogations = jugeLeCode && erreursDeDerogations.length > 0;
 
   return {
     demande,
     bloquant: Boolean(tokensIllisibles)
-      || (jugeLeCode && erreursDeDerogations.length > 0)
+      || bloquantParLesDerogations
       || jugees.some(({ bloquant }) => bloquant),
     composants: jugees,
     erreursDeDerogations,
+    bloquantParLesDerogations,
     tokensIllisibles: Boolean(tokensIllisibles),
     erreurDInvocation: null,
   };
