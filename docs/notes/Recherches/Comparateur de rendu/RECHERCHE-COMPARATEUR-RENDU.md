@@ -276,3 +276,10 @@ par la lecture de la cascade ».
   que le code emploie les valeurs du contrat.
 - Juger le comportement, le clavier ou l'accessibilité, que le contrat ne
   décrit pas.
+
+## Questions au mainteneur
+
+- [Choix 1. Comment le contrôle retrouve-t-il un slot dans la page ?](#choix-1-comment-le-contrôle-retrouve-t-il-un-slot-dans-la-page)
+- [Choix 2. L'ordre des slots se mesure-t-il dans le DOM ou à l'écran ?](#choix-2-lordre-des-slots-se-mesure-t-il-dans-le-dom-ou-à-lécran)
+- [Choix 3. Survol, focus et appui entrent-ils dans la première version ?](#choix-3-survol-focus-et-appui-entrent-ils-dans-la-première-version)
+- [Choix 4. Comment le contrôle retrouve-t-il le token qui a peint une valeur ?](#choix-4-comment-le-contrôle-retrouve-t-il-le-token-qui-a-peint-une-valeur)

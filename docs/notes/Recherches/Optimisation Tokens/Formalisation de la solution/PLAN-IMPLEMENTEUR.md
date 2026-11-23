@@ -905,3 +905,8 @@ Les lots 0 à 3 ne dépensent aucun token et portent l'essentiel du résultat.
 | Ce que la porte voit vraiment | Un harnais qui altère et relance. La lecture de code annonce ce que la porte peut voir, pas ce qu'elle verra |
 | Le décompte de `fragment` hors du corpus | Les trois caractéristiques que le corpus n'exerce pas, et celles qu'un design system plus large exercerait |
 | La durée de relecture | Deux relecteurs et un composant, mesure du banc, qui décide du mode par défaut du §9 |
+
+## Questions au mainteneur
+
+- Quel plafond de sessions et quel horizon de remboursement (décision 21 de la revue) ?
+- Qui possède les fichiers produits par l'agent (décision 28) ?

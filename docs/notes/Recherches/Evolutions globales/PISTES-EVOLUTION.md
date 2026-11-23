@@ -1179,3 +1179,8 @@ mesurer ce que chaque solution change sur une recette réelle.
 `compterManquees` et la garantie des courbes dans le moteur ; le compte des
 promesses affiché par Palettes et ses textes. Les tests des promesses comptent
 seize promesses par mode et par intensité, et changent avec la règle.
+
+## Questions au mainteneur
+
+- Quelle piste d'abord, et sur quel besoin observé ?
+- L'équipe a-t-elle les sièges Figma que Code Connect exige ?

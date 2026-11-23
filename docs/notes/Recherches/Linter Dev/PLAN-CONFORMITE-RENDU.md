@@ -524,7 +524,7 @@ contrôles restent des recommandations.
 
 ---
 
-## 9. Questions à trancher, récapitulatif
+## Questions au mainteneur
 
 1. Quel est le format de l'observation normalisée, et quelles familles de
    comparaison peut-il porter ? C'est la question qui précède toutes les autres :
@@ -540,3 +540,6 @@ contrôles restent des recommandations.
 9. Installe-t-on les règles d'éditeur ?
 10. Qui porte la décision sur le plan GitHub, et sous quel délai ?
 11. À quel moment extrait-on les paquets réutilisables ?
+12. Où le designer valide-t-il un rendu, et où cette validation s'enregistre-t-elle ?
+13. Playwright avec captures dans Git, ou Chromatic payant ?
+14. Une prévisualisation des composants modifiés, publiée sur la demande de fusion, laisse-t-elle le designer bloquer la fusion sur le rendu ?

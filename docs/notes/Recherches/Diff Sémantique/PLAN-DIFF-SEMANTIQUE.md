@@ -916,3 +916,7 @@ Le plan est terminé seulement si :
 
 L'agent livre alors le diff final, les commandes exécutées, les résultats des
 mutations, la décision issue de H1 et les commits lorsqu'ils ont été autorisés.
+
+## Questions au mainteneur
+
+- [H1 : utilité en revue](#h1--utilité-en-revue), qui tient l'entrée dans le rapport de pull request pour une décision distincte.

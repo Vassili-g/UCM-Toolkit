@@ -36,7 +36,7 @@ là où Architect sépare ses deux modes par une bascule.
    `ucm tokens style-dictionary --out <dossier>`, sur le modèle de
    `ucm tokens css`. Le plugin continue de déposer un seul fichier.
 
-**Les décisions à prendre.** La section [7](#7-questions-au-mainteneur) les
+**Les décisions à prendre.** La section [7](#questions-au-mainteneur) les
 détaille, avec une recommandation pour chacune.
 
 | Question | Recommandation |
@@ -423,7 +423,7 @@ piste `P19` modifie aussi. Il se fait après elle.
   de la CLI, documentée dans son aide, et versionnée par le semver du paquet
   (classe 6).
 
-## 7. Questions au mainteneur
+## Questions au mainteneur
 
 **Q1. La forme de la bascule de l'Exporter.**
 (a) Reprendre la bascule d'Architect, déplacée dans le socle, avec l'écart de

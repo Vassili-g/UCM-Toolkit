@@ -250,3 +250,10 @@ comparée » sinon. Exiger un export contredirait la pratique de Primer.
 - Le mainteneur fournit un fichier Figma de test : un hôte qui pose une pièce
   à plusieurs variantes et booléens, dont une variante que l'hôte n'emploie
   pas, et le bloc `.componentRules` de la pièce.
+
+## Questions au mainteneur
+
+- [Choix 1. Où le contrat range-t-il les pièces internes ?](#choix-1-où-le-contrat-range-t-il-les-pièces-internes)
+- [Décidé. Comment l'obligation de règles d'une pièce s'applique](#décidé-comment-lobligation-de-règles-dune-pièce-sapplique)
+- [Choix 3. Une pièce posée dans une autre pièce se décrit-elle à plat ?](#choix-3-une-pièce-posée-dans-une-autre-pièce-se-décrit-elle-à-plat)
+- [Choix 4. Quels tokens une pièce cite-t-elle ?](#choix-4-quels-tokens-une-pièce-cite-t-elle)
