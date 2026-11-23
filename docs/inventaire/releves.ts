@@ -950,10 +950,9 @@ export interface Terminee {
   ecartee: string | null;
 }
 
-/** Les sujets d'une piste et leur couleur (texte sur fond, contraste d'au moins 4,5:1). Seul endroit qui les liste. */
+/** Les sujets d'une piste et leur couleur (texte sur fond, contraste d'au moins 4,5:1). Seul endroit qui les liste. Le sujet d'un module ou d'une pièce dit où il vit : « Modules consommateurs » s'installe dans la bibliothèque, « API du kit » vit dans @ucm-kit/core. */
 export const SUJETS: Record<string, { texte: string; fond: string }> = {
   'Règle de blocage': { texte: '#86198f', fond: '#fae8ff' },
-  'Vérification du rendu': { texte: '#155e75', fond: '#cffafe' },
   'API du kit': { texte: '#3730a3', fond: '#e0e7ff' },
   'Modules consommateurs': { texte: '#115e59', fond: '#ccfbf1' },
   'Bibliothèque de production': { texte: '#78350f', fond: '#f0e0cc' },
