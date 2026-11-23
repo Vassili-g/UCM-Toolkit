@@ -3,8 +3,8 @@
 La section 7 de `INVENTAIRE-UCM.html`, « La suite », devient « Roadmap ». Elle
 montre chaque piste à venir dans une table calculée depuis le dépôt : prio,
 état, avancement en tag, ce qui est en attente, et une fiche qui s'ouvre au
-clic. Le mainteneur a retenu la [maquette A2 v2](./maquettes/maquette-A2-v2.html)
-et toutes les propositions de cette recherche. Le [plan](./PLAN-ROADMAP.md)
+clic. Le mainteneur a retenu la [maquette A2 v2](https://github.com/Vassili-g/UCM-Toolkit/blob/4e7e00ed/docs/notes/Recherches/Roadmap/maquettes/maquette-A2-v2.html)
+et toutes les propositions de cette recherche. Le [plan](https://github.com/Vassili-g/UCM-Toolkit/blob/4e7e00ed/docs/notes/Recherches/Roadmap/PLAN-ROADMAP.md)
 distribue le travail.
 
 Le mainteneur est le seul lecteur de la page. Il l'ouvre pour se souvenir des
@@ -34,7 +34,7 @@ page sur grand écran.
 ## Relevé de l'état réel des pistes
 
 Relevé fait sur `main` au commit a6715b6f. Le prototype
-[`maquettes/donnees.mjs`](./maquettes/donnees.mjs) refait ce calcul.
+[`maquettes/donnees.mjs`](https://github.com/Vassili-g/UCM-Toolkit/blob/4e7e00ed/docs/notes/Recherches/Roadmap/maquettes/donnees.mjs) refait ce calcul.
 
 | Piste | Rang | `etat` écrit | État réel | Preuve |
 |---|---|---|---|---|
@@ -93,15 +93,15 @@ Hauteurs mesurées à 1400 px, fiches fermées.
 | Forme | Hauteur | Prio visible | Avancement visible | Défaut |
 |---|---|---|---|---|
 | Liste d'origine | 2596 px | titres de rang | étiquette de 2 pistes | longue, colonne de décision inutile |
-| [A, table calculée](./maquettes/maquette-A-table.html) | 1276 px (A1), 1308 px (A2) | groupes et colonne | état, rangée des lots en A2 | 5 colonnes à tenir dans 1100 px |
-| [B, board à colonnes calculées](./maquettes/maquette-B-board.html) | 1013 px | dans la carte seulement | colonnes d'état | la prio passe au second plan |
-| [C, matrice prio et état](./maquettes/maquette-C-matrice.html) | 1087 px | lignes | colonnes d'état | 10 cases vides sur 18 |
+| [A, table calculée](https://github.com/Vassili-g/UCM-Toolkit/blob/4e7e00ed/docs/notes/Recherches/Roadmap/maquettes/maquette-A-table.html) | 1276 px (A1), 1308 px (A2) | groupes et colonne | état, rangée des lots en A2 | 5 colonnes à tenir dans 1100 px |
+| [B, board à colonnes calculées](https://github.com/Vassili-g/UCM-Toolkit/blob/4e7e00ed/docs/notes/Recherches/Roadmap/maquettes/maquette-B-board.html) | 1013 px | dans la carte seulement | colonnes d'état | la prio passe au second plan |
+| [C, matrice prio et état](https://github.com/Vassili-g/UCM-Toolkit/blob/4e7e00ed/docs/notes/Recherches/Roadmap/maquettes/maquette-C-matrice.html) | 1087 px | lignes | colonnes d'état | 10 cases vides sur 18 |
 | Maintenant, ensuite, plus tard | courte | perdue | paquet « Maintenant » | trois paquets cachent les 6 prios |
 | Gantt | sans objet | non | dates | aucune piste n'a de date |
 
 Une board sert une équipe qui fait avancer des cartes. Ici un décideur range,
 et des agents cochent les cases d'un plan. La table garde l'ordre de priorité
-et met l'état sur la même ligne. La [version 2](./maquettes/maquette-A2-v2.html)
+et met l'état sur la même ligne. La [version 2](https://github.com/Vassili-g/UCM-Toolkit/blob/4e7e00ed/docs/notes/Recherches/Roadmap/maquettes/maquette-A2-v2.html)
 retire les carrés de la ligne et les garde dans la fiche.
 
 ## État calculé

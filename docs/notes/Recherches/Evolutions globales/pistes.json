@@ -1119,6 +1119,7 @@
       "sujet": "Documentation",
       "recherche": "docs/notes/Recherches/Roadmap/RECHERCHE-ROADMAP.md",
       "plan": "docs/notes/Recherches/Roadmap/PLAN-ROADMAP.md",
+      "archive": "4e7e00ed",
       "resume": "Remplacer la section « La suite » de l'inventaire par une Roadmap dont l'état, l'avancement et l'attente se calculent depuis le plan de chaque piste. Le champ `etat` disparaît, `rang` devient `prio`, et le mainteneur pose une prio avec sa raison. Chaque sujet a son dossier de recherche, et un sujet livré s'archive par une skill.",
       "importance": "moyenne",
       "raisonImportance": "Le champ `etat` écrit à la main était faux pour 6 pistes sur 16, et le mainteneur ne pouvait pas se fier à la page pour suivre ses sujets.",

@@ -144,7 +144,7 @@ test("les marques attend Pn des plans de piste visent une piste qui n'est pas li
   assert.deepEqual(controlerMarques(plansDesPistes(pistes), pistes, texteIci), []);
 });
 
-test('attend P99 échoue, attend P19 échoue (P19 livrée), attend P25 passe', () => {
+test('attend P99 échoue, attend P19 échoue (P19 livrée), attend P26 passe', () => {
   const pistes = lirePistes();
   const plan = (marque: string) => [{ chemin: 'PLAN-X.md', texte: `- [ ] 2 (attend ${marque}). Lot.` }];
   const inconnue = controlerMarques(plan('P99'), pistes, texteIci);
@@ -153,7 +153,7 @@ test('attend P99 échoue, attend P19 échoue (P19 livrée), attend P25 passe', (
   const livree = controlerMarques(plan('P19'), pistes, texteIci);
   assert.equal(livree.length, 1);
   assert.match(livree[0], /P19 est livrée/);
-  assert.deepEqual(controlerMarques(plan('P25'), pistes, texteIci), []);
+  assert.deepEqual(controlerMarques(plan('P26'), pistes, texteIci), []);
 });
 
 test("chaque PLAN*.md est le plan ou la recherche d'une piste, ou figure dans PLANS_SANS_PISTE", () => {

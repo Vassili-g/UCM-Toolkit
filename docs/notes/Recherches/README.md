@@ -18,7 +18,6 @@ produit, partir des références de [docs/README.md](../../README.md) et du code
 | [UCM Architect : fusion et préparation][architect] | Réunir l'exploration des variables, leur nommage et la préparation des tokens d'un composant. | Implémenté pour le périmètre retenu. L'adaptation des noms de préparation à la convention Figma reste conditionnelle. |
 | [Exporter : sélection et Style Dictionary][exporter-selection] | Aligner la bascule Composant et Tokens sur celle d'UCM Architect, choisir les collections et les modes exportés, puis convertir `tokens.json` pour Style Dictionary. | Recherche proposée, non implémentée ; décisions du mainteneur attendues. |
 | [Socle d'intencial-library][socle-intencial] | Donner à intencial-library son socle React et TypeScript, la CLI et l'adaptateur UCM épinglés, et la feuille CSS des tokens. | En cours ; plan à cases suivi par l'inventaire. |
-| [Roadmap de l'inventaire][roadmap] | Calculer l'état de chaque piste depuis son plan, afficher la Roadmap de l'inventaire et archiver les sujets terminés (P25). | Implémenté : la section 7 de l'inventaire est la Roadmap ; P19 et P21 archivées. |
 | [Diff sémantique][diff] | Comparer deux ensembles de contrats et de tokens pour identifier les changements et les composants touchés. | Proposé, non implémenté ; périmètre de l'expérimentation à valider. |
 | [Pièces internes][pieces-internes] | Décrire dans le contrat de l'hôte toutes les variantes et propriétés d'une pièce interne (P22). | Recherche en cours, non implémentée ; quatre questions de format attendent le mainteneur. |
 | [Comparateur de rendu][comparateur-rendu] | Comparer un rendu observé dans un navigateur aux obligations du contrat (P10). | Recherche en cours, non implémentée ; quatre questions de conception attendent le mainteneur. |
@@ -72,6 +71,7 @@ Leurs recettes Figma reportées restent dans leurs plans.
 
 | Sujet | Utilité | Statut |
 |---|---|---|
+| [Roadmap de l'inventaire][roadmap] | Calculer l'état de chaque piste depuis son plan, afficher la Roadmap de l'inventaire et archiver les sujets terminés (P25). | Implémenté et archivé ; la recherche garde la procédure d'archivage et la convention de l'état calculé. |
 | [Kits UCM et partage des données][kits] | Faire appliquer les mêmes conventions et protocoles par le kit et les plugins. | Implémenté. Le plan d'exécution termine les lots que l'ancien plan de conception laisse encore décochés. |
 | [Référentiel UCM][referentiel] | Définir une seule fois les collections, modes, crans et termes partagés par les produits. | Implémenté. Les opérations Figma restantes relèvent de la recette. |
 | [Guide des agents][agents] | Orienter les agents vers les fichiers utiles et réduire le volume de contexte à charger. | Implémenté. Le plan d'exécution remplace le découpage initial. |
@@ -121,7 +121,7 @@ Leurs recettes Figma reportées restent dans leurs plans.
 [comparateur-rendu]: ./Comparateur%20de%20rendu/RECHERCHE-COMPARATEUR-RENDU.md
 [exporter-selection]: ./Plugin%20Exporter/RECHERCHE-SELECTION-ET-STYLE-DICTIONARY.md
 [socle-intencial]: ./Socle%20intencial-library/PLAN-SOCLE-INTENCIAL-LIBRARY.md
-[roadmap]: ./Roadmap/PLAN-ROADMAP.md
+[roadmap]: ./Roadmap/RECHERCHE-ROADMAP.md
 [rendu]: ./Linter%20Dev/PLAN-CONFORMITE-RENDU.md
 [implementeur]: ./Optimisation%20Tokens/README.md
 [reduction]: ./Optimisation%20Tokens/Recherches/PLAN-REDUCTION-TOKENS.md
