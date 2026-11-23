@@ -16,6 +16,7 @@ const fixture = join(racinePaquet, "tests", "fixtures", "StressFixture.tsx");
 test("la porte publique possède la forme attendue par le noyau", () => {
   assert.deepEqual(Object.keys(adaptateurTypeScript).sort(), [
     "ecartsDeParite",
+    "lecteurDuCode",
     "lireApiPublique",
     "nomInterfaceAttendue",
   ]);

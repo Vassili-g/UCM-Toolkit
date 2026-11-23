@@ -11,6 +11,8 @@ import { basename, extname, join } from "node:path";
 import { codeIdentifier } from "@ucm-kit/core/format";
 import ts from "typescript";
 
+import { lecteurDuCode } from "./usages.mjs";
+
 /** Nom de l'interface qui porte l'API publique du composant. */
 export function nomInterfaceAttendue(fichierComposant) {
   return `${basename(fichierComposant, extname(fichierComposant))}Props`;
@@ -491,4 +493,5 @@ export const adaptateurTypeScript = Object.freeze({
   lireApiPublique,
   nomInterfaceAttendue,
   ecartsDeParite,
+  lecteurDuCode,
 });
