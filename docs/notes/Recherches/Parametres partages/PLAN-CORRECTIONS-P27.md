@@ -483,9 +483,9 @@ lignes de `en.ts` ; `packages/plugin-palettes/src/planche/modele.ts:270-280` ;
 
 ## Vague 4
 
-- [ ] 4.1 `implementeur`. Le guide (PP-10, PP-11, PP-204, PP-206, PP-207, PP-208, PP-209, PP-214, PP-215).
-- [ ] 4.2 `implementeur`. Couverture des aides (PP-201, PP-203, PP-211, PP-212, PP-213).
-- [ ] 4.3 `implementeur-exigeant`. Noms, variants et validateur du kit (PP-19, PP-106, PP-110, PP-111, PP-205).
+- [x] 4.1 `implementeur`. Le guide (PP-10, PP-11, PP-204, PP-206, PP-207, PP-208, PP-209, PP-214, PP-215). Commit : `0c105f31`.
+- [x] 4.2 `implementeur`. Couverture des aides (PP-201, PP-203, PP-211, PP-212, PP-213). Commit : `a7f94f71`.
+- [x] 4.3 `implementeur-exigeant`. Noms, variants et validateur du kit (PP-19, PP-106, PP-110, PP-111, PP-205). Commit : `c926adfe`.
 
 ### Lot 4.1. Le guide
 
