@@ -126,9 +126,9 @@ cadrage les range parmi les décisions D15 à D25 (§12).
 
 ## Vague 0
 
-- [ ] 0.20 Conversation principale. Commiter ce plan, le cadrage, `pistes.json` et `INVENTAIRE-UCM.html` régénéré par `npm run vues`. Ajouter à `.agents/skills/publier-paquets/SKILL.md`, après le titre, la puce suivante, en chargeant `rediger-pour-agents`. Commit : `…`
+- [x] 0.20 Conversation principale. Commiter ce plan, le cadrage, `pistes.json` et `INVENTAIRE-UCM.html` régénéré par `npm run vues`. Ajouter à `.agents/skills/publier-paquets/SKILL.md`, après le titre, la puce suivante, en chargeant `rediger-pour-agents`. Commit : `7b6544c9`
   - « **Verrou P6.** Ne publier ni `@ucm-kit/core`, ni `@ucm-kit/cli`, ni `@ucm-kit/adapter-typescript` tant que cette puce existe : `main` porte un travail de P6 non publié (`docs/notes/Recherches/Linter Dev/PLAN-IMPLEMENTATION-P6-KIT.md`). Rendre la question au mainteneur. La case 4.3 du plan la retire. »
-- [ ] 0.21 `executant`. Écrire `nomsCssDesTokens` (S-04), le code ci-dessous tel quel. Commit : `…`
+- [x] 0.21 `executant`. Écrire `nomsCssDesTokens` (S-04), le code ci-dessous tel quel. Commit : `47231744`
   - Dans `packages/kit/src/lecteurs/tokens-dtcg.mjs`, ajouter `import { tokenCssVariable } from "@ucm-kit/core/format";` en tête et, après `indexerTokensDtcg` :
 
 ```js
@@ -156,9 +156,9 @@ export function nomsCssDesTokens(index) {
 
 ## Vague 1
 
-- [ ] 1.1 `implementeur-exigeant`. Juge du kit et dérogation des constats du code. Commit : `…`
-- [ ] 1.2 `implementeur-exigeant`. Lecteur du code dans l’adaptateur. Commit : `…`
-- [ ] 1.3 `implementeur`. Écriture des références et `ucm tokens references`. Commit : `…`
+- [x] 1.1 `implementeur-exigeant`. Juge du kit et dérogation des constats du code. Commit : `354ef421`
+- [x] 1.2 `implementeur-exigeant`. Lecteur du code dans l’adaptateur. Commit : `84aac8a1`
+- [x] 1.3 `implementeur`. Écriture des références et `ucm tokens references`. Commit : `afd57f0e`
 
 ### Lot 1.1. Juge du kit et dérogation des constats du code
 

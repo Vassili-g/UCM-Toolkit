@@ -78,7 +78,7 @@ Fichiers que deux lots de vagues différentes écrivent, dans l'ordre :
 
 ## Vague 0
 
-- [ ] 0.1 Conversation principale. Commiter ce dossier, la piste P25 de `pistes.json`, le motif du registre, la ligne du sommaire et `INVENTAIRE-UCM.html` régénéré. Commit : `…`
+- [x] 0.1 Conversation principale. Commiter ce dossier, la piste P25 de `pistes.json`, le motif du registre, la ligne du sommaire et `INVENTAIRE-UCM.html` régénéré. Commit : `8f76a1fc`
 - [ ] 0.2 (mainteneur). Répondre aux cinq questions de la [recherche](./RECHERCHE-ROADMAP.md#questions-au-mainteneur).
 
 ## Vague 1
