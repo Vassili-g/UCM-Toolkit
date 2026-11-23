@@ -9,7 +9,8 @@ const path = require('path');
 const { constructeur, alias, nombre, couleur } = require('../etats/aide.cjs');
 
 const KIT = path.resolve(__dirname, '../../../kit').replace(/\\/g, '/');
-const SORTIE = path.resolve(__dirname, '../../dist/galerie-integrite.cjs');
+// Un fichier par processus : deux suites de tests qui chargent la galerie en même temps ne lisent jamais un fichier à moitié écrit.
+const SORTIE = path.resolve(__dirname, `../../dist/galerie-integrite.${process.pid}.cjs`);
 
 require('esbuild').buildSync({
   stdin: {
