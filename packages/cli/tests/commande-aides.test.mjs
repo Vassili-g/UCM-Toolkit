@@ -10,13 +10,20 @@ import { dirname, join } from "node:path";
 import test from "node:test";
 import { fileURLToPath } from "node:url";
 
-import { aides, catalogueDesAides } from "../src/aides.mjs";
+import { aides, catalogueDesAides, lireAide } from "../src/aides.mjs";
 import { executer } from "../src/ucm.mjs";
 
 function lancer(racine, arguments_) {
   const log = [];
   const erreurs = [];
   const code = aides(arguments_, { racine, ecrire: (texte) => log.push(texte), alerter: (texte) => erreurs.push(texte) });
+  return { code, log: log.join("\n"), erreur: erreurs.join("\n") };
+}
+
+function lancerAvec(racine, arguments_, catalogue) {
+  const log = [];
+  const erreurs = [];
+  const code = aides(arguments_, { racine, catalogue, ecrire: (texte) => log.push(texte), alerter: (texte) => erreurs.push(texte) });
   return { code, log: log.join("\n"), erreur: erreurs.join("\n") };
 }
 
@@ -40,7 +47,7 @@ test("la liste nomme chaque aide, sa caractéristique et l'origine de son écrit
     assert.match(log, /^ {2}contour-ring +contour-ring +conventions$/m);
     assert.match(log, /^ {2}contour-border +contour-border +UCM$/m);
     assert.match(log, /^ {2}focus-clavier +focus +ancrage répondu$/m);
-    assert.match(log, /^ {2}identifiants +toujours +ancrage sans réponse$/m);
+    assert.match(log, /^ {2}identifiants +toujours +ancrage sans réponse ; le texte de tête ne répond pas$/m);
   } finally {
     rmSync(racine, { recursive: true, force: true });
   }
@@ -150,4 +157,48 @@ test("l'archive de la CLI publie les aides et la procédure", () => {
   const fichiers = archive.files.map(({ path }) => path.split("\\").join("/"));
   assert.ok(fichiers.includes("procedure.md"), "procedure.md manque à l'archive");
   assert.ok(fichiers.includes("aides/contour-ring.md"), "aides/ manque à l'archive");
+});
+
+test("Q1 : lireAide rend la section Question, vide si elle manque", () => {
+  const avec = lireAide("---\naide: a\nquand: toujours\n---\n\n## Question\n\nQuel outil ?\n\n## Sens\n\nS.\n");
+  assert.equal(avec.question, "Quel outil ?");
+  assert.equal(avec.sens, "S.");
+  assert.equal(lireAide("---\naide: a\nquand: toujours\n---\n\n## Sens\n\nS.\n").question, "");
+});
+
+test("Q2 : un texte de tête avec « Contrôle : » sans section controles est une anomalie, sans changer le code", () => {
+  const racine = repository("Stack : TS.\nContrôle : `npx tsc --noEmit`\n");
+  try {
+    const { code, log } = lancer(racine, []);
+    assert.equal(code, 0);
+    assert.match(log, /^⚠ \.ucm\/conventions\.md : Le texte de tête nomme `npx tsc --noEmit` par « Contrôle : », mais la question `controles` attend une section `## controles`\.$/m);
+  } finally {
+    rmSync(racine, { recursive: true, force: true });
+  }
+});
+
+test("Q3 : un ancrage sans section, sous un texte de tête non vide, dit que le texte de tête ne répond pas", () => {
+  const racine = repository("Stack : TS.\n");
+  const vide = repository("");
+  try {
+    assert.match(lancer(racine, []).log, /^ {2}identifiants +toujours +ancrage sans réponse ; le texte de tête ne répond pas$/m);
+    assert.match(lancer(vide, []).log, /^ {2}identifiants +toujours +ancrage sans réponse$/m);
+  } finally {
+    rmSync(racine, { recursive: true, force: true });
+    rmSync(vide, { recursive: true, force: true });
+  }
+});
+
+test("Q4 : --personnaliser d'un ancrage écrit la question dans le commentaire du gabarit", () => {
+  const racine = repository("Stack : TS.\n");
+  const catalogue = new Map([
+    ["demo", lireAide("---\naide: demo\nquand: toujours\n---\n\n## Question\n\nQuel outil ?\n\n## Sens\n\nS.\n\n## Preuve\n\nP.\n")],
+  ]);
+  try {
+    assert.equal(lancerAvec(racine, ["demo", "--personnaliser"], catalogue).code, 0);
+    assert.match(readFileSync(join(racine, ".ucm", "conventions.md"), "utf8"),
+      /## demo\n<!-- ucm:copie demo [^\n]*-->\n\n<!-- Quel outil \? Écrire ici la réponse du repository\. -->\n$/);
+  } finally {
+    rmSync(racine, { recursive: true, force: true });
+  }
 });

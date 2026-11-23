@@ -422,7 +422,7 @@ const AVEC_TOKENS = { [CARTE]: contrat("Carte", { tokens: { background: "{couleu
 test("G1 : resolution-token imprime l'écriture par défaut, qui nomme la commande, sans liste de noms CSS", () => {
   const { sortie } = lancer(AVEC_TOKENS);
   const aide = sectionDAide(sortie, "resolution-token");
-  assert.match(aide, /\*\*Écriture par défaut\.\*\*[\s\S]*npx ucm tokens references <fichiers>/);
+  assert.match(aide, /\*\*Écriture par défaut\.\*\*[\s\S]*ucm tokens references <fichiers>/);
   assert.doesNotMatch(sortie, /--couleurs-fond/);
 });
 

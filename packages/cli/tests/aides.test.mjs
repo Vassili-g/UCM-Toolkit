@@ -65,7 +65,7 @@ test("chaque quand nomme une caractéristique", () => {
 test("une aide porte Sens, Écriture par défaut et Preuve dans cet ordre ; un ancrage n'a pas d'écriture", () => {
   assert.deepEqual(ANCRAGES.filter((nom) => !AIDES.some((aide) => aide.nom === nom)), [], "ancrage sans fichier");
   for (const aide of AIDES) {
-    const attendues = ANCRAGES.includes(aide.nom) ? ["Sens", "Preuve"] : ["Sens", "Écriture par défaut", "Preuve"];
+    const attendues = ANCRAGES.includes(aide.nom) ? (aide.sections.includes("Question") ? ["Sens", "Question", "Preuve"] : ["Sens", "Preuve"]) : ["Sens", "Écriture par défaut", "Preuve"];
     assert.deepEqual(aide.sections, attendues, aide.fichier);
   }
 });

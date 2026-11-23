@@ -24,7 +24,7 @@ export const DOSSIER_AIDES = fileURLToPath(new URL("../aides/", import.meta.url)
 
 export const USAGE_AIDES = "ucm aides [<aide> [--personnaliser [<chemin>]]]";
 
-/** Une aide lue depuis son fichier : en-tête, puis sections Sens, Écriture par défaut et Preuve. */
+/** Une aide lue depuis son fichier : en-tête, puis sections Question, Sens, Écriture par défaut et Preuve. */
 export function lireAide(texte) {
   const normalise = texte.replace(/\r\n/g, "\n");
   const [, entete = "", corps = ""] = /^---\n([\s\S]*?)\n---\n([\s\S]*)$/.exec(normalise) ?? [];
@@ -44,6 +44,7 @@ export function lireAide(texte) {
     sens: sections.Sens ?? "",
     ecriture: sections["Écriture par défaut"] ?? "",
     preuve: sections.Preuve ?? "",
+    question: sections.Question ?? "",
   };
 }
 
@@ -82,8 +83,13 @@ function conventionsDepuis(depart, racine, catalogue) {
 export function avertissements(conventions, chemin, racine, catalogue) {
   if (!conventions) return [];
   const ou = relative(racine, chemin).split("\\").join("/");
+  const anomalies = [...conventions.anomalies];
+  if (conventions.controles.length > 0 && !conventions.sections.has("controles")) {
+    const commandes = conventions.controles.map((commande) => `\`${commande}\``).join(", ");
+    anomalies.push(`Le texte de tête nomme ${commandes} par « Contrôle : », mais la question \`controles\` attend une section \`## controles\`.`);
+  }
   return [
-    ...conventions.anomalies.map((anomalie) => `${GLYPHES.corriger.brut} ${ou} : ${anomalie}`),
+    ...anomalies.map((anomalie) => `${GLYPHES.corriger.brut} ${ou} : ${anomalie}`),
     ...sectionsARelire(conventions, catalogue).map(({ nom, version, sansEmpreinte }) => (sansEmpreinte
       ? `${GLYPHES.corriger.brut} ${ou} : la section « ${nom} » copie l'écriture par défaut de la version ${version}, sans empreinte qui dise si elle a changé depuis. Comparez-la à \`ucm aides ${nom}\`.`
       : `${GLYPHES.corriger.brut} ${ou} : la section « ${nom} » copie l'écriture par défaut de la version ${version}, qui a changé depuis. Relisez-la.`
@@ -93,7 +99,10 @@ export function avertissements(conventions, chemin, racine, catalogue) {
 
 function origine(aide, conventions) {
   const section = conventions?.sections.get(aide.nom);
-  if (aide.ancrage) return section && section.texte !== "" ? "ancrage répondu" : "ancrage sans réponse";
+  if (aide.ancrage) {
+    if (section && section.texte !== "") return "ancrage répondu";
+    return conventions && conventions.tete !== "" ? "ancrage sans réponse ; le texte de tête ne répond pas" : "ancrage sans réponse";
+  }
   if (aide.nom === "composant") return conventions && conventions.tete !== "" ? "conventions, texte de tête" : "UCM";
   return section ? "conventions" : "UCM";
 }
@@ -171,7 +180,9 @@ export function aides(arguments_, {
   }
 
   const contenu = readFileSync(chemin, "utf8");
-  const corps = aide.ancrage ? "<!-- Écrire ici la réponse du repository. -->" : aide.ecriture;
+  const corps = aide.ancrage
+    ? `<!-- ${aide.question === "" ? "" : `${aide.question} `}Écrire ici la réponse du repository. -->`
+    : aide.ecriture;
   const section = `## ${aide.nom}\n${marqueurDeCopie(aide.nom, versionDeLaCli(), aide.ecriture)}\n\n${corps}\n`;
   ecrireFichier(chemin, `${contenu.replace(/\s*$/, "")}\n\n${section}`, "utf8");
   ecrire(`${ou} : section « ${aide.nom} » ajoutée, à éditer.`);
