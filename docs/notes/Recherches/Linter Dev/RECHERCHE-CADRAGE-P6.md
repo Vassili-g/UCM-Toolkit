@@ -1,27 +1,29 @@
 # Cadrage du linter UCM et de son cœur dans le kit
 
 Le premier lot du linter porte deux règles, « token inconnu » et « valeur en
-dur ». L’adaptateur TypeScript lit le code d’un fichier. Le kit prépare un juge
-pour ce fichier et répond à chaque usage relevé. Le plugin ESLint du
-développeur appelle les deux et affiche les constats. `ucm check` appelle les
-mêmes fonctions et juge les constats par la règle du dernier modifié.
+dur ». L’adaptateur TypeScript lit le code des fichiers d’un composant. Le kit
+juge un fichier, applique les dérogations et rend des constats complets. Le
+plugin ESLint du développeur les affiche. `ucm check` appelle les mêmes
+fonctions et juge les constats par la règle du dernier modifié. Une seule
+publication livre le tout.
 
-Le mainteneur a validé les décisions D1 à D14 et les choix du plan, que le §12
-résume. Le §10 examine chaque choix fondamental contre le cas qui le
-casserait. Le [plan de la partie kit](./PLAN-IMPLEMENTATION-P6-KIT.md)
-distribue le travail. Les essais des §3, §4 et §13 restent valables.
+Le mainteneur a validé les décisions D1 à D14, puis les réponses aux deux
+relectures du plan, que le §12 range en D15 à D27. Le §10 examine chaque choix
+fondamental contre le cas qui le casserait. Le
+[plan de la partie kit](./PLAN-IMPLEMENTATION-P6-KIT.md) distribue le travail
+en vagues. Les essais des §3, §4 et §13 restent valables.
 
 ## 1. Ce que le mainteneur et le développeur doivent retenir
 
 | Acteur | Travail |
 |---|---|
-| Mainteneur, avec ses agents | L’écriture par défaut des références dans les aides et `ucm guide`. Le juge et ses deux listes réglables dans le kit. L’extracteur dans l’adaptateur. Les deux prises, les constats dans `ucm check`, l’inventaire, le guide `docs/guides/LINTER-UCM.md` et la skill `regler-le-linter`. |
-| Développeur du module | Le plugin ESLint local, son affichage, sa configuration, ses tests `RuleTester` et son branchement en CI. La forme d’écriture des styles d’intencial-library. La reprise du corpus de Playground. |
-| Mainteneur et développeur | L’essai sur les composants repris, avant la publication unique. |
+| Mainteneur, avec ses agents | L’écriture par défaut des références et `ucm tokens references`. Le juge, ses listes et la dérogation des constats du code dans le kit. Le lecteur du code dans l’adaptateur. Les constats du code dans `ucm check`, la commande `ucm deroger`, les deux prises, l’inventaire, le guide `docs/guides/LINTER-UCM.md` et la skill `regler-le-linter`. |
+| Développeur du module | Le plugin ESLint local, son affichage, sa configuration et ses tests `RuleTester`. La forme d’écriture des styles d’intencial-library. La reprise du corpus de Playground. |
+| Mainteneur et développeur | L’essai sur les composants repris, avant la publication si le développeur répond à temps, après sinon. |
 
 Le premier lot ne couvre ni les variantes non publiées, ni les éléments visuels
 supplémentaires, ni Stylelint, ni l’analyse typée, ni la correction
-automatique.
+automatique d’une valeur en dur.
 
 ## 2. Ce qui existe et ce qui manque
 
@@ -32,13 +34,14 @@ supplémentaires restent ouverts dans le
 
 | Appui dans le dépôt | Usage pour P6 | Limite |
 |---|---|---|
-| `packages/kit/src/modules/index.mjs` et `index.d.mts` | Sept fonctions et le type `Contract` | Aucun contrôle de source. Le juge y entre au lot 3. |
+| `packages/kit/src/modules/index.mjs` et `index.d.mts` | Sept fonctions et le type `Contract` | Aucun contrôle de source. Le juge y entre à la publication. |
 | `packages/kit/src/lecteurs/tokens-dtcg.mjs` | Indexer les feuilles DTCG par chemin pointé, sans projection | L’existence d’un token ne prouve ni son bon usage ni sa valeur affichée. |
 | `packages/kit/src/format/names.ts` | `tokenCssVariable`, ligne 73, « unique autorité » de la projection d’un chemin vers sa variable CSS | Deux chemins peuvent produire le même nom (lignes 63 à 67). |
 | `packages/cli/src/tokens-css.mjs` | Refuse deux feuilles qui donnent la même propriété CSS (ligne 325) | Ne protège que les repositories qui génèrent la feuille. |
-| `packages/kit/src/lecteurs/implementation.mjs` | `cheminImplementation`, ligne 28 | Fonction interne. Personne ne recopie son calcul. |
+| `packages/kit/src/lecteurs/implementation.mjs` | `cheminImplementation`, ligne 28 | Un seul fichier par contrat. Les fichiers qu’il importe viennent de l’adaptateur. |
 | `packages/kit/src/lecteurs/version-contrat.mjs` | Fenêtre de lecture de 13.0 (ligne 20) à `CONTRACT_VERSION`, 14.0 (`format/version.ts`, ligne 16) | Une montée à 15.0 refermera la fenêtre au-dessus de 13.0. |
-| `packages/kit/src/lecteurs/verdict-bilan.mjs` | `verdictDeLaDemande`, ligne 252, et `ETATS_DE_COMPOSANT`, ligne 133 | Ne lit aucun constat du code. Le lot 4 l’étend. |
+| `packages/kit/src/lecteurs/derogations.mjs` | `.ucm/derogations.json`, six genres de parité, `appliquerDerogations` | Refuse aujourd’hui un genre du code. |
+| `packages/kit/src/lecteurs/verdict-bilan.mjs` | `verdictDeLaDemande`, ligne 252, et `ETATS_DE_COMPOSANT`, ligne 133 | Ne lit aucun constat du code. |
 | `packages/adapter-typescript/src/parite.mjs` | `lireApiPublique`, ligne 299, construit un programme TypeScript sur les fichiers d’implémentation | Ne relève ni chaîne ni déclaration de style. |
 | `packages/cli/aides/` et `packages/cli/src/guide.mjs` | Les aides que lit l’agent qui implémente à froid | `guide.mjs` n’importe pas `tokenCssVariable`, donc n’imprime aucun nom CSS. |
 
@@ -216,102 +219,144 @@ processus.
 - La CLI 0.2.0 et l’adaptateur 0.2.11 épinglent `@ucm-kit/core` 0.17.1.
 - Le repository ne contient encore ni composant ni contrat. Son `.ucm/conventions.md` ne porte que le commentaire d’`ucm init` : la forme d’écriture des styles n’est pas décidée.
 
+
 ## 6. La séparation entre kit, adaptateur et module
 
-### L’extracteur, dans l’adaptateur
+### Le lecteur du code, dans l’adaptateur
 
-`@ucm-kit/adapter-typescript/usages` publie `releverUsages(texte, nomDuFichier)`.
-La fonction passe par `ts.createSourceFile`, sans programme ni vérificateur de
-types. Elle lit la syntaxe et ne juge rien.
+`@ucm-kit/adapter-typescript/usages` publie un seul nom, `lecteurDuCode`, un
+objet gelé. `adaptateurTypeScript`, que charge `ucm check`, porte le même objet.
 
-| Sortie | Contenu |
+| Membre | Rôle |
 |---|---|
-| `chaines` | `{ texte, debut, fin }` pour chaque littéral de chaîne et chaque morceau fixe d’un gabarit, sauf la valeur entière d’une déclaration |
-| `declarations` | `{ propriete, valeur, debut, fin }` pour chaque propriété d’un littéral d’objet écrit dans l’attribut JSX `style`, ou annoté d’un type qui nomme `CSSProperties` |
-| `variables` | Les clés `--nom` de ces objets |
-| `lecture` | `{ complete, erreurs }`, d’après les erreurs de syntaxe du fichier |
+| `releverUsages(texte, nomDuFichier)` | Lit la syntaxe d’un fichier par `ts.createSourceFile`, sans programme ni vérificateur de types, et rend son relevé |
+| `fichiersDuComposant(implementation)` | Rend `{ fichiers, lecture }` : l’implémentation, puis les fichiers qu’elle importe par un chemin relatif, directement ou transitivement, dans son dossier et ses sous-dossiers |
+| `extensions` | `.ts` et `.tsx`, les seules extensions lues, égales à celles qu’`ucm check` attend de cet adaptateur |
+
+| Sortie de `releverUsages` | Contenu |
+|---|---|
+| `chaines` | `{ texte, debut, fin, attribut }` pour chaque littéral de chaîne et chaque morceau fixe d’un gabarit, hors valeur entière d’une déclaration. `attribut` nomme l’attribut JSX qui porte la chaîne, s’il y en a un |
+| `declarations` | `{ propriete, valeur, debut, fin, contexte }`. `contexte: "style"` pour chaque propriété d’un objet de style : attribut JSX `style`, objet annoté d’un type qui nomme `CSSProperties`, suivi de `satisfies` ou `as CSSProperties`, ou rendu par une fonction de ce type. `contexte: "objet"` pour une propriété d’un autre objet dont la valeur est une chaîne ou un nombre littéral. Une expression donne `valeur: null`, une décomposition `propriete: null` |
+| `variables` | Les clés `--nom` des objets de style |
+| `directives` | Chaque commentaire qui contient `eslint-disable` |
+| `lecture` | `{ complete, erreurs }`, d’après les erreurs de syntaxe. Un fichier d’une autre extension rend `complete: false` et son `extension` |
 
 `debut` et `fin` sont des décalages dans le texte reçu. La normalisation React
-vit ici, dans la couche TypeScript et React du toolkit. `backgroundColor`
-devient `background-color`. Un nombre reçoit `px`, sauf pour les propriétés sans
-unité de [React](https://react.dev/reference/react-dom/components/common#common-props)
-(`opacity: 0.5` reste `0.5`). Une expression donne `null`. Un commentaire et un
-texte JSX ne sont pas des chaînes.
+vit ici. `backgroundColor` devient `background-color`. Un nombre reçoit `px`,
+sauf `0` et sauf pour les propriétés sans unité de
+[React](https://react.dev/reference/react-dom/components/common#common-props)
+(`opacity: 0.5` reste `0.5`). Un commentaire, un texte JSX, un littéral de type,
+une clé d’objet et un spécificateur d’import ne sont pas des chaînes.
 
-Reconnaître une valeur visuelle est un jugement, donc l’extracteur rend toutes
-les chaînes et le kit décide.
+Reconnaître une valeur visuelle est un jugement, donc l’adaptateur relève tout
+et le kit décide.
 
 ### Le juge, dans le kit
 
-`preparerControle(fichier, { racine, variablesDuFichier })` lit
-`ucm.config.json`, trouve les contrats, associe le fichier à son contrat par
-`cheminImplementation`, juge la version du contrat et indexe `tokens.json` dans
-les deux sens de la projection CSS. Elle ne garde rien d’un appel à l’autre.
+`preparerControle(fichier, { texte, lecteur, racine })` remonte depuis le
+fichier jusqu’au premier `ucm.config.json` quand `racine` manque. Elle lit la
+configuration, les contrats, `tokens.json` et `.ucm/derogations.json`. Elle
+trouve les composants dont les fichiers incluent ce fichier, juge son texte
+(`texte` s’il est donné, le disque sinon), applique les dérogations et rend tous
+les constats. Elle ne garde rien d’un appel à l’autre et ne lève jamais.
+`ucm check` passe par la même fonction, avec les données qu’il a déjà lues.
 
 | Sortie | Contenu |
 |---|---|
-| `contrat` | Chemin du contrat associé, ou `null` |
-| `limites` | `tokens-illisibles`, `contrat-illisible`, `contrat-ancien`, `contrat-recent`, `contrats-multiples` |
-| `chaine(texte)` | Les citations de token et les valeurs visuelles d’une chaîne |
-| `declaration(propriete, valeur)` | Les citations et les valeurs en dur d’une déclaration de style |
+| `racine` | Dossier du `ucm.config.json` trouvé, ou `null` |
+| `fichier` | Chemin relatif à la racine, avec `/`, ou `null` |
+| `composants` | Identifiants des composants dont les fichiers incluent ce fichier, `[]` hors périmètre |
+| `limites` | `{ code, composant, message, faits }` pour chaque limite du fichier ou d’un composant |
+| `constats` | Tous les constats du fichier, dans l’ordre du texte |
 
-Un constat porte `code`, `niveau` (`ecart`, `non-analyse` ou `limite`),
-`message` et `faits`. Les codes sont `token-inconnu`, `nom-css-ambigu`,
-`repli-en-dur`, `valeur-en-dur` et `non-analyse`. Aucun nœud ESLint, TypeScript
-ou PostCSS n’entre dans le kit. La prise gagne un nom, `preparerControle`, qui
-reste « une question » au sens de la
+| Champ d’un constat | Contenu |
+|---|---|
+| `regle` | `token-inconnu` ou `valeur-en-dur`, la règle qui l’affiche |
+| `code` | `token-inconnu`, `repli-en-dur`, `nom-css-ambigu`, `valeur-en-dur`, `non-analyse` ou `desactivation-interdite` |
+| `niveau` | `ecart`, `non-analyse` ou `limite` |
+| `composant` | Le composant dont le contrat juge ce constat |
+| `debut`, `fin` | Décalages dans le texte sans BOM, celui que rend ESLint |
+| `message` | Une phrase complète, avec la commande de dérogation d’un écart dérogeable non couvert |
+| `faits` | Les données du constat, d’une forme propre à chaque code |
+| `coordonnees` | Pour un code dérogeable, les coordonnées de sa dérogation |
+| `commande` | Pour un écart dérogeable non couvert, la commande `npx ucm deroger` complète, motif à remplir |
+| `deroge` | `{ motif, par }` quand une dérogation valide le couvre |
+
+Limites : `configuration-absente`, `configuration-invalide`,
+`contrats-introuvables`, `fichier-sans-chemin`, `tokens-illisibles`,
+`tokens-format-inconnu`, `contrat-illisible`, `contrat-ancien`,
+`contrat-recent`, `contrats-multiples`, `fichier-partage`,
+`lecture-incomplete`, `derogations-illisibles` et `sans-adaptateur`.
+
+Les codes, leurs règles, leurs raisons, les limites et les listes vivent dans un
+module pur du kit, `packages/kit/src/lecteurs/controle-du-code-listes.mjs`.
+Aucun nœud ESLint ou TypeScript n’entre dans le kit. La prise gagne un seul nom,
+`preparerControle` (D22), qui reste « une question » au sens de la
 [décision sur l’API publique](../Evolutions%20globales/DECISION-API-PUBLIQUE.md#question-1-que-contient-la-liste-des-noms-promis).
 
-### Le plugin, chez le développeur
+### Le contrat du plugin
 
-Esquisse, à confirmer avec le développeur au lot 0 du plan :
+Le plugin du développeur s’appuie sur ces points, et sur aucun autre. Les types
+de `packages/kit/src/modules/index.d.mts` en font autorité après la publication.
+
+1. Deux imports : `lecteurDuCode` de `@ucm-kit/adapter-typescript/usages`, `preparerControle` de `@ucm-kit/core/modules`.
+2. Une règle ESLint par valeur de `regle`. Le plugin ne recopie aucune table de codes.
+3. Le texte passé est `context.sourceCode.text`, donc un texte non enregistré est jugé. Les positions viennent de `getLocFromIndex(debut)` et `getLocFromIndex(fin)`.
+4. Une limite s’affiche en tête de fichier. Un fichier dont `composants` est vide n’a rien à afficher.
+5. Un constat qui porte `deroge` ne s’affiche jamais en erreur.
+6. Un constat `non-analyse` s’affiche au plus en information.
+7. `eslint-disable` ne sert pas pour les règles UCM. Un commentaire qui en nomme une rend le constat `desactivation-interdite`, et `ucm check` juge le code sans lire les commentaires.
+8. Le cache ESLint reste désactivé. `preparerControle` relit ses entrées à chaque appel.
+9. Le plugin et la CLI emploient le même `@ucm-kit/core`, épinglé à l’exact.
+10. Une correction automatique se limite à remplacer `"{chemin}"` par `"var(--nom)"`, avec `faits.reference` et `tokenCssVariable`. Une valeur en dur ne se corrige jamais seule, parce que plusieurs tokens peuvent avoir la même valeur.
+
+Esquisse, à confirmer avec le développeur :
 
 ```js
-import { releverUsages } from "@ucm-kit/adapter-typescript/usages";
+import { lecteurDuCode } from "@ucm-kit/adapter-typescript/usages";
 import { preparerControle } from "@ucm-kit/core/modules";
 
-create(context) {
-  return {
-    Program() {
-      const source = context.sourceCode;
-      const usages = releverUsages(source.text, context.filename);
-      const juge = preparerControle(context.filename, { racine: context.cwd, variablesDuFichier: usages.variables });
-      const signaler = (usage, constats) => {
-        for (const constat of constats) {
+const regle = (nom) => ({
+  create(context) {
+    return {
+      Program() {
+        const source = context.sourceCode;
+        const controle = preparerControle(context.filename, { texte: source.text, lecteur: lecteurDuCode });
+        for (const constat of controle.constats) {
+          if (constat.regle !== nom || constat.deroge) continue;
           context.report({
-            loc: { start: source.getLocFromIndex(usage.debut), end: source.getLocFromIndex(usage.fin) },
+            loc: { start: source.getLocFromIndex(constat.debut), end: source.getLocFromIndex(constat.fin) },
             message: constat.message,
           });
         }
-      };
-      for (const usage of usages.chaines) signaler(usage, juge.chaine(usage.texte));
-      for (const usage of usages.declarations) signaler(usage, juge.declaration(usage.propriete, usage.valeur));
-    },
-  };
-}
+      },
+    };
+  },
+});
+
+export default { rules: { "token-inconnu": regle("token-inconnu"), "valeur-en-dur": regle("valeur-en-dur") } };
 ```
 
-`source.text` est le tampon de l’éditeur, donc un texte non enregistré est
-jugé. `ucm check` appelle `releverUsages` sur le fichier du disque, puis le même
-juge.
+`ucm check` lit le fichier sur le disque et passe par le même juge.
 
 ### Trois exemples d’échange
 
 ```js
-juge.chaine("var(--components-button-sizes-medium-gapp)");
-// [{ code: "token-inconnu", niveau: "ecart",
-//    message: "--components-button-sizes-medium-gapp ne nomme aucun token de tokens.json.",
-//    faits: { variable: "--components-button-sizes-medium-gapp" } }]
+// Button.tsx contient : padding: "var(--components-button-sizes-medium-gapp)"
+// [{ regle: "token-inconnu", code: "token-inconnu", niveau: "ecart", composant: "Button",
+//    message: "`--components-button-sizes-medium-gapp` ne nomme aucun token de tokens.json, et aucun fichier du composant ne la déclare. Pour la garder, lancez `npx ucm deroger Button token-inconnu src/components/Button/Button.tsx --components-button-sizes-medium-gapp --motif \"…\"` avec votre raison à la place de `…`.",
+//    faits: { variable: "--components-button-sizes-medium-gapp" },
+//    coordonnees: { fichier: "src/components/Button/Button.tsx", reference: "--components-button-sizes-medium-gapp" } }]
 
-juge.declaration("padding", "12px");
-// [{ code: "valeur-en-dur", niveau: "ecart",
-//    message: "padding reçoit 12px. Une dimension du composant s’écrit avec un token.",
-//    faits: { propriete: "padding", valeurs: ["12px"], familles: ["dimension"] } }]
+// Button.variants.ts contient : const SIZES = { medium: { padding: "12px" } }
+// [{ regle: "valeur-en-dur", code: "valeur-en-dur", niveau: "ecart", composant: "Button",
+//    message: "`padding` reçoit `12px`, que le contrat de `Button` ne publie pas. Écrivez la référence de token que le contrat donne. Pour la garder, lancez …",
+//    faits: { propriete: "padding", valeur: "12px", parties: ["12px"], familles: ["dimension"] } }]
 
-juge.declaration("gap", null);
-// [{ code: "non-analyse", niveau: "non-analyse",
-//    message: "La valeur de gap est calculée par le code. Le linter ne la juge pas.",
-//    faits: { propriete: "gap" } }]
+// Button.tsx contient : style={{ gap: entry.gap }}
+// [{ regle: "valeur-en-dur", code: "non-analyse", niveau: "non-analyse", composant: "Button",
+//    message: "La valeur de `gap` est calculée par le code. Le contrôle ne la juge pas.",
+//    faits: { propriete: "gap", forme: "expression" } }]
 ```
 
 ## 7. Les deux règles du premier lot
@@ -322,44 +367,69 @@ juge.declaration("gap", null);
 |---|---|
 | `{chemin}` ou `var(--nom)` présent | Aucun constat. Le bon rôle du token n’est pas prouvé. |
 | Chemin ou nom absent | `token-inconnu` |
-| Nom CSS projeté par deux chemins | `nom-css-ambigu`, niveau `limite`, avec les deux chemins. Le kit ne choisit aucun token. |
-| Variable que le fichier déclare (`variablesDuFichier`) | Aucun constat (D3) |
+| `var(--nom)` pris dans une fonction, `calc(var(--nom) / 100)` | Jugé comme hors fonction : `var()` se cherche à toute profondeur |
+| Nom CSS projeté par deux chemins | `nom-css-ambigu`, niveau `limite`, avec les chemins triés. Le kit ne choisit aucun token. |
+| Variable qu’un fichier du composant déclare | Aucun constat (D3, étendu au composant par D19) |
 | Variable qui n’est ni un token ni déclarée | `token-inconnu` (D3) |
 | Repli écrit en dur, `var(--token, 8px)` | `repli-en-dur`, même si le token existe (D4) |
 | Nom construit par un gabarit, `var(--${…})` | `non-analyse` |
-| `tokens.json` absent ou illisible | Limite `tokens-illisibles`. Aucun `token-inconnu`. |
+| `tokens.json` absent, illisible ou d’une version non lue | Limite `tokens-illisibles` ou `tokens-format-inconnu`. Aucun `token-inconnu`. |
+
+Une référence `{chemin}` se reconnaît par `isTokenReference`.
 
 ### Valeur en dur
 
-Les deux questions jugent le fichier d’implémentation d’un contrat (D5). Le
-juge découpe une valeur en parties, sur les espaces et les virgules hors des
-parenthèses. Une partie `var(…)` relève de la règle « token inconnu ».
+Le juge découpe une valeur en parties, sur les espaces et les virgules hors des
+parenthèses. Il classe chaque partie : `var(…)`, couleur (hexadécimale, fonction
+de couleur, nom de couleur), longueur (un nombre et une unité de longueur CSS,
+`fr` compris), pourcentage, nombre, fonction mathématique (`calc`, `min`, `max`,
+`clamp`), autre fonction, identifiant. Les mots-clés se comparent en
+minuscules, et les nombres sous une forme canonique : `15.0px` égale `15px`,
+`0px` égale `0`.
 
-Une chaîne hors d’une déclaration ressemble à une valeur visuelle quand chacune
-de ses parties est une couleur, une longueur, un nombre, une fonction CSS ou une
-valeur neutre, et qu’au moins une partie est une couleur ou une longueur.
+Une partie passe dans trois cas : c’est une valeur neutre (`0`, `none`,
+`fit-content`, `currentColor`, `transparent`, D6), le contrat publie cette
+valeur en clair dans un champ d’une famille de la propriété (dans un champ
+quelconque hors d’une déclaration), ou c’est un identifiant dans une
+déclaration.
 
-- Couleur : hexadécimale (`#fff`, `#ffffff`, avec ou sans alpha) ou fonction de couleur (`rgb`, `rgba`, `hsl`, `hsla`, `hwb`, `lab`, `lch`, `oklab`, `oklch`, `color`). Toujours refusée, puisque le contrat ne publie jamais une couleur en clair.
-- Longueur : un nombre suivi de `px`, `rem`, `em` ou `fr`. Refusée, sauf si le contrat la publie dans l’un de ses champs.
+**Dans une déclaration** dont la propriété appartient à une famille (couleur,
+dimension, typographie, effet), le juge juge les parties couleur, longueur,
+nombre et pourcentage (D17). Un identifiant CSS passe (`inset`, `solid`,
+`left`, `normal`, `auto`, `inherit`), sauf un nom de couleur. Une fonction
+mathématique se juge par ses arguments, et un nombre sans unité y passe, parce
+qu’il multiplie ou divise. Une autre fonction se juge par ses arguments, sauf si
+la partie entière égale une valeur publiée (`fit-content(100%)`). Une propriété
+hors des familles (`display`, `transform`, `flex-grow`) ne reçoit aucun
+`valeur-en-dur`.
 
-Une phrase (« Bouton de 12px »), un nom de couleur (`red`), un pourcentage
-(`50%`) ou une clé de table (`primary|contained|default`) ne passe donc pas
-par cette règle hors d’une déclaration. Un nom de couleur peut être une valeur
-de prop ou un texte, et un pourcentage apparaît dans un libellé. Dans une
-déclaration de style, la famille de la propriété est connue, et toute partie
-littérale est jugée : nom de couleur, pourcentage, mot-clé.
+**Dans une chaîne** hors d’une déclaration, une couleur hexadécimale ou une
+fonction de couleur est toujours refusée, quels que soient les autres mots. Une
+longueur est refusée, sauf si le contrat la publie, quand chaque autre partie
+est une couleur, une longueur, un nombre, un pourcentage, une fonction, une
+valeur neutre ou un mot-clé de forme (`solid`, `dashed`, `inset`…). Une phrase
+(« Bouton de 12px »), un nom de couleur (`red`), un pourcentage (`50%`) ou une
+clé de table (`primary|contained|default`) ne passe donc pas par cette règle.
+La chaîne d’un attribut `href`, `id`, `key`, `name`, `htmlFor`, `aria-*` ou
+`data-*` n’est pas jugée.
 
-Une partie passe dans deux cas seulement. C’est une valeur neutre, prise dans
-la liste fermée du mainteneur (D6). Ou le contrat publie lui-même cette valeur
-en clair, dans un champ d’une famille de la propriété, ou dans un champ
-quelconque hors d’une déclaration.
+**Dans un autre objet**, une propriété dont la clé appartient à une famille se
+juge comme une déclaration (`{ color: "red" }`, `{ height: 32 }` dans une table
+`VARIANTS` ou `SIZES`). Une autre clé laisse sa chaîne à la règle des chaînes,
+et son nombre n’est pas jugé.
 
-Les deux listes, propriétés par famille et valeurs neutres, vivent dans un seul
-fichier du kit, `packages/kit/src/lecteurs/controle-du-code-listes.mjs`. Chaque
+La famille `effet` (`opacity`, `filter`, `backdrop-filter`) suit le format
+14.0, qui tokenise l’opacité et les effets. `text-shadow` suit `box-shadow`,
+dans les familles couleur et dimension.
+
+Les listes (familles, propriétés par famille, valeurs neutres, unités,
+fonctions, noms de couleur, mots-clés de forme, attributs, champs publiés)
+vivent dans `packages/kit/src/lecteurs/controle-du-code-listes.mjs`. Chaque
 entrée tient sur une ligne avec sa raison. La skill
 `.agents/skills/regler-le-linter/SKILL.md` porte le geste qui les règle, et tout
 réglage monte le chiffre du milieu du kit. Ce document n’en recopie pas les
-valeurs.
+valeurs. Un test relie les écritures par défaut des aides au juge : chacune
+passe sans constat (D17).
 
 Valeurs que le contrat publie en clair, relevées dans
 [FORMAT.md](../../../format/FORMAT.md) et `packages/kit/src/format/types.ts` :
@@ -376,26 +446,78 @@ Valeurs que le contrat publie en clair, relevées dans
 
 `rotation` (types.ts 627), les places de grille (types.ts 350-355, 649-652,
 676-677), `flexGrow` (types.ts 660), `alignContent` et `textOverflow`
-(types.ts 272-276) n’appartiennent à aucune des trois familles. Les mots-clés
-de `sizing` et de `literals` ne sont pas numériques. Le mainteneur les range
-parmi les valeurs publiées, parce que le contrat les écrit en clair pour que le
-développeur les recopie.
+(types.ts 272-276) n’appartiennent à aucune famille. Les mots-clés de `sizing`
+et de `literals` comptent parmi les valeurs publiées, parce que le contrat les
+écrit en clair pour que le développeur les recopie. Un test du kit exige que
+chaque champ du schéma qui admet une valeur en clair soit rangé « publié » ou
+« hors famille ».
 
-La comparaison se fait par valeur et par famille. `15px` passe dans `height`
-quand `StressTest` publie `structuralSize.height: "15px"`, et il est refusé
-dans `font-size`. Une couleur littérale est refusée même égale à la valeur d’un
-token. Les nombres se comparent sous une forme canonique : `15.0px` égale
-`15px`.
+Une couleur littérale est refusée même égale à la valeur d’un token. `15px`
+passe dans `height` quand `StressTest` publie `structuralSize.height: "15px"`,
+et il est refusé dans `font-size`.
 
 | Cas | Résultat |
 |---|---|
-| Fichier qu’aucun contrat ne désigne | Aucune valeur jugée. Les citations le sont. |
-| Contrat illisible, ancien, récent, ou deux contrats pour le même fichier | Limite de fichier. Aucune valeur jugée. |
-| Propriété hors des trois familles (`display`, `opacity`, `transform`) | Aucun constat |
-| Valeur `null`, expression non résolue | `non-analyse` (D7) |
-| Lecture incomplète du fichier | Limite rendue par le module et par `ucm check`, jamais « conforme » |
+| Contrat illisible, ancien, récent, ou deux contrats pour le même fichier | Limite. Aucune valeur jugée pour ce composant. Les citations le sont. |
+| Valeur `null`, expression non résolue, décomposition | `non-analyse` (D7) |
+| Lecture incomplète du fichier | Limite `lecture-incomplete`, et le reste du fichier est jugé |
 
-Zéro écart avec des usages non analysés ne veut jamais dire « conforme ».
+Un usage non analysé ne change pas l’état d’un composant. `ucm check` en donne
+le nombre par composant, en information.
+
+### Le périmètre
+
+Le juge examine les fichiers d’un composant : son implémentation, puis les
+fichiers qu’elle importe par un chemin relatif, directement ou transitivement,
+dans son dossier et ses sous-dossiers (D19). `fichiersDuComposant` de
+l’adaptateur résout ces imports. Un fichier du dossier que l’implémentation
+n’importe pas, une story ou un test par exemple, est hors périmètre.
+
+Le plugin et `ucm check` jugent ce même périmètre (D20). Un fichier hors
+périmètre ne reçoit aucun constat, ni token inconnu, ni valeur en dur.
+
+Un fichier importé par plusieurs composants reçoit la limite `fichier-partage`,
+et répond au contrat de chacun : chaque constat porte son composant. Une
+variable `--nom` déclarée par un fichier du composant vaut pour tous ses
+fichiers. Le rang du code d’un composant, pour la règle du dernier modifié, est
+celui du plus récent de ses fichiers.
+
+Un fichier d’une extension que le lecteur ne lit pas donne la limite
+`sans-adaptateur`, comme le rapport d’`ucm check` pour la même technologie.
+
+### La dérogation d’un constat du code
+
+Un constat du code se déroge par la même dérogation motivée que la parité,
+dans `.ucm/derogations.json` (D15). Le juge l’applique, par
+`appliquerDerogations`, donc l’éditeur, ESLint et `ucm check` rendent le même
+verdict (D16). Elle tombe au réexport du contrat, par la clé `export` (D18).
+
+| Genre | Coordonnées |
+|---|---|
+| `valeur-en-dur` | `fichier`, `valeur` (la valeur entière de la déclaration ou de la chaîne, après normalisation) |
+| `token-inconnu` | `fichier`, `reference` (`{chemin}` ou `--nom`) |
+| `repli-en-dur` | `fichier`, `reference` (`--nom`) |
+
+`nom-css-ambigu`, `non-analyse` et `desactivation-interdite` ne se dérogent pas.
+`fichier` est relatif à la racine, avec `/`. `derogations.mjs` porte ces
+coordonnées avec celles de la parité.
+
+`npx ucm deroger <composant> <genre> <coordonnées…> --motif "…"` écrit l’entrée
+(D23). Elle prend l’`export` dans le contrat et l’auteur dans
+`git config user.name`, valide l’entrée et l’écrit. Elle remplace l’entrée
+tombée du même écart. Chaque message d’un écart dérogeable non couvert donne
+cette commande déjà complète, motif à remplir. Les coordonnées qui contiennent
+`#`, `{`, une espace ou un autre signe du shell s’écrivent entre apostrophes,
+qui les gardent littérales sous Bash comme sous PowerShell.
+
+Un agent corrige le code d’abord. Si c’est impossible, il propose la commande au
+développeur, lui demande le motif, et ne la lance qu’à sa demande
+(`packages/cli/procedure.md`). La dérogation se documente dans le message,
+`procedure.md` et `docs/guides/LINTER-UCM.md`, et nulle part ailleurs.
+
+`eslint-disable` est interdit pour les règles UCM (D24). `ucm check` ne lit pas
+les commentaires, et un commentaire qui nomme une règle UCM rend le constat
+`desactivation-interdite`, bloquant.
 
 ### Limites
 
@@ -404,14 +526,15 @@ Le linter ne voit pas ces écarts :
 - une valeur juste posée sur le mauvais élément, que le comparateur de rendu (P10, P20) rattrape ;
 - un token existant employé dans le mauvais rôle ;
 - une valeur calculée par un appel ou un identifiant ;
-- la valeur d’une variable `--nom` que le fichier déclare lui-même ;
-- un style écrit hors d’un objet `style` ou `CSSProperties` : feuille CSS, CSS Modules, gabarit d’une bibliothèque CSS-in-JS ;
+- la valeur d’une variable `--nom` que le composant déclare lui-même ;
+- un style écrit hors d’un objet `style`, d’un objet typé `CSSProperties` ou d’une table à clés CSS : feuille CSS, CSS Modules, gabarit d’une bibliothèque CSS-in-JS ;
 - une phrase ou une prop qui contient un nom de couleur ou un pourcentage hors d’une déclaration ;
-- le code d’un fichier qu’aucun contrat ne désigne, pour la règle « valeur en dur » ;
+- le code d’un fichier hors du périmètre d’un composant ;
+- un import d’un fichier hors du dossier du composant ;
 - un contrat hors de la fenêtre de lecture du kit, tant qu’il n’est pas réexporté.
 
 Le kit n’exécute aucun code, ne suit aucune expression et ne propose aucune
-correction automatique.
+correction d’une valeur en dur.
 
 ## 8. L’écriture `"var(--nom-exact)"`
 
@@ -423,7 +546,8 @@ contient aucune fonction qui traduit un chemin en nom, et ni l’agent ni
 `ucm guide` ne calculent un nom.
 
 - Le mécanisme existe. Une aide a une section « Écriture par défaut », que `ucm guide` imprime sauf si `.ucm/conventions.md` répond par une section `## <aide>` ou porte `ecritures-par-defaut: non` (`packages/cli/src/guide.mjs`, lignes 172 à 184).
-- `resolution-token` est aujourd’hui un ancrage. Avec `ecritures-par-defaut: non` et sans section, un ancrage se liste sous « Non tranché : demander au développeur » (ligne 176). Une aide à écriture par défaut s’y tait. Le lot 1 garde donc `resolution-token` sous « Non tranché » dans ce cas, par une règle qui nomme l’aide, comme celle de `composant` (ligne 182). Un repository sans CSS reçoit toujours la question.
+- `resolution-token` est aujourd’hui un ancrage. Avec `ecritures-par-defaut: non` et sans section, un ancrage se liste sous « Non tranché : demander au développeur ». `resolution-token` y reste, par une règle qui nomme l’aide, comme celle de `composant`. Un repository sans CSS reçoit toujours la question.
+- Le Sens de l’aide disait « Les pixels de `structuralSize` et des pistes de grille sont les seules valeurs brutes prévues ». Il dit désormais que seules les valeurs que le contrat publie en clair s’écrivent brutes, comme le juge.
 - L’aide `modes` dit déjà « Chaque référence devient `var(--…)` » et « ne déclare aucune variable de token ». L’écriture par défaut la rejoint.
 - `.agents/skills/consommer-contrat/SKILL.md` fait lire le guide et ses aides, et ne change pas.
 
@@ -434,22 +558,18 @@ fait 54 605 caractères, à chaque lecture par un agent. Une traduction par
 l’agent pourrait se tromper. La commande ne coûte rien au guide et ne se trompe
 pas.
 
-- Elle remplace seulement une chaîne dont tout le contenu est une référence, et garde ses guillemets.
-- Elle laisse et signale une référence absente de `tokens.json`, ou prise dans un gabarit.
+- Elle remplace seulement une chaîne dont tout le contenu est une référence, et garde ses guillemets, ses fins de ligne et son BOM.
+- Elle laisse et signale une référence absente de `tokens.json`, prise dans un gabarit, ou passée en argument d’un appel (`token("{a.b}")`, l’ancien helper du corpus).
 - Elle s’arrête avant toute écriture sur deux chemins au même nom CSS.
-- Un second passage ne change rien. `--verifier` sert de preuve à l’aide.
-
-Le plugin ESLint pourra proposer la même correction par `--fix`, avec
-`tokenCssVariable` de la prise. Cette correction est exacte, donc permise, à la
-différence du remplacement d’une valeur en dur par un token, où plusieurs
-tokens peuvent avoir la même valeur.
+- Elle refuse d’écrire dans un repository dont `.ucm/conventions.md` porte une section `## resolution-token`, qui garde sa propre écriture.
+- Un second passage ne change rien. `--verifier` sert de preuve à l’aide, quand le repository suit l’écriture par défaut.
 
 Ce que la forme `"var(--nom)"` change par rapport à `"{chemin}"` :
 
 - La table du code n’est plus la copie littérale de `variants`. La relecture retrouve chaque chemin par la règle de `tokenCssVariable`, et `ucm check` juge l’existence de chaque nom.
-- Le nom aplatit les segments : `components.button.sizes.medium.padding-x` devient `--components-button-sizes-medium-padding-x`. Le juge retrouve le chemin par l’index inverse, donc la règle « token inconnu » ne perd rien.
-- Une collision de noms rendrait un nom ambigu. `ucm tokens css` refuse déjà deux feuilles au même nom (`packages/cli/src/tokens-css.mjs`, ligne 325). Un repository qui génère sa feuille n’en a donc aucune. Le juge garde `nom-css-ambigu` pour un `tokens.json` que la feuille refuserait.
-- Le style reçoit des chaînes littérales. La règle « valeur en dur » juge alors la déclaration au lieu de la rendre non analysée.
+- Le nom aplatit les segments : `components.button.sizes.medium.padding-x` devient `--components-button-sizes-medium-padding-x`. Le juge retrouve le chemin par `nomsCssDesTokens`, donc la règle « token inconnu » ne perd rien.
+- Une collision de noms rendrait un nom ambigu. `ucm tokens css`, `ucm tokens references` et le juge la lisent par `nomsCssDesTokens`. Un repository qui génère sa feuille n’en a donc aucune.
+- Le style reçoit des chaînes littérales, que la règle « valeur en dur » juge. Le code piloté par des tables garde des expressions (`entry.tokens.background`), que le juge compte en usages non analysés.
 
 La forme `"var(--nom)"` est retenue. Le juge accepte encore `"{chemin}"` pour
 un repository qui l’écrit dans sa section `## resolution-token`.
@@ -461,44 +581,54 @@ un repository qui l’écrit dans sa section `## resolution-token`.
 | Cache des résultats ESLint sur disque | Un réexport ne relance pas la règle (§4) | ESLint tourne sans `--cache`. |
 | Données gardées par le kit | Une analyse relit une ancienne version | Le juge relit ses entrées à chaque préparation. |
 | Analyse dans l’éditeur | Un réexport ne provoque pas de nouvelle analyse | Le développeur essaie et documente `ESLint: Revalidate all open files` de l’[extension](https://github.com/microsoft/vscode-eslint). |
+| Deux kits dans le repository | L’éditeur juge avec un autre kit que la CI | `ucm check` et `ucm guide` le signalent par `noyauEnDesaccord`, sans bloquer : la CI juge avec le kit de la CLI. |
 
 ### La CI suit la règle du dernier modifié
 
 POUR-LES-DESIGNERS.md, §6, promet qu’une demande de contrats et de
 `tokens.json` seuls n’est jamais refusée pour le code.
 
-Jusqu’au lot 4, la CI lance ESLint sur les fichiers que la demande modifie, et
-sur ceux d’un envoi direct sur `main`. Une demande du designer ne touche aucun
-fichier de code, donc elle reste verte. Une demande de code qui touche un
-fichier fautif bloque (V-10, V-11 de la
-[décision sur le verdict](./DECISION-VERDICT-UCM-CHECK.md)).
+`ucm check` juge les constats du code dès la publication (D21). Aucun job ESLint
+intérimaire ne bloque la CI. Le job ESLint du développeur garde ses autres
+règles bloquantes, `no-restricted-imports` compris. Le verdict des règles UCM
+vient d’`ucm check`, qui ne lit pas les commentaires `eslint-disable`.
 
-Au lot 4, `ucm check` juge les constats du code. `verdictDuComposant`
-(`packages/kit/src/lecteurs/verdict-bilan.mjs`, lignes 168 à 220) bloque un
-écart quand la demande juge le code (`code` ou `sans-base`) et que le contrat
-n’est pas plus récent que le code. Une demande `contrats-et-tokens` ou
-`tokens-seuls` ne bloque jamais sur le code. Les constats du code suivent la
-même règle, avec une comparaison de plus entre le rang des tokens et celui du
-code. Le composant que le designer a fait changer en dernier est marqué « en
-retard », et le rapport le nomme. Le job ESLint cesse alors de bloquer, et le
-verdict de la CI vient d’`ucm check` seul.
+`verdictDuComposant` (`packages/kit/src/lecteurs/verdict-bilan.mjs`) bloque un
+écart quand la demande juge le code (`code` ou `sans-base`) et que le code est
+le plus récent. Un constat du code dont le composant a un contrat ou un
+`tokens.json` plus récent que son code est « en retard » : en retard sur son
+contrat si le contrat est plus récent, en retard sur les tokens sinon. Il ne
+bloque pas, et le rapport le nomme. Une demande `contrats-et-tokens` ou
+`tokens-seuls` ne bloque jamais sur le code.
 
 Comme pour la parité (V-12, V-18), un constat dans un fichier que la demande ne
-touche pas bloque une demande de code si ce fichier est plus récent que son
-contrat et ses tokens. Le corpus repris doit donc entrer sans constat.
+touche pas bloque une demande de code si ce fichier est le plus récent du
+composant, plus récent que son contrat et ses tokens. Le corpus repris doit donc
+entrer sans constat. Un réglage de liste qui resserre le juge fait apparaître
+des constats dans du code existant : la demande qui monte les versions les
+corrige ou les déroge.
+
+Un adaptateur présent qui ne porte pas `lecteurDuCode` laisse le code
+« non vérifié » (`adaptateur-ancien`), et bloque une demande de code, comme un
+adaptateur absent. Une lecture incomplète d’un fichier du composant fait de
+même.
 
 ### L’état d’un composant, une donnée
 
-Au lot 4, `verdictDeLaDemande` rend pour chaque composant son état, ses
-constats par règle et leurs nombres, et le rapport met cette donnée en phrases
-sans la recalculer. La future page santé des composants dans Storybook lira
-cette même donnée, et son nom n’entrera dans la prise que lorsque cette page
-l’importera.
+`verdictDeLaDemande` rend pour chaque composant son état, ses constats par règle,
+le nombre de ses usages non analysés et `bloquantPar`, la cause de chaque
+blocage. Le rapport et le terminal mettent cette donnée en phrases sans la
+recalculer, et `TEXTES_DES_ETATS` porte la phrase et la raison de chaque état.
+La future page santé des composants dans Storybook lira cette même donnée, et
+son nom n’entrera dans la prise que lorsque cette page l’importera.
 
 ### Recette d’installation de l’essai
 
-Le kit, la CLI et l’adaptateur sont empaquetés par `npm pack` depuis le même
-commit du toolkit, avec une version `-essai.N`. Sur une branche d’essai
+L’essai ne retarde pas la publication (D27). Si le développeur répond avant,
+le kit, la CLI et l’adaptateur s’empaquettent depuis un `git worktree` du
+toolkit, par `npm pack --workspace <paquet>`, avec une version `-essai.N` : une
+copie de `packages/kit` hors du monorepo ne s’empaquette pas, son script
+`prepare` appelle `tsc` et le `tsconfig` de la racine. Sur une branche d’essai
 d’intencial-library, jamais fusionnée :
 
 ```json
@@ -523,31 +653,24 @@ versions publiées à l’exact et retire `overrides` et les archives.
 
 | Choix | Argument décisif | Meilleur contre-argument | Cas qui le casserait | Risque restant |
 |---|---|---|---|---|
-| Le juge par fichier, dans le kit | Un seul jugement pour l’éditeur et `ucm check`, sans règle UCM dans le module ([MODULES.md](../../../guides/MODULES.md)) | Chaque préparation relit la configuration, les contrats et `tokens.json` | Un repository dont la lecture par fichier ralentit l’éditeur. Absent : 2,6 ms par préparation sur le corpus (§5) | Mesure à l’essai sur le corpus repris ; un cache seulement après mesure |
-| L’extracteur unique, dans l’adaptateur | Une seule fonction lit le code, sur le tampon dans l’éditeur et sur le disque en CI : les deux rendent le même relevé | L’adaptateur embarque TypeScript 5.9 (`>=5.5.0 <6`) pour un projet en 6.0, et le plugin charge une seconde copie de TypeScript (218 ms, une fois par processus) | Une syntaxe que 5.9 ne lit pas, ou un style écrit hors d’un objet `style`. Absent : 0 erreur de lecture sur les quatre composants, styles tous en objets `style`. intencial-library n’a pas encore choisi sa forme de style (§5) | La lecture incomplète se rend en limite. La forme de style d’intencial-library est à donner au lot 0 ; une forme hors des objets rouvre ce choix |
-| La réalisation (b) | La règle du dernier modifié existe déjà dans `verdictDuComposant` (`verdict-bilan.mjs`, 168-220), sans forme de fichier ni étape de workflow | `ucm check` dépend de l’adaptateur pour juger le code | Une technologie sans adaptateur : son code reste « présent, non vérifié » (V-17). Absent : le corpus est en TSX | Un fichier fautif plus récent que son contrat bloque toute demande de code (V-12, V-18) |
-| Les chaînes visuelles, où qu’elles soient | Les valeurs de chaque combinaison vivent dans des tables : 19 des 25 parties visuelles du corpus sont hors d’une déclaration (§5) | Un texte peut contenir une longueur ou une couleur | Un libellé ou une valeur de prop en forme de valeur CSS. Absent : 0 faux positif sur 1 754 chaînes | La définition exclut phrases, noms de couleur et pourcentages hors déclaration, donc un nom de couleur en dur dans une table passe |
-| L’écriture `"var(--nom-exact)"` | Aucune fonction de traduction, donc aucune projection recopiée, et un style que le juge lit | La table du code cesse d’être la copie littérale du contrat | Une collision de noms CSS : `ucm tokens css` la refuse (`tokens-css.mjs`, 325). Un chemin non ASCII : la commande donne le nom exact. Absent : 376 références ASCII | Un agent qui oublie de lancer la commande laisse des `"{chemin}"` : `--verifier` et le juge les voient |
-| Le chiffre du milieu pour un réglage de liste | La même déclaration reçoit un autre verdict, donc une rupture selon `packages/kit/invariants/versionnage.md`, et `apiPublique.test.mjs` l’impose par l’exemple des listes | Un ajout ne casse aucun module et force pourtant trois publications et un nouvel épinglage | Des réglages fréquents. Absent du corpus | Chaque réglage demande trois publications et un nouvel épinglage |
+| Le juge par fichier, dans le kit, sur les fichiers du composant | Un seul jugement pour l’éditeur et `ucm check`, dérogations comprises, sans règle UCM dans le module ([MODULES.md](../../../guides/MODULES.md)) | Chaque préparation relit la configuration, les contrats, `tokens.json` et les autres fichiers du composant | Un repository dont la lecture par fichier ralentit l’éditeur. Absent : 2,6 ms par préparation sur le corpus (§5), 0,5 à 3,2 ms par fichier relevé | Mesure à l’essai sur le corpus repris ; un cache seulement après mesure |
+| Le lecteur unique, dans l’adaptateur | Une seule fonction lit le code, sur le tampon dans l’éditeur et sur le disque en CI : les deux rendent le même relevé | L’adaptateur embarque TypeScript 5.9 (`>=5.5.0 <6`) pour un projet en 6.0, et le plugin charge une seconde copie de TypeScript (218 ms, une fois par processus) | Une syntaxe que 5.9 ne lit pas, ou un style écrit hors des objets. Absent : 0 erreur de lecture sur les quatre composants, styles tous en objets `style`. intencial-library n’a pas encore choisi sa forme de style (§5) | La lecture incomplète se rend en limite. Une forme de style hors des objets demande un second relevé dans le même lecteur |
+| La réalisation (b) | La règle du dernier modifié existe déjà dans `verdictDuComposant` (`verdict-bilan.mjs`), sans forme de fichier ni étape de workflow | `ucm check` dépend de l’adaptateur pour juger le code | Une technologie sans adaptateur : son code reste « présent, non vérifié » (V-17). Absent : le corpus est en TSX | Un fichier fautif plus récent que son contrat bloque toute demande de code (V-12, V-18) |
+| Les chaînes visuelles, où qu’elles soient | Les valeurs de chaque combinaison vivent dans des tables : 19 des 25 parties visuelles du corpus sont hors d’une déclaration (§5) | Un texte peut contenir une longueur ou une couleur | Un libellé ou une valeur de prop en forme de valeur CSS. Absent : 0 faux positif sur 1 754 chaînes | Une couleur hexadécimale dans un texte libre est refusée ; la dérogation la garde |
+| L’écriture `"var(--nom-exact)"` | Aucune fonction de traduction, donc aucune projection recopiée, et un style que le juge lit | La table du code cesse d’être la copie littérale du contrat | Une collision de noms CSS : `nomsCssDesTokens` la rend, et `ucm tokens css` la refuse. Un chemin non ASCII : la commande donne le nom exact. Absent : 376 références ASCII | Un agent qui oublie de lancer la commande laisse des `"{chemin}"` : `--verifier` et le juge les voient |
+| Le chiffre du milieu pour un réglage de liste | La même déclaration reçoit un autre verdict, donc une rupture selon `packages/kit/invariants/versionnage.md`, et `apiPublique.test.mjs` l’impose par l’exemple généré depuis les listes | Les listes vivent dans le kit publié et épinglé à l’exact : tout réglage, ajout compris, coûte trois publications et un épinglage, quel que soit le chiffre monté | Des réglages fréquents. Absent du corpus | Chaque réglage demande trois publications et un nouvel épinglage |
 
 ## 11. Ordre de travail et cas du module
 
-| Étape | Responsable | Preuve attendue |
-|---|---|---|
-| Écriture par défaut et commande `ucm tokens references` | Mainteneur et ses agents | Lot 1 publié avant les réimplémentations v14 |
-| Exemples d’échange et forme des styles | Développeur | Réponse écrite dans ce cadrage |
-| Juge et extracteur | Mainteneur et ses agents | Lot 2 commité, sans publication |
-| Reprise du corpus et plugin | Développeur | Tests `RuleTester` sur le corpus repris |
-| Essai depuis les archives | Mainteneur et développeur | Tableau des résultats dans ce cadrage |
-| Deux prises, skill, guide, publication | Mainteneur et ses agents | Versions constatées par `npm view` |
-| Constats du code dans `ucm check` | Mainteneur et ses agents | Lot 4 publié, composant en retard nommé au rapport |
-| Toutes les règles dans l’inventaire | Mainteneur et ses agents | Lot 5 ; partie `ucm check` possible dès maintenant |
+Le [plan](./PLAN-IMPLEMENTATION-P6-KIT.md) ordonne le travail du toolkit en
+vagues et publie une fois, à la fin. Le développeur écrit le plugin contre le
+contrat du §6 et reprend le corpus. L’essai mesure le temps d’analyse d’un
+fichier dans l’éditeur et compte les faux positifs par règle.
 
-Le plan liste les cas du juge, de l’extracteur et du guide. Le plugin couvre en
-plus l’affichage : position d’un constat sur un texte non enregistré, niveau de
-message configuré, affichage des usages non analysés et d’une lecture
-incomplète, commande de réanalyse documentée. L’essai mesure le temps d’analyse
-d’un fichier dans l’éditeur et compte les faux positifs par règle.
+Le plan liste les cas du juge, du lecteur, de la commande et du verdict. Le
+plugin couvre en plus l’affichage : position d’un constat sur un texte non
+enregistré, niveau de message configuré, affichage des limites, des constats
+dérogés et des usages non analysés, commande de réanalyse documentée.
 
 ## 12. Décisions et questions restantes
 
@@ -555,23 +678,38 @@ d’un fichier dans l’éditeur et compte les faux positifs par règle.
 |---|---|
 | D1 | Premier lot : token inconnu et valeur en dur. |
 | D2 | Token inconnu juge `{chemin}` sans projection et `var(--nom)` par `tokenCssVariable`, avec détection des collisions. |
-| D3 | Une variable CSS qui n’est pas un token est refusée, sauf si le même fichier la déclare. Aucune clé de configuration. |
+| D3 | Une variable CSS qui n’est pas un token est refusée, sauf si le composant la déclare. Aucune clé de configuration. |
 | D4 | Un repli en dur dans `var(--token, 8px)` est refusé, même si le token existe. |
-| D5 | Valeur en dur se juge au niveau du fichier, sans slot, sur trois familles, avec deux exceptions : valeur neutre, valeur publiée par le contrat. |
-| D6 | Valeurs neutres : `0`, `none` et `fit-content`. Ajouter une valeur ne casse rien ; en retirer une fait apparaître des erreurs dans du code existant. |
+| D5 | Valeur en dur se juge sur les fichiers du composant, sans slot, par famille, avec deux exceptions : valeur neutre, valeur publiée par le contrat. |
+| D6 | Valeurs neutres : `0`, `none`, `fit-content`, `currentColor` et `transparent`. `inherit` n’en est pas. Ajouter une valeur ne casse rien ; en retirer une fait apparaître des erreurs dans du code existant. |
 | D7 | Une expression non résolue est non analysée. |
 | D8 | Le kit prépare un juge par fichier. |
 | D9 | Le linter bloque une demande qui touche le code du composant. Une demande de contrats ou de tokens seuls reste verte. |
 | D10 | Pas de Stylelint au premier lot. |
 | D11 | Plugin local dans intencial-library, extraction décidée après l’essai. |
-| D12 | Essai depuis des archives `npm pack`, puis une seule publication du juge et de l’extracteur. |
+| D12 | Une seule publication du juge et du lecteur. L’essai depuis des archives se fait avant si le développeur répond à temps (D27). |
 | D13 | TypeScript 6.0 dans intencial-library tant que le parseur refuse TypeScript 7. |
 | D14 | Écriture par défaut `"var(--nom-exact)"`, posée par la commande `ucm tokens references` sur les `"{chemin}"` que l’agent écrit. Le juge accepte aussi `"{chemin}"`. |
-| Choix du plan | Mots-clés publiés comptés comme valeurs publiées. Chiffre du milieu pour un réglage de liste. Guide `docs/guides/LINTER-UCM.md` et skill `regler-le-linter`. Réalisation (b) avec un seul extracteur dans l’adaptateur. Chaînes visuelles jugées où qu’elles soient. Seconde prise `@ucm-kit/adapter-typescript/usages`. |
+| D15 | Un constat du code se déroge par la dérogation motivée de la parité, dans `.ucm/derogations.json`. |
+| D16 | Le juge applique les dérogations : l’éditeur, ESLint et `ucm check` rendent le même verdict (Q1 A). |
+| D17 | Dans une déclaration, seules les parties couleur, longueur, nombre et pourcentage se jugent ; un identifiant passe, sauf un nom de couleur. Un test relie les écritures des aides au juge (Q2 C). |
+| D18 | Une dérogation d’un constat du code tombe au réexport du contrat (Q3 A). |
+| D19 | Le juge examine l’implémentation et les fichiers qu’elle importe dans son dossier, transitivement ; un fichier partagé reçoit `fichier-partage` (Q4 B). |
+| D20 | Le plugin et `ucm check` jugent le même périmètre, les fichiers des composants (Q5 A). |
+| D21 | Les constats du code entrent dans `ucm check` avant l’unique publication (Q6 A). |
+| D22 | Chaque constat porte `regle` ; la prise gagne seulement `preparerControle` (Q7 A). |
+| D23 | `npx ucm deroger` écrit une dérogation complète ; chaque message de blocage la donne, motif à remplir ; un agent ne la lance qu’à la demande du développeur. |
+| D24 | `eslint-disable` est interdit pour les règles UCM ; un commentaire qui en nomme une rend `desactivation-interdite`. |
+| D25 | Chaque donnée a une source unique, lue par ses lecteurs et gardée par un test de parité ou de fraîcheur. |
+| D26 | Choix du plan, que le mainteneur relit : famille `effet`, coordonnées des genres du code, `preparerControle` rend tous les constats, porte `./usages` réduite à `lecteurDuCode`, retard du code sur les tokens, tables à clés CSS jugées comme des déclarations, CLI au chiffre du milieu. |
+| D27 | Le plan n’attend pas le développeur. Son retour se traite dans l’étape F du plan. |
+| Choix antérieurs | Mots-clés publiés comptés comme valeurs publiées. Chiffre du milieu pour un réglage de liste. Guide `docs/guides/LINTER-UCM.md` et skill `regler-le-linter`. Réalisation (b) avec un seul lecteur dans l’adaptateur. Chaînes visuelles jugées où qu’elles soient. Seconde prise `@ucm-kit/adapter-typescript/usages`. |
 
 Questions restantes :
 
-- pour le développeur : la forme d’écriture des styles d’intencial-library, objets `style`, CSS Modules ou bibliothèque CSS-in-JS. L’extracteur ne lit que la première.
+- pour le développeur : la forme d’écriture des styles d’intencial-library. Le plan suppose les objets `style`, les objets typés `CSSProperties` et les tables à clés CSS ; une autre forme demande un second relevé ;
+- pour le développeur : la relecture du contrat du plugin (§6) ;
+- pour le mainteneur : un domaine d’invariants propre au linter, au lieu de `packages/plugin-exporter/invariants/diagnostics.md`.
 
 ## 13. Rejouer les essais
 

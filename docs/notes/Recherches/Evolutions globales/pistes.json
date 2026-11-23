@@ -621,7 +621,7 @@
       "sujet": "Modules consommateurs",
       "recherche": "docs/notes/Recherches/Linter Dev/RECHERCHE-CADRAGE-P6.md",
       "plan": "docs/notes/Recherches/Linter Dev/PLAN-IMPLEMENTATION-P6-KIT.md",
-      "resume": "Livrer deux règles décidées, token inconnu et valeur en dur : l'écriture des références par les aides, leur juge dans le kit, la lecture du code dans l'adaptateur, le plugin ESLint dans la bibliothèque, leur verdict dans `ucm check` et toutes les règles affichées dans l'inventaire. Les règles 3 et 4 (variante non publiée, élément visuel en plus) restent ouvertes.",
+      "resume": "Livrer deux règles décidées, token inconnu et valeur en dur, en une publication : l'écriture des références par les aides, leur juge dans le kit avec la dérogation des constats, la lecture du code dans l'adaptateur, leur verdict dans `ucm check`, la commande `ucm deroger` et toutes les règles affichées dans l'inventaire. Le plugin ESLint de la bibliothèque affiche les constats. Les règles 3 et 4 (variante non publiée, élément visuel en plus) restent ouvertes.",
       "importance": "haute",
       "raisonImportance": "Sans linter, une valeur écrite en dur passe pour conforme au vérificateur quand elle égale un token, et une nouvelle valeur du designer ne se propage pas.",
       "rang": 2,
@@ -630,8 +630,8 @@
         "P1"
       ],
       "complexite": "l",
-      "raisonComplexite": "Cinq lots : l'écriture des références dans les aides et la CLI, le juge et l'extracteur, l'essai avec le développeur suivi d'une publication unique, le verdict dans `ucm check`, et les règles dans l'inventaire. Les règles 3 et 4 demandent le contrat du fichier et l'analyse typée, soit un lot de plus.",
-      "coutHumain": "Choisir avec le développeur comment intencial-library écrit ses styles.",
+      "raisonComplexite": "Trois vagues de travail et une publication : le juge, le lecteur du code et l'écriture des références ; le verdict d'`ucm check`, `ucm deroger` et la parité des aides ; les prises, l'inventaire et la documentation. Les règles 3 et 4 demandent le contrat du fichier et l'analyse typée, soit un lot de plus.",
+      "coutHumain": "Relire les choix du plan (D26 du cadrage). Le développeur donne la forme d'écriture des styles d'intencial-library et relit le contrat du plugin.",
       "porteur": "les deux",
       "promesse": "R",
       "etat": "proposé",
@@ -639,27 +639,57 @@
         {
           "chemin": "packages/cli/aides/composant.md et resolution-token.md",
           "action": "modifier",
-          "quoi": "Lot 1 : chaque référence s'écrit `\"var(--nom-exact)\"`, sans fonction de traduction dans le code."
+          "quoi": "Vague 1 : chaque référence s'écrit `\"var(--nom-exact)\"`, sans fonction de traduction dans le code."
         },
         {
           "chemin": "packages/cli/src/tokens-references.mjs",
           "action": "créer",
-          "quoi": "Lot 1 : `ucm tokens references <fichiers>` remplace chaque `\"{chemin}\"` par son nom CSS exact ; `--verifier` sert de preuve."
+          "quoi": "Vague 1 : `ucm tokens references <fichiers>` remplace chaque `\"{chemin}\"` par son nom CSS exact ; `--verifier` sert de preuve."
         },
         {
           "chemin": "packages/kit/src/lecteurs/controle-du-code.mjs et controle-du-code-listes.mjs",
           "action": "créer",
-          "quoi": "Lot 2 : le juge `preparerControle`, et ses deux listes réglables, valeurs neutres et propriétés par famille."
+          "quoi": "Vague 1 : le juge `preparerControle`, ses listes réglables et ses codes ; il applique les dérogations."
+        },
+        {
+          "chemin": "packages/kit/src/lecteurs/derogations.mjs",
+          "action": "modifier",
+          "quoi": "Vague 1 : les genres des constats du code et la commande de dérogation."
         },
         {
           "chemin": "packages/adapter-typescript/src/usages.mjs",
           "action": "créer",
-          "quoi": "Lot 2 : `releverUsages`, la seule lecture du code, pour le plugin ESLint comme pour `ucm check`."
+          "quoi": "Vague 1 : `lecteurDuCode`, la seule lecture du code, pour le plugin ESLint comme pour `ucm check`."
+        },
+        {
+          "chemin": "packages/kit/src/lecteurs/verdict-bilan.mjs",
+          "action": "modifier",
+          "quoi": "Vague 2 : les constats du code entrent dans le verdict d'`ucm check`, par la règle du dernier modifié."
+        },
+        {
+          "chemin": "packages/cli/src/deroger.mjs",
+          "action": "créer",
+          "quoi": "Vague 2 : `ucm deroger` écrit une dérogation complète ; chaque message de blocage la donne."
         },
         {
           "chemin": "packages/kit/src/modules/index.mjs",
           "action": "modifier",
-          "quoi": "Lot 3 : ajouter `preparerControle` à la prise `@ucm-kit/core/modules`, avec sa déclaration dans `index.d.mts`."
+          "quoi": "Vague 3 : ajouter `preparerControle` à la prise `@ucm-kit/core/modules`, avec sa déclaration dans `index.d.mts`."
+        },
+        {
+          "chemin": "docs/guides/LINTER-UCM.md",
+          "action": "créer",
+          "quoi": "Vague 3 : explication courte du linter pour le mainteneur, qui dit ce qu'il vérifie, ce qu'il ne voit pas, ce qui se règle et comment déroger."
+        },
+        {
+          "chemin": ".agents/skills/regler-le-linter/SKILL.md",
+          "action": "créer",
+          "quoi": "Vague 3 : geste d'un agent pour ajouter ou retirer une valeur d'une liste du linter."
+        },
+        {
+          "chemin": "docs/inventaire/",
+          "action": "modifier",
+          "quoi": "Vague 3 : afficher toutes les règles d'`ucm check` et du linter, lues dans le code."
         },
         {
           "chemin": "../intencial-library/ (plugin ESLint UCM)",
@@ -670,26 +700,6 @@
           "chemin": "../intencial-library/eslint.config.js",
           "action": "créer",
           "quoi": "Activation des règles UCM."
-        },
-        {
-          "chemin": "packages/kit/src/lecteurs/verdict-bilan.mjs",
-          "action": "modifier",
-          "quoi": "Lot 4 : les constats du code entrent dans le verdict d'`ucm check`, par la règle du dernier modifié."
-        },
-        {
-          "chemin": "docs/guides/LINTER-UCM.md",
-          "action": "créer",
-          "quoi": "Explication courte du linter pour le mainteneur : ce qu'il vérifie, ce qu'il ne voit pas, ce qui se règle."
-        },
-        {
-          "chemin": ".agents/skills/regler-le-linter/SKILL.md",
-          "action": "créer",
-          "quoi": "Geste d'un agent pour ajouter ou retirer une valeur d'une liste du linter."
-        },
-        {
-          "chemin": "docs/inventaire/",
-          "action": "modifier",
-          "quoi": "Lot 5 : afficher toutes les règles d'`ucm check` et du linter, lues dans le code."
         }
       ],
       "criteresDeFin": [
@@ -705,15 +715,16 @@
       "risques": [
         "Une bibliothèque qui écrit ses styles hors des objets `style` (CSS Modules, CSS-in-JS) laisse le linter presque sans rien à juger.",
         "Un agent qui oublie `ucm tokens references` laisse des `\"{chemin}\"` dans le code ; `--verifier` et le juge les voient.",
-        "Le cache ESLint reste désactivé au premier lot ; le juge relit ses entrées à chaque préparation."
+        "Le cache ESLint reste désactivé au premier lot ; le juge relit ses entrées à chaque préparation.",
+        "Une publication d'une autre session avant la fin de P6 exposerait un travail inachevé ; le verrou de la skill `publier-paquets` l'empêche."
       ],
       "alertes": [
         {
-          "texte": "Choisir avec le développeur comment intencial-library écrit ses styles : objets `style`, CSS Modules ou bibliothèque CSS-in-JS. Le linter ne lit aujourd'hui que les objets `style`.",
-          "avant": "le lot 2 du plan de P6, l'extracteur du code"
+          "texte": "Obtenir du développeur la forme d'écriture des styles d'intencial-library et sa relecture du contrat du plugin. Le plan suppose les objets `style` et `CSSProperties`, et ne l'attend pas.",
+          "avant": "la publication de P6 (vague 4 du plan), pour un essai depuis des archives"
         },
         {
-          "texte": "Retirer de `UCM-Playground/.ucm/conventions.md` la ligne « Traduire `{chemin.du.token}` » et la phrase « aucun helper partagé », puis monter le pin de la CLI.",
+          "texte": "Retirer de `UCM-Playground/.ucm/conventions.md` la ligne « Traduire `{chemin.du.token}` » et la phrase « aucun helper partagé », puis épingler la CLI et l'adaptateur que P6 publie.",
           "avant": "la réimplémentation à froid des composants de Playground en contrat v14"
         }
       ]
