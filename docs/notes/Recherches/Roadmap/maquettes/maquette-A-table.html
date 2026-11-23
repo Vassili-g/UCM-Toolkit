@@ -1,0 +1,797 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Roadmap, maquette A</title>
+<style>
+:root {
+  --fond: #ffffff; --surface: #ffffff; --surface-2: #f1f3f6; --texte: #111827; --doux: #5b6474; --trait: #e3e6eb;
+  --rose: #be185d; --rose-fond: #fdf2f8; --olive: #4d7c0f; --olive-fond: #f4fbe8;
+  --ambre: #a16207; --ambre-fond: #fef9e7; --bleu: #1d4ed8; --bleu-fond: #eef3ff;
+  --orange: #c2410c; --orange-fond: #fff4ec; --violet: #6d28d9; --violet-fond: #f4f0ff;
+  --code: #eef0f4; --ombre: 0 1px 2px rgb(0 0 0 / .05);
+  /* Produits : une teinte claire et une encre tirées de la couleur clef du logo (docs/marque/README.md). La CLI et l'adaptateur prennent celles du Toolkit. Contraste de l'encre sur sa teinte : 5,9:1 au moins. */
+  --p-palettes: #a3321f; --p-palettes-fond: #ffe9e4; --p-palettes-vif: #ff6f5e;
+  --p-architect: #6a2bb0; --p-architect-fond: #f2e9fc; --p-architect-vif: #8a3fd8;
+  --p-exporter: #17607e; --p-exporter-fond: #e1f2f8; --p-exporter-vif: #2f9fc4;
+  --p-toolkit: #2e2152; --p-toolkit-fond: #ebe8f3; --p-toolkit-vif: #c04ad8;
+  color-scheme: light;
+}
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+html { scroll-behavior: smooth; scroll-padding-top: 16px; }
+body { margin: 0; background: var(--fond); color: var(--texte); font: 16px/1.55 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
+a { color: inherit; text-decoration-color: var(--doux); text-underline-offset: 2px; }
+code, .mono { font-family: ui-monospace, "JetBrains Mono", Consolas, monospace; font-size: .86em; }
+code { background: var(--code); padding: 1px 5px; border-radius: 4px; overflow-wrap: anywhere; }
+.page { display: grid; grid-template-columns: 220px minmax(0, 1fr); max-width: 1280px; margin: 0 auto; }
+nav.sommaire { position: sticky; top: 0; align-self: start; height: 100vh; overflow-y: auto; padding: 28px 14px 28px 20px; border-right: 1px solid var(--trait); }
+nav.sommaire .titre { font-weight: 700; font-size: .95rem; margin-bottom: 2px; }
+nav.sommaire .date { color: var(--doux); font-size: .8rem; margin-bottom: 18px; }
+nav.sommaire ol { list-style: none; padding: 0; margin: 0; counter-reset: s; }
+nav.sommaire li { counter-increment: s; }
+nav.sommaire li a { display: flex; gap: 8px; padding: 5px 8px; border-radius: 6px; text-decoration: none; font-size: .9rem; color: var(--doux); }
+nav.sommaire li a::before { content: counter(s); width: 16px; font-variant-numeric: tabular-nums; }
+nav.sommaire li a:hover, nav.sommaire li a.actif { background: var(--surface-2); color: var(--texte); }
+.outils-nav { margin-top: 20px; display: flex; flex-direction: column; gap: 6px; }
+button { font: inherit; cursor: pointer; }
+.bouton { background: var(--surface); border: 1px solid var(--trait); color: var(--texte); border-radius: 6px; padding: 5px 10px; font-size: .85rem; text-align: left; white-space: nowrap; }
+.bouton:hover { background: var(--surface-2); }
+main { padding: 32px 40px 120px; min-width: 0; }
+section.partie { max-width: 1000px; }
+h1 { font-size: 2rem; line-height: 1.15; letter-spacing: -.02em; margin: 0 0 10px; }
+h2 { font-size: 1.45rem; letter-spacing: -.01em; margin: 48px 0 6px; padding-top: 8px; }
+h2 .num { color: var(--doux); font-weight: 500; margin-right: 8px; }
+h3 { font-size: 1.08rem; margin: 28px 0 8px; }
+h4 { font-size: .95rem; margin: 14px 0 6px; }
+p { margin: 8px 0; }
+.chapeau { font-size: 1.08rem; max-width: 70ch; }
+.intro { max-width: 74ch; margin: 6px 0 12px; }
+.doux { color: var(--doux); }
+.carte { background: var(--surface); border: 1px solid var(--trait); border-radius: 10px; padding: 14px 16px; box-shadow: var(--ombre); }
+.carte h4 { margin-top: 0; }
+.carte p { font-size: .93rem; }
+.grille { display: grid; gap: 12px; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); }
+ul.liste { margin: 6px 0; padding-left: 18px; }
+ul.liste li { margin: 3px 0; font-size: .92rem; }
+/* États : couleur, signe et mot. Le rose reste réservé à « bloque » et « manque ». */
+.etat { display: inline-flex; align-items: center; gap: 4px; font-size: .8rem; font-weight: 600; padding: 1px 8px 1px 6px; border-radius: 999px; white-space: nowrap; vertical-align: middle; line-height: 1.5; }
+.etat::before { font-weight: 700; }
+.livre { color: var(--olive); background: var(--olive-fond); } .livre::before { content: "✓"; }
+.partiel { color: var(--orange); background: var(--orange-fond); } .partiel::before { content: "◑"; }
+.manque { color: var(--rose); background: var(--rose-fond); } .manque::before { content: "✕"; }
+.decidee { color: var(--bleu); background: var(--bleu-fond); } .decidee::before { content: "◆"; }
+.propose { color: var(--doux); background: var(--surface-2); } .propose::before { content: "○"; }
+.ouvert { color: var(--ambre); background: var(--ambre-fond); } .ouvert::before { content: "?"; }
+/* Types d'alerte du kit : rond plein, signe et mot. */
+.alerte { display: inline-flex; align-items: center; gap: 5px; font-size: .82rem; font-weight: 600; white-space: nowrap; }
+.alerte::before { display: inline-grid; place-items: center; width: 17px; height: 17px; border-radius: 50%; font-size: .72rem; color: var(--surface); }
+.a-bloquant { color: var(--rose); } .a-bloquant::before { content: "✕"; background: var(--rose); }
+.a-corriger { color: var(--orange); } .a-corriger::before { content: "!"; background: var(--orange); }
+.a-verifier { color: var(--ambre); } .a-verifier::before { content: "?"; background: var(--ambre); }
+.a-info { color: var(--bleu); } .a-info::before { content: "i"; background: var(--bleu); }
+.a-tenu { color: var(--olive); } .a-tenu::before { content: "✓"; background: var(--olive); }
+/* Bandeau « À régler » en tête de page : icône, mot et fond orange ensemble. */
+.a-regler { margin: 14px 0 22px; padding: 12px 16px; border: 1px solid var(--orange); border-left-width: 6px; border-radius: 10px; background: var(--orange-fond); }
+.a-regler-titre { display: flex; align-items: center; gap: 8px; margin: 0 0 8px; font-weight: 700; font-size: 1.05rem; }
+.a-regler ul { list-style: none; margin: 0; padding: 0; }
+.a-regler li { display: grid; grid-template-columns: max-content 1fr; gap: 2px 12px; padding: 8px 0; border-top: 1px solid var(--trait); }
+.a-regler li > a { font-weight: 600; grid-row: span 2; }
+.a-regler-avant { color: var(--doux); font-size: .88rem; }
+.repere-alerte { display: inline-flex; align-items: center; gap: 4px; margin-left: 8px; font-size: .8rem; font-weight: 700; color: var(--orange); white-space: nowrap; }
+.repere-alerte::before { content: "!"; display: inline-grid; place-items: center; width: 16px; height: 16px; border-radius: 50%; font-size: .7rem; color: var(--surface); background: var(--orange); }
+.fiche-piste .alertes-piste { margin: 0 0 8px; padding: 8px 12px; border-left: 4px solid var(--orange); background: var(--orange-fond); border-radius: 6px; }
+.fiche-piste .alertes-piste ul { margin: 4px 0 0; padding-left: 18px; }
+@media (max-width: 560px) { .a-regler li { grid-template-columns: 1fr; } .a-regler li > a { grid-row: auto; } }
+/* Tables. */
+.defile { overflow-x: auto; margin: 10px 0; border: 1px solid var(--trait); border-radius: 10px; background: var(--surface); }
+table { border-collapse: collapse; width: 100%; font-size: .88rem; }
+th, td { text-align: left; padding: 7px 11px; border-bottom: 1px solid var(--trait); vertical-align: top; }
+tr:last-child td { border-bottom: 0; }
+th { font-size: .74rem; text-transform: uppercase; letter-spacing: .05em; color: var(--doux); font-weight: 600; background: var(--surface-2); }
+td.n, th.n { font-variant-numeric: tabular-nums; white-space: nowrap; }
+.nota { display: block; color: var(--doux); font-size: .82rem; margin-top: 4px; }
+/* Chemins de variables : gris, collection en rose. */
+.chemin { font-family: ui-monospace, "JetBrains Mono", Consolas, monospace; font-size: .84em; color: var(--doux); background: var(--code); padding: 1px 6px; border-radius: 4px; overflow-wrap: anywhere; }
+td .chemin { white-space: nowrap; }
+.chemin .c { color: var(--rose); font-weight: 600; }
+.chemin .v { color: var(--texte); font-weight: 600; }
+/* Crans illustrés par la clarté réelle des courbes. */
+.cran { display: inline-block; min-width: 40px; text-align: center; border-radius: 5px; padding: 1px 6px; font-family: ui-monospace, Consolas, monospace; font-size: .8rem; font-weight: 600; }
+.rampe { display: grid; grid-template-columns: 52px repeat(11, 1fr); gap: 3px; margin: 4px 0; align-items: center; }
+.rampe .mode { font-size: .78rem; color: var(--doux); }
+.rampe div:not(.mode) { height: 30px; border-radius: 5px; display: grid; place-items: center; font-family: ui-monospace, Consolas, monospace; font-size: .72rem; font-weight: 600; }
+/* Cartes d'outils : logo, nom et canal, rôle, ce que l'outil lit et écrit, puis le détail replié. */
+.produits { display: grid; gap: 12px; margin: 10px 0; }
+.fiche { background: var(--surface); border: 1px solid var(--trait); border-radius: 12px; padding: 16px 18px 12px; box-shadow: var(--ombre); min-width: 0; }
+.fiche .tete { display: flex; gap: 12px; align-items: center; margin-bottom: 10px; }
+.fiche .logo { position: relative; flex: none; width: 44px; height: 44px; }
+.fiche .logo > svg { display: block; width: 100%; height: 100%; }
+.fiche .logo-signe { position: absolute; right: -5px; bottom: -5px; display: grid; place-items: center; width: 20px; height: 20px; border-radius: 6px; background: var(--surface); border: 1px solid var(--trait); color: var(--texte); }
+.fiche .logo-signe svg { display: block; }
+.fiche .nom { flex: 1 1 auto; min-width: 0; display: flex; flex-wrap: wrap; align-items: center; gap: 2px 8px; }
+.fiche .nom b { font-size: 1.1rem; line-height: 1.3; letter-spacing: -.01em; }
+.fiche .nom .canal { flex-basis: 100%; color: var(--doux); font-size: .82rem; line-height: 1.4; overflow-wrap: anywhere; }
+.fiche .role { margin: 0 0 8px; font-size: .95rem; }
+dl.faits { display: grid; grid-template-columns: max-content minmax(0, 1fr); gap: 4px 12px; align-items: baseline; margin: 0 0 4px; padding: 8px 0; border-top: 1px solid var(--trait); font-size: .9rem; }
+dl.faits dt { font-size: .74rem; text-transform: uppercase; letter-spacing: .06em; color: var(--doux); font-weight: 600; }
+dl.faits dd { margin: 0; min-width: 0; }
+.fiche h4 { font-size: .74rem; text-transform: uppercase; letter-spacing: .06em; color: var(--doux); margin: 10px 0 4px; }
+.fiche details { margin-top: 8px; border-top: 1px solid var(--trait); padding-top: 6px; }
+.fiche details > summary { cursor: pointer; font-size: .88rem; font-weight: 600; color: var(--doux); list-style: none; }
+.fiche details > summary::-webkit-details-marker { display: none; }
+.fiche details > summary::before { content: "›"; display: inline-block; width: 12px; transition: transform .15s; }
+.fiche details[open] > summary::before { transform: rotate(90deg); }
+/* Plis. */
+details.pli { border: 1px solid var(--trait); border-radius: 10px; background: var(--surface); margin: 10px 0; }
+details.pli > summary { cursor: pointer; padding: 10px 16px; font-weight: 600; list-style: none; display: flex; gap: 8px; align-items: baseline; flex-wrap: wrap; }
+details.pli > summary::-webkit-details-marker { display: none; }
+details.pli > summary::before { content: "›"; color: var(--doux); display: inline-block; transition: transform .15s; width: 10px; }
+details.pli[open] > summary::before { transform: rotate(90deg); }
+details.pli > summary .doux { font-weight: 400; font-size: .86rem; }
+details.pli > .contenu { padding: 0 16px 14px 34px; }
+/* Contrôles. */
+.filtres { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; margin: 4px 0 8px; }
+.filtres .etiquette { font-size: .78rem; color: var(--doux); width: 64px; }
+.filtre { border: 1px solid var(--trait); background: var(--surface); color: var(--doux); border-radius: 999px; padding: 2px 10px; font-size: .82rem; }
+.filtre[aria-pressed="true"] { background: var(--texte); color: var(--surface); border-color: var(--texte); }
+input[type="search"] { font: inherit; font-size: .88rem; border: 1px solid var(--trait); background: var(--surface); color: var(--texte); border-radius: 8px; padding: 4px 10px; min-width: 200px; }
+.compte { color: var(--doux); font-size: .82rem; margin-left: auto; }
+/* Listes de définitions : glossaire et questions. */
+dl.def { display: grid; grid-template-columns: 170px 1fr; margin: 10px 0; background: var(--surface); border: 1px solid var(--trait); border-radius: 10px; overflow: hidden; }
+dl.def dt, dl.def dd { padding: 8px 13px; border-bottom: 1px solid var(--trait); margin: 0; font-size: .9rem; }
+dl.def dt { font-weight: 600; background: var(--surface-2); }
+dl.def.questions { grid-template-columns: 300px 1fr; }
+dl.def.glossaire { grid-template-columns: 150px 1fr 150px 1fr; }
+/* Schéma des collections. */
+.schema { width: 100%; height: auto; display: block; }
+.schema .boite { fill: var(--surface); stroke: var(--trait); stroke-width: 1.2; }
+.schema .boite.palettes { stroke: var(--olive); stroke-width: 1.8; }
+.schema .boite.main { stroke: var(--ambre); stroke-width: 1.8; stroke-dasharray: 4 3; }
+.schema .boite.architect { stroke: var(--bleu); stroke-width: 1.8; }
+.schema text { fill: var(--texte); font: 600 13px ui-monospace, Consolas, monospace; }
+.schema text.petit { fill: var(--doux); font: 11px system-ui, sans-serif; }
+.schema .fleche { stroke: var(--doux); stroke-width: 1.3; fill: none; marker-end: url(#pointe); }
+.schema .etiquette { fill: var(--doux); font: italic 11px system-ui, sans-serif; }
+.seul-mobile { display: none; }
+.versions { font-size: .88rem; margin: 2px 0 14px; }
+.terme { text-decoration: underline dotted var(--doux); text-underline-offset: 3px; text-decoration-thickness: 1.5px; }
+dl.def dt:target, dl.def dt:target + dd { background: var(--ambre-fond); }
+.verdict { display: inline-flex; align-items: center; gap: 5px; font-size: .82rem; font-weight: 600; white-space: nowrap; }
+.verdict::before { display: inline-grid; place-items: center; width: 17px; height: 17px; border-radius: 50%; font-size: .72rem; color: var(--surface); }
+.v-bloque { color: var(--rose); } .v-bloque::before { content: "✕"; background: var(--rose); }
+.v-avertit { color: var(--ambre); } .v-avertit::before { content: "⚠"; background: var(--ambre); font-size: .6rem; }
+.v-non { color: var(--doux); } .v-non::before { content: "⊘"; background: var(--doux); }
+.contrat-annote { display: grid; grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr); gap: 14px; align-items: start; margin: 8px 0; }
+.codebloc { position: relative; margin: 0; background: var(--code); border-radius: 8px; padding: 10px 10px 10px 34px; overflow-x: auto; font: .76rem/1.6 ui-monospace, "JetBrains Mono", Consolas, monospace; white-space: pre; }
+.codebloc .p { position: absolute; left: 8px; }
+.pastille { display: inline-grid; place-items: center; width: 18px; height: 18px; border-radius: 50%; background: var(--texte); color: var(--surface); font: 700 .7rem system-ui, sans-serif; flex: none; }
+.codebloc .p { display: inline-grid; place-items: center; width: 18px; height: 18px; border-radius: 50%; background: var(--texte); color: var(--surface); font: 700 .7rem/1 system-ui, sans-serif; }
+ol.notes-contrat { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
+ol.notes-contrat li { display: grid; grid-template-columns: 20px minmax(0, 1fr); gap: 8px; align-items: start; font-size: .9rem; }
+
+
+.bilan-decisions { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin: 10px 0 4px; font-size: .88rem; }
+.ecart-decisions { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin: 10px 0; padding: 8px 12px; font-size: .88rem; border: 1px solid var(--trait); border-radius: 8px; background: var(--surface); }
+.ecart-decisions[hidden] { display: none; }
+.ecart-decisions #ecart-message { flex-basis: 100%; }
+.bilan-decisions #bilan-decisions { margin-right: auto; }
+textarea.export { width: 100%; min-height: 160px; font: .8rem/1.5 ui-monospace, Consolas, monospace; background: var(--surface); color: var(--texte); border: 1px solid var(--trait); border-radius: 8px; padding: 8px; }
+.rang-titre { font-size: .78rem; text-transform: uppercase; letter-spacing: .06em; color: var(--doux); font-weight: 600; margin: 18px 0 6px; }
+
+.choix-theme { display: flex; flex-wrap: wrap; gap: 8px 16px; align-items: center; margin: 8px 0; font-size: .9rem; }
+.choix-theme select { font: inherit; font-size: .88rem; background: var(--surface); color: var(--texte); border: 1px solid var(--trait); border-radius: 6px; padding: 3px 8px; margin-left: 4px; }
+
+.panneau-figma { border: 1px solid var(--trait); border-radius: 10px; background: var(--surface); overflow: hidden; margin: 8px 0; }
+.panneau-figma .defile { border: 0; border-radius: 0; margin: 0; }
+.panneau-tete { display: flex; gap: 10px; align-items: center; justify-content: space-between; padding: 8px 12px; border-bottom: 1px solid var(--trait); background: var(--surface-2); font-size: .84rem; }
+#panneau-theme td, #panneau-theme th { padding: 5px 10px; }
+#panneau-theme tr.groupe td { font-family: ui-monospace, Consolas, monospace; font-size: .78rem; color: var(--doux); padding-top: 9px; background: var(--surface); border-bottom: 0; }
+#panneau-theme td.nom { font-family: ui-monospace, Consolas, monospace; font-size: .82rem; padding-left: 26px; white-space: nowrap; }
+.valeur { display: inline-flex; align-items: center; gap: 7px; }
+.valeur i { width: 16px; height: 16px; border-radius: 4px; border: 1px solid rgb(127 127 127 / .35); flex: none; }
+.valeur .alias { font-family: ui-monospace, Consolas, monospace; font-size: .76rem; background: var(--code); border-radius: 4px; padding: 1px 6px; white-space: nowrap; }
+.valeur .alias b { font-weight: 600; color: var(--texte); }
+.apercus { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; margin: 8px 0; }
+.apercu { border-radius: 10px; padding: 10px; border: 1px solid var(--trait); display: grid; gap: 8px; font-size: .8rem; }
+.apercu .titre-apercu { font-weight: 600; }
+.apercu .ligne { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; }
+.apercu .btn { border-radius: 6px; padding: 4px 9px; font-weight: 600; font-size: .78rem; }
+.apercu .puce-s { border-radius: 6px; padding: 3px 8px; font-size: .76rem; border: 1px solid; }
+.apercu .rampe-mini { display: grid; grid-template-columns: repeat(11, 1fr); height: 12px; border-radius: 4px; overflow: hidden; }
+.cran-reel { display: inline-flex; align-items: center; gap: 6px; font-family: ui-monospace, Consolas, monospace; font-size: .78rem; }
+.cran-reel i { width: 26px; height: 18px; border-radius: 4px; border: 1px solid rgb(127 127 127 / .3); display: inline-block; }
+@media (max-width: 860px) { .apercus { grid-template-columns: 1fr; } }
+
+.legende-schema { display: grid; gap: 6px; padding: 8px 10px 4px; font-size: .84rem; }
+.legende-schema > div { display: grid; grid-template-columns: 40px minmax(0, 1fr); gap: 10px; align-items: start; }
+.legende-schema p { margin: 0; }
+.legende-schema svg { margin-top: 1px; }
+.legende-schema .scope { font-size: .72rem; color: var(--doux); border: 1px solid var(--trait); border-radius: 4px; text-align: center; padding: 0 2px; margin-top: 1px; }
+.source { font-size: .8rem; color: var(--doux); }
+@media (max-width: 1100px) { dl.def.glossaire { grid-template-columns: 150px 1fr; } }
+@media (max-width: 860px) {
+  html { scroll-padding-top: 104px; }
+  .page { grid-template-columns: 1fr; }
+  nav.sommaire { position: sticky; top: 0; z-index: 5; height: auto; padding: 8px 16px; border-right: 0; border-bottom: 1px solid var(--trait); background: var(--fond); display: flex; gap: 8px; align-items: center; }
+  nav.sommaire .titre, nav.sommaire .date { display: none; }
+  nav.sommaire ol { display: flex; gap: 2px; overflow-x: auto; flex: 1; }
+  nav.sommaire li a { white-space: nowrap; }
+  .outils-nav { margin: 0; flex-direction: row; }
+  .outils-nav .bouton { padding: 4px 8px; font-size: .78rem; }
+  nav.sommaire { flex-wrap: wrap; }
+  nav.sommaire ol { flex: 1 1 0; min-width: 0; }
+  .contrat-annote { grid-template-columns: minmax(0, 1fr); }
+  .legende-schema > div { grid-template-columns: 34px minmax(0, 1fr); }
+  main { padding: 20px 16px 80px; }
+  .fiche { padding: 14px 14px 10px; }
+  dl.def, dl.def.questions, dl.def.glossaire { grid-template-columns: 1fr; }
+  dl.def dt { border-bottom: 0; }
+  h1 { font-size: 1.6rem; }
+  .seul-ecran { display: none; }
+  .seul-mobile { display: block; }
+  .rampe { grid-template-columns: 40px repeat(11, 1fr); gap: 2px; }
+  .rampe div:not(.mode) { font-size: .58rem; }
+}
+
+/* Source de chaque partie. */
+.defini { margin: 2px 0 8px; font-size: .78rem; line-height: 1.45; color: var(--doux); }
+h3 + .defini { margin-top: -4px; }
+/* Pastille « passe » du verdict d'ucm check. */
+.v-passe { color: var(--olive); } .v-passe::before { content: "✓"; background: var(--olive); }
+/* V3. Le rapport d'ucm check, deux maquettes de commentaire. */
+.rapports { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin: 8px 0; align-items: start; }
+.rapport { margin: 0; }
+.rapport figcaption { font-size: .8rem; font-weight: 600; color: var(--doux); margin-bottom: 4px; }
+.pr { border: 1px solid var(--trait); border-radius: 10px; background: var(--surface); overflow: hidden; font-size: .84rem; }
+.pr .pr-tete { padding: 5px 12px; background: var(--surface-2); border-bottom: 1px solid var(--trait); font: 600 .78rem ui-monospace, Consolas, monospace; color: var(--doux); }
+.pr .pr-corps { padding: 10px 12px; display: grid; gap: 6px; }
+.pr .pr-corps p, .pr .pr-corps ul { margin: 0; }
+.pr .pr-corps ul { padding-left: 18px; }
+.pr .pr-titre { font-weight: 700; display: flex; gap: 6px; align-items: baseline; }
+.pr .pr-titre::before { display: inline-grid; place-items: center; flex: none; width: 17px; height: 17px; border-radius: 50%; font-size: .7rem; color: var(--surface); transform: translateY(1px); }
+.pr .pr-titre.tenu::before { content: "✓"; background: var(--olive); }
+.pr .pr-titre.corriger::before { content: "!"; background: var(--orange); }
+.pr .pr-titre.bloquant::before { content: "✕"; background: var(--rose); }
+.pr .pr-mini { font-size: .72rem; text-transform: uppercase; letter-spacing: .05em; color: var(--doux); font-weight: 600; }
+.pr .pr-fusion { border-top: 1px solid var(--trait); padding: 8px 12px; display: flex; gap: 8px; align-items: center; }
+.pr .bouton-fusion { border-radius: 6px; padding: 3px 12px; font-weight: 600; font-size: .82rem; background: var(--olive); color: var(--surface); }
+.pr .bouton-fusion.grise { background: var(--surface-2); color: var(--doux); border: 1px solid var(--trait); }
+/* V6. Graphe des dépendances des pistes. */
+.graphe svg { width: 100%; height: auto; display: block; }
+.graphe .bp { fill: var(--surface); stroke: var(--trait); stroke-width: 1.3; }
+.graphe .bp.critique { stroke: var(--rose); stroke-width: 2.2; }
+.graphe .bp.oui { stroke: var(--olive); stroke-width: 2.2; }
+.graphe .bp.non { stroke: var(--doux); stroke-dasharray: 4 3; fill: var(--surface-2); }
+.graphe .bp.descendante { opacity: .5; stroke-dasharray: 2 3; }
+.graphe .bp-id { fill: var(--texte); font: 700 11px ui-monospace, Consolas, monospace; }
+.graphe .bp-t { fill: var(--texte); font: 10px system-ui, sans-serif; }
+.graphe .bp-s { fill: var(--doux); font: 700 10px system-ui, sans-serif; }
+.graphe .barre { stroke: var(--doux); stroke-width: 1.4; }
+.graphe a { cursor: pointer; }
+.graphe a:focus-visible .bp { stroke: var(--texte); stroke-width: 2.6; }
+.graphe .non-texte .bp-id, .graphe .non-texte .bp-t { text-decoration: line-through; fill: var(--doux); }
+.graphe .descendante-texte { opacity: .5; }
+.graphe .ln { stroke: var(--doux); stroke-width: 1.1; fill: none; marker-end: url(#pointe-graphe); }
+.graphe .ln.critique { stroke: var(--rose); stroke-width: 2.2; marker-end: url(#pointe-graphe-rose); }
+.graphe .ln.coupee { opacity: .35; stroke-dasharray: 3 3; }
+.graphe .entete-col { fill: var(--doux); font: 600 10px system-ui, sans-serif; }
+.graphe-liste { margin: 4px 0; padding-left: 18px; font-size: .9rem; }
+.legende-graphe { font-size: .82rem; color: var(--doux); margin: 6px 0; }
+.legende-graphe .trait { display: inline-block; width: 22px; height: 0; border-top: 3px solid var(--rose); vertical-align: middle; margin-right: 6px; }
+/* Décision et note d'une piste ou d'une question ouverte. */
+/* La colonne des décisions porte les trois choix sur une ligne (3 cibles de 28 px, 6 px entre elles) et la note dessous. */
+.choix-ligne { display: grid; gap: 6px; min-width: 300px; }
+.choix-ligne .options { display: flex; flex-wrap: wrap; gap: 6px; }
+.choix-ligne a.etat { min-height: 28px; box-sizing: border-box; padding: 0 10px 0 8px; text-decoration: none; }
+.choix-ligne a.etat:hover { text-decoration: underline; }
+.a-revoir { margin: 12px 0; padding: 12px 16px; border: 2px solid var(--ambre); border-left-width: 6px; border-radius: 8px; background: var(--ambre-fond); color: var(--texte); }
+.a-revoir p { margin: 6px 0; font-size: .92rem; }
+.a-revoir .a-revoir-titre { margin-top: 0; font-weight: 700; color: var(--ambre); }
+.a-revoir .a-revoir-titre::before { content: "⚠ "; }
+.livrees { font-size: .9rem; }
+.livrees .etat { margin-right: 4px; }
+.choix-ligne label.option { display: inline-flex; align-items: center; gap: 6px; box-sizing: border-box; min-height: 28px; padding: 0 10px; border: 1px solid var(--trait); border-radius: 6px; background: var(--surface); font-size: .8rem; cursor: pointer; white-space: nowrap; }
+.choix-ligne label.option:has(input:checked) { border-color: var(--texte); font-weight: 600; }
+.choix-ligne textarea.note { display: block; box-sizing: border-box; width: 100%; min-height: 28px; resize: none; overflow: hidden; field-sizing: content; font: inherit; font-size: .82rem; line-height: 1.35; background: var(--surface); color: var(--texte); border: 1px solid var(--trait); border-radius: 6px; padding: 4px 8px; }
+/* A1. Le panneau des variables : menu des collections et table. */
+.fx { display: grid; grid-template-columns: 148px minmax(0, 1fr); }
+.fx-menu { display: flex; flex-direction: column; gap: 2px; padding: 8px; border-right: 1px solid var(--trait); background: var(--surface-2); }
+.fx-menu .etiquette { font-size: .7rem; font-weight: 600; text-transform: uppercase; letter-spacing: .07em; color: var(--doux); padding: 2px 8px 4px; }
+.fx-menu button { all: unset; cursor: pointer; display: flex; justify-content: space-between; gap: 6px; padding: 5px 8px; border-radius: 5px; font: .82rem ui-monospace, Consolas, monospace; color: var(--texte); }
+.fx-menu button:hover { background: var(--trait); }
+.fx-menu button[aria-current="true"] { background: var(--texte); color: var(--surface); }
+.fx-menu button:focus-visible { outline: 2px solid var(--texte); outline-offset: -2px; }
+.fx-menu .nb { color: var(--doux); font-size: .74rem; }
+.fx-menu button[aria-current="true"] .nb { color: var(--surface); opacity: .75; }
+.fx-principal { min-width: 0; }
+.fx-note { margin: 0; padding: 8px 12px; font-size: .86rem; border-bottom: 1px solid var(--trait); display: grid; gap: 4px; }
+.fx-note .etat { margin-right: 6px; }
+#panneau-theme tr.groupe td { padding: 0; }
+.bascule { all: unset; box-sizing: border-box; cursor: pointer; display: flex; align-items: center; gap: 7px; width: 100%; padding: 8px 10px 3px; font: .78rem ui-monospace, Consolas, monospace; color: var(--doux); }
+.bascule:focus-visible { outline: 2px solid var(--texte); outline-offset: -2px; }
+.bascule .chev { flex: none; width: 0; height: 0; border-left: 5px solid currentColor; border-top: 4px solid transparent; border-bottom: 4px solid transparent; transition: transform .12s; }
+.bascule[aria-expanded="true"] .chev { transform: rotate(90deg); }
+.bascule .nb { opacity: .7; }
+#panneau-theme td.nom { padding-left: 26px; }
+#panneau-theme td.vide { color: var(--doux); font-size: .8rem; }
+.schema .cb { cursor: pointer; }
+.schema .cb:focus-visible .boite { stroke: var(--texte); stroke-width: 2.6; }
+.schema .cb:hover .boite { stroke-width: 2.4; }
+.schema .cb[aria-pressed="true"] .boite { fill: var(--surface-2); }
+.schema .fleche.suivie { stroke: var(--rose); stroke-width: 2.6; marker-end: url(#pointe-rose); }
+.schema.suit .cb.suivie .boite { stroke: var(--rose); stroke-width: 2.6; stroke-dasharray: none; }
+.schema.suit .cb:not(.suivie), .schema.suit .fleche:not(.suivie) { opacity: .35; }
+/* « Suivre une valeur d'un composant » : trois choix, et la chaîne d'exemple sous le schéma. */
+.suivre { display: flex; flex-wrap: wrap; gap: 6px 8px; align-items: center; margin: 6px 0 8px; font-size: .86rem; }
+.suivre .filtre[aria-pressed="true"] { background: var(--rose-fond); color: var(--rose); border-color: var(--rose); font-weight: 600; }
+.chaine-valeur { margin: 8px 0; padding: 8px 12px; border: 1px solid var(--rose); border-radius: 10px; background: var(--rose-fond); font-size: .88rem; }
+.chaine-valeur p { margin: 0 0 6px; }
+ol.maillons { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 6px 26px; align-items: center; }
+ol.maillons li { position: relative; }
+ol.maillons li:not(:last-child)::after { content: "→"; position: absolute; right: -19px; color: var(--rose); }
+/* A4. Annexes visuelles. */
+.signes-famille { margin: 10px 0 4px; }
+.signes-famille h5 { margin: 0 0 4px; font-size: .84rem; }
+.signes-famille h5 code { font-weight: 400; }
+.signes-grille { display: grid; grid-template-columns: repeat(8, minmax(0, 1fr)); gap: 6px; }
+.signes-grille figure { margin: 0; text-align: center; padding: 6px 2px; border: 1px solid var(--trait); border-radius: 6px; background: var(--surface); }
+.signes-grille svg { display: block; margin: 0 auto 3px; color: var(--texte); }
+.signes-grille figure > svg { fill: none; stroke: currentColor; stroke-width: 1.4; stroke-linecap: round; stroke-linejoin: round; }
+.signes-grille figcaption { font-size: .68rem; line-height: 1.25; color: var(--doux); overflow-wrap: anywhere; }
+.signes-grille figcaption code { font-size: .64rem; padding: 0 2px; }
+.forme-alerte { --texte-sur-ton: var(--surface); }
+.ft-bloquant { color: var(--rose); } .ft-corriger { color: var(--orange); } .ft-verifier { color: var(--ambre); } .ft-info { color: var(--bleu); } .ft-tenu { color: var(--olive); }
+.marques-grille { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; margin: 6px 0; }
+.marques-grille figure { margin: 0; text-align: center; font-size: .8rem; }
+.marques-grille svg { display: block; width: 100%; height: auto; max-width: 160px; margin: 0 auto 4px; }
+.marques-grille.cartes svg { max-width: 100%; border-radius: 8px; border: 1px solid var(--trait); }
+.pli .pli { margin: 8px 0; }
+/* Le rendu des signaux du langage visuel : les couleurs de la page, pas celles des plugins. */
+.sg-figma { font-style: italic; color: var(--bleu); }
+.sg-groupe { color: var(--violet); font-weight: 600; } .sg-variable { color: var(--olive); font-weight: 600; }
+.sg-avant { border-radius: 3px; padding: 0 3px; } .sg-groupe.sg-avant { background: var(--violet-fond); } .sg-variable.sg-avant { background: var(--olive-fond); }
+.sg-puce, .sg-champ, .sg-decision, .sg-bouton, .sg-carte, .sg-fait { display: inline-block; border: 1px solid var(--trait); border-radius: 5px; padding: 0 8px; font-size: .8rem; }
+.sg-puce, .sg-champ { font-family: ui-monospace, Consolas, monospace; background: var(--surface-2); }
+.sg-arrive { color: var(--olive); font-weight: 600; background: var(--olive-fond); padding: 0 4px; border-radius: 3px; }
+.sg-part { color: var(--rose); font-weight: 600; background: var(--rose-fond); padding: 0 4px; border-radius: 3px; text-decoration: line-through; }
+.sg-carte { box-shadow: 0 0 0 2px var(--bleu); } .sg-fait { color: var(--olive); background: var(--olive-fond); border-color: transparent; font-weight: 600; }
+.sg-decision { color: var(--olive); font-weight: 600; } .sg-bouton { background: var(--texte); color: var(--surface); border-color: var(--texte); font-weight: 600; }
+.sg-bouton.second { background: var(--surface); color: var(--texte); border-color: var(--trait); } .sg-bouton.danger { background: var(--rose); border-color: var(--rose); color: var(--surface); }
+@media (max-width: 860px) {
+  .rapports { grid-template-columns: 1fr; }
+  .fx { grid-template-columns: 1fr; }
+  .fx-menu { flex-direction: row; overflow-x: auto; border-right: 0; border-bottom: 1px solid var(--trait); }
+  .fx-menu .etiquette { display: none; }
+  .fx-menu button { white-space: nowrap; flex: none; }
+  .signes-grille { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+  .marques-grille { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  /* Sous 860 px, une ligne de question ouverte devient une pile : le titre, les choix et la note, puis le reste avec son libellé. */
+  table.empile { min-width: 0; }
+  table.empile, table.empile tbody, table.empile tr, table.empile td { display: block; }
+  table.empile tr:has(> th), table.empile thead { display: none; }
+  table.empile tr { display: flex; flex-direction: column; padding: 8px 10px; border-bottom: 1px solid var(--trait); }
+  table.empile td { order: 2; padding: 2px 0; border: 0; }
+  table.empile td:first-child { order: 0; }
+  table.empile td.choix-ligne { order: 1; min-width: 0; padding: 6px 0; }
+  table.empile td[data-l]::before { content: attr(data-l) " : "; color: var(--doux); font-size: .76rem; }
+}
+
+/* 1. Le flux du concept : quatre étapes, une flèche entre deux. */
+ol.flux { list-style: none; margin: 16px 0 8px; padding: 0; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 30px; }
+ol.flux li { position: relative; display: grid; gap: 4px; align-content: start; background: var(--surface-2); border: 1px solid var(--trait); border-radius: 10px; padding: 10px 12px; font-size: .88rem; }
+ol.flux li b { font-size: .95rem; }
+ol.flux li:not(:last-child)::after { content: "→"; position: absolute; right: -22px; top: 50%; transform: translateY(-50%); color: var(--doux); font-size: 1.1rem; }
+.grille.deux-cartes { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+dl.def.principes { grid-template-columns: 240px 1fr; }
+.carte.bloc { margin: 14px 0; }
+/* 3. Le parcours : trois couloirs d'étapes, la carte de l'étape choisie dessous. */
+.parcours { display: grid; grid-template-columns: minmax(0, 4fr) minmax(0, 2fr) minmax(0, 2fr); grid-template-rows: auto auto; gap: 10px; margin: 12px 0 0; }
+/* Les couloirs partagent la rangée des titres : un titre sur deux lignes ne décale pas les étapes des autres. */
+.parcours .couloir { display: grid; grid-row: span 2; grid-template-rows: subgrid; row-gap: 6px; align-content: start; background: var(--surface-2); border-radius: 10px; padding: 8px; }
+.parcours .couloir-titre { font-size: .72rem; text-transform: uppercase; letter-spacing: .06em; color: var(--doux); font-weight: 600; padding: 0 2px; }
+.parcours .etapes { display: grid; grid-auto-flow: column; grid-auto-columns: minmax(0, 1fr); gap: 6px; }
+.etape { all: unset; box-sizing: border-box; cursor: pointer; display: grid; gap: 1px; align-content: start; min-height: 66px; padding: 7px 9px; background: var(--surface); border: 1.5px solid var(--trait); border-radius: 8px; font-size: .84rem; line-height: 1.3; }
+.etape .n { font: 700 .72rem system-ui, sans-serif; color: var(--doux); }
+.etape small { color: var(--doux); font-size: .76rem; }
+.etape small code { font-size: .74rem; padding: 0 3px; }
+.etape.main { border-style: dashed; border-color: var(--doux); }
+.etape.trou { border-style: dashed; border-color: var(--rose); background: var(--rose-fond); }
+.etape.trou small { color: var(--rose); }
+.etape:hover { border-color: var(--texte); }
+.etape[aria-selected="true"] { border-style: solid; border-color: var(--texte); box-shadow: 0 0 0 1px var(--texte); }
+.etape:focus-visible { outline: 2px solid var(--texte); outline-offset: 2px; }
+.etape-carte { margin: 10px 0 4px; padding: 12px 16px; background: var(--surface); border: 1.5px solid var(--texte); border-radius: 10px; box-shadow: var(--ombre); }
+.etape-carte.trou { border-color: var(--rose); }
+.etape-carte h4 { margin: 0 0 6px; display: flex; gap: 8px; align-items: center; font-size: 1rem; }
+.etape-carte h4 .n { display: inline-grid; place-items: center; width: 20px; height: 20px; border-radius: 50%; background: var(--texte); color: var(--surface); font: 700 .72rem system-ui, sans-serif; }
+.etape-carte.trou h4 .n { background: var(--rose); }
+.etape-carte dl.faits { border-top: 0; padding: 0; margin: 0; }
+.legende-parcours { font-size: .82rem; margin: 6px 0 0; }
+/* 6. Ce que ucm check fait de chaque écart : trois cartes. */
+.verifs { display: grid; gap: 12px; grid-template-columns: repeat(3, minmax(0, 1fr)); margin: 10px 0; }
+.verifs .carte h4 .verdict { font-size: .88rem; }
+/* 7. Les pistes : une ligne par piste, la décision et la note à droite, la fiche dessous. */
+.piste { border: 1px solid var(--trait); border-radius: 10px; background: var(--surface); margin: 6px 0; }
+.piste-ligne { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 8px 16px; align-items: start; padding: 9px 12px; }
+.piste-gauche { display: grid; gap: 4px; min-width: 0; }
+.sujet { justify-self: start; margin-left: 60px; display: inline-flex; align-items: center; gap: 4px; font-size: .72rem; font-weight: 600; line-height: 1.4; padding: 1px 8px; border-radius: 999px; text-decoration: none; max-width: 100%; }
+a.sujet:hover { text-decoration: underline; }
+a.sujet:focus-visible { outline: 2px solid var(--texte); outline-offset: 2px; }
+.piste-bascule { all: unset; box-sizing: border-box; cursor: pointer; display: grid; grid-template-columns: 52px minmax(0, 1fr); gap: 2px 8px; align-items: baseline; border-radius: 6px; }
+.piste-bascule:focus-visible { outline: 2px solid var(--texte); outline-offset: 3px; }
+.piste-bascule .id { font-family: ui-monospace, Consolas, monospace; font-weight: 700; color: var(--doux); white-space: nowrap; }
+.piste-bascule .id::before { content: "›"; display: inline-block; width: 12px; transition: transform .15s; }
+.piste-bascule[aria-expanded="true"] .id { color: var(--texte); }
+.piste-bascule[aria-expanded="true"] .id::before { transform: rotate(90deg); }
+.piste-bascule .titre { font-weight: 600; }
+.piste-bascule .titre small { display: block; margin-top: 3px; font-weight: 400; font-size: .84rem; color: var(--texte); }
+.piste-bascule .titre small.cout { color: var(--doux); }
+.piste-bascule .titre small b { font-size: .72rem; text-transform: uppercase; letter-spacing: .05em; color: var(--doux); margin-right: 6px; }
+.piste .coherence { display: block; margin-top: 4px; }
+.piste.decide-non .piste-bascule .titre { opacity: .55; }
+.fiche-piste { display: grid; gap: 4px; padding: 4px 14px 14px 72px; border-top: 1px solid var(--trait); }
+.fiche-piste .meta { margin: 8px 0 2px; font-size: .82rem; color: var(--doux); }
+.fiche-piste .meta .imp { font-weight: 600; color: var(--texte); }
+.fiche-piste h4 { font-size: .74rem; text-transform: uppercase; letter-spacing: .06em; color: var(--doux); margin: 10px 0 2px; }
+.fiche-piste p { margin: 2px 0; font-size: .92rem; }
+.fiche-piste .points td:first-child { white-space: nowrap; }
+.fiche-piste ul { margin: 2px 0; padding-left: 18px; font-size: .92rem; }
+.fiche-piste ul.criteres { list-style: none; padding-left: 0; }
+.fiche-piste ul.criteres li::before { content: "☐ "; color: var(--doux); }
+@media (max-width: 860px) {
+  ol.flux { grid-template-columns: 1fr; gap: 22px; }
+  ol.flux li:not(:last-child)::after { content: "↓"; right: auto; left: 18px; top: auto; bottom: -21px; transform: none; }
+  .grille.deux-cartes, .verifs { grid-template-columns: 1fr; }
+  .parcours { grid-template-columns: 1fr; }
+  .parcours .etapes { grid-auto-flow: row; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .piste-ligne { grid-template-columns: minmax(0, 1fr); }
+  .sujet { margin-left: 0; }
+  .piste-ligne .choix-ligne { min-width: 0; }
+  .fiche-piste { padding-left: 14px; }
+}
+
+/* Étiquette d'un produit cité dans le texte (page.js, « Produits cités ») : teinte et encre du logo, lien vers la carte de la partie 2. */
+a.produit { color: var(--encre, var(--texte)); background: var(--teinte, var(--surface-2)); font-weight: 600; text-decoration: none; padding: 0 .32em; border-radius: 4px; white-space: nowrap; box-decoration-break: clone; -webkit-box-decoration-break: clone; transition: background-color .15s; }
+a.produit:hover { background: color-mix(in srgb, var(--teinte, var(--surface-2)) 86%, var(--encre, var(--texte))); }
+a.produit:focus-visible { outline: 2px solid var(--vif); outline-offset: 1px; }
+.p-palettes { --encre: var(--p-palettes); --teinte: var(--p-palettes-fond); --vif: var(--p-palettes-vif); }
+.p-architect { --encre: var(--p-architect); --teinte: var(--p-architect-fond); --vif: var(--p-architect-vif); }
+.p-exporter { --encre: var(--p-exporter); --teinte: var(--p-exporter-fond); --vif: var(--p-exporter-vif); }
+.p-cli, .p-adaptateur { --encre: var(--p-toolkit); --teinte: var(--p-toolkit-fond); --vif: var(--p-toolkit-vif); }
+/* La carte atteinte par une étiquette s'entoure un instant de la couleur du produit. */
+.fiche.vise { animation: vise 1.8s ease-out; }
+@keyframes vise { from { box-shadow: 0 0 0 3px var(--vif); } to { box-shadow: 0 0 0 3px transparent; } }
+/* Retour au lien d'où l'on est parti (page.js, « Revenir »). */
+.revenir { position: fixed; right: 20px; bottom: 20px; z-index: 10; display: flex; align-items: center; gap: 8px; max-width: min(360px, calc(100vw - 32px)); background: var(--texte); color: var(--surface); border: 0; border-radius: 8px; padding: 8px 14px; font-size: .88rem; box-shadow: 0 4px 14px rgb(0 0 0 / .18); text-align: left; }
+.revenir:hover { background: #000; }
+.revenir small { color: #c9ced8; font-size: .8rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.revenir-ici { animation: revenir-ici 1.6s ease-out; border-radius: 4px; }
+@keyframes revenir-ici { from { outline: 2px solid var(--texte); outline-offset: 2px; } to { outline: 2px solid transparent; outline-offset: 2px; } }
+@media (max-width: 860px) { .revenir { right: 16px; bottom: 16px; } }
+
+
+.page { max-width: 1400px; }
+section.partie.large { max-width: none; }
+.bandeau-maquette { margin: 0 0 18px; padding: 10px 14px; border: 1px dashed var(--doux); border-radius: 8px; font-size: .88rem; color: var(--doux); background: var(--surface-2); }
+.bandeau-maquette b { color: var(--texte); }
+.variante { margin: 44px 0 8px; padding: 6px 12px; border-left: 4px solid var(--violet); background: var(--violet-fond); font-weight: 700; font-size: .95rem; border-radius: 4px; }
+.variante span { font-weight: 400; color: var(--doux); }
+/* États calculés : couleur, signe et mot. */
+.e-idee { color: var(--doux); background: var(--surface-2); } .e-idee::before { content: "○"; }
+.e-recherche { color: var(--bleu); background: var(--bleu-fond); } .e-recherche::before { content: "◇"; }
+.e-cours { color: var(--orange); background: var(--orange-fond); } .e-cours::before { content: "◑"; }
+.e-livree { color: var(--olive); background: var(--olive-fond); } .e-livree::before { content: "✓"; }
+.attend { display: inline-flex; align-items: center; gap: 4px; font-size: .78rem; font-weight: 600; padding: 1px 8px 1px 6px; border-radius: 999px; white-space: nowrap; line-height: 1.5; }
+.attend.toi { color: var(--ambre); background: var(--ambre-fond); border: 1px solid #e9c46a; } .attend.toi::before { content: "?"; font-weight: 800; }
+.attend.piste { color: var(--doux); background: var(--surface); border: 1px dashed #b8bec8; font-weight: 500; } .attend.piste::before { content: "⏸"; font-size: .7rem; }
+.attentes { display: flex; flex-wrap: wrap; gap: 4px; }
+/* Outils au-dessus de la table : un choix segmenté et un filtre. */
+.rm-outils { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; margin: 12px 0 8px; font-size: .85rem; }
+.segmente { display: inline-flex; align-items: center; gap: 0; border: 1px solid var(--trait); border-radius: 7px; overflow: hidden; }
+.segmente .lib { padding: 0 10px; color: var(--doux); }
+.segmente button { all: unset; cursor: pointer; padding: 4px 12px; border-left: 1px solid var(--trait); }
+.segmente button[aria-pressed="true"] { background: var(--texte); color: var(--surface); font-weight: 600; }
+.segmente button:focus-visible, .filtre-attente:focus-visible { outline: 2px solid var(--texte); outline-offset: 2px; }
+.filtre-attente { all: unset; cursor: pointer; display: inline-flex; gap: 6px; align-items: center; padding: 4px 12px; border: 1px solid #e9c46a; border-radius: 999px; color: var(--ambre); background: var(--surface); font-weight: 600; }
+.filtre-attente[aria-pressed="true"] { background: var(--ambre-fond); box-shadow: inset 0 0 0 1px var(--ambre); }
+.rm-outils .compte { margin-left: auto; color: var(--doux); }
+/* La table des pistes. */
+.rm { width: 100%; border-collapse: collapse; font-size: .9rem; background: var(--surface); border: 1px solid var(--trait); border-radius: 10px; overflow: hidden; }
+.rm th { text-align: left; font-size: .7rem; text-transform: uppercase; letter-spacing: .06em; color: var(--doux); font-weight: 600; padding: 8px 10px; background: var(--surface-2); border-bottom: 1px solid var(--trait); white-space: nowrap; }
+.rm td { padding: 8px 10px; border-bottom: 1px solid var(--trait); vertical-align: middle; }
+.rm tr.groupe td { font-size: .72rem; text-transform: uppercase; letter-spacing: .06em; color: var(--doux); font-weight: 700; padding: 14px 10px 5px; background: var(--surface); }
+.rm tr.groupe td span { text-transform: none; letter-spacing: 0; font-weight: 400; margin-left: 6px; }
+.rm tr.rm-ligne { cursor: pointer; }
+.rm tr.rm-ligne:hover { background: #f8f9fb; }
+.rm tr.rm-ligne.ouverte { background: #f8f9fb; }
+.rm td.n { text-align: center; font-variant-numeric: tabular-nums; width: 44px; }
+.rm .rang { font-weight: 700; }
+.rm .toi-rang { display: block; margin-top: 2px; font-size: .62rem; font-weight: 700; color: var(--violet); background: var(--violet-fond); border-radius: 4px; padding: 0 3px; }
+.rm-bascule { all: unset; cursor: pointer; display: inline-flex; gap: 6px; align-items: baseline; border-radius: 4px; }
+.rm-bascule:focus-visible { outline: 2px solid var(--texte); outline-offset: 2px; }
+.chev::before { content: "›"; display: inline-block; width: 10px; font-weight: 700; color: var(--doux); transition: transform .15s; }
+[aria-expanded="true"] > .chev::before { transform: rotate(90deg); }
+.rm .id { font-family: ui-monospace, Consolas, monospace; font-weight: 700; color: var(--doux); font-size: .85rem; }
+.rm .titre { font-weight: 600; }
+.rm .sujet { margin: 0; }
+.rm .sous { display: flex; flex-wrap: wrap; gap: 4px 10px; align-items: center; margin: 3px 0 0 16px; font-size: .78rem; color: var(--doux); }
+.rm .sous a { color: var(--doux); white-space: nowrap; }
+.rm .sous b { color: var(--texte); }
+.rm col.c-rang { width: 52px; } .rm col.c-piste { width: 280px; } .rm col.c-etat { width: 136px; } .rm col.c-lots { width: 384px; }
+.rm { table-layout: fixed; }
+details.lots-plus > summary { cursor: pointer; list-style: none; font-size: .82rem; color: var(--doux); padding: 2px 0; }
+details.lots-plus > summary::-webkit-details-marker { display: none; }
+details.lots-plus > summary::before { content: '›'; display: inline-block; width: 12px; font-weight: 700; transition: transform .15s; }
+details.lots-plus[open] > summary::before { transform: rotate(90deg); }
+.rm .docs a { font-size: .8rem; white-space: nowrap; margin-right: 6px; }
+.rm .cout { font-weight: 700; color: var(--doux); text-align: center; }
+.rm .date { color: var(--doux); font-size: .78rem; white-space: nowrap; }
+/* La rangée des lots : un carré par case du plan, un écart entre deux titres « Lot N ». */
+.lots { display: inline-flex; flex-wrap: nowrap; gap: 6px; align-items: center; vertical-align: middle; }
+.lots .g { display: inline-flex; gap: 2px; }
+.lots i { display: block; width: 9px; height: 9px; border-radius: 2px; border: 1px solid #868e9c; background: var(--surface); }
+.lots i.f { background: var(--olive); border-color: var(--olive); }
+.lots i.m { background: #f5c451; border-color: var(--ambre); border-radius: 50%; }
+.lots i.b { background: repeating-linear-gradient(45deg, #c9ced8 0 2px, var(--surface) 2px 4px); border-color: #868e9c; }
+.lots i.s { border: 2px solid var(--texte); }
+.lots .nb { font-size: .75rem; color: var(--doux); font-variant-numeric: tabular-nums; margin-left: 2px; }
+.legende-lots { display: flex; flex-wrap: wrap; gap: 4px 16px; align-items: center; font-size: .8rem; color: var(--doux); margin: 4px 0 10px; }
+.legende-lots span { display: inline-flex; align-items: center; gap: 5px; }
+.barre { display: inline-block; width: 64px; height: 6px; border-radius: 3px; background: var(--surface-2); vertical-align: middle; overflow: hidden; margin-right: 6px; }
+.barre b { display: block; height: 100%; background: var(--orange); }
+/* La fiche dépliée sous la ligne. */
+.rm tr.rm-fiche td { background: #fbfcfd; padding: 4px 18px 16px 62px; }
+.fiche-rm { display: grid; grid-template-columns: minmax(0, 1.05fr) minmax(0, 1fr); gap: 8px 32px; }
+.fiche-rm h4 { font-size: .72rem; text-transform: uppercase; letter-spacing: .06em; color: var(--doux); margin: 12px 0 3px; }
+.fiche-rm p, .fiche-rm li { font-size: .9rem; margin: 2px 0; }
+.fiche-rm ul { margin: 2px 0; padding-left: 18px; }
+.fiche-rm .resume { font-size: .95rem; margin-top: 12px; }
+ol.lots-detail { list-style: none; padding: 0; margin: 4px 0; font-size: .86rem; }
+ol.lots-detail li { display: grid; grid-template-columns: 14px 34px minmax(0, 1fr) auto; gap: 6px; align-items: baseline; padding: 2px 0; }
+ol.lots-detail li .lots i { margin-top: 2px; }
+ol.lots-detail .num { font-family: ui-monospace, Consolas, monospace; color: var(--doux); font-size: .8rem; }
+ol.lots-detail .h { font-family: ui-monospace, Consolas, monospace; color: var(--doux); font-size: .75rem; }
+ol.lots-detail li.fait .txt { color: var(--doux); }
+ol.lots-detail li.m .txt { font-weight: 600; }
+ol.lots-detail li.gr { display: block; font-size: .7rem; font-weight: 700; text-transform: uppercase; letter-spacing: .05em; color: var(--doux); margin-top: 6px; }
+details.lots-faits > summary { cursor: pointer; list-style: none; font-size: .82rem; color: var(--doux); }
+details.lots-faits > summary::-webkit-details-marker { display: none; }
+details.lots-faits > summary::before { content: "›"; display: inline-block; width: 12px; font-weight: 700; transition: transform .15s; }
+details.lots-faits[open] > summary::before { transform: rotate(90deg); }
+.rang-bloc { margin-top: 14px; padding: 10px 12px; border: 1px solid var(--trait); border-radius: 8px; background: var(--surface); }
+.rang-bloc p { margin: 0 0 6px; }
+.rang-bloc .raison { color: var(--violet); }
+.rang-bloc details > summary { cursor: pointer; font-size: .85rem; font-weight: 600; list-style: none; }
+.rang-bloc details > summary::-webkit-details-marker { display: none; }
+.rang-bloc details > summary::before { content: "›"; display: inline-block; width: 12px; transition: transform .15s; }
+.rang-bloc details[open] > summary::before { transform: rotate(90deg); }
+.form-rang { display: grid; gap: 8px; margin-top: 8px; font-size: .85rem; }
+.form-rang select, .form-rang textarea { font: inherit; font-size: .85rem; padding: 4px 8px; border: 1px solid var(--trait); border-radius: 6px; background: var(--surface); color: var(--texte); }
+.form-rang textarea { min-height: 52px; resize: vertical; }
+.form-rang .copie { font-size: .8rem; color: var(--olive); }
+.form-rang pre { margin: 0; white-space: pre-wrap; font: .78rem/1.5 ui-monospace, Consolas, monospace; background: var(--code); padding: 8px; border-radius: 6px; }
+.livrees-rm { margin: 12px 0; font-size: .9rem; color: var(--doux); }
+.livrees-rm a { color: var(--texte); }
+/* Board et matrice. */
+.board { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; align-items: start; }
+.colonne { background: var(--surface-2); border-radius: 10px; padding: 8px; min-height: 120px; }
+.colonne h3 { margin: 2px 4px 8px; font-size: .8rem; text-transform: uppercase; letter-spacing: .05em; color: var(--doux); display: flex; justify-content: space-between; }
+.colonne h3 .etat { text-transform: none; letter-spacing: 0; }
+.carte-piste { display: block; width: 100%; text-align: left; font: inherit; background: var(--surface); border: 1px solid var(--trait); border-radius: 8px; padding: 8px 10px; margin: 0 0 8px; cursor: pointer; box-shadow: var(--ombre); }
+.carte-piste:hover { border-color: #b8bec8; }
+.carte-piste:focus-visible { outline: 2px solid var(--texte); outline-offset: 2px; }
+.carte-piste .haut { display: flex; gap: 6px; align-items: center; font-size: .78rem; color: var(--doux); }
+.carte-piste .haut .id { font-family: ui-monospace, Consolas, monospace; font-weight: 700; color: var(--texte); }
+.carte-piste .haut .r { margin-left: auto; font-weight: 700; }
+.carte-piste .t { font-weight: 600; font-size: .9rem; margin: 2px 0 4px; }
+.carte-piste .lots { margin: 4px 0; flex-wrap: wrap; }
+.carte-piste .attentes { margin-top: 4px; }
+.matrice { width: 100%; border-collapse: separate; border-spacing: 6px; table-layout: fixed; }
+.matrice th { font-size: .72rem; text-transform: uppercase; letter-spacing: .05em; color: var(--doux); text-align: left; padding: 2px 4px; }
+.matrice th.lr { width: 150px; text-transform: none; letter-spacing: 0; font-size: .8rem; color: var(--texte); vertical-align: top; padding-top: 8px; }
+.matrice th.lr small { display: block; color: var(--doux); font-weight: 400; }
+.matrice td { background: var(--surface-2); border-radius: 8px; vertical-align: top; padding: 6px; }
+.matrice td.vide { background: repeating-linear-gradient(45deg, var(--surface-2) 0 6px, var(--surface) 6px 12px); }
+.matrice .carte-piste { padding: 6px 8px; margin-bottom: 6px; }
+.matrice td.alerte-case { box-shadow: inset 0 0 0 2px var(--rose); }
+.panneau { position: fixed; top: 0; right: 0; bottom: 0; width: 520px; background: var(--surface); border-left: 1px solid var(--trait); box-shadow: -8px 0 24px rgb(0 0 0 / .08); padding: 18px 22px; overflow-y: auto; z-index: 20; }
+.panneau .fermer { position: absolute; top: 12px; right: 14px; }
+.panneau .fiche-rm { grid-template-columns: 1fr; }
+.panneau h3 { margin: 0 30px 4px 0; }
+.panneau p > a + a, .carte-piste a + a { margin-left: 10px; }
+/* Questions au mainteneur en fin de maquette. */
+.questions-maquette { margin-top: 48px; }
+.questions-maquette table { width: 100%; border-collapse: collapse; font-size: .88rem; }
+.questions-maquette th, .questions-maquette td { text-align: left; vertical-align: top; padding: 8px 10px; border-bottom: 1px solid var(--trait); }
+.questions-maquette th { font-size: .72rem; text-transform: uppercase; letter-spacing: .06em; color: var(--doux); background: var(--surface-2); }
+.questions-maquette ol { margin: 0; padding-left: 18px; }
+.questions-maquette .reco { color: var(--olive); font-weight: 600; }
+
+</style>
+</head>
+<body>
+<div class="page">
+<nav class="sommaire" aria-label="Sommaire">
+  <div class="titre">Inventaire UCM Toolkit</div>
+  <div class="date">Généré depuis le code du dépôt</div>
+  <ol>
+    <li><a href="#">Le concept UCM</a></li><li><a href="#">Les outils</a></li><li><a href="#">Le parcours d'un composant</a></li>
+    <li><a href="#">Les variables Figma</a></li><li><a href="#">Le contrat</a></li><li><a href="#">Ce qui est vérifié</a></li>
+    <li><a href="#roadmap" class="actif">Roadmap</a></li><li><a href="#">Expliquer UCM</a></li><li><a href="#">Annexes</a></li>
+  </ol>
+</nav>
+<main>
+
+<div class="bandeau-maquette"><b>Maquette A, la table calculée.</b> Données réelles du dépôt, calculées par <code>maquettes/donnees.mjs</code>. Deux versions l’une sous l’autre, pour comparer. A1 n’affiche pas les lots. A2 ajoute une rangée de carrés par piste. La fiche de P6 est ouverte. Le rang de P17 montre un rang posé par le mainteneur, tiré de sa note dans <code>decisions.json</code>.</div>
+<div class="variante">A1 · Sans les lots <span>l’avancement tient dans l’étiquette d’état</span></div>
+<section class="partie large" id="roadmap-a1">
+  <h2><span class="num">7</span>Roadmap</h2>
+  <p class="defini">Calculé depuis <code>pistes.json</code> et le plan de chaque piste, dans <code>docs/notes/Recherches/</code>.</p>
+  <p class="intro">Chaque ligne est une piste à venir, rangée par rang. Son état et ses lots viennent de son plan à chaque génération de la page. Un clic sur la ligne ouvre sa fiche.</p>
+  <div class="rm-outils">
+    <div class="segmente" role="group" aria-label="Grouper les pistes"><span class="lib">Grouper par</span><button type="button" data-groupe="rang" aria-pressed="true">Rang</button><button type="button" data-groupe="etat" aria-pressed="false">État</button></div>
+    <button type="button" class="filtre-attente" aria-pressed="false">Attend ta décision <b>9</b></button>
+    <span class="compte"></span>
+  </div>
+  <table class="rm"></table>
+  <p class="livrees-rm"><span class="etat e-livree">Livrées</span> <a href="#">P19 Verdict de ucm check</a>, <a href="#">P21 Architecture complète</a>. Une piste dont toutes les cases sont cochées quitte la table.</p>
+</section>
+<div class="variante">A2 · Avec les lots <span>une rangée de carrés, un carré par case du plan</span></div>
+<section class="partie large" id="roadmap-a2">
+  <h2><span class="num">7</span>Roadmap</h2>
+  <p class="defini">Calculé depuis <code>pistes.json</code> et le plan de chaque piste, dans <code>docs/notes/Recherches/</code>.</p>
+  <p class="intro">Chaque ligne est une piste à venir, rangée par rang. Son état et ses lots viennent de son plan à chaque génération de la page. Un clic sur la ligne ouvre sa fiche.</p>
+  <div class="rm-outils">
+    <div class="segmente" role="group" aria-label="Grouper les pistes"><span class="lib">Grouper par</span><button type="button" data-groupe="rang" aria-pressed="true">Rang</button><button type="button" data-groupe="etat" aria-pressed="false">État</button></div>
+    <button type="button" class="filtre-attente" aria-pressed="false">Attend ta décision <b>9</b></button>
+    <span class="compte"></span>
+  </div>
+  <div class="legende-lots"><span><span class="lots"><i class="f"></i></span>fait</span><span><span class="lots"><i class="m"></i></span>attend ta décision</span><span><span class="lots"><i class="b"></i></span>attend une autre piste</span><span><span class="lots"><i class="s"></i></span>suivant, prêt pour un agent</span><span><span class="lots"><i></i></span>à faire</span><span>Le survol d’un carré donne la case du plan.</span></div>
+  <table class="rm"></table>
+  <p class="livrees-rm"><span class="etat e-livree">Livrées</span> <a href="#">P19 Verdict de ucm check</a>, <a href="#">P21 Architecture complète</a>. Une piste dont toutes les cases sont cochées quitte la table.</p>
+</section>
+<section class="questions-maquette"><h3>Questions à trancher</h3><table><tr><th>Question</th><th>Options</th><th>Proposition</th></tr><tr><td>Les lots dans la table</td><td><ol><li>A1, l’état seul, « En cours · 6/28 »</li><li>A2, la rangée de carrés</li><li>A2 seulement dans la fiche, A1 dans la table</li></ol></td><td class="reco">A2. Le lot qui attend ta décision se voit sans ouvrir la fiche.</td></tr><tr><td>L’ordre par défaut</td><td><ol><li>Par rang, le choix « État » regroupe autrement</li><li>Par état, les pistes en cours en tête</li><li>Par rang, avec les pistes en cours en tête de chaque rang</li></ol></td><td class="reco">Par rang, avec le choix segmenté.</td></tr><tr><td>Changer un rang</td><td><ol><li>Copier une demande pour un agent, qui écrit pistes.json et commite</li><li>Un petit serveur local lancé par npm run inventaire écrit pistes.json</li><li>Tu modifies pistes.json à la main</li></ol></td><td class="reco">Copier une demande. Aucune API de fichier, aucun serveur.</td></tr><tr><td>Le graphe des dépendances</td><td><ol><li>Le retirer, « Dépend de » et « Débloque » restent dans la fiche</li><li>Le garder replié sous la table</li><li>Le remplacer par la colonne « Ce qui attend »</li></ol></td><td class="reco">Le retirer. La colonne « Ce qui attend » nomme le prérequis qui bloque.</td></tr><tr><td>Les décisions « On fait » et la note</td><td><ol><li>Les retirer, le rang du mainteneur les remplace</li><li>Garder « On ne fait pas » pour écarter une piste, avec une raison</li><li>Les garder</li></ol></td><td class="reco">Garder seulement « Écarter », avec une raison, dans le même bloc que le rang.</td></tr></table></section>
+
+</main>
+</div>
+<script>
+
+var PISTES = [{"id":"P1","titre":"Contrats réels dans intencial-library","titreCourt":"Contrats réels","sujet":"Bibliothèque de production","rang":0,"rangEffectif":0,"rangDuMainteneur":null,"importance":"critique","complexite":"M","coutHumain":"Exporter 3 ou 4 composants depuis Figma, relire leurs pull requests et rejouer la recette d'une heure et demie.","resume":"Exporter 3 ou 4 composants en contrat 14.0 dans intencial-library, passer son workflow de la CLI 0.1.48 à 0.1.150 et rejouer la recette externe.","raisonImportance":"Le dépôt n'a aucun dossier `src/components` ni contrat, et aucun contrat 14.0 n'existe nulle part : un module n'aurait rien contre quoi coder ni tester.","dependances":[],"debloque":["P18","P10","P9","P6","P11"],"prerequisEnAttente":[],"recherche":"","plan":"","questions":["Quels composants : Button, Alert, TileLink, et quel composé ?","La recette se joue-t-elle sur intencial-library ou reste-t-elle sur UCM-Playground ?"],"risques":["Sans `package.json` ni lockfile, `ucm.yml` saute `npm ci` : l'adaptateur TypeScript ne se charge pas et la parité reste muette.","Le passage de 0.1.48 à 0.1.150 change le texte des rapports déjà publiés sur les pull requests."],"criteresDeFin":["Trois contrats au moins portent `\"contractVersion\": \"14.0\"` dans `../intencial-library/src/components/` et sont arrivés par des pull requests du plugin.","`npx --yes @ucm-kit/cli@0.1.150 check --report ci-report.md` sort en 0 dans intencial-library.","`grep 0.1.48 ../intencial-library/.github/workflows/ucm.yml` ne rend rien.","Les sept critères de l'étape 7 de RECETTE.md sont consignés."],"alertes":[],"lots":null,"faits":0,"etat":"idee","attente":[{"genre":"toi","texte":"À lancer, rien de commencé","detail":"Rang 0 ou 1 sans recherche ni plan"}],"dernierLot":null},{"id":"P18","titre":"Socle React et TypeScript d'intencial-library","titreCourt":"Socle React et TS","sujet":"Bibliothèque de production","rang":1,"rangEffectif":1,"rangDuMainteneur":null,"importance":"critique","complexite":"M","coutHumain":"Aucun geste. intencial-library reste une bibliothèque seule, privée et non publiée pour l'instant.","resume":"Créer `package.json`, lockfile, `tsconfig.json` et `src/components/` dans intencial-library, et installer la CLI et l'adaptateur. Le repository n'a pas besoin des tokens.","raisonImportance":"Le dépôt ne contient que `tokens.json` : sans lockfile, `ucm.yml` saute `npm ci`, l'adaptateur ne se charge pas et aucun module n'a de projet où s'exécuter.","dependances":["P1","P19"],"debloque":["P9","P6"],"prerequisEnAttente":["P1"],"recherche":"docs/notes/Recherches/Socle intencial-library/PLAN-SOCLE-INTENCIAL-LIBRARY.md","plan":"docs/notes/Recherches/Socle intencial-library/PLAN-SOCLE-INTENCIAL-LIBRARY.md","questions":[],"risques":["L'adaptateur cherche une interface nommée d'après le composant (`nomInterfaceAttendue`). Une interface nommée autrement que `ButtonProps` donne le seul écart « interface absente », et aucune prop n'est comparée."],"criteresDeFin":["`npm ci` puis `npx ucm check` dans intencial-library chargent l'adaptateur et le rapport contient la section de parité.","`tsc --noEmit` passe dans le job `contrats`.","intencial-library épingle la CLI qui contient P19, en version exacte."],"alertes":[],"lots":[{"groupe":"","num":"1","fait":true,"hashes":["62d32976"],"date":null,"attend":"","texte":"Socle React et TypeScript : package.json, package-lock.json, tsconfig.json, src/, la CLI…"},{"groupe":"","num":"2","fait":false,"hashes":[],"date":null,"attend":"P1","texte":"npm ci puis npx ucm check chargent l'adaptateur, et le rapport contient la section de pa…"},{"groupe":"","num":"3","fait":false,"hashes":[],"date":null,"attend":"","texte":"tsc --noEmit passe dans le job contrats du CI.","suivante":true},{"groupe":"","num":"4","fait":true,"hashes":["62d32976"],"date":null,"attend":"","texte":"intencial-library épingle @ucm-kit/cli 0.2.0 et @ucm-kit/adapter-typescript 0.2.11, qui…"}],"faits":2,"etat":"en-cours","attente":[{"genre":"piste","texte":"Lot 2 attend P1","detail":"npm ci puis npx ucm check chargent l'adaptateur, et le rapport contient la section de pa…"}],"dernierLot":null},{"id":"P19","titre":"Verdict de ucm check selon la demande","titreCourt":"Verdict de ucm check","sujet":"Règle de blocage","rang":1,"rangEffectif":1,"rangDuMainteneur":null,"importance":"critique","complexite":"L","coutHumain":"Relire la partie 1 de la décision, puis les dérogations que le rapport de chaque export montre.","resume":"Faire bloquer `ucm check` sur un écart du code quand la demande touche le code du composant, et marquer « en retard sur son contrat » quand seul le contrat change, avec une dérogation motivée qui passe.","raisonImportance":"`bilanEstBloquant` ne compte ni les tokens absents ni la parité, donc le CI laisse fusionner tout écart du code quelle que soit la règle écrite.","dependances":[],"debloque":["P18","P23","P20"],"prerequisEnAttente":[],"recherche":"docs/notes/Recherches/Linter Dev/DECISION-VERDICT-UCM-CHECK.md","plan":"docs/notes/Recherches/Linter Dev/PLAN-VERDICT-UCM-CHECK.md","questions":[],"risques":["Après la fusion d'une variante par le designer, le CI de `main` devient rouge si le push n'a pas de base.","Un délai « en retard » non encodé n'est jamais appliqué.","Le parcours GitLab (`packages/cli/src/rapport-gitlab.mjs`) doit suivre le même verdict."],"criteresDeFin":["Un test : une demande qui modifie `Button.tsx` avec un écart de parité rend `bloquant: true`.","Un test : une demande qui modifie seulement `Button.contract.json` et ajoute une variante rend `bloquant: false` et l'état « en retard sur son contrat ».","Un test : une demande de tokens seuls rend `bloquant: false`.","Un test : une dérogation avec motif rend `bloquant: false` et l'affiche « à valider ».","`node scripts/run-tests.cjs` passe dans `packages/kit`, `packages/cli` et à la racine, dont `versionSuitLeContenu`.","Le kit, la CLI et l'adaptateur sont servis par le registre.","Le workflow qu'écrit `ucm init` lance la CLI installée par le repository, sans recopier son numéro de version dans `ucm.yml`."],"alertes":[],"lots":[{"groupe":"","num":"1","fait":true,"hashes":["ae4c0323"],"date":"2026-11-19","attend":"","texte":"Écarts identifiés (implementeur)."},{"groupe":"","num":"2","fait":true,"hashes":["35dcbe19"],"date":"2026-11-19","attend":"","texte":"Dérogations (implementeur)."},{"groupe":"","num":"3","fait":true,"hashes":["bd04e26a"],"date":"2026-11-19","attend":"","texte":"Règle du verdict, avec les 20 cas V-01 à V-20 et deux mutations vérifiées (implementeur-…"},{"groupe":"","num":"4","fait":true,"hashes":["31d34d5d"],"date":"2026-11-19","attend":"","texte":"Branchement et rapport (implementeur-exigeant)."},{"groupe":"","num":"5","fait":true,"hashes":["54810f28"],"date":"2026-11-19","attend":"","texte":"Mesures de la CLI (implementeur-exigeant)."},{"groupe":"","num":"6","fait":true,"hashes":["29924f65"],"date":"2026-11-19","attend":"","texte":"Consommateur (implementeur)."},{"groupe":"","num":"7","fait":true,"hashes":["b0c35d08"],"date":"2026-11-19","attend":"","texte":"Documents (implementeur)."},{"groupe":"","num":"8","fait":true,"hashes":["21b78694"],"date":"2026-11-19","attend":"","texte":"Publication commune avec P21 (conversation principale, skill publier-paquets)."}],"faits":8,"etat":"livree","attente":[],"dernierLot":"2026-11-19"},{"id":"P22","titre":"Pièces internes décrites en entier dans le contrat de l'hôte","titreCourt":"Pièces internes complètes","sujet":"Format du contrat","rang":1,"rangEffectif":1,"rangDuMainteneur":null,"importance":"critique","complexite":"L","coutHumain":"Décider la forme du bloc des pièces internes et l'endroit où le designer écrit ses règles d'usage ; réexporter les composants qui en ont.","resume":"Une pièce interne, dont le nom commence par `.` ou `_`, n'a ni contrat ni collection. Le contrat de son composant hôte doit la décrire comme un composant : toutes ses variantes, toutes ses propriétés, et ce que chaque variante dessine.","raisonImportance":"Aujourd'hui l'Exporter parcourt la pièce interne comme une partie de l'hôte : le contrat montre seulement l'état où chaque variant de l'hôte la pose. Ses autres variantes et ses propriétés manquent, si bien qu'un développeur ou un agent invente l'API de la pièce, que le code doit pourtant écrire comme un sous-composant (`.Ring`, `.sizeWrapperButton`).","dependances":[],"debloque":[],"prerequisEnAttente":[],"recherche":"docs/notes/Recherches/Pièces internes/RECHERCHE-PIECES-INTERNES.md","plan":"","questions":["Le bloc des pièces internes se range-t-il à la racine du contrat de l'hôte, ou à côté de `composes` ?","Une pièce à propriétés a des règles d'usage sans avoir de contrat (décidé) : où le designer les pose-t-il, et l'export bloque-t-il quand elles manquent ?","Une pièce interne imbriquée dans une autre pièce interne se décrit-elle à plat dans l'hôte ?","Ses tokens restent-ils ceux de l'hôte, ou la pièce peut-elle lier `theme` et `layout` comme le permet aujourd'hui son maître ?"],"risques":["Une pièce à beaucoup de variantes alourdit chaque contrat qui l'embarque : la décrire une fois par hôte, pas une fois par instance.","Un changement de version du contrat demande un réexport de tous les composants et une sortie coordonnée du kit, de la CLI et de l'Exporter."],"criteresDeFin":["Le contrat d'un hôte qui embarque une pièce interne à 3 variantes contient les 3 variantes et toutes les propriétés de la pièce, même si l'hôte n'en pose qu'une.","Chaque instance posée de la pièce renvoie à la variante qu'elle montre, sans recopier sa description.","`npm run schema` régénère le schéma, et `npm test` passe avec la nouvelle version du contrat.","Un réexport réel d'un composant avec une pièce interne (par exemple un Button avec `.Ring`) passe `ucm check`."],"alertes":[],"lots":null,"faits":0,"etat":"recherche","attente":[{"genre":"toi","texte":"Tes réponses, 4 questions","detail":"Questions de la recherche"}],"dernierLot":null},{"id":"P21","titre":"Architecture de référence complète dans le kit","titreCourt":"Architecture complète","sujet":"Architecture des tokens","rang":1,"rangEffectif":1,"rangDuMainteneur":null,"importance":"haute","complexite":"L","coutHumain":"Aucun geste. Les six choix sont tranchés, et la référence suit l'export actuel.","resume":"Le kit définit les 7 collections, leurs cibles, leurs familles et la grammaire de leurs noms, et le contenu complet de theme. Il ne définit ni les variables attendues de brands, utility, layout et typography, ni leurs valeurs de référence, et aucun outil n'écrit ces quatre collections.","raisonImportance":"Sans architecture de référence complète, un nouveau design system UCM se monte à la main, et la seule vue complète du dépôt (`VUE-ILLUSTREE-MULTIMARQUES.html`) vient d'un export figé aux anciens noms.","dependances":[],"debloque":[],"prerequisEnAttente":[],"recherche":"docs/notes/Recherches/Archi Tokens Multi-marques/PROPOSITION-REFERENCE-COMPLETE.md","plan":"docs/notes/Recherches/Archi Tokens Multi-marques/PLAN-REFERENCE-COMPLETE.md","questions":[],"risques":["Une échelle de référence imposée gêne une équipe qui en a déjà une : la référence décrit le full UCM, l'Exporter reste agnostique en option."],"criteresDeFin":["Le kit exporte la liste des variables attendues de chaque collection, et un test la compare à `FORMES_DES_CHEMINS`.","La vue illustrée et le panneau de cette page lisent la même référence, et un test refuse une vue périmée.","Aucun nom ancien (`color-brands`, `colors`, `press`) ne reste dans les données de la vue illustrée."],"alertes":[],"lots":[{"groupe":"","num":"1","fait":true,"hashes":["ae75122b"],"date":"2026-11-19","attend":"","texte":"La référence dans le kit (implementeur)."},{"groupe":"","num":"2","fait":true,"hashes":["d641fc43"],"date":"2026-11-19","attend":"","texte":"C82 dans brands et utility (implementeur-exigeant)."},{"groupe":"","num":"3","fait":true,"hashes":["f2d9edda"],"date":"2026-11-19","attend":"","texte":"Architect crée les alias (implementeur-exigeant)."},{"groupe":"","num":"4","fait":true,"hashes":["7caae0cb"],"date":"2026-11-19","attend":"","texte":"Générateur et vue illustrée (implementeur)."},{"groupe":"","num":"5","fait":true,"hashes":["7ef32c04"],"date":"2026-11-19","attend":"","texte":"Comparaison au nouvel export, rapport local (verificateur qui lit _local/exports-figma/,…"}],"faits":5,"etat":"livree","attente":[],"dernierLot":"2026-11-19"},{"id":"P10","titre":"Comparateur du rendu au contrat","titreCourt":"Comparateur de rendu","sujet":"Vérification du rendu","rang":2,"rangEffectif":2,"rangDuMainteneur":null,"importance":"haute","complexite":"L","coutHumain":"Répondre à quatre questions de conception : `data-ucm-slot`, ordre des slots, états, passes de mesure.","resume":"Écrire dans le kit le format de l'observation normalisée et la fonction qui compare une observation, une combinaison et le contrat, plus une feuille de tokens à valeur unique par token.","raisonImportance":"Aucun contrôle n'exerce le rendu (ROADMAP.md, « La preuve du rendu reste ciblée ») : sans comparateur, dimensions, typographie et structure ne bloquent jamais.","dependances":["P1"],"debloque":["P20"],"prerequisEnAttente":["P1"],"recherche":"docs/notes/Recherches/Comparateur de rendu/RECHERCHE-COMPARATEUR-RENDU.md","plan":"","questions":["Adopte-t-on `data-ucm-slot`, et reste-t-il en production ?","La famille « structure et ordre » se mesure-t-elle par l'ordre des slots dans le DOM ?","Couvre-t-on survol, focus et appui dès la première version ?","Une valeur unique de dimension ou de typographie change la géométrie : fait-on deux passages, un pour l'identité des tokens, un pour la géométrie ?"],"risques":["La feuille à valeur unique déforme la mise en page et fausse les mesures de géométrie si un seul passage sert aux deux.","Un comparateur plus précis que le contrat impose une écriture du code (règle du bloc B : `background` ou `background-color`)."],"criteresDeFin":["Le témoin conforme rend 0 écart.","Une mutation de couleur, de padding, de police et d'ordre des slots rend chacune un écart localisé.","Deux tokens de même valeur sont distingués sous la feuille à valeur unique.","Aucun test ni module du comparateur ne cite un nom de composant."],"alertes":[],"lots":null,"faits":0,"etat":"recherche","attente":[{"genre":"toi","texte":"Tes réponses, 4 questions","detail":"Questions de la recherche"},{"genre":"piste","texte":"Après P1","detail":"Prérequis pas encore livrés"}],"dernierLot":null},{"id":"P9","titre":"Storybook généré, vitrine à la place du Hub","titreCourt":"Storybook généré","sujet":"Modules consommateurs","rang":2,"rangEffectif":2,"rangDuMainteneur":null,"importance":"haute","complexite":"L","coutHumain":"Répondre à trois questions : lieu du générateur, arrêt du Hub, version de `CSF`.","resume":"Générer une story par entrée exacte de `variants`, monter le Storybook dans intencial-library, ajouter `figmaFileKey` à `ucm.config.json` et retirer le Hub.","raisonImportance":"Le vérificateur de rendu a besoin d'un montage de chaque combinaison, et l'équipe n'a pas d'autre vitrine que le Hub, que la décision remplace.","dependances":["P1","P18"],"debloque":["P20","P24","P8"],"prerequisEnAttente":["P1","P18"],"recherche":"","plan":"","questions":["Le générateur vit-il dans le toolkit (définition) ou dans la bibliothèque (intégration) ?","Quand le Hub s'arrête-t-il, et que deviennent ses pages de palettes et de tokens ?","Quelle version de `CSF` cibler (`CSF` 3 ou `CSF` Next) ?","La prise `@ucm-kit/core/modules` publie-t-elle aussi des données du référentiel, comme les crans des palettes ou les icônes, pour qu'un Storybook ou un autre module les affiche ? Aujourd'hui, elle ne publie que 7 fonctions et le type `Contract`, et ces données restent dans les portes réservées au toolkit.","Le Storybook porte-t-il une page de suivi pour les développeurs : composants en retard sur leur contrat et depuis quand, dérogations à valider, écarts de parité ? Sans elle, un développeur n'apprend un retard que par le rapport de la demande de fusion du designer."],"risques":["Un composant qui exige un contexte applicatif ne se monte pas seul : il doit apparaître compté, jamais omis.","Les stories métier écrites à la main se mélangent aux fichiers régénérés si leur emplacement n'est pas séparé."],"criteresDeFin":["Le Storybook contient une story par entrée de `variants` de chaque contrat, sans produit cartésien.","Ajouter une variante au contrat change seulement la story correspondante.","`lireConfiguration` rend `figmaFileKey` et `configuration.test.mjs` le couvre.","Le build Storybook passe dans le CI d'intencial-library."],"alertes":[],"lots":null,"faits":0,"etat":"idee","attente":[{"genre":"piste","texte":"Après P1, P18","detail":"Prérequis pas encore livrés"}],"dernierLot":null},{"id":"P6","titre":"Linter ESLint, premier module","titreCourt":"Linter ESLint","sujet":"Modules consommateurs","rang":2,"rangEffectif":2,"rangDuMainteneur":null,"importance":"haute","complexite":"L","coutHumain":"Relire les choix du plan (D26 du cadrage). Le développeur donne la forme d'écriture des styles d'intencial-library et relit le contrat du plugin.","resume":"Livrer deux règles décidées, token inconnu et valeur en dur, en une publication : l'écriture des références par les aides, leur juge dans le kit avec la dérogation des constats, la lecture du code dans l'adaptateur, leur verdict dans `ucm check`, la commande `ucm deroger` et toutes les règles affichées dans l'inventaire. Le plugin ESLint de la bibliothèque affiche les constats. Les règles 3 et 4 (variante non publiée, élément visuel en plus) restent ouvertes.","raisonImportance":"Sans linter, une valeur écrite en dur passe pour conforme au vérificateur quand elle égale un token, et une nouvelle valeur du designer ne se propage pas.","dependances":["P18","P1"],"debloque":["P24","P8","P13"],"prerequisEnAttente":["P18","P1"],"recherche":"docs/notes/Recherches/Linter Dev/RECHERCHE-CADRAGE-P6.md","plan":"docs/notes/Recherches/Linter Dev/PLAN-IMPLEMENTATION-P6-KIT.md","questions":["Le linter refuse-t-il une prop, une variante ou un élément absents du contrat (règles 3 et 4) ?"],"risques":["Une bibliothèque qui écrit ses styles hors des objets `style` (CSS Modules, CSS-in-JS) laisse le linter presque sans rien à juger.","Un agent qui oublie `ucm tokens references` laisse des `\"{chemin}\"` dans le code ; `--verifier` et le juge les voient.","Le cache ESLint reste désactivé au premier lot ; le juge relit ses entrées à chaque préparation.","Une publication d'une autre session avant la fin de P6 exposerait un travail inachevé ; le verrou de la skill `publier-paquets` l'empêche."],"criteresDeFin":["Les tests `RuleTester` des règles 1 et 2 passent.","Le même constat apparaît dans l'éditeur et dans le CI sur un fichier de test.","Les faux positifs et les usages non analysés sont comptés sur les composants réels de P1.","Une demande de `tokens.json` seul reste verte, et une demande de code qui touche un fichier fautif est rouge.","L'inventaire affiche les règles du linter, lues dans le code."],"alertes":[{"texte":"Obtenir du développeur la forme d'écriture des styles d'intencial-library et sa relecture du contrat du plugin. Le plan suppose les objets `style` et `CSSProperties`, et ne l'attend pas.","avant":"la publication de P6 (vague 4 du plan), pour un essai depuis des archives"},{"texte":"Retirer de `UCM-Playground/.ucm/conventions.md` la ligne « Traduire `{chemin.du.token}` » et la phrase « aucun helper partagé », puis épingler la CLI et l'adaptateur que P6 publie.","avant":"la réimplémentation à froid des composants de Playground en contrat v14"}],"lots":[{"groupe":"","num":"0.1","fait":true,"hashes":[],"date":null,"attend":"","texte":"Valeurs neutres (D6) : liste A, 0, none et fit-content."},{"groupe":"","num":"0.2","fait":true,"hashes":[],"date":null,"attend":"","texte":"L’explication pour le mainteneur vit dans un nouveau guide, docs/guides/LINTER-UCM.md, «…"},{"groupe":"","num":"0.3","fait":true,"hashes":[],"date":null,"attend":"","texte":"Les mots-clés que le contrat publie en clair (stretch, uppercase, center) comptent comme…"},{"groupe":"","num":"0.4","fait":true,"hashes":[],"date":null,"attend":"","texte":"Réalisation (b) avec un seul extracteur."},{"groupe":"","num":"0.5","fait":true,"hashes":[],"date":null,"attend":"","texte":"Écriture par défaut des références : \"var(--nom-exact)\" en toutes lettres, sans fonction…"},{"groupe":"","num":"0.6","fait":true,"hashes":[],"date":null,"attend":"","texte":"La chaîne d’un fichier d’implémentation qui ressemble à une valeur visuelle est jugée où…"},{"groupe":"","num":"0.8","fait":true,"hashes":[],"date":null,"attend":"","texte":"Valeurs neutres : 0, none, fit-content, currentColor, transparent."},{"groupe":"","num":"0.9","fait":true,"hashes":[],"date":null,"attend":"","texte":"Un constat du code se déroge par la même dérogation motivée que la parité, dans .ucm/der…"},{"groupe":"","num":"0.10","fait":true,"hashes":[],"date":null,"attend":"","texte":"Décision du mainteneur (Q1 A)."},{"groupe":"","num":"0.11","fait":true,"hashes":[],"date":null,"attend":"","texte":"Décision du mainteneur (Q2 C)."},{"groupe":"","num":"0.12","fait":true,"hashes":[],"date":null,"attend":"","texte":"Décision du mainteneur (Q3 A)."},{"groupe":"","num":"0.13","fait":true,"hashes":[],"date":null,"attend":"","texte":"Décision du mainteneur (Q4 B)."},{"groupe":"","num":"0.14","fait":true,"hashes":[],"date":null,"attend":"","texte":"Décision du mainteneur (Q5 A)."},{"groupe":"","num":"0.15","fait":true,"hashes":[],"date":null,"attend":"","texte":"Décision du mainteneur (Q6 A)."},{"groupe":"","num":"0.16","fait":true,"hashes":[],"date":null,"attend":"","texte":"Décision du mainteneur (Q7 A)."},{"groupe":"","num":"0.17","fait":true,"hashes":[],"date":null,"attend":"","texte":"npx ucm deroger <composant> <genre> <coordonnées…> --motif \"…\" remplit les coordonnées,…"},{"groupe":"","num":"0.18","fait":true,"hashes":[],"date":null,"attend":"","texte":"Chaque donnée (code, liste, raison, état, message, commande) a une source unique, lue pa…"},{"groupe":"","num":"0.19","fait":true,"hashes":[],"date":null,"attend":"","texte":"Le plan n’attend pas le développeur."},{"groupe":"","num":"0.20","fait":false,"hashes":[],"date":null,"attend":"","texte":"Commiter ce plan, le cadrage, pistes.json et INVENTAIRE-UCM.html régénéré par npm run vu…","suivante":true},{"groupe":"","num":"0.21","fait":false,"hashes":[],"date":null,"attend":"","texte":"Écrire nomsCssDesTokens (S-04), le code ci-dessous tel quel."},{"groupe":"","num":"1.1","fait":false,"hashes":[],"date":null,"attend":"","texte":"Juge du kit et dérogation des constats du code."},{"groupe":"","num":"1.2","fait":false,"hashes":[],"date":null,"attend":"","texte":"Lecteur du code dans l’adaptateur."},{"groupe":"","num":"1.3","fait":false,"hashes":[],"date":null,"attend":"","texte":"Écriture des références et ucm tokens references."},{"groupe":"","num":"2.1","fait":false,"hashes":[],"date":null,"attend":"","texte":"Constats du code dans le verdict d’ucm check."},{"groupe":"","num":"2.2","fait":false,"hashes":[],"date":null,"attend":"","texte":"ucm deroger, rangs du composant et procédure."},{"groupe":"","num":"2.3","fait":false,"hashes":[],"date":null,"attend":"","texte":"Parité des aides et du juge."},{"groupe":"","num":"3.1","fait":false,"hashes":[],"date":null,"attend":"","texte":"Les deux prises."},{"groupe":"","num":"3.2","fait":false,"hashes":[],"date":null,"attend":"","texte":"Toutes les règles dans l’inventaire."},{"groupe":"","num":"3.3","fait":false,"hashes":[],"date":null,"attend":"","texte":"Guide, skill, invariants, cartes."},{"groupe":"","num":"4.1","fait":false,"hashes":[],"date":null,"attend":"","texte":"Monter le kit et l’adaptateur à leur dernier chiffre suivant, la CLI au chiffre du milie…"},{"groupe":"","num":"4.2","fait":false,"hashes":[],"date":null,"attend":"","texte":"npm run agents:diff, npm run build, npm run vues, npm test, npm run typecheck."},{"groupe":"","num":"4.3","fait":false,"hashes":[],"date":null,"attend":"","texte":"Relire le diff de 3.1 et 4.1."},{"groupe":"","num":"4.4","fait":false,"hashes":[],"date":null,"attend":"","texte":"Mettre à jour l’alerte Playground de P6 dans pistes.json avec les versions publiées de l…"}],"faits":18,"etat":"en-cours","attente":[{"genre":"toi","texte":"2 alertes","detail":"Obtenir du développeur la forme d'écriture des styles d'intencial-library et sa relecture du contrat du plugin. Le plan suppose les objets `style` et `CSSProperties`, et ne l'attend pas. / Retirer de `UCM-Playground/.ucm/conventions.md` la ligne « Traduire `{chemin.du.token}` » et la phrase « aucun helper partagé », puis épingler la CLI et l'adaptateur que P6 publie."},{"genre":"piste","texte":"Après P18, P1","detail":"Prérequis pas encore livrés"}],"dernierLot":null},{"id":"P23","titre":"Sélection des tokens et sortie Style Dictionary dans UCM Exporter","titreCourt":"Sélection des tokens","sujet":"Modules consommateurs","rang":2,"rangEffectif":2,"rangDuMainteneur":null,"importance":"haute","complexite":"XL","coutHumain":"Répondre aux dix questions de la recherche, fournir la configuration Style Dictionary du consommateur, puis réexporter les tokens depuis Figma pour la recette.","resume":"Aligner la bascule Composant et Tokens de l'Exporter sur celle d'UCM Architect, laisser cocher les collections et les modes exportés dans `tokens.json`, puis convertir ce fichier pour Style Dictionary par une commande de la CLI.","raisonImportance":"Un repository consommateur ne remplace sa chaîne Supernova que si ses équipes choisissent les collections et les modes exportés et si son build Style Dictionary lit le résultat ; l'Exporter publie aujourd'hui toutes les variables locales, sans choix.","dependances":["P19"],"debloque":[],"prerequisEnAttente":[],"recherche":"docs/notes/Recherches/Plugin Exporter/RECHERCHE-SELECTION-ET-STYLE-DICTIONARY.md","plan":"","questions":["Q1 : la bascule de l'Exporter reprend-elle celle d'Architect, avec son dessin de choix segmenté pour une navigation entre vues ?","Q4 : le choix des collections se range-t-il sur le poste, dans `ucm.config.json` ou dans le document Figma ?","Q5 : le designer peut-il choisir le mode de base d'une collection, comme dans Supernova ?","Q8 : une commande de la CLI qui ne lit que le format respecte-t-elle la règle « seul l'Exporter est agnostique » ?","Q9 : quelle version de Style Dictionary le build du consommateur emploie-t-il ?","Q10 : faut-il reproduire l'arborescence de l'exporteur Supernova ?"],"risques":["Un axe écarté en entier fait sortir `ucm tokens css` en erreur quand `ucm.config.json` le déclare sous `modes` (`packages/cli/src/tokens-css.mjs`, ligne 123).","`primitives` écartée transforme chaque lien de `brands` et de `utility` en constat du diagnostic d'architecture (P21).","Un choix rangé sur le poste n'est pas partagé : deux designers qui exportent vers le même repository publient deux sélections différentes.","Le lot du diagnostic des tokens touche `diagnostic-tokens.mjs` et `controle-repository.mjs`, que P19 modifie."],"criteresDeFin":["La galerie de l'Exporter montre un état Composant et un état Tokens, et une sélection Figma vide ouvre le plugin en Tokens.","Un test : un export dont une collection est décochée ne porte aucun `\"$value\": null` de plus que l'export complet.","Un test : `com.ucm.axes` ne nomme que les modes exportés, et le mode par défaut ne se décoche pas.","Un test : un composant qui cite un token d'une collection écartée reçoit un avertissement qui nomme la collection.","Un test construit chaque fichier de `ucm tokens style-dictionary` avec Style Dictionary 5.8.0, sans `[object Object]` dans le CSS.","`npm run fidelite --workspace ucm-architect-plugin` ne rend aucun nouvel écart après le déplacement de la bascule."],"alertes":[],"lots":null,"faits":0,"etat":"recherche","attente":[{"genre":"toi","texte":"Tes réponses, 6 questions","detail":"Questions de la recherche"}],"dernierLot":null},{"id":"P20","titre":"Vérificateur de rendu dans le CI","titreCourt":"Vérificateur de rendu","sujet":"Vérification du rendu","rang":3,"rangEffectif":3,"rangDuMainteneur":null,"importance":"haute","complexite":"L","coutHumain":"Répondre à trois questions : blocage ou période d'observation, lieu de validation du rendu, Playwright ou Chromatic.","resume":"Observer chaque story dans un navigateur, appeler le comparateur, garder les captures validées et faire entrer les écarts dans le rapport unique.","raisonImportance":"C'est la seule pièce qui fait bloquer dimensions, typographie et structure, et qui garde une capture validée contre un changement du code seul.","dependances":["P10","P9","P19","P17"],"debloque":["P24","P8","P13"],"prerequisEnAttente":["P10","P9","P17"],"recherche":"docs/notes/Recherches/Linter Dev/PLAN-CONFORMITE-RENDU.md","plan":"","questions":["Le vérificateur bloque-t-il dès sa mise en service, ou avertit-il pendant une période d'observation ?","Où le designer valide-t-il un rendu, et où cette validation s'enregistre-t-elle ?","Playwright avec captures dans Git, ou Chromatic payant ?","Une prévisualisation des composants modifiés, publiée sur la demande de fusion, laisse-t-elle le designer bloquer la fusion sur le rendu ?"],"risques":["Les polices de Linux en CI rendent autrement que la machine du designer : captures instables.","Le temps du job croît avec le nombre de combinaisons."],"criteresDeFin":["Un écart injecté de couleur, de padding, de police et d'ordre rend le job rouge avec composant, combinaison, slot, attendu et obtenu.","Une demande qui change seulement le code et modifie une capture validée est rouge.","Une demande qui change le contrat et les captures est verte, captures « à valider ».","Une dérogation motivée rend le job vert et apparaît dans le rapport."],"alertes":[],"lots":null,"faits":0,"etat":"recherche","attente":[{"genre":"toi","texte":"Tes réponses, 4 questions","detail":"Questions de la recherche"},{"genre":"piste","texte":"Après P10, P9, P17","detail":"Prérequis pas encore livrés"}],"dernierLot":null},{"id":"P17","titre":"Verrou de fusion sur intencial-library","titreCourt":"Verrou de fusion","sujet":"Règle de blocage","rang":0,"rangEffectif":4,"rangDuMainteneur":{"rang":4,"raison":"On le fait mais plus tard, ce n'est pas prioritaire pour le moment."},"importance":"critique","complexite":"S","coutHumain":"Décider de l'offre GitHub de l'organisation, régler la règle de la branche `main` et désigner les propriétaires de code.","resume":"Rendre le check `contrats` obligatoire sur `main` d'intencial-library et poser un `CODEOWNERS` qui laisse le designer fusionner seul une demande de tokens.","raisonImportance":"Sans protection de branche, une pull request rouge reste fusionnable : ROADMAP.md et POUR-LES-DESIGNERS.md §6 le disent, et toute règle de blocage reste un conseil.","dependances":[],"debloque":["P20"],"prerequisEnAttente":[],"recherche":"","plan":"","questions":["L'offre GitHub de l'organisation permet-elle la protection de branche sur un dépôt privé, et qui en est administrateur ?","Qui sont les propriétaires de code de `src/components/**` ?","Un administrateur garde-t-il le droit de contourner la règle ?"],"risques":["Un administrateur qui contourne la règle rend le verrou facultatif.","Une revue obligatoire posée sur toute la branche empêche le designer de fusionner seul une demande de tokens, contrairement à la décision."],"criteresDeFin":["Une pull request de rebut au check `contrats` rouge affiche un bouton de fusion désactivé.","Une pull request qui touche seulement `src/tokens/tokens.json` se fusionne sans approbation d'un développeur.","La ligne de ROADMAP.md sur les protections de branche est mise à jour ou retirée."],"alertes":[],"lots":null,"faits":0,"etat":"idee","attente":[],"dernierLot":null},{"id":"P24","titre":"Page santé des composants dans Storybook","titreCourt":"Santé des composants","sujet":"Modules consommateurs","rang":4,"rangEffectif":4,"rangDuMainteneur":null,"importance":"moyenne","complexite":"M","coutHumain":"Dire quelles métriques la page montre en premier.","resume":"Une page de Storybook sert de hub. Pour chaque composant, elle affiche l'état que le kit calcule (conforme, en retard, écart, non analysé), les constats par règle et leurs nombres, et elle alerte quand l'implémentation s'écarte du contrat.","raisonImportance":"Le rapport d'`ucm check` ne parle que de la demande en cours : rien ne montre l'état de toute la bibliothèque, ni les composants en retard sur leur contrat.","dependances":["P9","P6","P20"],"debloque":[],"prerequisEnAttente":["P9","P6","P20"],"recherche":"","plan":"","questions":["Quel nom la prise ajoute-t-elle pour lire l'état des composants, quand la page l'importe ?"],"risques":["Une page qui recalculerait l'état elle-même divergerait du verdict d'`ucm check`."],"criteresDeFin":["Un composant dont le code s'écarte de son contrat apparaît en alerte sur la page, sans geste manuel.","La page et le rapport d'`ucm check` donnent le même état pour chaque composant."],"alertes":[],"lots":null,"faits":0,"etat":"idee","attente":[{"genre":"piste","texte":"Après P9, P6, P20","detail":"Prérequis pas encore livrés"}],"dernierLot":null},{"id":"P8","titre":"Intégration automatique des contrats dans le code","titreCourt":"Intégration auto","sujet":"Modules consommateurs","rang":4,"rangEffectif":4,"rangDuMainteneur":null,"importance":"moyenne","complexite":"XL","coutHumain":"Répondre à deux questions : plafond de sessions, propriétaire des fichiers de l'agent. Mesurer le temps humain d'un réexport.","resume":"Faire écrire un composant par un agent qui corrige jusqu'à un rapport vide du linter et du vérificateur, au lieu du compilateur des lots 0 à 6.","raisonImportance":"La revue du plan d'implémenteur estime le compilateur à 34 à 61 sessions sans volume pour l'amortir ; la boucle agent ne vaut qu'avec le vérificateur.","dependances":["P20","P6","P9"],"debloque":[],"prerequisEnAttente":["P20","P6","P9"],"recherche":"docs/notes/Recherches/Optimisation Tokens/Formalisation de la solution/PLAN-IMPLEMENTEUR.md","plan":"","questions":["Quel plafond de sessions et quel horizon de remboursement (décision 21 de la revue) ?","Qui possède les fichiers produits par l'agent (décision 28) ?"],"risques":["Le comportement ne se déduit pas du contrat (revue §2.2) : l'agent peut rendre un composant conforme au rendu et faux dans son action."],"criteresDeFin":["Un agent produit un composant d'un contrat 14.0 réel et le CI rend un rapport vide sans retouche humaine.","Le temps humain d'un réexport est mesuré avant et après."],"alertes":[],"lots":null,"faits":0,"etat":"recherche","attente":[{"genre":"toi","texte":"Tes réponses, 2 questions","detail":"Questions de la recherche"},{"genre":"piste","texte":"Après P20, P6, P9","detail":"Prérequis pas encore livrés"}],"dernierLot":null},{"id":"P11","titre":"Diff sémantique de deux exports","titreCourt":"Diff sémantique","sujet":"Outils de revue","rang":4,"rangEffectif":4,"rangDuMainteneur":null,"importance":"basse","complexite":"L","coutHumain":"Consigner la porte H1 et répondre à une question : l'entrée du diff dans le rapport.","resume":"Exécuter PLAN-DIFF-SEMANTIQUE.md : `ucm diff --base` compare contrats et tokens entre une révision et l'arbre de travail.","raisonImportance":"Le diff aide la revue sans rien bloquer ; la revue du plan d'implémenteur juge qu'on peut démarrer sans lui (décision 8).","dependances":["P1"],"debloque":[],"prerequisEnAttente":["P1"],"recherche":"docs/notes/Recherches/Diff Sémantique/PLAN-DIFF-SEMANTIQUE.md","plan":"","questions":["Le diff entre-t-il dans le rapport de pull request, que le plan exclut ?"],"risques":["Un résumé exact mais trop long n'est pas adopté (critère H1)."],"criteresDeFin":["Les conditions du §12 du plan sont remplies.","Deux exécutions de `ucm diff --base <révision> --json` sur les mêmes entrées écrivent le même JSON.","La porte H1 est consignée."],"alertes":[],"lots":null,"faits":0,"etat":"recherche","attente":[{"genre":"toi","texte":"Tes réponses, 1 question","detail":"Questions de la recherche"},{"genre":"piste","texte":"Après P1","detail":"Prérequis pas encore livrés"}],"dernierLot":null},{"id":"P13","titre":"Éditeur, MCP, autres langages et Code Connect","titreCourt":"Éditeur, MCP, autres","sujet":"Outils de revue","rang":5,"rangEffectif":5,"rangDuMainteneur":null,"importance":"basse","complexite":"XL","coutHumain":"Répondre à deux questions : quelle piste d'abord, et les sièges Figma pour Code Connect.","resume":"Regrouper les pistes PISTES-EVOLUTION.md §2.5, §3.2 (écarts dans l'éditeur au-delà du linter) et §4.2 (serveur MCP), et l'ouverture de la CLI à d'autres adaptateurs.","raisonImportance":"La stack décidée est React et TypeScript, et un agent de code lit déjà les fichiers du dépôt : rien ne bloque les modules sans ces pistes.","dependances":["P6","P20"],"debloque":[],"prerequisEnAttente":["P6","P20"],"recherche":"docs/notes/Recherches/Evolutions globales/PISTES-EVOLUTION.md","plan":"","questions":["Quelle piste d'abord, et sur quel besoin observé ?","L'équipe a-t-elle les sièges Figma que Code Connect exige ?"],"risques":["Un serveur MCP double la skill et les lecteurs s'il ne sert pas des révisions identifiées."],"criteresDeFin":["Un essai choisi est mesuré selon PISTES-EVOLUTION.md §6.3 avant tout paquet."],"alertes":[],"lots":null,"faits":0,"etat":"recherche","attente":[{"genre":"toi","texte":"Tes réponses, 2 questions","detail":"Questions de la recherche"},{"genre":"piste","texte":"Après P6, P20","detail":"Prérequis pas encore livrés"}],"dernierLot":null},{"id":"P16","titre":"Index des décisions citées dans le code","titreCourt":"Index des décisions","sujet":"Documentation","rang":5,"rangEffectif":5,"rangDuMainteneur":null,"importance":"basse","complexite":"M","coutHumain":"Répondre à une question : un document nouveau ou une table dans un document existant.","resume":"Relier chaque identifiant de décision cité dans `packages/*/src` à sa source : 58 identifiants Q-F… dans 25 fichiers, 28 N-… dans 13, 11 E-… dans 8.","raisonImportance":"Un contributeur qui lit `(Q-F5-6)` ne trouve pas la décision, mais le code reste correct sans l'index.","dependances":[],"debloque":[],"prerequisEnAttente":[],"recherche":"","plan":"","questions":["Faut-il un document nouveau, ou une table dans un document existant ?"],"risques":["Des décisions consignées seulement dans des archives retirées du dépôt n'ont qu'un lien Git figé."],"criteresDeFin":["Chaque identifiant cité dans `packages/*/src` mène à un document ou un commit.","Le test refuse un identifiant ajouté sans entrée."],"alertes":[],"lots":null,"faits":0,"etat":"idee","attente":[],"dernierLot":null}];
+var SUJETS = {"Règle de blocage":{"texte":"#86198f","fond":"#fae8ff"},"Vérification du rendu":{"texte":"#155e75","fond":"#cffafe"},"API du kit":{"texte":"#3730a3","fond":"#e0e7ff"},"Modules consommateurs":{"texte":"#115e59","fond":"#ccfbf1"},"Bibliothèque de production":{"texte":"#78350f","fond":"#f0e0cc"},"Architecture des tokens":{"texte":"#5b21b6","fond":"#ede9fe"},"Format du contrat":{"texte":"#065f46","fond":"#a7f3d0"},"Documentation":{"texte":"#3f6212","fond":"#d9f99d"},"Outils de revue":{"texte":"#075985","fond":"#bae6fd"}};
+var RANGS = ['Avant d’ouvrir le projet', 'Socle de la bibliothèque et verdict', 'Premiers modules', 'Vérification du rendu', 'Utile, sans urgence', 'Plus tard'];
+var ETATS = { idee: ['e-idee', 'Idée'], recherche: ['e-recherche', 'Recherche faite'], 'en-cours': ['e-cours', 'En cours'], livree: ['e-livree', 'Livrée'] };
+var GITHUB = 'https://github.com/Vassili-g/UCM-Toolkit/blob/main/';
+function esc(t) { return String(t).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;'); }
+function txt(t) { return esc(t).replace(/`([^`]+)`/g, '<code>$1</code>'); }
+function lien(chemin) { return GITHUB + chemin.split('/').map(encodeURIComponent).join('/'); }
+function par(id) { return PISTES.filter(function (p) { return p.id === id; })[0]; }
+function classeDuLot(l) { return l.fait ? 'f' : l.attend === 'mainteneur' ? 'm' : l.attend ? 'b' : l.suivante ? 's' : ''; }
+function motDuLot(l) { return l.fait ? 'fait' : l.attend === 'mainteneur' ? 'attend ta décision' : l.attend ? 'attend ' + l.attend : l.suivante ? 'suivant, prêt pour un agent' : 'à faire'; }
+function rangee(p) {
+  if (!p.lots) return '';
+  var groupes = [], courant = null;
+  p.lots.forEach(function (l) { if (!courant || courant.nom !== l.groupe) { courant = { nom: l.groupe, lots: [] }; groupes.push(courant); } courant.lots.push(l); });
+  return '<span class="lots" aria-label="' + p.faits + ' cases faites sur ' + p.lots.length + '">' + groupes.map(function (g) {
+    return '<span class="g">' + g.lots.map(function (l) { return '<i class="' + classeDuLot(l) + '" title="' + esc(l.num + ' · ' + motDuLot(l) + ' · ' + l.texte) + '"></i>'; }).join('') + '</span>';
+  }).join('') + '<span class="nb">' + p.faits + '/' + p.lots.length + '</span></span>';
+}
+function etatDe(p, avecCompte) {
+  var e = ETATS[p.etat];
+  return '<span class="etat ' + e[0] + '">' + e[1] + (avecCompte && p.lots ? ' · ' + p.faits + '/' + p.lots.length : '') + '</span>';
+}
+function attentes(p) {
+  return '<span class="attentes">' + p.attente.map(function (a) { return '<span class="attend ' + a.genre + '" title="' + esc(a.detail) + '">' + esc(a.texte) + '</span>'; }).join('') + '</span>';
+}
+function sujet(p) { var c = SUJETS[p.sujet]; return '<span class="sujet" style="color:' + c.texte + ';background:' + c.fond + '">' + esc(p.sujet) + '</span>'; }
+function docs(p) {
+  return (p.recherche ? '<a href="' + lien(p.recherche) + '" target="_blank" rel="noopener" title="' + esc(p.recherche.split('/').pop()) + '">Recherche ↗</a>' : '') +
+    (p.plan ? '<a href="' + lien(p.plan) + '" target="_blank" rel="noopener" title="' + esc(p.plan.split('/').pop()) + '">Plan ↗</a>' : '');
+}
+function liens(ids) { return ids.length ? ids.map(function (id) { var q = par(id); return q ? '<a href="#" data-ouvre="' + id + '">' + id + ' ' + esc(q.titreCourt) + '</a>' : id + ' (livrée)'; }).join(', ') : 'rien'; }
+function listeLots(p) {
+  if (!p.lots) return '';
+  var faits = p.lots.filter(function (l) { return l.fait; }), reste = p.lots.filter(function (l) { return !l.fait; });
+  function ligne(l, groupe) {
+    return (groupe ? '<li class="gr">' + esc(groupe) + '</li>' : '') + '<li class="' + (l.fait ? 'fait' : classeDuLot(l)) + '"><span class="lots"><i class="' + classeDuLot(l) + '"></i></span><span class="num">' + esc(l.num) + '</span><span class="txt">' + txt(l.texte) + (l.attend === 'mainteneur' ? ' <span class="attend toi">ta décision</span>' : l.attend ? ' <span class="attend piste">attend ' + esc(l.attend) + '</span>' : '') + '</span><span class="h">' + (l.hashes.length ? esc(l.hashes[0]) : '') + '</span></li>';
+  }
+  function bloc(lots) { var g = null; return lots.map(function (l) { var t = l.groupe !== g ? l.groupe : ''; g = l.groupe; return ligne(l, t); }).join(''); }
+  var groupes = [], index = {};
+  reste.forEach(function (l) { if (!(l.groupe in index)) { index[l.groupe] = groupes.length; groupes.push({ nom: l.groupe, lots: [] }); } groupes[index[l.groupe]].lots.push(l); });
+  var suite = groupes.map(function (g, i) {
+    var ouvert = i === 0 || g.lots.some(function (l) { return l.attend === 'mainteneur'; });
+    var nb = g.lots.length + (g.lots.length > 1 ? ' cases à faire' : ' case à faire');
+    var m = g.lots.filter(function (l) { return l.attend === 'mainteneur'; }).length;
+    if (ouvert) return '<ol class="lots-detail">' + bloc(g.lots) + '</ol>';
+    return '<details class="lots-plus"><summary>' + esc(g.nom || 'Suite') + ' · ' + nb + (m ? ', dont ' + m + ' pour toi' : '') + '</summary><ol class="lots-detail">' + bloc(g.lots) + '</ol></details>';
+  });
+  return '<h4>Lots du plan · ' + p.faits + ' faits sur ' + p.lots.length + '</h4>' +
+    (faits.length ? '<details class="lots-faits"><summary>' + faits.length + (faits.length > 1 ? ' cases faites' : ' case faite') + '</summary><ol class="lots-detail">' + bloc(faits) + '</ol></details>' : '') +
+    suite.join('');
+}
+function blocDuRang(p) {
+  var m = p.rangDuMainteneur;
+  var dit = m ? '<p>Rang <b>' + m.rang + '</b>, posé par toi. <span class="raison">« ' + esc(m.raison) + ' »</span> L’agent proposait le rang ' + p.rang + '.</p>'
+    : '<p>Rang <b>' + p.rang + '</b>, proposé par l’agent qui a écrit la piste. ' + txt(p.raisonImportance.split('. ')[0].replace(/\.$/, '')) + '.</p>';
+  var options = RANGS.map(function (r, i) { return '<option value="' + i + '"' + (i === p.rangEffectif ? ' selected' : '') + '>' + i + ' · ' + r + '</option>'; }).join('');
+  return '<div class="rang-bloc">' + dit + '<details><summary>Changer le rang</summary><div class="form-rang" data-piste="' + p.id + '">' +
+    '<label>Nouveau rang <select>' + options + '</select></label>' +
+    '<label>Ta raison, pour l’agent suivant<br><textarea placeholder="Pourquoi ce rang"></textarea></label>' +
+    '<span><button type="button" class="bouton copier-rang">Copier la demande pour un agent</button> <span class="copie" hidden>Copié. Colle-la dans une conversation.</span></span>' +
+    '<pre hidden></pre></div></details></div>';
+}
+function fiche(p, avecLots) {
+  var droite = '';
+  if (p.lots && avecLots) droite += listeLots(p);
+  else if (p.lots) droite += '<h4>Plan</h4><p>' + p.faits + ' cases faites sur ' + p.lots.length + '. <a href="' + lien(p.plan) + '" target="_blank" rel="noopener">Ouvrir le plan ↗</a></p>';
+  else if (p.recherche && p.questions.length) droite += '<h4>Questions de la recherche · ' + p.questions.length + '</h4><ul>' + p.questions.map(function (q) { return '<li>' + txt(q) + '</li>'; }).join('') + '</ul><p><a href="' + lien(p.recherche) + '" target="_blank" rel="noopener">Répondre dans la recherche ↗</a></p>';
+  else droite += '<h4>Finie quand</h4><ul>' + p.criteresDeFin.map(function (q) { return '<li>' + txt(q) + '</li>'; }).join('') + '</ul>';
+  droite += '<h4>Dépend de</h4><p>' + liens(p.dependances) + '</p><h4>Débloque</h4><p>' + liens(p.debloque) + '</p>' + blocDuRang(p);
+  var gauche = '<p class="resume">' + txt(p.resume) + '</p>' +
+    (p.alertes.length ? '<h4>À régler</h4><ul>' + p.alertes.map(function (a) { return '<li>' + txt(a.texte) + '</li>'; }).join('') + '</ul>' : '') +
+    '<h4>Si on ne fait pas</h4><p>' + txt(p.raisonImportance) + '</p>' +
+    '<h4>Ce que ça te demande</h4><p>' + txt(p.coutHumain) + ' <span class="doux">Taille ' + p.complexite + ' en travail d’agent.</span></p>' +
+    (p.risques.length ? '<h4>Risques</h4><ul>' + p.risques.map(function (r) { return '<li>' + txt(r) + '</li>'; }).join('') + '</ul>' : '');
+  return '<div class="fiche-rm"><div>' + gauche + '</div><div>' + droite + '</div></div>';
+}
+document.addEventListener('click', function (e) {
+  var b = e.target.closest && e.target.closest('.copier-rang');
+  if (!b) return;
+  var f = b.closest('.form-rang'), id = f.getAttribute('data-piste'), p = par(id);
+  var rang = f.querySelector('select').value, raison = f.querySelector('textarea').value.trim();
+  if (!raison) { f.querySelector('textarea').focus(); f.querySelector('textarea').placeholder = 'Écris une raison : l’agent suivant en a besoin.'; return; }
+  var texte = 'Dans pistes.json, pose le rang ' + rang + ' sur ' + id + ' (' + p.titreCourt + ') dans rangDuMainteneur, avec ma raison : « ' + raison + ' ». Puis lance npm run vues et commite pistes.json et INVENTAIRE-UCM.html.';
+  var pre = f.querySelector('pre'); pre.textContent = texte; pre.hidden = false;
+  try { navigator.clipboard.writeText(texte); } catch (x) {}
+  f.querySelector('.copie').hidden = false;
+});
+
+
+function table(racine, avecLots) {
+  var etat = { groupe: 'rang', filtre: false, ouvertes: { P6: true } };
+  function lignes() {
+    var liste = PISTES.filter(function (p) { return p.etat !== 'livree' && (!etat.filtre || p.attente.some(function (a) { return a.genre === 'toi'; })); });
+    var groupes = [];
+    if (etat.groupe === 'rang') {
+      [0, 1, 2, 3, 4, 5].forEach(function (r) { var l = liste.filter(function (p) { return p.rangEffectif === r; }); if (l.length) groupes.push(['Rang ' + r, RANGS[r], l]); });
+    } else {
+      [['en-cours', 'En cours'], ['recherche', 'Recherche faite'], ['idee', 'Idée']].forEach(function (e) { var l = liste.filter(function (p) { return p.etat === e[0]; }); if (l.length) groupes.push([e[1], l.length + (l.length > 1 ? ' pistes' : ' piste'), l]); });
+    }
+    var cols = avecLots ? 5 : 4;
+    var h = '<colgroup><col class="c-rang"><col class="c-piste"><col class="c-etat">' + (avecLots ? '<col class="c-lots">' : '') + '<col></colgroup><tr><th class="n">Rang</th><th>Piste</th><th>État</th>' + (avecLots ? '<th>Lots du plan</th>' : '') + '<th>Ce qui attend</th></tr>';
+    groupes.forEach(function (g) {
+      h += '<tr class="groupe"><td colspan="' + cols + '">' + g[0] + '<span>' + g[1] + '</span></td></tr>';
+      g[2].forEach(function (p) {
+        var ouvert = !!etat.ouvertes[p.id];
+        h += '<tr class="rm-ligne' + (ouvert ? ' ouverte' : '') + '" data-id="' + p.id + '">' +
+          '<td class="n"><span class="rang">' + p.rangEffectif + '</span>' + (p.rangDuMainteneur ? '<span class="toi-rang" title="' + esc('Posé par toi. ' + p.rangDuMainteneur.raison) + '">toi</span>' : '') + '</td>' +
+          '<td><button type="button" class="rm-bascule" aria-expanded="' + ouvert + '"><span class="chev" aria-hidden="true"></span><span class="id">' + p.id + '</span><span class="titre">' + esc(p.titreCourt) + '</span></button><span class="sous">' + sujet(p) + '<span title="Taille en travail d’agent">taille <b>' + p.complexite + '</b></span>' + docs(p) + '</span></td>' +
+          '<td>' + etatDe(p, !avecLots) + '</td>' +
+          (avecLots ? '<td>' + rangee(p) + '</td>' : '') +
+          '<td>' + attentes(p) + '</td></tr>';
+        h += '<tr class="rm-fiche"' + (ouvert ? '' : ' hidden') + '><td colspan="' + cols + '">' + fiche(p, avecLots) + '</td></tr>';
+      });
+    });
+    racine.querySelector('table.rm').innerHTML = h;
+    racine.querySelector('.compte').textContent = liste.length + ' pistes à venir';
+  }
+  racine.addEventListener('click', function (e) {
+    var s = e.target.closest('.segmente button');
+    if (s) { etat.groupe = s.getAttribute('data-groupe'); racine.querySelectorAll('.segmente button').forEach(function (b) { b.setAttribute('aria-pressed', b === s); }); lignes(); return; }
+    var f = e.target.closest('.filtre-attente');
+    if (f) { etat.filtre = !etat.filtre; f.setAttribute('aria-pressed', etat.filtre); lignes(); return; }
+    var o = e.target.closest('[data-ouvre]');
+    if (o) { e.preventDefault(); etat.ouvertes[o.getAttribute('data-ouvre')] = true; lignes(); return; }
+    if (e.target.closest('a, .rm-fiche, select, textarea, button:not(.rm-bascule)')) return;
+    var tr = e.target.closest('tr.rm-ligne');
+    if (tr) { var id = tr.getAttribute('data-id'); etat.ouvertes[id] = !etat.ouvertes[id]; lignes(); }
+  });
+  lignes();
+}
+table(document.getElementById('roadmap-a1'), false);
+table(document.getElementById('roadmap-a2'), true);
+
+</script>
+</body>
+</html>

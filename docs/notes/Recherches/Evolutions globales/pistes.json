@@ -720,11 +720,11 @@
       ],
       "alertes": [
         {
-          "texte": "Obtenir du développeur la forme d'écriture des styles d'intencial-library et sa relecture du contrat du plugin. Le plan suppose les objets `style` et `CSSProperties`, et ne l'attend pas.",
-          "avant": "la publication de P6 (vague 4 du plan), pour un essai depuis des archives"
+          "texte": "Obtenir du développeur la forme d'écriture des styles d'intencial-library et sa relecture du contrat du plugin. Le plan suppose les objets `style` et `CSSProperties` et publie sans attendre sa réponse. Une autre forme demandera une correction de l'adaptateur après publication.",
+          "avant": "la mise en service du linter dans intencial-library"
         },
         {
-          "texte": "Retirer de `UCM-Playground/.ucm/conventions.md` la ligne « Traduire `{chemin.du.token}` » et la phrase « aucun helper partagé », puis épingler la CLI et l'adaptateur que P6 publie.",
+          "texte": "Geste du mainteneur, après la publication de P6 : retirer de `UCM-Playground/.ucm/conventions.md` la ligne « Traduire `{chemin.du.token}` » et la phrase « aucun helper partagé », puis épingler la CLI et l'adaptateur que P6 publie.",
           "avant": "la réimplémentation à froid des composants de Playground en contrat v14"
         }
       ]
@@ -1145,6 +1145,68 @@
       ],
       "risques": [
         "Des décisions consignées seulement dans des archives retirées du dépôt n'ont qu'un lien Git figé."
+      ]
+    },
+    {
+      "id": "P25",
+      "titre": "Roadmap de l'inventaire calculée depuis les plans",
+      "titreCourt": "Roadmap calculée",
+      "sujet": "Documentation",
+      "recherche": "docs/notes/Recherches/Roadmap/RECHERCHE-ROADMAP.md",
+      "plan": "docs/notes/Recherches/Roadmap/PLAN-ROADMAP.md",
+      "resume": "Remplacer la section « La suite » de l'inventaire par une Roadmap dont l'état, l'avancement et l'attente se calculent depuis le plan de chaque piste. Le champ `etat` disparaît, `rang` devient `prio`, et le mainteneur pose une prio avec sa raison. Chaque sujet a son dossier de recherche, et un sujet livré s'archive par une skill.",
+      "importance": "moyenne",
+      "raisonImportance": "Le champ `etat` écrit à la main était faux pour 6 pistes sur 16, et le mainteneur ne pouvait pas se fier à la page pour suivre ses sujets.",
+      "rang": 4,
+      "dependances": [],
+      "complexite": "l",
+      "raisonComplexite": "Cinq vagues : lecture des plans, gardes et scripts, données et interface de la page, renommage de `ROADMAP.md`, premier archivage. La vague 3 attend la case 4.4 de P6, qui écrit les mêmes fichiers de l'inventaire.",
+      "coutHumain": "Répondre à cinq questions de la recherche, puis confirmer les fichiers supprimés au premier archivage.",
+      "porteur": "mainteneur",
+      "promesse": "C",
+      "etat": "à faire",
+      "points": [
+        {
+          "chemin": "docs/inventaire/plans.ts",
+          "action": "créer",
+          "quoi": "Lit les lots d'un plan et leurs marques : hash, `depot@hash`, `mainteneur`, `attend Pn`."
+        },
+        {
+          "chemin": "docs/inventaire/releves.ts",
+          "action": "modifier",
+          "quoi": "Calcule l'état, les lots, l'attente et la date du dernier lot de chaque piste."
+        },
+        {
+          "chemin": "docs/inventaire/page.js",
+          "action": "modifier",
+          "quoi": "Affiche la Roadmap de la maquette A2 v2 et la partie « Terminés »."
+        },
+        {
+          "chemin": "scripts/archiver-sujet.mjs",
+          "action": "créer",
+          "quoi": "Relève les citations de chaque fichier d'un sujet livré et propose de le garder ou de le supprimer."
+        },
+        {
+          "chemin": ".agents/skills/archiver-un-sujet/SKILL.md",
+          "action": "créer",
+          "quoi": "Procédure d'archivage d'un sujet livré, avec la confirmation du mainteneur."
+        },
+        {
+          "chemin": "ROADMAP.md",
+          "action": "modifier",
+          "quoi": "Devient `VALIDATIONS-MVP.md`."
+        }
+      ],
+      "criteresDeFin": [
+        "La section 7 de l'inventaire s'appelle « Roadmap » et reproduit la maquette A2 v2.",
+        "`pistes.json` n'a plus de champ `etat`, `rang` ni `alertes`.",
+        "Un test refuse un dossier de recherche non enregistré, un hash inconnu dans un plan et un plan sans piste.",
+        "P19 et P21 sont archivées et figurent dans la partie « Terminés » avec leur date."
+      ],
+      "questions": [],
+      "risques": [
+        "La lecture des plans par `git show` demande tout l'historique : le CI le clone déjà (`fetch-depth: 0`).",
+        "Une suppression mal jugée perd un fait qu'aucun test ne garde : la confirmation du mainteneur la précède."
       ]
     }
   ]
