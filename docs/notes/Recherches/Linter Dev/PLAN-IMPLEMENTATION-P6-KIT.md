@@ -450,7 +450,7 @@ Conversation principale. Charger `rediger-pour-agents` pour la skill,
 - [x] 4.3 Conversation principale. Relire le diff de 3.1 et 4.1. Retirer la puce « Verrou P6 » de `publier-paquets` dans le même commit que 3.1 et 4.1. Commiter par chemins explicites, pousser, puis publier le kit, la CLI et l’adaptateur, dans cet ordre, selon `publier-paquets`. Constater chaque version par `npm view <paquet>@<version> version`. Commit : `371b1eb7`, publiés : core 0.17.4, cli 0.3.0, adapter-typescript 0.2.14.
 - [x] 4.4 Conversation principale. Mettre à jour l’alerte Playground de P6 dans `pistes.json` avec les versions publiées de la CLI et de l’adaptateur. Cocher les cases, `npm run vues`, commiter, pousser. Remettre au développeur les trois versions à épingler à l’exact. Commit : `78f9cd0a` (l’alerte devient la case 4.5).
 
-- [ ] 4.5 (mainteneur). Retirer de `UCM-Playground/.ucm/conventions.md` la ligne « Traduire `{chemin.du.token}` » et la phrase « aucun helper partagé », puis épingler `@ucm-kit/cli` 0.3.0 et `@ucm-kit/adapter-typescript` 0.2.14 dans Playground, avant la réimplémentation à froid de ses composants en contrat v14.
+- [x] 4.5 (mainteneur). Retirer de `UCM-Playground/.ucm/conventions.md` la ligne « Traduire `{chemin.du.token}` » et la phrase « aucun helper partagé », puis épingler `@ucm-kit/cli` 0.3.0 et `@ucm-kit/adapter-typescript` 0.2.14 dans Playground, avant la réimplémentation à froid de ses composants en contrat v14. Commit : `UCM-Playground@e69653f`.
 
 ## Étape F, facultative, retour du développeur
 
