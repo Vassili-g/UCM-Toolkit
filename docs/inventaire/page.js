@@ -319,429 +319,244 @@
     });
   });
 
-  // Feuille de route : les pistes viennent de pistes.json (docs/notes/Recherches/Evolutions globales/), rangées par rang puis par importance.
+  // Roadmap : les pistes viennent de pistes.json et de leur plan (docs/notes/Recherches/), calculées par le générateur. Le script ne
+  // garde rien du choix du mainteneur : la prio se pose dans pistes.json, par l'agent à qui le formulaire donne la consigne.
   var PISTES = {{js:PISTES}};
   var SUJETS = {{js:SUJETS}};
-  PISTES.forEach(function (x) { x.complexite = x.complexite.toUpperCase(); });
-  // Les décisions que le dépôt porte (decisions.json) : la base de comparaison avec le choix gardé dans ce navigateur.
-  var DECISIONS_DU_DEPOT = {{js:DECISIONS}};
-  var RANGS = ['Avant d’ouvrir le projet', 'Socle de la bibliothèque et verdict', 'Premiers modules', 'Vérification du rendu', 'Utile, sans urgence', 'Plus tard'];
-  var IMPORTANCES = { critique: ['●●●', 'critique'], haute: ['●●', 'haute'], moyenne: ['●', 'moyenne'], basse: ['○', 'basse'] };
-  var TAILLES = { S: 'petite', M: 'moyenne', L: 'grande', XL: 'un projet' };
-  var PROMESSES = { R: 'robustesse', C: 'confiance' };
-  var PORTEURS = { mainteneur: 'porté par le mainteneur', 'développeurs': 'porté par les développeurs', 'les deux': 'porté par le mainteneur et les développeurs' };
-  function esc(t) { return String(t).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;'); }
+  var TERMINEES = {{js:TERMINEES}};
+  var PRIOS = ['Avant d’ouvrir le projet', 'Socle de la bibliothèque et verdict', 'Premiers modules', 'Vérification du rendu', 'Utile, sans urgence', 'Plus tard'];
+  var ETATS = { idee: ['e-idee', 'Idée'], recherche: ['e-recherche', 'Recherche faite'], 'en-cours': ['e-cours', 'En cours'] };
+  var IMPORTANCES = { critique: 0, haute: 1, moyenne: 2, basse: 3 };
+  PISTES.forEach(function (x) { x.complexite = String(x.complexite).toUpperCase(); });
+  PISTES.sort(function (a, b) { return a.prio - b.prio || IMPORTANCES[a.importance] - IMPORTANCES[b.importance]; });
+  var racine = document.getElementById('suite');
+  var tableau = racine.querySelector('table.rm');
+  function esc(t) { return String(t).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;'); }
+  function parId(id) { return PISTES.filter(function (p) { return p.id === id; })[0]; }
+  // Un identifiant de piste dans un texte renvoie à sa ligne, qu'elle soit à venir ou terminée.
   function txt(t) {
     return esc(t).replace(/`([^`]+)`/g, '<code>$1</code>').replace(/\b(P\d{1,2})\b/g, function (m) {
-      return PISTES.some(function (x) { return x.id === m; }) ? '<a href="#piste-' + m + '">' + m + '</a>' : m;
+      return parId(m) || TERMINEES.some(function (x) { return x.id === m; }) ? '<a href="#piste-' + m + '">' + m + '</a>' : m;
     });
-  }
-  function premierePhrase(t) { var m = String(t).match(/^[\s\S]*?[.!?](?=\s|$)/); return m ? m[0] : t; }
-  var ETATS = { 'à faire': ['decidee', 'décidée, à faire'], 'proposé': ['propose', 'proposée par une recherche'], 'ouvert': ['ouvert', 'question ouverte'] };
-  // Une piste reçoit son plan quand elle démarre : elle est alors en cours, même à 0 case cochée, et son avancement remplace la décision, qui est prise.
-  function enCours(x) { return !!x.avancement; }
-  function etatDAvancement(x) {
-    var a = x.avancement, fini = a.faites === a.total;
-    return [fini ? 'livre' : 'partiel', (fini ? 'Livrée' : 'En cours') + ' · ' + a.faites + '/' + a.total + ' étapes'];
   }
   function lienGitHub(chemin) { return 'https://github.com/Vassili-g/UCM-Toolkit/blob/main/' + chemin.split('/').map(encodeURIComponent).join('/'); }
-  // Le statut est un lien vers le plan, qui porte les cases.
-  function labelDAvancement(x) {
-    var e = etatDAvancement(x), nom = x.plan.split('/').pop(), url = lienGitHub(x.plan);
-    return '<div class="options"><a class="etat ' + e[0] + '" href="' + url + '" target="_blank" rel="noopener" title="' + esc(nom) + '" aria-label="' + esc(e[1] + ' : ouvrir ' + nom + ' sur GitHub, nouvel onglet') + '">' + e[1] + '</a></div>';
-  }
 
-  // Le graphe : prérequis, profondeur (nombre d'étapes de prérequis), descendantes et chemin critique, calculés depuis PISTES.
-  var PAR_ID = {}, PROFONDEUR = {}, DIRECTS = {}, ASCENDANTES = {}, DESCENDANTES = {};
-  PISTES.forEach(function (x) { PAR_ID[x.id] = x; DIRECTS[x.id] = []; });
-  PISTES.forEach(function (x) { x.dependances.forEach(function (d) { DIRECTS[d].push(x.id); }); });
-  function profondeur(id) {
-    if (id in PROFONDEUR) return PROFONDEUR[id];
-    var d = PAR_ID[id].dependances;
-    return (PROFONDEUR[id] = d.length ? 1 + Math.max.apply(null, d.map(profondeur)) : 0);
+  // Le repère « a bougé » : le navigateur garde la date de la dernière visite et celle d'avant. Une piste dont un lot est plus récent
+  // que la visite d'avant porte un point. Sans localStorage, aucune piste n'est marquée.
+  var CLE_VISITE = 'inventaire-ucm-visite';
+  var avant = null;
+  function aujourdhui() {
+    var d = new Date(), deux = function (n) { return (n < 10 ? '0' : '') + n; };
+    return d.getFullYear() + '-' + deux(d.getMonth() + 1) + '-' + deux(d.getDate());
   }
-  function ascendantes(id) {
-    if (id in ASCENDANTES) return ASCENDANTES[id];
-    var s = {};
-    PAR_ID[id].dependances.forEach(function (d) { s[d] = 1; Object.keys(ascendantes(d)).forEach(function (k) { s[k] = 1; }); });
-    return (ASCENDANTES[id] = s);
-  }
-  PISTES.forEach(function (x) { profondeur(x.id); ascendantes(x.id); DESCENDANTES[x.id] = {}; });
-  PISTES.forEach(function (x) { Object.keys(ASCENDANTES[x.id]).forEach(function (a) { DESCENDANTES[a][x.id] = 1; }); });
-  // Le plus long chemin de prérequis. À égalité de profondeur, la piste qui vient la première dans l'ordre de la feuille de route l'emporte.
-  var CHEMIN = (function () {
-    var fin = PISTES.reduce(function (a, x) { return PROFONDEUR[x.id] > PROFONDEUR[a.id] ? x : a; }, PISTES[0]);
-    var chemin = [fin.id], courant = fin.id;
-    while (PROFONDEUR[courant] > 0) {
-      var precedent = PISTES.filter(function (q) { return PAR_ID[courant].dependances.indexOf(q.id) !== -1 && PROFONDEUR[q.id] === PROFONDEUR[courant] - 1; })[0];
-      chemin.unshift(precedent.id); courant = precedent.id;
-    }
-    return chemin;
-  })();
-
-  var CLE_DECISIONS = 'inventaire-ucm-decisions';
-  var OPTIONS = [['oui', 'On fait'], ['non', 'On ne fait pas'], ['', 'À décider']];
-  var OPTIONS_T = {};
-  DECISIONS_DU_DEPOT.regles.forEach(function (r) {
-    if (r.options) OPTIONS_T[r.id] = r.options.map(function (o) { return [o.valeur, o.libelle]; }).concat([['', 'À décider']]);
-  });
-  var TRANSVERSES = [];
-  // Les décisions de travail : l'état du dépôt, avec par-dessus l'écart gardé dans ce navigateur.
-  function duDepot() {
-    var base = {};
-    ['pistes', 'transverses'].forEach(function (groupe) {
-      Object.keys(DECISIONS_DU_DEPOT[groupe] || {}).forEach(function (cle) {
-        var d = DECISIONS_DU_DEPOT[groupe][cle];
-        base[cle] = { choix: d.choix || '', note: d.note || '' };
-      });
-    });
-    return base;
-  }
-  var decisions = duDepot();
   try {
-    var local = JSON.parse(localStorage.getItem(CLE_DECISIONS) || '{}') || {};
-    Object.keys(local).forEach(function (cle) {
-      var d = decisions[cle] || { choix: '', note: '' };
-      decisions[cle] = { choix: typeof local[cle].choix === 'string' ? local[cle].choix : d.choix, note: typeof local[cle].note === 'string' ? local[cle].note : d.note };
+    var visite = JSON.parse(localStorage.getItem(CLE_VISITE) || 'null') || {}, jour = aujourdhui();
+    avant = typeof visite.avant === 'string' ? visite.avant : null;
+    if (visite.derniere !== jour) {
+      if (typeof visite.derniere === 'string') avant = visite.derniere;
+      localStorage.setItem(CLE_VISITE, JSON.stringify({ derniere: jour, avant: avant }));
+    }
+  } catch (e) {}
+  function aBouge(p) { return !!avant && !!p.dernierLot && p.dernierLot > avant; }
+
+  // Les lots d'un plan : un carré par case, rangés par groupe.
+  function classeDuLot(l) { return l.fait ? 'f' : l.marque === 'mainteneur' ? 'm' : l.marque ? 'b' : l.suivant ? 's' : ''; }
+  function motDuLot(l) { return l.fait ? 'fait' : l.marque === 'mainteneur' ? 'attend ta décision' : l.marque ? l.marque : l.suivant ? 'suivant, prêt pour un agent' : 'à faire'; }
+  function rangee(p) {
+    var groupes = [], courant = null;
+    p.lots.forEach(function (l) {
+      if (!courant || courant.nom !== l.groupe) { courant = { nom: l.groupe, lots: [] }; groupes.push(courant); }
+      courant.lots.push(l);
     });
-  } catch (e) { decisions = duDepot(); }
-  function choixDe(cle) { return PAR_ID[cle] && enCours(PAR_ID[cle]) ? 'oui' : (decisions[cle] || {}).choix || ''; }
-  function listeDe(ids, mot) { return ids.length < 2 ? ids.join('') : ids.slice(0, -1).join(', ') + ' et ' + ids[ids.length - 1]; }
-  // Ce qui contredit une décision : un prérequis écarté, ou une décision attendue sur un prérequis.
-  function incoherencesDe(id) {
-    var ecartees = Object.keys(ASCENDANTES[id]).filter(function (a) { return choixDe(a) === 'non'; });
-    var attendues = PAR_ID[id].dependances.filter(function (d) { return choixDe(d) === ''; });
-    return {
-      ecartee: ecartees.length && choixDe(id) !== 'non' ? 'Dépend de ' + listeDe(ecartees) + ', ' + (ecartees.length > 1 ? 'écartées' : 'écartée') : '',
-      attend: choixDe(id) === 'oui' && attendues.length ? 'Attend une décision sur ' + listeDe(attendues) : ''
-    };
+    return '<span class="lots">' + groupes.map(function (g) {
+      return '<span class="g">' + g.lots.map(function (l) { return '<i class="' + classeDuLot(l) + '" title="' + esc(l.numero + ' · ' + motDuLot(l) + ' · ' + l.texte) + '"></i>'; }).join('') + '</span>';
+    }).join('') + '</span>';
   }
-  function toutesLesIncoherences() {
-    var lignes = [];
-    PISTES.forEach(function (x) {
-      if (choixDe(x.id) !== 'oui') return;
-      var i = incoherencesDe(x.id);
-      if (i.ecartee) lignes.push(x.id + ' ' + x.titre + ' : on fait. ' + i.ecartee + '.');
-      if (i.attend) lignes.push(x.id + ' ' + x.titre + ' : on fait. ' + i.attend + '.');
+  function ligneDeLot(l, groupe) {
+    return (groupe ? '<li class="gr">' + esc(groupe) + '</li>' : '') + '<li class="' + (l.fait ? 'fait' : classeDuLot(l)) + '"><span class="lots"><i class="' + classeDuLot(l) + '"></i></span><span class="num">' + esc(l.numero) + '</span>' +
+      '<span class="txt">' + txt(l.texte) + (l.marque === 'mainteneur' ? ' <span class="attend toi">ta décision</span>' : l.marque ? ' <span class="attend piste">' + esc(l.marque) + '</span>' : '') + '</span><span class="h">' + esc(l.hash || '') + '</span></li>';
+  }
+  function blocDeLots(lots) {
+    var g = null;
+    return lots.map(function (l) { var titre = l.groupe !== g ? l.groupe : ''; g = l.groupe; return ligneDeLot(l, titre); }).join('');
+  }
+  function listeDeLots(p) {
+    var faits = p.lots.filter(function (l) { return l.fait; }), reste = p.lots.filter(function (l) { return !l.fait; });
+    var groupes = [], index = {};
+    reste.forEach(function (l) {
+      if (!(l.groupe in index)) { index[l.groupe] = groupes.length; groupes.push({ nom: l.groupe, lots: [] }); }
+      groupes[index[l.groupe]].lots.push(l);
     });
-    return lignes;
-  }
-  function bilan() {
-    var e = 0, oui = 0, non = 0, t = 0;
-    PISTES.forEach(function (x) { var c = choixDe(x.id); if (enCours(x)) e++; else if (c === 'oui') oui++; else if (c === 'non') non++; });
-    TRANSVERSES.forEach(function (x) { if (choixDe(x.id)) t++; });
-    document.getElementById('bilan-decisions').textContent = e + ' en cours · ' + oui + ' on fait · ' + non + ' on ne fait pas · ' + (PISTES.length - e - oui - non) + ' à décider · ' + t + ' questions ouvertes tranchées sur ' + TRANSVERSES.length;
-  }
-  function marquerLaPiste(d, id) {
-    var c = choixDe(id), i = incoherencesDe(id);
-    d.classList.toggle('decide-non', c === 'non');
-    d.querySelector('.coherence').innerHTML = (i.ecartee ? '<span class="etat manque">' + i.ecartee + '</span> ' : '') + (i.attend ? '<span class="etat ouvert">' + i.attend + '</span>' : '');
-  }
-  // Le champ de note tient une ligne et grandit avec son texte ; un champ caché n'a pas de hauteur à mesurer.
-  function grandir(z) { if (z.scrollHeight > 0) { z.style.height = 'auto'; z.style.height = z.scrollHeight + 'px'; } }
-  var radios = {};
-  function lierLesChoix(racine) {
-    racine.querySelectorAll('input[type=radio][data-cle]').forEach(function (inp) {
-      var cle = inp.getAttribute('data-cle');
-      (radios[cle] = radios[cle] || []).push(inp);
-      inp.addEventListener('change', function () { decisions[cle] = decisions[cle] || {}; decisions[cle].choix = inp.value; garder(); });
+    // Le groupe en cours et ceux qui attendent le mainteneur restent ouverts, les autres se replient.
+    var suite = groupes.map(function (g, i) {
+      var attendu = g.lots.some(function (l) { return l.marque === 'mainteneur'; });
+      if (i === 0 || attendu) return '<ol class="lots-detail">' + blocDeLots(g.lots) + '</ol>';
+      return '<details class="lots-plus"><summary>' + esc(g.nom || 'Suite') + ' · ' + g.lots.length + (g.lots.length > 1 ? ' cases à faire' : ' case à faire') + '</summary><ol class="lots-detail">' + blocDeLots(g.lots) + '</ol></details>';
     });
-    racine.querySelectorAll('textarea[data-note]').forEach(function (z) {
-      var cle = z.getAttribute('data-note');
-      z.value = (decisions[cle] || {}).note || '';
-      grandir(z);
-      z.addEventListener('input', function () {
-        decisions[cle] = decisions[cle] || {}; decisions[cle].note = z.value;
-        // Deux champs d'une même clé se recopient.
-        document.querySelectorAll('textarea[data-note="' + cle + '"]').forEach(function (autre) { if (autre !== z) { autre.value = z.value; grandir(autre); } });
-        grandir(z);
-        garder();
+    return '<h4>Lots du plan · ' + faits.length + '/' + p.lots.length + '</h4>' + rangee(p) +
+      '<div class="legende-fiche"><span><span class="lots"><i class="f"></i></span>fait</span><span><span class="lots"><i class="m"></i></span>ta décision</span><span><span class="lots"><i class="b"></i></span>attend une piste</span><span><span class="lots"><i class="s"></i></span>suivant</span><span><span class="lots"><i></i></span>à faire</span></div>' +
+      (faits.length ? '<details class="lots-faits"><summary>' + faits.length + (faits.length > 1 ? ' cases faites' : ' case faite') + '</summary><ol class="lots-detail">' + blocDeLots(faits) + '</ol></details>' : '') +
+      suite.join('');
+  }
+  function liensDePistes(ids) {
+    return ids.length ? ids.map(function (id) { var q = parId(id); return q ? '<a href="#piste-' + id + '">' + id + ' ' + esc(q.titreCourt) + '</a>' : esc(id); }).join(', ') : 'rien';
+  }
+  function liste(textes) { return '<ul>' + textes.map(function (t) { return '<li>' + txt(t) + '</li>'; }).join('') + '</ul>'; }
+  // Les décisions qui touchent plusieurs pistes : chacune dit les autres pistes qu'elle nomme.
+  function transverses(p) {
+    if (!p.transverses.length) return '';
+    return '<h4>Décisions communes · ' + p.transverses.length + '</h4><ul>' + p.transverses.map(function (t) {
+      var autres = t.pistes.filter(function (id) { return id !== p.id; });
+      return '<li><b>' + txt(t.titre) + '</b> ' + txt(t.texte) + (autres.length ? ' <span class="doux">Elle touche aussi ' + autres.map(function (id) { return '<a href="#piste-' + id + '">' + id + '</a>'; }).join(', ') + '.</span>' : '') + '</li>';
+    }).join('') + '</ul>';
+  }
+  // Le changement de prio : un sélecteur (les six prios et « Écartée »), un champ d'une ligne, un bouton qui copie la consigne de l'agent.
+  function formulaireDePrio(p) {
+    var options = PRIOS.map(function (nom, i) { return '<option value="' + i + '"' + (i === p.prio ? ' selected' : '') + '>' + i + ' · ' + esc(nom) + '</option>'; }).join('') + '<option value="ecartee">Écartée</option>';
+    return (p.prioPosee ? '<p class="prio-posee"><span class="prio-toi"></span>Prio posée par toi. « ' + esc(p.prioPosee.raison) + ' »</p>' : '') +
+      '<div class="prio-form" data-piste="' + p.id + '"><label for="prio-' + p.id + '">Prio</label><select id="prio-' + p.id + '">' + options + '</select>' +
+      '<input type="text" placeholder="Pourquoi ?" aria-label="Pourquoi cette prio sur ' + p.id + '">' +
+      '<button type="button" class="bouton copier-prio" aria-live="polite" disabled>Copier pour l’agent</button></div>';
+  }
+  function fiche(p) {
+    var droite = '';
+    if (p.lots) droite += listeDeLots(p);
+    else if (p.recherche && p.questions.length) droite += '<h4>Questions de la recherche · ' + p.questions.length + '</h4>' + liste(p.questions);
+    else droite += '<h4>Finie quand</h4>' + liste(p.criteresDeFin);
+    droite += transverses(p) + '<h4>Dépend de</h4><p>' + liensDePistes(p.dependances) + '</p><h4>Débloque</h4><p>' + liensDePistes(p.debloque) + '</p>';
+    var gauche = '<p class="resume">' + txt(p.resume) + '</p>' +
+      '<h4>Si on ne fait pas</h4><p>' + txt(p.raisonImportance) + '</p>' +
+      '<h4>Ce que ça te demande</h4><p>' + txt(p.coutHumain) + '</p>' +
+      (p.risques.length ? '<h4>Risques</h4>' + liste(p.risques) : '') + formulaireDePrio(p);
+    return '<div class="fiche-rm"><div>' + gauche + '</div><div>' + droite + '</div></div>';
+  }
+
+  // Les lignes de la table.
+  var etat = { groupe: 'prio', filtre: false, ouvertes: {} };
+  function attendMoi(p) { return p.attentes.some(function (a) { return a.genre === 'toi'; }); }
+  function etatDe(p) {
+    var e = ETATS[p.etat];
+    return '<span class="etat ' + e[0] + '">' + e[1] + '</span>' + (p.avancement ? '<span class="tag-avance" title="Cases cochées du plan">' + p.avancement.faits + '/' + p.avancement.total + '</span>' : '');
+  }
+  // Le lien vers un document du dépôt sur GitHub, dans un nouvel onglet.
+  function lienDuDepot(chemin, mot) {
+    var url = lienGitHub(chemin);
+    return '<a href="' + url + '" target="_blank" rel="noopener" title="' + esc(chemin.split('/').pop()) + '">' + mot + ' ↗</a>';
+  }
+  function sousLaLigne(p) {
+    var c = SUJETS[p.sujet], style = c ? ' style="color:' + c.texte + ';background:' + c.fond + '"' : '';
+    return '<span class="sous"><span class="sujet"' + style + '>' + esc(p.sujet) + '</span><span title="Taille en travail d’agent">taille <b>' + p.complexite + '</b></span>' +
+      (p.recherche ? lienDuDepot(p.recherche, 'Recherche') : '') + (p.plan ? lienDuDepot(p.plan, 'Plan') : '') + '</span>';
+  }
+  function attentesDe(p) {
+    return '<span class="attentes">' + p.attentes.map(function (a) { return '<span class="attend ' + a.genre + '" title="' + esc(a.detail) + '">' + esc(a.texte) + '</span>'; }).join('') + '</span>';
+  }
+  function ligneDePiste(p) {
+    var ouvert = !!etat.ouvertes[p.id], posee = p.prioPosee;
+    var titrePosee = posee ? 'Prio posée par toi. ' + (p.prioDeLAgent !== p.prio ? 'L’agent proposait la prio ' + p.prioDeLAgent + '. ' : '') + posee.raison : '';
+    return '<tr class="rm-ligne' + (ouvert ? ' ouverte' : '') + '" id="piste-' + p.id + '" data-id="' + p.id + '">' +
+      '<td class="n"><span class="rang">' + p.prio + '</span>' + (posee ? '<span class="prio-toi" role="img" title="' + esc(titrePosee) + '" aria-label="Prio posée par toi"></span>' : '') + '</td>' +
+      '<td><button type="button" class="rm-bascule" aria-expanded="' + ouvert + '" aria-controls="fiche-' + p.id + '" title="' + esc(p.titre) + '"><span class="chev" aria-hidden="true"></span><span class="id">' + p.id + '</span><span class="titre">' + esc(p.titreCourt) + '</span>' +
+        (aBouge(p) ? '<span class="a-bouge" role="img" aria-label="a bougé depuis ta dernière visite" title="Un lot a été fait depuis ta dernière visite"></span>' : '') + '</button>' + sousLaLigne(p) + '</td>' +
+      '<td>' + etatDe(p) + '</td><td>' + attentesDe(p) + '</td></tr>' +
+      '<tr class="rm-fiche" id="fiche-' + p.id + '"' + (ouvert ? '' : ' hidden') + '><td colspan="4">' + fiche(p) + '</td></tr>';
+  }
+  function rendreLaTable() {
+    var visibles = PISTES.filter(function (p) { return !etat.filtre || attendMoi(p); }), groupes = [];
+    if (etat.groupe === 'prio') {
+      PRIOS.forEach(function (nom, i) { var l = visibles.filter(function (p) { return p.prio === i; }); if (l.length) groupes.push(['Prio ' + i, nom, l]); });
+    } else {
+      [['en-cours', 'En cours'], ['recherche', 'Recherche faite'], ['idee', 'Idée']].forEach(function (e) {
+        var l = visibles.filter(function (p) { return p.etat === e[0]; });
+        if (l.length) groupes.push([e[1], l.length + (l.length > 1 ? ' pistes' : ' piste'), l]);
       });
+    }
+    var h = '<colgroup><col class="c-rang"><col class="c-piste"><col class="c-etat"><col></colgroup><tr><th class="n">Prio</th><th>Piste</th><th>État</th><th>En attente</th></tr>';
+    groupes.forEach(function (g) {
+      h += '<tr class="groupe"><td colspan="4">' + g[0] + '<span>' + esc(g[1]) + '</span></td></tr>' + g[2].map(ligneDePiste).join('');
     });
+    tableau.innerHTML = h;
+    racine.querySelectorAll('.segmente button').forEach(function (b) { b.setAttribute('aria-pressed', b.getAttribute('data-groupe') === etat.groupe); });
+    racine.querySelector('.filtre-attente').setAttribute('aria-pressed', etat.filtre);
+    var bouge = visibles.filter(aBouge).length;
+    racine.querySelector('.compte').innerHTML = visibles.length + (visibles.length > 1 ? ' pistes à venir' : ' piste à venir') + '<span class="prio-toi"></span>prio posée par toi' +
+      (bouge ? '<span class="a-bouge"></span>a bougé depuis ta dernière visite' : '');
+    if (produitsMarques) marquerLesProduits(tableau);
   }
-  function synchroniserLesChoix() {
-    Object.keys(radios).forEach(function (cle) { radios[cle].forEach(function (inp) { inp.checked = inp.value === choixDe(cle); }); });
+  document.getElementById('rm-nb-attente').textContent = PISTES.filter(attendMoi).length;
+  function basculer(ligne, ouvert) {
+    etat.ouvertes[ligne.getAttribute('data-id')] = ouvert;
+    ligne.classList.toggle('ouverte', ouvert);
+    ligne.querySelector('.rm-bascule').setAttribute('aria-expanded', ouvert);
+    ligne.nextElementSibling.hidden = !ouvert;
   }
-  function champNote(cle, nom) { return '<textarea class="note" rows="1" data-note="' + cle + '" aria-label="' + nom + '" placeholder="Note"></textarea>'; }
-  function boutonsDe(cle, contexte, options) {
-    return '<div class="options" role="radiogroup" aria-label="Décision sur ' + cle + '">' + options.map(function (o) {
-      return '<label class="option"><input type="radio" name="d-' + contexte + '-' + cle + '" data-cle="' + cle + '" value="' + o[0] + '"> ' + o[1] + '</label>';
-    }).join('') + '</div>';
-  }
-  function vide(d) { return !d || (!d.choix && !d.note); }
-  function memes(a, b) { return vide(a) ? vide(b) : !vide(b) && (a.choix || '') === (b.choix || '') && (a.note || '') === (b.note || ''); }
-  // Les décisions qui diffèrent de celles du dépôt (choix ou note).
-  function ecart() {
-    var base = duDepot(), cles = {}, ecarts = {};
-    Object.keys(base).concat(Object.keys(decisions)).forEach(function (cle) { cles[cle] = 1; });
-    Object.keys(cles).forEach(function (cle) { if (!memes(decisions[cle], base[cle])) ecarts[cle] = { choix: (decisions[cle] || {}).choix || '', note: (decisions[cle] || {}).note || '' }; });
-    return ecarts;
-  }
-  var messageEcart = '';
-  function garder() {
-    messageEcart = '';
-    try { localStorage.setItem(CLE_DECISIONS, JSON.stringify(ecart())); } catch (e) {}
-    afficher();
-  }
-  function afficherLEcart() {
-    var n = Object.keys(ecart()).length;
-    document.getElementById('ecart-decisions').hidden = !n;
-    document.getElementById('ecart-compte').textContent = n + (n > 1 ? ' décisions pas encore dans le dépôt' : ' décision pas encore dans le dépôt');
-    document.getElementById('ecart-message').textContent = messageEcart;
-  }
-  // Le decisions.json complet : les règles du dépôt inchangées, les choix du dépôt fusionnés avec l'écart local, clés triées.
-  function contenuDuDepot() {
-    var sortie = { version: DECISIONS_DU_DEPOT.version, pistes: {}, transverses: {}, regles: DECISIONS_DU_DEPOT.regles };
-    var estTransverse = {};
-    DECISIONS_DU_DEPOT.regles.forEach(function (r) { if (r.genre === 'transverse') estTransverse[r.id] = 1; });
-    Object.keys(decisions).sort(function (a, b) { return a.localeCompare(b, 'fr', { numeric: true }); }).forEach(function (cle) {
-      if (vide(decisions[cle])) return;
-      sortie[estTransverse[cle] ? 'transverses' : 'pistes'][cle] = { choix: decisions[cle].choix || '', note: decisions[cle].note || '' };
-    });
-    return JSON.stringify(sortie, null, 2) + '\n';
-  }
-  var NOM_FICHIER = 'decisions.json', CHEMIN_FICHIER = 'docs/notes/Recherches/Evolutions globales/decisions.json';
-  function baseDePoignees(mode, f) {
-    return new Promise(function (ok, ko) {
-      var ouverture = indexedDB.open('inventaire-ucm', 1);
-      ouverture.onupgradeneeded = function () { ouverture.result.createObjectStore('poignees'); };
-      ouverture.onerror = function () { ko(ouverture.error); };
-      ouverture.onsuccess = function () {
-        try {
-          var tx = ouverture.result.transaction('poignees', mode), req = f(tx.objectStore('poignees'));
-          tx.oncomplete = function () { ouverture.result.close(); ok(req && req.result); };
-          tx.onerror = function () { ko(tx.error); };
-        } catch (e) { ko(e); }
-      };
-    });
-  }
-  function poigneeGardee() { try { return baseDePoignees('readonly', function (m) { return m.get('decisions'); }).catch(function () { return null; }); } catch (e) { return Promise.resolve(null); } }
-  function garderLaPoignee(h) { try { return baseDePoignees('readwrite', function (m) { return m.put(h, 'decisions'); }).catch(function () {}); } catch (e) { return Promise.resolve(); } }
-  function telecharger(texte) {
-    var a = document.createElement('a');
-    a.href = 'data:application/json;charset=utf-8,' + encodeURIComponent(texte);
-    a.download = NOM_FICHIER;
-    document.body.appendChild(a); a.click(); a.remove();
-    return 'Fichier téléchargé. Déposez-le dans ' + CHEMIN_FICHIER + ', lancez `npm run vues`, puis commitez.';
-  }
-  function ecrire(h, texte) {
-    return h.createWritable().then(function (w) { return w.write(texte).then(function () { return w.close(); }); });
-  }
-  function permise(h) {
-    if (!h.queryPermission) return Promise.resolve(true);
-    return h.queryPermission({ mode: 'readwrite' }).then(function (p) {
-      return p === 'granted' ? true : h.requestPermission({ mode: 'readwrite' }).then(function (q) { return q === 'granted'; });
-    });
-  }
-  // Chrome et Edge réécrivent le même fichier ; sans cette API, ou si l'écriture échoue, le fichier se télécharge.
-  function enregistrerDansLeDepot() {
-    var texte, dit = function (m) { messageEcart = m; afficherLEcart(); };
-    try { texte = contenuDuDepot(); } catch (e) { dit('Enregistrement impossible : ' + e.message); return; }
-    var reussi = function () { dit('Enregistré dans ' + NOM_FICHIER + '. Lancez `npm run vues`, puis commitez.'); };
-    var repli = function (e) {
-      if (e && e.name === 'AbortError') { dit('Enregistrement annulé.'); return; }
-      try { dit(telecharger(texte)); } catch (e2) { dit('Enregistrement impossible : ' + e2.message); }
-    };
-    if (!window.showSaveFilePicker) { repli(); return; }
-    var choisir = function () {
-      return window.showSaveFilePicker({ suggestedName: NOM_FICHIER, types: [{ description: 'JSON', accept: { 'application/json': ['.json'] } }] })
-        .then(function (h) { return garderLaPoignee(h).then(function () { return ecrire(h, texte); }); });
-    };
-    try {
-      poigneeGardee().then(function (h) {
-        if (!h) return choisir();
-        return permise(h).then(function (ok) { return ok ? ecrire(h, texte) : choisir(); });
-      }).then(reussi, repli);
-    } catch (e) { repli(e); }
-  }
-  function poserLesNotes() {
-    document.querySelectorAll('textarea[data-note]').forEach(function (z) { z.value = (decisions[z.getAttribute('data-note')] || {}).note || ''; grandir(z); });
-  }
-  function revenirAuDepot() {
-    if (!confirm('Revenir à la version du dépôt ? Les décisions et notes de ce navigateur qui diffèrent seront perdues.')) return;
-    try { localStorage.removeItem(CLE_DECISIONS); } catch (e) {}
-    decisions = duDepot();
-    messageEcart = '';
-    poserLesNotes();
-    afficher();
-  }
-  function afficher() {
-    synchroniserLesChoix();
-    afficherLEcart();
-    bilan();
-    zonePistes.querySelectorAll('.piste').forEach(function (d) { marquerLaPiste(d, d.id.replace('piste-', '')); });
-    dessinerLeGraphe();
-  }
-  // La liste des pistes : un titre par rang, puis une ligne par piste avec le titre, ce qui arrive si on ne la fait pas, le coût,
-  // la décision et la note. Un clic sur la partie gauche de la ligne ouvre la fiche dessous.
-  var zonePistes = document.getElementById('pistes');
-  // Le texte de la ligne est dans un bouton : un identifiant de piste y reste du texte, un lien n'y a pas sa place.
-  function texteDeLigne(t) { return esc(t).replace(/`([^`]+)`/g, '<code>$1</code>'); }
-  function liensVers(ids) { return ids.map(function (id) { return '<a href="#piste-' + id + '">' + id + '</a>'; }).join(', '); }
-  // Le sujet de la piste : un label avant le titre, lien vers la recherche sur GitHub quand la piste en a une. Il est hors du bouton, pour ne pas ouvrir la fiche.
-  function labelDuSujet(x) {
-    var c = SUJETS[x.sujet], style = ' style="color:' + c.texte + ';background:' + c.fond + '"';
-    if (!x.recherche) return '<span class="sujet"' + style + '>' + esc(x.sujet) + '</span>';
-    var url = lienGitHub(x.recherche);
-    var nom = x.recherche.split('/').pop();
-    return '<a class="sujet" href="' + url + '" target="_blank" rel="noopener" title="' + esc(nom) + '" aria-label="' + esc(x.sujet + ' : ouvrir ' + nom + ' sur GitHub, nouvel onglet') + '"' + style + '>' + esc(x.sujet) +
-      ' <svg viewBox="0 0 12 12" width="10" height="10" aria-hidden="true" focusable="false"><path d="M4 2h6v6M10 2 3 9" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></a>';
-  }
-  // Les alertes de la piste, en tête de sa fiche, avant les questions.
-  function alertesDeLaFiche(x) {
-    if (!x.alertes || !x.alertes.length) return '';
-    return '<div class="alertes-piste"><b>À régler</b><ul>' + x.alertes.map(function (a) {
-      return '<li>' + texteDeLigne(a.texte) + ' <span class="doux"><b>Bloque :</b> ' + texteDeLigne(a.avant) + '</span></li>';
-    }).join('') + '</ul></div>';
-  }
-  function ouvrirLaFiche(d, ouvert) {
-    var b = d.querySelector('.piste-bascule');
-    b.setAttribute('aria-expanded', ouvert);
-    document.getElementById(b.getAttribute('aria-controls')).hidden = !ouvert;
-  }
-  // Les pistes livrées (toutes les cases de leur plan cochées) ne sont pas dans PISTES : une ligne les nomme, avec le lien vers leur plan.
-  var LIVREES = {{js:LIVREES}};
-  if (LIVREES.length) {
-    var ligneLivrees = document.getElementById('pistes-livrees');
-    ligneLivrees.innerHTML = '<span class="etat livre">' + (LIVREES.length > 1 ? 'Livrées' : 'Livrée') + '</span> ' + LIVREES.map(function (x) {
-      var url = lienGitHub(x.plan);
-      return '<a href="' + url + '" target="_blank" rel="noopener">' + x.id + ' ' + esc(x.titreCourt) + '</a>';
-    }).join(', ') + (LIVREES.length > 1 ? '. Elles ont quitté la suite.' : '. Elle a quitté la suite.');
-    ligneLivrees.hidden = false;
-  }
-  var parRang = {};
-  PISTES.forEach(function (x) { (parRang[x.rang] = parRang[x.rang] || []).push(x); });
-  Object.keys(parRang).sort().forEach(function (rang) {
-    var h = document.createElement('div'); h.className = 'rang-titre';
-    h.textContent = 'Rang ' + rang + ' · ' + (RANGS[rang] || '');
-    zonePistes.appendChild(h);
-    parRang[rang].forEach(function (x) {
-      var d = document.createElement('div'); d.className = 'piste'; d.id = 'piste-' + x.id;
-      var points = '<div class="defile points"><table><tr><th>Action</th><th>Chemin</th><th>Quoi</th></tr>' + x.points.map(function (pt) {
-        return '<tr><td>' + esc(pt.action) + '</td><td><code>' + esc(pt.chemin) + '</code></td><td>' + txt(pt.quoi) + '</td></tr>';
-      }).join('') + '</table></div>';
-      var liste = function (a, cls) { return a.length ? '<ul' + (cls ? ' class="' + cls + '"' : '') + '>' + a.map(function (t) { return '<li>' + txt(t) + '</li>'; }).join('') + '</ul>' : '<p class="doux">Aucune.</p>'; };
-      var imp = IMPORTANCES[x.importance], etat = enCours(x) ? etatDAvancement(x) : ETATS[x.etat] || ETATS['ouvert'], prof = PROFONDEUR[x.id];
-      var meta = '<span class="imp">importance <span aria-hidden="true">' + imp[0] + '</span> ' + imp[1] + '</span> · complexité ' + TAILLES[x.complexite] + ' (' + x.complexite + ') · ' +
-        (prof === 0 ? 'sans prérequis' : prof + (prof === 1 ? ' étape' : ' étapes') + ' de prérequis') + ' · ' + PROMESSES[x.promesse] + ' · ' + (PORTEURS[x.porteur] || esc(x.porteur)) + ' · <span class="etat ' + etat[0] + '">' + etat[1] + '</span>';
-      var directs = DIRECTS[x.id], total = Object.keys(DESCENDANTES[x.id]).length;
-      d.innerHTML = '<div class="piste-ligne">' +
-          '<div class="piste-gauche">' + labelDuSujet(x) +
-          '<button type="button" class="piste-bascule" aria-expanded="false" aria-controls="fiche-' + x.id + '">' +
-            '<span class="id">' + x.id + '</span>' +
-            '<span class="titre">' + texteDeLigne(x.titre) +
-              '<small class="sinon"><b>Si on ne fait pas</b> ' + texteDeLigne(premierePhrase(x.raisonImportance)) + '</small>' +
-              '<small class="cout"><b>Coût</b> ' + x.complexite + ' · ' + texteDeLigne(x.coutHumain) + '</small>' +
-              (x.alertes && x.alertes.length ? '<span class="repere-alerte">' + x.alertes.length + (x.alertes.length > 1 ? ' alertes' : ' alerte') + '</span>' : '') +
-              '<span class="coherence"></span></span>' +
-          '</button></div>' +
-          '<div class="choix-ligne">' + (enCours(x) ? labelDAvancement(x) : boutonsDe(x.id, 'piste', OPTIONS)) + champNote(x.id, 'Note sur ' + x.id) + '</div>' +
-        '</div>' +
-        '<div class="fiche-piste" id="fiche-' + x.id + '" hidden>' +
-          alertesDeLaFiche(x) +
-          '<p class="meta">' + meta + '</p>' +
-          '<p>' + txt(x.resume) + '</p>' +
-          '<h4>Pourquoi</h4><p>' + txt(x.raisonImportance) + '</p>' +
-          '<h4>Complexité ' + TAILLES[x.complexite] + '</h4><p>' + txt(x.raisonComplexite) + '</p>' +
-          '<h4>Dépend de</h4><p>' + (x.dependances.length ? liensVers(x.dependances) : 'rien') + '</p>' +
-          '<h4>Débloque</h4><p>' + (directs.length ? liensVers(directs) + ', ' + total + ' au total' : 'rien') + '</p>' +
-          '<h4>Points touchés</h4>' + points +
-          '<h4>Critères de fin</h4>' + liste(x.criteresDeFin, 'criteres') +
-          '<h4>Questions au mainteneur</h4>' + liste(x.questions) +
-          '<h4>Risques</h4>' + liste(x.risques) +
-        '</div>';
-      zonePistes.appendChild(d);
-    });
-  });
-  zonePistes.addEventListener('click', function (e) {
-    var b = e.target.closest('.piste-bascule'); if (b) ouvrirLaFiche(b.closest('.piste'), b.getAttribute('aria-expanded') !== 'true');
-  });
-  // Questions ouvertes : mêmes boutons et une note par ligne, enregistrés avec les décisions des pistes.
-  document.querySelectorAll('tr[data-decision]').forEach(function (tr) {
-    var cle = tr.getAttribute('data-decision');
-    TRANSVERSES.push({ id: cle, titre: tr.cells[0].textContent.trim() });
-    var td = document.createElement('td'); td.className = 'choix-ligne';
-    td.innerHTML = boutonsDe(cle, 'transverse', OPTIONS_T[cle] || OPTIONS) + champNote(cle, 'Note sur la question ' + cle);
-    tr.appendChild(td);
-  });
-  lierLesChoix(document.getElementById('suite'));
-  // Le graphe des dépendances : une colonne par profondeur, flèches du prérequis vers la piste, chemin critique en rose.
-  var NSVG = 'http://www.w3.org/2000/svg';
-  function dessinerLeGraphe() {
-    var zone = document.getElementById('graphe-pistes'), liste = document.getElementById('graphe-liste');
-    var L = 136, H = 42, PX = 152, PY = 54, HAUT = 22, colonnes = [], pos = {};
-    PISTES.forEach(function (x) { (colonnes[PROFONDEUR[x.id]] = colonnes[PROFONDEUR[x.id]] || []).push(x); });
-    colonnes.forEach(function (col, d) { col.forEach(function (x, r) { pos[x.id] = { x: 10 + d * PX, y: HAUT + r * PY }; }); });
-    var lignesMax = Math.max.apply(null, colonnes.map(function (c) { return c.length; }));
-    var largeur = 10 + (colonnes.length - 1) * PX + L + 10, hauteur = HAUT + lignesMax * PY;
-    var enChemin = {}; CHEMIN.forEach(function (id) { enChemin[id] = 1; });
-    var critique = {}; for (var k = 1; k < CHEMIN.length; k++) critique[CHEMIN[k - 1] + '>' + CHEMIN[k]] = 1;
-    var ecartee = function (id) { return choixDe(id) === 'non' || Object.keys(ASCENDANTES[id]).some(function (a) { return choixDe(a) === 'non'; }); };
-    var s = '<svg viewBox="0 0 ' + largeur + ' ' + hauteur + '" role="img" aria-label="Graphe des ' + PISTES.length + ' pistes, rangées par nombre d’étapes de prérequis">' +
-      '<defs><marker id="pointe-graphe" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0 0 L10 5 L0 10 z" style="fill: var(--doux)"/></marker>' +
-      '<marker id="pointe-graphe-rose" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0 0 L10 5 L0 10 z" style="fill: var(--rose)"/></marker></defs>';
-    colonnes.forEach(function (col, d) { s += '<text class="entete-col" x="' + (10 + d * PX) + '" y="12">Étape ' + d + '</text>'; });
-    PISTES.forEach(function (x) {
-      x.dependances.forEach(function (dep) {
-        var a = pos[dep], b = pos[x.id], x1 = a.x + L, y1 = a.y + H / 2, x2 = b.x, y2 = b.y + H / 2, dx = (x2 - x1) / 2;
-        s += '<path class="ln' + (critique[dep + '>' + x.id] ? ' critique' : '') + (ecartee(dep) ? ' coupee' : '') + '" d="M' + x1 + ' ' + y1 + ' C' + (x1 + dx) + ' ' + y1 + ', ' + (x2 - dx) + ' ' + y2 + ', ' + x2 + ' ' + y2 + '"/>';
-      });
-    });
-    PISTES.forEach(function (x) {
-      var p = pos[x.id], c = choixDe(x.id), cls = 'bp' + (enChemin[x.id] ? ' critique' : '') + (c === 'oui' ? ' oui' : '') + (c === 'non' ? ' non' : '') + (c !== 'non' && ecartee(x.id) ? ' descendante' : '');
-      s += '<a href="#piste-' + x.id + '" aria-label="' + x.id + ' ' + esc(x.titre) + ', complexité ' + x.complexite + (enChemin[x.id] ? ', sur le chemin critique' : '') + '"><g class="' + (c === 'non' ? 'non-texte' : '') + '">' +
-                '<rect class="' + cls + '" x="' + p.x + '" y="' + p.y + '" width="' + L + '" height="' + H + '" rx="7"/>' +
-        '<text class="bp-id" x="' + (p.x + 8) + '" y="' + (p.y + 16) + '">' + x.id + '</text>' +
-        '<text class="bp-s" x="' + (p.x + L - 8) + '" y="' + (p.y + 16) + '" text-anchor="end">' + x.complexite + '</text>' +
-        '<text class="bp-t" x="' + (p.x + 8) + '" y="' + (p.y + 32) + '">' + esc(x.titreCourt || x.titre) + '</text></g></a>';
-    });
-    zone.innerHTML = s + '</svg>';
-    liste.innerHTML = colonnes.map(function (col, d) {
-      return '<li><b>Étape ' + d + '</b> ' + col.map(function (x) { return '<a href="#piste-' + x.id + '">' + (enChemin[x.id] ? '<strong>' + x.id + '</strong>' : x.id) + '</a> ' + esc(x.titreCourt || x.titre); }).join(', ') + '</li>';
+
+  // La partie « Terminés » : une ligne par piste livrée ou écartée, la plus récente d'abord.
+  function rendreLesTerminees() {
+    var pli = document.getElementById('terminees');
+    if (!TERMINEES.length) { pli.hidden = true; return; }
+    var triees = TERMINEES.slice().sort(function (a, b) { return (b.date || '').localeCompare(a.date || ''); });
+    document.getElementById('terminees-compte').textContent = triees.length + (triees.length > 1 ? ' pistes, livrées ou écartées' : ' piste');
+    document.getElementById('terminees-table').innerHTML = '<tr><th>Piste</th><th>État</th><th>Date</th><th>Plan</th></tr>' + triees.map(function (t) {
+      var url = esc(t.lien || '');
+      return '<tr id="piste-' + t.id + '"><td><span class="id">' + t.id + '</span> ' + esc(t.titreCourt) + '</td>' +
+        '<td>' + (t.ecartee ? '<span class="etat propose">Écartée</span> <span class="doux">' + esc(t.ecartee) + '</span>' : '<span class="etat livre">Livrée</span>') + '</td>' +
+        '<td class="n">' + (t.date ? esc(t.date) : '<span class="doux">date inconnue</span>') + '</td>' +
+        '<td>' + (url ? '<a href="' + url + '" target="_blank" rel="noopener">Plan ↗</a>' : '') + '</td></tr>';
     }).join('');
-    document.getElementById('legende-chemin').textContent = 'Le chemin rose compte ' + CHEMIN.length + ' pistes, de ' + CHEMIN[0] + ' à ' + CHEMIN[CHEMIN.length - 1] + '. Il fixe le délai le plus court avant la dernière piste du graphe. La complexité (S, M, L, XL) est en haut à droite de chaque boîte.';
   }
-  afficher();
-  // Un lien vers une piste ouvre sa fiche, et les plis qui la contiennent.
+
+  var produitsMarques = false;
+  rendreLaTable();
+  rendreLesTerminees();
+
+  function copier(texte) {
+    try { if (navigator.clipboard && navigator.clipboard.writeText) return navigator.clipboard.writeText(texte); } catch (e) {}
+    return new Promise(function (ok, ko) {
+      var z = document.createElement('textarea'), reussi = false;
+      z.value = texte; z.style.position = 'fixed'; z.style.opacity = '0';
+      document.body.appendChild(z); z.select();
+      try { reussi = document.execCommand('copy'); } catch (e) {}
+      z.remove();
+      if (reussi) ok(); else ko(new Error('copie refusée'));
+    });
+  }
+  racine.addEventListener('input', function (e) {
+    var f = e.target.closest('.prio-form'); if (!f) return;
+    f.querySelector('.copier-prio').disabled = !f.querySelector('input').value.trim();
+  });
+  racine.addEventListener('click', function (e) {
+    var c = e.target.closest('.copier-prio');
+    if (c) {
+      var f = c.closest('.prio-form'), id = f.getAttribute('data-piste'), p = parId(id);
+      var v = f.querySelector('select').value, pourquoi = f.querySelector('input').value.trim();
+      var texte = v === 'ecartee'
+        ? 'Dans pistes.json, écarte ' + id + ' (' + p.titreCourt + ') avec la raison « ' + pourquoi + ' ». Puis lance npm run vues et commite.'
+        : 'Dans pistes.json, pose la prio ' + v + ' sur ' + id + ' (' + p.titreCourt + ') dans prioDuMainteneur, avec la raison « ' + pourquoi + ' ». Puis lance npm run vues et commite.';
+      var dit = function (mot, fait) {
+        c.textContent = mot; c.classList.toggle('fait', fait);
+        setTimeout(function () { c.textContent = 'Copier pour l’agent'; c.classList.remove('fait'); }, 2000);
+      };
+      copier(texte).then(function () { dit('Copié ✓', true); }, function () { dit('Copie impossible', false); });
+      return;
+    }
+    var s = e.target.closest('.segmente button');
+    if (s) { etat.groupe = s.getAttribute('data-groupe'); rendreLaTable(); return; }
+    if (e.target.closest('.filtre-attente')) { etat.filtre = !etat.filtre; rendreLaTable(); return; }
+    if (e.target.closest('a, .rm-fiche, select, input, button:not(.rm-bascule)')) return;
+    var ligne = e.target.closest('tr.rm-ligne');
+    if (ligne) basculer(ligne, !etat.ouvertes[ligne.getAttribute('data-id')]);
+  });
+  // Un lien vers une piste ouvre sa fiche, et les plis qui la contiennent ; le filtre se lève s'il cache la ligne.
   function ouvrirLaPiste() {
     var cible = location.hash && document.getElementById(location.hash.slice(1));
+    if (!cible && /^#piste-P\d+$/.test(location.hash) && etat.filtre) { etat.filtre = false; rendreLaTable(); cible = document.getElementById(location.hash.slice(1)); }
     if (!cible) return;
     for (var n = cible; n; n = n.parentElement) if (n.tagName === 'DETAILS') n.open = true;
-    if (cible.classList.contains('piste')) ouvrirLaFiche(cible, true);
+    if (cible.classList.contains('rm-ligne')) basculer(cible, true);
     if (cible.scrollIntoView) cible.scrollIntoView();
   }
   window.addEventListener('hashchange', ouvrirLaPiste); ouvrirLaPiste();
-  var pistesOuvertes = false;
-  document.getElementById('deplier-pistes').addEventListener('click', function () {
-    pistesOuvertes = !pistesOuvertes;
-    zonePistes.querySelectorAll('.piste').forEach(function (d) { ouvrirLaFiche(d, pistesOuvertes); });
-    this.textContent = pistesOuvertes ? 'Replier les fiches' : 'Déplier les ' + PISTES.length + ' fiches';
-  });
-  document.getElementById('copier-decisions').addEventListener('click', function () {
-    function libelle(cle) {
-      var c = choixDe(cle), options = OPTIONS_T[cle] || OPTIONS;
-      if (c === 'oui') return 'on fait'; if (c === 'non') return 'on ne fait pas'; if (c === '') return 'à décider';
-      return options.filter(function (o) { return o[0] === c; })[0][1];
-    }
-    function note(cle) { var n = (decisions[cle] || {}).note; return n ? '. Note : ' + n.replace(/\s+/g, ' ').trim() : ''; }
-    var lignes = PISTES.map(function (x) { return '- ' + x.id + ' ' + x.titre + ' : ' + libelle(x.id) + note(x.id); });
-    var texte = 'Décisions sur la feuille de route\n' + lignes.join('\n') +
-      '\n\nQuestions ouvertes\n' + TRANSVERSES.map(function (t) { return '- ' + t.titre + ' : ' + libelle(t.id) + note(t.id); }).join('\n');
-    var inc = toutesLesIncoherences();
-    if (inc.length) texte += '\n\nIncohérences\n' + inc.map(function (l) { return '- ' + l; }).join('\n');
-    var zone = document.getElementById('export-decisions');
-    zone.value = texte; zone.hidden = false; zone.select();
-    try { if (navigator.clipboard) navigator.clipboard.writeText(texte).catch(function () {}); } catch (e) {}
-  });
-  document.getElementById('effacer-decisions').addEventListener('click', function () {
-    if (!confirm('Effacer toutes les décisions et notes de ce navigateur ?')) return;
-    decisions = {};
-    document.querySelectorAll('#suite textarea[data-note]').forEach(function (z) { z.value = ''; });
-    garder();
-  });
-  document.getElementById('enregistrer-decisions').addEventListener('click', enregistrerDansLeDepot);
-  document.getElementById('revenir-au-depot').addEventListener('click', revenirAuDepot);
-
   // Codes des contrôles, lus dans CODES_DES_CONSTATS (kit). La section suit ELEMENT_DE_LA_FAMILLE de plugin-architect/src/ui/panneau/elements.ts.
   var C = {{js:C}};
   var MOTS = { bloquant: 'bloquant', corriger: 'corriger', verifier: 'vérifier', info: 'info' };
@@ -785,8 +600,9 @@
   var deplie = false;
   document.getElementById('tout-deplier').addEventListener('click', function () {
     deplie = !deplie;
+    PISTES.forEach(function (p) { etat.ouvertes[p.id] = deplie; });
+    document.querySelectorAll('.rm-ligne').forEach(function (l) { basculer(l, deplie); });
     document.querySelectorAll('details').forEach(function (d) { d.open = deplie; });
-    zonePistes.querySelectorAll('.piste').forEach(function (d) { ouvrirLaFiche(d, deplie); });
     this.textContent = deplie ? 'Tout replier' : 'Tout déplier';
   });
 
@@ -816,31 +632,36 @@
     if (cible && cible.classList.contains('fiche') && !a.closest('.fiche .nom')) etiqueter(a, a.getAttribute('href').slice(7));
   });
   document.querySelectorAll('main .fiche[id^="outil-"]').forEach(function (f) { f.classList.add('p-' + f.id.slice(6)); });
-  var marcheur = document.createTreeWalker(document.querySelector('main'), NodeFilter.SHOW_TEXT, {
-    acceptNode: function (n) {
-      if (!n.parentElement || n.parentElement.closest(HORS_ETIQUETTE)) return NodeFilter.FILTER_REJECT;
+  // La table de la Roadmap se reconstruit au changement de groupe ou de filtre : elle repasse par cette fonction après chaque rendu.
+  function marquerLesProduits(zone) {
+    var marcheur = document.createTreeWalker(zone, NodeFilter.SHOW_TEXT, {
+      acceptNode: function (n) {
+        if (!n.parentElement || n.parentElement.closest(HORS_ETIQUETTE)) return NodeFilter.FILTER_REJECT;
+        NOM_DE_PRODUIT.lastIndex = 0;
+        return NOM_DE_PRODUIT.test(n.nodeValue) ? NodeFilter.FILTER_ACCEPT : NodeFilter.FILTER_REJECT;
+      }
+    });
+    var textes = [];
+    while (marcheur.nextNode()) textes.push(marcheur.currentNode);
+    textes.forEach(function (n) {
+      var carte = n.parentElement.closest('.fiche[id^="outil-"]'), soi = carte ? carte.id.slice(6) : null;
+      var morceaux = document.createDocumentFragment(), texte = n.nodeValue, depuis = 0, m;
       NOM_DE_PRODUIT.lastIndex = 0;
-      return NOM_DE_PRODUIT.test(n.nodeValue) ? NodeFilter.FILTER_ACCEPT : NodeFilter.FILTER_REJECT;
-    }
-  });
-  var textes = [];
-  while (marcheur.nextNode()) textes.push(marcheur.currentNode);
-  textes.forEach(function (n) {
-    var carte = n.parentElement.closest('.fiche[id^="outil-"]'), soi = carte ? carte.id.slice(6) : null;
-    var morceaux = document.createDocumentFragment(), texte = n.nodeValue, depuis = 0, m;
-    NOM_DE_PRODUIT.lastIndex = 0;
-    while ((m = NOM_DE_PRODUIT.exec(texte))) {
-      var produit = produitDuNom(m[1]);
-      if (!produit || produit === soi) continue;
-      morceaux.appendChild(document.createTextNode(texte.slice(depuis, m.index)));
-      var a = document.createElement('a'); a.href = '#outil-' + produit; a.textContent = m[1]; etiqueter(a, produit);
-      morceaux.appendChild(a);
-      depuis = m.index + m[1].length;
-    }
-    if (depuis === 0) return;
-    morceaux.appendChild(document.createTextNode(texte.slice(depuis)));
-    n.parentNode.replaceChild(morceaux, n);
-  });
+      while ((m = NOM_DE_PRODUIT.exec(texte))) {
+        var produit = produitDuNom(m[1]);
+        if (!produit || produit === soi) continue;
+        morceaux.appendChild(document.createTextNode(texte.slice(depuis, m.index)));
+        var a = document.createElement('a'); a.href = '#outil-' + produit; a.textContent = m[1]; etiqueter(a, produit);
+        morceaux.appendChild(a);
+        depuis = m.index + m[1].length;
+      }
+      if (depuis === 0) return;
+      morceaux.appendChild(document.createTextNode(texte.slice(depuis)));
+      n.parentNode.replaceChild(morceaux, n);
+    });
+  }
+  marquerLesProduits(document.querySelector('main'));
+  produitsMarques = true;
   // La carte atteinte s'entoure un instant de la couleur du produit.
   document.addEventListener('click', function (e) {
     var a = e.target.closest && e.target.closest('a.produit');

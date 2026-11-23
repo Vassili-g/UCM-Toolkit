@@ -65,18 +65,6 @@ ul.liste li { margin: 3px 0; font-size: .92rem; }
 .a-verifier { color: var(--ambre); } .a-verifier::before { content: "?"; background: var(--ambre); }
 .a-info { color: var(--bleu); } .a-info::before { content: "i"; background: var(--bleu); }
 .a-tenu { color: var(--olive); } .a-tenu::before { content: "✓"; background: var(--olive); }
-/* Bandeau « À régler » en tête de page : icône, mot et fond orange ensemble. */
-.a-regler { margin: 14px 0 22px; padding: 12px 16px; border: 1px solid var(--orange); border-left-width: 6px; border-radius: 10px; background: var(--orange-fond); }
-.a-regler-titre { display: flex; align-items: center; gap: 8px; margin: 0 0 8px; font-weight: 700; font-size: 1.05rem; }
-.a-regler ul { list-style: none; margin: 0; padding: 0; }
-.a-regler li { display: grid; grid-template-columns: max-content 1fr; gap: 2px 12px; padding: 8px 0; border-top: 1px solid var(--trait); }
-.a-regler li > a { font-weight: 600; grid-row: span 2; }
-.a-regler-avant { color: var(--doux); font-size: .88rem; }
-.repere-alerte { display: inline-flex; align-items: center; gap: 4px; margin-left: 8px; font-size: .8rem; font-weight: 700; color: var(--orange); white-space: nowrap; }
-.repere-alerte::before { content: "!"; display: inline-grid; place-items: center; width: 16px; height: 16px; border-radius: 50%; font-size: .7rem; color: var(--surface); background: var(--orange); }
-.fiche-piste .alertes-piste { margin: 0 0 8px; padding: 8px 12px; border-left: 4px solid var(--orange); background: var(--orange-fond); border-radius: 6px; }
-.fiche-piste .alertes-piste ul { margin: 4px 0 0; padding-left: 18px; }
-@media (max-width: 560px) { .a-regler li { grid-template-columns: 1fr; } .a-regler li > a { grid-row: auto; } }
 /* Tables. */
 .defile { overflow-x: auto; margin: 10px 0; border: 1px solid var(--trait); border-radius: 10px; background: var(--surface); }
 table { border-collapse: collapse; width: 100%; font-size: .88rem; }
@@ -163,13 +151,6 @@ ol.notes-contrat { list-style: none; margin: 0; padding: 0; display: grid; gap: 
 ol.notes-contrat li { display: grid; grid-template-columns: 20px minmax(0, 1fr); gap: 8px; align-items: start; font-size: .9rem; }
 
 
-.bilan-decisions { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin: 10px 0 4px; font-size: .88rem; }
-.ecart-decisions { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin: 10px 0; padding: 8px 12px; font-size: .88rem; border: 1px solid var(--trait); border-radius: 8px; background: var(--surface); }
-.ecart-decisions[hidden] { display: none; }
-.ecart-decisions #ecart-message { flex-basis: 100%; }
-.bilan-decisions #bilan-decisions { margin-right: auto; }
-textarea.export { width: 100%; min-height: 160px; font: .8rem/1.5 ui-monospace, Consolas, monospace; background: var(--surface); color: var(--texte); border: 1px solid var(--trait); border-radius: 8px; padding: 8px; }
-.rang-titre { font-size: .78rem; text-transform: uppercase; letter-spacing: .06em; color: var(--doux); font-weight: 600; margin: 18px 0 6px; }
 
 .choix-theme { display: flex; flex-wrap: wrap; gap: 8px 16px; align-items: center; margin: 8px 0; font-size: .9rem; }
 .choix-theme select { font: inherit; font-size: .88rem; background: var(--surface); color: var(--texte); border: 1px solid var(--trait); border-radius: 6px; padding: 3px 8px; margin-left: 4px; }
@@ -249,43 +230,10 @@ h3 + .defini { margin-top: -4px; }
 .pr .pr-fusion { border-top: 1px solid var(--trait); padding: 8px 12px; display: flex; gap: 8px; align-items: center; }
 .pr .bouton-fusion { border-radius: 6px; padding: 3px 12px; font-weight: 600; font-size: .82rem; background: var(--olive); color: var(--surface); }
 .pr .bouton-fusion.grise { background: var(--surface-2); color: var(--doux); border: 1px solid var(--trait); }
-/* V6. Graphe des dépendances des pistes. */
-.graphe svg { width: 100%; height: auto; display: block; }
-.graphe .bp { fill: var(--surface); stroke: var(--trait); stroke-width: 1.3; }
-.graphe .bp.critique { stroke: var(--rose); stroke-width: 2.2; }
-.graphe .bp.oui { stroke: var(--olive); stroke-width: 2.2; }
-.graphe .bp.non { stroke: var(--doux); stroke-dasharray: 4 3; fill: var(--surface-2); }
-.graphe .bp.descendante { opacity: .5; stroke-dasharray: 2 3; }
-.graphe .bp-id { fill: var(--texte); font: 700 11px ui-monospace, Consolas, monospace; }
-.graphe .bp-t { fill: var(--texte); font: 10px system-ui, sans-serif; }
-.graphe .bp-s { fill: var(--doux); font: 700 10px system-ui, sans-serif; }
-.graphe .barre { stroke: var(--doux); stroke-width: 1.4; }
-.graphe a { cursor: pointer; }
-.graphe a:focus-visible .bp { stroke: var(--texte); stroke-width: 2.6; }
-.graphe .non-texte .bp-id, .graphe .non-texte .bp-t { text-decoration: line-through; fill: var(--doux); }
-.graphe .descendante-texte { opacity: .5; }
-.graphe .ln { stroke: var(--doux); stroke-width: 1.1; fill: none; marker-end: url(#pointe-graphe); }
-.graphe .ln.critique { stroke: var(--rose); stroke-width: 2.2; marker-end: url(#pointe-graphe-rose); }
-.graphe .ln.coupee { opacity: .35; stroke-dasharray: 3 3; }
-.graphe .entete-col { fill: var(--doux); font: 600 10px system-ui, sans-serif; }
-.graphe-liste { margin: 4px 0; padding-left: 18px; font-size: .9rem; }
-.legende-graphe { font-size: .82rem; color: var(--doux); margin: 6px 0; }
-.legende-graphe .trait { display: inline-block; width: 22px; height: 0; border-top: 3px solid var(--rose); vertical-align: middle; margin-right: 6px; }
-/* Décision et note d'une piste ou d'une question ouverte. */
-/* La colonne des décisions porte les trois choix sur une ligne (3 cibles de 28 px, 6 px entre elles) et la note dessous. */
-.choix-ligne { display: grid; gap: 6px; min-width: 300px; }
-.choix-ligne .options { display: flex; flex-wrap: wrap; gap: 6px; }
-.choix-ligne a.etat { min-height: 28px; box-sizing: border-box; padding: 0 10px 0 8px; text-decoration: none; }
-.choix-ligne a.etat:hover { text-decoration: underline; }
 .a-revoir { margin: 12px 0; padding: 12px 16px; border: 2px solid var(--ambre); border-left-width: 6px; border-radius: 8px; background: var(--ambre-fond); color: var(--texte); }
 .a-revoir p { margin: 6px 0; font-size: .92rem; }
 .a-revoir .a-revoir-titre { margin-top: 0; font-weight: 700; color: var(--ambre); }
 .a-revoir .a-revoir-titre::before { content: "⚠ "; }
-.livrees { font-size: .9rem; }
-.livrees .etat { margin-right: 4px; }
-.choix-ligne label.option { display: inline-flex; align-items: center; gap: 6px; box-sizing: border-box; min-height: 28px; padding: 0 10px; border: 1px solid var(--trait); border-radius: 6px; background: var(--surface); font-size: .8rem; cursor: pointer; white-space: nowrap; }
-.choix-ligne label.option:has(input:checked) { border-color: var(--texte); font-weight: 600; }
-.choix-ligne textarea.note { display: block; box-sizing: border-box; width: 100%; min-height: 28px; resize: none; overflow: hidden; field-sizing: content; font: inherit; font-size: .82rem; line-height: 1.35; background: var(--surface); color: var(--texte); border: 1px solid var(--trait); border-radius: 6px; padding: 4px 8px; }
 /* A1. Le panneau des variables : menu des collections et table. */
 .fx { display: grid; grid-template-columns: 148px minmax(0, 1fr); }
 .fx-menu { display: flex; flex-direction: column; gap: 2px; padding: 8px; border-right: 1px solid var(--trait); background: var(--surface-2); }
@@ -365,7 +313,6 @@ ol.maillons li:not(:last-child)::after { content: "→"; position: absolute; rig
   table.empile tr { display: flex; flex-direction: column; padding: 8px 10px; border-bottom: 1px solid var(--trait); }
   table.empile td { order: 2; padding: 2px 0; border: 0; }
   table.empile td:first-child { order: 0; }
-  table.empile td.choix-ligne { order: 1; min-width: 0; padding: 6px 0; }
   table.empile td[data-l]::before { content: attr(data-l) " : "; color: var(--doux); font-size: .76rem; }
 }
 
@@ -400,44 +347,109 @@ dl.def.principes { grid-template-columns: 240px 1fr; }
 .etape-carte.trou h4 .n { background: var(--rose); }
 .etape-carte dl.faits { border-top: 0; padding: 0; margin: 0; }
 .legende-parcours { font-size: .82rem; margin: 6px 0 0; }
-/* 7. Les pistes : une ligne par piste, la décision et la note à droite, la fiche dessous. */
-.piste { border: 1px solid var(--trait); border-radius: 10px; background: var(--surface); margin: 6px 0; }
-.piste-ligne { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 8px 16px; align-items: start; padding: 9px 12px; }
-.piste-gauche { display: grid; gap: 4px; min-width: 0; }
-.sujet { justify-self: start; margin-left: 60px; display: inline-flex; align-items: center; gap: 4px; font-size: .72rem; font-weight: 600; line-height: 1.4; padding: 1px 8px; border-radius: 999px; text-decoration: none; max-width: 100%; }
-a.sujet:hover { text-decoration: underline; }
-a.sujet:focus-visible { outline: 2px solid var(--texte); outline-offset: 2px; }
-.piste-bascule { all: unset; box-sizing: border-box; cursor: pointer; display: grid; grid-template-columns: 52px minmax(0, 1fr); gap: 2px 8px; align-items: baseline; border-radius: 6px; }
-.piste-bascule:focus-visible { outline: 2px solid var(--texte); outline-offset: 3px; }
-.piste-bascule .id { font-family: ui-monospace, Consolas, monospace; font-weight: 700; color: var(--doux); white-space: nowrap; }
-.piste-bascule .id::before { content: "›"; display: inline-block; width: 12px; transition: transform .15s; }
-.piste-bascule[aria-expanded="true"] .id { color: var(--texte); }
-.piste-bascule[aria-expanded="true"] .id::before { transform: rotate(90deg); }
-.piste-bascule .titre { font-weight: 600; }
-.piste-bascule .titre small { display: block; margin-top: 3px; font-weight: 400; font-size: .84rem; color: var(--texte); }
-.piste-bascule .titre small.cout { color: var(--doux); }
-.piste-bascule .titre small b { font-size: .72rem; text-transform: uppercase; letter-spacing: .05em; color: var(--doux); margin-right: 6px; }
-.piste .coherence { display: block; margin-top: 4px; }
-.piste.decide-non .piste-bascule .titre { opacity: .55; }
-.fiche-piste { display: grid; gap: 4px; padding: 4px 14px 14px 72px; border-top: 1px solid var(--trait); }
-.fiche-piste .meta { margin: 8px 0 2px; font-size: .82rem; color: var(--doux); }
-.fiche-piste .meta .imp { font-weight: 600; color: var(--texte); }
-.fiche-piste h4 { font-size: .74rem; text-transform: uppercase; letter-spacing: .06em; color: var(--doux); margin: 10px 0 2px; }
-.fiche-piste p { margin: 2px 0; font-size: .92rem; }
-.fiche-piste .points td:first-child { white-space: nowrap; }
-.fiche-piste ul { margin: 2px 0; padding-left: 18px; font-size: .92rem; }
-.fiche-piste ul.criteres { list-style: none; padding-left: 0; }
-.fiche-piste ul.criteres li::before { content: "☐ "; color: var(--doux); }
+/* 7. La Roadmap (page.js) : une table de pistes groupée par prio ou par état, une fiche sous la ligne ouverte. Préfixe rm = Roadmap. */
+.page { max-width: 1400px; }
+section.partie.large { max-width: none; }
+/* États calculés d'une piste : couleur, signe et mot. */
+.e-idee { color: var(--doux); background: var(--surface-2); } .e-idee::before { content: "○"; }
+.e-recherche { color: var(--bleu); background: var(--bleu-fond); } .e-recherche::before { content: "◇"; }
+.e-cours { color: var(--orange); background: var(--orange-fond); } .e-cours::before { content: "◑"; }
+/* Ce que la piste attend : de toi (ambre, point d'interrogation) ou d'une autre piste (gris, pointillé, pause). */
+.attend { display: inline-flex; align-items: center; gap: 4px; font-size: .78rem; font-weight: 600; padding: 1px 8px 1px 6px; border-radius: 999px; white-space: nowrap; line-height: 1.5; }
+.attend.toi { color: var(--ambre); background: var(--ambre-fond); border: 1px solid #e9c46a; } .attend.toi::before { content: "?"; font-weight: 800; }
+.attend.piste { color: var(--doux); background: var(--surface); border: 1px dashed #b8bec8; font-weight: 500; } .attend.piste::before { content: "⏸"; font-size: .7rem; }
+.attentes { display: flex; flex-wrap: wrap; gap: 4px; }
+/* Outils au-dessus de la table : un choix segmenté (une seule vue, deux regroupements) et un filtre. */
+.rm-outils { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; margin: 12px 0 8px; font-size: .85rem; }
+.segmente { display: inline-flex; align-items: center; gap: 0; border: 1px solid var(--trait); border-radius: 7px; overflow: hidden; }
+.segmente .lib { padding: 0 10px; color: var(--doux); }
+.segmente button { all: unset; cursor: pointer; padding: 4px 12px; border-left: 1px solid var(--trait); }
+.segmente button[aria-pressed="true"] { background: var(--texte); color: var(--surface); font-weight: 600; }
+.segmente button:focus-visible, .filtre-attente:focus-visible { outline: 2px solid var(--texte); outline-offset: 2px; }
+.filtre-attente { all: unset; cursor: pointer; display: inline-flex; gap: 6px; align-items: center; padding: 4px 12px; border: 1px solid #e9c46a; border-radius: 999px; color: var(--ambre); background: var(--surface); font-weight: 600; }
+.filtre-attente[aria-pressed="true"] { background: var(--ambre-fond); box-shadow: inset 0 0 0 1px var(--ambre); }
+.rm-outils .compte { margin-left: auto; color: var(--doux); }
+.rm-outils .compte .prio-toi, .rm-outils .compte .a-bouge { margin: 0 4px 0 10px; vertical-align: 1px; }
+/* La table. */
+.rm-defile { overflow-x: auto; }
+.rm { width: 100%; min-width: 760px; border-collapse: collapse; font-size: .9rem; background: var(--surface); border: 1px solid var(--trait); border-radius: 10px; overflow: hidden; table-layout: fixed; }
+.rm th { text-align: left; font-size: .7rem; text-transform: uppercase; letter-spacing: .06em; color: var(--doux); font-weight: 600; padding: 8px 10px; background: var(--surface-2); border-bottom: 1px solid var(--trait); white-space: nowrap; }
+.rm td { padding: 8px 10px; border-bottom: 1px solid var(--trait); vertical-align: middle; }
+.rm tr.groupe td { font-size: .72rem; text-transform: uppercase; letter-spacing: .06em; color: var(--doux); font-weight: 700; padding: 14px 10px 5px; background: var(--surface); }
+.rm tr.groupe td span { text-transform: none; letter-spacing: 0; font-weight: 400; margin-left: 6px; }
+.rm tr.rm-ligne { cursor: pointer; }
+.rm tr.rm-ligne:hover, .rm tr.rm-ligne.ouverte { background: #f8f9fb; }
+.rm td.n { text-align: center; font-variant-numeric: tabular-nums; width: 44px; }
+.rm .rang { font-weight: 700; }
+.rm col.c-rang { width: 64px; } .rm col.c-piste { width: 420px; } .rm col.c-etat { width: 210px; }
+/* La prio posée par le mainteneur et le lot récent : deux points, expliqués dans la légende au-dessus de la table. */
+.prio-toi, .a-bouge { display: inline-block; width: 7px; height: 7px; border-radius: 50%; }
+.prio-toi { margin-left: 4px; background: var(--violet); vertical-align: 3px; }
+.a-bouge { margin-left: 6px; background: var(--bleu); vertical-align: 2px; }
+.rm-bascule { all: unset; cursor: pointer; display: inline-flex; gap: 6px; align-items: baseline; border-radius: 4px; }
+.rm-bascule:focus-visible { outline: 2px solid var(--texte); outline-offset: 2px; }
+/* Chevron : à droite replié, en bas ouvert. */
+.rm-bascule .chev::before { content: "›"; display: inline-block; width: 10px; font-weight: 700; color: var(--doux); transition: transform .15s; }
+.rm-bascule[aria-expanded="true"] .chev::before { transform: rotate(90deg); }
+.rm .id, #terminees .id { font-family: ui-monospace, Consolas, monospace; font-weight: 700; color: var(--doux); font-size: .85rem; }
+.rm .titre { font-weight: 600; }
+.rm .sujet { margin: 0; }
+.rm .sous { display: flex; flex-wrap: wrap; gap: 4px 10px; align-items: center; margin: 3px 0 0 16px; font-size: .78rem; color: var(--doux); }
+.rm .sous a { color: var(--doux); white-space: nowrap; }
+.rm .sous b { color: var(--texte); }
+.tag-avance { display: inline-block; margin-left: 6px; padding: 0 6px; border: 1px solid var(--trait); border-radius: 4px; font: 600 .74rem/1.5 ui-monospace, Consolas, monospace; color: var(--texte); background: var(--surface); vertical-align: middle; }
+.sujet { display: inline-flex; align-items: center; gap: 4px; font-size: .72rem; font-weight: 600; line-height: 1.4; padding: 1px 8px; border-radius: 999px; max-width: 100%; }
+/* Les lots d'un plan : un carré par case, un écart entre deux groupes. Ils ne paraissent que dans la fiche. */
+.lots { display: inline-flex; flex-wrap: wrap; gap: 6px; align-items: center; vertical-align: middle; }
+.lots .g { display: inline-flex; gap: 2px; }
+.lots i { display: block; width: 9px; height: 9px; border-radius: 2px; border: 1px solid #868e9c; background: var(--surface); }
+.lots i.f { background: var(--olive); border-color: var(--olive); }
+.lots i.m { background: #f5c451; border-color: var(--ambre); border-radius: 50%; }
+.lots i.b { background: repeating-linear-gradient(45deg, #c9ced8 0 2px, var(--surface) 2px 4px); border-color: #868e9c; }
+.lots i.s { border: 2px solid var(--texte); }
+.legende-fiche { display: flex; flex-wrap: wrap; gap: 2px 12px; font-size: .74rem; color: var(--doux); margin: 4px 0 6px; }
+.legende-fiche span { display: inline-flex; align-items: center; gap: 4px; }
+ol.lots-detail { list-style: none; padding: 0; margin: 4px 0; font-size: .86rem; }
+ol.lots-detail li { display: grid; grid-template-columns: 14px 34px minmax(0, 1fr) auto; gap: 6px; align-items: baseline; padding: 2px 0; }
+ol.lots-detail li .lots i { margin-top: 2px; }
+ol.lots-detail .num, ol.lots-detail .h { font-family: ui-monospace, Consolas, monospace; color: var(--doux); }
+ol.lots-detail .num { font-size: .8rem; }
+ol.lots-detail .h { font-size: .75rem; }
+ol.lots-detail li.fait .txt { color: var(--doux); }
+ol.lots-detail li.m .txt { font-weight: 600; }
+ol.lots-detail li.gr { display: block; font-size: .7rem; font-weight: 700; text-transform: uppercase; letter-spacing: .05em; color: var(--doux); margin-top: 6px; }
+details.lots-plus > summary, details.lots-faits > summary { cursor: pointer; list-style: none; font-size: .82rem; color: var(--doux); }
+details.lots-plus > summary { padding: 2px 0; }
+details.lots-plus > summary::-webkit-details-marker, details.lots-faits > summary::-webkit-details-marker { display: none; }
+details.lots-plus > summary::before, details.lots-faits > summary::before { content: "›"; display: inline-block; width: 12px; font-weight: 700; transition: transform .15s; }
+details.lots-plus[open] > summary::before, details.lots-faits[open] > summary::before { transform: rotate(90deg); }
+/* La fiche sous la ligne ouverte : le jugement à gauche, le plan ou les critères à droite. */
+.rm tr.rm-fiche td { background: #fbfcfd; padding: 4px 18px 16px 62px; }
+.fiche-rm { display: grid; grid-template-columns: minmax(0, 1.05fr) minmax(0, 1fr); gap: 8px 32px; }
+.fiche-rm h4 { font-size: .72rem; text-transform: uppercase; letter-spacing: .06em; color: var(--doux); margin: 12px 0 3px; }
+.fiche-rm p, .fiche-rm li { font-size: .9rem; margin: 2px 0; }
+.fiche-rm ul { margin: 2px 0; padding-left: 18px; }
+.fiche-rm .resume { font-size: .95rem; margin-top: 12px; }
+/* Le formulaire de prio : il ne change rien dans la page, il donne à l'agent la consigne à écrire dans pistes.json. */
+.prio-form { display: flex; align-items: center; gap: 8px; margin-top: 16px; padding-top: 12px; border-top: 1px solid var(--trait); font-size: .85rem; }
+.prio-form label { font-weight: 600; }
+.prio-form select, .prio-form input { font: inherit; font-size: .85rem; height: 30px; box-sizing: border-box; padding: 0 8px; border: 1px solid var(--trait); border-radius: 6px; background: var(--surface); color: var(--texte); }
+.prio-form select { width: 150px; }
+.prio-form input { flex: 1 1 120px; min-width: 0; }
+.prio-form .bouton { height: 30px; min-width: 136px; text-align: center; }
+.prio-form .bouton:disabled { color: var(--doux); cursor: default; background: var(--surface-2); }
+.prio-form .copier-prio.fait { color: var(--olive); border-color: var(--olive); font-weight: 600; }
+.prio-posee { margin: 12px 0 0; font-size: .85rem; color: var(--violet); }
+.prio-posee .prio-toi { margin: 0 6px 0 0; vertical-align: 1px; }
 @media (max-width: 860px) {
   ol.flux { grid-template-columns: 1fr; gap: 22px; }
   ol.flux li:not(:last-child)::after { content: "↓"; right: auto; left: 18px; top: auto; bottom: -21px; transform: none; }
   .grille.deux-cartes { grid-template-columns: 1fr; }
   .parcours { grid-template-columns: 1fr; }
   .parcours .etapes { grid-auto-flow: row; grid-template-columns: repeat(2, minmax(0, 1fr)); }
-  .piste-ligne { grid-template-columns: minmax(0, 1fr); }
-  .sujet { margin-left: 0; }
-  .piste-ligne .choix-ligne { min-width: 0; }
-  .fiche-piste { padding-left: 14px; }
+  .fiche-rm { grid-template-columns: minmax(0, 1fr); }
+  .rm tr.rm-fiche td { padding-left: 18px; }
+  .prio-form { flex-wrap: wrap; }
 }
 
 /* Étiquette d'un produit cité dans le texte (page.js, « Produits cités ») : teinte et encre du logo, lien vers la carte de la partie 2. */

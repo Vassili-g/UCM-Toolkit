@@ -20,7 +20,7 @@
     <li><a href="#architecture">Les variables Figma</a></li>
     <li><a href="#contrat">Le contrat</a></li>
     <li><a href="#controles">Ce qui est vérifié</a></li>
-    <li><a href="#suite">La suite</a></li>
+    <li><a href="#suite">Roadmap</a></li>
     <li><a href="#developpeurs">Expliquer UCM</a></li>
     <li><a href="#annexes">Annexes</a></li>
   </ol>
@@ -34,7 +34,6 @@
 <section class="partie" id="concept">
   <h1>Ce que contient UCM Toolkit</h1>
   <p class="versions doux">Versions publiées : kit {{version:kit}}, CLI {{version:cli}}, adaptateur {{version:adaptateur}}, <a class="terme" href="#g-contrat14" title="Le numéro du format du contrat. ucm check accepte les contrats {{contrats:lus}}.">contrat {{contrat}}</a>.</p>
-  {{alertes:bandeau}}
   <h2><span class="num">1</span>Le concept UCM</h2>
   <p class="defini">Défini dans <code>CONCEPT.md</code> et <code>ROADMAP.md</code>.</p>
   <p class="chapeau">Dans un design system, un composant existe à plusieurs endroits : la maquette Figma, le code, les <a class="terme" href="#g-token" title="Une variable Figma publiée sous son chemin, comme theme/primary/solid/default.">tokens</a> et la documentation. Ces versions divergent quand aucun outil ne les compare. Une variante dessinée manque au code, un token cité a disparu, et l'équipe ne sait plus quelle version fait foi.</p>
@@ -52,7 +51,7 @@
     <div class="carte"><h4>Robustesse</h4><p>Un écart entre Figma et le code est détecté avant la fusion, avec un diagnostic qui dit quoi corriger.</p></div>
     <div class="carte"><h4>Confiance</h4><p>Un développeur ou un agent emploie un composant sans inventer son API visuelle, car le contrat donne ses props, ses variantes et ses tokens.</p></div>
   </div>
-  <p class="doux">Chaque <a class="terme" href="#g-piste" title="Une piste est un chantier proposé. Le rang est son ordre de priorité, de 0 à 5.">piste</a> de la feuille de route sert l'une des deux promesses.</p>
+  <p class="doux">Chaque <a class="terme" href="#g-piste" title="Une piste est un chantier proposé. La prio est son ordre de priorité, de 0 à 5.">piste</a> de la feuille de route sert l'une des deux promesses.</p>
 
   <h3>Les principes</h3>
   <dl class="def principes">
@@ -679,39 +678,25 @@
   <p class="defini">Défini dans <code>docs/notes/Recherches/Evolutions globales/decisions.json</code>.</p>
   <ul class="liste">
     {{lignes-decidees}}
+    {{lignes-regles}}
   </ul>
   <p class="doux">{{regle:validation-visuelle-sans-blocage}} Le guide du designer (<code>POUR-LES-DESIGNERS.md</code> §6) décrit ces règles et le comportement actuel de la CLI.</p>
 </section>
 
-<!-- 7. La suite : une liste des pistes par rang, avec décision et note sur la ligne et la fiche dépliable ; le graphe ; les questions ouvertes. Source : PISTES et DECISIONS dans le script de la page. -->
-<section class="partie" id="suite">
-  <h2><span class="num">7</span>La suite</h2>
-  <p class="defini">Défini dans <code>ROADMAP.md</code> et <code>docs/notes/Recherches/Evolutions globales/PISTES-EVOLUTION.md</code>.</p>
-  <p class="intro">La feuille de route range {{pistes:nombre}} pistes par rang, de ce qui précède l'ouverture du projet à ce qui peut attendre. Chaque ligne donne ce qui arrive si on ne fait pas la piste, son coût et la décision. Un clic sur la ligne ouvre la fiche de la piste.</p>
-  <p class="livrees" id="pistes-livrees" hidden></p>
-  <p class="doux">Le coût se compte en travail d'agent (<code>S</code> moins d'une demi-journée, <code>M</code> un lot, <code>L</code> plusieurs lots, <code>XL</code> un projet), puis en temps du mainteneur. Plusieurs pistes préparent les <a class="terme" href="#g-module" title="Un outil installé dans le repository de l'application, comme le linter, le générateur de stories ou le vérificateur de rendu, qui lit les contrats.">modules consommateurs</a> d'intencial-library, la bibliothèque de production.</p>
-  <div class="ecart-decisions" id="ecart-decisions" role="status" hidden><span id="ecart-compte"></span><span class="doux">Elles restent dans ce navigateur jusqu'à l'enregistrement.</span><button class="bouton" id="enregistrer-decisions">Enregistrer dans le dépôt</button><button class="bouton" id="revenir-au-depot">Revenir à la version du dépôt</button><span id="ecart-message" class="doux"></span></div>
-  <div class="bilan-decisions"><span id="bilan-decisions"></span><button class="bouton" id="deplier-pistes">Déplier les {{pistes:nombre}} fiches</button><button class="bouton" id="copier-decisions" title="Met les décisions en texte, à coller dans une conversation ou un document">Copier les décisions</button><button class="bouton" id="effacer-decisions">Effacer les décisions</button></div>
-  <textarea id="export-decisions" class="export" hidden readonly aria-label="Décisions en texte"></textarea>
-  <div id="pistes" class="pistes"></div>
-  <!-- V6. Graphe des dépendances : calculé au rendu depuis PISTES (profondeur, chemin critique). -->
-  <details class="pli" id="graphe"><summary>Le graphe des dépendances <span class="doux">{{pistes:nombre}} pistes, chemin critique en rose</span></summary><div class="contenu graphe">
-    <div id="graphe-pistes" class="seul-ecran"></div>
-    <ul id="graphe-liste" class="graphe-liste seul-mobile"></ul>
-    <p class="legende-graphe" id="legende-chemin"></p>
-  </div></details>
-
-  <h3>Questions ouvertes</h3>
-  <p class="defini">Défini dans <code>docs/notes/Recherches/Linter Dev/PLAN-CONFORMITE-RENDU.md</code>.</p>
-  <p class="intro">Une question ouverte est une décision qui touche plusieurs pistes à la fois. Les questions propres à une piste sont dans sa fiche.</p>
-  <div class="defile"><table class="empile">
-    <tr><th>Question</th><th>Fait</th><th>Pistes</th><th>Choix</th></tr>
-    {{lignes-transverses}}
-  </table></div>
-  <details class="pli"><summary>Les autres règles décidées <span class="doux">hors des contrôles</span></summary><div class="contenu">
-    <ul class="liste">
-      {{lignes-regles}}
-    </ul>
+<!-- 7. La Roadmap : une table des pistes à venir, groupée par prio ou par état, avec la fiche dépliable sous chaque ligne et le formulaire de prio ; les pistes terminées dans un pli. Source : PISTES et TERMINEES dans le script de la page. -->
+<section class="partie large" id="suite">
+  <h2><span class="num">7</span>Roadmap</h2>
+  <p class="defini">Défini dans <code>docs/notes/Recherches/Evolutions globales/pistes.json</code> et dans les plans de <code>docs/notes/Recherches/</code>.</p>
+  <p class="intro">La Roadmap range les {{pistes:nombre}} pistes à venir par prio, de 0 à 5. L'état de chaque piste vient de son plan, relu à chaque génération de la page. Un clic sur la ligne ouvre la fiche.</p>
+  <p class="doux">La taille compte le travail d'agent : <code>S</code> moins d'une demi-journée, <code>M</code> un lot, <code>L</code> plusieurs lots, <code>XL</code> un projet. Plusieurs pistes préparent les <a class="terme" href="#g-module" title="Un outil installé dans le repository de l'application, comme le linter, le générateur de stories ou le vérificateur de rendu, qui lit les contrats.">modules consommateurs</a> d'intencial-library, la bibliothèque de production.</p>
+  <div class="rm-outils">
+    <div class="segmente" role="group" aria-label="Grouper les pistes"><span class="lib">Grouper par</span><button type="button" data-groupe="prio" aria-pressed="true">Prio</button><button type="button" data-groupe="etat" aria-pressed="false">État</button></div>
+    <button type="button" class="filtre-attente" aria-pressed="false">Attend ta décision <b id="rm-nb-attente"></b></button>
+    <span class="compte"></span>
+  </div>
+  <div class="rm-defile"><table class="rm"></table></div>
+  <details class="pli" id="terminees"><summary>Terminés <span class="doux" id="terminees-compte"></span></summary><div class="contenu">
+    <div class="defile"><table id="terminees-table"></table></div>
   </div></details>
 </section>
 
@@ -766,7 +751,7 @@
     <dt id="g-normatif">Normatif, indicatif</dt><dd>Un champ normatif oblige le code, et un contrôle peut le lui opposer. Un champ indicatif montre seulement le contenu de la maquette.</dd>
     <dt id="g-parite">Parité</dt><dd>La parité compare les props du contrat à celles du composant TypeScript.</dd>
     <dt id="g-perte">Perte de projection</dt><dd>Quand l'Exporter ne sait pas décrire une propriété Figma dans le format, il l'écrit dans <code>meta.diagnostics</code> et passe <code>meta.coverage.portable</code> à <code>partial</code>.</dd>
-    <dt id="g-piste">Piste, rang</dt><dd>Une piste est un chantier proposé. Le rang est son ordre de priorité, de 0 à 5.</dd>
+    <dt id="g-piste">Piste, prio</dt><dd>Une piste est un chantier proposé. La prio est son ordre de priorité, de 0 à 5.</dd>
     <dt id="g-planche">Planche</dt><dd>Un cadre Figma où Palettes dessine les nuances d'une palette.</dd>
     <dt id="g-entree">Point d'entrée</dt><dd>Un chemin d'import du kit, comme <code>@ucm-kit/core/lecteurs</code>.</dd>
     <dt id="g-protection">Protection de branche</dt><dd>Le réglage de la forge qui interdit de fusionner une pull request dont le CI est rouge. Sans lui, un échec reste un avis.</dd>
