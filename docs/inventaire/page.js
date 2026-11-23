@@ -424,8 +424,7 @@
   // Le changement de prio : un sélecteur (les six prios et « Écartée »), un champ d'une ligne, un bouton qui copie la consigne de l'agent.
   function formulaireDePrio(p) {
     var options = PRIOS.map(function (nom, i) { return '<option value="' + i + '"' + (i === p.prio ? ' selected' : '') + '>' + i + ' · ' + esc(nom) + '</option>'; }).join('') + '<option value="ecartee">Écartée</option>';
-    return (p.prioPosee ? '<p class="prio-posee"><span class="prio-toi"></span>Prio posée par toi. « ' + esc(p.prioPosee.raison) + ' »</p>' : '') +
-      '<div class="prio-form" data-piste="' + p.id + '"><label for="prio-' + p.id + '">Prio</label><select id="prio-' + p.id + '">' + options + '</select>' +
+    return '<div class="prio-form" data-piste="' + p.id + '"><label for="prio-' + p.id + '">Prio</label><select id="prio-' + p.id + '">' + options + '</select>' +
       '<input type="text" placeholder="Pourquoi ?" aria-label="Pourquoi cette prio sur ' + p.id + '">' +
       '<button type="button" class="bouton copier-prio" aria-live="polite" disabled>Copier pour l’agent</button></div>';
   }
@@ -463,10 +462,9 @@
     return '<span class="attentes">' + p.attentes.map(function (a) { return '<span class="attend ' + a.genre + '" title="' + esc(a.detail) + '">' + esc(a.texte) + '</span>'; }).join('') + '</span>';
   }
   function ligneDePiste(p) {
-    var ouvert = !!etat.ouvertes[p.id], posee = p.prioPosee;
-    var titrePosee = posee ? 'Prio posée par toi. ' + (p.prioDeLAgent !== p.prio ? 'L’agent proposait la prio ' + p.prioDeLAgent + '. ' : '') + posee.raison : '';
+    var ouvert = !!etat.ouvertes[p.id];
     return '<tr class="rm-ligne' + (ouvert ? ' ouverte' : '') + '" id="piste-' + p.id + '" data-id="' + p.id + '">' +
-      '<td class="n"><span class="rang">' + p.prio + '</span>' + (posee ? '<span class="prio-toi" role="img" title="' + esc(titrePosee) + '" aria-label="Prio posée par toi"></span>' : '') + '</td>' +
+      '<td class="n"><span class="rang">' + p.prio + '</span></td>' +
       '<td><button type="button" class="rm-bascule" aria-expanded="' + ouvert + '" aria-controls="fiche-' + p.id + '" title="' + esc(p.titre) + '"><span class="chev" aria-hidden="true"></span><span class="id">' + p.id + '</span><span class="titre">' + esc(p.titreCourt) + '</span>' +
         (aBouge(p) ? '<span class="a-bouge" role="img" aria-label="a bougé depuis ta dernière visite" title="Un lot a été fait depuis ta dernière visite"></span>' : '') + '</button>' + sousLaLigne(p) + '</td>' +
       '<td>' + etatDe(p) + '</td><td>' + attentesDe(p) + '</td></tr>' +

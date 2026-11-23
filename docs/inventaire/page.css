@@ -369,7 +369,7 @@ section.partie.large { max-width: none; }
 .filtre-attente { all: unset; cursor: pointer; display: inline-flex; gap: 6px; align-items: center; padding: 4px 12px; border: 1px solid #e9c46a; border-radius: 999px; color: var(--ambre); background: var(--surface); font-weight: 600; }
 .filtre-attente[aria-pressed="true"] { background: var(--ambre-fond); box-shadow: inset 0 0 0 1px var(--ambre); }
 .rm-outils .compte { margin-left: auto; color: var(--doux); }
-.rm-outils .compte .prio-toi, .rm-outils .compte .a-bouge { margin: 0 4px 0 10px; vertical-align: 1px; }
+.rm-outils .compte .a-bouge { margin: 0 4px 0 10px; vertical-align: 1px; }
 /* La table. */
 .rm-defile { overflow-x: auto; }
 .rm { width: 100%; min-width: 760px; border-collapse: collapse; font-size: .9rem; background: var(--surface); border: 1px solid var(--trait); border-radius: 10px; overflow: hidden; table-layout: fixed; }
@@ -383,8 +383,7 @@ section.partie.large { max-width: none; }
 .rm .rang { font-weight: 700; }
 .rm col.c-rang { width: 64px; } .rm col.c-piste { width: 420px; } .rm col.c-etat { width: 210px; }
 /* La prio posée par le mainteneur et le lot récent : deux points, expliqués dans la légende au-dessus de la table. */
-.prio-toi, .a-bouge { display: inline-block; width: 7px; height: 7px; border-radius: 50%; }
-.prio-toi { margin-left: 4px; background: var(--violet); vertical-align: 3px; }
+.a-bouge { display: inline-block; width: 7px; height: 7px; border-radius: 50%; }
 .a-bouge { margin-left: 6px; background: var(--bleu); vertical-align: 2px; }
 .rm-bascule { all: unset; cursor: pointer; display: inline-flex; gap: 6px; align-items: baseline; border-radius: 4px; }
 .rm-bascule:focus-visible { outline: 2px solid var(--texte); outline-offset: 2px; }
@@ -444,8 +443,6 @@ details.lots-plus[open] > summary::before, details.lots-faits[open] > summary::b
 .prio-form .bouton { height: 30px; min-width: 136px; text-align: center; }
 .prio-form .bouton:disabled { color: var(--doux); cursor: default; background: var(--surface-2); }
 .prio-form .copier-prio.fait { color: var(--olive); border-color: var(--olive); font-weight: 600; }
-.prio-posee { margin: 12px 0 0; font-size: .85rem; color: var(--violet); }
-.prio-posee .prio-toi { margin: 0 6px 0 0; vertical-align: 1px; }
 @media (max-width: 860px) {
   ol.flux { grid-template-columns: 1fr; gap: 22px; }
   ol.flux li:not(:last-child)::after { content: "↓"; right: auto; left: 18px; top: auto; bottom: -21px; transform: none; }
