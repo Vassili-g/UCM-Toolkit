@@ -566,7 +566,7 @@
   </div></details>
 </section>
 
-<!-- 6. Ce qui est vérifié, et où : dans Figma avec Architect, puis dans la pull request avec ucm check. Rapport : rapportDuButton (releves.ts) ; règles décidées : decisions.json, genre tableau. -->
+<!-- 6. Ce qui est vérifié, et où : dans Figma avec Architect, dans la pull request avec ucm check (table des états : etatsDeComposant, releves.ts), puis le linter (controleDuCode, releves.ts). Rapport : rapportDuButton (releves.ts) ; règles décidées : decisions.json, genre tableau. -->
 <section class="partie" id="controles">
   <h2><span class="num">6</span>Ce qui est vérifié, et où</h2>
   <p class="defini">Défini dans <code>packages/kit/src/controles/</code> et <code>packages/kit/src/lecteurs/</code>.</p>
@@ -623,26 +623,57 @@
       <p class="doux">Si la demande ne modifie que <code>Button.contract.json</code>, le composant est marqué <a class="terme" href="#g-retard" title="Se dit d'un composant dont le code ne suit pas encore son contrat.">en retard sur son contrat</a>, et la demande passe.</p></figure>
   </div>
 
-  <h3>Ce que <code>ucm check</code> fait de chaque écart aujourd'hui</h3>
-  <div class="verifs">
-    <div class="carte"><h4><span class="verdict v-bloque">bloque</span></h4>
-      <ul class="liste">
-        <li>Un contrat illisible, incomplet ou hors de la fenêtre {{contrats:fenetre}}.</li>
-        <li>Une composition cassée, quand le contrat d'un <a class="terme" href="#g-imbrique" title="Une instance d'un autre composant, placée dans le composant.">imbriqué</a> manque ou qu'un cycle apparaît.</li>
-        <li>Un token de typographie dont le type est faux.</li>
-        <li>Un fichier de tokens absent ou illisible.</li></ul></div>
-    <div class="carte"><h4><span class="verdict v-avertit">avertit sans bloquer</span></h4>
-      <ul class="liste">
-        <li>Un token cité par le contrat et absent de <code>tokens.json</code>.</li>
-        <li>Un écart de parité entre les props du code et le contrat.</li>
-        <li>Le contraste des couleurs du contrat, en information seulement, car <code>ucm check</code> ne sait pas si un texte est grand.</li></ul></div>
-    <div class="carte"><h4><span class="verdict v-non">non vérifié</span></h4>
-      <ul class="liste">
-        <li>Le rendu dans un navigateur : couleur, dimensions, typographie, structure et ordre (<a href="#piste-P9">P9</a>, <a href="#piste-P10">P10</a>, <a href="#piste-P20">P20</a>).</li>
-        <li>Une valeur écrite en dur dans le code (<a href="#piste-P6">P6</a>).</li>
-        <li>La fusion d'une pull request rouge, que seule une protection de branche empêche (<a href="#piste-P17">P17</a>).</li></ul></div>
-  </div>
-  <p class="doux"><code>bilanEstBloquant</code> (<code>lecteurs/verdict-bilan.mjs</code>) ne compte ni les tokens absents ni la parité.</p>
+  <h3>Ce que <code>ucm check</code> décide pour chaque état d'un composant</h3>
+  <p class="defini">Calculé par <code>verdictDeLaDemande</code>, dans <code>packages/kit/src/lecteurs/verdict-bilan.mjs</code>.</p>
+  <p class="intro">Chaque composant a un état. Le tableau les range du plus grave au plus léger. Une demande de code modifie le code. Une demande de contrats modifie un contrat. Une demande de tokens seuls ne modifie que <code>tokens.json</code>. Chaque colonne dit si la demande est bloquée. La dernière colonne nomme ce qui décide du blocage.</p>
+  <div class="defile"><table class="empile">
+    <tr><th>État</th><th>Demande de code</th><th>Demande de contrats</th><th>Demande de tokens seuls</th><th>Pourquoi</th><th>Ce qui bloque</th></tr>
+    {{lignes-etats}}
+  </table></div>
+
+  <!-- V4. Le linter : une ligne par code de CODES_DU_CONTROLE_DU_CODE (controleDuCode, releves.ts), les listes dans un pli. Titres et introductions seuls écrits ici. -->
+  <h3>Dans l'éditeur et la CI, avec le linter</h3>
+  <p class="defini">Défini dans <code>packages/kit/src/lecteurs/controle-du-code-listes.mjs</code> et <code>packages/kit/src/lecteurs/derogations.mjs</code>.</p>
+  <p class="intro">Le linter lit le code d'un composant dans l'éditeur du développeur. <code>ucm check</code> le relit dans la CI avec les mêmes listes. Il compare chaque valeur du code au contrat et à <code>tokens.json</code>. Le tableau donne les {{linter:nombre-codes}} codes qu'il peut rendre.</p>
+  <div class="defile"><table class="empile">
+    <tr><th>Code</th><th>Règles</th><th>Niveau</th><th>Pourquoi</th><th>Dérogeable</th></tr>
+    {{lignes-codes-linter}}
+  </table></div>
+  <p class="doux">Pour garder une valeur que le linter refuse, le développeur lance <code>ucm deroger</code> avec son motif.</p>
+  <details class="pli"><summary>Les listes du linter <span class="doux">familles, {{linter:nombre-proprietes}} propriétés, valeurs neutres, valeurs reconnues</span></summary><div class="contenu">
+    <p class="intro">Le linter applique ces listes. Chaque ligne a sa raison.</p>
+    <h4>Familles</h4>
+    <div class="defile"><table><tr><th>Famille</th><th>Pourquoi</th></tr>
+    {{linter:familles}}
+    </table></div>
+    <h4>Propriétés par famille</h4>
+    <div class="defile"><table><tr><th>Propriété</th><th>Familles</th><th>Pourquoi</th></tr>
+    {{linter:proprietes}}
+    </table></div>
+    <h4>Valeurs neutres</h4>
+    <div class="defile"><table><tr><th>Valeur</th><th>Pourquoi</th></tr>
+    {{linter:neutres}}
+    </table></div>
+    <h4>Valeurs reconnues</h4>
+    <div class="defile"><table><tr><th>Liste</th><th>Pourquoi</th><th class="n">Nombre</th><th>Valeurs</th></tr>
+    {{linter:listes}}
+    </table></div>
+    <h4>Champs du contrat publiés en clair</h4>
+    <div class="defile"><table><tr><th>Champ</th><th>Famille</th><th>Pourquoi</th></tr>
+    {{linter:champs-publies}}
+    </table></div>
+    <h4>Champs du contrat sans famille de tokens</h4>
+    <div class="defile"><table><tr><th>Champ</th><th>Pourquoi</th></tr>
+    {{linter:champs-hors-famille}}
+    </table></div>
+    <h4>Ce que le linter ne peut pas juger</h4>
+    <div class="defile"><table><tr><th>Code</th><th>Pourquoi</th></tr>
+    {{linter:limites}}
+    </table></div>
+  </div></details>
+
+  <h3>Ce qui n'est pas vérifié</h3>
+  <p>Le rendu dans un navigateur : couleur, dimensions, typographie, structure et ordre (<a href="#piste-P9">P9</a>, <a href="#piste-P10">P10</a>, <a href="#piste-P20">P20</a>). La fusion d'une pull request rouge, que seule une protection de branche empêche (<a href="#piste-P17">P17</a>).</p>
 
   <h3>Les règles décidées, pas encore dans le code</h3>
   <p class="defini">Défini dans <code>docs/notes/Recherches/Evolutions globales/decisions.json</code>.</p>
@@ -692,7 +723,7 @@
   <dl class="def questions">
     <dt>Pourquoi un contrat JSON plutôt que l'API Figma ou Code Connect ?</dt><dd>Le CI lit le contrat sans accès à Figma, et le contrat est versionné à côté du code. Code Connect relie un composant Figma à son code sans décrire les obligations visuelles. Les deux se complètent.</dd>
     <dt>L'API du kit est-elle stable ?</dt><dd>Une seule porte est promise aux modules, <code>@ucm-kit/core/modules</code>. Un test refuse qu'elle change sans entrée au journal du kit, et le chiffre du milieu de la version monte à chaque rupture. Les autres portes servent les outils UCM et changent librement. Le guide <code>docs/guides/MODULES.md</code> le détaille.</dd>
-    <dt>Que se passe-t-il quand le designer change un token ?</dt><dd>Sa valeur change dans <code>tokens.json</code>, et la pull request passe. Le code suit une fois la feuille régénérée par <code>ucm tokens css</code>. Un token cité par un contrat puis retiré avertit aujourd'hui, et bloquera une fois la règle de blocage codée (<a href="#piste-P19">P19</a>).</dd>
+    <dt>Que se passe-t-il quand le designer change un token ?</dt><dd>Sa valeur change dans <code>tokens.json</code>, et la pull request passe. Le code suit une fois la feuille régénérée par <code>ucm tokens css</code>. Un token cité par un contrat puis retiré met le composant « {{etat:en-retard-sur-les-tokens}} » : la section 6 dit ce que cet état bloque.</dd>
     <dt>Un contrat peut-il arriver avant le code ?</dt><dd>Oui. Il est fusionné « à implémenter », et la parité s'applique dès que le composant existe.</dd>
     <dt>Comment tester sans Figma ?</dt><dd><code>npm test</code> couvre le moteur, les lecteurs sur des contrats fabriqués et la CLI sur des repositories temporaires. Ce qui touche Figma et une vraie forge se rejoue dans UCM-Playground, l'application de recette sur GitHub. Un agent ne peut pas exporter depuis Figma.</dd>
     <dt>Peut-on modifier le kit ?</dt><dd>Le cœur a un seul mainteneur, et un changement du kit se décide avec lui. Les modules importeront seulement l'API que <a href="#piste-P3">P3</a> fige.</dd>

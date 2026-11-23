@@ -154,8 +154,6 @@ dl.def dt:target, dl.def dt:target + dd { background: var(--ambre-fond); }
 .verdict { display: inline-flex; align-items: center; gap: 5px; font-size: .82rem; font-weight: 600; white-space: nowrap; }
 .verdict::before { display: inline-grid; place-items: center; width: 17px; height: 17px; border-radius: 50%; font-size: .72rem; color: var(--surface); }
 .v-bloque { color: var(--rose); } .v-bloque::before { content: "✕"; background: var(--rose); }
-.v-avertit { color: var(--ambre); } .v-avertit::before { content: "⚠"; background: var(--ambre); font-size: .6rem; }
-.v-non { color: var(--doux); } .v-non::before { content: "⊘"; background: var(--doux); }
 .contrat-annote { display: grid; grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr); gap: 14px; align-items: start; margin: 8px 0; }
 .codebloc { position: relative; margin: 0; background: var(--code); border-radius: 8px; padding: 10px 10px 10px 34px; overflow-x: auto; font: .76rem/1.6 ui-monospace, "JetBrains Mono", Consolas, monospace; white-space: pre; }
 .codebloc .p { position: absolute; left: 8px; }
@@ -402,9 +400,6 @@ dl.def.principes { grid-template-columns: 240px 1fr; }
 .etape-carte.trou h4 .n { background: var(--rose); }
 .etape-carte dl.faits { border-top: 0; padding: 0; margin: 0; }
 .legende-parcours { font-size: .82rem; margin: 6px 0 0; }
-/* 6. Ce que ucm check fait de chaque écart : trois cartes. */
-.verifs { display: grid; gap: 12px; grid-template-columns: repeat(3, minmax(0, 1fr)); margin: 10px 0; }
-.verifs .carte h4 .verdict { font-size: .88rem; }
 /* 7. Les pistes : une ligne par piste, la décision et la note à droite, la fiche dessous. */
 .piste { border: 1px solid var(--trait); border-radius: 10px; background: var(--surface); margin: 6px 0; }
 .piste-ligne { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 8px 16px; align-items: start; padding: 9px 12px; }
@@ -436,7 +431,7 @@ a.sujet:focus-visible { outline: 2px solid var(--texte); outline-offset: 2px; }
 @media (max-width: 860px) {
   ol.flux { grid-template-columns: 1fr; gap: 22px; }
   ol.flux li:not(:last-child)::after { content: "↓"; right: auto; left: 18px; top: auto; bottom: -21px; transform: none; }
-  .grille.deux-cartes, .verifs { grid-template-columns: 1fr; }
+  .grille.deux-cartes { grid-template-columns: 1fr; }
   .parcours { grid-template-columns: 1fr; }
   .parcours .etapes { grid-auto-flow: row; grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .piste-ligne { grid-template-columns: minmax(0, 1fr); }

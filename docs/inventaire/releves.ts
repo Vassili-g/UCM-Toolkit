@@ -18,6 +18,29 @@ import * as referentielBrut from '@ucm-kit/core/referentiel';
 import * as emploisBrut from '@ucm-kit/core/emplois';
 import type { FondDeGarantie } from '@ucm-kit/core/emplois';
 import { sectionDe, tableauDe } from './extraire';
+import { ETATS_DE_COMPOSANT, TEXTES_DES_ETATS, verdictDeLaDemande } from '../../packages/kit/src/lecteurs/verdict-bilan.mjs';
+import {
+  ATTRIBUTS_SANS_VALEUR_VISUELLE,
+  CHAMPS_A_VALEUR_PUBLIEE,
+  CHAMPS_HORS_FAMILLE,
+  CODES_DU_CONTROLE_DU_CODE,
+  FAMILLES,
+  FONCTIONS_DE_COULEUR,
+  FONCTIONS_MATHEMATIQUES,
+  LIMITES_DU_CONTROLE,
+  MOTS_CLES_DE_FORME,
+  NOMS_DE_COULEUR,
+  PROPRIETES_PAR_FAMILLE,
+  RAISON_ATTRIBUTS_SANS_VALEUR_VISUELLE,
+  RAISON_FONCTIONS_DE_COULEUR,
+  RAISON_FONCTIONS_MATHEMATIQUES,
+  RAISON_MOTS_CLES_DE_FORME,
+  RAISON_NOMS_DE_COULEUR,
+  RAISON_UNITES_DE_LONGUEUR,
+  UNITES_DE_LONGUEUR,
+  VALEURS_NEUTRES,
+} from '../../packages/kit/src/lecteurs/controle-du-code-listes.mjs';
+import { coordonneesDuGenre } from '../../packages/kit/src/lecteurs/derogations.mjs';
 import { PREREGLAGES, couleurDeLaCarte, ecrireHexa, rampesDe, recetteParDefaut, type Recette } from 'ucm-couleur';
 
 import { ELEMENT_DE_LA_FAMILLE } from '../../packages/plugin-architect/src/ui/panneau/elements';
@@ -376,6 +399,142 @@ export function rapportDuButton() {
     ecart: prendre(/\n- (La propriété `size`[^\n]*)/, 'écart'),
     action: prendre(/#### Action\n\n([^\n]*)/, 'action'),
     fin: prendre(/\n(\*\*Votre design n'est pas en cause\*\*[^\n]*)/, 'fin').replace(/\*\*/g, ''),
+  };
+}
+
+// ---------- Le verdict de ucm check et le linter ----------
+
+/** Les trois demandes que `verdictDeLaDemande` juge, dans l'ordre des colonnes du tableau. */
+export const DEMANDES = ['code', 'contrats-et-tokens', 'tokens-seuls'] as const;
+
+/** Les causes de blocage que `verdictDeLaDemande` nomme dans `bloquantPar`, en mots. */
+const CAUSES_DE_BLOCAGE: Readonly<Record<string, string>> = {
+  contrat: 'le contrat',
+  tokens: '`tokens.json`',
+  parite: 'la parité du code avec le contrat',
+  code: 'le contrôle du code',
+};
+
+interface Scenario {
+  bilan?: Record<string, unknown>;
+  parite?: Record<string, unknown>;
+  rangContrat: number | null;
+  rangCode: number | null;
+  rangTokens: number | null;
+  adaptateurAttendu?: string;
+  derogee?: boolean;
+}
+
+/**
+ * Un composant dans chaque état, tel que le juge `verdictDeLaDemande`. Rang 0 : le fichier que la demande modifie ; un rang
+ * plus grand est plus ancien. Le scénario est fixe, la demande change seulement ce qu'elle juge : le verdict d'une cellule
+ * est donc celui du kit, et un scénario qui ne produit plus son état fait échouer la lecture.
+ */
+const SCENARIOS: Readonly<Record<string, Scenario>> = {
+  'contrat-invalide': { bilan: { illisible: true }, rangContrat: 0, rangCode: 3, rangTokens: 9 },
+  'tokens-absents': { bilan: { manquants: ['color/absent'] }, rangContrat: 0, rangCode: 0, rangTokens: 9 },
+  ecart: { parite: { manquantes: ['size'] }, rangContrat: 3, rangCode: 0, rangTokens: 9 },
+  'code-non-verifie': { parite: { implementationNonLue: 'Button.tsx' }, rangContrat: 3, rangCode: 0, rangTokens: 9, adaptateurAttendu: 'absent' },
+  'en-retard-sur-son-contrat': { parite: { manquantes: ['size'] }, rangContrat: 0, rangCode: 3, rangTokens: 9 },
+  'en-retard-sur-les-tokens': { bilan: { manquants: ['color/absent'] }, rangContrat: 3, rangCode: 3, rangTokens: 0 },
+  'deroge-a-valider': { parite: { manquantes: ['size'] }, rangContrat: 3, rangCode: 0, rangTokens: 9, derogee: true },
+  'pas-encore-d-implementation': { parite: { implementationAbsente: true }, rangContrat: 3, rangCode: null, rangTokens: 9 },
+  conforme: { rangContrat: 3, rangCode: 0, rangTokens: 9 },
+};
+
+/** La date d'export que partagent le contrat fabriqué et sa dérogation. */
+const EXPORT_FABRIQUE = '2026-01-01T00:00:00.000Z';
+
+function verdictDuScenario(etat: string, demande: (typeof DEMANDES)[number]) {
+  const scenario = SCENARIOS[etat];
+  if (!scenario) throw new Error(`releves.ts : ETATS_DE_COMPOSANT a l'état « ${etat} », sans scénario dans SCENARIOS`);
+  const bilan = {
+    illisible: false,
+    champsAbsents: [],
+    version: null,
+    graphe: [],
+    manquants: [],
+    typesTypographiques: [],
+    ...scenario.bilan,
+    parite: {
+      implementationAbsente: false,
+      implementationNonLue: null,
+      interfaceAbsente: null,
+      fonctionAbsente: null,
+      manquantes: [],
+      typesIncorrects: [],
+      valeursNonImplementees: [],
+      booleensNonUtilises: [],
+      enumsSansEffet: [],
+      compositionsIncorrectes: [],
+      ...scenario.parite,
+    },
+  };
+  const derogations = scenario.derogee
+    ? { derogations: [{ composant: 'Button', ecart: { genre: 'prop-absente', prop: 'size' }, export: EXPORT_FABRIQUE, motif: 'Motif fabriqué pour le calcul.', par: 'inventaire' }], erreurs: [] }
+    : { derogations: [], erreurs: [] };
+  const verdict = verdictDeLaDemande({
+    demande,
+    composants: [{ id: 'Button', bilan, exportedAt: EXPORT_FABRIQUE, rangContrat: scenario.rangContrat, rangCode: scenario.rangCode }],
+    rangTokens: scenario.rangTokens,
+    derogations,
+    adaptateurAttendu: scenario.adaptateurAttendu ?? 'sans-adaptateur',
+  } as never) as { composants: { etat: string; bloquant: boolean; bloquantPar: Record<string, boolean> }[] };
+  const composant = verdict.composants[0];
+  if (composant.etat !== etat) throw new Error(`releves.ts : le scénario de « ${etat} » donne l'état « ${composant.etat} » sous la demande ${demande}`);
+  return composant;
+}
+
+/** Une ligne par état de composant : sa phrase, sa raison, le verdict de chaque demande et ce qui décide du blocage. */
+export function etatsDeComposant(): { etat: string; phrase: string; raison: string; verdicts: boolean[]; autorite: string[] }[] {
+  return (ETATS_DE_COMPOSANT as readonly string[]).map((etat) => {
+    const textes = (TEXTES_DES_ETATS as Record<string, { phrase: string; raison: string }>)[etat];
+    if (!textes) throw new Error(`releves.ts : TEXTES_DES_ETATS n'a pas l'état « ${etat} »`);
+    const verdicts = DEMANDES.map((demande) => verdictDuScenario(etat, demande));
+    const causes = Object.keys(CAUSES_DE_BLOCAGE).filter((cause) => verdicts.some((verdict) => verdict.bloquantPar[cause]));
+    return { etat, phrase: textes.phrase, raison: textes.raison, verdicts: verdicts.map((verdict) => verdict.bloquant), autorite: causes.map((cause) => CAUSES_DE_BLOCAGE[cause]) };
+  });
+}
+
+/** La phrase d'un état de composant, telle que le terminal l'écrit. */
+export function phraseDeLEtat(etat: string): string {
+  const textes = (TEXTES_DES_ETATS as Record<string, { phrase: string }>)[etat];
+  if (!textes) throw new Error(`releves.ts : TEXTES_DES_ETATS n'a pas l'état « ${etat} »`);
+  return textes.phrase;
+}
+
+const NIVEAUX_DU_LINTER: Readonly<Record<string, string>> = { ecart: 'écart', limite: 'limite', 'non-analyse': 'non analysé' };
+
+/** Les listes que le linter applique, lues dans `controle-du-code-listes.mjs`, avec la raison de chaque entrée. */
+export function controleDuCode() {
+  const niveau = (code: string, valeur: string): string => {
+    const mot = NIVEAUX_DU_LINTER[valeur];
+    if (!mot) throw new Error(`releves.ts : le code « ${code} » a le niveau « ${valeur} », que NIVEAUX_DU_LINTER ne nomme pas`);
+    return mot;
+  };
+  const listes: { titre: string; raison: string; valeurs: readonly string[] }[] = [
+    { titre: 'Unités de longueur', raison: RAISON_UNITES_DE_LONGUEUR, valeurs: UNITES_DE_LONGUEUR },
+    { titre: 'Fonctions de couleur', raison: RAISON_FONCTIONS_DE_COULEUR, valeurs: FONCTIONS_DE_COULEUR },
+    { titre: 'Fonctions mathématiques', raison: RAISON_FONCTIONS_MATHEMATIQUES, valeurs: FONCTIONS_MATHEMATIQUES },
+    { titre: 'Noms de couleur', raison: RAISON_NOMS_DE_COULEUR, valeurs: NOMS_DE_COULEUR },
+    { titre: 'Mots de forme', raison: RAISON_MOTS_CLES_DE_FORME, valeurs: MOTS_CLES_DE_FORME },
+    { titre: 'Attributs sans valeur visuelle', raison: RAISON_ATTRIBUTS_SANS_VALEUR_VISUELLE, valeurs: ATTRIBUTS_SANS_VALEUR_VISUELLE },
+  ];
+  return {
+    codes: (CODES_DU_CONTROLE_DU_CODE as { code: string; regles: string[]; niveau: string; raison: string }[]).map((entree) => ({
+      code: entree.code,
+      regles: entree.regles,
+      niveau: niveau(entree.code, entree.niveau),
+      raison: entree.raison,
+      derogeable: coordonneesDuGenre(entree.code) as string[] | null,
+    })),
+    limites: LIMITES_DU_CONTROLE as { code: string; raison: string }[],
+    familles: FAMILLES as { famille: string; raison: string }[],
+    proprietes: PROPRIETES_PAR_FAMILLE as { propriete: string; familles: string[]; raison: string }[],
+    neutres: VALEURS_NEUTRES as { valeur: string; raison: string }[],
+    listes,
+    champsPublies: CHAMPS_A_VALEUR_PUBLIEE as { champ: string; famille: string; raison: string }[],
+    champsHorsFamille: CHAMPS_HORS_FAMILLE as { champ: string; raison: string }[],
   };
 }
 

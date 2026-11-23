@@ -242,6 +242,55 @@ async function lignesDesCommandes(): Promise<string> {
   return lignes.join('\n        ');
 }
 
+/** Le verdict d'une demande, avec son signe : un état qui bloque ou qui passe. */
+const verdictEnHtml = (bloque: boolean): string => (bloque ? '<span class="verdict v-bloque">bloque</span>' : '<span class="verdict v-passe">passe</span>');
+
+/** Une ligne par état de composant : sa phrase, trois verdicts calculés par `verdictDeLaDemande`, sa raison et ce qui décide. */
+function lignesDesEtats(): string {
+  return releves
+    .etatsDeComposant()
+    .map((ligne) => {
+      const autorite = ligne.autorite.length ? ligne.autorite.map(avecCode).join(', ') : 'rien';
+      const colonnes = releves.DEMANDES.map((demande, rang) => `<td data-l="${DEMANDES_EN_MOTS[demande]}">${verdictEnHtml(ligne.verdicts[rang])}</td>`).join('');
+      return `<tr><td>${premiereMajuscule(echapper(ligne.phrase))}<span class="nota"><code>${ligne.etat}</code></span></td>${colonnes}<td data-l="Pourquoi">${avecCode(ligne.raison)}</td><td data-l="Ce qui bloque">${autorite}</td></tr>`;
+    })
+    .join('\n    ');
+}
+
+const DEMANDES_EN_MOTS: Readonly<Record<(typeof releves.DEMANDES)[number], string>> = {
+  code: 'Demande de code',
+  'contrats-et-tokens': 'Demande de contrats',
+  'tokens-seuls': 'Demande de tokens seuls',
+};
+
+/** Une ligne par code du juge du code : ses règles, son niveau, sa raison et les coordonnées de sa dérogation. */
+function lignesDesCodesDuLinter(): string {
+  return releves
+    .controleDuCode()
+    .codes.map((entree) => {
+      const derogeable = entree.derogeable === null ? 'non' : `oui, par ${listeDeCodes(entree.derogeable)}`;
+      return `<tr><td><code>${entree.code}</code></td><td data-l="Règles">${listeDeCodes(entree.regles)}</td><td data-l="Niveau">${entree.niveau}</td><td data-l="Pourquoi">${avecCode(entree.raison)}</td><td data-l="Dérogeable">${derogeable}</td></tr>`;
+    })
+    .join('\n    ');
+}
+
+/** Les tables du pli « Les listes du linter » : une chaîne par trou du gabarit. */
+function tablesDuLinter(): Record<string, string> {
+  const controle = releves.controleDuCode();
+  const ligne = (...cellules: string[]): string => `<tr>${cellules.map((cellule) => `<td>${cellule}</td>`).join('')}</tr>`;
+  return {
+    'linter:familles': controle.familles.map((famille) => ligne(`<code>${famille.famille}</code>`, avecCode(famille.raison))).join('\n    '),
+    'linter:proprietes': controle.proprietes.map((propriete) => ligne(`<code>${propriete.propriete}</code>`, listeDeCodes(propriete.familles), avecCode(propriete.raison))).join('\n    '),
+    'linter:neutres': controle.neutres.map((neutre) => ligne(`<code>${neutre.valeur}</code>`, avecCode(neutre.raison))).join('\n    '),
+    'linter:listes': controle.listes.map((liste) => ligne(echapper(liste.titre), avecCode(liste.raison), `${liste.valeurs.length}`, `<span class="mono">${liste.valeurs.map(echapper).join(', ')}</span>`)).join('\n    '),
+    'linter:champs-publies': controle.champsPublies.map((champ) => ligne(`<code>${champ.champ}</code>`, `<code>${champ.famille}</code>`, avecCode(champ.raison))).join('\n    '),
+    'linter:champs-hors-famille': controle.champsHorsFamille.map((champ) => ligne(`<code>${champ.champ}</code>`, avecCode(champ.raison))).join('\n    '),
+    'linter:limites': controle.limites.map((limite) => ligne(`<code>${limite.code}</code>`, avecCode(limite.raison))).join('\n    '),
+    'linter:nombre-proprietes': String(controle.proprietes.length),
+    'linter:nombre-codes': String(controle.codes.length),
+  };
+}
+
 function lignesDesFamilles(): string {
   return releves
     .famillesParCollection()
@@ -359,6 +408,10 @@ async function valeurs(): Promise<Record<string, string>> {
     'rapport:ecart': avecCode(rapport.ecart),
     'rapport:action': avecCode(rapport.action),
     'rapport:fin': avecCode(rapport.fin),
+    'lignes-etats': lignesDesEtats(),
+    'etat:en-retard-sur-les-tokens': echapper(releves.phraseDeLEtat('en-retard-sur-les-tokens')),
+    'lignes-codes-linter': lignesDesCodesDuLinter(),
+    ...tablesDuLinter(),
     'alertes:bandeau': bandeauDesAlertes(pistesASuivre, releves.signesEtAlertes().alertes.find((type) => type.id === 'corriger')!.svg),
     // Les blocs d'annexes
     annexes: annexes(),
@@ -437,6 +490,8 @@ async function couvertureDeLaPage(page: string, employes: ReadonlySet<string>): 
   univers['commandes de la CLI'] = { attendus: commandes, montres: commandes.filter((nom) => page.includes(`<code>ucm ${nom}</code>`)), aCompleter: 'COMMANDES dans packages/cli/src/ucm.mjs et la carte de la CLI dans docs/inventaire/gabarit.html, ou docs/inventaire/couverture.ts' };
   const codes = releves.codesDesConstats().map(([code]) => code);
   univers['codes de constat'] = { attendus: codes, montres: codes.filter((code) => nomme(page, code)), aCompleter: 'CODES_DES_CONSTATS dans packages/kit/src/controles/codes.ts, ou docs/inventaire/couverture.ts' };
+  const codesDuLinter = releves.controleDuCode().codes.map(({ code }) => code);
+  univers['codes du linter'] = { attendus: codesDuLinter, montres: codesDuLinter.filter((code) => page.includes(`<td><code>${code}</code></td>`)), aCompleter: 'CODES_DU_CONTROLE_DU_CODE dans packages/kit/src/lecteurs/controle-du-code-listes.mjs, ou docs/inventaire/couverture.ts' };
   return { univers };
 }
 

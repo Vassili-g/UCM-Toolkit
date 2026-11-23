@@ -112,9 +112,9 @@
     },
     {
       "id": "valeur-en-dur-bloquee-par-le-linter",
-      "genre": "tableau",
+      "genre": "liste",
       "pour": "developpeur",
-      "texte": "Une valeur écrite en dur dans le code bloque, par le linter (P6).",
+      "texte": "Une valeur écrite en dur dans le code d'un composant bloque la demande d'un développeur qui le modifie, par `ucm check` et le linter (P6).",
       "domicileCible": "docs/guides/POUR-LES-DESIGNERS.md#6. Ce qui bloque la fusion et ce qui avertit",
       "ecrite": "oui",
       "pistes": [
