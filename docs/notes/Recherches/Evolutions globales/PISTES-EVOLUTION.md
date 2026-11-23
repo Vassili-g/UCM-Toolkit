@@ -3,7 +3,7 @@
 Cette étude s’adresse aux contributeurs qui choisissent les prochaines
 expérimentations UCM. Chaque piste part d’une capacité ou d’une limite du code,
 compare des solutions et propose un essai. Les directions indiquées restent
-des hypothèses. Leur adoption relève de la [roadmap](../../../../ROADMAP.md).
+des hypothèses. Leur adoption relève des [validations du MVP](../../../../VALIDATIONS-MVP.md).
 
 La répartition des responsabilités est celle du [concept](../../../../CONCEPT.md) :
 design dans Figma, comportement dans le code, association et contrôles dans le
@@ -201,7 +201,7 @@ Un nouveau format ne serait étudié que pour les manques observés.
 **Besoin et appui dans le code.** Les lectures et résolutions Figma de
 [l’exporteur](../../../../packages/plugin-socle/src/composant/contract/exportComponent.ts) peuvent
 être difficiles à reproduire. Les limites de performance connues sont suivies
-dans la [roadmap](../../../../ROADMAP.md#fragilités-connues).
+dans les [validations du MVP](../../../../VALIDATIONS-MVP.md#fragilités-connues).
 
 **Solutions à comparer.** Des mesures locales par étape suffiraient pour une
 lenteur. Une trace structurée exportable aiderait à reproduire un défaut dont

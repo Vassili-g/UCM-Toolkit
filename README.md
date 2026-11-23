@@ -175,7 +175,7 @@ Le projet reste un prototype avancé ; les API des paquets `@ucm-kit/*` sont en
 Le kit lit les contrats **13.0 et 14.0**. La recette Palettes est au format **12** ;
 ces trois numérotations sont indépendantes.
 
-[ROADMAP.md](./ROADMAP.md) distingue l'implémentation, les validations et la
+[VALIDATIONS-MVP.md](./VALIDATIONS-MVP.md) distingue l'implémentation, les validations et la
 publication. Le [sommaire documentaire](./docs/README.md) donne les références
 par tâche ; l'[état des recherches](./docs/notes/Recherches/README.md) sépare
 les sujets implémentés, les travaux partiels et les pistes conservées.

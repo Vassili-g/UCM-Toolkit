@@ -3,7 +3,7 @@
  *
  * L'enjeu est la détection de l'axe de tailles : elle repose sur les valeurs
  * de l'axe, jamais sur son nom, et c'est exactement l'heuristique que l'étape 5
- * de la ROADMAP (Alert, Checkbox, TextField) va mettre à l'épreuve.
+ * des validations du MVP (Alert, Checkbox, TextField) va mettre à l'épreuve.
  */
 import assert from 'node:assert/strict';
 import test from 'node:test';

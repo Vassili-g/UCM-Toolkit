@@ -878,7 +878,7 @@ Actions selon la décision :
 - [ ] Si la bibliothèque seule est retenue, retirer la route et l'aide du CLI.
 - [ ] Si l'expérimentation est retirée, supprimer son code et conserver les
       mesures dans le journal.
-- [ ] Mettre à jour `ROADMAP.md` et la piste 3.3 sans recopier les décisions
+- [ ] Mettre à jour `VALIDATIONS-MVP.md` et la piste 3.3 sans recopier les décisions
       portées par le code.
 - [ ] Vérifier les versions des paquets dont le contenu publiable a changé.
 - [ ] Produire les archives et vérifier leur contenu.

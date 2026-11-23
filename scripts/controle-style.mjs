@@ -70,7 +70,7 @@ export const ACRONYMES = [
   'TUM', 'URL', 'USD', 'UUID',
   'UTF', 'UX', 'VECTOR', 'VLDB', 'WASM', 'WCAG', 'WCRE', 'WRAP', 'YAML', 'ZIP', 'ELLIPSE', 'AUTO',
   // Les documents du dépôt, cités par leur nom sans extension.
-  'AGENTS', 'CONCEPT', 'CONTRIBUTING', 'LICENSE', 'README', 'ROADMAP',
+  'AGENTS', 'CONCEPT', 'CONTRIBUTING', 'LICENSE', 'README', 'VALIDATIONS-MVP',
 ];
 
 /** Un mot entièrement en capitales, hors identifiant et hors mot d'une lettre. */
@@ -801,7 +801,7 @@ export const AUTORITES = [
   'AGENTS.md',
   'CARTE.md',
   'CONTRIBUTING.md',
-  'ROADMAP.md',
+  'VALIDATIONS-MVP.md',
   'docs/README.md',
   'docs/format/FORMAT.md',
   'docs/format/COMPATIBILITE.md',

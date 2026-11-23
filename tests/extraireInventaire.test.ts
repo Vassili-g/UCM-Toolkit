@@ -3,7 +3,7 @@
  * ses sous-titres ou ses questions, et lève sur un titre absent.
  *
  * Les cas de fixture sont des chaînes écrites ici. Un cas réel lit
- * `ROADMAP.md` pour tenir l'extraction contre un document du dépôt, et un autre
+ * `VALIDATIONS-MVP.md` pour tenir l'extraction contre un document du dépôt, et un autre
  * lit les questions de deux recherches.
  */
 import assert from 'node:assert/strict';
@@ -95,10 +95,10 @@ test('les sous-titres directs sont rendus avec leur premier paragraphe', () => {
   ]);
 });
 
-test('ROADMAP.md porte une section existante et un titre manquant lève', () => {
-  const texte = fs.readFileSync(path.join(racine, 'ROADMAP.md'), 'utf8');
-  assert.ok(sectionDe(texte, 'ROADMAP.md', 'Ce qui fonctionne').length > 0);
-  assert.throws(() => sectionDe(texte, 'ROADMAP.md', 'Section qui n’existe pas'), /ancre .* absente de ROADMAP\.md/);
+test('VALIDATIONS-MVP.md porte une section existante et un titre manquant lève', () => {
+  const texte = fs.readFileSync(path.join(racine, 'VALIDATIONS-MVP.md'), 'utf8');
+  assert.ok(sectionDe(texte, 'VALIDATIONS-MVP.md', 'Ce qui fonctionne').length > 0);
+  assert.throws(() => sectionDe(texte, 'VALIDATIONS-MVP.md', 'Section qui n’existe pas'), /ancre .* absente de VALIDATIONS-MVP.md/);
 });
 
 const AVEC_QUESTIONS = [

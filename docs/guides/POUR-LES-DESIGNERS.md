@@ -344,7 +344,7 @@ définition complète est écrite.
 | **Structure** | L'arbre des calques que le contrat publie, avec leur flux et leurs alignements. [6. Structure](../format/FORMAT.md#6-structure) |
 | **Vue** | La description exacte d'une variante, obtenue en suivant six renvois vers des catalogues partagés. Deux variantes identiques citent la même vue. [Sortie](../format/FORMAT.md#sortie) |
 | **Composition** | Le fait qu'un composant en réutilise un autre. Le contrat cite la dépendance sans recopier son contenu. [Composition et dépendances](../format/FORMAT.md#composition-et-dépendances) |
-| **Parité** | La comparaison entre les props du contrat et l'API réelle du composant dans le code. [ROADMAP](../../ROADMAP.md) |
+| **Parité** | La comparaison entre les props du contrat et l'API réelle du composant dans le code. [validations du MVP](../../VALIDATIONS-MVP.md) |
 | **Couverture portable** | Le champ qui dit si l'export a tout su décrire. `complete` : rien n'est perdu. `partial` : un message nomme le calque et la propriété concernés. [Métadonnées](../format/FORMAT.md#métadonnées) |
 | **Diagnostic** | Un message adressé à vous, avec son constat, son impact et son geste. [8. Rendu sémantique et garde-fous](../format/FORMAT.md#8-rendu-sémantique-et-garde-fous) |
 | **Échantillon de maquette** | Ce que Figma affichait au moment de l'export : textes, valeurs. Il aide à retrouver l'esthétique voulue. Aucun contrôle ne le compare au code. [9. Échantillon de maquette](../format/FORMAT.md#9-échantillon-de-maquette) |
@@ -358,5 +358,5 @@ définition complète est écrite.
 - [../README.md](../README.md) : la vue d'ensemble du projet.
 - [FORMAT.md](../format/FORMAT.md) : la forme exacte de chaque champ, si vous voulez
   lire un contrat en détail.
-- [../../ROADMAP.md](../../ROADMAP.md) : ce que le projet sait faire aujourd'hui, et
+- [../../VALIDATIONS-MVP.md](../../VALIDATIONS-MVP.md) : ce que le projet sait faire aujourd'hui, et
   ce qu'il ne prouve pas encore.

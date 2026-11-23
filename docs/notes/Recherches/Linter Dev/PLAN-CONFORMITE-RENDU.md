@@ -50,7 +50,7 @@ n'aurait plus de témoin indépendant.
 Forme et version du contrat, existence des tokens, graphe de composition,
 adresses des échantillons, parité et références de tokens du code sont contrôlés
 par le noyau. Tous sont statiques. `ucm check` les agrège dans le terminal et
-dans `ci-report.md`. [ROADMAP.md](../../../../ROADMAP.md) en tient l'état.
+dans `ci-report.md`. [VALIDATIONS-MVP.md](../../../../VALIDATIONS-MVP.md) en tient l'état.
 
 **Ce qui manque : la vérification du rendu.** Rien ne prouve que le composant
 affiche réellement la bonne couleur, la bonne dimension et la bonne disposition

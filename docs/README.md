@@ -50,7 +50,7 @@ Les galeries et leurs commandes sont documentées dans chaque README de plugin.
 | [AGENTS.md](../AGENTS.md) | Index des agents : quoi lire, où écrire, commandes |
 | `packages/*/invariants/*.md` | Invariants du produit, bornes et fichiers qui les appliquent ; [AGENTS.md](../AGENTS.md#routage) les indexe |
 | [CONTRIBUTING.md](../CONTRIBUTING.md) | Code, tests, rédaction et vérifications |
-| [ROADMAP.md](../ROADMAP.md) | Maturité, limites et validations restantes |
+| [VALIDATIONS-MVP.md](../VALIDATIONS-MVP.md) | Maturité, limites et validations restantes |
 | [Page de l'inventaire](../INVENTAIRE-UCM.html) | Aucune : elle montre les sources qu'elle cite |
 
 La spécification Palettes est encore rangée dans un dossier de recherche :

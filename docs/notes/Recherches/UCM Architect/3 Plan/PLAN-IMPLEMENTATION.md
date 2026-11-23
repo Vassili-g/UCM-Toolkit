@@ -728,9 +728,9 @@ Chaque lot remplace la souche de son domaine et garde les types de N1.
 ### Piste O · orchestrateur
 
 - [x] (f32079e8) **O0 · Vague 0** : notes du §7, fiches exécutables, sondes envoyées.
-- [x] (ROADMAP 9522c12b ; anciens noms e91a846c ; SPEC cf7181b1, a6e4d88f, 4e8fdf36 ; Q-54 et Q-55 ea406d3d) **O1 · Documents de jalon** : cohérence générale de `agents:diff`,
+- [x] (VALIDATIONS-MVP 9522c12b ; anciens noms e91a846c ; SPEC cf7181b1, a6e4d88f, 4e8fdf36 ; Q-54 et Q-55 ea406d3d) **O1 · Documents de jalon** : cohérence générale de `agents:diff`,
   `SPEC.md` de l'explorateur devenu celui d'Architect, README de ce dossier,
-  ROADMAP.
+  VALIDATIONS-MVP.
 - [ ] **O2 · Fin** (skill `publier-paquets`) : recette locale, commit final,
   push unique, CI distante verte, puis publication du kit, puis de la CLI et
   de l'adaptateur, depuis le commit poussé ; versions servies contrôlées.

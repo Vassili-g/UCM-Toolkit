@@ -43,7 +43,7 @@ La page vit dans `_local/inventaire-ucm/INVENTAIRE-UCM.html` tant qu'elle n'est 
 - [x] G1 (5df9c3ba). Page générée depuis le code. Agent : `implementeur-exigeant`. Après R2 et O1.
   - [ ] G1.1. `docs/inventaire/generer-inventaire.ts`, `page.css` et `page.js`, sur le modèle de `packages/couleur/planche/generer-planche.ts` : fonction pure, écriture au seul lancement direct, textes rendus en HTML statique, page autonome.
   - [ ] G1.2. Données du code à la place des constantes recopiées : `donneesDuReferentiel()` exportée de `Archi Tokens Multi-marques/generer-donnees-referentiel.ts`, table du thème, garanties, clarté des crans, rampes des palettes de démonstration, registres, signes, produits, versions, points d'entrée et exports, paquets, aides, skills, design systems, `CODES_DES_CONSTATS`, `COMMANDES`. Hash de commit et comptes de lignes retirés.
-  - [ ] G1.3. Extraits de `ROADMAP.md`, `CONCEPT.md`, `CHANGELOG-FORMAT.md`, `COMPATIBILITE.md` et du sommaire des recherches par `extraire.ts`.
+  - [ ] G1.3. Extraits de `VALIDATIONS-MVP.md`, `CONCEPT.md`, `CHANGELOG-FORMAT.md`, `COMPATIBILITE.md` et du sommaire des recherches par `extraire.ts`.
   - [ ] G1.4. Deux entrées dans `VUES` de `scripts/vues.mjs` : la page et `docs/inventaire/sources.json`. `tests/inventaire.test.ts` vérifie la fraîcheur, l'autonomie (seuls `url(data:` et `url(#`), la taille sous 1 Mo. Une ligne dans `CARTE.md`. `tests/referentielUnique.test.ts` balaie aussi `docs/inventaire/*.ts`.
   - Fin : un second `npm run vues` ne change rien, un octet changé dans la page fait échouer le test, `npx tsx --test tests/inventaire.test.ts tests/cartes.test.ts tests/styleDocumentaire.test.ts tests/referentielUnique.test.ts tests/vueIllustree.test.ts` passe.
 - [x] G2 (5df9c3ba). Données éditoriales et couverture. Agent : `implementeur`. Après G1.
@@ -59,7 +59,7 @@ La page vit dans `_local/inventaire-ucm/INVENTAIRE-UCM.html` tant qu'elle n'est 
 ## Phase P : liens et publication
 
 - [x] P1 (6014d1d2, dcd2cd80). Liens, version, publication. Agent : `implementeur` pour les liens, puis la skill `publier-paquets` dans la conversation principale.
-  - [x] P1.1 (6014d1d2). Liens vers `docs/inventaire/INVENTAIRE-UCM.html` dans `README.md`, `docs/README.md` (en tête et dans la table des autorités), `AGENTS.md` (une phrase sous 300 octets, et « Où écrire » pour les pistes et les décisions), `CONCEPT.md`, `ROADMAP.md`. Script `npm run inventaire` qui ouvre la page.
+  - [x] P1.1 (6014d1d2). Liens vers `docs/inventaire/INVENTAIRE-UCM.html` dans `README.md`, `docs/README.md` (en tête et dans la table des autorités), `AGENTS.md` (une phrase sous 300 octets, et « Où écrire » pour les pistes et les décisions), `CONCEPT.md`, `VALIDATIONS-MVP.md`. Script `npm run inventaire` qui ouvre la page.
   - [x] P1.2 (dcd2cd80, publiés : core 0.16.0, cli 0.1.151, adapter-typescript 0.2.9). Montée de version de `@ucm-kit/core` et `@ucm-kit/cli` (catalogue des codes, `COMMANDES`), puis publication.
   - Fin : `AGENTS.md` sous 12 288 octets, `npx tsx --test tests/domiciles.test.ts tests/docLinks.test.ts tests/styleDocumentaire.test.ts` passe, `npm test` passe en entier, paquets servis par le registre.
 

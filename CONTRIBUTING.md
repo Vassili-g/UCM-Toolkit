@@ -642,7 +642,7 @@ renvoie : c’est le consommateur qui n’a pas accès au code.
 La table donne l’endroit où chaque règle est écrite.
 
 Ailleurs, un lien. Une mention d’une phrase à une autre altitude, comme le
-`README` qui résume ou la `ROADMAP` qui date une étape, n’est pas une
+`README` qui résume ou les validations du MVP qui datent une étape, n’est pas une
 répétition.
 
 Écrire dans une spécification demande une ancre : ses titres sont les cibles des

@@ -8,7 +8,7 @@
       "sujet": "Règle de blocage",
       "resume": "Rendre le check `contrats` obligatoire sur `main` d'intencial-library et poser un `CODEOWNERS` qui laisse le designer fusionner seul une demande de tokens.",
       "importance": "critique",
-      "raisonImportance": "Sans protection de branche, une pull request rouge reste fusionnable : ROADMAP.md et POUR-LES-DESIGNERS.md §6 le disent, et toute règle de blocage reste un conseil.",
+      "raisonImportance": "Sans protection de branche, une pull request rouge reste fusionnable : VALIDATIONS-MVP.md et POUR-LES-DESIGNERS.md §6 le disent, et toute règle de blocage reste un conseil.",
       "prio": 0,
       "prioDuMainteneur": {
         "prio": 4,
@@ -37,7 +37,7 @@
           "quoi": "Les deux paragraphes GitHub et GitLab de la fin du §6, si le verrou devient la règle."
         },
         {
-          "chemin": "ROADMAP.md",
+          "chemin": "VALIDATIONS-MVP.md",
           "action": "modifier",
           "quoi": "Ligne « Les protections de branche sont indisponibles sur le plan GitHub actuel » du tableau « Ce qui n'est pas prouvé »."
         },
@@ -50,7 +50,7 @@
       "criteresDeFin": [
         "Une pull request de rebut au check `contrats` rouge affiche un bouton de fusion désactivé.",
         "Une pull request qui touche seulement `src/tokens/tokens.json` se fusionne sans approbation d'un développeur.",
-        "La ligne de ROADMAP.md sur les protections de branche est mise à jour ou retirée."
+        "La ligne de VALIDATIONS-MVP.md sur les protections de branche est mise à jour ou retirée."
       ],
       "questions": [
         "L'offre GitHub de l'organisation permet-elle la protection de branche sur un dépôt privé, et qui en est administrateur ?",
@@ -104,7 +104,7 @@
           "quoi": "Le guide vide UCM-Playground et demande un jeton sur UCM-Playground : l'adapter à intencial-library, ou le jouer sur le Playground."
         },
         {
-          "chemin": "ROADMAP.md",
+          "chemin": "VALIDATIONS-MVP.md",
           "action": "modifier",
           "quoi": "Ligne « Corpus de recette » (quatre contrats en 13.0), première ligne de « Ce qui n'est pas prouvé » et §6."
         }
@@ -459,7 +459,7 @@
       "recherche": "docs/notes/Recherches/Comparateur de rendu/RECHERCHE-COMPARATEUR-RENDU.md",
       "resume": "Écrire dans le kit le format de l'observation normalisée et la fonction qui compare une observation, une combinaison et le contrat, plus une feuille de tokens à valeur unique par token.",
       "importance": "haute",
-      "raisonImportance": "Aucun contrôle n'exerce le rendu (ROADMAP.md, « La preuve du rendu reste ciblée ») : sans comparateur, dimensions, typographie et structure ne bloquent jamais.",
+      "raisonImportance": "Aucun contrôle n'exerce le rendu (VALIDATIONS-MVP.md, « La preuve du rendu reste ciblée ») : sans comparateur, dimensions, typographie et structure ne bloquent jamais.",
       "prio": 2,
       "dependances": [
         "P1"
@@ -1095,7 +1095,7 @@
       "prio": 4,
       "dependances": [],
       "complexite": "l",
-      "raisonComplexite": "Cinq vagues : lecture des plans, gardes et scripts, données et interface de la page, renommage de `ROADMAP.md`, premier archivage. La vague 3 attend la case 4.4 de P6, qui écrit les mêmes fichiers de l'inventaire.",
+      "raisonComplexite": "Cinq vagues : lecture des plans, gardes et scripts, données et interface de la page, renommage de `VALIDATIONS-MVP.md`, premier archivage. La vague 3 attend la case 4.4 de P6, qui écrit les mêmes fichiers de l'inventaire.",
       "coutHumain": "Répondre à cinq questions de la recherche, puis confirmer les fichiers supprimés au premier archivage.",
       "porteur": "mainteneur",
       "promesse": "C",
@@ -1126,7 +1126,7 @@
           "quoi": "Procédure d'archivage d'un sujet livré, avec la confirmation du mainteneur."
         },
         {
-          "chemin": "ROADMAP.md",
+          "chemin": "VALIDATIONS-MVP.md",
           "action": "modifier",
           "quoi": "Devient `VALIDATIONS-MVP.md`."
         }

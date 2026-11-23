@@ -787,7 +787,7 @@ export function contratsDeRecette(): { version: string; nombre: number } {
 /**
  * Ce que l'inventaire tire des documents de cadrage. Le nombre de classes de compatibilité se compte dans la table de
  * `COMPATIBILITE.md`. Les trois autres lectures ne rendent rien : elles lèvent « ancre X absente de Y » quand `CHANGELOG-FORMAT.md`,
- * `CONCEPT.md`, `ROADMAP.md` ou le sommaire des recherches renomme une section que la page présente.
+ * `CONCEPT.md`, `VALIDATIONS-MVP.md` ou le sommaire des recherches renomme une section que la page présente.
  * Les textes qui résument ces documents (sens de chaque version du contrat, invariants, limites non prouvées, statut du hub)
  * restent dans le gabarit : leurs sections ne se citent pas telles quelles.
  */
@@ -799,7 +799,7 @@ export function extraitsDesDocuments(donnees: Versions): { classesDeCompatibilit
   for (const promesse of ['Robustesse', 'Confiance']) {
     if (!concept.includes(promesse)) throw new Error(`CONCEPT.md, § 6 : la promesse « ${promesse} » a disparu`);
   }
-  if (tableauDe(lire('ROADMAP.md'), 'ROADMAP.md', 'Ce qui n\'est pas prouvé').length === 0) throw new Error('ROADMAP.md : « Ce qui n\'est pas prouvé » n\'a plus de tableau');
+  if (tableauDe(lire('VALIDATIONS-MVP.md'), 'VALIDATIONS-MVP.md', 'Ce qui n\'est pas prouvé').length === 0) throw new Error('VALIDATIONS-MVP.md : « Ce qui n\'est pas prouvé » n\'a plus de tableau');
   const sujets = tableauDe(lire('docs/notes/Recherches/README.md'), 'docs/notes/Recherches/README.md', 'Sujets');
   if (!sujets.some((ligne) => ligne.Sujet.startsWith('[Hub UCM]'))) throw new Error('docs/notes/Recherches/README.md : le sujet « Hub UCM » a disparu du sommaire');
   return { classesDeCompatibilite: classes.length };
