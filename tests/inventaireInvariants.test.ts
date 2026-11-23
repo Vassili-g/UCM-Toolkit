@@ -49,176 +49,6 @@ const DOMAINES = [
   'Hub UCM',
 ];
 
-/**
- * Termes dont la disparition signalerait une règle perdue.
- *
- * La liste sert deux contrôles : les fichiers d'invariants les nomment encore, et le code les
- * porte encore. Une entrée qui contient `/` ou finit par `.ts` ou `.mjs` est un
- * chemin, et un fichier du dépôt doit s'y terminer ; toute autre est un
- * vocabulaire, et chacun de ses segments doit apparaître comme mot entier dans
- * les sources du produit.
- */
-const AUTORITES = [
-  'BOOLEAN_OPERATION',
-  'COMPONENT',
-  'COMPONENT_SET',
-  'CONTRACT_VERSION',
-  'Constat',
-  'ELLIPSE',
-  'FIXED',
-  'GridTrackSize.value',
-  'INSTANCE_SWAP',
-  'InstanceNode.overrides',
-  'LEGACY',
-  'LINE',
-  'MARQUEUR_A_COMPLETER',
-  'POLYGON',
-  'RECTANGLE',
-  'SLOT',
-  'SOLID',
-  'STAR',
-  'STATE_AXIS_NAMES',
-  'TOKENS_FORMAT_VERSION',
-  'VERSIONS_DE_TOKENS_LUES',
-  'VECTOR',
-  'alignItems',
-  'alignSelf',
-  'args',
-  'argumentsOf',
-  'attributDeMode',
-  'bounds',
-  'clipsContent',
-  'axesDeTokens',
-  'axesDesCollections',
-  'rangerLaMarqueDeNommage',
-  'codeIdentifier',
-  'com.ucm.axes',
-  'com.ucm.axis',
-  'com.ucm.formatVersion',
-  'com.ucm.modes',
-  'colorKeys',
-  'colorKeys.ts',
-  'columnSizes',
-  'columnStart',
-  'componentProperties',
-  'componentPropertyReferences',
-  'composes',
-  'constraints',
-  'contractVersion',
-  'defaultRenderingSemantics()',
-  'diagnostics[].message',
-  'divider.background',
-  'documentColorProfile',
-  'elideNeutrals.ts',
-  'enablePrivatePluginApi',
-  'easingsSansCourbe',
-  'etatDuFormatDeTokens()',
-  'exportsEnVol()',
-  'facteurSombre',
-  'famillesDeTokens',
-  'figma.fileKey',
-  'figmaLayer',
-  'figmaName',
-  'fileName',
-  'findLayoutNode',
-  'flexGrow',
-  'flexLayout.rotationDegrees',
-  'format/tokens.ts',
-  'format/version.ts',
-  'getSlotTokens',
-  'graissesNumeriques',
-  'tokens/familles.ts',
-  'tokens/mouvement.ts',
-  'hasCompleteBinding',
-  'icons.*.size',
-  'icons.*.slot',
-  'indexVariables()',
-  'inset',
-  'intensitesDe',
-  'isMask',
-  'isVisibleInSample',
-  'joinTokenPath',
-  'justifyContent',
-  'kebabCase',
-  'layoutNodes.ts',
-  'lirePeintures',
-  'mainComponent',
-  'masterPath',
-  'mergeIconRules',
-  'meta.coverage.portable',
-  'meta.diagnostics',
-  'meta.figma.url',
-  'nodeBindings.estUnTrace',
-  'nodeId',
-  'normalizeName',
-  'normalizeName()',
-  'override.text',
-  'override.visible',
-  'overrides',
-  'packages/kit/schema/ucm-contract.schema.json',
-  'packages/couleur/src/rampe.ts',
-  'packages/couleur/tests/loiDePurete.test.ts',
-  'packages/plugin-palettes/tests/loiDEcriture.test.ts',
-  'packages/plugin-palettes/tests/rangement.test.ts',
-  'packages/kit/src/format/names.ts',
-  'packages/plugin-exporter/tests/lois.ts',
-  'padding.x',
-  'padding.y',
-  'paintPlacements',
-  'phraseDe',
-  'poidsDeGraisse()',
-  'porteLeMarqueur',
-  'prefixeDeCollection',
-  'propertyBindingDefinitions',
-  'propertyBindings.appliedValue',
-  'propertySurfaces',
-  'rendering.keyRoles',
-  'rendering.roles',
-  'resolveSlotSize',
-  'rowGap',
-  'rowSizes',
-  'rowStart',
-  'rulesContainerOwner',
-  'runtimeProp',
-  'samples',
-  'sansLienAutomatique()',
-  'serializeJson.ts',
-  'slotNames.ts',
-  'plugin-socle/src/composant/contract/localisation.ts',
-  'src/depot.ts',
-  'src/config.ts',
-  'src/forges/github.ts',
-  'src/forges/gitlab.ts',
-  'src/forges/termes.ts',
-  'stateModel',
-  'stateModel.states.default',
-  'structuralSize',
-  'structure.children',
-  'structure.sizing',
-  'structureTree.publishesChildren',
-  'structureTree.ts',
-  'swaps',
-  'tests/loiDesParties.test.ts',
-  'textSlots',
-  'textStyles',
-  'teinteA',
-  'tokenCssVariable',
-  'tokens.json',
-  'tokensUsed',
-  'types.ts',
-  'userinput.background',
-  'variantAxes',
-  'variantViews',
-  'variantViews.*.paintPlacements',
-  'variants[].bindings',
-  'variants[].sample',
-  'validateSettings()',
-  'variants[].tokens',
-  'versionDeContrat()',
-  'visibilityProp',
-  'visibilityTargets',
-];
-
 /** Les domaines que le manifeste range, dans son ordre. */
 function domainesDuManifeste(): { titre: string; fichier: string }[] {
   const manifeste = JSON.parse(
@@ -416,37 +246,6 @@ test('chaque domaine porte au moins un invariant', () => {
   assert.deepEqual(vides, [], `Ces fichiers n'ont plus aucune regle : ${vides.join(', ')}`);
 });
 
-/**
- * Vrai si un fichier d'invariants nomme l'autorité. Un chemin
- * `packages/<paquet>/<reste>` se trouve aussi sous sa forme courte : `<paquet>/<reste>`
- * dans n'importe quel fichier, ou `<reste>` dans un fichier de ce paquet.
- */
-function nommee(autorite: string, invariants: { fichier: string; contenu: string }[]): boolean {
-  const chemin = autorite.match(/^packages\/([^/]+)\/(.+)$/);
-  return invariants.some(({ fichier, contenu }) => {
-    if (contenu.includes(autorite)) return true;
-    if (!chemin) return false;
-    const [, paquet, reste] = chemin;
-    return contenu.includes(`${paquet}/${reste}`)
-      || (fichier.startsWith(`packages/${paquet}/`) && contenu.includes(reste));
-  });
-}
-
-test("aucune autorite citee par un invariant n'a disparu des fichiers d'invariants", () => {
-  const invariants = invariantsReunis();
-  const perdues = AUTORITES.filter((autorite) => !nommee(autorite, invariants));
-
-  assert.deepEqual(
-    perdues,
-    [],
-    'Ces autorites ne sont plus nommees par aucun invariant :\n'
-      + `${perdues.join('\n')}\n`
-      + "Une regle a probablement ete perdue en raccourcissant. Si le retrait est "
-      + "voulu, retirer l'entree de AUTORITES dans le meme commit, et dire dans le "
-      + 'message quelle regle part avec elle.',
-  );
-});
-
 /** Les fichiers du dépôt, en chemins relatifs à séparateur `/`. */
 function fichiersDuDepot(dossier: string = racine): string[] {
   const trouves: string[] = [];
@@ -460,66 +259,105 @@ function fichiersDuDepot(dossier: string = racine): string[] {
 }
 
 /**
- * Les sources du produit, schéma publié compris, en un seul texte.
- *
- * Les tests en sont exclus : une autorité qui n'existerait plus que dans un
- * test qui la nomme aurait déjà disparu du produit, et le contrôle passerait au
- * vert sur sa propre trace.
+ * Les phrases « Autorité : » d'un fichier d'invariants. Une phrase court
+ * jusqu'au premier point hors accents graves, ou jusqu'à « Tests : », « Spec : »,
+ * « Manque : », « Borne : » ou une flèche.
  */
-function sourcesDuProduit(): string {
-  const chemins = fichiersDuDepot()
-    .filter((chemin) => /^packages\/[^/]+\/src\//.test(chemin)
-      || chemin.startsWith('packages/kit/schema/'));
-  return chemins.map((chemin) => fs.readFileSync(path.join(racine, chemin), 'utf8')).join('\n');
-}
-
-/** Les segments qu'une autorité de vocabulaire demande de retrouver. */
-function segmentsDe(autorite: string): string[] {
-  return autorite
-    .replace(/\(\)/g, '')
-    .replace(/\[\]/g, '')
-    .split('.')
-    .filter((segment) => segment && segment !== '*');
+function phrasesAutorite(contenu: string): string[] {
+  const phrases: string[] = [];
+  for (const debut of contenu.matchAll(/Autorités? :/g)) {
+    let texte = '';
+    let accents = false;
+    for (let i = debut.index! + debut[0].length; i < contenu.length; i++) {
+      const c = contenu[i];
+      if (c === '\n') break;
+      if (c === '`') accents = !accents;
+      if (!accents && c === '.' && /\s|$/.test(contenu[i + 1] ?? ' ')) break;
+      if (!accents && /^ (Tests? :|Spec :|Manque :|Borne :|→)/.test(contenu.slice(i, i + 9))) break;
+      texte += c;
+    }
+    phrases.push(texte);
+  }
+  return phrases;
 }
 
 /**
- * Le second sens, et il est le seul qui regarde le code.
- *
- * Sans lui, renommer `structureTree.publishesChildren` laisse le test au vert
- * tant qu'un fichier d'invariants cite l'ancien nom, ce qui est l'inverse de ce que la
- * liste sert. Le mot entier est exigé : une troncature en resterait sinon une
- * sous-chaîne, donc une trouvaille.
+ * Fichiers qu'une autorité désigne, ou aucun. Un chemin se résout dans le
+ * paquet de l'invariant, puis dans `packages/`, puis à la racine, puis par son
+ * dernier segment dans le paquet, puis dans tout le dépôt.
  */
-test('chaque autorite citee par un invariant existe encore dans le code', () => {
-  const chemins = fichiersDuDepot();
-  const sources = sourcesDuProduit();
+function fichiersDe(chemin: string, paquet: string, depot: string[]): string[] {
+  const nu = chemin.replace(/^\//, '');
+  const [premier, ...reste] = nu.split('/');
+  const directs = [
+    `packages/${paquet}/${nu}`,
+    `packages/${nu}`,
+    `packages/plugin-${premier}/${reste.join('/')}`,
+    nu,
+  ];
+  const direct = directs.find((candidat) => depot.includes(candidat));
+  if (direct) return [direct];
+  const suffixe = depot.filter((fichier) => fichier.endsWith(`/${nu}`));
+  const dansLePaquet = suffixe.filter((fichier) => fichier.startsWith(`packages/${paquet}/`));
+  return dansLePaquet.length > 0 ? dansLePaquet : suffixe;
+}
+
+/** Un nom de fichier ou de chemin, par opposition à un symbole. */
+const EST_UN_CHEMIN = /\/|\.(ts|mjs|mts|json)$/;
+const EST_UN_SYMBOLE = /^[A-Za-z_][\w.]*(\(\))?$/;
+
+/**
+ * Autorités que le contrôle ne tranche pas, avec la raison. La clé est la
+ * citation entre accents graves, telle que l'invariant l'écrit.
+ */
+const AUTORITES_HORS_CONTROLE: Record<string, string> = {};
+
+/** Chaque autorité qu'une phrase « Autorité : » cite après un chemin existe dans ce fichier. */
+test('chaque phrase « Autorité : » des invariants nomme des symboles qui existent dans son fichier', () => {
+  const depot = fichiersDuDepot();
   const introuvables: string[] = [];
 
-  for (const autorite of AUTORITES) {
-    if (autorite.includes('/') || /\.(ts|mjs)$/.test(autorite)) {
-      if (!chemins.some((chemin) => chemin.endsWith(autorite))) {
-        introuvables.push(`${autorite} : aucun fichier du depot ne porte ce chemin`);
+  for (const dossier of fs.readdirSync(path.join(racine, 'packages'))) {
+    const invariants = path.join(racine, 'packages', dossier, 'invariants');
+    if (!fs.existsSync(invariants)) continue;
+    for (const nom of fs.readdirSync(invariants).filter((n) => n.endsWith('.md'))) {
+      const contenu = fs.readFileSync(path.join(invariants, nom), 'utf8').replace(/\r\n/g, '\n');
+      for (const phrase of phrasesAutorite(contenu)) {
+        const citations = [...phrase.matchAll(/`([^`]+)`/g)].map((m) => m[1]);
+        const chemins = citations.filter((c) => EST_UN_CHEMIN.test(c) && !c.includes('['));
+        const symboles = citations.filter((c) => !EST_UN_CHEMIN.test(c) && EST_UN_SYMBOLE.test(c));
+        const lieu = `packages/${dossier}/invariants/${nom}`;
+        const fichiers = new Set<string>();
+        for (const chemin of chemins) {
+          const trouves = fichiersDe(chemin, dossier, depot);
+          if (trouves.length === 0 && !(chemin in AUTORITES_HORS_CONTROLE)) {
+            introuvables.push(`${lieu} : aucun fichier ne porte « ${chemin} »`);
+          }
+          trouves.forEach((fichier) => fichiers.add(fichier));
+        }
+        if (fichiers.size === 0) continue;
+        const texte = [...fichiers].map((f) => fs.readFileSync(path.join(racine, f), 'utf8')).join('\n');
+        for (const symbole of symboles) {
+          if (symbole in AUTORITES_HORS_CONTROLE) continue;
+          const segments = symbole.replace(/\(\)/g, '').split('.').filter(Boolean);
+          const absent = segments.filter(
+            (s) => !new RegExp(`(?<![A-Za-z0-9_])${s}(?![A-Za-z0-9_])`).test(texte),
+          );
+          if (absent.length > 0) {
+            introuvables.push(`${lieu} : « ${symbole} » absent de ${chemins.join(', ')}`);
+          }
+        }
       }
-      continue;
-    }
-    const perdus = segmentsDe(autorite).filter((segment) => {
-      const motif = new RegExp(
-        `(?<![A-Za-z0-9_])${segment.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}(?![A-Za-z0-9_])`,
-      );
-      return !motif.test(sources);
-    });
-    if (perdus.length > 0) {
-      introuvables.push(`${autorite} : ${perdus.join(', ')} absent des sources`);
     }
   }
 
   assert.deepEqual(
     introuvables,
     [],
-    "Ces autorites sont nommees par un invariant mais n'existent plus dans le code :\n"
+    "Ces autorités ne sont plus dans le fichier que leur invariant cite :\n"
       + `${introuvables.join('\n')}\n`
-      + "Un renommage a laisse un fichier d'invariants derriere lui. Corriger l'invariant et "
-      + "l'entree de AUTORITES dans le meme commit que le renommage.",
+      + "Corriger la phrase « Autorité : » dans le même commit que le renommage. Une aide "
+      + 'de test qui sert d\'autorité se range dans AUTORITES_HORS_CONTROLE avec sa raison.',
   );
 });
 
@@ -545,6 +383,58 @@ for (const [chemin, attendues] of SPECIFICATIONS) {
     );
   });
 }
+
+/** Propriétés du schéma que `FORMAT.md` ne cite pas entre accents graves, avec la raison. */
+const PROPRIETES_SANS_SECTION: Record<string, string> = {};
+
+/** Chaque nom de `properties` du schéma publié figure entre accents graves dans `FORMAT.md`. */
+test('chaque propriété du schéma figure dans docs/format/FORMAT.md ou porte une exception nommée', () => {
+  const schema = JSON.parse(
+    fs.readFileSync(path.join(racine, 'packages/kit/schema/ucm-contract.schema.json'), 'utf8'),
+  ) as { definitions: Record<string, unknown> };
+  const noms = new Set<string>();
+  const vus = new Set<string>();
+  const parcourir = (noeud: unknown): void => {
+    if (!noeud || typeof noeud !== 'object') return;
+    const objet = noeud as Record<string, unknown>;
+    if (typeof objet.$ref === 'string') {
+      const cible = decodeURIComponent(objet.$ref.replace('#/definitions/', ''));
+      assert.ok(cible in schema.definitions, `$ref sans définition : ${objet.$ref}`);
+      if (!vus.has(cible)) {
+        vus.add(cible);
+        parcourir(schema.definitions[cible]);
+      }
+    }
+    if (objet.properties && typeof objet.properties === 'object') {
+      Object.keys(objet.properties).forEach((nom) => noms.add(nom));
+    }
+    Object.values(objet).forEach(parcourir);
+  };
+  parcourir(schema);
+  Object.values(schema.definitions).forEach(parcourir);
+
+  const format = fs.readFileSync(path.join(racine, 'docs/format/FORMAT.md'), 'utf8');
+  const citees = [...format.matchAll(/`([^`\n]+)`/g)].map((m) => m[1]).join('\n');
+  const sansCitation = [...noms].filter(
+    (nom) => !new RegExp(`(?<![A-Za-z0-9_])${nom}(?![A-Za-z0-9_])`).test(citees),
+  );
+
+  const inconnues = sansCitation.filter((nom) => !(nom in PROPRIETES_SANS_SECTION));
+  assert.deepEqual(
+    inconnues,
+    [],
+    'Ces propriétés du schéma ne figurent pas entre accents graves dans docs/format/FORMAT.md :\n'
+      + `${inconnues.join('\n')}\n`
+      + 'Les décrire dans la section de leur objet parent, ou les ranger dans PROPRIETES_SANS_SECTION avec leur raison.',
+  );
+  const perimees = Object.keys(PROPRIETES_SANS_SECTION).filter((nom) => !sansCitation.includes(nom));
+  assert.deepEqual(
+    perimees,
+    [],
+    "Ces exceptions sont citées par FORMAT.md ou absentes du schéma, retirer l'entrée de PROPRIETES_SANS_SECTION :\n"
+      + perimees.join('\n'),
+  );
+});
 
 /** Les deux specifications, avec le squelette que chacune doit encore porter. */
 const SQUELETTES: [string, string[]][] = [

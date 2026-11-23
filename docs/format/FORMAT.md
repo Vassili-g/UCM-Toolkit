@@ -106,6 +106,12 @@ règles auto-détectées :
   `structure.variantAxes` et des valeurs de chaque variant : `props.size`,
   `variantAxes` et les arbres de tokens ne peuvent pas diverger.
 
+`figmaVariantLabels` publie les étiquettes Figma des axes (`axes`) et de leurs valeurs (`values`) ; il est absent quand chaque variant porte son nom.
+
+**Slots, valeurs préférées et liaisons natives.** Une prop `slot` ou `instance-swap` publie `preferredValues` quand Figma en déclare : les composants recommandés, chacun avec son `type` (`COMPONENT` ou `COMPONENT_SET`) et sa clé de publication `key`. Une prop `slot` publie aussi `settings` quand le composant en déclare : `minChildren` et `maxChildren` (un nombre, ou `null` pour une borne absente), `allowPreferredValuesOnly`, `stretchChildOnInsert` et `displayEmptyByDefault` (des booléens). Un champ absent n'est pas déclaré dans Figma. Les `settings` d'un slot et les `preferredValues` d'un `slot` ou d'un `instance-swap` rapportent les réglages de la maquette. Ils ne lient pas le code : aucune borne ni liste ne s'impose à l'exécution.
+
+Chaque définition de `propertyBindingDefinitions` porte `figmaPropName`, le nom technique complet de la prop dans Figma (`iconLeft#12:3`), et `target`, la cible native : `visible`, `characters` ou `mainComponent`. Chaque entrée de `variants[].bindings` désigne sa définition par `definition`, la clé de ce catalogue. Une définition publie aussi `nodeSuffix`, la fin d'identifiant commune à toutes ses occurrences, point-virgule compris (`;3:429`). Les `nodeId` de `variants[].bindings` l'omettent, et la concaténation des deux champs redonne l'identifiant exact. `nodeSuffix` est absent quand la définition ne vise pas un calque d'instance, ou quand ses occurrences ne partagent pas la même fin.
+
 #### D'où vient une valeur par défaut
 
 Chaque type de prop a une source différente, et l'absence du champ a partout la
@@ -297,7 +303,7 @@ prouver ensemble le carré annoncé.
 d'un stroke publient le détail par côté dès que leurs côtés citent plusieurs
 variables. L'élection du node de layout continue de ne compter que les groupes
 complets : une valeur partielle ne choisit jamais le wrapper, mais elle reste
-publiée sur un calque qui l'est déjà.
+publiée sur un calque qui l'est déjà. Le détail d'un `radius` s'écrit en `topLeft`, `topRight`, `bottomRight` et `bottomLeft`, dans l'ordre CSS ; une clé absente n'a pas de variable liée.
 
 La taille d'un slot n'entre pas dans cette liste : ses deux axes ne sont pas
 deux côtés d'un même champ, et deux variables y décrivent une dimension qu'aucun
@@ -359,7 +365,7 @@ n'est pas reconnu : ce nom désigne souvent un état sélectionné, que `:active
 déclencherait au clic. Un état inconnu reste exporté avec
 un déclencheur `null` et un warning. Les `selector` visent l'implémentation CSS
 de **production** (pseudo-classes) ; l'outil de test froid, en styles inline,
-reproduit les mêmes états via des événements.
+reproduit les mêmes états via des événements. `stateModel.precedence` liste les états du plus fort au plus faible, et le consommateur y lit quel état l'emporte quand plusieurs s'appliquent.
 
 ### 5. Typographie
 
@@ -692,7 +698,7 @@ taille.
 Un layer en position `Absolute` sort du flux, et le contrat le place. Il publie
 `position: "absolute"`, les `constraints` : les bords auxquels il s'accroche, en
 vocabulaire CSS (`left`/`center`/`right`/`stretch`/`scale`,
-`top`/`center`/`bottom`/…), et `inset`, sa distance à ces bords. La lecture
+`top`/`center`/`bottom`/…), et `inset`, sa distance à ces bords. `constraints.horizontal` prend `left`, `center`, `right`, `stretch` ou `scale` ; `constraints.vertical` prend `top`, `center`, `bottom`, `stretch` ou `scale`. La lecture
 précède celle du flux, car une grille aussi porte des enfants en position
 absolue.
 
@@ -1019,7 +1025,7 @@ reviendrait à inventer la règle qu'elle prétend vérifier.
 
 Le contrat publie aussi le mapping générique des rôles vers les propriétés de
 rendu : `rendering.roles`, avec `background` → `background-color`, `foreground`
-→ `color`/`fill`, `border` → `box-shadow`, `ring` → contour extérieur.
+→ `color`/`fill`, `border` → `box-shadow`, `ring` → contour extérieur. Chaque rôle porte un `kind` : `paint` pour une couleur, `stroke` pour une couleur accompagnée de géométrie.
 
 **Une clé de couleur n'est pas un rôle**, et `rendering.keyRoles` porte la part
 propre au composant : le rôle de chaque clé observée qui n'en porte pas le nom,
@@ -1529,15 +1535,17 @@ l'enveloppe : ce calque est celui qu'on retrouve dans Figma.
 
 #### Métadonnées
 
-`meta` porte la version du schéma (`contractVersion`), la date d’export, la
+`meta` porte la version du schéma (`contractVersion`), la date d’export (`exportedAt`, en ISO 8601), la
 couverture portable, les diagnostics et la traçabilité Figma : nom du fichier,
-id du nœud, clé du composant et URL lorsqu’elles sont disponibles.
+id du nœud, clé du composant et URL lorsqu’elles sont disponibles. `meta.figma.componentKey` est la clé de publication du composant, absente quand le composant n'est pas publié.
 
 `diagnostics` documente l’export, pas le composant. Chaque entrée porte un
-`code`, la sévérité `warning` et un message en français adressé au designer. Le
+`code`, `severity`, qui vaut toujours `warning`, et `message`, le constat en français adressé au designer, seul champ à afficher tel quel. Le
 champ est absent quand l’export n’a rien à signaler. Une perte portable rend
 `coverage.portable` partiel ; une note ou un avertissement sans perte portable
 ne le dégrade pas.
+
+Une entrée de `diagnostics` porte aussi `contractPath`, le champ du contrat que le constat vise ; il est absent pour un constat qui porte sur l'export plutôt que sur une valeur publiée. Elle porte `figma` quand un nœud précis a été relevé, avec `nodeId`, `nodeName`, `variantName` et `property`, chacun facultatif. `figma` est absent pour un constat qui vise le composant entier : le consommateur n'a alors que `meta.figma` pour fabriquer un lien vers la maquette.
 
 **`meta.figma.url` est optionnel, et son absence est un état normal.** Les
 contrats produits aujourd’hui ne le portent pas, la raison tient au mode de
