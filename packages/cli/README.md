@@ -47,6 +47,7 @@ Without a Node manifest, the portable check uses the CLI served by npm.
 |---|---|
 | [`ucm init`](#ucm-init) | Installs what the repository is missing, never overwriting a file that already exists |
 | [`ucm check`](#ucm-check) | Checks every contract and renders the report |
+| [`ucm deroger <component> <kind> <coordinates…> --motif "…"`](#waiving-a-code-finding) | Writes the motivated waiver of a code finding |
 | `ucm icons` | Lists the icons the contracts ask this repository to draw |
 | [`ucm tokens css --out <file>`](#the-token-stylesheet) | Writes the CSS stylesheet of the tokens and their modes |
 | [`ucm tokens references [--verifier] <files>`](#token-references-in-code) | Replaces `"{path}"` with `"var(--name)"` in code files |
@@ -454,6 +455,25 @@ writes to `<file>`:
 The command exits with `1` when the composition graph or the token file is
 inconsistent, and with `2` for an invocation, a configuration or a contract it
 cannot read, a contract version outside its reading window included.
+
+## Waiving a code finding
+
+`ucm deroger <component> <kind> <coordinates…> --motif "<reason>" [--par "<name>"]`
+writes one entry to `.ucm/derogations.json`. Fix the code first: only a finding
+the code cannot fix gets a waiver. Each finding prints this command, already
+complete, reason to fill in.
+
+```sh
+npx ucm deroger Button valeur-en-dur src/Button.variants.ts '#ff0000' --motif "Red imposed by the partner's charter"
+```
+
+Only `--motif` and `--par` are options; every other argument is a coordinate,
+even when it starts with `--`. The entry takes its `export` from the contract's
+`meta.exportedAt` and its author from `--par`, else `git config user.name`: the
+waiver stops applying when the contract is exported again. The command exits
+with `2` for an unknown component, a kind that cannot be waived, a wrong number
+of coordinates, an empty reason, an empty author or an identical entry. Commit
+`.ucm/derogations.json` with the pull request.
 
 ## Status
 

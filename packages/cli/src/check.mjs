@@ -14,6 +14,7 @@ import { contratsDuDossier } from "./contrats.mjs";
 import { memeFichier } from "./tokens-css.mjs";
 import { etatDeLAdaptateur } from "./adaptateur.mjs";
 import { mesurerLesRangs } from "./rangs.mjs";
+import { noyauEnDesaccord } from "./guide.mjs";
 
 /**
  * Lit les arguments de `ucm check`.
@@ -163,6 +164,7 @@ export function check(arguments_, {
       modifies: (perimetre.cheminsModifies ?? "").split("\n").filter(Boolean),
       executer: executerGit,
       maintenant,
+      fichiersDuComposant: adaptateur?.lecteurDuCode?.fichiersDuComposant,
     });
   } catch (erreur) {
     alerter(erreur?.message ?? String(erreur));
@@ -182,6 +184,8 @@ export function check(arguments_, {
   // développeur lise en local, et le rapport ne s'écrit que sur demande.
   const flux = { log: ecrire, warn: avertir, error: alerter };
   for (const { flux: canal, texte } of verdict.terminal) flux[canal](texte);
+  // Avertissement seul : la CLI juge avec son propre kit, le désaccord ne bloque rien.
+  for (const ligne of noyauEnDesaccord(racine)) avertir(ligne);
 
   if (options.report) {
     const cible = resolve(racine, options.report);

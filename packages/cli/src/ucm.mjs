@@ -14,6 +14,7 @@ import { lireConfiguration } from "@ucm-kit/core/lecteurs";
 import { chargerAdaptateur } from "./adaptateur.mjs";
 import { aides } from "./aides.mjs";
 import { check } from "./check.mjs";
+import { USAGE_DEROGER, deroger } from "./deroger.mjs";
 import { guide } from "./guide.mjs";
 import { iconesDuRepository, rendreIcones } from "./icons.mjs";
 import { init, lireArgumentsInit, rendreInit } from "./init.mjs";
@@ -69,6 +70,16 @@ export const COMMANDES = [
       { nom: "--base", role: "limite les états informatifs aux contrats modifiés depuis ce sha" },
       { nom: "--report", role: "écrit le rapport markdown à ce chemin, en plus du terminal" },
     ],
+  },
+  {
+    nom: "deroger",
+    usage: USAGE_DEROGER,
+    role: "écrit la dérogation motivée d'un constat du code",
+    options: [
+      { nom: "--motif", role: "la raison pour laquelle le code garde l'écart" },
+      { nom: "--par", role: "l'auteur ; sans lui, git config user.name" },
+    ],
+    note: "Les coordonnées suivent le genre du constat, dans l'ordre que le\nconstat donne. Seules --motif et --par sont des options.",
   },
   { nom: "icons", usage: "ucm icons", role: "liste les icônes que les contrats réclament", options: [] },
   {
@@ -231,6 +242,10 @@ function executerCommande(arguments_, {
       ecrire,
       alerter: sorties.alerter ?? console.error,
     });
+  }
+
+  if (commande === "deroger") {
+    return deroger(arguments_.slice(1), { racine, ecrire, alerter: sorties.alerter ?? console.error, executerGit: sorties.executerGit });
   }
 
   if (commande === "aides") {

@@ -855,3 +855,11 @@ test("G13 : l'exemple de tête d'ucm init décrit des objets style typés", asyn
     rmSync(racine, { recursive: true, force: true });
   }
 });
+
+test("l'aide nomme la commande deroger et ses deux options", () => {
+  const lignes = [];
+  assert.equal(executer(["--help"], { ecrire: (texte) => lignes.push(texte) }), 0);
+  const aide = lignes.join("\n");
+  assert.match(aide, /ucm deroger <composant> <genre> <coordonnées…> --motif/);
+  assert.match(aide, /--par/);
+});

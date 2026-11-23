@@ -221,7 +221,7 @@ test("noyauEnDesaccord compare à la version donnée, et se tait sur un manifest
 
 test("la procédure imprimée interdit d'écrire une dérogation et de rattraper un composant en retard", () => {
   const { sortie } = lancer(DEUX_CONTRATS);
-  assert.match(sortie, /^- Écrire dans `\.ucm\/derogations\.json`\./m);
+  assert.match(sortie, /^- Écrire dans `\.ucm\/derogations\.json` sans demande du développeur\./m);
   assert.match(sortie, /^- Rattraper un composant en retard sur son contrat\..*sauf demande explicite/m);
 });
 

@@ -41,7 +41,7 @@ partie concernée. L'écriture ne l'emporte jamais sur le sens.
 - Fusionner deux vues, déduire une propriété d'un nom, produire un produit
   cartésien, combler une clé absente.
 - Modifier le contrat, les tokens, un fichier généré ou un contrôle.
-- Écrire dans `.ucm/derogations.json`. Seul un développeur y pose une exception, avec son motif et son nom.
+- Écrire dans `.ucm/derogations.json` sans demande du développeur. Un constat se corrige d'abord dans le code. Si c'est impossible, proposer au développeur la commande `npx ucm deroger` que le constat donne, lui demander le motif, et ne la lancer qu'à sa demande.
 - Rattraper un composant en retard sur son contrat. Ce n'est pas la tâche de l'agent, sauf demande explicite du développeur.
 
 ## Vérifier

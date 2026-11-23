@@ -209,3 +209,43 @@ test('un paquet adaptateur installé dont le point d’entrée manque est cassé
     await assert.rejects(() => chargerAdaptateur(d.racine), /absent.cjs/);
   } finally { d.fermer(); }
 });
+
+test("RG1 : un fichier importé modifié donne le rang 0 au code du composant, même si son implémentation ne l'est pas", () => {
+  const d = depot();
+  try {
+    d.ecrire(CHEMIN_CODE, 'import { couleur } from "./Widget.variants";\nexport function Widget() { return couleur; }\n');
+    d.ecrire("components/Widget/Widget.variants.ts", 'export const couleur = "a";\n');
+    d.commiter();
+    d.ecrire("components/Widget/Widget.variants.ts", 'export const couleur = "b";\n');
+    const contrats = [join(d.racine, CHEMIN_CONTRAT)];
+    const options = { fichiersDuComposant: adaptateurTypeScript.lecteurDuCode.fichiersDuComposant };
+    assert.equal(mesurerLesRangs(d.racine, CONFIGURATION, contrats, options).rangs.composants.Widget.code, 0);
+    assert.equal(mesurerLesRangs(d.racine, CONFIGURATION, contrats).rangs.composants.Widget.code, 1);
+  } finally { d.fermer(); }
+});
+
+test("RG2 : un fichier hors de l'historique est ignoré, et aucun fichier connu rend null", () => {
+  const d = depot();
+  try {
+    const contrats = [join(d.racine, CHEMIN_CONTRAT)];
+    const fantome = join(d.racine, "components/Widget/fantome.ts");
+    const mesure = (fichiers) => mesurerLesRangs(d.racine, CONFIGURATION, contrats, { fichiersDuComposant: () => ({ fichiers }) }).rangs.composants.Widget.code;
+    assert.equal(mesure([join(d.racine, CHEMIN_CODE), fantome]), 1);
+    assert.equal(mesure([fantome]), null);
+    assert.equal(mesure([]), null);
+  } finally { d.fermer(); }
+});
+
+test("N13 : un @ucm-kit/core installé à une autre version donne une ligne d'avertissement, sans changer le code de sortie", () => {
+  const d = depot();
+  try {
+    const sans = lancer(d);
+    d.ecrire("node_modules/@ucm-kit/core/package.json", { name: "@ucm-kit/core", version: "0.0.1" });
+    const avec = lancer(d);
+    assert.equal(avec.code, sans.code);
+    const lignes = avec.texte.split("\n").filter((ligne) => /@ucm-kit\/core installé/.test(ligne));
+    assert.equal(lignes.length, 1);
+    assert.match(lignes[0], /0\.0\.1/);
+    assert.doesNotMatch(sans.texte, /@ucm-kit\/core installé/);
+  } finally { d.fermer(); }
+});

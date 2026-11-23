@@ -7,12 +7,19 @@ import { cheminImplementation, identifiantDuContrat } from "@ucm-kit/core/lecteu
 const relatif = (racine, chemin) => relative(racine, resolve(racine, chemin)).replaceAll("\\", "/");
 const cheminsDe = (texte) => texte.split("\0").filter(Boolean);
 
+/** Le plus petit rang connu des fichiers, `null` si aucun n'est connu. */
+function rangDuCode(fichiers, mesurer) {
+  const connus = fichiers.map((fichier) => mesurer(fichier).rang).filter((rang) => rang !== null);
+  return connus.length === 0 ? null : Math.min(...connus);
+}
+
 /**
  * Sans dépôt Git, rend `historique: aucun`. Un clone superficiel se rend au kit sans rangs pour son diagnostic d'invocation.
  * Avec base, les changements viennent du diff de la demande ; sans base, ils viennent de la copie de travail, index compris.
  * Un fichier absent de la ligne principale reçoit `null`, jamais un rang qui inventerait son ancienneté.
+ * Avec `fichiersDuComposant`, le rang du code d'un composant est le plus petit rang connu de ses fichiers, `null` si aucun n'est connu.
  */
-export function mesurerLesRangs(racine, configuration, contrats, { base = null, modifies = [], executer = execFileSync, maintenant = new Date() } = {}) {
+export function mesurerLesRangs(racine, configuration, contrats, { base = null, modifies = [], executer = execFileSync, maintenant = new Date(), fichiersDuComposant } = {}) {
   const git = (arguments_) => executer("git", arguments_, { cwd: racine, encoding: "utf8", stdio: ["ignore", "pipe", "pipe"] });
   try { git(["rev-parse", "--show-toplevel"]); } catch (erreur) {
     if (/not a git repository/i.test(String(erreur?.stderr))) return { historique: "aucun", rangs: {} };
@@ -49,7 +56,9 @@ export function mesurerLesRangs(racine, configuration, contrats, { base = null, 
   };
   const composants = Object.fromEntries(contrats.map((contrat) => {
     const contratMesure = mesurer(contrat);
-    return [identifiantDuContrat(contrat), { contrat: contratMesure.rang, code: mesurer(cheminImplementation(contrat, configuration.implementation)).rang, depuis: contratMesure.depuis }];
+    const implementation = cheminImplementation(contrat, configuration.implementation);
+    const code = fichiersDuComposant ? rangDuCode(fichiersDuComposant(implementation).fichiers, mesurer) : mesurer(implementation).rang;
+    return [identifiantDuContrat(contrat), { contrat: contratMesure.rang, code, depuis: contratMesure.depuis }];
   }));
   return { historique: "complet", rangs: { tokens: mesurer(configuration.tokens).rang, composants } };
 }
