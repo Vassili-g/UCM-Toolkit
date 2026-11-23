@@ -331,8 +331,8 @@ lien.
 
 ## Vague 4
 
-- [ ] 4.1 `executant`. `ROADMAP.md` devient `VALIDATIONS-MVP.md`. Commit : `…`
-- [ ] 4.2 Conversation principale. Fichiers d'agents. Commit : `…`
+- [x] 4.1 `executant`. `ROADMAP.md` devient `VALIDATIONS-MVP.md`. Commit : `01bcde85`, `4a77fbf6`
+- [x] 4.2 Conversation principale. Fichiers d'agents. Commit : `01bcde85`
 
 ### Lot 4.1. `ROADMAP.md` devient `VALIDATIONS-MVP.md`
 
