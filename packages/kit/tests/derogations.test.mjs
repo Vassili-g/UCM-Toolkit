@@ -4,7 +4,7 @@
  */
 import assert from "node:assert/strict";
 import test from "node:test";
-import { appliquerDerogations, lireDerogations } from "../src/lecteurs/derogations.mjs";
+import { ajouterDerogation, appliquerDerogations, commandeDeDerogation, coordonneesDuGenre, lireDerogations } from "../src/lecteurs/derogations.mjs";
 
 const EXPORT = "2026-11-01T10:00:00.000Z";
 
@@ -99,5 +99,113 @@ test("un écart non dérogeable reste, même si une entrée le nomme", () => {
   const forcee = entree({ ecart: { genre: "interface-absente", interface: "ButtonProps" } });
   const r = appliquerDerogations([forcee], "Button", EXPORT, [ecart("interface-absente", { interface: "ButtonProps" }, false)]);
   assert.deepEqual(r.couverts, []);
+  assert.equal(r.restants.length, 1);
+});
+
+// ─── Les constats du code (lot 1.1) ───────────────────────────────────────
+
+const entreeDuCode = (genre, coordonnees, surcharge = {}) => entree({ ecart: { genre, ...coordonnees }, ...surcharge });
+const CODES = {
+  "valeur-en-dur": { fichier: "src/Button.tsx", valeur: "12px" },
+  "token-inconnu": { fichier: "src/Button.tsx", reference: "{a.b}" },
+  "repli-en-dur": { fichier: "src/Button.tsx", reference: "--x" },
+};
+
+test("D1 : les trois genres du code se lisent, leurs coordonnées exactes", () => {
+  for (const [genre, coordonnees] of Object.entries(CODES)) {
+    assert.deepEqual(lire(entreeDuCode(genre, coordonnees)), { derogations: [entreeDuCode(genre, coordonnees)], erreurs: [] }, genre);
+  }
+  assert.match(lire(entreeDuCode("valeur-en-dur", { fichier: "a.tsx" })).erreurs[0], /ecart\.valeur : coordonnée manquante/);
+  assert.match(lire(entreeDuCode("repli-en-dur", { fichier: "a.tsx", valeur: "x", reference: "--x" })).erreurs[0], /ecart\.valeur : coordonnée inconnue/);
+});
+
+test("D1 : nom-css-ambigu, non-analyse et desactivation-interdite ne se dérogent pas", () => {
+  for (const genre of ["nom-css-ambigu", "non-analyse", "desactivation-interdite"]) {
+    const { derogations, erreurs } = lire(entreeDuCode(genre, { fichier: "src/Button.tsx" }));
+    assert.deepEqual(derogations, [], genre);
+    assert.match(erreurs[0], new RegExp(`^derogations\\[0\\]\\.ecart\\.genre : \`${genre}\` ne se déroge pas`), genre);
+  }
+});
+
+test("coordonneesDuGenre rend les coordonnées dans l'ordre, ou null", () => {
+  assert.deepEqual(coordonneesDuGenre("valeur-en-dur"), ["fichier", "valeur"]);
+  assert.deepEqual(coordonneesDuGenre("token-inconnu"), ["fichier", "reference"]);
+  assert.deepEqual(coordonneesDuGenre("valeur-non-implementee"), ["prop", "valeur"]);
+  for (const genre of ["interface-absente", "nom-css-ambigu", "non-analyse", "desactivation-interdite", "inconnu", "constructor", "__proto__"]) assert.equal(coordonneesDuGenre(genre), null, genre);
+  coordonneesDuGenre("valeur-en-dur").push("autre");
+  assert.deepEqual(coordonneesDuGenre("valeur-en-dur"), ["fichier", "valeur"]);
+});
+
+test("D2 : la commande écrit les coordonnées dans l'ordre et protège ce que le shell lirait", () => {
+  assert.equal(
+    commandeDeDerogation("Button", "valeur-en-dur", { valeur: "#fff", fichier: "src/a b.tsx" }),
+    `npx ucm deroger Button valeur-en-dur 'src/a b.tsx' '#fff' --motif "…"`,
+  );
+  assert.equal(
+    commandeDeDerogation("Button", "token-inconnu", { fichier: "src/components/Button/Button.tsx", reference: "{a.b}" }),
+    `npx ucm deroger Button token-inconnu src/components/Button/Button.tsx '{a.b}' --motif "…"`,
+  );
+  assert.equal(
+    commandeDeDerogation("Button", "repli-en-dur", { fichier: "src/Button.tsx", reference: "--components-button-gap" }),
+    `npx ucm deroger Button repli-en-dur src/Button.tsx --components-button-gap --motif "…"`,
+  );
+  assert.equal(
+    commandeDeDerogation("Button", "valeur-en-dur", { fichier: "src/Button.tsx", valeur: `l'"a" \\ $x` }),
+    `npx ucm deroger Button valeur-en-dur src/Button.tsx "l'\\"a\\" \\\\ $x" --motif "…"`,
+  );
+});
+
+const LE_CODE = entreeDuCode("valeur-en-dur", CODES["valeur-en-dur"]);
+
+test("D3 : ajouterDerogation crée le fichier, ajoute, et écrit du JSON indenté terminé par un saut de ligne", () => {
+  const premier = ajouterDerogation(null, LE_CODE);
+  assert.deepEqual(premier.erreurs, []);
+  assert.equal(premier.remplacee, false);
+  assert.equal(premier.texte, `${JSON.stringify({ derogations: [LE_CODE] }, null, 2)}\n`);
+  assert.ok(premier.texte.startsWith('{\n  "derogations": [\n    {'));
+
+  const autre = entreeDuCode("token-inconnu", CODES["token-inconnu"]);
+  const second = ajouterDerogation(premier.texte, autre);
+  assert.deepEqual(lireDerogations(second.texte).derogations, [LE_CODE, autre]);
+  assert.equal(second.remplacee, false);
+});
+
+test("D3 : ajouterDerogation refuse une entrée identique, même motif différent", () => {
+  const { texte } = ajouterDerogation(null, LE_CODE);
+  const refus = ajouterDerogation(texte, { ...LE_CODE, motif: "Autre raison." });
+  assert.equal(refus.texte, null);
+  assert.equal(refus.remplacee, false);
+  assert.match(refus.erreurs[0], /existe déjà/);
+});
+
+test("D3 : ajouterDerogation remplace l'entrée tombée du même écart, à sa place", () => {
+  const voisine = entreeDuCode("token-inconnu", CODES["token-inconnu"]);
+  const depart = `${JSON.stringify({ derogations: [LE_CODE, voisine] })}`;
+  const neuve = { ...LE_CODE, export: "2026-12-01T00:00:00.000Z", motif: "Après réexport." };
+  const resultat = ajouterDerogation(depart, neuve);
+  assert.equal(resultat.remplacee, true);
+  assert.deepEqual(resultat.erreurs, []);
+  assert.deepEqual(lireDerogations(resultat.texte).derogations, [neuve, voisine]);
+});
+
+test("D3 : ajouterDerogation refuse un fichier invalide et une entrée invalide, sans rien écrire", () => {
+  const fichierInvalide = ajouterDerogation("{ pas du json", LE_CODE);
+  assert.equal(fichierInvalide.texte, null);
+  assert.match(fichierInvalide.erreurs[0], /illisible/);
+  const entreeInvalide = ajouterDerogation(null, { ...LE_CODE, motif: " " });
+  assert.equal(entreeInvalide.texte, null);
+  assert.match(entreeInvalide.erreurs[0], /motif : champ vide/);
+  const nonDerogeable = ajouterDerogation(null, entreeDuCode("nom-css-ambigu", { fichier: "a.tsx" }));
+  assert.equal(nonDerogeable.texte, null);
+  assert.match(nonDerogeable.erreurs[0], /ne se déroge pas/);
+});
+
+test("une entrée du code couvre le constat de mêmes coordonnées, pas celui d'une autre valeur", () => {
+  const ecarts = [
+    ecart("valeur-en-dur", { fichier: "src/Button.tsx", valeur: "12px" }),
+    ecart("valeur-en-dur", { fichier: "src/Button.tsx", valeur: "13px" }),
+  ];
+  const r = appliquerDerogations([LE_CODE], "Button", EXPORT, ecarts);
+  assert.equal(r.couverts.length, 1);
   assert.equal(r.restants.length, 1);
 });

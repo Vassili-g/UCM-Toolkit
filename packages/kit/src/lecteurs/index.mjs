@@ -168,6 +168,9 @@ export {
   CHEMIN_DES_DEROGATIONS,
   lireDerogations,
   appliquerDerogations,
+  coordonneesDuGenre,
+  commandeDeDerogation,
+  ajouterDerogation,
 } from "./derogations.mjs";
 
 /**

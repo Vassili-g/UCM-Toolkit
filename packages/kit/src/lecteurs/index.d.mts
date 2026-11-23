@@ -761,6 +761,22 @@ declare module "@ucm-kit/core/lecteurs" {
     sansObjet: Derogation[];
   };
 
+  /** Les coordonnées d'un genre dérogeable, dans l'ordre de la commande ; `null` pour un genre inconnu ou non dérogeable. */
+  export function coordonneesDuGenre(genre: string): string[] | null;
+
+  /** La commande `npx ucm deroger` d'un écart, motif à remplir ; une coordonnée à signes de shell s'écrit entre apostrophes. */
+  export function commandeDeDerogation(composant: string, genre: string, coordonnees: Readonly<Record<string, string>>): string;
+
+  /**
+   * Ajoute une entrée au texte de `.ucm/derogations.json` (`null` si absent).
+   * `texte` vaut `null` quand l'entrée est refusée (doublon, fichier invalide) ;
+   * `remplacee` dit qu'une entrée du même écart, d'un export ancien, a cédé la place.
+   */
+  export function ajouterDerogation(
+    texte: string | null,
+    entree: { composant: string; ecart: { genre: string } & Record<string, string>; export: string; motif: string; par: string },
+  ): { texte: string | null; erreurs: string[]; remplacee: boolean };
+
   /** Sépare ce qui concerne un composant exporté de ce qui concerne l'outillage. */
   export function repartirEchecs(echecs: readonly EchecDeTest[]): {
     rendu: EchecDeTest[];

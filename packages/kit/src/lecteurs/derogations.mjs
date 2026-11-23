@@ -19,10 +19,26 @@ const COORDONNEES_PAR_GENRE = {
   "booleen-sans-effet": ["prop"],
   "enum-sans-effet": ["prop"],
   "composition-non-rendue": ["composant"],
+  "valeur-en-dur": ["fichier", "valeur"],
+  "token-inconnu": ["fichier", "reference"],
+  "repli-en-dur": ["fichier", "reference"],
 };
 
-/** Ces genres rendent toute autre comparaison fausse : les couvrir masquerait le composant entier. */
-const GENRES_NON_DEROGEABLES = new Set(["interface-absente", "fonction-introuvable", "composition-comptage"]);
+const RAISON_PARITE = "il empêche toute autre comparaison";
+
+/**
+ * Les genres qu'aucune entrée ne couvre, avec leur raison. Les trois premiers
+ * rendent toute autre comparaison fausse : les couvrir masquerait le composant
+ * entier.
+ */
+const GENRES_NON_DEROGEABLES = new Map([
+  ["interface-absente", RAISON_PARITE],
+  ["fonction-introuvable", RAISON_PARITE],
+  ["composition-comptage", RAISON_PARITE],
+  ["nom-css-ambigu", "deux tokens portent ce nom, le designer corrige les tokens"],
+  ["non-analyse", "le contrôle ne juge pas cette valeur, il n'y a rien à couvrir"],
+  ["desactivation-interdite", "un commentaire ne désactive pas une règle UCM"],
+]);
 
 const CHAMPS_DE_L_ENTREE = ["composant", "ecart", "export", "motif", "par"];
 
@@ -46,7 +62,7 @@ function erreursDeLEntree(entree, chemin) {
   if (!estObjet(ecart)) return [...erreurs, `${chemin}.ecart doit être un objet.`];
   if (!estTexteNonVide(ecart.genre)) return [...erreurs, `${chemin}.ecart.genre : champ manquant ou vide.`];
   if (GENRES_NON_DEROGEABLES.has(ecart.genre)) {
-    return [...erreurs, `${chemin}.ecart.genre : \`${ecart.genre}\` ne se déroge pas, il empêche toute autre comparaison.`];
+    return [...erreurs, `${chemin}.ecart.genre : \`${ecart.genre}\` ne se déroge pas, ${GENRES_NON_DEROGEABLES.get(ecart.genre)}.`];
   }
   const attendues = Object.hasOwn(COORDONNEES_PAR_GENRE, ecart.genre) ? COORDONNEES_PAR_GENRE[ecart.genre] : undefined;
   if (!attendues) return [...erreurs, `${chemin}.ecart.genre : genre inconnu \`${ecart.genre}\`.`];
@@ -120,4 +136,71 @@ export function appliquerDerogations(derogations, composant, exportedAt, ecarts)
   }
   const sansObjet = actives.filter((derogation) => !couverts.some((couvert) => couvert.derogation === derogation));
   return { couverts, restants, tombees, sansObjet };
+}
+
+/**
+ * Les coordonnées d'un genre dérogeable, dans l'ordre où la commande les écrit ;
+ * `null` pour un genre inconnu ou non dérogeable.
+ */
+export function coordonneesDuGenre(genre) {
+  return Object.hasOwn(COORDONNEES_PAR_GENRE, genre) ? [...COORDONNEES_PAR_GENRE[genre]] : null;
+}
+
+/** Un argument de shell : nu s'il ne porte que des signes sûrs, sinon entre apostrophes (Bash et PowerShell les gardent littérales). */
+function argumentDeShell(valeur) {
+  if (/^[A-Za-z0-9._/@:+-]+$/.test(valeur)) return valeur;
+  if (!valeur.includes("'")) return `'${valeur}'`;
+  return `"${valeur.replace(/["\\]/g, "\\$&")}"`;
+}
+
+/**
+ * La commande qui écrit une dérogation, motif à remplir par l'appelant.
+ * Les coordonnées suivent l'ordre de `COORDONNEES_PAR_GENRE`.
+ */
+export function commandeDeDerogation(composant, genre, coordonnees) {
+  const attendues = coordonneesDuGenre(genre) ?? [];
+  const arguments_ = [composant, genre, ...attendues.map((cle) => coordonnees[cle] ?? "")].map(argumentDeShell);
+  return `npx ucm deroger ${arguments_.join(" ")} --motif "…"`;
+}
+
+const memeEcart = (gauche, droite) => {
+  if (gauche.composant !== droite.composant || gauche.ecart.genre !== droite.ecart.genre) return false;
+  return (coordonneesDuGenre(gauche.ecart.genre) ?? []).every((cle) => gauche.ecart[cle] === droite.ecart[cle]);
+};
+
+/**
+ * Ajoute une entrée au texte de `.ucm/derogations.json` (`null` pour un fichier
+ * absent) et rend le texte à écrire.
+ *
+ * Refuse une entrée identique (même écart, même export). Remplace l'entrée du
+ * même écart dont l'export est ancien, et le dit par `remplacee`. Valide le
+ * résultat entier par `lireDerogations` ; en cas d'erreur, `texte` vaut `null`
+ * et rien ne s'écrit.
+ */
+export function ajouterDerogation(texte, entree) {
+  const lu = lireDerogations(texte);
+  if (lu.erreurs.length > 0) return { texte: null, erreurs: lu.erreurs, remplacee: false };
+
+  const memes = lu.derogations.filter((existante) => memeEcart(existante, entree));
+  if (memes.some((existante) => existante.export === entree.export)) {
+    return { texte: null, erreurs: ["Cette dérogation existe déjà pour cet export."], remplacee: false };
+  }
+
+  const remplacee = memes.length > 0;
+  const liste = [];
+  let place = false;
+  for (const existante of lu.derogations) {
+    if (!memes.includes(existante)) liste.push(existante);
+    else if (!place) {
+      liste.push(entree);
+      place = true;
+    }
+  }
+  if (!place) liste.push(entree);
+
+  const resultat = `${JSON.stringify({ derogations: liste }, null, 2)}
+`;
+  const relu = lireDerogations(resultat);
+  if (relu.erreurs.length > 0) return { texte: null, erreurs: relu.erreurs, remplacee: false };
+  return { texte: resultat, erreurs: [], remplacee };
 }
