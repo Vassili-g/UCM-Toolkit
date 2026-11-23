@@ -81,10 +81,20 @@ declare module "@ucm-kit/core/lecteurs" {
   /** Le chemin où l'implémentation de ce contrat est censée se trouver. */
   export function cheminImplementation(cheminContrat: string, motif?: string): string;
 
-  /** L'implémentation de ce contrat existe-t-elle ? */
+  /**
+   * Où en est l'implémentation de ce contrat : présente sous le nom exact du motif,
+   * présente sous une autre casse (`autreCasse` donne le nom trouvé), ou absente.
+   * `lister` rend les noms d'un dossier ; son défaut lit le disque.
+   */
+  export function etatDeLImplementation(
+    cheminContrat: string,
+    options?: { motif?: string; lister?: (dossier: string) => readonly string[] },
+  ): { presente: true } | { presente: false; autreCasse?: string };
+
+  /** L'implémentation de ce contrat existe-t-elle, sous le nom exact du motif ? */
   export function implementationPresente(
     cheminContrat: string,
-    options?: { motif?: string; existe?: (chemin: string) => boolean },
+    options?: { motif?: string; lister?: (dossier: string) => readonly string[] },
   ): boolean;
 
   /**
@@ -407,10 +417,19 @@ declare module "@ucm-kit/core/lecteurs" {
    * qui le produit et le relit lui-même.
    */
   export interface AdaptateurDImplementation {
-    /** Relève d'un coup ce que l'adaptateur sait lire des implémentations citées. */
-    lireApiPublique(implementations: readonly string[], racine: string): Map<string, unknown>;
-    /** Le nom que l'API publique de cette implémentation devrait porter. */
-    nomInterfaceAttendue(implementation: string): string | null;
+    /**
+     * Relève d'un coup ce que l'adaptateur sait lire des implémentations citées.
+     * `identifiants` donne l'identifiant du contrat de chaque implémentation.
+     */
+    lireApiPublique(
+      implementations: readonly string[],
+      racine: string,
+      identifiants?: ReadonlyMap<string, string>,
+    ): Map<string, unknown>;
+    /** Le nom que l'API publique de cette implémentation devrait porter, d'après l'identifiant de son contrat. */
+    nomInterfaceAttendue(implementation: string, identifiant?: string): string | null;
+    /** Le dossier des gabarits qu'`ucm init` copie dans `.ucm/gabarits/` ; absent quand l'adaptateur n'en publie aucun. */
+    cheminGabarits?: string;
     /** Compare un contrat au relevé, et rend un écart de parité. */
     ecartsDeParite(
       contrat: unknown,
@@ -534,7 +553,7 @@ declare module "@ucm-kit/core/lecteurs" {
     message: string;
     /** Les coordonnées de la dérogation, pour un code dérogeable. */
     coordonnees?: { fichier: string; reference?: string; valeur?: string };
-    /** `npx ucm deroger …` complète, motif à remplir, pour un constat dérogeable non couvert. */
+    /** `npx @ucm-kit/cli deroger …` complète, motif à remplir, pour un constat dérogeable non couvert. */
     commande?: string;
     /** Présent quand une dérogation valide couvre le constat : il ne s'affiche jamais en erreur. */
     deroge?: { motif: string; par: string };
@@ -996,7 +1015,7 @@ declare module "@ucm-kit/core/lecteurs" {
   /** Les coordonnées d'un genre dérogeable, dans l'ordre de la commande ; `null` pour un genre inconnu ou non dérogeable. */
   export function coordonneesDuGenre(genre: string): string[] | null;
 
-  /** La commande `npx ucm deroger` d'un écart, motif à remplir ; une coordonnée à signes de shell s'écrit entre apostrophes. */
+  /** La commande `npx @ucm-kit/cli deroger` d'un écart, motif à remplir ; une coordonnée à signes de shell s'écrit entre apostrophes. */
   export function commandeDeDerogation(composant: string, genre: string, coordonnees: Readonly<Record<string, string>>): string;
 
   /**

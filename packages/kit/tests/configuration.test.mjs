@@ -105,6 +105,16 @@ test("un chemin vide est un refus, parce qu'il ne désigne rien", () => {
   assert.deepEqual(champsInvalidesDeLaConfiguration({ implementation: 42 }), ["implementation"]);
 });
 
+test("K4 : un motif d'implémentation sans {id} est refusé, comme le refuse ucm init", () => {
+  for (const motif of ["{dir}/index.tsx", "src/Button.tsx", "{dir}/{ID}.tsx"]) {
+    assert.deepEqual(champsInvalidesDeLaConfiguration({ implementation: motif }), ["implementation"], motif);
+    const { configuration, erreur } = configurationDepuisJson({ implementation: motif });
+    assert.match(erreur, /implementation/);
+    assert.equal(configuration.implementation, CONFIGURATION_PAR_DEFAUT.implementation);
+  }
+  assert.deepEqual(champsInvalidesDeLaConfiguration({ implementation: "{dir}/{id}/index.tsx" }), []);
+});
+
 /**
  * Le plugin écrit l'export à ces chemins sur la forge, et la CI les lit par
  * `resolve` : un chemin qui sort de la racine vise un autre fichier, ou un

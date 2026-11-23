@@ -13,9 +13,14 @@ import ts from "typescript";
 
 import { lecteurDuCode } from "./usages.mjs";
 
-/** Nom de l'interface qui porte l'API publique du composant. */
-export function nomInterfaceAttendue(fichierComposant) {
-  return `${basename(fichierComposant, extname(fichierComposant))}Props`;
+/**
+ * Nom de l'interface qui porte l'API publique du composant : `<identifiant>Props`.
+ * Sans identifiant, c'est le nom de base du fichier. Un motif tel que
+ * `{dir}/{id}/index.tsx` appelle le fichier `index` : l'identifiant du contrat
+ * est alors le seul nom du composant.
+ */
+export function nomInterfaceAttendue(fichierComposant, identifiant = basename(fichierComposant, extname(fichierComposant))) {
+  return `${identifiant}Props`;
 }
 
 /** Nom textuel d'une clé de binding, quand elle est statiquement connaissable. */
@@ -297,8 +302,12 @@ function familleDeType(item) {
   return "autre";
 }
 
-/** Relève en un seul programme les API publiques des fichiers qui existent. */
-export function lireApiPublique(fichiers, racine) {
+/**
+ * Relève en un seul programme les API publiques des fichiers qui existent.
+ * `identifiants` donne l'identifiant du contrat de chaque fichier ; un fichier
+ * qu'il ne nomme pas prend son nom de base.
+ */
+export function lireApiPublique(fichiers, racine, identifiants = new Map()) {
   const api = new Map();
   const existants = fichiers.filter((fichier) => existsSync(fichier));
   if (existants.length === 0) return api;
@@ -309,8 +318,8 @@ export function lireApiPublique(fichiers, racine) {
   for (const fichier of existants) {
     const source = programme.getSourceFile(fichier);
     if (!source) continue;
-    const attendue = nomInterfaceAttendue(fichier);
-    const nomComposant = basename(fichier, extname(fichier));
+    const nomComposant = identifiants.get(fichier) ?? basename(fichier, extname(fichier));
+    const attendue = nomInterfaceAttendue(fichier, nomComposant);
     const fonction = trouverFonctionComposant(source, nomComposant);
     let props = null;
 

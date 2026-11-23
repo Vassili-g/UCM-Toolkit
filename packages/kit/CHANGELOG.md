@@ -4,6 +4,15 @@ Ce journal note chaque changement de `@ucm-kit/core/modules`, la seule porte du 
 
 Une entrée a un genre (`ajout`, `déprécié` ou `rupture`), nomme les noms touchés entre accents graves, dit le geste à faire dans un module, et se termine par « Décidé par ... ». Les règles sont dans `invariants/versionnage.md`.
 
+## 0.18.0
+
+### rupture
+
+- `lireConfiguration` refuse un motif `implementation` sans `{id}`. Geste dans un module : écrire `{id}` dans le motif de `ucm.config.json`, par exemple `{dir}/{id}/index.tsx`.
+- `preparerControle` écrit la commande de dérogation `npx @ucm-kit/cli deroger …` au lieu de `npx ucm deroger …`. Geste dans un module : aucun, le message s'affiche tel quel.
+
+Décidé par le mainteneur (P27, PP-104 et PP-209).
+
 ## 0.17.4
 
 ### ajout

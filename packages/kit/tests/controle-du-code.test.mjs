@@ -523,7 +523,7 @@ test("C39 : une dérogation de l'export courant couvre le constat ; celle d'un e
 
   const tombee = juger({ releve, derogations: { derogations: [derogationDeValeur({ export: "2020-01-01T00:00:00.000Z" })], erreurs: [] } }).constats[0];
   assert.equal(tombee.deroge, undefined);
-  assert.match(tombee.commande, /^npx ucm deroger Button valeur-en-dur src\/components\/Button\/Button\.tsx 12px --motif "…"$/);
+  assert.match(tombee.commande, /^npx @ucm-kit\/cli deroger Button valeur-en-dur src\/components\/Button\/Button\.tsx 12px --motif "…"$/);
 
   const autreValeur = juger({ releve: { declarations: [declaration("padding", "13px")] }, derogations: { derogations: [derogationDeValeur()], erreurs: [] } }).constats[0];
   assert.equal(autreValeur.deroge, undefined);
@@ -531,16 +531,16 @@ test("C39 : une dérogation de l'export courant couvre le constat ; celle d'un e
 
 test("C40 : le message d'un écart non couvert se termine par la commande, coordonnées entre apostrophes", () => {
   const [dur] = juger({ releve: { chaines: [chaine("#fff")] } }).constats;
-  assert.equal(dur.commande, `npx ucm deroger Button valeur-en-dur ${FICHIER_BUTTON} '#fff' --motif "…"`);
+  assert.equal(dur.commande, `npx @ucm-kit/cli deroger Button valeur-en-dur ${FICHIER_BUTTON} '#fff' --motif "…"`);
   assert.ok(dur.message.endsWith(`Pour la garder, lancez \`${dur.commande}\` avec votre raison à la place de \`…\`.`));
   assert.ok(dur.message.startsWith("`#fff` est une valeur écrite en dur, que le contrat de `Button` ne publie pas."));
 
   const [inconnu] = juger({ releve: { chaines: [chaine("{a.b}")] } }).constats;
-  assert.equal(inconnu.commande, `npx ucm deroger Button token-inconnu ${FICHIER_BUTTON} '{a.b}' --motif "…"`);
+  assert.equal(inconnu.commande, `npx @ucm-kit/cli deroger Button token-inconnu ${FICHIER_BUTTON} '{a.b}' --motif "…"`);
   assert.ok(inconnu.message.startsWith("`{a.b}` ne nomme aucun token de tokens.json. Pour la garder"));
 
   const [repli] = juger({ releve: { chaines: [chaine("var(--w, 1px)")] } }).constats;
-  assert.equal(repli.commande, `npx ucm deroger Button repli-en-dur ${FICHIER_BUTTON} --w --motif "…"`);
+  assert.equal(repli.commande, `npx @ucm-kit/cli deroger Button repli-en-dur ${FICHIER_BUTTON} --w --motif "…"`);
 });
 
 test("C41 : un commentaire eslint-disable qui nomme une règle UCM est un constat, un autre non", () => {

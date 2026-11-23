@@ -26,7 +26,7 @@ import { diagnosticEchecsDeTests, resumeTerminalEchecsDeTests } from "./diagnost
 import { libelleNombre, rendreDiagnostic } from "./diagnostic-markdown.mjs";
 import { constatsDesContrastes, resumeTerminalContrastes, sectionContrastes } from "./diagnostic-contrastes.mjs";
 import { resumeTerminalTokensManquants, sectionTokensManquants } from "./diagnostic-tokens.mjs";
-import { cheminImplementation, identifiantDuContrat, implementationPresente } from "./implementation.mjs";
+import { cheminImplementation, etatDeLImplementation, identifiantDuContrat } from "./implementation.mjs";
 import { collecterReferences, sansEchantillon } from "./references-token.mjs";
 import { genreDeLaDemande, perimetreDeLaDemande } from "./perimetre-rapport.mjs";
 import { indexerTokensDtcg, nomsCssDesTokens, referencesAbsentes } from "./tokens-dtcg.mjs";
@@ -157,12 +157,20 @@ function analyser(chemin, contexte, erreursGraphe = []) {
   const implementation = cheminImplementation(chemin, motif);
   // La présence se demande au disque, pas au relevé : c'est elle qui distingue
   // « pas encore écrit » de « écrit, mais illisible par cet adaptateur ».
-  const parite = adaptateur.ecartsDeParite(
-    contrat,
-    apiPublique.get(implementation),
-    adaptateur.nomInterfaceAttendue(implementation),
-    { presente: implementationPresente(chemin, { motif }), chemin: basename(implementation) },
-  );
+  const etatImplementation = etatDeLImplementation(chemin, { motif });
+  // Un fichier sous une autre casse n'est pas une absence : Windows et macOS le
+  // trouvent, Linux non. Aucun adaptateur ne le lit, et le verdict le dit.
+  const parite = etatImplementation.autreCasse === undefined
+    ? adaptateur.ecartsDeParite(
+      contrat,
+      apiPublique.get(implementation),
+      adaptateur.nomInterfaceAttendue(implementation, identifiantDuContrat(chemin)),
+      { presente: etatImplementation.presente, chemin: basename(implementation) },
+    )
+    : {
+      ...pariteVide(),
+      implementationAutreCasse: { trouve: etatImplementation.autreCasse, attendu: basename(implementation) },
+    };
 
   // Le contrat ne publie aucun index de ses tokens depuis la 11.0, et
   // `champsInvalidesDuContrat` refuse celui qui en porterait un. Le relevé du
@@ -319,7 +327,7 @@ function lignesDEcarts(entree, ecarts = ecartsEnEcart(entree)) {
   if (lignes.length <= LIGNES_D_ECARTS_PAR_COMPOSANT) return lignes;
   return [
     ...lignes.slice(0, LIGNES_D_ECARTS_PAR_COMPOSANT),
-    `et ${lignes.length - LIGNES_D_ECARTS_PAR_COMPOSANT} autres : lancez \`npx ucm check\` en local.`,
+    `et ${lignes.length - LIGNES_D_ECARTS_PAR_COMPOSANT} autres : lancez \`npx @ucm-kit/cli check\` en local.`,
   ];
 }
 
@@ -394,6 +402,11 @@ function sectionsDesTokens(entrees, { tokensModifies, sourceTokens }) {
     ...sectionTokensManquants(retards, { bloquant: false, tokensModifies, sourceTokens }),
   ];
 }
+
+/** Ce que le terminal et le rapport disent d'un fichier d'implémentation écrit sous une autre casse que le motif. */
+const PHRASE_AUTRE_CASSE = "fichier d'implémentation sous une autre casse";
+const RAISON_AUTRE_CASSE = "Le fichier d'implémentation existe sous une autre casse que celle du motif. Windows le trouve, la CI sous Linux non. Le développeur le renomme.";
+const ligneDAutreCasse = ({ trouve, attendu }) => `\`${trouve}\` existe, mais le motif attend \`${attendu}\`. Renommez le fichier.`;
 
 /** Ce que dit le rapport d'un adaptateur absent, cassé ou ancien, d'un fichier qu'il ne lit pas, ou d'un fichier lu en partie. */
 const RESUME_DE_LECTURE = {
@@ -503,6 +516,21 @@ function sectionsDuCode(entrees, { verdict, bilansDuRapport, maintenant }) {
       details: verdict.erreursDeDerogations,
       action: `Un développeur doit corriger \`${CHEMIN_DES_DEROGATIONS}\`.`,
       status: "La fusion reste bloquée.",
+    }));
+  }
+
+  const autresCasses = entrees.filter((entree) => entree.jugement.lecture === "autre-casse");
+  if (autresCasses.length > 0) {
+    const bloque = autresCasses.some(bloqueParLeCode);
+    lignes.push(...rendreDiagnostic({
+      severity: bloque ? "error" : "warning",
+      title: "Fichier d'implémentation sous une autre casse",
+      count: autresCasses.length,
+      itemSingular: "composant",
+      summary: RAISON_AUTRE_CASSE,
+      items: autresCasses.map(({ id, bilan }) => `\`${id}\` : ${ligneDAutreCasse(bilan.parite.implementationAutreCasse)}`),
+      action: "Un développeur doit renommer le fichier.",
+      status: bloque ? "La fusion reste bloquée." : "Ce point ne bloque pas votre demande.",
     }));
   }
 
@@ -835,12 +863,14 @@ function terminalDesBilans(bilans, entrees) {
       ? "code non examiné"
       : bilan.parite.implementationAbsente
         ? "implémentation en attente (autorisé)"
-        // Ne jamais dire « conforme » de ce qu'on n'a pas lu : c'est la moitié
-        // de ce défaut. Le fichier est là, l'adaptateur n'en a
-        // rien tiré.
-        : bilan.parite.implementationNonLue
-          ? `implémentation présente, non lue par l'adaptateur (${bilan.parite.implementationNonLue})`
-          : `${etatDuCodeDansLeTerminal(jugement)}${limitesDeLecture(bilan.parite)}`;
+        : bilan.parite.implementationAutreCasse
+          ? `${PHRASE_AUTRE_CASSE} (${ligneDAutreCasse(bilan.parite.implementationAutreCasse)})`
+          // Ne jamais dire « conforme » de ce qu'on n'a pas lu : c'est la moitié
+          // de ce défaut. Le fichier est là, l'adaptateur n'en a
+          // rien tiré.
+          : bilan.parite.implementationNonLue
+            ? `implémentation présente, non lue par l'adaptateur (${bilan.parite.implementationNonLue})`
+            : `${etatDuCodeDansLeTerminal(jugement)}${limitesDeLecture(bilan.parite)}`;
     fil.push({
       flux: "log",
       texte: `${marque} ${bilan.fichier} : ${libelleNombre(bilan.total, "référence")} contrôlée${bilan.total === 1 ? "" : "s"}, ${etatDuCode} (${bilan.relatif})`,
@@ -917,6 +947,16 @@ ${GLYPHES.corriger.brut} ${libelleNombre(tombees, "dérogation")} ne s'applique$
     for (const erreur of verdict.erreursDeDerogations) {
       fil.push({ flux: "error", texte: `${GLYPHES.bloquant.brut} ${erreur}` });
     }
+  }
+  const autresCasses = entrees.filter((entree) => entree.jugement.lecture === "autre-casse");
+  if (autresCasses.length > 0) {
+    const bloque = autresCasses.some(bloqueParLeCode);
+    const detail = autresCasses.map(({ id, bilan }) => `${id} : ${ligneDAutreCasse(bilan.parite.implementationAutreCasse)}`).join(" ");
+    fil.push(bloque
+      ? { flux: "error", texte: `
+${GLYPHES.bloquant.brut} Un ${PHRASE_AUTRE_CASSE}. ${detail} La fusion reste bloquée.` }
+      : { flux: "warn", texte: `
+${GLYPHES.corriger.brut} Un ${PHRASE_AUTRE_CASSE}. ${detail} Ce point ne bloque pas votre demande.` });
   }
   for (const lecture of LECTURES_RATEES) {
     const concernes = entrees.filter((entree) => entree.jugement.lecture === lecture);
@@ -1356,8 +1396,11 @@ export function controlerRepository(racine, {
   // `cheminImplementation` accepte un motif à cette place. Le raccourci
   // `map(cheminImplementation)` ferait donc résoudre un motif valant `0`.
   const implementations = contrats.map((chemin) => cheminImplementation(chemin, motif));
+  // Un motif `{dir}/{id}/index.tsx` nomme tous les fichiers `index` : le relevé
+  // reçoit l'identifiant de chaque contrat pour chercher son composant.
+  const identifiants = new Map(contrats.map((chemin, rang) => [implementations[rang], identifiantDuContrat(chemin)]));
   let apiPublique;
-  try { apiPublique = adaptateur.lireApiPublique(implementations, racine); } catch {
+  try { apiPublique = adaptateur.lireApiPublique(implementations, racine, identifiants); } catch {
     if (adaptateurAttendu !== "sans-adaptateur") adaptateurAttendu = "casse";
     adaptateur = ADAPTATEUR_VIDE;
     apiPublique = new Map();
@@ -1389,7 +1432,7 @@ export function controlerRepository(racine, {
     textes: new Map(),
   };
   for (const [rang, bilan] of bilans.entries()) {
-    const jugeable = bilan.pariteMesuree && !bilan.parite.implementationAbsente;
+    const jugeable = bilan.pariteMesuree && !bilan.parite.implementationAbsente && !bilan.parite.implementationAutreCasse;
     if (!jugeable) {
       bilan.code = codeVide();
     } else if (!lecteur) {

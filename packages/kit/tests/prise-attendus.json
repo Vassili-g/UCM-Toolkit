@@ -132,7 +132,7 @@
           "composant": "Button",
           "debut": 46,
           "fin": 90,
-          "message": "`--components-button-sizes-medium-gapp` ne nomme aucun token de tokens.json, et aucun fichier du composant ne la déclare. Pour la garder, lancez `npx ucm deroger Button token-inconnu src/components/Button/Button.tsx --components-button-sizes-medium-gapp --motif \"…\"` avec votre raison à la place de `…`.",
+          "message": "`--components-button-sizes-medium-gapp` ne nomme aucun token de tokens.json, et aucun fichier du composant ne la déclare. Pour la garder, lancez `npx @ucm-kit/cli deroger Button token-inconnu src/components/Button/Button.tsx --components-button-sizes-medium-gapp --motif \"…\"` avec votre raison à la place de `…`.",
           "faits": {
             "variable": "--components-button-sizes-medium-gapp"
           },
@@ -140,7 +140,7 @@
             "fichier": "src/components/Button/Button.tsx",
             "reference": "--components-button-sizes-medium-gapp"
           },
-          "commande": "npx ucm deroger Button token-inconnu src/components/Button/Button.tsx --components-button-sizes-medium-gapp --motif \"…\""
+          "commande": "npx @ucm-kit/cli deroger Button token-inconnu src/components/Button/Button.tsx --components-button-sizes-medium-gapp --motif \"…\""
         }
       ]
     }
@@ -161,7 +161,7 @@
           "composant": "Button",
           "debut": 35,
           "fin": 41,
-          "message": "`padding` reçoit `12px`, que le contrat de `Button` ne publie pas. Écrivez la référence de token que le contrat donne. Pour la garder, lancez `npx ucm deroger Button valeur-en-dur src/components/Button/Button.variants.ts 12px --motif \"…\"` avec votre raison à la place de `…`.",
+          "message": "`padding` reçoit `12px`, que le contrat de `Button` ne publie pas. Écrivez la référence de token que le contrat donne. Pour la garder, lancez `npx @ucm-kit/cli deroger Button valeur-en-dur src/components/Button/Button.variants.ts 12px --motif \"…\"` avec votre raison à la place de `…`.",
           "faits": {
             "propriete": "padding",
             "valeur": "12px",
@@ -176,7 +176,7 @@
             "fichier": "src/components/Button/Button.variants.ts",
             "valeur": "12px"
           },
-          "commande": "npx ucm deroger Button valeur-en-dur src/components/Button/Button.variants.ts 12px --motif \"…\""
+          "commande": "npx @ucm-kit/cli deroger Button valeur-en-dur src/components/Button/Button.variants.ts 12px --motif \"…\""
         }
       ]
     }

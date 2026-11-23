@@ -343,6 +343,32 @@ test("V-16 : du code TypeScript sans adaptateur chargé, ou que l'adaptateur ne 
   }
 });
 
+test("K1 : un fichier d'implémentation sous une autre casse bloque une demande de code, quel que soit l'adaptateur attendu", () => {
+  const autreCasse = { rangContrat: 3, rangCode: 0, parite: { implementationAutreCasse: { trouve: "button.tsx", attendu: "Button.tsx" } } };
+  for (const adaptateurAttendu of ["present", "absent", "casse", "sans-adaptateur"]) {
+    const verdict = verdictDeLaDemande({
+      demande: "code",
+      composants: [composant("Button", autreCasse)],
+      rangTokens: 9,
+      adaptateurAttendu,
+    });
+    assert.equal(verdict.bloquant, true, adaptateurAttendu);
+    assert.equal(etatDeButton(verdict).etat, "code-non-verifie");
+    assert.equal(etatDeButton(verdict).lecture, "autre-casse");
+
+    assert.equal(
+      verdictDeLaDemande({
+        demande: "contrats-et-tokens",
+        composants: [composant("Button", { ...autreCasse, rangContrat: 0, rangCode: 3 })],
+        rangTokens: 9,
+        adaptateurAttendu,
+      }).bloquant,
+      false,
+      `${adaptateurAttendu} : une demande de contrats seuls passe`,
+    );
+  }
+});
+
 test("V-17 : le code d'une technologie qu'aucun adaptateur ne lit passe, code présent non vérifié", () => {
   const verdict = verdictDeLaDemande({
     demande: "code",

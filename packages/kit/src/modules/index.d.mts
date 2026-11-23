@@ -183,7 +183,7 @@ interface ConstatCommun {
   message: string;
   /** Les coordonnées de la dérogation, pour un code dérogeable. */
   coordonnees?: { fichier: string; reference?: string; valeur?: string };
-  /** `npx ucm deroger …` complète, motif à remplir, pour un constat dérogeable non couvert. */
+  /** `npx @ucm-kit/cli deroger …` complète, motif à remplir, pour un constat dérogeable non couvert. */
   commande?: string;
   /** Présent quand une dérogation valide couvre le constat : il ne s'affiche jamais en erreur. */
   deroge?: { motif: string; par: string };

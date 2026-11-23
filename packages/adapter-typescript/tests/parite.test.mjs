@@ -1,4 +1,6 @@
 import assert from "node:assert/strict";
+import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
+import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
 import test from "node:test";
 import { fileURLToPath } from "node:url";
@@ -21,6 +23,38 @@ test("la porte publique possède la forme attendue par le noyau", () => {
     "nomInterfaceAttendue",
   ]);
   assert.equal(nomInterfaceAttendue(fixture), "StressFixtureProps");
+});
+
+test("K8 : l'adaptateur ne publie aucun gabarit, et nomme l'interface d'après l'identifiant donné", () => {
+  assert.equal("cheminGabarits" in adaptateurTypeScript, false);
+  assert.equal(nomInterfaceAttendue("x/index.tsx", "Button"), "ButtonProps");
+  assert.equal(nomInterfaceAttendue("x/Button.tsx"), "ButtonProps", "sans identifiant, le nom de base du fichier");
+});
+
+test("K5 : un motif `{dir}/{id}/index.tsx` cherche la fonction et l'interface sous l'identifiant du contrat", () => {
+  const racine = mkdtempSync(join(tmpdir(), "ucm-index-"));
+  try {
+    mkdirSync(join(racine, "Button"));
+    const fichier = join(racine, "Button", "index.tsx");
+    writeFileSync(fichier, [
+      "export interface ButtonProps { label: string }",
+      "export function Button(props: ButtonProps) { return props.label; }",
+      "",
+    ].join("\n"));
+
+    const releve = lireApiPublique([fichier], racinePaquet, new Map([[fichier, "Button"]])).get(fichier);
+    assert.deepEqual(Object.keys(releve.props), ["label"]);
+    assert.equal(releve.props.label.utilisee, true, "la fonction Button est celle que le relevé lit");
+
+    const sansIdentifiant = lireApiPublique([fichier], racinePaquet).get(fichier);
+    assert.equal(sansIdentifiant.props, null, "sans identifiant, `indexProps` n'existe pas");
+  } finally {
+    rmSync(racine, { recursive: true, force: true });
+  }
+});
+
+test("K6 : un motif `{dir}/{id}.component.tsx` attend `<identifiant>Props`", () => {
+  assert.equal(nomInterfaceAttendue("src/Button/Button.component.tsx", "Button"), "ButtonProps");
 });
 
 test("le relevé résout les props héritées et les BOOLEAN réellement lues", () => {

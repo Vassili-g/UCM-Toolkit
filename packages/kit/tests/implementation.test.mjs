@@ -2,10 +2,13 @@
  * L'existence d'une implémentation, sans rien savoir du langage.
  */
 import assert from "node:assert/strict";
-import { sep } from "node:path";
+import { mkdtempSync, rmSync, writeFileSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { join, sep } from "node:path";
 import test from "node:test";
 import {
   cheminImplementation,
+  etatDeLImplementation,
   identifiantDuContrat,
   implementationPresente,
 } from "@ucm-kit/core/lecteurs";
@@ -52,35 +55,77 @@ test("un motif qui répète un jeton le remplace partout", () => {
 test("l'existence répond oui quand le fichier que le motif nomme est là", () => {
   const vus = [];
   const present = implementationPresente("src/Button.contract.json", {
-    existe: (c) => {
-      vus.push(c);
-      return true;
+    lister: (dossier) => {
+      vus.push(dossier);
+      return ["Button.tsx", "Button.contract.json"];
     },
   });
   assert.equal(present, true);
   // La question posée au disque est bien celle du motif, et une seule fois :
   // sans cette assertion, une implémentation qui chercherait à tâtons
   // plusieurs extensions passerait ce test sans qu'on le sache.
-  assert.deepEqual(vus, [chemin("src", "Button.tsx")]);
+  assert.deepEqual(vus, ["src"]);
 });
 
 test("l'existence répond non quand il ne l'est pas, et ne devine rien", () => {
   assert.equal(
-    implementationPresente("src/Button.contract.json", { existe: () => false }),
+    implementationPresente("src/Button.contract.json", { lister: () => [] }),
     false,
   );
 });
 
 test("le motif choisi est celui que l'existence interroge", () => {
   const vus = [];
-  implementationPresente("contracts/Tile.contract.json", {
+  const etat = etatDeLImplementation("contracts/Tile.contract.json", {
     motif: "Sources/{id}.swift",
-    existe: (c) => {
-      vus.push(c);
-      return false;
+    lister: (dossier) => {
+      vus.push(dossier);
+      return ["Tile.swift"];
     },
   });
-  assert.deepEqual(vus, [chemin("Sources", "Tile.swift")]);
+  assert.deepEqual(vus, ["Sources"]);
+  assert.deepEqual(etat, { presente: true });
+});
+
+test("K1 : un fichier sous une autre casse n'est pas présent, et l'état nomme celui qui existe", () => {
+  const etat = etatDeLImplementation("src/Button.contract.json", {
+    motif: "{dir}/{id}.tsx",
+    lister: () => ["button.tsx", "Button.contract.json"],
+  });
+  assert.deepEqual(etat, { presente: false, autreCasse: "button.tsx" });
+  assert.equal(implementationPresente("src/Button.contract.json", { lister: () => ["button.tsx"] }), false);
+});
+
+test("K2 : le disque rend le même état que la plateforme ignore la casse ou non", () => {
+  // `existsSync` répondait vrai pour `Button.tsx` sous Windows et macOS, faux
+  // sous Linux. Le dossier se liste : la réponse ne dépend plus du système.
+  const racine = mkdtempSync(join(tmpdir(), "ucm-casse-"));
+  try {
+    writeFileSync(join(racine, "button.tsx"), "");
+    const contrat = join(racine, "Button.contract.json");
+    assert.deepEqual(etatDeLImplementation(contrat), { presente: false, autreCasse: "button.tsx" });
+    assert.equal(implementationPresente(contrat), false);
+  } finally {
+    rmSync(racine, { recursive: true, force: true });
+  }
+  // Un dossier où le nom exact est écrit est présent. Les deux fichiers ne
+  // cohabitent pas dans un même dossier sous Windows, d'où deux dossiers.
+  const exacte = mkdtempSync(join(tmpdir(), "ucm-casse-"));
+  try {
+    writeFileSync(join(exacte, "Button.tsx"), "");
+    assert.deepEqual(etatDeLImplementation(join(exacte, "Button.contract.json")), { presente: true });
+  } finally {
+    rmSync(exacte, { recursive: true, force: true });
+  }
+});
+
+test("K3 : le nom exact est présent ; aucun fichier ni dossier donne une absence", () => {
+  assert.deepEqual(
+    etatDeLImplementation("src/Button.contract.json", { lister: () => ["Button.tsx"] }),
+    { presente: true },
+  );
+  assert.deepEqual(etatDeLImplementation("src/Button.contract.json", { lister: () => [] }), { presente: false });
+  assert.deepEqual(etatDeLImplementation(join(tmpdir(), "ucm-dossier-inexistant", "Button.contract.json")), { presente: false });
 });
 
 test("le motif par défaut est publié, pour qu'un appelant puisse le citer", () => {

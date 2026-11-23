@@ -14,6 +14,7 @@ export { trouverContrats } from "./trouver-contrats.mjs";
 export {
   identifiantDuContrat,
   cheminImplementation,
+  etatDeLImplementation,
   implementationPresente,
 } from "./implementation.mjs";
 

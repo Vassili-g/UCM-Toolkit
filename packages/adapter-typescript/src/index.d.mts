@@ -67,10 +67,11 @@ export interface LecteurDuCode {
 export const adaptateurTypeScript: AdaptateurDImplementation & {
   readonly lecteurDuCode: LecteurDuCode;
 };
-export function nomInterfaceAttendue(fichierComposant: string): string;
+export function nomInterfaceAttendue(fichierComposant: string, identifiant?: string): string;
 export function lireApiPublique(
   fichiers: readonly string[],
   racine: string,
+  identifiants?: ReadonlyMap<string, string>,
 ): Map<string, unknown>;
 export function ecartsDeParite(
   contrat: unknown,

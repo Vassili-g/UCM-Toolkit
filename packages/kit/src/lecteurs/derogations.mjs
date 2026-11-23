@@ -162,7 +162,7 @@ function argumentDeShell(valeur) {
 export function commandeDeDerogation(composant, genre, coordonnees) {
   const attendues = coordonneesDuGenre(genre) ?? [];
   const arguments_ = [composant, genre, ...attendues.map((cle) => coordonnees[cle] ?? "")].map(argumentDeShell);
-  return `npx ucm deroger ${arguments_.join(" ")} --motif "…"`;
+  return `npx @ucm-kit/cli deroger ${arguments_.join(" ")} --motif "…"`;
 }
 
 const memeEcart = (gauche, droite) => {

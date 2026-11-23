@@ -4,7 +4,7 @@
  */
 import assert from "node:assert/strict";
 import test from "node:test";
-import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+import { mkdirSync, mkdtempSync, readFileSync, renameSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { basename, dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -772,7 +772,7 @@ test("V-10 : une demande qui modifie le code et laisse un écart bloque", () => 
   assert.match(rapport, /Cette demande modifie le code de ces composants, et il s'écarte de leur contrat\./);
   assert.match(rapport, /- Widget : La propriété `label` de Figma n'existe pas dans le code/);
   assert.match(rapport, /Un développeur doit mettre le code à jour, ou lancer la commande donnée sous l'écart\./);
-  assert.match(rapport, /Pour la garder, lancez `npx ucm deroger Widget prop-absente label --motif "…"` avec votre raison à la place de `…`\./);
+  assert.match(rapport, /Pour la garder, lancez `npx @ucm-kit\/cli deroger Widget prop-absente label --motif "…"` avec votre raison à la place de `…`\./);
   assert.match(rapport, /La fusion reste bloquée\./);
   assert.match(terminal.map(({ texte }) => texte).join("\n"), /✗ Widget\.contract\.json : prop du contrat absente du composant → label/);
 });
@@ -1341,7 +1341,7 @@ test("un constat du code entre dans le bilan, avec son fichier, sa ligne et la c
   assert.equal(jugement.composants[0].etat, "ecart");
   assert.deepEqual(jugement.composants[0].bloquantPar, { contrat: false, tokens: false, parite: false, code: true });
   assert.match(rapport, /^- Widget : `src\/components\/Widget\/Widget\.tsx` ligne 3 : `color` reçoit `#ff0000`/m);
-  assert.match(rapport, /lancez `npx ucm deroger Widget valeur-en-dur src\/components\/Widget\/Widget\.tsx '#ff0000' --motif "…"`/);
+  assert.match(rapport, /lancez `npx @ucm-kit\/cli deroger Widget valeur-en-dur src\/components\/Widget\/Widget\.tsx '#ff0000' --motif "…"`/);
   assert.match(rapport, /Un développeur doit mettre le code à jour, ou lancer la commande donnée sous l'écart\./);
   assert.match(rapport, /La fusion reste bloquée\./);
   assert.match(terminal.map(({ texte }) => texte).join("\n"), /✗ Widget : `src\/components\/Widget\/Widget\.tsx` ligne 3 : /);
@@ -1465,6 +1465,71 @@ test("V-28 : un adaptateur chargé sans lecteur du code laisse le code non véri
   assert.equal(verdict({ adaptateur: adaptateurDeParite({}), adaptateurAttendu: "sans-adaptateur", ...DEMANDE_DE_CODE }).bloquant, false, "sans adaptateur attendu, aucune lecture n'est due");
 });
 
+/** Renomme l'implémentation de Widget en `widget.tsx`, sans changer le contrat. */
+const ecrireLeCodeSousUneAutreCasse = () => (racine) => {
+  const dossier = join(racine, "src", "components", "Widget");
+  renameSync(join(dossier, "Widget.tsx"), join(dossier, "widget.tsx"));
+};
+
+test("K1 : un fichier d'implémentation sous une autre casse bloque une demande de code, et laisse passer celle du designer", () => {
+  const autreCasse = { adaptateur: adaptateurDeParite({}), adaptateurAttendu: "present", casser: ecrireLeCodeSousUneAutreCasse() };
+  const { bilans, bloquant, rapport, terminal, verdict: jugement } = verdict({ ...autreCasse, ...DEMANDE_DE_CODE });
+
+  assert.equal(bilans[0].parite.implementationAutreCasse.trouve, "widget.tsx");
+  assert.equal(bilans[0].parite.implementationAbsente, false);
+  assert.equal(bloquant, true);
+  assert.equal(jugement.composants[0].etat, "code-non-verifie");
+  assert.equal(jugement.composants[0].lecture, "autre-casse");
+  assert.match(rapport, /### ❌ Fichier d'implémentation sous une autre casse \(1 composant\)/);
+  assert.match(rapport, /Windows le trouve, la CI sous Linux non\. Le développeur le renomme\./);
+  assert.match(rapport, /- `Widget` : `widget\.tsx` existe, mais le motif attend `Widget\.tsx`\. Renommez le fichier\./);
+  assert.match(rapport, /La fusion reste bloquée\./);
+  assert.ok(terminal.some(({ texte }) => /widget\.tsx` existe, mais le motif attend `Widget\.tsx`/.test(texte)));
+
+  const designer = verdict({ ...autreCasse, ...DEMANDE_DE_CONTRAT });
+  assert.equal(designer.bloquant, false, "une demande de contrats seuls passe");
+  assert.equal(designer.verdict.composants[0].lecture, "autre-casse");
+  assert.doesNotMatch(designer.rapport, /La fusion reste bloquée\./);
+});
+
+test("K2 : sans adaptateur, un fichier sous une autre casse n'est pas une implémentation en attente", () => {
+  const { bilans, verdict: jugement } = verdict({ casser: ecrireLeCodeSousUneAutreCasse(), ...DEMANDE_DE_CODE });
+  assert.equal(bilans[0].parite.implementationAbsente, false);
+  assert.equal(jugement.composants[0].lecture, "autre-casse");
+  assert.notEqual(jugement.composants[0].etat, "pas-encore-d-implementation");
+});
+
+test("K3 : Widget.tsx présent ne dit rien de la casse ; aucun fichier reste une implémentation en attente", () => {
+  const present = verdict({ ...DEMANDE_DE_CODE });
+  assert.equal(present.bilans[0].parite.implementationAutreCasse, undefined);
+  assert.equal(present.verdict.composants[0].lecture, "sans-adaptateur");
+  const absent = verdict({ composants: { Widget: { contrat: contrat() } }, ...DEMANDE_DE_CODE });
+  assert.equal(absent.verdict.composants[0].etat, "pas-encore-d-implementation");
+});
+
+test("K5 : l'adaptateur reçoit l'identifiant du contrat, que le motif nomme le fichier `index` ou non", () => {
+  const vus = { identifiants: null, nomsAttendus: [] };
+  const adaptateur = {
+    ...adaptateurDeParite({}),
+    lireApiPublique: (implementations, _racine, identifiants) => {
+      vus.identifiants = [...identifiants.entries()].map(([chemin, id]) => [basename(chemin), id]);
+      return new Map();
+    },
+    nomInterfaceAttendue: (implementation, identifiant) => {
+      vus.nomsAttendus.push([basename(implementation), identifiant]);
+      return `${identifiant}Props`;
+    },
+  };
+  const racine = preparerRepo({ composants: { Widget: { contrat: contrat(), tsx: TSX } }, tokens: TOKENS });
+  try {
+    controlerRepository(racine, { configuration: { ...CONFIGURATION, implementation: "{dir}/{id}/index.tsx" }, adaptateur });
+  } finally {
+    rmSync(racine, { recursive: true, force: true });
+  }
+  assert.deepEqual(vus.identifiants, [["index.tsx", "Widget"]]);
+  assert.deepEqual(vus.nomsAttendus, [["index.tsx", "Widget"]]);
+});
+
 test("V-29 : un fichier à erreur de syntaxe laisse le code non vérifié et bloque une demande de code", () => {
   const lecteur = lecteurFactice({ "Widget.tsx": { ...RELEVE_VIDE, lecture: { complete: false, erreurs: 2 } } });
   const { bilans, bloquant, rapport, verdict: jugement } = verdict({
@@ -1512,7 +1577,7 @@ test("V-31 : un commentaire qui désactive une règle UCM bloque, sans commande 
   assert.equal(bilans[0].code.ecarts[0].derogeable, false);
   assert.equal(bloquant, true);
   assert.match(rapport, /Ce commentaire désactive une règle UCM/);
-  assert.doesNotMatch(rapport, /npx ucm deroger/);
+  assert.doesNotMatch(rapport, /npx @ucm-kit\/cli deroger/);
 });
 
 test("un fichier voisin du composant, modifié seul, met le composant dans la demande et son code au rang 0", () => {
@@ -1552,7 +1617,7 @@ test("un composant qui a plus de dix constats en liste dix, puis renvoie à ucm 
   });
 
   assert.equal(rapport.split("\n").filter((ligne) => ligne.startsWith("- Widget : `src/")).length, 10);
-  assert.match(rapport, /^- et 2 autres : lancez `npx ucm check` en local\.$/m);
+  assert.match(rapport, /^- et 2 autres : lancez `npx @ucm-kit\/cli check` en local\.$/m);
 });
 
 test("S6 : le rapport dit bloquant exactement quand bloquantPar le dit, pour chaque genre de demande", () => {

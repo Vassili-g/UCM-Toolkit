@@ -125,6 +125,12 @@ export function champsInvalidesDeLaConfiguration(configuration: unknown): string
   for (const cle of CHAMPS_DE_CHEMIN) {
     if (declare(objet, cle) && !estCheminDuRepository(objet[cle])) invalides.push(cle);
   }
+  // Sans `{id}`, tous les contrats désigneraient le même fichier : `ucm init`
+  // refuse déjà un tel motif, le lecteur le refuse comme lui.
+  if (declare(objet, 'implementation') && estCheminDuRepository(objet.implementation)
+    && !(objet.implementation as string).includes('{id}')) {
+    invalides.push('implementation');
+  }
   // Un numéro de version écrit ici est refusé, pas ignoré. L'ignorer laisserait
   // croire qu'il compte : quelqu'un le mettrait à jour en pensant déplacer la
   // fenêtre de lecture, et rien ne bougerait, un geste sans effet est pire
@@ -172,7 +178,7 @@ export function configurationDepuisJson(
       configuration: { ...CONFIGURATION_PAR_DEFAUT },
       erreur:
         `${NOM_CONFIGURATION} : ${invalides.join(', ')}. `
-        + 'Un chemin est relatif au repository, en `/`, sans segment vide, `.` ni `..` ; un attribut de `modes` commence par `data-`, '
+        + 'Un chemin est relatif au repository, en `/`, sans segment vide, `.` ni `..` ; le motif `implementation` contient `{id}` ; un attribut de `modes` commence par `data-`, '
         + 'suivi de minuscules, de chiffres ou de tirets ; aucun numéro de version ne s\'y '
         + 'écrit, car la fenêtre de versions lues appartient au paquet installé.',
     };

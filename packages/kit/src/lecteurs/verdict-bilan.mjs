@@ -165,7 +165,7 @@ export const TEXTES_DES_ETATS = Object.freeze({
   }),
   "code-non-verifie": Object.freeze({
     phrase: "code non vérifié",
-    raison: "L'adaptateur attendu manque, est ancien, ne se charge pas ou ne lit pas le fichier. Rien n'est prouvé.",
+    raison: "L'adaptateur attendu manque, est ancien, ne se charge pas ou ne lit pas le fichier, ou le fichier existe sous une autre casse que le motif. Rien n'est prouvé.",
   }),
   "en-retard-sur-son-contrat": Object.freeze({
     phrase: "code en retard sur son contrat",
@@ -198,10 +198,13 @@ const plusRecent = (a, b) => typeof a === "number" && typeof b === "number" && a
 /**
  * Pourquoi le code d'un composant n'a pas été comparé, ou `null` s'il l'a été.
  * Seule l'absence d'adaptateur pour la technologie est un trou de preuve qui
- * avertit ; les trois autres lectures ratées sont un constat que le
- * développeur peut réparer.
+ * avertit ; les autres lectures ratées, dont le fichier sous une autre casse,
+ * sont un constat que le développeur peut réparer.
  */
 function lectureDeLaParite(parite, adaptateurAttendu) {
+  // Un fichier sous une autre casse n'est lu par aucun adaptateur, quel qu'il
+  // soit : la raison ne dépend pas de celui que la CLI attendait.
+  if (parite?.implementationAutreCasse) return "autre-casse";
   if (!parite?.implementationNonLue) return null;
   return LECTURE_SI_ATTENDU[adaptateurAttendu] ?? "sans-adaptateur";
 }

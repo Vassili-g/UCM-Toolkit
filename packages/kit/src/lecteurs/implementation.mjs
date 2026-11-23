@@ -3,7 +3,7 @@
  * Le noyau résout un chemin et teste son existence sans lire le langage ni
  * comparer l'API ; cette mesure propre à la stack appartient à l'adaptateur.
  */
-import { existsSync } from "node:fs";
+import { readdirSync } from "node:fs";
 import { basename, dirname, join } from "node:path";
 
 // Le motif par défaut est une valeur du format, pas une décision de ce module :
@@ -48,16 +48,41 @@ export function cheminImplementation(cheminContrat, motif = MOTIF_IMPLEMENTATION
   return join(remplace);
 }
 
+/** Les noms d'un dossier, ou aucun s'il manque ou ne se lit pas. */
+function listerLeDossier(dossier) {
+  try {
+    return readdirSync(dossier);
+  } catch {
+    return [];
+  }
+}
+
 /**
- * L'implémentation de ce contrat existe-t-elle ?
+ * Où en est l'implémentation de ce contrat : là sous le nom du motif, là sous
+ * une autre casse, ou absente.
  *
- * `existe` est injectable pour que la question se pose sans toucher au disque :
- * un test, ou un jour un lecteur d'archive. Le défaut reste `existsSync` : le
- * cas courant ne doit pas coûter une configuration.
+ * Le dossier se liste au lieu de demander `existsSync`, qui ignore la casse sous
+ * Windows et macOS : `button.tsx` y répondait « présent » pour `Button.tsx`, et
+ * la CI sous Linux disait l'inverse. Le nom se compare ici, donc le verdict est
+ * le même partout. `lister` est injectable pour poser la question sans disque.
+ * Borne : seul le nom du fichier se compare ; une autre casse d'un dossier du
+ * chemin n'est pas vue.
+ *
+ * @returns {{ presente: true } | { presente: false, autreCasse?: string }}
  */
-export function implementationPresente(
+export function etatDeLImplementation(
   cheminContrat,
-  { motif = MOTIF_IMPLEMENTATION_PAR_DEFAUT, existe = existsSync } = {},
+  { motif = MOTIF_IMPLEMENTATION_PAR_DEFAUT, lister = listerLeDossier } = {},
 ) {
-  return Boolean(existe(cheminImplementation(cheminContrat, motif)));
+  const chemin = cheminImplementation(cheminContrat, motif);
+  const nom = basename(chemin);
+  const noms = lister(dirname(chemin));
+  if (noms.includes(nom)) return { presente: true };
+  const autreCasse = noms.find((candidat) => candidat.toLowerCase() === nom.toLowerCase());
+  return autreCasse === undefined ? { presente: false } : { presente: false, autreCasse };
+}
+
+/** L'implémentation de ce contrat existe-t-elle, sous le nom exact du motif ? */
+export function implementationPresente(cheminContrat, options = {}) {
+  return etatDeLImplementation(cheminContrat, options).presente;
 }

@@ -491,7 +491,7 @@ test("un constat du code sort en 1 et le terminal donne le fichier, la ligne et 
 
     assert.equal(code, 1, erreurs);
     assert.match(erreurs, /✗ Widget : `components\/Widget\/Widget\.tsx` ligne 2 : `color` reçoit `#ff0000`/);
-    assert.match(erreurs, /npx ucm deroger Widget valeur-en-dur components\/Widget\/Widget\.tsx '#ff0000' --motif "…"/);
+    assert.match(erreurs, /npx @ucm-kit\/cli deroger Widget valeur-en-dur components\/Widget\/Widget\.tsx '#ff0000' --motif "…"/);
     assert.match(erreurs, /Un développeur doit mettre le code à jour, ou lancer la commande donnée sous l'écart\. La fusion reste bloquée\./);
   } finally {
     rmSync(racine, { recursive: true, force: true });

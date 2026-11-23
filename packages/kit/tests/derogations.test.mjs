@@ -4,9 +4,10 @@
  */
 import assert from "node:assert/strict";
 import test from "node:test";
-import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
+import { mkdirSync, mkdtempSync, readdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
-import { join } from "node:path";
+import { dirname, join } from "node:path";
+import { fileURLToPath } from "node:url";
 import { ajouterDerogation, appliquerDerogations, CHEMIN_DES_DEROGATIONS, commandeDeDerogation, coordonneesDuGenre, lireDerogations } from "../src/lecteurs/derogations.mjs";
 import { lireDerogationsDuDepot } from "../src/lecteurs/configuration.mjs";
 import { messageDeLaLimite } from "../src/lecteurs/controle-du-code-listes.mjs";
@@ -144,20 +145,31 @@ test("coordonneesDuGenre rend les coordonnées dans l'ordre, ou null", () => {
 test("D2 : la commande écrit les coordonnées dans l'ordre et protège ce que le shell lirait", () => {
   assert.equal(
     commandeDeDerogation("Button", "valeur-en-dur", { valeur: "#fff", fichier: "src/a b.tsx" }),
-    `npx ucm deroger Button valeur-en-dur 'src/a b.tsx' '#fff' --motif "…"`,
+    `npx @ucm-kit/cli deroger Button valeur-en-dur 'src/a b.tsx' '#fff' --motif "…"`,
   );
   assert.equal(
     commandeDeDerogation("Button", "token-inconnu", { fichier: "src/components/Button/Button.tsx", reference: "{a.b}" }),
-    `npx ucm deroger Button token-inconnu src/components/Button/Button.tsx '{a.b}' --motif "…"`,
+    `npx @ucm-kit/cli deroger Button token-inconnu src/components/Button/Button.tsx '{a.b}' --motif "…"`,
   );
   assert.equal(
     commandeDeDerogation("Button", "repli-en-dur", { fichier: "src/Button.tsx", reference: "--components-button-gap" }),
-    `npx ucm deroger Button repli-en-dur src/Button.tsx --components-button-gap --motif "…"`,
+    `npx @ucm-kit/cli deroger Button repli-en-dur src/Button.tsx --components-button-gap --motif "…"`,
   );
   assert.equal(
     commandeDeDerogation("Button", "valeur-en-dur", { fichier: "src/Button.tsx", valeur: `l'"a" \\ $x` }),
-    `npx ucm deroger Button valeur-en-dur src/Button.tsx "l'\\"a\\" \\\\ $x" --motif "…"`,
+    `npx @ucm-kit/cli deroger Button valeur-en-dur src/Button.tsx "l'\\"a\\" \\\\ $x" --motif "…"`,
   );
+});
+
+test("K7 : aucun texte du kit n'écrit `npx ucm`, la CLI se lance par son paquet", () => {
+  // `ucm` n'est un binaire résolu par `npx` que dans le dépôt du toolkit : chez
+  // un consommateur, `npx ucm` installe un autre paquet.
+  const src = join(dirname(fileURLToPath(import.meta.url)), "..", "src");
+  const fautifs = readdirSync(src, { recursive: true })
+    .map(String)
+    .filter((chemin) => /\.(mjs|mts|ts)$/.test(chemin))
+    .filter((chemin) => /npx ucm\b/.test(readFileSync(join(src, chemin), "utf8")));
+  assert.deepEqual(fautifs, []);
 });
 
 const LE_CODE = entreeDuCode("valeur-en-dur", CODES["valeur-en-dur"]);
