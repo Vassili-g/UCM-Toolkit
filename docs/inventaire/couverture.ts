@@ -33,7 +33,7 @@ export const EXCLUSIONS: Readonly<Record<string, GroupeExclu[]>> = {
     },
     {
       motif: "Table du thème, des crans ou d'un seuil de contraste que la page rend par d'autres noms (collections, thème, garanties).",
-      noms: ["AXES_DES_COLLECTIONS", "CIBLES_ABSOLUES_DU_NEUTRE", "CIBLES_DES_COULEURS_DE_COMPOSANT", "COUCHES_SANS_PALETTES", "CRANS", "DEFINITIONS_DES_VARIABLES", "ETAT_DU_FOND", "SEUILS_PAR_ROLE", "SEUILS_PAR_USAGE", "SEUIL_DE_PALETTE", "SEUIL_TEXTE_AAA", "SUPPORT_DES_VARIABLES", "TABLE_DES_DOSSIERS"],
+      noms: ["AXES_DES_COLLECTIONS", "CIBLES_ABSOLUES_DU_NEUTRE", "CIBLES_DES_COULEURS_DE_COMPOSANT", "COUCHES_SANS_PALETTES", "CRANS", "DEFINITIONS_DES_VARIABLES", "ETAT_DU_FOND", "SEUILS_PAR_ROLE", "SEUILS_PAR_USAGE", "SEUIL_DE_PALETTE", "SEUIL_GRAND_TEXTE_AA", "SEUIL_TEXTE_AAA", "SUPPORT_DES_VARIABLES", "TABLE_DES_DOSSIERS"],
     },
     {
       motif: "Aide de calcul de couleur ou de contraste, appelée par le moteur ; la page montre ses résultats, pas son appel.",

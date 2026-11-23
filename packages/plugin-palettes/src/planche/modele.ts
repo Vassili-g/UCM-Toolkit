@@ -16,6 +16,7 @@
  * L'interface d'exemple n'est pas sur la planche : l'onglet Création la
  * montre ([UI-14]).
  */
+import { SEUILS_PAR_USAGE } from '@ucm-kit/core/referentiel';
 import {
   COULEUR_DU_TEXTE_DES_BOUTONS,
   DOSSIERS,
@@ -274,7 +275,7 @@ const A_GAUCHE: Alignement = { secondaire: 'CENTER' };
 function encresDuTheme(fond: Rgb8, profil: ProfilDuDocument): Encres {
   const encre = encreSur(fond);
   const attenuee = melanger(encre, fond, 0.7);
-  const seconde = contraste(attenuee, fond) >= 4.5 ? attenuee : encre;
+  const seconde = contraste(attenuee, fond) >= SEUILS_PAR_USAGE.texte ? attenuee : encre;
   const [sombre, clair] = [hexaLu(COULEURS_DE_LA_PLANCHE.dangerSombre), hexaLu(COULEURS_DE_LA_PLANCHE.dangerClair)];
   const danger = contraste(sombre, fond) >= contraste(clair, fond) ? sombre : clair;
   return {

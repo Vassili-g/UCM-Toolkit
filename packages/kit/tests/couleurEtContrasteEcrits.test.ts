@@ -5,7 +5,7 @@
  */
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { contraste, contrasteTronque, ecrireContraste, encreLisible, hexaDeFigma, versOctet, versRgb8, type Rgb8 } from '../src/emplois/index';
+import { contraste, contrasteTronque, ecrireContraste, ecrireSeuil, encreLisible, hexaDeFigma, versOctet, versRgb8, type Rgb8 } from '../src/emplois/index';
 
 test('une composante à 1,002 rend FF, jamais 100', () => {
   assert.equal(versOctet(1.002), 255);
@@ -56,4 +56,17 @@ test('encreLisible rend le noir ou le blanc, le noir à égalité', () => {
       }
     }
   }
+});
+
+test("S3 : un seuil s'écrit avec toutes ses décimales, la virgule, puis :1", () => {
+  assert.equal(ecrireSeuil(4.5), '4,5:1');
+  assert.equal(ecrireSeuil(4.25), '4,25:1');
+  assert.equal(ecrireSeuil(3), '3:1');
+  assert.equal(ecrireSeuil(7), '7:1');
+});
+
+test("S4 : un seuil s'écrit sans le rapport et avec le séparateur donné", () => {
+  assert.equal(ecrireSeuil(4.5, { separateur: '.', rapport: false }), '4.5');
+  assert.equal(ecrireSeuil(4.25, { rapport: false }), '4,25');
+  assert.equal(ecrireSeuil(3, { separateur: '.' }), '3:1');
 });

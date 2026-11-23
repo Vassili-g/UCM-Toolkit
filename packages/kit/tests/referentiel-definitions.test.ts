@@ -3,11 +3,12 @@ import { readFileSync } from 'node:fs';
 import test from 'node:test';
 import {
   SUPPORT_DES_VARIABLES, VARIABLES_DE_PALETTE, DEFINITIONS_DES_VARIABLES, REGISTRE_VARIABLES_THEME,
-  REGLE_SCALE, libellesDesVariables, niveauxWcag, SEUILS_PAR_USAGE, SEUILS_PAR_ROLE,
+  REGLE_SCALE, libellesDesVariables, niveauxWcag, SEUILS_PAR_USAGE, SEUIL_TEXTE_AAA, SEUIL_GRAND_TEXTE_AA, SEUILS_PAR_ROLE,
   TAGS_DES_REGLES, TAGS_D_INTENTION, RECOMMANDATIONS, PRODUITS, ESPACE_PARTAGE, CLE_RECETTE,
   CLES_PARTAGEES_DE_PALETTES, ESPACE_ARCHITECT,
   type VariableLibellee,
 } from '../src/referentiel/index.js';
+import { SEUILS_D_ACCESSIBILITE } from '../src/controles/index.js';
 
 test('chaque variable du thème a une définition et reprend son support sans le recopier', () => {
   assert.deepEqual(DEFINITIONS_DES_VARIABLES.map(({ id }) => id).sort(), Object.keys(SUPPORT_DES_VARIABLES).sort());
@@ -47,6 +48,16 @@ test('les niveaux WCAG jugent les limites sur dix décimales', () => {
     assert.deepEqual(niveauxWcag(seuil - 0.00000000001), niveauxWcag(seuil));
     assert.notDeepEqual(niveauxWcag(seuil - 0.0000000001), niveauxWcag(seuil));
   }
+});
+
+test("S1 : chaque seuil des contrôles d'accessibilité égale sa source du référentiel", () => {
+  assert.equal(SEUIL_GRAND_TEXTE_AA, 3);
+  assert.deepEqual(SEUILS_D_ACCESSIBILITE, {
+    texte: { AA: SEUILS_PAR_USAGE.texte, AAA: SEUIL_TEXTE_AAA },
+    grandTexte: { AA: SEUIL_GRAND_TEXTE_AA, AAA: SEUILS_PAR_USAGE.texte },
+    nonTexte: SEUILS_PAR_USAGE.nonTexte,
+  });
+  assert.deepEqual(SEUILS_D_ACCESSIBILITE, { texte: { AA: 4.5, AAA: 7 }, grandTexte: { AA: 3, AAA: 4.5 }, nonTexte: 3 });
 });
 
 test('les recommandations visent des caractéristiques relevées par les lecteurs', () => {

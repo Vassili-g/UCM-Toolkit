@@ -81,6 +81,15 @@ export function ecrireContraste(x: number, separateur = ','): string {
 }
 
 /**
+ * Un seuil de contraste écrit pour le designer : le nombre avec toutes ses décimales, sans arrondi,
+ * le séparateur au choix (la virgule par défaut), puis `:1` sauf `rapport: false`.
+ * 4,5 s'écrit `4,5:1`, 4,25 s'écrit `4,25:1`, 3 s'écrit `3:1`.
+ */
+export function ecrireSeuil(seuil: number, { separateur = ',', rapport = true }: { separateur?: string; rapport?: boolean } = {}): string {
+  return `${String(seuil).replace('.', separateur)}${rapport ? ':1' : ''}`;
+}
+
+/**
  * Vrai quand un contraste atteint un seuil ([MOT-22]). La comparaison lit la
  * valeur à dix décimales que l'affichage tronque : un contraste affiché 4,50
  * tient 4,5, et 4,499 échoue.

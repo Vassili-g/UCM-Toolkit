@@ -8,6 +8,7 @@
 import { GARANTIES } from '../emplois/garanties.js';
 import { atteintLeSeuil, contraste, contrasteTronque } from '../emplois/contraste.js';
 import { hexaDeFigma, versRgb8 } from '../emplois/couleur.js';
+import { SEUILS_PAR_USAGE, SEUIL_GRAND_TEXTE_AA, SEUIL_TEXTE_AAA } from '../referentiel/contraste.js';
 import { estUnAnneau, estUneIcone } from '../referentiel/layers.js';
 import { RECOMMANDATIONS } from '../referentiel/recommandations.js';
 import type { CatalogueDeReference, CollectionDuCatalogue, CouleurResolue, VariableDuCatalogue } from './catalogue.js';
@@ -84,11 +85,11 @@ function compteEnFait(c: Compte): number | string {
   return chiffres.length < maximum.length || (chiffres.length === maximum.length && chiffres <= maximum) ? Number(chiffres) : chiffres;
 }
 
-/** Seuils WCAG 2 : texte, grand texte, non-texte (1.4.11). */
+/** Seuils WCAG 2 : texte, grand texte, non-texte (1.4.11). Chaque valeur vient du référentiel de contraste. */
 export const SEUILS_D_ACCESSIBILITE = {
-  texte: { AA: 4.5, AAA: 7 },
-  grandTexte: { AA: 3, AAA: 4.5 },
-  nonTexte: 3,
+  texte: { AA: SEUILS_PAR_USAGE.texte, AAA: SEUIL_TEXTE_AAA },
+  grandTexte: { AA: SEUIL_GRAND_TEXTE_AA, AAA: SEUILS_PAR_USAGE.texte },
+  nonTexte: SEUILS_PAR_USAGE.nonTexte,
 } as const;
 
 /** Recommandations UCM, hors seuils WCAG : 24 px en constat, 44 px au tactile, 12 px de texte. */

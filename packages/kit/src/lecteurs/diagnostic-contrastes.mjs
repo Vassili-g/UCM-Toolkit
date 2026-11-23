@@ -14,9 +14,9 @@
  * descend à 3:1. Un texte en grand corps peut donc être signalé à tort ; un
  * faux signal reste une information. Le diagnostic ne bloque jamais la fusion.
  */
-import { atteintLeSeuil, contraste, ecrireContraste, versRgb8 } from "@ucm-kit/core/emplois";
+import { atteintLeSeuil, contraste, ecrireContraste, ecrireSeuil, versRgb8 } from "@ucm-kit/core/emplois";
 import { natureDuRoleDuContrat } from "@ucm-kit/core/format";
-import { SEUILS_PAR_ROLE } from "@ucm-kit/core/referentiel";
+import { SEUILS_PAR_ROLE, SEUILS_PAR_USAGE, SEUIL_GRAND_TEXTE_AA } from "@ucm-kit/core/referentiel";
 
 import { libelleNombre, rendreDiagnostic } from "./diagnostic-markdown.mjs";
 import { axesDeTokens, conesDesAxes, valeurDansLeContexte } from "./modes-tokens.mjs";
@@ -207,14 +207,11 @@ export function constatsDesContrastes(contrat, document) {
 /** Un contraste à deux décimales tronquées, comme UCM Palettes l'affiche : « 4,49:1 ». */
 const contrasteEcrit = (valeur) => `${ecrireContraste(valeur)}:1`;
 
-/** Le seuil écrit sans décimale inutile : « 4,5:1 », « 3:1 ». */
-const seuilEcrit = (seuil) => `${String(seuil).replace(".", ",")}:1`;
-
 /** La phrase d'un constat, pour le designer. */
 function phraseDuConstat(fichier, constat) {
   const mesures = constat.mesures.map(({ contexte, valeur }) => `${contrasteEcrit(valeur)} (${contexte})`).join(", ");
   const vise = constat.vise ? `, qui vise \`${constat.vise}\`` : "";
-  return `**\`${fichier}\`**, ${constat.variant}, clé \`${constat.cle}\`${vise} : ${mesures} sur le fond \`${constat.fond}\`, sous ${seuilEcrit(constat.seuil)}.`;
+  return `**\`${fichier}\`**, ${constat.variant}, clé \`${constat.cle}\`${vise} : ${mesures} sur le fond \`${constat.fond}\`, sous ${ecrireSeuil(constat.seuil)}.`;
 }
 
 /**
@@ -231,7 +228,7 @@ export function sectionContrastes(bilans) {
     title: "Des couleurs passent sous le contraste attendu",
     count: total,
     itemSingular: "couleur",
-    summary: "Chaque couleur est mesurée contre le fond de son composant, dans chaque marque et chaque thème où elle change. Le seuil est de 4,5:1 pour un texte ou une icône, et de 3:1 pour un contour ou un anneau. Un texte en grand corps tient à partir de 3:1, et le contrat ne dit pas la taille d'un texte : si c'est le cas ici, ne changez rien.",
+    summary: `Chaque couleur est mesurée contre le fond de son composant, dans chaque marque et chaque thème où elle change. Le seuil est de ${ecrireSeuil(SEUILS_PAR_USAGE.texte)} pour un texte ou une icône, et de ${ecrireSeuil(SEUILS_PAR_USAGE.nonTexte)} pour un contour ou un anneau. Un texte en grand corps tient à partir de ${ecrireSeuil(SEUIL_GRAND_TEXTE_AA)}, et le contrat ne dit pas la taille d'un texte : si c'est le cas ici, ne changez rien.`,
     detailsTitle: "Couleurs à vérifier",
     details,
     action: "Dans Figma, vérifiez ces couleurs. Si l'une est trop pâle pour son fond, choisissez-en une plus contrastée, puis réexportez le composant concerné.",

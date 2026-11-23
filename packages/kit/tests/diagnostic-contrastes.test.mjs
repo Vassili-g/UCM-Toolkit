@@ -119,6 +119,13 @@ test("un anneau sous 3:1 contre le fond de son composant", () => {
   assert.match(sectionContrastes([{ fichier: "B.contract.json", contrastes: [constat] }]).join("\n"), /sous 3:1\./);
 });
 
+test("S5 : le résumé du rapport interpole les seuils du référentiel, et la phrase d'un constat écrit son seuil en entier", () => {
+  const constat = { fichier: "B.contract.json", contrastes: [{ nature: "contraste", variant: "state=default", cle: "foreground", role: "foreground", fond: "background", seuil: 4.25, mesures: [{ contexte: "thème dark", valeur: 4.1 }] }] };
+  const markdown = sectionContrastes([constat]).join("\n");
+  assert.match(markdown, /Le seuil est de 4,5:1 pour un texte ou une icône, et de 3:1 pour un contour ou un anneau\. Un texte en grand corps tient à partir de 3:1,/);
+  assert.match(markdown, /sous 4,25:1\./);
+});
+
 test("un contrat conforme n'a aucun constat", () => {
   const contrat = bouton([
     { texte: "texte-bleu", anneau: "anneau" },

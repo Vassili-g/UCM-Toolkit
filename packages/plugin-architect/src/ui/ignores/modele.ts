@@ -16,7 +16,7 @@
  * deux couleurs hexadécimales, le fond déjà composé) et `rapports` (les autres modes mesurés, un texte JSON de paires
  * `[étiquette du mode, rapport]`). Sans eux la mesure s'écrit sans échantillon, et les autres modes se réduisent à leur nombre.
  */
-import { ecrireContraste } from '@ucm-kit/core/emplois';
+import { ecrireContraste, ecrireSeuil } from '@ucm-kit/core/emplois';
 
 import type { Constat } from '../../messages/commun';
 import { lieuDesVariants, pairesCommunes, pairesDuNom, paireDeFigma, type MorceauDeLieu } from '../composant/variants';
@@ -163,9 +163,6 @@ export function lieuDe(constat: Constat, contexte: ContexteDAFaire, options: { r
 /** Un rapport mesuré, écrit comme UCM Palettes l'écrit : tronqué à deux décimales, « 3,90:1 ». */
 const rapportEnTexte = (valeur: number): string => `${ecrireContraste(valeur)}:1`;
 
-/** Un seuil n'est pas une mesure : il s'écrit sans décimale inutile, « 4,5:1 » et « 3:1 ». */
-const seuilEnTexte = (valeur: number): string => `${valeur.toString().replace('.', ',')}:1`;
-
 const nombre = (valeur: string | number | undefined): number | null => (typeof valeur === 'number' ? valeur : null);
 
 /** Les modes d'une mesure, sans le nom de leur collection : « intencial en Dark » donne « Dark ». */
@@ -227,7 +224,7 @@ function contraste(constat: Constat, contexte: ContexteDAFaire): Contenu {
   const usage = texte(faits.usage) ?? 'texte';
   const rapport = nombre(faits.rapport);
   const seuil = nombre(faits.seuil);
-  const mesure = rapport !== null && seuil !== null ? { rapport: rapportEnTexte(rapport), seuil: seuilEnTexte(seuil) } : null;
+  const mesure = rapport !== null && seuil !== null ? { rapport: rapportEnTexte(rapport), seuil: ecrireSeuil(seuil) } : null;
   const fondNomme = texte(faits.fondNomme);
   if (fondNomme !== null && mesure !== null) return contrasteSurUnFond(constat, contexte, fondNomme, usage, mesure);
   const phrase = T.manqueDeContraste(usage, modesEnPhrase(texte(faits.mode)));

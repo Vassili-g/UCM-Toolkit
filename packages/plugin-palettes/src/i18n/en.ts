@@ -7,7 +7,7 @@
  * Les clés `soft`, `vivid`, `light`, `dark` et les codes d'emploi restent
  * ceux des données ; seul leur affichage se traduit ici.
  */
-import { TYPES_D_ALERTE, glypheDuSigne, libellesDesVariables, MODES as MODES_DU_REFERENTIEL, type VariableLibellee } from '@ucm-kit/core/referentiel';
+import { SEUIL_TEXTE_AAA, SEUILS_PAR_USAGE, TYPES_D_ALERTE, glypheDuSigne, libellesDesVariables, MODES as MODES_DU_REFERENTIEL, type VariableLibellee } from '@ucm-kit/core/referentiel';
 import type { ChampDePalette } from '../importation';
 import type { IssueDeLaPage } from '../ecriture/planche';
 import type { EtatDuCadre } from '../planche/fraicheur';
@@ -15,6 +15,7 @@ import {
   FORMAT_RECETTE,
   ecrireArrondi as arrondiFrancais,
   ecrireContraste as contrasteFrancais,
+  ecrireSeuil,
   TABLE_DES_DOSSIERS,
   niveauxWcag,
   sensDuTheme,
@@ -492,8 +493,8 @@ export function contrasteEcrit(valeur: number): string {
   return `${ecrireContraste(valeur)}:1`;
 }
 
-/** Un seuil de contraste : « 4,5 », « 3 ». */
-const seuilEcrit = (valeur: number): string => ecrireArrondi(valeur, 1).replace(/\.0$/, '');
+/** Un seuil de contraste, sans arrondi : « 4.5 », « 3 », « 4.25 ». */
+const seuilEcrit = (valeur: number): string => ecrireSeuil(valeur, { separateur: '.', rapport: false });
 
 /**
  * La courbe qui ne tient plus la garantie des courbes ([ENT-10]). Le texte des
@@ -1791,7 +1792,7 @@ export function verdictDuTheme(manquees: number): string {
 
 /** La légende des grilles, en une ligne ([PLA-16], N099). */
 export function legendeDesContrastes(seuils: Recette['seuils']): string {
-  return `Row: background · column: text · bold from ${seuilEcrit(seuils.texte)}:1 · regular from ${seuilEcrit(seuils.nonTexte)}:1 · faded below · AA from 4.5:1 · AAA from 7:1`;
+  return `Row: background · column: text · bold from ${seuilEcrit(seuils.texte)}:1 · regular from ${seuilEcrit(seuils.nonTexte)}:1 · faded below · AA from ${ecrireSeuil(SEUILS_PAR_USAGE.texte, { separateur: '.' })} · AAA from ${ecrireSeuil(SEUIL_TEXTE_AAA, { separateur: '.' })}`;
 }
 
 /** Les libellés de l'onglet Gestion ([UI-24] à [UI-29]). */

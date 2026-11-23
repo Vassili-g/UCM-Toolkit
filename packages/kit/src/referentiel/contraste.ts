@@ -9,6 +9,8 @@ import { identifiantsDeRoles, roleDeRendu, type IdentifiantDeRole } from '../for
 export const SEUILS_PAR_USAGE = { texte: 4.5, nonTexte: 3 } as const;
 /** Le seuil AAA du texte courant (critère 1.4.6) ; le grand texte atteint déjà l'AAA au seuil AA du texte courant. */
 export const SEUIL_TEXTE_AAA = 7 as const;
+/** Le seuil AA du grand texte (critère 1.4.3, grand corps) : un couple de couleurs ne dit pas la taille du texte. */
+export const SEUIL_GRAND_TEXTE_AA = 3 as const;
 export const SEUILS_PAR_ROLE: Readonly<Partial<Record<IdentifiantDeRole, number>>> = Object.fromEntries(
   identifiantsDeRoles().flatMap((identifiant) => {
     const usage = roleDeRendu(identifiant)?.usageDeContraste;
@@ -30,5 +32,5 @@ export interface NiveauxWcag {
 export function niveauxWcag(valeur: number): NiveauxWcag {
   const niveau = (aa: number, aaa: number): NiveauDeTexte =>
     (atteintLeSeuil(valeur, aaa) ? 'AAA' : atteintLeSeuil(valeur, aa) ? 'AA' : null);
-  return { texte: niveau(SEUILS_PAR_USAGE.texte, SEUIL_TEXTE_AAA), grandTexte: niveau(SEUILS_PAR_USAGE.nonTexte, SEUILS_PAR_USAGE.texte), graphique: atteintLeSeuil(valeur, SEUILS_PAR_USAGE.nonTexte) };
+  return { texte: niveau(SEUILS_PAR_USAGE.texte, SEUIL_TEXTE_AAA), grandTexte: niveau(SEUIL_GRAND_TEXTE_AA, SEUILS_PAR_USAGE.texte), graphique: atteintLeSeuil(valeur, SEUILS_PAR_USAGE.nonTexte) };
 }

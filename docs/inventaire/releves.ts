@@ -110,6 +110,7 @@ const {
   VARIABLES_DU_THEME,
   VARIABLES_GLOBALES,
   cibleDeLaVariable,
+  ecrireSeuil,
 } = suivre('emplois', emploisBrut);
 
 export const RACINE = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..', '..');
@@ -192,6 +193,7 @@ export function referencePourLePanneau() {
 
 /** Les garanties en lignes de tableau : variable, fonds regroupés par famille, seuil. */
 export function lignesDesGaranties(): { numero: number; variable: string; fonds: string; seuil: string }[] {
+  const seuils = referentielBrut.SEUILS_PAR_USAGE;
   const nomDuFond = (fond: FondDeGarantie): { famille: string; etat: string } => {
     if ('fondDeLaPage' in fond) return { famille: '', etat: 'page' };
     if ('fondDeLaCarte' in fond) return { famille: '', etat: 'carte' };
@@ -210,7 +212,7 @@ export function lignesDesGaranties(): { numero: number; variable: string; fonds:
       numero: garantie.numero,
       variable: garantie.premier.variable,
       fonds: groupes.map((groupe) => `${groupe.famille ? `${groupe.famille} ` : ''}${groupe.etats.join(', ')}`).join(', '),
-      seuil: garantie.seuil === 'texte' ? 'texte 4,5:1' : 'non-texte 3:1',
+      seuil: garantie.seuil === 'texte' ? `texte ${ecrireSeuil(seuils.texte)}` : `non-texte ${ecrireSeuil(seuils.nonTexte)}`,
     };
   });
 }

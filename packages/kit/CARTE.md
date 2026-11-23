@@ -130,7 +130,7 @@ Ce qui juge un contrat écrit ; `ajv` et `node:fs`.
 - termes.ts : le vocabulaire bilingue partagé (`Terme` : libellé, définition, formes tolérées)
 - reconnaissance.ts : reconnaissance d'un terme quelle que soit son écriture, séparée de `termes.ts` pour éviter un cycle d'import
 - theme.ts : libellés et définitions des variables du thème, par support des emplois de couleur
-- contraste.ts : seuils de contraste du thème (`SEUILS_PAR_USAGE`, `SEUIL_TEXTE_AAA`) et niveaux de texte, comparés à dix décimales
+- contraste.ts : seuils de contraste du thème (`SEUILS_PAR_USAGE`, `SEUIL_TEXTE_AAA`, `SEUIL_GRAND_TEXTE_AA`) et niveaux de texte, comparés à dix décimales
 - conventions.ts : conventions de nommage par catégorie, casse et séparateur
 - ecriture-des-mots.ts : découpage et écriture des segments, pour les deux moteurs de normalisation
 - normalisation.ts : propose des noms logiques ; le plugin garde les identifiants techniques des propriétés Figma

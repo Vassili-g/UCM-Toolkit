@@ -2,7 +2,8 @@
  * Tous les textes de l'écran. Un texte entre accents graves met ces mots en
  * code : c'est l'écriture d'un nom, jamais une phrase.
  */
-import type { IndiceDePaire } from '@ucm-kit/core/referentiel';
+import { ecrireSeuil } from '@ucm-kit/core/emplois';
+import { SEUILS_PAR_USAGE, type IndiceDePaire } from '@ucm-kit/core/referentiel';
 import type { CauseDeProtection, CodeDErreur, ConflitVue, TypeDeTerme } from '../../messages/nomenclature';
 
 const noms = (nombre: number): string => (nombre === 1 ? '1 nom' : `${nombre} noms`);
@@ -108,7 +109,7 @@ export const TEXTES = {
   niveauDeContraste: 'Niveau de contraste',
   niveauAa: 'AA',
   niveauAaa: 'AAA',
-  seuilAa: 'AA demande 4,5:1 pour un texte et 3:1 pour un stroke.',
+  seuilAa: `AA demande ${ecrireSeuil(SEUILS_PAR_USAGE.texte)} pour un texte et ${ecrireSeuil(SEUILS_PAR_USAGE.nonTexte)} pour un stroke.`,
   preparationRecue: 'Préparation reçue',
   preparationRecueAide: 'Collez le texte de variables préparées par un autre designer.',
   collerUnePreparation: 'Coller une préparation',
