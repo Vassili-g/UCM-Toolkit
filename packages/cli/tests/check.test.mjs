@@ -7,6 +7,7 @@ import { existsSync, linkSync, mkdirSync, mkdtempSync, readFileSync, rmSync, wri
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import test from "node:test";
+import { CONTRACT_VERSION } from "@ucm-kit/core/format";
 
 import { check, lireArguments, releveDuDiff } from "../src/check.mjs";
 import { executer } from "../src/ucm.mjs";
@@ -16,7 +17,7 @@ function contrat(nom) {
   return {
     name: nom,
     meta: {
-      contractVersion: "14.0",
+      contractVersion: CONTRACT_VERSION,
       exportedAt: "2026-01-01T00:00:00.000Z",
       figma: { fileName: "f", nodeId: "1:1" },
       coverage: { portable: "complete" },

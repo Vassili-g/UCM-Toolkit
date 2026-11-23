@@ -10,7 +10,7 @@ import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 
-import { identifiantsDeRoles, natureDuRole, tableDesRolesDeRendu } from "@ucm-kit/core/format";
+import { CONTRACT_VERSION, identifiantsDeRoles, natureDuRole, tableDesRolesDeRendu } from "@ucm-kit/core/format";
 
 import { controlerRepository } from "../src/lecteurs/controle-repository.mjs";
 import * as diagnostic from "../src/lecteurs/diagnostic-contrastes.mjs";
@@ -70,7 +70,7 @@ const TOKENS = {
 /** Un bouton : un fond à la racine, un libellé dans le slot `label`, un anneau sur le slot `cadre`. */
 function bouton(variants) {
   return {
-    meta: { contractVersion: "14.0" },
+    meta: { contractVersion: CONTRACT_VERSION },
     rendering: { roles: {}, keyRoles: {} },
     stateModel: { axis: "state", states: {}, precedence: [] },
     variantViews: { vue: { structure: "arbre", paintPlacements: "peintures" } },
@@ -149,7 +149,7 @@ test("une couleur Display P3 ou translucide ne se juge pas, sans effacer les aut
 function contratAvecUnRole(cote, role, roles) {
   const reference = "{composants.bouton.texte-pale}";
   return {
-    meta: { contractVersion: "14.0" },
+    meta: { contractVersion: CONTRACT_VERSION },
     rendering: { roles, keyRoles: { [cote]: { k: role } } },
     variantViews: { vue: { structure: "arbre", paintPlacements: "peintures" } },
     viewStructures: { arbre: { children: [] } },
@@ -209,7 +209,7 @@ test("le rapport d'un repository jouet range les couleurs sous leur seuil en inf
     writeFileSync(join(racine, configuration.tokens), JSON.stringify(TOKENS));
     const contrat = {
       name: "Widget",
-      meta: { contractVersion: "14.0", exportedAt: "2026-01-01T00:00:00.000Z", figma: { fileName: "f", nodeId: "1:1" }, coverage: { portable: "complete" } },
+      meta: { contractVersion: CONTRACT_VERSION, exportedAt: "2026-01-01T00:00:00.000Z", figma: { fileName: "f", nodeId: "1:1" }, coverage: { portable: "complete" } },
       viewStructures: { st1: { layout: "flex-row", sizing: { width: "fit-content", height: "fit-content" }, children: [{ slot: "label" }] } },
       variantViews: { v1: { structure: "st1", paintPlacements: "p1" } },
       viewPaintPlacements: { p1: { fills: { background: [[]], foreground: [["label"]] } } },

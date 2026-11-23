@@ -1,3 +1,5 @@
+import { CONTRACT_VERSION } from "@ucm-kit/core/format";
+
 /**
  * Les contrats fabriqués que plusieurs suites partagent.
  */
@@ -97,7 +99,7 @@ export function contrat130() {
  */
 export function contrat140() {
   const valeur = contrat130();
-  valeur.meta.contractVersion = "14.0";
+  valeur.meta.contractVersion = CONTRACT_VERSION;
   valeur.effectStyles = {
     "shadow.focus": {
       figmaName: "Shadow/Focus",

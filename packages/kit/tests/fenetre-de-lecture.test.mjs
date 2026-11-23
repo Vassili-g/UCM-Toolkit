@@ -4,7 +4,9 @@ import assert from "node:assert/strict";
 import { readFileSync, readdirSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
+import { CONTRACT_VERSION } from "@ucm-kit/core/format";
 import {
+  VERSION_CONTRAT_MAXIMALE,
   VERSION_CONTRAT_MINIMALE,
   champsInvalidesDuContrat,
   validerAdressesDEchantillons,
@@ -85,4 +87,15 @@ test("aucun lecteur ne refuse ce que la fenêtre annonce accepter", () => {
       + `pire qu'une fenêtre fermée : le message ne dit plus quel geste corrige.\n`
       + refus.join("\n"),
   );
+});
+
+test("la borne basse de la fenêtre est la version qui précède CONTRACT_VERSION dans CHANGELOG-FORMAT.md", () => {
+  const ici = dirname(fileURLToPath(import.meta.url));
+  const journal = readFileSync(join(ici, "..", "..", "..", "docs", "format", "CHANGELOG-FORMAT.md"), "utf8");
+  const versions = [...journal.matchAll(/^## (\d+\.\d+)\s*$/gm)].map((m) => m[1]);
+  const rang = versions.indexOf(CONTRACT_VERSION);
+  assert.ok(rang > 0, `CHANGELOG-FORMAT.md n'a pas de section « ## ${CONTRACT_VERSION} » précédée d'une autre.`);
+  assert.equal(VERSION_CONTRAT_MAXIMALE, CONTRACT_VERSION);
+  assert.equal(VERSION_CONTRAT_MINIMALE, versions[rang - 1],
+    `VERSION_CONTRAT_MINIMALE doit valoir ${versions[rang - 1]}, la version qui précède ${CONTRACT_VERSION} dans CHANGELOG-FORMAT.md.`);
 });

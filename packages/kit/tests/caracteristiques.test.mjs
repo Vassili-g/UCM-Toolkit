@@ -11,13 +11,14 @@ import {
   caracteristiquesDuContrat,
   conesDesAxes,
 } from "@ucm-kit/core/lecteurs";
+import { CONTRACT_VERSION } from "@ucm-kit/core/format";
 
 import { contratCourant } from "./contrats-fabriques.mjs";
 
 /** Un contrat minimal sans aucune caractéristique au-delà de `toujours` et `dimensions`. */
 function base() {
   const contrat = contratCourant();
-  contrat.meta.contractVersion = "14.0";
+  contrat.meta.contractVersion = CONTRACT_VERSION;
   delete contrat.viewStructures.st1.layout;
   return contrat;
 }

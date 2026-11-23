@@ -7,6 +7,7 @@ import { dirname, join } from "node:path";
 import { pathToFileURL } from "node:url";
 import test from "node:test";
 import { adaptateurTypeScript } from "@ucm-kit/adapter-typescript";
+import { CONTRACT_VERSION } from "@ucm-kit/core/format";
 import { check } from "../src/check.mjs";
 import { executer } from "../src/ucm.mjs";
 import { mesurerLesRangs } from "../src/rangs.mjs";
@@ -20,7 +21,7 @@ const TOKENS = { couleurs: { texte: { principal: { $type: "color", $value: "#111
 function contrat(valeurs = ["normal"]) {
   return {
     name: "Widget",
-    meta: { contractVersion: "14.0", exportedAt: "2026-01-01T00:00:00.000Z", figma: { fileName: "f", nodeId: "1:1" }, coverage: { portable: "complete" } },
+    meta: { contractVersion: CONTRACT_VERSION, exportedAt: "2026-01-01T00:00:00.000Z", figma: { fileName: "f", nodeId: "1:1" }, coverage: { portable: "complete" } },
     props: { variant: { type: "enum", values: valeurs, default: "normal" } },
     viewStructures: { st1: { layout: "flex-row", sizing: { width: "fit-content", height: "fit-content" }, children: [{ slot: "label", tokens: { color: "{couleurs.texte.principal}" } }] } },
     variantViews: { v1: { structure: "st1" } },

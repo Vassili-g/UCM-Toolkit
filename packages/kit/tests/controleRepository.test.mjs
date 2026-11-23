@@ -8,6 +8,7 @@ import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "nod
 import { tmpdir } from "node:os";
 import { basename, dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
+import { CONTRACT_VERSION } from "@ucm-kit/core/format";
 
 import { controlerRepository } from "../src/lecteurs/controle-repository.mjs";
 import { preparerControle } from "../src/lecteurs/controle-du-code.mjs";
@@ -34,7 +35,7 @@ function contrat() {
   return {
     name: "Widget",
     meta: {
-      contractVersion: "14.0",
+      contractVersion: CONTRACT_VERSION,
       exportedAt: "2026-01-01T00:00:00.000Z",
       figma: { fileName: "f", nodeId: "1:1" },
       coverage: { portable: "complete" },

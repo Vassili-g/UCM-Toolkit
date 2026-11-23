@@ -17,6 +17,7 @@ import { lireLesVariablesDuFichier, lireLeSuiviRange } from '../packages/plugin-
 import { palettesDuFichier } from '../packages/plugin-palettes/src/variables/detection';
 import { texteDuSuivi, variablesSuivies } from '../packages/plugin-palettes/src/variables/suivi';
 import { FauxFigma } from '../packages/plugin-palettes/tests/figmaDeTest';
+import { VERSION_DES_REGLES } from '../packages/kit/src/protocoles/nommage';
 import { alias, constructeur, couleur } from './releveDeTest';
 import type { Releve } from '../packages/plugin-architect/src/modele';
 
@@ -68,7 +69,7 @@ const composantes = (hexa: string) => {
 
 /** Le texte de l'entrée `ecriture` que UCM Architect range : la convention, sur les groupes et sur les variables. */
 export function texteDesRegles(convention: Convention): string {
-  return JSON.stringify({ version: 1, groupes: convention, variables: convention });
+  return JSON.stringify({ version: VERSION_DES_REGLES, groupes: convention, variables: convention });
 }
 
 /**
