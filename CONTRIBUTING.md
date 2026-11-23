@@ -29,6 +29,10 @@ incomplètes.
 - Conserver les noms Figma d’origine lorsqu’une valeur est normalisée ou
   renommée.
 
+Le code du kit s’écrit en français : noms, commentaires et messages. Le format
+publié (noms des champs du contrat) et le README de la CLI s’écrivent en
+anglais.
+
 Les commentaires sont en français. Ils expliquent une décision, une
 particularité de l’API Figma ou une limite ; ils ne paraphrasent pas le code.
 Chaque fichier décrit brièvement son rôle, et chaque fonction exportée non
@@ -651,6 +655,15 @@ document et le code qu’il décrit se raccourcissent à des moments séparés, 
 quoi chacun se vide en supposant que l’autre garde. Une borne ne se retire
 jamais au motif qu’elle serait écrite ailleurs, sauf à l’avoir lue à cet
 endroit.
+
+### Sujets de recherche et plans
+
+| Règle | Gardée par |
+|---|---|
+| Un sujet de recherche a son dossier dans `docs/notes/Recherches/`, créé par `npm run sujet -- "<Nom>" <Pn> "<utilité>"`, jamais dans `_local/`. | `tests/dossiersDeRecherche.test.ts`, `scripts/hook-documents.mjs` |
+| Une case de plan porte ses marques entre parenthèses après son numéro : `(hash)`, `(depot@hash)` pour un autre repository, `(mainteneur)` quand elle attend le mainteneur, `(attend Pn)` quand elle attend une autre piste. Un hash écrit en fin de case après « Commit », entre accents graves, vaut aussi. | `tests/plansDeRecherche.test.ts` |
+| Un agent ne change ni ne retire un `prioDuMainteneur` sans demande du mainteneur. | `tests/inventaire.test.ts` |
+| Un sujet livré s’archive par la skill `archiver-un-sujet`. | `tests/archiverSujet.test.ts` |
 
 ## API Figma et build
 

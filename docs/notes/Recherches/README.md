@@ -62,9 +62,11 @@ modèle.
 
 ## Archive
 
-Sujets implémentés pour le périmètre retenu. Leurs dossiers sont rangés
-dans `docs/notes/Archives/` ; leurs recettes Figma reportées restent dans
-leurs plans.
+Sujets implémentés pour le périmètre retenu. Un sujet livré s'archive par la
+skill `.agents/skills/archiver-un-sujet/SKILL.md` : ses documents inutiles sont
+supprimés, et un lien figé sur un commit les retrouve. Les dossiers rangés
+plus tôt dans `docs/notes/Archives/` passent par la même skill, un par un.
+Leurs recettes Figma reportées restent dans leurs plans.
 
 | Sujet | Utilité | Statut |
 |---|---|---|

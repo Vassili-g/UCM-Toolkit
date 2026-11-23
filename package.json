@@ -24,7 +24,8 @@
     "agents:lire": "node scripts/agents-contexte.mjs lire",
     "agents:domicile": "node scripts/agents-contexte.mjs domicile",
     "agents:diff": "node scripts/agents-contexte.mjs diff",
-    "sujet": "node scripts/nouveau-sujet.mjs"
+    "sujet": "node scripts/nouveau-sujet.mjs",
+    "sujet:archiver": "node scripts/archiver-sujet.mjs"
   },
   "devDependencies": {
     "@types/node": "^22.0.0",
