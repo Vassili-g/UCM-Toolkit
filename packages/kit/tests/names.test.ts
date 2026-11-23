@@ -8,7 +8,7 @@
  */
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { attributDeMode, codeIdentifier, normalizeName, tokenCssVariable } from '../src/format/names';
+import { attributDeMode, codeIdentifier, nomFigmaReconstruit, normalizeName, tokenCssVariable } from '../src/format/names';
 
 test("attributDeMode dérive l'attribut d'un axe de sa propriété CSS", () => {
   assert.equal(attributDeMode('color-brand-tokens'), 'data-color-brand-tokens');
@@ -16,14 +16,17 @@ test("attributDeMode dérive l'attribut d'un axe de sa propriété CSS", () => {
   assert.equal(attributDeMode('marque.sous marque'), 'data-marque-sous-marque');
 });
 
+test('N1. normalizeName rend le même chemin pour un accent composé et un accent décomposé', () => {
+  const compose = normalizeName('Café/Fond');
+  const decompose = normalizeName('Café/Fond');
+  assert.equal(compose, decompose);
+  assert.equal(compose, 'café.fond');
+  assert.equal(compose.normalize('NFC'), compose);
+});
+
 test('tokenCssVariable rend le même nom pour un accent composé et un accent décomposé', () => {
-  // `normalizeName` garde la forme reçue : les deux chaînes s'affichent pareil
-  // et diffèrent octet par octet.
-  const compose = normalizeName('Caf\u00e9/Fond');
-  const decompose = normalizeName('Cafe\u0301/Fond');
-  assert.notEqual(compose, decompose);
-  assert.equal(tokenCssVariable(compose), '--cafe-fond');
-  assert.equal(tokenCssVariable(decompose), '--cafe-fond');
+  assert.equal(tokenCssVariable('Café.Fond'), '--cafe-fond');
+  assert.equal(tokenCssVariable('Café.Fond'), '--cafe-fond');
 });
 
 test('normalizeName suit la convention commune des tokens', () => {
@@ -79,4 +82,28 @@ test('tokenCssVariable rend un nom utilisable quoi qu’on lui donne', () => {
   // consommateur de refuser la collision. Le format la rend visible ici plutôt
   // que de prétendre l'empêcher.
   assert.equal(tokenCssVariable('a.50%'), tokenCssVariable('a.50'));
+});
+
+const ETIQUETTES = {
+  axes: { size: 'Size', iconLeft: 'Icon Left' },
+  values: { size: { sm: 'SM', md: 'MD' }, iconLeft: { true: 'True', false: 'False' } },
+};
+
+test("nomFigmaReconstruit rebâtit `Axe=Valeur` dans l'ordre des axes", () => {
+  assert.equal(nomFigmaReconstruit(['size', 'iconLeft'], ETIQUETTES, { size: 'sm', iconLeft: 'true' }), 'Size=SM, Icon Left=True');
+  assert.equal(nomFigmaReconstruit(['iconLeft', 'size'], ETIQUETTES, { size: 'md', iconLeft: 'false' }), 'Icon Left=False, Size=MD');
+});
+
+test("nomFigmaReconstruit rend undefined quand un axe ou une valeur n'a pas d'étiquette", () => {
+  assert.equal(nomFigmaReconstruit(['size'], ETIQUETTES, { size: 'xl' }), undefined);
+  assert.equal(nomFigmaReconstruit(['tone'], ETIQUETTES, { tone: 'sm' }), undefined);
+  assert.equal(nomFigmaReconstruit(['size'], ETIQUETTES, {}), undefined);
+  // Une valeur héritée de `Object.prototype` n'est pas une étiquette.
+  assert.equal(nomFigmaReconstruit(['size'], ETIQUETTES, { size: 'constructor' }), undefined);
+});
+
+test('nomFigmaReconstruit tient une étiquette vide ou blanche pour absente', () => {
+  assert.equal(nomFigmaReconstruit(['size'], { axes: { size: 'Size' }, values: { size: { sm: '' } } }, { size: 'sm' }), undefined);
+  assert.equal(nomFigmaReconstruit(['size'], { axes: { size: 'Size' }, values: { size: { sm: '  ' } } }, { size: 'sm' }), undefined);
+  assert.equal(nomFigmaReconstruit(['size'], { axes: { size: ' ' }, values: { size: { sm: 'SM' } } }, { size: 'sm' }), undefined);
 });

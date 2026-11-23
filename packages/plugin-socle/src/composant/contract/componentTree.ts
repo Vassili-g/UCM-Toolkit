@@ -5,6 +5,7 @@
  * Tout est dynamique : aucun nom d'axe ni de composant n'est codé en dur.
  */
 import { normalizePropKey, normalizePropValue } from './parsers';
+import { nomFigmaReconstruit } from '@ucm-kit/core/format';
 import type { FigmaVariantLabels } from '@ucm-kit/core/format';
 import { sorteDeLImbrique } from '@ucm-kit/core/referentiel';
 import type { FaitsDImbrique } from '@ucm-kit/core/referentiel';
@@ -529,9 +530,7 @@ export function buildFigmaVariantLabels(
   // Dernier contrôle, celui qui porte : la table doit rendre chaque nom Figma
   // à l'identique, sur tous les variants.
   for (const entry of matrix.variants) {
-    const rebuilt = matrix.axes
-      .map((axis) => `${axes[axis]}=${values[axis]?.[entry.values[axis]]}`)
-      .join(', ');
+    const rebuilt = nomFigmaReconstruit(matrix.axes, { axes, values }, entry.values);
     if (rebuilt !== entry.component.name) return null;
   }
 

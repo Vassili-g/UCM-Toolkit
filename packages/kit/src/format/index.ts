@@ -65,6 +65,7 @@ export {
   axeDesExtensions,
   codeIdentifier,
   estUneValeurDesactivee,
+  nomFigmaReconstruit,
   normalizeName,
   tokenCssVariable,
 } from './names.js';

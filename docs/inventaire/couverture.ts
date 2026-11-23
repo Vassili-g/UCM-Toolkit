@@ -16,6 +16,10 @@ export const EXCLUSIONS: Readonly<Record<string, GroupeExclu[]>> = {
       noms: ["CIBLES_DE_L_ELEVATION", "ECHELLES_DE_REFERENCE", "variablesAttendues"],
     },
     {
+      motif: "Écriture et lecture d'un nombre dans un segment de nom Figma (virgule décimale), appelées par les contrôles et l'export.",
+      noms: ["nombreDuSegment", "segmentDeNombre"],
+    },
+    {
       motif: "Le registre figure dans REGISTRES, REGISTRES_ARCHITECTURE ou REGISTRES_COMPOSANTS, que la page lit.",
       noms: ["REGISTRE_AXES_ETAT", "REGISTRE_CASSES", "REGISTRE_COMPOSANTS", "REGISTRE_COTES", "REGISTRE_COULEURS_ABSOLUES", "REGISTRE_CRANS", "REGISTRE_DOSSIERS_THEME", "REGISTRE_ELEMENTS_COMPOSANT", "REGISTRE_ELEVATIONS", "REGISTRE_ETATS", "REGISTRE_GROUPES", "REGISTRE_INTENSITES", "REGISTRE_MARQUES", "REGISTRE_MODES", "REGISTRE_PALETTES", "REGISTRE_PALETTES_COMPOSANT", "REGISTRE_PROFILS", "REGISTRE_PROPRIETES_TYPOGRAPHIQUES", "REGISTRE_ROLES", "REGISTRE_SEPARATEURS", "REGISTRE_STATUTS", "REGISTRE_STYLES_COMPOSANT", "REGISTRE_VALEURS_THEME", "REGISTRE_VARIABLES_THEME"],
     },

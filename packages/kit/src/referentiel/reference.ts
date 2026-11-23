@@ -87,7 +87,15 @@ export interface EntreeDEchelle {
   readonly alias?: string;
 }
 
-const nom = (nombre: number): string => String(nombre).replace('.', ',');
+/** Le segment d'un chemin qui porte un nombre : le séparateur décimal est la virgule (`0.5` s'écrit `0,5`). */
+export const segmentDeNombre = (nombre: number): string => String(nombre).replace('.', ',');
+
+/** Le nombre qu'un segment porte, avec la virgule ou le point, ou `undefined` si le segment n'est pas un nombre. Lit ce que `segmentDeNombre` écrit. */
+export function nombreDuSegment(segment: string): number | undefined {
+  if (!/^\d+(?:[.,]\d+)?$/.test(segment)) return undefined;
+  const resultat = Number(segment.replace(',', '.'));
+  return Number.isFinite(resultat) ? resultat : undefined;
+}
 /** Une mesure nulle se nomme `none`, les autres par leur valeur en px ; la plus grande, `full`, a sa propre entrée. */
 const dimension = (px: number): string => `dimension/${px === 0 ? 'none' : px}`;
 
@@ -119,7 +127,7 @@ const RAYONS = { xs: 2, sm: 4, md: 6, lg: 8, xl: 12, '2xl': 16, '3xl': 24, '4xl'
 const versDimension = (px: number): string => `primitives/${dimension(px)}`;
 
 const LAYOUT: readonly EntreeDEchelle[] = [
-  ...SIZING.map((px) => ({ chemin: `sizing/${nom(px / 4)}`, alias: versDimension(px) })),
+  ...SIZING.map((px) => ({ chemin: `sizing/${segmentDeNombre(px / 4)}`, alias: versDimension(px) })),
   ...Object.entries(RAYONS).map(([taille, px]) => ({ chemin: `radius/${taille}`, alias: versDimension(px) })),
   { chemin: 'radius/full', alias: 'primitives/dimension/full' },
   { chemin: 'stroke/outline-weight', alias: versDimension(1) },

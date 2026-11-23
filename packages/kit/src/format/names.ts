@@ -1,15 +1,50 @@
 
+import type { FigmaVariantLabels } from './types.js';
 import { termeReconnu } from '../referentiel/reconnaissance.js';
 import { REGISTRE_ETATS } from '../referentiel/vocabulaire.js';
 
-/** Normalise un chemin Figma en token : `/` → `.`, espaces → `-`, minuscules. */
+/**
+ * Normalise un chemin Figma en token : forme Unicode composée (`NFC`), `/` → `.`, espaces → `-`, minuscules.
+ *
+ * La forme composée vient en premier : un `é` saisi sous macOS (décomposé) et le même saisi sous Windows (composé) publient le
+ * même chemin, comme `tokenCssVariable` leur donne déjà le même nom CSS.
+ */
 export function normalizeName(name: string): string {
   return name
+    .normalize('NFC')
     .split('/')
     .map((segment) => segment.trim().replace(/\s+/g, '-').toLowerCase())
     .filter(Boolean)
     .join('.')
     .replace(/\.{2,}/g, '.');
+}
+
+const estTexteNonVide = (valeur: unknown): valeur is string => typeof valeur === 'string' && valeur.trim() !== '';
+
+/**
+ * Le nom Figma d'un variant, rebâti depuis les étiquettes que le contrat publie : `Axe=Valeur, Axe=Valeur`, dans l'ordre de `axes`.
+ * Unique autorité : l'export la lit pour vérifier que la table rend chaque nom à l'identique, les lecteurs pour rebâtir le nom
+ * que le variant ne porte plus. Elle rend `undefined` dès qu'un axe ou une valeur n'a pas d'étiquette, et une étiquette vide ou
+ * blanche n'en est pas une : la table ne peut alors pas répondre, et le variant garde son nom entier.
+ *
+ * @param valeurs La valeur normalisée de chaque axe, telle que `etiquettes.values` l'indexe.
+ * @example nomFigmaReconstruit(['size'], { axes: { size: 'Size' }, values: { size: { sm: 'Small' } } }, { size: 'sm' }) // → 'Size=Small'
+ */
+export function nomFigmaReconstruit(
+  axes: readonly string[],
+  etiquettes: FigmaVariantLabels,
+  valeurs: Readonly<Record<string, string | undefined>>,
+): string | undefined {
+  const propre = <T>(table: Readonly<Record<string, T>> | undefined, cle: string | undefined): T | undefined =>
+    table !== undefined && cle !== undefined && Object.prototype.hasOwnProperty.call(table, cle) ? table[cle] : undefined;
+  const parties: string[] = [];
+  for (const axe of axes) {
+    const nomDAxe = propre(etiquettes.axes, axe);
+    const etiquette = propre(propre(etiquettes.values, axe), valeurs[axe]);
+    if (!estTexteNonVide(nomDAxe) || !estTexteNonVide(etiquette)) return undefined;
+    parties.push(`${nomDAxe}=${etiquette}`);
+  }
+  return parties.join(', ');
 }
 
 /** Produit l'identifiant TypeScript stable d'un nom Figma libre. */

@@ -884,17 +884,19 @@ function validerPropsV8(props, invalides) {
       invalides.push(`${prefixe}.type`);
       continue;
     }
+    // Le schéma déclare `default` et `preferredValues` facultatifs et refuse `null` : l'exporteur omet `default`
+    // quand Figma n'en donne pas. Une absence est donc valide, et une valeur présente doit avoir la bonne forme.
     if (prop.type === "instance-swap") {
-      if (prop.default !== null && !estTexte(prop.default)) invalides.push(`${prefixe}.default`);
-      if (!valeursPrefereesValides(prop.preferredValues)) {
+      if (prop.default !== undefined && !estTexte(prop.default)) invalides.push(`${prefixe}.default`);
+      if (prop.preferredValues !== undefined && !valeursPrefereesValides(prop.preferredValues)) {
         invalides.push(`${prefixe}.preferredValues`);
       }
     }
     if (prop.type === "slot") {
-      if (!["string", "boolean"].includes(typeof prop.default) && prop.default !== null) {
+      if (prop.default !== undefined && !["string", "boolean"].includes(typeof prop.default)) {
         invalides.push(`${prefixe}.default`);
       }
-      if (!valeursPrefereesValides(prop.preferredValues)) {
+      if (prop.preferredValues !== undefined && !valeursPrefereesValides(prop.preferredValues)) {
         invalides.push(`${prefixe}.preferredValues`);
       }
       if (prop.settings !== undefined && !estObjet(prop.settings)) {
@@ -1321,23 +1323,6 @@ const CATALOGUES_DE_VUES_11 = {
   paintPlacements: "viewPaintPlacements",
   effects: "viewEffects",
 };
-
-/** Nom Figma exact reconstitué depuis le dictionnaire compact du schéma 11.0. */
-function nomFigmaDuVariant11(contrat, variant) {
-  if (estTexte(variant?.figmaName)) return variant.figmaName;
-  const etiquettes = contrat?.figmaVariantLabels;
-  const axes = Array.isArray(contrat?.structure?.variantAxes)
-    ? contrat.structure.variantAxes
-    : [];
-  if (!estObjet(etiquettes) || axes.length === 0) return variant?.figmaName;
-  const parties = axes.map((axe) => {
-    const nomAxe = etiquettes.axes?.[axe];
-    const valeur = variant?.values?.[axe];
-    const nomValeur = etiquettes.values?.[axe]?.[valeur];
-    return estTexte(nomAxe) && estTexte(nomValeur) ? `${nomAxe}=${nomValeur}` : null;
-  });
-  return parties.every(estTexte) ? parties.join(", ") : undefined;
-}
 
 /**
  * La forme canonique d'un contrat : ses renvois résolus, ses élisions rendues.

@@ -4,7 +4,7 @@ import { controlerLeCatalogue, type CatalogueDeReference } from '../src/controle
 import { TABLE_DES_DOSSIERS } from '../src/emplois/dossiers.js';
 import { formesReconnues } from '../src/referentiel/grammaire.js';
 import {
-  CIBLES_DE_L_ELEVATION, ECHELLES_DE_REFERENCE, reconnaitreLeChemin, variablesAttendues,
+  CIBLES_DE_L_ELEVATION, ECHELLES_DE_REFERENCE, nombreDuSegment, reconnaitreLeChemin, segmentDeNombre, variablesAttendues,
   type Collection, type EntreeDEchelle,
 } from '../src/referentiel/index.js';
 
@@ -97,4 +97,17 @@ test('controlerLesEchelles ne rend rien sur la référence', () => {
   ];
   const constats = controlerLeCatalogue({ version: 1, library: null, collections, variables }).filter(({ code }) => code === 'C63');
   assert.deepEqual(constats, []);
+});
+
+test("N4. segmentDeNombre et nombreDuSegment font l'aller-retour, avec la virgule pour séparateur", () => {
+  for (const nombre of [0, 0.5, 1.25, 10]) assert.equal(nombreDuSegment(segmentDeNombre(nombre)), nombre, String(nombre));
+  assert.equal(segmentDeNombre(0.5), '0,5');
+  assert.equal(segmentDeNombre(10), '10');
+  // Un segment écrit à la main avec le point se lit comme avec la virgule.
+  assert.equal(nombreDuSegment('0.5'), 0.5);
+  for (const segment of ['', 'md', '1,', ',5', '1,2,3', '-1']) assert.equal(nombreDuSegment(segment), undefined, segment);
+});
+
+test("N4. les crans de sizing de la référence s'écrivent par segmentDeNombre", () => {
+  assert.ok(ECHELLES_DE_REFERENCE.layout.some(({ chemin }) => chemin === `sizing/${segmentDeNombre(0.5)}`));
 });

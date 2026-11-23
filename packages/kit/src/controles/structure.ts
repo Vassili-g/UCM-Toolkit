@@ -1,5 +1,6 @@
 /** Contrôles des scopes et des structures UCM du catalogue. */
 import { formeDuChemin, formeReconnue } from '../referentiel/reconnaissance.js';
+import { nombreDuSegment } from '../referentiel/reference.js';
 import { modeDuThemeReconnu, variableDuThemeReconnue } from '../referentiel/theme.js';
 import { SUPPORT_DES_VARIABLES, cranDeLaVariable, type ModeDuTheme, type SensDuTheme } from '../emplois/dossiers.js';
 import { cheminDansLaCollection, collectionParCle, variableParCle, type CatalogueDeReference, type VariableDuCatalogue } from './catalogue.js';
@@ -274,7 +275,7 @@ const PROFONDEUR_DES_ALIAS = 16;
 
 /** Le cran d'une échelle : un nombre (`1,5`) ou une taille du registre (`md`). */
 function estUnCranDEchelle(segment: string): boolean {
-  return nombre(segment) !== undefined || tailleReconnue(segment) !== undefined;
+  return nombreDuSegment(segment) !== undefined || tailleReconnue(segment) !== undefined;
 }
 
 /**
@@ -408,7 +409,7 @@ function* controlerLesContournements(releve: ReleveDeComposant, catalogue: Catal
     const id = `C63:${variable.cle}:${mode.id}:theme`;
     const constat: Constat = { id, code: 'C63', type: 'corriger', famille: 'liaisons', variants: [], layers: [], faits: { variable: variable.nom, mode: mode.nom, cible: cible.nom } };
     const modeDuTheme = modeDuThemeReconnu(partieDeMode);
-    const cran = nombre(cible.nom.split('/').at(-1) ?? '');
+    const cran = nombreDuSegment(cible.nom.split('/').at(-1) ?? '');
     const { candidats: trouves, sens } = modeDuTheme && cran !== undefined
       ? variablesDeLaPaletteAuCran(catalogue, palette, modeDuTheme, cran, lectures)
       : { candidats: [], sens: 'inconnu' as SensLu };
@@ -452,11 +453,6 @@ function variablesDeLaPaletteAuCran(
     }
   }
   return { candidats: [...candidats.values()], sens };
-}
-function nombre(texte: string): number | undefined {
-  if (!/^\d+(?:[.,]\d+)?$/.test(texte)) return undefined;
-  const resultat = Number(texte.replace(',', '.'));
-  return Number.isFinite(resultat) ? resultat : undefined;
 }
 function roleCollection(catalogue: CatalogueDeReference, variable: VariableDuCatalogue) { return collectionParCle(catalogue, variable.collection)?.role; }
 function memeEnsemble(gauche: readonly string[], droite: readonly string[]): boolean {

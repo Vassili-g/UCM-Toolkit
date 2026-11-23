@@ -2076,3 +2076,62 @@ test("un variant qui recopie ses effets au lieu de les renvoyer est refusé", ()
   casse.variants[0].effects = casse.viewEffects.ef1;
   assert.deepEqual(champsInvalidesDuContrat(casse), ["variants[0].effects"]);
 });
+
+/**
+ * Le schéma JSON est généré de `types.ts` : il dit ce qu'un contrat peut omettre. Le validateur ne peut pas exiger davantage,
+ * sans quoi un export fidèle à Figma (un slot sans valeur par défaut) est refusé, et le réexport demandé le reproduit.
+ */
+const SCHEMA = JSON.parse(readFileSync(new URL("../schema/ucm-contract.schema.json", import.meta.url), "utf8"));
+
+/** Le contrat 8.0 du fichier, sans la liaison qui vise la prop `icon` : seules les props de l'essai y figurent. */
+function contratAvecProps(props) {
+  const valeur = contratV8();
+  valeur.props = props;
+  valeur.propertyBindings = [];
+  return valeur;
+}
+
+function exempleMinimal(definition) {
+  const exemple = {};
+  for (const cle of definition.required ?? []) {
+    const propriete = definition.properties[cle];
+    const type = Array.isArray(propriete.type) ? propriete.type[0] : propriete.type;
+    exemple[cle] = propriete.const ?? { string: "x", boolean: false, number: 0, array: [], object: {} }[type];
+  }
+  return exemple;
+}
+
+test("N5. chaque exemple minimal d'une prop du schéma passe le validateur", () => {
+  const definitions = SCHEMA.definitions.ContractProp.anyOf
+    .map(({ $ref }) => $ref.replace("#/definitions/", ""));
+  assert.deepEqual(definitions.sort(), [
+    "BooleanProp", "EnumProp", "IconProp", "InstanceSwapProp", "SlotProp", "StringProp",
+  ]);
+  for (const nom of definitions) {
+    const prop = exempleMinimal(SCHEMA.definitions[nom]);
+    // Le schéma admet un enum sans valeur ; le validateur en exige une, par une règle distincte (voir le test des enum).
+    if (nom === "EnumProp") prop.values = ["a"];
+    const valeur = contratAvecProps({ exemple: prop });
+    assert.deepEqual(champsInvalidesDuContrat(valeur), [], `${nom} : ${JSON.stringify(prop)}`);
+  }
+});
+
+test("N5. un slot et un instance-swap sans default ni preferredValues sont acceptés", () => {
+  for (const type of ["slot", "instance-swap"]) {
+    const valeur = contratAvecProps({ exemple: { type } });
+    assert.deepEqual(champsInvalidesDuContrat(valeur), [], type);
+  }
+});
+
+test("N5. un default null, comme un preferredValues mal formé, reste refusé", () => {
+  for (const type of ["slot", "instance-swap"]) {
+    const valeur = contratAvecProps({ nul: { type, default: null }, mal: { type, preferredValues: [{ type: "COMPONENT" }] } });
+    assert.deepEqual(champsInvalidesDuContrat(valeur), ["props.nul.default", "props.mal.preferredValues"], type);
+  }
+});
+
+test("N3. validation-contrat.mjs ne porte plus de seconde reconstruction du nom Figma", () => {
+  const source = readFileSync(new URL("../src/lecteurs/validation-contrat.mjs", import.meta.url), "utf8");
+  assert.doesNotMatch(source, /nomFigmaDuVariant11/);
+  assert.match(source, /nomFigmaDuVariant\(contrat, variant\)/);
+});

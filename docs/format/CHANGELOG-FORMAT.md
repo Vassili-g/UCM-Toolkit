@@ -418,3 +418,7 @@ de base.
 **Ce qui casse** : rien pour un lecteur de valeurs. `ucm tokens css` refuse deux
 extensions dont les noms donnent le même nom CSS, et une extension dont le nom
 CSS est vide ou vaut `base`.
+
+### Forme Unicode des chemins
+
+Classe 5. Un nom Figma en forme décomposée (`NFD`) publie le même chemin que sa forme composée (`NFC`) : `normalizeName` compose avant de normaliser. Un `tokens.json` qui portait un chemin décomposé publie au prochain export le chemin composé, et une référence écrite au clavier le retrouve. `TOKENS_FORMAT_VERSION` ne monte pas, et le nom CSS ne change pas.

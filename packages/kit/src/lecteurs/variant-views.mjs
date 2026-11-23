@@ -12,6 +12,8 @@
  * pas.
  */
 
+import { nomFigmaReconstruit } from "@ucm-kit/core/format";
+
 /** Majeure du schéma déclaré, ou 0 si elle est illisible. */
 function majeure(contrat) {
   const lu = Number.parseInt(String(contrat?.meta?.contractVersion), 10);
@@ -84,15 +86,7 @@ export function nomFigmaDuVariant(contrat, variant) {
   const etiquettes = contrat?.figmaVariantLabels;
   const axes = contrat?.structure?.variantAxes;
   if (!etiquettes || !Array.isArray(axes) || axes.length === 0) return undefined;
-  const valeurs = variant?.values ?? {};
-  const parts = axes.map((axe) => {
-    const nomDAxe = etiquettes.axes?.[axe];
-    const etiquette = etiquettes.values?.[axe]?.[valeurs[axe]];
-    return nomDAxe === undefined || etiquette === undefined
-      ? undefined
-      : `${nomDAxe}=${etiquette}`;
-  });
-  return parts.some((part) => part === undefined) ? undefined : parts.join(", ");
+  return nomFigmaReconstruit(axes, etiquettes, variant?.values ?? {});
 }
 
 /**

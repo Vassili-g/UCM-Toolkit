@@ -1,6 +1,8 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
+import { nomFigmaDuVariant } from '@ucm-kit/core/lecteurs';
 import {
+  buildFigmaVariantLabels,
   findMissingVariantCombinations,
   findWrapperReference,
   getVariantValues,
@@ -218,4 +220,47 @@ test('une instance dont le composant maître est illisible n’est pas un wrappe
   } as unknown as ComponentNode;
 
   assert.equal(await findWrapperReference(root), null);
+});
+
+/** Un Component Set à deux axes dont les noms et les valeurs gardent les majuscules et les espaces de Figma. */
+function ensembleDeVariants(valeurs: ReadonlyArray<{ Size: string; 'Icon Left': string }>) {
+  const composants = valeurs.map((variantProperties) => ({
+    name: `Size=${variantProperties.Size}, Icon Left=${variantProperties['Icon Left']}`,
+    variantProperties,
+  }));
+  const ensemble = {
+    componentPropertyDefinitions: { Size: { type: 'VARIANT' }, 'Icon Left': { type: 'VARIANT' } },
+  } as unknown as ComponentSetNode;
+  const matrix = {
+    axes: ['size', 'iconLeft'],
+    variants: composants.map((component) => ({
+      component: component as unknown as ComponentNode,
+      values: { size: component.variantProperties.Size.toLowerCase(), iconLeft: component.variantProperties['Icon Left'].toLowerCase() },
+    })),
+  };
+  return { ensemble, matrix, composants };
+}
+
+test('N2. le nom Figma que le socle vérifie est celui que le kit rebâtit', () => {
+  const { ensemble, matrix, composants } = ensembleDeVariants([
+    { Size: 'SM', 'Icon Left': 'True' },
+    { Size: 'MD', 'Icon Left': 'False' },
+  ]);
+  const etiquettes = buildFigmaVariantLabels(ensemble, matrix, new Map());
+  assert.ok(etiquettes);
+  const contrat = { figmaVariantLabels: etiquettes, structure: { variantAxes: matrix.axes } };
+  matrix.variants.forEach((entree, rang) => {
+    assert.equal(nomFigmaDuVariant(contrat, { values: entree.values }), composants[rang].name);
+  });
+});
+
+test('N2. une étiquette vide laisse chaque variant à son nom entier, côté socle comme côté kit', () => {
+  const { ensemble, matrix } = ensembleDeVariants([
+    { Size: '', 'Icon Left': 'True' },
+    { Size: 'MD', 'Icon Left': 'False' },
+  ]);
+  assert.equal(buildFigmaVariantLabels(ensemble, matrix, new Map()), null);
+  const etiquettes = { axes: { size: 'Size', iconLeft: 'Icon Left' }, values: { size: { '': '', md: 'MD' }, iconLeft: { true: 'True', false: 'False' } } };
+  const contrat = { figmaVariantLabels: etiquettes, structure: { variantAxes: matrix.axes } };
+  assert.equal(nomFigmaDuVariant(contrat, { values: matrix.variants[0].values }), undefined);
 });
