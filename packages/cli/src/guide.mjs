@@ -15,7 +15,7 @@ import { existsSync, mkdirSync, readFileSync, statSync, writeFileSync } from "no
 import { createRequire } from "node:module";
 import { dirname, join, relative, resolve } from "node:path";
 
-import { NOM_CONFIGURATION, etatDuFormatDeTokens } from "@ucm-kit/core/format";
+import { NOM_CONFIGURATION, codeIdentifier, etatDuFormatDeTokens } from "@ucm-kit/core/format";
 import {
   CARACTERISTIQUES,
   axesDeTokens,
@@ -26,6 +26,7 @@ import {
   contextesDeVerification,
   contextesDesAxes,
   lireConfiguration,
+  lireJsonDuDepot,
   messagesDExport,
   validerGrapheDesContrats,
   verdictDeVersion,
@@ -35,6 +36,7 @@ import {
 import { avertissements, catalogueDesAides } from "./aides.mjs";
 import { contratsDuDossier } from "./contrats.mjs";
 import { conventionsLesPlusProches, lireConventions } from "./conventions.mjs";
+import { FICHIERS_EPINGLES } from "./fichiers-du-consommateur.mjs";
 import { attributsDesAxes, memeFichier, refusDuGrapheDesTokens } from "./tokens-css.mjs";
 import { TYPES_D_ALERTE } from "@ucm-kit/core/referentiel";
 
@@ -44,17 +46,30 @@ export const USAGE_GUIDE = "ucm guide <contrat> [--out <fichier>]";
 
 const PROCEDURE = new URL("../procedure.md", import.meta.url);
 
-/** Les fichiers où un repository épingle `@ucm-kit/cli`, `package.json` à part. */
-const FICHIERS_EPINGLES = [
-  ".agents/skills/ucm-implementer/SKILL.md",
-  ".claude/skills/ucm-implementer/SKILL.md",
-  ".github/workflows/ucm.yml",
-  ".gitlab/ucm.gitlab-ci.yml",
-];
+/** Le numéro de `@ucm-kit/cli` qui imprime le guide. */
+const versionDeLaCli = () => JSON.parse(readFileSync(new URL("../package.json", import.meta.url), "utf8")).version;
+
+/** Un diagnostic d'export en une ligne : le message, puis son variant, son champ et son chemin quand il les porte. */
+function ligneDeDiagnostic(diagnostic) {
+  const precisions = [
+    diagnostic.figma?.variantName ? `variant « ${diagnostic.figma.variantName} »` : null,
+    diagnostic.figma?.property ? `champ \`${diagnostic.figma.property}\`` : null,
+    diagnostic.contractPath ? `\`${diagnostic.contractPath}\`` : null,
+  ].filter(Boolean);
+  return `- ${diagnostic.message}${precisions.length === 0 ? "" : ` (${precisions.join(", ")})`}`;
+}
+
+/** Les lignes des diagnostics d'export : les objets de `meta.diagnostics`, sinon les messages que `messagesDExport` rend. */
+function lignesDeDiagnostics(contrat) {
+  const diagnostics = contrat.meta?.diagnostics;
+  if (Array.isArray(diagnostics)) {
+    return diagnostics.filter((diagnostic) => typeof diagnostic?.message === "string").map(ligneDeDiagnostic);
+  }
+  return messagesDExport(contrat).map((message) => `- ${message}`);
+}
 
 const estObjet = (valeur) => Boolean(valeur) && typeof valeur === "object" && !Array.isArray(valeur);
 const enSlash = (chemin) => chemin.split("\\").join("/");
-const lireJson = (chemin) => JSON.parse(readFileSync(chemin, "utf8").replace(/^\uFEFF/, ""));
 
 /** Lit les arguments de `ucm guide`, sans lever. */
 export function lireArgumentsGuide(arguments_) {
@@ -126,10 +141,12 @@ function extraction(contrat, contratsParNom) {
     "",
     `Version ${contrat.meta?.contractVersion}, couverture portable ${contrat.meta?.coverage?.portable ?? "non déclarée"}.`,
     "",
+    `Nom Figma « ${contrat.name} », identifiant de code \`${codeIdentifier(String(contrat.name))}\`.`,
+    "",
   ];
-  const diagnostics = messagesDExport(contrat);
+  const diagnostics = lignesDeDiagnostics(contrat);
   if (diagnostics.length > 0) {
-    lignes.push("Ce que l'export n'a pas su décrire, à rapporter au développeur :", "", ...diagnostics.map((message) => `- ${message}`), "");
+    lignes.push("Ce que l'export n'a pas su décrire, à rapporter au développeur :", "", ...diagnostics, "");
   }
 
   for (const nom of dependancesDuContrat(contrat)) {
@@ -176,7 +193,7 @@ function aidesDuContrat(caracteristiques, catalogue, conventions) {
     // Sans CSS, le repository écrit `ecritures-par-defaut: non` : la question lui revient.
     const sansReponse = aide.ancrage || (aide.nom === "resolution-token" && !ecrituresParDefaut);
     if (sansReponse && !(section && section.texte !== "")) {
-      nonTranches.push(`- **${aide.nom}** : ${aide.sens.replace(/\s*\n\s*/g, " ")}`);
+      nonTranches.push(`- **${aide.nom}** : ${(aide.question || aide.sens).replace(/\s*\n\s*/g, " ")}`);
       continue;
     }
     const parties = [`### ${aide.nom}`, "", "**Sens.**", "", aide.sens, ""];
@@ -216,7 +233,7 @@ export function pinsEnDesaccord(racine) {
     if (version !== null) trouves.push({ chemin, version });
   }
   try {
-    const manifeste = lireJson(join(racine, "package.json"));
+    const manifeste = lireJsonDuDepot(join(racine, "package.json"));
     const version = manifeste.devDependencies?.["@ucm-kit/cli"] ?? manifeste.dependencies?.["@ucm-kit/cli"];
     // Une archive, un lien ou un espace de travail ne portent pas de numéro à comparer.
     if (typeof version === "string" && !/^[a-z][a-z+]*:/i.test(version)) trouves.push({ chemin: "package.json", version });
@@ -243,7 +260,7 @@ const versionDuNoyauDeLaCli = () => createRequire(import.meta.url)("@ucm-kit/cor
 export function noyauEnDesaccord(racine, versionDeLaCli = versionDuNoyauDeLaCli()) {
   let installee;
   try {
-    installee = lireJson(join(racine, "node_modules", "@ucm-kit", "core", "package.json")).version;
+    installee = lireJsonDuDepot(join(racine, "node_modules", "@ucm-kit", "core", "package.json")).version;
   } catch {
     return [];
   }
@@ -264,7 +281,7 @@ function modesDuContrat(contrat, contratsParNom, racine, configuration) {
 
   let document;
   try {
-    document = lireJson(source);
+    document = lireJsonDuDepot(source);
   } catch {
     return { refus: `${configuration.tokens} est illisible : ce n'est pas du JSON valide.` };
   }
@@ -373,7 +390,7 @@ function documentsDuRepository(racine, configuration, cible) {
   const documents = [];
   for (const chemin of chemins) {
     try {
-      documents.push({ chemin, contrat: lireJson(chemin) });
+      documents.push({ chemin, contrat: lireJsonDuDepot(chemin) });
     } catch {
       // Un contrat voisin illisible relève d'`ucm check`.
     }
@@ -417,7 +434,7 @@ export function guide(arguments_, {
   const cible = resolve(racine, options.contrat);
   let contrat;
   try {
-    contrat = lireJson(cible);
+    contrat = lireJsonDuDepot(cible);
   } catch {
     alerter(`${options.contrat} est introuvable ou n'est pas du JSON valide.`);
     return 2;
@@ -490,7 +507,8 @@ export function guide(arguments_, {
     ...parties.map(([nom, texte]) => `| ${nom} | ${Buffer.byteLength(texte, "utf8")} |`),
     "",
   ].join("\n");
-  const sortie = [`# Guide d'implémentation : ${contrat.name}`, "", ...parties.map(([, texte]) => texte), taille].join("\n");
+  const commande = `Commande \`ucm\` de ce repository : \`npx --yes @ucm-kit/cli@${versionDeLaCli()}\`. Chaque \`ucm …\` de ce guide s'écrit avec elle.`;
+  const sortie = [`# Guide d'implémentation : ${contrat.name}`, "", commande, "", ...parties.map(([, texte]) => texte), taille].join("\n");
 
   if (options.out === null) {
     ecrire(sortie);

@@ -9,6 +9,9 @@ import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
 import test from "node:test";
 
+import { codeIdentifier } from "@ucm-kit/core/format";
+
+import { FICHIERS_EPINGLES } from "../src/fichiers-du-consommateur.mjs";
 import { guide, noyauEnDesaccord } from "../src/guide.mjs";
 import { executer } from "../src/ucm.mjs";
 
@@ -437,4 +440,88 @@ test("G3 : ecritures-par-defaut: non sans section range resolution-token sous no
   const { sortie } = lancer({ ...AVEC_TOKENS, ".ucm/conventions.md": "ecritures-par-defaut: non\n" });
   assert.match(sortie.slice(sortie.indexOf("## Non tranché : demander au développeur")), /^- \*\*resolution-token\*\* : /m);
   assert.equal(sectionDAide(sortie, "resolution-token"), null);
+});
+
+/** Un contrat `Carte` dont `meta` reçoit des champs de plus. */
+const avecMeta = (meta) => ({ [CARTE]: { ...contrat("Carte"), meta: { ...contrat("Carte").meta, ...meta } } });
+
+/** Le texte d'une section `## <titre>` d'un fichier d'aide, sur une ligne. */
+function sectionDeFichier(aide, titre) {
+  const texte = readFileSync(new URL(`../aides/${aide}.md`, import.meta.url), "utf8").replace(/\r\n/g, "\n");
+  const section = texte.split(/^## /m).find((bloc) => bloc.startsWith(`${titre}\n`));
+  return section.slice(titre.length).trim().replace(/\s*\n\s*/g, " ");
+}
+
+test("G1 : l'aide composant dit qu'un default d'instance-swap en forme 12:345 ne se recopie pas", () => {
+  const { sortie } = lancer(DEUX_CONTRATS);
+  assert.match(sectionDAide(sortie, "composant"), /`12:345`, ne se recopie jamais/);
+});
+
+test("G2 : l'écriture de position-absolue cite left, right et translate", () => {
+  const ecriture = readFileSync(new URL("../aides/position-absolue.md", import.meta.url), "utf8");
+  assert.match(ecriture, /`left` moins `right`/);
+  assert.match(ecriture, /`translate`/);
+});
+
+test("G3 : la procédure dit de modifier un composant à partir de son code", () => {
+  const { sortie } = lancer(DEUX_CONTRATS);
+  assert.match(sortie, /se modifie à partir de son code/);
+  assert.doesNotMatch(sortie, /Ouvrir une ancienne implémentation/);
+});
+
+test("G4 : un ancrage sans section s'imprime sous Non tranché avec sa question, sans son sens", () => {
+  const { sortie } = lancer({ ...DEUX_CONTRATS, ".ucm/conventions.md": "Contrôle : `npm run lint`\n" });
+  const nonTranche = sortie.slice(sortie.indexOf("## Non tranché : demander au développeur"));
+  const question = sectionDeFichier("controles", "Question");
+  assert.ok(question.length > 0);
+  assert.ok(nonTranche.includes(`- **controles** : ${question}`), "la ligne porte la question de l'aide");
+  assert.ok(!nonTranche.includes(sectionDeFichier("controles", "Sens")), "le sens ne se recopie pas");
+});
+
+test("G5 : le guide s'ouvre sur la commande épinglée à la version de la CLI", () => {
+  const { version } = JSON.parse(readFileSync(new URL("../package.json", import.meta.url), "utf8"));
+  const { sortie } = lancer(DEUX_CONTRATS);
+  assert.equal(
+    sortie.split("\n")[2],
+    `Commande \`ucm\` de ce repository : \`npx --yes @ucm-kit/cli@${version}\`. Chaque \`ucm …\` de ce guide s'écrit avec elle.`,
+  );
+});
+
+test("G6 : un diagnostic cite son variant et son champ, chaque précision seulement si elle existe", () => {
+  const diagnostic = (extra) => ({ code: "x", severity: "warning", message: "Ombre non décrite.", ...extra });
+  const { sortie } = lancer(avecMeta({
+    diagnostics: [
+      diagnostic({ figma: { variantName: "Tone=alerte", property: "effects" }, contractPath: "variants[1].effects" }),
+      diagnostic({ message: "Sans précision." }),
+      diagnostic({ message: "Chemin seul.", contractPath: "props.tone" }),
+    ],
+  }));
+  assert.match(sortie, /^- Ombre non décrite\. \(variant « Tone=alerte », champ `effects`, `variants\[1\]\.effects`\)$/m);
+  assert.match(sortie, /^- Sans précision\.$/m);
+  assert.match(sortie, /^- Chemin seul\. \(`props\.tone`\)$/m);
+});
+
+test("G7 : le contexte nomme le nom Figma et l'identifiant de code que rend codeIdentifier", () => {
+  const { sortie } = lancer({ [CARTE]: contrat("Icon / Button") });
+  assert.equal(codeIdentifier("Icon / Button"), "IconButton");
+  assert.match(sortie, /^Nom Figma « Icon \/ Button », identifiant de code `IconButton`\.$/m);
+});
+
+test("G8 : un contrat précédé d'un BOM s'imprime", () => {
+  const { code, sortie } = lancer({ ...DEUX_CONTRATS, [CARTE]: `\uFEFF${JSON.stringify(contrat("Carte", { dependances: ["Badge"] }))}` });
+  assert.equal(code, 0);
+  assert.match(sortie, /^# Guide d'implémentation : Carte/);
+});
+
+test("G9 : le guide emploie FICHIERS_EPINGLES de fichiers-du-consommateur", () => {
+  const source = readFileSync(new URL("../src/guide.mjs", import.meta.url), "utf8");
+  assert.match(source, /import \{ FICHIERS_EPINGLES \} from "\.\/fichiers-du-consommateur\.mjs"/);
+  assert.doesNotMatch(source, /const FICHIERS_EPINGLES/);
+  const [premier, second] = FICHIERS_EPINGLES;
+  const { sortie } = lancer({
+    ...DEUX_CONTRATS,
+    [premier]: "npx --yes @ucm-kit/cli@0.1.1 guide\n",
+    [second]: "npx --yes @ucm-kit/cli@0.1.2 guide\n",
+  });
+  assert.ok(sortie.includes(`  ${premier} : 0.1.1`) && sortie.includes(`  ${second} : 0.1.2`));
 });
