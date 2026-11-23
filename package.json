@@ -23,7 +23,8 @@
     "inventaire": "node scripts/ouvrir-inventaire.mjs",
     "agents:lire": "node scripts/agents-contexte.mjs lire",
     "agents:domicile": "node scripts/agents-contexte.mjs domicile",
-    "agents:diff": "node scripts/agents-contexte.mjs diff"
+    "agents:diff": "node scripts/agents-contexte.mjs diff",
+    "sujet": "node scripts/nouveau-sujet.mjs"
   },
   "devDependencies": {
     "@types/node": "^22.0.0",

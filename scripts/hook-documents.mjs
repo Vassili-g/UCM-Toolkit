@@ -45,6 +45,14 @@ if (fs.existsSync(path.join(racine, chemin))) process.exit(0);
 const registre = chargerManifeste(racine).registre ?? [];
 if (registre.some((motif) => correspond(motif, chemin))) process.exit(0);
 
+if (chemin.startsWith('_local/')) {
+  process.stderr.write(
+    `Le registre des documents refuse la création de ${chemin}.\n`
+      + 'Une recherche vit dans `docs/notes/Recherches/<sujet>/`. Lancez `npm run sujet`.\n',
+  );
+  process.exit(2);
+}
+
 process.stderr.write(
   `Le registre des documents refuse la création de ${chemin}.\n`
     + 'Écrire dans le domicile que donne `npm run agents:domicile`, ou faire ajouter '
