@@ -20,8 +20,10 @@ import {
   champsInvalidesDeLaConfiguration,
   configurationDepuisJson,
   estCheminDuRepository,
+  jsonSansBom,
+  sansBom,
 } from "@ucm-kit/core/format";
-import { lireConfiguration } from "@ucm-kit/core/lecteurs";
+import { lireConfiguration, lireJsonDuDepot } from "@ucm-kit/core/lecteurs";
 
 /** Monte un repository jouet portant le contenu donné, ou aucun fichier. */
 function repo(contenu) {
@@ -212,4 +214,54 @@ test("une configuration qui n'est pas un objet est refusée en bloc", () => {
   assert.deepEqual(champsInvalidesDeLaConfiguration([]), ["ucm.config.json"]);
   assert.deepEqual(champsInvalidesDeLaConfiguration(null), ["ucm.config.json"]);
   assert.deepEqual(champsInvalidesDeLaConfiguration("components"), ["ucm.config.json"]);
+});
+
+// J1 à J5 : la lecture d'un JSON du repository retire un BOM de tête.
+function jsonDuDepot(contenu) {
+  const racine = mkdtempSync(join(tmpdir(), "ucm-json-"));
+  const chemin = join(racine, "x.json");
+  if (contenu !== undefined) writeFileSync(chemin, contenu, "utf8");
+  return { racine, chemin };
+}
+
+test("J1 : lireJsonDuDepot lit un JSON précédé d'un BOM", () => {
+  const { racine, chemin } = jsonDuDepot("\uFEFF{\"a\":1}");
+  try {
+    assert.deepEqual(lireJsonDuDepot(chemin), { a: 1 });
+  } finally {
+    rmSync(racine, { recursive: true, force: true });
+  }
+});
+
+test("J2 : le même JSON sans BOM rend le même objet", () => {
+  const { racine, chemin } = jsonDuDepot("{\"a\":1}");
+  try {
+    assert.deepEqual(lireJsonDuDepot(chemin), { a: 1 });
+  } finally {
+    rmSync(racine, { recursive: true, force: true });
+  }
+});
+
+test("J3 : un fichier absent lève ENOENT, comme readFileSync", () => {
+  const { racine, chemin } = jsonDuDepot();
+  try {
+    assert.throws(() => lireJsonDuDepot(chemin), { code: "ENOENT" });
+  } finally {
+    rmSync(racine, { recursive: true, force: true });
+  }
+});
+
+test("J4 : un JSON invalide lève SyntaxError", () => {
+  const { racine, chemin } = jsonDuDepot("{pas du json");
+  try {
+    assert.throws(() => lireJsonDuDepot(chemin), SyntaxError);
+  } finally {
+    rmSync(racine, { recursive: true, force: true });
+  }
+});
+
+test("J5 : jsonSansBom lit un texte avec BOM, et sansBom ne retire que le premier", () => {
+  assert.deepEqual(jsonSansBom("\uFEFF{\"a\":1}"), { a: 1 });
+  assert.equal(sansBom("\uFEFFx"), "x");
+  assert.equal(sansBom("x\uFEFF"), "x\uFEFF");
 });

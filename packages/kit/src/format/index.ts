@@ -90,6 +90,8 @@ export {
   champsInvalidesDeLaConfiguration,
   configurationDepuisJson,
   estCheminDuRepository,
+  jsonSansBom,
+  sansBom,
 } from './configuration.js';
 export type { ConfigurationRepository } from './configuration.js';
 export { cheminCitable, prefixeDeCollection, joinTokenPath } from './chemins-de-tokens.js';

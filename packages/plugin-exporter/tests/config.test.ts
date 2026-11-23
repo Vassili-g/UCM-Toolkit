@@ -16,6 +16,7 @@ import {
   supprimerDepot,
   validateSettings,
 } from '../src/config';
+import { repositoryLayout } from '../src/depot';
 
 test('l’adresse d’une page GitLab donne le projet, et dit qu’un dossier a été retiré', () => {
   assert.deepEqual(
@@ -391,4 +392,17 @@ test('« Se connecter » écrit le dépôt actif, puis désactive l’export loc
   ecritures.length = 0;
   await activerDepot('github:absent/depot');
   assert.deepEqual(ecritures, []);
+});
+
+// J7 : un ucm.config.json précédé d'un BOM se lit comme celui qui n'en a pas.
+test('un ucm.config.json avec BOM donne la configuration du repository', async () => {
+  const forge = {
+    lireFichier: async () => ({
+      contenu: '\uFEFF{"components":"design/contrats","tokens":"design/tokens.json"}',
+      version: 'v1',
+    }),
+  } as unknown as Parameters<typeof repositoryLayout>[0];
+  const layout = await repositoryLayout(forge);
+  assert.equal(layout.components, 'design/contrats');
+  assert.equal(layout.tokens, 'design/tokens.json');
 });

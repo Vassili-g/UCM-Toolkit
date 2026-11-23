@@ -5,7 +5,14 @@
 import { existsSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 
-import { CONFIGURATION_PAR_DEFAUT, NOM_CONFIGURATION, configurationDepuisJson } from "@ucm-kit/core/format";
+import { CONFIGURATION_PAR_DEFAUT, NOM_CONFIGURATION, configurationDepuisJson, jsonSansBom } from "@ucm-kit/core/format";
+
+import { CHEMIN_DES_DEROGATIONS, lireDerogations } from "./derogations.mjs";
+
+/** Un JSON du repository, BOM de tête retiré ; lève comme `readFileSync` et `JSON.parse`. */
+export function lireJsonDuDepot(chemin) {
+  return jsonSansBom(readFileSync(chemin, "utf8"));
+}
 
 /**
  * Lit la configuration d'un repository, et rend toujours une configuration
@@ -24,9 +31,7 @@ export function lireConfiguration(racine) {
 
   let brut;
   try {
-    // Un BOM en tête ferait échouer JSON.parse, et l'éditeur qui l'a écrit ne
-    // le montre pas : le retirer évite un refus que personne ne saurait lire.
-    brut = JSON.parse(readFileSync(chemin, "utf8").replace(/^﻿/, ""));
+    brut = lireJsonDuDepot(chemin);
   } catch {
     return {
       configuration: { ...CONFIGURATION_PAR_DEFAUT },
@@ -37,4 +42,21 @@ export function lireConfiguration(racine) {
 
   const { configuration, erreur } = configurationDepuisJson(brut);
   return { configuration, chemin, erreur };
+}
+
+/**
+ * Lit `.ucm/derogations.json` à la racine. Un fichier absent n'est aucune
+ * dérogation ; un fichier qu'on ne peut pas ouvrir est une erreur à corriger, et
+ * jamais une absence.
+ */
+export function lireDerogationsDuDepot(racine) {
+  let texte = null;
+  try {
+    texte = readFileSync(join(racine, CHEMIN_DES_DEROGATIONS), "utf8");
+  } catch (erreur) {
+    if (erreur?.code !== "ENOENT") {
+      return { derogations: [], erreurs: [`${CHEMIN_DES_DEROGATIONS} est illisible : ${erreur?.code ?? "lecture impossible"}.`] };
+    }
+  }
+  return lireDerogations(texte);
 }

@@ -12,6 +12,8 @@
  * `export const`, et le plan P6 n'ouvre cette porte qu'au lot 3.1.
  */
 
+import { CHEMIN_DES_DEROGATIONS } from "./derogations.mjs";
+
 // ─── Familles et propriétés ───────────────────────────────────────────────
 
 /** Les familles de propriétés CSS que le contrat tokenise. */
@@ -310,7 +312,7 @@ function messageDeLaLimite(code, faits) {
     case "lecture-incomplete":
       return `Ce fichier porte ${faits.erreurs} ${faits.erreurs > 1 ? "erreurs" : "erreur"} de syntaxe. La partie illisible n’est pas jugée.`;
     case "derogations-illisibles":
-      return ".ucm/derogations.json contient des erreurs. Aucune dérogation n’est appliquée.";
+      return `${CHEMIN_DES_DEROGATIONS} contient des erreurs. Aucune dérogation n’est appliquée.`;
     case "sans-adaptateur":
       return `Le lecteur du code ne lit pas les fichiers \`${faits.extension}\`. Le code de \`${faits.composant}\` n’est pas jugé.`;
     default:

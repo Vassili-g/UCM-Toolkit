@@ -11,6 +11,7 @@ import {
   EXTENSION_VERSION_TOKENS,
   TOKENS_FORMAT_VERSION,
   etatDuFormatDeTokens,
+  sansBom,
   versionDeContrat,
 } from "@ucm-kit/core/format";
 
@@ -18,7 +19,8 @@ import { avertissementsCorrigeables, resumeTerminalAvertissements, sectionAverti
 import { constatsDeLArchitecture, resumeTerminalArchitecture, sectionArchitecture } from "./diagnostic-architecture.mjs";
 import { suffixeDeDerogation } from "./controle-du-code-listes.mjs";
 import { preparerControleDepuis } from "./controle-du-code.mjs";
-import { CHEMIN_DES_DEROGATIONS, commandeDeDerogation, lireDerogations } from "./derogations.mjs";
+import { CHEMIN_DES_DEROGATIONS, commandeDeDerogation } from "./derogations.mjs";
+import { lireDerogationsDuDepot, lireJsonDuDepot } from "./configuration.mjs";
 import { aUnEcartDeParite } from "./diagnostic-parite.mjs";
 import { diagnosticEchecsDeTests, resumeTerminalEchecsDeTests } from "./diagnostic-tests.mjs";
 import { libelleNombre, rendreDiagnostic } from "./diagnostic-markdown.mjs";
@@ -107,7 +109,7 @@ function analyser(chemin, contexte, erreursGraphe = []) {
   let contrat;
   try {
     // Un BOM en tête de fichier ferait échouer JSON.parse : on le retire.
-    contrat = JSON.parse(readFileSync(chemin, "utf8").replace(/^﻿/, ""));
+    contrat = lireJsonDuDepot(chemin);
   } catch {
     return { ...vide, illisible: true };
   }
@@ -472,7 +474,7 @@ function sectionsDuCode(entrees, { verdict, bilansDuRapport, maintenant }) {
       severity: "warning",
       title: `Des écarts du code sont acceptés par une dérogation (${couvertes.length})`,
       items: couvertes.map(({ id, ecart, derogation }) => ligneDeDerogation(id, ecart.fichier === undefined ? ecart.texte : `\`${ecart.fichier}\` ligne ${ecart.ligne} : ${ecart.texte}`, derogation)),
-      action: "Le designer relit chaque motif. Pour refuser, il demande à un développeur de retirer la ligne de `.ucm/derogations.json`. Pour accepter, il change Figma pour que le contrat dise ce que fait le code.",
+      action: `Le designer relit chaque motif. Pour refuser, il demande à un développeur de retirer la ligne de \`${CHEMIN_DES_DEROGATIONS}\`. Pour accepter, il change Figma pour que le contrat dise ce que fait le code.`,
       status: "Ces dérogations ne bloquent pas la fusion.",
     }));
   }
@@ -499,7 +501,7 @@ function sectionsDuCode(entrees, { verdict, bilansDuRapport, maintenant }) {
       title: `Le fichier des dérogations contient des erreurs (${verdict.erreursDeDerogations.length})`,
       detailsTitle: "Écarts détectés",
       details: verdict.erreursDeDerogations,
-      action: "Un développeur doit corriger `.ucm/derogations.json`.",
+      action: `Un développeur doit corriger \`${CHEMIN_DES_DEROGATIONS}\`.`,
       status: "La fusion reste bloquée.",
     }));
   }
@@ -1160,7 +1162,7 @@ function relireLeCodeDuComposant(id, implementation, { racine, configuration, do
       } else if (constat.niveau === "ecart") {
         if (!textes.has(fichier)) {
           let texte = "";
-          try { texte = readFileSync(fichier, "utf8").replace(/^﻿/, ""); } catch { /* le décalage retombe sur la ligne 1 */ }
+          try { texte = sansBom(readFileSync(fichier, "utf8")); } catch { /* le décalage retombe sur la ligne 1 */ }
           textes.set(fichier, texte);
         }
         code.ecarts.push({
@@ -1181,23 +1183,6 @@ function relireLeCodeDuComposant(id, implementation, { racine, configuration, do
 
 /** Une valeur mesurée par l'appelant, `null` compris, ou le défaut quand il n'en donne pas. */
 const valeurOu = (valeur, parDefaut) => (valeur === undefined ? parDefaut : valeur);
-
-/**
- * Lit `.ucm/derogations.json` à la racine. Un fichier absent n'est aucune
- * dérogation ; un fichier qu'on ne peut pas ouvrir est une erreur à corriger, et
- * jamais une absence.
- */
-function lireLesDerogations(racine) {
-  let texte = null;
-  try {
-    texte = readFileSync(join(racine, CHEMIN_DES_DEROGATIONS), "utf8");
-  } catch (erreur) {
-    if (erreur?.code !== "ENOENT") {
-      return { derogations: [], erreurs: [`${CHEMIN_DES_DEROGATIONS} est illisible : ${erreur?.code ?? "lecture impossible"}.`] };
-    }
-  }
-  return lireDerogations(texte);
-}
 
 /**
  * Contrôle un repository et rend son verdict, sans rien écrire nulle part.
@@ -1297,7 +1282,7 @@ export function controlerRepository(racine, {
   let tokensDtcg;
   let tokensAbsents = false;
   try {
-    tokensDtcg = JSON.parse(readFileSync(cheminTokens, "utf8").replace(/^﻿/, ""));
+    tokensDtcg = lireJsonDuDepot(cheminTokens);
   } catch (erreur) {
     // Absent et illisible ne se corrigent pas du même geste : le premier accuse
     // la génération, le second le fichier. Les confondre enverrait le designer
@@ -1358,7 +1343,7 @@ export function controlerRepository(racine, {
 
   const documents = contrats.flatMap((chemin) => {
     try {
-      return [{ chemin, contrat: JSON.parse(readFileSync(chemin, "utf8").replace(/^﻿/, "")) }];
+      return [{ chemin, contrat: lireJsonDuDepot(chemin) }];
     } catch {
       return [];
     }
@@ -1390,7 +1375,7 @@ export function controlerRepository(racine, {
   // Le code se juge avec ce qui est déjà lu : contrats, tokens, dérogations. Les
   // dérogations passent sans leurs erreurs, que le verdict dit à part : le juge
   // et le verdict couvrent alors les mêmes écarts.
-  const derogations = lireLesDerogations(racine);
+  const derogations = lireDerogationsDuDepot(racine);
   const lecteur = adaptateur.lecteurDuCode;
   const documentsDuCode = contrats.map((chemin) => ({ chemin, contrat: documents.find((document) => document.chemin === chemin)?.contrat ?? null }));
   const entreeDuJuge = {

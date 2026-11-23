@@ -28,7 +28,7 @@ export { preparerControle } from "./controle-du-code.mjs";
  * Ouvre `ucm.config.json` sur disque ; sa grammaire reste dans `format` pour
  * que le plugin Figma utilise la même autorité.
  */
-export { lireConfiguration } from "./configuration.mjs";
+export { lireConfiguration, lireDerogationsDuDepot, lireJsonDuDepot } from "./configuration.mjs";
 
 /** La version : ce que ce paquet sait lire, et le sens d'un écart. */
 export {

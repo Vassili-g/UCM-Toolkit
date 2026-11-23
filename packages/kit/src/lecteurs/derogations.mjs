@@ -4,10 +4,12 @@
  * `ecartsIdentifiesDeParite` les rend, pour un composant et un export donnés.
  *
  * Le module est pur : il reçoit le texte du fichier (`null` s'il est absent),
- * jamais un chemin. L'ouverture du fichier appartient à l'appelant Node.
+ * jamais un chemin. L'ouverture du fichier appartient à `lireDerogationsDuDepot`,
+ * de `configuration.mjs`, que les deux contrôles appellent.
  * Aucune entrée n'expire par une date : elle ne s'applique plus dès que son
  * `export` diffère du `meta.exportedAt` courant du contrat.
  */
+import { jsonSansBom } from "@ucm-kit/core/format";
 
 export const CHEMIN_DES_DEROGATIONS = ".ucm/derogations.json";
 
@@ -88,7 +90,7 @@ export function lireDerogations(texte) {
   if (texte === null || texte === undefined) return { derogations: [], erreurs: [] };
   let brut;
   try {
-    brut = JSON.parse(String(texte).replace(/^﻿/, ""));
+    brut = jsonSansBom(String(texte));
   } catch {
     return { derogations: [], erreurs: [`${CHEMIN_DES_DEROGATIONS} est illisible : ce n'est pas du JSON valide.`] };
   }

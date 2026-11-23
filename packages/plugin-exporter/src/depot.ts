@@ -10,6 +10,7 @@ import {
   configurationDepuisJson,
   etatDuFormatDeTokens,
   identiteDeContrat,
+  jsonSansBom,
   versionDeContrat,
 } from '@ucm-kit/core/format';
 
@@ -142,7 +143,7 @@ export async function repositoryLayout(forge: Forge): Promise<RepositoryLayout> 
   try {
     // Un BOM en tête ferait échouer JSON.parse, et l'éditeur qui l'a écrit ne
     // le montre pas.
-    brut = JSON.parse(fichier.contenu.replace(/^﻿/, ''));
+    brut = jsonSansBom(fichier.contenu);
   } catch {
     throw new ErreurDeDescription(
       `${NOM_CONFIGURATION} du dépôt n'est pas du JSON valide : impossible de savoir où écrire cet export. Un développeur doit corriger ce fichier.`,

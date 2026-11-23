@@ -1,9 +1,9 @@
 /** Génère les unions TypeScript dérivées des contrats d'un repository. */
-import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
+import { mkdirSync, writeFileSync } from "node:fs";
 import { basename, join, resolve } from "node:path";
 
 import { codeIdentifier } from "@ucm-kit/core/format";
-import { libelleNombre, lireConfiguration, trouverContrats } from "@ucm-kit/core/lecteurs";
+import { libelleNombre, lireConfiguration, lireJsonDuDepot, trouverContrats } from "@ucm-kit/core/lecteurs";
 
 import { nomsEnumsDeVariantes, typeVariantesExactes } from "./types-variants.mjs";
 import { TYPES_D_ALERTE } from "@ucm-kit/core/referentiel";
@@ -79,7 +79,7 @@ export function genererTypes(racine = process.cwd(), { dossierSortie = "src/gene
   for (const chemin of contrats) {
     let contrat;
     try {
-      contrat = JSON.parse(readFileSync(chemin, "utf8").replace(/^﻿/, ""));
+      contrat = lireJsonDuDepot(chemin);
     } catch {
       omis.push({ chemin, raison: "illisible" });
       continue;

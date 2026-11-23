@@ -92,6 +92,9 @@ declare module "@ucm-kit/core/lecteurs" {
    * également accessible au plugin Figma.
    */
 
+  /** Un JSON du repository, BOM de tête retiré ; lève comme readFileSync et JSON.parse. */
+  export function lireJsonDuDepot(chemin: string): unknown;
+
   /** Lit la configuration d'un repository ; rend toujours une configuration complète. */
   export function lireConfiguration(racine: string): {
     configuration: {
@@ -973,6 +976,9 @@ declare module "@ucm-kit/core/lecteurs" {
 
   /** Lit le texte de `.ucm/derogations.json` (`null` si absent) ; ne lève pas, chaque refus nomme l'entrée fautive. */
   export function lireDerogations(texte: string | null | undefined): { derogations: Derogation[]; erreurs: string[] };
+
+  /** Lit `.ucm/derogations.json` à la racine ; absent, aucune dérogation ; illisible, une erreur. */
+  export function lireDerogationsDuDepot(racine: string): { derogations: Derogation[]; erreurs: string[] };
 
   /** Répartit les écarts d'un composant selon les dérogations valides de l'export courant. */
   export function appliquerDerogations(

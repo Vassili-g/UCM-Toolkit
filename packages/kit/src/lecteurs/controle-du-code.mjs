@@ -16,7 +16,7 @@
 import { existsSync, readFileSync } from "node:fs";
 import { dirname, extname, isAbsolute, join, relative, resolve, sep } from "node:path";
 
-import { NOM_CONFIGURATION, etatDuFormatDeTokens, isTokenReference, refPath, versionDeContrat } from "@ucm-kit/core/format";
+import { NOM_CONFIGURATION, etatDuFormatDeTokens, isTokenReference, refPath, sansBom, versionDeContrat } from "@ucm-kit/core/format";
 
 import {
   ATTRIBUTS_SANS_VALEUR_VISUELLE,
@@ -35,9 +35,9 @@ import {
   regleDuConstat,
   suffixeDeDerogation,
 } from "./controle-du-code-listes.mjs";
-import { CHEMIN_DES_DEROGATIONS, appliquerDerogations, commandeDeDerogation, coordonneesDuGenre, lireDerogations } from "./derogations.mjs";
+import { CHEMIN_DES_DEROGATIONS, appliquerDerogations, commandeDeDerogation, coordonneesDuGenre } from "./derogations.mjs";
 import { cheminImplementation, identifiantDuContrat } from "./implementation.mjs";
-import { lireConfiguration } from "./configuration.mjs";
+import { lireConfiguration, lireDerogationsDuDepot, lireJsonDuDepot } from "./configuration.mjs";
 import { trouverContrats } from "./trouver-contrats.mjs";
 import { indexerTokensDtcg, nomsCssDesTokens } from "./tokens-dtcg.mjs";
 import { verdictDeVersion } from "./version-contrat.mjs";
@@ -56,8 +56,6 @@ const RE_HEXADECIMAL = /^#(?:[0-9a-f]{3,4}|[0-9a-f]{6}|[0-9a-f]{8})$/i;
 const RE_GRANDEUR = /^([+-]?(?:\d+\.?\d*|\.\d+)(?:e[+-]?\d+)?)([a-z%]*)$/i;
 const RE_IDENTIFIANT = /^-?[a-z_][\w-]*$/i;
 const RE_FONCTION = /^(-?[a-z_][\w-]*)\(/i;
-
-const retirerBom = (texte) => (texte.charCodeAt(0) === 0xfeff ? texte.slice(1) : texte);
 
 /** L'indice de la parenthèse qui ferme celle de `ouvrante`, ou -1. */
 function fermante(texte, ouvrante) {
@@ -403,7 +401,7 @@ function relever(chemin, { texte, lecteur, lire, cache }) {
   if (memoire && cache.has(chemin)) return cache.get(chemin);
   let releve = null;
   try {
-    releve = lecteur.releverUsages(retirerBom(texte ?? lire(chemin)), chemin);
+    releve = lecteur.releverUsages(sansBom(texte ?? lire(chemin)), chemin);
   } catch {
     releve = null;
   }
@@ -431,7 +429,7 @@ function fichiersDuComposant(implementation, { lecteur, extensions, cache }) {
  *
  * - `documents` : `[{ chemin, contrat }]`, `contrat` valant `null` s'il est illisible ;
  * - `tokens` : `{ etat, index, noms }` (`etat` rendu par `etatDuFormatDeTokens`), ou `null` si le fichier est absent ou illisible ;
- * - `derogations` : le résultat de `lireDerogations` ;
+ * - `derogations` : le résultat de `lireDerogations` ou de `lireDerogationsDuDepot` ;
  * - `lecteur` : le lecteur du code de l'adaptateur ;
  * - `texte` : le texte à juger à la place du disque ;
  * - `cache` : une `Map` partagée d'un appel à l'autre d'un même contrôle ; elle garde le relevé de chaque fichier lu sur le disque et la liste des fichiers de chaque implémentation.
@@ -575,7 +573,7 @@ function trouverLaRacine(dossier) {
 function lireLesTokens(racine, configuration) {
   let brut;
   try {
-    brut = JSON.parse(retirerBom(readFileSync(join(racine, configuration.tokens), "utf8")));
+    brut = lireJsonDuDepot(join(racine, configuration.tokens));
   } catch {
     return null;
   }
@@ -583,16 +581,6 @@ function lireLesTokens(racine, configuration) {
   if (etat.etat === "future" || etat.etat === "invalide") return { etat, index: new Map(), noms: new Map() };
   const index = indexerTokensDtcg(brut);
   return { etat, index, noms: nomsCssDesTokens(index) };
-}
-
-function lireLesDerogations(racine) {
-  let texte = null;
-  try {
-    texte = readFileSync(join(racine, CHEMIN_DES_DEROGATIONS), "utf8");
-  } catch (erreur) {
-    if (erreur?.code !== "ENOENT") return { derogations: [], erreurs: [`${CHEMIN_DES_DEROGATIONS} est illisible : ${erreur?.code ?? "lecture impossible"}.`] };
-  }
-  return lireDerogations(texte);
 }
 
 /**
@@ -630,7 +618,7 @@ export function preparerControle(fichier, { texte, lecteur, racine } = {}) {
     }
     const documents = contrats.map((chemin) => {
       try {
-        return { chemin, contrat: JSON.parse(retirerBom(readFileSync(chemin, "utf8"))) };
+        return { chemin, contrat: lireJsonDuDepot(chemin) };
       } catch {
         return { chemin, contrat: null };
       }
@@ -641,7 +629,7 @@ export function preparerControle(fichier, { texte, lecteur, racine } = {}) {
       configuration,
       documents,
       tokens: lireLesTokens(dossier, configuration),
-      derogations: lireLesDerogations(dossier),
+      derogations: lireDerogationsDuDepot(dossier),
       lecteur,
       texte,
     });

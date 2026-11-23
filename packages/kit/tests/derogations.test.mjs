@@ -4,7 +4,12 @@
  */
 import assert from "node:assert/strict";
 import test from "node:test";
-import { ajouterDerogation, appliquerDerogations, commandeDeDerogation, coordonneesDuGenre, lireDerogations } from "../src/lecteurs/derogations.mjs";
+import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
+import { ajouterDerogation, appliquerDerogations, CHEMIN_DES_DEROGATIONS, commandeDeDerogation, coordonneesDuGenre, lireDerogations } from "../src/lecteurs/derogations.mjs";
+import { lireDerogationsDuDepot } from "../src/lecteurs/configuration.mjs";
+import { messageDeLaLimite } from "../src/lecteurs/controle-du-code-listes.mjs";
 
 const EXPORT = "2026-11-01T10:00:00.000Z";
 
@@ -208,4 +213,28 @@ test("une entrée du code couvre le constat de mêmes coordonnées, pas celui d'
   const r = appliquerDerogations([LE_CODE], "Button", EXPORT, ecarts);
   assert.equal(r.couverts.length, 1);
   assert.equal(r.restants.length, 1);
+});
+
+// J6 : les deux contrôles lisent le fichier par la même fonction, BOM compris.
+test("J6 : lireDerogationsDuDepot lit un fichier avec BOM, rend aucune dérogation s'il est absent", () => {
+  const racine = mkdtempSync(join(tmpdir(), "ucm-derog-"));
+  try {
+    assert.deepEqual(lireDerogationsDuDepot(racine), { derogations: [], erreurs: [] });
+    mkdirSync(join(racine, ".ucm"));
+    writeFileSync(join(racine, CHEMIN_DES_DEROGATIONS), "\uFEFF{\"derogations\":[]}", "utf8");
+    assert.deepEqual(lireDerogationsDuDepot(racine), { derogations: [], erreurs: [] });
+    writeFileSync(join(racine, CHEMIN_DES_DEROGATIONS), "\uFEFF{pas du json", "utf8");
+    assert.match(lireDerogationsDuDepot(racine).erreurs[0], /n'est pas du JSON valide/);
+  } finally {
+    rmSync(racine, { recursive: true, force: true });
+  }
+});
+
+// J8 : le chemin des messages vient de la constante, le texte ne change pas.
+test("J8 : le message des dérogations illisibles nomme CHEMIN_DES_DEROGATIONS", () => {
+  assert.equal(CHEMIN_DES_DEROGATIONS, ".ucm/derogations.json");
+  assert.equal(
+    messageDeLaLimite("derogations-illisibles", {}),
+    ".ucm/derogations.json contient des erreurs. Aucune dérogation n’est appliquée.",
+  );
 });

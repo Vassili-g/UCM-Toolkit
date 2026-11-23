@@ -6,6 +6,12 @@
  * invalide est une erreur, tandis que son absence applique les valeurs par défaut.
  */
 
+/** Un texte sans le BOM de tête que certains éditeurs écrivent et que `JSON.parse` refuse. */
+export const sansBom = (texte: string): string => (texte.charCodeAt(0) === 0xfeff ? texte.slice(1) : texte);
+
+/** Lit un JSON de repository ; lève comme `JSON.parse` quand le texte n'en est pas un. */
+export const jsonSansBom = (texte: string): unknown => JSON.parse(sansBom(texte));
+
 /** Le nom du fichier, écrit une fois. */
 export const NOM_CONFIGURATION = 'ucm.config.json';
 
