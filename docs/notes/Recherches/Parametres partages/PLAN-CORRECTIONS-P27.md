@@ -339,9 +339,9 @@ Nature : documentation du format et réécriture de deux gardes.
 
 ## Vague 3
 
-- [ ] 3.1 `executant`. Textes des aides, de la procédure et de la recette (PP-202, PP-203, PP-204, PP-206, PP-207, PP-208, PP-209, PP-210, PP-212, PP-213, PP-215).
-- [ ] 3.2 `implementeur`. Questions des ancrages dans `ucm aides` (PP-208).
-- [ ] 3.3 `implementeur-exigeant`. Seuils de contraste (PP-04, PP-05).
+- [x] 3.1 `executant`. Textes des aides, de la procédure et de la recette (PP-202, PP-203, PP-204, PP-206, PP-207, PP-208, PP-209, PP-210, PP-212, PP-213, PP-215). Commit : `7a233f43`.
+- [x] 3.2 `implementeur`. Questions des ancrages dans `ucm aides` (PP-208). Commit : `da8a121a`.
+- [x] 3.3 `implementeur-exigeant`. Seuils de contraste (PP-04, PP-05). Commit : `3aab2611`.
 
 ### Lot 3.1. Textes des aides, de la procédure et de la recette
 
