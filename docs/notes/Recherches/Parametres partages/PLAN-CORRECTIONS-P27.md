@@ -154,14 +154,14 @@ Ces choix ne viennent d'aucune décision écrite.
 
 ## Vague 0
 
-- [ ] 0.1 Conversation principale. Commiter ce plan, `pistes.json` et `INVENTAIRE-UCM.html` régénéré par `npm run vues`. Ajouter à `.agents/skills/publier-paquets/SKILL.md`, après le titre, la puce suivante, en chargeant `rediger-pour-agents`.
+- [x] 0.1 Conversation principale. Commiter ce plan, `pistes.json` et `INVENTAIRE-UCM.html` régénéré par `npm run vues`. Ajouter à `.agents/skills/publier-paquets/SKILL.md`, après le titre, la puce suivante, en chargeant `rediger-pour-agents`. Commit : `1b077cd4`.
   - « **Verrou P27.** Ne publier ni `@ucm-kit/core`, ni `@ucm-kit/cli`, ni `@ucm-kit/adapter-typescript` tant que cette puce existe : `main` porte un travail de P27 non publié (`docs/notes/Recherches/Parametres partages/PLAN-CORRECTIONS-P27.md`). Rendre la question au mainteneur. La case 11.3 du plan la retire. »
 
 ## Vague 1
 
-- [ ] 1.1 `implementeur`. Lecture des JSON du dépôt (PP-11, PP-10 pour le kit).
-- [ ] 1.2 `executant`. Version du contrat dans les tests (PP-06, PP-07).
-- [ ] 1.3 `implementeur`. Familles, rendu et nombres documentés (PP-01, PP-02, PP-07, PP-09, PP-20).
+- [x] 1.1 `implementeur`. Lecture des JSON du dépôt (PP-11, PP-10 pour le kit). Commit : `1e99663f`.
+- [x] 1.2 `executant`. Version du contrat dans les tests (PP-06, PP-07). Commit : `ed5b2441`.
+- [x] 1.3 `implementeur`. Familles, rendu et nombres documentés (PP-01, PP-02, PP-07, PP-09, PP-20). Commit : `74f61db1`.
 
 ### Lot 1.1. Lecture des JSON du dépôt
 
