@@ -51,7 +51,7 @@ Un commentaire se justifie seulement par un fait absent du code : décision, pr�
 
 Interface d'un plugin : lire d'abord [CONTRIBUTING.md](./CONTRIBUTING.md#interface-du-plugin) ; hiérarchie de l'information et protocole de relecture y font autorité ; la galerie des états rend chaque écran atteignable hors de Figma.
 
-Maturité et priorités : [ROADMAP.md](./ROADMAP.md). Idées non décidées : [PISTES-EVOLUTION.md](./docs/notes/Recherches/Evolutions%20globales/PISTES-EVOLUTION.md).
+Maturité du MVP : [VALIDATIONS-MVP.md](./VALIDATIONS-MVP.md). Priorités : Roadmap de l'inventaire. Idées non décidées : [PISTES-EVOLUTION.md](./docs/notes/Recherches/Evolutions%20globales/PISTES-EVOLUTION.md).
 
 Vue d'ensemble générée pour le mainteneur : [INVENTAIRE-UCM.html](./INVENTAIRE-UCM.html). Un agent lit ses sources, pas la page.
 
@@ -89,8 +89,8 @@ Parcourir dans l'ordre ; s'arrêter à la première ligne qui convient.
 | Définition UCM : crans, modes, rôles, conventions | `packages/kit/src/referentiel/`, en code ([règle](./packages/kit/invariants/referentiel.md)) |
 | Règle de travail : code, test, message, rédaction | `CONTRIBUTING.md` |
 | Procédure qu'un agent exécute | une skill existante de `.agents/skills/` |
-| Maturité, priorité, validation restante | `ROADMAP.md` |
-| Piste et décision de la feuille de route | `pistes.json` et `decisions.json` de `docs/notes/Recherches/Evolutions globales/` |
+| Maturité du MVP, validation restante | `VALIDATIONS-MVP.md` |
+| Piste, prio et décision de la Roadmap | `pistes.json` et `decisions.json` de `docs/notes/Recherches/Evolutions globales/` ; état et marques dans les cases du plan |
 | Recherche, plan, décision à prendre | le dossier existant de `docs/notes/Recherches/` qui traite le sujet |
 | Aucune ligne ne convient | ne rien écrire ; rendre la question |
 

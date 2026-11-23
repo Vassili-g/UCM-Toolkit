@@ -1,4 +1,4 @@
-# Roadmap
+# Validations du MVP
 
 L'état du projet et ce qu'il reste à valider. [CONCEPT.md](./CONCEPT.md) porte
 les principes, [docs/format/FORMAT.md](./docs/format/FORMAT.md) la forme publiée,
