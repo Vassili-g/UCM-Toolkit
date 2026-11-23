@@ -112,3 +112,12 @@ test("un contrat malformé ne lève pas et ne porte que toujours", () => {
   assert.deepEqual(caracteristiquesDuContrat(null), ["toujours"]);
   assert.deepEqual(caracteristiquesDuContrat({ variants: "x", viewStructures: [] }), ["toujours"]);
 });
+
+test("un contrat dont la seule disposition est une grille relève grille, et pas disposition", () => {
+  const contrat = base();
+  contrat.viewStructures.st1.layout = "grid";
+  contrat.viewStructures.st1.children = [{ slot: "cellule", alignSelf: "center" }];
+  const relevees = caracteristiquesDuContrat(contrat, new Map(), CONES);
+  assert.equal(relevees.includes("grille"), true);
+  assert.equal(relevees.includes("disposition"), false);
+});
