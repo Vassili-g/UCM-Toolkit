@@ -361,6 +361,14 @@ Cette règle reprend la fenêtre de lecture des contrats, qui accepte la version
 courante et la précédente. Le développeur a toujours une version où l'ancien et
 le nouveau nom coexistent.
 
+### Une seconde prise, dans l'adaptateur TypeScript
+
+Le linter de P6 lit le code par `lecteurDuCode`, que `@ucm-kit/adapter-typescript` publie par la porte `@ucm-kit/adapter-typescript/usages`. Cette porte est la seule de l'adaptateur qu'un module importe. Elle publie un seul nom. Elle lit la syntaxe et ne juge rien, donc elle n'importe pas le kit.
+
+Elle suit les règles de la prise du kit. Un nom y entre quand un module l'importe. Le journal `packages/adapter-typescript/CHANGELOG.md` note chaque changement, avec les genres `ajout`, `déprécié` et `rupture`. Une rupture monte le chiffre du milieu de l'adaptateur. `packages/adapter-typescript/tests/usagesPromis.test.mjs` compare les noms de la porte, les membres de `lecteurDuCode` et les résultats attendus de ses exemples à la version précédente, et exige l'entrée du journal.
+
+Un module emploie l'adaptateur que le repository installe pour `ucm check`. Il n'en déclare pas un second. Un module extrait dans son propre paquet l'épingle à la version exacte que le repository installe, comme le kit.
+
 ## 3. Ce que la piste P3 devient
 
 Le fichier `packages/kit/api-publique.json` disparaît du plan. La prise

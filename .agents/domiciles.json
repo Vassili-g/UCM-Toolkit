@@ -188,7 +188,9 @@
       "lies": [
         "packages/plugin-exporter/README.md",
         "packages/plugin-exporter/SPEC.md",
-        "packages/cli/README.md"
+        "packages/cli/README.md",
+        "docs/guides/LINTER-UCM.md",
+        ".agents/skills/regler-le-linter/SKILL.md"
       ],
       "verifications": [
         "npm run test:paquet -- exporter",

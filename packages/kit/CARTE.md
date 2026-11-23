@@ -63,7 +63,7 @@ Ce qui juge un contrat écrit ; `ajv` et `node:fs`.
 - variant-views.mjs : vue exacte d'un variant
 - version-contrat.mjs : plage lue, et sens d'un écart de version
 - references-token.mjs : forme d'une référence, et son relevé
-- tokens-dtcg.mjs : ce que le fichier de tokens contient, donc ce qui existe
+- tokens-dtcg.mjs : ce que le fichier de tokens contient, donc ce qui existe ; `nomsCssDesTokens`, noms CSS et collisions
 - modes-tokens.mjs : axes de modes du fichier de tokens, sans CSS
 - caracteristiques.mjs : ce qu'un contrat porte, qui décide des aides à imprimer
 - typography-token-types.mjs : types DTCG qu'un style typographique exige
@@ -72,14 +72,16 @@ Ce qui juge un contrat écrit ; `ajv` et `node:fs`.
 - implementation.mjs : où se trouve une implémentation, et si elle est là
 - trouver-contrats.mjs : retrouver les contrats d'un dossier
 - controle-repository.mjs : contrôle complet et rapport du designer
-- verdict-bilan.mjs : ce qui refuse une fusion et son titre ; `verdictDeLaDemande`, l'état de chaque composant et le verdict selon la demande, les rangs, les dérogations et l'adaptateur
+- verdict-bilan.mjs : ce qui refuse une fusion et son titre ; `verdictDeLaDemande`, l'état de chaque composant et le verdict selon la demande, les rangs, les dérogations et l'adaptateur ; `TEXTES_DES_ETATS`, phrase et raison de chaque état ; `bloquantPar`
 - perimetre-rapport.mjs : ce que la demande de fusion touche, si elle concerne UCM, et son genre (`genreDeLaDemande`)
 - avertissements-export.mjs : ce que l'export n'a pas su décrire
 - diagnostic-tokens.mjs : références que la source de tokens ne porte pas
 - diagnostic-contrastes.mjs : contraste de chaque couleur d'un contrat contre son fond, en information
 - diagnostic-architecture.mjs : `tokens.json` jugé par `controlerLIntegriteUcm` et `controlerLeCatalogue`, constats groupés par genre, en information
 - diagnostic-parite.mjs : écart contrat ↔ code : le juger et le dire
-- derogations.mjs : `.ucm/derogations.json` lu depuis son texte, validé, appliqué à des écarts de parité exacts
+- derogations.mjs : `.ucm/derogations.json` lu depuis son texte, validé, appliqué à des écarts exacts de parité et du code ; `commandeDeDerogation`, `ajouterDerogation`
+- controle-du-code-listes.mjs : familles, propriétés, valeurs neutres, codes, limites et messages du contrôle du code, seule copie
+- controle-du-code.mjs : `preparerControle`, juge un fichier de composant contre son contrat et `tokens.json`, dérogations appliquées
 - diagnostic-tests.mjs : ce qu'une suite de tests rouge dit au designer
 - diagnostic-markdown.mjs : rendu markdown d'un diagnostic
 - index.mjs : porte publique `@ucm-kit/core/lecteurs`

@@ -222,10 +222,10 @@ props non visuelles, le placement par le parent et les animations.
 
 La mesure automatique du rendu bloque. Votre validation visuelle ne bloque
 jamais : un rendu que vous validez devient la capture de référence, et un
-changement du code seul qui modifie cette capture bloque. Le linter, en
-préparation, refusera dans le code d'un composant un token absent de
-`tokens.json` et une valeur écrite en dur. Il ne bloque que la demande d'un
-développeur qui modifie ce code. Une demande de contrats ou de `tokens.json`
+changement du code seul qui modifie cette capture bloque. Le linter refuse
+dans le code d'un composant un token absent de `tokens.json` et une valeur
+écrite en dur. Il ne bloque que la demande d'un développeur qui modifie ce
+code. Une demande de contrats ou de `tokens.json`
 seuls reste verte.
 
 Une demande qui ne contient que des contrats et `tokens.json` n'est refusée que
@@ -261,6 +261,8 @@ dit seulement « code présent, non vérifié ».
 | Le développeur corrige un bug dans un composant en retard sans rattraper le contrat | Bloque | L'écart à rattraper, ou la dérogation à poser |
 | Le développeur change du code partagé qui crée un écart ailleurs | Bloque | L'écart et le composant touché |
 | Le développeur change du code sans lien avec un composant en retard | Passe | Le retard, avec son âge |
+| Le développeur écrit une valeur en dur ou un token absent dans le code d'un composant | Bloque | L'écart, et la commande qui le garde avec une raison |
+| Vous réexportez un contrat dont le code porte un tel écart | Passe | Le composant est « en retard sur son contrat » |
 | Le développeur change du code avec une dérogation valide | Passe | La dérogation, « à valider par le designer » |
 | La dérogation n'a pas de motif ni d'auteur, est mal formée ou couvre un écart non dérogeable | Bloque | L'entrée fautive |
 | Du code TypeScript arrive sans adaptateur chargé, ou avec un fichier que l'adaptateur ne lit pas | Bloque | Le geste d'installation |

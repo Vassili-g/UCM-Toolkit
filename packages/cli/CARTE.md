@@ -16,6 +16,8 @@ Ligne de commande : @ucm-kit/cli, publiée.
 - icons.mjs : icônes que les contrats du repo réclament
 - rapport-gitlab.mjs : note du rapport sur une merge request GitLab
 - tokens-css.mjs : feuille CSS des tokens et de leurs modes, depuis `tokens.json`
+- tokens-references.mjs : `ucm tokens references`, remplace chaque `"{chemin}"` par `"var(--nom)"` ; `--verifier` sert de preuve
+- deroger.mjs : `ucm deroger`, écrit une dérogation du code dans `.ucm/derogations.json`, avec l'export du contrat et l'auteur
 - aides.mjs : `ucm aides` : catalogue, une aide, copie dans les conventions
 - guide.mjs : `ucm guide` : procédure, diagnostics, API des dépendances, aides et modes
 - conventions.mjs : `.ucm/conventions.md` : fichier le plus proche, ses sections, ses anomalies

@@ -5,7 +5,7 @@
  * (rôles de rendu, champs publiés) et l'inventaire les affiche. Le module est
  * pur : aucun `node:`, aucun import hors du kit. Chaque entrée tient sur une
  * ligne avec sa raison, et un réglage d'une liste monte le chiffre du milieu
- * du kit.
+ * du kit. Geste de réglage : skill `.agents/skills/regler-le-linter`.
  *
  * Les noms sortent par une liste `export { … }` en fin de fichier :
  * `surfaceLecteurs.test.mjs` exige sinon qu'`index.mjs` republie chaque
