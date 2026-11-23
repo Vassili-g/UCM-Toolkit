@@ -252,9 +252,9 @@ un entier de 1 à 12 en lettres.
 
 ## Vague 2
 
-- [ ] 2.1 `implementeur-exigeant`. Casse, motif `{id}` et commandes du kit (PP-12, PP-104, PP-22, PP-209).
-- [ ] 2.2 `implementeur`. Fichiers qu'`ucm init` écrit (PP-03, PP-10, PP-11, PP-14, PP-22, PP-23, PP-24).
-- [ ] 2.3 `implementeur`. Propriétés de `FORMAT.md` et autorités des invariants (PP-08, PP-16).
+- [x] 2.1 `implementeur-exigeant`. Casse, motif `{id}` et commandes du kit (PP-12, PP-104, PP-22, PP-209). Commit : `2e4b8b56`.
+- [x] 2.2 `implementeur`. Fichiers qu'`ucm init` écrit (PP-03, PP-10, PP-11, PP-14, PP-22, PP-23, PP-24). Commit : `e17ab137`.
+- [x] 2.3 `implementeur`. Propriétés de `FORMAT.md` et autorités des invariants (PP-08, PP-16). Commit : `61fdeff4`.
 
 ### Lot 2.1. Casse, motif `{id}` et commandes du kit
 
