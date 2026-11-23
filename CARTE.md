@@ -20,6 +20,7 @@ L'inventaire du dépôt, vue générée sans autorité : chaque section nomme le
 - generer-inventaire.ts : `genererInventaire` (asynchrone : la CLI se lit par `import()`) assemble `gabarit.html`, `page.css` et `page.js` ; un `{{nom}}` sans valeur échoue (`npm run vues`)
 - releves.ts : ce que la page lit dans le kit compilé (à travers un `Proxy` qui relève chaque nom lu), le moteur de couleur, le hub, la CLI, le socle et les fichiers du dépôt ; valide `pistes.json` et `decisions.json`
 - couverture.ts : `EXCLUSIONS`, les noms que la page ne montre pas exprès, un groupe par raison
+- plans.ts : lit un plan Markdown (lots, marques, hash, groupe), son état, son lot suivant et la date de son dernier lot
 - extraire.ts : une section, un tableau ou des sous-titres d'un Markdown, par son titre
 - gabarit.html : le texte de la page écrit à la main, avec ses trous `{{nom}}`
 - page.css : feuille de la page
@@ -56,8 +57,10 @@ Procédures qu'un agent charge à la demande.
 - pins-servis.mjs : versions que le registre sert
 - run-tests.cjs : découvreur de tests
 - agents-contexte.mjs : documents à lire avant de modifier un fichier et à relire après, calculés depuis `.agents/domiciles.json`
+- nouveau-sujet.mjs : `npm run sujet`, crée le dossier de recherche d'une piste, son motif au registre, sa ligne du sommaire et le champ `recherche` de `pistes.json`
+- archiver-sujet.mjs : `npm run sujet:archiver`, propose garder, relire ou supprimer pour chaque fichier du dossier d'une piste livrée ; `--figer` réécrit les liens vers un commit
 - vues.mjs : `npm run vues`, reconstruit le kit si besoin et régénère le hub, la planche, les données de la vue illustrée et l'inventaire
-- ouvrir-inventaire.mjs : `npm run inventaire`, ouvre la page de l'inventaire dans le navigateur par défaut
+- ouvrir-inventaire.mjs : `npm run inventaire`, génère la page de l'inventaire depuis l'arbre de travail dans le dossier temporaire du système, puis l'ouvre ; la page commitée ne change pas
 - verifier-conservation.mjs : garde de conservation de la réécriture d'`AGENTS.md`
 
 ## .claude/
@@ -71,6 +74,12 @@ Procédures qu'un agent charge à la demande.
 Les tests du monorepo lui-même.
 
 - docLinks.test.ts : liens et ancres de la documentation
+- plans.test.ts : lecture des lots, marques et hash d'un plan
+- dossiersDeRecherche.test.ts : un sujet, un dossier au registre et au sommaire, au plus un plan non livré par dossier
+- archiverSujet.test.ts : propositions et liens figés du calcul de l'archivage
+- ouvrirInventaire.test.ts : `npm run inventaire` écrit une page complète hors de la racine
+- plansDeRecherche.test.ts : hash cités par les plans existants, dépôts connus, marques `attend Pn` vers une piste non livrée, chaque `PLAN*.md` rattaché à une piste ou à `PLANS_SANS_PISTE`
+- ecrituresDesAidesJugees.test.mjs : chaque écriture `propriete: valeur` de la section « Écriture par défaut » des aides de `packages/cli/aides/` passe `jugerDeclaration`, et chaque propriété qui y reçoit un token figure dans `PROPRIETES_PAR_FAMILLE`
 - domiciles.test.ts : chaque fichier de `packages/*/src/` a un seul domicile dans `.agents/domiciles.json`
 - finsDeLigne.test.mjs : aucun fichier texte en CRLF dans l'index
 - registreDesDocuments.test.ts : chaque document Markdown du dépôt a un emplacement dans le registre de `.agents/domiciles.json`

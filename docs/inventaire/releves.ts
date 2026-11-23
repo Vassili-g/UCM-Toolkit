@@ -539,6 +539,8 @@ const PHRASES_DES_SCRIPTS: Readonly<Record<string, readonly [string, string]>> =
   'agents:lire': ['Rend les fichiers à lire avant de modifier des chemins donnés, et seulement eux.', 'AGENTS.md, « Avant de modifier »'],
   'agents:domicile': ['Rend le domicile d’un fichier de `packages/*/src/`.', 'AGENTS.md, « Routage »'],
   'agents:diff': ['Rend les domiciles et documents à relire, les vérifications à lancer et les documents qui citent un chemin supprimé ou renommé.', 'AGENTS.md, « Vérification »'],
+  sujet: ['Crée le dossier de recherche d’une piste, l’inscrit au registre et au sommaire, et renseigne sa recherche.', 'CONTRIBUTING.md, « Sujets de recherche et plans »'],
+  'sujet:archiver': ['Calcule, pour une piste livrée, les documents de son dossier à garder, à relire ou à supprimer.', 'skill archiver-un-sujet'],
 };
 
 /** Le déclencheur, les branches et les commandes de chaque job des workflows, lus ligne à ligne. */
