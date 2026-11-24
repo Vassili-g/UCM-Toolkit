@@ -253,6 +253,22 @@ async function lancer(racine, api, { env = { UCM_GITLAB_TOKEN: JETON }, argument
   return { code, sortie: sorties.join("\n") };
 }
 
+for (const page of [null, {}, "texte", [null]]) {
+  test(`une page de notes de forme ${JSON.stringify(page)} sort en 1 sans écriture`, () => avecRapport(async (racine) => {
+    const api = gitlabSimule();
+    const fetch = api.fetch;
+    api.fetch = async (url, init) => {
+      const reponse = await fetch(url, init);
+      return url.includes("/notes?") ? Response.json(page) : reponse;
+    };
+    const { code, sortie } = await lancer(racine, api);
+    assert.equal(code, 1);
+    assert.match(sortie, /réponse illisible/);
+    assert.equal(sortie.includes(JETON), false);
+    assert.deepEqual(api.appels.filter(({ methode }) => methode !== "GET"), []);
+  }));
+}
+
 test("sans note du compte, le rapport est créé avec son marqueur", () => avecRapport(async (racine) => {
   const api = gitlabSimule();
   const { code } = await lancer(racine, api);

@@ -154,9 +154,11 @@ export async function rapportGithub(arguments_, {
     return reponse;
   }
 
-  async function lireJson(reponse, objet) {
+  async function lireJson(reponse, objet, accepte = () => true) {
     try {
-      return await reponse.json();
+      const valeur = await reponse.json();
+      if (!accepte(valeur)) throw new TypeError();
+      return valeur;
     } catch {
       throw new RefusGithub(null, `GitHub a rendu une réponse illisible en lisant ${objet}. Relancez le job.`);
     }
@@ -179,7 +181,8 @@ export async function rapportGithub(arguments_, {
         `${depot}/issues/${valeurs.demande}/comments?per_page=${PAR_PAGE}&page=${page}`,
         "lire les commentaires de la pull request",
       );
-      const lues = await lireJson(reponse, "les commentaires de la pull request");
+      const lues = await lireJson(reponse, "les commentaires de la pull request", (valeur) => Array.isArray(valeur)
+        && valeur.every((note) => note !== null && typeof note === "object" && !Array.isArray(note)));
       for (const note of lues) {
         notes.push({ id: note.id, auteur: note.user?.login, corps: note.body, systeme: false });
       }

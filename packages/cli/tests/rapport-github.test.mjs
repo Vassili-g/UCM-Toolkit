@@ -55,6 +55,22 @@ async function lancer(racine, api, { env = { GITHUB_TOKEN: JETON }, arguments_ =
 
 const ecritures = (api) => api.appels.filter(({ methode }) => methode !== "GET");
 
+for (const page of [null, {}, "texte", [null]]) {
+  test(`une page de commentaires de forme ${JSON.stringify(page)} sort en 1 sans écriture`, () => avecRapport(UTILE, async (racine) => {
+    const api = githubSimule();
+    const fetch = api.fetch;
+    api.fetch = async (url, init) => {
+      const reponse = await fetch(url, init);
+      return url.startsWith(COMMENTAIRES) ? Response.json(page) : reponse;
+    };
+    const { code, sortie } = await lancer(racine, api);
+    assert.equal(code, 1);
+    assert.match(sortie, /réponse illisible/);
+    assert.equal(sortie.includes(JETON), false);
+    assert.deepEqual(ecritures(api), []);
+  }));
+}
+
 test("R3 : un rapport existant du compte est remplacé par PATCH, sortie 0", () => avecRapport(UTILE, async (racine) => {
   const api = githubSimule({
     commentaires: [

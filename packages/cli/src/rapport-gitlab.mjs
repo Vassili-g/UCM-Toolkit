@@ -163,7 +163,10 @@ export async function rapportGitlab(arguments_, {
     while (page) {
       const reponse = await appeler(`${notes}?per_page=100&sort=asc&page=${page}`, "lire les notes de la merge request");
       let lues;
-      try { lues = await reponse.json(); } catch {
+      try {
+        lues = await reponse.json();
+        if (!Array.isArray(lues) || !lues.every((note) => note !== null && typeof note === "object" && !Array.isArray(note))) throw new TypeError();
+      } catch {
         throw new RefusGitlab(null, "GitLab a rendu une réponse illisible en lisant les notes de la merge request. Relancez le job.");
       }
       for (const note of lues) {
