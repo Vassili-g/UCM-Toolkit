@@ -984,7 +984,8 @@ contient.
 
 **Un secret est une interface publique, et il ne s'écrit jamais en argument.**
 `ucm rapport-gitlab` lit son jeton dans `UCM_GITLAB_TOKEN`, que le fichier
-écrit par `ucm init --forge gitlab` attend : un argument apparaîtrait dans le
+écrit par `ucm init --forge gitlab` attend, et `ucm rapport-github` dans
+`GITHUB_TOKEN`, que le workflow d'`ucm init` lui passe : un argument apparaîtrait dans le
 journal du job, que tout membre du projet lit. Son nom est figé comme une
 option. Sans elle, la commande le dit et sort en 0 ; le rapport reste dans les
 artefacts du job, et le verdict du contrôle ne change pas.

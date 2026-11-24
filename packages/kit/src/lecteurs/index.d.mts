@@ -867,6 +867,25 @@ declare module "@ucm-kit/core/lecteurs" {
   /** Le marqueur d'un rapport sans geste : il remplace un commentaire, il n'en crée jamais. */
   export const MARQUEUR_SANS_OBJET: string;
 
+  /** Une note d'une demande de fusion, telle que l'appelant la normalise depuis sa forge. */
+  export interface NoteDeDemande {
+    id: string | number;
+    /** Le login (GitHub) ou l'identifiant (GitLab), dans la forme que `compte` prendra. */
+    auteur: string | number;
+    corps: string;
+    /** Vrai pour une note que la forge écrit elle-même. */
+    systeme?: boolean;
+  }
+
+  /**
+   * L'`id` de la plus récente note de `compte`, non système, qui commence par `MARQUEUR_RAPPORT` ; `null` s'il n'y en a
+   * pas. `notes` est dans l'ordre de création, toutes pages lues.
+   */
+  export function rapportPrecedent(notes: readonly NoteDeDemande[], compte: string | number): string | number | null;
+
+  /** Vrai quand `MARQUEUR_SANS_OBJET` figure dans les deux premières lignes du rapport. */
+  export function rapportSansObjet(rapport: string): boolean;
+
   /** La section des références que la source de tokens ne porte pas. */
   export function sectionTokensManquants(
     entrees: ReadonlyArray<{ id?: string; fichier?: string; manquants: readonly string[] }>,

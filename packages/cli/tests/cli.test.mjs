@@ -226,7 +226,7 @@ test("le workflow publie un diagnostic même quand le rapport manque", () => {
 
     assert.match(workflow, /hashFiles\('ci-report\.md'\) == ''/);
     assert.match(workflow, /La vérification n'a pas pu rendre son diagnostic/);
-    assert.match(workflow, /issues\/\$NUMERO\/comments" --paginate/);
+    assert.match(workflow, /rapport-github --depot "\$GITHUB_REPOSITORY" --demande "\$NUMERO" --fichier ci-report\.md/);
     assert.match(workflow, /if: always\(\)/);
   } finally {
     rmSync(racine, { recursive: true, force: true });
@@ -269,8 +269,7 @@ test("le filet, la transmission et la publication se relaient sur le même rappo
     assert.equal(transmission.with.path, RAPPORT_CI);
     assert.equal(transmission.with.name, ARTEFACT_DU_RAPPORT);
     assert.equal(reception.with.name, transmission.with.name, "la publication reçoit l'artefact transmis");
-    assert.match(publication.run, /--body-file ci-report\.md/, "la publication lit le fichier transmis");
-    assert.match(publication.run, /-f body="\$\(cat ci-report\.md\)"/, "le remplacement lit le même fichier");
+    assert.match(publication.run, /--fichier ci-report\.md/, "la publication lit le fichier transmis");
   } finally {
     rmSync(racine, { recursive: true, force: true });
   }
@@ -293,7 +292,12 @@ test("le job qui exécute le code du repository n'écrit nulle part", () => {
     assert.deepEqual(jobs.commentaire.permissions, { "pull-requests": "write" });
 
     const commandes = jobs.commentaire.steps.map((pas) => `${pas.uses ?? ""} ${pas.run ?? ""}`).join("\n");
-    assert.doesNotMatch(commandes, /actions\/checkout|actions\/setup-node|npm |npx /);
+    assert.doesNotMatch(commandes, /actions\/checkout|actions\/setup-node|npm /);
+    assert.equal(
+      jobs.commentaire.steps.filter((pas) => /npx /.test(pas.run ?? "")).length,
+      1,
+      "la seule commande lancée est la CLI épinglée, depuis un dossier sans le code du repository",
+    );
   } finally {
     rmSync(racine, { recursive: true, force: true });
   }
@@ -301,58 +305,33 @@ test("le job qui exécute le code du repository n'écrit nulle part", () => {
 
 /**
  * Le jeton et le numéro passent par l'environnement : interpolés dans le shell,
- * ils feraient exécuter au runner ce qu'un titre de pull request contient. Sans
- * checkout, `gh` ne connaît le repository que par `-R`. Et la recherche du
- * commentaire précédent échoue quand aucun n'existe encore : sans son repli, le
- * tout premier diagnostic d'une pull request serait perdu, précisément celui
- * que le designer attend.
- *
- * Ce repli a une seule exception, et elle se lit dans le fichier : un rapport
- * qui porte le marqueur du sans-objet ne crée rien. Une demande de fusion
- * étrangère à UCM reste vierge ; une demande qui portait un refus depuis
- * corrigé voit son verdict remplacé, jamais laissé périmé.
+ * ils feraient exécuter au runner ce qu'un titre de pull request contient. La
+ * règle du commentaire à remplacer, du compte d'un jeton d'intégration et du
+ * rapport sans objet vit dans `ucm rapport-github`, que `rapport-github.test.mjs`
+ * éprouve : le workflow ne porte plus de script à tester, seulement l'appel de
+ * la CLI sur la version que `init` a écrite.
  */
-test("le diagnostic est publié avec le droit de l'être, et crée le fil qu'il ne trouve pas", () => {
+test("R9 : le diagnostic est publié par rapport-github épinglé, sans jq", () => {
   const racine = repoVierge();
   try {
-    init(racine);
+    const resultat = init(racine);
     const workflow = readFileSync(join(racine, ".github/workflows/ucm.yml"), "utf8");
+    const { jobs } = parseYaml(workflow);
+    const publication = jobs.commentaire.steps.find((pas) => pas.name === "Publier le diagnostic sur la pull request");
 
-    assert.match(workflow, /GITHUB_TOKEN: \$\{\{ secrets\.GITHUB_TOKEN \}\}/);
-    assert.match(workflow, /NUMERO: \$\{\{ github\.event\.number \}\}/);
-    assert.doesNotMatch(
-      workflow,
-      /gh pr comment "\$\{\{/,
-      "le numéro voyage par l'environnement, jamais par interpolation dans le shell",
+    assert.equal(publication.env.GITHUB_TOKEN, "${{ secrets.GITHUB_TOKEN }}");
+    assert.equal(publication.env.NUMERO, "${{ github.event.number }}");
+    assert.equal(publication.env.NPM_CONFIG_IGNORE_SCRIPTS, "true", "npx n'exécute aucun script d'installation avec le jeton");
+    assert.equal(
+      publication.run.trim(),
+      `npx --yes @ucm-kit/cli@${resultat.version} rapport-github --depot "$GITHUB_REPOSITORY" --demande "$NUMERO" --fichier ci-report.md`,
     );
-    assert.match(
-      workflow,
-      /if \[ -n "\$NOTE" \]; then[\s\S]*elif[\s\S]*gh pr comment "\$NUMERO" -R "\$GITHUB_REPOSITORY" --body-file ci-report\.md/,
-      "sans repli, le premier commentaire d'une pull request n'est jamais créé",
-    );
-    assert.match(
-      workflow,
-      /elif ! head -n 2 ci-report\.md \| grep -qF "<!-- ucm-sans-objet -->"; then/,
-      "un rapport qui ne demande aucun geste ne crée pas de commentaire",
-    );
+    assert.doesNotMatch(workflow, /jq|gh api|gh pr comment|pipefail/, "aucun script de shell ne porte la règle");
     assert.doesNotMatch(
       workflow,
       /printf "<!-- ucm-rapport -->/,
       "le marqueur est écrit par `ucm check`, qui seul peut le compter dans la borne du commentaire",
     );
-    // `GITHUB_TOKEN` est un jeton d'intégration : `GET /user` lui répond 403,
-    // et `gh` écrit quand même le corps de l'erreur sur la sortie standard. Un
-    // repli placé dans la substitution capturait les deux textes : le jq ne se
-    // compilait plus, aucun commentaire n'était retrouvé, et un verdict périmé
-    // restait affiché sous une étape verte.
-    assert.match(
-      workflow,
-      /if ! COMPTE="\$\(gh api user --jq \.login 2>\/dev\/null\)"; then\s+COMPTE='github-actions\[bot\]'/,
-      "le compte d'un jeton d'intégration se replie sur github-actions[bot], hors de la substitution",
-    );
-    // Sans `pipefail`, `| tail -n 1` rend le code de `tail` : une recherche du
-    // commentaire en échec passait pour « aucun commentaire », en silence.
-    assert.match(workflow, /run: \|\n\s+set -o pipefail\n/, "une recherche en échec arrête l'étape");
   } finally {
     rmSync(racine, { recursive: true, force: true });
   }

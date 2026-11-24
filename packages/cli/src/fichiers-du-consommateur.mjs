@@ -36,6 +36,9 @@ export const JOB_CONTROLE_GITLAB = "ucm";
 /** Le job GitLab qui publie la note sur la merge request. */
 export const JOB_NOTE_GITLAB = "ucm-rapport";
 
+/** La variable d'environnement qui porte le jeton du commentaire GitHub. */
+export const VARIABLE_DU_JETON_GITHUB = "GITHUB_TOKEN";
+
 /** La variable CI/CD qui porte le jeton de la note GitLab. */
 export const VARIABLE_DU_JETON_GITLAB = "UCM_GITLAB_TOKEN";
 

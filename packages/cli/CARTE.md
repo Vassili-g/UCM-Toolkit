@@ -15,6 +15,7 @@ Ligne de commande : @ucm-kit/cli, publiée.
 - adaptateur.mjs : découvre l'adaptateur de stack installé dans le repo ; table officielle des extensions et état attendu (`present`, `absent`, `casse`, `sans-adaptateur`)
 - rangs.mjs : rangs des contrats, des implémentations et des tokens sur le premier parent, avec dates et changements non commités ; détecte le clone superficiel
 - icons.mjs : icônes que les contrats du repo réclament
+- rapport-github.mjs : commentaire du rapport sur une pull request GitHub ; la règle du commentaire à remplacer vient de `rapportPrecedent` du kit
 - rapport-gitlab.mjs : note du rapport sur une merge request GitLab
 - tokens-css.mjs : feuille CSS des tokens et de leurs modes, depuis `tokens.json`
 - tokens-references.mjs : `ucm tokens references`, remplace chaque `"{chemin}"` par `"var(--nom)"` ; `--verifier` sert de preuve

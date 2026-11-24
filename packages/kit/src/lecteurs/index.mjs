@@ -125,6 +125,9 @@ export {
   controlerRepository,
 } from "./controle-repository.mjs";
 
+/** Quel commentaire d'une demande de fusion le rapport remplace, et si ce rapport ne demande aucun geste. */
+export { rapportPrecedent, rapportSansObjet } from "./rapport-precedent.mjs";
+
 /** Ce qui refuse une fusion, et le titre que ce refus mérite. */
 export { bilanEstBloquant, enteteDuVerdict, verdictDeLaDemande, ETATS_DE_COMPOSANT, TEXTES_DES_ETATS } from "./verdict-bilan.mjs";
 

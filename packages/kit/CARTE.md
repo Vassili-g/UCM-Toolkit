@@ -28,6 +28,7 @@ Sous-chemin sans dépendance Node ni Figma.
 ## src/protocoles/
 - nommage.ts : entrées de nommage que Nomenclature range et que Palettes relit : clés, écriture, lecture versionnée, rangement avec retour au texte d'avant et entrées futures (`futures`)
 - index.ts : ce que le sous-chemin publie
+- forges.ts : adresses des API GitHub et GitLab, lues par l'exporteur et par la CLI
 - donnee.ts : classement commun d'une donnée que des plugins se partagent dans le fichier Figma : enveloppe, texte JSON et version, sans migration
 - palettes.ts : données qu'UCM Palettes range dans le fichier (recette, suivi des variables, marque `nommage`, marqueurs `palette` et `cle`), chacune avec son adresse, sa version et son classement
 
@@ -72,6 +73,7 @@ Ce qui juge un contrat écrit ; `ajv` et `node:fs`.
 - implementation.mjs : où se trouve une implémentation, et si elle est là
 - trouver-contrats.mjs : retrouver les contrats d'un dossier
 - controle-repository.mjs : contrôle complet et rapport du designer
+- rapport-precedent.mjs : quel commentaire d'une demande de fusion le rapport remplace (`rapportPrecedent`) et si ce rapport est sans objet (`rapportSansObjet`), pour GitHub et GitLab
 - verdict-bilan.mjs : ce qui refuse une fusion et son titre ; `verdictDeLaDemande`, l'état de chaque composant et le verdict selon la demande, les rangs, les dérogations et l'adaptateur ; `TEXTES_DES_ETATS`, phrase et raison de chaque état ; `bloquantPar`
 - perimetre-rapport.mjs : ce que la demande de fusion touche, si elle concerne UCM, et son genre (`genreDeLaDemande`)
 - avertissements-export.mjs : ce que l'export n'a pas su décrire

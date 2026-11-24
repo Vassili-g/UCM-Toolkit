@@ -18,7 +18,10 @@
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 
-import { MARQUEUR_RAPPORT, MARQUEUR_SANS_OBJET } from "@ucm-kit/core/lecteurs";
+import { MARQUEUR_RAPPORT, MARQUEUR_SANS_OBJET, rapportPrecedent, rapportSansObjet } from "@ucm-kit/core/lecteurs";
+import { API_GITLAB } from "@ucm-kit/core/protocoles";
+
+import { VARIABLE_DU_JETON_GITLAB } from "./fichiers-du-consommateur.mjs";
 
 export { MARQUEUR_RAPPORT, MARQUEUR_SANS_OBJET };
 
@@ -30,15 +33,13 @@ function neutraliserActionsRapides(texte) {
   });
 }
 
-const API_PAR_DEFAUT = "https://gitlab.com/api/v4";
-
 const USAGE = "ucm rapport-gitlab --projet <id> --merge-request <iid> --fichier <chemin> [--api <url>]";
 
 const OPTIONS = { "--projet": "projet", "--merge-request": "mergeRequest", "--fichier": "fichier", "--api": "api" };
 
 /** Lit les arguments ; rend `erreur` pour une invocation fautive. */
 export function lireArgumentsRapport(arguments_) {
-  const valeurs = { api: API_PAR_DEFAUT };
+  const valeurs = { api: API_GITLAB };
   for (let i = 0; i < arguments_.length; i += 1) {
     const cle = OPTIONS[arguments_[i]];
     if (!cle) return { erreur: `Argument inconnu : ${arguments_[i]}` };
@@ -67,11 +68,11 @@ class RefusGitlab extends Error {
 /** Le geste qu'un statut demande, écrit pour la personne qui lit le journal du job. */
 function gesteDuStatut(statut, action) {
   if (statut === 401) {
-    return `GitLab refuse le jeton de UCM_GITLAB_TOKEN (401) en voulant ${action}. `
+    return `GitLab refuse le jeton de ${VARIABLE_DU_JETON_GITLAB} (401) en voulant ${action}. `
       + "Un mainteneur du projet doit créer un nouveau jeton de scope api, puis remplacer la valeur de cette variable.";
   }
   if (statut === 403) {
-    return `Le jeton de UCM_GITLAB_TOKEN n'a pas le droit de ${action} (403). `
+    return `Le jeton de ${VARIABLE_DU_JETON_GITLAB} n'a pas le droit de ${action} (403). `
       + "Un mainteneur du projet doit lui donner le scope api et le rôle Reporter sur ce projet.";
   }
   if (statut === 404) {
@@ -100,9 +101,9 @@ export async function rapportGitlab(arguments_, {
     return 2;
   }
 
-  const jeton = env.UCM_GITLAB_TOKEN?.trim();
+  const jeton = env[VARIABLE_DU_JETON_GITLAB]?.trim();
   if (!jeton) {
-    ecrire("UCM_GITLAB_TOKEN est absente : le rapport n'est pas publié sur la merge request. "
+    ecrire(`${VARIABLE_DU_JETON_GITLAB} est absente : le rapport n'est pas publié sur la merge request. `
       + "Il reste dans les artefacts du job. Pour le publier, un mainteneur du projet doit créer "
       + "cette variable, masquée et non protégée, avec un jeton de scope api d'un compte au rôle Reporter sur ce projet.");
     return 0;
@@ -120,7 +121,7 @@ export async function rapportGitlab(arguments_, {
   // venu d'ailleurs : sans marqueur, la note ne serait jamais retrouvée, donc
   // jamais remplacée, et chaque push en empilerait une de plus.
   const marque = rapport.startsWith(MARQUEUR_RAPPORT) ? rapport : `${MARQUEUR_RAPPORT}\n${rapport}`;
-  const sansObjet = marque.includes(MARQUEUR_SANS_OBJET);
+  const sansObjet = rapportSansObjet(marque);
   const corps = neutraliserActionsRapides(marque);
   const projet = encodeURIComponent(valeurs.projet);
   const notes = `${valeurs.api}/projects/${projet}/merge_requests/${encodeURIComponent(valeurs.mergeRequest)}/notes`;
@@ -152,22 +153,26 @@ export async function rapportGitlab(arguments_, {
       throw new RefusGitlab(null, "GitLab a rendu une réponse illisible en lisant le compte du jeton. Relancez le job.");
     }
 
-    let existante = null;
+    // Toutes les pages : deux notes du rapport peuvent coexister, et la plus
+    // récente, qui porte le verdict à jour, peut se trouver sur la dernière.
+    const lesNotes = [];
     let page = "1";
-    while (page && !existante) {
+    while (page) {
       const reponse = await appeler(`${notes}?per_page=100&sort=asc&page=${page}`, "lire les notes de la merge request");
       let lues;
       try { lues = await reponse.json(); } catch {
         throw new RefusGitlab(null, "GitLab a rendu une réponse illisible en lisant les notes de la merge request. Relancez le job.");
       }
-      existante = lues.find((note) => !note.system && note.author?.id === compte.id
-        && typeof note.body === "string" && note.body.includes(MARQUEUR_RAPPORT)) ?? null;
+      for (const note of lues) {
+        lesNotes.push({ id: note.id, auteur: note.author?.id, corps: note.body, systeme: note.system === true });
+      }
       page = reponse.headers.get("x-next-page");
     }
 
-    if (existante) {
-      await appeler(`${notes}/${existante.id}`, "remplacer la note du rapport", { method: "PUT", body: JSON.stringify({ body: corps }) });
-      ecrire(`Rapport remplacé dans la note ${existante.id} de la merge request !${valeurs.mergeRequest}.`);
+    const existante = rapportPrecedent(lesNotes, compte.id);
+    if (existante !== null) {
+      await appeler(`${notes}/${existante}`, "remplacer la note du rapport", { method: "PUT", body: JSON.stringify({ body: corps }) });
+      ecrire(`Rapport remplacé dans la note ${existante} de la merge request !${valeurs.mergeRequest}.`);
     } else if (sansObjet) {
       // Un rapport qui ne demande aucun geste remplace une note, il n'en ouvre
       // jamais une. Une merge request étrangère à UCM reste vierge ; une merge

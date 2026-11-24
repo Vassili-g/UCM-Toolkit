@@ -6,13 +6,12 @@
  * Le projet, le chemin d'un fichier et le nom d'une branche forment chacun un
  * seul segment d'URL : GitLab les lit encodés en entier, barres comprises.
  */
+import { API_GITLAB } from '@ucm-kit/core/protocoles';
 import { decodeBase64 } from '../base64';
 import { ErreurDeForge } from './forge';
 import type { DemandeOuverte, EcritureDemandee, FichierLu, Forge } from './forge';
 import type { ConfigurationDeForge } from './github';
 import { TERMES_GITLAB } from './termes';
-
-const GITLAB_API = 'https://gitlab.com/api/v4';
 
 /**
  * Formes que GitLab relie d'elles-mêmes dans une description ou une note :
@@ -71,7 +70,7 @@ export function forgeGitlab(config: ConfigurationDeForge): Forge {
   async function gitlabRequest<T>(path: string, init: RequestInit = {}, allowNotFound = false): Promise<T | null> {
     let response: Response;
     try {
-      response = await fetch(`${GITLAB_API}${path}`, {
+      response = await fetch(`${API_GITLAB}${path}`, {
         ...init,
         headers: {
           'PRIVATE-TOKEN': config.jeton,

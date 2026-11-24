@@ -316,6 +316,22 @@ test("une note au marqueur est trouvée au-delà de cent notes", () => avecRappo
   assert.equal(api.appels.some(({ methode }) => methode === "POST"), false);
 }));
 
+test("R8 : deux rapports sur deux pages, le plus récent est remplacé", () => avecRapport(async (racine) => {
+  const notes = Array.from({ length: 150 }, (_, rang) => ({ id: rang + 1, system: false, author: { id: 5 }, body: "discussion" }));
+  notes[10] = { id: 11, system: false, author: { id: 7 }, body: `${MARQUEUR_RAPPORT}
+## ❌ 1 contrat invalide` };
+  notes[120] = { id: 121, system: false, author: { id: 7 }, body: `${MARQUEUR_RAPPORT}
+## ✅ Tout est conforme` };
+  const api = gitlabSimule({ notes });
+  const { code } = await lancer(racine, api);
+
+  assert.equal(code, 0);
+  const ecritures = api.appels.filter(({ methode }) => methode !== "GET");
+  assert.deepEqual(ecritures.map(({ methode, url }) => `${methode} ${url}`), [
+    "PUT https://gitlab.com/api/v4/projects/42/merge_requests/3/notes/121",
+  ]);
+}));
+
 test("sans jeton, la commande nomme la variable et sort en 0 sans appel", () => avecRapport(async (racine) => {
   const api = gitlabSimule();
   const { code, sortie } = await lancer(racine, api, { env: {} });

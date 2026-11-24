@@ -9,6 +9,7 @@ import { dirname, resolve } from "node:path";
 import process from "node:process";
 import { pathToFileURL } from "node:url";
 
+import { NOM_CONFIGURATION } from "@ucm-kit/core/format";
 import { lireConfiguration } from "@ucm-kit/core/lecteurs";
 
 import { chargerAdaptateur } from "./adaptateur.mjs";
@@ -18,6 +19,7 @@ import { USAGE_DEROGER, deroger } from "./deroger.mjs";
 import { guide } from "./guide.mjs";
 import { iconesDuRepository, rendreIcones } from "./icons.mjs";
 import { init, lireArgumentsInit, rendreInit } from "./init.mjs";
+import { rapportGithub } from "./rapport-github.mjs";
 import { rapportGitlab } from "./rapport-gitlab.mjs";
 import { tokensCss } from "./tokens-css.mjs";
 import { tokensReferences } from "./tokens-references.mjs";
@@ -119,6 +121,18 @@ export const COMMANDES = [
     ],
   },
   {
+    nom: "rapport-github",
+    usage: "ucm rapport-github --depot <propriétaire/nom> --demande <numéro> --fichier <chemin> [--api <url>]",
+    role: "publie le rapport en commentaire d'une pull request GitHub",
+    options: [
+      { nom: "--depot", role: "le repository, écrit propriétaire/nom" },
+      { nom: "--demande", role: "le numéro de la pull request dans ce repository" },
+      { nom: "--fichier", role: "le rapport écrit par ucm check --report" },
+      { nom: "--api", role: "l'API GitHub, https://api.github.com par défaut" },
+    ],
+    note: "Le jeton se lit dans GITHUB_TOKEN. Sans lui, la commande le dit et\nsort en 0.",
+  },
+  {
     nom: "rapport-gitlab",
     usage: "ucm rapport-gitlab --projet <id> --merge-request <iid> --fichier <chemin> [--api <url>]",
     role: "publie le rapport en note d'une merge request GitLab",
@@ -175,7 +189,7 @@ function executerCommande(arguments_, {
 } = {}) {
   const racineInitiale = racine;
   for (let candidate = resolve(racine); ; candidate = dirname(candidate)) {
-    if (existsSync(resolve(candidate, "ucm.config.json")) || existsSync(resolve(candidate, ".git"))) {
+    if (existsSync(resolve(candidate, NOM_CONFIGURATION)) || existsSync(resolve(candidate, ".git"))) {
       racine = candidate;
       break;
     }
@@ -254,6 +268,16 @@ function executerCommande(arguments_, {
 
   if (commande === "guide") {
     return guide(arguments_.slice(1), { racine, ecrire, alerter: sorties.alerter ?? console.error });
+  }
+
+  if (commande === "rapport-github") {
+    return rapportGithub(arguments_.slice(1), {
+      racine,
+      env,
+      fetch: sorties.fetch,
+      ecrire,
+      alerter: sorties.alerter ?? console.error,
+    });
   }
 
   if (commande === "rapport-gitlab") {

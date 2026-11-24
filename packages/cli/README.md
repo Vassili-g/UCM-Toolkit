@@ -53,6 +53,7 @@ Without a Node manifest, the portable check uses the CLI served by npm.
 | [`ucm tokens references [--verifier] <files>`](#token-references-in-code) | Replaces `"{path}"` with `"var(--name)"` in code files |
 | [`ucm aides [<aide>]`](#implementation-guides) | Lists the implementation guides, or prints one |
 | [`ucm guide <contract>`](#the-guide-of-a-contract) | Prints what an agent reads before implementing that contract |
+| [`ucm rapport-github`](#github) | Posts the report as a comment on a GitHub pull request |
 | [`ucm rapport-gitlab`](#gitlab) | Posts the report as a note on a GitLab merge request |
 | `ucm --help` | Prints every command and option |
 
@@ -139,6 +140,8 @@ starts with `/` or a drive letter, contains `\`, or has an empty, `.` or `..`
 segment is refused: the plugin would write outside the repository with the
 designer's token, and the check would read outside it.
 
+`implementation` must contain `{id}`: `ucm check` refuses a configuration without it.
+
 The file holds no version number. The installed package decides which contract
 versions it reads.
 
@@ -149,7 +152,30 @@ default branch has another name, change it in `.github/workflows/ucm.yml`.
 
 Its `contrats` job runs the check with read-only permissions. Its `commentaire`
 job runs no code from the repository: it receives the report as an artifact
-and posts it, replacing its previous comment.
+and posts it with `ucm rapport-github`, replacing its previous comment:
+
+```sh
+npx --yes @ucm-kit/cli@0.3.0 rapport-github --depot "$GITHUB_REPOSITORY" --demande "$NUMERO" --fichier ci-report.md
+```
+
+| Option | Effect |
+|---|---|
+| `--depot <owner/name>` | The GitHub repository |
+| `--demande <number>` | The pull request number within that repository |
+| `--fichier <path>` | The report written by `ucm check --report` |
+| `--api <url>` | The GitHub API; `https://api.github.com` by default |
+
+The command reads the token from `GITHUB_TOKEN` and never prints it. It reads
+the account of the token with `GET /user`; an integration token gets a 403
+there, and the account is then `github-actions[bot]`, the author of the
+comments it writes. It reads every page of comments, and replaces the most
+recent one that this account wrote and that starts with the
+`<!-- ucm-rapport -->` marker. It creates a comment otherwise. A report
+carrying `<!-- ucm-sans-objet -->` in its first two lines replaces an existing
+comment and never opens one, so a pull request that touches nothing UCM stays
+free of comments. Without the variable it says so and exits with `0`: the
+report stays in the job artifacts. A refused token exits with `1` and names
+the fix.
 
 A red check blocks a merge only when the base branch requires the `contrats`
 status check, in a branch protection rule or a ruleset. GitHub offers these on

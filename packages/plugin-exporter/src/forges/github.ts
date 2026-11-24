@@ -3,6 +3,7 @@
  * un fichier et ouvrir une pull request. Aucun jeton n'est logué ni renvoyé à
  * l'UI.
  */
+import { API_GITHUB } from '@ucm-kit/core/protocoles';
 import { decodeBase64, encodeBase64 } from '../base64';
 import { ErreurDeForge } from './forge';
 import type { DemandeOuverte, EcritureDemandee, FichierLu, Forge } from './forge';
@@ -11,7 +12,6 @@ import { TERMES_GITHUB } from './termes';
 /** La configuration qu'un adaptateur lit : `projet` vaut `propriétaire/repository`. */
 export type ConfigurationDeForge = { projet: string; baseBranch: string; jeton: string };
 
-const GITHUB_API = 'https://api.github.com';
 const GITHUB_API_VERSION = '2022-11-28';
 
 type GithubFile = {
@@ -67,7 +67,7 @@ export function forgeGithub(config: ConfigurationDeForge): Forge {
   async function githubRequest<T>(path: string, init: RequestInit = {}, allowNotFound = false): Promise<T | null> {
     let response: Response;
     try {
-      response = await fetch(`${GITHUB_API}${path}`, {
+      response = await fetch(`${API_GITHUB}${path}`, {
         ...init,
         headers: {
           Accept: 'application/vnd.github+json',
