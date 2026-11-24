@@ -773,7 +773,7 @@ attendent l'accord du mainteneur, hors des vagues : aucun autre lot n'en dépend
   - Essai d'un agent, avec la variable posée à `sonnet` par `.claude/settings.json` : le `verificateur` répond `claude-haiku-5-5`. Dans ce harnais, le `model:` de la définition prime. Rejoué depuis le panneau de l'éditeur du mainteneur, avec la variable posée à `sonnet` par `.claude/settings.json`, un `verificateur` répond `claude-haiku-5-5` : le `model:` des définitions l'emporte, et la variable ne sert à rien.
 - [x] 8.5 (mainteneur). Valider le diff de la [note 8.6](#lot-86-droits-des-agents), après 8.4. Une partie refusée se retire de la note avant 8.6.
   - Le mainteneur valide les cinq parties de la note : registre `locaux` et `interdits` avec le hook des documents, `hook-etat.mjs`, `hook-commandes.mjs` avec la définition du `verificateur` et `CLAUDE.md`, retrait de la variable `CLAUDE_CODE_SUBAGENT_MODEL`, renvoi de `CLAUDE.md` vers `CONTRIBUTING.md`.
-- [ ] 8.6 `implementeur`. Droits des agents (PP-301, PP-302, PP-306, PP-309, PP-314 pour `CLAUDE.md`, PP-316 pour le hook des documents), après 8.5 et le commit de la vague 8.
+- [x] 8.6 `implementeur`. Droits des agents (PP-301, PP-302, PP-306, PP-309, PP-314 pour `CLAUDE.md`, PP-316 pour le hook des documents), après 8.5 et le commit de la vague 8. Commit : `f02a3304`.
 
 ### Lot 8.1. Domiciles, cartes et définitions de l'outillage
 
