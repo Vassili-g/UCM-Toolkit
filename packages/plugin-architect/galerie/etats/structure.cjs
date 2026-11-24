@@ -61,7 +61,7 @@ ETATS.push(
   },
   {
     id: 't-crans', titre: 'Tokens, crans', quand: 'Les variables surface visent en Dark les crans de l’ancienne table.',
-    regarder: 'Dans la section Crans, une carte par rôle et par mode, décochée, qui dit le cran attendu, le cran visé et que la couleur change ; la première est dépliée : le segment qui change prend la couleur de sa colonne ; sous la bande, « Tout cocher » et « Tout décocher » ; le pied dit « Aucune correction cochée ».',
+    regarder: 'Dans la section Nuances, une carte par rôle et par mode, décochée, qui dit le cran attendu, le cran visé et que la couleur change ; la première est dépliée : le segment qui change prend la couleur de sa colonne ; sous la bande, « Tout cocher » et « Tout décocher » ; le pied dit « Aucune correction cochée ».',
     existe: true,
     atteinte: [...ouvertIntegrite(integrite.releveDeBase(), integrite.crans, CARTES_DE_CORRECTION), premiereCarte],
   },
@@ -73,13 +73,13 @@ ETATS.push(
   },
   {
     id: 't-sens-inconnu', titre: 'Tokens, texte des boutons à contre-sens', quand: 'Le texte des boutons de primary vise le noir en Light quand les autres rôles de la palette attendent le blanc : UCM ne corrige pas ce choix et pose la question.',
-    regarder: 'Une carte à vérifier dans la section Crans, dépliée : la phrase de la question, la variable en lieu, les deux cibles possibles en Light.',
+    regarder: 'Une carte à vérifier dans la section Nuances, dépliée : la phrase de la question, la variable en lieu, les deux cibles possibles en Light.',
     existe: true,
     atteinte: [...ouvertIntegrite(integrite.releveAuxEcarts(), integrite.sensInconnu, CARTES_A_FAIRE), { clic: '#panneau-a-appliquer .bloc-constat .bloc-bouton' }],
   },
   {
     id: 't-integrite-a-faire', titre: 'Tokens, constats d’intégrité', quand: 'Un fichier aux écarts de toute sorte : un groupe sans alias, une rampe sans cran, un theme sans Dark, un type, un rangement, des couches.',
-    regarder: 'Les sections Variables manquantes, Crans, Modes, Couches, Types et Rangement ; Noms, Alias, Valeurs et Scopes sont tenues, en fin de liste ; chaque carte dit le problème, cite la variable et dit où le régler ; seules les cartes qui nomment une variable se déplient.',
+    regarder: 'Les sections Variables manquantes, Nuances, Modes, Couches, Types et Rangement ; Noms, Alias, Valeurs et Scopes sont tenues, en fin de liste ; chaque carte dit le problème, cite la variable et dit où le régler ; seules les cartes qui nomment une variable se déplient.',
     existe: true,
     atteinte: ouvertIntegrite(integrite.releveAuxEcarts(), integrite.aFaire, CARTES_A_FAIRE),
   },
@@ -135,7 +135,7 @@ ETATS.push(
   },
   {
     id: 't-cran-de-library', titre: 'Tokens, cran dont la cible est dans une library', quand: 'Les rampes Dark de primary viennent d’une library : UCM juge le cran sans pouvoir le corriger.',
-    regarder: 'Dans la section Crans, quatre cartes « En Dark, UCM attend le cran … Aujourd’hui elle vise le cran … », avec « Changez sa cible dans la fenêtre Variables » et la variable en lieu.',
+    regarder: 'Dans la section Nuances, quatre cartes « En Dark, UCM attend la nuance … Aujourd’hui elle vise la nuance … », avec « Changez sa cible dans la fenêtre Variables » et la variable en lieu.',
     existe: true,
     atteinte: ouvertIntegrite(integrite.releveDeBase(), integrite.libraryEtScopes, CARTES_A_FAIRE),
   },
@@ -317,7 +317,7 @@ const ouvertEnTete = (constats, attendre) => [
 ETATS.push(
   {
     id: 't-sens-partage', titre: 'Tokens, texte des boutons d’une palette partagée', quand: 'Les variables de secondary se répartissent entre les deux tables : UCM ne sait pas quel texte les boutons portent.',
-    regarder: 'Dans Crans, une carte à vérifier par mode : « Texte sur secondary, que les boutons et les encadrés partagent » ; dessous, deux réponses, « Passer au texte blanc » et « Passer au texte noir », chacune avec un bouton et un encadré dessinés dans la couleur, légendés « Bouton » et « Encadré » ; aucune réponse n’est cochée ; la ligne grise dit le mode.',
+    regarder: 'Dans Nuances, une carte à vérifier par mode : « Texte sur secondary, que les boutons et les encadrés partagent » ; dessous, deux réponses, « Passer au texte blanc » et « Passer au texte noir », chacune avec un bouton et un encadré dessinés dans la couleur, légendés « Bouton » et « Encadré » ; aucune réponse n’est cochée ; la ligne grise dit le mode.',
     existe: true,
     atteinte: ouvertEnTete(e4a.sensPartage, CARTES_A_FAIRE),
   },
@@ -335,7 +335,7 @@ ETATS.push(
   },
   {
     id: 't-questions-de-structure', titre: 'Tokens, questions et cartes de structure', quand: 'Une variable au nom proche d’un rôle, une rampe d’une autre palette, une branche de mode, un rôle en double, deux collections theme et des cibles non lues.',
-    regarder: 'Variables manquantes : « Le nom … ressemble au rôle … » ; Crans : la rampe d’une autre palette avec « Viser … » pour chaque candidat ; Modes : « En Dark, cette variable vise la branche Light de sa palette. » avec deux « Viser … » ; Valeurs : « 2 variables portent le rôle … » avec « Garder … » ; Rangement : « Deux collections se lisent comme theme : … » ; Alias : « Les cibles rangées dans brands ne sont pas lues … » ; chaque carte dit où le régler.',
+    regarder: 'Variables manquantes : « Le nom … ressemble au rôle … » ; Nuances : la rampe d’une autre palette avec « Viser … » pour chaque candidat ; Modes : « En Dark, cette variable vise la branche Light de sa palette. » avec deux « Viser … » ; Valeurs : « 2 variables portent le rôle … » avec « Garder … » ; Rangement : « Deux collections se lisent comme theme : … » ; Alias : « Les cibles rangées dans brands ne sont pas lues … » ; chaque carte dit où le régler.',
     existe: true,
     atteinte: ouvertEnTete(e4a.genresSansCarte, CARTES_A_FAIRE),
   },
@@ -516,7 +516,7 @@ const ouvrirLesLiens = (cas, attendre) => ouvertIntegrite(cas.releve, cas.consta
 for (const [id, nom, titre, quand, regarder, correction] of [
   ['t-lien-manquant', 'lienManquant', 'Tokens, lien manquant dans brands', 'primary/light/300 manque dans brands, et ses voisines visent une seule palette par marque.', 'La création est décochée dans Variables manquantes ; son aperçu nomme les deux marques et leurs cibles dans primitives, sans ligne de scopes.', true],
   ['t-lien-mode-manquant', 'modeManquant', 'Tokens, lien absent dans une marque', 'secondary/dark/700 existe dans brands, sans valeur pour marque-2.', 'La correction est décochée dans Variables manquantes ; seule la cible du mode marque-2 change.', true],
-  ['t-lien-a-corriger', 'lienACorriger', 'Tokens, cran incorrect dans utility', 'success/vivid/light/300 vise le cran 400 de sa palette.', 'La correction est décochée dans Crans ; le chemin avant et le chemin après montrent le cran qui change.', true],
+  ['t-lien-a-corriger', 'lienACorriger', 'Tokens, cran incorrect dans utility', 'success/vivid/light/300 vise le cran 400 de sa palette.', 'La correction est décochée dans Nuances ; le chemin avant et le chemin après montrent le cran qui change.', true],
   ['t-palette-a-choisir', 'paletteAChoisir', 'Tokens, palette de marque à choisir', 'La branche secondary manque dans les deux marques.', 'Les questions de Variables manquantes proposent les palettes de primitives ; aucune réponse ni correction n’est cochée.', false],
   ['t-charte-a-choisir', 'charteAChoisir', 'Tokens, couleur de charte à choisir', 'identity/primary manque dans brands.', 'Chaque marque reçoit une question de Variables manquantes ; les onze crans Light de sa palette sont proposés sans choix préalable.', false],
   ['t-rampe-a-completer', 'rampeACompleter', 'Tokens, cran à créer dans Palettes', 'primary/light/300 manque dans brands, et son cran manque aussi dans primitives.', 'Le constat de Variables manquantes nomme le cran absent et renvoie vers UCM Palettes ; aucune case ni correction.', false],

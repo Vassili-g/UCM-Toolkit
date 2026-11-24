@@ -2,7 +2,7 @@ import { glypheDe } from 'ucm-plugin-socle/src/ui/Signe';
 
 type Cran = number | 'texteDesBoutons' | undefined;
 
-const cranClair = (cran: Cran): string => (cran === 'texteDesBoutons' ? 'texte des boutons' : `cran ${cran}`);
+const cranClair = (cran: Cran): string => (cran === 'texteDesBoutons' ? 'texte des boutons' : `nuance ${cran}`);
 const cranSombre = (cran: Cran): string => (cran === 'texteDesBoutons' ? 'Dark texte des boutons' : `Dark ${cran}`);
 
 export const TEXTES_PREPARATION = {
@@ -13,7 +13,7 @@ export const TEXTES_PREPARATION = {
   preparationFermer: 'Fermer',
   preparationSymboleFermer: glypheDe('fermer'),
   preparationTitre: (nom: string) => `Préparer les tokens de ${nom}`,
-  preparationDescription: 'Chaque choix vise des tokens du thème, remplis par UCM Palettes. Le cran dit quelle nuance de la palette le token reçoit.',
+  preparationDescription: 'Chaque choix vise des tokens du thème, remplis par UCM Palettes. La nuance dit quelle couleur de la palette le token reçoit.',
   preparationAction: 'Préparer',
   preparationQuestionsRestantes: (nombre: number) => `${nombre} questions restent`,
   preparationNoteIntensite: 'La réponse vaut pour tous les statuts.',

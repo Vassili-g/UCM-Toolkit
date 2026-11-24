@@ -46,12 +46,13 @@ import type { CatalogueDeReference, Constat, Correction } from '@ucm-kit/core/co
 import { CLE_ECRITURE, lireEcriture, lireEntree, type EcritureChoisie } from '@ucm-kit/core/protocoles';
 import { ESPACE_ARCHITECT } from '@ucm-kit/core/referentiel';
 
-import { catalogueDuFichier } from '../catalogue';
+import { catalogueDuFichier, fondDeLaPageDuThemeClair } from '../catalogue';
 import { ignorerUnConstat, ignorerUnRole, lireLesIgnores, nePlusIgnorer, retablirUnRole, rolesIgnoresDe, separerLesIgnores, type PortDIgnores, type ResultatDIgnorer } from '../ecriture/ignores';
 import { ecrireLaStructure, fusionnerLesVariables, type DemandeDeFusion, type ResultatDEcritureDeStructure, type ResultatDeFusion } from '../ecriture/structure';
 import { compterLesAppelsDuPort, idsDesLocales, lireLesVariables, mesurerUnePhaseDeTokens, type AppelsDePhase } from '../lecture';
 import type { DemandeDeStructure, EchecDeLecture, IgnoresDeStructure } from '../messages/structure';
 import { creerControlesDistants, type ControlesDistants } from '../nomenclature/controlesDistants';
+import { fondClairDeLaRecetteDeFigma } from '../nomenclature/lectureFigma';
 import { fermerLaReprise, prendreLAcquisitionPourLaStructure, reperDesLectures, variablesDuCatalogue } from './acquisition';
 import { perimerApresUneEcriture, prendreLaPlaceDUneEcriture } from './analyse';
 import { lireLaDeclaration } from './commun';
@@ -96,6 +97,8 @@ export interface Acces {
   controles?(contexte: Contexte): ControlesDistants;
   /** Vrai quand le fichier ne déclare pas UCM : un catalogue absent n'y est pas un échec. Absent, tout fichier compte comme UCM. */
   horsUcm?(contexte: Contexte): boolean;
+  /** Le fond Light de la recette de Palettes en `#RRGGBB` majuscules, `null` sans recette lue. Absent, aucune comparaison. */
+  fondDeLaRecette?(contexte: Contexte): string | null;
 }
 
 /** Le refus de Figma de lire les variables locales : `lecture-levee` ne le couvre pas, l'écran dit que Figma a refusé. */
@@ -139,6 +142,7 @@ export const ACCES_DE_FIGMA: Acces = {
   fusionner: (demande) => fusionnerLesVariables(demande),
   rangement: ({ figma }) => rangementDeFigma(figma as unknown as PortDIgnores),
   horsUcm: ({ figma }) => lireLaDeclaration(figma) !== 'ucm',
+  fondDeLaRecette: ({ figma }) => fondClairDeLaRecetteDeFigma(figma),
 };
 
 /** Les corrections du dernier `structure` envoyé, par identifiant. */
@@ -169,6 +173,7 @@ interface LectureGardee {
   /** Les constats des deux contrôles avant `separerLesIgnores`, sans doublon. */
   readonly tous: readonly Constat[];
   readonly reper: string;
+  readonly pageDifferente: boolean;
 }
 
 /**
@@ -199,8 +204,16 @@ async function controler(numero: number, acces: Acces, contexte: Contexte, catal
   return sansDoublon([...constats.catalogue, ...constats.integrite]);
 }
 
+/** Vrai quand la page du fichier et le fond de la recette de Palettes diffèrent ; faux sans recette lue ou sans fond Light lu dans le thème. */
+function laPageDiffere(acces: Acces, contexte: Contexte, catalogue: CatalogueDeReference): boolean {
+  let recette: string | null = null;
+  try { recette = acces.fondDeLaRecette?.(contexte) ?? null; } catch { /* une recette illisible n'est pas un écart */ }
+  const page = recette === null ? null : fondDeLaPageDuThemeClair(catalogue);
+  return recette !== null && page !== null && recette !== page;
+}
+
 /** Sépare les ignorés, retient les corrections et envoie `structure` : la fin commune de la lecture complète et du refiltrage. */
-function rendre(numero: number, contexte: Contexte, tous: readonly Constat[], cles: readonly string[], roles: readonly VariableDuTheme[], echec?: EchecDeLecture): void {
+function rendre(numero: number, contexte: Contexte, tous: readonly Constat[], cles: readonly string[], roles: readonly VariableDuTheme[], echec?: EchecDeLecture, pageDifferente = false): void {
   const separes = separerLesIgnores(tous, cles);
   const constats = separes.visibles;
   const ignores: IgnoresDeStructure = {
@@ -210,7 +223,7 @@ function rendre(numero: number, contexte: Contexte, tous: readonly Constat[], cl
   const corrections = constats.flatMap((constat) => (constat.correction ? [constat.correction] : []));
   retenues = new Map(corrections.map((correction) => [correction.id, correction] as const));
   envoyes = new Map([...constats, ...ignores.constats].map((constat) => [constat.id, constat] as const));
-  contexte.envoyer({ type: 'structure', demande: numero, constats, corrections, ignores, ...(echec ? { echec } : {}) });
+  contexte.envoyer({ type: 'structure', demande: numero, constats, corrections, ignores, ...(echec ? { echec } : {}), ...(pageDifferente ? { pageDifferente: true as const } : {}) });
 }
 
 async function lireLaStructure(numero: number, acces: Acces, contexte: Contexte, appels: AppelsDePhase, depuisLeReleve: boolean): Promise<void> {
@@ -234,11 +247,12 @@ async function lireLaStructure(numero: number, acces: Acces, contexte: Contexte,
   let lus = true;
   try { reglages = await acces.reglages(contexte); } catch { lus = false; /* sans réglages : aucune création, aucun constat écarté */ }
   const roles = rolesIgnoresDe(reglages.cles);
+  const pageDifferente = laPageDiffere(acces, contexte, catalogue);
   const tous = await controler(numero, acces, contexte, catalogue, reglages.ecriture, roles);
   // Une lecture plus récente a commencé pendant les contrôles : elle répond, celle-ci ne touche ni aux corrections retenues ni à la lecture gardée.
   if (lecture !== numeroDeLecture) return;
-  if (lus && !cataloguesAvecUnRefus.has(catalogue) && reper === reperDesLectures()) gardee = { catalogue, ecriture: reglages.ecriture, roles, tous, reper };
-  rendre(numero, contexte, tous, reglages.cles, roles, echec);
+  if (lus && !cataloguesAvecUnRefus.has(catalogue) && reper === reperDesLectures()) gardee = { catalogue, ecriture: reglages.ecriture, roles, tous, reper, pageDifferente };
+  rendre(numero, contexte, tous, reglages.cles, roles, echec, pageDifferente);
 }
 
 /**
@@ -261,7 +275,7 @@ async function refiltrerLaLectureGardee(numero: number, acces: Acces, contexte: 
     const tous = memeSource ? garde.tous : await controler(numero, acces, contexte, garde.catalogue, reglages.ecriture, roles);
     if (lecture !== numeroDeLecture || garde.reper !== reperDesLectures()) { sansEnvoi = true; return; }
     if (!memeSource) gardee = { ...garde, ecriture: reglages.ecriture, roles, tous };
-    rendre(numero, contexte, tous, reglages.cles, roles);
+    rendre(numero, contexte, tous, reglages.cles, roles, undefined, garde.pageDifferente);
   });
   return !sansEnvoi;
 }
@@ -321,7 +335,7 @@ async function repondreAuLien(demande: Extract<DemandeDeStructure, { type: 'repo
   if (propositions.length === 0) tous.push(constat);
   tous.push(...propositions);
   gardee = { ...lecture, tous };
-  rendre(demande.demande, contexte, tous, cles, lecture.roles);
+  rendre(demande.demande, contexte, tous, cles, lecture.roles, undefined, lecture.pageDifferente);
 }
 
 /** Les noms lus avant les corrections, pour refuser une variable renommée depuis. */

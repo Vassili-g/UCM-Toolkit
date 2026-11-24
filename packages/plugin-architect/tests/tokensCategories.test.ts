@@ -36,7 +36,7 @@ function donneesDe(id: string): DonneesDesCategories {
 }
 
 const IDENTIFIANTS = ['noms', 'manquantes', 'crans', 'alias', 'modes', 'valeurs', 'couches', 'types', 'rangement', 'scopes'];
-const LIBELLES = ['Noms', 'Variables manquantes', 'Crans', 'Alias', 'Modes', 'Valeurs', 'Couches', 'Types', 'Rangement', 'Scopes'];
+const LIBELLES = ['Noms', 'Variables manquantes', 'Nuances', 'Alias', 'Modes', 'Valeurs', 'Couches', 'Types', 'Rangement', 'Scopes'];
 const SIGNES_ATTENDUS = ['nom', 'a-creer', 'cran', 'rompue', 'mode', 'valeurs', 'couches', 'types', 'rangement', 'scope'];
 
 for (const [id, attendus] of [

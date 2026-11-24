@@ -2,7 +2,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { contraste, ecrireContraste } from '@ucm-kit/core/emplois';
+import { composer, contraste, ecrireContraste, versRgb8 } from '@ucm-kit/core/emplois';
 import { p3VersRgb8 } from 'ucm-couleur';
 
 import { jugerContraste } from '../src/contraste';
@@ -24,8 +24,17 @@ test('le contraste d’une paire opaque est celui du kit, tronqué à l’affich
   assert.equal(ecrireContraste(4.4999), '4,49');
 });
 
-test('une transparence, une chaîne qui n’aboutit pas ou un fond non couleur ne se jugent pas', () => {
-  assert.deepEqual(jugerContraste(resoudre(index, 'voile', {}), resoudre(index, 'papier', {}), 3), { statut: 'non-juge', raison: 'transparence' });
+test('un premier plan translucide se juge composé sur son fond, comme C49 (le voile par défaut est le blanc d’alpha 0,25)', () => {
+  const jugement = jugerContraste(resoudre(index, 'voile', {}), resoudre(index, 'papier', {}), 3);
+  assert.equal(jugement.statut, 'juge');
+  if (jugement.statut !== 'juge') return;
+  const composee = composer([{ r: 1, g: 1, b: 1, a: 0.25 }], { r: 0xf7 / 255, g: 0xf8 / 255, b: 0xfa / 255, a: 1 });
+  assert.ok(composee);
+  assert.equal(jugement.ratio, contraste(versRgb8(composee), [0xf7, 0xf8, 0xfa]));
+});
+
+test('un fond translucide, une chaîne qui n’aboutit pas ou un fond non couleur ne se jugent pas', () => {
+  assert.deepEqual(jugerContraste(resoudre(index, 'encre', {}), resoudre(index, 'voile', {}), 3), { statut: 'non-juge', raison: 'transparence' });
   assert.deepEqual(jugerContraste(resoudre(index, 'legacy', {}), resoudre(index, 'papier', {}), 3), { statut: 'non-juge', raison: 'non-resolu' });
   assert.deepEqual(jugerContraste(resoudre(index, 'encre', {}), resoudre(index, 'zero', {}), 3), { statut: 'non-juge', raison: 'pas-une-couleur' });
 });

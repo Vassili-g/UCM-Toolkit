@@ -240,6 +240,7 @@ export const NIVEAUX_DES_SIGNAUX = {
   fleche: { agent: 'refus', html: 'signal', autre: 'signal' },
   'famille-sans-complement': { agent: null, html: null, autre: 'signal' },
   'gras-multiple': { agent: null, html: null, autre: 'signal' },
+  'cran-face-au-designer': { agent: null, html: null, autre: 'signal' },
 };
 
 /**
@@ -753,9 +754,40 @@ export function lignesDesChaines(contenu) {
   return sortie;
 }
 
+/**
+ * Les chaînes que le designer lit et où « cran » ne se dit plus : le `fr.ts` de Palettes et les textes d'Architect. Le designer lit
+ * « nuance » ; « cran » reste le mot du code et des tailles de l'échelle.
+ */
+const TEXTES_DU_DESIGNER = /^packages\/(?:plugin-palettes\/src\/i18n\/fr\.ts|plugin-architect\/src\/ui\/textes\/[^/]+\.ts)$/;
+const CRAN = /(?<![A-Za-zÀ-ÿ0-9_])crans?(?![A-Za-zÀ-ÿ0-9_])/gi;
+const CRANS_DE_L_ECHELLE = /crans de l['’]échelle/gi;
+
+/** Le mot « cran » dans une chaîne lue par le designer, sauf « crans de l’échelle » (les tailles). */
+function fautesDeCran(chemin, contenu) {
+  const niveau = niveauDuSignal(chemin, 'cran-face-au-designer');
+  if (niveau === null) return [];
+  const fautes = [];
+  for (const { numero, texte } of lignesDesChaines(contenu)) {
+    // Un identifiant (`crans-emplois`, `.crans`) n'est pas lu par le designer : sans espace et avec un tiret ou un point, il passe.
+    if (!/\s/.test(texte.trim()) && /[-.]/.test(texte)) continue;
+    const reste = texte.replace(CRANS_DE_L_ECHELLE, '');
+    for (const trouve of reste.matchAll(CRAN)) {
+      fautes.push({ regle: 'cran-face-au-designer', niveau, ou: `${chemin}:${numero}`, extrait: `« ${trouve[0]} » dans : ${texte.trim().slice(0, 130)}` });
+    }
+  }
+  return fautes;
+}
+
 /** Les fautes des commentaires d'une source, et des chaînes d'un `fr.ts`. */
 export function fautesDeLaSource(chemin, contenu) {
   const lignes = blocsDeCommentaire(contenu).flatMap((bloc) => bloc.lignes);
+  if (TEXTES_DU_DESIGNER.test(chemin)) {
+    const cran = fautesDeCran(chemin, contenu);
+    if (!TEXTES_FRANCAIS.test(chemin)) return [...fautesDesLignes(chemin, lignes), ...cran];
+    const tout = [...lignes, ...lignesDesChaines(contenu)];
+    tout.sort((a, b) => a.numero - b.numero);
+    return [...fautesDesLignes(chemin, tout), ...cran];
+  }
   if (TEXTES_FRANCAIS.test(chemin)) {
     const tout = [...lignes, ...lignesDesChaines(contenu)];
     tout.sort((a, b) => a.numero - b.numero);
@@ -1006,6 +1038,7 @@ export function passagesRecopies(documents) {
 }
 
 const MESSAGES = {
+  'cran-face-au-designer': 'Le designer lit « nuance », pas « cran ». Garder « crans de l’échelle » pour les tailles.',
   ...Object.fromEntries(MOTIFS_DE_REFUS_PARTOUT.map(({ regle, message }) => [regle, message])),
   'permet-de': 'Verbe vide. Nommer ce que fait le sujet : « le hook relit le fichier » '
     + 'plutôt que « le hook permet de relire le fichier ».',

@@ -458,3 +458,18 @@ test('[S12] une puce collée est refusée, deux gras dans une section sont un si
   assert.deepEqual(regles(DOCUMENT, '## A\n\nUn **mot**.\n\n## B\n\nUn **autre**.\n', 'signal'), []);
   assert.deepEqual(regles('AGENTS.md', deux, 'signal'), []);
 });
+
+test('[X1] « cran » dans une chaîne d’Architect ou de Palettes est un signal, « crans de l’échelle » n’en est pas un', () => {
+  const textes = 'packages/plugin-architect/src/ui/textes/structure.ts';
+  const signaux = (chemin: string, contenu: string) => regles(chemin, contenu, 'signal').filter((regle) => regle === 'cran-face-au-designer');
+  const source = (chaine: string) => `export const T = { a: '${chaine}' };
+`;
+  assert.deepEqual(signaux(textes, source('Viser le cran 700 pour la page.')), ['cran-face-au-designer']);
+  assert.deepEqual(signaux(textes, source('Choisissez les crans de la palette.')), ['cran-face-au-designer']);
+  assert.deepEqual(signaux('packages/plugin-palettes/src/i18n/fr.ts', source('Le cran 500.')), ['cran-face-au-designer']);
+  assert.deepEqual(signaux(textes, source('Deux crans de l’échelle ont la même valeur.')), []);
+  assert.deepEqual(signaux(textes, `// Corrections de crans
+export const T = { cranSansSens: 'La nuance 700.' };
+`), []);
+  assert.deepEqual(signaux('packages/kit/src/essai.ts', source('Le cran 700.')), []);
+});

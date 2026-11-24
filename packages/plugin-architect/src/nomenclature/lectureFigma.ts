@@ -1,6 +1,6 @@
 /** L'adaptateur ne conserve aucun nœud dans l'inventaire envoyé à l'interface. */
 import { CLES_PARTAGEES_DE_PALETTES, CLE_NOMMAGE_DE_PALETTES, ESPACE_PARTAGE } from '@ucm-kit/core/referentiel';
-import { lireLaMarqueDeNommage, marqueurDePaletteLu } from '@ucm-kit/core/protocoles';
+import { CLE_RECETTE, classerLEnveloppeDeLaRecette, lireLaMarqueDeNommage, marqueurDePaletteLu } from '@ucm-kit/core/protocoles';
 import type { LocalesLues } from '../lecture';
 import { lireLeSuiviDePalettes, type LecteurDeVariable, type PortDeLecture } from './lecture';
 
@@ -44,6 +44,24 @@ export function lecteurDeVariablesFigma(api: PluginAPI, variables: readonly Vari
     marqueDePalettes: () => marque,
   };
 }
+
+/**
+ * Le fond du thème Light que la recette de Palettes règle, en `#RRGGBB` majuscules. `null` quand la recette manque, ne se lit pas,
+ * est d'un format que le kit ne classe pas ou ne porte pas de fond Light valide : Architect ne compare alors rien.
+ */
+export function lireLeFondClairDeLaRecette(lire: () => string): string | null {
+  let texte: string;
+  try { texte = lire(); } catch { return null; }
+  const recette = classerLEnveloppeDeLaRecette(texte);
+  if (recette.etat !== 'courante' && recette.etat !== 'ancienne') return null;
+  const fonds = recette.valeur.fonds as { readonly light?: unknown } | undefined;
+  const clair = fonds?.light;
+  return typeof clair === 'string' && /^#[0-9a-f]{6}$/i.test(clair) ? clair.toUpperCase() : null;
+}
+
+/** Le fond Light de la recette de Palettes lu dans les données partagées du document. */
+export const fondClairDeLaRecetteDeFigma = (api: PluginAPI): string | null =>
+  lireLeFondClairDeLaRecette(() => api.root.getSharedPluginData(ESPACE_PARTAGE, CLE_RECETTE));
 
 /**
  * Les variables lues restent en mémoire le temps du geste, pour que l'alias et la protection se lisent par lots.

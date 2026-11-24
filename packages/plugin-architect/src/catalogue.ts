@@ -3,8 +3,9 @@
  * mode Tokens. Les noms viennent d'abord (library) ou d'un relevé (fichier) ; les valeurs s'importent par clé à la demande
  * des contrôles, par `importerLesValeurs`, seul chemin vers l'import par clé.
  */
-import { collectionsDeReference, type CatalogueDeReference, type CouleurResolue, type VariableDuCatalogue } from '@ucm-kit/core/controles';
-import { CIBLES_DES_COLLECTIONS, CIBLES_DES_COULEURS_DE_COMPOSANT, variableDuThemeReconnue, type Collection } from '@ucm-kit/core/referentiel';
+import { collectionsDeReference, PROFONDEUR_D_ALIAS, type CatalogueDeReference, type CouleurResolue, type VariableDuCatalogue } from '@ucm-kit/core/controles';
+import { hexaDeFigma } from '@ucm-kit/core/emplois';
+import { CIBLES_DES_COLLECTIONS, CIBLES_DES_COULEURS_DE_COMPOSANT, modeDuThemeReconnu, variableDuThemeReconnue, type Collection } from '@ucm-kit/core/referentiel';
 import { lireLesLibraries, type LectureDesLibraries, type PortDeBibliotheque } from 'ucm-plugin-socle/src/bibliotheque';
 import { executerAuPlus } from 'ucm-plugin-socle/src/composant/analyse/limiteur';
 import { cleDeBibliotheque, convertirVariable, importerLesValeurs, type PortDeLecture, type ValeurDeLibrary } from './lecture';
@@ -115,9 +116,6 @@ export interface OptionsDeCatalogue {
   readonly repliSurLeFichier?: (library: string | null) => void;
 }
 
-/** Les tours d'import qui suivent les alias d'une library jusqu'à leurs cibles ; au-delà, la cible reste non chargée. */
-const PROFONDEUR_D_ALIAS = 10;
-
 /**
  * Importe les valeurs des seules `cles` demandées parmi les variables non chargées, puis celles que leurs alias visent. Une
  * clé refusée passe à `inaccessible` avec son motif ; une variable déjà présente ou inaccessible reste telle quelle. Le
@@ -127,7 +125,8 @@ const PROFONDEUR_D_ALIAS = 10;
  *
  * Un alias qui sort des collections lues (un token de `theme` qui vise une primitive) se suit aussi : sa cible se lit par son
  * identifiant, que Figma importe avec la variable qui la vise, sinon par sa clé. Elle entre au catalogue avec sa collection
- * et ses modes ; sans elle, aucune couleur de la library ne se résout et le contraste ne se mesure pas.
+ * et ses modes ; sans elle, aucune couleur de la library ne se résout et le contraste ne se mesure pas. Les alias se suivent sur
+ * `PROFONDEUR_D_ALIAS` tours d'import ; au-delà, la cible reste non chargée.
  */
 export async function chargerLesValeurs(
   port: Parameters<typeof importerLesValeurs>[0] & Partial<Pick<PortDeLecture, 'getVariableCollectionByIdAsync' | 'getVariableByIdAsync'>>,
@@ -349,6 +348,15 @@ export function avecLesFondsDElevation(catalogue: CatalogueDeReference): Catalog
     if (couleurPage && couleurCarte) fonds[mode.id] = { page: couleurPage, carte: couleurCarte };
   }
   return Object.keys(fonds).length > 0 ? { ...catalogue, fondsDElevation: fonds } : catalogue;
+}
+
+/** La couleur d'`elevation/page` dans le mode Light de la collection `theme`, alias suivis, en `#RRGGBB` majuscules ; `null` sans mode Light, sans variable ou sans couleur lue. */
+export function fondDeLaPageDuThemeClair(catalogue: CatalogueDeReference): string | null {
+  const theme = collectionTheme(catalogue);
+  const clair = theme?.modes.find((mode) => modeDuThemeReconnu(mode.nom) === 'light');
+  const page = theme && catalogue.variables.find((v) => v.collection === theme.cle && v.type === 'COLOR' && variableDuThemeReconnue(v.nom) === FONDS_DU_THEME.page);
+  const couleur = clair && page ? resoudre(catalogue, page.cle, clair.id) : null;
+  return couleur ? hexaDeFigma(couleur) : null;
 }
 
 /** Le premier fond SOLID visible de la page ; absent quand la page n'en a pas ou que Figma refuse de le lire. */

@@ -31,7 +31,9 @@ export type EchecDeLecture = 'lecture-levee' | 'catalogue-absent' | 'refus-de-fi
 export type MessageDeStructure =
   | { type: 'structure'; demande: number; constats: readonly Constat[]; corrections: readonly Correction[]; ignores: IgnoresDeStructure;
     /** Absent quand la lecture est complète. Des listes vides avec `echec` ne disent pas « rien à régler » : rien n'a été lu. */
-    echec?: EchecDeLecture }
+    echec?: EchecDeLecture;
+    /** Vrai quand `elevation/page` du mode Light n'a pas la couleur du fond de la recette de Palettes ; absent sans recette lue ou sans écart. */
+    pageDifferente?: true }
   | { type: 'structure-appliquee'; demande: number; ecrites: number; sautees: readonly { id: string; motif: string }[];
     /** Les noms des variables créées que l'Historique ne pourra pas annuler ; vide sinon. */
     sansAnnulation: readonly string[] };

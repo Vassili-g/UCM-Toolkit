@@ -32,8 +32,8 @@ for (const [genre, faits, attendu, statut, groupe] of [
   ['lien-manquant', { collection: 'brands', variable: 'primary/light/300', raison: 'sans-palette' }, 'brands n’a pas la variable primary/light/300. Ses voisines ne visent aucune palette.', 'Créez primary/light/300 dans la fenêtre Variables', 'manquantes'],
   ['lien-a-corriger', { mode: 'marque-1', attendu: 'light/300', avant: 'light/400' }, 'En marque-1, UCM attend light/300. Aujourd’hui elle vise light/400.', 'Changez sa cible dans la fenêtre Variables', 'crans'],
   ['palette-a-choisir', { collection: 'brands', groupe: 'secondary', mode: 'marque-1' }, 'En marque-1, brands/secondary ne vise aucune palette.', 'Choisissez sa palette. Architect créera ses variables', 'manquantes'],
-  ['charte-a-choisir', { variable: 'identity/primary', palette: 'cobalt', mode: 'marque-1' }, 'En marque-1, la couleur de charte identity/primary ne vise aucun cran de la palette cobalt.', 'Choisissez le cran de votre couleur de charte', 'manquantes'],
-  ['rampe-a-completer', { collection: 'brands', palette: 'cobalt', manque: 'light/300', variables: 1 }, 'cobalt n’a pas le cran light/300. 1 variable de brands en a besoin.', 'Complétez cette palette avec UCM Palettes', 'manquantes'],
+  ['charte-a-choisir', { variable: 'identity/primary', palette: 'cobalt', mode: 'marque-1' }, 'En marque-1, la couleur de charte identity/primary ne vise aucune nuance de la palette cobalt.', 'Choisissez la nuance de votre couleur de charte', 'manquantes'],
+  ['rampe-a-completer', { collection: 'brands', palette: 'cobalt', manque: 'light/300', variables: 1 }, 'cobalt n’a pas la nuance light/300. 1 variable de brands en a besoin.', 'Complétez cette palette avec UCM Palettes', 'manquantes'],
 ] as const) {
   test(`${genre} lit la phrase validée, le statut et le groupe sans sélection`, () => {
     const question = ['palette-a-choisir', 'charte-a-choisir'].includes(genre) ? { id: 'q', candidats: [{ nom: 'cobalt' }, { nom: 'ambre' }] } : undefined;
@@ -53,7 +53,7 @@ test('une valeur de mode absente, une autre palette et une palette absente garde
     constater({ genre: 'rampe-a-completer', collection: 'utility', groupe: 'warning', manque: 'palette' }),
   ];
   const cartes = lireLesConstats(cas, noms);
-  assert.ok(cartes.some((carte) => texte(carte.phrase) === 'Cette variable n’a pas de valeur en marque-2. Le cran visé est dans une library.'));
+  assert.ok(cartes.some((carte) => texte(carte.phrase) === 'Cette variable n’a pas de valeur en marque-2. La nuance visée est dans une library.'));
   assert.ok(cartes.some((carte) => texte(carte.phrase) === 'Cette variable vise une autre palette que ses voisines.'));
   assert.ok(cartes.some((carte) => carte.statut === 'Créez sa palette avec UCM Palettes' && carte.choix.length === 0));
 });

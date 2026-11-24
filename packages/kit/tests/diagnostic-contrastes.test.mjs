@@ -10,6 +10,7 @@ import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 
+import { contraste } from "@ucm-kit/core/emplois";
 import { CONTRACT_VERSION, identifiantsDeRoles, natureDuRole, tableDesRolesDeRendu } from "@ucm-kit/core/format";
 
 import { controlerRepository } from "../src/lecteurs/controle-repository.mjs";
@@ -140,16 +141,30 @@ test("le diagnostic s'applique à un tokens.json sans collection `usage` ni `the
   assert.deepEqual(constatsDesContrastes(bouton([{ texte: "texte-pale" }]), null), []);
 });
 
-test("une couleur Display P3 ou translucide ne se juge pas, sans effacer les autres contextes", () => {
+test("une couleur Display P3 ne se juge pas et se dit non vérifiée, sans effacer les autres contextes", () => {
   const p3 = structuredClone(TOKENS);
   p3.base.pale.$extensions["com.ucm.modes"].dark = { colorSpace: "display-p3", components: [0.2, 0.3, 0.9], alpha: 1 };
   const [constat, ...autres] = constatsDesContrastes(bouton([{ texte: "texte-pale" }]), p3);
-  assert.deepEqual(autres, []);
   assert.deepEqual(constat.mesures.map(({ contexte }) => contexte), ["thème light"]);
+  assert.deepEqual(autres, [{ nature: "non-verifiee", chemin: "composants.bouton.texte-pale", cause: "display-p3" }]);
+  const ligne = sectionContrastes([{ fichier: "B.contract.json", contrastes: autres }]).join("\n");
+  assert.match(ligne, /^### ℹ️ Des couleurs n'ont pas été vérifiées \(1 couleur\)$/m);
+  assert.match(ligne, /^- Couleur non vérifiée : `composants\.bouton\.texte-pale`, couleur Display P3, hors du périmètre d'UCM\.$/m);
+  assert.equal(resumeTerminalContrastes([{ contrastes: autres }]), null);
+});
 
+test("une couleur translucide se compose sur son fond avant d'être mesurée", () => {
   const translucide = structuredClone(TOKENS);
   translucide.base.pale.$extensions["com.ucm.modes"] = { light: srgb("#BFDBFE", 0.5), dark: srgb("#1E3A8A", 0.5) };
-  assert.deepEqual(constatsDesContrastes(bouton([{ texte: "texte-pale" }]), translucide), []);
+  const constats = constatsDesContrastes(bouton([{ texte: "texte-pale" }]), translucide);
+  assert.deepEqual(constats.map(({ nature }) => nature), ["contraste"]);
+  const [clair, sombre] = [["#BFDBFE", "#FFFFFF"], ["#1E3A8A", "#121212"]].map(([haut, bas]) => {
+    const octets = (hexa) => [1, 3, 5].map((debut) => Number.parseInt(hexa.slice(debut, debut + 2), 16));
+    return contraste(octets(haut).map((octet, rang) => Math.round((octet * 0.5 + octets(bas)[rang] * 0.5))), octets(bas));
+  });
+  const attendues = new Map(constats[0].mesures.map(({ contexte, valeur }) => [contexte, valeur]));
+  assert.ok(Math.abs(attendues.get("thème light") - clair) < 0.05, `${attendues.get("thème light")} contre ${clair}`);
+  assert.ok(Math.abs(attendues.get("thème dark") - sombre) < 0.05, `${attendues.get("thème dark")} contre ${sombre}`);
 });
 
 /** Un contrat où une clé `k`, d'un rôle donné, vit d'un côté du contrat sur un fond `background` ; la couleur `texte-pale` passe sous tous les seuils. */

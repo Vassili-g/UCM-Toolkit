@@ -174,7 +174,7 @@ const constatsManquants = (nombre: number, avecQuestion: (rang: number) => boole
 /** Une correction de mode : une carte à elle seule, dans la catégorie Modes. */
 const correctionsDeModes = (nombre: number): Correction[] => Array.from({ length: nombre }, (_vide, i) => ({
   id: `mode:${i}`, sorte: 'alias-de-mode', cible: { variable: `theme:v${i}`, mode: 'dark' }, avant: `brands:a${i}`,
-  apres: { cle: `brands:b${i}`, nom: `b${i}` }, aRelire: { axes: { mode: 'Dark' }, regle: 'En Dark, UCM attend le cran 600.', avant: `brands:a${i}` },
+  apres: { cle: `brands:b${i}`, nom: `b${i}` }, aRelire: { axes: { mode: 'Dark' }, regle: 'En Dark, UCM attend la nuance 600.', avant: `brands:a${i}` },
 }));
 
 function monterLaStructure(constats: readonly Constat[], corrections: readonly Correction[]) {

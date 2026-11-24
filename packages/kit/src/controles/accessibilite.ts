@@ -7,8 +7,8 @@
  */
 import { GARANTIES } from '../emplois/garanties.js';
 import { atteintLeSeuil, contraste, contrasteTronque } from '../emplois/contraste.js';
-import { hexaDeFigma, versRgb8 } from '../emplois/couleur.js';
-import { SEUILS_PAR_USAGE, SEUIL_GRAND_TEXTE_AA, SEUIL_TEXTE_AAA } from '../referentiel/contraste.js';
+import { composer, couleurDansLeGamut, composanteDansLeGamut, hexaDeFigma, OPAQUE, PROFONDEUR_D_ALIAS, versRgb8, type Rgba } from '../emplois/couleur.js';
+import { SEUILS_PAR_ROLE, SEUILS_PAR_USAGE, SEUIL_GRAND_TEXTE_AA, SEUIL_TEXTE_AAA } from '../referentiel/contraste.js';
 import { estUnAnneau, estUneIcone } from '../referentiel/layers.js';
 import { RECOMMANDATIONS } from '../referentiel/recommandations.js';
 import type { CatalogueDeReference, CollectionDuCatalogue, CouleurResolue, VariableDuCatalogue } from './catalogue.js';
@@ -98,7 +98,6 @@ export const CIBLE_TACTILE_PX = 44;
 export const TEXTE_MINIMAL_PX = 12;
 
 export type Cause = 'fond-indetermine' | 'degrade' | 'image' | 'peinture-superposee' | 'mode-de-fusion' | 'flou-arriere-plan' | 'mode-illisible' | 'couleur-absente' | 'fond-de-repli' | 'couleur-hors-gamut';
-export type Rgba = { r: number; g: number; b: number; a: number };
 /**
  * Une combinaison de modes. `sansTheme` n'existe que si les modes du thème sont entrés dans le produit pour le seul repli : la même
  * combinaison sans eux, pour une cible qui ne se mesure pas sur le repli.
@@ -111,13 +110,6 @@ type Cible = {
 };
 /** Un fond que le relevé ne permet pas de calculer. `sansRepli` : même la page et la carte du thème ne le remplacent pas. */
 type LimiteDeFond = { limite: Cause; sansRepli?: true };
-
-const OPAQUE = 1 - 1e-9;
-
-/** Un canal ou un alpha de Figma tient dans [0, 1] ; NaN n'y tient pas. Une couleur qui en sort n'est jamais bornée en silence (Q-F7-5). */
-const dansLeGamut = (x: number): boolean => x >= 0 && x <= 1;
-const couleurDansLeGamut = (c: { r: number; g: number; b: number; a?: number }): boolean =>
-  dansLeGamut(c.r) && dansLeGamut(c.g) && dansLeGamut(c.b) && dansLeGamut(c.a ?? 1);
 
 function limiteDuLayer(layer: LayerLu): Cause | null {
   if (layer.blendMode !== undefined && layer.blendMode !== 'NORMAL' && layer.blendMode !== 'PASS_THROUGH') return 'mode-de-fusion';
@@ -413,7 +405,7 @@ function clotureDeLaVariable(catalogue: CatalogueDeReference, memoire: MemoireDe
 }
 
 /**
- * La couleur d'une liaison dans une combinaison, alias suivis jusqu'à 10 renvois. Elle ne dépend, pour un catalogue donné, que de
+ * La couleur d'une liaison dans une combinaison, alias suivis jusqu'à `PROFONDEUR_D_ALIAS` renvois. Elle ne dépend, pour un catalogue donné, que de
  * la variable, du nombre de renvois déjà faits et du mode choisi pour chaque collection que sa chaîne d'alias peut atteindre
  * (`collectionsAtteintes`, tous modes confondus) : deux combinaisons ou deux variants qui s'accordent sur ces modes partagent le
  * résultat, rendu gelé.
@@ -421,7 +413,7 @@ function clotureDeLaVariable(catalogue: CatalogueDeReference, memoire: MemoireDe
 export function couleurDeLiaison(
   catalogue: CatalogueDeReference, variant: VariantLu, combinaison: Combinaison, cle: string, profondeur = 0,
 ): Rgba | 'mode-illisible' {
-  if (profondeur > 10) return 'mode-illisible';
+  if (profondeur > PROFONDEUR_D_ALIAS) return 'mode-illisible';
   const memoire = memoireDesCouleurs(catalogue);
   const contexte = clotureDeLaVariable(catalogue, memoire, cle).map((collection) => modeDeLaCollection(variant, combinaison, collection) ?? SANS_MODE).join(SEPARATEUR);
   const signature = `${profondeur}${SEPARATEUR}${cle}${SEPARATEUR}${contexte}`;
@@ -477,30 +469,12 @@ export function pileDePeintures(
     }
     if (!couleur) return { limite: 'couleur-absente' };
     const a = couleur.a * p.opacite * opaciteDuLayer;
-    if (!couleurDansLeGamut(couleur) || !dansLeGamut(a)) return { limite: 'couleur-hors-gamut' };
+    if (!couleurDansLeGamut(couleur) || !composanteDansLeGamut(a)) return { limite: 'couleur-hors-gamut' };
     if (a === 0) continue;
     couches.push({ r: couleur.r, g: couleur.g, b: couleur.b, a });
     if (a >= OPAQUE) break;
   }
   return { couches };
-}
-
-/** Compose des couches (de la plus haute à la plus basse) sur une base ; sans base, la dernière doit être opaque. */
-export function composer(couches: Rgba[], base: Rgba | null): Rgba | null {
-  let resultat = base;
-  for (let i = couches.length - 1; i >= 0; i--) {
-    const c = couches[i];
-    if (!resultat) {
-      if (c.a < OPAQUE) return null;
-      resultat = { ...c, a: 1 };
-      continue;
-    }
-    resultat = {
-      r: c.r * c.a + resultat.r * (1 - c.a), g: c.g * c.a + resultat.g * (1 - c.a),
-      b: c.b * c.a + resultat.b * (1 - c.a), a: 1,
-    };
-  }
-  return resultat;
 }
 
 /**
@@ -790,7 +764,7 @@ function fondsDeMesure(
 function variableDuThemeAtteinte(
   catalogue: CatalogueDeReference, variant: VariantLu, combinaison: Combinaison, cle: string,
 ): string | null {
-  for (let profondeur = 0; profondeur <= 10; profondeur++) {
+  for (let profondeur = 0; profondeur <= PROFONDEUR_D_ALIAS; profondeur++) {
     const variable = variableDuCatalogue(catalogue, cle);
     if (variable === 'absente') return null;
     const collection = collectionDuCatalogue(catalogue, variable.collection);
@@ -805,7 +779,7 @@ function variableDuThemeAtteinte(
 }
 
 /**
- * Garanti seulement quand la garantie de la variable du thème vise le même type de seuil (texte ou non-texte), le niveau demandé
+ * Garanti seulement quand la garantie de la variable du thème vise le même type de seuil (texte, qui vaut aussi pour une icône, ou non-texte), le niveau demandé
  * et ce fond. Les garanties du thème se jugent au niveau AA : un texte demandé en AAA n'est pas couvert. La page Figma n'est jamais
  * garantie (Q-F7-7).
  */
@@ -813,8 +787,10 @@ function estGaranti(variableDuTheme: string | null, fond: NomDeFond, usage: Cibl
   if (!variableDuTheme || fond === 'page-figma') return false;
   const texte = usage === 'texte' || usage === 'grand-texte';
   if (texte && niveau !== 'AA') return false;
+  // Une icône se juge au seuil du texte : le thème garantit « texte et icônes » sur les mêmes variables.
+  const seuilDeLaGarantie = texte || usage === 'icone' ? 'texte' : 'nonTexte';
   return GARANTIES.some((g) => g.premier.variable === variableDuTheme
-    && g.seuil === (texte ? 'texte' : 'nonTexte')
+    && g.seuil === seuilDeLaGarantie
     && g.fonds.some((f) => (fond === 'page' ? 'fondDeLaPage' in f : 'fondDeLaCarte' in f)));
 }
 
@@ -862,7 +838,7 @@ function* ciblesDeContraste(variant: VariantLu, niveau: NiveauWcag, catalogue: C
     if (estUneIcone(layer) && !anneau && aUnePeintureVisible(layer, 'fills') && !lectureManquee(releve, layer.id, 'fills')) {
       cibles.push({
         layer, code: 'C49', usage: 'icone', champ: 'fills', peintures: layer.peintures.filter((p) => p.champ === 'fills'),
-        liaisons: liaisonsPropres(layer), seuil: SEUILS_D_ACCESSIBILITE.nonTexte,
+        liaisons: liaisonsPropres(layer), seuil: SEUILS_PAR_ROLE.icon ?? SEUILS_D_ACCESSIBILITE.texte.AA,
       });
     }
     if (lectureManquee(releve, layer.id, 'strokes') || (!anneau && lectureManquee(releve, layer.id, 'fills'))) continue;

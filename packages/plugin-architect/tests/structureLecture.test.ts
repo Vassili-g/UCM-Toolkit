@@ -56,9 +56,9 @@ test('une variable absente dit pourquoi le plugin ne la crée pas', () => {
 
 test('un cran absent de la rampe renvoie à UCM Palettes', () => {
   const [lu] = lireLesConstats([c82('C82:cran-absent:primary/light/50', { genre: 'cran-absent', rampe: 'primary/light', cran: 50, variables: 'primary/surface/subtle, secondary/surface/subtle' })], noms);
-  assert.equal(texte(lu.phrase), 'La rampe `primary/light` n’a pas le cran 50.');
+  assert.equal(texte(lu.phrase), 'La rampe `primary/light` n’a pas la nuance 50.');
   assert.equal(texte(lu.lieu), '`theme/primary/surface/subtle`, `theme/secondary/surface/subtle`');
-  assert.equal(lu.statut, 'Ajoutez ce cran avec UCM Palettes');
+  assert.equal(lu.statut, 'Ajoutez cette nuance avec UCM Palettes');
 });
 
 test('les modes de theme : un mode manquant, ou les deux', () => {
@@ -167,7 +167,7 @@ test('une correction d’alias de mode sans constat de cran reste une carte de m
 test('un cran sans correction ni question (cible de library) est une carte sous Crans', () => {
   const [lu] = lireLesConstats([c82('C82:cran:theme|primary/surface/default:m-dark', { genre: 'cran', variable: 'primary/surface/default', mode: 'dark', avant: 300, attendu: 200 })], noms);
   assert.equal(lu.groupe, 'crans');
-  assert.equal(texte(lu.phrase), 'En Dark, UCM attend le cran 200. Aujourd’hui elle vise le cran 300.');
+  assert.equal(texte(lu.phrase), 'En Dark, UCM attend la nuance 200. Aujourd’hui elle vise la nuance 300.');
   assert.equal(lu.statut, 'Changez sa cible dans la fenêtre Variables');
   assert.equal(texte(lu.lieu), '`theme/primary/surface/default`');
   assert.deepEqual(lu.variable, { nom: 'theme/primary/surface/default', cle: 'theme|primary/surface/default' });

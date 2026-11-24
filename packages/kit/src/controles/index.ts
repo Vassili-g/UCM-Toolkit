@@ -12,6 +12,7 @@ export {
   controlerLAccessibilite, controlerLAccessibiliteParEtapes, BORNE_DE_COMBINAISONS, SEUILS_D_ACCESSIBILITE,
   CIBLE_MINIMALE_PX, CIBLE_TACTILE_PX, TEXTE_MINIMAL_PX,
 } from './accessibilite.js';
+export { PROFONDEUR_D_ALIAS } from '../emplois/couleur.js';
 export { controlerLaTypographie, controlerLaTypographieParEtapes } from './typographie.js';
 export { axeDePropriete, estUnInterrupteur, nomDAxeEnAnglais, axesDesProprietes, axesDuReleve, axesDuReleveParEtapes, tokensDuComposant, tokensDuComposantParEtapes, segmentDAxe, controlerNommage, controlerNommageParEtapes, estDuComposant } from './nommage.js';
 export type { AxeDuComposant, TokenDuComposant } from './nommage.js';

@@ -59,7 +59,7 @@ export function monterStructure(coquille: Coquille, { envoyer, noms, ouvrirLaFic
   let demandeDApplication: number | null = null;
   /** Les lignes du dernier lot envoyé : la ligne verte du résultat en tire la demande de publier la library. */
   let envoyees: readonly string[] = [];
-  let recu: { readonly constats: readonly Constat[]; readonly corrections: readonly Correction[]; readonly ignores: IgnoresDeStructure; readonly echec?: EchecDeLecture } | null = null;
+  let recu: { readonly constats: readonly Constat[]; readonly corrections: readonly Correction[]; readonly ignores: IgnoresDeStructure; readonly echec?: EchecDeLecture; readonly pageDifferente?: true } | null = null;
 
   /** Un geste d'Ignorer prend un numéro neuf : la réponse est la relecture de la structure, et celle d'une lecture plus ancienne est laissée. */
   const demanderAvec = (message: (numero: number) => DemandeDeStructure): void => {
@@ -109,7 +109,10 @@ export function monterStructure(coquille: Coquille, { envoyer, noms, ouvrirLaFic
   const hoteDeLEchec = document.createElement('div');
   hoteDeLEchec.className = 'page-stack';
   hoteDeLEchec.hidden = true;
-  tokens.haut.append(hoteDeLEchec, hoteDeLInformation, hoteDuResultat);
+  const hoteDeLaPage = document.createElement('div');
+  hoteDeLaPage.className = 'page-stack';
+  hoteDeLaPage.hidden = true;
+  tokens.haut.append(hoteDeLEchec, hoteDeLInformation, hoteDeLaPage, hoteDuResultat);
   const pied = monterLePied({
     hote: tokens.pied,
     analyseEnCours: () => tokens.attente().structure || tokens.attente().noms,
@@ -147,6 +150,10 @@ export function monterStructure(coquille: Coquille, { envoyer, noms, ouvrirLaFic
       poserLesMorceaux(phrase, information.phrase);
       hoteDeLInformation.replaceChildren(creerAlerte('info', { texte: phrase, meta: information.statut }));
     }
+    const pageDifferente = recu?.pageDifferente === true;
+    hoteDeLaPage.hidden = !pageDifferente;
+    if (pageDifferente) hoteDeLaPage.replaceChildren(creerAlerte('info', { texte: TEXTES.pageDifferente }));
+    else hoteDeLaPage.replaceChildren();
     const echec = recu?.echec;
     hoteDeLEchec.hidden = echec === undefined;
     if (echec === undefined) hoteDeLEchec.replaceChildren();
@@ -167,7 +174,7 @@ export function monterStructure(coquille: Coquille, { envoyer, noms, ouvrirLaFic
         if (message.demande !== demande) return;
         mesures.noterLaTaille('structure', JSON.stringify(message).length);
         const debut = horloge();
-        recu = { constats: message.constats, corrections: message.corrections, ignores: message.ignores, ...(message.echec ? { echec: message.echec } : {}) };
+        recu = { constats: message.constats, corrections: message.corrections, ignores: message.ignores, ...(message.echec ? { echec: message.echec } : {}), ...(message.pageDifferente ? { pageDifferente: true as const } : {}) };
         rendre();
         mesures.noterLeRendu(horloge() - debut);
         rapport?.poser(true);

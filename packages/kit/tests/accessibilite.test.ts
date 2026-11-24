@@ -2,12 +2,13 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import {
-  BORNE_DE_COMBINAISONS, controlerLAccessibilite, controlerLAccessibiliteParEtapes,
+  BORNE_DE_COMBINAISONS, PROFONDEUR_D_ALIAS, controlerLAccessibilite, controlerLAccessibiliteParEtapes,
   type CatalogueDeReference, type LayerLu, type LiaisonLue, type PeintureLue, type ReleveDeComposant, type VariantLu,
 } from '../src/controles/index';
 import { collectionDuCatalogue, variableDuCatalogue } from '../src/controles/catalogue';
 import { layersVisiblesDuVariant, liaisonsPropres } from '../src/controles/releve';
-import { composer, couleurDeLiaison, fondEffectif, pileDePeintures, type Combinaison } from '../src/controles/accessibilite';
+import { couleurDeLiaison, fondEffectif, pileDePeintures, type Combinaison } from '../src/controles/accessibilite';
+import { composer } from '../src/emplois/couleur';
 
 const gris = (v: number) => ({ r: v, g: v, b: v, a: 1 });
 const solide = (champ: 'fills' | 'strokes', couleur: { r: number; g: number; b: number; a: number }, opacite = 1): PeintureLue =>
@@ -540,7 +541,7 @@ const rouge = (r: number) => ({ valeur: { r, g: 0, b: 0, a: 1 } });
 
 /** La résolution d'avant la mémoire, sur les mêmes catalogues. */
 function couleurDeReference(catalogue: CatalogueDeReference, variant: VariantLu, combinaison: Combinaison, cle: string, profondeur = 0): unknown {
-  if (profondeur > 10) return 'mode-illisible';
+  if (profondeur > PROFONDEUR_D_ALIAS) return 'mode-illisible';
   const variable = variableDuCatalogue(catalogue, cle);
   if (variable === 'absente' || variable.etat !== 'presente' || !variable.valeurs) return 'mode-illisible';
   const collection = collectionDuCatalogue(catalogue, variable.collection);

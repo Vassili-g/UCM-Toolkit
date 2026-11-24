@@ -912,6 +912,17 @@ declare module "@ucm-kit/core/lecteurs" {
   /** Ce que le diagnostic des contrastes juge : une couleur contre son fond. */
   export type NatureDeConstatDeContraste = "contraste";
 
+  /** Pourquoi une couleur n'est pas vérifiée : Display P3, composante hors de [0, 1], ou plus de `PROFONDEUR_D_ALIAS` alias. */
+  export type CauseDeCouleurNonVerifiee = "display-p3" | "hors-limites" | "alias-trop-longs";
+
+  /** Une couleur que le diagnostic n'a pas pu mesurer, avec sa cause. */
+  export interface CouleurNonVerifiee {
+    nature: "non-verifiee";
+    /** Le token de la couleur écartée, tel que le contrat le cite. */
+    chemin: string;
+    cause: CauseDeCouleurNonVerifiee;
+  }
+
   /** Un contraste mesuré dans un contexte de modes ; `valeur` est un nombre pour un constat. */
   export interface MesureDeContraste {
     /** Le contexte, tel que le rapport le cite : « marque acme, thème dark ». */
@@ -937,14 +948,14 @@ declare module "@ucm-kit/core/lecteurs" {
     mesures: MesureDeContraste[];
   }
 
-  /** Les couleurs d'un contrat sous le seuil contre leur fond ; `[]` sans fond jugeable. */
-  export function constatsDesContrastes(contrat: unknown, document: unknown): ConstatDeContraste[];
+  /** Les couleurs d'un contrat sous le seuil contre leur fond, puis les couleurs non vérifiées ; `[]` sans fond jugeable. */
+  export function constatsDesContrastes(contrat: unknown, document: unknown): Array<ConstatDeContraste | CouleurNonVerifiee>;
 
   /** La section du rapport, non bloquante ; `[]` sans écart. */
-  export function sectionContrastes(bilans: ReadonlyArray<{ fichier: string; contrastes?: ConstatDeContraste[] }>): string[];
+  export function sectionContrastes(bilans: ReadonlyArray<{ fichier: string; contrastes?: Array<ConstatDeContraste | CouleurNonVerifiee> }>): string[];
 
   /** Le rappel du terminal, ou `null` sans écart. */
-  export function resumeTerminalContrastes(bilans: ReadonlyArray<{ contrastes?: ConstatDeContraste[] }>): string | null;
+  export function resumeTerminalContrastes(bilans: ReadonlyArray<{ contrastes?: Array<ConstatDeContraste | CouleurNonVerifiee> }>): string | null;
 
   /** Les constats d'un genre, avec leur nombre et au plus trois exemples déjà écrits. */
   export interface GroupeDArchitecture {

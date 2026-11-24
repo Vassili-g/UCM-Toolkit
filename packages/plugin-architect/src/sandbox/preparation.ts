@@ -12,9 +12,10 @@
  * `ecrireLeLot`. `lire-texte` envoie aussi `regles-recues` quand le texte porte des règles.
  */
 import {
-  cheminComplet, cheminDeLaVariable, collectionDuCatalogue, estDuComposant, preparerLesTokens, variableDuCatalogue, variableParCheminComplet,
+  cheminComplet, cheminDeLaVariable, collectionDuCatalogue, estDuComposant, preparerLesTokens, PROFONDEUR_D_ALIAS, variableDuCatalogue, variableParCheminComplet,
   type CatalogueDeReference, type LieuDePreparation, type PreparationDesTokens, type ReponsesDePreparation, type VariableDuCatalogue,
 } from '@ucm-kit/core/controles';
+import { modeDuThemeReconnu } from '@ucm-kit/core/referentiel';
 import { lireLesLibraries, type PortDeBibliotheque } from 'ucm-plugin-socle/src/bibliotheque';
 
 import { catalogueDuFichier, chargerLesValeurs, lireLeCatalogueDeLibrary } from '../catalogue';
@@ -145,11 +146,11 @@ const cleDuLieu = (lieu: LieuDePreparation): string => `${lieu.variant}\u0000${l
 /** La couleur Light d'une variable du catalogue, alias suivis ; `undefined` quand une valeur manque en chemin. */
 function couleurDeLaCible(catalogue: CatalogueDeReference, nom: string): string | undefined {
   let variable: VariableDuCatalogue | 'absente' = variableParCheminComplet(catalogue, nom) ?? 'absente';
-  for (let tour = 0; tour < 10; tour += 1) {
+  for (let tour = 0; tour <= PROFONDEUR_D_ALIAS; tour += 1) {
     if (variable === 'absente' || variable.type !== 'COLOR' || variable.etat !== 'presente' || !variable.valeurs) return undefined;
     const collection = collectionDuCatalogue(catalogue, variable.collection);
     const modes = collection === 'absente' ? [] : collection.modes;
-    const mode = modes.find((candidat) => candidat.nom.toLowerCase() === 'light') ?? modes[0];
+    const mode = modes.find((candidat) => modeDuThemeReconnu(candidat.nom) === 'light') ?? modes[0];
     const valeur = mode ? variable.valeurs[mode.id] : Object.values(variable.valeurs)[0];
     if (!valeur) return undefined;
     if ('alias' in valeur) { variable = variableDuCatalogue(catalogue, valeur.alias); continue; }

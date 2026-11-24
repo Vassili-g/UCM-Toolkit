@@ -474,7 +474,9 @@ correction avec un motif (`objet-change`, `fait-faux`, `cible-introuvable`,
 `erreur`), et les autres s'écrivent. L'écriture périme l'analyse.
 
 Le contraste se mesure sur la paire que le kit tire du relevé, dans chaque
-mode, contre le seuil du niveau AA ou AAA de la Configuration. Le rapport
+mode, contre le seuil du niveau AA ou AAA de la Configuration. Une icône se
+juge au seuil du texte, 4,5:1 (`SEUILS_PAR_ROLE.icon`), quel que soit le niveau.
+Un premier plan translucide se compose sur son fond avant la mesure. Le rapport
 s'affiche sans arrondi. Un fond ou une peinture que le plugin ne sait pas
 lire donne une limite, jamais un verdict.
 
@@ -553,6 +555,12 @@ lire de recette Palettes ni de profil d'architecture. Sans collection `theme`
 lue, les liens restent contrôlés ; `theme-non-reconnu` annonce l'absence du
 thème quand le fichier reconnaît une collection UCM.
 
+Hors de C82, la vue Structure compare le fond de page de la recette de
+Palettes (`fonds.light`, lu dans `CLES_PARTAGEES_DE_PALETTES`) à la valeur de
+`elevation/page` dans le mode Light du fichier, en hexadécimal à 8 bits. Quand
+les deux diffèrent, une information le dit, sans geste. Sans recette lue, sans
+mode Light reconnu ou sans `elevation/page` résolue, rien ne s'affiche.
+
 C82 signale les variables manquantes de `theme`, les crans visés, les couches
 des cibles, les couleurs directes hors de `primitives` et de `components`, les scopes des couches
 qui n'en portent pas, les modes manquants de `theme`, le type des variables du
@@ -572,7 +580,7 @@ Dans `brands` et `utility`, C82 vérifie chaque branche dans chaque mode. Un
 lien manquant reçoit une création quand ses voisines désignent une seule
 palette et que `primitives` porte le cran attendu. Une variable présente sans
 valeur dans un mode reçoit la cible de ce seul mode. Un lien vers le mauvais
-cran ou le mauvais thème de la même palette reçoit une correction dans Crans.
+cran ou le mauvais thème de la même palette reçoit une correction dans Nuances.
 Une variable qui vise une autre palette que ses voisines reste intacte.
 
 Une branche absente pose la question `palette-a-choisir`. Ses réponses listent
