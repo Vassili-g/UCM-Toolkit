@@ -54,7 +54,7 @@ Procédures qu'un agent charge à la demande.
 - empreinte-du-kit.mjs : empreinte des sources compilées du kit, écrite dans `dist`
 - controle-style.mjs : règles de style à deux niveaux (refus, signal), pour le test et pour les hooks
 - hook-style.mjs : même contrôle, au moment où un agent écrit un fichier
-- hook-reponse.mjs : motifs de refus communs, appliqués à la dernière réponse d'un agent (`Stop`, `SubagentStop`)
+- hook-reponse.mjs : motifs de refus communs et motifs de portée `reponse` de `REGLES_ECRIRE`, appliqués à la dernière réponse d'un agent (`Stop`, `SubagentStop`)
 - hook-documents.mjs : refuse qu'un agent crée un document Markdown hors du registre
 - mesurer-prose.mjs : volume de la prose, document et commentaire
 - pins-servis.mjs : versions que le registre sert

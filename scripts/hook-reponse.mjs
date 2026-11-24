@@ -2,10 +2,14 @@
  * Contrôle la dernière réponse d'un agent contre les motifs de refus communs
  * aux fichiers et aux réponses.
  *
- * Branché en `Stop` et en `SubagentStop` par `.claude/settings.json`. Seuls
- * les motifs de `MOTIFS_DE_REFUS_PARTOUT` s'appliquent : ni tiret, ni emphase,
- * ni signal, qui ne visent que les fichiers. Une faute sort en code 2 : Claude
- * Code rend le texte de stderr à l'agent, qui réécrit sa réponse.
+ * Branché en `Stop` et en `SubagentStop` par `.claude/settings.json`. Les
+ * motifs de portée `reponse` de `REGLES_ECRIRE` s'appliquent : ceux de
+ * `MOTIFS_DE_REFUS_PARTOUT`, le tiret cadratin, la datation, les
+ * intensificateurs, l'opposition et l'offre de suite. Ni capitale d'emphase ni
+ * signal, qui ne visent que les fichiers. Une faute sort en code 2 : Claude
+ * Code rend le texte de stderr à l'agent, qui réécrit sa réponse. Une erreur du
+ * hook sort aussi en code 2, avec « Le contrôle de style n'a pas pu
+ * s'exécuter ».
  *
  * Le texte vient de `last_assistant_message` ; à défaut, du dernier message
  * `assistant` à blocs `text` du transcript JSONL (`agent_transcript_path` pour
@@ -54,25 +58,31 @@ function dernierMessage(transcript) {
   return null;
 }
 
-const entree = await demande();
-if (!entree || entree.stop_hook_active === true) process.exit(0);
+try {
+  const entree = await demande();
+  if (!entree || entree.stop_hook_active === true) process.exit(0);
 
-let texte = typeof entree.last_assistant_message === 'string' && entree.last_assistant_message !== ''
-  ? entree.last_assistant_message
-  : null;
-if (texte === null) {
-  const transcript = entree.agent_transcript_path ?? entree.transcript_path;
-  if (typeof transcript === 'string') texte = dernierMessage(transcript);
+  let texte = typeof entree.last_assistant_message === 'string' && entree.last_assistant_message !== ''
+    ? entree.last_assistant_message
+    : null;
+  if (texte === null) {
+    const transcript = entree.agent_transcript_path ?? entree.transcript_path;
+    if (typeof transcript === 'string') texte = dernierMessage(transcript);
+  }
+  if (texte === null) process.exit(0);
+
+  const fautes = fautesDeReponse(texte);
+  if (fautes.length === 0) process.exit(0);
+
+  process.stderr.write(
+    `Ta dernière réponse contient ${fautes.length} tournure(s) que le dépôt refuse :\n`
+      + `${fautes.map((faute) => `- ${faute.extrait}`).join('\n')}\n\n`
+      + 'Réécris ta dernière réponse en entier sans ces tournures, selon le bloc « Écrire » '
+      + 'd\'AGENTS.md. Une phrase sans fait se supprime.\n',
+  );
+  process.exit(2);
+} catch (erreur) {
+  process.stderr.write(`Le contrôle de style n'a pas pu s'exécuter : ${erreur instanceof Error ? erreur.message : String(erreur)}.
+`);
+  process.exit(2);
 }
-if (texte === null) process.exit(0);
-
-const fautes = fautesDeReponse(texte);
-if (fautes.length === 0) process.exit(0);
-
-process.stderr.write(
-  `Ta dernière réponse contient ${fautes.length} tournure(s) que le dépôt refuse :\n`
-    + `${fautes.map((faute) => `- ${faute.extrait}`).join('\n')}\n\n`
-    + 'Réécris ta dernière réponse en entier sans ces tournures, selon le bloc « Écrire » '
-    + 'd\'AGENTS.md. Une phrase sans fait se supprime.\n',
-);
-process.exit(2);

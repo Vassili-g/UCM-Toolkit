@@ -79,7 +79,8 @@ Une scène montre le vrai composant d'un système, chargé depuis son paquet npm
 - Une option de `comprendre` cite des systèmes par `id`. Chacun a une carte dans `galerie` ou une entrée dans `absences`, sinon `rendre` refuse.
 - Un système au rôle `composants` avec un alias non nul dans l'index a une carte dans `galerie` ou une entrée dans `absences`, jamais les deux, sinon `rendre` refuse.
 - `rendre` refuse la fiche d'un système au rôle `composants` lue plus de 12 mois avant la `date` du guide : la relire avec un `releveur`.
-- Les points, constats, options et notes sont en français, paraphrasés. Les noms locaux restent dans la langue du système.- La prose du JSON passe `scripts/controle-style.mjs`, que `rendre` applique.
+- Les points, constats, options et notes sont en français, paraphrasés. Les noms locaux restent dans la langue du système.
+- La prose du JSON passe `scripts/controle-style.mjs`, que `rendre` applique.
 
 ## Interdits
 

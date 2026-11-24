@@ -5,9 +5,10 @@
  * Le test `tests/styleDocumentaire.test.ts` les rejoue sur tout le dépôt. Le
  * hook `PostToolUse` de `.claude/settings.json` (`hook-style.mjs`) les rejoue
  * sur le fichier qu'un agent vient d'écrire. Le hook `Stop` et `SubagentStop`
- * (`hook-reponse.mjs`) applique les motifs de refus communs aux fichiers et aux
- * réponses, `MOTIFS_DE_REFUS_PARTOUT`, au dernier message d'un agent. Les trois
- * partagent ce module pour qu'aucun moment ne juge autrement.
+ * (`hook-reponse.mjs`) applique au dernier message d'un agent les motifs de
+ * portée `reponse` de `REGLES_ECRIRE` : `MOTIFS_DE_REFUS_PARTOUT`, le tiret
+ * cadratin, la datation, les intensificateurs, l'opposition et l'offre de
+ * suite. Les trois partagent ce module pour qu'aucun moment ne juge autrement.
  *
  * Deux niveaux. Un refus fait échouer `npm test` et sort le hook d'écriture en
  * code 2. Un signal laisse `npm test` passer : le hook d'écriture rend le
@@ -60,7 +61,7 @@ export const ACRONYMES = [
   'FLOAT', 'FRAME', 'GET', 'GIT', 'GNU', 'GRID', 'GROUP', 'HSL', 'HSV', 'HTML', 'HTTP',
   'HTTPS', 'HUG', 'IA', 'IBM', 'ICDE', 'ID', 'ISO', 'ISWC', 'JND', 'JS', 'JSON', 'JSONL', 'JSPM', 'JSX', 'JWT', 'KER', 'LAPD', 'LF', 'LGPL',
   'LINE', 'LTR', 'MAX', 'MB', 'MCP', 'MD', 'MIN', 'MIT', 'MVP', 'NODE', 'NONE',
-  'MSR', 'MUI', 'NPM', 'OAEI', 'OIDC', 'OK', 'OKLAB', 'OKLCH', 'ONNX', 'PAT', 'PATH', 'PDF', 'PNG', 'POLYGON', 'POST', 'PR', 'PUT', 'RAM',
+  'MSR', 'MUI', 'NFC', 'NFD', 'NPM', 'OAEI', 'OIDC', 'OK', 'OKLAB', 'OKLCH', 'ONNX', 'PAT', 'PATH', 'PDF', 'PNG', 'POLYGON', 'POST', 'PR', 'PUT', 'RAM',
   'RECTANGLE',
   'REST', 'RGAA', 'RGB', 'RTL', 'SDS', 'SET', 'SHA', 'SLDS', 'SLOT', 'SMAT', 'SSH', 'SOLID', 'SPEC', 'STAR', 'STRETCH',
   // `TODO(sujet)` est le marqueur conventionnel d'un point à reprendre, que les
@@ -92,6 +93,12 @@ export const INTENSIFICATEURS = [
   'véritable', 'véritablement', 'incontournable', 'élégant', 'élégante',
   'élégance', 'harmonieux', 'sans effort', 'clé en main',
 ];
+
+/** Le mot d'`INTENSIFICATEURS`, cherché dans un texte. */
+const INTENSIFICATEUR = new RegExp(
+  `(?<![A-Za-zÀ-ÿ0-9_])(${INTENSIFICATEURS.join('|')})(?![A-Za-zÀ-ÿ0-9_])`,
+  'gi',
+);
 
 /** Ce qui ouvre une opposition décorative en deux temps. */
 const OPPOSITION = /n[’']est pas [^.;:!?]{1,90}?,\s*(?:c[’']est|mais bien|mais)\b/gi;
@@ -151,10 +158,69 @@ export const MOTIFS_DE_REFUS_PARTOUT = [
     message: 'Interjection en tête de phrase. Commencer par le fait.',
   },
   {
+    regle: 'puce-collee',
+    motif: /(?<=[^\s.!?][.!?])- /g,
+    message: 'Deux puces collées sur une ligne. Mettre chaque puce sur sa ligne.',
+  },
+  {
     regle: 'emoji-de-statut',
     motif: /[✅❌🎉🚀✨👉💡]/gu,
     message: 'Emoji de statut. Écrire le résultat en mots ; un emoji qui est une donnée '
       + 'se cite entre accents graves.',
+  },
+];
+
+/**
+ * Les motifs que seules les réponses refusent. Un fichier cite une offre de
+ * suite sans la formuler.
+ */
+export const MOTIFS_DE_REPONSE = [
+  {
+    regle: 'offre-de-suite',
+    motif: new RegExp(
+      `${MOT}(?:souhaitez-vous|si vous voulez,? je peux|je reste à (?:votre )?disposition)${FIN_DE_MOT}`,
+      'gi',
+    ),
+    message: 'Offre de suite en fin de réponse. S’arrêter quand l’information est donnée.',
+  },
+];
+
+/**
+ * Les puces du bloc « Écrire » d'`AGENTS.md`, une entrée par puce et dans
+ * l'ordre. `moyen` dit qui tient la règle : `motif` quand une détection de ce
+ * module la refuse ou la signale (`motifs` les nomme), `relecture` quand seul
+ * un lecteur la juge. `portees` dit où elle s'applique : `fichier`, `reponse`.
+ * `tests/styleMotifs.test.ts` compare le nombre d'entrées à celui des puces.
+ */
+export const REGLES_ECRIRE = [
+  { regle: 'Supprimer une phrase sans fait', moyen: 'relecture', portees: ['fichier', 'reponse'] },
+  { regle: 'Un fait par phrase, avec sujet, verbe et complément', moyen: 'relecture', portees: ['fichier', 'reponse'] },
+  {
+    regle: 'Commencer par la réponse ou le résultat', moyen: 'motif', portees: ['fichier', 'reponse'],
+    motifs: ['formule-de-reponse', 'attaque-enthousiaste', 'liaison-creuse'],
+  },
+  { regle: 'Nommer l’acteur et l’objet', moyen: 'relecture', portees: ['fichier', 'reponse'] },
+  {
+    regle: 'Prendre le mot courant', moyen: 'motif', portees: ['fichier', 'reponse'],
+    motifs: ['afin-de', 'permet-de'],
+  },
+  {
+    regle: 'Donner le chiffre, le chemin ou le nom plutôt qu’un adjectif', moyen: 'motif',
+    portees: ['fichier', 'reponse'], motifs: ['intensificateur', 'datation'],
+  },
+  { regle: 'Écrire une action attendue à l’impératif', moyen: 'relecture', portees: ['fichier', 'reponse'] },
+  {
+    regle: 'Un raisonnement en phrases, un mot en gras par section au plus', moyen: 'motif',
+    portees: ['fichier'], motifs: ['gras-multiple', 'emphase', 'opposition'],
+  },
+  {
+    regle: 'Ponctuer avec le point, la virgule et la parenthèse', moyen: 'motif',
+    portees: ['fichier', 'reponse'], motifs: ['tiret-cadratin', 'puce-collee', 'deux-points-multiples'],
+  },
+  { regle: 'Dire ce qui est fait, ce qui reste et ce qui bloque', moyen: 'relecture', portees: ['reponse'] },
+  {
+    regle: 'S’arrêter quand l’information est donnée', moyen: 'motif', portees: ['reponse'],
+    motifs: ['offre-de-suite'],
   },
 ];
 
@@ -173,17 +239,15 @@ export const NIVEAUX_DES_SIGNAUX = {
   'deux-points-multiples': { agent: null, html: null, autre: 'signal' },
   fleche: { agent: 'refus', html: 'signal', autre: 'signal' },
   'famille-sans-complement': { agent: null, html: null, autre: 'signal' },
+  'gras-multiple': { agent: null, html: null, autre: 'signal' },
 };
 
 /**
- * Fichiers d'agents dont les flèches gardent le niveau signal : une autre
- * session les modifie. À retirer de cette liste, et à convertir, quand elle
- * aura commité.
+ * Fichiers d'agents dont les flèches gardent le niveau signal, le temps de les
+ * convertir. Chaque entrée doit contenir une flèche : le test de
+ * `styleMotifs.test.ts` refuse une entrée qui n'en a plus.
  */
-export const AGENTS_A_CONVERTIR = [
-  'packages/couleur/invariants/moteur-de-couleur.md',
-  'packages/plugin-palettes/CARTE.md',
-];
+export const AGENTS_A_CONVERTIR = [];
 
 const PERMET_DE = new RegExp(`${MOT}permet(?:tent)?\\s+(?:de${FIN_DE_MOT}|d['’])`, 'gi');
 /**
@@ -211,8 +275,16 @@ export function categorieDuFichier(chemin) {
 /** Les chaînes de `packages/<paquet>/src/i18n/fr.ts` se contrôlent comme du texte. */
 const TEXTES_FRANCAIS = /^packages\/[^/]+\/src\/i18n\/fr\.ts$/;
 
-/** Les extensions que le contrôle juge. */
-export const EXTENSIONS_CONTROLEES = /\.(md|ts|tsx|mjs|cjs|html)$/;
+/** Les extensions de texte que le contrôle juge. `.js` reste hors du contrôle. */
+const EXTENSIONS_CONTROLEES = /\.(md|ts|tsx|mjs|cjs|html)$/;
+
+/**
+ * Vrai si le contrôle juge ce fichier. Le contrôle du dépôt, `fautesDuFichier`
+ * et `hook-style.mjs` lisent cette seule liste.
+ */
+export function estJugeable(chemin) {
+  return EXTENSIONS_CONTROLEES.test(chemin) || estJsonControle(chemin);
+}
 
 /**
  * Fichiers suivis par Git, en chemins relatifs à séparateur `/`. Git liste
@@ -455,13 +527,16 @@ function paragraphesDe(lignes) {
   return paragraphes;
 }
 
+/** Le niveau d'un signal pour ce fichier, ou `null` quand sa catégorie l'écarte. */
+function niveauDuSignal(chemin, regle) {
+  if (regle === 'fleche' && AGENTS_A_CONVERTIR.includes(chemin)) return 'signal';
+  return NIVEAUX_DES_SIGNAUX[regle][categorieDuFichier(chemin)] ?? null;
+}
+
 /** Les signaux d'une suite de lignes, selon la catégorie du fichier. */
-function signauxDesLignes(chemin, categorie, lignes) {
+function signauxDesLignes(chemin, lignes) {
   const fautes = [];
-  const niveauDe = (regle) => {
-    if (regle === 'fleche' && AGENTS_A_CONVERTIR.includes(chemin)) return 'signal';
-    return NIVEAUX_DES_SIGNAUX[regle][categorie] ?? null;
-  };
+  const niveauDe = (regle) => niveauDuSignal(chemin, regle);
   const signaler = (regle, paragraphe, index, phrase) => {
     const niveau = niveauDe(regle);
     if (niveau === null) return;
@@ -488,6 +563,30 @@ function signauxDesLignes(chemin, categorie, lignes) {
 }
 
 /**
+ * L'intensificateur, l'opposition et la datation, que les fichiers et les
+ * réponses refusent de la même façon, sur des lignes sans citations.
+ */
+function fautesDesFormesCommunes(chemin, citees) {
+  const fautes = [];
+  const { joint, ligneDe } = jointe(citees);
+  for (const [regle, motif] of [
+    ['intensificateur', INTENSIFICATEUR],
+    ['opposition', OPPOSITION],
+    ['datation', DATATION],
+  ]) {
+    for (const trouve of joint.matchAll(motif)) {
+      fautes.push({
+        regle,
+        niveau: 'refus',
+        ou: `${chemin}:${ligneDe(trouve.index)}`,
+        extrait: `« ${trouve[1] ?? trouve[0]} » dans : ${autourDe(joint, trouve.index)}`,
+      });
+    }
+  }
+  return fautes;
+}
+
+/**
  * Les fautes d'une suite de lignes, la même quelle que soit leur provenance.
  *
  * Deux passes, parce que deux formes ne se lisent pas à la même échelle. Le
@@ -500,10 +599,6 @@ function signauxDesLignes(chemin, categorie, lignes) {
  */
 function fautesDesLignes(chemin, lignes) {
   const fautes = [];
-  const intensificateur = new RegExp(
-    `(?<![A-Za-zÀ-ÿ0-9_])(${INTENSIFICATEURS.join('|')})(?![A-Za-zÀ-ÿ0-9_])`,
-    'gi',
-  );
 
   for (const { numero, texte } of lignes) {
     const ou = `${chemin}:${numero}`;
@@ -519,31 +614,57 @@ function fautesDesLignes(chemin, lignes) {
   }
 
   const citees = sansCitations(lignes);
-  const { joint, ligneDe } = jointe(citees);
-
-  for (const [regle, motif] of [
-    ['intensificateur', intensificateur],
-    ['opposition', OPPOSITION],
-    ['datation', DATATION],
-  ]) {
-    for (const trouve of joint.matchAll(motif)) {
-      fautes.push({
-        regle,
-        niveau: 'refus',
-        ou: `${chemin}:${ligneDe(trouve.index)}`,
-        extrait: `« ${trouve[1] ?? trouve[0]} » dans : ${autourDe(joint, trouve.index)}`,
-      });
-    }
-  }
-
+  fautes.push(...fautesDesFormesCommunes(chemin, citees));
   fautes.push(...fautesDeRefusPartout(chemin, citees));
-  fautes.push(...signauxDesLignes(chemin, categorieDuFichier(chemin), citees));
+  fautes.push(...signauxDesLignes(chemin, citees));
+  return fautes;
+}
+
+/**
+ * Les sections `##` d'un Markdown où plus d'un passage est en gras : un signal
+ * par section, sur la ligne du deuxième passage. Le code, les titres de
+ * niveau 3 et au-delà, et les tableaux n'y comptent pas.
+ */
+function fautesDeGras(chemin, contenu) {
+  const niveau = niveauDuSignal(chemin, 'gras-multiple');
+  if (niveau === null) return [];
+  const fautes = [];
+  let titre = '';
+  let compte = 0;
+  let signale = false;
+  let dansUnBloc = false;
+  contenu.split(/\r?\n/).forEach((ligne, index) => {
+    if (ligne.trimStart().startsWith('```')) {
+      dansUnBloc = !dansUnBloc;
+      return;
+    }
+    if (dansUnBloc) return;
+    if (/^##(?!#)\s/.test(ligne)) {
+      titre = ligne.replace(/^##\s+/, '').trim();
+      compte = 0;
+      signale = false;
+      return;
+    }
+    if (ligne.startsWith('#') || ligne.startsWith('|')) return;
+    for (const gras of ligne.replace(/`[^`\n]*`/g, '').matchAll(/\*\*[^*\n]+?\*\*/g)) {
+      compte += 1;
+      if (compte > 1 && !signale) {
+        signale = true;
+        fautes.push({
+          regle: 'gras-multiple',
+          niveau,
+          ou: `${chemin}:${index + 1}`,
+          extrait: `${gras[0]} dans la section « ${titre} »`.slice(0, 160),
+        });
+      }
+    }
+  });
   return fautes;
 }
 
 /** Les fautes d'un document Markdown. */
 export function fautesDuDocument(chemin, contenu) {
-  return fautesDesLignes(chemin, lignesDeProse(contenu));
+  return [...fautesDesLignes(chemin, lignesDeProse(contenu)), ...fautesDeGras(chemin, contenu)];
 }
 
 const ENTITES = {
@@ -703,11 +824,11 @@ export function fautesDuHtml(chemin, contenu) {
 
 /** Les fichiers que le contrôle sait juger, et le juge qui leur convient. */
 export function fautesDuFichier(chemin, contenu) {
+  if (!estJugeable(chemin)) return [];
   if (chemin.endsWith('.md')) return fautesDuDocument(chemin, contenu);
   if (chemin.endsWith('.html')) return fautesDuHtml(chemin, contenu);
-  if (/\.(ts|tsx|mjs|cjs|js)$/.test(chemin)) return fautesDeLaSource(chemin, contenu);
   if (estJsonControle(chemin)) return fautesDuJson(chemin, contenu);
-  return [];
+  return fautesDeLaSource(chemin, contenu);
 }
 
 /** Ce que le contrôle ignore : dépendances, fixtures figées, notes de travail. */
@@ -745,15 +866,9 @@ export const EXCLUS_DU_CONTROLE = [
       + 'perdrait à la régénération.',
   },
   {
-    chemin: 'packages/plugin-palettes/CARTE.md',
-    raison: 'Fichier en cours de modification par une autre session ; ligne 95, « en résumé » '
-      + 'décrit un affichage résumé de l’interface, au sens littéral.',
-  },
-  {
     chemin: 'packages/plugin-palettes/src/i18n/fr.ts',
-    raison: 'Fichier en cours de modification par une autre session ; lignes 186 et 1138, '
-      + '« NFD » est un nom de normalisation Unicode en capitales ; ligne 1663, '
-      + '« — » est la valeur d’un état vide, une donnée.',
+    raison: 'Le tiret cadratin d’un état vide est une donnée, dans un texte du designer '
+      + 'que le contrôle ne réécrit pas.',
   },
 ];
 
@@ -768,7 +883,7 @@ export function estExclu(chemin) {
 export function fichiersAControler() {
   return fichiersSuivis()
     .filter((chemin) => !horsPerimetre(chemin) && !estExclu(chemin))
-    .filter((chemin) => EXTENSIONS_CONTROLEES.test(chemin) || estJsonControle(chemin));
+    .filter(estJugeable);
 }
 
 /**
@@ -898,6 +1013,9 @@ const MESSAGES = {
     + 'Écrire la règle seule.',
   'deux-points-multiples': 'Deux deux-points dans une phrase. Réserver les deux-points '
     + 'à l’annonce d’une liste ou d’une citation.',
+  'offre-de-suite': MOTIFS_DE_REPONSE[0].message,
+  'gras-multiple': 'Plus d’un passage en gras dans une section. Un mot en gras par '
+    + 'section au plus.',
   'famille-sans-complement': 'Dire de quelle famille il s’agit, famille de propriétés, '
     + 'famille de constats, famille de teinte ou famille de police.',
   fleche: 'Flèche dans une phrase. Écrire le verbe : « devient », « produit », « renvoie à ».',
@@ -942,9 +1060,11 @@ export function rapport(fautes) {
 }
 
 /**
- * Les passages d'un texte de réponse que les motifs refusés partout rejettent.
- * Les blocs de code, le code entre accents graves et les citations entre « »
- * sont retirés d'abord ; aucune autre règle ne s'applique.
+ * Les passages d'un texte de réponse que refusent les motifs de portée
+ * `reponse` : `MOTIFS_DE_REFUS_PARTOUT`, `MOTIFS_DE_REPONSE`, le tiret cadratin
+ * en incise, la datation, les intensificateurs et l'opposition. Les blocs de
+ * code, le code entre accents graves, les citations entre « », les titres et
+ * les tableaux sont retirés d'abord ; aucun signal ne s'applique.
  */
 export function fautesDeReponse(texte) {
   const lignes = [];
@@ -957,7 +1077,26 @@ export function fautesDeReponse(texte) {
     if (dansUnBloc) return;
     lignes.push({ numero: index + 1, texte: ligne.replace(/`[^`\n]*`/g, '') });
   });
-  return fautesDeRefusPartout('réponse', sansCitations(lignes));
+  const citees = sansCitations(lignes);
+  const fautes = [...fautesDeRefusPartout('réponse', citees)];
+  for (const { numero, texte } of citees) {
+    if (texte.includes(TIRET_CADRATIN) && !texte.startsWith('#') && !texte.startsWith('|')) {
+      fautes.push({
+        regle: 'tiret-cadratin', niveau: 'refus', ou: `réponse:${numero}`, extrait: `« ${TIRET_CADRATIN} » dans : ${texte.trim().slice(0, 130)}`,
+      });
+    }
+  }
+  fautes.push(...fautesDesFormesCommunes('réponse', citees));
+  const { joint, ligneDe } = jointe(citees);
+  for (const { regle, motif } of MOTIFS_DE_REPONSE) {
+    for (const trouve of joint.matchAll(motif)) {
+      fautes.push({
+        regle, niveau: 'refus', ou: `réponse:${ligneDe(trouve.index)}`,
+        extrait: `« ${trouve[0]} » dans : ${autourDe(joint, trouve.index)}`,
+      });
+    }
+  }
+  return fautes;
 }
 
 /** Compte les fautes par règle, pour l'impression des signaux. */

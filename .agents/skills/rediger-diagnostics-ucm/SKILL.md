@@ -8,8 +8,7 @@ request.
 
 # Rédiger un diagnostic UCM
 
-Lire la section « Messages destinés au designer » du [`CONTRIBUTING.md` de
-l’exporteur](../../../CONTRIBUTING.md) avant de modifier un message : c’est
+Lire la section « Messages destinés au designer » du [`CONTRIBUTING.md` racine](../../../CONTRIBUTING.md) avant de modifier un message : c’est
 l’autorité unique sur la forme d’un diagnostic. Ce fichier-ci n’en est qu’une
 procédure d’application.
 

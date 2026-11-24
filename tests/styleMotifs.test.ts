@@ -15,10 +15,14 @@ import test from 'node:test';
 
 import {
   AGENTS_A_CONVERTIR,
+  EXCLUS_DU_CONTROLE,
+  REGLES_ECRIRE,
   estExclu,
+  estJugeable,
   fautesDeReponse,
   fautesDuFichier,
   lignesDuHtml,
+  messageDeLaRegle,
   racine,
 } from '../scripts/controle-style.mjs';
 
@@ -255,7 +259,9 @@ test('une réponse est contrôlée sans code, sans citation et sans autre règle
   assert.deepEqual(noms('Tout est fait ✅'), ['emoji-de-statut']);
   assert.deepEqual(noms('Le test passe.\n```\nafin de\n```\nLe code est cité.'), []);
   assert.deepEqual(noms('La tournure « en effet » est citée, `afin de` aussi.'), []);
-  assert.deepEqual(noms('Un tiret — et un MOT en capitales, avec permet de et →.'), []);
+  assert.deepEqual(noms('Un MOT en capitales, avec permet de et →.'), []);
+  assert.deepEqual(noms('Un tiret — en incise.'), ['tiret-cadratin']);
+  assert.deepEqual(noms('# Titre — admis\n| a — b |\n|---|'), []);
 });
 
 /** Lance `hook-reponse.mjs` avec une entrée fabriquée. */
@@ -345,4 +351,110 @@ test('les champs note de decisions.json restent hors contrôle, les autres champ
 
 test('un JSON hors liste n’est pas contrôlé', () => {
   accepte(JSON.stringify({ texte: 'Un tiret — cadratin.' }), 'docs/autre.json');
+});
+
+/** Le contenu d'un fichier du dépôt, à partir de la racine. */
+const lire = (chemin: string) => fs.readFileSync(path.join(racine, chemin), 'utf8');
+
+test('[S7] chaque exception du contrôle produit encore ce qu’elle excuse', () => {
+  for (const exclu of EXCLUS_DU_CONTROLE as { chemin?: string; prefixe?: string; extension?: string }[]) {
+    const cibles: string[] = [];
+    if (exclu.chemin !== undefined) cibles.push(exclu.chemin);
+    else {
+      const parcourir = (courant: string) => {
+        for (const entree of fs.readdirSync(courant, { withFileTypes: true })) {
+          const complet = path.join(courant, entree.name);
+          if (entree.isDirectory()) parcourir(complet);
+          else if (entree.name.endsWith(exclu.extension ?? '')) {
+            cibles.push(path.relative(racine, complet).split(path.sep).join('/'));
+          }
+        }
+      };
+      parcourir(path.join(racine, exclu.prefixe as string));
+    }
+    const refus = cibles.flatMap((cible) => fautes(cible, lire(cible)).filter((faute) => faute.niveau === 'refus'));
+    assert.ok(refus.length > 0, `${exclu.chemin ?? exclu.prefixe} ne produit plus de refus : retirer l’entrée d’EXCLUS_DU_CONTROLE`);
+  }
+  for (const chemin of AGENTS_A_CONVERTIR as string[]) {
+    assert.ok(lire(chemin).includes('→'), `${chemin} n’a plus de flèche : retirer l’entrée d’AGENTS_A_CONVERTIR`);
+  }
+});
+
+test('[S8] REGLES_ECRIRE compte une entrée par puce du bloc « Écrire » d’AGENTS.md', () => {
+  const agents = lire('AGENTS.md');
+  const debut = agents.indexOf('## Écrire');
+  assert.ok(debut >= 0, 'le bloc « Écrire » est introuvable');
+  const bloc = agents.slice(debut, agents.indexOf('Exemples tirés', debut));
+  const puces = bloc.split(/\r?\n/).filter((ligne) => ligne.startsWith('- '));
+  assert.ok(puces.length > 0);
+  assert.equal((REGLES_ECRIRE as unknown[]).length, puces.length);
+  for (const { moyen, portees, motifs } of REGLES_ECRIRE as { moyen: string; portees: string[]; motifs?: string[] }[]) {
+    assert.ok(['motif', 'relecture'].includes(moyen));
+    assert.ok(portees.length > 0 && portees.every((portee) => ['fichier', 'reponse'].includes(portee)));
+    for (const motif of motifs ?? []) assert.notEqual(messageDeLaRegle(motif), motif, `${motif} n’a pas de message`);
+  }
+});
+
+test('[S9] le hook des réponses refuse un tiret cadratin en incise et une offre de suite', () => {
+  const incise = hookReponse({ last_assistant_message: 'Le test passe — le lot est fait.' });
+  assert.equal(incise.status, 2);
+  assert.match(incise.stderr, /—/);
+  const offre = hookReponse({ last_assistant_message: 'Le lot est fait. Souhaitez-vous que je poursuive ?' });
+  assert.equal(offre.status, 2);
+  assert.match(offre.stderr, /Souhaitez-vous/);
+  assert.equal(hookReponse({ last_assistant_message: 'Si vous voulez, je peux relancer.' }).status, 2);
+  assert.equal(hookReponse({ last_assistant_message: 'Je reste à disposition.' }).status, 2);
+  assert.equal(hookReponse({ last_assistant_message: 'Le lot est fait.' }).status, 0);
+});
+
+test('[S10] estJugeable écarte .js, garde .mjs, et le hook rend le même verdict', () => {
+  assert.equal(estJugeable('x.js'), false);
+  assert.equal(estJugeable('x.mjs'), true);
+  assert.equal(estJugeable('docs/inventaire/textes.json'), true);
+  assert.deepEqual(fautes('x.js', '// afin de commenter\n'), []);
+  fs.mkdirSync(path.join(racine, 'tests', '_local'), { recursive: true });
+  const dossier = fs.mkdtempSync(path.join(racine, 'tests', '_local', 'jugeable-'));
+  try {
+    const verdict = (nom: string) => {
+      const complet = path.join(dossier, nom);
+      fs.writeFileSync(complet, '// Le hook relit le fichier afin de corriger.\n');
+      return spawnSync(process.execPath, [path.join(racine, 'scripts/hook-style.mjs')], {
+        input: JSON.stringify({ tool_input: { file_path: complet } }),
+        encoding: 'utf8',
+      }).status;
+    };
+    assert.equal(verdict('x.js'), 0);
+    assert.equal(verdict('x.mjs'), 2);
+  } finally {
+    fs.rmSync(dossier, { recursive: true, force: true });
+  }
+});
+
+test('[S11] une erreur du hook d’écriture sort en 2 avec « n’a pas pu s’exécuter »', () => {
+  fs.mkdirSync(path.join(racine, 'tests', '_local'), { recursive: true });
+  const dossier = fs.mkdtempSync(path.join(racine, 'tests', '_local', 'erreur-'));
+  try {
+    // Un dossier nommé `.md` existe pour `existsSync` et fait échouer `readFileSync`.
+    const piege = path.join(dossier, 'piege.md');
+    fs.mkdirSync(piege);
+    const resultat = spawnSync(process.execPath, [path.join(racine, 'scripts/hook-style.mjs')], {
+      input: JSON.stringify({ tool_input: { file_path: piege } }),
+      encoding: 'utf8',
+    });
+    assert.equal(resultat.status, 2);
+    assert.match(resultat.stderr, /Le contrôle de style n.a pas pu s.exécuter : /);
+  } finally {
+    fs.rmSync(dossier, { recursive: true, force: true });
+  }
+});
+
+test('[S12] une puce collée est refusée, deux gras dans une section sont un signal', () => {
+  refuse('puce-collee', 'Les noms restent locaux dans le système.- La prose passe le contrôle.');
+  accepte('- Une puce.\n- Une autre puce.');
+  accepte('La version 1.0 reste, et la suite... continue.');
+  const deux = '## Section\n\nUn **mot** et un **autre**.\n';
+  assert.deepEqual(regles(DOCUMENT, deux, 'signal'), ['gras-multiple']);
+  assert.deepEqual(regles(DOCUMENT, deux), []);
+  assert.deepEqual(regles(DOCUMENT, '## A\n\nUn **mot**.\n\n## B\n\nUn **autre**.\n', 'signal'), []);
+  assert.deepEqual(regles('AGENTS.md', deux, 'signal'), []);
 });

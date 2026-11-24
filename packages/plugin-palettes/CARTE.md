@@ -93,7 +93,7 @@ Plugin UCM Palettes : ucm-palettes-plugin, privé.
 - menuPalette.ts : dupliquer, supprimer
 - frontiere.ts : numérotation des demandes, un seul rangement en vol, écriture des variables et dessin après lui, un seul choix de page et un seul rangement de destination en vol
 - ongletGestion.ts : onglet Gestion : sections repliables, liste dépliable des palettes ; une ligne par palette, et dépliée « Modifier » et sa fiche : rampes, référence, garanties, lignes de sortie, encart d'écriture et encart des couleurs changées dans Figma ; « Déjà dans le fichier » et « Dans les bibliothèques » dans la même liste ; une carte par palette supprimée ; notices, recette repliée
-- connexion.ts : section « Connexion à Figma » : destination des tokens et page des planches en résumé ; dépliée, leurs gestes « Changer », heure du dernier état lu et « Synchroniser »
+- connexion.ts : section « Connexion à Figma » : destination des tokens et page des planches, chacune sur une ligne ; dépliée, leurs gestes « Changer », heure du dernier état lu et « Synchroniser »
 - destination.ts : carte « Destination des tokens » : collection en liste à choix unique, groupe, thèmes, simulation du panneau des variables, et refus du sandbox
 - pageDesPlanches.ts : carte « Page des planches » : une page du fichier ou une page neuve, en liste à choix unique, et refus du sandbox
 - sorties.ts : lignes de sortie d'une fiche : nom, pastille d'état, détail, gestes
