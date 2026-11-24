@@ -539,6 +539,9 @@ Le retour au composant n'a lieu que pour le jeu de variants qui a préparé :
 sinon), et seulement après une tentative de création dans le fichier des
 tokens : une préparation dont aucune variable n'a quitté `a-creer` ne propose
 rien. Une variable créée mais pas encore publiée laisse sa ligne sans case.
+Quand la library publie deux variables qui ne se distinguent que par la casse du
+chemin, aucune n'est liée : la ligne reste sans case et dit au designer de
+garder la bonne dans Figma. Test : `tests/preparationEtCasse.test.ts`.
 
 Bornes : un fichier qui ne garde pas le journal ne peut pas annuler ses
 créations. Le plugin ne voit pas les usages d'une variable créée dans

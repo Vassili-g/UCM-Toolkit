@@ -11,8 +11,8 @@ const T = TEXTES.correctionsDuComposant;
 
 const uniques = <Type>(valeurs: readonly Type[]): Type[] => [...new Set(valeurs)];
 
-/** Le nombre de variables, distinctes, que ces lignes attendent de la library publiée. */
-export const variablesNonPublieesDeLaListe = (attente: readonly LigneEnAttente[]): number => uniques(attente.map((entree) => entree.variable)).length;
+/** Le nombre de variables, distinctes, que ces lignes attendent de la library publiée : une ligne ambiguë n'attend pas de publication. */
+export const variablesNonPublieesDeLaListe = (attente: readonly LigneEnAttente[]): number => uniques(attente.filter((entree) => !entree.ambigue).map((entree) => entree.variable)).length;
 
 /**
  * La carte des liaisons préparées, ou `null` quand il ne reste rien à montrer. `appliquees` retire les corrections déjà écrites.
@@ -30,6 +30,7 @@ export function carteDesLiaisonsPreparees(liaisons: LiaisonsPreparees, appliquee
     variable: entree.variable,
     layer: entree.nomDuLayer,
     variant: contexte.variants.find((variant) => variant.id === entree.variant)?.nom ?? null,
+    ...(entree.ambigue ? { ambigue: true as const } : {}),
   }));
   const layers = uniques([...corrections.flatMap((correction) => (correction.cible.layer === undefined ? [] : [correction.cible.layer])), ...liaisons.enAttente.map((entree) => entree.layer)]);
   const nonPubliees = variablesNonPublieesDeLaListe(attente);

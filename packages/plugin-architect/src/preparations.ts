@@ -257,12 +257,14 @@ export interface LiaisonEnAttente {
   readonly nomDuLayer: string;
   readonly variant: string;
   readonly champ: string;
+  /** Présent quand deux variables publiées portent ce chemin à la casse près : aucune n'est liée, le designer garde la bonne dans Figma. */
+  readonly ambigue?: true;
 }
 
 export interface LiaisonsDeLaPreparation {
   /** Les liaisons que la library publiée permet déjà, une par peinture, plage ou valeur à lier. */
   readonly corrections: Correction[];
-  /** Les liaisons dont la variable n'est pas dans la library : leur ligne n'a pas de case. */
+  /** Les liaisons dont la variable n'est pas dans la library, ou y a deux candidates (`ambigue`) : leur ligne n'a pas de case. */
   readonly enAttente: LiaisonEnAttente[];
   /** Les entrées dont le layer ou le variant a disparu du composant, ou dont le champ est déjà lié. */
   readonly ecartees: number;
@@ -272,20 +274,25 @@ const REGLE_DE_LIAISON = 'La variable a été préparée pour ce layer.';
 
 /**
  * Les liaisons du retour dans le fichier des composants. `publiees` donne la clé de chaque variable de `components` que la library
- * publiée porte, par chemin ; la variable se cherche par la forme de son chemin, quelle que soit la casse écrite. Un champ déjà lié n'est pas proposé de nouveau.
+ * publiée porte, par chemin ; la variable se cherche par la forme de son chemin, quelle que soit la casse écrite. Deux clés pour une forme : aucune liaison, une entrée `ambigue`. Un champ déjà lié n'est pas proposé de nouveau.
  */
 export function liaisonsDeLaPreparation(preparation: PreparationRangee, releve: ReleveDeComposant, publiees: ReadonlyMap<string, string>): LiaisonsDeLaPreparation {
   const corrections: Correction[] = [];
   const enAttente: LiaisonEnAttente[] = [];
   let ecartees = 0;
   // La préparation écrit ses chemins sous leur forme reconnue (`components/text-field/…`) ; la library garde la casse du designer.
-  const parForme = new Map<string, string>();
+  const parForme = new Map<string, Set<string>>();
   for (const [chemin, cle] of publiees) {
     const forme = formeDuChemin(chemin);
-    if (!parForme.has(forme)) parForme.set(forme, cle);
+    const cles = parForme.get(forme);
+    if (cles) cles.add(cle);
+    else parForme.set(forme, new Set([cle]));
   }
   for (const variable of preparation.variables) {
-    const cle = parForme.get(formeDuChemin(variable.nom));
+    const candidates = parForme.get(formeDuChemin(variable.nom));
+    // Deux clés pour une même forme : aucune n'est choisie, car la liaison pointerait peut-être la mauvaise variable.
+    const ambigue = candidates !== undefined && candidates.size > 1;
+    const cle = candidates !== undefined && !ambigue ? [...candidates][0] : undefined;
     for (const lieu of variable.layers) {
       const variant = releve.variants.find((candidat) => candidat.id === lieu.variant);
       const layer = variant?.layers.find((candidat) => candidat.id === lieu.id);
@@ -314,7 +321,10 @@ export function liaisonsDeLaPreparation(preparation: PreparationRangee, releve: 
       }
       if (cibles.length === 0) { ecartees += 1; continue; }
       for (const cible of cibles) {
-        if (cle === undefined) { enAttente.push({ variable: variable.nom, layer: layer.id, nomDuLayer: layer.nom, variant: variant.id, champ: lieu.champ }); continue; }
+        if (cle === undefined) {
+          enAttente.push({ variable: variable.nom, layer: layer.id, nomDuLayer: layer.nom, variant: variant.id, champ: lieu.champ, ...(ambigue ? { ambigue: true as const } : {}) });
+          continue;
+        }
         const suite = `${cible.champ}${cible.indice === undefined ? '' : `:${cible.indice}`}${cible.plage ? `:${cible.plage.debut}-${cible.plage.fin}` : ''}`;
         corrections.push({
           id: `preparation:${preparation.id}:${layer.id}:${suite}`, sorte: 'liaison', cible, avant: null, apres: { cle, nom: variable.nom },

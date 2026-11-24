@@ -8,7 +8,7 @@ import test from 'node:test';
 import type { Correction, IdentiteDAnalyse } from '../src/messages/commun';
 import type { PreparationVue } from '../src/messages/preparation';
 import { aDesLiaisonsPreparees, noterLaDemandeDesLiaisons, preparationALier, recevoirUneAnalyse } from '../src/ui/composant/analyse';
-import { carteDesLiaisonsPreparees } from '../src/ui/corrections/liaisons';
+import { carteDesLiaisonsPreparees, variablesNonPublieesDeLaListe } from '../src/ui/corrections/liaisons';
 import type { ContexteDeCartes } from '../src/ui/corrections/modele';
 import { etatInitial, type Etat } from '../src/ui/etat';
 
@@ -151,4 +151,13 @@ test('lier-preparation ne se demande que pour une préparation du même jeu, sur
   assert.equal(preparationALier(etat)?.id, 'p1');
   recevoirUneAnalyse(etat, { type: 'perime', analyse: { ...identite, generation: 5 }, cause: 'document' });
   assert.equal(preparationALier(etat), null);
+});
+
+test('une entrée ambiguë dit l’ambiguïté, sans compter parmi les variables à publier', () => {
+  const ambigue = { variable: 'components/pastille/couleur/doux/bordure', layer: 'l:fond', nomDuLayer: 'socle', variant: 'v:1', champ: 'strokes', ambigue: true as const };
+  const carte = carteDesLiaisonsPreparees({ ...liaisons, enAttente: [ambigue] }, [], contexte);
+  assert.deepEqual(carte?.attente.map((ligne) => ligne.ambigue), [true]);
+  assert.deepEqual(carte?.meta, ['2 layers']);
+  assert.equal(variablesNonPublieesDeLaListe(carte?.attente ?? []), 0);
+  assert.equal(carteDesLiaisonsPreparees({ ...liaisons, enAttente: [...liaisons.enAttente, ambigue] }, [], contexte)?.attente.filter((ligne) => ligne.ambigue).length, 1);
 });

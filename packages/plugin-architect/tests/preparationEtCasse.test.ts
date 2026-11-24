@@ -81,3 +81,20 @@ for (const { prepare, publie, cle } of CHEMINS) {
     assert.deepEqual(rendu.corrections.map((correction) => [correction.sorte, correction.apres]), [['liaison', { cle, nom: prepare }]]);
   });
 }
+
+// Deux variables publiées de même forme : aucune n'est liée.
+test('deux chemins publiés de même forme ne donnent aucune liaison et une entrée ambiguë', () => {
+  const collection = catalogue.collections[0];
+  const publiees = new Map([[cheminComplet('Button/color/background', collection), 'v-1'], [cheminComplet('button/Color/background', collection), 'v-2']]);
+  const rendu = liaisonsDeLaPreparation(preparation('components/button/color/background'), releve, publiees);
+  assert.deepEqual(rendu.corrections, []);
+  assert.deepEqual(rendu.enAttente.map(({ variable, layer, ambigue }) => [variable, layer, ambigue]), [['components/button/color/background', 'l1', true]]);
+});
+
+test('un seul chemin publié de cette forme garde sa liaison, sans entrée ambiguë', () => {
+  const collection = catalogue.collections[0];
+  const publiees = new Map([[cheminComplet('Button/color/background', collection), 'v-1'], [cheminComplet('Button/color/border', collection), 'v-2']]);
+  const rendu = liaisonsDeLaPreparation(preparation('components/button/color/background'), releve, publiees);
+  assert.deepEqual(rendu.enAttente, []);
+  assert.deepEqual(rendu.corrections.map((correction) => correction.apres.cle), ['v-1']);
+});

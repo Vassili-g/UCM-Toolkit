@@ -89,6 +89,7 @@ export const TEXTES_PREPARATION = {
   preparationLiaisonsPubliees: (nom: string, nombre: number) => `Les variables de ${nom} sont publiées. ${nombre === 1 ? '1 liaison est prête.' : `${nombre} liaisons sont prêtes.`}`,
   preparationAnnulerCreation: 'Configuration › Historique annule la création.',
   preparationLiaisonNonPubliee: 'Créée, pas encore publiée',
+  preparationLiaisonAmbigue: 'Deux variables de la library portent ce nom à la casse près : gardez la bonne dans Figma, puis cliquez Actualiser.',
   preparationVariablesNonPubliees: (nombre: number) => (nombre === 1 ? '1 variable créée n’est pas encore dans la library publiée.' : `${nombre} variables créées ne sont pas encore dans la library publiée.`),
   preparationPublierPourLier: (library: string | null) => (library === null ? 'Publiez la Library de tokens, puis cliquez Actualiser.' : `Publiez ${library}, puis cliquez Actualiser.`),
   preparationLigneDesQuestions: 'Les questions portent sur les choix du composant.',

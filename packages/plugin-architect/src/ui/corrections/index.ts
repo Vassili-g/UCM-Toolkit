@@ -312,7 +312,7 @@ export function monterLesCorrections(options: OptionsDesCorrections): Correction
     diff.querySelector('input')?.replaceWith(document.createElement('span'));
     const attente = document.createElement('span');
     attente.className = 'meta';
-    attente.textContent = TEXTES_PREPARATION.preparationLiaisonNonPubliee;
+    attente.textContent = entree.ambigue ? TEXTES_PREPARATION.preparationLiaisonAmbigue : TEXTES_PREPARATION.preparationLiaisonNonPubliee;
     diff.querySelector('.chemin-apres')?.append(document.createElement('br'), attente);
     return diff;
   }
@@ -394,7 +394,7 @@ export function monterLesCorrections(options: OptionsDesCorrections): Correction
       corps.append(diff);
     }
     for (const attente of carte.attente) corps.append(creerLaLigneEnAttente(attente));
-    if (carte.attente.length > 0) {
+    if (variablesNonPublieesDeLaListe(carte.attente) > 0) {
       corps.append(creerAlerte('info', {
         texte: TEXTES_PREPARATION.preparationVariablesNonPubliees(variablesNonPublieesDeLaListe(carte.attente)),
         meta: TEXTES_PREPARATION.preparationPublierPourLier(entree?.contexte.library ?? null),

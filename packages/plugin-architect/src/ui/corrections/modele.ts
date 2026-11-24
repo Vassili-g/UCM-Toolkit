@@ -48,6 +48,8 @@ export interface LigneEnAttente {
   /** Le nom du layer, ou `null` quand la lecture du composant ne le connaît pas. */
   readonly layer: string | null;
   readonly variant: string | null;
+  /** Vrai quand deux variables publiées portent ce chemin à la casse près : la ligne le dit à la place de « pas encore publiée ». */
+  readonly ambigue?: true;
 }
 
 /**
