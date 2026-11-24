@@ -127,11 +127,14 @@ test('dix mille variables et mille renommages se contrôlent sans balayage de pa
   for (let rang = 0; rang < 1_000; rang++) renommages.set(`v${rang * 10}`, `Groupe ${rang % 50}/sous-groupe ${rang % 7}/Nom ${rang * 10}-bis`);
   // Un conflit réel : v1 prend le nom de v21, qui est dans la même collection (21 % 20 = 1).
   renommages.set('v1', variables[21][1]);
+  // Un premier passage chauffe le compilateur. Le contrôle prend environ 150 ms seul, et jusqu'à 550 ms quand la suite du
+  // paquet tourne en parallèle ; un balayage des 50 millions de paires prendrait plusieurs secondes : la borne les sépare.
+  cheminsEnConflit(doc, renommages);
   const debut = performance.now();
   const causes = cheminsEnConflit(doc, renommages);
   const duree = performance.now() - debut;
   assert.deepEqual(ids(causes), ['v1']);
-  assert.ok(duree < 500, `le contrôle a pris ${Math.round(duree)} ms`);
+  assert.ok(duree < 1500, `le contrôle a pris ${Math.round(duree)} ms`);
 });
 
 // Les axes de modes (N02)
