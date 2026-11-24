@@ -21,10 +21,10 @@ const rootDir = path.resolve(__dirname, '..');
 const testsDir = path.join(rootDir, 'tests');
 
 const files = fs
-  .readdirSync(testsDir)
-  .filter((name) => name.endsWith('.test.ts') || name.endsWith('.test.mjs'))
-  .sort()
-  .map((name) => path.join('tests', name));
+  .readdirSync(testsDir, { withFileTypes: true })
+  .filter((entree) => entree.isFile() && (entree.name.endsWith('.test.ts') || entree.name.endsWith('.test.mjs')))
+  .map((entree) => path.join('tests', entree.name))
+  .sort();
 
 if (files.length === 0) {
   console.error('Aucun fichier de test trouvé dans tests/ (@ucm-kit/cli).');

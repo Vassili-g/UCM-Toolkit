@@ -10,13 +10,21 @@
  * - un span, un nombre, un nombre en lettres, un identifiant `[UI-20]` ou une
  *   ancre perdus rendent chacun un manque dans leur catégorie ;
  * - un fichier d'arrivée absent donne un groupe « non écrit », sans échec, et
- *   un échec avec `--strict` ou avec `--domaines`.
+ *   un échec avec `--strict` ou avec `--domaines` ;
+ * - S13, S14 : la ligne de commande sort 2 pour un domaine sans groupe source,
+ *   et pour un fichier qui perd un nom en code par rapport à sa référence.
  */
 import assert from 'node:assert/strict';
+import { execFileSync, spawnSync } from 'node:child_process';
+import fs from 'node:fs';
+import os from 'node:os';
+import path from 'node:path';
 import test from 'node:test';
+import { fileURLToPath } from 'node:url';
 
 import {
   atomesDe,
+  comparerFichier,
   controler,
   decouperSource,
   formaterRapport,
@@ -274,4 +282,46 @@ test('des fichiers d’arrivée vides listent tous les atomes de la source', () 
   assert.deepEqual(grilles.manques.identifiants, ['N01', '[UI-20]']);
   assert.deepEqual(grilles.manques.liens, ['FORMAT.md#grilles']);
   assert.ok(resultat.manquesTotal > totalDe(grilles.manques));
+});
+
+const SCRIPT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..', 'scripts', 'verifier-conservation.mjs');
+
+test('S13 --domaines sur un domaine sans groupe source sort 2 et le dit', () => {
+  const resultat = spawnSync(process.execPath, [SCRIPT, '--domaines', 'referentiel'], { encoding: 'utf8' });
+  assert.equal(resultat.status, 2, resultat.stdout + resultat.stderr);
+  assert.match(
+    resultat.stderr,
+    /Le domaine referentiel n'a aucun groupe source à comparer\. Lancez --source <fichier>@<ref>\./,
+  );
+  assert.throws(
+    () => lancer(arriveeIdentique(), { manifeste: { ...MANIFESTE, domaines: [...MANIFESTE.domaines, { id: 'orphelin', titre: 'Orphelin', fichier: 'o.md' }] }, domaines: ['orphelin'] }),
+    /Le domaine orphelin n'a aucun groupe source à comparer/,
+  );
+});
+
+test('S14 --source <fichier>@HEAD nomme le nom en code que le fichier perd et sort 2', () => {
+  const dossier = fs.mkdtempSync(path.join(os.tmpdir(), 's14-'));
+  try {
+    fs.mkdirSync(path.join(dossier, 'scripts'));
+    fs.copyFileSync(SCRIPT, path.join(dossier, 'scripts', 'verifier-conservation.mjs'));
+    const git = (...args) => execFileSync('git', ['-c', 'user.name=t', '-c', 'user.email=t@t', ...args], { cwd: dossier, stdio: 'pipe' });
+    git('init', '-q');
+    fs.writeFileSync(path.join(dossier, 'regle.md'), 'Le garde lit `columnSizes` et `rowStart`.\n');
+    git('add', 'regle.md');
+    git('commit', '-q', '-m', 'init');
+    const lancerSource = () => spawnSync(
+      process.execPath,
+      [path.join(dossier, 'scripts', 'verifier-conservation.mjs'), '--source', 'regle.md@HEAD'],
+      { encoding: 'utf8' },
+    );
+    assert.equal(lancerSource().status, 0);
+    fs.writeFileSync(path.join(dossier, 'regle.md'), 'Le garde lit `columnSizes` et rowStart.\n');
+    const resultat = lancerSource();
+    assert.equal(resultat.status, 2, resultat.stdout + resultat.stderr);
+    assert.match(resultat.stdout, /code \(1\) : rowStart/);
+  } finally {
+    fs.rmSync(dossier, { recursive: true, force: true });
+  }
+  const direct = comparerFichier({ avant: '`a` et `b`', apres: '`a`', fichier: 'x.md' });
+  assert.deepEqual(direct.entrees[0].manques.code, ['b']);
 });

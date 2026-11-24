@@ -33,6 +33,7 @@ Ici, une proposition au plus, et seulement si elle change le geste de l'agent.
 ```
 
 - Titre en gras : phrase complète. Suite : fragments admis.
+- Le titre de puce d'un invariant est le seul gras admis en plus du mot de section que permet `AGENTS.md`.
 - Étiquettes fixes, dans cet ordre : `Borne :`, `Autorité :`, `Tests :`, `Spec :`. Étiquette vide : omise.
 - `Autorité :` vaut « en est l'unique autorité ». `Tests :` vaut « le tient ». `Spec :` donne le renvoi à la spec.
 - Pas de flèche `→` en prose : écrire le verbe (« renvoie à », « devient », « donne ») ou une étiquette.
@@ -131,6 +132,6 @@ seulement s'il sert deux fois, avec un identifiant court (`[§2]`).
 Un pourquoi se retire seulement si la spec liée l'énonce : la lire avant de
 couper. Absent de la spec, il reste.
 
-1. `node scripts/verifier-conservation.mjs --domaines <id>` : aucun manque de nom en code, nombre, identifiant ou cible de lien. Bloquant.
+1. `node scripts/verifier-conservation.mjs --source <fichier>@HEAD` : aucun manque de nom en code, nombre, identifiant ou cible de lien. Bloquant.
 2. `node scripts/controle-style.mjs <fichiers>`.
 3. Un relecteur compare chaque groupe source à son fichier et liste les négations, conditions et bornes perdues. Le mainteneur relit seulement ce qu'il liste.

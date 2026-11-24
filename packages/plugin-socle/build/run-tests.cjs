@@ -13,17 +13,25 @@ const path = require('path');
 const { spawnSync } = require('child_process');
 
 /**
+ * Les fichiers de `racine/tests/` dont le nom finit par l'une des `extensions`,
+ * directement sous `tests/` : `tests/interface/` et `tests/cascade/` ont leur
+ * propre lanceur et ne sont pas parcourus.
+ */
+function decouvrirLesTests(racine, extensions) {
+  return fs
+    .readdirSync(path.join(racine, 'tests'), { withFileTypes: true })
+    .filter((entree) => entree.isFile() && extensions.some((extension) => entree.name.endsWith(extension)))
+    .map((entree) => path.join('tests', entree.name))
+    .sort();
+}
+
+/**
  * Lance `racine/tests/*` dont le nom finit par l'une des `extensions`, et sort
  * du processus avec le code de `tsx --test`. Un dossier sans test sort en
  * échec : un test qu'on n'exécute pas ne peut pas rougir.
  */
 function lancerLesTests({ racine, extensions, nom }) {
-  const testsDir = path.join(racine, 'tests');
-  const files = fs
-    .readdirSync(testsDir)
-    .filter((name) => extensions.some((extension) => name.endsWith(extension)))
-    .sort()
-    .map((name) => path.join('tests', name));
+  const files = decouvrirLesTests(racine, extensions);
 
   if (files.length === 0) {
     console.error(`Aucun fichier de test trouvé dans tests/ (${nom}).`);
@@ -39,8 +47,8 @@ function lancerLesTests({ racine, extensions, nom }) {
   process.exit(result.status ?? 1);
 }
 
-module.exports = { lancerLesTests };
+module.exports = { lancerLesTests, decouvrirLesTests };
 
 if (require.main === module) {
-  lancerLesTests({ racine: path.resolve(__dirname, '..'), extensions: ['.test.ts'], nom: 'le socle' });
+  lancerLesTests({ racine: path.resolve(__dirname, '..'), extensions: ['.test.ts', '.test.mjs'], nom: 'le socle' });
 }

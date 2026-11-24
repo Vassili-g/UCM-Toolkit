@@ -31,9 +31,13 @@
  * Usage :
  *   node scripts/verifier-conservation.mjs [--ref <commit>] [--domaines <id,id>]
  *     [--strict] [--manifeste <chemin>] [--retraits <atome,…>]
+ *   node scripts/verifier-conservation.mjs --source <fichier>@<ref>
  *
  * `--ref` vaut `HEAD` par défaut. `--domaines` limite le contrôle aux groupes
- * de ces domaines et saute la partie hors groupe. Un fichier d'arrivée absent
+ * de ces domaines et saute la partie hors groupe ; un domaine sans groupe
+ * source dans `AGENTS.md` est un usage invalide (sortie 2), car il ne
+ * compare rien. `--source` compare le fichier d'arrivée, sur le disque, à sa
+ * version de `<ref>`, par les mêmes atomes, et sort 2 s'il manque un atome. Un fichier d'arrivée absent
  * rend le groupe « non écrit » : un signalement, sauf avec `--strict` ou pour
  * un domaine nommé par `--domaines`, où c'est une erreur. Sortie 1 s'il manque
  * un atome ou si une erreur est levée, 2 pour un usage invalide.
@@ -314,6 +318,15 @@ export function controler({ source, manifeste, lecteur, domaines = null, strict 
   }
   const filtre = domaines === null ? null : new Set(domaines);
   const { groupes, horsGroupe } = decouperSource(source);
+  if (domaines !== null) {
+    const titres = new Set(groupes.map((groupe) => groupe.titre));
+    for (const id of domaines) {
+      const domaine = manifeste.domaines.find((candidat) => candidat.id === id);
+      if (!titres.has(domaine.titre.trim())) {
+        throw new Error(`Le domaine ${id} n'a aucun groupe source à comparer. Lancez --source <fichier>@<ref>.`);
+      }
+    }
+  }
   const parTitre = new Map();
   for (const domaine of manifeste.domaines) {
     if (!parTitre.has(domaine.titre.trim())) parTitre.set(domaine.titre.trim(), domaine);
@@ -384,6 +397,20 @@ export function controler({ source, manifeste, lecteur, domaines = null, strict 
     0,
   );
   return { entrees, erreurs, manquesTotal };
+}
+
+/**
+ * Compare un fichier à sa version de référence. Rend la forme de `controler`,
+ * avec une seule entrée.
+ */
+export function comparerFichier({ avant, apres, fichier }) {
+  const atomesAvant = atomesDe(avant);
+  const entree = {
+    nature: 'groupe', titre: fichier, fichier, comptes: comptesDe(atomesAvant),
+    manques: manques(atomesAvant, atomesDe(apres)),
+  };
+  entree.statut = totalDe(entree.manques) > 0 ? 'manques' : 'ok';
+  return { entrees: [entree], erreurs: [], manquesTotal: totalDe(entree.manques) };
 }
 
 /** Les fichiers où chercher les atomes de la partie hors groupe. */
@@ -469,7 +496,7 @@ function lecteurDuDisque() {
 }
 
 function lireOptions(argv) {
-  const options = { ref: 'HEAD', domaines: null, strict: false, manifeste: '.agents/domiciles.json', retraits: [] };
+  const options = { ref: 'HEAD', domaines: null, strict: false, manifeste: '.agents/domiciles.json', retraits: [], source: null };
   for (let i = 0; i < argv.length; i += 1) {
     const option = argv[i];
     const valeur = () => {
@@ -481,7 +508,14 @@ function lireOptions(argv) {
     else if (option === '--domaines') {
       options.domaines = valeur().split(',').map((id) => id.trim()).filter((id) => id !== '');
     } else if (option === '--manifeste') options.manifeste = valeur();
-    else if (option === '--strict') options.strict = true;
+    else if (option === '--source') {
+      const texte = valeur();
+      const arobase = texte.lastIndexOf('@');
+      if (arobase <= 0 || arobase === texte.length - 1) {
+        throw new Error("L'option --source attend <fichier>@<ref>.");
+      }
+      options.source = { fichier: texte.slice(0, arobase), ref: texte.slice(arobase + 1) };
+    } else if (option === '--strict') options.strict = true;
     else if (option === '--retraits') {
       options.retraits = valeur().split(',').map((atome) => atome.trim()).filter((atome) => atome !== '');
     }
@@ -496,6 +530,18 @@ function main() {
   let manifeste;
   try {
     options = lireOptions(process.argv.slice(2));
+    if (options.source !== null) {
+      const { fichier, ref } = options.source;
+      const lecteur = lecteurDuDisque();
+      const apres = lecteur.lire(fichier);
+      if (apres === null) throw new Error(`Fichier introuvable : ${fichier}.`);
+      const avant = execFileSync('git', ['show', `${ref}:${fichier}`], {
+        cwd: racine, encoding: 'utf8', maxBuffer: 64 * 1024 * 1024, stdio: ['ignore', 'pipe', 'pipe'],
+      });
+      const resultat = comparerFichier({ avant: normaliserTexte(avant), apres, fichier });
+      console.log(formaterRapport(resultat));
+      process.exit(resultat.manquesTotal > 0 ? 2 : 0);
+    }
     const chemin = path.resolve(racine, options.manifeste);
     if (!fs.existsSync(chemin)) throw new Error(`Manifeste introuvable : ${options.manifeste}.`);
     manifeste = JSON.parse(fs.readFileSync(chemin, 'utf8'));

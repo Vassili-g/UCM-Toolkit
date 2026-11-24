@@ -26,7 +26,7 @@ import assert from "node:assert/strict";
 import { createRequire } from "node:module";
 import { execFileSync } from "node:child_process";
 import { readFileSync, realpathSync } from "node:fs";
-import { dirname, join, resolve } from "node:path";
+import { dirname, join, resolve, sep } from "node:path";
 import test from "node:test";
 import { fileURLToPath, pathToFileURL } from "node:url";
 
@@ -136,5 +136,53 @@ test("W2 engines.node des paquets publiés égale node-version des workflows et 
     const versions = [...readFileSync(join(racine, ".github", "workflows", flux), "utf8").matchAll(/node-version:\s*["']?(\d+)/g)].map((m) => m[1]);
     assert.ok(versions.length > 0, `${flux} : aucune ligne node-version`);
     for (const version of versions) assert.equal(version, attendue, `${flux} : node-version ${version}, VERSION_DE_NODE ${VERSION_DE_NODE}`);
+  }
+});
+
+/** Le fichier qui découvre les tests d'un paquet : le lanceur nommé par son script `test`. */
+function decouvreurDe(nom) {
+  const script = JSON.parse(readFileSync(join(racine, "packages", nom, "package.json"), "utf8")).scripts?.test ?? "";
+  const lanceur = /node\s+(\S*run-tests\.cjs)/.exec(script)?.[1];
+  assert.ok(lanceur, `packages/${nom} : le script test ne lance aucun run-tests.cjs`);
+  return join("packages", nom, lanceur);
+}
+
+test("S15 le découvreur de chaque paquet nomme le suffixe des tests suivis directement sous tests/", () => {
+  const suivis = execFileSync("git", ["ls-files", "-z", "--", "packages/*/tests/*.test.*"], { cwd: racine, encoding: "utf8", maxBuffer: 1 << 26 })
+    .split("\0")
+    .filter((chemin) => /^packages\/[^/]+\/tests\/[^/]+\.test\.[^/.]+$/.test(chemin));
+  assert.ok(suivis.length > 50, `seuls ${suivis.length} fichiers de test suivis`);
+
+  const fautes = [];
+  for (const chemin of suivis) {
+    const [, nom, fichier] = /^packages\/([^/]+)\/tests\/(.+)$/.exec(chemin);
+    if (!paquets().includes(nom)) continue;
+    const suffixe = /(\.test\.[^.]+)$/.exec(fichier)[1];
+    const decouvreur = decouvreurDe(nom);
+    if (!readFileSync(join(racine, decouvreur), "utf8").includes(`${suffixe}'`) && !readFileSync(join(racine, decouvreur), "utf8").includes(`${suffixe}"`)) {
+      fautes.push(`${chemin} : ${decouvreur} ne nomme pas ${suffixe}`);
+    }
+  }
+  assert.deepEqual([...new Set(fautes)].sort(), [], "un découvreur ignore le suffixe de tests suivis");
+});
+
+test("S15 un tests/nouveau.test.mjs de Palettes est découvert, un fichier de tests/interface/ ne l'est pas", async () => {
+  const { mkdtempSync, mkdirSync, writeFileSync, rmSync } = await import("node:fs");
+  const { tmpdir } = await import("node:os");
+  const { decouvrirLesTests } = createRequire(import.meta.url)(join(racine, "packages", "plugin-socle", "build", "run-tests.cjs"));
+  // Les extensions viennent du lanceur de Palettes, pas d'une copie écrite ici.
+  const extensions = JSON.parse(/extensions:\s*(\[[^\]]*\])/.exec(readFileSync(join(racine, decouvreurDe("plugin-palettes")), "utf8"))[1].replace(/'/g, '"'));
+  const dossier = mkdtempSync(join(tmpdir(), "s15-"));
+  try {
+    mkdirSync(join(dossier, "tests", "interface"), { recursive: true });
+    writeFileSync(join(dossier, "tests", "nouveau.test.mjs"), "");
+    writeFileSync(join(dossier, "tests", "ancien.test.ts"), "");
+    writeFileSync(join(dossier, "tests", "interface", "autre.test.mjs"), "");
+    assert.deepEqual(
+      decouvrirLesTests(dossier, extensions).map((chemin) => chemin.replaceAll(sep, "/")),
+      ["tests/ancien.test.ts", "tests/nouveau.test.mjs"],
+    );
+  } finally {
+    rmSync(dossier, { recursive: true, force: true });
   }
 });
