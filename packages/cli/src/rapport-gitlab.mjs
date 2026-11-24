@@ -19,6 +19,7 @@ import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 
 import { MARQUEUR_RAPPORT, MARQUEUR_SANS_OBJET, rapportPrecedent, rapportSansObjet } from "@ucm-kit/core/lecteurs";
+import { sansBom } from "@ucm-kit/core/format";
 import { API_GITLAB } from "@ucm-kit/core/protocoles";
 
 import { VARIABLE_DU_JETON_GITLAB } from "./fichiers-du-consommateur.mjs";
@@ -111,7 +112,9 @@ export async function rapportGitlab(arguments_, {
 
   let rapport;
   try {
-    rapport = readFileSync(resolve(racine, valeurs.fichier), "utf8");
+    // Un BOM repousserait le marqueur sans objet en troisième ligne, et la
+    // demande étrangère à UCM recevrait un commentaire.
+    rapport = sansBom(readFileSync(resolve(racine, valeurs.fichier), "utf8"));
   } catch (erreurLecture) {
     alerter(`Le rapport ${valeurs.fichier} ne se lit pas (${erreurLecture?.code ?? erreurLecture?.message}) : aucune note n'est publiée.`);
     return 1;
@@ -138,7 +141,7 @@ export async function rapportGitlab(arguments_, {
       throw new RefusGitlab(null, `La requête vers GitLab n'a pas abouti en voulant ${action}. Relancez le job.`);
     }
     if (reponse.status >= 300 && reponse.status < 400) {
-      throw new RefusGitlab(reponse.status, `GitLab a redirige la requete en voulant ${action}.`);
+      throw new RefusGitlab(reponse.status, `GitLab a redirigé la requête en voulant ${action}.`);
     }
     if (!reponse.ok) throw new RefusGitlab(reponse.status, gesteDuStatut(reponse.status, action));
     return reponse;

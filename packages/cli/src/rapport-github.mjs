@@ -22,6 +22,7 @@ import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 
 import { MARQUEUR_RAPPORT, rapportPrecedent, rapportSansObjet } from "@ucm-kit/core/lecteurs";
+import { sansBom } from "@ucm-kit/core/format";
 import { API_GITHUB } from "@ucm-kit/core/protocoles";
 
 import { VARIABLE_DU_JETON_GITHUB } from "./fichiers-du-consommateur.mjs";
@@ -114,7 +115,9 @@ export async function rapportGithub(arguments_, {
 
   let rapport;
   try {
-    rapport = readFileSync(resolve(racine, valeurs.fichier), "utf8");
+    // Un BOM repousserait le marqueur sans objet en troisième ligne, et la
+    // demande étrangère à UCM recevrait un commentaire.
+    rapport = sansBom(readFileSync(resolve(racine, valeurs.fichier), "utf8"));
   } catch (erreurLecture) {
     alerter(`Le rapport ${valeurs.fichier} ne se lit pas (${erreurLecture?.code ?? erreurLecture?.message}) : aucun commentaire n'est publié.`);
     return 1;

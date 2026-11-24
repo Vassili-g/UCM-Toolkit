@@ -212,3 +212,14 @@ test("R10 : l'exporteur et la CLI tirent les adresses des forges de protocoles/f
   assert.match(forges, /API_GITHUB = 'https:\/\/api\.github\.com'/);
   assert.match(forges, /API_GITLAB = 'https:\/\/gitlab\.com\/api\/v4'/);
 });
+
+test("un rapport sans objet précédé d'un BOM n'écrit rien, et un rapport utile avec BOM garde son marqueur en tête", () => avecRapport(`﻿${SANS_OBJET}`, async (racine) => {
+  const sansObjet = githubSimule();
+  await lancer(racine, sansObjet);
+  assert.equal(ecritures(sansObjet).length, 0, "le BOM ne repousse pas le marqueur sans objet en troisième ligne");
+
+  writeFileSync(join(racine, "ci-report.md"), `﻿${UTILE}`);
+  const utile = githubSimule();
+  await lancer(racine, utile);
+  assert.equal(ecritures(utile)[0].body.body, UTILE);
+}));

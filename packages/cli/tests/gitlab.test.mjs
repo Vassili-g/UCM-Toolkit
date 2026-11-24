@@ -378,3 +378,22 @@ test("l'aiguillage mène à rapport-gitlab", () => avecRapport(async (racine) =>
   assert.equal(code, 0);
   assert.match(sorties.join("\n"), /Rapport publié en note de la merge request !3/);
 }));
+
+test("un rapport sans objet précédé d'un BOM ne crée aucune note, et un rapport utile avec BOM garde son marqueur en tête", () => avecRapport(async (racine) => {
+  writeFileSync(join(racine, "ci-report.md"), `﻿${MARQUEUR_RAPPORT}\n${MARQUEUR_SANS_OBJET}\n## Rien à signaler\n`);
+  const sansObjet = gitlabSimule();
+  await lancer(racine, sansObjet);
+  assert.equal(sansObjet.appels.some(({ methode }) => methode === "POST"), false);
+
+  writeFileSync(join(racine, "ci-report.md"), `﻿${MARQUEUR_RAPPORT}\n## ✅ Tout est conforme\n`);
+  const utile = gitlabSimule();
+  await lancer(racine, utile);
+  assert.equal(utile.appels.find(({ methode }) => methode === "POST").body.body, `${MARQUEUR_RAPPORT}\n## ✅ Tout est conforme\n`);
+}));
+
+test("une redirection de GitLab se dit comme celle de GitHub, accents compris, et sort en 1", () => avecRapport(async (racine) => {
+  const api = gitlabSimule({ statuts: { "GET /api/v4/user": 302 } });
+  const { code, sortie } = await lancer(racine, api);
+  assert.equal(code, 1);
+  assert.match(sortie, /GitLab a redirigé la requête en voulant lire le compte du jeton\./);
+}));
