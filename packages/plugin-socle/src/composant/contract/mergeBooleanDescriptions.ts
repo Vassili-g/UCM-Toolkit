@@ -5,6 +5,7 @@
  */
 import { propByName } from './parsers';
 import { pousserSansNode } from './localisation';
+import { cleDeRegle } from './rulesModel';
 import type { ContractProp } from '@ucm-kit/core/format';
 
 export function mergeBooleanDescriptions(
@@ -15,7 +16,7 @@ export function mergeBooleanDescriptions(
   for (const [propName, description] of Object.entries(descriptions)) {
     // Le nom vient du texte libre d'une règle : la lecture passe par l'unique
     // autorité, qui n'atteint jamais le prototype d'`Object`.
-    const prop = propByName(props, propName);
+    const prop = propByName(props, cleDeRegle(propName));
     if (!prop || prop.type !== 'boolean') {
       pousserSansNode(warnings, `Règle @boolean « ${propName} »`, {
         famille: 'regles',

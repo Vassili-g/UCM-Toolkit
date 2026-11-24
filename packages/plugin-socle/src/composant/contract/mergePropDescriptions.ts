@@ -9,6 +9,7 @@
  */
 import { propByName } from './parsers';
 import { noterLesParties, pointDe, pousserSansNode } from './localisation';
+import { cleDeRegle } from './rulesModel';
 import type { PointACorriger } from './localisation';
 import type { ContractProp, StateModel } from '@ucm-kit/core/format';
 
@@ -64,12 +65,12 @@ export function mergePropDescriptions(
   warnings: string[],
 ): void {
   for (const [propName, valueDescriptions] of Object.entries(propDescriptions)) {
-    if (stateModel && propName === stateModel.axis) {
+    if (stateModel && cleDeRegle(propName) === stateModel.axis) {
       mergeStateDescriptions(stateModel, valueDescriptions, warnings);
       continue;
     }
 
-    const prop = propByName(props, propName);
+    const prop = propByName(props, cleDeRegle(propName));
     if (!prop || prop.type !== 'enum') {
       pousserSansNode(warnings, `Règle @prop « ${propName} »`, {
         famille: 'regles',

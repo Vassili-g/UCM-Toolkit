@@ -14,6 +14,15 @@ export { TAGS_D_INTENTION, type RuleTag } from '@ucm-kit/core/referentiel';
 const tagDeValeur = new RegExp(`^@?(${TAGS_DES_REGLES.join('|')})$`, 'i');
 const tagDeCalque = new RegExp(`^@(${TAGS_DES_REGLES.join('|')})$`, 'i');
 
+/**
+ * La clé sous laquelle l'export range la cible d'une règle `@boolean`, `@default` ou `@prop` : le texte du calque « prop », nettoyé,
+ * passe par `normalizePropKey`. Elle seule décide qu'une règle vise une propriété : `iconleft` et `iconLeft` sont deux clés, et
+ * Architect lit cette même fonction pour dire qu'une règle n'est pas rattachée.
+ */
+export function cleDeRegle(texte: string): string {
+  return normalizePropKey(texte.trim());
+}
+
 /** Reconnaît un tag porté par une valeur de variante Figma. */
 export function ruleTagFromValue(value: string): RuleTag | null {
   const match = tagDeValeur.exec(value);
@@ -110,7 +119,7 @@ export function buildRules(entries: RuleEntry[]): RulesResult {
         if (!pairs.includes(pair)) pairs.push(pair);
       }
     } else if (entry.tag === 'boolean') {
-      const propName = normalizePropKey(entry.prop?.trim() ?? '');
+      const propName = cleDeRegle(entry.prop ?? '');
       if (!propName) {
         pousserSansNode(warnings, 'Règle @boolean', {
           famille: 'regles',
@@ -142,7 +151,7 @@ export function buildRules(entries: RuleEntry[]): RulesResult {
         });
         continue;
       }
-      const propName = normalizePropKey(cible.slice(0, separator));
+      const propName = cleDeRegle(cible.slice(0, separator));
       const value = normalizePropValue(cible.slice(separator + 1));
       // Deux défauts pour une même propriété se contredisent. Choisir en
       // silence rendrait au contrat un défaut que personne n'a décidé, ce
@@ -200,7 +209,7 @@ export function buildRules(entries: RuleEntry[]): RulesResult {
         });
         continue;
       }
-      const propName = normalizePropKey(key.slice(0, separator));
+      const propName = cleDeRegle(key.slice(0, separator));
       const value = normalizePropValue(key.slice(separator + 1));
       let valueDescriptions = propDescriptions.get(propName);
       if (!valueDescriptions) {

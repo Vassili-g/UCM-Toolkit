@@ -19,6 +19,7 @@ import type { Constat, Correction } from '@ucm-kit/core/controles';
 import type { InventairesDeLaDemande } from 'ucm-plugin-socle/src/composant/analyse/inventaires';
 import { normalizePropKey, normalizePropValue } from 'ucm-plugin-socle/src/composant/analyse/proprietesEtEtats';
 import { extractRules } from 'ucm-plugin-socle/src/composant/contract/extractRules';
+import { cleDeRegle } from 'ucm-plugin-socle/src/composant/contract/rulesModel';
 import type { ResultatInterne } from 'ucm-plugin-socle/src/composant/analyse/resultat';
 import { elideContract } from 'ucm-plugin-socle/src/composant/contract/elideNeutrals';
 import { extractContractPropertyModel } from 'ucm-plugin-socle/src/composant/contract/parsers';
@@ -134,6 +135,14 @@ function nomsVoisins(a: string, b: string): boolean {
   return court.slice(debut) === long.slice(debut + 1);
 }
 
+/**
+ * Vrai de deux noms que la comparaison compacte rapproche : le même nom écrit autrement, ou à une édition près (`nomsVoisins`). Une
+ * règle écrite `iconleft` pour la propriété `iconLeft` en est le cas le plus courant, et c'est l'export qui la tient pour détachée.
+ */
+function nomsRapproches(a: string, b: string): boolean {
+  return a === b || nomsVoisins(a, b);
+}
+
 /** Les axes `@prop` du modèle par nom compacté, avec la cible compactée de chacune de leurs valeurs. */
 function axesDuModele(modele: ModeleDeRegles): Map<string, { nom: string; valeurs: Set<string> }> {
   const axes = new Map<string, { nom: string; valeurs: Set<string> }>();
@@ -173,19 +182,20 @@ export function constatsDeRegles(releve: ReleveDesRegles | null): Constat[] {
       correction,
     }];
   }
-  const documentees = new Map(releve.documentees.map((nom) => [nomCompacte(nom), nom]));
-  const connues = new Set([...releve.proprietes, ...(releve.publiees ?? [])].map(nomCompacte));
+  // L'export rattache une règle à sa propriété par égalité de `cleDeRegle` : Architect compare les mêmes clés, pas les noms compactés.
+  const documentees = new Map(releve.documentees.map((nom) => [cleDeRegle(nom), nom]));
+  const connues = new Set([...releve.proprietes, ...(releve.publiees ?? [])].map(cleDeRegle));
   const manquantes = ciblesManquantesParPropriete(releve.manquantes);
   const axes = axesDuModele(releve.modele);
 
-  // Une propriété sans règle et une règle sans propriété au nom voisin : une seule règle probablement renommée, jamais plusieurs candidates (Q-F89-13).
-  const sansRegle = releve.proprietes.filter((propriete) => !documentees.has(nomCompacte(propriete)));
+  // Une propriété sans règle et une règle sans propriété au nom voisin, ou au même nom compacté mais à une autre clé : une seule règle probablement renommée, jamais plusieurs candidates (Q-F89-13).
+  const sansRegle = releve.proprietes.filter((propriete) => !documentees.has(cleDeRegle(propriete)));
   const sansPropriete = [...documentees].filter(([cle]) => !connues.has(cle)).map(([, regle]) => regle);
   const renommees = new Map<string, string>();
   for (const propriete of sansRegle) {
-    const candidates = sansPropriete.filter((regle) => nomsVoisins(nomCompacte(propriete), nomCompacte(regle)));
+    const candidates = sansPropriete.filter((regle) => nomsRapproches(nomCompacte(propriete), nomCompacte(regle)));
     if (candidates.length !== 1) continue;
-    if (sansRegle.filter((autre) => nomsVoisins(nomCompacte(autre), nomCompacte(candidates[0]))).length !== 1) continue;
+    if (sansRegle.filter((autre) => nomsRapproches(nomCompacte(autre), nomCompacte(candidates[0]))).length !== 1) continue;
     renommees.set(propriete, candidates[0]);
   }
   const renommeesParRegle = new Set(renommees.values());
@@ -209,7 +219,7 @@ export function constatsDeRegles(releve: ReleveDesRegles | null): Constat[] {
     });
   }
   for (const [propriete, { tag, cibles }] of manquantes) {
-    if (tag !== 'prop' || !documentees.has(nomCompacte(propriete))) continue;
+    if (tag !== 'prop' || !documentees.has(cleDeRegle(propriete))) continue;
     constats.push({
       id: `regles:C45:sans-valeur:${propriete}`, code: 'C45', type: 'corriger', famille: 'regles', variants: [], layers: [],
       faits: { composant: composant.nom, propriete, valeurs: cibles.map((cible) => cible.slice(propriete.length + 1)).join(', '), ecart: 'sans-valeur', regles: cibles.length },
@@ -366,7 +376,13 @@ export async function lireLesRegles(
     ...Object.keys(lues.booleanDescriptions).map(cibleCompacte),
     ...booleennesNonRedigees.map(cibleCompacte),
   ];
-  const axesDocumentes = ecrites.map((ecrite, rang) => axeDeLaCible(rattachees[rang] ?? ecrite));
+  // L'axe du modèle remplace l'axe écrit quand le point du nom coupait la cible au mauvais endroit. Quand les deux ne diffèrent que par
+  // l'écriture (`icon_position` pour `iconPosition`), l'export ne rattache pas la règle : l'axe écrit reste, et C45 la dit renommée.
+  const axesDocumentes = ecrites.map((ecrite, rang) => {
+    const ecrit = axeDeLaCible(ecrite);
+    const duModele = axeDeLaCible(rattachees[rang] ?? ecrite);
+    return nomCompacte(ecrit) === nomCompacte(duModele) ? ecrit : duModele;
+  });
   const valeursEcrites = ecrites.filter((_, rang) => rattachees[rang] === null);
   const orphelins = lues.orphelins ?? 0;
   return {

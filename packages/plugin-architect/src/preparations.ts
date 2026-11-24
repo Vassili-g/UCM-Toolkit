@@ -11,7 +11,7 @@
  * font pas partie du texte échangé, et le fichier des tokens reste la seule vérité d'une reprise.
  */
 import type { Correction, PreparationDesTokens, ReleveDeComposant } from '@ucm-kit/core/controles';
-import { CIBLES_DES_COLLECTIONS, CIBLES_DES_COULEURS_DE_COMPOSANT, CLES_D_ARCHITECT, ESPACE_ARCHITECT, type Collection } from '@ucm-kit/core/referentiel';
+import { CIBLES_DES_COLLECTIONS, CIBLES_DES_COULEURS_DE_COMPOSANT, CLES_D_ARCHITECT, ESPACE_ARCHITECT, formeDuChemin, type Collection } from '@ucm-kit/core/referentiel';
 
 import type { RegleRecue } from './messages/nomenclature';
 
@@ -272,14 +272,20 @@ const REGLE_DE_LIAISON = 'La variable a été préparée pour ce layer.';
 
 /**
  * Les liaisons du retour dans le fichier des composants. `publiees` donne la clé de chaque variable de `components` que la library
- * publiée porte, par nom. Un champ déjà lié n'est pas proposé de nouveau.
+ * publiée porte, par chemin ; la variable se cherche par la forme de son chemin, quelle que soit la casse écrite. Un champ déjà lié n'est pas proposé de nouveau.
  */
 export function liaisonsDeLaPreparation(preparation: PreparationRangee, releve: ReleveDeComposant, publiees: ReadonlyMap<string, string>): LiaisonsDeLaPreparation {
   const corrections: Correction[] = [];
   const enAttente: LiaisonEnAttente[] = [];
   let ecartees = 0;
+  // La préparation écrit ses chemins sous leur forme reconnue (`components/text-field/…`) ; la library garde la casse du designer.
+  const parForme = new Map<string, string>();
+  for (const [chemin, cle] of publiees) {
+    const forme = formeDuChemin(chemin);
+    if (!parForme.has(forme)) parForme.set(forme, cle);
+  }
   for (const variable of preparation.variables) {
-    const cle = publiees.get(variable.nom);
+    const cle = parForme.get(formeDuChemin(variable.nom));
     for (const lieu of variable.layers) {
       const variant = releve.variants.find((candidat) => candidat.id === lieu.variant);
       const layer = variant?.layers.find((candidat) => candidat.id === lieu.id);

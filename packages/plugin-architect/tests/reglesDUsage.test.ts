@@ -21,11 +21,13 @@ const codes = (constats: readonly Constat[]): string[] => constats.map(({ code }
 const booleenne = (cible: string): RegleEcrite => ({ tag: 'boolean', cible, contenu: REDIGEE });
 const valeur = (cible: string): RegleEcrite => ({ tag: 'prop', cible, contenu: REDIGEE });
 
-test('une règle écrite show_icon, show-icon, Show Icon#1:2 ou showIcon vise la propriété Show Icon (Q-F89-1)', async () => {
+test('une règle écrite show-icon, Show Icon#1:2 ou showIcon vise la propriété Show Icon, show_icon est dite renommée (Q-F89-1, P1)', async () => {
   const tuile = specDeLaForme('tile-link');
-  for (const ecrit of ['show icon', 'show-icon', 'show_icon', 'showIcon', 'Show Icon#1:2']) {
+  for (const ecrit of ['show icon', 'show-icon', 'showIcon', 'Show Icon#1:2']) {
     assert.deepEqual(resume(await lire(avecLesRegles(tuile, reecrire(reglesDe(tuile), 'showIcon', ecrit)))), [], ecrit);
   }
+  // L'export lit `show_icon` comme une autre clé que `showIcon` : il n'y rattache pas la règle, Architect le dit.
+  assert.deepEqual(resume(await lire(avecLesRegles(tuile, reecrire(reglesDe(tuile), 'showIcon', 'show_icon')))), ['C45|regle-renommee|showIcon']);
 });
 
 test('une valeur écrite Extra-Large vise la valeur Extra Large (Q-F89-1)', async () => {

@@ -12,10 +12,9 @@
  * `ecrireLeLot`. `lire-texte` envoie aussi `regles-recues` quand le texte porte des règles.
  */
 import {
-  cheminComplet, collectionDuCatalogue, preparerLesTokens, variableDuCatalogue, variableParCheminComplet,
+  cheminComplet, cheminDeLaVariable, collectionDuCatalogue, estDuComposant, preparerLesTokens, variableDuCatalogue, variableParCheminComplet,
   type CatalogueDeReference, type LieuDePreparation, type PreparationDesTokens, type ReponsesDePreparation, type VariableDuCatalogue,
 } from '@ucm-kit/core/controles';
-import { formeReconnue } from '@ucm-kit/core/referentiel';
 import { lireLesLibraries, type PortDeBibliotheque } from 'ucm-plugin-socle/src/bibliotheque';
 
 import { catalogueDuFichier, chargerLesValeurs, lireLeCatalogueDeLibrary } from '../catalogue';
@@ -82,21 +81,28 @@ export function variablesPubliees(nommes: CatalogueDeReference): ReadonlyMap<str
   }));
 }
 
+/**
+ * Les clés des variables que la préparation d'un jeu charge dans la library : les tailles, et les variables de `components` que le
+ * jeu possède (`estDuComposant`) : `Button`, `IconButton` ou `Text Field` sont reconnus quelle que soit la casse que le designer a écrite.
+ */
+export function clesAChargerPourLeJeu(nommes: CatalogueDeReference, jeu: string): string[] {
+  const collections = new Map(nommes.collections.map((collection) => [collection.cle, collection] as const));
+  return nommes.variables
+    .filter((variable) => {
+      const collection = collections.get(variable.collection);
+      if (collection?.role === COUCHE_DES_TAILLES) return true;
+      return collection?.role === COUCHE_DES_COMPOSANTS && estDuComposant(cheminDeLaVariable(variable.nom, collection).join('/'), jeu);
+    })
+    .map((variable) => variable.cle);
+}
+
 const ACCES_DE_FIGMA: Acces = {
   async catalogue(contexte, releve) {
     const { figma } = contexte;
     const nommes = await libraryLue(contexte);
     if (nommes) {
       // Les tailles se comparent en pixels, et une variable du composant se compare à ses cibles : on n'importe que celles-là.
-      const prefixe = `components/${formeReconnue(releve.jeu.nom)}/`;
-      const collections = new Map(nommes.collections.map((collection) => [collection.cle, collection] as const));
-      const cles = nommes.variables
-        .filter((variable) => {
-          const collection = collections.get(variable.collection);
-          return collection?.role === COUCHE_DES_TAILLES || (collection?.role === COUCHE_DES_COMPOSANTS && cheminComplet(variable.nom, collection).startsWith(prefixe));
-        })
-        .map((variable) => variable.cle);
-      return (await chargerLesValeurs(portDeLecture(figma), nommes, cles)).catalogue;
+      return (await chargerLesValeurs(portDeLecture(figma), nommes, clesAChargerPourLeJeu(nommes, releve.jeu.nom))).catalogue;
     }
     // Sans library, le fichier ouvert porte lui-même theme, layout et components.
     const port = portDeLecture(figma);
