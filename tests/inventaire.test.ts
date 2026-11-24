@@ -259,6 +259,14 @@ test('une piste avec etat, alertes ou rang est refusée en nommant le champ', ()
   }
 });
 
+test('une piste qui nomme un plugin a pour sujet ce plugin, et seul un plugin nommé donne ce sujet', () => {
+  assert.throws(() => pistes(depot([ecrite('P1', { titre: 'Sélection des tokens dans UCM Exporter', sujet: 'Modules consommateurs' })])), /champ sujet.*« Plugin Exporter » attendu/);
+  assert.throws(() => pistes(depot([ecrite('P1', { resume: 'Le moteur d’UCM Palettes calcule.', sujet: 'Documentation' })])), /« Plugin Palettes » attendu/);
+  assert.throws(() => pistes(depot([ecrite('P1', { sujet: 'Plugin Architect' })])), /« Plugin Architect » demande que le titre ou le résumé nomme le plugin/);
+  assert.equal(pistes(depot([ecrite('P1', { titre: 'Écran de UCM Architect', resume: 'Lit UCM Palettes.', sujet: 'Plugin Architect' })]))[0].sujet, 'Plugin Architect',
+    'le titre décide avant le résumé');
+});
+
 test('prioDuMainteneur sans raison, ou à 6, est refusé ; une prio posée valide passe', () => {
   assert.throws(() => pistes(depot([ecrite('P1', { prioDuMainteneur: { prio: 3 } })])), /champ prioDuMainteneur\.raison/);
   assert.throws(() => pistes(depot([ecrite('P1', { prioDuMainteneur: { prio: 3, raison: '  ' } })])), /champ prioDuMainteneur\.raison/);

@@ -664,6 +664,7 @@ endroit.
 |---|---|
 | Un sujet de recherche a son dossier dans `docs/notes/Recherches/`, créé par `npm run sujet -- "<Nom>" <Pn> "<utilité>"`, jamais dans `_local/`. | `tests/dossiersDeRecherche.test.ts`, `scripts/hook-documents.mjs` |
 | Une case de plan porte ses marques entre parenthèses après son numéro : `(hash)`, `(depot@hash)` pour un autre repository, `(mainteneur)` quand elle attend le mainteneur, `(attend Pn)` quand elle attend une autre piste. Un hash écrit en fin de case après « Commit », entre accents graves, vaut aussi. | `tests/plansDeRecherche.test.ts` |
+| Le sujet d’une piste dit où vit la pièce. Une piste dont le titre ou le résumé nomme UCM Palettes, UCM Exporter ou UCM Architect a pour sujet « Plugin Palettes », « Plugin Exporter » ou « Plugin Architect », celui que le titre nomme d’abord. | `docs/inventaire/releves.ts` (`sujetDuPlugin`), `tests/inventaire.test.ts` |
 | Un agent ne change ni ne retire un `prioDuMainteneur` sans demande du mainteneur. | `tests/inventaire.test.ts` |
 | Un sujet livré s’archive par la skill `archiver-un-sujet`. | `tests/archiverSujet.test.ts` |
 | Le résumé d’une piste peut se découper par les étiquettes « Ce qu'il fait », « Où », « Quand », « Pourquoi » et « Ne voit pas », en tête de phrase et suivies de « : » ; la Roadmap les affiche en blocs. | `docs/inventaire/page.js` `ETIQUETTES_DU_RESUME` |

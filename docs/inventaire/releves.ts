@@ -961,7 +961,32 @@ export const SUJETS: Record<string, { texte: string; fond: string }> = {
   Documentation: { texte: '#3f6212', fond: '#d9f99d' },
   'Outils de revue': { texte: '#075985', fond: '#bae6fd' },
   'Cohérence du système': { texte: '#9f1239', fond: '#ffe4e6' },
+  'Plugin Palettes': { texte: '#9a3412', fond: '#ffedd5' },
+  'Plugin Exporter': { texte: '#1e40af', fond: '#dbeafe' },
+  'Plugin Architect': { texte: '#854d0e', fond: '#fef9c3' },
 };
+
+/** Chaque plugin, sous le nom qu'un texte de piste lui donne, et le sujet qui le montre dans la Roadmap. */
+const SUJETS_DES_PLUGINS: Record<string, string> = {
+  'UCM Palettes': 'Plugin Palettes',
+  'UCM Exporter': 'Plugin Exporter',
+  'UCM Architect': 'Plugin Architect',
+};
+
+/**
+ * Le sujet d'une piste qui porte sur un plugin : celui du premier plugin que nomme son titre, sinon son résumé. Une piste qui
+ * ne nomme aucun plugin rend `undefined`, et son sujet dit où vit la pièce (kit, modules consommateurs, bibliothèque).
+ */
+export function sujetDuPlugin(piste: Pick<PisteEcrite, 'titre' | 'resume'>): string | undefined {
+  for (const texte of [piste.titre, piste.resume]) {
+    const cites = Object.keys(SUJETS_DES_PLUGINS)
+      .map((nom) => [nom, typeof texte === 'string' ? texte.indexOf(nom) : -1] as const)
+      .filter(([, rang]) => rang >= 0)
+      .sort((x, y) => x[1] - y[1]);
+    if (cites.length > 0) return SUJETS_DES_PLUGINS[cites[0][0]];
+  }
+  return undefined;
+}
 
 const AVEC_ECHEC = (fichier: string, ou: string, message: string): never => {
   throw new Error(`${fichier}, ${ou} : ${message}`);
@@ -1002,6 +1027,13 @@ function validerUnePiste(piste: PisteEcrite, racine: string): void {
   }
   if (typeof piste.sujet !== 'string' || piste.sujet === '') AVEC_ECHEC(CHEMIN_DES_PISTES, ou('sujet'), 'obligatoire');
   if (!(piste.sujet in SUJETS)) AVEC_ECHEC(CHEMIN_DES_PISTES, ou('sujet'), `« ${piste.sujet} » n'est pas dans SUJETS de releves.ts`);
+  const duPlugin = sujetDuPlugin(piste);
+  if (duPlugin !== undefined && piste.sujet !== duPlugin) {
+    AVEC_ECHEC(CHEMIN_DES_PISTES, ou('sujet'), `« ${duPlugin} » attendu : le titre ou le résumé nomme ce plugin, et le sujet d'une piste qui porte sur un plugin le montre`);
+  }
+  if (duPlugin === undefined && Object.values(SUJETS_DES_PLUGINS).includes(piste.sujet)) {
+    AVEC_ECHEC(CHEMIN_DES_PISTES, ou('sujet'), `« ${piste.sujet} » demande que le titre ou le résumé nomme le plugin (${Object.keys(SUJETS_DES_PLUGINS).join(', ')})`);
+  }
   if (!estUnePrio(piste.prio)) AVEC_ECHEC(CHEMIN_DES_PISTES, ou('prio'), 'doit être un entier de 0 à 5');
   if (piste.prioDuMainteneur !== undefined) {
     if (!estUnTexte(piste.prioDuMainteneur?.raison)) AVEC_ECHEC(CHEMIN_DES_PISTES, ou('prioDuMainteneur.raison'), 'obligatoire, non vide');
