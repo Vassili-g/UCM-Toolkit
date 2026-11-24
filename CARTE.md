@@ -56,7 +56,7 @@ Procédures qu'un agent charge à la demande.
 - hook-style.mjs : même contrôle, au moment où un agent écrit un fichier
 - hook-reponse.mjs : motifs de refus communs et motifs de portée `reponse` de `REGLES_ECRIRE`, appliqués à la dernière réponse d'un agent (`Stop`, `SubagentStop`)
 - hook-documents.mjs : refuse qu'un agent crée un document Markdown hors du registre, ou que `locaux` accepte
-- hook-commandes.mjs : refuse les commandes de `interdits` (`test:ui`, `galerie:captures`) sans `_local/autorise-test-ui`
+- hook-commandes.mjs : refuse le lancement par `npm run` d'un script de `interdits` (`test:ui`, `galerie:captures`) sans `_local/autorise-test-ui` ; un nom cité dans une chaîne ou un heredoc ne compte pas
 - hook-etat.mjs : à l'arrêt, refuse une fois les `.md` nouveaux ou modifiés qui enfreignent le registre ou le style
 - mesurer-prose.mjs : volume de la prose, document et commentaire
 - pins-servis.mjs : versions que le registre sert

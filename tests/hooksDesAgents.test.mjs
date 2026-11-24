@@ -95,12 +95,27 @@ test('H4 : un manifeste tronqué fait demander la création au hook des document
 test('H5 : `test:ui` sort 2 sans `_local/autorise-test-ui`, 0 avec', () => {
   const dossier = depotTemporaire(manifesteReel);
   try {
-    for (const commande of ['npm run test:ui', 'npm run test:ui --workspace plugin-palettes', 'npm run galerie:captures']) {
+    for (const commande of [
+      'npm run test:ui',
+      'npm run test:ui --workspace plugin-palettes',
+      'npm --workspace plugin-palettes run test:ui',
+      'cd packages/plugin-palettes && npm run galerie:captures',
+      'npm run-script test:ui',
+    ]) {
       const refus = lancer(dossier, 'hook-commandes.mjs', { tool_input: { command: commande } });
       assert.equal(refus.code, 2, commande);
       assert.match(refus.erreur, /est réservé au mainteneur/);
     }
-    assert.equal(lancer(dossier, 'hook-commandes.mjs', { tool_input: { command: 'npm test' } }).code, 0);
+    // Un nom qui ne se lance pas, écrit dans une chaîne, un heredoc ou un autre script, ne compte pas.
+    for (const commande of [
+      'npm test',
+      'echo "lancer test:ui plus tard" >> note.txt',
+      "git commit -m 'docs: npm run test:ui reste réservé'",
+      "python - <<'EOF'\nprint('npm run test:ui')\nEOF",
+      'npm run test:paquet -- palettes',
+    ]) {
+      assert.equal(lancer(dossier, 'hook-commandes.mjs', { tool_input: { command: commande } }).code, 0, commande);
+    }
 
     fs.mkdirSync(path.join(dossier, '_local'));
     fs.writeFileSync(path.join(dossier, '_local', 'autorise-test-ui'), '');
