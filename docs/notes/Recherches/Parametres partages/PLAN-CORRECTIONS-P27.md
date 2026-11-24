@@ -621,9 +621,9 @@ Nature : une règle et ses trois lecteurs.
 
 ## Vague 6
 
-- [ ] 6.1 `implementeur-exigeant`. Lecteurs de `tokens.json` et feuille CSS (PP-105, PP-107, PP-108, PP-11 pour la CLI).
-- [ ] 6.2 `implementeur`. Défaut d'une prop `instance-swap` (PP-204, Exporter).
-- [ ] 6.3 `implementeur`. Plugins sombres (PP-112).
+- [x] 6.1 `implementeur-exigeant`. Lecteurs de `tokens.json` et feuille CSS (PP-105, PP-107, PP-108, PP-11 pour la CLI). Commit : `91bfdf13`.
+- [x] 6.2 `implementeur`. Défaut d'une prop `instance-swap` (PP-204, Exporter). Commit : `1c8f3cc7`.
+- [x] 6.3 `implementeur`. Plugins sombres (PP-112). Commit : `df370fa5`.
 
 ### Lot 6.1. Lecteurs de `tokens.json` et feuille CSS
 
