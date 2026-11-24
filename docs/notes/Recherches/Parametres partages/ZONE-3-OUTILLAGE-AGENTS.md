@@ -9,7 +9,7 @@
 - [x] 5. Définitions d'agents face à `CLAUDE.md`
 - [x] 6. Skills face aux commandes et aux chemins réels
 - [x] 7. Découverte des tests et règles « avant de terminer »
-- [x] 8. Fiches, `parametres-zone3.json`, contrôle de style
+- [x] 8. Fiches, `parametres.json`, contrôle de style
 
 ## Synthèse
 
@@ -273,4 +273,4 @@ Les tables et les titres échappent à `controle-style.mjs` (`lignesDeProse`) : 
 - PP-310, règles de réponse. Options : (a) `hook-reponse.mjs` applique tiret cadratin, datation, intensificateur et opposition, et ajoute un motif d'offre de suite ; (b) `AGENTS.md` dit que ces règles ne valent que pour les fichiers. Recommandation : (a), parce que le bloc « Écrire » promet l'inverse.
 - PP-311, gras. Options : (a) la skill exempte le titre de puce d'un invariant ; (b) `AGENTS.md` assouplit la règle pour tous les fichiers d'agents. Recommandation : (a), qui garde la règle pour les documents de prose.
 - PP-313, ajout au registre. Options : (a) un fichier `documents-fermes.json` et un test, pour que tout ajout sous un motif large se voie au diff ; (b) la règle d'`AGENTS.md` se reformule pour dire que les motifs larges valent accord. Recommandation : (b) si les agents doivent écrire librement dans leurs dossiers (cette zone en est un exemple), sinon (a).
-- `parametres-zone3.json`. Options : (a) l'inventaire entre dans le test racine envisagé pour `parametres.json`, avec une entrée au registre ; (b) il reste documentaire. Recommandation : (a), après la correction des écarts importants.
+- `parametres.json` (entrées de la zone 3). Options : (a) l'inventaire entre dans le test racine envisagé pour `parametres.json`, avec une entrée au registre ; (b) il reste documentaire. Recommandation : (a), après la correction des écarts importants.

@@ -1,5 +1,5 @@
 {
-  "description": "Inventaire de la piste P27 : chaque paramètre partagé, sa source, ses lecteurs, ses copies et sa garde. Un paramètre sans garde ou avec une copie non gardée porte l’écart de RECHERCHE-PARAMETRES-PARTAGES.md qui le décrit.",
+  "description": "Inventaire unique de la piste P27. Il porte l’audit initial et les quatre inventaires de zone (règles jumelles, chaîne du contrat vers l’agent, outillage des agents, couleur). Chaque paramètre partagé nomme sa source, ses lecteurs, ses copies et sa garde. Un écart resté ouvert garde son champ `ecart`, que `ECARTS_OUVERTS` de `tests/parametresPartages.test.ts` nomme avec sa raison.",
   "natures": {
     "lecteur": [
       "code",
@@ -90,10 +90,9 @@
         }
       ],
       "garde": {
-        "test": "packages/kit/tests/apiPublique.test.mjs",
-        "nature": "journal"
-      },
-      "ecart": "PP-07"
+        "test": "tests/copiesDocumentees.test.ts",
+        "nature": "test-de-parite"
+      }
     },
     {
       "id": "fenetre-contrat-minimale",
@@ -128,8 +127,7 @@
       "garde": {
         "test": "packages/kit/tests/fenetre-de-lecture.test.mjs",
         "nature": "fixtures"
-      },
-      "ecart": "PP-06"
+      }
     },
     {
       "id": "tokens-format-version",
@@ -304,8 +302,7 @@
       "garde": {
         "test": "tests/pinDocumente.test.mjs",
         "nature": "test-de-parite"
-      },
-      "ecart": "PP-03"
+      }
     },
     {
       "id": "version-node",
@@ -313,7 +310,7 @@
       "nom": "Version de Node prise en charge",
       "source": {
         "fichier": "packages/cli/package.json",
-        "symbole": "engines.node"
+        "symbole": "engines"
       },
       "lecteurs": [
         {
@@ -347,8 +344,10 @@
           "nature": "genere"
         }
       ],
-      "garde": null,
-      "ecart": "PP-23"
+      "garde": {
+        "test": "tests/monorepoCoherent.test.mjs",
+        "nature": "test-de-parite"
+      }
     },
     {
       "id": "version-des-regles",
@@ -370,8 +369,10 @@
           "nature": "test"
         }
       ],
-      "garde": null,
-      "ecart": "PP-07"
+      "garde": {
+        "test": "tests/copiesDocumentees.test.ts",
+        "nature": "test-de-parite"
+      }
     },
     {
       "id": "projection-css",
@@ -476,10 +477,9 @@
         }
       ],
       "garde": {
-        "test": "packages/kit/tests/names.test.ts",
-        "nature": "test-partiel"
-      },
-      "ecart": "PP-19"
+        "test": "packages/kit/tests/reference.test.ts",
+        "nature": "test-de-parite"
+      }
     },
     {
       "id": "listes-referentiel",
@@ -572,8 +572,10 @@
           "nature": "code"
         }
       ],
-      "garde": null,
-      "ecart": "PP-15"
+      "garde": {
+        "test": "packages/plugin-palettes/tests/destinationDeLInterface.test.ts",
+        "nature": "test-de-parite"
+      }
     },
     {
       "id": "taille-valeurs",
@@ -634,8 +636,7 @@
       "garde": {
         "test": "packages/kit/tests/codesDesConstats.test.ts",
         "nature": "test-de-parite"
-      },
-      "ecart": "PP-09"
+      }
     },
     {
       "id": "seuils-wcag",
@@ -689,8 +690,10 @@
           "nature": "inventaire"
         }
       ],
-      "garde": null,
-      "ecart": "PP-04"
+      "garde": {
+        "test": "packages/kit/tests/referentiel-definitions.test.ts",
+        "nature": "test-de-parite"
+      }
     },
     {
       "id": "ecriture-seuil",
@@ -723,8 +726,10 @@
           "nature": "code"
         }
       ],
-      "garde": null,
-      "ecart": "PP-05"
+      "garde": {
+        "test": "packages/kit/tests/couleurEtContrasteEcrits.test.ts",
+        "nature": "test-de-parite"
+      }
     },
     {
       "id": "ecriture-contraste",
@@ -771,8 +776,10 @@
           "nature": "doc"
         }
       ],
-      "garde": null,
-      "ecart": "PP-09"
+      "garde": {
+        "test": "tests/copiesDocumentees.test.ts",
+        "nature": "test-de-parite"
+      }
     },
     {
       "id": "chroma-gris",
@@ -799,8 +806,7 @@
       "garde": {
         "test": "tests/reglesUniques.test.ts",
         "nature": "loi-anticopie"
-      },
-      "ecart": "PP-13"
+      }
     },
     {
       "id": "profondeur-structure",
@@ -829,8 +835,10 @@
           "nature": "doc"
         }
       ],
-      "garde": null,
-      "ecart": "PP-09"
+      "garde": {
+        "test": "tests/copiesDocumentees.test.ts",
+        "nature": "test-de-parite"
+      }
     },
     {
       "id": "budget-layers",
@@ -854,8 +862,10 @@
           "nature": "doc"
         }
       ],
-      "garde": null,
-      "ecart": "PP-09"
+      "garde": {
+        "test": "tests/copiesDocumentees.test.ts",
+        "nature": "test-de-parite"
+      }
     },
     {
       "id": "groupes-sans-unite",
@@ -879,8 +889,10 @@
           "nature": "doc"
         }
       ],
-      "garde": null,
-      "ecart": "PP-09"
+      "garde": {
+        "test": "tests/copiesDocumentees.test.ts",
+        "nature": "test-de-parite"
+      }
     },
     {
       "id": "proprietes-sans-unite-react",
@@ -901,8 +913,7 @@
       "garde": {
         "test": "packages/adapter-typescript/tests/usages.test.mjs",
         "nature": "test-de-la-copie"
-      },
-      "ecart": "PP-18"
+      }
     },
     {
       "id": "familles-linter",
@@ -943,8 +954,10 @@
           "nature": "doc"
         }
       ],
-      "garde": null,
-      "ecart": "PP-02"
+      "garde": {
+        "test": "tests/copiesDocumentees.test.ts",
+        "nature": "test-de-parite"
+      }
     },
     {
       "id": "proprietes-par-famille",
@@ -1047,8 +1060,10 @@
           "nature": "doc"
         }
       ],
-      "garde": null,
-      "ecart": "PP-01"
+      "garde": {
+        "test": "tests/copiesDocumentees.test.ts",
+        "nature": "test-de-parite"
+      }
     },
     {
       "id": "marqueur-rapport",
@@ -1151,10 +1166,9 @@
         }
       ],
       "garde": {
-        "test": "tests/textesEcrits.test.mjs",
-        "nature": "style"
-      },
-      "ecart": "PP-14"
+        "test": "tests/phrasesUniques.test.ts",
+        "nature": "test-de-parite"
+      }
     },
     {
       "id": "champs-du-contrat",
@@ -1178,16 +1192,15 @@
       "garde": {
         "test": "tests/inventaireInvariants.test.ts",
         "nature": "liste-manuelle"
-      },
-      "ecart": "PP-08"
+      }
     },
     {
       "id": "autorites-invariants",
       "famille": "contrat",
       "nom": "Autorités citées par les invariants",
       "source": {
-        "fichier": "packages/*/invariants/*.md",
-        "symbole": null
+        "fichier": "packages/kit/invariants/referentiel.md",
+        "symbole": "Autorité"
       },
       "lecteurs": [
         {
@@ -1206,8 +1219,7 @@
       "garde": {
         "test": "tests/inventaireInvariants.test.ts",
         "nature": "liste-manuelle"
-      },
-      "ecart": "PP-16"
+      }
     },
     {
       "id": "nom-configuration",
@@ -1238,8 +1250,10 @@
           "nature": "code"
         }
       ],
-      "garde": null,
-      "ecart": "PP-10"
+      "garde": {
+        "test": "tests/reglesUniques.test.ts",
+        "nature": "loi-anticopie"
+      }
     },
     {
       "id": "grammaire-configuration",
@@ -1279,8 +1293,7 @@
       "garde": {
         "test": "packages/kit/tests/configuration.test.mjs",
         "nature": "test-de-parite"
-      },
-      "ecart": "PP-17"
+      }
     },
     {
       "id": "motif-implementation",
@@ -1310,8 +1323,7 @@
       "garde": {
         "test": "packages/kit/tests/configuration.test.mjs",
         "nature": "import"
-      },
-      "ecart": "PP-17"
+      }
     },
     {
       "id": "fichier-tokens",
@@ -1319,7 +1331,7 @@
       "nom": "Chemin de tokens.json",
       "source": {
         "fichier": "packages/kit/src/format/configuration.ts",
-        "symbole": "CONFIGURATION_PAR_DEFAUT.tokens"
+        "symbole": "tokens: string"
       },
       "lecteurs": [
         {
@@ -1349,8 +1361,10 @@
           "nature": "code"
         }
       ],
-      "garde": null,
-      "ecart": "PP-24"
+      "garde": {
+        "test": "packages/cli/tests/cli.test.mjs",
+        "nature": "test-de-parite"
+      }
     },
     {
       "id": "schema-editeur",
@@ -1368,8 +1382,10 @@
           "nature": "genere"
         }
       ],
-      "garde": null,
-      "ecart": "PP-24"
+      "garde": {
+        "test": "packages/cli/tests/cli.test.mjs",
+        "nature": "test-de-parite"
+      }
     },
     {
       "id": "chemin-derogations",
@@ -1415,8 +1431,10 @@
           "nature": "code"
         }
       ],
-      "garde": null,
-      "ecart": "PP-10"
+      "garde": {
+        "test": "tests/reglesUniques.test.ts",
+        "nature": "loi-anticopie"
+      }
     },
     {
       "id": "chemin-conventions",
@@ -1447,8 +1465,8 @@
       "famille": "configuration",
       "nom": "Chemins des workflows et relais écrits par ucm init",
       "source": {
-        "fichier": "packages/cli/src/init.mjs",
-        "symbole": "CHEMIN_CI_GITLAB"
+        "fichier": "packages/cli/src/fichiers-du-consommateur.mjs",
+        "symbole": "CI_GITLAB"
       },
       "lecteurs": [
         {
@@ -1474,16 +1492,18 @@
           "nature": "doc"
         }
       ],
-      "garde": null,
-      "ecart": "PP-10"
+      "garde": {
+        "test": "tests/reglesUniques.test.ts",
+        "nature": "loi-anticopie"
+      }
     },
     {
       "id": "rapport-ci",
       "famille": "configuration",
       "nom": "Fichier ci-report.md",
       "source": {
-        "fichier": "packages/cli/src/init.mjs",
-        "symbole": null
+        "fichier": "packages/cli/src/fichiers-du-consommateur.mjs",
+        "symbole": "RAPPORT_CI"
       },
       "lecteurs": [
         {
@@ -1513,16 +1533,18 @@
           "nature": "genere"
         }
       ],
-      "garde": null,
-      "ecart": "PP-10"
+      "garde": {
+        "test": "tests/reglesUniques.test.ts",
+        "nature": "loi-anticopie"
+      }
     },
     {
       "id": "feuille-tokens",
       "famille": "configuration",
       "nom": "Feuille src/generated/tokens.css",
       "source": {
-        "fichier": "packages/cli/src/init.mjs",
-        "symbole": null
+        "fichier": "packages/cli/src/fichiers-du-consommateur.mjs",
+        "symbole": "FEUILLE_DES_TOKENS"
       },
       "lecteurs": [
         {
@@ -1547,16 +1569,18 @@
           "nature": "doc"
         }
       ],
-      "garde": null,
-      "ecart": "PP-10"
+      "garde": {
+        "test": "tests/reglesUniques.test.ts",
+        "nature": "loi-anticopie"
+      }
     },
     {
       "id": "api-gitlab",
       "famille": "configuration",
       "nom": "Adresse de l’API GitLab par défaut",
       "source": {
-        "fichier": "packages/cli/src/rapport-gitlab.mjs",
-        "symbole": "API_PAR_DEFAUT"
+        "fichier": "packages/kit/src/protocoles/forges.ts",
+        "symbole": "API_GITLAB"
       },
       "lecteurs": [
         {
@@ -1571,8 +1595,10 @@
           "nature": "code"
         }
       ],
-      "garde": null,
-      "ecart": "PP-10"
+      "garde": {
+        "test": "tests/reglesUniques.test.ts",
+        "nature": "loi-anticopie"
+      }
     },
     {
       "id": "fichiers-init",
@@ -1600,8 +1626,10 @@
           "nature": "doc"
         }
       ],
-      "garde": null,
-      "ecart": "PP-09"
+      "garde": {
+        "test": "tests/copiesDocumentees.test.ts",
+        "nature": "test-de-parite"
+      }
     },
     {
       "id": "gabarits-adaptateur",
@@ -1625,10 +1653,9 @@
         }
       ],
       "garde": {
-        "test": "packages/cli/tests/cli.test.mjs",
-        "nature": "faux-adaptateur"
-      },
-      "ecart": "PP-22"
+        "test": "packages/adapter-typescript/tests/parite.test.mjs",
+        "nature": "test-de-parite"
+      }
     },
     {
       "id": "commandes-cli",
@@ -1678,18 +1705,17 @@
         }
       ],
       "garde": {
-        "test": "packages/cli/tests/cli.test.mjs",
-        "nature": "test-partiel"
-      },
-      "ecart": "PP-17"
+        "test": "packages/cli/tests/commandesDocumentees.test.mjs",
+        "nature": "test-de-parite"
+      }
     },
     {
       "id": "bom",
       "famille": "hypotheses",
       "nom": "BOM en tête d’un JSON du consommateur",
       "source": {
-        "fichier": "packages/kit/src/lecteurs/controle-du-code.mjs",
-        "symbole": "retirerBom"
+        "fichier": "packages/kit/src/format/configuration.ts",
+        "symbole": "jsonSansBom"
       },
       "lecteurs": [
         {
@@ -1764,8 +1790,10 @@
           "nature": "code"
         }
       ],
-      "garde": null,
-      "ecart": "PP-11"
+      "garde": {
+        "test": "tests/reglesUniques.test.ts",
+        "nature": "loi-anticopie"
+      }
     },
     {
       "id": "casse-des-chemins",
@@ -1803,8 +1831,10 @@
           "nature": "code"
         }
       ],
-      "garde": null,
-      "ecart": "PP-12"
+      "garde": {
+        "test": "packages/kit/tests/implementation.test.mjs",
+        "nature": "test-de-parite"
+      }
     },
     {
       "id": "fins-de-ligne",
@@ -1883,8 +1913,10 @@
         }
       ],
       "copies": [],
-      "garde": null,
-      "ecart": "PP-20"
+      "garde": {
+        "test": "tests/styleMotifs.test.ts",
+        "nature": "style"
+      }
     },
     {
       "id": "hub",
@@ -1918,8 +1950,2546 @@
         }
       ],
       "copies": [],
+      "garde": {
+        "test": "tests/monorepoCoherent.test.mjs",
+        "nature": "test-de-parite"
+      }
+    },
+    {
+      "id": "cible-de-regle",
+      "famille": "regles-jumelles",
+      "nom": "Cible d’une règle @boolean ou @prop rattachée à sa propriété",
+      "source": {
+        "fichier": "packages/plugin-socle/src/composant/contract/rulesModel.ts",
+        "symbole": "normalizePropKey"
+      },
+      "lecteurs": [
+        {
+          "fichier": "packages/plugin-socle/src/composant/contract/mergeBooleanDescriptions.ts",
+          "symbole": "propByName",
+          "nature": "code"
+        },
+        {
+          "fichier": "packages/plugin-socle/src/composant/contract/mergePropDescriptions.ts",
+          "symbole": "propByName",
+          "nature": "code"
+        }
+      ],
+      "copies": [
+        {
+          "fichier": "packages/plugin-architect/src/regles.ts",
+          "ligne": 176,
+          "nature": "code"
+        },
+        {
+          "fichier": "packages/plugin-architect/src/regles.ts",
+          "ligne": 182,
+          "nature": "code"
+        },
+        {
+          "fichier": "packages/plugin-architect/src/regles.ts",
+          "ligne": 212,
+          "nature": "code"
+        },
+        {
+          "fichier": "packages/kit/src/referentiel/kit-de-regles.ts",
+          "ligne": 74,
+          "nature": "code"
+        }
+      ],
+      "garde": {
+        "test": "packages/plugin-socle/tests/cleDeRegle.test.ts",
+        "nature": "test-de-parite"
+      }
+    },
+    {
+      "id": "variables-du-composant",
+      "famille": "regles-jumelles",
+      "nom": "Appartenance d’une variable de components au composant",
+      "source": {
+        "fichier": "packages/kit/src/controles/nommage.ts",
+        "symbole": "estDuComposant"
+      },
+      "lecteurs": [
+        {
+          "fichier": "packages/kit/src/controles/preparation.ts",
+          "symbole": "segmentDe",
+          "nature": "code"
+        }
+      ],
+      "copies": [
+        {
+          "fichier": "packages/plugin-architect/src/sandbox/preparation.ts",
+          "ligne": 91,
+          "nature": "code"
+        },
+        {
+          "fichier": "packages/plugin-architect/src/sandbox/preparation.ts",
+          "ligne": 96,
+          "nature": "code"
+        },
+        {
+          "fichier": "packages/plugin-architect/src/preparations.ts",
+          "ligne": 282,
+          "nature": "code"
+        }
+      ],
+      "garde": {
+        "test": "packages/plugin-architect/tests/preparationEtCasse.test.ts",
+        "nature": "test-de-parite"
+      }
+    },
+    {
+      "id": "pertes-de-l-export",
+      "famille": "regles-jumelles",
+      "nom": "Ce qu’un nom de variable fait perdre à l’export de tokens",
+      "source": {
+        "fichier": "packages/kit/src/nommage/chemins-publies.ts",
+        "symbole": "cheminsEnConflit"
+      },
+      "lecteurs": [
+        {
+          "fichier": "packages/plugin-architect/src/ecriture/noms.ts",
+          "symbole": "cheminsEnConflit",
+          "nature": "code"
+        },
+        {
+          "fichier": "packages/kit/src/nommage/calcul.ts",
+          "symbole": "cheminsEnConflit",
+          "nature": "code"
+        }
+      ],
+      "copies": [
+        {
+          "fichier": "packages/plugin-socle/src/composant/variables.ts",
+          "ligne": 172,
+          "nature": "code"
+        },
+        {
+          "fichier": "packages/plugin-exporter/src/tokens/exportTokens.ts",
+          "ligne": 801,
+          "nature": "code"
+        },
+        {
+          "fichier": "packages/cli/src/tokens-css.mjs",
+          "ligne": 315,
+          "nature": "code"
+        },
+        {
+          "fichier": "packages/plugin-palettes/src/variables/noms.ts",
+          "ligne": 45,
+          "nature": "code"
+        }
+      ],
+      "garde": {
+        "test": "packages/kit/tests/collisionsCss.test.ts",
+        "nature": "test-de-parite"
+      }
+    },
+    {
+      "id": "nom-du-composant-implemente",
+      "famille": "regles-jumelles",
+      "nom": "Nom du composant que l’implémentation porte, et motif d’implémentation",
+      "source": {
+        "fichier": "packages/kit/src/lecteurs/implementation.mjs",
+        "symbole": "identifiantDuContrat"
+      },
+      "lecteurs": [
+        {
+          "fichier": "packages/kit/src/lecteurs/controle-repository.mjs",
+          "symbole": "relireLeCodeDuComposant",
+          "nature": "code"
+        },
+        {
+          "fichier": "packages/adapter-typescript/src/generation.mjs",
+          "symbole": "typesDuContrat",
+          "nature": "code"
+        }
+      ],
+      "copies": [
+        {
+          "fichier": "packages/adapter-typescript/src/parite.mjs",
+          "ligne": 17,
+          "nature": "code"
+        },
+        {
+          "fichier": "packages/adapter-typescript/src/parite.mjs",
+          "ligne": 313,
+          "nature": "code"
+        },
+        {
+          "fichier": "packages/cli/src/init.mjs",
+          "ligne": 125,
+          "nature": "code"
+        },
+        {
+          "fichier": "packages/kit/src/format/configuration.ts",
+          "ligne": 119,
+          "nature": "code"
+        }
+      ],
+      "garde": {
+        "test": "packages/kit/tests/controleRepository.test.mjs",
+        "nature": "test-de-parite"
+      }
+    },
+    {
+      "id": "refus-de-la-feuille-css",
+      "famille": "regles-jumelles",
+      "nom": "Feuilles que ucm tokens css refuse de déclarer",
+      "source": {
+        "fichier": "packages/cli/src/tokens-css.mjs",
+        "symbole": "feuilleDesTokens"
+      },
+      "lecteurs": [
+        {
+          "fichier": "packages/kit/src/lecteurs/tokens-dtcg.mjs",
+          "symbole": "nomsCssDesTokens",
+          "nature": "code"
+        }
+      ],
+      "copies": [
+        {
+          "fichier": "packages/plugin-exporter/src/tokens/exportTokens.ts",
+          "ligne": 796,
+          "nature": "code"
+        }
+      ],
+      "garde": {
+        "test": "packages/cli/tests/tokens-css.test.mjs",
+        "nature": "test-de-parite"
+      }
+    },
+    {
+      "id": "forme-unicode-des-noms",
+      "famille": "regles-jumelles",
+      "nom": "Forme Unicode d’un nom dans le chemin et dans le nom CSS",
+      "source": {
+        "fichier": "packages/kit/src/format/names.ts",
+        "symbole": "normalizeName"
+      },
+      "lecteurs": [
+        {
+          "fichier": "packages/kit/src/format/chemins-de-tokens.ts",
+          "symbole": "joinTokenPath",
+          "nature": "code"
+        }
+      ],
+      "copies": [
+        {
+          "fichier": "packages/kit/src/format/names.ts",
+          "ligne": 18,
+          "nature": "code"
+        },
+        {
+          "fichier": "packages/kit/src/format/names.ts",
+          "ligne": 75,
+          "nature": "code"
+        }
+      ],
+      "garde": {
+        "test": "packages/kit/tests/names.test.ts",
+        "nature": "test-de-parite"
+      }
+    },
+    {
+      "id": "valeur-dtcg",
+      "famille": "lectures-jumelles",
+      "nom": "Forme d’une valeur dimension ou color de tokens.json",
+      "source": {
+        "fichier": "docs/format/FORMAT.md",
+        "symbole": null
+      },
+      "lecteurs": [
+        {
+          "fichier": "packages/cli/src/tokens-css.mjs",
+          "symbole": "litteral",
+          "nature": "code"
+        }
+      ],
+      "copies": [
+        {
+          "fichier": "packages/kit/src/controles/projection-dtcg.ts",
+          "ligne": 87,
+          "nature": "code"
+        },
+        {
+          "fichier": "packages/kit/src/lecteurs/comparaison-dtcg.mjs",
+          "ligne": 41,
+          "nature": "code"
+        },
+        {
+          "fichier": "packages/cli/src/tokens-css.mjs",
+          "ligne": 64,
+          "nature": "code"
+        }
+      ],
+      "garde": {
+        "test": "packages/kit/tests/projectionDtcg.test.ts",
+        "nature": "test-de-parite"
+      }
+    },
+    {
+      "id": "syntaxe-d-alias",
+      "famille": "lectures-jumelles",
+      "nom": "Syntaxe d’une référence {chemin}",
+      "source": {
+        "fichier": "packages/kit/src/format/references.ts",
+        "symbole": "TOKEN_REFERENCE"
+      },
+      "lecteurs": [
+        {
+          "fichier": "packages/kit/src/format/references.ts",
+          "symbole": "isTokenReference",
+          "nature": "code"
+        }
+      ],
+      "copies": [
+        {
+          "fichier": "packages/kit/src/lecteurs/tokens-dtcg.mjs",
+          "ligne": 103,
+          "nature": "code"
+        },
+        {
+          "fichier": "packages/kit/src/controles/projection-dtcg.ts",
+          "ligne": 40,
+          "nature": "code"
+        },
+        {
+          "fichier": "packages/cli/src/tokens-references.mjs",
+          "ligne": 24,
+          "nature": "code"
+        },
+        {
+          "fichier": "packages/cli/src/conventions.mjs",
+          "ligne": 137,
+          "nature": "code"
+        }
+      ],
+      "garde": {
+        "test": "packages/kit/tests/references.test.ts",
+        "nature": "test-de-parite"
+      }
+    },
+    {
+      "id": "rapport-precedent",
+      "famille": "protocoles",
+      "nom": "Commentaire qui porte le rapport à remplacer",
+      "source": {
+        "fichier": "packages/kit/src/lecteurs/controle-repository.mjs",
+        "symbole": "MARQUEUR_RAPPORT"
+      },
+      "lecteurs": [
+        {
+          "fichier": "packages/cli/src/rapport-gitlab.mjs",
+          "symbole": "MARQUEUR_RAPPORT",
+          "nature": "code"
+        }
+      ],
+      "copies": [
+        {
+          "fichier": "packages/cli/src/init.mjs",
+          "ligne": 567,
+          "nature": "genere"
+        },
+        {
+          "fichier": "packages/cli/src/init.mjs",
+          "ligne": 570,
+          "nature": "genere"
+        },
+        {
+          "fichier": "packages/cli/src/rapport-gitlab.mjs",
+          "ligne": 123,
+          "nature": "code"
+        },
+        {
+          "fichier": "packages/cli/src/rapport-gitlab.mjs",
+          "ligne": 164,
+          "nature": "code"
+        }
+      ],
+      "garde": {
+        "test": "packages/kit/tests/rapport-precedent.test.mjs",
+        "nature": "test-de-parite"
+      }
+    },
+    {
+      "id": "nom-figma-du-variant",
+      "famille": "regles-jumelles",
+      "nom": "Nom Figma d’un variant rebâti depuis figmaVariantLabels",
+      "source": {
+        "fichier": "packages/plugin-socle/src/composant/contract/componentTree.ts",
+        "symbole": "buildFigmaVariantLabels"
+      },
+      "lecteurs": [
+        {
+          "fichier": "packages/kit/src/lecteurs/validation-contrat.mjs",
+          "symbole": "nomFigmaDuVariant",
+          "nature": "code"
+        }
+      ],
+      "copies": [
+        {
+          "fichier": "packages/plugin-socle/src/composant/contract/componentTree.ts",
+          "ligne": 531,
+          "nature": "code"
+        },
+        {
+          "fichier": "packages/kit/src/lecteurs/variant-views.mjs",
+          "ligne": 82,
+          "nature": "code"
+        },
+        {
+          "fichier": "packages/kit/src/lecteurs/validation-contrat.mjs",
+          "ligne": 1326,
+          "nature": "code"
+        }
+      ],
+      "garde": {
+        "test": "packages/plugin-exporter/tests/componentTree.test.ts",
+        "nature": "test-de-parite"
+      }
+    },
+    {
+      "id": "projection-inverse-des-tokens",
+      "famille": "lectures-jumelles",
+      "nom": "Noms comparés par le mode Tokens dans Figma et dans ucm check",
+      "source": {
+        "fichier": "packages/kit/src/controles/projection-dtcg.ts",
+        "symbole": "catalogueDepuisTokens"
+      },
+      "lecteurs": [
+        {
+          "fichier": "packages/kit/src/lecteurs/diagnostic-architecture.mjs",
+          "symbole": "catalogueDepuisTokens",
+          "nature": "code"
+        }
+      ],
+      "copies": [
+        {
+          "fichier": "packages/kit/src/format/names.ts",
+          "ligne": 5,
+          "nature": "code"
+        }
+      ],
+      "garde": {
+        "test": "packages/kit/tests/projectionEtFigma.test.ts",
+        "nature": "test-de-parite"
+      }
+    },
+    {
+      "id": "theme-des-plugins",
+      "famille": "styles",
+      "nom": "Thème clair ou sombre de l’interface des plugins",
+      "source": {
+        "fichier": "packages/plugin-socle/src/ui/socle.css",
+        "symbole": ":root"
+      },
+      "lecteurs": [
+        {
+          "fichier": "packages/plugin-palettes/src/code.ts",
+          "symbole": "themeColors",
+          "nature": "code"
+        },
+        {
+          "fichier": "packages/plugin-exporter/src/code.ts",
+          "symbole": "themeColors",
+          "nature": "code"
+        },
+        {
+          "fichier": "packages/plugin-architect/src/code.ts",
+          "symbole": "themeColors",
+          "nature": "code"
+        }
+      ],
+      "copies": [
+        {
+          "fichier": "packages/plugin-architect/src/ui/styles/commun.css",
+          "ligne": 13,
+          "nature": "code"
+        },
+        {
+          "fichier": "packages/plugin-architect/src/ui/roles.css",
+          "ligne": 12,
+          "nature": "code"
+        }
+      ],
+      "garde": {
+        "test": "tests/pluginsSombres.test.mjs",
+        "nature": "test-de-parite"
+      }
+    },
+    {
+      "id": "marqueurs-du-rapport",
+      "famille": "protocoles",
+      "nom": "Marqueurs <!-- ucm-rapport --> et <!-- ucm-sans-objet -->",
+      "source": {
+        "fichier": "packages/kit/src/lecteurs/controle-repository.mjs",
+        "symbole": "MARQUEUR_RAPPORT"
+      },
+      "lecteurs": [
+        {
+          "fichier": "packages/cli/src/init.mjs",
+          "symbole": "MARQUEUR_RAPPORT",
+          "nature": "genere"
+        },
+        {
+          "fichier": "packages/cli/src/rapport-gitlab.mjs",
+          "symbole": "MARQUEUR_RAPPORT",
+          "nature": "code"
+        }
+      ],
+      "copies": [],
+      "garde": {
+        "nature": "import"
+      }
+    },
+    {
+      "id": "prefixe-de-branche",
+      "famille": "protocoles",
+      "nom": "Préfixe des branches d’export ucm-exporter/export-<type>-",
+      "source": {
+        "fichier": "packages/plugin-exporter/src/depot.ts",
+        "symbole": "prefixeDeBranche"
+      },
+      "lecteurs": [
+        {
+          "fichier": "packages/plugin-exporter/src/depot.ts",
+          "symbole": "prefixeDeBranche",
+          "nature": "code"
+        }
+      ],
+      "copies": [],
+      "garde": {
+        "nature": "import"
+      }
+    },
+    {
+      "id": "chemin-d-un-token",
+      "famille": "regles-jumelles",
+      "nom": "Chemin d’un token depuis sa collection et sa variable",
+      "source": {
+        "fichier": "packages/kit/src/format/chemins-de-tokens.ts",
+        "symbole": "joinTokenPath"
+      },
+      "lecteurs": [
+        {
+          "fichier": "packages/plugin-socle/src/composant/variables.ts",
+          "symbole": "indexVariablesParEtapes",
+          "nature": "code"
+        },
+        {
+          "fichier": "packages/plugin-socle/src/composant/variables.ts",
+          "symbole": "loadName",
+          "nature": "code"
+        },
+        {
+          "fichier": "packages/kit/src/nommage/chemins-publies.ts",
+          "symbole": "cheminsEnConflit",
+          "nature": "code"
+        }
+      ],
+      "copies": [],
+      "garde": {
+        "nature": "import"
+      }
+    },
+    {
+      "id": "identifiant-de-contrat",
+      "famille": "regles-jumelles",
+      "nom": "Identifiant de code d’un composant (nom du fichier de contrat)",
+      "source": {
+        "fichier": "packages/kit/src/format/names.ts",
+        "symbole": "codeIdentifier"
+      },
+      "lecteurs": [
+        {
+          "fichier": "packages/plugin-socle/src/composant/contract/publication.ts",
+          "symbole": "componentContractFilename",
+          "nature": "code"
+        },
+        {
+          "fichier": "packages/adapter-typescript/src/generation.mjs",
+          "symbole": "typesDuContrat",
+          "nature": "code"
+        },
+        {
+          "fichier": "packages/kit/src/lecteurs/validation-graphe-contrats.mjs",
+          "symbole": "indexerParNom",
+          "nature": "code"
+        }
+      ],
+      "copies": [],
+      "garde": {
+        "test": "tests/reglesUniques.test.ts",
+        "nature": "loi-anticopie"
+      }
+    },
+    {
+      "id": "axes-de-modes",
+      "famille": "regles-jumelles",
+      "nom": "Axes de modes retenus par l’export et leurs conflits",
+      "source": {
+        "fichier": "packages/kit/src/format/axes-de-collections.ts",
+        "symbole": "deciderAxesDesCollections"
+      },
+      "lecteurs": [
+        {
+          "fichier": "packages/plugin-exporter/src/tokens/exportTokens.ts",
+          "symbole": "deciderAxesDesCollections",
+          "nature": "code"
+        },
+        {
+          "fichier": "packages/kit/src/nommage/chemins-publies.ts",
+          "symbole": "axesDeLExport",
+          "nature": "code"
+        }
+      ],
+      "copies": [],
+      "garde": {
+        "nature": "import"
+      }
+    },
+    {
+      "id": "couverture-schema-aides",
+      "famille": "contrat",
+      "nom": "Propriétés du schéma traitées par une aide",
+      "source": {
+        "fichier": "packages/kit/src/lecteurs/caracteristiques.mjs",
+        "symbole": "CHAMPS"
+      },
+      "lecteurs": [
+        {
+          "fichier": "packages/cli/src/guide.mjs",
+          "symbole": "caracteristiquesDuContrat",
+          "nature": "code"
+        },
+        {
+          "fichier": "packages/cli/aides/composant.md",
+          "nature": "aide"
+        },
+        {
+          "fichier": "packages/cli/aides/typographie.md",
+          "nature": "aide"
+        }
+      ],
+      "copies": [],
+      "garde": {
+        "test": "packages/cli/tests/aides.test.mjs",
+        "nature": "liste-manuelle"
+      }
+    },
+    {
+      "id": "couples-du-schema-parcourus",
+      "famille": "contrat",
+      "nom": "Couples du schéma que le test de couverture parcourt",
+      "source": {
+        "fichier": "packages/kit/schema/ucm-contract.schema.json",
+        "symbole": null
+      },
+      "lecteurs": [
+        {
+          "fichier": "packages/cli/tests/aides.test.mjs",
+          "symbole": "couplesDuSchema",
+          "nature": "test"
+        }
+      ],
+      "copies": [],
+      "garde": {
+        "test": "packages/cli/tests/aides.test.mjs",
+        "nature": "test-partiel"
+      }
+    },
+    {
+      "id": "noms-de-champs-des-aides",
+      "famille": "contrat",
+      "nom": "Chemins de champs cités par les aides et la procédure",
+      "source": {
+        "fichier": "packages/kit/src/format/types.ts",
+        "symbole": null
+      },
+      "lecteurs": [
+        {
+          "fichier": "packages/cli/aides/composant.md",
+          "nature": "aide"
+        },
+        {
+          "fichier": "packages/cli/procedure.md",
+          "nature": "aide"
+        },
+        {
+          "fichier": ".agents/skills/consommer-contrat/SKILL.md",
+          "nature": "doc"
+        }
+      ],
+      "copies": [],
+      "garde": {
+        "test": "packages/cli/tests/aides.test.mjs",
+        "nature": "test-de-parite"
+      }
+    },
+    {
+      "id": "declenchement-des-aides",
+      "famille": "contrat",
+      "nom": "Aides que le guide imprime pour un contrat",
+      "source": {
+        "fichier": "packages/kit/src/lecteurs/caracteristiques.mjs",
+        "symbole": "caracteristiquesDuContrat"
+      },
+      "lecteurs": [
+        {
+          "fichier": "packages/cli/src/guide.mjs",
+          "symbole": "aidesDuContrat",
+          "nature": "code"
+        }
+      ],
+      "copies": [],
+      "garde": {
+        "test": "packages/kit/tests/caracteristiques.test.mjs",
+        "nature": "test-de-parite"
+      }
+    },
+    {
+      "id": "disposition-sous-grille",
+      "famille": "contrat",
+      "nom": "Caractéristique de alignSelf et rowGap sous une grille",
+      "source": {
+        "fichier": "packages/kit/src/lecteurs/caracteristiques.mjs",
+        "symbole": "CHAMPS"
+      },
+      "lecteurs": [
+        {
+          "fichier": "packages/cli/aides/grille.md",
+          "nature": "aide"
+        },
+        {
+          "fichier": "packages/cli/aides/disposition.md",
+          "nature": "aide"
+        }
+      ],
+      "copies": [
+        {
+          "fichier": "packages/kit/src/lecteurs/caracteristiques.mjs",
+          "ligne": 61,
+          "nature": "code"
+        },
+        {
+          "fichier": "packages/kit/src/lecteurs/caracteristiques.mjs",
+          "ligne": 83,
+          "nature": "code"
+        }
+      ],
+      "garde": {
+        "test": "packages/kit/tests/caracteristiques.test.mjs",
+        "nature": "test-partiel"
+      }
+    },
+    {
+      "id": "reglages-de-slot",
+      "famille": "contrat",
+      "nom": "Réglages et valeurs préférées d'un slot ou d'un instance-swap",
+      "source": {
+        "fichier": "packages/kit/src/format/types.ts",
+        "symbole": "settings"
+      },
+      "lecteurs": [
+        {
+          "fichier": "packages/kit/src/lecteurs/validation-contrat.mjs",
+          "symbole": "validerPropsV8",
+          "nature": "code"
+        },
+        {
+          "fichier": "packages/cli/aides/composant.md",
+          "nature": "aide"
+        }
+      ],
+      "copies": [],
+      "garde": {
+        "test": "packages/cli/tests/aides.test.mjs",
+        "nature": "test-de-parite"
+      }
+    },
+    {
+      "id": "tokens-de-paragraphe",
+      "famille": "contrat",
+      "nom": "Écriture de paragraphSpacing et paragraphIndent",
+      "source": {
+        "fichier": "packages/kit/src/format/types.ts",
+        "symbole": "TypographyTokens"
+      },
+      "lecteurs": [
+        {
+          "fichier": "packages/kit/src/lecteurs/controle-du-code-listes.mjs",
+          "symbole": "text-indent",
+          "nature": "code"
+        },
+        {
+          "fichier": "packages/kit/src/lecteurs/typography-token-types.mjs",
+          "nature": "code"
+        },
+        {
+          "fichier": "packages/cli/aides/typographie.md",
+          "nature": "aide"
+        }
+      ],
+      "copies": [
+        {
+          "fichier": "docs/format/FORMAT.md",
+          "ligne": 379,
+          "nature": "doc"
+        }
+      ],
+      "garde": {
+        "test": "packages/cli/tests/aides.test.mjs",
+        "nature": "test-de-parite"
+      }
+    },
+    {
+      "id": "defaut-des-props",
+      "famille": "contrat",
+      "nom": "Sens d'un default publié selon le type de prop",
+      "source": {
+        "fichier": "packages/kit/src/format/types.ts",
+        "symbole": "InstanceSwapProp"
+      },
+      "lecteurs": [
+        {
+          "fichier": "packages/plugin-socle/src/composant/analyse/proprietesEtEtats.ts",
+          "nature": "code"
+        }
+      ],
+      "copies": [
+        {
+          "fichier": "packages/cli/aides/composant.md",
+          "ligne": 17,
+          "nature": "aide"
+        },
+        {
+          "fichier": "docs/format/FORMAT.md",
+          "ligne": 118,
+          "nature": "doc"
+        }
+      ],
+      "garde": {
+        "test": "packages/plugin-socle/tests/proprietesEtEtats.test.ts",
+        "nature": "test-de-parite"
+      }
+    },
+    {
+      "id": "props-facultatives",
+      "famille": "contrat",
+      "nom": "default et preferredValues facultatifs d'un instance-swap et d'un slot",
+      "source": {
+        "fichier": "packages/kit/src/format/types.ts",
+        "symbole": "SlotProp"
+      },
+      "lecteurs": [
+        {
+          "fichier": "packages/kit/src/lecteurs/validation-contrat.mjs",
+          "symbole": "validerPropsV8",
+          "nature": "code"
+        },
+        {
+          "fichier": "packages/plugin-socle/src/composant/analyse/proprietesEtEtats.ts",
+          "nature": "code"
+        },
+        {
+          "fichier": "packages/kit/schema/ucm-contract.schema.json",
+          "nature": "genere"
+        }
+      ],
+      "copies": [
+        {
+          "fichier": "docs/format/FORMAT.md",
+          "ligne": 118,
+          "nature": "doc"
+        }
+      ],
+      "garde": {
+        "test": "packages/kit/tests/validation-contrats.test.mjs",
+        "nature": "test-partiel"
+      }
+    },
+    {
+      "id": "inset-sous-center",
+      "famille": "contrat",
+      "nom": "Côtés publiés par inset selon l'accroche",
+      "source": {
+        "fichier": "packages/plugin-socle/src/composant/contract/flexLayout.ts",
+        "symbole": "axe"
+      },
+      "lecteurs": [
+        {
+          "fichier": "packages/kit/src/format/types.ts",
+          "symbole": "LayoutInset",
+          "nature": "code"
+        }
+      ],
+      "copies": [
+        {
+          "fichier": "packages/cli/aides/position-absolue.md",
+          "ligne": 16,
+          "nature": "aide"
+        }
+      ],
+      "garde": {
+        "test": "packages/cli/tests/guide.test.mjs",
+        "nature": "test-de-parite"
+      }
+    },
+    {
+      "id": "source-du-ring",
+      "famille": "contrat",
+      "nom": "Source des tokens et cibles d'un ring",
+      "source": {
+        "fichier": "packages/kit/src/format/types.ts",
+        "symbole": "strokes"
+      },
+      "lecteurs": [
+        {
+          "fichier": "docs/format/FORMAT.md",
+          "nature": "doc"
+        }
+      ],
+      "copies": [
+        {
+          "fichier": "packages/cli/aides/contour-ring.md",
+          "ligne": 8,
+          "nature": "aide"
+        }
+      ],
+      "garde": {
+        "test": "packages/cli/tests/aides.test.mjs",
+        "nature": "test-de-parite"
+      }
+    },
+    {
+      "id": "procedure-d-implementation",
+      "famille": "commandes",
+      "nom": "Ce que l'agent ne fait pas en implémentant ou en modifiant",
+      "source": {
+        "fichier": "packages/cli/procedure.md",
+        "symbole": null
+      },
+      "lecteurs": [
+        {
+          "fichier": "packages/cli/src/guide.mjs",
+          "symbole": "PROCEDURE",
+          "nature": "code"
+        },
+        {
+          "fichier": "packages/cli/src/init.mjs",
+          "symbole": "description du relais ucm-implementer",
+          "nature": "genere"
+        }
+      ],
+      "copies": [
+        {
+          "fichier": ".agents/skills/consommer-contrat/SKILL.md",
+          "ligne": 14,
+          "nature": "doc"
+        }
+      ],
+      "garde": {
+        "test": "packages/cli/tests/guide.test.mjs",
+        "nature": "test-partiel"
+      }
+    },
+    {
+      "id": "ancrages-repondus",
+      "famille": "configuration",
+      "nom": "Ce qui répond à un ancrage dans .ucm/conventions.md",
+      "source": {
+        "fichier": "packages/cli/src/guide.mjs",
+        "symbole": "aidesDuContrat"
+      },
+      "lecteurs": [
+        {
+          "fichier": "packages/cli/src/conventions.mjs",
+          "symbole": "lireConventions",
+          "nature": "code"
+        },
+        {
+          "fichier": "packages/cli/procedure.md",
+          "nature": "aide"
+        }
+      ],
+      "copies": [
+        {
+          "fichier": "packages/cli/src/init.mjs",
+          "ligne": 308,
+          "nature": "genere"
+        }
+      ],
+      "garde": {
+        "test": "packages/cli/tests/commande-aides.test.mjs",
+        "nature": "test-de-parite"
+      }
+    },
+    {
+      "id": "commande-ucm-de-l-agent",
+      "famille": "commandes",
+      "nom": "Commande ucm que l'agent exécute",
+      "source": {
+        "fichier": "packages/cli/src/init.mjs",
+        "symbole": "ucm-implementer"
+      },
+      "lecteurs": [
+        {
+          "fichier": "packages/cli/package.json",
+          "symbole": "bin.ucm",
+          "nature": "code"
+        }
+      ],
+      "copies": [
+        {
+          "fichier": "packages/cli/aides/resolution-token.md",
+          "ligne": 24,
+          "nature": "aide"
+        },
+        {
+          "fichier": "packages/cli/aides/resolution-token.md",
+          "ligne": 32,
+          "nature": "aide"
+        },
+        {
+          "fichier": "packages/cli/procedure.md",
+          "ligne": 44,
+          "nature": "aide"
+        },
+        {
+          "fichier": "packages/kit/src/lecteurs/derogations.mjs",
+          "ligne": 163,
+          "nature": "code"
+        },
+        {
+          "fichier": "packages/kit/src/lecteurs/controle-repository.mjs",
+          "ligne": 320,
+          "nature": "code"
+        }
+      ],
+      "garde": {
+        "test": "packages/cli/tests/commandesDocumentees.test.mjs",
+        "nature": "test-de-parite"
+      }
+    },
+    {
+      "id": "protocole-du-test-froid",
+      "famille": "perimetre",
+      "nom": "Protocole et critères de la reconstruction à froid",
+      "source": {
+        "fichier": "CONCEPT.md",
+        "symbole": null
+      },
+      "lecteurs": [
+        {
+          "fichier": ".agents/skills/consommer-contrat/SKILL.md",
+          "nature": "doc"
+        }
+      ],
+      "copies": [
+        {
+          "fichier": "docs/guides/RECETTE.md",
+          "ligne": 303,
+          "nature": "doc"
+        },
+        {
+          "fichier": "docs/guides/RECETTE.md",
+          "ligne": 275,
+          "nature": "doc"
+        },
+        {
+          "fichier": "docs/guides/RECETTE.md",
+          "ligne": 310,
+          "nature": "doc"
+        }
+      ],
+      "garde": {
+        "test": "tests/copiesDocumentees.test.ts",
+        "nature": "test-de-parite"
+      }
+    },
+    {
+      "id": "diagnostics-imprimes",
+      "famille": "diagnostics",
+      "nom": "Champs d'un diagnostic d'export que le guide imprime",
+      "source": {
+        "fichier": "packages/kit/src/lecteurs/variant-views.mjs",
+        "symbole": "messagesDExport"
+      },
+      "lecteurs": [
+        {
+          "fichier": "packages/cli/src/guide.mjs",
+          "symbole": "extraction",
+          "nature": "code"
+        }
+      ],
+      "copies": [],
+      "garde": {
+        "test": "packages/cli/tests/guide.test.mjs",
+        "nature": "test-de-parite"
+      }
+    },
+    {
+      "id": "identifiant-de-code",
+      "famille": "contrat",
+      "nom": "Identifiant de code d'un composant",
+      "source": {
+        "fichier": "packages/kit/src/format/names.ts",
+        "symbole": "codeIdentifier"
+      },
+      "lecteurs": [
+        {
+          "fichier": "packages/cli/aides/identifiants.md",
+          "nature": "aide"
+        }
+      ],
+      "copies": [
+        {
+          "fichier": "docs/format/FORMAT.md",
+          "ligne": 1265,
+          "nature": "doc"
+        }
+      ],
+      "garde": {
+        "test": "packages/cli/tests/guide.test.mjs",
+        "nature": "test-de-parite"
+      }
+    },
+    {
+      "id": "verdict-registre-documents",
+      "famille": "outillage",
+      "nom": "Verdict du registre pour un Markdown créé",
+      "source": {
+        "fichier": "scripts/hook-documents.mjs",
+        "symbole": "_local/"
+      },
+      "lecteurs": [
+        {
+          "fichier": "tests/registreDesDocuments.test.ts",
+          "nature": "test"
+        },
+        {
+          "fichier": "scripts/agents-contexte.mjs",
+          "symbole": "correspond",
+          "nature": "code"
+        },
+        {
+          "fichier": "tests/styleMotifs.test.ts",
+          "nature": "test"
+        }
+      ],
+      "copies": [
+        {
+          "fichier": "scripts/hook-documents.mjs",
+          "ligne": 48,
+          "nature": "code"
+        },
+        {
+          "fichier": "CONTRIBUTING.md",
+          "ligne": 663,
+          "nature": "doc"
+        },
+        {
+          "fichier": "AGENTS.md",
+          "ligne": 97,
+          "nature": "doc"
+        },
+        {
+          "fichier": "tests/registreDesDocuments.test.ts",
+          "ligne": 12,
+          "nature": "test"
+        }
+      ],
+      "garde": {
+        "test": "tests/registreDesDocuments.test.ts",
+        "nature": "test-partiel"
+      },
+      "ecart": "PP-301"
+    },
+    {
+      "id": "chemins-sans-hook",
+      "famille": "outillage",
+      "nom": "Outils qui créent un fichier sans passer par un hook",
+      "source": {
+        "fichier": ".claude/settings.json",
+        "symbole": "matcher"
+      },
+      "lecteurs": [
+        {
+          "fichier": "scripts/hook-documents.mjs",
+          "symbole": "tool_input.file_path",
+          "nature": "code"
+        },
+        {
+          "fichier": "scripts/hook-style.mjs",
+          "symbole": "tool_input.file_path",
+          "nature": "code"
+        }
+      ],
+      "copies": [
+        {
+          "fichier": "CONTRIBUTING.md",
+          "ligne": 556,
+          "nature": "doc"
+        },
+        {
+          "fichier": "CONTRIBUTING.md",
+          "ligne": 599,
+          "nature": "doc"
+        },
+        {
+          "fichier": "CARTE.md",
+          "ligne": 55,
+          "nature": "doc"
+        },
+        {
+          "fichier": ".claude/agents/implementeur.md",
+          "ligne": 49,
+          "nature": "doc"
+        }
+      ],
       "garde": null,
-      "ecart": "PP-21"
+      "ecart": "PP-302"
+    },
+    {
+      "id": "domicile-de-l-outillage",
+      "famille": "outillage",
+      "nom": "Domicile des fichiers d'outillage des agents",
+      "source": {
+        "fichier": ".agents/domiciles.json",
+        "symbole": "domaines"
+      },
+      "lecteurs": [
+        {
+          "fichier": "scripts/agents-contexte.mjs",
+          "symbole": "domaineDe",
+          "nature": "code"
+        },
+        {
+          "fichier": "tests/domiciles.test.ts",
+          "nature": "test"
+        }
+      ],
+      "copies": [
+        {
+          "fichier": "AGENTS.md",
+          "ligne": 87,
+          "nature": "doc"
+        },
+        {
+          "fichier": "scripts/hook-documents.mjs",
+          "ligne": 58,
+          "nature": "code"
+        },
+        {
+          "fichier": "CONTRIBUTING.md",
+          "ligne": 533,
+          "nature": "doc"
+        }
+      ],
+      "garde": {
+        "test": "tests/domiciles.test.ts",
+        "nature": "test-partiel"
+      }
+    },
+    {
+      "id": "verifications-par-domaine",
+      "famille": "outillage",
+      "nom": "Commandes de vérification rendues par agents:diff",
+      "source": {
+        "fichier": ".agents/domiciles.json",
+        "symbole": "verifications"
+      },
+      "lecteurs": [
+        {
+          "fichier": "scripts/agents-contexte.mjs",
+          "symbole": "diff",
+          "nature": "code"
+        },
+        {
+          "fichier": ".claude/agents/implementeur.md",
+          "nature": "doc"
+        },
+        {
+          "fichier": ".claude/agents/implementeur-exigeant.md",
+          "nature": "doc"
+        },
+        {
+          "fichier": ".claude/agents/executant.md",
+          "nature": "doc"
+        }
+      ],
+      "copies": [
+        {
+          "fichier": "CONTRIBUTING.md",
+          "ligne": 533,
+          "nature": "doc"
+        }
+      ],
+      "garde": {
+        "test": "tests/domiciles.test.ts",
+        "nature": "test-de-parite"
+      }
+    },
+    {
+      "id": "garde-de-conservation",
+      "famille": "outillage",
+      "nom": "Conservation des atomes d'une réécriture de fichier d'agent",
+      "source": {
+        "fichier": "scripts/verifier-conservation.mjs",
+        "symbole": "--domaines"
+      },
+      "lecteurs": [
+        {
+          "fichier": ".agents/skills/rediger-pour-agents/SKILL.md",
+          "nature": "doc"
+        },
+        {
+          "fichier": "tests/verifierConservation.test.mjs",
+          "nature": "test"
+        }
+      ],
+      "copies": [
+        {
+          "fichier": ".agents/skills/rediger-pour-agents/SKILL.md",
+          "ligne": 134,
+          "nature": "doc"
+        },
+        {
+          "fichier": "CARTE.md",
+          "ligne": 64,
+          "nature": "doc"
+        }
+      ],
+      "garde": {
+        "test": "tests/verifierConservation.test.mjs",
+        "nature": "test-partiel"
+      }
+    },
+    {
+      "id": "interdiction-test-ui",
+      "famille": "outillage",
+      "nom": "Interdiction de lancer test:ui sans demande du mainteneur",
+      "source": {
+        "fichier": "CONTRIBUTING.md",
+        "symbole": "Travailler avec des agents"
+      },
+      "lecteurs": [
+        {
+          "fichier": ".claude/agents/verificateur.md",
+          "nature": "doc"
+        },
+        {
+          "fichier": ".claude/agents/implementeur.md",
+          "nature": "doc"
+        },
+        {
+          "fichier": ".claude/agents/implementeur-exigeant.md",
+          "nature": "doc"
+        },
+        {
+          "fichier": ".claude/agents/executant.md",
+          "nature": "doc"
+        }
+      ],
+      "copies": [
+        {
+          "fichier": "CLAUDE.md",
+          "ligne": 18,
+          "nature": "doc"
+        },
+        {
+          "fichier": "CONTRIBUTING.md",
+          "ligne": 536,
+          "nature": "doc"
+        },
+        {
+          "fichier": ".claude/agents/implementeur.md",
+          "ligne": 50,
+          "nature": "doc"
+        },
+        {
+          "fichier": ".claude/agents/implementeur-exigeant.md",
+          "ligne": 50,
+          "nature": "doc"
+        },
+        {
+          "fichier": ".claude/agents/executant.md",
+          "ligne": 51,
+          "nature": "doc"
+        },
+        {
+          "fichier": ".claude/agents/verificateur.md",
+          "ligne": 3,
+          "nature": "doc"
+        }
+      ],
+      "garde": null,
+      "ecart": "PP-306"
+    },
+    {
+      "id": "exceptions-du-controle-de-style",
+      "famille": "style",
+      "nom": "Fichiers exclus ou convertis du contrôle de style",
+      "source": {
+        "fichier": "scripts/controle-style.mjs",
+        "symbole": "EXCLUS_DU_CONTROLE"
+      },
+      "lecteurs": [
+        {
+          "fichier": "scripts/hook-style.mjs",
+          "symbole": "fautesDuFichier",
+          "nature": "code"
+        },
+        {
+          "fichier": "tests/styleDocumentaire.test.ts",
+          "nature": "test"
+        },
+        {
+          "fichier": "tests/styleMotifs.test.ts",
+          "nature": "test"
+        }
+      ],
+      "copies": [
+        {
+          "fichier": "CONTRIBUTING.md",
+          "ligne": 599,
+          "nature": "doc"
+        },
+        {
+          "fichier": ".agents/skills/rediger-pour-agents/SKILL.md",
+          "ligne": 35,
+          "nature": "doc"
+        }
+      ],
+      "garde": {
+        "test": "tests/styleMotifs.test.ts",
+        "nature": "test-partiel"
+      }
+    },
+    {
+      "id": "suffixes-de-test-decouverts",
+      "famille": "tests",
+      "nom": "Suffixes de fichiers de test lancés par chaque paquet",
+      "source": {
+        "fichier": "scripts/run-tests.cjs",
+        "symbole": ".test.mjs"
+      },
+      "lecteurs": [
+        {
+          "fichier": "packages/plugin-socle/build/run-tests.cjs",
+          "symbole": "lancerLesTests",
+          "nature": "code"
+        },
+        {
+          "fichier": "packages/cli/scripts/run-tests.cjs",
+          "nature": "code"
+        },
+        {
+          "fichier": "packages/kit/scripts/run-tests.cjs",
+          "nature": "code"
+        }
+      ],
+      "copies": [
+        {
+          "fichier": "packages/adapter-typescript/scripts/run-tests.cjs",
+          "ligne": 8,
+          "nature": "code"
+        },
+        {
+          "fichier": "packages/plugin-architect/scripts/run-tests.cjs",
+          "ligne": 5,
+          "nature": "code"
+        },
+        {
+          "fichier": "packages/plugin-exporter/scripts/run-tests.cjs",
+          "ligne": 5,
+          "nature": "code"
+        },
+        {
+          "fichier": "packages/plugin-palettes/scripts/run-tests.cjs",
+          "ligne": 5,
+          "nature": "code"
+        },
+        {
+          "fichier": "AGENTS.md",
+          "ligne": 115,
+          "nature": "doc"
+        },
+        {
+          "fichier": "CONTRIBUTING.md",
+          "ligne": 469,
+          "nature": "doc"
+        }
+      ],
+      "garde": {
+        "test": "tests/monorepoCoherent.test.mjs",
+        "nature": "test-de-parite"
+      }
+    },
+    {
+      "id": "modele-des-sous-agents",
+      "famille": "agents",
+      "nom": "Modèle de chaque sous-agent",
+      "source": {
+        "fichier": ".claude/agents/verificateur.md",
+        "symbole": "model"
+      },
+      "lecteurs": [
+        {
+          "fichier": "CLAUDE.md",
+          "nature": "doc"
+        },
+        {
+          "fichier": ".claude/settings.json",
+          "symbole": "env.CLAUDE_CODE_SUBAGENT_MODEL",
+          "nature": "code"
+        }
+      ],
+      "copies": [
+        {
+          "fichier": "CLAUDE.md",
+          "ligne": 14,
+          "nature": "doc"
+        },
+        {
+          "fichier": "CLAUDE.md",
+          "ligne": 18,
+          "nature": "doc"
+        },
+        {
+          "fichier": ".claude/settings.json",
+          "ligne": 4,
+          "nature": "code"
+        },
+        {
+          "fichier": ".claude/agents/executant.md",
+          "ligne": 4,
+          "nature": "doc"
+        }
+      ],
+      "garde": null,
+      "ecart": "PP-309"
+    },
+    {
+      "id": "regles-ecrire-par-moment",
+      "famille": "style",
+      "nom": "Règles d'écriture appliquées à une réponse, à un fichier et à une relecture",
+      "source": {
+        "fichier": "AGENTS.md",
+        "symbole": "## Écrire"
+      },
+      "lecteurs": [
+        {
+          "fichier": "scripts/hook-reponse.mjs",
+          "symbole": "fautesDeReponse",
+          "nature": "code"
+        },
+        {
+          "fichier": "scripts/hook-style.mjs",
+          "symbole": "fautesDuFichier",
+          "nature": "code"
+        },
+        {
+          "fichier": ".agents/skills/relire-le-style/SKILL.md",
+          "nature": "doc"
+        }
+      ],
+      "copies": [
+        {
+          "fichier": "scripts/controle-style.mjs",
+          "ligne": 125,
+          "nature": "code"
+        },
+        {
+          "fichier": "CONTRIBUTING.md",
+          "ligne": 599,
+          "nature": "doc"
+        }
+      ],
+      "garde": {
+        "test": "tests/styleMotifs.test.ts",
+        "nature": "test-partiel"
+      }
+    },
+    {
+      "id": "usage-du-gras",
+      "famille": "style",
+      "nom": "Gras par section dans les fichiers d'agents",
+      "source": {
+        "fichier": "AGENTS.md",
+        "symbole": "le gras"
+      },
+      "lecteurs": [
+        {
+          "fichier": ".agents/skills/rediger-pour-agents/SKILL.md",
+          "nature": "doc"
+        }
+      ],
+      "copies": [
+        {
+          "fichier": "AGENTS.md",
+          "ligne": 18,
+          "nature": "doc"
+        },
+        {
+          "fichier": ".agents/skills/rediger-pour-agents/SKILL.md",
+          "ligne": 35,
+          "nature": "doc"
+        },
+        {
+          "fichier": "CLAUDE.md",
+          "ligne": 21,
+          "nature": "doc"
+        }
+      ],
+      "garde": {
+        "test": "tests/styleMotifs.test.ts",
+        "nature": "style"
+      }
+    },
+    {
+      "id": "contenu-des-cartes",
+      "famille": "outillage",
+      "nom": "Fichiers de scripts, skills et agents que CARTE.md décrit",
+      "source": {
+        "fichier": "CARTE.md",
+        "symbole": "## scripts/"
+      },
+      "lecteurs": [
+        {
+          "fichier": "tests/cartes.test.ts",
+          "nature": "test"
+        },
+        {
+          "fichier": "scripts/agents-contexte.mjs",
+          "symbole": "lire",
+          "nature": "code"
+        }
+      ],
+      "copies": [
+        {
+          "fichier": "CARTE.md",
+          "ligne": 39,
+          "nature": "doc"
+        },
+        {
+          "fichier": "CARTE.md",
+          "ligne": 66,
+          "nature": "doc"
+        }
+      ],
+      "garde": {
+        "test": "tests/cartes.test.ts",
+        "nature": "test-partiel"
+      }
+    },
+    {
+      "id": "creation-de-skill-ou-de-document",
+      "famille": "outillage",
+      "nom": "Accord requis pour un nouveau document ou une nouvelle skill",
+      "source": {
+        "fichier": ".agents/domiciles.json",
+        "symbole": "registre"
+      },
+      "lecteurs": [
+        {
+          "fichier": "scripts/hook-documents.mjs",
+          "nature": "code"
+        },
+        {
+          "fichier": "tests/registreDesDocuments.test.ts",
+          "nature": "test"
+        },
+        {
+          "fichier": "scripts/nouveau-sujet.mjs",
+          "nature": "code"
+        }
+      ],
+      "copies": [
+        {
+          "fichier": "AGENTS.md",
+          "ligne": 97,
+          "nature": "doc"
+        },
+        {
+          "fichier": "CONTRIBUTING.md",
+          "ligne": 663,
+          "nature": "doc"
+        },
+        {
+          "fichier": ".agents/skills/archiver-un-sujet/SKILL.md",
+          "ligne": 23,
+          "nature": "doc"
+        },
+        {
+          "fichier": ".claude/agents/implementeur.md",
+          "ligne": 49,
+          "nature": "doc"
+        }
+      ],
+      "garde": {
+        "test": "tests/registreDesDocuments.test.ts",
+        "nature": "test-partiel"
+      }
+    },
+    {
+      "id": "prompt-d-un-implementeur",
+      "famille": "agents",
+      "nom": "Contenu du prompt d'un implémenteur et sections communes des définitions",
+      "source": {
+        "fichier": "CONTRIBUTING.md",
+        "symbole": "Ce que reçoit un implémenteur"
+      },
+      "lecteurs": [
+        {
+          "fichier": ".claude/agents/implementeur.md",
+          "nature": "doc"
+        },
+        {
+          "fichier": ".claude/agents/implementeur-exigeant.md",
+          "nature": "doc"
+        },
+        {
+          "fichier": ".claude/agents/executant.md",
+          "nature": "doc"
+        }
+      ],
+      "copies": [
+        {
+          "fichier": "CLAUDE.md",
+          "ligne": 22,
+          "nature": "doc"
+        },
+        {
+          "fichier": ".claude/agents/implementeur.md",
+          "ligne": 7,
+          "nature": "doc"
+        },
+        {
+          "fichier": ".claude/agents/implementeur-exigeant.md",
+          "ligne": 7,
+          "nature": "doc"
+        },
+        {
+          "fichier": ".claude/agents/executant.md",
+          "ligne": 7,
+          "nature": "doc"
+        }
+      ],
+      "garde": null,
+      "ecart": "PP-314"
+    },
+    {
+      "id": "extensions-jugees-par-le-style",
+      "famille": "style",
+      "nom": "Extensions de fichier que le contrôle de style juge",
+      "source": {
+        "fichier": "scripts/controle-style.mjs",
+        "symbole": "EXTENSIONS_CONTROLEES"
+      },
+      "lecteurs": [
+        {
+          "fichier": "scripts/hook-style.mjs",
+          "nature": "code"
+        },
+        {
+          "fichier": "tests/styleDocumentaire.test.ts",
+          "nature": "test"
+        }
+      ],
+      "copies": [
+        {
+          "fichier": "scripts/hook-style.mjs",
+          "ligne": 44,
+          "nature": "code"
+        },
+        {
+          "fichier": "scripts/controle-style.mjs",
+          "ligne": 701,
+          "nature": "code"
+        }
+      ],
+      "garde": {
+        "test": "tests/styleMotifs.test.ts",
+        "nature": "style"
+      }
+    },
+    {
+      "id": "lecture-du-manifeste-par-les-hooks",
+      "famille": "outillage",
+      "nom": "Comportement d'un hook quand le manifeste est illisible",
+      "source": {
+        "fichier": "scripts/agents-contexte.mjs",
+        "symbole": "chargerManifeste"
+      },
+      "lecteurs": [
+        {
+          "fichier": "scripts/hook-documents.mjs",
+          "symbole": "chargerManifeste",
+          "nature": "code"
+        },
+        {
+          "fichier": "tests/registreDesDocuments.test.ts",
+          "nature": "test"
+        }
+      ],
+      "copies": [
+        {
+          "fichier": "scripts/hook-documents.mjs",
+          "ligne": 45,
+          "nature": "code"
+        }
+      ],
+      "garde": null,
+      "ecart": "PP-316"
+    },
+    {
+      "id": "references-des-skills",
+      "famille": "outillage",
+      "nom": "Documents, commandes et gestes cités par les skills",
+      "source": {
+        "fichier": ".agents/skills/rediger-diagnostics-ucm/SKILL.md",
+        "symbole": "CONTRIBUTING.md"
+      },
+      "lecteurs": [
+        {
+          "fichier": "docs/inventaire/releves.ts",
+          "nature": "inventaire"
+        },
+        {
+          "fichier": "AGENTS.md",
+          "nature": "doc"
+        }
+      ],
+      "copies": [
+        {
+          "fichier": ".agents/skills/rediger-diagnostics-ucm/SKILL.md",
+          "ligne": 7,
+          "nature": "doc"
+        },
+        {
+          "fichier": ".agents/skills/guide-composant/SKILL.md",
+          "ligne": 82,
+          "nature": "doc"
+        },
+        {
+          "fichier": ".agents/skills/regler-le-linter/SKILL.md",
+          "ligne": 10,
+          "nature": "doc"
+        },
+        {
+          "fichier": ".agents/skills/archiver-un-sujet/SKILL.md",
+          "ligne": 22,
+          "nature": "doc"
+        }
+      ],
+      "garde": {
+        "test": "tests/docLinks.test.ts",
+        "nature": "test-partiel"
+      }
+    },
+    {
+      "id": "poids-des-guides-d-agents",
+      "famille": "outillage",
+      "nom": "Poids des AGENTS.md",
+      "source": {
+        "fichier": "tests/domiciles.test.ts",
+        "symbole": "12 288"
+      },
+      "lecteurs": [
+        {
+          "fichier": "AGENTS.md",
+          "nature": "doc"
+        },
+        {
+          "fichier": ".agents/skills/rediger-pour-agents/SKILL.md",
+          "nature": "doc"
+        }
+      ],
+      "copies": [
+        {
+          "fichier": ".agents/skills/rediger-pour-agents/SKILL.md",
+          "ligne": 103,
+          "nature": "doc"
+        }
+      ],
+      "garde": {
+        "test": "tests/domiciles.test.ts",
+        "nature": "test-de-la-copie"
+      }
+    },
+    {
+      "id": "ancres-et-liens-des-domaines",
+      "famille": "outillage",
+      "nom": "Ancres de specs, entrées de lies et cartes de .agents/domiciles.json",
+      "source": {
+        "fichier": ".agents/domiciles.json",
+        "symbole": "lies"
+      },
+      "lecteurs": [
+        {
+          "fichier": "scripts/agents-contexte.mjs",
+          "symbole": "lire",
+          "nature": "code"
+        },
+        {
+          "fichier": "tests/cartes.test.ts",
+          "nature": "test"
+        }
+      ],
+      "copies": [],
+      "garde": {
+        "test": "tests/domiciles.test.ts",
+        "nature": "test-de-la-copie"
+      }
+    },
+    {
+      "id": "modeles-de-la-table-de-delegation",
+      "famille": "agents",
+      "nom": "Modèle nommé par la table de CLAUDE.md pour chaque agent",
+      "source": {
+        "fichier": ".claude/agents/executant.md",
+        "symbole": "model"
+      },
+      "lecteurs": [
+        {
+          "fichier": "CLAUDE.md",
+          "nature": "doc"
+        }
+      ],
+      "copies": [
+        {
+          "fichier": "CLAUDE.md",
+          "ligne": 14,
+          "nature": "doc"
+        },
+        {
+          "fichier": "CLAUDE.md",
+          "ligne": 18,
+          "nature": "doc"
+        },
+        {
+          "fichier": "CLAUDE.md",
+          "ligne": 19,
+          "nature": "doc"
+        }
+      ],
+      "garde": {
+        "test": "tests/agentsDefinis.test.ts",
+        "nature": "test-de-parite"
+      }
+    },
+    {
+      "id": "espace-des-composantes-figma",
+      "famille": "lectures-jumelles",
+      "nom": "Espace (sRGB ou Display P3) des composantes qu’un juge du contraste reçoit",
+      "source": {
+        "fichier": "packages/kit/src/format/valeurs-figma.ts",
+        "symbole": "espaceDuProfil"
+      },
+      "lecteurs": [
+        {
+          "fichier": "packages/plugin-palettes/src/variables/releve.ts",
+          "symbole": "couleurPourFigma",
+          "nature": "code"
+        },
+        {
+          "fichier": "packages/plugin-architect/src/contraste.ts",
+          "symbole": "jugerContraste",
+          "nature": "code"
+        },
+        {
+          "fichier": "packages/plugin-exporter/src/tokens/exportTokens.ts",
+          "symbole": "espaceDuProfil",
+          "nature": "code"
+        }
+      ],
+      "copies": [
+        {
+          "fichier": "packages/kit/src/controles/accessibilite.ts",
+          "ligne": 925,
+          "nature": "code"
+        },
+        {
+          "fichier": "packages/kit/src/lecteurs/diagnostic-contrastes.mjs",
+          "ligne": 64,
+          "nature": "code"
+        },
+        {
+          "fichier": "packages/kit/tests/stress/f7-accessibilite/cas.ts",
+          "ligne": 83,
+          "nature": "test"
+        }
+      ],
+      "garde": null,
+      "ecart": "PP-401"
+    },
+    {
+      "id": "minimums-de-contraste",
+      "famille": "seuils",
+      "nom": "Seuils texte et non-texte contre lesquels une garantie ou un contraste se juge",
+      "source": {
+        "fichier": "packages/kit/src/referentiel/contraste.ts",
+        "symbole": "SEUILS_PAR_USAGE"
+      },
+      "lecteurs": [
+        {
+          "fichier": "packages/couleur/src/recette.ts",
+          "symbole": "recetteParDefaut",
+          "nature": "code"
+        },
+        {
+          "fichier": "packages/kit/src/lecteurs/diagnostic-contrastes.mjs",
+          "symbole": "SEUILS_PAR_ROLE",
+          "nature": "code"
+        },
+        {
+          "fichier": "packages/plugin-architect/src/contraste.ts",
+          "symbole": "SEUILS",
+          "nature": "code"
+        }
+      ],
+      "copies": [
+        {
+          "fichier": "packages/plugin-palettes/src/configuration.ts",
+          "ligne": 72,
+          "nature": "code"
+        },
+        {
+          "fichier": "packages/couleur/src/recette.ts",
+          "ligne": 784,
+          "nature": "code"
+        },
+        {
+          "fichier": "packages/kit/src/controles/accessibilite.ts",
+          "ligne": 88,
+          "nature": "code"
+        },
+        {
+          "fichier": "packages/plugin-architect/src/sandbox/configuration.ts",
+          "ligne": 27,
+          "nature": "code"
+        }
+      ],
+      "garde": {
+        "test": "packages/couleur/tests/minimums.test.ts",
+        "nature": "test-de-parite"
+      }
+    },
+    {
+      "id": "effet-du-minimum-texte",
+      "famille": "textes",
+      "nom": "Effet du minimum texte sur les couleurs des rampes",
+      "source": {
+        "fichier": "packages/couleur/src/textes.ts",
+        "symbole": "corrigerLesTextes"
+      },
+      "lecteurs": [
+        {
+          "fichier": "packages/couleur/src/ancrageDeplace.ts",
+          "symbole": "texteSurveille",
+          "nature": "code"
+        }
+      ],
+      "copies": [
+        {
+          "fichier": "packages/plugin-palettes/src/i18n/fr.ts",
+          "ligne": 329,
+          "nature": "aide"
+        },
+        {
+          "fichier": "packages/plugin-palettes/src/i18n/fr.ts",
+          "ligne": 1418,
+          "nature": "aide"
+        }
+      ],
+      "garde": {
+        "test": "packages/couleur/tests/minimums.test.ts",
+        "nature": "test-de-parite"
+      }
+    },
+    {
+      "id": "seuil-d-une-icone",
+      "famille": "seuils",
+      "nom": "Seuil de contraste d’une icône",
+      "source": {
+        "fichier": "packages/kit/src/format/roles-de-rendu.ts",
+        "symbole": "usageDeContraste"
+      },
+      "lecteurs": [
+        {
+          "fichier": "packages/kit/src/referentiel/contraste.ts",
+          "symbole": "SEUILS_PAR_ROLE",
+          "nature": "code"
+        },
+        {
+          "fichier": "packages/kit/src/lecteurs/diagnostic-contrastes.mjs",
+          "symbole": "constatsDesContrastes",
+          "nature": "code"
+        },
+        {
+          "fichier": "packages/kit/src/referentiel/theme.ts",
+          "symbole": "definition",
+          "nature": "doc"
+        }
+      ],
+      "copies": [
+        {
+          "fichier": "packages/kit/src/controles/accessibilite.ts",
+          "ligne": 864,
+          "nature": "code"
+        }
+      ],
+      "garde": {
+        "test": "packages/kit/tests/jugesDuContraste.test.ts",
+        "nature": "test-de-parite"
+      }
+    },
+    {
+      "id": "couleur-jugeable",
+      "famille": "lectures-jumelles",
+      "nom": "Couleur qu’un juge du contraste accepte (alpha, composantes hors de [0, 1])",
+      "source": {
+        "fichier": "packages/kit/src/emplois/couleur.ts",
+        "symbole": "versRgb8"
+      },
+      "lecteurs": [
+        {
+          "fichier": "packages/kit/src/lecteurs/diagnostic-contrastes.mjs",
+          "symbole": "enHuitBits",
+          "nature": "code"
+        }
+      ],
+      "copies": [
+        {
+          "fichier": "packages/kit/src/controles/accessibilite.ts",
+          "ligne": 117,
+          "nature": "code"
+        },
+        {
+          "fichier": "packages/kit/src/controles/accessibilite.ts",
+          "ligne": 488,
+          "nature": "code"
+        },
+        {
+          "fichier": "packages/plugin-architect/src/contraste.ts",
+          "ligne": 34,
+          "nature": "code"
+        }
+      ],
+      "garde": {
+        "test": "packages/kit/tests/jugesDuContraste.test.ts",
+        "nature": "test-de-parite"
+      }
+    },
+    {
+      "id": "fond-de-la-page",
+      "famille": "parametres-du-moteur",
+      "nom": "Fond de la page et de la carte contre lesquels une garantie se juge",
+      "source": {
+        "fichier": "packages/kit/src/referentiel/reference.ts",
+        "symbole": "CIBLES_DE_L_ELEVATION"
+      },
+      "lecteurs": [
+        {
+          "fichier": "packages/kit/src/controles/integrite.ts",
+          "symbole": "CIBLES_DE_L_ELEVATION",
+          "nature": "code"
+        },
+        {
+          "fichier": "packages/kit/src/controles/accessibilite.ts",
+          "symbole": "fondsDElevation",
+          "nature": "code"
+        }
+      ],
+      "copies": [
+        {
+          "fichier": "packages/couleur/src/recette.ts",
+          "ligne": 231,
+          "nature": "code"
+        },
+        {
+          "fichier": "packages/couleur/src/jugement.ts",
+          "ligne": 66,
+          "nature": "code"
+        },
+        {
+          "fichier": "INVENTAIRE-UCM.html",
+          "ligne": 880,
+          "nature": "genere"
+        }
+      ],
+      "garde": {
+        "test": "packages/couleur/tests/fondsEtCrans.test.ts",
+        "nature": "test-de-parite"
+      }
+    },
+    {
+      "id": "numeros-de-palette",
+      "famille": "parametres-du-moteur",
+      "nom": "Numéros de crans qu’une palette porte et que le référentiel reconnaît",
+      "source": {
+        "fichier": "packages/kit/src/referentiel/vocabulaire.ts",
+        "symbole": "NUMEROS_DE_PALETTE"
+      },
+      "lecteurs": [
+        {
+          "fichier": "packages/kit/src/referentiel/natures.ts",
+          "symbole": "numerosDePalette",
+          "nature": "code"
+        },
+        {
+          "fichier": "packages/kit/src/referentiel/architecture.ts",
+          "symbole": "numeroDePalette",
+          "nature": "code"
+        },
+        {
+          "fichier": "packages/couleur/src/nuances.ts",
+          "symbole": "PREREGLAGES",
+          "nature": "code"
+        }
+      ],
+      "copies": [
+        {
+          "fichier": "packages/couleur/src/recette.ts",
+          "ligne": 457,
+          "nature": "code"
+        },
+        {
+          "fichier": "packages/plugin-palettes/src/variables/detection.ts",
+          "ligne": 62,
+          "nature": "code"
+        }
+      ],
+      "garde": {
+        "test": "packages/couleur/tests/fondsEtCrans.test.ts",
+        "nature": "test-de-parite"
+      }
+    },
+    {
+      "id": "nom-d-un-mode-du-theme",
+      "famille": "regles-jumelles",
+      "nom": "Nom Figma d’un mode Light ou Dark de la collection theme",
+      "source": {
+        "fichier": "packages/kit/src/referentiel/theme.ts",
+        "symbole": "modeDuThemeReconnu"
+      },
+      "lecteurs": [
+        {
+          "fichier": "packages/plugin-palettes/src/variables/lot.ts",
+          "symbole": "modeNomme",
+          "nature": "code"
+        },
+        {
+          "fichier": "packages/kit/src/controles/integrite.ts",
+          "symbole": "modesDuTheme",
+          "nature": "code"
+        },
+        {
+          "fichier": "packages/plugin-architect/src/ui/structure/lecture.ts",
+          "symbole": "libelleDuMode",
+          "nature": "code"
+        }
+      ],
+      "copies": [
+        {
+          "fichier": "packages/plugin-architect/src/sandbox/preparation.ts",
+          "ligne": 146,
+          "nature": "code"
+        },
+        {
+          "fichier": "packages/kit/src/referentiel/vocabulaire.ts",
+          "ligne": 120,
+          "nature": "doc"
+        }
+      ],
+      "garde": {
+        "test": "packages/kit/tests/themeReconnu.test.ts",
+        "nature": "test-de-parite"
+      }
+    },
+    {
+      "id": "profondeur-d-alias-de-couleur",
+      "famille": "lectures-jumelles",
+      "nom": "Nombre de renvois d’alias qu’un juge suit avant d’abandonner",
+      "source": {
+        "fichier": "packages/kit/src/emplois/couleur.ts",
+        "symbole": "PROFONDEUR_D_ALIAS"
+      },
+      "lecteurs": [],
+      "copies": [
+        {
+          "fichier": "packages/kit/src/controles/accessibilite.ts",
+          "ligne": 423,
+          "nature": "code"
+        },
+        {
+          "fichier": "packages/plugin-architect/src/sandbox/preparation.ts",
+          "ligne": 142,
+          "nature": "code"
+        },
+        {
+          "fichier": "packages/kit/src/lecteurs/diagnostic-contrastes.mjs",
+          "ligne": 75,
+          "nature": "code"
+        },
+        {
+          "fichier": "packages/plugin-architect/src/resolution.ts",
+          "ligne": 108,
+          "nature": "code"
+        }
+      ],
+      "garde": {
+        "test": "packages/kit/tests/jugesDuContraste.test.ts",
+        "nature": "test-de-parite"
+      }
+    },
+    {
+      "id": "vocabulaire-de-la-couleur",
+      "famille": "textes",
+      "nom": "Mot qui désigne un numéro de palette et une intensité face au designer",
+      "source": {
+        "fichier": "packages/kit/src/referentiel/theme.ts",
+        "symbole": "REGLE_SCALE"
+      },
+      "lecteurs": [
+        {
+          "fichier": "packages/plugin-palettes/src/i18n/fr.ts",
+          "symbole": "numeroDeNuance",
+          "nature": "aide"
+        }
+      ],
+      "copies": [
+        {
+          "fichier": "packages/plugin-architect/src/ui/textes/structure.ts",
+          "ligne": 33,
+          "nature": "aide"
+        },
+        {
+          "fichier": "packages/plugin-architect/src/ui/textes/preparation.ts",
+          "ligne": 16,
+          "nature": "aide"
+        },
+        {
+          "fichier": "packages/plugin-palettes/src/i18n/fr.ts",
+          "ligne": 412,
+          "nature": "aide"
+        },
+        {
+          "fichier": "packages/plugin-palettes/src/i18n/fr.ts",
+          "ligne": 414,
+          "nature": "aide"
+        },
+        {
+          "fichier": "packages/plugin-palettes/src/i18n/fr.ts",
+          "ligne": 507,
+          "nature": "aide"
+        }
+      ],
+      "garde": {
+        "test": "tests/styleMotifs.test.ts",
+        "nature": "style"
+      }
+    },
+    {
+      "id": "contraste-wcag",
+      "famille": "regles-jumelles",
+      "nom": "Luminance relative et rapport de contraste WCAG 2",
+      "source": {
+        "fichier": "packages/kit/src/emplois/contraste.ts",
+        "symbole": "contraste"
+      },
+      "lecteurs": [
+        {
+          "fichier": "packages/couleur/src/promesses.ts",
+          "symbole": "mesurerCran",
+          "nature": "code"
+        },
+        {
+          "fichier": "packages/kit/src/controles/accessibilite.ts",
+          "symbole": "contraste",
+          "nature": "code"
+        },
+        {
+          "fichier": "packages/kit/src/lecteurs/diagnostic-contrastes.mjs",
+          "symbole": "contraste",
+          "nature": "code"
+        },
+        {
+          "fichier": "packages/plugin-architect/src/contraste.ts",
+          "symbole": "jugerContraste",
+          "nature": "code"
+        }
+      ],
+      "copies": [
+        {
+          "fichier": "packages/couleur/planche/PLANCHE-DU-MOTEUR.html",
+          "ligne": 74,
+          "nature": "genere"
+        }
+      ],
+      "garde": {
+        "test": "tests/reglesUniques.test.ts",
+        "nature": "loi-anticopie"
+      }
+    },
+    {
+      "id": "comparaison-et-ecriture-d-un-contraste",
+      "famille": "regles-jumelles",
+      "nom": "Comparaison au seuil à dix décimales et écriture tronquée d’un contraste",
+      "source": {
+        "fichier": "packages/kit/src/emplois/contraste.ts",
+        "symbole": "atteintLeSeuil"
+      },
+      "lecteurs": [
+        {
+          "fichier": "packages/couleur/src/promesses.ts",
+          "symbole": "atteintLeSeuil",
+          "nature": "code"
+        },
+        {
+          "fichier": "packages/kit/src/controles/accessibilite.ts",
+          "symbole": "contrasteTronque",
+          "nature": "code"
+        },
+        {
+          "fichier": "packages/kit/src/lecteurs/diagnostic-contrastes.mjs",
+          "symbole": "ecrireContraste",
+          "nature": "code"
+        }
+      ],
+      "copies": [],
+      "garde": {
+        "test": "tests/reglesUniques.test.ts",
+        "nature": "loi-anticopie"
+      }
+    },
+    {
+      "id": "octet-et-hexadecimal-d-une-couleur",
+      "famille": "regles-jumelles",
+      "nom": "Composante de Figma vers octet et hexadécimal",
+      "source": {
+        "fichier": "packages/kit/src/emplois/couleur.ts",
+        "symbole": "hexaDeFigma"
+      },
+      "lecteurs": [
+        {
+          "fichier": "packages/plugin-palettes/src/variables/releve.ts",
+          "symbole": "hexaLu",
+          "nature": "code"
+        }
+      ],
+      "copies": [
+        {
+          "fichier": "packages/plugin-architect/src/modele.ts",
+          "ligne": 178,
+          "nature": "code"
+        }
+      ],
+      "garde": {
+        "test": "tests/reglesUniques.test.ts",
+        "nature": "loi-anticopie"
+      }
+    },
+    {
+      "id": "crans-modes-profils-du-moteur",
+      "famille": "parametres-du-moteur",
+      "nom": "Crans, modes et profils que le moteur fabrique",
+      "source": {
+        "fichier": "packages/kit/src/referentiel/vocabulaire.ts",
+        "symbole": "CRANS"
+      },
+      "lecteurs": [
+        {
+          "fichier": "packages/couleur/src/rampe.ts",
+          "symbole": "MODES",
+          "nature": "code"
+        },
+        {
+          "fichier": "packages/couleur/src/nuances.ts",
+          "symbole": "CRANS",
+          "nature": "code"
+        }
+      ],
+      "copies": [],
+      "garde": {
+        "test": "tests/referentielUnique.test.ts",
+        "nature": "loi-anticopie"
+      }
+    },
+    {
+      "id": "table-des-dossiers-et-garanties",
+      "famille": "parametres-du-moteur",
+      "nom": "Table des dossiers du thème, crans requis et garanties G1 à G9",
+      "source": {
+        "fichier": "packages/kit/src/emplois/dossiers.ts",
+        "symbole": "TABLE_DES_DOSSIERS"
+      },
+      "lecteurs": [
+        {
+          "fichier": "packages/couleur/src/jugement.ts",
+          "symbole": "GARANTIES",
+          "nature": "code"
+        },
+        {
+          "fichier": "packages/kit/src/controles/integrite.ts",
+          "symbole": "TABLE_DES_DOSSIERS",
+          "nature": "code"
+        }
+      ],
+      "copies": [],
+      "garde": {
+        "test": "tests/referentielUnique.test.ts",
+        "nature": "loi-anticopie"
+      }
+    },
+    {
+      "id": "gamut-de-fabrication",
+      "famille": "parametres-du-moteur",
+      "nom": "Gamut dans lequel le moteur fabrique les rampes",
+      "source": {
+        "fichier": "packages/couleur/src/recette.ts",
+        "symbole": "gamut"
+      },
+      "lecteurs": [
+        {
+          "fichier": "packages/couleur/src/rampe.ts",
+          "symbole": "cranVise",
+          "nature": "code"
+        }
+      ],
+      "copies": [],
+      "garde": {
+        "test": "packages/couleur/tests/recette.test.ts",
+        "nature": "test-partiel"
+      }
+    },
+    {
+      "id": "courbes-des-prereglages",
+      "famille": "parametres-du-moteur",
+      "nom": "Luminosités cibles des préréglages à 11 et 13 nuances",
+      "source": {
+        "fichier": "packages/couleur/src/nuances.ts",
+        "symbole": "PREREGLAGES"
+      },
+      "lecteurs": [
+        {
+          "fichier": "INVENTAIRE-UCM.html",
+          "symbole": "CLARTE",
+          "nature": "inventaire"
+        },
+        {
+          "fichier": "packages/couleur/planche/PLANCHE-DU-MOTEUR.html",
+          "symbole": "rampes",
+          "nature": "genere"
+        }
+      ],
+      "copies": [],
+      "garde": {
+        "nature": "generation"
+      }
     }
   ]
 }

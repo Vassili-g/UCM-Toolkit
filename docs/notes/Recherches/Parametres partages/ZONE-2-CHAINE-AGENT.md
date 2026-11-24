@@ -9,7 +9,7 @@
 - [x] 5. Interdictions de la procédure face au concept
 - [x] 6. Questions non tranchées et conventions du repository
 - [x] 7. Test froid, `consommer-contrat` face à `RECETTE.md`
-- [x] 8. Fiches PP-201 à PP-215, `parametres-zone2.json`, contrôle de style
+- [x] 8. Fiches PP-201 à PP-215, `parametres.json`, contrôle de style
 
 ## Synthèse
 

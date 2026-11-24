@@ -12,7 +12,7 @@
 - [x] 8. Comparer les lectures des noms de modes et la profondeur d'alias (`modes.mts`, `alias.mts`)
 - [x] 9. Comparer les écritures hexadécimales (`hexa.mts`)
 - [x] 10. Relever le vocabulaire de la couleur face au designer (sous-agent `Explore`, relu)
-- [x] 11. Fiches, inventaire `parametres-zone4.json`, contrôle de style
+- [x] 11. Fiches, inventaire `parametres.json`, contrôle de style
 
 ## Synthèse
 

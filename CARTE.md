@@ -120,6 +120,8 @@ Les tests du monorepo lui-même.
 - pluginsSepares.test.ts : aucun des trois plugins n'importe un autre
 - referentielUnique.test.ts : aucune liste littérale ne recopie une donnée du référentiel, dans les paquets, `tests/` et `docs/inventaire/*.ts`
 - reglesUniques.test.ts : une règle que porte une fonction unique n'est recopiée nulle part
+- parametresPartages.test.ts : chaque paramètre partagé de P27 a une source, une garde ou un écart ouvert
+- phrasesUniques.test.ts : une phrase de huit mots ou plus vit dans un seul paquet
 - vueIllustree.test.ts : vue illustrée montre le référentiel d'aujourd'hui
 - corpusUcm.test.ts : noms, registres et empreintes du corpus UCM suivent leurs sources
 - manifestsDesPlugins.test.ts : chaque plugin a son propre `id` de manifest

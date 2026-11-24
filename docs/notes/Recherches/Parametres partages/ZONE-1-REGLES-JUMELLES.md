@@ -9,7 +9,7 @@
 - [x] 5. Comparer les lecteurs jumeaux de `tokens.json` (`valeurs.mts`, `alias.mts`)
 - [x] 6. Relever les protocoles entre outils (marqueurs, `ci-report.md`, branches, demande de fusion, artefacts, note GitLab)
 - [x] 7. Relever les styles communs des plugins
-- [x] 8. Fiches, inventaire `parametres-zone1.json`, contrôle de style
+- [x] 8. Fiches, inventaire `parametres.json`, contrôle de style
 
 ## Synthèse
 
