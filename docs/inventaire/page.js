@@ -372,7 +372,7 @@
 
   // Les lots d'un plan : un carré par case, rangés par groupe.
   function classeDuLot(l) { return l.fait ? 'f' : l.marque === 'mainteneur' ? 'm' : l.marque ? 'b' : l.suivant ? 's' : ''; }
-  function motDuLot(l) { return l.fait ? 'fait' : l.marque === 'mainteneur' ? 'attend ta décision' : l.marque ? l.marque : l.suivant ? 'suivant, prêt pour un agent' : 'à faire'; }
+  function motDuLot(l) { return l.fait ? 'fait' : l.marque === 'mainteneur' ? 'attend le mainteneur' : l.marque ? l.marque : l.suivant ? 'suivant, prêt pour un agent' : 'à faire'; }
   function rangee(p) {
     var groupes = [], courant = null;
     p.lots.forEach(function (l) {
@@ -385,7 +385,7 @@
   }
   function ligneDeLot(l, groupe) {
     return (groupe ? '<li class="gr">' + esc(groupe) + '</li>' : '') + '<li class="' + (l.fait ? 'fait' : classeDuLot(l)) + '"><span class="lots"><i class="' + classeDuLot(l) + '"></i></span><span class="num">' + esc(l.numero) + '</span>' +
-      '<span class="txt">' + txt(l.texte) + (l.marque === 'mainteneur' ? ' <span class="attend toi">ta décision</span>' : l.marque ? ' <span class="attend piste">' + esc(l.marque) + '</span>' : '') + '</span><span class="h">' + esc(l.hash || '') + '</span></li>';
+      '<span class="txt">' + txt(l.texte) + (l.marque === 'mainteneur' ? ' <span class="attend toi">décision du mainteneur</span>' : l.marque ? ' <span class="attend piste">' + esc(l.marque) + '</span>' : '') + '</span><span class="h">' + esc(l.hash || '') + '</span></li>';
   }
   function blocDeLots(lots) {
     var g = null;
@@ -405,7 +405,7 @@
       return '<details class="lots-plus"><summary>' + esc(g.nom || 'Suite') + ' · ' + g.lots.length + (g.lots.length > 1 ? ' cases à faire' : ' case à faire') + '</summary><ol class="lots-detail">' + blocDeLots(g.lots) + '</ol></details>';
     });
     return '<h4>Lots du plan · ' + faits.length + '/' + p.lots.length + '</h4>' + rangee(p) +
-      '<div class="legende-fiche"><span><span class="lots"><i class="f"></i></span>fait</span><span><span class="lots"><i class="m"></i></span>ta décision</span><span><span class="lots"><i class="b"></i></span>attend une piste</span><span><span class="lots"><i class="s"></i></span>suivant</span><span><span class="lots"><i></i></span>à faire</span></div>' +
+      '<div class="legende-fiche"><span><span class="lots"><i class="f"></i></span>fait</span><span><span class="lots"><i class="m"></i></span>décision du mainteneur</span><span><span class="lots"><i class="b"></i></span>attend une piste</span><span><span class="lots"><i class="s"></i></span>suivant</span><span><span class="lots"><i></i></span>à faire</span></div>' +
       (faits.length ? '<details class="lots-faits"><summary>' + faits.length + (faits.length > 1 ? ' cases faites' : ' case faite') + '</summary><ol class="lots-detail">' + blocDeLots(faits) + '</ol></details>' : '') +
       suite.join('');
   }
@@ -436,7 +436,7 @@
     droite += transverses(p) + '<h4>Dépend de</h4><p>' + liensDePistes(p.dependances) + '</p><h4>Débloque</h4><p>' + liensDePistes(p.debloque) + '</p>';
     var gauche = resumeEnBlocs(p.resume) +
       '<h4>Si on ne fait pas</h4><p>' + txt(p.raisonImportance) + '</p>' +
-      '<h4>Ce que ça te demande</h4><p>' + txt(p.coutHumain) + '</p>' +
+      '<h4>Ce que ça demande, hors agents</h4><p>' + txt(p.coutHumain) + '</p>' +
       (p.risques.length ? '<h4>Risques</h4>' + liste(p.risques) : '') + formulaireDePrio(p);
     return '<div class="fiche-rm"><div>' + gauche + '</div><div>' + droite + '</div></div>';
   }
@@ -455,7 +455,11 @@
   }
   function sousLaLigne(p) {
     var c = SUJETS[p.sujet], style = c ? ' style="color:' + c.texte + ';background:' + c.fond + '"' : '';
-    return '<span class="sous"><span class="sujet"' + style + '>' + esc(p.sujet) + '</span><span title="Taille en travail d’agent">taille <b>' + p.complexite + '</b></span>' +
+    // Le libellé d'un plugin est un seul lien vers sa carte, dans la teinte du sujet : le nom du plugin n'y reprend pas sa couleur.
+    var sujet = c && c.outil
+      ? '<a class="sujet" href="#outil-' + c.outil + '"' + style + '>' + esc(p.sujet) + '</a>'
+      : '<span class="sujet"' + style + '>' + esc(p.sujet) + '</span>';
+    return '<span class="sous">' + sujet + '<span title="Taille en travail d’agent">taille <b>' + p.complexite + '</b></span>' +
       (p.recherche ? lienDuDepot(p.recherche, 'Recherche') : '') + (p.plan ? lienDuDepot(p.plan, 'Plan') : '') + '</span>';
   }
   function attentesDe(p) {
@@ -466,7 +470,7 @@
     return '<tr class="rm-ligne' + (ouvert ? ' ouverte' : '') + '" id="piste-' + p.id + '" data-id="' + p.id + '">' +
       '<td class="n"><span class="rang">' + p.prio + '</span></td>' +
       '<td><button type="button" class="rm-bascule" aria-expanded="' + ouvert + '" aria-controls="fiche-' + p.id + '" title="' + esc(p.titre) + '"><span class="chev" aria-hidden="true"></span><span class="id">' + p.id + '</span><span class="titre">' + esc(p.titreCourt) + '</span>' +
-        (aBouge(p) ? '<span class="a-bouge" role="img" aria-label="a bougé depuis ta dernière visite" title="Un lot a été fait depuis ta dernière visite"></span>' : '') + '</button>' + sousLaLigne(p) + '</td>' +
+        (aBouge(p) ? '<span class="a-bouge" role="img" aria-label="a bougé depuis la dernière visite" title="Un lot a été fait depuis la dernière visite de cette page"></span>' : '') + '</button>' + sousLaLigne(p) + '</td>' +
       '<td>' + etatDe(p) + '</td><td>' + attentesDe(p) + '</td></tr>' +
       '<tr class="rm-fiche" id="fiche-' + p.id + '"' + (ouvert ? '' : ' hidden') + '><td colspan="4">' + fiche(p) + '</td></tr>';
   }
@@ -489,7 +493,7 @@
     racine.querySelector('.filtre-attente').setAttribute('aria-pressed', etat.filtre);
     var bouge = visibles.filter(aBouge).length;
     racine.querySelector('.compte').innerHTML = visibles.length + (visibles.length > 1 ? ' pistes à venir' : ' piste à venir') +
-      (bouge ? '<span class="a-bouge"></span>a bougé depuis ta dernière visite' : '');
+      (bouge ? '<span class="a-bouge"></span>a bougé depuis la dernière visite' : '');
     if (produitsMarques) marquerLesProduits(tableau);
   }
   document.getElementById('rm-nb-attente').textContent = PISTES.filter(attendMoi).length;
@@ -638,7 +642,7 @@
   }
   document.querySelectorAll('main a[href^="#outil-"]').forEach(function (a) {
     var cible = document.getElementById(a.getAttribute('href').slice(1));
-    if (cible && cible.classList.contains('fiche') && !a.closest('.fiche .nom')) etiqueter(a, a.getAttribute('href').slice(7));
+    if (cible && cible.classList.contains('fiche') && !a.closest('.fiche .nom') && !a.classList.contains('sujet')) etiqueter(a, a.getAttribute('href').slice(7));
   });
   document.querySelectorAll('main .fiche[id^="outil-"]').forEach(function (f) { f.classList.add('p-' + f.id.slice(6)); });
   // La table de la Roadmap se reconstruit au changement de groupe ou de filtre : elle repasse par cette fonction après chaque rendu.
@@ -673,7 +677,7 @@
   produitsMarques = true;
   // La carte atteinte s'entoure un instant de la couleur du produit.
   document.addEventListener('click', function (e) {
-    var a = e.target.closest && e.target.closest('a.produit');
+    var a = e.target.closest && e.target.closest('a.produit, a.sujet[href^="#outil-"]');
     if (!a) return;
     var carte = document.getElementById(a.getAttribute('href').slice(1));
     if (!carte) return;

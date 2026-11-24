@@ -397,6 +397,8 @@ section.partie.large { max-width: none; }
 .rm .sous a { color: var(--doux); white-space: nowrap; }
 .rm .sous b { color: var(--texte); }
 .tag-avance { display: inline-block; margin-left: 6px; padding: 0 6px; border: 1px solid var(--trait); border-radius: 4px; font: 600 .74rem/1.5 ui-monospace, Consolas, monospace; color: var(--texte); background: var(--surface); vertical-align: middle; }
+a.sujet { text-decoration: none; }
+a.sujet:hover, a.sujet:focus-visible { text-decoration: underline; }
 .sujet { display: inline-flex; align-items: center; gap: 4px; font-size: .72rem; font-weight: 600; line-height: 1.4; padding: 1px 8px; border-radius: 999px; max-width: 100%; }
 /* Les lots d'un plan : un carré par case, un écart entre deux groupes. Ils ne paraissent que dans la fiche. */
 .lots { display: inline-flex; flex-wrap: wrap; gap: 6px; align-items: center; vertical-align: middle; }

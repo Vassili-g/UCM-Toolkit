@@ -979,7 +979,8 @@ export interface Terminee {
 }
 
 /** Les sujets d'une piste et leur couleur (texte sur fond, contraste d'au moins 4,5:1). Seul endroit qui les liste. Le sujet d'un module ou d'une pièce dit où il vit : « Modules consommateurs » s'installe dans la bibliothèque, « API du kit » vit dans @ucm-kit/core. */
-export const SUJETS: Record<string, { texte: string; fond: string }> = {
+/** La couleur d'un sujet ; `outil` donne la carte du plugin vers laquelle mène le libellé d'un sujet de plugin. */
+export const SUJETS: Record<string, { texte: string; fond: string; outil?: string }> = {
   'Règle de blocage': { texte: '#86198f', fond: '#fae8ff' },
   'API du kit': { texte: '#3730a3', fond: '#e0e7ff' },
   'Modules consommateurs': { texte: '#115e59', fond: '#ccfbf1' },
@@ -989,9 +990,10 @@ export const SUJETS: Record<string, { texte: string; fond: string }> = {
   Documentation: { texte: '#3f6212', fond: '#d9f99d' },
   'Outils de revue': { texte: '#075985', fond: '#bae6fd' },
   'Cohérence du système': { texte: '#9f1239', fond: '#ffe4e6' },
-  'Plugin Palettes': { texte: '#9a3412', fond: '#ffedd5' },
-  'Plugin Exporter': { texte: '#1e40af', fond: '#dbeafe' },
-  'Plugin Architect': { texte: '#854d0e', fond: '#fef9c3' },
+  // Les trois plugins partagent une teinte : le libellé dit « plugin », et son nom mène à la carte du plugin.
+  'Plugin Palettes': { texte: '#9a3412', fond: '#ffedd5', outil: 'palettes' },
+  'Plugin Exporter': { texte: '#9a3412', fond: '#ffedd5', outil: 'exporter' },
+  'Plugin Architect': { texte: '#9a3412', fond: '#ffedd5', outil: 'architect' },
 };
 
 /** Chaque plugin, sous le nom qu'un texte de piste lui donne, et le sujet qui le montre dans la Roadmap. */
@@ -1165,9 +1167,9 @@ function attentesDeLaPiste(piste: Piste, lots: Lot[] | null): Attente[] {
   const decision = nonFaits.find((lot) => lot.marque === 'mainteneur');
   const bloque = nonFaits.find((lot) => lot.marque !== null && lot.marque !== 'mainteneur');
   if (piste.etat === 'idee' && piste.prio <= 1) attentes.push({ genre: 'toi', texte: 'À lancer, rien de commencé', detail: 'Prio 0 ou 1 sans recherche ni plan' });
-  if (decision) attentes.push({ genre: 'toi', texte: `Ta décision, lot ${decision.numero}`, detail: decision.texte });
+  if (decision) attentes.push({ genre: 'toi', texte: `Décision du mainteneur, lot ${decision.numero}`, detail: decision.texte });
   if (piste.etat === 'recherche' && piste.questions.length > 0) {
-    attentes.push({ genre: 'toi', texte: `Tes réponses, ${piste.questions.length} ${piste.questions.length > 1 ? 'questions' : 'question'}`, detail: 'Questions de la recherche' });
+    attentes.push({ genre: 'toi', texte: `Réponses du mainteneur, ${piste.questions.length} ${piste.questions.length > 1 ? 'questions' : 'question'}`, detail: 'Questions de la recherche' });
   }
   if (bloque && bloque.marque !== null && bloque.marque !== 'mainteneur') attentes.push({ genre: 'piste', texte: `Lot ${bloque.numero} attend ${bloque.marque.attend}`, detail: bloque.texte });
   else if (piste.dependances.length > 0) attentes.push({ genre: 'piste', texte: `Après ${piste.dependances.join(', ')}`, detail: 'Prérequis pas encore livrés' });

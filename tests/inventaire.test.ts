@@ -347,7 +347,7 @@ test("l'état, l'avancement, les lots et les attentes se calculent depuis la rec
   assert.deepEqual(piste('P1').attentes, [{ genre: 'toi', texte: 'À lancer, rien de commencé', detail: 'Prio 0 ou 1 sans recherche ni plan' }]);
   assert.equal(piste('P3').etat, 'recherche');
   assert.deepEqual(piste('P3').questions, ['Une ?', 'Deux ?']);
-  assert.equal(piste('P3').attentes[0].texte, 'Tes réponses, 2 questions');
+  assert.equal(piste('P3').attentes[0].texte, 'Réponses du mainteneur, 2 questions');
   assert.deepEqual(piste('P4').attentes.map(({ genre, texte }) => `${genre}:${texte}`), ['toi:À lancer, rien de commencé', 'piste:Après P1, P3']);
   assert.deepEqual(piste('P4').dependances, ['P1', 'P3']);
   assert.deepEqual(piste('P1').debloque, ['P4']);
@@ -364,7 +364,7 @@ test("l'état, l'avancement, les lots et les attentes se calculent depuis la rec
   ]);
   assert.equal(p2.lots![0].groupe, 'Vague 1');
   assert.deepEqual(p2.attentes.map(({ genre, texte, detail }) => ({ genre, texte, detail })), [
-    { genre: 'toi', texte: 'Ta décision, lot 1.2', detail: 'Choisir la forme.' },
+    { genre: 'toi', texte: 'Décision du mainteneur, lot 1.2', detail: 'Choisir la forme.' },
     { genre: 'piste', texte: 'Lot 1.3 attend P3', detail: 'Après le contrat.' },
   ]);
 });
