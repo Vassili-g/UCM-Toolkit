@@ -154,7 +154,7 @@ export function lireArgumentsInit(arguments_) {
   return { chemins, sansAgents, forge };
 }
 
-const FORGES = ["github", "gitlab"];
+export const FORGES = ["github", "gitlab"];
 
 /** Le schéma que `.vscode/settings.json` désigne, relatif à la racine du repository. */
 const CHEMIN_DU_SCHEMA_INSTALLE = "node_modules/@ucm-kit/core/schema/ucm-contract.schema.json";

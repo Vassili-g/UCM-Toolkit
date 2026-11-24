@@ -18,10 +18,10 @@ import { check } from "./check.mjs";
 import { USAGE_DEROGER, deroger } from "./deroger.mjs";
 import { guide } from "./guide.mjs";
 import { iconesDuRepository, rendreIcones } from "./icons.mjs";
-import { init, lireArgumentsInit, rendreInit } from "./init.mjs";
+import { FORGES, init, lireArgumentsInit, rendreInit } from "./init.mjs";
 import { rapportGithub } from "./rapport-github.mjs";
 import { rapportGitlab } from "./rapport-gitlab.mjs";
-import { tokensCss } from "./tokens-css.mjs";
+import { USAGE_TOKENS, tokensCss } from "./tokens-css.mjs";
 import { tokensReferences } from "./tokens-references.mjs";
 
 /** Le verdict de tests qu'un orchestrateur de stack peut transmettre au CLI. */
@@ -50,7 +50,7 @@ function echecsDeTestsDepuis(env) {
 export const COMMANDES = [
   {
     nom: "init",
-    usage: "ucm init [--components <dossier>] [--tokens <dossier>] [--implementation <motif>] [--sans-agents] [--forge github|gitlab]",
+    usage: `ucm init [--components <dossier>] [--tokens <dossier>] [--implementation <motif>] [--sans-agents] [--forge ${FORGES.join("|")}]`,
     role: "installe ce qui manque à ce repository, sans rien écraser",
     options: [
       { nom: "--components", role: "dossier sous lequel les contrats sont rangés" },
@@ -250,6 +250,12 @@ function executerCommande(arguments_, {
   }
 
   if (commande === "tokens") {
+    if (arguments_[1] !== undefined && arguments_[1] !== "css" && arguments_[1] !== "references") {
+      (sorties.alerter ?? console.error)(`Sous-commande inconnue : ${arguments_[1]}. ucm tokens attend css ou references.
+
+${USAGE_TOKENS}`);
+      return 2;
+    }
     const sousCommande = arguments_[1] === "references" ? tokensReferences : tokensCss;
     return sousCommande(arguments_.slice(1).slice(arguments_[1] === "references" ? 1 : 0), {
       racine,

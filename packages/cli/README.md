@@ -13,7 +13,7 @@ matches them.
 
 ## Quick start
 
-Requires Node 20 or later. At the root of the repository:
+Requires Node 22 or later. At the root of the repository:
 
 ```sh
 npx --yes @ucm-kit/cli@0.3.0 init
@@ -68,6 +68,10 @@ Every command exits with the same codes:
 A faulty invocation never exits with `1`, so it cannot pass for failed checks.
 
 ## `ucm init`
+
+```sh
+ucm init [--components <dossier>] [--tokens <dossier>] [--implementation <motif>] [--sans-agents] [--forge github|gitlab]
+```
 
 | Option | Default | Effect |
 |---|---|---|
