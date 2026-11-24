@@ -43,8 +43,9 @@ Skills, dans `.agents/skills/`, à charger :
 | créer ou modifier un message destiné au designer | [`rediger-diagnostics-ucm`](./.agents/skills/rediger-diagnostics-ucm/SKILL.md) |
 | reconstruire à froid un composant depuis son contrat (geste de recette du repository consommateur) | [`consommer-contrat`](./.agents/skills/consommer-contrat/SKILL.md) ; rangée ici, savoir du format : le repository de recette ne doit rien apprendre du produit |
 | publier `@ucm-kit/core`, `@ucm-kit/cli` ou `@ucm-kit/adapter-typescript` | [`publier-paquets`](./.agents/skills/publier-paquets/SKILL.md) |
-| écrire le guide d'un composant à créer, d'après les design systems du marché (« je veux créer un composant X, génère-moi un guide ») | [`guide-composant`](./.agents/skills/guide-composant/SKILL.md) |
-| ajouter ou retirer une entrée des listes du contrôle du code (« ajoute `auto` aux valeurs neutres ») | [`regler-le-linter`](./.agents/skills/regler-le-linter/SKILL.md) |
+| écrire un prompt pour Codex | [`rediger-prompt-codex`](./.agents/skills/rediger-prompt-codex/SKILL.md) |
+| écrire le guide d'un composant à créer, d'après les design systems du marché | [`guide-composant`](./.agents/skills/guide-composant/SKILL.md) |
+| ajouter ou retirer une entrée des listes du contrôle du code | [`regler-le-linter`](./.agents/skills/regler-le-linter/SKILL.md) |
 | archiver le sujet d'une piste livrée | [`archiver-un-sujet`](./.agents/skills/archiver-un-sujet/SKILL.md) |
 
 Un commentaire se justifie seulement par un fait absent du code : décision, précondition, conséquence, limite. [CONTRIBUTING.md](./CONTRIBUTING.md#rédiger-un-document) énumère les contrôles automatiques du style.

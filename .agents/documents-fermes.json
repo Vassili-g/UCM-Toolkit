@@ -12,6 +12,7 @@
     ".agents/skills/publier-paquets/SKILL.md",
     ".agents/skills/rediger-diagnostics-ucm/SKILL.md",
     ".agents/skills/rediger-pour-agents/SKILL.md",
+    ".agents/skills/rediger-prompt-codex/SKILL.md",
     ".agents/skills/regler-le-linter/SKILL.md",
     ".agents/skills/relire-le-style/SKILL.md",
     ".claude/agents/Explore.md",

@@ -47,6 +47,7 @@ Procédures qu'un agent charge à la demande.
 - regler-le-linter/ : ajouter ou retirer une entrée des listes du contrôle du code
 - rediger-diagnostics-ucm/ : écrire un message que le designer peut suivre
 - rediger-pour-agents/ : écrire les fichiers lus par les agents dans la forme compacte du dépôt
+- rediger-prompt-codex/ : écrire le prompt d'une tâche confiée à Codex, avec la méthode, le journal et les interdits
 - relire-le-style/ : liste de relecture du style et paires avant/après
 
 ## scripts/
