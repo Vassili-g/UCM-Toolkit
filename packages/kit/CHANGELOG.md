@@ -4,6 +4,14 @@ Ce journal note chaque changement de `@ucm-kit/core/modules`, la seule porte du 
 
 Une entrée a un genre (`ajout`, `déprécié` ou `rupture`), nomme les noms touchés entre accents graves, dit le geste à faire dans un module, et se termine par « Décidé par ... ». Les règles sont dans `invariants/versionnage.md`.
 
+## 0.18.1
+
+### ajout
+
+- `lireConfiguration` accepte un `ucm.config.json` précédé d'un BOM (marque d'ordre des octets UTF-8), que certains éditeurs Windows écrivent. Geste dans un module : aucun.
+
+Décidé par le mainteneur (chasse aux défauts de P27).
+
 ## 0.18.0
 
 ### rupture
