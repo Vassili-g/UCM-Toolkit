@@ -33,7 +33,7 @@ const { pathToFileURL } = require('url');
 
 const racine = path.resolve(__dirname, '..');
 const MAQUETTE = path.resolve(racine, 'galerie/fixtures/apercu-en-bandes.html');
-const GALERIE = path.join(racine, 'dist', 'galerie', 'clair');
+const GALERIE = path.join(racine, 'dist', 'galerie', 'sombre');
 const SORTIE = path.join(racine, 'dist', 'fidelite');
 
 /** La largeur de la surface de `#pu-v2` : la colonne `minmax(0, 560px)` de la maquette. */

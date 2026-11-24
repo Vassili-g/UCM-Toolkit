@@ -45,7 +45,7 @@ const ENTREES: EntreesLoiDesStyles = {
     severite: () => [...ORDRE_DES_SEVERITES],
   },
   // Les rôles de forme des pictogrammes viennent des tracés du kit, que `tests/glyphes.test.ts` compare à cette liste.
-  poseesParLHote: new Set(['figma-dark', ...CLASSES_DES_ROLES]),
+  poseesParLHote: new Set(CLASSES_DES_ROLES),
 };
 
 test('toute classe posée par l’interface a une règle dans les feuilles', () => {

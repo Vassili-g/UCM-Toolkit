@@ -64,8 +64,7 @@ const ENTREES: EntreesLoiDesStyles = {
     variant: () => variantesDeBouton(source),
     ton: () => litterauxDe(/ {2}ton:([^;]+);/, 'ResumeDepot.ton', 'src/connexion.ts'),
   },
-  /** `figma-dark` est posée par l'hôte sur `html`, jamais par ce code. */
-  poseesParLHote: new Set(['figma-dark']),
+  poseesParLHote: new Set(),
 };
 
 test('toute classe posée par l’interface a une règle dans les feuilles', () => {

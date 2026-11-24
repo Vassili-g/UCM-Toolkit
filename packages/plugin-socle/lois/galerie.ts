@@ -145,16 +145,14 @@ function variablesDeclarees(css: string, selecteur: string): Set<string> {
 
 /**
  * Les variables `--figma-color-*` que les feuilles demandent et que le
- * décalque ne sert pas, par sélecteur : la galerie montrerait un repli en dur.
+ * décalque ne sert pas : la galerie montrerait un repli en dur.
  */
 export function variablesAbsentesDuDecalque(feuilles: string): string[] {
   const demandees = new Set([...feuilles.matchAll(/var\(\s*(--figma-color-[\w-]+)/g)].map((trouve) => trouve[1]));
   if (demandees.size === 0) throw new Error('aucune variable de thème dans les feuilles');
   const decalque = fs.readFileSync(DECALQUE, 'utf8');
-  return [':root', '.figma-dark'].flatMap((selecteur) => {
-    const declarees = variablesDeclarees(decalque, selecteur);
-    return [...demandees].filter((variable) => !declarees.has(variable)).map((variable) => `${selecteur} ${variable}`);
-  });
+  const declarees = variablesDeclarees(decalque, ':root');
+  return [...demandees].filter((variable) => !declarees.has(variable)).map((variable) => `:root ${variable}`);
 }
 
 /**

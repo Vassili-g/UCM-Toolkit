@@ -40,7 +40,7 @@ const ENTREES: EntreesLoiDesStyles = {
   source,
   feuille: roles + feuilleDuSocle() + feuilleDuPlugin,
   valeursDeGabarit: { variant: () => variantesDeBouton(source) },
-  poseesParLHote: new Set(['figma-dark']),
+  poseesParLHote: new Set(),
 };
 
 test('toute classe posée par l’interface a une règle dans les feuilles', () => {
@@ -65,13 +65,4 @@ test('chaque rôle de couleur du socle reçoit une valeur sombre de l’explorat
   assert.deepEqual(rolesDuSocle.filter((role) => !redefinis.has(role) && !exemptes.has(role)), []);
   assert.doesNotMatch(feuilleDuPlugin, /prefers-color-scheme/);
   assert.doesNotMatch(feuilleDuPlugin, /--figma-color/);
-});
-
-test('chaque rôle du langage commun qui a une valeur sombre la reçoit d’Architect, toujours sombre', () => {
-  const langage = lire(path.resolve(__dirname, '..', '..', 'plugin-socle', 'src', 'ui', 'langage.css'));
-  // Un rôle a une paire quand le socle écrit aussi sa valeur claire ; `--encre-sur-sombre` est un rôle à lui seul.
-  const sombres = [...langage.matchAll(/(--[\w-]+)-sombre\s*:/g)].map((trouve) => trouve[1]).filter((role) => new RegExp(String.raw`${role}\s*:`).test(langage));
-  const affectes = new Set([...feuilleDuPlugin.matchAll(/(--[\w-]+)\s*:\s*var\(\1-sombre\)/g)].map((trouve) => trouve[1]));
-  assert.ok(sombres.includes('--texte-terme-figma'));
-  assert.deepEqual(sombres.filter((role) => !affectes.has(role)), []);
 });

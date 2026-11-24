@@ -12,13 +12,9 @@ const PAR_PLANCHE = 4;
 /** Le décalque des variables `--figma-color-*`, commun aux plugins. */
 const DECALQUE = path.join(__dirname, 'theme-figma.css');
 
-/**
- * Les trois manières de servir les couleurs à l'interface.
- */
+/** Les plugins UCM sont sombres : la galerie n'a qu'un mode. */
 const MODES = {
-  clair: { titre: 'Thème clair', classe: '', variables: true },
-  sombre: { titre: 'Thème sombre', classe: 'figma-dark', variables: true },
-  replis: { titre: 'Thème sombre, aucune variable servie', classe: 'figma-dark', variables: false },
+  sombre: { titre: 'Thème sombre' },
 };
 
 /**
@@ -105,12 +101,9 @@ function pilote(etat) {
 }
 
 /** Une page = l'interface réelle, le décalque de thème, et le pilote. */
-function pageEtat(gabarit, mode, etat) {
-  const decalque = mode.variables
-    ? `<style>${neutraliserBalises(fs.readFileSync(DECALQUE, 'utf8'))}</style>`
-    : '<!-- aucune variable servie : les replis de styles.css s\'appliquent seuls -->';
-  let page = gabarit.replace(/<html\b([^>]*)>/, (_, attributs) => `<html${attributs} class="${mode.classe}">`);
-  page = remplacer(page, '</head>', `${decalque}</head>`);
+function pageEtat(gabarit, etat) {
+  const decalque = `<style>${neutraliserBalises(fs.readFileSync(DECALQUE, 'utf8'))}</style>`;
+  const page = remplacer(gabarit, '</head>', `${decalque}</head>`);
   return remplacer(page, '</body>', `${pilote(etat)}</body>`);
 }
 
@@ -231,7 +224,7 @@ function construireGalerie(galerie) {
     const dossier = path.join(sortie, nom);
     fs.mkdirSync(dossier, { recursive: true });
     for (const etat of atteignables) {
-      fs.writeFileSync(path.join(dossier, `${etat.id}.html`), pageEtat(source, mode, etat));
+      fs.writeFileSync(path.join(dossier, `${etat.id}.html`), pageEtat(source, etat));
     }
     const planches = [];
     for (let debut = 0; debut < atteignables.length; debut += PAR_PLANCHE) {

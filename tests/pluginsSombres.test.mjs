@@ -2,6 +2,7 @@
  * Tous les plugins UCM sont sombres (`CONTRIBUTING.md`, « Interface du plugin »).
  * H1 : chaque `code.ts` de plugin demande `themeColors: false`.
  * H2 : la feuille du socle déclare des valeurs sombres sous `:root`, sans bloc clair.
+ * H3 : aucune feuille `.css` des plugins (leur dossier `src`) ne cite `.figma-dark` ni `prefers-color-scheme`.
  */
 import assert from "node:assert/strict";
 import fs from "node:fs";
@@ -34,4 +35,23 @@ test("H2 : socle.css est sombre sous :root, sans .figma-dark ni bloc clair", () 
   assert.match(feuille, /:root\s*{[^}]*color-scheme:\s*dark;/);
   assert.match(feuille, /--fond:\s*var\(--figma-color-bg,\s*#2c2c2c\)/);
   assert.doesNotMatch(feuille, /color-scheme:\s*light/);
+});
+
+function feuillesDesPlugins(dossier) {
+  return fs.readdirSync(dossier, { withFileTypes: true }).flatMap((entree) => {
+    const chemin = path.join(dossier, entree.name);
+    if (entree.isDirectory()) return feuillesDesPlugins(chemin);
+    return entree.name.endsWith(".css") ? [chemin] : [];
+  });
+}
+
+test("H3 : aucune feuille des plugins ne cite .figma-dark ni prefers-color-scheme", () => {
+  const plugins = fs.readdirSync(paquets).filter((nom) => nom.startsWith("plugin-") && fs.existsSync(path.join(paquets, nom, "src")));
+  const feuilles = plugins.flatMap((nom) => feuillesDesPlugins(path.join(paquets, nom, "src")));
+  assert.ok(feuilles.length >= 3, "aucune feuille trouvée");
+  for (const feuille of feuilles) {
+    const css = fs.readFileSync(feuille, "utf8").replace(/\/\*[\s\S]*?\*\//g, "");
+    assert.doesNotMatch(css, /\.figma-dark/, path.relative(racine, feuille));
+    assert.doesNotMatch(css, /prefers-color-scheme/, path.relative(racine, feuille));
+  }
 });

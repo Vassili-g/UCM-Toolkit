@@ -115,8 +115,8 @@ test('[UI-39] une synchronisation sous deux palettes quitte Harmonisation et ré
   } finally { await page.close(); }
 });
 
-test('[UI-39] la galerie d’arrivée garde son en-tête sur une ligne aux deux tailles, langues et thèmes', async () => {
-  for (const langue of ['fr', 'en']) for (const largeur of [500, 600]) for (const theme of ['clair', 'sombre']) {
+test('[UI-39] la galerie d’arrivée garde son en-tête sur une ligne aux deux tailles et langues', async () => {
+  for (const langue of ['fr', 'en']) for (const largeur of [500, 600]) for (const theme of ['sombre']) {
     const page = await navigateur.newPage({ viewport: { width: largeur, height: largeur === 500 ? 520 : 720 } });
     try {
       const galerie = `galerie${langue === 'en' ? '-en' : ''}${largeur === 500 ? '-minimale' : ''}`;
@@ -2717,14 +2717,14 @@ test('[UI-06] le sélecteur liste les palettes et ouvre celle qu’on choisit au
 async function pageDeGalerie(id) {
   const page = await navigateur.newPage({ viewport: { width: 600, height: 720 } });
   page.setDefaultTimeout(5000);
-  await page.goto(new URL(`../../dist/galerie/clair/${id}.html`, import.meta.url).href);
+  await page.goto(new URL(`../../dist/galerie/sombre/${id}.html`, import.meta.url).href);
   await page.waitForFunction(() => document.documentElement.dataset.galerie === 'pret');
   return page;
 }
 
-test('[UI-34] les nouveaux constats de Gestion restent lisibles aux deux tailles et aux deux thèmes', async () => {
+test('[UI-34] les nouveaux constats de Gestion restent lisibles aux deux tailles', async () => {
   for (const largeur of [500, 600]) {
-    for (const theme of ['clair', 'sombre']) {
+    for (const theme of ['sombre']) {
       for (const id of ['reprise-partielle', 'ancienne-sortie-des-tokens', 'lecture-des-variables-refusee']) {
         const page = await navigateur.newPage({ viewport: { width: largeur, height: largeur === 500 ? 520 : 720 } });
         try {
@@ -5049,8 +5049,7 @@ test('Y1.4 : le segment pressé des choix, aperçu Light et Dark, Écran et Éta
       carteDeLOnglet(page, 'Interface de test').locator('.choix-de-l-essai .bascule-option[aria-pressed="true"]'),
       carteDeLOnglet(page, 'Interface de test').locator('.choix-de-la-vue .bascule-option[aria-pressed="true"]'),
     ];
-    for (const theme of ['clair', 'sombre']) {
-      if (theme === 'sombre') await page.evaluate(() => document.documentElement.classList.add('figma-dark'));
+    for (const theme of ['sombre']) {
       const releves = await Promise.all(choix.map(fonds));
       for (const [pressee, groupe, carte] of releves) {
         assert.notEqual(pressee, groupe, `${theme} : le segment pressé se confond avec son groupe`);
@@ -5515,15 +5514,14 @@ function couleursCalculees(element) {
   };
 }
 
-test('Z1.5 : « À jour » a le fond de succès, distinct de celui des notes ; « À actualiser » et « Pas encore créée » l’avertissement ; introuvable et illisible le danger ; chaque texte tient 4,5:1 aux deux thèmes de Figma', async () => {
+test('Z1.5 : « À jour » a le fond de succès, distinct de celui des notes ; « À actualiser » et « Pas encore créée » l’avertissement ; introuvable et illisible le danger ; chaque texte tient 4,5:1', async () => {
   const page = await ouvrirSur('pastilles-des-etats');
   try {
     await ouvrirLaPlanche(page);
     const pastilles = pastilleDeLaPlanche(page.locator('.palette-depliable[data-palette]'));
     // Gestion range les fiches par nom.
     assert.deepEqual(await pastilles.allTextContents(), ['Pas encore créée', 'À jour', 'À actualiser', 'Introuvable', 'Lecture impossible']);
-    for (const theme of ['clair', 'sombre']) {
-      if (theme === 'sombre') await page.evaluate(() => document.documentElement.classList.add('figma-dark'));
+    for (const theme of ['sombre']) {
       const [jamais, aJour, perimee, introuvable, illisible] =await pastilles.evaluateAll((elements, source) => elements.map(new Function(`return ${source}`)()), couleursCalculees.toString());
       const roles = aJour.roles;
       assert.equal(aJour.fond, roles['--fond-succes'], `thème ${theme} : « À jour » sur le fond de succès`);

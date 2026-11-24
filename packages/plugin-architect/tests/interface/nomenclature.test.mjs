@@ -13,7 +13,7 @@ import { lancerLeNavigateur, ouvrir, envoyer, avecReleve } from './aide.mjs';
 
 const exiger = createRequire(import.meta.url);
 const { GALERIES } = exiger('../../galerie/build-galerie.cjs');
-const MODES = ['clair', 'sombre', 'replis'];
+const MODES = ['sombre'];
 
 lancerLeNavigateur();
 

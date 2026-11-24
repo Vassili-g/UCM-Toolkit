@@ -33,7 +33,7 @@ for (let rang = 0; rang < 50; rang += 1) {
 }
 console.log(`Analyse d'une palette, médiane de 50 : ${mediane(durees).toFixed(2)} ms.`);
 
-const page = fileURLToPath(new URL('../dist/galerie/clair/derive-liee-tailwind.html', import.meta.url));
+const page = fileURLToPath(new URL('../dist/galerie/sombre/derive-liee-tailwind.html', import.meta.url));
 const navigateur = await chromium.launch();
 const onglet = await navigateur.newPage({ viewport: { width: 600, height: 720 } });
 await onglet.goto(`file:///${page.replace(/\\/g, '/')}`);

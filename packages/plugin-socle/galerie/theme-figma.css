@@ -1,9 +1,8 @@
 /*
  * Décalque des variables de thème que Figma injecte dans l'iframe du plugin
- * (`themeColors: true`). Hors de Figma, aucune n'est servie : sans ce fichier,
- * la galerie ne montrerait que les REPLIS EN DUR de `styles.css`, c'est-à-dire
- * un thème clair dans les deux modes — et l'on croirait avoir regardé le thème
- * sombre.
+ * (`themeColors: true`). Les plugins UCM le refusent (`themeColors: false`) et
+ * lisent les replis sombres de `socle.css` ; ce fichier sert la même palette
+ * sombre à la galerie, pour que les deux rendus restent comparables.
  *
  * ⚠ Ce n'est PAS une autorité sur la palette de Figma. Les valeurs sont des
  * approximations : elles servent à juger une hiérarchie, une densité et une
@@ -11,36 +10,10 @@
  * celle des variables réellement servies par l'hôte se font dans
  * Figma.
  *
- * La convention de classe est celle de Figma : `figma-dark` sur la racine.
  * `tests/galerie.test.ts` vérifie que toute variable demandée par `styles.css`
- * est définie ici, dans les deux thèmes — sans quoi une capture montrerait un
- * repli sans que rien ne le dise.
+ * est définie ici — sans quoi une capture montrerait un repli sans que rien ne le dise.
  */
 :root {
-  --figma-color-bg: #ffffff;
-  --figma-color-bg-hover: #f5f5f5;
-  --figma-color-bg-secondary: #f5f5f5;
-  --figma-color-bg-tertiary: #ebebeb;
-  --figma-color-bg-brand: #0d99ff;
-  --figma-color-bg-brand-hover: #007be5;
-  --figma-color-bg-success-tertiary: #e3f6e9;
-  --figma-color-bg-warning-tertiary: #fff1d6;
-  --figma-color-bg-danger-tertiary: #ffe0db;
-  --figma-color-bg-danger: #f24822;
-  --figma-color-bg-danger-hover: #dc3412;
-  --figma-color-border: #e6e6e6;
-  --figma-color-border-brand-strong: #0d99ff;
-  --figma-color-text: #1e1e1e;
-  --figma-color-text-secondary: #6b6b6b;
-  --figma-color-text-brand: #007be5;
-  --figma-color-text-danger: #dc3412;
-  --figma-color-text-success: #168b52;
-  --figma-color-text-warning: #a55b00;
-  --figma-color-text-onbrand: #ffffff;
-  --figma-color-text-ondanger: #ffffff;
-}
-
-.figma-dark {
   --figma-color-bg: #2c2c2c;
   --figma-color-bg-hover: #383838;
   --figma-color-bg-secondary: #383838;

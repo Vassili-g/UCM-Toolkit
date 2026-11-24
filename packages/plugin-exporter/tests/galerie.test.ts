@@ -257,15 +257,9 @@ test('le décalque sert toutes les variables de thème que les feuilles demanden
 
   // Le décalque est celui du banc du socle, commun aux plugins.
   const decalque = fs.readFileSync(require_.resolve('ucm-plugin-socle/galerie/theme-figma.css'), 'utf8');
-  for (const selecteur of [':root', '.figma-dark']) {
-    const declarees = variablesDeclarees(decalque, selecteur);
-    const manquantes = [...demandees].filter((variable) => !declarees.has(variable));
-    assert.deepEqual(
-      manquantes,
-      [],
-      `${selecteur} ne sert pas : ${manquantes.join(', ')} — la galerie montrerait un repli en dur`,
-    );
-  }
+  const declarees = variablesDeclarees(decalque, ':root');
+  const manquantes = [...demandees].filter((variable) => !declarees.has(variable));
+  assert.deepEqual(manquantes, [], `:root ne sert pas : ${manquantes.join(', ')} — la galerie montrerait un repli en dur`);
 });
 
 /**

@@ -371,7 +371,7 @@ qui se place dans l’onglet actif. L’onglet Création applique celles-ci :
   endroit. Sous le titre de l’onglet Création ne se lisent que le refus d’un
   enregistrement et le conflit ; un enregistrement réussi ne s’annonce pas ;
 - tous les choix d’affichage, thème, profil et vue, donnent au segment
-  actif le même fond, distinct de la carte aux deux thèmes de Figma. Un
+  actif le même fond, distinct de la carte. Un
   segment qui choisit une valeur, modèle, référence exacte ou préréglage,
   garde le fond des blocs ;
 - un geste destructif prend la variante `danger` du bouton du socle : fond et
@@ -439,8 +439,7 @@ qu’une fois : celle-ci est courte pour être répétée à chaque phase qui aj
 état.
 
 **(a)** Côte à côte avec un panneau natif de Figma. Densité, taille de texte,
-épaisseur des bordures : l’écart doit être invisible. **(b)** Les deux thèmes,
-en vérifiant le contraste du texte de sévérité sur son fond, à 11 px. Dans
+épaisseur des bordures : l’écart doit être invisible. **(b)** Le contraste du texte de sévérité sur son fond, à 11 px. Dans
 Figma, pas sur le décalque. **(c)** À la plus petite taille de fenêtre admise.
 **(d)** Avec le pire contenu réel : l’avertissement le plus long que le moteur
 produise, et vingt avertissements d’un coup. **(e)** Un compte des objets à

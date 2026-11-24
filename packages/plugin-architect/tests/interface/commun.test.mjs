@@ -6,18 +6,16 @@ import { lancerLeNavigateur, ouvrir, envoyer, avecReleve, fermer, choisir, lectu
 lancerLeNavigateur();
 const { projetLibre, composantSimple } = fixtures;
 
-test('les surfaces restent sombres sous un hôte clair comme sous un hôte sombre', async () => {
-  for (const classe of ['', 'figma-dark']) {
-    const page = await ouvrir({ classe });
-    try {
-      await avecReleve(page, projetLibre());
-      const fonds = await page.evaluate(() => ['body', '.barre', '.centre', '.panneau-lateral', '.recherche'].map((selecteur) => getComputedStyle(document.querySelector(selecteur)).backgroundColor));
-      for (const fond of fonds) {
-        const [r, g, b] = fond.match(/\d+/g).map(Number);
-        assert.ok(r < 80 && g < 80 && b < 80, `${classe || 'clair'} : ${fond}`);
-      }
-    } finally { await fermer(page); }
-  }
+test('les surfaces sont sombres', async () => {
+  const page = await ouvrir();
+  try {
+    await avecReleve(page, projetLibre());
+    const fonds = await page.evaluate(() => ['body', '.barre', '.centre', '.panneau-lateral', '.recherche'].map((selecteur) => getComputedStyle(document.querySelector(selecteur)).backgroundColor));
+    for (const fond of fonds) {
+      const [r, g, b] = fond.match(/d+/g).map(Number);
+      assert.ok(r < 80 && g < 80 && b < 80, fond);
+    }
+  } finally { await fermer(page); }
 });
 
 test('la bascule passe de l’explorateur de tokens à la vue composant, qui lit alors la sélection, puis revient', async () => {

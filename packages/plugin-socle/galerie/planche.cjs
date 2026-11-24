@@ -1,6 +1,6 @@
 /**
  * Construit la galerie du socle : deux planches qui montrent le langage visuel,
- * en clair et en sombre. Le socle n'a pas d'interface à lui ; ce script en
+ * en sombre. Le socle n'a pas d'interface à lui ; ce script en
  * fabrique une (`galerie/planche/`), l'écrit dans `dist/ui.html` et confie le
  * reste au banc. La planche des signaux a la taille du cadre `s-planche` de la
  * maquette d'Architect, 640 × 1900, et s'écrit dans `dist/galerie`. La planche

@@ -34,7 +34,7 @@ const mediane = (durees) => [...durees].sort((a, b) => a - b)[Math.floor(durees.
 const centile = (durees, part) => [...durees].sort((a, b) => a - b)[Math.min(durees.length - 1, Math.floor(durees.length * part))];
 const ms = (valeur) => `${valeur.toFixed(1)} ms`;
 
-const galerie = (etat) => `file:///${fileURLToPath(new URL(`../dist/galerie/clair/${etat}.html`, import.meta.url)).replace(/\\/g, '/')}`;
+const galerie = (etat) => `file:///${fileURLToPath(new URL(`../dist/galerie/sombre/${etat}.html`, import.meta.url)).replace(/\\/g, '/')}`;
 
 /**
  * Glisse dans `commande` par événements synthétiques : chaque image reçoit

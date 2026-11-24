@@ -1,7 +1,7 @@
 /**
  * Capture la galerie d'UCM Exporter par le banc du socle.
  *
- *   npm run galerie:captures --workspace ucm-exporter-plugin -- [clair|sombre|replis] [--etats]
+ *   npm run galerie:captures --workspace ucm-exporter-plugin -- [--etats]
  */
 const { capturerGalerie } = require('ucm-plugin-socle/galerie/capturer.cjs');
 const { GALERIE } = require('./build-galerie.cjs');

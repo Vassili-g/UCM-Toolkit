@@ -10,65 +10,43 @@
  * redessiner.
  *
  * Les couleurs ne s'écrivent que dans les blocs de rôles, entre les repères
- * `roles:debut` et `roles:fin`. Chaque type d'alerte a deux valeurs, une pour
- * le fond clair et une, suffixée `-sombre`, pour le fond sombre ; un plugin
- * toujours sombre (Architect) affecte les valeurs sombres à ses rôles.
+ * `roles:debut` et `roles:fin`. Les plugins UCM sont sombres : chaque rôle
+ * a une seule valeur, sombre.
  */
 
 /* roles:debut */
 :root {
-  --ton-bloquant: #c62828;
-  --ton-corriger: #b45309;
-  --ton-verifier: #8a6500;
-  --ton-info: #0b6bcb;
-  --ton-tenu: #167a3e;
-  --ton-bloquant-sombre: #ff7b72;
-  --ton-corriger-sombre: #f5a35c;
-  --ton-verifier-sombre: #e8cc6a;
-  --ton-info-sombre: #7cb7ff;
-  --ton-tenu-sombre: #7fdc9c;
+  --ton-bloquant: #ff7b72;
+  --ton-corriger: #f5a35c;
+  --ton-verifier: #e8cc6a;
+  --ton-info: #7cb7ff;
+  --ton-tenu: #7fdc9c;
   /* L'encre d'une icône pleine et d'une pastille de compte, posée sur la couleur du type. */
-  --texte-sur-ton: #ffffff;
-  --texte-sur-ton-sombre: #1a1a1a;
+  --texte-sur-ton: #1a1a1a;
 
   /* La place d'un terme : rose en groupe, olive en variable. */
-  --fond-groupe: #f9e0fb;
-  --texte-groupe: #7a1f80;
-  --fond-variable: #eef0c4;
-  --texte-variable: #55590f;
-  --fond-groupe-sombre: rgb(80 36 84);
-  --texte-groupe-sombre: rgb(244 180 248);
-  --fond-variable-sombre: rgb(58 62 28);
-  --texte-variable-sombre: rgb(222 228 150);
+  --fond-groupe: rgb(80 36 84);
+  --texte-groupe: rgb(244 180 248);
+  --fond-variable: rgb(58 62 28);
+  --texte-variable: rgb(222 228 150);
 
   /* Un terme de Figma cité dans une phrase (un scope) : presque l'encre du texte, d'une teinte froide. */
-  --texte-terme-figma: #39466b;
-  --texte-terme-figma-sombre: #cdd8f5;
+  --texte-terme-figma: #cdd8f5;
 
   /*
-   * La couleur de famille d'un signe qui porte une information. Les valeurs claires
-   * sont les sombres, assombries à teinte égale : 4,9:1 au moins sur #ffffff, 3,7:1
-   * sur la tuile (la teinte à 18 % sur le fond). Sur fond sombre, la tuile prend
-   * 28 % de sa teinte et les teintes sont claires, pour se lire sur la bande grise
-   * d'une section. `tokens` n'a pas de teinte, c'est la couleur du texte.
-   * `couleurs` est un arc-en-ciel, le même sur les deux fonds, avec une encre
-   * sombre : un seul rôle, pas de valeur `-sombre`.
+   * La couleur de famille d'un signe qui porte une information. La tuile prend
+   * 28 % de sa teinte, et les teintes sont claires pour se lire sur la bande
+   * grise d'une section. `tokens` n'a pas de teinte, c'est la couleur du texte.
+   * `couleurs` est un arc-en-ciel avec une encre sombre.
    */
-  --teinte-tailles: #0f7f73;
-  --teinte-texte: #4a5fe0;
-  --teinte-tokens: #27272a;
-  --teinte-variants: #8f3fe0;
-  --teinte-regles: #8c5a10;
-  --teinte-a11y: #d11f7c;
-  --teinte-tailles-sombre: #6ee7d8;
-  --teinte-texte-sombre: #c7d0fe;
-  --teinte-tokens-sombre: #f4f4f5;
-  --teinte-variants-sombre: #d6b4fe;
-  --teinte-regles-sombre: #f2dab0;
-  --teinte-a11y-sombre: #f9a8d4;
+  --teinte-tailles: #6ee7d8;
+  --teinte-texte: #c7d0fe;
+  --teinte-tokens: #f4f4f5;
+  --teinte-variants: #d6b4fe;
+  --teinte-regles: #f2dab0;
+  --teinte-a11y: #f9a8d4;
   /* La part de la teinte dans le fond de la tuile. */
-  --part-de-teinte: 18%;
-  --part-de-teinte-sombre: 28%;
+  --part-de-teinte: 28%;
   --teinte-couleurs: conic-gradient(from 200deg, #ff8fb8, #ffd27a, #8be39a, #7cc4ff, #b9a0ff, #ff8fb8);
   /* L'encre d'un tracé posé sur une tuile claire ou sombre : l'arc-en-ciel et une valeur de couleur. */
   --encre-sur-clair: #1a1a1a;
@@ -77,27 +55,6 @@
   /* Une sélection bleue, adoucie : le fond d'une puce de filtre. */
   --fond-selection: color-mix(in srgb, var(--texte-marque) 18%, var(--fond));
   --police-chemin: "JetBrains Mono", Consolas, monospace;
-}
-
-:root {
-  --ton-bloquant: var(--ton-bloquant-sombre);
-  --ton-corriger: var(--ton-corriger-sombre);
-  --ton-verifier: var(--ton-verifier-sombre);
-  --ton-info: var(--ton-info-sombre);
-  --ton-tenu: var(--ton-tenu-sombre);
-  --texte-sur-ton: var(--texte-sur-ton-sombre);
-  --fond-groupe: var(--fond-groupe-sombre);
-  --texte-groupe: var(--texte-groupe-sombre);
-  --fond-variable: var(--fond-variable-sombre);
-  --texte-variable: var(--texte-variable-sombre);
-  --texte-terme-figma: var(--texte-terme-figma-sombre);
-  --teinte-tailles: var(--teinte-tailles-sombre);
-  --teinte-texte: var(--teinte-texte-sombre);
-  --teinte-tokens: var(--teinte-tokens-sombre);
-  --teinte-variants: var(--teinte-variants-sombre);
-  --teinte-regles: var(--teinte-regles-sombre);
-  --teinte-a11y: var(--teinte-a11y-sombre);
-  --part-de-teinte: var(--part-de-teinte-sombre);
 }
 /* roles:fin */
 

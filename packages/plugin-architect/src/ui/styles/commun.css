@@ -1,7 +1,7 @@
 /*
  * La feuille commune d'Architect, après celle du socle. Elle affecte les couleurs
- * sombres de `roles.css` aux rôles du socle, sous `:root` comme sous
- * `.figma-dark` : l'interface reste sombre quel que soit le thème de l'hôte.
+ * sombres de `roles.css` aux rôles du socle, sous `:root` : l'interface reste
+ * sombre quel que soit le thème de l'hôte.
  * Aucune couleur n'est écrite ici en dur.
  *
  * Le dessin suit MAQUETTE-EXPLORATEUR-TOKENS.html : trois surfaces étagées,
@@ -9,8 +9,7 @@
  * frise. L'échelle de texte monte d'un cran par rapport au socle : la fenêtre
  * est une table de lecture, large de 1360 px, et non un panneau de 380 px.
  */
-:root,
-.figma-dark {
+:root {
   color-scheme: dark;
   --fond-page: var(--sombre-page);
   --fond: var(--sombre-fond);
@@ -52,25 +51,6 @@
   --encre: var(--sombre-encre);
   --cadre-survol: var(--sombre-cadre-survol);
   --cadre-portee: var(--sombre-cadre-portee);
-  /* Les rôles du langage commun (`langage.css` du socle) : leurs valeurs sombres, quel que soit le thème de l'hôte. */
-  --ton-bloquant: var(--ton-bloquant-sombre);
-  --ton-corriger: var(--ton-corriger-sombre);
-  --ton-verifier: var(--ton-verifier-sombre);
-  --ton-info: var(--ton-info-sombre);
-  --ton-tenu: var(--ton-tenu-sombre);
-  --texte-sur-ton: var(--texte-sur-ton-sombre);
-  --fond-groupe: var(--fond-groupe-sombre);
-  --texte-groupe: var(--texte-groupe-sombre);
-  --fond-variable: var(--fond-variable-sombre);
-  --texte-variable: var(--texte-variable-sombre);
-  --texte-terme-figma: var(--texte-terme-figma-sombre);
-  --teinte-tailles: var(--teinte-tailles-sombre);
-  --teinte-texte: var(--teinte-texte-sombre);
-  --teinte-tokens: var(--teinte-tokens-sombre);
-  --teinte-variants: var(--teinte-variants-sombre);
-  --teinte-regles: var(--teinte-regles-sombre);
-  --teinte-a11y: var(--teinte-a11y-sombre);
-  --part-de-teinte: var(--part-de-teinte-sombre);
 
   --corps: 12px;
   --corps-interligne: 18px;

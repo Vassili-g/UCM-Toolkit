@@ -97,7 +97,7 @@ c'est-à-dire s'il propose d'enregistrer une nouvelle version. Attendu : non, et
 tous les calques que le bouton compte sont sélectionnés.
 
 **Observation B.** Faites un export, puis regardez les points à corriger du
-compte rendu, en thème clair puis en thème sombre. Vérifiez qu'ils restent
+compte rendu. Vérifiez qu'ils restent
 lisibles et que rien ne déborde de la fenêtre. Regardez aussi les deux cartes de
 commande et l'écran sans sélection.
 

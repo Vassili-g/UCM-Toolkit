@@ -8,12 +8,12 @@ import path from 'node:path';
 import { classesDuLangage, classesPosees, classesSansRegle, couleursHorsDesRoles, feuilleDuLangage, feuilleDuSocle, redefinitionsDuLangage, reglesMortes, sourcesDuSocle, variantesDeBouton } from '../lois/styles';
 
 const lire = (source: string) =>
-  [...classesPosees({ source, feuille: '', valeursDeGabarit: {}, poseesParLHote: new Set() })].sort();
+  [...classesPosees({ source, feuille: '', valeursDeGabarit: {}, poseesParLHote: new Set<string>() })].sort();
 
 test('une classe posée par className, littérale ou par gabarit, est lue', () => {
   const source = "a.className = 'carte carte-vide';\nb.className = `btn btn-${variant}`;";
   assert.deepEqual(
-    [...classesPosees({ source, feuille: '', valeursDeGabarit: { variant: () => ['primary'] }, poseesParLHote: new Set() })].sort(),
+    [...classesPosees({ source, feuille: '', valeursDeGabarit: { variant: () => ['primary'] }, poseesParLHote: new Set<string>() })].sort(),
     ['btn', 'btn-primary', 'carte', 'carte-vide'],
   );
 });
@@ -71,7 +71,7 @@ test('le langage ne contient aucune couleur en dur hors de ses blocs de rôles, 
   assert.deepEqual(couleursHorsDesRoles(feuilleDuSocle()), []);
   assert.deepEqual(couleursHorsDesRoles(`${feuilleDuSocle()}\n.a { color: #fff; }`), ['#fff']);
   const source = sourcesDuSocle().map((fichier) => fs.readFileSync(fichier, 'utf8')).join('\n');
-  const entrees = { source, feuille: feuilleDuLangage(), valeursDeGabarit: { variant: () => variantesDeBouton(source) }, poseesParLHote: new Set(['figma-dark']) };
+  const entrees = { source, feuille: feuilleDuLangage(), valeursDeGabarit: { variant: () => variantesDeBouton(source) }, poseesParLHote: new Set<string>() };
   assert.deepEqual(reglesMortes(entrees), []);
   assert.deepEqual(classesSansRegle({ ...entrees, feuille: feuilleDuSocle() }), []);
 });

@@ -27,7 +27,7 @@ test('les classes du socle ont leur règle et la feuille ne contient aucune coul
   const sourcesUi = fs.readdirSync(path.join(racine, 'src/ui/nomenclature')).filter((nom) => nom.endsWith('.ts')).map((nom) => lire(`src/ui/nomenclature/${nom}`));
   const source = sourcesUi.join('\n') + sourcesDuSocle().map((fichier) => fs.readFileSync(fichier, 'utf8')).join('\n');
   const feuille = lire('src/ui/styles/nomenclature.css');
-  const entrees = { source, feuille: feuilleDuSocle() + feuille, valeursDeGabarit: { variant: () => variantesDeBouton(source) }, poseesParLHote: new Set(['figma-dark']) };
+  const entrees = { source, feuille: feuilleDuSocle() + feuille, valeursDeGabarit: { variant: () => variantesDeBouton(source) }, poseesParLHote: new Set<string>() };
   assert.deepEqual(classesSansRegle(entrees), []);
   assert.deepEqual(reglesMortes({ ...entrees, feuille }), []);
   assert.deepEqual(couleursHorsDesRoles(entrees.feuille), []);
