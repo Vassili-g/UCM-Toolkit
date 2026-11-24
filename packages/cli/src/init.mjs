@@ -217,9 +217,24 @@ function versionDuPaquet() {
  * présents, le rappel se tait : trois lignes réclamées pour rien sont trois
  * lignes qu'on apprend à sauter.
  */
+/**
+ * Le motif de `.gitattributes` qui désigne ce seul chemin.
+ *
+ * Git coupe une ligne aux espaces et lit `*`, `?`, `[` comme un glob : écrit
+ * tel quel, `design system/tokens.json` donnerait un attribut invalide, et le
+ * fichier resterait sans `eol=lf`. Une espace devient `[[:space:]]`, un signe
+ * de glob et un `#` ou `!` de tête sont échappés.
+ */
+function motifDeGitattributes(chemin) {
+  return chemin
+    .replace(/[*?[\]\\]/g, "\\$&")
+    .replace(/^[#!"]/, "\\$&")
+    .replace(/\s/g, "[[:space:]]");
+}
+
 function fichiers(version, chemins, { agents = true, gabarits = [], forge = "github" } = {}) {
   // Le fichier de tokens que la configuration écrite désigne, pas un nom recopié.
-  const cheminDesTokens = { ...CONFIGURATION_PAR_DEFAUT, ...chemins }.tokens;
+  const cheminDesTokens = motifDeGitattributes({ ...CONFIGURATION_PAR_DEFAUT, ...chemins }.tokens);
   return [
     {
       chemin: NOM_CONFIGURATION,

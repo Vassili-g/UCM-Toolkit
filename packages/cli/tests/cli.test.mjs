@@ -8,6 +8,7 @@
  * fichier.
  */
 import assert from "node:assert/strict";
+import { execFileSync } from "node:child_process";
 import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
@@ -892,6 +893,20 @@ test("I2 : --tokens design écrit design/tokens.json dans .gitattributes, et le 
     assert.ok(!lignes.includes("tokens.json text eol=lf"));
   } finally {
     rmSync(racine, { recursive: true, force: true });
+  }
+});
+
+test("--tokens avec une espace ou un crochet écrit une ligne de .gitattributes que git applique bien à ce fichier", () => {
+  for (const dossier of ["design system", "tokens[v2]", "#marque"]) {
+    const racine = repoVierge();
+    try {
+      execFileSync("git", ["init", "-q"], { cwd: racine });
+      init(racine, { chemins: lireArgumentsInit(["--tokens", dossier]).chemins });
+      const sortie = execFileSync("git", ["check-attr", "eol", "--", `${dossier}/tokens.json`], { cwd: racine, encoding: "utf8" });
+      assert.equal(sortie.trim(), `${dossier}/tokens.json: eol: lf`, `.gitattributes vaut ${JSON.stringify(readFileSync(join(racine, ".gitattributes"), "utf8"))}`);
+    } finally {
+      rmSync(racine, { recursive: true, force: true });
+    }
   }
 });
 
