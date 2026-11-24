@@ -30,7 +30,7 @@ export type Copie = { fichier: string; ligne: number; extrait: string };
 const DOSSIERS_PAR_DEFAUT = ['packages/*/src/**'];
 
 /** Le socle porte le contrat des plugins : il reste hors des lois sur les champs de texte. */
-const DOSSIERS_HORS_SOCLE = ['kit', 'cli', 'adapter-typescript', 'couleur', 'hub', 'plugin-exporter', 'plugin-palettes', 'plugin-architect'].map((paquet) => `packages/${paquet}/src/**`);
+const DOSSIERS_HORS_SOCLE = ['kit', 'cli', 'adapter-typescript', 'couleur', 'plugin-exporter', 'plugin-palettes', 'plugin-architect'].map((paquet) => `packages/${paquet}/src/**`);
 
 export const REGLES: Regle[] = [
   {
@@ -94,7 +94,7 @@ export const REGLES: Regle[] = [
     fiche: 'D-12',
     raison: "Une référence est un gris teinté par `estReferenceGrise` de `ucm-couleur` (seuil de chroma 0,05), pas par une comparaison de `.C` à un seuil écrite en ligne.",
     motif: /\.C\s*<=?\s*0\.0/,
-    dossiers: ['packages/hub/src/**', 'packages/plugin-*/src/**'],
+    dossiers: ['packages/plugin-*/src/**'],
     proprietaires: [],
     exceptions: [],
   },
@@ -282,6 +282,73 @@ export const REGLES: Regle[] = [
     proprietaires: [],
     exceptions: [],
   },
+  {
+    fiche: 'PP-04',
+    raison: "Un seuil de contraste (4,5 ; 3 ; 7) s'écrit une fois, dans `referentiel/contraste.ts` ; le code le lit, il ne le recopie pas.",
+    motif: /\becrireSeuil\(\s*\d|[<>]=?\s*4\.5\b|\b4[.,]5\s*:\s*1|\b[37]\s*:\s*1\b|\bSEUIL\w*\s*[:=]\s*(?:4\.5|7)\b|\b(?:texte|nonTexte|minimum\w*)\s*:\s*(?:4\.5|3|7)\b/,
+    proprietaires: ['packages/kit/src/referentiel/contraste.ts'],
+    exceptions: [],
+  },
+  {
+    fiche: 'PP-05',
+    raison: "Un seuil de contraste s'écrit par `emplois/contraste.ts`, pas par un `.replace('.', ',')` écrit en ligne sur le seuil.",
+    motif: /\b\w*[sS]euil\w*\)*\s*\.replace\(\s*(['"])\.\1\s*,\s*(['"]),\2\s*\)/,
+    proprietaires: ['packages/kit/src/emplois/contraste.ts'],
+    exceptions: [],
+  },
+  {
+    fiche: 'PP-10',
+    raison: "Un nom de fichier du consommateur, la variable du jeton GitLab et l'adresse d'une forge s'écrivent chacun dans leur fichier propriétaire, pas en littéral de chemin, de variable ou d'adresse.",
+    motif: /(['"])(?:[^'"\n]*\/)?(?:ci-report\.md|src\/generated\/tokens\.css|\.ucm\/derogations\.json|ucm\.config\.json|https:\/\/api\.github\.com|https:\/\/gitlab\.com\/api\/v4)\1|\benv(?:\.|\[\s*['"])UCM_GITLAB_TOKEN\b|(['"])UCM_GITLAB_TOKEN\2/,
+    proprietaires: [
+      'packages/cli/src/fichiers-du-consommateur.mjs',
+      'packages/kit/src/lecteurs/derogations.mjs',
+      'packages/kit/src/format/configuration.ts',
+      'packages/kit/src/protocoles/forges.ts',
+    ],
+    exceptions: [],
+  },
+  {
+    fiche: 'PP-11',
+    raison: "Un fichier JSON du consommateur se lit par `lecteurs/configuration.mjs`, pas par `JSON.parse(readFileSync(…))`.",
+    motif: /JSON\.parse\(\s*(?:fs\.|nodeFs\.)?readFileSync\(/,
+    proprietaires: ['packages/kit/src/lecteurs/configuration.mjs'],
+    exceptions: [
+      { fichier: 'packages/cli/src/aides.mjs', raison: 'lit le package.json de la CLI elle-même, pas un fichier du consommateur' },
+      { fichier: 'packages/cli/src/guide.mjs', raison: 'lit le package.json de la CLI elle-même, pas un fichier du consommateur' },
+      { fichier: 'packages/kit/src/lecteurs/schema-contrat.mjs', raison: 'lit le schéma JSON livré avec le kit, pas un fichier du consommateur' },
+    ],
+  },
+  {
+    fiche: 'PP-13',
+    raison: "`CHROMA_DES_PALETTES_COLOREES` n'existe plus : la chroma des palettes vient du référentiel.",
+    motif: /\bCHROMA_DES_PALETTES_COLOREES\b/,
+    proprietaires: [],
+    exceptions: [],
+  },
+  {
+    fiche: 'PP-15',
+    raison: "Le nom d'une collection (`primitives`, `brands`, `utility`) vient de `COLLECTIONS` du référentiel, pas d'un littéral. Comparer un rôle typé à son littéral (`role === 'brands'`, `case 'brands':`) reste permis : TypeScript vérifie la valeur contre son union.",
+    motif: /(?<!\brole\s*[!=]==?\s*|\broleCollection\([^()]*\)\s*[!=]==?\s*|\bcase\s+)(['"])(?:primitives|brands|utility)\1/,
+    proprietaires: ['packages/kit/src/referentiel/'],
+    exceptions: [
+      { fichier: 'packages/plugin-architect/src/ecriture/structure.ts', raison: "compare le résultat typé de `collectionUcmReconnue` à son union : la valeur vient du référentiel, le littéral n'est pas un nom de collection écrit en ligne" },
+    ],
+  },
+  {
+    fiche: 'PP-108',
+    raison: "Une référence `{chemin}` se lit par `format/references.ts`, pas par une expression régulière qui commence par `/\{[^{}`.",
+    motif: /\/\^?\\{\[\^\{\}/,
+    proprietaires: ['packages/kit/src/format/references.ts'],
+    exceptions: [],
+  },
+  {
+    fiche: 'PP-409',
+    raison: "La profondeur maximale d'un alias vient de `PROFONDEUR_D_ALIAS` de `emplois/couleur.ts`, pas d'un nombre écrit en ligne (la porte navigateur interdit à `diagnostic-contrastes.mjs` d'importer `controles`).",
+    motif: /\b(?:profondeur|depth|hops|saut|renvois?)\w*\s*(?:>=?|<=?|[!=]==?)\s*10\b|\b\w*(?:PROFONDEUR|DEPTH)\w*\s*=\s*10\b/i,
+    proprietaires: ['packages/kit/src/emplois/couleur.ts'],
+    exceptions: [],
+  },
 ];
 
 /** Remplace les commentaires par des blancs, sans toucher aux chaînes ni aux numéros de ligne. */
@@ -316,7 +383,7 @@ function sansCommentaires(source: string): string {
  * (chemin relatif à la racine). Un fichier propriétaire ou en exception n'en rend aucune.
  */
 export function chercherLesCopies(texte: string, regle: Regle, fichier: string): Copie[] {
-  if (regle.proprietaires.includes(fichier) || regle.exceptions.some((e) => e.fichier === fichier)) return [];
+  if (regle.proprietaires.some((p) => p === fichier || (p.endsWith('/') && fichier.startsWith(p))) || regle.exceptions.some((e) => e.fichier === fichier)) return [];
   const source = sansCommentaires(texte);
   const motif = new RegExp(regle.motif.source, regle.motif.flags.includes('g') ? regle.motif.flags : `${regle.motif.flags}g`);
   return [...source.matchAll(motif)].map((m) => ({
@@ -382,7 +449,7 @@ test('aucune règle à fonction unique n\'est recopiée', () => {
 test('chaque propriétaire et chaque exception désigne un fichier qui existe', () => {
   const fichiers = new Set(fichiersBalayes());
   const absents = REGLES.flatMap((r) =>
-    [...r.proprietaires, ...r.exceptions.map((e) => e.fichier)].filter((f) => !fichiers.has(f)).map((f) => `${r.fiche} : ${f}`),
+    [...r.proprietaires, ...r.exceptions.map((e) => e.fichier)].filter((f) => (f.endsWith('/') ? ![...fichiers].some((x) => x.startsWith(f)) : !fichiers.has(f))).map((f) => `${r.fiche} : ${f}`),
   );
   assert.deepEqual(absents, [], 'Ces fichiers n\'existent plus. Retirer ou corriger la ligne de REGLES.');
   for (const r of REGLES) for (const e of r.exceptions) assert.ok(e.raison.length > 10, `l'exception ${e.fichier} n'a pas de raison`);
@@ -404,5 +471,8 @@ test('chercherLesCopies voit le motif, y compris sur plusieurs lignes, et éparg
   assert.equal(copies[0].fichier, 'a/autre.ts');
   assert.deepEqual(chercherLesCopies(texte, regle, 'a/proprio.ts'), []);
   assert.deepEqual(chercherLesCopies(texte, regle, 'a/exception.ts'), []);
+  const dossier: Regle = { ...regle, proprietaires: ['a/dossier/'] };
+  assert.deepEqual(chercherLesCopies(texte, dossier, 'a/dossier/sous/f.ts'), []);
+  assert.equal(chercherLesCopies(texte, dossier, 'a/dossier-autre/f.ts').length, 1);
   assert.deepEqual(chercherLesCopies('// TABLE.find(z)', regle, 'a/autre.ts'), []);
 });
