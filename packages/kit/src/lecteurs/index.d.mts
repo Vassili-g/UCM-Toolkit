@@ -84,17 +84,18 @@ declare module "@ucm-kit/core/lecteurs" {
   /**
    * Où en est l'implémentation de ce contrat : présente sous le nom exact du motif,
    * présente sous une autre casse (`autreCasse` donne le nom trouvé), ou absente.
-   * `lister` rend les noms d'un dossier ; son défaut lit le disque.
+   * `lister` rend les noms d'un dossier ; son défaut lit le disque. `racine`
+   * résout un motif sans `{dir}` ; sans elle, le dossier courant le résout.
    */
   export function etatDeLImplementation(
     cheminContrat: string,
-    options?: { motif?: string; lister?: (dossier: string) => readonly string[] },
+    options?: { motif?: string; lister?: (dossier: string) => readonly string[]; racine?: string },
   ): { presente: true } | { presente: false; autreCasse?: string };
 
   /** L'implémentation de ce contrat existe-t-elle, sous le nom exact du motif ? */
   export function implementationPresente(
     cheminContrat: string,
-    options?: { motif?: string; lister?: (dossier: string) => readonly string[] },
+    options?: { motif?: string; lister?: (dossier: string) => readonly string[]; racine?: string },
   ): boolean;
 
   /**

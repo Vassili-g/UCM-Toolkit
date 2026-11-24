@@ -154,10 +154,12 @@ function analyser(chemin, contexte, erreursGraphe = []) {
   }
   if (champsAbsents.length > 0) return { ...vide, champsAbsents };
 
-  const implementation = cheminImplementation(chemin, motif);
+  // Un motif sans `{dir}` est relatif au repository : la racine le résout, pas
+  // le dossier courant du processus.
+  const implementation = resolve(racine, cheminImplementation(chemin, motif));
   // La présence se demande au disque, pas au relevé : c'est elle qui distingue
   // « pas encore écrit » de « écrit, mais illisible par cet adaptateur ».
-  const etatImplementation = etatDeLImplementation(chemin, { motif });
+  const etatImplementation = etatDeLImplementation(chemin, { motif, racine });
   // Un fichier sous une autre casse n'est pas une absence : Windows et macOS le
   // trouvent, Linux non. Aucun adaptateur ne le lit, et le verdict le dit.
   const parite = etatImplementation.autreCasse === undefined
@@ -1395,7 +1397,7 @@ export function controlerRepository(racine, {
   // La lambda n'est pas décorative : `map` passe l'index en second argument, et
   // `cheminImplementation` accepte un motif à cette place. Le raccourci
   // `map(cheminImplementation)` ferait donc résoudre un motif valant `0`.
-  const implementations = contrats.map((chemin) => cheminImplementation(chemin, motif));
+  const implementations = contrats.map((chemin) => resolve(racine, cheminImplementation(chemin, motif)));
   // Un motif `{dir}/{id}/index.tsx` nomme tous les fichiers `index` : le relevé
   // reçoit l'identifiant de chaque contrat pour chercher son composant.
   const identifiants = new Map(contrats.map((chemin, rang) => [implementations[rang], identifiantDuContrat(chemin)]));
@@ -1439,7 +1441,7 @@ export function controlerRepository(racine, {
       // Un adaptateur chargé sans `lecteurDuCode` est une version ancienne : le code n'est pas lu.
       bilan.code = codeVide(adaptateurAttendu === "present" ? "adaptateur-ancien" : null);
     } else {
-      bilan.code = relireLeCodeDuComposant(identifiantDuContrat(contrats[rang]), resolve(racine, cheminImplementation(contrats[rang], motif)), entreeDuJuge);
+      bilan.code = relireLeCodeDuComposant(identifiantDuContrat(contrats[rang]), implementations[rang], entreeDuJuge);
     }
   }
   // La validation reste globale. Seuls les états informatifs sont limités à ce

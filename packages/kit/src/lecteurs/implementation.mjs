@@ -4,7 +4,7 @@
  * comparer l'API ; cette mesure propre à la stack appartient à l'adaptateur.
  */
 import { readdirSync } from "node:fs";
-import { basename, dirname, join } from "node:path";
+import { basename, dirname, join, resolve } from "node:path";
 
 // Le motif par défaut est une valeur du format, pas une décision de ce module :
 // il est aussi le défaut de `ucm.config.json`, et deux constantes pour la même
@@ -65,6 +65,8 @@ function listerLeDossier(dossier) {
  * Windows et macOS : `button.tsx` y répondait « présent » pour `Button.tsx`, et
  * la CI sous Linux disait l'inverse. Le nom se compare ici, donc le verdict est
  * le même partout. `lister` est injectable pour poser la question sans disque.
+ * `racine` résout un motif sans `{dir}`, relatif au repository : sans elle, le
+ * dossier courant le résout.
  * Borne : seul le nom du fichier se compare ; une autre casse d'un dossier du
  * chemin n'est pas vue.
  *
@@ -72,9 +74,10 @@ function listerLeDossier(dossier) {
  */
 export function etatDeLImplementation(
   cheminContrat,
-  { motif = MOTIF_IMPLEMENTATION_PAR_DEFAUT, lister = listerLeDossier } = {},
+  { motif = MOTIF_IMPLEMENTATION_PAR_DEFAUT, lister = listerLeDossier, racine } = {},
 ) {
-  const chemin = cheminImplementation(cheminContrat, motif);
+  const resolu = cheminImplementation(cheminContrat, motif);
+  const chemin = racine === undefined ? resolu : resolve(racine, resolu);
   const nom = basename(chemin);
   const noms = lister(dirname(chemin));
   if (noms.includes(nom)) return { presente: true };

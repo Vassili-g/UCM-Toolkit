@@ -1530,6 +1530,29 @@ test("K5 : l'adaptateur reçoit l'identifiant du contrat, que le motif nomme le 
   assert.deepEqual(vus.nomsAttendus, [["index.tsx", "Widget"]]);
 });
 
+test("un motif sans {dir} se résout depuis la racine du repository, pas depuis le dossier courant", () => {
+  const vus = [];
+  const adaptateur = {
+    ...adaptateurDeParite({}),
+    lireApiPublique: (implementations) => {
+      vus.push(...implementations);
+      return new Map();
+    },
+  };
+  const racine = preparerRepo({ composants: { Widget: { contrat: contrat() } }, tokens: TOKENS });
+  try {
+    mkdirSync(join(racine, "app"), { recursive: true });
+    writeFileSync(join(racine, "app", "Widget.tsx"), TSX);
+    const configuration = { ...CONFIGURATION, implementation: "app/{id}.tsx" };
+    const { bilans } = controlerRepository(racine, { configuration });
+    assert.equal(bilans[0].parite.implementationAbsente, false, "app/Widget.tsx existe sous la racine");
+    controlerRepository(racine, { configuration, adaptateur });
+    assert.deepEqual(vus, [join(racine, "app", "Widget.tsx")], "l'adaptateur reçoit le chemin sous la racine");
+  } finally {
+    rmSync(racine, { recursive: true, force: true });
+  }
+});
+
 test("V-29 : un fichier à erreur de syntaxe laisse le code non vérifié et bloque une demande de code", () => {
   const lecteur = lecteurFactice({ "Widget.tsx": { ...RELEVE_VIDE, lecture: { complete: false, erreurs: 2 } } });
   const { bilans, bloquant, rapport, verdict: jugement } = verdict({
