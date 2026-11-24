@@ -295,19 +295,25 @@ Construire ensuite l'échelle imposée dans UCM Palettes, en option (a), plutôt
 
 La table de paires se pose par primitive, sans la couche des marques : le texte blanc et le gris le plus foncé sur chaque cran, et chaque cran posé en bordure sur le blanc, au seuil de leur usage. Le cran d'ancrage de chaque primitive se choisit avec le lead UX. Réserver l'option (a') et l'option (b) aux ancrages qui manquent leur paire après le recalcul, en commençant par le 500 de la palette 1 et la palette primaire de la marque A.
 
+## 10. Réponses du mainteneur
+
+| Question | Réponse | Conséquence |
+|---|---|---|
+| Le fichier des primitives est-il la bibliothèque que consomme le fichier client ? | Oui | L'échelle imposée écrit dans le fichier des primitives. |
+| Quelle nuance porte la couleur de marque ? | Elle dépend de la marque, pas de la primitive | Une primitive peut porter plusieurs nuances de marque, une par marque qui la vise : le calcul les garde toutes. |
+| Quelle courbe pour les clairs ? | À comparer sur une page de test, avec des composants de la structure du client | Une page de preuve de concept compare plusieurs courbes avant tout choix. |
+| Les nuances plus foncées changent-elles ? | Gardées, si c'est logique | La conception dit quand les garder, et montre le cas contraire. |
+| Quels seuils tenir ? | 4,5:1 pour le texte, 3:1 pour le non-texte, désactivé exclu | Tables de paires à ces seuils. |
+| Quel outil ? | L'échelle imposée dans UCM Palettes, sous réserve | La conception décrit l'activation, la désactivation, l'interface écran par écran, les répercussions et le thème Dark. |
+| Que deviennent les égalités entre primitives ? | Recalculer ensemble, et le dire au lead UX | Deux primitives égales reçoivent le même calcul. |
+| Que faire des accents ? | À concevoir avec le thème Dark | Le client n'a pas de rampe Dark par palette : les accents en tiennent lieu. |
+| La marque E ? | Un modèle d'attente | Elle sort des mesures et des exemples. |
+| Que promettent les marqueurs `-[light]` et `-[dark]` ? | Pas clair | La conception propose un modèle qui dit sans ambiguïté le texte attendu sur chaque nuance, sans casser les noms ni les alias en place. |
+| Quels gestes Figma après l'écriture ? | Ouvrir Palettes dans le fichier des primitives, publier, accepter la mise à jour | Ces trois gestes entrent dans le parcours du designer. |
+| Une reprise de toute la collection ? | Une à une suffit | Aucun geste de reprise groupée. |
+
+Avant tout changement de la bibliothèque des primitives ou de celle des marques, une preuve de concept se montre au lead UX. Le mainteneur valide d'abord la solution, sur le plan visuel et sur le plan du concept. Le plan [PLAN-P28.md](./PLAN-P28.md) porte ces étapes.
+
 ## Questions au mainteneur
 
-| Question | Options | Recommandation |
-|---|---|---|
-| Le fichier des primitives est-il la bibliothèque que le fichier client consomme ? | Oui, une bibliothèque publiée ; non, une copie | Oui, selon les deux exports fournis : la reprise écrit dans le fichier des primitives |
-| Quel cran porte la couleur de marque de chaque primitive ? | Cran de chroma maximale ; cran que vise `main` dans la marque qui l'emploie ; choix du lead UX | Proposer le cran de chroma maximale, faire choisir le lead UX |
-| Quelle courbe pour les clairs ? | Courbe d'UCM ; courbe lissée, 50 et ancrage gardés ; actuelle | Courbe lissée |
-| Les crans plus foncés que l'ancrage changent-ils ? | Gardés ; recalculés | Gardés : pleins et textes validés ne bougent pas |
-| Quels seuils tenir ? | 4,5 pour le texte et 3 pour le non-texte, état désactivé exclu ; AAA | 4,5 et 3, désactivé exclu comme le permet WCAG |
-| Quel outil ? | Script hors plugin ; échelle imposée dans UCM Palettes ; mode MUI complet | Échelle imposée, le prototype local servant au choix du lead UX |
-| Que deviennent les égalités entre primitives ? | Recalculer ensemble la palette 13 et le second gris ; les séparer ; signaler seulement | Les recalculer ensemble, et le dire au lead UX |
-| Que faire des accents ? | Hors du calcul ; recalculés sur la courbe Dark du moteur | Hors du calcul : deux palettes ont des accents désordonnés, et une a des accents tous clairs |
-| La marque E est-elle une marque livrée ? | Marque livrée ; modèle de démonstration | À demander au lead UX : sa palette secondaire répète une couleur sur 8 crans et n'égale aucune primitive |
-| Que promettent les marqueurs ? | `-[light]` porte un texte blanc et `-[dark]` se lit sur fond sombre ; autre convention | Faire confirmer la lecture de la section 3.2 par le lead UX |
-| Quels gestes Figma après l'écriture ? | Ouvrir Palettes dans le fichier des primitives, publier, accepter la mise à jour ; autre circuit | À discuter : aucun geste manuel ne se conçoit sans toi |
-| Une reprise de toute une collection ? | Un geste pour les 19 palettes ; 19 reprises une à une | Un geste, à discuter |
+Aucune question ouverte. La note de conception de l’étape 1 du plan pose les suivantes.
