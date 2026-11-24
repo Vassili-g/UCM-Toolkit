@@ -272,6 +272,8 @@ export const TEXTES = {
   memeAxe: (apres: string, autre: string): string => `\`${apres}\` et \`${autre}\` donneraient le même nom dans l’export des tokens : les modes de ces deux collections ne pourraient plus être générés. Gardez un nom différent pour l’une des deux.`,
   /** `autre` aurait le nom que l'export réserve aux extensions de `apres`. */
   axeEtExtensions: (apres: string, autre: string): string => `\`${autre}\` aurait le nom que l’export des tokens réserve aux collections étendues de \`${apres}\` : les extensions de \`${apres}\` ne pourraient plus être générées. Gardez un nom différent pour l’une des deux.`,
+  /** Deux chemins distincts qui donnent la même variable CSS ; `apres` et `autre` portent leur collection. */
+  memeNomCss: (apres: string, autre: string): string => `\`${apres}\` et \`${autre}\` donneraient la même variable CSS dans le code : la feuille des tokens ne pourrait plus être générée. Renommez l’une des deux dans Figma.`,
   nomsProteges: (nombre: number): string => (nombre === 1 ? '1 nom écrit par UCM Palettes' : `${nombre} noms écrits par UCM Palettes`),
   /** La ligne du nombre d'une cause de protection. */
   variablesNonVerifiees: (nombre: number): string => (nombre === 1 ? '1 variable de couleur non vérifiée' : `${nombre} variables de couleur non vérifiées`),

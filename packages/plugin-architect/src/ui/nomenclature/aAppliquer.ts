@@ -706,7 +706,7 @@ export function monterAAppliquer(coquille: Coquille, { appartient }: OptionsDeCo
       const explication = document.createElement('span');
       explication.className = 'meta';
       poserLeTexte(explication, bloque.chemin
-        ? { 'meme-token': TEXTES.memeToken, 'token-et-groupe': TEXTES.tokenEtGroupe, 'meme-axe': TEXTES.memeAxe, 'axe-et-extensions': TEXTES.axeEtExtensions }[bloque.chemin.motif](bloque.chemin.apres, bloque.chemin.autre)
+        ? { 'meme-token': TEXTES.memeToken, 'token-et-groupe': TEXTES.tokenEtGroupe, 'meme-axe': TEXTES.memeAxe, 'axe-et-extensions': TEXTES.axeEtExtensions, 'meme-nom-css': TEXTES.memeNomCss }[bloque.chemin.motif](bloque.chemin.apres, bloque.chemin.autre)
         : TEXTES.nomBloque(bloque.collection, bloque.apres));
       pile.append(fabriquerChange(bloque.avant, bloque.apres, 0), explication);
       info.append(pile, fabriquerPastille('bloque'));

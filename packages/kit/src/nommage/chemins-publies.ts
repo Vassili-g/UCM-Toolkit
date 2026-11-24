@@ -2,7 +2,8 @@
  * Les chemins que l'export de tokens donne aux variables. UCM Exporter garde le premier de deux tokens de même chemin
  * et écarte un token dont le chemin est le groupe d'un autre : un renommage qui crée l'un de ces cas fait disparaître
  * un token de `tokens.json`. Le contrôle des noms Figma exacts ne les voit pas (`bg/primary` et `Background/primary`
- * ont deux noms et un chemin).
+ * ont deux noms et un chemin). Il refuse aussi deux chemins distincts qui donnent la même variable CSS (`button/bg hover` et
+ * `button/bg/hover`) : `ucm tokens css` refuse alors toute la feuille.
  *
  * Le module est pur : il lit un inventaire et des renommages, et ne touche à aucun objet Figma. UCM Architect et
  * UCM Palettes contrôlent leurs noms par lui.
@@ -14,6 +15,7 @@
  */
 import { deciderAxesDesCollections, type ConflitDAxes as ConflitDAxesDe } from '../format/axes-de-collections.js';
 import { joinTokenPath } from '../format/chemins-de-tokens.js';
+import { tokenCssVariable } from '../format/names.js';
 import type { Collision } from '../referentiel/harmonisation.js';
 import type { EntreeInventaire, Inventaire } from './inventaire.js';
 
@@ -22,9 +24,10 @@ import type { EntreeInventaire, Inventaire } from './inventaire.js';
  * - `meme-token` : deux variables donneraient le même chemin ;
  * - `token-et-groupe` : un token serait aussi le groupe d'un autre ;
  * - `meme-axe` : deux collections à modes donneraient la même clé d'axe, et l'export écarte les deux axes ;
- * - `axe-et-extensions` : le nom d'une collection serait celui que l'export réserve aux extensions d'une autre collection.
+ * - `axe-et-extensions` : le nom d'une collection serait celui que l'export réserve aux extensions d'une autre collection ;
+ * - `meme-nom-css` : deux chemins distincts donneraient la même variable CSS (`tokenCssVariable`), et `ucm tokens css` refuse alors toute la feuille.
  */
-export type MotifDeChemin = 'meme-token' | 'token-et-groupe' | 'meme-axe' | 'axe-et-extensions';
+export type MotifDeChemin = 'meme-token' | 'token-et-groupe' | 'meme-axe' | 'axe-et-extensions' | 'meme-nom-css';
 
 /**
  * Une collection de l'inventaire publié. Les modes et les extensions ne sont là que si l'adaptateur les lit ; sans eux, la
@@ -80,18 +83,24 @@ export function inventairePublie(inventaire: Inventaire, cle: (entree: EntreeInv
   return { collections, variables };
 }
 
-/** Deux chemins en conflit : égaux, ou l'un est le groupe de l'autre. Un chemin vide ne se publie pas. */
-const enConflit = (a: string, b: string): boolean => a !== '' && b !== '' && (a === b || a.startsWith(`${b}.`) || b.startsWith(`${a}.`));
+/** Deux chemins en conflit : égaux, l'un est le groupe de l'autre, ou ils donnent la même variable CSS. Un chemin vide ne se publie pas. */
+const enConflit = (a: string, b: string): boolean => a !== '' && b !== '' && (a === b || a.startsWith(`${b}.`) || b.startsWith(`${a}.`) || tokenCssVariable(a) === tokenCssVariable(b));
 
 /** Deux variables, désignées par leur identifiant dans l'inventaire publié, dont les chemins sont en conflit. L'ordre est sans effet. */
 export type PaireEnConflit = readonly [string, string];
 const clePaire = (a: string, b: string): string => (a < b ? JSON.stringify([a, b]) : JSON.stringify([b, a]));
 
 /** Un chemin vers ses variables, et chaque groupe d'un chemin vers les variables qu'il contient. */
-interface IndexDeChemins { readonly parChemin: Map<string, VariablePubliee[]>; readonly parGroupe: Map<string, VariablePubliee[]> }
+interface IndexDeChemins {
+  readonly parChemin: Map<string, VariablePubliee[]>;
+  readonly parGroupe: Map<string, VariablePubliee[]>;
+  /** Le nom CSS de chaque chemin vers ses variables : deux chemins distincts sous un même nom sont une collision de la feuille. */
+  readonly parNomCss: Map<string, VariablePubliee[]>;
+}
 function indexerLesChemins(variables: readonly VariablePubliee[], cheminDe: (variable: VariablePubliee) => string): IndexDeChemins {
   const parChemin = new Map<string, VariablePubliee[]>();
   const parGroupe = new Map<string, VariablePubliee[]>();
+  const parNomCss = new Map<string, VariablePubliee[]>();
   const ajouter = (index: Map<string, VariablePubliee[]>, cle: string, variable: VariablePubliee): void => {
     const liste = index.get(cle);
     if (liste) liste.push(variable); else index.set(cle, [variable]);
@@ -100,9 +109,10 @@ function indexerLesChemins(variables: readonly VariablePubliee[], cheminDe: (var
     const chemin = cheminDe(variable);
     if (chemin === '') continue;
     ajouter(parChemin, chemin, variable);
+    ajouter(parNomCss, tokenCssVariable(chemin), variable);
     for (let point = chemin.indexOf('.'); point !== -1; point = chemin.indexOf('.', point + 1)) ajouter(parGroupe, chemin.slice(0, point), variable);
   }
-  return { parChemin, parGroupe };
+  return { parChemin, parGroupe, parNomCss };
 }
 
 /** Un axe de modes tel que l'export de tokens le retient : sa clé est le préfixe de sa collection, et `extensions` dit s'il garde les siennes. */
@@ -154,13 +164,13 @@ export function cheminsEnConflit(inventaire: InventairePublie, renommages: Reado
 export function pairesDejaEnConflit(inventaire: InventairePublie, touches: ReadonlySet<string>): PaireEnConflit[] {
   const nomsDesCollections = new Map(inventaire.collections.map((collection) => [collection.id, collection.nom]));
   const chemins = new Map(inventaire.variables.map((variable) => [variable.id, joinTokenPath(nomsDesCollections.get(variable.collection) ?? '', variable.nom)]));
-  const { parChemin, parGroupe } = indexerLesChemins(inventaire.variables, (variable) => chemins.get(variable.id)!);
+  const { parChemin, parGroupe, parNomCss } = indexerLesChemins(inventaire.variables, (variable) => chemins.get(variable.id)!);
   const paires = new Map<string, PaireEnConflit>();
   for (const variable of inventaire.variables) {
     if (!touches.has(variable.id) && !touches.has(variable.collection)) continue;
     const chemin = chemins.get(variable.id)!;
     if (chemin === '') continue;
-    const autres: VariablePubliee[] = [...(parChemin.get(chemin) ?? []), ...(parGroupe.get(chemin) ?? [])];
+    const autres: VariablePubliee[] = [...(parChemin.get(chemin) ?? []), ...(parGroupe.get(chemin) ?? []), ...(parNomCss.get(tokenCssVariable(chemin)) ?? [])];
     for (let point = chemin.indexOf('.'); point !== -1; point = chemin.indexOf('.', point + 1)) autres.push(...(parChemin.get(chemin.slice(0, point)) ?? []));
     for (const autre of autres) {
       if (autre.id === variable.id) continue;
@@ -187,7 +197,7 @@ function unTour(
   for (const variable of inventaire.variables) {
     apres.set(variable.id, touche(variable) ? joinTokenPath(nomDeCollection(variable.collection), nomDeVariable(variable)) : avant.get(variable.id)!);
   }
-  const { parChemin, parGroupe } = indexerLesChemins(inventaire.variables, (variable) => apres.get(variable.id)!);
+  const { parChemin, parGroupe, parNomCss } = indexerLesChemins(inventaire.variables, (variable) => apres.get(variable.id)!);
 
   /** Le premier objet dont le chemin entre en conflit avec `chemin` sans que les deux l'aient été avant. */
   const nouveauConflit = (variable: VariablePubliee, chemin: string): { readonly motif: MotifDeChemin; readonly apres: VariablePubliee; readonly autre: VariablePubliee } | undefined => {
@@ -198,6 +208,7 @@ function unTour(
       for (const groupe of parChemin.get(chemin.slice(0, point)) ?? []) if (nouveau(groupe)) return { motif: 'token-et-groupe', apres: groupe, autre: variable };
     }
     for (const contenu of parGroupe.get(chemin) ?? []) if (nouveau(contenu)) return { motif: 'token-et-groupe', apres: variable, autre: contenu };
+    for (const memeNom of parNomCss.get(tokenCssVariable(chemin)) ?? []) if (nouveau(memeNom)) return { motif: 'meme-nom-css', apres: variable, autre: memeNom };
     return undefined;
   };
 

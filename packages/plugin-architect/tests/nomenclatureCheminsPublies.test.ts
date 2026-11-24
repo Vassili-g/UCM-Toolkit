@@ -363,3 +363,22 @@ test('N02 : les textes des axes disent la conséquence à l’export et nomment 
   assert.equal(TEXTES.axeEtExtensions('Brand', 'Brand extensions'),
     '`Brand extensions` aurait le nom que l’export des tokens réserve aux collections étendues de `Brand` : les extensions de `Brand` ne pourraient plus être générées. Gardez un nom différent pour l’une des deux.');
 });
+
+test('C4 : un renommage qui donne la même variable CSS qu’une autre est bloqué, et l’écran le dit', async () => {
+  const s = session([['c', 'Components']], [['v1', 'button/background/hover'], ['v2', 'button/bg hover']]);
+  await s.envoyer({ type: 'noms-analyser' });
+  await s.geste(ecritureInchangee);
+  await s.geste({ type: 'remplacer-par', terme: 'bg', par: 'background' });
+  const [bloque] = s.bilan().bloques;
+  assert.equal(bloque?.avant, 'button/bg hover');
+  assert.equal(bloque?.chemin?.motif, 'meme-nom-css');
+  assert.equal(
+    TEXTES.memeNomCss(bloque!.chemin!.apres, bloque!.chemin!.autre),
+    `\`${bloque!.chemin!.apres}\` et \`${bloque!.chemin!.autre}\` donneraient la même variable CSS dans le code : la feuille des tokens ne pourrait plus être générée. Renommez l’une des deux dans Figma.`,
+  );
+});
+
+test('C4 : le texte memeNomCss dit la conséquence à la feuille des tokens et nomme les deux variables', () => {
+  assert.equal(TEXTES.memeNomCss('Components/button/bg hover', 'Components/button/bg/hover'),
+    '`Components/button/bg hover` et `Components/button/bg/hover` donneraient la même variable CSS dans le code : la feuille des tokens ne pourrait plus être générée. Renommez l’une des deux dans Figma.');
+});

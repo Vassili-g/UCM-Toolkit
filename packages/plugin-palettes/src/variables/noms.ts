@@ -5,7 +5,7 @@
  * variable écrite ici s'exporte sans surprise par UCM Exporter. Pur.
  */
 import type { Palette, Recette } from 'ucm-couleur';
-import { cheminCitable } from '@ucm-kit/core/format';
+import { cheminCitable, tokenCssVariable } from '@ucm-kit/core/format';
 
 /** Deux noms de Figma désignent la même variable quand ils ne diffèrent que par la casse : Figma ne distingue pas `Grass` de `grass` dans une collection. */
 export function memeNomFigma(a: string, b: string): boolean {
@@ -34,17 +34,18 @@ export interface SegmentDePalette {
  * Le segment de chaque palette de la recette, par identifiant. Une palette
  * sans nom, ou dont le nom ne laisse rien, prend son identifiant. Deux
  * palettes au même segment : la seconde, dans l'ordre de la recette, prend
- * son identifiant en suffixe.
+ * son identifiant en suffixe. « Au même segment » se juge sur le nom CSS du
+ * segment (`tokenCssVariable`), la projection que lit la feuille des tokens.
  */
 export function segmentsDesPalettes(recette: Pick<Recette, 'palettes'>): Map<string, SegmentDePalette> {
   const pris = new Set<string>();
   const segments = new Map<string, SegmentDePalette>();
   for (const palette of recette.palettes) {
     const propre = segmentDuNom(palette.nom ?? '') || palette.id;
-    // Deux noms qui ne diffèrent que par la casse se rejoignent à l'export : ils comptent pour le même segment.
-    const suffixe = pris.has(propre.toLowerCase());
+    // Deux noms qui donnent le même nom CSS (casse, accents, `_` ou espace) se rejoignent dans `tokens.css`, que `ucm tokens css` refuse alors en entier : ils comptent pour le même segment.
+    const suffixe = pris.has(tokenCssVariable(propre));
     const segment = suffixe ? `${propre}-${palette.id}` : propre;
-    pris.add(segment.toLowerCase());
+    pris.add(tokenCssVariable(segment));
     segments.set(palette.id, { segment, suffixe });
   }
   return segments;
