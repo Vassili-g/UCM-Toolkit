@@ -3,7 +3,8 @@
  * écrit à la main dérive.
  */
 import assert from "node:assert/strict";
-import { readFileSync, readdirSync } from "node:fs";
+import { readFileSync, readdirSync, mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
+import { tmpdir } from "node:os";
 import { dirname, join, relative, sep } from "node:path";
 import test from "node:test";
 import { fileURLToPath } from "node:url";
@@ -25,7 +26,7 @@ const RECETTE = "docs/guides/RECETTE.md";
 function documents(dossier = racine) {
   const trouves = [];
   for (const entree of readdirSync(dossier, { withFileTypes: true })) {
-    if (entree.name === "node_modules" || entree.name === ".git") continue;
+    if (entree.name === "node_modules" || entree.name === ".git" || entree.name === "_local") continue;
     const complet = join(dossier, entree.name);
     if (entree.isDirectory()) trouves.push(...documents(complet));
     else if (entree.name.endsWith(".md")) trouves.push(complet);
@@ -37,6 +38,20 @@ function versionDe(paquet) {
   const dossier = paquet === "@ucm-kit/cli" ? "cli" : "adapter-typescript";
   return JSON.parse(readFileSync(join(racine, "packages", dossier, "package.json"), "utf8")).version;
 }
+
+test("les notes de travail locales ne sont pas des commandes publiées", () => {
+  const dossier = mkdtempSync(join(tmpdir(), "ucm-pins-"));
+  try {
+    mkdirSync(join(dossier, "_local"));
+    mkdirSync(join(dossier, "paquet", "_local"), { recursive: true });
+    writeFileSync(join(dossier, "README.md"), "Une commande publiée.\n");
+    writeFileSync(join(dossier, "_local", "note.md"), "Un pin ancien.\n");
+    writeFileSync(join(dossier, "paquet", "_local", "note.md"), "Un autre pin ancien.\n");
+    assert.deepEqual(documents(dossier), [join(dossier, "README.md")]);
+  } finally {
+    rmSync(dossier, { recursive: true, force: true });
+  }
+});
 
 test("chaque pin montré par la documentation est celui que ce dépôt porte", () => {
   const attendues = new Map(PAQUETS.map((paquet) => [paquet, versionDe(paquet)]));
