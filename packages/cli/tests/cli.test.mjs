@@ -199,7 +199,7 @@ test("init lance la CLI installée de la stack déclarée, et épingle celle du 
 
     assert.ok(resultat.ecrits.includes(WORKFLOW_GITHUB));
     assert.match(workflow, /node node_modules\/@ucm-kit\/cli\/src\/ucm\.mjs "\$@"/);
-    assert.match(workflow, /if \[ -f package\.json \]; then/);
+    assert.match(workflow, /if \[ -f node_modules\/@ucm-kit\/cli\/src\/ucm\.mjs \]; then/);
     assert.ok(workflow.includes(`npx --yes @ucm-kit/cli@${resultat.version} "$@"`), "le dossier sans stack Node garde le contrôle portable, sur la version écrite");
     assert.doesNotMatch(workflow, /\^|~/, "aucune plage de version");
     assert.match(workflow, /if: hashFiles\('package-lock\.json'\) != ''/);
@@ -208,6 +208,59 @@ test("init lance la CLI installée de la stack déclarée, et épingle celle du 
     assert.match(workflow, /BASE_SHA: \$\{\{ github\.event\.pull_request\.base\.sha \}\}/);
     assert.match(workflow, /--base "\$BASE_SHA"/);
     assert.match(workflow, /fetch-depth: 0/);
+  } finally {
+    rmSync(racine, { recursive: true, force: true });
+  }
+});
+
+/**
+ * Le lancement s'exécute dans un dossier réel, avec un `node` et un `npx` qui se
+ * contentent de dire ce qu'on leur demande : seule la présence de la CLI
+ * installée choisit, jamais celle de `package.json`. Un repository yarn ou pnpm
+ * a un `package.json` sans `package-lock.json`, donc sans CLI installée.
+ */
+function lancementDuWorkflow(texte) {
+  const lignes = texte.split("\n");
+  const debut = lignes.findIndex((ligne) => ligne.trim() === "ucm() {");
+  assert.notEqual(debut, -1, "le workflow définit la fonction ucm");
+  const marge = lignes[debut].length - lignes[debut].trimStart().length;
+  const fin = lignes.findIndex((ligne, i) => i > debut && ligne.trim() === "}" && ligne.length - ligne.trimStart().length === marge);
+  return lignes.slice(debut, fin + 1).map((ligne) => ligne.slice(marge)).join("\n");
+}
+
+function lancerUcm(fonction, { cliInstallee, packageJson }) {
+  const dossier = repoVierge();
+  try {
+    if (packageJson) writeFileSync(join(dossier, "package.json"), "{}");
+    if (cliInstallee) {
+      mkdirSync(join(dossier, "node_modules/@ucm-kit/cli/src"), { recursive: true });
+      writeFileSync(join(dossier, "node_modules/@ucm-kit/cli/src/ucm.mjs"), "");
+    }
+    const script = `node() { echo "node $*"; }
+npx() { echo "npx $*"; }
+${fonction}
+ucm check`;
+    return execFileSync("sh", ["-c", script], { cwd: dossier, encoding: "utf8" }).trim();
+  } finally {
+    rmSync(dossier, { recursive: true, force: true });
+  }
+}
+
+test("le lancement du contrôle suit la CLI installée, pour GitHub comme pour GitLab", () => {
+  const racine = repoVierge();
+  try {
+    const resultat = init(racine, { sansAgents: true });
+    const github = lancementDuWorkflow(readFileSync(join(racine, WORKFLOW_GITHUB), "utf8"));
+    rmSync(join(racine, ".github"), { recursive: true, force: true });
+    init(racine, { sansAgents: true, git: () => "git@gitlab.com:g/p.git" });
+    const gitlab = lancementDuWorkflow(readFileSync(join(racine, ".gitlab/ucm.gitlab-ci.yml"), "utf8"));
+    const repli = `npx --yes @ucm-kit/cli@${resultat.version} check`;
+
+    for (const fonction of [github, gitlab]) {
+      assert.equal(lancerUcm(fonction, { packageJson: true, cliInstallee: false }), repli, "package.json sans lockfile : aucune CLI installée, repli épinglé");
+      assert.equal(lancerUcm(fonction, { packageJson: false, cliInstallee: false }), repli, "sans package.json : repli épinglé");
+      assert.equal(lancerUcm(fonction, { packageJson: true, cliInstallee: true }), "node node_modules/@ucm-kit/cli/src/ucm.mjs check", "package.json avec lockfile : CLI installée");
+    }
   } finally {
     rmSync(racine, { recursive: true, force: true });
   }

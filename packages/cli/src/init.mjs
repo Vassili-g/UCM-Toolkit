@@ -394,13 +394,14 @@ function lignesRestantes(racine, version, configuration) {
 }
 
 /**
- * Un repository Node utilise sa CLI installée ; un dossier sans stack Node garde le contrôle portable par npm,
- * sur la version que `init` a écrite : un `npx` sans numéro prendrait la dernière publiée, que personne n'a essayée.
+ * Le repository qui a installé la CLI (`npm ci` sur un `package-lock.json`) l'exécute ; sans elle, même avec un
+ * `package.json` (yarn, pnpm), le contrôle reste portable par npm, sur la version que `init` a écrite :
+ * un `npx` sans numéro prendrait la dernière publiée, que personne n'a essayée.
  */
 function lancementUcm(marge, version) {
   return [
     'ucm() {',
-    '  if [ -f package.json ]; then',
+    '  if [ -f node_modules/@ucm-kit/cli/src/ucm.mjs ]; then',
     '    node node_modules/@ucm-kit/cli/src/ucm.mjs "$@"',
     '  else',
     `    npx --yes @ucm-kit/cli@${version} "$@"`,
