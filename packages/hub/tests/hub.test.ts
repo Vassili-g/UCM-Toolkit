@@ -77,7 +77,7 @@ test('le hub lit une recette exportée et refuse un texte qui n’en est pas une
 test('la page commitée est à jour', () => {
   const attendu = genererHub();
   const commite = sansRetourChariot(readFileSync(CHEMIN_DU_HUB, 'utf8'));
-  assert.ok(commite === attendu, "La vue n'est plus à jour. Lancez `npm run vues`.");
+  assert.ok(commite === attendu, "La vue n'est plus à jour. Lancez `npm --prefix packages/hub run hub` après `npm run build --workspace @ucm-kit/core`.");
 });
 
 test('le hub est autonome et tient sous 1 Mo', () => {

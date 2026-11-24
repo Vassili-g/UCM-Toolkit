@@ -2,7 +2,8 @@
  * Génère `HUB-UCM.html` : la page embarque le moteur et le référentiel du kit,
  * compilés par esbuild, et rejoue les rampes à chaque réglage. Elle ne charge
  * aucune ressource et s'ouvre par un double clic. Le kit se lit compilé
- * (`packages/kit/dist`) : `npm run vues` le reconstruit d'abord.
+ * (`packages/kit/dist`) : le reconstruire d'abord. Le hub est sorti du workspace et
+ * de `npm run vues` : `npm --prefix packages/hub run hub` réécrit la page.
  * `genererHub` est pure ; seul le lancement direct du script écrit le fichier.
  */
 import { readFileSync, writeFileSync } from 'node:fs';
