@@ -15,18 +15,19 @@ export const EXTENSIONS_LUES = Object.freeze([".ts", ".tsx"]);
 
 /**
  * Propriétés de style qui reçoivent un nombre sans `px`, recopiées de
- * `isUnitlessNumber` dans `react-dom` 18.3.1
- * (`cjs/react-dom.development.js`). React y ajoute les quatre préfixes
- * fournisseur de chacune ; la boucle qui suit fait de même. Seule copie du
- * dépôt.
+ * `unitlessNumbers` dans `react-dom` 19.1.10
+ * (`cjs/react-dom-client.development.js`), sans les variantes préfixées que
+ * React 19 énumère. La boucle qui suit ajoute les quatre préfixes fournisseur
+ * à chaque nom. Seule copie du dépôt ; `usages.test.mjs` (W3) la compare au
+ * `react-dom` installé.
  */
-const PROPRIETES_SANS_UNITE_DE_REACT = [
+export const PROPRIETES_SANS_UNITE_DE_REACT = [
   "animationIterationCount", "aspectRatio", "borderImageOutset", "borderImageSlice",
   "borderImageWidth", "boxFlex", "boxFlexGroup", "boxOrdinalGroup", "columnCount",
   "columns", "flex", "flexGrow", "flexPositive", "flexShrink", "flexNegative",
   "flexOrder", "gridArea", "gridRow", "gridRowEnd", "gridRowSpan", "gridRowStart",
   "gridColumn", "gridColumnEnd", "gridColumnSpan", "gridColumnStart", "fontWeight",
-  "lineClamp", "lineHeight", "opacity", "order", "orphans", "tabSize", "widows",
+  "lineClamp", "lineHeight", "opacity", "order", "orphans", "scale", "tabSize", "widows",
   "zIndex", "zoom", "fillOpacity", "floodOpacity", "stopOpacity", "strokeDasharray",
   "strokeDashoffset", "strokeMiterlimit", "strokeOpacity", "strokeWidth",
 ];

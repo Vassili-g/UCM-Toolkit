@@ -15,7 +15,7 @@ npm install @ucm-kit/core@0.17.4
 
 Most repositories never call this package directly. They run
 [`@ucm-kit/cli`](https://www.npmjs.com/package/@ucm-kit/cli), which calls it for
-them. Install it to run the checks from your own code. Requires Node 20 or
+them. Install it to run the checks from your own code. Requires Node 22 or
 later for `@ucm-kit/core/lecteurs`.
 
 ## Validate a contract

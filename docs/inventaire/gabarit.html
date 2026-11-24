@@ -178,8 +178,7 @@
     <tr><th>Paquet</th><th>Rôle</th><th>Distribution</th></tr>
     <tr><td><b>Kit</b></td><td>Format, référentiel, contrôles, <a class="terme" href="#g-lecteur" title="Une fonction du kit qui lit un contrat ou tokens.json et rend un bilan. La CLI s'en sert dans le CI.">lecteurs</a>. Tous les outils en dépendent. {{entrees:Mot}} <a class="terme" href="#g-entree" title="Un chemin d'import du kit, comme @ucm-kit/core/lecteurs.">points d'entrée</a>, listés en annexe.</td><td>npm {{version:kit}}</td></tr>
     <tr><td><b>Socle</b></td><td>Code partagé des plugins : build, langage visuel, galerie, moteur d'extraction</td><td>privé, en source</td></tr>
-    <tr><td><b>Moteur de couleur</b></td><td>Rampes, contrastes, garanties, harmonisation. Sans Figma ni DOM. Lu par Palettes, Architect, Hub.</td><td>privé</td></tr>
-    <tr><td><b>Hub UCM</b></td><td>Page locale des sorties du kit et du moteur, <span class="etat partiel">partiel</span>. Storybook la remplacera (<a href="#piste-P9">P9</a>).</td><td>privé</td></tr>
+    <tr><td><b>Moteur de couleur</b></td><td>Rampes, contrastes, garanties, harmonisation. Sans Figma ni DOM. Lu par Palettes et Architect.</td><td>privé</td></tr>
   </table></div>
 </section>
 
@@ -347,7 +346,7 @@
   <!-- A1. Panneau des variables : REFERENCE (referencePourLePanneau, releves.ts : architecture.ts, dossiers.ts, garanties.ts) et DONNEES (donneesDesPalettes : palettes de démonstration du hub, carte Dark). Modèle : « Le panneau des variables » de docs/notes/Recherches/Archi Tokens Multi-marques/VUE-ILLUSTREE-MULTIMARQUES.html. -->
   <h3>Le panneau des variables</h3>
   <p class="defini">Défini dans <code>packages/kit/src/referentiel/architecture.ts</code> et <code>packages/kit/src/emplois/dossiers.ts</code>.</p>
-  <p class="intro">Le panneau reprend celui des variables de Figma : une collection par entrée du menu, une colonne par mode, et dans chaque cellule l'alias visé et sa couleur. Le survol d'un alias donne la primitive qu'il vise à son tour. Les trois choix valent pour toutes les collections. Les couleurs viennent du moteur du dépôt, pour les six palettes de démonstration du Hub au préréglage Tailwind.</p>
+  <p class="intro">Le panneau reprend celui des variables de Figma : une collection par entrée du menu, une colonne par mode, et dans chaque cellule l'alias visé et sa couleur. Le survol d'un alias donne la primitive qu'il vise à son tour. Les trois choix valent pour toutes les collections. Les couleurs viennent du moteur du dépôt, pour les six palettes de démonstration au préréglage Tailwind.</p>
   <div class="choix-theme">
     <label>Palette <select id="choix-palette"></select></label>
     <label>Intensité <select id="choix-intensite"></select></label>
@@ -812,7 +811,6 @@
       <tr><td>Adaptateur TypeScript</td><td class="n">{{tests:adapter-typescript}}</td></tr>
       <tr><td>Kit</td><td class="n">{{tests:kit}}</td></tr>
       <tr><td>Moteur de couleur</td><td class="n">{{tests:couleur}}</td></tr>
-      <tr><td>Hub UCM</td><td class="n">{{tests:hub}}</td></tr>
     </table></div>
   </div></details>
 

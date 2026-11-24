@@ -10,7 +10,7 @@
     "directory": "packages/adapter-typescript"
   },
   "engines": {
-    "node": ">=20"
+    "node": ">=22"
   },
   "publishConfig": {
     "access": "public"
@@ -42,5 +42,8 @@
   "dependencies": {
     "@ucm-kit/core": "0.17.4",
     "typescript": ">=5.5.0 <6"
+  },
+  "devDependencies": {
+    "react-dom": "19.1.10"
   }
 }

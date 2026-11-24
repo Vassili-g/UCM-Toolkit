@@ -110,7 +110,7 @@ function annexes(): string {
 
   return `<!-- Un pli par élément visuel, lu dans le dépôt par releves.ts : signesEtAlertes (kit : signes.ts, svgDuSigne ; socle : Alerte.ts), signauxDuLangage (kit : signaux.ts), iconesDuContratDeRecette (fixture Button 13.0), marque, references, outillage (docs/marque/, docs/references/, .agents/skills/, .claude/agents/, package.json, .github/workflows/). -->
   <details class="pli" id="annexe-icones"><summary>Jeu d'icônes UCM <span class="doux">${nombreDeSignes} icônes en ${familles.length} familles</span></summary><div class="contenu">
-    <p>Le jeu d'icônes que les trois plugins et le Hub dessinent dans leur interface : types de variables, usages, objets Figma, rubriques, verdicts, pictogrammes de Palettes et interface. Le kit porte le tracé, le libellé et l'emploi de chaque signe, et un tracé appartient à un seul signe. Le socle les dessine en 14, 16 ou 24 px. Le dépôt n'en fournit aucun à une application.</p>
+    <p>Le jeu d'icônes que les trois plugins dessinent dans leur interface dans leur interface : types de variables, usages, objets Figma, rubriques, verdicts, pictogrammes de Palettes et interface. Le kit porte le tracé, le libellé et l'emploi de chaque signe, et un tracé appartient à un seul signe. Le socle les dessine en 14, 16 ou 24 px. Le dépôt n'en fournit aucun à une application.</p>
     <p class="defini">Défini dans <code>packages/kit/src/referentiel/signes.ts</code> et dessiné par <code>packages/plugin-socle/src/ui/Signe.ts</code>. La planche <code>packages/plugin-socle/galerie/planche/</code> montre tous les signes.</p>
     ${famillesHtml}
   </div></details>
@@ -447,7 +447,7 @@ async function couvertureDeLaPage(page: string, employes: ReadonlySet<string>): 
   }
   const entrees = (await releves.pointsDEntree()).map(({ entree }) => entree);
   univers["points d'entrée du kit"] = { attendus: entrees, montres: entrees.filter((entree) => employes.has(`export:${entree}`)), aCompleter: "l'annexe « Les points d'entrée du kit » de docs/inventaire/gabarit.html, ou docs/inventaire/couverture.ts" };
-  const paquets = releves.dossiersDe('packages');
+  const paquets = releves.dossiersDesWorkspaces();
   univers.paquets = { attendus: paquets, montres: paquets.filter((dossier) => employes.has(`tests:${dossier}`)), aCompleter: 'PAQUETS dans docs/inventaire/releves.ts et le gabarit, ou docs/inventaire/couverture.ts' };
   const dossiersDeDocs = releves.dossiersDe('docs');
   univers['dossiers de docs/'] = { attendus: dossiersDeDocs, montres: dossiersDeDocs.filter((dossier) => page.includes(`docs/${dossier}`)), aCompleter: 'la section qui montre ce dossier dans docs/inventaire/gabarit.html, ou docs/inventaire/couverture.ts' };

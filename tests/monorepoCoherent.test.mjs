@@ -24,19 +24,20 @@
  */
 import assert from "node:assert/strict";
 import { createRequire } from "node:module";
-import { readFileSync, readdirSync, realpathSync } from "node:fs";
+import { execFileSync } from "node:child_process";
+import { readFileSync, realpathSync } from "node:fs";
 import { dirname, join, resolve } from "node:path";
 import test from "node:test";
-import { fileURLToPath } from "node:url";
+import { fileURLToPath, pathToFileURL } from "node:url";
 
 const racine = join(dirname(fileURLToPath(import.meta.url)), "..");
 const kit = realpathSync(join(racine, "packages", "kit"));
 
-/** Les workspaces de ce dépôt, lus au lieu d'être énumérés. */
+/** Les workspaces de ce dépôt, lus dans `package.json` : le hub n'en fait plus partie. */
+const WORKSPACES = JSON.parse(readFileSync(join(racine, "package.json"), "utf8")).workspaces;
+
 function paquets() {
-  return readdirSync(join(racine, "packages"), { withFileTypes: true })
-    .filter((entree) => entree.isDirectory())
-    .map((entree) => entree.name);
+  return WORKSPACES.map((chemin) => chemin.replace(/^packages\//, ""));
 }
 
 test("chaque paquet qui déclare le kit résout la source de ce dépôt", () => {
@@ -96,5 +97,44 @@ test("un paquet publié épingle la version du kit que ce dépôt porte", () => 
       `packages/${nom} épingle @ucm-kit/core ${pin}, et ce dépôt porte ${versionDuKit}. `
         + `Un paquet publié garde un pin exact ; il doit donc monter avec le kit.`,
     );
+  }
+});
+
+/** Le dossier de recherche du hub mesure ses données sur son modèle ; il suit le hub, abandonné pour Storybook, jusqu'à leur archivage. */
+const RECHERCHE_DU_HUB = "docs/notes/Recherches/Hub UCM/";
+
+test("W1 les workspaces ne listent pas le hub, et aucun fichier hors de lui ne l'importe", () => {
+  assert.ok(WORKSPACES.length >= 8, "aucun workspace lu dans package.json");
+  assert.ok(!WORKSPACES.some((chemin) => /^packages\/(hub|\*)/.test(chemin)), "workspaces : packages/hub ne s'y trouve plus");
+
+  const fichiers = execFileSync("git", ["ls-files", "-z", "--cached", "--others", "--exclude-standard"], { cwd: racine, encoding: "utf8", maxBuffer: 1 << 28 })
+    .split("\0")
+    .filter((chemin) => /\.[cm]?[jt]sx?$/.test(chemin) && !chemin.startsWith("packages/hub/") && !chemin.startsWith(RECHERCHE_DU_HUB) && chemin !== "tests/monorepoCoherent.test.mjs");
+  assert.ok(fichiers.length > 100, `seuls ${fichiers.length} fichiers de code lus`);
+
+  const importDuHub = /\b(?:from|import|require)\s*\(?\s*["'`][^"'`\n]*(?:packages\/hub|ucm-hub)/;
+  const fautes = fichiers.filter((chemin) => {
+    try {
+      return importDuHub.test(readFileSync(join(racine, chemin), "utf8"));
+    } catch {
+      return false;
+    }
+  });
+  assert.deepEqual(fautes, [], "ces fichiers importent le hub, qui est hors du workspace");
+});
+
+test("W2 engines.node des paquets publiés égale node-version des workflows et VERSION_DE_NODE", async () => {
+  const majeure = (texte) => /(\d+)/.exec(texte)[1];
+  const { VERSION_DE_NODE } = await import(pathToFileURL(join(racine, "packages", "cli", "src", "fichiers-du-consommateur.mjs")).href);
+  const attendue = majeure(VERSION_DE_NODE);
+
+  for (const nom of ["kit", "cli", "adapter-typescript"]) {
+    const engines = JSON.parse(readFileSync(join(racine, "packages", nom, "package.json"), "utf8")).engines?.node;
+    assert.equal(majeure(engines ?? ""), attendue, `packages/${nom} : engines.node vaut « ${engines} », VERSION_DE_NODE vaut ${VERSION_DE_NODE}`);
+  }
+  for (const flux of ["ci.yml", "publish.yml"]) {
+    const versions = [...readFileSync(join(racine, ".github", "workflows", flux), "utf8").matchAll(/node-version:\s*["']?(\d+)/g)].map((m) => m[1]);
+    assert.ok(versions.length > 0, `${flux} : aucune ligne node-version`);
+    for (const version of versions) assert.equal(version, attendue, `${flux} : node-version ${version}, VERSION_DE_NODE ${VERSION_DE_NODE}`);
   }
 });

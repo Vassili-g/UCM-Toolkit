@@ -18,7 +18,7 @@ L'inventaire du dépôt, vue générée sans autorité : chaque section nomme le
 
 - ../../INVENTAIRE-UCM.html : la page générée, commitée à la racine du dépôt ; `tests/inventaire.test.ts` la compare à `genererInventaire`
 - generer-inventaire.ts : `genererInventaire` (asynchrone : la CLI se lit par `import()`) assemble `gabarit.html`, `page.css` et `page.js` ; un `{{nom}}` sans valeur échoue (`npm run vues`)
-- releves.ts : ce que la page lit dans le kit compilé (à travers un `Proxy` qui relève chaque nom lu), le moteur de couleur, le hub, la CLI, le socle et les fichiers du dépôt ; valide `pistes.json` et `decisions.json`
+- releves.ts : ce que la page lit dans le kit compilé (à travers un `Proxy` qui relève chaque nom lu), le moteur de couleur, la CLI, le socle et les fichiers du dépôt ; valide `pistes.json` et `decisions.json`
 - couverture.ts : `EXCLUSIONS`, les noms que la page ne montre pas exprès, un groupe par raison
 - plans.ts : lit un plan Markdown (lots, marques, hash, groupe), son état, son lot suivant et la date de son dernier lot
 - extraire.ts : une section, un tableau ou des sous-titres d'un Markdown, par son titre
@@ -59,7 +59,7 @@ Procédures qu'un agent charge à la demande.
 - agents-contexte.mjs : documents à lire avant de modifier un fichier et à relire après, calculés depuis `.agents/domiciles.json`
 - nouveau-sujet.mjs : `npm run sujet`, crée le dossier de recherche d'une piste, son motif au registre, sa ligne du sommaire et le champ `recherche` de `pistes.json`
 - archiver-sujet.mjs : `npm run sujet:archiver`, propose garder, relire ou supprimer pour chaque fichier du dossier d'une piste livrée ; `--figer` réécrit les liens vers un commit
-- vues.mjs : `npm run vues`, reconstruit le kit si besoin et régénère le hub, la planche, les données de la vue illustrée et l'inventaire
+- vues.mjs : `npm run vues`, reconstruit le kit si besoin et régénère la planche, les données de la vue illustrée et l'inventaire
 - ouvrir-inventaire.mjs : `npm run inventaire`, génère la page de l'inventaire depuis l'arbre de travail dans le dossier temporaire du système, puis l'ouvre ; la page commitée ne change pas
 - verifier-conservation.mjs : garde de conservation de la réécriture d'`AGENTS.md`
 

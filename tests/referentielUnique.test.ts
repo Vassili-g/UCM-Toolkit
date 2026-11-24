@@ -118,11 +118,6 @@ const EXCEPTIONS: { fichier: string; extrait: string; raison: string }[] = [
     raison: "L'ordre où le template range les sections d'un conteneur : les seuls tags qui ont une section, pas la liste des tags.",
   },
   {
-    fichier: 'packages/hub/src/vues/page.ts',
-    extrait: "['default', 'hover', 'focus', 'pressed', 'disabled']",
-    raison: "Les cinq états du bouton de démonstration du hub, libellés par le registre : un choix de la démonstration, pas la liste du registre.",
-  },
-  {
     fichier: 'packages/plugin-palettes/src/ui/configuration.ts',
     extrait: "['dark', 'light']",
     raison: "Une clé de comparaison de l'effet : `dark` d'abord, l'ordre n'est pas celui des modes et ne doit pas le suivre.",
@@ -207,7 +202,8 @@ function fichiersDeSource(dossier: string): string[] {
 
 function fichiersControles(): string[] {
   const relatifs: string[] = [];
-  for (const paquet of fs.readdirSync(path.join(racine, 'packages'))) {
+  const workspaces: string[] = JSON.parse(fs.readFileSync(path.join(racine, 'package.json'), 'utf8')).workspaces;
+  for (const paquet of workspaces.map((chemin) => chemin.replace(/^packages\//, ''))) {
     const src = path.join(racine, 'packages', paquet, 'src');
     if (!fs.existsSync(src)) continue;
     for (const fichier of fichiersDeSource(src)) {

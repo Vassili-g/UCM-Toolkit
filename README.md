@@ -71,7 +71,7 @@ donnent leurs prérequis propres.
 
 ## Brancher un repository
 
-Avec Node 20 ou plus, à la racine du dépôt consommateur :
+Avec Node 22 ou plus, à la racine du dépôt consommateur :
 
 ```sh
 npx --yes @ucm-kit/cli@0.3.0 init

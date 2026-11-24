@@ -4,6 +4,16 @@ Ce journal note chaque changement de `@ucm-kit/adapter-typescript/usages`, la se
 
 Une entrée a un genre (`ajout`, `déprécié` ou `rupture`), nomme les noms touchés entre accents graves, dit le geste à faire dans un module, et se termine par « Décidé par ... ». Les règles sont celles de la prise du kit, dans `packages/kit/invariants/versionnage.md` : une rupture monte le chiffre du milieu de l'adaptateur. `tests/usagesPromis.test.mjs` exige cette entrée.
 
+## 0.3.0
+
+### rupture
+
+`lecteurDuCode` suit la liste des propriétés sans unité de React 19.1.10 (`unitlessNumbers` de `react-dom`) au lieu de celle de React 18.3.1. Une propriété s'ajoute : `scale`, dont un nombre se relève désormais sans `px` (`scale: 2` donne `2`, non `2px`). Aucune propriété n'est retirée.
+
+Geste pour un module : aucun, le relevé suit React 19.
+
+Décidé par le mainteneur (P27, PP-18).
+
 ## 0.2.14
 
 ### ajout

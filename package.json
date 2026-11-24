@@ -4,7 +4,14 @@
   "private": true,
   "license": "MIT",
   "workspaces": [
-    "packages/*"
+    "packages/adapter-typescript",
+    "packages/cli",
+    "packages/couleur",
+    "packages/kit",
+    "packages/plugin-architect",
+    "packages/plugin-exporter",
+    "packages/plugin-palettes",
+    "packages/plugin-socle"
   ],
   "scripts": {
     "typecheck": "npm run typecheck --workspaces --if-present && tsc --noEmit -p tsconfig.json",

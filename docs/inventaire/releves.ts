@@ -1,5 +1,5 @@
 /**
- * Ce que l'inventaire lit dans le dépôt : le kit compilé, le moteur de couleur, le hub, la CLI, le socle et les fichiers du
+ * Ce que l'inventaire lit dans le dépôt : le kit compilé, le moteur de couleur, la CLI, le socle et les fichiers du
  * dépôt. Chaque fonction rend des données, jamais du HTML ; `generer-inventaire.ts` les met en forme.
  *
  * Une lecture qui ne trouve pas ce qu'elle attend lève une erreur qui nomme le fichier : l'inventaire ne s'écrit pas avec une
@@ -43,11 +43,10 @@ import {
   VALEURS_NEUTRES,
 } from '../../packages/kit/src/lecteurs/controle-du-code-listes.mjs';
 import { coordonneesDuGenre } from '../../packages/kit/src/lecteurs/derogations.mjs';
-import { PREREGLAGES, couleurDeLaCarte, ecrireHexa, rampesDe, recetteParDefaut, type Recette } from 'ucm-couleur';
+import { PREREGLAGES, boutsDe, couleurDeLaCarte, ecrireHexa, lireHexa, prereglageTailwind, rampesDe, recetteParDefaut, rgb8VersOklch, type Palette, type Recette } from 'ucm-couleur';
 
 import { ELEMENT_DE_LA_FAMILLE } from '../../packages/plugin-architect/src/ui/panneau/elements';
 import { TEXTES_ELEMENTS } from '../../packages/plugin-architect/src/ui/textes/elements';
-import { recetteDeDemonstration } from '../../packages/hub/src/modele/modele';
 import { svgDeLAlerte } from '../../packages/plugin-socle/src/ui/Alerte';
 
 /**
@@ -225,8 +224,34 @@ export function clarteDesCrans() {
   return { crans: onze.crans, clarte: { light: onze.courbes.light, dark: onze.courbes.dark } };
 }
 
+/** Les palettes de démonstration : une marque, un neutre et les quatre statuts, au préréglage Tailwind. */
+const PALETTES_DE_DEMONSTRATION: readonly (readonly [string, string, boolean])[] = [
+  ['Terracota', '#B15152', false],
+  ['Slate', '#64748B', true],
+  ['Green', '#22C55E', false],
+  ['Amber', '#F59E0B', false],
+  ['Red', '#EF4444', false],
+  ['Sky', '#0EA5E9', false],
+];
+
+function recetteDeDemonstration(): Recette {
+  const recette = recetteParDefaut();
+  const bouts = boutsDe(recette);
+  const palettes: Palette[] = PALETTES_DE_DEMONSTRATION.map(([nom, reference, unique], rang) => {
+    const derive = prereglageTailwind(rgb8VersOklch(lireHexa(reference)!), bouts);
+    return {
+      id: `p-${(rang + 1).toString(16).padStart(8, '0')}`,
+      nom,
+      reference,
+      derive: { lien: true, soft: { ...derive, origine: 'tailwind' }, vivid: { ...derive, origine: 'tailwind' } },
+      ...(unique ? { intensites: 1 as const } : {}),
+    };
+  });
+  return { ...recette, palettes };
+}
+
 /**
- * Les rampes des six palettes de démonstration du hub, par intensité, mode et sens du thème. Le sens inverse change les crans
+ * Les rampes des six palettes de démonstration, par intensité, mode et sens du thème. Le sens inverse change les crans
  * 500 à 800 par le texte des boutons de chaque mode : la page lit les deux jeux.
  */
 export function donneesDesPalettes() {
@@ -284,7 +309,6 @@ const PAQUETS: Readonly<Record<string, string>> = {
   'adapter-typescript': 'Adaptateur TypeScript',
   kit: 'Kit',
   couleur: 'Moteur de couleur',
-  hub: 'Hub UCM',
 };
 
 function fichiersDeTest(dossier: string): number {
@@ -298,13 +322,18 @@ function fichiersDeTest(dossier: string): number {
   return compte;
 }
 
-/** Les paquets de `packages/`, dans l'ordre de la page, avec leur nombre de fichiers de test. */
+/** Les dossiers de `packages/` que `package.json` déclare en workspaces : le hub n'en fait plus partie. */
+export function dossiersDesWorkspaces(): string[] {
+  return (JSON.parse(lire('package.json')) as { workspaces: string[] }).workspaces.map((chemin) => chemin.replace(/^packages\//, ''));
+}
+
+/** Les paquets du workspace, dans l'ordre de la page, avec leur nombre de fichiers de test. */
 export function paquets(): { dossier: string; libelle: string; fichiersDeTest: number }[] {
-  const presents = dossiers('packages');
+  const presents = dossiersDesWorkspaces();
   const sansLibelle = presents.filter((nom) => !(nom in PAQUETS));
   const disparus = Object.keys(PAQUETS).filter((nom) => !presents.includes(nom));
   if (sansLibelle.length || disparus.length) {
-    throw new Error(`Les paquets de packages/ ont changé. Sans libellé : ${sansLibelle.join(', ') || 'aucun'}. Libellé sans paquet : ${disparus.join(', ') || 'aucun'}.`);
+    throw new Error(`Les workspaces ont changé. Sans libellé : ${sansLibelle.join(', ') || 'aucun'}. Libellé sans paquet : ${disparus.join(', ') || 'aucun'}.`);
   }
   return Object.entries(PAQUETS).map(([dossier, libelle]) => ({ dossier, libelle, fichiersDeTest: fichiersDeTest(path.join(RACINE, 'packages', dossier)) }));
 }
@@ -697,7 +726,7 @@ const PHRASES_DES_SCRIPTS: Readonly<Record<string, readonly [string, string]>> =
   'test:paquet': ['Construit le kit puis teste le paquet nommé.', 'AGENTS.md, « Vérification » ; scripts/construire-plugin.mjs'],
   'stress:f1': ['Lance le harnais de stress test des noms de Nomenclature, hors de `npm test`.', 'packages/kit/tests/stress/f1-noms/index.ts, commentaire d’en-tête'],
   'stress:rejeu': ['Rejoue des fichiers réels dans le mode Tokens et mesure les contrôles, hors de `npm test`.', 'packages/kit/tests/stress/rejeu-fichiers/index.ts, commentaire d’en-tête'],
-  vues: ['Régénère le hub, la planche du moteur, les données de la vue illustrée et cet inventaire, et rend la liste de celles qui ont changé.', 'AGENTS.md, « Vérification » ; scripts/vues.mjs'],
+  vues: ['Régénère la planche du moteur, les données de la vue illustrée et cet inventaire, et rend la liste de celles qui ont changé.', 'AGENTS.md, « Vérification » ; scripts/vues.mjs'],
   inventaire: ['Ouvre la page de l’inventaire dans le navigateur par défaut.', 'scripts/ouvrir-inventaire.mjs, commentaire d’en-tête'],
   'agents:lire': ['Rend les fichiers à lire avant de modifier des chemins donnés, et seulement eux.', 'AGENTS.md, « Avant de modifier »'],
   'agents:domicile': ['Rend le domicile d’un fichier de `packages/*/src/`.', 'AGENTS.md, « Routage »'],
@@ -790,7 +819,7 @@ export function contratsDeRecette(): { version: string; nombre: number } {
  * Ce que l'inventaire tire des documents de cadrage. Le nombre de classes de compatibilité se compte dans la table de
  * `COMPATIBILITE.md`. Les trois autres lectures ne rendent rien : elles lèvent « ancre X absente de Y » quand `CHANGELOG-FORMAT.md`,
  * `CONCEPT.md`, `VALIDATIONS-MVP.md` ou le sommaire des recherches renomme une section que la page présente.
- * Les textes qui résument ces documents (sens de chaque version du contrat, invariants, limites non prouvées, statut du hub)
+ * Les textes qui résument ces documents (sens de chaque version du contrat, invariants, limites non prouvées)
  * restent dans le gabarit : leurs sections ne se citent pas telles quelles.
  */
 export function extraitsDesDocuments(donnees: Versions): { classesDeCompatibilite: number } {
@@ -802,8 +831,7 @@ export function extraitsDesDocuments(donnees: Versions): { classesDeCompatibilit
     if (!concept.includes(promesse)) throw new Error(`CONCEPT.md, § 6 : la promesse « ${promesse} » a disparu`);
   }
   if (tableauDe(lire('VALIDATIONS-MVP.md'), 'VALIDATIONS-MVP.md', 'Ce qui n\'est pas prouvé').length === 0) throw new Error('VALIDATIONS-MVP.md : « Ce qui n\'est pas prouvé » n\'a plus de tableau');
-  const sujets = tableauDe(lire('docs/notes/Recherches/README.md'), 'docs/notes/Recherches/README.md', 'Sujets');
-  if (!sujets.some((ligne) => ligne.Sujet.startsWith('[Hub UCM]'))) throw new Error('docs/notes/Recherches/README.md : le sujet « Hub UCM » a disparu du sommaire');
+  if (tableauDe(lire('docs/notes/Recherches/README.md'), 'docs/notes/Recherches/README.md', 'Sujets').length === 0) throw new Error('docs/notes/Recherches/README.md : « Sujets » n\'a plus de tableau');
   return { classesDeCompatibilite: classes.length };
 }
 

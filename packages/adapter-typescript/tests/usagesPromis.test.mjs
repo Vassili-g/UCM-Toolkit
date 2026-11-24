@@ -55,6 +55,7 @@ const fichiersRelatifs = (resultat) => ({ ...resultat, fichiers: resultat.fichie
 // <exemples>
 const EXEMPLES = {
   "releverUsages : un objet style JSX, nombres compris": () => releve('const A = () => <div style={{ padding: 12, backgroundColor: "#fff", opacity: 0.5, "--gap": "4px" }} />;'),
+  "releverUsages : un nombre sans unité de React 19": () => releve("const A = () => <div style={{ scale: 2 }} />;"),
   "releverUsages : une table hors style garde le nombre tel qu'écrit": () => releve('const SIZES = { medium: { padding: "12px", fontSize: 15, height: 32 } };'),
   "releverUsages : une chaîne, un attribut et un gabarit": () => releve('const A = () => <a href="#haut" title={`var(--${nom})`}>{"{components.button.gap}"}</a>;'),
   "releverUsages : une valeur calculée et une décomposition": () => releve("const A = () => <div style={{ ...base, gap: entry.gap }} />;"),
@@ -106,6 +107,25 @@ const ATTENDUS = {
     "variables": [
       "--gap"
     ],
+    "directives": [],
+    "lecture": {
+      "complete": true,
+      "erreurs": 0
+    }
+  },
+  "releverUsages : un nombre sans unité de React 19": {
+    "chaines": [],
+    "declarations": [
+      {
+        "propriete": "scale",
+        "valeur": "2",
+        "debut": 37,
+        "fin": 38,
+        "contexte": "style",
+        "nombre": true
+      }
+    ],
+    "variables": [],
     "directives": [],
     "lecture": {
       "complete": true,

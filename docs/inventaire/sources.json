@@ -14,7 +14,6 @@
       "packages/kit/src/**",
       "packages/kit/fixtures/contrats/**",
       "packages/couleur/src/**",
-      "packages/hub/src/modele/modele.ts",
       "packages/plugin-socle/src/ui/Alerte.ts",
       "packages/plugin-architect/src/ui/panneau/elements.ts",
       "packages/plugin-architect/src/ui/textes/elements.ts",

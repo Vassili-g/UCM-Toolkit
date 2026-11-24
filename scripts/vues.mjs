@@ -2,7 +2,7 @@
  * `npm run vues` : régénère les pages que le kit et le moteur de couleur
  * produisent, et rend la liste de celles qui ont changé.
  *
- * Le hub lit le kit compilé : si `packages/kit/dist/.empreinte` diffère de
+ * Les générateurs lisent le kit compilé : si `packages/kit/dist/.empreinte` diffère de
  * l'empreinte des sources, le kit est reconstruit d'abord. Un fichier n'est
  * écrit que si son contenu change, fins de ligne mises à part.
  *
@@ -36,10 +36,6 @@ async function charger(chemin) {
 
 /** Chaque vue : le fichier commité et le générateur qui rend son contenu. */
 const VUES = [
-  {
-    fichier: "packages/hub/HUB-UCM.html",
-    contenu: async () => (await charger("packages/hub/src/generer.ts")).genererHub(),
-  },
   {
     fichier: "packages/couleur/planche/PLANCHE-DU-MOTEUR.html",
     contenu: async () => (await charger("packages/couleur/planche/generer-planche.ts")).genererPlanche(),

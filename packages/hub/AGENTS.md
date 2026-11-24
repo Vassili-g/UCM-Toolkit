@@ -1,5 +1,7 @@
 # Hub UCM (`packages/hub`)
 
+Hors du workspace. `npm test`, `npm run vues` et l'inventaire ne le lisent pas, et aucun paquet ne l'importe.
+
 Page locale et autonome qui montre ce que le kit et le moteur de couleur produisent : ucm-hub, privé, lu en source.
 
 - Écrit dans Figma : rien.

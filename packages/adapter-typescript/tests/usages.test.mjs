@@ -1,13 +1,15 @@
 import assert from "node:assert/strict";
-import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
+import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+import { createRequire } from "node:module";
 import { tmpdir } from "node:os";
-import { join } from "node:path";
+import { dirname, join } from "node:path";
 import test from "node:test";
 
 import { adaptateurTypeScript } from "../src/index.mjs";
 import {
   EXTENSIONS_LUES,
   fichiersDuComposant,
+  PROPRIETES_SANS_UNITE_DE_REACT,
   lecteurDuCode,
   releverUsages,
 } from "../src/usages.mjs";
@@ -303,4 +305,14 @@ test("un fichier .ts lit un transtypage à chevrons", () => {
 
   assert.equal(releve.lecture.complete, true);
   assert.deepEqual(textes(releve), ["x"]);
+});
+
+test("W3 PROPRIETES_SANS_UNITE_DE_REACT égale la liste du react-dom installé", () => {
+  const racine = dirname(createRequire(import.meta.url).resolve("react-dom/package.json"));
+  const source = readFileSync(join(racine, "cjs", "react-dom-client.development.js"), "utf8");
+  const liste = /unitlessNumbers\s*=\s*new Set\(\s*"([^"]+)"/.exec(source);
+  assert.ok(liste, "react-dom : la liste unitlessNumbers n'est plus à l'endroit attendu");
+  // React 19 écrit chaque variante préfixée ; l'adaptateur les produit depuis le nom nu.
+  const sansPrefixe = liste[1].split(" ").filter((nom) => !/^(Moz|ms|Webkit|WebKit|O)[A-Z]/.test(nom));
+  assert.deepEqual([...PROPRIETES_SANS_UNITE_DE_REACT].sort(), sansPrefixe.sort());
 });

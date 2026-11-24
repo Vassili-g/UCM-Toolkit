@@ -12,7 +12,7 @@ npx ucm-typescript          # generates the types from the contracts
 npx --no-install ucm check  # checks the contracts, parity included
 ```
 
-Requires Node 20 or later, a `tsconfig.json` at the repository root, and a
+Requires Node 22 or later, a `tsconfig.json` at the repository root, and a
 `ucm.config.json` or the default paths.
 
 ## Static parity
