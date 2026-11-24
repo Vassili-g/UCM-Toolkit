@@ -1041,8 +1041,8 @@ PP-410, à écrire tels quels. Le nom des clés ne change pas, et
 
 ## Vague 10. Dernières gardes et inventaire unique
 
-- [ ] 10.1 `implementeur`. Lois de `reglesUniques` et phrases uniques (PP-04, PP-05, PP-10, PP-11, PP-13, PP-14, PP-15, PP-21, PP-108).
-- [ ] 10.2 `implementeur`. Inventaire unique des paramètres.
+- [x] 10.1 `implementeur`. Lois de `reglesUniques` et phrases uniques (PP-04, PP-05, PP-10, PP-11, PP-13, PP-14, PP-15, PP-21, PP-108). Commit : `6c5021d0`.
+- [x] 10.2 `implementeur`. Inventaire unique des paramètres. Commit : `a275fda7`.
 
 ### Lot 10.1. Lois de `reglesUniques` et phrases uniques
 
