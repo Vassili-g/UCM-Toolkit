@@ -7,7 +7,8 @@
  * `npm run` (ou `npm run-script`) sort en code 2, sauf si le fichier
  * `_local/autorise-test-ui` existe : le mainteneur le crée pour autoriser une
  * session. Un nom écrit dans une chaîne entre guillemets ou dans le corps d'un
- * heredoc ne lance rien, et ne compte pas.
+ * heredoc ne lance rien, et ne compte pas, sauf la chaîne que `bash -c`,
+ * `cmd /c` ou `powershell -Command` exécute. `npm.cmd` vaut `npm`.
  *
  * Sur une erreur interne, le hook rend la décision `ask` et sort 0.
  *
@@ -43,15 +44,31 @@ function commandeSansTexte(commande) {
   return gardees.join('\n').replace(/'[^']*'|"(?:\\.|[^"\\])*"/g, ' ');
 }
 
+/** Les options de npm qui prennent le mot suivant : `npm run -w paquet test:ui` lance `test:ui`. */
+const OPTIONS_A_VALEUR = new Set(['-w', '--workspace', '--prefix', '-C']);
+
+/** La chaîne que `bash -c`, `sh -c`, `cmd /c` ou `powershell -Command` exécute : elle lance une commande. */
+const CHAINE_EXECUTEE = /\b(?:bash|sh|zsh|cmd|powershell|pwsh)(?:\.exe)?\s+(?:-[\w-]+\s+)*?(?:-c|-Command|\/c)\s+('[^']*'|"(?:\\.|[^"\\])*")/gi;
+
 /** Le nom réservé que la commande lance par `npm run`, ou `undefined`. */
 function scriptReserveLance(commande, interdits) {
-  for (const segment of commandeSansTexte(commande).split(/;|&&|\|\||\||\n/)) {
+  // Une ligne continuée par une barre oblique inverse (bash) ou un accent grave (PowerShell) est une seule commande.
+  const continuee = commande.replace(/[\\`]\r?\n/g, ' ');
+  for (const [, chaine] of continuee.matchAll(CHAINE_EXECUTEE)) {
+    const nom = scriptReserveLance(chaine.slice(1, -1), interdits);
+    if (nom !== undefined) return nom;
+  }
+  for (const segment of commandeSansTexte(continuee).split(/;|&&|\|\||\||\n/)) {
     const mots = segment.trim().split(/\s+/);
-    const npm = mots.indexOf('npm');
+    const npm = mots.findIndex((mot) => /(?:^|[\\/])npm(?:\.cmd|\.exe)?$/i.test(mot));
     if (npm === -1) continue;
     const run = mots.findIndex((mot, rang) => rang > npm && (mot === 'run' || mot === 'run-script'));
     if (run === -1) continue;
-    const nom = mots.slice(run + 1).find((mot) => !mot.startsWith('-'));
+    let nom;
+    for (let rang = run + 1; rang < mots.length && nom === undefined; rang++) {
+      if (OPTIONS_A_VALEUR.has(mots[rang])) rang++;
+      else if (!mots[rang].startsWith('-')) nom = mots[rang];
+    }
     if (nom !== undefined && interdits.includes(nom)) return nom;
   }
   return undefined;

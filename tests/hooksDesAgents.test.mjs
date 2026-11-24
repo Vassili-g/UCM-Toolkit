@@ -92,6 +92,26 @@ test('H4 : un manifeste tronqué fait demander la création au hook des document
   }
 });
 
+test('H5b : `test:ui` lancé par npm.cmd, après une option à valeur, par bash -c ou après un accent grave de PowerShell sort 2', () => {
+  const dossier = depotTemporaire(manifesteReel);
+  try {
+    for (const commande of [
+      'npm.cmd run test:ui',
+      'npm run -w ucm-plugin-palettes test:ui',
+      'npm run --workspace ucm-plugin-palettes test:ui',
+      'bash -c "npm run test:ui"',
+      "powershell -Command 'npm run galerie:captures'",
+      'npm run `\n  test:ui',
+    ]) {
+      const refus = lancer(dossier, 'hook-commandes.mjs', { tool_input: { command: commande } });
+      assert.equal(refus.code, 2, commande);
+    }
+    assert.equal(lancer(dossier, 'hook-commandes.mjs', { tool_input: { command: 'npm run --workspace ucm-plugin-palettes test' } }).code, 0);
+  } finally {
+    fs.rmSync(dossier, { recursive: true, force: true });
+  }
+});
+
 test('H5 : `test:ui` sort 2 sans `_local/autorise-test-ui`, 0 avec', () => {
   const dossier = depotTemporaire(manifesteReel);
   try {
