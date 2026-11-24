@@ -231,6 +231,16 @@ La piste « Paramètres partagés » a corrigé 78 écarts entre des règles éc
 | Architect, textes partagés | Ouvrir un constat de cran sans sens et le constat « Le composant a changé depuis l'analyse » | Les deux textes sont ceux d'avant la correction, mot pour mot |
 | Architect, icône sous 4,5:1 (C49) | Analyser un composant dont une icône a un contraste de 3,45:1 sur la page | Le constat C49 est levé, et `ucm check` donne le même manque sous 4,5:1 |
 | Architect, « nuance » et page | Parcourir la vue Structure et la préparation d'une palette, avec une recette de Palettes dont le fond de page est `#F7F7F7` et un fichier dont `elevation/page` vaut `#EBEBEB` | Le mot « nuance » remplace « cran » dans les phrases de couleur, et une information dit que la page du fichier n'a pas la couleur du fond réglé dans Palettes. Sans recette lue, aucune information |
+| Architect, deux variables de même forme | Préparer les tokens d'un composant avec une library qui porte deux variables au même chemin à la casse près | Aucune des deux n'est liée, et la carte « Lier les layers » dit « Deux variables de la library portent ce nom à la casse près » |
+
+### 8. Ce que les deux chasses aux défauts n'ont pas couvert
+
+Deux chasses ont éprouvé le code de P27 et les publications qui ont suivi (`@ucm-kit/core` 0.18.1, `@ucm-kit/cli` 0.4.2, `@ucm-kit/adapter-typescript` 0.3.2). Deux preuves restent hors de leur portée.
+
+| Validation | Geste | Passée quand |
+|---|---|---|
+| Tests d'interface après les changements de P27 | Créer `_local/autorise-test-ui`, puis lancer `npm run test:ui` pour Palettes, Architect et l'Exporter | Les tests passent. Le retrait des thèmes clairs, les minimums de Palettes et les textes « nuance » d'Architect ont modifié ces tests sans qu'ils tournent |
+| Rapport publié sur une vraie pull request | Dans UCM-Playground, ouvrir une pull request qui modifie un contrat, puis pousser un second commit | Le job publie un commentaire qui commence par le marqueur du rapport, puis le remplace au second push sans en créer un autre. La pull request de test #182 n'a prouvé que le cas sans fichier suivi |
 
 ## Critères de sortie du MVP
 
