@@ -944,9 +944,9 @@ la liste entre parenthèses, et ajouter à la fin « Ne lance `test:ui` que si
 7.3 ont déjà écrit les seuils et la chroma des gris. PP-401 est écarté : Display
 P3 est hors du périmètre d'UCM.
 
-- [ ] 9.1 `implementeur-exigeant`. Juges du contraste (PP-404, PP-405, PP-409, PP-408 pour la préparation, phrase de limite de PP-401).
-- [ ] 9.2 `implementeur-exigeant`. Recette, référentiel et textes de Palettes (PP-402, PP-403, PP-406 pour le test, PP-407, PP-408, PP-410 pour Palettes).
-- [ ] 9.3 `implementeur`. Textes d'Architect et page de Palettes (PP-406 pour Architect, PP-410 pour Architect).
+- [x] 9.1 `implementeur-exigeant`. Juges du contraste (PP-404, PP-405, PP-409, PP-408 pour la préparation, phrase de limite de PP-401). Commit : `3b0d5d3c`.
+- [x] 9.2 `implementeur-exigeant`. Recette, référentiel et textes de Palettes (PP-402, PP-403, PP-406 pour le test, PP-407, PP-408, PP-410 pour Palettes). Commit : `0e0a1804`.
+- [x] 9.3 `implementeur`. Textes d'Architect et page de Palettes (PP-406 pour Architect, PP-410 pour Architect). Commit : `3b0d5d3c`.
 
 ### Lot 9.1. Juges du contraste
 
@@ -1062,7 +1062,7 @@ Lois à ajouter, chacune avec sa fiche P27 et son propriétaire :
 | PP-13 | le nom `CHROMA_DES_PALETTES_COLOREES` | aucun |
 | PP-15 | `'primitives'`, `'brands'`, `'utility'` en littéral de nom de collection | `packages/kit/src/referentiel/` ; exceptions nommées avec leur raison |
 | PP-108 | une expression qui commence par `/\{[^{}` | `packages/kit/src/format/references.ts` |
-| PP-409 | une profondeur d'alias écrite en nombre (`> 10`, `= 10`) | `packages/kit/src/controles/accessibilite.ts`, propriétaire de `PROFONDEUR_D_ALIAS` |
+| PP-409 | une profondeur d'alias écrite en nombre (`> 10`, `= 10`) | `packages/kit/src/emplois/couleur.ts`, propriétaire de `PROFONDEUR_D_ALIAS` depuis 9.1 : la porte navigateur interdit à `diagnostic-contrastes.mjs` d'importer `controles` |
 
 - PP-21 : `hub` sort de `DOSSIERS_HORS_SOCLE` (`reglesUniques.test.ts:33`) et de la ligne 97.
 - PP-14 : `tests/phrasesUniques.test.ts`, créé. Il relève les littéraux de chaîne de huit mots ou plus dans `packages/*/src/**`, hors commentaires et hors `packages/hub/`, et refuse une phrase écrite dans deux paquets. Une table `EXCEPTIONS` nomme chaque phrase admise avec sa raison. Sa ligne de `CARTE.md` revient au lot 10.2, que l'agent nomme au compte rendu.
