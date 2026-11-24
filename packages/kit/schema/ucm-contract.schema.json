@@ -433,7 +433,7 @@
         },
         "default": {
           "type": "string",
-          "description": "Id du composant Figma choisi par défaut."
+          "description": "Nom du composant choisi par défaut : celui de son component set, ou le sien s'il n'appartient à aucun."
         },
         "preferredValues": {
           "type": "array",

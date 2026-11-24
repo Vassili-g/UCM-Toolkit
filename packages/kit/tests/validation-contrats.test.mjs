@@ -2130,6 +2130,13 @@ test("N5. un default null, comme un preferredValues mal formé, reste refusé", 
   }
 });
 
+test("E4. un contrat 14.0 dont le default d'un instance-swap nomme un composant est valide", () => {
+  const valeur = contrat140();
+  assert.equal(valeur.meta.contractVersion, "14.0");
+  valeur.props = { ...valeur.props, icone: { type: "instance-swap", default: "Icon" } };
+  assert.deepEqual(champsInvalidesDuContrat(valeur).filter((champ) => champ.startsWith("props.icone")), []);
+});
+
 test("N3. validation-contrat.mjs ne porte plus de seconde reconstruction du nom Figma", () => {
   const source = readFileSync(new URL("../src/lecteurs/validation-contrat.mjs", import.meta.url), "utf8");
   assert.doesNotMatch(source, /nomFigmaDuVariant11/);

@@ -204,6 +204,28 @@ async function iconPaths(children: readonly ChildStructure[], figmaName: string)
 }
 
 /**
+ * Le nom de chaque composant que désigne le `defaultValue` d'une INSTANCE_SWAP :
+ * celui de son component set, ou le sien s'il n'en a pas (règle de
+ * `appliedValue`). Un identifiant qui ne se résout pas reste absent.
+ */
+export async function nomsDesDefautsDInstanceSwap(
+  definitions: ComponentSetNode['componentPropertyDefinitions'],
+): Promise<Map<string, string>> {
+  const noms = new Map<string, string>();
+  for (const definition of Object.values(definitions ?? {})) {
+    const id = definition.type === 'INSTANCE_SWAP' ? definition.defaultValue : undefined;
+    if (typeof id !== 'string' || noms.has(id)) continue;
+    const noeud = await figma.getNodeByIdAsync(id).catch(() => null);
+    if (noeud?.type === 'COMPONENT') {
+      noms.set(id, noeud.parent?.type === 'COMPONENT_SET' ? noeud.parent.name : noeud.name);
+    } else if (noeud?.type === 'COMPONENT_SET') {
+      noms.set(id, noeud.name);
+    }
+  }
+  return noms;
+}
+
+/**
  * Exécute les étapes `regles` à `structure.tailles` et rend leur résultat
  * interne. `annoncer` nomme les étapes ; un jeton levé lève `AnalyseAnnulee`.
  */
@@ -254,6 +276,7 @@ export async function calculerLAnalyse(
   const propertyModel = extractContractPropertyModel(
     componentSet.componentPropertyDefinitions,
     warnings,
+    await nomsDesDefautsDInstanceSwap(componentSet.componentPropertyDefinitions),
   );
   markProjectionWarningsSince(warningCursor);
   warningCursor = warnings.length;

@@ -211,11 +211,11 @@ test('extractContractPropertyModel conserve INSTANCE_SWAP, SLOT et leurs noms te
     },
   } as unknown as ComponentPropertyDefinitions;
 
-  const model = extractContractPropertyModel(definitions);
+  const model = extractContractPropertyModel(definitions, [], new Map([['component-id', 'Icon']]));
 
   assert.deepEqual(model.props.leadingIcon, {
     type: 'instance-swap',
-    default: 'component-id',
+    default: 'Icon',
     preferredValues: [{ type: 'COMPONENT', key: 'icon-key' }],
   });
   assert.deepEqual(model.props.content, {
@@ -342,7 +342,7 @@ test('State et Status hors variant restent des props, avec leur type', () => {
   assert.deepEqual(modele.props, {
     state: { type: 'boolean', default: true },
     status: { type: 'string', default: 'brouillon' },
-    stateIcon: { type: 'instance-swap', default: 'cle-icone', preferredValues: [] },
+    stateIcon: { type: 'instance-swap', preferredValues: [] },
     statusSlot: { type: 'slot', default: true, preferredValues: [] },
   });
   // Aucun de ces types n'est un axe : la table des axes reste vide.

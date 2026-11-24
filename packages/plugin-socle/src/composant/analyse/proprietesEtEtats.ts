@@ -162,6 +162,7 @@ export type ContractPropertyModel = {
  */
 export function lireLeModeleDeProprietes(
   definitions: DefinitionsDeProprietes,
+  nomsDesComposants: ReadonlyMap<string, string> = new Map(),
 ): { modele: ContractPropertyModel; points: readonly PointSansNode[] } {
   const points: PointSansNode[] = [];
   const props: Record<string, ContractProp> = {};
@@ -314,8 +315,10 @@ export function lireLeModeleDeProprietes(
     if (definition.type === 'INSTANCE_SWAP') {
       if (claim(key, rawFigmaName, {
         type: 'instance-swap',
-        ...(typeof definition.defaultValue === 'string'
-          ? { default: definition.defaultValue }
+        // Le `defaultValue` est l'identifiant d'un composant ; le contrat publie son
+        // nom, que l'appelant a résolu. Sans nom résolu, aucun défaut.
+        ...(typeof definition.defaultValue === 'string' && nomsDesComposants.has(definition.defaultValue)
+          ? { default: nomsDesComposants.get(definition.defaultValue) }
           : {}),
         preferredValues: [...(definition.preferredValues ?? [])],
       })) publicPropertyKeyByFigmaName.set(propertyName, key);
@@ -446,9 +449,10 @@ export function remplacerLesRequetesPourLeBanc(requetes: RequetesDuBanc): void {
 export function extractContractPropertyModel(
   definitions: DefinitionsDeProprietes,
   warnings: string[] = [],
+  nomsDesComposants?: ReadonlyMap<string, string>,
 ): ContractPropertyModel {
   if (remplacantes.modeleDeProprietes) return remplacantes.modeleDeProprietes(definitions, warnings);
-  const { modele, points } = lireLeModeleDeProprietes(definitions);
+  const { modele, points } = lireLeModeleDeProprietes(definitions, nomsDesComposants);
   pousserLesPoints(warnings, points);
   return modele;
 }

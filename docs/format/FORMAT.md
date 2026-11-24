@@ -121,7 +121,10 @@ même signification : **aucun défaut publié**, jamais « inconnu ».
 |---|---|---|
 | enum | la règle `@default` de `.componentRules`, et elle seule | oui, cas courant |
 | boolean | le `defaultValue` de la boolean property Figma | non, le champ est toujours écrit |
-| string, icon, instance-swap, slot | le `defaultValue` Figma, s'il existe | oui |
+| string, icon, slot | le `defaultValue` Figma, s'il existe | oui |
+| instance-swap | le nom du composant que désigne le `defaultValue` Figma, s'il se résout | oui |
+
+Un `default` publié s'applique tel quel ; son absence laisse le choix au développeur. Le `default` d'une prop `instance-swap` nomme un composant, jamais un identifiant Figma.
 
 Le défaut d'un axe **se déclare** : `@default` avec la cible `color.secondary`
 dans le calque `prop` de la règle. Sans cette règle, l'axe ne publie aucun

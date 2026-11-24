@@ -275,6 +275,10 @@ quelle que soit sa contrainte. Un contrat 14.0 est identique à son équivalent
 13.0, à `meta.contractVersion` près, quand le composant n'a ni effet, ni
 opacité, ni conteneur sans auto layout.
 
+### Défaut d'une prop instance-swap
+
+Classe 4, appliquée à une valeur. Le `default` d'une prop `instance-swap` porte le nom du composant choisi par défaut, celui de son component set s'il en a un. Il portait l'identifiant du composant dans Figma, comme `12:345`, qu'aucun code ne sait rendre. Le champ garde son nom, son type et sa place. La version reste 14.0 : aucun contrat 14.0 n'était diffusé, ni dans le repository de recette ni dans les fixtures du kit, et le corpus se réexporte avant usage. Un lecteur reconnaît l'ancienne forme à ses deux nombres séparés par `:`.
+
 ---
 
 ## `tokens.json`

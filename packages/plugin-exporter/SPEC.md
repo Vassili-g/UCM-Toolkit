@@ -147,6 +147,8 @@ une **précondition d'export**.
   `handleExportComponent` lève avant toute extraction, et **aucun artefact ne
   sort**. Le geste appartient au designer : renommer l'une des deux dans Figma.
 
+Le `defaultValue` d'une `INSTANCE_SWAP` est l'identifiant d'un composant. L'export publie son nom, résolu par `getNodeByIdAsync`, et ne publie aucun défaut s'il ne se résout pas.
+
 #### 2. Tokens de variantes
 
 Ce que `tokens` et `strokes` contiennent (la clé d'une couleur, son allongement,

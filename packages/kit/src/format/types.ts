@@ -69,7 +69,7 @@ export type PreferredComponentValue = {
 /** Prop native de remplacement d'instance. */
 export type InstanceSwapProp = PropMeta & {
   type: 'instance-swap';
-  /** Id du composant Figma choisi par défaut. */
+  /** Nom du composant choisi par défaut : celui de son component set, ou le sien s'il n'appartient à aucun. */
   default?: string;
   preferredValues?: PreferredComponentValue[];
 };

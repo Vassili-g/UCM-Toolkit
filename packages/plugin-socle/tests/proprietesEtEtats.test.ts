@@ -154,7 +154,7 @@ const DEFINITIONS_A_COMPARER: DefinitionsDeProprietes[] = [
     'State#1:1': { type: 'VARIANT', defaultValue: 'Default', variantOptions: ['Default', 'Hover'] },
     'State#2:2': { type: 'BOOLEAN', defaultValue: true },
     'Label#3:3': { type: 'TEXT', defaultValue: 'Valider' },
-    'Icon#3:4': { type: 'INSTANCE_SWAP', defaultValue: 'cle', preferredValues: [{ type: 'COMPONENT', key: 'k' }] },
+    'Icon#3:4': { type: 'INSTANCE_SWAP', preferredValues: [{ type: 'COMPONENT', key: 'k' }] },
     'Contenu#3:5': { type: 'SLOT', defaultValue: true, preferredValues: [], description: 'zone', slotSettings: { orientation: 'row' } },
     'Taille#3:6': { type: 'VARIANT', defaultValue: 'S', variantOptions: ['Small', 'Medium'] },
     'Size#3:7': { type: 'VARIANT', defaultValue: 'x', variantOptions: ['x', 'y'] },
@@ -219,4 +219,44 @@ test('une remplaçante du banc prend la place de la requête jusqu’à son retr
   }
   extractContractPropertyModel(definitions({}));
   assert.deepEqual(vue, ['proprietes', 'etats']);
+});
+
+/** Un double de `figma` qui ne connaît que `getNodeByIdAsync`, sur des nœuds fabriqués. */
+async function nomsDesDefauts(noeuds: Record<string, unknown>, definitionsBrutes: unknown) {
+  const { nomsDesDefautsDInstanceSwap } = await import('../src/composant/analyse/resultat');
+  const global = globalThis as { figma?: unknown };
+  const avant = global.figma;
+  global.figma = { getNodeByIdAsync: async (id: string) => noeuds[id] ?? null };
+  try {
+    return await nomsDesDefautsDInstanceSwap(definitionsBrutes as never);
+  } finally {
+    global.figma = avant;
+  }
+}
+
+const SWAP = (defaultValue: string) => ({ 'Icône#1:1': { type: 'INSTANCE_SWAP', defaultValue } });
+
+test('E1. le défaut qui désigne un variant d’un component set publie le nom du set', async () => {
+  const noms = await nomsDesDefauts(
+    { '12:345': { type: 'COMPONENT', name: 'Size=Small', parent: { type: 'COMPONENT_SET', name: 'Icon' } } },
+    SWAP('12:345'),
+  );
+  const { modele } = lireLeModeleDeProprietes(definitions(SWAP('12:345')), noms);
+  assert.equal((Object.values(modele.props)[0] as { default?: string }).default, 'Icon');
+});
+
+test('E2. le défaut qui désigne un composant seul publie son nom', async () => {
+  const noms = await nomsDesDefauts(
+    { '12:346': { type: 'COMPONENT', name: 'Logo', parent: { type: 'PAGE', name: 'Page' } } },
+    SWAP('12:346'),
+  );
+  const { modele } = lireLeModeleDeProprietes(definitions(SWAP('12:346')), noms);
+  assert.equal((Object.values(modele.props)[0] as { default?: string }).default, 'Logo');
+});
+
+test('E3. un identifiant qui ne se résout pas ne publie aucun défaut', async () => {
+  const noms = await nomsDesDefauts({}, SWAP('9:9'));
+  const { modele } = lireLeModeleDeProprietes(definitions(SWAP('9:9')), noms);
+  assert.ok(!('default' in Object.values(modele.props)[0]));
+  assert.ok(!('default' in Object.values(lireLeModeleDeProprietes(definitions(SWAP('9:9'))).modele.props)[0]));
 });
