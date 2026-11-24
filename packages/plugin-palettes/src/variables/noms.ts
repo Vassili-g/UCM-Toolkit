@@ -26,7 +26,7 @@ export function segmentDuNom(nom: string): string {
 
 export interface SegmentDePalette {
   readonly segment: string;
-  /** Vrai quand une palette placée avant porte le même segment : celui-ci a pris l'identifiant en suffixe. */
+  /** Vrai quand une palette placée avant porte le même segment : celui-ci a pris l'identifiant en suffixe, répété tant que le nom reste pris. */
   readonly suffixe: boolean;
 }
 
@@ -34,8 +34,10 @@ export interface SegmentDePalette {
  * Le segment de chaque palette de la recette, par identifiant. Une palette
  * sans nom, ou dont le nom ne laisse rien, prend son identifiant. Deux
  * palettes au même segment : la seconde, dans l'ordre de la recette, prend
- * son identifiant en suffixe. « Au même segment » se juge sur le nom CSS du
- * segment (`tokenCssVariable`), la projection que lit la feuille des tokens.
+ * son identifiant en suffixe, et de nouveau tant que le segment suffixé est
+ * déjà pris (une palette nommée `Bleu-p-0000000c` occupe le premier suffixe de
+ * `Bleu`). « Au même segment » se juge sur le nom CSS du segment
+ * (`tokenCssVariable`), la projection que lit la feuille des tokens.
  */
 export function segmentsDesPalettes(recette: Pick<Recette, 'palettes'>): Map<string, SegmentDePalette> {
   const pris = new Set<string>();
@@ -44,7 +46,9 @@ export function segmentsDesPalettes(recette: Pick<Recette, 'palettes'>): Map<str
     const propre = segmentDuNom(palette.nom ?? '') || palette.id;
     // Deux noms qui donnent le même nom CSS (casse, accents, `_` ou espace) se rejoignent dans `tokens.css`, que `ucm tokens css` refuse alors en entier : ils comptent pour le même segment.
     const suffixe = pris.has(tokenCssVariable(propre));
-    const segment = suffixe ? `${propre}-${palette.id}` : propre;
+    let segment = propre;
+    // Chaque tour allonge le segment : la boucle s'arrête dès qu'un nom CSS est libre.
+    while (pris.has(tokenCssVariable(segment))) segment = `${segment}-${palette.id}`;
     pris.add(tokenCssVariable(segment));
     segments.set(palette.id, { segment, suffixe });
   }

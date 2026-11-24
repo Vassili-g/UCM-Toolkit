@@ -3317,8 +3317,9 @@ qu'une écriture ferait, pour l'onglet Gestion, sur les règles de l'écriture.
   `packages/plugin-socle`, puis le retrait de `.`, `{`, `}` et du `$` de
   tête, que Figma refuse. Une palette sans nom, ou dont le nom ne laisse
   aucun caractère, prend son identifiant. Deux palettes au même segment : la
-  seconde, dans l'ordre de la recette, prend son identifiant en suffixe, et
-  sa fiche le dit.
+  seconde, dans l'ordre de la recette, prend son identifiant en suffixe, de
+  nouveau tant que le nom CSS du segment suffixé est déjà pris, et sa fiche le
+  dit.
 
 ### 17.2 La propriété et l'état
 
