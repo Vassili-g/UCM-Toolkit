@@ -29,8 +29,8 @@ deux règles et ce qu'elles ne voient pas).
 ## 2. Ce qu'UCM fournit
 
 Trois paquets publiés sur npm. Le module les épingle à la version exacte :
-`@ucm-kit/core` 0.17.4, `@ucm-kit/cli` 0.3.0 et `@ucm-kit/adapter-typescript`
-0.2.14.
+`@ucm-kit/core` 0.18.0, `@ucm-kit/cli` 0.4.0 et `@ucm-kit/adapter-typescript`
+0.3.0.
 
 | Pièce | Où | Ce qu'elle fait |
 |---|---|---|
