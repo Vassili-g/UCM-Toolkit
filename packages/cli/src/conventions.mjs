@@ -11,7 +11,7 @@ import { createHash } from "node:crypto";
 import { existsSync } from "node:fs";
 import { dirname, isAbsolute, join, relative, resolve, sep } from "node:path";
 
-import { NOM_CONFIGURATION, isTokenReference } from "@ucm-kit/core/format";
+import { NOM_CONFIGURATION, referencesDansUnTexte } from "@ucm-kit/core/format";
 
 export const CHEMIN_CONVENTIONS = join(".ucm", "conventions.md");
 
@@ -134,7 +134,7 @@ export function lireConventions(texte, aides) {
       return "";
     });
     const section = { ...extraireControles(sansMarqueur), copie };
-    if ([...section.texte.matchAll(/\{[^{}\s]+\}/g)].some(([reference]) => isTokenReference(reference))) {
+    if (referencesDansUnTexte().test(section.texte)) {
       anomalies.push(`La section « ${titre} » cite une référence de token : une écriture ne dépend d'aucune valeur de contrat.`);
     }
     sections.set(titre, section);

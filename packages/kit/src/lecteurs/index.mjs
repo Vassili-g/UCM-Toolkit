@@ -64,6 +64,7 @@ export { erreursTypesTypographiques } from "./typography-token-types.mjs";
 export {
   indexerTokensDtcg,
   nomsCssDesTokens,
+  refusDesNomsCss,
   cheminDeReference,
   referencesAbsentes,
 } from "./tokens-dtcg.mjs";

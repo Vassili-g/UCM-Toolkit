@@ -23,16 +23,16 @@ test('une racine sans `$` est une collection, et ses modes viennent de l\'axe de
 test('une collection sans axe de son nom prend l\'unique axe que ses feuilles nomment', () => {
   const { catalogue } = catalogueDepuisTokens({
     $extensions: { 'com.ucm.axes': { brand: { modes: ['acme', 'zen'], default: 'acme' } } },
-    marques: { texte: { $type: 'color', $value: '#112233', $extensions: { 'com.ucm.axis': 'brand', 'com.ucm.modes': { acme: '#112233', zen: '#445566' } } } },
+    marques: { texte: { $type: 'color', $value: srgb(0.1), $extensions: { 'com.ucm.axis': 'brand', 'com.ucm.modes': { acme: srgb(0.1), zen: srgb(0.4, 0.5, 0.6) } } } },
   });
   assert.deepEqual(catalogue.collections[0].modes.map((m) => m.nom), ['acme', 'zen']);
-  assert.deepEqual(catalogue.variables[0].valeurs?.zen, { valeur: { r: 0x44 / 255, g: 0x55 / 255, b: 0x66 / 255, a: 1 } });
+  assert.deepEqual(catalogue.variables[0].valeurs?.zen, { valeur: { r: 0.4, g: 0.5, b: 0.6, a: 1 } });
 });
 
 test('le type d\'un groupe se transmet à ses feuilles, et un type composé est sauté et compté', () => {
   const { catalogue, bilan } = catalogueDepuisTokens({
     layouts: {
-      sizing: { $type: 'dimension', 1: { $value: { value: 4, unit: 'px' } }, 2: { $value: '8px' } },
+      sizing: { $type: 'dimension', 1: { $value: { value: 4, unit: 'px' } }, 2: { $value: { value: 8, unit: 'px' } } },
       ombre: { $type: 'shadow', $value: { offsetX: 0 } },
       libre: { $value: 3 },
     },
@@ -71,8 +71,33 @@ test('une valeur sans forme portable devient `null`, et un mode hors de l\'axe e
   assert.equal(bilan.modesHorsAxe, 1);
 });
 
+test('T2 : seule la forme de FORMAT.md se lit, toute autre forme de couleur ou de dimension est comptée dans valeursSautees', () => {
+  const feuilles = (type: string, valeurs: unknown[]) => Object.fromEntries(valeurs.map((valeur, rang) => [`v${rang}`, { $type: type, $value: valeur }]));
+  const { catalogue, bilan } = catalogueDepuisTokens({
+    theme: {
+      dimensions: feuilles('dimension', ['16px', '1rem', 16, { value: 1, unit: 'rem' }, { value: 16, unit: 'px' }]),
+      couleurs: feuilles('color', [{ colorSpace: 'srgb', components: [1, 0, 0] }, '#ff0000', '#f00', srgb(1, 0, 0)]),
+    },
+  });
+  const lues = catalogue.variables.map((v) => v.valeurs?.base);
+  assert.deepEqual(lues, [
+    { valeur: null }, { valeur: null }, { valeur: null }, { valeur: null }, { valeur: 16 },
+    { valeur: null }, { valeur: null }, { valeur: null }, { valeur: { r: 1, g: 0, b: 0, a: 1 } },
+  ]);
+  assert.equal(bilan.valeursSautees, 7);
+});
+
+test('T1 : un alias entier se lit comme l’index du kit, et une chaîne mal formée n’est pas un alias', () => {
+  const chaines = ['{a b.c}', '{a.b }', '{$a.b}', '{a.`b}', '{a.b$}', '{marque}', '{a.b}'];
+  const { bilan } = catalogueDepuisTokens({
+    theme: Object.fromEntries(chaines.map((chaine, rang) => [`v${rang}`, { $type: 'color', $value: chaine }])),
+  });
+  // Les deux premières ne sont pas des références : leur couleur est sautée. Les cinq autres sont des alias.
+  assert.deepEqual([bilan.aliasTotal, bilan.valeursSautees], [5, 2]);
+});
+
 test('les scopes de Figma passent au catalogue', () => {
-  const { catalogue } = catalogueDepuisTokens({ theme: { fond: { $type: 'color', $value: '#ffffff', $extensions: { 'com.figma.scopes': ['ALL_FILLS', 7] } } } });
+  const { catalogue } = catalogueDepuisTokens({ theme: { fond: { $type: 'color', $value: srgb(1, 1, 1), $extensions: { 'com.figma.scopes': ['ALL_FILLS', 7] } } } });
   assert.deepEqual(catalogue.variables[0].scopes, ['ALL_FILLS']);
 });
 

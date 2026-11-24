@@ -16,7 +16,6 @@ import {
   EXTENSION_SURCHARGES_TOKENS,
   EXTENSION_VERSION_TOKENS,
   MODE_DE_BASE,
-  PREFIXE_DES_INTERMEDIAIRES,
   TOKENS_FORMAT_VERSION,
   deciderAxesDesCollections,
   courbeDeToken,
@@ -27,6 +26,7 @@ import {
   poidsDeGraisse,
   tokenCssVariable,
 } from '@ucm-kit/core/format';
+import { refusDesNomsCss } from '@ucm-kit/core/lecteurs/navigateur';
 import { famillesDeTokens } from './familles';
 import type { LiaisonsDeTextStyles } from './familles';
 import { graissesNumeriques } from './graisses';
@@ -794,9 +794,10 @@ function constatsDeTypesParMode(
 }
 
 /**
- * Nomme les tokens que `ucm tokens css` refuse de déclarer : deux tokens dont
- * `tokenCssVariable` rend la même propriété, et un token dont la propriété
- * commence par `PREFIXE_DES_INTERMEDIAIRES`. Les tokens restent dans le fichier.
+ * Nomme les tokens que `ucm tokens css` refuse de déclarer, sur les refus que
+ * `refusDesNomsCss` rend à la CLI : un token sans nom CSS, un token dont la
+ * propriété commence par `PREFIXE_DES_INTERMEDIAIRES`, et deux tokens qui
+ * donnent la même propriété. Les tokens restent dans le fichier.
  */
 function constatsDeNomsCss(
   chemins: readonly string[],
@@ -805,32 +806,29 @@ function constatsDeNomsCss(
 ): void {
   const impact = 'Le développeur ne pourra pas générer la feuille CSS des tokens.';
   const nomDe = (chemin: string) => variableByPath.get(chemin)?.name ?? chemin;
-  const parPropriete = new Map<string, string[]>();
-  for (const chemin of chemins) {
-    const propriete = tokenCssVariable(chemin);
-    parPropriete.set(propriete, [...(parPropriete.get(propriete) ?? []), chemin]);
-  }
 
-  for (const [propriete, porteurs] of parPropriete) {
-    if (propriete.startsWith(PREFIXE_DES_INTERMEDIAIRES)) {
-      for (const chemin of porteurs) {
-        pousserSansNode(warnings, `Variable « ${nomDe(chemin)} »`, {
-          famille: 'fichier',
-          manque: `son token « ${chemin} » commence par un nom que la feuille CSS réserve aux collections étendues.`,
-          impact,
-          action: 'Renommez la variable ou sa collection, puis réexportez.',
-        });
-      }
+  for (const { genre, chemins: porteurs } of refusDesNomsCss(chemins)) {
+    if (genre === 'meme-nom') {
+      pousserSansNode(warnings, `Variables ${porteurs.map((chemin) => `« ${nomDe(chemin)} »`).join(' et ')}`, {
+        famille: 'fichier',
+        manque: `leurs tokens ${porteurs.map((chemin) => `« ${chemin} »`).join(' et ')} portent le même nom dans la feuille CSS.`,
+        impact,
+        action: porteurs.length === 2
+          ? 'Renommez l’une des deux, puis réexportez.'
+          : 'Renommez-les pour que leurs noms diffèrent, puis réexportez.',
+      });
+      continue;
     }
-    if (porteurs.length < 2) continue;
-    pousserSansNode(warnings, `Variables ${porteurs.map((chemin) => `« ${nomDe(chemin)} »`).join(' et ')}`, {
-      famille: 'fichier',
-      manque: `leurs tokens ${porteurs.map((chemin) => `« ${chemin} »`).join(' et ')} portent le même nom dans la feuille CSS.`,
-      impact,
-      action: porteurs.length === 2
-        ? 'Renommez l’une des deux, puis réexportez.'
-        : 'Renommez-les pour que leurs noms diffèrent, puis réexportez.',
-    });
+    for (const chemin of porteurs) {
+      pousserSansNode(warnings, `Variable « ${nomDe(chemin)} »`, {
+        famille: 'fichier',
+        manque: genre === 'vide'
+          ? `son token « ${chemin} » ne donne aucun nom dans la feuille CSS.`
+          : `son token « ${chemin} » commence par un nom que la feuille CSS réserve aux collections étendues.`,
+        impact,
+        action: 'Renommez la variable ou sa collection, puis réexportez.',
+      });
+    }
   }
 }
 

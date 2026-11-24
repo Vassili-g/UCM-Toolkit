@@ -706,11 +706,12 @@ en mots de designer, « une longueur » ou « un nombre sans unité ». L'axe re
 publié, puisque la faute porte sur une liaison que le designer corrige dans
 Figma.
 
-**Un nom que la feuille CSS refuse se constate aussi après l'arbre.** Deux
-tokens dont `tokenCssVariable` rend la même propriété, et un token dont la
-propriété commence par `PREFIXE_DES_INTERMEDIAIRES`, restent dans le fichier.
-`ucm tokens css` refuse pourtant d'en écrire la feuille : un constat nomme les
-variables et leurs tokens.
+**Un nom que la feuille CSS refuse se constate aussi après l'arbre.** Un token
+dont `tokenCssVariable` ne rend aucun nom, deux tokens dont elle rend la même
+propriété, et un token dont la propriété commence par
+`PREFIXE_DES_INTERMEDIAIRES` restent dans le fichier. `ucm tokens css` refuse
+pourtant d'en écrire la feuille : un constat nomme les variables et leurs
+tokens. Les deux lisent les mêmes refus, par `refusDesNomsCss` du kit.
 
 ---
 

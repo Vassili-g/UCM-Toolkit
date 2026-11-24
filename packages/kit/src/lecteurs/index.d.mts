@@ -190,6 +190,16 @@ declare module "@ucm-kit/core/lecteurs" {
   /** Les chemins de chaque nom CSS, triés ; deux chemins pour un nom sont une collision. */
   export function nomsCssDesTokens(index: Map<string, unknown>): Map<string, string[]>;
 
+  /** Un refus de la feuille CSS : un nom vide, un préfixe réservé ou plusieurs chemins au même nom. */
+  export type RefusDeNomCss = {
+    genre: "vide" | "prefixe-reserve" | "meme-nom";
+    nom: string;
+    chemins: string[];
+  };
+
+  /** Les refus que la feuille CSS oppose à ces chemins, dans l'ordre des noms ; chaque refus porte ses chemins triés. */
+  export function refusDesNomsCss(chemins: Iterable<string>): RefusDeNomCss[];
+
   /** Le chemin que désigne une référence, ou `null` si la chaîne n'en désigne aucun. */
   export function cheminDeReference(reference: unknown): string | null;
 

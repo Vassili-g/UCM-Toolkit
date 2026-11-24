@@ -12,8 +12,8 @@
 import { existsSync, readFileSync, writeFileSync } from "node:fs";
 import { relative, resolve } from "node:path";
 
-import { isTokenReference } from "@ucm-kit/core/format";
-import { cheminDeReference, indexerTokensDtcg, lireConfiguration, nomsCssDesTokens } from "@ucm-kit/core/lecteurs";
+import { isTokenReference, referencesDansUnTexte } from "@ucm-kit/core/format";
+import { cheminDeReference, indexerTokensDtcg, lireConfiguration, lireJsonDuDepot, nomsCssDesTokens } from "@ucm-kit/core/lecteurs";
 
 import { catalogueDesAides } from "./aides.mjs";
 import { conventionsLesPlusProches, lireConventions } from "./conventions.mjs";
@@ -21,7 +21,6 @@ import { conventionsLesPlusProches, lireConventions } from "./conventions.mjs";
 export const USAGE_REFERENCES = "ucm tokens references [--verifier] <fichiers…>";
 
 const SECTION_DU_REPOSITORY = "resolution-token";
-const REFERENCE_DANS_UN_TEXTE = /(?<!\$)\{[^{}\s`$]+\.[^{}\s`$]+\}/g;
 
 /** Lit les arguments de la commande, sans lever. */
 export function lireArgumentsReferences(arguments_) {
@@ -99,8 +98,8 @@ function traiter(texte, index, noms) {
     const contenu = texte.slice(debut + 1, fin);
     const ligne = ligneDe(texte, debut);
     if (guillemet === "`") {
-      for (const [reference] of contenu.matchAll(REFERENCE_DANS_UN_TEXTE)) {
-        if (isTokenReference(reference)) laissees.push({ ligne, reference, raison: "dans un gabarit" });
+      for (const [reference] of contenu.matchAll(referencesDansUnTexte())) {
+        laissees.push({ ligne, reference, raison: "dans un gabarit" });
       }
     } else if (isTokenReference(contenu)) {
       const chemin = cheminDeReference(contenu);
@@ -114,8 +113,8 @@ function traiter(texte, index, noms) {
         remplacees.push({ ligne, reference: contenu });
       }
     } else {
-      for (const [reference] of contenu.matchAll(REFERENCE_DANS_UN_TEXTE)) {
-        if (isTokenReference(reference)) laissees.push({ ligne, reference, raison: "dans une chaîne plus longue" });
+      for (const [reference] of contenu.matchAll(referencesDansUnTexte())) {
+        laissees.push({ ligne, reference, raison: "dans une chaîne plus longue" });
       }
     }
   }
@@ -176,7 +175,7 @@ export function tokensReferences(arguments_, {
   }
   let index;
   try {
-    index = indexerTokensDtcg(JSON.parse(readFileSync(source, "utf8").replace(/^﻿/, "")));
+    index = indexerTokensDtcg(lireJsonDuDepot(source));
   } catch {
     alerter(`${configuration.tokens} est illisible : ce n'est pas du JSON valide.`);
     return 2;

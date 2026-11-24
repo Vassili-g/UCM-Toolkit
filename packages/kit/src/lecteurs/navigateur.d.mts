@@ -24,6 +24,8 @@ declare module "@ucm-kit/core/lecteurs/navigateur" {
     erreursTypesTypographiques,
     indexerTokensDtcg,
     nomsCssDesTokens,
+    refusDesNomsCss,
+    RefusDeNomCss,
     cheminDeReference,
     referencesAbsentes,
     comparerAuTokenPublie,

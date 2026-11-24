@@ -27,10 +27,10 @@ test("color : mêmes canaux dans le même espace sont égaux, un canal éloigné
   assert.deepEqual(comparerAuTokenPublie(couleur([0.2, 0.4, 0.6], "srgb", 1), "color", publiee), DIFFERENT);
 });
 
-test("color : un alpha absent vaut 1", () => {
+test("T2 color : un alpha absent n'est pas la forme du format, et ne vaut pas 1", () => {
   const publiee = { colorSpace: "display-p3", components: [0.1, 0.2, 0.3] };
-  assert.deepEqual(comparerAuTokenPublie(couleur([0.1, 0.2, 0.3], "display-p3", 1), "color", publiee), EGAL);
-  assert.deepEqual(comparerAuTokenPublie(couleur([0.1, 0.2, 0.3], "display-p3", 0.5), "color", publiee), DIFFERENT);
+  assert.deepEqual(comparerAuTokenPublie(couleur([0.1, 0.2, 0.3], "display-p3", 1), "color", publiee), non("forme-inconnue"));
+  assert.deepEqual(comparerAuTokenPublie(couleur([0.1, 0.2, 0.3], "display-p3", 0.5), "color", publiee), non("forme-inconnue"));
 });
 
 test("color : les mêmes composantes en srgb et en display-p3 sont différentes", () => {
@@ -45,11 +45,11 @@ test("color : l'écart admis est un demi-octet", () => {
   assert.deepEqual(comparerAuTokenPublie(couleur([0.5 + 0.6 / 255, 0.5, 0.5]), "color", publiee), DIFFERENT);
 });
 
-test("color : un hexadécimal se lit en srgb, avec ou sans alpha", () => {
-  assert.deepEqual(comparerAuTokenPublie(couleur([1, 0, 0]), "color", "#ff0000"), EGAL);
-  assert.deepEqual(comparerAuTokenPublie(couleur([1, 0, 0], "srgb", 0), "color", "#ff000000"), EGAL);
-  assert.deepEqual(comparerAuTokenPublie(couleur([1, 0, 0]), "color", "#00ff00"), DIFFERENT);
-  assert.deepEqual(comparerAuTokenPublie(couleur([1, 0, 0], "display-p3"), "color", "#ff0000"), DIFFERENT);
+test("T2 color : un hexadécimal n'est pas la forme du format, et ne se compare pas", () => {
+  for (const hexadecimal of ["#ff0000", "#f00", "#ff000000", "#00ff00"]) {
+    assert.deepEqual(comparerAuTokenPublie(couleur([1, 0, 0]), "color", hexadecimal), non("forme-inconnue"), hexadecimal);
+  }
+  assert.deepEqual(comparerAuTokenPublie(couleur([1, 0, 0], "display-p3"), "color", "#ff0000"), non("forme-inconnue"));
 });
 
 test("color : un espace inconnu, une forme inconnue ou un composant manquant ne se comparent pas", () => {
@@ -67,12 +67,11 @@ test("dimension : un pixel se compare au nombre", () => {
   assert.deepEqual(comparerAuTokenPublie(nombre(16), "dimension", { value: 12, unit: "px" }), DIFFERENT);
 });
 
-test("dimension : un nombre seul et une chaîne en pixels des anciens exports se comparent aussi", () => {
-  assert.deepEqual(comparerAuTokenPublie(nombre(16), "dimension", 16), EGAL);
-  assert.deepEqual(comparerAuTokenPublie(nombre(16), "dimension", 12), DIFFERENT);
-  assert.deepEqual(comparerAuTokenPublie(nombre(16), "dimension", "16px"), EGAL);
-  assert.deepEqual(comparerAuTokenPublie(nombre(16.5), "dimension", "16.5px"), EGAL);
-  assert.deepEqual(comparerAuTokenPublie(nombre(16), "dimension", "12px"), DIFFERENT);
+test("T2 dimension : un nombre seul et une chaîne en pixels ne sont pas la forme du format, et ne se comparent pas", () => {
+  for (const publiee of [16, 12, "16px", "16.5px", "12px", "1rem"]) {
+    assert.deepEqual(comparerAuTokenPublie(nombre(16), "dimension", publiee), non("forme-inconnue"), String(publiee));
+  }
+  assert.deepEqual(comparerAuTokenPublie(nombre(16), "dimension", { value: 1, unit: "rem" }), non("unite-relative"));
 });
 
 test("dimension : rem et em dépendent de la page, une autre unité est inconnue", () => {

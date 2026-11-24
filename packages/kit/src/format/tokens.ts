@@ -191,3 +191,52 @@ export function etatDuFormatDeTokens(document: unknown): EtatDuFormatDeTokens {
   }
   return { etat: 'invalide', valeur };
 }
+
+/** Pourquoi une valeur n'a pas la forme du format, en un code que l'appelant range et une phrase qu'il cite. */
+export type RefusDeValeur = {
+  cause: 'forme-inconnue' | 'espace-inconnu' | 'unite-relative' | 'unite-inconnue';
+  texte: string;
+};
+
+const estNombreFini = (valeur: unknown): valeur is number => typeof valeur === 'number' && Number.isFinite(valeur);
+
+/**
+ * Lit la valeur littérale d'un token `color` ou `dimension` dans la seule forme
+ * que docs/format/FORMAT.md fixe : une couleur `{ colorSpace, components,
+ * alpha }`, une dimension `{ value, unit: 'px' }`. Une chaîne (`"#ff0000"`,
+ * `"16px"`), un nombre nu, une couleur sans `alpha` ou une unité `rem` sont
+ * refusés : un lecteur qui en devinerait le sens donnerait à un même fichier
+ * une réponse différente selon la commande.
+ */
+export function valeurDuToken(type: 'color', valeur: unknown): { valeur: CouleurDeToken } | { refus: RefusDeValeur };
+export function valeurDuToken(type: 'dimension', valeur: unknown): { valeur: DimensionDeToken } | { refus: RefusDeValeur };
+export function valeurDuToken(
+  type: 'color' | 'dimension',
+  valeur: unknown,
+): { valeur: CouleurDeToken | DimensionDeToken } | { refus: RefusDeValeur } {
+  const forme = (texte: string): { refus: RefusDeValeur } => ({ refus: { cause: 'forme-inconnue', texte } });
+  if (type === 'dimension') {
+    if (!estObjet(valeur) || !estNombreFini(valeur.value) || typeof valeur.unit !== 'string') {
+      return forme('une dimension s’écrit { "value": nombre, "unit": "px" }.');
+    }
+    if (valeur.unit === 'px') return { valeur: { value: valeur.value, unit: 'px' } };
+    const relative = valeur.unit === 'rem' || valeur.unit === 'em';
+    return {
+      refus: {
+        cause: relative ? 'unite-relative' : 'unite-inconnue',
+        texte: `l’unité « ${valeur.unit} » n’est pas « px », la seule que le format écrit.`,
+      },
+    };
+  }
+  if (!estObjet(valeur) || typeof valeur.colorSpace !== 'string') {
+    return forme('une couleur s’écrit { "colorSpace", "components", "alpha" }.');
+  }
+  if (valeur.colorSpace !== 'srgb' && valeur.colorSpace !== 'display-p3') {
+    return { refus: { cause: 'espace-inconnu', texte: `l’espace « ${valeur.colorSpace} » n’est ni « srgb » ni « display-p3 ».` } };
+  }
+  const { components, alpha } = valeur;
+  if (!Array.isArray(components) || components.length !== 3 || !components.every(estNombreFini) || !estNombreFini(alpha)) {
+    return forme('une couleur porte trois composantes numériques et un « alpha » numérique.');
+  }
+  return { valeur: { colorSpace: valeur.colorSpace, components: [components[0], components[1], components[2]], alpha } };
+}

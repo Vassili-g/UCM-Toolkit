@@ -14,9 +14,12 @@
  *
  * Les alias ne passent pas ici. Le chemin publié de leur cible dépend de
  * l'index de l'appelant.
+ *
+ * Une couleur et une dimension ne se lisent que dans la forme de FORMAT.md
+ * (`valeurDuToken`) : `"#ff0000"`, `"16px"` et un nombre nu sont non comparables.
  */
 
-const ESPACES = ["srgb", "display-p3"];
+import { valeurDuToken } from "@ucm-kit/core/format";
 
 /** Un octet de couleur, ou l'arrondi d'un hexadécimal. */
 const TOLERANCE_DE_COULEUR = 0.5 / 255 + 1e-9;
@@ -39,19 +42,9 @@ const estNombreFini = (valeur) => typeof valeur === "number" && Number.isFinite(
 
 /** Une couleur publiée ramenée à `{ espace, composantes, alpha }`, ou la cause du refus. */
 function couleurPubliee(publiee) {
-  if (typeof publiee === "string") {
-    const hexa = /^#([0-9a-f]{6})([0-9a-f]{2})?$/i.exec(publiee);
-    if (!hexa) return { cause: "forme-inconnue" };
-    const octet = (rang) => parseInt(hexa[1].slice(rang * 2, rang * 2 + 2), 16) / 255;
-    return { espace: "srgb", composantes: [octet(0), octet(1), octet(2)], alpha: hexa[2] ? parseInt(hexa[2], 16) / 255 : 1 };
-  }
-  if (!estObjet(publiee) || typeof publiee.colorSpace !== "string") return { cause: "forme-inconnue" };
-  if (!ESPACES.includes(publiee.colorSpace)) return { cause: "espace-inconnu" };
-  const { components } = publiee;
-  if (!Array.isArray(components) || components.length !== 3 || !components.every(estNombreFini)) return { cause: "forme-inconnue" };
-  const alpha = publiee.alpha === undefined ? 1 : publiee.alpha;
-  if (!estNombreFini(alpha)) return { cause: "forme-inconnue" };
-  return { espace: publiee.colorSpace, composantes: components, alpha };
+  const lue = valeurDuToken("color", publiee);
+  if ("refus" in lue) return { cause: lue.refus.cause };
+  return { espace: lue.valeur.colorSpace, composantes: lue.valeur.components, alpha: lue.valeur.alpha };
 }
 
 function comparerCouleur(source, publiee) {
@@ -64,14 +57,8 @@ function comparerCouleur(source, publiee) {
 }
 
 function comparerDimension(source, publiee) {
-  if (estNombreFini(publiee)) return selon(source.nombre === publiee);
-  if (typeof publiee === "string") {
-    const pixels = /^(-?\d+(?:\.\d+)?)px$/.exec(publiee);
-    return pixels ? selon(source.nombre === Number(pixels[1])) : nonComparable("forme-inconnue");
-  }
-  if (!estObjet(publiee) || !estNombreFini(publiee.value) || typeof publiee.unit !== "string") return nonComparable("forme-inconnue");
-  if (publiee.unit === "px") return selon(source.nombre === publiee.value);
-  return nonComparable(publiee.unit === "rem" || publiee.unit === "em" ? "unite-relative" : "unite-inconnue");
+  const lue = valeurDuToken("dimension", publiee);
+  return "refus" in lue ? nonComparable(lue.refus.cause) : selon(source.nombre === lue.valeur.value);
 }
 
 function comparerNombre(source, publiee) {

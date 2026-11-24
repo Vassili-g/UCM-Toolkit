@@ -41,6 +41,30 @@ test("G4 : une chaîne qui est une référence devient var(--nom), guillemets ga
   assert.equal(relus["a.ts"], "const s = { c: \"var(--cafe-fond)\", d: 'var(--a-b)' };\n");
 });
 
+test("T1 : une chaîne reçoit la même réponse que l'index du kit, la projection et la référence complète", () => {
+  const tokens = { $extensions: { "com.ucm.formatVersion": 2 }, a: { b: { $type: "number", $value: 1 } }, marque: { $type: "number", $value: 2 } };
+  const source = [
+    "\"{a b.c}\"", "\"{a.b }\"", "\"{$a.b}\"", "\"{a.`b}\"", "\"{a.b$}\"", "\"{marque}\"", "\"{a.b}\"",
+  ].map((chaine, rang) => `const v${rang} = ${chaine};\n`).join("");
+  const { code, erreur, relus } = lancer({ "a.ts": source }, ["a.ts"], { tokens });
+  assert.equal(code, 1);
+  // Seule la dernière désigne un token du fichier ; les trois qui ont la forme d'une référence sans en désigner une restent nommées.
+  assert.match(erreur, /a\.ts:3 : \{\$a\.b\} reste en place, absente de tokens\.json/);
+  assert.match(erreur, /a\.ts:4 : \{a\.`b\} reste en place, absente de tokens\.json/);
+  assert.match(erreur, /a\.ts:5 : \{a\.b\$\} reste en place, absente de tokens\.json/);
+  assert.equal(erreur.split("\n").length, 3);
+  const lignes = relus["a.ts"].split("\n");
+  assert.deepEqual([lignes[0], lignes[1], lignes[5], lignes[6]], [
+    "const v0 = \"{a b.c}\";", "const v1 = \"{a.b }\";", "const v5 = \"{marque}\";", "const v6 = \"var(--a-b)\";",
+  ]);
+});
+
+test("T4 : un fichier de tokens précédé d'un BOM se lit", () => {
+  const { code, relus } = lancer({ "a.ts": "const s = \"{a.b}\";\n", "tokens.json": `\uFEFF${JSON.stringify(TOKENS)}` }, ["a.ts"]);
+  assert.equal(code, 0);
+  assert.equal(relus["a.ts"], "const s = \"var(--a-b)\";\n");
+});
+
 test("G6 : une référence absente et une référence dans un gabarit restent, nommées avec fichier et ligne", () => {
   const source = "const x = \"{inconnu.token}\";\nconst y = `calc({a.b} * 2)`;\nconst z = \"marge {a.b} ici\";\n";
   const { code, erreur, relus } = lancer({ "a.ts": source }, ["a.ts"]);

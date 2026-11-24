@@ -11,7 +11,7 @@
  * Codes : 0 feuille écrite, 1 fichier de tokens refusé, 2 invocation ou
  * configuration fautive. Un refus laisse la feuille précédente en place.
  */
-import { existsSync, mkdirSync, readFileSync, renameSync, rmSync, statSync, writeFileSync } from "node:fs";
+import { existsSync, mkdirSync, renameSync, rmSync, statSync, writeFileSync } from "node:fs";
 import { dirname, join, relative, resolve } from "node:path";
 
 import {
@@ -24,6 +24,7 @@ import {
   axeDesExtensions,
   etatDuFormatDeTokens,
   tokenCssVariable,
+  valeurDuToken,
 } from "@ucm-kit/core/format";
 import {
   axesDeTokens,
@@ -33,7 +34,8 @@ import {
   cyclesActifs,
   indexerTokensDtcg,
   lireConfiguration,
-  nomsCssDesTokens,
+  lireJsonDuDepot,
+  refusDesNomsCss,
   sansEchantillon,
 } from "@ucm-kit/core/lecteurs";
 import { FORMES_ANCIENNES_DES_COLLECTIONS } from "@ucm-kit/core/referentiel";
@@ -60,19 +62,22 @@ function chaineCss(texte) {
   return `"${echappe}"`;
 }
 
-/** L'écriture CSS d'un littéral de ce `$type`, ou `null` quand sa forme n'est pas celle du format. */
+/**
+ * L'écriture CSS d'un littéral de ce `$type`, ou `null` quand sa forme n'est pas celle du format. Une couleur et une
+ * dimension rendent `{ refus }`, la phrase de `valeurDuToken` qui dit ce que le format attend.
+ */
 function litteral(type, valeur, repliDeFamille) {
   switch (type) {
     case "color": {
-      const espace = valeur?.colorSpace === "srgb" || valeur?.colorSpace === "display-p3";
-      const composantes = Array.isArray(valeur?.components)
-        && valeur.components.length === 3
-        && valeur.components.every(fini);
-      if (!espace || !composantes || !fini(valeur.alpha)) return null;
-      return `color(${valeur.colorSpace} ${valeur.components.join(" ")} / ${valeur.alpha})`;
+      const lue = valeurDuToken("color", valeur);
+      if ("refus" in lue) return { refus: lue.refus.texte };
+      const { colorSpace, components, alpha } = lue.valeur;
+      return `color(${colorSpace} ${components.join(" ")} / ${alpha})`;
     }
-    case "dimension":
-      return fini(valeur?.value) && valeur.unit === "px" ? `${valeur.value}px` : null;
+    case "dimension": {
+      const lue = valeurDuToken("dimension", valeur);
+      return "refus" in lue ? { refus: lue.refus.texte } : `${lue.valeur.value}px`;
+    }
     case "duration":
       return fini(valeur?.value) && valeur.unit === "s" ? `${valeur.value}s` : null;
     case "cubicBezier": {
@@ -312,18 +317,17 @@ export function feuilleDesTokens(document, { axes = [], attributs = new Map(), r
   const proprietaire = new Map();
   for (const axe of axes) for (const chemin of axe.feuilles) proprietaire.set(chemin, axe);
 
-  for (const [nom, chemins] of nomsCssDesTokens(index)) {
-    if (nom === "--") {
+  for (const { genre, nom, chemins } of refusDesNomsCss(index.keys())) {
+    if (genre === "vide") {
       for (const chemin of chemins) refus.push(`La feuille « ${chemin} » ne donne aucun nom CSS.`);
-      continue;
-    }
-    if (nom.startsWith(PREFIXE_DES_INTERMEDIAIRES)) {
+    } else if (genre === "prefixe-reserve") {
       for (const chemin of chemins) {
         refus.push(`La feuille « ${chemin} » donne la propriété « ${nom} », dont le préfixe ${PREFIXE_DES_INTERMEDIAIRES} est réservé aux collections étendues.`);
       }
-    }
-    for (const chemin of chemins.slice(1)) {
-      refus.push(`Les feuilles « ${chemins[0]} » et « ${chemin} » donnent la même propriété CSS « ${nom} ».`);
+    } else {
+      for (const chemin of chemins.slice(1)) {
+        refus.push(`Les feuilles « ${chemins[0]} » et « ${chemin} » donnent la même propriété CSS « ${nom} ».`);
+      }
     }
   }
 
@@ -340,8 +344,11 @@ export function feuilleDesTokens(document, { axes = [], attributs = new Map(), r
     const cible = cheminDeReference(valeur);
     if (cible !== null) return `var(${tokenCssVariable(cible)})`;
     const texte = litteral(feuille.$type, valeur, repliDeFamille);
-    if (texte === null) refus.push(`${ou} porte une valeur que le type « ${feuille.$type} » ne décrit pas.`);
-    return texte;
+    if (typeof texte === "string") return texte;
+    refus.push(texte === null
+      ? `${ou} porte une valeur que le type « ${feuille.$type} » ne décrit pas.`
+      : `${ou} porte une valeur que le type « ${feuille.$type} » ne décrit pas : ${texte.refus}`);
+    return null;
   };
 
   const variables = [];
@@ -511,7 +518,7 @@ function contratsQuiCitentDesTokens(racine, dossierComponents) {
   const cites = [];
   for (const chemin of contratsDuDossier(join(racine, dossierComponents))) {
     try {
-      const contrat = JSON.parse(readFileSync(chemin, "utf8").replace(/^\uFEFF/, ""));
+      const contrat = lireJsonDuDepot(chemin);
       if (collecterReferences(sansEchantillon(contrat)).size > 0) cites.push(relative(racine, chemin).split("\\").join("/"));
     } catch {
       // Un contrat illisible relève d'`ucm check`.
@@ -611,7 +618,7 @@ export function tokensCss(arguments_, {
 
   let document;
   try {
-    document = JSON.parse(readFileSync(source, "utf8").replace(/^\uFEFF/, ""));
+    document = lireJsonDuDepot(source);
   } catch {
     alerter(`${configuration.tokens} est illisible : ce n'est pas du JSON valide. Exportez de nouveau les tokens depuis Figma.`);
     return 1;

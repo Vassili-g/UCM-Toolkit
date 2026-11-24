@@ -517,7 +517,7 @@ test('un alias reste une référence, dans chaque mode, et chaque mode a la form
   assert.deepEqual(tokens.keys.value.primary.$extensions['com.ucm.modes'].__proto__, { value: 2, unit: 'px' });
 });
 
-test('deux tokens au même nom CSS, ou un token au nom réservé aux extensions, sont nommés et restent dans le fichier', async () => {
+test('T3 : deux tokens au même nom CSS, un token au nom réservé aux extensions ou un token sans nom CSS sont nommés et restent dans le fichier', async () => {
   const exporter = async (nomDeCollection: string, noms: string[]) => {
     const proprietaire = collection('proprietaire', nomDeCollection, ['Mode 1']);
     const variables = noms.map((nom, rang) => variable(proprietaire, `v${rang}`, nom, 'FLOAT', [rang]));
@@ -527,7 +527,7 @@ test('deux tokens au même nom CSS, ou un token au nom réservé aux extensions,
 
   const homonymes = await exporter('Opacity', ['x_y', 'x-y']);
   assert.deepEqual(homonymes.warnings, [
-    'Variables « x_y » et « x-y » : leurs tokens « opacity.x_y » et « opacity.x-y » portent le même nom dans la '
+    'Variables « x-y » et « x_y » : leurs tokens « opacity.x-y » et « opacity.x_y » portent le même nom dans la '
       + 'feuille CSS. Le développeur ne pourra pas générer la feuille CSS des tokens. Renommez l’une des deux, '
       + 'puis réexportez.',
   ]);
@@ -539,6 +539,13 @@ test('deux tokens au même nom CSS, ou un token au nom réservé aux extensions,
       + 'étendues. Le développeur ne pourra pas générer la feuille CSS des tokens. Renommez la variable ou sa '
       + 'collection, puis réexportez.',
   ]);
+
+  const sansNom = await exporter('✦', ['🙂']);
+  assert.deepEqual(sansNom.warnings, [
+    'Variable « 🙂 » : son token « ✦.🙂 » ne donne aucun nom dans la feuille CSS. Le développeur ne pourra '
+      + 'pas générer la feuille CSS des tokens. Renommez la variable ou sa collection, puis réexportez.',
+  ]);
+  assert.deepEqual(Object.keys(sansNom.tokens['✦']), ['🙂']);
 
   assert.deepEqual((await exporter('Opacity', ['x_y', 'x-z'])).warnings, []);
   assert.deepEqual((await exporter('UCM', ['y/fond'])).warnings, []);

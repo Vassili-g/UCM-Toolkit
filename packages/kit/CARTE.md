@@ -13,12 +13,12 @@ Sous-chemin sans dépendance Node ni Figma.
 
 - types.ts : schéma TypeScript du contrat
 - version.ts : `CONTRACT_VERSION`, seul endroit où elle est écrite
-- tokens.ts : forme de tokens.json, `TOKENS_FORMAT_VERSION` et lecture de sa marque
+- tokens.ts : forme de tokens.json, `TOKENS_FORMAT_VERSION`, lecture de sa marque, et `valeurDuToken`, seule lecture d'une valeur `dimension` ou `color`
 - names.ts : `normalizeName`, `codeIdentifier`, `tokenCssVariable`
 - chemins-de-tokens.ts : chemin publié d’un token, commun aux plugins
 - axes-de-collections.ts : décision des axes de modes et de leurs collisions, que l'exporteur et le socle appellent
 - roles-de-rendu.ts : table des rôles de rendu (nature, propriétés CSS, repli) dont l'exporteur et le diagnostic des contrastes dérivent
-- references.ts : forme d'une référence de token, et son enveloppe
+- references.ts : forme d'une référence de token (complète, de premier niveau, dans un texte), son chemin et son enveloppe
 - configuration.ts : grammaire de `ucm.config.json`, pour la CI et le plugin
 - identite.ts : « ces deux contrats sont-ils le même composant ? »
 - typography.ts : graisses et styles DTCG qu'un text style emploie
@@ -64,7 +64,7 @@ Ce qui juge un contrat écrit ; `ajv` et `node:fs`.
 - variant-views.mjs : vue exacte d'un variant
 - version-contrat.mjs : plage lue, et sens d'un écart de version
 - references-token.mjs : forme d'une référence, et son relevé
-- tokens-dtcg.mjs : ce que le fichier de tokens contient, donc ce qui existe ; `nomsCssDesTokens`, noms CSS et collisions
+- tokens-dtcg.mjs : ce que le fichier de tokens contient, donc ce qui existe ; `nomsCssDesTokens`, noms CSS et collisions ; `refusDesNomsCss`, les trois refus de la feuille CSS
 - modes-tokens.mjs : axes de modes du fichier de tokens, sans CSS
 - caracteristiques.mjs : ce qu'un contrat porte, qui décide des aides à imprimer
 - typography-token-types.mjs : types DTCG qu'un style typographique exige

@@ -9,7 +9,8 @@
  * donnerait (`a|b/c`), pour que les contrôles la voient ; le bilan sépare l'alias vers un jeton absent de celui vers un jeton sauté.
  * Le bilan ne porte que des nombres : aucun nom du fichier n'en sort.
  */
-import { EXTENSION_AXES_TOKENS, EXTENSION_AXE_TOKENS, EXTENSION_MODES_TOKENS, MODE_DE_BASE } from '../format/tokens.js';
+import { cheminDeReference } from '../format/references.js';
+import { EXTENSION_AXES_TOKENS, EXTENSION_AXE_TOKENS, EXTENSION_MODES_TOKENS, MODE_DE_BASE, valeurDuToken } from '../format/tokens.js';
 import { collectionsDeReference, type CatalogueDeReference, type CollectionDuCatalogue, type VariableDuCatalogue } from './catalogue.js';
 
 export interface BilanDeConversion {
@@ -37,7 +38,6 @@ const TYPES_PORTES: Readonly<Record<string, VariableDuCatalogue['type']>> = {
   fontFamily: 'STRING', string: 'STRING', boolean: 'BOOLEAN',
 };
 
-const ALIAS_ENTIER = /^\{([^{}]+)\}$/;
 const OBJET = (valeur: unknown): valeur is Record<string, unknown> => valeur !== null && typeof valeur === 'object' && !Array.isArray(valeur);
 
 interface Feuille { collection: string; chemin: string[]; type: string | undefined; brut: Record<string, unknown> }
@@ -68,19 +68,12 @@ function canal(valeur: unknown): number | undefined {
   return typeof valeur === 'number' && Number.isFinite(valeur) ? valeur : undefined;
 }
 
+/** Une couleur que le catalogue sait porter : la forme du format, en sRGB. `display-p3` n'a pas de forme portable ici. */
 function couleurDepuis(valeur: unknown): { r: number; g: number; b: number; a: number } | 'sautee' {
-  if (typeof valeur === 'string') {
-    const hex = /^#([0-9a-f]{3,8})$/i.exec(valeur)?.[1];
-    if (!hex || ![3, 4, 6, 8].includes(hex.length)) return 'sautee';
-    const complet = hex.length <= 4 ? [...hex].map((c) => c + c).join('') : hex;
-    const octet = (i: number): number => parseInt(complet.slice(i * 2, i * 2 + 2), 16) / 255;
-    return { r: octet(0), g: octet(1), b: octet(2), a: complet.length === 8 ? octet(3) : 1 };
-  }
-  if (!OBJET(valeur) || !Array.isArray(valeur.components) || valeur.components.length < 3) return 'sautee';
-  if (valeur.colorSpace !== undefined && valeur.colorSpace !== 'srgb') return 'sautee';
-  const [r, g, b] = valeur.components.map(canal);
-  if (r === undefined || g === undefined || b === undefined) return 'sautee';
-  return { r, g, b, a: canal(valeur.alpha) ?? 1 };
+  const lue = valeurDuToken('color', valeur);
+  if ('refus' in lue || lue.valeur.colorSpace !== 'srgb') return 'sautee';
+  const [r, g, b] = lue.valeur.components;
+  return { r, g, b, a: lue.valeur.alpha };
 }
 
 /** La valeur littérale d'un type porté ; `'sautee'` quand la forme n'est pas portable. */
@@ -89,10 +82,8 @@ function litteral(type: string, valeur: unknown): unknown {
   switch (type) {
     case 'color': return couleurDepuis(valeur);
     case 'dimension': {
-      if (OBJET(valeur) && canal(valeur.value) !== undefined) return valeur.value;
-      if (canal(valeur) !== undefined) return valeur;
-      if (typeof valeur === 'string' && Number.isFinite(parseFloat(valeur))) return parseFloat(valeur);
-      return 'sautee';
+      const lue = valeurDuToken('dimension', valeur);
+      return 'refus' in lue ? 'sautee' : lue.valeur.value;
     }
     case 'duration': return OBJET(valeur) && canal(valeur.value) !== undefined ? valeur.value : canal(valeur) ?? 'sautee';
     case 'number': case 'fontWeight': return canal(valeur) ?? (typeof valeur === 'string' ? valeur : 'sautee');
@@ -161,8 +152,8 @@ export function catalogueDepuisTokens(tokens: unknown, architecture: 'ucm' | 'li
     const valeurs: Record<string, { alias: string } | { valeur: unknown }> = {};
     for (const mode of modes) {
       const brut = mode in parMode ? parMode[mode] : feuille.brut.$value;
-      const cible = typeof brut === 'string' ? ALIAS_ENTIER.exec(brut)?.[1] : undefined;
-      if (cible !== undefined) {
+      const cible = cheminDeReference(brut);
+      if (cible !== null) {
         bilan.aliasTotal += 1;
         const cle = cleParChemin.get(cible);
         if (cle) { bilan.aliasResolus += 1; valeurs[mode] = { alias: cle }; continue; }

@@ -4,6 +4,7 @@ import test from "node:test";
 import {
   indexerTokensDtcg,
   nomsCssDesTokens,
+  refusDesNomsCss,
   cheminDeReference,
   referencesAbsentes,
 } from "../src/lecteurs/tokens-dtcg.mjs";
@@ -105,6 +106,14 @@ test("une référence rend son chemin, une chaîne quelconque n'en rend aucun", 
   assert.equal(cheminDeReference(undefined), null);
 });
 
+test("T1 : l'index du kit rend le chemin que la référence complète et la référence de premier niveau désignent", () => {
+  const chaines = ["{a b.c}", "{a.b }", "{$a.b}", "{a.`b}", "{a.b$}", "{marque}", "{a.b}"];
+  assert.deepEqual(chaines.map(cheminDeReference), [null, null, "$a.b", "a.`b", "a.b$", "marque", "a.b"]);
+  assert.deepEqual(referencesAbsentes(chaines, indexerTokensDtcg({ a: { b: { $value: "1" } } })), [
+    "{$a.b}", "{a b.c}", "{a.`b}", "{a.b }", "{a.b$}", "{marque}",
+  ]);
+});
+
 test("une référence présente dans les tokens n'est pas déclarée absente", () => {
   const index = indexerTokensDtcg(tokens);
   assert.deepEqual(
@@ -156,4 +165,22 @@ test("l'ordre des groupes du fichier ne change pas les chemins d'un nom", () => 
   const avant = nomsCssDesTokens(indexerTokensDtcg({ x: { "y%": { $value: "1" } }, "x-y": { $value: "2" } }));
   const apres = nomsCssDesTokens(indexerTokensDtcg({ "x-y": { $value: "2" }, x: { "y%": { $value: "1" } } }));
   assert.deepEqual(avant.get("--x-y"), apres.get("--x-y"));
+});
+
+test("T3 : refusDesNomsCss rend un nom vide, un préfixe réservé et deux chemins au même nom", () => {
+  assert.deepEqual(refusDesNomsCss(["✦.🙂", "ucm.x.fond", "layout.size.50%", "layout.size.50", "a.b"]), [
+    { genre: "vide", nom: "--", chemins: ["✦.🙂"] },
+    { genre: "prefixe-reserve", nom: "--ucm-x-fond", chemins: ["ucm.x.fond"] },
+    { genre: "meme-nom", nom: "--layout-size-50", chemins: ["layout.size.50", "layout.size.50%"] },
+  ]);
+});
+
+test("T3 : deux chemins sans nom CSS forment un seul refus vide, sans refus de même nom", () => {
+  assert.deepEqual(refusDesNomsCss(["🙂", "✦"]), [{ genre: "vide", nom: "--", chemins: ["✦", "🙂"] }]);
+});
+
+test("T3 : un préfixe réservé porté par deux chemins donne les deux refus, et un fichier sain aucun", () => {
+  assert.deepEqual(refusDesNomsCss(["ucm.x.a", "ucm_x_a"]).map(({ genre }) => genre), ["prefixe-reserve", "meme-nom"]);
+  assert.deepEqual(refusDesNomsCss(["a.b", "a.c"]), []);
+  assert.deepEqual(refusDesNomsCss(new Set()), []);
 });

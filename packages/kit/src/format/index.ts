@@ -44,6 +44,7 @@ export {
   TOKENS_FORMAT_VERSION,
   VERSIONS_DE_TOKENS_LUES,
   etatDuFormatDeTokens,
+  valeurDuToken,
 } from './tokens.js';
 export type {
   AxeDeTokens,
@@ -56,6 +57,7 @@ export type {
   ExtensionsDuDocument,
   FamilleDeToken,
   GroupeDeTokens,
+  RefusDeValeur,
   TokenDeDocument,
   ValeurDeToken,
 } from './tokens.js';
@@ -81,7 +83,15 @@ export {
 export type { IdentifiantDeRole, NatureDeRole, RoleDeRendu } from './roles-de-rendu.js';
 export { courbeDeToken, dureeDeToken, espaceDuProfil } from './valeurs-figma.js';
 export type { CauseSansCourbe, EspaceColorimetrique } from './valeurs-figma.js';
-export { TOKEN_REFERENCE, isTokenReference, refPath, toRef } from './references.js';
+export {
+  REFERENCE_DE_PREMIER_NIVEAU,
+  TOKEN_REFERENCE,
+  cheminDeReference,
+  isTokenReference,
+  referencesDansUnTexte,
+  refPath,
+  toRef,
+} from './references.js';
 export { comparerIdentiteDeContrat, identiteDeContrat } from './identite.js';
 export type { ArbitreIdentite, IdentiteDeContrat, VerdictIdentite } from './identite.js';
 export {

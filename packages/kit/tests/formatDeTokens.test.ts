@@ -15,6 +15,7 @@ import {
   TOKENS_FORMAT_VERSION,
   VERSIONS_DE_TOKENS_LUES,
   etatDuFormatDeTokens,
+  valeurDuToken,
 } from '../src/format/tokens';
 import type { DocumentDeTokens, GroupeDeTokens } from '../src/format/tokens';
 import * as porte from '@ucm-kit/core/format';
@@ -133,4 +134,28 @@ test('la porte publique @ucm-kit/core/format expose la lecture de la marque et l
   assert.deepEqual(porte.etatDuFormatDeTokens(avecMarque(3)), { etat: 'future', version: 3 });
   assert.deepEqual(porte.etatDuFormatDeTokens(avecMarque(1)), { etat: 'ancienne', version: 1 });
   assert.deepEqual(porte.etatDuFormatDeTokens({}), { etat: 'origine' });
+});
+
+test('T2 : valeurDuToken ne lit une dimension que dans la forme de FORMAT.md', () => {
+  assert.deepEqual(valeurDuToken('dimension', { value: 16, unit: 'px' }), { valeur: { value: 16, unit: 'px' } });
+  assert.deepEqual(valeurDuToken('dimension', { value: 0, unit: 'px' }), { valeur: { value: 0, unit: 'px' } });
+  for (const valeur of ['16px', '1rem', 16, null, undefined, [16], { value: '16', unit: 'px' }, { value: 16 }, { value: NaN, unit: 'px' }]) {
+    assert.deepEqual(Object.keys(valeurDuToken('dimension', valeur)), ['refus'], String(valeur));
+  }
+  assert.equal((valeurDuToken('dimension', { value: 1, unit: 'rem' }) as { refus: { cause: string } }).refus.cause, 'unite-relative');
+  assert.equal((valeurDuToken('dimension', { value: 1, unit: 'em' }) as { refus: { cause: string } }).refus.cause, 'unite-relative');
+  assert.equal((valeurDuToken('dimension', { value: 1, unit: 'vw' }) as { refus: { cause: string } }).refus.cause, 'unite-inconnue');
+  assert.equal((valeurDuToken('dimension', '16px') as { refus: { cause: string } }).refus.cause, 'forme-inconnue');
+});
+
+test('T2 : valeurDuToken ne lit une couleur que dans la forme de FORMAT.md, alpha compris', () => {
+  const rouge = { colorSpace: 'srgb', components: [1, 0, 0], alpha: 1 };
+  assert.deepEqual(valeurDuToken('color', rouge), { valeur: rouge });
+  assert.deepEqual(valeurDuToken('color', { ...rouge, colorSpace: 'display-p3' }), { valeur: { ...rouge, colorSpace: 'display-p3' } });
+  const sansAlpha = { colorSpace: 'srgb', components: [1, 0, 0] };
+  for (const valeur of ['#ff0000', '#f00', 16, null, sansAlpha, { ...rouge, alpha: '1' }, { ...rouge, components: [1, 0] }, { ...rouge, components: [1, 0, 'x'] }, { components: [1, 0, 0], alpha: 1 }]) {
+    assert.deepEqual(Object.keys(valeurDuToken('color', valeur)), ['refus'], JSON.stringify(valeur));
+  }
+  assert.equal((valeurDuToken('color', { ...rouge, colorSpace: 'oklch' }) as { refus: { cause: string } }).refus.cause, 'espace-inconnu');
+  assert.equal((valeurDuToken('color', sansAlpha) as { refus: { cause: string } }).refus.cause, 'forme-inconnue');
 });

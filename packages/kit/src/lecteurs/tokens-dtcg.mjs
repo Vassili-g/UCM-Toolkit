@@ -16,7 +16,7 @@
  * diverger ; ce module en supprime le besoin.
  */
 
-import { tokenCssVariable } from "@ucm-kit/core/format";
+import { PREFIXE_DES_INTERMEDIAIRES, cheminDeReference as cheminDuFormat, tokenCssVariable } from "@ucm-kit/core/format";
 
 function estObjet(valeur) {
   return Boolean(valeur) && typeof valeur === "object" && !Array.isArray(valeur);
@@ -76,34 +76,51 @@ export function indexerTokensDtcg(tokens, chemin = [], index = new Map(), typeHe
  * `ucm tokens css`, `ucm tokens references` et le juge du code la lisent ici.
  */
 export function nomsCssDesTokens(index) {
+  return grouperParNomCss(index.keys());
+}
+
+function grouperParNomCss(chemins) {
   const parNom = new Map();
-  for (const chemin of index.keys()) {
+  for (const chemin of chemins) {
     const nom = tokenCssVariable(chemin);
-    const chemins = parNom.get(nom);
-    if (chemins) chemins.push(chemin);
+    const memes = parNom.get(nom);
+    if (memes) memes.push(chemin);
     else parNom.set(nom, [chemin]);
   }
-  for (const chemins of parNom.values()) chemins.sort();
+  for (const memes of parNom.values()) memes.sort();
   return parNom;
 }
 
 /**
- * Le chemin que désigne une référence, ou `null` si la chaîne n'en désigne
- * aucun.
+ * Les refus que la feuille CSS oppose à ces chemins, dans l'ordre des noms :
+ * `vide` (le chemin ne donne aucun nom CSS), `prefixe-reserve` (le nom commence
+ * par `PREFIXE_DES_INTERMEDIAIRES`, que les collections étendues occupent) et
+ * `meme-nom` (plusieurs chemins donnent le même nom). Chaque refus porte le
+ * `nom` et ses `chemins`, triés.
  *
- * Volontairement plus permissif que `REFERENCE` de `references-token.mjs`, et
- * ce n'est pas un oubli : les deux répondent à des questions différentes.
- * `REFERENCE` décide ce qui, dans un contrat, compte comme une référence de
- * token : elle exige un point pour ne pas confondre `{à définir}` écrit par un
- * designer avec un nom de token. Ici on extrait un chemin d'une chaîne dont on
- * sait déjà qu'elle en est une, y compris à l'intérieur de `tokens.json` où un
- * alias vers un token de premier niveau (`{marque}`) est légitime.
+ * L'Exporter les annonce au designer, et `ucm tokens css` refuse la feuille sur
+ * les mêmes : un fichier que l'un laisse passer ne tombe pas chez l'autre.
  */
-export function cheminDeReference(reference) {
-  return typeof reference === "string" && /^\{[^{}\s]+\}$/.test(reference)
-    ? reference.slice(1, -1)
-    : null;
+export function refusDesNomsCss(chemins) {
+  const refus = [];
+  for (const [nom, memes] of grouperParNomCss(chemins)) {
+    if (nom === "--") {
+      refus.push({ genre: "vide", nom, chemins: memes });
+      continue;
+    }
+    if (nom.startsWith(PREFIXE_DES_INTERMEDIAIRES)) refus.push({ genre: "prefixe-reserve", nom, chemins: memes });
+    if (memes.length > 1) refus.push({ genre: "meme-nom", nom, chemins: memes });
+  }
+  return refus;
 }
+
+/**
+ * Le chemin que désigne une chaîne d'alias de `tokens.json`, ou `null`. La forme
+ * vit dans `@ucm-kit/core/format`, où `isTokenReference` la partage : l'alias
+ * vers un token de premier niveau (`{marque}`) est la seule référence que ce
+ * lecteur admet et qu'un contrat n'admet pas.
+ */
+export const cheminDeReference = cheminDuFormat;
 
 /**
  * Les références qui ne désignent aucun token du fichier DTCG, triées.

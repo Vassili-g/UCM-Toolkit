@@ -140,6 +140,16 @@ test("un titre inconnu, une section en double, une section composant et une réf
   ]);
 });
 
+test("T1 : une section cite une référence de token comme la référence complète le dit, et une interpolation de gabarit n'en cite pas", () => {
+  const anomaliesDe = (ecriture) => lireConventions(`## focus-clavier\n${ecriture}`, AIDES).anomalies;
+  for (const ecriture of ["`{a.b}`", "`{$a.b}`", "`{a.b$}`", "`{a.`b}`"]) {
+    assert.equal(anomaliesDe(ecriture).length, 1, ecriture);
+  }
+  for (const ecriture of ["`{a b.c}`", "`{a.b }`", "`{marque}`", "`${a.b}`"]) {
+    assert.deepEqual(anomaliesDe(ecriture), [], ecriture);
+  }
+});
+
 test("une section copiée se relit quand l'écriture par défaut a changé depuis la copie, et seulement alors", () => {
   const texte = (ecriture) => `## contour-ring\n${marqueurDeCopie("contour-ring", "0.1.29", ecriture)}\nClasse.`;
   const aJour = lireConventions(texte(AIDES.get("contour-ring").ecriture), AIDES);

@@ -43,7 +43,7 @@ function lancer({ tokens, configuration, contrats = {}, existante } = {}, argume
     }
     for (const [nom, contrat] of Object.entries(contrats)) {
       mkdirSync(join(racine, "components", nom), { recursive: true });
-      writeFileSync(join(racine, "components", nom, `${nom}.contract.json`), JSON.stringify(contrat));
+      writeFileSync(join(racine, "components", nom, `${nom}.contract.json`), typeof contrat === "string" ? contrat : JSON.stringify(contrat));
     }
     const chemin = join(racine, "generated", "tokens.css");
     if (existante !== undefined) {
@@ -171,7 +171,7 @@ test("un alias vers une feuille absente est refusé, et la feuille précédente 
   assert.match(voisin.css, /--a-b: var\(--a-c\);/);
 });
 
-test("deux chemins qui donnent la même propriété CSS sont refusés", () => {
+test("T3 : deux chemins qui donnent la même propriété CSS sont refusés", () => {
   const refuse = lancer({ tokens: documentAvec(undefined, { a: { "b-c": nombre(1), b: { c: nombre(2) } } }) });
   assert.equal(refuse.code, 1);
   assert.match(refuse.erreur, /« a\.b-c » et « a\.b\.c » donnent la même propriété CSS « --a-b-c »/);
@@ -298,12 +298,54 @@ test("un axe déclaré sous le nom de l'axe d'extension d'un autre est refusé e
   assert.match(refuse.erreur, /Deux axes portent le nom « color-extensions », dont l'axe d'extension de « color »\./);
 });
 
-test("un token dont la propriété commence par --ucm-x- est refusé", () => {
+test("T3 : un token dont la propriété commence par --ucm-x- est refusé", () => {
   const refuse = lancer({ tokens: documentAvec(undefined, { ucm: { x: { fond: nombre(1) } } }) });
   assert.equal(refuse.code, 1);
   assert.match(refuse.erreur, /« ucm\.x\.fond » donne la propriété « --ucm-x-fond », dont le préfixe --ucm-x- est réservé/);
 
   assert.equal(lancer({ tokens: documentAvec(undefined, { ucm: { y: { fond: nombre(1) } } }) }).code, 0);
+});
+
+test("T3 : un token dont le chemin ne donne aucun nom CSS est refusé, comme l'Exporter le signale", () => {
+  const refuse = lancer({ tokens: documentAvec(undefined, { "✦": { "🙂": nombre(1) } }) });
+  assert.equal(refuse.code, 1);
+  assert.match(refuse.erreur, /La feuille « ✦\.🙂 » ne donne aucun nom CSS\./);
+
+  assert.equal(lancer({ tokens: documentAvec(undefined, { "✦a": { "🙂b": nombre(1) } }) }).code, 0);
+});
+
+test("T2 : une dimension ou une couleur hors de la forme de FORMAT.md est refusée avec ce que le format attend", () => {
+  const dimension = (valeur) => lancer({ tokens: documentAvec(undefined, { d: { x: { $type: "dimension", $value: valeur } } }) });
+  for (const valeur of ["16px", "1rem", 16, { value: 1, unit: "rem" }]) {
+    const refuse = dimension(valeur);
+    assert.equal(refuse.code, 1, JSON.stringify(valeur));
+    assert.match(refuse.erreur, /« d\.x » porte une valeur que le type « dimension » ne décrit pas : /, JSON.stringify(valeur));
+    assert.doesNotMatch(refuse.erreur, /\.\./, "un seul point clôt la phrase");
+  }
+  assert.match(dimension({ value: 1, unit: "rem" }).erreur, /l’unité « rem » n’est pas « px »/);
+  const accepte = dimension({ value: 16, unit: "px" });
+  assert.equal(accepte.code, 0);
+  assert.match(accepte.css, /--d-x: 16px;/);
+
+  const couleur = (valeur) => lancer({ tokens: documentAvec(undefined, { c: { x: { $type: "color", $value: valeur } } }) });
+  for (const valeur of ["#ff0000", "#f00", { colorSpace: "srgb", components: [1, 0, 0] }]) {
+    const refuse = couleur(valeur);
+    assert.equal(refuse.code, 1, JSON.stringify(valeur));
+    assert.match(refuse.erreur, /« c\.x » porte une valeur que le type « color » ne décrit pas : /, JSON.stringify(valeur));
+  }
+  assert.match(couleur({ colorSpace: "srgb", components: [1, 0, 0], alpha: 1 }).css, /--c-x: color\(srgb 1 0 0 \/ 1\);/);
+});
+
+test("T4 : un fichier de tokens et un contrat précédés d'un BOM se lisent", () => {
+  const BOM = "\uFEFF";
+  const lu = lancer({ tokens: BOM + JSON.stringify(documentAvec(undefined, { espace: { petit: nombre(4) } })) });
+  assert.equal(lu.code, 0, lu.erreur);
+  assert.match(lu.css, /--espace-petit: 4;/);
+
+  const contrat = BOM + JSON.stringify({ name: "Widget", structure: { tokens: { fill: "{couleurs.texte}" } } });
+  const refuse = lancer({ contrats: { Widget: contrat } });
+  assert.equal(refuse.code, 1);
+  assert.match(refuse.erreur, /un contrat cite des tokens : components\/Widget\/Widget\.contract\.json/);
 });
 
 test("sans fichier de tokens, un contrat qui cite un token refuse la commande ; sans lui, la feuille vide est écrite", () => {
