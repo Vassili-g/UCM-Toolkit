@@ -8,7 +8,8 @@ ceux de la [zone 3](./ZONE-3-OUTILLAGE-AGENTS.md) (PP-301 à PP-317) et de la
 [zone 4](./ZONE-4-COULEUR.md) (PP-401 à PP-410). La vague 10 pose les dernières gardes et
 fusionne les inventaires `parametres*.json` en un seul `parametres.json`, lu par
 un test racine. La vague 11 publie le kit, la CLI et l'adaptateur une seule
-fois. Aucun lot n'est commencé.
+fois. Les lots 0.1 à 11.4 sont faits et publiés. Restent les cases 8.4 à 8.6
+et 11.5 à 11.13, que le mainteneur valide.
 
 Les lots se rangent par fichiers touchés. Un agent ouvre les fichiers de son lot,
 et deux lots d'une même vague n'écrivent aucun fichier en commun.
@@ -769,6 +770,7 @@ attendent l'accord du mainteneur, hors des vagues : aucun autre lot n'en dépend
 - [x] 8.2 `implementeur`. Contrôle de style, hooks de style et skills (PP-307, PP-310, PP-311 signal, PP-315, PP-316 pour deux hooks, PP-317). Commit : `d553d1c3`.
 - [x] 8.3 `implementeur`. Découvreurs de tests et conservation (PP-305, PP-308, PP-311 pour la skill). Commit : `a5d6c5e9`.
 - [ ] 8.4 (mainteneur). Essai de PP-309 : lancer un `verificateur` sur ton poste et lui demander son modèle. Une réponse Sonnet prouve que `CLAUDE_CODE_SUBAGENT_MODEL` prime sur le `model:` des définitions.
+  - Essai d'un agent, avec la variable posée à `sonnet` par `.claude/settings.json` : le `verificateur` répond `claude-haiku-5-5`. Dans ce harnais, le `model:` de la définition prime. Le mainteneur rejoue l'essai dans son client avant de cocher.
 - [ ] 8.5 (mainteneur). Valider le diff de la [note 8.6](#lot-86-droits-des-agents), après 8.4. Une partie refusée se retire de la note avant 8.6.
 - [ ] 8.6 `implementeur`. Droits des agents (PP-301, PP-302, PP-306, PP-309, PP-314 pour `CLAUDE.md`, PP-316 pour le hook des documents), après 8.5 et le commit de la vague 8.
 

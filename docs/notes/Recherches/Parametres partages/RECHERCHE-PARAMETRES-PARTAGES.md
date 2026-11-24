@@ -15,7 +15,7 @@
 
 ## Synthèse
 
-L'audit suit 57 paramètres, rangés dans `parametres.json`. 19 ont une source unique et une garde automatique sans écart. Les 38 autres se rattachent à 24 écarts. Un écart est bloquant, 8 sont importants et 15 mineurs. 12 cassent la Robustesse et 12 la Confiance.
+Le premier audit suit 57 paramètres. `parametres.json` en range 128 avec ceux des quatre zones. 19 ont une source unique et une garde automatique sans écart. Les 38 autres se rattachent à 24 écarts. Un écart est bloquant, 8 sont importants et 15 mineurs. 12 cassent la Robustesse et 12 la Confiance.
 
 Le code tient bien ses constantes. Les versions, la projection CSS, la grammaire de `ucm.config.json`, les codes de constat et les listes du référentiel ont un propriétaire et une loi. Les écarts restants vivent aux frontières, dans les textes recopiés du code (guides, `FORMAT.md`, aides, messages), les fichiers qu'`ucm init` écrit chez le consommateur et trois hypothèses sans constante (casse des chemins, BOM, borne basse de la fenêtre).
 
