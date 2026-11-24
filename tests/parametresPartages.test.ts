@@ -25,7 +25,7 @@ const parametres: Parametre[] = JSON.parse(readFileSync(join(RACINE, INVENTAIRE)
 
 /**
  * Les écarts que l'inventaire laisse ouverts, avec la raison. Chacun est écarté
- * par la table des réponses du plan : PP-401 écarte l'entrée entière, les trois
+ * par la table des réponses du plan P27 (archivé, commit 05258ab0) : PP-401 écarte l'entrée entière, les trois
  * autres écartent une partie de l'écart que la garde de l'entrée ne couvre pas.
  */
 const ECARTS_OUVERTS: Record<string, string> = {

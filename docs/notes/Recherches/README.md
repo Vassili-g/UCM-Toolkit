@@ -26,7 +26,6 @@ produit, partir des références de [docs/README.md](../../README.md) et du code
 | [Réduction du coût du chemin agent][reduction] | Réduire les lectures et les générations répétées lorsqu'un agent reconstruit un composant. | Plan partiellement remplacé par l'implémenteur. Le guide d'un agent est couvert par `ucm guide` et la skill `consommer-contrat`. |
 | [Évolutions globales][evolutions] | Choisir les prochains usages des contrats et des tokens à partir des besoins des équipes. | Catalogue de propositions, dont certaines fonctions sont déjà livrées. Les autres essais ne sont pas des lots approuvés. |
 | [Module linter][module-linter] | Donner au développeur du module linter tout ce qu'UCM fournit, impose et laisse libre (P26). | Recherche en cours. |
-| [Parametres partages][parametres-partages] | Suivre chaque paramètre d'UCM de son producteur à son dernier lecteur, et garder chaque copie par un test (P27). | Recherche en cours. |
 | [Palettes DS existant][palettes-ds-existant] | Fiabiliser les palettes d'un design system existant sans changer son architecture | Recherche en cours. |
 
 La [spécification de Palettes][spec-palettes] demeure la référence de son
@@ -72,6 +71,7 @@ Leurs recettes Figma reportées restent dans leurs plans.
 
 | Sujet | Utilité | Statut |
 |---|---|---|
+| [Parametres partages][parametres-partages] | Suivre chaque paramètre d'UCM de son producteur à son dernier lecteur, et garder chaque copie par un test (P27). | Implémenté et archivé ; `parametres.json` et son test restent dans le dossier, et [la recherche et le plan][parametres-partages-archive] se lisent au commit 05258ab0. Les recettes Figma restantes sont dans `VALIDATIONS-MVP.md`. |
 | [Roadmap de l'inventaire][roadmap] | Calculer l'état de chaque piste depuis son plan, afficher la Roadmap de l'inventaire et archiver les sujets terminés (P25). | Implémenté et archivé ; la recherche garde la procédure d'archivage et la convention de l'état calculé. |
 | [Kits UCM et partage des données][kits] | Faire appliquer les mêmes conventions et protocoles par le kit et les plugins. | Implémenté. Le plan d'exécution termine les lots que l'ancien plan de conception laisse encore décochés. |
 | [Référentiel UCM][referentiel] | Définir une seule fois les collections, modes, crans et termes partagés par les produits. | Implémenté. Les opérations Figma restantes relèvent de la recette. |
@@ -130,7 +130,8 @@ Leurs recettes Figma reportées restent dans leurs plans.
 [evolutions]: ./Evolutions%20globales/PISTES-EVOLUTION.md
 [spec-palettes]: ./Plugin%20Palettes/1%20Recherche%20initiale/RECHERCHE-PLUGIN-PALETTES.md
 [module-linter]: ./Module%20linter/RECHERCHE-MODULE-LINTER.md
-[parametres-partages]: ./Parametres%20partages/RECHERCHE-PARAMETRES-PARTAGES.md
+[parametres-partages]: ./Parametres%20partages/parametres.json
+[parametres-partages-archive]: https://github.com/Vassili-g/UCM-Toolkit/blob/05258ab0/docs/notes/Recherches/Parametres%20partages/RECHERCHE-PARAMETRES-PARTAGES.md
 [palettes-ds-existant]: ./Palettes%20DS%20existant/RECHERCHE-PALETTES-DS-EXISTANT.md
 [recette-qualite-archive]: https://github.com/Vassili-g/UCM-Toolkit/blob/202f46e/docs/notes/Recherches/Plugin%20Palettes/Recette%20CRITIQUE%20de%20qualit%C3%A9/PLAN-IMPLEMENTATION.md
 [recette-moteur-archive]: https://github.com/Vassili-g/UCM-Toolkit/blob/202f46e/docs/notes/Recherches/Plugin%20Palettes/Recette%20moteur%20palettes/README.md

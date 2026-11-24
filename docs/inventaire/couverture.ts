@@ -10,6 +10,12 @@ export interface GroupeExclu {
 }
 
 export const EXCLUSIONS: Readonly<Record<string, GroupeExclu[]>> = {
+  "dossiers de docs/notes/Recherches/": [
+    {
+      motif: "Sujet archivé (P27) : le dossier garde `parametres.json`, que lit `tests/parametresPartages.test.ts`, et rien d'autre à montrer.",
+      noms: ["Parametres partages"],
+    },
+  ],
   "export ./referentiel": [
     {
       motif: "Référence complète des variables attendues, que lisent les contrôles et le générateur de la vue illustrée ; la page montre déjà les collections et le thème.",
