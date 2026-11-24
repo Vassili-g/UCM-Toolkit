@@ -130,7 +130,7 @@ Une correspondance s'établit seulement quand une valeur littérale de l'export 
 
 Le thème porte aussi des valeurs littérales. Elles relient un rôle du thème à une primitive, pas un cran de marque, et n'établissent donc aucune correspondance. En mode E, cinq rôles Light de la palette primaire égalent exactement les crans 50, 100, 200, 400 et 900 de la palette 5 ; 49 rôles égalent le blanc, que les deux gris portent ; 24 n'égalent aucune primitive. Dans les marques A à D, aucun rôle littéral n'égale une seule primitive.
 
-Reste inconnue la primitive que visent 227 crans de la couche des marques : les 139 des marques A à D, 27 des 28 de la marque E, et les 61 crans sémantiques et gris. Un export qui publie la bibliothèque des primitives avec le fichier client, ou la couche des marques avec ses alias, le donnerait.
+Reste inconnue la primitive que visent 227 crans de la couche des marques : les 139 des marques A à D, 27 des 28 de la marque E, et les 61 crans sémantiques et gris. Les deux exports sont toute la donnée du client : la correspondance ne se lira pas ailleurs, et le plan s'en passe (section 9).
 
 ## 5. Ce que le moteur calcule, ce qui manque
 
@@ -293,14 +293,13 @@ Faire d'abord choisir au lead UX, sur `prototype-primitives.txt` rendu lisible, 
 
 Construire ensuite l'échelle imposée dans UCM Palettes, en option (a), plutôt qu'un script. Le script mesure, mais il n'écrit dans Figma que par une saisie à la main de 76 à 202 couleurs. Palettes écrit par identifiant, montre au designer ce qui change et rejoue le calcul. L'échelle imposée coûte une branche dans les 12 fichiers des palettes libres, au lieu des 36 qu'un mode MUI complet toucherait. Garder les accents hors du calcul : la demande ne les vise pas, et leur liste varie.
 
-La table de paires du client demande la couche des marques avec ses alias : sans elle, on ne sait pas quel cran de quelle primitive porte un texte blanc. Demander cet export avant d'écrire la table. Réserver l'option (a') et l'option (b) aux ancrages qui manquent leur paire après le recalcul, en commençant par le 500 de la palette 1 et la palette primaire de la marque A.
+La table de paires se pose par primitive, sans la couche des marques : le texte blanc et le gris le plus foncé sur chaque cran, et chaque cran posé en bordure sur le blanc, au seuil de leur usage. Le cran d'ancrage de chaque primitive se choisit avec le lead UX. Réserver l'option (a') et l'option (b) aux ancrages qui manquent leur paire après le recalcul, en commençant par le 500 de la palette 1 et la palette primaire de la marque A.
 
 ## Questions au mainteneur
 
 | Question | Options | Recommandation |
 |---|---|---|
-| Quelle donnée relie les marques aux primitives ? | Réexport du fichier client avec la bibliothèque publiée ; export de la couche des marques avec ses alias ; relevé à la main | Réexport avec la bibliothèque, après le recalcul du Button : il donne les 227 correspondances inconnues |
-| Le fichier des primitives est-il la bibliothèque que le fichier client consomme ? | Oui, une bibliothèque publiée ; non, une copie | À vérifier dans Figma : les gestes de publication en dépendent |
+| Le fichier des primitives est-il la bibliothèque que le fichier client consomme ? | Oui, une bibliothèque publiée ; non, une copie | Oui, selon les deux exports fournis : la reprise écrit dans le fichier des primitives |
 | Quel cran porte la couleur de marque de chaque primitive ? | Cran de chroma maximale ; cran que vise `main` dans la marque qui l'emploie ; choix du lead UX | Proposer le cran de chroma maximale, faire choisir le lead UX |
 | Quelle courbe pour les clairs ? | Courbe d'UCM ; courbe lissée, 50 et ancrage gardés ; actuelle | Courbe lissée |
 | Les crans plus foncés que l'ancrage changent-ils ? | Gardés ; recalculés | Gardés : pleins et textes validés ne bougent pas |
