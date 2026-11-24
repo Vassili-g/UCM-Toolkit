@@ -55,7 +55,9 @@ Procédures qu'un agent charge à la demande.
 - controle-style.mjs : règles de style à deux niveaux (refus, signal), pour le test et pour les hooks
 - hook-style.mjs : même contrôle, au moment où un agent écrit un fichier
 - hook-reponse.mjs : motifs de refus communs et motifs de portée `reponse` de `REGLES_ECRIRE`, appliqués à la dernière réponse d'un agent (`Stop`, `SubagentStop`)
-- hook-documents.mjs : refuse qu'un agent crée un document Markdown hors du registre
+- hook-documents.mjs : refuse qu'un agent crée un document Markdown hors du registre, ou que `locaux` accepte
+- hook-commandes.mjs : refuse les commandes de `interdits` (`test:ui`, `galerie:captures`) sans `_local/autorise-test-ui`
+- hook-etat.mjs : à l'arrêt, refuse une fois les `.md` nouveaux ou modifiés qui enfreignent le registre ou le style
 - mesurer-prose.mjs : volume de la prose, document et commentaire
 - pins-servis.mjs : versions que le registre sert
 - run-tests.cjs : découvreur de tests
@@ -67,7 +69,7 @@ Procédures qu'un agent charge à la demande.
 - verifier-conservation.mjs : garde de conservation de la réécriture d'`AGENTS.md`
 
 ## .claude/
-- settings.json : hook `PreToolUse` de `hook-documents.mjs` sur Write, hook d'écriture sur Write et Edit, hook de réponse sur Stop et SubagentStop
+- settings.json : hooks `PreToolUse` de `hook-documents.mjs` sur Write et de `hook-commandes.mjs` sur Bash et PowerShell, hook d'écriture sur Write et Edit, hooks de réponse et d'état sur Stop et SubagentStop
 
 ## .claude/agents/
 Définitions des sous-agents de la conversation principale.
@@ -105,6 +107,7 @@ Les tests du monorepo lui-même.
 - pluginsSombres.test.mjs : les trois plugins sont sombres
 - cartes.test.ts : chaque chemin des cartes existe, la section `tests/` liste exactement les tests de `tests/`, et chaque fichier de `scripts/`, skill et définition d'agent y figure
 - agentsDefinis.test.ts : modèles et corps communs des définitions d'agents
+- hooksDesAgents.test.mjs : les trois hooks de droits lancés en processus (registre, commandes réservées, état des documents)
 - referencesComposants.test.ts : registre des systèmes, extraction des noms et valeurs, schémas, guide d'essai et données réelles de `docs/references/`
 - styleDocumentaire.test.ts : tics de rédaction refusés sur tout le dépôt, hors `EXCLUS_DU_CONTROLE`
 - extraireInventaire.test.ts : `docs/inventaire/extraire.ts` rend une section, un tableau ou des sous-titres d'un Markdown, et lève sur un titre absent

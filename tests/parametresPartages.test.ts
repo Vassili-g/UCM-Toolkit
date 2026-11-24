@@ -24,19 +24,11 @@ interface Parametre {
 const parametres: Parametre[] = JSON.parse(readFileSync(join(RACINE, INVENTAIRE), 'utf8')).parametres;
 
 /**
- * Les écarts que l'inventaire laisse ouverts, avec la raison. Les six premiers
- * attendent l'accord du mainteneur sur le diff exact (cases 8.4 à 8.6 du plan) ;
- * retirer chacun avec sa case cochée. Les quatre derniers sont écartés par la
- * table des réponses du plan : PP-401 écarte l'entrée entière, les trois autres
- * écartent une partie de l'écart que la garde de l'entrée ne couvre pas.
+ * Les écarts que l'inventaire laisse ouverts, avec la raison. Chacun est écarté
+ * par la table des réponses du plan : PP-401 écarte l'entrée entière, les trois
+ * autres écartent une partie de l'écart que la garde de l'entrée ne couvre pas.
  */
 const ECARTS_OUVERTS: Record<string, string> = {
-  'PP-301': 'le hook des documents garde son verdict propre jusqu\'à la case 8.6 (`verdictDuRegistre`, clé `locaux`)',
-  'PP-302': '`hook-etat.mjs` ne refuse pas encore une seule fois par tour : case 8.6',
-  'PP-306': 'l\'interdiction de `test:ui` n\'est pas tenue par un hook : case 8.6, après l\'accord du mainteneur',
-  'PP-309': 'la variable de modèle des sous-agents attend l\'essai du mainteneur (case 8.4), puis la case 8.6',
-  'PP-314': 'le prompt d\'un implémenteur dans `CLAUDE.md` attend l\'accord du mainteneur : case 8.6',
-  'PP-316': 'le hook des documents lit son manifeste sans refus explicite : case 8.6',
   'PP-401': 'écarté : Display P3 est hors du périmètre d\'UCM, et `diagnostics.md` écrit la limite',
   'PP-01': 'écarté en partie : la table des contrôles bloquants que proposait la garde est remplacée par le retrait de la promesse',
   'PP-17': 'écarté en partie : les codes de sortie 0, 1 et 2 n\'ont aucun lecteur hors de la CLI',

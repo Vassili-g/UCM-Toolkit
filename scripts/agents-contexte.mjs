@@ -60,6 +60,39 @@ export function chargerManifeste(racine = RACINE) {
   return JSON.parse(readFileSync(join(racine, ".agents", "domiciles.json"), "utf8"));
 }
 
+/**
+ * Le verdict du registre pour un Markdown dont le chemin est relatif à la
+ * racine : accepté s'il correspond à un motif de `registre` ou de `locaux`
+ * (notes de travail que Git ignore), refusé sinon avec son message.
+ * `hook-documents.mjs` et `tests/registreDesDocuments.test.ts` lisent ce seul
+ * verdict.
+ * @returns {{ accepte: true } | { accepte: false, message: string }}
+ */
+export function verdictDuRegistre(manifeste, chemin) {
+  const motifs = [...(manifeste.registre ?? []), ...(manifeste.locaux ?? [])];
+  if (motifs.some((motif) => correspond(motif, chemin))) return { accepte: true };
+  return {
+    accepte: false,
+    message: `Le registre des documents refuse ${chemin}. `
+      + 'Écrire dans le domicile que donne `npm run agents:domicile`, ou faire ajouter '
+      + "l'emplacement au registre par le mainteneur. "
+      + 'Une recherche vit dans `docs/notes/Recherches/<sujet>/` : lancer `npm run sujet`.',
+  };
+}
+
+/** Les Markdown suivis ou pas encore suivis (hors `.gitignore`) que le registre refuse. */
+export function documentsHorsRegistre(racine = RACINE) {
+  const manifeste = chargerManifeste(racine);
+  const git = (...args) => spawnSync("git", ["-c", "core.quotepath=false", ...args], {
+    cwd: racine,
+    encoding: "utf8",
+    maxBuffer: 1 << 26,
+  }).stdout.split(/\r?\n/).filter(Boolean);
+  const documents = [...git("ls-files", "*.md"), ...git("ls-files", "--others", "--exclude-standard", "*.md")]
+    .filter((chemin) => existsSync(join(racine, chemin)));
+  return documents.filter((chemin) => !verdictDuRegistre(manifeste, chemin).accepte);
+}
+
 /** Le domaine du motif le plus long qui correspond à `chemin` (le dernier à égalité), ou `null`. */
 export function domaineDe(manifeste, chemin) {
   let trouve = null;

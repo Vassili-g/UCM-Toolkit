@@ -1,6 +1,6 @@
 ---
 name: verificateur
-description: Lance des commandes de vérification (npm test, npm run typecheck, npm run build, test:ui, scripts de mesure ou de vérification d'une maquette, controle-style, docLinks) et rend un tableau des résultats. À utiliser d'office dès qu'il faut lancer une commande dont la sortie est longue, au lieu de la lancer dans la conversation principale. Ne corrige rien.
+description: Lance des commandes de vérification (npm test, npm run typecheck, npm run build, scripts de mesure ou de vérification d'une maquette, controle-style, docLinks) et rend un tableau des résultats. À utiliser d'office dès qu'il faut lancer une commande dont la sortie est longue, au lieu de la lancer dans la conversation principale. Ne corrige rien. Ne lance `test:ui` que si `_local/autorise-test-ui` existe.
 model: haiku
 effort: low
 tools: Bash, PowerShell, Read, Grep, Glob

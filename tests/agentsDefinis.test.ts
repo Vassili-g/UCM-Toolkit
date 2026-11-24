@@ -70,3 +70,8 @@ test("O5 : le corps d'implementeur égale celui d'implementeur-exigeant, et celu
     assert.ok(corps('executant').includes(ligne), `ligne propre absente d'executant.md : ${ligne}`);
   }
 });
+
+test("H8 : .claude/settings.json ne définit pas CLAUDE_CODE_SUBAGENT_MODEL", () => {
+  const reglages = JSON.parse(fs.readFileSync(path.join(racine, '.claude', 'settings.json'), 'utf8'));
+  assert.equal(reglages.env?.CLAUDE_CODE_SUBAGENT_MODEL, undefined, 'le `model:` de chaque définition fait foi');
+});

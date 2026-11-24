@@ -1,19 +1,17 @@
 {
   "$schema": "https://json.schemastore.org/claude-code-settings.json",
-  "env": {
-    "CLAUDE_CODE_SUBAGENT_MODEL": "sonnet"
-  },
   "hooks": {
     "PreToolUse": [
       {
         "matcher": "Write",
         "hooks": [
-          {
-            "type": "command",
-            "command": "node \"$CLAUDE_PROJECT_DIR/scripts/hook-documents.mjs\"",
-            "timeout": 30,
-            "statusMessage": "Registre des documents"
-          }
+          { "type": "command", "command": "node \"$CLAUDE_PROJECT_DIR/scripts/hook-documents.mjs\"", "timeout": 30, "statusMessage": "Registre des documents" }
+        ]
+      },
+      {
+        "matcher": "Bash|PowerShell",
+        "hooks": [
+          { "type": "command", "command": "node \"$CLAUDE_PROJECT_DIR/scripts/hook-commandes.mjs\"", "timeout": 30, "statusMessage": "Commandes réservées" }
         ]
       }
     ],
@@ -21,36 +19,23 @@
       {
         "matcher": "Write|Edit",
         "hooks": [
-          {
-            "type": "command",
-            "command": "node \"$CLAUDE_PROJECT_DIR/scripts/hook-style.mjs\"",
-            "timeout": 30,
-            "statusMessage": "Contrôle de style"
-          }
+          { "type": "command", "command": "node \"$CLAUDE_PROJECT_DIR/scripts/hook-style.mjs\"", "timeout": 30, "statusMessage": "Contrôle de style" }
         ]
       }
     ],
     "Stop": [
       {
         "hooks": [
-          {
-            "type": "command",
-            "command": "node \"$CLAUDE_PROJECT_DIR/scripts/hook-reponse.mjs\"",
-            "timeout": 30,
-            "statusMessage": "Style de la réponse"
-          }
+          { "type": "command", "command": "node \"$CLAUDE_PROJECT_DIR/scripts/hook-reponse.mjs\"", "timeout": 30, "statusMessage": "Style de la réponse" },
+          { "type": "command", "command": "node \"$CLAUDE_PROJECT_DIR/scripts/hook-etat.mjs\"", "timeout": 30, "statusMessage": "État des documents" }
         ]
       }
     ],
     "SubagentStop": [
       {
         "hooks": [
-          {
-            "type": "command",
-            "command": "node \"$CLAUDE_PROJECT_DIR/scripts/hook-reponse.mjs\"",
-            "timeout": 30,
-            "statusMessage": "Style du rapport"
-          }
+          { "type": "command", "command": "node \"$CLAUDE_PROJECT_DIR/scripts/hook-reponse.mjs\"", "timeout": 30, "statusMessage": "Style du rapport" },
+          { "type": "command", "command": "node \"$CLAUDE_PROJECT_DIR/scripts/hook-etat.mjs\"", "timeout": 30, "statusMessage": "État des documents" }
         ]
       }
     ]

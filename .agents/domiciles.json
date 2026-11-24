@@ -571,5 +571,13 @@
     "packages/plugin-exporter/tests/dtcg-2025.10/README.md",
     "packages/kit/fixtures/contrats/*/README.md",
     "packages/kit/fixtures/tokens/origine/README.md"
+  ],
+  "locaux": [
+    "_local/**",
+    "**/_local/**"
+  ],
+  "interdits": [
+    "test:ui",
+    "galerie:captures"
   ]
 }

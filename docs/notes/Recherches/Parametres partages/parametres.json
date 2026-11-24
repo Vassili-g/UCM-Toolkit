@@ -3061,30 +3061,26 @@
       "famille": "outillage",
       "nom": "Verdict du registre pour un Markdown créé",
       "source": {
-        "fichier": "scripts/hook-documents.mjs",
-        "symbole": "_local/"
+        "fichier": "scripts/agents-contexte.mjs",
+        "symbole": "verdictDuRegistre"
       },
       "lecteurs": [
         {
-          "fichier": "tests/registreDesDocuments.test.ts",
-          "nature": "test"
-        },
-        {
-          "fichier": "scripts/agents-contexte.mjs",
-          "symbole": "correspond",
+          "fichier": "scripts/hook-documents.mjs",
+          "symbole": "verdictDuRegistre",
           "nature": "code"
         },
         {
-          "fichier": "tests/styleMotifs.test.ts",
+          "fichier": "scripts/hook-etat.mjs",
+          "symbole": "verdictDuRegistre",
+          "nature": "code"
+        },
+        {
+          "fichier": "tests/registreDesDocuments.test.ts",
           "nature": "test"
         }
       ],
       "copies": [
-        {
-          "fichier": "scripts/hook-documents.mjs",
-          "ligne": 48,
-          "nature": "code"
-        },
         {
           "fichier": "CONTRIBUTING.md",
           "ligne": 663,
@@ -3102,10 +3098,9 @@
         }
       ],
       "garde": {
-        "test": "tests/registreDesDocuments.test.ts",
-        "nature": "test-partiel"
-      },
-      "ecart": "PP-301"
+        "test": "tests/hooksDesAgents.test.mjs",
+        "nature": "test"
+      }
     },
     {
       "id": "chemins-sans-hook",
@@ -3124,6 +3119,11 @@
         {
           "fichier": "scripts/hook-style.mjs",
           "symbole": "tool_input.file_path",
+          "nature": "code"
+        },
+        {
+          "fichier": "scripts/hook-etat.mjs",
+          "symbole": "git status",
           "nature": "code"
         }
       ],
@@ -3149,8 +3149,10 @@
           "nature": "doc"
         }
       ],
-      "garde": null,
-      "ecart": "PP-302"
+      "garde": {
+        "test": "tests/hooksDesAgents.test.mjs",
+        "nature": "test"
+      }
     },
     {
       "id": "domicile-de-l-outillage",
@@ -3291,6 +3293,11 @@
         {
           "fichier": ".claude/agents/executant.md",
           "nature": "doc"
+        },
+        {
+          "fichier": "scripts/hook-commandes.mjs",
+          "symbole": "interdits",
+          "nature": "code"
         }
       ],
       "copies": [
@@ -3325,8 +3332,10 @@
           "nature": "doc"
         }
       ],
-      "garde": null,
-      "ecart": "PP-306"
+      "garde": {
+        "test": "tests/hooksDesAgents.test.mjs",
+        "nature": "test"
+      }
     },
     {
       "id": "exceptions-du-controle-de-style",
@@ -3440,11 +3449,6 @@
         {
           "fichier": "CLAUDE.md",
           "nature": "doc"
-        },
-        {
-          "fichier": ".claude/settings.json",
-          "symbole": "env.CLAUDE_CODE_SUBAGENT_MODEL",
-          "nature": "code"
         }
       ],
       "copies": [
@@ -3459,18 +3463,15 @@
           "nature": "doc"
         },
         {
-          "fichier": ".claude/settings.json",
-          "ligne": 4,
-          "nature": "code"
-        },
-        {
           "fichier": ".claude/agents/executant.md",
           "ligne": 4,
           "nature": "doc"
         }
       ],
-      "garde": null,
-      "ecart": "PP-309"
+      "garde": {
+        "test": "tests/agentsDefinis.test.ts",
+        "nature": "test"
+      }
     },
     {
       "id": "regles-ecrire-par-moment",
@@ -3658,11 +3659,6 @@
       ],
       "copies": [
         {
-          "fichier": "CLAUDE.md",
-          "ligne": 22,
-          "nature": "doc"
-        },
-        {
           "fichier": ".claude/agents/implementeur.md",
           "ligne": 7,
           "nature": "doc"
@@ -3678,8 +3674,10 @@
           "nature": "doc"
         }
       ],
-      "garde": null,
-      "ecart": "PP-314"
+      "garde": {
+        "test": "tests/agentsDefinis.test.ts",
+        "nature": "test-partiel"
+      }
     },
     {
       "id": "extensions-jugees-par-le-style",
@@ -3731,19 +3729,20 @@
           "nature": "code"
         },
         {
-          "fichier": "tests/registreDesDocuments.test.ts",
+          "fichier": "scripts/hook-commandes.mjs",
+          "symbole": "chargerManifeste",
+          "nature": "code"
+        },
+        {
+          "fichier": "tests/hooksDesAgents.test.mjs",
           "nature": "test"
         }
       ],
-      "copies": [
-        {
-          "fichier": "scripts/hook-documents.mjs",
-          "ligne": 45,
-          "nature": "code"
-        }
-      ],
-      "garde": null,
-      "ecart": "PP-316"
+      "copies": [],
+      "garde": {
+        "test": "tests/hooksDesAgents.test.mjs",
+        "nature": "test"
+      }
     },
     {
       "id": "references-des-skills",

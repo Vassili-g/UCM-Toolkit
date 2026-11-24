@@ -669,6 +669,8 @@ endroit.
 | Un sujet livré s’archive par la skill `archiver-un-sujet`. | `tests/archiverSujet.test.ts` |
 | Le résumé d’une piste peut se découper par les étiquettes « Ce qu'il fait », « Où », « Quand », « Pourquoi » et « Ne voit pas », en tête de phrase et suivies de « : » ; la Roadmap les affiche en blocs. | `docs/inventaire/page.js` `ETIQUETTES_DU_RESUME` |
 
+Une note de travail `.md` peut vivre dans `_local/`, que Git ignore. Un sujet de recherche n'y vit jamais.
+
 ## API Figma et build
 
 - Préférer les variantes asynchrones de l’API, compatibles avec
