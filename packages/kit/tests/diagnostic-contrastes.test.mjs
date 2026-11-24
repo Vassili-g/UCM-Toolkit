@@ -259,3 +259,15 @@ test("le rapport d'un repository jouet range les couleurs sous leur seuil en inf
     rmSync(racine, { recursive: true, force: true });
   }
 });
+
+test("une couleur hexadécimale ou sans alpha n'est pas mesurée : valeurDuToken la refuse, comme la projection et tokens css", () => {
+  const fond = { $type: "color", $value: { colorSpace: "srgb", components: [1, 1, 1], alpha: 1 } };
+  const ecrits = {
+    hexadecimal: { $type: "color", $value: "#fefefe" },
+    "sans-alpha": { $type: "color", $value: { colorSpace: "srgb", components: [0.99, 0.99, 0.99] } },
+  };
+  for (const [forme, couleur] of Object.entries(ecrits)) {
+    const document = { composants: { bouton: { fond, texte: couleur } } };
+    assert.deepEqual(constatsDesContrastes(bouton([{ texte: "texte" }]), document), [], forme);
+  }
+});

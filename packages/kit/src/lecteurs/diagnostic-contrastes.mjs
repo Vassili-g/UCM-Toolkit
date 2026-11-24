@@ -17,7 +17,7 @@
  * faux signal reste une information. Le diagnostic ne bloque jamais la fusion.
  */
 import { atteintLeSeuil, composer, contraste, couleurDansLeGamut, ecrireContraste, ecrireSeuil, OPAQUE, PROFONDEUR_D_ALIAS, versRgb8 } from "@ucm-kit/core/emplois";
-import { natureDuRoleDuContrat } from "@ucm-kit/core/format";
+import { natureDuRoleDuContrat, valeurDuToken } from "@ucm-kit/core/format";
 import { SEUILS_PAR_ROLE, SEUILS_PAR_USAGE, SEUIL_GRAND_TEXTE_AA } from "@ucm-kit/core/referentiel";
 
 import { libelleNombre, rendreDiagnostic } from "./diagnostic-markdown.mjs";
@@ -68,21 +68,16 @@ function premierAlias(document, reference) {
 /**
  * Une couleur DTCG en composantes de 0 à 1, comme C49 la juge : `{ couleur }`,
  * `{ ecart }` quand elle est écartée avec sa cause, `null` quand le document
- * ne porte pas une couleur lisible.
+ * ne porte pas une couleur lisible. La forme se lit par `valeurDuToken` : une
+ * chaîne hexadécimale ou une couleur sans `alpha` n'est pas mesurée, comme la
+ * projection la saute et comme `ucm tokens css` la refuse.
  */
 function lireLaCouleur(valeur) {
-  if (typeof valeur === "string" && /^#[0-9a-f]{6}$/i.test(valeur)) {
-    const [r, g, b] = [1, 3, 5].map((debut) => Number.parseInt(valeur.slice(debut, debut + 2), 16) / 255);
-    return { couleur: { r, g, b, a: 1 } };
-  }
-  if (!estObjet(valeur)) return null;
-  if (valeur.colorSpace === "display-p3") return { ecart: "display-p3" };
-  if (valeur.colorSpace !== "srgb") return null;
-  const { components } = valeur;
-  const alpha = valeur.alpha ?? 1;
-  if (!Array.isArray(components) || components.length !== 3 || !components.every(Number.isFinite) || !Number.isFinite(alpha)) return null;
-  const [r, g, b] = components;
-  const couleur = { r, g, b, a: alpha };
+  const lue = valeurDuToken("color", valeur);
+  if ("refus" in lue) return null;
+  if (lue.valeur.colorSpace === "display-p3") return { ecart: "display-p3" };
+  const [r, g, b] = lue.valeur.components;
+  const couleur = { r, g, b, a: lue.valeur.alpha };
   return couleurDansLeGamut(couleur) ? { couleur } : { ecart: "hors-limites" };
 }
 
