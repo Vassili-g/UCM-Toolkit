@@ -1,5 +1,7 @@
 /** Le panneau par éléments : rangement par champ puis par famille, ordre des entrées, Bloquants, éléments tenus, nombres. */
 import assert from 'node:assert/strict';
+import { readFileSync } from 'node:fs';
+import { join } from 'node:path';
 import test from 'node:test';
 
 import type { Constat } from '@ucm-kit/core/controles';
@@ -216,6 +218,14 @@ test('C53 : le variant désactivé s’écrit comme le kit le donne, axe boolée
   assert.equal(ligne.phrase, 'Le variant Disabled=True est désactivé : le contraste et la taille de la cible ne sont pas contrôlés.');
 });
 
+test('C49 : une valeur hors des limites d’une couleur se dit comme `ucm check` la dit', () => {
+  const source = readFileSync(join(__dirname, '..', '..', 'kit', 'src', 'lecteurs', 'diagnostic-contrastes.mjs'), 'utf8');
+  const phrase = /"hors-limites": "([^"]+)"/.exec(source)?.[1];
+  assert.ok(phrase, 'la cause hors-limites a disparu du kit');
+  const ligne = ligneDInformation(information({ id: 'C49:g', code: 'C49', variants: ['v:1'], layers: ['l:icon'], faits: { cause: 'couleur-hors-gamut', champ: 'fills', usage: 'texte', calque: 'icon' } }), contexteDeLigne);
+  assert.ok(ligne.phrase.includes(phrase), `${ligne.phrase} ne dit pas « ${phrase} »`);
+});
+
 test('C49 et C50 avec limite : « Contraste non mesuré : » suivi de la cause', () => {
   const limite = (cause: string, champ: string, code: 'C49' | 'C50' = 'C49'): string => ligneDInformation(information({ id: `${code}:${cause}`, code, variants: ['v:1'], layers: ['l:icon'], faits: { cause, champ, usage: 'texte', calque: 'icon' } }), contexteDeLigne).phrase;
   assert.equal(limite('degrade', 'fills'), 'Contraste non mesuré : le fill du layer `icon` est un dégradé.');
@@ -225,6 +235,7 @@ test('C49 et C50 avec limite : « Contraste non mesuré : » suivi de la cause',
   assert.equal(limite('flou-arriere-plan', 'fills'), 'Contraste non mesuré : le fill du layer `icon` est posé sur un flou d’arrière-plan.');
   assert.equal(limite('fond-indetermine', 'strokes', 'C50'), 'Contraste non mesuré : le stroke du layer `icon` est posé sur un fond que le plugin ne détermine pas.');
   assert.equal(limite('inconnue', 'fills'), 'Contraste non mesuré : le fill du layer `icon` n’a pas pu être lu.');
+  assert.equal(limite('couleur-hors-gamut', 'fills'), "Contraste non mesuré : le fill du layer `icon` a une valeur hors des limites d'une couleur.");
   // Le layer est dans la phrase : la ligne de lieu ne le répète pas.
   const lieu = ligneDInformation(information({ id: 'x', code: 'C49', variants: ['v:1'], layers: ['l:icon'], faits: { cause: 'degrade', champ: 'fills', calque: 'icon' } }), contexteDeLigne).lieu;
   assert.equal(JSON.stringify(lieu).includes('layer'), false);
