@@ -16,10 +16,10 @@ export const EXTENSIONS_LUES = Object.freeze([".ts", ".tsx"]);
 /**
  * Propriétés de style qui reçoivent un nombre sans `px`, recopiées de
  * `unitlessNumbers` dans `react-dom` 19.1.10
- * (`cjs/react-dom-client.development.js`), sans les variantes préfixées que
- * React 19 énumère. La boucle qui suit ajoute les quatre préfixes fournisseur
- * à chaque nom. Seule copie du dépôt ; `usages.test.mjs` (W3) la compare au
- * `react-dom` installé.
+ * (`cjs/react-dom-client.development.js`), variantes préfixées comprises.
+ * React 19 n'ajoute plus les préfixes fournisseur à chaque nom : `MozTabSize: 4`
+ * y reçoit `px`, et `WebKitBoxFlexGroup` garde sa casse. Seule copie du dépôt ;
+ * `usages.test.mjs` (W3) la compare au `react-dom` installé.
  */
 export const PROPRIETES_SANS_UNITE_DE_REACT = [
   "animationIterationCount", "aspectRatio", "borderImageOutset", "borderImageSlice",
@@ -30,12 +30,14 @@ export const PROPRIETES_SANS_UNITE_DE_REACT = [
   "lineClamp", "lineHeight", "opacity", "order", "orphans", "scale", "tabSize", "widows",
   "zIndex", "zoom", "fillOpacity", "floodOpacity", "stopOpacity", "strokeDasharray",
   "strokeDashoffset", "strokeMiterlimit", "strokeOpacity", "strokeWidth",
+  "MozAnimationIterationCount", "MozBoxFlex", "MozBoxFlexGroup", "MozLineClamp",
+  "msAnimationIterationCount", "msFlex", "msZoom", "msFlexGrow", "msFlexNegative",
+  "msFlexOrder", "msFlexPositive", "msFlexShrink", "msGridColumn", "msGridColumnSpan",
+  "msGridRow", "msGridRowSpan", "WebkitAnimationIterationCount", "WebkitBoxFlex",
+  "WebKitBoxFlexGroup", "WebkitBoxOrdinalGroup", "WebkitColumnCount", "WebkitColumns",
+  "WebkitFlex", "WebkitFlexGrow", "WebkitFlexPositive", "WebkitFlexShrink", "WebkitLineClamp",
 ];
-const PREFIXES_FOURNISSEUR = ["Webkit", "ms", "Moz", "O"];
-const SANS_UNITE = new Set(PROPRIETES_SANS_UNITE_DE_REACT.flatMap((nom) => [
-  nom,
-  ...PREFIXES_FOURNISSEUR.map((prefixe) => prefixe + nom[0].toUpperCase() + nom.slice(1)),
-]));
+const SANS_UNITE = new Set(PROPRIETES_SANS_UNITE_DE_REACT);
 
 /** Nom CSS d'une clé de style, comme `hyphenateStyleName` de React. */
 function nomCss(cle) {

@@ -62,14 +62,15 @@ test("E4 un nombre reçoit px, sauf les propriétés sans unité de React", () =
   assert.deepEqual(releve.declarations.map((declaration) => declaration.nombre), [true, true, true]);
 });
 
-test("E5 un préfixe fournisseur devient un nom CSS à tiret initial", () => {
-  const releve = relever("<div style={{ WebkitLineClamp: 2, msFlexGrow: 1, MozTabSize: 4, msFoo: 3 }} />");
+test("E5 un préfixe fournisseur devient un nom CSS à tiret initial, sans unité seulement là où React 19 le liste", () => {
+  const releve = relever("<div style={{ WebkitLineClamp: 2, msFlexGrow: 1, MozTabSize: 4, msFoo: 3, WebkitOpacity: 0.5 }} />");
 
   assert.deepEqual(valeurs(releve).map(({ propriete, valeur }) => [propriete, valeur]), [
     ["-webkit-line-clamp", "2"],
     ["-ms-flex-grow", "1"],
-    ["-moz-tab-size", "4"],
+    ["-moz-tab-size", "4px"],
     ["-ms-foo", "3px"],
+    ["-webkit-opacity", "0.5px"],
   ]);
 });
 
@@ -307,12 +308,11 @@ test("un fichier .ts lit un transtypage à chevrons", () => {
   assert.deepEqual(textes(releve), ["x"]);
 });
 
-test("W3 PROPRIETES_SANS_UNITE_DE_REACT égale la liste du react-dom installé", () => {
+test("W3 PROPRIETES_SANS_UNITE_DE_REACT égale la liste du react-dom installé, variantes préfixées comprises", () => {
   const racine = dirname(createRequire(import.meta.url).resolve("react-dom/package.json"));
   const source = readFileSync(join(racine, "cjs", "react-dom-client.development.js"), "utf8");
   const liste = /unitlessNumbers\s*=\s*new Set\(\s*"([^"]+)"/.exec(source);
   assert.ok(liste, "react-dom : la liste unitlessNumbers n'est plus à l'endroit attendu");
-  // React 19 écrit chaque variante préfixée ; l'adaptateur les produit depuis le nom nu.
-  const sansPrefixe = liste[1].split(" ").filter((nom) => !/^(Moz|ms|Webkit|WebKit|O)[A-Z]/.test(nom));
-  assert.deepEqual([...PROPRIETES_SANS_UNITE_DE_REACT].sort(), sansPrefixe.sort());
+  // React 19 n'ajoute plus aucun préfixe : seules les variantes qu'il énumère sont sans unité.
+  assert.deepEqual([...PROPRIETES_SANS_UNITE_DE_REACT].sort(), liste[1].split(" ").sort());
 });
