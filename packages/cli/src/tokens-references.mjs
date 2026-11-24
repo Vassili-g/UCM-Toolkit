@@ -13,7 +13,7 @@ import { existsSync, readFileSync, writeFileSync } from "node:fs";
 import { relative, resolve } from "node:path";
 
 import { isTokenReference, referencesDansUnTexte } from "@ucm-kit/core/format";
-import { cheminDeReference, indexerTokensDtcg, lireConfiguration, lireJsonDuDepot, nomsCssDesTokens } from "@ucm-kit/core/lecteurs";
+import { cheminDeReference, indexerTokensDtcg, libelleNombre, lireConfiguration, lireJsonDuDepot, nomsCssDesTokens } from "@ucm-kit/core/lecteurs";
 
 import { catalogueDesAides } from "./aides.mjs";
 import { conventionsLesPlusProches, lireConventions } from "./conventions.mjs";
@@ -21,6 +21,8 @@ import { conventionsLesPlusProches, lireConventions } from "./conventions.mjs";
 export const USAGE_REFERENCES = "ucm tokens references [--verifier] <fichiers…>";
 
 const SECTION_DU_REPOSITORY = "resolution-token";
+
+const remplacees = (nombre) => `${libelleNombre(nombre, "référence")} ${nombre === 1 ? "remplacée" : "remplacées"}`;
 
 /** Lit les arguments de la commande, sans lever. */
 export function lireArgumentsReferences(arguments_) {
@@ -205,11 +207,11 @@ export function tokensReferences(arguments_, {
     } else if (resultat.texte !== original) {
       ecrireFichier(fichier, resultat.texte, "utf8");
       remplaceesAuTotal += resultat.remplacees.length;
-      ecrire(`${nom} : ${resultat.remplacees.length} référence(s) remplacée(s).`);
+      ecrire(`${nom} : ${remplacees(resultat.remplacees.length)}.`);
     }
   }
 
   if (aSignaler > 0) return 1;
-  ecrire(remplaceesAuTotal === 0 ? "Aucune référence à remplacer." : `${remplaceesAuTotal} référence(s) remplacée(s).`);
+  ecrire(remplaceesAuTotal === 0 ? "Aucune référence à remplacer." : `${remplacees(remplaceesAuTotal)}.`);
   return 0;
 }

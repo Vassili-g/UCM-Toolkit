@@ -75,7 +75,7 @@ test("un fichier sans mode donne la base seule sur :root, et la commande imprime
   const { code, css, log } = lancer({ tokens: documentAvec(undefined, { espace: { petit: nombre(4) } }) });
   assert.equal(code, 0);
   assert.equal(css, `${EN_TETE}:root {\n  --espace-petit: 4;\n}\n`);
-  assert.match(log, /^generated\/tokens\.css : 1 règles, 1 déclarations, \d+ octets\.$/m);
+  assert.match(log, /^generated\/tokens\.css : 1 règle, 1 déclaration, \d+ octets\.$/m, "un seul élément s'écrit au singulier");
 });
 
 test("deux axes croisés rendent la feuille écrite à la main pour la preuve de cascade", () => {

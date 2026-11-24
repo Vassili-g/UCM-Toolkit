@@ -34,6 +34,7 @@ import {
   cyclesActifs,
   indexerTokensDtcg,
   lireConfiguration,
+  libelleNombre,
   lireJsonDuDepot,
   refusDesNomsCss,
   sansEchantillon,
@@ -688,7 +689,7 @@ export function tokensCss(arguments_, {
   const echec = remplacer(cible, contenu, ecrireFichier);
   if (echec) return echecDEcriture(echec);
   const { regles, declarations, octets } = statistiquesDeFeuille(contenu);
-  ecrire(`${options.out} : ${regles} règles, ${declarations} déclarations, ${octets} octets.`);
+  ecrire(`${options.out} : ${libelleNombre(regles, "règle")}, ${libelleNombre(declarations, "déclaration")}, ${libelleNombre(octets, "octet")}.`);
   for (const note of notesDAttributs) ecrire(note);
   if (genereModes) {
     for (const axe of contextesDesAxes(document, axes)) {

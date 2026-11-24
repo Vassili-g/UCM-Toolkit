@@ -89,6 +89,7 @@ test("G8 : un second passage ne change rien, et --verifier sort en 0 puis en 1 s
   const apres = premier.relus["a.ts"];
   const second = lancer({ "a.ts": apres }, ["a.ts"]);
   assert.equal(second.relus["a.ts"], apres);
+  assert.match(premier.log, /^a\.ts : 1 référence remplacée\.$/m, "une référence s'écrit au singulier");
   assert.match(second.log, /Aucune référence à remplacer/);
   assert.equal(lancer({ "a.ts": apres }, ["--verifier", "a.ts"]).code, 0);
 
