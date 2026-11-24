@@ -65,22 +65,33 @@ test('[ENT-07] une courbe touche toutes les palettes, une part épargne les part
 
 test('[ENT-10] une courbe trop proche de la nuance la plus claire nomme sa variable, le cran, le mode, le profil, la teinte et le contraste', () => {
   const constat = constatDeGarantie({ mode: 'light', cran: 700, profil: 'soft', teinte: 147, contraste: 4.189, seuil: 4.5, contre: 'cranLeger' }, 'blanc');
-  assert.equal(constat.ou, 'Thème Light, nuance 700 (page/foreground), profil soft');
+  assert.equal(constat.ou, 'Thème Light, nuance 700 (page/foreground), intensité soft');
   assert.equal(constat.quoi, 'Contraste avec la nuance la plus claire : 4,18:1, minimum 4,5:1. Teinte : 147°.');
   assert.equal(constat.geste, 'Éloignez la luminosité de la nuance 700 de celle de la nuance la plus claire.');
   // En Light inversé, l'anneau de focus est la 700 et le texte coloré la 800.
-  assert.equal(constatDeGarantie({ mode: 'light', cran: 700, profil: 'vivid', teinte: 10, contraste: 2.9, seuil: 3, contre: 'cranLeger' }, 'noir').ou, 'Thème Light, nuance 700 (ring), profil vivid');
-  assert.equal(constatDeGarantie({ mode: 'light', cran: 800, profil: 'vivid', teinte: 10, contraste: 4.1, seuil: 4.5, contre: 'cranLeger' }, 'noir').ou, 'Thème Light, nuance 800 (page/foreground), profil vivid');
+  assert.equal(constatDeGarantie({ mode: 'light', cran: 700, profil: 'vivid', teinte: 10, contraste: 2.9, seuil: 3, contre: 'cranLeger' }, 'noir').ou, 'Thème Light, nuance 700 (ring), intensité vivid');
+  assert.equal(constatDeGarantie({ mode: 'light', cran: 800, profil: 'vivid', teinte: 10, contraste: 4.1, seuil: 4.5, contre: 'cranLeger' }, 'noir').ou, 'Thème Light, nuance 800 (page/foreground), intensité vivid');
   for (const texte of ['blanc', 'noir'] as const) {
     const brut = JSON.stringify(constatDeGarantie({ mode: 'dark', cran: 700, profil: 'vivid', teinte: 60, contraste: 4.12, seuil: 4.5, contre: 'cranLeger' }, texte));
     assert.ok(!/nuance 50|border-control|text/.test(brut), 'aucun mot de l’ancienne table');
   }
 });
 
+test('Y1 : un minimum posé dans le champ, sous le niveau AA ou au-delà de 21, est refusé par la validation', () => {
+  for (const [seuil, valeur] of [['texte', 4.4], ['texte', 21.5], ['nonTexte', 2.9]] as const) {
+    const lue = validerRecette(poserValeur(recetteParDefaut(), { seuil }, valeur));
+    assert.ok('refus' in lue, `${seuil} ${valeur}`);
+    assert.deepEqual(lue.refus, [{ regle: 'seuils-positifs', chemin: `seuils.${seuil}`, valeur }]);
+  }
+  for (const [seuil, valeur] of [['texte', 4.5], ['texte', 21], ['nonTexte', 3]] as const) {
+    assert.ok('recette' in validerRecette(poserValeur(recetteParDefaut(), { seuil }, valeur)), `${seuil} ${valeur}`);
+  }
+});
+
 test('[ENT-10] la 700 qui ne porte pas le texte des boutons le dit, et le geste suit sa couleur', () => {
   const manque = { mode: 'dark' as const, cran: 700, profil: 'vivid' as const, teinte: 60, contraste: 4.129, seuil: 4.5, contre: 'texteDesBoutons' as const };
   const blanc = constatDeGarantie(manque, 'blanc');
-  assert.equal(blanc.ou, 'Thème Dark, nuance 700 (solid/default), profil vivid');
+  assert.equal(blanc.ou, 'Thème Dark, nuance 700 (solid/default), intensité vivid');
   assert.equal(blanc.quoi, 'La 700 en Dark ne porte pas le texte des boutons blanc à 4,5:1 pour toutes les teintes : 4,12:1 à 60°.');
   assert.equal(blanc.geste, 'Baissez la luminosité de la 700 dans « Luminosité des nuances ».');
   const noir = constatDeGarantie(manque, 'noir');
@@ -90,13 +101,13 @@ test('[ENT-10] la 700 qui ne porte pas le texte des boutons le dit, et le geste 
   assert.equal(enBlanc.quoi, 'Shade 700 in Dark does not carry the white button text at 4.5:1 for every hue: 4.12:1 at 60°.');
   assert.equal(enBlanc.geste, 'Lower the lightness of 700 in “Shade lightness”.');
   assert.equal(constatEn(manque, 'noir').geste, 'Raise the lightness of 700 in “Shade lightness”.');
-  assert.equal(constatEn({ ...manque, cran: 600, contre: 'cranLeger' }, 'noir').ou, 'Dark theme, shade 600 (ring), profile vivid');
+  assert.equal(constatEn({ ...manque, cran: 600, contre: 'cranLeger' }, 'noir').ou, 'Dark theme, shade 600 (ring), intensity vivid');
 });
 
 test('[ENT-10] une courbe Dark qui tient la nuance la plus claire sans tenir la carte nomme la carte', () => {
   const manque = { mode: 'dark' as const, cran: 700, profil: 'soft' as const, teinte: 60, contraste: 4.129, seuil: 4.5, contre: 'carte' as const };
   const fr = constatDeGarantie(manque, 'noir');
-  assert.equal(fr.ou, 'Thème Dark, nuance 700 (page/foreground), profil soft');
+  assert.equal(fr.ou, 'Thème Dark, nuance 700 (page/foreground), intensité soft');
   assert.equal(fr.quoi, 'Contraste avec la carte : 4,12:1, minimum 4,5:1. Teinte : 60°.');
   assert.equal(fr.geste, 'Éloignez la luminosité de la nuance 700 de celle de la carte.');
   const en = constatEn(manque, 'noir');

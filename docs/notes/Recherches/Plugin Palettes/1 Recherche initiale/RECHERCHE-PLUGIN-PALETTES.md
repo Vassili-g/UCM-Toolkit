@@ -745,7 +745,9 @@ du paquet porte les dix-sept rampes de onze crans.
   `soft ≤ vivid` dans la recette et après les parts propres de chaque
   palette, dérives de teinte dans `[-90, 90]`, décalages de saturation dans
   `[-1, 1]` et de luminosité dans `[-0,15, +0,15]`, sans objet `saturation` ou
-  `clarte` aux deux valeurs nulles, seuils strictement positifs, hexas valides,
+  `clarte` aux deux valeurs nulles, minimums de contraste dans les bornes de
+  `MINIMUMS_ADMIS` (du niveau AA à 21:1) et écarts de détection strictement
+  positifs, hexas valides,
   identifiants uniques, `crans` qui contient les crans requis par la table du
   sens de chaque thème (`[VER-05]`) ; `texteDesBoutons` vaut `blanc` ou
   `noir` pour chaque thème. Chaque profil a exactement `part`, `clairs` et `enveloppe`, et
@@ -1553,9 +1555,9 @@ garantie par ses variables et son libellé, jamais par son numéro.
 
   Un couple de couleurs ne dit pas la taille d'un texte : « AA grand texte »
   s'affiche comme un usage possible. Le contraste non textuel n'a pas de
-  niveau AAA. Une promesse respectée avec un minimum de texte abaissé à 4 peut
-  rester insuffisante pour le texte courant ; les deux résultats s'affichent
-  séparément.
+  niveau AAA. Un minimum ne descend jamais sous le niveau AA (`MINIMUMS_ADMIS`) :
+  une promesse respectée avec le minimum de texte par défaut atteint aussi le AA
+  du texte courant, et un minimum relevé à 7 vise le AAA.
 
   Le plugin et la planche écrivent ce niveau à côté de chaque contraste
   jugé : « AAA », « AA », ou « AA ✗ » sous le premier niveau. Dans le plugin,

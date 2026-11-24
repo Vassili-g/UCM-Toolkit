@@ -5,7 +5,7 @@
  */
 import type { Bouts, Courbes, Mode } from './rampe';
 import { sensDuTheme, type TexteDesBoutons } from '@ucm-kit/core/emplois';
-import { CRANS, NUMEROS_DE_PALETTE } from '@ucm-kit/core/referentiel';
+import { CRANS } from '@ucm-kit/core/referentiel';
 import type { Palette, Recette } from './recette';
 
 /** Une liste de numéros et une luminosité par numéro, dans chaque thème. */
@@ -26,7 +26,7 @@ const ONZE: Grille = {
 
 /**
  * Les deux préréglages et leurs courbes par défaut (W6.1). Treize nuances
- * ajoutent 1000 et 1050 après 950 : le kit déclare ces numéros
+ * ajoutent 1000 et 1050 après 950 : le kit admet ces numéros
  * (`NUMEROS_DE_PALETTE`), le moteur leur donne leurs courbes. Aucun n'insère de nuance entre deux
  * numéros d'emploi : les rangs gardent leurs numéros, et chaque liste porte
  * 400 et 950, que le quatrième rang vise.
@@ -34,12 +34,13 @@ const ONZE: Grille = {
 export const PREREGLAGES: { readonly [N in NombreDeNuances]: Grille } = {
   11: ONZE,
   13: {
-    crans: NUMEROS_DE_PALETTE,
+    crans: [...CRANS, 1000, 1050],
     courbes: { light: [...ONZE.courbes.light, 0.215, 0.165], dark: [...ONZE.courbes.dark, 0.96, 0.98] },
   },
 };
 
-const CRANS_DU_TEXTE_DES_BOUTONS = [500, 600, 700, 800] as const;
+/** Les nuances que le texte des boutons déplace : la courbe inversée en remplace les luminosités. */
+export const CRANS_DU_TEXTE_DES_BOUTONS = [500, 600, 700, 800] as const;
 const COURBES_INVERSEES = { light: [0.745, 0.69, 0.61, 0.42], dark: [0.45, 0.5, 0.55, 0.7] } as const;
 
 function luminositeParDefaut(mode: Mode, texte: TexteDesBoutons, numero: number): number {

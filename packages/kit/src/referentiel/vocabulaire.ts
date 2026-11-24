@@ -6,9 +6,14 @@
 import type { Registre } from './termes.js';
 
 export const CRANS = [50, 100, 200, 300, 400, 500, 600, 700, 800, 900, 950] as const;
-/** Les numéros qu'une palette de `primitives` peut porter : les crans, puis 1000 et 1050 des palettes à treize nuances. */
-export const NUMEROS_DE_PALETTE = [...CRANS, 1000, 1050] as const;
-export type NumeroDePalette = (typeof NUMEROS_DE_PALETTE)[number];
+/** Les bornes d'une liste libre de nuances (W6) : 4 à 13 numéros, multiples de 50, de 50 à 1050. UCM Palettes les valide, le référentiel en tire `NUMEROS_DE_PALETTE`. */
+export const BORNES_DES_CRANS_LIBRES = { nombre: [4, 13], pas: 50, premier: 50, dernier: 1050 } as const;
+/** Les numéros qu'une palette de `primitives` peut porter : tout multiple du pas, du premier au dernier numéro d'une liste libre. */
+export const NUMEROS_DE_PALETTE: readonly number[] = Array.from(
+  { length: (BORNES_DES_CRANS_LIBRES.dernier - BORNES_DES_CRANS_LIBRES.premier) / BORNES_DES_CRANS_LIBRES.pas + 1 },
+  (_, rang) => BORNES_DES_CRANS_LIBRES.premier + rang * BORNES_DES_CRANS_LIBRES.pas,
+);
+export type NumeroDePalette = number;
 export const MODES = ['light', 'dark'] as const;
 export const PROFILS = ['soft', 'vivid'] as const;
 export const INTENSITE_UNIQUE = 'unique' as const;
@@ -117,8 +122,8 @@ export const REGISTRE_CRANS: Registre = {
 export const REGISTRE_MODES: Registre = {
   id: 'modes', extensible: true,
   termes: [
-    { id: 'light', libelle: { fr: 'Clair', en: 'Light' }, definition: { fr: 'Thème à fonds clairs.', en: 'Theme with light backgrounds.' } },
-    { id: 'dark', libelle: { fr: 'Sombre', en: 'Dark' }, definition: { fr: 'Thème à fonds sombres.', en: 'Theme with dark backgrounds.' } },
+    { id: 'light', libelle: { fr: 'Light', en: 'Light' }, definition: { fr: 'Thème à fonds clairs.', en: 'Theme with light backgrounds.' } },
+    { id: 'dark', libelle: { fr: 'Dark', en: 'Dark' }, definition: { fr: 'Thème à fonds sombres.', en: 'Theme with dark backgrounds.' } },
   ],
 };
 

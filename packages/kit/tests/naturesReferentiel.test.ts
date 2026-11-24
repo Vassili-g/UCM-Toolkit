@@ -198,9 +198,20 @@ test('le calcul reste linéaire sur un fichier de plusieurs milliers de variable
   assert.deepEqual(lues.get(palette.id), [null, 'palette', null, null]);
 });
 
-test('une palette de primitives à treize nuances garde sa nature, 1000 et 1050 compris', () => {
+test('une palette de primitives garde sa nature avec tous les numéros admis, 150, 1000 et 1050 compris', () => {
   const noms = [collection('primitives'), ...rampe('primitives', 'color/Titanium/light', NUMEROS_DE_PALETTE)];
   for (const numero of NUMEROS_DE_PALETTE) assert.deepEqual(natures(noms, `color/Titanium/light/${numero}`), ['Titanium:palette'], String(numero));
   const sansTheme = [collection('primitives'), ...rampe('primitives', 'color/Titanium', NUMEROS_DE_PALETTE)];
   assert.deepEqual(natures(sansTheme, 'color/Titanium/1000'), ['Titanium:palette']);
+});
+
+test('une palette que la marque palette déclare garde sa nature, sous 5 numéros ou hors des multiples de 50', () => {
+  const declaree = (nom: string, numeros: readonly (number | string)[]): NomLu[] =>
+    [collection('primitives'), ...numeros.map((numero) => variable('primitives', `${nom}/${numero}`, 'p-0000000a'))];
+  for (const numeros of [[50, 150, 250, 350], [25, 75, 125, 175, 225, 275], ['050', '075', '100']]) {
+    const noms = declaree('color/Titanium/light', numeros);
+    for (const numero of numeros) assert.deepEqual(natures(noms, `color/Titanium/light/${numero}`), ['Titanium:palette'], String(numero));
+  }
+  const sansMarque = [collection('primitives'), ...[25, 75, 125, 175, 225, 275].map((numero) => variable('primitives', `color/Titanium/light/${numero}`))];
+  assert.deepEqual(natures(sansMarque, 'color/Titanium/light/25'), []);
 });

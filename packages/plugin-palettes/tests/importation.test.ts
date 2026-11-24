@@ -5,7 +5,7 @@ import test from 'node:test';
 import { FORMAT_RECETTE, classerRecette, jsonCanonique, recetteParDefaut, type Recette } from 'ucm-couleur';
 
 import { ajouter, nouvellePalette, renommer } from '../src/edition';
-import { ligneDesValeurs } from '../src/i18n/fr';
+import { ligneDesValeurs, texteDuRefus } from '../src/i18n/fr';
 import { ecartDImport, lireLImport, natureDeLEcart } from '../src/importation';
 import { temoinDeRecette } from './temoinsDeRecette';
 
@@ -35,6 +35,15 @@ test('[REC-03] I11 : une recette 9 se lit telle quelle ; son texte des boutons c
   assert.equal(natureDeLEcart(resultat.ecart).couleurs, true);
   const refusee = lireLImport(jsonCanonique({ ...ACTUELLE, texteDesBoutons: { light: 'gris', dark: 'noir' } }), ACTUELLE);
   assert.ok(refusee.issue === 'invalide' && refusee.refus.some((refus) => refus.regle === 'texte-des-boutons'), JSON.stringify(refusee));
+});
+
+test('Y1 : une recette importée avec un minimum sous le niveau AA est refusée par le message de seuils-positifs', () => {
+  for (const [seuil, valeur] of [['texte', 3], ['texte', 30], ['nonTexte', 2]] as const) {
+    const refusee = lireLImport(jsonCanonique({ ...ACTUELLE, seuils: { ...ACTUELLE.seuils, [seuil]: valeur } }), ACTUELLE);
+    assert.ok(refusee.issue === 'invalide', `${seuil} ${valeur}`);
+    assert.deepEqual(refusee.refus, [{ regle: 'seuils-positifs', chemin: `seuils.${seuil}`, valeur }]);
+    assert.match(texteDuRefus(refusee.refus[0]), /Saisissez un nombre entre 4,5 pour le texte, ou 3 pour les éléments graphiques, et 21\.$/);
+  }
 });
 
 test('[REC-08] l’écart nomme les palettes ajoutées, retirées et modifiées, par identifiant, et les paramètres communs changés', () => {

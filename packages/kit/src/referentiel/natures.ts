@@ -21,7 +21,7 @@ export const SEUIL_DE_PALETTE = 5;
 /** Le groupe dont les enfants directs sont des composants, quelle que soit la collection (forme en minuscules). */
 const DOSSIER_DES_COMPOSANTS = 'components';
 const crans = new Set<string>(CRANS.map(String));
-/** Les numéros d'une palette de `primitives` : 1000 et 1050 s'ajoutent aux crans. */
+/** Les numéros d'une palette de `primitives` : tout multiple de 50, de 50 à 1050. */
 const numerosDePalette = new Set<string>(NUMEROS_DE_PALETTE.map(String));
 const modesEtProfils = new Set<string>([...MODES, ...PROFILS]);
 const couleursAbsolues = new Set(REGISTRE_COULEURS_ABSOLUES.termes.map((terme) => terme.id));
@@ -47,10 +47,13 @@ interface NomEtSegments {
   readonly natures: Nature[];
 }
 
-/** Le segment qui précède les modes, profils et crans d'une variable dont le dernier segment est un cran ou une couleur absolue. */
-function candidatDePalette(minuscules: readonly string[], numeros: ReadonlySet<string>): number {
+/**
+ * Le segment qui précède les modes, profils et crans d'une variable dont le dernier segment est un cran ou une couleur absolue.
+ * Une variable que la marque `palette` déclare garde son segment de palette quel que soit son dernier segment.
+ */
+function candidatDePalette(minuscules: readonly string[], numeros: ReadonlySet<string>, declaree: boolean): number {
   const dernier = minuscules[minuscules.length - 1];
-  if (!numeros.has(dernier) && !couleursAbsolues.has(dernier)) return -1;
+  if (!declaree && !numeros.has(dernier) && !couleursAbsolues.has(dernier)) return -1;
   let rang = minuscules.length - 2;
   while (rang >= 0 && (numeros.has(minuscules[rang]) || modesEtProfils.has(minuscules[rang]))) rang--;
   return rang;
@@ -110,7 +113,7 @@ export function* naturesDesNomsParEtapes(
   for (const lu of lus) {
     if (++operations % TAILLE_D_UN_LOT === 0) yield;
     const numeros = collectionsUcm.get(lu.nom.portee) === 'primitives' ? numerosDePalette : crans;
-    const rang = candidatDePalette(lu.minuscules, numeros);
+    const rang = candidatDePalette(lu.minuscules, numeros, Boolean(lu.nom.palette));
     if (rang < 0 || !lu.segments[rang]) continue;
     const cle = JSON.stringify([lu.nom.portee, lu.segments.slice(0, rang + 1)]);
     const dernier = lu.minuscules[lu.minuscules.length - 1];

@@ -126,6 +126,44 @@ test('W6.3 : un refus du format 3 nomme la palette, la nuance fautive et le gest
   assert.equal(texteDuRefus({ regle: 'crans-libres-nombre', chemin: 'palettes[0].crans', valeur: 3 }), 'Palette 1, nuances de la palette libre : 3 nuances. Choisissez un nombre entre 4 et 13.');
 });
 
+test('Y1 : le refus d’un minimum hors des bornes dit les bornes du référentiel, en français et en anglais', () => {
+  const refus = { regle: 'seuils-positifs', chemin: 'seuils.texte', valeur: 3 } as const;
+  assert.equal(texteDuRefus(refus), 'Minimum ou seuil : texte : 3. Saisissez un nombre entre 4,5 pour le texte, ou 3 pour les éléments graphiques, et 21.');
+  assert.equal(anglais.texteDuRefus(refus), 'Minimum or threshold: text: 3. Enter a number between 4.5 for text, or 3 for graphics, and 21.');
+});
+
+test('Y1 : un écart de détection refusé garde le texte « supérieur à 0 », sans les bornes des contrastes', () => {
+  const refus = { regle: 'ecarts-positifs', chemin: 'seuils.palettesProches', valeur: 0 } as const;
+  assert.doesNotMatch(texteDuRefus(refus), /4,5|21/);
+  assert.match(texteDuRefus(refus), /Saisissez un nombre supérieur à 0\.$/);
+  assert.match(anglais.texteDuRefus(refus), /Enter a number greater than 0\.$/);
+});
+
+test('Y7 : les nuances du bouton dans les textes du texte des boutons viennent des tables, et les phrases restent les mêmes', () => {
+  const clair = { nuances: [500, 600, 700], valeurs: [0.745, 0.69, 0.61] };
+  const sombre = { nuances: [500, 600, 700, 800], valeurs: [0.45, 0.5, 0.55, 0.7] };
+  assert.equal(
+    francais.TEXTES_DU_TEXTE_DES_BOUTONS.effetDuTheme('light', clair.nuances, clair.valeurs),
+    'Light inversé. Les nuances 500 à 700 passent à 0,745 · 0,69 · 0,61. Le bouton reste la 700 ; son survol et son appui vont vers la page : 600, 500.',
+  );
+  assert.equal(
+    francais.TEXTES_DU_TEXTE_DES_BOUTONS.effetDuTheme('dark', sombre.nuances, sombre.valeurs),
+    'Dark inversé. Les nuances 500 à 800 passent à 0,45 · 0,50 · 0,55 · 0,70. Le bouton reste la 700 ; son survol et son appui vont vers la page : 600, 500.',
+  );
+  assert.equal(
+    anglais.TEXTES_DU_TEXTE_DES_BOUTONS.effetDuTheme('light', clair.nuances, clair.valeurs),
+    'Light inverted. Shades 500 to 700 move to 0.745 · 0.69 · 0.61. The button stays at 700; its hover and pressed states move toward the page: 600, 500.',
+  );
+  assert.equal(
+    francais.TEXTES_DU_TEXTE_DES_BOUTONS.confirmation('light', 'inverse'),
+    'Vos luminosités des nuances 500 à 800 en Light seront remplacées par celles de la courbe inversée. Les autres nuances gardent vos valeurs.',
+  );
+  assert.equal(
+    anglais.TEXTES_DU_TEXTE_DES_BOUTONS.confirmation('dark', 'normal'),
+    'Your Dark lightness values for shades 500 to 800 will be replaced by the normal curve. Other shades keep your values.',
+  );
+});
+
 test('un refus porte le champ et la valeur, virgule décimale', () => {
   assert.equal(
     texteDuRefus({ regle: 'courbe-claire-decroissante', chemin: 'courbes.light[5]', valeur: 0.8 }),
@@ -379,7 +417,7 @@ test('[UI-09] les garanties 8 et 9 ont leur libellé, dans les deux langues', ()
 
 test('V12.2 : l’écart d’import nomme les valeurs modifiées, la nature de l’effet et la conséquence sur la planche', () => {
   assert.equal(ligneDesValeurs([{ nom: 'Bleu', champs: ['reference', 'base'] }]), 'Palette à modifier : Bleu (couleur de référence, palette de base).');
-  assert.deepEqual(lignesDeNature({ couleurs: false, minimums: true, detection: false }), ['Contrastes minimums : les garanties peuvent changer, les couleurs restent identiques.']);
+  assert.deepEqual(lignesDeNature({ couleurs: false, minimums: true, detection: false }), ['Contrastes minimums : les garanties peuvent changer, et un autre minimum du texte change les nuances de texte.']);
   assert.equal(consequenceSurLaPlanche([], []), 'Sur la planche : aucun cadre à jour n’est touché.');
   assert.equal(consequenceSurLaPlanche(['Marine', 'Vert'], ['Ambre']), 'Sur la planche : 2 cadres passeront « À actualiser » (Marine, Vert) ; 1 cadre restera sans palette (Ambre).');
 });

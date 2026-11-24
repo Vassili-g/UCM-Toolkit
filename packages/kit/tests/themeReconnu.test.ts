@@ -6,7 +6,7 @@ import {
   type ModeDuTheme,
 } from '../src/emplois/index.js';
 import {
-  CONVENTIONS, MODES, indexerVocabulaire, modeDuThemeReconnu, normaliserLesNoms, variableDuThemeReconnue, type VocabulaireDuFichier,
+  CONVENTIONS, MODES, REGISTRE_MODES, indexerVocabulaire, modeDuThemeReconnu, normaliserLesNoms, variableDuThemeReconnue, type VocabulaireDuFichier,
 } from '../src/referentiel/index.js';
 
 function ecritSelon(convention: (typeof CONVENTIONS)[number]['convention'], nom: string): string {
@@ -34,6 +34,15 @@ test('ModeDuTheme vaut les modes du référentiel', () => {
   const retour: (typeof MODES)[number] = 'light' as ModeDuTheme;
   assert.deepEqual(modes, ['light', 'dark']);
   assert.equal(retour, 'light');
+});
+
+test('Y6 : chaque libellé du registre des modes est reconnu comme le mode qu’il nomme', () => {
+  assert.deepEqual(REGISTRE_MODES.termes.map((terme) => terme.id), [...MODES]);
+  for (const terme of REGISTRE_MODES.termes) {
+    for (const langue of ['fr', 'en'] as const) {
+      assert.equal(modeDuThemeReconnu(terme.libelle[langue]), terme.id, `${terme.id}, ${langue}`);
+    }
+  }
 });
 
 test('une variable du thème se reconnaît par la fin de son nom, quelle que soit l’écriture', () => {

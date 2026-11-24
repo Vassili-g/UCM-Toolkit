@@ -7,6 +7,11 @@ import { atteintLeSeuil } from '../emplois/contraste.js';
 import { identifiantsDeRoles, roleDeRendu, type IdentifiantDeRole } from '../format/roles-de-rendu.js';
 
 export const SEUILS_PAR_USAGE = { texte: 4.5, nonTexte: 3 } as const;
+/** Les minimums de contraste qu'une recette admet : du seuil AA de l'usage au rapport du blanc sur le noir, 21. */
+export const MINIMUMS_ADMIS = {
+  texte: { min: SEUILS_PAR_USAGE.texte, max: 21 },
+  nonTexte: { min: SEUILS_PAR_USAGE.nonTexte, max: 21 },
+} as const;
 /** Le seuil AAA du texte courant (critère 1.4.6) ; le grand texte atteint déjà l'AAA au seuil AA du texte courant. */
 export const SEUIL_TEXTE_AAA = 7 as const;
 /** Le seuil AA du grand texte (critère 1.4.3, grand corps) : un couple de couleurs ne dit pas la taille du texte. */

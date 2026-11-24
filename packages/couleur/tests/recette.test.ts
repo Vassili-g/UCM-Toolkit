@@ -1,6 +1,6 @@
 /** La forme de la recette, sa validation et son classement ([REC-03] à [REC-05]). */
 import assert from 'node:assert/strict';
-import { CRANS } from '@ucm-kit/core/referentiel';
+import { CRANS, MINIMUMS_ADMIS } from '@ucm-kit/core/referentiel';
 import { readFileSync } from 'node:fs';
 import test from 'node:test';
 import { fileURLToPath } from 'node:url';
@@ -57,6 +57,7 @@ const CAS: [RegleRecette, string, (r: any) => void][] = [
   ['hexa-invalide', 'fonds.light', (r) => { r.fonds.light = '#GGGGGG'; }],
   ['hexa-invalide', 'palettes[1].reference', (r) => { r.palettes[1].reference = 'bleu'; }],
   ['seuils-positifs', 'seuils.texte', (r) => { r.seuils.texte = 0; }],
+  ['ecarts-positifs', 'seuils.profilsConfondus', (r) => { r.seuils.profilsConfondus = 0; }],
   ['derives-nombre', 'derives', (r) => { r.derives = r.derives.slice(0, 1); }],
   ['derives-noms', 'derives[1]', (r) => { r.derives[1].nom = r.derives[0].nom; }],
   ['derives-noms', 'derives[1]', (r) => { r.derives[1].nom = ''; }],
@@ -124,6 +125,28 @@ for (const [regle, chemin, alterer] of CAS) {
     );
   });
 }
+
+test('Y1 : un minimum hors de MINIMUMS_ADMIS est refusé par seuils-positifs, un minimum aux bornes est accepté', () => {
+  const avec = (seuil: 'texte' | 'nonTexte', valeur: number) => {
+    const recette = valide();
+    recette.seuils[seuil] = valeur;
+    return validerRecette(recette);
+  };
+  for (const [seuil, valeurs] of [['texte', [3, 0.5, 30, 4.49, 21.01]], ['nonTexte', [2.99, 0, -1, 22]]] as const) {
+    for (const valeur of valeurs) {
+      assert.deepEqual(avec(seuil, valeur), { refus: [{ regle: 'seuils-positifs', chemin: `seuils.${seuil}`, valeur }] }, `${seuil} ${valeur}`);
+    }
+  }
+  for (const [seuil, valeurs] of [['texte', [MINIMUMS_ADMIS.texte.min, 7, MINIMUMS_ADMIS.texte.max]], ['nonTexte', [MINIMUMS_ADMIS.nonTexte.min, 4.5, MINIMUMS_ADMIS.nonTexte.max]]] as const) {
+    for (const valeur of valeurs) assert.ok('recette' in avec(seuil, valeur), `${seuil} ${valeur}`);
+  }
+  const ecart = valide();
+  ecart.seuils.palettesProches = 0;
+  assert.deepEqual(validerRecette(ecart), { refus: [{ regle: 'ecarts-positifs', chemin: 'seuils.palettesProches', valeur: 0 }] });
+  const large = valide();
+  large.seuils.profilsConfondus = 30;
+  assert.ok('recette' in validerRecette(large), 'un seuil de détection n’a pas de borne haute');
+});
 
 /** Les crans que la table des deux thèmes exige, chacun dans le sens de son texte des boutons. */
 const requisDe = (texte: { light: 'blanc' | 'noir'; dark: 'blanc' | 'noir' }): number[] =>

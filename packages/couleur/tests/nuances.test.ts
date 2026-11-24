@@ -2,7 +2,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { CRANS, NUMEROS_DE_PALETTE } from '@ucm-kit/core/referentiel';
+import { CRANS } from '@ucm-kit/core/referentiel';
 
 import {
   FORMAT_RECETTE,
@@ -127,7 +127,7 @@ function hexasParNuance(recette: Recette, palette: Palette): Map<string, string>
 }
 
 test('les numéros des préréglages viennent du kit, et chaque courbe a la longueur de sa liste', () => {
-  assert.deepEqual(PREREGLAGES[13].crans, NUMEROS_DE_PALETTE);
+  assert.deepEqual(PREREGLAGES[13].crans, [...CRANS, 1000, 1050]);
   assert.deepEqual(PREREGLAGES[11].crans, CRANS);
   for (const nombre of [11, 13] as const) {
     assert.equal(PREREGLAGES[nombre].courbes.light.length, PREREGLAGES[nombre].crans.length, `${nombre} light`);

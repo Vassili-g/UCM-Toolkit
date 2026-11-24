@@ -6,8 +6,8 @@ import {
   type PlaceDesThemes, type RoleDeSegment,
 } from '../src/referentiel/index.js';
 
-test('les numéros de palette sont les crans, puis 1000 et 1050, et le registre des crans reste à onze termes', () => {
-  assert.deepEqual(NUMEROS_DE_PALETTE, [...CRANS, 1000, 1050]);
+test('les numéros de palette sont les multiples de 50 de 50 à 1050, et le registre des crans reste à onze termes', () => {
+  assert.deepEqual(NUMEROS_DE_PALETTE, Array.from({ length: 21 }, (_, rang) => 50 + rang * 50));
   assert.equal(REGISTRE_CRANS.termes.length, 11);
   assert.deepEqual(PLACES_DES_THEMES, ['chemin', 'modes']);
 });
@@ -34,7 +34,7 @@ function cheminsDe(cas: CasDeLaMatrice, numeros: readonly number[], ecriture: (s
   ].map(ecriture))));
 }
 
-test('la matrice de Palettes est conforme : une ou deux intensités, onze ou treize nuances, thèmes dans le chemin ou en modes', () => {
+test('la matrice de Palettes est conforme : une ou deux intensités, onze crans ou tous les numéros admis, thèmes dans le chemin ou en modes', () => {
   for (const cas of CAS) for (const numeros of [CRANS, NUMEROS_DE_PALETTE]) {
     for (const segments of cheminsDe(cas, numeros)) {
       const nom = `${cas.themes} ${cas.intensites.length} ${numeros.length} ${segments.join('/')}`;

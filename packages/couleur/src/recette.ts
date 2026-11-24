@@ -8,7 +8,7 @@
  */
 import { TEXTE_DES_BOUTONS_PAR_DEFAUT, cransRequis, sensDuTheme, type SensDuTheme, type TexteDesBoutons } from '@ucm-kit/core/emplois';
 import { FENETRE_DE_LA_RECETTE, classerLEnveloppeDeLaRecette } from '@ucm-kit/core/protocoles';
-import { MODES, PROFILS, SEUILS_PAR_USAGE } from '@ucm-kit/core/referentiel';
+import { BORNES_DES_CRANS_LIBRES, MINIMUMS_ADMIS, MODES, PROFILS, SEUILS_PAR_USAGE } from '@ucm-kit/core/referentiel';
 
 import { lireHexa } from './conversions';
 import { PREREGLAGES, courbesParDefaut, luminositeAuNumero, type Grille } from './nuances';
@@ -253,6 +253,7 @@ export type RegleRecette =
   | 'hexa-invalide'
   | 'texte-des-boutons'
   | 'seuils-positifs'
+  | 'ecarts-positifs'
   | 'derives-nombre'
   | 'derives-noms'
   | 'derives-crans'
@@ -453,8 +454,8 @@ function validerDerives(releve: Releve, derives: unknown): void {
   });
 }
 
-/** Les bornes d'une liste libre (W6) : 4 à 13 numéros, multiples de 50, de 50 à 1050. */
-export const BORNES_DES_CRANS_LIBRES = { nombre: [4, 13], pas: 50, premier: 50, dernier: 1050 } as const;
+/** Les bornes d'une liste libre (W6) viennent du référentiel, qui en tire les numéros d'une palette. */
+export { BORNES_DES_CRANS_LIBRES };
 
 function validerCransLibres(releve: Releve, crans: unknown, chemin: string): void {
   if (!releve.nombres(crans, chemin)) return;
@@ -781,7 +782,10 @@ export function validerRecette(entree: unknown): { recette: Recette } | { refus:
   if (releve.objet(seuils, 'seuils', nomsSeuils)) {
     for (const nom of nomsSeuils) {
       const valeur = seuils[nom];
-      if (releve.nombre(valeur, `seuils.${nom}`) && valeur <= 0) releve.refuser('seuils-positifs', `seuils.${nom}`, valeur);
+      if (!releve.nombre(valeur, `seuils.${nom}`)) continue;
+      const admis = nom === 'texte' || nom === 'nonTexte' ? MINIMUMS_ADMIS[nom] : null;
+      const horsDesBornes = admis ? valeur < admis.min || valeur > admis.max : valeur <= 0;
+      if (horsDesBornes) releve.refuser(admis ? 'seuils-positifs' : 'ecarts-positifs', `seuils.${nom}`, valeur);
     }
   }
 

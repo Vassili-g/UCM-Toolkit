@@ -7,11 +7,12 @@
  * Les clés `soft`, `vivid`, `light`, `dark` et les codes d'emploi restent
  * ceux des données ; seul leur affichage se traduit ici.
  */
-import { SEUIL_TEXTE_AAA, SEUILS_PAR_USAGE, TYPES_D_ALERTE, glypheDuSigne, libellesDesVariables, MODES as MODES_DU_REFERENTIEL, type VariableLibellee } from '@ucm-kit/core/referentiel';
+import { MINIMUMS_ADMIS, SEUIL_TEXTE_AAA, SEUILS_PAR_USAGE, TYPES_D_ALERTE, glypheDuSigne, libellesDesVariables, MODES as MODES_DU_REFERENTIEL, type VariableLibellee } from '@ucm-kit/core/referentiel';
 import type { ChampDePalette } from '../importation';
 import type { IssueDeLaPage } from '../ecriture/planche';
 import type { EtatDuCadre } from '../planche/fraicheur';
 import {
+  CRANS_DU_TEXTE_DES_BOUTONS,
   FORMAT_RECETTE,
   ecrireArrondi as arrondiFrancais,
   ecrireContraste as contrasteFrancais,
@@ -327,7 +328,7 @@ export const TEXTES_DE_CONFIGURATION = {
   sansRecette: "Could not read palettes and settings. Import a valid backup.",
   aideCourbes: "Lightness from 0 to 1, for all palettes.",
   aideEcarts: "A higher threshold flags more similar colours. Differences are measured in ΔEok.",
-  aideMinimums: "These thresholds change guarantee results, not colours or WCAG levels.",
+  aideMinimums: "The text minimum moves text shades until they reach it. The graphics minimum only changes guarantee results. No minimum goes below the AA level.",
   retablir: "Default",
   // N059 : la garantie des courbes ne remplace pas celles des palettes (V9.4).
   garantieCommune: "Checked across all hues. Also check each palette’s “Contrast guarantees” card.",
@@ -410,9 +411,9 @@ export const TEXTES_DU_TEXTE_DES_BOUTONS = {
   effetCommun: "Colored text and borders move up one shade. This theme’s variables will show “Update needed” in Manage.",
   // Les nuances qui changent et leurs valeurs par défaut, calculées depuis la recette.
   effetDuTheme: (mode: Mode, nuances: readonly number[], valeurs: readonly number[]) =>
-    `${NOM_DU_MODE[mode]} inverted. Shades ${nuances[0]} to ${nuances[nuances.length - 1]} move to ${valeurs.map(luminositeInverseeEcrite).join(' · ')}. The button stays at 700; its hover and pressed states move toward the page: 600, 500.`,
+    `${NOM_DU_MODE[mode]} inverted. Shades ${nuances[0]} to ${nuances[nuances.length - 1]} move to ${valeurs.map(luminositeInverseeEcrite).join(' · ')}. The button stays at ${TABLE_DES_DOSSIERS[mode].inverse['solid/default']}; its hover and pressed states move toward the page: ${TABLE_DES_DOSSIERS[mode].inverse['solid/hover']}, ${TABLE_DES_DOSSIERS[mode].inverse['solid/pressed']}.`,
   confirmation: (mode: Mode, sens: 'normal' | 'inverse') =>
-    `Your ${NOM_DU_MODE[mode]} lightness values for shades 500 to 800 will be replaced by the ${sens === 'inverse' ? 'inverted' : 'normal'} curve. Other shades keep your values.`,
+    `Your ${NOM_DU_MODE[mode]} lightness values for shades ${CRANS_DU_TEXTE_DES_BOUTONS[0]} to ${CRANS_DU_TEXTE_DES_BOUTONS[CRANS_DU_TEXTE_DES_BOUTONS.length - 1]} will be replaced by the ${sens === 'inverse' ? 'inverted' : 'normal'} curve. Other shades keep your values.`,
   // Les voisines de la plage 500 à 800 présentes dans la liste : 400 et 900 pour les préréglages.
   refus: (voisines: readonly number[], sens: 'normal' | 'inverse') =>
     `With your values for ${voisines.length === 1 ? 'shade' : 'shades'} ${voisines.join(' and ')}, the ${sens === 'inverse' ? 'inverted' : 'normal'} curve breaks the order of the shades. Reset “Shade lightness”, then change the button text.`,
@@ -505,7 +506,7 @@ export function constatDeGarantie(manque: ManqueDeGarantie, texteDesBoutons: Tex
   const theme = `${NOM_DU_MODE[manque.mode]} theme`;
   if (manque.contre === 'texteDesBoutons') {
     return {
-      ou: `${theme}, shade ${manque.cran} (solid/default), profile ${manque.profil}`,
+      ou: `${theme}, shade ${manque.cran} (solid/default), intensity ${manque.profil}`,
       quoi: `Shade ${manque.cran} in ${NOM_DU_MODE[manque.mode]} does not carry the ${NOM_DU_TEXTE_DES_BOUTONS[texteDesBoutons]} button text at ${seuilEcrit(manque.seuil)}:1 for every hue: ${contrasteEcrit(manque.contraste)} at ${manque.teinte}°.`,
       geste: `${texteDesBoutons === 'blanc' ? 'Lower' : 'Raise'} the lightness of ${manque.cran} in “Shade lightness”.`,
     };
@@ -513,7 +514,7 @@ export function constatDeGarantie(manque: ManqueDeGarantie, texteDesBoutons: Tex
   const variable = TABLE_DES_DOSSIERS[manque.mode][sensDuTheme(manque.mode, texteDesBoutons)]['page/foreground'] === manque.cran ? 'page/foreground' : 'ring';
   const opposant = manque.contre === 'carte' ? 'the card' : 'the lightest shade';
   return {
-    ou: `${theme}, shade ${manque.cran} (${variable}), profile ${manque.profil}`,
+    ou: `${theme}, shade ${manque.cran} (${variable}), intensity ${manque.profil}`,
     quoi: `Contrast against ${opposant}: ${contrasteEcrit(manque.contraste)}, minimum ${seuilEcrit(manque.seuil)}:1. Hue: ${manque.teinte}°.`,
     geste: `Move shade ${manque.cran} further from ${opposant} in lightness.`,
   };
@@ -1267,7 +1268,8 @@ const REFUS: Record<RegleRecette, (champ: string, valeur: string) => string> = {
   'parts-ordre': (champ) => `${champ}: keep Soft intensity at or below Vivid.`,
   'gamut-inconnu': (_, valeur) => `Colour space “${valeur}” is not supported. Use sRGB.`,
   'hexa-invalide': (champ, valeur) => `${champ}: invalid “${valeur}”. Use a hex code such as #1E6FD9.`,
-  'seuils-positifs': (champ, valeur) => `${champ}: ${valeur}. Enter a number greater than 0.`,
+  'seuils-positifs': (champ, valeur) => `${champ}: ${valeur}. Enter a number between ${seuilEcrit(MINIMUMS_ADMIS.texte.min)} for text, or ${seuilEcrit(MINIMUMS_ADMIS.nonTexte.min)} for graphics, and ${seuilEcrit(MINIMUMS_ADMIS.texte.max)}.`,
+  'ecarts-positifs': (champ, valeur) => `${champ}: ${valeur}. Enter a number greater than 0.`,
   'derives-nombre': (champ, valeur) => `Tailwind preset: ${valeur} colour families. At least two are required.`,
   'derives-noms': (champ, valeur) => (valeur
     ? `Tailwind preset: duplicate “${valeur}”. Rename one colour family.`
@@ -1417,7 +1419,7 @@ export function ligneDesValeurs(palettes: readonly { readonly nom: string; reado
 export function lignesDeNature(nature: { readonly couleurs: boolean; readonly minimums: boolean; readonly detection: boolean }): string[] {
   return [
     nature.couleurs ? "Colours: shades in the affected palettes will change." : null,
-    nature.minimums ? "Minimum contrast: guarantees may change, colours stay the same." : null,
+    nature.minimums ? "Minimum contrast: guarantees may change, and a different text minimum changes text shades." : null,
     nature.detection ? "Similar colour detection: only the warnings may change." : null,
   ].filter((ligne): ligne is string => ligne !== null);
 }

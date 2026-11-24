@@ -6,11 +6,12 @@
  * Les clés `soft`, `vivid`, `light`, `dark` et les codes d'emploi restent
  * ceux des données ; seul leur affichage se traduit ici.
  */
-import { SEUIL_TEXTE_AAA, SEUILS_PAR_USAGE, TYPES_D_ALERTE, glypheDuSigne, libellesDesVariables, MODES as MODES_DU_REFERENTIEL, type VariableLibellee } from '@ucm-kit/core/referentiel';
+import { MINIMUMS_ADMIS, SEUIL_TEXTE_AAA, SEUILS_PAR_USAGE, TYPES_D_ALERTE, glypheDuSigne, libellesDesVariables, MODES as MODES_DU_REFERENTIEL, type VariableLibellee } from '@ucm-kit/core/referentiel';
 import type { ChampDePalette } from '../importation';
 import type { IssueDeLaPage } from '../ecriture/planche';
 import type { EtatDuCadre } from '../planche/fraicheur';
 import {
+  CRANS_DU_TEXTE_DES_BOUTONS,
   FORMAT_RECETTE,
   ecrireArrondi,
   ecrireContraste,
@@ -327,7 +328,7 @@ export const TEXTES_DE_CONFIGURATION = {
   sansRecette: "Palettes et réglages illisibles. Importez une sauvegarde valide.",
   aideCourbes: "Luminosité de 0 à 1, pour toutes les palettes.",
   aideEcarts: "Un seuil plus élevé signale davantage de couleurs proches. L’écart se mesure en ΔEok.",
-  aideMinimums: "Ces seuils changent le résultat des garanties, pas les couleurs ni les niveaux WCAG.",
+  aideMinimums: "Le minimum du texte déplace les nuances de texte jusqu’à ce qu’elles l’atteignent. Le minimum des éléments graphiques ne change que le résultat des garanties. Aucun minimum ne descend sous le niveau AA.",
   retablir: 'Par défaut',
   // N059 : la garantie des courbes ne remplace pas celles des palettes (V9.4).
   garantieCommune: "Vérification sur toutes les teintes. Vérifiez aussi la carte « Garanties de contraste » de chaque palette.",
@@ -410,9 +411,9 @@ export const TEXTES_DU_TEXTE_DES_BOUTONS = {
   effetCommun: 'Le texte coloré et les contours montent d’une nuance. Les variables de ce thème passeront « À actualiser » dans Gestion.',
   // Les nuances qui changent et leurs valeurs par défaut, calculées depuis la recette.
   effetDuTheme: (mode: Mode, nuances: readonly number[], valeurs: readonly number[]) =>
-    `${NOM_DU_MODE[mode]} inversé. Les nuances ${nuances[0]} à ${nuances[nuances.length - 1]} passent à ${valeurs.map(luminositeInverseeEcrite).join(' · ')}. Le bouton reste la 700 ; son survol et son appui vont vers la page : 600, 500.`,
+    `${NOM_DU_MODE[mode]} inversé. Les nuances ${nuances[0]} à ${nuances[nuances.length - 1]} passent à ${valeurs.map(luminositeInverseeEcrite).join(' · ')}. Le bouton reste la ${TABLE_DES_DOSSIERS[mode].inverse['solid/default']} ; son survol et son appui vont vers la page : ${TABLE_DES_DOSSIERS[mode].inverse['solid/hover']}, ${TABLE_DES_DOSSIERS[mode].inverse['solid/pressed']}.`,
   confirmation: (mode: Mode, sens: 'normal' | 'inverse') =>
-    `Vos luminosités des nuances 500 à 800 en ${NOM_DU_MODE[mode]} seront remplacées par celles de la courbe ${sens === 'inverse' ? 'inversée' : 'normale'}. Les autres nuances gardent vos valeurs.`,
+    `Vos luminosités des nuances ${CRANS_DU_TEXTE_DES_BOUTONS[0]} à ${CRANS_DU_TEXTE_DES_BOUTONS[CRANS_DU_TEXTE_DES_BOUTONS.length - 1]} en ${NOM_DU_MODE[mode]} seront remplacées par celles de la courbe ${sens === 'inverse' ? 'inversée' : 'normale'}. Les autres nuances gardent vos valeurs.`,
   // Les voisines de la plage 500 à 800 présentes dans la liste : 400 et 900 pour les préréglages.
   refus: (voisines: readonly number[], sens: 'normal' | 'inverse') =>
     `Avec vos valeurs ${voisines.length === 1 ? 'de la nuance' : 'des nuances'} ${voisines.join(' et ')}, la courbe ${sens === 'inverse' ? 'inversée' : 'normale'} ne garde pas l’ordre des nuances. Remettez « Luminosité des nuances » par défaut, puis changez le texte des boutons.`,
@@ -505,7 +506,7 @@ export function constatDeGarantie(manque: ManqueDeGarantie, texteDesBoutons: Tex
   const theme = `Thème ${NOM_DU_MODE[manque.mode]}`;
   if (manque.contre === 'texteDesBoutons') {
     return {
-      ou: `${theme}, nuance ${manque.cran} (solid/default), profil ${manque.profil}`,
+      ou: `${theme}, nuance ${manque.cran} (solid/default), intensité ${manque.profil}`,
       quoi: `La ${manque.cran} en ${NOM_DU_MODE[manque.mode]} ne porte pas le texte des boutons ${NOM_DU_TEXTE_DES_BOUTONS[texteDesBoutons]} à ${seuilEcrit(manque.seuil)}:1 pour toutes les teintes : ${contrasteEcrit(manque.contraste)} à ${manque.teinte}°.`,
       geste: `${texteDesBoutons === 'blanc' ? 'Baissez' : 'Montez'} la luminosité de la ${manque.cran} dans « Luminosité des nuances ».`,
     };
@@ -513,7 +514,7 @@ export function constatDeGarantie(manque: ManqueDeGarantie, texteDesBoutons: Tex
   const variable = TABLE_DES_DOSSIERS[manque.mode][sensDuTheme(manque.mode, texteDesBoutons)]['page/foreground'] === manque.cran ? 'page/foreground' : 'ring';
   const opposant = manque.contre === 'carte' ? 'la carte' : 'la nuance la plus claire';
   return {
-    ou: `${theme}, nuance ${manque.cran} (${variable}), profil ${manque.profil}`,
+    ou: `${theme}, nuance ${manque.cran} (${variable}), intensité ${manque.profil}`,
     quoi: `Contraste avec ${opposant} : ${contrasteEcrit(manque.contraste)}, minimum ${seuilEcrit(manque.seuil)}:1. Teinte : ${manque.teinte}°.`,
     geste: `Éloignez la luminosité de la nuance ${manque.cran} de celle de ${opposant}.`,
   };
@@ -1266,7 +1267,8 @@ const REFUS: Record<RegleRecette, (champ: string, valeur: string) => string> = {
   'parts-ordre': (champ) => `${champ} : gardez une intensité Soft inférieure ou égale à Vivid.`,
   'gamut-inconnu': (_, valeur) => `L’espace de couleur « ${valeur} » n’est pas pris en charge. Utilisez sRGB.`,
   'hexa-invalide': (champ, valeur) => `${champ} : « ${valeur} » invalide. Utilisez un code hexadécimal comme #1E6FD9.`,
-  'seuils-positifs': (champ, valeur) => `${champ} : ${valeur}. Saisissez un nombre supérieur à 0.`,
+  'seuils-positifs': (champ, valeur) => `${champ} : ${valeur}. Saisissez un nombre entre ${seuilEcrit(MINIMUMS_ADMIS.texte.min)} pour le texte, ou ${seuilEcrit(MINIMUMS_ADMIS.nonTexte.min)} pour les éléments graphiques, et ${seuilEcrit(MINIMUMS_ADMIS.texte.max)}.`,
+  'ecarts-positifs': (champ, valeur) => `${champ} : ${valeur}. Saisissez un nombre supérieur à 0.`,
   'derives-nombre': (champ, valeur) => `Préréglage Tailwind : ${valeur} gammes. Il en faut au moins deux.`,
   'derives-noms': (champ, valeur) => (valeur
     ? `Préréglage Tailwind : « ${valeur} » en double. Renommez une gamme.`
@@ -1416,7 +1418,7 @@ export function ligneDesValeurs(palettes: readonly { readonly nom: string; reado
 export function lignesDeNature(nature: { readonly couleurs: boolean; readonly minimums: boolean; readonly detection: boolean }): string[] {
   return [
     nature.couleurs ? 'Couleurs : les nuances des palettes concernées changent.' : null,
-    nature.minimums ? 'Contrastes minimums : les garanties peuvent changer, les couleurs restent identiques.' : null,
+    nature.minimums ? 'Contrastes minimums : les garanties peuvent changer, et un autre minimum du texte change les nuances de texte.' : null,
     nature.detection ? 'Détection des couleurs proches : seuls les signalements peuvent changer.' : null,
   ].filter((ligne): ligne is string => ligne !== null);
 }
