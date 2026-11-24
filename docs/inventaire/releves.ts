@@ -1167,9 +1167,9 @@ function attentesDeLaPiste(piste: Piste, lots: Lot[] | null): Attente[] {
   const decision = nonFaits.find((lot) => lot.marque === 'mainteneur');
   const bloque = nonFaits.find((lot) => lot.marque !== null && lot.marque !== 'mainteneur');
   if (piste.etat === 'idee' && piste.prio <= 1) attentes.push({ genre: 'toi', texte: 'À lancer, rien de commencé', detail: 'Prio 0 ou 1 sans recherche ni plan' });
-  if (decision) attentes.push({ genre: 'toi', texte: `Décision du mainteneur, lot ${decision.numero}`, detail: decision.texte });
+  if (decision) attentes.push({ genre: 'toi', texte: `Décision en attente, lot ${decision.numero}`, detail: decision.texte });
   if (piste.etat === 'recherche' && piste.questions.length > 0) {
-    attentes.push({ genre: 'toi', texte: `Réponses du mainteneur, ${piste.questions.length} ${piste.questions.length > 1 ? 'questions' : 'question'}`, detail: 'Questions de la recherche' });
+    attentes.push({ genre: 'toi', texte: `Décision en attente, ${piste.questions.length} ${piste.questions.length > 1 ? 'questions' : 'question'}`, detail: 'Questions de la recherche' });
   }
   if (bloque && bloque.marque !== null && bloque.marque !== 'mainteneur') attentes.push({ genre: 'piste', texte: `Lot ${bloque.numero} attend ${bloque.marque.attend}`, detail: bloque.texte });
   else if (piste.dependances.length > 0) attentes.push({ genre: 'piste', texte: `Après ${piste.dependances.join(', ')}`, detail: 'Prérequis pas encore livrés' });

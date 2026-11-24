@@ -372,7 +372,7 @@
 
   // Les lots d'un plan : un carré par case, rangés par groupe.
   function classeDuLot(l) { return l.fait ? 'f' : l.marque === 'mainteneur' ? 'm' : l.marque ? 'b' : l.suivant ? 's' : ''; }
-  function motDuLot(l) { return l.fait ? 'fait' : l.marque === 'mainteneur' ? 'attend le mainteneur' : l.marque ? l.marque : l.suivant ? 'suivant, prêt pour un agent' : 'à faire'; }
+  function motDuLot(l) { return l.fait ? 'fait' : l.marque === 'mainteneur' ? 'décision en attente' : l.marque ? l.marque : l.suivant ? 'suivant, prêt pour un agent' : 'à faire'; }
   function rangee(p) {
     var groupes = [], courant = null;
     p.lots.forEach(function (l) {
@@ -385,7 +385,7 @@
   }
   function ligneDeLot(l, groupe) {
     return (groupe ? '<li class="gr">' + esc(groupe) + '</li>' : '') + '<li class="' + (l.fait ? 'fait' : classeDuLot(l)) + '"><span class="lots"><i class="' + classeDuLot(l) + '"></i></span><span class="num">' + esc(l.numero) + '</span>' +
-      '<span class="txt">' + txt(l.texte) + (l.marque === 'mainteneur' ? ' <span class="attend toi">décision du mainteneur</span>' : l.marque ? ' <span class="attend piste">' + esc(l.marque) + '</span>' : '') + '</span><span class="h">' + esc(l.hash || '') + '</span></li>';
+      '<span class="txt">' + txt(l.texte) + (l.marque === 'mainteneur' ? ' <span class="attend toi">décision en attente</span>' : l.marque ? ' <span class="attend piste">' + esc(l.marque) + '</span>' : '') + '</span><span class="h">' + esc(l.hash || '') + '</span></li>';
   }
   function blocDeLots(lots) {
     var g = null;
@@ -405,7 +405,7 @@
       return '<details class="lots-plus"><summary>' + esc(g.nom || 'Suite') + ' · ' + g.lots.length + (g.lots.length > 1 ? ' cases à faire' : ' case à faire') + '</summary><ol class="lots-detail">' + blocDeLots(g.lots) + '</ol></details>';
     });
     return '<h4>Lots du plan · ' + faits.length + '/' + p.lots.length + '</h4>' + rangee(p) +
-      '<div class="legende-fiche"><span><span class="lots"><i class="f"></i></span>fait</span><span><span class="lots"><i class="m"></i></span>décision du mainteneur</span><span><span class="lots"><i class="b"></i></span>attend une piste</span><span><span class="lots"><i class="s"></i></span>suivant</span><span><span class="lots"><i></i></span>à faire</span></div>' +
+      '<div class="legende-fiche"><span><span class="lots"><i class="f"></i></span>fait</span><span><span class="lots"><i class="m"></i></span>décision en attente</span><span><span class="lots"><i class="b"></i></span>attend une piste</span><span><span class="lots"><i class="s"></i></span>suivant</span><span><span class="lots"><i></i></span>à faire</span></div>' +
       (faits.length ? '<details class="lots-faits"><summary>' + faits.length + (faits.length > 1 ? ' cases faites' : ' case faite') + '</summary><ol class="lots-detail">' + blocDeLots(faits) + '</ol></details>' : '') +
       suite.join('');
   }
