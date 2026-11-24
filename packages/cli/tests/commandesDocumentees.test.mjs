@@ -22,6 +22,8 @@ const DOCUMENTS = [
   ...readdirSync(join(PAQUET, "aides")).map((nom) => `packages/cli/aides/${nom}`),
   ".agents/skills/consommer-contrat/SKILL.md",
   ".agents/skills/regler-le-linter/SKILL.md",
+  "docs/guides/RECETTE.md",
+  "packages/adapter-typescript/README.md",
 ];
 
 const lire = (chemin) => readFileSync(resolve(RACINE, chemin), "utf8").replace(/\r\n/g, "\n");
@@ -43,17 +45,24 @@ function extraitsDeCode(texte) {
 
 const NOMS = COMMANDES.map(({ nom }) => nom).sort((a, b) => b.length - a.length);
 
-/** Chaque `ucm <commande> … --option` d'un extrait, avec ce qu'il nomme. */
+/**
+ * Chaque `ucm <commande> … --option` d'un extrait, avec ce qu'il nomme.
+ *
+ * La commande s'écrit `ucm`, `npx ucm` ou `npx [--yes] @ucm-kit/cli[@version]`.
+ * `enTete` dit qu'elle commence l'extrait ou suit `npx` : seule une invocation
+ * en tête peut nommer une commande inconnue, une phrase de prose ou un
+ * `npm install @ucm-kit/cli` n'en nomme aucune.
+ */
 function invocations(extrait) {
   const trouvees = [];
-  for (const [, suite] of extrait.matchAll(/(?<![\w@/.-])ucm\s+([^`\n]*)/g)) {
+  for (const appel of extrait.matchAll(/(?<![\w@/.-])(npx\s+(?:-{1,2}[\w-]+\s+)*)?(?:ucm|@ucm-kit\/cli(?:@[\w.^~-]+)?)\s+([^`\n]*)/g)) {
+    const [, npx, suite] = appel;
     const mots = suite.trim();
     const nom = NOMS.find((candidat) => mots === candidat || mots.startsWith(`${candidat} `));
-    // Une phrase de prose qui contient « ucm » n'est pas une invocation : seuls
-    // les mots d'une commande ou d'une option commencent un extrait relevé.
     const premier = mots.split(/\s+/)[0];
     const options = [...mots.matchAll(/(?<![\w-])(--[a-z][a-z-]*)/g)].map(([, option]) => option);
-    trouvees.push({ nom, premier, options });
+    const enTete = npx !== undefined || extrait.slice(0, appel.index).trim() === "";
+    trouvees.push({ nom, premier, options, enTete });
   }
   return trouvees;
 }
@@ -61,9 +70,9 @@ function invocations(extrait) {
 function verifier(source, texte) {
   const fautes = [];
   for (const extrait of extraitsDeCode(texte)) {
-    for (const { nom, premier, options } of invocations(extrait)) {
+    for (const { nom, premier, options, enTete } of invocations(extrait)) {
       if (!nom) {
-        if (/^[a-z][a-z-]*$/.test(premier) && extrait.trim().startsWith("ucm ")) fautes.push(`${source} : commande inconnue « ucm ${premier} »`);
+        if (/^[a-z][a-z-]*$/.test(premier) && enTete) fautes.push(`${source} : commande inconnue « ucm ${premier} »`);
         continue;
       }
       const connues = COMMANDES.find((commande) => commande.nom === nom).options.map((option) => option.nom);
@@ -137,4 +146,14 @@ test("M4 : l'usage d'init vient de COMMANDES, et le README l'égale", () => {
   assert.ok(section, "le README a une section ucm init");
   const bloc = section.match(/```sh\n([\s\S]*?)\n```/);
   assert.equal(bloc?.[1], usage);
+});
+
+test("M5 : le relevé voit une commande ou une option fautive écrite par npx, avec ou sans le nom du paquet", () => {
+  const fautes = (extrait) => verifier("essai", `\`${extrait}\``);
+  assert.equal(fautes("npx --yes @ucm-kit/cli@0.4.0 chek").length, 1, "commande inconnue par le paquet épinglé");
+  assert.equal(fautes("npx @ucm-kit/cli check --rapport x").length, 1, "option inconnue par le paquet");
+  assert.equal(fautes("npx ucm chek").length, 1, "commande inconnue par npx ucm");
+  assert.deepEqual(fautes("npx --yes @ucm-kit/cli@0.4.0 check --report ci-report.md"), []);
+  assert.deepEqual(fautes("npm install --save-dev @ucm-kit/cli@0.4.0"), [], "une installation n'est pas une invocation");
+  assert.deepEqual(fautes("ucm"), []);
 });
