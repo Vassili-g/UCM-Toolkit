@@ -553,9 +553,9 @@ chemins publiés.
 
 ## Vague 5
 
-- [ ] 5.1 `implementeur-exigeant`. Rapport précédent, `ucm rapport-github` et adresses des forges (PP-109, PP-10, PP-104 pour le README).
-- [ ] 5.2 `implementeur-exigeant`. Règles et préparation d'Architect (PP-101, PP-102).
-- [ ] 5.3 `implementeur-exigeant`. Collisions de nom CSS (PP-103).
+- [x] 5.1 `implementeur-exigeant`. Rapport précédent, `ucm rapport-github` et adresses des forges (PP-109, PP-10, PP-104 pour le README). Commit : `8746610b`.
+- [x] 5.2 `implementeur-exigeant`. Règles et préparation d'Architect (PP-101, PP-102). Commit : `59374983`.
+- [x] 5.3 `implementeur-exigeant`. Collisions de nom CSS (PP-103). Commit : `2d531e3a`.
 
 ### Lot 5.1. Rapport précédent, `ucm rapport-github` et adresses des forges
 
