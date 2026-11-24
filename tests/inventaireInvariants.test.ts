@@ -47,6 +47,7 @@ const DOMAINES = [
   'Explorateur de tokens',
   "Nomenclature d'UCM Architect",
   'Hub UCM',
+  'Outillage des agents',
 ];
 
 /** Les domaines que le manifeste range, dans son ordre. */
@@ -227,12 +228,13 @@ const ENONCES_SPEC = [
   "La marque de version vient de la constante du kit.",
 ];
 
-test("les vingt et un domaines d'invariants sont là, dans l'ordre du manifeste, sous leur titre", () => {
+test("les vingt-deux domaines sont là, dans l'ordre du manifeste, et chaque fichier d'invariants sous leur titre", () => {
   const domaines = domainesDuManifeste();
   assert.deepEqual(domaines.map((d) => d.titre), DOMAINES);
 
   const faux: string[] = [];
-  for (const { titre, fichier } of domaines) {
+  // Un domaine dont le domicile est un document de règles de travail (`CONTRIBUTING.md`) n'a pas de fichier d'invariants à titrer.
+  for (const { titre, fichier } of domaines.filter((d) => d.fichier.includes('/invariants/'))) {
     const premiere = lireInvariants(fichier).split('\n', 1)[0].trim();
     if (premiere !== `# ${titre}`) faux.push(`${fichier} : « ${premiere} » au lieu de « # ${titre} »`);
   }

@@ -16,6 +16,7 @@ Procédure : [recherche P25, « Archiver un sujet terminé »](../../../docs/not
    - supprimer les fichiers confirmés ;
    - passer la ligne du sujet dans la table « Archive » de `docs/notes/Recherches/README.md`, avec un lien figé sur `C` ;
    - retirer le motif du dossier de `.agents/domiciles.json` si le dossier est vide ;
+   - supprimer le dossier vide : `tests/dossiersDeRecherche.test.ts` refuse un dossier sans motif. Ajouter les fichiers archivés à `.agents/documents-fermes.json` ;
    - écrire `archive: "C"` sur la piste de `pistes.json` ;
    - `npm run vues`, puis `npm test` par un `verificateur` ;
    - commiter par chemins explicites, pousser.

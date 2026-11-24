@@ -22,6 +22,7 @@
       ],
       "verifications": [
         "npm run test:paquet -- exporter",
+        "npm run test:paquet -- socle",
         "npm run test --workspace @ucm-kit/core",
         "node scripts/run-tests.cjs",
         "npm run vues"
@@ -53,6 +54,7 @@
       ],
       "verifications": [
         "npm run test:paquet -- exporter",
+        "npm run test:paquet -- socle",
         "npm run test --workspace @ucm-kit/core",
         "node scripts/run-tests.cjs",
         "npm run vues"
@@ -115,7 +117,8 @@
         "packages/plugin-exporter/SPEC.md"
       ],
       "verifications": [
-        "npm run test:paquet -- exporter"
+        "npm run test:paquet -- exporter",
+        "npm run test:paquet -- socle"
       ]
     },
     {
@@ -145,7 +148,8 @@
         "packages/plugin-exporter/SPEC.md"
       ],
       "verifications": [
-        "npm run test:paquet -- exporter"
+        "npm run test:paquet -- exporter",
+        "npm run test:paquet -- socle"
       ]
     },
     {
@@ -196,6 +200,7 @@
         "npm run test:paquet -- exporter",
         "npm run test:paquet -- cli",
         "npm run test:paquet -- adapter",
+        "npm run test:paquet -- socle",
         "npm run test --workspace @ucm-kit/core",
         "node scripts/run-tests.cjs",
         "npm run vues"
@@ -235,7 +240,8 @@
         "packages/plugin-exporter/SPEC.md"
       ],
       "verifications": [
-        "npm run test:paquet -- exporter"
+        "npm run test:paquet -- exporter",
+        "npm run test:paquet -- socle"
       ]
     },
     {
@@ -442,6 +448,7 @@
       ],
       "verifications": [
         "npm run test:paquet -- architect",
+        "npm run test:paquet -- socle",
         "npm run vues"
       ]
     },
@@ -464,6 +471,8 @@
       "specs": [],
       "lies": [],
       "verifications": [
+        "npm run test:paquet -- architect",
+        "npm run test:paquet -- socle",
         "npm run test --workspace @ucm-kit/core",
         "node scripts/run-tests.cjs"
       ]
@@ -479,6 +488,26 @@
       "lies": [],
       "verifications": [
         "npm --prefix packages/hub test"
+      ]
+    },
+    {
+      "id": "outillage-agents",
+      "titre": "Outillage des agents",
+      "fichier": "CONTRIBUTING.md",
+      "chemins": [
+        "scripts/**",
+        ".claude/**",
+        ".agents/**",
+        "CLAUDE.md",
+        "tests/**"
+      ],
+      "specs": [
+        "CONTRIBUTING.md#travailler-avec-des-agents"
+      ],
+      "lies": [],
+      "verifications": [
+        "npx tsx --test tests/styleDocumentaire.test.ts tests/styleMotifs.test.ts tests/registreDesDocuments.test.ts tests/domiciles.test.ts tests/cartes.test.ts tests/agentsDefinis.test.ts",
+        "node scripts/controle-style.mjs"
       ]
     }
   ],

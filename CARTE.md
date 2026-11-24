@@ -35,13 +35,16 @@ L'inventaire du dépôt, vue générée sans autorité : chaque section nomme le
 
 ## .agents/
 - domiciles.json : manifeste des domiciles, des domaines d'invariants et des cartes
+- documents-fermes.json : les fichiers d'archive, de skill et de définition d'agent ; un fichier suivi de ces motifs qui n'y figure pas est refusé
 
 ## .agents/skills/
 Procédures qu'un agent charge à la demande.
 
+- archiver-un-sujet/ : archiver le sujet d'une piste livrée
 - consommer-contrat/ : reconstruire un composant depuis son seul contrat
 - guide-composant/ : écrire le guide d'un composant d'après les design systems du marché
 - publier-paquets/ : publier les paquets du kit après une montée de version
+- regler-le-linter/ : ajouter ou retirer une entrée des listes du contrôle du code
 - rediger-diagnostics-ucm/ : écrire un message que le designer peut suivre
 - rediger-pour-agents/ : écrire les fichiers lus par les agents dans la forme compacte du dépôt
 - relire-le-style/ : liste de relecture du style et paires avant/après
@@ -64,7 +67,18 @@ Procédures qu'un agent charge à la demande.
 - verifier-conservation.mjs : garde de conservation de la réécriture d'`AGENTS.md`
 
 ## .claude/
-- settings.json : hook d'écriture sur Write et Edit, hook de réponse sur Stop et SubagentStop
+- settings.json : hook `PreToolUse` de `hook-documents.mjs` sur Write, hook d'écriture sur Write et Edit, hook de réponse sur Stop et SubagentStop
+
+## .claude/agents/
+Définitions des sous-agents de la conversation principale.
+
+- Explore.md : balayage du code sur plusieurs dossiers
+- chercheur.md : une question de recherche sourcée
+- executant.md : modification mécanique listée par un plan
+- implementeur-exigeant.md : lot qui touche plusieurs lecteurs d'une règle, une interface au pixel près ou une réécriture sans perte
+- implementeur.md : un lot d'un plan d'implémentation validé
+- releveur.md : fiches d'un composant pour un guide
+- verificateur.md : commande dont la sortie est longue
 
 ## .github/workflows/
 - ci.yml : intégration continue
@@ -89,7 +103,8 @@ Les tests du monorepo lui-même.
 - textesEcrits.test.mjs : aucun catalogue de textes des plugins ne porte `TODO(texte)`
 - copiesDocumentees.test.ts : copies du code dans la documentation (familles, rendu, version du contrat, nombres)
 - pluginsSombres.test.mjs : les trois plugins sont sombres
-- cartes.test.ts : chaque chemin des cartes existe, et la section `tests/` liste exactement les tests de `tests/`
+- cartes.test.ts : chaque chemin des cartes existe, la section `tests/` liste exactement les tests de `tests/`, et chaque fichier de `scripts/`, skill et définition d'agent y figure
+- agentsDefinis.test.ts : modèles et corps communs des définitions d'agents
 - referencesComposants.test.ts : registre des systèmes, extraction des noms et valeurs, schémas, guide d'essai et données réelles de `docs/references/`
 - styleDocumentaire.test.ts : tics de rédaction refusés sur tout le dépôt, hors `EXCLUS_DU_CONTROLE`
 - extraireInventaire.test.ts : `docs/inventaire/extraire.ts` rend une section, un tableau ou des sous-titres d'un Markdown, et lève sur un titre absent

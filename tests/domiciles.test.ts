@@ -43,12 +43,20 @@ const manifeste = chargerManifeste(racine);
 const agents = fs.readFileSync(path.join(racine, 'AGENTS.md'), 'utf8');
 const contexte = { existe: (chemin: string) => fs.existsSync(path.join(racine, chemin)), agents };
 
-type Domaine = { id: string; titre: string; fichier: string; chemins: string[]; specs: string[]; lies: string[] };
+type Domaine = {
+  id: string;
+  titre: string;
+  fichier: string;
+  chemins: string[];
+  specs: string[];
+  lies: string[];
+  verifications: string[];
+};
 
 const SANS_TITRE = new Set(['tests-du-moteur', 'corpus-de-test', 'referentiel']);
 
-function fichiersSuivis(): string[] {
-  const sortie = execFileSync('git', ['-c', 'core.quotepath=false', 'ls-files', 'packages'], {
+function fichiersSuivis(...dossiers: string[]): string[] {
+  const sortie = execFileSync('git', ['-c', 'core.quotepath=false', 'ls-files', ...(dossiers.length ? dossiers : ['packages'])], {
     cwd: racine,
     encoding: 'utf8',
     maxBuffer: 1 << 26,
@@ -96,11 +104,97 @@ function groupeEncoreDansAgents(domaine: Domaine): boolean {
   return !fs.existsSync(path.join(racine, path.dirname(domaine.fichier)));
 }
 
-test('chaque fichier suivi de packages/*/src/ a un domicile', () => {
-  const sansDomicile = fichiersSuivis()
-    .filter((f) => /^packages\/[^/]+\/src\//.test(f))
-    .filter((f) => domaineDe(manifeste, f) === null);
+test('chaque fichier suivi de packages/*/src/, scripts/, .claude/, .agents/ et tests/ a un domicile', () => {
+  const suivis = [
+    ...fichiersSuivis().filter((f) => /^packages\/[^/]+\/src\//.test(f)),
+    ...fichiersSuivis('scripts', '.claude', '.agents', 'tests'),
+  ];
+  const sansDomicile = suivis.filter((f) => domaineDe(manifeste, f) === null);
   assert.deepEqual(sansDomicile, [], `fichiers sans domicile : ${sansDomicile.join(', ')}`);
+});
+
+test("O1 : scripts/, .claude/, .agents/, CLAUDE.md et tests/ relèvent d'outillage-agents", () => {
+  for (const chemin of ['scripts/hook-documents.mjs', '.claude/settings.json', 'CLAUDE.md', 'tests/domiciles.test.ts', '.agents/domiciles.json']) {
+    assert.equal(domaineDe(manifeste, chemin)?.id, 'outillage-agents', chemin);
+  }
+  assert.notEqual(domaineDe(manifeste, 'packages/plugin-exporter/tests/x.test.ts')?.id, 'outillage-agents');
+});
+
+test("O4 : chaque archive, skill et définition d'agent suivie figure dans .agents/documents-fermes.json", () => {
+  const fermes = JSON.parse(fs.readFileSync(path.join(racine, '.agents', 'documents-fermes.json'), 'utf8')) as {
+    motifs: string[];
+    fichiers: string[];
+  };
+  const connus = new Set(fermes.fichiers);
+  const suivis = fichiersSuivis('docs/notes/Archives', '.agents/skills', '.claude/agents').filter((f) =>
+    fermes.motifs.some((motif) => correspond(motif, f)),
+  );
+  const absents = suivis.filter((f) => !connus.has(f));
+  assert.deepEqual(
+    absents,
+    [],
+    `fichiers fermés absents de .agents/documents-fermes.json (accord du mainteneur) : ${absents.join(', ')}`,
+  );
+  assert.ok(suivis.length > 0, 'aucun fichier fermé trouvé : les motifs ne désignent plus rien');
+});
+
+/** La commande qui lance les tests de chaque paquet. */
+const COMMANDE_DU_PAQUET: Record<string, string> = {
+  'plugin-exporter': 'npm run test:paquet -- exporter',
+  'plugin-palettes': 'npm run test:paquet -- palettes',
+  'plugin-architect': 'npm run test:paquet -- architect',
+  'plugin-socle': 'npm run test:paquet -- socle',
+  couleur: 'npm run test:paquet -- couleur',
+  cli: 'npm run test:paquet -- cli',
+  'adapter-typescript': 'npm run test:paquet -- adapter',
+  kit: 'npm run test --workspace @ucm-kit/core',
+  hub: 'npm --prefix packages/hub test',
+};
+
+/** `<test> -> <source>` : un test de paquet qui lit une source dont le domaine ne le lance pas, avec la raison. */
+const LIENS_ADMIS: Record<string, string> = {};
+
+/** Les sources `../src/…` que lit un test de paquet, résolues en chemins du dépôt. */
+function sourcesLuesPar(test: string): string[] {
+  const texte = fs.readFileSync(path.join(racine, test), 'utf8');
+  const trouvees = new Set<string>();
+  for (const m of texte.matchAll(/(?:from\s+|import\s*\(\s*|require\s*\(\s*|import\s+)['"](\.\.\/src\/[^'"]+)['"]/g)) {
+    const brut = path.posix.normalize(path.posix.join(path.posix.dirname(test), m[1]));
+    for (const candidat of [brut, brut.replace(/\.js$/, '.ts'), brut.replace(/\.js$/, '.tsx'), ...['.ts', '.tsx', '.mjs', '.js', '.cjs'].map((e) => brut + e), ...['.ts', '.mjs', '.js'].map((e) => `${brut}/index${e}`)]) {
+      if (fs.existsSync(path.join(racine, candidat)) && fs.statSync(path.join(racine, candidat)).isFile()) {
+        trouvees.add(candidat);
+        break;
+      }
+    }
+  }
+  return [...trouvees];
+}
+
+test("O2 : le domaine d'une source lit la commande du paquet de chaque test qui l'importe", () => {
+  const tests = fichiersSuivis().filter((f) => /^packages\/[^/]+\/tests\/[^/]+\.test\.[^/]+$/.test(f));
+  const manques: string[] = [];
+  const utilises = new Set<string>();
+  for (const test of tests) {
+    const paquet = test.split('/')[1];
+    const commande = COMMANDE_DU_PAQUET[paquet];
+    assert.ok(commande, `paquet sans commande dans COMMANDE_DU_PAQUET : ${paquet}`);
+    for (const source of sourcesLuesPar(test)) {
+      const domaine = domaineDe(manifeste, source) as Domaine | null;
+      if (!domaine) {
+        manques.push(`${test} lit ${source}, sans domicile`);
+        continue;
+      }
+      if (domaine.verifications.includes(commande)) continue;
+      const cle = `${test} -> ${source}`;
+      if (cle in LIENS_ADMIS) {
+        utilises.add(cle);
+        continue;
+      }
+      manques.push(`${test} lit ${source} : ajouter « ${commande} » aux verifications de ${domaine.id}, ou une entrée de LIENS_ADMIS`);
+    }
+  }
+  assert.deepEqual(manques, []);
+  assert.deepEqual(Object.keys(LIENS_ADMIS).filter((c) => !utilises.has(c)), [], 'entrées de LIENS_ADMIS devenues inutiles');
 });
 
 test('chaque domaine a un fichier, ou AGENTS.md porte encore son groupe', () => {

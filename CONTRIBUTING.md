@@ -523,8 +523,9 @@ rendu comme non commencé.
 
 **Ce que reçoit un implémenteur.** L'orchestrateur lance
 `npm run agents:lire -- <chemins du lot>` et colle la liste dans le prompt, avec
-la note de conception du lot et la nature de la tâche. Le plan d'ensemble et le
-plan d'implémentation restent au mainteneur et à l'orchestrateur.
+la note de conception du lot, la nature de la tâche, les fichiers que le lot
+écrit et ses critères de fin. Le plan d'ensemble reste au mainteneur et à
+l'orchestrateur.
 
 **Vérifier.** L'implémenteur lance `npm run test:paquet -- <nom>` sur les
 paquets qu'il touche, et jamais `npm test` à la racine. Les tests racine

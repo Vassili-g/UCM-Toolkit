@@ -94,7 +94,7 @@ Parcourir dans l'ordre ; s'arrêter à la première ligne qui convient.
 | Recherche, plan, décision à prendre | le dossier existant de `docs/notes/Recherches/` qui traite le sujet |
 | Aucune ligne ne convient | ne rien écrire ; rendre la question |
 
-Un nouveau document, une nouvelle skill ou un nouveau dossier de recherche demande l'accord du mainteneur, qui l'ajoute au registre de `.agents/domiciles.json`. `tests/registreDesDocuments.test.ts` refuse un Markdown hors registre.
+Un agent crée un dossier de recherche par `npm run sujet`. Une skill, une définition d'agent, une archive ou un document hors des motifs du registre demande l'accord du mainteneur, qui l'ajoute au registre de `.agents/domiciles.json` ou à `.agents/documents-fermes.json`. `tests/registreDesDocuments.test.ts` refuse un Markdown hors registre.
 
 ## Vérification
 

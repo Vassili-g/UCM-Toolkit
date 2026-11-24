@@ -7,8 +7,10 @@ tools: Read, Edit, Write, Grep, Glob, Bash, PowerShell
 ---
 
 Tu implémentes un seul lot d'un plan déjà validé par le mainteneur dans le
-dépôt UCM Toolkit. L'agent principal te donne le lot, le plan qui le décrit,
-les fichiers concernés et les critères qui disent qu'il est fini.
+dépôt UCM Toolkit. L'agent principal te donne la note du lot, la nature de la tâche, les
+fichiers que le lot écrit, ses critères de fin et la sortie de
+`npm run agents:lire`, comme le dit `CONTRIBUTING.md`, section « Travailler
+avec des agents ».
 
 ## Avant d'écrire
 

@@ -9,8 +9,12 @@
  *
  * La section `## tests/` de `CARTE.md` à la racine liste exactement les
  * fichiers `*.test.ts` et `*.test.mjs` de `tests/`, `cartes.test.ts` compris.
+ *
+ * Chaque fichier suivi de `scripts/` et de `.claude/agents/`, et chaque dossier
+ * suivi de `.agents/skills/`, a sa ligne dans la section de `CARTE.md` du même nom.
  */
 import assert from 'node:assert/strict';
+import { execFileSync } from 'node:child_process';
 import fs from 'node:fs';
 import path from 'node:path';
 import test from 'node:test';
@@ -110,5 +114,36 @@ test('la section tests/ de CARTE.md liste exactement les tests du monorepo', () 
     reels,
     'La section tests/ de CARTE.md ne décrit plus le dossier `tests/`. Y ajouter le '
       + "test manquant avec ce qu'il tient, ou en retirer la ligne devenue fausse.",
+  );
+});
+
+/** Les enfants directs d'un dossier suivi par git : un nom de fichier, ou `dossier/`. */
+function enfantsSuivis(dossier: string): string[] {
+  const sortie = execFileSync('git', ['-c', 'core.quotepath=false', 'ls-files', dossier], {
+    cwd: racine,
+    encoding: 'utf8',
+    maxBuffer: 1 << 26,
+  });
+  const enfants = new Set<string>();
+  for (const chemin of sortie.split(/\r?\n/).filter(Boolean)) {
+    const reste = chemin.slice(dossier.length);
+    const [premier, ...suite] = reste.split('/');
+    enfants.add(suite.length ? `${premier}/` : premier);
+  }
+  return [...enfants].sort();
+}
+
+test("O3 : chaque fichier de scripts/ et .claude/agents/, chaque skill de .agents/skills/ figure dans CARTE.md", () => {
+  const manques: string[] = [];
+  for (const dossier of ['scripts/', '.agents/skills/', '.claude/agents/']) {
+    const listes = new Set(entreesDe('CARTE.md').filter((e) => e.dossier === dossier).map((e) => e.nom));
+    for (const enfant of enfantsSuivis(dossier)) {
+      if (!listes.has(enfant)) manques.push(`${dossier}${enfant}`);
+    }
+  }
+  assert.deepEqual(
+    manques,
+    [],
+    `CARTE.md ne nomme pas : ${manques.join(', ')}. Ajouter la ligne « - <nom> : <rôle> » sous le titre du dossier.`,
   );
 });
