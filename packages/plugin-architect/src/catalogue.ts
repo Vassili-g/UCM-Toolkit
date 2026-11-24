@@ -126,7 +126,8 @@ export interface OptionsDeCatalogue {
  * Un alias qui sort des collections lues (un token de `theme` qui vise une primitive) se suit aussi : sa cible se lit par son
  * identifiant, que Figma importe avec la variable qui la vise, sinon par sa clé. Elle entre au catalogue avec sa collection
  * et ses modes ; sans elle, aucune couleur de la library ne se résout et le contraste ne se mesure pas. Les alias se suivent sur
- * `PROFONDEUR_D_ALIAS` tours d'import ; au-delà, la cible reste non chargée.
+ * `PROFONDEUR_D_ALIAS` renvois, comme les juges du kit : le tour d'une clé demandée plus un tour par renvoi, soit une variable de
+ * plus lue. Au-delà, la cible reste non chargée, et un cycle s'arrête au premier retour sur une variable lue.
  */
 export async function chargerLesValeurs(
   port: Parameters<typeof importerLesValeurs>[0] & Partial<Pick<PortDeLecture, 'getVariableCollectionByIdAsync' | 'getVariableByIdAsync'>>,
@@ -146,7 +147,7 @@ export async function chargerLesValeurs(
   const horsCatalogue: Record<string, ValeurDeLibrary> = {};
   const annulee = options.annulee ?? (() => false);
   let attendues = new Set(cles.filter((cle) => nonChargees.has(cle)));
-  for (let tour = 0; tour < PROFONDEUR_D_ALIAS && attendues.size > 0 && !annulee(); tour += 1) {
+  for (let tour = 0; tour <= PROFONDEUR_D_ALIAS && attendues.size > 0 && !annulee(); tour += 1) {
     const lot = [...attendues].filter((cle) => !(cle in importees) && !(cle in horsCatalogue));
     const internes = lot.filter((cle) => nonChargees.has(cle));
     const { lues, restantes } = await lireParIdentifiant(port, internes, parId, annulee);

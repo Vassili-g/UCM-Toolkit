@@ -2,7 +2,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { variableDuCatalogue, collectionDuCatalogue } from '@ucm-kit/core/controles';
+import { variableDuCatalogue, collectionDuCatalogue, PROFONDEUR_D_ALIAS } from '@ucm-kit/core/controles';
 import { avecLesFondsDElevation, catalogueDuFichier, chargerLesValeurs, clesDesFondsDElevation, fondDeLaPageFigma, lireLeCatalogueDeLibrary } from '../src/catalogue';
 import { convertirCollection, convertirVariable } from '../src/lecture';
 import { collectionFigma, portDeTest, variableFigma } from './figmaDeTest';
@@ -287,4 +287,34 @@ test('fonds d’élévation : les noms du thème se reconnaissent quelle que soi
     ],
   };
   assert.deepEqual(avecLesFondsDElevation(catalogue).fondsDElevation, { a: { page: { r: 1, g: 1, b: 1, a: 1 }, carte: { r: 0.5, g: 0.5, b: 0.5, a: 1 } } });
+});
+
+// Les renvois comptent comme pour les juges du kit : une chaîne de PROFONDEUR_D_ALIAS renvois se charge en entier, une de plus reste incomplète.
+async function chargerUneChaine(renvois: number, boucle = false) {
+  const variables = Array.from({ length: renvois + 1 }, (_, i) => ({
+    ...variableFigma(`v${i}`, 'c', `couleur/${i}`, 'COLOR', {
+      'c:clair': i < renvois ? { type: 'VARIABLE_ALIAS', id: `VariableID:k${i + 1}/1:1` } : boucle ? { type: 'VARIABLE_ALIAS', id: 'VariableID:k0/1:1' } : { r: 1, g: 1, b: 1, a: 1 },
+    }), key: `k${i}`,
+  }));
+  const catalogue = {
+    version: 1 as const, library: { nom: 'L', cle: 'L' },
+    collections: [{ cle: 'c', nom: 'theme', role: 'theme' as const, etat: 'lue' as const, modes: [{ id: 'c:clair', nom: 'Light' }] }],
+    variables: variables.map((v) => ({ cle: v.key, nom: v.name, collection: 'c', type: 'COLOR' as const, etat: 'non-chargee' as const })),
+  };
+  const { port } = portDeTest([collectionFigma('c', 'theme', ['clair'], variables.map((v) => v.id))], [], [], [], { importables: variables });
+  const { catalogue: charge } = await chargerLesValeurs(port, catalogue, ['k0']);
+  return variables.map((v) => { const lue = variableDuCatalogue(charge, v.key); return lue === 'absente' ? 'absente' : lue.etat; });
+}
+
+for (const [renvois, complete] of [[9, true], [PROFONDEUR_D_ALIAS, true], [PROFONDEUR_D_ALIAS + 1, false]] as const) {
+  test(`alias : une chaîne de ${renvois} renvois ${complete ? 'se charge en entier' : 'reste incomplète'}`, async () => {
+    const etats = await chargerUneChaine(renvois);
+    assert.equal(etats.length, renvois + 1);
+    assert.deepEqual(etats.slice(0, -1), Array(renvois).fill('presente'));
+    assert.equal(etats[renvois], complete ? 'presente' : 'non-chargee');
+  });
+}
+
+test('alias : un cycle se charge une fois chaque variable et s’arrête', async () => {
+  assert.deepEqual(await chargerUneChaine(2, true), ['presente', 'presente', 'presente']);
 });

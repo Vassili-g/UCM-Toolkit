@@ -43,6 +43,11 @@ que Figma ne rend pas par son identifiant, et la cible d'une liaison qu'il
 écrit. L'import abonne le fichier à cette variable, sans créer de variable
 locale. Aucun composant ni aucun style n'est importé.
 
+Le chargement suit les alias sur `PROFONDEUR_D_ALIAS` (10) renvois, comme les
+juges du kit : une chaîne de 10 renvois se charge en entier, une de 11 reste
+incomplète, et un cycle s'arrête au retour sur une variable déjà lue. Test :
+`tests/catalogue.test.ts`.
+
 Le plugin ne change ni la page courante ni la vue du designer. Il change la
 sélection à un seul moment : au clic sur le bouton Sélectionner d'une carte, il
 sélectionne ses layers de la page courante. Ouvrir une carte ne sélectionne rien. L'aperçu d'un composant s'exporte en mémoire par
