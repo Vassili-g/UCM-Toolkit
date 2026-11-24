@@ -1528,7 +1528,7 @@ a.produit:focus-visible { outline: 2px solid var(--vif); outline-offset: 1px; }
     <h4>Jobs des workflows</h4>
     <div class="defile"><table><tr><th>Job</th><th>Déclencheur</th><th>Ce qu'il lance</th></tr><tr><td><code>ci.yml</code>, job <code>test</code></td><td>push sur main, pull request</td><td><code>npm test</code>, <code>npm run build</code></td></tr><tr><td><code>ci.yml</code>, job <code>cascade</code></td><td>push sur main, pull request</td><td><code>npm run cascade</code>, <code>npm run test:ui --workspace ucm-exporter-plugin</code>, <code>npm run test:ui --workspace ucm-palettes-plugin</code>, <code>npm run test:ui --workspace ucm-architect-plugin</code></td></tr><tr><td><code>publish.yml</code>, job <code>publish</code></td><td>lancement à la main</td><td><code>npm test</code>, <code>npm publish --workspace "$PAQUET"</code>, <code>node scripts/pins-servis.mjs</code></td></tr></table></div>
   </div></details>
-  <details class="pli" id="annexe-entrees"><summary>Les 9 points d'entrée du kit <span class="doux">482 noms uniques, la CLI et l'adaptateur en importent 54</span></summary><div class="contenu">
+  <details class="pli" id="annexe-entrees"><summary>Les 9 points d'entrée du kit <span class="doux">482 noms uniques, la CLI et l'adaptateur en importent 55</span></summary><div class="contenu">
     <p>Les chemins d'import de <code>@ucm-kit/core</code>, lus dans <code>packages/kit/package.json</code>, avec le nombre de noms que chacun exporte. Ils disent ce qu'un outil peut importer du kit, et ce que la piste <a href="#piste-P3">P3</a> doit figer.</p>
     <div class="defile"><table>
       <tr><th>Point d'entrée</th><th class="n">Exports</th><th>Contenu</th></tr>
