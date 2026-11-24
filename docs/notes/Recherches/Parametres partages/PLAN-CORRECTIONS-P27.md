@@ -686,9 +686,9 @@ Nature : règle écrite et appliquée à deux plugins. Interface changée.
 
 ## Vague 7
 
-- [ ] 7.1 `implementeur`. Commandes documentées (PP-17, PP-209).
-- [ ] 7.2 `implementeur`. Workspace, hub, Node et React (PP-18, PP-21, PP-23).
-- [ ] 7.3 `implementeur`. Chroma des gris, destinations et textes recopiés (PP-13, PP-14, PP-15).
+- [x] 7.1 `implementeur`. Commandes documentées (PP-17, PP-209). Commit : `5648ffcb`.
+- [x] 7.2 `implementeur`. Workspace, hub, Node et React (PP-18, PP-21, PP-23). Commit : `054edac6`.
+- [x] 7.3 `implementeur`. Chroma des gris, destinations et textes recopiés (PP-13, PP-14, PP-15). Commit : `ba5fa822`.
 
 ### Lot 7.1. Commandes documentées
 
