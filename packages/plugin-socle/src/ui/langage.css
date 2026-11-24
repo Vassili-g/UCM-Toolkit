@@ -79,7 +79,7 @@
   --police-chemin: "JetBrains Mono", Consolas, monospace;
 }
 
-.figma-dark {
+:root {
   --ton-bloquant: var(--ton-bloquant-sombre);
   --ton-corriger: var(--ton-corriger-sombre);
   --ton-verifier: var(--ton-verifier-sombre);

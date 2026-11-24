@@ -88,6 +88,7 @@ Les tests du monorepo lui-même.
 - inventaireInvariants.test.ts : accord des fichiers d'invariants avec le code, dans les deux sens
 - textesEcrits.test.mjs : aucun catalogue de textes des plugins ne porte `TODO(texte)`
 - copiesDocumentees.test.ts : copies du code dans la documentation (familles, rendu, version du contrat, nombres)
+- pluginsSombres.test.mjs : les trois plugins sont sombres
 - cartes.test.ts : chaque chemin des cartes existe, et la section `tests/` liste exactement les tests de `tests/`
 - referencesComposants.test.ts : registre des systèmes, extraction des noms et valeurs, schémas, guide d'essai et données réelles de `docs/references/`
 - styleDocumentaire.test.ts : tics de rédaction refusés sur tout le dépôt, hors `EXCLUS_DU_CONTROLE`

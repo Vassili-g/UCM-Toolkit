@@ -33,7 +33,7 @@ const dansLeDocument = creerFileDuDocument();
  * la taille rangée : `clientStorage` est asynchrone.
  */
 figma.showUI(__html__, {
-  themeColors: true,
+  themeColors: false,
   width: TAILLE_PAR_DEFAUT.largeur,
   height: TAILLE_PAR_DEFAUT.hauteur,
 });

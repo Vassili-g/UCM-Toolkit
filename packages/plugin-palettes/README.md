@@ -188,7 +188,7 @@ Les tests d'interface demandent Chromium : `npx playwright install chromium`.
 La galerie est générée dans `dist/galerie/index.html` et sa version étroite dans
 `dist/galerie-minimale/index.html`, sous ce paquet ; `dist/galerie-en/` et
 `dist/galerie-en-minimale/` en donnent la version anglaise. Elle présente les états de
-l'interface en thèmes clair, sombre et sombre sans variables Figma.
+l'interface, sombre quel que soit le thème de Figma ([thème](../../CONTRIBUTING.md#interface-du-plugin)).
 
 Le [socle](../plugin-socle/README.md) fournit les composants d'interface et le
 banc de galerie. Le [moteur de couleur](../couleur/README.md) porte les calculs.

@@ -168,17 +168,16 @@ test('le lien externe pose le signe lien-externe à 11 px, avec le trait en pixe
   assert.equal(lien.enfants[0], 'Ouvrir');
 });
 
-test('le chevron de select.input, en CSS, a la largeur et le sommet centré du signe chevron, dans les deux thèmes', () => {
+test('le chevron de select.input, en CSS, a la largeur et le sommet centré du signe chevron', () => {
   const css = fs.readFileSync(path.resolve(__dirname, '..', 'src', 'ui', 'socle.css'), 'utf8');
   const chevrons = [...css.matchAll(/--chevron:\s*url\("data:image\/svg\+xml,([^"]*)"\)/gu)].map(([, donnees]) => decodeURIComponent(donnees));
-  assert.equal(chevrons.length, 2, 'clair et sombre');
+  assert.equal(chevrons.length, 1, 'un seul chevron : les plugins sont sombres');
   const triangles = chevrons.map((svg) => {
     assert.match(svg, /width='8' height='5'/u);
     const trace = /<path d='([^']*)'/u.exec(svg)?.[1];
     assert.ok(trace);
     return trace;
   });
-  assert.equal(triangles[0], triangles[1], 'les deux thèmes ne changent que la teinte');
 
   const [debut, sommet, fin] = pointsDe(triangles[0]);
   const [kitDebut, kitSommet, kitFin] = pointsDe(traceDuKit('chevron').elements[0].attributs.d);

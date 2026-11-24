@@ -14,7 +14,7 @@
  * autorité : une règle d'ici qui la contredit a tort.
  */
 :root {
-  color-scheme: light dark;
+  color-scheme: dark;
   font-family: Inter, ui-sans-serif, system-ui, sans-serif;
 
   /*
@@ -47,72 +47,11 @@
   --rayon: 6px;
 
   /*
-   * Un seul endroit par rôle de couleur, et le repli avec lui.
-   *
-   * Les replis étaient écrits pour le thème clair et répétés à chaque règle :
-   * `#fff`, `#f5f5f5`, `#fff1d6`. Si l'hôte ne servait pas la variable Figma
-   * correspondante, cette valeur claire s'appliquait EN THÈME SOMBRE, et le
-   * texte devenait illisible — d'autant plus sûrement que personne ne l'aurait
-   * vu : les replis ne servent que hors de Figma, là où justement on ne regarde
-   * pas.
-   *
-   * La correction n'est pas de choisir des couleurs qui tiendraient dans les
-   * deux thèmes — il n'y en a pas —, c'est de donner au repli le même thème
-   * qu'à la variable. `figma-dark` est la classe que Figma pose sur `html`
-   * quand `themeColors: true` est demandé : le bloc ci-dessous redéclare les
-   * mêmes rôles avec un repli SOMBRE. Si cette classe manquait, le repli clair
-   * s'appliquerait comme aujourd'hui : ce socle ne peut donc pas faire pire.
-   *
-   * `prefers-color-scheme` n'est délibérément PAS employé : il dit le thème du
-   * système, pas celui de Figma, et un éditeur clair sur un système sombre
-   * recevrait alors des replis sombres.
+   * Un seul endroit par rôle de couleur, et le repli avec lui. Tous les plugins
+   * UCM sont sombres (`themeColors: false`) : le repli est la valeur sombre, et
+   * la variable Figma ne s'applique qu'à un hôte qui la sert. Aucun bloc clair,
+   * aucune classe `figma-dark`, aucun `prefers-color-scheme`.
    */
-  --fond: var(--figma-color-bg, #ffffff);
-  --fond-voile: rgb(0 0 0 / 40%);
-  --fond-survol: var(--figma-color-bg-hover, #f5f5f5);
-  --fond-bloc: var(--figma-color-bg-secondary, #f5f5f5);
-  --fond-note: var(--figma-color-bg-tertiary, #ebebeb);
-  --fond-marque: var(--figma-color-bg-brand, #0d99ff);
-  --fond-marque-survol: var(--figma-color-bg-brand-hover, #007be5);
-  --fond-succes: var(--figma-color-bg-success-tertiary, #e3f6e9);
-  --fond-avertissement: var(--figma-color-bg-warning-tertiary, #fff1d6);
-  --fond-danger: var(--figma-color-bg-danger-tertiary, #ffe0db);
-  --fond-danger-plein: var(--figma-color-bg-danger, #f24822);
-  --fond-danger-plein-survol: var(--figma-color-bg-danger-hover, #dc3412);
-  /*
-   * La bordure ne suit pas `--figma-color-border` : sur le fond sombre, #444444
-   * ne détache pas une carte de son voisin. Même valeur dans et hors de Figma.
-   */
-  --bordure: #d2d2d2;
-  --bordure-marque: var(--figma-color-border-brand-strong, #0d99ff);
-  /*
-   * La bordure d'une carte dépôt visée, au survol comme au focus. Seul rôle de
-   * couleur à n'être relié à aucune variable Figma : la carte dépôt se distingue
-   * par un gris neutre, et la relier au thème la ferait bleuir dans les fichiers
-   * où l'hôte sert sa couleur de marque. Même valeur dans les deux thèmes, parce
-   * qu'elle se voit sur le fond clair comme sur le fond sombre.
-   */
-  --bordure-visee: #666666;
-  --texte: var(--figma-color-text, #1e1e1e);
-  --texte-second: var(--figma-color-text-secondary, #6b6b6b);
-  --texte-marque: var(--figma-color-text-brand, #007be5);
-  --texte-danger: var(--figma-color-text-danger, #dc3412);
-  --texte-succes: var(--figma-color-text-success, #168b52);
-  --texte-avertissement: var(--figma-color-text-warning, #a55b00);
-  --texte-sur-marque: var(--figma-color-text-onbrand, #ffffff);
-  --texte-sur-danger: var(--figma-color-text-ondanger, #ffffff);
-  /*
-   * Le badge d'un niveau WCAG d'UCM Palettes : une pastille pleine, verte ou
-   * rouge, adoucie. Même valeur dans les deux thèmes : la pastille porte son
-   * propre fond, et se pose aussi sur les fonds peints des palettes.
-   */
-  --fond-niveau-atteint: #CDEFD9;
-  --texte-niveau-atteint: #14532D;
-  --fond-niveau-manque: #F9D8D1;
-  --texte-niveau-manque: #8A2A1B;
-}
-
-.figma-dark {
   --fond: var(--figma-color-bg, #2c2c2c);
   --fond-voile: rgb(0 0 0 / 40%);
   --fond-survol: var(--figma-color-bg-hover, #383838);
@@ -393,11 +332,11 @@ p {
 
 /*
  * Une liste déroulante perd sa flèche native pour un chevron de 8 × 5 px, de la
- * couleur du texte secondaire : un SVG par thème, car une image de fond ne lit
- * pas les variables.
+ * couleur du texte secondaire : un SVG, car une image de fond ne lit pas les
+ * variables.
  */
 select.input {
-  --chevron: url("data:image/svg+xml,%3Csvg xmlns='http://www%2Ew3%2Eorg/2000/svg' width='8' height='5'%3E%3Cpath d='M0 0l4 5 4-5z' fill='%236b6b6b'/%3E%3C/svg%3E");
+  --chevron: url("data:image/svg+xml,%3Csvg xmlns='http://www%2Ew3%2Eorg/2000/svg' width='8' height='5'%3E%3Cpath d='M0 0l4 5 4-5z' fill='%23b3b3b3'/%3E%3C/svg%3E");
   padding: 0 24px 0 var(--espace-controle);
   background-image: var(--chevron);
   background-position: right 9px center;
@@ -405,10 +344,6 @@ select.input {
   appearance: none;
   -webkit-appearance: none;
   cursor: pointer;
-}
-
-.figma-dark select.input {
-  --chevron: url("data:image/svg+xml,%3Csvg xmlns='http://www%2Ew3%2Eorg/2000/svg' width='8' height='5'%3E%3Cpath d='M0 0l4 5 4-5z' fill='%23b3b3b3'/%3E%3C/svg%3E");
 }
 
 select.input:hover {

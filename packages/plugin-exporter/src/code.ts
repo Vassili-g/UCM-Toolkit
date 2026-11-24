@@ -80,7 +80,7 @@ import { TAILLE_PAR_DEFAUT, creerRedimensionnement, lireTaille } from './fenetre
  * voit ; ne pas ouvrir du tout se voit bien davantage.
  */
 figma.showUI(__html__, {
-  themeColors: true,
+  themeColors: false,
   width: TAILLE_PAR_DEFAUT.largeur,
   height: TAILLE_PAR_DEFAUT.hauteur,
 });

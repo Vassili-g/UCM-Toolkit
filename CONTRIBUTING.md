@@ -238,6 +238,8 @@ Ce que le designer voit dans la fenêtre du plugin se juge contre deux choses
 existent parce qu’une refonte d’interface sans critère ne produit que des avis.
 Ce qui suit fait autorité.
 
+**Thème.** Tous les plugins UCM sont sombres. `figma.showUI` reçoit `themeColors: false`, et l'interface garde ses couleurs sombres quel que soit le thème de Figma. `tests/pluginsSombres.test.mjs` tient la règle.
+
 ### La hiérarchie de l’information
 
 Trois rangs, et le moyen visuel de chacun.
