@@ -626,9 +626,9 @@ limite `sans-adaptateur`.
 
 ## Réponses aux relectures
 
-Première relecture : `_local/reprise/RELECTURE-P6-RAPPORT.txt`. Seconde :
-`_local/reprise/RELECTURE-P6-OPUS-2.txt`. Un problème repris par la seconde
-sous un autre numéro a sa réponse sous le numéro de la première.
+Deux relectures, locales et supprimées depuis la livraison de P6, ont posé les
+problèmes ci-dessous. Un problème repris par la seconde sous un autre numéro a
+sa réponse sous le numéro de la première.
 
 | Problème | Réponse |
 |---|---|
