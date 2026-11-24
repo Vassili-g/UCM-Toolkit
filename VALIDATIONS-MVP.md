@@ -207,6 +207,31 @@ Les trois paquets que le dépôt porte sont servis par le registre, et chacun a
 une vraie pull request et la comparaison d'un composant reconstruit avec sa
 maquette.
 
+### 7. Recettes dans Figma de la piste P27
+
+La piste « Paramètres partagés » a corrigé 78 écarts entre des règles écrites en plusieurs endroits. Aucun agent n'ouvre Figma : chaque ligne ci-dessous attend un geste du mainteneur. Une ligne est passée quand le résultat attendu se voit ; sinon le mainteneur note ce qu'il a vu.
+
+| Recette | Geste | Passée quand |
+|---|---|---|
+| Valeur par défaut d'un `instance-swap` | Lancer `npm run build:plugin -- exporter`, puis réexporter depuis Figma chaque contrat qui porte une propriété `instance-swap` | Le `default` de chaque propriété nomme un composant, et non un identifiant Figma |
+| Nom de collection qui ne diffère que par la casse (PP-102) | Dans un fichier Figma, créer une collection dont le nom ne diffère d'une autre que par les majuscules | Figma refuse le nom, comme `memeNomFigma` le suppose. Si Figma l'accepte, la préparation d'Architect créerait un doublon : noter le cas et rendre la question |
+| Nom fait seulement de symboles (PP-105) | Nommer une collection, puis une variable, avec des symboles seuls | Figma refuse le nom. S'il l'accepte, l'export avertit d'un nom CSS vide |
+| Nom de variable collé en forme décomposée (PP-106) | Coller dans Figma un nom de variable écrit sous sa forme décomposée | Figma modifie le nom. S'il le garde tel quel, `tokens.json` publie le chemin composé |
+| Composante de couleur hors de 0 à 1 (PP-405) | Obtenir dans Figma une variable de couleur dont une composante dépasse un peu 1 ou passe sous 0, par un collage ou une conversion d'espace, puis analyser le composant avec Architect et lancer `ucm check` sur son export | Figma range la variable, ou la refuse. Si elle existe, Architect écrit « a une valeur hors des limites d'une couleur » et `ucm check` écrit « valeur hors des limites d'une couleur » : les deux la disent non vérifiée |
+| Palettes, thème sombre | Ouvrir UCM Palettes dans Figma en thème clair | L'interface reste sombre, avec les mêmes couleurs qu'en thème sombre |
+| Palettes, seuils de contraste | Ouvrir les textes qui citent un seuil (aide des minimums, garanties) | Chaque seuil écrit est celui du référentiel, avec toutes ses décimales |
+| Palettes, destination et chroma 0,05 | Choisir la destination des palettes, puis ranger une palette de chroma 0,05 exactement | La destination est celle du référentiel, et la palette de chroma 0,05 se range parmi les palettes colorées |
+| Palettes, noms de palette | Créer deux palettes dont les noms donneraient le même nom CSS | Palettes dédoublonne le segment par son nom CSS, sans en perdre une |
+| Palettes, contrastes minimums | Saisir un minimum de texte sous 4,5, un minimum d'éléments graphiques sous 3, puis 7 pour le texte, puis importer une recette sous ces bornes | La saisie et l'import refusent sous le niveau AA, avec le texte de `seuils-positifs`. À 7, les nuances de texte changent et `aideMinimums` le dit |
+| Palettes, lieu d'une garantie manquée | Provoquer une garantie manquée | Le lieu écrit « intensité » devant le nom, et non « profil » |
+| Exporter, thème sombre | Ouvrir l'Exporter dans Figma en thème clair | L'interface reste sombre, avec les mêmes couleurs qu'en thème sombre |
+| Architect, seuils de contraste | Ouvrir un constat de contraste et la page Nomenclature | Chaque seuil écrit est celui du référentiel |
+| Architect, règle renommée (C45) | Analyser un composant dont une règle d'usage diffère de sa propriété par la forme seule | Architect rend le constat « règle renommée » et rattache la règle à sa propriété |
+| Architect, renommage refusé | Renommer une variable pour qu'elle donne la même variable CSS qu'une autre | Le renommage est refusé avec le texte « donneraient la même variable CSS dans le code » |
+| Architect, textes partagés | Ouvrir un constat de cran sans sens et le constat « Le composant a changé depuis l'analyse » | Les deux textes sont ceux d'avant la correction, mot pour mot |
+| Architect, icône sous 4,5:1 (C49) | Analyser un composant dont une icône a un contraste de 3,45:1 sur la page | Le constat C49 est levé, et `ucm check` donne le même manque sous 4,5:1 |
+| Architect, « nuance » et page | Parcourir la vue Structure et la préparation d'une palette, avec une recette de Palettes dont le fond de page est `#F7F7F7` et un fichier dont `elevation/page` vaut `#EBEBEB` | Le mot « nuance » remplace « cran » dans les phrases de couleur, et une information dit que la page du fichier n'a pas la couleur du fond réglé dans Palettes. Sans recette lue, aucune information |
+
 ## Critères de sortie du MVP
 
 Le MVP est validé lorsque :
