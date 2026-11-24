@@ -765,9 +765,9 @@ Nature : une constante et ses lecteurs, deux littéraux, deux textes partagés.
 Les lots 8.1 à 8.3 ne touchent aucun droit d'un agent. Les cases 8.4 à 8.6
 attendent l'accord du mainteneur, hors des vagues : aucun autre lot n'en dépend.
 
-- [ ] 8.1 `implementeur`. Domiciles, cartes et définitions de l'outillage (PP-303, PP-304, PP-312, PP-313, PP-314 hors `CLAUDE.md`, PP-317 pour `archiver-un-sujet`).
-- [ ] 8.2 `implementeur`. Contrôle de style, hooks de style et skills (PP-307, PP-310, PP-311 signal, PP-315, PP-316 pour deux hooks, PP-317).
-- [ ] 8.3 `implementeur`. Découvreurs de tests et conservation (PP-305, PP-308, PP-311 pour la skill).
+- [x] 8.1 `implementeur`. Domiciles, cartes et définitions de l'outillage (PP-303, PP-304, PP-312, PP-313, PP-314 hors `CLAUDE.md`, PP-317 pour `archiver-un-sujet`). Commit : `d35bbb12`.
+- [x] 8.2 `implementeur`. Contrôle de style, hooks de style et skills (PP-307, PP-310, PP-311 signal, PP-315, PP-316 pour deux hooks, PP-317). Commit : `d553d1c3`.
+- [x] 8.3 `implementeur`. Découvreurs de tests et conservation (PP-305, PP-308, PP-311 pour la skill). Commit : `a5d6c5e9`.
 - [ ] 8.4 (mainteneur). Essai de PP-309 : lancer un `verificateur` sur ton poste et lui demander son modèle. Une réponse Sonnet prouve que `CLAUDE_CODE_SUBAGENT_MODEL` prime sur le `model:` des définitions.
 - [ ] 8.5 (mainteneur). Valider le diff de la [note 8.6](#lot-86-droits-des-agents), après 8.4. Une partie refusée se retire de la note avant 8.6.
 - [ ] 8.6 `implementeur`. Droits des agents (PP-301, PP-302, PP-306, PP-309, PP-314 pour `CLAUDE.md`, PP-316 pour le hook des documents), après 8.5 et le commit de la vague 8.
