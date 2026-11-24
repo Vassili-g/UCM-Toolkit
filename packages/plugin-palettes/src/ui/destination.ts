@@ -9,6 +9,7 @@
  * valeur, et suit chaque choix, sans rien ranger. « Enregistrer » range la destination ([VAR-16]) ;
  * un refus se lit dans la carte, qui reste ouverte.
  */
+import { DESTINATION_DES_PALETTES } from '@ucm-kit/core/referentiel';
 import type { Recette } from 'ucm-couleur';
 
 import type { IssueDeLaDestination } from '../ecriture/variables';
@@ -237,7 +238,7 @@ function construireVues(i18n: Localisation) {
         const { destination } = lu.suivi;
         // Une destination qui désigne une collection disparue retombe sur une collection neuve, à nommer.
         const rangee = 'id' in destination.collection && lu.collections.some((collection) => collection.id === (destination.collection as { id: string }).id) ? destination.collection.id : '';
-        nomDeLaNouvelle.value = 'nom' in destination.collection ? destination.collection.nom : 'primitives';
+        nomDeLaNouvelle.value = 'nom' in destination.collection ? destination.collection.nom : DESTINATION_DES_PALETTES.collection;
         groupe.value = destination.groupe;
         themes = destination.themes;
         refus.replaceChildren();

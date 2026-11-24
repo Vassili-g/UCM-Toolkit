@@ -1586,8 +1586,8 @@ garantie par ses variables et son libellé, jamais par son numéro.
   Soft n'entre pas dans la comparaison.
 - `[VER-22]` « Palettes proches » compare toute la rampe de deux palettes
   colorées en Light et en Dark, dans Vivid ou leur intensité unique.
-  Une palette est colorée quand la chroma OKLCH de sa référence dépasse 0,05
-  (`CHROMA_DES_PALETTES_COLOREES`). Les palettes libres et figées restent
+  Une palette est colorée quand la chroma OKLCH de sa référence atteint 0,05
+  (`estColoree` du moteur). Les palettes libres et figées restent
   hors de la comparaison. Le score est la moyenne pondérée des distances
   OKLab de chaque cran divisées par `palettesProches`. Les poids sont les
   mêmes dans les deux thèmes : 50 et 100 à 0,1 ; 200 à 0,2 ; 300 à 0,5 ;

@@ -321,6 +321,9 @@ const pictogrammes: Omit<SigneDuLangage, 'emploi'>[] = (
   ] as const
 ).map(([id, libelle, sens, trace]) => ({ id, famille: 'pictogramme-palettes' as const, libelle, sens, trace, grille: 44, hauteur: 28, mot: libelle }));
 
+/** Ce que dit le signe « analyse périmée », repris par le panneau des constats d'Architect. */
+export const TEXTE_DE_L_ANALYSE_PERIMEE = 'Le composant a changé depuis l’analyse.';
+
 const SIGNES_SANS_EMPLOI: readonly Omit<SigneDuLangage, 'emploi'>[] = [
   ...famille('types-figma', [
     ['type-color', 'Color', GOUTTE, 'Variable de type Color.'],
@@ -427,7 +430,7 @@ const SIGNES_SANS_EMPLOI: readonly Omit<SigneDuLangage, 'emploi'>[] = [
     ['plus-tard', 'plus tard', '<circle cx="8" cy="8" r="6"/><path d="M8 4.5V8l2.5 1.5"/>', 'La question attend.'],
     ['applique', 'appliqué', '<path d="m3 8.5 3.2 3.2L13 4.5"/>', 'L’écriture a réussi.'],
     ['defait', 'défait', '<path d="M5.5 3.5 2.5 6.5l3 3M2.5 6.5h7a4 4 0 0 1 0 8H7"/>', 'Le designer a fait Ctrl+Z.'],
-    ['perime', 'analyse périmée', '<path d="M13 8a5 5 0 1 1-1.5-3.6M13 2.3v3h-3"/>', 'Le composant a changé depuis l’analyse.'],
+    ['perime', 'analyse périmée', '<path d="M13 8a5 5 0 1 1-1.5-3.6M13 2.3v3h-3"/>', TEXTE_DE_L_ANALYSE_PERIMEE],
     ['information', 'information', '<circle cx="8" cy="8" r="5.8"/><path d="M8 7.2v4.2"/><circle cx="8" cy="4.8" r=".6" fill="currentColor" stroke="none"/>', 'Ce que l’analyse n’a pas mesuré ; aucun geste attendu.'],
   ]),
   ...famille('accessibilite', [

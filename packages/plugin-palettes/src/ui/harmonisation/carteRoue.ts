@@ -21,12 +21,11 @@
 import {
   aUneIntensite,
   candidatDeTeinte,
-  CHROMA_DES_PALETTES_COLOREES,
+  estColoree,
   ecartAngulaire,
   estFigee,
   grilleDe,
   referenceDe,
-  rgb8VersOklch,
   lireHexa,
   ecrireHexa,
   type Mode,
@@ -122,7 +121,7 @@ function construireVues(i18n: Localisation) {
   const { TEXTES_DE_L_HARMONISATION: { roue: TEXTES }, nomDeLaPalette, texteDuRefus } = i18n.messages;
 
   /** Une palette sur la roue : colorée, comme celles que les paires comparent. Une palette libre y paraît comme les autres. */
-  const estSurLaRoue = (palette: Palette): boolean => rgb8VersOklch(referenceDe(palette)).C > CHROMA_DES_PALETTES_COLOREES;
+  const estSurLaRoue = (palette: Palette): boolean => estColoree(referenceDe(palette));
 
   /** Le rang du numéro le plus proche de 700 dans la grille de la palette. */
   function rangDuPoint(recette: Recette, palette: Palette): number {

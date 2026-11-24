@@ -85,6 +85,9 @@ interface IndexDesCibles {
 
 const NOMBRE = /^\d+$/;
 
+/** Ce que l'écran dit quand UCM ne sait pas quel texte, blanc ou noir, la palette met sur ses boutons. */
+export const INDICE_CRAN_SANS_SENS = 'UCM ne sait pas si cette palette met un texte blanc ou noir sur ses boutons.';
+
 /** Les contrôles d'intégrité UCM du catalogue, sans composant. Rend [] sans collection `theme`, `brands` ni `utility` lue. */
 export function controlerLIntegriteUcm(catalogue: CatalogueDeReference, options: OptionsDIntegrite = {}): Constat[] {
   const themes = catalogue.collections.filter((collection) => collection.role === 'theme' && collection.etat === 'lue');
@@ -449,7 +452,7 @@ function jugerLeCran(
       const resolution = viser(catalogue, index, jumelles, lue, cible, mode, jumelles !== undefined);
       if (resolution.etat === 'trouvee' && !candidats.some(({ cle }) => cle === resolution.cible.cle)) candidats.push(resolution.cible);
     }
-    if (candidats.length > 0) constat.question = { id, candidats, indice: 'UCM ne sait pas si cette palette met un texte blanc ou noir sur ses boutons.' };
+    if (candidats.length > 0) constat.question = { id, candidats, indice: INDICE_CRAN_SANS_SENS };
     return { constat };
   }
   const attendue = sens === 'normal' ? normal : inverse;

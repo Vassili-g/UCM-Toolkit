@@ -8,7 +8,7 @@ import { VARIABLES_DE_PALETTE, cranDeLaVariable, rangDuCranLeger, sensDuTheme } 
 
 import { lireHexa, rgb8VersOklch, type Rgb8 } from './conversions';
 import { distanceOk } from './contraste';
-import { aUneIntensite, partDeLaReference, partsDe, rampesDe } from './palette';
+import { aUneIntensite, estColoree, partDeLaReference, partsDe, rampesDe } from './palette';
 import { estLibre, grilleDe } from './nuances';
 import { MODES, rampeDe, type Mode, type Rampes } from './rampe';
 import type { Palette, Recette } from './recette';
@@ -127,9 +127,6 @@ export function alertesDePalette(recette: Recette, palette: Palette): Alerte[] {
   return alertes;
 }
 
-/** La chroma OKLCH que la référence d'une palette dépasse pour que la palette soit colorée ([VER-22]). */
-export const CHROMA_DES_PALETTES_COLOREES = 0.05;
-
 /**
  * Le poids de chaque numéro de cran dans le score de proximité ([VER-22]),
  * le même dans les deux thèmes : en Dark aussi, les petits numéros sont les
@@ -199,7 +196,7 @@ export interface NuancesDeProximite {
 export function nuancesDeProximite(recette: Recette, palette: Palette, rampes: Rampes = rampesDe(recette, palette)): NuancesDeProximite | null {
   if (estLibre(palette)) return null;
   const reference = lireHexa(palette.reference);
-  if (!reference || rgb8VersOklch(reference).C <= CHROMA_DES_PALETTES_COLOREES) return null;
+  if (!reference || !estColoree(reference)) return null;
   const { crans } = grilleDe(recette, palette);
   const rampe = rampeDe(rampes, aUneIntensite(palette) ? 'unique' : 'vivid');
   const du = (mode: Mode, rang: number): Rgb8 => rampe[mode][rang].couleur;

@@ -1,5 +1,7 @@
 /** Les textes de « À faire dans Figma » en mode Tokens, des corrections de structure (variables manquantes, crans, modes, scopes), et de leur application. */
 
+import { INDICE_CRAN_SANS_SENS } from '@ucm-kit/core/controles';
+
 const variables = (nombre: number): string => (nombre === 1 ? '1 variable' : `${nombre} variables`);
 const corrections = (nombre: number): string => (nombre === 1 ? '1 correction' : `${nombre} corrections`);
 const liste = (mots: readonly string[]): string => (mots.length < 2 ? mots.join('') : `${mots.slice(0, -1).join(', ')} et ${mots[mots.length - 1]}`);
@@ -61,7 +63,7 @@ export const TEXTES_STRUCTURE = {
   sansJumelle: ' Aucune de ses variables n’a d’alias vers brands ou utility.',
   prefixesMultiples: ' Ses variables visent plusieurs rampes.',
   rampeSansCran: (cran: number | string): { readonly debut: string; readonly fin: string } => ({ debut: 'La rampe ', fin: ` n’a pas le cran ${cran}.` }),
-  cranSansSens: 'UCM ne sait pas si cette palette met un texte blanc ou noir sur ses boutons.',
+  cranSansSens: INDICE_CRAN_SANS_SENS,
   coucheVisee: (collection: string): string => `Cette couleur vise ${collection}.`,
   coucheAttendue: (collection: string, attendues: string): string => `Cette couleur vise ${collection}. UCM attend ${attendues}.`,
   valeurDirecte: 'Cette couleur n’est pas un alias.',

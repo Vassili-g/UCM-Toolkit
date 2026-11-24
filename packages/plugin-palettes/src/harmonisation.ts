@@ -1,5 +1,5 @@
 /** La sélection d'Harmonisation suit les identifiants de la recette, sans DOM ni rangement. */
-import { aUneIntensite, arrondir, CHROMA_DES_PALETTES_COLOREES, estLibre, PROFILS, partsDe, referenceDe, rgb8VersOklch, sortieLaPlusProche, validerRecette, type Mode, type Palette, type PaireTropProche, type Profil, type Recette, type Refus } from 'ucm-couleur';
+import { aUneIntensite, arrondir, estColoree, estLibre, PROFILS, partsDe, referenceDe, sortieLaPlusProche, validerRecette, type Mode, type Palette, type PaireTropProche, type Profil, type Recette, type Refus } from 'ucm-couleur';
 
 import { remplacerPalette } from './edition';
 import { GRANDEURS, valeursDesProfils, type Grandeur } from './reglagesParDefaut';
@@ -265,7 +265,7 @@ export function constatsDeLaComparaison(recette: Recette, etat: EtatHarmonisatio
   });
   if (constats.length === 0 && cochees.length > 1) constats.push({ ton: 'succes', genre: 'distinctes' });
 
-  const colorees = cochees.filter((palette) => !estLibre(palette) && rgb8VersOklch(referenceDe(palette)).C > CHROMA_DES_PALETTES_COLOREES);
+  const colorees = cochees.filter((palette) => !estLibre(palette) && estColoree(referenceDe(palette)));
   if (colorees.length < 2) return constats;
   const saturation = (palette: Palette): number => partsDe(recette, palette)[aUneIntensite(palette) ? 'unique' : etat.intensite] ?? 0;
   const luminosite = (palette: Palette): number => palette.reglages?.clarte?.[aUneIntensite(palette) ? 'vivid' : etat.intensite] ?? 0;

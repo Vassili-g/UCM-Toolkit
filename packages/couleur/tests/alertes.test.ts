@@ -6,7 +6,7 @@ import test from 'node:test';
 import { cranDeLaVariable } from '@ucm-kit/core/emplois';
 
 import {
-  CHROMA_DES_PALETTES_COLOREES,
+  estColoree,
   PART_DE_CHROMA_QUI_DISTINGUE,
   POIDS_DES_CRANS_DE_PROXIMITE,
   aDesProfilsTernes,
@@ -321,9 +321,8 @@ test('[VER-22] deux neutres ne se comparent pas', () => {
     assert.equal(proximite, null, `${a} ${b}`);
     assert.deepEqual(pairesTropProches(recette), []);
   }
-  // Une palette est colorée dès que la chroma de sa référence dépasse la constante.
-  assert.ok(rgb8VersOklch(lireHexa('#6B7280')!).C <= CHROMA_DES_PALETTES_COLOREES);
-  assert.ok(rgb8VersOklch(lireHexa('#1E6FD9')!).C > CHROMA_DES_PALETTES_COLOREES);
+  assert.equal(estColoree(lireHexa('#6B7280')!), false);
+  assert.equal(estColoree(lireHexa('#1E6FD9')!), true);
 });
 
 test('[VER-22] une palette à une intensité se compare sur sa rampe', () => {

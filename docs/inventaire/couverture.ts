@@ -32,6 +32,10 @@ export const EXCLUSIONS: Readonly<Record<string, GroupeExclu[]>> = {
       noms: ["AIDES_A_MARQUER", "CALQUES_DE_CONTENU", "CALQUES_DU_KIT_DE_REGLES", "CALQUES_LUS_PAR_TAG", "MAITRES_COMPACTES", "MAITRES_DU_KIT_DE_REGLES", "MARQUEUR_A_COMPLETER", "ROLES_QUI_DESIGNENT_UN_LAYER", "SECTIONS_DU_KIT_DE_REGLES", "TAGS_DES_REGLES", "TAGS_D_INTENTION"],
     },
     {
+      motif: "Texte partagé que le panneau des constats d'Architect reprend, sans intérêt pour le lecteur de la page.",
+      noms: ["TEXTE_DE_L_ANALYSE_PERIMEE"],
+    },
+    {
       motif: "Clé de stockage, espace de noms ou réglage interne des plugins, sans intérêt pour le lecteur de la page.",
       noms: ["CLES_D_ARCHITECT", "CLES_PARTAGEES_DE_PALETTES", "CLE_ARCHITECTURE_DU_FICHIER", "CLE_NOMMAGE_DE_PALETTES", "CLE_RECETTE", "DESTINATION_DES_PALETTES", "ESPACE_ARCHITECT", "ESPACE_PARTAGE", "INTENSITE_UNIQUE", "PLACES_DES_THEMES", "POSE_DES_ALERTES"],
     },
@@ -81,7 +85,7 @@ export const EXCLUSIONS: Readonly<Record<string, GroupeExclu[]>> = {
     },
     {
       motif: "Borne ou seuil interne d'un contrôle d'Architect, sans intérêt pour le lecteur de la page.",
-      noms: ["BORNE_DE_COMBINAISONS", "SEUILS_D_ACCESSIBILITE"],
+      noms: ["BORNE_DE_COMBINAISONS", "INDICE_CRAN_SANS_SENS", "SEUILS_D_ACCESSIBILITE"],
     },
   ],
 };

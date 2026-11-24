@@ -24,7 +24,7 @@ export { clesDesTokensDeTailleAttendus, proposerLesCorrections, proposerLesCorre
 export { candidatsDeModele, constatsDeModele, proposerLaPropagation, type CandidatDeModele, type SorteDeModele } from './propagation.js';
 export { controlerLeTheme, controlerLeThemeParEtapes, controlerLesModes } from './theme.js';
 export { controlerLaStructure, controlerLaStructureParEtapes, controlerLeCatalogue, controlerLesAliasesManquants } from './structure.js';
-export { controlerLIntegriteUcm, corrigerLaQuestionDeLien, grouperLesCouches } from './integrite.js';
+export { controlerLIntegriteUcm, INDICE_CRAN_SANS_SENS, corrigerLaQuestionDeLien, grouperLesCouches } from './integrite.js';
 export { catalogueDepuisTokens } from './projection-dtcg.js';
 export type { BilanDeConversion, ConversionDeTokens } from './projection-dtcg.js';
 export type { GroupeDeCouche, OptionsDIntegrite } from './integrite.js';

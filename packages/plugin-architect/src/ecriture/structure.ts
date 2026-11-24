@@ -36,7 +36,7 @@
  * Seul `liaisons.ts` importe une variable : la variable visée d'un alias se cherche ici parmi les variables locales.
  */
 import type { Correction } from '@ucm-kit/core/controles';
-import { CLE_ARCHITECTURE_DU_FICHIER, COLLECTIONS_SANS_PORTEE, ESPACE_ARCHITECT, collectionUcmReconnue, lireLArchitectureDuFichier } from '@ucm-kit/core/referentiel';
+import { CIBLES_DES_COLLECTIONS, CLE_ARCHITECTURE_DU_FICHIER, COLLECTIONS_SANS_PORTEE, ESPACE_ARCHITECT, collectionUcmReconnue, lireLArchitectureDuFichier } from '@ucm-kit/core/referentiel';
 
 import { COUCHE_DES_COULEURS } from '../preparations';
 import { pendantUneEcriture } from '../sandbox/acquisition';
@@ -172,7 +172,7 @@ function planifierUneCreation(
   if (!creation) return 'objet-change';
   const collection = collections.find((candidate) => candidate.id === creation.collection);
   const role = collection && collectionUcmReconnue(collection.name);
-  if (!collection || collection.remote || (role !== COUCHE_DES_COULEURS && role !== 'brands' && role !== 'utility') || creation.type !== 'COLOR') return 'objet-change';
+  if (!collection || collection.remote || (role !== COUCHE_DES_COULEURS && !(role && CIBLES_DES_COLLECTIONS[COUCHE_DES_COULEURS].includes(role))) || creation.type !== 'COLOR') return 'objet-change';
   if (role && (COLLECTIONS_SANS_PORTEE as readonly string[]).includes(role) && creation.scopes.length !== 0) return 'objet-change';
   const modes = Object.keys(creation.alias);
   if (modes.length === 0 || !modes.every((mode) => collection.modes.some(({ modeId }) => modeId === mode))) return 'objet-change';

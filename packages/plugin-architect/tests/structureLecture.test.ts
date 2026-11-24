@@ -2,7 +2,12 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
+import { INDICE_CRAN_SANS_SENS } from '@ucm-kit/core/controles';
+import { SIGNES, TEXTE_DE_L_ANALYSE_PERIMEE } from '@ucm-kit/core/referentiel';
+
 import type { Constat, Correction } from '../src/messages/commun';
+import { TEXTES_ANALYSE } from '../src/ui/textes/analyse';
+import { TEXTES_STRUCTURE } from '../src/ui/textes/structure';
 import { GROUPES, lireLesConstats, lireLesCorrections, type Noms } from '../src/ui/structure/lecture';
 
 const connus = new Map([
@@ -184,4 +189,10 @@ test('retirer tous les scopes d’une collection est une carte de scopes sans sc
   assert.equal(lues.scopes.length, 1);
   const [carte] = lues.scopes;
   assert.deepEqual([carte.collection, carte.apres, carte.avant, carte.lignes.length], ['brands', [], ['ALL_SCOPES'], 2]);
+});
+
+test('[U3] le cran sans sens et l’analyse périmée reprennent les constantes du kit', () => {
+  assert.equal(TEXTES_STRUCTURE.cranSansSens, INDICE_CRAN_SANS_SENS);
+  assert.equal(TEXTES_ANALYSE.panneauDesConstats.perimeTitre, TEXTE_DE_L_ANALYSE_PERIMEE);
+  assert.equal(SIGNES.find(({ id }) => id === 'perime')?.sens, TEXTE_DE_L_ANALYSE_PERIMEE);
 });

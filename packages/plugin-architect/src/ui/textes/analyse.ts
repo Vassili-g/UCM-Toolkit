@@ -8,6 +8,7 @@ const nombre = (valeur: number): string => String(valeur).replace(/\B(?=(\d{3})+
 
 const MOTS: Readonly<Record<number, string>> = { 2: 'Deux', 3: 'Trois', 4: 'Quatre', 5: 'Cinq' };
 
+import { TEXTE_DE_L_ANALYSE_PERIMEE } from '@ucm-kit/core/referentiel';
 import { TEXTES as TEXTES_NOMENCLATURE } from './nomenclature';
 
 export const TEXTES_ANALYSE = {
@@ -66,7 +67,7 @@ export const TEXTES_ANALYSE = {
     rapportInfobulle: 'Les points relevés et la description du composant, avec ses variables. Pour signaler un problème.',
     rapportEnCours: 'Préparation du rapport…',
     rapportEchoue: 'Le rapport n’a pas pu être préparé.',
-    perimeTitre: 'Le composant a changé depuis l’analyse.',
+    perimeTitre: TEXTE_DE_L_ANALYSE_PERIMEE,
     perimeTexte: 'Cliquez Actualiser pour relire.',
     perimeMeta: 'Les constats datent d’avant le changement.',
   },

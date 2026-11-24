@@ -3,7 +3,7 @@
  * Création et Harmonisation, par nom dans Gestion. La recette garde son
  * ordre, celui des cadres de la planche ([PLA-05]) ; seul l'affichage change.
  */
-import { CHROMA_DES_PALETTES_COLOREES, referenceDe, rgb8VersOklch, type Palette, type Recette } from 'ucm-couleur';
+import { estColoree, referenceDe, rgb8VersOklch, type Palette, type Recette } from 'ucm-couleur';
 
 import { FAMILLES_DE_TEINTE } from './familles';
 
@@ -13,13 +13,12 @@ const OUVERTURE_DU_CERCLE = (FAMILLES_DE_TEINTE[0].centre + FAMILLES_DE_TEINTE[1
 /**
  * Les identifiants de la recette par teinte OKLCH de leur référence, du rouge
  * au rose (`OUVERTURE_DU_CERCLE`). Deux teintes égales gardent l'ordre de la
- * recette ; les palettes sans teinte (chroma de la référence au plus
- * `CHROMA_DES_PALETTES_COLOREES`) suivent, dans l'ordre de la recette.
+ * recette ; les palettes sans teinte (référence grise selon `estColoree`) suivent, dans l'ordre de la recette.
  */
 export function ordreParTeinte(recette: Recette): readonly string[] {
   const lues = recette.palettes.map((palette) => {
-    const { C, H } = rgb8VersOklch(referenceDe(palette));
-    return { id: palette.id, teinte: C > CHROMA_DES_PALETTES_COLOREES ? (((H - OUVERTURE_DU_CERCLE) % 360) + 360) % 360 : null };
+    const { H } = rgb8VersOklch(referenceDe(palette));
+    return { id: palette.id, teinte: estColoree(referenceDe(palette)) ? (((H - OUVERTURE_DU_CERCLE) % 360) + 360) % 360 : null };
   });
   const colorees = lues.filter((lue): lue is { id: string; teinte: number } => lue.teinte !== null).sort((a, b) => a.teinte - b.teinte);
   return [...colorees, ...lues.filter(({ teinte }) => teinte === null)].map(({ id }) => id);

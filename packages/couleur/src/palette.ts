@@ -142,6 +142,11 @@ export function estReferenceGrise(reference: Rgb8): boolean {
   return rgb8VersOklch(reference).C < CHROMA_DES_GRIS;
 }
 
+/** Vrai pour une référence colorée, dont la chroma OKLCH atteint `CHROMA_DES_GRIS` ([VER-22]) : le contraire de `estReferenceGrise`. */
+export function estColoree(reference: Rgb8): boolean {
+  return !estReferenceGrise(reference);
+}
+
 /**
  * Vrai pour une palette grise ([DER-15]) : aucune nuance calculée, hors du
  * cran de la référence, n'a de couleur. R, G et B y sont égaux, dans chaque
