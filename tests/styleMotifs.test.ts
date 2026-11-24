@@ -459,6 +459,18 @@ test('[S12] une puce collée est refusée, deux gras dans une section sont un si
   assert.deepEqual(regles('AGENTS.md', deux, 'signal'), []);
 });
 
+test('les clôtures en tildes et les clôtures longues protègent le code des trois contrôles', () => {
+  for (const [cloture, interieur] of [['~~~', []], ['~~~', ['```']], ['````', ['```']]] as const) {
+    const contenu = [cloture + 'text', ...interieur, 'Afin de corriger — un **mot** et un **autre**.', cloture, 'Le lot est fait.'].join('\n');
+    assert.deepEqual(fautes(DOCUMENT, contenu), []);
+    assert.deepEqual(fautesDeReponse(contenu), []);
+    assert.equal(hookReponse({ last_assistant_message: contenu }).status, 0);
+    const apres = contenu + '\nLe hook relit afin de corriger.';
+    assert.deepEqual(regles(DOCUMENT, apres), ['afin-de']);
+    assert.deepEqual(fautesDeReponse(apres).map((faute: Faute) => faute.regle), ['afin-de']);
+  }
+});
+
 test('[X1] « cran » dans une chaîne d’Architect ou de Palettes est un signal, « crans de l’échelle » n’en est pas un', () => {
   const textes = 'packages/plugin-architect/src/ui/textes/structure.ts';
   const signaux = (chemin: string, contenu: string) => regles(chemin, contenu, 'signal').filter((regle) => regle === 'cran-face-au-designer');

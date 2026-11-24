@@ -297,6 +297,25 @@ export function fichiersSuivis() {
   return sortie.split(/\r?\n/).filter(Boolean).filter((fichier) => fs.existsSync(path.join(racine, fichier)));
 }
 
+/** La clôture d'un bloc garde son caractère et sa longueur pour ne pas fermer sur un exemple de clôture plus courte. */
+function lignesHorsDesBlocs(contenu) {
+  const gardees = [];
+  let cloture = null;
+  contenu.split(/\r?\n/).forEach((ligne, index) => {
+    const marque = /^[ \t]*(`{3,}|~{3,})(.*)$/.exec(ligne);
+    if (cloture !== null) {
+      if (marque && marque[1][0] === cloture[0] && marque[1].length >= cloture.length && marque[2].trim() === '') cloture = null;
+      return;
+    }
+    if (marque && (marque[1][0] !== '`' || !marque[2].includes('`'))) {
+      cloture = marque[1];
+      return;
+    }
+    gardees.push({ numero: index + 1, texte: ligne });
+  });
+  return gardees;
+}
+
 /**
  * Les lignes d'un document soumises aux règles, code et tableaux écartés.
  *
@@ -306,19 +325,9 @@ export function fichiersSuivis() {
  * une emphase.
  */
 export function lignesDeProse(contenu) {
-  const gardees = [];
-  let dansUnBloc = false;
-  contenu.split(/\r?\n/).forEach((ligne, index) => {
-    if (ligne.trimStart().startsWith('```')) {
-      dansUnBloc = !dansUnBloc;
-      return;
-    }
-    if (dansUnBloc) return;
-    if (ligne.startsWith('#') || ligne.startsWith('|')) return;
-
-    gardees.push({ numero: index + 1, texte: ligne.replace(/`[^`\n]*`/g, '') });
-  });
-  return gardees;
+  return lignesHorsDesBlocs(contenu)
+    .filter(({ texte }) => !texte.startsWith('#') && !texte.startsWith('|'))
+    .map(({ numero, texte }) => ({ numero, texte: texte.replace(/`[^`\n]*`/g, '') }));
 }
 
 /**
@@ -633,13 +642,7 @@ function fautesDeGras(chemin, contenu) {
   let titre = '';
   let compte = 0;
   let signale = false;
-  let dansUnBloc = false;
-  contenu.split(/\r?\n/).forEach((ligne, index) => {
-    if (ligne.trimStart().startsWith('```')) {
-      dansUnBloc = !dansUnBloc;
-      return;
-    }
-    if (dansUnBloc) return;
+  lignesHorsDesBlocs(contenu).forEach(({ numero, texte: ligne }) => {
     if (/^##(?!#)\s/.test(ligne)) {
       titre = ligne.replace(/^##\s+/, '').trim();
       compte = 0;
@@ -654,7 +657,7 @@ function fautesDeGras(chemin, contenu) {
         fautes.push({
           regle: 'gras-multiple',
           niveau,
-          ou: `${chemin}:${index + 1}`,
+          ou: `${chemin}:${numero}`,
           extrait: `${gras[0]} dans la section « ${titre} »`.slice(0, 160),
         });
       }
@@ -1100,16 +1103,8 @@ export function rapport(fautes) {
  * les tableaux sont retirés d'abord ; aucun signal ne s'applique.
  */
 export function fautesDeReponse(texte) {
-  const lignes = [];
-  let dansUnBloc = false;
-  texte.split(/\r?\n/).forEach((ligne, index) => {
-    if (ligne.trimStart().startsWith('```')) {
-      dansUnBloc = !dansUnBloc;
-      return;
-    }
-    if (dansUnBloc) return;
-    lignes.push({ numero: index + 1, texte: ligne.replace(/`[^`\n]*`/g, '') });
-  });
+  const lignes = lignesHorsDesBlocs(texte)
+    .map(({ numero, texte: ligne }) => ({ numero, texte: ligne.replace(/`[^`\n]*`/g, '') }));
   const citees = sansCitations(lignes);
   const fautes = [...fautesDeRefusPartout('réponse', citees)];
   for (const { numero, texte } of citees) {
