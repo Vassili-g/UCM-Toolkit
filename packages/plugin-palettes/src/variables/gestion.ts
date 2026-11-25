@@ -4,7 +4,7 @@
  * simulation d'une destination ([UI-30]), et les variables qu'une palette
  * supprimée laisse dans le fichier ([UI-35]). Pur : ni Figma, ni DOM.
  */
-import type { Palette, Recette } from 'ucm-couleur';
+import { MODES, type Mode, type Palette, type Recette } from 'ucm-couleur';
 
 import type { Reste } from '../ecriture/variables';
 import type { ResteNomme } from '../i18n/fr';
@@ -90,6 +90,70 @@ export function ecartsDeLaReprise(tokens: Pick<TokensDUnePalette, 'aCreer' | 'aR
     ...(tokens.aRemplacer > 0 ? [{ ecart: 'couleurs', nombre: tokens.aRemplacer, total: tokens.variables } as const] : []),
     ...(tokens.aRenommer.length > 0 ? [{ ecart: 'renommages', nombre: tokens.aRenommer.length } as const] : []),
   ];
+}
+
+/**
+ * Les couleurs qu'une mise à jour remplace quand seules des couleurs ont
+ * changé dans le plugin : l'encart s'ouvre alors d'office ([UI-31]). Vide dès
+ * qu'une création, une variable existante, un renommage, une destination
+ * changée, une reprise, un refus ou une couleur changée dans Figma demande une
+ * autre décision.
+ */
+export function couleursAMettreAJour(
+  tokens: Pick<TokensDUnePalette, 'etat' | 'reprise' | 'refus' | 'destinationChangee' | 'aCreer' | 'existantes' | 'aRenommer' | 'modifiees' | 'aEcrire'>,
+): TokensDUnePalette['aEcrire'] {
+  const seulesDesCouleurs = tokens.etat === 'a-mettre-a-jour' && !tokens.reprise && tokens.refus === null && !tokens.destinationChangee
+    && tokens.aCreer.length === 0 && tokens.existantes.length === 0 && tokens.aRenommer.length === 0 && tokens.modifiees.length === 0
+    && tokens.aEcrire.length > 0 && tokens.aEcrire.every((couleur) => couleur.ecrite !== null);
+  return seulesDesCouleurs ? tokens.aEcrire : [];
+}
+
+/** Une couleur d'une mise à jour : `avant` vaut `null` quand Figma porte un alias. */
+export interface CouleurDUneMiseAJour {
+  readonly cle: string;
+  readonly nom: string;
+  readonly avant: string | null;
+  readonly apres: string;
+}
+
+/** Un groupe de l'encart : les nuances d'une intensité dans un thème, sous un même chemin. */
+export interface GroupeDeCouleurs {
+  /** Le nom de la variable jusqu'au dernier `/` compris. */
+  readonly chemin: string;
+  /** Le thème du groupe quand un autre groupe a le même chemin (thèmes en modes) ; `null` sinon. */
+  readonly theme: Mode | null;
+  readonly lignes: readonly { readonly nuance: string; readonly avant: string | null; readonly apres: string }[];
+}
+
+/**
+ * Les groupes de l'encart des couleurs à mettre à jour ([UI-32]). Le groupe
+ * se lit sur la clé du plan, `{intensité}/{thème}/{nuance}` : la nuance vient
+ * de la clé, que les règles de nommage ne changent pas, et le chemin du nom.
+ * Thème d'abord, dans l'ordre de `MODES`, puis intensité dans l'ordre reçu.
+ */
+export function groupesDeCouleurs(couleurs: readonly CouleurDUneMiseAJour[]): GroupeDeCouleurs[] {
+  const groupes = new Map<string, { intensite: string; mode: string; chemin: string; lignes: { nuance: string; avant: string | null; apres: string }[] }>();
+  for (const couleur of couleurs) {
+    const segments = couleur.cle.split('/');
+    const nuance = segments[segments.length - 1];
+    const mode = segments[segments.length - 2] ?? '';
+    const intensite = segments.slice(0, -2).join('/');
+    const chemin = couleur.nom.slice(0, couleur.nom.lastIndexOf('/') + 1);
+    const identifiant = `${intensite}/${mode}`;
+    const groupe = groupes.get(identifiant) ?? { intensite, mode, chemin, lignes: [] };
+    groupe.lignes.push({ nuance, avant: couleur.avant, apres: couleur.apres });
+    groupes.set(identifiant, groupe);
+  }
+  const rang = (mode: string): number => (MODES as readonly string[]).indexOf(mode);
+  const ordonnes = [...groupes.values()]
+    .map((groupe, ordre) => ({ groupe, ordre }))
+    .sort((a, b) => rang(a.groupe.mode) - rang(b.groupe.mode) || a.ordre - b.ordre)
+    .map(({ groupe }) => groupe);
+  return ordonnes.map(({ chemin, mode, lignes }) => ({
+    chemin,
+    theme: ordonnes.filter((autre) => autre.chemin === chemin).length > 1 ? (mode as Mode) : null,
+    lignes,
+  }));
 }
 
 /** Ce qu'une écriture n'a pas pu défaire, tel que l'annonce le nomme : une variable, un mode ou une collection. */
