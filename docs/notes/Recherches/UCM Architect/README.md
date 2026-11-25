@@ -79,3 +79,9 @@ Le plan de la recette v1 est implémenté : panneau du mode Composant sans ongle
 |---|---|
 | [INVENTAIRE-VERIFICATIONS.md](./8%20Fiabilisation/INVENTAIRE-VERIFICATIONS.md) | Chaque vérification des modes Tokens et Composant : source, conditions, affichage, résultat attendu, écarts E-01 à E-45, familles des plans de stress test et réponses aux questions Q-01 à Q-11 |
 | [MESURE-DES-FAILLES.md](./8%20Fiabilisation/MESURE-DES-FAILLES.md) | Ce que les harnais de stress test mesurent sur le code actuel, famille par famille, avec les écarts nouveaux N-xx |
+
+## 9 Recette du Button
+
+| Document | Contenu |
+|---|---|
+| [PLAN-RECETTE-BUTTON.md](./9%20Recette%20du%20Button/PLAN-RECETTE-BUTTON.md) | Les 180 faux C24 sur les icônes du Button, la sélection du calque peint, le regroupement des cartes et l'axe d'un wrapper non exposé (C83) : causes, décisions D1 à D8 et lots L1 à L5 |
