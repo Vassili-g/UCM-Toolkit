@@ -1148,7 +1148,7 @@ test('[UI-32] une variable absente garde la confirmation des couleurs retouchée
     const id = lu.variables.suivi.palettes[ID_DU_JAUNE].variables['soft/light/50'].id;
     lu.variables.variables = lu.variables.variables.filter((variable) => variable.id !== id);
     await envoyer(page, lu);
-    await ouvrirLaPlanche(page);
+    await ouvrirLaPlanche(page, ID_DU_JAUNE);
     const fiche = page.locator(`#panneau-gestion .palette-depliable[data-palette="${ID_DU_JAUNE}"]`);
     assert.equal(await fiche.locator('.sortie[data-sortie="tokens"] .pastille-d-etat').textContent(), 'Introuvables');
     await fiche.locator('[data-encart="modifiees"]').waitFor();
@@ -1165,7 +1165,7 @@ test('[UI-32] une variable absente garde la confirmation des couleurs retouchée
 test('[UI-34] une reprise partielle nomme la collision et affiche la forme réelle des thèmes', async () => {
   const page = await ouvrirSur('reprise-partielle');
   try {
-    await ouvrirLaPlanche(page);
+    await ouvrirLaPlanche(page, 'p-51a7e000');
     const fiche = page.locator('.palette-depliable[data-palette="p-51a7e000"]');
     assert.equal(await fiche.locator('.sortie[data-sortie="tokens"] .pastille-d-etat').textContent(), 'À mettre à jour');
     assert.match(await fiche.textContent(), /Palette partiellement écrite/);
@@ -1178,7 +1178,7 @@ test('[UI-34] une reprise partielle nomme la collision et affiche la forme réel
 test('[VAR-08] une palette dont le plan prend le nom d’une autre palette annonce le refus avant toute écriture, sans geste d’écriture', async () => {
   const page = await ouvrirSur('nom-pris-par-une-autre-palette');
   try {
-    await ouvrirLaPlanche(page);
+    await ouvrirLaPlanche(page, 'p-5c1d0e77');
     const fiche = page.locator('.palette-depliable[data-palette="p-5c1d0e77"]');
     const ligne = fiche.locator('.sortie[data-sortie="tokens"]');
     assert.equal(await ligne.locator('.pastille-d-etat').textContent(), 'Pas encore écrits');
@@ -1198,7 +1198,7 @@ test('[VAR-07] une écriture défaite dit si le fichier est comme avant, ou ce q
   ]) {
     const page = await ouvrirSur(id);
     try {
-      await ouvrirLaPlanche(page);
+      await ouvrirLaPlanche(page, 'p-5c1d0e77');
       await page.locator('#panneau-gestion .palette-depliable[data-palette="p-5c1d0e77"] [data-geste="ecrire"]').click();
       await page.locator('#panneau-gestion .palette-depliable[data-palette="p-5c1d0e77"] [data-geste="confirmer-ecriture"]').click();
       const demande = await prochaineDuType(page, 'ecrire-variables', 0);
@@ -1216,7 +1216,7 @@ test('[VAR-07] une palette interrompue dont des variables restent propose de les
   const id = 'ecriture-interrompue-avec-restes';
   const page = await ouvrirSur(id);
   try {
-    await ouvrirLaPlanche(page);
+    await ouvrirLaPlanche(page, 'p-5c1d0e77');
     await page.locator('#panneau-gestion .palette-depliable[data-palette="p-5c1d0e77"] [data-geste="ecrire"]').click();
     await page.locator('#panneau-gestion .palette-depliable[data-palette="p-5c1d0e77"] [data-geste="confirmer-ecriture"]').click();
     const demande = await prochaineDuType(page, 'ecrire-variables', 0);
@@ -1523,14 +1523,18 @@ test('[UI-27] une ligne se déplie au clic ou au clavier, et ses états cèdent 
     await bleu.locator('[data-geste="modifier"]').click();
     await page.getByRole('tab', { name: 'Gestion', exact: true }).click();
     assert.equal(await bascule.getAttribute('aria-expanded'), 'true');
-    // Plusieurs lignes restent dépliées à la fois.
-    await lignes.nth(1).locator('[data-geste="deplier"]').focus();
+    // Déplier une autre ligne replie la première.
+    const seconde = lignes.nth(1).locator('[data-geste="deplier"]');
+    await seconde.focus();
     await page.keyboard.press('Enter');
-    assert.equal(await page.locator('#panneau-gestion .palette-fiche').count(), 2);
-    await bascule.focus();
-    await page.keyboard.press('Space');
+    assert.equal(await page.locator('#panneau-gestion .palette-fiche').count(), 1);
+    assert.equal(await seconde.getAttribute('aria-expanded'), 'true');
     assert.equal(await bascule.getAttribute('aria-expanded'), 'false');
     assert.equal(await bleu.locator('.palette-etats .pastille-d-etat').count(), 2);
+    await seconde.focus();
+    await page.keyboard.press('Space');
+    assert.equal(await seconde.getAttribute('aria-expanded'), 'false');
+    assert.equal(await page.locator('#panneau-gestion .palette-fiche').count(), 0);
     assert.equal((await demandes(page)).some((demande) => demande.type === 'ranger-vue'), false);
   } finally { await page.close(); }
 });
@@ -1546,6 +1550,133 @@ test('[UI-32] une palette qui attend une décision se déplie seule, et repliée
     const demande = (await demandes(page)).filter((demande) => demande.type === 'lire-etat').at(-1);
     await envoyer(page, { ...messageDe('tokens-modifies'), demande: demande.demande });
     assert.equal(await jaune.getAttribute('data-ouverte'), 'false');
+  } finally { await page.close(); }
+});
+
+/** Remplace la couleur que Figma porte pour une variable suivie, dans tous ses modes ; `null` en fait un alias. */
+function changerDansFigma(message, palette, cle, hexa) {
+  const id = message.variables.suivi.palettes[palette].variables[cle].id;
+  const variable = message.variables.variables.find((candidate) => candidate.id === id);
+  for (const mode of Object.keys(variable.valeurs)) variable.valeurs[mode] = hexa;
+}
+
+test('[UI-27] une décision nouvelle replie la palette dépliée', async () => {
+  const page = await ouvrirSur('tokens-a-jour');
+  try {
+    await ouvrirLaPlanche(page, ID_DU_BLEU);
+    const ligne = (id) => page.locator(`#panneau-gestion .palette-depliable[data-palette="${id}"]`);
+    assert.deepEqual([await ligne(ID_DU_BLEU).getAttribute('data-ouverte'), await ligne(ID_DU_JAUNE).getAttribute('data-ouverte')], ['true', 'false']);
+    // Une couleur de Jaune change dans Figma : la décision nouvelle remplace la ligne dépliée.
+    const lu = structuredClone(messageDe('tokens-a-jour'));
+    changerDansFigma(lu, ID_DU_JAUNE, 'vivid/light/700', '#8A5A00');
+    const demande = (await demandes(page)).filter((envoyee) => envoyee.type === 'lire-etat').at(-1);
+    await envoyer(page, { ...lu, demande: demande.demande });
+    await ligne(ID_DU_JAUNE).locator('[data-encart="modifiees"]').waitFor();
+    assert.deepEqual([await ligne(ID_DU_BLEU).getAttribute('data-ouverte'), await ligne(ID_DU_JAUNE).getAttribute('data-ouverte')], ['false', 'true']);
+    assert.equal(await page.locator('#panneau-gestion .palette-fiche').count(), 1);
+  } finally { await page.close(); }
+});
+
+test('[UI-27] plusieurs décisions nouvelles ne déplient que la première de la liste', async () => {
+  const page = await ouvrir();
+  try {
+    const lu = structuredClone(messageDe('tokens-a-jour'));
+    changerDansFigma(lu, ID_DU_BLEU, 'vivid/light/700', '#112233');
+    changerDansFigma(lu, ID_DU_JAUNE, 'vivid/light/700', '#8A5A00');
+    await envoyer(page, lu);
+    await ouvrirLaPlanche(page);
+    const ligne = (id) => page.locator(`#panneau-gestion .palette-depliable[data-palette="${id}"]`);
+    assert.deepEqual([await ligne(ID_DU_BLEU).getAttribute('data-ouverte'), await ligne(ID_DU_JAUNE).getAttribute('data-ouverte')], ['true', 'false']);
+    assert.equal(await ligne(ID_DU_JAUNE).locator('.palette-etats .pastille-d-etat').first().getAttribute('data-etat'), 'modifies', 'la seconde garde sa pastille');
+  } finally { await page.close(); }
+});
+
+test('[UI-31] une palette dont le plugin a changé des couleurs les montre dépliée, et n’écrit qu’au clic', async () => {
+  const page = await ouvrirSur('tokens-a-mettre-a-jour');
+  try {
+    await ouvrirLaPlanche(page, ID_DU_JAUNE);
+    const encart = page.locator(`#panneau-gestion .palette-depliable[data-palette="${ID_DU_JAUNE}"] [data-encart="mise-a-jour"]`);
+    assert.equal(await encart.locator('.encart-titre').textContent(), '2 couleurs de Jaune ont changé dans le plugin.');
+    assert.equal(await encart.locator('p.ligne-secondaire').textContent(), 'Figma porte encore les couleurs de la dernière écriture. La mise à jour les remplace par celles du plugin.');
+    assert.deepEqual(await encart.locator('.avant-apres .entete').allTextContents(), ['Nuance', 'Dans Figma', 'Après la mise à jour']);
+    assert.deepEqual(await encart.locator('.avant-apres .groupe code').allTextContents(), ['color/Jaune/vivid/light/']);
+    assert.deepEqual(await encart.locator('.avant-apres .nuance').allTextContents(), ['700', '800']);
+    // Figma porte la couleur de la dernière écriture, le plugin celle d'aujourd'hui.
+    const [figma700, plugin700, figma800, plugin800] = await encart.locator('.avant-apres .valeur').allTextContents();
+    assert.deepEqual([figma700, figma800], ['#8A5A00', '#6E4500']);
+    for (const [dansFigma, dansLePlugin] of [[figma700, plugin700], [figma800, plugin800]]) {
+      assert.match(dansLePlugin, /^#[0-9A-F]{6}$/i);
+      assert.notEqual(dansLePlugin, dansFigma);
+    }
+    assert.deepEqual(await encart.getByRole('button').allTextContents(), ['Mettre à jour 2 couleurs']);
+    assert.equal((await demandes(page)).filter((demande) => demande.type === 'ecrire-variables').length, 0, 'ouvrir l’encart n’écrit rien');
+    await encart.locator('[data-geste="confirmer-ecriture"]').click();
+    const demande = await prochaineDuType(page, 'ecrire-variables', 0);
+    assert.deepEqual(demande.palettes, [ID_DU_JAUNE]);
+    assert.deepEqual(demande.remettre, []);
+  } finally { await page.close(); }
+});
+
+test('[UI-31] replier la palette ferme l’encart sans rien écrire', async () => {
+  const page = await ouvrirSur('tokens-a-mettre-a-jour');
+  try {
+    await ouvrirLaPlanche(page, ID_DU_JAUNE);
+    const jaune = page.locator(`#panneau-gestion .palette-depliable[data-palette="${ID_DU_JAUNE}"]`);
+    assert.equal(await jaune.locator('[data-encart="mise-a-jour"]').count(), 1);
+    await jaune.locator('[data-geste="deplier"]').click();
+    assert.equal(await jaune.getAttribute('data-ouverte'), 'false');
+    assert.equal(await page.locator('#panneau-gestion [data-encart]').count(), 0);
+    assert.equal((await demandes(page)).filter((demande) => demande.type === 'ecrire-variables').length, 0);
+    // Déplier de nouveau la palette rouvre l'encart.
+    await jaune.locator('[data-geste="deplier"]').click();
+    assert.equal(await jaune.locator('[data-encart="mise-a-jour"]').count(), 1);
+  } finally { await page.close(); }
+});
+
+test('[UI-31] les groupes suivent Light puis Dark, puis l’intensité', async () => {
+  const page = await ouvrirSur('tokens-a-mettre-a-jour-chemins');
+  try {
+    await ouvrirLaPlanche(page, ID_DU_JAUNE);
+    const grille = page.locator(`#panneau-gestion .palette-depliable[data-palette="${ID_DU_JAUNE}"] [data-encart="mise-a-jour"] .avant-apres`);
+    assert.deepEqual(await grille.locator('.groupe code').allTextContents(), [
+      'color/Jaune/soft/light/',
+      'color/Jaune/vivid/light/',
+      'color/Jaune/soft/dark/',
+      'color/Jaune/vivid/dark/',
+    ]);
+    assert.deepEqual(await grille.locator('.nuance').allTextContents(), ['50', '700', '700', '700']);
+  } finally { await page.close(); }
+});
+
+test('[UI-32] l’encart des couleurs changées dans Figma les liste toutes, sans suffixe', async () => {
+  const page = await ouvrirSur('tokens-modifies-nombreux');
+  try {
+    await ouvrirLaPlanche(page, ID_DU_JAUNE);
+    const encart = page.locator(`#panneau-gestion .palette-depliable[data-palette="${ID_DU_JAUNE}"] [data-encart="modifiees"]`);
+    assert.match(await encart.locator('.encart-titre').textContent(), /^8 couleurs de Jaune/);
+    assert.deepEqual(await encart.locator('.avant-apres .entete').allTextContents(), ['Nuance', 'Dans Figma', 'Dans le plugin']);
+    assert.equal(await encart.locator('.avant-apres .nuance').count(), 8);
+    assert.ok(await encart.locator('.avant-apres .groupe').count() >= 3, 'huit couleurs sur trois chemins au moins');
+    assert.doesNotMatch(await encart.textContent(), /\bEt \d+ autres?\b/);
+    const valeurs = await encart.locator('.avant-apres .valeur').allTextContents();
+    assert.equal(valeurs.length, 16);
+    assert.ok(valeurs.every((texte) => /^#[0-9A-F]{6}$/i.test(texte)), `aucun suffixe : ${JSON.stringify(valeurs)}`);
+  } finally { await page.close(); }
+});
+
+test('[UI-32] une variable qui porte un alias dit « Un alias », sans pastille', async () => {
+  const page = await ouvrirSur('tokens-modifies');
+  try {
+    const lu = structuredClone(messageDe('tokens-modifies'));
+    changerDansFigma(lu, ID_DU_JAUNE, 'vivid/light/700', null);
+    const demande = (await demandes(page)).filter((envoyee) => envoyee.type === 'lire-etat').at(-1);
+    await envoyer(page, { ...lu, demande: demande.demande });
+    await ouvrirLaPlanche(page, ID_DU_JAUNE);
+    const valeurs = page.locator(`#panneau-gestion .palette-depliable[data-palette="${ID_DU_JAUNE}"] [data-encart="modifiees"] .avant-apres .valeur`);
+    assert.equal(await valeurs.nth(0).textContent(), 'Un alias');
+    assert.equal(await valeurs.nth(0).locator('i').count(), 0, 'un alias n’a pas de couleur à montrer');
+    assert.equal(await valeurs.nth(1).locator('i').count(), 1, 'la couleur du plugin garde sa pastille');
+    assert.equal(await valeurs.nth(2).locator('i').count(), 1, 'une couleur lue garde sa pastille');
   } finally { await page.close(); }
 });
 
@@ -4182,7 +4313,7 @@ async function prochaineDuType(page, type, rang) {
 
 /** Ouvre l'onglet Palettes et clique le premier geste de la fiche d'une palette ([UI-05]). */
 async function genererDepuisLaFiche(page, palette) {
-  await ouvrirLaPlanche(page);
+  await ouvrirLaPlanche(page, palette);
   await page.locator(`#panneau-gestion .palette-depliable[data-palette="${palette}"] [data-geste="generer"]`).click();
 }
 
@@ -4210,7 +4341,7 @@ test('[PLA-24] [UI-05] « Créer la planche » d’une fiche envoie sa palette, 
     await envoyer(page, { ...ETATS.find(({ id }) => id === 'generation-reussie').atteinte.findLast((etape) => etape.message?.type === 'etat').message, demande: relecture.demande });
     const fiche = page.locator(`.palette-depliable[data-palette="${ID_DU_BLEU}"]`);
     assert.equal(await pastilleDeLaPlanche(fiche).getAttribute('data-etat'), 'a-jour');
-    assert.deepEqual(await gestesDeLaPlanche(fiche), [['Afficher']], 'un cadre à jour n’a pas de premier geste');
+    assert.deepEqual(await gestesDeLaPlanche(fiche), ['Afficher'], 'un cadre à jour n’a pas de premier geste');
     const vu = await compte(page);
     await fiche.getByRole('button', { name: 'Afficher', exact: true }).click();
     assert.deepEqual(await prochaine(page, vu), { type: 'voir-sur-la-planche', demande: relecture.demande + 1, page: '40:1', cadres: ['40:2'] });
@@ -4222,7 +4353,7 @@ test('[PLA-24] [UI-05] « Créer la planche » d’une fiche envoie sa palette, 
 test('[R4] pendant un dessin, la liste des palettes ne bouge pas et le bouton désactivé porte la progression dans sa boîte', async () => {
   const page = await ouvrirSur('dessin-en-cours');
   try {
-    await ouvrirLaPlanche(page);
+    await ouvrirLaPlanche(page, ID_DU_BLEU);
     const liste = page.locator('#panneau-gestion .liste-des-palettes');
     const generer = page.locator(`#panneau-gestion .palette-depliable[data-palette="${ID_DU_BLEU}"] [data-geste="generer"]`);
     const hautAvant = await liste.evaluate((noeud) => noeud.getBoundingClientRect().top);
@@ -4251,7 +4382,7 @@ test('[UI-28] 7 palettes gardent leurs gestes individuels sans mise à jour glob
     await envoyer(page, lu);
     await ouvrirLaPlanche(page);
     assert.equal(await page.locator('.palette-depliable[data-palette]').count(), 7);
-    assert.equal(await page.locator('.palette-depliable[data-palette] [data-geste="generer"]').count(), 7);
+    assert.deepEqual(await pourChaquePalette(page, (fiche) => fiche.locator('[data-geste="generer"]').count()), [1, 1, 1, 1, 1, 1, 1]);
     assert.equal(await page.locator('[data-geste="tout-mettre-a-jour"]').count(), 0);
   } finally { await page.close(); }
 });
@@ -4259,7 +4390,7 @@ test('[UI-28] 7 palettes gardent leurs gestes individuels sans mise à jour glob
 test('[UI-05] une fiche à jour n’a pas de premier geste ; une modification enregistrée lui donne « Actualiser »', async () => {
   const page = await ouvrirSur('planche-a-jour');
   try {
-    await ouvrirLaPlanche(page);
+    await ouvrirLaPlanche(page, ID_DU_BLEU);
     const fiche = page.locator(`.palette-depliable[data-palette="${ID_DU_BLEU}"]`);
     assert.equal(await fiche.locator('[data-geste="generer"]').count(), 0);
     await page.getByRole('tab', { name: 'Création', exact: true }).click();
@@ -4268,7 +4399,7 @@ test('[UI-05] une fiche à jour n’a pas de premier geste ; une modification en
     await page.locator('#panneau-creation .champ-hexa').press('Tab');
     const rangement = await prochaineDuType(page, 'ranger-recette', avant);
     await envoyer(page, rangee(rangement.demande));
-    await ouvrirLaPlanche(page);
+    await ouvrirLaPlanche(page, ID_DU_BLEU);
     const generer = fiche.locator('[data-geste="generer"]');
     assert.equal(await generer.textContent(), 'Actualiser');
     assert.equal(await generer.isDisabled(), false);
@@ -4287,7 +4418,7 @@ test('[UI-28] 6 palettes gardent leurs gestes individuels sans mise à jour glob
     await envoyer(page, lu);
     await ouvrirLaPlanche(page);
     assert.equal(await page.locator('.palette-depliable[data-palette]').count(), 6);
-    assert.equal(await page.locator('.palette-depliable[data-palette] [data-geste="generer"]').count(), 6);
+    assert.deepEqual(await pourChaquePalette(page, (fiche) => fiche.locator('[data-geste="generer"]').count()), [1, 1, 1, 1, 1, 1]);
     assert.equal(await page.locator('[data-geste="tout-mettre-a-jour"]').count(), 0);
   } finally { await page.close(); }
 });
@@ -4347,7 +4478,7 @@ test('E13 : un dessin qui attendait un rangement refusé est abandonné, et l’
     await page.getByRole('menuitem', { name: 'Dupliquer la palette' }).click();
     const rangement = await prochaine(page, avant);
     // Un rangement en vol : l'onglet Palettes ne relit pas l'état à son ouverture.
-    await ouvrirLaPlanche(page);
+    await ouvrirLaPlanche(page, ID_DU_BLEU);
     await page.locator(`#panneau-gestion .palette-depliable[data-palette="${ID_DU_BLEU}"] [data-geste="generer"]`).click();
     assert.equal(await page.locator('#panneau-gestion').evaluate((panneau) => panneau.inert), true);
     assert.equal(await page.locator('#panneau-harmonisation').evaluate((panneau) => panneau.inert), true);
@@ -4362,17 +4493,38 @@ test('E13 : un dessin qui attendait un rangement refusé est abandonné, et l’
 });
 
 const ID_DU_JAUNE = 'p-08b7d4a0';
-/** Ouvre Gestion et déplie chaque palette du plugin restée repliée ([UI-27]) : les tests y lisent les fiches. */
-async function ouvrirLaPlanche(page) {
-  await page.getByRole('tab', { name: 'Gestion', exact: true }).click();
-  const repliee = page.locator('#panneau-gestion .palette-depliable[data-palette][data-ouverte="false"] [data-geste="deplier"]');
-  while (await repliee.count() > 0) await repliee.first().click();
+/** Déplie la palette `id` du plugin si elle est repliée : une seule ligne reste dépliée ([UI-27]), et la précédente se replie. */
+async function deplierLaPalette(page, id) {
+  const ligne = page.locator(`#panneau-gestion .palette-depliable[data-palette="${id}"]`);
+  if (await ligne.getAttribute('data-ouverte') === 'false') await ligne.locator('[data-geste="deplier"]').click();
+  await page.locator(`#panneau-gestion .palette-depliable[data-palette="${id}"][data-ouverte="true"]`).waitFor();
 }
-/** L'état de la planche de chaque fiche, lu sur la pastille de sa ligne « Planche » ([UI-26]) : `data-etat` de la fiche mêle les tokens et la planche. */
+/** Ouvre Gestion, puis déplie `palette` quand elle est donnée : les tests lisent la fiche de cette palette, et d'elle seule. */
+async function ouvrirLaPlanche(page, palette) {
+  await page.getByRole('tab', { name: 'Gestion', exact: true }).click();
+  if (palette) await deplierLaPalette(page, palette);
+}
+/** Les identifiants des palettes du plugin, dans l'ordre de la liste. */
+const idsDesPalettes = (page) => page.locator('#panneau-gestion .palette-depliable[data-palette]').evaluateAll((lignes) => lignes.map((ligne) => ligne.dataset.palette));
+/** Déplie chaque palette à son tour et rend ce que `lire` lit sur sa fiche : une seule fiche reste ouverte à la fois. */
+async function pourChaquePalette(page, lire) {
+  const lus = [];
+  for (const id of await idsDesPalettes(page)) {
+    await deplierLaPalette(page, id);
+    lus.push(await lire(page.locator(`#panneau-gestion .palette-depliable[data-palette="${id}"]`)));
+  }
+  return lus;
+}
+/** L'état de la planche d'une fiche dépliée, lu sur la pastille de sa ligne « Planche » ([UI-26]) : `data-etat` de la fiche mêle les tokens et la planche. */
 const pastilleDeLaPlanche = (fiche) => fiche.locator('.sortie[data-sortie="planche"] .pastille-d-etat');
-const etatsDesLignes = (page) => pastilleDeLaPlanche(page.locator('.palette-depliable[data-palette]')).evaluateAll((pastilles) => pastilles.map((pastille) => pastille.dataset.etat));
-/** Les gestes de la ligne « Planche » de chaque fiche, dans l'ordre. */
-const gestesDeLaPlanche = (fiches) => fiches.evaluateAll((cartes) => cartes.map((fiche) => [...fiche.querySelectorAll('.sortie[data-sortie="planche"] .sortie-gestes button')].map((bouton) => bouton.textContent)));
+/** La pastille de la planche de chaque ligne : celle de sa ligne « Planche » quand elle est dépliée, la dernière de ses états quand elle est repliée. */
+const pastillesDeLaPlanche = (page) => page.locator([
+  '#panneau-gestion .palette-depliable[data-palette][data-ouverte="true"] .sortie[data-sortie="planche"] .pastille-d-etat',
+  '#panneau-gestion .palette-depliable[data-palette][data-ouverte="false"] .palette-etats .pastille-d-etat:last-child',
+].join(', '));
+const etatsDesLignes = (page) => pastillesDeLaPlanche(page).evaluateAll((pastilles) => pastilles.map((pastille) => pastille.dataset.etat));
+/** Les gestes de la ligne « Planche » d'une fiche dépliée, dans l'ordre : leur texte, ou leur `data-geste`. */
+const gestesDeLaPlanche = (fiche, lu = 'texte') => fiche.locator('.sortie[data-sortie="planche"] .sortie-gestes button').evaluateAll((boutons, cle) => boutons.map((bouton) => (cle === 'geste' ? bouton.dataset.geste : bouton.textContent)), lu);
 const dessinsEnvoyes = async (page) => (await demandes(page)).filter((demande) => demande.type === 'dessiner');
 /** Attend le `rang`-ième dessin envoyé, compté à partir de 1. */
 async function dessinEnvoye(page, rang) {
@@ -4386,12 +4538,12 @@ test('[PLA-20] l’onglet Palettes dit l’état de chaque cadre, et « Actualis
     await ouvrirLaPlanche(page);
     // Les fiches se rangent par nom : Ardoise, Bleu, Jaune.
     assert.deepEqual(await etatsDesLignes(page), ['jamais-dessinee', 'a-jour', 'perimee']);
-    const fiches = page.locator('.palette-depliable[data-palette]');
-    // La ligne « Planche » de chaque fiche porte sa pastille d'état, un cadre jamais dessiné compris (Y2.2).
-    assert.deepEqual(await pastilleDeLaPlanche(fiches).allTextContents(), ['Pas encore créée', 'À jour', 'À actualiser']);
-    // Y1.9 : le geste que le cadre demande, puis « Afficher » pour un cadre localisé.
-    assert.deepEqual(await gestesDeLaPlanche(fiches), [['Créer la planche'], ['Afficher'], ['Actualiser', 'Afficher']]);
-    await fiches.nth(2).getByRole('button', { name: 'Actualiser', exact: true }).click();
+    // Chaque ligne, dépliée ou repliée, porte la pastille d'état de sa planche, un cadre jamais dessiné compris (Y2.2).
+    assert.deepEqual(await pastillesDeLaPlanche(page).allTextContents(), ['Pas encore créée', 'À jour', 'À actualiser']);
+    // Y1.9 : le geste que le cadre demande, puis « Afficher » pour un cadre localisé ; chaque fiche se lit dépliée, l'une après l'autre.
+    assert.deepEqual(await pourChaquePalette(page, (fiche) => gestesDeLaPlanche(fiche)), [['Créer la planche'], ['Afficher'], ['Actualiser', 'Afficher']]);
+    await deplierLaPalette(page, ID_DU_JAUNE);
+    await page.locator(`.palette-depliable[data-palette="${ID_DU_JAUNE}"]`).getByRole('button', { name: 'Actualiser', exact: true }).click();
     const demande = await dessinEnvoye(page, 1);
     assert.deepEqual({ ...demande, demande: 0 }, { type: 'dessiner', demande: 0, palettes: [ID_DU_JAUNE], empreinteLue: messageDe('planche-perimee').empreinte, etrangersConfirmes: [] });
   } finally {
@@ -4994,7 +5146,7 @@ async function exporterLeRapport(page) {
 test('[VER-01] [VER-02] le rapport porte l’empreinte de la recette, ses palettes, et les écarts du dernier dessin', async () => {
   const page = await ouvrirSur('planche-a-jour');
   try {
-    await ouvrirLaPlanche(page);
+    await ouvrirLaPlanche(page, ID_DU_BLEU);
     const avant = await exporterLeRapport(page);
     assert.equal(avant.empreinte, messageDe('planche-a-jour').empreinte);
     assert.deepEqual(avant.palettes.map(({ nom }) => nom), ['Bleu', 'Jaune']);
@@ -5291,7 +5443,7 @@ test('[UI-14] changer de palette rouvre le choix sur le porteur', async () => {
 test('Y1.6 : les gestes d’une fiche et ceux d’une palette supprimée ont la même hauteur, « Supprimer définitivement » compris', async () => {
   const page = await ouvrirSur('palette-supprimee');
   try {
-    await ouvrirLaPlanche(page);
+    await ouvrirLaPlanche(page, ID_DU_BLEU);
     const hauteurs = await page.locator('#panneau-gestion .fiche-gestes button, #panneau-gestion .sortie-gestes button').evaluateAll((boutons) => boutons.map((bouton) => [bouton.textContent, bouton.getBoundingClientRect().height]));
     assert.ok(hauteurs.some(([texte]) => texte === 'Supprimer définitivement'), JSON.stringify(hauteurs));
     assert.ok(hauteurs.some(([texte]) => texte === 'Afficher'), JSON.stringify(hauteurs));
@@ -5444,7 +5596,7 @@ test('Y4.8 [PLA-20] : changer le nombre d’intensités d’une palette génér�
     const avant = await compte(page);
     await configurerLesIntensites(page, 'Une');
     await envoyer(page, rangee((await prochaineDuType(page, 'ranger-recette', avant)).demande));
-    await ouvrirLaPlanche(page);
+    await ouvrirLaPlanche(page, ID_DU_BLEU);
     assert.deepEqual(await etatsDesLignes(page), ['perimee', 'a-jour']);
     const fiche = page.locator(`.palette-depliable[data-palette="${ID_DU_BLEU}"]`);
     assert.deepEqual(await fiche.locator('.fiche-rangee').evaluateAll((rangees) => rangees.map((rangee) => rangee.dataset.intensite)), ['unique'], 'la fiche ne montre que la rampe présente');
@@ -5457,15 +5609,15 @@ test('Y6.3 : la ligne « Planche » de chaque fiche porte son état en pastille 
   const page = await ouvrirSur('fiche-refaite');
   try {
     await ouvrirLaPlanche(page);
-    const fiches = page.locator('.palette-depliable[data-palette]');
     // Par nom : Ardoise, Bleu, Jaune.
-    assert.deepEqual(await pastilleDeLaPlanche(fiches).allTextContents(), ['Pas encore créée', 'À jour', 'À actualiser']);
-    assert.deepEqual(await fiches.evaluateAll((cartes) => cartes.map((fiche) => [...fiche.querySelectorAll('.sortie[data-sortie="planche"] .sortie-gestes button')].map((bouton) => bouton.dataset.geste))), [
+    assert.deepEqual(await pastillesDeLaPlanche(page).allTextContents(), ['Pas encore créée', 'À jour', 'À actualiser']);
+    assert.deepEqual(await pourChaquePalette(page, (fiche) => gestesDeLaPlanche(fiche, 'geste')), [
       ['generer'],
       ['voir'],
       ['generer', 'voir'],
     ]);
-    const jaune = fiches.nth(2);
+    await deplierLaPalette(page, ID_DU_JAUNE);
+    const jaune = page.locator(`.palette-depliable[data-palette="${ID_DU_JAUNE}"]`);
     await jaune.getByRole('button', { name: 'Actualiser', exact: true }).click();
     const demande = await dessinEnvoye(page, 1);
     const avant = await compte(page);
@@ -5518,7 +5670,7 @@ test('Z1.5 : « À jour » a le fond de succès, distinct de celui des notes ; �
   const page = await ouvrirSur('pastilles-des-etats');
   try {
     await ouvrirLaPlanche(page);
-    const pastilles = pastilleDeLaPlanche(page.locator('.palette-depliable[data-palette]'));
+    const pastilles = pastillesDeLaPlanche(page);
     // Gestion range les fiches par nom.
     assert.deepEqual(await pastilles.allTextContents(), ['Pas encore créée', 'À jour', 'À actualiser', 'Introuvable', 'Lecture impossible']);
     for (const theme of ['sombre']) {
@@ -7688,16 +7840,18 @@ test('[ENT-15] [DER-19] au clavier, Fin pose la luminosité du réglage global �
   }
 });
 
-test('[UI-26] un état relu entre l’appui et le relâchement ne perd pas le clic sur « Mettre à jour » ; l’en-tête d’une fiche ne porte que « Modifier »', async () => {
+test('[UI-26] un état relu entre l’appui et le relâchement ne perd pas le clic sur « Mettre à jour 2 couleurs » de l’encart ; l’en-tête d’une fiche ne porte que « Modifier »', async () => {
   const page = await ouvrirSur('tokens-a-mettre-a-jour');
   try {
-    await ouvrirLaPlanche(page);
+    await ouvrirLaPlanche(page, ID_DU_JAUNE);
     const fiche = page.locator(`#panneau-gestion .palette-depliable[data-palette="${ID_DU_JAUNE}"]`);
     assert.equal(await page.locator('#panneau-gestion .palette-depliable[data-palette] .palette-ligne .pastille-d-etat').count(), 0);
     assert.deepEqual(await fiche.locator('.palette-ligne .palette-gestes button').evaluateAll((boutons) => boutons.map((bouton) => bouton.dataset.geste)), ['modifier']);
     assert.equal(await fiche.locator('.sortie[data-sortie="tokens"] .pastille-d-etat').textContent(), 'À mettre à jour');
 
-    const geste = fiche.locator('[data-geste="mettre-a-jour"]');
+    // L'encart porte le geste : la ligne « Tokens Figma » n'en garde pas.
+    assert.equal(await fiche.locator('.sortie[data-sortie="tokens"] [data-geste="mettre-a-jour"]').count(), 0);
+    const geste = fiche.locator('[data-encart="mise-a-jour"] [data-geste="confirmer-ecriture"]');
     // La poignée suit le bouton pressé lui-même ; le sélecteur, lui, retrouverait celui qui le remplace.
     const presse = await geste.elementHandle();
     await geste.hover();
@@ -7709,7 +7863,7 @@ test('[UI-26] un état relu entre l’appui et le relâchement ne perd pas le cl
     await envoyer(page, { ...messageDe('tokens-a-mettre-a-jour'), demande: relecture.demande });
     assert.equal(await presse.evaluate((bouton) => bouton.isConnected), true, 'le bouton pressé reste en place');
     await page.mouse.up();
-    await page.locator(`#panneau-gestion .palette-depliable[data-palette="${ID_DU_JAUNE}"] [data-geste="mettre-a-jour"]:disabled`).waitFor();
+    await page.locator(`#panneau-gestion .palette-depliable[data-palette="${ID_DU_JAUNE}"] [data-encart="mise-a-jour"] [data-geste="confirmer-ecriture"]:disabled`).waitFor();
     // L'état attendu s'affiche après le clic : la fiche se reconstruit, et le bouton pressé quitte le document.
     await page.waitForFunction((bouton) => !bouton.isConnected, presse);
   } finally {
