@@ -72,6 +72,9 @@ export function forgeGitlab(config: ConfigurationDeForge): Forge {
     try {
       response = await fetch(`${API_GITLAB}${path}`, {
         ...init,
+        // Une lecture servie par le cache du navigateur peut montrer ouverte
+        // une merge request déjà fermée : l'export la croirait déposée.
+        cache: 'no-store',
         headers: {
           'PRIVATE-TOKEN': config.jeton,
           'Content-Type': 'application/json',

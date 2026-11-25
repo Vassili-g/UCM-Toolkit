@@ -401,3 +401,21 @@ test('une ligne qui commencerait une action rapide part en code', () => {
   const corps = corpsDeLaDemande('a.json', composant('{}', ['Nom « a »\n/merge']), forge);
   assert.doesNotMatch(corps, /^\/merge/m);
 });
+
+test('la liste des merge requests ouvertes ne passe jamais par le cache du navigateur', async () => {
+  // Régression : une merge request fermée, rendue ouverte par le cache, faisait
+  // dire à l'export que le contenu était déjà déposé.
+  const caches: (string | undefined)[] = [];
+  const precedent = globalThis.fetch;
+  globalThis.fetch = async (_input, init) => {
+    caches.push(init?.cache);
+    return new Response('[]', { status: 200 });
+  };
+  try {
+    await forge.demandesOuvertes();
+  } finally {
+    globalThis.fetch = precedent;
+  }
+  assert.ok(caches.length > 0);
+  assert.deepEqual(caches, caches.map(() => 'no-store'));
+});

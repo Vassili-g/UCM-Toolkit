@@ -1101,3 +1101,21 @@ test('tokens.json n’est le portrait d’aucun composant', () => {
   );
   assert.equal(corps.includes('Composant Figma'), false);
 });
+
+test('la liste des pull requests ouvertes ne passe jamais par le cache du navigateur', async () => {
+  // Régression : GitHub sert cette liste avec `max-age=60`. Une PR fermée sans
+  // fusion restait listée une minute, et l'export la disait déjà déposée.
+  const caches: (string | undefined)[] = [];
+  const precedent = globalThis.fetch;
+  globalThis.fetch = async (_input, init) => {
+    caches.push(init?.cache);
+    return new Response('[]', { status: 200 });
+  };
+  try {
+    await forge.demandesOuvertes();
+  } finally {
+    globalThis.fetch = precedent;
+  }
+  assert.ok(caches.length > 0);
+  assert.deepEqual(caches, caches.map(() => 'no-store'));
+});

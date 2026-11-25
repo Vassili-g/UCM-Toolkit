@@ -69,6 +69,10 @@ export function forgeGithub(config: ConfigurationDeForge): Forge {
     try {
       response = await fetch(`${API_GITHUB}${path}`, {
         ...init,
+        // GitHub sert ses lectures avec `Cache-Control: max-age=60`. Le cache
+        // du navigateur rendait alors, une minute durant, une pull request
+        // fermée comme encore ouverte, et l'export la croyait déposée.
+        cache: 'no-store',
         headers: {
           Accept: 'application/vnd.github+json',
           Authorization: `Bearer ${config.jeton}`,
