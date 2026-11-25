@@ -77,13 +77,13 @@ Le script lit seulement la page et la maquette. Un agent ne lit jamais les image
 
 ## Étape C. Le registre et les calculs
 
-- [ ] C1 Donner au registre la forme `Brique` de la recherche (section 4) et ses tests de structure, sans changer l'affichage.
+- [x] C1 (b3604f29) Donner au registre la forme `Brique` de la recherche (section 4) et ses tests de structure, sans changer l'affichage.
   - Agent : `implementeur`. Nature : déplacement de code à sortie identique, plus des tests nouveaux.
   - Écrit : `docs/inventaire/chaine/briques.ts` (entrées `Brique`, `recoit` à la place de `LIENS`, `PUCES_DU_KIT`, `JAUGES`, `NOMBRES_ECRITS`), `docs/inventaire/chaine/calculs.ts` (conversion du registre vers la forme que lit `rendu.js`), `tests/chaine.test.ts`.
   - Dans ce sous-lot, `etat`, `auj`, `deps`, `teinte`, `MARQUES` et `KIT` restent déclarés.
   - Tests nouveaux, chacun éprouvé sur un registre fabriqué qui viole sa règle : une carte d'outil, de module, de paquet ou la note sans `produit` ni `piste` ; une piste citée absente de `pistes.json` ; un `recoit.de`, un `vers` ou un identifiant de `JAUGES` inconnu ; une carte qui sort de sa zone, largeur comprise ; une couche dont une collection manque à `COLLECTIONS`.
   - Critères de fin : `donneesDeLaChaine()` rend un objet identique à celui de A3, vérifié par un test qui compare les deux sérialisations ; `node --import tsx --test tests/chaine.test.ts` passe.
-- [ ] C2 Calculer états, scénario « Aujourd'hui », dépendances, marques, traits et puces du kit, versions et nombres.
+- [x] C2 (b3604f29) Calculer états, scénario « Aujourd'hui », dépendances, marques, traits et puces du kit, versions et nombres.
   - Agent : `implementeur`. Nature : correction d'un défaut, avec un test qui échoue sans la correction.
   - Écrit : `docs/inventaire/chaine/calculs.ts`, `docs/inventaire/chaine/briques.ts` (retrait des champs calculés), `docs/inventaire/releves.ts` (imports de `@ucm-kit/core/<porte>` par paquet ; une seule table des logos par produit), `tests/chaine.test.ts`. Les nombres se calculent dans `calculs.ts`, par import du référentiel, sans toucher `generer-inventaire.ts`.
   - Règles de calcul : une carte de produit est « Disponible » ; une carte à piste est « Disponible » si `roadmap()` range sa piste dans les terminées, « À venir » sinon ; une carte à pièces est « Disponible » si toutes ses pièces le sont, « À venir » si aucune ne l'est, « En partie » sinon ; « Aujourd'hui » active les cartes « Disponible » ; la porte `protocoles` va sous la puce « Architecture des tokens ».
@@ -98,7 +98,7 @@ Le script lit seulement la page et la maquette. Un agent ne lit jamais les image
 
 ## Étape D. L'inventaire
 
-- [ ] D1 Remplacer la section 3 de l'inventaire par la chaîne, en pleine largeur, avec un lien vers la page plein écran.
+- [x] D1 (b3604f29) Remplacer la section 3 de l'inventaire par la chaîne, en pleine largeur, avec un lien vers la page plein écran.
   - Agent : `implementeur-exigeant` (interface au pixel près, style et script partagés). Nature : texte ou écran nouveau.
   - Écrit : `docs/inventaire/gabarit.html` (section `#chaine`, sommaire, retrait des huit étapes ; la phrase de l'étape « Variables à la main » rejoint la liste F1), `docs/inventaire/page.css` (retrait des règles du parcours, lignes 327 à 349 et 452 à 453 ; la section sort de la colonne), `docs/inventaire/page.js` (retrait du code des étapes, lignes 301 à 321 ; `.chaine` dans `HORS_ETIQUETTE`), `docs/inventaire/generer-inventaire.ts`, `docs/inventaire/couverture.ts` (univers « produits du kit »), `tests/inventaire.test.ts` (lien admis vers `CHAINE-UCM.html`), `scripts/ouvrir-inventaire.mjs` (écrit les deux pages), `CARTE.md`.
   - Ne touche pas `docs/inventaire/chaine/`.
