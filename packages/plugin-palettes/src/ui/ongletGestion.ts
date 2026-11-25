@@ -12,7 +12,9 @@
  * puis une ligne par sortie, tokens et planche. Les deux décisions d'écriture
  * se prennent dans la fiche, sans modale : l'encart d'une écriture qui crée
  * des variables ([UI-31]), et celui des couleurs changées dans Figma
- * ([UI-32]). Une seule ligne est dépliée à la fois : déplier une palette
+ * ([UI-32]), puis celui des couleurs que le plugin a changées, qui s'ouvre
+ * d'office avec la fiche et porte « Mettre à jour » ([UI-31]). Une seule
+ * ligne est dépliée à la fois : déplier une palette
  * replie l'autre, et une palette qui attend une décision nouvelle se déplie
  * seule, à la place de la ligne dépliée.
  *
@@ -45,7 +47,7 @@ import { etatDeLaFiche, paletteADeplier, type EtatDeLaFiche } from '../presentat
 import { SANS_BIBLIOTHEQUE, type Bibliotheques, type PaletteDeBibliotheque } from '../variables/bibliotheques';
 import type { Destination } from '../variables/destination';
 import { palettesDuFichier, regrouperLesPalettes, type PaletteDuFichier, type PaletteGroupee } from '../variables/detection';
-import { restesNommes, tokensDeLaPalette, variablesDesPalettesSupprimees, type TokensDUnePalette, type VariablesOrphelines } from '../variables/gestion';
+import { couleursAMettreAJour, groupesDeCouleurs, restesNommes, tokensDeLaPalette, variablesDesPalettesSupprimees, type GroupeDeCouleurs, type TokensDUnePalette, type VariablesOrphelines } from '../variables/gestion';
 import { suiviFutur as suiviDesVariablesFutur, variablesSuivies } from '../variables/suivi';
 import { creerVuesApercuCompact } from './apercuCompact';
 import { createCarte } from './carte';
@@ -130,7 +132,7 @@ export interface GestesDeLaGestion extends GestesDuResultat {
   recetteEnFichier: GestesDeLaRecetteUi;
 }
 
-/** Le nombre de couleurs que l'encart des couleurs changées dans Figma liste ([UI-32]). */
+/** Le nombre de couleurs que l'encart de remplacement d'une palette reprise liste ([UI-34]). */
 const COULEURS_LISTEES = 6;
 
 function construireVues(i18n: Localisation) {
@@ -147,7 +149,7 @@ function construireVues(i18n: Localisation) {
     tokensPartiels, formeDesThemes, modeDisparu, gesteInterrompu, referencesImportees, ancienneSortie,
     bibliothequeIllisible, bibliothequesIllisibles, collectionDeBibliotheque, copieRefusee, copieSansCouleur, couleursDeBibliotheque, texteDeLaCopie, titreDeLaCopie,
     avecLeNom, collectionDisparue, copieDeCadre, couleursChangeesALaMain, couleursChangeesDansLePlugin, couleursDeLaPaletteDuFichier, detailsTechniques,
-    ecrireNVariables, remplacerNVariables, texteDesExistantes, titreDeLaMiseAJour, variablesARemplacer, ecritureInterrompue, etNAutres, etatDeLaPlancheEcrit, etatDesTokensEcrit, modesRefuses, nomDeLaPalette, nomDejaPris, nomsPrisPar, coucheInterdite, ecritureDefaite,
+    ecrireNVariables, mettreAJourNCouleurs, remplacerNVariables, texteDesCouleursAMettreAJour, texteDesExistantes, titreDeLaMiseAJour, titreDesCouleursAMettreAJour, variablesARemplacer, ecritureInterrompue, etNAutres, etatDeLaPlancheEcrit, etatDesTokensEcrit, modesRefuses, nomDeLaPalette, nomDejaPris, nomsPrisPar, coucheInterdite, ecritureDefaite,
     nombreDeVariables, noticeDisplayP3, pageDeLaPlanche, progressionDuBouton, progressionDuDessin,recetteFuture, recetteIllisible, suiviFutur,
     suppressionDesVariablesRefusee, suppressionRefusee, texteDeLEcriture, titreDeLEcriture, titreDesModifiees, valeurDansFigma, valeurDansLePlugin,
     variablesACreer, variablesDisparues, variablesSurUneAutreRecette, verifierLaPalette, regroupementDuFichier,
@@ -683,6 +685,7 @@ function construireVues(i18n: Localisation) {
             gesteAFocaliser = { palette: id, geste: 'remettre' };
             rendre();
           } else if (etat.aCreer.length > 0 || etat.existantes.length > 0 || etat.aRenommer.length > 0 || (etat.reprise && etat.aRemplacer > 0)) ouvrirLEcriture(id);
+          // Cette branche écrit encore sans encart pour une destination changée sans création, des noms occupés, une reprise sans variable à remplacer et des variables disparues ; des couleurs seules passent par leur encart.
           else {
             gesteAFocaliser = { palette: id, geste: 'modifier' };
             ecrire([id], []);
@@ -711,7 +714,8 @@ function construireVues(i18n: Localisation) {
           const detail = etat.destinationChangee
             ? i18n.composer`${TEXTES_DE_LA_GESTION.destinationChangee} · ${aCreerOuRemplacer}`
             : changees > 0 ? couleursChangeesDansLePlugin(changees) : aCreerOuRemplacer;
-          return { ...ligne, detail, gestes: mettreAJour('primary') };
+          // Des couleurs seules : l'encart de la fiche porte le geste, la ligne n'en garde pas ([UI-31]).
+          return { ...ligne, detail, gestes: couleursAMettreAJour(etat).length > 0 ? [] : mettreAJour('primary') };
         }
         case 'modifies':
           // L'encart des couleurs changées porte les deux choix ; replié, la ligne le rouvre.
@@ -719,6 +723,64 @@ function construireVues(i18n: Localisation) {
         case 'introuvables':
           return { ...ligne, detail: etat.reprise ? i18n.composer`${formeDesThemes(etat.themes)} · ${variablesDisparues(etat.introuvables.length)}` : variablesDisparues(etat.introuvables.length), gestes: mettreAJour('primary') };
       }
+    }
+
+    /**
+     * La grille des couleurs d'un encart ([UI-31], [UI-32]) : une tête par
+     * chemin de variable, puis une ligne par nuance avec sa couleur dans Figma
+     * et celle de la colonne de droite. Un chemin qui se répète entre deux
+     * thèmes porte le thème dans sa tête.
+     */
+    function grilleDesCouleurs(groupes: readonly GroupeDeCouleurs[], droite: Texte): HTMLDivElement {
+      const grille = document.createElement('div');
+      grille.className = 'avant-apres';
+      for (const texte of [TEXTES_DE_LA_GESTION.nuance, TEXTES_DE_LA_GESTION.dansFigma, droite]) {
+        const entete = document.createElement('span');
+        entete.className = 'entete';
+        i18n.lier(entete, 'textContent', texte);
+        grille.append(entete);
+      }
+      for (const groupe of groupes) {
+        const tete = document.createElement('div');
+        tete.className = 'groupe';
+        const chemin = document.createElement('code');
+        chemin.title = groupe.chemin;
+        i18n.lier(chemin, 'textContent', groupe.theme === null
+          ? groupe.chemin
+          : i18n.composer`${groupe.chemin} · ${groupe.theme === 'light' ? TEXTES.modeClairCourt : TEXTES.modeSombreCourt}`);
+        tete.append(chemin);
+        grille.append(tete);
+        for (const ligne of groupe.lignes) {
+          const nuance = document.createElement('span');
+          nuance.className = 'nuance';
+          nuance.textContent = ligne.nuance;
+          grille.append(nuance, ligne.avant === null ? valeur(null, TEXTES_DE_LA_GESTION.alias) : valeur(ligne.avant, ligne.avant), valeur(ligne.apres, ligne.apres));
+        }
+      }
+      return grille;
+    }
+
+    /** L'encart des couleurs que le plugin a changées depuis la dernière écriture : Figma et le plugin côte à côte, puis « Mettre à jour N couleurs » ([UI-31]). */
+    function encartDesCouleursAMettreAJour(id: string, nom: string, couleurs: TokensDUnePalette['aEcrire']): HTMLDivElement {
+      const bloc = document.createElement('div');
+      bloc.className = 'encart';
+      bloc.dataset.encart = 'mise-a-jour';
+      bloc.dataset.ton = 'avertissement';
+      const titre = document.createElement('p');
+      titre.className = 'encart-titre';
+      i18n.lier(titre, 'textContent', titreDesCouleursAMettreAJour(couleurs.length, nom));
+      const texte = document.createElement('p');
+      texte.className = 'ligne-secondaire';
+      i18n.lier(texte, 'textContent', texteDesCouleursAMettreAJour(couleurs.length));
+      const groupes = groupesDeCouleurs(couleurs.map((couleur) => ({ cle: couleur.cle, nom: couleur.nom, avant: couleur.ecrite, apres: couleur.plugin })));
+      const choix = document.createElement('div');
+      choix.className = 'confirmation-gestes';
+      choix.append(gesteDEcriture(mettreAJourNCouleurs(couleurs.length), 'primary', 'confirmer-ecriture', () => {
+        gesteAFocaliser = { palette: id, geste: 'modifier' };
+        ecrire([id], []);
+      }));
+      bloc.append(titre, texte, grilleDesCouleurs(groupes, TEXTES_DE_LA_GESTION.apresLaMiseAJour), choix);
+      return bloc;
     }
 
     /**
@@ -833,7 +895,7 @@ function construireVues(i18n: Localisation) {
       return bloc;
     }
 
-    /** L'encart d'une palette « Modifiés dans Figma » : chaque couleur, côte à côte, puis les deux choix ([UI-32]). */
+    /** L'encart d'une palette « Modifiés dans Figma » : chaque couleur dans la grille, sans limite, puis les deux choix ([UI-32]). */
     function encartDesModifiees(id: string, nom: string, etat: TokensDUnePalette): HTMLDivElement {
       const bloc = document.createElement('div');
       bloc.className = 'encart';
@@ -843,24 +905,8 @@ function construireVues(i18n: Localisation) {
       titre.className = 'encart-titre';
       i18n.lier(titre, 'textContent', titreDesModifiees(etat.modifiees.length, nom));
       bloc.append(titre);
-      for (const couleur of etat.modifiees.slice(0, COULEURS_LISTEES)) {
-        const ecart = document.createElement('div');
-        ecart.className = 'ecart';
-        const variable = document.createElement('code');
-        variable.textContent = couleur.nom;
-        ecart.append(
-          variable,
-          valeur(couleur.figma, couleur.figma === null ? TEXTES_DE_LA_GESTION.alias : valeurDansFigma(couleur.figma)),
-          valeur(couleur.plugin, valeurDansLePlugin(couleur.plugin)),
-        );
-        bloc.append(ecart);
-      }
-      if (etat.modifiees.length > COULEURS_LISTEES) {
-        const suite = document.createElement('p');
-        suite.className = 'ligne-secondaire';
-        i18n.lier(suite, 'textContent', etNAutres(etat.modifiees.length - COULEURS_LISTEES));
-        bloc.append(suite);
-      }
+      const groupes = groupesDeCouleurs(etat.modifiees.map((couleur) => ({ cle: couleur.cle, nom: couleur.nom, avant: couleur.figma, apres: couleur.plugin })));
+      bloc.append(grilleDesCouleurs(groupes, TEXTES_DE_LA_GESTION.dansLePlugin));
       const choix = document.createElement('div');
       choix.className = 'confirmation-gestes';
       const laisser = createButton({
@@ -1059,6 +1105,8 @@ function construireVues(i18n: Localisation) {
       fiche.push(apercuCompact(lue, analyse, mode), information, lignesDeSortie(sorties, i18n));
       if (etatDesTokens && etatDesTokens.modifiees.length > 0 && !laissees.has(id)) fiche.push(encartDesModifiees(id, nom, etatDesTokens));
       else if (etatDesTokens && encart === id) fiche.push(etatDesTokens.reprise && etatDesTokens.aCreer.length === 0 ? encartDuRemplacement(id, nom, etatDesTokens) : encartDeLEcriture(id, nom, etatDesTokens));
+      // Des couleurs seules ont changé dans le plugin : l'encart s'ouvre avec la fiche ([UI-31]).
+      else if (etatDesTokens && couleursAMettreAJour(etatDesTokens).length > 0) fiche.push(encartDesCouleursAMettreAJour(id, nom, couleursAMettreAJour(etatDesTokens)));
       // Le refus que le plan annonce déjà remplace celui de la dernière écriture.
       const refus = etatDesTokens?.refus ? undefined : refusDesTokens.get(id);
       if (refus) fiche.push(blocDeConstat(refus, 'alerte'));

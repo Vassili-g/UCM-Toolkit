@@ -1896,6 +1896,41 @@
   white-space: nowrap;
 }
 
+/* Les couleurs d'un encart, dans Figma et dans le plugin, groupées par chemin de variable ([UI-31], [UI-32]). */
+.avant-apres {
+  display: grid;
+  align-items: center;
+  gap: var(--espace-serre) var(--espace-controle);
+  grid-template-columns: 44px 150px 150px;
+}
+
+.avant-apres .entete {
+  color: var(--texte-second);
+  font-size: 11px;
+}
+
+.avant-apres .groupe {
+  grid-column: 1 / -1;
+  margin-top: var(--espace-serre);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.avant-apres .groupe code {
+  color: var(--texte-second);
+  font-size: 11px;
+}
+
+.avant-apres .nuance {
+  font-variant-numeric: tabular-nums;
+}
+
+.avant-apres .valeur i {
+  width: 20px;
+  height: 20px;
+}
+
 /* Sous l'encart d'un fichier sans palette : les palettes que ses variables portent, et le lien vers Gestion ([UI-22]). */
 .lien-de-fichier {
   display: flex;
