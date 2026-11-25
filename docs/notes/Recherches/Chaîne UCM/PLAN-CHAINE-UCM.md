@@ -55,8 +55,8 @@ Le script lit seulement la page et la maquette. Un agent ne lit jamais les image
 
 ## Étape A. Séparer les données du rendu
 
-- [ ] A1 (orchestrateur). Écrire la porte au pixel `_local/presentation-po/comparer.mjs` et l'éprouver : la maquette contre elle-même ne rend aucune différence.
-- [ ] A3 Sortir les données de la maquette et générer `CHAINE-UCM.html` à l'identique.
+- [x] A1 (orchestrateur, 445b0acc). Écrire la porte au pixel `_local/presentation-po/comparer.mjs` et l'éprouver : la maquette contre elle-même ne rend aucune différence.
+- [x] A3 (445b0acc) Sortir les données de la maquette et générer `CHAINE-UCM.html` à l'identique.
   - Agent : `implementeur-exigeant` (réécriture sans perte, interface au pixel près). Nature : déplacement de code à sortie identique.
   - Lit : `_local/presentation-po/maquette-v16.html` en entier, la section 5 de la recherche.
   - Écrit :
@@ -68,12 +68,12 @@ Le script lit seulement la page et la maquette. Un agent ne lit jamais les image
     - `docs/inventaire/generer-inventaire.ts` : `genererChaine()`, qui écrit les logos en SVG en ligne par `svgDeMarque` ;
     - `docs/inventaire/sources.json`, `scripts/vues.mjs`, `tests/inventaire.test.ts` : la vue `CHAINE-UCM.html`, sa fraîcheur, et le refus de `src=`, `<link>` et `@import` dans cette page.
   - Critères de fin : la porte au pixel ne rend aucune différence sur `CHAINE-UCM.html`, générée par l'orchestrateur ; le diff de `rendu.js` contre le script de la maquette ne retire que les données et ne change que les écoutes, les identifiants et les logos ; `node --import tsx --test tests/inventaire.test.ts` passe.
-- [ ] B1 Corriger ce que `produits.ts` déclare d'Architect et le nom de l'Exporter.
+- [x] B1 (445b0acc) Corriger ce que `produits.ts` déclare d'Architect et le nom de l'Exporter.
   - Agent : `implementeur`. Nature : correction d'un défaut (E9, Q3).
   - Lit : `packages/kit/invariants/referentiel.md`, `packages/kit/invariants/versionnage.md`.
   - Écrit : `packages/kit/src/referentiel/produits.ts` (Architect écrit `variables` et `composants` dans le document Figma ; libellé « UCM Contract Exporter »), `packages/kit/tests/referentiel-definitions.test.ts`, `packages/kit/package.json`, `packages/kit/CHANGELOG.md`.
   - Critères de fin : un test échoue avant la correction et passe après ; le compte rendu liste chaque lecteur du libellé changé ; `npm run test --workspace @ucm-kit/core` passe. L'orchestrateur lance ensuite les tests racine (`versionSuitLeContenu`) et publie par la skill `publier-paquets`.
-- [ ] A4 (vérificateur). `npm run vues`, puis `node scripts/run-tests.cjs`.
+- [x] A4 (vérificateur, 445b0acc). `npm run vues`, puis `node scripts/run-tests.cjs`.
 
 ## Étape C. Le registre et les calculs
 
