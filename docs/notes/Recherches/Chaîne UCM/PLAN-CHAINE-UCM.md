@@ -110,7 +110,7 @@ Le script lit seulement la page et la maquette. Un agent ne lit jamais les image
 
 ## Étape E. Vérification
 
-- [ ] E1 Lancer la vérification complète sur l'arbre stable et relire les documents que `npm run agents:diff` liste.
+- [x] E1 (86497e7e) Lancer la vérification complète sur l'arbre stable et relire les documents que `npm run agents:diff` liste.
   - Agent : `verificateur` pour `npm test`, `npm run typecheck`, `npm run build` ; orchestrateur pour `npm run agents:diff` et la relecture.
   - Critères de fin : les trois commandes passent ; chaque document listé par `agents:diff` est à jour.
 
