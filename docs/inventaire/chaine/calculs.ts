@@ -11,7 +11,7 @@ import { fileURLToPath } from 'node:url';
 import { VARIABLES_DU_THEME, GARANTIES } from '@ucm-kit/core/emplois';
 import { COLLECTIONS, PRODUITS, SEUILS_PAR_USAGE } from '@ucm-kit/core/referentiel';
 import type { Produit } from '@ucm-kit/core/referentiel';
-import { BRIQUES, JAUGES, LEGENDES, NOMBRES_ECRITS, PUCES_DU_KIT, ZONES } from './briques';
+import { BRIQUES, EXCLUSIONS_DE_PISTES, JAUGES, LEGENDES, NOMBRES_ECRITS, PUCES_DU_KIT, ZONES } from './briques';
 import type { Brique, DonneeDeTrait, DonneesDeTrait, Etat, GenreDeBrique, Jauge, Mode, NombreEcrit, Piece, Preuve, PuceDuKit, Reception, Zone } from './briques';
 import { RACINE, paquetsDuWorkspace, portesDuKit, portesImportees, preuvesDuCode, roadmap } from '../releves';
 import type { PaquetDuWorkspace } from '../releves';
@@ -75,13 +75,12 @@ export function largeurDeLaBrique(brique: Pick<Brique, 'genre' | 'large'>): numb
 }
 
 /**
- * Ce qu'une carte lit. Une carte de fichier ou de dessin lit sa `donnee`, une carte de produit lit ce que `PRODUITS` déclare (et
- * `litAussi`), un module ou un geste lit ce qu'il déclare.
+ * Ce qu'une carte lit. Une carte de fichier ou de dessin lit sa `donnee`, une carte de produit lit ce que `PRODUITS` déclare, un module ou un geste lit ce qu'il déclare.
  */
 export function donneesLues(b: Brique): readonly DonneeDeTrait[] {
   if (b.donnee !== undefined) return [b.donnee, ...(b.lit ?? [])];
   const produit = b.produit === undefined ? undefined : PRODUITS.find((p) => p.id === b.produit);
-  if (produit !== undefined) return [...produit.lit, ...(b.litAussi ?? [])];
+  if (produit !== undefined) return produit.lit;
   return b.lit ?? [];
 }
 
@@ -100,6 +99,8 @@ export interface RegistreDeLaChaine {
   jauges: readonly Jauge[];
   /** Les nombres qu'un texte écrit à la main ; absent, aucun texte n'en écrit. */
   nombres?: readonly NombreEcrit[];
+  /** Les pistes non terminées que la chaîne ne montre pas, chacune avec sa raison ; absent, aucune n'est exclue. */
+  exclusions?: Readonly<Record<string, string>>;
 }
 
 /** Un paquet du workspace avec les portes du kit que son `src/` importe. */
@@ -123,7 +124,7 @@ export interface ReferencesDuRegistre {
   exportees: Readonly<Record<string, ReadonlySet<string>>>;
   /** Le texte d'`ucm init`. */
   init: string;
-  /** Les valeurs des trous `{{nom}}` des textes, hors `paquets`, que le registre compte lui-même. */
+  /** Les valeurs des trous `{{nom}}` des textes, hors `paquets-livres` et `paquets-a-venir`, que le registre compte lui-même. */
   valeurs: Readonly<Record<string, string>>;
 }
 
@@ -229,6 +230,26 @@ function controlerLeTrait(cible: Brique, trait: Reception, briques: readonly Bri
 
 const TROU = /\{\{([a-z-]+)\}\}/g;
 
+/**
+ * Les violations du suivi de la Roadmap : chaque piste non terminée de `pistes.json` est montrée par une carte ou une pièce, ou exclue avec sa raison ;
+ * une exclusion sans raison, d'une piste absente ou d'une piste montrée est refusée.
+ */
+function controlerLesPistes(registre: RegistreDeLaChaine, references: ReferencesDuRegistre): string[] {
+  const erreurs: string[] = [];
+  const exclusions = registre.exclusions ?? {};
+  const montrees = new Set(registre.briques.flatMap((b) => [b.piste, ...(b.pieces ?? []).map((piece) => piece.piste)]).filter((piste) => piste !== undefined));
+  for (const piste of references.pistes) {
+    if (references.terminees.has(piste) || montrees.has(piste) || piste in exclusions) continue;
+    erreurs.push(`La piste ${piste} n'est ni montrée ni exclue : ajouter une carte, une pièce ou une exclusion dans EXCLUSIONS_DE_PISTES.`);
+  }
+  for (const [piste, raison] of Object.entries(exclusions)) {
+    if (raison.trim() === '') erreurs.push(`L'exclusion de la piste ${piste} n'a pas de raison.`);
+    if (!references.pistes.has(piste)) erreurs.push(`L'exclusion de la piste ${piste} est refusée : elle est absente de pistes.json, retirer l'exclusion.`);
+    else if (montrees.has(piste)) erreurs.push(`L'exclusion de la piste ${piste} est refusée : une carte ou une pièce la montre, retirer l'exclusion.`);
+  }
+  return erreurs;
+}
+
 /** Les violations du registre, une phrase chacune ; vide quand il tient toutes les règles de structure. */
 export function controlerLeRegistre(registre: RegistreDeLaChaine, references: ReferencesDuRegistre): string[] {
   const erreurs: string[] = [];
@@ -246,13 +267,11 @@ export function controlerLeRegistre(registre: RegistreDeLaChaine, references: Re
     if (!GENRES_RATTACHES.includes(b.genre) && nommees !== 0) erreurs.push(`${b.id} : une carte de genre ${b.genre} ne nomme ni produit ni piste.`);
     if (b.produit !== undefined && !references.produits.has(b.produit)) erreurs.push(`${b.id} : le produit ${b.produit} est absent de PRODUITS.`);
     if (b.produit !== undefined && references.produits.has(b.produit) && paquetDuProduit(b.produit, references) === undefined) erreurs.push(`${b.id} : le produit ${b.produit} n'a pas de paquet dans le workspace.`);
-    if (b.piste !== undefined && !references.pistes.has(b.piste)) erreurs.push(`${b.id} : la piste ${b.piste} est absente de pistes.json.`);
-    if (b.piste !== undefined && references.terminees.has(b.piste)) erreurs.push(`${b.id} : la piste ${b.piste} est terminée, la carte nomme le produit qui la livre à la place.`);
+    if (b.piste !== undefined && !references.pistes.has(b.piste)) erreurs.push(`${b.id} : la piste ${b.piste} est absente de pistes.json, retirer la carte ${b.id}.`);
     for (const piece of b.pieces ?? []) {
-      if (piece.piste !== undefined && !references.pistes.has(piece.piste)) erreurs.push(`${b.id} : la piste ${piece.piste} de la pièce « ${piece.texte} » est absente de pistes.json.`);
+      if (piece.piste !== undefined && !references.pistes.has(piece.piste)) erreurs.push(`${b.id} : la piste ${piece.piste} de la pièce « ${piece.texte} » est absente de pistes.json, retirer cette pièce de la carte ${b.id}.`);
       if ((piece.preuve === undefined) === (piece.piste === undefined)) erreurs.push(`${b.id} : la pièce « ${piece.texte} » porte une preuve ou une piste, une seule.`);
       if (piece.preuve !== undefined && !preuveTrouvee(piece.preuve, references)) erreurs.push(`${b.id} : la preuve de la pièce « ${piece.texte} » est absente du code (${JSON.stringify(piece.preuve)}).`);
-      if (piece.piste !== undefined && references.terminees.has(piece.piste)) erreurs.push(`${b.id} : la piste ${piece.piste} de la pièce « ${piece.texte} » est terminée, la pièce porte une preuve à la place.`);
     }
     for (const r of b.recoit ?? []) {
       if (!identifiants.has(r.de)) erreurs.push(`${b.id} : le trait reçoit de ${r.de}, qui n'est pas une carte.`);
@@ -276,7 +295,7 @@ export function controlerLeRegistre(registre: RegistreDeLaChaine, references: Re
     for (const texte of textesDe(b)) {
       const sansTrous = texte.replace(TROU, ' ');
       for (const trou of texte.matchAll(TROU)) {
-        if (!(trou[1] in references.valeurs) && trou[1] !== 'paquets') erreurs.push(`${b.id} : le trou {{${trou[1]}}} n'a pas de valeur calculée.`);
+        if (!(trou[1] in references.valeurs)) erreurs.push(`${b.id} : le trou {{${trou[1]}}} n'a pas de valeur calculée.`);
       }
       if (/\b\d+\.\d+\.\d+\b/.test(sansTrous)) erreurs.push(`${b.id} : le texte « ${texte} » écrit une version, qui se calcule depuis package.json.`);
       for (const nombre of sansTrous.match(/\d+(?:[.,]\d+)*/g) ?? []) {
@@ -295,6 +314,7 @@ export function controlerLeRegistre(registre: RegistreDeLaChaine, references: Re
       if (!nombres.has(nombre)) erreurs.push(`La zone ${zone.titre} écrit le nombre ${nombre}, hors d'un calcul et de NOMBRES_ECRITS.`);
     }
   }
+  erreurs.push(...controlerLesPistes(registre, references));
   for (const jauge of registre.jauges) {
     for (const id of jauge.par) if (!identifiants.has(id)) erreurs.push(`La jauge « ${jauge.nom} » cite ${id}, qui n'est pas une carte.`);
   }
@@ -534,9 +554,10 @@ function liensDe(briques: readonly Brique[]): Lien[] {
 }
 
 export function convertirLeRegistre(registre: RegistreDeLaChaine, references: ReferencesDuRegistre) {
-  const nombreDePaquets = registre.briques.filter((b) => b.genre === 'paquet').length;
-  const valeurs = { ...references.valeurs, paquets: String(nombreDePaquets) };
   const etats = etatsDesCartes(registre, references);
+  const cartesDePaquet = registre.briques.filter((b) => b.genre === 'paquet');
+  const nombreDePaquets = (etat: Etat) => String(cartesDePaquet.filter((b) => etats.get(b.id) === etat).length);
+  const valeurs = { ...references.valeurs, 'paquets-livres': nombreDePaquets('livre'), 'paquets-a-venir': nombreDePaquets('venir') };
   const briques = registre.briques;
   const noeuds = briques.map((b) => noeudDe(remplirLesTrous(b, valeurs), {
     etat: etats.get(b.id),
@@ -557,7 +578,7 @@ export function convertirLeRegistre(registre: RegistreDeLaChaine, references: Re
 }
 
 export function donneesDeLaChaine() {
-  const registre: RegistreDeLaChaine = { zones: ZONES, briques: BRIQUES, jauges: JAUGES, nombres: NOMBRES_ECRITS };
+  const registre: RegistreDeLaChaine = { zones: ZONES, briques: BRIQUES, jauges: JAUGES, nombres: NOMBRES_ECRITS, exclusions: EXCLUSIONS_DE_PISTES };
   const references = referencesDuDepot();
   const erreurs = [...controlerLeRegistre(registre, references), ...controlerLesPuces(PUCES_DU_KIT, references.portesDuKit)];
   if (erreurs.length > 0) throw new Error(`Le registre de la chaîne est refusé :\n${erreurs.join('\n')}`);

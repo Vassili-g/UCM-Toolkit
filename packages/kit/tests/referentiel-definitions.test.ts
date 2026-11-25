@@ -94,6 +94,7 @@ test('les huit produits décrivent leurs responsabilités et leurs destinations'
   assert.deepEqual(PRODUITS.find(({ id }) => id === 'exporter')?.ecrit.find(({ destination }) => destination === 'document-figma')?.donnees, ['regles-usage']);
   assert.deepEqual(PRODUITS.find(({ id }) => id === 'adapter-typescript')?.ecrit.find(({ destination }) => destination === 'repository')?.donnees, ['types']);
   assert.deepEqual(PRODUITS.find(({ id }) => id === 'architect')?.lit, ['variables', 'composants', 'recette', 'noms-collections', 'noms-variables', 'regles-de-nommage']);
+  assert.ok(PRODUITS.find(({ id }) => id === 'cli')?.lit.includes('rapports'), 'la CLI lit les rapports (verdict des tests relayé par ucm check)');
   assert.deepEqual(PRODUITS.find(({ id }) => id === 'architect')?.ecrit, [
     { donnees: ['noms-collections', 'noms-variables', 'variables', 'composants'], destination: 'document-figma' },
     { donnees: ['regles-de-nommage', 'architecture-du-fichier'], destination: 'donnees-partagees-figma' },

@@ -80,7 +80,7 @@ export const PRODUITS: readonly Produit[] = [
   {
     id: 'cli', libelle: { fr: 'UCM CLI', en: 'UCM CLI' },
     definition: { fr: 'Installe la configuration manquante, contrôle le repository et produit le CSS des tokens.', en: 'Installs missing configuration, checks the repository and produces token CSS.' },
-    lit: ['contrats', 'tokens-dtcg', 'configuration', 'implementation'], execution: 'node',
+    lit: ['contrats', 'tokens-dtcg', 'configuration', 'implementation', 'rapports'], execution: 'node',
     ecrit: [{ donnees: ['configuration', 'rapports', 'css'], destination: 'repository' }],
   },
   {

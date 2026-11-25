@@ -9,16 +9,16 @@ import path from 'node:path';
 import test from 'node:test';
 
 import * as module from '../docs/inventaire/chaine/briques';
-import { BRIQUES, JAUGES, NOMBRES_ECRITS, PUCES_DU_KIT, ZONES } from '../docs/inventaire/chaine/briques';
+import { BRIQUES, EXCLUSIONS_DE_PISTES, JAUGES, NOMBRES_ECRITS, PUCES_DU_KIT, ZONES } from '../docs/inventaire/chaine/briques';
 import type { Brique, DonneeDeTrait, DonneesDeTrait, Reception } from '../docs/inventaire/chaine/briques';
 import {
-  controlerLeRegistre, controlerLesNombresEcrits, controlerLesPuces, donneesDeLaChaine, donneesDuTrait, etatsDesCartes, referencesDuDepot, teinteDuTrait,
+  controlerLeRegistre, controlerLesNombresEcrits, convertirLeRegistre, controlerLesPuces, donneesDeLaChaine, donneesDuTrait, etatsDesCartes, referencesDuDepot, teinteDuTrait,
   type ReferencesDuRegistre, type RegistreDeLaChaine,
 } from '../docs/inventaire/chaine/calculs';
 
 const racine = path.resolve(__dirname, '..');
 const references = referencesDuDepot();
-const registre: RegistreDeLaChaine = { zones: ZONES, briques: BRIQUES, jauges: JAUGES, nombres: NOMBRES_ECRITS };
+const registre: RegistreDeLaChaine = { zones: ZONES, briques: BRIQUES, jauges: JAUGES, nombres: NOMBRES_ECRITS, exclusions: EXCLUSIONS_DE_PISTES };
 
 /** Le registre du dépôt, avec une carte remplacée par sa version modifiée. */
 function avec(id: string, changement: Partial<Brique>): RegistreDeLaChaine {
@@ -79,11 +79,12 @@ function differencesAvecA3(): string[] {
 }
 
 test('donneesDeLaChaine() ne s\'écarte de la sortie de A3 que par les écarts attendus, un par un', () => {
-  // Une version publiée a avancé depuis A3 : le type de la carte la lit dans package.json.
+  // Une version publiée a avancé depuis A3 : le type de la carte la lit dans package.json, et ce test aussi.
+  const version = (dossier: string): string => (JSON.parse(readFileSync(path.join(racine, 'packages', dossier, 'package.json'), 'utf8')) as { version: string }).version;
   const versions = [
-    'NOEUDS kit type : "npm · 0.18.1" -> "npm · 0.18.3"',
-    'NOEUDS padapt type : "npm · 0.3.2" -> "npm · 0.3.4"',
-    'NOEUDS pcli type : "npm · 0.4.2" -> "npm · 0.4.4"',
+    `NOEUDS kit type : "npm · 0.18.1" -> "npm · ${version('kit')}"`,
+    `NOEUDS padapt type : "npm · 0.3.2" -> "npm · ${version('adapter-typescript')}"`,
+    `NOEUDS pcli type : "npm · 0.4.2" -> "npm · ${version('cli')}"`,
   ];
   // Les puces d'un trait du kit viennent des imports de `src/` : l'Exporter importe aussi `controles`, la CLI ni `emplois` ni `controles`,
   // Palettes ni `emplois` (le moteur le fait), l'adaptateur `referentiel`, le linter la seule porte `modules`, Architect `format`.
@@ -115,7 +116,21 @@ test('donneesDeLaChaine() ne s\'écarte de la sortie de A3 que par les écarts a
     'NOEUDS sante deps : ["cli","storybook"] -> ["storybook","cli"]',
     'NOEUDS storybook deps : ["contrat"] -> ["contrat","kit"]',
   ];
-  assert.deepEqual(differencesAvecA3(), [...traitsDuKit, ...dependances, ...versions].sort());
+  // Textes validés en F1 du plan P29 : chaque ligne est un champ dont le texte a changé depuis A3.
+  const textes = [
+    `LEGENDES : [{"x":678,"y":32,"texte":"Rien n'entre dans le repository<br>sans passer ici."},{"x":920,"y":32,"texte":"Les fichiers fusionnés."}] -> [{"x":678,"y":32,"texte":"Chaque pull request passe ici."},{"x":920,"y":32,"texte":"Les fichiers fusionnés."}]`,
+    `NOEUDS architecture fait : ["Une valeur vit à un seul endroit, les autres niveaux y renvoient.","Le thème bascule entre Light et Dark sans toucher aux composants.","Chaque composant a ses tokens, on le modifie sans toucher aux autres."] -> ["Une valeur vit à un seul endroit, les autres niveaux y renvoient.","Le thème bascule entre Light et Dark sans toucher aux composants.","Chaque composant a ses tokens, on le modifie sans toucher aux autres.","Le designer pose à la main les tailles et la typographie, aucun outil n'écrit <code>layout</code> ni <code>typography</code>."]`,
+    `NOEUDS architect sans : "Tokens nommés au cas par cas. Les défauts du dessin partent tels quels dans le code." -> "Tokens nommés au cas par cas. Les défauts d'un composant partent tels quels dans le code."`,
+    `NOEUDS composants fait : ["Une règle d'usage par propriété, posée à côté du composant."] -> ["L'Exporter pose une règle d'usage à remplir par propriété, à côté du composant."]`,
+    `NOEUDS composants phrase : "Le designer dessine chaque composant, ses variantes et ses états, liés à ses tokens." -> "Le designer conçoit chaque composant dans Figma, ses variantes et ses états, liés à ses tokens."`,
+    `NOEUDS composants type : "Dessin du designer" -> "Conçu par le designer"`,
+    'NOEUDS contrat texte : "Un fichier par composant, rangé à côté de son code. Il décrit ce que Figma dessine." -> "Un fichier par composant, rangé à côté de son code. Il décrit la partie visuelle du composant, exportée de Figma."',
+    'NOEUDS palettes fait : ["Chaque nuance sert un usage du thème, fond de bouton, texte, fond teinté, bordure.","Les 9 paires texte-fond tiennent le contraste WCAG AA, 4,5:1 pour un texte, 3:1 pour une bordure.","Light et Dark calculés ensemble depuis une seule teinte."] -> ["Chaque nuance sert un usage du thème, fond de bouton, texte, fond teinté, bordure.","Les 9 garanties de contraste tiennent WCAG AA, 4,5:1 pour un texte, 3:1 pour un fond de bouton, une bordure ou un anneau de focus.","Light et Dark calculés ensemble depuis une couleur de référence."]',
+    `NOEUDS rendu fait : ["Lancé en local par le développeur, puis par la CI à chaque pull request.","Ajoute ses écarts au rapport du Contrôle UCM, qui bloque la fusion.","Envoie l'état de chaque composant à la page Santé."] -> ["Lancé en local par le développeur, puis par la CI à chaque pull request.","Ajoute ses écarts au rapport du Contrôle UCM.","Envoie l'état de chaque composant à la page Santé."]`,
+    `NOEUDS sante fait : ["Conforme, en retard ou en écart, sans ouvrir le code.","Alerte quand le code s'écarte du contrat."] -> ["État de chaque composant, conforme, en retard, en écart ou non analysé.","Alerte quand le code s'écarte du contrat."]`,
+    'ZONES 5 : {"titre":"UCM Toolkit","qui":"6 paquets que les outils installent. Une règle changée dans un paquet change dans tous les outils.","x":0,"y":652,"w":1376,"h":200,"kit":true} -> {"titre":"UCM Toolkit","qui":"5 paquets, et 1 à venir. Une règle changée dans un paquet change dans tous les outils.","x":0,"y":652,"w":1376,"h":200,"kit":true}',
+  ];
+  assert.deepEqual(differencesAvecA3(), [...traitsDuKit, ...dependances, ...versions, ...textes].sort());
 });
 
 test('une carte d\'outil, de module, de paquet ou la note sans produit ni piste est refusée', () => {
@@ -217,19 +232,57 @@ test('« Aujourd\'hui » active exactement les cartes disponibles', () => {
   }
 });
 
-test('une carte à venir dont la piste est terminée devient disponible, et le registre doit alors nommer le produit', () => {
+test('une carte à venir dont la piste est terminée devient disponible et entre dans « Aujourd\'hui », sans produit ni erreur du registre', () => {
   const fabriquees = avecTerminees('P17', 'P26');
   const etats = etatsDesCartes(registre, fabriquees);
   assert.equal(etats.get('verrou'), 'livre');
   assert.equal(etats.get('linter'), 'livre');
-  const erreurs = controlerLeRegistre(registre, fabriquees);
-  assert.ok(erreurs.some((e) => e.startsWith('verrou :') && e.includes('P17') && e.includes('terminée')), erreurs.join(' | '));
-  assert.ok(erreurs.some((e) => e.startsWith('linter :') && e.includes('P26')), erreurs.join(' | '));
+  assert.deepEqual(controlerLeRegistre(registre, fabriquees), []);
+  const noeud = convertirLeRegistre(registre, fabriquees).NOEUDS.find((n) => n.id === 'linter')!;
+  assert.equal(noeud.etat, 'livre');
+  assert.equal(noeud.auj, true);
 });
 
-test('une pièce dont la piste est terminée, sans preuve, est refusée', () => {
-  const erreurs = controlerLeRegistre(registre, avecTerminees('P23'));
-  assert.ok(erreurs.some((e) => e.startsWith('exporter :') && e.includes('Choix des collections exportées') && e.includes('terminée')), erreurs.join(' | '));
+test('une pièce dont la piste est terminée devient livrée sans preuve, et le registre ne la refuse pas', () => {
+  const fabriquees = avecTerminees('P23');
+  assert.deepEqual(controlerLeRegistre(registre, fabriquees), []);
+  const noeud = convertirLeRegistre(registre, fabriquees).NOEUDS.find((n) => n.id === 'exporter')!;
+  assert.deepEqual(noeud.briques!.find(([texte]) => texte === 'Choix des collections exportées'), ['Choix des collections exportées', 'livre']);
+});
+
+// ---------- Les pistes de la Roadmap ----------
+
+/** Les références du dépôt, avec une piste non terminée de plus : un `pistes.json` fabriqué. */
+function avecPiste(id: string): ReferencesDuRegistre {
+  return { ...references, pistes: new Set([...references.pistes, id]) };
+}
+
+test('une piste non terminée que rien ne montre ni n\'exclut fait refuser le registre, et le message la nomme', () => {
+  const erreurs = controlerLeRegistre(registre, avecPiste('P9999'));
+  assert.ok(erreurs.some((e) => e.includes('P9999') && e.includes('carte') && e.includes('pièce') && e.includes('exclusion')), erreurs.join(' | '));
+});
+
+test('une piste terminée n\'a pas besoin d\'être montrée', () => {
+  assert.deepEqual(controlerLeRegistre(registre, { ...avecPiste('P9999'), terminees: new Set([...references.terminees, 'P9999']) }), []);
+});
+
+test('une exclusion sans raison est refusée', () => {
+  const erreurs = controlerLeRegistre({ ...registre, exclusions: { ...EXCLUSIONS_DE_PISTES, P1: ' ' } }, references);
+  assert.ok(erreurs.some((e) => e.includes('P1') && e.includes('raison')), erreurs.join(' | '));
+});
+
+test('une exclusion d\'une piste absente de pistes.json ou déjà montrée est refusée', () => {
+  const absente = controlerLeRegistre({ ...registre, exclusions: { ...EXCLUSIONS_DE_PISTES, P9999: 'Une raison.' } }, references);
+  assert.ok(absente.some((e) => e.includes('P9999') && e.includes('absente')), absente.join(' | '));
+  const montree = controlerLeRegistre({ ...registre, exclusions: { ...EXCLUSIONS_DE_PISTES, P26: 'Une raison.' } }, references);
+  assert.ok(montree.some((e) => e.includes('P26') && e.includes('montre')), montree.join(' | '));
+});
+
+test('une piste retirée de pistes.json fait nommer la carte ou la pièce à retirer', () => {
+  const sansP26 = { ...references, pistes: new Set([...references.pistes].filter((id) => id !== 'P26')) };
+  const erreurs = controlerLeRegistre(registre, sansP26);
+  assert.ok(erreurs.some((e) => e.startsWith('linter :') && e.includes('retirer la carte linter')), erreurs.join(' | '));
+  assert.ok(erreurs.some((e) => e.includes('Module ESLint') && e.includes('retirer cette pièce de la carte linter')), erreurs.join(' | '));
 });
 
 test('une pièce sans preuve ni piste, ou avec les deux, est refusée', () => {
@@ -289,8 +342,9 @@ test('les nombres des textes viennent du calcul : collections, thème, garanties
   const noeuds = new Map(donneesDeLaChaine().NOEUDS.map((n) => [n.id, n]));
   assert.ok(noeuds.get('architecture')!.phrase!.includes(`${references.valeurs.collections} collections`));
   assert.ok(noeuds.get('architect')!.modes!.variables.fait.some((f) => f.includes(`${references.valeurs.theme} tokens`)));
-  assert.ok(noeuds.get('palettes')!.fait!.some((f) => f.includes(`${references.valeurs.garanties} paires`) && f.includes(references.valeurs['rapport-texte']) && f.includes(references.valeurs['rapport-graphique'])));
-  assert.equal(donneesDeLaChaine().ZONES.find((z) => z.kit)!.qui.startsWith(`${BRIQUES.filter((b) => b.genre === 'paquet').length} paquets`), true);
+  assert.ok(noeuds.get('palettes')!.fait!.some((f) => f.includes(`${references.valeurs.garanties} garanties`) && f.includes(references.valeurs['rapport-texte']) && f.includes(references.valeurs['rapport-graphique'])));
+  const nombreDePaquets = (etat: string) => donneesDeLaChaine().NOEUDS.filter((n) => BRIQUES.find((b) => b.id === n.id)?.genre === 'paquet' && n.etat === etat).length;
+  assert.equal(donneesDeLaChaine().ZONES.find((z) => z.kit)!.qui.startsWith(`${nombreDePaquets('livre')} paquets, et ${nombreDePaquets('venir')} à venir.`), true);
   assert.equal(references.valeurs.collections, '7');
   assert.equal(references.valeurs['rapport-texte'], '4,5:1');
 });

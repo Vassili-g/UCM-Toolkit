@@ -335,7 +335,7 @@ function rendre() {
   hote.querySelector('#chaine-bilan').innerHTML = GARANTIES.map(g => {
     const k = g.par.filter(effectif).length;
     const cl = k === 0 ? 'non' : k === g.par.length ? 'oui' : 'partiel';
-    const v = cl === 'oui' ? 'Garanti' : cl === 'non' ? 'À la main' : `${k} sur ${g.par.length}`;
+    const v = cl === 'oui' ? 'Couvert' : cl === 'non' ? 'À la main' : `${k} sur ${g.par.length}`;
     return `<div class="garantie ${cl}"><div class="tete"><b>${g.nom}</b><span class="verdict">${v}</span></div>
       <div class="barre">${g.par.map(id => `<i class="${effectif(id) ? 'plein' : ''}" title="${PAR_ID[id].nom}"></i>`).join('')}</div></div>`;
   }).join('');

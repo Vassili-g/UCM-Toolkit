@@ -146,8 +146,6 @@ export interface Brique {
   lit?: readonly DonneeDeTrait[];
   /** Pour une carte sans produit : ce qu'elle écrit. Une carte de produit tient ses `ecrit` de `PRODUITS`. */
   ecrit?: readonly DonneeDeTrait[];
-  /** Pour une carte de produit : ce que la chaîne montre qu'elle lit et que `PRODUITS` ne déclare pas. */
-  litAussi?: readonly DonneeDeTrait[];
   /** La porte de la CI : elle range dans le repository ce qu'elle lit (contrats, tokens.json, code), donc elle l'écrit aussi. */
   rangeCeQuIlLit?: true;
   recoit?: readonly Reception[];
@@ -172,21 +170,21 @@ export const ZONES: readonly Zone[] = [
   { id: 'repository', titre: 'Repository GitHub', qui: '', x: 906, y: 0, w: 200, h: 440 },
   { id: 'rendu-et-suivi', titre: 'Rendu et suivi', qui: 'l\'équipe', x: 1118, y: 0, w: 258, h: 440 },
   { id: 'developpeur', titre: 'Développeur', qui: 'dans son éditeur', x: 664, y: 452, w: 712, h: 188 },
-  { id: 'toolkit', titre: 'UCM Toolkit', qui: '{{paquets}} paquets que les outils installent. Une règle changée dans un paquet change dans tous les outils.', x: 0, y: 652, w: 1376, h: 200, kit: true },
+  { id: 'toolkit', titre: 'UCM Toolkit', qui: '{{paquets-livres}} paquets, et {{paquets-a-venir}} à venir. Une règle changée dans un paquet change dans tous les outils.', x: 0, y: 652, w: 1376, h: 200, kit: true },
 ];
-export const LEGENDES: readonly Legende[] = [{ x: 678, y: 32, texte: 'Rien n\'entre dans le repository<br>sans passer ici.' }, { x: 920, y: 32, texte: 'Les fichiers fusionnés.' }];
+export const LEGENDES: readonly Legende[] = [{ x: 678, y: 32, texte: 'Chaque pull request passe ici.' }, { x: 920, y: 32, texte: 'Les fichiers fusionnés.' }];
 
 export const BRIQUES: readonly Brique[] = [
   { id: 'palettes', genre: 'outil', zone: 'figma', produit: 'palettes', x: 18, y: 60, logo: 'ucm-palettes', nom: 'UCM Palettes', type: 'Plugin Figma',
     phrase: 'Crée chaque palette en Light et Dark, nuance par nuance selon son usage dans les composants.',
-    fait: ['Chaque nuance sert un usage du thème, fond de bouton, texte, fond teinté, bordure.', 'Les {{garanties}} paires texte-fond tiennent le contraste WCAG AA, {{rapport-texte}} pour un texte, {{rapport-graphique}} pour une bordure.', 'Light et Dark calculés ensemble depuis une seule teinte.'],
+    fait: ['Chaque nuance sert un usage du thème, fond de bouton, texte, fond teinté, bordure.', 'Les {{garanties}} garanties de contraste tiennent WCAG AA, {{rapport-texte}} pour un texte, {{rapport-graphique}} pour un fond de bouton, une bordure ou un anneau de focus.', 'Light et Dark calculés ensemble depuis une couleur de référence.'],
     sans: 'Nuances choisies à l\'œil, deux fois, sans contrôle du contraste.' },
   { id: 'architect', genre: 'outil', zone: 'figma', produit: 'architect', x: 18, y: 344, logo: 'ucm-token-explorer', nom: 'UCM Architect', type: 'Plugin Figma',
     modes: { variables: { libelle: 'Variables', vers: 'architecture', phrase: 'Vérifie et renomme les tokens selon l\'architecture, et construit le thème.',
         fait: ['Repère noms incohérents, tokens manquants et alias cassés.', 'Corrige en un clic quand la correction est certaine.', 'Crée les alias de la marque et les {{theme}} tokens du thème.'] },
       composant: { libelle: 'Composant', vers: 'composants', phrase: 'Analyse un composant avant export et prépare ses tokens.',
         fait: ['Chaque couleur et chaque taille passe par un token.', 'Contraste WCAG et taille des zones cliquables mesurés.', 'Crée les tokens propres au composant.'] } },
-    sans: 'Tokens nommés au cas par cas. Les défauts du dessin partent tels quels dans le code.' },
+    sans: 'Tokens nommés au cas par cas. Les défauts d\'un composant partent tels quels dans le code.' },
   { id: 'architecture', genre: 'outil', zone: 'figma', produit: 'kit', x: 232, y: 40, picto: 'couches', nom: 'Architecture des tokens', type: 'Définie dans le kit', portes: ['referentiel'],
     couches: [{ libelle: 'Primitives', detail: 'valeurs brutes', collections: ['primitives'] }, { libelle: 'Marque et statuts', detail: 'palettes', collections: [...CIBLES_DES_COLLECTIONS.theme] },
       { libelle: 'Thème', detail: 'Light · Dark', collections: ['theme'] }, { libelle: 'Composant', detail: 'ses propres tokens', collections: ['components'] }],
@@ -194,13 +192,13 @@ export const BRIQUES: readonly Brique[] = [
       couches: [{ libelle: 'Primitives', detail: 'valeurs brutes' }, { libelle: 'Quelques alias', detail: 'au cas par cas' }, { libelle: 'Composant', detail: 'vise les primitives' }],
       phrase: 'Light et Dark dupliqués à la main. Changer la marque oblige à reprendre chaque composant.' },
     phrase: 'Les tokens rangés en {{collections}} collections, prêts pour Light et Dark, sans valeur en double.',
-    fait: ['Une valeur vit à un seul endroit, les autres niveaux y renvoient.', 'Le thème bascule entre Light et Dark sans toucher aux composants.', 'Chaque composant a ses tokens, on le modifie sans toucher aux autres.'],
+    fait: ['Une valeur vit à un seul endroit, les autres niveaux y renvoient.', 'Le thème bascule entre Light et Dark sans toucher aux composants.', 'Chaque composant a ses tokens, on le modifie sans toucher aux autres.', 'Le designer pose à la main les tailles et la typographie, aucun outil n\'écrit <code>layout</code> ni <code>typography</code>.'],
     sans: 'Les composants visent des couleurs brutes. Changer la marque ou ajouter le Dark oblige à reprendre chaque composant.',
     donnee: 'variables',
     recoit: [{ de: 'palettes', rang: 1, donnee: 'variables' }] },
-  { id: 'composants', genre: 'geste', zone: 'figma', x: 232, y: 386, picto: 'cadre', nom: 'Composants', type: 'Dessin du designer', 
-    phrase: 'Le designer dessine chaque composant, ses variantes et ses états, liés à ses tokens.',
-    fait: ['Une règle d\'usage par propriété, posée à côté du composant.'],
+  { id: 'composants', genre: 'geste', zone: 'figma', x: 232, y: 386, picto: 'cadre', nom: 'Composants', type: 'Conçu par le designer', 
+    phrase: 'Le designer conçoit chaque composant dans Figma, ses variantes et ses états, liés à ses tokens.',
+    fait: ['L\'Exporter pose une règle d\'usage à remplir par propriété, à côté du composant.'],
     donnee: 'composants', lit: ['variables'],
     recoit: [{ de: 'architecture', rang: 2, port: 'bas', donnee: 'variables' }] },
   { id: 'exporter', genre: 'outil', zone: 'figma', produit: 'exporter', x: 446, y: 140, logo: 'ucm-contract-exporter', nom: 'UCM Contract Exporter', type: 'Plugin Figma · Community',
@@ -215,7 +213,7 @@ export const BRIQUES: readonly Brique[] = [
     fait: ['Bloque un contrat illisible, un token absent, une valeur en dur ou un écart du code.', 'Le rapport dit quoi corriger, et qui doit le faire.'],
     pieces: [{ texte: 'Contrôle des contrats et du code', preuve: { commande: 'check' } }, { texte: '<code>ucm diff</code> ce qu\'un export change', piste: 'P11' }],
     sans: 'Les écarts se découvrent en recette, ou chez l\'utilisateur.',
-    rangeCeQuIlLit: true, litAussi: ['rapports'],
+    rangeCeQuIlLit: true,
     recoit: [{ de: 'exporter', rang: 5, donnee: ['contrats', 'tokens-dtcg'], requis: true }, { de: 'adaptateur', rang: 11, port: 'haut', donnee: 'hebergement' }, { de: 'rendu', rang: 12, port: 'haut', donnee: 'rapports' }] },
   { id: 'adaptateur', genre: 'outil', zone: 'ci', produit: 'adapter-typescript', x: 684, y: 320, picto: 'accolades', nom: 'Adaptateur TypeScript', type: 'Paquet npm',
     phrase: 'Apprend au contrôle à lire le code TypeScript, pour le comparer au contrat.',
@@ -237,7 +235,7 @@ export const BRIQUES: readonly Brique[] = [
     donnee: 'tokens-dtcg',
     recoit: [{ de: 'cli', rang: 6, donnee: 'tokens-dtcg' }, { de: 'exporter', donnee: 'tokens-dtcg', requis: true, sansTrait: true }] },
   { id: 'contrat', genre: 'fichier', zone: 'repository', x: 920, y: 130, nom: 'Contrats', type: 'Un par composant',
-    texte: 'Un fichier par composant, rangé à côté de son code. Il décrit ce que Figma dessine.',
+    texte: 'Un fichier par composant, rangé à côté de son code. Il décrit la partie visuelle du composant, exportée de Figma.',
     donnee: 'contrats',
     recoit: [{ de: 'cli', rang: 7, donnee: 'contrats' }, { de: 'exporter', donnee: 'contrats', requis: true, sansTrait: true }] },
   { id: 'code', genre: 'fichier', zone: 'repository', x: 920, y: 200, nom: 'Code des composants', type: 'À côté de son contrat',
@@ -272,14 +270,14 @@ export const BRIQUES: readonly Brique[] = [
     recoit: [{ de: 'contrat', rang: 13, donnee: 'contrats', requis: true }, { de: 'code', rang: 14, donnee: 'implementation' }] },
   { id: 'rendu', genre: 'module', zone: 'ci', piste: 'P20', x: 684, y: 192, picto: 'regle', nom: 'Vérificateur de rendu', type: 'Module · dans la CI', paquets: ['core'],
     phrase: 'Affiche chaque story dans un navigateur, mesure le rendu et le compare au contrat.',
-    fait: ['Lancé en local par le développeur, puis par la CI à chaque pull request.', 'Ajoute ses écarts au rapport du Contrôle UCM, qui bloque la fusion.', 'Envoie l\'état de chaque composant à la page Santé.'],
+    fait: ['Lancé en local par le développeur, puis par la CI à chaque pull request.', 'Ajoute ses écarts au rapport du Contrôle UCM.', 'Envoie l\'état de chaque composant à la page Santé.'],
     pieces: [{ texte: 'Comparateur, dans <code>@ucm-kit/core</code>', piste: 'P10' }, { texte: 'Module navigateur', piste: 'P20' }],
     sans: 'Le designer compare l\'écran à la maquette, à l\'œil.',
     lit: ['composants'], ecrit: ['rapports'],
     recoit: [{ de: 'storybook', rang: 21, port: 'retour', donnee: 'composants', secondaire: true, requis: true }] },
   { id: 'sante', genre: 'module', zone: 'rendu-et-suivi', piste: 'P24', x: 1152, y: 250, picto: 'coeur', nom: 'Santé des composants', type: 'Page d\'accueil du Storybook',
     phrase: 'L\'état de chaque composant, d\'après le Contrôle UCM et le vérificateur de rendu.',
-    fait: ['Conforme, en retard ou en écart, sans ouvrir le code.', 'Alerte quand le code s\'écarte du contrat.'],
+    fait: ['État de chaque composant, conforme, en retard, en écart ou non analysé.', 'Alerte quand le code s\'écarte du contrat.'],
     sans: 'Il faut ouvrir chaque composant pour savoir s\'il suit Figma.',
     lit: ['rapports'],
     recoit: [{ de: 'storybook', rang: 15, port: 'bas', donnee: 'hebergement', requis: true }, { de: 'rendu', rang: 16, donnee: 'rapports' }, { de: 'cli', rang: 20, port: 'dessus', donnee: 'rapports', secondaire: true, requis: true }] },
@@ -325,6 +323,19 @@ export const NOMBRES_ECRITS: readonly NombreEcrit[] = [
   { nombre: '360', source: 'packages/couleur/tests/ancrageDeplace.test.ts' },
   { nombre: '23', source: 'node_modules/typescript' },
 ];
+
+/**
+ * Les pistes non terminées de `pistes.json` que la chaîne ne montre pas, chacune avec sa raison. Une piste que ni une carte, ni une pièce,
+ * ni cette liste ne nomme fait refuser le registre. « à montrer » dit une piste qui mérite une carte.
+ */
+export const EXCLUSIONS_DE_PISTES: Readonly<Record<string, string>> = {
+  P1: 'Branche des contrats réels dans le repository de l\'application, un geste d\'intégration, pas une brique de la chaîne.',
+  P18: 'Prépare le socle React et TypeScript du repository de l\'application, hors des briques de la chaîne.',
+  P22: 'à montrer : les pièces internes d\'un composant, décrites dans le contrat de l\'hôte, étendent la carte Contrats.',
+  P16: 'Index des décisions citées dans le code, un outil de documentation du dépôt qui n\'est pas une brique de la chaîne.',
+  P28: 'Fiabilise les palettes d\'un design system existant, une recette sur un client, sans brique propre dans la chaîne.',
+  P29: 'Construit la chaîne elle-même dans l\'inventaire, donc ne figure pas parmi ses briques.',
+};
 
 export const JAUGES: readonly Jauge[] = [
   { nom: 'Contrastes WCAG AA garantis', par: ['palettes', 'architect'] },
