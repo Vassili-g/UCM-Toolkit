@@ -1,0 +1,242 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Couleurs à mettre à jour</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --fond: #f7f7f5; --bloc: #ffffff; --bordure: #dcdcd8; --texte: #1d1d1b; --second: #66665f;
+    --repere: #d6336c;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--fond); color: var(--texte); font: 14px/1.55 Inter, system-ui, sans-serif; }
+  main { max-width: 1300px; margin: 0 auto; padding: 32px 16px 80px; }
+  h1 { font-size: 24px; margin: 0 0 6px; }
+  h2 { font-size: 19px; margin: 44px 0 6px; padding-top: 20px; border-top: 1px solid var(--bordure); }
+  p { margin: 6px 0; max-width: 820px; }
+  .intro { color: var(--second); }
+  code { font-size: 12.5px; background: #ecece8; padding: 1px 4px; border-radius: 3px; }
+  .colonnes { display: flex; flex-wrap: wrap; gap: 28px; align-items: flex-start; margin-top: 16px; }
+  .colonne { flex: 0 0 auto; width: 600px; max-width: 100%; }
+  .colonne h3 { font-size: 13px; margin: 0 0 8px; color: var(--second); font-weight: 600; text-transform: uppercase; letter-spacing: .04em; }
+  .cadre { width: 600px; max-width: 100%; border: 1px solid #111; border-radius: 8px; overflow: hidden; background: #2c2c2c; }
+  .cadre iframe { display: block; width: 600px; max-width: 100%; border: 0; }
+  ol.legende { margin: 10px 0 0; padding-left: 0; list-style: none; font-size: 13px; }
+  ol.legende li { display: flex; gap: 8px; margin: 6px 0; }
+  ol.legende b.num { flex: none; width: 18px; height: 18px; border-radius: 9px; background: var(--repere); color: #fff; font-size: 11px; line-height: 18px; text-align: center; }
+  table { border-collapse: collapse; width: 100%; max-width: 1000px; font-size: 13px; background: var(--bloc); }
+  th { text-align: left; color: var(--second); font-weight: 600; padding: 8px 10px; border-bottom: 1px solid var(--bordure); }
+  td { padding: 8px 10px; border-bottom: 1px solid var(--bordure); vertical-align: top; }
+  td:first-child { font-weight: 700; white-space: nowrap; }
+  @media (max-width: 860px) { .colonne, .cadre, .cadre iframe { width: 100%; } }
+</style>
+</head>
+<body>
+<main>
+<h1>Couleurs à mettre à jour</h1>
+<p class="intro">UCM Palettes, onglet Gestion. Une palette dépliée liste chaque couleur qui diffère entre Figma et le plugin, sur deux colonnes, avant que le designer écrive.
+  Déplier une palette replie les autres.</p>
+<p class="intro">Les écrans viennent de la galerie sombre du plugin, états <code>tokens-a-mettre-a-jour</code> et <code>tokens-modifies</code>, figés à 600 px.
+  Les dix couleurs de la première proposition sont celles de la palette Yellow (<code>#EAB308</code>) de l'instantané du moteur, avant <code>45c110aa</code> et aujourd'hui.
+  Les deux couleurs de la seconde sont celles de la galerie.</p>
+
+<h2>Pourquoi les palettes sont « À mettre à jour »</h2>
+<p>Figma porte encore la couleur que le plugin a écrite, et le plugin en calcule une autre. Personne n'a touché les variables dans Figma.</p>
+<p>Trois commits du moteur ont déplacé des nuances (<code>45c110aa</code>, <code>c388e9a3</code>, <code>d644ef7a</code>).
+  Ils éclaircissent les nuances 50 à 300 du thème Light, corrigent les nuances de texte selon la teinte, et teintent les fonds 200 à 400 du thème Dark.
+  Sur les vingt palettes de l'instantané du moteur, ils changent de 2 à 15 couleurs selon la teinte. Depuis <code>e838713f</code>, le moteur rend les mêmes couleurs pour une palette par défaut.</p>
+
+<h2>Couleurs changées dans le plugin</h2>
+<div class="colonnes">
+  <div class="colonne">
+    <h3>Aujourd'hui</h3>
+    <div class="cadre" id="plugin-aujourdhui"></div>
+    <ol class="legende">
+      <li><b class="num">1</b><span>« Mettre à jour » écrit tout de suite. Le designer ne voit pas les couleurs remplacées.</span></li>
+      <li><b class="num">2</b><span>Déplier Bleu l'ouvre au-dessus de Jaune, qui reste ouvert.</span></li>
+    </ol>
+  </div>
+  <div class="colonne">
+    <h3>Proposition</h3>
+    <div class="cadre" id="plugin-proposition"></div>
+    <ol class="legende">
+      <li><b class="num">3</b><span>Déplier Jaune ouvre la liste. L'encart porte le geste, donc la ligne « Tokens Figma » le perd. Il prend le ton orangé de l'encart des couleurs changées dans Figma.</span></li>
+      <li><b class="num">4</b><span>Chaque couleur changée, sans limite de nombre, rangée par chemin de variable. À gauche la couleur dans Figma, à droite la couleur après la mise à jour.</span></li>
+      <li><b class="num">5</b><span>« Mettre à jour 10 couleurs » écrit. L'encart n'a pas de bouton « Annuler ». Replier Jaune le ferme sans rien écrire.</span></li>
+      <li><b class="num">6</b><span>Déplier Ardoise ou Bleu replie Jaune.</span></li>
+    </ol>
+  </div>
+</div>
+
+<h2>Couleurs changées dans Figma</h2>
+<div class="colonnes">
+  <div class="colonne">
+    <h3>Aujourd'hui</h3>
+    <div class="cadre" id="figma-aujourdhui"></div>
+    <ol class="legende">
+      <li><b class="num">1</b><span>Une ligne par couleur, avec « dans Figma » et « dans le plugin » écrits après chaque valeur. L'encart s'arrête à 6 couleurs, puis écrit « et N autres ».</span></li>
+    </ol>
+  </div>
+  <div class="colonne">
+    <h3>Proposition</h3>
+    <div class="cadre" id="figma-proposition"></div>
+    <ol class="legende">
+      <li><b class="num">2</b><span>La même grille que pour les couleurs changées dans le plugin, sans limite. Les colonnes disent « Dans Figma » et « Dans le plugin », et les valeurs perdent leur suffixe.</span></li>
+      <li><b class="num">3</b><span>Les deux choix ne changent pas.</span></li>
+    </ol>
+  </div>
+</div>
+
+<h2>Décisions et questions</h2>
+<table>
+  <thead><tr><th>Point</th><th>Décision ou question</th><th>Recommandation</th></tr></thead>
+  <tbody>
+    <tr><td>D1</td><td>La liste est ouverte quand la palette est dépliée. Décidé.</td><td></td></tr>
+    <tr><td>D2</td><td>Le plugin ne dit pas pourquoi les couleurs ont changé. Décidé.</td><td></td></tr>
+    <tr><td>D3</td><td>Déplier une palette replie les autres. Décidé.</td><td></td></tr>
+    <tr><td>Q5</td><td>Une palette de 2 intensités et 13 nuances peut changer jusqu'à 52 couleurs. (a) Tout afficher. (b) Afficher un groupe par chemin, replié au-delà de 12 couleurs.</td><td>(a). La fiche défile avec le panneau, et la liste exacte est la demande.</td></tr>
+    <tr><td>Q6</td><td>Le texte « Tout mettre à jour (N) » vit dans <code>i18n/fr.ts</code>, <code>i18n/en.ts</code> et <code>tests/textes.test.ts</code>, mais aucun écran ne l'affiche. (a) Le retirer. (b) Rendre le bouton.</td><td>(a). Avec D1, chaque palette s'écrit depuis sa liste.</td></tr>
+  </tbody>
+</table>
+</main>
+
+<script src="galerie/etats.js"></script>
+<script>
+const G = window.GALERIE;
+
+/** Les couleurs changées dans le plugin : la palette Yellow de l'instantané du moteur, avant 45c110aa et aujourd'hui. */
+const DANS_LE_PLUGIN = [
+  { chemin: 'color/Jaune/soft/light', couleurs: [[50, '#FFFFFF', '#FBF9DB'], [100, '#FBF7DC', '#F7F0C1'], [200, '#F1E5B3', '#EFE0A4'], [300, '#E9CC79', '#E7CA78']] },
+  { chemin: 'color/Jaune/vivid/light', couleurs: [[50, '#FFFFFF', '#FFFAC3'], [100, '#FFF8C5', '#FFF197'], [200, '#FFE574', '#FFDF4E'], [300, '#F9C80A', '#F7C70A']] },
+  { chemin: 'color/Jaune/soft/dark', couleurs: [[700, '#B28F57', '#BB975C']] },
+  { chemin: 'color/Jaune/vivid/dark', couleurs: [[700, '#C38905', '#CD9006']] },
+];
+/** Les couleurs changées dans Figma : celles de l'état `tokens-modifies` de la galerie. */
+const DANS_FIGMA = [
+  { chemin: 'color/Jaune/vivid/light', couleurs: [[700, '#8A5A00', '#835925'], [800, '#6E4500', '#6A431B']] },
+];
+const nombre = (groupes) => groupes.reduce((somme, groupe) => somme + groupe.couleurs.length, 0);
+
+/** Les styles que la maquette ajoute au socle : les repères, et la grille avant / après des propositions. */
+const STYLES = `
+  body { margin: 0; padding-bottom: 600px; }
+  [data-repere] { outline: 1px dashed #ff6b9a; outline-offset: 2px; position: relative; }
+  [data-repere]::after { content: attr(data-repere); position: absolute; top: -9px; right: -9px; z-index: 2; min-width: 16px; height: 16px;
+    padding: 0 4px; border-radius: 8px; background: #d6336c; color: #fff; font: 700 10px/16px Inter, sans-serif; text-align: center; }
+  .avant-apres { display: grid; grid-template-columns: 44px 150px 150px; gap: var(--espace-serre) var(--espace-controle); align-items: center; }
+  .avant-apres .entete { color: var(--texte-second); font-size: 11px; }
+  .avant-apres .groupe { grid-column: 1 / -1; margin-top: var(--espace-serre); }
+  .avant-apres .groupe code { font-size: 11px; color: var(--texte-second); }
+  .avant-apres .nuance { font-variant-numeric: tabular-nums; }
+  .avant-apres .valeur i { width: 20px; height: 20px; }
+`;
+
+/** Un écran figé dans un iframe, recadré sur `cible` ; `surPret(doc, jaune)` le modifie une fois chargé. */
+function ecran(etat, cible, surPret) {
+  const iframe = document.createElement('iframe');
+  iframe.style.height = '600px';
+  const { corps, classe } = G[etat];
+  iframe.srcdoc = `<!doctype html><html class="${classe}"><head><meta charset="utf-8"><link rel="stylesheet" href="galerie/socle.css">
+    <style>${STYLES}</style></head><body>${corps}</body></html>`;
+  iframe.addEventListener('load', () => {
+    const doc = iframe.contentDocument;
+    const fenetre = iframe.contentWindow;
+    surPret(doc, doc.querySelector('.palette-depliable[aria-label="Jaune"]'));
+    const boite = doc.querySelector(cible).getBoundingClientRect();
+    fenetre.scrollTo(0, boite.top + fenetre.scrollY - 14);
+    iframe.style.height = `${Math.ceil(boite.height) + 28}px`;
+  }, { once: true });
+  return iframe;
+}
+
+function el(doc, balise, classe, texte) {
+  const noeud = doc.createElement(balise);
+  if (classe) noeud.className = classe;
+  if (texte !== undefined) noeud.textContent = texte;
+  return noeud;
+}
+
+function valeur(doc, hexa) {
+  const bloc = el(doc, 'span', 'valeur');
+  const pastille = el(doc, 'i');
+  pastille.style.background = hexa;
+  bloc.append(pastille, el(doc, 'span', '', hexa));
+  return bloc;
+}
+
+function bouton(doc, variante, libelle) {
+  const noeud = el(doc, 'button', `btn btn-${variante} btn-compact`);
+  noeud.append(el(doc, 'span', '', libelle));
+  return noeud;
+}
+
+/** La grille avant / après : un chemin par groupe, puis une ligne par nuance. */
+function grille(doc, groupes, droite) {
+  const bloc = el(doc, 'div', 'avant-apres');
+  bloc.append(el(doc, 'span', 'entete', 'Nuance'), el(doc, 'span', 'entete', 'Dans Figma'), el(doc, 'span', 'entete', droite));
+  for (const groupe of groupes) {
+    const tete = el(doc, 'div', 'groupe');
+    tete.append(el(doc, 'code', '', `${groupe.chemin}/`));
+    bloc.append(tete);
+    for (const [nuance, avant, apres] of groupe.couleurs) bloc.append(el(doc, 'span', 'nuance', String(nuance)), valeur(doc, avant), valeur(doc, apres));
+  }
+  return bloc;
+}
+
+function ligneDesTokens(doc, jaune) {
+  const ligne = jaune.querySelector('.sortie[data-sortie="tokens"]');
+  const detail = ligne.querySelector('.sortie-detail');
+  detail.textContent = `${nombre(DANS_LE_PLUGIN)} couleurs ont changé dans le plugin`;
+  detail.title = detail.textContent;
+  return ligne;
+}
+
+const LISTE = '.section[data-section="plugin"]';
+
+document.getElementById('plugin-aujourdhui').append(ecran('tokens-a-mettre-a-jour', LISTE, (doc, jaune) => {
+  ligneDesTokens(doc, jaune).querySelector('[data-geste="mettre-a-jour"]').dataset.repere = '1';
+  doc.querySelector('.palette-depliable[aria-label="Bleu"] .palette-ligne').dataset.repere = '2';
+}));
+
+document.getElementById('plugin-proposition').append(ecran('tokens-a-mettre-a-jour', LISTE, (doc, jaune) => {
+  const ligne = ligneDesTokens(doc, jaune);
+  ligne.querySelector('.sortie-gestes').replaceChildren();
+  jaune.querySelector('.palette-bascule').dataset.repere = '3';
+
+  const encart = el(doc, 'div', 'encart');
+  encart.dataset.encart = 'mise-a-jour';
+  encart.dataset.ton = 'avertissement';
+  encart.append(
+    el(doc, 'p', 'encart-titre', `${nombre(DANS_LE_PLUGIN)} couleurs de Jaune ont changé dans le plugin.`),
+    el(doc, 'p', 'ligne-secondaire', 'Figma porte encore les couleurs de la dernière écriture. La mise à jour les remplace par celles du plugin.'),
+  );
+  const liste = grille(doc, DANS_LE_PLUGIN, 'Après la mise à jour');
+  liste.dataset.repere = '4';
+  const choix = el(doc, 'div', 'confirmation-gestes');
+  const ecrire = bouton(doc, 'primary', `Mettre à jour ${nombre(DANS_LE_PLUGIN)} couleurs`);
+  ecrire.dataset.repere = '5';
+  choix.append(ecrire);
+  encart.append(liste, choix);
+  jaune.querySelector('.palette-fiche').append(encart);
+
+  doc.querySelector('.palette-depliable[aria-label="Ardoise"] .palette-ligne').dataset.repere = '6';
+}));
+
+document.getElementById('figma-aujourdhui').append(ecran('tokens-modifies', '.palette-depliable[aria-label="Jaune"]', (doc, jaune) => {
+  jaune.querySelector('.encart[data-encart="modifiees"] .ecart').dataset.repere = '1';
+}));
+
+document.getElementById('figma-proposition').append(ecran('tokens-modifies', '.palette-depliable[aria-label="Jaune"]', (doc, jaune) => {
+  const encart = jaune.querySelector('.encart[data-encart="modifiees"]');
+  const liste = grille(doc, DANS_FIGMA, 'Dans le plugin');
+  liste.dataset.repere = '2';
+  encart.querySelectorAll('.ecart').forEach((ecart) => ecart.remove());
+  encart.querySelector('.encart-titre').after(liste);
+  encart.querySelector('.confirmation-gestes').dataset.repere = '3';
+}));
+</script>
+</body>
+</html>

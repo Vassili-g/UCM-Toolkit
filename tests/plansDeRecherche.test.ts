@@ -28,6 +28,7 @@ const PLANS_SANS_PISTE: { chemin: string; raison: string }[] = [
   { chemin: `${RECHERCHES}/Hub UCM/PLAN-HUB-UCM.md`, raison: 'Hub UCM abandonné, à archiver comme sujet écarté' },
   { chemin: `${RECHERCHES}/Optimisation Tokens/Recherches/PLAN-REDUCTION-TOKENS.md`, raison: EN_COURS },
   { chemin: `${RECHERCHES}/Plugin Palettes/Recette v10/PLAN-IMPLEMENTATION-RECETTE-V10.md`, raison: EN_COURS },
+  { chemin: `${RECHERCHES}/Plugin Palettes/Couleurs à mettre à jour/PLAN-IMPLEMENTATION.md`, raison: EN_COURS },
   { chemin: `${RECHERCHES}/UCM Architect/3 Plan/PLAN-IMPLEMENTATION.md`, raison: EN_COURS },
   ...[
     'PLAN-STRESS-F1-NOMS.md',

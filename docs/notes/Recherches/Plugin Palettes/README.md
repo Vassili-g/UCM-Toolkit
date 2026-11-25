@@ -9,6 +9,7 @@ elle reste ici jusqu'à son déplacement dans le paquet du plugin.
 | Dossier | État |
 |---|---|
 | [Recette v10](./Recette%20v10/README.md) | En cours : R1 attend la décision D1 |
+| [Couleurs à mettre à jour](./Couleurs%20%C3%A0%20mettre%20%C3%A0%20jour/README.md) | En cours : plan L1 à L8 |
 | [Comparaison du marché](./1%20Recherche%20initiale/RECHERCHE-CONCURRENCE-PALETTES.md) | Piste : vision simulée, sélection, jeu de départ, APCA, Display P3 |
 
 Les recherches implémentées (moteur, recette critique, recette du moteur,
