@@ -118,10 +118,10 @@ donc aucun test ne voit l'effet combiné des règles.
 
 | Lot | Contenu | Agent | Dépend de | État |
 |---|---|---|---|---|
-| L1 | Kit : table D2, critères D3, D4 côté kit, `faits.chemin` | `implementeur-exigeant` | aucun | [ ] |
+| L1 | Kit : table D2, critères D3, D4 côté kit, `faits.chemin` | `implementeur-exigeant` | aucun | [x] 0236e84b |
 | L2 | Architect : relevé des faits de D3, D4 et D12, `isExposedInstance` des wrappers | `implementeur` | L1 | [ ] |
 | L3 | Kit et Architect : C83 (D8) | `implementeur` | L2 | [ ] |
-| L4 | Architect : sélection D5, regroupement D6, lieu D7 | `implementeur-exigeant` | aucun (contrat de `faits.chemin` ci-dessous) | [ ] |
+| L4 | Architect : sélection D5, regroupement D6, lieu D7 | `implementeur-exigeant` | aucun (contrat de `faits.chemin` ci-dessous) | [x] 0236e84b |
 | L6 | Kit : lecture des axes D9, garde des renommages D14 | `implementeur-exigeant` | aucun | [ ] |
 | L7 | Kit et Architect : C84 et silence de la cascade D10 | `implementeur-exigeant` | L6, L3 | [ ] |
 | L8 | Kit : attente de C65 par la référence D11, liaisons de style D12 | `implementeur` | L2 | [ ] |
@@ -193,3 +193,5 @@ de L3 et passent l'un après l'autre.
 - [ ] Recette Figma du mainteneur sur le Button : 0 C24, C83 sur `.sizeWrapperButton`, sélection de la flèche.
 
 ## Avancement
+- L1 et L4, commit `0236e84b`. Kit 2144 tests, Architect 2437, socle 304, typecheck. La racine attend L5 (`versionSuitLeContenu`,
+  `inventaire`). `faits.chemin` est une chaîne jointe par ` › `. C25 sur un tracé ou une forme sans token pose une question.
