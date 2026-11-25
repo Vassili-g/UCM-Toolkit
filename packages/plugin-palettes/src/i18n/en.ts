@@ -1847,7 +1847,6 @@ export const TEXTES_DE_LA_GESTION = {
   valeur: "Value",
   remettre: "Restore plugin colors",
   laisser: "Keep Figma colors",
-  aliasDansFigma: "an alias in Figma",
   supprimerLesVariables: "Delete variables…",
   variablesEnConflit: "Export your changes or reload the palettes before writing to tokens.",
   horsDuPlugin: "Read from the file’s variables, outside the plugin.",
@@ -1857,6 +1856,11 @@ export const TEXTES_DE_LA_GESTION = {
   couleursLuesALaCopie: "Colors read on copy",
   copierDansLePlugin: "Copy to the plugin",
   copier: "Copy",
+  nuance: "Shade",
+  dansFigma: "In Figma",
+  dansLePlugin: "In the plugin",
+  apresLaMiseAJour: "After the update",
+  alias: "An alias",
 } as const;
 
 /** L'état de la planche d'une palette, dans sa ligne de sortie ([UI-26]). */
@@ -1901,11 +1905,6 @@ export function synchroniseIlYA(secondes: number): string {
 /** Le titre de la barre des palettes du plugin ([UI-25]). */
 export function palettesDuPlugin(nombre: number): string {
   return `Plugin palettes · ${nombre}`;
-}
-
-/** « Tout mettre à jour », avec le nombre de palettes en retard ([UI-28]). */
-export function toutMettreAJour(nombre: number): string {
-  return `Update all (${nombre})`;
 }
 
 /** Où la planche d'une palette se trouve, dans sa ligne de sortie. */
@@ -2057,6 +2056,23 @@ export function titreDesModifiees(nombre: number, nom: string): string {
   return nombre === 1 ? `1 color of ${nom} no longer matches the plugin.` : `${nombre} colors of ${nom} no longer match the plugin.`;
 }
 
+/** Le titre de l'encart des couleurs à mettre à jour d'une palette ([UI-31]). */
+export function titreDesCouleursAMettreAJour(nombre: number, nom: string): string {
+  return nombre === 1 ? `1 color of ${nom} changed in the plugin.` : `${nombre} colors of ${nom} changed in the plugin.`;
+}
+
+/** Le texte explicatif de l'encart des couleurs à mettre à jour ([UI-31]). */
+export function texteDesCouleursAMettreAJour(nombre: number): string {
+  return nombre === 1
+    ? "Figma still has the color from the last write. The update replaces it with the plugin’s."
+    : "Figma still has the colors from the last write. The update replaces them with the plugin’s.";
+}
+
+/** Le bouton qui met à jour les couleurs d'une palette ([UI-31]). */
+export function mettreAJourNCouleurs(nombre: number): string {
+  return nombre === 1 ? "Update 1 color" : `Update ${nombre} colors`;
+}
+
 export function valeurDansFigma(hexa: string): string {
   return `${hexa} in Figma`;
 }
@@ -2068,19 +2084,6 @@ export function valeurDansLePlugin(hexa: string): string {
 /** Les couleurs que l'encart ne liste pas ([UI-32]). */
 export function etNAutres(nombre: number): string {
   return nombre === 1 ? "And 1 more." : `And ${nombre} more.`;
-}
-
-/** La confirmation de « Tout mettre à jour » : ce qu'elle écrit, et ce qu'elle laisse ([UI-28]). */
-export function confirmationDeLaMiseAJour(compte: { creees: number; ecrites: number; planches: number; modifiees: number }): string {
-  const parties = [
-    ...(compte.creees > 0 ? [`${variables(compte.creees)} to create`] : []),
-    ...(compte.ecrites > 0 ? [`${couleurs(compte.ecrites)} to write`] : []),
-    ...(compte.planches > 0 ? [compte.planches === 1 ? "1 board to draw" : `${compte.planches} boards to draw`] : []),
-  ];
-  const laissees = compte.modifiees === 0
-    ? ""
-    : compte.modifiees === 1 ? " 1 palette edited in Figma stays as it is." : ` ${compte.modifiees} palettes edited in Figma stay as they are.`;
-  return `Update all? ${parties.join(", ")}.${laissees}`;
 }
 
 /** Un nom de variable déjà pris dans la collection ([VAR-08]) ; `autre` nomme la palette de la recette qui le porte. */

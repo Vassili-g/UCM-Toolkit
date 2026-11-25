@@ -22,7 +22,9 @@ import {
   bilanDeLEtat,
   planchesDeLaPage,
   synchroniseIlYA,
-  toutMettreAJour,
+  mettreAJourNCouleurs,
+  texteDesCouleursAMettreAJour,
+  titreDesCouleursAMettreAJour,
   jugementDuSeuil,
   lignesDeNature,
   niveauEcrit,
@@ -359,8 +361,16 @@ test('[UI-24] le bilan accorde chaque compte, et la synchronisation se dit en du
   assert.equal(bilanDeLEtat('a-mettre-a-jour', 1), '1 à mettre à jour');
   assert.equal(bilanDeLEtat('pas-encore', 3), '3 pas encore sur Figma');
   assert.deepEqual([0, 59, 60, 3599, 3600, 7300].map(synchroniseIlYA), ['Synchronisé à l’instant', 'Synchronisé à l’instant', 'Synchronisé il y a 1 min', 'Synchronisé il y a 59 min', 'Synchronisé il y a 1 h', 'Synchronisé il y a 2 h']);
-  assert.equal(toutMettreAJour(2), 'Tout mettre à jour (2)');
   assert.deepEqual([0, 1, 2].map(planchesDeLaPage), ['', '1 planche', '2 planches']);
+});
+
+test('[UI-31] l’encart des couleurs à mettre à jour dit le singulier et le pluriel, et son bouton les compte', () => {
+  assert.equal(titreDesCouleursAMettreAJour(1, 'Bleu'), '1 couleur de Bleu a changé dans le plugin.');
+  assert.equal(titreDesCouleursAMettreAJour(2, 'Bleu'), '2 couleurs de Bleu ont changé dans le plugin.');
+  assert.equal(texteDesCouleursAMettreAJour(1), 'Figma porte encore la couleur de la dernière écriture. La mise à jour la remplace par celle du plugin.');
+  assert.equal(texteDesCouleursAMettreAJour(3), 'Figma porte encore les couleurs de la dernière écriture. La mise à jour les remplace par celles du plugin.');
+  assert.equal(mettreAJourNCouleurs(1), 'Mettre à jour 1 couleur');
+  assert.equal(mettreAJourNCouleurs(4), 'Mettre à jour 4 couleurs');
 });
 
 test('l’exception de Figma et l’exemple d’écart se lisent dans le détail, pas dans le message', () => {

@@ -850,7 +850,7 @@ function construireVues(i18n: Localisation) {
         variable.textContent = couleur.nom;
         ecart.append(
           variable,
-          valeur(couleur.figma, couleur.figma === null ? TEXTES_DE_LA_GESTION.aliasDansFigma : valeurDansFigma(couleur.figma)),
+          valeur(couleur.figma, couleur.figma === null ? TEXTES_DE_LA_GESTION.alias : valeurDansFigma(couleur.figma)),
           valeur(couleur.plugin, valeurDansLePlugin(couleur.plugin)),
         );
         bloc.append(ecart);
