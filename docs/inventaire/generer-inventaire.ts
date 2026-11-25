@@ -1,5 +1,5 @@
 /**
- * Génère `INVENTAIRE-UCM.html`, la page qui montre ce que contient le dépôt : le concept UCM, les outils, le parcours d'un composant,
+ * Génère `INVENTAIRE-UCM.html`, la page qui montre ce que contient le dépôt : le concept UCM, les outils, la chaîne UCM,
  * l'architecture des variables Figma, le contrat, ce qui est vérifié, la feuille de route. La page est autonome : ses données y sont écrites, elle
  * ne charge aucune ressource. Elle n'a autorité sur rien ; chaque section nomme le fichier qui définit ce qu'elle montre.
  *
@@ -12,7 +12,10 @@ import { readFileSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 
-import { donneesDeLaChaine } from './chaine/calculs';
+import { PRODUITS } from '@ucm-kit/core/referentiel';
+
+import { BRIQUES } from './chaine/briques';
+import { donneesDeLaChaine, type DonneesDeLaChaine } from './chaine/calculs';
 import * as releves from './releves';
 
 const dossier = path.dirname(fileURLToPath(import.meta.url));
@@ -302,6 +305,7 @@ async function valeurs(): Promise<{ liste: Record<string, string>; idsTermines: 
   const fautes = releves.longueursDeFaute();
   const accessibilite = releves.seuilsDAccessibilite();
 
+  const chaine = piecesDeLaChaine();
   const liste: Record<string, string> = {
     // Versions
     'version:kit': versions.kit,
@@ -396,6 +400,10 @@ async function valeurs(): Promise<{ liste: Record<string, string>; idsTermines: 
     'js:PISTES': pourLeScript(pistesASuivre),
     'js:TERMINEES': pourLeScript(terminees),
     'js:SUJETS': pourLeScript(releves.SUJETS),
+    'js:chaine': pourLeScript(chaine.donnees),
+    'chaine:css': chaine.css,
+    'chaine:rendu': chaine.rendu,
+    'chaine:logo-entete': chaine.logoEntete,
   };
   for (const paquet of paquets) liste[`tests:${paquet.dossier}`] = String(paquet.fichiersDeTest);
   for (const entree of entrees) liste[`export:${entree.entree}`] = String(entree.noms.length);
@@ -447,6 +455,9 @@ async function couvertureDeLaPage(page: string, employes: ReadonlySet<string>): 
       aCompleter: "docs/inventaire/releves.ts (lire le nom) et docs/inventaire/gabarit.html (le montrer), ou docs/inventaire/couverture.ts (l'exclure)",
     };
   }
+  const produits = PRODUITS.map(({ id }) => id as string);
+  const produitsDeLaChaine = new Set(BRIQUES.flatMap((brique) => (brique.produit === undefined ? [] : [brique.produit as string])));
+  univers['produits du kit'] = { attendus: produits, montres: produits.filter((id) => produitsDeLaChaine.has(id)), aCompleter: 'une carte de docs/inventaire/chaine/briques.ts qui nomme le produit, ou docs/inventaire/couverture.ts' };
   const entrees = (await releves.pointsDEntree()).map(({ entree }) => entree);
   univers["points d'entrée du kit"] = { attendus: entrees, montres: entrees.filter((entree) => employes.has(`export:${entree}`)), aCompleter: "l'annexe « Les points d'entrée du kit » de docs/inventaire/gabarit.html, ou docs/inventaire/couverture.ts" };
   const paquets = releves.dossiersDesWorkspaces();
@@ -496,19 +507,29 @@ function logoDeLaChaine(fichier: string, classe?: string): string {
   return `<img${classe === undefined ? '' : ` class="${classe}"`} src="data:image/svg+xml;base64,${Buffer.from(svg).toString('base64')}" alt="">`;
 }
 
-/** Le contenu exact de `CHAINE-UCM.html`, la chaîne UCM en pleine page. Elle ne charge aucune ressource : logos, style et script y sont écrits. */
-export function genererChaine(): string {
+/**
+ * Ce que partagent la page plein écran et la section « La chaîne UCM » de l'inventaire : le style, le script de rendu, les données et
+ * les logos. Les deux pages les lisent ici, donc elles ne peuvent pas diverger. Le balisage de l'en-tête et de la scène est écrit dans
+ * `chaine/plein-ecran.html` et dans `gabarit.html` ; `tests/inventaire.test.ts` compare les deux.
+ */
+function piecesDeLaChaine(): { css: string; rendu: string; donnees: DonneesDeLaChaine & { logos: Record<string, string> }; logoEntete: string } {
   const donnees = donneesDeLaChaine();
   const logos: Record<string, string> = { zone: logoDeLaChaine('ucm-toolkit') };
   for (const { logo } of donnees.NOEUDS) if (logo !== undefined) logos[logo] = logoDeLaChaine(logo, 'logo');
   const employes = new Set<string>();
-  const liste = {
+  return {
     css: remplir(lireDuDossier('chaine/chaine.css'), 'chaine.css', {}, employes),
     rendu: remplir(lireDuDossier('chaine/rendu.js'), 'rendu.js', {}, employes),
-    donnees: pourLeScript({ ...donnees, logos }),
-    'logo-entete': logoDeLaChaine('ucm-toolkit'),
+    donnees: { ...donnees, logos },
+    logoEntete: logoDeLaChaine('ucm-toolkit'),
   };
-  return remplir(lireDuDossier('chaine/plein-ecran.html'), 'plein-ecran.html', liste, employes);
+}
+
+/** Le contenu exact de `CHAINE-UCM.html`, la chaîne UCM en pleine page. Elle ne charge aucune ressource : logos, style et script y sont écrits. */
+export function genererChaine(): string {
+  const { css, rendu, donnees, logoEntete } = piecesDeLaChaine();
+  const liste = { css, rendu, donnees: pourLeScript(donnees), 'logo-entete': logoEntete };
+  return remplir(lireDuDossier('chaine/plein-ecran.html'), 'plein-ecran.html', liste, new Set<string>());
 }
 
 if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {

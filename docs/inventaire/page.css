@@ -324,29 +324,9 @@ ol.flux li:not(:last-child)::after { content: "→"; position: absolute; right: 
 .grille.deux-cartes { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 dl.def.principes { grid-template-columns: 240px 1fr; }
 .carte.bloc { margin: 14px 0; }
-/* 3. Le parcours : trois couloirs d'étapes, la carte de l'étape choisie dessous. */
-.parcours { display: grid; grid-template-columns: minmax(0, 4fr) minmax(0, 2fr) minmax(0, 2fr); grid-template-rows: auto auto; gap: 10px; margin: 12px 0 0; }
-/* Les couloirs partagent la rangée des titres : un titre sur deux lignes ne décale pas les étapes des autres. */
-.parcours .couloir { display: grid; grid-row: span 2; grid-template-rows: subgrid; row-gap: 6px; align-content: start; background: var(--surface-2); border-radius: 10px; padding: 8px; }
-.parcours .couloir-titre { font-size: .72rem; text-transform: uppercase; letter-spacing: .06em; color: var(--doux); font-weight: 600; padding: 0 2px; }
-.parcours .etapes { display: grid; grid-auto-flow: column; grid-auto-columns: minmax(0, 1fr); gap: 6px; }
-.etape { all: unset; box-sizing: border-box; cursor: pointer; display: grid; gap: 1px; align-content: start; min-height: 66px; padding: 7px 9px; background: var(--surface); border: 1.5px solid var(--trait); border-radius: 8px; font-size: .84rem; line-height: 1.3; }
-.etape .n { font: 700 .72rem system-ui, sans-serif; color: var(--doux); }
-.etape small { color: var(--doux); font-size: .76rem; }
-.etape small code { font-size: .74rem; padding: 0 3px; }
-.etape.main { border-style: dashed; border-color: var(--doux); }
-.etape.trou { border-style: dashed; border-color: var(--rose); background: var(--rose-fond); }
-.etape.trou small { color: var(--rose); }
-.etape:hover { border-color: var(--texte); }
-.etape[aria-selected="true"] { border-style: solid; border-color: var(--texte); box-shadow: 0 0 0 1px var(--texte); }
-.etape:focus-visible { outline: 2px solid var(--texte); outline-offset: 2px; }
-.etape-carte { margin: 10px 0 4px; padding: 12px 16px; background: var(--surface); border: 1.5px solid var(--texte); border-radius: 10px; box-shadow: var(--ombre); }
-.etape-carte.trou { border-color: var(--rose); }
-.etape-carte h4 { margin: 0 0 6px; display: flex; gap: 8px; align-items: center; font-size: 1rem; }
-.etape-carte h4 .n { display: inline-grid; place-items: center; width: 20px; height: 20px; border-radius: 50%; background: var(--texte); color: var(--surface); font: 700 .72rem system-ui, sans-serif; }
-.etape-carte.trou h4 .n { background: var(--rose); }
-.etape-carte dl.faits { border-top: 0; padding: 0; margin: 0; }
-.legende-parcours { font-size: .82rem; margin: 6px 0 0; }
+/* 3. La chaîne UCM : le bloc sort de la colonne du texte (page.js lui donne sa marge gauche et sa largeur, du bord du sommaire au bord de la fenêtre). chaine.css habille son contenu. */
+.chaine-bloc { position: relative; z-index: 1; margin: 12px 0 0; }
+.chaine-bloc .chaine { overflow: hidden; }
 /* 7. La Roadmap (page.js) : une table de pistes groupée par prio ou par état, une fiche sous la ligne ouverte. Préfixe rm = Roadmap. */
 .page { max-width: 1400px; }
 section.partie.large { max-width: none; }
@@ -449,8 +429,6 @@ details.lots-plus[open] > summary::before, details.lots-faits[open] > summary::b
   ol.flux { grid-template-columns: 1fr; gap: 22px; }
   ol.flux li:not(:last-child)::after { content: "↓"; right: auto; left: 18px; top: auto; bottom: -21px; transform: none; }
   .grille.deux-cartes { grid-template-columns: 1fr; }
-  .parcours { grid-template-columns: 1fr; }
-  .parcours .etapes { grid-auto-flow: row; grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .fiche-rm { grid-template-columns: minmax(0, 1fr); }
   .rm tr.rm-fiche td { padding-left: 18px; }
   .prio-form { flex-wrap: wrap; }

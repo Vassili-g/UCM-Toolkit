@@ -3,8 +3,12 @@
  * `monterLaChaine(hote, donnees)` construit tout dans `hote`, la racine de la chaîne (le paramètre ne s'appelle pas `racine` : la fonction `racine(id)` plus bas porte déjà ce nom). `hote` porte les éléments `#chaine-page`, `#chaine-scene`,
  * `#chaine-bilan`, `#chaine-lectures` et `#chaine-scenarios`. `donnees` est ce que rend `donneesDeLaChaine()`, plus `logos` : les SVG
  * en ligne des cartes (par fichier de logo) et du titre de la zone du kit (`zone`). Ce fichier ne porte aucune donnée de la chaîne.
+ * `reglage.echelle` dit ce que l'échelle suit. `'fenetre'` (défaut, la page plein écran) : la largeur et la hauteur de la fenêtre, pour que
+ * la page tienne entière. `'largeur'` (la section de l'inventaire, dans une page qui défile) : la largeur de `hote` seule ; `hote` prend
+ * alors la hauteur de la scène mise à l'échelle et rogne ce qui dépasse.
  */
-function monterLaChaine(hote, donnees) {
+function monterLaChaine(hote, donnees, reglage = {}) {
+const SUIT_LA_FENETRE = reglage.echelle !== 'largeur';
 const P = {
   cadre: '<rect x="4" y="4" width="16" height="16" rx="3"/><path d="M4 10h16M10 10v10"/>',
   couches: '<path d="M12 3 3 8l9 5 9-5z"/><path d="M3 13l9 5 9-5"/>',
@@ -342,14 +346,16 @@ function rendre() {
 // La page est dessinée à 1440 px de large, puis agrandie jusqu'à 130 % ou réduite pour tenir entière dans la fenêtre.
 // L'échelle suit la hauteur de la fenêtre, jusqu'à 130 %, et descend sous 1 seulement si la fenêtre fait moins de 1440 px
 // à cette échelle. La scène prend ensuite toute la largeur qui reste, marges de 32 px comprises.
+// Avec `echelle: 'largeur'`, la hauteur de la fenêtre ne compte pas : l'échelle suit la largeur de `hote`, comme à fenêtre assez haute.
 function ajuster() {
   const page = hote.querySelector('#chaine-page');
-  const l = document.documentElement.clientWidth;
-  const k = Math.min(1.3, window.innerHeight / page.offsetHeight, l / (BASE + 64));
+  const l = SUIT_LA_FENETRE ? document.documentElement.clientWidth : hote.clientWidth;
+  const k = Math.min(1.3, SUIT_LA_FENETRE ? window.innerHeight / page.offsetHeight : Infinity, l / (BASE + 64));
   const large = Math.max(BASE, Math.floor(l / k) - 64);
   if (large !== LARGE) { LARGE = large; F = LARGE / BASE; rendre(); return; }
   page.style.transform = `translate(${Math.max(0, (l - (LARGE + 64) * k) / 2)}px, 0) scale(${k})`;
-  document.body.style.height = (page.offsetHeight * k) + 'px';
+  if (SUIT_LA_FENETRE) document.body.style.height = (page.offsetHeight * k) + 'px';
+  else hote.style.height = (page.offsetHeight * k) + 'px';
 }
 function appliquer(s) { actif = Object.fromEntries(NOEUDS.map(n => [n.id, !!SCENARIOS[s](n)])); ouvert = null; rendre(); }
 

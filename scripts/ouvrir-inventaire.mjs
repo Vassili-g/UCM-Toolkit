@@ -2,7 +2,8 @@
  * `npm run inventaire` : génère la page d'inventaire depuis les sources, l'écrit dans
  * le dossier temporaire du système et l'ouvre dans le navigateur par défaut, avec la
  * commande de la plateforme (`start`, `open` ou `xdg-open`). Le fichier commité
- * `INVENTAIRE-UCM.html` ne change pas : `npm run vues` le régénère.
+ * `INVENTAIRE-UCM.html` ne change pas : `npm run vues` le régénère. La section « La chaîne UCM » renvoie vers `CHAINE-UCM.html` par un
+ * lien relatif : la chaîne s'écrit donc à côté de l'inventaire, dans le même dossier.
  *
  * Le générateur est en TypeScript ; l'import de `tsx` le rend chargeable, comme dans `vues.mjs`.
  */
@@ -16,11 +17,12 @@ import 'tsx';
 
 const racine = join(dirname(fileURLToPath(import.meta.url)), '..');
 
-/** Écrit la page générée à `chemin`. */
+/** Écrit la page générée à `chemin` et, dans le même dossier, `CHAINE-UCM.html`, que la page de l'inventaire cite. */
 export async function ecrireLaPage(chemin) {
   const generateur = await import(pathToFileURL(join(racine, 'docs/inventaire/generer-inventaire.ts')).href);
   const { page } = await generateur.genererInventaireEtCouverture();
   writeFileSync(chemin, page);
+  writeFileSync(join(dirname(chemin), 'CHAINE-UCM.html'), generateur.genererChaine());
 }
 
 function ouvrir(page) {
@@ -39,6 +41,6 @@ function ouvrir(page) {
 if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
   const page = join(tmpdir(), 'INVENTAIRE-UCM.html');
   await ecrireLaPage(page);
-  console.log(`Écrit : ${page}`);
+  console.log(`Écrit : ${page} et ${join(tmpdir(), 'CHAINE-UCM.html')}`);
   ouvrir(page);
 }

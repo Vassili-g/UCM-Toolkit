@@ -9,7 +9,7 @@
 import { execFileSync } from 'node:child_process';
 import { existsSync, readdirSync, readFileSync, statSync } from 'node:fs';
 import path from 'node:path';
-import { fileURLToPath } from 'node:url';
+import { fileURLToPath, pathToFileURL } from 'node:url';
 
 import { TOKENS_FORMAT_VERSION, VERSIONS_DE_TOKENS_LUES, CONTRACT_VERSION } from '@ucm-kit/core/format';
 import { VERSION_CONTRAT_MINIMALE, sectionEcartsDeParite } from '@ucm-kit/core/lecteurs';
@@ -389,6 +389,68 @@ export async function commandes(): Promise<{ nom: string; role: string; note: st
     note: 'note' in commande && commande.note ? phrase(commande.note as string) : '',
     options: commande.options.map((option) => option.nom),
   }));
+}
+
+/** Un paquet du workspace tel que son `package.json` le déclare. */
+export interface PaquetDuWorkspace {
+  dossier: string;
+  nom: string;
+  version: string;
+  prive: boolean;
+  /** Les noms de paquets de `dependencies`, dans l'ordre du fichier. */
+  dependances: string[];
+}
+
+/** Les `package.json` de chaque workspace. */
+export function paquetsDuWorkspace(): PaquetDuWorkspace[] {
+  return dossiersDesWorkspaces().map((dossier) => {
+    const paquet = json(`packages/${dossier}/package.json`);
+    return { dossier, nom: paquet.name, version: paquet.version, prive: paquet.private === true, dependances: Object.keys(paquet.dependencies ?? {}) };
+  });
+}
+
+/** Les portes du kit que `packages/<dossier>/src/` importe (`lecteurs/navigateur` compris), sans doublon, dans l'ordre alphabétique. `package.json` s'écrit `package`. */
+export function portesImportees(dossier: string): string[] {
+  const portes = new Set<string>();
+  const racine = path.join(RACINE, 'packages', dossier, 'src');
+  const parcourir = (chemin: string): void => {
+    for (const entree of readdirSync(chemin, { withFileTypes: true })) {
+      const complet = path.join(chemin, entree.name);
+      if (entree.isDirectory()) { if (entree.name !== 'node_modules') parcourir(complet); continue; }
+      if (!/\.(mjs|ts|tsx|js|jsx)$/.test(entree.name)) continue;
+      for (const trouve of readFileSync(complet, 'utf8').matchAll(/@ucm-kit\/core\/([a-z]+(?:\/navigateur)?)/g)) portes.add(trouve[1] === 'package' ? 'package.json' : trouve[1]);
+    }
+  };
+  parcourir(racine);
+  return [...portes].sort();
+}
+
+/** Les portes de `exports` du kit, sans le `./` de tête. */
+export function portesDuKit(): string[] {
+  return Object.keys(json('packages/kit/package.json').exports as Record<string, unknown>).map((entree) => entree.replace(/^\.\//, ''));
+}
+
+const LECTURE_DES_PREUVES = `
+const { portes, ucm } = JSON.parse(process.env.LECTURE_DES_PREUVES);
+const exportees = {};
+for (const porte of portes) exportees[porte] = Object.keys(await import('@ucm-kit/core/' + porte));
+const { COMMANDES } = await import(ucm);
+process.stdout.write(JSON.stringify({ exportees, commandes: COMMANDES.map((commande) => commande.nom) }));
+`;
+let preuvesLues: { exportees: Record<string, string[]>; commandes: string[]; init: string } | undefined;
+
+/**
+ * Ce que le code prouve : les noms des commandes de la CLI, les noms que chaque porte du kit exporte et le texte d'`ucm init`.
+ * La lecture passe par un processus fils, car le module de la CLI ne s'importe que par `import()`, asynchrone ; elle se fait une fois.
+ */
+export function preuvesDuCode() {
+  if (preuvesLues === undefined) {
+    const exports = json('packages/kit/package.json').exports as Record<string, { default?: string }>;
+    const portes = Object.entries(exports).filter(([, cible]) => typeof cible === 'object' && /\.m?js$/.test(cible.default ?? '')).map(([entree]) => entree.slice(2));
+    const sortie = execFileSync(process.execPath, ['--input-type=module', '-e', LECTURE_DES_PREUVES], { cwd: RACINE, encoding: 'utf8', env: { ...process.env, LECTURE_DES_PREUVES: JSON.stringify({ portes, ucm: pathToFileURL(path.join(RACINE, 'packages/cli/src/ucm.mjs')).href }) } });
+    preuvesLues = { ...JSON.parse(sortie), init: lire('packages/cli/src/init.mjs') };
+  }
+  return preuvesLues!;
 }
 
 // ---------- Le contrat du Button ----------

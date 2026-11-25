@@ -298,26 +298,22 @@
     b.addEventListener('click', function () { var c = b.getAttribute('data-chemin'); suivreLaValeur(cheminSuivi === c ? '' : c); });
   });
 
-  // Le parcours d'un composant : un clic sur une étape montre sa carte sous les couloirs ; les flèches du clavier passent d'une étape à l'autre.
-  var etapes = Array.prototype.slice.call(document.querySelectorAll('.parcours [role="tab"]'));
-  function montrerLEtape(onglet, focaliser) {
-    etapes.forEach(function (t) {
-      var actif = t === onglet;
-      t.setAttribute('aria-selected', actif);
-      t.tabIndex = actif ? 0 : -1;
-      document.getElementById(t.getAttribute('aria-controls')).hidden = !actif;
-    });
-    if (focaliser) onglet.focus();
+  // La chaîne UCM sort de la colonne du texte : son bloc commence au bord droit du sommaire et finit au bord droit de la fenêtre, moins la
+  // marge droite de `main`. Quand le sommaire passe en barre du haut (860 px et moins), le bloc prend toute la largeur. Le style de
+  // chaine.css et le script de rendu sont ceux de CHAINE-UCM.html ; la page défile ici, donc l'échelle suit la largeur du bloc seule.
+  var hoteDeLaChaine = document.getElementById('chaine-hote');
+  var enBarre = window.matchMedia('(max-width: 860px)');
+  function etirerLaChaine() {
+    var bloc = hoteDeLaChaine.parentElement;
+    bloc.style.marginLeft = '0';
+    var gauche = enBarre.matches ? 0 : document.querySelector('nav.sommaire').getBoundingClientRect().right;
+    var droite = enBarre.matches ? 0 : parseFloat(getComputedStyle(document.querySelector('main')).paddingRight);
+    bloc.style.marginLeft = (gauche - bloc.getBoundingClientRect().left) + 'px';
+    bloc.style.width = (document.documentElement.clientWidth - gauche - droite) + 'px';
   }
-  etapes.forEach(function (t, i) {
-    t.addEventListener('click', function () { montrerLEtape(t, false); });
-    t.addEventListener('keydown', function (e) {
-      var pas = e.key === 'ArrowRight' || e.key === 'ArrowDown' ? 1 : e.key === 'ArrowLeft' || e.key === 'ArrowUp' ? -1 : 0;
-      if (!pas) return;
-      e.preventDefault();
-      montrerLEtape(etapes[(i + pas + etapes.length) % etapes.length], true);
-    });
-  });
+  etirerLaChaine();
+  window.addEventListener('resize', etirerLaChaine);
+  monterLaChaine(hoteDeLaChaine, {{js:chaine}}, { echelle: 'largeur' });
 
   // Roadmap : les pistes viennent de pistes.json et de leur plan (docs/notes/Recherches/), calculées par le générateur. Le script ne
   // garde rien du choix du mainteneur : la prio se pose dans pistes.json, par l'agent à qui le formulaire donne la consigne.
@@ -630,7 +626,7 @@
     ['cli', /CLI/],
   ];
   var NOM_DE_PRODUIT = new RegExp('(?<![\\p{L}\\d_@/.-])(' + PRODUITS.map(function (p) { return p[1].source; }).join('|') + ')(?![\\p{L}\\d_-])', 'gu');
-  var HORS_ETIQUETTE = 'a, code, pre, script, style, svg, button, summary, textarea, select, label, h1, h2, h3, h4, th, .chemin, .fiche .nom, .etat, .alerte, nav';
+  var HORS_ETIQUETTE = 'a, code, pre, script, style, svg, button, summary, textarea, select, label, h1, h2, h3, h4, th, .chemin, .fiche .nom, .etat, .alerte, nav, .chaine';
   function produitDuNom(nom) {
     for (var i = 0; i < PRODUITS.length; i++) if (new RegExp('^(' + PRODUITS[i][1].source + ')$').test(nom)) return PRODUITS[i][0];
     return null;

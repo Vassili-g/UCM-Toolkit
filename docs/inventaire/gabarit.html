@@ -6,7 +6,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Inventaire UCM Toolkit</title>
 <style>
-{{css}}</style>
+{{css}}{{chaine:css}}</style>
 </head>
 <body>
 <div class="page">
@@ -16,7 +16,7 @@
   <ol>
     <li><a href="#concept">Le concept UCM</a></li>
     <li><a href="#outils">Les outils</a></li>
-    <li><a href="#parcours">Le parcours d'un composant</a></li>
+    <li><a href="#chaine">La chaîne UCM</a></li>
     <li><a href="#architecture">Les variables Figma</a></li>
     <li><a href="#contrat">Le contrat</a></li>
     <li><a href="#controles">Ce qui est vérifié</a></li>
@@ -182,96 +182,35 @@
   </table></div>
 </section>
 
-<!-- 3. Le parcours d'un composant : huit étapes en trois couloirs ; un clic sur une étape montre sa carte dessous (page.js). -->
-<section class="partie" id="parcours">
-  <h2><span class="num">3</span>Le parcours d'un composant</h2>
-  <p class="defini">Défini dans <code>CONCEPT.md</code> §5 et le <code>README.md</code> de chaque outil.</p>
-  <p class="intro">Le parcours suit un composant de ses premières couleurs dans Figma jusqu'à son code, en huit étapes. Chaque étape nomme qui agit, avec quel outil, et ce qu'elle produit. Cliquez sur une étape pour afficher son détail.</p>
-  <div class="parcours" role="tablist" aria-label="Les huit étapes du parcours">
-    <div class="couloir"><span class="couloir-titre">Le designer, dans Figma</span>
-      <div class="etapes">
-        <button type="button" class="etape" role="tab" id="onglet-etape-1" aria-selected="true" aria-controls="etape-1"><span class="n">1</span><b>Couleurs</b><small>UCM Palettes</small></button>
-        <button type="button" class="etape main" role="tab" id="onglet-etape-2" aria-selected="false" aria-controls="etape-2" tabindex="-1"><span class="n">2</span><b>Variables à la main</b><small>aucun outil</small></button>
-        <button type="button" class="etape" role="tab" id="onglet-etape-3" aria-selected="false" aria-controls="etape-3" tabindex="-1"><span class="n">3</span><b>Thème et noms</b><small>UCM Architect</small></button>
-        <button type="button" class="etape" role="tab" id="onglet-etape-4" aria-selected="false" aria-controls="etape-4" tabindex="-1"><span class="n">4</span><b>Composant</b><small>UCM Architect</small></button>
-      </div></div>
-    <div class="couloir"><span class="couloir-titre">La forge et le CI</span>
-      <div class="etapes">
-        <button type="button" class="etape" role="tab" id="onglet-etape-5" aria-selected="false" aria-controls="etape-5" tabindex="-1"><span class="n">5</span><b>Publication</b><small>Contract Exporter</small></button>
-        <button type="button" class="etape" role="tab" id="onglet-etape-6" aria-selected="false" aria-controls="etape-6" tabindex="-1"><span class="n">6</span><b>Contrôle</b><small><code>ucm check</code></small></button>
-      </div></div>
-    <div class="couloir"><span class="couloir-titre">Le développeur, dans le repository</span>
-      <div class="etapes">
-        <button type="button" class="etape" role="tab" id="onglet-etape-7" aria-selected="false" aria-controls="etape-7" tabindex="-1"><span class="n">7</span><b>Code</b><small>CLI et adaptateur</small></button>
-        <button type="button" class="etape trou" role="tab" id="onglet-etape-8" aria-selected="false" aria-controls="etape-8" tabindex="-1"><span class="n">8</span><b>Rendu</b><small>aucun contrôle</small></button>
-      </div></div>
+<!-- 3. La chaîne UCM : le bloc de CHAINE-UCM.html (docs/inventaire/chaine/), sorti de la colonne et étiré sur la largeur de la fenêtre ; page.js le monte dans #chaine-hote. -->
+<section class="partie" id="chaine">
+  <h2><span class="num">3</span>La chaîne UCM</h2>
+  <p class="defini">Défini dans <code>docs/inventaire/chaine/briques.ts</code>, calculé depuis le dépôt par <code>docs/inventaire/chaine/calculs.ts</code>.</p>
+  <p class="intro">La chaîne suit un composant de Figma jusqu'à son code. Chaque carte nomme un outil, un fichier ou un paquet. Les boutons de l'en-tête choisissent la lecture, flux ou paquets, et ce qui existe : sans UCM, aujourd'hui ou la chaîne complète. Cliquez sur une carte pour son détail. <a class="plein-ecran" href="CHAINE-UCM.html">Plein écran</a></p>
+  <div class="chaine-bloc">
+    <div class="chaine" id="chaine-hote">
+      <div class="page" id="chaine-page">
+        <header>
+          {{chaine:logo-entete}}
+          <div>
+            <h1>UCM Toolkit</h1>
+            <p>Du design Figma au composant codé. Le design et le code restent identiques, et une machine le vérifie à chaque pull request.</p>
+          </div>
+          <div class="scenarios lectures" id="chaine-lectures">
+            <button data-l="flux" class="actif">Le flux</button>
+            <button data-l="paquets">Les paquets</button>
+          </div>
+          <div class="scenarios" id="chaine-scenarios">
+            <button data-s="sans">Sans UCM</button>
+            <button data-s="auj" class="actif">Aujourd'hui</button>
+            <button data-s="cible">Chaîne complète</button>
+          </div>
+        </header>
+        <section class="bilan" id="chaine-bilan"></section>
+        <div class="scene" id="chaine-scene"></div>
+      </div>
+    </div>
   </div>
-
-  <div class="etape-carte" id="etape-1" role="tabpanel" aria-labelledby="onglet-etape-1">
-    <h4><span class="n">1</span>Couleurs</h4>
-    <dl class="faits">
-      <dt>Qui</dt><dd>Le designer, dans Figma, avec <a href="#outil-palettes">UCM Palettes</a></dd>
-      <dt>Ce qui se passe</dt><dd>Palettes calcule pour chaque couleur de marque et chaque statut une palette Light et Dark de {{crans:nombre}} <a class="terme" href="#g-cran" title="Une des {{crans:nombre}} nuances d'une palette, numérotées de 50, la plus proche du fond, à 950.">crans</a>, en <a class="terme" href="#g-intensite" title="Le réglage de saturation d'une palette, Soft ou Vivid. Vivid prend {{palettes:part-vivid}} de la saturation possible, Soft {{palettes:part-soft}}. Une palette grise n'a qu'une intensité, dite unique.">intensité</a> Soft ou Vivid. Chaque palette tient les {{garanties:nombre}} <a class="terme" href="#g-garantie" title="Un contraste minimal entre deux variables du thème. G1 : le texte d'un bouton plein atteint 4,5:1 sur son fond.">garanties</a> de contraste.</dd>
-      <dt>Ce qui en sort</dt><dd>Les variables de couleur de la collection <code>primitives</code>, et une planche par palette.</dd>
-    </dl>
-  </div>
-  <div class="etape-carte" id="etape-2" role="tabpanel" aria-labelledby="onglet-etape-2" hidden>
-    <h4><span class="n">2</span>Variables à la main</h4>
-    <dl class="faits">
-      <dt>Qui</dt><dd>Le designer, dans Figma, sans outil</dd>
-      <dt>Ce qui se passe</dt><dd>Le designer pose les collections <code>brands</code>, <code>utility</code>, <code>layout</code> et <code>typography</code> : les palettes de marque, le neutre et les statuts, les tailles, les rayons et les réglages de texte. Architect crée ensuite les alias de <code>brands</code> et de <code>utility</code> vers <code>primitives</code> (piste P21, livrée). Aucun outil n'écrit <code>layout</code> ni <code>typography</code>.</dd>
-      <dt>Ce qui en sort</dt><dd>Des <a class="terme" href="#g-alias" title="Une variable qui vise une autre variable au lieu de porter une valeur. Un alias de mode vise une variable différente en Light et en Dark.">alias</a> vers les primitives, et les tailles et les textes du design system.</dd>
-    </dl>
-  </div>
-  <div class="etape-carte" id="etape-3" role="tabpanel" aria-labelledby="onglet-etape-3" hidden>
-    <h4><span class="n">3</span>Thème et noms</h4>
-    <dl class="faits">
-      <dt>Qui</dt><dd>Le designer, dans Figma, avec <a href="#outil-architect">UCM Architect</a>, <a class="terme" href="#g-vues" title="Les deux vues d'Architect. La vue Tokens parcourt les variables du fichier. La vue Composant analyse un jeu de variants.">vue Tokens</a></dd>
-      <dt>Ce qui se passe</dt><dd>Architect renomme les variables selon la convention choisie. Il vérifie et complète les {{theme:variables}} variables du thème, leurs crans, leurs alias de <a class="terme" href="#g-mode" title="Un mode est une colonne de valeurs d'une collection Figma, par exemple Light et Dark. Le thème est la collection theme, qui porte les {{theme:variables}} variables d'usage.">mode</a> et leurs <a class="terme" href="#g-scope" title="Ce qui limite les champs où le designer peut lier une variable : remplissage, contour, rayon.">scopes</a>.</dd>
-      <dt>Ce qui en sort</dt><dd>La collection <code>theme</code>, qui vise <code>brands</code> et <code>utility</code>, et des noms conformes à la grammaire.</dd>
-    </dl>
-  </div>
-  <div class="etape-carte" id="etape-4" role="tabpanel" aria-labelledby="onglet-etape-4" hidden>
-    <h4><span class="n">4</span>Composant</h4>
-    <dl class="faits">
-      <dt>Qui</dt><dd>Le designer, dans Figma, avec <a href="#outil-architect">UCM Architect</a>, vue Composant</dd>
-      <dt>Ce qui se passe</dt><dd>Architect analyse un jeu de <a class="terme" href="#g-axe" title="Un axe est une propriété de variant (Color, Size, State). Une variante est une valeur d'axe (primary). Un variant est une combinaison de variantes.">variants</a> : <a class="terme" href="#g-liaison" title="Ce qui relie une propriété d'un calque à une variable.">liaisons</a>, tailles, texte, icônes, contrastes, cibles et <a class="terme" href="#g-regles" title="Le bloc .componentRules posé à côté du composant dans Figma pour dire quand l'employer. L'Exporter les publie dans intent.">règles d'usage</a>. Il propose les seules corrections exactes, pose une question pour le reste, puis prépare les tokens du composant.</dd>
-      <dt>Ce qui en sort</dt><dd>Les variables du composant dans <code>components</code>, et des calques liés aux tokens de leur composant.</dd>
-    </dl>
-  </div>
-  <div class="etape-carte" id="etape-5" role="tabpanel" aria-labelledby="onglet-etape-5" hidden>
-    <h4><span class="n">5</span>Publication</h4>
-    <dl class="faits">
-      <dt>Qui</dt><dd>Le designer, avec <a href="#outil-exporter">UCM Contract Exporter</a>, vers la <a class="terme" href="#g-forge" title="Le service qui héberge le repository et ses pull requests, GitHub ou GitLab.">forge</a></dd>
-      <dt>Ce qui se passe</dt><dd>L'Exporter publie <code>tokens.json</code> d'abord, puis le contrat du composant. Chaque fichier part sur sa branche, avec sa pull request, sur GitHub ou gitlab.com. L'Exporter ne fusionne jamais seul.</dd>
-      <dt>Ce qui en sort</dt><dd><code>tokens.json</code> au format DTCG et <code>&lt;Id&gt;.contract.json</code> en contrat {{contrat}}, dans le repository de l'application.</dd>
-    </dl>
-  </div>
-  <div class="etape-carte" id="etape-6" role="tabpanel" aria-labelledby="onglet-etape-6" hidden>
-    <h4><span class="n">6</span>Contrôle</h4>
-    <dl class="faits">
-      <dt>Qui</dt><dd>Le CI de la forge, avec <code>ucm check</code> de la <a href="#outil-cli">CLI</a></dd>
-      <dt>Ce qui se passe</dt><dd>À chaque pull request, <code>ucm check</code> lit le contrat, <code>tokens.json</code> et le code. Un contrat illisible bloque la fusion. Un token absent ou un écart du code avertit.</dd>
-      <dt>Ce qui en sort</dt><dd>Un rapport en commentaire de la demande, montré dans la <a href="#controles">partie 6</a>.</dd>
-    </dl>
-  </div>
-  <div class="etape-carte" id="etape-7" role="tabpanel" aria-labelledby="onglet-etape-7" hidden>
-    <h4><span class="n">7</span>Code</h4>
-    <dl class="faits">
-      <dt>Qui</dt><dd>Le développeur ou son agent, avec la <a href="#outil-cli">CLI</a> et l'<a href="#outil-adaptateur">adaptateur TypeScript</a></dd>
-      <dt>Ce qui se passe</dt><dd><code>ucm tokens css</code> produit la feuille CSS des tokens et de leurs modes. L'adaptateur génère les types des variantes. Le développeur écrit le composant contre le contrat, avec <code>ucm guide</code> et la skill <code>ucm-implementer</code>. L'adaptateur compare ensuite les props du code à celles du contrat.</dd>
-      <dt>Ce qui en sort</dt><dd>Le composant codé, et sa <a class="terme" href="#g-parite" title="La parité compare les props du contrat à celles du composant TypeScript.">parité</a> contrôlée en avertissement.</dd>
-    </dl>
-  </div>
-  <div class="etape-carte trou" id="etape-8" role="tabpanel" aria-labelledby="onglet-etape-8" hidden>
-    <h4><span class="n">8</span>Rendu</h4>
-    <dl class="faits">
-      <dt>Qui</dt><dd>Aucun outil</dd>
-      <dt>Ce qui se passe</dt><dd>Aucun outil ne compare le rendu du composant dans un navigateur à son contrat ou à Figma. <a href="#piste-P9">P9</a> monte les <a class="terme" href="#g-storybook" title="Un atelier qui affiche chaque composant isolé. Une story montre un composant dans une combinaison de props.">stories</a>, <a href="#piste-P10">P10</a> compare le rendu et <a href="#piste-P20">P20</a> le fait bloquer.</dd>
-      <dt>Ce qui en sort</dt><dd>Aucun constat.</dd>
-    </dl>
-  </div>
-  <p class="legende-parcours doux">Une étape en pointillés gris est un geste fait à la main. Une étape en pointillés roses est un contrôle absent.</p>
 </section>
 
 <!-- 4. L'architecture des variables Figma : collection, schéma des collections lu des primitives vers les composants, panneau, thème, noms, termes. -->
@@ -846,6 +785,8 @@
 </div>
 <button type="button" class="revenir" id="revenir" hidden><span aria-hidden="true">←</span> Revenir<small id="revenir-lieu"></small></button>
 
+<script>
+{{chaine:rendu}}</script>
 <script>
 {{js}}</script>
 </body>

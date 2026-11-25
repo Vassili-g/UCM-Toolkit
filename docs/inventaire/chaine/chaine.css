@@ -20,9 +20,15 @@
   --perte: #c03b4c;
 }
 .chaine, .chaine *, .chaine *::before, .chaine *::after { box-sizing: border-box; }
-.chaine { background: var(--fond); color: var(--encre); font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; -webkit-font-smoothing: antialiased; }
-
-.chaine .page { padding: 22px 32px 24px; transform-origin: 0 0; }
+.chaine { background: var(--fond); color: var(--encre); font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; -webkit-font-smoothing: antialiased; line-height: normal; }
+/* Dans l'inventaire, page.css range la chaîne avec le reste de la page : il donne à `body` un interligne de 1,55, des règles aux balises
+   `h1`, `p` et `code`, aux classes `.bascule` et `.verdict`, et nomme `.livre`, `.partiel` et `.ouvert` des états à signe et à teinte. Ce bloc
+   rend à ces éléments leur style d'origine pour que la chaîne se dessine comme dans CHAINE-UCM.html. `:where` garde la spécificité
+   des règles de page.css, que ce fichier suit, et les règles qui viennent plus bas dans ce fichier l'emportent sur `all: revert`. */
+:where(.chaine) h1, :where(.chaine) p, :where(.chaine) code, :where(.chaine) .bascule, :where(.chaine) .verdict { all: revert; }
+.chaine .livre, .chaine .partiel, .chaine .ouvert, .chaine .manque, .chaine .decidee, .chaine .propose { color: inherit; background: none; }
+.chaine .livre::before, .chaine .partiel::before, .chaine .ouvert::before, .chaine .manque::before, .chaine .decidee::before, .chaine .propose::before { content: none; }
+.chaine .page { display: block; max-width: none; margin: 0; padding: 22px 32px 24px; transform-origin: 0 0; }
 
 .chaine header { display: flex; align-items: center; gap: 12px; margin-bottom: 16px; }
 .chaine header img { width: 30px; height: 30px; }

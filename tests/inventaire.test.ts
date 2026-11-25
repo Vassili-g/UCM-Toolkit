@@ -54,13 +54,52 @@ test("la page de l'inventaire est autonome et tient sous 1 Mo", async () => {
   assert.ok(Buffer.byteLength(page) < 1_000_000);
   assert.deepEqual(page.match(/\bsrc=(?!\\?"data:)|<link|@import/g), null);
   // Les seuls liens qui sortent de la page visent un document du dépôt sur GitHub : le script compose ceux de la recherche et du plan, le générateur écrit ceux des pistes terminées.
-  assert.deepEqual(page.match(/href="(?!#|' \+ url)[^"]*"/g), null);
+  // Le lien « Plein écran » de la chaîne vise `CHAINE-UCM.html`, écrit à côté de l'inventaire.
+  assert.deepEqual(page.match(/href="(?!#|CHAINE-UCM\.html"|' \+ url)[^"]*"/g), null);
   const url = [...page.matchAll(/url\((?!#|data:|"data:)[^)]{0,20}/g)].map((trouve) => trouve[0]);
   assert.deepEqual(url, [], 'une feuille de style charge une ressource');
   const adresses = [...new Set([...page.matchAll(/https?:\/\/[^"' )<]*/g)].map((trouve) => trouve[0]))];
   const lienDuDepot = (adresse: string): boolean => adresse.startsWith(`${DEPOT_SUR_GITHUB}/`) && /^(main|[0-9a-f]{7,40})\//.test(adresse.slice(DEPOT_SUR_GITHUB.length + 1));
   const etrangeres = adresses.filter((adresse) => adresse !== 'http://www.w3.org/2000/svg' && !lienDuDepot(adresse));
   assert.deepEqual(etrangeres, [], "seuls l'espace de noms SVG et le dépôt sur GitHub (sur main ou sur un commit) sont des adresses");
+});
+
+/** Le bloc de la chaîne (en-tête, jauges, scène) d'une page, sans l'espace entre les balises ni le logo de l'en-tête. */
+const blocDeLaChaine = (page: string): string => /<header>[\s\S]*?id="chaine-scene"><\/div>/.exec(page)![0].replace(/>\s+</g, '><');
+
+test("la section 3 est la chaîne UCM : plus de parcours en huit étapes, un lien vers la page plein écran, le même bloc que cette page", async () => {
+  const page = await generee();
+  assert.ok(page.includes('<section class="partie" id="chaine">'));
+  assert.ok(page.includes('<a href="#chaine">La chaîne UCM</a>'));
+  assert.ok(page.includes('<a class="plein-ecran" href="CHAINE-UCM.html">Plein écran</a>'));
+  assert.ok(!page.includes('class="parcours"') && !page.includes('etape-carte') && !page.includes('href="#parcours"'), 'le parcours en huit étapes est retiré');
+  assert.equal(blocDeLaChaine(page), blocDeLaChaine(genererChaine()), 'le gabarit et plein-ecran.html écrivent le même balisage');
+});
+
+test("aucune règle de chaine.css ne sort de `.chaine`, sauf les @keyframes que la règle `chaine-flux` nomme", () => {
+  const feuille = readFileSync(path.join(racine, 'docs', 'inventaire', 'chaine', 'chaine.css'), 'utf8').replace(/\/\*[\s\S]*?\*\//g, '');
+  const hors: string[] = [];
+  let profondeur = 0;
+  let tete = '';
+  for (const lettre of feuille) {
+    if (lettre === '{') {
+      if (profondeur === 0 && !tete.trim().startsWith('@')) {
+        for (const selecteur of tete.split(',').map((candidat) => candidat.trim())) if (!/^(\.chaine|:where\(\.chaine\))(?![\w-])/.test(selecteur)) hors.push(selecteur);
+      }
+      if (profondeur === 0 && tete.trim().startsWith('@') && !/^@keyframes chaine-/.test(tete.trim())) hors.push(tete.trim());
+      profondeur++;
+      tete = '';
+    } else if (lettre === '}') {
+      profondeur--;
+      tete = '';
+    } else if (profondeur === 0) tete += lettre;
+  }
+  assert.deepEqual(hors, [], 'ces règles de chaine.css touchent le reste de la page');
+});
+
+test("le script de l'inventaire exclut la chaîne de l'étiquetage des produits", () => {
+  const script = readFileSync(path.join(racine, 'docs', 'inventaire', 'page.js'), 'utf8');
+  assert.match(/var HORS_ETIQUETTE = '([^']*)'/.exec(script)![1], /(^|, )\.chaine(,|$)/);
 });
 
 test("la page de l'inventaire dit qu'elle est générée", async () => {

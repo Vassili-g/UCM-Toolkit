@@ -18,9 +18,9 @@ L'inventaire du dépôt, vue générée sans autorité : chaque section nomme le
 
 - ../../INVENTAIRE-UCM.html : la page générée, commitée à la racine du dépôt ; `tests/inventaire.test.ts` la compare à `genererInventaire`
 - ../../CHAINE-UCM.html : la chaîne UCM en pleine page, générée et commitée à la racine ; `tests/inventaire.test.ts` la compare à `genererChaine`
-- generer-inventaire.ts : `genererInventaire` (asynchrone : la CLI se lit par `import()`) assemble `gabarit.html`, `page.css` et `page.js` ; `genererChaine` assemble `chaine/plein-ecran.html` ; un `{{nom}}` sans valeur échoue (`npm run vues`)
-- chaine/ : la chaîne UCM, données séparées du rendu : `briques.ts` (les données déclarées), `calculs.ts` (`donneesDeLaChaine`, seule entrée du générateur), `rendu.js` (`monterLaChaine`), `chaine.css` (chaque règle sous `.chaine`), `plein-ecran.html`
-- releves.ts : ce que la page lit dans le kit compilé (à travers un `Proxy` qui relève chaque nom lu), le moteur de couleur, la CLI, le socle et les fichiers du dépôt ; valide `pistes.json` et `decisions.json`
+- generer-inventaire.ts : `genererInventaire` (asynchrone : la CLI se lit par `import()`) assemble `gabarit.html`, `page.css` et `page.js` ; `genererChaine` assemble `chaine/plein-ecran.html` ; les deux lisent le style, le script, les données et les logos de la chaîne par `piecesDeLaChaine` ; un `{{nom}}` sans valeur échoue (`npm run vues`)
+- chaine/ : la chaîne UCM, données séparées du rendu : `briques.ts` (les données déclarées), `calculs.ts` (`donneesDeLaChaine`, seule entrée du générateur : états, dépendances, paquets, traits et puces du kit, versions et nombres calculés depuis le dépôt ; `controlerLeRegistre` refuse un registre faux), `rendu.js` (`monterLaChaine(hote, donnees, reglage)` : `reglage.echelle` vaut `'fenetre'` pour la page plein écran, `'largeur'` pour la section 3 de l'inventaire), `chaine.css` (chaque règle sous `.chaine`), `plein-ecran.html`
+- releves.ts : ce que la page lit dans le kit compilé (à travers un `Proxy` qui relève chaque nom lu), le moteur de couleur, la CLI, le socle et les fichiers du dépôt ; pour la chaîne, les paquets du workspace, les portes du kit importées par chaque paquet et les preuves du code (commandes, noms exportés) ; valide `pistes.json` et `decisions.json`
 - couverture.ts : `EXCLUSIONS`, les noms que la page ne montre pas exprès, un groupe par raison
 - plans.ts : lit un plan Markdown (lots, marques, hash, groupe), son état, son lot suivant et la date de son dernier lot
 - extraire.ts : une section, un tableau ou des sous-titres d'un Markdown, par son titre
@@ -68,7 +68,7 @@ Procédures qu'un agent charge à la demande.
 - nouveau-sujet.mjs : `npm run sujet`, crée le dossier de recherche d'une piste, son motif au registre, sa ligne du sommaire et le champ `recherche` de `pistes.json`
 - archiver-sujet.mjs : `npm run sujet:archiver`, propose garder, relire ou supprimer pour chaque fichier du dossier d'une piste livrée ; `--figer` réécrit les liens vers un commit
 - vues.mjs : `npm run vues`, reconstruit le kit si besoin et régénère la planche, les données de la vue illustrée et l'inventaire
-- ouvrir-inventaire.mjs : `npm run inventaire`, génère la page de l'inventaire depuis l'arbre de travail dans le dossier temporaire du système, puis l'ouvre ; la page commitée ne change pas
+- ouvrir-inventaire.mjs : `npm run inventaire`, génère la page de l'inventaire depuis l'arbre de travail dans le dossier temporaire du système, et `CHAINE-UCM.html` à côté, puis l'ouvre ; les pages commitées ne changent pas
 - verifier-conservation.mjs : garde de conservation de la réécriture d'`AGENTS.md`
 
 ## .claude/
@@ -114,7 +114,8 @@ Les tests du monorepo lui-même.
 - referencesComposants.test.ts : registre des systèmes, extraction des noms et valeurs, schémas, guide d'essai et données réelles de `docs/references/`
 - styleDocumentaire.test.ts : tics de rédaction refusés sur tout le dépôt, hors `EXCLUS_DU_CONTROLE`
 - extraireInventaire.test.ts : `docs/inventaire/extraire.ts` rend une section, un tableau ou des sous-titres d'un Markdown, et lève sur un titre absent
-- inventaire.test.ts : la page de l'inventaire commitée égale la page régénérée, reste autonome sous 1 Mo, montre ou exclut chaque élément de ses univers (exports du kit, paquets, dossiers, skills, commandes, codes), et chaque source de `docs/inventaire/sources.json` désigne un fichier
+- chaine.test.ts : le registre des briques de la chaîne UCM garde la sortie de A3 (`donneesDeLaChaine`), et chaque règle de structure (rattachements, pistes citées, traits reçus, cartes dans leur zone, couches) refuse un registre fabriqué qui la viole
+- inventaire.test.ts : les pages de l'inventaire et de la chaîne commitées égalent les pages régénérées, restent autonomes (l'inventaire sous 1 Mo), le bloc de la chaîne est le même dans les deux, montre ou exclut chaque élément de ses univers (exports du kit, paquets, dossiers, skills, commandes, codes), et chaque source de `docs/inventaire/sources.json` désigne un fichier
 - styleMotifs.test.ts : chaque motif de style, le niveau refus ou signal, les hooks d'écriture et de réponse
 - pinDocumente.test.mjs : versions montrées par une commande copiable
 - registrePortableDocuments.test.ts : aucun document portable ne promet une stack
