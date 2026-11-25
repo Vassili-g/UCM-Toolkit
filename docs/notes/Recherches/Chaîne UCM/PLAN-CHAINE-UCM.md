@@ -18,13 +18,13 @@ Ce plan suit la piste P29 de `docs/notes/Recherches/Evolutions globales/pistes.j
 | Q3 | Le produit s'appelle « UCM Contract Exporter », dans `produits.ts` comme sur la carte. | C'est le nom public de la Figma Community, du README racine et de `CONCEPT.md`. |
 | Q4 | Dans l'inventaire, la chaîne sort de la colonne et prend la largeur de la fenêtre, comme la page plein écran. | C'est le rendu validé. Une réduction à 68 % serait un écart. |
 | Q5 | La porte `protocoles` va sous la puce « Architecture des tokens ». | Les 5 puces validées ne changent pas. |
-| Police | Inter est embarquée en base64 dans les deux pages, depuis le paquet `@fontsource-variable/inter` en dépendance de développement. | `tests/inventaire.test.ts` refuse `src=`, `<link>` et `@import` ; le passage à `system-ui` serait un écart. |
+| Police | La chaîne écrit avec la police de l'inventaire, `system-ui, -apple-system, "Segoe UI", Roboto, sans-serif`, dans les deux pages. | Le mainteneur veut une seule police dans tout l'inventaire (2026-11-25). |
 
 Q2 et les textes corrigés de E1 à E5, E8, E10 à E12, E14 et E15 attendent le mainteneur (étape F).
 
 ## La porte au pixel
 
-Le script jetable `_local/presentation-po/comparer.mjs`, hors du dépôt, capture la maquette v16 et la page générée dans les mêmes conditions et compare les images pixel par pixel. La maquette de référence reçoit la même police embarquée que la page générée.
+Le script jetable `_local/presentation-po/comparer.mjs`, hors du dépôt, capture la maquette v16 et la page générée dans les mêmes conditions et compare les images pixel par pixel. La maquette de référence reçoit la police de l'inventaire à la place d'Inter.
 
 | Paramètre | Valeurs |
 |---|---|
@@ -47,7 +47,7 @@ Le script lit seulement la page et la maquette. Un agent ne lit jamais les image
 
 | Vague | Sous-lots en parallèle | Fichiers disjoints |
 |---|---|---|
-| 1 | A1 et A2 (orchestrateur et `executant`), puis A3 ; B1 en parallèle de A3 | A3 écrit `docs/inventaire/`, `scripts/vues.mjs`, `tests/inventaire.test.ts` ; B1 écrit `packages/kit/` |
+| 1 | A1 (orchestrateur), puis A3 ; B1 en parallèle de A3 | A3 écrit `docs/inventaire/`, `scripts/vues.mjs`, `tests/inventaire.test.ts` ; B1 écrit `packages/kit/` |
 | 2 | C1, puis C2 et C3 ; D1 en parallèle de C1 | C écrit `docs/inventaire/chaine/*.ts`, `docs/inventaire/releves.ts`, `tests/chaine.test.ts` ; D1 écrit `gabarit.html`, `page.js`, `page.css`, `generer-inventaire.ts`, `couverture.ts`, `tests/inventaire.test.ts`, `scripts/ouvrir-inventaire.mjs`, `CARTE.md` |
 | 3 | D2 | après C2 et D1 |
 | 4 | E1 | tout l'arbre |
@@ -56,10 +56,6 @@ Le script lit seulement la page et la maquette. Un agent ne lit jamais les image
 ## Étape A. Séparer les données du rendu
 
 - [ ] A1 (orchestrateur). Écrire la porte au pixel `_local/presentation-po/comparer.mjs` et l'éprouver : la maquette contre elle-même ne rend aucune différence.
-- [ ] A2 Ajouter la police embarquée.
-  - Agent : `executant`. Nature : modification listée.
-  - Écrit : `package.json` racine (`@fontsource-variable/inter` en `devDependencies`, version exacte), `package-lock.json`, `docs/inventaire/chaine/police.ts` (une fonction qui rend la règle `@font-face` d'Inter latin, en `woff2` base64, lue dans `node_modules/@fontsource-variable/inter/files/`).
-  - Critères de fin : la règle rendue commence par `@font-face` et ne contient ni `src=` ni `@import` ; `npm ci` passe.
 - [ ] A3 Sortir les données de la maquette et générer `CHAINE-UCM.html` à l'identique.
   - Agent : `implementeur-exigeant` (réécriture sans perte, interface au pixel près). Nature : déplacement de code à sortie identique.
   - Lit : `_local/presentation-po/maquette-v16.html` en entier, la section 5 de la recherche.
@@ -67,7 +63,7 @@ Le script lit seulement la page et la maquette. Un agent ne lit jamais les image
     - `docs/inventaire/chaine/briques.ts` : les constantes `ZONES`, `LEGENDES`, `NOEUDS`, `LIENS`, `KIT`, `MARQUES`, `GARANTIES` recopiées telles quelles, typées ;
     - `docs/inventaire/chaine/calculs.ts` : `donneesDeLaChaine()`, qui rend pour l'instant les constantes du registre sans les transformer ; c'est la seule entrée que lit le générateur ;
     - `docs/inventaire/chaine/rendu.js` : le script de la maquette sans ses données, exposé par `monterLaChaine(racine, donnees)`. Il écoute sur sa racine et non sur `document`, suit la taille de sa racine par un `ResizeObserver`, et préfixe ses identifiants par `chaine-` ;
-    - `docs/inventaire/chaine/chaine.css` : le style de la maquette, chaque règle sous `.chaine`, avec la police de A2 ;
+    - `docs/inventaire/chaine/chaine.css` : le style de la maquette, chaque règle sous `.chaine`, avec la police de l'inventaire à la place d'Inter ;
     - `docs/inventaire/chaine/plein-ecran.html` : le gabarit de la page plein écran ;
     - `docs/inventaire/generer-inventaire.ts` : `genererChaine()`, qui écrit les logos en SVG en ligne par `svgDeMarque` ;
     - `docs/inventaire/sources.json`, `scripts/vues.mjs`, `tests/inventaire.test.ts` : la vue `CHAINE-UCM.html`, sa fraîcheur, et le refus de `src=`, `<link>` et `@import` dans cette page.
