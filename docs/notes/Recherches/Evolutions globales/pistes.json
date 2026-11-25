@@ -1239,6 +1239,60 @@
         "Un cran que des composants emploient change de valeur : un rendu validé bouge sans que personne ne l'ait décidé.",
         "Ouvrir UCM Palettes à une échelle libre contredit la décision « tout outil sauf l'Exporter est full UCM »."
       ]
+    },
+    {
+      "id": "P29",
+      "titre": "La chaîne UCM dans l'inventaire, calculée depuis le dépôt",
+      "titreCourt": "Chaîne UCM",
+      "sujet": "Documentation",
+      "recherche": "docs/notes/Recherches/Chaîne UCM/RECHERCHE-CHAINE-UCM.md",
+      "plan": "docs/notes/Recherches/Chaîne UCM/PLAN-CHAINE-UCM.md",
+      "resume": "Ce qu'il fait : il remplace la section 3 de l'inventaire, « Le parcours d'un composant », par la visualisation interactive de la chaîne présentée au product owner, et produit du même générateur une page plein écran pour la présentation. Où : `docs/inventaire/`, avec un registre des briques propre à l'inventaire. Pourquoi : la maquette validée porte ses données en dur ; versions, états, dépendances entre paquets, nombres et scénario « Aujourd'hui » se calculent depuis le dépôt et les plans, et le reste vit à un seul endroit gardé par des tests. Ajouter un module se fait par une entrée du registre.",
+      "importance": "moyenne",
+      "raisonImportance": "La page sert à présenter UCM à un product owner et à l'équipe. Une donnée recopiée à la main y deviendrait fausse à la prochaine version publiée ou à la prochaine piste livrée.",
+      "prio": 2,
+      "dependances": [],
+      "complexite": "l",
+      "raisonComplexite": "Le rendu et le tracé existent dans la maquette ; le travail porte sur la séparation des données, le registre, les calculs, les tests et l'intégration dans une page dont le style et le script sont partagés.",
+      "coutHumain": "Répondre aux questions de la recherche, puis regarder la section et la page plein écran à chaque lot qui change l'affichage.",
+      "porteur": "mainteneur",
+      "promesse": "C",
+      "points": [
+        {
+          "chemin": "docs/inventaire/chaine/",
+          "action": "créer",
+          "quoi": "Le registre des briques, les calculs de la chaîne et le code de rendu repris de la maquette."
+        },
+        {
+          "chemin": "docs/inventaire/generer-inventaire.ts",
+          "action": "modifier",
+          "quoi": "Passer les données calculées de la chaîne à la page et écrire la page plein écran."
+        },
+        {
+          "chemin": "docs/inventaire/gabarit.html",
+          "action": "modifier",
+          "quoi": "La section 3 devient la chaîne, avec un lien vers la page plein écran."
+        },
+        {
+          "chemin": "CHAINE-UCM.html",
+          "action": "créer",
+          "quoi": "La page plein écran, générée, publiée à côté de l'inventaire."
+        },
+        {
+          "chemin": "packages/kit/src/referentiel/produits.ts",
+          "action": "modifier",
+          "quoi": "Ce qu'Architect écrit : les variables et les liaisons des composants."
+        }
+      ],
+      "criteresDeFin": [
+        "La section 3 de l'inventaire et la page plein écran sortent du même générateur et affichent les mêmes données.",
+        "Aucune version, aucun nombre et aucun état calculable n'est écrit à la main dans le registre des briques.",
+        "Ajouter un module se fait par une entrée du registre, gardée par des tests."
+      ],
+      "risques": [
+        "Le style et le script de la maquette entrent dans une page qui partage déjà des noms de classes et des écouteurs globaux.",
+        "Corriger les données change le dessin validé : chaque trait ajouté ou retiré doit être montré au mainteneur."
+      ]
     }
   ]
 }

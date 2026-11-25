@@ -27,6 +27,7 @@ produit, partir des références de [docs/README.md](../../README.md) et du code
 | [Évolutions globales][evolutions] | Choisir les prochains usages des contrats et des tokens à partir des besoins des équipes. | Catalogue de propositions, dont certaines fonctions sont déjà livrées. Les autres essais ne sont pas des lots approuvés. |
 | [Module linter][module-linter] | Donner au développeur du module linter tout ce qu'UCM fournit, impose et laisse libre (P26). | Recherche en cours. |
 | [Palettes DS existant][palettes-ds-existant] | Fiabiliser les palettes d'un design system existant sans changer son architecture | Recherche en cours. |
+| [Chaîne UCM][chaine-ucm] | La visualisation de la chaîne dans l'inventaire et en plein écran, calculée depuis le dépôt. | Recherche en cours. |
 
 La [spécification de Palettes][spec-palettes] demeure la référence de son
 comportement, même si elle est encore rangée dans le dossier de recherche.
@@ -133,6 +134,7 @@ Leurs recettes Figma reportées restent dans leurs plans.
 [parametres-partages]: ./Parametres%20partages/parametres.json
 [parametres-partages-archive]: https://github.com/Vassili-g/UCM-Toolkit/blob/05258ab0/docs/notes/Recherches/Parametres%20partages/RECHERCHE-PARAMETRES-PARTAGES.md
 [palettes-ds-existant]: ./Palettes%20DS%20existant/RECHERCHE-PALETTES-DS-EXISTANT.md
+[chaine-ucm]: ./Cha%C3%AEne%20UCM/RECHERCHE-CHAINE-UCM.md
 [recette-qualite-archive]: https://github.com/Vassili-g/UCM-Toolkit/blob/202f46e/docs/notes/Recherches/Plugin%20Palettes/Recette%20CRITIQUE%20de%20qualit%C3%A9/PLAN-IMPLEMENTATION.md
 [recette-moteur-archive]: https://github.com/Vassili-g/UCM-Toolkit/blob/202f46e/docs/notes/Recherches/Plugin%20Palettes/Recette%20moteur%20palettes/README.md
 [recette-texte-archive]: https://github.com/Vassili-g/UCM-Toolkit/blob/202f46e/docs/notes/Recherches/Plugin%20Palettes/Texte%20des%20boutons/README.md
