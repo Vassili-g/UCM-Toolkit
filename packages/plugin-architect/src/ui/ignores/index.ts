@@ -155,7 +155,8 @@ export function monterAFaire(options: OptionsDeAFaire): AFaire {
       if (carte.faits.length > 0) corps.append(creerLesFaits(carte.faits));
       const actions = document.createElement('div');
       actions.className = 'constat-actions';
-      actions.append(boutonTexte(constat.layers.length === 1 ? T.ignorerCeLayer : T.ignorer, T.ignorerCeConstat(carte.phrase.replace(/`/g, '')), () => options.ignorer(constat), inactif));
+      const seul = carte.groupe.length === 1 && constat.layers.length === 1;
+      actions.append(boutonTexte(seul ? T.ignorerCeLayer : T.ignorer, T.ignorerCeConstat(carte.phrase.replace(/`/g, '')), () => { for (const membre of carte.groupe) options.ignorer(membre); }, inactif));
       corps.append(actions);
     }
     const { element } = creerCarte({
@@ -179,7 +180,7 @@ export function monterAFaire(options: OptionsDeAFaire): AFaire {
       proposer.setAttribute('aria-label', T.proposerLesLiaisonsDe(carte.phrase.replace(/`/g, '')));
     }
     const actions = creerLigneDActions([proposer, creerBoutonSelectionner({
-      layers: constat.layers,
+      layers: carte.aSelectionner,
       selectionnes: options.selectionnes?.() ?? [],
       phrase: carte.phrase.replace(/`/g, ''),
       inactif,
@@ -192,7 +193,7 @@ export function monterAFaire(options: OptionsDeAFaire): AFaire {
   }
 
   function creerLaCarteIgnoree(carte: CarteDAFaire, inactif: boolean): HTMLElement {
-    const meta = [T.ignoreDansCeFichier, boutonTexte(T.nePlusIgnorer, T.nePlusIgnorerCeConstat(carte.phrase.replace(/`/g, '')), () => options.nePlusIgnorer(carte.constat), inactif)];
+    const meta = [T.ignoreDansCeFichier, boutonTexte(T.nePlusIgnorer, T.nePlusIgnorerCeConstat(carte.phrase.replace(/`/g, '')), () => { for (const membre of carte.groupe) options.nePlusIgnorer(membre); }, inactif)];
     const { element } = creerCarte({ tete: [entete(carte)], meta, corps: null, deplie: false });
     element.classList.add('bloc-constat', 'muette');
     return element;

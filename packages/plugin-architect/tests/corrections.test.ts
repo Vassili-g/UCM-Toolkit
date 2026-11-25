@@ -238,9 +238,35 @@ test('selectionnerLesLayers : retient la sélection posée pour que le selection
   assert.deepEqual(posees, ['1:1', '1:2']);
   assert.deepEqual(a.selection(), [un, deux]);
   assert.deepEqual(retenues, [['1:1', '1:2']]);
-  assert.deepEqual(a.journal, ['selection:1:1,1:2']);
+  assert.deepEqual(a.journal, ['selection:1:1,1:2', 'centrage:1:1,1:2']);
   void autrePage;
   void supprime;
+});
+
+test('selectionnerLesLayers : le calque peint par une surcharge se sélectionne puis la vue se centre sur lui', async () => {
+  const a = atelierDEcriture();
+  const calque = a.layer('I3:152;3:429;1829:9613', 'VECTOR');
+  const retenues: Array<readonly string[]> = [];
+  const posees = await selectionnerLesLayers(['I3:152;3:429;1829:9613'], (ids) => retenues.push(ids), a.api as unknown as ApiDeSelection);
+  assert.deepEqual(posees, ['I3:152;3:429;1829:9613']);
+  assert.deepEqual(a.selection(), [calque]);
+  assert.deepEqual(retenues, [['I3:152;3:429;1829:9613']]);
+  assert.deepEqual(a.journal, ['selection:I3:152;3:429;1829:9613', 'centrage:I3:152;3:429;1829:9613']);
+});
+
+test('selectionnerLesLayers : un centrage refusé ne change ni la sélection posée ni le résultat, et le selectionchange reste celui du plugin', async () => {
+  const a = atelierDEcriture({ refusees: new Set(['centrage']) });
+  const un = a.layer('1:1', 'FRAME');
+  const { retenirLaSelectionDuPlugin } = await import('../src/sandbox/commun');
+  const posees = await selectionnerLesLayers(['1:1'], retenirLaSelectionDuPlugin, a.api as unknown as ApiDeSelection);
+  assert.deepEqual(posees, ['1:1']);
+  assert.deepEqual(a.selection(), [un]);
+  assert.deepEqual(a.journal, ['selection:1:1']);
+  assert.equal(origineDeLaSelection(['1:1']), 'plugin');
+  const sansVue = atelierDEcriture();
+  sansVue.layer('1:2', 'FRAME');
+  const api = { ...sansVue.api, viewport: undefined } as unknown as ApiDeSelection;
+  assert.deepEqual(await selectionnerLesLayers(['1:2'], () => {}, api), ['1:2']);
 });
 
 test('selectionnerLesLayers : aucun layer restant, la sélection ne change pas', async () => {

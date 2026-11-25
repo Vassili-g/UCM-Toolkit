@@ -14,6 +14,7 @@ import { creerCheminEnPhrase, creerVariantEnPhrase } from 'ucm-plugin-socle/src/
 
 import type { Constat } from '../../messages/commun';
 import { analyseApplicable, type AnalyseRecue } from '../composant/analyse';
+import { layersASelectionner } from '../ignores/modele';
 import { poserLeLieuEnrichi, poserLeTexteEnrichi } from '../ignores/texte';
 import { creerBoutonSelectionner } from '../structure/carte';
 import { TEXTES } from '../textes';
@@ -168,7 +169,7 @@ export function monterLesQuestions(options: OptionsDesQuestions): Questions {
     const droite = document.createElement('span');
     droite.className = 'question-actions';
     const bouton = creerBoutonSelectionner({
-      layers: [...new Set(groupe.cartes.flatMap((membre) => membre.constat.layers))],
+      layers: [...new Set(groupe.cartes.flatMap((membre) => layersASelectionner(membre.constat)))],
       selectionnes: options.selectionnes?.() ?? [],
       phrase: carte.titreEnTexte,
       inactif,

@@ -1,4 +1,5 @@
 import type { SorteDImbrique } from '../referentiel/composition.js';
+import type { LayerPourLesDefinitions } from '../referentiel/layers.js';
 
 /** Les faits lus dans Figma avant tout jugement sur un composant. */
 
@@ -18,7 +19,11 @@ export interface LiaisonLue {
   plage?: { debut: number; fin: number };
   porteur: string;
   /** Le layer de l'instance que la surcharge lie, quand ce n'est pas l'instance elle-même : `porteur` reste l'instance, seule lue. */
-  surcharge?: { id: string; nom: string; type: string };
+  surcharge?: {
+    id: string; nom: string; type: string;
+    /** Les instances entre le layer lu et le calque peint, de la plus externe à la plus interne, sans l'un ni l'autre. Absentes : le relevé ne les a pas lues. */
+    instances?: LayerPourLesDefinitions[];
+  };
   /**
    * `composant-principal` : la liaison vient du composant principal de l'instance, sans changement. `instance` : l'hôte la pose ou la change.
    * Absente : l'origine n'est pas lue, la liaison se juge comme celle d'un layer de l'hôte.
@@ -56,6 +61,9 @@ export interface LayerLu {
     cle: string; nom: string; distante: boolean; pilotee: string | null;
     /** Les valeurs que l'instance donne aux propriétés de variant de son composant (`Size` vaut `Small`). Absentes : le lecteur ne les a pas lues, et aucun contrôle ne les juge. */
     valeurs?: Record<string, string>;
+    /** Les deux faits de `LayerPourLesDefinitions.instanceDe` qui font d'une instance une icône sans nom d'icône ; absents, le lecteur ne les a pas lus. */
+    dessin?: boolean;
+    visibilitePar?: string | null;
   };
 }
 

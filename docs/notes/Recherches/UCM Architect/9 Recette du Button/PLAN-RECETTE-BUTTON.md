@@ -47,24 +47,90 @@ ci-dessous. C10 ×3 et C53 sont justes et ne changent pas.
 - D5. « Sélectionner » vise le calque peint (`faits.surcharge`) quand le constat en a un, puis centre la vue sur la sélection.
 - D6. Les constats C17 et C24 sans correction ni question qui ont le même code, le même champ, le même rôle lu, le même rôle
   attendu et le même chemin de calque forment une seule carte. Elle compte les variants, et « Sélectionner » vise tous leurs calques.
-- D7. Le lieu d'une surcharge donne le chemin depuis le layer lu (`arrow-left-long › Vector`). Les phrases de liaison disent
-  « remplissage » et « contour » au lieu de « fill » et « stroke ».
+- D7. Le lieu d'une surcharge donne le chemin depuis le layer lu (`arrow-left-long › Vector`). Les phrases gardent les mots
+  anglais du panneau Design de Figma (`fill`, `stroke`), comme le veut la table de vocabulaire de `CONTRIBUTING.md`.
 - D8. Nouveau code C83 (`variants`, `verifier`). Il signale un composant imbriqué qui porte un axe que l'hôte n'a pas, quand
   son instance n'est exposée dans aucun variant de l'hôte. La phrase dit « La propriété `Size` de `.sizeWrapperButton` ne se
   choisit pas depuis Button. » Le statut dit « Dans Figma, exposez les propriétés de `.sizeWrapperButton` (Expose properties from
   nested instances) ».
+
+## La recette d'Alert
+
+Le rapport `ucm-architect-rapport-Alert-2026-11-25-16-52-51.json` porte 42 constats sur Alert (`Type` vaut Info, Success,
+Warning ou Error, `Variant` vaut Filled ou Outlined ; tokens `Alert/Color/<Info|Success|Warning|Danger>/<Filled|Outlined>/<rôle>`).
+
+- 37 constats viennent d'une seule lecture fausse. `type` est un nom de style dans `NOMS_D_AXES`
+  (`packages/kit/src/referentiel/architecture.ts`), donc Alert a deux styles et aucune couleur : C63 `deux-axes-de-style`, C13
+  « Renommer Info en Outlined ? » ×4, C7 ×4, C32 `sans-variant` ×12, C33 ×8.
+- C65 ×2 accuse Titre et Description, qui suivent le style `Body/Large`. Ce style lie `fontFamily` à `Primitives/FontFamily/base`.
+  La référence UCM range `font-family/base` dans `primitives` seulement (`packages/kit/src/referentiel/reference.ts`), et
+  `typography` n'en a pas.
+- C44 et C45 ×2 disent trois fois une seule chose. Les règles d'Alert décrivent `severity.info`, `severity.success`,
+  `severity.warning` et `severity.error`, et le composant appelle cette propriété `Type`.
+- C24 ×8 suit la cause du Button (icônes `circle-info`, `circle-check`, `triangle-exclamation`, visibilité par `Icon#265:4`).
+
+## Les causes communes aux deux recettes
+
+Button et Alert sont simples, et 220 de leurs 226 constats sont faux ou redondants. Six défauts de méthode les produisent, et ils
+reviendront sur des composants plus complexes.
+
+- M1. Un seul indice décide d'une lecture, puis un constat accuse avec certitude. Le nom `Type` décide du rôle d'un axe, le type
+  du calque décide de son rôle, le nom `Vector` décide qu'un tracé n'est pas une icône.
+- M2. Une lecture fausse en amont se multiplie en aval. L'axe mal lu d'Alert donne 37 constats dans cinq codes, la table des
+  rôles du Button en donne 180.
+- M3. Un contrôle contredit la référence du kit. C65 écrit `typography` en dur, alors que la référence range la famille de police
+  dans `primitives`.
+- M4. Le relevé perd l'origine d'une liaison. Une liaison du style de texte se juge comme celle du calque, et une surcharge oublie
+  les instances qu'elle traverse.
+- M5. Une cause donne plusieurs cartes : trois pour les règles, 180 pour une icône.
+- M6. Une proposition peut casser le composant. « Renommer Info en Outlined » crée un doublon avec l'axe `Variant`.
+
+Les tests du dépôt jugent une règle à la fois, sur des cas fabriqués pour elle. Aucun composant réaliste ne se rejoue en entier,
+donc aucun test ne voit l'effet combiné des règles.
+
+## Décisions de la recette d'Alert
+
+- D9 (M1). Un nom d'axe explicite décide de son rôle (`Variant`, `Style`, `Appearance`, `Color`, `Severity`, `Size`, `State`…).
+  Un nom générique (`Type`, `Kind`) ou inconnu prend le rôle que ses valeurs donnent quand toutes appartiennent à un seul registre
+  (palettes, tailles, états). Sinon, la position où les tokens écrivent ses valeurs donne son rôle. `Variant=primary|danger` reste
+  un style, comme le dit `packages/kit/invariants/referentiel.md`. Pour Alert, `Type` devient la palette, et C8 propose
+  de renommer `Error` en `Danger` côté variant.
+- D10 (M2). Quand la moitié au moins des tokens de couleur du composant ne correspond à aucun variant, C7, C13, C32 `sans-variant`
+  et C33 se taisent. Un seul constat C84 (`variants`, `verifier`) le dit à leur place. La phrase dit « {n} tokens de couleur sur
+  {total} ne correspondent à aucun variant. » Quand un axe a ses valeurs dans les tokens à une autre place, elle ajoute « Les
+  valeurs de `{axe}` sont écrites dans les tokens à la place de {rôle}. » Le statut dit « Vérifiez le nom des propriétés et des
+  tokens ».
+- D11 (M3). L'attente de C65 se lit dans la référence (`ECHELLES_DE_REFERENCE`). `fontFamily` admet `primitives`, les autres
+  champs `typography`.
+- D12 (M4). Le relevé marque `provenance: 'style'` une liaison que porte le style appliqué au calque (même variable que le style
+  pour le même champ). Les contrôles par calque ne jugent pas une liaison de style.
+- D13 (M5). Une règle sans propriété et une propriété sans règle qui ont les mêmes valeurs donnent un seul C45 `renommee`. La
+  phrase dit « Les règles décrivent `severity`, et le composant appelle cette propriété `Type`. » Le statut dit « Renommez la
+  propriété du composant ou la règle ». `sansLesDoublonsDuMoteur` retire le C44 qui dit la même chose pour la même règle.
+- D14 (M6). Un renommage proposé n'a jamais pour candidat une valeur d'un autre axe ni une valeur déjà présente dans l'axe.
+- D15 (tests). Deux filets. Le premier, dans le dépôt, reconstruit Button et Alert sur `atelierDeCalques` (wrapper de taille,
+  icônes de bibliothèque à visibilité booléenne, styles de texte, axe `Type` de palette, Button imbriqué, règles). L'analyse complète
+  doit y rendre la liste exacte des constats attendus, écrite dans le test. Le second, `npm run recette:architect -- <capture>`,
+  rejoue une capture de `_local/recettes/` par `doubleDepuisCapture` et l'analyse complète. Il compare les constats à
+  `<capture>.attendus.json`, et le mainteneur le lance avant une publication. Les captures restent hors de git.
 
 ## Lots
 
 | Lot | Contenu | Agent | Dépend de | État |
 |---|---|---|---|---|
 | L1 | Kit : table D2, critères D3, D4 côté kit, `faits.chemin` | `implementeur-exigeant` | aucun | [ ] |
-| L2 | Architect : relevé des faits de D3 et D4, `isExposedInstance` des wrappers | `implementeur` | L1 | [ ] |
+| L2 | Architect : relevé des faits de D3, D4 et D12, `isExposedInstance` des wrappers | `implementeur` | L1 | [ ] |
 | L3 | Kit et Architect : C83 (D8) | `implementeur` | L2 | [ ] |
-| L4 | Architect : sélection D5, regroupement D6, lieu et mots D7 | `implementeur-exigeant` | aucun (contrat de `faits.chemin` ci-dessous) | [ ] |
-| L5 | Conversation principale : invariants, SPEC, cartes, version, publication | conversation principale | L1 à L4 | [ ] |
+| L4 | Architect : sélection D5, regroupement D6, lieu D7 | `implementeur-exigeant` | aucun (contrat de `faits.chemin` ci-dessous) | [ ] |
+| L6 | Kit : lecture des axes D9, garde des renommages D14 | `implementeur-exigeant` | aucun | [ ] |
+| L7 | Kit et Architect : C84 et silence de la cascade D10 | `implementeur-exigeant` | L6, L3 | [ ] |
+| L8 | Kit : attente de C65 par la référence D11, liaisons de style D12 | `implementeur` | L2 | [ ] |
+| L9 | Architect : C45 `renommee` et doublon de C44 D13 | `implementeur` | L7 | [ ] |
+| L10 | Architect : composants de référence et banc de recette D15 | `implementeur-exigeant` | L1 à L9 | [ ] |
+| L5 | Conversation principale : invariants, SPEC, cartes, version, publication | conversation principale | L1 à L10 | [ ] |
 
-L1 et L4 n'ont aucun fichier commun et tournent ensemble. L3 touche les textes de L4 et part après lui.
+L1 et L4 n'ont aucun fichier commun et tournent ensemble. L2 et L6 tournent ensemble, puis L3 et L8. L7 et L9 touchent les textes
+de L3 et passent l'un après l'autre.
 
 ### L1. Rôles admis et définition d'icône (kit)
 

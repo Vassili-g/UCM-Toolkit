@@ -9,7 +9,7 @@ import path from 'node:path';
 import test from 'node:test';
 import { fileURLToPath } from 'node:url';
 import {
-  controlerLAccessibilite, controlerLaTypographie, controlerMapping,
+  controlerLAccessibilite, controlerLaTypographie, controlerMapping, proposerLesCorrections,
   type CatalogueDeReference, type LayerLu, type LiaisonLue, type PeintureLue, type ReleveDeComposant,
 } from '../src/controles/index.js';
 
@@ -78,10 +78,12 @@ const CAS: { nom: string; layer: LayerLu; icone: boolean }[] = [
 for (const { nom, layer: l, icone } of CAS) {
   test(`C66, C49 et C17 jugent pareil ${nom} : ${icone ? 'icône' : 'pas une icône'}`, () => {
     // C66 et C67 n'émettent rien pour un layer qui n'est pas une icône ; C49 ne mesure que l'icône ; C17 attend `icon` pour une icône.
+    // Un tracé hors icône admet aussi `icon` (D2 du plan de la recette du Button) : C17 ne l'accuse pas, sans qu'il soit une icône.
+    const traceLibre = l.type === 'VECTOR' || l.type === 'BOOLEAN_OPERATION';
     const typographie = iconesPourLaTypographie([l]).includes(l.id);
     const accessibilite = iconesPourLAccessibilite([l]).includes(l.id);
     const mapping = iconesPourLeMapping([l]).includes(l.id);
-    assert.deepEqual({ typographie, accessibilite, mapping }, { typographie: icone, accessibilite: icone, mapping: icone });
+    assert.deepEqual({ typographie, accessibilite, mapping }, { typographie: icone, accessibilite: icone, mapping: icone || traceLibre });
   });
 }
 
@@ -103,13 +105,92 @@ test('C17 lit l\'instance d\'Icon que la surcharge peint : le tracé intérieur 
 });
 
 test('C17 lit aussi l’instance pilotée par un échange d’instance : son tracé intérieur nommé Vector est une icône, celui d’un composant ordinaire non', () => {
+  // Un token `background` distingue les deux : une icône ne l'admet pas, un tracé hors icône l'admet (D2).
   const lie = (hote: LayerLu): LayerLu => ({
-    ...hote, liaisons: [{ champ: 'fills', indice: 0, porteur: hote.id, surcharge: { id: `${hote.id};v`, nom: 'Vector', type: 'VECTOR' }, variable: { id: 'icone', cle: 'icone', nom: 'button/color/primary/icon', collection: 'components', distante: false } }],
+    ...hote, liaisons: [{ champ: 'fills', indice: 0, porteur: hote.id, surcharge: { id: `${hote.id};v`, nom: 'Vector', type: 'VECTOR' }, variable: { id: 'fond', cle: 'fond', nom: 'button/color/primary/background', collection: 'components', distante: false } }],
   });
   const refus = (hote: LayerLu) => controlerMapping(releve([lie(hote)]), catalogue).filter((c) => c.code === 'C17').flatMap((c) => c.layers);
-  assert.deepEqual(refus(instance('p', 'Slot', 'Chevron', 'Icon#1:2')), []);
-  assert.deepEqual(refus(instance('q', 'Slot', 'Chevron', 'Image#2:3')), ['q']);
-  assert.deepEqual(refus(instance('r2', 'Badge', 'Badge')), ['r2']);
+  assert.deepEqual(refus(instance('p', 'Slot', 'Chevron', 'Icon#1:2')), ['p']);
+  assert.deepEqual(refus(instance('q', 'Slot', 'Chevron', 'Image#2:3')), []);
+  assert.deepEqual(refus(instance('r2', 'Badge', 'Badge')), []);
+});
+
+// ---------------------------------------------------------------------------------------------------------------------------
+// Le Button réel : variant › .sizeWrapperButton › arrow-left-long (un seul Vector) › Vector lié à `…/foreground` par surcharge.
+
+const AVANT = { cle: 'avant', nom: 'button/color/primary/foreground', collection: 'components', type: 'COLOR' as const, etat: 'presente' as const };
+const catalogueAvecAvant: CatalogueDeReference = { ...catalogue, variables: [...catalogue.variables, AVANT] };
+const liaisonDe = (cle: string): LiaisonLue['variable'] =>
+  ({ id: cle, cle, nom: catalogueAvecAvant.variables.find((v) => v.cle === cle)!.nom, collection: 'components', distante: false });
+
+type Instance = NonNullable<NonNullable<LiaisonLue['surcharge']>['instances']>[number];
+const flecheDe = (instanceDe: { dessin?: boolean; visibilitePar?: string | null }): Instance =>
+  ({ nom: 'arrow-left-long', type: 'INSTANCE', instanceDe: { nom: 'arrow-left-long', pilotee: null, ...instanceDe } });
+const FLECHE_COMPLETE = flecheDe({ dessin: true, visibilitePar: 'Icon-Left#1261:147' });
+const FLECHE_DESSIN = flecheDe({ dessin: true });
+const FLECHE_VISIBLE = flecheDe({ visibilitePar: 'Icon-Left#1261:147' });
+const FLECHE_NUE = flecheDe({});
+
+function wrapper(variable: string, instances?: Instance[], champ = 'fills'): LayerLu {
+  return layer('w', '.sizeWrapperButton', 'INSTANCE', {
+    instanceDe: { cle: 'w', nom: '.sizeWrapperButton', distante: false, pilotee: null },
+    liaisons: [{
+      champ, indice: 0, porteur: 'w', variable: liaisonDe(variable),
+      surcharge: { id: 'I3:152;3:429;1829:9613', nom: 'Vector', type: 'VECTOR', ...(instances ? { instances } : {}) },
+    }],
+  });
+}
+
+function constatsDe(hote: LayerLu) {
+  const r = releve([hote]);
+  const c17 = controlerMapping(r, catalogueAvecAvant).filter((c) => c.code === 'C17');
+  return { c17, c24: proposerLesCorrections(r, catalogueAvecAvant, c17).filter((c) => c.code === 'C24') };
+}
+
+test('le Vector du Button, lié à foreground sous une instance de dessin pilotée par Icon-Left, ne reçoit ni C17 ni C24', () => {
+  for (const fleche of [FLECHE_COMPLETE, FLECHE_DESSIN, FLECHE_VISIBLE, FLECHE_NUE]) {
+    const { c17, c24 } = constatsDe(wrapper('avant', [fleche]));
+    assert.deepEqual([c17.length, c24.length], [0, 0], JSON.stringify(fleche.instanceDe));
+  }
+  const sansInstances = constatsDe(wrapper('avant'));
+  assert.deepEqual([sansInstances.c17.length, sansInstances.c24.length], [0, 0], 'un relevé sans `instances` ne dit rien de plus');
+});
+
+test('une instance de dessin, ou montrée par Icon-Left, rend le Vector peint une icône : background est refusé, avec le chemin', () => {
+  for (const fleche of [FLECHE_COMPLETE, FLECHE_DESSIN, FLECHE_VISIBLE]) {
+    const { c17, c24 } = constatsDe(wrapper('fond', [fleche]));
+    assert.equal(c17.length, 1, JSON.stringify(fleche.instanceDe));
+    assert.equal(c17[0].faits.attendu, 'icon');
+    assert.equal(c17[0].faits.chemin, 'arrow-left-long › Vector');
+    assert.equal(c24[0].faits.chemin, 'arrow-left-long › Vector', 'C24 recopie le chemin de C17');
+  }
+  // Sans fait d'icône, le Vector libre admet background : aucun constat, donc aucun chemin à porter.
+  assert.deepEqual(constatsDe(wrapper('fond', [FLECHE_NUE])).c17, []);
+});
+
+test('le chemin de C17 liste les instances de la plus externe à la plus interne, puis le calque ; absent sans surcharge', () => {
+  const { c17 } = constatsDe(wrapper('fond', [{ nom: 'Slot', type: 'INSTANCE' }, FLECHE_COMPLETE]));
+  assert.equal(c17[0].faits.chemin, 'Slot › arrow-left-long › Vector');
+  const sansSurcharge = layer('s', 'Container', 'FRAME', { liaisons: [{ champ: 'fills', indice: 0, porteur: 's', variable: liaisonDe('avant') }] });
+  const simple = constatsDe(sansSurcharge).c17;
+  assert.equal(simple.length, 1);
+  assert.equal('chemin' in simple[0].faits, false);
+});
+
+test('le trait d’un calque à l’intérieur d’une icône admet icon et foreground, celui d’un autre calque border et foreground', () => {
+  assert.deepEqual(constatsDe(wrapper('avant', [FLECHE_COMPLETE], 'strokes')).c17, []);
+  assert.equal(constatsDe(wrapper('bordure', [FLECHE_COMPLETE], 'strokes')).c17[0]?.faits.attendu, 'icon');
+  assert.deepEqual(constatsDe(wrapper('bordure', [FLECHE_NUE], 'strokes')).c17, []);
+});
+
+test('C49 et C66 jugent une instance de dessin, ou montrée par Icon-Left, comme une icône ; une instance nue non', () => {
+  const comme = (fleche: Instance): LayerLu => layer('f', fleche.nom, 'INSTANCE', { instanceDe: { cle: 'lib', distante: true, ...fleche.instanceDe! } });
+  for (const fleche of [FLECHE_DESSIN, FLECHE_VISIBLE, FLECHE_COMPLETE]) {
+    assert.deepEqual(iconesPourLAccessibilite([comme(fleche)]), ['f'], 'C49');
+    assert.deepEqual(iconesPourLaTypographie([comme(fleche)]), ['f'], 'C66');
+  }
+  assert.deepEqual(iconesPourLAccessibilite([comme(FLECHE_NUE)]), []);
+  assert.deepEqual(iconesPourLaTypographie([comme(FLECHE_NUE)]), []);
 });
 
 test('un anneau se reconnaît à son nom : Ring, Focus ring, focus-ring, .Ring ; pas Focus, outline ni Ring Wrapper (Q-F7-9)', () => {

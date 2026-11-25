@@ -87,7 +87,12 @@ export interface ModeleDeCarte {
 }
 
 export interface CarteDAFaire {
+  /** Le constat que la carte montre : le premier de son groupe. */
   readonly constat: Constat;
+  /** Les constats que la carte réunit (D6), dont `constat` ; Ignorer les écarte tous. */
+  readonly groupe: readonly Constat[];
+  /** Les layers que Sélectionner vise : le calque peint d'une surcharge quand le constat en porte un, sinon son layer. */
+  readonly aSelectionner: readonly string[];
   readonly section: SectionDAFaire;
   readonly phrase: string;
   /** La ligne grise sous la phrase ; vide quand le constat ne désigne aucun lieu. */
@@ -98,7 +103,7 @@ export interface CarteDAFaire {
   readonly modele?: ModeleDeCarte;
 }
 
-type Contenu = Omit<CarteDAFaire, 'constat' | 'section' | 'faits' | 'lieu'> & { readonly lieu: string | readonly MorceauDeLieu[]; readonly faits?: readonly FaitDeCarte[] };
+type Contenu = Omit<CarteDAFaire, 'constat' | 'groupe' | 'aSelectionner' | 'section' | 'faits' | 'lieu'> & { readonly lieu: string | readonly MorceauDeLieu[]; readonly faits?: readonly FaitDeCarte[] };
 
 const PAIRES = '[A-Z][A-Za-z0-9]*=[\\w-]+';
 const MOTIF = new RegExp(`(${PAIRES}(?:, ${PAIRES})*)|((?<![\\w=])[a-z0-9-]+(?:/[a-z0-9,.{}-]+)+)`, 'g');
@@ -148,12 +153,34 @@ function calqueDe(constat: Constat, contexte: ContexteDAFaire): string | null {
   return noms.length === 1 ? noms[0] : null;
 }
 
+/**
+ * Le calque que peint une surcharge (`faits.surcharge`) : c'est lui que Sélectionner vise, pas le layer lu, qui peut être l'instance
+ * entière. Sans surcharge, le layer du constat.
+ */
+export function layersASelectionner(constat: Constat): readonly string[] {
+  const peint = texte(constat.faits.surcharge);
+  return peint === null ? constat.layers : [peint];
+}
+
+/**
+ * Le chemin du calque peint, depuis le layer lu : les noms des instances traversées puis celui du calque. Le kit le range en chaîne
+ * jointe par « › » (`faits.chemin`) ; un tableau de noms se lit de même. Sans chemin, le nom du calque, puis celui du layer.
+ */
+export function cheminDuCalque(constat: Constat, contexte: ContexteDAFaire): string | null {
+  const brut: unknown = constat.faits.chemin;
+  if (Array.isArray(brut)) {
+    const noms = brut.filter((nom): nom is string => typeof nom === 'string' && nom !== '');
+    if (noms.length > 0) return noms.join(' › ');
+  }
+  return texte(constat.faits.chemin) ?? calqueDe(constat, contexte);
+}
+
 /** Le lieu : les variants (sauf si la phrase les cite), le layer, puis ce que le constat désigne d'autre. */
 export function lieuDe(constat: Constat, contexte: ContexteDAFaire, options: { readonly variantsDansLaPhrase?: boolean; readonly apres?: readonly string[]; readonly sansLayer?: boolean } = {}): MorceauDeLieu[] {
   const parties: MorceauDeLieu[][] = [];
   const noms = nomsDesVariants(constat, contexte);
   if (options.variantsDansLaPhrase !== true) parties.push(lieuDesVariants(noms));
-  const calque = options.sansLayer === true ? null : calqueDe(constat, contexte);
+  const calque = options.sansLayer === true ? null : cheminDuCalque(constat, contexte);
   // Le layer racine d'un variant porte le nom du variant : le répéter n'apprend rien.
   if (calque !== null && !noms.includes(calque)) parties.push([T.layer(calque, parties.length === 0)]);
   parties.push(...(options.apres ?? []).map((partie) => [partie]));
@@ -442,6 +469,10 @@ function liaisonOuNom(constat: Constat, contexte: ContexteDAFaire): Contenu | nu
       if (attendu === 'divider' || attendu === 'ring') {
         return { phrase: TC.nomDeLayerDUnRole(calqueDe(constat, contexte) ?? '', attendu), lieu: sansLayer, statut: TC.nomDeLayerDUnRoleStatut(attendu) };
       }
+      // Les constats d'une carte de groupe (D6) ne partagent pas leur token : la phrase dit le rôle seul.
+      if (nombre(faits.tokensDuGroupe) !== null) {
+        return { phrase: T.autreRoleDuGroupe(champPeint(faits), texte(faits.role) ?? '', attendu), lieu: surLeLayer, statut: T.autreRoleStatut(attendu) };
+      }
       return { phrase: T.autreRole(champPeint(faits), token(faits.token), texte(faits.role) ?? '', attendu), lieu: surLeLayer, statut: T.autreRoleStatut(attendu) };
     }
     case 'C18':
@@ -526,27 +557,71 @@ function structure(constat: Constat, contexte: ContexteDAFaire): Contenu | null 
   }
 }
 
-/** La carte d'un constat à faire dans Figma. */
-export function carteDAFaire(constat: Constat, contexte: ContexteDAFaire): CarteDAFaire {
+/** Le constat qui représente un groupe (D6) : les variants et les layers de tous, et un fait qui dit que leurs tokens diffèrent. */
+function constatDuGroupe(groupe: readonly Constat[]): Constat {
+  const [premier] = groupe;
+  if (groupe.length === 1) return premier;
+  const tokens = new Set(groupe.map((constat) => texte(constat.faits.token) ?? ''));
+  return {
+    ...premier,
+    variants: [...new Set(groupe.flatMap((constat) => constat.variants))],
+    layers: [...new Set(groupe.flatMap((constat) => constat.layers))],
+    faits: tokens.size > 1 ? { ...premier.faits, tokensDuGroupe: tokens.size } : premier.faits,
+  };
+}
+
+/** La carte d'un constat à faire dans Figma, ou d'un groupe de constats que la même carte réunit (D6, voir `regrouperLesConstats`). */
+export function carteDAFaire(constat: Constat, contexte: ContexteDAFaire, groupe: readonly Constat[] = [constat]): CarteDAFaire {
   const section = SECTION_DE_LA_FAMILLE[constat.famille];
-  const exacte = precise(constat, contexte);
+  const vu = constatDuGroupe(groupe);
+  const aSelectionner = [...new Set(groupe.flatMap(layersASelectionner))];
+  const exacte = precise(vu, contexte);
   // Un layer masqué le dit avant le reste (Q-F3-1) : le designer ne cherche pas un layer qu'il ne voit pas.
-  const masque = TC.masquage(calqueDe(constat, contexte) ?? '', texte(constat.faits.masque), texte(constat.faits.ancetre));
-  if (exacte) return { constat, section, faits: [], ...exacte, phrase: masque === '' ? exacte.phrase : `${masque} ${exacte.phrase}`, lieu: typeof exacte.lieu === 'string' ? (exacte.lieu === '' ? [] : [exacte.lieu]) : exacte.lieu };
-  const { faits } = constat;
+  const masque = TC.masquage(calqueDe(vu, contexte) ?? '', texte(vu.faits.masque), texte(vu.faits.ancetre));
+  if (exacte) return { constat, groupe, aSelectionner, section, faits: [], ...exacte, phrase: masque === '' ? exacte.phrase : `${masque} ${exacte.phrase}`, lieu: typeof exacte.lieu === 'string' ? (exacte.lieu === '' ? [] : [exacte.lieu]) : exacte.lieu };
+  const { faits } = vu;
   // Un constat ignoré qui porte une question (C12, C13) n'a pas de phrase propre : il garde le titre de sa question.
-  const phrase = texte(faits.titre) ?? texte(faits.message) ?? carteDeQuestion(constat, contexte)?.titreEnTexte ?? T.sansPhrase(constat.code);
+  const phrase = texte(faits.titre) ?? texte(faits.message) ?? carteDeQuestion(vu, contexte)?.titreEnTexte ?? T.sansPhrase(vu.code);
   const elements = texte(faits.elements);
-  const noms = nomsDesVariants(constat, contexte);
+  const noms = nomsDesVariants(vu, contexte);
   const nomme = noms.length > 0 && noms.every((nom) => phrase.includes(nom));
-  return { constat, section, phrase, lieu: lieuDe(constat, contexte, { variantsDansLaPhrase: nomme, apres: elements === null ? [] : [elements] }), statut: texte(faits.action), faits: [] };
+  return { constat, groupe, aSelectionner, section, phrase, lieu: lieuDe(vu, contexte, { variantsDansLaPhrase: nomme, apres: elements === null ? [] : [elements] }), statut: texte(faits.action), faits: [] };
 }
 
 /** Les constats à faire dans Figma : ni correction, ni question à trancher. Une question sans candidat ne se répond pas : elle reste ici. */
 export const estAFaire = (constat: Constat): boolean => constat.correction === undefined && (constat.question === undefined || constat.question.candidats.length === 0);
 
+/**
+ * La clé de groupe d'un constat C17 ou C24 sans correction ni question (D6) : le même code, le même champ peint, le même rôle lu, le même
+ * rôle attendu et le même chemin de calque. `null` pour tout autre constat, qui garde sa carte. Un constat qui nomme un modèle ou des
+ * homonymes a sa phrase propre et ne se groupe pas.
+ */
+function cleDeGroupe(constat: Constat, contexte: ContexteDAFaire): string | null {
+  if ((constat.code !== 'C17' && constat.code !== 'C24') || !estAFaire(constat) || constat.limite === true) return null;
+  const { faits } = constat;
+  if (faits.modele !== undefined || faits.homonymes !== undefined) return null;
+  return JSON.stringify([constat.code, champPeint(faits), texte(faits.role), texte(faits.attendu), cheminDuCalque(constat, contexte)]);
+}
+
+/** Réunit les constats de même clé de groupe en une liste ; la liste prend la place de son premier constat. Les autres constats restent seuls. */
+export function regrouperLesConstats(constats: readonly Constat[], contexte: ContexteDAFaire): Constat[][] {
+  const groupes = new Map<string, Constat[]>();
+  const sortie: Constat[][] = [];
+  for (const constat of constats) {
+    const cle = cleDeGroupe(constat, contexte);
+    const existant = cle === null ? undefined : groupes.get(cle);
+    if (existant) existant.push(constat);
+    else {
+      const nouveau = [constat];
+      sortie.push(nouveau);
+      if (cle !== null) groupes.set(cle, nouveau);
+    }
+  }
+  return sortie;
+}
+
 /** Les cartes de ces constats, par intertitre puis dans l'ordre des constats. */
 export function cartesDAFaire(constats: readonly Constat[], contexte: ContexteDAFaire): CarteDAFaire[] {
-  const cartes = constats.map((constat) => carteDAFaire(constat, contexte));
+  const cartes = regrouperLesConstats(constats, contexte).map((groupe) => carteDAFaire(groupe[0], contexte, groupe));
   return SECTIONS_D_A_FAIRE.flatMap((section) => cartes.filter((carte) => carte.section === section));
 }

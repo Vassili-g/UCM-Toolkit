@@ -51,6 +51,23 @@ test('E1.3 cas 3 : un VECTOR ou un BOOLEAN_OPERATION dont le nom contient un mot
   }
 });
 
+test('D3 : une instance de dessin, ou montrée par une propriété dont le nom dit icône, est une icône ; un champ absent ne dit rien', () => {
+  const avec = (champs: { dessin?: boolean; visibilitePar?: string | null }, type = 'INSTANCE') =>
+    ({ nom: 'arrow-left-long', type, instanceDe: { nom: 'arrow-left-long', pilotee: null, ...champs } });
+  assert.equal(estUneIcone(avec({ dessin: true })), true);
+  assert.equal(estUneIcone(avec({ dessin: false })), false);
+  assert.equal(estUneIcone(avec({ visibilitePar: 'Icon-Left#1261:147' })), true);
+  assert.equal(estUneIcone(avec({ visibilitePar: 'Show icon#1:2' })), true);
+  assert.equal(estUneIcone(avec({ visibilitePar: 'Silicone#1:2' })), false);
+  assert.equal(estUneIcone(avec({ visibilitePar: 'Disabled#1:2' })), false);
+  assert.equal(estUneIcone(avec({ visibilitePar: null })), false);
+  assert.equal(estUneIcone(avec({})), false);
+  // Seule la partie avant `#` compte : l'identifiant d'une propriété n'est pas un nom.
+  assert.equal(estUneIcone(avec({ visibilitePar: 'Disabled#icon' })), false);
+  assert.equal(estUneIcone(avec({ dessin: true }, 'FRAME')), false);
+  assert.equal(estUneIcone(avec({ visibilitePar: 'Icon-Left#1:2' }, 'TEXT')), false);
+});
+
 test('E1.3 : un FRAME ou un TEXT n\'est jamais une icône, ni un RECTANGLE ou un GROUP nommé icon', () => {
   for (const type of ['FRAME', 'TEXT', 'RECTANGLE', 'GROUP', 'ELLIPSE', 'COMPONENT']) {
     assert.equal(estUneIcone({ nom: 'Icon', type }), false, type);

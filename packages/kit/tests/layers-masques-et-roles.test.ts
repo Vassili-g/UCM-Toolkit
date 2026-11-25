@@ -58,9 +58,10 @@ test('E5.2 : C25 juge le fond, le trait, une forme, une icône et un texte quel 
   ]);
   const constats = c25(r);
   assert.deepEqual(constats.map(({ layers }) => layers[0]), ['fond', 'trait', 'point', 'texte']);
-  // Un trait admet border et foreground : deux candidats donnent une question sans réponse cochée.
-  assert.deepEqual(constats.map(({ correction }) => correction?.apres.cle), ['bg', undefined, 'bg', 'fg']);
+  // Un trait admet border et foreground, une forme background et foreground : deux candidats donnent une question sans réponse cochée.
+  assert.deepEqual(constats.map(({ correction }) => correction?.apres.cle), ['bg', undefined, undefined, 'fg']);
   assert.deepEqual(constats[1].question?.candidats.map(({ cle }) => cle).sort(), ['bd', 'fg']);
+  assert.deepEqual(constats[2].question?.candidats.map(({ cle }) => cle).sort(), ['bg', 'fg']);
   assert.equal(constats[1].faits.champ, 'strokes');
 });
 
@@ -175,6 +176,45 @@ test('E5.3 : un token divider, ring ou icon posé sur un layer d’un autre nom 
     assert.equal(c17.length, 1, `${lie.nom} ${champ}`);
     assert.equal(c24[0].correction?.apres.cle, champ === 'strokes' ? 'bd' : 'bg', `${lie.nom} ${champ}`);
   }
+});
+
+test('D2 : un RECTANGLE ou une ELLIPSE lié à foreground n’en reçoit pas, un FRAME ou une INSTANCE si, un Divider toujours', () => {
+  for (const type of ['RECTANGLE', 'ELLIPSE', 'POLYGON', 'STAR', 'LINE']) {
+    assert.deepEqual(roleConstats('Shape', type, 'fills', TEXTE).c17, [], type);
+    assert.deepEqual(roleConstats('Shape', type, 'fills', FOND).c17, [], type);
+    assert.equal(roleConstats('Shape', type, 'fills', BORDURE).c17[0]?.faits.attendu, 'background', type);
+  }
+  for (const type of ['FRAME', 'INSTANCE', 'COMPONENT', 'GROUP']) {
+    const { c17, c24 } = roleConstats('Container', type, 'fills', TEXTE);
+    assert.equal(c17.length, 1, type);
+    assert.equal(c17[0].faits.attendu, 'background', type);
+    assert.equal(c24[0].correction?.apres.cle, 'bg', type);
+  }
+  assert.equal(roleConstats('Divider', 'RECTANGLE', 'fills', TEXTE).c17[0]?.faits.attendu, 'divider');
+});
+
+test('D2 : un VECTOR ou un BOOLEAN_OPERATION libre admet icon, foreground et background, pas border', () => {
+  for (const type of ['VECTOR', 'BOOLEAN_OPERATION']) {
+    for (const lie of [ICONE, TEXTE, FOND]) assert.deepEqual(roleConstats('Path', type, 'fills', lie).c17, [], `${type} ${lie.nom}`);
+    const { c17, c24 } = roleConstats('Path', type, 'fills', BORDURE);
+    assert.equal(c17.length, 1, type);
+    assert.equal(c17[0].faits.attendu, 'icon', type);
+    assert.equal(c24[0].correction?.apres.cle, 'ic', type);
+  }
+});
+
+test('D2 : C25 pose une question sans réponse cochée pour un tracé ou une forme sans token, une correction pour un cadre', () => {
+  const r = releve([
+    racine(),
+    layer('trace', 'Path', 'VECTOR', 'root', { peintures: [SOLIDE()] }),
+    layer('forme', 'Bar', 'RECTANGLE', 'root', { peintures: [SOLIDE()] }),
+    layer('cadre', 'Box', 'FRAME', 'root', { peintures: [SOLIDE()] }),
+  ]);
+  const [trace, forme, cadre] = c25(r);
+  assert.deepEqual([trace.correction, forme.correction], [undefined, undefined]);
+  assert.deepEqual(trace.question?.candidats.map(({ cle }) => cle).sort(), ['bg', 'fg', 'ic']);
+  assert.deepEqual(forme.question?.candidats.map(({ cle }) => cle).sort(), ['bg', 'fg']);
+  assert.equal(cadre.correction?.apres.cle, 'bg');
 });
 
 test('E5.3 : background, foreground, text et border ne regardent pas le nom ; inverse ne dit rien du layer', () => {

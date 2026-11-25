@@ -309,6 +309,13 @@ export function atelierDEcriture(options: OptionsDeLEcriture = {}) {
       },
     },
     currentPage: page,
+    /** Le centrage de la vue : `refusees` avec `centrage` le fait lever. */
+    viewport: {
+      scrollAndZoomIntoView(noeuds: readonly unknown[]) {
+        if (options.refusees?.has('centrage')) throw new Error('Figma refuse');
+        journal.push(`centrage:${noeuds.map((noeud) => (noeud as { id: string }).id).join(',')}`);
+      },
+    },
     async loadAllPagesAsync() {},
     async getNodeByIdAsync(id: string) {
       return layers.get(id) ?? null;

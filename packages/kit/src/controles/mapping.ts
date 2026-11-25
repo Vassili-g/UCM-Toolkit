@@ -36,7 +36,14 @@ function layerPeint(layer: LayerLu, liaison: LiaisonLue): { nom: string; type: s
  * `background`, `foreground`, `text` et `border` ne regardent pas le nom. Une icône prend `icon` ou `foreground`, un texte `foreground`
  * ou `text`, un trait `border` ou `foreground`, sauf le trait d'une icône sans fill visible, qui tient lieu de couleur et prend
  * `icon` ou `foreground` (Q-F6-5). Un texte ne désigne aucun rôle par son nom. Le tracé intérieur d'une instance qui est une icône, posée
- * comme composant d'icône ou pilotée par un échange d'instance, reste une icône sous le nom libre que Figma lui donne (E1.3).
+ * comme composant d'icône, pilotée par un échange d'instance, faite d'un seul dessin ou montrée par une propriété `Icon…`, reste une icône
+ * sous le nom libre que Figma lui donne (E1.3). Une surcharge peint une icône quand le layer lu, le calque peint ou l'une des instances
+ * entre les deux en est une (`surcharge.instances`) ; le trait d'un calque qui y est reste un `icon` ou `foreground`.
+ *
+ * Le remplissage hors icône suit le type du calque peint : un cadre, un composant, une instance ou un groupe (et un type inconnu) prend
+ * `background` ; un tracé (`VECTOR`, `BOOLEAN_OPERATION`) prend `icon`, `foreground` ou `background`, car son nom libre ne dit pas s'il
+ * dessine une icône ou une forme ; une forme (`RECTANGLE`, `ELLIPSE`, `POLYGON`, `STAR`, `LINE`) prend `background` ou `foreground`.
+ * Un indice fort suffit pour ne pas accuser un calque, il en faut un certain pour l'accuser.
  */
 export function rolesAdmisDuLayer(layer: LayerLu, champ: string, plage?: unknown, surcharge?: LiaisonLue['surcharge']): readonly string[] | undefined {
   if (champ !== 'fills' && champ !== 'strokes') return undefined;
@@ -44,13 +51,27 @@ export function rolesAdmisDuLayer(layer: LayerLu, champ: string, plage?: unknown
   const texte = peint.type === 'TEXT' || (champ === 'fills' && !!plage);
   const designe = texte ? undefined : roleQueLeLayerDesigne(peint);
   if (designe === 'divider' || designe === 'ring') return [designe];
+  const dansUneIcone = !!surcharge && (estUneIcone(layer) || estUneIcone(surcharge) || !!surcharge.instances?.some(estUneIcone));
   if (champ === 'strokes') {
     const traceSansFill = !surcharge && estUneIcone(layer) && !layer.peintures.some((peinture) => peinture.champ === 'fills' && peintureVisible(peinture));
-    return traceSansFill ? ['icon', 'foreground'] : ['border', 'foreground'];
+    return traceSansFill || dansUneIcone ? ['icon', 'foreground'] : ['border', 'foreground'];
   }
   if (texte) return ['foreground', 'text'];
-  if (estUneIcone(layer) || (surcharge && estUneIcone(surcharge))) return ['icon', 'foreground'];
+  if (estUneIcone(layer) || dansUneIcone) return ['icon', 'foreground'];
+  if (peint.type === 'VECTOR' || peint.type === 'BOOLEAN_OPERATION') return ['icon', 'foreground', 'background'];
+  if (FORMES_SIMPLES.has(peint.type)) return ['background', 'foreground'];
   return ['background'];
+}
+
+/** Les formes que Figma dessine sans chemin libre : leur remplissage est une couleur d'aplat, ou d'ornement, jamais seulement un fond. */
+const FORMES_SIMPLES: ReadonlySet<string> = new Set(['RECTANGLE', 'ELLIPSE', 'POLYGON', 'STAR', 'LINE']);
+
+/**
+ * Le chemin depuis le layer lu jusqu'au calque peint : les noms des instances qui les séparent, puis celui du calque, joints par ` › `.
+ * `Constat['faits']` ne porte ni tableau ni objet, donc une chaîne.
+ */
+function cheminDeLaSurcharge(surcharge: NonNullable<LiaisonLue['surcharge']>): string {
+  return [...(surcharge.instances ?? []).map((instance) => instance.nom), surcharge.nom].join(' › ');
 }
 
 /** Les types de layer que Figma range parmi les formes : leur remplissage porte le scope `SHAPE_FILL`, pas `FRAME_FILL` (N-04, N-05). */
@@ -213,7 +234,7 @@ export function* controlerMappingParEtapes(releve: ReleveDeComposant, catalogue:
       if (role && role !== 'inverse' && admis && !admis.includes(role)) {
         constats.push(constatDuComposant('C17', 'liaisons', 'corriger', lieu, {
           token: variable.nom, role, attendu: admis[0], champ: liaison.champ,
-          ...(liaison.surcharge ? { surcharge: liaison.surcharge.id, calque: liaison.surcharge.nom } : {}),
+          ...(liaison.surcharge ? { surcharge: liaison.surcharge.id, calque: liaison.surcharge.nom, chemin: cheminDeLaSurcharge(liaison.surcharge) } : {}),
           ...(liaison.indice === undefined ? {} : { indice: liaison.indice }),
           ...(liaison.plage ? { plageDebut: liaison.plage.debut, plageFin: liaison.plage.fin } : {}),
         }, [variant.id], [layer.id]));

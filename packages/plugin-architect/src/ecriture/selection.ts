@@ -1,7 +1,8 @@
 /**
  * Le seul changement de sélection du plugin : sélectionner les layers d'un
  * constat. Les layers qui n'existent plus ou qui ne sont pas sur la page
- * courante sont laissés de côté ; sans layer restant, la sélection ne change pas.
+ * courante sont laissés de côté ; sans layer restant, la sélection ne change pas. Une fois la
+ * sélection posée, la vue se centre sur elle ; un centrage refusé ne change pas le résultat.
  *
  * `retenir` reçoit les identifiants posés, pour que le `selectionchange` qui suit
  * porte `origine: 'plugin'` et ne périme pas l'analyse.
@@ -17,6 +18,7 @@ export interface LayerSelectionnable {
 /** Ce que la sélection demande à Figma : les doubles des tests le remplacent. */
 export interface ApiDeSelection {
   readonly currentPage: { readonly id: string; selection: readonly LayerSelectionnable[] };
+  readonly viewport: { scrollAndZoomIntoView(nodes: readonly LayerSelectionnable[]): void };
   getNodeByIdAsync(id: string): Promise<LayerSelectionnable | null>;
 }
 
@@ -49,5 +51,10 @@ export async function selectionnerLesLayers(
   }
   const posees = layers.map((layer) => layer.id);
   retenir(posees);
+  try {
+    api.viewport.scrollAndZoomIntoView(layers);
+  } catch {
+    // La sélection est posée : un centrage refusé ne la défait pas.
+  }
   return posees;
 }

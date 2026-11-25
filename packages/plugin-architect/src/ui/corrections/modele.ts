@@ -11,7 +11,7 @@
  */
 import { natureDe } from '../../composant';
 import type { Constat, Correction } from '../../messages/commun';
-import type { ContexteDAFaire } from '../ignores/modele';
+import { layersASelectionner, type ContexteDAFaire } from '../ignores/modele';
 import { TEXTES } from '../textes';
 import { lieuDesVariants, pairesDuNom, type MorceauDeLieu, type PaireDeVariant } from '../composant/variants';
 
@@ -278,7 +278,7 @@ function carteDe(cle: string, genre: Genre, section: SectionDeCorrections, ligne
     ...(proprietes.length > 0 ? [{ etiquette: T.propriete, valeur: proprietes.join(', ') }] : []),
     ...(regles.length > 0 ? [{ etiquette: T.regle, valeur: regles.join(' ') }] : []),
   ];
-  return { cle, section, jetons, phrase, meta, lignes, layers: genre === 'regles' ? [] : uniques(constats.flatMap((constat) => constat.layers)), constats, faits, origine: genre === 'modele' ? 'modele' : 'constats', attente: [], ...(groupes ? { groupes } : {}) };
+  return { cle, section, jetons, phrase, meta, lignes, layers: genre === 'regles' ? [] : uniques(constats.flatMap(layersASelectionner)), constats, faits, origine: genre === 'modele' ? 'modele' : 'constats', attente: [], ...(groupes ? { groupes } : {}) };
 }
 
 /** Les cartes des corrections des constats, par intertitre puis dans l'ordre des constats. */

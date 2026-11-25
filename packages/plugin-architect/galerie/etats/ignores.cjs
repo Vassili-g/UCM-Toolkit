@@ -57,6 +57,21 @@ const constatsDeE4a = [
 function nomDeVariant(severity, style) {
   return `Severity=${severity}, Variant=${style}`;
 }
+/**
+ * Le cas du Button : une icône de deux niveaux (`arrow-left-long`, faite d'un `Vector`) lie son remplissage à un token `foreground`, dans
+ * chaque variant. Le kit rend un constat C24 par variant et par icône, que la liste réunit : une carte par icône, dont Sélectionner vise les
+ * calques peints et Ignorer écarte tous les constats.
+ */
+const variantAlert = (nom) => require('../composant/donnees.cjs').analyseAlert.variants.find((variant) => variant.nom === nom).id;
+const constatDIcone = (icone, severity, style) => constatDuComposant(`C24:${icone}:${severity}:${style}`, 'C24', 'corriger', 'liaisons', {
+  token: `alert/colors/${severity}/${style}/foreground`, role: 'foreground', attendu: 'background', champ: 'fills',
+  surcharge: `I${icone};3:429;1829:9613`, calque: 'Vector', chemin: `${icone} › Vector`, indice: 0,
+}, { variants: [variantAlert(nomDeVariant(severity, style))], layers: [`alert:l:${icone}`], question: { id: `C24:${icone}:${severity}:${style}`, candidats: [] } });
+const constatsDIcones = [
+  constatDIcone('arrow-left-long', 'info', 'standard'), constatDIcone('arrow-left-long', 'error', 'standard'), constatDIcone('arrow-left-long', 'success', 'outlined'),
+  constatDIcone('arrow-right-long', 'info', 'standard'),
+];
+
 /** Une liaison dont deux segments sont faux, sur un layer masqué : la question dit aussi ce que la même réponse règle. */
 const questionFusionnee = constatDuComposant('C22:fusion', 'C22', 'corriger', 'liaisons', {
   calque: 'message', champ: 'fills', axe: 'State', valeur: 'disabled', token: 'alert/colors/info/standard/foreground', segment: 'default',
@@ -70,6 +85,12 @@ const ETATS = [
     regarder: 'Aucune carte ne dit « Constat Cxx » : « Le layer message est dans icon-wrapper, qui est masqué. », « Le layer Divider porte le nom d’un divider. » avec « Renommez le layer dans Figma s’il n’est pas un divider », « Deux layers s’appellent title. Architect ne sait pas lequel lier. », « … vaut 48 px en Light et 52 px en Dark. », « Les axes Variant et Style décrivent tous deux le style. », « Le style subtle utilise les couleurs de solid. » et « La valeur S de Size s’écrit Small dans UCM. » ; chaque carte dit où la régler.',
     existe: true,
     atteinte: [...ouvrirLePanneau.slice(0, 5), { message: { ...analyseDeQuestions, constats: constatsDeE4a } }, ignores([]), { clic: '.bouton-panneau' }, tout],
+  },
+  {
+    id: 'c-afaire-groupee', titre: 'À faire dans Figma, une carte pour les constats d’une même icône', quand: 'Alert est analysé ; quatre constats C24 portent le remplissage d’une icône liée à un token foreground : trois pour arrow-left-long, un pour arrow-right-long. Le panneau montre Tout.',
+    regarder: 'Deux cartes : la première réunit les trois constats d’arrow-left-long, sa ligne grise dit « 3 variants » puis « layer arrow-left-long › Vector », et sa phrase dit « fill » sans nommer de token ; la seconde garde son token et dit « 1 variant ». Chaque carte a Sélectionner ; son clic vise les calques peints, pas le layer de l’icône.',
+    existe: true,
+    atteinte: [...ouvrirLePanneau.slice(0, 5), { message: { ...analyseDeQuestions, constats: constatsDIcones } }, ignores([]), { clic: '.bouton-panneau' }, tout],
   },
   {
     id: 'q-fusionnee', titre: 'Question à deux segments faux, layer masqué', quand: 'Le designer choisit la puce Couleurs ; le layer message est masqué et sa liaison se trompe d’état et de rôle.',

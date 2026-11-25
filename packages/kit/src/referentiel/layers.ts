@@ -19,8 +19,13 @@ export type RoleDeLayer = (typeof ROLES_QUI_DESIGNENT_UN_LAYER)[number];
 export interface LayerPourLesDefinitions {
   readonly nom: string;
   readonly type: string;
-  /** Le composant que l'instance pose, et la propriété d'échange d'instance qui la pilote (`Icon#1:2`). */
-  readonly instanceDe?: { readonly nom: string; readonly pilotee: string | null };
+  /**
+   * Le composant que l'instance pose, et la propriété d'échange d'instance qui la pilote (`Icon#1:2`).
+   * `dessin` : le composant principal n'a pour descendants visibles que des tracés (`VECTOR`, `BOOLEAN_OPERATION`), ou des groupes et des
+   * cadres qui n'en contiennent que. `visibilitePar` : le nom brut de la propriété booléenne qui pilote la visibilité de l'instance
+   * (`Icon-Left#1261:147`). Un champ absent ne dit rien.
+   */
+  readonly instanceDe?: { readonly nom: string; readonly pilotee: string | null; readonly dessin?: boolean; readonly visibilitePar?: string | null };
 }
 
 const NOMS_MEMORISES_MAX = 20_000;
@@ -55,10 +60,24 @@ function estUnTraceNomme(layer: LayerPourLesDefinitions): boolean {
   return (layer.type === 'VECTOR' || layer.type === 'BOOLEAN_OPERATION') && motDIconeDansLeNom(layer.nom);
 }
 
-/** La définition d'une icône, la seule du kit : un FRAME ou un TEXT n'en est jamais une, quel que soit son nom. */
+/** Cas 4 : l'instance d'un composant qui n'est qu'un dessin ; le critère ne lit aucun nom. */
+function estUneInstanceDeDessin(layer: LayerPourLesDefinitions): boolean {
+  return layer.instanceDe?.dessin === true;
+}
+
+/** Cas 5 : une instance dont la visibilité est pilotée par une propriété dont le nom dit icône (`Icon-Left#1261:147`). */
+function estUneInstanceMontreeParUneIcone(layer: LayerPourLesDefinitions): boolean {
+  const propriete = layer.instanceDe?.visibilitePar;
+  return typeof propriete === 'string' && motDIconeDansLeNom(propriete.split('#')[0]);
+}
+
+/**
+ * La définition d'une icône, la seule du kit : un FRAME ou un TEXT n'en est jamais une, quel que soit son nom. Les cinq cas : le nom
+ * du composant, la propriété d'échange d'instance, le nom d'un tracé, le composant qui n'est qu'un dessin, la propriété de visibilité.
+ */
 export function estUneIcone(layer: LayerPourLesDefinitions): boolean {
   if (layer.type === 'FRAME' || layer.type === 'TEXT') return false;
-  return estUneInstanceDIcone(layer) || estUneInstancePilotee(layer) || estUnTraceNomme(layer);
+  return estUneInstanceDIcone(layer) || estUneInstancePilotee(layer) || estUnTraceNomme(layer) || estUneInstanceDeDessin(layer) || estUneInstanceMontreeParUneIcone(layer);
 }
 
 /** `Ring`, `Focus ring` ou `focus-ring` ; un point ou un tiret bas en tête, la marque Figma d'un layer privé (`.Ring`), ne change pas le nom. */

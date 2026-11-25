@@ -148,6 +148,9 @@ export const TEXTES_IGNORES = {
     // C17, C24 : un rôle qui ne convient pas au layer.
     autreRole: (champ: string, token: string, role: string, attendu: string): string =>
       `Le ${champ} est lié à \`${token}\`, un token ${role}. Un ${champ} de ce layer attend un token ${attendu}.`,
+    // La carte réunit des constats dont les tokens diffèrent (un par variant) : elle ne nomme aucun token.
+    autreRoleDuGroupe: (champ: string, role: string, attendu: string): string =>
+      `Dans ces variants, le ${champ} est lié à un token ${role}. Un ${champ} de ce layer attend un token ${attendu}.`,
     autreRoleStatut: (attendu: string): string => `Créez le token ${attendu}, puis liez-le`,
     sansModele: (modele: string): string => `Le variant modèle ${modele} lie ce layer à un token que ce variant n’a pas.`,
     sansModeleStatut: 'Créez le token, puis liez-le',

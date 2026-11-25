@@ -115,14 +115,20 @@ couleur, forme, espacement, taille, texte.
   carte, écrit les lignes cochées de cette carte ; Appliquer tout, dans le
   pied, écrit toutes les lignes cochées, un seul lot que Ctrl+Z défait dans
   Figma. Le bouton
-  Sélectionner d'une carte qui vise des layers les sélectionne dans Figma et les
-  entoure dans l'aperçu ; il dit ensuite Sélectionnés, jusqu'à ce que la
-  sélection de Figma change. Ouvrir une carte ne sélectionne rien. Une question
+  Sélectionner d'une carte qui vise des layers les sélectionne dans Figma, centre
+  la vue sur eux et les entoure dans l'aperçu ; quand le constat porte un calque
+  peint par une surcharge, il vise ce calque et non l'instance. Il dit ensuite
+  Sélectionnés, jusqu'à ce que la sélection de Figma change. Ouvrir une carte ne
+  sélectionne rien. Une question
   du moteur a sa carte : le titre cite le premier candidat,
   les autres ont leur bouton, et rien n'est choisi avant le clic ; la réponse
   devient une carte de corrections de la section, et Annuler la réponse la
   retire. Un constat à faire dans Figma porte le type de son alerte : il garde
   son chevron en haut à droite et ses boutons dans une ligne d'actions en bas.
+  Les constats de rôle (C17, C24) sans correction ni question qui visent le
+  même calque du même rôle forment une seule carte, qui compte leurs variants,
+  nomme le calque par son chemin (`arrow-left-long › Vector`) et que Ignorer
+  écarte d'un coup.
   Quand un variant lie des layers que d'autres variants gardent en dur, une
   carte de modèle le nomme dans Couleurs ou Tailles et forme ; **Proposer les
   liaisons** la remplace par les cartes de corrections de chaque layer. Sous

@@ -30,6 +30,7 @@ const PLANS_SANS_PISTE: { chemin: string; raison: string }[] = [
   { chemin: `${RECHERCHES}/Plugin Palettes/Recette v10/PLAN-IMPLEMENTATION-RECETTE-V10.md`, raison: EN_COURS },
   { chemin: `${RECHERCHES}/Plugin Palettes/Couleurs à mettre à jour/PLAN-IMPLEMENTATION.md`, raison: EN_COURS },
   { chemin: `${RECHERCHES}/UCM Architect/3 Plan/PLAN-IMPLEMENTATION.md`, raison: EN_COURS },
+  { chemin: `${RECHERCHES}/UCM Architect/9 Recette du Button/PLAN-RECETTE-BUTTON.md`, raison: EN_COURS },
   ...[
     'PLAN-STRESS-F1-NOMS.md',
     'PLAN-STRESS-F2-STRUCTURE.md',

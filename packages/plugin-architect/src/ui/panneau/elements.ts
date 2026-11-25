@@ -26,7 +26,7 @@
 import { natureDe, type Nature } from '../../composant';
 import type { Constat, Correction } from '../../messages/commun';
 import { cartesDeCorrections, type CarteDeCorrections, type ContexteDeCartes } from '../corrections/modele';
-import { carteDAFaire, estAFaire, type CarteDAFaire } from '../ignores/modele';
+import { carteDAFaire, estAFaire, regrouperLesConstats, type CarteDAFaire } from '../ignores/modele';
 import { carteDeQuestion, estUneQuestion, regrouperLesCartes, type GroupeDeQuestions } from '../questions/modele';
 import { ELEMENTS_DU_PANNEAU, type IdDElement } from '../textes/elements';
 
@@ -110,7 +110,7 @@ export function elementsDuPanneau(tous: readonly Constat[], contexte: ContexteDe
   const repondue = (constat: Constat): boolean => constat.question !== undefined && reponses[constat.question.id] !== undefined;
   const cartesDeQuestions = constats.filter((constat) => estUneQuestion(constat) || repondue(constat)).flatMap((constat) => carteDeQuestion(constat, contexte) ?? []);
   const questions: Array<Entree & { groupe: GroupeDeQuestions }> = regrouperLesCartes(cartesDeQuestions, reponses).map((groupe) => ({ groupe, constats: groupe.cartes.map((carte) => carte.constat) }));
-  const aFaire: Array<Entree & { carte: CarteDAFaire }> = constats.filter(estAFaire).map((constat) => ({ carte: carteDAFaire(constat, contexte), constats: [constat] }));
+  const aFaire: Array<Entree & { carte: CarteDAFaire }> = regrouperLesConstats(constats.filter(estAFaire), contexte).map((groupe) => ({ carte: carteDAFaire(groupe[0], contexte, groupe), constats: groupe }));
 
   const premier = (entree: Entree): IdDElement => elementDuConstat(entree.constats[0]);
   const rang = new Map(constats.map((constat, position) => [constat, position]));
@@ -133,7 +133,7 @@ export function elementsDuPanneau(tous: readonly Constat[], contexte: ContexteDe
     enTete: {
       corrections: elements.flatMap((element) => element.corrections.filter((carte) => !garde(carte.constats))),
       questions: elements.flatMap((element) => element.questions.filter((groupe) => !garde(groupe.cartes.map((carte) => carte.constat)))),
-      aFaire: elements.flatMap((element) => element.aFaire.filter((carte) => !garde([carte.constat]))),
+      aFaire: elements.flatMap((element) => element.aFaire.filter((carte) => !garde(carte.groupe))),
     },
     tenus: elements.filter((element) => element.points === 0).map((element) => element.id),
     informations: tous.filter(estUneInformation),
@@ -146,6 +146,6 @@ export function sansLesBloquants(element: ElementDuPanneau): ElementDuPanneau {
     ...element,
     corrections: element.corrections.filter((carte) => garde(carte.constats)),
     questions: element.questions.filter((groupe) => garde(groupe.cartes.map((carte) => carte.constat))),
-    aFaire: element.aFaire.filter((carte) => garde([carte.constat])),
+    aFaire: element.aFaire.filter((carte) => garde(carte.groupe)),
   };
 }
