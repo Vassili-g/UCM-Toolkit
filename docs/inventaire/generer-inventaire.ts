@@ -12,10 +12,12 @@ import { readFileSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 
+import { donneesDeLaChaine } from './chaine/calculs';
 import * as releves from './releves';
 
 const dossier = path.dirname(fileURLToPath(import.meta.url));
 export const CHEMIN_DE_L_INVENTAIRE = path.join(dossier, '..', '..', 'INVENTAIRE-UCM.html');
+export const CHEMIN_DE_LA_CHAINE = path.join(dossier, '..', '..', 'CHAINE-UCM.html');
 
 const MOTS = ['zéro', 'un', 'deux', 'trois', 'quatre', 'cinq', 'six', 'sept', 'huit', 'neuf', 'dix', 'onze', 'douze'];
 const motDuNombre = (nombre: number): string => {
@@ -485,9 +487,35 @@ export async function genererInventaire(): Promise<string> {
   return (await genererInventaireEtCouverture()).page;
 }
 
+/**
+ * Un logo de la marque pour la chaîne : un `<img>` dont le SVG est écrit dans la page (URI `data:`), donc rien n'est chargé. Un SVG
+ * en ligne se rastérise autrement qu'un `<img>` et déplace des pixels du contour ; l'image garde le rendu de la maquette.
+ */
+function logoDeLaChaine(fichier: string, classe?: string): string {
+  const { svg } = releves.svgDeMarque(`docs/marque/logos/${fichier}.svg`, '', true);
+  return `<img${classe === undefined ? '' : ` class="${classe}"`} src="data:image/svg+xml;base64,${Buffer.from(svg).toString('base64')}" alt="">`;
+}
+
+/** Le contenu exact de `CHAINE-UCM.html`, la chaîne UCM en pleine page. Elle ne charge aucune ressource : logos, style et script y sont écrits. */
+export function genererChaine(): string {
+  const donnees = donneesDeLaChaine();
+  const logos: Record<string, string> = { zone: logoDeLaChaine('ucm-toolkit') };
+  for (const { logo } of donnees.NOEUDS) if (logo !== undefined) logos[logo] = logoDeLaChaine(logo, 'logo');
+  const employes = new Set<string>();
+  const liste = {
+    css: remplir(lireDuDossier('chaine/chaine.css'), 'chaine.css', {}, employes),
+    rendu: remplir(lireDuDossier('chaine/rendu.js'), 'rendu.js', {}, employes),
+    donnees: pourLeScript({ ...donnees, logos }),
+    'logo-entete': logoDeLaChaine('ucm-toolkit'),
+  };
+  return remplir(lireDuDossier('chaine/plein-ecran.html'), 'plein-ecran.html', liste, employes);
+}
+
 if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
   genererInventaire().then((page) => {
     writeFileSync(CHEMIN_DE_L_INVENTAIRE, page);
     console.log(`Écrit : ${CHEMIN_DE_L_INVENTAIRE}`);
+    writeFileSync(CHEMIN_DE_LA_CHAINE, genererChaine());
+    console.log(`Écrit : ${CHEMIN_DE_LA_CHAINE}`);
   });
 }

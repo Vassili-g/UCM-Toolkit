@@ -1,0 +1,43 @@
+<!doctype html>
+<!-- Généré par docs/inventaire/generer-inventaire.ts ; ne pas modifier à la main. -->
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>UCM Toolkit, la chaîne</title>
+<style>
+body.chaine { margin: 0; overflow-x: hidden; }
+{{css}}
+</style>
+</head>
+<body class="chaine">
+<div class="page" id="chaine-page">
+
+<header>
+  {{logo-entete}}
+  <div>
+    <h1>UCM Toolkit</h1>
+    <p>Du design Figma au composant codé. Le design et le code restent identiques, et une machine le vérifie à chaque pull request.</p>
+  </div>
+  <div class="scenarios lectures" id="chaine-lectures">
+    <button data-l="flux" class="actif">Le flux</button>
+    <button data-l="paquets">Les paquets</button>
+  </div>
+  <div class="scenarios" id="chaine-scenarios">
+    <button data-s="sans">Sans UCM</button>
+    <button data-s="auj" class="actif">Aujourd'hui</button>
+    <button data-s="cible">Chaîne complète</button>
+  </div>
+</header>
+
+<section class="bilan" id="chaine-bilan"></section>
+
+<div class="scene" id="chaine-scene"></div>
+
+</div>
+<script>
+{{rendu}}
+monterLaChaine(document.body, {{donnees}});
+</script>
+</body>
+</html>

@@ -614,7 +614,7 @@ export function iconesDuContratDeRecette() {
  * Un SVG de `docs/marque/` sans taille fixe, ses identifiants préfixés : une même image posée deux fois dans la page garde des
  * identifiants uniques. Un logo décoratif perd son `<title>`, car le nom du produit s'écrit à côté.
  */
-function svgDeMarque(chemin: string, prefixe: string, decoratif: boolean): { titre: string; svg: string } {
+export function svgDeMarque(chemin: string, prefixe: string, decoratif: boolean): { titre: string; svg: string } {
   let svg = lire(chemin).trim();
   const titre = svg.match(/<title>([^<]*)<\/title>/)?.[1];
   if (titre === undefined) throw new Error(`${chemin} n'a pas de <title>`);

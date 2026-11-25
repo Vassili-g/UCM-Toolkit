@@ -63,6 +63,10 @@ const VUES = [
     fichier: "INVENTAIRE-UCM.html",
     contenu: async () => (await charger("docs/inventaire/generer-inventaire.ts")).genererInventaire(),
   },
+  {
+    fichier: "CHAINE-UCM.html",
+    contenu: async () => (await charger("docs/inventaire/generer-inventaire.ts")).genererChaine(),
+  },
 ];
 
 reconstruireLeKit();

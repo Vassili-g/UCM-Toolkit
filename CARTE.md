@@ -17,7 +17,9 @@ La documentation classée par sujet.
 L'inventaire du dépôt, vue générée sans autorité : chaque section nomme le fichier qui définit ce qu'elle montre.
 
 - ../../INVENTAIRE-UCM.html : la page générée, commitée à la racine du dépôt ; `tests/inventaire.test.ts` la compare à `genererInventaire`
-- generer-inventaire.ts : `genererInventaire` (asynchrone : la CLI se lit par `import()`) assemble `gabarit.html`, `page.css` et `page.js` ; un `{{nom}}` sans valeur échoue (`npm run vues`)
+- ../../CHAINE-UCM.html : la chaîne UCM en pleine page, générée et commitée à la racine ; `tests/inventaire.test.ts` la compare à `genererChaine`
+- generer-inventaire.ts : `genererInventaire` (asynchrone : la CLI se lit par `import()`) assemble `gabarit.html`, `page.css` et `page.js` ; `genererChaine` assemble `chaine/plein-ecran.html` ; un `{{nom}}` sans valeur échoue (`npm run vues`)
+- chaine/ : la chaîne UCM, données séparées du rendu : `briques.ts` (les données déclarées), `calculs.ts` (`donneesDeLaChaine`, seule entrée du générateur), `rendu.js` (`monterLaChaine`), `chaine.css` (chaque règle sous `.chaine`), `plein-ecran.html`
 - releves.ts : ce que la page lit dans le kit compilé (à travers un `Proxy` qui relève chaque nom lu), le moteur de couleur, la CLI, le socle et les fichiers du dépôt ; valide `pistes.json` et `decisions.json`
 - couverture.ts : `EXCLUSIONS`, les noms que la page ne montre pas exprès, un groupe par raison
 - plans.ts : lit un plan Markdown (lots, marques, hash, groupe), son état, son lot suivant et la date de son dernier lot

@@ -14,7 +14,7 @@ import test from 'node:test';
 import { motifVersRegex } from '../scripts/agents-contexte.mjs';
 import { EXCLUSIONS } from '../docs/inventaire/couverture';
 import { sectionDe } from '../docs/inventaire/extraire';
-import { CHEMIN_DE_L_INVENTAIRE, genererInventaireEtCouverture } from '../docs/inventaire/generer-inventaire';
+import { CHEMIN_DE_LA_CHAINE, CHEMIN_DE_L_INVENTAIRE, genererChaine, genererInventaireEtCouverture } from '../docs/inventaire/generer-inventaire';
 import { lireLePlan } from '../docs/inventaire/plans';
 import { CHEMIN_DES_DECISIONS, CHEMIN_DES_PISTES, DEPOT_SUR_GITHUB, pistes, roadmap, type PisteEcrite, type Regle } from '../docs/inventaire/releves';
 
@@ -30,10 +30,29 @@ test("la page de l'inventaire commitée est à jour", async () => {
   assert.ok(commitee === (await generee()), "La vue n'est plus à jour. Lancez `npm run vues`.");
 });
 
+test('la page de la chaîne commitée est à jour', () => {
+  const commitee = sansRetourChariot(readFileSync(CHEMIN_DE_LA_CHAINE, 'utf8'));
+  assert.ok(commitee === genererChaine(), "La vue n'est plus à jour. Lancez `npm run vues`.");
+});
+
+test("la page de la chaîne est autonome : ni `src=` hors d'une URI `data:`, ni `<link`, ni `@import`, aucune adresse", () => {
+  const page = genererChaine();
+  assert.deepEqual(page.match(/\bsrc=(?!\\?"data:)|<link|@import/g), null);
+  assert.deepEqual([...page.matchAll(/url\((?!#)[^)]{0,20}/g)].map((trouve) => trouve[0]), [], 'une feuille de style charge une ressource');
+  assert.deepEqual([...new Set([...page.matchAll(/https?:\/\/[^"' )<\\]*/g)].map((trouve) => trouve[0]))], []);
+});
+
+test("la page de la chaîne dit qu'elle est générée, et ses logos sont des images écrites dans la page", () => {
+  const page = genererChaine();
+  assert.match(page, /^<!doctype html>\n<!-- Généré par docs\/inventaire\/generer-inventaire\.ts ; ne pas modifier à la main\. -->/);
+  // Les trois logos de cartes, celui de l'en-tête et celui de la zone du kit.
+  assert.ok(page.includes('src="data:image/svg+xml;base64,'));
+});
+
 test("la page de l'inventaire est autonome et tient sous 1 Mo", async () => {
   const page = await generee();
   assert.ok(Buffer.byteLength(page) < 1_000_000);
-  assert.deepEqual(page.match(/\bsrc=|<link|@import/g), null);
+  assert.deepEqual(page.match(/\bsrc=(?!\\?"data:)|<link|@import/g), null);
   // Les seuls liens qui sortent de la page visent un document du dépôt sur GitHub : le script compose ceux de la recherche et du plan, le générateur écrit ceux des pistes terminées.
   assert.deepEqual(page.match(/href="(?!#|' \+ url)[^"]*"/g), null);
   const url = [...page.matchAll(/url\((?!#|data:|"data:)[^)]{0,20}/g)].map((trouve) => trouve[0]);
@@ -61,11 +80,11 @@ function fichiersDuDepot(dossier: string): string[] {
 
 test('chaque source de sources.json désigne au moins un fichier du dépôt', () => {
   const { vues } = JSON.parse(readFileSync(path.join(racine, 'docs', 'inventaire', 'sources.json'), 'utf8')) as { vues: Record<string, string[]> };
-  assert.deepEqual(Object.keys(vues), ['INVENTAIRE-UCM.html']);
+  assert.deepEqual(Object.keys(vues), ['INVENTAIRE-UCM.html', 'CHAINE-UCM.html']);
   const donnees = ['pistes.json', 'decisions.json'].map((nom) => 'docs/notes/Recherches/Evolutions globales/' + nom);
   assert.deepEqual([...donnees, 'docs/inventaire/couverture.ts', 'docs/notes/Recherches/**/*.md'].filter((source) => !vues['INVENTAIRE-UCM.html'].includes(source)), [], 'sources.json oublie une source de la page');
   const fichiers = fichiersDuDepot(racine);
-  const sansFichier = vues['INVENTAIRE-UCM.html'].filter((motif) => !fichiers.some((fichier) => motifVersRegex(motif).test(fichier)));
+  const sansFichier = Object.values(vues).flat().filter((motif) => !fichiers.some((fichier) => motifVersRegex(motif).test(fichier)));
   assert.deepEqual(sansFichier, [], "Ces sources ne désignent aucun fichier. Corriger docs/inventaire/sources.json.");
 });
 

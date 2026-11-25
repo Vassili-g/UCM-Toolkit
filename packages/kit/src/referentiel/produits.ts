@@ -60,7 +60,7 @@ export type Produit = {
 
 export const PRODUITS: readonly Produit[] = [
   {
-    id: 'exporter', libelle: { fr: 'UCM Exporter', en: 'UCM Exporter' },
+    id: 'exporter', libelle: { fr: 'UCM Contract Exporter', en: 'UCM Contract Exporter' },
     definition: { fr: 'Publie les contrats de composants et les tokens DTCG ; seule la création des règles d’usage écrit dans Figma.', en: 'Publishes component contracts and DTCG tokens; only usage rule creation writes to Figma.' },
     lit: ['composants', 'variables', 'regles-usage', 'configuration'], execution: 'figma',
     ecrit: [{ donnees: ['contrats', 'tokens-dtcg'], destination: 'repository' }, { donnees: ['regles-usage'], destination: 'document-figma' }],
@@ -103,6 +103,6 @@ export const PRODUITS: readonly Produit[] = [
     id: 'architect', libelle: { fr: 'UCM Architect', en: 'UCM Architect' },
     definition: { fr: 'Présente les variables, les composants et la recette des palettes ; contrôle leur architecture et normalise les noms de collections et de variables.', en: 'Displays variables, components and the palette recipe; checks their architecture and normalizes collection and variable names.' },
     lit: ['variables', 'composants', 'recette', 'noms-collections', 'noms-variables', 'regles-de-nommage'], execution: 'figma',
-    ecrit: [{ donnees: ['noms-collections', 'noms-variables'], destination: 'document-figma' }, { donnees: ['regles-de-nommage', 'architecture-du-fichier'], destination: 'donnees-partagees-figma' }],
+    ecrit: [{ donnees: ['noms-collections', 'noms-variables', 'variables', 'composants'], destination: 'document-figma' }, { donnees: ['regles-de-nommage', 'architecture-du-fichier'], destination: 'donnees-partagees-figma' }],
   },
 ];

@@ -1861,7 +1861,7 @@ window.REFERENTIEL = {
   },
   {
    "id": "exporter",
-   "libelle": "UCM Exporter",
+   "libelle": "UCM Contract Exporter",
    "definition": "Publie les contrats de composants et les tokens DTCG ; seule la création des règles d’usage écrit dans Figma."
   },
   {

@@ -1,0 +1,231 @@
+/**
+ * Les données de la chaîne UCM, déclarées seulement : les zones, les cartes, les traits, ce que le kit envoie à chaque outil, les
+ * paquets que chaque carte utilise et les cinq garanties. `calculs.ts` les rend à `rendu.js`, qui les dessine ; ce fichier ne calcule rien.
+ */
+
+export interface Zone {
+  titre: string;
+  qui: string;
+  x: number;
+  y: number;
+  w: number;
+  h: number;
+  kit?: boolean;
+}
+
+export interface Legende {
+  x: number;
+  y: number;
+  /** Du HTML : `<br>` coupe la ligne. */
+  texte: string;
+}
+
+export type Etat = 'livre' | 'partie' | 'venir';
+
+/** Un mode d'un outil : sa phrase et ses faits remplacent ceux de la carte tant qu'il est choisi. */
+export interface Mode {
+  libelle: string;
+  /** La carte que ce mode alimente. */
+  vers: string;
+  phrase: string;
+  fait: readonly string[];
+}
+
+/** Une carte, un fichier du repository ou une note de la chaîne. Les champs que `rendu.js` ne lit pas sur un genre de carte restent absents. */
+export interface Noeud {
+  id: string;
+  x: number;
+  y: number;
+  nom: string;
+  type?: string;
+  logo?: string;
+  picto?: string;
+  etat?: Etat;
+  auj?: boolean;
+  deps?: readonly string[];
+  fixe?: boolean;
+  fichier?: boolean;
+  note?: boolean;
+  paquet?: boolean;
+  large?: boolean;
+  phrase?: string;
+  fait?: readonly string[];
+  texte?: string;
+  sans?: string;
+  briques?: readonly (readonly [string, Etat])[];
+  modes?: Readonly<Record<string, Mode>>;
+  couches?: readonly (readonly [string, string])[];
+  alternative?: { nom: string; type: string; couches: readonly (readonly [string, string])[]; phrase: string };
+  puces?: readonly (readonly [string, string])[];
+}
+
+/** Source, cible, port, teinte, et `true` pour un trait secondaire. */
+export type Lien = readonly [string, string, string | null, string, boolean?];
+
+/** Paquet source, carte cible, et les puces du kit que ce trait porte. */
+export type LienDuKit = readonly [string, string, readonly string[]];
+
+export interface Garantie {
+  nom: string;
+  par: readonly string[];
+}
+
+export const ZONES: readonly Zone[] = [
+  { titre: 'Figma', qui: 'le designer', x: 0, y: 0, w: 652, h: 640 },
+  { titre: 'CI', qui: 'la porte', x: 664, y: 0, w: 230, h: 440 },
+  { titre: 'Repository GitHub', qui: '', x: 906, y: 0, w: 200, h: 440 },
+  { titre: 'Rendu et suivi', qui: 'l\'équipe', x: 1118, y: 0, w: 258, h: 440 },
+  { titre: 'Développeur', qui: 'dans son éditeur', x: 664, y: 452, w: 712, h: 188 },
+  { titre: 'UCM Toolkit', qui: '6 paquets que les outils installent. Une règle changée dans un paquet change dans tous les outils.', x: 0, y: 652, w: 1376, h: 200, kit: true },
+];
+export const LEGENDES: readonly Legende[] = [{ x: 678, y: 32, texte: 'Rien n\'entre dans le repository<br>sans passer ici.' }, { x: 920, y: 32, texte: 'Les fichiers fusionnés.' }];
+
+export const NOEUDS: readonly Noeud[] = [
+  { id: 'palettes', x: 18, y: 60, logo: 'ucm-palettes', nom: 'UCM Palettes', type: 'Plugin Figma', etat: 'livre', auj: true,
+    phrase: 'Crée chaque palette en Light et Dark, nuance par nuance selon son usage dans les composants.',
+    fait: ['Chaque nuance sert un usage du thème, fond de bouton, texte, fond teinté, bordure.', 'Les 9 paires texte-fond tiennent le contraste WCAG AA, 4,5:1 pour un texte, 3:1 pour une bordure.', 'Light et Dark calculés ensemble depuis une seule teinte.'],
+    sans: 'Nuances choisies à l\'œil, deux fois, sans contrôle du contraste.' },
+  { id: 'architect', x: 18, y: 344, logo: 'ucm-token-explorer', nom: 'UCM Architect', type: 'Plugin Figma', etat: 'livre', auj: true,
+    modes: { variables: { libelle: 'Variables', vers: 'architecture', phrase: 'Vérifie et renomme les tokens selon l\'architecture, et construit le thème.',
+        fait: ['Repère noms incohérents, tokens manquants et alias cassés.', 'Corrige en un clic quand la correction est certaine.', 'Crée les alias de la marque et les 24 tokens du thème.'] },
+      composant: { libelle: 'Composant', vers: 'composants', phrase: 'Analyse un composant avant export et prépare ses tokens.',
+        fait: ['Chaque couleur et chaque taille passe par un token.', 'Contraste WCAG et taille des zones cliquables mesurés.', 'Crée les tokens propres au composant.'] } },
+    sans: 'Tokens nommés au cas par cas. Les défauts du dessin partent tels quels dans le code.' },
+  { id: 'architecture', x: 232, y: 40, picto: 'couches', nom: 'Architecture des tokens', type: 'Définie dans le kit', etat: 'livre', auj: true,
+    couches: [['Primitives', 'valeurs brutes'], ['Marque et statuts', 'palettes'], ['Thème', 'Light · Dark'], ['Composant', 'ses propres tokens']],
+    alternative: { nom: 'Architecture de l\'équipe', type: 'Sans les règles d\'UCM',
+      couches: [['Primitives', 'valeurs brutes'], ['Quelques alias', 'au cas par cas'], ['Composant', 'vise les primitives']],
+      phrase: 'Light et Dark dupliqués à la main. Changer la marque oblige à reprendre chaque composant.' },
+    phrase: 'Les tokens rangés en 7 collections, prêts pour Light et Dark, sans valeur en double.',
+    fait: ['Une valeur vit à un seul endroit, les autres niveaux y renvoient.', 'Le thème bascule entre Light et Dark sans toucher aux composants.', 'Chaque composant a ses tokens, on le modifie sans toucher aux autres.'],
+    sans: 'Les composants visent des couleurs brutes. Changer la marque ou ajouter le Dark oblige à reprendre chaque composant.' },
+  { id: 'composants', x: 232, y: 386, picto: 'cadre', nom: 'Composants', type: 'Dessin du designer', fixe: true,
+    phrase: 'Le designer dessine chaque composant, ses variantes et ses états, liés à ses tokens.',
+    fait: ['Une règle d\'usage par propriété, posée à côté du composant.'] },
+  { id: 'exporter', x: 446, y: 140, logo: 'ucm-contract-exporter', nom: 'UCM Contract Exporter', type: 'Plugin Figma · Community', etat: 'livre', auj: true,
+    phrase: 'Envoie le contrat de chaque composant et tokens.json par pull request.',
+    fait: ['Une pull request par fichier, jamais fusionnée seule.', 'Signale ce qui manque avant de publier.'],
+    briques: [['Export du composant', 'livre'], ['Export des tokens', 'livre'], ['Choix des collections exportées', 'venir']],
+    sans: 'Le développeur recopie la maquette, et les oublis passent en production.' },
+
+  { id: 'cli', x: 684, y: 64, picto: 'terminal', nom: 'Contrôle UCM', type: 'ucm check · @ucm-kit/cli', etat: 'livre', auj: true, deps: ['exporter'],
+    phrase: 'Juge chaque pull request, du designer comme du développeur, et écrit le rapport.',
+    fait: ['Bloque un contrat illisible, un token absent, une valeur en dur ou un écart du code.', 'Le rapport dit quoi corriger, et qui doit le faire.'],
+    briques: [['Contrôle des contrats et du code', 'livre'], ['<code>ucm diff</code> ce qu\'un export change', 'venir']],
+    sans: 'Les écarts se découvrent en recette, ou chez l\'utilisateur.' },
+  { id: 'adaptateur', x: 684, y: 320, picto: 'accolades', nom: 'Adaptateur TypeScript', type: 'Paquet npm', etat: 'livre', auj: true, deps: ['contrat'],
+    phrase: 'Apprend au contrôle à lire le code TypeScript, pour le comparer au contrat.',
+    fait: ['Chaque option du contrat existe dans le code.', 'Génère aussi les types du composant pour le développeur.'],
+    sans: 'La CI ne lit pas le code TypeScript et refuse la demande du développeur.' },
+  { id: 'implementer', x: 1104, y: 484, picto: 'engrenage', nom: 'UCM Implementer', type: 'Module · compilateur et IA', etat: 'venir', auj: false, deps: ['contrat'],
+    modes: { initial: { libelle: 'Premier code', vers: 'developpement', phrase: 'Construit la première version, puis pose au développeur les questions que le contrat laisse ouvertes.',
+        fait: ['Compile tout ce que le contrat fixe, styles, variantes, états.', 'Demande au développeur l\'élément racine et l\'accessibilité.', 'Retient ses réponses pour les composants suivants.'] },
+      maj: { libelle: 'Mise à jour', vers: 'adaptateur', phrase: 'À chaque nouveau contrat, régénère le code et ouvre une pull request.',
+        fait: ['Une couleur ou une variante qui change se régénère sans IA.', 'Une prop nouvelle pose une seule question.', 'La pull request montre le code régénéré et son contrôle.'] } },
+    briques: [['<code>ucm guide</code> et skill <code>ucm-implementer</code>', 'livre'], ['Compilateur', 'venir'], ['Mise à jour automatique', 'venir'], ['Serveur MCP', 'venir']],
+    sans: 'Le développeur ou son agent code depuis <code>ucm guide</code>, et refait chaque mise à jour à la main.' },
+
+  { id: 'tokensjson', fichier: true, x: 920, y: 60, nom: 'tokens.json', type: 'Tous les tokens · DTCG', deps: ['exporter'],
+    texte: 'Tous les tokens du design system, en Light et en Dark, au format standard DTCG.' },
+  { id: 'contrat', fichier: true, x: 920, y: 130, nom: 'Contrats', type: 'Un par composant', deps: ['exporter'],
+    texte: 'Un fichier par composant, rangé à côté de son code. Il décrit ce que Figma dessine.' },
+  { id: 'code', fichier: true, x: 920, y: 200, nom: 'Code des composants', type: 'À côté de son contrat',
+    texte: 'Le comportement appartient au développeur, le visuel suit le contrat.' },
+  { id: 'verrou', note: true, x: 926, y: 290, nom: 'Verrou de fusion', etat: 'venir', auj: false, deps: ['cli'],
+    texte: 'Une pull request rouge ne peut plus être fusionnée.',
+    sans: 'Une pull request rouge reste fusionnable.' },
+
+  { id: 'developpement', x: 894, y: 484, picto: 'personne', nom: 'Code du composant', type: 'Écrit par le développeur', fixe: true,
+    phrase: 'Écrit contre le contrat. Le comportement et l\'accessibilité n\'appartiennent qu\'au code.',
+    fait: ['Lit le contrat, et les variables CSS tirées de tokens.json.', 'Envoie chaque changement par pull request.'],
+    briques: [['<code>ucm tokens css</code> variables Light et Dark', 'livre'], ['<code>ucm deroger</code> exception motivée', 'livre'], ['Types générés par l\'adaptateur', 'livre'], ['Sortie Style Dictionary', 'venir']] },
+  { id: 'linter', x: 684, y: 484, picto: 'loupe', nom: 'Linter', type: 'Module ESLint', etat: 'partie', auj: false, deps: ['contrat'],
+    phrase: 'Souligne dans l\'éditeur une valeur en dur ou un token inconnu, avant la pull request.',
+    fait: ['Mêmes règles que la CI, au moment de la saisie.', 'Accepte une exception motivée.'],
+    briques: [['Règles et juge dans le kit', 'livre'], ['Module ESLint', 'venir']],
+    sans: 'L\'erreur n\'apparaît qu\'au contrôle de la pull request.' },
+
+  { id: 'storybook', x: 1152, y: 64, picto: 'vitrine', nom: 'Storybook généré', type: 'Module', etat: 'venir', auj: false, deps: ['contrat'],
+    phrase: 'Catalogue des composants. Une story par variante du contrat, qui affiche le composant du code.',
+    fait: ['Les variantes viennent du contrat, l\'affichage vient du code.', 'Un lien vers Figma pour chaque composant.'],
+    sans: 'Catalogue écrit à la main, incomplet et vite périmé.' },
+  { id: 'rendu', x: 684, y: 192, picto: 'regle', nom: 'Vérificateur de rendu', type: 'Module · dans la CI', etat: 'venir', auj: false, deps: ['storybook'],
+    phrase: 'Affiche chaque story dans un navigateur, mesure le rendu et le compare au contrat.',
+    fait: ['Lancé en local par le développeur, puis par la CI à chaque pull request.', 'Ajoute ses écarts au rapport du Contrôle UCM, qui bloque la fusion.', 'Envoie l\'état de chaque composant à la page Santé.'],
+    briques: [['Comparateur, dans <code>@ucm-kit/core</code>', 'venir'], ['Module navigateur', 'venir']],
+    sans: 'Le designer compare l\'écran à la maquette, à l\'œil.' },
+  { id: 'sante', x: 1152, y: 250, picto: 'coeur', nom: 'Santé des composants', type: 'Page d\'accueil du Storybook', etat: 'venir', auj: false, deps: ['cli', 'storybook'],
+    phrase: 'L\'état de chaque composant, d\'après le Contrôle UCM et le vérificateur de rendu.',
+    fait: ['Conforme, en retard ou en écart, sans ouvrir le code.', 'Alerte quand le code s\'écarte du contrat.'],
+    sans: 'Il faut ouvrir chaque composant pour savoir s\'il suit Figma.' },
+
+  { id: 'moteur', x: 18, y: 692, paquet: true, nom: 'ucm-couleur', type: 'Paquet privé', etat: 'livre', auj: true,
+    phrase: 'Calcule les nuances et les contrastes.',
+    fait: ['Sans Figma ni navigateur, donc testé seul.', 'Testé sur 360 teintes.'],
+    sans: 'Nuances et contrastes calculés à la main, outil par outil.' },
+  { id: 'socle', x: 212, y: 692, paquet: true, nom: 'plugin-socle', type: 'Paquet privé', etat: 'livre', auj: true,
+    phrase: 'Interface et construction des trois plugins.',
+    fait: ['Le même langage visuel dans les trois plugins.'],
+    sans: 'Chaque plugin refait son interface et sa construction.' },
+  { id: 'kit', x: 406, y: 692, paquet: true, large: true, nom: '@ucm-kit/core', type: 'npm · 0.18.1', etat: 'livre', auj: true,
+    phrase: 'Les règles d\'UCM, écrites une fois, importées par tous.',
+    fait: ['Une règle changée ici change dans tous les outils.', 'Les modules l\'appellent par une seule porte, stable.'],
+    puces: [['format', 'Format du contrat'], ['architecture', 'Architecture des tokens'], ['theme', 'Thème et contrastes'], ['controles', 'Règles de contrôle'], ['modules', 'Porte des modules']],
+    sans: 'Chaque outil recopie les règles, et deux outils finissent par juger différemment.' },
+  { id: 'pcli', x: 780, y: 692, paquet: true, nom: '@ucm-kit/cli', type: 'npm · 0.4.2', etat: 'livre', auj: true,
+    phrase: 'Installé dans le repository, lancé par la CI.',
+    fait: ['Une commande installe UCM dans un repository.', 'Ne demande pas de projet Node.'],
+    sans: 'Aucun contrôle ne tourne dans la CI.' },
+  { id: 'padapt', x: 974, y: 692, paquet: true, nom: '@ucm-kit/<wbr>adapter-typescript', type: 'npm · 0.3.2', etat: 'livre', auj: true,
+    phrase: 'Apprend aux contrôles à lire le code TypeScript.',
+    fait: ['Paquet séparé, parce que TypeScript pèse 23 Mo.'],
+    sans: 'Les contrôles ne lisent pas le code.' },
+  { id: 'pimpl', x: 1168, y: 692, paquet: true, nom: '@ucm-kit/<wbr>implementer', type: 'npm · nom à décider', etat: 'venir', auj: false,
+    phrase: 'Construit et met à jour le code des composants.',
+    fait: ['Compilateur, et IA pour les seules questions ouvertes.'],
+    sans: 'Le code des composants s\'écrit à la main.' },
+];
+
+export const LIENS: readonly Lien[] = [
+  ['palettes', 'architecture', null, 'neutre'], ['architecture', 'composants', 'bas', 'neutre'],
+  ['architecture', 'exporter', null, 'neutre'], ['composants', 'exporter', null, 'neutre'],
+  ['exporter', 'cli', null, 'neutre'],
+  ['cli', 'tokensjson', null, 'tokens'], ['cli', 'contrat', null, 'contrat'], ['cli', 'code', null, 'code'],
+  ['developpement', 'adaptateur', 'haut', 'code'], ['linter', 'developpement', null, 'neutre'],
+  ['adaptateur', 'cli', 'haut', 'neutre'], ['rendu', 'cli', 'haut', 'rapport'],
+  ['contrat', 'storybook', null, 'contrat'], ['code', 'storybook', null, 'code'],
+  ['storybook', 'sante', 'bas', 'neutre'], ['rendu', 'sante', null, 'rapport'],
+  // Le développeur lit le repository, juste au-dessus de lui.
+  ['contrat', 'developpement', 'bas', 'contrat'], ['tokensjson', 'developpement', 'bas', 'tokens'], ['contrat', 'implementer', 'bas', 'contrat'],
+  ['cli', 'sante', 'dessus', 'rapport', true], ['storybook', 'rendu', 'retour', 'neutre', true], ['cli', 'verrou', null, 'rapport', true],
+];
+
+// Ce que chaque paquet du Toolkit envoie à chaque outil, d'après les points d'entrée du kit (packages/kit/README.md).
+export const KIT: readonly LienDuKit[] = [
+  ['kit', 'architecture', ['architecture']],
+  ['kit', 'palettes', ['architecture', 'theme']],
+  ['kit', 'architect', ['architecture', 'theme', 'controles']],
+  ['kit', 'exporter', ['format', 'architecture']],
+  ['kit', 'pcli', ['format', 'theme', 'controles']],
+  ['kit', 'padapt', ['format']],
+  ['kit', 'pimpl', ['format', 'modules']],
+  ['kit', 'linter', ['controles', 'modules']],
+  ['kit', 'storybook', ['modules']],
+  ['kit', 'rendu', ['modules']],
+  ['pcli', 'cli', []], ['pcli', 'developpement', []], ['pcli', 'implementer', []],
+  ['padapt', 'adaptateur', []], ['padapt', 'linter', []], ['padapt', 'developpement', []], ['pimpl', 'implementer', []],
+  ['moteur', 'palettes', []], ['moteur', 'architect', []],
+  ['socle', 'palettes', []], ['socle', 'architect', []], ['socle', 'exporter', []],
+];
+
+// Les paquets que chaque carte de la chaîne utilise, affichés en lecture du flux.
+export const MARQUES: Readonly<Record<string, readonly string[]>> = { palettes: ['core', 'couleur', 'socle'], architect: ['core', 'couleur', 'socle'], exporter: ['core', 'socle'], architecture: ['core'],
+  cli: ['cli'], adaptateur: ['adapter'], implementer: ['implementer', 'cli'], developpement: ['cli', 'adapter'], linter: ['core', 'adapter'], storybook: ['core'], rendu: ['core'] };
+
+export const GARANTIES: readonly Garantie[] = [
+  { nom: 'Contrastes WCAG AA garantis', par: ['palettes', 'architect'] },
+  { nom: 'Light et Dark sans double travail', par: ['palettes', 'architecture', 'architect'] },
+  { nom: 'Design et code identiques', par: ['exporter', 'cli', 'adaptateur', 'linter', 'rendu'] },
+  { nom: 'Aucun écart en production', par: ['cli', 'verrou', 'rendu'] },
+  { nom: 'Code écrit sans recopie', par: ['exporter', 'pcli', 'implementer', 'adaptateur'] },
+];

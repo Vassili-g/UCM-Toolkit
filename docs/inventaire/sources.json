@@ -33,6 +33,12 @@
       "docs/notes/Recherches/Evolutions globales/pistes.json",
       "docs/notes/Recherches/**/*.md",
       "docs/notes/Recherches/Evolutions globales/decisions.json"
+    ],
+    "CHAINE-UCM.html": [
+      "docs/inventaire/generer-inventaire.ts",
+      "docs/inventaire/releves.ts",
+      "docs/inventaire/chaine/**",
+      "docs/marque/logos/*.svg"
     ]
   }
 }
