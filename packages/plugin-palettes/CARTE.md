@@ -21,7 +21,7 @@ Plugin UCM Palettes : ucm-palettes-plugin, privé.
 - configuration.ts : champs de la configuration, fonds et seuils compris, palettes que chacun touche, et « Par défaut » par carte
 - importation.ts : fichier importé, classé comme la recette rangée, son écart avec elle, champ par champ, et nature de cet écart
 - rapport.ts : rapport de vérification : crans, promesses, alertes, empreinte et écarts du dernier dessin
-- presentation.ts : promesses manquées groupées, place de chaque alerte, réglage que chaque message ouvre, bandes `solid`, `surface`, `page` de l'aperçu et son survol lié, verdict d'une palette, état d'une fiche de Gestion
+- presentation.ts : promesses manquées groupées, place de chaque alerte, réglage que chaque message ouvre, bandes `solid`, `surface`, `page` de l'aperçu et son survol lié, verdict d'une palette, état d'une fiche de Gestion, palette que la liste de Gestion garde dépliée
 - lectureDesVariables.ts : collections locales, variables de couleur, suivi rangé et collections des bibliothèques activées ; avec l'écriture, le seul appel à `figma.variables` et à `figma.teamLibrary`
 - navigation.ts : « Afficher dans Figma » : ouvre la page du cadre et le cadre, sans toucher au document
 - fenetre.ts : bornes et clé de la fenêtre ; le socle la lit et la range
@@ -58,7 +58,7 @@ Plugin UCM Palettes : ucm-palettes-plugin, privé.
 - detection.ts : palettes que le fichier porte déjà dans ses variables
 - reprise.ts : reprise d'une palette du fichier : mode que chaque thème vise, liaison du suivi, palette du fichier qu'une liaison désigne, origine sous laquelle ses autres variables se créent
 - bibliotheques.ts : collections de bibliothèque et palettes que leurs noms de variables dessinent, sans leurs couleurs
-- gestion.ts : ce que Gestion montre des tokens : ce qu'une écriture créerait et remplacerait, simulation d'une destination, variables d'une palette supprimée
+- gestion.ts : ce que Gestion montre des tokens : ce qu'une écriture créerait et remplacerait, couleurs d'une mise à jour et leurs groupes, simulation d'une destination, variables d'une palette supprimée
 - lot.ts : plan pur d'un lot entier : noms finaux, réservations, refus, créations, remplacements et renommages ; Gestion l'annonce et l'écriture l'exécute
 - conversion.ts : passage définitif d'une palette reprise au format du plugin ; ses variables restent les siennes quand la destination les accueille, sinon elles deviennent une sortie
 
@@ -92,7 +92,7 @@ Plugin UCM Palettes : ucm-palettes-plugin, privé.
 - creation.ts : une palette neuve, en carte : nom, référence, modèle, intensités
 - menuPalette.ts : dupliquer, supprimer
 - frontiere.ts : numérotation des demandes, un seul rangement en vol, écriture des variables et dessin après lui, un seul choix de page et un seul rangement de destination en vol
-- ongletGestion.ts : onglet Gestion : sections repliables, liste dépliable des palettes ; une ligne par palette, et dépliée « Modifier » et sa fiche : rampes, référence, garanties, lignes de sortie, encart d'écriture et encart des couleurs changées dans Figma ; « Déjà dans le fichier » et « Dans les bibliothèques » dans la même liste ; une carte par palette supprimée ; notices, recette repliée
+- ongletGestion.ts : onglet Gestion : sections repliables, liste dépliable des palettes ; une ligne par palette, une seule dépliée, avec « Modifier » et sa fiche : rampes, référence, garanties, lignes de sortie, encart d'écriture, encart des couleurs à mettre à jour et encart des couleurs changées dans Figma, sur une grille commune ; « Déjà dans le fichier » et « Dans les bibliothèques » dans la même liste ; une carte par palette supprimée ; notices, recette repliée
 - connexion.ts : section « Connexion à Figma » : destination des tokens et page des planches, chacune sur une ligne ; dépliée, leurs gestes « Changer », heure du dernier état lu et « Synchroniser »
 - destination.ts : carte « Destination des tokens » : collection en liste à choix unique, groupe, thèmes, simulation du panneau des variables, et refus du sandbox
 - pageDesPlanches.ts : carte « Page des planches » : une page du fichier ou une page neuve, en liste à choix unique, et refus du sandbox

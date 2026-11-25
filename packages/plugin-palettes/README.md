@@ -83,8 +83,11 @@ Gestion regroupe la connexion, les palettes du plugin, celles du fichier,
 celles des bibliothèques et la recette dans des sections repliables. Seules
 les palettes du plugin sont ouvertes par défaut. Les mises à jour se font
 depuis la fiche de chaque palette : la liste montre une ligne par palette, et
-un clic sur la ligne déplie sa fiche. Une palette qui attend une décision se
-déplie seule.
+un clic sur la ligne déplie sa fiche et replie celle qui était dépliée. Une
+palette qui attend une décision se déplie seule. Une palette dont le plugin a
+changé des couleurs les montre avant la mise à jour, dans l'encart que sa
+fiche ouvre d'office, avec la couleur de Figma, celle du plugin et « Mettre à
+jour N couleurs ».
 
 « Connexion à Figma » présente la destination des tokens et la page des
 planches. « Synchroniser » relit le fichier sans rien écrire. Les choix de

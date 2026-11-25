@@ -1136,8 +1136,7 @@ côte.
   nouvelle position. Un cadre neuf se pose à 200 px à droite du cadre possédé
   le plus à droite, aligné sur le haut du premier cadre.
 - `[PLA-06]` Le geste « Créer la planche » porte sur une palette : celle
-  d'une fiche de l'onglet Gestion. « Tout mettre à jour » dessine aussi les
-  planches en retard ou absentes (`[UI-28]`). Après une génération, le plugin appelle
+  d'une fiche de l'onglet Gestion (`[UI-28]`). Après une génération, le plugin appelle
   `figma.commitUndo()` : un Ctrl+Z défait cette génération entière, et elle
   seule. Le résultat propose « Afficher dans Figma », qui ouvre la page du
   cadre et le cadre (`setCurrentPageAsync`, puis `scrollAndZoomIntoView`).
@@ -1365,8 +1364,7 @@ toutes les nuances : ses cases ne sont pas des promesses.
   Aucune légende ne prend une couleur de la palette : seuls les spécimens et
   les grilles en portent.
 - `[PLA-24]` Le dessin se fait palette par palette, avec un message de
-  progression. « Tout mettre à jour » demande une confirmation
-  (`[UI-28]`). Interrompue, elle nomme les palettes déjà générées et celles qui
+  progression sur le geste de la palette (`[UI-28]`). Interrompue, elle nomme les palettes déjà générées et celles qui
   attendent ; « Réessayer » reprend à la palette fautive. Elle ne s'annule pas
   en cours de route. Le lot 6 mesure le temps de dessin de douze palettes
   et revoit ce seuil ; au-delà de dix secondes pour douze, le dessin d'une
@@ -2775,7 +2773,6 @@ Onglet Gestion, Bleu dépliée :
 │ ┌ Connexion à Figma ──────────── Synchronisé il y a 2 min  ⟳ Synchroniser ┐
 │ │ Tokens     primitives · colors                           [Changer] │
 │ │ Planches   Page « Palettes »                             [Changer] │
-│ │ 1 à jour · 2 à mettre à jour             [Tout mettre à jour (2)]  │
 │ └────────────────────────────────────────────────────────────────────┘
 │                                                                      │
 │ Palettes du plugin · 3                                  [Light|Dark] │
@@ -2784,7 +2781,11 @@ Onglet Gestion, Bleu dépliée :
 │ │   Soft  ▪▪▪▪▪▪▪▪▪▪▪                                              │ │
 │ │   Vivid ▪▪▪▪▪▪◆▪▪▪▪                                              │ │
 │ │   ■ #1E6FD9 ◆ Vivid · nuance 600             Soft ✓  Vivid ✗ 2   │ │
-│ │   Tokens Figma (À mettre à jour) 6 couleurs ont changé [Mettre à jour] │
+│ │   Tokens Figma (À mettre à jour) 6 couleurs ont changé dans le plugin │
+│ │   ┌ 6 couleurs de Bleu ont changé dans le plugin. ──────────────┐ │ │
+│ │   │ Nuance   Dans Figma   Après la mise à jour                  │ │ │
+│ │   │              [Mettre à jour 6 couleurs]                     │ │ │
+│ │   └─────────────────────────────────────────────────────────────┘ │ │
 │ │   Planche      (À jour)                               [Afficher] │ │
 │ │ › ■ Vert     ▪▪▪▪▪▪▪▪▪▪▪   (Pas encore écrits) (Pas encore créée) │ │
 │ │ › ■ Rouge    ▪▪▪▪▪▪▪▪▪▪▪   (À jour)            (À actualiser)    │ │
@@ -2836,12 +2837,15 @@ Onglet Gestion, Bleu dépliée :
   sa planche. Un clic sur la
   ligne, ou Entrée et Espace sur son nom, la déplie ou la replie ; un geste
   de la ligne ne la bascule pas. Dépliée, la ligne remplace ses deux états
-  par « Modifier », et sa fiche (`[UI-26]`) s'ouvre dessous. Plusieurs lignes
-  restent dépliées à la fois. Une palette qui attend une décision se déplie
-  seule : couleurs changées dans Figma (`[UI-32]`), noms pris par d'autres
-  variables, refus d'une écriture. Repliée par le designer, elle le reste
-  tant que la même décision attend. Les lignes dépliées durent la session,
-  sans rien ranger : à l'ouverture du plugin, la liste est repliée.
+  par « Modifier », et sa fiche (`[UI-26]`) s'ouvre dessous. Une seule ligne
+  reste dépliée : en déplier une replie l'autre, avec l'encart qu'elle porte,
+  sans rien écrire. Une palette qui attend une décision se déplie seule :
+  couleurs changées dans Figma (`[UI-32]`), noms pris par d'autres variables,
+  refus d'une écriture. Si plusieurs palettes attendent à la fois, la
+  première de la liste se déplie et remplace la ligne dépliée ; les autres
+  gardent leur pastille. Repliée par le designer, une palette le reste tant
+  que la même décision attend. La ligne dépliée dure la session, sans rien
+  ranger : à l'ouverture du plugin, la liste est repliée.
 - `[UI-28]` Les mises à jour se font depuis les sorties de chaque fiche
   (`[UI-26]`, `[UI-31]`). Gestion ne propose aucun bouton global de mise à jour.
 - `[UI-29]` « Changer », sur la ligne « Planches », ouvre la carte « Page
@@ -2868,16 +2872,30 @@ Onglet Gestion, Bleu dépliée :
   nombre de variables, la collection, le premier et le dernier nom,
   « Annuler » et « Écrire N variables ». Tant que la destination n'est pas
   confirmée, le geste ouvre d'abord la carte de `[UI-30]`, puis l'encart
-  quand elle est rangée. « Mettre à jour » écrit sans encart tant qu'il ne
-  crée rien, et n'écrase aucune valeur changée dans Figma. Quand il doit
+  quand elle est rangée. Quand seules des couleurs ont changé dans le
+  plugin, la fiche dépliée ouvre d'office l'encart de la mise à jour : le
+  titre « N couleurs de <palette> ont changé dans le plugin. », la phrase
+  « Figma porte encore les couleurs de la dernière écriture. La mise à jour
+  les remplace par celles du plugin. », la grille « Nuance », « Dans Figma »,
+  « Après la mise à jour », puis « Mettre à jour N couleurs » ; la ligne
+  « Tokens Figma » n'a alors aucun geste. Replier la palette ferme l'encart
+  sans rien écrire. Pour une destination changée sans création, des noms
+  occupés ou des variables disparues, « Mettre à jour » écrit sans encart, et
+  n'écrase aucune valeur changée dans Figma. Quand il doit
   créer des variables, après un changement de destination ou la disparition
   d'une variable, il ouvre le même encart, qui compte aussi les couleurs
   déjà écrites qu'il remplace. Ce que le sandbox refuse à une palette, un
   nom déjà pris ou un mode refusé, se lit dans sa fiche jusqu'à l'écriture
   suivante.
 - `[UI-32]` Une palette « Modifiés dans Figma » montre dans sa fiche un
-  encart d'avertissement : chaque couleur changée, son nom de variable, la
-  valeur de Figma et celle du plugin, six au plus puis « Et N autres ».
+  encart d'avertissement : la grille « Nuance », « Dans Figma », « Dans le
+  plugin », sans limite de lignes. Une tête de groupe porte le chemin de la
+  variable, une ligne porte la nuance et les deux couleurs ; un groupe par
+  intensité et par thème, Light avant Dark. Avec les thèmes en modes, deux
+  groupes ont le même chemin : la tête ajoute alors « · Light » ou « · Dark ».
+  Une variable qui porte un alias dans Figma s'écrit « Un alias », sans
+  pastille. La grille sert aussi à l'encart de `[UI-31]`, dont la dernière
+  colonne est « Après la mise à jour ».
   « Remettre les couleurs du plugin » écrit avec le choix `remettre`
   (`[VAR-06]`). « Laisser les couleurs de Figma » replie l'encart pour la
   session, sans rien ranger : l'état reste « Modifiés dans Figma », et la
@@ -3019,23 +3037,23 @@ qui le créera.
 | Vingt messages | L'onglet Vérification sur vingt messages, à la taille par défaut et à 500 × 520 |
 | Presque noir | `#060605` : un gris pur, rampes grises, aucun point à vérifier |
 | Palette avec points à vérifier seuls | Garanties respectées, points à vérifier sous la carte qu'ils concernent |
-| Génération en cours | Progression à la place de « Tout mettre à jour », aucun geste possible |
+| Génération en cours | Progression sur le geste de la palette dessinée, aucun geste possible |
 | Génération réussie | La ligne « Planche » dit « À jour », sans premier geste, avec « Afficher » |
 | Titre seul | « Palette [nom] » seul sur sa ligne, un nom long coupé |
 | Génération partielle | Palettes déjà créées nommées, palette fautive, reprise possible |
 | Génération interrompue | Arrêt nommé, cadre précédent conservé, détail technique replié, « Réessayer » |
-| Confirmation au-delà de six palettes | « Tout mettre à jour » demande confirmation |
 | Onglet Gestion sans palette | Aucune palette à générer, geste vers l'onglet Création |
 | Gestion, liste repliée | Le bloc « Connexion à Figma », la barre et la bascule des thèmes, une ligne repliée par palette sous les en-têtes de colonne |
 | Gestion, une palette dépliée | « Modifier » à la place des deux états, la fiche sous la ligne, les autres lignes repliées |
 | Page des planches | La carte à la place du bloc : les pages du fichier et leur nombre de planches, « Nouvelle page » |
 | Planche à jour | Chaque ligne « Planche » dit « À jour » |
-| Planche à actualiser | Lignes « À actualiser » ou « Pas encore créée », en avertissement, « Tout mettre à jour » |
+| Planche à actualiser | Une fiche dépliée dont la ligne « Planche » dit « À actualiser », avec « Actualiser » et « Afficher » ; les lignes repliées gardent leur pastille |
 | Fiche d’une palette | Nom, pastille d'état et « Modifier » ; rampes ; référence et garanties sur une ligne ; lignes de sortie |
 | Pastilles des cinq états | « À jour » sur fond de succès, « À actualiser » et « Pas encore créée » en avertissement, introuvable et illisible en danger |
 | Tokens jamais écrits | La ligne « Tokens Figma » dit « Pas encore écrits » et « 44 variables à créer » |
 | Tokens à jour | « À jour · 44 variables » |
-| Tokens à mettre à jour | « 2 couleurs ont changé dans le plugin » et « Mettre à jour » |
+| Tokens à mettre à jour | Jaune dépliée : « 2 couleurs ont changé dans le plugin » sans geste sur la ligne, l'encart ouvert d'office avec la grille « Dans Figma », « Après la mise à jour » et « Mettre à jour 2 couleurs » |
+| Tokens à mettre à jour, plusieurs chemins | Quatre groupes dans l'ordre soft/light, vivid/light, soft/dark, vivid/dark, un chemin et une ligne chacun |
 | Tokens introuvables | Des variables suivies ont disparu : « Introuvables » et « Mettre à jour » |
 | Première écriture | L'encart de la fiche : nombre de variables, collection, premier et dernier nom |
 | Destination ouverte | La carte « Destination des tokens » et sa simulation, thèmes dans le chemin |
@@ -3045,7 +3063,8 @@ qui le créera.
 | Destination refusée | Le refus du sandbox dans la carte, qui nomme le champ |
 | Variables supprimées | La ligne qui compte les variables retirées, après la confirmation |
 | Palette supprimée avec variables | La carte propose « Supprimer les variables… » |
-| Tokens modifiés dans Figma | L'encart qui liste les couleurs changées et les deux choix |
+| Tokens modifiés dans Figma | L'encart qui liste les couleurs changées dans la grille « Dans Figma », « Dans le plugin », et les deux choix |
+| Tokens modifiés dans Figma, huit lignes | Huit lignes sous trois chemins, toutes visibles, sans « Et N autres » |
 | Palettes du fichier | L'intertitre « Déjà dans le fichier », une ligne en tirets par palette, slate dépliée |
 | Reprise recalculée | L'encart de Création, « Recalculées » pressé, le nombre de couleurs qui changeront |
 | Reprise telle quelle | « Telles quelles » pressé, aucune couleur ne change |
