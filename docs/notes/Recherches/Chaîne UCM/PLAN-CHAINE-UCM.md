@@ -89,12 +89,12 @@ Le script lit seulement la page et la maquette. Un agent ne lit jamais les image
   - Règles de calcul : une carte de produit est « Disponible » ; une carte à piste est « Disponible » si `roadmap()` range sa piste dans les terminées, « À venir » sinon ; une carte à pièces est « Disponible » si toutes ses pièces le sont, « À venir » si aucune ne l'est, « En partie » sinon ; « Aujourd'hui » active les cartes « Disponible » ; la porte `protocoles` va sous la puce « Architecture des tokens ».
   - Tests nouveaux : une carte « À venir » qui cite une piste terminée ; une piste terminée sans `produit` ni preuve ; une preuve absente du code ; un registre qui porte `etat`, `auj`, `deps`, `teinte`, `MARQUES` ou `KIT` ; un texte qui contient une version `x.y.z`, ou un nombre hors d'un trou `{{…}}` et hors de `NOMBRES_ECRITS` ; un nombre de `NOMBRES_ECRITS` absent de sa source ; une porte de `exports` du kit hors de toute puce, ou dans deux.
   - Critères de fin : la porte au pixel ne rend que les écarts listés au compte rendu, dont au moins les traits du kit vers `ucm-couleur` et `plugin-socle` (E6), les puces recalculées (E7) et le nombre de la zone du kit (E8) ; `node --import tsx --test tests/chaine.test.ts` passe.
-- [ ] C3 Vérifier chaque trait du flux par ce que sa source écrit et ce que sa cible lit, et calculer sa teinte.
+- [x] C3 (dcb16705) Vérifier chaque trait du flux par ce que sa source écrit et ce que sa cible lit, et calculer sa teinte.
   - Agent : `implementeur`. Nature : correction d'un défaut, avec un test qui échoue sans la correction.
   - Écrit : `docs/inventaire/chaine/briques.ts` (donnée de chaque `recoit`, `lit` et `ecrit` des modules, gestes et fichiers), `docs/inventaire/chaine/calculs.ts` (table des teintes), `tests/chaine.test.ts`.
   - Tests nouveaux : un trait dont la source n'écrit pas la donnée, ou dont la cible ne la lit pas, d'après `PRODUITS` pour un produit et d'après le registre pour le reste ; un mode d'outil dont la carte n'écrit pas la donnée de sa cible ; une donnée `aide` ou `hebergement` hors des trois traits nommés par la recherche (section 2).
   - Critères de fin : la porte au pixel ne rend aucun écart, ou le compte rendu nomme chaque trait dont la teinte change et pourquoi ; `node --import tsx --test tests/chaine.test.ts` passe.
-- [ ] C4 (vérificateur). `npm run vues`, puis `node scripts/run-tests.cjs`.
+- [x] C4 (vérificateur, dcb16705). `npm run vues`, puis `node scripts/run-tests.cjs`.
 
 ## Étape D. L'inventaire
 
@@ -103,7 +103,7 @@ Le script lit seulement la page et la maquette. Un agent ne lit jamais les image
   - Écrit : `docs/inventaire/gabarit.html` (section `#chaine`, sommaire, retrait des huit étapes ; la phrase de l'étape « Variables à la main » rejoint la liste F1), `docs/inventaire/page.css` (retrait des règles du parcours, lignes 327 à 349 et 452 à 453 ; la section sort de la colonne), `docs/inventaire/page.js` (retrait du code des étapes, lignes 301 à 321 ; `.chaine` dans `HORS_ETIQUETTE`), `docs/inventaire/generer-inventaire.ts`, `docs/inventaire/couverture.ts` (univers « produits du kit »), `tests/inventaire.test.ts` (lien admis vers `CHAINE-UCM.html`), `scripts/ouvrir-inventaire.mjs` (écrit les deux pages), `CARTE.md`.
   - Ne touche pas `docs/inventaire/chaine/`.
   - Critères de fin : la porte au pixel, appliquée à la scène de la section 3, ne rend aucune différence avec `CHAINE-UCM.html` à largeur égale ; l'inventaire ne contient plus `class="parcours"` ni `etape-carte` ; aucune règle de `chaine.css` ne sort de `.chaine` ; un clic hors de la chaîne ne la redessine pas ; la page reste sous 1 Mo ; `node --import tsx --test tests/inventaire.test.ts` passe.
-- [ ] D2 Calculer l'étiquette d'état des fiches d'outil de la section 2, relier chaque carte de produit à sa fiche, partager la taille de TypeScript.
+- [x] D2 (dcb16705) Calculer l'étiquette d'état des fiches d'outil de la section 2, relier chaque carte de produit à sa fiche, partager la taille de TypeScript.
   - Agent : `implementeur`. Nature : correction d'un défaut.
   - Écrit : `docs/inventaire/gabarit.html`, `docs/inventaire/generer-inventaire.ts`, `docs/inventaire/chaine/rendu.js` (lien d'une carte de produit vers `#outil-<id>`).
   - Critères de fin : le gabarit ne contient plus « livré » écrit à la main dans une fiche, ni « 23 Mo » ; la porte au pixel ne rend aucune différence ; `node --import tsx --test tests/inventaire.test.ts` passe.
