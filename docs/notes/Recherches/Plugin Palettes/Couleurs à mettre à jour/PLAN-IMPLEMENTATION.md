@@ -6,14 +6,14 @@ Chaque lot se donne tel quel à un agent. Cocher sa case avec le hash de son com
 
 ## Avancement
 
-- [ ] L1. Les couleurs d'une mise à jour et leurs groupes, sans DOM
-- [ ] L2. Une seule palette dépliée
-- [ ] L3. Les textes de l'encart, et le retrait de « Tout mettre à jour »
-- [ ] L4. L'encart des couleurs à mettre à jour et la grille partagée
-- [ ] L5. Les états de la galerie
-- [ ] L6. Les tests d'interface
-- [ ] L7. La spécification, le README et la carte
-- [ ] L8. Vérification et clôture
+- [x] (75016d78) L1. Les couleurs d'une mise à jour et leurs groupes, sans DOM
+- [x] (73ebf497) L2. Une seule palette dépliée
+- [x] (95a24c3b) L3. Les textes de l'encart, et le retrait de « Tout mettre à jour »
+- [x] (2439abfc, d2f23793) L4. L'encart des couleurs à mettre à jour et la grille partagée
+- [x] (5a0187b1) L5. Les états de la galerie
+- [x] (47964b40) L6. Les tests d'interface
+- [x] (d8e01eb5) L7. La spécification, le README et la carte
+- [x] L8. Vérification et clôture
 
 ## Décisions
 

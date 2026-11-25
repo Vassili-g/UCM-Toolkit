@@ -2,7 +2,7 @@
 
 Dans l'onglet Gestion, une palette dépliée montre les couleurs qu'une mise à jour remplace, avant et après. L'encart « Modifiés dans Figma » prend la même grille, et une seule palette reste dépliée.
 
-**État.** Maquette validée, plan en cours.
+**État.** L1 à L8 faits. Les tests d'interface de L6 n'ont pas tourné, et la recette Figma reste à faire. Q1 attend l'accord du mainteneur.
 
 | Document | Contenu |
 |---|---|
