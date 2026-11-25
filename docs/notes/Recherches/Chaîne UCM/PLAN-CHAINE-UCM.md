@@ -118,7 +118,7 @@ Le script lit seulement la page et la maquette. Un agent ne lit jamais les image
 
 - [x] F1 (mainteneur). Répondre à Q2 et valider les textes corrigés de E1 à E5, E8, E10 à E12, E14 et E15, et la phrase de l'étape « Variables à la main » (E12).
   - Réponses du mainteneur : Q2 « Couvert » ; E3, E5, E8, E10, E11, E12, E14 et E15 validés ; E2 réécrit sans « Figma dessine », comme le texte de la carte Contrats ; E4 écarté, la zone reste « Repository GitHub ».
-- [ ] F2 Écrire dans le registre les textes validés en F1.
+- [x] F2 (421df09d) Écrire dans le registre les textes validés en F1.
   - Agent : `implementeur`. Nature : modification listée, plus deux nombres calculés (paquets livrés et paquets à venir, pour E8).
   - Écrit : `docs/inventaire/chaine/briques.ts`, `docs/inventaire/chaine/calculs.ts`, `docs/inventaire/chaine/rendu.js` (« Couvert »), `docs/inventaire/chaine/plein-ecran.html` et `docs/inventaire/gabarit.html` (sous-titre), `tests/chaine.test.ts`.
   - Critères de fin : chaque texte du registre égale le texte validé ; `node scripts/controle-style.mjs` ne refuse rien ; la porte au pixel ne rend que les textes changés ; `node scripts/run-tests.cjs` passe.
@@ -127,14 +127,14 @@ Le script lit seulement la page et la maquette. Un agent ne lit jamais les image
 
 Le mainteneur veut la chaîne la plus automatique possible, liée à la Roadmap. Seuls restent à la main la place d'une carte nouvelle et ses textes.
 
-- [ ] G1 L'état d'une carte et d'une pièce suit la Roadmap sans geste.
+- [x] G1 (421df09d) L'état d'une carte et d'une pièce suit la Roadmap sans geste.
   - Agent : `implementeur`. Nature : correction d'un défaut.
   - Écrit : `docs/inventaire/chaine/calculs.ts`, `tests/chaine.test.ts`.
   - Une piste que `roadmap()` range parmi les terminées fait passer sa carte ou sa pièce à « Disponible », sans exiger de produit ni de preuve : un module peut être livré hors de ce dépôt, comme le linter de P26. La règle stricte reste pour une carte qui nomme un produit du dépôt.
   - Critères de fin : un test fabrique un `pistes.json` où la piste du linter est terminée et voit la carte passer à « Disponible » et entrer dans « Aujourd'hui », sans erreur du registre ; `node --import tsx --test tests/chaine.test.ts` passe.
-- [ ] G2 Une piste de la Roadmap ne peut pas manquer à la chaîne.
+- [x] G2 (421df09d) Une piste de la Roadmap ne peut pas manquer à la chaîne.
   - Agent : `implementeur`. Nature : test nouveau.
   - Écrit : `docs/inventaire/chaine/briques.ts` (une liste des pistes exclues, chacune avec sa raison), `docs/inventaire/chaine/calculs.ts`, `tests/chaine.test.ts`.
   - Chaque piste non terminée de `pistes.json` est montrée par une carte ou une pièce, ou figure dans les exclusions avec sa raison. Une piste nouvelle fait échouer le test, qui dit quoi ajouter ; une carte dont la piste disparaît le fait aussi, et le message nomme la carte à retirer.
   - Critères de fin : un `pistes.json` fabriqué avec une piste de plus fait échouer le test avec un message qui la nomme ; une exclusion sans raison est refusée ; `node --import tsx --test tests/chaine.test.ts` passe.
-- [ ] G3 (vérificateur). `npm run vues`, puis `node scripts/run-tests.cjs`.
+- [x] G3 (vérificateur, 421df09d). `npm run vues`, puis `node scripts/run-tests.cjs`.
