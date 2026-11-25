@@ -12,7 +12,9 @@
  * puis une ligne par sortie, tokens et planche. Les deux décisions d'écriture
  * se prennent dans la fiche, sans modale : l'encart d'une écriture qui crée
  * des variables ([UI-31]), et celui des couleurs changées dans Figma
- * ([UI-32]). Une palette qui attend une décision se déplie seule.
+ * ([UI-32]). Une seule ligne est dépliée à la fois : déplier une palette
+ * replie l'autre, et une palette qui attend une décision nouvelle se déplie
+ * seule, à la place de la ligne dépliée.
  *
  * Sous un intertitre, « Déjà dans le fichier » liste dans la même liste les
  * palettes que les variables locales portent hors du plugin ([UI-33]) ;
@@ -39,7 +41,7 @@ import type { VariablesDuFichier } from '../lectureDesVariables';
 import { ordreAlphabetique, rangerSelon } from '../ordreDesPalettes';
 import { fraicheurDeLaPlanche, type CadreDUnePalette, type FraicheurDeLaPlanche } from '../planche/fraicheur';
 import type { SectionDeGestion, SectionsDeGestion } from '../preferences';
-import { etatDeLaFiche, type EtatDeLaFiche } from '../presentation';
+import { etatDeLaFiche, paletteADeplier, type EtatDeLaFiche } from '../presentation';
 import { SANS_BIBLIOTHEQUE, type Bibliotheques, type PaletteDeBibliotheque } from '../variables/bibliotheques';
 import type { Destination } from '../variables/destination';
 import { palettesDuFichier, regrouperLesPalettes, type PaletteDuFichier, type PaletteGroupee } from '../variables/detection';
@@ -212,10 +214,12 @@ function construireVues(i18n: Localisation) {
 
     let mode: Mode = 'light';
     /**
-     * Les lignes dépliées, pour la session : l'id d'une palette du plugin, la
-     * clé d'une palette du fichier ou d'une bibliothèque ([UI-27]).
+     * La seule ligne dépliée, pour la session : l'id d'une palette du plugin,
+     * la clé d'une palette du fichier ou d'une bibliothèque, `null` si aucune
+     * ne l'est. Déplier une ligne ou attendre une décision nouvelle remplace
+     * la ligne dépliée ([UI-27]).
      */
-    const depliees = new Set<string>();
+    let depliee: string | null = null;
     /** Les palettes qu'une décision attendue a dépliées seules : repliées par le designer, elles le restent tant que la décision attend. */
     const deplieesSeules = new Set<string>();
 
@@ -425,12 +429,9 @@ function construireVues(i18n: Localisation) {
     /** Le libellé d'origine de chaque bouton qui porte la progression, rendu quand le dessin s'arrête sans reconstruire la ligne. */
     const libellesDeOrigine = new WeakMap<HTMLElement, Texte>();
 
-    /** Le bouton qui montre la progression : « Tout mettre à jour » pour plusieurs palettes, sinon le geste de la palette dessinée. */
+    /** Le bouton qui montre la progression : le geste de la palette dessinée. */
     function boutonDuDessin(): HTMLButtonElement | null {
-      if (progression === null) return null;
-      const global = element.querySelector<HTMLButtonElement>('[data-geste="tout-mettre-a-jour"]');
-      if (progression.total > 1 && global) return global;
-      if (!gesteDeLaGeneration) return null;
+      if (progression === null || !gesteDeLaGeneration) return null;
       return ligneDe(gesteDeLaGeneration.palette)?.querySelector<HTMLButtonElement>('[data-geste="generer"]') ?? null;
     }
 
@@ -458,7 +459,7 @@ function construireVues(i18n: Localisation) {
     function rendreLesGestes(): void {
       const inactif = enCours || ecritureEnCours || blocage !== null;
       const cible = boutonDuDessin();
-      for (const geste of Array.from(element.querySelectorAll<HTMLButtonElement>('[data-geste="generer"], [data-geste="tout-mettre-a-jour"]'))) {
+      for (const geste of Array.from(element.querySelectorAll<HTMLButtonElement>('[data-geste="generer"]'))) {
         geste.disabled = inactif;
         i18n.lier(geste, 'title', blocage ?? '');
         porterLaProgression(geste, enCours && geste === cible);
@@ -661,7 +662,7 @@ function construireVues(i18n: Localisation) {
         return;
       }
       encart = id;
-      depliees.add(id);
+      depliee = id;
       gesteAFocaliser = { palette: id, geste: 'confirmer-ecriture' };
       rendre();
     }
@@ -931,8 +932,7 @@ function construireVues(i18n: Localisation) {
 
     /** Déplie ou replie une ligne ; le focus reste sur sa bascule, que le rendu reconstruit. */
     function basculerLaLigne(cle: string): void {
-      if (depliees.has(cle)) depliees.delete(cle);
-      else depliees.add(cle);
+      depliee = depliee === cle ? null : cle;
       rendre();
       ligneDe(cle)?.querySelector<HTMLElement>('[data-geste="deplier"]')?.focus();
     }
@@ -958,7 +958,7 @@ function construireVues(i18n: Localisation) {
      * aussi. Dépliée, ses gestes remplacent ses états, et sa fiche suit.
      */
     function ligneDepliable(ligne: LigneDepliable): HTMLElement {
-      const ouverte = depliees.has(ligne.cle);
+      const ouverte = depliee === ligne.cle;
       const element = document.createElement('section');
       element.className = 'palette-depliable';
       element.dataset.cle = ligne.cle;
@@ -1093,20 +1093,23 @@ function construireVues(i18n: Localisation) {
     }
 
     /**
-     * Déplie les palettes qui attendent une décision ([UI-32]) : des couleurs
-     * changées dans Figma, ou des noms pris par d'autres variables. Une
-     * palette repliée par le designer reste repliée tant que la même décision
-     * attend.
+     * Déplie la première palette de la liste qui attend une décision nouvelle
+     * ([UI-27], [UI-32]) : des couleurs changées dans Figma, ou des noms pris
+     * par d'autres variables. Elle remplace la ligne dépliée. Une palette
+     * repliée par le designer reste repliée tant que la même décision attend,
+     * et les autres palettes en attente ne se déplient pas seules.
      */
     function deplierLesDecisions(): void {
+      const nouvelles = new Set<string>();
       for (const [id, etat] of tokens) {
         const attend = (etat.modifiees.length > 0 && !laissees.has(id)) || etat.nomsOccupes.length > 0;
         if (!attend) deplieesSeules.delete(id);
         else if (!deplieesSeules.has(id)) {
           deplieesSeules.add(id);
-          depliees.add(id);
+          nouvelles.add(id);
         }
       }
+      if (recette && nouvelles.size > 0) depliee = paletteADeplier(depliee, ordreAlphabetique(recette, nomDeLaPalette, i18n.langue), nouvelles);
     }
 
     /** L'intertitre d'un groupe de palettes hors du plugin : son titre, son compte, et d'où elles viennent ([UI-33]). */
@@ -1564,8 +1567,8 @@ function construireVues(i18n: Localisation) {
         } else if (resultat) {
           const nom = (id: string): string => noms()[id] ?? id;
           for (const issue of resultat.palettes) {
-            // Un refus, ou des couleurs changées dans Figma, se lisent dans la fiche : sa ligne se déplie.
-            if (issue.issue !== 'ecrite' && issue.issue !== 'absente') depliees.add(issue.palette);
+            // Un refus, ou des couleurs changées dans Figma, se lisent dans la fiche : sa ligne se déplie. Une écriture ne porte qu'une palette.
+            if (issue.issue !== 'ecrite' && issue.issue !== 'absente') depliee = issue.palette;
             if (issue.issue === 'ecrite') {
               if (encart === issue.palette) encart = null;
               laissees.delete(issue.palette);
@@ -1592,7 +1595,7 @@ function construireVues(i18n: Localisation) {
         rendreLeBloc(connexion.changerLaDestination);
         if (ensuite !== null && (tokens.get(ensuite)?.aCreer.length ?? 0) > 0) {
           encart = ensuite;
-          depliees.add(ensuite);
+          depliee = ensuite;
           gesteAFocaliser = { palette: ensuite, geste: 'confirmer-ecriture' };
         }
         rendre();

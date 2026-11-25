@@ -60,6 +60,16 @@ export function etatDeLaFiche(tokens: EtatDesTokens | null, planche: EtatDuCadre
   return 'synchronisee';
 }
 
+/**
+ * La palette que la liste de Gestion garde dépliée ([UI-27]) : une seule ligne
+ * l'est à la fois. `ordre` est celui de la liste ; la première palette de
+ * `nouvelles`, qui attend une décision nouvelle, remplace la ligne dépliée.
+ * Sans décision nouvelle, la ligne dépliée reste, ou aucune.
+ */
+export function paletteADeplier(depliee: string | null, ordre: readonly string[], nouvelles: ReadonlySet<string>): string | null {
+  return ordre.find((id) => nouvelles.has(id)) ?? depliee;
+}
+
 /** Le verdict d'une palette ([VER-19]) : ce que le sélecteur et l'onglet Vérification en disent. */
 export type Verdict = 'succes' | 'avertissement' | 'danger';
 

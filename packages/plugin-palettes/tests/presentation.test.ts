@@ -19,6 +19,7 @@ import {
   gesteDeLaCible,
   groupesManques,
   hauteursDesRayures,
+  paletteADeplier,
   placeDeLAlerte,
   surlignageDe,
   variableDuFond,
@@ -400,4 +401,13 @@ test('[UI-26] l’état d’une fiche est le plus urgent de ses sorties : modifi
   assert.equal(etatDeLaFiche('jamais-ecrits', 'a-jour'), 'pas-encore');
   assert.equal(etatDeLaFiche('a-jour', 'jamais-dessinee'), 'pas-encore');
   assert.equal(etatDeLaFiche('a-jour', 'a-jour'), 'synchronisee');
+});
+
+test('[UI-27] une seule ligne est dépliée : une décision nouvelle la remplace, la première de la liste l’emporte', () => {
+  const ordre = ['a', 'b', 'c'];
+  assert.equal(paletteADeplier('b', ordre, new Set()), 'b', 'aucune décision nouvelle garde la palette dépliée');
+  assert.equal(paletteADeplier('b', ordre, new Set(['c'])), 'c', 'une décision nouvelle remplace la palette dépliée');
+  assert.equal(paletteADeplier('a', ordre, new Set(['c', 'b'])), 'b', 'deux décisions nouvelles donnent la première de l’ordre, pas du jeu');
+  assert.equal(paletteADeplier(null, ordre, new Set()), null, 'sans palette dépliée ni décision, rien ne se déplie');
+  assert.equal(paletteADeplier(null, ordre, new Set(['b'])), 'b');
 });
