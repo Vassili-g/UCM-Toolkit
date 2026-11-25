@@ -7,6 +7,15 @@ const GLYPHES = Object.fromEntries(TYPES_D_ALERTE.map(({ id, texte }) => [id, te
 /** Le nom d'un composant dans une entrée : son identifiant, ou à défaut le nom de son fichier. */
 const nomDeLEntree = (entree) => entree.id ?? entree.fichier;
 
+/**
+ * Le geste d'une référence absente qui bloque. Le contrôle lit le dépôt sans
+ * les demandes ouvertes de la forge. Deux causes restent possibles, des tokens
+ * en attente de fusion ou des variables qui n'existent plus, et le message
+ * donne le geste de chacune. UCM Exporter, qui voit ces demandes, tranche avant de
+ * publier (`lireAvantEcriture`, `packages/plugin-exporter/src/depot.ts`).
+ */
+const ACTION_BLOQUANTE = "Si une demande de tokens est encore ouverte, le designer la fusionne d'abord, puis relance ce contrôle. Sinon, le designer remplace ces variables par les variables actuelles dans Figma, puis réexporte le composant.";
+
 /** Une référence se lit par son chemin de token, sans les accolades du contrat. */
 const cheminCite = (reference) => cheminDeReference(reference) ?? reference;
 
@@ -17,8 +26,8 @@ const cheminCite = (reference) => cheminDeReference(reference) ?? reference;
  * verdict de la demande départage (`verdictDeLaDemande`, `verdict-bilan.mjs`) :
  *
  * - `bloquant: true` : le contrat est plus récent que les tokens, ou la demande
- *   le modifie, et il cite un token qui n'existe pas. Le designer fusionne
- *   d'abord les tokens ;
+ *   le modifie, et il cite un token qui n'existe pas. Le geste est
+ *   `ACTION_BLOQUANTE` ;
  * - `bloquant: false` : les tokens ont changé après le contrat, qui est « en
  *   retard sur les tokens ». Rien ne le bloque, mais le designer sait quels
  *   composants réexporter.
@@ -42,7 +51,7 @@ export function sectionTokensManquants(entrees, { bloquant = false, tokensModifi
       summary: `\`${sourceTokens}\` est la source de vérité. Les références ci-dessous n'y existent pas.`,
       detailsTitle: "Références absentes",
       details,
-      action: "Le designer doit fusionner d'abord la demande des tokens, puis relancer ce contrôle.",
+      action: ACTION_BLOQUANTE,
       status: "La fusion reste bloquée.",
     });
   }
@@ -71,6 +80,6 @@ export function resumeTerminalTokensManquants(entrees, sourceTokens, { bloquant 
   if (total === 0) return null;
   const constat = `${libelleNombre(total, "référence")} de contrat absente${total === 1 ? "" : "s"} de ${sourceTokens}.`;
   return bloquant
-    ? `${GLYPHES.bloquant.brut} ${constat} Fusionnez d'abord la demande des tokens, puis relancez ce contrôle.`
+    ? `${GLYPHES.bloquant.brut} ${constat} Si une demande de tokens est ouverte, fusionnez-la d'abord, puis relancez ce contrôle. Sinon, remplacez ces variables par les variables actuelles dans Figma, puis réexportez le composant.`
     : `${GLYPHES.corriger.brut} ${constat} Réexportez les composants concernés. Ce retard ne bloque pas la fusion.`;
 }

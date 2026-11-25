@@ -90,7 +90,7 @@ sous le même identifiant (partie 3).
 | V-04 | seulement `tokens.json`, alors qu'un écart du code existe déjà | passe | l'écart, adressé à un développeur |
 | V-05 | un contrat qui ajoute une variante que le code n'a pas | passe | le composant est « en retard sur son contrat » |
 | V-06 | un contrat dont le composant n'a pas encore de code | passe | « pas encore d'implémentation », comme aujourd'hui |
-| V-07 | un contrat qui cite un token absent de `tokens.json` | bloque | fusionner d'abord la demande des tokens, puis relancer |
+| V-07 | un contrat qui cite un token absent de `tokens.json` | bloque | fusionner d'abord une demande de tokens ouverte, sinon remplacer les variables dans Figma et réexporter |
 | V-08 | un contrat illisible, incomplet ou d'une version non lue | bloque | le geste, comme aujourd'hui |
 | V-09 | le contrat d'un composant qui porte une dérogation | passe | la dérogation tombe, avec son motif et son auteur |
 | V-10 | le code d'un composant, en laissant un écart avec son contrat, y compris quand la demande change aussi le contrat | bloque | l'écart, et le geste du développeur |

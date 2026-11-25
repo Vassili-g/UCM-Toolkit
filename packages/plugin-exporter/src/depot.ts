@@ -14,6 +14,14 @@ import {
   versionDeContrat,
 } from '@ucm-kit/core/format';
 
+import {
+  cheminDeReference,
+  collecterReferences,
+  indexerTokensDtcg,
+  referencesAbsentes,
+  sansEchantillon,
+} from '@ucm-kit/core/lecteurs/navigateur';
+
 import { texteDuType } from 'ucm-plugin-socle/src/ui/Alerte';
 
 import { utf8ByteLength } from './base64';
@@ -461,23 +469,79 @@ export type LectureDuDepot = {
   surLaBase: { contenu: string; version: VersionDeFichier } | null;
   /** Le même contenu, déjà déposé quelque part. Rien à publier alors. */
   jumeau: { ou: string; url: string | null } | null;
-  /** Le refus de collision d'identité, quand il y en a un. */
+  /**
+   * Le refus qui bloque la publication : une collision d'identité, ou, pour un
+   * composant analysé avec ses tokens, des références absentes de la base et
+   * de toute demande de tokens ouverte.
+   */
   refus: string | null;
   /** Où en sont les tokens du repository, pour un composant à publier ; `null` sinon. */
   tokens: EtatDesTokens | null;
 };
 
 /**
- * `fusionnes` : sur la branche de base. `en-attente` : dans une demande d'export
- * ouverte. `absents` : nulle part. Dans les deux derniers cas, le contrôle du
- * repository refuse la demande d'un composant, parce que ses références de
- * tokens ne se résolvent contre aucun fichier.
+ * `fusionnes` : toutes les références du contrat sont dans `tokens.json` sur la
+ * base. `en-attente` : les manquantes sont dans une demande de tokens ouverte.
+ * `absents` : pas de `tokens.json` sur la base, ni de demande de tokens ouverte.
+ * Dans les deux derniers cas, le contrôle du repository refuse la demande d'un
+ * composant tant que les tokens ne sont pas fusionnés.
  */
 export type EtatDesTokens = 'fusionnes' | 'en-attente' | 'absents';
 
-async function etatDesTokens(forge: Forge, layout: RepositoryLayout): Promise<EtatDesTokens> {
-  if (await forge.lireFichier(layout.tokens)) return 'fusionnes';
-  return (await exportsEnVol(forge, 'tokens', layout.tokens)).length > 0 ? 'en-attente' : 'absents';
+const MAX_REFERENCES_LISTEES = 10;
+
+/** Les références du contrat absentes de ce `tokens.json`, ou `null` si l'un des deux n'est pas du JSON lisible. */
+function absentesDeTokens(contrat: string, tokens: string): string[] | null {
+  try {
+    const citees = collecterReferences(sansEchantillon(jsonSansBom(contrat)));
+    return referencesAbsentes(citees, indexerTokensDtcg(jsonSansBom(tokens)));
+  } catch {
+    return null;
+  }
+}
+
+function refusDeReferences(absentes: string[]): string {
+  const chemins = absentes.map((reference) => cheminDeReference(reference) ?? reference);
+  const listees = chemins.slice(0, MAX_REFERENCES_LISTEES).map((chemin) => `\`${chemin}\``).join(', ');
+  const reste = chemins.length - MAX_REFERENCES_LISTEES;
+  const liste = reste > 0 ? `${listees}, et ${reste} autres` : listees;
+  if (chemins.length === 1) {
+    return `Le composant utilise 1 variable absente des tokens du dépôt : ${liste}. Si elle est nouvelle, publiez d'abord les tokens. Sinon, remplacez-la par une variable actuelle dans Figma, puis relancez l'analyse.`;
+  }
+  return `Le composant utilise ${chemins.length} variables absentes des tokens du dépôt : ${liste}. Si elles sont nouvelles, publiez d'abord les tokens. Sinon, remplacez-les par les variables actuelles dans Figma, puis relancez l'analyse.`;
+}
+
+/**
+ * Compare les références du contrat aux tokens de la base, puis, si elles
+ * manquent, à ceux des demandes de tokens ouvertes. Une demande n'est listée
+ * que si la base ne suffit pas : le cas courant reste à un seul appel.
+ */
+async function etatDesTokens(
+  forge: Forge,
+  layout: RepositoryLayout,
+  contrat: string,
+): Promise<{ tokens: EtatDesTokens; refus: string | null }> {
+  const base = await forge.lireFichier(layout.tokens);
+  const manquantesDeLaBase = base ? absentesDeTokens(contrat, base.contenu) : null;
+  if (base && manquantesDeLaBase?.length === 0) return { tokens: 'fusionnes', refus: null };
+  // Un fichier illisible interdit la comparaison : l'état est celui d'avant.
+  if (base && !manquantesDeLaBase) return { tokens: 'fusionnes', refus: null };
+
+  const enVol = await exportsEnVol(forge, 'tokens', layout.tokens);
+  if (enVol.length === 0) {
+    if (!base) return { tokens: 'absents', refus: null };
+    return { tokens: 'fusionnes', refus: refusDeReferences(manquantesDeLaBase ?? []) };
+  }
+
+  // Sans base, tout ce que le contrat cite doit se trouver dans une demande.
+  let restantes = manquantesDeLaBase ?? absentesDeTokens(contrat, '{}');
+  for (const demande of enVol) {
+    const absentes = absentesDeTokens(contrat, demande.contenu);
+    if (!absentes) return { tokens: 'en-attente', refus: null };
+    restantes = (restantes ?? []).filter((reference) => absentes.includes(reference));
+  }
+  if (!restantes || restantes.length === 0) return { tokens: 'en-attente', refus: null };
+  return { tokens: base ? 'fusionnes' : 'en-attente', refus: refusDeReferences(restantes) };
 }
 
 /**
@@ -535,8 +599,9 @@ export async function lireAvantEcriture(
     }
   }
 
-  const tokens = avecTokens && artifact.kind === 'component' ? await etatDesTokens(forge, layout) : null;
-  return { layout, path, surLaBase, jumeau: null, refus: null, tokens };
+  if (!avecTokens || artifact.kind !== 'component') return { layout, path, surLaBase, jumeau: null, refus: null, tokens: null };
+  const { tokens, refus } = await etatDesTokens(forge, layout, artifact.content);
+  return { layout, path, surLaBase, jumeau: null, refus, tokens };
 }
 
 /**

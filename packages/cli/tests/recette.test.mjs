@@ -239,7 +239,7 @@ test("critère 5 — une référence absente de la source refuse un contrôle sa
     assert.match(rapport, /^## ❌ Les contrôles du repository bloquent la fusion$/m);
     assert.match(rapport, /Des contrats citent des tokens absents/);
     assert.match(rapport, /opacites\.50%/);
-    assert.match(rapport, /Le designer doit fusionner d'abord la demande des tokens, puis relancer ce contrôle\./);
+    assert.match(rapport, /Si une demande de tokens est encore ouverte, le designer la fusionne d'abord, puis relance ce contrôle\. Sinon, le designer remplace ces variables par les variables actuelles dans Figma, puis réexporte le composant\./);
   });
 });
 

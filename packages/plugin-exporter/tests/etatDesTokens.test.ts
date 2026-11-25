@@ -52,6 +52,82 @@ test('pour un composant, la lecture dit si les tokens sont fusionnés, en attent
   assert.equal(absents.tokens, 'absents');
 });
 
+const jetons = (...chemins: string[]) =>
+  JSON.stringify(Object.fromEntries(chemins.map((chemin) => [chemin, { $type: 'dimension', $value: '1px' }])));
+
+/** Un contrat qui cite ces chemins, sous la forme `{a.b}`. */
+const contratCitant = (...chemins: string[]): RepositoryArtifact => ({
+  ...composant,
+  content: JSON.stringify({ contractVersion: '13.0', tokens: chemins.map((chemin) => `{${chemin}}`) }),
+});
+
+test('le cas courant ne lit aucun tokens.json hors de la base', async () => {
+  const lus: string[] = [];
+  const forge = forgeEnMemoire({ main: { 'tokens.json': jetons('layout.radius.md') } });
+  const lecture = await lireAvantEcriture(
+    {
+      ...forge,
+      lireFichier: async (chemin, ref) => {
+        if (chemin === 'tokens.json') lus.push(ref ?? 'main');
+        return forge.lireFichier(chemin, ref);
+      },
+    },
+    contratCitant('layout.radius.md'),
+    { avecTokens: true },
+  );
+  assert.equal(lecture.tokens, 'fusionnes');
+  assert.equal(lecture.refus, null);
+  assert.deepEqual(lus, ['main']);
+});
+
+test('une référence absente de la base, sans demande de tokens ouverte, refuse la publication', async () => {
+  const lecture = await lireAvantEcriture(
+    forgeEnMemoire({ main: { 'tokens.json': jetons('layout.radius.md') } }),
+    contratCitant('layout.radius.md', 'layouts.radius.md'),
+    { avecTokens: true },
+  );
+  assert.match(lecture.refus ?? '', /^Le composant utilise 1 variable absente des tokens du dépôt : `layouts\.radius\.md`\. Si elle est nouvelle/);
+});
+
+test('une référence absente de la base mais présente dans une demande de tokens ouverte reste en attente', async () => {
+  const lecture = await lireAvantEcriture(
+    forgeEnMemoire(
+      { main: { 'tokens.json': jetons('a.b') }, [BRANCHE_TOKENS]: { 'tokens.json': jetons('a.b', 'c.d') } },
+      [{ branche: BRANCHE_TOKENS, url: null }],
+    ),
+    contratCitant('a.b', 'c.d'),
+    { avecTokens: true },
+  );
+  assert.equal(lecture.tokens, 'en-attente');
+  assert.equal(lecture.refus, null);
+});
+
+test('une référence absente partout, base et demande de tokens, refuse la publication', async () => {
+  const lecture = await lireAvantEcriture(
+    forgeEnMemoire({ main: {}, [BRANCHE_TOKENS]: { 'tokens.json': jetons('a.b') } }, [{ branche: BRANCHE_TOKENS, url: null }]),
+    contratCitant('a.b', 'x.y'),
+    { avecTokens: true },
+  );
+  assert.match(lecture.refus ?? '', /1 variable absente.*`x\.y`/);
+});
+
+test('plus de 10 références absentes : pluriel, dix chemins triés, puis « et N autres »', async () => {
+  const chemins = Array.from({ length: 14 }, (_, i) => `z.t${String(i).padStart(2, '0')}`);
+  const lecture = await lireAvantEcriture(
+    forgeEnMemoire({ main: { 'tokens.json': jetons('a.b') } }),
+    contratCitant('a.b', ...chemins),
+    { avecTokens: true },
+  );
+  const attendu = chemins.slice(0, 10).map((c) => `\`${c}\``).join(', ');
+  assert.ok(lecture.refus?.startsWith(`Le composant utilise 14 variables absentes des tokens du dépôt : ${attendu}, et 4 autres. Si elles sont nouvelles`), lecture.refus ?? '');
+});
+
+test('un tokens.json illisible ne permet pas la comparaison : l’état reste, sans refus', async () => {
+  const lecture = await lireAvantEcriture(forgeEnMemoire({ main: { 'tokens.json': 'pas du json' } }), contratCitant('a.b'), { avecTokens: true });
+  assert.equal(lecture.tokens, 'fusionnes');
+  assert.equal(lecture.refus, null);
+});
+
 test('pour les tokens eux-mêmes, la lecture ne rend aucun état des tokens', async () => {
   const tokens = await lireAvantEcriture(forgeEnMemoire({ main: {} }), { ...composant, kind: 'tokens', filename: 'tokens.json' }, { avecTokens: true });
   assert.equal(tokens.tokens, null);

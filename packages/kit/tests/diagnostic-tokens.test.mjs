@@ -47,9 +47,9 @@ test("V-07 : un token absent qui bloque donne le geste du designer et ne dit pas
   assert.match(markdown, /### ❌ Des contrats citent des tokens absents \(1 contrat\)/);
   assert.match(markdown, /`src\/tokens\/tokens\.json` est la source de vérité/);
   assert.match(markdown, /- StressTest : `components\.stresstest\.info\.scalewrap\.colors\.scale-1`/);
-  assert.match(markdown, /Le designer doit fusionner d'abord la demande des tokens, puis relancer ce contrôle\./);
+  assert.match(markdown, /Si une demande de tokens est encore ouverte, le designer la fusionne d'abord, puis relance ce contrôle\. Sinon, le designer remplace ces variables par les variables actuelles dans Figma, puis réexporte le composant\./);
   assert.match(markdown, /La fusion reste bloquée\./);
-  assert.match(terminal, /Fusionnez d'abord la demande des tokens, puis relancez ce contrôle\./);
+  assert.match(terminal, /Si une demande de tokens est ouverte, fusionnez-la d'abord, puis relancez ce contrôle\. Sinon, remplacez ces variables par les variables actuelles dans Figma, puis réexportez le composant\./);
   assert.doesNotMatch(`${markdown}\n${terminal}`, /ne bloque pas|n'empêche pas/);
 });
 

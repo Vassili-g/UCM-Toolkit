@@ -202,7 +202,7 @@ test("V-07 : un contrat que la demande modifie et qui cite un token absent bloqu
   assert.match(rapport, /^## ❌ Les contrôles du repository bloquent la fusion$/m);
   assert.match(rapport, /### ❌ Des contrats citent des tokens absents \(1 contrat\)/);
   assert.match(rapport, /- Widget : `couleurs\.texte\.principal`/);
-  assert.match(rapport, /Le designer doit fusionner d'abord la demande des tokens, puis relancer ce contrôle\./);
+  assert.match(rapport, /Si une demande de tokens est encore ouverte, le designer la fusionne d'abord, puis relance ce contrôle\. Sinon, le designer remplace ces variables par les variables actuelles dans Figma, puis réexporte le composant\./);
   assert.match(rapport, /La fusion reste bloquée\./);
   assert.match(terminal.map(({ texte }) => texte).join("\n"), /✗ Widget\.contract\.json : référence absente/);
 });

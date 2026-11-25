@@ -60,12 +60,15 @@ annule son analyse en cours, même si le nouveau composant porte le même nom.
 La seconde notification d'une sélection inchangée conserve le résultat.
 Une panne de configuration laisse téléchargeable le fichier déjà produit.
 
-L'analyse d'un composant lit aussi l'état des tokens du repository
-(`lireAvantEcriture`, option `avecTokens`) : sur la branche de base, dans une
-demande d'export ouverte, ou nulle part. Dans les deux derniers cas, le verdict
-garde l'action de publier et demande de faire fusionner les tokens d'abord, le
-contrôle du repository refusant la demande du composant jusque-là. La
-publication ne refait pas cette lecture.
+L'analyse d'un composant compare chaque référence du contrat au `tokens.json`
+de la base, puis à celui des demandes de tokens ouvertes (`lireAvantEcriture`,
+option `avecTokens`), avec les fonctions de lecture de la CI. Quand une
+référence manque sur la base mais se trouve dans une demande ouverte, ou quand
+le dépôt n'a aucun `tokens.json`, le verdict garde l'action de publier et
+demande de faire fusionner les tokens d'abord. Une référence absente de la base
+et de toutes les demandes ouvertes devient un refus, qui nomme dix variables au
+plus et retire le bouton Publier. Un fichier illisible ne se compare pas et ne
+donne aucun refus. La publication ne refait pas cette lecture.
 
 Gestion des tokens désactivée, le plugin ne lit ni les collections du fichier
 à l'ouverture, ni l'état des tokens du repository : le verdict d'un composant
