@@ -14,7 +14,7 @@ import { fileURLToPath, pathToFileURL } from 'node:url';
 
 import { PRODUITS } from '@ucm-kit/core/referentiel';
 
-import { BRIQUES } from './chaine/briques';
+import { BRIQUES, NOMBRES_ECRITS } from './chaine/briques';
 import { donneesDeLaChaine, type DonneesDeLaChaine } from './chaine/calculs';
 import * as releves from './releves';
 
@@ -306,6 +306,8 @@ async function valeurs(): Promise<{ liste: Record<string, string>; idsTermines: 
   const accessibilite = releves.seuilsDAccessibilite();
 
   const chaine = piecesDeLaChaine();
+  const typescript = NOMBRES_ECRITS.find((nombre) => nombre.source === 'node_modules/typescript');
+  if (typescript === undefined) throw new Error("NOMBRES_ECRITS ne porte plus le poids de node_modules/typescript, que la fiche de l'adaptateur écrit.");
   const liste: Record<string, string> = {
     // Versions
     'version:kit': versions.kit,
@@ -404,7 +406,15 @@ async function valeurs(): Promise<{ liste: Record<string, string>; idsTermines: 
     'chaine:css': chaine.css,
     'chaine:rendu': chaine.rendu,
     'chaine:logo-entete': chaine.logoEntete,
+    'taille-typescript': typescript.nombre,
   };
+  // La fiche d'un outil prend l'état calculé de la carte d'outil du même produit.
+  for (const brique of BRIQUES.filter((b) => b.genre === 'outil' && b.produit !== undefined && b.produit in FICHES_DES_PRODUITS)) {
+    const etat = chaine.donnees.NOEUDS.find((noeud) => noeud.id === brique.id)?.etat;
+    if (etat === undefined) throw new Error(`La carte ${brique.id} n'a pas d'état calculé.`);
+    const { classe, libelle } = ETIQUETTES_DE_FICHE[etat];
+    liste[`fiche-etat:${FICHES_DES_PRODUITS[brique.produit as keyof typeof FICHES_DES_PRODUITS]}`] = `<span class="etat ${classe}">${libelle}</span>`;
+  }
   for (const paquet of paquets) liste[`tests:${paquet.dossier}`] = String(paquet.fichiersDeTest);
   for (const entree of entrees) liste[`export:${entree.entree}`] = String(entree.noms.length);
   for (const logo of releves.logosDesOutils()) {
@@ -414,7 +424,17 @@ async function valeurs(): Promise<{ liste: Record<string, string>; idsTermines: 
   return { liste, idsTermines: new Set(terminees.map(({ id }) => id)) };
 }
 
-const PREFIXES_A_EMPLOYER = ['tests:', 'export:', 'regle:', 'logo:'];
+const PREFIXES_A_EMPLOYER = ['tests:', 'export:', 'regle:', 'logo:', 'fiche-etat:'];
+
+/** La fiche de la section « Les outils » (`id="outil-…"` du gabarit) de chaque produit qui en a une. Le kit n'en a pas. */
+const FICHES_DES_PRODUITS = { palettes: 'palettes', architect: 'architect', exporter: 'exporter', cli: 'cli', 'adapter-typescript': 'adaptateur' } as const;
+
+/** L'étiquette d'une fiche de la section « Les outils » pour chaque état calculé de sa carte de la chaîne. */
+const ETIQUETTES_DE_FICHE = {
+  livre: { classe: 'livre', libelle: 'livré' },
+  partie: { classe: 'partiel', libelle: 'en partie' },
+  venir: { classe: 'propose', libelle: 'à venir' },
+} as const;
 
 /** Remplace chaque `{{nom}}` par sa valeur et marque le nom comme employé. */
 function remplir(texte: string, fichier: string, liste: Record<string, string>, employes: Set<string>): string {
@@ -512,15 +532,18 @@ function logoDeLaChaine(fichier: string, classe?: string): string {
  * les logos. Les deux pages les lisent ici, donc elles ne peuvent pas diverger. Le balisage de l'en-tête et de la scène est écrit dans
  * `chaine/plein-ecran.html` et dans `gabarit.html` ; `tests/inventaire.test.ts` compare les deux.
  */
-function piecesDeLaChaine(): { css: string; rendu: string; donnees: DonneesDeLaChaine & { logos: Record<string, string> }; logoEntete: string } {
+function piecesDeLaChaine(): { css: string; rendu: string; donnees: DonneesDeLaChaine & { logos: Record<string, string>; FICHES: Record<string, string>; pageDesFiches: string }; logoEntete: string } {
   const donnees = donneesDeLaChaine();
+  // Chaque carte d'un produit qui a une fiche mène à elle, paquet publié compris ; `pageDesFiches` est vide dans l'inventaire.
+  const FICHES: Record<string, string> = {};
+  for (const b of BRIQUES) if (b.produit !== undefined && b.produit in FICHES_DES_PRODUITS) FICHES[b.id] = FICHES_DES_PRODUITS[b.produit as keyof typeof FICHES_DES_PRODUITS];
   const logos: Record<string, string> = { zone: logoDeLaChaine('ucm-toolkit') };
   for (const { logo } of donnees.NOEUDS) if (logo !== undefined) logos[logo] = logoDeLaChaine(logo, 'logo');
   const employes = new Set<string>();
   return {
     css: remplir(lireDuDossier('chaine/chaine.css'), 'chaine.css', {}, employes),
     rendu: remplir(lireDuDossier('chaine/rendu.js'), 'rendu.js', {}, employes),
-    donnees: { ...donnees, logos },
+    donnees: { ...donnees, logos, FICHES, pageDesFiches: '' },
     logoEntete: logoDeLaChaine('ucm-toolkit'),
   };
 }
@@ -528,7 +551,7 @@ function piecesDeLaChaine(): { css: string; rendu: string; donnees: DonneesDeLaC
 /** Le contenu exact de `CHAINE-UCM.html`, la chaîne UCM en pleine page. Elle ne charge aucune ressource : logos, style et script y sont écrits. */
 export function genererChaine(): string {
   const { css, rendu, donnees, logoEntete } = piecesDeLaChaine();
-  const liste = { css, rendu, donnees: pourLeScript(donnees), 'logo-entete': logoEntete };
+  const liste = { css, rendu, donnees: pourLeScript({ ...donnees, pageDesFiches: path.basename(CHEMIN_DE_L_INVENTAIRE) }), 'logo-entete': logoEntete };
   return remplir(lireDuDossier('chaine/plein-ecran.html'), 'plein-ecran.html', liste, new Set<string>());
 }
 

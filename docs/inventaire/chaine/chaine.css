@@ -178,6 +178,7 @@
 .chaine .plus .briques .tag { position: static; }
 .chaine .plus .sans { margin: 8px 0 0; font-size: 11px; line-height: 1.45; color: var(--perte); }
 .chaine .plus .sans b { font-weight: 600; }
+.chaine .plus .fiche-lien { display: block; margin-top: 8px; font-size: 10.5px; color: var(--encre-3); }
 .chaine .plus button.retirer { margin-top: 8px; font: inherit; font-size: 10.5px; font-weight: 500; border: 1px solid var(--trait); background: var(--fond); border-radius: 6px; padding: 3px 8px; cursor: pointer; color: var(--encre); }
 
 .chaine .fichier { position: absolute; width: 170px; height: 28px; border-radius: 7px; background: var(--encre); color: #fff; font-size: 11px; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: background .25s, opacity .2s; z-index: 1; }

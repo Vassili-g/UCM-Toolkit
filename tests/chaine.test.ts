@@ -10,9 +10,9 @@ import test from 'node:test';
 
 import * as module from '../docs/inventaire/chaine/briques';
 import { BRIQUES, JAUGES, NOMBRES_ECRITS, PUCES_DU_KIT, ZONES } from '../docs/inventaire/chaine/briques';
-import type { Brique } from '../docs/inventaire/chaine/briques';
+import type { Brique, DonneeDeTrait, DonneesDeTrait, Reception } from '../docs/inventaire/chaine/briques';
 import {
-  controlerLeRegistre, controlerLesNombresEcrits, controlerLesPuces, donneesDeLaChaine, etatsDesCartes, referencesDuDepot,
+  controlerLeRegistre, controlerLesNombresEcrits, controlerLesPuces, donneesDeLaChaine, donneesDuTrait, etatsDesCartes, referencesDuDepot, teinteDuTrait,
   type ReferencesDuRegistre, type RegistreDeLaChaine,
 } from '../docs/inventaire/chaine/calculs';
 
@@ -149,7 +149,7 @@ test('une piste citée par une pièce, absente de pistes.json, est refusée', ()
 
 test('un recoit.de inconnu est refusé', () => {
   const cli = brique('cli');
-  const erreurs = controlerLeRegistre(avec('cli', { recoit: [...cli.recoit!, { de: 'fantome', rang: 99, teinte: 'neutre' }] }), references);
+  const erreurs = controlerLeRegistre(avec('cli', { recoit: [...cli.recoit!, { de: 'fantome', rang: 99, donnee: 'contrats' }] }), references);
   assert.ok(erreurs.some((e) => e.includes('fantome')), erreurs.join(' | '));
 });
 
@@ -279,7 +279,8 @@ test('un nombre écrit hors d\'un calcul et hors de NOMBRES_ECRITS est refusé',
   assert.ok(erreurs.some((e) => e.startsWith('kit :') && e.includes('12')), erreurs.join(' | '));
   assert.deepEqual(controlerLeRegistre(avec('kit', { phrase: 'Testé sur 360 teintes.' }), references), []);
   const sansNombres = controlerLeRegistre({ ...registre, nombres: [] }, references);
-  assert.ok(sansNombres.some((e) => e.startsWith('moteur :') && e.includes('360')) && sansNombres.some((e) => e.startsWith('padapt :') && e.includes('23')), sansNombres.join(' | '));
+  // L'adaptateur lit sa taille par le trou {{taille-typescript}} : seul le moteur écrit encore un nombre en clair.
+  assert.ok(sansNombres.some((e) => e.startsWith('moteur :') && e.includes('360')), sansNombres.join(' | '));
   const zone = controlerLeRegistre({ ...registre, zones: ZONES.map((z) => (z.kit ? { ...z, qui: '6 paquets.' } : z)) }, references);
   assert.ok(zone.some((e) => e.includes('6')), zone.join(' | '));
 });
@@ -338,4 +339,106 @@ test('les paquets d\'une carte du flux viennent des dependencies ou du champ paq
   assert.deepEqual(MARQUES.implementer, ['implementer', 'cli']);
   assert.deepEqual(MARQUES.developpement, ['cli', 'adapter']);
   assert.equal('moteur' in MARQUES, false);
+});
+
+// ---------- Les traits : la donnée, la source, la cible et la teinte ----------
+
+/** Le registre du dépôt, avec les traits reçus d'une carte remplacés. */
+function avecTraits(id: string, recoit: readonly Reception[]): RegistreDeLaChaine {
+  return avec(id, { recoit });
+}
+
+test('un trait dont la source n\'écrit pas sa donnée est refusé, d\'après PRODUITS pour un produit', () => {
+  // L'Exporter n'écrit pas de rapport.
+  const erreurs = controlerLeRegistre(avecTraits('cli', [{ de: 'exporter', rang: 5, donnee: 'rapports' }]), references);
+  assert.ok(erreurs.some((e) => e.startsWith('cli :') && e.includes('exporter') && e.includes('rapports') && e.includes('n\'écrit pas')), erreurs.join(' | '));
+});
+
+test('un trait dont la source n\'écrit pas sa donnée est refusé, d\'après le registre pour un module', () => {
+  const sansEcrit = { ...registre, briques: BRIQUES.map((b) => (b.id === 'rendu' ? { ...b, ecrit: [] } : b)) };
+  const erreurs = controlerLeRegistre(sansEcrit, references);
+  assert.ok(erreurs.some((e) => e.startsWith('sante :') && e.includes('rendu') && e.includes('n\'écrit pas')), erreurs.join(' | '));
+});
+
+test('un trait dont la cible ne lit pas sa donnée est refusé, d\'après PRODUITS pour un produit et le registre pour le reste', () => {
+  // La CLI écrit la configuration que Storybook ne lit pas ; l'Exporter ne lit pas de code.
+  const module = controlerLeRegistre(avecTraits('storybook', [{ de: 'cli', rang: 13, donnee: 'configuration' }]), references);
+  assert.ok(module.some((e) => e.startsWith('storybook :') && e.includes('ne lit pas')), module.join(' | '));
+  const produit = controlerLeRegistre(avecTraits('exporter', [{ de: 'cli', rang: 3, donnee: 'implementation' }]), references);
+  assert.ok(produit.some((e) => e.startsWith('exporter :') && e.includes('implementation') && e.includes('ne lit pas')), produit.join(' | '));
+});
+
+test('un trait qui porte plusieurs données est refusé dès qu\'une seule manque à la source', () => {
+  const erreurs = controlerLeRegistre(avecTraits('cli', [{ de: 'exporter', rang: 5, donnee: ['contrats', 'rapports'] }]), references);
+  assert.equal(erreurs.filter((e) => e.startsWith('cli :')).length, 1, erreurs.join(' | '));
+  assert.ok(erreurs.some((e) => e.includes('rapports') && e.includes('exporter')));
+});
+
+test('une exigence sans trait est contrôlée comme un trait', () => {
+  const recoit = brique('adaptateur').recoit!.map((r) => ('sansTrait' in r ? { ...r, donnee: 'planches' as const } : r));
+  const erreurs = controlerLeRegistre(avec('adaptateur', { recoit }), references);
+  assert.ok(erreurs.some((e) => e.startsWith('adaptateur :') && e.includes('planches')), erreurs.join(' | '));
+});
+
+test('un mode d\'outil dont la carte n\'écrit pas la donnée de sa cible est refusé', () => {
+  const architect = brique('architect');
+  // Architect n'écrit ni code ni rapport : un mode vers le code ou vers la CLI n'a pas de donnée à lui remettre.
+  for (const vers of ['code', 'cli']) {
+    const modes = { ...architect.modes!, variables: { ...architect.modes!.variables, vers } };
+    const erreurs = controlerLeRegistre(avec('architect', { modes }), references);
+    assert.ok(erreurs.some((e) => e.startsWith('architect :') && e.includes(`alimente ${vers}`)), `${vers} : ${erreurs.join(' | ')}`);
+  }
+  const sansEcrit = controlerLeRegistre(avec('implementer', { ecrit: [] }), references);
+  assert.ok(sansEcrit.some((e) => e.startsWith('implementer :') && e.includes('mode')), sansEcrit.join(' | '));
+  assert.deepEqual(Object.values(brique('implementer').modes!).map((m) => m.vers), ['developpement', 'adaptateur']);
+});
+
+test('chaque mode d\'Architect vise la carte de la donnée qu\'Architect écrit', () => {
+  const modes = brique('architect').modes!;
+  assert.deepEqual(Object.fromEntries(Object.entries(modes).map(([nom, mode]) => [nom, brique(mode.vers).donnee])), { variables: 'variables', composant: 'composants' });
+});
+
+test('aide et hebergement servent aux trois traits que la recherche nomme, et à eux seuls', () => {
+  const portes: string[] = [];
+  for (const b of BRIQUES) for (const r of b.recoit ?? []) for (const d of donneesDuTrait(r.donnee)) if (d === 'aide' || d === 'hebergement') portes.push(`${r.de}>${b.id}:${d}`);
+  assert.deepEqual(portes.sort(), ['adaptateur>cli:hebergement', 'linter>developpement:aide', 'storybook>sante:hebergement']);
+  for (const [de, cible, donnee] of [['exporter', 'cli', 'aide'], ['linter', 'cli', 'aide'], ['storybook', 'rendu', 'hebergement'], ['cli', 'adaptateur', 'hebergement']] as const) {
+    const erreurs = controlerLeRegistre(avecTraits(cible, [...brique(cible).recoit!, { de, rang: 99, donnee }]), references);
+    assert.ok(erreurs.some((e) => e.startsWith(`${cible} :`) && e.includes(donnee) && e.includes('réservée')), `${de}>${cible} : ${erreurs.join(' | ')}`);
+  }
+  // Un des trois traits ne porte que la donnée qui lui est réservée.
+  const echange = brique('developpement').recoit!.map((r) => (r.de === 'linter' ? { ...r, donnee: 'hebergement' as const } : r));
+  const erreurs = controlerLeRegistre(avecTraits('developpement', echange), references);
+  assert.ok(erreurs.some((e) => e.startsWith('developpement :') && e.includes('réservée')), erreurs.join(' | '));
+});
+
+test('un registre qui porte une teinte est refusé, et la teinte se calcule depuis la donnée', () => {
+  const recoit = brique('architecture').recoit!.map((r) => ({ ...r, teinte: 'code' }) as unknown as Reception);
+  const erreurs = controlerLeRegistre(avecTraits('architecture', recoit), references);
+  assert.ok(erreurs.some((e) => e.startsWith('architecture :') && e.includes('teinte')), erreurs.join(' | '));
+  for (const b of BRIQUES) for (const r of b.recoit ?? []) assert.equal('teinte' in r, false, `${b.id} < ${r.de}`);
+  const table: [DonneesDeTrait, string][] = [
+    ['contrats', 'contrat'], ['tokens-dtcg', 'tokens'], ['implementation', 'code'], ['rapports', 'rapport'],
+    ['variables', 'neutre'], ['composants', 'neutre'], ['aide', 'neutre'], ['hebergement', 'neutre'],
+    [['contrats', 'tokens-dtcg'], 'neutre'], [['contrats', 'contrats'], 'contrat'],
+  ];
+  for (const [donnee, teinte] of table) assert.equal(teinteDuTrait(donnee), teinte, JSON.stringify(donnee));
+});
+
+test('chaque trait dessiné prend la teinte de sa donnée', () => {
+  const { LIENS } = donneesDeLaChaine();
+  const attendues = new Map<string, string>();
+  for (const b of BRIQUES) for (const r of b.recoit ?? []) if (!('sansTrait' in r)) attendues.set(`${r.de}>${b.id}`, teinteDuTrait(r.donnee));
+  assert.equal(LIENS.length, attendues.size);
+  for (const [source, cible, , teinte] of LIENS) assert.equal(teinte, attendues.get(`${source}>${cible}`), `${source}>${cible}`);
+  const teinte = (cle: string) => LIENS.find(([source, cible]) => `${source}>${cible}` === cle)![3];
+  assert.equal(teinte('exporter>cli'), 'neutre');
+  assert.equal(teinte('cli>tokensjson'), 'tokens');
+  assert.equal(teinte('rendu>cli'), 'rapport');
+  assert.equal(teinte('developpement>adaptateur'), 'code');
+});
+
+test('la donnée de chaque carte de fichier ou de dessin est celle que le plan nomme', () => {
+  const donnees: Record<string, DonneeDeTrait> = { tokensjson: 'tokens-dtcg', contrat: 'contrats', code: 'implementation', architecture: 'variables', composants: 'composants' };
+  for (const [id, donnee] of Object.entries(donnees)) assert.equal(brique(id).donnee, donnee, id);
 });

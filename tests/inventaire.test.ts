@@ -55,7 +55,8 @@ test("la page de l'inventaire est autonome et tient sous 1 Mo", async () => {
   assert.deepEqual(page.match(/\bsrc=(?!\\?"data:)|<link|@import/g), null);
   // Les seuls liens qui sortent de la page visent un document du dépôt sur GitHub : le script compose ceux de la recherche et du plan, le générateur écrit ceux des pistes terminées.
   // Le lien « Plein écran » de la chaîne vise `CHAINE-UCM.html`, écrit à côté de l'inventaire.
-  assert.deepEqual(page.match(/href="(?!#|CHAINE-UCM\.html"|' \+ url)[^"]*"/g), null);
+  // Le lien d'une carte de la chaîne vers sa fiche se compose dans `rendu.js` ; `pageDesFiches` y est vide, donc il vise l'ancre de la même page.
+  assert.deepEqual(page.match(/href="(?!#|CHAINE-UCM\.html"|\$\{pageDesFiches\}#outil-|' \+ url)[^"]*"/g), null);
   const url = [...page.matchAll(/url\((?!#|data:|"data:)[^)]{0,20}/g)].map((trouve) => trouve[0]);
   assert.deepEqual(url, [], 'une feuille de style charge une ressource');
   const adresses = [...new Set([...page.matchAll(/https?:\/\/[^"' )<]*/g)].map((trouve) => trouve[0]))];

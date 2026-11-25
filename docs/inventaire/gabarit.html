@@ -77,7 +77,7 @@
 
   <div class="produits">
   <div class="fiche" id="outil-palettes">
-    <div class="tete">{{logo:palettes}}<div class="nom"><b>UCM Palettes</b><span class="etat livre">livré</span><span class="canal">Plugin Figma, privé</span></div></div>
+    <div class="tete">{{logo:palettes}}<div class="nom"><b>UCM Palettes</b>{{fiche-etat:palettes}}<span class="canal">Plugin Figma, privé</span></div></div>
     <p class="role">Gère toutes les couleurs d'un design system UCM et garantit leur fiabilité. Il calcule chaque palette en Light et en Dark, vérifie ses contrastes, repère les palettes trop proches et écrit les couleurs en variables dans Figma.</p>
     <dl class="faits">
       <dt>Lit</dt><dd>Une couleur de référence par palette</dd>
@@ -98,7 +98,7 @@
   </div>
 
   <div class="fiche" id="outil-architect">
-    <div class="tete">{{logo:architect}}<div class="nom"><b>UCM Architect</b><span class="etat livre">livré</span><span class="canal">Plugin Figma, privé</span></div></div>
+    <div class="tete">{{logo:architect}}<div class="nom"><b>UCM Architect</b>{{fiche-etat:architect}}<span class="canal">Plugin Figma, privé</span></div></div>
     <p class="role">Explore, renomme et corrige les variables, analyse un composant.</p>
     <dl class="faits">
       <dt>Lit</dt><dd>Les variables d'un fichier déclaré UCM, un composant</dd>
@@ -121,7 +121,7 @@
   </div>
 
   <div class="fiche" id="outil-exporter">
-    <div class="tete">{{logo:exporter}}<div class="nom"><b>UCM Contract Exporter</b><span class="etat livre">livré</span><span class="canal">Plugin Figma, Figma Community</span></div></div>
+    <div class="tete">{{logo:exporter}}<div class="nom"><b>UCM Contract Exporter</b>{{fiche-etat:exporter}}<span class="canal">Plugin Figma, Figma Community</span></div></div>
     <p class="role">Publie le contrat d'un composant et <code>tokens.json</code> dans le repository de l'application.</p>
     <dl class="faits">
       <dt>Lit</dt><dd>Le composant sélectionné. Sans sélection, les variables.</dd>
@@ -138,7 +138,7 @@
   </div>
 
   <div class="fiche" id="outil-cli">
-    <div class="tete">{{logo:cli}}<div class="nom"><b>CLI</b><span class="etat livre">livré</span><span class="canal">Paquet npm <span class="mono">@ucm-kit/cli</span></span></div></div>
+    <div class="tete">{{logo:cli}}<div class="nom"><b>CLI</b>{{fiche-etat:cli}}<span class="canal">Paquet npm <span class="mono">@ucm-kit/cli</span></span></div></div>
     <p class="role">Contrôle les contrats à chaque pull request. Ne demande pas de <code>package.json</code>.</p>
     <dl class="faits">
       <dt>Lit</dt><dd>Les contrats, <code>tokens.json</code>, le code par l'adaptateur</dd>
@@ -157,8 +157,8 @@
   </div>
 
   <div class="fiche" id="outil-adaptateur">
-    <div class="tete">{{logo:adaptateur}}<div class="nom"><b>Adaptateur TypeScript</b><span class="etat livre">livré</span><span class="canal">Paquet npm <span class="mono">@ucm-kit/adapter-typescript</span></span></div></div>
-    <p class="role">Compare les props du code à celles du contrat. Paquet séparé parce que <code>typescript</code> pèse 23 Mo.</p>
+    <div class="tete">{{logo:adaptateur}}<div class="nom"><b>Adaptateur TypeScript</b>{{fiche-etat:adaptateur}}<span class="canal">Paquet npm <span class="mono">@ucm-kit/adapter-typescript</span></span></div></div>
+    <p class="role">Compare les props du code à celles du contrat. Paquet séparé parce que <code>typescript</code> pèse {{taille-typescript}} Mo.</p>
     <dl class="faits">
       <dt>Lit</dt><dd>Le code TypeScript et le contrat du composant</dd>
       <dt>Écrit</dt><dd>Les types des variantes</dd>

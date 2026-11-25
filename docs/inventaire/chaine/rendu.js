@@ -2,7 +2,8 @@
  * Dessine la chaîne UCM : les cartes, les traits à angles droits, les trois scénarios, les deux lectures et les cinq garanties.
  * `monterLaChaine(hote, donnees)` construit tout dans `hote`, la racine de la chaîne (le paramètre ne s'appelle pas `racine` : la fonction `racine(id)` plus bas porte déjà ce nom). `hote` porte les éléments `#chaine-page`, `#chaine-scene`,
  * `#chaine-bilan`, `#chaine-lectures` et `#chaine-scenarios`. `donnees` est ce que rend `donneesDeLaChaine()`, plus `logos` : les SVG
- * en ligne des cartes (par fichier de logo) et du titre de la zone du kit (`zone`). Ce fichier ne porte aucune donnée de la chaîne.
+ * en ligne des cartes (par fichier de logo) et du titre de la zone du kit (`zone`) ; `FICHES`, la fiche de la section « Les outils » de chaque
+ * carte de produit ; `pageDesFiches`, la page de ces fiches (vide dans l'inventaire lui-même). Ce fichier ne porte aucune donnée de la chaîne.
  * `reglage.echelle` dit ce que l'échelle suit. `'fenetre'` (défaut, la page plein écran) : la largeur et la hauteur de la fenêtre, pour que
  * la page tienne entière. `'largeur'` (la section de l'inventaire, dans une page qui défile) : la largeur de `hote` seule ; `hote` prend
  * alors la hauteur de la scène mise à l'échelle et rogne ce qui dépasse.
@@ -34,7 +35,7 @@ const BASE = 1376, HAUT = 852;
 let LARGE = BASE, F = 1;
 const largeurDe = n => n.fichier ? 170 : n.note ? 176 : n.paquet ? (n.large ? 360 : 180) : 190;
 const gaucheDe = n => Math.round((n.x + largeurDe(n) / 2) * F - largeurDe(n) / 2);
-const { ZONES, LEGENDES, LIENS, KIT, MARQUES, GARANTIES, logos } = donnees;
+const { ZONES, LEGENDES, LIENS, KIT, MARQUES, GARANTIES, logos, FICHES, pageDesFiches } = donnees;
 // La boucle de dépendances ci-dessous ajoute des champs aux cartes : elle travaille sur des copies.
 const NOEUDS = donnees.NOEUDS.map(n => ({ ...n }));
 
@@ -255,6 +256,7 @@ function carte(n) {
       <ul>${m.fait.map(f => `<li>${f}</li>`).join('')}</ul>
       ${n.briques ? `<div class="briques">${n.briques.map(([t, e]) => `<div><span>${t}</span><span class="tag ${e}">${TAGS[e]}</span></div>`).join('')}</div>` : ''}
       ${n.sans ? `<p class="sans"><b>Sans :</b> ${n.sans}</p>` : ''}
+      ${FICHES[n.id] ? `<a class="fiche-lien" href="${pageDesFiches}#outil-${FICHES[n.id]}">Fiche dans l'inventaire</a>` : ''}
     </div>`;
   return `<div class="noeud ${classe}${estOuvert ? ' ouvert' : ''}" data-id="${n.id}" style="left:${gauche}px;top:${n.y}px">
     ${n.etat && !alt ? `<span class="tag ${n.etat}">${TAGS[n.etat]}</span>` : ''}
@@ -375,6 +377,7 @@ scene0.addEventListener('mouseleave', () => scene0.classList.remove('survol'));
 scene0.addEventListener('mouseout', e => { if (!e.relatedTarget || !e.relatedTarget.closest('#chaine-scene [data-id]')) scene0.classList.remove('survol'); });
 
 hote.addEventListener('click', e => {
+  if (e.target.closest('a.fiche-lien')) return;
   const pf = e.target.closest('[data-filtre]');
   if (pf) { filtre = filtre === pf.dataset.filtre ? null : pf.dataset.filtre; ouvert = null; lecture = 'paquets'; rendre(); return; }
   const md = e.target.closest('[data-mode]');

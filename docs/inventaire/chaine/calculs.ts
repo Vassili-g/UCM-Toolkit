@@ -1,7 +1,7 @@
 /**
  * Du registre des briques à ce que `rendu.js` lit pour dessiner la chaîne UCM. `controlerLeRegistre` refuse un registre qui viole
  * une règle de structure ; `convertirLeRegistre` calcule ce que le registre ne déclare pas (états, scénario « Aujourd'hui »,
- * dépendances, paquets affichés, traits et puces du kit, versions, nombres des textes) et le rend sous la forme du rendu.
+ * dépendances, paquets affichés, teinte des traits, traits et puces du kit, versions, nombres des textes) et le rend sous la forme du rendu.
  * `donneesDeLaChaine` les enchaîne et reste la seule entrée que lit `generer-inventaire.ts`.
  */
 import { existsSync, readdirSync, readFileSync, statSync } from 'node:fs';
@@ -12,7 +12,7 @@ import { VARIABLES_DU_THEME, GARANTIES } from '@ucm-kit/core/emplois';
 import { COLLECTIONS, PRODUITS, SEUILS_PAR_USAGE } from '@ucm-kit/core/referentiel';
 import type { Produit } from '@ucm-kit/core/referentiel';
 import { BRIQUES, JAUGES, LEGENDES, NOMBRES_ECRITS, PUCES_DU_KIT, ZONES } from './briques';
-import type { Brique, Etat, GenreDeBrique, Jauge, Mode, NombreEcrit, Piece, Preuve, PuceDuKit, Zone } from './briques';
+import type { Brique, DonneeDeTrait, DonneesDeTrait, Etat, GenreDeBrique, Jauge, Mode, NombreEcrit, Piece, Preuve, PuceDuKit, Reception, Zone } from './briques';
 import { RACINE, paquetsDuWorkspace, portesDuKit, portesImportees, preuvesDuCode, roadmap } from '../releves';
 import type { PaquetDuWorkspace } from '../releves';
 
@@ -22,6 +22,37 @@ const GENRES_RATTACHES: readonly GenreDeBrique[] = ['outil', 'module', 'paquet',
 /** Les champs que le registre ne déclare plus : `calculs.ts` les calcule. */
 const CHAMPS_CALCULES = ['etat', 'auj', 'deps'] as const;
 const TABLES_CALCULEES = ['MARQUES', 'KIT'] as const;
+
+/** La teinte d'un trait selon sa donnée : une seule table. Toute autre donnée donne la teinte neutre. */
+const TEINTES: Readonly<Partial<Record<DonneeDeTrait, string>>> = {
+  contrats: 'contrat',
+  'tokens-dtcg': 'tokens',
+  implementation: 'code',
+  rapports: 'rapport',
+};
+
+/**
+ * Les seuls traits dont la donnée n'est pas lue par la cible : l'aide du Linter au code du composant, l'hébergement de Santé par Storybook,
+ * l'appel de l'adaptateur par le Contrôle UCM dans le même processus. Ces données n'ont ni source qui l'écrit ni cible qui la lit.
+ */
+const TRAITS_SANS_LECTURE: Readonly<Record<string, string>> = {
+  'linter>developpement': 'aide',
+  'storybook>sante': 'hebergement',
+  'adaptateur>cli': 'hebergement',
+};
+
+const SANS_LECTURE: readonly DonneeDeTrait[] = ['aide', 'hebergement'];
+
+/** Les données d'un trait, une liste que la donnée soit seule ou multiple. */
+export function donneesDuTrait(donnee: DonneesDeTrait): readonly DonneeDeTrait[] {
+  return typeof donnee === 'string' ? [donnee] : donnee;
+}
+
+/** La teinte d'un trait : celle que toutes ses données donnent, neutre quand elles en donnent plusieurs. */
+export function teinteDuTrait(donnee: DonneesDeTrait): string {
+  const teintes = new Set(donneesDuTrait(donnee).map((d) => TEINTES[d] ?? 'neutre'));
+  return teintes.size === 1 ? [...teintes][0] : 'neutre';
+}
 
 /** Le dossier de `packages/` de chaque produit de `PRODUITS`. */
 const DOSSIER_DU_PRODUIT: Readonly<Record<Produit['id'], string>> = {
@@ -41,6 +72,26 @@ export function largeurDeLaBrique(brique: Pick<Brique, 'genre' | 'large'>): numb
   if (brique.genre === 'note') return 176;
   if (brique.genre === 'paquet') return brique.large ? 360 : 180;
   return 190;
+}
+
+/**
+ * Ce qu'une carte lit. Une carte de fichier ou de dessin lit sa `donnee`, une carte de produit lit ce que `PRODUITS` déclare (et
+ * `litAussi`), un module ou un geste lit ce qu'il déclare.
+ */
+export function donneesLues(b: Brique): readonly DonneeDeTrait[] {
+  if (b.donnee !== undefined) return [b.donnee, ...(b.lit ?? [])];
+  const produit = b.produit === undefined ? undefined : PRODUITS.find((p) => p.id === b.produit);
+  if (produit !== undefined) return [...produit.lit, ...(b.litAussi ?? [])];
+  return b.lit ?? [];
+}
+
+/** Ce qu'une carte écrit, par les mêmes sources. La porte de la CI écrit aussi ce qu'elle lit, hors la configuration du repository. */
+export function donneesEcrites(b: Brique): readonly DonneeDeTrait[] {
+  if (b.donnee !== undefined) return [b.donnee, ...(b.ecrit ?? [])];
+  const produit = b.produit === undefined ? undefined : PRODUITS.find((p) => p.id === b.produit);
+  if (produit === undefined) return b.ecrit ?? [];
+  const ecrites: DonneeDeTrait[] = produit.ecrit.flatMap((sortie) => sortie.donnees);
+  return b.rangeCeQuIlLit === true ? [...ecrites, ...produit.lit.filter((d) => d !== 'configuration')] : ecrites;
 }
 
 export interface RegistreDeLaChaine {
@@ -100,6 +151,8 @@ export function referencesDuDepot(): ReferencesDuRegistre {
       garanties: String(GARANTIES.length),
       'rapport-texte': rapport(SEUILS_PAR_USAGE.texte),
       'rapport-graphique': rapport(SEUILS_PAR_USAGE.nonTexte),
+      // La fiche de l'adaptateur, dans la section 2 de l'inventaire, lit le même nombre.
+      'taille-typescript': NOMBRES_ECRITS.find((n) => n.source === 'node_modules/typescript')?.nombre ?? '',
     },
   };
   return referencesLues;
@@ -156,6 +209,24 @@ function textesDe(b: Brique): string[] {
   ].filter((texte): texte is string => texte !== undefined);
 }
 
+/** Les violations d'un trait : sa source écrit sa donnée, sa cible la lit ; `aide` et `hebergement` ne servent qu'aux trois traits qui les portent. */
+function controlerLeTrait(cible: Brique, trait: Reception, briques: readonly Brique[]): string[] {
+  const nom = `${cible.id} : le trait de ${trait.de}`;
+  const donnees = donneesDuTrait(trait.donnee);
+  const sansLecture = donnees.filter((d) => SANS_LECTURE.includes(d));
+  if (sansLecture.length > 0) {
+    return TRAITS_SANS_LECTURE[`${trait.de}>${cible.id}`] === sansLecture[0] && donnees.length === 1
+      ? []
+      : [`${nom} porte la donnée ${sansLecture[0]}, réservée à ${Object.keys(TRAITS_SANS_LECTURE).join(', ')}.`];
+  }
+  const source = briques.find((b) => b.id === trait.de);
+  if (source === undefined) return [];
+  return donnees.flatMap((donnee) => [
+    ...(donneesEcrites(source).includes(donnee) ? [] : [`${nom} porte ${donnee}, que ${trait.de} n'écrit pas.`]),
+    ...(donneesLues(cible).includes(donnee) ? [] : [`${nom} porte ${donnee}, que ${cible.id} ne lit pas.`]),
+  ]);
+}
+
 const TROU = /\{\{([a-z-]+)\}\}/g;
 
 /** Les violations du registre, une phrase chacune ; vide quand il tient toutes les règles de structure. */
@@ -183,9 +254,17 @@ export function controlerLeRegistre(registre: RegistreDeLaChaine, references: Re
       if (piece.preuve !== undefined && !preuveTrouvee(piece.preuve, references)) erreurs.push(`${b.id} : la preuve de la pièce « ${piece.texte} » est absente du code (${JSON.stringify(piece.preuve)}).`);
       if (piece.piste !== undefined && references.terminees.has(piece.piste)) erreurs.push(`${b.id} : la piste ${piece.piste} de la pièce « ${piece.texte} » est terminée, la pièce porte une preuve à la place.`);
     }
-    for (const r of b.recoit ?? []) if (!identifiants.has(r.de)) erreurs.push(`${b.id} : le trait reçoit de ${r.de}, qui n'est pas une carte.`);
+    for (const r of b.recoit ?? []) {
+      if (!identifiants.has(r.de)) erreurs.push(`${b.id} : le trait reçoit de ${r.de}, qui n'est pas une carte.`);
+      if ('teinte' in r) erreurs.push(`${b.id} : le trait de ${r.de} porte une teinte, qui se calcule depuis sa donnée.`);
+      erreurs.push(...controlerLeTrait(b, r, registre.briques));
+    }
     for (const [nom, mode] of Object.entries(b.modes ?? {})) {
       if (!identifiants.has(mode.vers)) erreurs.push(`${b.id} : le mode ${nom} alimente ${mode.vers}, qui n'est pas une carte.`);
+      const cible = registre.briques.find((autre) => autre.id === mode.vers);
+      if (cible !== undefined && !donneesEcrites(b).some((d) => [...donneesLues(cible), ...donneesEcrites(cible)].includes(d))) {
+        erreurs.push(`${b.id} : le mode ${nom} alimente ${mode.vers}, dont aucune donnée n'est écrite par ${b.id}.`);
+      }
     }
     for (const couche of b.couches ?? []) {
       for (const collection of couche.collections) {
@@ -451,7 +530,7 @@ function liensDe(briques: readonly Brique[]): Lien[] {
   return briques
     .flatMap((b) => (b.recoit ?? []).flatMap((r) => ('sansTrait' in r ? [] : [{ r, cible: b.id }])))
     .sort((a, b) => a.r.rang - b.r.rang)
-    .map(({ r, cible }): Lien => (r.secondaire ? [r.de, cible, r.port ?? null, r.teinte, true] : [r.de, cible, r.port ?? null, r.teinte]));
+    .map(({ r, cible }): Lien => (r.secondaire ? [r.de, cible, r.port ?? null, teinteDuTrait(r.donnee), true] : [r.de, cible, r.port ?? null, teinteDuTrait(r.donnee)]));
 }
 
 export function convertirLeRegistre(registre: RegistreDeLaChaine, references: ReferencesDuRegistre) {
