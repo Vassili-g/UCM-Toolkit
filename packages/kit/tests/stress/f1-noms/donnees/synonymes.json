@@ -1,5 +1,5 @@
 {
-  "_note": "Groupes de synonymes validés pour le stress test (E-11, Q-F6). Aucune des 40 paires candidates du lot 1 n’est un synonyme : ce sont des frères ou des mots sans rapport. Les groupes ci-dessous viennent de la relecture des noms des design systems ; le premier terme est celui d’UCM. Le registre du kit reste la seule source de vérité.",
+  "_note": "Groupes de synonymes validés pour le stress test (E-11, Q-F6). Aucune des 40 paires candidates du lot 1 n’est un synonyme : ce sont des frères ou des mots sans rapport. Les groupes ci-dessous viennent de la relecture des noms des design systems ; le premier terme est celui d’UCM. border n’a aucun synonyme, car outline nomme aussi un anneau de focus, un style de bouton et l’épaisseur outline-weight de la référence. Le registre du kit reste la seule source de vérité.",
   "groupes": [
     [
       "divider",
@@ -12,10 +12,6 @@
     [
       "subtle",
       "muted"
-    ],
-    [
-      "border",
-      "outline"
     ]
   ]
 }

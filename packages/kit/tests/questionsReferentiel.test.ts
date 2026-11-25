@@ -4,7 +4,9 @@ import test from 'node:test';
 import { commencerLexique, detecterLesQuestions, detecterParEtapes, indexerVocabulaire,
   LONGUEUR_MINIMALE_D_UNE_FAUTE_A_DEUX_LETTRES, LONGUEUR_MINIMALE_D_UNE_FAUTE_A_UNE_LETTRE, LONGUEUR_MINIMALE_D_UNE_FAUTE_D_UN_MOT_COURT, SYNONYMES_COURANTS,
   type DejaJuge, type NomLu, type Question } from '../src/referentiel/index.js';
+import { REGISTRES_ARCHITECTURE } from '../src/referentiel/architecture.js';
 import { detecterBranchesParalleles } from '../src/referentiel/branches-paralleles.js';
+import { REGISTRES } from '../src/referentiel/vocabulaire.js';
 import { motConnu, motsAnglaisConnus, remplacerLesMotsConnus } from '../src/referentiel/mots-connus.js';
 
 const index = indexerVocabulaire({ personnalises: [], ecartsUcm: [] }).index;
@@ -693,6 +695,18 @@ test('deux termes UCM synonymes dans le même fichier donnent une question de ch
   assert.deepEqual(paires(ensemble, { ...vide, distincts: [['danger', 'error']] }), []);
   assert.deepEqual(paires(ensemble, { ...vide, voulus: ['error'] }), []);
   assert.deepEqual(paires(ensemble, { ...vide, plusTard: ['paire:danger|error'] }), []);
+});
+
+test('un groupe de synonymes réunit au plus un identifiant de registre', () => {
+  const identifiants = new Set([...REGISTRES, ...REGISTRES_ARCHITECTURE].flatMap((registre) => registre.termes.map((terme) => terme.id.toLowerCase())));
+  for (const groupe of SYNONYMES_COURANTS) {
+    const ucm = groupe.filter((mot) => identifiants.has(mot));
+    assert.ok(ucm.length <= 1, `${ucm.join(' et ')} sont deux termes UCM, donc la question proposerait d’en renommer un et le contrôle des conflits refuserait la réponse`);
+  }
+});
+
+test('stroke, famille de layout, et border, rôle de couleur, ne forment aucune paire', () => {
+  assert.deepEqual(paires([nom('a', 'stroke/outline-weight'), nom('b', 'theme/border/default', 'collection-2')]), []);
 });
 
 test('une abréviation ou un terme composé au pluriel donne la question de pluriel (E16.5)', () => {

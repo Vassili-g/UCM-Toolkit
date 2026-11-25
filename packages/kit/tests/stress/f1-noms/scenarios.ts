@@ -197,7 +197,7 @@ export function formesTolerees(): FormeTolerees[] {
 }
 
 export interface PaireDeMots { readonly a: string; readonly b: string; readonly source: string }
-/** Les 24 paires des groupes de `SYNONYMES_COURANTS`. */
+/** Les paires des groupes de `SYNONYMES_COURANTS`. */
 export function pairesDeLaTable(): PaireDeMots[] {
   return SYNONYMES_COURANTS.flatMap((groupe) => groupe.flatMap((a, i) => groupe.slice(i + 1).map((b) => ({ a, b, source: 'table' }))));
 }

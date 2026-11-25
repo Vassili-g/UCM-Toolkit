@@ -277,17 +277,18 @@ type Proximite = 'exact' | 'proche';
 
 /**
  * Les mots que le designer écrit pour un mot de rôle sans que le vocabulaire courant les relie : `text` pour `foreground`, `bg` pour
- * `default` (le fond d'un dossier), `focus` pour `ring`. Les autres synonymes de rôle (`outline`, `separator`, `muted`, `active`,
- * `hovered`) viennent de `memeConcept`.
+ * `default` (le fond d'un dossier), `focus` pour `ring`, `outline` pour `border`. `outline` reste hors de `SYNONYMES_COURANTS`, car
+ * il nomme ailleurs un anneau de focus, un style ou `outline-weight` ; à la place d'un rôle du thème, il nomme le contour.
+ * Les autres synonymes de rôle (`separator`, `muted`, `active`, `hovered`) viennent de `memeConcept`.
  */
-const SYNONYMES_DE_ROLE: readonly (readonly string[])[] = [['foreground', 'text'], ['default', 'bg', 'background'], ['ring', 'focus']];
+const SYNONYMES_DE_ROLE: readonly (readonly string[])[] = [['foreground', 'text'], ['default', 'bg', 'background'], ['ring', 'focus'], ['border', 'outline']];
 
 const memeMot = (lu: string, voulu: string): boolean =>
   lu === voulu || memeConcept(lu, voulu) || SYNONYMES_DE_ROLE.some((groupe) => groupe.includes(lu) && groupe.includes(voulu));
 
 /**
  * Un segment qui n'est pas celui du rôle mais en reste proche : une lettre ajoutée, retirée, remplacée ou échangée, ou un
- * synonyme du vocabulaire (`hovered` pour `hover`, `outline` pour `border`). Un nombre n'est jamais proche (`scale/{cran}`).
+ * synonyme du vocabulaire ou de `SYNONYMES_DE_ROLE` (`hovered` pour `hover`, `outline` pour `border`). Un nombre n'est jamais proche (`scale/{cran}`).
  */
 function proximiteDuSegment(segment: string, attendu: string): Proximite | undefined {
   const lu = formeReconnue(segment);

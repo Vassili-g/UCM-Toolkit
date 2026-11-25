@@ -43,10 +43,14 @@ export const STATE_PRECEDENCE = [
   'default', 'rest', 'resting', 'normal', 'selected-false', 'unselected',
 ] as const;
 /**
- * Groupes de synonymes que les noms de quinze design systems attestent. Les quatre groupes classés dans
+ * Groupes de synonymes que les noms de quinze design systems attestent. Les trois groupes classés dans
  * `tests/stress/f1-noms/donnees/synonymes.json` (E-11) y entrent, fusionnés avec les groupes d'avant quand ils se recouvrent
- * (`stroke` et `outline` pour `border`, `caution` pour `warning`) ; `tests/dictionnaireDuVocabulaire.test.ts` compare les deux listes.
+ * (`caution` pour `warning`) ; `tests/dictionnaireDuVocabulaire.test.ts` compare les deux listes.
  * Un synonyme employé seul donne une question quand un seul terme UCM du groupe le remplace (Q-F5).
+ * Un groupe réunit au plus un identifiant de registre. `border` n'a aucun synonyme. `stroke` est la famille de layout de l'épaisseur
+ * (`stroke/outline-weight`), et `outline` nomme selon le système un contour (Material, Carbon), un anneau de focus (Ant Design),
+ * un style de bouton (Primer) ou l'épaisseur `outline-weight` de la référence. Sur le corpus F1, un groupe `border`, `outline`
+ * pose « outline → border » dans 7 systèmes, dont 5 à tort.
  */
 export const SYNONYMES_COURANTS = [
   ['danger', 'error', 'negative', 'critical'],
@@ -56,7 +60,6 @@ export const SYNONYMES_COURANTS = [
   ['pressed', 'active', 'down'],
   ['foreground', 'fg', 'content'],
   ['background', 'bg'],
-  ['border', 'stroke', 'outline'],
   ['radius', 'corner', 'border-radius'],
   ['divider', 'separator'],
   ['subtle', 'muted'],
