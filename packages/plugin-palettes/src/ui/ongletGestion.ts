@@ -9,12 +9,11 @@
  * miniature, l'état des tokens et celui de la planche. Dépliée, la ligne
  * remplace ses deux états par « Modifier », et sa fiche s'ouvre dessous : les
  * rampes dans le thème choisi, la référence et le résultat des garanties,
- * puis une ligne par sortie, tokens et planche. Les deux décisions d'écriture
- * se prennent dans la fiche, sans modale : l'encart d'une écriture qui crée
- * des variables ([UI-31]), et celui des couleurs changées dans Figma
- * ([UI-32]), puis celui des couleurs que le plugin a changées, qui s'ouvre
- * d'office avec la fiche et porte « Mettre à jour » ([UI-31]). Une seule
- * ligne est dépliée à la fois : déplier une palette
+ * puis une ligne par sortie, tokens et planche. Les décisions d'écriture se
+ * prennent dans la fiche, sans modale : l'encart d'une écriture qui crée des
+ * variables ([UI-31]), celui des couleurs que le plugin a changées, ouvert
+ * d'office avec la fiche ([UI-31]), et celui des couleurs changées dans Figma
+ * ([UI-32]). Une seule ligne est dépliée à la fois : déplier une palette
  * replie l'autre, et une palette qui attend une décision nouvelle se déplie
  * seule, à la place de la ligne dépliée.
  *
