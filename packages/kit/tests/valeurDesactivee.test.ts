@@ -5,7 +5,7 @@
  */
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { estUneValeurDesactivee } from '../src/format/index.js';
+import { ecritureDeLaDesactivation, estUneValeurDesactivee } from '../src/format/index.js';
 import { REGISTRE_ETATS } from '../src/referentiel/vocabulaire.js';
 
 test('Disable, Disabled et leurs variantes de casse désignent la valeur désactivée', () => {
@@ -32,4 +32,14 @@ test('la valeur désactivée est celle du registre des états : son identifiant 
 
 test('la valeur désactivée se lit comme les autres états : un séparateur de tête ou de queue ne la masque pas', () => {
   for (const valeur of ['_Disabled', 'Disabled-', 'DISABLE']) assert.equal(estUneValeurDesactivee(valeur), true, valeur);
+});
+
+test('C53 et la CI lisent la même désactivation : un état reconnu, Disabled=True ou Enabled=False', () => {
+  assert.equal(ecritureDeLaDesactivation({ Color: 'Primary', State: 'Disabled' }), 'State=Disabled');
+  assert.equal(ecritureDeLaDesactivation({ state: 'disable' }), 'state=disable');
+  assert.equal(ecritureDeLaDesactivation({ Disabled: 'True' }), 'Disabled=True');
+  assert.equal(ecritureDeLaDesactivation({ Enabled: 'false' }), 'Enabled=false');
+  for (const valeurs of [{ State: 'Inactive' }, { State: 'read-only' }, { State: 'Dimmed' }, { Size: 'Disabled' }, { Disabled: 'False' }, {}]) {
+    assert.equal(ecritureDeLaDesactivation(valeurs), null, JSON.stringify(valeurs));
+  }
 });

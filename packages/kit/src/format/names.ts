@@ -1,6 +1,6 @@
 
 import type { FigmaVariantLabels } from './types.js';
-import { termeReconnu } from '../referentiel/reconnaissance.js';
+import { estLAxeDEtats, termeReconnu } from '../referentiel/reconnaissance.js';
 import { REGISTRE_ETATS } from '../referentiel/vocabulaire.js';
 
 /**
@@ -159,4 +159,22 @@ export const PREFIXE_DES_INTERMEDIAIRES = '--ucm-x-';
  */
 export function estUneValeurDesactivee(valeur: unknown): boolean {
   return termeReconnu(REGISTRE_ETATS, String(valeur))?.id === 'disabled';
+}
+
+/**
+ * Comment les valeurs d'un variant le déclarent désactivé, écrit `Axe=Valeur` comme dans son nom, ou `null` s'il ne l'est pas :
+ * une valeur de l'axe d'états que `estUneValeurDesactivee` reconnaît, un axe booléen `Disabled=True` ou `Enabled=False`.
+ * `Inactive`, `read-only` et `dimmed` ne sont pas désactivés (Q-F7-10).
+ *
+ * Unique autorité sur le variant désactivé, que le contraste ne juge pas (WCAG 1.4.3, composant inactif) : C53 l'écarte dans
+ * Architect, et le diagnostic des contrastes d'`ucm check` l'écarte dans la CI.
+ */
+export function ecritureDeLaDesactivation(valeurs: Readonly<Record<string, unknown>>): string | null {
+  for (const [axe, valeur] of Object.entries(valeurs)) {
+    const nom = axe.trim().toLowerCase();
+    const booleen = String(valeur).trim().toLowerCase();
+    if ((estLAxeDEtats(axe) && estUneValeurDesactivee(valeur))
+      || (nom === 'disabled' && booleen === 'true') || (nom === 'enabled' && booleen === 'false')) return `${axe}=${String(valeur)}`;
+  }
+  return null;
 }

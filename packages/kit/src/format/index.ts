@@ -66,6 +66,7 @@ export {
   attributDeMode,
   axeDesExtensions,
   codeIdentifier,
+  ecritureDeLaDesactivation,
   estUneValeurDesactivee,
   nomFigmaReconstruit,
   normalizeName,

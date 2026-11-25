@@ -135,6 +135,12 @@ test("un contrat conforme n'a aucun constat", () => {
   assert.deepEqual(constatsDesContrastes(contrat, TOKENS), []);
 });
 
+test("un variant désactivé ne se mesure pas, comme dans C53", () => {
+  assert.equal(constatsDesContrastes(bouton([{ texte: "texte-pale" }]), TOKENS).length, 1);
+  assert.deepEqual(constatsDesContrastes(bouton([{ etat: "disabled", texte: "texte-pale", anneau: "anneau-pale" }]), TOKENS), []);
+  assert.deepEqual(constatsDesContrastes(bouton([{ etat: "Disable", texte: "texte-pale" }]), TOKENS), []);
+});
+
 test("le diagnostic s'applique à un tokens.json sans collection `usage` ni `theme`", () => {
   assert.deepEqual(Object.keys(TOKENS).filter((nom) => nom === "usage" || nom === "theme"), []);
   assert.equal(constatsDesContrastes(bouton([{ texte: "texte-pale" }]), TOKENS).length, 1);

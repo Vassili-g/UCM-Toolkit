@@ -10,14 +10,15 @@
  * fond, comme le fait C49. Une couleur Display P3, une composante hors de
  * [0, 1] ou une chaîne de plus de `PROFONDEUR_D_ALIAS` alias ne se juge pas :
  * elle donne une ligne « Couleur non vérifiée ». Le contraste vient de
- * `@ucm-kit/core/emplois`, comme dans UCM Palettes.
+ * `@ucm-kit/core/emplois`, comme dans UCM Palettes. Un variant désactivé ne se
+ * mesure pas, comme dans C53 : `ecritureDeLaDesactivation` le reconnaît.
  *
  * Limite : le contrat ne dit pas si un texte est en grand corps, où le seuil
  * descend à 3:1. Un texte en grand corps peut donc être signalé à tort ; un
  * faux signal reste une information. Le diagnostic ne bloque jamais la fusion.
  */
 import { atteintLeSeuil, composer, contraste, couleurDansLeGamut, ecrireContraste, ecrireSeuil, OPAQUE, PROFONDEUR_D_ALIAS, versRgb8 } from "@ucm-kit/core/emplois";
-import { natureDuRoleDuContrat, valeurDuToken } from "@ucm-kit/core/format";
+import { ecritureDeLaDesactivation, natureDuRoleDuContrat, valeurDuToken } from "@ucm-kit/core/format";
 import { SEUILS_PAR_ROLE, SEUILS_PAR_USAGE, SEUIL_GRAND_TEXTE_AA } from "@ucm-kit/core/referentiel";
 
 import { libelleNombre, rendreDiagnostic } from "./diagnostic-markdown.mjs";
@@ -185,6 +186,7 @@ export function constatsDesContrastes(contrat, document) {
   const constats = [];
   const nonVerifiees = new Map();
   for (const variant of contrat.variants) {
+    if (ecritureDeLaDesactivation(variant?.values ?? {}) !== null) continue;
     const placements = vueExacteDuVariant(contrat, variant)?.paintPlacements ?? {};
     const couleurs = [
       ...Object.entries(variant.tokens ?? {}).map(([cle, reference]) => ({ cle, cote: "fills", reference })),

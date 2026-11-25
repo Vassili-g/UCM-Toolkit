@@ -17,6 +17,7 @@ import { estLAxeDEtats, termeReconnu } from '../referentiel/reconnaissance.js';
 import { variableDuThemeReconnue } from '../referentiel/theme.js';
 import { ETATS_FRANCAIS_INTERACTIFS, REGISTRE_ROLES } from '../referentiel/vocabulaire.js';
 import { etatReconnu } from './nommage.js';
+import { ecritureDeLaDesactivation } from '../format/names.js';
 import type { Constat } from './constat.js';
 import { layersVisiblesDuVariant, lectureManquee, liaisonsPropres, peintureVisible, type LayerLu, type LiaisonLue, type PeintureLue, type ReleveDeComposant, type VariantLu } from './releve.js';
 
@@ -142,7 +143,7 @@ export function* controlerLAccessibiliteParEtapes(
   const nonLus = new Set(releve.lecture.variantsNonLus);
   for (const v of releve.variants) {
     if (nonLus.has(v.nom)) continue;
-    const ecrit = ecritureDeLaDesactivation(v);
+    const ecrit = ecritureDeLaDesactivation(v.valeurs);
     if (ecrit === null) { mesures.push(v); continue; }
     desactives.push(v);
     ecritures.set(ecrit, (ecritures.get(ecrit) ?? 0) + 1);
@@ -189,20 +190,6 @@ export function* controlerLAccessibiliteParEtapes(
 
 function etatDuVariant(variant: VariantLu): string | null {
   for (const [axe, valeur] of Object.entries(variant.valeurs)) if (estLAxeDEtats(axe)) return etatReconnu(valeur) ?? valeur.toLowerCase();
-  return null;
-}
-
-/**
- * Comment le variant se déclare désactivé, écrit `Axe=Valeur` comme dans son nom, ou `null` s'il ne l'est pas : un état `disabled` ou
- * `disable`, un axe booléen `Disabled=True` ou `Enabled=False`. `Inactive`, `read-only` et `dimmed` ne sont pas désactivés (Q-F7-10).
- */
-function ecritureDeLaDesactivation(variant: VariantLu): string | null {
-  for (const [axe, valeur] of Object.entries(variant.valeurs)) {
-    const nom = axe.trim().toLowerCase();
-    const booleen = valeur.trim().toLowerCase();
-    if ((estLAxeDEtats(axe) && (etatReconnu(valeur) ?? booleen) === 'disabled')
-      || (nom === 'disabled' && booleen === 'true') || (nom === 'enabled' && booleen === 'false')) return `${axe}=${valeur}`;
-  }
   return null;
 }
 
