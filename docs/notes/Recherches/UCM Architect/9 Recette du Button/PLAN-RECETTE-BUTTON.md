@@ -175,8 +175,8 @@ d'Alert sont celles du plan. Onze défauts sont nouveaux, et Codex y ajoute quat
 | L12 | Kit : preuve du fond partagée D17 | `implementeur-exigeant` | L11 | [x] 40e260d8 |
 | L13 | Architect et kit : modes par calque D18 | `implementeur` | L2 | [x] bb3cf06c |
 | L14 | Kit : propositions de couleur vérifiées D19 | `implementeur-exigeant` | L12 | [x] bb3cf06c |
-| L15 | Architect : origine des liaisons des dépendances et peinture sous instance D20 | `implementeur` | L2 | [ ] |
-| L16 | Kit et Architect : pièce interne seule D22, clé de collection D24 | `implementeur` | L3 | [ ] |
+| L15 | Architect : origine des liaisons des dépendances et peinture sous instance D20 | `implementeur` | L2 | [x] 3f3061df |
+| L16 | Kit et Architect : pièce interne seule D22, clé de collection D24 | `implementeur` | L3 | [x] 3f3061df |
 | L18 | Socle et Architect : écarts C30 du moteur des règles D26 | `implementeur` | L16 | [ ] |
 | L10 | Architect : composants de référence et banc de recette D15, cas rouges de Codex rendus verts | `implementeur-exigeant` | L1 à L18 | [ ] |
 | L17 | Kit et Architect : intégration du générateur D25 | `implementeur-exigeant` | L10 | [ ] |
@@ -268,3 +268,6 @@ passent l'un après l'autre. L11, L12 et L14 touchent les contrôles du kit et s
   `leRepliSertA` et le contour d'un fond forcé lisent encore la combinaison du variant ; les valeurs de `theme` atteintes par un
   candidat de C25 ne se chargent que si une liaison du relevé les cite, sinon la correction devient une question ; le seuil d'un
   texte reste 4,5 sans lire la taille de la plage.
+- L15 et L16, commit `3f3061df`. Kit 2223 tests, Architect 2472, socle 304, Exporter 1175, racine 713 sur 714. C85 est le seul constat
+  d'une pièce interne seule. Restes : C51 ne lit pas `surcharge.strokeWeight`, C49 ne lit pas la peinture d'une surcharge (L10) ; les
+  points du moteur (C30, C34, C35, C41, C42, C44) ne sont pas filtrés pour une pièce interne seule (L18).
