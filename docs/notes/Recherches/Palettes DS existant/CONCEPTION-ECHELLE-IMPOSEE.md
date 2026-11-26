@@ -245,6 +245,7 @@ Un plugin de lecture seule, `_local/p28/releve-alias/`, a relevé les alias du f
 - Une primitive sert une seule marque, sauf une primitive que deux marques visent à la même nuance de marque. Une autre primitive porte deux nuances de marque.
 - Q10 est sans objet. Aucun rôle sombre ne vise un `a300` ou un `a900` absent. Les marques concernées passent par d'autres accents ou par les accents d'une autre primitive.
 - Le thème vise 39 fois une primitive en direct, sans passer par la couche des marques.
-- La bibliothèque des primitives a changé depuis l'export de novembre. 13 cibles n'y figurent pas (nuances renommées, deux palettes nouvelles), et 6 valeurs diffèrent. La page de preuve calcule sur l'export de novembre : il faut la refaire sur un relevé de la bibliothèque actuelle, fait par le même plugin dans le fichier des primitives.
+- Le fichier des primitives, relevé par le même plugin, est identique à l'export de novembre. La page de preuve calcule donc sur les bonnes valeurs.
+- Le fichier client n'est pas synchrone avec cette bibliothèque. 13 de ses cibles n'existent pas dans le fichier des primitives : 3 nuances au nom suffixé, 2 nuances d'une palette absente, 8 nuances d'une palette sémantique absente. 6 cibles y ont une autre valeur. Un recalcul des primitives n'atteindra pas ces 13 alias tant qu'ils visent des variables absentes.
 
 Les alias de la couche des marques valent `null` dans l'export d'octobre parce que l'Exporter n'indexe que les variables du fichier exporté. Un alias qui vise une variable d'une autre bibliothèque n'a pas de chemin, et `exportTokens.ts` écrit `$value: null`. La donnée existe dans Figma : UCM Architect lit ces cibles par leur identifiant (`catalogue.ts`).
