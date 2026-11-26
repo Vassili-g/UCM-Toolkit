@@ -8,7 +8,7 @@
  */
 import { CHAMPS_DE_TYPOGRAPHIE } from '../referentiel/architecture.js';
 import { collectionDuChampDeTypographie } from '../referentiel/reference.js';
-import { estUneIconeJugee, estUneInstanceDIcone } from '../referentiel/layers.js';
+import { estUneIconeCertaine, estUneInstanceDIcone } from '../referentiel/layers.js';
 import { formeReconnue } from '../referentiel/reconnaissance.js';
 import type { CatalogueDeReference } from './catalogue.js';
 import { collectionDuCatalogue, variableDuCatalogue } from './catalogue.js';
@@ -35,7 +35,7 @@ export function* controlerLaTypographieParEtapes(releve: ReleveDeComposant, cata
   const variants = releve.variants;
   const constats: Constat[] = [];
   const textes = yield* sources(variants, (l) => l.type === 'TEXT');
-  const icones = yield* sources(variants, estUneIconeJugee);
+  const icones = yield* sources(variants, estUneIconeCertaine);
   constats.push(...(yield* controlerLesTextes(textes, releve, catalogue)));
   constats.push(...(yield* controlerLesLiaisonsDeTexte(textes, catalogue)));
   constats.push(...(yield* controlerLesIcones(icones, releve, catalogue)));
@@ -196,41 +196,56 @@ function liaisonDuChamp(s: Source, champ: string): Liaison {
   return liaisons.every((l) => l.provenance === 'style') ? 'style' : 'liee';
 }
 
-/** Les huit champs de `CHAMPS_DE_TYPOGRAPHIE` se jugent comme la taille et la graisse (Q-F6-7). */
+/**
+ * Les huit champs de `CHAMPS_DE_TYPOGRAPHIE` se jugent comme la taille et la graisse (Q-F6-7). Un texte se compare aux textes de même
+ * identité dans leur variant (D16, comme C64) : un `Label` sous `Header` et un `Label` sous `Footer` ne mêlent pas leurs liaisons.
+ * L'identité porte le rang parmi les homonymes, donc chaque variant ne compte qu'une fois par groupe : une majorité se compte en variants.
+ */
 function* controlerLesLiaisonsDeTexte(textes: Map<string, Source[]>, catalogue: CatalogueDeReference): Generator<void, Constat[]> {
   const groupes = new Map<string, Constat>();
-  const base = { code: 'C65', type: 'verifier', famille: 'typographie' } as const;
-  for (const [nom, liste] of textes) {
-    const lues = new Map<string, Liaison[]>();
-    const liees = new Map<string, Frequences<'liee' | null>>();
-    for (const champ of CHAMPS_DE_TYPOGRAPHIE) {
-      const duChamp = liste.map((s) => liaisonDuChamp(s, champ));
-      lues.set(champ, duChamp);
-      const rang = new Map(liste.map((s, i) => [s, i]));
-      // Un texte dont la liaison vient du style ne compte ni comme lié ni comme délié.
-      liees.set(champ, yield* frequencesDuChamp(liste, (s) => (duChamp[rang.get(s)!] === null ? null : 'liee'), (s) => duChamp[rang.get(s)!] !== 'style'));
+  for (const [nom, toutes] of textes) {
+    const parIdentite = new Map<string, Source[]>();
+    for (const source of toutes) {
+      const cle = identiteDuCalque(source.variant, source.layer).cle;
+      const groupe = parIdentite.get(cle) ?? [];
+      groupe.push(source);
+      parIdentite.set(cle, groupe);
     }
-    for (const [indice, source] of liste.entries()) {
-      yield;
-      for (const champ of CHAMPS_DE_TYPOGRAPHIE) {
-        const propre = lues.get(champ)![indice];
-        const attendue = collectionDuChampDeTypographie(champ);
-        for (const liaison of liaisonsDuChamp(source.layer, [champ])) {
-          if (liaison.provenance === 'style') continue;
-          const lieu = lieuDeLaVariable(catalogue, liaison);
-          if (lieu === null || lieu.role === null || lieu.role === attendue) continue;
-          ajouter(groupes, `C65:${nom}:${champ}:mauvaise-collection:${liaison.variable.nom}`, source,
-            { calque: nom, champ, motif: 'mauvaise-collection', variable: liaison.variable.nom, collection: lieu.collection, collectionAttendue: attendue }, base);
-        }
-        if (propre !== null) continue;
-        const parVariant = valeurUnanimeHorsContribution(liees.get(champ)!, null);
-        if (parVariant === 'liee') {
-          ajouter(groupes, `C65:${nom}:${champ}:sans-liaison`, source, { calque: nom, champ, motif: 'sans-liaison-comme-les-autres' }, base);
-        }
+    for (const liste of parIdentite.values()) yield* controlerLesLiaisonsDuGroupe(nom, liste, catalogue, groupes);
+  }
+  return [...groupes.values()];
+}
+
+function* controlerLesLiaisonsDuGroupe(nom: string, liste: readonly Source[], catalogue: CatalogueDeReference, groupes: Map<string, Constat>): Generator<void, void> {
+  const base = { code: 'C65', type: 'verifier', famille: 'typographie' } as const;
+  const lues = new Map<string, Liaison[]>();
+  const liees = new Map<string, Frequences<'liee' | null>>();
+  for (const champ of CHAMPS_DE_TYPOGRAPHIE) {
+    const duChamp = liste.map((s) => liaisonDuChamp(s, champ));
+    lues.set(champ, duChamp);
+    const rang = new Map(liste.map((s, i) => [s, i]));
+    // Un texte dont la liaison vient du style ne compte ni comme lié ni comme délié.
+    liees.set(champ, yield* frequencesDuChamp(liste, (s) => (duChamp[rang.get(s)!] === null ? null : 'liee'), (s) => duChamp[rang.get(s)!] !== 'style'));
+  }
+  for (const [indice, source] of liste.entries()) {
+    yield;
+    for (const champ of CHAMPS_DE_TYPOGRAPHIE) {
+      const propre = lues.get(champ)![indice];
+      const attendue = collectionDuChampDeTypographie(champ);
+      for (const liaison of liaisonsDuChamp(source.layer, [champ])) {
+        if (liaison.provenance === 'style') continue;
+        const lieu = lieuDeLaVariable(catalogue, liaison);
+        if (lieu === null || lieu.role === null || lieu.role === attendue) continue;
+        ajouter(groupes, `C65:${nom}:${champ}:mauvaise-collection:${liaison.variable.nom}`, source,
+          { calque: nom, champ, motif: 'mauvaise-collection', variable: liaison.variable.nom, collection: lieu.collection, collectionAttendue: attendue }, base);
+      }
+      if (propre !== null) continue;
+      const parVariant = valeurUnanimeHorsContribution(liees.get(champ)!, null);
+      if (parVariant === 'liee') {
+        ajouter(groupes, `C65:${nom}:${champ}:sans-liaison`, source, { calque: nom, champ, motif: 'sans-liaison-comme-les-autres' }, base);
       }
     }
   }
-  return [...groupes.values()];
 }
 
 /* ---------- C66 ---------- */

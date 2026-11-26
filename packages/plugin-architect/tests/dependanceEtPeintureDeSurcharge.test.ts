@@ -125,6 +125,7 @@ test('une peinture de surcharge qui ne se lit pas reste absente du relevé, cons
   const liaison = releve.variants[0].layers.find(({ id }) => id === 'ring')?.liaisons.find(({ surcharge }) => surcharge);
   assert.ok(liaison, 'la liaison de la surcharge est lue');
   assert.equal(liaison.surcharge?.peintures, undefined);
-  assert.ok(releve.lecture.manquees.some(({ layer, champ }) => layer === 'ring' && champ === 'strokes'));
+  assert.ok(releve.lecture.manquees.some(({ layer, champ }) => layer === 'Iring;stroke' && champ === 'strokes'), 'la manquée porte l’id du calque peint');
+  assert.ok(!releve.lecture.manquees.some(({ layer }) => layer === 'ring'), 'et jamais celui de l’hôte');
   assert.deepEqual(sansAnneau(releve), []);
 });

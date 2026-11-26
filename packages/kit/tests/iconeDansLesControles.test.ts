@@ -161,8 +161,8 @@ test('une instance montrée par Icon-Left rend le Vector peint une icône certai
     const { c17, c24 } = constatsDe(wrapper('fond', [fleche]));
     assert.equal(c17.length, 1, JSON.stringify(fleche.instanceDe));
     assert.equal(c17[0].faits.attendu, 'icon');
-    assert.equal(c17[0].faits.chemin, 'arrow-left-long › Vector');
-    assert.equal(c24[0].faits.chemin, 'arrow-left-long › Vector', 'C24 recopie le chemin de C17');
+    assert.equal(c17[0].faits.chemin, '.sizeWrapperButton › arrow-left-long › Vector');
+    assert.equal(c24[0].faits.chemin, '.sizeWrapperButton › arrow-left-long › Vector', 'C24 recopie le chemin de C17');
   }
   // Sans fait d'icône, le Vector libre admet background : aucun constat, donc aucun chemin à porter.
   assert.deepEqual(constatsDe(wrapper('fond', [FLECHE_NUE])).c17, []);
@@ -175,13 +175,25 @@ test('une instance faite d’un seul dessin, sans nom ni propriété d’icône,
   assert.deepEqual(constatsDe(wrapper('bordure', [FLECHE_DESSIN], 'strokes')).c17, []);
 });
 
-test('le chemin de C17 liste les instances de la plus externe à la plus interne, puis le calque ; absent sans surcharge', () => {
+test('le chemin de C17 suit celui du layer, puis liste les instances de la plus externe à la plus interne et le calque', () => {
   const { c17 } = constatsDe(wrapper('fond', [{ nom: 'Slot', type: 'INSTANCE' }, FLECHE_COMPLETE]));
-  assert.equal(c17[0].faits.chemin, 'Slot › arrow-left-long › Vector');
+  assert.equal(c17[0].faits.chemin, '.sizeWrapperButton › Slot › arrow-left-long › Vector');
+  // Sans surcharge, le chemin est celui du layer : le nom des calques, racine du variant exclue.
   const sansSurcharge = layer('s', 'Container', 'FRAME', { liaisons: [{ champ: 'fills', indice: 0, porteur: 's', variable: liaisonDe('avant') }] });
   const simple = constatsDe(sansSurcharge).c17;
   assert.equal(simple.length, 1);
-  assert.equal('chemin' in simple[0].faits, false);
+  assert.equal(simple[0].faits.chemin, 'Container');
+});
+
+test('le chemin de C17 sépare deux layers de même nom sous deux parents, que le nom seul fusionnait', () => {
+  const parent = (id: string, nom: string): LayerLu => layer(id, nom, 'FRAME');
+  const lie = (id: string, parentId: string): LayerLu =>
+    layer(id, 'Label', 'FRAME', { parent: parentId, liaisons: [{ champ: 'fills', indice: 0, porteur: id, variable: liaisonDe('avant') }] });
+  const r = releve([parent('h', 'Header'), parent('f', 'Footer'), lie('a', 'h'), lie('b', 'f')]);
+  const c17 = controlerMapping(r, catalogueAvecAvant).filter((c) => c.code === 'C17');
+  assert.deepEqual(c17.map((c) => [c.layers[0], c.faits.chemin]).sort(), [['a', 'Header › Label'], ['b', 'Footer › Label']]);
+  const c24 = proposerLesCorrections(r, catalogueAvecAvant, c17).filter((c) => c.code === 'C24');
+  assert.deepEqual(c24.map((c) => c.faits.chemin).sort(), ['Footer › Label', 'Header › Label']);
 });
 
 test('le trait d’un calque à l’intérieur d’une icône admet icon et foreground, celui d’un autre calque border et foreground', () => {
@@ -190,12 +202,16 @@ test('le trait d’un calque à l’intérieur d’une icône admet icon et fore
   assert.deepEqual(constatsDe(wrapper('bordure', [FLECHE_NUE], 'strokes')).c17, []);
 });
 
-test('C49 et C66 jugent une instance de dessin, ou montrée par Icon-Left, comme une icône ; une instance nue non', () => {
+test('C49 et C66 jugent une instance montrée par Icon-Left comme une icône ; un dessin seul se mesure sans recevoir C66 ni C67 ; une instance nue n’est rien (D1)', () => {
   const comme = (fleche: Instance): LayerLu => layer('f', fleche.nom, 'INSTANCE', { instanceDe: { cle: 'lib', distante: true, ...fleche.instanceDe! } });
-  for (const fleche of [FLECHE_DESSIN, FLECHE_VISIBLE, FLECHE_COMPLETE]) {
+  for (const fleche of [FLECHE_VISIBLE, FLECHE_COMPLETE]) {
     assert.deepEqual(iconesPourLAccessibilite([comme(fleche)]), ['f'], 'C49');
     assert.deepEqual(iconesPourLaTypographie([comme(fleche)]), ['f'], 'C66');
   }
+  // Une pointe de Tooltip est aussi un composant fait d'un seul tracé : C49 la mesure au seuil d'une icône, sans rien accuser d'autre, et
+  // elle ne reçoit ni C66 ni C67.
+  assert.deepEqual(iconesPourLAccessibilite([comme(FLECHE_DESSIN)]), ['f'], 'C49 mesure le dessin');
+  assert.deepEqual(iconesPourLaTypographie([comme(FLECHE_DESSIN)]), [], 'C66 et C67 ne jugent pas le dessin');
   assert.deepEqual(iconesPourLAccessibilite([comme(FLECHE_NUE)]), []);
   assert.deepEqual(iconesPourLaTypographie([comme(FLECHE_NUE)]), []);
 });

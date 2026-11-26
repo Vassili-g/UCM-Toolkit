@@ -9,7 +9,7 @@ import { GARANTIES } from '../emplois/garanties.js';
 import { atteintLeSeuil, contraste, contrasteTronque } from '../emplois/contraste.js';
 import { composer, couleurDansLeGamut, composanteDansLeGamut, hexaDeFigma, OPAQUE, PROFONDEUR_D_ALIAS, versRgb8, type Rgba } from '../emplois/couleur.js';
 import { SEUILS_PAR_ROLE, SEUILS_PAR_USAGE, SEUIL_GRAND_TEXTE_AA, SEUIL_TEXTE_AAA } from '../referentiel/contraste.js';
-import { estUnAnneau, estUneIconeJugee, estUnTraceDeLIcone } from '../referentiel/layers.js';
+import { estUnAnneau, estUneIconeMesuree, estUnTraceDeLIcone } from '../referentiel/layers.js';
 import { RECOMMANDATIONS } from '../referentiel/recommandations.js';
 import type { CatalogueDeReference, CollectionDuCatalogue, CouleurResolue, VariableDuCatalogue } from './catalogue.js';
 import { collectionDuCatalogue, variableDuCatalogue } from './catalogue.js';
@@ -98,7 +98,7 @@ export const CIBLE_MINIMALE_PX = 24;
 export const CIBLE_TACTILE_PX = 44;
 export const TEXTE_MINIMAL_PX = 12;
 
-export type Cause = 'fond-indetermine' | 'degrade' | 'image' | 'peinture-superposee' | 'mode-de-fusion' | 'flou-arriere-plan' | 'mode-illisible' | 'couleur-absente' | 'fond-de-repli' | 'couleur-hors-gamut';
+export type Cause = 'fond-indetermine' | 'degrade' | 'image' | 'peinture-superposee' | 'mode-de-fusion' | 'flou-arriere-plan' | 'mode-illisible' | 'couleur-absente' | 'fond-de-repli' | 'couleur-hors-gamut' | 'calques-non-lus';
 /**
  * Une combinaison de modes. `sansTheme` n'existe que si les modes du thème sont entrés dans le produit pour le seul repli : la même
  * combinaison sans eux, pour une cible qui ne se mesure pas sur le repli.
@@ -108,6 +108,8 @@ export type Pile = { couches: Rgba[] } | { limite: Cause };
 type Cible = {
   layer: LayerLu; code: 'C49' | 'C50'; usage: 'texte' | 'grand-texte' | 'icone' | 'stroke' | 'anneau';
   champ: 'fills' | 'strokes'; peintures: PeintureLue[]; liaisons: LiaisonLue[]; seuil: number;
+  /** Une lecture que le relevé a manquée interdit la mesure : la cible ne rend qu'une limite de cette cause, jamais une mesure ni un silence. */
+  limiteLue?: Cause;
 };
 /** Un fond que le relevé ne permet pas de calculer. `sansRepli` : même la page et la carte du thème ne le remplacent pas. */
 type LimiteDeFond = { limite: Cause; sansRepli?: true };
@@ -235,16 +237,63 @@ export function seuilDeLaPlage(plage: { readonly fontSize: number; readonly font
   return { grand, seuil: grand ? SEUILS_D_ACCESSIBILITE.grandTexte[niveau] : SEUILS_D_ACCESSIBILITE.texte[niveau] };
 }
 
-/** Les remplissages, le mode de fusion ou les effets d'un ancêtre n'ont pas été lus : son fond est inconnu. Un cycle de `parent` s'arrête au premier layer déjà vu. */
+/** Les ancêtres d'un layer, du plus proche à la racine. Un cycle de `parent` s'arrête au premier layer déjà vu. */
+function ancetresDuLayer(variant: VariantLu, layer: LayerLu): LayerLu[] {
+  const parId = memoireDuVariant(variant).parId;
+  const ancetres: LayerLu[] = [];
+  const vus = new Set<string>([layer.id]);
+  for (let courant = layer.parent ? parId.get(layer.parent) : undefined; courant && !vus.has(courant.id); courant = courant.parent ? parId.get(courant.parent) : undefined) {
+    vus.add(courant.id);
+    ancetres.push(courant);
+  }
+  return ancetres;
+}
+
+/** Les remplissages, le mode de fusion ou les effets d'un ancêtre n'ont pas été lus : son fond est inconnu. */
 function lectureDuFondManquee(releve: Pick<ReleveDeComposant, 'lecture'>, variant: VariantLu, layer: LayerLu): boolean {
   if (releve.lecture.manquees.length === 0) return false;
-  const parId = memoireDuVariant(variant).parId;
-  const vus = new Set<string>();
-  for (let courant: LayerLu | undefined = layer.parent ? parId.get(layer.parent) : undefined; courant && !vus.has(courant.id); courant = courant.parent ? parId.get(courant.parent) : undefined) {
-    vus.add(courant.id);
-    if (['fills', 'blendMode', 'effects'].some((champ) => lectureManquee(releve, courant.id, champ))) return true;
+  return ancetresDuLayer(variant, layer).some((ancetre) => ['fills', 'blendMode', 'effects'].some((champ) => lectureManquee(releve, ancetre.id, champ)));
+}
+
+/**
+ * Un frère du layer ou d'un de ses ancêtres, plus bas que lui dans l'empilement, visible et dont la boîte touche celle du layer, n'a pas
+ * eu ses remplissages lus : il peut faire fond, et la preuve du fond ne le voit pas, faute de peinture lue. Sans cette lecture, le
+ * layer serait mesuré sur un fond qui ignore ce frère.
+ */
+function lectureDesFreresManquee(releve: Pick<ReleveDeComposant, 'lecture'>, variant: VariantLu, layer: LayerLu): boolean {
+  if (!releve.lecture.manquees.some((manquee) => manquee.champ === 'fills')) return false;
+  const boite = layer.dimensions;
+  if (!boiteLue(boite)) return false;
+  const ordre = ordreDuVariant(variant);
+  for (const reference of [layer, ...ancetresDuLayer(variant, layer)]) {
+    if (reference.parent === null) continue;
+    const mien = ordre.rang.get(reference.id) ?? 0;
+    for (const { frere, rang } of ordre.enfants.get(reference.parent) ?? []) {
+      if (rang >= mien || !frere.visible || !peutPeindre(frere.type) || !boiteLue(frere.dimensions) || !lectureManquee(releve, frere.id, 'fills')) continue;
+      if (opaciteEffective(variant, frere) > 0 && seRecouvrent(frere.dimensions, boite)) return true;
+    }
   }
   return false;
+}
+
+/**
+ * Les modes d'un layer sont ceux qu'il force et que ses ancêtres forcent. Quand la lecture de ces modes a été manquée sur le layer, sur
+ * un de ses ancêtres hors racine ou sur un frère qui lui sert de fond, et qu'une couleur du layer ou de son fond est liée à une variable,
+ * la mesure dirait la couleur d'un mode que le layer ne subit peut-être pas.
+ */
+function lectureDesModesManquee(releve: Pick<ReleveDeComposant, 'lecture'>, variant: VariantLu, layer: LayerLu): boolean {
+  if (!releve.lecture.manquees.some((manquee) => manquee.champ === 'explicitVariableModes')) return false;
+  const fonds = fondsPeintsSous(variant, layer);
+  const lie = liaisonsDeCouleur(layer).length > 0 || fonds.some((fond) => liaisonsPropres(fond.layer).some((liaison) => liaison.champ === 'fills'));
+  if (!lie) return false;
+  return [layer, ...ancetresDuLayer(variant, layer), ...fonds.map((fond) => fond.layer)]
+    .some((concerne) => concerne.parent !== null && lectureManquee(releve, concerne.id, 'explicitVariableModes'));
+}
+
+/** Ce qui interdit la mesure d'un layer sans qu'il soit exclu : le frère qui fait fond, ou les modes, n'ont pas été lus. */
+function limiteDeLecture(releve: Pick<ReleveDeComposant, 'lecture'>, variant: VariantLu, layer: LayerLu): Cause | null {
+  if (lectureDesFreresManquee(releve, variant, layer)) return 'fond-indetermine';
+  return lectureDesModesManquee(releve, variant, layer) ? 'mode-illisible' : null;
 }
 
 /** Un contour compte quand son épaisseur n'est pas nulle et qu'une de ses peintures se voit. */
@@ -292,8 +341,8 @@ function collectionInerte(collection: CollectionDuCatalogue, variables: readonly
 /** Un fond de page ou d'élévation du thème sert à mesurer une cible dont les ancêtres ne portent aucun fond opaque. */
 function leRepliSertA(variant: VariantLu, cible: Cible, catalogue: CatalogueDeReference): boolean {
   if (!catalogue.fondsDElevation || Object.keys(catalogue.fondsDElevation).length === 0) return false;
-  // Le repli se juge dans les modes que le layer subit, comme sa mesure (D18).
-  const fond = fondEffectif(variant, cible.layer, catalogue, combinaisonDuLayer(variant, cible.layer, { modes: new Map(), etiquette: '' }, catalogue));
+  // Chaque calque du fond se lit dans ses propres modes forcés, comme la mesure (D18).
+  const fond = fondEffectif(variant, cible.layer, catalogue, { modes: new Map(), etiquette: '' });
   return 'limite' in fond && fond.limite === 'fond-indetermine' && !fond.sansRepli;
 }
 
@@ -339,7 +388,7 @@ function* combinaisonsDeModes(
   for (const [cle, collection] of atteintes) if (collectionInerte(collection, variables.get(cle) ?? [])) atteintes.delete(cle);
   // Dès que le repli sert, les modes du thème entrent dans le produit, même si aucune couleur ne les atteint (Q-F7-6).
   const theme = catalogue.collections.find((c) => c.role === 'theme' && c.etat === 'lue');
-  const themeDuRepli = theme && !atteintes.has(theme.cle) && cibles.some((cible) => leRepliSertA(variant, cible, catalogue)) ? theme : null;
+  const themeDuRepli = theme && !atteintes.has(theme.cle) && cibles.some((cible) => !cible.limiteLue && leRepliSertA(variant, cible, catalogue)) ? theme : null;
   if (themeDuRepli) atteintes.set(themeDuRepli.cle, themeDuRepli);
   const colonnes: { collection: CollectionDuCatalogue; modes: CollectionDuCatalogue['modes'] }[] = [];
   let total = compte(1);
@@ -560,13 +609,19 @@ interface MemoireDuVariant {
   readonly chainesAvecFreres: Map<string, boolean>;
   /** Par identifiant de layer : tous les fonds peints sous lui, dans l'ordre où le fond se compose. */
   readonly fondsSous: Map<string, readonly FondPeint[]>;
+  /** Par identifiant de layer : ce que la preuve du fond parcourt sous lui, dans l'ordre (`etapesDuFond`). */
+  readonly etapes: Map<string, readonly EtapeDuFond[]>;
   visibles?: readonly LayerLu[];
   /** Les calques lus sous les instances que le layer de leur instance et ses ancêtres laissent visibles. */
   visiblesDInstance?: readonly LayerLu[];
   /** Vrai quand aucun layer hors racine ne pose de mode. */
   sansModeForce?: boolean;
-  /** Le rang de chaque layer parmi ses frères, et les frères qui peuvent faire fond, par parent. */
-  ordre?: { readonly rang: ReadonlyMap<string, number>; readonly candidats: ReadonlyMap<string, readonly { frere: LayerLu; rang: number }[]> };
+  /** Le rang de chaque layer parmi ses frères, tous les enfants de chaque parent, et ceux qui peuvent faire fond. */
+  ordre?: {
+    readonly rang: ReadonlyMap<string, number>;
+    readonly enfants: ReadonlyMap<string, readonly { frere: LayerLu; rang: number }[]>;
+    readonly candidats: ReadonlyMap<string, readonly { frere: LayerLu; rang: number }[]>;
+  };
   fonds?: FondsMemorises;
 }
 
@@ -580,7 +635,7 @@ export type CouvertureDuFond = 'tout' | 'partie' | 'inconnue';
  * Un layer qui peint sous un autre, avec sa preuve (D17, D30) : un ancêtre, couvert par construction, un frère plus bas dans l'ordre
  * d'empilement dont la boîte touche celle du layer, ou un frère d'un ancêtre plus bas que lui, dont la boîte touche celle du layer.
  */
-export interface FondPeint { readonly layer: LayerLu; readonly origine: 'frere' | 'ancetre' | 'frere-d-ancetre'; readonly couvre: CouvertureDuFond }
+export interface FondPeint { readonly layer: LayerLu; readonly couvre: CouvertureDuFond }
 
 /** Les fonds d'un variant pour un catalogue, avec la même règle de validité que l'index des variables. */
 interface FondsMemorises {
@@ -610,7 +665,7 @@ function memoireDuVariant(variant: VariantLu): MemoireDuVariant {
     && connue.dansInstances === dansInstances && connue.nombreDInstance === (dansInstances?.length ?? 0)) return connue;
   const neuve: MemoireDuVariant = {
     layers, nombreDeLayers: layers.length, dansInstances, nombreDInstance: dansInstances?.length ?? 0,
-    parId: new Map(tousLesCalques(variant).map((l) => [l.id, l] as const)), opacites: new Map(), freres: new Map(), fondsSous: new Map(), chainesAvecFreres: new Map(),
+    parId: new Map(tousLesCalques(variant).map((l) => [l.id, l] as const)), opacites: new Map(), freres: new Map(), fondsSous: new Map(), etapes: new Map(), chainesAvecFreres: new Map(),
   };
   memoiresDesVariants.set(variant, neuve);
   return neuve;
@@ -700,6 +755,13 @@ function couvertureDe(frere: LayerLu, boite: Boite): CouvertureDuFond | null {
   return boiteContient(frere.dimensions, boite) ? 'inconnue' : null;
 }
 
+/** Les deux boîtes ont une surface commune, à la tolérance de boîte près. */
+function seRecouvrent(a: Boite, b: Boite): boolean {
+  const largeur = Math.min(a.x + a.largeur, b.x + b.largeur) - Math.max(a.x, b.x);
+  const hauteur = Math.min(a.y + a.hauteur, b.y + b.hauteur) - Math.max(a.y, b.y);
+  return largeur > TOLERANCE_DE_BOITE && hauteur > TOLERANCE_DE_BOITE;
+}
+
 /** Ce qui peut peindre sous un layer : une forme à remplissage, texte et groupe exclus. */
 const peutPeindre = (type: string): boolean => FORMES_A_BOITE.has(type) || type === 'ELLIPSE' || FORMES_SANS_PREUVE.has(type);
 
@@ -714,7 +776,6 @@ function fondsPeintsDesFreres(variant: VariantLu, reference: LayerLu, mesure: La
   const cle = reference === mesure ? reference.id : `${reference.id}${SEPARATEUR}${mesure.id}`;
   const connus = memoire.freres.get(cle);
   if (connus) return connus;
-  const origine = reference === mesure ? 'frere' : 'frere-d-ancetre';
   const ordre = ordreDuVariant(variant);
   const trouves: FondPeint[] = [];
   // Une racine n'a pas de frère : le relevé d'un variant porte une seule racine.
@@ -726,12 +787,9 @@ function fondsPeintsDesFreres(variant: VariantLu, reference: LayerLu, mesure: La
     for (let i = candidats.length - 1; i >= 0; i--) {
       if (candidats[i].rang >= mien) continue;
       const frere = candidats[i].frere;
-      const autre = frere.dimensions;
-      const largeur = Math.min(autre.x + autre.largeur, boite.x + boite.largeur) - Math.max(autre.x, boite.x);
-      const hauteur = Math.min(autre.y + autre.hauteur, boite.y + boite.hauteur) - Math.max(autre.y, boite.y);
-      if (largeur <= TOLERANCE_DE_BOITE || hauteur <= TOLERANCE_DE_BOITE) continue;
+      if (!seRecouvrent(frere.dimensions, boite)) continue;
       const couvre = couvertureDe(frere, boite);
-      if (couvre) trouves.push({ layer: frere, origine, couvre });
+      if (couvre) trouves.push({ layer: frere, couvre });
     }
   }
   memoire.freres.set(cle, trouves);
@@ -743,6 +801,7 @@ function ordreDuVariant(variant: VariantLu): NonNullable<MemoireDuVariant['ordre
   const memoire = memoireDuVariant(variant);
   if (!memoire.ordre) {
     const rang = new Map<string, number>();
+    const enfants = new Map<string, { frere: LayerLu; rang: number }[]>();
     const candidats = new Map<string, { frere: LayerLu; rang: number }[]>();
     const compteurs = new Map<string, number>();
     for (const l of tousLesCalques(variant)) {
@@ -750,12 +809,15 @@ function ordreDuVariant(variant: VariantLu): NonNullable<MemoireDuVariant['ordre
       const n = compteurs.get(parent) ?? 0;
       compteurs.set(parent, n + 1);
       rang.set(l.id, n);
+      const tous = enfants.get(parent);
+      if (tous) tous.push({ frere: l, rang: n });
+      else enfants.set(parent, [{ frere: l, rang: n }]);
       if (!peutPeindre(l.type) || !l.visible || !aUnePeintureVisible(l, 'fills') || opaciteEffective(variant, l) === 0 || !boiteLue(l.dimensions)) continue;
       const liste = candidats.get(parent);
       if (liste) liste.push({ frere: l, rang: n });
       else candidats.set(parent, [{ frere: l, rang: n }]);
     }
-    memoire.ordre = { rang, candidats };
+    memoire.ordre = { rang, enfants, candidats };
   }
   return memoire.ordre;
 }
@@ -785,6 +847,36 @@ function unAncetreAUnFrerePlusBas(variant: VariantLu, parent: string): boolean {
 }
 
 /**
+ * Ce que la preuve du fond parcourt sous un layer, dans l'ordre où le fond se compose : ses frères plus bas, puis chaque ancêtre suivi de
+ * ses propres frères plus bas que lui (D30). Les frères sont déjà filtrés par la boîte et la forme (`fondsPeintsDesFreres`). Un ancêtre
+ * entre ici même sans peinture : c'est l'appelant qui juge ce qu'il en lit. `fondsPeintsSous` (C59) et `couchesDuFond` (C49) lisent
+ * cette seule énumération.
+ */
+type EtapeDuFond = { readonly freres: readonly FondPeint[] } | { readonly ancetre: LayerLu };
+
+function* etapesDuFondParEtapes(variant: VariantLu, layer: LayerLu): Generator<void, readonly EtapeDuFond[]> {
+  const memoire = memoireDuVariant(variant);
+  const connues = memoire.etapes.get(layer.id);
+  if (connues) return connues;
+  const etapes: EtapeDuFond[] = [{ freres: fondsPeintsDesFreres(variant, layer) }];
+  const vus = new Set<string>();
+  for (let courant = layer.parent ? memoire.parId.get(layer.parent) : undefined; courant && !vus.has(courant.id); courant = courant.parent ? memoire.parId.get(courant.parent) : undefined) {
+    yield;
+    vus.add(courant.id);
+    etapes.push({ ancetre: courant }, { freres: fondsPeintsDesFreres(variant, courant, layer) });
+  }
+  memoire.etapes.set(layer.id, etapes);
+  return etapes;
+}
+
+function etapesDuFond(variant: VariantLu, layer: LayerLu): readonly EtapeDuFond[] {
+  const calcul = etapesDuFondParEtapes(variant, layer);
+  let etape = calcul.next();
+  while (!etape.done) etape = calcul.next();
+  return etape.value;
+}
+
+/**
  * La lecture du fond peint sous un layer, que C49 (contraste) et C59 (surface) partagent (D17) : d'abord ses frères plus bas dont la
  * boîte touche la sienne, du plus proche au plus bas, puis ses ancêtres visibles et peints, du plus proche à la racine. Chaque fond dit
  * ce que sa forme couvre de la boîte du layer ; un ancêtre est couvert par construction. Un fond qui ne couvre pas (`partie`,
@@ -804,13 +896,13 @@ export function* fondsPeintsSousParEtapes(variant: VariantLu, layer: LayerLu): G
   const memoire = memoireDuVariant(variant);
   const connus = memoire.fondsSous.get(layer.id);
   if (connus) return connus;
-  const fonds: FondPeint[] = [...fondsPeintsDesFreres(variant, layer)];
-  const vus = new Set<string>();
-  for (let courant = layer.parent ? memoire.parId.get(layer.parent) : undefined; courant && !vus.has(courant.id); courant = courant.parent ? memoire.parId.get(courant.parent) : undefined) {
+  const fonds: FondPeint[] = [];
+  const etapes = yield* etapesDuFondParEtapes(variant, layer);
+  for (const etape of etapes) {
+    if ('freres' in etape) { fonds.push(...etape.freres); continue; }
+    // Une peinture d'ancêtre se lit par étape : une chaîne profonde reste annulable.
     yield;
-    vus.add(courant.id);
-    if (courant.visible && aUnePeintureVisible(courant, 'fills') && opaciteEffective(variant, courant) > 0) fonds.push({ layer: courant, origine: 'ancetre', couvre: 'tout' });
-    fonds.push(...fondsPeintsDesFreres(variant, courant, layer));
+    if (etape.ancetre.visible && aUnePeintureVisible(etape.ancetre, 'fills') && opaciteEffective(variant, etape.ancetre) > 0) fonds.push({ layer: etape.ancetre, couvre: 'tout' });
   }
   memoire.fondsSous.set(layer.id, fonds);
   return fonds;
@@ -850,10 +942,12 @@ function collectionsDeLaChaine(
 
 /**
  * Le fond d'un layer : les remplissages de ses frères plus bas dont la forme couvre sa boîte, puis ceux de ses ancêtres, composés jusqu'à
- * la première couche opaque. Sans frère de fond, il ne dépend que de la chaîne des ancêtres, donc du premier d'entre eux, et du mode
- * choisi pour chaque collection que leurs liaisons peuvent atteindre : les layers de même parent, dans toute combinaison qui s'accorde
- * sur ces modes, partagent le résultat, rendu gelé. Avec un frère de fond, le résultat se calcule à chaque appel. Opacités, peintures
- * et visibilités sont celles du tableau `layers` du variant.
+ * la première couche opaque. `combinaison` est celle du variant : chaque calque qui peint le fond la voit à travers ses propres modes
+ * forcés (`combinaisonDuLayer` de ce calque), jamais à travers ceux du layer mesuré. Sans frère de fond, le fond ne dépend que de la
+ * chaîne des ancêtres, donc du premier d'entre eux, et du mode choisi pour chaque collection que leurs liaisons peuvent atteindre : les
+ * layers de même parent, dans toute combinaison qui s'accorde sur ces modes, partagent le résultat, rendu gelé. Avec un frère de fond
+ * ou un ancêtre qui en a un plus bas que lui, le résultat se calcule à chaque appel. Opacités, peintures et visibilités sont celles du
+ * tableau `layers` du variant.
  */
 export function fondEffectif(
   variant: VariantLu, layer: LayerLu, catalogue: CatalogueDeReference, combinaison: Combinaison,
@@ -885,46 +979,36 @@ function calculerLeFond(
 }
 
 /**
- * Les couches sous un layer, de la plus haute à la première opaque comprise : ses frères de fond, du plus proche au plus bas, puis
- * ses ancêtres, chacun suivi de ses propres frères de fond (D30). Un frère qui ne couvre pas la boîte (`partie` ou `inconnue`) laisse
- * le fond indéterminé, et la page du thème ne le remplace pas.
+ * Les couches sous un layer, de la plus haute à la première opaque comprise, sur les étapes de `etapesDuFond` : ses frères de fond, du
+ * plus proche au plus bas, puis ses ancêtres, chacun suivi de ses propres frères de fond (D30). Un frère qui ne couvre pas la boîte
+ * (`partie` ou `inconnue`) laisse le fond indéterminé, et la page du thème ne le remplace pas. `combinaison` est celle du variant :
+ * chaque calque qui fait fond la lit dans ses propres modes forcés.
  */
 function couchesDuFond(
   variant: VariantLu, layer: LayerLu, catalogue: CatalogueDeReference, combinaison: Combinaison,
 ): { couches: Rgba[] } | LimiteDeFond {
   const couches: Rgba[] = [];
-  const posee = (freres: readonly FondPeint[]): { limite: Cause; sansRepli?: true } | 'opaque' | null => {
-    for (const { layer: frere, couvre } of freres) {
-      if (couvre !== 'tout') return { limite: 'fond-indetermine', sansRepli: true };
-      const limite = limiteDuLayer(frere);
-      if (limite) return { limite };
-      const pile = pileDePeintures(frere.peintures.filter((p) => p.champ === 'fills'), liaisonsPropres(frere), opaciteEffective(variant, frere), catalogue, variant, combinaisonDuLayer(variant, frere, combinaison, catalogue));
-      if ('limite' in pile) return pile;
-      couches.push(...pile.couches);
-      if (pile.couches.some((c) => c.a >= OPAQUE)) return 'opaque';
-    }
-    return null;
+  const peindre = (calque: LayerLu): { limite: Cause; sansRepli?: true } | 'opaque' | null => {
+    const limite = limiteDuLayer(calque);
+    if (limite) return { limite };
+    const fills = calque.peintures.filter((p) => p.champ === 'fills');
+    const pile = pileDePeintures(fills, liaisonsPropres(calque), opaciteEffective(variant, calque), catalogue, variant, combinaisonDuLayer(variant, calque, combinaison, catalogue));
+    if ('limite' in pile) return pile;
+    couches.push(...pile.couches);
+    return pile.couches.some((c) => c.a >= OPAQUE) ? 'opaque' : null;
   };
-  const bilan = (r: { limite: Cause; sansRepli?: true } | 'opaque' | null) => (r === 'opaque' ? { couches } : r);
-  const parId = memoireDuVariant(variant).parId;
-  const deLaFratrie = posee(fondsPeintsDesFreres(variant, layer));
-  if (deLaFratrie) return bilan(deLaFratrie) ?? { couches };
-  let courant = layer.parent ? parId.get(layer.parent) : undefined;
-  const vus = new Set<string>();
-  while (courant && !vus.has(courant.id)) {
-    vus.add(courant.id);
-    if (courant.visible) {
-      const limite = limiteDuLayer(courant);
-      if (limite) return { limite };
-      const fills = courant.peintures.filter((p) => p.champ === 'fills');
-      const pile = pileDePeintures(fills, liaisonsPropres(courant), opaciteEffective(variant, courant), catalogue, variant, combinaisonDuLayer(variant, courant, combinaison, catalogue));
-      if ('limite' in pile) return pile;
-      couches.push(...pile.couches);
-      if (pile.couches.some((c) => c.a >= OPAQUE)) break;
+  for (const etape of etapesDuFond(variant, layer)) {
+    let arret: ReturnType<typeof peindre> = null;
+    if ('ancetre' in etape) {
+      if (etape.ancetre.visible) arret = peindre(etape.ancetre);
+    } else {
+      for (const { layer: frere, couvre } of etape.freres) {
+        if (couvre !== 'tout') return { limite: 'fond-indetermine', sansRepli: true };
+        arret = peindre(frere);
+        if (arret) break;
+      }
     }
-    const duParent = posee(fondsPeintsDesFreres(variant, courant, layer));
-    if (duParent) return bilan(duParent) ?? { couches };
-    courant = courant.parent ? parId.get(courant.parent) : undefined;
+    if (arret) return arret === 'opaque' ? { couches } : arret;
   }
   return { couches };
 }
@@ -965,7 +1049,8 @@ function fondsDeRepli(catalogue: CatalogueDeReference, variant: VariantLu, combi
 
 /**
  * Les fonds sur lesquels mesurer un layer : celui des fills du variant s'il est opaque, sinon la page et la carte du thème dans le
- * mode de la combinaison, sinon la page Figma. Les couches translucides des ancêtres se composent sur chacun.
+ * mode que le layer subit, sinon la page Figma. Les couches translucides des ancêtres se composent sur chacun. `combinaison` est celle
+ * du variant : chaque calque du fond la lit dans ses propres modes forcés, et le repli dans ceux du layer mesuré.
  */
 function fondsDeMesure(
   variant: VariantLu, layer: LayerLu, catalogue: CatalogueDeReference, combinaison: Combinaison,
@@ -973,7 +1058,7 @@ function fondsDeMesure(
   const fond = fondEffectif(variant, layer, catalogue, combinaison);
   if (!('limite' in fond)) return { fonds: [{ couleur: fond }] };
   if (fond.limite !== 'fond-indetermine' || fond.sansRepli) return { limite: fond.limite };
-  const bases = fondsDeRepli(catalogue, variant, combinaison);
+  const bases = fondsDeRepli(catalogue, variant, combinaisonDuLayer(variant, layer, combinaison, catalogue));
   if (!bases) return { limite: fond.limite };
   if ('limite' in bases) return bases;
   const pile = couchesDuFond(variant, layer, catalogue, combinaison);
@@ -1030,16 +1115,16 @@ function rolesLiesDuLayer(layer: LayerLu, catalogue: CatalogueDeReference): stri
 }
 
 /**
- * Une icône jugée, ou un tracé dont un ancêtre, jusqu'au layer de l'hôte, en est une : l'icône d'une bibliothèque est une instance dont
+ * Une icône mesurée, ou un tracé dont un ancêtre, jusqu'au layer de l'hôte, en est une : l'icône d'une bibliothèque est une instance dont
  * le `Vector` porte la couleur. Seuls les calques lus sous une instance reçoivent cette seconde règle.
  */
 function estUneIconeEnInstance(variant: VariantLu, layer: LayerLu): boolean {
-  if (estUneIconeJugee(layer)) return true;
+  if (estUneIconeMesuree(layer)) return true;
   const parId = memoireDuVariant(variant).parId;
   const vus = new Set<string>([layer.id]);
   for (let ancetre = layer.parent ? parId.get(layer.parent) : undefined; ancetre && !vus.has(ancetre.id); ancetre = ancetre.parent ? parId.get(ancetre.parent) : undefined) {
     vus.add(ancetre.id);
-    if (estUnTraceDeLIcone(layer, estUneIconeJugee(ancetre))) return true;
+    if (estUnTraceDeLIcone(layer, estUneIconeMesuree(ancetre))) return true;
   }
   return false;
 }
@@ -1057,16 +1142,23 @@ function* ciblesDeContraste(variant: VariantLu, niveau: NiveauWcag, catalogue: C
     yield;
     const enInstance = sousLesInstances.has(layer);
     if (opaciteEffective(variant, layer) === 0) continue;
+    // L'instance dont le budget de lecture est épuisé garde des textes et des icônes que le relevé n'a pas lus : une limite, pas un silence.
+    if (layer.type === 'INSTANCE' && lectureManquee(releve, layer.id, 'calques')) {
+      cibles.push({ layer, code: 'C49', usage: 'texte', champ: 'fills', peintures: [], liaisons: [], seuil: SEUILS_D_ACCESSIBILITE.texte[niveau], limiteLue: 'calques-non-lus' });
+    }
     if (lectureManquee(releve, layer.id, 'blendMode') || lectureManquee(releve, layer.id, 'effects')) continue;
     // Ce que le relevé dit ne pas avoir lu n'est pas un fait : ni le layer, ni le fond qu'il demande ne se jugent (N-54).
     if (lectureDuFondManquee(releve, variant, layer)) continue;
+    // Un frère qui peut faire fond sans avoir été lu, ou des modes illisibles : le layer se mesure sur un fond ou dans un mode que le relevé ne prouve pas.
+    const limiteLue = limiteDeLecture(releve, variant, layer);
+    const poser = (cible: Cible): void => { cibles.push(limiteLue ? { ...cible, limiteLue } : cible); };
     if (layer.type === 'TEXT') {
       if (lectureManquee(releve, layer.id, 'texte') || lectureManquee(releve, layer.id, 'fills')) continue;
       for (const plage of layer.texte?.plages ?? []) {
         yield;
         if (plage.fin <= plage.debut) continue;
         const { grand, seuil } = seuilDeLaPlage(plage, niveau);
-        cibles.push({
+        poser({
           layer, code: 'C49', usage: grand ? 'grand-texte' : 'texte', champ: 'fills',
           peintures: plage.peintures, liaisons: plage.liaisons, seuil,
         });
@@ -1074,8 +1166,8 @@ function* ciblesDeContraste(variant: VariantLu, niveau: NiveauWcag, catalogue: C
       continue;
     }
     const anneau = estUnAnneau(layer, rolesLiesDuLayer(layer, catalogue));
-    if ((enInstance ? estUneIconeEnInstance(variant, layer) : estUneIconeJugee(layer)) && !anneau && aUnePeintureVisible(layer, 'fills') && !lectureManquee(releve, layer.id, 'fills')) {
-      cibles.push({
+    if ((enInstance ? estUneIconeEnInstance(variant, layer) : estUneIconeMesuree(layer)) && !anneau && aUnePeintureVisible(layer, 'fills') && !lectureManquee(releve, layer.id, 'fills')) {
+      poser({
         layer, code: 'C49', usage: 'icone', champ: 'fills', peintures: layer.peintures.filter((p) => p.champ === 'fills'),
         liaisons: liaisonsPropres(layer), seuil: SEUILS_PAR_ROLE.icon ?? SEUILS_D_ACCESSIBILITE.texte.AA,
       });
@@ -1084,13 +1176,13 @@ function* ciblesDeContraste(variant: VariantLu, niveau: NiveauWcag, catalogue: C
     if (enInstance) continue;
     if (lectureManquee(releve, layer.id, 'strokes') || (!anneau && lectureManquee(releve, layer.id, 'fills'))) continue;
     if (aUnContourVisible(layer)) {
-      cibles.push({
+      poser({
         layer, code: 'C50', usage: anneau ? 'anneau' : 'stroke', champ: 'strokes',
         peintures: layer.peintures.filter((p) => p.champ === 'strokes'), liaisons: liaisonsPropres(layer), seuil: SEUILS_D_ACCESSIBILITE.nonTexte,
       });
     } else if (anneau && aUnePeintureVisible(layer, 'fills')) {
       // Un anneau rempli sans contour se mesure sur son remplissage (Q-F7-9, N-59).
-      cibles.push({
+      poser({
         layer, code: 'C50', usage: 'anneau', champ: 'fills',
         peintures: layer.peintures.filter((p) => p.champ === 'fills'), liaisons: liaisonsPropres(layer), seuil: SEUILS_D_ACCESSIBILITE.nonTexte,
       });
@@ -1128,11 +1220,11 @@ function* mesurerLeVariant(
     let enRepli = false;
     for (const choix of combinaisons) {
       yield;
-      const limite = limiteDuLayer(cible.layer);
+      const limite = cible.limiteLue ?? limiteDuLayer(cible.layer);
       if (limite) { causes.add(limite); continue; }
-      // Le layer mesure sa couleur dans les modes qu'il force ; l'étiquette reste celle de la combinaison (D18).
+      // Le layer mesure sa couleur dans les modes qu'il force, l'étiquette reste celle de la combinaison (D18) ; son fond lit la combinaison du variant.
       const combinaison = combinaisonDuLayer(variant, cible.layer, choix, catalogue);
-      const choisis = fondsDeMesure(variant, cible.layer, catalogue, combinaison);
+      const choisis = fondsDeMesure(variant, cible.layer, catalogue, choix);
       if ('limite' in choisis) { causes.add(choisis.limite); continue; }
       const pile = pileDePeintures(cible.peintures, cible.liaisons, opaciteEffective(variant, cible.layer), catalogue, variant, combinaison);
       if ('limite' in pile) { causes.add(pile.limite); continue; }

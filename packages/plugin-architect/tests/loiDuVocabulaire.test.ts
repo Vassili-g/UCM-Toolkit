@@ -34,6 +34,8 @@ const EXCEPTIONS: readonly Exception[] = [
   { fichier: 'arbre.ts', entree: "'calque-explicite'", mot: "calque" },
   { fichier: 'arbre.ts', entree: "'calque-explicite'", mot: "calque" },
   { fichier: 'arbre.ts', entree: "'calque-herite'", mot: "calque" },
+  // Identifiant de la cause de limite du kit (`calques-non-lus`), pas un texte affiché.
+  { fichier: 'ignores.ts', entree: "'calques-non-lus'", mot: "calques" },
   { fichier: 'arbre.ts', entree: "'calque-herite'", mot: "calque" },
   { fichier: 'fiche.ts', entree: "modeEtOrigine", mot: GLYPHE },
   { fichier: 'fiche.ts', entree: "action", mot: "bibliothèque" },

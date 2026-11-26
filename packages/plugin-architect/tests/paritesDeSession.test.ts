@@ -435,7 +435,7 @@ test('une entrée invalidée rejoue le moteur et ne rejoue que les requêtes don
   assert.equal(JSON.stringify(analysee.affiche), JSON.stringify(actualisee.affiche));
 });
 
-test('une peinture changée sur une entrée invalidée ne rejoue que l’accessibilité, les couches (C81 lit quels champs sont peints), la typographie (C66 lit si un fill est visible), et les corrections et la projection qui les suivent', async () => {
+test('une peinture changée sur une entrée invalidée ne rejoue que l’accessibilité, le mapping (C17 lit si un tracé a un fill visible), les couches (C81 lit quels champs sont peints), la typographie (C66 lit si un fill est visible), et les corrections et la projection qui les suivent', async () => {
   const fichier = fichierDeDepart();
   const appels = { moteur: 0 };
   await mesuree(fichier, appels, 'analyser');
@@ -446,7 +446,7 @@ test('une peinture changée sur une entrée invalidée ne rejoue que l’accessi
   const analysee = await mesuree(fichier, appels, 'analyser');
   assert.equal(appels.moteur, 2, 'le moteur est rejoué');
   // Le moteur de la fixture nomme le nombre de peintures : ses constats changent, donc les corrections et la projection aussi.
-  assert.deepEqual(analysee.reprises, { non: 3, rejouees: 5 });
+  assert.deepEqual(analysee.reprises, { non: 2, rejouees: 6 });
   const actualisee = await mesuree(fichier, appels, 'actualiser');
   assert.deepEqual(actualisee.reprises, { non: 0, rejouees: 8 });
   assert.equal(JSON.stringify(analysee.affiche), JSON.stringify(actualisee.affiche));
@@ -457,8 +457,8 @@ const REQUETES = ['controle-accessibilite', 'controle-couches', 'controle-mappin
 
 /** Le banc des mutations locales d'un calque, sur une entrée invalidée par le journal : chaque requête est comptée sous son nom, reprise ou rejouée. */
 const MUTATIONS_LOCALES: ReadonlyArray<{ nom: string; mutation: string; rejouees: string[] }> = [
-  // C81 juge un layer en dur par ses peintures : en ajouter une rejoue les couches.
-  { nom: 'peinture', mutation: 'peinture d’un calque', rejouees: ['controle-accessibilite', 'controle-couches', 'controle-typographie', 'corrections', 'projection'] },
+  // C81 juge un layer en dur par ses peintures : en ajouter une rejoue les couches. C17 juge le trait d'une icône sans fill visible : le mapping lit les peintures aussi.
+  { nom: 'peinture', mutation: 'peinture d’un calque', rejouees: ['controle-accessibilite', 'controle-couches', 'controle-mapping', 'controle-typographie', 'corrections', 'projection'] },
   { nom: 'taille du texte', mutation: 'texte d’un calque', rejouees: ['controle-accessibilite', 'corrections', 'projection'] },
   // Depuis E9b (Q-F7-12), l'identifiant d'un constat de contraste ne porte plus la plage de texte : changer sa fin rejoue les corrections (elles lisent le relevé), mais
   // les constats gardent leurs identifiants et leur résultat égal fait reprendre la projection.

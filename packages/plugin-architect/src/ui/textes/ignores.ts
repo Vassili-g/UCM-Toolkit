@@ -12,6 +12,7 @@ const CAUSES_DE_LIMITE: Readonly<Record<string, string>> = {
   'mode-illisible': 'prend une couleur que le plugin ne sait pas lire',
   'couleur-absente': 'n’a pas de couleur',
   'fond-indetermine': 'est posé sur un fond que le plugin ne détermine pas',
+  'calques-non-lus': 'contient des layers que le plugin n’a pas lus',
 };
 
 const SUJETS_DE_CONTRASTE: Readonly<Record<string, string>> = {

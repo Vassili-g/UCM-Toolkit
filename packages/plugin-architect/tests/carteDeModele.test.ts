@@ -202,7 +202,7 @@ test('la réponse retire les C81 de `retires`, garde les autres constats et rang
   assert.equal(comme(section(banc, 'tailles').querySelector('.bande-element')).classes.has('tenue'), true, 'Tailles et forme n’a plus de point : son C81 est parti');
 });
 
-test('la section reste ouverte quand les corrections dépassent cinq points', () => {
+test('la section reste ouverte quand sa carte de corrections porte plus de cinq constats : sept constats d’un modèle font un point', () => {
   const corrections: Constat[] = Array.from({ length: 7 }, (_, rang) => ({
     id: `C24:modele:v${rang}`, code: 'C24', type: 'corriger', famille: 'liaisons', variants: [`alert:v:${rang}`], layers: [`alert:v:${rang}:icon`],
     faits: { modele: 'Severity=info, Variant=standard', calque: 'icon', champ: 'fills' },
@@ -218,7 +218,7 @@ test('la section reste ouverte quand les corrections dépassent cinq points', ()
   proposer(carteDe(banc, 'couleurs')).clic();
   recevoirUneAnalyse(banc.etat, { ...modeleProposeApresLaCarte, retires: [COULEURS.id], constats: corrections });
   banc.actualiser();
-  assert.equal(comme(section(banc, 'couleurs').querySelector('.nombre')).textContent, '7');
+  assert.equal(comme(section(banc, 'couleurs').querySelector('.nombre')).textContent, '1');
   assert.equal(ouverte(banc, 'couleurs'), 'true');
   assert.ok(section(banc, 'couleurs').querySelector('input.case'));
 });

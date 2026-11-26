@@ -260,7 +260,7 @@ test('le mapping par étapes conserve les écarts ordonnés puis la fratrie', ()
   });
   attendu.push({
     id: 'C17:c:layer-c:fills:0:', code: 'C17', type: 'corriger', famille: 'liaisons', variants: ['c'], layers: ['layer-c'],
-    faits: { token: 'alert/color/success/foreground', role: 'foreground', attendu: 'background', champ: 'fills', indice: 0 },
+    faits: { token: 'alert/color/success/foreground', role: 'foreground', attendu: 'background', champ: 'fills', chemin: 'container', indice: 0 },
   });
   attendu.push({
     id: 'C21:c:layer-c::fills', code: 'C21', type: 'verifier', famille: 'liaisons', variants: ['c'], layers: ['layer-c'],

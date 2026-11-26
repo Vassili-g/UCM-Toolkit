@@ -1,8 +1,12 @@
 /** D13 et D23 : une règle renommée donne un seul C45, et le moteur ne répète ni elle ni l'absence de l'instance de règles. */
 import assert from 'node:assert/strict';
+import { readFileSync } from 'node:fs';
+import { join } from 'node:path';
 import test from 'node:test';
 
 import type { Constat } from '@ucm-kit/core/controles';
+import { sorteDuPointDeRegles } from 'ucm-plugin-socle/src/composant/contract/extractRules';
+import { mergePropDescriptions } from 'ucm-plugin-socle/src/composant/contract/mergePropDescriptions';
 import { cibleCompacte, modeleDeRegles, reglesManquantes } from 'ucm-plugin-socle/src/composant/template/modele';
 import type { ContratLu } from 'ucm-plugin-socle/src/composant/template/modele';
 
@@ -36,8 +40,26 @@ const resume = (constats: readonly Constat[]): string[][] => constats.map((c) =>
 const moteur = (titre: string): Constat => ({
   id: `moteur:C44:${titre.length}`, code: 'C44', type: 'corriger', famille: 'regles', variants: [], layers: [], faits: { titre, impact: 'i', action: 'a', geste: 'regles' },
 });
-const C44_SEVERITY = moteur('Règle @prop « severity » : le composant n’a aucune propriété de variante portant ce nom.');
-const C44_USAGE = moteur('Règles d’usage : aucune règle @usage, @do, @dont ou @pairs n’est déclarée.');
+/**
+ * Les phrases des deux points du moteur que ce fichier reconnaît viennent de leur source, jamais d'une copie : une reformulation dans
+ * `mergePropDescriptions.ts` ou `analyse/resultat.ts` change ces titres, et les tests qui suivent échouent avec elle.
+ */
+const phrasesDeProp: string[] = [];
+mergePropDescriptions({}, null, { severity: { info: 'Une information.' } }, phrasesDeProp);
+const titreDeProp = phrasesDeProp[0];
+const sourceDeResultat = readFileSync(join(__dirname, '../../plugin-socle/src/composant/analyse/resultat.ts'), 'utf8');
+const manqueDeUsage = /pousserSansNode\(warnings, 'Règles d’usage', \{[^}]*?manque: '([^']+)'/.exec(sourceDeResultat)?.[1];
+const titreDeUsage = `Règles d’usage : ${manqueDeUsage}`;
+const C44_SEVERITY = moteur(titreDeProp);
+const C44_USAGE = moteur(titreDeUsage);
+
+test('les titres lus à la source sont ceux que le moteur écrit, et le lecteur de sortes les reconnaît', () => {
+  assert.equal(phrasesDeProp.length, 1);
+  assert.match(titreDeProp, /^Règle @prop « severity » : /);
+  assert.ok(manqueDeUsage, 'la phrase de l’instruction absente se lit dans resultat.ts');
+  assert.equal(sorteDuPointDeRegles(titreDeProp), 'prop-sans-propriete');
+  assert.equal(sorteDuPointDeRegles(titreDeUsage), 'usage-absent');
+});
 
 test('D13 : Alert, `severity` décrit les valeurs de `Type` : un seul C45 renommee, aucun C44 de la même règle', () => {
   const valeurs = ['info', 'success', 'warning', 'error'];

@@ -238,7 +238,6 @@ class Lecteur {
   readonly reglesTrouvees: (maitre: NoeudLu) => boolean;
   /** Les calques que la visite des instances peut encore parcourir pour tout le relevé ; vide, le relevé le consigne une seule fois. */
   calquesRestants = CALQUES_VISITES_PAR_RELEVE;
-  budgetDInstanceDit = false;
 
   constructor(
     private readonly port: PortDuComposant,
@@ -559,18 +558,18 @@ async function instancesEntre(lu: NoeudLu, porteur: NoeudLu, lecteur: Lecteur, m
 
 /**
  * La peinture visible du calque que la surcharge lie : ses `fills` et `strokes` (type, visibilité, opacité) et son épaisseur de
- * contour. Un champ dont la lecture lève ou rend une valeur mixte est consigné dans `manquees` sur le layer de l'hôte, et les
+ * contour. Un champ dont la lecture lève ou rend une valeur mixte est consigné dans `manquees` sur le calque peint, jamais sur l'hôte, et les
  * peintures restent absentes : non lues, elles ne disent pas que le calque ne peint rien.
  */
-async function peinturesDeLaSurcharge(porteur: NoeudLu, hote: string, lecteur: Lecteur, manquees: Manquee[]): Promise<{ peintures?: PeintureLue[]; strokeWeight?: number }> {
+async function peinturesDeLaSurcharge(porteur: NoeudLu, lecteur: Lecteur, manquees: Manquee[]): Promise<{ peintures?: PeintureLue[]; strokeWeight?: number }> {
   const compterLaLecture = () => compter('proprietesDuReleve');
   const locales: Manquee[] = [];
   const peintures: PeintureLue[] = [];
   for (const champ of ['fills', 'strokes'] as const) {
     const lues = await lireLesPeinturesParEtapes(porteur, champ, lecteur.cooperation, compterLaLecture, lecteur.lire);
-    peintures.push(...(await peinturesDe(champ, lues, hote, locales, lecteur.cooperation)));
+    peintures.push(...(await peinturesDe(champ, lues, porteur.id, locales, lecteur.cooperation)));
   }
-  const strokeWeight = nombreDe(miseEnPage(porteur, ['strokeWeight'], lecteur.lire), 'strokeWeight', hote, manquees);
+  const strokeWeight = nombreDe(miseEnPage(porteur, ['strokeWeight'], lecteur.lire), 'strokeWeight', porteur.id, manquees);
   manquees.push(...locales);
   return { ...(locales.length === 0 ? { peintures } : {}), ...(strokeWeight !== undefined ? { strokeWeight } : {}) };
 }
@@ -628,10 +627,8 @@ async function marquerLesLiaisonsDeStyle(noeud: NoeudLu, layer: LayerLu, lecteur
   }
 }
 
-/** Ce qu'un calque lu sous une instance sait de cette instance : son composant principal et son identifiant, pour la provenance de ses liaisons. */
+/** Ce qu'un calque lu sous une instance sait de cette instance. Il ne porte aucune provenance de liaison : aucun contrôle ne la lit sous une instance. */
 interface DansUneInstance {
-  readonly maitre: NoeudLu;
-  readonly instance: string;
   /** Ce que la visite a déjà lu du composant d'un calque qui est lui-même une instance. */
   readonly instanceDe?: LayerLu['instanceDe'];
 }
@@ -698,11 +695,6 @@ async function lireLeLayer(port: PortDuComposant, lecteur: Lecteur, etape: Etape
     const brutes = await liaisonsDuNoeudCooperatives(noeud, lecteur.cooperation, { fills, strokes }, segments?.parEtapes, lecteur.lire);
     layer.liaisons = await lecteur.liaisons(dansInstance ? brutes.filter(estUneLiaisonDeCouleur) : brutes, noeud.id);
     if (dansInstance) {
-      // Un calque lu sous l'instance ne sert qu'à la mesure : la liaison que son composant principal tient garde cette origine.
-      for (const liaison of layer.liaisons) {
-        await lecteur.cooperation.cederSiBesoin();
-        liaison.provenance = await lecteur.maitres.provenance(dansInstance.maitre, dansInstance.instance, liaison, noeud.id);
-      }
       if (dansInstance.instanceDe) layer.instanceDe = dansInstance.instanceDe;
     } else if (frontiere) {
       const lues: LiaisonLue[] = [];
@@ -719,7 +711,7 @@ async function lireLeLayer(port: PortDuComposant, lecteur: Lecteur, etape: Etape
           }
           let peinte = peintesParCalque.get(porteur.id);
           if (!peinte) {
-            peinte = await peinturesDeLaSurcharge(porteur, noeud.id, lecteur, manquees);
+            peinte = await peinturesDeLaSurcharge(porteur, lecteur, manquees);
             peintesParCalque.set(porteur.id, peinte);
           }
           surcharge = { surcharge: { id: porteur.id, nom: porteur.name, type: porteur.type, instances, ...peinte } };
@@ -813,8 +805,7 @@ async function lireLesCalquesDeLInstance(port: PortDuComposant, lecteur: Lecteur
       return [];
     }
     if (lecteur.calquesRestants <= 0) {
-      if (!lecteur.budgetDInstanceDit) manquees.push({ layer: hote.id, champ: 'calques', motif: `le relevé a visité ${CALQUES_VISITES_PAR_RELEVE} calques sous les instances : les suivantes ne sont pas lues` });
-      lecteur.budgetDInstanceDit = true;
+      manquees.push({ layer: hote.id, champ: 'calques', motif: `le relevé a visité ${CALQUES_VISITES_PAR_RELEVE} calques sous les instances : celle-ci n'est pas lue` });
       return [];
     }
     visitees += 1;
@@ -860,7 +851,7 @@ async function lireLesCalquesDeLInstance(port: PortDuComposant, lecteur: Lecteur
     const locales: Manquee[] = [];
     let layer: LayerLu | undefined;
     try {
-      layer = await lireLeLayer(port, lecteur, { noeud: courant, parent, frontiere: false }, locales, { maitre: lu.natif, instance: noeud.id, instanceDe: deLInstance });
+      layer = await lireLeLayer(port, lecteur, { noeud: courant, parent, frontiere: false }, locales, { instanceDe: deLInstance });
     } catch (erreur) {
       if (erreur instanceof AnalyseAnnulee) throw erreur;
       locales.push({ layer: courant.id, champ: 'calque', motif: messageDErreur(erreur) });

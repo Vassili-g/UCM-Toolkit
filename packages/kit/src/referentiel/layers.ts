@@ -44,18 +44,22 @@ export function motDIconeDansLeNom(nom: string): boolean {
   return trouve;
 }
 
+/** Le dernier mot du segment est un mot d'icône : `Icon`, `ChevronIcon`, mais pas `Icon Button`. */
+function finitParUnMotDIcone(segment: string): boolean {
+  const mots = sansAccent(segment).replace(/(\p{Ll})(\p{Lu})/gu, '$1 $2').match(/\p{L}+/gu) ?? [];
+  const final = mots[mots.length - 1];
+  return final !== undefined && MOTS.has(final.toLowerCase());
+}
+
 /**
  * La seule fonction qui décide de la position du mot d'icône dans le nom d'un composant (D29). Le mot est certain s'il est le dernier
- * mot du nom (`ChevronIcon`, `Icon`) ou s'il nomme un dossier du chemin, un segment avant le dernier `/` (`Icon/Close`). Il ne l'est
- * pas ailleurs : `IconButton` et `.sizeWrapperIconButton` posent un bouton, pas une icône.
+ * mot du nom (`ChevronIcon`, `Icon`) ou le dernier mot d'un dossier du chemin, un segment avant le dernier `/` (`Icon/Close`). Il ne
+ * l'est pas ailleurs : `IconButton` et `.sizeWrapperIconButton` posent un bouton, et `Icon Button/Primary` aussi, pas une icône.
  */
 export function motDIconeCertainDansLeNom(nom: string): boolean {
   const segments = nom.split('/');
   const dernier = segments.pop() ?? '';
-  if (segments.some(motDIconeDansLeNom)) return true;
-  const mots = sansAccent(dernier).replace(/(\p{Ll})(\p{Lu})/gu, '$1 $2').match(/\p{L}+/gu) ?? [];
-  const final = mots[mots.length - 1];
-  return final !== undefined && MOTS.has(final.toLowerCase());
+  return segments.some(finitParUnMotDIcone) || finitParUnMotDIcone(dernier);
 }
 
 /** Cas 1, icône probable : le nom du composant ou de son jeu contient un mot d'icône entier, où qu'il soit. */
@@ -100,8 +104,9 @@ export function estUneIcone(layer: LayerPourLesDefinitions): boolean {
 }
 
 /**
- * Une icône que son nom ou ses propriétés désignent : tous les cas sauf le dessin seul et le mot d'icône hors position certaine (`IconButton`), qui ne lit aucun nom et prend aussi une pointe
- * de Tooltip ou un logo. C17 n'accuse un autre rôle que sur une icône certaine (D1).
+ * Juger une icône (C66, C67, et l'accusation de C17) : une icône que son nom ou ses propriétés désignent, certaine. Tous les cas sauf le
+ * dessin seul et le mot d'icône hors position certaine (`IconButton`) : le dessin seul ne lit aucun nom et prend aussi une pointe de
+ * Tooltip ou un logo, qui ne reçoivent ni C66 ni C67 (D1).
  */
 export function estUneIconeCertaine(layer: LayerPourLesDefinitions): boolean {
   if (layer.type === 'FRAME' || layer.type === 'TEXT') return false;
@@ -109,17 +114,42 @@ export function estUneIconeCertaine(layer: LayerPourLesDefinitions): boolean {
 }
 
 /**
- * L'icône que les règles propres aux icônes jugent (C66, C67, le contraste de C49) : une icône certaine ou faite d'un seul dessin. Une
- * instance que seul un mot d'icône hors position certaine désigne (`IconButton`) est une icône probable : elle ne reçoit aucune de ces
- * règles (D1, D29). Seul le choix de l'icône vit ici ; chaque contrôle l'appelle sans recopier la règle.
+ * Mesurer une icône (le contraste de C49, les calques que le relevé visite sous une instance, le seuil d'icône de `gardeLeDessin`) : une
+ * icône certaine, ou l'instance d'un composant fait d'un seul dessin. Mesurer un dessin visible n'accuse rien, alors qu'une icône probable
+ * par son seul nom (`IconButton`, un bouton) n'est pas mesurée comme une icône. C66 et C67 jugent `estUneIconeCertaine`, jamais celle-ci.
  */
-export function estUneIconeJugee(layer: LayerPourLesDefinitions): boolean {
+export function estUneIconeMesuree(layer: LayerPourLesDefinitions): boolean {
   return estUneIconeCertaine(layer) || (layer.type !== 'FRAME' && layer.type !== 'TEXT' && estUneInstanceDeDessin(layer));
 }
 
 /**
- * Un tracé peint dans une icône jugée : le `Vector` d'une instance `arrow-left-long`. Le relevé et C49 le disent icône sans lire son nom,
- * car l'icône est l'instance qui le porte. `dansUneIcone` : un ancêtre du tracé, jusqu'au layer de l'hôte, est une icône jugée.
+ * Ancien nom de `estUneIconeMesuree`, que le relevé d'Architect lit encore pour choisir les calques à visiter sous une instance. Il ne
+ * désigne pas l'icône que C66 et C67 jugent : ceux-ci lisent `estUneIconeCertaine`.
+ */
+export const estUneIconeJugee = estUneIconeMesuree;
+
+type SurchargePourLesDefinitions = LayerPourLesDefinitions & { readonly instances?: readonly LayerPourLesDefinitions[] };
+
+function parSurcharge(critere: (layer: LayerPourLesDefinitions) => boolean, layer: LayerPourLesDefinitions, surcharge?: SurchargePourLesDefinitions): boolean {
+  return critere(layer) || (!!surcharge && (critere(surcharge) || !!surcharge.instances?.some(critere)));
+}
+
+/**
+ * Le calque qu'une liaison peint est dans une icône certaine : le layer lu, le calque que la surcharge peint, ou l'une des instances
+ * entre les deux (`instances`, de la plus externe à la plus interne). Sans surcharge, c'est `estUneIconeCertaine(layer)`.
+ */
+export function estUneIconeCertaineParSurcharge(layer: LayerPourLesDefinitions, surcharge?: SurchargePourLesDefinitions): boolean {
+  return parSurcharge(estUneIconeCertaine, layer, surcharge);
+}
+
+/** Le même parcours que `estUneIconeCertaineParSurcharge`, pour mesurer : `estUneIconeMesuree` à la place de l'icône certaine. */
+export function estUneIconeMesureeParSurcharge(layer: LayerPourLesDefinitions, surcharge?: SurchargePourLesDefinitions): boolean {
+  return parSurcharge(estUneIconeMesuree, layer, surcharge);
+}
+
+/**
+ * Un tracé peint dans une icône mesurée : le `Vector` d'une instance `arrow-left-long`. Le relevé et C49 le disent icône sans lire son nom,
+ * car l'icône est l'instance qui le porte. `dansUneIcone` : un ancêtre du tracé, jusqu'au layer de l'hôte, est une icône mesurée.
  */
 export function estUnTraceDeLIcone(layer: Pick<LayerPourLesDefinitions, 'type'>, dansUneIcone: boolean): boolean {
   return dansUneIcone && (layer.type === 'VECTOR' || layer.type === 'BOOLEAN_OPERATION');

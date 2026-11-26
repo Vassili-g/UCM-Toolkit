@@ -190,8 +190,12 @@ export function layersVisiblesDuVariant(variant: VariantLu): LayerLu[] {
   return variant.layers.filter(estVisible);
 }
 
-/** `chemin` : les noms depuis la racine du variant (racine exclue), sous leur forme reconnue. `rang` : celui du calque parmi ses homonymes de même parent. `cle` : le chemin avec le rang de chaque niveau, donc la place exacte du calque. */
-export interface IdentiteDeCalque { chemin: readonly string[]; rang: number; cle: string }
+/**
+ * `chemin` : les noms depuis la racine du variant (racine exclue), sous leur forme reconnue. `noms` : les mêmes niveaux, tels que Figma les
+ * écrit, pour les dire au designer. `rang` : celui du calque parmi ses homonymes de même parent. `cle` : le chemin avec le rang de chaque
+ * niveau, donc la place exacte du calque.
+ */
+export interface IdentiteDeCalque { chemin: readonly string[]; noms: readonly string[]; rang: number; cle: string }
 
 const identites = new WeakMap<VariantLu, { layers: readonly LayerLu[]; taille: number; parId: Map<string, IdentiteDeCalque> }>();
 
@@ -209,7 +213,7 @@ export function identiteDuCalque(variant: VariantLu, layer: LayerLu): IdentiteDe
     lu = { layers: variant.layers, taille: variant.layers.length, parId: identitesDuVariant(variant) };
     identites.set(variant, lu);
   }
-  return lu.parId.get(layer.id) ?? { chemin: [formeReconnue(layer.nom)], rang: 0, cle: JSON.stringify([[formeReconnue(layer.nom), 0]]) };
+  return lu.parId.get(layer.id) ?? { chemin: [formeReconnue(layer.nom)], noms: [layer.nom], rang: 0, cle: JSON.stringify([[formeReconnue(layer.nom), 0]]) };
 }
 
 function identitesDuVariant(variant: VariantLu): Map<string, IdentiteDeCalque> {
@@ -222,7 +226,7 @@ function identitesDuVariant(variant: VariantLu): Map<string, IdentiteDeCalque> {
     rangs.set(frere, rang + 1);
     rangDe.set(layer.id, rang);
   }
-  const niveau = (layer: LayerLu): [string, number] => [formeReconnue(layer.nom), rangDe.get(layer.id) ?? 0];
+  const niveau = (layer: LayerLu): [string, number, string] => [formeReconnue(layer.nom), rangDe.get(layer.id) ?? 0, layer.nom];
   const resultat = new Map<string, IdentiteDeCalque>();
   for (const layer of variant.layers) {
     const niveaux = [niveau(layer)];
@@ -234,7 +238,10 @@ function identitesDuVariant(variant: VariantLu): Map<string, IdentiteDeCalque> {
       niveaux.unshift(niveau(parent));
       parent = parId.get(parent.parent);
     }
-    resultat.set(layer.id, { chemin: niveaux.map(([nom]) => nom), rang: niveaux[niveaux.length - 1][1], cle: JSON.stringify(niveaux) });
+    resultat.set(layer.id, {
+      chemin: niveaux.map(([nom]) => nom), noms: niveaux.map(([, , ecrit]) => ecrit), rang: niveaux[niveaux.length - 1][1],
+      cle: JSON.stringify(niveaux.map(([nom, rang]) => [nom, rang])),
+    });
   }
   return resultat;
 }

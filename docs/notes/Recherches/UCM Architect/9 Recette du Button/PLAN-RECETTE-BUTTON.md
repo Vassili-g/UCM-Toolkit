@@ -329,3 +329,32 @@ Réponses du mainteneur, puis décisions :
 | L20 | Kit : D30 | `implementeur` | aucun | [x] e0ec1a93 |
 | L21 | Architect et kit : D31 | `implementeur-exigeant` | L20 | [x] ed0433f0 |
 | L22 | Conversation principale : documents, version, publication | conversation principale | L19 à L21 | [ ] |
+
+## Vérification globale
+
+Deux relecteurs ont relu tout le diff `0dfc29c4..HEAD`, le kit d'un côté, Architect et le socle de l'autre. Ils ont confronté le code
+aux décisions D1 à D31. Ils n'ont trouvé aucun défaut bloquant ni aucun motif refusé par QuickJS. Défauts importants corrigés :
+
+- Les modes forcés d'un calque fuyaient vers le fond de ses ancêtres. Chaque couche du fond se lit désormais dans ses propres modes.
+- C65 comparait les textes par leur nom. Il compare par `identiteDuCalque`, comme C64.
+- Une instance faite d'un seul dessin recevait C66 et C67. Juger une icône (`estUneIconeCertaine`) et mesurer son contraste
+  (`estUneIconeMesuree`) sont désormais deux fonctions.
+- Les gabarits de reprise de `controle-mapping`, `controle-typographie` et `controle-theme` ne déclaraient pas tous les champs lus,
+  donc une réanalyse pouvait garder un verdict périmé. Quatre tests de reprise le prouvent.
+- Le regroupement des cartes fusionnait deux calques de variants non par défaut. C17 porte désormais toujours `faits.chemin`.
+
+Points mineurs corrigés :
+
+- une lecture manquée donne une limite de C49 (frère, modes, budget d'instance) ;
+- `gardeLeDessin` lit la peinture du calque d'une surcharge ;
+- la lecture des axes ne dépend plus de l'ordre des propriétés ;
+- un dossier de chemin rend une icône certaine seulement par son dernier mot ;
+- la preuve du fond s'énumère une fois (`etapesDuFond`) ;
+- chaque instance non lue faute de budget le dit ;
+- le compteur d'un élément compte les cartes ;
+- les tests lisent les phrases du socle depuis leur source.
+
+Laissés, avec leur raison : l'arc partiel d'une ellipse (rare) ; la règle du préfixe de D22 pour `.sizeWrapperButton` (validée) ; le
+silence du socle sur des peintures toutes illisibles (même abstention que G7) ; le niveau AA de `gardeLeDessin` (ses appelants ne
+reçoivent pas le niveau) ; la pastille de la barre, qui compte encore des constats ; le nom `estUneIconeJugee`, gardé en alias de
+`estUneIconeMesuree`, parce qu'un renommage dans `releveDuComposant.ts` a été refusé par les permissions.

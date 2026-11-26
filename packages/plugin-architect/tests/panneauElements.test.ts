@@ -59,9 +59,12 @@ test('le contraste va dans l’accessibilité malgré le champ peint qu’il por
 test('les constats d’Alert : éléments, nombres et entrées', () => {
   const { elements, tenus, bloquants } = elementsDuPanneau(constatsAlert, contexte);
   const par = (id: IdDElement) => elements.find((element) => element.id === id);
-  assert.deepEqual(elements.map((element) => [element.id, element.points]), [['couleurs', 18], ['tailles', 2], ['tokens', 3], ['regles', 1]]);
+  assert.deepEqual(elements.map((element) => [element.id, element.points]), [['couleurs', 14], ['tailles', 1], ['tokens', 3], ['regles', 1]]);
   assert.equal(constatsAlert.length, 24);
-  assert.equal(elements.reduce((somme, element) => somme + element.points, 0), constatsAlert.length);
+  // Un point est une carte : les 24 constats d'Alert se montrent en 19 cartes (couleurs : 2 corrections de 2 et 4 constats, 3 questions, 9 à faire).
+  assert.equal(elements.reduce((somme, element) => somme + element.points, 0), 19);
+  assert.deepEqual(elements.map((element) => element.points), elements.map((element) => element.corrections.length + element.questions.length + element.aFaire.length));
+  assert.ok(elements.some((element) => element.constats.length > element.points), 'une carte porte plusieurs constats');
   assert.deepEqual(tenus, ['texte', 'variants', 'a11y']);
   assert.deepEqual(bloquants, []);
   assert.equal(elements.some((element) => element.bloquant), false);
@@ -157,7 +160,7 @@ test('une question répondue garde son groupe de questions, rangé avec son él�
   assert.equal(couleurs(avec).questions.length, 3);
   assert.equal(couleurs(avec).questions.some((groupe) => groupe.cartes.some((carte) => carte.id === question.question!.id)), true);
   // La correction de la réponse est une carte de corrections ; les points ne comptent le constat qu'une fois.
-  assert.equal(couleurs(avec).points, 18);
+  assert.equal(couleurs(avec).points, 14);
   assert.equal(couleurs(avec).points, couleurs(sans).points);
 });
 
@@ -191,8 +194,8 @@ test('un constat info sort des éléments, des nombres et de « Tout » : il se 
   const jeu = [...constatsAlert, exclus, degrade];
   const panneau = elementsDuPanneau(jeu, { ...contexte, constats: jeu });
   assert.deepEqual(panneau.informations.map((constat) => constat.id), ['C53', 'C49:degrade']);
-  assert.equal(panneau.elements.reduce((somme, element) => somme + element.points, 0), constatsAlert.length);
-  assert.deepEqual(panneau.elements.map((element) => [element.id, element.points]), [['couleurs', 18], ['tailles', 2], ['tokens', 3], ['regles', 1]]);
+  assert.equal(panneau.elements.reduce((somme, element) => somme + element.points, 0), 19);
+  assert.deepEqual(panneau.elements.map((element) => [element.id, element.points]), [['couleurs', 14], ['tailles', 1], ['tokens', 3], ['regles', 1]]);
   assert.deepEqual(panneau.tenus, ['texte', 'variants', 'a11y']);
   assert.equal(panneau.elements.flatMap((element) => element.constats).some(estUneInformation), false);
   assert.equal(panneau.elements.flatMap((element) => element.aFaire).some((carte) => carte.constat.type === 'info'), false);
@@ -261,4 +264,18 @@ test('C67 : une icône que les règles ne contrôlent pas', () => {
 test('le fond lu sur la page Figma est une information qui nomme elevation/raised', () => {
   const repli = information({ id: 'fond-de-repli', code: 'C50', variants: ['v:1'], layers: ['l:icon'], faits: { cause: 'fond-de-repli', fond: '#eef2f6' } });
   assert.equal(ligneDInformation(repli, contexteDeLigne).phrase, 'Fond lu sur la page Figma : `elevation/raised` est introuvable.');
+});
+
+test('une carte de 180 constats compte pour un point, et le total du sommaire suit', () => {
+  const variants = Array.from({ length: 90 }, (_, rang) => ({ id: `v:${rang}`, nom: `Color=C${rang}` }));
+  const constats = variants.flatMap((variant) => ['arrow-left-long', 'arrow-right-long'].map((fleche) => constatBrut({
+    id: `C24:${variant.id}:${fleche}`, code: 'C24', type: 'verifier', famille: 'liaisons', variants: [variant.id], layers: [`${variant.id}/${fleche}`],
+    faits: { champ: 'fills', role: 'foreground', attendu: 'background', chemin: `${fleche} › Vector` },
+  })));
+  const layers = new Map(constats.map((constat) => [constat.layers[0], 'wrapper']));
+  const panneau = elementsDuPanneau(constats, { composant: 'Button', variants, layers, constats });
+  assert.equal(constats.length, 180);
+  const couleurs = panneau.elements.find((element) => element.id === 'couleurs')!;
+  assert.deepEqual([couleurs.constats.length, couleurs.aFaire.length, couleurs.points], [180, 2, 2], 'une carte par flèche, pas une par constat');
+  assert.equal(panneau.elements.reduce((somme, element) => somme + element.points, 0), 2);
 });

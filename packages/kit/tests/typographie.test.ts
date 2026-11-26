@@ -174,7 +174,7 @@ test('C67 : une icône pilotée par une propriété absente est signalée, sinon
   assert.equal(code(releve([variant('a', [icone()])]), 'C67', true)[0].faits.cause, 'icone-non-pilotee');
 });
 
-test("D1, D29 : une instance d'IconButton, icône probable, ne reçoit ni C66 ni C67 ; Icon et un dessin seul les reçoivent", () => {
+test("D1, D29 : une instance d'IconButton ou un dessin seul, icônes probables, ne reçoivent ni C66 ni C67 ; Icon les reçoit", () => {
   const sansLiaison = (instanceDe: NonNullable<LayerLu['instanceDe']>) => icone({ instanceDe }, []);
   const bouton = sansLiaison({ cle: 'c', nom: 'IconButton', distante: true, pilotee: null });
   const rapport = releve([variant('a', [bouton])]);
@@ -183,9 +183,30 @@ test("D1, D29 : une instance d'IconButton, icône probable, ne reçoit ni C66 ni
   const lib = releve([variant('a', [sansLiaison({ cle: 'c', nom: 'Icon', distante: true, pilotee: null })])]);
   assert.ok(code(lib, 'C66').length > 0);
   assert.ok(code(lib, 'C67', true).length > 0);
+  // Un logo ou la pointe d'un Tooltip est un composant fait d'un seul tracé : le dessin seul est un indice, pas une preuve d'icône (D1).
   const dessin = releve([variant('a', [sansLiaison({ cle: 'c', nom: 'Logo', distante: true, pilotee: null, dessin: true })])]);
-  assert.ok(code(dessin, 'C66').length > 0);
-  assert.ok(code(dessin, 'C67', true).length > 0);
+  assert.deepEqual(code(dessin, 'C66'), []);
+  assert.deepEqual(code(dessin, 'C67', true), []);
+  assert.deepEqual(code(dessin, 'C67'), []);
+});
+
+test('C65 : un texte ne se compare qu’aux textes de même identité, pas à tous ceux qui portent son nom (D16)', () => {
+  const sous = (parent: string, liaisons: LiaisonLue[] = []): LayerLu => ({ ...texte('S', liaisons), id: `l-${parent}-${Math.random()}`, nom: 'Label', parent });
+  const cadre = (id: string, nom: string): LayerLu => ({ ...icone({ nom, type: 'FRAME', instanceDe: undefined }, []), id, parent: 'r' });
+  const racine: LayerLu = { ...cadre('r', 'Root'), parent: null };
+  const entete = cadre('h', 'Header');
+  const pied = cadre('f', 'Footer');
+  const lie = (parent: string): LayerLu => sous(parent, bien());
+  const de = (nom: string, layers: LayerLu[]): VariantLu => variant(nom, [racine, entete, pied, ...layers]);
+  // Quatre variants lient leur Label sous Header ; le variant d a en plus un Label sans liaison sous Footer, qui n'a aucun homologue.
+  const r = releve([de('a', [lie('h')]), de('b', [lie('h')]), de('c', [lie('h')]), de('d', [lie('h'), sous('f')])]);
+  assert.deepEqual(code(r, 'C65'), [], 'le Label de Footer n’est comparé à aucun autre');
+  // Garde : le Label délié sous Header reste signalé, avec la même majorité de variants.
+  const delie = releve([de('a', [lie('h')]), de('b', [lie('h')]), de('c', [lie('h')]), de('d', [sous('h')])]);
+  const c = code(delie, 'C65');
+  assert.equal(c.length, 1);
+  assert.deepEqual(c[0].variants, ['d']);
+  assert.equal(c[0].faits.motif, 'sans-liaison-comme-les-autres');
 });
 
 /* ---------- fréquences hors contribution courante (4.3) ---------- */

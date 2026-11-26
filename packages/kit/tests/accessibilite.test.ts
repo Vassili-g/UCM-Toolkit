@@ -1489,13 +1489,13 @@ function catalogueDuRepliForce(): CatalogueDeReference {
   };
 }
 
-test('D18 : le repli du thème se juge dans les modes que le layer force, comme sa mesure', () => {
-  const surLePlan = (modes?: Record<string, string>) => {
-    const v = variant('a', [racine([]), fondLie('g', 'r'), { ...texte([solide('fills', gris(1))]), parent: 'g', ...(modes ? { modesExplicites: modes } : {}) }]);
+test('D18 : le repli du thème se juge dans les modes que le layer subit, forcés par son fond ou par lui-même', () => {
+  const surLePlan = (modesDuFond?: Record<string, string>, modesDuTexte?: Record<string, string>) => {
+    const v = variant('a', [racine([]), fondLie('g', 'r', modesDuFond), { ...texte([solide('fills', gris(1))]), parent: 'g', ...(modesDuTexte ? { modesExplicites: modesDuTexte } : {}) }]);
     v.modesEffectifs = { ck: 'd' };
     return cc(releve([v]), 'AA', catalogueDuRepliForce());
   };
-  // Forcé en Dark, le fond lié est transparent : la page du thème sert, et chaque mode du thème se mesure, Light compris.
+  // Le fond lié, forcé en Dark, est transparent : la page du thème sert, et chaque mode du thème se mesure, Light compris.
   const force = surLePlan({ t: 'Dark' }).filter((c) => c.code === 'C49' && !c.limite);
   assert.deepEqual(force.map((c) => c.faits.fondNomme).sort(), ['carte', 'page']);
   assert.ok(force.some((c) => c.faits.fondNomme === 'page' && /theme en Light/.test(String(c.faits.mode))), 'le texte blanc échoue sur la page claire');
@@ -1504,6 +1504,9 @@ test('D18 : le repli du thème se juge dans les modes que le layer force, comme 
   assert.deepEqual(libre.map((c) => c.faits.fondNomme), [undefined]);
   assert.equal(libre[0].faits.fond, '#FFFFFF');
   assert.doesNotMatch(String(libre[0].faits.mode), /theme/);
+  // Garde : un mode forcé par le texte seul ne change pas le fond de son ancêtre, qui reste blanc.
+  const texteSeul = surLePlan(undefined, { t: 'Dark' }).filter((c) => c.code === 'C49' && !c.limite);
+  assert.deepEqual(texteSeul.map((c) => [c.faits.fondNomme, c.faits.fond]), [[undefined, '#FFFFFF']]);
 });
 
 test('D18 : le contour d’un fond forcé se juge dans les modes du layer, pour son remplissage comme pour la variable du thème', () => {
@@ -1577,4 +1580,103 @@ test('D30 : la couverture se mesure sur la boîte du texte, pas sur celle de l�
   const cadreLarge = { ...cadreDuTexte(), dimensions: dims(200, 48) };
   const surface = surfaceDuCadre({ largeur: 100, couleur: [solide('fills', gris(0.9))] });
   assert.equal(parCode(echecsDuCadre([surface, cadreLarge, texteDuCadre()]), 'C49')[0].faits.fond, '#E6E6E6', 'la surface couvre le texte, pas le cadre');
+});
+
+/* ---------- Relecture globale : modes du calque mesuré, lectures manquées ---------- */
+
+test('D18 : les modes forcés par le calque mesuré, ou par son ancêtre, ne descendent pas dans le fond des autres ancêtres', () => {
+  // La racine peint `bg` (blanc en Light, noir en Dark). Le cadre `f`, sans fond, force Dark ; le texte lie `fg` (noir en Light, blanc en Dark).
+  const racineLiee: LayerLu = { ...racine([solide('fills', gris(0.5))]), liaisons: [lie('bg', 'r')] };
+  const cadre: LayerLu = { ...racine([]), id: 'f', nom: 'Cadre', parent: 'r', modesExplicites: { t: 'Dark' } };
+  const r = releve([variant('a', [racineLiee, cadre, texteLie('t', 'f')])]);
+  const catalogue = catalogueDeModesLocaux([0, 1]);
+  // En Light, le texte forcé en Dark est blanc sur la racine blanche : 1 pour 1. Le fond de la racine se lit dans le mode du variant.
+  const [constat] = echecsDeContraste(r, catalogue);
+  assert.equal(constat.faits.rapport, 1);
+  assert.match(String(constat.faits.mode), /t en Light/);
+  // `fondEffectif` rend, pour la combinaison du variant, le fond de la racine dans le mode de cette combinaison.
+  const v = r.variants[0];
+  const texteMesure = v.layers[2];
+  assert.deepEqual(fondEffectif(v, texteMesure, catalogue, { modes: new Map([['t', 'l']]), etiquette: 'Light' }), gris(1));
+  assert.deepEqual(fondEffectif(v, texteMesure, catalogue, { modes: new Map([['t', 'd']]), etiquette: 'Dark' }), gris(0));
+});
+
+test('D18 : le fond d’un frère se lit dans les modes de ce frère, pas dans ceux du texte', () => {
+  const frere = fondLie('p', 'r', { t: 'Light' });
+  const r = releve([variant('a', [racineSansFond(), frere, texteLie('t', 'r', { t: 'Dark' })])]);
+  // Fond blanc (frère forcé en Light), texte blanc (forcé en Dark) : échec dans les deux combinaisons du produit.
+  const [constat] = echecsDeContraste(r, catalogueDeModesLocaux([0, 1]));
+  assert.equal(constat.faits.rapport, 1);
+});
+
+/** Un texte blanc sur une racine blanche : sans lecture du fond, le texte échouerait. */
+function sousUnFrereNonLu(layers: LayerLu[], manquees: { layer: string; champ: string; motif: string }[]) {
+  const r = releve([variant('a', layers)]);
+  r.lecture.manquees.push(...manquees);
+  return cc(r, 'AA', sansFond).filter((c) => c.code === 'C49' && c.faits.calque === 'Label');
+}
+const causesDeLimite = (constats: ReturnType<typeof cc>) => constats.filter((c) => c.limite).map((c) => c.faits.cause);
+
+test('E9.13 : un frère plus bas dont les fills n’ont pas été lus donne une limite, jamais une mesure ni un silence', () => {
+  const frere = fondFrere(100, { couleur: [] });
+  const manquee = [{ layer: 'fond', champ: 'fills', motif: 'x' }];
+  const lu = sousUnFrereNonLu([racine(), frere, texteBlanc()], manquee);
+  assert.deepEqual(causesDeLimite(lu), ['fond-indetermine']);
+  assert.equal(lu.filter((c) => !c.limite).length, 0, 'aucun rapport mesuré sur le fond de la racine');
+  // Gardes : le même texte, sans lecture manquée, échoue ; un frère au-dessus, masqué ou à côté ne dit rien du fond.
+  assert.equal(sousUnFrereNonLu([racine(), frere, texteBlanc()], []).filter((c) => !c.limite).length, 1);
+  assert.deepEqual(causesDeLimite(sousUnFrereNonLu([racine(), texteBlanc(), frere], manquee)), [], 'au-dessus');
+  assert.deepEqual(causesDeLimite(sousUnFrereNonLu([racine(), { ...frere, visible: false }, texteBlanc()], manquee)), [], 'masqué');
+  assert.deepEqual(causesDeLimite(sousUnFrereNonLu([racine(), fondFrere(100, { couleur: [], x: 100 }), texteBlanc()], manquee)), [], 'à côté');
+});
+
+test('E9.13 : le frère non lu d’un ancêtre, plus bas que lui, donne la même limite', () => {
+  const surface = surfaceDuCadre({ couleur: [] });
+  const manquee = [{ layer: 'surface', champ: 'fills', motif: 'x' }];
+  const lu = sousUnFrereNonLu([racine(), surface, cadreDuTexte(), texteDuCadre()], manquee);
+  assert.deepEqual(causesDeLimite(lu), ['fond-indetermine']);
+  assert.equal(lu.filter((c) => !c.limite).length, 0);
+  assert.deepEqual(causesDeLimite(sousUnFrereNonLu([racine(), cadreDuTexte(), texteDuCadre(), surface], manquee)), [], 'au-dessus de l’ancêtre');
+});
+
+test('E9.13 : des modes illisibles sur le calque ou un ancêtre, avec une couleur liée, donnent une limite', () => {
+  const racineLiee: LayerLu = { ...racine([solide('fills', gris(0.5))]), liaisons: [lie('bg', 'r')] };
+  const cadre: LayerLu = { ...racine([]), id: 'f', nom: 'Cadre', parent: 'r' };
+  const sansLecture = (layer: string, layers = [racineLiee, cadre, texteLie('t', 'f')]) => {
+    const r = releve([variant('a', layers)]);
+    r.lecture.manquees.push({ layer, champ: 'explicitVariableModes', motif: 'x' });
+    return cc(r, 'AA', catalogueDeModesLocaux([0, 1])).filter((c) => c.code === 'C49');
+  };
+  for (const layer of ['f', 't']) {
+    const constats = sansLecture(layer);
+    assert.deepEqual(causesDeLimite(constats), ['mode-illisible'], layer);
+    assert.equal(constats.filter((c) => !c.limite).length, 0, `${layer} : aucune mesure dans un mode que le calque ne subit peut-être pas`);
+  }
+  // Gardes : la racine ne pose pas de mode (ses modes sont ceux du variant) ; sans couleur liée, le mode ne change rien.
+  assert.deepEqual(causesDeLimite(sansLecture('r')), []);
+  const enDur = [racine(), cadre, { ...texte([solide('fills', gris(0.72))]), parent: 'f' }];
+  assert.deepEqual(causesDeLimite(sansLecture('f', enDur)), [], 'peintures écrites en dur');
+  assert.equal(sansLecture('f', enDur).filter((c) => !c.limite).length, 1, 'le texte clair se mesure');
+});
+
+test('E9.13 : une instance dont le budget de lecture est épuisé donne une limite sur l’instance, les autres calques se mesurent', () => {
+  const instance: LayerLu = { ...champ('i', [], { nom: 'Slot', type: 'INSTANCE', strokeWeight: undefined }), instanceDe: { cle: 'c', nom: 'Slot', distante: false, pilotee: null } };
+  const r = releve([variant('a', [racine(), instance, texteFaible()])]);
+  r.lecture.manquees.push({ layer: 'i', champ: 'calques', motif: 'x' });
+  const constats = cc(r).filter((c) => c.code === 'C49');
+  const limites = constats.filter((c) => c.limite);
+  assert.deepEqual(limites.map((c) => [c.faits.cause, c.faits.calque, c.layers]), [['calques-non-lus', 'Slot', ['i']]]);
+  assert.equal(constats.filter((c) => !c.limite && c.faits.calque === 'Label').length, 1, 'le texte de l’hôte reste mesuré');
+  // Garde : sans lecture manquée, l'instance ne dit rien.
+  assert.deepEqual(cc(releve([variant('a', [racine(), instance, texteFaible()])])).filter((c) => c.limite), []);
+});
+
+test('E9.13 : un calque dont les fills n’ont pas été lus sous une instance ne fait pas sauter les autres calques de cette instance', () => {
+  const enveloppe: LayerLu = { ...champ('e', [], { nom: '.sizeWrapperButton', type: 'INSTANCE', strokeWeight: undefined }), instanceDe: { cle: 'c', nom: '.sizeWrapperButton', distante: false, pilotee: null } };
+  const sous = (id: string, x: number): LayerLu => ({ ...texte([solide('fills', gris(0.72))], 14, 400, id), parent: 'e', nom: id, dimensions: { x, y: 0, largeur: 30, hauteur: 16 } });
+  const v: VariantLu = { ...variant('a', [racine(), enveloppe]), dansInstances: [sous('premier', 0), sous('second', 40)] };
+  const r = releve([v]);
+  r.lecture.manquees.push({ layer: 'premier', champ: 'fills', motif: 'x' });
+  const mesures = cc(r).filter((c) => c.code === 'C49' && !c.limite);
+  assert.deepEqual(mesures.map((c) => c.faits.calque), ['second']);
 });

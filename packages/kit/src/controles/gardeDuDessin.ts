@@ -5,7 +5,7 @@
 import { atteintLeSeuil, contraste } from '../emplois/contraste.js';
 import { composer, versOctet, versRgb8, type Rgba } from '../emplois/couleur.js';
 import { SEUILS_PAR_ROLE } from '../referentiel/contraste.js';
-import { estUneIconeJugee } from '../referentiel/layers.js';
+import { estUneIconeMesureeParSurcharge } from '../referentiel/layers.js';
 import { collectionDuCatalogue, variableDuCatalogue, type CatalogueDeReference, type CollectionDuCatalogue, type VariableDuCatalogue } from './catalogue.js';
 import { combinaisonDuLayer, couleurDeLiaison, fondEffectif, fondsPeintsSous, pileDePeintures, seuilDeLaPlage, SEUILS_D_ACCESSIBILITE, type Combinaison } from './accessibilite.js';
 import { liaisonsPropres, type LayerLu, type LiaisonLue, type PeintureLue, type VariantLu } from './releve.js';
@@ -35,11 +35,15 @@ export interface PropositionDeCouleur {
  * La couleur résolue du candidat égale la couleur actuelle dans chaque combinaison de modes des collections que leurs alias atteignent
  * (à 8 bits par canal, la précision à laquelle le kit mesure le contraste), ou son contraste avec le fond de `fondsPeintsSous` atteint
  * le seuil du calque. Le seuil d'une plage de texte est celui de C49 au niveau AA (`seuilDeLaPlage` : le grand texte selon sa taille et sa
- * graisse) ; un texte sans plage nommée garde le plus strict (4,5). Celui d'une icône vient de `SEUILS_PAR_ROLE`, celui des autres calques
- * est le non-texte.
+ * graisse) ; un texte sans plage nommée garde le plus strict (4,5). Celui d'une icône mesurée (`estUneIconeMesuree` : certaine, ou faite d'un seul dessin) vient de `SEUILS_PAR_ROLE`, celui des
+ * autres calques est le non-texte. Le niveau est AA : ni `proposerLesCorrections` ni `controlerLeTheme`, qui appellent cette fonction,
+ * ne reçoivent le niveau que lit `controlerLAccessibilite`.
+ *
+ * Quand la liaison est celle d'une surcharge, la peinture jugée est celle du calque que la surcharge peint (`liaison.surcharge.peintures`),
+ * pas celle de l'hôte ; sans elle, le verdict est `inconnu`.
  */
 export function gardeLeDessin(catalogue: CatalogueDeReference, proposition: PropositionDeCouleur): GardeDuDessin {
-  const { variant, layer, champ, liaison, candidat } = proposition;
+  const { variant, layer, liaison, candidat } = proposition;
   const peintures = peinturesVisees(layer, proposition);
   const peinture = peintures?.find((entree) => entree.indice === indiceVise(proposition));
   if (!peintures || !peinture || peinture.type !== 'SOLID' || liaison?.illisible) return 'inconnu';
@@ -61,20 +65,23 @@ export function gardeLeDessin(catalogue: CatalogueDeReference, proposition: Prop
 /** L'indice de la peinture visée ; une plage de texte sans indice vise la première. */
 function indiceVise({ indice, liaison }: PropositionDeCouleur): number { return indice ?? liaison?.indice ?? 0; }
 
-function peinturesVisees(layer: LayerLu, { champ, plage }: PropositionDeCouleur): PeintureLue[] | undefined {
+/** Les peintures du champ visé : celles du calque peint par la surcharge de la liaison (absentes : non lues), sinon celles du layer ou de la plage. */
+function peinturesVisees(layer: LayerLu, { champ, plage, liaison }: PropositionDeCouleur): PeintureLue[] | undefined {
+  if (liaison?.surcharge) return liaison.surcharge.peintures?.filter((peinture) => peinture.champ === champ);
   if (!plage) return layer.peintures.filter((peinture) => peinture.champ === champ);
   return layer.texte?.plages.find((entree) => entree.debut === plage.debut && entree.fin === plage.fin)?.peintures.filter((peinture) => peinture.champ === champ);
 }
 
 function gardeDansLaCombinaison(catalogue: CatalogueDeReference, proposition: PropositionDeCouleur, peinture: PeintureLue, combinaison: Combinaison): GardeDuDessin {
   const { variant, layer, liaison, candidat } = proposition;
-  // Le calque subit les modes qu'il force, comme dans la mesure de C49 (D18) : le produit des modes ne les remplace pas.
+  // Le calque subit les modes qu'il force, comme dans la mesure de C49 (D18) : le produit des modes ne les remplace pas. Son fond, lui, lit
+  // la combinaison du produit : chaque calque qui le peint applique ses propres modes forcés.
   const vue = combinaisonDuLayer(variant, layer, combinaison, catalogue);
   const proposee = couleurDeLiaison(catalogue, variant, vue, candidat.cle);
   const actuelle = liaison ? couleurDeLiaison(catalogue, variant, vue, liaison.variable.cle) : peinture.couleur;
   if (proposee === 'mode-illisible' || actuelle === 'mode-illisible' || !actuelle) return 'inconnu';
   if (memeCouleur(proposee, actuelle)) return 'garde';
-  return contrasteTenu(catalogue, proposition, vue);
+  return contrasteTenu(catalogue, proposition, combinaison, vue);
 }
 
 /** Les canaux et l'alpha égaux à 8 bits près. */
@@ -84,30 +91,36 @@ function memeCouleur(a: { r: number; g: number; b: number; a?: number }, b: { r:
   return ar === br && ag === bg && ab === bb && versOctet(a.a ?? 1) === versOctet(b.a ?? 1);
 }
 
-/** Le candidat posé sur le calque, composé sur son fond prouvé : opaque, et au seuil du calque. */
-function contrasteTenu(catalogue: CatalogueDeReference, proposition: PropositionDeCouleur, combinaison: Combinaison): GardeDuDessin {
+/**
+ * Le candidat posé sur le calque, composé sur son fond prouvé : opaque, et au seuil du calque. `produit` est la combinaison du produit des
+ * modes, celle que le fond lit ; `vue` celle que le calque subit.
+ */
+function contrasteTenu(catalogue: CatalogueDeReference, proposition: PropositionDeCouleur, produit: Combinaison, vue: Combinaison): GardeDuDessin {
   const { variant, layer, champ, plage, liaison, candidat } = proposition;
   const indice = indiceVise(proposition);
   if ((layer.blendMode !== undefined && layer.blendMode !== 'NORMAL' && layer.blendMode !== 'PASS_THROUGH') || layer.flouArrierePlan) return 'inconnu';
-  const fond = fondEffectif(variant, layer, catalogue, combinaison);
+  const fond = fondEffectif(variant, layer, catalogue, produit);
   if ('limite' in fond || fond.a < 1 - 1e-9) return 'inconnu';
   const peintures = peinturesVisees(layer, proposition) ?? [];
-  const liaisons = plage ? (layer.texte?.plages.find((entree) => entree.debut === plage.debut && entree.fin === plage.fin)?.liaisons ?? []) : liaisonsPropres(layer);
+  const liaisons = liaison?.surcharge
+    ? layer.liaisons.filter((entree) => entree.surcharge?.id === liaison.surcharge!.id)
+    : plage ? (layer.texte?.plages.find((entree) => entree.debut === plage.debut && entree.fin === plage.fin)?.liaisons ?? []) : liaisonsPropres(layer);
   const posee: LiaisonLue = { champ, indice, porteur: layer.id, variable: { id: '', cle: candidat.cle, nom: candidat.nom, collection: candidat.collection, distante: false } };
   const autres = liaisons.filter((entree) => entree !== liaison && !(entree.champ === champ && (entree.indice ?? 0) === indice));
-  const pile = pileDePeintures(peintures, [...autres, posee], opaciteDuLayer(variant, layer), catalogue, variant, combinaison);
+  const pile = pileDePeintures(peintures, [...autres, posee], opaciteDuLayer(variant, layer), catalogue, variant, vue);
   if ('limite' in pile || pile.couches.length === 0) return 'inconnu';
   const premier = composer(pile.couches, fond as Rgba);
   if (!premier) return 'inconnu';
-  return atteintLeSeuil(contraste(versRgb8(premier), versRgb8(fond)), seuilDuCalque(layer, plage)) ? 'garde' : 'change';
+  return atteintLeSeuil(contraste(versRgb8(premier), versRgb8(fond)), seuilDuCalque(layer, plage, liaison?.surcharge)) ? 'garde' : 'change';
 }
 
-function seuilDuCalque(layer: LayerLu, plage?: PropositionDeCouleur['plage']): number {
-  if (layer.type === 'TEXT') {
-    const lue = plage && layer.texte?.plages.find((entree) => entree.debut === plage.debut && entree.fin === plage.fin);
+/** Le seuil du calque que la proposition peint : celui de la surcharge quand la liaison en est une, sinon celui du layer. */
+function seuilDuCalque(layer: LayerLu, plage?: PropositionDeCouleur['plage'], surcharge?: LiaisonLue['surcharge']): number {
+  if ((surcharge ?? layer).type === 'TEXT') {
+    const lue = !surcharge && plage && layer.texte?.plages.find((entree) => entree.debut === plage.debut && entree.fin === plage.fin);
     return lue ? seuilDeLaPlage(lue, 'AA').seuil : SEUILS_D_ACCESSIBILITE.texte.AA;
   }
-  if (estUneIconeJugee(layer)) return SEUILS_PAR_ROLE.icon ?? SEUILS_D_ACCESSIBILITE.texte.AA;
+  if (estUneIconeMesureeParSurcharge(layer, surcharge)) return SEUILS_PAR_ROLE.icon ?? SEUILS_D_ACCESSIBILITE.texte.AA;
   return SEUILS_D_ACCESSIBILITE.nonTexte;
 }
 

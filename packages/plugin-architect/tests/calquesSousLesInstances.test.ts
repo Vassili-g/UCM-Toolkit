@@ -111,15 +111,15 @@ test('le relevé lit le texte, la flèche et son tracé sous l’instance, avec 
   assert.deepEqual(lus.find(({ id }) => id === 'Iwrap;fl')?.instanceDe?.dessin, true, 'la flèche garde ce qui la fait icône');
 });
 
-test('une liaison que le composant principal tient garde cette origine, et le calque ne porte que ses liaisons de couleur', async () => {
+test('le calque ne porte que ses liaisons de couleur, sans provenance : aucun contrôle ne la lit sous une instance', async () => {
   const lus = dansInstances(await relever());
   const texte = lus.find(({ id }) => id === 'Iwrap;lab')!;
   assert.ok(texte.liaisons.length > 0);
   assert.ok(texte.liaisons.every((liaison) => liaison.champ === 'fills' || liaison.champ === 'strokes'));
-  assert.ok(texte.liaisons.every((liaison) => liaison.provenance === 'composant-principal'), JSON.stringify(texte.liaisons.map((l) => l.provenance)));
+  assert.ok(texte.liaisons.every((liaison) => liaison.provenance === undefined), JSON.stringify(texte.liaisons.map((l) => l.provenance)));
   assert.deepEqual(texte.valeursEnDur, [], 'aucune valeur en dur : aucun contrôle de taille ne les lit');
   const fleche = lus.find(({ id }) => id === 'Iwrap;fl;vec')!;
-  assert.deepEqual(fleche.liaisons.map((liaison) => liaison.provenance), ['instance'], 'la couleur de la flèche est posée par l’hôte, le maître ne la tient pas');
+  assert.deepEqual(fleche.liaisons.map((liaison) => liaison.provenance), [undefined]);
 });
 
 test('un texte blanc dans l’instance sur un fond blanc donne C49 à corriger, la flèche grise se mesure au seuil d’icône', async () => {
@@ -152,4 +152,22 @@ test('une instance dont le composant a ses règles est une dépendance : ses cal
 test('un décor sans texte ni icône n’entre pas dans le relevé, et une instance qui ne contient rien n’y laisse rien', async () => {
   const lus = dansInstances(await relever({ decor: true }));
   assert.equal(lus.some(({ id }) => id.startsWith('Iwrap;decor')), false);
+});
+
+test('le budget du relevé épuisé, chaque instance que la visite ne lit pas consigne sa manquée, avec son propre id', async () => {
+  const a = atelierDeCalques();
+  const maitre = a.calque('maitre', 'COMPONENT', { name: 'Carte', key: 'cle-carte', remote: false, componentPropertyDefinitions: {}, absoluteBoundingBox: boite(0, 10, 10) });
+  // 30 instances de 400 cadres : le budget de 10 000 calques tient 25 instances, les 5 dernières ne se lisent pas.
+  const instances = Array.from({ length: 30 }, (_, rang) => a.calque(`i${rang}`, 'INSTANCE', {
+    name: `Carte ${rang}`, absoluteBoundingBox: boite(0, 10, 10), variantProperties: {}, componentPropertyReferences: {}, overrides: [], fills: [],
+    getMainComponentAsync: async () => maitre,
+  }, Array.from({ length: 400 }, (_, enfant) => a.calque(`i${rang};f${enfant}`, 'FRAME', { name: 'Cadre', absoluteBoundingBox: boite(0, 1, 1), fills: [] }))));
+  const variant = a.calque('v', 'COMPONENT', { name: 'State=Default', absoluteBoundingBox: boite(0, 10, 10), variantProperties: { State: 'Default' }, fills: [] }, instances);
+  const jeu = a.calque('jeu', 'COMPONENT_SET', { name: 'Grille', key: 'cle-grille', defaultVariant: variant, componentPropertyDefinitions: { State: { type: 'VARIANT', defaultValue: 'Default', variantOptions: ['Default'] } } }, [variant]);
+  const { port } = portDeTest([], []);
+  const issue = await lireLeReleve(a.port(port), jeu, {});
+  assert.equal(issue.statut, 'lu');
+  if (issue.statut !== 'lu') return;
+  const nonLues = issue.releve.lecture.manquees.filter(({ champ }) => champ === 'calques').map(({ layer }) => layer);
+  assert.deepEqual(nonLues, ['i25', 'i26', 'i27', 'i28', 'i29']);
 });

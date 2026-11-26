@@ -122,10 +122,29 @@ test('D9 : le rôle déjà pris par un nom explicite ne se donne pas une seconde
   assert.equal(axesDuReleve(r).palette?.nom, 'Color');
 });
 
-test('D9 : deux noms génériques de palette ne la prennent pas tous les deux', () => {
-  const r = releve('Alert', [['Type', ['Info', 'Success']], ['Kind', ['Warning', 'Danger']]]);
-  const roles = rolesDesProprietes(r);
-  assert.deepEqual(r.proprietes.map((propriete) => roles.get(propriete)), ['palette', 'style']);
+test('D9 : deux noms génériques de palette ne la prennent ni l’un ni l’autre, quel que soit leur ordre', () => {
+  const type: Axe = ['Type', ['Info', 'Success']];
+  const kind: Axe = ['Kind', ['Warning', 'Danger']];
+  for (const axes of [[type, kind], [kind, type]]) {
+    const r = releve('Alert', axes);
+    const roles = rolesDesProprietes(r);
+    assert.deepEqual(r.proprietes.map((propriete) => roles.get(propriete)), ['style', 'style'], axes.map(([nom]) => nom).join(', '));
+    assert.equal(axesDuReleve(r).palette, undefined);
+  }
+});
+
+test('D9 : deux propriétés qui prétendent à la palette par leurs valeurs, la position des tokens désigne la seule qui l’écrit', () => {
+  // `Type` et `Kind` portent des palettes ; les tokens n'écrivent les valeurs de `Kind` qu'à la position de la palette.
+  const noms = ['Info', 'Success'].flatMap((palette) => ['Filled', 'Outlined'].map((style) => `Alert/Color/${palette}/${style}/foreground`));
+  const type: Axe = ['Type', ['Warning', 'Danger']];
+  const kind: Axe = ['Kind', ['Info', 'Success']];
+  const style: Axe = ['Variant', ['Filled', 'Outlined']];
+  const lus = [[type, kind, style], [style, kind, type], [kind, type, style]].map((axes) => {
+    const r = releve('Alert', axes);
+    const roles = rolesDesProprietes(r, catalogue(noms));
+    return Object.fromEntries(r.proprietes.map((propriete) => [propriete.nom, roles.get(propriete)]));
+  });
+  for (const lu of lus) assert.deepEqual(lu, { Type: 'style', Kind: 'palette', Variant: 'style' });
 });
 
 test('D9 : sans valeur dans un registre, la position où les tokens écrivent les valeurs donne le rôle', () => {

@@ -80,7 +80,7 @@ const bloquant = (extra: Partial<Constat> = {}): Constat => ({
 
 test('le sommaire commence par Tout, puis une puce par élément qui a des points, avec son nombre', () => {
   const banc = monter();
-  assert.deepEqual(puces(banc).map((puce) => [puce.dataset.element, comme(puce.querySelector('.nombre')).textContent]), [['tout', '24'], ['couleurs', '18'], ['tailles', '2'], ['tokens', '3'], ['regles', '1']]);
+  assert.deepEqual(puces(banc).map((puce) => [puce.dataset.element, comme(puce.querySelector('.nombre')).textContent]), [['tout', '19'], ['couleurs', '14'], ['tailles', '1'], ['tokens', '3'], ['regles', '1']]);
   assert.deepEqual(puces(banc).map((puce) => puce.getAttribute('aria-pressed')), ['true', 'false', 'false', 'false', 'false']);
   // Les éléments tenus n'ont pas de puce.
   assert.equal(puceDe(banc, 'texte'), undefined);
@@ -101,7 +101,7 @@ test('« Tout » montre une section par élément qui a des points, puis les él
   const banc = monter();
   assert.deepEqual(sections(banc).map((section) => section.dataset.element), ['couleurs', 'tailles', 'tokens', 'regles', 'texte', 'variants', 'a11y']);
   assert.deepEqual(sections(banc).map((section) => bande(section).classes.has('tenue')), [false, false, false, false, true, true, true]);
-  assert.deepEqual(sections(banc).slice(0, 4).map((section) => nombre(section)), ['18', '2', '3', '1']);
+  assert.deepEqual(sections(banc).slice(0, 4).map((section) => nombre(section)), ['14', '1', '3', '1']);
 });
 
 test('la bande d’une section porte un signe de 24 px en couleur, le titre, le nombre de points et le chevron', () => {
@@ -110,7 +110,7 @@ test('la bande d’une section porte un signe de 24 px en couleur, le titre, le 
   const signe = comme(tailles.querySelector('.signe'));
   assert.ok(signe.classes.has('signe-24') && signe.classes.has('signe-teinte-tailles'));
   assert.equal(comme(tailles.querySelector('.titre')).textContent, 'Tailles et forme');
-  assert.equal(nombre(tailles), '2');
+  assert.equal(nombre(tailles), '1');
   assert.ok(tailles.querySelector('.chevron-svg'));
   assert.equal(tailles.tagName, 'BUTTON');
 });
@@ -216,7 +216,7 @@ test('les Bloquants viennent en tête de « Tout », hors des sections, et la pu
   assert.equal(tokens.querySelectorAll('.bloc').length, 3);
   assert.ok(puceDe(banc, 'tokens').querySelector('.ico.ton-bloquant'));
   assert.equal(puceDe(banc, 'couleurs').querySelector('.ico'), null);
-  assert.equal(comme(puceDe(banc, 'tout').querySelector('.nombre')).textContent, '25');
+  assert.equal(comme(puceDe(banc, 'tout').querySelector('.nombre')).textContent, '20');
   // La vue d'un élément garde ses Bloquants.
   choisir(banc, 'tokens');
   assert.equal(banc.racine.querySelector('.en-tete-bloquants'), null);
@@ -229,7 +229,7 @@ test('sans Bloquant, « Tout » n’a pas d’en-tête', () => {
 
 test('le résumé donne le nombre de points', () => {
   const banc = monter();
-  assert.match(comme(banc.racine.querySelector('.arch-resume-titre')).textContent, /24 points/);
+  assert.match(comme(banc.racine.querySelector('.arch-resume-titre')).textContent, /19 points/);
 });
 
 test('Appliquer sur une carte n’envoie que les lignes cochées de cette carte', () => {
@@ -368,14 +368,14 @@ test('une question répondue garde sa ligne de réponse avec Annuler la réponse
   annuler[0].clic();
   assert.deepEqual(banc.envois.annulees, [question.question.id]);
   // Sa correction est une carte de corrections de plus, et les points ne changent pas.
-  assert.equal(nombre(sectionDe(banc, 'couleurs')), '18');
+  assert.equal(nombre(sectionDe(banc, 'couleurs')), '14');
 });
 
 test('une correction déjà écrite n’est plus un point', () => {
   const banc = monter(constatsAlert, { appliquees: ['cor:regles'] });
   assert.equal(bande(sectionDe(banc, 'regles')).classes.has('tenue'), true);
   assert.equal(puceDe(banc, 'regles'), undefined);
-  assert.equal(comme(puceDe(banc, 'tout').querySelector('.nombre')).textContent, '23');
+  assert.equal(comme(puceDe(banc, 'tout').querySelector('.nombre')).textContent, '18');
   assert.deepEqual(sections(banc).map((section) => section.dataset.element).slice(-4), ['texte', 'variants', 'regles', 'a11y']);
 });
 
@@ -486,7 +486,7 @@ test('pendant le provisoire, le panneau montre les constats avec la barre, Annul
   assert.equal(sections(banc).some((section) => bande(section).classes.has('tenue')), false, 'aucune section tenue');
   assert.equal(banc.racine.querySelector('.corrections-pied'), null, 'le pied des corrections est masqué');
   assert.notEqual(banc.racine.querySelector('.progression-analyse'), null);
-  assert.match(banc.racine.textContent, /Lecture des composants imbriqués, 24 points/);
+  assert.match(banc.racine.textContent, /Lecture des composants imbriqués, 19 points/);
   assert.match(banc.racine.textContent, /Annuler/);
   assert.match(banc.racine.textContent, /L’analyse des composants imbriqués est en cours\. D’autres points peuvent s’ajouter\./);
   assert.doesNotMatch(banc.racine.textContent, /s’afficheront à la fin/);
@@ -639,7 +639,7 @@ test('une péremption pendant le provisoire garde les constats consultables sous
   assert.equal(banc.racine.querySelector('.progression-analyse'), null);
   assert.match(banc.racine.textContent, /Le composant a changé depuis l’analyse\./);
   assert.match(banc.racine.textContent, /Cliquez Actualiser pour relire\./);
-  assert.match(banc.racine.textContent, /24 points/);
+  assert.match(banc.racine.textContent, /19 points/);
   assert.doesNotMatch(banc.racine.textContent, /composants imbriqués est en cours|Annuler|analysé à/);
   assert.ok(boutonsDeCartes(banc.racine).length > 0);
   assert.equal(boutonsDeCartes(banc.racine).every((bouton) => bouton.disabled), true, 'aucune écriture possible');
@@ -684,8 +684,8 @@ test('la section Informations vient en dernier, repliée, avec son nombre et un 
 
 test('une information ne compte ni dans « Tout », ni dans le sommaire, ni dans le résumé, ni dans les cartes', () => {
   const banc = monter([...constatsAlert, ...informations()]);
-  assert.deepEqual(puces(banc).map((puce) => [puce.dataset.element, comme(puce.querySelector('.nombre')).textContent]), [['tout', '24'], ['couleurs', '18'], ['tailles', '2'], ['tokens', '3'], ['regles', '1']]);
-  assert.match(comme(banc.racine.querySelector('.arch-resume-titre')).textContent, /24 points/);
+  assert.deepEqual(puces(banc).map((puce) => [puce.dataset.element, comme(puce.querySelector('.nombre')).textContent]), [['tout', '19'], ['couleurs', '14'], ['tailles', '1'], ['tokens', '3'], ['regles', '1']]);
+  assert.match(comme(banc.racine.querySelector('.arch-resume-titre')).textContent, /19 points/);
   bande(sectionDesInformations(banc)).clic();
   assert.equal(banc.racine.querySelectorAll('.bloc.ton-info').length, 0);
   assert.equal(banc.racine.querySelectorAll('.bloc.muette').length, 0);

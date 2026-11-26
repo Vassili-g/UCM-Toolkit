@@ -5,7 +5,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import {
-  estUnAnneau, estUneIcone, estUneIconeCertaine, estUneInstanceDIcone, estUnNomDAnneau, estUnNomDeSeparateur, motDIconeDansLeNom,
+  estUnAnneau, estUneIcone, estUneIconeCertaine, estUneIconeJugee, estUneIconeMesuree, estUneInstanceDIcone, estUnNomDAnneau, estUnNomDeSeparateur, motDIconeDansLeNom,
   MOTS_D_ICONE, ROLES_QUI_DESIGNENT_UN_LAYER, roleQueLeLayerDesigne, leNomDuLayerDitLeRole,
 } from '../src/referentiel/layers.js';
 
@@ -115,6 +115,33 @@ test("D29 : le mot d'icône ne rend l'instance certaine que s'il est le dernier 
   }
   // Le pluriel `icons` n'est pas un mot d'icône, donc ce dossier ne rend rien certain, avant comme après D29.
   assert.equal(estUneIconeCertaine(instance('Slot', 'icons/arrow')), false);
+});
+
+test("D29 : un dossier du chemin ne rend l'instance certaine que si son dernier mot est un mot d'icône", () => {
+  for (const composant of ['Icon/Close', 'Navigation Icon/Close', 'Icons/Icon/Close']) {
+    assert.equal(estUneIconeCertaine(instance('Slot', composant)), true, composant);
+  }
+  // `Icon Button/Primary` est un bouton, rangé dans un dossier dont le premier mot est Icon : il reste une icône probable.
+  for (const composant of ['Icon Button/Primary', 'IconButton/Primary/Small', 'Icon-Button/Primary']) {
+    const layer = instance('Slot', composant);
+    assert.equal(estUneIconeCertaine(layer), false, composant);
+    assert.equal(estUneIcone(layer), true, `${composant} reste une icône probable`);
+  }
+});
+
+test("D1 : juger une icône (C66, C67) est l'icône certaine ; la mesurer (C49) ajoute l'instance faite d'un seul dessin, pas le mot d'icône hors position certaine", () => {
+  const dessin = { nom: 'Pointe', type: 'INSTANCE', instanceDe: { nom: 'Arrow', pilotee: null, dessin: true } };
+  assert.equal(estUneIcone(dessin), true, 'icône probable');
+  assert.equal(estUneIconeCertaine(dessin), false, 'ni C66 ni C67');
+  assert.equal(estUneIconeMesuree(dessin), true, 'C49 mesure le dessin au seuil d’une icône');
+  const bouton = instance('Slot', 'IconButton');
+  assert.equal(estUneIconeMesuree(bouton), false, 'un bouton n’est pas mesuré comme une icône');
+  assert.equal(estUneIconeMesuree({ ...dessin, type: 'FRAME' }), false, 'un FRAME n’est jamais une icône');
+  for (const layer of [instance('Leading', 'Icon'), { nom: 'Slot', type: 'INSTANCE', instanceDe: { nom: 'Chevron', pilotee: null, visibilitePar: 'Icon-Left#1:2' } }, tracé('icon')]) {
+    assert.equal(estUneIconeCertaine(layer), true, layer.nom);
+    assert.equal(estUneIconeMesuree(layer), true, layer.nom);
+  }
+  assert.equal(estUneIconeJugee, estUneIconeMesuree, 'ancien nom, lu par le relevé d’Architect');
 });
 
 test("D29 : la propriété de visibilité et le nom d'un tracé gardent la règle du mot entier", () => {

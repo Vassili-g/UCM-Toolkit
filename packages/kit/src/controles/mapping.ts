@@ -1,5 +1,5 @@
 /** Écarts entre les liaisons lues et les axes, rôles et portées du composant. */
-import { estUneIcone, estUneIconeCertaine, roleQueLeLayerDesigne } from '../referentiel/layers.js';
+import { estUneIcone, estUneIconeCertaineParSurcharge, roleQueLeLayerDesigne } from '../referentiel/layers.js';
 import { formeDuChemin, formeReconnue } from '../referentiel/reconnaissance.js';
 import { collectionParCle, variableDuCatalogue, type CatalogueDeReference, type VariableDuCatalogue } from './catalogue.js';
 import type { Constat } from './constat.js';
@@ -54,7 +54,7 @@ export function rolesAdmisDuLayer(layer: LayerLu, champ: string, plage?: unknown
   const dansUneIcone = !!surcharge && (estUneIcone(layer) || estUneIcone(surcharge) || !!surcharge.instances?.some(estUneIcone));
   // Le seul critère du dessin est un indice fort, pas certain (une pointe de Tooltip est aussi un composant fait d'un tracé) :
   // il admet `icon` sans retirer le rôle que le type du calque admet (D1).
-  const iconeCertaine = estUneIconeCertaine(layer) || (!!surcharge && (estUneIconeCertaine(surcharge) || !!surcharge.instances?.some(estUneIconeCertaine)));
+  const iconeCertaine = estUneIconeCertaineParSurcharge(layer, surcharge);
   if (champ === 'strokes') {
     const traceSansFill = !surcharge && estUneIcone(layer) && !layer.peintures.some((peinture) => peinture.champ === 'fills' && peintureVisible(peinture));
     if (!traceSansFill && !dansUneIcone) return ['border', 'foreground'];
@@ -71,11 +71,13 @@ export function rolesAdmisDuLayer(layer: LayerLu, champ: string, plage?: unknown
 const FORMES_SIMPLES: ReadonlySet<string> = new Set(['RECTANGLE', 'ELLIPSE', 'POLYGON', 'STAR', 'LINE']);
 
 /**
- * Le chemin depuis le layer lu jusqu'au calque peint : les noms des instances qui les séparent, puis celui du calque, joints par ` › `.
- * `Constat['faits']` ne porte ni tableau ni objet, donc une chaîne.
+ * Le chemin du calque qu'un constat de liaison désigne : celui de l'identité du layer lu dans son variant (D16), noms écrits dans Figma,
+ * racine exclue ; quand la liaison a une surcharge, il se poursuit par les noms des instances qui séparent le layer du calque peint, puis
+ * par celui du calque. Les niveaux sont joints par ` › ` : `Constat['faits']` ne porte ni tableau ni objet.
  */
-function cheminDeLaSurcharge(surcharge: NonNullable<LiaisonLue['surcharge']>): string {
-  return [...(surcharge.instances ?? []).map((instance) => instance.nom), surcharge.nom].join(' › ');
+function cheminDuCalque(variant: VariantLu, layer: LayerLu, surcharge: LiaisonLue['surcharge']): string {
+  const identite = identiteDuCalque(variant, layer).noms;
+  return [...identite, ...(surcharge ? [...(surcharge.instances ?? []).map((instance) => instance.nom), surcharge.nom] : [])].join(' › ');
 }
 
 /** Les types de layer que Figma range parmi les formes : leur remplissage porte le scope `SHAPE_FILL`, pas `FRAME_FILL` (N-04, N-05). */
@@ -243,8 +245,8 @@ export function* controlerMappingParEtapes(releve: ReleveDeComposant, catalogue:
       // `inverse` qualifie un fond inversé, il ne dit rien du layer qu'il colore (Q-F3-3).
       if (role && role !== 'inverse' && admis && !admis.includes(role)) {
         constats.push(constatDuComposant('C17', 'liaisons', 'corriger', lieu, {
-          token: variable.nom, role, attendu: admis[0], champ: liaison.champ,
-          ...(liaison.surcharge ? { surcharge: liaison.surcharge.id, calque: liaison.surcharge.nom, chemin: cheminDeLaSurcharge(liaison.surcharge) } : {}),
+          token: variable.nom, role, attendu: admis[0], champ: liaison.champ, chemin: cheminDuCalque(variant, layer, liaison.surcharge),
+          ...(liaison.surcharge ? { surcharge: liaison.surcharge.id, calque: liaison.surcharge.nom } : {}),
           ...(liaison.indice === undefined ? {} : { indice: liaison.indice }),
           ...(liaison.plage ? { plageDebut: liaison.plage.debut, plageFin: liaison.plage.fin } : {}),
         }, [variant.id], [layer.id]));

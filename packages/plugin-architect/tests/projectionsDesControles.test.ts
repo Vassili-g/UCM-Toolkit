@@ -22,6 +22,7 @@ import { creerLesRequetes, type EntreeDeSessionDAnalyse } from '../src/sandbox/a
 import { FAMILLES_DE_CONTROLES, GABARITS, PROJECTIONS, projeter, type Gabarit, type NomDeFamille } from '../src/sandbox/projectionsDesControles';
 import { enregistrerLesAcces, type Chemin } from './aides/accesEnregistres';
 import { catalogueRiche, releveRiche, releveRicheAvecWrapper } from './aides/donneesRiches';
+import type { LayerLu } from '@ucm-kit/core/controles';
 import { catalogueDe, fichierDeDepart, releveDe } from './aides/fichierDeSession';
 
 type Niveau = 'AA' | 'AAA';
@@ -47,12 +48,46 @@ function lancer(famille: NomDeFamille, releve: ReleveDeComposant, catalogue: Cat
 interface Donnees { releve: ReleveDeComposant; catalogue: CatalogueDeReference }
 interface Jeu { nom: string; neuf(): Donnees }
 
+/**
+ * Le relevé riche, avec les branches que le premier n'atteint pas : une icône que son dessin désigne, une icône que la propriété de
+ * visibilité désigne, une liaison de provenance `instance` sur un token d'un autre composant (C19), et un token du composant qui vise
+ * `page/foreground`, seul candidat de C59 : `gardeLeDessin` juge alors la proposition.
+ */
+function donneesAvecIconesEtCandidat(): Donnees {
+  const releve = releveRiche();
+  const catalogue = catalogueRiche();
+  catalogue.variables.push(
+    { cle: 'b-texte-page', nom: 'Button/color/primary/contained/default/foreground-page', collection: 'components', type: 'COLOR', etat: 'presente', valeurs: { l: { alias: 't-page-fg' }, d: { alias: 't-page-fg' } } },
+    { cle: 'c-carte', nom: 'Card/color/default/background', collection: 'components', type: 'COLOR', etat: 'presente', valeurs: { l: { alias: 't-primary' }, d: { alias: 't-primary' } } },
+  );
+  for (const variant of releve.variants) {
+    const racine = variant.layers[0];
+    const icone = (suffixe: string, nom: string, instanceDe: NonNullable<LayerLu['instanceDe']>, extra: LayerLu['liaisons'] = []): LayerLu => ({
+      id: `${variant.id}/${suffixe}`, nom, type: 'INSTANCE', parent: racine.id, visible: true, opacite: 1, dimensions: { x: 0, y: 0, largeur: 16, hauteur: 16 }, peintures: [], valeursEnDur: [],
+      liaisons: [
+        { champ: 'strokes', porteur: `${variant.id}/${suffixe}`, indice: 0, variable: { id: 'id-b-fond', cle: 'b-fond', nom: 'Button/color/primary/contained/default/background', collection: 'components', distante: false } },
+        ...extra,
+      ],
+      instanceDe,
+    });
+    variant.layers.push(
+      icone('fleche', 'Fleche', { cle: 'fleche', nom: 'arrow-left-long', distante: true, pilotee: null, dessin: true }, [
+        { champ: 'fills', porteur: `${variant.id}/fleche`, indice: 0, provenance: 'instance', variable: { id: 'id-c-carte', cle: 'c-carte', nom: 'Card/color/default/background', collection: 'components', distante: false } },
+      ]),
+      icone('suivante', 'Suivante', { cle: 'suivante', nom: 'arrow-right-long', distante: true, pilotee: null, dessin: false, visibilitePar: 'Icon-Left#1261:147' }),
+    );
+  }
+  return { releve, catalogue };
+}
+
 const JEUX: readonly Jeu[] = [
   { nom: 'relevé riche', neuf: () => ({ releve: releveRiche(), catalogue: catalogueRiche() }) },
   { nom: 'fixture du banc de session', neuf: () => ({ releve: releveDe(fichierDeDepart()), catalogue: catalogueDe(fichierDeDepart()) }) },
   { nom: 'relevé riche à wrapper de dimensions', neuf: () => ({ releve: releveRicheAvecWrapper(), catalogue: catalogueRiche() }) },
+  { nom: 'relevé riche à icônes, provenance et candidat de C59', neuf: donneesAvecIconesEtCandidat },
 ];
 const JEU_A_WRAPPER = 2;
+const JEU_A_ICONES = 3;
 
 /* ---------- Les chemins couverts ---------- */
 
@@ -186,14 +221,14 @@ const variableDe = (donnees: Donnees, cle: string) => donnees.catalogue.variable
 
 const SCENARIOS: readonly Scenario[] = [
   {
-    nom: 'la peinture d’un calque', projections: ['controle-accessibilite'], constatsAuMoins: ['controle-accessibilite'],
+    nom: 'la peinture d’un calque', projections: ['controle-accessibilite', 'controle-theme'], constatsAuMoins: ['controle-accessibilite'],
     modifier: ({ releve }) => {
       // Le constat retient le pire cas de tous les variants : il faut les peindre tous.
       for (const variant of releve.variants) variant.layers.find((layer) => layer.nom === 'Label')!.texte!.plages[1].peintures[0].couleur = { r: 0.9, g: 0.9, b: 0.9, a: 1 };
     },
   },
   {
-    nom: 'la taille d’un texte', projections: ['controle-accessibilite'], constatsAuMoins: ['controle-accessibilite'],
+    nom: 'la taille d’un texte', projections: ['controle-accessibilite', 'controle-theme'], constatsAuMoins: ['controle-accessibilite'],
     modifier: (donnees) => { premierLayer(donnees, 'Label').texte!.plages[0].fontSize = 8; },
   },
   {
@@ -220,7 +255,7 @@ const SCENARIOS: readonly Scenario[] = [
     },
   },
   {
-    nom: 'la valeur d’une variable de taille', projections: ['controle-accessibilite', 'controle-structure'], constatsAuMoins: [],
+    nom: 'la valeur d’une variable de taille', projections: ['controle-accessibilite', 'controle-theme', 'controle-structure'], constatsAuMoins: [],
     modifier: (donnees) => { variableDe(donnees, 'b-rayon').valeurs!.l = { valeur: 9 }; },
   },
   {
@@ -248,6 +283,23 @@ const SCENARIOS: readonly Scenario[] = [
   {
     nom: 'la liaison d’un variant de wrapper', projections: ['controle-oublis'], constatsAuMoins: ['controle-oublis'], jeu: JEU_A_WRAPPER,
     modifier: ({ releve }) => { releve.wrappers![0].variants[0].liaisons[0].variable.cle = 'b-rayon'; },
+  },
+  {
+    nom: 'le dessin qui fait d’une instance une icône', projections: ['controle-mapping', 'controle-accessibilite', 'controle-typographie', 'controle-theme'], constatsAuMoins: ['controle-mapping'], jeu: JEU_A_ICONES,
+    modifier: ({ releve }) => { for (const variant of releve.variants) variant.layers.find((layer) => layer.nom === 'Fleche')!.instanceDe!.dessin = false; },
+  },
+  {
+    nom: 'la propriété qui pilote la visibilité d’une instance', projections: ['controle-mapping', 'controle-accessibilite', 'controle-typographie', 'controle-theme'], constatsAuMoins: ['controle-mapping'], jeu: JEU_A_ICONES,
+    modifier: ({ releve }) => { for (const variant of releve.variants) variant.layers.find((layer) => layer.nom === 'Suivante')!.instanceDe!.visibilitePar = null; },
+  },
+  {
+    nom: 'la provenance d’une liaison', projections: ['controle-mapping', 'controle-couches', 'controle-typographie', 'controle-theme'], constatsAuMoins: ['controle-mapping'], jeu: JEU_A_ICONES,
+    modifier: ({ releve }) => { for (const variant of releve.variants) variant.layers.find((layer) => layer.nom === 'Fleche')!.liaisons.find((liaison) => liaison.champ === 'fills')!.provenance = 'composant-principal'; },
+  },
+  {
+    nom: 'la valeur du token que C59 propose et que gardeLeDessin juge', projections: ['controle-accessibilite', 'controle-theme', 'controle-structure'], constatsAuMoins: ['controle-theme'], jeu: JEU_A_ICONES,
+    // Le thème pose les mêmes couleurs que surface/foreground dans les deux modes : la proposition garde le dessin, C59 passe de la question à la correction.
+    modifier: (donnees) => { variableDe(donnees, 't-page-fg').valeurs = { l: { valeur: { r: 0.1, g: 0.1, b: 0.1, a: 1 } }, d: { valeur: { r: 0.9, g: 0.9, b: 0.9, a: 1 } } }; },
   },
   {
     nom: 'l’espace de couleur du relevé', projections: [], constatsAuMoins: [],
@@ -323,8 +375,8 @@ async function famillesRejouees(entree: EntreeDeSessionDAnalyse | null, modifier
 test('une famille dont la projection est égale est reprise, les autres se calculent, même quand le relevé a changé', async () => {
   const { entree } = entreeRetenue();
   const peinture = await famillesRejouees(entree, SCENARIOS[0].modifier);
-  assert.deepEqual(peinture.rejouees, ['controle-accessibilite', 'controle-structure']);
-  assert.deepEqual(peinture.reprises, ['controle-nommage', 'controle-mapping', 'controle-couches', 'controle-oublis', 'controle-typographie', 'controle-theme']);
+  assert.deepEqual(peinture.rejouees, ['controle-accessibilite', 'controle-theme', 'controle-structure']);
+  assert.deepEqual(peinture.reprises, ['controle-nommage', 'controle-mapping', 'controle-couches', 'controle-oublis', 'controle-typographie']);
 });
 
 test('la reprise suit la projection : un nom de calque rejoue six familles, un texte une seule', async () => {

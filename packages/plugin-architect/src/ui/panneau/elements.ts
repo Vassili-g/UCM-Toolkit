@@ -7,8 +7,10 @@
  * sinon de sa famille. Le contraste fait exception : ses constats portent le champ peint (`fills`, `strokes`), mais ils se rangent
  * dans l'accessibilité.
  *
- * Une carte reste entière : elle prend l'élément de son premier constat, et tous ses constats comptent dans cet élément. Le nombre de
- * points d'un élément est donc la somme des constats de ses cartes, et chaque constat visible compte une fois.
+ * Une carte reste entière : elle prend l'élément de son premier constat, et tous ses constats se rangent dans cet élément. Le nombre de
+ * points d'un élément est le nombre de cartes que le panneau y montre (un groupe de questions ou de constats à faire en est une),
+ * pas celui de leurs constats : une carte de 180 constats est un point. Un groupe de questions répondu garde sa ligne mais ne compte
+ * pas : sa correction est déjà une carte de corrections. `constats` garde chaque constat une fois.
  *
  * Un constat Bloquant est compté dans son élément (le nombre et l'icône) et se lit dans `bloquants`, pour l'en-tête de « Tout ».
  * L'élément garde ses cartes Bloquant (la vue d'un élément les montre) ; `sansLesBloquants` les retire pour « Tout », qui les montre
@@ -47,7 +49,7 @@ export interface ElementDuPanneau {
   readonly aFaire: readonly CarteDAFaire[];
   /** Les constats que l'élément range, dans l'ordre des constats. */
   readonly constats: readonly Constat[];
-  /** Le nombre de constats que l'élément range. */
+  /** Le nombre de cartes que l'élément montre, plus les deux cartes sans constat de `tokens`. */
   readonly points: number;
   /** Un de ses constats est Bloquant : la puce porte l'icône Bloquant. */
   readonly bloquant: boolean;
@@ -112,6 +114,8 @@ export function elementsDuPanneau(tous: readonly Constat[], contexte: ContexteDe
   const questions: Array<Entree & { groupe: GroupeDeQuestions }> = regrouperLesCartes(cartesDeQuestions, reponses).map((groupe) => ({ groupe, constats: groupe.cartes.map((carte) => carte.constat) }));
   const aFaire: Array<Entree & { carte: CarteDAFaire }> = regrouperLesConstats(constats.filter(estAFaire), contexte).map((groupe) => ({ carte: carteDAFaire(groupe[0], contexte, groupe), constats: groupe }));
 
+  // Un groupe répondu garde sa ligne, et sa correction est déjà une carte de corrections : il ne compte pas une seconde fois.
+  const repondu = (groupe: GroupeDeQuestions): boolean => groupe.cartes.every((carte) => reponses[carte.id] !== undefined);
   const premier = (entree: Entree): IdDElement => elementDuConstat(entree.constats[0]);
   const rang = new Map(constats.map((constat, position) => [constat, position]));
 
@@ -124,7 +128,7 @@ export function elementsDuPanneau(tous: readonly Constat[], contexte: ContexteDe
     const ajouts = id === 'tokens' ? { preparee, sansTokens } : { preparee: null, sansTokens: false };
     return {
       id, corrections: mesCorrections.map((entree) => entree.carte), questions: mesQuestions.map((entree) => entree.groupe), aFaire: mesAFaire.map((entree) => entree.carte),
-      constats: tries, points: tries.length + (ajouts.preparee === null ? 0 : 1) + (ajouts.sansTokens ? 1 : 0), bloquant: tries.some(estBloquant), ...ajouts,
+      constats: tries, points: mesCorrections.length + mesQuestions.filter((entree) => !repondu(entree.groupe)).length + mesAFaire.length + (ajouts.preparee === null ? 0 : 1) + (ajouts.sansTokens ? 1 : 0), bloquant: tries.some(estBloquant), ...ajouts,
     };
   });
   return {

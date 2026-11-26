@@ -37,7 +37,7 @@ const sous = (racine: string, ...champs: string[]): string[] => champs.map((cham
 const PROPRIETES = sous('releve.proprietes.*', 'nom', 'type', 'valeurs');
 const COLLECTIONS = sous('catalogue.collections.*', 'cle', 'nom', 'role');
 const LAYERS = 'releve.variants.*.layers.*';
-/** Les calques que le relevé lit sous les instances (D31) : seul le contrôle d'accessibilité les lit. */
+/** Les calques que le relevé lit sous les instances (D31) : l'accessibilité en lit les champs, le thème les `id`. */
 const SOUS_LES_INSTANCES = 'releve.variants.*.dansInstances.*';
 const LIAISONS_DU_LAYER = `${LAYERS}.liaisons.*`;
 const LIAISONS_DE_PLAGE = `${LAYERS}.texte.plages.*.liaisons.*`;
@@ -62,8 +62,8 @@ export const GABARITS: Readonly<Record<NomDeFamille, Gabarit>> = {
   'controle-mapping': [
     'releve.jeu.nom', ...PROPRIETES,
     ...sous('releve.variants.*', 'id', 'valeurs'),
-    ...sous(LAYERS, 'id', 'nom', 'type', 'parent', 'instanceDe.nom', 'instanceDe.pilotee'),
-    ...sous(LIAISONS_DU_LAYER, 'champ', 'indice', 'plage', 'surcharge', 'variable.cle', 'variable.nom'),
+    ...sous(LAYERS, 'id', 'nom', 'type', 'parent', 'instanceDe.nom', 'instanceDe.pilotee', 'instanceDe.dessin', 'instanceDe.visibilitePar', 'peintures.*.champ', 'peintures.*.visible', 'peintures.*.opacite', 'peintures.*.opacity'),
+    ...sous(LIAISONS_DU_LAYER, 'champ', 'indice', 'plage', 'provenance', 'surcharge', 'variable.cle', 'variable.nom'),
     ...COLLECTIONS, 'catalogue.collections.*.etat', ...sous('catalogue.variables.*', 'cle', 'nom', 'collection', 'etat', 'scopes', ALIAS),
   ],
   'controle-couches': [
@@ -98,7 +98,7 @@ export const GABARITS: Readonly<Record<NomDeFamille, Gabarit>> = {
   ],
   'controle-typographie': [
     'releve.jeu.nom', ...PROPRIETES, ...sous('releve.variants.*', 'id', 'nom', 'valeurs'),
-    ...sous(LAYERS, 'id', 'nom', 'type', 'parent', 'visible', 'peintures.*.champ', 'peintures.*.visible', 'peintures.*.opacite', 'peintures.*.opacity', 'instanceDe.nom', 'instanceDe.distante', 'instanceDe.pilotee', 'instanceDe.valeurs', 'texte.style', 'texte.stylesMixtes'),
+    ...sous(LAYERS, 'id', 'nom', 'type', 'parent', 'visible', 'peintures.*.champ', 'peintures.*.visible', 'peintures.*.opacite', 'peintures.*.opacity', 'instanceDe.nom', 'instanceDe.distante', 'instanceDe.pilotee', 'instanceDe.valeurs', 'instanceDe.dessin', 'instanceDe.visibilitePar', 'texte.style', 'texte.stylesMixtes'),
     ...liaisons(['champ', 'illisible', 'provenance', 'variable.cle', 'variable.nom', 'variable.collection'], ['champ', 'illisible', 'provenance', 'variable.cle', 'variable.nom', 'variable.collection']),
     ...COLLECTIONS, ...sous('catalogue.variables.*', 'cle', 'nom', 'collection', 'type', 'etat'),
   ],
@@ -106,9 +106,10 @@ export const GABARITS: Readonly<Record<NomDeFamille, Gabarit>> = {
     'releve.jeu.nom', 'releve.variants.*.id',
     // La preuve du fond que C59 partage avec C49 mémorise ses fonds par variant, avec les calques lus sous les instances : leur nombre, pas leur contenu.
     `${SOUS_LES_INSTANCES}.*.id`,
-    ...sous(LAYERS, 'id', 'nom', 'type', 'parent', 'visible', 'opacite', 'dimensions.x', 'dimensions.y', 'dimensions.largeur', 'dimensions.hauteur', 'rayons', 'rayonsIllisibles', 'peintures.*.champ', 'peintures.*.visible', 'peintures.*.opacite', 'peintures.*.opacity', 'peintures.*.indice'),
+    ...sous(LAYERS, 'id', 'nom', 'type', 'parent', 'visible', 'opacite', 'dimensions.x', 'dimensions.y', 'dimensions.largeur', 'dimensions.hauteur', 'rayons', 'rayonsIllisibles', 'blendMode', 'flouArrierePlan', 'modesExplicites', 'instanceDe', 'peintures.*.champ', 'peintures.*.visible', 'peintures.*.opacite', 'peintures.*.opacity', 'peintures.*.indice', 'peintures.*.type', 'peintures.*.couleur', 'peintures.*.blendMode'),
+    ...sous(`${LAYERS}.texte.plages.*`, ...CHAMPS_DE_PLAGE_MESUREE),
     ...liaisons(['champ', 'indice', 'plage', 'provenance', 'surcharge', 'illisible', 'variable.cle'], ['champ', 'indice', 'plage', 'provenance', 'surcharge', 'variable.cle']),
-    ...COLLECTIONS, ...sous('catalogue.variables.*', 'cle', 'nom', 'collection', 'etat', ALIAS),
+    ...COLLECTIONS, 'catalogue.collections.*.etat', 'catalogue.collections.*.modes', ...sous('catalogue.variables.*', 'cle', 'nom', 'collection', 'etat', ALIAS, 'valeurs.*.valeur'),
   ],
   'controle-structure': [
     'releve.jeu.nom', ...PROPRIETES,

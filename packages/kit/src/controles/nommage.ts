@@ -52,17 +52,25 @@ function roleDesValeurs(valeurs: readonly string[]): AxeDuComposant | undefined 
   return roles.length === 1 ? roles[0][0] : undefined;
 }
 
+/** Le rôle que les valeurs réclament pour une propriété sans nom explicite : `undefined` pour un interrupteur, sans valeur ou avec des valeurs mêlées. */
+function roleReclameParLesValeurs(nom: string, valeurs: readonly string[] | undefined): AxeDuComposant | undefined {
+  return estUnInterrupteur(nom) || !valeurs ? undefined : roleDesValeurs(valeurs);
+}
+
+/** Le rôle de repli d'une propriété que ni son nom, ni ses valeurs, ni la position des tokens ne placent : le style pour un nom générique. */
+function roleDeRepli(nom: string): AxeDuComposant | undefined {
+  return !estUnInterrupteur(nom) && estGenerique(nom) ? 'style' : undefined;
+}
+
 /**
  * Le rôle d'une propriété de variant ; `undefined` pour un nom qui ne pilote aucun segment, interrupteur compris.
  * Un nom explicite décide. Un nom générique (`Type`, `Kind`) ou inconnu prend, quand les valeurs sont données, le rôle que toutes
  * leurs valeurs ont dans un seul registre. Sans valeur ou avec des valeurs mêlées, un nom générique garde le style (D9).
- * La position des tokens (`axesDuReleve` avec un catalogue) et les rôles déjà pris n'entrent que dans `axesDuReleve`.
+ * La position des tokens (`axesDuReleve` avec un catalogue) et les autres propriétés n'entrent que dans `lireLesAxes`, qui lit le même
+ * nom, les mêmes valeurs et le même repli par les trois fonctions ci-dessus.
  */
 export function axeDePropriete(nom: string, valeurs?: readonly string[]): AxeDuComposant | undefined {
-  const explicite = roleDuNom(nom);
-  if (explicite) return explicite;
-  if (estUnInterrupteur(nom)) return undefined;
-  return (valeurs && roleDesValeurs(valeurs)) || (estGenerique(nom) ? 'style' : undefined);
+  return roleDuNom(nom) ?? roleReclameParLesValeurs(nom, valeurs) ?? roleDeRepli(nom);
 }
 
 /** L'équivalent anglais d'un nom d'axe français, à la casse de son initiale (`Couleur` donne `Color`) ; `undefined` pour tout autre nom. */
@@ -195,30 +203,55 @@ function* lireLesAxes(proprietes: ReleveDeComposant['proprietes'], contexte?: Co
   for (const propriete of proprietes) if (propriete.type === 'VARIANT') variants.push(propriete);
   const roles = new Map<ProprieteDAxe, AxeDuComposant | undefined>();
   const pris = new Map<AxeDuComposant, readonly string[]>();
+  const prendre = (propriete: ProprieteDAxe, role: AxeDuComposant): void => {
+    roles.set(propriete, role);
+    pris.set(role, [...(pris.get(role) ?? []), ...(propriete.valeurs ?? [])]);
+  };
   // Un nom explicite décide d'abord, et son rôle ne se donne pas une seconde fois à un nom générique ou inconnu (D9).
   for (const propriete of variants) {
     yield;
     const role = roleDuNom(propriete.nom);
-    if (!role) continue;
-    roles.set(propriete, role);
-    pris.set(role, [...(pris.get(role) ?? []), ...(propriete.valeurs ?? [])]);
+    if (role) prendre(propriete, role);
   }
-  for (const propriete of variants) {
+  // Le résultat ne dépend pas de l'ordre des propriétés. Chaque lecture ci-dessous se fait sur les rôles déjà pris, jamais sur ceux que
+  // les propriétés voisines de la même passe viennent de prendre ; deux propriétés qui prétendent au même rôle ne le prennent pas, sauf si
+  // la position des tokens en désigne une seule.
+  const restantes = variants.filter((propriete) => !roles.has(propriete));
+  const parLesValeurs = new Map<AxeDuComposant, ProprieteDAxe[]>();
+  for (const propriete of restantes) {
     yield;
-    if (roles.has(propriete)) continue;
-    let role: AxeDuComposant | undefined;
-    if (!estUnInterrupteur(propriete.nom)) {
-      const valeurs = propriete.valeurs ?? [];
-      role = roleDesValeurs(valeurs);
-      if (role && pris.has(role)) role = undefined;
-      if (!role && contexte && valeurs.length) {
-        role = roleDeLaPosition(valeurs, contexte, pris);
-        yield;
-      }
-      if (!role && estGenerique(propriete.nom)) role = 'style';
-    }
-    roles.set(propriete, role);
-    if (role) pris.set(role, [...(pris.get(role) ?? []), ...(propriete.valeurs ?? [])]);
+    const role = roleReclameParLesValeurs(propriete.nom, propriete.valeurs);
+    if (role && !pris.has(role)) parLesValeurs.set(role, [...(parLesValeurs.get(role) ?? []), propriete]);
+  }
+  const gagnantes = new Map<ProprieteDAxe, AxeDuComposant>();
+  for (const [role, pretendantes] of parLesValeurs) {
+    yield;
+    if (pretendantes.length === 1) { gagnantes.set(pretendantes[0], role); continue; }
+    if (!contexte) continue;
+    const designees = pretendantes.filter((propriete) => roleDeLaPosition(propriete.valeurs ?? [], contexte, pris) === role);
+    if (designees.length === 1) gagnantes.set(designees[0], role);
+  }
+  for (const [propriete, role] of gagnantes) prendre(propriete, role);
+  // Les autres suivent leur repli : la position des tokens, puis le style d'un nom générique. Deux propriétés que la position place au même
+  // rôle ne le prennent ni l'une ni l'autre.
+  const parLaPosition = new Map<ProprieteDAxe, AxeDuComposant>();
+  const placees = new Map<AxeDuComposant, number>();
+  const sansRole = restantes.filter((propriete) => !gagnantes.has(propriete));
+  for (const propriete of sansRole) {
+    if (estUnInterrupteur(propriete.nom)) continue;
+    const valeurs = propriete.valeurs ?? [];
+    if (!contexte || !valeurs.length) continue;
+    const role = roleDeLaPosition(valeurs, contexte, pris);
+    yield;
+    if (!role) continue;
+    parLaPosition.set(propriete, role);
+    placees.set(role, (placees.get(role) ?? 0) + 1);
+  }
+  for (const propriete of sansRole) {
+    const placee = parLaPosition.get(propriete);
+    const role = placee && placees.get(placee) === 1 ? placee : roleDeRepli(propriete.nom);
+    if (role) prendre(propriete, role);
+    else roles.set(propriete, undefined);
   }
   const axes: AxesDuReleve = {};
   for (const propriete of variants) {

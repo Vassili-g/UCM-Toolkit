@@ -6,7 +6,7 @@
  */
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { clesDesTokensDeCouleurAttendus, proposerLesCorrections, type CatalogueDeReference, type Constat, type LayerLu, type ReleveDeComposant } from '../src/controles/index.js';
+import { clesDesTokensDeCouleurAttendus, proposerLesCorrections, type CatalogueDeReference, type Constat, type LayerLu, type LiaisonLue, type ReleveDeComposant } from '../src/controles/index.js';
 import { gardeLeDessin } from '../src/controles/gardeDuDessin.js';
 
 const NOIR = { r: 0, g: 0, b: 0, a: 1 };
@@ -189,6 +189,59 @@ test('D18 : gardeLeDessin lit la couleur du candidat dans le mode que le calque 
   // Forcé en Dark, `fg` vaut blanc : la couleur du point. Dans le produit, Light donnerait noir sur noir et ferait dire `change`.
   const { r, cat } = pointForceEnDark();
   assert.equal(gardeLeDessin(cat, { variant: r.variants[0], layer: r.variants[0].layers[1], champ: 'fills', indice: 0, candidat: cat.variables[0] }), 'garde');
+});
+
+/** La racine lie `bg` (blanc en Light, noir en Dark) ; le cadre, sans fond, force Dark ; le point noir en dur est dans le cadre. */
+function pointDansUnCadreForce(): { r: ReleveDeComposant; cat: CatalogueDeReference } {
+  const fond = layer('root', 'Radio', 'FRAME', null, {
+    peintures: [solide(BLANC)],
+    liaisons: [{ champ: 'fills', indice: 0, porteur: 'root', variable: { id: 'bg', cle: 'bg', nom: 'radio/color/background', collection: 'components', distante: false } }],
+  });
+  const cadre = layer('cadre', 'Cadre', 'FRAME', 'root', { modesExplicites: { components: 'Dark' } });
+  const point = layer('dot', 'Dot', 'ELLIPSE', 'cadre', { dimensions: { x: 4, y: 4, largeur: 16, hauteur: 16 }, peintures: [solide(NOIR)] });
+  const clair = { r: 0.8, g: 0.8, b: 0.8, a: 1 };
+  return {
+    r: releve([fond, cadre, point]),
+    cat: catalogue(jeton('bg', 'radio/color/background', parMode(BLANC, NOIR)), jeton('fg', 'radio/color/foreground', parMode(clair))),
+  };
+}
+
+test('D18 : gardeLeDessin lit le fond d’un ancêtre dans son mode, pas dans les modes que le calque ou son cadre forcent', () => {
+  // Le point est forcé en Dark par son cadre, mais la racine reste Light dans la combinaison Light : gris 0,8 sur blanc ne tient pas le seuil.
+  // Lu dans le mode du point, le fond serait noir dans les deux combinaisons et le candidat garderait le dessin.
+  const { r, cat } = pointDansUnCadreForce();
+  const point = r.variants[0].layers[2];
+  assert.equal(gardeLeDessin(cat, { variant: r.variants[0], layer: point, champ: 'fills', indice: 0, candidat: cat.variables[1] }), 'change');
+});
+
+test('gardeLeDessin : la liaison d’une surcharge juge la peinture du calque peint, pas celle de l’hôte', () => {
+  const fond = layer('root', 'Button', 'FRAME', null, { peintures: [solide(BLANC)] });
+  const surcharge = (extra: Partial<NonNullable<LiaisonLue['surcharge']>> = {}): NonNullable<LiaisonLue['surcharge']> =>
+    ({ id: 'I1;vec', nom: 'Vector', type: 'VECTOR', peintures: [solide(NOIR)], ...extra });
+  const noir = jeton('noir', 'button/color/foreground', parMode(NOIR));
+  const blanc = jeton('blanc', 'button/color/background', parMode(BLANC));
+  const gris = jeton('gris', 'button/color/icon', parMode({ r: 0.5, g: 0.5, b: 0.5, a: 1 }));
+  const cat = catalogue(noir, blanc, gris);
+  const verdict = (peintureDeLHote: unknown[], surchargee: NonNullable<LiaisonLue['surcharge']>, candidat: typeof blanc, instances?: NonNullable<NonNullable<LiaisonLue['surcharge']>['instances']>) => {
+    const liaison = { champ: 'fills', indice: 0, porteur: 'hote', variable: { id: 'noir', cle: 'noir', nom: noir.nom, collection: 'components', distante: false }, surcharge: { ...surchargee, ...(instances ? { instances } : {}) } };
+    const hote = layer('hote', 'Slot', 'INSTANCE', 'root', { peintures: peintureDeLHote as LayerLu['peintures'], liaisons: [liaison] });
+    const r = releve([fond, hote]);
+    return gardeLeDessin(cat, { variant: r.variants[0], layer: hote, champ: 'fills', indice: 0, liaison, candidat });
+  };
+  // L'hôte ne peint rien : seule la peinture du calque peint dit la couleur actuelle. Blanc sur blanc ne tient pas le seuil.
+  assert.equal(verdict([], surcharge(), blanc), 'change');
+  assert.equal(verdict([], surcharge(), noir), 'garde', 'le même token');
+  // La peinture du calque peint n'a pas été lue : le verdict est inconnu, même quand l'hôte peint.
+  assert.equal(verdict([solide(NOIR)], surcharge({ peintures: undefined }), blanc), 'inconnu');
+  // Le seuil du calque peint est celui d'une icône certaine, 4,5 : gris 0,5 sur blanc (3,95) tient 3 mais pas 4,5.
+  const parIcone = [{ nom: 'arrow-left-long', type: 'INSTANCE', instanceDe: { nom: 'arrow-left-long', pilotee: null, visibilitePar: 'Icon-Left#1261:147' } }];
+  assert.equal(verdict([], surcharge(), gris), 'garde', 'un tracé libre suit le seuil du non-texte');
+  assert.equal(verdict([], surcharge(), gris, parIcone), 'change', 'un tracé d’une icône certaine suit le seuil d’une icône');
+  // Une instance faite d'un seul dessin se mesure aussi au seuil d'une icône ; une instance que seul son nom désigne (`IconButton`), non.
+  const pointe = [{ nom: 'Pointe', type: 'INSTANCE', instanceDe: { nom: 'Pointe', pilotee: null, dessin: true } }];
+  assert.equal(verdict([], surcharge(), gris, pointe), 'change');
+  const bouton = [{ nom: 'IconButton', type: 'INSTANCE', instanceDe: { nom: 'IconButton', pilotee: null } }];
+  assert.equal(verdict([], surcharge(), gris, bouton), 'garde');
 });
 
 test('D18 : C25 garde sa correction quand le token ne change pas la couleur dans le mode que le calque force', () => {

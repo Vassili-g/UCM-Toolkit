@@ -707,8 +707,10 @@ export async function extractRules(
 }
 
 /**
- * La sorte d'un point `regles` que ce fichier écrit, lue sur son titre ; `null` pour tout autre point (rédaction d'une règle, cible
- * inconnue du contrat…). Les phrases sont celles de `extractRules` ci-dessus : une phrase changée change aussi cette lecture.
+ * La sorte d'un point `regles`, lue sur son titre ; `null` pour tout autre point (rédaction d'une règle, cible inconnue du contrat…).
+ * Les phrases de `aucune-instance`, `orphelin-vide`, `orphelin-marque`, `plusieurs-instances` et `nom-compacte-double` sont celles de
+ * `extractRules` ci-dessus. `usage-absent` vient de `analyse/resultat.ts` et `prop-sans-propriete` de `contract/mergePropDescriptions.ts` :
+ * une phrase changée dans l'un de ces trois fichiers change aussi cette lecture, et `plugin-architect/tests/reglesRenommees.test.ts` le contrôle.
  */
 export function sorteDuPointDeRegles(
   titre: string,
