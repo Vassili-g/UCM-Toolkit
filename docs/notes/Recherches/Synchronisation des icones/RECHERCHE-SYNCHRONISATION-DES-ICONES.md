@@ -30,7 +30,7 @@ Le designer lance le plugin dans Figma : une synchronisation tient en un geste, 
 - Forme A. Avant de lancer le plugin, une commande lancée dans un dépôt où les paquets Pro sont installés écrit un fichier des tracés, que le designer donne au plugin.
 - Forme B. Le plugin télécharge lui-même les tracés à l'API de FontAwesome, avec la clé d'API du compte saisie une fois dans le plugin.
 
-La forme B tient en un seul geste dans Figma : c'est la proposition de cette recherche (Q2). Elle ajoute `api.fontawesome.com` au manifeste, et un plugin d'essai vérifie d'abord que l'API répond à un plugin, dont l'origine est `null`. La forme A sert de repli si l'essai échoue.
+Le mainteneur retient la forme B, qui tient en un seul geste dans Figma. Elle ajoute `api.fontawesome.com` au manifeste, et un plugin d'essai vérifie d'abord que l'API répond à un plugin, dont l'origine est `null`. La forme A sert de repli si l'essai échoue.
 
 ## 4. Relever les icônes employées
 
@@ -53,8 +53,9 @@ Aucune documentation ne dit que la clé d'un composant reste stable après une t
 | Composant `Icon` | Il intègre chaque icône par un échange d'instance. |
 | Outil | Un nouveau plugin : un mode d'UCM Architect compliquerait Architect. |
 | Duotones | Elles n'entrent pas dans la library. |
+| Source des tracés | Forme B, et forme A en repli si l'essai échoue. |
+| Styles | La library ne garde qu'un seul style d'icônes (Q4). |
 
 ## Questions au mainteneur
 
-- Q2. Forme B (le plugin télécharge les tracés, avec la clé saisie une fois), et forme A en repli si l'essai échoue : d'accord ?
-- Q4. Une même icône existe en plusieurs styles : plein (solid), contour (regular), contour fin (light). Dans Figma, chaque style d'une icône devient-il un composant à part, rangé par dossier de style (`solid/house`, `regular/house`), ou une icône devient-elle un seul composant avec une propriété Style ? Le code importe chaque style comme une icône distincte, ce qui plaide pour un composant par style.
+- Q4. Quel style d'icônes la library garde-t-elle : plein (solid), contour (regular) ou contour fin (light) ? Le relevé de la case 2.1 du plan dit quel style les applications emploient le plus.

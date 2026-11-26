@@ -21,8 +21,8 @@ Ce plan suit la piste P30 de `docs/notes/Recherches/Evolutions globales/pistes.j
 
 - [ ] 3.1 Script du relevé : API, styles conditionnels, valeurs dessinées, icônes, composition, comportements, textes par défaut, une fiche par composant.
 - [ ] 3.2 Relevé des usages dans les applications consommatrices : il fixe ce que chaque composant doit garder.
-- [ ] 3.3 Relevé des candidats : composants d'Ant Design importés directement par les applications, composants locaux employés dans plusieurs fichiers, structures JSX recopiées ; une liste à trancher par le mainteneur (Q55).
-- [ ] 3.4 Relevé de la library Figma actuelle : jeux de variants, axes, valeurs et propriétés, comparés au relevé du code (Q56).
+- [ ] 3.3 Relevé des candidats : composants d'Ant Design importés directement par les applications, composants locaux employés dans plusieurs fichiers, structures JSX recopiées ; une liste que le mainteneur tranche.
+- [ ] 3.4 Relevé de la library Figma actuelle : jeux de variants, axes, valeurs et propriétés, lus par un plugin de relevé que le mainteneur lance, puis comparés au relevé du code.
 
 ## Étape 4. Banc de rendu
 

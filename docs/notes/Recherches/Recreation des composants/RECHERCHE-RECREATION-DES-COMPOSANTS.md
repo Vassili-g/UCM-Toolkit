@@ -44,6 +44,10 @@ Trois faits fixent la méthode.
 | Référence de l'existant | Le rendu du code. La library Figma actuelle du mainteneur couvre une grande partie des composants : elle se relève comme seconde source, mais chaque composant se redessine de zéro. |
 | Fichiers Figma | Les tokens et les composants vivent dans deux fichiers dès le début : la publication de la library reste un geste du designer. |
 | Icônes | FontAwesome Pro reste. Les icônes deviennent des composants qu'`Icon` échange, créés et tenus à jour par la piste P32. |
+| Outillage | De simples scripts dans UCM-Toolkit, une commande par étape, testés sur des composants inventés, supprimés quand la piste s'archive ; ni paquet publié ni documentation de produit. |
+| Migration des applications | Les développeurs feront probablement la migration des applications. Le chantier leur prépare toute l'infrastructure qui la rend facile, de façon méthodique et complète. |
+| Candidats et suivi | Le mainteneur tranche la liste des candidats. Une page de registre, mise à jour au fil du chantier, montre chaque composant et chaque candidat avec toutes ses informations et son avancement. |
+| Relevé de la library Figma actuelle | Par un petit plugin de relevé que le mainteneur lance, comme pour P28. |
 | Comportements | Seul un comportement qui change le rendu entre dans le dessin et dans le contrat. Un comportement sans effet visuel n'est pas recréé dans Figma ; le relevé du code l'écrit dans un fichier de comportements, à côté du contrat dans intencial-library. |
 
 ## 4. Méthode
@@ -100,12 +104,9 @@ Les numéros suivent ceux de la première série. Les questions tranchées sont 
 
 ### Périmètre
 
-- Q3. Les outils de la migration (le script qui lit le code des composants, celui qui capture leur rendu, celui qui vérifie que le contrat exporté couvre tout) servent pendant la migration, puis plus jamais. Proposition : de simples scripts dans UCM-Toolkit, une commande par étape, avec des tests pour qu'une modification ne casse rien, et supprimés à la fin ; pas un paquet publié sur npm avec sa documentation. D'accord ?
 - Q5. Qui décide qu'un écart de dessin avec l'existant est voulu : le designer, le lead UX, le mainteneur ?
 - Q6. Le dossier `v1/` de la bibliothèque source, que rien n'importe ni n'exporte, est-il hors périmètre ?
 - Q10. Les 27 dossiers sans story sont-ils vivants ? Le relevé d'usages peut répondre.
-- Q13. Après la migration, les applications appellent encore les anciens composants avec les anciennes props : `<Button type="primary">` doit devenir, par exemple, `<Button variant="solid">`, dans une centaine de fichiers. Qui fait ces changements : nous, avec un script qui réécrit les appels sur une copie que les développeurs relisent et poussent, ou les développeurs à la main, avec une table de correspondance que nous leur donnons ?
-- Q55. Le relevé trouve dans les applications des composants que la bibliothèque n'a pas, comme une infobulle ou une fenêtre modale d'Ant Design. Proposition : la liste t'est présentée, et tu coches ceux qui entrent dans la bibliothèque. D'accord ?
 
 ### Tokens
 
@@ -113,7 +114,6 @@ Les numéros suivent ceux de la première série. Les questions tranchées sont 
 
 ### Sources
 
-- Q56. Pour comparer ta library Figma actuelle au code, je dois lire la liste de ses composants et de leurs variantes. Deux voies : je la lis moi-même par le connecteur Figma de Claude, que tu autorises par `/mcp` et dont tu me donnes le lien du fichier, ou tu lances un petit plugin de relevé que j'écris, comme pour P28. Laquelle ?
 - Q53. Peut-on modifier la bibliothèque source pour l'outillage (manifest de Storybook, pseudo-états, stories générées), ou le relevé tourne-t-il sur une copie ?
 
 ### Exhaustivité
