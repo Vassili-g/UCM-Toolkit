@@ -12,7 +12,7 @@ Ce plan suit la piste P30 de `docs/notes/Recherches/Evolutions globales/pistes.j
 ## Étape 1. Cadrage
 
 - [x] 1.0 Dresser la carte du workflow et la critiquer (passes 1 à 3 de la carte). (c9254d63)
-- [ ] 1.1 (mainteneur). Trancher les décisions qui bloquent le relevé : fusion de la v1 et de la v2, durée de vie des scripts, forme du relevé.
+- [x] 1.1 (mainteneur). Trancher les décisions qui bloquent le relevé : fusion de la v1 et de la v2, durée de vie des scripts, forme du relevé. (4fd492c0)
 - [ ] 1.2 (mainteneur). Obtenir des développeurs la liste des marques actives.
 - [ ] 1.3 Vérifier dans les dépôts les points « à vérifier » de la carte (passe 4).
 - [ ] 1.4 Écrire les lots d'implémentation des étapes 2, 4, 5 et 8 et leurs cas de test.
