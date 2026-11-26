@@ -234,6 +234,17 @@ Vérification. `node _local/p28/poc/verifier.mjs` ouvre la page dans Chromium sa
 | Q11 | Pas dans Palettes. | La page de preuve reçoit une section « À corriger dans les composants » : chaque paire, son contraste, son composant. |
 | Q12 | Sans gravité. | Un message, sans lien. |
 
-Q3 attend le sens des marqueurs, que le mainteneur demande au lead UX. Q4 suit Q3. Q10 attend le relevé des alias : un plugin de lecture seule, dans `_local/p28/releve-alias/`, que le mainteneur lance une fois dans le fichier client.
+Q3 attend le sens des marqueurs, que le mainteneur demande au lead UX. Q4 suit Q3.
+
+### Relevé des alias du fichier client
+
+Un plugin de lecture seule, `_local/p28/releve-alias/`, a relevé les alias du fichier client. La table est dans `_local/p28/correspondances-reelles.txt`.
+
+- Les 234 alias de la couche des marques visent une primitive, et aucun ne reste sans cible.
+- Chaque nuance N d'une palette de marque vise la nuance N d'une seule primitive, sauf 7 variables. Deux nuances d'une palette secondaire visent une autre primitive. Un accent vise la nuance 50 d'une autre primitive. Quatre nuances sémantiques visent une seconde palette sémantique.
+- Une primitive sert une seule marque, sauf une primitive que deux marques visent à la même nuance de marque. Une autre primitive porte deux nuances de marque.
+- Q10 est sans objet. Aucun rôle sombre ne vise un `a300` ou un `a900` absent. Les marques concernées passent par d'autres accents ou par les accents d'une autre primitive.
+- Le thème vise 39 fois une primitive en direct, sans passer par la couche des marques.
+- La bibliothèque des primitives a changé depuis l'export de novembre. 13 cibles n'y figurent pas (nuances renommées, deux palettes nouvelles), et 6 valeurs diffèrent. La page de preuve calcule sur l'export de novembre : il faut la refaire sur un relevé de la bibliothèque actuelle, fait par le même plugin dans le fichier des primitives.
 
 Les alias de la couche des marques valent `null` dans l'export d'octobre parce que l'Exporter n'indexe que les variables du fichier exporté. Un alias qui vise une variable d'une autre bibliothèque n'a pas de chemin, et `exportTokens.ts` écrit `$value: null`. La donnée existe dans Figma : UCM Architect lit ces cibles par leur identifiant (`catalogue.ts`).
