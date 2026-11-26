@@ -27,7 +27,7 @@ Ce plan suit la piste P22 de `docs/notes/Recherches/Evolutions globales/pistes.j
 - [ ] 0.10 (mainteneur). D6 et Q6 : contenu par défaut d'un `SLOT` de l'hôte, `SLOT` d'une pièce rempli par l'hôte (F12).
 - [ ] 0.11 (mainteneur). D3 : couleur et glyphe qu'un hôte ou une pièce pose dans une dépendance (F19 à F21).
 - [ ] 0.12 (mainteneur). D7 : pièce partagée (F5).
-- [ ] 0.13 (mainteneur). D9 : noms tirés de la capture de Groupe (F41).
+- [x] 0.13 (mainteneur). D9 : noms tirés de la capture de Groupe (F41). Tranchée : noms inventés, historique purgé. (32df302d)
 - [ ] 0.14 (mainteneur). D10 : garder ou retirer l'essai R1 (F42).
 - [ ] 0.15 (attend P31). D8 : écriture de « Relier le composant » dans le maître ou dans l'instance (F32), après la maquette de P31 (case 2.1 de son plan).
 
