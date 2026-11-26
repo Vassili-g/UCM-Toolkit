@@ -107,6 +107,7 @@ Toutes les cases de l'onglet arrivent décochées : un seul pied compte les noms
 | Collection étendue | `isExtension`, `parentVariableCollectionId`, `variableOverrides`, `parentModeId` | Résolution à confirmer dans Figma, plan Enterprise |
 | Calques du composant lu et styles de texte | `boundVariables`, peintures, effets, grilles, segments de texte | Réactions, valeurs par défaut des propriétés et calques masqués des instances non lus |
 | Modes d'un calque | `resolvedVariableModes`, `explicitVariableModes` | Les modes par défaut d'équipe ne sont pas exposés |
+| Rayons de coin | `cornerRadius` et les quatre rayons par coin, liés ou non, dans l'ordre haut gauche, haut droit, bas droit, bas gauche | Absents, les coins sont droits |
 | Instance imbriquée et surcharge | Composant principal (`dessin` : descendants visibles tous tracés, lu une fois par composant principal), `componentPropertyReferences.visible`, parents du calque peint jusqu'au layer lu, `isExposedInstance` d'un wrapper | Une lecture qui lève laisse le fait absent, ou `expose` à `'inconnu'`, jamais faux |
 | Style appliqué | `textStyleId`, `fillStyleId`, `strokeStyleId` et les `boundVariables` du style : une liaison de même champ et de même variable reçoit `provenance: 'style'` | Une liaison `composant-principal`, de surcharge ou de plage hors texte ne change pas |
 | Valeur selon Figma | `resolveForConsumer` sur un calque existant | Aucune chaîne, la valeur seule |
@@ -424,7 +425,9 @@ l'autre est ignoré. Seule l'instance la plus proche du calque `component-name`
 compte : un conteneur posé dans l'instance d'un autre composant ne fait pas de
 celui-ci un second conteneur.
 
-C45 dit aussi, sans correction : une valeur écrite que l'axe n'a pas
+Une règle dont les valeurs sont celles d'une propriété sans règle, sous un autre
+nom (`severity` pour `Type`), donne un seul C45 `renommee`, et le point du
+moteur sur la même règle se tait. C45 dit aussi, sans correction : une valeur écrite que l'axe n'a pas
 (`valeur-inconnue`), une règle dont la cible est vide, un `@boolean` posé sur un
 axe, et une règle probablement renommée (`regle-renommee`), quand une propriété
 sans règle et une règle sans propriété sont à une lettre l'une de l'autre et sont

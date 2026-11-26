@@ -14,7 +14,7 @@
  * Les modèles des corrections sont retenus ici, par identifiant de correction :
  * l'écriture (`ecriture/regles.ts`) les relit au moment d'appliquer.
  */
-import { nomCompacte } from '@ucm-kit/core/referentiel';
+import { REGISTRES, formeReconnue, nomCompacte, termeReconnu } from '@ucm-kit/core/referentiel';
 import type { Constat, Correction } from '@ucm-kit/core/controles';
 import type { InventairesDeLaDemande } from 'ucm-plugin-socle/src/composant/analyse/inventaires';
 import { normalizePropKey, normalizePropValue } from 'ucm-plugin-socle/src/composant/analyse/proprietesEtEtats';
@@ -159,6 +159,25 @@ function axesDuModele(modele: ModeleDeRegles): Map<string, { nom: string; valeur
   return axes;
 }
 
+/** Une valeur d'axe en forme reconnue ; deux écritures tolérées d'un même terme d'un registre (`error`, `danger`) donnent la même forme. */
+function formeDeValeur(valeur: string): string {
+  for (const registre of REGISTRES) {
+    const terme = termeReconnu(registre, valeur);
+    if (terme) return terme.id;
+  }
+  return formeReconnue(valeur);
+}
+
+/** Les valeurs des cibles `axe.valeur`, par axe, en forme reconnue et triées : deux axes de mêmes valeurs ont la même signature. */
+function signaturesParAxe(cibles: Iterable<string>): Map<string, string> {
+  const formes = new Map<string, Set<string>>();
+  for (const cible of cibles) {
+    const axe = axeDeLaCible(cible);
+    formes.set(axe, (formes.get(axe) ?? new Set<string>()).add(formeDeValeur(cible.slice(axe.length + 1))));
+  }
+  return new Map([...formes].map(([axe, valeurs]) => [axe, [...valeurs].sort().join('')]));
+}
+
 /** C43, C45 : les constats d'un relevé de règles. Sans relevé, aucun. */
 export function constatsDeRegles(releve: ReleveDesRegles | null): Constat[] {
   if (!releve) return [];
@@ -198,10 +217,36 @@ export function constatsDeRegles(releve: ReleveDesRegles | null): Constat[] {
     if (sansRegle.filter((autre) => nomsRapproches(nomCompacte(autre), nomCompacte(candidates[0]))).length !== 1) continue;
     renommees.set(propriete, candidates[0]);
   }
-  const renommeesParRegle = new Set(renommees.values());
+  // D13 : sans nom voisin, une règle et une propriété qui ont le même ensemble de valeurs (`severity.error` et `Type=Error`) sont une seule
+  // règle renommée. Les deux constats d'avant ne disaient qu'une cause.
+  const signaturesDuModele = signaturesParAxe(releve.modele.sections.flatMap((section) => (section.tag === 'prop'
+    ? section.elements.flatMap((element) => (element.genre === 'regle' && element.cible ? [element.cible] : []))
+    : [])));
+  const signaturesEcrites = signaturesParAxe(releve.valeursEcrites ?? []);
+  const renommeesParValeurs = new Map<string, string>();
+  const dejaRenommees = new Set(renommees.values());
+  const libres = sansPropriete.filter((regle) => !dejaRenommees.has(regle));
+  const sansRegleLibres = sansRegle.filter((propriete) => !renommees.has(propriete));
+  for (const propriete of sansRegleLibres) {
+    const signature = signaturesDuModele.get(propriete);
+    if (!signature) continue;
+    const candidates = libres.filter((regle) => signaturesEcrites.get(regle) === signature);
+    if (candidates.length !== 1) continue;
+    if (sansRegleLibres.filter((autre) => signaturesDuModele.get(autre) === signature).length !== 1) continue;
+    renommeesParValeurs.set(propriete, candidates[0]);
+  }
+  const renommeesParRegle = new Set([...renommees.values(), ...renommeesParValeurs.values()]);
 
   const constats: Constat[] = [];
   for (const propriete of sansRegle) {
+    const regleParValeurs = renommeesParValeurs.get(propriete);
+    if (regleParValeurs !== undefined) {
+      constats.push({
+        id: `regles:C45:renommee:${propriete}`, code: 'C45', type: 'corriger', famille: 'regles', variants: [], layers: [],
+        faits: { composant: composant.nom, propriete, regle: regleParValeurs, ecart: 'renommee' },
+      });
+      continue;
+    }
     const regle = renommees.get(propriete);
     if (regle !== undefined) {
       constats.push({

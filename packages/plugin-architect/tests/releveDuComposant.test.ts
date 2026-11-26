@@ -33,6 +33,23 @@ test('E9.12 : chaque layer relève son mode de fusion et seulement le flou d’a
   ]);
 });
 
+test('D17 : chaque layer relève ses rayons de coin (haut gauche, haut droit, bas droit, bas gauche), liés ou non', async () => {
+  const a = atelierDeCalques();
+  const enfants = [
+    a.calque('commun', 'RECTANGLE', { cornerRadius: 8 }),
+    a.calque('lie', 'RECTANGLE', { cornerRadius: 12, boundVariables: { topLeftRadius: alias('taille') } }),
+    a.calque('coins', 'RECTANGLE', { cornerRadius: Symbol('mixed'), topLeftRadius: 1, topRightRadius: 2, bottomLeftRadius: 3, bottomRightRadius: 4 }),
+    a.calque('ellipse', 'ELLIPSE', {}),
+  ];
+  const jeu = a.calque('variant', 'COMPONENT', {}, enfants);
+  const issue = await lireLeReleve(a.port(portDeTest([], []).port), jeu);
+  assert.equal(issue.statut, 'lu');
+  if (issue.statut !== 'lu') return;
+  assert.deepEqual(issue.releve.variants[0].layers.map((layer) => [layer.id, layer.rayons]), [
+    ['variant', undefined], ['commun', [8, 8, 8, 8]], ['lie', [12, 12, 12, 12]], ['coins', [1, 2, 4, 3]], ['ellipse', undefined],
+  ]);
+});
+
 test('E9.12 : les effets et le mode de fusion refusés restent des lectures manquées', async () => {
   const a = atelierDeCalques();
   const variant = a.calque('variant', 'COMPONENT', {

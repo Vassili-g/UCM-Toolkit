@@ -86,8 +86,17 @@ const questionFusionnee = constatDuComposant('C22:fusion', 'C22', 'corriger', 'l
   masque: 'layer', autresEcarts: 'rôle border',
 }, { question: { id: 'C22:fusion', candidats: [{ cle: 'cle-border', nom: 'alert/colors/info/disabled/border' }, { cle: 'cle-foreground', nom: 'alert/colors/info/disabled/foreground' }] } });
 
+/** Une règle renommée (D13) n'a aucune correction : le constat dit la cause, et le designer renomme dans Figma. */
+const reglesRenommees = { id: 'C45:renommee', code: 'C45', type: 'corriger', famille: 'regles', variants: [], layers: [], faits: { composant: 'Alert', propriete: 'Type', regle: 'severity', ecart: 'renommee' } };
+
 const ETATS = [
   ...etatsDeRegles,
+  {
+    id: 'i-regles-renommee', titre: 'Règles, C45 renommée', quand: 'Les règles d’Alert décrivent `severity`, et le composant appelle cette propriété `Type`.',
+    regarder: 'Une seule carte, sans correction : « Les règles décrivent `severity`, et le composant appelle cette propriété `Type`. » avec « Renommez la propriété du composant ou la règle ».',
+    existe: true,
+    atteinte: [...ouvrirLePanneau.slice(0, 5), { message: { ...analyseDeQuestions, constats: [reglesRenommees, rangement] } }, ignores([]), { clic: '.bouton-panneau' }, tout],
+  },
   {
     id: 'c-afaire-sans-phrase', titre: 'À faire dans Figma, constats qui n’avaient pas de phrase', quand: 'Alert est analysé ; le panneau montre Tout, avec un layer masqué, un rôle annoncé par le nom d’un layer, deux layers homonymes, une taille qui change selon le mode, deux axes de style, un style sur un autre dossier et une valeur de variant mal écrite.',
     regarder: 'Aucune carte ne dit « Constat Cxx » : « Le layer message est dans icon-wrapper, qui est masqué. », « Le layer Divider porte le nom d’un divider. » avec « Renommez le layer dans Figma s’il n’est pas un divider », « Deux layers s’appellent title. Architect ne sait pas lequel lier. », « … vaut 48 px en Light et 52 px en Dark. », « Les axes Variant et Style décrivent tous deux le style. », « Le style subtle utilise les couleurs de solid. » et « La valeur S de Size s’écrit Small dans UCM. » ; chaque carte dit où la régler.',

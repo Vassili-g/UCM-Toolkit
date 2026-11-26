@@ -134,8 +134,25 @@ function nombreDe<K extends ChampDeMiseEnPage>(table: TableDesChamps<Pick<Champs
 const CHAMPS_NUMERIQUES = ['paddingLeft', 'paddingRight', 'paddingTop', 'paddingBottom', 'itemSpacing'] as const;
 const RAYONS = ['topLeftRadius', 'topRightRadius', 'bottomLeftRadius', 'bottomRightRadius'] as const;
 
-/** Les champs numériques qu'aucune variable ne lie sur ce layer. */
-async function valeursEnDur(noeud: NoeudLu, liaisons: readonly LiaisonLue[], dimensions: LayerLu['dimensions'] | null, epaisseur: number | undefined, contours: EtatEcrit<readonly PeintureCopiee[]>, manquees: Manquee[], cooperation: ContexteCooperatif): Promise<LayerLu['valeursEnDur']> {
+/** Le rayon commun du layer, ou ses quatre rayons quand il n'a pas de rayon commun ; chacun `undefined` quand il ne se lit pas. */
+interface RayonsLus { readonly commun: number | undefined; readonly coins: readonly (number | undefined)[] }
+
+function lireLesRayons(noeud: NoeudLu, manquees: Manquee[]): RayonsLus {
+  const commun = nombreDe(miseEnPage(noeud, ['cornerRadius']), 'cornerRadius', noeud.id, manquees);
+  if (commun !== undefined) return { commun, coins: [] };
+  const coins = miseEnPage(noeud, RAYONS);
+  return { commun, coins: RAYONS.map((coin) => nombreDe(coins, coin, noeud.id, manquees)) };
+}
+
+/** Les quatre rayons de coin (haut gauche, haut droit, bas droit, bas gauche) quand le relevé les lit tous ; sinon aucun. */
+function rayonsDuLayer({ commun, coins }: RayonsLus): LayerLu['rayons'] {
+  if (commun !== undefined) return [commun, commun, commun, commun];
+  const [hg, hd, bg, bd] = coins;
+  return [hg, hd, bd, bg].every((valeur) => valeur !== undefined) ? [hg!, hd!, bd!, bg!] : undefined;
+}
+
+/** Les champs numériques qu'aucune variable ne lie sur ce layer ; lit aussi ses rayons de coin, liés ou non, dans `layer.rayons`. */
+async function valeursEnDur(noeud: NoeudLu, liaisons: readonly LiaisonLue[], dimensions: LayerLu['dimensions'] | null, epaisseur: number | undefined, contours: EtatEcrit<readonly PeintureCopiee[]>, layer: LayerLu, manquees: Manquee[], cooperation: ContexteCooperatif): Promise<LayerLu['valeursEnDur']> {
   const liees = new Set<string>();
   for (const liaison of liaisons) {
     await cooperation.cederSiBesoin();
@@ -154,13 +171,11 @@ async function valeursEnDur(noeud: NoeudLu, liaisons: readonly LiaisonLue[], dim
       ajouter(champ, nombreDe(espacements, champ, noeud.id, manquees));
     }
   }
-  const rayon = miseEnPage(noeud, ['cornerRadius']);
-  const commun = nombreDe(rayon, 'cornerRadius', noeud.id, manquees);
-  if (commun !== undefined) ajouter('cornerRadius', commun, ...RAYONS);
-  else {
-    const coins = miseEnPage(noeud, RAYONS);
-    for (const coin of RAYONS) ajouter(coin, nombreDe(coins, coin, noeud.id, manquees), 'cornerRadius');
-  }
+  const rayons = lireLesRayons(noeud, manquees);
+  const coins = rayonsDuLayer(rayons);
+  if (coins) layer.rayons = coins;
+  if (rayons.commun !== undefined) ajouter('cornerRadius', rayons.commun, ...RAYONS);
+  else for (const [rang, coin] of RAYONS.entries()) ajouter(coin, rayons.coins[rang], 'cornerRadius');
   // Figma donne une épaisseur (1 par défaut) à tout layer, même sans contour : sans contour visible, elle ne se voit pas.
   let contourVisible = false;
   if (contours.etat === 'acquis') for (const peinture of contours.valeur) {
@@ -647,7 +662,7 @@ async function lireLeLayer(port: PortDuComposant, lecteur: Lecteur, etape: Etape
     manquees.push({ layer: noeud.id, champ: 'liaisons', motif: messageDErreur(erreur) });
   }
   await marquerLesLiaisonsDeStyle(noeud, layer, lecteur, manquees);
-  layer.valeursEnDur = await valeursEnDur(noeud, layer.liaisons, dimensions, epaisseur, strokes, manquees, lecteur.cooperation);
+  layer.valeursEnDur = await valeursEnDur(noeud, layer.liaisons, dimensions, epaisseur, strokes, layer, manquees, lecteur.cooperation);
   if (segments) layer.texte = await texteDe(lecteur, noeud, layer.liaisons, manquees, segments);
   return layer;
 }

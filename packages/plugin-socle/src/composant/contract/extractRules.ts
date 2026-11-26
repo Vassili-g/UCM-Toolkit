@@ -710,7 +710,11 @@ export async function extractRules(
  * La sorte d'un point `regles` que ce fichier écrit, lue sur son titre ; `null` pour tout autre point (rédaction d'une règle, cible
  * inconnue du contrat…). Les phrases sont celles de `extractRules` ci-dessus : une phrase changée change aussi cette lecture.
  */
-export function sorteDuPointDeRegles(titre: string): 'aucune-instance' | 'orphelin-vide' | 'orphelin-marque' | 'plusieurs-instances' | 'nom-compacte-double' | null {
+export function sorteDuPointDeRegles(
+  titre: string,
+): 'aucune-instance' | 'orphelin-vide' | 'orphelin-marque' | 'plusieurs-instances' | 'nom-compacte-double' | 'usage-absent' | 'prop-sans-propriete' | null {
+  if (/^Règles d’usage : aucune règle @usage/.test(titre)) return 'usage-absent';
+  if (/^Règle @prop « .* » : le composant n’a aucune propriété de variante/.test(titre)) return 'prop-sans-propriete';
   if (/aucune instance de cette page/.test(titre)) return 'aucune-instance';
   if (/donc il ne documente aucun composant/.test(titre)) return /contient encore/.test(titre) ? 'orphelin-marque' : 'orphelin-vide';
   if (/instances écrivent/.test(titre)) return 'plusieurs-instances';

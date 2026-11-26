@@ -204,6 +204,68 @@ test('C59 disparaît quand un ancestor peint un fond surface visible', () => {
   assert.equal(controlerLeTheme(r, c).some(({ code }) => code === 'C59'), false);
 });
 
+/** Le cas de la Card de la chasse (C8) : un rectangle frère peint la surface sous le texte, la racine ne peint rien. */
+const cardAvecRectangleFrere = (rectangle: Partial<LayerLu> = {}): ReleveDeComposant => {
+  const racine: LayerLu = { ...layer('root', null, 'Card'), type: 'FRAME', peintures: [], liaisons: [], dimensions: { x: 0, y: 0, largeur: 100, hauteur: 48 } };
+  const fond: LayerLu = {
+    ...layer('fond', 'root', 'Surface', undefined, liaisonDeJeton('tok-bg', 'alert/color/background')), type: 'RECTANGLE',
+    dimensions: { x: 0, y: 0, largeur: 100, hauteur: 48 }, ...rectangle,
+  };
+  const label: LayerLu = { ...texteDeSurface(), parent: 'root', dimensions: { x: 12, y: 12, largeur: 40, hauteur: 16 } };
+  const r = releve(racine);
+  r.variants[0].layers.push(fond, label);
+  return r;
+};
+
+test('D17 : un rectangle frère qui peint la surface sous le texte évite C59', () => {
+  assert.deepEqual(controlerLeTheme(cardAvecRectangleFrere(), catalogueDeBase()).filter(({ code }) => code === 'C59'), []);
+});
+
+test('D17 : un frère au-dessus du texte, un frère masqué ou un frère à côté ne sont pas son fond', () => {
+  const texteSeul = (modifie: (r: ReleveDeComposant) => void) => {
+    const r = cardAvecRectangleFrere();
+    modifie(r);
+    return controlerLeTheme(r, catalogueDeBase()).filter(({ code }) => code === 'C59').length;
+  };
+  assert.equal(texteSeul((r) => r.variants[0].layers.reverse()), 1, 'un frère plus haut dans l’empilement');
+  assert.equal(texteSeul((r) => { r.variants[0].layers[1].visible = false; }), 1, 'un frère masqué');
+  assert.equal(texteSeul((r) => { r.variants[0].layers[1].dimensions.x = 200; }), 1, 'un frère dont la boîte ne touche pas celle du texte');
+});
+
+test('D17 : un frère peint qui couvre le texte sans le prouver ne fait pas dire qu’une surface manque', () => {
+  const vecteur = { type: 'VECTOR' };
+  assert.deepEqual(controlerLeTheme(cardAvecRectangleFrere(vecteur), catalogueDeBase()).filter(({ code }) => code === 'C59'), [], 'forme sans preuve');
+  const ellipse = { type: 'ELLIPSE', dimensions: { x: 0, y: 0, largeur: 100, hauteur: 100 } };
+  assert.deepEqual(controlerLeTheme(cardAvecRectangleFrere(ellipse), catalogueDeBase()).filter(({ code }) => code === 'C59'), [], 'ellipse qui ne couvre qu’en partie');
+});
+
+test('D17 : un texte sans aucun fond peint garde son C59', () => {
+  const r = cardAvecRectangleFrere();
+  r.variants[0].layers.splice(1, 1);
+  const resultat = controlerLeTheme(r, catalogueDeBase()).filter(({ code }) => code === 'C59');
+  assert.equal(resultat.length, 1);
+  assert.equal(resultat[0].correction?.apres.cle, 'tok-page');
+});
+
+test('D17 : un frère peint d’une autre couleur que la surface ne l’est pas : C59 reste', () => {
+  const r = cardAvecRectangleFrere();
+  r.variants[0].layers[1].liaisons = [{ ...r.variants[0].layers[1].liaisons[0], variable: { id: 'tok-page', cle: 'tok-page', nom: 'alert/color/page-foreground', collection: 'comp', distante: false } }];
+  assert.equal(controlerLeTheme(r, catalogueDeBase()).filter(({ code }) => code === 'C59').length, 1);
+});
+
+test('D17 : un layer et sa plage entière ne donnent qu’un C59 par identifiant', () => {
+  const texte = texteDeSurface();
+  const sur = texte.liaisons[0];
+  texte.liaisons = [{ ...sur, indice: 0 }];
+  texte.texte = { style: null, plages: [{
+    debut: 0, fin: 10, fontSize: 14, fontWeight: 400, peintures: [],
+    liaisons: [{ ...sur, indice: undefined, plage: { debut: 0, fin: 10 } }],
+  }] };
+  const resultat = controlerLeTheme(releve(texte), catalogueDeBase()).filter(({ code }) => code === 'C59');
+  assert.deepEqual(resultat.map(({ id }) => id), ['C59:v1:text:fills:0']);
+  assert.equal(new Set(controlerLeTheme(releve(texte), catalogueDeBase()).map(({ id }) => id)).size, resultat.length);
+});
+
 test('C60 corrige un alias Dark vers Light selon TABLE_DES_DOSSIERS', () => {
   const c = cat([collection('themes', 'theme'), collection('brands', 'brands')], [
     { cle: 'theme-ring', nom: 'success/vivid/ring', collection: 'themes', type: 'COLOR', etat: 'presente', valeurs: { light: { alias: 'brand-light' }, dark: { alias: 'brand-light' } } },

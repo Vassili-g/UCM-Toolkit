@@ -209,11 +209,11 @@ const SCENARIOS: readonly Scenario[] = [
   {
     nom: 'l’ajout d’un calque lié',
     projections: ['controle-mapping', 'controle-couches', 'controle-oublis', 'controle-accessibilite', 'controle-typographie', 'controle-theme'],
-    constatsAuMoins: ['controle-typographie', 'controle-theme'], // Sa plage n'a aucune couleur : l'accessibilité ne la juge pas (E9b).
+    constatsAuMoins: ['controle-typographie', 'controle-theme'], // Sa plage n'a aucune couleur : l'accessibilité ne la juge pas (E9b). Elle est hors de la boîte de l'icône, sinon l'icône peinte sous elle serait son fond et C59 se tairait (D17).
     modifier: ({ releve }) => {
       const racine = releve.variants[0].layers[0];
       releve.variants[0].layers.push({
-        id: 'neuf', nom: 'Neuf', type: 'TEXT', parent: racine.id, visible: true, opacite: 1, dimensions: { x: 0, y: 0, largeur: 10, hauteur: 10 }, peintures: [], valeursEnDur: [],
+        id: 'neuf', nom: 'Neuf', type: 'TEXT', parent: racine.id, visible: true, opacite: 1, dimensions: { x: 50, y: 0, largeur: 10, hauteur: 10 }, peintures: [], valeursEnDur: [],
         liaisons: [{ champ: 'fills', porteur: 'neuf', variable: { id: 'id-b-texte', cle: 'b-texte', nom: 'Button/color/primary/contained/default/foreground', collection: 'components', distante: false } }],
         texte: { style: null, plages: [{ debut: 0, fin: 1, fontSize: 14, fontWeight: 400, peintures: [], liaisons: [] }] },
       });

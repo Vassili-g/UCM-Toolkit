@@ -6,6 +6,7 @@ import { GARANTIES } from '../emplois/garanties.js';
 import { modeDuThemeReconnu, variableDuThemeReconnue } from '../referentiel/theme.js';
 import { cheminDansLaCollection, collectionParCle, variableParCle, type CatalogueDeReference, type VariableDuCatalogue } from './catalogue.js';
 import type { Constat, Correction, Question } from './constat.js';
+import { fondsPeintsSousParEtapes } from './accessibilite.js';
 import { estDuComposant } from './nommage.js';
 import { lesJumelles, lesPrefixes, lireLeSens, type ModeLu, type SensLu } from './integrite.js';
 import type { LayerLu, LiaisonLue, ReleveDeComposant, VariantLu } from './releve.js';
@@ -28,11 +29,7 @@ export function* controlerLeThemeParEtapes(releve: ReleveDeComposant, catalogue:
   const resultats: Constat[] = [];
   for (const variant of releve.variants) {
     yield;
-    const layers = new Map<string, LayerLu>();
-    for (const layer of variant.layers) {
-      yield;
-      layers.set(layer.id, layer);
-    }
+    const vus = new Set<string>();
     for (const layer of variant.layers) {
       yield;
       for (const liaison of liaisonsDuLayer(layer)) {
@@ -43,9 +40,13 @@ export function* controlerLeThemeParEtapes(releve: ReleveDeComposant, catalogue:
         if (!variable || collection(catalogue, variable)?.role !== 'components') continue;
         const themeVise = vers(catalogue, variable);
         if (themeVise === 'inconnue' || !themeVise || variableDuThemeReconnue(themeVise.nom) !== 'surface/foreground') continue;
-        if (yield* aUnFondDeSurface(layer, layers, catalogue)) continue;
+        if (yield* aUnFondDeSurface(variant, layer, catalogue)) continue;
+        const id = `C59:${variant.id}:${layer.id}${liaison.surcharge ? `>${liaison.surcharge.id}` : ''}:${liaison.champ}:${liaison.indice ?? liaison.plage?.debut ?? ''}`;
+        // Un texte uniforme porte sa liaison sur le layer et sur sa plage entière : un seul constat par identifiant, le premier lu.
+        if (vus.has(id)) continue;
+        vus.add(id);
         const constat: Constat = {
-          id: `C59:${variant.id}:${layer.id}${liaison.surcharge ? `>${liaison.surcharge.id}` : ''}:${liaison.champ}:${liaison.indice ?? liaison.plage?.debut ?? ''}`,
+          id,
           code: 'C59', type: 'corriger', famille: 'liaisons', variants: [variant.id], layers: [layer.id],
           faits: {
             variable: variable.nom, champ: liaison.champ, calque: liaison.surcharge?.nom ?? layer.nom,
@@ -80,22 +81,25 @@ export function* controlerLeThemeParEtapes(releve: ReleveDeComposant, catalogue:
   return resultats;
 }
 
-function* aUnFondDeSurface(layer: LayerLu, layers: ReadonlyMap<string, LayerLu>, catalogue: CatalogueDeReference): Generator<void, boolean> {
-  let courant: LayerLu | undefined = layer;
-  const visites = new Set<string>();
-  while (courant && !visites.has(courant.id)) {
+/**
+ * Le layer lui-même ou un fond peint sous lui (`fondsPeintsSous`, la lecture que C49 partage) lie une surface, ou une liaison que C59 n'a pas pu lire.
+ * Un fond que la preuve ne dit pas couvrir le layer (`partie`, `inconnue`) compte aussi : C59 ne dit pas qu'une surface manque quand il
+ * ne peut pas l'exclure.
+ */
+function* aUnFondDeSurface(variant: VariantLu, layer: LayerLu, catalogue: CatalogueDeReference): Generator<void, boolean> {
+  // Pas de `yield*` dans l'itérable d'un `for…of` : QuickJS, qui exécute le sandbox, le refuse.
+  const dessous = yield* fondsPeintsSousParEtapes(variant, layer);
+  for (const fond of [layer, ...dessous.map((peint) => peint.layer)]) {
     yield;
-    visites.add(courant.id);
-    for (const peinture of courant.peintures) {
+    for (const peinture of fond.peintures) {
       yield;
       if (peinture.champ !== 'fills' || !peinture.visible) continue;
-      for (const liaison of courant.liaisons) {
+      for (const liaison of fond.liaisons) {
         yield;
         if (liaison.surcharge || liaison.champ !== 'fills' || liaison.indice !== peinture.indice) continue;
         if (yield* estFondDeSurface(liaison, catalogue)) return true;
       }
     }
-    courant = courant.parent ? layers.get(courant.parent) : undefined;
   }
   return false;
 }

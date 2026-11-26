@@ -47,6 +47,11 @@ export interface LayerLu {
   blendMode?: string;
   flouArrierePlan?: boolean;
   dimensions: { x: number; y: number; largeur: number; hauteur: number };
+  /**
+   * Les rayons des coins, en pixels : haut gauche, haut droit, bas droit, bas gauche, liés ou non à une variable. Absents : le
+   * relevé ne les a pas lus ou le layer n'a pas de coin, et la preuve du fond lit des coins droits (D17).
+   */
+  rayons?: readonly [number, number, number, number];
   peintures: PeintureLue[];
   strokeWeight?: number;
   liaisons: LiaisonLue[];

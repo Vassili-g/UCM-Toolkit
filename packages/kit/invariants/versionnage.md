@@ -2,6 +2,7 @@
 
 - **Une propagation entre layers homonymes nomme leur parent lu sans proposer de liaison.** `faits.parent` porte le nom du parent du variant visé, seulement s'il figure dans le relevé. Autorité : `src/controles/propagation.ts` `constatDeLaPropagation`. Tests : `tests/propagation.test.ts`.
 - **Un champ dont la lecture a échoué ne reçoit aucune proposition de propagation et ne compte pas dans C81.** Le relevé ne dit pas qu'il est en dur. Autorité : `src/controles/propagation.ts` `constatDeLaPropagation` (`lectureManquee`). Tests : `tests/propagation.test.ts`.
+- **C49 et C59 lisent le même fond peint.** Frères plus bas puis ancêtres visibles, couverture prouvée par la forme : rectangle et cadre selon leurs rayons, ellipse par les quatre coins de la boîte, tracé `inconnue`. Sans preuve, C49 rend la limite `fond-indetermine` et C59 se tait. Autorité : `src/controles/accessibilite.ts` `fondsPeintsSous`. Tests : `tests/accessibilite.test.ts` (D17), `tests/theme.test.ts` (D17).
 - **L'écriture de la désactivation que C53 porte dans `faits.ecriture` est la plus répandue parmi les variants désactivés, à égalité la première par ordre alphabétique.** L'ordre des variants ne change aucun fait. Autorité : `src/controles/accessibilite.ts` `controlerLAccessibiliteParEtapes`. Tests : `tests/accessibilite.test.ts` (E9.10).
 
 - **Un changement de forme du JSON incrémente `contractVersion` et met à jour la spec et les consommateurs.**

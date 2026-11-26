@@ -1081,7 +1081,7 @@ test('E9.4 : un frère plus bas qui couvre la boîte du texte est son fond', () 
   assert.equal(sur_clair[0].faits.fondNomme, undefined, 'le fond est celui du frère, pas la page Figma');
   assert.equal(parCode(sur([texteBlanc(), fondFrere(48, { couleur: clair })]), 'C49')[0].faits.fondNomme, 'page-figma', 'un frère au-dessus ne sert pas de fond');
   assert.equal(parCode(sur([fondFrere(48, { couleur: clair, visible: false }), texteBlanc()]), 'C49')[0].faits.fondNomme, 'page-figma', 'un frère masqué ne sert pas de fond');
-  assert.equal(parCode(sur([fondFrere(48, { couleur: clair, type: 'VECTOR' }), texteBlanc()]), 'C49')[0].faits.fondNomme, 'page-figma', 'un vecteur n’est pas un fond');
+  assert.equal(parCode(sur([fondFrere(20, { couleur: clair, type: 'VECTOR' }), texteBlanc()]), 'C49')[0].faits.fondNomme, 'page-figma', 'un vecteur dont la boîte ne contient pas celle du texte n’est pas un fond');
   assert.equal(parCode(sur([fondFrere(48, { couleur: clair, x: 100 }), texteBlanc()]), 'C49')[0].faits.fondNomme, 'page-figma', 'un frère à côté ne couvre rien');
 });
 
@@ -1089,6 +1089,66 @@ test('E9.4 : un frère qui ne couvre le texte qu’en partie laisse le fond ind�
   const constats = cc(releve([variant('a', [racine([]), fondFrere(20, { couleur: [solide('fills', gris(0.9))] }), texteBlanc()])]), 'AA', sansFond);
   assert.equal(parCode(constats, 'C49').length, 0);
   assert.ok(constats.some((c) => c.limite && c.code === 'C49' && c.faits.cause === 'fond-indetermine' && c.faits.calque === 'Label'));
+});
+
+/** Le cas du Badge de la chasse (C9) : une ellipse noire de 100 x 100 sous un texte, posé sur le fond blanc de la racine. */
+const ellipseSous = (texteNoir: LayerLu['dimensions'], forme: Partial<LayerLu> = {}): ReleveDeComposant => {
+  const ellipse: LayerLu = {
+    id: 'cercle', nom: 'Circle', type: 'ELLIPSE', parent: 'r', visible: true, opacite: 1, dimensions: { x: 0, y: 0, largeur: 100, hauteur: 100 },
+    peintures: [solide('fills', gris(0))], liaisons: [], valeursEnDur: [], ...forme,
+  };
+  return releve([variant('a', [racine([solide('fills', gris(1))], dims(100, 100)), ellipse, { ...texte([solide('fills', gris(0))]), dimensions: texteNoir }])]);
+};
+
+test('D17 : un texte noir hors du disque d’une ellipse noire ne donne aucun constat C49, seulement une limite', () => {
+  const constats = cc(ellipseSous({ x: 0, y: 0, largeur: 8, hauteur: 8 }));
+  assert.deepEqual(constats.filter((c) => c.code === 'C49' && c.type === 'corriger'), []);
+  assert.equal(parCode(constats, 'C49').length, 0, 'pas de rapport 1 mesuré sur la boîte de l’ellipse');
+  assert.ok(constats.some((c) => c.limite && c.code === 'C49' && c.faits.cause === 'fond-indetermine' && c.faits.calque === 'Label'));
+});
+
+test('D17 : un texte au centre de l’ellipse se mesure sur l’ellipse', () => {
+  const [c] = parCode(cc(ellipseSous({ x: 40, y: 40, largeur: 20, hauteur: 16 })), 'C49');
+  assert.equal(c.faits.rapport, 1, 'noir sur noir');
+  assert.equal(c.faits.fond, '#000000');
+  assert.equal(c.faits.fondNomme, undefined, 'le fond est celui de l’ellipse, pas la page');
+});
+
+test('D17 : une ellipse couvre une boîte seulement si ses quatre coins sont dans la forme', () => {
+  const limite = (dimensions: LayerLu['dimensions']) => cc(ellipseSous(dimensions)).some((c) => c.limite && c.code === 'C49' && c.faits.cause === 'fond-indetermine');
+  assert.equal(limite({ x: 30, y: 30, largeur: 40, hauteur: 40 }), false, 'le carré inscrit dans le disque est couvert');
+  assert.equal(limite({ x: 10, y: 10, largeur: 80, hauteur: 80 }), true, 'un coin du carré dépasse le disque');
+});
+
+test('D17 : une boîte qui touche un coin arrondi n’est couverte que si elle reste dans la forme arrondie', () => {
+  const rectangle = (rayons?: LayerLu['rayons']): Partial<LayerLu> => ({ type: 'RECTANGLE', ...(rayons ? { rayons } : {}) });
+  const limite = (dimensions: LayerLu['dimensions'], forme: Partial<LayerLu>) =>
+    cc(ellipseSous(dimensions, forme)).some((c) => c.limite && c.code === 'C49' && c.faits.cause === 'fond-indetermine');
+  const aucuneLimite = (dimensions: LayerLu['dimensions'], forme: Partial<LayerLu>) => !limite(dimensions, forme);
+  const boite = (x: number, y: number): LayerLu['dimensions'] => ({ x, y, largeur: 8, hauteur: 8 });
+  assert.ok(aucuneLimite(boite(0, 0), rectangle()), 'coins droits : le texte du coin est sur le fond');
+  assert.ok(aucuneLimite(boite(0, 0), rectangle([0, 0, 0, 0])));
+  assert.ok(limite(boite(0, 0), rectangle([20, 20, 20, 20])), 'le coin du texte est hors de l’arrondi de 20 px');
+  assert.ok(limite(boite(4, 4), rectangle([20, 20, 20, 20])), 'à (4,4), le coin est à 22,6 px du centre de l’arc de 20 px');
+  assert.ok(aucuneLimite(boite(6, 6), rectangle([20, 20, 20, 20])), 'à (6,6), le coin est à 19,8 px du centre de l’arc : dans la forme');
+  assert.ok(limite(boite(92, 92), rectangle([0, 0, 20, 0])), 'le coin bas droit est arrondi');
+  assert.ok(aucuneLimite(boite(92, 92), rectangle([20, 20, 0, 20])), 'les autres coins arrondis ne touchent pas le texte');
+});
+
+test('D17 : un tracé dont la boîte contient celle du texte est un fond sans preuve, une icône à côté n’en est pas un', () => {
+  const sans = (dimensions: LayerLu['dimensions']) => cc(ellipseSous({ x: 40, y: 40, largeur: 20, hauteur: 16 }, { type: 'VECTOR', dimensions }));
+  const contenu = sans({ x: 0, y: 0, largeur: 100, hauteur: 100 });
+  assert.equal(parCode(contenu, 'C49').length, 0);
+  assert.ok(contenu.some((c) => c.limite && c.code === 'C49' && c.faits.cause === 'fond-indetermine'));
+  assert.ok(!sans({ x: 45, y: 45, largeur: 10, hauteur: 8 }).some((c) => c.limite && c.code === 'C49' && c.faits.cause === 'fond-indetermine'), 'un tracé plus petit que le texte n’est pas un fond');
+});
+
+test('D17 : un texte sans aucun fond peint garde ses constats d’avant', () => {
+  const sansEllipse = releve([variant('a', [racine([solide('fills', gris(1))], dims(100, 100)), texte([solide('fills', gris(0.9))])])]);
+  const [c] = parCode(cc(sansEllipse), 'C49');
+  assert.equal(c.type, 'corriger');
+  assert.equal(c.faits.fond, '#FFFFFF');
+  assert.equal(cc(sansEllipse).filter((x) => x.limite).length, 0);
 });
 
 test('E9.4 : un frère translucide se compose sur la page Figma', () => {

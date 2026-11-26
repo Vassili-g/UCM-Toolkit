@@ -216,6 +216,8 @@ export const TEXTES_IGNORES = {
     reglesSansNom: 'Une règle de l’instance de règles ne nomme aucune propriété.',
     regleRenommee: (regle: string, propriete: string): string => `La règle \`${regle}\` ressemble à la propriété \`${propriete}\`.`,
     regleRenommeeStatut: (propriete: string): string => `Renommez la règle en ${propriete}`,
+    reglesRenommees: (regle: string, propriete: string): string => `Les règles décrivent \`${regle}\`, et le composant appelle cette propriété \`${propriete}\`.`,
+    reglesRenommeesStatut: 'Renommez la propriété du composant ou la règle',
     valeurInconnue: (regle: string, propriete: string): string => `La règle \`${regle}\` vise une valeur que \`${propriete}\` n’a pas.`,
     valeurInconnueStatut: 'Corrigez la valeur, ou supprimez la règle',
     // C59, C60, C63 : le thème et la structure des variables.

@@ -24,6 +24,7 @@ import { natureDuChamp } from '@ucm-kit/core/referentiel';
 import type { ResultatInterne } from 'ucm-plugin-socle/src/composant/analyse/resultat';
 import type { FamilleDePoint } from 'ucm-plugin-socle/src/composant/contract/famillesDePoint';
 import { sorteDuPointDeRegles } from 'ucm-plugin-socle/src/composant/contract/extractRules';
+import { cleDeRegle } from 'ucm-plugin-socle/src/composant/contract/rulesModel';
 import type { PointACorriger } from 'ucm-plugin-socle/src/composant/contract/localisation';
 
 /** Les codes que la table donne à un point du moteur ; chacun figure au catalogue des codes du kit (`CODES_DES_CONSTATS`). */
@@ -158,16 +159,24 @@ function champsDuPoint(titre: string): Set<string> {
  *
  * - Un point C30 tombe quand un C25 ou un C29 porte le même layer et le même champ (Q-F3-17). Le kit compte même si le designer a
  *   ignoré son constat : Ignorer ne fait pas revenir le doublon (Q-F89-12), car la clé suffit.
- * - Un point C44 qui dit qu'aucune instance de règles n'écrit le composant, ou qu'un conteneur ne nomme personne, tombe quand C43 le
- *   dit (Q-09). Sans C43, il reste : il porte alors le geste.
+ * - Un point C44 qui dit qu'aucune instance de règles n'écrit le composant, qu'un conteneur ne nomme personne, ou qu'aucune règle d'usage
+ *   n'est déclarée, tombe quand C43 le dit (Q-09, D23). Sans C43, il reste : il porte alors le geste.
+ * - Un point C44 « Règle @prop « X » : aucune propriété de variante » tombe quand un C45 `renommee` ou `sans-propriete` nomme la même
+ *   règle (D13) : la carte de C45 dit déjà la cause.
  */
 export function sansLesDoublonsDuMoteur(constats: readonly Constat[]): Constat[] {
   const c43 = constats.some((constat) => constat.code === 'C43');
   const jugesParLeKit = constats.filter((constat) => constat.code === 'C25' || constat.code === 'C29');
+  const reglesDitesParC45 = new Set(constats.flatMap((constat) => {
+    if (constat.code !== 'C45' || (constat.faits.ecart !== 'renommee' && constat.faits.ecart !== 'sans-propriete')) return [];
+    return [cleDeRegle(String(constat.faits.regle ?? ''))];
+  }));
   return constats.filter((constat) => {
     if (constat.code === 'C44') {
-      const sorte = sorteDuPointDeRegles(String(constat.faits.titre ?? ''));
-      return !(c43 && (sorte === 'aucune-instance' || sorte === 'orphelin-vide' || sorte === 'orphelin-marque'));
+      const titre = String(constat.faits.titre ?? '');
+      const sorte = sorteDuPointDeRegles(titre);
+      if (c43 && (sorte === 'aucune-instance' || sorte === 'orphelin-vide' || sorte === 'orphelin-marque' || sorte === 'usage-absent')) return false;
+      return !(sorte === 'prop-sans-propriete' && reglesDitesParC45.has(cleDeRegle(/«\s*(.*?)\s*»/.exec(titre)?.[1] ?? '')));
     }
     if (constat.code !== 'C30') return true;
     const champs = champsDuPoint(String(constat.faits.titre ?? constat.faits.message ?? ''));

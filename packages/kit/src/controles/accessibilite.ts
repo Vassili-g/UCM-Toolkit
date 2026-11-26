@@ -475,15 +475,24 @@ interface MemoireDuVariant {
   /** L'opacité effective de chaque layer déjà demandée : le produit des opacités de la chaîne qui monte jusqu'à la racine. */
   readonly opacites: Map<string, number>;
   /** Par identifiant de layer : ses frères plus bas qui peuvent lui servir de fond, du plus proche au plus bas. */
-  readonly freres: Map<string, readonly FrereDeFond[]>;
+  readonly freres: Map<string, readonly FondPeint[]>;
   visibles?: readonly LayerLu[];
   /** Le rang de chaque layer parmi ses frères, et les frères qui peuvent faire fond, par parent. */
   ordre?: { readonly rang: ReadonlyMap<string, number>; readonly candidats: ReadonlyMap<string, readonly { frere: LayerLu; rang: number }[]> };
   fonds?: FondsMemorises;
 }
 
-/** Un frère plus bas dans l'ordre d'empilement qui recouvre la boîte du layer, en entier ou en partie. */
-interface FrereDeFond { readonly frere: LayerLu; readonly recouvre: 'tout' | 'partie' }
+/**
+ * Ce que la preuve établit de la boîte d'un layer sous un fond peint : `tout` quand la forme peinte la couvre en entier, `partie` quand
+ * elle la touche sans la couvrir, `inconnue` quand la forme (tracé, étoile, polygone) ne permet aucun calcul.
+ */
+export type CouvertureDuFond = 'tout' | 'partie' | 'inconnue';
+
+/**
+ * Un layer qui peint sous un autre, avec sa preuve (D17) : un ancêtre, couvert par construction, ou un frère plus bas dans l'ordre
+ * d'empilement dont la boîte touche celle du layer.
+ */
+export interface FondPeint { readonly layer: LayerLu; readonly origine: 'frere' | 'ancetre'; readonly couvre: CouvertureDuFond }
 
 /** Les fonds d'un variant pour un catalogue, avec la même règle de validité que l'index des variables. */
 interface FondsMemorises {
@@ -529,19 +538,80 @@ function opaciteEffective(variant: VariantLu, layer: LayerLu): number {
   return produit;
 }
 
-const TYPES_DE_FOND = new Set(['RECTANGLE', 'FRAME', 'ELLIPSE', 'COMPONENT', 'INSTANCE']);
+/** Les formes dont la boîte, éventuellement à coins arrondis, est la forme peinte. */
+const FORMES_A_BOITE = new Set(['RECTANGLE', 'FRAME', 'COMPONENT', 'INSTANCE']);
+/** Les formes peintes dont le relevé ne permet pas de dire ce qu'elles couvrent de leur boîte. */
+const FORMES_SANS_PREUVE = new Set(['VECTOR', 'STAR', 'POLYGON', 'BOOLEAN_OPERATION', 'LINE']);
 /** Les boîtes du relevé sont absolues et en pixels ; cette tolérance absorbe l'arrondi des flottants. */
 const TOLERANCE_DE_BOITE = 0.01;
 
 const boiteLue = (d: LayerLu['dimensions'] | undefined): d is LayerLu['dimensions'] =>
   d !== undefined && [d.x, d.y, d.largeur, d.hauteur].every(Number.isFinite) && d.largeur > 0 && d.hauteur > 0;
 
+type Boite = LayerLu['dimensions'];
+
+/** Les quatre coins de la boîte : haut gauche, haut droit, bas droit, bas gauche. */
+const coinsDe = (b: Boite): readonly (readonly [number, number])[] => [[b.x, b.y], [b.x + b.largeur, b.y], [b.x + b.largeur, b.y + b.hauteur], [b.x, b.y + b.hauteur]];
+
+/** Les quatre coins de `boite` sont dans l'ellipse inscrite dans `forme`, à la tolérance de boîte près. */
+function ellipseCouvre(forme: Boite, boite: Boite): boolean {
+  const rx = forme.largeur / 2;
+  const ry = forme.hauteur / 2;
+  const cx = forme.x + rx;
+  const cy = forme.y + ry;
+  return coinsDe(boite).every(([x, y]) => ((x - cx) / (rx + TOLERANCE_DE_BOITE)) ** 2 + ((y - cy) / (ry + TOLERANCE_DE_BOITE)) ** 2 <= 1);
+}
+
+/**
+ * La boîte est dans celle du rectangle et ne touche aucun coin que l'arrondi retire. Seul le coin de `boite` le plus proche d'un coin
+ * du rectangle peut sortir de la forme arrondie : il sort quand il est dans le carré du rayon et à plus d'un rayon du centre de l'arc.
+ */
+function rectangleCouvre(forme: LayerLu, boite: Boite): boolean {
+  const f = forme.dimensions;
+  if (!boiteContient(f, boite)) return false;
+  const plafond = Math.min(f.largeur, f.hauteur) / 2;
+  const rayons = (forme.rayons ?? [0, 0, 0, 0]).map((r) => (Number.isFinite(r) ? Math.min(Math.max(r, 0), plafond) : 0));
+  const [px, py] = [boite.x, boite.y];
+  const [qx, qy] = [boite.x + boite.largeur, boite.y + boite.hauteur];
+  const coins: readonly (readonly [number, number, number, number])[] = [
+    [px, py, f.x + rayons[0], f.y + rayons[0]],
+    [qx, py, f.x + f.largeur - rayons[1], f.y + rayons[1]],
+    [qx, qy, f.x + f.largeur - rayons[2], f.y + f.hauteur - rayons[2]],
+    [px, qy, f.x + rayons[3], f.y + f.hauteur - rayons[3]],
+  ];
+  return coins.every(([x, y, cx, cy], rang) => {
+    const r = rayons[rang];
+    if (r <= 0) return true;
+    const dansLeCarre = (rang === 0 || rang === 3 ? x < cx : x > cx) && (rang < 2 ? y < cy : y > cy);
+    return !dansLeCarre || (x - cx) ** 2 + (y - cy) ** 2 <= (r + TOLERANCE_DE_BOITE) ** 2;
+  });
+}
+
+/** La boîte de `forme` contient celle de `boite`, coins arrondis ignorés. */
+const boiteContient = (forme: Boite, boite: Boite): boolean =>
+  boite.x >= forme.x - TOLERANCE_DE_BOITE && boite.y >= forme.y - TOLERANCE_DE_BOITE
+  && boite.x + boite.largeur <= forme.x + forme.largeur + TOLERANCE_DE_BOITE && boite.y + boite.hauteur <= forme.y + forme.hauteur + TOLERANCE_DE_BOITE;
+
+/**
+ * Ce que la forme peinte du frère couvre de la boîte du layer ; la boîte du frère touche déjà celle du layer. Un tracé, une étoile ou un
+ * polygone dont la boîte ne contient pas celle du layer n'est pas un fond (une icône à côté d'un texte) ; s'il la contient, la forme est
+ * peut-être un fond que le relevé ne permet pas de mesurer : `null` écarte le frère, `inconnue` le garde sans preuve.
+ */
+function couvertureDe(frere: LayerLu, boite: Boite): CouvertureDuFond | null {
+  if (FORMES_A_BOITE.has(frere.type)) return rectangleCouvre(frere, boite) ? 'tout' : 'partie';
+  if (frere.type === 'ELLIPSE') return ellipseCouvre(frere.dimensions, boite) ? 'tout' : 'partie';
+  return boiteContient(frere.dimensions, boite) ? 'inconnue' : null;
+}
+
+/** Ce qui peut peindre sous un layer : une forme à remplissage, texte et groupe exclus. */
+const peutPeindre = (type: string): boolean => FORMES_A_BOITE.has(type) || type === 'ELLIPSE' || FORMES_SANS_PREUVE.has(type);
+
 /**
  * Les frères d'un layer, plus bas que lui dans l'ordre d'empilement (l'ordre du tableau `layers` est celui de Figma, du bas vers le
- * haut), qui montrent un remplissage visible sous sa boîte, du plus proche au plus bas. Seuls les rectangles, cadres, ellipses et
- * instances comptent comme fond. Une boîte que le relevé n'a pas lue (sans position) ne donne aucun frère (Q-F7-4).
+ * haut), qui montrent un remplissage visible sous sa boîte, du plus proche au plus bas, chacun avec ce que sa forme couvre. Une boîte
+ * que le relevé n'a pas lue (sans position) ne donne aucun frère (Q-F7-4).
  */
-function freresDeFond(variant: VariantLu, layer: LayerLu): readonly FrereDeFond[] {
+function fondsPeintsDesFreres(variant: VariantLu, layer: LayerLu): readonly FondPeint[] {
   const memoire = memoireDuVariant(variant);
   const connus = memoire.freres.get(layer.id);
   if (connus) return connus;
@@ -554,14 +624,14 @@ function freresDeFond(variant: VariantLu, layer: LayerLu): readonly FrereDeFond[
       const n = compteurs.get(parent) ?? 0;
       compteurs.set(parent, n + 1);
       rang.set(l.id, n);
-      if (!TYPES_DE_FOND.has(l.type) || !l.visible || !aUnePeintureVisible(l, 'fills') || opaciteEffective(variant, l) === 0 || !boiteLue(l.dimensions)) continue;
+      if (!peutPeindre(l.type) || !l.visible || !aUnePeintureVisible(l, 'fills') || opaciteEffective(variant, l) === 0 || !boiteLue(l.dimensions)) continue;
       const liste = candidats.get(parent);
       if (liste) liste.push({ frere: l, rang: n });
       else candidats.set(parent, [{ frere: l, rang: n }]);
     }
     memoire.ordre = { rang, candidats };
   }
-  const trouves: FrereDeFond[] = [];
+  const trouves: FondPeint[] = [];
   const boite = layer.dimensions;
   const candidats = memoire.ordre.candidats.get(layer.parent ?? '') ?? [];
   const mien = memoire.ordre.rang.get(layer.id) ?? 0;
@@ -573,12 +643,38 @@ function freresDeFond(variant: VariantLu, layer: LayerLu): readonly FrereDeFond[
       const largeur = Math.min(autre.x + autre.largeur, boite.x + boite.largeur) - Math.max(autre.x, boite.x);
       const hauteur = Math.min(autre.y + autre.hauteur, boite.y + boite.hauteur) - Math.max(autre.y, boite.y);
       if (largeur <= TOLERANCE_DE_BOITE || hauteur <= TOLERANCE_DE_BOITE) continue;
-      const tout = largeur >= boite.largeur - TOLERANCE_DE_BOITE && hauteur >= boite.hauteur - TOLERANCE_DE_BOITE;
-      trouves.push({ frere, recouvre: tout ? 'tout' : 'partie' });
+      const couvre = couvertureDe(frere, boite);
+      if (couvre) trouves.push({ layer: frere, origine: 'frere', couvre });
     }
   }
   memoire.freres.set(layer.id, trouves);
   return trouves;
+}
+
+/**
+ * La lecture du fond peint sous un layer, que C49 (contraste) et C59 (surface) partagent (D17) : d'abord ses frères plus bas dont la
+ * boîte touche la sienne, du plus proche au plus bas, puis ses ancêtres visibles et peints, du plus proche à la racine. Chaque fond dit
+ * ce que sa forme couvre de la boîte du layer ; un ancêtre est couvert par construction. Un fond qui ne couvre pas (`partie`,
+ * `inconnue`) ne prouve rien : le contraste devient une limite, et C59 ne dit rien d'une surface qu'il ne peut ni voir ni exclure.
+ */
+export function fondsPeintsSous(variant: VariantLu, layer: LayerLu): readonly FondPeint[] {
+  const calcul = fondsPeintsSousParEtapes(variant, layer);
+  let etape = calcul.next();
+  while (!etape.done) etape = calcul.next();
+  return etape.value;
+}
+
+/** `fondsPeintsSous`, qui cède à chaque ancêtre lu : une chaîne profonde reste annulable. */
+export function* fondsPeintsSousParEtapes(variant: VariantLu, layer: LayerLu): Generator<void, readonly FondPeint[]> {
+  const memoire = memoireDuVariant(variant);
+  const fonds: FondPeint[] = [...fondsPeintsDesFreres(variant, layer)];
+  const vus = new Set<string>();
+  for (let courant = layer.parent ? memoire.parId.get(layer.parent) : undefined; courant && !vus.has(courant.id); courant = courant.parent ? memoire.parId.get(courant.parent) : undefined) {
+    yield;
+    vus.add(courant.id);
+    if (courant.visible && aUnePeintureVisible(courant, 'fills') && opaciteEffective(variant, courant) > 0) fonds.push({ layer: courant, origine: 'ancetre', couvre: 'tout' });
+  }
+  return fonds;
 }
 
 function fondsDuVariant(memoire: MemoireDuVariant, catalogue: CatalogueDeReference): FondsMemorises {
@@ -614,7 +710,7 @@ function collectionsDeLaChaine(
 }
 
 /**
- * Le fond d'un layer : les remplissages de ses frères plus bas qui recouvrent sa boîte, puis ceux de ses ancêtres, composés jusqu'à
+ * Le fond d'un layer : les remplissages de ses frères plus bas dont la forme couvre sa boîte, puis ceux de ses ancêtres, composés jusqu'à
  * la première couche opaque. Sans frère de fond, il ne dépend que de la chaîne des ancêtres, donc du premier d'entre eux, et du mode
  * choisi pour chaque collection que leurs liaisons peuvent atteindre : les layers de même parent, dans toute combinaison qui s'accorde
  * sur ces modes, partagent le résultat, rendu gelé. Avec un frère de fond, le résultat se calcule à chaque appel. Opacités, peintures
@@ -624,7 +720,7 @@ export function fondEffectif(
   variant: VariantLu, layer: LayerLu, catalogue: CatalogueDeReference, combinaison: Combinaison,
 ): Rgba | LimiteDeFond {
   const memoire = memoireDuVariant(variant);
-  const freres = freresDeFond(variant, layer);
+  const freres = fondsPeintsDesFreres(variant, layer);
   if (freres.length > 0) return Object.freeze(calculerLeFond(variant, layer, freres, catalogue, combinaison));
   const fonds = fondsDuVariant(memoire, catalogue);
   const depart = layer.parent || '';
@@ -643,7 +739,7 @@ export function fondEffectif(
 }
 
 function calculerLeFond(
-  variant: VariantLu, layer: LayerLu, freres: readonly FrereDeFond[], catalogue: CatalogueDeReference, combinaison: Combinaison,
+  variant: VariantLu, layer: LayerLu, freres: readonly FondPeint[], catalogue: CatalogueDeReference, combinaison: Combinaison,
 ): Rgba | LimiteDeFond {
   const pile = couchesDuFond(variant, layer, freres, catalogue, combinaison);
   if ('limite' in pile) return pile;
@@ -652,14 +748,14 @@ function calculerLeFond(
 
 /**
  * Les couches sous un layer, de la plus haute à la première opaque comprise : ses frères de fond, du plus proche au plus bas, puis
- * ses ancêtres. Un frère qui ne recouvre la boîte qu'en partie laisse le fond indéterminé, et la page du thème ne le remplace pas.
+ * ses ancêtres. Un frère qui ne couvre pas la boîte (`partie` ou `inconnue`) laisse le fond indéterminé, et la page du thème ne le remplace pas.
  */
 function couchesDuFond(
-  variant: VariantLu, layer: LayerLu, freres: readonly FrereDeFond[], catalogue: CatalogueDeReference, combinaison: Combinaison,
+  variant: VariantLu, layer: LayerLu, freres: readonly FondPeint[], catalogue: CatalogueDeReference, combinaison: Combinaison,
 ): { couches: Rgba[] } | LimiteDeFond {
   const couches: Rgba[] = [];
-  for (const { frere, recouvre } of freres) {
-    if (recouvre === 'partie') return { limite: 'fond-indetermine', sansRepli: true };
+  for (const { layer: frere, couvre } of freres) {
+    if (couvre !== 'tout') return { limite: 'fond-indetermine', sansRepli: true };
     const limite = limiteDuLayer(frere);
     if (limite) return { limite };
     const pile = pileDePeintures(frere.peintures.filter((p) => p.champ === 'fills'), liaisonsPropres(frere), opaciteEffective(variant, frere), catalogue, variant, combinaison);
@@ -742,7 +838,7 @@ function fondsDeMesure(
   const bases = fondsDeRepli(catalogue, variant, combinaison);
   if (!bases) return { limite: fond.limite };
   if ('limite' in bases) return bases;
-  const pile = couchesDuFond(variant, layer, freresDeFond(variant, layer), catalogue, combinaison);
+  const pile = couchesDuFond(variant, layer, fondsPeintsDesFreres(variant, layer), catalogue, combinaison);
   const couches = 'couches' in pile ? pile.couches : [];
   return { fonds: bases.map((base) => ({ nom: base.nom, couleur: composer(couches, base.couleur) ?? base.couleur })) };
 }

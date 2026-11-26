@@ -669,9 +669,9 @@ test('annuler au milieu de la remontée des fonds du thème abandonne les ancêt
     ],
   };
   const dimensions = { x: 0, y: 0, largeur: 100, hauteur: 40 };
-  // Les ancêtres sont masqués : l'accessibilité les saute, seule la remontée du thème lit leurs peintures.
+  // Les ancêtres sont des sections : ni l'accessibilité ni l'index des frères ne lisent leurs peintures, seule la remontée du thème (`fondsPeintsSousParEtapes`) le fait, ancêtre par ancêtre.
   const ancetres = Array.from({ length: 256 }, (_, i) => ({
-    id: `a${i}`, nom: `Ancêtre ${i}`, type: 'FRAME' as const, parent: i === 0 ? null : `a${i - 1}`, visible: false, opacite: 1,
+    id: `a${i}`, nom: `Ancêtre ${i}`, type: 'SECTION' as const, parent: i === 0 ? null : `a${i - 1}`, visible: true, opacite: 1,
     dimensions, valeursEnDur: [], liaisons: [],
     peintures: [{ champ: 'fills' as const, indice: 0, type: 'SOLID' as const, get visible() { visiblesLus += 1; return true; }, opacite: 1, blendMode: 'NORMAL' as const }],
   }));

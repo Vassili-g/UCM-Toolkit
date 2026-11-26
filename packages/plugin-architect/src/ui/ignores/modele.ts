@@ -515,6 +515,7 @@ function liaisonOuNom(constat: Constat, contexte: ContexteDAFaire): Contenu | nu
       return { phrase: T.sansRegles, lieu: TEXTES.variants.tous, statut: T.sansReglesStatut };
     case 'C45':
       if (faits.ecart === 'regle-renommee') return { phrase: T.regleRenommee(texte(faits.regle) ?? '', texte(faits.propriete) ?? ''), lieu: TEXTES.variants.tous, statut: T.regleRenommeeStatut(texte(faits.propriete) ?? '') };
+      if (faits.ecart === 'renommee') return { phrase: T.reglesRenommees(texte(faits.regle) ?? '', texte(faits.propriete) ?? ''), lieu: TEXTES.variants.tous, statut: T.reglesRenommeesStatut };
       if (faits.ecart === 'valeur-inconnue') return { phrase: T.valeurInconnue(texte(faits.regle) ?? '', texte(faits.propriete) ?? ''), lieu: TEXTES.variants.tous, statut: T.valeurInconnueStatut };
       if (faits.ecart === 'sans-propriete' && faits.surUnAxe !== undefined) return { phrase: T.regleSurUnAxe(texte(faits.regle) ?? ''), lieu: TEXTES.variants.tous, statut: T.regleSurUnAxeStatut };
       if (faits.ecart === 'sans-propriete' && (texte(faits.regle) ?? '') === '') return { phrase: T.reglesSansNom, lieu: TEXTES.variants.tous, statut: T.regleSansProprieteStatut };
