@@ -180,7 +180,7 @@ d'Alert sont celles du plan. Onze défauts sont nouveaux, et Codex y ajoute quat
 | L18 | Socle et Architect : écarts C30 du moteur des règles D26 | `implementeur` | L16 | [x] 3cef4979 |
 | L10 | Architect : composants de référence et banc de recette D15, cas rouges de Codex rendus verts | `implementeur-exigeant` | L1 à L18 | [x] 3cef4979, 00cd8c20 |
 | L17 | Kit et Architect : intégration du générateur D25 | `implementeur-exigeant` | L10 | [x] 102b50b1 |
-| L5 | Conversation principale : invariants, SPEC, cartes, version, publication | conversation principale | L1 à L18 | [ ] |
+| L5 | Conversation principale : invariants, SPEC, cartes, version, publication | conversation principale | L1 à L18 | [x] f3dd7edf, publié |
 
 L1 et L4 n'ont aucun fichier commun et tournent ensemble. L2 et L6 tournent ensemble, puis L3 et L8. L7 et L9 touchent les textes
 de L3 et passent l'un après l'autre. L8 couvre aussi C20 (D21), et L9 aussi D23. L13 et L15 touchent le relevé d'Architect et
