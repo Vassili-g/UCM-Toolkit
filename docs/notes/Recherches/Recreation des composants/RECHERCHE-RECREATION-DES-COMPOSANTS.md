@@ -39,6 +39,7 @@ Trois faits fixent la méthode.
 | Pilote | Tag, Button et Alert. |
 | Données du client | Elles restent toutes en local, dans `_local/recreation-composants/`. |
 | Ce qui ne doit pas se perdre | Aucune variante, aucun axe, aucun comportement, générique ou spécifique, que l'application emploie réellement. Le relevé des usages dans les applications consommatrices fixe donc le périmètre de chaque composant, et il est possible. |
+| Comportements | Seul un comportement qui change le rendu entre dans le dessin et dans le contrat. Un comportement sans effet visuel n'est pas recréé dans Figma ; le relevé du code l'écrit dans un fichier de comportements, à côté du contrat dans intencial-library. |
 
 ## 4. Méthode
 
@@ -109,14 +110,13 @@ Les numéros suivent ceux de la première série. Les questions tranchées sont 
 
 ### Sources
 
-- Q20. Quelles applications consomment la bibliothèque, et où est leur code ?
+- Q20. La première application consommatrice relevée importe 7 des 34 composants exportés. D'autres applications consomment-elles la bibliothèque, et où est leur code ? Si elle est la seule, le périmètre tombe à ces 7 composants et à leurs pièces.
 - Q22. Avons-nous accès au projet Chromatic ? Ses captures donnent une base pour les combinaisons déjà en stories.
 - Q23. Les maquettes Zeplin font-elles encore foi pour certains composants ?
 - Q53. Peut-on modifier la bibliothèque source pour l'outillage (manifest de Storybook, pseudo-états, stories générées), ou le relevé tourne-t-il sur une copie ?
 
 ### Exhaustivité
 
-- Q25. Où s'écrit un comportement qu'aucun calque ne montre (fermeture d'un menu au clic extérieur, délai avant une recherche, bornes et pas d'un champ de quantité, format d'un nombre saisi, types de fichier acceptés) ? Le contrat n'a pas de champ pour eux, hors des règles d'usage que l'Exporter pose par propriété.
 - Q26. Les animations se décrivent-elles dans Figma ou seulement par un token de durée et de courbe ?
 - Q27. Le responsive se dessine-t-il en variants de taille, ou reste-t-il une règle de code ?
 - Q29. Les textes par défaut et leur langue passent-ils dans le contrat comme valeurs de propriété texte ?
