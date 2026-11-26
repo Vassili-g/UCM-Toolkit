@@ -53,8 +53,57 @@ Le mainteneur emploie un plugin local, hors de Git, dans `_local/outils/relier-v
 
 Deux défauts de l'outil sont à corriger avant tout transfert. Un fond lié à un token commun (une couleur générique) donne le même token à des variantes qui devraient différer, sans le signaler. Deux calques de référence qui mènent à deux dossiers sont départagés par le nombre de variantes couvertes, sans que le designer le voie. L'outil choisit aussi les icônes par leur nom de calque ; Architect les reconnaît déjà mieux.
 
+## 6. Mesure sur un Button relié
+
+Script jetable dans `_local/recettes/` : il retire de la capture `button-2026-11-25` ses 764 liaisons de couleur, rejoue l'analyse d'Architect et compare ses propositions aux liaisons d'origine.
+
+- Le jeu compte 90 variants. Chaque variant ne contient qu'une instance de la pièce interne `.sizeWrapperButton` : 612 des 764 liaisons de couleur sont posées dans des instances, en surcharge ou dans le maître de la pièce.
+- Sans ses liaisons, le Button reçoit 0 correction de liaison et 0 question de liaison. L'analyse rend 90 C32 (un token du composant que rien ne lit), 12 C59, 5 C30 et les constats d'avant.
+- C25 ne juge que les calques propres du variant et saute le fond d'une instance imbriquée (`corrections.ts`, `constatsManquantsParEtapes`). Une couleur laissée en dur dans une instance (icône, pièce interne) n'est donc signalée par aucun constat. C'est le cas du mainteneur : après la mise à jour d'un composant d'icône, les couleurs des icônes ont perdu leur liaison, et Architect ne l'aurait pas vu.
+
+La mesure de la Préparation seule (case 1.1) ne dit rien sur ce Button : relié, il n'a plus aucune variable à préparer. Elle se refait sur un composant dessiné en dur.
+
+## 7. Une seule expérience de liaison
+
+Aujourd'hui, Architect relie un composant par quatre chemins qui ne se ressemblent pas : la Préparation (Préparer, Créer, Lier), les corrections C25 et C29 une par une, la propagation d'un variant modèle (C81 puis C24), et rien du tout dans un fichier non déclaré UCM. L'outil local montre qu'un seul geste suffit au designer : dire, pour chaque emplacement coloré, quel token il prend ; le plugin en déduit le token de chaque variante.
+
+Proposition : une seule expérience, « Relier le composant », identique en full UCM et en agnostique. Seul change l'endroit où Architect trouve les tokens.
+
+| Étape | Full UCM | Agnostique |
+|---|---|---|
+| 1. Où sont les tokens du composant | La collection `components` reconnue par la déclaration | Le designer désigne une fois, dans la Configuration, la collection et le dossier des composants (`<collection>` › `components`) ; le catalogue en tire le rôle `components` |
+| 2. Les emplacements à relier | Chaque calque coloré du variant, et chaque calque peint dans une instance (icône, pièce interne), reconnus par `layers.ts` | Identique |
+| 3. Le token de chaque emplacement | Une question par emplacement ; les réponses sont les derniers mots des tokens du composant ; le rôle attendu du référentiel (`icon`, `foreground`) se présélectionne quand il désigne un seul mot | Une question par emplacement ; mêmes réponses, rien de présélectionné |
+| 4. Le token de chaque variante | Le nom construit par la grammaire UCM ; à défaut, le token voisin | Le token voisin ; à défaut, le nom construit à la main |
+| 5. Le contrôle | Aperçu sur variantes contrastées, liste par variante, puis Appliquer ; une règle qui ignore un axe ou départage deux dossiers devient une question | Identique |
+| 6. Les tokens manquants | La Préparation les crée dans `components`, avec leur cible dans `theme` ou `layout` | À trancher (Q8) |
+
+Les réponses de l'étape 3 se rangent avec le composant. Une nouvelle analyse les reprend : une icône dont la liaison a sauté reçoit sa correction sans nouvelle question, ce qui répond au cas mesuré en section 6.
+
+La construction d'un composant (M1 à M3) s'ouvre sur la même expérience : créer le jeu de variants, puis relier. Le setup initial et la réparation deviennent un seul écran, que le composant soit neuf ou déjà relié.
+
+## 8. Précision à gagner
+
+- P-a. Juger les couleurs peintes dans une instance : un nouveau constat, ou C25 étendu aux surcharges, quand l'emplacement a une réponse rangée ou un rôle attendu.
+- P-b. Le token voisin, en repli de la propagation (`propagation.ts`, avant la question) : il traverse les valeurs écrites autrement que le variant (`on` pour `Active=True`).
+- P-c. Une icône liée au token d'un autre composant (le cas de la mise à jour d'icône) : la règle « un calque ne lie que les tokens de son composant » attend toujours son contrôle.
+- P-d. La carte « n'a pas de tokens. Ses couleurs sont en dur » se pose dès qu'aucune collection n'a le rôle `components` (`analyse.ts`, `sansTokens`) : elle doit dire où Architect a cherché, et proposer l'étape 1.
+- P-e. Un départage silencieux entre deux règles devient une question ; un token commun à des variantes qui diffèrent se signale.
+
+## 9. Ce que le mode agnostique change
+
+- Le réglage de l'étape 1 dans la Configuration, à côté de l'interrupteur « Ce fichier suit l'architecture UCM ». La clé partagée `architecture` garde ses valeurs (`absente`, `ucm`, `libre`, `illisible`, `future`).
+- L'onglet Analyse rouvert dans un fichier non déclaré, avec les seuls contrôles qui ne lisent pas la nomenclature (liaisons, contraste résolu, accessibilité) ; les contrôles du thème, de la structure et des couches restent propres au full UCM.
+- La Préparation et la liaison ne refusent plus `hors-ucm` quand l'étape 1 est remplie.
+
+Ce mode change quatre textes : `CONCEPT.md` et `README.md` (« seul l'Exporter offre l'agnostique »), `packages/plugin-architect/SPEC.md` (analyse et Préparation réservées à un fichier déclaré), la conception P28 (« Architect restant full UCM ») et le risque de P28 dans `pistes.json`. Palettes a déjà quitté cette règle.
+
 ## Questions au mainteneur
 
+- Q6. Architect prend-il un mode agnostique, avec les changements de la section 9 ? La règle des deux périmètres change alors pour lui.
+- Q7. La Préparation, les corrections de liaison et la propagation deviennent-elles une seule expérience « Relier le composant » (section 7), qui remplace leurs écrans actuels ?
+- Q8. En agnostique, Architect crée-t-il les tokens manquants dans le dossier désigné, ou se limite-t-il à relier les tokens existants ?
+- Q9. Les réponses par emplacement se rangent-elles dans le fichier, avec le composant, pour être reprises à chaque analyse ?
 - Q1. Le designer dessine-t-il une seule variante de référence, ou une par valeur d'un axe de structure (taille, présence d'une icône) ?
 - Q2. La liste des axes et de leurs valeurs vient-elle du cahier de P30, lu par le plugin, ou se saisit-elle dans le plugin ?
 - Q4. Relancer la construction sur un composant déjà construit : le plugin complète les variantes manquantes sans toucher aux autres, ou refuse ?
