@@ -327,5 +327,5 @@ Réponses du mainteneur, puis décisions :
 |---|---|---|---|---|
 | L19 | Kit : D28 et D29 | `implementeur` | aucun | [x] e0ec1a93 |
 | L20 | Kit : D30 | `implementeur` | aucun | [x] e0ec1a93 |
-| L21 | Architect et kit : D31 | `implementeur-exigeant` | L20 | [ ] |
+| L21 | Architect et kit : D31 | `implementeur-exigeant` | L20 | [x] ed0433f0 |
 | L22 | Conversation principale : documents, version, publication | conversation principale | L19 à L21 | [ ] |
