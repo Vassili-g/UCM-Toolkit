@@ -29,6 +29,7 @@ produit, partir des références de [docs/README.md](../../README.md) et du code
 | [Palettes DS existant][palettes-ds-existant] | Fiabiliser les palettes d'un design system existant sans changer son architecture | Recherche en cours. |
 | [Chaîne UCM][chaine-ucm] | La visualisation de la chaîne dans l'inventaire et en plein écran, calculée depuis le dépôt. | Recherche en cours. |
 | [Recreation des composants][recreation-des-composants] | Relever les composants de la bibliothèque React existante et les recréer en UCM dans Figma sans rien perdre | Recherche en cours. |
+| [Construction des composants][construction-des-composants] | Faire construire par UCM Architect les variants, la collection et les liaisons d'un composant | Recherche en cours. |
 
 La [spécification de Palettes][spec-palettes] demeure la référence de son
 comportement, même si elle est encore rangée dans le dossier de recherche.
@@ -137,6 +138,7 @@ Leurs recettes Figma reportées restent dans leurs plans.
 [palettes-ds-existant]: ./Palettes%20DS%20existant/RECHERCHE-PALETTES-DS-EXISTANT.md
 [chaine-ucm]: ./Cha%C3%AEne%20UCM/RECHERCHE-CHAINE-UCM.md
 [recreation-des-composants]: ./Recreation%20des%20composants/RECHERCHE-RECREATION-DES-COMPOSANTS.md
+[construction-des-composants]: ./Construction%20des%20composants/RECHERCHE-CONSTRUCTION-DES-COMPOSANTS.md
 [recette-qualite-archive]: https://github.com/Vassili-g/UCM-Toolkit/blob/202f46e/docs/notes/Recherches/Plugin%20Palettes/Recette%20CRITIQUE%20de%20qualit%C3%A9/PLAN-IMPLEMENTATION.md
 [recette-moteur-archive]: https://github.com/Vassili-g/UCM-Toolkit/blob/202f46e/docs/notes/Recherches/Plugin%20Palettes/Recette%20moteur%20palettes/README.md
 [recette-texte-archive]: https://github.com/Vassili-g/UCM-Toolkit/blob/202f46e/docs/notes/Recherches/Plugin%20Palettes/Texte%20des%20boutons/README.md

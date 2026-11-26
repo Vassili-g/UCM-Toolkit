@@ -336,6 +336,7 @@ export const EXCLUSIONS_DE_PISTES: Readonly<Record<string, string>> = {
   P28: 'Fiabilise les palettes d\'un design system existant, une recette sur un client, sans brique propre dans la chaîne.',
   P29: 'Construit la chaîne elle-même dans l\'inventaire, donc ne figure pas parmi ses briques.',
   P30: 'Recrée les composants de la bibliothèque d\'un client, un chantier sur la carte Composants ; devient une pièce de cette carte si son outillage devient un produit.',
+  P31: 'à montrer : la construction d\'un composant (variants, collection et liaisons) étend le mode Composant de la carte UCM Architect.',
 };
 
 export const JAUGES: readonly Jauge[] = [

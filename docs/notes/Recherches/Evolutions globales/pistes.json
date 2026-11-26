@@ -1344,6 +1344,44 @@
         "Une variante supprimée dans Figma perd sa clé et détache ses instances : la structure d'un composant se fixe avant ses usages.",
         "Le relevé lit des styles calculés dans un navigateur : sans installation du dépôt source, le banc ne tourne pas."
       ]
+    },
+    {
+      "id": "P31",
+      "titre": "UCM Architect construit les variants, la collection et les liaisons d'un composant",
+      "titreCourt": "Construction des composants",
+      "sujet": "Plugin Architect",
+      "recherche": "docs/notes/Recherches/Construction des composants/RECHERCHE-CONSTRUCTION-DES-COMPOSANTS.md",
+      "plan": "docs/notes/Recherches/Construction des composants/PLAN-P31.md",
+      "resume": "Ce qu'il fait : à partir d'une variante dessinée par le designer, UCM Architect crée le jeu de variants avec tous ses axes, prépare et crée les variables du composant dans la collection `components` avec leur cible dans `theme` et `layout` pour chaque valeur d'axe, puis lie chaque variante à ses variables. Où : `packages/plugin-architect/`, sur la Préparation et la propagation d'un variant modèle qui existent déjà. Pourquoi : le designer refait ces gestes à la main pour chaque composant, et c'est l'étape la plus longue de la recréation d'une bibliothèque (P30).",
+      "importance": "haute",
+      "raisonImportance": "Chaque composant demande aujourd'hui des centaines de liaisons posées à la main dans deux fichiers, et une liaison oubliée part dans le contrat.",
+      "prio": 1,
+      "dependances": [],
+      "complexite": "l",
+      "raisonComplexite": "La préparation, la création et la liaison existent ; le travail porte sur la création du jeu de variants, la déclinaison d'un variant modèle sur chaque axe et le passage d'un fichier à l'autre.",
+      "coutHumain": "Répondre aux questions de la recherche, valider les maquettes, puis essayer le geste sur le Button du pilote de P30.",
+      "porteur": "mainteneur",
+      "promesse": "R",
+      "points": [
+        {
+          "chemin": "docs/notes/Recherches/ (dossier de la piste)",
+          "action": "créer",
+          "quoi": "Étude mesurée de la Préparation sur un Button, manques, maquettes et plan."
+        },
+        {
+          "chemin": "packages/plugin-architect/",
+          "action": "modifier",
+          "quoi": "Création du jeu de variants et déclinaison d'un variant modèle."
+        }
+      ],
+      "criteresDeFin": [
+        "Sur un composant dont le designer a dessiné une variante, le plugin crée les autres variantes, les variables du composant et toutes les liaisons, sans liaison à poser à la main.",
+        "Toute liaison dont la cible n'est pas exacte et unique devient une question, jamais un choix du plugin."
+      ],
+      "risques": [
+        "Une variante supprimée après coup perd sa clé et détache ses instances : le jeu de variants se fixe avant le dessin des composés.",
+        "L'API de Figma ne publie pas une library : entre la création des variables et leur liaison, le designer publie à la main."
+      ]
     }
   ]
 }
