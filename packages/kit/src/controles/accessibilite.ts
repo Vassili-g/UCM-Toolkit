@@ -9,7 +9,7 @@ import { GARANTIES } from '../emplois/garanties.js';
 import { atteintLeSeuil, contraste, contrasteTronque } from '../emplois/contraste.js';
 import { composer, couleurDansLeGamut, composanteDansLeGamut, hexaDeFigma, OPAQUE, PROFONDEUR_D_ALIAS, versRgb8, type Rgba } from '../emplois/couleur.js';
 import { SEUILS_PAR_ROLE, SEUILS_PAR_USAGE, SEUIL_GRAND_TEXTE_AA, SEUIL_TEXTE_AAA } from '../referentiel/contraste.js';
-import { estUnAnneau, estUneIconeJugee } from '../referentiel/layers.js';
+import { estUnAnneau, estUneIconeJugee, estUnTraceDeLIcone } from '../referentiel/layers.js';
 import { RECOMMANDATIONS } from '../referentiel/recommandations.js';
 import type { CatalogueDeReference, CollectionDuCatalogue, CouleurResolue, VariableDuCatalogue } from './catalogue.js';
 import { collectionDuCatalogue, variableDuCatalogue } from './catalogue.js';
@@ -209,6 +209,21 @@ function layersVisibles(variant: VariantLu): readonly LayerLu[] {
   return memoire.visibles;
 }
 
+/**
+ * Les calques lus sous les instances du variant que le designer voit : l'instance qui les porte et tous ses ancêtres sont visibles,
+ * comme tout calque lu. Seul C49 les mesure.
+ */
+function calquesDInstanceVisibles(variant: VariantLu): readonly LayerLu[] {
+  const dans = variant.dansInstances;
+  if (!dans || dans.length === 0) return [];
+  const memoire = memoireDuVariant(variant);
+  if (!memoire.visiblesDInstance) {
+    const lus = new Set(dans);
+    memoire.visiblesDInstance = Object.freeze(layersVisiblesDuVariant({ ...variant, layers: [...tousLesCalques(variant)] }).filter((layer) => lus.has(layer)));
+  }
+  return memoire.visiblesDInstance;
+}
+
 /** Le grand texte commence à 24 px, ou à 14 pt (56/3 px) en graisse 700 ou plus ; 18,66 px reste un petit texte (Q-F7-3). */
 function estGrandTexte(fontSize: number, fontWeight: number): boolean {
   return fontSize >= 24 || (fontSize >= 56 / 3 && fontWeight >= 700);
@@ -305,14 +320,15 @@ function* combinaisonsDeModes(
   const atteintes = new Map<string, CollectionDuCatalogue>();
   const variables = new Map<string, VariableDuCatalogue[]>();
   const vues = new Set<string>();
-  for (const layer of layersVisibles(variant)) {
+  const mesurables = [...layersVisibles(variant), ...calquesDInstanceVisibles(variant)];
+  for (const layer of mesurables) {
     for (const liaison of liaisonsDeCouleur(layer)) collectionsAtteintes(catalogue, liaison.variable.cle, vues, atteintes, variables);
   }
   // Une collection forcée sur chaque layer qui l'atteint ne varie pour aucun : seules celles qu'un layer hérite du composant entrent dans le produit (D18).
   if (aDesModesForces(variant)) {
     const heritables = new Set<string>();
     const vuesHeritees = new Set<string>();
-    for (const layer of layersVisibles(variant)) {
+    for (const layer of mesurables) {
       const forces = forcesDuLayer(variant, layer, catalogue);
       const propres = new Map<string, CollectionDuCatalogue>();
       for (const liaison of liaisonsDeCouleur(layer)) collectionsAtteintes(catalogue, liaison.variable.cle, forces.size === 0 ? vuesHeritees : new Set<string>(), propres);
@@ -401,7 +417,7 @@ function modeDeLaCollection(variant: VariantLu, combinaison: Combinaison, collec
 /** Un layer, hors la racine du variant, pose-t-il un mode ? Sans cela, aucune combinaison n'a de mode propre à un layer. */
 function aDesModesForces(variant: VariantLu): boolean {
   const memoire = memoireDuVariant(variant);
-  memoire.sansModeForce ??= !variant.layers.some((l) => l.parent !== null && l.modesExplicites && Object.keys(l.modesExplicites).length > 0);
+  memoire.sansModeForce ??= !tousLesCalques(variant).some((l) => l.parent !== null && l.modesExplicites && Object.keys(l.modesExplicites).length > 0);
   return !memoire.sansModeForce;
 }
 
@@ -529,6 +545,9 @@ export function pileDePeintures(
 interface MemoireDuVariant {
   readonly layers: readonly LayerLu[];
   readonly nombreDeLayers: number;
+  /** Les calques lus sous les instances (`VariantLu.dansInstances`), tableau et longueur comme `layers`. */
+  readonly dansInstances: readonly LayerLu[] | undefined;
+  readonly nombreDInstance: number;
   readonly parId: Map<string, LayerLu>;
   /** L'opacité effective de chaque layer déjà demandée : le produit des opacités de la chaîne qui monte jusqu'à la racine. */
   readonly opacites: Map<string, number>;
@@ -542,6 +561,8 @@ interface MemoireDuVariant {
   /** Par identifiant de layer : tous les fonds peints sous lui, dans l'ordre où le fond se compose. */
   readonly fondsSous: Map<string, readonly FondPeint[]>;
   visibles?: readonly LayerLu[];
+  /** Les calques lus sous les instances que le layer de leur instance et ses ancêtres laissent visibles. */
+  visiblesDInstance?: readonly LayerLu[];
   /** Vrai quand aucun layer hors racine ne pose de mode. */
   sansModeForce?: boolean;
   /** Le rang de chaque layer parmi ses frères, et les frères qui peuvent faire fond, par parent. */
@@ -573,16 +594,23 @@ interface FondsMemorises {
   readonly fonds: Map<string, Rgba | LimiteDeFond>;
 }
 
+/** Les layers de l'hôte, puis les calques lus sous ses instances : la chaîne des parents, les opacités, les modes et les fonds les parcourent ensemble. */
+function tousLesCalques(variant: VariantLu): readonly LayerLu[] {
+  return variant.dansInstances && variant.dansInstances.length > 0 ? [...variant.layers, ...variant.dansInstances] : variant.layers;
+}
+
 const memoiresDesVariants = new WeakMap<VariantLu, MemoireDuVariant>();
 /** Au-delà, les fonds d'un variant sont vidés en entier. */
 const PLAFOND_DE_FONDS = 50_000;
 
 function memoireDuVariant(variant: VariantLu): MemoireDuVariant {
-  const { layers } = variant;
+  const { layers, dansInstances } = variant;
   const connue = memoiresDesVariants.get(variant);
-  if (connue && connue.layers === layers && connue.nombreDeLayers === layers.length) return connue;
+  if (connue && connue.layers === layers && connue.nombreDeLayers === layers.length
+    && connue.dansInstances === dansInstances && connue.nombreDInstance === (dansInstances?.length ?? 0)) return connue;
   const neuve: MemoireDuVariant = {
-    layers, nombreDeLayers: layers.length, parId: new Map(layers.map((l) => [l.id, l] as const)), opacites: new Map(), freres: new Map(), fondsSous: new Map(), chainesAvecFreres: new Map(),
+    layers, nombreDeLayers: layers.length, dansInstances, nombreDInstance: dansInstances?.length ?? 0,
+    parId: new Map(tousLesCalques(variant).map((l) => [l.id, l] as const)), opacites: new Map(), freres: new Map(), fondsSous: new Map(), chainesAvecFreres: new Map(),
   };
   memoiresDesVariants.set(variant, neuve);
   return neuve;
@@ -717,7 +745,7 @@ function ordreDuVariant(variant: VariantLu): NonNullable<MemoireDuVariant['ordre
     const rang = new Map<string, number>();
     const candidats = new Map<string, { frere: LayerLu; rang: number }[]>();
     const compteurs = new Map<string, number>();
-    for (const l of variant.layers) {
+    for (const l of tousLesCalques(variant)) {
       const parent = l.parent ?? '';
       const n = compteurs.get(parent) ?? 0;
       compteurs.set(parent, n + 1);
@@ -1002,13 +1030,32 @@ function rolesLiesDuLayer(layer: LayerLu, catalogue: CatalogueDeReference): stri
 }
 
 /**
+ * Une icône jugée, ou un tracé dont un ancêtre, jusqu'au layer de l'hôte, en est une : l'icône d'une bibliothèque est une instance dont
+ * le `Vector` porte la couleur. Seuls les calques lus sous une instance reçoivent cette seconde règle.
+ */
+function estUneIconeEnInstance(variant: VariantLu, layer: LayerLu): boolean {
+  if (estUneIconeJugee(layer)) return true;
+  const parId = memoireDuVariant(variant).parId;
+  const vus = new Set<string>([layer.id]);
+  for (let ancetre = layer.parent ? parId.get(layer.parent) : undefined; ancetre && !vus.has(ancetre.id); ancetre = ancetre.parent ? parId.get(ancetre.parent) : undefined) {
+    vus.add(ancetre.id);
+    if (estUnTraceDeLIcone(layer, estUneIconeJugee(ancetre))) return true;
+  }
+  return false;
+}
+
+/**
  * Cède par layer visible et par plage de texte ; la liste rendue est celle de la voie synchrone. Un layer d'opacité effective nulle
  * et une plage vide n'ont rien à mesurer.
  */
 function* ciblesDeContraste(variant: VariantLu, niveau: NiveauWcag, catalogue: CatalogueDeReference, releve: Pick<ReleveDeComposant, 'lecture'>): Generator<void, Cible[]> {
   const cibles: Cible[] = [];
-  for (const layer of layersVisibles(variant)) {
+  const ceDeLHote = layersVisibles(variant);
+  const sousLesInstances = new Set(calquesDInstanceVisibles(variant));
+  // Les calques lus sous une instance suivent ceux de l'hôte : une limite de fond partagée garde le code de la première cible (D31).
+  for (const layer of sousLesInstances.size === 0 ? ceDeLHote : [...ceDeLHote, ...sousLesInstances]) {
     yield;
+    const enInstance = sousLesInstances.has(layer);
     if (opaciteEffective(variant, layer) === 0) continue;
     if (lectureManquee(releve, layer.id, 'blendMode') || lectureManquee(releve, layer.id, 'effects')) continue;
     // Ce que le relevé dit ne pas avoir lu n'est pas un fait : ni le layer, ni le fond qu'il demande ne se jugent (N-54).
@@ -1027,12 +1074,14 @@ function* ciblesDeContraste(variant: VariantLu, niveau: NiveauWcag, catalogue: C
       continue;
     }
     const anneau = estUnAnneau(layer, rolesLiesDuLayer(layer, catalogue));
-    if (estUneIconeJugee(layer) && !anneau && aUnePeintureVisible(layer, 'fills') && !lectureManquee(releve, layer.id, 'fills')) {
+    if ((enInstance ? estUneIconeEnInstance(variant, layer) : estUneIconeJugee(layer)) && !anneau && aUnePeintureVisible(layer, 'fills') && !lectureManquee(releve, layer.id, 'fills')) {
       cibles.push({
         layer, code: 'C49', usage: 'icone', champ: 'fills', peintures: layer.peintures.filter((p) => p.champ === 'fills'),
         liaisons: liaisonsPropres(layer), seuil: SEUILS_PAR_ROLE.icon ?? SEUILS_D_ACCESSIBILITE.texte.AA,
       });
     }
+    // Un contour et un anneau sous une instance sont ceux d'un composant que l'hôte n'a pas dessiné : C50 ne les juge pas.
+    if (enInstance) continue;
     if (lectureManquee(releve, layer.id, 'strokes') || (!anneau && lectureManquee(releve, layer.id, 'fills'))) continue;
     if (aUnContourVisible(layer)) {
       cibles.push({

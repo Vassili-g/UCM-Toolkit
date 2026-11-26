@@ -198,7 +198,7 @@ function cibleDe(constat: Constat): string {
     case 'C53': return `${f.variantsExclus} variants`;
     case 'C83': return `${f.wrapper}:${f.proprietes}`;
     case 'C66': case 'C67': return String(f.calque);
-    case 'C49': case 'C50': return String(f.cause);
+    case 'C49': case 'C50': return String(f.cause ?? f.calque);
     default: return constat.id;
   }
 }
@@ -215,11 +215,17 @@ const STYLES = ['Contained', 'Outlined'];
 const ETATS = ['Default', 'Hover', 'Disabled'];
 const TAILLES = ['Medium', 'Large', 'Small'];
 
-/** Le Button de la recette : 12 variants (2 couleurs, 2 styles, 3 états), un wrapper `.sizeWrapperButton` non exposé à trois tailles. */
-function button(): Monde {
+/**
+ * Le Button de la recette : 12 variants (2 couleurs, 2 styles, 3 états), un wrapper `.sizeWrapperButton` non exposé à trois tailles.
+ * `texteClair` donne au premier plan de `Primary Contained Hover` la couleur du fond : le label et les flèches, que le wrapper porte,
+ * manquent alors de contraste, ce que seule la mesure sous l'instance peut voir (D31).
+ */
+function button(texteClair = false): Monde {
   const b = atelier();
-  const jeton = (couleur: string, style: string, etat: string, role: string) =>
-    b.variable(`button-${couleur}-${style}-${etat}-${role}`, 'c', `Button/Color/${couleur}/${style}/${etat}/${role}`, 'COLOR', alias(role === 'background' ? 't-fond' : 't-texte'));
+  const jeton = (couleur: string, style: string, etat: string, role: string) => {
+    const clair = texteClair && couleur === 'Primary' && style === 'Contained' && etat === 'Hover' && role === 'foreground';
+    return b.variable(`button-${couleur}-${style}-${etat}-${role}`, 'c', `Button/Color/${couleur}/${style}/${etat}/${role}`, 'COLOR', alias(role === 'background' || clair ? 't-fond' : 't-texte'));
+  };
   const mesure: Record<string, string> = {};
   for (const taille of TAILLES) {
     for (const propriete of ['padding-x', 'padding-y', 'gap', 'radius']) {
@@ -289,7 +295,8 @@ function button(): Monde {
 //   C50 : les variants Outlined n'ont aucun fill. Leur contour se mesure sur le fond de la page (blanc), que le plugin ne garantit pas :
 //         une information `fond-de-repli` pour les 4 variants Outlined non désactivés, un seul constat (D17).
 //   Aucun C24 (D2, D3, D4) : le `Vector` des icônes, lié à `foreground`, est un tracé dans une icône.
-//   Aucun C49 : le label et les icônes vivent sous l'instance du wrapper, que le relevé ne mesure pas (laissé au mainteneur, plan L18).
+//   Aucun C49 : le label `Suivant` et les flèches `arrow-left-long` vivent sous l'instance du wrapper ; le relevé les lit et C49 les mesure (D31),
+//         noir sur blanc dans chaque état, ce qui passe. Le test suivant les fait échouer pour le montrer.
 //   Aucun C42, C45 ni C19 : les règles de Button couvrent `size`, `iconLeft`, `iconRight`, `label` et `@icons` pour les deux flèches.
 const ATTENDUS_DE_BUTTON: readonly Attendu[] = [
   ['C10', 'corriger', 'tailles', 'Medium'],
@@ -303,6 +310,15 @@ const ATTENDUS_DE_BUTTON: readonly Attendu[] = [
 test('D15 : Button rend les constats que ses décisions attendent, et aucun C24', async () => {
   const constats = await analyser(button());
   assert.deepEqual(lire(constats), trier(ATTENDUS_DE_BUTTON));
+});
+
+test('D31 : le label et les flèches que le wrapper porte sont mesurés, et un premier plan clair sur fond clair donne C49 à corriger', async () => {
+  const constats = await analyser(button(true));
+  const mesures = lire(constats.filter((c) => c.code === 'C49' && !c.limite));
+  assert.deepEqual(mesures, trier([['C49', 'corriger', 'contraste', 'Suivant'], ['C49', 'corriger', 'contraste', 'Vector']]));
+  const label = constats.find((c) => c.code === 'C49' && c.faits.calque === 'Suivant')!;
+  assert.deepEqual([label.faits.usage, label.faits.rapport, label.variants.length], ['texte', 1, 1], 'un seul variant : Primary Contained Hover');
+  assert.deepEqual(lire(constats.filter((c) => c.code !== 'C49')), trier(ATTENDUS_DE_BUTTON.filter(([code]) => code !== 'C49')));
 });
 
 // ---------------------------------------------------------------------------------------------------------------------------

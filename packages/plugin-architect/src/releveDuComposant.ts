@@ -6,8 +6,10 @@
  *
  * La vue Composant lit le seul variant par défaut (`lectureDuComposant.ts`) ;
  * ce relevé en reprend le parcours : une instance sous la racine est une
- * frontière, ses calques ne sont pas lus, et les liaisons que le parent y pose
- * se rattachent au layer de l'instance, qui en est le porteur.
+ * frontière, ses calques ne sont pas des layers du variant, et les liaisons que le parent y pose
+ * se rattachent au layer de l'instance, qui en est le porteur. Seuls les textes et les icônes visibles d'une instance, leurs ancêtres
+ * et les frères de ces ancêtres qui peuvent peindre se lisent en plus, dans `VariantLu.dansInstances` : C49 les mesure (D31), aucun
+ * autre contrôle ne les voit, et ils ne comptent pas dans le budget des layers (`lireLesCalquesDeLInstance`).
  *
  * Le budget compte les layers de variants, racine comprise, comme S3. Un
  * variant se lit en entier ou pas du tout ; le premier se lit toujours. Une
@@ -24,7 +26,8 @@
  * `fills.gradientStops[1].color` et l'indice 0. Une liaison de texte garde sa
  * plage et figure à la fois dans `layer.liaisons` et dans `texte.plages`.
  */
-import { peintureVisible, type LayerLu, type LiaisonLue, type PeintureLue, type ReleveDeComposant, type VariantLu, type WrapperLu } from '@ucm-kit/core/controles';
+import { layersVisiblesDuVariant, peintureVisible, type LayerLu, type LiaisonLue, type PeintureLue, type ReleveDeComposant, type VariantLu, type WrapperLu } from '@ucm-kit/core/controles';
+import { estUneDependance, estUneIconeJugee, estUnTraceDeLIcone } from '@ucm-kit/core/referentiel';
 import { copierLaMiseEnPage, copierLesPeinturesParEtapes, lectureNative, lireLesPeinturesParEtapes, lireLesSegmentsCooperatif, lireLesSegmentsParEtapes, type ChampDeMiseEnPage, type ChampsDeMiseEnPage, type EtatDesSegments, type LecteurDeChamp, type PlageLue } from 'ucm-plugin-socle/src/composant/analyse/acquisition';
 import { champDe, type ChampDeSegment, type EtatEcrit, type MaitreLu, type ModeDeCollectionLu, type PeintureLue as PeintureCopiee, type TableDesChamps } from 'ucm-plugin-socle/src/composant/analyse/faits';
 import { creerMemoireDeRessources, type MemoireDeRessources } from 'ucm-plugin-socle/src/composant/analyse/ressources';
@@ -151,6 +154,17 @@ function rayonsDuLayer({ commun, coins }: RayonsLus): LayerLu['rayons'] {
   return [hg, hd, bd, bg].every((valeur) => valeur !== undefined) ? [hg!, hd!, bd!, bg!] : undefined;
 }
 
+/** Lit les rayons de coin du layer et les pose dans `layer.rayons`, ou `rayonsIllisibles` quand Figma en refuse un. */
+function poserLesRayons(noeud: NoeudLu, layer: LayerLu, manquees: Manquee[]): RayonsLus {
+  const dejaManquees = manquees.length;
+  const rayons = lireLesRayons(noeud, manquees);
+  const coins = rayonsDuLayer(rayons);
+  if (coins) layer.rayons = coins;
+  // Un rayon que Figma a refusé n'est pas un coin droit : le layer le dit, la preuve du fond ne le lira pas droit (D17).
+  else if (manquees.length > dejaManquees) layer.rayonsIllisibles = true;
+  return rayons;
+}
+
 /** Les champs numériques qu'aucune variable ne lie sur ce layer ; lit aussi ses rayons de coin, liés ou non, dans `layer.rayons`. */
 async function valeursEnDur(noeud: NoeudLu, liaisons: readonly LiaisonLue[], dimensions: LayerLu['dimensions'] | null, epaisseur: number | undefined, contours: EtatEcrit<readonly PeintureCopiee[]>, layer: LayerLu, manquees: Manquee[], cooperation: ContexteCooperatif): Promise<LayerLu['valeursEnDur']> {
   const liees = new Set<string>();
@@ -171,12 +185,7 @@ async function valeursEnDur(noeud: NoeudLu, liaisons: readonly LiaisonLue[], dim
       ajouter(champ, nombreDe(espacements, champ, noeud.id, manquees));
     }
   }
-  const dejaManquees = manquees.length;
-  const rayons = lireLesRayons(noeud, manquees);
-  const coins = rayonsDuLayer(rayons);
-  if (coins) layer.rayons = coins;
-  // Un rayon que Figma a refusé n'est pas un coin droit : le layer le dit, la preuve du fond ne le lira pas droit (D17).
-  else if (manquees.length > dejaManquees) layer.rayonsIllisibles = true;
+  const rayons = poserLesRayons(noeud, layer, manquees);
   if (rayons.commun !== undefined) ajouter('cornerRadius', rayons.commun, ...RAYONS);
   else for (const [rang, coin] of RAYONS.entries()) ajouter(coin, rayons.coins[rang], 'cornerRadius');
   // Figma donne une épaisseur (1 par défaut) à tout layer, même sans contour : sans contour visible, elle ne se voit pas.
@@ -227,6 +236,9 @@ class Lecteur {
   readonly expositions = new Map<string, boolean | 'inconnu'>();
   /** Vrai d'un maître dont le composant a ses règles : l'instance est alors une dépendance. Jugé une fois par maître. */
   readonly reglesTrouvees: (maitre: NoeudLu) => boolean;
+  /** Les calques que la visite des instances peut encore parcourir pour tout le relevé ; vide, le relevé le consigne une seule fois. */
+  calquesRestants = CALQUES_VISITES_PAR_RELEVE;
+  budgetDInstanceDit = false;
 
   constructor(
     private readonly port: PortDuComposant,
@@ -616,7 +628,24 @@ async function marquerLesLiaisonsDeStyle(noeud: NoeudLu, layer: LayerLu, lecteur
   }
 }
 
-async function lireLeLayer(port: PortDuComposant, lecteur: Lecteur, etape: Etape, manquees: Manquee[]): Promise<LayerLu> {
+/** Ce qu'un calque lu sous une instance sait de cette instance : son composant principal et son identifiant, pour la provenance de ses liaisons. */
+interface DansUneInstance {
+  readonly maitre: NoeudLu;
+  readonly instance: string;
+  /** Ce que la visite a déjà lu du composant d'un calque qui est lui-même une instance. */
+  readonly instanceDe?: LayerLu['instanceDe'];
+}
+
+/** Seules les liaisons de remplissage et de contour servent à la mesure d'un calque lu sous une instance. */
+const estUneLiaisonDeCouleur = ({ propriete }: { propriete: string }): boolean => {
+  const { champ } = decouper(propriete);
+  return champ === 'fills' || champ === 'strokes';
+};
+
+/** Les formes dont la boîte est la forme peinte : seules elles portent des rayons de coin dont la preuve du fond a besoin. */
+const FORMES_A_RAYONS = new Set(['RECTANGLE', 'FRAME', 'COMPONENT', 'INSTANCE']);
+
+async function lireLeLayer(port: PortDuComposant, lecteur: Lecteur, etape: Etape, manquees: Manquee[], dansInstance?: DansUneInstance): Promise<LayerLu> {
   const { noeud, parent, frontiere } = etape;
   const dimensions = dimensionsDe(noeud, manquees);
   const [id, nom, type] = [noeud.id, lecteur.lire<string>(noeud, 'name'), noeud.type];
@@ -666,8 +695,16 @@ async function lireLeLayer(port: PortDuComposant, lecteur: Lecteur, etape: Etape
   if (explicites && Object.keys(explicites).length > 0) layer.modesExplicites = explicites;
   const segments = noeud.type === 'TEXT' ? new SegmentsDuTexte(noeud) : undefined;
   try {
-    layer.liaisons = await lecteur.liaisons(await liaisonsDuNoeudCooperatives(noeud, lecteur.cooperation, { fills, strokes }, segments?.parEtapes, lecteur.lire), noeud.id);
-    if (frontiere) {
+    const brutes = await liaisonsDuNoeudCooperatives(noeud, lecteur.cooperation, { fills, strokes }, segments?.parEtapes, lecteur.lire);
+    layer.liaisons = await lecteur.liaisons(dansInstance ? brutes.filter(estUneLiaisonDeCouleur) : brutes, noeud.id);
+    if (dansInstance) {
+      // Un calque lu sous l'instance ne sert qu'à la mesure : la liaison que son composant principal tient garde cette origine.
+      for (const liaison of layer.liaisons) {
+        await lecteur.cooperation.cederSiBesoin();
+        liaison.provenance = await lecteur.maitres.provenance(dansInstance.maitre, dansInstance.instance, liaison, noeud.id);
+      }
+      if (dansInstance.instanceDe) layer.instanceDe = dansInstance.instanceDe;
+    } else if (frontiere) {
       const lues: LiaisonLue[] = [];
       const chaines = new Map<string, InstancesDeSurcharge>();
       const peintesParCalque = new Map<string, { peintures?: PeintureLue[]; strokeWeight?: number }>();
@@ -710,10 +747,143 @@ async function lireLeLayer(port: PortDuComposant, lecteur: Lecteur, etape: Etape
     if (erreur instanceof AnalyseAnnulee) throw erreur;
     manquees.push({ layer: noeud.id, champ: 'liaisons', motif: messageDErreur(erreur) });
   }
-  await marquerLesLiaisonsDeStyle(noeud, layer, lecteur, manquees);
-  layer.valeursEnDur = await valeursEnDur(noeud, layer.liaisons, dimensions, epaisseur, strokes, layer, manquees, lecteur.cooperation);
+  if (dansInstance) {
+    if (FORMES_A_RAYONS.has(type)) poserLesRayons(noeud, layer, manquees);
+  } else {
+    await marquerLesLiaisonsDeStyle(noeud, layer, lecteur, manquees);
+    layer.valeursEnDur = await valeursEnDur(noeud, layer.liaisons, dimensions, epaisseur, strokes, layer, manquees, lecteur.cooperation);
+  }
   if (segments) layer.texte = await texteDe(lecteur, noeud, layer.liaisons, manquees, segments);
   return layer;
+}
+
+/** Au plus ce nombre de calques se visite sous une instance ; au-delà, l'instance n'est pas lue et la manquée le dit. */
+const CALQUES_VISITES_PAR_INSTANCE = 500;
+/** Le budget de la visite pour tout le relevé : 10 000 calques, soit cinq fois celui des layers de l'hôte. */
+const CALQUES_VISITES_PAR_RELEVE = 10_000;
+/** Les formes qui peuvent peindre sous un texte ou une icône : celles de la preuve du fond du kit. */
+const FORMES_QUI_PEIGNENT = new Set([...FORMES_A_RAYONS, 'ELLIPSE', 'VECTOR', 'STAR', 'POLYGON', 'BOOLEAN_OPERATION', 'LINE']);
+
+/** Les types de calque qui portent des enfants : la visite ne lit pas `children` des autres. */
+const TYPES_A_ENFANTS = new Set(['FRAME', 'GROUP', 'COMPONENT', 'INSTANCE', 'BOOLEAN_OPERATION', 'SECTION', 'SLOT']);
+
+/** Un calque que la visite a trouvé visible sous une instance, avant sa lecture complète. */
+interface Visite {
+  readonly noeud: NoeudLu;
+  readonly parent: string;
+  /** Un texte ou une icône : ce que C49 mesure. */
+  readonly cible: boolean;
+  readonly instanceDe?: LayerLu['instanceDe'];
+}
+
+/**
+ * Les calques que C49 mesure sous une instance du variant (D31) : ses textes visibles, ses icônes visibles (`estUneIconeJugee`, ou un
+ * tracé dans une telle icône), leurs ancêtres jusqu'au layer de l'instance pour la preuve du fond, et les frères de ces ancêtres qui
+ * peuvent peindre dessous (D30). Une visite d'abord, sans peinture : une instance sans texte ni icône ne coûte que ses enfants.
+ * Les calques gardés se lisent ensuite comme ceux de l'hôte, sans valeurs en dur ni liaisons autres que de couleur.
+ *
+ * Un texte ou une icône dont une lecture est refusée reste absent, et la manquée est consignée. Un ancêtre ou un frère illisible reste
+ * dans le relevé avec sa manquée : C49 ne juge pas un fond que le relevé dit ne pas avoir lu. Un ancêtre qui ne se lit pas du tout
+ * emporte ses descendants.
+ */
+async function lireLesCalquesDeLInstance(port: PortDuComposant, lecteur: Lecteur, hote: LayerLu, noeud: NoeudLu, manquees: Manquee[]): Promise<LayerLu[]> {
+  const lu = await lecteur.maitre(noeud);
+  if ('motif' in lu) return [];
+  const visites: Visite[] = [];
+  const aVisiter: { noeud: NoeudLu; parent: string; dansIcone: boolean }[] = [];
+  const empiler = (parent: NoeudLu, id: string, dansIcone: boolean): void => {
+    if (!TYPES_A_ENFANTS.has(parent.type)) return;
+    const enfants = lecteur.lire<readonly NoeudLu[] | undefined>(parent, 'children') ?? [];
+    compter('proprietesDuReleve');
+    for (let rang = enfants.length - 1; rang >= 0; rang -= 1) aVisiter.push({ noeud: enfants[rang], parent: id, dansIcone });
+  };
+  try {
+    empiler(noeud, hote.id, estUneIconeJugee(hote));
+  } catch (erreur) {
+    if (erreur instanceof AnalyseAnnulee) throw erreur;
+    manquees.push({ layer: hote.id, champ: 'children', motif: messageDErreur(erreur) });
+    return [];
+  }
+  let visitees = 0;
+  while (aVisiter.length > 0) {
+    await lecteur.cooperation.cederSiBesoin();
+    const { noeud: courant, parent, dansIcone } = aVisiter.pop() as (typeof aVisiter)[number];
+    if (visitees >= CALQUES_VISITES_PAR_INSTANCE) {
+      manquees.push({ layer: hote.id, champ: 'calques', motif: `l'instance dépasse ${CALQUES_VISITES_PAR_INSTANCE} calques visités` });
+      return [];
+    }
+    if (lecteur.calquesRestants <= 0) {
+      if (!lecteur.budgetDInstanceDit) manquees.push({ layer: hote.id, champ: 'calques', motif: `le relevé a visité ${CALQUES_VISITES_PAR_RELEVE} calques sous les instances : les suivantes ne sont pas lues` });
+      lecteur.budgetDInstanceDit = true;
+      return [];
+    }
+    visitees += 1;
+    lecteur.calquesRestants -= 1;
+    try {
+      if (champLu(courant, 'visible', lecteur.lire) === false) continue;
+      const nom = lecteur.lire<string>(courant, 'name');
+      const instance = courant.type === 'INSTANCE' ? await instanceDe(courant, lecteur, manquees) : undefined;
+      const decrit = { nom, type: courant.type, ...(instance ? { instanceDe: instance.instanceDe } : {}) };
+      const icone = courant.type !== 'TEXT' && (estUneIconeJugee(decrit) || estUnTraceDeLIcone(decrit, dansIcone));
+      visites.push({ noeud: courant, parent, cible: courant.type === 'TEXT' || icone, ...(instance ? { instanceDe: instance.instanceDe } : {}) });
+      empiler(courant, courant.id, dansIcone || (courant.type !== 'TEXT' && estUneIconeJugee(decrit)));
+    } catch (erreur) {
+      if (erreur instanceof AnalyseAnnulee) throw erreur;
+      manquees.push({ layer: courant.id, champ: 'visible', motif: messageDErreur(erreur) });
+    }
+  }
+  const cibles = visites.filter(({ cible }) => cible);
+  if (cibles.length === 0) return [];
+  const parentDe = new Map(visites.map(({ noeud: n, parent }) => [n.id, parent]));
+  const ancetres = new Set<string>();
+  for (const { parent } of cibles) {
+    for (let id = parent; id !== hote.id && !ancetres.has(id); id = parentDe.get(id) ?? hote.id) ancetres.add(id);
+  }
+  const porteurs = new Set([hote.id, ...ancetres]);
+  // Un frère d'un ancêtre ne se lit que s'il a un remplissage qui se voit : un cadre sans fond ne fait pas de fond (D30).
+  const peutPeindreDessous = (n: NoeudLu): boolean => {
+    try {
+      compter('proprietesDuReleve');
+      const fills = lecteur.lire<unknown>(n, 'fills');
+      return !Array.isArray(fills) || fills.some((p) => estUnObjet(p) && peintureVisible({ visible: p.visible !== false, opacity: estUnNombre(p.opacity) ? p.opacity : 1 }));
+    } catch (erreur) {
+      if (erreur instanceof AnalyseAnnulee) throw erreur;
+      return true;
+    }
+  };
+  const retenus = visites.filter(({ noeud: n, parent, cible }) => cible || ancetres.has(n.id) || (porteurs.has(parent) && FORMES_QUI_PEIGNENT.has(n.type) && peutPeindreDessous(n)));
+  const absents = new Set<string>();
+  const lus: LayerLu[] = [];
+  for (const { noeud: courant, parent, cible, instanceDe: deLInstance } of retenus) {
+    await lecteur.cooperation.cederSiBesoin();
+    if (absents.has(parent)) { absents.add(courant.id); continue; }
+    const locales: Manquee[] = [];
+    let layer: LayerLu | undefined;
+    try {
+      layer = await lireLeLayer(port, lecteur, { noeud: courant, parent, frontiere: false }, locales, { maitre: lu.natif, instance: noeud.id, instanceDe: deLInstance });
+    } catch (erreur) {
+      if (erreur instanceof AnalyseAnnulee) throw erreur;
+      locales.push({ layer: courant.id, champ: 'calque', motif: messageDErreur(erreur) });
+    }
+    manquees.push(...locales);
+    const feuille = cible && !ancetres.has(courant.id);
+    if (layer && !(feuille && locales.length > 0)) lus.push(layer);
+    else if (!feuille) absents.add(courant.id);
+  }
+  return lus;
+}
+
+/** Les calques lus sous les instances visibles du variant, dans l'ordre des instances. Une dépendance a son propre contrat : ses calques ne sont pas lus. */
+async function lireLesCalquesSousLesInstances(port: PortDuComposant, lecteur: Lecteur, etapes: readonly Etape[], variant: VariantLu, manquees: Manquee[]): Promise<LayerLu[]> {
+  if (!etapes.some(({ frontiere }) => frontiere)) return [];
+  const visibles = new Set(layersVisiblesDuVariant(variant).map(({ id }) => id));
+  const lus: LayerLu[] = [];
+  for (const [rang, { noeud, frontiere }] of etapes.entries()) {
+    const hote = variant.layers[rang];
+    if (!frontiere || !hote.instanceDe || estUneDependance(hote.sorte) || !visibles.has(hote.id)) continue;
+    lus.push(...await lireLesCalquesDeLInstance(port, lecteur, hote, noeud, manquees));
+  }
+  return lus;
 }
 
 /** Les valeurs de variant d'un composant : `variantProperties`, sinon son nom `Propriété=Valeur, …`. */
@@ -906,7 +1076,10 @@ async function lireLeReleveInterruptible(port: PortDuComposant, depart: NoeudLu,
         layers.push(await lireLeLayer(port, lecteur, etape, manquees));
       }
       layersLus += layers.length;
-      variants.push({ id: composant.id, nom: composant.name, valeurs: await valeursDuVariant(composant, cooperation, lire), layers, modesEffectifs: await lecteur.modes(composant) });
+      const variant: VariantLu = { id: composant.id, nom: composant.name, valeurs: await valeursDuVariant(composant, cooperation, lire), layers, modesEffectifs: await lecteur.modes(composant) };
+      const dansInstances = await lireLesCalquesSousLesInstances(port, lecteur, etapes, variant, manquees);
+      if (dansInstances.length > 0) variant.dansInstances = dansInstances;
+      variants.push(variant);
       options.progresser?.(variants.length, composants.length);
       continue;
     }

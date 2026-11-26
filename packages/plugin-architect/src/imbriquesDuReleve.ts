@@ -116,11 +116,14 @@ export class LiaisonsDesMaitres {
     return lu;
   }
 
-  /** `composant-principal` quand le layer homologue du maître lie ce champ à cette variable, `instance` sinon, un homologue introuvable compris. */
-  async provenance(maitre: NoeudLu, idDeLInstance: string, liaison: LiaisonLue): Promise<'composant-principal' | 'instance'> {
+  /**
+   * `composant-principal` quand le layer homologue du maître lie ce champ à cette variable, `instance` sinon, un homologue introuvable
+   * compris. `calque` est le calque que la liaison porte quand ce n'est pas celui de la surcharge : un calque lu sous l'instance.
+   */
+  async provenance(maitre: NoeudLu, idDeLInstance: string, liaison: LiaisonLue, calque: string | undefined = liaison.surcharge?.id): Promise<'composant-principal' | 'instance'> {
     let homologue: NoeudLu | undefined = maitre;
-    if (liaison.surcharge) {
-      const id = identifiantDansLeMaitre(idDeLInstance, liaison.surcharge.id);
+    if (calque !== undefined) {
+      const id = identifiantDansLeMaitre(idDeLInstance, calque);
       homologue = id === null ? undefined : (await this.calquesDe(maitre)).get(id);
     }
     if (!homologue) return 'instance';

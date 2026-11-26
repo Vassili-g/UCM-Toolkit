@@ -19,6 +19,18 @@ function groupesDeTextes(d:DocumentGenere,code:string,type:string,faits:Record<s
  return [...groupes.values()];
 }
 /**
+ * Le tracé d'une icône de bibliothèque se lit sous la frontière de son instance (D31) : C49 le mesure comme un texte, sur le fond que
+ * les ancêtres de l'hôte peignent. Un constat par nom de tracé, qui nomme chaque tracé et le variant qui le porte.
+ */
+function groupesDIcones(d:DocumentGenere,code:string,type:string,faits:Record<string,string|number>,seulVariant?:string){
+ const groupes=new Map<string,Attendu>();
+ for(const n of d.noeuds.filter(n=>n.type==='VECTOR'&&d.spec.roles?.[n.parent??'']==='icone')){
+  let v=n;while(v.parent&&v.parent!==d.selection[0])v=d.noeuds.find(x=>x.id===v.parent)!;if(v.parent!==d.selection[0]||(seulVariant&&v.id!==seulVariant))continue;
+  const a=groupes.get(n.name)??{code,type,cibles:[],faits};a.cibles.push(n.id,v.id);groupes.set(n.name,a);
+ }
+ return [...groupes.values()];
+}
+/**
  * C59 : un texte ou une icône lié au foreground du dossier `surface` du thème attend une surface posée dessous. Quand le défaut injecté
  * ôte la liaison de fond du variant (U1) ou la remplace par un foreground (R1), chacun de ses calques liés au foreground reçoit une
  * question sans candidat.
@@ -86,7 +98,7 @@ export function injecter(base:DocumentGenere,operation:string):DocumentGenere{
  }else throw new Error(operation);
  // U1 reprend le geste « délier la peinture » de F3, R1 sa cible et son rôle attendu (`CIBLES`).
  actualiserInventaires(d);d.oracle=dresserCarte(d,attendus,d.oracle.infos);
- if(operation==='R1-role'&&target.type!=='RECTANGLE'&&d.variables.some(v=>v.id===base.spec.nom+':foreground'))attendus.push(...groupesDeTextes(d,'C49','corriger',{usage:'texte',champ:'fills',rapport:1,seuil:4.5},root.id));
+ if(operation==='R1-role'&&target.type!=='RECTANGLE'&&d.variables.some(v=>v.id===base.spec.nom+':foreground'))attendus.push(...groupesDeTextes(d,'C49','corriger',{usage:'texte',champ:'fills',rapport:1,seuil:4.5},root.id),...groupesDIcones(d,'C49','corriger',{usage:'icone',champ:'fills',rapport:1,seuil:4.5},root.id));
  const lies=new Set(d.oracle.liaisons.map(l=>l.variable));
  if(d.variables.some(v=>v.resolvedType==='COLOR'&&v.name.startsWith(d.spec.nom+'/')&&lies.has(v.id)))for(const v of base.variables.filter(v=>v.resolvedType==='COLOR'&&v.name.startsWith(base.spec.nom+'/')))if(!lies.has(v.id))attendus.push({code:'C32',type:'verifier',cibles:[],faits:{token:v.name,motif:'inutilise'}});
  d.oracle.attendus=copie(attendus);etatsAvant.set(d,copie(base));return d;
@@ -126,7 +138,7 @@ export function rendreIllisible(base:DocumentGenere,operation:string):DocumentGe
  else if(operation==='paint-refuse')d.refus={lectures:[{noeud:root.id,champ:'fills'}]};
  else throw new Error(operation);
  if(operation==='paint-refuse'){d.oracle.attendus=[{code:'C42',type:'bloquant',cibles:[],faits:{message:'Lecture refusée '+root.id+'.fills'}}];d.oracle.infos=[];}
- if(operation==='collection-refusee'||operation==='variable-refusee')d.oracle.infos.push(...groupesDeTextes(d,'C49','info',{cause:'mode-illisible',champ:'fills',usage:'texte'}));
+ if(operation==='collection-refusee'||operation==='variable-refusee')d.oracle.infos.push(...groupesDeTextes(d,'C49','info',{cause:'mode-illisible',champ:'fills',usage:'texte'}),...groupesDIcones(d,'C49','info',{cause:'mode-illisible',champ:'fills',usage:'icone'}));
  if(operation==='collection-refusee'||operation==='variable-refusee')d.oracle.infos.push(...groupesDAnneaux(d,'C50','info',{cause:'mode-illisible',champ:'strokes',usage:'anneau'}));
  return d;
 }

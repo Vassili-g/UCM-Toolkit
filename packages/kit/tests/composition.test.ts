@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { sorteDeLImbrique } from '../src/referentiel/index.js';
+import { estUneDependance, sorteDeLImbrique } from '../src/referentiel/index.js';
 
 test('un wrapper préfixé qui porte des dimensions liées est un wrapper de dimensions', () => {
   assert.equal(sorteDeLImbrique({ nom: '.sizeWrapperButton', reglesTrouvees: false, dimensionsLiees: 3 }), 'wrapper-de-dimensions');
@@ -22,4 +22,9 @@ test('un imbriqué sans préfixe ni règles ni dimensions est un détail', () =>
 
 test('des dimensions liées font un wrapper même sans préfixe', () => {
   assert.equal(sorteDeLImbrique({ nom: 'sizeWrapper', reglesTrouvees: false, dimensionsLiees: 1 }), 'wrapper-de-dimensions');
+});
+
+test('seule une dépendance est une dépendance, une sorte absente comprise', () => {
+  assert.equal(estUneDependance('dependance'), true);
+  for (const sorte of ['wrapper-de-dimensions', 'piece-interne', 'detail', undefined] as const) assert.equal(estUneDependance(sorte), false, String(sorte));
 });

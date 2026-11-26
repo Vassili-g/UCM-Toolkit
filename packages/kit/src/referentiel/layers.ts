@@ -117,6 +117,14 @@ export function estUneIconeJugee(layer: LayerPourLesDefinitions): boolean {
   return estUneIconeCertaine(layer) || (layer.type !== 'FRAME' && layer.type !== 'TEXT' && estUneInstanceDeDessin(layer));
 }
 
+/**
+ * Un tracé peint dans une icône jugée : le `Vector` d'une instance `arrow-left-long`. Le relevé et C49 le disent icône sans lire son nom,
+ * car l'icône est l'instance qui le porte. `dansUneIcone` : un ancêtre du tracé, jusqu'au layer de l'hôte, est une icône jugée.
+ */
+export function estUnTraceDeLIcone(layer: Pick<LayerPourLesDefinitions, 'type'>, dansUneIcone: boolean): boolean {
+  return dansUneIcone && (layer.type === 'VECTOR' || layer.type === 'BOOLEAN_OPERATION');
+}
+
 /** `Ring`, `Focus ring` ou `focus-ring` ; un point ou un tiret bas en tête, la marque Figma d'un layer privé (`.Ring`), ne change pas le nom. */
 const NOM_D_ANNEAU = /^[._]?(focus[-_ ]?)?ring$/i;
 const NOM_DE_SEPARATEUR = /^[._]?(divider|separator)$/i;

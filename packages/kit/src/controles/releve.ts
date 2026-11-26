@@ -97,6 +97,14 @@ export interface VariantLu {
   nom: string;
   valeurs: Record<string, string>;
   layers: LayerLu[];
+  /**
+   * Les calques que le relevé lit sous les instances du variant (D31) : les textes visibles, les icônes visibles, leurs ancêtres
+   * jusqu'au layer de l'instance, et les frères de ces ancêtres qui peuvent peindre dessous. Leur `parent` est le layer d'une instance
+   * de `layers` ou un autre de ces calques. Seul C49 les mesure, sur la preuve du fond qui monte jusqu'aux layers de l'hôte ; aucun
+   * autre contrôle ne les lit, car leurs liaisons et leurs noms sont ceux d'un composant que l'hôte n'a pas dessiné. Absent : le
+   * relevé ne lit pas sous les instances.
+   */
+  dansInstances?: LayerLu[];
   modesEffectifs: Record<string, string>;
 }
 

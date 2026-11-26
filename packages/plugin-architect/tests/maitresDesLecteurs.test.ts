@@ -71,8 +71,10 @@ test('le relevé rend le composant publié du maître et la raison du refus, ins
     { layer: 'cle-leve', champ: 'instanceDe', motif: 'clé illisible' },
     { layer: 'cle-du-jeu-leve', champ: 'instanceDe', motif: 'clé du jeu illisible' },
   ]);
-  assert.equal(lectures.appels.get('imbriquee') ?? 0, 0, 'le relevé ne descend pas dans une instance');
-  assert.deepEqual([...lectures.appels.entries()], [['pilotee', 1], ['jumelle', 1], ['badge', 1], ['orpheline', 1], ['qui-leve', 1], ['cle-leve', 1], ['cle-du-jeu-leve', 1]]);
+  // D31 : la visite des calques sous une instance lit le composant de chaque instance imbriquée, une fois, pour savoir si c'est une icône.
+  assert.equal(lectures.appels.get('imbriquee'), 1, 'l’instance imbriquée se lit une fois, après les layers du variant');
+  assert.deepEqual([...lectures.appels.entries()], [['pilotee', 1], ['jumelle', 1], ['badge', 1], ['orpheline', 1], ['qui-leve', 1], ['cle-leve', 1], ['cle-du-jeu-leve', 1], ['imbriquee', 1]]);
+  assert.equal(variants[0].layers.some((layer) => layer.id === 'imbriquee'), false, 'elle n’est pas un layer du variant');
   assert.equal(lectures.cles.get('maitre-m'), 1, 'deux instances du même variant ne lisent sa clé qu’une fois');
 });
 

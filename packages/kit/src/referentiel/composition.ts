@@ -35,3 +35,11 @@ export function sorteDeLImbrique(faits: FaitsDImbrique): SorteDImbrique {
   if (PREFIXES_DE_PIECE_INTERNE.some((prefixe) => faits.nom.startsWith(prefixe))) return 'piece-interne';
   return 'detail';
 }
+
+/**
+ * Une dépendance a son propre contrat et ses propres contrôles : l'hôte ne juge pas ce que son composant y dessine. Le relevé
+ * d'Architect ne lit donc pas les textes et les icônes qu'elle contient (D31). Une sorte absente n'est pas une dépendance.
+ */
+export function estUneDependance(sorte: SorteDImbrique | undefined): boolean {
+  return sorte === 'dependance';
+}

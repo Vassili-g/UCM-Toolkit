@@ -123,12 +123,14 @@ export function generer(graine:number,spec:Spec):DocumentGenere{
    const nomMain=a==='icone'?(reglages.ecartsConnus&&spec.construction.includes('icone-bibliotheque')?'arrow-right-long':'Icon'):a==='piece-interne'?'.Partie':spec.nom+'Action';
    const main=n('maitre-'+compteur++,'COMPONENT',nomMain,'bibliotheque',{key:'cle-'+nomMain,remote:false,componentPropertyDefinitions:{},variantProperties:{}});
    const idInstance='instance-'+compteur++;
+   // Une icône se pose à l'écart des formes de l'anatomie (20, 24), qui peignent dessous et feraient du fond de son tracé un cas de recouvrement.
+   const xDeLIcone=a==='icone'?100:20;
    const t=couleurToken(a==='icone'?'foreground':'background',a==='dependance'?nomMain:spec.nom);
    let dessin:Noeud|undefined;
-   if(a==='icone'){doc.spec.roles[main.id]='maitre-icone';dessin=n('dessin-'+compteur++,'VECTOR','Vector',main.id,{fills:[paint(couleurToken('foreground',nomMain))],width:16,height:16,absoluteBoundingBox:{x:20,y:24,width:16,height:16}});}
-   const instance=n(idInstance,'INSTANCE',a==='icone'?(spec.construction.includes('icone-bibliotheque')?'arrow-right-long':'chevron-down'):nomMain,parent,{componentPropertyReferences:{},componentProperties:{},variantProperties:{},overrides:[],fills:[paint(t)],width:16,height:16,absoluteBoundingBox:{x:20,y:24,width:16,height:16},isExposedInstance:true,...(a==='icone'?{boundVariables:dimensions('icon-size','icon-size')}:ajuste)});instance.main=main.id;
+   if(a==='icone'){doc.spec.roles[main.id]='maitre-icone';dessin=n('dessin-'+compteur++,'VECTOR','Vector',main.id,{fills:[paint(couleurToken('foreground',nomMain))],width:16,height:16,absoluteBoundingBox:{x:xDeLIcone,y:24,width:16,height:16}});}
+   const instance=n(idInstance,'INSTANCE',a==='icone'?(spec.construction.includes('icone-bibliotheque')?'arrow-right-long':'chevron-down'):nomMain,parent,{componentPropertyReferences:{},componentProperties:{},variantProperties:{},overrides:[],fills:[paint(t)],width:16,height:16,absoluteBoundingBox:{x:xDeLIcone,y:24,width:16,height:16},isExposedInstance:true,...(a==='icone'?{boundVariables:dimensions('icon-size','icon-size')}:ajuste)});instance.main=main.id;
    doc.spec.origines[instance.id]='instance';
-   if(dessin){instance.props.fills=[];const child=n('I'+instance.id+';'+dessin.id,'VECTOR','Vector',instance.id,{fills:[paint(t)],width:16,height:16,absoluteBoundingBox:{x:20,y:24,width:16,height:16}});instance.props.overrides=[{id:child.id,overriddenFields:['fills']}];doc.spec.origines[child.id]='instance';}
+   if(dessin){instance.props.fills=[];const child=n('I'+instance.id+';'+dessin.id,'VECTOR','Vector',instance.id,{fills:[paint(t)],width:16,height:16,absoluteBoundingBox:{x:xDeLIcone,y:24,width:16,height:16}});instance.props.overrides=[{id:child.id,overriddenFields:['fills']}];doc.spec.origines[child.id]='instance';}
    if(a==='dependance'){main.props.fills=[paint(t)];doc.spec.proprietaires[instance.id]=nomMain;doc.spec.origines[instance.id]='composant-principal';}
    if(a==='icone'){
     doc.spec.roles[instance.id]='icone';

@@ -43,7 +43,7 @@
  */
 import {
   controlerCouchesParEtapes, controlerLAccessibiliteParEtapes, controlerLaStructureParEtapes, controlerLaTypographieParEtapes, controlerLeThemeParEtapes, controlerMappingParEtapes, controlerNommageParEtapes, controlerOublisParEtapes, estUnePieceInterne, sansLaCascadeDesVariants, clesDesTokensDeCouleurAttendus, clesDesTokensDeTailleAttendus, proposerLesCorrectionsParEtapes, tokensDuComposant,
-  type CatalogueDeReference, type Constat, type Correction, type LiaisonLue, type ReleveDeComposant,
+  type CatalogueDeReference, type Constat, type Correction, type LayerLu, type LiaisonLue, type ReleveDeComposant, type VariantLu,
 } from '@ucm-kit/core/controles';
 import { lireLesLibraries, type LectureDesLibraries, type PortDeBibliotheque } from 'ucm-plugin-socle/src/bibliotheque';
 import { acquis, doitEtreRelue, type Couverture, type FaitDeRessource, type MaitreLu } from 'ucm-plugin-socle/src/composant/analyse/faits';
@@ -1041,11 +1041,16 @@ async function libraryAChoisir(libraries: LibrariesEnAvance, liaisons: ReadonlyM
   return new Set(collections.map(({ library }) => library)).size > 1 && libraryDeReference(collections, liaisons, lireLaLibraryRangee(figma)) === null;
 }
 
+/** Les layers du variant puis les calques lus sous ses instances : tous citent des variables que le catalogue doit connaître pour mesurer un contraste (D31). */
+function calquesDuVariant(variant: VariantLu): readonly LayerLu[] {
+  return variant.dansInstances && variant.dansInstances.length > 0 ? [...variant.layers, ...variant.dansInstances] : variant.layers;
+}
+
 /** Le nombre de calques liés, par clé de variable : de quoi départager des libraries. */
 function liaisonsParCle(releve: ReleveDeComposant): Map<string, number> {
   const comptes = new Map<string, number>();
   for (const variant of releve.variants) {
-    for (const layer of variant.layers) {
+    for (const layer of calquesDuVariant(variant)) {
       for (const cle of new Set(layer.liaisons.map((liaison) => liaison.variable.cle))) comptes.set(cle, (comptes.get(cle) ?? 0) + 1);
     }
   }
@@ -1059,7 +1064,7 @@ function identifiantsParCle(releve: ReleveDeComposant): Map<string, string> {
     for (const { variable, illisible } of liaisons) if (!illisible && variable.cle !== '' && variable.id !== '' && !ids.has(variable.cle)) ids.set(variable.cle, variable.id);
   };
   for (const variant of releve.variants) {
-    for (const layer of variant.layers) {
+    for (const layer of calquesDuVariant(variant)) {
       noter(layer.liaisons);
       for (const plage of layer.texte?.plages ?? []) noter(plage.liaisons);
     }
@@ -1511,8 +1516,8 @@ export async function prelireLeReleve(retenu: ReleveDeComposant, sujet: SujetAAn
       if (surcharge) cibles.add(surcharge.id);
     }
   };
-  for (const { layers } of retenu.variants) {
-    for (const layer of layers) {
+  for (const variant of retenu.variants) {
+    for (const layer of calquesDuVariant(variant)) {
       noter(layer.liaisons);
       for (const plage of layer.texte?.plages ?? []) noter(plage.liaisons);
       if (layer.instanceDe) instances.add(layer.id);

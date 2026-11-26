@@ -37,9 +37,18 @@ const sous = (racine: string, ...champs: string[]): string[] => champs.map((cham
 const PROPRIETES = sous('releve.proprietes.*', 'nom', 'type', 'valeurs');
 const COLLECTIONS = sous('catalogue.collections.*', 'cle', 'nom', 'role');
 const LAYERS = 'releve.variants.*.layers.*';
+/** Les calques que le relevé lit sous les instances (D31) : seul le contrôle d'accessibilité les lit. */
+const SOUS_LES_INSTANCES = 'releve.variants.*.dansInstances.*';
 const LIAISONS_DU_LAYER = `${LAYERS}.liaisons.*`;
 const LIAISONS_DE_PLAGE = `${LAYERS}.texte.plages.*.liaisons.*`;
 const ALIAS = 'valeurs.*.alias';
+
+/** Ce que la mesure de contraste lit d'un layer, de l'hôte ou lu sous une instance ; `estUneIconeJugee` lit les quatre faits de `instanceDe`. */
+const CHAMPS_DE_CALQUE_MESURE = [
+  'id', 'nom', 'type', 'parent', 'visible', 'opacite', 'blendMode', 'flouArrierePlan', 'strokeWeight', 'dimensions.largeur', 'dimensions.hauteur', 'dimensions.x', 'dimensions.y',
+  'rayons', 'rayonsIllisibles', 'modesExplicites', 'peintures', 'instanceDe.nom', 'instanceDe.pilotee', 'instanceDe.dessin', 'instanceDe.visibilitePar',
+];
+const CHAMPS_DE_PLAGE_MESUREE = ['debut', 'fin', 'fontSize', 'fontWeight', 'peintures'];
 
 /** Les champs lus sur les liaisons d'un layer, puis sur celles de ses plages de texte. */
 const liaisons = (duLayer: string[], dePlage: string[]): string[] => [...sous(LIAISONS_DU_LAYER, ...duLayer), ...sous(LIAISONS_DE_PLAGE, ...dePlage)];
@@ -77,9 +86,13 @@ export const GABARITS: Readonly<Record<NomDeFamille, Gabarit>> = {
   'controle-accessibilite': [
     'niveau', 'releve.lecture.variantsNonLus', ...sous('releve.lecture.manquees.*', 'layer', 'champ'), ...PROPRIETES,
     ...sous('releve.variants.*', 'nom', 'valeurs', 'modesEffectifs'),
-    ...sous(LAYERS, 'id', 'nom', 'type', 'parent', 'visible', 'opacite', 'blendMode', 'flouArrierePlan', 'strokeWeight', 'dimensions.largeur', 'dimensions.hauteur', 'dimensions.x', 'dimensions.y', 'rayons', 'rayonsIllisibles', 'modesExplicites', 'peintures', 'instanceDe.nom', 'instanceDe.pilotee'),
+    ...sous(LAYERS, ...CHAMPS_DE_CALQUE_MESURE),
     ...liaisons(['champ', 'indice', 'surcharge.id', 'surcharge.peintures', 'surcharge.strokeWeight', 'illisible', 'variable.cle'], ['champ', 'indice', 'illisible', 'variable.cle']),
-    ...sous(`${LAYERS}.texte.plages.*`, 'debut', 'fin', 'fontSize', 'fontWeight', 'peintures'),
+    ...sous(`${LAYERS}.texte.plages.*`, ...CHAMPS_DE_PLAGE_MESUREE),
+    ...sous(SOUS_LES_INSTANCES, ...CHAMPS_DE_CALQUE_MESURE),
+    ...sous(`${SOUS_LES_INSTANCES}.liaisons.*`, 'champ', 'indice', 'illisible', 'variable.cle'),
+    ...sous(`${SOUS_LES_INSTANCES}.texte.plages.*`, ...CHAMPS_DE_PLAGE_MESUREE),
+    ...sous(`${SOUS_LES_INSTANCES}.texte.plages.*.liaisons.*`, 'champ', 'indice', 'illisible', 'variable.cle'),
     ...sous('catalogue.collections.*', 'cle', 'nom', 'role', 'etat', 'modes'), ...sous('catalogue.variables.*', 'cle', 'nom', 'collection', 'etat', 'valeurs'),
     'catalogue.fondsDElevation', 'catalogue.fondDeLaPageFigma',
   ],
@@ -91,6 +104,8 @@ export const GABARITS: Readonly<Record<NomDeFamille, Gabarit>> = {
   ],
   'controle-theme': [
     'releve.jeu.nom', 'releve.variants.*.id',
+    // La preuve du fond que C59 partage avec C49 mémorise ses fonds par variant, avec les calques lus sous les instances : leur nombre, pas leur contenu.
+    `${SOUS_LES_INSTANCES}.*.id`,
     ...sous(LAYERS, 'id', 'nom', 'type', 'parent', 'visible', 'opacite', 'dimensions.x', 'dimensions.y', 'dimensions.largeur', 'dimensions.hauteur', 'rayons', 'rayonsIllisibles', 'peintures.*.champ', 'peintures.*.visible', 'peintures.*.opacite', 'peintures.*.opacity', 'peintures.*.indice'),
     ...liaisons(['champ', 'indice', 'plage', 'provenance', 'surcharge', 'illisible', 'variable.cle'], ['champ', 'indice', 'plage', 'provenance', 'surcharge', 'variable.cle']),
     ...COLLECTIONS, ...sous('catalogue.variables.*', 'cle', 'nom', 'collection', 'etat', ALIAS),
