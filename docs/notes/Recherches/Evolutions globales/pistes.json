@@ -1349,19 +1349,19 @@
     },
     {
       "id": "P31",
-      "titre": "UCM Architect construit les variants, la collection et les liaisons d'un composant",
+      "titre": "UCM Architect construit et relie les variants d'un composant, en full UCM et en agnostique",
       "titreCourt": "Construction des composants",
       "sujet": "Plugin Architect",
       "recherche": "docs/notes/Recherches/Construction des composants/RECHERCHE-CONSTRUCTION-DES-COMPOSANTS.md",
       "plan": "docs/notes/Recherches/Construction des composants/PLAN-P31.md",
-      "resume": "Ce qu'il fait : à partir d'une variante dessinée par le designer, UCM Architect crée le jeu de variants avec tous ses axes, prépare et crée les variables du composant dans la collection `components` avec leur cible dans `theme` et `layout` pour chaque valeur d'axe, puis lie chaque variante à ses variables. Où : `packages/plugin-architect/`, sur la Préparation et la propagation d'un variant modèle qui existent déjà. Pourquoi : le designer refait ces gestes à la main pour chaque composant, et c'est l'étape la plus longue de la recréation d'une bibliothèque (P30).",
+      "resume": "Ce qu'il fait : une seule expérience, « Relier le composant », identique en full UCM et dans un fichier non UCM. Le designer dit, pour chaque emplacement coloré (calques, icônes, pièces internes), par quel mot se termine son token ; Architect en déduit le token de chaque variante (nom construit par la grammaire UCM, ou token voisin de celui d'un autre calque), le montre sur des variantes contrastées, puis relie. En full UCM, il crée aussi le jeu de variants et les tokens manquants ; en agnostique, le designer désigne une fois la collection et le dossier des composants, et Architect relie seulement les tokens existants. Où : `packages/plugin-architect/` et `packages/kit/src/controles/`. Pourquoi : relier les variants à la main prend des heures par composant, et une couleur restée en dur dans une instance (icône, pièce interne) n'est aujourd'hui signalée par aucun contrôle.",
       "importance": "haute",
-      "raisonImportance": "Chaque composant demande aujourd'hui des centaines de liaisons posées à la main dans deux fichiers, et une liaison oubliée part dans le contrat.",
+      "raisonImportance": "Chaque composant demande des centaines de liaisons posées à la main ; une mesure sur un Button relié montre qu'Architect ne propose aucune des 764 liaisons de couleur une fois retirées, dont 612 posées dans des instances.",
       "prio": 1,
       "dependances": [],
-      "complexite": "l",
-      "raisonComplexite": "La préparation, la création et la liaison existent ; le travail porte sur la création du jeu de variants, la déclinaison d'un variant modèle sur chaque axe et le passage d'un fichier à l'autre.",
-      "coutHumain": "Répondre aux questions de la recherche, valider les maquettes, puis essayer le geste sur le Button du pilote de P30.",
+      "complexite": "xl",
+      "raisonComplexite": "Une nouvelle expérience qui unifie la Préparation, les corrections de liaison et la propagation, un mode agnostique qui rouvre l'analyse dans un fichier non déclaré, et un contrôle des couleurs peintes dans les instances.",
+      "coutHumain": "Valider la maquette de « Relier le composant », puis essayer la construction sur le Button du pilote de P30 et la liaison dans un fichier non UCM.",
       "porteur": "mainteneur",
       "promesse": "R",
       "points": [
@@ -1373,11 +1373,13 @@
         {
           "chemin": "packages/plugin-architect/",
           "action": "modifier",
-          "quoi": "Création du jeu de variants et déclinaison d'un variant modèle."
+          "quoi": "Expérience « Relier le composant », mode agnostique, création du jeu de variants et contrôle des couleurs dans les instances."
         }
       ],
       "criteresDeFin": [
-        "Sur un composant dont le designer a dessiné une variante, le plugin crée les autres variantes, les variables du composant et toutes les liaisons, sans liaison à poser à la main.",
+        "Sur un composant dont le designer a dessiné une variante, Architect crée les autres variantes, les variables du composant et toutes les liaisons, sans liaison à poser à la main.",
+        "Dans un fichier non UCM, après désignation de la collection et du dossier des composants, la même expérience relie chaque emplacement aux tokens existants.",
+        "Une couleur restée en dur dans une instance (icône, pièce interne) reçoit un constat et sa correction.",
         "Toute liaison dont la cible n'est pas exacte et unique devient une question, jamais un choix du plugin."
       ],
       "risques": [

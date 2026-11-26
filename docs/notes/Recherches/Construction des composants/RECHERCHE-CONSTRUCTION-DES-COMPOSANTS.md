@@ -76,7 +76,7 @@ Proposition : une seule expérience, « Relier le composant », identique en ful
 | 3. Le token de chaque emplacement | Une question par emplacement ; les réponses sont les derniers mots des tokens du composant ; le rôle attendu du référentiel (`icon`, `foreground`) se présélectionne quand il désigne un seul mot | Une question par emplacement ; mêmes réponses, rien de présélectionné |
 | 4. Le token de chaque variante | Le nom construit par la grammaire UCM ; à défaut, le token voisin | Le token voisin ; à défaut, le nom construit à la main |
 | 5. Le contrôle | Aperçu sur variantes contrastées, liste par variante, puis Appliquer ; une règle qui ignore un axe ou départage deux dossiers devient une question | Identique |
-| 6. Les tokens manquants | La Préparation les crée dans `components`, avec leur cible dans `theme` ou `layout` | À trancher (Q8) |
+| 6. Les tokens manquants | La Préparation les crée dans `components`, avec leur cible dans `theme` ou `layout` | Aucun n'est créé : l'emplacement reste à relier, et la liste le dit |
 
 Les réponses de l'étape 3 se rangent avec le composant. Une nouvelle analyse les reprend : une icône dont la liaison a sauté reçoit sa correction sans nouvelle question, ce qui répond au cas mesuré en section 6.
 
@@ -98,12 +98,17 @@ La construction d'un composant (M1 à M3) s'ouvre sur la même expérience : cr�
 
 Ce mode change quatre textes : `CONCEPT.md` et `README.md` (« seul l'Exporter offre l'agnostique »), `packages/plugin-architect/SPEC.md` (analyse et Préparation réservées à un fichier déclaré), la conception P28 (« Architect restant full UCM ») et le risque de P28 dans `pistes.json`. Palettes a déjà quitté cette règle.
 
+## Décisions du mainteneur
+
+| Question | Décision |
+|---|---|
+| Mode agnostique (Q6) | Architect prend un mode agnostique, avec les changements de la section 9. La règle des deux périmètres change pour lui à la livraison. |
+| Expérience unique (Q7) | « Relier le composant » remplace la Préparation, les corrections de liaison et la propagation seulement si une maquette valide son expérience. Sinon, les écrans actuels restent. |
+| Tokens manquants en agnostique (Q8) | Architect relie les tokens existants et n'en crée aucun. La création reste propre au full UCM. |
+| Réponses par emplacement (Q9, tranché par l'agent) | Elles se rangent dans le fichier Figma, sur le jeu de variants, dans les données partagées d'Architect (`ESPACE_ARCHITECT`) qui portent déjà la déclaration et la configuration. Elles suivent le composant d'un poste à l'autre et d'un designer à l'autre, et une nouvelle analyse les reprend. |
+
 ## Questions au mainteneur
 
-- Q6. Architect prend-il un mode agnostique, avec les changements de la section 9 ? La règle des deux périmètres change alors pour lui.
-- Q7. La Préparation, les corrections de liaison et la propagation deviennent-elles une seule expérience « Relier le composant » (section 7), qui remplace leurs écrans actuels ?
-- Q8. En agnostique, Architect crée-t-il les tokens manquants dans le dossier désigné, ou se limite-t-il à relier les tokens existants ?
-- Q9. Les réponses par emplacement se rangent-elles dans le fichier, avec le composant, pour être reprises à chaque analyse ?
 - Q1. Le designer dessine-t-il une seule variante de référence, ou une par valeur d'un axe de structure (taille, présence d'une icône) ?
 - Q2. La liste des axes et de leurs valeurs vient-elle du cahier de P30, lu par le plugin, ou se saisit-elle dans le plugin ?
 - Q4. Relancer la construction sur un composant déjà construit : le plugin complète les variantes manquantes sans toucher aux autres, ou refuse ?
