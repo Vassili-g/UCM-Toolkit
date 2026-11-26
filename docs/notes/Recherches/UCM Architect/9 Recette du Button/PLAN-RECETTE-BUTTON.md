@@ -149,6 +149,15 @@ d'Alert sont celles du plan. Onze défauts sont nouveaux, et Codex y ajoute quat
 - D23 (M5, Q2 validée). Tant que l'instance de règles manque, C43 seul s'affiche. C44 sur l'usage absent se tait.
 - D24 (M10). Les corrections résolvent la collection par la clé de la variable du catalogue (`presentesDeLaCollection` de
   `corrections.ts`).
+- D25. Le prototype de Codex (`_local/generateur-composants/`, journal `JOURNAL-CODEX.txt`, agents `JOURNAL-AGENT-1.txt` et
+  `JOURNAL-AGENT-2.txt`) fabrique de faux documents Figma, lance l'analyse complète et compare le résultat à un oracle écrit
+  avant l'analyse. Il passe son garde-fou sur 406 cas et ses 64 tirages de qualification sans refus. Codex s'est arrêté avant le
+  rapport final et la proposition d'intégration : L17 l'intègre au dépôt. L'échantillon fixe tourne dans `npm test` (une cinquantaine
+  de tirages, moins de 30 s), le grand tirage dans `npm run stress:composant`. `dialectes.json` entre dans `packages/kit/fixtures/`
+  avec ses sources. Les noms tirés dans les dialectes portent aussi leurs valeurs, et un wrapper porte un axe absent de l'hôte.
+- D26. Le moteur des règles du socle (C30, C42) rend trois écarts au générateur. C30 se répète sur la racine d'un variant (G1, G2).
+  C30 accuse une racine transparente dont un enfant peint toute la surface (G5, G6, D6 de la chasse). C30 accuse une liaison dont
+  la lecture est refusée, au lieu de s'abstenir (G7). Le C42 de G8 est une question de produit, rendue au mainteneur.
 
 ## Lots
 
@@ -159,17 +168,19 @@ d'Alert sont celles du plan. Onze défauts sont nouveaux, et Codex y ajoute quat
 | L3 | Kit et Architect : C83 (D8) | `implementeur` | L2 | [x] 861adcbc |
 | L4 | Architect : sélection D5, regroupement D6, lieu D7 | `implementeur-exigeant` | aucun (contrat de `faits.chemin` ci-dessous) | [x] 0236e84b |
 | L6 | Kit : lecture des axes D9, garde des renommages D14 | `implementeur-exigeant` | aucun | [x] 944b459b |
-| L7 | Kit et Architect : C84 et silence de la cascade D10 | `implementeur-exigeant` | L6, L3 | [ ] |
+| L7 | Kit et Architect : C84 et silence de la cascade D10 | `implementeur-exigeant` | L6, L3 | [x] 5dcce2a1 |
 | L8 | Kit : attente de C65 par la référence D11, liaisons de style D12 | `implementeur` | L2 | [x] 861adcbc |
 | L9 | Architect : C45 `renommee` et doublon de C44 D13 | `implementeur` | L7 | [ ] |
-| L11 | Kit : identité d'un calque D16 | `implementeur-exigeant` | L6 | [ ] |
+| L11 | Kit : identité d'un calque D16 | `implementeur-exigeant` | L6 | [x] 5dcce2a1 |
 | L12 | Kit : preuve du fond partagée D17 | `implementeur-exigeant` | L11 | [ ] |
 | L13 | Architect et kit : modes par calque D18 | `implementeur` | L2 | [ ] |
 | L14 | Kit : propositions de couleur vérifiées D19 | `implementeur-exigeant` | L12 | [ ] |
 | L15 | Architect : origine des liaisons des dépendances et peinture sous instance D20 | `implementeur` | L2 | [ ] |
 | L16 | Kit et Architect : pièce interne seule D22, clé de collection D24 | `implementeur` | L3 | [ ] |
-| L10 | Architect : composants de référence et banc de recette D15, cas rouges de Codex rendus verts | `implementeur-exigeant` | L1 à L16 | [ ] |
-| L5 | Conversation principale : invariants, SPEC, cartes, version, publication | conversation principale | L1 à L16 | [ ] |
+| L18 | Socle et Architect : écarts C30 du moteur des règles D26 | `implementeur` | L16 | [ ] |
+| L10 | Architect : composants de référence et banc de recette D15, cas rouges de Codex rendus verts | `implementeur-exigeant` | L1 à L18 | [ ] |
+| L17 | Kit et Architect : intégration du générateur D25 | `implementeur-exigeant` | L10 | [ ] |
+| L5 | Conversation principale : invariants, SPEC, cartes, version, publication | conversation principale | L1 à L18 | [ ] |
 
 L1 et L4 n'ont aucun fichier commun et tournent ensemble. L2 et L6 tournent ensemble, puis L3 et L8. L7 et L9 touchent les textes
 de L3 et passent l'un après l'autre. L8 couvre aussi C20 (D21), et L9 aussi D23. L13 et L15 touchent le relevé d'Architect et
@@ -244,3 +255,6 @@ passent l'un après l'autre. L11, L12 et L14 touchent les contrôles du kit et s
 - L3 et L8, commit `861adcbc`. Kit 2171 tests, Architect 2449, socle 304, racine 713 sur 714 (`versionSuitLeContenu` attend L5).
   C83 porte `faits.composant` en plus de D8. `collectionDuChampDeTypographie` vit dans `reference.ts`. C17 et C18 jugent encore une
   liaison de style : le rôle et le scope ne dépendent pas de sa source.
+- L7 et L11, commit `5dcce2a1`. Kit 2190 tests, Architect 2453, socle 304, racine 713 sur 714. Le silence de C84 se joue dans
+  `controlesDuKit`. `identiteDuCalque` vit dans `releve.ts`. La propagation compare par chemin sans rang, pour garder la question des
+  homonymes, et une racine de variant garde son nom.
