@@ -292,6 +292,8 @@ P22 ne se limite pas aux pièces préfixées. Il règle ce qu'un hôte publie de
 | S11 | Version 15.0, compatibilité, réexport, contrats de fixture | `docs/format/COMPATIBILITE.md`, `CHANGELOG-FORMAT.md` |
 | S12 | Preuves : fixtures, fichier de test du mainteneur, essais R1 et du choix 6, recette sur le Playground | §6 |
 
+Un second composant de test, `Groupe`, prend le principe opposé au Button. Il n'a qu'un axe `Theme`, un booléen et une propriété `SLOT`, et pose 15 instances de la pièce `.Segment`, qui montrent 10 de ses 90 variantes (axes `Selected`, `Theme`, `State`, `Position`). La pièce porte tous les axes qui comptent, et aucune instance ne surcharge son fond : ses couleurs sont réelles, pas des couleurs d'aperçu. Les icônes de la pièce sont des instances d'`Icon` dont la couleur vient d'un axe `Color`, et non d'une surcharge. La règle du choix 6 doit donc décider, valeur par valeur, si la couleur du maître est réelle ou d'aperçu ; elle ne peut pas les déclarer toutes d'aperçu. Les captures des deux composants restent hors de Git, dans `_local/p22/`.
+
 Le prompt [PROMPT-AUDIT-ET-PLAN.md](./PROMPT-AUDIT-ET-PLAN.md) confie à un agent la recherche des failles de cette conception et l'écriture du plan.
 
 ## Questions au mainteneur
