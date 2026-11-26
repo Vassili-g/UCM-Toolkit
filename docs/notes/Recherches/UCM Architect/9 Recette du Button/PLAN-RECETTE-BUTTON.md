@@ -155,10 +155,10 @@ d'Alert sont celles du plan. Onze défauts sont nouveaux, et Codex y ajoute quat
 | Lot | Contenu | Agent | Dépend de | État |
 |---|---|---|---|---|
 | L1 | Kit : table D2, critères D3, D4 côté kit, `faits.chemin` | `implementeur-exigeant` | aucun | [x] 0236e84b |
-| L2 | Architect : relevé des faits de D3, D4 et D12, `isExposedInstance` des wrappers | `implementeur` | L1 | [ ] |
+| L2 | Architect : relevé des faits de D3, D4 et D12, `isExposedInstance` des wrappers | `implementeur` | L1 | [x] 944b459b |
 | L3 | Kit et Architect : C83 (D8) | `implementeur` | L2 | [ ] |
 | L4 | Architect : sélection D5, regroupement D6, lieu D7 | `implementeur-exigeant` | aucun (contrat de `faits.chemin` ci-dessous) | [x] 0236e84b |
-| L6 | Kit : lecture des axes D9, garde des renommages D14 | `implementeur-exigeant` | aucun | [ ] |
+| L6 | Kit : lecture des axes D9, garde des renommages D14 | `implementeur-exigeant` | aucun | [x] 944b459b |
 | L7 | Kit et Architect : C84 et silence de la cascade D10 | `implementeur-exigeant` | L6, L3 | [ ] |
 | L8 | Kit : attente de C65 par la référence D11, liaisons de style D12 | `implementeur` | L2 | [ ] |
 | L9 | Architect : C45 `renommee` et doublon de C44 D13 | `implementeur` | L7 | [ ] |
@@ -238,3 +238,6 @@ passent l'un après l'autre. L11, L12 et L14 touchent les contrôles du kit et s
 ## Avancement
 - L1 et L4, commit `0236e84b`. Kit 2144 tests, Architect 2437, socle 304, typecheck. La racine attend L5 (`versionSuitLeContenu`,
   `inventaire`). `faits.chemin` est une chaîne jointe par ` › `. C25 sur un tracé ou une forme sans token pose une question.
+- L2 et L6, commit `944b459b`. Kit 2160 tests, Architect 2446, socle 304, racine 713 sur 714 (`versionSuitLeContenu` attend L5).
+  `WrapperLu.expose` reste facultatif : absent vaut `'inconnu'`. Un axe d'un nom générique dont le rôle est déjà pris par un nom
+  explicite garde le repli. `Scale=small|medium` de l'aide de test `donneesRiches.ts` devient `compact|roomy`, hors du registre.
