@@ -301,6 +301,7 @@
       "titreCourt": "Pièces internes complètes",
       "sujet": "Format du contrat",
       "recherche": "docs/notes/Recherches/Pièces internes/RECHERCHE-PIECES-INTERNES.md",
+      "plan": "docs/notes/Recherches/Pièces internes/PLAN-P22.md",
       "resume": "Une pièce interne, dont le nom commence par `.` ou `_`, n'a ni contrat ni collection. Le contrat de son composant hôte doit la décrire comme un composant : toutes ses variantes, toutes ses propriétés, et ce que chaque variante dessine.",
       "importance": "critique",
       "raisonImportance": "Aujourd'hui l'Exporter parcourt la pièce interne comme une partie de l'hôte : le contrat montre seulement l'état où chaque variant de l'hôte la pose. Ses autres variantes et ses propriétés manquent, si bien qu'un développeur ou un agent invente l'API de la pièce, que le code doit pourtant écrire comme un sous-composant (`.Ring`, `.sizeWrapperButton`).",
