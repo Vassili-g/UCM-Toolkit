@@ -44,9 +44,28 @@ export function motDIconeDansLeNom(nom: string): boolean {
   return trouve;
 }
 
-/** Cas 1 : l'instance d'un composant Icon, dont le nom du composant ou de son jeu dit icône. */
+/**
+ * La seule fonction qui décide de la position du mot d'icône dans le nom d'un composant (D29). Le mot est certain s'il est le dernier
+ * mot du nom (`ChevronIcon`, `Icon`) ou s'il nomme un dossier du chemin, un segment avant le dernier `/` (`Icon/Close`). Il ne l'est
+ * pas ailleurs : `IconButton` et `.sizeWrapperIconButton` posent un bouton, pas une icône.
+ */
+export function motDIconeCertainDansLeNom(nom: string): boolean {
+  const segments = nom.split('/');
+  const dernier = segments.pop() ?? '';
+  if (segments.some(motDIconeDansLeNom)) return true;
+  const mots = sansAccent(dernier).replace(/(\p{Ll})(\p{Lu})/gu, '$1 $2').match(/\p{L}+/gu) ?? [];
+  const final = mots[mots.length - 1];
+  return final !== undefined && MOTS.has(final.toLowerCase());
+}
+
+/** Cas 1, icône probable : le nom du composant ou de son jeu contient un mot d'icône entier, où qu'il soit. */
 export function estUneInstanceDIcone(layer: LayerPourLesDefinitions): boolean {
   return layer.instanceDe !== undefined && motDIconeDansLeNom(layer.instanceDe.nom);
+}
+
+/** Cas 1, icône certaine : le mot d'icône est en position certaine dans le nom du composant (`motDIconeCertainDansLeNom`). */
+export function estUneInstanceDIconeCertaine(layer: LayerPourLesDefinitions): boolean {
+  return layer.instanceDe !== undefined && motDIconeCertainDansLeNom(layer.instanceDe.nom);
 }
 
 /** Cas 2 : une instance qu'une propriété d'échange d'instance pilote, sous un nom de propriété ou de layer qui dit icône (Q-F6-4). */
@@ -77,16 +96,25 @@ function estUneInstanceMontreeParUneIcone(layer: LayerPourLesDefinitions): boole
  */
 export function estUneIcone(layer: LayerPourLesDefinitions): boolean {
   if (layer.type === 'FRAME' || layer.type === 'TEXT') return false;
-  return estUneIconeCertaine(layer) || estUneInstanceDeDessin(layer);
+  return estUneIconeCertaine(layer) || estUneInstanceDIcone(layer) || estUneInstanceDeDessin(layer);
 }
 
 /**
- * Une icône que son nom ou ses propriétés désignent : tous les cas sauf le dessin seul, qui ne lit aucun nom et prend aussi une pointe
+ * Une icône que son nom ou ses propriétés désignent : tous les cas sauf le dessin seul et le mot d'icône hors position certaine (`IconButton`), qui ne lit aucun nom et prend aussi une pointe
  * de Tooltip ou un logo. C17 n'accuse un autre rôle que sur une icône certaine (D1).
  */
 export function estUneIconeCertaine(layer: LayerPourLesDefinitions): boolean {
   if (layer.type === 'FRAME' || layer.type === 'TEXT') return false;
-  return estUneInstanceDIcone(layer) || estUneInstancePilotee(layer) || estUnTraceNomme(layer) || estUneInstanceMontreeParUneIcone(layer);
+  return estUneInstanceDIconeCertaine(layer) || estUneInstancePilotee(layer) || estUnTraceNomme(layer) || estUneInstanceMontreeParUneIcone(layer);
+}
+
+/**
+ * L'icône que les règles propres aux icônes jugent (C66, C67, le contraste de C49) : une icône certaine ou faite d'un seul dessin. Une
+ * instance que seul un mot d'icône hors position certaine désigne (`IconButton`) est une icône probable : elle ne reçoit aucune de ces
+ * règles (D1, D29). Seul le choix de l'icône vit ici ; chaque contrôle l'appelle sans recopier la règle.
+ */
+export function estUneIconeJugee(layer: LayerPourLesDefinitions): boolean {
+  return estUneIconeCertaine(layer) || (layer.type !== 'FRAME' && layer.type !== 'TEXT' && estUneInstanceDeDessin(layer));
 }
 
 /** `Ring`, `Focus ring` ou `focus-ring` ; un point ou un tiret bas en tête, la marque Figma d'un layer privé (`.Ring`), ne change pas le nom. */
@@ -121,6 +149,6 @@ export function leNomDuLayerDitLeRole(role: string): boolean {
 export function roleQueLeLayerDesigne(layer: LayerPourLesDefinitions): RoleDeLayer | undefined {
   if (estUnNomDeSeparateur(layer.nom)) return 'divider';
   if (estUnNomDAnneau(layer.nom)) return 'ring';
-  if (layer.type !== 'FRAME' && layer.type !== 'TEXT' && estUneInstanceDIcone(layer)) return 'icon';
+  if (layer.type !== 'FRAME' && layer.type !== 'TEXT' && estUneInstanceDIconeCertaine(layer)) return 'icon';
   return undefined;
 }

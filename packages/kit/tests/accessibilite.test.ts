@@ -1540,3 +1540,41 @@ test('C51 : l’épaisseur d’un anneau peint sous une instance se lit sur la s
   const propre: LayerLu = { ...anneauDansUneInstance({ peintures: [solide('strokes', gris(0))], strokeWeight: 3 }), peintures: [solide('strokes', gris(0))], strokeWeight: 1 };
   assert.deepEqual(c51(propre).map((c) => c.faits.strokeWeight), [1]);
 });
+
+/** Le cas E1 : le texte est dans un cadre sans fond (`c`), et `Surface`, frère de ce cadre, peint sous toute la boîte du texte. */
+const cadreDuTexte = (): LayerLu => ({ ...cadreSansPeinture('c', 'r'), dimensions: dims(100, 48) });
+const texteDuCadre = (): LayerLu => ({ ...texteDans('c', [solide('fills', gris(1))]), dimensions: { x: 12, y: 16, largeur: 24, hauteur: 16 } });
+const surfaceDuCadre = (o: { couleur?: PeintureLue[]; largeur?: number; type?: string } = {}): LayerLu =>
+  ({ ...fondFrere(o.largeur ?? 100, { couleur: o.couleur ?? [solide('fills', gris(0.1))], type: o.type }), id: 'surface', nom: 'Surface' });
+const echecsDuCadre = (layers: LayerLu[]) => cc(releve([variant('a', [racine([]), ...layers])]), 'AA', sansFond);
+
+test('D30 : le frère d’un ancêtre, plus bas que lui, peint le fond du texte', () => {
+  const constats = echecsDuCadre([surfaceDuCadre(), cadreDuTexte(), texteDuCadre()]);
+  assert.deepEqual(constats.filter((c) => c.code === 'C49'), [], 'blanc sur une surface sombre passe, sans fond de repli');
+  const clair = echecsDuCadre([surfaceDuCadre({ couleur: [solide('fills', gris(0.9))] }), cadreDuTexte(), texteDuCadre()]);
+  const c49 = parCode(clair, 'C49');
+  assert.equal(c49.length, 1, 'blanc sur une surface claire échoue');
+  assert.equal(c49[0].faits.fond, '#E6E6E6');
+  assert.equal(c49[0].faits.fondNomme, undefined, 'le fond est celui de la surface, pas la page Figma');
+});
+
+test('D30 : le frère d’un ancêtre placé au-dessus de l’ancêtre ne compte pas', () => {
+  const c49 = parCode(echecsDuCadre([cadreDuTexte(), texteDuCadre(), surfaceDuCadre({ couleur: [solide('fills', gris(0.9))] })]), 'C49');
+  assert.equal(c49[0].faits.fondNomme, 'page-figma');
+  assert.deepEqual(fondsPeintsSous(variant('a', [racine([]), cadreDuTexte(), texteDuCadre(), surfaceDuCadre()]), texteDuCadre()).map((f) => f.layer.id), []);
+});
+
+test('D30 : le frère d’un ancêtre qui ne couvre qu’une partie de la boîte du texte donne une limite', () => {
+  const constats = echecsDuCadre([surfaceDuCadre({ largeur: 20, couleur: [solide('fills', gris(0.9))] }), cadreDuTexte(), texteDuCadre()]);
+  assert.equal(parCode(constats, 'C49').length, 0);
+  assert.ok(constats.some((c) => c.limite && c.code === 'C49' && c.faits.cause === 'fond-indetermine' && c.faits.calque === 'Label'));
+  const coinDuTexte: LayerLu = { ...texteDuCadre(), dimensions: { x: 0, y: 0, largeur: 24, hauteur: 16 } };
+  const ellipse = echecsDuCadre([surfaceDuCadre({ type: 'ELLIPSE', couleur: [solide('fills', gris(0.9))] }), cadreDuTexte(), coinDuTexte]);
+  assert.equal(parCode(ellipse, 'C49').length, 0, 'une ellipse qui laisse un coin du texte hors du disque');
+});
+
+test('D30 : la couverture se mesure sur la boîte du texte, pas sur celle de l’ancêtre', () => {
+  const cadreLarge = { ...cadreDuTexte(), dimensions: dims(200, 48) };
+  const surface = surfaceDuCadre({ largeur: 100, couleur: [solide('fills', gris(0.9))] });
+  assert.equal(parCode(echecsDuCadre([surface, cadreLarge, texteDuCadre()]), 'C49')[0].faits.fond, '#E6E6E6', 'la surface couvre le texte, pas le cadre');
+});

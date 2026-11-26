@@ -129,3 +129,17 @@ test('le contraste ne prend pas la liaison d’un texte intérieur pour le fond 
   // Le texte blanc se lit sur le fond noir de l'instance : 21:1, aucun manque. Avec la surcharge prise pour le fond, il serait blanc sur blanc.
   assert.equal(constats.filter((constat) => constat.code === 'C49' && !constat.limite).length, 0);
 });
+
+test('C17 : un fill lié à background sur IconButton ou .sizeWrapperIconButton, icônes probables, ne donne pas de constat', () => {
+  for (const composant of ['IconButton', '.sizeWrapperIconButton']) {
+    const instance = { ...layer('instance', 'Slot', 'INSTANCE', 'racine', [liaison('fills', FOND)]), instanceDe: { cle: 'c', nom: composant, distante: true, pilotee: null } };
+    const constats = controlerMapping(releve([variant('v', [layer('racine', 'Button', 'COMPONENT', null, []), instance])]), catalogue(FOND, TEXTE));
+    assert.deepEqual(constats.filter((constat) => constat.code === 'C17'), [], composant);
+  }
+});
+
+test('C17 : un fill lié à background sur une instance de Icon, icône certaine, reste signalé', () => {
+  const instance = { ...layer('instance', 'Slot', 'INSTANCE', 'racine', [liaison('fills', FOND)]), instanceDe: { cle: 'c', nom: 'Icon', distante: true, pilotee: null } };
+  const constats = controlerMapping(releve([variant('v', [layer('racine', 'Button', 'COMPONENT', null, []), instance])]), catalogue(FOND, TEXTE));
+  assert.equal(constats.filter((constat) => constat.code === 'C17').length, 1);
+});

@@ -5,7 +5,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import {
-  estUnAnneau, estUneIcone, estUneInstanceDIcone, estUnNomDAnneau, estUnNomDeSeparateur, motDIconeDansLeNom,
+  estUnAnneau, estUneIcone, estUneIconeCertaine, estUneInstanceDIcone, estUnNomDAnneau, estUnNomDeSeparateur, motDIconeDansLeNom,
   MOTS_D_ICONE, ROLES_QUI_DESIGNENT_UN_LAYER, roleQueLeLayerDesigne, leNomDuLayerDitLeRole,
 } from '../src/referentiel/layers.js';
 
@@ -101,4 +101,24 @@ test('E1.5 : le rôle qu\'un layer désigne par son nom ou par son instance', ()
   assert.equal(roleQueLeLayerDesigne({ nom: 'Container', type: 'FRAME' }), undefined);
   assert.equal(roleQueLeLayerDesigne({ nom: 'Icon', type: 'FRAME' }), undefined, 'le nom Icon d\'un FRAME ne désigne pas le rôle icon');
   assert.equal(roleQueLeLayerDesigne(tracé('icon')), undefined, 'un tracé nommé icon est une icône, mais le rôle icon ne regarde que l\'instance d\'Icon');
+});
+
+test("D29 : le mot d'icône ne rend l'instance certaine que s'il est le dernier mot du nom ou un dossier du chemin ; ailleurs elle est probable", () => {
+  for (const composant of ['Icon', 'ChevronIcon', 'Icon/Close', 'Icon/Close/Small', 'leading-icon']) {
+    assert.equal(estUneIconeCertaine(instance('Slot', composant)), true, composant);
+  }
+  for (const composant of ['IconButton', '.sizeWrapperIconButton', 'Icon Button']) {
+    const layer = instance('Slot', composant);
+    assert.equal(estUneIcone(layer), true, `${composant} reste une icône probable`);
+    assert.equal(estUneIconeCertaine(layer), false, `${composant} n'est pas certaine`);
+    assert.equal(roleQueLeLayerDesigne(layer), undefined, composant);
+  }
+  // Le pluriel `icons` n'est pas un mot d'icône, donc ce dossier ne rend rien certain, avant comme après D29.
+  assert.equal(estUneIconeCertaine(instance('Slot', 'icons/arrow')), false);
+});
+
+test("D29 : la propriété de visibilité et le nom d'un tracé gardent la règle du mot entier", () => {
+  const pilote = { nom: 'Slot', type: 'INSTANCE', instanceDe: { nom: 'Chevron', pilotee: null, visibilitePar: 'Icon-Left#1261:147' } };
+  assert.equal(estUneIconeCertaine(pilote), true);
+  assert.equal(estUneIconeCertaine(tracé('IconButton shape')), true);
 });

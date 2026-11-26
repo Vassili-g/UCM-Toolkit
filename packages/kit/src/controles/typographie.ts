@@ -8,7 +8,7 @@
  */
 import { CHAMPS_DE_TYPOGRAPHIE } from '../referentiel/architecture.js';
 import { collectionDuChampDeTypographie } from '../referentiel/reference.js';
-import { estUneIcone, estUneInstanceDIcone } from '../referentiel/layers.js';
+import { estUneIconeJugee, estUneInstanceDIcone } from '../referentiel/layers.js';
 import { formeReconnue } from '../referentiel/reconnaissance.js';
 import type { CatalogueDeReference } from './catalogue.js';
 import { collectionDuCatalogue, variableDuCatalogue } from './catalogue.js';
@@ -35,7 +35,7 @@ export function* controlerLaTypographieParEtapes(releve: ReleveDeComposant, cata
   const variants = releve.variants;
   const constats: Constat[] = [];
   const textes = yield* sources(variants, (l) => l.type === 'TEXT');
-  const icones = yield* sources(variants, estUneIcone);
+  const icones = yield* sources(variants, estUneIconeJugee);
   constats.push(...(yield* controlerLesTextes(textes, releve, catalogue)));
   constats.push(...(yield* controlerLesLiaisonsDeTexte(textes, catalogue)));
   constats.push(...(yield* controlerLesIcones(icones, releve, catalogue)));
@@ -335,7 +335,7 @@ function* controlerLesReglesIcones(icones: Map<string, Source[]>, releve: Releve
       const propriete = source.layer.instanceDe?.pilotee ?? null;
       if (propriete !== null && !declarees.has(propriete)) {
         ajouter(groupes, `C67:${nom}:propriete-absente`, source,
-          { calque: nom, motif: 'propriete-absente', propriete }, { code: 'C67', type: 'corriger', famille: 'regles' });
+          { calque: nom, motif: 'propriete-absente', propriete }, { code: 'C67', type: 'verifier', famille: 'regles' });
         continue;
       }
       const faits: Constat['faits'] = propriete === null

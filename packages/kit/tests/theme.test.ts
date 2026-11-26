@@ -453,3 +453,13 @@ test('C60 ne dit rien d’un alias dans la bonne branche, ni quand deux modes de
   const mauvaise = structure({ 'primary/surface/default': { mode: MODE_LIGHT, cible: cleDeLaFixture('brands', 'primary/dark/200') } });
   assert.deepEqual(controlerLesModes({ ...mauvaise, collections: doublon.collections }), []);
 });
+
+test('D30 : C59 se tait quand le frère de l’ancêtre du texte porte la surface', () => {
+  const r = cardAvecRectangleFrere();
+  const [racine, fond, label] = r.variants[0].layers;
+  const cadre: LayerLu = { ...layer('cadre', 'root', 'Cadre'), type: 'FRAME', peintures: [], liaisons: [], dimensions: { x: 0, y: 0, largeur: 100, hauteur: 48 } };
+  r.variants[0].layers = [racine, { ...fond, parent: 'root' }, cadre, { ...label, parent: 'cadre' }];
+  assert.deepEqual(controlerLeTheme(r, catalogueDeBase()).filter(({ code }) => code === 'C59'), []);
+  r.variants[0].layers = [racine, cadre, { ...label, parent: 'cadre' }, { ...fond, parent: 'root' }];
+  assert.equal(controlerLeTheme(r, catalogueDeBase()).filter(({ code }) => code === 'C59').length, 1, 'un frère de l’ancêtre plus haut que lui n’est pas un fond');
+});

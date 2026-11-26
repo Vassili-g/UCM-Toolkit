@@ -1,5 +1,5 @@
 import {mulberry32,choisir,entier,echantillon} from '../../../kit/tests/stress/commun/prng';
-import {motDIconeDansLeNom,ECHELLES_DE_REFERENCE,NOMS_D_AXES,NOMS_D_AXES_GENERIQUES,REGISTRE_ETATS,REGISTRE_PALETTES_COMPOSANT,REGISTRE_TAILLES} from '@ucm-kit/core/referentiel';
+import {ECHELLES_DE_REFERENCE,NOMS_D_AXES,NOMS_D_AXES_GENERIQUES,REGISTRE_ETATS,REGISTRE_PALETTES_COMPOSANT,REGISTRE_TAILLES} from '@ucm-kit/core/referentiel';
 import {lireLesDialectes} from './dialectes';
 import type {Attendu,DocumentGenere,Noeud,Spec,Rgba} from './types';
 import {alias,copie,dresserCarte,actualiserInventaires,valeur,modesDuNoeud} from './modele';
@@ -27,11 +27,6 @@ const ecritureLibre=(v:string)=>ECRITURE_SURE.test(v)&&!IDENTIFIANTS_RESERVES.ha
 export function tirerSpec(graine:number,rang=0):Spec{
  const tirer=mulberry32(graine);const compose=rang%5===4;const nom=compose?'Compose'+entier(tirer,100,999):choisir(tirer,COMPOSANTS);
  let construction:string[]=rang===0?['direct']:echantillon(tirer,CONSTRUCTIONS,entier(tirer,1,2));
- // Question ouverte au mainteneur : C49 ne lit pas le fond peint par le frère d'un ancêtre du texte (D17 ne compte que les frères du layer).
- // Une surface frère d'un cadre qui porte le texte donnerait « fond de repli » : le tirage ne les combine pas.
- if(!reglages.ecartsConnus&&construction.includes('fond-frere'))construction=construction.filter(c=>!['mode-force','homonymes','imbrication-2','imbrication-3'].includes(c));
- // Autre question ouverte : l'instance d'un composant dont le nom dit « Icon » (IconButton, donc son wrapper `.sizeWrapperIconButton`) est lue comme une icône.
- if(!reglages.ecartsConnus&&motDIconeDansLeNom(nom))construction=construction.filter(c=>!['wrapper-expose','wrapper-cache'].includes(c));
  if(!construction.length)construction=['direct'];
  let anatomie=ANATOMIE_PAR_NOM[nom]??echantillon(tirer,ANATOMIES,entier(tirer,1,4));
  if(construction[0]==='image'&&!anatomie.includes('image'))anatomie=[...anatomie,'image'];

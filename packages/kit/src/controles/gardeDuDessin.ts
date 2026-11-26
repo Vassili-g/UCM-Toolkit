@@ -5,7 +5,7 @@
 import { atteintLeSeuil, contraste } from '../emplois/contraste.js';
 import { composer, versOctet, versRgb8, type Rgba } from '../emplois/couleur.js';
 import { SEUILS_PAR_ROLE } from '../referentiel/contraste.js';
-import { estUneIcone } from '../referentiel/layers.js';
+import { estUneIconeJugee } from '../referentiel/layers.js';
 import { collectionDuCatalogue, variableDuCatalogue, type CatalogueDeReference, type CollectionDuCatalogue, type VariableDuCatalogue } from './catalogue.js';
 import { combinaisonDuLayer, couleurDeLiaison, fondEffectif, fondsPeintsSous, pileDePeintures, seuilDeLaPlage, SEUILS_D_ACCESSIBILITE, type Combinaison } from './accessibilite.js';
 import { liaisonsPropres, type LayerLu, type LiaisonLue, type PeintureLue, type VariantLu } from './releve.js';
@@ -107,7 +107,7 @@ function seuilDuCalque(layer: LayerLu, plage?: PropositionDeCouleur['plage']): n
     const lue = plage && layer.texte?.plages.find((entree) => entree.debut === plage.debut && entree.fin === plage.fin);
     return lue ? seuilDeLaPlage(lue, 'AA').seuil : SEUILS_D_ACCESSIBILITE.texte.AA;
   }
-  if (estUneIcone(layer)) return SEUILS_PAR_ROLE.icon ?? SEUILS_D_ACCESSIBILITE.texte.AA;
+  if (estUneIconeJugee(layer)) return SEUILS_PAR_ROLE.icon ?? SEUILS_D_ACCESSIBILITE.texte.AA;
   return SEUILS_D_ACCESSIBILITE.nonTexte;
 }
 
