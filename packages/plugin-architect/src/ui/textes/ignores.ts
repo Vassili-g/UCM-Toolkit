@@ -47,6 +47,9 @@ const NOMS_DE_LAYER_EN_PHRASE: Readonly<Record<string, string>> = { label: 'libe
 /** Le champ peint d'un contraste non mesuré, dans une phrase. */
 const CHAMPS_DE_CONTRASTE: Readonly<Record<string, string>> = { fills: 'fill', strokes: 'stroke' };
 
+/** Le rôle que les tokens donnent à une position, en mots simples et après « à la place » (C84) : « le style » s'élide en « du style ». */
+const ROLES_DES_AXES: Readonly<Record<string, string>> = { palette: 'de la couleur', style: 'du style', taille: 'de la taille', etat: 'de l’état' };
+
 export const TEXTES_IGNORES = {
   // La section Informations : ce que l'analyse n'a pas mesuré. Ses lignes ne sont pas des constats.
   informationsDuPanneau: {
@@ -99,6 +102,14 @@ export const TEXTES_IGNORES = {
         : `La propriété ${noms} de \`${wrapper}\` ne se choisit pas depuis ${composant}.`;
     },
     axeNonExposeStatut: (wrapper: string): string => `Dans Figma, exposez les propriétés de \`${wrapper}\` (Expose properties from nested instances)`,
+    // C84 : la moitié au moins des tokens de couleur ne correspond à aucun variant ; une lecture fausse des axes en est la cause probable.
+    couleursSansVariant: (n: number, total: number, axe: string | null, role: string | null): string => {
+      const phrase = n > 1
+        ? `${n} tokens de couleur sur ${total} ne correspondent à aucun variant.`
+        : `${n} token de couleur sur ${total} ne correspond à aucun variant.`;
+      return axe === null || role === null ? phrase : `${phrase} Les valeurs de \`${axe}\` sont écrites dans les tokens à la place ${ROLES_DES_AXES[role] ?? `de ${role}`}.`;
+    },
+    couleursSansVariantStatut: 'Vérifiez le nom des propriétés et des tokens',
     // C49, C50 : le contraste.
     manqueDeContraste: (usage: string, modes: string | null): string => {
       const suite = modes !== null ? ` en ${modes}` : usage === 'anneau' ? '' : ' sur la page';

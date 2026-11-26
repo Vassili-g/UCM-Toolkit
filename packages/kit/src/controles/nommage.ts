@@ -166,6 +166,25 @@ function roleDeLaPosition(valeurs: readonly string[], contexte: ContexteDesAxes,
   return libres.length === 1 ? libres[0] : undefined;
 }
 
+/**
+ * Le rôle que la grammaire donne, dans les tokens du composant, à toutes les valeurs d'une propriété de variant, quand ce rôle n'est pas
+ * celui que la propriété a (C84) ; `undefined` sans rôle, sans valeur, ou quand la position donne le rôle de la propriété. C'est la
+ * lecture de `roleDeLaPosition`, avec pour rôles pris ceux des autres propriétés : le rôle de celle-ci reste candidat.
+ */
+export function roleDesTokensPourLesValeurs(releve: ReleveDeComposant, catalogue: CatalogueDeReference, propriete: ProprieteDAxe): AxeDuComposant | undefined {
+  const roles = rolesDesProprietes(releve, catalogue);
+  const propre = roles.get(propriete);
+  const valeurs = propriete.valeurs ?? [];
+  if (!propre || !valeurs.length) return undefined;
+  const pris = new Map<AxeDuComposant, readonly string[]>();
+  for (const [autre, role] of roles) {
+    if (autre === propriete || !role) continue;
+    pris.set(role, [...(pris.get(role) ?? []), ...(autre.valeurs ?? [])]);
+  }
+  const role = roleDeLaPosition(valeurs, { catalogue, releve }, pris);
+  return role && role !== propre ? role : undefined;
+}
+
 /** Cède entre les propriétés et ne range le résultat qu'une fois le calcul fini. */
 function* lireLesAxes(proprietes: ReleveDeComposant['proprietes'], contexte?: ContexteDesAxes): Generator<void, AxesLus> {
   const memoire = contexte ? memoireDuCatalogue(contexte.catalogue).axes : axesMemorises;

@@ -1,5 +1,6 @@
 import type { SorteDImbrique } from '../referentiel/composition.js';
 import type { LayerPourLesDefinitions } from '../referentiel/layers.js';
+import { formeReconnue } from '../referentiel/reconnaissance.js';
 
 /** Les faits lus dans Figma avant tout jugement sur un composant. */
 
@@ -156,4 +157,53 @@ export function layersVisiblesDuVariant(variant: VariantLu): LayerLu[] {
     return resultat;
   };
   return variant.layers.filter(estVisible);
+}
+
+/** `chemin` : les noms depuis la racine du variant (racine exclue), sous leur forme reconnue. `rang` : celui du calque parmi ses homonymes de même parent. `cle` : le chemin avec le rang de chaque niveau, donc la place exacte du calque. */
+export interface IdentiteDeCalque { chemin: readonly string[]; rang: number; cle: string }
+
+const identites = new WeakMap<VariantLu, { layers: readonly LayerLu[]; taille: number; parId: Map<string, IdentiteDeCalque> }>();
+
+/**
+ * L'identité d'un calque dans son variant (D16) : les noms depuis la racine du variant, racine exclue, puis son rang parmi ses
+ * homonymes de même parent. Deux calques de deux variants occupent la même place quand leur `cle` est égale : C21 et C64 les disent
+ * homologues par `cle`, la propagation (C24, C81) par `chemin`, parce qu'elle pose une question quand deux homonymes partagent un chemin.
+ * Le rang se compte sur tous les enfants lus, masqués ou non : masquer un autre calque ne change pas cette identité. Les noms se
+ * comparent par `formeReconnue`. Un calque sans parent est lui-même la racine : il garde son nom dans son identité. Un parent absent du
+ * variant, ou un cycle de parents, arrête le chemin.
+ */
+export function identiteDuCalque(variant: VariantLu, layer: LayerLu): IdentiteDeCalque {
+  let lu = identites.get(variant);
+  if (!lu || lu.layers !== variant.layers || lu.taille !== variant.layers.length) {
+    lu = { layers: variant.layers, taille: variant.layers.length, parId: identitesDuVariant(variant) };
+    identites.set(variant, lu);
+  }
+  return lu.parId.get(layer.id) ?? { chemin: [formeReconnue(layer.nom)], rang: 0, cle: JSON.stringify([[formeReconnue(layer.nom), 0]]) };
+}
+
+function identitesDuVariant(variant: VariantLu): Map<string, IdentiteDeCalque> {
+  const parId = new Map(variant.layers.map((l) => [l.id, l]));
+  const rangs = new Map<string, number>();
+  const rangDe = new Map<string, number>();
+  for (const layer of variant.layers) {
+    const frere = JSON.stringify([layer.parent, formeReconnue(layer.nom)]);
+    const rang = rangs.get(frere) ?? 0;
+    rangs.set(frere, rang + 1);
+    rangDe.set(layer.id, rang);
+  }
+  const niveau = (layer: LayerLu): [string, number] => [formeReconnue(layer.nom), rangDe.get(layer.id) ?? 0];
+  const resultat = new Map<string, IdentiteDeCalque>();
+  for (const layer of variant.layers) {
+    const niveaux = [niveau(layer)];
+    const vus = new Set([layer.id]);
+    let parent = layer.parent === null ? undefined : parId.get(layer.parent);
+    // La racine du variant (calque sans parent) n'entre pas dans le chemin de ses descendants.
+    while (parent && parent.parent !== null && !vus.has(parent.id)) {
+      vus.add(parent.id);
+      niveaux.unshift(niveau(parent));
+      parent = parId.get(parent.parent);
+    }
+    resultat.set(layer.id, { chemin: niveaux.map(([nom]) => nom), rang: niveaux[niveaux.length - 1][1], cle: JSON.stringify(niveaux) });
+  }
+  return resultat;
 }

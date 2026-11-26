@@ -4,7 +4,7 @@ import { formeDuChemin, formeReconnue } from '../referentiel/reconnaissance.js';
 import { collectionParCle, variableDuCatalogue, type CatalogueDeReference, type VariableDuCatalogue } from './catalogue.js';
 import type { Constat } from './constat.js';
 import { axesDuReleveParEtapes, constatDuComposant, estDuComposant, memeValeurDAxe, roleDuToken, segmentDAxe, tokensDuComposantParEtapes, type AxeDuComposant, type ProprieteDAxe, type TokenDuComposant } from './nommage.js';
-import { peintureVisible, type LayerLu, type LiaisonLue, type ReleveDeComposant, type VariantLu } from './releve.js';
+import { identiteDuCalque, peintureVisible, type LayerLu, type LiaisonLue, type ReleveDeComposant, type VariantLu } from './releve.js';
 
 export interface LiaisonDuComposant { variant: VariantLu; layer: LayerLu; liaison: LiaisonLue }
 
@@ -142,8 +142,8 @@ function* ecartsDeFratrie(releve: ReleveDeComposant, catalogue: CatalogueDeRefer
     const { variant, layer, liaison } = lue;
     const variable = variableDuCatalogue(catalogue, liaison.variable.cle);
     if (variable === 'absente') continue;
-    // Les liaisons d'une instance se départagent par le layer intérieur qu'elles peignent.
-    const cle = `${formeReconnue(layer.nom)}:${liaison.surcharge ? formeReconnue(liaison.surcharge.nom) : ''}:${liaison.champ}:${liaison.indice ?? ''}:${liaison.plage?.debut ?? ''}`;
+    // La place du layer dans son variant (D16), puis le layer intérieur qu'une liaison d'instance peint.
+    const cle = `${identiteDuCalque(variant, layer).cle}:${liaison.surcharge ? formeReconnue(liaison.surcharge.nom) : ''}:${liaison.champ}:${liaison.indice ?? ''}:${liaison.plage?.debut ?? ''}`;
     const groupe = groupes.get(cle) ?? [];
     const signe = yield* signature(variable, catalogue);
     groupe.push({ variant, layer, liaison, signe });
@@ -152,18 +152,23 @@ function* ecartsDeFratrie(releve: ReleveDeComposant, catalogue: CatalogueDeRefer
   const constats: Constat[] = [];
   for (const groupe of groupes.values()) {
     yield;
-    const occurrences = new Map<string, number>();
+    // Une majorité se compte en variants distincts : deux liaisons d'un même variant ne font pas deux voix.
+    const variantsParSigne = new Map<string, Set<string>>();
+    const variantsDuGroupe = new Set<string>();
     for (const entree of groupe) {
       yield;
-      occurrences.set(entree.signe, (occurrences.get(entree.signe) ?? 0) + 1);
+      variantsDuGroupe.add(entree.variant.id);
+      const variants = variantsParSigne.get(entree.signe) ?? new Set<string>();
+      variants.add(entree.variant.id);
+      variantsParSigne.set(entree.signe, variants);
     }
     const majoritaires: [string, number][] = [];
-    for (const occurrence of occurrences) {
+    for (const [signe, variants] of variantsParSigne) {
       yield;
-      if (occurrence[1] >= 2) majoritaires.push(occurrence);
+      if (variants.size >= 2) majoritaires.push([signe, variants.size]);
     }
     majoritaires.sort((a, b) => b[1] - a[1]);
-    if (!majoritaires.length || majoritaires[0][1] <= groupe.length / 2) continue;
+    if (!majoritaires.length || majoritaires[0][1] <= variantsDuGroupe.size / 2) continue;
     let exemple = '';
     for (const entree of groupe) {
       yield;

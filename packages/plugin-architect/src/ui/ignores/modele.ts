@@ -342,6 +342,11 @@ function precise(constat: Constat, contexte: ContexteDAFaire): Contenu | null {
         statut: T.axeNonExposeStatut(wrapper),
       };
     }
+    case 'C84': {
+      const [n, total] = [nombre(faits.n), nombre(faits.total)];
+      if (n === null || total === null) return null;
+      return { phrase: T.couleursSansVariant(n, total, texte(faits.axe), texte(faits.role)), lieu: T.sectionVariants, statut: T.couleursSansVariantStatut };
+    }
     case 'C49':
     case 'C50':
       return accessibilite(constat, contexte) ?? contraste(constat, contexte);

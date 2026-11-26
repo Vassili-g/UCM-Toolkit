@@ -42,7 +42,7 @@
  * événement du document la lève.
  */
 import {
-  controlerCouchesParEtapes, controlerLAccessibiliteParEtapes, controlerLaStructureParEtapes, controlerLaTypographieParEtapes, controlerLeThemeParEtapes, controlerMappingParEtapes, controlerNommageParEtapes, controlerOublisParEtapes, clesDesTokensDeTailleAttendus, proposerLesCorrectionsParEtapes, tokensDuComposant,
+  controlerCouchesParEtapes, controlerLAccessibiliteParEtapes, controlerLaStructureParEtapes, controlerLaTypographieParEtapes, controlerLeThemeParEtapes, controlerMappingParEtapes, controlerNommageParEtapes, controlerOublisParEtapes, sansLaCascadeDesVariants, clesDesTokensDeTailleAttendus, proposerLesCorrectionsParEtapes, tokensDuComposant,
   type CatalogueDeReference, type Constat, type Correction, type LiaisonLue, type ReleveDeComposant,
 } from '@ucm-kit/core/controles';
 import { lireLesLibraries, type LectureDesLibraries, type PortDeBibliotheque } from 'ucm-plugin-socle/src/bibliotheque';
@@ -1668,7 +1668,8 @@ async function controlesDuKit(
     parFamille[nom] = resultat;
     constats.push(...resultat);
   }
-  return { constats, parFamille };
+  // D10 : le seul endroit où les constats des familles se rassemblent. `parFamille` garde les résultats bruts, la reprise d'une famille les compare.
+  return { constats: sansLaCascadeDesVariants(constats), parFamille };
 }
 
 /** Bornes du nombre d'étapes enchaînées entre deux lectures de l'horloge. */

@@ -10,24 +10,9 @@ import { natureDuChamp } from '../referentiel/architecture.js';
 import type { CatalogueDeReference, VariableDuCatalogue } from './catalogue.js';
 import type { Constat, Correction } from './constat.js';
 import { axesDuReleve, constatDuComposant, segmentEcritPourLaValeur, tokensDuComposant, type AxeDuComposant, type TokenDuComposant } from './nommage.js';
-import { lectureManquee, liaisonsPropres, type LayerLu, type LiaisonLue, type ReleveDeComposant, type VariantLu } from './releve.js';
+import { identiteDuCalque, lectureManquee, liaisonsPropres, type LayerLu, type LiaisonLue, type ReleveDeComposant, type VariantLu } from './releve.js';
 
-/** Les noms des ancêtres depuis la racine du variant, puis celui du layer. */
-function cheminDuLayer(variant: VariantLu, layer: LayerLu): string[] {
-  const chemin = [layer.nom];
-  const vus = new Set([layer.id]);
-  let parent = layer.parent;
-  while (parent !== null) {
-    const ancetre = variant.layers.find(({ id }) => id === parent);
-    if (!ancetre || vus.has(ancetre.id)) break;
-    vus.add(ancetre.id);
-    chemin.unshift(ancetre.nom);
-    parent = ancetre.parent;
-  }
-  return chemin;
-}
-
-const cleDuChemin = (chemin: readonly string[]): string => JSON.stringify(chemin);
+const cleDuChemin = (layer: LayerLu, variant: VariantLu): string => JSON.stringify(identiteDuCalque(variant, layer).chemin);
 
 function memeChamp(a: { champ: string; indice?: number; plage?: { debut: number; fin: number } }, b: typeof a): boolean {
   return a.champ === b.champ && a.indice === b.indice && a.plage?.debut === b.plage?.debut && a.plage?.fin === b.plage?.fin;
@@ -38,8 +23,8 @@ function memeChamp(a: { champ: string; indice?: number; plage?: { debut: number;
  * à ce chemin quand le modèle ou le variant visé en compte plusieurs : rien ne dit lequel suit lequel.
  */
 function layerHomologue(modele: VariantLu, layer: LayerLu, vise: VariantLu): LayerLu | 'absent' | LayerLu[] {
-  const cle = cleDuChemin(cheminDuLayer(modele, layer));
-  const memeChemin = (variant: VariantLu) => variant.layers.filter((candidat) => cleDuChemin(cheminDuLayer(variant, candidat)) === cle);
+  const cle = cleDuChemin(layer, modele);
+  const memeChemin = (variant: VariantLu) => variant.layers.filter((candidat) => cleDuChemin(candidat, variant) === cle);
   const duModele = memeChemin(modele);
   const duVise = memeChemin(vise);
   if (duVise.length === 0) return 'absent';

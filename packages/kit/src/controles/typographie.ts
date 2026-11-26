@@ -15,7 +15,7 @@ import { collectionDuCatalogue, variableDuCatalogue } from './catalogue.js';
 import type { Constat } from './constat.js';
 import { axesDuReleveParEtapes, estLaFamilleCouleur, memeValeurDAxe, roleDuToken, tailleReconnue, tokensDuComposantParEtapes, tokenVautPourLeLayer, type ProprieteDAxe, type TokenDuComposant } from './nommage.js';
 import type { LayerLu, LiaisonLue, ReleveDeComposant, VariantLu } from './releve.js';
-import { layersVisiblesDuVariant, peintureVisible } from './releve.js';
+import { identiteDuCalque, layersVisiblesDuVariant, peintureVisible } from './releve.js';
 
 /** Au moins deux autres variants, pour qu'un « autre » ne soit pas simplement l'unique voisin. */
 const AUTRES_MINIMUM = 2;
@@ -133,17 +133,14 @@ const styleDuTexte = (s: Source): string | null => s.layer.texte?.style ?? null;
 
 /**
  * Où un texte se compare : parmi les textes de même nom qui ont la même valeur de l'axe de taille (Q-F6-2, sans axe de taille, tous
- * ensemble), et au même rang parmi les layers de ce nom dans son variant (N-44). Deux layers homonymes d'un variant ne mêlent
- * donc pas leurs styles.
+ * ensemble), et à la même identité dans son variant (D16, N-44) : même chemin, même rang à chaque niveau parmi les homonymes de même parent, masqués
+ * ou non. Deux layers homonymes d'un variant, ou de deux parents, ne mêlent donc pas leurs styles.
  */
 function groupesDeComparaison(liste: readonly Source[], axeDeTaille: string | undefined): { cles: Map<Source, string>; groupes: Map<string, Source[]> } {
   const cles = new Map<Source, string>();
   const groupes = new Map<string, Source[]>();
-  const rangs = new Map<string, number>();
   for (const source of liste) {
-    const rang = rangs.get(source.variant.id) ?? 0;
-    rangs.set(source.variant.id, rang + 1);
-    const cle = `${axeDeTaille === undefined ? '' : source.variant.valeurs[axeDeTaille] ?? ''}|${rang}`;
+    const cle = `${axeDeTaille === undefined ? '' : source.variant.valeurs[axeDeTaille] ?? ''}|${identiteDuCalque(source.variant, source.layer).cle}`;
     cles.set(source, cle);
     const groupe = groupes.get(cle) ?? [];
     groupe.push(source);

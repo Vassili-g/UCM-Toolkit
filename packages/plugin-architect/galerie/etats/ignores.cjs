@@ -77,6 +77,9 @@ const constatDAxeNonExpose = constatDuComposant('C83:wrapper-size', 'C83', 'veri
   variants: [variantAlert(nomDeVariant('info', 'standard'))], layers: [CONTAINER],
 });
 
+/** Le cas d'Alert (C84) : `Style` vaut Info, Success, Warning ou Danger, et les tokens écrivent ces valeurs à la place de la couleur ; les faits suivent `controles/oublis.ts`. */
+const constatDeCascade = constatDuComposant('C84:alert', 'C84', 'verifier', 'variants', { n: 32, total: 32, axe: 'Style', role: 'palette' });
+
 /** Une liaison dont deux segments sont faux, sur un layer masqué : la question dit aussi ce que la même réponse règle. */
 const questionFusionnee = constatDuComposant('C22:fusion', 'C22', 'corriger', 'liaisons', {
   calque: 'message', champ: 'fills', axe: 'State', valeur: 'disabled', token: 'alert/colors/info/standard/foreground', segment: 'default',
@@ -102,6 +105,12 @@ const ETATS = [
     regarder: 'Une carte « Vérifier » : « La propriété `Size` de `.sizeWrapperButton` ne se choisit pas depuis Button. » ; le statut dit « Dans Figma, exposez les propriétés de `.sizeWrapperButton` (Expose properties from nested instances) » ; Sélectionner vise l’instance du wrapper.',
     existe: true,
     atteinte: [...ouvrirLePanneau.slice(0, 5), { message: { ...analyseDeQuestions, constats: [constatDAxeNonExpose] } }, ignores([]), { clic: '.bouton-panneau' }, tout],
+  },
+  {
+    id: 'c-afaire-cascade-des-variants', titre: 'À faire dans Figma, des tokens de couleur qui ne correspondent à aucun variant', quand: 'Alert est analysé ; `Style` vaut Info, Success, Warning ou Danger et les tokens écrivent ces valeurs à la place de la couleur. Le panneau montre Tout.',
+    regarder: 'Une seule carte « Vérifier » : « 32 tokens de couleur sur 32 ne correspondent à aucun variant. Les valeurs de `Style` sont écrites dans les tokens à la place de la couleur. » ; le statut dit « Vérifiez le nom des propriétés et des tokens » ; aucune carte de valeur sans token, de token sans variant ni de variant sans token ne l’accompagne.',
+    existe: true,
+    atteinte: [...ouvrirLePanneau.slice(0, 5), { message: { ...analyseDeQuestions, constats: [constatDeCascade] } }, ignores([]), { clic: '.bouton-panneau' }, tout],
   },
   {
     id: 'q-fusionnee', titre: 'Question à deux segments faux, layer masqué', quand: 'Le designer choisit la puce Couleurs ; le layer message est masqué et sa liaison se trompe d’état et de rôle.',

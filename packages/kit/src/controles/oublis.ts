@@ -3,7 +3,7 @@ import { natureDuChamp } from '../referentiel/architecture.js';
 import { formeReconnue } from '../referentiel/reconnaissance.js';
 import type { CatalogueDeReference } from './catalogue.js';
 import type { Constat } from './constat.js';
-import { axesDesProprietes, axesDuReleve, axesDuReleveParEtapes, constatDuComposant, memeValeurDAxe, tokensDuComposantParEtapes, type AxeDuComposant, type TokenDuComposant } from './nommage.js';
+import { axesDesProprietes, axesDuReleve, axesDuReleveParEtapes, constatDuComposant, memeValeurDAxe, roleDesTokensPourLesValeurs, tokensDuComposantParEtapes, type AxeDuComposant, type TokenDuComposant } from './nommage.js';
 import type { ReleveDeComposant, VariantLu, WrapperLu } from './releve.js';
 
 function* tokenDuVariant(
@@ -210,6 +210,98 @@ function estUnePaletteHorsRegistre(token: TokenDuComposant, nomsDeLayers: Readon
   return token.lecture.some((segment) => segment.role === 'element' && !nomsDeLayers.has(formeReconnue(segment.segment)));
 }
 
+/** Ce que la lecture d'un token dit de ses variants : aucun variant ne le porte, et les wrappers qui portent les rôles que l'hôte n'a pas. */
+interface LectureDuToken {
+  readonly sansVariant: boolean;
+  readonly wrappers: ReadonlySet<WrapperLu>;
+}
+
+/**
+ * La règle « le token correspond à un variant », une seule fois : C32 `sans-variant` et C84 la lisent. Un token correspond quand un
+ * variant a la valeur de chaque axe que le token écrit ; un rôle que l'hôte n'a pas se cherche dans les variants du wrapper qui le porte ;
+ * une palette hors registre ne correspond à rien (N-40).
+ */
+function* lireLeToken(
+  token: TokenDuComposant, releve: ReleveDeComposant, axes: ReturnType<typeof axesDuReleve>,
+  portes: Map<AxeDuComposant, AxeDeWrapper[]>, nomsDeLayers: { valeur: Set<string> | undefined },
+): Generator<void, LectureDuToken> {
+  let sansVariant = true;
+  for (const variant of releve.variants) {
+    yield;
+    if (!(yield* tokenDuVariant(token, variant, axes))) continue;
+    sansVariant = false;
+    break;
+  }
+  // Les rôles que l'hôte n'a pas, un wrapper les porte : le token ne vaut que si un variant du wrapper a ce segment.
+  const wrappers = new Set<WrapperLu>();
+  const rolesVus = new Set<string>();
+  for (const [rang, segment] of token.lecture.entries()) {
+    yield;
+    const porteurs = portes.get(segment.role as AxeDuComposant);
+    if (!porteurs || rolesVus.has(segment.role)) continue;
+    rolesVus.add(segment.role);
+    let porte = false;
+    for (const { wrapper, propriete } of porteurs) {
+      yield;
+      wrappers.add(wrapper);
+      for (const variant of wrapper.variants) {
+        yield;
+        const valeur = variant.valeurs[propriete.nom];
+        if (!valeur || !memeValeurDAxe(segment.role as AxeDuComposant, token.segments[rang], valeur)) continue;
+        porte = true;
+        break;
+      }
+    }
+    if (!porte) sansVariant = true;
+  }
+  // Un élément écrit dans une couleur désigne un layer du composant (corrections.ts) : le segment qui n'en désigne aucun, à la place d'une palette, nomme une palette hors registre (N-40).
+  if (!sansVariant && axes.palette) {
+    if (!nomsDeLayers.valeur) nomsDeLayers.valeur = yield* nomsDesLayers(releve);
+    if (estUnePaletteHorsRegistre(token, nomsDeLayers.valeur)) sansVariant = true;
+  }
+  return { sansVariant, wrappers };
+}
+
+/** Les codes que C84 remplace : une lecture fausse des axes les multiplie. C32 ne se tait que pour le motif `sans-variant`. */
+const CODES_DE_LA_CASCADE: readonly string[] = ['C7', 'C13', 'C33'];
+
+/**
+ * D10 : un seul constat C84 quand la moitié au moins des tokens de couleur lus du composant ne correspond à aucun variant. Le rapport
+ * se calcule sur `lireLeToken`, la fonction même de C32 `sans-variant`. Sans variant lu, rien ne correspond et rien ne se compare.
+ * `faits.axe` et `faits.role` disent, pour un axe qui a un rôle, que ses valeurs sont écrites dans les tokens à la position d'un autre rôle.
+ */
+function* constatDeLaCascade(releve: ReleveDeComposant, catalogue: CatalogueDeReference, lectures: ReadonlyMap<TokenDuComposant, LectureDuToken>): Generator<void, Constat | null> {
+  if (!releve.variants.length) return null;
+  let total = 0;
+  let sansVariant = 0;
+  for (const [token, lecture] of lectures) {
+    yield;
+    if (!token.lecture.some((segment) => segment.role === 'famille' && segment.terme === 'color')) continue;
+    total += 1;
+    if (lecture.sansVariant) sansVariant += 1;
+  }
+  if (!total || sansVariant * 2 < total) return null;
+  const faits: Record<string, string | number> = { n: sansVariant, total };
+  for (const propriete of releve.proprietes) {
+    yield;
+    const role = roleDesTokensPourLesValeurs(releve, catalogue, propriete);
+    if (!role) continue;
+    faits.axe = propriete.nom;
+    faits.role = role;
+    break;
+  }
+  return constatDuComposant('C84', 'variants', 'verifier', releve.jeu.cle, faits);
+}
+
+/**
+ * Le silence de D10, à l'endroit où les constats des familles se rassemblent : C84 présent, C7, C13, C33 et C32 `sans-variant` n'en sont
+ * que la cascade. Les autres constats, dont C32 `inutilise` et `nom-illisible`, restent.
+ */
+export function sansLaCascadeDesVariants(constats: readonly Constat[]): Constat[] {
+  if (!constats.some(({ code }) => code === 'C84')) return [...constats];
+  return constats.filter(({ code, faits }) => !CODES_DE_LA_CASCADE.includes(code) && !(code === 'C32' && faits.motif === 'sans-variant'));
+}
+
 export function controlerOublis(releve: ReleveDeComposant, catalogue: CatalogueDeReference): Constat[] {
   const calcul = controlerOublisParEtapes(releve, catalogue);
   let etape = calcul.next();
@@ -280,9 +372,16 @@ export function* controlerOublisParEtapes(releve: ReleveDeComposant, catalogue: 
     }
   }
   const illisibles = yield* naturesDesLiaisonsIllisibles(releve);
-  let nomsDeLayers: Set<string> | undefined;
   const portes = yield* axesDesWrappers(releve, axes);
   const liaisonsDuWrapper = new Map<WrapperLu, Set<string>>();
+  const nomsDeLayers = { valeur: undefined as Set<string> | undefined };
+  const lectures = new Map<TokenDuComposant, LectureDuToken>();
+  for (const token of tokens) {
+    yield;
+    if (token.lecture.length) lectures.set(token, yield* lireLeToken(token, releve, axes, portes, nomsDeLayers));
+  }
+  const cascade = yield* constatDeLaCascade(releve, catalogue, lectures);
+  if (cascade) constats.push(cascade);
   for (const token of tokens) {
     yield;
     // Un nom que la grammaire ne lit pas ne se compare à aucun variant : le designer le renomme ou ignore le constat (Q-F5-8).
@@ -290,40 +389,7 @@ export function* controlerOublisParEtapes(releve: ReleveDeComposant, catalogue: 
       constats.push(constatDuComposant('C32', 'tokens', 'verifier', token.variable.cle, { token: token.variable.nom, motif: 'nom-illisible' }));
       continue;
     }
-    let sansVariant = true;
-    for (const variant of releve.variants) {
-      yield;
-      if (!(yield* tokenDuVariant(token, variant, axes))) continue;
-      sansVariant = false;
-      break;
-    }
-    // Les rôles que l'hôte n'a pas, un wrapper les porte : le token ne vaut que si un variant du wrapper a ce segment.
-    const wrappersDuToken = new Set<WrapperLu>();
-    const rolesVus = new Set<string>();
-    for (const [rang, segment] of token.lecture.entries()) {
-      yield;
-      const porteurs = portes.get(segment.role as AxeDuComposant);
-      if (!porteurs || rolesVus.has(segment.role)) continue;
-      rolesVus.add(segment.role);
-      let porte = false;
-      for (const { wrapper, propriete } of porteurs) {
-        yield;
-        wrappersDuToken.add(wrapper);
-        for (const variant of wrapper.variants) {
-          yield;
-          const valeur = variant.valeurs[propriete.nom];
-          if (!valeur || !memeValeurDAxe(segment.role as AxeDuComposant, token.segments[rang], valeur)) continue;
-          porte = true;
-          break;
-        }
-      }
-      if (!porte) sansVariant = true;
-    }
-    // Un élément écrit dans une couleur désigne un layer du composant (corrections.ts) : le segment qui n'en désigne aucun, à la place d'une palette, nomme une palette hors registre (N-40).
-    if (!sansVariant && axes.palette) {
-      if (!nomsDeLayers) nomsDeLayers = yield* nomsDesLayers(releve);
-      if (estUnePaletteHorsRegistre(token, nomsDeLayers)) sansVariant = true;
-    }
+    const { sansVariant, wrappers: wrappersDuToken } = lectures.get(token)!;
     let liee = liees.has(token.variable.cle);
     for (const wrapper of wrappersDuToken) {
       if (liee) break;

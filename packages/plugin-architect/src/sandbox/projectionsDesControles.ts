@@ -53,7 +53,7 @@ export const GABARITS: Readonly<Record<NomDeFamille, Gabarit>> = {
   'controle-mapping': [
     'releve.jeu.nom', ...PROPRIETES,
     ...sous('releve.variants.*', 'id', 'valeurs'),
-    ...sous(LAYERS, 'id', 'nom', 'type', 'instanceDe.nom', 'instanceDe.pilotee'),
+    ...sous(LAYERS, 'id', 'nom', 'type', 'parent', 'instanceDe.nom', 'instanceDe.pilotee'),
     ...sous(LIAISONS_DU_LAYER, 'champ', 'indice', 'plage', 'surcharge', 'variable.cle', 'variable.nom'),
     ...COLLECTIONS, 'catalogue.collections.*.etat', ...sous('catalogue.variables.*', 'cle', 'nom', 'collection', 'etat', 'scopes', ALIAS),
   ],
@@ -65,7 +65,7 @@ export const GABARITS: Readonly<Record<NomDeFamille, Gabarit>> = {
     ...COLLECTIONS, 'catalogue.collections.*.modes', ...sous('catalogue.variables.*', 'cle', 'nom', 'collection', 'type', 'etat', ALIAS),
   ],
   'controle-oublis': [
-    'releve.jeu.nom', 'releve.lecture.variantsNonLus', 'releve.lecture.layersNonLus', ...PROPRIETES,
+    'releve.jeu.nom', 'releve.jeu.cle', 'releve.lecture.variantsNonLus', 'releve.lecture.layersNonLus', ...PROPRIETES,
     ...sous('releve.variants.*', 'id', 'nom', 'valeurs'),
     ...sous(LAYERS, 'id', 'nom', 'instanceDe.cle'),
     ...liaisons(['variable.cle', 'champ', 'illisible'], ['champ', 'illisible']),

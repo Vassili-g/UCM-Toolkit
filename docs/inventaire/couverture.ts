@@ -83,7 +83,7 @@ export const EXCLUSIONS: Readonly<Record<string, GroupeExclu[]>> = {
     },
     {
       motif: "Aide de lecture du modèle de composant ou des variables, appelée par les contrôles.",
-      noms: ["axeDePropriete", "axesDesProprietes", "axesDuReleve", "axesDuReleveParEtapes", "candidatsDeModele", "cheminComplet", "cheminDansLaCollection", "cheminDeLaVariable", "clesDesTokensDeTailleAttendus", "collectionDuCatalogue", "collectionsDeReference", "constatsDeModele", "estDuComposant", "estUnInterrupteur", "grouperLesCouches", "layersVisiblesDuVariant", "lectureManquee", "nomDAxeEnAnglais", "nomDansFigma", "peintureVisible", "preparerLesTokens", "proposerLaPropagation", "proposerLesCorrections", "proposerLesCorrectionsParEtapes", "rolesDesProprietes", "segmentDAxe", "tokensDuComposant", "tokensDuComposantParEtapes", "variableDuCatalogue", "variableParCheminComplet"],
+      noms: ["axeDePropriete", "axesDesProprietes", "axesDuReleve", "axesDuReleveParEtapes", "candidatsDeModele", "cheminComplet", "cheminDansLaCollection", "cheminDeLaVariable", "clesDesTokensDeTailleAttendus", "collectionDuCatalogue", "collectionsDeReference", "constatsDeModele", "estDuComposant", "estUnInterrupteur", "grouperLesCouches", "layersVisiblesDuVariant", "lectureManquee", "nomDAxeEnAnglais", "nomDansFigma", "peintureVisible", "preparerLesTokens", "proposerLaPropagation", "proposerLesCorrections", "proposerLesCorrectionsParEtapes", "rolesDesProprietes", "sansLaCascadeDesVariants", "segmentDAxe", "tokensDuComposant", "tokensDuComposantParEtapes", "variableDuCatalogue", "variableParCheminComplet"],
     },
     {
       motif: "Conversion d'un `tokens.json` en catalogue, appelée par `ucm check` avant les contrôles que la page montre par leurs codes.",
