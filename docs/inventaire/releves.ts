@@ -787,6 +787,7 @@ const PHRASES_DES_SCRIPTS: Readonly<Record<string, readonly [string, string]>> =
   'galerie:plugin': ['Construit le kit puis ouvre la galerie des états du plugin nommé.', 'AGENTS.md, « Vérification » ; scripts/construire-plugin.mjs'],
   'test:paquet': ['Construit le kit puis teste le paquet nommé.', 'AGENTS.md, « Vérification » ; scripts/construire-plugin.mjs'],
   'stress:f1': ['Lance le harnais de stress test des noms de Nomenclature, hors de `npm test`.', 'packages/kit/tests/stress/f1-noms/index.ts, commentaire d’en-tête'],
+  'recette:architect': ['Rejoue une capture Figma de `_local/recettes/` par l’analyse complète d’Architect et la compare à ses constats attendus, hors de `npm test`.', 'packages/plugin-architect/scripts/recette.ts, commentaire d’en-tête'],
   'stress:rejeu': ['Rejoue des fichiers réels dans le mode Tokens et mesure les contrôles, hors de `npm test`.', 'packages/kit/tests/stress/rejeu-fichiers/index.ts, commentaire d’en-tête'],
   vues: ['Régénère la planche du moteur, les données de la vue illustrée et cet inventaire, et rend la liste de celles qui ont changé.', 'AGENTS.md, « Vérification » ; scripts/vues.mjs'],
   inventaire: ['Ouvre la page de l’inventaire dans le navigateur par défaut.', 'scripts/ouvrir-inventaire.mjs, commentaire d’en-tête'],

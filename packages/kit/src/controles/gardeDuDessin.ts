@@ -7,7 +7,7 @@ import { composer, versOctet, versRgb8, type Rgba } from '../emplois/couleur.js'
 import { SEUILS_PAR_ROLE } from '../referentiel/contraste.js';
 import { estUneIcone } from '../referentiel/layers.js';
 import { collectionDuCatalogue, variableDuCatalogue, type CatalogueDeReference, type CollectionDuCatalogue, type VariableDuCatalogue } from './catalogue.js';
-import { couleurDeLiaison, fondEffectif, fondsPeintsSous, pileDePeintures, seuilDeLaPlage, SEUILS_D_ACCESSIBILITE, type Combinaison } from './accessibilite.js';
+import { combinaisonDuLayer, couleurDeLiaison, fondEffectif, fondsPeintsSous, pileDePeintures, seuilDeLaPlage, SEUILS_D_ACCESSIBILITE, type Combinaison } from './accessibilite.js';
 import { liaisonsPropres, type LayerLu, type LiaisonLue, type PeintureLue, type VariantLu } from './releve.js';
 
 /**
@@ -68,11 +68,13 @@ function peinturesVisees(layer: LayerLu, { champ, plage }: PropositionDeCouleur)
 
 function gardeDansLaCombinaison(catalogue: CatalogueDeReference, proposition: PropositionDeCouleur, peinture: PeintureLue, combinaison: Combinaison): GardeDuDessin {
   const { variant, layer, liaison, candidat } = proposition;
-  const proposee = couleurDeLiaison(catalogue, variant, combinaison, candidat.cle);
-  const actuelle = liaison ? couleurDeLiaison(catalogue, variant, combinaison, liaison.variable.cle) : peinture.couleur;
+  // Le calque subit les modes qu'il force, comme dans la mesure de C49 (D18) : le produit des modes ne les remplace pas.
+  const vue = combinaisonDuLayer(variant, layer, combinaison, catalogue);
+  const proposee = couleurDeLiaison(catalogue, variant, vue, candidat.cle);
+  const actuelle = liaison ? couleurDeLiaison(catalogue, variant, vue, liaison.variable.cle) : peinture.couleur;
   if (proposee === 'mode-illisible' || actuelle === 'mode-illisible' || !actuelle) return 'inconnu';
   if (memeCouleur(proposee, actuelle)) return 'garde';
-  return contrasteTenu(catalogue, proposition, combinaison);
+  return contrasteTenu(catalogue, proposition, vue);
 }
 
 /** Les canaux et l'alpha égaux à 8 bits près. */

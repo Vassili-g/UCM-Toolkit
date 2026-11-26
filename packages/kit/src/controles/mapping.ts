@@ -1,5 +1,5 @@
 /** Écarts entre les liaisons lues et les axes, rôles et portées du composant. */
-import { estUneIcone, roleQueLeLayerDesigne } from '../referentiel/layers.js';
+import { estUneIcone, estUneIconeCertaine, roleQueLeLayerDesigne } from '../referentiel/layers.js';
 import { formeDuChemin, formeReconnue } from '../referentiel/reconnaissance.js';
 import { collectionParCle, variableDuCatalogue, type CatalogueDeReference, type VariableDuCatalogue } from './catalogue.js';
 import type { Constat } from './constat.js';
@@ -52,12 +52,16 @@ export function rolesAdmisDuLayer(layer: LayerLu, champ: string, plage?: unknown
   const designe = texte ? undefined : roleQueLeLayerDesigne(peint);
   if (designe === 'divider' || designe === 'ring') return [designe];
   const dansUneIcone = !!surcharge && (estUneIcone(layer) || estUneIcone(surcharge) || !!surcharge.instances?.some(estUneIcone));
+  // Le seul critère du dessin est un indice fort, pas certain (une pointe de Tooltip est aussi un composant fait d'un tracé) :
+  // il admet `icon` sans retirer le rôle que le type du calque admet (D1).
+  const iconeCertaine = estUneIconeCertaine(layer) || (!!surcharge && (estUneIconeCertaine(surcharge) || !!surcharge.instances?.some(estUneIconeCertaine)));
   if (champ === 'strokes') {
     const traceSansFill = !surcharge && estUneIcone(layer) && !layer.peintures.some((peinture) => peinture.champ === 'fills' && peintureVisible(peinture));
-    return traceSansFill || dansUneIcone ? ['icon', 'foreground'] : ['border', 'foreground'];
+    if (!traceSansFill && !dansUneIcone) return ['border', 'foreground'];
+    return iconeCertaine ? ['icon', 'foreground'] : ['icon', 'foreground', 'border'];
   }
   if (texte) return ['foreground', 'text'];
-  if (estUneIcone(layer) || dansUneIcone) return ['icon', 'foreground'];
+  if (estUneIcone(layer) || dansUneIcone) return iconeCertaine ? ['icon', 'foreground'] : ['icon', 'foreground', 'background'];
   if (peint.type === 'VECTOR' || peint.type === 'BOOLEAN_OPERATION') return ['icon', 'foreground', 'background'];
   if (FORMES_SIMPLES.has(peint.type)) return ['background', 'foreground'];
   return ['background'];

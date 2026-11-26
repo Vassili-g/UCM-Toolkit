@@ -78,28 +78,55 @@ test('le sandbox démarre et analyse des branches parallèles dans QuickJS', asy
   }
 });
 
-test("aucune source du sandbox ne met un `yield` dans l'itérable d'un `for…of`", () => {
-  const racine = path.resolve(__dirname, '../../..');
-  const { metafile } = buildSync({
-    entryPoints: [path.resolve(__dirname, '../src/code.ts')],
-    bundle: true, write: false, metafile: true, platform: 'browser', target: 'chrome80', logLevel: 'silent',
-  });
+/** Les positions (`fichier:ligne`) où un `yield` se trouve dans l'itérable d'un `for…of` du texte donné. */
+function fautesDeYield(chemin: string, texte: string, racine: string): string[] {
+  const fichier = ts.createSourceFile(chemin, texte, ts.ScriptTarget.ES2022, true);
   const fautes: string[] = [];
-  const chercher = (noeud: ts.Node, fichier: ts.SourceFile, dansIterable: boolean): void => {
+  const chercher = (noeud: ts.Node, dansIterable: boolean): void => {
     if (dansIterable && ts.isYieldExpression(noeud)) {
       const { line } = fichier.getLineAndCharacterOfPosition(noeud.getStart(fichier));
       fautes.push(`${path.relative(racine, fichier.fileName)}:${line + 1}`);
     }
     // Une fonction imbriquée a sa propre pile : son `yield` ne compte pas pour la boucle.
     const herite = ts.isFunctionLike(noeud) ? false : dansIterable;
-    ts.forEachChild(noeud, (enfant) => chercher(enfant, fichier, herite || (ts.isForOfStatement(noeud) && enfant === noeud.expression)));
+    ts.forEachChild(noeud, (enfant) => chercher(enfant, herite || (ts.isForOfStatement(noeud) && enfant === noeud.expression)));
   };
-  const entrees = Object.keys(metafile.inputs).filter((entree) => /\.tsx?$/.test(entree));
-  assert.ok(entrees.length > 100, 'le bundle du sandbox doit lister ses sources');
-  for (const entree of entrees) {
+  chercher(fichier, false);
+  return fautes;
+}
+
+test('le détecteur de `yield` dans un `for…of` voit la forme fautive et laisse passer la forme permise', () => {
+  const fautive = 'function* f() { for (const x of yield* source()) { void x; } }';
+  assert.equal(fautesDeYield('/essai.ts', fautive, '/').length, 1);
+  assert.deepEqual(fautesDeYield('/essai.ts', 'function* f() { const liste = yield* source(); for (const x of liste) { void x; } }', '/'), []);
+  assert.deepEqual(fautesDeYield('/essai.ts', 'function* f() { for (const x of liste.map(function* () { yield 1; })) { void x; } }', '/'), []);
+});
+
+test("aucune source du sandbox ne met un `yield` dans l'itérable d'un `for…of`, kit compris", () => {
+  const racine = path.resolve(__dirname, '../../..');
+  const { metafile } = buildSync({
+    entryPoints: [path.resolve(__dirname, '../src/code.ts')],
+    bundle: true, write: false, metafile: true, platform: 'browser', target: 'chrome80', logLevel: 'silent',
+  });
+  // Le bundle embarque le kit compilé (`packages/kit/dist`) : le fichier qui tourne et sa source TypeScript se lisent tous deux, la source
+  // pour que la faute se voie avant la prochaine construction du kit.
+  const sources = new Set<string>();
+  let dansLeKit = 0;
+  for (const entree of Object.keys(metafile.inputs)) {
+    if (/\.tsx?$/.test(entree)) sources.add(entree);
+    else if (/^\.\.\/kit\/dist\/.+\.js$/.test(entree)) {
+      dansLeKit += 1;
+      sources.add(entree);
+      sources.add(entree.replace('../kit/dist/', '../kit/src/').replace(/\.js$/, '.ts'));
+    }
+  }
+  assert.ok(sources.size > 100, 'le bundle du sandbox doit lister ses sources');
+  assert.ok(dansLeKit > 20, "le bundle du sandbox doit lister les fichiers du kit qu'il embarque");
+  const fautes: string[] = [];
+  for (const entree of sources) {
     const chemin = path.resolve(racine, 'packages/plugin-architect', entree);
-    const fichier = ts.createSourceFile(chemin, fs.readFileSync(chemin, 'utf8'), ts.ScriptTarget.ES2022, true);
-    chercher(fichier, fichier, false);
+    if (!fs.existsSync(chemin)) continue;
+    fautes.push(...fautesDeYield(chemin, fs.readFileSync(chemin, 'utf8'), racine));
   }
   assert.deepEqual(fautes, [], 'Écrire `const liste = yield* source();` puis `for (const x of liste)`.');
 });

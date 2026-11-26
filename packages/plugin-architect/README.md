@@ -256,6 +256,22 @@ champ et par fonction appelante, et la pondère par le banc de la même capture 
 npx tsx scripts/rejouer-la-capture.ts <capture.json> [--json <sortie.json>]
 ```
 
+Le banc de recette rejoue une capture par la même analyse complète et compare les constats finaux à
+`<capture>.attendus.json`, posé à côté d'elle dans `_local/recettes/`. Le mainteneur le lance avant une
+publication. Il rend 0 quand chaque constat a son attente, et 1 avec la liste des écarts sinon :
+
+```sh
+npm run recette:architect -- _local/recettes/button-2026-11-25.json
+npm run recette:architect -- <capture.json> --lister    # les groupes de constats rendus, pour écrire les attentes
+npm run recette:architect -- <capture.json> --detail    # chaque constat, avec ses variants et ses layers
+```
+
+Le fichier d'attentes porte `attentes` : pour chaque groupe, le code, le type, la famille de constats, le nombre, une `cible`
+facultative (nom d'un layer ou d'un variant, ou valeur d'un fait) et une `raison` en une ligne. Un constat qu'aucune attente
+ne couvre est un écart. `reportees` liste les constats justes que la capture ne peut pas rendre, faute d'un champ qu'elle ne
+porte pas : le banc les rappelle sans les compter. Une capture dont le plugin précède un lot de lecture est à refaire. Le
+premier filet de D15, `tests/composantsDeReference.test.ts`, joue la même comparaison sur Button et Alert fabriqués.
+
 `npm run fidelite --workspace ucm-architect-plugin -- [<cadre>…]` compare
 chaque cadre de `galerie/cadres.json` à l'état de galerie du même identifiant,
 dans la maquette d'UCM Architect : il range les captures côte à côte dans

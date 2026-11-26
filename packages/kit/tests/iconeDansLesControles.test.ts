@@ -156,8 +156,8 @@ test('le Vector du Button, lié à foreground sous une instance de dessin pilot�
   assert.deepEqual([sansInstances.c17.length, sansInstances.c24.length], [0, 0], 'un relevé sans `instances` ne dit rien de plus');
 });
 
-test('une instance de dessin, ou montrée par Icon-Left, rend le Vector peint une icône : background est refusé, avec le chemin', () => {
-  for (const fleche of [FLECHE_COMPLETE, FLECHE_DESSIN, FLECHE_VISIBLE]) {
+test('une instance montrée par Icon-Left rend le Vector peint une icône certaine : background est refusé, avec le chemin', () => {
+  for (const fleche of [FLECHE_COMPLETE, FLECHE_VISIBLE]) {
     const { c17, c24 } = constatsDe(wrapper('fond', [fleche]));
     assert.equal(c17.length, 1, JSON.stringify(fleche.instanceDe));
     assert.equal(c17[0].faits.attendu, 'icon');
@@ -166,6 +166,13 @@ test('une instance de dessin, ou montrée par Icon-Left, rend le Vector peint un
   }
   // Sans fait d'icône, le Vector libre admet background : aucun constat, donc aucun chemin à porter.
   assert.deepEqual(constatsDe(wrapper('fond', [FLECHE_NUE])).c17, []);
+});
+
+test('une instance faite d’un seul dessin, sans nom ni propriété d’icône, est une icône probable : son Vector admet aussi background (D1)', () => {
+  // Une pointe de Tooltip est aussi un composant fait d'un tracé : le dessin seul n'accuse pas background, et ne retire pas border au trait.
+  assert.deepEqual(constatsDe(wrapper('fond', [FLECHE_DESSIN])).c17, []);
+  assert.deepEqual(constatsDe(wrapper('avant', [FLECHE_DESSIN])).c17, []);
+  assert.deepEqual(constatsDe(wrapper('bordure', [FLECHE_DESSIN], 'strokes')).c17, []);
 });
 
 test('le chemin de C17 liste les instances de la plus externe à la plus interne, puis le calque ; absent sans surcharge', () => {

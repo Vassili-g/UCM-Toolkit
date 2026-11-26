@@ -173,3 +173,28 @@ test('D19 : les clés des tokens de couleur attendus sont celles des candidats d
   // Le candidat non chargé n'est pas proposé tant qu'il n'est pas chargé (C25 ne juge que ce qu'il lit).
   assert.equal(proposerLesCorrections(r, cat, []).find(({ code, layers }) => code === 'C25' && layers.includes('label'))?.correction, undefined);
 });
+
+/* ---------- Modes forcés par le calque ---------- */
+
+/** Un point blanc écrit en dur, forcé en Dark, sur une racine noire. `fg` vaut noir en Light et blanc en Dark. */
+function pointForceEnDark(): { r: ReleveDeComposant; cat: CatalogueDeReference } {
+  const fond = layer('root', 'Radio', 'FRAME', null, { peintures: [solide(NOIR)] });
+  const point = layer('dot', 'Dot', 'ELLIPSE', 'root', {
+    dimensions: { x: 4, y: 4, largeur: 16, hauteur: 16 }, peintures: [solide(BLANC)], modesExplicites: { components: 'Dark' },
+  });
+  return { r: releve([fond, point]), cat: catalogue(jeton('fg', 'radio/color/foreground', parMode(NOIR, BLANC))) };
+}
+
+test('D18 : gardeLeDessin lit la couleur du candidat dans le mode que le calque force, pas dans chaque mode du produit', () => {
+  // Forcé en Dark, `fg` vaut blanc : la couleur du point. Dans le produit, Light donnerait noir sur noir et ferait dire `change`.
+  const { r, cat } = pointForceEnDark();
+  assert.equal(gardeLeDessin(cat, { variant: r.variants[0], layer: r.variants[0].layers[1], champ: 'fills', indice: 0, candidat: cat.variables[0] }), 'garde');
+});
+
+test('D18 : C25 garde sa correction quand le token ne change pas la couleur dans le mode que le calque force', () => {
+  const { r, cat } = pointForceEnDark();
+  const constat = proposerLesCorrections(r, cat, []).find(({ code, layers }) => code === 'C25' && layers.includes('dot'));
+  assert.ok(constat, 'C25 se prononce sur le point');
+  assert.equal(constat.correction?.apres.cle, 'fg');
+  assert.equal(constat.question, undefined);
+});

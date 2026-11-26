@@ -43,7 +43,7 @@ export const PROPRIETES_DE_NOEUD: readonly string[] = [
 ];
 
 /** Les propriétés d'un nœud que le scan des règles de la page lit sur les nœuds qu'il ne descend pas. */
-export const PROPRIETES_DE_PAGE: readonly string[] = ['id', 'type', 'name', 'characters', 'visible', 'parent'];
+export const PROPRIETES_DE_PAGE: readonly string[] = ['id', 'type', 'name', 'characters', 'visible', 'parent', 'backgrounds'];
 
 /** Les jeux de champs que le code passe à `getStyledTextSegments` : relevé, vue Composant, moteur seul et moteur groupé. */
 export const JEUX_DE_SEGMENTS: readonly (readonly string[])[] = [

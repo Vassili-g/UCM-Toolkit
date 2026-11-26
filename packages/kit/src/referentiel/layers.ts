@@ -77,7 +77,16 @@ function estUneInstanceMontreeParUneIcone(layer: LayerPourLesDefinitions): boole
  */
 export function estUneIcone(layer: LayerPourLesDefinitions): boolean {
   if (layer.type === 'FRAME' || layer.type === 'TEXT') return false;
-  return estUneInstanceDIcone(layer) || estUneInstancePilotee(layer) || estUnTraceNomme(layer) || estUneInstanceDeDessin(layer) || estUneInstanceMontreeParUneIcone(layer);
+  return estUneIconeCertaine(layer) || estUneInstanceDeDessin(layer);
+}
+
+/**
+ * Une icône que son nom ou ses propriétés désignent : tous les cas sauf le dessin seul, qui ne lit aucun nom et prend aussi une pointe
+ * de Tooltip ou un logo. C17 n'accuse un autre rôle que sur une icône certaine (D1).
+ */
+export function estUneIconeCertaine(layer: LayerPourLesDefinitions): boolean {
+  if (layer.type === 'FRAME' || layer.type === 'TEXT') return false;
+  return estUneInstanceDIcone(layer) || estUneInstancePilotee(layer) || estUnTraceNomme(layer) || estUneInstanceMontreeParUneIcone(layer);
 }
 
 /** `Ring`, `Focus ring` ou `focus-ring` ; un point ou un tiret bas en tête, la marque Figma d'un layer privé (`.Ring`), ne change pas le nom. */

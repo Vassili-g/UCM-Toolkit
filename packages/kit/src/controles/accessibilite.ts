@@ -430,7 +430,7 @@ function forcesDuLayer(variant: VariantLu, layer: LayerLu, catalogue: CatalogueD
 }
 
 /** La combinaison telle que ce layer la subit : ses modes forcés remplacent ceux de la combinaison (D18). Sans mode forcé, la même combinaison. */
-function combinaisonDuLayer(variant: VariantLu, layer: LayerLu, combinaison: Combinaison, catalogue: CatalogueDeReference): Combinaison {
+export function combinaisonDuLayer(variant: VariantLu, layer: LayerLu, combinaison: Combinaison, catalogue: CatalogueDeReference): Combinaison {
   if (!aDesModesForces(variant)) return combinaison;
   const forces = forcesDuLayer(variant, layer, catalogue);
   if (forces.size === 0) return combinaison;
