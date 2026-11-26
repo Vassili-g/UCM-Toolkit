@@ -170,9 +170,9 @@ d'Alert sont celles du plan. Onze défauts sont nouveaux, et Codex y ajoute quat
 | L6 | Kit : lecture des axes D9, garde des renommages D14 | `implementeur-exigeant` | aucun | [x] 944b459b |
 | L7 | Kit et Architect : C84 et silence de la cascade D10 | `implementeur-exigeant` | L6, L3 | [x] 5dcce2a1 |
 | L8 | Kit : attente de C65 par la référence D11, liaisons de style D12 | `implementeur` | L2 | [x] 861adcbc |
-| L9 | Architect : C45 `renommee` et doublon de C44 D13 | `implementeur` | L7 | [ ] |
+| L9 | Architect : C45 `renommee` et doublon de C44 D13 | `implementeur` | L7 | [x] 40e260d8 |
 | L11 | Kit : identité d'un calque D16 | `implementeur-exigeant` | L6 | [x] 5dcce2a1 |
-| L12 | Kit : preuve du fond partagée D17 | `implementeur-exigeant` | L11 | [ ] |
+| L12 | Kit : preuve du fond partagée D17 | `implementeur-exigeant` | L11 | [x] 40e260d8 |
 | L13 | Architect et kit : modes par calque D18 | `implementeur` | L2 | [ ] |
 | L14 | Kit : propositions de couleur vérifiées D19 | `implementeur-exigeant` | L12 | [ ] |
 | L15 | Architect : origine des liaisons des dépendances et peinture sous instance D20 | `implementeur` | L2 | [ ] |
@@ -258,3 +258,8 @@ passent l'un après l'autre. L11, L12 et L14 touchent les contrôles du kit et s
 - L7 et L11, commit `5dcce2a1`. Kit 2190 tests, Architect 2453, socle 304, racine 713 sur 714. Le silence de C84 se joue dans
   `controlesDuKit`. `identiteDuCalque` vit dans `releve.ts`. La propagation compare par chemin sans rang, pour garder la question des
   homonymes, et une racine de variant garde son nom.
+- L9 et L12, commit `40e260d8`. Kit 2202 tests, Architect 2461, socle 304, Exporter 1175, racine 713 sur 714. `sorteDuPointDeRegles`
+  (socle) reconnaît `usage-absent` et `prop-sans-propriete`. La carte C45 `renommee` nomme la clé du contrat (`type`), pas le nom
+  écrit dans Figma (`Type`). `fondsPeintsSous` vit dans `accessibilite.ts` et `LayerLu.rayons` porte les rayons de coin. Restes pour
+  L10 : un rayon dont la lecture est refusée doit donner une couverture `inconnue`, pas des coins droits ; l'arc partiel d'une
+  ellipse (`arcData`) n'est pas lu ; une lecture de fills manquée sur un frère n'est pas contrôlée.
