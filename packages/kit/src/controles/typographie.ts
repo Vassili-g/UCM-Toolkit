@@ -155,7 +155,7 @@ function* controlerLesTextes(textes: Map<string, Source[]>, releve: ReleveDeComp
   const groupes = new Map<string, Constat>();
   const base = { code: 'C64', type: 'verifier', famille: 'typographie' } as const;
   const information = { code: 'C64', type: 'info', famille: 'typographie' } as const;
-  const axes = yield* axesDuReleveParEtapes(releve);
+  const axes = yield* axesDuReleveParEtapes(releve, catalogue);
   // Un texte à styles mixtes ou sans style n'a pas de style à comparer : il ne pèse pas sur les fréquences. Le second reçoit son propre constat.
   const jugeable = (s: Source): boolean => s.layer.texte !== undefined && s.layer.texte.stylesMixtes !== true && styleDuTexte(s) !== null;
   for (const [nom, liste] of textes) {
@@ -230,7 +230,7 @@ function* controlerLesIcones(icones: Map<string, Source[]>, releve: ReleveDeComp
   const groupes = new Map<string, Constat>();
   const base = { code: 'C66', type: 'verifier', famille: 'typographie' } as const;
   if (icones.size === 0) return [];
-  const axes = yield* axesDuReleveParEtapes(releve);
+  const axes = yield* axesDuReleveParEtapes(releve, catalogue);
   const tokens = yield* tokensDuComposantParEtapes(releve, catalogue);
   const parCle = new Map(tokens.map((token) => [token.variable.cle, token]));
   const candidats = new Map<string, string>();

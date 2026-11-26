@@ -132,12 +132,12 @@ test('le relevé lit ces champs dans cet ordre et en tire ces layers', async () 
 
   assert.deepEqual(e.releverEtVider(), {
     COMPONENT_SET: ['type', 'children', 'id', 'key', 'name', 'componentPropertyDefinitions'],
-    COMPONENT: ['type', 'children', 'id', 'absoluteBoundingBox', 'name', 'visible', 'opacity', 'fills', 'blendMode', 'effects', 'strokes', 'strokeWeight', 'boundVariables', 'layoutGrids', 'layoutMode', 'paddingLeft', 'paddingRight', 'paddingTop', 'paddingBottom', 'itemSpacing', 'primaryAxisAlignItems', 'cornerRadius', 'parent', 'key', 'remote', 'variantProperties', 'resolvedVariableModes', 'topLeftRadius', 'topRightRadius', 'bottomLeftRadius', 'bottomRightRadius'],
+    COMPONENT: ['type', 'children', 'id', 'absoluteBoundingBox', 'name', 'visible', 'opacity', 'fills', 'blendMode', 'effects', 'strokes', 'strokeWeight', 'boundVariables', 'layoutGrids', 'fillStyleId', 'layoutMode', 'paddingLeft', 'paddingRight', 'paddingTop', 'paddingBottom', 'itemSpacing', 'primaryAxisAlignItems', 'cornerRadius', 'parent', 'key', 'remote', 'variantProperties', 'resolvedVariableModes', 'topLeftRadius', 'topRightRadius', 'bottomLeftRadius', 'bottomRightRadius'],
     TEXT: ['type', 'children', 'absoluteBoundingBox', 'id', 'name', 'visible', 'opacity', 'fills', 'blendMode', 'effects', 'strokes', 'strokeWeight', 'boundVariables', 'layoutGrids', 'getStyledTextSegments(fontSize,fontWeight,fills,boundVariables,textStyleId)', 'layoutMode', 'cornerRadius', 'topLeftRadius', 'topRightRadius', 'bottomLeftRadius', 'bottomRightRadius', 'textStyleId'],
     INSTANCE: ['type', 'id', 'absoluteBoundingBox', 'name', 'visible', 'opacity', 'fills', 'blendMode', 'effects', 'strokes', 'strokeWeight', 'boundVariables', 'layoutGrids', 'overrides', 'getMainComponentAsync()', 'variantProperties', 'componentPropertyReferences', 'layoutMode', 'cornerRadius', 'topLeftRadius', 'topRightRadius', 'bottomLeftRadius', 'bottomRightRadius'],
     FRAME: ['type', 'children', 'absoluteBoundingBox', 'id', 'name', 'visible', 'opacity', 'fills', 'blendMode', 'effects', 'strokes', 'strokeWeight', 'boundVariables', 'layoutGrids', 'layoutMode', 'cornerRadius', 'topLeftRadius', 'topRightRadius', 'bottomLeftRadius', 'bottomRightRadius'],
-    RECTANGLE: ['type', 'boundVariables', 'fills', 'strokes', 'effects', 'layoutGrids', 'id', 'name'],
-    STYLE: ['name'],
+    RECTANGLE: ['type', 'boundVariables', 'fills', 'strokes', 'effects', 'layoutGrids', 'id', 'parent', 'name'],
+    STYLE: ['paints', 'effects', 'layoutGrids', 'boundVariables', 'name'],
   });
   assert.deepEqual(releve.variants.map((variant) => ({ nom: variant.nom, valeurs: variant.valeurs, modes: variant.modesEffectifs, layers: variant.layers.map(ligneDeLayer) })), [
     {

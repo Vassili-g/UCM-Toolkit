@@ -14,7 +14,7 @@ export {
 } from './accessibilite.js';
 export { PROFONDEUR_D_ALIAS } from '../emplois/couleur.js';
 export { controlerLaTypographie, controlerLaTypographieParEtapes } from './typographie.js';
-export { axeDePropriete, estUnInterrupteur, nomDAxeEnAnglais, axesDesProprietes, axesDuReleve, axesDuReleveParEtapes, tokensDuComposant, tokensDuComposantParEtapes, segmentDAxe, controlerNommage, controlerNommageParEtapes, estDuComposant } from './nommage.js';
+export { axeDePropriete, estUnInterrupteur, nomDAxeEnAnglais, axesDesProprietes, axesDuReleve, axesDuReleveParEtapes, rolesDesProprietes, tokensDuComposant, tokensDuComposantParEtapes, segmentDAxe, controlerNommage, controlerNommageParEtapes, estDuComposant } from './nommage.js';
 export type { AxeDuComposant, TokenDuComposant } from './nommage.js';
 export { controlerMapping, controlerMappingParEtapes } from './mapping.js';
 export { controlerCouches, controlerCouchesParEtapes } from './couche.js';

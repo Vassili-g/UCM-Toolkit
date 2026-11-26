@@ -97,10 +97,14 @@ export function releveRiche(): ReleveDeComposant {
  */
 export function releveRicheAvecWrapper(): ReleveDeComposant {
   const releve = releveRiche();
-  releve.proprietes = releve.proprietes.map((propriete) => (propriete.nom === 'Size' ? { ...propriete, nom: 'Scale' } : propriete));
+  // Le composant hôte n'a pas d'axe de taille : un nom inconnu aux valeurs de taille en serait un (D9), donc `Scale` écrit des valeurs hors du registre.
+  const echelles: Record<string, string> = { small: 'compact', medium: 'roomy' };
+  releve.proprietes = releve.proprietes.map((propriete) => (propriete.nom === 'Size'
+    ? { ...propriete, nom: 'Scale', valeurs: propriete.valeurs?.map((valeur) => echelles[valeur] ?? valeur), defaut: echelles[String(propriete.defaut)] ?? propriete.defaut }
+    : propriete));
   for (const variante of releve.variants) {
     const { Size: echelle, ...autres } = variante.valeurs;
-    variante.valeurs = { ...autres, Scale: echelle };
+    variante.valeurs = { ...autres, Scale: echelles[echelle] ?? echelle };
   }
   releve.wrappers = [{
     id: 'jeu-sizeWrapper', cle: 'cle-sizeWrapper', nom: '.sizeWrapperButton',

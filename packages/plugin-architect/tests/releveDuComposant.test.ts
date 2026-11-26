@@ -82,7 +82,7 @@ test('une taille d’instance illisible conserve son maître sans juger sa taill
   const issue = await lireLeReleve(a.port(portDeTest([], []).port), variant);
   assert.equal(issue.statut, 'lu');
   if (issue.statut !== 'lu') return;
-  assert.deepEqual(issue.releve.variants[0].layers[1].instanceDe, { cle: 'cle-icon', nom: 'Icon', distante: false, pilotee: null });
+  assert.deepEqual(issue.releve.variants[0].layers[1].instanceDe, { cle: 'cle-icon', nom: 'Icon', distante: false, pilotee: null, dessin: false, visibilitePar: null });
   assert.ok(issue.releve.lecture.manquees.some(({ layer, champ, motif }) => layer === 'icone' && champ === 'variantProperties' && motif === 'taille illisible'));
 });
 
@@ -232,7 +232,7 @@ test('le relevé lit tous les variants, les propriétés et les faits de chaque 
   assert.deepEqual(texte.texte?.plages[0].liaisons[0], { champ: 'fontSize', plage: { debut: 0, fin: 3 }, porteur: 'texte-SRepos', variable: texte.liaisons[0].variable });
   assert.equal(texte.texte?.style, null);
 
-  assert.deepEqual(instance.instanceDe, { cle: 'cle-icone', nom: 'Icone', distante: true, pilotee: 'Icone#1:0' });
+  assert.deepEqual(instance.instanceDe, { cle: 'cle-icone', nom: 'Icone', distante: true, pilotee: 'Icone#1:0', dessin: false, visibilitePar: null });
   assert.deepEqual(instance.liaisons.map((l) => [l.champ, l.indice, l.porteur, l.variable.nom]), [['fills', 0, 'inst-SRepos', 'carte/fond']]);
 });
 

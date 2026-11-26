@@ -127,14 +127,22 @@ export type RoleDAxe = 'etat' | 'taille' | 'palette' | 'style';
 
 /**
  * Les noms de propriété de variant qui pilotent un segment de token, par rôle, en forme reconnue (minuscules, mots joints par `-`).
- * L'axe d'états a son registre, `REGISTRE_AXES_ETAT`. Le nom décide du rôle (Q-F5-1, Q-F5-2) : `Type`, `Kind` et `Shape` pilotent le style,
- * `Density` et `Spacing` la taille. `Hierarchy`, `Emphasis` et `Fill style` pilotent le style, `Tone` et `Colour` la palette.
+ * L'axe d'états a son registre, `REGISTRE_AXES_ETAT`. Un nom explicite décide du rôle (Q-F5-1, Q-F5-2, D9) : `Shape`, `Hierarchy`,
+ * `Emphasis` et `Fill style` pilotent le style, `Density` et `Spacing` la taille, `Tone` et `Colour` la palette. `Type` et `Kind`
+ * ne sont pas ici, ils sont dans `NOMS_D_AXES_GENERIQUES`.
  */
 export const NOMS_D_AXES: Readonly<Record<Exclude<RoleDAxe, 'etat'>, readonly string[]>> = {
   taille: ['size', 'sizes', 'density', 'spacing'],
   palette: ['palette', 'severity', 'intent', 'color', 'colour', 'tone'],
-  style: ['style', 'variant', 'appearance', 'type', 'kind', 'shape', 'hierarchy', 'emphasis', 'fill-style'],
+  style: ['style', 'variant', 'appearance', 'shape', 'hierarchy', 'emphasis', 'fill-style'],
 };
+
+/**
+ * Les noms qui ne disent pas ce que leurs valeurs pilotent : `Type=Info|Success` est une palette, `Type=Small|Large` une taille,
+ * `Type=Primary|Secondary|Tertiary` un style (D9). Leur rôle vient des valeurs, puis de la position où les tokens les écrivent ;
+ * à défaut, un nom générique pilote le style, comme avant.
+ */
+export const NOMS_D_AXES_GENERIQUES: readonly string[] = ['type', 'kind'];
 
 /**
  * Un nom d'axe français et son équivalent anglais, en forme reconnue pour la clé (Q-F5-9). Le français prend le rôle de l'anglais et

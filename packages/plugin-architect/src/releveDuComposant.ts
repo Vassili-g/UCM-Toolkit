@@ -33,10 +33,12 @@ import { espacementSansEffet } from 'ucm-plugin-socle/src/composant/contract/nod
 import { compter } from 'ucm-plugin-socle/src/composant/contract/mesure';
 import { AnalyseAnnulee, creerContexteCooperatif, type ContexteCooperatif, type JetonDAnnulation } from 'ucm-plugin-socle/src/composant/contract/porteeDAnalyse';
 
-import { liaisonsDuNoeudCooperatives, type NoeudLu, type SegmentsPartages } from './consommateurs';
+import { liaisonsDuNoeudCooperatives, liaisonsDuStyle, type NoeudLu, type SegmentsPartages, type StyleLu } from './consommateurs';
 import { decouper, LiaisonsDesMaitres, marquerLImbrique } from './imbriquesDuReleve';
 import { liaisonsDesSurcharges, type PortDuComposant } from './lectureDuComposant';
 import type { EspaceDuReleve } from './modele';
+
+type LiaisonDeStyle = { propriete: string; variable: string };
 
 export interface OptionsDuReleve {
   readonly progresser?: (fait: number, total: number) => void;
@@ -200,6 +202,11 @@ class Lecteur {
   /** Les jeux des wrappers de dimensions rencontrés dans les variants de l'hôte. */
   readonly jeuxDeWrappers = new Map<string, NoeudLu>();
   readonly maitresDeWrappersLus = new Set<string>();
+  /** Pour chaque composant principal, s'il n'a que des tracés : une lecture par composant principal pour tout le relevé. */
+  private readonly dessins = new Map<string, Promise<boolean>>();
+  private readonly liaisonsDesStyles = new Map<string, Promise<LiaisonDeStyle[] | null>>();
+  /** Pour chaque composant principal de wrapper, ce que disent les `isExposedInstance` de ses instances dans les variants de l'hôte. */
+  readonly expositions = new Map<string, boolean | 'inconnu'>();
   /** Vrai d'un maître dont le composant a ses règles : l'instance est alors une dépendance. Jugé une fois par maître. */
   readonly reglesTrouvees: (maitre: NoeudLu) => boolean;
 
@@ -302,6 +309,47 @@ class Lecteur {
     return { motif: fait.etat.etat === 'refuse' && fait.etat.raison === 'leve' ? fait.etat.message ?? '' : 'composant source introuvable' };
   }
 
+  /** Vrai quand chaque descendant visible du composant principal est un tracé, ou un groupe ou un cadre qui n'en contient que, avec un tracé au moins. */
+  dessinDe(maitre: NoeudLu): Promise<boolean> {
+    let lu = this.dessins.get(maitre.id);
+    if (!lu) {
+      lu = this.parcourirLeDessin(maitre);
+      this.dessins.set(maitre.id, lu);
+    }
+    return lu;
+  }
+
+  private async parcourirLeDessin(maitre: NoeudLu): Promise<boolean> {
+    let traces = 0;
+    const aVisiter: NoeudLu[] = [...(this.lire<readonly NoeudLu[] | undefined>(maitre, 'children') ?? [])];
+    while (aVisiter.length > 0) {
+      await this.cooperation.cederSiBesoin();
+      const noeud = aVisiter.pop() as NoeudLu;
+      compter('proprietesDuReleve');
+      if (this.lire(noeud, 'visible') === false) continue;
+      if (noeud.type === 'VECTOR' || noeud.type === 'BOOLEAN_OPERATION') traces += 1;
+      else if (noeud.type === 'GROUP' || noeud.type === 'FRAME') aVisiter.push(...(this.lire<readonly NoeudLu[] | undefined>(noeud, 'children') ?? []));
+      else return false;
+    }
+    return traces > 0;
+  }
+
+  /** Les liaisons que porte un style, une lecture par style ; `null` quand le style ne se lit pas. Un refus qui lève est consigné une seule fois. */
+  liaisonsDuStyle(id: string, layer: string, champ: string): Promise<LiaisonDeStyle[] | null> {
+    let lu = this.liaisonsDesStyles.get(id);
+    if (!lu) {
+      lu = this.ressources.styleNatif(id).then((natif) => {
+        if (natif.etat === 'refuse') {
+          if (natif.raison === 'leve') this.manquees.push({ layer, champ, motif: natif.message ?? '' });
+          return null;
+        }
+        return liaisonsDuStyle(natif.natif as StyleLu);
+      });
+      this.liaisonsDesStyles.set(id, lu);
+    }
+    return lu;
+  }
+
   async modes(noeud: NoeudLu): Promise<Record<string, string>> {
     const modes: Record<string, string> = {};
     const effectifs = noeud.resolvedVariableModes ?? {};
@@ -361,6 +409,15 @@ async function texteDe(lecteur: Lecteur, noeud: NoeudLu, liaisons: readonly Liai
   }
   const premier = identifiants.values().next().value;
   const unique = identifiants.size === 1 && typeof premier === 'string' && premier !== '' ? premier : null;
+  if (unique) {
+    try {
+      const portees = await liaisonsDuStyleDuCalque(lecteur, unique, noeud.id, 'textStyleId', null);
+      if (portees) for (const liaison of liaisons) if (liaison.provenance !== 'composant-principal' && !liaison.surcharge && portees.has(cleDeStyle(liaison.champ, liaison.indice, liaison.variable.id))) liaison.provenance = 'style';
+    } catch (erreur) {
+      if (erreur instanceof AnalyseAnnulee) throw erreur;
+      manquees.push({ layer: noeud.id, champ: 'textStyleId', motif: messageDErreur(erreur) });
+    }
+  }
   const liaisonsParPlage = new Map<string, LiaisonLue[]>();
   for (const liaison of liaisons) {
     await lecteur.cooperation.cederSiBesoin();
@@ -411,14 +468,95 @@ async function instanceDe(noeud: NoeudLu, lecteur: Lecteur, manquees: Manquee[])
     valeurs = undefined;
     manquees.push({ layer: noeud.id, champ: 'variantProperties', motif: messageDErreur(erreur) });
   }
+  let dessin: boolean | undefined;
+  try {
+    dessin = await lecteur.dessinDe(lu.natif);
+  } catch (erreur) {
+    if (erreur instanceof AnalyseAnnulee) throw erreur;
+    manquees.push({ layer: noeud.id, champ: 'dessin', motif: messageDErreur(erreur) });
+  }
   try {
     const references = champLu(noeud, 'componentPropertyReferences', lecteur.lire);
     const pilotee = estUnObjet(references) && typeof references.mainComponent === 'string' ? references.mainComponent : null;
+    const visibilitePar = estUnObjet(references) && typeof references.visible === 'string' ? references.visible : null;
     const publie = lu.maitre.jeu ?? lu.maitre;
-    return { instanceDe: { cle: publie.key, nom: publie.nom, distante: lu.maitre.remote, pilotee, ...(valeurs === undefined ? {} : { valeurs }) }, natif: lu.natif };
+    return {
+      instanceDe: { cle: publie.key, nom: publie.nom, distante: lu.maitre.remote, pilotee, ...(valeurs === undefined ? {} : { valeurs }), ...(dessin === undefined ? {} : { dessin }), visibilitePar },
+      natif: lu.natif,
+    };
   } catch (erreur) {
     manquees.push({ layer: noeud.id, champ: 'instanceDe', motif: messageDErreur(erreur) });
     return undefined;
+  }
+}
+
+type InstancesDeSurcharge = NonNullable<NonNullable<LiaisonLue['surcharge']>['instances']>;
+
+/** Les instances entre le layer lu et le calque que la surcharge lie, de la plus externe à la plus interne, sans l'un ni l'autre. */
+async function instancesEntre(lu: NoeudLu, porteur: NoeudLu, lecteur: Lecteur, manquees: Manquee[]): Promise<InstancesDeSurcharge> {
+  const chaine: InstancesDeSurcharge = [];
+  let courant = lecteur.lire<NoeudLu | null>(porteur, 'parent');
+  while (courant && courant.id !== lu.id) {
+    await lecteur.cooperation.cederSiBesoin();
+    if (courant.type === 'INSTANCE') {
+      const instance = await instanceDe(courant, lecteur, manquees);
+      chaine.unshift({ nom: lecteur.lire<string>(courant, 'name'), type: courant.type, ...(instance ? { instanceDe: instance.instanceDe } : {}) });
+    }
+    courant = lecteur.lire<NoeudLu | null>(courant, 'parent');
+  }
+  return chaine;
+}
+
+/** Garde, par composant principal de wrapper, ce que dit `isExposedInstance` : vrai l'emporte, puis `'inconnu'`, puis faux. */
+function noterLExposition(instance: NoeudLu, maitre: NoeudLu, lecteur: Lecteur, manquees: Manquee[]): void {
+  let lue: boolean | 'inconnu';
+  try {
+    const exposee = champLu(instance, 'isExposedInstance', lecteur.lire);
+    lue = typeof exposee === 'boolean' ? exposee : 'inconnu';
+  } catch (erreur) {
+    if (erreur instanceof AnalyseAnnulee) throw erreur;
+    manquees.push({ layer: instance.id, champ: 'isExposedInstance', motif: messageDErreur(erreur) });
+    lue = 'inconnu';
+  }
+  const avant = lecteur.expositions.get(maitre.id);
+  if (avant === true || lue === true) lecteur.expositions.set(maitre.id, true);
+  else lecteur.expositions.set(maitre.id, avant === 'inconnu' || lue === 'inconnu' ? 'inconnu' : false);
+}
+
+const cleDeStyle = (champ: string, indice: number | undefined, variable: string): string => JSON.stringify([champ, indice ?? null, variable]);
+
+/** Les liaisons du style, par champ de calque (`paints` du style devient `prefixe`, `fills` ou `strokes`) : clés de `cleDeStyle`. */
+async function liaisonsDuStyleDuCalque(lecteur: Lecteur, style: string, layer: string, champDeStyle: string, prefixe: string | null): Promise<Set<string> | null> {
+  const liaisons = await lecteur.liaisonsDuStyle(style, layer, champDeStyle);
+  if (!liaisons) return null;
+  const portees = new Set<string>();
+  for (const { propriete, variable } of liaisons) {
+    const { champ, indice } = decouper(propriete);
+    if (prefixe === null) portees.add(cleDeStyle(champ, indice, variable));
+    else if (champ === 'paints' || champ.startsWith('paints.')) portees.add(cleDeStyle(`${prefixe}${champ.slice('paints'.length)}`, indice, variable));
+  }
+  return portees;
+}
+
+/**
+ * Marque `provenance: 'style'` une liaison de `fills` ou de `strokes` que le style du calque porte aussi : même champ, même
+ * variable. Un texte marque ses liaisons de typographie dans `texteDe`. Une liaison que le composant principal marque déjà,
+ * une liaison de surcharge ou de plage ne change pas.
+ */
+async function marquerLesLiaisonsDeStyle(noeud: NoeudLu, layer: LayerLu, lecteur: Lecteur, manquees: Manquee[]): Promise<void> {
+  for (const [champDeStyle, prefixe] of [['fillStyleId', 'fills'], ['strokeStyleId', 'strokes']] as const) {
+    const candidates = layer.liaisons.filter((liaison) => !liaison.surcharge && !liaison.plage && liaison.provenance !== 'composant-principal' && (liaison.champ === prefixe || liaison.champ.startsWith(`${prefixe}.`)));
+    if (candidates.length === 0) continue;
+    try {
+      const style = champLu(noeud, champDeStyle, lecteur.lire);
+      if (typeof style !== 'string' || style === '') continue;
+      const portees = await liaisonsDuStyleDuCalque(lecteur, style, noeud.id, champDeStyle, prefixe);
+      if (!portees) continue;
+      for (const liaison of candidates) if (portees.has(cleDeStyle(liaison.champ, liaison.indice, liaison.variable.id))) liaison.provenance = 'style';
+    } catch (erreur) {
+      if (erreur instanceof AnalyseAnnulee) throw erreur;
+      manquees.push({ layer: noeud.id, champ: champDeStyle, motif: messageDErreur(erreur) });
+    }
   }
 }
 
@@ -473,9 +611,18 @@ async function lireLeLayer(port: PortDuComposant, lecteur: Lecteur, etape: Etape
     layer.liaisons = await lecteur.liaisons(await liaisonsDuNoeudCooperatives(noeud, lecteur.cooperation, { fills, strokes }, segments?.parEtapes, lecteur.lire), noeud.id);
     if (frontiere) {
       const lues: LiaisonLue[] = [];
+      const chaines = new Map<string, InstancesDeSurcharge>();
       for (const { propriete, variable, porteur } of await liaisonsDesSurcharges(port, noeud, true, lecteur.cooperation)) {
         await lecteur.cooperation.cederSiBesoin();
-        const surcharge = porteur.id === noeud.id ? {} : { surcharge: { id: porteur.id, nom: porteur.name, type: porteur.type } };
+        let surcharge = {};
+        if (porteur.id !== noeud.id) {
+          let instances = chaines.get(porteur.id);
+          if (!instances) {
+            instances = await instancesEntre(noeud, porteur, lecteur, manquees);
+            chaines.set(porteur.id, instances);
+          }
+          surcharge = { surcharge: { id: porteur.id, nom: porteur.name, type: porteur.type, instances } };
+        }
         lues.push(...(await lecteur.liaisons([{ propriete, variable }], noeud.id)).map((liaison) => ({ ...liaison, ...surcharge })));
       }
       const cle = (liaison: LiaisonLue): string => JSON.stringify([liaison.surcharge?.id ?? null, liaison.champ, liaison.indice, liaison.variable.id]);
@@ -492,12 +639,14 @@ async function lireLeLayer(port: PortDuComposant, lecteur: Lecteur, etape: Etape
       if (instance) {
         layer.instanceDe = instance.instanceDe;
         await marquerLImbrique(layer, instance.instanceDe.nom, instance.natif, lecteur, manquees);
+        if (lecteur.maitresDeWrappersLus.has(instance.natif.id)) noterLExposition(noeud, instance.natif, lecteur, manquees);
       }
     }
   } catch (erreur) {
     if (erreur instanceof AnalyseAnnulee) throw erreur;
     manquees.push({ layer: noeud.id, champ: 'liaisons', motif: messageDErreur(erreur) });
   }
+  await marquerLesLiaisonsDeStyle(noeud, layer, lecteur, manquees);
   layer.valeursEnDur = await valeursEnDur(noeud, layer.liaisons, dimensions, epaisseur, strokes, manquees, lecteur.cooperation);
   if (segments) layer.texte = await texteDe(lecteur, noeud, layer.liaisons, manquees, segments);
   return layer;
@@ -589,7 +738,20 @@ async function lireUnWrapper(jeu: NoeudLu, lecteur: Lecteur, budgetRestant: numb
     }
     variants.push({ id: composant.id, nom: composant.name, valeurs: await valeursDuVariant(composant, cooperation, lire), liaisons });
   }
-  return { wrapper: { id: jeu.id, cle: String(champLu(jeu, 'key') ?? ''), nom: jeu.name, proprietes, variants }, layers };
+  // Seuls les variants que l'hôte instancie ont une lecture ; aucune lecture ne dit pas « non exposé ».
+  let expose: boolean | 'inconnu' | undefined;
+  for (const composant of composants) {
+    await cooperation.cederSiBesoin();
+    const lue = lecteur.expositions.get(composant.id);
+    if (lue === undefined) continue;
+    if (lue === true) {
+      expose = true;
+      break;
+    }
+    expose = lue === 'inconnu' || expose === 'inconnu' ? 'inconnu' : false;
+  }
+  expose ??= 'inconnu';
+  return { wrapper: { id: jeu.id, cle: String(champLu(jeu, 'key') ?? ''), nom: jeu.name, proprietes, expose, variants }, layers };
 }
 
 /** Les wrappers que les variants de l'hôte instancient, dans l'ordre où le relevé les a rencontrés. */

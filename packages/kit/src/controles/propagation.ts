@@ -62,7 +62,7 @@ function nomVise(nom: string, token: TokenDuComposant | undefined, axes: Partial
 interface Proposition { layer: LayerLu; liaison: LiaisonLue; constat: Constat }
 
 function propositions(releve: ReleveDeComposant, catalogue: CatalogueDeReference, modele: VariantLu): Proposition[] {
-  const axes = axesDuReleve(releve);
+  const axes = axesDuReleve(releve, catalogue);
   const tokens = tokensDuComposant(releve, catalogue);
   const trouvees: Proposition[] = [];
   for (const layer of modele.layers) {

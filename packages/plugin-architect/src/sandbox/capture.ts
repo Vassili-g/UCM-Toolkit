@@ -34,12 +34,12 @@ export const PROPRIETES_DE_NOEUD: readonly string[] = [
   'gridRowAnchorIndex', 'gridRowCount', 'gridRowGap', 'gridRowSizes', 'gridRowSpan',
   'cornerRadius', 'topLeftRadius', 'topRightRadius', 'bottomLeftRadius', 'bottomRightRadius',
   'strokeWeight', 'strokeAlign', 'strokeTopWeight', 'strokeRightWeight', 'strokeBottomWeight', 'strokeLeftWeight', 'dashPattern',
-  'fills', 'strokes', 'effects', 'effectStyleId', 'layoutGrids', 'boundVariables', 'resolvedVariableModes', 'explicitVariableModes',
+  'fills', 'strokes', 'effects', 'effectStyleId', 'fillStyleId', 'strokeStyleId', 'layoutGrids', 'boundVariables', 'resolvedVariableModes', 'explicitVariableModes',
   'characters', 'textStyleId', 'fontName', 'fontSize', 'fontWeight', 'lineHeight', 'letterSpacing', 'textCase', 'textDecoration', 'textDecorationColor',
   'textDecorationOffset', 'textDecorationSkipInk', 'textDecorationStyle', 'textDecorationThickness', 'textWrapStyle', 'leadingTrim',
   'textAlignHorizontal', 'textAlignVertical', 'textAutoResize', 'textTruncation', 'maxLines', 'openTypeFeatures', 'listSpacing',
   'hangingList', 'hangingPunctuation', 'paragraphIndent', 'paragraphSpacing', 'hasMissingFont',
-  'variantProperties', 'componentProperties', 'componentPropertyDefinitions', 'componentPropertyReferences', 'overrides', 'exposedInstances', 'preferredValues', 'slotSettings',
+  'variantProperties', 'componentProperties', 'componentPropertyDefinitions', 'componentPropertyReferences', 'overrides', 'exposedInstances', 'isExposedInstance', 'preferredValues', 'slotSettings',
 ];
 
 /** Les propriétés d'un nœud que le scan des règles de la page lit sur les nœuds qu'il ne descend pas. */

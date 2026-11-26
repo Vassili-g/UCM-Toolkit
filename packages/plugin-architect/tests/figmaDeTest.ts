@@ -173,9 +173,9 @@ export function atelierDeCalques() {
       }
       return fige;
     },
-    /** Un style de texte et les variables qu'il lie, par champ. */
-    styleDeTexte(id: string, name: string, boundVariables: Record<string, unknown>): StyleLu {
-      const fige = enLectureSeule({ id, name, type: 'TEXT', boundVariables, ...MUTATIONS_DE_CALQUE }, [], journal) as StyleLu;
+    /** Un style de texte et les variables qu'il lie, par champ. `champs` ajoute ce que le style porte d'autre (`paints` d'un style de remplissage, avec `type: 'PAINT'`). */
+    styleDeTexte(id: string, name: string, boundVariables: Record<string, unknown>, champs: Record<string, unknown> = {}): StyleLu {
+      const fige = enLectureSeule({ id, name, type: 'TEXT', boundVariables, ...champs, ...MUTATIONS_DE_CALQUE }, [], journal) as StyleLu;
       styles.set(id, fige);
       return fige;
     },

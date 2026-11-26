@@ -133,7 +133,7 @@ function* porteLesValeursDeSonVariant(
 }
 
 function* ecartsDeFratrie(releve: ReleveDeComposant, catalogue: CatalogueDeReference): Generator<void, Constat[]> {
-  const axes = yield* axesDuReleveParEtapes(releve);
+  const axes = yield* axesDuReleveParEtapes(releve, catalogue);
   const tokens = new Map((yield* tokensDuComposantParEtapes(releve, catalogue)).map((token) => [token.variable.cle, token]));
   const groupes = new Map<string, { variant: VariantLu; layer: LayerLu; liaison: LiaisonLue; signe: string }[]>();
   for (const lue of parcourirLesLiaisons(releve)) {
@@ -194,7 +194,7 @@ export function controlerMapping(releve: ReleveDeComposant, catalogue: Catalogue
 
 /** Cède dans les axes, les tokens, les liaisons, les modes et la fratrie ; les constats gardent leur ordre. */
 export function* controlerMappingParEtapes(releve: ReleveDeComposant, catalogue: CatalogueDeReference): Generator<void, Constat[]> {
-  const axes = yield* axesDuReleveParEtapes(releve);
+  const axes = yield* axesDuReleveParEtapes(releve, catalogue);
   const tokens = new Map((yield* tokensDuComposantParEtapes(releve, catalogue)).map((token) => [token.variable.cle, token]));
   const constats: Constat[] = [];
   for (const lue of parcourirLesLiaisons(releve)) {

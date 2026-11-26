@@ -10,7 +10,7 @@ import { MODES, PROFILS, REGISTRE_ETATS, REGISTRE_ROLES, REGISTRE_STATUTS, REGIS
 import { cheminComplet, cheminDansLaCollection, variableParCheminComplet, type CatalogueDeReference, type VariableDuCatalogue } from './catalogue.js';
 import { classerLesCandidats, indexDeLongueurs } from './candidatsDeLongueur.js';
 import type { Question } from './constat.js';
-import { axeDePropriete, axesDuReleve, type AxeDuComposant, type ProprieteDAxe } from './nommage.js';
+import { axesDuReleve, rolesDesProprietes, type AxeDuComposant, type ProprieteDAxe } from './nommage.js';
 import { liaisonsPropres, type LayerLu, type PeintureLue, type ReleveDeComposant, type VariantLu } from './releve.js';
 
 /** Les réponses du designer, par identifiant de question : le nom d'un candidat, ou un texte libre pour un nom de layer ou de palette. */
@@ -153,9 +153,10 @@ export function preparerLesTokens(
     .map((variable) => cheminDansLaCollection(variable, catalogue)));
 
   // Axes : ceux que le nommage reconnaît, plus un axe inconnu que le designer a dit vouloir en style.
-  const axes: Partial<Record<AxeDuComposant, ProprieteDAxe>> = { ...axesDuReleve(releve) };
+  const axes: Partial<Record<AxeDuComposant, ProprieteDAxe>> = { ...axesDuReleve(releve, catalogue) };
+  const roles = rolesDesProprietes(releve, catalogue);
   for (const propriete of releve.proprietes) {
-    if (propriete.type !== 'VARIANT' || axeDePropriete(propriete.nom)) continue;
+    if (propriete.type !== 'VARIANT' || roles.get(propriete)) continue;
     const id = `axe:${propriete.nom}`;
     const reponse = reponses[id];
     if (reponse === 'oui' && !axes.style) { axes.style = propriete; continue; }

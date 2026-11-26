@@ -26,9 +26,10 @@ export interface LiaisonLue {
   };
   /**
    * `composant-principal` : la liaison vient du composant principal de l'instance, sans changement. `instance` : l'hôte la pose ou la change.
+   * `style` : le style appliqué au calque (`textStyleId`, `fillStyleId`, `strokeStyleId`) lie ce champ à cette variable ; le calque ne l'a pas liée lui-même.
    * Absente : l'origine n'est pas lue, la liaison se juge comme celle d'un layer de l'hôte.
    */
-  provenance?: 'composant-principal' | 'instance';
+  provenance?: 'composant-principal' | 'instance' | 'style';
   /** La variable liée ne s'est pas lue : seul `variable.id` est sûr, `cle`, `nom` et `collection` sont vides. */
   illisible?: true;
   variable: { id: string; cle: string; nom: string; collection: string; distante: boolean };
@@ -85,6 +86,12 @@ export interface WrapperLu {
   cle: string;
   nom: string;
   proprietes: ReleveDeComposant['proprietes'];
+  /**
+   * Vrai quand l'instance du wrapper a `isExposedInstance` dans au moins un variant de l'hôte : ses propriétés se choisissent depuis l'hôte.
+   * Faux quand toutes les lectures disent faux. `'inconnu'` quand une lecture lève ou ne rend pas de booléen, sans lecture qui dise vrai.
+   * Absent : le relevé ne l'a pas lu, comme `'inconnu'`. Le relevé d'Architect le remplit toujours.
+   */
+  expose?: boolean | 'inconnu';
   variants: { id: string; nom: string; valeurs: Record<string, string>; liaisons: LiaisonLue[] }[];
 }
 

@@ -4,11 +4,13 @@
  */
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { INTERRUPTEURS, NOMS_D_AXES, NOMS_D_AXES_FRANCAIS } from '../src/referentiel/architecture.js';
+import { INTERRUPTEURS, NOMS_D_AXES, NOMS_D_AXES_FRANCAIS, NOMS_D_AXES_GENERIQUES } from '../src/referentiel/architecture.js';
 import { axeDePropriete, estUnInterrupteur, nomDAxeEnAnglais } from '../src/controles/nommage.js';
 
-test('Type, Kind et Shape pilotent le style', () => {
-  for (const nom of ['Type', 'Kind', 'Shape', 'type', 'KIND']) assert.equal(axeDePropriete(nom), 'style', nom);
+test('Shape pilote le style ; Type et Kind, sans valeur à lire, gardent le repli du style (D9)', () => {
+  for (const nom of ['Shape', 'shape', 'Type', 'Kind', 'type', 'KIND']) assert.equal(axeDePropriete(nom), 'style', nom);
+  assert.deepEqual([...NOMS_D_AXES_GENERIQUES].sort(), ['kind', 'type']);
+  assert.ok(!NOMS_D_AXES.style.includes('type') && !NOMS_D_AXES.style.includes('kind'), 'un nom générique n’est pas un nom de style explicite');
 });
 
 test('Density et Spacing pilotent la taille', () => {
@@ -59,7 +61,7 @@ test('un nom de propriété de l’objet ne passe pas pour un nom d’axe', () =
 });
 
 test('la table des noms d’axe : aucun nom ne porte deux rôles ni n’est un interrupteur', () => {
-  const tous = Object.values(NOMS_D_AXES).flat();
+  const tous = [...Object.values(NOMS_D_AXES).flat(), ...NOMS_D_AXES_GENERIQUES];
   assert.equal(new Set(tous).size, tous.length);
   for (const interrupteur of INTERRUPTEURS) assert.ok(!tous.includes(interrupteur), interrupteur);
 });

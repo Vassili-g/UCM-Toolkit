@@ -114,6 +114,42 @@ donc aucun test ne voit l'effet combiné des règles.
   rejoue une capture de `_local/recettes/` par `doubleDepuisCapture` et l'analyse complète. Il compare les constats à
   `<capture>.attendus.json`, et le mainteneur le lance avant une publication. Les captures restent hors de git.
 
+## La chasse de Codex
+
+Codex a rejoué les deux captures et fabriqué 18 composants sur le commit `2869487b`. Son journal et ses tests rouges sont dans
+`_local/chasse-faux-constats/` (`JOURNAL-CODEX.txt`, `cas/`). Le rejeu du Button ne rend plus aucun C24 après L1. Les causes
+d'Alert sont celles du plan. Onze défauts sont nouveaux, et Codex y ajoute quatre défauts de méthode.
+
+- M7. Un nom remplace l'identité d'un calque. Deux textes `Label` sous deux parents deviennent un seul calque pour C21, C64 et la
+  propagation (cas C6, C10, N2).
+- M8. Le sujet analysé est pris pour le propriétaire des tokens. Une pièce interne analysée seule réclame des tokens à son nom (C7),
+  et Alert accuse les tokens du Button qu'il imbrique (C12).
+- M9. Deux contrôles ne partagent pas la même preuve du fond. C59 ignore un rectangle frère qui peint la surface (C8), C49 compte
+  les coins vides d'une ellipse (C9), et les modes forcés par calque sont effacés (C13).
+- M10. Le nom d'une collection est pris pour sa clé (N3), et les propositions de liaison perdent leur candidat.
+
+## Décisions de la chasse
+
+- D16 (M7). Un calque s'identifie par son chemin depuis le variant et son rang parmi ses homonymes, par une seule fonction du kit.
+  C21 (`ecartsDeFratrie`), C64 (`sources`, `groupesDeComparaison`) et la propagation (`cheminDuLayer`) la lisent. Le masquage d'un
+  autre calque ne change pas cette identité. C21 compte des variants distincts avant de conclure à une majorité.
+- D17 (M9). Le contraste (C49) et la surface (C59) lisent une seule preuve du fond : ancêtres, frères peints dessous, couverture
+  peinte réelle d'une forme (une ellipse ne couvre pas les coins de sa boîte). Sans preuve suffisante, la mesure devient une limite.
+  Un layer et sa plage ne donnent pas deux constats de même identifiant.
+- D18 (M4, M9). Le relevé garde les modes explicites et hérités de chaque calque. C49 ne fait varier que les modes héritables
+  depuis le composant.
+- D19 (M6). Une proposition de couleur (C25, C59) n'est une correction que si la couleur résolue reste la même dans chaque mode,
+  ou si le contraste reste tenu. Sinon elle devient une question sans réponse cochée.
+- D20 (M4, M8). Le relevé marque l'origine des liaisons d'un composant imbriqué documenté (`marquerLImbrique`, retour anticipé
+  de `imbriquesDuReleve.ts`). Il garde aussi la peinture visible d'un calque sous une instance, pour C50 et le contraste.
+- D21 (M3). L'attente par champ de typographie se lit dans `ECHELLES_DE_REFERENCE` pour C20 comme pour C65 (cas C4), par une
+  seule fonction.
+- D22 (M8, Q1 validée). Une pièce interne analysée seule montre la lecture de ses calques et une information « Analysez le
+  composant qui l'utilise pour juger ses tokens ». C19, C43 et les autres contrôles qui supposent un propriétaire ne tournent pas.
+- D23 (M5, Q2 validée). Tant que l'instance de règles manque, C43 seul s'affiche. C44 sur l'usage absent se tait.
+- D24 (M10). Les corrections résolvent la collection par la clé de la variable du catalogue (`presentesDeLaCollection` de
+  `corrections.ts`).
+
 ## Lots
 
 | Lot | Contenu | Agent | Dépend de | État |
@@ -126,11 +162,18 @@ donc aucun test ne voit l'effet combiné des règles.
 | L7 | Kit et Architect : C84 et silence de la cascade D10 | `implementeur-exigeant` | L6, L3 | [ ] |
 | L8 | Kit : attente de C65 par la référence D11, liaisons de style D12 | `implementeur` | L2 | [ ] |
 | L9 | Architect : C45 `renommee` et doublon de C44 D13 | `implementeur` | L7 | [ ] |
-| L10 | Architect : composants de référence et banc de recette D15 | `implementeur-exigeant` | L1 à L9 | [ ] |
-| L5 | Conversation principale : invariants, SPEC, cartes, version, publication | conversation principale | L1 à L10 | [ ] |
+| L11 | Kit : identité d'un calque D16 | `implementeur-exigeant` | L6 | [ ] |
+| L12 | Kit : preuve du fond partagée D17 | `implementeur-exigeant` | L11 | [ ] |
+| L13 | Architect et kit : modes par calque D18 | `implementeur` | L2 | [ ] |
+| L14 | Kit : propositions de couleur vérifiées D19 | `implementeur-exigeant` | L12 | [ ] |
+| L15 | Architect : origine des liaisons des dépendances et peinture sous instance D20 | `implementeur` | L2 | [ ] |
+| L16 | Kit et Architect : pièce interne seule D22, clé de collection D24 | `implementeur` | L3 | [ ] |
+| L10 | Architect : composants de référence et banc de recette D15, cas rouges de Codex rendus verts | `implementeur-exigeant` | L1 à L16 | [ ] |
+| L5 | Conversation principale : invariants, SPEC, cartes, version, publication | conversation principale | L1 à L16 | [ ] |
 
 L1 et L4 n'ont aucun fichier commun et tournent ensemble. L2 et L6 tournent ensemble, puis L3 et L8. L7 et L9 touchent les textes
-de L3 et passent l'un après l'autre.
+de L3 et passent l'un après l'autre. L8 couvre aussi C20 (D21), et L9 aussi D23. L13 et L15 touchent le relevé d'Architect et
+passent l'un après l'autre. L11, L12 et L14 touchent les contrôles du kit et se suivent.
 
 ### L1. Rôles admis et définition d'icône (kit)
 

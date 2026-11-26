@@ -31,7 +31,7 @@ export const EXCLUSIONS: Readonly<Record<string, GroupeExclu[]>> = {
     },
     {
       motif: "Table de vocabulaire ou de forme de nom que la grammaire des noms interroge ; la page montre les termes par les registres.",
-      noms: ["ABREVIATIONS", "CATEGORIES_DE_NOM", "CHAMPS_DE_TYPOGRAPHIE", "CONVENTION_DE_SEGMENT_DE_TOKEN", "CONVENTION_DE_VALEUR_DE_VARIANT", "ECHELLES_DE_TAILLES", "ETATS_FRANCAIS_INTERACTIFS", "FORMES_ANCIENNES_DES_COLLECTIONS", "FORMES_DES_CHEMINS", "FORMES_D_UN_MEME_MOT", "INTERRUPTEURS", "LIBELLES_DE_CATEGORIE", "MOTS_DISTINCTS", "MOTS_D_ICONE", "NOMS_D_AXES", "NOMS_D_AXES_FRANCAIS", "NUMEROS_DE_PALETTE", "PREFIXES_DE_PIECE_INTERNE", "RECOMMANDATIONS", "REGLE_SCALE", "SIZE_VALUES", "STATE_AXIS_NAMES", "STATE_PRECEDENCE", "STATE_SELECTORS", "SYNONYMES_COURANTS", "TAILLES_DE_VARIANT"],
+      noms: ["ABREVIATIONS", "CATEGORIES_DE_NOM", "CHAMPS_DE_TYPOGRAPHIE", "CONVENTION_DE_SEGMENT_DE_TOKEN", "CONVENTION_DE_VALEUR_DE_VARIANT", "ECHELLES_DE_TAILLES", "ETATS_FRANCAIS_INTERACTIFS", "FORMES_ANCIENNES_DES_COLLECTIONS", "FORMES_DES_CHEMINS", "FORMES_D_UN_MEME_MOT", "INTERRUPTEURS", "LIBELLES_DE_CATEGORIE", "MOTS_DISTINCTS", "MOTS_D_ICONE", "NOMS_D_AXES", "NOMS_D_AXES_FRANCAIS", "NOMS_D_AXES_GENERIQUES", "NUMEROS_DE_PALETTE", "PREFIXES_DE_PIECE_INTERNE", "RECOMMANDATIONS", "REGLE_SCALE", "SIZE_VALUES", "STATE_AXIS_NAMES", "STATE_PRECEDENCE", "STATE_SELECTORS", "SYNONYMES_COURANTS", "TAILLES_DE_VARIANT"],
     },
     {
       motif: "Table du kit de règles d'usage qu'Architect crée ; la page décrit le geste sans lister ses calques.",
@@ -83,7 +83,7 @@ export const EXCLUSIONS: Readonly<Record<string, GroupeExclu[]>> = {
     },
     {
       motif: "Aide de lecture du modèle de composant ou des variables, appelée par les contrôles.",
-      noms: ["axeDePropriete", "axesDesProprietes", "axesDuReleve", "axesDuReleveParEtapes", "candidatsDeModele", "cheminComplet", "cheminDansLaCollection", "cheminDeLaVariable", "clesDesTokensDeTailleAttendus", "collectionDuCatalogue", "collectionsDeReference", "constatsDeModele", "estDuComposant", "estUnInterrupteur", "grouperLesCouches", "layersVisiblesDuVariant", "lectureManquee", "nomDAxeEnAnglais", "nomDansFigma", "peintureVisible", "preparerLesTokens", "proposerLaPropagation", "proposerLesCorrections", "proposerLesCorrectionsParEtapes", "segmentDAxe", "tokensDuComposant", "tokensDuComposantParEtapes", "variableDuCatalogue", "variableParCheminComplet"],
+      noms: ["axeDePropriete", "axesDesProprietes", "axesDuReleve", "axesDuReleveParEtapes", "candidatsDeModele", "cheminComplet", "cheminDansLaCollection", "cheminDeLaVariable", "clesDesTokensDeTailleAttendus", "collectionDuCatalogue", "collectionsDeReference", "constatsDeModele", "estDuComposant", "estUnInterrupteur", "grouperLesCouches", "layersVisiblesDuVariant", "lectureManquee", "nomDAxeEnAnglais", "nomDansFigma", "peintureVisible", "preparerLesTokens", "proposerLaPropagation", "proposerLesCorrections", "proposerLesCorrectionsParEtapes", "rolesDesProprietes", "segmentDAxe", "tokensDuComposant", "tokensDuComposantParEtapes", "variableDuCatalogue", "variableParCheminComplet"],
     },
     {
       motif: "Conversion d'un `tokens.json` en catalogue, appelée par `ucm check` avant les contrôles que la page montre par leurs codes.",

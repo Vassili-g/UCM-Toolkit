@@ -202,8 +202,8 @@ function* indexerLeReleve(releve: ReleveDeComposant, catalogue: CatalogueDeRefer
   let lus: boolean | undefined;
   return {
     layers, variants, variablesParNom, candidatsDeCouleur: new Map(),
-    axes: () => (axes ??= axesDuReleve(releve)),
-    axesParEtapes: () => axesDuReleveParEtapes(releve),
+    axes: () => (axes ??= axesDuReleve(releve, catalogue)),
+    axesParEtapes: () => axesDuReleveParEtapes(releve, catalogue),
     tokens: () => tokensDuComposantParEtapes(releve, catalogue),
     tokensDeTailleLus: () => (lus ??= collectionDesComposantsLue(catalogue)),
   };

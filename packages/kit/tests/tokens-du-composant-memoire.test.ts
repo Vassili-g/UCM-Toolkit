@@ -305,7 +305,7 @@ test('cinq appels, comme les cinq sites de contrôle d’une analyse, lisent cha
   const { releve: r, catalogue } = fabriquer();
   for (let i = 0; i < 5; i += 1) {
     tokensDuComposant(r, catalogue);
-    axesDuReleve(r);
+    axesDuReleve(r, catalogue);
   }
   assert.equal(lectures.noms, N);
   assert.equal(lectures.proprietes, 1);

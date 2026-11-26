@@ -6,7 +6,7 @@ import { categorieDuSegment, ecritureDuVariant, segmentDeToken, type RoleDeValeu
 import { variableDuThemeReconnue } from '../referentiel/theme.js';
 import { termePourCategorie, type Registre } from '../referentiel/termes.js';
 import {
-  FAMILLES_PRIMITIVES, INTERRUPTEURS, NOMS_D_AXES, NOMS_D_AXES_FRANCAIS, REGISTRE_PALETTES_COMPOSANT, REGISTRE_STYLES_COMPOSANT, type RoleDAxe,
+  FAMILLES_PRIMITIVES, INTERRUPTEURS, NOMS_D_AXES, NOMS_D_AXES_FRANCAIS, NOMS_D_AXES_GENERIQUES, REGISTRE_PALETTES_COMPOSANT, REGISTRE_STYLES_COMPOSANT, type RoleDAxe,
 } from '../referentiel/architecture.js';
 import { REGISTRE_ETATS, REGISTRE_GROUPES, REGISTRE_ROLES, REGISTRE_TAILLES } from '../referentiel/vocabulaire.js';
 import { collectionParCle, variableDuCatalogue, type CatalogueDeReference, type VariableDuCatalogue } from './catalogue.js';
@@ -29,12 +29,39 @@ function anglaisDuNomFrancais(forme: string): string | undefined {
   return Object.prototype.hasOwnProperty.call(NOMS_D_AXES_FRANCAIS, forme) ? NOMS_D_AXES_FRANCAIS[forme] : undefined;
 }
 
-/** Le rôle du nom d'une propriété de variant ; `undefined` pour un nom qui ne pilote aucun segment, interrupteur compris. Un nom français a le rôle de son équivalent anglais. */
-export function axeDePropriete(nom: string): AxeDuComposant | undefined {
+/** Le rôle que le nom seul donne : un nom explicite de `NOMS_D_AXES`, ou l'axe d'états ; `undefined` pour un nom générique, un nom inconnu et un interrupteur. Un nom français a le rôle de son équivalent anglais. */
+function roleDuNom(nom: string): AxeDuComposant | undefined {
   if (estLAxeDEtats(nom)) return 'etat';
   const forme = formeReconnue(nom);
   const anglais = anglaisDuNomFrancais(forme);
   return ROLE_PAR_NOM.get(anglais ? formeReconnue(anglais) : forme);
+}
+
+const estGenerique = (nom: string): boolean => NOMS_D_AXES_GENERIQUES.includes(formeReconnue(nom));
+
+/** Le registre dont les termes nomment les valeurs d'un axe de palette, de taille ou d'états (formes tolérées comprises). */
+const REGISTRES_DES_ROLES: readonly (readonly [AxeDuComposant, Registre])[] = [
+  ['taille', REGISTRE_TAILLES], ['palette', REGISTRE_PALETTES_COMPOSANT], ['etat', REGISTRE_ETATS],
+];
+
+/** Le rôle que des valeurs donnent quand toutes appartiennent à un seul registre ; `undefined` sans valeur, ou pour des valeurs mêlées. */
+function roleDesValeurs(valeurs: readonly string[]): AxeDuComposant | undefined {
+  if (!valeurs.length) return undefined;
+  const roles = REGISTRES_DES_ROLES.filter(([, registre]) => valeurs.every((valeur) => termeReconnu(registre, valeur)));
+  return roles.length === 1 ? roles[0][0] : undefined;
+}
+
+/**
+ * Le rôle d'une propriété de variant ; `undefined` pour un nom qui ne pilote aucun segment, interrupteur compris.
+ * Un nom explicite décide. Un nom générique (`Type`, `Kind`) ou inconnu prend, quand les valeurs sont données, le rôle que toutes
+ * leurs valeurs ont dans un seul registre. Sans valeur ou avec des valeurs mêlées, un nom générique garde le style (D9).
+ * La position des tokens (`axesDuReleve` avec un catalogue) et les rôles déjà pris n'entrent que dans `axesDuReleve`.
+ */
+export function axeDePropriete(nom: string, valeurs?: readonly string[]): AxeDuComposant | undefined {
+  const explicite = roleDuNom(nom);
+  if (explicite) return explicite;
+  if (estUnInterrupteur(nom)) return undefined;
+  return (valeurs && roleDesValeurs(valeurs)) || (estGenerique(nom) ? 'style' : undefined);
 }
 
 /** L'équivalent anglais d'un nom d'axe français, à la casse de son initiale (`Couleur` donne `Color`) ; `undefined` pour tout autre nom. */
@@ -51,41 +78,137 @@ export function estUnInterrupteur(nom: string): boolean {
 
 type AxesDuReleve = Partial<Record<AxeDuComposant, ProprieteDAxe>>;
 
+/** Ce que la lecture des propriétés donne : un axe par rôle, et le rôle de chaque propriété de variant (`undefined` : aucun segment). */
+interface AxesLus {
+  readonly axes: AxesDuReleve;
+  readonly roles: ReadonlyMap<ProprieteDAxe, AxeDuComposant | undefined>;
+}
+
+/** Le catalogue et le relevé que la position des tokens interroge ; un wrapper n'en a pas. Le nom du jeu ne se lit que si la position sert. */
+interface ContexteDesAxes {
+  readonly catalogue: CatalogueDeReference;
+  readonly releve: ReleveDeComposant;
+}
+
 /**
  * Les deux mémoires ci-dessous partagent un résultat entre les contrôles, les corrections et la propagation d'une même
  * analyse. Leur clé est un tableau du relevé ou du catalogue, qu'une analyse ne modifie pas : un relevé copié par
  * `{ ...releve }` garde le même tableau `proprietes` et retrouve donc l'entrée. Un tableau remplacé ou dont la longueur
- * change écarte l'entrée. Les résultats rendus sont gelés, parce que tous les lecteurs les partagent.
+ * change écarte l'entrée. Les résultats rendus sont gelés, parce que tous les lecteurs les partagent. Les axes lus sans catalogue
+ * (un wrapper, ou un appel sans catalogue) et ceux lus avec un catalogue ne partagent pas leur mémoire : la position des tokens
+ * peut changer un rôle. Un tableau `proprietes` appartient à un seul jeu.
  */
-const axesMemorises = new WeakMap<ReleveDeComposant['proprietes'], { longueur: number; axes: AxesDuReleve }>();
+type EntreeDesAxes = { longueur: number; lus: AxesLus };
+const axesMemorises = new WeakMap<ReleveDeComposant['proprietes'], EntreeDesAxes>();
 
-export function axesDuReleve(releve: ReleveDeComposant): AxesDuReleve {
-  return axesDesProprietes(releve.proprietes);
+export function axesDuReleve(releve: ReleveDeComposant, catalogue?: CatalogueDeReference): AxesDuReleve {
+  return epuiser(axesDuReleveParEtapes(releve, catalogue));
 }
 
-/** Les axes d'un tableau de propriétés : celui du composant, ou celui d'un wrapper de dimensions. */
+/** Le rôle de chaque propriété de variant du relevé, tel que `axesDuReleve` le lit. */
+export function rolesDesProprietes(releve: ReleveDeComposant, catalogue?: CatalogueDeReference): ReadonlyMap<ProprieteDAxe, AxeDuComposant | undefined> {
+  return epuiser(lireLesAxesDuReleveParEtapes(releve, catalogue)).roles;
+}
+
+/** Les axes d'un tableau de propriétés qui n'a pas de jeu : celui d'un wrapper de dimensions. */
 export function axesDesProprietes(proprietes: ReleveDeComposant['proprietes']): AxesDuReleve {
-  return epuiser(axesDesProprietesParEtapes(proprietes));
+  return epuiser(lireLesAxes(proprietes)).axes;
 }
 
-export function* axesDuReleveParEtapes(releve: ReleveDeComposant): Generator<void, AxesDuReleve> {
-  return yield* axesDesProprietesParEtapes(releve.proprietes);
+export function* axesDuReleveParEtapes(releve: ReleveDeComposant, catalogue?: CatalogueDeReference): Generator<void, AxesDuReleve> {
+  return (yield* lireLesAxesDuReleveParEtapes(releve, catalogue)).axes;
 }
 
-/** Rend l'entrée mémorisée s'il en existe une ; sinon cède entre les propriétés et ne range le résultat qu'une fois le calcul fini. */
-function* axesDesProprietesParEtapes(proprietes: ReleveDeComposant['proprietes']): Generator<void, AxesDuReleve> {
-  const connus = axesMemorises.get(proprietes);
-  if (connus && connus.longueur === proprietes.length) return connus.axes;
-  const axes: AxesDuReleve = {};
-  for (const propriete of proprietes) {
+function lireLesAxesDuReleveParEtapes(releve: ReleveDeComposant, catalogue?: CatalogueDeReference): Generator<void, AxesLus> {
+  return lireLesAxes(releve.proprietes, catalogue ? { catalogue, releve } : undefined);
+}
+
+/** Les segments d'un token comme la grammaire les lit : les familles `colors` et `sizes` reprennent le nom du registre. */
+function segmentsPourLaGrammaire(segments: readonly string[]): string[] {
+  const pourLaGrammaire = [...segments];
+  if (segments.length > 1 && estLaFamilleCouleur(segments[1])) pourLaGrammaire[1] = 'color';
+  else if (segments.length > 1 && estLaFamilleTaille(segments[1])) {
+    pourLaGrammaire[1] = 'size';
+    if (estLaProprieteArrondi(segments[segments.length - 1])) pourLaGrammaire[segments.length - 1] = 'radius';
+  }
+  return pourLaGrammaire;
+}
+
+/**
+ * Le rôle que la position des tokens donne à des valeurs : celui, parmi les rôles libres, où la grammaire lit chacune de ces valeurs
+ * dans au moins un token du jeu. `undefined` quand une valeur n'est écrite nulle part, ou que plusieurs rôles conviennent.
+ * Une valeur ne compte qu'entre le deuxième segment et le dernier : le dernier segment est un rôle de couleur ou une propriété.
+ */
+function roleDeLaPosition(valeurs: readonly string[], contexte: ContexteDesAxes, pris: ReadonlyMap<AxeDuComposant, readonly string[]>): AxeDuComposant | undefined {
+  const { catalogue, releve } = contexte;
+  const nomDuJeu = releve.jeu.nom;
+  const tokens = catalogue.variables
+    .filter((variable) => collectionParCle(catalogue, variable.collection)?.role === 'components' && estDuComposant(variable.nom, nomDuJeu))
+    .map((variable) => variable.nom.split('/'));
+  // Les axes déjà lus ancrent la lecture : une valeur qu'ils reconnaissent ne se lit pas à la place de celle qu'on cherche.
+  const axesPris = Object.fromEntries([...pris].map(([role, valeursPrises]) => [role, valeursPrises.flatMap((valeur) => [valeur, segmentDeToken(valeur, undefined)])]));
+  const ecrites = valeurs.flatMap((valeur) => [valeur, segmentDeToken(valeur, undefined)]);
+  let libres = (['palette', 'style', 'taille', 'etat'] as const).filter((role) => !pris.has(role));
+  for (const valeur of valeurs) {
+    const formes = new Set([formeReconnue(valeur), formeReconnue(segmentDeToken(valeur, undefined))]);
+    const pourLaValeur = libres.filter((role) => tokens.some((segments) => {
+      const grammaire = segmentsPourLaGrammaire(segments);
+      return segments.some((segment, rang) => {
+        if (rang < 2 || rang >= segments.length - 1 || !formes.has(formeReconnue(segment))) return false;
+        const lu = reconnaitreLeChemin('components', grammaire, { themes: 'chemin', axes: { ...axesPris, [role]: ecrites } });
+        if (lu.conforme) return lu.segments[rang].role === role;
+        return lu.raison === 'ambigu' && lu.lectures.every((lecture) => lecture.segments[rang]?.role === role);
+      });
+    }));
+    libres = pourLaValeur;
+    if (!libres.length) return undefined;
+  }
+  return libres.length === 1 ? libres[0] : undefined;
+}
+
+/** Cède entre les propriétés et ne range le résultat qu'une fois le calcul fini. */
+function* lireLesAxes(proprietes: ReleveDeComposant['proprietes'], contexte?: ContexteDesAxes): Generator<void, AxesLus> {
+  const memoire = contexte ? memoireDuCatalogue(contexte.catalogue).axes : axesMemorises;
+  const connus = memoire.get(proprietes);
+  if (connus && connus.longueur === proprietes.length) return connus.lus;
+  const variants: ProprieteDAxe[] = [];
+  for (const propriete of proprietes) if (propriete.type === 'VARIANT') variants.push(propriete);
+  const roles = new Map<ProprieteDAxe, AxeDuComposant | undefined>();
+  const pris = new Map<AxeDuComposant, readonly string[]>();
+  // Un nom explicite décide d'abord, et son rôle ne se donne pas une seconde fois à un nom générique ou inconnu (D9).
+  for (const propriete of variants) {
     yield;
-    if (propriete.type !== 'VARIANT') continue;
-    const axe = axeDePropriete(propriete.nom);
+    const role = roleDuNom(propriete.nom);
+    if (!role) continue;
+    roles.set(propriete, role);
+    pris.set(role, [...(pris.get(role) ?? []), ...(propriete.valeurs ?? [])]);
+  }
+  for (const propriete of variants) {
+    yield;
+    if (roles.has(propriete)) continue;
+    let role: AxeDuComposant | undefined;
+    if (!estUnInterrupteur(propriete.nom)) {
+      const valeurs = propriete.valeurs ?? [];
+      role = roleDesValeurs(valeurs);
+      if (role && pris.has(role)) role = undefined;
+      if (!role && contexte && valeurs.length) {
+        role = roleDeLaPosition(valeurs, contexte, pris);
+        yield;
+      }
+      if (!role && estGenerique(propriete.nom)) role = 'style';
+    }
+    roles.set(propriete, role);
+    if (role) pris.set(role, [...(pris.get(role) ?? []), ...(propriete.valeurs ?? [])]);
+  }
+  const axes: AxesDuReleve = {};
+  for (const propriete of variants) {
+    const axe = roles.get(propriete);
     if (axe && !axes[axe]) axes[axe] = propriete;
   }
   Object.freeze(axes);
-  axesMemorises.set(proprietes, { longueur: proprietes.length, axes });
-  return axes;
+  const lus = { axes, roles };
+  memoire.set(proprietes, { longueur: proprietes.length, lus });
+  return lus;
 }
 
 function epuiser<T>(calcul: Generator<void, T>): T {
@@ -101,19 +224,27 @@ interface TokensMemorises {
   readonly nombreDeCollections: number;
   /** Par tableau `proprietes`, puis par nom du jeu. */
   readonly parProprietes: WeakMap<ReleveDeComposant['proprietes'], { longueur: number; parNom: Map<string, TokenDuComposant[]> }>;
+  /** Les axes lus avec ce catalogue, par tableau `proprietes`. */
+  readonly axes: WeakMap<ReleveDeComposant['proprietes'], EntreeDesAxes>;
 }
 
 const tokensMemorises = new WeakMap<CatalogueDeReference, TokensMemorises>();
 
-/** Les résultats complets du couple relevé et catalogue ; une entrée périmée est remplacée. */
-function resultatsMemorises(releve: ReleveDeComposant, catalogue: CatalogueDeReference): Map<string, TokenDuComposant[]> {
+/** La mémoire d'un catalogue ; elle est remplacée quand ses variables ou ses collections ont changé. */
+function memoireDuCatalogue(catalogue: CatalogueDeReference): TokensMemorises {
   const { variables, collections } = catalogue;
   let memoire = tokensMemorises.get(catalogue);
   if (!memoire || memoire.variables !== variables || memoire.nombreDeVariables !== variables.length
     || memoire.collections !== collections || memoire.nombreDeCollections !== collections.length) {
-    memoire = { variables, nombreDeVariables: variables.length, collections, nombreDeCollections: collections.length, parProprietes: new WeakMap() };
+    memoire = { variables, nombreDeVariables: variables.length, collections, nombreDeCollections: collections.length, parProprietes: new WeakMap(), axes: new WeakMap() };
     tokensMemorises.set(catalogue, memoire);
   }
+  return memoire;
+}
+
+/** Les résultats complets du couple relevé et catalogue ; une entrée périmée est remplacée. */
+function resultatsMemorises(releve: ReleveDeComposant, catalogue: CatalogueDeReference): Map<string, TokenDuComposant[]> {
+  const memoire = memoireDuCatalogue(catalogue);
   let parJeu = memoire.parProprietes.get(releve.proprietes);
   if (!parJeu || parJeu.longueur !== releve.proprietes.length) {
     parJeu = { longueur: releve.proprietes.length, parNom: new Map() };
@@ -154,7 +285,7 @@ function figer(tokens: TokenDuComposant[]): TokenDuComposant[] {
  * découpage du nom, la copie pour la grammaire et la lecture ne concernent que les variables retenues.
  */
 function* calculerLesTokensParEtapes(releve: ReleveDeComposant, catalogue: CatalogueDeReference, nomDuJeu: string, types?: readonly VariableDuCatalogue['type'][]): Generator<void, TokenDuComposant[]> {
-  const axes = yield* axesDuReleveParEtapes(releve);
+  const axes = yield* axesDuReleveParEtapes(releve, catalogue);
   // Un token écrit une valeur de variant par son segment (`Small` donne `sm`, `1.5` donne `1-5`) : la grammaire accepte les deux écritures.
   const valeursDAxes = Object.fromEntries((Object.entries(axes) as [AxeDuComposant, ProprieteDAxe][]).map(([axe, propriete]) => [
     axe, (propriete.valeurs ?? []).flatMap((valeur) => [valeur, segmentDeToken(valeur, roleDeValeur(axe))]),
@@ -171,12 +302,7 @@ function* calculerLesTokensParEtapes(releve: ReleveDeComposant, catalogue: Catal
     if (!estDuComposant(nom, nomDuJeu)) continue;
     yield;
     const segments = nom.split('/');
-    const pourLaGrammaire = [...segments];
-    if (segments.length > 1 && estLaFamilleCouleur(segments[1])) pourLaGrammaire[1] = 'color';
-    else if (segments.length > 1 && estLaFamilleTaille(segments[1])) {
-      pourLaGrammaire[1] = 'size';
-      if (estLaProprieteArrondi(segments[segments.length - 1])) pourLaGrammaire[segments.length - 1] = 'radius';
-    }
+    const pourLaGrammaire = segmentsPourLaGrammaire(segments);
     const lire = (axesSupplementaires: Record<string, readonly string[]> = {}) => reconnaitreLeChemin('components', pourLaGrammaire, {
       themes: 'chemin',
       axes: { ...valeursDAxes, ...axesSupplementaires },
@@ -318,7 +444,7 @@ export function controlerNommage(releve: ReleveDeComposant, catalogue: Catalogue
 /** Cède dans les tokens, les variants et les recherches de noms ; les groupes gardent leur ordre. */
 export function* controlerNommageParEtapes(releve: ReleveDeComposant, catalogue: CatalogueDeReference): Generator<void, Constat[]> {
   const tokens = yield* tokensDuComposantParEtapes(releve, catalogue);
-  const axes = yield* axesDuReleveParEtapes(releve);
+  const axes = yield* axesDuReleveParEtapes(releve, catalogue);
   const constats: Constat[] = [];
   /** Les axes dont une valeur n'a aucun token : deux axes ouverts à la fois ne posent aucune question (Q-F5-4). */
   const axesOuverts = new Set<AxeDuComposant>();
@@ -389,7 +515,7 @@ export function* controlerNommageParEtapes(releve: ReleveDeComposant, catalogue:
   }
   constats.push(...formes.values());
   constats.push(...(yield* controlerLEcritureDesValeurs(releve, axes)));
-  constats.push(...(yield* controlerLesAxesDeStyle(releve, catalogue, tokens)));
+  constats.push(...(yield* controlerLesAxesDeStyle(releve, catalogue, tokens, rolesDesProprietes(releve, catalogue))));
   // Deux axes ouverts : les tokens des autres axes ne disent plus quels noms sont les bons, C7 reste seul (Q-F5-4).
   if (axesOuverts.size > 1) return constats;
   for (const [axe, propriete] of Object.entries(axes) as [AxeDuComposant, ProprieteDAxe][]) {
@@ -439,9 +565,9 @@ export function* controlerNommageParEtapes(releve: ReleveDeComposant, catalogue:
           const noms = candidatsParFamille.get(famille) ?? new Set<string>();
           for (const token of groupe) {
             yield;
-            // Une valeur que l'axe porte déjà n'est pas un nom à rendre à la valeur renommée (N-35).
+            // Une valeur que l'axe porte déjà n'est pas un nom à rendre à la valeur renommée (N-35), ni une valeur d'un autre axe du jeu (D14).
             const segment = segmentDAxe(token, axe)!;
-            if (!(propriete.valeurs ?? []).some((presente) => memeValeurDAxe(axe, segment, presente))) noms.add(segment);
+            if (!(propriete.valeurs ?? []).some((presente) => memeValeurDAxe(axe, segment, presente)) && !estUneValeurDUnAutreAxe(releve, propriete, segment)) noms.add(segment);
           }
           if (noms.size) candidatsParFamille.set(famille, noms);
         }
@@ -516,6 +642,13 @@ export function segmentEcritPourLaValeur(tokens: readonly TokenDuComposant[], ra
   return ecritures.size === 1 ? [...ecritures][0] : valeur;
 }
 
+/** Vrai quand le segment écrit une valeur d'une autre propriété de variant du jeu : un renommage ne l'a jamais pour candidat (D14). */
+function estUneValeurDUnAutreAxe(releve: ReleveDeComposant, propriete: ProprieteDAxe, segment: string): boolean {
+  const forme = formeReconnue(segment);
+  return releve.proprietes.some((autre) => autre.type === 'VARIANT' && autre !== propriete
+    && (autre.valeurs ?? []).some((valeur) => formeReconnue(valeur) === forme || formeReconnue(segmentDeToken(valeur, undefined)) === forme));
+}
+
 /** Les ids des variants qui portent cette valeur de cette propriété, dans l'ordre du relevé. */
 function variantsDeLaValeur(releve: ReleveDeComposant, propriete: string, valeur: string): string[] {
   return releve.variants.filter((variant) => variant.valeurs[propriete] === valeur).map(({ id }) => id);
@@ -524,7 +657,7 @@ function variantsDeLaValeur(releve: ReleveDeComposant, propriete: string, valeur
 /**
  * Une taille ou une palette de variant s'écrit en toutes lettres, une majuscule à chaque mot (`Small`, `Extra Large`, `Danger`) ; `S`,
  * `sm`, `Middle` et `Error` se corrigent vers ce mot (Q-F5-5, Q-F5-6). C10 pour la taille, C8 pour la palette. La correction renomme la
- * valeur dans le jeu ; elle manque quand le mot entier est déjà une valeur de la propriété, car deux variants prendraient le même nom.
+ * valeur dans le jeu ; elle manque quand le mot entier est déjà une valeur de la propriété, car deux variants prendraient le même nom, ou d'une autre propriété du jeu (D14).
  * Un terme inconnu, une casse seule (`small`) et un état ne donnent rien.
  */
 function* controlerLEcritureDesValeurs(releve: ReleveDeComposant, axes: Partial<Record<AxeDuComposant, ProprieteDAxe>>): Generator<void, Constat[]> {
@@ -540,7 +673,7 @@ function* controlerLEcritureDesValeurs(releve: ReleveDeComposant, axes: Partial<
       const identifiant = `${releve.jeu.cle}:${propriete.nom}:${valeur}`;
       const constat = constatDuComposant(axe === 'taille' ? 'C10' : 'C8', axe === 'taille' ? 'tailles' : 'variants', 'corriger',
         `valeur:${identifiant}`, { jeu: releve.jeu.nom, propriete: propriete.nom, valeur, attendu: ecriture.variant, cote: 'variant' }, variants);
-      const dejaPresente = (propriete.valeurs ?? []).includes(ecriture.variant);
+      const dejaPresente = (propriete.valeurs ?? []).includes(ecriture.variant) || estUneValeurDUnAutreAxe(releve, propriete, ecriture.variant);
       if (releve.jeu.id && variants.length && !dejaPresente) {
         constat.correction = {
           id: constat.id, sorte: 'nom-de-valeur', cible: { layer: releve.jeu.id, champ: propriete.nom }, avant: valeur,
@@ -562,9 +695,12 @@ const DOSSIER_DU_STYLE: Readonly<Record<string, string>> = { subtle: 'surface', 
  * puisque le designer choisit les combinaisons qui gardent un style. Puis les tokens des styles `subtle` et `solid` : une couleur du
  * style `subtle` qui vise un rôle de `solid`, ou l'inverse, est un écart ; les autres dossiers (`disabled`, `ring`) ne se jugent pas.
  */
-function* controlerLesAxesDeStyle(releve: ReleveDeComposant, catalogue: CatalogueDeReference, tokens: readonly TokenDuComposant[]): Generator<void, Constat[]> {
+function* controlerLesAxesDeStyle(
+  releve: ReleveDeComposant, catalogue: CatalogueDeReference, tokens: readonly TokenDuComposant[],
+  roles: ReadonlyMap<ProprieteDAxe, AxeDuComposant | undefined>,
+): Generator<void, Constat[]> {
   const constats: Constat[] = [];
-  const styles = releve.proprietes.filter((propriete) => propriete.type === 'VARIANT' && axeDePropriete(propriete.nom) === 'style');
+  const styles = releve.proprietes.filter((propriete) => roles.get(propriete) === 'style');
   if (styles.length > 1) {
     constats.push(constatDuComposant('C63', 'variants', 'corriger', `${releve.jeu.cle}:deux-axes-de-style`, {
       genre: 'deux-axes-de-style', jeu: releve.jeu.nom, axes: styles.map(({ nom }) => nom).join(', '),

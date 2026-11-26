@@ -57,9 +57,9 @@ test('le relevé rend le composant publié du maître et la raison du refus, ins
   const { variants, lecture } = (issue as { releve: { variants: Array<{ layers: Array<{ id: string; instanceDe?: unknown }> }>; lecture: { manquees: unknown[] } } }).releve;
 
   assert.deepEqual(variants[0].layers.filter((layer) => layer.id !== 'variant').map((layer) => [layer.id, layer.instanceDe ?? null]), [
-    ['pilotee', { cle: 'cle-icone', nom: 'Icone', distante: true, pilotee: 'Icone#1:0' }],
-    ['jumelle', { cle: 'cle-icone', nom: 'Icone', distante: true, pilotee: null }],
-    ['badge', { cle: 'cle-badge', nom: 'Badge', distante: false, pilotee: null }],
+    ['pilotee', { cle: 'cle-icone', nom: 'Icone', distante: true, pilotee: 'Icone#1:0', dessin: false, visibilitePar: null }],
+    ['jumelle', { cle: 'cle-icone', nom: 'Icone', distante: true, pilotee: null, dessin: false, visibilitePar: null }],
+    ['badge', { cle: 'cle-badge', nom: 'Badge', distante: false, pilotee: null, dessin: false, visibilitePar: null }],
     ['orpheline', null],
     ['qui-leve', null],
     ['cle-leve', null],

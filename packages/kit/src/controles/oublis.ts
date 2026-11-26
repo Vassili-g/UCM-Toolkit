@@ -190,7 +190,7 @@ export function* controlerOublisParEtapes(releve: ReleveDeComposant, catalogue: 
   const constats: Constat[] = [];
   const lectureComplete = releve.lecture.variantsNonLus.length === 0 && releve.lecture.layersNonLus === 0;
   if (!lectureComplete) return constats;
-  const axes = yield* axesDuReleveParEtapes(releve);
+  const axes = yield* axesDuReleveParEtapes(releve, catalogue);
   const tokens = yield* tokensDuComposantParEtapes(releve, catalogue);
   let collection: CatalogueDeReference['collections'][number] | undefined;
   for (const entree of catalogue.collections) {

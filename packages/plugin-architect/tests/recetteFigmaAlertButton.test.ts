@@ -34,8 +34,8 @@ test('le relevé garde, pour chaque surcharge, le layer de l’instance qu’ell
   if (issue.statut !== 'lu') return;
   const layer = issue.releve.variants[0].layers.find(({ id }) => id === 'I1');
   assert.deepEqual(layer?.liaisons.map(({ porteur, surcharge }) => [porteur, surcharge]), [
-    ['I1', { id: 'I1;texte', nom: 'Suivant', type: 'TEXT' }],
-    ['I1', { id: 'I1;trace', nom: 'Vector', type: 'VECTOR' }],
+    ['I1', { id: 'I1;texte', nom: 'Suivant', type: 'TEXT', instances: [] }],
+    ['I1', { id: 'I1;trace', nom: 'Vector', type: 'VECTOR', instances: [] }],
   ]);
 });
 
