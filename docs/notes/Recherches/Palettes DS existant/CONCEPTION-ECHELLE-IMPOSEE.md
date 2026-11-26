@@ -225,9 +225,13 @@ Vérification. `node _local/p28/poc/verifier.mjs` ouvre la page dans Chromium sa
 | Question | Réponse | Conséquence |
 |---|---|---|
 | Q1 | Lissée. | La page de preuve ouvre sur la lissée. |
-| Q2 | Proposition 1. Les `a300` et `a900` absents restent à traiter, avec Q10. | Le mainteneur demande si Palettes peut proposer leurs valeurs, et sous quelle forme. |
+| Q2 | Proposition 1. La page de preuve propose la valeur des `a300` et `a900` absents. Leur création et le raccordement de la couche des marques se font à la main. | Palettes ne crée aucune variable. |
 | Q7 | Copie du seul fichier des primitives. | L'essai montre les nouvelles palettes dans la copie. Le fichier client réel n'est pas touché. |
 | Q8 | Oui. | Le geste « Rétablir les couleurs d'avant » entre dans les lots. |
 | Q9 | D'office. | Les nuances foncées irrégulières se recalculent sans case à cocher. Un message le dit. |
+| Q11 | Pas dans Palettes. | Où montrer ces paires reste ouvert. |
+| Q12 | Sans gravité. | Un message, sans lien. |
 
-Q3 à Q6 et Q10 à Q12 sont reformulées pour le mainteneur avant sa réponse.
+Q3 attend le sens des marqueurs, que le mainteneur demande au lead UX. Q5, Q6 et Q10 restent ouverts.
+
+Les alias de la couche des marques valent `null` dans l'export d'octobre parce que l'Exporter n'indexe que les variables du fichier exporté. Un alias qui vise une variable d'une autre bibliothèque n'a pas de chemin, et `exportTokens.ts` écrit `$value: null`. La donnée existe dans Figma : UCM Architect lit ces cibles par leur identifiant (`catalogue.ts`).
