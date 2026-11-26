@@ -179,7 +179,7 @@ d'Alert sont celles du plan. Onze défauts sont nouveaux, et Codex y ajoute quat
 | L16 | Kit et Architect : pièce interne seule D22, clé de collection D24 | `implementeur` | L3 | [x] 3f3061df |
 | L18 | Socle et Architect : écarts C30 du moteur des règles D26 | `implementeur` | L16 | [x] 3cef4979 |
 | L10 | Architect : composants de référence et banc de recette D15, cas rouges de Codex rendus verts | `implementeur-exigeant` | L1 à L18 | [x] 3cef4979, 00cd8c20 |
-| L17 | Kit et Architect : intégration du générateur D25 | `implementeur-exigeant` | L10 | [ ] |
+| L17 | Kit et Architect : intégration du générateur D25 | `implementeur-exigeant` | L10 | [x] 102b50b1 |
 | L5 | Conversation principale : invariants, SPEC, cartes, version, publication | conversation principale | L1 à L18 | [ ] |
 
 L1 et L4 n'ont aucun fichier commun et tournent ensemble. L2 et L6 tournent ensemble, puis L3 et L8. L7 et L9 touchent les textes
@@ -284,3 +284,28 @@ passent l'un après l'autre. L11, L12 et L14 touchent les contrôles du kit et s
   (`estUneIconeCertaine` faux) et admet aussi `background` au fill et `border` au trait, ce que demande la pointe d'un Tooltip.
   Restes : une capture neuve du Button vérifiera C83 (`isExposedInstance` absent de la capture du 25 novembre) ; questions au
   mainteneur sur C66 et C67, que les icônes de bibliothèque d'Alert reçoivent maintenant qu'elles sont reconnues.
+- L17, commit `102b50b1`. Le générateur vit dans `packages/plugin-architect/tests/generateur/`, ses dialectes dans
+  `packages/kit/fixtures/dialectes/dialectes.json`. L'échantillon fixe tire 52 cas en 2,3 s dans `npm test`. `npm run stress:composant
+  --workspace ucm-architect-plugin` tire 500 cas en 18 s, sans écart sur les graines 1729, 31337, 5 et 8675309. Il a trouvé un C30
+  en doublon d'un C25 sur la racine d'un variant, corrigé dans `sansLesDoublonsDuMoteur`. Écarts rendus au mainteneur, sortis du
+  tirage avec leur raison : E1, un fond peint par le frère d'un ancêtre n'est pas lu (D17, M9) ; E2, un composant dont le nom
+  contient « Icon » sans en être un (`IconButton`) est lu comme une icône (D3, M1) ; E3, l'ordre de deux remplissages superposés
+  (G8) ; E4, C66 et C67 sur une icône de bibliothèque qui ne s'appelle pas `Icon`.
+- L5. `@ucm-kit/core` 0.18.6, `@ucm-kit/cli` 0.4.7, `@ucm-kit/adapter-typescript` 0.3.7 : changement interne, la prise des modules ne
+  change pas, donc aucune entrée de `CHANGELOG.md`.
+
+## Questions au mainteneur
+
+- Q1 (G8, E3). Quand un calque porte deux remplissages superposés liés à deux variables, l'Exporter publie les deux couleurs sans
+  leur ordre. Le contrat doit-il publier l'ordre de superposition, ou C42 reste-t-il un conseil de simplification ?
+- Q2 (E4). Les icônes de bibliothèque d'Alert (`circle-info`…) reçoivent C66 « pas une instance de `Icon` » et C67 « aucune propriété
+  d'échange ne la pilote », conformes à la règle UCM d'un composant `Icon` à part. Faut-il les montrer au designer ?
+- Q3 (E2). Un composant dont le nom contient « Icon » sans en être un (`IconButton`, `.sizeWrapperIconButton`) est lu comme une icône.
+  Recommandation : le mot d'icône ne fait une icône certaine que s'il est le dernier mot du nom du composant, ou un dossier de son
+  chemin (`Icon/Close`) ; ailleurs, l'icône n'est que probable (D1).
+- Q4 (E1). Un texte dans un cadre sans fond, posé sur un frère de ce cadre qui peint la surface, est mesuré sur la page. Faut-il lire
+  aussi les frères des ancêtres ?
+- Q5. C49 ne mesure pas le calque peint sous une instance (label et icônes de `.sizeWrapperButton`). Le mesurer est un nouveau
+  comportement, qui donnera de nouveaux constats sur toute instance à surcharge.
+- Q6. L18 a réécrit le test de l'Exporter « suit l'ordre de la matrice, pas l'ordre de résolution », qui reposait sur des liaisons
+  illisibles, le cas G7. Il ne contrôle plus l'ordre de résolution asynchrone.
