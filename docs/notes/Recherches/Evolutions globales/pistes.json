@@ -835,7 +835,7 @@
         "`primitives` écartée transforme chaque lien de `brands` et de `utility` en constat du diagnostic d'architecture (P21).",
         "Un choix rangé sur le poste n'est pas partagé : deux designers qui exportent vers le même repository publient deux sélections différentes.",
         "Le lot du diagnostic des tokens touche `diagnostic-tokens.mjs` et `controle-repository.mjs`, que P19 modifie.",
-        "Un repository intermédiaire sur un GitLab auto-hébergé est hors du réseau du plugin, limité à `https://api.github.com` et `https://gitlab.com` (`manifest.json`), et son domaine dans un plugin public révèle le client.",
+        "Un repository intermédiaire sur un GitLab auto-hébergé est hors du réseau du plugin, limité à `api.github.com` et `gitlab.com` (`manifest.json`), et son domaine dans un plugin public révèle le client.",
         "Des contrats publiés dans le repository final et des tokens publiés dans le repository intermédiaire privent `ucm check` de `tokens.json` dans le repository final.",
         "Le code des composants cite des variables CSS nommées par Supernova ; garder les noms UCM demande un renommage unique, et reproduire ceux de Supernova demande les scopes Figma dans le format publié.",
         "`tokens.json` ne publie que les variables : des tokens de typographie, d'ombre ou de dégradé que la sortie de Supernova tire des styles Figma manqueraient."
