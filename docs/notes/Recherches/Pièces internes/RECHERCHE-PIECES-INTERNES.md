@@ -245,8 +245,17 @@ Le choix 4, option A, publierait au contraire les couleurs du maître de la piè
 
 | Option | Conséquence |
 |---|---|
-| A. Partage par nature de valeur : la structure, les propriétés, les variantes et les dimensions d'une pièce se lisent sur son maître ; ses couleurs se lisent sur chaque instance posée, et celles du maître sont des couleurs d'aperçu, jamais publiées | Le contrat dit les couleurs que l'hôte décide. Une couleur d'aperçu qu'une instance ne surcharge pas fuit dans le rendu : l'Exporter avertit, et Architect la signale |
+| A. Une couleur du maître est jugée sur sa liaison (voir plus bas) : réelle si elle vise un token du composant hôte, d'aperçu si elle ne le vise pas et que chaque instance posée la surcharge, anomalie signalée dans les autres cas. Chaque instance publie ses surcharges | Le contrat dit les couleurs que le design décide ; aucun cas douteux ne s'écrit en silence |
 | B. Choix 4 tel quel : le maître publie ses couleurs, l'instance ses remplacements | Les couleurs d'aperçu entrent dans le contrat et se confondent avec les couleurs voulues |
+| C. Toutes les couleurs du maître sont d'aperçu | Le Groupe perd les couleurs réelles de `.Segment`, y compris celles des 80 variantes que l'hôte ne pose pas |
+
+La règle de l'option A juge chaque couleur du maître d'une pièce sur deux faits que l'outil lit exactement, sa liaison et sa surcharge :
+
+1. Liée à un token du composant hôte (`components/<hôte>/…`, ou le dossier des composants désigné en agnostique) : réelle, publiée.
+2. Non liée à un token du composant, et surchargée par chaque instance posée : d'aperçu, ignorée sans avertissement. C'est le Button.
+3. Non liée à un token du composant, et visible quelque part (dans une instance posée, ou dans une variante que l'hôte ne pose pas) : anomalie. L'Exporter avertit et Architect la signale à relier ; elle n'est ni supprimée en silence, ni publiée comme une décision.
+
+Mesuré sur une capture de test : environ neuf couleurs sur dix du maître de la pièce visent les tokens du composant hôte ; les autres, sur deux calques, visent des couleurs génériques et tombent dans le cas 3.
 
 Pour une dépendance qui reçoit sa couleur de l'hôte, comme `Icon`, l'option A va plus loin : le contrat de la dépendance dit que sa couleur est fournie par l'hôte, et l'hôte publie la couleur qu'il pose sur le slot de l'icône. C'est la seule surcharge de peinture qui deviendrait une donnée du contrat.
 
