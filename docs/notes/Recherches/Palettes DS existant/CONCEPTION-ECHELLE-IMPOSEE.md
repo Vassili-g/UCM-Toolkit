@@ -219,3 +219,15 @@ Vérification. `node _local/p28/poc/verifier.mjs` ouvre la page dans Chromium sa
 | Q10. Que faire des `a300` et `a900` absents de cinq primitives ? | Lire à la main leur cible dans la couche des marques ; les créer dans les primitives et re-viser les alias à la main | Les lire à la main d'abord ; décider ensuite palette par palette. |
 | Q11. Les paires que la structure pose en sombre (bord du bouton survolé, badge, encart) entrent-elles dans la table ? | Oui, jugées par Palettes ; non, signalées au mainteneur comme corrections manuelles de l'architecture | Non, parce que le calcul d'une palette ne les répare pas. |
 | Q12. Deux primitives égales se lient-elles dans la recette ? | Lien qui impose le même calcul ; message quand elles divergent | Message, sans lien. |
+
+## Réponses du mainteneur
+
+| Question | Réponse | Conséquence |
+|---|---|---|
+| Q1 | Lissée. | La page de preuve ouvre sur la lissée. |
+| Q2 | Proposition 1. Les `a300` et `a900` absents restent à traiter, avec Q10. | Le mainteneur demande si Palettes peut proposer leurs valeurs, et sous quelle forme. |
+| Q7 | Copie du seul fichier des primitives. | L'essai montre les nouvelles palettes dans la copie. Le fichier client réel n'est pas touché. |
+| Q8 | Oui. | Le geste « Rétablir les couleurs d'avant » entre dans les lots. |
+| Q9 | D'office. | Les nuances foncées irrégulières se recalculent sans case à cocher. Un message le dit. |
+
+Q3 à Q6 et Q10 à Q12 sont reformulées pour le mainteneur avant sa réponse.

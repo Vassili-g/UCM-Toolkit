@@ -10,8 +10,8 @@ Ce plan suit la piste P28 de `docs/notes/Recherches/Evolutions globales/pistes.j
 
 ## Étape 1. Conception
 
-- [ ] 1.1 Note de conception `CONCEPTION-ECHELLE-IMPOSEE.md` : nuances de marque multiples par primitive, courbes candidates des clairs, nuances foncées gardées et leurs limites, thème Dark et accents, un modèle des marqueurs `-[light]` et `-[dark]` qui dit sans ambiguïté le texte attendu sur chaque nuance, sans casser les noms ni les alias, activation et désactivation de l'échelle imposée, interface de Palettes écran par écran, répercussions sur le moteur, le kit, UCM Architect et les documents.
-- [ ] 1.2 Page de preuve de concept dans `_local/p28/poc/` : composants de la structure du client (Button et ses variantes, chips, tags, alertes), rendus avec les primitives actuelles et chaque courbe candidate, en Light et en Dark, avec les contrastes mesurés.
+- [x] 1.1 (d69a3707) Note de conception `CONCEPTION-ECHELLE-IMPOSEE.md` : nuances de marque multiples par primitive, courbes candidates des clairs, nuances foncées gardées et leurs limites, thème Dark et accents, un modèle des marqueurs `-[light]` et `-[dark]` qui dit sans ambiguïté le texte attendu sur chaque nuance, sans casser les noms ni les alias, activation et désactivation de l'échelle imposée, interface de Palettes écran par écran, répercussions sur le moteur, le kit, UCM Architect et les documents.
+- [x] 1.2 (d69a3707) Page de preuve de concept dans `_local/p28/poc/` : composants de la structure du client (Button et ses variantes, chips, tags, alertes), rendus avec les primitives actuelles et chaque courbe candidate, en Light et en Dark, avec les contrastes mesurés.
 - [ ] 1.3 (mainteneur). Valider la note et la page, sur le plan visuel et sur le plan du concept.
 
 ## Étape 2. Interface de Palettes
