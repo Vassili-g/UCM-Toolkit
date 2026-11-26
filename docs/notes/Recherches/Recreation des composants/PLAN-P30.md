@@ -22,8 +22,8 @@ Ce plan suit la piste P30 de `docs/notes/Recherches/Evolutions globales/pistes.j
 - [ ] 2.1 Script du relevé du code, sur la v1 et la v2 : API, styles conditionnels, valeurs dessinées, icônes, composition, accessibilité, responsive, comportements, textes par défaut ; une fiche par composant, en forme de contrat UCM, complétée par un agent dont chaque ligne est marquée « à confirmer ».
 - [ ] 2.2 Relevé des usages dans les applications : chaque composant, prop et valeur employés, par application et par fichier.
 - [ ] 2.3 Relevé des candidats : composants d'Ant Design importés directement, composants locaux employés dans plusieurs fichiers, structures recopiées.
-- [ ] 2.4 Plugin de relevé de la library Figma actuelle : jeux de variants, axes, valeurs et propriétés.
-- [ ] 2.5 (mainteneur). Lancer le plugin de relevé dans la library Figma actuelle.
+- [x] 2.4 Plugin de relevé de la library Figma actuelle : jeux de variants, axes, valeurs et propriétés. Plugin local, hors de Git, dans `_local/recreation-composants/releve-figma/`.
+- [x] 2.5 (mainteneur). Lancer le plugin de relevé dans la library Figma actuelle.
 - [ ] 2.6 Première version du registre, servie par `npm run registre` : une fiche par composant et par candidat, avec ses usages, sa comparaison avec la library Figma actuelle et l'avancement que le mainteneur y note.
 
 ## Étape 3. Marques
