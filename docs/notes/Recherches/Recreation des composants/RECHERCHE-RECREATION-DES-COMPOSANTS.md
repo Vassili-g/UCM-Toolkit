@@ -47,8 +47,8 @@ Trois faits fixent la méthode.
 | Fichiers Figma | Les tokens et les composants vivent dans deux fichiers dès le début : la publication de la library reste un geste du designer. |
 | Icônes | FontAwesome Pro reste. Les icônes deviennent des composants qu'`Icon` échange, créés et tenus à jour par la piste P32. |
 | Outillage | De simples scripts dans UCM-Toolkit, une commande par étape, testés sur des composants inventés, supprimés quand la piste s'archive ; ni paquet publié ni documentation de produit. |
-| Migration des applications | Les développeurs feront probablement la migration des applications. Le chantier leur prépare toute l'infrastructure qui la rend facile, de façon méthodique et complète. |
-| Candidats et suivi | Le mainteneur tranche la liste des candidats. Une page de registre, mise à jour au fil du chantier, montre chaque composant et chaque candidat avec toutes ses informations et son avancement. |
+| Migration des applications | Les développeurs font la migration ; le chantier ne la fait pas. Il leur livre ce qui la rend facile : guide par composant, codemods testés, liste des appels à réécrire. |
+| Candidats et registre | Le mainteneur tranche la liste des candidats. Une page de registre locale, servie par une commande, montre chaque composant et chaque candidat avec tout ce qu'il faut pour le dessiner dans Figma, et le mainteneur y note son avancement. |
 | Relevé de la library Figma actuelle | Par un petit plugin de relevé que le mainteneur lance, comme pour P28. |
 | Comportements | Seul un comportement qui change le rendu entre dans le dessin et dans le contrat. Un comportement sans effet visuel n'est pas recréé dans Figma ; le relevé du code l'écrit dans un fichier de comportements, à côté du contrat dans intencial-library. |
 
