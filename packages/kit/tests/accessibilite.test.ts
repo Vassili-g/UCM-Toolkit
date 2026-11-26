@@ -274,6 +274,32 @@ test('C50 : un variant en focus sans anneau visible est signalé, avec un anneau
   assert.equal(avec.find((c) => c.id === 'C50:sans-anneau'), undefined);
 });
 
+/** Une instance `.Ring` dont le contour se peint sous sa frontière : seule la liaison de la surcharge le dit (D20). */
+function anneauDansUneInstance(surcharge: { peintures?: PeintureLue[]; strokeWeight?: number }): LayerLu {
+  return {
+    id: 'ring', nom: '.Ring', type: 'INSTANCE', parent: 'r', visible: true, opacite: 1, dimensions: dims(), peintures: [], valeursEnDur: [],
+    liaisons: [{
+      champ: 'strokes', indice: 0, porteur: 'ring', provenance: 'instance',
+      surcharge: { id: 'Iring;stroke', nom: 'Ring', type: 'RECTANGLE', ...surcharge },
+      variable: { id: 'v', cle: 'v', nom: 'ring', collection: 'c', distante: false },
+    }],
+  };
+}
+
+test('C50 : un anneau peint dans une instance se voit par la peinture que la surcharge relève (D20)', () => {
+  const peint = cc(releve([variant('f', [racine(), anneauDansUneInstance({ peintures: [solide('strokes', gris(0))], strokeWeight: 2 })], { State: 'focus' })], ['default', 'focus']));
+  assert.equal(peint.find((c) => c.id === 'C50:sans-anneau'), undefined);
+  const masque = cc(releve([variant('f', [racine(), anneauDansUneInstance({ peintures: [{ ...solide('strokes', gris(0)), visible: false }] })], { State: 'focus' })], ['default', 'focus']));
+  assert.ok(masque.find((c) => c.id === 'C50:sans-anneau'), 'une peinture masquée ne fait pas d’anneau');
+  const vide = cc(releve([variant('f', [racine(), anneauDansUneInstance({ peintures: [] })], { State: 'focus' })], ['default', 'focus']));
+  assert.ok(vide.find((c) => c.id === 'C50:sans-anneau'), 'un calque sans peinture ne fait pas d’anneau');
+});
+
+test('C50 : une peinture de surcharge non lue ne dit pas l’anneau absent (D20)', () => {
+  const constats = cc(releve([variant('f', [racine(), anneauDansUneInstance({})], { State: 'focus' })], ['default', 'focus']));
+  assert.equal(constats.find((c) => c.id === 'C50:sans-anneau'), undefined);
+});
+
 test('C51 : un anneau de 1 px s écarte de la recommandation, un anneau de 2 px non', () => {
   const anneau = (poids: number): LayerLu => ({
     id: 'f', nom: 'Focus ring', type: 'RECTANGLE', parent: 'r', visible: true, opacite: 1, dimensions: dims(), peintures: [solide('strokes', gris(0))],

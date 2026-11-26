@@ -62,6 +62,7 @@ export const TEXTES_IGNORES = {
     iconeNonPilotee: (layer: string): string => `L’icône du layer \`${layer}\` n’est pilotée par aucune propriété : ses icônes ne sont pas contrôlées.`,
     iconesPermisesNonLues: (propriete: string): string => `Les icônes permises par \`${propriete}\` n’ont pas pu être lues : ses icônes ne sont pas contrôlées.`,
     stylesMixtes: (layer: string): string => `Le layer ${layer} porte plusieurs text styles.`,
+    pieceInterne: 'Analysez le composant qui l’utilise pour juger ses tokens.',
   },
   aFaireDuComposant: {
     ignores: 'Ignorés',

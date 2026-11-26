@@ -14,11 +14,11 @@ export {
 } from './accessibilite.js';
 export { PROFONDEUR_D_ALIAS } from '../emplois/couleur.js';
 export { controlerLaTypographie, controlerLaTypographieParEtapes } from './typographie.js';
-export { axeDePropriete, estUnInterrupteur, nomDAxeEnAnglais, axesDesProprietes, axesDuReleve, axesDuReleveParEtapes, rolesDesProprietes, tokensDuComposant, tokensDuComposantParEtapes, segmentDAxe, controlerNommage, controlerNommageParEtapes, estDuComposant } from './nommage.js';
+export { axeDePropriete, estUnInterrupteur, nomDAxeEnAnglais, axesDesProprietes, axesDuReleve, axesDuReleveParEtapes, rolesDesProprietes, tokensDuComposant, tokensDuComposantParEtapes, segmentDAxe, controlerNommage, controlerNommageParEtapes, estDuComposant, estUnePieceInterne } from './nommage.js';
 export type { AxeDuComposant, TokenDuComposant } from './nommage.js';
 export { controlerMapping, controlerMappingParEtapes } from './mapping.js';
 export { controlerCouches, controlerCouchesParEtapes } from './couche.js';
-export { controlerOublis, controlerOublisParEtapes, sansLaCascadeDesVariants } from './oublis.js';
+export { controlerOublis, controlerOublisParEtapes, constatDePieceInterne, sansLaCascadeDesVariants } from './oublis.js';
 export { preparerLesTokens } from './preparation.js';
 export type { PreparationDesTokens, CollectionEnDouble, VariableAPreparer, ViseDePreparation, LieuDePreparation, ReponsesDePreparation, TailleSansCible, CouleurSansCible } from './preparation.js';
 export { clesDesTokensDeTailleAttendus, proposerLesCorrections, proposerLesCorrectionsParEtapes } from './corrections.js';

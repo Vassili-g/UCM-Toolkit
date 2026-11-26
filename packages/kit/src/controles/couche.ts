@@ -11,7 +11,7 @@ import { ciblesAdmises, natureDuChamp, type Collection, type NatureDeCible } fro
 import { collectionDuChampDeTypographie } from '../referentiel/reference.js';
 import { collectionParCle, variableDuCatalogue, type CatalogueDeReference, type VariableDuCatalogue } from './catalogue.js';
 import type { Constat } from './constat.js';
-import { constatDuComposant } from './nommage.js';
+import { constatDuComposant, estUnePieceInterne } from './nommage.js';
 import { constatsDeModele } from './propagation.js';
 import type { LayerLu, ReleveDeComposant } from './releve.js';
 import { contournementsDuTheme } from './structure.js';
@@ -43,6 +43,7 @@ export function controlerCouches(releve: ReleveDeComposant, catalogue: Catalogue
 
 /** Cède entre variants, layers, liaisons et cibles d'alias sans changer l'ordre des constats. */
 export function* controlerCouchesParEtapes(releve: ReleveDeComposant, catalogue: CatalogueDeReference): Generator<void, Constat[]> {
+  if (estUnePieceInterne(releve)) return [];
   const constats: Constat[] = [];
   const roleDe = (variable: VariableDuCatalogue) => collectionParCle(catalogue, variable.collection);
   // C63 `theme` accuse déjà l'alias d'un token vers un `brands` à segment de mode, et propose le cran du thème : C20 s'y tait. Lu au premier alias vers `brands`.

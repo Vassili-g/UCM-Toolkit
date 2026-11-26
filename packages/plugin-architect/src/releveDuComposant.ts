@@ -542,6 +542,24 @@ async function instancesEntre(lu: NoeudLu, porteur: NoeudLu, lecteur: Lecteur, m
   return chaine;
 }
 
+/**
+ * La peinture visible du calque que la surcharge lie : ses `fills` et `strokes` (type, visibilité, opacité) et son épaisseur de
+ * contour. Un champ dont la lecture lève ou rend une valeur mixte est consigné dans `manquees` sur le layer de l'hôte, et les
+ * peintures restent absentes : non lues, elles ne disent pas que le calque ne peint rien.
+ */
+async function peinturesDeLaSurcharge(porteur: NoeudLu, hote: string, lecteur: Lecteur, manquees: Manquee[]): Promise<{ peintures?: PeintureLue[]; strokeWeight?: number }> {
+  const compterLaLecture = () => compter('proprietesDuReleve');
+  const locales: Manquee[] = [];
+  const peintures: PeintureLue[] = [];
+  for (const champ of ['fills', 'strokes'] as const) {
+    const lues = await lireLesPeinturesParEtapes(porteur, champ, lecteur.cooperation, compterLaLecture, lecteur.lire);
+    peintures.push(...(await peinturesDe(champ, lues, hote, locales, lecteur.cooperation)));
+  }
+  const strokeWeight = nombreDe(miseEnPage(porteur, ['strokeWeight'], lecteur.lire), 'strokeWeight', hote, manquees);
+  manquees.push(...locales);
+  return { ...(locales.length === 0 ? { peintures } : {}), ...(strokeWeight !== undefined ? { strokeWeight } : {}) };
+}
+
 /** Garde, par composant principal de wrapper, ce que dit `isExposedInstance` : vrai l'emporte, puis `'inconnu'`, puis faux. */
 function noterLExposition(instance: NoeudLu, maitre: NoeudLu, lecteur: Lecteur, manquees: Manquee[]): void {
   let lue: boolean | 'inconnu';
@@ -649,6 +667,7 @@ async function lireLeLayer(port: PortDuComposant, lecteur: Lecteur, etape: Etape
     if (frontiere) {
       const lues: LiaisonLue[] = [];
       const chaines = new Map<string, InstancesDeSurcharge>();
+      const peintesParCalque = new Map<string, { peintures?: PeintureLue[]; strokeWeight?: number }>();
       for (const { propriete, variable, porteur } of await liaisonsDesSurcharges(port, noeud, true, lecteur.cooperation)) {
         await lecteur.cooperation.cederSiBesoin();
         let surcharge = {};
@@ -658,7 +677,12 @@ async function lireLeLayer(port: PortDuComposant, lecteur: Lecteur, etape: Etape
             instances = await instancesEntre(noeud, porteur, lecteur, manquees);
             chaines.set(porteur.id, instances);
           }
-          surcharge = { surcharge: { id: porteur.id, nom: porteur.name, type: porteur.type, instances } };
+          let peinte = peintesParCalque.get(porteur.id);
+          if (!peinte) {
+            peinte = await peinturesDeLaSurcharge(porteur, noeud.id, lecteur, manquees);
+            peintesParCalque.set(porteur.id, peinte);
+          }
+          surcharge = { surcharge: { id: porteur.id, nom: porteur.name, type: porteur.type, instances, ...peinte } };
         }
         lues.push(...(await lecteur.liaisons([{ propriete, variable }], noeud.id)).map((liaison) => ({ ...liaison, ...surcharge })));
       }

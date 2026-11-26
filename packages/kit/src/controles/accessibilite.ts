@@ -1155,20 +1155,28 @@ function* anneauxDuVariant(variant: VariantLu, catalogue: CatalogueDeReference, 
     yield;
     if (!estUnAnneau(layer, rolesLiesDuLayer(layer, catalogue)) || layer.type === 'TEXT' || opaciteEffective(variant, layer) === 0) continue;
     // Un anneau dont les peintures n'ont pas été lues existe : le dire absent serait un faux constat (N-54).
-    if (aUnePeintureQuiSeVoit(layer) || lectureManquee(releve, layer.id, 'fills') || lectureManquee(releve, layer.id, 'strokes') || (yield* unDescendantSePeint(variant, layer))) anneaux.push(layer);
+    if (aUnePeintureQuiSeVoit(layer) || peintureDeSurchargeNonLue(layer) || lectureManquee(releve, layer.id, 'fills') || lectureManquee(releve, layer.id, 'strokes') || (yield* unDescendantSePeint(variant, layer))) anneaux.push(layer);
   }
   return anneaux;
 }
 
 const aUnePeintureQuiSeVoit = (layer: LayerLu): boolean =>
-  layer.peintures.some((p) => peintureVisible(p) && (layer.liaisons.some((l) => l.champ === p.champ && (l.indice ?? 0) === p.indice) || (p.couleur?.a ?? 1) !== 0));
+  layer.peintures.some((p) => peintureVisible(p) && (layer.liaisons.some((l) => l.champ === p.champ && (l.indice ?? 0) === p.indice) || (p.couleur?.a ?? 1) !== 0))
+  || layer.liaisons.some((l) => l.surcharge?.peintures?.some((p) => peintureVisible(p) && (layer.liaisons.some((m) => m.surcharge?.id === l.surcharge?.id && m.champ === p.champ && (m.indice ?? 0) === p.indice) || (p.couleur?.a ?? 1) !== 0)));
+
+/**
+ * Vrai quand le relevé n'a pas lu les peintures du calque que la surcharge lie. Un anneau dans ce cas reste un anneau
+ * et C50 ne le dit pas absent : une peinture non lue ne dit rien du dessin.
+ */
+const peintureDeSurchargeNonLue = (layer: LayerLu): boolean =>
+  layer.liaisons.some((l) => l.surcharge !== undefined && l.surcharge.peintures === undefined && (l.champ === 'fills' || l.champ === 'strokes' || l.champ.startsWith('fills.') || l.champ.startsWith('strokes.')));
 
 /** Une instance d'anneau sans peinture propre est un anneau quand un de ses descendants visibles se peint (Q-F7-9, N-58). */
 function* unDescendantSePeint(variant: VariantLu, anneau: LayerLu): Generator<void, boolean> {
   const parId = memoireDuVariant(variant).parId;
   for (const layer of layersVisibles(variant)) {
     yield;
-    if (layer === anneau || layer.type === 'TEXT' || !aUnePeintureQuiSeVoit(layer) || opaciteEffective(variant, layer) === 0) continue;
+    if (layer === anneau || layer.type === 'TEXT' || !(aUnePeintureQuiSeVoit(layer) || peintureDeSurchargeNonLue(layer)) || opaciteEffective(variant, layer) === 0) continue;
     const vus = new Set<string>();
     for (let parent = layer.parent ? parId.get(layer.parent) : undefined; parent && !vus.has(parent.id); parent = parent.parent ? parId.get(parent.parent) : undefined) {
       if (parent === anneau) return true;

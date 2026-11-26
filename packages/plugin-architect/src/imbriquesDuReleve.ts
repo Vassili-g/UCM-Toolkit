@@ -157,8 +157,9 @@ function noterLeJeuDuWrapper(layer: LayerLu, maitre: NoeudLu, lecteur: LecteurDe
 
 /**
  * Pose la sorte du layer d'une instance imbriquée, puis la provenance de ses liaisons. `nom` est celui de son composant
- * publié (son jeu, sinon son maître). Une dépendance a son propre contrat : son sous-arbre n'est pas compté et ses
- * liaisons ne se comparent pas à son maître. Une sorte qui ne se décide pas (la page du maître ne se lit pas) reste
+ * publié (son jeu, sinon son maître). Une dépendance a son propre contrat : son sous-arbre n'est pas compté. Ses liaisons
+ * se comparent à son maître comme celles des autres sortes : une liaison du maître reste au maître, une surcharge de l'hôte
+ * garde `provenance: 'instance'` et se juge (D20). Une sorte qui ne se décide pas (la page du maître ne se lit pas) reste
  * absente, avec une lecture manquée ; les liaisons se jugent alors comme celles d'un layer de l'hôte.
  */
 export async function marquerLImbrique(layer: LayerLu, nom: string, maitre: NoeudLu, lecteur: LecteurDesImbriques, manquees: ReleveDeComposant['lecture']['manquees']): Promise<void> {
@@ -173,7 +174,6 @@ export async function marquerLImbrique(layer: LayerLu, nom: string, maitre: Noeu
   const sorte = sorteDeLImbrique({ nom, reglesTrouvees, dimensionsLiees: reglesTrouvees ? 0 : await dimensionsLiees(layer.liaisons, lecteur.cooperation) });
   layer.sorte = sorte;
   if (sorte === 'wrapper-de-dimensions') noterLeJeuDuWrapper(layer, maitre, lecteur, manquees);
-  if (reglesTrouvees) return;
   for (const liaison of layer.liaisons) {
     await lecteur.cooperation.cederSiBesoin();
     liaison.provenance = await lecteur.maitres.provenance(maitre, layer.id, liaison);

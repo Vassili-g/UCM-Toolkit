@@ -2,7 +2,7 @@
 import type { Collection } from '../referentiel/architecture.js';
 import { estLAxeDEtats, formeReconnue } from '../referentiel/reconnaissance.js';
 import { modeDuThemeReconnu } from '../referentiel/theme.js';
-import { collectionParCle, type CatalogueDeReference, type VariableDuCatalogue } from './catalogue.js';
+import { collectionParCle, variableDuCatalogue, type CatalogueDeReference, type VariableDuCatalogue } from './catalogue.js';
 import { candidatDeLongueurParEtapes, classerLesCandidatsParEtapes, EGALITE_EN_PIXELS, type CandidatDeLongueur } from './candidatsDeLongueur.js';
 import type { Constat, Correction } from './constat.js';
 import { axesDuReleve, axesDuReleveParEtapes, estLaFamilleCouleur, etatReconnu, memeValeurDAxe, roleDuToken, segmentDAxe, segmentEcritPourLaValeur, tokenVautPourLeLayer, tokensDuComposant, tokensDuComposantParEtapes, type AxeDuComposant, type TokenDuComposant } from './nommage.js';
@@ -150,7 +150,7 @@ function* corrigerEnsemble(constat: Constat, autres: readonly Constat[], releve:
     noms.push(`${axe[1].nom}=${valeur}`);
     if (axe[0] === 'etat' && etatReconnu(valeur) === 'hover' && etatReconnu(segmentActuel) === 'default') versHover = true;
   }
-  const candidats = presentesDeLaCollection(index, segments.join('/'), liaison.variable.collection);
+  const candidats = presentesDeLaCollection(index, segments.join('/'), liaison);
   const faits = { ...constat.faits, autresEcarts: noms.slice(1).join(', ') };
   if (versHover) return { faits, question: { id: constat.id, candidats: candidats.map(({ cle, nom }) => ({ cle, nom })), indice: indiceHover(releve, index, layer, variant.id) } };
   if (candidats.length !== 1) return { faits, ...question(constat, candidats) };
@@ -170,6 +170,8 @@ interface IndexDeCorrection {
   readonly layers: ReadonlyMap<string, readonly LayerLu[]>;
   readonly variants: ReadonlyMap<string, { variant: VariantLu; rang: number }>;
   readonly variablesParNom: ReadonlyMap<string, readonly VariableDuCatalogue[]>;
+  /** La clé de la collection que le catalogue donne à la variable de la liaison : `liaison.variable.collection` porte un nom, jamais une clé (D24). */
+  cleDeCollection(liaison: LiaisonLue): string | undefined;
   axes(): ReturnType<typeof axesDuReleve>;
   axesParEtapes(): Generator<void, ReturnType<typeof axesDuReleve>>;
   tokens(): Generator<void, ReturnType<typeof tokensDuComposant>>;
@@ -203,6 +205,10 @@ function* indexerLeReleve(releve: ReleveDeComposant, catalogue: CatalogueDeRefer
   let lus: boolean | undefined;
   return {
     layers, variants, variablesParNom, candidatsDeCouleur: new Map(),
+    cleDeCollection: (liaison) => {
+      const variable = variableDuCatalogue(catalogue, liaison.variable.cle);
+      return variable === 'absente' ? undefined : variable.collection;
+    },
     axes: () => (axes ??= axesDuReleve(releve, catalogue)),
     axesParEtapes: () => axesDuReleveParEtapes(releve, catalogue),
     tokens: () => tokensDuComposantParEtapes(releve, catalogue),
@@ -210,8 +216,10 @@ function* indexerLeReleve(releve: ReleveDeComposant, catalogue: CatalogueDeRefer
   };
 }
 
-/** Les variables de ce nom, dans la collection donnée, présentes, dans l'ordre du catalogue. */
-function presentesDeLaCollection(index: IndexDeCorrection, nom: string, collection: string): VariableDuCatalogue[] {
+/** Les variables de ce nom, dans la collection de la variable que la liaison lie, présentes, dans l'ordre du catalogue. */
+function presentesDeLaCollection(index: IndexDeCorrection, nom: string, liaison: LiaisonLue): VariableDuCatalogue[] {
+  const collection = index.cleDeCollection(liaison);
+  if (collection === undefined) return [];
   return (index.variablesParNom.get(nom) ?? []).filter((variable) => variable.collection === collection && variable.etat === 'presente');
 }
 
@@ -463,7 +471,7 @@ function* corrigerAxe(constat: Constat, releve: ReleveDeComposant, catalogue: Ca
   if (rang < 0 || rang >= segments.length) return undefined;
   segments[rang] = segmentEcritPourLaValeur(tokens, rang, axe[0], valeur);
   const nomCible = segments.join('/');
-  const candidats = presentesDeLaCollection(index, nomCible, liaison.variable.collection);
+  const candidats = presentesDeLaCollection(index, nomCible, liaison);
   const etatHover = axe[0] === 'etat' && etatReconnu(valeur) === 'hover' && etatReconnu(segmentActuel) === 'default';
   if (constat.code === 'C16' && etatHover) {
     return { question: { id: constat.id, candidats: candidats.map(({ cle, nom }) => ({ cle, nom })), indice: indiceHover(releve, index, layer, variant.id) } };
@@ -481,7 +489,7 @@ function corrigerRole(constat: Constat, releve: ReleveDeComposant, catalogue: Ca
   if (!nomToken || !role || !layer || !liaison) return undefined;
   const segments = nomToken.split('/');
   segments[segments.length - 1] = role;
-  const candidats = presentesDeLaCollection(index, segments.join('/'), liaison.variable.collection);
+  const candidats = presentesDeLaCollection(index, segments.join('/'), liaison);
   if (candidats.length !== 1) return question(constat, candidats);
   return { correction: correctionDeLiaison(constat, layer, liaison, candidats[0], `Le rôle ${role} est attendu pour ce layer.`, axesDuVariant(constat, index)) };
 }

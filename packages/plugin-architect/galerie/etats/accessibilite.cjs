@@ -100,6 +100,10 @@ const informationsButton = [
 ];
 const analyseDeButtonEtInformations = message(variantsButton, [...questionsButton, ...accessibiliteButton, ...informationsButton]);
 
+/* D22 : une pièce interne analysée seule ne montre que la lecture de ses calques et une information. */
+const pieceInterne = { ...button, sujet: { ...button.sujet, nom: '.sizeWrapperButton' } };
+const analyseDeLaPieceInterne = message(variantsButton, [constat('C85:cle-wrapper', 'C85', 'info', 'tokens', { composant: '.sizeWrapperButton' })]);
+
 const ETATS = [
   {
     id: 'x-alert', titre: 'Contraste d’Alert', quand: 'Alert est analysé ; le designer choisit la puce Accessibilité, puis ouvre la première carte du contraste.',
@@ -125,6 +129,11 @@ const ETATS = [
     id: 'u5-informations', titre: 'Section Informations de Button', quand: 'Button est analysé ; « Tout » est choisi ; le designer ouvre la section Informations, en dernière place.',
     regarder: 'La section Informations vient après les éléments tenus, avec un signe gris de note et le nombre 5 ; elle arrive repliée, et le geste de l’état l’ouvre. Ses cinq lignes n’ont ni liseré, ni mot de sévérité, ni chevron : les 54 variants désactivés, le dégradé de l’icône, le fond lu sur la page Figma, les 412 paires non mesurées sur 5412, l’icône que les règles ne pilotent pas. Chaque ligne qui vise des layers a son bouton Sélectionner sous la phrase. Les nombres de « Tout » et de la pastille de Constats ne les comptent pas.',
     existe: true, atteinte: [...ouvrirLePanneau(button, analyseDeButtonEtInformations), { clic: '.section-informations .bande-element' }],
+  },
+  {
+    id: 'u6-piece-interne', titre: 'Pièce interne analysée seule', quand: 'Le wrapper `.sizeWrapperButton` est analysé seul ; le designer ouvre la section Informations.',
+    regarder: 'Aucune carte à faire, aucun token réclamé à son nom ; la section Informations porte une seule ligne, sans liseré ni statut : « Analysez le composant qui l’utilise pour juger ses tokens. »',
+    existe: true, atteinte: [...ouvrirLePanneau(pieceInterne, analyseDeLaPieceInterne), { clic: '.section-informations .bande-element' }],
   },
 ].map((etat) => ({ ...etat, disposition: 'etroite' }));
 

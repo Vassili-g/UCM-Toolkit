@@ -3,7 +3,7 @@ import { estUneIcone, roleQueLeLayerDesigne } from '../referentiel/layers.js';
 import { formeDuChemin, formeReconnue } from '../referentiel/reconnaissance.js';
 import { collectionParCle, variableDuCatalogue, type CatalogueDeReference, type VariableDuCatalogue } from './catalogue.js';
 import type { Constat } from './constat.js';
-import { axesDuReleveParEtapes, constatDuComposant, estDuComposant, memeValeurDAxe, roleDuToken, segmentDAxe, tokensDuComposantParEtapes, type AxeDuComposant, type ProprieteDAxe, type TokenDuComposant } from './nommage.js';
+import { axesDuReleveParEtapes, constatDuComposant, estDuComposant, estUnePieceInterne, memeValeurDAxe, roleDuToken, segmentDAxe, tokensDuComposantParEtapes, type AxeDuComposant, type ProprieteDAxe, type TokenDuComposant } from './nommage.js';
 import { identiteDuCalque, peintureVisible, type LayerLu, type LiaisonLue, type ReleveDeComposant, type VariantLu } from './releve.js';
 
 export interface LiaisonDuComposant { variant: VariantLu; layer: LayerLu; liaison: LiaisonLue }
@@ -199,6 +199,7 @@ export function controlerMapping(releve: ReleveDeComposant, catalogue: Catalogue
 
 /** Cède dans les axes, les tokens, les liaisons, les modes et la fratrie ; les constats gardent leur ordre. */
 export function* controlerMappingParEtapes(releve: ReleveDeComposant, catalogue: CatalogueDeReference): Generator<void, Constat[]> {
+  if (estUnePieceInterne(releve)) return [];
   const axes = yield* axesDuReleveParEtapes(releve, catalogue);
   const tokens = new Map((yield* tokensDuComposantParEtapes(releve, catalogue)).map((token) => [token.variable.cle, token]));
   const constats: Constat[] = [];

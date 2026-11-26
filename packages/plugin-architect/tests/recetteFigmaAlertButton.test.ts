@@ -32,10 +32,11 @@ test('le relevé garde, pour chaque surcharge, le layer de l’instance qu’ell
   const issue = await lireLeReleve(a.port(port), jeu);
   assert.equal(issue.statut, 'lu');
   if (issue.statut !== 'lu') return;
+  const aplat = { champ: 'fills', indice: 0, type: 'SOLID', visible: true, opacite: 1, blendMode: 'NORMAL', couleur: { r: 0, g: 0, b: 0, a: 1 } };
   const layer = issue.releve.variants[0].layers.find(({ id }) => id === 'I1');
   assert.deepEqual(layer?.liaisons.map(({ porteur, surcharge }) => [porteur, surcharge]), [
-    ['I1', { id: 'I1;texte', nom: 'Suivant', type: 'TEXT', instances: [] }],
-    ['I1', { id: 'I1;trace', nom: 'Vector', type: 'VECTOR', instances: [] }],
+    ['I1', { id: 'I1;texte', nom: 'Suivant', type: 'TEXT', instances: [], peintures: [aplat] }],
+    ['I1', { id: 'I1;trace', nom: 'Vector', type: 'VECTOR', instances: [], peintures: [aplat] }],
   ]);
 });
 

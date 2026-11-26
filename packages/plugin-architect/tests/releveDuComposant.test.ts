@@ -628,11 +628,15 @@ test('une pièce interne dont le rayon est lié est un wrapper de dimensions : l
   assert.deepEqual(provenances(layer).filter(([, champ]) => champ === 'cornerRadius'), [[null, 'cornerRadius', 'composant-principal']]);
 });
 
-test('une instance dont le composant a ses règles est une dépendance, et ses liaisons ne sont pas comparées à son maître', async () => {
+test('une instance dont le composant a ses règles est une dépendance, et ses liaisons marquent leur origine comme celles des autres sortes (D20)', async () => {
   const layer = await layerDeLAnneau({ nom: 'Avatar' }, () => true);
   assert.equal(layer.sorte, 'dependance');
-  assert.ok(layer.liaisons.length > 0);
-  assert.ok(layer.liaisons.every((liaison) => liaison.provenance === undefined));
+  assert.deepEqual(provenances(layer), [
+    [null, 'strokeWeight', 'composant-principal'],
+    [null, 'fills', 'instance'],
+    ['Iring-inst;point', 'strokeWeight', 'composant-principal'],
+    ['Iring-inst;autre-point', 'strokeWeight', 'instance'],
+  ]);
 });
 
 test('un composant sans préfixe ni règles est un détail', async () => {

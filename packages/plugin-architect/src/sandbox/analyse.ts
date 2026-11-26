@@ -42,7 +42,7 @@
  * événement du document la lève.
  */
 import {
-  controlerCouchesParEtapes, controlerLAccessibiliteParEtapes, controlerLaStructureParEtapes, controlerLaTypographieParEtapes, controlerLeThemeParEtapes, controlerMappingParEtapes, controlerNommageParEtapes, controlerOublisParEtapes, sansLaCascadeDesVariants, clesDesTokensDeTailleAttendus, proposerLesCorrectionsParEtapes, tokensDuComposant,
+  controlerCouchesParEtapes, controlerLAccessibiliteParEtapes, controlerLaStructureParEtapes, controlerLaTypographieParEtapes, controlerLeThemeParEtapes, controlerMappingParEtapes, controlerNommageParEtapes, controlerOublisParEtapes, estUnePieceInterne, sansLaCascadeDesVariants, clesDesTokensDeTailleAttendus, proposerLesCorrectionsParEtapes, tokensDuComposant,
   type CatalogueDeReference, type Constat, type Correction, type LiaisonLue, type ReleveDeComposant,
 } from '@ucm-kit/core/controles';
 import { lireLesLibraries, type LectureDesLibraries, type PortDeBibliotheque } from 'ucm-plugin-socle/src/bibliotheque';
@@ -2209,7 +2209,7 @@ async function analyser(contexte: Contexte, lecteurs: Lecteurs, demandeRecue: Ex
       etape('controle-fusion');
       const variantsDuReleve = releve.variants;
       const information = informationDuPremierVariant({ variants: variantsDuReleve });
-      const brut = mesurerLeCalcul(() => [...controles, ...constatsDeRegles(reglesLues), ...constatsDuMoteur(moteur, new Set(variantsDuReleve.map((variant) => variant.id))), ...(information ? [information] : [])], 'controles', true);
+      const brut = mesurerLeCalcul(() => [...controles, ...(estUnePieceInterne(releve) ? [] : constatsDeRegles(reglesLues)), ...constatsDuMoteur(moteur, new Set(variantsDuReleve.map((variant) => variant.id))), ...(information ? [information] : [])], 'controles', true);
       phase('corrections');
       await cooperation.cederSiBesoin();
       // C25 et C29 naissent des corrections : le doublon du moteur se retire après elles.

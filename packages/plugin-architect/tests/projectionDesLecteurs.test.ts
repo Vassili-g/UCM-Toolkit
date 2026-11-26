@@ -136,7 +136,7 @@ test('le relevé lit ces champs dans cet ordre et en tire ces layers', async () 
     TEXT: ['type', 'children', 'absoluteBoundingBox', 'id', 'name', 'visible', 'opacity', 'fills', 'blendMode', 'effects', 'strokes', 'strokeWeight', 'explicitVariableModes', 'boundVariables', 'layoutGrids', 'getStyledTextSegments(fontSize,fontWeight,fills,boundVariables,textStyleId)', 'layoutMode', 'cornerRadius', 'topLeftRadius', 'topRightRadius', 'bottomLeftRadius', 'bottomRightRadius', 'textStyleId'],
     INSTANCE: ['type', 'id', 'absoluteBoundingBox', 'name', 'visible', 'opacity', 'fills', 'blendMode', 'effects', 'strokes', 'strokeWeight', 'explicitVariableModes', 'boundVariables', 'layoutGrids', 'overrides', 'getMainComponentAsync()', 'variantProperties', 'componentPropertyReferences', 'layoutMode', 'cornerRadius', 'topLeftRadius', 'topRightRadius', 'bottomLeftRadius', 'bottomRightRadius'],
     FRAME: ['type', 'children', 'absoluteBoundingBox', 'id', 'name', 'visible', 'opacity', 'fills', 'blendMode', 'effects', 'strokes', 'strokeWeight', 'explicitVariableModes', 'boundVariables', 'layoutGrids', 'layoutMode', 'cornerRadius', 'topLeftRadius', 'topRightRadius', 'bottomLeftRadius', 'bottomRightRadius'],
-    RECTANGLE: ['type', 'boundVariables', 'fills', 'strokes', 'effects', 'layoutGrids', 'id', 'parent', 'name'],
+    RECTANGLE: ['type', 'boundVariables', 'fills', 'strokes', 'effects', 'layoutGrids', 'id', 'parent', 'strokeWeight', 'name'],
     STYLE: ['paints', 'effects', 'layoutGrids', 'boundVariables', 'name'],
   });
   assert.deepEqual(releve.variants.map((variant) => ({ nom: variant.nom, valeurs: variant.valeurs, modes: variant.modesEffectifs, layers: variant.layers.map(ligneDeLayer) })), [

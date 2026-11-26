@@ -1,4 +1,5 @@
 /** Comparaison des axes du composant avec les noms de ses variables de référence. */
+import { sorteDeLImbrique } from '../referentiel/composition.js';
 import { reconnaitreLeChemin, type SegmentReconnu } from '../referentiel/grammaire.js';
 import { estLAxeDEtats, formeReconnue, termeReconnu } from '../referentiel/reconnaissance.js';
 import type { NomANormaliser } from '../referentiel/conventions.js';
@@ -446,6 +447,15 @@ export function estDuComposant(nom: string, jeu: string): boolean {
   return formeReconnue(fin < 0 ? nom : nom.slice(0, fin)) === formeReconnue(jeu);
 }
 
+/**
+ * Le sujet est une pièce interne (D22) : `sorteDeLImbrique` la reconnaît à son préfixe, sans règles ni dimensions liées. Une pièce
+ * interne n'a ni contrat ni collection, et ses tokens sont ceux du composant qui l'utilise : analysée seule, elle n'a pas de propriétaire
+ * de tokens, donc les contrôles du nommage, du mapping, des couches et des oublis se taisent.
+ */
+export function estUnePieceInterne(releve: Pick<ReleveDeComposant, 'jeu'>): boolean {
+  return sorteDeLImbrique({ nom: releve.jeu.nom, reglesTrouvees: false, dimensionsLiees: 0 }) === 'piece-interne';
+}
+
 export function constatDuComposant(
   code: CodeDeConstat, famille: Constat['famille'], type: Constat['type'],
   identifiant: string, faits: Constat['faits'], variants: string[] = [], layers: string[] = [],
@@ -462,6 +472,7 @@ export function controlerNommage(releve: ReleveDeComposant, catalogue: Catalogue
 
 /** Cède dans les tokens, les variants et les recherches de noms ; les groupes gardent leur ordre. */
 export function* controlerNommageParEtapes(releve: ReleveDeComposant, catalogue: CatalogueDeReference): Generator<void, Constat[]> {
+  if (estUnePieceInterne(releve)) return [];
   const tokens = yield* tokensDuComposantParEtapes(releve, catalogue);
   const axes = yield* axesDuReleveParEtapes(releve, catalogue);
   const constats: Constat[] = [];

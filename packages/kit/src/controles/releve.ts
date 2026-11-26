@@ -24,6 +24,13 @@ export interface LiaisonLue {
     id: string; nom: string; type: string;
     /** Les instances entre le layer lu et le calque peint, de la plus externe à la plus interne, sans l'un ni l'autre. Absentes : le relevé ne les a pas lues. */
     instances?: LayerPourLesDefinitions[];
+    /**
+     * Les peintures (`fills`, `strokes`) du calque que la surcharge lie : le relevé ne descend pas sous la frontière de l'instance, et
+     * C50 comme le contraste jugent ce qui s'y dessine. Absentes : non lues, ce qui ne dit pas « sans peinture ».
+     */
+    peintures?: PeintureLue[];
+    /** L'épaisseur du contour du calque que la surcharge lie. Absente : non lue. */
+    strokeWeight?: number;
   };
   /**
    * `composant-principal` : la liaison vient du composant principal de l'instance, sans changement. `instance` : l'hôte la pose ou la change.

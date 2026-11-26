@@ -3,7 +3,7 @@ import { natureDuChamp } from '../referentiel/architecture.js';
 import { formeReconnue } from '../referentiel/reconnaissance.js';
 import type { CatalogueDeReference } from './catalogue.js';
 import type { Constat } from './constat.js';
-import { axesDesProprietes, axesDuReleve, axesDuReleveParEtapes, constatDuComposant, memeValeurDAxe, roleDesTokensPourLesValeurs, tokensDuComposantParEtapes, type AxeDuComposant, type TokenDuComposant } from './nommage.js';
+import { axesDesProprietes, axesDuReleve, axesDuReleveParEtapes, constatDuComposant, estUnePieceInterne, memeValeurDAxe, roleDesTokensPourLesValeurs, tokensDuComposantParEtapes, type AxeDuComposant, type TokenDuComposant } from './nommage.js';
 import type { ReleveDeComposant, VariantLu, WrapperLu } from './releve.js';
 
 function* tokenDuVariant(
@@ -309,8 +309,17 @@ export function controlerOublis(releve: ReleveDeComposant, catalogue: CatalogueD
   return etape.value;
 }
 
+/**
+ * C85 (D22) : le seul constat d'une pièce interne analysée seule. Il remplace les contrôles qui supposent un propriétaire de tokens ou de
+ * règles ; `composant` nomme la pièce.
+ */
+export function constatDePieceInterne(releve: Pick<ReleveDeComposant, 'jeu'>): Constat {
+  return constatDuComposant('C85', 'tokens', 'info', releve.jeu.cle, { composant: releve.jeu.nom });
+}
+
 /** Cède pendant la construction de la matrice et entre les vérifications de couverture. */
 export function* controlerOublisParEtapes(releve: ReleveDeComposant, catalogue: CatalogueDeReference): Generator<void, Constat[]> {
+  if (estUnePieceInterne(releve)) return [constatDePieceInterne(releve)];
   const constats: Constat[] = [];
   const lectureComplete = releve.lecture.variantsNonLus.length === 0 && releve.lecture.layersNonLus === 0;
   if (!lectureComplete) return constats;
