@@ -131,8 +131,9 @@ Faits relevés sur les captures, que les failles citent.
 | A. Wrapper = instance élue, posée une fois par variant, dont le set porte un axe de tailles | `.sizeWrapperButton` reste wrapper ; `.Segment` et `.Ring` deviennent des pièces ; le critère se teste sur les deux captures |
 | B. Le designer déclare le wrapper (une règle dans le bloc de l'hôte) | Aucune supposition, mais un geste de plus sur chaque composant à wrapper, et un Button non migré perd ses props au réexport |
 | C. Garder le critère actuel | P22 ne décrit ni `.Segment` ni `.Ring`, et Groupe garde une API fausse |
+| D. Le critère est l'exposition Figma : une instance imbriquée dont le designer expose les propriétés (« Expose properties from nested instances », `isExposedInstance`) est un wrapper, ses props rejoignent l'API de l'hôte ; une instance préfixée non exposée est une pièce | Aucune supposition : le designer a déjà déclaré le cas dans Figma. Mesuré sur les captures : `.sizeWrapperButton` exposé dans les 90 variants de Button, `.Ring` non exposé dans ses 18, `.Segment` non exposé dans ses 15 instances de Groupe. Les trois cas tombent juste, sans condition de taille |
 
-Recommandation : A.
+Recommandation : D, ajoutée après l'audit par la conversation principale. Elle remplace la condition « axe de tailles » de A par un fait que Figma porte, et garde les dimensions du wrapper lues comme en 14.0. Le moteur ne lit aujourd'hui `exposedInstances` que dans l'échantillon (`extractSamples.ts:271`).
 
 #### F2. Une pièce qui reçoit ses règles devient une dépendance sans contrat, tant que quatre lecteurs ne changent pas ensemble
 
@@ -646,7 +647,7 @@ La première relecture de la carte a ajouté S13 à S17, et avec elles F13, F17,
 
 De la plus structurante à la moins structurante. Chaque décision renvoie à la faille qui porte ses options.
 
-1. D1. Critère du wrapper et de la pièce, avec Q1 (F1, F4). Recommandation : A.
+1. D1. Critère du wrapper et de la pièce, avec Q1 (F1, F4). Recommandation : D, l'exposition Figma.
 2. D2. Jugement des couleurs du choix 6 : une définition du token du composant (F13), le jugement par emplacement (F14), le cas sans instance (F15), l'Exporter sans dossier désigné (F17). Recommandation : A de F14, avec les corrections de F13, F15 et F17.
 3. D3. Couleur et glyphe d'une dépendance posée par l'hôte ou par une pièce (F19, F20, F21). Recommandation : A.
 4. D4. Forme du renvoi : absence et vide (F6), avec Q3 et Q4. Recommandation : A de F6, Q3 A, Q4 A.

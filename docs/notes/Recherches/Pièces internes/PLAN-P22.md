@@ -15,6 +15,8 @@ Ce plan suit la piste P22 de `docs/notes/Recherches/Evolutions globales/pistes.j
 
 ## Étape 0. Décisions du mainteneur
 
+[DECISIONS-P22.md](./DECISIONS-P22.md) explique chaque décision en termes simples, avec la réponse recommandée et ce qu'elle change dans Figma.
+
 - [ ] 0.1 (mainteneur). Choix 1 de la recherche : bloc `pieces` à la racine, distinct de `composes`. L'audit confirme la recommandation A.
 - [ ] 0.2 (mainteneur). Choix 3 : pièces à plat. L'audit confirme A, avec les renvois imbriqués de F7.
 - [ ] 0.3 (mainteneur). Choix 6 précisé par D2 : une définition du token du composant (F13), jugement par emplacement (F14), cas sans instance (F15), Exporter sans dossier désigné (F17). Le choix 4 option A ne vaut plus pour les couleurs.
