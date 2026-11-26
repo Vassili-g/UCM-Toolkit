@@ -170,6 +170,17 @@ test('un point C30 tombe quand un C25 ou un C29 porte le même layer et le même
   assert.deepEqual(sansLesDoublonsDuMoteur([marge, kit('C29', 'paddingLeft')]).map(({ code }) => code), ['C29']);
 });
 
+test('un point C30 posé sur la racine d’un variant tombe aussi : le kit la nomme layer, le moteur la nomme variant (générateur, G1 et G5)', () => {
+  const kitRacine = (code: 'C25' | 'C29', champ: string): Constat => ({ ...kit(code, champ, 'v1'), variants: ['v1'], layers: ['v1'] });
+  const racine = (titre: string): Constat => constatsDuMoteur(moteurAvec([point('variables', titre)], { 0: ['v1'] }), new Set(['v1']))[0];
+  const fond = racine('Layer « Root », fills : aucune variable associée.');
+  const marge = racine('Layer « Root », padding : aucune variable Figma n’est reliée.');
+  assert.deepEqual([fond.layers, fond.variants], [[], ['v1']], 'le point nomme la racine dans variants');
+  assert.deepEqual(sansLesDoublonsDuMoteur([fond, kitRacine('C25', 'fills')]).map(({ code }) => code), ['C25']);
+  assert.deepEqual(sansLesDoublonsDuMoteur([marge, kitRacine('C29', 'paddingLeft')]).map(({ code }) => code), ['C29']);
+  assert.equal(sansLesDoublonsDuMoteur([fond, kit('C25', 'fills', 'l2')]).length, 2, 'un autre layer du variant ne couvre pas la racine');
+});
+
 test('le point C30 reste pour un autre layer, un autre champ ou sans équivalent du kit (opacité)', () => {
   const fond = moteurC30('Layer « Root », fills : aucune variable associée.');
   const opacite = moteurC30('Layer « Root », opacity : aucune variable associée.');

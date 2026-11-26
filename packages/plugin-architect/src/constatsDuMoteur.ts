@@ -157,7 +157,7 @@ function champsDuPoint(titre: string): Set<string> {
  * Retire du moteur ce que le kit ou les règles disent déjà, pour qu'un défaut ne fasse qu'une carte. `constats` est la liste complète
  * de l'analyse, corrections comprises : C25 et C29 n'existent qu'après elles.
  *
- * - Un point C30 tombe quand un C25 ou un C29 porte le même layer et le même champ (Q-F3-17). Le kit compte même si le designer a
+ * - Un point C30 tombe quand un C25 ou un C29 porte le même layer (la racine d'un variant comprise) et le même champ (Q-F3-17). Le kit compte même si le designer a
  *   ignoré son constat : Ignorer ne fait pas revenir le doublon (Q-F89-12), car la clé suffit.
  * - Un point C44 qui dit qu'aucune instance de règles n'écrit le composant, qu'un conteneur ne nomme personne, ou qu'aucune règle d'usage
  *   n'est déclarée, tombe quand C43 le dit (Q-09, D23). Sans C43, il reste : il porte alors le geste.
@@ -180,7 +180,9 @@ export function sansLesDoublonsDuMoteur(constats: readonly Constat[]): Constat[]
     }
     if (constat.code !== 'C30') return true;
     const champs = champsDuPoint(String(constat.faits.titre ?? constat.faits.message ?? ''));
-    return !jugesParLeKit.some((kit) => champs.has(String(kit.faits.champ)) && kit.layers.some((layer) => constat.layers.includes(layer)));
+    // La racine d'un variant est un layer pour le kit et un variant pour le moteur : le point la nomme dans `variants`.
+    const memeCalque = (kit: Constat): boolean => kit.layers.some((layer) => constat.layers.includes(layer) || constat.variants.includes(layer));
+    return !jugesParLeKit.some((kit) => champs.has(String(kit.faits.champ)) && memeCalque(kit));
   });
 }
 

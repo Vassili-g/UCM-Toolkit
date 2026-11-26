@@ -127,7 +127,26 @@ export function collectionFigma(id: string, name: string, modes: string[], varia
 }
 
 /** Les lectures qu'un calque permet. `exportAsync` produit des octets en mémoire. */
-const LECTURES_DE_CALQUE = ['getStyledTextSegments', 'getMainComponentAsync', 'exportAsync', 'findAll'];
+const LECTURES_DE_CALQUE = ['getStyledTextSegments', 'getMainComponentAsync', 'exportAsync', 'findAll', 'findOne', 'findChildren', 'findAllWithCriteria'];
+
+/** Les types de calque qui portent des enfants et donc les méthodes de recherche : un texte, un tracé ou une forme n'ont pas `findAll`. */
+const TYPES_A_ENFANTS: ReadonlySet<string> = new Set(['DOCUMENT', 'PAGE', 'COMPONENT_SET', 'COMPONENT', 'INSTANCE', 'FRAME', 'GROUP', 'SECTION', 'BOOLEAN_OPERATION']);
+
+/**
+ * Les recherches de Figma sur un calque à enfants, dans l'ordre du document : `findAll` et `findAllWithCriteria` parcourent tous les
+ * descendants, `findOne` rend le premier ou `null`, `findChildren` ne lit que les enfants. Le moteur les détecte par `'findAll' in noeud`.
+ * L'atelier ne les pose que sur demande (`recherches`) : un test qui ne les écrit pas garde un moteur qui ne voit que la racine des
+ * variants, et plusieurs tests (`chasseComposants.test.ts`) comptent sur cette vue.
+ */
+function recherchesDeCalque(enfantsDe: () => readonly NoeudLu[]) {
+  const descendants = (enfants: readonly NoeudLu[]): NoeudLu[] => enfants.flatMap((enfant) => [enfant, ...descendants(enfant.children ?? [])]);
+  return {
+    findAll: (filtre: (noeud: NoeudLu) => boolean = () => true) => descendants(enfantsDe()).filter(filtre),
+    findOne: (filtre: (noeud: NoeudLu) => boolean) => descendants(enfantsDe()).find(filtre) ?? null,
+    findChildren: (filtre: (noeud: NoeudLu) => boolean = () => true) => [...enfantsDe()].filter(filtre),
+    findAllWithCriteria: ({ types }: { types: readonly string[] }) => descendants(enfantsDe()).filter((noeud) => types.includes(noeud.type)),
+  };
+}
 
 /** Les méthodes d'écriture qu'un calque ou un style porte, présentes pour que leur appel lève. */
 const MUTATIONS_DE_CALQUE = {
@@ -147,9 +166,12 @@ const MUTATIONS_DE_CALQUE = {
 /**
  * Un atelier de calques, de styles de texte et de leur port, tous en lecture
  * seule. `journal` relève chaque méthode appelée : il ne contient que des
- * lectures quand le code lu n'a rien écrit.
+ * lectures quand le code lu n'a rien écrit. Avec `recherches`, chaque calque à enfants porte `findAll`, `findOne`, `findChildren` et
+ * `findAllWithCriteria`, et répond vrai à `'findAll' in calque`. `permises` ajoute des méthodes de lecture que l'atelier laisse appeler
+ * (`getSharedPluginData`, `loadAsync`).
  */
-export function atelierDeCalques() {
+export function atelierDeCalques(options: { readonly recherches?: boolean; readonly permises?: readonly string[] } = {}) {
+  const lecturesPermises = [...LECTURES_DE_CALQUE, ...(options.permises ?? [])];
   const journal: string[] = [];
   const noeuds = new Map<string, NoeudLu>();
   const styles = new Map<string, StyleLu>();
@@ -163,8 +185,9 @@ export function atelierDeCalques() {
     /** Un calque ; ses enfants reçoivent ce calque pour parent. Son nom est `Calque <id>` sauf `name` dans `champs`. */
     calque(id: string, type: string, champs: Record<string, unknown> = {}, enfants: readonly NoeudLu[] = []): NoeudLu {
       // Les descripteurs sont copiés tels quels : un accesseur qui lève ne lève qu'à la lecture du code testé.
-      const brut = Object.defineProperties({ id, name: `Calque ${id}`, type, parent: null as NoeudLu | null, ...MUTATIONS_DE_CALQUE, children: enfants }, Object.getOwnPropertyDescriptors(champs));
-      const fige = enLectureSeule(brut, LECTURES_DE_CALQUE, journal) as unknown as NoeudLu;
+      const recherches: Partial<ReturnType<typeof recherchesDeCalque>> = options.recherches && TYPES_A_ENFANTS.has(type) ? recherchesDeCalque((): readonly NoeudLu[] => enfants) : {};
+      const brut = Object.defineProperties({ id, name: `Calque ${id}`, type, parent: null as NoeudLu | null, ...MUTATIONS_DE_CALQUE, ...recherches, children: enfants }, Object.getOwnPropertyDescriptors(champs));
+      const fige = enLectureSeule(brut, lecturesPermises, journal) as unknown as NoeudLu;
       bruts.set(fige, brut);
       noeuds.set(id, fige);
       for (const enfant of enfants) {

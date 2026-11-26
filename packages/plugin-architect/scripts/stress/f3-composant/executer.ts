@@ -13,12 +13,22 @@
  *
  *   npm run stress:composant -- --operateur K4   (opérateurs seuls, rien n'est écrit ; une lettre ou un opérateur)
  *   npm run stress:composant -- --cas K4-3       (un cas des opérateurs ; un identifiant D1-3 vise la chaîne)
+ *
+ * Le générateur de composants (lot L17, `../generateur/executer.ts`) tourne à la suite, ou seul avec l'un de ses arguments :
+ *
+ *   npm run stress:composant -- --graine 1729 --nombre 500    (le grand tirage, écarts réduits ; `--sans-reduction` les laisse entiers)
+ *   npm run stress:composant -- --generateur                  (graine 1729, 500 cas)
+ *   npm run stress:composant -- --rejouer <cas ou réduit.json>
+ *
+ * Il écrit son rapport dans `_local/stress/generateur/`. Un argument de la chaîne ou des opérateurs (`--cas`, `--serie`, `--operateur`)
+ * le laisse de côté, et un argument du générateur laisse de côté la chaîne et les opérateurs.
  */
 import { mkdirSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
 
 import { casDeLaChaine, type CasDeChaine, type ResultatDeChaine } from './casDeLaChaine';
 import { agreger, detailTexte, GRAINE_PAR_DEFAUT, mesurerLesOperateurs, rapportJson, rapportTexte, tableau } from './operateurs';
+import { lancerLeGenerateur, veutLeGenerateur } from '../generateur/executer';
 import { rattacher, vueDeComparer, vueDeLEcran, type VueDEcart } from './signatures';
 
 interface EcartRapporte {
@@ -56,8 +66,11 @@ const seulCas = argument('--cas');
 const seuleSerie = argument('--serie');
 const seulOperateur = argument('--operateur');
 const casDeChaine = (id: string): boolean => /^D\d+-\d+$/.test(id);
-const veutLaChaine = seulOperateur === undefined && (seulCas === undefined || casDeChaine(seulCas));
-const veutLesOperateurs = seuleSerie === undefined && (seulOperateur !== undefined || seulCas === undefined || !casDeChaine(seulCas));
+const argumentsDeF3 = seulCas !== undefined || seuleSerie !== undefined || seulOperateur !== undefined;
+const veutF3 = argumentsDeF3 || !veutLeGenerateur();
+const veutLeGenerateurAussi = veutLeGenerateur() || !argumentsDeF3;
+const veutLaChaine = veutF3 && seulOperateur === undefined && (seulCas === undefined || casDeChaine(seulCas));
+const veutLesOperateurs = veutF3 && seuleSerie === undefined && (seulOperateur !== undefined || seulCas === undefined || !casDeChaine(seulCas));
 
 function ecartsDuResultat(definition: CasDeChaine, resultat: ResultatDeChaine): EcartRapporte[] {
   const commande = `npm run stress:composant -- --cas ${definition.id}`;
@@ -172,6 +185,10 @@ async function principal(): Promise<void> {
   if (veutLesOperateurs) {
     if (veutLaChaine) process.stdout.write('\n');
     mesurerLesOperateursEtRendre(dossier);
+  }
+  if (veutLeGenerateurAussi) {
+    if (veutLaChaine || veutLesOperateurs) process.stdout.write('\n');
+    await lancerLeGenerateur();
   }
 }
 

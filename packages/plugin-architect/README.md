@@ -272,6 +272,32 @@ ne couvre est un écart. `reportees` liste les constats justes que la capture ne
 porte pas : le banc les rappelle sans les compter. Une capture dont le plugin précède un lot de lecture est à refaire. Le
 premier filet de D15, `tests/composantsDeReference.test.ts`, joue la même comparaison sur Button et Alert fabriqués.
 
+Le générateur de composants (lot L17 du plan de la recette du Button) cherche les faux constats que les composants écrits à la main
+ne montrent pas. Il fabrique de faux documents Figma depuis une graine, lance l'analyse complète d'Architect et compare les constats à
+une carte écrite avant l'analyse : couleur résolue de chaque variable par mode, scopes, chemin et rang de chaque calque, propriétaire
+et origine de chaque liaison, constats attendus avec leur code et leur cible. Un garde refuse un document dont la carte et les nœuds
+divergent. Un tirage compose l'anatomie (texte, icône, indicateur, piste, curseur, anneau, image, composant imbriqué), la construction
+(imbrications, wrapper de taille exposé ou non, visibilité par propriété, échange d'instance, styles, mode forcé, fond d'un frère) et le
+dialecte d'un design system (`packages/kit/fixtures/dialectes/dialectes.json` : noms de propriétés et valeurs publiés, avec leur source,
+sans texte recopié). Chaque composant suit ensuite l'une des quatre familles d'attentes : juste (zéro constat, ou les informations que
+la carte prévoit), défaut injecté (le constat attendu sur la cible attendue, et la restauration rend le résultat de départ),
+transformation neutre (renommer, permuter, changer les identifiants, ajouter un cadre) et abstention (variable, collection ou
+lecture refusée). Les modules vivent dans `tests/generateur/`. `tests/generateurEchantillon.test.ts` tire 52 cas d'une graine fixe dans
+`npm test`, en 2 s environ, et échoue avec le composant réduit au plus petit dans son message. Le grand tirage reste hors de `npm test` :
+
+```sh
+npm run stress:composant -- --graine 1729 --nombre 500              # le tirage et la réduction de chaque écart
+npm run stress:composant -- --graine 7 --nombre 500 --ecarts-connus  # rétablit les constructions que le tirage évite
+npm run stress:composant -- --rejouer _local/stress/generateur/reduits/G1.json
+```
+
+Sans argument, `npm run stress:composant` lance aussi la chaîne et les opérateurs de F3, puis le générateur (graine 1729, 500 cas). Le
+rapport est dans `_local/stress/generateur/` (hors de git) : `rapport.txt` donne les comptes par famille d'attentes, la couverture et
+chaque écart, `rapport.json` le détail de chaque cas, `reduits/G<n>.json` le plus petit composant qui reproduit chaque écart, et `refus/`
+les documents que le garde a refusés. Un document refusé est un défaut du générateur, jamais une preuve contre Architect. Un écart que
+le produit ne corrige pas encore reste hors de l'échantillon fixe, avec sa raison en commentaire dans `tests/generateur/generateur.ts` ;
+`--ecarts-connus` le retrouve.
+
 `npm run fidelite --workspace ucm-architect-plugin -- [<cadre>…]` compare
 chaque cadre de `galerie/cadres.json` à l'état de galerie du même identifiant,
 dans la maquette d'UCM Architect : il range les captures côte à côte dans
