@@ -41,12 +41,11 @@ Trois bornes tiennent aujourd'hui.
 
 ## 4. Ce qui reste au designer
 
-Le dessin de la variante de référence, les réponses aux questions et la publication de la library. Une variante qui diffère par sa structure (icône absente, autre mise en page) se retouche après la déclinaison.
+Le dessin de la variante de référence, les réponses aux questions et la publication de la library. Le mainteneur garde les tokens et les composants dans deux fichiers dès le début : la publication entre Créer et Lier reste donc un geste du designer, et M3 s'arrête sur elle. Une variante qui diffère par sa structure (icône absente, autre mise en page) se retouche après la déclinaison.
 
 ## Questions au mainteneur
 
 - Q1. Le designer dessine-t-il une seule variante de référence, ou une par valeur d'un axe de structure (taille, présence d'une icône) ?
 - Q2. La liste des axes et de leurs valeurs vient-elle du cahier de P30, lu par le plugin, ou se saisit-elle dans le plugin ?
-- Q3. Pendant la construction, les composants et les tokens peuvent-ils vivre dans le même fichier ? La publication entre Créer et Lier disparaîtrait.
 - Q4. Relancer la construction sur un composant déjà construit : le plugin complète les variantes manquantes sans toucher aux autres, ou refuse ?
 - Q5. Une variante que le designer a retouchée à la main après la déclinaison se protège-t-elle d'une nouvelle déclinaison ?

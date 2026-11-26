@@ -1382,6 +1382,44 @@
         "Une variante supprimée après coup perd sa clé et détache ses instances : le jeu de variants se fixe avant le dessin des composés.",
         "L'API de Figma ne publie pas une library : entre la création des variables et leur liaison, le designer publie à la main."
       ]
+    },
+    {
+      "id": "P32",
+      "titre": "Un plugin tient à jour dans Figma les icônes FontAwesome que le code emploie",
+      "titreCourt": "Synchronisation des icônes",
+      "sujet": "Bibliothèque de production",
+      "recherche": "docs/notes/Recherches/Synchronisation des icones/RECHERCHE-SYNCHRONISATION-DES-ICONES.md",
+      "plan": "docs/notes/Recherches/Synchronisation des icones/PLAN-P32.md",
+      "resume": "Ce qu'il fait : un script relève les icônes FontAwesome Pro que les dépôts de code emploient, et un plugin crée ou met à jour dans la library Figma un composant par icône et par style, sans détacher les instances. Où : un script de relevé et un plugin, nouveau ou mode d'un plugin existant, à décider. Pourquoi : la recréation des composants (P30) demande des icônes en composants qu'`Icon` échange, et chaque version de FontAwesome redessine des icônes.",
+      "importance": "haute",
+      "raisonImportance": "Le pilote de P30 emploie des icônes, et une icône copiée à la main dans Figma vieillit sans que personne le voie.",
+      "prio": 2,
+      "dependances": [],
+      "complexite": "m",
+      "raisonComplexite": "Le relevé des icônes lit des imports ; le plugin crée des composants depuis des tracés SVG et les met à jour en place, sans toucher à leur clé.",
+      "coutHumain": "Répondre aux questions de la recherche, fournir l'accès FontAwesome Pro au plugin, puis lancer la première synchronisation.",
+      "porteur": "mainteneur",
+      "promesse": "R",
+      "points": [
+        {
+          "chemin": "docs/notes/Recherches/ (dossier de la piste)",
+          "action": "créer",
+          "quoi": "Licence, source des tracés, relevé des icônes employées, forme du plugin et plan."
+        },
+        {
+          "chemin": "packages/ (plugin à décider)",
+          "action": "créer",
+          "quoi": "Relevé des icônes employées et synchronisation des composants d'icônes."
+        }
+      ],
+      "criteresDeFin": [
+        "Après un changement des icônes employées ou de la version de FontAwesome, un geste du designer met la library à jour : composants ajoutés, dessins mis à jour en place, aucune instance détachée.",
+        "Une icône que plus aucun code n'emploie est signalée, jamais supprimée sans l'accord du designer."
+      ],
+      "risques": [
+        "La licence Pro doit couvrir des composants d'icônes partagés dans une library d'équipe.",
+        "Le réseau d'un plugin se limite aux domaines de son manifeste : la source des tracés fixe le domaine à ouvrir."
+      ]
     }
   ]
 }

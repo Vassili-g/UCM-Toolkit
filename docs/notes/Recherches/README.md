@@ -30,6 +30,7 @@ produit, partir des références de [docs/README.md](../../README.md) et du code
 | [Chaîne UCM][chaine-ucm] | La visualisation de la chaîne dans l'inventaire et en plein écran, calculée depuis le dépôt. | Recherche en cours. |
 | [Recreation des composants][recreation-des-composants] | Relever les composants de la bibliothèque React existante et les recréer en UCM dans Figma sans rien perdre | Recherche en cours. |
 | [Construction des composants][construction-des-composants] | Faire construire par UCM Architect les variants, la collection et les liaisons d'un composant | Recherche en cours. |
+| [Synchronisation des icones][synchronisation-des-icones] | Tenir à jour dans Figma les icônes FontAwesome que le code emploie. | Recherche en cours. |
 
 La [spécification de Palettes][spec-palettes] demeure la référence de son
 comportement, même si elle est encore rangée dans le dossier de recherche.
@@ -139,6 +140,7 @@ Leurs recettes Figma reportées restent dans leurs plans.
 [chaine-ucm]: ./Cha%C3%AEne%20UCM/RECHERCHE-CHAINE-UCM.md
 [recreation-des-composants]: ./Recreation%20des%20composants/RECHERCHE-RECREATION-DES-COMPOSANTS.md
 [construction-des-composants]: ./Construction%20des%20composants/RECHERCHE-CONSTRUCTION-DES-COMPOSANTS.md
+[synchronisation-des-icones]: ./Synchronisation%20des%20icones/RECHERCHE-SYNCHRONISATION-DES-ICONES.md
 [recette-qualite-archive]: https://github.com/Vassili-g/UCM-Toolkit/blob/202f46e/docs/notes/Recherches/Plugin%20Palettes/Recette%20CRITIQUE%20de%20qualit%C3%A9/PLAN-IMPLEMENTATION.md
 [recette-moteur-archive]: https://github.com/Vassili-g/UCM-Toolkit/blob/202f46e/docs/notes/Recherches/Plugin%20Palettes/Recette%20moteur%20palettes/README.md
 [recette-texte-archive]: https://github.com/Vassili-g/UCM-Toolkit/blob/202f46e/docs/notes/Recherches/Plugin%20Palettes/Texte%20des%20boutons/README.md

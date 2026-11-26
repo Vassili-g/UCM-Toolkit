@@ -20,6 +20,7 @@ Relevé sur la branche par défaut de la bibliothèque source. Les chiffres dét
 | Interpolations dynamiques de styled-components | 455 |
 | Marques | 9 |
 | Icônes FontAwesome Pro 7 | 96 noms, en 4 styles |
+| Applications consommatrices | 2, qui importent 37 composants et types |
 
 Trois faits fixent la méthode.
 
@@ -39,6 +40,10 @@ Trois faits fixent la méthode.
 | Pilote | Tag, Button et Alert. |
 | Données du client | Elles restent toutes en local, dans `_local/recreation-composants/`. |
 | Ce qui ne doit pas se perdre | Aucune variante, aucun axe, aucun comportement, générique ou spécifique, que l'application emploie réellement. Le relevé des usages dans les applications consommatrices fixe donc le périmètre de chaque composant, et il est possible. |
+| Périmètre | Les composants métier deviennent des composants UCM. Les graphiques et les tables entrent dans UCM ; le format du contrat devra décrire leurs données (Q54). |
+| Référence de l'existant | Le rendu du code. La library Figma actuelle du mainteneur couvre une grande partie des composants : elle se relève comme seconde source, mais chaque composant se redessine de zéro. |
+| Fichiers Figma | Les tokens et les composants vivent dans deux fichiers dès le début : la publication de la library reste un geste du designer. |
+| Icônes | FontAwesome Pro reste. Les icônes deviennent des composants qu'`Icon` échange, créés et tenus à jour par la piste P32. |
 | Comportements | Seul un comportement qui change le rendu entre dans le dessin et dans le contrat. Un comportement sans effet visuel n'est pas recréé dans Figma ; le relevé du code l'écrit dans un fichier de comportements, à côté du contrat dans intencial-library. |
 
 ## 4. Méthode
@@ -46,15 +51,16 @@ Trois faits fixent la méthode.
 Chaque étape écrit un fichier que la suivante lit.
 
 1. Un script relève le code de chaque composant : props, types résolus, unions de littéraux, valeurs par défaut, `children` et props de type `ReactNode`, styles conditionnels rattachés à la prop ou à l'état qui les déclenche, valeurs dessinées avec fichier et ligne, icônes et leur style, composants posés, gestionnaires d'événements, état interne, attributs ARIA, animations, textes par défaut. Une valeur que le script ne sait pas lire devient une question dans la fiche.
-2. Un relevé des applications consommatrices compte chaque composant, prop et valeur employés. Il sépare les variantes vivantes des variantes mortes.
-3. Un banc génère des stories qui croisent chaque valeur d'union, chaque booléen, chaque état forcé et chaque marque, ouvre les calques qu'antd dessinait, capture chaque combinaison et relève les styles calculés de chaque calque visible.
-4. Chaque valeur relevée reçoit la valeur UCM la plus proche, avec l'écart affiché. Les valeurs voisines sont groupées pour que le designer tranche chaque groupe une fois. Chaque prop et chaque état reçoit sa forme Figma : axe de variant, propriété booléenne, texte, échange d'instance, pièce interne, ou comportement de code seulement.
-5. Un cahier court par composant dit ce qu'il faut dessiner et décider, une ligne par point, avec la planche du banc. Une liste de couverture l'accompagne : chaque ligne du relevé y devient « dessinée », « fusionnée avec » ou « abandonnée, parce que ». Le guide de composant à 15 sections a été rejeté comme trop long : le cahier n'en reprend pas la forme.
-6. Le designer reconçoit le composant dans Figma, dans l'ordre du graphe de composition, des pièces vers les composés.
-7. Un script compare le contrat exporté au relevé et à la liste de couverture. Une prop, une valeur, un état ou une icône du code source absent du contrat sans justification bloque.
-8. Le code se reconstruit dans intencial-library depuis le contrat, avec la parité de l'adaptateur.
+2. Un relevé des applications consommatrices compte chaque composant, prop et valeur employés. Il sépare les variantes vivantes des variantes mortes. Il cherche aussi les composants écrits en dur dans les applications, candidats à entrer dans la bibliothèque : chaque composant d'Ant Design importé directement, chaque composant local ou `styled` employé dans plusieurs fichiers, et chaque structure JSX recopiée d'un fichier à l'autre ([jscpd](https://github.com/kucherenko/jscpd) détecte les clones).
+3. Un relevé de la library Figma actuelle donne ses jeux de variants, axes, valeurs et propriétés. L'écart avec le relevé du code signale ce que le code a et que le dessin n'a pas, et l'inverse.
+4. Un banc génère des stories qui croisent chaque valeur d'union, chaque booléen, chaque état forcé et chaque marque, ouvre les calques qu'antd dessinait, capture chaque combinaison et relève les styles calculés de chaque calque visible.
+5. Chaque valeur relevée reçoit la valeur UCM la plus proche, avec l'écart affiché. Les valeurs voisines sont groupées pour que le designer tranche chaque groupe une fois. Chaque prop et chaque état reçoit sa forme Figma : axe de variant, propriété booléenne, texte, échange d'instance, pièce interne, ou comportement de code seulement.
+6. Un cahier court par composant dit ce qu'il faut dessiner et décider, une ligne par point, avec la planche du banc. Une liste de couverture l'accompagne : chaque ligne du relevé y devient « dessinée », « fusionnée avec » ou « abandonnée, parce que ». Le guide de composant à 15 sections a été rejeté comme trop long : le cahier n'en reprend pas la forme.
+7. Le designer reconçoit le composant dans Figma, dans l'ordre du graphe de composition, des pièces vers les composés.
+8. Un script compare le contrat exporté au relevé et à la liste de couverture. Une prop, une valeur, un état ou une icône du code source absent du contrat sans justification bloque.
+9. Le code se reconstruit dans intencial-library depuis le contrat, avec la parité de l'adaptateur.
 
-Le format de la fiche du relevé peut reprendre la forme du contrat UCM (props, variants, vues) : le contrôle de l'étape 7 devient alors une comparaison entre deux contrats. La lecture TypeScript de `packages/adapter-typescript/src/parite.mjs` relève déjà les props d'une interface et peut servir à l'étape 1.
+Le format de la fiche du relevé peut reprendre la forme du contrat UCM (props, variants, vues) : le contrôle de l'étape 8 devient alors une comparaison entre deux contrats. La lecture TypeScript de `packages/adapter-typescript/src/parite.mjs` relève déjà les props d'une interface et peut servir à l'étape 1.
 
 ## 5. Ce que disent les outils du marché
 
@@ -84,7 +90,7 @@ Aucun outil ne relève les styles conditionnels de styled-components. Les matric
 | API Plugin directe | `addComponentProperty`, `setBoundVariable` | à écrire ; le générateur de composants d'UCM Architect le fait déjà pour ses tests |
 | [Annotations Figma](https://developers.figma.com/docs/plugins/api/Annotation/) | spécification attachée au composant | aucun lien avec le code |
 
-Comme le composant est reconçu, une capture du rendu actuel ne sert que de référence visuelle. [Bitovi](https://www.bitovi.com/blog/figma-just-opened-the-canvas-to-agents.-heres-what-actually-happens) obtient par agent des variants justes, mais des valeurs en dur tant que la consigne ne nomme pas les variables. [Vallaure](https://christinevallaure.substack.com/p/building-an-ai-ready-design-system) rappelle qu'une variant supprimée perd sa clé et détache ses instances. [Southleft](https://southleft.com/insights/design-systems/code-to-design-isnt-the-point-system-parity-is/) conclut que seule une comparaison de parité garde l'alignement, ce que fait l'étape 7.
+Comme le composant est reconçu, une capture du rendu actuel ne sert que de référence visuelle. [Bitovi](https://www.bitovi.com/blog/figma-just-opened-the-canvas-to-agents.-heres-what-actually-happens) obtient par agent des variants justes, mais des valeurs en dur tant que la consigne ne nomme pas les variables. [Vallaure](https://christinevallaure.substack.com/p/building-an-ai-ready-design-system) rappelle qu'une variant supprimée perd sa clé et détache ses instances. [Southleft](https://southleft.com/insights/design-systems/code-to-design-isnt-the-point-system-parity-is/) conclut que seule une comparaison de parité garde l'alignement, ce que fait l'étape 8.
 
 Le [plugin Font Awesome](https://docs.fontawesome.com/desktop/add-icons/figma-plugin) insère des SVG sans composant. Des composants d'icônes se génèrent par script depuis les SVG du paquet npm Pro.
 
@@ -94,25 +100,21 @@ Les numéros suivent ceux de la première série. Les questions tranchées sont 
 
 ### Périmètre
 
-- Q3. Cet outillage est-il un produit UCM, « migrer une bibliothèque existante vers UCM », réutilisable pour un autre client, ou un chantier ponctuel ? Un produit demande des tests, un paquet et une documentation ; un chantier se contente de scripts.
+- Q3. L'outillage doit être pratique à employer et à faire évoluer, et il ne sert plus après la migration. Proposition : des scripts dans un dossier du dépôt hors des paquets publiés, une commande par étape, chaque étape écrivant dans `_local/` le fichier que la suivante lit, des tests sur des composants inventés, ni paquet ni documentation de produit. Le dossier se supprime quand la piste s'archive. D'accord ?
 - Q5. Qui décide qu'un écart de dessin avec l'existant est voulu : le designer, le lead UX, le mainteneur ?
 - Q6. Le dossier `v1/` de la bibliothèque source, que rien n'importe ni n'exporte, est-il hors périmètre ?
-- Q7. Les composants métier composés deviennent-ils des composants UCM, ou des assemblages que chaque application garde chez elle ?
-- Q8. Les graphiques (recharts, d3) entrent-ils dans UCM ? Le format du contrat ne décrit pas une série de données.
-- Q9. Les tables (tanstack, virtualisation) entrent-elles ? Une table a des dizaines d'états de cellule.
 - Q10. Les 27 dossiers sans story sont-ils vivants ? Le relevé d'usages peut répondre.
-- Q13. La migration des applications consommatrices vers la nouvelle API fait-elle partie du sujet ?
+- Q13. Qui fait passer les deux applications consommatrices à la nouvelle bibliothèque ? Chaque appel d'un composant change quand son API change : une prop renommée, une valeur fusionnée, un composant d'Ant Design remplacé. Trois réponses : les développeurs réécrivent les appels à la main avec la table de l'ancienne API vers la nouvelle ; un script (codemod) réécrit les appels sur une copie, et les développeurs relisent ; la nouvelle bibliothèque accepte encore l'ancienne API pendant une transition.
+- Q54. Comment le contrat décrit-il un graphique ou une table : un variant par forme de données, ou un champ nouveau du format ?
+- Q55. Qui décide qu'un composant écrit en dur dans une application entre dans la bibliothèque ?
 
 ### Tokens
 
 - Q17. Les tokens de composant se nomment-ils par un script depuis le relevé, ou le designer les crée-t-il ?
-- Q19. Le code rendu est-il la référence de l'existant, devant Chromatic, Zeplin ou un fichier Figma du lead UX ?
 
 ### Sources
 
-- Q20. La première application consommatrice relevée importe 7 des 34 composants exportés. D'autres applications consomment-elles la bibliothèque, et où est leur code ? Si elle est la seule, le périmètre tombe à ces 7 composants et à leurs pièces.
-- Q22. Avons-nous accès au projet Chromatic ? Ses captures donnent une base pour les combinaisons déjà en stories.
-- Q23. Les maquettes Zeplin font-elles encore foi pour certains composants ?
+- Q56. La library Figma actuelle se relève-t-elle par le serveur MCP de Figma, ou par un plugin de relevé que le mainteneur lance, comme pour P28 ?
 - Q53. Peut-on modifier la bibliothèque source pour l'outillage (manifest de Storybook, pseudo-états, stories générées), ou le relevé tourne-t-il sur une copie ?
 
 ### Exhaustivité
@@ -125,15 +127,13 @@ Les numéros suivent ceux de la première série. Les questions tranchées sont 
 
 - Q30. Le designer accepte-t-il qu'un script décline ses composants dans Figma ? Le designer dessine une variante de référence, puis le script la duplique sur chaque axe, nomme chaque variante selon la nomenclature, et lie chaque remplissage, contour et espacement au token de l'état. L'essai sur le Button du pilote mesure d'abord la part répétitive du travail (Q50).
 - Q33. Dans quel fichier Figma : la bibliothèque UCM existante, ou un fichier de travail fusionné ensuite ?
-- Q34. Garde-t-on FontAwesome Pro dans Figma (licence du designer), ou change-t-on de jeu d'icônes ? Les 96 icônes deviennent-elles des composants qu'`Icon` échange ?
-- Q49. Si FontAwesome reste, les composants d'icônes se génèrent-ils par script depuis les SVG du paquet npm Pro ? La licence Pro couvre-t-elle cet usage ?
 
 ### Méthode
 
 - Q36. Le relevé est-il uniquement déterministe, ou un agent lit-il aussi chaque composant pour décrire les comportements que le script ne voit pas, chaque ligne marquée à confirmer ?
-- Q37. La fiche du relevé prend-elle la forme du contrat UCM, pour que l'étape 7 compare deux contrats ?
+- Q37. La fiche du relevé prend-elle la forme du contrat UCM, pour que l'étape 8 compare deux contrats ?
 - Q38. Cadence : un composant de bout en bout avant le suivant, ou chaque étape en lot sur tous les composants ?
-- Q39. Un composant est terminé quand le contrôle de l'étape 7 passe et que le designer a coché la liste de couverture : critère accepté ?
+- Q39. Un composant est terminé quand le contrôle de l'étape 8 passe et que le designer a coché la liste de couverture : critère accepté ?
 - Q41. Y a-t-il une échéance, ou un ordre imposé par un écran à livrer ?
 - Q42. Codex participe-t-il, et sur quelles étapes ?
 - Q43. Où suit-on l'avancement par composant ? Un tableau dans UCM-Toolkit nommerait les composants du client : il vit dans `_local/` ou dans intencial-library.
