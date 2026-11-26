@@ -37,7 +37,10 @@ là où Architect sépare ses deux modes par une bascule.
    `ucm tokens css`. Le plugin continue de déposer un seul fichier.
 
 **Les décisions à prendre.** La section [7](#questions-au-mainteneur) les
-détaille, avec une recommandation pour chacune.
+détaille, avec une recommandation pour chacune. Depuis le `2026-11-26`, une
+chaîne Jenkins chez le consommateur peut porter la conversion : les
+[questions au développeur de cette chaîne](#questions-au-développeur-de-la-chaîne-jenkins)
+sont à poser avant de trancher Q8 à Q10.
 
 | Question | Recommandation |
 |---|---|
@@ -496,6 +499,46 @@ consommateur change ses `source`. (b) Oui : un fichier par type, en `value`.
 Recommandation : (a), après lecture de la configuration Style Dictionary du
 consommateur et des réglages de son exporteur Supernova. Si cette configuration
 dépend de l'arborescence Supernova à plusieurs endroits, (b) se rediscute.
+
+## Questions au développeur de la chaîne Jenkins
+
+Information du mainteneur, le `2026-11-26` : l'Exporter enverrait `tokens.json`
+vers un repository intermédiaire. Un job Jenkins y convertirait le fichier pour
+Style Dictionary, puis enverrait le résultat vers le repository GitLab des
+composants. Le mainteneur fait le point avec le développeur qui tient ce job.
+
+Ce que cette chaîne change, sous réserve des réponses :
+
+- La conversion passe au job. Le lot 8 reste si le job appelle
+  `ucm tokens style-dictionary`, et disparaît si le job garde son propre script.
+  Ce script doit alors lire `tokens.json` tel quel : couleurs, dimensions et
+  durées en objets DTCG 2025.10, modes dans `com.ucm.modes`, alias en `{a.b}`.
+- Le plugin atteint seulement `https://api.github.com` et `https://gitlab.com`
+  (`manifest.json`, `allowedDomains`), et `lireAdresseDuDepot` ne reconnaît que
+  ces deux hôtes (`src/config.ts`). Un repository intermédiaire hébergé ailleurs
+  demande un lot de plus, et une publication sur la Community.
+- Le plugin publie le contrat et les tokens dans le même dépôt actif. Si les
+  contrats vont au repository final et les tokens au repository intermédiaire,
+  `ucm check` ne trouve plus `tokens.json` dans le repository final, et le
+  lot 7 perd son lecteur.
+- Le repository intermédiaire déclare dans son `ucm.config.json` le chemin où
+  le plugin écrit, ou laisse s'appliquer les défauts du kit. Ce chemin doit
+  être celui que le job surveille.
+- Les lots 1 à 3 ne changent pas. Les lots 4 à 6 ne changent pas, sauf si le
+  job filtre déjà les collections et les modes.
+
+| N° | Question | Ce qu'elle décide |
+|---|---|---|
+| J1 | Où le repository intermédiaire est-il hébergé : gitlab.com, github.com, un GitLab auto-hébergé, Bitbucket ? Le plugin peut-il y ouvrir une demande de fusion avec un jeton personnel ? | Un lot de forge et de domaine autorisé, ou aucun |
+| J2 | Qu'est-ce qui déclenche le job : la fusion sur la branche principale, chaque push sur une branche, un geste manuel ? Une demande de fusion du plugin est-elle fusionnée à la main avant la conversion ? | Le parcours du designer après la publication |
+| J3 | Quelle forme lit le script de conversion : la sortie de l'exporteur Supernova (`value`, un fichier par type) ou du DTCG en `$value` ? Le job peut-il lancer une commande npm (`npx ucm …`) ? | Le maintien ou le retrait du lot 8, et Q10 |
+| J4 | Quelle version de Style Dictionary le build du repository final emploie-t-il ? Quelle arborescence sa configuration attend-elle ? Un `config.js` et un fichier produit en exemple suffisent. | Q9 et Q10 |
+| J5 | Comment le job traite-t-il les modes (thème clair et sombre, marques) : un fichier par mode, `permutateThemes` de `sd-transforms`, autre chose ? | La section 4.4 |
+| J6 | Le job filtre-t-il des collections ou des modes ? | Les lots 4 à 6 |
+| J7 | Les contrats `*.contract.json` vont-ils au repository intermédiaire ou au repository final ? Le repository final reçoit-il aussi `tokens.json` ? | Une destination par artefact dans le plugin, et le lot 7 |
+| J8 | Le repository final fait-il tourner `ucm check` dans sa CI ? | Le lot 7 et l'installation par `ucm init` |
+
+J1, J3 et J7 décident l'essentiel du plan.
 
 ## 8. Sources
 
