@@ -25,14 +25,16 @@ Le [plugin officiel](https://docs.fontawesome.com/desktop/add-icons/figma-plugin
 
 L'API rend pour chaque icône ses tracés (`svgs { width height pathData }`) et `changes`, la liste des versions qui l'ont modifiée ([objets](https://docs.fontawesome.com/apis/graphql/objects)). Une duotone a deux tracés. La version 7 a changé des noms en alias, par exemple `user-large` vers `user` ([changements](http://docs.fontawesome.com/upgrade/whats-changed/)) : le relevé résout les alias avant de nommer un composant.
 
-Deux formes en découlent.
+Le designer lance le plugin dans Figma : une synchronisation tient en un geste, sans rien d'automatique hors de ce geste. Le plugin prend les tracés à l'une de deux sources.
 
-- Forme A. Un script, lancé là où les paquets Pro sont installés, écrit un fichier avec la liste des icônes employées et leurs tracés ; le plugin lit ce fichier. Aucun domaine nouveau, aucun jeton FontAwesome dans le plugin.
-- Forme B. Le plugin lit la liste dans le dépôt par `api.github.com`, puis les tracés par l'API de FontAwesome. Le domaine s'ajoute au manifeste, et le jeton se garde dans le plugin.
+- Forme A. Avant de lancer le plugin, une commande lancée dans un dépôt où les paquets Pro sont installés écrit un fichier des tracés, que le designer donne au plugin.
+- Forme B. Le plugin télécharge lui-même les tracés à l'API de FontAwesome, avec la clé d'API du compte saisie une fois dans le plugin.
 
-La forme A garde le réseau du plugin tel qu'il est et le jeton hors de Figma : c'est la proposition de cette recherche (Q2).
+La forme B tient en un seul geste dans Figma : c'est la proposition de cette recherche (Q2). Elle ajoute `api.fontawesome.com` au manifeste, et un plugin d'essai vérifie d'abord que l'API répond à un plugin, dont l'origine est `null`. La forme A sert de repli si l'essai échoue.
 
 ## 4. Relever les icônes employées
+
+Ce relevé sert une fois, pour la liste initiale.
 
 Le style se lit dans le chemin du paquet : `pro-regular-svg-icons` vaut Classic Regular. Un relevé de l'arbre syntaxique lit le nom importé (`faCircleUser`, jamais l'alias local) de chaque import depuis `@fortawesome/*-svg-icons` ou `@awesome.me/kit-*/icons/*` ([React](https://docs.fontawesome.com/web/use-with/react/add-icons)). Il ne voit ni un nom calculé, ni `library.add(fas)`, ni la forme chaîne `"fa-solid fa-house"` construite à l'exécution : chacun devient une question dans le relevé.
 
@@ -42,11 +44,17 @@ Figma met à jour les instances quand le contenu d'un composant change ([Compone
 
 Aucune documentation ne dit que la clé d'un composant reste stable après une telle mise à jour. Le premier essai le vérifie : une instance avec une surcharge de remplissage dans un second fichier, une mise à jour du tracé, une publication, puis la lecture de la clé et de la surcharge.
 
+## Décisions du mainteneur
+
+| Question | Décision |
+|---|---|
+| Licence | Le mainteneur détient le compte FontAwesome Pro ; aucune question n'est posée au support. |
+| Liste des icônes | Un relevé unique des applications consommatrices fixe la liste initiale. Ensuite, la liste est celle des composants d'icônes du fichier Figma, et le designer ajoute une icône par son nom dans le plugin. |
+| Composant `Icon` | Il intègre chaque icône par un échange d'instance. |
+| Outil | Un nouveau plugin : un mode d'UCM Architect compliquerait Architect. |
+| Duotones | Elles n'entrent pas dans la library. |
+
 ## Questions au mainteneur
 
-- Q1. Combien de personnes ouvrent la library des composants, et ont-elles toutes un siège FontAwesome Pro ? Écrit-on au support de FontAwesome avec le cas exact ?
-- Q2. Forme A (fichier produit par un script là où les paquets Pro sont installés) ou forme B (le plugin appelle l'API de FontAwesome) ?
-- Q3. Quels dépôts fixent la liste : intencial-library seule, ou aussi les applications consommatrices ?
-- Q4. Un composant par icône et par style, ou un composant par icône avec un axe de style ?
-- Q5. Nouveau plugin, ou mode d'UCM Architect, qui travaille déjà sur le fichier des composants ?
-- Q6. Les duotones entrent-elles dans la library ?
+- Q2. Forme B (le plugin télécharge les tracés, avec la clé saisie une fois), et forme A en repli si l'essai échoue : d'accord ?
+- Q4. Une même icône existe en plusieurs styles : plein (solid), contour (regular), contour fin (light). Dans Figma, chaque style d'une icône devient-il un composant à part, rangé par dossier de style (`solid/house`, `regular/house`), ou une icône devient-elle un seul composant avec une propriété Style ? Le code importe chaque style comme une icône distincte, ce qui plaide pour un composant par style.

@@ -40,7 +40,7 @@ Trois faits fixent la méthode.
 | Pilote | Tag, Button et Alert. |
 | Données du client | Elles restent toutes en local, dans `_local/recreation-composants/`. |
 | Ce qui ne doit pas se perdre | Aucune variante, aucun axe, aucun comportement, générique ou spécifique, que l'application emploie réellement. Le relevé des usages dans les applications consommatrices fixe donc le périmètre de chaque composant, et il est possible. |
-| Périmètre | Les composants métier deviennent des composants UCM. Les graphiques et les tables entrent dans UCM ; le format du contrat devra décrire leurs données (Q54). |
+| Périmètre | Les composants métier deviennent des composants UCM. Les graphiques et les tables entrent dans UCM ; la forme de leur contrat se propose quand le premier se dessine. |
 | Référence de l'existant | Le rendu du code. La library Figma actuelle du mainteneur couvre une grande partie des composants : elle se relève comme seconde source, mais chaque composant se redessine de zéro. |
 | Fichiers Figma | Les tokens et les composants vivent dans deux fichiers dès le début : la publication de la library reste un geste du designer. |
 | Icônes | FontAwesome Pro reste. Les icônes deviennent des composants qu'`Icon` échange, créés et tenus à jour par la piste P32. |
@@ -100,13 +100,12 @@ Les numéros suivent ceux de la première série. Les questions tranchées sont 
 
 ### Périmètre
 
-- Q3. L'outillage doit être pratique à employer et à faire évoluer, et il ne sert plus après la migration. Proposition : des scripts dans un dossier du dépôt hors des paquets publiés, une commande par étape, chaque étape écrivant dans `_local/` le fichier que la suivante lit, des tests sur des composants inventés, ni paquet ni documentation de produit. Le dossier se supprime quand la piste s'archive. D'accord ?
+- Q3. Les outils de la migration (le script qui lit le code des composants, celui qui capture leur rendu, celui qui vérifie que le contrat exporté couvre tout) servent pendant la migration, puis plus jamais. Proposition : de simples scripts dans UCM-Toolkit, une commande par étape, avec des tests pour qu'une modification ne casse rien, et supprimés à la fin ; pas un paquet publié sur npm avec sa documentation. D'accord ?
 - Q5. Qui décide qu'un écart de dessin avec l'existant est voulu : le designer, le lead UX, le mainteneur ?
 - Q6. Le dossier `v1/` de la bibliothèque source, que rien n'importe ni n'exporte, est-il hors périmètre ?
 - Q10. Les 27 dossiers sans story sont-ils vivants ? Le relevé d'usages peut répondre.
-- Q13. Qui fait passer les deux applications consommatrices à la nouvelle bibliothèque ? Chaque appel d'un composant change quand son API change : une prop renommée, une valeur fusionnée, un composant d'Ant Design remplacé. Trois réponses : les développeurs réécrivent les appels à la main avec la table de l'ancienne API vers la nouvelle ; un script (codemod) réécrit les appels sur une copie, et les développeurs relisent ; la nouvelle bibliothèque accepte encore l'ancienne API pendant une transition.
-- Q54. Comment le contrat décrit-il un graphique ou une table : un variant par forme de données, ou un champ nouveau du format ?
-- Q55. Qui décide qu'un composant écrit en dur dans une application entre dans la bibliothèque ?
+- Q13. Après la migration, les applications appellent encore les anciens composants avec les anciennes props : `<Button type="primary">` doit devenir, par exemple, `<Button variant="solid">`, dans une centaine de fichiers. Qui fait ces changements : nous, avec un script qui réécrit les appels sur une copie que les développeurs relisent et poussent, ou les développeurs à la main, avec une table de correspondance que nous leur donnons ?
+- Q55. Le relevé trouve dans les applications des composants que la bibliothèque n'a pas, comme une infobulle ou une fenêtre modale d'Ant Design. Proposition : la liste t'est présentée, et tu coches ceux qui entrent dans la bibliothèque. D'accord ?
 
 ### Tokens
 
@@ -114,7 +113,7 @@ Les numéros suivent ceux de la première série. Les questions tranchées sont 
 
 ### Sources
 
-- Q56. La library Figma actuelle se relève-t-elle par le serveur MCP de Figma, ou par un plugin de relevé que le mainteneur lance, comme pour P28 ?
+- Q56. Pour comparer ta library Figma actuelle au code, je dois lire la liste de ses composants et de leurs variantes. Deux voies : je la lis moi-même par le connecteur Figma de Claude, que tu autorises par `/mcp` et dont tu me donnes le lien du fichier, ou tu lances un petit plugin de relevé que j'écris, comme pour P28. Laquelle ?
 - Q53. Peut-on modifier la bibliothèque source pour l'outillage (manifest de Storybook, pseudo-états, stories générées), ou le relevé tourne-t-il sur une copie ?
 
 ### Exhaustivité
