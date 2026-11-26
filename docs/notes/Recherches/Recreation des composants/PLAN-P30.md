@@ -10,7 +10,8 @@ Ce plan suit la piste P30 de `docs/notes/Recherches/Evolutions globales/pistes.j
 
 ## Étape 1. Cadrage
 
-- [ ] 1.1 (mainteneur). Répondre aux questions de la recherche.
+- [ ] 1.0 Dresser la carte du workflow et la critiquer jusqu'à saturation (passes 1 à 5 de `CARTE-DU-WORKFLOW.md`).
+- [ ] 1.1 (mainteneur). Répondre aux questions de la recherche et de la carte.
 - [ ] 1.2 Écrire les lots d'implémentation des étapes 3 à 5 et leurs cas de test, d'après les réponses de 1.1.
 
 ## Étape 2. Marques
@@ -19,7 +20,7 @@ Ce plan suit la piste P30 de `docs/notes/Recherches/Evolutions globales/pistes.j
 
 ## Étape 3. Relevé du code
 
-- [ ] 3.1 Script du relevé : API, styles conditionnels, valeurs dessinées, icônes, composition, comportements, textes par défaut, une fiche par composant.
+- [ ] 3.1 Script du relevé, sur la v1 et la v2 : API, styles conditionnels, valeurs dessinées, icônes, composition, comportements, textes par défaut, une fiche par composant.
 - [ ] 3.2 Relevé des usages dans les applications consommatrices : il fixe ce que chaque composant doit garder.
 - [ ] 3.3 Relevé des candidats : composants d'Ant Design importés directement par les applications, composants locaux employés dans plusieurs fichiers, structures JSX recopiées ; une liste que le mainteneur tranche.
 - [ ] 3.4 Relevé de la library Figma actuelle : jeux de variants, axes, valeurs et propriétés, lus par un plugin de relevé que le mainteneur lance, puis comparés au relevé du code.
@@ -39,8 +40,9 @@ Ce plan suit la piste P30 de `docs/notes/Recherches/Evolutions globales/pistes.j
 ## Étape 6. Pilote
 
 - [ ] 6.1 (mainteneur). Valider le cahier de Tag, Button et Alert.
-- [ ] 6.2 (mainteneur). Reconcevoir Tag, Button et Alert dans Figma et les exporter dans intencial-library ; chronométrer la part répétitive du travail sur le Button (Q50).
+- [ ] 6.2 (mainteneur). Reconcevoir Tag, Button et Alert dans Figma et les exporter dans intencial-library ; chronométrer la part répétitive du travail sur le Button (Q50). Les icônes viennent de P32, et la construction de P31 s'essaie sur le Button.
 - [ ] 6.3 Passer le contrôle de couverture sur les trois contrats, corriger la méthode, et décider la déclinaison par script (Q30).
+- [ ] 6.4 Rejouer les passes 3 à 5 de la carte du workflow et réviser le plan avant le passage en masse.
 
 ## Étape 7. Passage en masse
 

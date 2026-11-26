@@ -1,6 +1,6 @@
 # Recreation des composants
 
-Piste P30. Le designer reconçoit dans Figma, en architecture UCM, tous les composants de la bibliothèque React de production du client, puis exporte leurs contrats dans intencial-library, où le code se reconstruit depuis eux. Cette recherche décrit une méthode qui automatise chaque relevé et chaque contrôle, et laisse au designer seulement les décisions de dessin. Le [plan](./PLAN-P30.md) en découle.
+Piste P30. Le designer reconçoit dans Figma, en architecture UCM, tous les composants de la bibliothèque React de production du client, puis exporte leurs contrats dans intencial-library, où le code se reconstruit depuis eux. Cette recherche décrit une méthode qui automatise chaque relevé et chaque contrôle, et laisse au designer seulement les décisions de dessin. Le [plan](./PLAN-P30.md) en découle, et la [carte du workflow](./CARTE-DU-WORKFLOW.md) liste chaque point à réfléchir.
 
 ## 1. Règle de confidentialité
 
@@ -20,7 +20,8 @@ Relevé sur la branche par défaut de la bibliothèque source. Les chiffres dét
 | Interpolations dynamiques de styled-components | 455 |
 | Marques | 9 |
 | Icônes FontAwesome Pro 7 | 96 noms, en 4 styles |
-| Applications consommatrices | 2, qui importent 37 composants et types |
+| Applications consommatrices | 2 |
+| Versions sources employées | la v1, figée, sur sa propre branche, importée par l'application principale dans plus de fichiers que la v2 ; la v2, version actuelle, qui n'a mis à jour qu'une partie des composants |
 
 Trois faits fixent la méthode.
 
@@ -40,6 +41,7 @@ Trois faits fixent la méthode.
 | Pilote | Tag, Button et Alert. |
 | Données du client | Elles restent toutes en local, dans `_local/recreation-composants/`. |
 | Ce qui ne doit pas se perdre | Aucune variante, aucun axe, aucun comportement, générique ou spécifique, que l'application emploie réellement. Le relevé des usages dans les applications consommatrices fixe donc le périmètre de chaque composant, et il est possible. |
+| Versions sources | Tous les composants employés de la v1 et de la v2 passent directement en v3, le travail de P30. |
 | Périmètre | Les composants métier deviennent des composants UCM. Les graphiques et les tables entrent dans UCM ; la forme de leur contrat se propose quand le premier se dessine. |
 | Référence de l'existant | Le rendu du code. La library Figma actuelle du mainteneur couvre une grande partie des composants : elle se relève comme seconde source, mais chaque composant se redessine de zéro. |
 | Fichiers Figma | Les tokens et les composants vivent dans deux fichiers dès le début : la publication de la library reste un geste du designer. |
@@ -105,7 +107,6 @@ Les numéros suivent ceux de la première série. Les questions tranchées sont 
 ### Périmètre
 
 - Q5. Qui décide qu'un écart de dessin avec l'existant est voulu : le designer, le lead UX, le mainteneur ?
-- Q6. Le dossier `v1/` de la bibliothèque source, que rien n'importe ni n'exporte, est-il hors périmètre ?
 - Q10. Les 27 dossiers sans story sont-ils vivants ? Le relevé d'usages peut répondre.
 
 ### Tokens
