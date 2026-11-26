@@ -47,7 +47,7 @@ La carte se rejoue après le pilote, avant le passage en masse, et à chaque fai
 - S12. La seconde application a plusieurs branches vivantes, et aucune n'est désignée comme référence. À trancher.
 - S13. Le back-office React de la seconde application a peut-être son propre thème. À vérifier.
 - S14. Une partie de la seconde application est en gabarits serveur sans React. Des classes ou du HTML peuvent y imiter un composant sans aucun import. À vérifier.
-- S15. La library Figma actuelle du mainteneur couvre une grande partie des composants. Elle se relève par un plugin que le mainteneur lance, puis se compare au relevé du code. Décidé.
+- S15. La library Figma actuelle couvre une grande partie des composants, sous d'autres noms que le code, et ses props, variantes et tokens ne correspondent pas non plus. Elle ne sert que d'aide visuelle : le registre relie un composant du code à son dessin actuel, une fois, et rien d'autre ne se met en correspondance. Ses tokens ne se relèvent pas. Décidé.
 - S16. La référence visuelle de l'existant est le rendu du code. Décidé. L'accès aux captures Chromatic des stories existantes reste à demander. À vérifier.
 - S17. L'installation des sources demande des jetons privés de paquets. Ils restent dans les fichiers de configuration du client, jamais dans UCM-Toolkit. Décidé.
 - S18. Un fichier suivi de la bibliothèque source contient ces jetons en clair. C'est un risque de sécurité du client, à lui signaler. À trancher par le mainteneur.
