@@ -124,9 +124,11 @@ test('C64 : un texte à plusieurs text styles reçoit l’information styles-mix
 
 test('C65 : les huit champs de typographie se jugent comme la taille et la graisse (Q-F6-7)', () => {
   for (const champ of ['lineHeight', 'letterSpacing', 'fontFamily', 'fontStyle', 'paragraphSpacing', 'paragraphIndent']) {
-    const mauvais = code(releve([variant('a', [texte('S', [liaison(champ, 'dimension/14', 'primitives')])])]), 'C65');
+    // La référence range la famille de police dans primitives : sa mauvaise collection est typography.
+    const fautive = champ === 'fontFamily' ? 'typography' : 'primitives';
+    const mauvais = code(releve([variant('a', [texte('S', [liaison(champ, 'dimension/14', fautive)])])]), 'C65');
     assert.deepEqual(mauvais.map((c) => [c.faits.motif, c.faits.champ]), [['mauvaise-collection', champ]], champ);
-    const lie = (): LiaisonLue[] => [liaison(champ, 'body/small/x', 'typography')];
+    const lie = (): LiaisonLue[] => [liaison(champ, 'body/small/x', champ === 'fontFamily' ? 'primitives' : 'typography')];
     const manque = code(releve([variant('a', [texte('S', lie())]), variant('b', [texte('S', lie())]), variant('c', [texte('S')])]), 'C65');
     assert.deepEqual(manque.map((c) => [c.faits.motif, c.faits.champ, c.variants]), [['sans-liaison-comme-les-autres', champ, ['c']]], champ);
   }

@@ -67,8 +67,9 @@ export const GABARITS: Readonly<Record<NomDeFamille, Gabarit>> = {
   'controle-oublis': [
     'releve.jeu.nom', 'releve.lecture.variantsNonLus', 'releve.lecture.layersNonLus', ...PROPRIETES,
     ...sous('releve.variants.*', 'id', 'nom', 'valeurs'),
-    `${LAYERS}.nom`,
+    ...sous(LAYERS, 'id', 'nom', 'instanceDe.cle'),
     ...liaisons(['variable.cle', 'champ', 'illisible'], ['champ', 'illisible']),
+    ...sous('releve.wrappers.*', 'id', 'cle', 'nom', 'expose'),
     ...sous('releve.wrappers.*.proprietes.*', 'nom', 'type', 'valeurs'),
     'releve.wrappers.*.variants.*.valeurs', ...sous('releve.wrappers.*.variants.*.liaisons.*', 'variable.cle', 'champ', 'illisible'),
     ...COLLECTIONS, 'catalogue.collections.*.etat', ...sous('catalogue.variables.*', 'cle', 'nom', 'collection', 'type'),
@@ -85,7 +86,7 @@ export const GABARITS: Readonly<Record<NomDeFamille, Gabarit>> = {
   'controle-typographie': [
     'releve.jeu.nom', ...PROPRIETES, ...sous('releve.variants.*', 'id', 'nom', 'valeurs'),
     ...sous(LAYERS, 'id', 'nom', 'type', 'parent', 'visible', 'peintures.*.champ', 'peintures.*.visible', 'peintures.*.opacite', 'peintures.*.opacity', 'instanceDe.nom', 'instanceDe.distante', 'instanceDe.pilotee', 'instanceDe.valeurs', 'texte.style', 'texte.stylesMixtes'),
-    ...liaisons(['champ', 'illisible', 'variable.cle', 'variable.nom', 'variable.collection'], ['champ', 'illisible', 'variable.cle', 'variable.nom', 'variable.collection']),
+    ...liaisons(['champ', 'illisible', 'provenance', 'variable.cle', 'variable.nom', 'variable.collection'], ['champ', 'illisible', 'provenance', 'variable.cle', 'variable.nom', 'variable.collection']),
     ...COLLECTIONS, ...sous('catalogue.variables.*', 'cle', 'nom', 'collection', 'type', 'etat'),
   ],
   'controle-theme': [

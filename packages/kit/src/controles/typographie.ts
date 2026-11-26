@@ -7,6 +7,7 @@
  * jamais jugée.
  */
 import { CHAMPS_DE_TYPOGRAPHIE } from '../referentiel/architecture.js';
+import { collectionDuChampDeTypographie } from '../referentiel/reference.js';
 import { estUneIcone, estUneInstanceDIcone } from '../referentiel/layers.js';
 import { formeReconnue } from '../referentiel/reconnaissance.js';
 import type { CatalogueDeReference } from './catalogue.js';
@@ -190,27 +191,42 @@ function* controlerLesTextes(textes: Map<string, Source[]>, releve: ReleveDeComp
 
 /* ---------- C65 ---------- */
 
-const liaisonLee = (s: Source, champ: string): 'liee' | null => (liaisonsDuChamp(s.layer, [champ]).length > 0 ? 'liee' : null);
+/** Ce que la source porte sur un champ : liaison du calque, liaison que son style apporte (C65 ne la juge pas, D12), ou rien. */
+type Liaison = 'liee' | 'style' | null;
+function liaisonDuChamp(s: Source, champ: string): Liaison {
+  const liaisons = liaisonsDuChamp(s.layer, [champ]);
+  if (liaisons.length === 0) return null;
+  return liaisons.every((l) => l.provenance === 'style') ? 'style' : 'liee';
+}
 
 /** Les huit champs de `CHAMPS_DE_TYPOGRAPHIE` se jugent comme la taille et la graisse (Q-F6-7). */
 function* controlerLesLiaisonsDeTexte(textes: Map<string, Source[]>, catalogue: CatalogueDeReference): Generator<void, Constat[]> {
   const groupes = new Map<string, Constat>();
   const base = { code: 'C65', type: 'verifier', famille: 'typographie' } as const;
   for (const [nom, liste] of textes) {
+    const lues = new Map<string, Liaison[]>();
     const liees = new Map<string, Frequences<'liee' | null>>();
-    for (const champ of CHAMPS_DE_TYPOGRAPHIE) liees.set(champ, yield* frequencesDuChamp(liste, (s) => liaisonLee(s, champ)));
-    for (const source of liste) {
+    for (const champ of CHAMPS_DE_TYPOGRAPHIE) {
+      const duChamp = liste.map((s) => liaisonDuChamp(s, champ));
+      lues.set(champ, duChamp);
+      const rang = new Map(liste.map((s, i) => [s, i]));
+      // Un texte dont la liaison vient du style ne compte ni comme lié ni comme délié.
+      liees.set(champ, yield* frequencesDuChamp(liste, (s) => (duChamp[rang.get(s)!] === null ? null : 'liee'), (s) => duChamp[rang.get(s)!] !== 'style'));
+    }
+    for (const [indice, source] of liste.entries()) {
       yield;
       for (const champ of CHAMPS_DE_TYPOGRAPHIE) {
-        const liaisons = liaisonsDuChamp(source.layer, [champ]);
-        for (const liaison of liaisons) {
+        const propre = lues.get(champ)![indice];
+        const attendue = collectionDuChampDeTypographie(champ);
+        for (const liaison of liaisonsDuChamp(source.layer, [champ])) {
+          if (liaison.provenance === 'style') continue;
           const lieu = lieuDeLaVariable(catalogue, liaison);
-          if (lieu === null || lieu.role === null || lieu.role === 'typography') continue;
+          if (lieu === null || lieu.role === null || lieu.role === attendue) continue;
           ajouter(groupes, `C65:${nom}:${champ}:mauvaise-collection:${liaison.variable.nom}`, source,
-            { calque: nom, champ, motif: 'mauvaise-collection', variable: liaison.variable.nom, collection: lieu.collection, collectionAttendue: 'typography' }, base);
+            { calque: nom, champ, motif: 'mauvaise-collection', variable: liaison.variable.nom, collection: lieu.collection, collectionAttendue: attendue }, base);
         }
-        if (liaisons.length > 0) continue;
-        const parVariant = valeurUnanimeHorsContribution(liees.get(champ)!, liaisonLee(source, champ));
+        if (propre !== null) continue;
+        const parVariant = valeurUnanimeHorsContribution(liees.get(champ)!, null);
         if (parVariant === 'liee') {
           ajouter(groupes, `C65:${nom}:${champ}:sans-liaison`, source, { calque: nom, champ, motif: 'sans-liaison-comme-les-autres' }, base);
         }

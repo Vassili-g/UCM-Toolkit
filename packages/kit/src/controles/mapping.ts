@@ -242,7 +242,7 @@ export function* controlerMappingParEtapes(releve: ReleveDeComposant, catalogue:
     } else if (!token) {
       const collection = collectionParCle(catalogue, variable.collection);
       // Une liaison que l'instance tient sans changement de son composant principal n'est pas celle de l'hôte (Q-F3-8).
-      if (collection?.role === 'components' && liaison.provenance !== 'composant-principal' && !estDuComposant(variable.nom, releve.jeu.nom)) {
+      if (collection?.role === 'components' && liaison.provenance !== 'composant-principal' && liaison.provenance !== 'style' && !estDuComposant(variable.nom, releve.jeu.nom)) {
         constats.push(constatDuComposant('C19', 'liaisons', 'corriger', lieu, { token: variable.nom, composant: releve.jeu.nom }, [variant.id], [layer.id]));
       }
     }

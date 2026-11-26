@@ -46,6 +46,38 @@ function* axesDesWrappers(releve: ReleveDeComposant, axes: ReturnType<typeof axe
   return portes;
 }
 
+/**
+ * C83 : un wrapper porte un axe que l'hôte n'a pas et aucun variant de l'hôte n'en expose l'instance, donc l'axe ne se choisit pas depuis
+ * l'hôte. Seul `expose === false` accuse : `'inconnu'` et l'absence de lecture ne disent rien. Les layers visés sont les instances du
+ * wrapper (`instanceDe.cle` vaut la clé du jeu), une par variant de l'hôte qui la pose.
+ */
+function* constatsDesAxesNonExposes(releve: ReleveDeComposant, axes: ReturnType<typeof axesDuReleve>, constats: Constat[]): Generator<void, void> {
+  for (const wrapper of releve.wrappers ?? []) {
+    yield;
+    if (wrapper.expose !== false) continue;
+    const absents: string[] = [];
+    for (const [role, propriete] of Object.entries(axesDesProprietes(wrapper.proprietes)) as [AxeDuComposant, NonNullable<typeof axes[AxeDuComposant]>][]) {
+      yield;
+      if (!axes[role]) absents.push(propriete.nom);
+    }
+    if (!absents.length) continue;
+    const variants: string[] = [];
+    const layers: string[] = [];
+    for (const variant of releve.variants) {
+      yield;
+      for (const layer of variant.layers) {
+        yield;
+        if (layer.instanceDe?.cle !== wrapper.cle) continue;
+        if (!variants.includes(variant.id)) variants.push(variant.id);
+        layers.push(layer.id);
+      }
+    }
+    constats.push(constatDuComposant('C83', 'variants', 'verifier', wrapper.id, {
+      wrapper: wrapper.nom, proprietes: absents.join(', '), composant: releve.jeu.nom,
+    }, variants, layers));
+  }
+}
+
 /** Au-delà de ce produit de valeurs, le plugin ne cherche plus les variants absents (Q-F5-7). */
 const BORNE_DE_LA_MATRICE = 4096;
 /** Sous la borne, les premiers constats de variant absent ; le reste se compte dans une ligne « Et N autres » (Q-F5-7). */
@@ -231,6 +263,8 @@ export function* controlerOublisParEtapes(releve: ReleveDeComposant, catalogue: 
       constats.push(constatDuComposant('C31', 'variants', 'info', 'et-autres', { genre: 'et-autres', autres: absentes - PLAFOND_DE_CONSTATS_DE_LA_MATRICE }));
     }
   }
+
+  yield* constatsDesAxesNonExposes(releve, axes, constats);
 
   if (collection?.etat !== 'lue') return constats;
   const liees = new Set<string>();

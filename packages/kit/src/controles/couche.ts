@@ -7,7 +7,8 @@
  * (Q-F3-8) : le composant principal en répond. Une surcharge posée par l'hôte l'est.
  * La typographie reste hors de cette règle : sa variable se juge sur sa collection, comme un token de `components`.
  */
-import { ciblesAdmises, natureDuChamp } from '../referentiel/architecture.js';
+import { ciblesAdmises, natureDuChamp, type Collection, type NatureDeCible } from '../referentiel/architecture.js';
+import { collectionDuChampDeTypographie } from '../referentiel/reference.js';
 import { collectionParCle, variableDuCatalogue, type CatalogueDeReference, type VariableDuCatalogue } from './catalogue.js';
 import type { Constat } from './constat.js';
 import { constatDuComposant } from './nommage.js';
@@ -25,6 +26,12 @@ function* ciblesDesAlias(catalogue: CatalogueDeReference, variable: VariableDuCa
     if (cible !== 'absente') cibles.set(cible.cle, cible);
   }
   return [...cibles.values()];
+}
+
+/** Une famille de police vise la collection que la référence lui donne (`primitives`) ; les autres champs suivent les cibles de `components`. */
+function admisesPourLeChamp(nature: NatureDeCible, champ: string): readonly Collection[] {
+  const attendue = nature === 'typographie' ? collectionDuChampDeTypographie(champ) : 'typography';
+  return attendue === 'typography' ? ciblesAdmises('components', nature) : [attendue];
 }
 
 export function controlerCouches(releve: ReleveDeComposant, catalogue: CatalogueDeReference): Constat[] {
@@ -46,7 +53,7 @@ export function* controlerCouchesParEtapes(releve: ReleveDeComposant, catalogue:
       yield;
       for (const liaison of layer.liaisons) {
         yield;
-        if (liaison.provenance === 'composant-principal') continue;
+        if (liaison.provenance === 'composant-principal' || liaison.provenance === 'style') continue;
         const variable = variableDuCatalogue(catalogue, liaison.variable.cle);
         if (variable === 'absente') continue;
         const collection = roleDe(variable);
@@ -58,7 +65,7 @@ export function* controlerCouchesParEtapes(releve: ReleveDeComposant, catalogue:
           constats.push(constatDuComposant('C80', nature === 'couleur' ? 'liaisons' : 'tailles', 'corriger', lieuDeBase, faits, [variant.id], [layer.id]));
           continue;
         }
-        const admises = ciblesAdmises('components', nature);
+        const admises = admisesPourLeChamp(nature, liaison.champ);
         const cibles = collection.role === 'components' ? yield* ciblesDesAlias(catalogue, variable) : [null];
         for (const cible of cibles) {
           yield;

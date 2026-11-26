@@ -332,6 +332,16 @@ function precise(constat: Constat, contexte: ContexteDAFaire): Contenu | null {
     }
     case 'C33':
       return { phrase: T.variantSansToken(texte(faits.variant) ?? variantsNommes(noms), texte(faits.famille) ?? ''), lieu: T.sectionTokens, statut: T.variantSansTokenStatut };
+    case 'C83': {
+      const wrapper = texte(faits.wrapper);
+      if (wrapper === null) return null;
+      const proprietes = (texte(faits.proprietes) ?? '').split(', ').filter(Boolean);
+      return {
+        phrase: T.axeNonExpose(proprietes, wrapper, texte(faits.composant) ?? contexte.composant),
+        lieu: lieuDe(constat, contexte, { sansLayer: true }),
+        statut: T.axeNonExposeStatut(wrapper),
+      };
+    }
     case 'C49':
     case 'C50':
       return accessibilite(constat, contexte) ?? contraste(constat, contexte);

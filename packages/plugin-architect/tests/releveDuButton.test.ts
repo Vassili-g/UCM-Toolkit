@@ -6,7 +6,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { controlerMapping, type CatalogueDeReference } from '@ucm-kit/core/controles';
+import { controlerMapping, controlerOublis, type CatalogueDeReference } from '@ucm-kit/core/controles';
 
 import { lireLeReleve } from '../src/releveDuComposant';
 import { atelierDeCalques, collectionFigma, portDeTest, variableFigma } from './figmaDeTest';
@@ -200,4 +200,14 @@ test('D12 : un fill lié par le style de remplissage reçoit « style », une au
   if (issue.statut !== 'lu') return;
   const liaisons = issue.releve.variants[0].layers.find(({ id }) => id === 'rect')!.liaisons;
   assert.deepEqual(liaisons.map(({ champ, provenance }) => [champ, provenance]), [['fills', 'style'], ['strokes', undefined]]);
+});
+
+test('L3 : sur le relevé de Button, un wrapper non exposé qui porte Size rend C83 ; exposé ou d’exposition inconnue, aucun constat', async () => {
+  const catalogue: CatalogueDeReference = { version: 1, library: null, collections: [], variables: [] };
+  const constatsDe = async (options: OptionsDuBouton) => controlerOublis((await relever(options)).releve, catalogue).filter(({ code }) => code === 'C83');
+  const [constat] = await constatsDe({ exposees: [false, false] });
+  assert.deepEqual(constat.faits, { wrapper: '.sizeWrapperButton', proprietes: 'Size', composant: 'Button' });
+  assert.deepEqual(constat.layers, ['I3:152-Default', 'I3:152-Hover']);
+  assert.deepEqual(await constatsDe({ exposees: [false, true] }), []);
+  assert.deepEqual(await constatsDe({}), []);
 });

@@ -38,7 +38,7 @@ export function* controlerLeThemeParEtapes(releve: ReleveDeComposant, catalogue:
       for (const liaison of liaisonsDuLayer(layer)) {
         yield;
         if (!liaison) continue;
-        if (liaison.provenance === 'composant-principal') continue;
+        if (liaison.provenance === 'composant-principal' || liaison.provenance === 'style') continue;
         const variable = yield* trouverVariable(catalogue, liaison.variable.cle);
         if (!variable || collection(catalogue, variable)?.role !== 'components') continue;
         const themeVise = vers(catalogue, variable);

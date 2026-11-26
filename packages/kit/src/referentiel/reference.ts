@@ -156,3 +156,19 @@ export const ECHELLES_DE_REFERENCE: Readonly<Record<'primitives' | 'layout' | 't
   layout: LAYOUT,
   typography: TYPOGRAPHY,
 };
+
+const SEGMENT_DE_CHAMP: Readonly<Record<string, string>> = {
+  fontFamily: 'font-family', fontSize: 'font-size', fontWeight: 'font-weight', lineHeight: 'line-height', letterSpacing: 'letter-spacing',
+};
+
+/**
+ * La collection où la référence range la variable qu'un champ de texte doit lier : `typography` pour la taille, la graisse,
+ * l'interligne et l'approche, `primitives` pour la famille de police (`font-family/base`, que `typography` ne porte pas).
+ * Un champ que la référence ne range nulle part (`fontStyle`, `paragraphSpacing`, `paragraphIndent`) reste dans `typography`.
+ * C65 (`controles/typographie.ts`) et C20 (`controles/couche.ts`) l'appellent : aucun ne redit cette table.
+ */
+export function collectionDuChampDeTypographie(champ: string): 'primitives' | 'typography' {
+  const segment = SEGMENT_DE_CHAMP[champ];
+  if (segment === undefined || ECHELLES_DE_REFERENCE.typography.some((entree) => entree.chemin.endsWith(`/${segment}`))) return 'typography';
+  return ECHELLES_DE_REFERENCE.primitives.some((entree) => entree.chemin.startsWith(`${segment}/`)) ? 'primitives' : 'typography';
+}

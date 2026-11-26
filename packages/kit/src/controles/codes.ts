@@ -1,5 +1,5 @@
 /**
- * Le catalogue des codes de constat : la seule liste des `C7` à `C82` que les contrôles du kit et ceux d'UCM Architect rendent.
+ * Le catalogue des codes de constat : la seule liste des `C7` à `C83` que les contrôles du kit et ceux d'UCM Architect rendent.
  *
  * Chaque code y figure une fois. `Constat.code` ne prend que ces valeurs : un code absent d'ici ne compile pas, et
  * `tests/codesDesConstats.test.ts` relève les codes écrits dans `packages/kit/src/` et `packages/plugin-architect/src/` pour exiger
@@ -67,6 +67,7 @@ export const CODES_DES_CONSTATS = [
   { code: 'C80', familles: ['liaisons', 'tailles'], types: ['corriger'], sens: 'Un layer lie une couleur ou une taille directement à une variable qui n’est pas un token du composant.' },
   { code: 'C81', familles: ['liaisons', 'tailles'], types: ['corriger'], sens: 'Un variant lie des layers que d’autres variants gardent en dur.' },
   { code: 'C82', familles: ['liaisons'], types: ['corriger', 'verifier', 'info'], sens: 'Le thème UCM, ou le lien de `brands` ou de `utility` vers `primitives`, s’écarte de sa définition : variable, cran, palette, couche, scope ou mode absent ou faux.' },
+  { code: 'C83', familles: ['variants'], types: ['verifier'], sens: 'Un composant imbriqué porte un axe que l’hôte n’a pas, et son instance n’est exposée dans aucun variant de l’hôte.' },
 ] as const satisfies readonly EntreeDuCatalogue[];
 
 export type CodeDeConstat = (typeof CODES_DES_CONSTATS)[number]['code'];

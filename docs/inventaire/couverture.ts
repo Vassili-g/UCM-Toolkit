@@ -19,7 +19,7 @@ export const EXCLUSIONS: Readonly<Record<string, GroupeExclu[]>> = {
   "export ./referentiel": [
     {
       motif: "Référence complète des variables attendues, que lisent les contrôles et le générateur de la vue illustrée ; la page montre déjà les collections et le thème.",
-      noms: ["CIBLES_DE_L_ELEVATION", "ECHELLES_DE_REFERENCE", "variablesAttendues"],
+      noms: ["CIBLES_DE_L_ELEVATION", "ECHELLES_DE_REFERENCE", "collectionDuChampDeTypographie", "variablesAttendues"],
     },
     {
       motif: "Écriture et lecture d'un nombre dans un segment de nom Figma (virgule décimale), appelées par les contrôles et l'export.",

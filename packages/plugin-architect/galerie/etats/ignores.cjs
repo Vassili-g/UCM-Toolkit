@@ -72,6 +72,11 @@ const constatsDIcones = [
   constatDIcone('arrow-right-long', 'info', 'standard'),
 ];
 
+/** Le cas du Button (C83) : `.sizeWrapperButton` porte `Size` et son instance n'est exposée dans aucun variant ; les faits suivent `controles/oublis.ts`. */
+const constatDAxeNonExpose = constatDuComposant('C83:wrapper-size', 'C83', 'verifier', 'variants', { wrapper: '.sizeWrapperButton', proprietes: 'Size', composant: 'Button' }, {
+  variants: [variantAlert(nomDeVariant('info', 'standard'))], layers: [CONTAINER],
+});
+
 /** Une liaison dont deux segments sont faux, sur un layer masqué : la question dit aussi ce que la même réponse règle. */
 const questionFusionnee = constatDuComposant('C22:fusion', 'C22', 'corriger', 'liaisons', {
   calque: 'message', champ: 'fills', axe: 'State', valeur: 'disabled', token: 'alert/colors/info/standard/foreground', segment: 'default',
@@ -91,6 +96,12 @@ const ETATS = [
     regarder: 'Deux cartes : la première réunit les trois constats d’arrow-left-long, sa ligne grise dit « 3 variants » puis « layer arrow-left-long › Vector », et sa phrase dit « fill » sans nommer de token ; la seconde garde son token et dit « 1 variant ». Chaque carte a Sélectionner ; son clic vise les calques peints, pas le layer de l’icône.',
     existe: true,
     atteinte: [...ouvrirLePanneau.slice(0, 5), { message: { ...analyseDeQuestions, constats: constatsDIcones } }, ignores([]), { clic: '.bouton-panneau' }, tout],
+  },
+  {
+    id: 'c-afaire-axe-non-expose', titre: 'À faire dans Figma, un axe de wrapper qu’on ne choisit pas depuis le composant', quand: 'Button est analysé ; `.sizeWrapperButton` porte `Size` et son instance n’est exposée dans aucun variant. Le panneau montre Tout.',
+    regarder: 'Une carte « Vérifier » : « La propriété `Size` de `.sizeWrapperButton` ne se choisit pas depuis Button. » ; le statut dit « Dans Figma, exposez les propriétés de `.sizeWrapperButton` (Expose properties from nested instances) » ; Sélectionner vise l’instance du wrapper.',
+    existe: true,
+    atteinte: [...ouvrirLePanneau.slice(0, 5), { message: { ...analyseDeQuestions, constats: [constatDAxeNonExpose] } }, ignores([]), { clic: '.bouton-panneau' }, tout],
   },
   {
     id: 'q-fusionnee', titre: 'Question à deux segments faux, layer masqué', quand: 'Le designer choisit la puce Couleurs ; le layer message est masqué et sa liaison se trompe d’état et de rôle.',

@@ -91,6 +91,14 @@ export const TEXTES_IGNORES = {
     tokenInutiliseStatut: 'Liez-le, ou supprimez-le',
     variantSansToken: (variant: string, famille: string): string => `${variant} n’a aucun token de ${famille}.`,
     variantSansTokenStatut: 'Créez le token, ou ignorez ce constat',
+    // C83 : un composant imbriqué porte un axe que l'hôte n'a pas, et son instance n'est exposée dans aucun variant.
+    axeNonExpose: (proprietes: readonly string[], wrapper: string, composant: string): string => {
+      const noms = proprietes.map((nom) => `\`${nom}\``).join(', ');
+      return proprietes.length > 1
+        ? `Les propriétés ${noms} de \`${wrapper}\` ne se choisissent pas depuis ${composant}.`
+        : `La propriété ${noms} de \`${wrapper}\` ne se choisit pas depuis ${composant}.`;
+    },
+    axeNonExposeStatut: (wrapper: string): string => `Dans Figma, exposez les propriétés de \`${wrapper}\` (Expose properties from nested instances)`,
     // C49, C50 : le contraste.
     manqueDeContraste: (usage: string, modes: string | null): string => {
       const suite = modes !== null ? ` en ${modes}` : usage === 'anneau' ? '' : ' sur la page';
