@@ -173,8 +173,8 @@ d'Alert sont celles du plan. Onze défauts sont nouveaux, et Codex y ajoute quat
 | L9 | Architect : C45 `renommee` et doublon de C44 D13 | `implementeur` | L7 | [x] 40e260d8 |
 | L11 | Kit : identité d'un calque D16 | `implementeur-exigeant` | L6 | [x] 5dcce2a1 |
 | L12 | Kit : preuve du fond partagée D17 | `implementeur-exigeant` | L11 | [x] 40e260d8 |
-| L13 | Architect et kit : modes par calque D18 | `implementeur` | L2 | [ ] |
-| L14 | Kit : propositions de couleur vérifiées D19 | `implementeur-exigeant` | L12 | [ ] |
+| L13 | Architect et kit : modes par calque D18 | `implementeur` | L2 | [x] bb3cf06c |
+| L14 | Kit : propositions de couleur vérifiées D19 | `implementeur-exigeant` | L12 | [x] bb3cf06c |
 | L15 | Architect : origine des liaisons des dépendances et peinture sous instance D20 | `implementeur` | L2 | [ ] |
 | L16 | Kit et Architect : pièce interne seule D22, clé de collection D24 | `implementeur` | L3 | [ ] |
 | L18 | Socle et Architect : écarts C30 du moteur des règles D26 | `implementeur` | L16 | [ ] |
@@ -263,3 +263,8 @@ passent l'un après l'autre. L11, L12 et L14 touchent les contrôles du kit et s
   écrit dans Figma (`Type`). `fondsPeintsSous` vit dans `accessibilite.ts` et `LayerLu.rayons` porte les rayons de coin. Restes pour
   L10 : un rayon dont la lecture est refusée doit donner une couverture `inconnue`, pas des coins droits ; l'arc partiel d'une
   ellipse (`arcData`) n'est pas lu ; une lecture de fills manquée sur un frère n'est pas contrôlée.
+- L13 et L14, commit `bb3cf06c`. Kit 2215 tests, Architect 2463, socle 304, Exporter 1175, racine 713 sur 714. `gardeLeDessin` vit
+  dans `gardeDuDessin.ts`, et `LayerLu.modesExplicites` porte les modes forcés. Restes pour L10 : C50, `variableDuThemeAtteinte`,
+  `leRepliSertA` et le contour d'un fond forcé lisent encore la combinaison du variant ; les valeurs de `theme` atteintes par un
+  candidat de C25 ne se chargent que si une liaison du relevé les cite, sinon la correction devient une question ; le seuil d'un
+  texte reste 4,5 sans lire la taille de la plage.
