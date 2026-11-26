@@ -229,7 +229,10 @@ Vérification. `node _local/p28/poc/verifier.mjs` relève 0 erreur, 0 requête r
 | QA5 | Oui. | La table du sombre garde trois sortes de paires. |
 | QA6 | Non. Les palettes tertiaires ne servent pas. | P28 corrige les palettes primitives. Les tertiaires sortent de la liste des corrections. |
 
-QA1 reste ouverte : l'objectif est aussi de lisser les clairs, donc protéger une nuance ne suffit pas. QA7 est nouvelle. Q4 suit la réponse à Q3 : aucune description n'est écrite.
+| QA1 | Essayer la correction locale. | La page de preuve montre chaque courbe brute et corrigée. Le choix suit la mesure. |
+| QA7 | Oui. | Les nuances `-[dark]` deviennent un deuxième ancrage. Les clairs se recalculent par morceaux, du 50 à l'ancrage le plus clair, puis entre deux ancrages. |
+
+Q4 suit la réponse à Q3 : aucune description n'est écrite.
 
 ### Relevé des alias du fichier client
 
