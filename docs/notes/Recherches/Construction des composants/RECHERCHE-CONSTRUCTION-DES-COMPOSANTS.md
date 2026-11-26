@@ -43,6 +43,16 @@ Trois bornes tiennent aujourd'hui.
 
 Le dessin de la variante de référence, les réponses aux questions et la publication de la library. Le mainteneur garde les tokens et les composants dans deux fichiers dès le début : la publication entre Créer et Lier reste donc un geste du designer, et M3 s'arrête sur elle. Une variante qui diffère par sa structure (icône absente, autre mise en page) se retouche après la déclinaison.
 
+## 5. Ce qu'apprend l'outil local de liaison des icônes
+
+Le mainteneur emploie un plugin local, hors de Git, dans `_local/outils/relier-variantes/`. Dans un jeu de variants d'un fichier non UCM, il relie la couleur de chaque icône au token de sa variante. Il a servi sur des jeux réels de plusieurs dizaines de variantes. Trois de ses idées servent M2 et la note de conception (case 1.2 du plan).
+
+- Le token voisin. Le plugin part du token déjà posé sur un autre calque de la variante, son fond par exemple, et remplace seulement le dernier mot : `…/on/default/background` donne `…/on/default/foreground`. Il ne lit aucun axe dans le nom. Il traverse donc le cas où le token écrit une valeur autrement que le variant (`on` pour `Active=True`), qui arrête la propagation d'un variant modèle (C81), et il ne suppose aucune nomenclature.
+- Une question par emplacement. Chaque calque d'icône reçoit sa réponse une fois, parmi les derniers mots des tokens existants (`foreground`, `action`), puis elle vaut pour toutes les variantes. Le designer choisit le mot ; le plugin n'écrit que si le token visé existe une seule fois, ce qui garde la règle « aucune supposition de mapping ».
+- Le résultat montré sur des variantes contrastées. Le plugin applique chaque règle à deux ou trois variantes aussi différentes que possible : une règle qui ignore un axe se voit d'un coup d'œil. Un nom construit qui laisse un axe hors du nom est signalé et replié.
+
+Deux défauts de l'outil sont à corriger avant tout transfert. Un fond lié à un token commun (une couleur générique) donne le même token à des variantes qui devraient différer, sans le signaler. Deux calques de référence qui mènent à deux dossiers sont départagés par le nombre de variantes couvertes, sans que le designer le voie. L'outil choisit aussi les icônes par leur nom de calque ; Architect les reconnaît déjà mieux.
+
 ## Questions au mainteneur
 
 - Q1. Le designer dessine-t-il une seule variante de référence, ou une par valeur d'un axe de structure (taille, présence d'une icône) ?
