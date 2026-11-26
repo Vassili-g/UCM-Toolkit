@@ -4,9 +4,11 @@
 
 ## La solution retenue
 
-UCM Palettes reçoit une échelle imposée, qui recalcule les palettes primitives d'une bibliothèque simple sans changer leurs noms, leurs liens ni leur liste de nuances. Le designer marque dans chaque palette les nuances qui portent une couleur de marque. Le calcul les garde à l'octet, recalcule les nuances plus claires que la plus claire d'entre elles sur une courbe choisie, et garde les nuances plus foncées tant qu'elles restent ordonnées et régulières. Une table de contrastes attendus, nuance par nuance, remplace les marqueurs : Palettes la vérifie, la montre et l'écrit dans la description de chaque variable primitive. Le thème sombre se traite par les accents, selon l'une de deux propositions : corriger seulement l'accent qui manque son contraste, ou recalculer tous les accents depuis la couleur de marque. Seule la bibliothèque des primitives change, et la couche des marques et le thème suivent par leurs alias.
+UCM Palettes reçoit une échelle imposée, qui recalcule les palettes primitives d'une bibliothèque simple sans changer leurs noms, leurs liens ni leur liste de nuances. Le designer coche dans chaque palette les nuances qui portent une couleur de marque. Le calcul les garde à l'octet, recalcule les nuances plus claires que la plus claire d'entre elles sur une courbe choisie, et garde les nuances plus foncées tant qu'elles restent ordonnées et régulières. Une nuance recalculée garde la teinte et la part de chroma de la nuance actuelle de même numéro, et seule sa clarté change. Une table de contrastes attendus remplace les marqueurs : Palettes la vérifie, la montre et l'écrit dans la description de chaque variable primitive. Le thème sombre se traite par les accents : un accent qui manque un contraste de la table fonce ou s'éclaircit juste assez. Seule la bibliothèque des primitives change, et la couche des marques et le thème suivent par leurs alias.
 
-Deux faits sont acquis. Les noms et les alias ne changent pas, donc le code en production qui lit les noms publiés ne change pas. Les couleurs isolées, les couleurs de visualisation et les accents que le thème sombre ne vise pas (`a700`, `a50`, `a800`) restent hors du calcul.
+Deux faits sont acquis. Les noms et les alias ne changent pas, donc le code en production qui lit les noms publiés ne change pas. Les couleurs isolées, les couleurs de visualisation et les accents qu'aucune paire de la table ne vise restent hors du calcul.
+
+Les chiffres de cette note viennent d'un audit contre le relevé des alias du fichier client (section « Relevé des alias »). Ils portent sur les quatre marques A à D, six familles de composants (bouton, chip, tag, badge, toast, encart) et 696 paires par thème, états désactivés exclus.
 
 La page de preuve est `_local/p28/poc/index.html`, ignorée par Git. Elle se reconstruit par `npx tsx _local/p28/poc/calculer.mts`, qui appelle le moteur de `packages/couleur/src`. Les mesures de cette note viennent de `_local/p28/poc/calcul.txt`, `_local/p28/poc/mesures-dark.txt` et `_local/p28/poc/bilan.txt`.
 
@@ -21,22 +23,22 @@ Le client fournit quatre réglages, rangés dans sa recette :
 - le contraste attendu de chaque nuance et de chaque accent (par exemple « l'accent `a300` porte un texte blanc »), saisi une fois et réutilisé par toutes ses palettes ;
 - la proposition retenue pour le sombre.
 
-La correspondance entre une marque et sa primitive reste inconnue, et rien ne la demande. La page suppose seulement que la nuance N d'une palette de marque vise la nuance N de sa primitive.
+La correspondance entre une marque et sa primitive se lit dans la couche des marques. Chaque nuance de marque est la cible d'une variable `[Light]`, et une primitive en porte une seconde par une cible au nom suffixé « Brand ». Le relevé des alias l'a établie pour les quatre marques mesurées.
 
 ## 1. Plusieurs nuances de marque par primitive
 
-Une primitive porte une nuance de marque par marque qui la vise, à des numéros différents. Dans l'export d'octobre, `main` vaut 400 pour la palette primaire de la marque A, 700 pour les palettes primaires des marques C et D, et 800 pour les deux palettes de la marque B.
+Les nuances de marque se lisent dans la couche des marques. Neuf palettes de marque et les quatre sémantiques en portent une. La palette 6 en porte deux, toutes deux de la marque D. Les palettes 2, 3, 8 et 12 et les deux gris n'en portent aucune et restent telles quelles. Aucune primitive ne porte les nuances de marque de deux marques. `main` vise partout la cible `[Light]` : 400 pour la palette primaire de la marque A, 700 pour les palettes primaires des marques C et D, 800 pour celle de la marque B.
 
-Le designer les désigne dans l'onglet Création. Le détail d'une nuance porte une case « Couleur de marque ». Plusieurs nuances peuvent la porter, et aucune n'est cochée d'avance. Une phrase sous l'aperçu nomme la première nuance qui porte un texte blanc à 4,5:1, comme repère. Le designer apprend quelles nuances portent une couleur de marque en lisant la couche des marques du fichier client : `main` y vise la nuance marquée `-[light]`. Palettes ne peut pas lire ce fichier depuis la bibliothèque des primitives. Cette lecture est un geste manuel, posé en question.
+Le designer les désigne dans l'onglet Création. Le détail d'une nuance porte une case « Couleur de marque ». Plusieurs nuances peuvent la porter, et aucune n'est cochée d'avance. Palettes ne peut pas lire le fichier client depuis la bibliothèque des primitives. Le relevé des alias, fait par un plugin local, donne les nuances à cocher.
 
 Le calcul procède ainsi :
 
 - chaque nuance de marque garde ses octets ;
-- les nuances plus claires que la plus claire des nuances de marque se recalculent sur la courbe choisie (section 2), avec la teinte de `teinteA` (dérive Tailwind) et la part de chroma de cette nuance par `fabriquerCran`, enveloppe Vivid Light ;
+- les nuances plus claires que la plus claire des nuances de marque prennent la clarté de la courbe choisie (section 2), avec la teinte et la part de chroma de la nuance actuelle de même numéro (`fabriquerCran`, sans dérive de teinte ni enveloppe). La dérive de Tailwind tournait les clairs de la palette 7 de 23,5° et le mainteneur l'a refusée. L'écart restant est sous 2° dans les 13 palettes, et la couleur ne sort jamais du gamut sRGB ;
 - les nuances entre deux nuances de marque gardent leurs octets ;
 - les nuances plus foncées que la plus foncée des nuances de marque gardent leurs octets, sauf dans les cas de la section 3.
 
-Le calcul ne lit que la liste des nuances, les nuances de marque et la courbe. Deux primitives égales, comme la palette 13 et le second gris de 50 à 900, reçoivent donc le même résultat si le designer y marque les mêmes nuances. Palettes signale deux palettes égales avant le calcul et différentes après, sans corriger.
+La palette 13 et le second gris sont égaux de 50 à 900. La palette 13 porte une nuance de marque, le second gris aucune, donc ils diffèrent après le calcul. Le second gris est le gris de la couche des marques. Palettes signale deux palettes égales avant le calcul et différentes après, sans les lier (Q12).
 
 ## 2. Les courbes candidates des clairs
 
@@ -49,62 +51,52 @@ Les quatre courbes placent la clarté OKLCH des nuances plus claires que l'ancra
 | Commune | `u(n)` jusqu'au 300, puis `u(300) − (u(300) − u(n)) / (u(300) − u(a)) × (u(300) − La)` jusqu'à l'ancrage | L'ancrage ; le 50 au 300 prennent la même clarté dans toutes les palettes |
 | Régulière | `L(rang i) = L50 − i / ia × (L50 − La)`, `ia` étant le rang de l'ancrage | La clarté du 50 et l'ancrage ; des pas égaux entre eux |
 
-Sur les 164 couples d'une palette et d'un ancrage possible, du 200 au dernier numéro, aucune courbe ne déplace une nuance de marque. La courbe commune rompt l'ordre des clartés dans 4 couples. La lissée et la régulière ne le rompent jamais.
+Sur les 13 palettes à nuance de marque, aucune courbe ne déplace une nuance de marque. La courbe commune rompt l'ordre des clartés dans la palette 11. La lissée et la régulière ne le rompent jamais.
 
-Vues par une couleur de marque au 700, les 13 palettes de marque tiennent 327 paires de contraste sur 390 avec la courbe actuelle, 337 avec la lissée, 336 avec la commune et 325 avec la régulière. Au 800, elles en tiennent 362, 371, 372 et 361. Au 400, elles en tiennent 130 à 147, parce que le blanc ne se lit pas sur la couleur de marque, et aucune courbe des clairs ne le répare.
+En clair, les six familles de composants tiennent 645 paires sur 696 aujourd'hui, 644 avec la lissée, 651 avec la commune et 643 avec la régulière. La lissée ne répare aucune paire et en casse 17. La commune en répare 7 et en casse 18. La régulière en casse 26. La lissée et la régulière changent 76 nuances, la commune 87.
 
-La recommandation montrée au lead UX est la lissée, qui gagne le plus de paires sans rompre l'ordre. La page compare les quatre courbes côte à côte, et le lead UX choisit.
+Les paires cassées viennent d'une nuance plus claire que la couleur de marque qui porte elle-même un contraste. Le 500 de l'erreur sert de texte sur son 1000 dans le thème sombre (16 paires, de 4,62 à 4,27). Le 400 de la palette 10 porte un texte blanc dans le badge secondaire de la marque A (de 4,56 à 3,10). La courbe ne connaît pas ces emplois. La page de preuve les liste avant tout recalcul.
+
+Le mainteneur a choisi la lissée (Q1). Ce que la lissée apporte est la régularité des clairs, pas des contrastes. Le traitement d'une nuance claire qui porte un contraste est la question QA1.
 
 ## 3. Quand les nuances foncées ne sont pas gardées
 
 Les nuances foncées se gardent quand deux conditions tiennent. Le calcul les vérifie, et un message nomme celle qui manque.
 
 - Leur ordre de clarté tient. Aucune des 19 palettes ne l'inverse aujourd'hui.
-- Leurs écarts restent réguliers : deux nuances foncées voisines ne sont pas à moins de 0,04 de distance OKLab quand un autre écart foncé dépasse 0,10. Les palettes 3, 9 et 10 manquent cette condition dès le 400. Dans la palette 10, les écarts valent 0,137 et 0,114, puis 0,026 et 0,027 entre les trois dernières nuances.
+- Leurs écarts restent réguliers : deux nuances foncées voisines ne sont pas à moins de 0,04 de distance OKLab quand un autre écart foncé dépasse 0,10. Mesurée depuis la plus foncée des nuances de marque, seule la palette 9 manque cette condition : deux voisines à 0,031, un autre écart à 0,131.
 
-Quand la régularité manque, le designer peut choisir « Recalculées ». Les nuances situées entre la plus foncée des nuances de marque et la dernière nuance, qui garde ses octets, se répartissent alors selon la courbe d'UCM. Le choix arrive décoché.
+Quand la régularité manque, les nuances situées entre la plus foncée des nuances de marque et la dernière nuance, qui garde ses octets, se répartissent selon la courbe d'UCM, d'office (Q9), et un message le dit. Dans la palette 9, les nuances 500 à 800 changent. Les nuances 500 et 600 portent les rôles clairs `dark` et `darker` de la palette primaire de la marque A, qui bougent de 0,040 et 0,088 (question QA2).
 
-Le raccord entre le dernier clair recalculé et l'ancrage relève de la courbe, pas des foncés. Un raccord est un saut quand il dépasse 1,5 fois le pas de la courbe d'UCM au même endroit. La lissée en fait 35 sur 164 couples, au plus 0,159 de clarté, surtout avec un ancrage au 400 ou au 500 dans les palettes 3, 5, 8, 9 et 10. La commune en fait 46, au plus 0,289. La régulière en fait 12, au plus 0,114. Avec un ancrage au 700, seule la palette 10 saute avec la lissée. Le message de saut propose de comparer une autre courbe.
+Le raccord entre le dernier clair recalculé et l'ancrage relève de la courbe, pas des foncés. Un raccord est un saut quand il dépasse 1,5 fois le pas de la courbe d'UCM au même endroit. La lissée en fait un, dans la palette 9 (0,159 pour un pas de 0,085). La commune en fait deux, dans les palettes 9 et 10. La régulière n'en fait aucun. Le message de saut propose de comparer une autre courbe.
 
 ## 4. Le thème sombre et les accents
 
 ### Ce que visent les rôles sombres
 
-Dans l'export d'octobre, les marques A à D font viser les accents par les rôles sombres de leurs palettes de marque, toujours de la même façon. Les comptes portent sur les feuilles du thème sombre qui passent par le rôle.
+Les rôles sombres des palettes de marque visent les accents. Les comptes portent sur les feuilles du thème sombre des marques A à D qui passent par le rôle.
 
-| Accent | Rôle sombre | Feuilles | Paire que l'accent doit tenir |
-|---|---|---|---|
-| `a300` | `main` | 61 | texte blanc à 4,5 |
-| `a400` | `dark` (survol, appui, focus) | 86 | texte blanc à 4,5 |
-| `a200` | `light`, et le rôle de nuance discrète | 106 | 4,5 sur le gris 1000, fond sombre de l'export |
-| `a100` | le rôle plus clair que `light` | 24 | 4,5 sur le gris 1000 |
-| `a900` | le rôle plus foncé que `dark` | 48 | porter `a200` à 4,5 |
+| Accent | Rôle sombre | Feuilles |
+|---|---|---|
+| `a300` | `main` | 92 |
+| `a400` | `dark` (survol, appui, focus) | 94 |
+| `a200` | `light` et `subtle` | 145 |
+| `a900` | `darker` | 79 |
+| `a100` | `lighter` | 24 |
 
-Trois feuilles visent `a700` directement. La palette primaire de la marque B n'a aucun rôle sombre défini. Les palettes sémantiques gardent en sombre les nuances du clair.
+La palette secondaire de la marque C, la palette secondaire de la marque A et la palette tertiaire de la marque A s'écartent de ce schéma. La palette primaire de la marque B vise en sombre les accents de la palette 12, par des alias directs du thème. Le rôle `darker` de la palette tertiaire de A vise `a700`. Aucun rôle sombre ne vise un `a300` ou un `a900` absent. Les palettes sémantiques ont sept rôles, sans `subtle`.
 
-Cinq palettes primitives sur 13 ne portent ni `a300` ni `a900` (palettes 2, 3, 7, 8 et 11). Une marque qui les vise fait donc pointer ses `a300` et `a900` vers une autre variable, que l'export ne nomme pas.
+Le fond de la page sombre est le second gris au 1000.
 
-Les accents actuels tiennent déjà la plupart de ces paires. Le blanc sur `a300` tient dans les 8 palettes qui le portent, de 4,51 à 5,98. Le blanc sur `a400` manque dans 3 palettes (la palette 2 à 1,46, les palettes 7 et 11, qui partagent cet accent, à 4,35). `a200` sur le gris 1000 manque dans la palette 8 (3,45). `a200` sur `a900` tient partout.
+### La table du sombre et la proposition retenue
 
-### Les deux propositions au lead UX
+La table des contrastes attendus du sombre réunit trois sortes de paires : un accent porte un texte blanc, un accent se lit en texte sur le fond de la page, un accent se lit en texte sur un autre accent de sa palette. Les accents des palettes 1, 4, 5, 6, 9, 10, 12 et 13 y figurent. Ils tiennent aujourd'hui ses 159 paires.
 
-#### Proposition 1, accents corrigés au besoin
+Proposition retenue (Q2). Un accent garde sa couleur, sauf s'il manque une paire de la table. Il fonce ou s'éclaircit alors juste assez, par pas de 0,001 de clarté, teinte et part de chroma gardées. Aujourd'hui, aucun accent ne change. Aucun nom ni alias ne change.
 
-- Résultat visible. Le sombre garde ses couleurs. Seul l'accent qui manque son contraste fonce ou s'éclaircit, juste assez, par pas de 0,001 de clarté, teinte et part de chroma gardées.
-- Architecture des tokens. Aucun nom ni alias ne change. Quatre accents primitifs changent de valeur.
-- Impact concret. `a400` de la palette 2 fonce de 0,301, ce qui change sa couleur et demande l'accord du lead UX. `a400` des palettes 7 et 11 fonce de 0,009, à l'identique puisqu'il est partagé. `a200` de la palette 8 s'éclaircit de 0,062. Les `a300` et `a900` absents restent à vérifier à la main dans la couche des marques.
+En sombre, les six familles de composants tiennent 603 paires sur 696 aujourd'hui, et 587 après la lissée et la proposition 1. Les 16 paires perdues viennent de la courbe des clairs (section 2), pas des accents. Les autres échecs sont des paires de structure : bord d'un bouton contour survolé sur le fond, texte gris sur un accent du badge, icône et bord d'encart. Palettes ne les juge pas (Q11), et la page de preuve les liste.
 
-#### Proposition 2, accents recalculés
-
-- Résultat visible. Chaque palette reçoit une gamme sombre régulière, calculée depuis sa couleur de marque, aux contrastes garantis par le moteur.
-- Architecture des tokens. Aucun nom ni alias ne change. Chaque accent visé par le sombre prend la valeur d'une nuance de la rampe sombre du moteur, texte des boutons blanc : `a300` le fond plein (700), `a400` le survol (600), `a200` le texte de la page (800), `a100` le texte des surfaces (950), `a900` le survol des surfaces (300).
-- Impact concret. Tout le sombre change de teinte et de vivacité. Deux palettes qui partagent un accent peuvent se séparer. Une couleur de marque trop claire pour le blanc le reste, car le moteur la garde à l'octet. La palette 1, couleur de marque au 500, manque ainsi une garantie sombre à 4,38. Les `a300` et `a900` absents restent à la main, comme dans la proposition 1.
-
-Vues par une couleur de marque au 800, les 13 palettes tiennent 258 paires sombres sur 390 aujourd'hui, 290 avec la proposition 1 et 296 avec la proposition 2. Les cinq palettes sans `a300` gardent leurs échecs dans les deux propositions. Dans la palette 1 vue au 700, les autres échecs viennent de paires que la structure pose, comme le bord du bouton plein survolé contre le fond sombre, le texte gris foncé sur un accent clair du badge, et l'encart à fond clair et texte d'accent. Le calcul d'une palette ne les répare pas.
-
-La proposition 1 est recommandée : elle tient presque autant de paires et ne change que quatre accents.
-
-Une troisième voie fait viser par les rôles sombres les nuances claires recalculées, comme MUI. Elle change 60 à 103 alias par marque dans la couche des marques et sort du cadre décidé.
+La proposition 2, qui recalculait tous les accents, et une troisième voie, qui re-visait 107 à 124 feuilles sombres par marque vers les clairs recalculés, sont écartées.
 
 ## 5. Le contraste attendu sur chaque nuance
 
@@ -145,11 +137,13 @@ Les textes s'adressent au designer, en mots simples. Le lead UX travaillera sur 
 
 Ce qui disparaît en échelle imposée : les garanties G1 à G9, la correction des textes, le glissement de la référence en sombre, la clarté commune des crans clairs, sauf avec la courbe commune, et les alertes « Profils confondus » et « Palettes proches ».
 
-Ce qui apparaît : les nuances de marque, la table des contrastes attendus, la comparaison des courbes, les deux propositions du sombre, les messages de saut au raccord, de foncés irréguliers, de palettes égales et d'accents absents.
+Ce qui apparaît : les nuances de marque, la table des contrastes attendus, la comparaison des courbes, la carte du sombre, les messages de saut au raccord, de foncés recalculés et de palettes égales.
 
 ### Écriture
 
 L'écriture passe par la reprise en mode `recalculees` ([VAR-13]), dans la collection d'origine, mode clair seul. L'échelle imposée ajoute trois garanties, chacune avec son test : aucun renommage, aucune création, et un nom de palette distinct pour chacune des 13 palettes de marque, que `nomDeLaReprise` confond aujourd'hui. Les accents s'écrivent comme les nuances, par identifiant.
+
+Le fichier client n'a pas accepté la dernière mise à jour de sa bibliothèque. Il vise 13 variables absentes du fichier des primitives et en voit 2 autres à une valeur ancienne (section « Relevé des alias »). Accepter cette mise à jour, sur une copie, est la première étape. Une variable supprimée de la bibliothèque demande un nouveau lien dans la couche des marques, geste manuel à décider (questions QA3 et QA4).
 
 Après l'écriture, trois gestes ont lieu dans Figma : ouvrir Palettes dans le fichier des primitives, publier la bibliothèque, accepter la mise à jour dans le fichier client. Le premier passage se fait sur une copie. Le mainteneur duplique le fichier des primitives, le publie comme bibliothèque distincte, et fait viser cette copie par une copie du fichier client, par l'échange de bibliothèque de Figma. Ces gestes sont manuels, et la question 7 les pose.
 
@@ -167,8 +161,7 @@ Le format 13 ajoute à la recette le choix de gamme, la courbe des clairs et la 
 
 | Lieu | Changement | Raison |
 |---|---|---|
-| Moteur, module nouveau | Calcul d'une palette en échelle imposée, ses trois courbes, les foncés recalculés, la correction des accents par pas de clarté | Points 1, 2, 3 et 4 des réponses |
-| Moteur, `rampesDe` | Rampe sombre d'une couleur de marque, texte des boutons blanc, pour la proposition 2 ; aucun changement du calcul | Point 4 |
+| Moteur, module nouveau | Calcul d'une palette en échelle imposée, ses trois courbes avec teinte et part de chroma gardées, les foncés recalculés, la correction des accents par pas de clarté | Points 1, 2, 3 et 4 des réponses |
 | Moteur, jugement | Une table de paires fournie par la recette, jugée par `contraste` | Seuils de 4,5 et 3, désactivé exclu |
 | Kit, `BORNES_DES_CRANS_LIBRES` | Borne portée à 1100, donc `NUMEROS_DE_PALETTE` | Les sémantiques et les gris vont jusqu'à 1100 |
 | Kit, `referentiel/produits.ts` et `vocabulaire.ts` | Ce que Palettes lit et écrit en échelle imposée, la borne | Documentation de la borne |
@@ -184,35 +177,37 @@ Un texte tient 4,5:1, un élément graphique (bord, icône, liseret) tient 3:1, 
 
 ## 8. Égalités, marque E et reprise
 
-Deux primitives égales reçoivent le même calcul (section 1), et deux accents partagés reçoivent la même correction dans la proposition 1. La marque E sort des mesures, des dispositions et de la page. La reprise se fait palette par palette, sans geste groupé.
+Deux primitives égales se calculent chacune selon leurs nuances de marque, et un message signale qu'elles diffèrent après le calcul (Q12). Aucun accent n'est corrigé aujourd'hui. La marque E sort des mesures, des dispositions et de la page. La reprise se fait palette par palette, sans geste groupé.
 
 ## Le bouton réglé à la main
 
-Le bouton visait des nuances que le mainteneur avait recalculées à la main. Ses rôles en clair sont `main`, `dark` et la nuance la plus claire, au 50, pour le fond de survol du bouton texte. La lissée et la régulière gardent la clarté du 50 et toutes les nuances de marque et plus foncées. Vues par une couleur de marque au 700, les 13 palettes tiennent 190 paires du bouton sur 208 avec chacune des quatre courbes. La commune déplace le 50, de 0,005 dans la palette 1. Le réglage manuel peut être écrasé tant que ses contrastes restent tenus. La page montre, rôle par rôle, la nuance qui bouge et ses contrastes.
+Le bouton visait des nuances que le mainteneur avait recalculées à la main. Ses rôles en clair sont `main`, `dark` et la nuance la plus claire, au 50, pour le fond de survol du bouton texte. La lissée et la régulière gardent le 50 à l'octet. En clair, les boutons tiennent 101 paires sur 111 pour la marque A et 104 sur 111 pour les marques B, C et D, avec la courbe actuelle comme avec la lissée et la régulière. La commune déplace le 50, de 0,005 dans la palette 1, et porte la marque A à 104. Dans la palette 9, les foncés recalculés d'office changent le `dark` de la marque A de 0,040 et son `darker` de 0,088 : le texte blanc du bouton plein survolé passe de 8,53 à 7,24. Le réglage manuel peut être écrasé tant que ses contrastes restent tenus.
 
-Le fond de survol du bouton texte s'écarte du fond de repos de 0,022 à 0,027 en distance OKLab dans la palette 1, à la limite d'un écart visible. Le survol, l'appui et le focus ont le même fond dans l'export, donc un écart nul entre eux, quelle que soit la courbe.
+Le fond de survol du bouton texte s'écarte du fond de repos de 0,022 en distance OKLab dans la palette 1, à la limite d'un écart visible, et de 0,027 avec la commune. Le survol, l'appui et le focus ont le même fond dans les 168 cas relevés.
 
 ## Ce que la page de preuve montre
 
-`_local/p28/poc/index.html` s'ouvre par un double-clic, sans réseau. Une liste choisit la palette parmi les 19. La barre choisit une à quatre marques sur cette palette, chacune par sa couleur de marque seule (300 à 900) ou par la disposition d'une marque du fichier (marques A à D, sémantiques). Elle règle aussi les nuances foncées, gardées ou recalculées, et la courbe sous le thème sombre.
+`_local/p28/poc/index.html` s'ouvre par un double-clic, sans réseau. Une liste choisit la palette parmi les 19, une barre la courbe des clairs, la lissée à l'ouverture. Marques, nuances de marque, rôles et composants viennent du relevé des alias.
 
-1. Les nuances. Quatre rangées, l'actuelle et les trois courbes, avec le ◆ des nuances de marque, le point des nuances recalculées, les pas de clarté, l'écart à l'actuelle et les messages de saut, de foncés irréguliers, de palettes égales et d'accents partagés.
-2. Le sombre. Les deux propositions en trois lignes, côte à côte, puis les accents actuels, corrigés et recalculés, et le message des accents absents.
-3. Les composants, marque par marque. Bouton plein, contour et texte dans leurs cinq états, chip, chip sélectionné, tag, badge, toast et encart, rendus par les rôles du client. Sept colonnes, quatre courbes en clair et les trois traitements en sombre. Chaque paire porte son contraste en vert ou en rouge, et chaque colonne le compte des paires tenues. Suivent l'écart entre les états et un tableau des rôles qui bougent, ceux du bouton surlignés.
-4. Comment lire.
+1. Le bilan des quatre marques mesurées : paires tenues en clair et en sombre, aujourd'hui et après, réparées et cassées.
+2. Les nuances : les quatre courbes, les couleurs de marque lues dans le fichier, les messages de saut, de foncés recalculés d'office et de palettes égales, puis chaque nuance qui change et les rôles qui la visent.
+3. Le sombre : les accents actuels et ceux de la proposition 1, les rôles qui les visent, la table tenue.
+4. Les composants, marque par marque : chaque composant dont une variable vise la palette, rendu avec les couleurs réelles de ses variables, en clair et en sombre, aujourd'hui et après.
+5. À corriger dans les composants : chaque paire en échec après le calcul (161 avec la lissée, dont 144 échouaient déjà), son contraste, son composant et la cause pour chacune de ses deux couleurs, en commençant par les paires que le calcul fait échouer.
+6. Les liens du fichier client qui ne suivront pas le recalcul.
 
-Vérification. `node _local/p28/poc/verifier.mjs` ouvre la page dans Chromium sans tête, parcourt les 19 palettes, ajoute une seconde marque et passe les foncés en « Recalculées ». Il relève 0 erreur, 0 requête réseau, et aucun défilement horizontal de la page à 390 px de large. `node _local/p28/poc/capturer.mjs` capture une palette vue par une ou plusieurs marques, et `node _local/p28/poc/bilan.mjs` compte les paires tenues sur les 13 palettes de marque.
+Vérification. `node _local/p28/poc/verifier.mjs` relève 0 erreur, 0 requête réseau et aucun défilement horizontal à 390 px. `node _local/p28/poc/bilan.mjs` compte les paires par courbe.
 
 ## Questions au mainteneur
 
 | Question | Options | Recommandation |
 |---|---|---|
-| Q1. Quelle courbe proposer en premier au lead UX ? | Lissée, commune, régulière | Lissée, qui gagne 10 paires au 700 sans rompre l'ordre ; le lead UX choisit sur la page. |
-| Q2. Quel traitement du sombre ? | Proposition 1, proposition 2 | Proposition 1, qui change quatre accents. |
+| Q1. Quelle courbe proposer en premier au lead UX ? | Lissée, commune, régulière | Lissée, qui ne rompt jamais l'ordre ; le lead UX choisit sur la page. |
+| Q2. Quel traitement du sombre ? | Proposition 1, proposition 2 | Proposition 1, qui ne change un accent que s'il manque une paire de la table. |
 | Q3. Quel modèle du contraste attendu ? | Table de la recette, description des primitives, description dans la couche des marques, marqueurs renommés, document | Table de la recette, écrite par Palettes dans la description des primitives. |
 | Q4. Palettes peut-il écrire la description d'une variable primitive ? | Oui, écriture nouvelle inscrite dans `ecriture.md` ; non, la table reste dans Palettes | Oui. |
 | Q5. Où s'active l'échelle imposée ? | Dans la Configuration, pour toutes les palettes reprises ; palette par palette, comme un quatrième modèle | Dans la Configuration, désactivation par figement. |
-| Q6. Comment le designer connaît-il les nuances de marque d'une primitive ? | Lecture manuelle de la couche des marques ; liste fournie par le mainteneur dans la recette de Figma ; lecture par un outil dans le fichier client | Lecture manuelle, guidée par la recette de Figma, car aucun outil ne lit les alias d'une bibliothèque distante aujourd'hui. |
+| Q6. Comment le designer connaît-il les nuances de marque d'une primitive ? | Lecture manuelle de la couche des marques ; liste fournie par le mainteneur dans la recette de Figma ; lecture par un outil dans le fichier client | Le relevé des alias, par un plugin local, donne les nuances à cocher. Palettes ne lit pas ces alias. |
 | Q7. Le premier passage sur une copie, par l'échange de bibliothèque de Figma, convient-il ? | Copie des deux fichiers ; copie du seul fichier des primitives | Copie des deux fichiers, pour que le fichier client réel ne reçoive aucune mise à jour. |
 | Q8. Faut-il le geste « Rétablir les couleurs d'avant » ? | Oui, couleurs lues gardées dans la recette ; non, l'historique de Figma suffit | Oui. |
 | Q9. Les nuances foncées irrégulières se recalculent-elles d'office ? | D'office ; au choix du designer, décoché ; jamais | Au choix du designer, décoché. |
@@ -225,7 +220,7 @@ Vérification. `node _local/p28/poc/verifier.mjs` ouvre la page dans Chromium sa
 | Question | Réponse | Conséquence |
 |---|---|---|
 | Q1 | Lissée. | La page de preuve ouvre sur la lissée. |
-| Q2 | Proposition 1. La page de preuve propose la valeur des `a300` et `a900` absents. Leur création et le raccordement de la couche des marques se font à la main. | Palettes ne crée aucune variable. |
+| Q2 | Proposition 1. Une variable nouvelle se raccorde à la main dans la couche des marques. | Palettes ne crée aucune variable. Les `a300` et `a900` absents ne sont visés par aucun rôle (Q10 sans objet), et aucun accent ne change aujourd'hui. |
 | Q5 | UCM Palettes est agnostique par défaut et calcule l'échelle imposée. Le mode Full UCM s'active dans la Configuration et rend l'interface et les calculs actuels du moteur. | La section 6 s'inverse. La décision « seul l'Exporter est agnostique » tombe pour Palettes. Une recette rangée par une version antérieure se lit en Full UCM, pour qu'un fichier existant ne change pas de calcul. |
 | Q6 | La case « Couleur de marque » se juge sur les maquettes de l'étape 2. | Le relevé des alias donne les nuances à cocher. |
 | Q7 | Copie du seul fichier des primitives. | L'essai montre les nouvelles palettes dans la copie. Le fichier client réel n'est pas touché. |
@@ -242,10 +237,23 @@ Un plugin de lecture seule, `_local/p28/releve-alias/`, a relevé les alias du f
 
 - Les 234 alias de la couche des marques visent une primitive, et aucun ne reste sans cible.
 - Chaque nuance N d'une palette de marque vise la nuance N d'une seule primitive, sauf 7 variables. Deux nuances d'une palette secondaire visent une autre primitive. Un accent vise la nuance 50 d'une autre primitive. Quatre nuances sémantiques visent une seconde palette sémantique.
-- Une primitive sert une seule marque, sauf une primitive que deux marques visent à la même nuance de marque. Une autre primitive porte deux nuances de marque.
+- Dans la couche des marques, une primitive sert une seule marque mesurée. La palette 5 sert aussi la marque E, dont la couleur de marque est une valeur littérale. Dans le thème, plusieurs primitives servent plusieurs marques, par la visualisation de données et l'IA. La palette 6 porte deux nuances de marque, de la même marque.
+- Les accents de la palette primaire de la marque B visent la palette 12, pas la primitive de ses nuances.
 - Q10 est sans objet. Aucun rôle sombre ne vise un `a300` ou un `a900` absent. Les marques concernées passent par d'autres accents ou par les accents d'une autre primitive.
 - Le thème vise 39 fois une primitive en direct, sans passer par la couche des marques.
 - Le fichier des primitives, relevé par le même plugin, est identique à l'export de novembre. La page de preuve calcule donc sur les bonnes valeurs.
 - Le fichier client n'est pas synchrone avec cette bibliothèque. 13 de ses cibles n'existent pas dans le fichier des primitives : 3 nuances au nom suffixé, 2 nuances d'une palette absente, 8 nuances d'une palette sémantique absente. 6 cibles y ont une autre valeur. Un recalcul des primitives n'atteindra pas ces 13 alias tant qu'ils visent des variables absentes.
+- Chacune des 13 cibles absentes a la valeur exacte d'une variable du fichier des primitives sous un autre nom. Les clés trancheront entre renommage et suppression (QA3). 3 sont des nuances de marque, gardées à l'octet. Le rôle `light` clair de la palette secondaire de la marque C et le rôle `lighter` de l'erreur garderont leur couleur pendant que la lissée change leur nuance. 4 des 6 valeurs différentes sont des copies périmées que garde la marque E, sans effet sur le thème. Les 2 autres touchent le rôle `darker` sombre de la marque A et le rôle `lightest` clair de la marque B.
+
+### Questions de l'audit
+
+| Question | Options | Recommandation |
+|---|---|---|
+| QA1. La lissée casse 17 paires et n'en répare aucune. Que faire d'une nuance claire qui porte un contraste (le 500 de l'erreur en texte sombre, le 400 de la palette 10 sous du blanc) ? | La protéger : la table la marque et le calcul la garde, comme une couleur de marque ; borner la courbe pour que la paire tienne ; accepter et corriger le composant | La protéger. |
+| QA2. Les foncés recalculés d'office de la palette 9 changent les rôles `dark` et `darker` clairs de la marque A. Q9 s'applique-t-elle ici ? | D'office ; garder les foncés qui portent un rôle ; au choix du designer | Garder les foncés qui portent un rôle, et recalculer seulement le 700 et le 800, que rien ne vise. |
+| QA3. Faut-il relancer le relevé sur le fichier des primitives pour lire les clés ? | Oui ; non | Oui, avant la copie de Q7. |
+| QA4. Faut-il accepter la mise à jour de la bibliothèque dans le fichier client avant tout recalcul ? | Oui, dans une copie ; non | Oui, dans une copie, pour mesurer ce qu'elle change seule. |
+| QA5. La table du sombre en trois sortes de paires convient-elle ? | Oui ; ajouter les bords sur le fond de la page | Oui. |
+| QA6. Les palettes tertiaires des marques B, C et D ont `main` au second gris 900 et un texte au second gris 1000, à 1,20. Faut-il le signaler au client ? | Oui, hors de P28 ; non | Oui, dans la liste des corrections de composants. |
 
 Les alias de la couche des marques valent `null` dans l'export d'octobre parce que l'Exporter n'indexe que les variables du fichier exporté. Un alias qui vise une variable d'une autre bibliothèque n'a pas de chemin, et `exportTokens.ts` écrit `$value: null`. La donnée existe dans Figma : UCM Architect lit ces cibles par leur identifiant (`catalogue.ts`).
