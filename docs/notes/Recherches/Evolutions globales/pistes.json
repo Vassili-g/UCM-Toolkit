@@ -732,16 +732,16 @@
       "titreCourt": "Remplacer Supernova",
       "sujet": "Plugin Exporter",
       "recherche": "docs/notes/Recherches/Plugin Exporter/RECHERCHE-SELECTION-ET-STYLE-DICTIONARY.md",
-      "resume": "Aligner la bascule Composant et Tokens de l'Exporter sur celle d'UCM Architect, laisser cocher les collections et les modes exportés dans `tokens.json`, puis convertir ce fichier pour Style Dictionary par une commande de la CLI.",
+      "resume": "Aligner la bascule Composant et Tokens de l'Exporter sur celle d'UCM Architect, laisser cocher les collections et les modes exportés dans `tokens.json`, et livrer ce fichier au repository intermédiaire du consommateur, où un job Jenkins le convertit pour Style Dictionary avant de l'envoyer au repository GitLab des composants. Une commande de la CLI porte la conversion seulement si le job ne garde pas son propre script.",
       "importance": "haute",
-      "raisonImportance": "Un repository consommateur ne remplace sa chaîne Supernova que si ses équipes choisissent les collections et les modes exportés et si son build Style Dictionary lit le résultat ; l'Exporter publie aujourd'hui toutes les variables locales, sans choix.",
+      "raisonImportance": "Un repository consommateur ne remplace sa chaîne Supernova que si ses équipes choisissent les collections et les modes exportés et si son job Jenkins lit le résultat ; l'Exporter publie aujourd'hui toutes les variables locales, sans choix, et le script actuel du job lit peut-être la sortie de Supernova (`value`, un fichier par type) plutôt que le DTCG de `tokens.json`.",
       "prio": 2,
       "dependances": [
         "P19"
       ],
       "complexite": "xl",
-      "raisonComplexite": "Neuf lots touchent le socle, l'Exporter, Architect, le kit et la CLI, avec une extension du format de tokens et une publication des trois paquets.",
-      "coutHumain": "Répondre aux dix questions de la recherche, fournir la configuration Style Dictionary du consommateur, puis réexporter les tokens depuis Figma pour la recette.",
+      "raisonComplexite": "Neuf lots touchent le socle, l'Exporter, Architect, le kit et la CLI, avec une extension du format de tokens et une publication des trois paquets. Les réponses du développeur Jenkins retirent le lot de conversion (J3), ou ajoutent un lot de forge (J1), une destination par artefact (J7), un export des styles (J9) ou trois à quatre lots pour reproduire les noms de Supernova (J0).",
+      "coutHumain": "Obtenir du développeur Jenkins les cinq fichiers que la recherche liste (script du job, entrée et sortie actuelles, configuration Style Dictionary, réglages de l'exporteur Supernova, noms cités par le code), les ranger dans `_local/`, exporter le même fichier Figma en téléchargement local pour la comparaison, répondre à Q1 à Q10 et faire répondre J0 à J9, puis réexporter les tokens depuis Figma pour la recette.",
       "porteur": "mainteneur",
       "promesse": "C",
       "points": [
@@ -793,12 +793,17 @@
         {
           "chemin": "packages/cli/src/tokens-style-dictionary.mjs",
           "action": "créer",
-          "quoi": "`ucm tokens style-dictionary --out <dossier>` : un fichier de base et un fichier par mode de chaque axe."
+          "quoi": "Si le job Jenkins appelle la CLI (J3) : `ucm tokens style-dictionary --out <dossier>`, un fichier de base et un fichier par mode de chaque axe."
         },
         {
           "chemin": "packages/cli/src/init.mjs",
           "action": "modifier",
-          "quoi": "Ligne 371 : demander aussi de lancer la conversion avant le build Style Dictionary."
+          "quoi": "Si la commande de conversion existe : ligne 371, demander aussi de la lancer avant le build Style Dictionary."
+        },
+        {
+          "chemin": "packages/plugin-exporter/manifest.json",
+          "action": "modifier",
+          "quoi": "Si le repository intermédiaire n'est ni sur gitlab.com ni sur github.com (J1) : son domaine dans `allowedDomains`, et son hôte dans `HOTES` de `src/config.ts`."
         },
         {
           "chemin": "docs/format/FORMAT.md",
@@ -821,14 +826,19 @@
         "Un test : un export dont une collection est décochée ne porte aucun `\"$value\": null` de plus que l'export complet.",
         "Un test : `com.ucm.axes` ne nomme que les modes exportés, et le mode par défaut ne se décoche pas.",
         "Un test : un composant qui cite un token d'une collection écartée reçoit un avertissement qui nomme la collection.",
-        "Un test construit chaque fichier de `ucm tokens style-dictionary` avec Style Dictionary 5.8.0, sans `[object Object]` dans le CSS.",
+        "Le job Jenkins du consommateur construit ses fichiers Style Dictionary depuis un `tokens.json` publié par l'Exporter, et le repository des composants les reçoit.",
+        "Si la commande de conversion existe, un test construit chaque fichier de `ucm tokens style-dictionary` avec Style Dictionary 5.8.0, sans `[object Object]` dans le CSS.",
         "`npm run fidelite --workspace ucm-architect-plugin` ne rend aucun nouvel écart après le déplacement de la bascule."
       ],
       "risques": [
         "Un axe écarté en entier fait sortir `ucm tokens css` en erreur quand `ucm.config.json` le déclare sous `modes` (`packages/cli/src/tokens-css.mjs`, ligne 123).",
         "`primitives` écartée transforme chaque lien de `brands` et de `utility` en constat du diagnostic d'architecture (P21).",
         "Un choix rangé sur le poste n'est pas partagé : deux designers qui exportent vers le même repository publient deux sélections différentes.",
-        "Le lot du diagnostic des tokens touche `diagnostic-tokens.mjs` et `controle-repository.mjs`, que P19 modifie."
+        "Le lot du diagnostic des tokens touche `diagnostic-tokens.mjs` et `controle-repository.mjs`, que P19 modifie.",
+        "Un repository intermédiaire sur un GitLab auto-hébergé est hors du réseau du plugin, limité à `https://api.github.com` et `https://gitlab.com` (`manifest.json`), et son domaine dans un plugin public révèle le client.",
+        "Des contrats publiés dans le repository final et des tokens publiés dans le repository intermédiaire privent `ucm check` de `tokens.json` dans le repository final.",
+        "Le code des composants cite des variables CSS nommées par Supernova ; garder les noms UCM demande un renommage unique, et reproduire ceux de Supernova demande les scopes Figma dans le format publié.",
+        "`tokens.json` ne publie que les variables : des tokens de typographie, d'ombre ou de dégradé que la sortie de Supernova tire des styles Figma manqueraient."
       ]
     },
     {
