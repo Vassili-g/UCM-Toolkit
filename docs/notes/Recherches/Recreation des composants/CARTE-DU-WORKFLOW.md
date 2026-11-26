@@ -37,7 +37,7 @@ La carte se rejoue après le pilote, avant le passage en masse, et à chaque fai
 - S2. L'application principale importe la v1 dans plus de fichiers que la v2. Le relevé du code et celui des usages couvrent donc les deux versions. Décidé.
 - S3. Le dictionnaire des versions se fixe : quelle branche, quel paquet, quel numéro publié et quelle version d'Ant Design chaque nom désigne. La branche par défaut, une branche plus ancienne de la v2 et la branche de la v1 portent trois paquets différents. À outiller.
 - S4. Les tags publiés de la v2 ont déjà dépassé le numéro 3 : « v3 » est un nom de travail. Le nom et le numéro publiés de la nouvelle bibliothèque se tranchent. À trancher.
-- S5. Un même composant existe en v1 et en v2 avec des API différentes. La v3 part-elle de la version la plus récente, ou garde-t-elle l'union des variantes employées dans les deux ? À trancher.
+- S5. Un même composant existe en v1 et en v2 avec des API différentes. La v3 part de la version la plus récente de chaque composant, et y ajoute les variantes de l'autre version que les applications emploient encore. Décidé.
 - S6. La branche de la v2 contient un dossier de composants hérités de la v1 que son point d'entrée n'exporte pas. Ces composants relèvent de la v1 seule, ou de la v2 aussi ? À trancher.
 - S7. La v1 publie un dossier compilé et des chemins profonds (sous-modules, polices) que l'application importe directement. La v2 a aussi des imports profonds alors que son paquet n'expose que son point d'entrée. Ces chemins sont une API de fait. À outiller.
 - S8. Le commit de référence de chaque version source et de chaque application se fixe et s'écrit dans chaque fiche. Sans lui, le contrôle de couverture compare à une cible qui bouge. À outiller.
@@ -66,8 +66,8 @@ La carte se rejoue après le pilote, avant le passage en masse, et à chaque fai
 - C9. L'accessibilité se relève : rôles, attributs ARIA, focus, clavier. La v2 n'a aucune règle de mouvement réduit. À outiller, relié à R4 et R7.
 - C10. Le responsive se relève : une vingtaine de fichiers de la v2 ont une requête média, un hook ou un point de rupture. À outiller, relié à B7.
 - C11. Les images et les logos par marque, servis par la source, entrent dans le périmètre, ou restent aux applications. À trancher.
-- C12. Le relevé est déterministe d'abord. Un agent complète ce que le script ne voit pas, et chacune de ses lignes est marquée « à confirmer ». Proposé, à trancher (Q36).
-- C13. La fiche du relevé a la forme d'un contrat UCM, pour que le contrôle final compare deux contrats. Proposé, à trancher (Q37).
+- C12. Le relevé est déterministe d'abord. Un agent complète ce que le script ne voit pas, et chacune de ses lignes est marquée « à confirmer ». Décidé.
+- C13. La fiche du relevé a la forme d'un contrat UCM, pour que le contrôle final compare deux contrats. Décidé.
 - C14. Le relevé prouve sa complétude par recoupement : nombre de props contre le relevé de react-docgen-typescript, noms employés par les applications contre les noms relevés. À outiller.
 
 ## 4. Relevé des usages et des candidats
@@ -84,7 +84,7 @@ La carte se rejoue après le pilote, avant le passage en masse, et à chaque fai
 ## 5. Marques, fondations et actifs
 
 - M1. Les marques deviennent des modes de l'axe des marques, calculés par UCM Palettes avant tout composant. Décidé.
-- M2. Le nombre de marques n'est pas fixé. La v1 a 14 thèmes, la v2 en exporte 8 plus un thème global, la recherche disait 9, et intencial-library a 2 modes. La liste arrêtée des marques, avec celles qui n'existent qu'en v1, se tranche. À trancher.
+- M2. Le nombre de marques n'est pas fixé. La v1 a 14 thèmes, la v2 en exporte 8 plus un thème global, la recherche disait 9, et intencial-library a 2 modes. L'application principale prend le nom du thème dans la fiche de l'entreprise que renvoie son API : la liste des marques actives vit donc dans les données, pas dans le code. Le mainteneur en attend quatre au plus, et la demande aux développeurs. À vérifier.
 - M3. Les couleurs calculées par Palettes diffèrent de celles du code, et le rendu change sur chaque marque. Qui valide cet écart, marque par marque ? À trancher.
 - M4. Le relevé distingue une couleur qui change avec la marque d'une couleur fixe, en croisant les valeurs relevées avec les thèmes. À outiller.
 - M5. Les espacements, rayons et ombres hors de la grille UCM prennent la valeur la plus proche, avec l'écart affiché, et le designer tranche. À outiller.
@@ -202,7 +202,7 @@ Le chantier ne fait pas la migration. Il livre aux développeurs de quoi la rend
 
 ## 15. Après le chantier
 
-- N1. Les scripts du chantier se suppriment à l'archivage de la piste (skill `archiver-un-sujet`). Un composant ou une marque ajoutés plus tard n'ont alors plus d'outil. Cela contredit la réponse à Q3 telle qu'elle est écrite. À trancher.
+- N1. Les scripts du chantier se suppriment à l'archivage de la piste (skill `archiver-un-sujet`). Ils vivent donc jusqu'à la fin de la migration des applications, pour qu'un composant ou une marque ajoutés pendant la migration aient encore leur outil. Décidé.
 - N2. Une correction faite dans la v1 ou la v2 pendant le chantier se reporte dans la v3. Qui le voit et le reporte ? À trancher.
 - N3. Un nouvel export d'un contrat change le code. L'intégration automatique de P8, avec son temps humain de réexport mesuré, devient la garantie à long terme. À vérifier.
 - N4. P9 génère le Storybook de la v3, et P24 y ajoute une page de santé. La vitrine des sources et ses liens Chromatic et Zeplin disparaissent. À trancher.

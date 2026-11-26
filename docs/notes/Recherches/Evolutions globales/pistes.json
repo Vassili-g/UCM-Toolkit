@@ -1311,7 +1311,7 @@
       "sujet": "Bibliothèque de production",
       "recherche": "docs/notes/Recherches/Recreation des composants/RECHERCHE-RECREATION-DES-COMPOSANTS.md",
       "plan": "docs/notes/Recherches/Recreation des composants/PLAN-P30.md",
-      "resume": "Ce qu'il fait : il relève par script chaque composant de la bibliothèque React existante du client (props, variantes, états, icônes, valeurs dessinées, comportements), capture chaque combinaison dans un banc de rendu, et rend au designer un cahier court par composant. Le designer reconçoit le composant dans Figma avec les valeurs UCM, le plus près possible de l'existant, puis un contrôle compare le contrat exporté au relevé. Où : scripts dans UCM-Toolkit, relevés et planches dans `_local/`, contrats et code dans intencial-library. Pourquoi : la création des composants est l'étape la plus longue et la plus manuelle de la chaîne, et un relevé fait à la main oublie des variantes.",
+      "resume": "Ce qu'il fait : il relève par script chaque composant employé des deux versions de la bibliothèque React du client (props, variantes, états, icônes, valeurs dessinées, accessibilité, comportements) et chaque usage dans les applications, capture chaque combinaison dans un banc de rendu, et sert au designer un registre local où chaque composant a tout ce qu'il faut pour le dessiner dans Figma, avec son avancement. Le designer reconçoit le composant avec les valeurs UCM, le plus près possible de l'existant ; un contrôle compare le contrat exporté au relevé ; le code se reconstruit dans intencial-library, et les développeurs reçoivent un guide, des codemods et la liste des appels à réécrire. Où : scripts dans UCM-Toolkit, relevés, planches et registre dans `_local/`, contrats et code dans intencial-library. Pourquoi : la création des composants est l'étape la plus longue et la plus manuelle de la chaîne, et un relevé fait à la main oublie des variantes.",
       "importance": "haute",
       "raisonImportance": "La bibliothèque de production doit être recréée en entier avant qu'intencial-library remplace l'ancienne. Une variante oubliée se découvre seulement en production.",
       "prio": 1,
@@ -1319,8 +1319,8 @@
         "P22"
       ],
       "complexite": "xl",
-      "raisonComplexite": "Une soixantaine de composants, dont une partie posée sur Ant Design, que le nouveau code n'emploiera plus : le designer dessine aussi ce qu'antd dessinait. Neuf marques passent d'abord par UCM Palettes.",
-      "coutHumain": "Répondre aux questions de la recherche, valider le cahier de chaque composant, reconcevoir chaque composant dans Figma et l'exporter.",
+      "raisonComplexite": "Deux versions sources, près d'une centaine de noms importés par les applications, une partie posée sur Ant Design, que le nouveau code n'emploiera plus : le designer dessine aussi ce qu'Ant Design dessinait. Les marques actives passent d'abord par UCM Palettes.",
+      "coutHumain": "Trancher les décisions de la carte, obtenir des développeurs la liste des marques actives, lancer le plugin de relevé de la library Figma, valider le cahier de chaque composant, le reconcevoir dans Figma et l'exporter.",
       "porteur": "mainteneur",
       "promesse": "C",
       "points": [
@@ -1332,17 +1332,19 @@
         {
           "chemin": "scripts/",
           "action": "créer",
-          "quoi": "Relevé du code, banc de rendu et contrôle de couverture, sans donnée du client."
+          "quoi": "Relevé du code et des usages, banc de rendu, contrôle de couverture, registre et codemods, sans donnée du client."
         }
       ],
       "criteresDeFin": [
         "Chaque composant retenu a un contrat dans intencial-library, arrivé par une pull request du plugin.",
-        "Le contrôle de couverture ne trouve, pour aucun composant, une prop, une valeur, un état ou une icône du code source absent du contrat sans justification écrite.",
+        "Le contrôle de couverture ne trouve, pour aucun composant, une prop, une valeur, un état ou une icône employés absents du contrat sans justification écrite.",
+        "Les développeurs ont, pour chaque composant, un guide, les codemods testés et la liste des appels à réécrire dans chaque application.",
         "Aucune donnée du client n'est entrée dans un fichier suivi par Git d'UCM-Toolkit."
       ],
       "risques": [
         "Une variante supprimée dans Figma perd sa clé et détache ses instances : la structure d'un composant se fixe avant ses usages.",
-        "Le relevé lit des styles calculés dans un navigateur : sans installation du dépôt source, le banc ne tourne pas."
+        "Le relevé lit des styles calculés dans un navigateur : sans installation des deux versions sources, le banc ne tourne pas.",
+        "Les sources et les applications changent pendant le chantier : chaque fiche porte son commit de référence, et un nouveau relevé se compare au précédent."
       ]
     },
     {

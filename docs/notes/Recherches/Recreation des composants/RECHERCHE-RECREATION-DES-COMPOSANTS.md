@@ -18,7 +18,7 @@ Relevé sur la branche par défaut de la bibliothèque source. Les chiffres dét
 | Lectures distinctes des couleurs du thème | 65 |
 | Fichiers qui importent Ant Design 6 | 69 |
 | Interpolations dynamiques de styled-components | 455 |
-| Marques | 9 |
+| Thèmes dans les sources | 14 en v1, 8 plus un thème global en v2 ; les marques actives sont moins nombreuses |
 | Icônes FontAwesome Pro 7 | 96 noms, en 4 styles |
 | Applications consommatrices | 2 |
 | Versions sources employées | la v1, figée, sur sa propre branche, importée par l'application principale dans plus de fichiers que la v2 ; la v2, version actuelle, qui n'a mis à jour qu'une partie des composants |
@@ -35,7 +35,7 @@ Trois faits fixent la méthode.
 |---|---|
 | Identique ou reconçu | Chaque composant est reconçu, le plus près possible de l'existant en tout point, avec les valeurs UCM. Le contrôle bloquant porte sur la couverture fonctionnelle ; la comparaison des rendus sert de référence au designer et ne bloque pas. |
 | Ant Design | Le nouveau code ne l'emploie plus. L'API des composants change donc, et une table relie l'ancienne API à la nouvelle. |
-| Marques | Les 9 marques deviennent des modes de l'axe des marques, calculés d'abord par UCM Palettes, avant tout composant. |
+| Marques | Les marques actives deviennent des modes de l'axe des marques, calculés d'abord par UCM Palettes, avant tout composant. |
 | Installation de la bibliothèque source | Possible : le banc de rendu tourne en local. |
 | Pièces internes | P22 est livrée avant le passage en masse : sans elle, un composant à pièce interne perd des variantes dans son contrat. |
 | Pilote | Tag, Button et Alert. |
@@ -46,7 +46,10 @@ Trois faits fixent la méthode.
 | Référence de l'existant | Le rendu du code. La library Figma actuelle du mainteneur couvre une grande partie des composants : elle se relève comme seconde source, mais chaque composant se redessine de zéro. |
 | Fichiers Figma | Les tokens et les composants vivent dans deux fichiers dès le début : la publication de la library reste un geste du designer. |
 | Icônes | FontAwesome Pro reste. Les icônes deviennent des composants qu'`Icon` échange, créés et tenus à jour par la piste P32. |
-| Outillage | De simples scripts dans UCM-Toolkit, une commande par étape, testés sur des composants inventés, supprimés quand la piste s'archive ; ni paquet publié ni documentation de produit. |
+| Outillage | De simples scripts dans UCM-Toolkit, une commande par étape, testés sur des composants inventés, supprimés à la fin de la migration des applications ; ni paquet publié ni documentation de produit. |
+| Fusion de la v1 et de la v2 | La v3 part de la version la plus récente de chaque composant, et y ajoute les variantes de l'autre version que les applications emploient encore. |
+| Forme du relevé | Un script déterministe d'abord, puis un agent qui complète, chaque ligne marquée « à confirmer ». La fiche a la forme d'un contrat UCM, pour que le contrôle compare deux contrats. |
+| Marques actives | Le mainteneur en attend quatre au plus, et demande la liste aux développeurs : l'application lit le nom du thème dans les données de l'entreprise. |
 | Migration des applications | Les développeurs font la migration ; le chantier ne la fait pas. Il leur livre ce qui la rend facile : guide par composant, codemods testés, liste des appels à réécrire. |
 | Candidats et registre | Le mainteneur tranche la liste des candidats. Une page de registre locale, servie par une commande, montre chaque composant et chaque candidat avec tout ce qu'il faut pour le dessiner dans Figma, et le mainteneur y note son avancement. |
 | Relevé de la library Figma actuelle | Par un petit plugin de relevé que le mainteneur lance, comme pour P28. |
@@ -130,8 +133,6 @@ Les numéros suivent ceux de la première série. Les questions tranchées sont 
 
 ### Méthode
 
-- Q36. Le relevé est-il uniquement déterministe, ou un agent lit-il aussi chaque composant pour décrire les comportements que le script ne voit pas, chaque ligne marquée à confirmer ?
-- Q37. La fiche du relevé prend-elle la forme du contrat UCM, pour que l'étape 8 compare deux contrats ?
 - Q38. Cadence : un composant de bout en bout avant le suivant, ou chaque étape en lot sur tous les composants ?
 - Q39. Un composant est terminé quand le contrôle de l'étape 8 passe et que le designer a coché la liste de couverture : critère accepté ?
 - Q41. Y a-t-il une échéance, ou un ordre imposé par un écran à livrer ?
