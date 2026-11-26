@@ -1,6 +1,6 @@
 # Pièces internes décrites en entier dans le contrat de l'hôte
 
-**Statut : R1 à R3 et R6 rendues (P22). Deux décisions sont prises. Quatre
+**Statut : R1 à R3 et R6 rendues (P22). Deux décisions sont prises. Cinq
 choix attendent le mainteneur au §5, et six questions au §9 de l'étude R6.**
 Le plan d'implémentation s'écrira après ses réponses et un essai dans Figma.
 
@@ -231,6 +231,27 @@ Figma documente seulement le point pour masquer un composant à la
 publication. Recommandation : garder les deux préfixes dans
 `sorteDeLImbrique`, qui ne dépend pas de la publication.
 
+### Choix 6. À qui appartiennent les couleurs d'une pièce et d'une dépendance posées dans l'hôte ?
+
+Le cas vient du Button du Playground. `.sizeWrapperButton` a trois axes de taille et porte le texte et les icônes. Son maître peint un fond gris, et des couleurs primitives sur le texte et les icônes : ces couleurs servent seulement à voir la pièce dans Figma. Chaque variant de Button les surcharge toutes.
+
+Ce que fait la 14.0, lu dans le format et le socle :
+
+- `sorteDeLImbrique` classe `.sizeWrapperButton` comme wrapper de dimensions, avant le préfixe. Ses props rejoignent celles de Button, et l'Exporter parcourt son contenu comme celui de Button. Le contrat publie donc les couleurs effectives de chaque variant de Button, c'est-à-dire les surcharges ; les couleurs du maître n'y entrent jamais.
+- Le mainteneur veut remplacer les icônes de la pièce par des instances du composant `Icon`. `Icon` aura des règles d'usage et son propre contrat : c'est une dépendance (décision du mainteneur).
+- Une dépendance n'est pas parcourue : le relevé des couleurs écarte tout ce qui vit sous elle (`extractVariantTokens.ts`, paramètre `composed`). Les surcharges qu'un hôte pose dans une dépendance ne publient que `characters` et `visible` (FORMAT.md, « La frontière avec la composition »). La couleur que Button donne à l'icône, dans chaque variant, sort donc du contrat sans avertissement. Le code reconstruit ne sait plus que l'icône est `foreground` en Hover.
+
+Le choix 4, option A, publierait au contraire les couleurs du maître de la pièce comme ses tokens propres : le gris et les primitives entreraient dans le contrat comme des décisions de design. Un développeur ou un agent les coderait comme valeurs par défaut, et la règle d'Architect « un calque se lie aux tokens de son propre composant » signalerait des primitives qui n'ont aucune importance.
+
+| Option | Conséquence |
+|---|---|
+| A. Partage par nature de valeur : la structure, les propriétés, les variantes et les dimensions d'une pièce se lisent sur son maître ; ses couleurs se lisent sur chaque instance posée, et celles du maître sont des couleurs d'aperçu, jamais publiées | Le contrat dit les couleurs que l'hôte décide. Une couleur d'aperçu qu'une instance ne surcharge pas fuit dans le rendu : l'Exporter avertit, et Architect la signale |
+| B. Choix 4 tel quel : le maître publie ses couleurs, l'instance ses remplacements | Les couleurs d'aperçu entrent dans le contrat et se confondent avec les couleurs voulues |
+
+Pour une dépendance qui reçoit sa couleur de l'hôte, comme `Icon`, l'option A va plus loin : le contrat de la dépendance dit que sa couleur est fournie par l'hôte, et l'hôte publie la couleur qu'il pose sur le slot de l'icône. C'est la seule surcharge de peinture qui deviendrait une donnée du contrat.
+
+**Recommandation : A.** Elle modifie le choix 4 pour les couleurs. Elle répond aussi en partie à la question Q1 de l'étude, puisqu'un wrapper garde ses dimensions et que ses couleurs suivent la même règle qu'une pièce. Un essai sur le Playground la confirme avant le plan : poser des instances d'`Icon` avec règles dans `.sizeWrapperButton`, exporter Button, et lire ce que le contrat publie pour la couleur des icônes.
+
 ### Parité
 
 Recommandation : l'Adaptateur compare les props d'une pièce quand le fichier de
@@ -242,14 +263,36 @@ comparée » sinon. Exiger un export contredirait la pratique de Primer.
 - Le mainteneur répond aux questions Q1 à Q6 du §9 de
   [ETUDE-FORMAT-DES-PIECES.md](./ETUDE-FORMAT-DES-PIECES.md). L'étude confirme
   les recommandations des choix 1, 3 et 4.
-- Le mainteneur tranche les choix 1, 3, 4 et 5 et la parité. La séparation du
+- Le mainteneur tranche les choix 1, 3, 4, 5 et 6 et la parité. La séparation du
   contrat et des règles, et l'application de l'obligation de règles, sont
   décidées.
 - Un essai dans Figma, décrit sous R1, établit la lecture d'une pièce rangée
-  sur une autre page.
+  sur une autre page. Un second essai, décrit sous le choix 6, établit ce que
+  le contrat publie de la couleur d'une dépendance `Icon` posée dans un wrapper.
 - Le mainteneur fournit un fichier Figma de test : un hôte qui pose une pièce
   à plusieurs variantes et booléens, dont une variante que l'hôte n'emploie
   pas, et le bloc `.componentRules` de la pièce.
+
+## 7. Le sujet en entier
+
+P22 ne se limite pas aux pièces préfixées. Il règle ce qu'un hôte publie de chaque composant qu'il embarque, et qui en possède chaque valeur. Douze sous-sujets le composent ; chacun touche le format, l'Exporter, le kit et Architect.
+
+| # | Sous-sujet | Où il est traité |
+|---|---|---|
+| S1 | Classification d'un imbriqué : dépendance, wrapper de dimensions, pièce, détail, et les cas mixtes (wrapper préfixé, pièce qui contient une dépendance) | `sorteDeLImbrique`, étude Q1, critique C11 |
+| S2 | Description d'une pièce dans l'hôte : bloc `pieces`, variantes non posées, propriétés, vues | choix 1 et 3, étude R6 |
+| S3 | Propriété des valeurs : structure et dimensions au maître, couleurs à l'hôte, couleurs d'aperçu | choix 4 et 6 |
+| S4 | Une dépendance qui reçoit sa couleur de l'hôte (`Icon`), et son lien avec les règles `@icons`, le slot d'icône et `INSTANCE_SWAP` | choix 6 |
+| S5 | Les autres surcharges de l'hôte : texte, visibilité, échanges, contenu d'une propriété `SLOT` | étude Q3 et Q6 |
+| S6 | Résolution : remplacements vides, remplacements imbriqués, liaisons qui traversent une pièce, `args` | critique C1 à C5 |
+| S7 | Budget, dépliage fini et performance | critique C6 à C8 |
+| S8 | Lecteurs, validation, cardinalité des dépendances, parité | critique C9 et C10, §Parité |
+| S9 | Architect : relevé des pièces, règle des tokens propres, couleurs d'aperçu non surchargées, couleurs peintes dans une instance | choix 6, recherche de P31 sections 6 et 8 |
+| S10 | Règles d'usage des pièces et leur création | décisions du §5 |
+| S11 | Version 15.0, compatibilité, réexport, contrats de fixture | `docs/format/COMPATIBILITE.md`, `CHANGELOG-FORMAT.md` |
+| S12 | Preuves : fixtures, fichier de test du mainteneur, essais R1 et du choix 6, recette sur le Playground | §6 |
+
+Le prompt [PROMPT-AUDIT-ET-PLAN.md](./PROMPT-AUDIT-ET-PLAN.md) confie à un agent la recherche des failles de cette conception et l'écriture du plan.
 
 ## Questions au mainteneur
 
@@ -257,3 +300,4 @@ comparée » sinon. Exiger un export contredirait la pratique de Primer.
 - [Décidé. Comment l'obligation de règles d'une pièce s'applique](#décidé-comment-lobligation-de-règles-dune-pièce-sapplique)
 - [Choix 3. Une pièce posée dans une autre pièce se décrit-elle à plat ?](#choix-3-une-pièce-posée-dans-une-autre-pièce-se-décrit-elle-à-plat)
 - [Choix 4. Quels tokens une pièce cite-t-elle ?](#choix-4-quels-tokens-une-pièce-cite-t-elle)
+- [Choix 6. À qui appartiennent les couleurs d'une pièce et d'une dépendance posées dans l'hôte ?](#choix-6-à-qui-appartiennent-les-couleurs-dune-pièce-et-dune-dépendance-posées-dans-lhôte)
