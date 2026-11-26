@@ -4,7 +4,7 @@
 
 ## La solution retenue
 
-UCM Palettes reçoit une échelle imposée, qui recalcule les palettes primitives d'une bibliothèque simple sans changer leurs noms, leurs liens ni leur liste de nuances. Le designer coche dans chaque palette les nuances qui portent une couleur de marque. Le calcul les garde à l'octet, recalcule les nuances plus claires que la plus claire d'entre elles sur une courbe choisie, et garde les nuances plus foncées tant qu'elles restent ordonnées et régulières. Une nuance recalculée garde la teinte et la part de chroma de la nuance actuelle de même numéro, et seule sa clarté change. Une table de contrastes attendus remplace les marqueurs : Palettes la vérifie, la montre et l'écrit dans la description de chaque variable primitive. Le thème sombre se traite par les accents : un accent qui manque un contraste de la table fonce ou s'éclaircit juste assez. Seule la bibliothèque des primitives change, et la couche des marques et le thème suivent par leurs alias.
+UCM Palettes reçoit une échelle imposée, qui recalcule les palettes primitives d'une bibliothèque simple sans changer leurs noms, leurs liens ni leur liste de nuances. Le designer coche dans chaque palette les nuances qui portent une couleur de marque. Le calcul les garde à l'octet, recalcule les nuances plus claires que la plus claire d'entre elles sur une courbe choisie, et garde les nuances plus foncées tant qu'elles restent ordonnées et régulières. Une nuance recalculée garde la teinte et la part de chroma de la nuance actuelle de même numéro, et seule sa clarté change. Une table de contrastes attendus sert à la vérification : Palettes la vérifie et la montre. Le thème sombre se traite par les accents : un accent qui manque un contraste de la table fonce ou s'éclaircit juste assez. Seule la bibliothèque des primitives change, et la couche des marques et le thème suivent par leurs alias.
 
 Deux faits sont acquis. Les noms et les alias ne changent pas, donc le code en production qui lit les noms publiés ne change pas. Les couleurs isolées, les couleurs de visualisation et les accents qu'aucune paire de la table ne vise restent hors du calcul.
 
@@ -98,19 +98,13 @@ En sombre, les six familles de composants tiennent 603 paires sur 696 aujourd'hu
 
 La proposition 2, qui recalculait tous les accents, et une troisième voie, qui re-visait 107 à 124 feuilles sombres par marque vers les clairs recalculés, sont écartées.
 
-## 5. Le contraste attendu sur chaque nuance
+## 5. Les marqueurs et le contraste attendu
 
-Le marqueur `-[light]` dit aujourd'hui « texte blanc attendu ». Le marqueur `-[dark]` dit deux choses, « texte foncé attendu » en clair et « lisible sur un fond sombre » en sombre. Une nuance sans marqueur ne dit rien. Les marqueurs vivent dans la couche des marques, que Palettes n'écrit pas. Le modèle doit donc vivre sur les primitives.
+Le mainteneur a confirmé le sens des marqueurs. `-[light]` désigne la couleur de référence de la marque en mode clair, `-[dark]` sa couleur de référence en mode sombre. Le code retire ces marqueurs avant de publier les noms. Ils ne portent donc aucune ambiguïté, et rien ne les remplace.
 
-| Forme | Qui fait le changement, et comment | Ce qu'elle casse |
-|---|---|---|
-| Table des contrastes attendus dans la recette de Palettes | Le designer la règle dans Palettes, une fois ; Palettes la vérifie à chaque calcul | Rien. Elle ne se voit que dans Palettes et sur la planche. |
-| Description de chaque variable primitive, par exemple « Texte blanc 4,5:1 tenu. Texte foncé non tenu. » | Palettes l'écrit à l'écriture des valeurs, depuis la table | Rien dans les noms ni les alias. C'est une écriture nouvelle de Palettes. FORMAT.md ne publie aucune description de variable. |
-| Description des variables de la couche des marques | À la main, dans le fichier client, variable par variable | Rien, mais aucun outil ne la tient à jour. |
-| Marqueurs renommés, par exemple `-[texte-blanc]` | À la main, dans la couche des marques | Les noms publiés, donc le code qui les lit. |
-| Marqueurs gardés, sens écrit dans un document | Le mainteneur l'écrit une fois | Rien, et l'ambiguïté de `-[dark]` reste. |
+Le relevé montre que les nuances `-[dark]` sont des clairs, du 200 au 500. Le thème les vise 16 fois en clair (rôle `light`) et 29 fois en sombre (rôle `light` des sémantiques, notamment). La courbe des clairs les recalcule, sauf si l'échelle imposée les garde comme les couleurs de référence du mode clair (question QA7).
 
-La recommandation réunit les deux premières formes. La table de la recette fait foi, le calcul la tient, et Palettes en écrit la trace dans la description des primitives. Les marqueurs restent tels quels, et rien ne s'écrit dans la couche des marques. Si le mainteneur veut retirer l'ambiguïté des noms, le geste manuel consiste à renommer dans la couche des marques chaque variable `-[dark]` selon sa table, en acceptant de casser les noms publiés. La note ne le recommande pas.
+La table des contrastes attendus reste l'outil de vérification de Palettes. Elle se règle une fois et se vérifie à chaque calcul. L'écrire dans la description des variables primitives n'est plus nécessaire (Q4).
 
 ## 6. L'outil, dans UCM Palettes
 
@@ -228,8 +222,14 @@ Vérification. `node _local/p28/poc/verifier.mjs` relève 0 erreur, 0 requête r
 | Q9 | D'office. | Les nuances foncées irrégulières se recalculent sans case à cocher. Un message le dit. |
 | Q11 | Pas dans Palettes. | La page de preuve reçoit une section « À corriger dans les composants » : chaque paire, son contraste, son composant. |
 | Q12 | Sans gravité. | Un message, sans lien. |
+| Q3 | `-[light]` et `-[dark]` désignent la couleur de référence de la marque en mode clair et en mode sombre. Le code les retire avant de publier les noms. | Les marqueurs restent. La table des contrastes reste dans Palettes (section 5). |
+| QA2 | Garder les foncés qui portent un rôle. | Dans la palette 9, seuls le 700 et le 800 se recalculent. |
+| QA3 | Relevé relancé avec les clés. | 11 des 13 cibles absentes sont des variables renommées, de même clé : la mise à jour de la bibliothèque les rattache. Les 2 nuances de la palette absente ont été supprimées. Chacune a la valeur exacte d'une seule nuance de la palette 4, au même numéro : le lien se refait à la main vers elle. |
+| QA4 | Oui, dans une copie. | La copie du fichier client accepte la mise à jour avant tout recalcul. |
+| QA5 | Oui. | La table du sombre garde trois sortes de paires. |
+| QA6 | Non. Les palettes tertiaires ne servent pas. | P28 corrige les palettes primitives. Les tertiaires sortent de la liste des corrections. |
 
-Q3 attend le sens des marqueurs, que le mainteneur demande au lead UX. Q4 suit Q3.
+QA1 reste ouverte : l'objectif est aussi de lisser les clairs, donc protéger une nuance ne suffit pas. QA7 est nouvelle. Q4 suit la réponse à Q3 : aucune description n'est écrite.
 
 ### Relevé des alias du fichier client
 
@@ -243,7 +243,7 @@ Un plugin de lecture seule, `_local/p28/releve-alias/`, a relevé les alias du f
 - Le thème vise 39 fois une primitive en direct, sans passer par la couche des marques.
 - Le fichier des primitives, relevé par le même plugin, est identique à l'export de novembre. La page de preuve calcule donc sur les bonnes valeurs.
 - Le fichier client n'est pas synchrone avec cette bibliothèque. 13 de ses cibles n'existent pas dans le fichier des primitives : 3 nuances au nom suffixé, 2 nuances d'une palette absente, 8 nuances d'une palette sémantique absente. 6 cibles y ont une autre valeur. Un recalcul des primitives n'atteindra pas ces 13 alias tant qu'ils visent des variables absentes.
-- Chacune des 13 cibles absentes a la valeur exacte d'une variable du fichier des primitives sous un autre nom. Les clés trancheront entre renommage et suppression (QA3). 3 sont des nuances de marque, gardées à l'octet. Le rôle `light` clair de la palette secondaire de la marque C et le rôle `lighter` de l'erreur garderont leur couleur pendant que la lissée change leur nuance. 4 des 6 valeurs différentes sont des copies périmées que garde la marque E, sans effet sur le thème. Les 2 autres touchent le rôle `darker` sombre de la marque A et le rôle `lightest` clair de la marque B.
+- Chacune des 13 cibles absentes a la valeur exacte d'une variable du fichier des primitives sous un autre nom. Les clés tranchent (QA3) : 11 renommages, 2 suppressions. 3 sont des nuances de marque, gardées à l'octet. Le rôle `light` clair de la palette secondaire de la marque C et le rôle `lighter` de l'erreur garderont leur couleur pendant que la lissée change leur nuance. 4 des 6 valeurs différentes sont des copies périmées que garde la marque E, sans effet sur le thème. Les 2 autres touchent le rôle `darker` sombre de la marque A et le rôle `lightest` clair de la marque B.
 
 ### Questions de l'audit
 
@@ -255,5 +255,7 @@ Un plugin de lecture seule, `_local/p28/releve-alias/`, a relevé les alias du f
 | QA4. Faut-il accepter la mise à jour de la bibliothèque dans le fichier client avant tout recalcul ? | Oui, dans une copie ; non | Oui, dans une copie, pour mesurer ce qu'elle change seule. |
 | QA5. La table du sombre en trois sortes de paires convient-elle ? | Oui ; ajouter les bords sur le fond de la page | Oui. |
 | QA6. Les palettes tertiaires des marques B, C et D ont `main` au second gris 900 et un texte au second gris 1000, à 1,20. Faut-il le signaler au client ? | Oui, hors de P28 ; non | Oui, dans la liste des corrections de composants. |
+| QA1, reformulée. Comment lisser les clairs sans casser une paire ? | Garder la nuance ; corriger la nuance juste assez, comme la correction des textes du mode Full UCM ; atténuer la courbe de toute la palette jusqu'à ce que les paires tiennent, comme le décalage de Tailwind du mode Full UCM | Corriger la nuance juste assez : la courbe reste lissée partout ailleurs. |
+| QA7. Les nuances `-[dark]`, couleurs de référence du mode sombre, se gardent-elles à l'octet comme les nuances `-[light]` ? | Oui, deuxième ancrage de la courbe ; non, elles suivent la courbe et la table vérifie leurs paires | Oui, comme le mode Full UCM garde la référence dans chaque mode. |
 
 Les alias de la couche des marques valent `null` dans l'export d'octobre parce que l'Exporter n'indexe que les variables du fichier exporté. Un alias qui vise une variable d'une autre bibliothèque n'a pas de chemin, et `exportTokens.ts` écrit `$value: null`. La donnée existe dans Figma : UCM Architect lit ces cibles par leur identifiant (`catalogue.ts`).
