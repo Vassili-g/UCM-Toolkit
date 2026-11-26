@@ -234,6 +234,8 @@ Vérification. `node _local/p28/poc/verifier.mjs` relève 0 erreur, 0 requête r
 
 Q4 suit la réponse à Q3 : aucune description n'est écrite.
 
+Essai de QA1 et QA7 sur la page de preuve, tertiaires retirées (688 paires en clair, 691 en sombre). Aujourd'hui, 642 paires tiennent en clair et 600 en sombre. Avec les ancrages `-[dark]`, la lissée brute en tient 641 et 576 et en casse 25. La correction locale déplace 2 nuances, le 400 de la palette 10 (−0,051 de clarté) et le 500 de l'erreur (+0,027), et la lissée corrigée rejoint 642 et 600, sans paire cassée, conflit ni paire non réparable. 63 nuances changent, contre 76 sans les ancrages `-[dark]`. La correction ne touche que les paires qui tiennent aujourd'hui. Dans la palette 10, la nuance corrigée revient presque à sa valeur actuelle et rend deux pas inégaux autour d'elle (0,159 puis 0,063).
+
 ### Relevé des alias du fichier client
 
 Un plugin de lecture seule, `_local/p28/releve-alias/`, a relevé les alias du fichier client. La table est dans `_local/p28/correspondances-reelles.txt`.
