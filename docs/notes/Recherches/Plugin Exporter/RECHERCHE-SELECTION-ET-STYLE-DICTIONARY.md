@@ -1,4 +1,4 @@
-# Sélection des tokens et sortie Style Dictionary dans UCM Exporter
+# Remplacer la chaîne Supernova par le mode Tokens d'UCM Exporter
 
 Recherche proposée, non implémentée. Elle répond à une demande en deux temps :
 aligner la bascule entre le mode Composant et le mode Tokens d'UCM Exporter sur
@@ -527,8 +527,26 @@ Ce que cette chaîne change, sous réserve des réponses :
 - Les lots 1 à 3 ne changent pas. Les lots 4 à 6 ne changent pas, sauf si le
   job filtre déjà les collections et les modes.
 
+La première demande porte sur des fichiers, pas sur des réponses orales. Ces
+fichiers restent dans `_local/` et ne sont jamais commités.
+
+- Le script ou la configuration du job Jenkins.
+- Un fichier que la chaîne Supernova livre aujourd'hui au job, et le fichier que
+  le job envoie au repository des composants.
+- La configuration Style Dictionary du repository des composants, avec sa
+  version dans `package.json`.
+- Les réglages de l'exporteur Supernova (`fileStructure`, `exportThemesAs`,
+  `tokenNameStructure`, `useTokenTypePrefixes`, `colorFormat`, `forceRemUnit`).
+- La liste des variables CSS ou des noms de tokens que le code des composants
+  cite.
+
+Avec ces fichiers, le mainteneur exporte le même fichier Figma par l'Exporter en
+téléchargement local, et la comparaison des deux sorties montre ce qui diffère :
+syntaxe, noms, modes, types absents.
+
 | N° | Question | Ce qu'elle décide |
 |---|---|---|
+| J0 | Le code des composants accepte-t-il que les noms de ses variables CSS changent, par un renommage unique ? | Garder les noms UCM, ou reproduire le nommage de Supernova |
 | J1 | Où le repository intermédiaire est-il hébergé : gitlab.com, github.com, un GitLab auto-hébergé, Bitbucket ? Le plugin peut-il y ouvrir une demande de fusion avec un jeton personnel ? | Un lot de forge et de domaine autorisé, ou aucun |
 | J2 | Qu'est-ce qui déclenche le job : la fusion sur la branche principale, chaque push sur une branche, un geste manuel ? Une demande de fusion du plugin est-elle fusionnée à la main avant la conversion ? | Le parcours du designer après la publication |
 | J3 | Quelle forme lit le script de conversion : la sortie de l'exporteur Supernova (`value`, un fichier par type) ou du DTCG en `$value` ? Le job peut-il lancer une commande npm (`npx ucm …`) ? | Le maintien ou le retrait du lot 8, et Q10 |
@@ -537,8 +555,9 @@ Ce que cette chaîne change, sous réserve des réponses :
 | J6 | Le job filtre-t-il des collections ou des modes ? | Les lots 4 à 6 |
 | J7 | Les contrats `*.contract.json` vont-ils au repository intermédiaire ou au repository final ? Le repository final reçoit-il aussi `tokens.json` ? | Une destination par artefact dans le plugin, et le lot 7 |
 | J8 | Le repository final fait-il tourner `ucm check` dans sa CI ? | Le lot 7 et l'installation par `ucm init` |
+| J9 | La sortie actuelle contient-elle des tokens de typographie, d'ombre ou de dégradé, tirés des styles Figma ? | Un lot d'export des styles : `tokens.json` ne publie que les variables |
 
-J1, J3 et J7 décident l'essentiel du plan.
+Les fichiers, puis J0, J1, J3 et J7, décident l'essentiel du plan.
 
 ## 8. Sources
 

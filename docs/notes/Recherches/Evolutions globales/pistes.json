@@ -728,8 +728,8 @@
     },
     {
       "id": "P23",
-      "titre": "Sélection des tokens et sortie Style Dictionary dans UCM Exporter",
-      "titreCourt": "Sélection des tokens",
+      "titre": "Remplacer la chaîne Supernova par le mode Tokens d'UCM Exporter",
+      "titreCourt": "Remplacer Supernova",
       "sujet": "Plugin Exporter",
       "recherche": "docs/notes/Recherches/Plugin Exporter/RECHERCHE-SELECTION-ET-STYLE-DICTIONARY.md",
       "resume": "Aligner la bascule Composant et Tokens de l'Exporter sur celle d'UCM Architect, laisser cocher les collections et les modes exportés dans `tokens.json`, puis convertir ce fichier pour Style Dictionary par une commande de la CLI.",
