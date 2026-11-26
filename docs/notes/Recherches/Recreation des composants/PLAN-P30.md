@@ -20,7 +20,7 @@ Ce plan suit la piste P30 de `docs/notes/Recherches/Evolutions globales/pistes.j
 ## Étape 3. Relevé du code
 
 - [ ] 3.1 Script du relevé : API, styles conditionnels, valeurs dessinées, icônes, composition, comportements, textes par défaut, une fiche par composant.
-- [ ] 3.2 Relevé des usages dans les applications consommatrices, si Q20 le permet.
+- [ ] 3.2 Relevé des usages dans les applications consommatrices : il fixe ce que chaque composant doit garder.
 
 ## Étape 4. Banc de rendu
 

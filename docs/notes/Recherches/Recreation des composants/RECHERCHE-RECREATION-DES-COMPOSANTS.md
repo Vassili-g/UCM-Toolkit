@@ -37,6 +37,8 @@ Trois faits fixent la méthode.
 | Installation de la bibliothèque source | Possible : le banc de rendu tourne en local. |
 | Pièces internes | P22 est livrée avant le passage en masse : sans elle, un composant à pièce interne perd des variantes dans son contrat. |
 | Pilote | Tag, Button et Alert. |
+| Données du client | Elles restent toutes en local, dans `_local/recreation-composants/`. |
+| Ce qui ne doit pas se perdre | Aucune variante, aucun axe, aucun comportement, générique ou spécifique, que l'application emploie réellement. Le relevé des usages dans les applications consommatrices fixe donc le périmètre de chaque composant, et il est possible. |
 
 ## 4. Méthode
 
@@ -107,15 +109,14 @@ Les numéros suivent ceux de la première série. Les questions tranchées sont 
 
 ### Sources
 
-- Q20. Peut-on lire le code des applications consommatrices pour le relevé d'usages ? Lesquelles ?
+- Q20. Quelles applications consomment la bibliothèque, et où est leur code ?
 - Q22. Avons-nous accès au projet Chromatic ? Ses captures donnent une base pour les combinaisons déjà en stories.
 - Q23. Les maquettes Zeplin font-elles encore foi pour certains composants ?
 - Q53. Peut-on modifier la bibliothèque source pour l'outillage (manifest de Storybook, pseudo-états, stories générées), ou le relevé tourne-t-il sur une copie ?
 
 ### Exhaustivité
 
-- Q24. « Aucune donnée perdue » couvre-t-il cette liste : props, valeurs d'union, états, slots, icônes, valeurs dessinées, textes par défaut, clavier, ARIA, animations, responsive, marques ? Un élément absent de la liste n'est pas contrôlé à l'étape 7.
-- Q25. Les comportements qui ne se dessinent pas (fermeture au clic extérieur, délai d'une recherche, virtualisation) vont-ils dans le contrat, dans un document à côté, ou nulle part ? Le format du contrat n'a pas de champ pour eux. Une voie : des annotations Figma sur le component set, que l'Exporter publierait (Q48).
+- Q25. Où s'écrit un comportement qu'aucun calque ne montre (fermeture d'un menu au clic extérieur, délai avant une recherche, bornes et pas d'un champ de quantité, format d'un nombre saisi, types de fichier acceptés) ? Le contrat n'a pas de champ pour eux, hors des règles d'usage que l'Exporter pose par propriété.
 - Q26. Les animations se décrivent-elles dans Figma ou seulement par un token de durée et de courbe ?
 - Q27. Le responsive se dessine-t-il en variants de taille, ou reste-t-il une règle de code ?
 - Q29. Les textes par défaut et leur langue passent-ils dans le contrat comme valeurs de propriété texte ?
