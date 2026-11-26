@@ -335,6 +335,7 @@ export const EXCLUSIONS_DE_PISTES: Readonly<Record<string, string>> = {
   P16: 'Index des décisions citées dans le code, un outil de documentation du dépôt qui n\'est pas une brique de la chaîne.',
   P28: 'Fiabilise les palettes d\'un design system existant, une recette sur un client, sans brique propre dans la chaîne.',
   P29: 'Construit la chaîne elle-même dans l\'inventaire, donc ne figure pas parmi ses briques.',
+  P30: 'Recrée les composants de la bibliothèque d\'un client, un chantier sur la carte Composants ; devient une pièce de cette carte si son outillage devient un produit.',
 };
 
 export const JAUGES: readonly Jauge[] = [

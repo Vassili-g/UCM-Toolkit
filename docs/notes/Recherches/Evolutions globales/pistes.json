@@ -1303,6 +1303,47 @@
         "Le style et le script de la maquette entrent dans une page qui partage déjà des noms de classes et des écouteurs globaux.",
         "Corriger les données change le dessin validé : chaque trait ajouté ou retiré doit être montré au mainteneur."
       ]
+    },
+    {
+      "id": "P30",
+      "titre": "Recréer en UCM les composants de la bibliothèque React existante",
+      "titreCourt": "Recréation des composants",
+      "sujet": "Bibliothèque de production",
+      "recherche": "docs/notes/Recherches/Recreation des composants/RECHERCHE-RECREATION-DES-COMPOSANTS.md",
+      "plan": "docs/notes/Recherches/Recreation des composants/PLAN-P30.md",
+      "resume": "Ce qu'il fait : il relève par script chaque composant de la bibliothèque React existante du client (props, variantes, états, icônes, valeurs dessinées, comportements), capture chaque combinaison dans un banc de rendu, et rend au designer un cahier court par composant. Le designer reconçoit le composant dans Figma avec les valeurs UCM, le plus près possible de l'existant, puis un contrôle compare le contrat exporté au relevé. Où : scripts dans UCM-Toolkit, relevés et planches dans `_local/`, contrats et code dans intencial-library. Pourquoi : la création des composants est l'étape la plus longue et la plus manuelle de la chaîne, et un relevé fait à la main oublie des variantes.",
+      "importance": "haute",
+      "raisonImportance": "La bibliothèque de production doit être recréée en entier avant qu'intencial-library remplace l'ancienne. Une variante oubliée se découvre seulement en production.",
+      "prio": 1,
+      "dependances": [
+        "P22"
+      ],
+      "complexite": "xl",
+      "raisonComplexite": "Une soixantaine de composants, dont une partie posée sur Ant Design, que le nouveau code n'emploiera plus : le designer dessine aussi ce qu'antd dessinait. Neuf marques passent d'abord par UCM Palettes.",
+      "coutHumain": "Répondre aux questions de la recherche, valider le cahier de chaque composant, reconcevoir chaque composant dans Figma et l'exporter.",
+      "porteur": "mainteneur",
+      "promesse": "C",
+      "points": [
+        {
+          "chemin": "docs/notes/Recherches/ (dossier de la piste)",
+          "action": "créer",
+          "quoi": "Recherche et plan : méthode, outils du marché, questions."
+        },
+        {
+          "chemin": "scripts/",
+          "action": "créer",
+          "quoi": "Relevé du code, banc de rendu et contrôle de couverture, sans donnée du client."
+        }
+      ],
+      "criteresDeFin": [
+        "Chaque composant retenu a un contrat dans intencial-library, arrivé par une pull request du plugin.",
+        "Le contrôle de couverture ne trouve, pour aucun composant, une prop, une valeur, un état ou une icône du code source absent du contrat sans justification écrite.",
+        "Aucune donnée du client n'est entrée dans un fichier suivi par Git d'UCM-Toolkit."
+      ],
+      "risques": [
+        "Une variante supprimée dans Figma perd sa clé et détache ses instances : la structure d'un composant se fixe avant ses usages.",
+        "Le relevé lit des styles calculés dans un navigateur : sans installation du dépôt source, le banc ne tourne pas."
+      ]
     }
   ]
 }
