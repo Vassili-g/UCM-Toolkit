@@ -40,7 +40,9 @@ là où Architect sépare ses deux modes par une bascule.
 détaille, avec une recommandation pour chacune. Depuis le `2026-11-26`, une
 chaîne Jenkins chez le consommateur peut porter la conversion : les
 [questions au développeur de cette chaîne](#questions-au-développeur-de-la-chaîne-jenkins)
-sont à poser avant de trancher Q8 à Q10.
+sont à poser avant de trancher Q8 à Q10. La
+[comparaison avec la sortie de Supernova](#le-format-de-lexporter-face-à-la-sortie-de-supernova)
+sert d'argumentaire pour garder `tokens.json` comme fichier livré.
 
 | Question | Recommandation |
 |---|---|
@@ -558,6 +560,77 @@ syntaxe, noms, modes, types absents.
 | J9 | La sortie actuelle contient-elle des tokens de typographie, d'ombre ou de dégradé, tirés des styles Figma ? | Un lot d'export des styles : `tokens.json` ne publie que les variables |
 
 Les fichiers, puis J0, J1, J3 et J7, décident l'essentiel du plan.
+
+## Le format de l'Exporter face à la sortie de Supernova
+
+Cette section sert d'argumentaire face au développeur de la chaîne Jenkins.
+Elle compare `tokens.json`
+([FORMAT.md](../../../format/FORMAT.md#partie-2--export-tokens)) à la sortie
+de l'exporteur Style Dictionary de Supernova, telle que son
+[README][sn-sd-readme] la montre, lu le `2026-11-26`.
+
+| Point | `tokens.json` d'UCM | Sortie Style Dictionary de Supernova |
+|---|---|---|
+| Norme | DTCG `2025.10`, `$value` et `$type` | `value` sans `$` ni `type`, la forme de Style Dictionary 3 |
+| Couleur | Espace sRGB ou Display P3, précision de Figma, alpha toujours écrit | Hexadécimal, rgb, HSL ou OKLCH, arrondi par `colorPrecision`, profil P3 perdu |
+| Dimension | Objet `{ "value": 8, "unit": "px" }` | Chaîne en px, ou en rem par `forceRemUnit` |
+| Type | Écrit sur chaque token | Absent de l'exemple, déduit du chemin |
+| Alias | Référence `{chemin}` | Référence `{chemin}` avec `useReferences` |
+| Modes | Tous sur le token, dans `com.ucm.modes` | Fichiers séparés, thèmes appliqués, fusionnés, ou clés `theme-dark` imbriquées hors norme |
+| Fichiers | Un seul `tokens.json` | Un fichier par type de token par défaut |
+| Noms | Préfixe de collection et chemin Figma, les mêmes que ceux cités par les contrats | Préfixe de type, chemin, casse et préfixe global selon les réglages ; le type vient du scope Figma |
+| Contrôle | Schéma commité, `ucm check`, build Style Dictionary 5.5.3 dans `styleDictionary.test.ts` | Ceux du fournisseur |
+
+`tokens.json` est le meilleur fichier source. Il suit la norme, garde la
+précision et l'espace colorimétrique de Figma, type chaque token et partage ses
+noms avec les contrats. La sortie de Supernova est un format de sortie, conçu
+pour Style Dictionary 3. La position à défendre est donc que le repository
+intermédiaire reçoive `tokens.json` et que le job en dérive les fichiers de
+Style Dictionary. Le nommage reste une question séparée (J0).
+
+Reproduire la sortie de Supernova a deux coûts. La syntaxe demande environ un
+lot de la taille du lot 8 : `value` sans `$`, couleurs et dimensions en
+chaînes, un fichier par type, thèmes en fichiers. Le kit porte déjà ces
+conversions pour `ucm tokens css`. Les noms demandent trois à quatre lots : les
+scopes Figma ajoutés au format publié, la table des types de Supernova, que sa
+documentation ne liste pas en entier, et les réglages exacts de son exporteur.
+L'autre solution est de garder les noms UCM et de renommer une seule fois les
+variables CSS du code des composants, à partir d'une table de correspondance
+générée.
+
+Les écarts de `tokens.json` avec la norme sont les suivants.
+
+- Les types `boolean` et `string` sont exportés, avec leur valeur. Le DTCG
+  `2025.10` ne définit aucun type pour un booléen ou une chaîne libre, donc il
+  n'existe pas de forme normée à adopter. Style Dictionary les transmet tels
+  quels.
+- Les modes sont rangés dans `com.ucm.modes`. Le module de résolution
+  `2025.10` prend un fichier de tokens par mode et un document qui dit quels
+  fichiers combiner pour chaque contexte. Terrazzo le lit, Style Dictionary pas
+  encore ([issue 1590][sd-resolver]). La forme d'UCM donne un seul fichier à
+  publier, un diff qui montre un token avec tous ses modes, et un chemin unique
+  pour les contrats. Un document de résolution peut se dériver de `tokens.json`
+  au build, sans changer l'export
+  ([PISTES-EVOLUTION.md](../Evolutions%20globales/PISTES-EVOLUTION.md), section
+  2.4).
+- Un alias vers une variable non publiée s'écrit `"$value": null`.
+
+Les défauts de `tokens.json` pour un build Style Dictionary sont les suivants.
+
+- Style Dictionary ignore `com.ucm.modes` et ne rend que le mode par défaut. Un
+  fichier par mode demande une étape : la commande du lot 8, ou le script du
+  job.
+- Style Dictionary 4 écrit `[object Object]` à la place des couleurs, des
+  dimensions et des durées, sans faire échouer le build.
+- Un `"$value": null` fait échouer le build. L'erreur est réelle, et la
+  fermeture des dépendances (section 2.3) l'évite pour une sélection.
+- `tokens.json` ne publie que les variables. Les styles de texte, les ombres et
+  les dégradés n'y figurent pas, alors que Supernova importe les styles par la
+  bibliothèque Figma (J9).
+- L'unité des dimensions est toujours `px`. Le passage en rem se règle dans la
+  configuration Style Dictionary (`size/pxToRem`).
+- Une graisse sort en `number`, là où le DTCG définit un type `fontWeight`. La
+  forme est valide, mais moins précise.
 
 ## 8. Sources
 
