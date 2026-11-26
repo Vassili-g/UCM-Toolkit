@@ -178,7 +178,7 @@ d'Alert sont celles du plan. Onze défauts sont nouveaux, et Codex y ajoute quat
 | L15 | Architect : origine des liaisons des dépendances et peinture sous instance D20 | `implementeur` | L2 | [x] 3f3061df |
 | L16 | Kit et Architect : pièce interne seule D22, clé de collection D24 | `implementeur` | L3 | [x] 3f3061df |
 | L18 | Socle et Architect : écarts C30 du moteur des règles D26 | `implementeur` | L16 | [x] 3cef4979 |
-| L10 | Architect : composants de référence et banc de recette D15, cas rouges de Codex rendus verts | `implementeur-exigeant` | L1 à L18 | [ ] |
+| L10 | Architect : composants de référence et banc de recette D15, cas rouges de Codex rendus verts | `implementeur-exigeant` | L1 à L18 | [x] 3cef4979, 00cd8c20 |
 | L17 | Kit et Architect : intégration du générateur D25 | `implementeur-exigeant` | L10 | [ ] |
 | L5 | Conversation principale : invariants, SPEC, cartes, version, publication | conversation principale | L1 à L18 | [ ] |
 
@@ -277,3 +277,10 @@ passent l'un après l'autre. L11, L12 et L14 touchent les contrôles du kit et s
   des variants, et L17 doit l'ajouter. Laissés, avec leur raison : C49 ne mesure pas le calque peint sous une instance (nouveau
   comportement, décision du mainteneur) ; les candidats de C59 ne se chargent pas d'avance (coût de lectures). Question au
   mainteneur, G8 : le contrat doit-il publier l'ordre de deux remplissages superposés liés à deux variables ?
+- L10, commits `3cef4979` (première partie) et `00cd8c20`. Kit 2233 tests, Architect 2529, socle 309, Exporter 1175, racine 713
+  sur 714. `composantsDeReference.test.ts` reconstruit Button et Alert ; `npm run recette:architect` rend 0 sur les deux captures
+  (Button 6 constats, Alert 14 dont 11 attendus). `chasseComposants.test.ts` porte 14 composants justes et 25 cas de la chasse.
+  Décision de la conversation principale, par D1 : une instance faite d'un seul tracé n'est qu'une icône probable
+  (`estUneIconeCertaine` faux) et admet aussi `background` au fill et `border` au trait, ce que demande la pointe d'un Tooltip.
+  Restes : une capture neuve du Button vérifiera C83 (`isExposedInstance` absent de la capture du 25 novembre) ; questions au
+  mainteneur sur C66 et C67, que les icônes de bibliothèque d'Alert reçoivent maintenant qu'elles sont reconnues.
