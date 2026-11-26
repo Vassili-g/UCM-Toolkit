@@ -14,7 +14,9 @@ function layer(id: string, nom: string, type: string, extra: Partial<LayerLu> = 
   return { id, nom, type, parent: null, visible: true, opacite: 1, dimensions: { x: 0, y: 0, largeur: 20, hauteur: 20 }, peintures: [], liaisons: [], valeursEnDur: [], ...extra };
 }
 
-const peinture = { champ: 'fills' as const, indice: 0, type: 'SOLID', visible: true, opacite: 1, blendMode: 'NORMAL' };
+// D19 : C25 ne corrige que si le token garde la couleur du calque ; la peinture et chaque token de couleur portent la même.
+const GRIS = { r: 0.2, g: 0.2, b: 0.2, a: 1 };
+const peinture = { champ: 'fills' as const, indice: 0, type: 'SOLID', visible: true, opacite: 1, blendMode: 'NORMAL', couleur: GRIS };
 const liaisonDeFond = (porteur: string) => ({ champ: 'fills', indice: 0, porteur, variable: { id: 'old', cle: 'old', nom: `${BASE}/default/background`, collection: 'components', distante: false } });
 
 export function fixture(): { releve: ReleveDeComposant; catalogue: CatalogueDeReference; constats: Constat[] } {
@@ -44,13 +46,13 @@ export function fixture(): { releve: ReleveDeComposant; catalogue: CatalogueDeRe
     constats.push({ id: `C17:${i}`, code: 'C17', type: 'corriger', famille: 'liaisons', variants: [`variant-${i}`], layers: [id(2)], faits: { token: `${BASE}/default/background`, attendu: 'foreground', champ: 'fills', indice: 0 } });
     constats.push({ ...fait('C15'), id: `C15:inconnu:${i}`, layers: ['absent'] });
   }
-  const color = (cle: string, nom: string) => ({ cle, nom, collection: 'components', type: 'COLOR' as const, etat: 'presente' as const });
+  const color = (cle: string, nom: string) => ({ cle, nom, collection: 'components', type: 'COLOR' as const, etat: 'presente' as const, valeurs: { Light: { valeur: GRIS } } });
   // Les tokens de taille sont ceux du composant : C29 ne cherche plus dans `layout`.
   const nombre = (cle: string, nom: string, valeur: number) => ({ cle, nom, collection: 'components', type: 'FLOAT' as const, etat: 'presente' as const, valeurs: { Light: { valeur } } });
   const catalogue: CatalogueDeReference = {
     version: 1, library: null,
     collections: [
-      { cle: 'components', nom: 'components', role: 'components', modes: [], etat: 'lue' },
+      { cle: 'components', nom: 'components', role: 'components', modes: [{ id: 'Light', nom: 'Light' }], etat: 'lue' },
       { cle: 'layout', nom: 'layout', role: 'layout', modes: [], etat: 'lue' },
     ],
     variables: [

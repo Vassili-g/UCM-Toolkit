@@ -7,6 +7,7 @@ import { modeDuThemeReconnu, variableDuThemeReconnue } from '../referentiel/them
 import { cheminDansLaCollection, collectionParCle, variableParCle, type CatalogueDeReference, type VariableDuCatalogue } from './catalogue.js';
 import type { Constat, Correction, Question } from './constat.js';
 import { fondsPeintsSousParEtapes } from './accessibilite.js';
+import { gardeLeDessin } from './gardeDuDessin.js';
 import { estDuComposant } from './nommage.js';
 import { lesJumelles, lesPrefixes, lireLeSens, type ModeLu, type SensLu } from './integrite.js';
 import type { LayerLu, LiaisonLue, ReleveDeComposant, VariantLu } from './releve.js';
@@ -65,7 +66,11 @@ export function* controlerLeThemeParEtapes(releve: ReleveDeComposant, catalogue:
           const vise = vers(catalogue, entree);
           if (vise && vise !== 'inconnue' && vise.collection === themeVise.collection && formeDuChemin(vise.nom) === cibleForme) candidats.push(entree);
         }
-        if (candidats.length === 1) constat.correction = correctionDeLiaison(constat, layer, liaison, variable, candidats[0], 'Un texte lié à surface/foreground doit être posé sur un fond de surface visible.');
+        // D19 : la proposition qui change la couleur du texte sans garder son contraste est une question.
+        const garde = candidats.length === 1 && gardeLeDessin(catalogue, {
+          variant, layer, champ: liaison.champ === 'strokes' ? 'strokes' : 'fills', ...(liaison.plage ? { plage: liaison.plage } : {}), ...(liaison.indice === undefined ? {} : { indice: liaison.indice }), liaison, candidat: candidats[0],
+        }) === 'garde';
+        if (garde) constat.correction = correctionDeLiaison(constat, layer, liaison, variable, candidats[0], 'Un texte lié à surface/foreground doit être posé sur un fond de surface visible.');
         else {
           const choix: { cle: string; nom: string }[] = [];
           for (const candidat of candidats) {

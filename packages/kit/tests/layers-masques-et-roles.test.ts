@@ -10,8 +10,10 @@ import {
   type CatalogueDeReference, type Constat, type LayerLu, type PeintureLue, type ReleveDeComposant, type VariantLu,
 } from '../src/controles/index.js';
 
+// D19 : C25 ne corrige que si le token garde la couleur du calque ; la peinture et chaque token portent la même.
+const GRIS = { r: 0.2, g: 0.2, b: 0.2, a: 1 };
 const SOLIDE = (champ: 'fills' | 'strokes' = 'fills', changements: Partial<PeintureLue> = {}): PeintureLue =>
-  ({ champ, indice: 0, type: 'SOLID', visible: true, opacite: 1, blendMode: 'NORMAL', ...changements });
+  ({ champ, indice: 0, type: 'SOLID', visible: true, opacite: 1, blendMode: 'NORMAL', couleur: GRIS, ...changements });
 
 function layer(id: string, nom: string, type: string, parent: string | null, extra: Partial<LayerLu> = {}): LayerLu {
   return {
@@ -31,10 +33,10 @@ function releve(layers: LayerLu[], valeurs: Record<string, string> = { Size: 'Sm
   };
 }
 
-const token = (cle: string, nom: string) => ({ cle, nom, collection: 'components', type: 'COLOR' as const, etat: 'presente' as const });
+const token = (cle: string, nom: string) => ({ cle, nom, collection: 'components', type: 'COLOR' as const, etat: 'presente' as const, valeurs: { Light: { valeur: GRIS } } });
 
 function catalogue(...variables: CatalogueDeReference['variables']): CatalogueDeReference {
-  return { version: 1, library: null, collections: [{ cle: 'components', nom: 'components', role: 'components', modes: [], etat: 'lue' }], variables };
+  return { version: 1, library: null, collections: [{ cle: 'components', nom: 'components', role: 'components', modes: [{ id: 'Light', nom: 'Light' }], etat: 'lue' }], variables };
 }
 
 const FOND = token('bg', 'button/color/sm/background');

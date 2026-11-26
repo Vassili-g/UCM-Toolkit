@@ -5,8 +5,18 @@ import type { CatalogueDeReference, LayerLu, ReleveDeComposant } from '../src/co
 import { MODE_DARK, MODE_LIGHT, catalogueDeStructure, cleDeLaFixture } from './fixtures/catalogueDeStructure.js';
 
 const modes = [{ id: 'light', nom: 'Light' }, { id: 'dark', nom: 'Dark' }];
+/**
+ * D19 : C59 ne corrige que si le token proposé garde la couleur du texte. Sauf mention contraire, chaque variable de couleur du thème
+ * vaut ce gris dans chaque mode, et le texte le porte : la proposition garde alors le dessin, et les tests de la correction restent
+ * ceux de la correction. `propositionDeC59Verifiee` pose les cas où elle ne le garde pas.
+ */
+const GRIS = { r: 0.2, g: 0.2, b: 0.2, a: 1 };
 function cat(collections: CatalogueDeReference['collections'], variables: CatalogueDeReference['variables']): CatalogueDeReference {
-  return { version: 1, library: null, collections, variables };
+  return {
+    version: 1, library: null, collections,
+    variables: variables.map((variable) => variable.type === 'COLOR' && variable.collection === 'themes' && !variable.valeurs
+      ? { ...variable, valeurs: { light: { valeur: GRIS }, dark: { valeur: GRIS } } } : variable),
+  };
 }
 function releve(layer: LayerLu): ReleveDeComposant {
   return { version: 1, jeu: { cle: 'Alert', id: 'Alert', nom: 'Alert' }, proprietes: [],
@@ -16,7 +26,7 @@ function releve(layer: LayerLu): ReleveDeComposant {
 function layer(id: string, parent: string | null, name: string, variable?: { key: string; name: string; collection: string }, background?: { key: string; name: string; collection: string }): LayerLu {
   return {
     id, nom: name, type: 'TEXT', parent, visible: true, opacite: 1, dimensions: { x: 0, y: 0, largeur: 10, hauteur: 10 },
-    peintures: [{ champ: 'fills', indice: 0, type: 'SOLID', visible: true, opacite: 1, blendMode: 'NORMAL' }], valeursEnDur: [],
+    peintures: [{ champ: 'fills', indice: 0, type: 'SOLID', visible: true, opacite: 1, blendMode: 'NORMAL', couleur: GRIS }], valeursEnDur: [],
     liaisons: [
       ...(variable ? [{ champ: 'fills', indice: 0, porteur: id, variable: { id: variable.key, cle: variable.key, nom: variable.name, collection: variable.collection, distante: false } }] : []),
       ...(background ? [{ champ: 'fills', indice: 0, porteur: id, variable: { id: background.key, cle: background.key, nom: background.name, collection: background.collection, distante: false } }] : []),
@@ -264,6 +274,58 @@ test('D17 : un layer et sa plage entière ne donnent qu’un C59 par identifiant
   const resultat = controlerLeTheme(releve(texte), catalogueDeBase()).filter(({ code }) => code === 'C59');
   assert.deepEqual(resultat.map(({ id }) => id), ['C59:v1:text:fills:0']);
   assert.equal(new Set(controlerLeTheme(releve(texte), catalogueDeBase()).map(({ id }) => id)).size, resultat.length);
+});
+
+/**
+ * D19 (C8 de la chasse) : un texte blanc lié à `surface/foreground`, sur un fond noir qui n'est pas une surface. C59 propose le token
+ * qui vise `page/foreground`, noir : c'est une correction seulement si le texte y reste lisible.
+ */
+const BLANC = { r: 1, g: 1, b: 1, a: 1 };
+const NOIR = { r: 0, g: 0, b: 0, a: 1 };
+function texteSurUnFond(couleurDuFond: typeof NOIR, couleurDePage: typeof NOIR, couleurDeSurface = BLANC): { r: ReleveDeComposant; c: CatalogueDeReference } {
+  const racine: LayerLu = { ...layer('root', null, 'Card', undefined, liaisonDeJeton('tok-fond', 'alert/color/fond')), type: 'FRAME', dimensions: { x: 0, y: 0, largeur: 100, hauteur: 48 } };
+  racine.peintures = [{ ...racine.peintures[0], couleur: couleurDuFond }];
+  const r = releve(racine);
+  r.variants[0].layers.push({ ...texteDeSurface(), parent: 'root', peintures: [{ ...texteDeSurface().peintures[0], couleur: couleurDeSurface }] });
+  const c = cat([collection('themes', 'theme'), composants], [
+    { cle: 'fg-surface', nom: 'success/surface/foreground', collection: 'themes', type: 'COLOR', etat: 'presente', valeurs: { light: { valeur: couleurDeSurface }, dark: { valeur: couleurDeSurface } } },
+    { cle: 'fg-page', nom: 'success/page/foreground', collection: 'themes', type: 'COLOR', etat: 'presente', valeurs: { light: { valeur: couleurDePage }, dark: { valeur: couleurDePage } } },
+    { cle: 'fond', nom: 'success/page/default', collection: 'themes', type: 'COLOR', etat: 'presente', valeurs: { light: { valeur: couleurDuFond }, dark: { valeur: couleurDuFond } } },
+    jeton('tok-surface', 'alert/color/surface-foreground', 'fg-surface'),
+    jeton('tok-page', 'alert/color/page-foreground', 'fg-page'),
+    jeton('tok-fond', 'alert/color/fond', 'fond'),
+  ]);
+  return { r, c };
+}
+
+test('D19 : C59, un texte blanc sur fond noir ne reçoit pas le token noir en correction (C8)', () => {
+  const { r, c } = texteSurUnFond(NOIR, NOIR);
+  const resultat = controlerLeTheme(r, c).find(({ code }) => code === 'C59');
+  assert.ok(resultat, 'C59 se prononce : le fond noir n’est pas une surface');
+  assert.equal(resultat.correction, undefined);
+  assert.deepEqual(resultat.question?.candidats, [{ cle: 'tok-page', nom: 'alert/color/page-foreground' }]);
+});
+
+test('D19 : C59, le token proposé reste une correction quand le texte y garde son contraste avec le fond prouvé', () => {
+  const { r, c } = texteSurUnFond(BLANC, NOIR);
+  const resultat = controlerLeTheme(r, c).find(({ code }) => code === 'C59');
+  assert.equal(resultat?.correction?.apres.cle, 'tok-page');
+  assert.equal(resultat?.question, undefined);
+});
+
+test('D19 : C59, sans fond prouvé et avec une autre couleur, ou avec une valeur illisible, C59 pose une question', () => {
+  const sansFond = (couleurDePage: unknown) => {
+    const { r, c } = texteSurUnFond(NOIR, NOIR);
+    r.variants[0].layers.shift();
+    r.variants[0].layers[0].parent = null;
+    const page = c.variables.find((variable) => variable.cle === 'fg-page')!;
+    page.valeurs = { light: { valeur: couleurDePage }, dark: { valeur: couleurDePage } };
+    return controlerLeTheme(r, c).find(({ code }) => code === 'C59');
+  };
+  assert.equal(sansFond(NOIR)?.correction === undefined && sansFond(NOIR)?.question !== undefined, true, 'autre couleur, aucun fond prouvé');
+  assert.equal(sansFond(BLANC)?.correction?.apres.cle, 'tok-page', 'même couleur dans chaque mode');
+  assert.equal(sansFond('#000000')?.correction, undefined, 'valeur illisible');
+  assert.deepEqual(sansFond('#000000')?.question?.candidats, [{ cle: 'tok-page', nom: 'alert/color/page-foreground' }]);
 });
 
 test('C60 corrige un alias Dark vers Light selon TABLE_DES_DOSSIERS', () => {

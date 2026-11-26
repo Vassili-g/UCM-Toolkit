@@ -7,6 +7,7 @@ import { candidatDeLongueurParEtapes, classerLesCandidatsParEtapes, EGALITE_EN_P
 import type { Constat, Correction } from './constat.js';
 import { axesDuReleve, axesDuReleveParEtapes, estLaFamilleCouleur, etatReconnu, memeValeurDAxe, roleDuToken, segmentDAxe, segmentEcritPourLaValeur, tokenVautPourLeLayer, tokensDuComposant, tokensDuComposantParEtapes, type AxeDuComposant, type TokenDuComposant } from './nommage.js';
 import { rolesAdmisDuLayer } from './mapping.js';
+import { gardeLeDessin } from './gardeDuDessin.js';
 import { lectureManquee, peintureVisible, type LayerLu, type LiaisonLue, type PeintureLue, type ReleveDeComposant, type VariantLu } from './releve.js';
 
 /**
@@ -488,7 +489,7 @@ function corrigerRole(constat: Constat, releve: ReleveDeComposant, catalogue: Ca
 /**
  * Les rôles que la table de `mapping.ts` admet pour la peinture sont les candidats : un token de `components` qui se lit, dont le rôle
  * est l'un d'eux, dont chaque segment d'axe vaut celui du variant, et dont l'élément éventuel nomme le layer. Un token qui ne se lit
- * pas ne se départage pas. Un seul candidat donne une correction, sinon une question sans réponse cochée (N-11, E-25).
+ * pas ne se départage pas. Un seul candidat qui garde le dessin (`gardeLeDessin`, D19) donne une correction, sinon une question sans réponse cochée (N-11, E-25).
  */
 function* corrigerLiaisonManquante(constat: Constat, releve: ReleveDeComposant, catalogue: CatalogueDeReference, index: IndexDeCorrection): Generator<void, Pick<Constat, 'correction' | 'question'> | undefined> {
   const layer = layerDuConstat(constat, index);
@@ -527,6 +528,10 @@ function* corrigerLiaisonManquante(constat: Constat, releve: ReleveDeComposant, 
       choix.push({ cle: candidat.cle, nom: candidat.nom });
     }
     return { question: { id: constat.id, candidats: choix } };
+  }
+  // D19 : un token qui change la couleur du calque est une question, jamais une correction.
+  if (gardeLeDessin(catalogue, { variant, layer, champ, ...(plage ? { plage } : { indice: indice ?? 0 }), candidat: candidats[0] }) !== 'garde') {
+    return { question: { id: constat.id, candidats: [{ cle: candidats[0].cle, nom: candidats[0].nom }] } };
   }
   return { correction: {
     id: constat.id, sorte: 'liaison',

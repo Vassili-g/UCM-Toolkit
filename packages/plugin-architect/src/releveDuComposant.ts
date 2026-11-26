@@ -366,8 +366,28 @@ class Lecteur {
   }
 
   async modes(noeud: NoeudLu): Promise<Record<string, string>> {
+    return this.nommerLesModes(noeud.resolvedVariableModes ?? {});
+  }
+
+  /**
+   * Les modes que le calque pose lui-même (`explicitVariableModes`), par nom de collection comme `modes`. Vide, sans autre lecture, quand le
+   * calque n'en pose aucun ; `undefined` quand la lecture lève (le calque suit alors le variant) et la manquée est consignée.
+   */
+  async modesExplicites(noeud: NoeudLu, manquees: Manquee[]): Promise<Record<string, string> | undefined> {
+    let explicites: unknown;
+    try {
+      explicites = this.lire<unknown>(noeud, 'explicitVariableModes');
+    } catch (erreur) {
+      if (erreur instanceof AnalyseAnnulee) throw erreur;
+      manquees.push({ layer: noeud.id, champ: 'explicitVariableModes', motif: messageDErreur(erreur) });
+      return undefined;
+    }
+    if (!estUnObjet(explicites) || Object.keys(explicites).length === 0) return {};
+    return this.nommerLesModes(explicites as Readonly<Record<string, string>>);
+  }
+
+  private async nommerLesModes(effectifs: Readonly<Record<string, string>>): Promise<Record<string, string>> {
     const modes: Record<string, string> = {};
-    const effectifs = noeud.resolvedVariableModes ?? {};
     for (const idDeCollection of Object.keys(effectifs)) {
       await this.cooperation.cederSiBesoin();
       const idDeMode = effectifs[idDeCollection];
@@ -621,6 +641,8 @@ async function lireLeLayer(port: PortDuComposant, lecteur: Lecteur, etape: Etape
   }
   const epaisseur = nombreDe(miseEnPage(noeud, ['strokeWeight'], lecteur.lire), 'strokeWeight', noeud.id, manquees);
   if (epaisseur !== undefined) layer.strokeWeight = epaisseur;
+  const explicites = await lecteur.modesExplicites(noeud, manquees);
+  if (explicites && Object.keys(explicites).length > 0) layer.modesExplicites = explicites;
   const segments = noeud.type === 'TEXT' ? new SegmentsDuTexte(noeud) : undefined;
   try {
     layer.liaisons = await lecteur.liaisons(await liaisonsDuNoeudCooperatives(noeud, lecteur.cooperation, { fills, strokes }, segments?.parEtapes, lecteur.lire), noeud.id);

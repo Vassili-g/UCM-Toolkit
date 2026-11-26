@@ -11,12 +11,16 @@ function releve(variantValeurs: Record<string, string>, layer: VariantLu['layers
   };
 }
 
+/** D19 : C25 ne corrige que si le token garde la couleur du calque ; la peinture et le token de couleur portent la même. */
+const GRIS = { r: 0.2, g: 0.2, b: 0.2, a: 1 };
+const COULEUR_DU_TOKEN = { Light: { valeur: GRIS } };
+
 function layer(options: { name?: string; type?: string; token?: string; champ?: string; painted?: boolean; value?: number } = {}): LayerLu {
   const champ = options.champ ?? 'fills';
   return {
     id: 'layer-1', nom: options.name ?? 'container', type: options.type ?? 'FRAME', parent: null, visible: true, opacite: 1,
     dimensions: { x: 0, y: 0, largeur: 20, hauteur: 20 },
-    peintures: options.painted ? [{ champ: champ as 'fills' | 'strokes', indice: 0, type: 'SOLID', visible: true, opacite: 1, blendMode: 'NORMAL' }] : [],
+    peintures: options.painted ? [{ champ: champ as 'fills' | 'strokes', indice: 0, type: 'SOLID', visible: true, opacite: 1, blendMode: 'NORMAL', couleur: GRIS }] : [],
     valeursEnDur: options.value === undefined ? [] : [{ champ, valeur: options.value }],
     liaisons: options.token ? [{ champ, indice: 0, porteur: 'layer-1', variable: { id: 'old', cle: 'old', nom: options.token, collection: 'components', distante: false } }] : [],
   };
@@ -26,7 +30,7 @@ function catalogue(variables: CatalogueDeReference['variables'], extraCollection
   return {
     version: 1, library: null,
     collections: [
-      { cle: 'components', nom: 'components', role: 'components', modes: [], etat: 'lue' },
+      { cle: 'components', nom: 'components', role: 'components', modes: [{ id: 'Light', nom: 'Light' }], etat: 'lue' },
       ...(extraCollections ? [{ cle: 'layout', nom: 'layout', role: 'layout' as const, modes: [], etat: 'lue' as const }] : []),
     ], variables,
   };
@@ -248,7 +252,7 @@ test('un layer title avec text et foreground possibles reste une question', () =
 
 test('un layer title reçoit une correction si une seule des deux cibles existe', () => {
   const r = releve({ Severity: 'info', Variant: 'standard' }, layer({ name: 'title', type: 'TEXT', painted: true }));
-  const c = catalogue([{ cle: 'fg', nom: 'alert/color/info/standard/foreground', collection: 'components', type: 'COLOR', etat: 'presente' }]);
+  const c = catalogue([{ cle: 'fg', nom: 'alert/color/info/standard/foreground', collection: 'components', type: 'COLOR', etat: 'presente', valeurs: COULEUR_DU_TOKEN }]);
   const resultat = proposerLesCorrections(r, c, []).find(({ code }) => code === 'C25');
   assert.equal(resultat?.correction?.apres.cle, 'fg');
   assert.equal(resultat?.correction?.cible.layer, 'layer-1');
@@ -259,9 +263,9 @@ test('C25 ignore un gradient visible et conserve l’indice du SOLID qui le suit
   const cible = r.variants[0].layers[0];
   cible.peintures = [
     { champ: 'fills', indice: 0, type: 'GRADIENT_LINEAR', visible: true, opacite: 1, blendMode: 'NORMAL' },
-    { champ: 'fills', indice: 1, type: 'SOLID', visible: true, opacite: 1, blendMode: 'NORMAL' },
+    { champ: 'fills', indice: 1, type: 'SOLID', visible: true, opacite: 1, blendMode: 'NORMAL', couleur: GRIS },
   ];
-  const c = catalogue([{ cle: 'fg', nom: 'alert/color/info/standard/foreground', collection: 'components', type: 'COLOR', etat: 'presente' }]);
+  const c = catalogue([{ cle: 'fg', nom: 'alert/color/info/standard/foreground', collection: 'components', type: 'COLOR', etat: 'presente', valeurs: COULEUR_DU_TOKEN }]);
   const resultat = proposerLesCorrections(r, c, []).find(({ code }) => code === 'C25');
   assert.equal(resultat?.faits.indice, 1);
   assert.deepEqual(resultat?.correction?.cible, { layer: 'layer-1', champ: 'fills', indice: 1 });
@@ -332,7 +336,7 @@ test('C29 suit l’alias d’un token du composant vers layout pour trouver sa v
 
 test('C25 propose le token d’un jeu dont la famille s’écrit Colors', () => {
   const r = releve({ Palette: 'Primary' }, layer({ name: 'title', type: 'TEXT', painted: true }));
-  const c = catalogue([{ cle: 'texte', nom: 'Alert/Colors/Primary/foreground', collection: 'components', type: 'COLOR', etat: 'presente' }]);
+  const c = catalogue([{ cle: 'texte', nom: 'Alert/Colors/Primary/foreground', collection: 'components', type: 'COLOR', etat: 'presente', valeurs: COULEUR_DU_TOKEN }]);
   const constat = proposerLesCorrections(r, c, []).find((x) => x.code === 'C25');
   assert.equal(constat?.correction?.apres.cle, 'texte');
 });

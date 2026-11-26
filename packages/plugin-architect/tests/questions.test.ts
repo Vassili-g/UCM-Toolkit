@@ -86,19 +86,21 @@ test('une réponse C12 issue du contrôle de nommage devient un renommage appliq
 });
 
 test('C59 se corrige par le nom relu et sa question cible la plage exacte', async () => {
+  // D19 : la correction n'existe que si le token proposé garde la couleur du texte ; le texte et chaque variable du thème portent le même gris.
+  const gris = { r: 0.2, g: 0.2, b: 0.2, a: 1 };
   const releveTheme = structuredClone(releve);
   const calque = releveTheme.variants[0].layers[0];
   calque.type = 'TEXT';
   calque.nom = 'message';
   const ancienne = { id: 'old-id', cle: 'tok-surface', nom: 'button/color/surface-foreground', collection: 'comps', distante: false };
   calque.liaisons = [{ champ: 'fills', indice: 0, porteur: 'L1', variable: ancienne }];
-  calque.peintures = [{ champ: 'fills', indice: 0, type: 'SOLID', visible: true, opacite: 1, blendMode: 'NORMAL' }];
+  calque.peintures = [{ champ: 'fills', indice: 0, type: 'SOLID', visible: true, opacite: 1, blendMode: 'NORMAL', couleur: gris }];
   const catalogue = (cibles: { cle: string; nom: string }[]): CatalogueDeReference => ({
     version: 1, library: null,
-    collections: [{ cle: 'themes', nom: 'theme', role: 'theme', modes: [], etat: 'lue' }, { cle: 'comps', nom: 'components', role: 'components', modes: [], etat: 'lue' }],
+    collections: [{ cle: 'themes', nom: 'theme', role: 'theme', modes: [{ id: 'm', nom: 'M' }], etat: 'lue' }, { cle: 'comps', nom: 'components', role: 'components', modes: [{ id: 'm', nom: 'M' }], etat: 'lue' }],
     variables: [
-      { cle: 'fg-surface', nom: 'success/surface/foreground', collection: 'themes', type: 'COLOR', etat: 'presente' },
-      { cle: 'fg-page', nom: 'success/page/foreground', collection: 'themes', type: 'COLOR', etat: 'presente' },
+      { cle: 'fg-surface', nom: 'success/surface/foreground', collection: 'themes', type: 'COLOR', etat: 'presente', valeurs: { m: { valeur: gris } } },
+      { cle: 'fg-page', nom: 'success/page/foreground', collection: 'themes', type: 'COLOR', etat: 'presente', valeurs: { m: { valeur: gris } } },
       { cle: 'tok-surface', nom: 'button/color/surface-foreground', collection: 'comps', type: 'COLOR', etat: 'presente', valeurs: { m: { alias: 'fg-surface' } } },
       ...cibles.map(({ cle, nom }) => ({ cle, nom, collection: 'comps', type: 'COLOR' as const, etat: 'presente' as const, valeurs: { m: { alias: 'fg-page' } } })),
     ],

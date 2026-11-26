@@ -53,6 +53,12 @@ export interface LayerLu {
    */
   rayons?: readonly [number, number, number, number];
   peintures: PeintureLue[];
+  /**
+   * Les modes que le calque pose lui-même (`explicitVariableModes`), par nom de collection comme `modesEffectifs`. Absent : le calque
+   * n'en pose aucun, ou la lecture a levé ; il suit alors le variant. Un mode posé sur un ancêtre s'hérite : C49 remonte la chaîne
+   * des `parent`, sans la racine du variant, dont les modes sont `modesEffectifs` (D18).
+   */
+  modesExplicites?: Record<string, string>;
   strokeWeight?: number;
   liaisons: LiaisonLue[];
   valeursEnDur: { champ: string; valeur: number }[];

@@ -1380,3 +1380,55 @@ test('E9.13 : un anneau dont les peintures n’ont pas été lues n’est pas d�
   assert.equal(sansAnneau([]), true);
   assert.equal(sansAnneau([{ layer: 'f', champ: 'strokes', motif: 'x' }]), false);
 });
+
+/* ---------- D18 : modes posés sur un calque ---------- */
+
+/** Une collection `t` (Light, Dark) et deux variables : `bg` blanc puis noir, `fg` selon `premierPlan` (clair, sombre). */
+function catalogueDeModesLocaux(premierPlan: [number, number]): CatalogueDeReference {
+  return {
+    version: 1, library: null,
+    collections: [{ cle: 't', nom: 't', role: null, etat: 'lue', modes: [{ id: 'l', nom: 'Light' }, { id: 'd', nom: 'Dark' }] }],
+    variables: [
+      { cle: 'bg', nom: 'bg', collection: 't', type: 'COLOR', etat: 'presente', valeurs: { l: { valeur: gris(1) }, d: { valeur: gris(0) } } },
+      { cle: 'fg', nom: 'fg', collection: 't', type: 'COLOR', etat: 'presente', valeurs: { l: { valeur: gris(premierPlan[0]) }, d: { valeur: gris(premierPlan[1]) } } },
+    ],
+  };
+}
+const lie = (variable: string, porteur: string): LiaisonLue => ({ champ: 'fills', indice: 0, porteur, variable: { id: variable, cle: variable, nom: variable, collection: 't', distante: false } });
+function fondLie(id: string, parent: string | null, modes?: Record<string, string>): LayerLu {
+  return { ...racine([solide('fills', gris(0.5))]), id, parent, type: 'RECTANGLE', liaisons: [lie('bg', id)], ...(modes ? { modesExplicites: modes } : {}) };
+}
+function texteLie(id: string, parent: string, modes?: Record<string, string>): LayerLu {
+  const t = texte([solide('fills', gris(0.5))], 14, 400, id);
+  t.parent = parent;
+  t.texte!.plages[0].liaisons = [lie('fg', id)];
+  return { ...t, ...(modes ? { modesExplicites: modes } : {}) };
+}
+const racineSansFond = (): LayerLu => racine([]);
+const echecsDeContraste = (r: ReleveDeComposant, catalogue: CatalogueDeReference) => cc(r, 'AA', catalogue).filter((c) => c.code === 'C49' && c.type === 'corriger');
+
+test('D18 : un fond forcé en Dark et un texte forcé en Light se mesurent chacun dans son mode', () => {
+  const r = releve([variant('a', [racineSansFond(), fondLie('p', 'r', { t: 'Dark' }), texteLie('t', 'r', { t: 'Light' })])]);
+  assert.deepEqual(echecsDeContraste(r, catalogueDeModesLocaux([1, 0])), []);
+});
+
+test('D18 : sans mode forcé, les mêmes layers gardent leurs combinaisons et leur constat', () => {
+  const r = releve([variant('a', [racineSansFond(), fondLie('p', 'r'), texteLie('t', 'r')])]);
+  const [constat] = echecsDeContraste(r, catalogueDeModesLocaux([1, 0]));
+  assert.equal(constat.faits.rapport, 1);
+  assert.equal(constat.faits.autresModes, 1);
+  assert.deepEqual(JSON.parse(String(constat.faits.rapports)), [['t en Light', 1], ['t en Dark', 1]]);
+});
+
+test('D18 : un mode forcé sur un ancêtre s’applique à ses enfants', () => {
+  const groupe: LayerLu = { ...fondLie('g', 'r', { t: 'Dark' }), type: 'FRAME' };
+  const r = releve([variant('a', [racineSansFond(), groupe, texteLie('t', 'g')])]);
+  // Le texte est blanc dans les deux modes et le groupe est noir en Dark : sans héritage, la combinaison Light donnerait blanc sur blanc.
+  assert.deepEqual(echecsDeContraste(r, catalogueDeModesLocaux([1, 1])), []);
+});
+
+test('D18 : un mode forcé que le catalogue ne connaît pas laisse le layer suivre le variant', () => {
+  const r = releve([variant('a', [racineSansFond(), fondLie('p', 'r', { t: 'Inconnu' }), texteLie('t', 'r', { absente: 'Light' })])]);
+  const [constat] = echecsDeContraste(r, catalogueDeModesLocaux([1, 0]));
+  assert.deepEqual(JSON.parse(String(constat.faits.rapports)), [['t en Light', 1], ['t en Dark', 1]]);
+});

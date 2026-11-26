@@ -832,3 +832,30 @@ test('une annulation pendant la lecture d’un wrapper rend « annulé », jamai
   assert.deepEqual(issue, { statut: 'annule' });
   assert.ok(horloge > 0);
 });
+
+test('D18 : le relevé range sur le layer les modes qu’il pose, par nom de collection, et rien pour les autres', async () => {
+  const a = atelierDeCalques();
+  const fond = a.calque('fond', 'RECTANGLE', { resolvedVariableModes: { t: 'm1' }, explicitVariableModes: { t: 'm1' } });
+  const texte = a.calque('texte', 'TEXT', { resolvedVariableModes: { t: 'm0' }, explicitVariableModes: { t: 'm0' } });
+  const libre = a.calque('libre', 'FRAME', { resolvedVariableModes: { t: 'm0' }, explicitVariableModes: {} });
+  const jeu = a.calque('variant', 'COMPONENT', { resolvedVariableModes: { t: 'm0' } }, [fond, texte, libre]);
+  const collection = { ...collectionFigma('t', 'Thème', [], []), modes: [{ modeId: 'm0', name: 'Light' }, { modeId: 'm1', name: 'Dark' }], defaultModeId: 'm0' };
+  const issue = await lireLeReleve(a.port(portDeTest([collection], []).port), jeu);
+  assert.equal(issue.statut, 'lu');
+  if (issue.statut !== 'lu') return;
+  assert.deepEqual(issue.releve.variants[0].layers.map((layer) => [layer.id, layer.modesExplicites]), [
+    ['variant', undefined], ['fond', { Thème: 'Dark' }], ['texte', { Thème: 'Light' }], ['libre', undefined],
+  ]);
+  assert.deepEqual(issue.releve.variants[0].modesEffectifs, { Thème: 'Light' });
+});
+
+test('D18 : une lecture des modes explicites qui lève laisse le champ absent et se consigne', async () => {
+  const a = atelierDeCalques();
+  const fond = a.calque('fond', 'RECTANGLE', { get explicitVariableModes() { throw new Error('modes refusés'); } });
+  const jeu = a.calque('variant', 'COMPONENT', {}, [fond]);
+  const issue = await lireLeReleve(a.port(portDeTest([], []).port), jeu);
+  assert.equal(issue.statut, 'lu');
+  if (issue.statut !== 'lu') return;
+  assert.equal(issue.releve.variants[0].layers[1].modesExplicites, undefined);
+  assert.ok(issue.releve.lecture.manquees.some(({ layer, champ }) => layer === 'fond' && champ === 'explicitVariableModes'));
+});

@@ -132,10 +132,10 @@ test('le relevé lit ces champs dans cet ordre et en tire ces layers', async () 
 
   assert.deepEqual(e.releverEtVider(), {
     COMPONENT_SET: ['type', 'children', 'id', 'key', 'name', 'componentPropertyDefinitions'],
-    COMPONENT: ['type', 'children', 'id', 'absoluteBoundingBox', 'name', 'visible', 'opacity', 'fills', 'blendMode', 'effects', 'strokes', 'strokeWeight', 'boundVariables', 'layoutGrids', 'fillStyleId', 'layoutMode', 'paddingLeft', 'paddingRight', 'paddingTop', 'paddingBottom', 'itemSpacing', 'primaryAxisAlignItems', 'cornerRadius', 'parent', 'key', 'remote', 'variantProperties', 'resolvedVariableModes', 'topLeftRadius', 'topRightRadius', 'bottomLeftRadius', 'bottomRightRadius'],
-    TEXT: ['type', 'children', 'absoluteBoundingBox', 'id', 'name', 'visible', 'opacity', 'fills', 'blendMode', 'effects', 'strokes', 'strokeWeight', 'boundVariables', 'layoutGrids', 'getStyledTextSegments(fontSize,fontWeight,fills,boundVariables,textStyleId)', 'layoutMode', 'cornerRadius', 'topLeftRadius', 'topRightRadius', 'bottomLeftRadius', 'bottomRightRadius', 'textStyleId'],
-    INSTANCE: ['type', 'id', 'absoluteBoundingBox', 'name', 'visible', 'opacity', 'fills', 'blendMode', 'effects', 'strokes', 'strokeWeight', 'boundVariables', 'layoutGrids', 'overrides', 'getMainComponentAsync()', 'variantProperties', 'componentPropertyReferences', 'layoutMode', 'cornerRadius', 'topLeftRadius', 'topRightRadius', 'bottomLeftRadius', 'bottomRightRadius'],
-    FRAME: ['type', 'children', 'absoluteBoundingBox', 'id', 'name', 'visible', 'opacity', 'fills', 'blendMode', 'effects', 'strokes', 'strokeWeight', 'boundVariables', 'layoutGrids', 'layoutMode', 'cornerRadius', 'topLeftRadius', 'topRightRadius', 'bottomLeftRadius', 'bottomRightRadius'],
+    COMPONENT: ['type', 'children', 'id', 'absoluteBoundingBox', 'name', 'visible', 'opacity', 'fills', 'blendMode', 'effects', 'strokes', 'strokeWeight', 'explicitVariableModes', 'boundVariables', 'layoutGrids', 'fillStyleId', 'layoutMode', 'paddingLeft', 'paddingRight', 'paddingTop', 'paddingBottom', 'itemSpacing', 'primaryAxisAlignItems', 'cornerRadius', 'parent', 'key', 'remote', 'variantProperties', 'resolvedVariableModes', 'topLeftRadius', 'topRightRadius', 'bottomLeftRadius', 'bottomRightRadius'],
+    TEXT: ['type', 'children', 'absoluteBoundingBox', 'id', 'name', 'visible', 'opacity', 'fills', 'blendMode', 'effects', 'strokes', 'strokeWeight', 'explicitVariableModes', 'boundVariables', 'layoutGrids', 'getStyledTextSegments(fontSize,fontWeight,fills,boundVariables,textStyleId)', 'layoutMode', 'cornerRadius', 'topLeftRadius', 'topRightRadius', 'bottomLeftRadius', 'bottomRightRadius', 'textStyleId'],
+    INSTANCE: ['type', 'id', 'absoluteBoundingBox', 'name', 'visible', 'opacity', 'fills', 'blendMode', 'effects', 'strokes', 'strokeWeight', 'explicitVariableModes', 'boundVariables', 'layoutGrids', 'overrides', 'getMainComponentAsync()', 'variantProperties', 'componentPropertyReferences', 'layoutMode', 'cornerRadius', 'topLeftRadius', 'topRightRadius', 'bottomLeftRadius', 'bottomRightRadius'],
+    FRAME: ['type', 'children', 'absoluteBoundingBox', 'id', 'name', 'visible', 'opacity', 'fills', 'blendMode', 'effects', 'strokes', 'strokeWeight', 'explicitVariableModes', 'boundVariables', 'layoutGrids', 'layoutMode', 'cornerRadius', 'topLeftRadius', 'topRightRadius', 'bottomLeftRadius', 'bottomRightRadius'],
     RECTANGLE: ['type', 'boundVariables', 'fills', 'strokes', 'effects', 'layoutGrids', 'id', 'parent', 'name'],
     STYLE: ['paints', 'effects', 'layoutGrids', 'boundVariables', 'name'],
   });
@@ -167,7 +167,7 @@ test('le relevé lit ces champs dans cet ordre et en tire ces layers', async () 
     ],
     lecture: { layersLus: 8, layersNonLus: 0, variantsNonLus: [], manquees: [] },
   });
-  assert.deepEqual([...appels.entries()], [['taille', 1], ['collection:c', 1], ['fond', 1]], 'chaque variable et chaque collection se lisent une fois');
+  assert.deepEqual([...appels.entries()], [['collection:c', 1], ['taille', 1], ['fond', 1]], 'chaque variable et chaque collection se lisent une fois');
 });
 
 test('la lecture de la vue Composant lit ces champs dans cet ordre et en tire ces calques, liaisons et valeurs en dur', async () => {

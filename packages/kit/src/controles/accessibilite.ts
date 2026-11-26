@@ -301,6 +301,18 @@ function* combinaisonsDeModes(
   for (const layer of layersVisibles(variant)) {
     for (const liaison of liaisonsDeCouleur(layer)) collectionsAtteintes(catalogue, liaison.variable.cle, vues, atteintes, variables);
   }
+  // Une collection forcée sur chaque layer qui l'atteint ne varie pour aucun : seules celles qu'un layer hérite du composant entrent dans le produit (D18).
+  if (aDesModesForces(variant)) {
+    const heritables = new Set<string>();
+    const vuesHeritees = new Set<string>();
+    for (const layer of layersVisibles(variant)) {
+      const forces = forcesDuLayer(variant, layer, catalogue);
+      const propres = new Map<string, CollectionDuCatalogue>();
+      for (const liaison of liaisonsDeCouleur(layer)) collectionsAtteintes(catalogue, liaison.variable.cle, forces.size === 0 ? vuesHeritees : new Set<string>(), propres);
+      for (const cle of propres.keys()) if (!forces.has(cle)) heritables.add(cle);
+    }
+    for (const cle of [...atteintes.keys()]) if (!heritables.has(cle)) atteintes.delete(cle);
+  }
   for (const [cle, collection] of atteintes) if (collectionInerte(collection, variables.get(cle) ?? [])) atteintes.delete(cle);
   // Dès que le repli sert, les modes du thème entrent dans le produit, même si aucune couleur ne les atteint (Q-F7-6).
   const theme = catalogue.collections.find((c) => c.role === 'theme' && c.etat === 'lue');
@@ -377,6 +389,45 @@ function memoireDesCouleurs(catalogue: CatalogueDeReference): MemoireDesCouleurs
 /** Le mode qu'une combinaison choisit pour une collection : le sien, sinon l'effectif du variant, sinon le premier. */
 function modeDeLaCollection(variant: VariantLu, combinaison: Combinaison, collection: CollectionDuCatalogue): string | undefined {
   return combinaison.modes.get(collection.cle) ?? modeEffectif(variant, collection) ?? collection.modes[0]?.id;
+}
+
+/** Un layer, hors la racine du variant, pose-t-il un mode ? Sans cela, aucune combinaison n'a de mode propre à un layer. */
+function aDesModesForces(variant: VariantLu): boolean {
+  const memoire = memoireDuVariant(variant);
+  memoire.sansModeForce ??= !variant.layers.some((l) => l.parent !== null && l.modesExplicites && Object.keys(l.modesExplicites).length > 0);
+  return !memoire.sansModeForce;
+}
+
+/**
+ * Les modes qu'un layer subit sans les tirer du composant : ceux qu'il pose et ceux de ses ancêtres, le plus proche l'emportant, par clé de
+ * collection du catalogue. La racine du variant n'en pose pas : ses modes sont `modesEffectifs`. Une collection ou un mode que le catalogue
+ * ne connaît pas est ignoré, et le layer suit alors le variant. Un cycle de `parent` s'arrête au premier layer déjà vu.
+ */
+function forcesDuLayer(variant: VariantLu, layer: LayerLu, catalogue: CatalogueDeReference): ReadonlyMap<string, string> {
+  const memoire = memoireDuVariant(variant);
+  const bruts: Record<string, string>[] = [];
+  const vus = new Set<string>();
+  for (let courant: LayerLu | undefined = layer; courant && courant.parent !== null && !vus.has(courant.id); courant = memoire.parId.get(courant.parent)) {
+    vus.add(courant.id);
+    if (courant.modesExplicites) bruts.unshift(courant.modesExplicites);
+  }
+  const forces = new Map<string, string>();
+  for (const brut of bruts) {
+    for (const [nom, mode] of Object.entries(brut)) {
+      const collection = catalogue.collections.find((c) => (c.cle === nom || c.nom === nom) && c.etat === 'lue');
+      const id = collection?.modes.find((m) => m.id === mode || m.nom === mode)?.id;
+      if (collection && id !== undefined) forces.set(collection.cle, id);
+    }
+  }
+  return forces;
+}
+
+/** La combinaison telle que ce layer la subit : ses modes forcés remplacent ceux de la combinaison (D18). Sans mode forcé, la même combinaison. */
+function combinaisonDuLayer(variant: VariantLu, layer: LayerLu, combinaison: Combinaison, catalogue: CatalogueDeReference): Combinaison {
+  if (!aDesModesForces(variant)) return combinaison;
+  const forces = forcesDuLayer(variant, layer, catalogue);
+  if (forces.size === 0) return combinaison;
+  return { ...combinaison, modes: new Map([...combinaison.modes, ...forces]) };
 }
 
 /** Les collections que la chaîne d'alias d'une variable peut atteindre, tous modes confondus, calculées une fois par catalogue. */
@@ -477,6 +528,8 @@ interface MemoireDuVariant {
   /** Par identifiant de layer : ses frères plus bas qui peuvent lui servir de fond, du plus proche au plus bas. */
   readonly freres: Map<string, readonly FondPeint[]>;
   visibles?: readonly LayerLu[];
+  /** Vrai quand aucun layer hors racine ne pose de mode. */
+  sansModeForce?: boolean;
   /** Le rang de chaque layer parmi ses frères, et les frères qui peuvent faire fond, par parent. */
   ordre?: { readonly rang: ReadonlyMap<string, number>; readonly candidats: ReadonlyMap<string, readonly { frere: LayerLu; rang: number }[]> };
   fonds?: FondsMemorises;
@@ -758,7 +811,7 @@ function couchesDuFond(
     if (couvre !== 'tout') return { limite: 'fond-indetermine', sansRepli: true };
     const limite = limiteDuLayer(frere);
     if (limite) return { limite };
-    const pile = pileDePeintures(frere.peintures.filter((p) => p.champ === 'fills'), liaisonsPropres(frere), opaciteEffective(variant, frere), catalogue, variant, combinaison);
+    const pile = pileDePeintures(frere.peintures.filter((p) => p.champ === 'fills'), liaisonsPropres(frere), opaciteEffective(variant, frere), catalogue, variant, combinaisonDuLayer(variant, frere, combinaison, catalogue));
     if ('limite' in pile) return pile;
     couches.push(...pile.couches);
     if (pile.couches.some((c) => c.a >= OPAQUE)) return { couches };
@@ -781,7 +834,7 @@ function couchesDesAncetres(
       const limite = limiteDuLayer(courant);
       if (limite) return { limite };
       const fills = courant.peintures.filter((p) => p.champ === 'fills');
-      const pile = pileDePeintures(fills, liaisonsPropres(courant), opaciteEffective(variant, courant), catalogue, variant, combinaison);
+      const pile = pileDePeintures(fills, liaisonsPropres(courant), opaciteEffective(variant, courant), catalogue, variant, combinaisonDuLayer(variant, courant, combinaison, catalogue));
       if ('limite' in pile) return pile;
       couches.push(...pile.couches);
       if (pile.couches.some((c) => c.a >= OPAQUE)) break;
@@ -968,10 +1021,12 @@ function* mesurerLeVariant(
     const mesures = new Map<NomDeFond | '', Mesure>();
     const causes = new Set<Cause>();
     let enRepli = false;
-    for (const combinaison of combinaisons) {
+    for (const choix of combinaisons) {
       yield;
       const limite = limiteDuLayer(cible.layer);
       if (limite) { causes.add(limite); continue; }
+      // Le layer mesure sa couleur dans les modes qu'il force ; l'étiquette reste celle de la combinaison (D18).
+      const combinaison = combinaisonDuLayer(variant, cible.layer, choix, catalogue);
       const choisis = fondsDeMesure(variant, cible.layer, catalogue, combinaison);
       if ('limite' in choisis) { causes.add(choisis.limite); continue; }
       const pile = pileDePeintures(cible.peintures, cible.liaisons, opaciteEffective(variant, cible.layer), catalogue, variant, combinaison);
