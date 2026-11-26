@@ -325,7 +325,7 @@ Réponses du mainteneur, puis décisions :
 
 | Lot | Contenu | Agent | Dépend de | État |
 |---|---|---|---|---|
-| L19 | Kit : D28 et D29 | `implementeur` | aucun | [ ] |
-| L20 | Kit : D30 | `implementeur` | aucun | [ ] |
+| L19 | Kit : D28 et D29 | `implementeur` | aucun | [x] e0ec1a93 |
+| L20 | Kit : D30 | `implementeur` | aucun | [x] e0ec1a93 |
 | L21 | Architect et kit : D31 | `implementeur-exigeant` | L20 | [ ] |
 | L22 | Conversation principale : documents, version, publication | conversation principale | L19 à L21 | [ ] |
