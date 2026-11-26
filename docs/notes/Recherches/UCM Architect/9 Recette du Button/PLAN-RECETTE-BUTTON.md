@@ -294,7 +294,7 @@ passent l'un après l'autre. L11, L12 et L14 touchent les contrôles du kit et s
 - L5. `@ucm-kit/core` 0.18.6, `@ucm-kit/cli` 0.4.7, `@ucm-kit/adapter-typescript` 0.3.7 : changement interne, la prise des modules ne
   change pas, donc aucune entrée de `CHANGELOG.md`.
 
-## Questions au mainteneur
+## Questions au mainteneur, et ses réponses
 
 - Q1 (G8, E3). Quand un calque porte deux remplissages superposés liés à deux variables, l'Exporter publie les deux couleurs sans
   leur ordre. Le contrat doit-il publier l'ordre de superposition, ou C42 reste-t-il un conseil de simplification ?
@@ -309,3 +309,23 @@ passent l'un après l'autre. L11, L12 et L14 touchent les contrôles du kit et s
   comportement, qui donnera de nouveaux constats sur toute instance à surcharge.
 - Q6. L18 a réécrit le test de l'Exporter « suit l'ordre de la matrice, pas l'ordre de résolution », qui reposait sur des liaisons
   illisibles, le cas G7. Il ne contrôle plus l'ordre de résolution asynchrone.
+
+Réponses du mainteneur, puis décisions :
+
+- D27 (Q1). C42 « l'ordre n'est pas exporté » reste un avertissement à vérifier. Rien ne change.
+- D28 (Q2). C66 et C67 restent sur les icônes de bibliothèque. C67 « la propriété d'échange d'instance manque » devient `verifier` :
+  c'est un conseil d'organisation, pas une erreur.
+- D29 (Q3). Le mot d'icône ne fait une icône certaine que s'il est le dernier mot du nom du composant ou de son jeu, ou un dossier
+  de son chemin (`Icon/Close`). Ailleurs (`IconButton`, `.sizeWrapperIconButton`), l'instance n'est qu'une icône probable (D1). Les
+  propriétés (`Icon-Left`) gardent la règle du mot entier.
+- D30 (Q4). La preuve du fond lit aussi les frères de chaque ancêtre peints dessous lui, avec la même preuve de couverture.
+- D31 (Q5). C49 mesure aussi les textes et les icônes peints dans une instance (label et flèches de `.sizeWrapperButton`). Le
+  relevé lit leurs boîtes et leurs peintures. P22 (contrat des pièces internes) reste à part : il change le format du contrat.
+- Q6 accepté : le test réécrit par L18 reste.
+
+| Lot | Contenu | Agent | Dépend de | État |
+|---|---|---|---|---|
+| L19 | Kit : D28 et D29 | `implementeur` | aucun | [ ] |
+| L20 | Kit : D30 | `implementeur` | aucun | [ ] |
+| L21 | Architect et kit : D31 | `implementeur-exigeant` | L20 | [ ] |
+| L22 | Conversation principale : documents, version, publication | conversation principale | L19 à L21 | [ ] |
