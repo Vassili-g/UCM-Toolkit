@@ -7,7 +7,7 @@ import { composer, versOctet, versRgb8, type Rgba } from '../emplois/couleur.js'
 import { SEUILS_PAR_ROLE } from '../referentiel/contraste.js';
 import { estUneIcone } from '../referentiel/layers.js';
 import { collectionDuCatalogue, variableDuCatalogue, type CatalogueDeReference, type CollectionDuCatalogue, type VariableDuCatalogue } from './catalogue.js';
-import { couleurDeLiaison, fondEffectif, fondsPeintsSous, pileDePeintures, SEUILS_D_ACCESSIBILITE, type Combinaison } from './accessibilite.js';
+import { couleurDeLiaison, fondEffectif, fondsPeintsSous, pileDePeintures, seuilDeLaPlage, SEUILS_D_ACCESSIBILITE, type Combinaison } from './accessibilite.js';
 import { liaisonsPropres, type LayerLu, type LiaisonLue, type PeintureLue, type VariantLu } from './releve.js';
 
 /**
@@ -34,8 +34,9 @@ export interface PropositionDeCouleur {
 /**
  * La couleur résolue du candidat égale la couleur actuelle dans chaque combinaison de modes des collections que leurs alias atteignent
  * (à 8 bits par canal, la précision à laquelle le kit mesure le contraste), ou son contraste avec le fond de `fondsPeintsSous` atteint
- * le seuil du calque. Le seuil du texte est le plus strict (4,5), faute de lire ici la taille de la plage ; celui d'une icône vient de
- * `SEUILS_PAR_ROLE`, celui des autres calques est le non-texte.
+ * le seuil du calque. Le seuil d'une plage de texte est celui de C49 au niveau AA (`seuilDeLaPlage` : le grand texte selon sa taille et sa
+ * graisse) ; un texte sans plage nommée garde le plus strict (4,5). Celui d'une icône vient de `SEUILS_PAR_ROLE`, celui des autres calques
+ * est le non-texte.
  */
 export function gardeLeDessin(catalogue: CatalogueDeReference, proposition: PropositionDeCouleur): GardeDuDessin {
   const { variant, layer, champ, liaison, candidat } = proposition;
@@ -96,11 +97,14 @@ function contrasteTenu(catalogue: CatalogueDeReference, proposition: Proposition
   if ('limite' in pile || pile.couches.length === 0) return 'inconnu';
   const premier = composer(pile.couches, fond as Rgba);
   if (!premier) return 'inconnu';
-  return atteintLeSeuil(contraste(versRgb8(premier), versRgb8(fond)), seuilDuCalque(layer)) ? 'garde' : 'change';
+  return atteintLeSeuil(contraste(versRgb8(premier), versRgb8(fond)), seuilDuCalque(layer, plage)) ? 'garde' : 'change';
 }
 
-function seuilDuCalque(layer: LayerLu): number {
-  if (layer.type === 'TEXT') return SEUILS_D_ACCESSIBILITE.texte.AA;
+function seuilDuCalque(layer: LayerLu, plage?: PropositionDeCouleur['plage']): number {
+  if (layer.type === 'TEXT') {
+    const lue = plage && layer.texte?.plages.find((entree) => entree.debut === plage.debut && entree.fin === plage.fin);
+    return lue ? seuilDeLaPlage(lue, 'AA').seuil : SEUILS_D_ACCESSIBILITE.texte.AA;
+  }
   if (estUneIcone(layer)) return SEUILS_PAR_ROLE.icon ?? SEUILS_D_ACCESSIBILITE.texte.AA;
   return SEUILS_D_ACCESSIBILITE.nonTexte;
 }

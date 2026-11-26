@@ -7,7 +7,7 @@ import {
 } from '../src/controles/index';
 import { collectionDuCatalogue, variableDuCatalogue } from '../src/controles/catalogue';
 import { layersVisiblesDuVariant, liaisonsPropres } from '../src/controles/releve';
-import { couleurDeLiaison, fondEffectif, pileDePeintures, type Combinaison } from '../src/controles/accessibilite';
+import { couleurDeLiaison, fondEffectif, fondsPeintsSous, pileDePeintures, type Combinaison } from '../src/controles/accessibilite';
 import { composer } from '../src/emplois/couleur';
 
 const gris = (v: number) => ({ r: v, g: v, b: v, a: 1 });
@@ -1457,4 +1457,86 @@ test('D18 : un mode forcé que le catalogue ne connaît pas laisse le layer suiv
   const r = releve([variant('a', [racineSansFond(), fondLie('p', 'r', { t: 'Inconnu' }), texteLie('t', 'r', { absente: 'Light' })])]);
   const [constat] = echecsDeContraste(r, catalogueDeModesLocaux([1, 0]));
   assert.deepEqual(JSON.parse(String(constat.faits.rapports)), [['t en Light', 1], ['t en Dark', 1]]);
+});
+
+/* ---------- Restes de la recette du Button (L10) ---------- */
+
+test('D17 : un rayon dont la lecture est refusée donne une couverture inconnue, pas des coins droits', () => {
+  const sousLeTexte = (forme: Partial<LayerLu>, texteNoir: LayerLu['dimensions']) => {
+    const r = ellipseSous(texteNoir, { type: 'RECTANGLE', ...forme });
+    const [, frere, t] = r.variants[0].layers;
+    return { constats: cc(r), couvre: fondsPeintsSous(r.variants[0], t).filter((fond) => fond.layer === frere).map((fond) => fond.couvre) };
+  };
+  const coin = { x: 0, y: 0, largeur: 8, hauteur: 8 };
+  const refuse = sousLeTexte({ rayonsIllisibles: true }, coin);
+  assert.deepEqual(refuse.couvre, ['inconnue']);
+  assert.equal(parCode(refuse.constats, 'C49').length, 0, 'aucun rapport mesuré sur un fond sans preuve');
+  assert.ok(refuse.constats.some((c) => c.limite && c.code === 'C49' && c.faits.cause === 'fond-indetermine' && c.faits.calque === 'Label'));
+  // Gardes : un rayon lu à zéro, ou absent sans refus, garde ses coins droits ; une boîte hors de la forme ne change pas.
+  assert.deepEqual(sousLeTexte({ rayons: [0, 0, 0, 0] }, coin).couvre, ['tout']);
+  assert.deepEqual(sousLeTexte({}, coin).couvre, ['tout']);
+  assert.equal(parCode(sousLeTexte({}, coin).constats, 'C49')[0].faits.rapport, 1, 'noir sur noir, comme avant');
+  assert.deepEqual(sousLeTexte({ rayonsIllisibles: true }, { x: 90, y: 0, largeur: 20, hauteur: 8 }).couvre, ['partie']);
+});
+
+/** Un fond lié à `bg` (blanc en Light, transparent en Dark), un thème à deux modes dont la page est blanche en Light et noire en Dark. */
+function catalogueDuRepliForce(): CatalogueDeReference {
+  const theme = themeADeuxModes();
+  return {
+    ...theme,
+    collections: [...theme.collections, { cle: 't', nom: 't', role: null, etat: 'lue', modes: [{ id: 'l', nom: 'Light' }, { id: 'd', nom: 'Dark' }] }],
+    variables: [{ cle: 'bg', nom: 'bg', collection: 't', type: 'COLOR', etat: 'presente', valeurs: { l: { valeur: gris(1) }, d: { valeur: { r: 0, g: 0, b: 0, a: 0 } } } }],
+  };
+}
+
+test('D18 : le repli du thème se juge dans les modes que le layer force, comme sa mesure', () => {
+  const surLePlan = (modes?: Record<string, string>) => {
+    const v = variant('a', [racine([]), fondLie('g', 'r'), { ...texte([solide('fills', gris(1))]), parent: 'g', ...(modes ? { modesExplicites: modes } : {}) }]);
+    v.modesEffectifs = { ck: 'd' };
+    return cc(releve([v]), 'AA', catalogueDuRepliForce());
+  };
+  // Forcé en Dark, le fond lié est transparent : la page du thème sert, et chaque mode du thème se mesure, Light compris.
+  const force = surLePlan({ t: 'Dark' }).filter((c) => c.code === 'C49' && !c.limite);
+  assert.deepEqual(force.map((c) => c.faits.fondNomme).sort(), ['carte', 'page']);
+  assert.ok(force.some((c) => c.faits.fondNomme === 'page' && /theme en Light/.test(String(c.faits.mode))), 'le texte blanc échoue sur la page claire');
+  // Garde : sans mode forcé, le fond reste celui de Light (blanc opaque), le repli ne sert pas et le thème n'entre pas dans les modes.
+  const libre = surLePlan().filter((c) => c.code === 'C49' && !c.limite);
+  assert.deepEqual(libre.map((c) => c.faits.fondNomme), [undefined]);
+  assert.equal(libre[0].faits.fond, '#FFFFFF');
+  assert.doesNotMatch(String(libre[0].faits.mode), /theme/);
+});
+
+test('D18 : le contour d’un fond forcé se juge dans les modes du layer, pour son remplissage comme pour la variable du thème', () => {
+  const catalogue = themeAvecFonds('page/border', grisAuRapport(0.1, 2.7), { fondsDElevation: FONDS_SOMBRES });
+  // `jeton` passe par `mid` : en Light il vise la variable du thème, en Dark il porte une couleur.
+  catalogue.collections.push({ cle: 't', nom: 't', role: null, etat: 'lue', modes: [{ id: 'l', nom: 'Light' }, { id: 'd', nom: 'Dark' }] });
+  catalogue.variables.push({ cle: 'mid', nom: 'mid', collection: 't', type: 'COLOR', etat: 'presente', valeurs: { l: { alias: 'tv' }, d: { valeur: gris(0) } } });
+  catalogue.variables.find((v) => v.cle === 'jeton')!.valeurs = { m: { alias: 'mid' } };
+  const mesure = (force: string) => {
+    const v = varianteAvecTrait('jeton');
+    v.modesEffectifs = { ck: 'd', t: 'd' };
+    v.layers[1].modesExplicites = { t: force };
+    return cc(releve([v]), 'AA', catalogue).filter((c) => c.code === 'C50' && c.faits.fondNomme === 'page');
+  };
+  const [clair] = mesure('Light');
+  assert.equal(clair.faits.variableDuTheme, 'page/border', 'le layer force Light : sa chaîne atteint le thème, malgré le Dark du variant');
+  assert.match(String(clair.faits.mode), /theme en Dark/);
+  const [sombre] = mesure('Dark');
+  assert.equal(sombre.faits.variableDuTheme, '', 'forcé en Dark, la chaîne ne touche pas le thème');
+  assert.equal(sombre.faits.garanti, 'non');
+});
+
+test('C51 : l’épaisseur d’un anneau peint sous une instance se lit sur la surcharge (D20)', () => {
+  const c51 = (anneau: LayerLu) => parCode(cc(releve([variant('f', [racine(), anneau], { State: 'focus' })], ['default', 'focus'])), 'C51');
+  const [fin] = c51(anneauDansUneInstance({ peintures: [solide('strokes', gris(0))], strokeWeight: 1 }));
+  assert.equal(fin.id, 'C51:.Ring:1');
+  assert.equal(fin.faits.strokeWeight, 1);
+  assert.equal(fin.faits.calque, '.Ring');
+  assert.deepEqual(c51(anneauDansUneInstance({ peintures: [solide('strokes', gris(0))], strokeWeight: 2 })), [], 'l’épaisseur recommandée ne se signale pas');
+  assert.deepEqual(c51(anneauDansUneInstance({ peintures: [{ ...solide('strokes', gris(0)), visible: false }], strokeWeight: 1 })), [], 'un contour masqué n’a pas d’épaisseur à juger');
+  assert.deepEqual(c51(anneauDansUneInstance({ peintures: [solide('strokes', gris(0))] })), [], 'une épaisseur non lue n’est pas jugée');
+  assert.deepEqual(c51(anneauDansUneInstance({ strokeWeight: 1 })), [], 'des peintures non lues ne disent pas le contour visible');
+  // Garde : un anneau qui a son propre contour visible garde son épaisseur, la surcharge ne s'y ajoute pas.
+  const propre: LayerLu = { ...anneauDansUneInstance({ peintures: [solide('strokes', gris(0))], strokeWeight: 3 }), peintures: [solide('strokes', gris(0))], strokeWeight: 1 };
+  assert.deepEqual(c51(propre).map((c) => c.faits.strokeWeight), [1]);
 });

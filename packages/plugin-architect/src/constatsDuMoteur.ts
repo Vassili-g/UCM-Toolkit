@@ -183,3 +183,16 @@ export function sansLesDoublonsDuMoteur(constats: readonly Constat[]): Constat[]
     return !jugesParLeKit.some((kit) => champs.has(String(kit.faits.champ)) && kit.layers.some((layer) => constat.layers.includes(layer)));
   });
 }
+
+/**
+ * Retire les points du moteur qui jugent un propriétaire que la pièce interne n'a pas (D22) : analysée seule, elle n'expose ni règles ni
+ * propriétés de composant. Tombent les points C44 (règles) et le point C42 « aucune propriété de composant n'est définie ». Les points qui
+ * jugent le dessin restent : C30 et C41 (liaisons, valeurs en dur), C34 (combinaisons de variants), C35 (calque masqué ou propriété qui ne
+ * pilote rien) et les autres C42 (limites d'export).
+ */
+export function sansLesPointsDUnProprietaire(constats: readonly Constat[]): Constat[] {
+  return constats.filter((constat) => {
+    if (constat.code === 'C44') return false;
+    return !(constat.code === 'C42' && constat.faits.geste === 'proprietes' && /aucune propriété de composant/.test(titreSansLesNoms(String(constat.faits.titre ?? ''))));
+  });
+}

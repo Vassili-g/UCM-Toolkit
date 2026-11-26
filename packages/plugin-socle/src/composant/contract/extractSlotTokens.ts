@@ -60,6 +60,26 @@ export type VariantTokenLeaves = {
   strokes: VariantStrokeColor[];
 };
 
+/**
+ * Ce que le parcours d'un variant a vu sans le mettre dans la feuille : ce qui décide si « aucune couleur n'est reliée » est un
+ * constat ou une redite. La feuille est comparée champ à champ par des tests : ces comptes vivent à côté, par feuille.
+ */
+export type ObservationDeFeuille = {
+  /** Peintures visibles non reliées, que `warnPeinturesLibres` a déjà signalées. */
+  readonly libres: number;
+  /** Liaisons dont la variable n'a pas pu être lue : le résolveur s'est abstenu, la cause n'est pas un fill ou un stroke manquant. */
+  readonly nonLues: number;
+  /** Peintures visibles de tout type (SOLID, dégradé, image), reliées ou non. */
+  readonly visibles: number;
+};
+
+const observations = new WeakMap<VariantTokenLeaves, ObservationDeFeuille>();
+
+/** Les comptes du parcours qui a produit cette feuille ; vides pour une feuille construite à la main. */
+export function observationDeLaFeuille(feuille: VariantTokenLeaves): ObservationDeFeuille {
+  return observations.get(feuille) ?? { libres: 0, nonLues: 0, visibles: 0 };
+}
+
 /** Convertit l'alignement Figma dans le vocabulaire partagé du contrat. */
 function strokeAlignment(node: SceneNode, warnings: string[]): StrokeAlignment | null {
   const raw = 'strokeAlign' in node ? (node as SceneNode & { strokeAlign?: unknown }).strokeAlign : null;
@@ -188,33 +208,34 @@ function aliasDuPaint(paint: PeintureLue): VariableAlias | null {
 function lirePeintures(
   node: SceneNode,
   field: (typeof BOUND_FIELDS)[number],
-): { aliases: VariableAlias[]; libres: number } {
+): { aliases: VariableAlias[]; libres: number; visibles: number } {
   const duNode = variableAliases(getBinding(node, field));
   const values = node as unknown as Record<string, unknown>;
   const lues = peinturesDuNoeud(node, field);
   // Une lecture qui lève fait échouer l'extraction, comme avant la copie : se taire perdrait une couleur.
   if (lues.etat === 'refuse' && lues.raison === 'leve') throw new Error(lues.message);
   // `figma.mixed` ou champ absent : rien de lisible, donc rien à réclamer.
-  if (lues.etat !== 'acquis') return { aliases: duNode, libres: 0 };
+  if (lues.etat !== 'acquis') return { aliases: duNode, libres: 0, visibles: 0 };
   const liste = lues.valeur;
   // Un contour d'épaisseur nulle ne trace rien. Ce qu'il publie ne change pas
   // pour autant : la réserve porte sur le geste demandé, pas sur le relevé.
-  if (field === 'strokes' && champDuNoeud(node, 'strokeWeight') === 0) return { aliases: duNode, libres: 0 };
+  if (field === 'strokes' && champDuNoeud(node, 'strokeWeight') === 0) return { aliases: duNode, libres: 0, visibles: 0 };
   // Le node connaît une liaison qu'aucune peinture ne déclare : la lecture
   // exacte est incomplète, et seul le repli garantit qu'aucune ne se perd.
   if (liste.filter((paint) => aliasDuPaint(paint)).length < duNode.length) {
-    return { aliases: duNode, libres: 0 };
+    return { aliases: duNode, libres: 0, visibles: liste.filter((paint) => peintureVisible(paint)).length };
   }
 
   const aliases: VariableAlias[] = [];
   let libres = 0;
+  const visibles = liste.filter((paint) => peintureVisible(paint)).length;
   for (const paint of liste) {
     if (!peint(paint)) continue;
     const alias = aliasDuPaint(paint);
     if (alias) aliases.push(alias);
     else libres += 1;
   }
-  return { aliases, libres };
+  return { aliases, libres, visibles };
 }
 
 /**
@@ -276,6 +297,8 @@ export async function getSlotTokens(
   composed: ComposedInstances = new Map(),
   iconNames: ReadonlySet<string> = new Set(),
 ): Promise<VariantTokenLeaves> {
+  let libresVus = 0;
+  let visiblesVus = 0;
   const pending: Array<{
     node: SceneNode;
     field: (typeof BOUND_FIELDS)[number];
@@ -295,7 +318,9 @@ export async function getSlotTokens(
     //, le contrat annoncerait une couleur qu'aucun de ses calques ne peint.
     if (composed.has(node.id)) continue;
     for (const field of BOUND_FIELDS) {
-      const { aliases, libres } = lirePeintures(node, field);
+      const { aliases, libres, visibles } = lirePeintures(node, field);
+      libresVus += libres;
+      visiblesVus += visibles;
       warnPeinturesLibres(node, field, libres, warnings);
       for (const alias of aliases) {
         let stroke = field === 'strokes' ? strokeStyles.get(node) ?? null : null;
@@ -332,8 +357,12 @@ export async function getSlotTokens(
     strokeStyle: binding.stroke ? await binding.stroke : null,
   })));
 
+  let nonLues = 0;
   for (const binding of resolved) {
-    if (!binding.token) continue;
+    if (!binding.token) {
+      nonLues += 1;
+      continue;
+    }
     const isStroke = binding.field === 'strokes';
     const role = colorRole(binding.token, {
       isStroke,
@@ -448,5 +477,7 @@ export async function getSlotTokens(
     });
   }
 
-  return { paints, strokes };
+  const feuille = { paints, strokes };
+  observations.set(feuille, { libres: libresVus, nonLues, visibles: visiblesVus });
+  return feuille;
 }

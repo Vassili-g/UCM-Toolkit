@@ -1,5 +1,6 @@
 /** La traduction des points du moteur de l'exporteur en constats du kit : un test par code, et le point inconnu. */
 import assert from 'node:assert/strict';
+import { readFileSync } from 'node:fs';
 import test from 'node:test';
 
 import { CODES_DES_CONSTATS, type Constat } from '@ucm-kit/core/controles';
@@ -7,7 +8,7 @@ import type { FamilleDePoint } from 'ucm-plugin-socle/src/composant/contract/fam
 import { phraseDe, type PointACorriger } from 'ucm-plugin-socle/src/composant/contract/localisation';
 
 import { chaineAvecLePointDuMoteur, trouverUneCollisionDEmpreinte } from '../scripts/stress/f8-analyse/operateursMoteur';
-import { TABLE_DU_MOTEUR, constatsDuMoteur, sansLesDoublonsDuMoteur } from '../src/constatsDuMoteur';
+import { TABLE_DU_MOTEUR, constatsDuMoteur, sansLesDoublonsDuMoteur, sansLesPointsDUnProprietaire } from '../src/constatsDuMoteur';
 import { ELEMENT_DE_LA_FAMILLE, elementDuConstat } from '../src/ui/panneau/elements';
 
 function moteurAvec(points: readonly PointACorriger[], noeuds: Record<number, string[]> = {}) {
@@ -204,4 +205,24 @@ test('chaque famille que le catalogue des codes cite a son élément dans le pan
   for (const { code, familles } of CODES_DES_CONSTATS) {
     for (const famille of familles) assert.ok(ELEMENT_DE_LA_FAMILLE[famille], `${code} : la famille ${famille} n'a pas d'élément`);
   }
+});
+
+test('une pièce interne seule perd les points qui jugent un propriétaire (C44, « aucune propriété ») et garde ceux du dessin', () => {
+  const points = [
+    point('regles', 'Règles : aucune instance de règles n’écrit ce composant.'),
+    point('proprietes', 'Component Set « .Ring » : aucune propriété de composant n’est définie.'),
+    point('variables', 'Layer « Ring », fills : aucune variable associée.'),
+    point('variables', 'padding : certains côtés utilisent une variable introuvable.'),
+    point('proprietes', 'Component Set « .Ring » : une combinaison de valeurs n’a pas de variant.'),
+    point('disposition', 'Layer « Ring » : il est masqué, et aucune propriété ne pilote sa visibilité.'),
+    point('non-exportes', 'Layer « Ring » : l’alignement du stroke est illisible.'),
+  ];
+  const gardes = sansLesPointsDUnProprietaire(constatsDuMoteur(moteurAvec(points)));
+  assert.deepEqual(gardes.map(({ code }) => code), ['C30', 'C41', 'C34', 'C35', 'C42']);
+  assert.ok(gardes.every((constat) => !String(constat.faits.titre).includes('aucune propriété de composant')));
+});
+
+test('analyse.ts applique ce filtre à la seule pièce interne', () => {
+  const source = readFileSync(new URL('../src/sandbox/analyse.ts', import.meta.url), 'utf8');
+  assert.match(source, /estUnePieceInterne\(releve\) \? sansLesPointsDUnProprietaire\(duMoteur\) : duMoteur/);
 });

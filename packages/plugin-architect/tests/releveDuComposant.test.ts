@@ -50,6 +50,23 @@ test('D17 : chaque layer relève ses rayons de coin (haut gauche, haut droit, ba
   ]);
 });
 
+test('D17 : un rayon dont la lecture est refusée marque le layer, un layer sans coin ne le marque pas', async () => {
+  const a = atelierDeCalques();
+  const enfants = [
+    a.calque('refuse', 'RECTANGLE', { get cornerRadius() { throw new Error('rayon refusé'); } }),
+    a.calque('lu', 'RECTANGLE', { cornerRadius: 8 }),
+    a.calque('ellipse', 'ELLIPSE', {}),
+  ];
+  const jeu = a.calque('variant', 'COMPONENT', {}, enfants);
+  const issue = await lireLeReleve(a.port(portDeTest([], []).port), jeu);
+  assert.equal(issue.statut, 'lu');
+  if (issue.statut !== 'lu') return;
+  assert.deepEqual(issue.releve.variants[0].layers.map((layer) => [layer.id, layer.rayons, layer.rayonsIllisibles]), [
+    ['variant', undefined, undefined], ['refuse', undefined, true], ['lu', [8, 8, 8, 8], undefined], ['ellipse', undefined, undefined],
+  ]);
+  assert.ok(issue.releve.lecture.manquees.some(({ layer, champ }) => layer === 'refuse' && champ === 'cornerRadius'));
+});
+
 test('E9.12 : les effets et le mode de fusion refusés restent des lectures manquées', async () => {
   const a = atelierDeCalques();
   const variant = a.calque('variant', 'COMPONENT', {

@@ -11,7 +11,7 @@
 import { resolveColorKeys } from './colorKeys';
 import type { VariantEntry, VariantMatrix } from './componentTree';
 import type { ComposedInstances } from './exportableNodes';
-import { getSlotTokens } from './extractSlotTokens';
+import { getSlotTokens, observationDeLaFeuille } from './extractSlotTokens';
 import type { TokenResolver, VariantColor, VariantStrokeColor } from './extractSlotTokens';
 import { toRef } from '@ucm-kit/core/format';
 import type { SlotStrokes, SlotTokens } from '@ucm-kit/core/format';
@@ -130,7 +130,10 @@ export async function extractVariantTokens(
   for (const { entry, leaf, variantWarnings } of collected) {
     warnings.push(...variantWarnings);
     reporterLocalisations(variantWarnings, warnings);
-    if (leaf.paints.length === 0 && leaf.strokes.length === 0) {
+    // Une seule cause, un seul point : une peinture visible non reliée a déjà son message (`warnPeinturesLibres`), une liaison
+    // illisible a celui du résolveur ou l'abstention du relevé, et un variant sans aucune peinture visible n'a rien à relier.
+    const vu = observationDeLaFeuille(leaf);
+    if (leaf.paints.length === 0 && leaf.strokes.length === 0 && vu.visibles > 0 && vu.libres === 0 && vu.nonLues === 0) {
       pousserLocalise(notices, 'Variant', entry.component, {
         famille: 'variables',
         manque: 'aucun fill ni stroke n’est relié à une variable.',

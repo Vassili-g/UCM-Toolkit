@@ -495,6 +495,69 @@ function corrigerRole(constat: Constat, releve: ReleveDeComposant, catalogue: Ca
 }
 
 /**
+ * Les tokens de couleur du composant que C25 peut proposer pour ce layer : un token de `components` qui se lit, de la famille des
+ * couleurs, dont le rôle est l'un de `roles`, dont chaque segment d'axe vaut celui du variant et dont l'élément éventuel nomme le layer.
+ * Sans regarder si les valeurs sont chargées : `clesDesTokensDeCouleurAttendus` en charge les valeurs avant le jugement.
+ */
+function* candidatsDeCouleur(
+  axes: ReturnType<typeof axesDuReleve>, tokens: ReturnType<typeof tokensDuComposant>, variant: VariantLu, layer: LayerLu, roles: readonly string[],
+): Generator<void, VariableDuCatalogue[]> {
+  const candidats: VariableDuCatalogue[] = [];
+  let parcourus = 0;
+  for (const token of tokens) {
+    parcourus += 1;
+    if (parcourus % 256 === 0) yield;
+    const { variable } = token;
+    if (variable.type !== 'COLOR' || token.lecture.length === 0) continue;
+    if (!estLaFamilleCouleur(variable.nom.split('/')[1] ?? '')) continue;
+    const role = roleDuToken(token);
+    if (!role || !roles.includes(role)) continue;
+    if (tokenVautPourLeLayer(token, axes, variant, layer.nom)) candidats.push(variable);
+  }
+  return candidats;
+}
+
+/**
+ * Les clés des tokens de couleur de `components` que C25 peut proposer pour ce relevé, chargés ou non. Une analyse qui lit une library
+ * en charge les valeurs avec celles des liaisons : sans elles, un token que le relevé ne lie nulle part n'est ni candidat ni gardé
+ * (`gardeLeDessin` lit ses alias jusqu'au thème). Ils viennent des seuls constats C25 du relevé, donc ne dépendent pas du catalogue chargé.
+ */
+export function clesDesTokensDeCouleurAttendus(releve: ReleveDeComposant, catalogue: CatalogueDeReference): string[] {
+  const calcul = clesDesTokensDeCouleurParEtapes(releve, catalogue);
+  let etape = calcul.next();
+  while (!etape.done) etape = calcul.next();
+  return etape.value;
+}
+
+function* clesDesTokensDeCouleurParEtapes(releve: ReleveDeComposant, catalogue: CatalogueDeReference): Generator<void, string[]> {
+  const constats = yield* constatsManquantsParEtapes(releve);
+  if (constats.length === 0) return [];
+  const variants = new Map(releve.variants.map((variant) => [variant.id, variant] as const));
+  const layers = new Map(releve.variants.flatMap((variant) => variant.layers).map((layer) => [layer.id, layer] as const));
+  const tokens = tokensDuComposant(releve, catalogue, { types: ['COLOR'] });
+  const axes = axesDuReleve(releve, catalogue);
+  const cles = new Set<string>();
+  const vus = new Set<string>();
+  for (const constat of constats) {
+    const variant = variants.get(constat.variants[0]);
+    const layer = layers.get(constat.layers[0]);
+    const champ = chaine(constat.faits.champ);
+    if (!variant || !layer || (champ !== 'fills' && champ !== 'strokes')) continue;
+    const plage = typeof constat.faits.plageDebut === 'number' && typeof constat.faits.plageFin === 'number'
+      ? { debut: constat.faits.plageDebut, fin: constat.faits.plageFin } : undefined;
+    const roles = rolesAdmisDuLayer(layer, champ, plage);
+    if (!roles) continue;
+    const cleDeCache = JSON.stringify([variant.id, roles, formeReconnue(layer.nom)]);
+    if (vus.has(cleDeCache)) continue;
+    vus.add(cleDeCache);
+    // Pas de `yield*` dans l'itérable d'un `for…of` : QuickJS, qui exécute le sandbox, le refuse.
+    const candidats = yield* candidatsDeCouleur(axes, tokens, variant, layer, roles);
+    for (const candidat of candidats) cles.add(candidat.cle);
+  }
+  return [...cles];
+}
+
+/**
  * Les rôles que la table de `mapping.ts` admet pour la peinture sont les candidats : un token de `components` qui se lit, dont le rôle
  * est l'un d'eux, dont chaque segment d'axe vaut celui du variant, et dont l'élément éventuel nomme le layer. Un token qui ne se lit
  * pas ne se départage pas. Un seul candidat qui garde le dessin (`gardeLeDessin`, D19) donne une correction, sinon une question sans réponse cochée (N-11, E-25).
@@ -513,20 +576,9 @@ function* corrigerLiaisonManquante(constat: Constat, releve: ReleveDeComposant, 
   const cleDeCache = JSON.stringify([variant.id, roles, formeReconnue(layer.nom)]);
   let candidats = index.candidatsDeCouleur.get(cleDeCache);
   if (!candidats) {
-    candidats = [];
     const axes = yield* index.axesParEtapes();
     const tokens = yield* index.tokens();
-    let parcourus = 0;
-    for (const token of tokens) {
-      parcourus += 1;
-      if (parcourus % 256 === 0) yield;
-      const { variable } = token;
-      if (variable.type !== 'COLOR' || variable.etat !== 'presente' || token.lecture.length === 0) continue;
-      if (!estLaFamilleCouleur(variable.nom.split('/')[1] ?? '')) continue;
-      const role = roleDuToken(token);
-      if (!role || !roles.includes(role)) continue;
-      if (tokenVautPourLeLayer(token, axes, variant, layer.nom)) candidats.push(variable);
-    }
+    candidats = (yield* candidatsDeCouleur(axes, tokens, variant, layer, roles)).filter((variable) => variable.etat === 'presente');
     index.candidatsDeCouleur.set(cleDeCache, candidats);
   }
   if (candidats.length !== 1) {

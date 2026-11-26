@@ -240,33 +240,26 @@ test('deux variants aux mêmes axes gardent leurs feuilles sans diagnostic d’i
   assert.deepEqual(warnings, []);
 });
 
-test('extractVariantTokens suit l’ordre de la matrice, pas l’ordre de résolution', async () => {
-  const makeNode = (name: string, tokenId: string) => ({
+test('extractVariantTokens signale chaque variant sans couleur reliable dans l’ordre de la matrice', async () => {
+  // Un dégradé visible ne se relie à aucune variable de couleur : il garde le point du variant. Une peinture unie non reliée a le
+  // message de son calque, et une racine sans peinture visible n'en a aucun.
+  const makeNode = (name: string) => ({
     type: 'RECTANGLE',
     name,
-    boundVariables: { fills: [{ type: 'VARIABLE_ALIAS', id: tokenId } as VariableAlias] },
+    fills: [{ type: 'GRADIENT_LINEAR', visible: true, opacity: 1, blendMode: 'NORMAL', gradientStops: [] }],
+    boundVariables: {},
     findAll: () => [],
   }) as unknown as ComponentNode;
-  // Latences décroissantes : le premier variant de la matrice se règle en
-  // dernier. Sans insertion ordonnée, deux exports d'un design inchangé
-  // produiraient des JSON différents, donc une pull request pour rien.
-  const ticksById: Record<string, number> = { a: 3, b: 1, c: 0 };
-  const resolver = {
-    resolve: async (alias: VariableAlias | null | undefined) => {
-      if (!alias) return null;
-      for (let tick = 0; tick < ticksById[alias.id]; tick += 1) await Promise.resolve();
-      return null; // Aucun token lié : chaque variant produit un avertissement.
-    },
-  };
+  const resolver = { resolve: async () => null };
   const warnings: string[] = [];
 
-  const trees = await extractVariantTokens(
+  await extractVariantTokens(
     {
       axes: ['state'],
       variants: [
-        { values: { state: 'default' }, component: makeNode('State=Default', 'a') },
-        { values: { state: 'hover' }, component: makeNode('State=Hover', 'b') },
-        { values: { state: 'focus' }, component: makeNode('State=Focus', 'c') },
+        { values: { state: 'default' }, component: makeNode('State=Default') },
+        { values: { state: 'hover' }, component: makeNode('State=Hover') },
+        { values: { state: 'focus' }, component: makeNode('State=Focus') },
       ],
     },
     resolver,

@@ -214,6 +214,12 @@ function estGrandTexte(fontSize: number, fontWeight: number): boolean {
   return fontSize >= 24 || (fontSize >= 56 / 3 && fontWeight >= 700);
 }
 
+/** Le seuil de contraste d'une plage de texte : celui du grand texte quand sa taille et sa graisse le permettent, sinon celui du texte. */
+export function seuilDeLaPlage(plage: { readonly fontSize: number; readonly fontWeight: number }, niveau: NiveauWcag): { grand: boolean; seuil: number } {
+  const grand = estGrandTexte(plage.fontSize, plage.fontWeight);
+  return { grand, seuil: grand ? SEUILS_D_ACCESSIBILITE.grandTexte[niveau] : SEUILS_D_ACCESSIBILITE.texte[niveau] };
+}
+
 /** Les remplissages, le mode de fusion ou les effets d'un ancêtre n'ont pas été lus : son fond est inconnu. Un cycle de `parent` s'arrête au premier layer déjà vu. */
 function lectureDuFondManquee(releve: Pick<ReleveDeComposant, 'lecture'>, variant: VariantLu, layer: LayerLu): boolean {
   if (releve.lecture.manquees.length === 0) return false;
@@ -271,7 +277,8 @@ function collectionInerte(collection: CollectionDuCatalogue, variables: readonly
 /** Un fond de page ou d'élévation du thème sert à mesurer une cible dont les ancêtres ne portent aucun fond opaque. */
 function leRepliSertA(variant: VariantLu, cible: Cible, catalogue: CatalogueDeReference): boolean {
   if (!catalogue.fondsDElevation || Object.keys(catalogue.fondsDElevation).length === 0) return false;
-  const fond = fondEffectif(variant, cible.layer, catalogue, { modes: new Map(), etiquette: '' });
+  // Le repli se juge dans les modes que le layer subit, comme sa mesure (D18).
+  const fond = fondEffectif(variant, cible.layer, catalogue, combinaisonDuLayer(variant, cible.layer, { modes: new Map(), etiquette: '' }, catalogue));
   return 'limite' in fond && fond.limite === 'fond-indetermine' && !fond.sansRepli;
 }
 
@@ -651,6 +658,8 @@ const boiteContient = (forme: Boite, boite: Boite): boolean =>
  * peut-être un fond que le relevé ne permet pas de mesurer : `null` écarte le frère, `inconnue` le garde sans preuve.
  */
 function couvertureDe(frere: LayerLu, boite: Boite): CouvertureDuFond | null {
+  // Un rayon refusé n'est pas un coin droit : la boîte contenue peut toucher un coin que l'arrondi retire (D17).
+  if (FORMES_A_BOITE.has(frere.type) && frere.rayonsIllisibles) return boiteContient(frere.dimensions, boite) ? 'inconnue' : 'partie';
   if (FORMES_A_BOITE.has(frere.type)) return rectangleCouvre(frere, boite) ? 'tout' : 'partie';
   if (frere.type === 'ELLIPSE') return ellipseCouvre(frere.dimensions, boite) ? 'tout' : 'partie';
   return boiteContient(frere.dimensions, boite) ? 'inconnue' : null;
@@ -961,11 +970,10 @@ function* ciblesDeContraste(variant: VariantLu, niveau: NiveauWcag, catalogue: C
       for (const plage of layer.texte?.plages ?? []) {
         yield;
         if (plage.fin <= plage.debut) continue;
-        const grand = estGrandTexte(plage.fontSize, plage.fontWeight);
+        const { grand, seuil } = seuilDeLaPlage(plage, niveau);
         cibles.push({
           layer, code: 'C49', usage: grand ? 'grand-texte' : 'texte', champ: 'fills',
-          peintures: plage.peintures, liaisons: plage.liaisons,
-          seuil: grand ? SEUILS_D_ACCESSIBILITE.grandTexte[niveau] : SEUILS_D_ACCESSIBILITE.texte[niveau],
+          peintures: plage.peintures, liaisons: plage.liaisons, seuil,
         });
       }
       continue;
@@ -1160,6 +1168,21 @@ function* anneauxDuVariant(variant: VariantLu, catalogue: CatalogueDeReference, 
   return anneaux;
 }
 
+/**
+ * Les épaisseurs de contour à juger sur un anneau : la sienne quand il a un contour visible, sinon celle de chaque calque que ses
+ * surcharges peignent d'un contour visible sous l'instance. Un anneau sans contour visible n'a pas d'épaisseur à juger (N-59), et une
+ * épaisseur non lue n'est pas jugée.
+ */
+function epaisseursDuContourDeLAnneau(anneau: LayerLu): number[] {
+  if (aUnePeintureVisible(anneau, 'strokes')) return anneau.strokeWeight === undefined ? [] : [anneau.strokeWeight];
+  const poids = new Map<string, number>();
+  for (const { surcharge } of anneau.liaisons) {
+    if (surcharge?.strokeWeight === undefined || poids.has(surcharge.id)) continue;
+    if (surcharge.peintures?.some((p) => p.champ === 'strokes' && peintureVisible(p))) poids.set(surcharge.id, surcharge.strokeWeight);
+  }
+  return [...new Set(poids.values())];
+}
+
 const aUnePeintureQuiSeVoit = (layer: LayerLu): boolean =>
   layer.peintures.some((p) => peintureVisible(p) && (layer.liaisons.some((l) => l.champ === p.champ && (l.indice ?? 0) === p.indice) || (p.couleur?.a ?? 1) !== 0))
   || layer.liaisons.some((l) => l.surcharge?.peintures?.some((p) => peintureVisible(p) && (layer.liaisons.some((m) => m.surcharge?.id === l.surcharge?.id && m.champ === p.champ && (m.indice ?? 0) === p.indice) || (p.couleur?.a ?? 1) !== 0)));
@@ -1222,19 +1245,20 @@ function* controlerLAnneau(variants: VariantLu[], catalogue: CatalogueDeReferenc
     const anneaux = yield* anneauxDuVariant(variant, catalogue, releve);
     for (const anneau of anneaux) {
       yield;
-      // Un anneau sans contour visible n'a pas d'épaisseur à juger (N-59).
-      if (anneau.strokeWeight === undefined || anneau.strokeWeight === epaisseur || !aUnePeintureVisible(anneau, 'strokes')) continue;
-      const id = `C51:${anneau.nom}:${anneau.strokeWeight}`;
-      const existant = fins.get(id);
-      if (existant) {
-        if (!existant.variants.includes(variant.nom)) existant.variants.push(variant.nom);
-        existant.layers.push(anneau.id);
-        continue;
+      for (const poids of epaisseursDuContourDeLAnneau(anneau)) {
+        if (poids === epaisseur) continue;
+        const id = `C51:${anneau.nom}:${poids}`;
+        const existant = fins.get(id);
+        if (existant) {
+          if (!existant.variants.includes(variant.nom)) existant.variants.push(variant.nom);
+          existant.layers.push(anneau.id);
+          continue;
+        }
+        fins.set(id, {
+          id, code: 'C51', type: 'verifier', famille: 'contraste', variants: [variant.nom], layers: [anneau.id],
+          faits: { calque: anneau.nom, strokeWeight: poids, epaisseurRecommandee: epaisseur, espaceRecommande: espace },
+        });
       }
-      fins.set(id, {
-        id, code: 'C51', type: 'verifier', famille: 'contraste', variants: [variant.nom], layers: [anneau.id],
-        faits: { calque: anneau.nom, strokeWeight: anneau.strokeWeight, epaisseurRecommandee: epaisseur, espaceRecommande: espace },
-      });
     }
   }
   constats.push(...fins.values());

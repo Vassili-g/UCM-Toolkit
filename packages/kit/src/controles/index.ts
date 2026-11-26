@@ -21,7 +21,7 @@ export { controlerCouches, controlerCouchesParEtapes } from './couche.js';
 export { controlerOublis, controlerOublisParEtapes, constatDePieceInterne, sansLaCascadeDesVariants } from './oublis.js';
 export { preparerLesTokens } from './preparation.js';
 export type { PreparationDesTokens, CollectionEnDouble, VariableAPreparer, ViseDePreparation, LieuDePreparation, ReponsesDePreparation, TailleSansCible, CouleurSansCible } from './preparation.js';
-export { clesDesTokensDeTailleAttendus, proposerLesCorrections, proposerLesCorrectionsParEtapes } from './corrections.js';
+export { clesDesTokensDeCouleurAttendus, clesDesTokensDeTailleAttendus, proposerLesCorrections, proposerLesCorrectionsParEtapes } from './corrections.js';
 export { candidatsDeModele, constatsDeModele, proposerLaPropagation, type CandidatDeModele, type SorteDeModele } from './propagation.js';
 export { controlerLeTheme, controlerLeThemeParEtapes, controlerLesModes } from './theme.js';
 export { controlerLaStructure, controlerLaStructureParEtapes, controlerLeCatalogue, controlerLesAliasesManquants } from './structure.js';

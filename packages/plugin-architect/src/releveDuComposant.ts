@@ -171,9 +171,12 @@ async function valeursEnDur(noeud: NoeudLu, liaisons: readonly LiaisonLue[], dim
       ajouter(champ, nombreDe(espacements, champ, noeud.id, manquees));
     }
   }
+  const dejaManquees = manquees.length;
   const rayons = lireLesRayons(noeud, manquees);
   const coins = rayonsDuLayer(rayons);
   if (coins) layer.rayons = coins;
+  // Un rayon que Figma a refusé n'est pas un coin droit : le layer le dit, la preuve du fond ne le lira pas droit (D17).
+  else if (manquees.length > dejaManquees) layer.rayonsIllisibles = true;
   if (rayons.commun !== undefined) ajouter('cornerRadius', rayons.commun, ...RAYONS);
   else for (const [rang, coin] of RAYONS.entries()) ajouter(coin, rayons.coins[rang], 'cornerRadius');
   // Figma donne une épaisseur (1 par défaut) à tout layer, même sans contour : sans contour visible, elle ne se voit pas.

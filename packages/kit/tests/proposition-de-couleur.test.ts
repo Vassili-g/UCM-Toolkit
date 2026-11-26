@@ -6,7 +6,7 @@
  */
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { proposerLesCorrections, type CatalogueDeReference, type Constat, type LayerLu, type ReleveDeComposant } from '../src/controles/index.js';
+import { clesDesTokensDeCouleurAttendus, proposerLesCorrections, type CatalogueDeReference, type Constat, type LayerLu, type ReleveDeComposant } from '../src/controles/index.js';
 import { gardeLeDessin } from '../src/controles/gardeDuDessin.js';
 
 const NOIR = { r: 0, g: 0, b: 0, a: 1 };
@@ -116,4 +116,60 @@ test('gardeLeDessin : garde, change ou inconnu, avec la liaison actuelle d’un 
   const absente = { ...lie, variable: { ...lie.variable, cle: 'absente' } };
   assert.equal(gardeLeDessin(cat, { ...base, liaison: absente, candidat: blanc }), 'inconnu', 'la liaison actuelle ne se lit pas');
   assert.equal(gardeLeDessin(cat, { ...base, liaison: { ...lie, illisible: true }, candidat: blanc }), 'inconnu', 'liaison illisible');
+});
+
+/* ---------- Restes de la recette du Button (L10) ---------- */
+
+/** Un texte de 24 px (ou `fontSize`), gris 0,2 sur un fond blanc ; `candidat` est un gris plus clair dont le rapport sur blanc passe 3 sans passer 4,5. */
+function texteSurBlanc(fontSize: number, fontWeight = 400): { releve: ReleveDeComposant; layer: LayerLu } {
+  const fond = layer('root', 'Radio', 'FRAME', null, { peintures: [solide(BLANC)] });
+  const texte = layer('label', 'Label', 'TEXT', 'root', {
+    dimensions: { x: 4, y: 4, largeur: 40, hauteur: 16 },
+    texte: { style: null, plages: [{ debut: 0, fin: 5, fontSize, fontWeight, peintures: [solide(GRIS)], liaisons: [] }] },
+  });
+  return { releve: releve([fond, texte]), layer: texte };
+}
+const GRIS_MOYEN = { r: 0.5, g: 0.5, b: 0.5, a: 1 };
+
+test('D19 : le seuil d’un texte vient de sa plage : 3 pour un grand texte, 4,5 pour un petit', () => {
+  const candidat = jeton('fg', 'radio/color/foreground', parMode(GRIS_MOYEN));
+  const cat = catalogue(candidat);
+  const verdict = (fontSize: number, fontWeight?: number) => {
+    const { releve: r, layer: l } = texteSurBlanc(fontSize, fontWeight);
+    return gardeLeDessin(cat, { variant: r.variants[0], layer: l, champ: 'fills', plage: { debut: 0, fin: 5 }, candidat });
+  };
+  assert.equal(verdict(24), 'garde', 'gris 0,5 sur blanc : 4,0 contre 3 pour un texte de 24 px');
+  assert.equal(verdict(19, 700), 'garde', '14 pt en gras est un grand texte');
+  // Gardes : le petit texte et le texte gras sous 14 pt gardent le seuil de 4,5.
+  assert.equal(verdict(14), 'change');
+  assert.equal(verdict(19, 400), 'change');
+  assert.equal(verdict(18, 700), 'change');
+});
+
+test('D19 : C25 propose le token qui garde le contraste d’un grand texte, pas celui d’un petit', () => {
+  const proposition = (fontSize: number) => {
+    const { releve: r } = texteSurBlanc(fontSize);
+    const trouve = proposerLesCorrections(r, catalogue(jeton('fg', 'radio/color/foreground', parMode(GRIS_MOYEN))), []).find(({ code, layers }) => code === 'C25' && layers.includes('label'));
+    assert.ok(trouve);
+    return trouve;
+  };
+  assert.equal(proposition(24).correction?.apres.cle, 'fg');
+  assert.equal(proposition(14).correction, undefined);
+  assert.equal(proposition(14).question?.candidats[0].cle, 'fg');
+});
+
+test('D19 : les clés des tokens de couleur attendus sont celles des candidats de C25, chargés ou non', () => {
+  const { releve: r } = texteSurBlanc(14);
+  const nonChargee = (cle: string, nom: string) => ({ ...jeton(cle, nom), etat: 'non-chargee' as const });
+  const cat = catalogue(
+    nonChargee('fg', 'radio/color/foreground'), nonChargee('bg', 'radio/color/background'),
+    nonChargee('autre', 'banner/color/foreground'), { ...nonChargee('taille', 'radio/size/padding-x'), type: 'FLOAT' as const },
+  );
+  // Le texte admet `foreground` et le fond de la racine `background` : un autre composant et une longueur ne sont pas candidats.
+  assert.deepEqual(clesDesTokensDeCouleurAttendus(r, cat).sort(), ['bg', 'fg']);
+  assert.deepEqual(clesDesTokensDeCouleurAttendus(r, catalogue(jeton('fg', 'radio/color/foreground', parMode(GRIS_MOYEN)))), ['fg'], 'un token déjà chargé est aussi listé');
+  // Garde : un relevé sans peinture écrite en dur n'attend aucun token de couleur.
+  assert.deepEqual(clesDesTokensDeCouleurAttendus(releve([layer('root', 'Radio', 'FRAME', null)]), cat), []);
+  // Le candidat non chargé n'est pas proposé tant qu'il n'est pas chargé (C25 ne juge que ce qu'il lit).
+  assert.equal(proposerLesCorrections(r, cat, []).find(({ code, layers }) => code === 'C25' && layers.includes('label'))?.correction, undefined);
 });

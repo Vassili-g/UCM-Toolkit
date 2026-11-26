@@ -59,6 +59,11 @@ export interface LayerLu {
    * relevé ne les a pas lus ou le layer n'a pas de coin, et la preuve du fond lit des coins droits (D17).
    */
   rayons?: readonly [number, number, number, number];
+  /**
+   * Vrai quand Figma a refusé la lecture d'un rayon de coin (manquée `cornerRadius` ou d'un coin) : `rayons` est alors absent sans que
+   * le layer ait des coins droits. La preuve du fond en fait une couverture `inconnue`, jamais un fond complet (D17).
+   */
+  rayonsIllisibles?: true;
   peintures: PeintureLue[];
   /**
    * Les modes que le calque pose lui-même (`explicitVariableModes`), par nom de collection comme `modesEffectifs`. Absent : le calque

@@ -77,8 +77,8 @@ export const GABARITS: Readonly<Record<NomDeFamille, Gabarit>> = {
   'controle-accessibilite': [
     'niveau', 'releve.lecture.variantsNonLus', ...sous('releve.lecture.manquees.*', 'layer', 'champ'), ...PROPRIETES,
     ...sous('releve.variants.*', 'nom', 'valeurs', 'modesEffectifs'),
-    ...sous(LAYERS, 'id', 'nom', 'type', 'parent', 'visible', 'opacite', 'blendMode', 'flouArrierePlan', 'strokeWeight', 'dimensions.largeur', 'dimensions.hauteur', 'dimensions.x', 'dimensions.y', 'rayons', 'modesExplicites', 'peintures', 'instanceDe.nom', 'instanceDe.pilotee'),
-    ...liaisons(['champ', 'indice', 'surcharge.id', 'surcharge.peintures', 'illisible', 'variable.cle'], ['champ', 'indice', 'illisible', 'variable.cle']),
+    ...sous(LAYERS, 'id', 'nom', 'type', 'parent', 'visible', 'opacite', 'blendMode', 'flouArrierePlan', 'strokeWeight', 'dimensions.largeur', 'dimensions.hauteur', 'dimensions.x', 'dimensions.y', 'rayons', 'rayonsIllisibles', 'modesExplicites', 'peintures', 'instanceDe.nom', 'instanceDe.pilotee'),
+    ...liaisons(['champ', 'indice', 'surcharge.id', 'surcharge.peintures', 'surcharge.strokeWeight', 'illisible', 'variable.cle'], ['champ', 'indice', 'illisible', 'variable.cle']),
     ...sous(`${LAYERS}.texte.plages.*`, 'debut', 'fin', 'fontSize', 'fontWeight', 'peintures'),
     ...sous('catalogue.collections.*', 'cle', 'nom', 'role', 'etat', 'modes'), ...sous('catalogue.variables.*', 'cle', 'nom', 'collection', 'etat', 'valeurs'),
     'catalogue.fondsDElevation', 'catalogue.fondDeLaPageFigma',
@@ -91,7 +91,7 @@ export const GABARITS: Readonly<Record<NomDeFamille, Gabarit>> = {
   ],
   'controle-theme': [
     'releve.jeu.nom', 'releve.variants.*.id',
-    ...sous(LAYERS, 'id', 'nom', 'type', 'parent', 'visible', 'opacite', 'dimensions.x', 'dimensions.y', 'dimensions.largeur', 'dimensions.hauteur', 'rayons', 'peintures.*.champ', 'peintures.*.visible', 'peintures.*.opacite', 'peintures.*.opacity', 'peintures.*.indice'),
+    ...sous(LAYERS, 'id', 'nom', 'type', 'parent', 'visible', 'opacite', 'dimensions.x', 'dimensions.y', 'dimensions.largeur', 'dimensions.hauteur', 'rayons', 'rayonsIllisibles', 'peintures.*.champ', 'peintures.*.visible', 'peintures.*.opacite', 'peintures.*.opacity', 'peintures.*.indice'),
     ...liaisons(['champ', 'indice', 'plage', 'provenance', 'surcharge', 'illisible', 'variable.cle'], ['champ', 'indice', 'plage', 'provenance', 'surcharge', 'variable.cle']),
     ...COLLECTIONS, ...sous('catalogue.variables.*', 'cle', 'nom', 'collection', 'etat', ALIAS),
   ],

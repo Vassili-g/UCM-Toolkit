@@ -42,7 +42,7 @@
  * événement du document la lève.
  */
 import {
-  controlerCouchesParEtapes, controlerLAccessibiliteParEtapes, controlerLaStructureParEtapes, controlerLaTypographieParEtapes, controlerLeThemeParEtapes, controlerMappingParEtapes, controlerNommageParEtapes, controlerOublisParEtapes, estUnePieceInterne, sansLaCascadeDesVariants, clesDesTokensDeTailleAttendus, proposerLesCorrectionsParEtapes, tokensDuComposant,
+  controlerCouchesParEtapes, controlerLAccessibiliteParEtapes, controlerLaStructureParEtapes, controlerLaTypographieParEtapes, controlerLeThemeParEtapes, controlerMappingParEtapes, controlerNommageParEtapes, controlerOublisParEtapes, estUnePieceInterne, sansLaCascadeDesVariants, clesDesTokensDeCouleurAttendus, clesDesTokensDeTailleAttendus, proposerLesCorrectionsParEtapes, tokensDuComposant,
   type CatalogueDeReference, type Constat, type Correction, type LiaisonLue, type ReleveDeComposant,
 } from '@ucm-kit/core/controles';
 import { lireLesLibraries, type LectureDesLibraries, type PortDeBibliotheque } from 'ucm-plugin-socle/src/bibliotheque';
@@ -69,7 +69,7 @@ import { AnalyseAnnulee, creerContexteCooperatif, type ContexteCooperatif, type 
 
 import { avecLesFondsDElevation, catalogueDuFichier, chargerLesValeurs, clesDesFondsDElevation, fondDeLaPageFigma, lireLeCatalogueDeLibrary, type OptionsDeCatalogue } from '../catalogue';
 import type { NoeudLu } from '../consommateurs';
-import { constatsDuMoteur, sansLesDoublonsDuMoteur } from '../constatsDuMoteur';
+import { constatsDuMoteur, sansLesDoublonsDuMoteur, sansLesPointsDUnProprietaire } from '../constatsDuMoteur';
 import { enregistrerLesImports, idsDesLocales, lireLesVariables } from '../lecture';
 import { sujetDe, type PortDuComposant } from '../lectureDuComposant';
 import { lireLaLibraryRangee } from '../ecriture/configuration';
@@ -1103,8 +1103,10 @@ async function catalogueSansFonds(releve: ReleveDeComposant, jeton: JetonDAnnula
         if (catalogue.etat === 'lu') {
           // C29 compare les valeurs en dur aux tokens de taille du composant : on charge celles-là, et chargerLesValeurs suit leurs alias.
           const tailles = mesurerSousCompteur('msTokensDeTailleCatalogue', () => clesDesTokensDeTailleAttendus(releve, catalogue.catalogue));
+          // C25 propose un token de couleur que le relevé ne lie peut-être nulle part : ses valeurs, et celles du thème qu'il atteint, se chargent aussi.
+          const couleurs = clesDesTokensDeCouleurAttendus(releve, catalogue.catalogue);
           return (await chargerLesValeurs(
-            portDeLecture(figma), catalogue.catalogue, [...liaisons.keys(), ...tailles, ...clesDesFondsDElevation(catalogue.catalogue)], identifiantsParCle(releve),
+            portDeLecture(figma), catalogue.catalogue, [...liaisons.keys(), ...tailles, ...couleurs, ...clesDesFondsDElevation(catalogue.catalogue)], identifiantsParCle(releve),
             (nom, n) => compter(nom === 'imports' ? 'catalogueImports' : 'catalogueParIdentifiant', n),
             { ...options, annulee: () => jeton.leve },
           )).catalogue;
@@ -2209,7 +2211,8 @@ async function analyser(contexte: Contexte, lecteurs: Lecteurs, demandeRecue: Ex
       etape('controle-fusion');
       const variantsDuReleve = releve.variants;
       const information = informationDuPremierVariant({ variants: variantsDuReleve });
-      const brut = mesurerLeCalcul(() => [...controles, ...(estUnePieceInterne(releve) ? [] : constatsDeRegles(reglesLues)), ...constatsDuMoteur(moteur, new Set(variantsDuReleve.map((variant) => variant.id))), ...(information ? [information] : [])], 'controles', true);
+      const duMoteur = constatsDuMoteur(moteur, new Set(variantsDuReleve.map((variant) => variant.id)));
+      const brut = mesurerLeCalcul(() => [...controles, ...(estUnePieceInterne(releve) ? [] : constatsDeRegles(reglesLues)), ...(estUnePieceInterne(releve) ? sansLesPointsDUnProprietaire(duMoteur) : duMoteur), ...(information ? [information] : [])], 'controles', true);
       phase('corrections');
       await cooperation.cederSiBesoin();
       // C25 et C29 naissent des corrections : le doublon du moteur se retire après elles.

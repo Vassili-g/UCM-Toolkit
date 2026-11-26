@@ -108,7 +108,7 @@ Toutes les cases de l'onglet arrivent décochées : un seul pied compte les noms
 | Calques du composant lu et styles de texte | `boundVariables`, peintures, effets, grilles, segments de texte | Réactions, valeurs par défaut des propriétés et calques masqués des instances non lus |
 | Modes d'un calque | `resolvedVariableModes` sur le variant, `explicitVariableModes` sur chaque layer (`LayerLu.modesExplicites`, absent si aucun) | Les modes par défaut d'équipe ne sont pas exposés |
 | Peinture d'une surcharge | `fills`, `strokes` et `strokeWeight` du calque qu'une surcharge lie, sous la frontière INSTANCE | Une lecture qui lève laisse la peinture absente et consigne une manquée |
-| Rayons de coin | `cornerRadius` et les quatre rayons par coin, liés ou non, dans l'ordre haut gauche, haut droit, bas droit, bas gauche | Absents, les coins sont droits |
+| Rayons de coin | `cornerRadius` et les quatre rayons par coin, liés ou non, dans l'ordre haut gauche, haut droit, bas droit, bas gauche | Absents sans `rayonsIllisibles`, les coins sont droits ; une lecture refusée marque le layer `rayonsIllisibles`, et le fond sous lui devient une limite |
 | Instance imbriquée et surcharge | Composant principal (`dessin` : descendants visibles tous tracés, lu une fois par composant principal), `componentPropertyReferences.visible`, parents du calque peint jusqu'au layer lu, `isExposedInstance` d'un wrapper | Une lecture qui lève laisse le fait absent, ou `expose` à `'inconnu'`, jamais faux |
 | Style appliqué | `textStyleId`, `fillStyleId`, `strokeStyleId` et les `boundVariables` du style : une liaison de même champ et de même variable reçoit `provenance: 'style'` | Une liaison `composant-principal`, de surcharge ou de plage hors texte ne change pas |
 | Valeur selon Figma | `resolveForConsumer` sur un calque existant | Aucune chaîne, la valeur seule |
@@ -438,6 +438,13 @@ chacune la seule candidate de l'autre. Une propriété dont le nom porte un poin
 Un point du moteur ne double ni un constat du kit ni C43. Un point C30 tombe
 quand un C25 ou un C29 porte le même layer et le même champ, même si le designer a
 ignoré le constat du kit. Un point C44 « aucune instance » tombe quand C43 le dit.
+Le point « Variant : aucun fill ni stroke n'est relié » n'existe que si le variant
+porte une peinture visible qu'aucune variable ne peut recevoir (dégradé, image) :
+une peinture unie non reliée a le message de son calque, une liaison que le
+résolveur n'a pas lue s'abstient, et un variant sans peinture visible n'a rien à
+relier. Une pièce interne analysée seule perd les points C44 et le C42 « aucune
+propriété de composant » (`sansLesPointsDUnProprietaire`) ; C30, C41, C34, C35 et
+les autres C42 restent, car ils jugent son dessin.
 Le code d'un point du moteur suit son sens : les noms écrits par le designer
 (entre « et ») ne le décident pas. C34 garde les combinaisons manquantes et les
 états non reconnus ou tolérés ; « aucun variant » est un C42 bloquant, « aucune
