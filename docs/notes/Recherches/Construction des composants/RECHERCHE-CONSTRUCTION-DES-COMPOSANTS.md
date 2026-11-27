@@ -184,10 +184,12 @@ Ce mode change quatre textes : `CONCEPT.md` et `README.md` (« seul l'Exporter o
 | Expérience unique (Q7) | « Relier le composant » remplace la Préparation, les corrections de liaison et la propagation seulement si une maquette valide son expérience. Sinon, les écrans actuels restent. |
 | Tokens manquants en agnostique (Q8) | Architect relie les tokens existants et n'en crée aucun. La création reste propre au full UCM. |
 | Réponses par emplacement (Q9, tranché par l'agent) | Elles se rangent dans le fichier Figma, sur le jeu de variants, dans les données partagées d'Architect (`ESPACE_ARCHITECT`) qui portent déjà la déclaration et la configuration. Elles suivent le composant d'un poste à l'autre et d'un designer à l'autre, et une nouvelle analyse les reprend. |
+| Variantes dessinées (Q1) | Le designer dessine les variantes qu'il veut, et Architect complète les autres. Chaque variante dessinée sert de source ; deux sources qui se contredisent pour une même variante à créer deviennent une question. |
+| Liste des variantes (Q2) | Le mainteneur et l'agent dressent la liste des axes et des valeurs avant Figma, dans une description du composant. Le découpage demande parfois plusieurs itérations : la description se modifie, et une nouvelle construction suit. |
+| Relancer la construction (Q4) | Architect complète les variantes manquantes sans toucher aux autres. |
+| Retouche après la construction (Q5) | Une dimension se retouche seulement par les tokens, jamais en valeur libre : une nouvelle construction garde donc la retouche. |
+| Chemin de la génération | Un composant neuf se génère depuis sa description par un mode d'un plugin UCM, qui construit le jeu de variants déjà relié aux variables. Le connecteur Figma de Claude est écarté pour son coût. « Relier le composant » reste le chemin d'un composant existant et d'un fichier non UCM. |
 
 ## Questions au mainteneur
 
-- Q1. Le designer dessine-t-il une seule variante de référence, ou une par valeur d'un axe de structure (taille, présence d'une icône) ?
-- Q2. La liste des axes et de leurs valeurs vient-elle du cahier de P30, lu par le plugin, ou se saisit-elle dans le plugin ?
-- Q4. Relancer la construction sur un composant déjà construit : le plugin complète les variantes manquantes sans toucher aux autres, ou refuse ?
-- Q5. Une variante que le designer a retouchée à la main après la déclinaison se protège-t-elle d'une nouvelle déclinaison ?
+- Q10. Retirer une valeur d'axe de la description supprime des variantes, et Figma détache alors leurs instances. Architect supprime-t-il ces variantes, ou les signale-t-il sans les toucher ?
