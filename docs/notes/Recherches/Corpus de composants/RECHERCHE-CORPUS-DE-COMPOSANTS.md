@@ -20,4 +20,29 @@ Trois limites viennent de cet outil :
 4. Attentes. Écrire à la main le contrat attendu de chaque composant est impossible à cette échelle. La méthode proposée fige la sortie d'aujourd'hui comme référence, relit un échantillon pour y trouver les erreurs déjà présentes, puis fait relire chaque écart futur.
 5. Place dans les tests. Un petit sous-ensemble peut tourner dans `npm test`. Le corpus entier tourne par une commande à part, comme `npm run stress:rejeu`.
 
+## Les kits candidats
+
+Un chercheur a comparé onze kits. Les pages Figma Community lui ont répondu 403 : licences, dates et nombres viennent des pages des éditeurs, de leurs dépôts GitHub ou d'extraits de recherche, et chaque point reste à vérifier en ouvrant le fichier.
+
+Figma publie par défaut un fichier gratuit de la Community sous licence Creative Commons Attribution 4.0 : copie, redistribution et adaptation permises, crédit obligatoire ([aide Figma](https://help.figma.com/hc/en-us/articles/360042296374-Figma-Community-copyright-and-licensing)). Un créateur peut ajouter sa propre licence. Une capture JSON entre donc probablement dans le dépôt public avec un crédit, si le fichier n'ajoute aucune clause.
+
+| Kit | Gratuit et complet | Construction | Licence du fichier | Code des mêmes composants |
+|---|---|---|---|---|
+| Simple Design System (Figma) | « 400+ composants » annoncés | variables, primitives et compositions, icônes en composants, Code Connect ([dépôt](https://github.com/figma/sds)) | non indiquée, donc Creative Commons Attribution 4.0 par défaut | React, MIT |
+| Material 3 (Google), v1.25 du 19 mai 2026 | gratuit, nombre inconnu | variables et styles mêlés, slots depuis la 1.25 | Creative Commons Attribution 4.0, d'après une source tierce | non vérifié |
+| Carbon v11 (IBM) | gratuité non affirmée par IBM ([page](https://carbondesignsystem.com/designing/kits/figma/)) | tout en variables, 67 modes | non confirmée | Apache-2.0 |
+| USWDS, bêta 0.3 de janvier 2025 | 42 composants ([dépôt](https://github.com/uswds/uswds-for-designers)) | variables sur tous les tokens | Creative Commons Attribution 4.0 annoncée | CC0 |
+| Fluent 2 Web (Microsoft) | gratuit | variables, imbrication peu profonde | non indiquée, marque et icônes restreintes | non vérifié |
+
+Écartés : Untitled UI, dont la version gratuite n'a ni variables ni propriétés de composant ([page](https://www.untitledui.com/free-figma-ui-kit)). Obra shadcn/ui gratuit, limité à 30 composants en clair. Primer et Atlassian, dont seule une partie est publique. Polaris, Ant Design, Radix et GOV.UK, sans kit officiel maintenu.
+
+Pour un seul kit, Simple Design System apporte ce que les deux fichiers du mainteneur n'ont pas. Il est construit par Figma avec des variables, il range ses icônes en composants, et il publie le code React des mêmes composants, ce qui servira aussi à la parité. Material 3 le remplace si sa licence ou sa complétude déçoit : il mêle styles et variables, ce qui teste aussi la lecture agnostique.
+
+À vérifier dans Figma, sur le fichier dupliqué :
+
+- le panneau de licence du fichier, et toute clause ajoutée à la licence Creative Commons Attribution 4.0 ;
+- le nombre de jeux de variants dans Assets, et l'absence de composant verrouillé ou réservé à une offre payante ;
+- les collections et les modes du panneau Variables, et les styles de texte restants ;
+- sur un composant, les propriétés booléennes, de texte et d'échange d'instance, et les slots.
+
 ## Questions au mainteneur
