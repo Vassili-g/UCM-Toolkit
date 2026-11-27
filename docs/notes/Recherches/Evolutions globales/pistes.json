@@ -1431,6 +1431,7 @@
       "titre": "UCM Exporter retire ses contrôles du composant et laisse UCM Architect les tenir",
       "titreCourt": "Exporter sans contrôles",
       "sujet": "Plugin Exporter",
+      "recherche": "docs/notes/Recherches/Exporter sans controles/RECHERCHE-EXPORTER-SANS-CONTROLES.md",
       "resume": "Ce qu'il fait : UCM Exporter ne juge plus la structure, les liaisons ni les noms du composant, puisque UCM Architect les contrôle et les corrige mieux. L'Exporter garde la lecture du composant, l'écriture du contrat et la publication, et lit le sceau de P34 pour savoir si le composant est fiable. En agnostique non plus, l'Exporter ne contrôle rien : le designer fiabilise le composant avec le mode agnostique d'Architect (P31). Où : `packages/plugin-exporter/`, et `packages/kit/` si une règle n'a plus qu'un lecteur. Pourquoi : deux plugins qui jugent le même composant donnent deux verdicts à tenir d'accord, et le designer corrige seulement dans Architect.",
       "importance": "moyenne",
       "raisonImportance": "Un contrôle tenu en double finit par diverger, et le designer reçoit dans l'Exporter un constat qu'il ne peut pas corriger sur place.",
@@ -1464,10 +1465,8 @@
       "criteresDeFin": [
         "Chaque contrôle de l'Exporter est retiré, gardé ou déplacé dans Architect, avec sa raison écrite.",
         "Aucun contrôle du composant ne vit à la fois dans l'Exporter et dans Architect.",
-        "En agnostique, l'Exporter ne contrôle pas le composant, et le mode agnostique d'Architect tient chaque contrôle retiré."
-      ],
-      "questions": [
-        "Quels contrôles l'Exporter garde-t-il parce qu'ils portent sur le contrat écrit et non sur le dessin ?"
+        "En agnostique, l'Exporter ne contrôle pas le composant, et le mode agnostique d'Architect tient chaque contrôle retiré.",
+        "Les refus du dépôt, les avertissements de l'export des tokens et les pertes du contrat restent dans l'Exporter, ces dernières dans `meta.diagnostics`."
       ],
       "risques": [
         "En agnostique, rien n'oblige le designer à passer par Architect : un composant peut sortir sans aucun contrôle."
