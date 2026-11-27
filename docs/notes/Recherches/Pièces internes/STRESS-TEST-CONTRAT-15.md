@@ -164,7 +164,7 @@ La correction C8 ajoute aussi `packages/cli/aides/composant.md`, `packages/cli/a
 
 ### Réponses du mainteneur
 
-Le mainteneur retient les recommandations des questions 1, 2 et 3. Une source relative se résout de propriétaire en propriétaire. Une sélection qui ne désigne pas une seule variante publie une perte ciblée, sans choisir. Une propriété d'une dépendance exposée cite le contrat de la dépendance et ses clés publiques. La question 4 attend une explication.
+Le mainteneur retient les recommandations des questions 1, 2 et 3. Une source relative se résout de propriétaire en propriétaire. Une sélection qui ne désigne pas une seule variante publie une perte ciblée, sans choisir. Une propriété d'une dépendance exposée cite le contrat de la dépendance et ses clés publiques. Pour la question 4, le contrat décrit seulement les parties : la pièce avec toutes ses variantes, états compris, et chaque renvoi avec la variante posée et ce que l'hôte y change, par adresse. Le changement d'état se fait dans le code. Le contrat écrit une seule règle de lecture : ce que l'hôte change sur une occurrence vaut, à la même adresse, pour la variante que l'état choisit, comme Figma le fait quand l'état d'une instance change. L'Exporter ne vérifie pas cette transition et n'écrit aucune perte. Une adresse changée par l'hôte et absente d'une variante d'état est un défaut de dessin, qu'Architect signale.
 
 ## Ce qui reste
 
