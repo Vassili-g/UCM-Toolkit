@@ -84,7 +84,7 @@ La carte se rejoue après le pilote, avant le passage en masse, et à chaque fai
 ## 5. Marques, fondations et actifs
 
 - M1. Les marques deviennent des modes de l'axe des marques, calculés par UCM Palettes avant tout composant. Décidé.
-- M2. Le nombre de marques n'est pas fixé, et leur liste vit dans le code, pas dans les données : une table de domaines vers un nom de thème, écrite dans l'application principale (2 noms sur ses branches vivantes, 7 sur sa branche arrêtée) et dans le back-office (3 noms). L'API ne renvoie aucun nom de thème. La v1 a 14 thèmes, la v2 en exporte 8 plus un thème global, la recherche disait 9, et intencial-library a 2 modes. Le mainteneur en attend quatre au plus. Questions aux développeurs : quelles marques sont actives en production, avec leur nom de thème, et la liste reste-t-elle dans le code après la migration ? À vérifier.
+- M2. Les développeurs confirment qu'il ne reste que deux marques à gérer, ce qui concorde avec les deux noms des branches vivantes de l'application principale. Leur liste vit dans le code, pas dans les données : une table de domaines vers un nom de thème, que l'API ne renvoie pas. Les 14 thèmes de la v1 et les 8 de la v2 ne passent pas tous dans la v3. Décidé.
 - M3. Les couleurs calculées par Palettes diffèrent de celles du code, et le rendu change sur chaque marque. Qui valide cet écart, marque par marque ? À trancher.
 - M4. Le relevé distingue une couleur qui change avec la marque d'une couleur fixe, en croisant les valeurs relevées avec les thèmes. À outiller.
 - M5. Les espacements, rayons et ombres hors de la grille UCM prennent la valeur la plus proche, avec l'écart affiché, et le designer tranche. À outiller.

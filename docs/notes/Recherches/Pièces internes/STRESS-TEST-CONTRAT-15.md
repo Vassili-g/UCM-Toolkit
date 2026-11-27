@@ -162,6 +162,10 @@ La correction C8 ajoute aussi `packages/cli/aides/composant.md`, `packages/cli/a
 3. Comment une propriété d'une dépendance exposée rejoint-elle l'API de l'hôte ? D1 demande les propriétés que Figma montre, mais `source` ne peut viser qu'un slot `piece`. Recommandation, décrire cette provenance vers le contrat autonome de la dépendance, avec ses clés publiques. Le témoin est `_local/p22/codex/cas/Q-dependance-exposee.json`.
 4. Comment les états internes d'une pièce choisissent-ils une autre variante à une occurrence non exposée ? Le §2.12.3 impose le renvoi exact et la procédure d'états de la CLI choisit un autre variant. Recommandation, définir cette transition comme le choix d'une vue de pièce avec transfert vérifié des couleurs et des renvois de l'occurrence. Une vue surchargée qui ne se transfère pas doit garder sa perte explicite.
 
+### Réponses du mainteneur
+
+Le mainteneur retient les recommandations des questions 1, 2 et 3. Une source relative se résout de propriétaire en propriétaire. Une sélection qui ne désigne pas une seule variante publie une perte ciblée, sans choisir. Une propriété d'une dépendance exposée cite le contrat de la dépendance et ses clés publiques. La question 4 attend une explication.
+
 ## Ce qui reste
 
 Les quatre questions de résolution restent ouvertes. Les simulations doivent ensuite recalculer les métadonnées de l'hôte et de toutes les pièces, avec les pertes des variantes non posées. Le validateur de production devra reprendre les contrôles 14.0 et le schéma, en plus des preuves de ce lot.
