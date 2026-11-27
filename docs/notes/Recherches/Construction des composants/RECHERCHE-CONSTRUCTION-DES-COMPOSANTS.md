@@ -63,6 +63,84 @@ Script jetable dans `_local/recettes/` : il retire de la capture `button-2026-11
 
 La mesure de la Préparation seule (case 1.1) ne dit rien sur ce Button : relié, il n'a plus aucune variable à préparer. Elle se refait sur un composant dessiné en dur.
 
+## 6 bis. Mesure sur un Button dessiné en dur
+
+Le script jetable `_local/recettes/mesure-dur.ts` (hors de Git) part de la capture de la section 6, la dessine en dur, rejoue l'analyse puis la Préparation du sandbox, et compare le plan aux liaisons d'origine. Il se lance depuis `packages/plugin-architect` : `npx tsx ../../_local/recettes/mesure-dur.ts <capture> [--theme-minuscules] [--reponses '<json>'] [--layout-en-dur] [--sans-imports] [--sortie <fichier>]`.
+
+Le double retire les 764 liaisons de couleur des remplissages et des contours, les 6 des effets et les 837 liaisons de marge, d'espacement et de rayon vers les 192 variables `Button/…`. Ces 192 variables quittent le fichier et la liste de la library. Les collections, le thème et le layout restent, et chaque couleur garde la valeur résolue de sa liaison. La vérité de terrain est ce que le designer avait posé dans les 90 variants : 360 liaisons de couleur et 540 liaisons de taille.
+
+Le relevé lit 198 layers dans ces variants : la racine de chacun, 90 instances `.sizeWrapperButton` et 18 instances `.Ring` (états Focus). Le fond ou le contour du bouton est la surcharge `fills` ou `strokes` de `.sizeWrapperButton`. Le texte et les deux vecteurs d'icône sont dans l'instance, sous la frontière que le relevé ne descend pas.
+
+### Ce que l'analyse et la Préparation rendent
+
+| | Fichier tel quel | Thème en minuscules |
+|---|---|---|
+| Corrections C25 et C29 | 0 | 0 |
+| Variables proposées, sans réponse | 98 (90 couleurs, 8 tailles) | 98 (90 couleurs, 8 tailles) |
+| dont une cible déjà posée | 4 (tailles) | 4 (tailles) |
+| Questions | 6 | 6 |
+| Variables après les six réponses | 8 (tailles) | 62 (54 couleurs, 8 tailles) |
+| Couleurs restées en dur après les réponses | 90 (54 cibles absentes du thème, 36 sans règle) | 36 (sans règle) |
+| Corrections de la liaison après création | 540 | 594 |
+
+L'analyse rend 26 constats, dont 9 C30, et marque le composant `sansTokens`. Aucun n'est un C25 ni un C29. Ces deux constats sautent tout layer `INSTANCE` dont le parent n'est pas la racine (`constatsManquantsParEtapes`, `corrections.ts`), et le fond, les marges, l'espacement et le rayon du Button sont portés par `.sizeWrapperButton`. Le code de C25 justifie ce saut par une peinture qui vient du composant principal. Ici la peinture est une surcharge : `overrides` de `.sizeWrapperButton` liste `fills`, `height` et `width`, et le saut la perd.
+
+Les six questions sont trois choix de dossier (`dossier:Contained`, `dossier:Outlined`, `dossier:Text`, chacun parmi `solid`, `surface`, `page`), soft ou vivid pour les statuts, et le nom de `.sizeWrapperButton` et de `.Ring`. Les réponses de la mesure sont `solid`, `page`, `page`, `vivid` et les noms proposés.
+
+La colonne « Fichier tel quel » garde les noms du thème du fichier, écrits `Primary/Solid/default`. La Préparation cherche `theme/primary/solid/default`, et cette recherche distingue la casse : aucune des 90 couleurs ne trouve sa cible. La colonne « Thème en minuscules » renomme les variables du thème en minuscules dans le double, comme le kit les écrit. Les chiffres qui suivent sont ceux de cette seconde colonne.
+
+### Cible par valeur d'axe
+
+- Color : Primary et Secondary visent `theme/primary` et `theme/secondary`. Info, Success, Warning et Danger visent `theme/<statut>/vivid`, après la question soft ou vivid.
+- State : Default, Hover et Pressed visent `default`, `hover` et `pressed` du dossier. Disabled vise `theme/disabled/background` ou `theme/disabled/border` sans question. Focus n'a aucune règle.
+- Variant : une question de dossier par valeur, alors que le dossier du Button change avec l'état. Outlined vise `page` au repos et `solid` au survol et à l'appui. Text vise `page` au repos et `surface` au survol et à l'appui. La réponse `page` laisse donc en dur les 24 fonds des quatre cases Outlined et Text, Hover et Pressed.
+
+### Écart à la vérité de terrain
+
+| Lieu | Liaisons d'origine | Même cible | Cible fausse | Resté en dur | Non vu |
+|---|---|---|---|---|---|
+| Fond ou contour de `.sizeWrapperButton` | 72 | 42 | 0 | 30 | 0 |
+| Anneau `.Ring` | 18 | 0 | 12 | 6 | 0 |
+| Texte, dans l'instance | 90 | 0 | 0 | 0 | 90 |
+| Vecteurs d'icône, dans l'instance | 180 | 0 | 0 | 0 | 180 |
+| Couleurs | 360 | 42 | 12 | 36 | 270 |
+| Marges, espacement et rayon de `.sizeWrapperButton` | 540 | 540 | 0 | 0 | 0 |
+
+Avant les réponses, les 90 couleurs des layers propres et 432 des 540 tailles attendent une question. Les 108 autres tailles ont déjà leur cible.
+
+Les 12 cibles fausses sont les anneaux Outlined et Text. Le référentiel n'a pas de rôle `ring` : la Préparation lit le contour comme `border` et vise `page/border` sans poser de question, alors que le designer a lié `Theme/<palette>/ring`. Les 6 anneaux Contained restent en dur, faute de `solid/border`. Les 6 fonds Contained en Focus restent en dur aussi : Focus n'a pas de règle, alors que le designer y a repris le token de Default.
+
+Aucune des 582 liaisons de la bonne cible ne reprend le nom du token du designer. Les 42 couleurs ne diffèrent que par la casse et par un segment `.size-wrapper-button`. Les 540 tailles diffèrent par ce segment et par `Medium`, que la Préparation ne connaît pas parce que la taille est un axe de la pièce interne et non du Button. Le segment vient de la question de nom. Dès qu'un variant porte deux layers du même rôle (les 6 Outlined en Focus, fond ou contour plus anneau), `nomsDupliquesDansUnRole` marque le nom du layer dans tous les variants, soit 72 instances. Les 18 variants Text sans peinture sur le wrapper gardent un nom sans segment, et une même mesure reçoit deux variables (`size/.size-wrapper-button/padding-x` sur 144 lieux, `size/padding-x` sur 36). Le designer avait écrit 192 tokens `Button/…` (180 de couleur, 12 de taille) ; le plan en propose 62.
+
+Après création et publication, le plan donne 594 corrections de liaison à cocher : 42 couleurs justes, 12 couleurs fausses, 540 tailles. Le designer poserait encore à la main 318 des 360 couleurs (270 dans les instances, 36 en dur, 12 à corriger) et aucune taille. Sur le fichier tel quel, il poserait les 360 couleurs.
+
+### Ce que cela dit de l'expérience « Relier le composant » (section 7)
+
+- Étape 2. Trois quarts des emplacements de couleur (270 sur 360) sont dans des instances, que ni la Préparation ni C25 ne voient. Une expérience bâtie sur le relevé actuel laisse ces 270 liaisons au designer. Elle doit lire sous la frontière, par les surcharges.
+- Étape 3. Le dossier se décide par case Variant × State, pas par valeur de style. Pour 3 styles et 5 états, la grille compte 15 cases, communes aux six couleurs. Une question par case coûte 15 réponses et couvre les 90 variants. Une question par valeur de style en couvre trois, et aucune réponse unique ne convient à Outlined : `page` garde les 12 contours de Default et de Focus et laisse en dur les 12 fonds de Hover et de Pressed, `solid` fait l'inverse (42 cibles justes dans les deux cas, mais pas les mêmes).
+- Étape 4. Sans liaison de départ, le token voisin n'a aucun voisin, et le nom construit par la grammaire porte seul les 42 bonnes cibles. Un nom qui garde le segment du layer (`.size-wrapper-button`) ne retrouve jamais le token du designer. La réponse de l'étape 3 doit nommer le rôle (`background`, `foreground`), et le segment du layer reste hors du nom.
+- Étape 6. Le plan crée 62 variables là où le designer en avait 192. Les 90 tokens `foreground`, la moitié des tokens de couleur, portent le texte et les icônes que la Préparation ne voit pas.
+
+### Ce que cela dit des gains de précision (section 8)
+
+- P-a est le gain le plus large : les 270 couleurs d'instance, plus les 90 peintures du wrapper et de l'anneau et les 540 tailles du wrapper, qu'aucun constat ne signale sur ce composant. Le saut de C25 et de C29 doit s'arrêter aux champs que `overrides` ne liste pas.
+- P-b ne joue pas ici, car un composant sans aucune liaison n'a ni variant modèle ni token voisin.
+- P-c n'est pas mesuré, aucune liaison étrangère n'étant posée.
+- P-d tient : la carte `sansTokens` s'affiche. Elle doit dire que la collection des composants existe dans la library et ne porte aucun `Button/…`.
+- P-e s'étend : un rôle que le référentiel ne porte pas (`ring`) tombe sur `border` sans question, 12 fois. Le marquage du nom par layer se décide aussi sur 6 variants et s'applique aux 72.
+
+Deux écarts que la section 8 ne couvre pas. La recherche du thème distingue la casse, et le fichier de test écrit `Primary/Solid/default` : toutes les couleurs restent en dur (90 contre 36). Les états Focus et la case Variant × State sont sans règle : 36 couleurs en dur et 12 cibles fausses.
+
+### Limites de la mesure
+
+- La capture ne porte aucun import de library. Le script remplit `libraries.imports` avec les variables captées. Les valeurs des tokens de `layout` que le Button ne lie pas sont donc inconnues, et une ambiguïté entre deux tokens de même valeur ne peut pas apparaître. Avec `--sans-imports`, les 540 tailles restent en dur.
+- La colonne « Thème en minuscules » est une simulation : seuls les noms du thème changent.
+- Le double ne crée aucune variable et ne publie rien. Le calcul de la liaison après création (594 corrections) lance `liaisonsDeLaPreparation` sur des clés fabriquées : aucune correction n'est écrite, ni relue par une nouvelle analyse.
+- Les six réponses sont celles du mesureur. D'autres réponses changent les nombres, comme le montre l'étape 3 ci-dessus.
+- Les couleurs en dur ont la valeur exacte du token d'origine. Un Button dessiné à la main aurait des teintes proches. La Préparation vise par rôle et n'y perd rien, mais toute reprise par valeur y perdrait.
+- Le Button mesuré range tout dans une pièce interne. Un composant qui dessine son texte dans ses propres layers en ferait voir davantage à la Préparation.
+- La mesure n'essaie ni l'interface ni les aperçus. Le jeu n'emploie que la taille Medium. `--layout-en-dur` retire en plus 757 liaisons directes vers le layout : il ajoute 2 variables de taille et 18 contours sans token exact, et ne change pas les couleurs.
+
 ## 7. Une seule expérience de liaison
 
 Aujourd'hui, Architect relie un composant par quatre chemins qui ne se ressemblent pas : la Préparation (Préparer, Créer, Lier), les corrections C25 et C29 une par une, la propagation d'un variant modèle (C81 puis C24), et rien du tout dans un fichier non déclaré UCM. L'outil local montre qu'un seul geste suffit au designer : dire, pour chaque emplacement coloré, quel token il prend ; le plugin en déduit le token de chaque variante.
