@@ -17,20 +17,20 @@ Ce plan suit la piste P22 de `docs/notes/Recherches/Evolutions globales/pistes.j
 
 [DECISIONS-P22.md](./DECISIONS-P22.md) explique chaque décision en termes simples, avec la réponse recommandée et ce qu'elle change dans Figma.
 
-- [ ] 0.1 (mainteneur). Choix 1 de la recherche : bloc `pieces` à la racine, distinct de `composes`. L'audit confirme la recommandation A.
-- [ ] 0.2 (mainteneur). Choix 3 : pièces à plat. L'audit confirme A, avec les renvois imbriqués de F7.
-- [ ] 0.3 (mainteneur). Choix 6 précisé par D2 : une définition du token du composant (F13), jugement par emplacement (F14), cas sans instance (F15), Exporter sans dossier désigné (F17). Le choix 4 option A ne vaut plus pour les couleurs.
-- [ ] 0.4 (mainteneur). Choix 5 : garder `.` et `_`. L'audit confirme la recommandation.
-- [ ] 0.5 (mainteneur). Parité : `<Pièce>Props` facultative, « pièce non comparée » sinon, avec F27 à F29.
+- [x] 0.1 (mainteneur). Choix 1 de la recherche : bloc `pieces` à la racine, distinct de `composes`. L'audit confirme la recommandation A. (733c30ee)
+- [x] 0.2 (mainteneur). Choix 3 : pièces à plat. L'audit confirme A, avec les renvois imbriqués de F7. (733c30ee)
+- [x] 0.3 (mainteneur). Choix 6 précisé par D2 : une définition du token du composant (F13), jugement par emplacement (F14), cas sans instance (F15), Exporter sans dossier désigné (F17). Le choix 4 option A ne vaut plus pour les couleurs. (733c30ee)
+- [x] 0.4 (mainteneur). Choix 5 : garder `.` et `_`. L'audit confirme la recommandation. (733c30ee)
+- [x] 0.5 (mainteneur). Parité : `<Pièce>Props` facultative, « pièce non comparée » sinon, avec F27 à F29. (733c30ee)
 - [ ] 0.6 (mainteneur). D1 et Q1 : critère du wrapper et de la pièce (F1, F4).
 - [ ] 0.7 (mainteneur). D5 et Q2 : définition d'une propriété pour l'obligation de règles (F33), entrée d'une pièce sans propriété.
-- [ ] 0.8 (mainteneur). D4, Q3 et Q4 : renvoi complet, parties entières, variante citée par `nodeId` (F6).
+- [x] 0.8 (mainteneur). D4, Q3 et Q4 : renvoi complet, parties entières, variante citée par `nodeId` (F6). (733c30ee)
 - [ ] 0.9 (mainteneur). Q5 : dépendances rangées dans leur entrée, avec le comptage de F27.
-- [ ] 0.10 (mainteneur). D6 et Q6 : contenu par défaut d'un `SLOT` de l'hôte, `SLOT` d'une pièce rempli par l'hôte (F12).
-- [ ] 0.11 (mainteneur). D3 : couleur et glyphe qu'un hôte ou une pièce pose dans une dépendance (F19 à F21).
-- [ ] 0.12 (mainteneur). D7 : pièce partagée (F5).
+- [x] 0.10 (mainteneur). D6 et Q6 : contenu par défaut d'un `SLOT` de l'hôte, `SLOT` d'une pièce rempli par l'hôte (F12). (733c30ee)
+- [x] 0.11 (mainteneur). D3 : couleur et glyphe qu'un hôte ou une pièce pose dans une dépendance (F19 à F21). (733c30ee)
+- [x] 0.12 (mainteneur). D7 : pièce partagée (F5). (733c30ee)
 - [x] 0.13 (mainteneur). D9 : noms tirés de la capture de Groupe (F41). Tranchée : noms inventés, historique purgé. (32df302d)
-- [ ] 0.14 (mainteneur). D10 : garder ou retirer l'essai R1 (F42).
+- [x] 0.14 (mainteneur). D10 : garder ou retirer l'essai R1 (F42). (733c30ee)
 - [ ] 0.15 (attend P31). D8 : écriture de « Relier le composant » dans le maître ou dans l'instance (F32), après la maquette de P31 (case 2.1 de son plan).
 
 ## Étape 1. Essais, données et mesure

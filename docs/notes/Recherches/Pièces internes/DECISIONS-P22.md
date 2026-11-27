@@ -177,7 +177,7 @@ Faille : F44.
 
 Le mainteneur valide la réponse recommandée de Choix 1, Choix 3, D2, D3, D4, D6, D7, Choix 5, Parité, D10 et 2.3c.
 
-D1 reste ouverte. Le critère de l'exposition est refusé : un designer peut oublier la case, et le mainteneur ne l'a pas cochée sur un autre composant. La description fidèle sans classement n'est pas validée non plus. Une étude doit comparer les options et leurs effets, puis recommander la plus robuste. Le mainteneur valide une partie de la question : l'API de l'hôte contient exactement les propriétés que Figma montre sur l'hôte. Le mainteneur corrige aussi la section 1 : la taille de `.sizeWrapperButton` se choisit sur une instance de Button (Small, Medium, Large), sans valeur libre, et le Button règle le texte et les couleurs du wrapper.
+D1 reste ouverte. Le critère de l'exposition est refusé : un designer peut oublier la case, et le mainteneur ne l'a pas cochée sur un autre composant. La description fidèle sans classement n'est pas validée non plus. Une étude doit comparer les options et leurs effets, puis recommander celle qui ne repose sur aucune devinette ni sur un geste que le designer peut oublier. Le mainteneur valide une partie de la question : l'API de l'hôte contient exactement les propriétés que Figma montre sur l'hôte. Le mainteneur corrige aussi la section 1 : la taille de `.sizeWrapperButton` se choisit sur une instance de Button (Small, Medium, Large), sans valeur libre, et le Button règle le texte et les couleurs du wrapper.
 
 D5, Q5 et D8 attendent une explication. D8 attend aussi la maquette de P31.
 
