@@ -1249,7 +1249,11 @@
       "risques": [
         "Un cran que des composants emploient change de valeur : un rendu validé bouge sans que personne ne l'ait décidé.",
         "Ouvrir UCM Palettes à une échelle libre contredit la décision « tout outil sauf l'Exporter est full UCM »."
-      ]
+      ],
+      "prioDuMainteneur": {
+        "prio": 2,
+        "raison": "Moins important que P22, P30 et P31 pour le moment."
+      }
     },
     {
       "id": "P29",
@@ -1557,7 +1561,11 @@
       "risques": [
         "Un kit gratuit à l'usage peut interdire la redistribution : ses captures restent alors dans `_local/`, hors du CI.",
         "Une capture qui relève seulement ce que le code lit aujourd'hui devient incomplète dès que le moteur lit une propriété de plus."
-      ]
+      ],
+      "prioDuMainteneur": {
+        "prio": 5,
+        "raison": "Laissé de côté pour le moment : un banc tiré d'un kit complexifie trop le travail en cours."
+      }
     }
   ]
 }
