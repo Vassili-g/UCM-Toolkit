@@ -198,7 +198,12 @@ test('une piste de pistes.json sort avec ses champs du contrat, et P17 sort à l
   assert.equal(p17.prio, 4);
   assert.equal(p17.prioDeLAgent, 0);
   assert.match(p17.prioPosee!.raison, /On le fait mais plus tard/);
-  for (const piste of aSuivre.filter((candidate) => candidate.id !== 'P17')) assert.equal(piste.prioPosee, null, `${piste.id} : aucune prio posée`);
+  const ecrites = new Map(pistes().map((piste) => [piste.id, piste]));
+  for (const piste of aSuivre) {
+    const posee = ecrites.get(piste.id)!.prioDuMainteneur;
+    assert.deepEqual(piste.prioPosee, posee === undefined ? null : { raison: posee.raison }, `${piste.id} : la prio posée suit pistes.json`);
+    if (posee !== undefined) assert.equal(piste.prio, posee.prio, `${piste.id} : la prio posée prime`);
+  }
   assert.deepEqual(Object.keys(p17).sort(), [
     'attentes', 'avancement', 'complexite', 'coutHumain', 'criteresDeFin', 'debloque', 'dependances', 'dernierLot', 'etat', 'id', 'importance', 'lots',
     'plan', 'prio', 'prioDeLAgent', 'prioPosee', 'questions', 'raisonImportance', 'recherche', 'resume', 'risques', 'sujet', 'titre', 'titreCourt', 'transverses',
