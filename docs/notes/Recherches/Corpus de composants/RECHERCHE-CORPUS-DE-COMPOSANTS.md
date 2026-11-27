@@ -36,7 +36,7 @@ Figma publie par défaut un fichier gratuit de la Community sous licence Creativ
 
 Écartés : Untitled UI, dont la version gratuite n'a ni variables ni propriétés de composant ([page](https://www.untitledui.com/free-figma-ui-kit)). Obra shadcn/ui gratuit, limité à 30 composants en clair. Primer et Atlassian, dont seule une partie est publique. Polaris, Ant Design, Radix et GOV.UK, sans kit officiel maintenu.
 
-Pour un seul kit, Simple Design System apporte ce que les deux fichiers du mainteneur n'ont pas. Il est construit par Figma avec des variables, il range ses icônes en composants, et il publie le code React des mêmes composants, ce qui servira aussi à la parité. Material 3 le remplace si sa licence ou sa complétude déçoit : il mêle styles et variables, ce qui teste aussi la lecture agnostique.
+Le mainteneur a ouvert Simple Design System et Material 3, et retient Material 3, plus complet et plus précis. Material 3 mêle styles et variables, ce qui teste aussi la lecture d'un fichier qui ne déclare pas UCM. Simple Design System reste le second choix : il publie le code React des mêmes composants, ce qui servira à la parité.
 
 À vérifier dans Figma, sur le fichier dupliqué :
 
