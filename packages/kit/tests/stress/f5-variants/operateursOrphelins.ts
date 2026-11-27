@@ -115,12 +115,12 @@ function tokensRetires(base: ComposantDeBase, numero: Numerotation): CasDeVarian
 }
 
 const NOMS_ILLISIBLES: readonly (readonly [description: string, nom: string])[] = [
-  ['les segments d\'état et de palette sont échangés', 'button/color/default/solid/sm/primary/background'],
-  ['un segment de trop s\'ajoute avant le rôle', 'button/color/primary/solid/sm/default/extra/background'],
-  ['la famille color est absente', 'button/primary/solid/sm/default/background'],
-  ['le préfixe devient BtnPrimary, un autre composant', 'BtnPrimary/color/primary/solid/sm/default/background'],
+  ['les segments d\'état et de palette sont échangés', 'button/color/default/solid/small/primary/background'],
+  ['un segment de trop s\'ajoute avant le rôle', 'button/color/primary/solid/small/default/extra/background'],
+  ['la famille color est absente', 'button/primary/solid/small/default/background'],
+  ['le préfixe devient BtnPrimary, un autre composant', 'BtnPrimary/color/primary/solid/small/default/background'],
   ['le nom se réduit à button/colours', 'button/colours'],
-  ['le rôle devient glow, que le registre ne connaît pas', 'button/color/primary/solid/sm/default/glow'],
+  ['le rôle devient glow, que le registre ne connaît pas', 'button/color/primary/solid/small/default/glow'],
 ];
 
 /** O6 : le token de fond du premier variant prend un nom illisible. Q-F5-8 donne C32 `nom-illisible` ; un autre préfixe n'est plus un token du composant. */

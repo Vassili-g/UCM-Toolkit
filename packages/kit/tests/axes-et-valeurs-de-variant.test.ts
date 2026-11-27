@@ -2,7 +2,7 @@
  * Lot E7a : le nom d'un axe décide de son rôle avant les termes d'un autre registre (Q-F5-2), deux axes renommés à la fois ne posent
  * aucune question et les candidats ne comptent pas une valeur déjà présente (Q-F5-4, N-35), deux axes de style (Q-F5-3), l'écriture
  * d'une valeur de variant et de son token (Q-F5-5, Q-F5-6, N-34, N-37) et la valeur à point ou à barre (Q-F5-10). Un variant s'écrit en
- * toutes lettres (`Size=Small`), un token par son abréviation (`sm`).
+ * toutes lettres (`Size=Small`), un dossier de token aussi (`button/size/small/gap`), une variable par son abréviation (`gap/sm`).
  */
 import assert from 'node:assert/strict';
 import test from 'node:test';
@@ -77,8 +77,8 @@ test('E7.1 : un axe Color garde ses valeurs de palette à la position de la pale
 
 const MATRICE: readonly Axe[] = [['Color', ['primary', 'danger']], ['Size', ['Small', 'Medium', 'Large']], ['State', ['default', 'hover']]];
 const jetonsDeLaMatrice = (): VariableDuCatalogue[] => [
-  ...tokensDeCouleur(MATRICE, (axe, valeur) => (axe === 'Size' ? { Small: 'sm', Medium: 'md', Large: 'lg' }[valeur]! : valeur)),
-  ...['Small', 'Medium', 'Large'].map((taille) => jeton(`button/size/${{ Small: 'sm', Medium: 'md', Large: 'lg' }[taille]}/gap`, { type: 'FLOAT' })),
+  ...tokensDeCouleur(MATRICE, minuscules),
+  ...['small', 'medium', 'large'].map((taille) => jeton(`button/size/${taille}/gap`, { type: 'FLOAT' })),
 ];
 
 test('E7.2 : la matrice de départ ne donne aucun constat de nom', () => {
@@ -97,15 +97,15 @@ test('E7.2 : un seul axe ouvert donne une question dont le candidat est l’orph
   const constats = controlerNommage(r, catalogue(jetonsDeLaMatrice()));
   assert.deepEqual(codes(constats).sort(), ['C12', 'C7']);
   const question = constats.find(({ code }) => code === 'C12')!.question!;
-  // `md` et `lg` sont les segments de variants présents ; `sm` est le seul orphelin, dans les tokens de couleur comme dans ceux de taille.
-  assert.deepEqual(question.candidats.map(({ nom }) => nom), ['sm']);
+  // `medium` et `large` sont les segments de variants présents ; `small` est le seul orphelin, dans les tokens de couleur comme dans ceux de taille.
+  assert.deepEqual(question.candidats.map(({ nom }) => nom), ['small']);
 });
 
 test('E7.2 : deux valeurs renommées dans le même axe gardent deux questions à deux candidats', () => {
   const r = releve(MATRICE, { Size: { Small: 'Compact', Medium: 'Cozy' } });
   const constats = controlerNommage(r, catalogue(jetonsDeLaMatrice())).filter(({ code }) => code === 'C13');
   assert.equal(constats.length, 2);
-  for (const constat of constats) assert.deepEqual(constat.question!.candidats.map(({ nom }) => nom).sort(), ['md', 'sm']);
+  for (const constat of constats) assert.deepEqual(constat.question!.candidats.map(({ nom }) => nom).sort(), ['medium', 'small']);
 });
 
 // ---------------------------------------------------------------------------------------------------------------------------
@@ -151,15 +151,15 @@ test('E7.3 : les styles qui visent leur dossier, ou un dossier hors solid et sur
 const TAILLES: readonly Axe[] = [['Size', ['Small', 'Medium', 'Large']]];
 const tokensDeTaille = (...segments: string[]): VariableDuCatalogue[] => segments.map((segment) => jeton(`button/size/${segment}/gap`, { type: 'FLOAT' }));
 
-test('E7.4 : le variant Small correspond au token sm, sans C7 ni constat de casse', () => {
-  assert.deepEqual(controlerNommage(releve(TAILLES), catalogue(tokensDeTaille('sm', 'md', 'lg'))), []);
+test('E7.4 : le variant Small correspond au dossier small, sans C7 ni constat de casse', () => {
+  assert.deepEqual(controlerNommage(releve(TAILLES), catalogue(tokensDeTaille('small', 'medium', 'large'))), []);
 });
 
-test('E7.4 : le token small reçoit C10 vers sm, et le variant en minuscules reste tenu', () => {
+test('E7.4 : le dossier sm reçoit C10 vers small, et le variant en minuscules reste tenu', () => {
   const r = releve([['Size', ['small', 'medium', 'large']]]);
-  const constats = controlerNommage(r, catalogue(tokensDeTaille('small', 'medium', 'large')));
-  assert.deepEqual(constats.map(({ code, faits }) => [code, faits.segment, faits.attendu]), [['C10', 'small', 'sm'], ['C10', 'medium', 'md'], ['C10', 'large', 'lg']]);
-  assert.deepEqual(controlerNommage(r, catalogue(tokensDeTaille('sm', 'md', 'lg'))), []);
+  const constats = controlerNommage(r, catalogue(tokensDeTaille('sm', 'md', 'lg')));
+  assert.deepEqual(constats.map(({ code, faits }) => [code, faits.segment, faits.attendu]), [['C10', 'sm', 'small'], ['C10', 'md', 'medium'], ['C10', 'lg', 'large']]);
+  assert.deepEqual(controlerNommage(r, catalogue(tokensDeTaille('small', 'medium', 'large'))), []);
 });
 
 test('E7.4 : S, sm et Middle dans un variant reçoivent une correction vers le mot entier, Extra Large est tenu', () => {

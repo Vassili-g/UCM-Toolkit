@@ -82,6 +82,9 @@ export function generer(graine:number,spec:Spec):DocumentGenere{
  const paletteId=(spec.axes.find(a=>a.role==='palette')?.valeurs[0]??'Primary').toLowerCase();
  const paletteEcrite=spec.axes.find(a=>a.role==='palette')?.valeurs[0]??'Primary',etatEcrit=spec.axes.find(a=>a.role==='etat')?.valeurs[0]??'Default';
  const tailleId=tailleDuRegistre(spec.axes.find(a=>a.role==='taille')?.valeurs[0]??spec.wrapperTaille?.valeur??'Medium')??'md';
+ // Un dossier écrit la taille en toutes lettres, à la casse des autres dossiers (`Button/Size/Medium`).
+ const motDeDossier=REGISTRE_TAILLES.termes.find(t=>t.id===tailleId)?.identifiantParCategorie?.groupes??tailleId;
+ const tailleDuDossier=motDeDossier.charAt(0).toUpperCase()+motDeDossier.slice(1);
  const dossier=(spec.axes.find(a=>a.role==='style')?.valeurs[0]??'Filled').toLowerCase()==='subtle'?'surface':'solid';
  variable('theme-fond','t',paletteId+'/'+dossier+'/default','COLOR',alias('rampe-fond'),['ALL_FILLS'],{'t:Light':alias('rampe-fond'),'t:Dark':alias('rampe-fond-dark')});variable('theme-texte','t',paletteId+'/'+dossier+'/foreground','COLOR',alias('rampe-texte'),['ALL_FILLS'],{'t:Light':alias('rampe-texte'),'t:Dark':alias('rampe-texte-dark')});
  const couleurToken=(role:string,nom=spec.nom)=>{
@@ -89,7 +92,7 @@ export function generer(graine:number,spec:Spec):DocumentGenere{
   const style=spec.axes.find(a=>a.role==='style')?.valeurs[0]??'Filled';
   variable(id,'c',`${nom}/Color/${paletteEcrite}/${style}/${etatEcrit}/${role}`,'COLOR',alias(role==='background'?'theme-fond':'theme-texte'),role==='border'||role==='ring'?['STROKE_COLOR']:role==='background'?['FRAME_FILL','SHAPE_FILL']:['TEXT_FILL','SHAPE_FILL','FRAME_FILL']);return id;
  };
- const taille=(prop:string,target:string)=>{const id='taille-'+prop;if(doc.variables.some(v=>v.id===id))return id;variable(id,'c',`${spec.nom}/Size/${tailleId}/${prop}`,'FLOAT',alias(parChemin.get('layout/'+target)!),prop==='radius'?['CORNER_RADIUS']:prop==='border-width'?['STROKE_FLOAT']:['width','height','icon-size'].includes(prop)?['WIDTH_HEIGHT']:['GAP']);return id;};
+ const taille=(prop:string,target:string)=>{const id='taille-'+prop;if(doc.variables.some(v=>v.id===id))return id;variable(id,'c',`${spec.nom}/Size/${tailleDuDossier}/${prop}`,'FLOAT',alias(parChemin.get('layout/'+target)!),prop==='radius'?['CORNER_RADIUS']:prop==='border-width'?['STROKE_FLOAT']:['width','height','icon-size'].includes(prop)?['WIDTH_HEIGHT']:['GAP']);return id;};
  /** Un calque de 16 px dont la largeur et la hauteur sont liées : sans cela C30 le relève, une fois que le moteur voit les calques imbriqués. */
  const dimensions=(prop='width',autre='height')=>({width:alias(taille(prop,'sizing/4')),height:alias(taille(autre,'sizing/4'))});
  const ajuste={layoutSizingHorizontal:'HUG',layoutSizingVertical:'HUG'};

@@ -37,16 +37,13 @@ export const AXES_DE_P0: readonly AxeDeVariants[] = [
 ];
 
 /**
- * Le segment qu'un token écrit pour une valeur d'axe : l'identifiant du terme pour une taille que le registre connaît (`Small` donne
- * `sm`), la forme de dossier pour un état, sinon la valeur telle quelle.
+ * Le segment qu'un token écrit dans un dossier pour une valeur d'axe : la forme de dossier pour une taille ou un état que le registre
+ * connaît (`Small` donne `small`, `xl` reste `xl`), sinon la valeur telle quelle.
  */
 export function segmentDeLaValeur(role: AxeDuComposant | null, valeur: string): string {
-  if (role === 'taille') return termeReconnu(REGISTRE_TAILLES, valeur)?.id ?? valeur;
-  if (role === 'etat') {
-    const terme = termeReconnu(REGISTRE_ETATS, valeur);
-    if (terme) return termePourCategorie(terme, 'groupes').id;
-  }
-  return valeur;
+  const registre = role === 'taille' ? REGISTRE_TAILLES : role === 'etat' ? REGISTRE_ETATS : null;
+  const terme = registre ? termeReconnu(registre, valeur) : undefined;
+  return terme ? termePourCategorie(terme, 'groupes').id : valeur;
 }
 
 export function specDeVariants(jeu: string, axes: readonly AxeDeVariants[], graine: number = GRAINE_PAR_DEFAUT): SpecDeComposant {
@@ -104,7 +101,7 @@ export const AXES_DE_F6: readonly AxeDeVariants[] = AXES_DE_P0.filter((axe) => a
 
 export const PROPRIETE_D_ICONE = 'Icon#1:2';
 
-/** Le style de texte d'une valeur de taille : `Label/Small` pour le segment `sm`. */
+/** Le style de texte d'une valeur de taille : `Label/Small` pour le segment `small` ou `sm`. */
 export const styleDeTexteDeLaTaille = (segment: string): string => `Label/${TAILLES_DE_VARIANT[segment]?.variant ?? `${segment.charAt(0).toUpperCase()}${segment.slice(1)}`}`;
 
 export function variableLue(variable: VariableDuCatalogue): LiaisonLue['variable'] {

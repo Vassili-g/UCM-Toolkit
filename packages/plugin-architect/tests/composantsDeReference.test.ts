@@ -288,8 +288,7 @@ function button(texteClair = false): Monde {
 }
 
 // Les attentes de Button, écrites avant l'analyse.
-//   C10 : D'après la table des tailles, `Medium`, `Large` et `Small` s'écrivent `Md`, `Lg` et `Sm` dans un token. Les tokens `Button/Size/<taille>/…` les
-//         écrivent en entier : un constat corriger par taille, comme le rapport du 25 novembre.
+//   Aucun C10 : les tokens `Button/Size/<taille>/…` écrivent la taille en toutes lettres, la forme d'un dossier.
 //   C83 : D8. `.sizeWrapperButton` porte l'axe `Size` que Button n'a pas, et son instance n'est exposée dans aucun variant (`isExposedInstance` faux).
 //   C53 : les 4 variants `State=Disabled` (2 couleurs x 2 styles) sortent des mesures d'accessibilité, une information.
 //   C50 : les variants Outlined n'ont aucun fill. Leur contour se mesure sur le fond de la page (blanc), que le plugin ne garantit pas :
@@ -299,9 +298,6 @@ function button(texteClair = false): Monde {
 //         noir sur blanc dans chaque état, ce qui passe. Le test suivant les fait échouer pour le montrer.
 //   Aucun C42, C45 ni C19 : les règles de Button couvrent `size`, `iconLeft`, `iconRight`, `label` et `@icons` pour les deux flèches.
 const ATTENDUS_DE_BUTTON: readonly Attendu[] = [
-  ['C10', 'corriger', 'tailles', 'Medium'],
-  ['C10', 'corriger', 'tailles', 'Large'],
-  ['C10', 'corriger', 'tailles', 'Small'],
   ['C83', 'verifier', 'variants', '.sizeWrapperButton:Size'],
   ['C53', 'info', 'contraste', '4 variants'],
   ['C50', 'info', 'contraste', 'fond-de-repli'],
@@ -385,6 +381,7 @@ function alert(): Monde {
 
 // Les attentes d'Alert, écrites avant l'analyse.
 //   C8  : D9. `Type` prend le rôle de palette, car ses valeurs sont des palettes, et la table des palettes écrit `Danger` ce que le variant écrit `Error`.
+//   C10 : les tokens `Alert/Size/md/…` abrègent la taille dans un dossier, qui l'écrit en toutes lettres (`Medium`).
 //   C45 : D13. Les règles disent `severity` pour les valeurs de `Type` : un seul constat `renommee`, ni C44 ni deux C45 `sans-règle`, `sans-propriété`.
 //   Aucun C7, C13, C32, C33 (D9, D10), aucun C63 : `Type` n'est pas un second axe de style.
 //   Aucun C65 (D11, D12) : `Body/Large` lie `fontFamily` à `primitives`, ce que la référence admet.
@@ -396,6 +393,7 @@ function alert(): Monde {
 //   Aucun C19, C80 : le Button documenté garde ses tokens, et les calques d'Alert lient ses tokens à lui, pas ceux du layout.
 const ATTENDUS_D_ALERT: readonly Attendu[] = [
   ['C8', 'corriger', 'variants', 'Error'],
+  ['C10', 'corriger', 'tailles', 'md'],
   ['C45', 'corriger', 'regles', 'renommee:type:severity'],
   ['C66', 'verifier', 'typographie', 'circle-info'],
   ['C66', 'verifier', 'typographie', 'circle-check'],

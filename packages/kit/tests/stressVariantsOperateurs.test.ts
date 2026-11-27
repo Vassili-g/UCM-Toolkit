@@ -123,9 +123,9 @@ test('V1 : une valeur renommée donne C7, la question dont l\'unique candidat es
   const question = cas('V1-1').attendus.find((attendu) => attendu.code === 'C12')!;
   assert.deepEqual([question.cle, question.candidats], ['Style=Ghost', ['solid']]);
   assert.ok(cas('V1-1').attendus.some((attendu) => attendu.cle === c7('Style', 'Ghost').cle));
-  // Size Small devient Compact : l'orphelin est `sm`, dans les deux familles ; ni md ni lg, que d'autres variants portent (N-35).
+  // Size Small devient Compact : l'orphelin est `small`, dans les deux familles ; ni medium ni large, que d'autres variants portent (N-35).
   const taille = cas('V1-6').attendus.find((attendu) => attendu.code === 'C12')!;
-  assert.deepEqual(taille.candidats, ['sm']);
+  assert.deepEqual(taille.candidats, ['small']);
   assert.equal(cas('V1-6').attendus.filter((attendu) => attendu.code === 'C33').length, 48);
   // Color primary devient Destructive : ni secondary ni danger parmi les candidats.
   assert.deepEqual(cas('V1-3').attendus.find((attendu) => attendu.code === 'C12')!.candidats, ['primary']);
@@ -148,7 +148,7 @@ test('V4 : une forme tolérée donne C8 ou C10 avec le terme canonique, la forme
   assert.deepEqual(duOperateur('V4').slice(0, 6).map((entree) => entree.attendus), [
     [c8('hovered', 'hover')], [c8('focused', 'focus')], [c8('press', 'pressed')], [c8('disable', 'disabled')], [c8('rest', 'default')], [c8('normal', 'default')],
   ]);
-  assert.deepEqual(duOperateur('V4').slice(6, 9).map((entree) => entree.attendus), [[c10('small', 'sm')], [c10('medium', 'md')], [c10('large', 'lg')]]);
+  assert.deepEqual(duOperateur('V4').slice(6, 9).map((entree) => entree.attendus), [[c10('sm', 'small')], [c10('md', 'medium')], [c10('lg', 'large')]]);
   assert.deepEqual(duOperateur('V4').slice(9, 12).map((entree) => entree.attendus), [[c8('Colors', 'color')], [c8('Colour', 'color')], [c8('Colours', 'color')]]);
   // Une palette tolérée dans le token reçoit C8 (Q-F5-5), le variant qui l'écrit aussi.
   assert.deepEqual(duOperateur('V4').slice(12, 14).map((entree) => entree.attendus), [[c8('error', 'danger')], [c8('critical', 'danger')]]);
@@ -172,11 +172,11 @@ test('Q : deux valeurs renommées donnent deux C7 et deux C13 aux deux seuls orp
   assert.deepEqual(q11.attendus.filter((attendu) => attendu.code === 'C13').map((attendu) => [attendu.cle, [...attendu.candidats!].sort()]),
     [['Color=Brand', ['primary', 'secondary']], ['Color=Accent', ['primary', 'secondary']]]);
   assert.equal(q11.attendus.filter((attendu) => attendu.code === 'C7').length, 2);
-  assert.deepEqual([...q12.attendus.find((attendu) => attendu.code === 'C13')!.candidats!].sort(), ['md', 'sm']);
+  assert.deepEqual([...q12.attendus.find((attendu) => attendu.code === 'C13')!.candidats!].sort(), ['medium', 'small']);
   assert.equal(cas('Q2-1').verdict, 'attendu', 'Q-F5-4 est tranchée');
   assert.ok(cas('Q2-1').attendus.every((attendu) => attendu.forme !== 'question'), 'Q-F5-4 : C7 sans question');
   assert.equal(cas('Q2-1').attendus.filter((attendu) => attendu.code === 'C7').length, 2);
-  assert.deepEqual(cas('Q3-1').attendus.find((attendu) => attendu.code === 'C12')!.candidats, ['md']);
+  assert.deepEqual(cas('Q3-1').attendus.find((attendu) => attendu.code === 'C12')!.candidats, ['medium']);
 });
 
 test('M1 : un variant retiré donne C31 et ses six tokens de couleur sans variant ; une ligne entière retire aussi les tokens de taille', () => {
@@ -203,10 +203,10 @@ test('M3 : sous la borne, 200 C31 au plus et une ligne « et N autres » ; au-de
 });
 
 test('O : les tokens sans variant, inutilisés, retirés ou illisibles ont chacun leur constat', () => {
-  assert.deepEqual(cas('O1-1').attendus, [c32('button/color/primary/ghost/sm/default/background', 'sans-variant')]);
+  assert.deepEqual(cas('O1-1').attendus, [c32('button/color/primary/ghost/small/default/background', 'sans-variant')]);
   assert.deepEqual(cas('O1-3').attendus, [c32('button/color/primary/solid/xl/default/background', 'sans-variant')]);
-  assert.deepEqual(cas('O2-1').attendus, [c32('button/color/primary/solid/sm/default/border', 'inutilise')]);
-  assert.deepEqual(cas('O2-4').attendus, [c32('button/size/sm/gap', 'inutilise')]);
+  assert.deepEqual(cas('O2-1').attendus, [c32('button/color/primary/solid/small/default/border', 'inutilise')]);
+  assert.deepEqual(cas('O2-4').attendus, [c32('button/size/small/gap', 'inutilise')]);
   assert.deepEqual(cas('O3-1').attendus, []);
   assert.deepEqual(duOperateur('O4').map((entree) => entree.attendus), [[], []]);
   // Plus aucun token de Style=solid : C7 de la valeur et C33 pour chacun de ses 36 variants.
@@ -214,7 +214,7 @@ test('O : les tokens sans variant, inutilisés, retirés ou illisibles ont chacu
   assert.deepEqual(cas('O5-1').attendus[0], c7('Style', 'solid'));
   assert.deepEqual(cas('O5-6').attendus.filter((attendu) => attendu.code === 'C33').length, 48);
   assert.deepEqual(duOperateur('O6').map((entree) => entree.attendus.length), [1, 1, 1, 0, 1, 1]);
-  assert.deepEqual(cas('O6-1').attendus, [c32('button/color/default/solid/sm/primary/background', 'nom-illisible')]);
+  assert.deepEqual(cas('O6-1').attendus, [c32('button/color/default/solid/small/primary/background', 'nom-illisible')]);
   const premier = base.releve.variants[0].id;
   assert.ok(!cas('O5-1').attendus.some((attendu) => attendu.cle === c33(premier, 'size').cle), 'les tokens de taille couvrent encore les variants');
 });

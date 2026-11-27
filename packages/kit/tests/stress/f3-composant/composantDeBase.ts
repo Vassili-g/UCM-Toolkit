@@ -17,6 +17,7 @@ import { axeDePropriete, etatReconnu, type AxeDuComposant } from '../../../src/c
 import type { Convention } from '../../../src/referentiel/conventions.js';
 import { assembler, decouperSegment, motsAvecCasse } from '../../../src/referentiel/ecriture-des-mots.js';
 import { formeReconnue, termeReconnu } from '../../../src/referentiel/reconnaissance.js';
+import { termePourCategorie } from '../../../src/referentiel/termes.js';
 import { CRANS, REGISTRE_TAILLES } from '../../../src/referentiel/vocabulaire.js';
 import { graineDe, melanger, mulberry32 } from '../commun/prng.js';
 import {
@@ -254,8 +255,9 @@ export function construireLeComposant(spec: SpecDeComposant): ComposantDeBase {
       if (famille === 'size' && role !== 'taille') continue;
       const axe = axeDuSegment(role);
       if (!axe || valeurs[axe.propriete] === undefined) continue;
-      // Un token écrit une taille par son identifiant (`sm`) quand la spec ne dit rien, le variant la dit en toutes lettres (Q-F5-6).
-      const ecrite = role === 'taille' && !spec.ecritureDesValeurs ? termeReconnu(REGISTRE_TAILLES, valeurs[axe.propriete])?.id : undefined;
+      // Un dossier de token écrit une taille en toutes lettres (`small`) quand la spec ne dit rien, comme le variant (Q-F5-6).
+      const terme = role === 'taille' && !spec.ecritureDesValeurs ? termeReconnu(REGISTRE_TAILLES, valeurs[axe.propriete]) : undefined;
+      const ecrite = terme ? termePourCategorie(terme, 'groupes').id : undefined;
       segments.push(ecrite ?? ecrireLaValeur(axe.propriete, valeurs[axe.propriete]));
       portees[axe.propriete] = valeurs[axe.propriete];
     }

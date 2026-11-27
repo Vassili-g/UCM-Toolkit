@@ -52,7 +52,7 @@ test('la base de F6 compte 12 variants, un style par taille et une instance d\'I
     const icone = variant.layers.find((layer) => layer.nom === 'Icon')!;
     assert.deepEqual([icone.type, icone.instanceDe!.distante, icone.instanceDe!.pilotee], ['INSTANCE', true, 'Icon#1:2']);
     assert.deepEqual(icone.liaisons.map((liaison) => [liaison.champ, liaison.variable.nom]),
-      [['fills', `button/color/${{ Small: 'sm', Medium: 'md', Large: 'lg' }[variant.valeurs.Size]}/${variant.valeurs.State}/icon`]], 'le remplissage suit le token icon du composant, ni largeur ni hauteur');
+      [['fills', `button/color/${variant.valeurs.Size.toLowerCase()}/${variant.valeurs.State}/icon`]], 'le remplissage suit le token icon du composant, ni largeur ni hauteur');
     assert.deepEqual(icone.instanceDe!.valeurs, { Size: variant.valeurs.Size }, 'la propriété Size vaut la taille du variant');
     assert.ok(!variant.layers.some((layer) => layer.nom === 'Glyph'), 'Glyph est retiré');
   }
@@ -199,14 +199,14 @@ test('FP2 : l\'oracle d\'une valeur attestée vient des registres, pas du corpus
   assert.deepEqual(fp2('Rest').attendus, [c8('Rest', 'default')]);
   assert.deepEqual(fp2('Hovered').attendus, [c8('Hovered', 'hover')]);
   assert.deepEqual(fp2('Disable').attendus, [c8('Disable', 'disabled')]);
-  // Un token écrit la taille par son identifiant : `Small`, `Medium` et `Large` reçoivent C10 vers `sm`, `md` et `lg` (Q-F5-6).
-  assert.deepEqual([fp2('Small').attendus, fp2('Medium').attendus, fp2('Large').attendus], [[c10('Small', 'sm')], [c10('Medium', 'md')], [c10('Large', 'lg')]]);
+  // Un dossier de token écrit la taille en toutes lettres : `Small`, `Medium` et `Large` sont tenus, la casse seule ne compte pas.
+  assert.deepEqual([fp2('Small').attendus, fp2('Medium').attendus, fp2('Large').attendus], [[], [], []]);
   assert.deepEqual([fp2('Primary').attendus, fp2('Solid').attendus, fp2('Default').attendus, fp2('Mini').attendus], [[], [], [], []]);
   // Une palette tolérée reçoit C8 dans le token, et le variant qui l'écrit reçoit sa correction vers le mot entier (Q-F5-5).
   assert.deepEqual([fp2('Critical').verdict, fp2('Critical').attendus], ['attendu', [c8('Critical', 'danger'), variantCorrige('C8', 'Color', 'Critical', 'Danger')]]);
   assert.deepEqual([fp2('Error', 'palette').verdict, fp2('Error', 'palette').attendus.map((attendu) => attendu.cle)], ['attendu', ['Error>danger', 'variant|Color=Error>Danger']]);
   assert.deepEqual([fp2('Error', 'etat').verdict, fp2('Error', 'etat').attendus], ['attendu', []], 'Error est un état sans forme tolérée');
-  assert.equal(FP.filter((entree) => entree.operateur === 'FP2' && entree.attendus.length > 0).length, 24);
+  assert.equal(FP.filter((entree) => entree.operateur === 'FP2' && entree.attendus.length > 0).length, 21);
 });
 
 test('FP3 et FP4 : quatre valeurs à point ou à barre écrites avec un tiret (Q-F5-10), 23 composants de F6 sans constat attendu', () => {
@@ -237,7 +237,7 @@ test('V1+M1, V1+O1 et V1+V1 : les constats de chaque dégradation restent indép
   assert.equal(m1.find((attendu) => attendu.code === 'C31')!.cle, `Color=${retire.Color}|Size=${retire.Size}|State=${retire.State}|Style=Tonal`);
   const o1 = interaction('V1+O1', 'P0').attendus;
   assert.deepEqual(o1.find((attendu) => attendu.code === 'C12')!.candidats, ['outline'], 'l\'orphelin d\'un autre axe n\'entre pas dans les candidats');
-  assert.ok(o1.some((attendu) => attendu.cle === 'button/color/primary/solid/sm/selected/background|sans-variant'));
+  assert.ok(o1.some((attendu) => attendu.cle === 'button/color/primary/solid/small/selected/background|sans-variant'));
   const v1 = interaction('V1+V1', 'P0');
   assert.deepEqual(v1.attendus.filter((attendu) => attendu.code === 'C7').map((attendu) => attendu.cle).sort(), ['Color=Destructive', 'Size=Compact']);
   assert.ok(v1.attendus.every((attendu) => attendu.code !== 'C12' && attendu.code !== 'C13'));
@@ -255,7 +255,7 @@ test('V3+V4, M1+O5, A3+V1, O2+M1 et A4+V1 : C8 seul, C31 de la combinaison retir
   const retire = P0.releve.variants.find((variant) => variant.valeurs.Size === 'Large')!;
   assert.ok(m1o5.some((attendu) => attendu.cle === c7('Size', 'Large').cle));
   assert.ok(!m1o5.some((attendu) => attendu.code === 'C33' && attendu.cle.startsWith(`${retire.id}|`)), 'C33 ne vise que les variants présents');
-  assert.ok(interaction('O2+M1', 'P0').attendus.some((attendu) => attendu.cle === 'button/color/primary/solid/sm/default/border|sans-variant'));
+  assert.ok(interaction('O2+M1', 'P0').attendus.some((attendu) => attendu.cle === 'button/color/primary/solid/small/default/border|sans-variant'));
   assert.ok(!interaction('O2+M1', 'P0').attendus.some((attendu) => attendu.cle.endsWith('/border|inutilise')));
   assert.ok(interaction('A4+V1', 'P0').attendus.some((attendu) => attendu.cle === c7('Variant', 'Tonal').cle));
   assert.ok(interaction('A4+V1', 'p18').attendus.some((attendu) => attendu.cle === c7('Kind', 'Tonal').cle));

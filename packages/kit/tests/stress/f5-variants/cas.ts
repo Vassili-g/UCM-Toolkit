@@ -400,8 +400,8 @@ export function attendusDuModele(composant: ComposantDeBase, options: OptionsDuM
       const registre = registreDuRole(role);
       const terme = registre && termeReconnu(registre, segment);
       if (terme && (role === 'etat' || role === 'taille' || role === 'palette')) {
-        // Un token écrit une taille par son identifiant (`sm`), un état par sa forme de dossier, une palette par son identifiant.
-        const canonique = role === 'taille' || role === 'palette' ? terme.id : termePourCategorie(terme, 'groupes').id;
+        // Un segment d'axe est un dossier : une taille et un état y prennent leur forme de dossier (`small`), une palette son identifiant.
+        const canonique = role === 'palette' ? terme.id : termePourCategorie(terme, 'groupes').id;
         if (formeReconnue(segment) !== formeReconnue(canonique)) ajouter(role === 'taille' ? c10(segment, canonique) : c8(segment, canonique));
         continue;
       }

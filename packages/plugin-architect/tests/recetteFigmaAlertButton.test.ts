@@ -91,7 +91,7 @@ const constat = (code: Constat['code'], faits: Constat['faits'], autres: Partial
 test('chaque constat que la recette a montré sans phrase reçoit sa phrase et son geste', () => {
   const cas: Constat[] = [
     constat('C24', { token: 'Button/Color/Primary/Outlined/Default/foreground', role: 'foreground', attendu: 'border', champ: 'strokes' }),
-    constat('C10', { token: 'Button/Size/Medium/gap', segment: 'Medium', attendu: 'md', tokens: 4 }, { famille: 'tailles', variants: [], layers: [] }),
+    constat('C10', { token: 'Button/Size/Md/gap', segment: 'Md', attendu: 'Medium', tokens: 4 }, { famille: 'tailles', variants: [], layers: [] }),
     constat('C21', { nom: 'Button/Color/Primary/Text/Focus/ring', majorite: 'theme:ring', autres: 4, exemple: 'Button/Color/Info/Text/Focus/ring', champ: 'strokes' }, { type: 'verifier' }),
     constat('C45', { composant: 'Alert', regle: 'severity', ecart: 'sans-propriete' }, { famille: 'regles', variants: [], layers: [] }),
     constat('C45', { composant: 'Button', propriete: 'disabled', ecart: 'sans-regle' }, { famille: 'regles', variants: [], layers: [] }),
@@ -102,7 +102,7 @@ test('chaque constat que la recette a montré sans phrase reçoit sa phrase et s
     assert.ok(carte.statut, `${entree.code} sans geste`);
   }
   assert.equal(carteDAFaire(cas[0], contexte).phrase, 'Le stroke est lié à `Color/Primary/Outlined/Default/foreground`, un token foreground. Un stroke de ce layer attend un token border.');
-  assert.equal(carteDAFaire(cas[1], contexte).phrase, '4 tokens écrivent `Medium`, comme `Size/Medium/gap`. UCM écrit `md`.');
+  assert.equal(carteDAFaire(cas[1], contexte).phrase, '4 tokens écrivent `Md`, comme `Size/Md/gap`. UCM écrit `Medium`.');
 });
 
 test('une question sans candidat ne se répond pas : son constat reste dans À faire dans Figma', () => {

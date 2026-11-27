@@ -84,7 +84,7 @@ function atelier(nom: string, axes: Record<string, string[]> = { State: ['Defaul
     for (const prop of ['gap', 'padding-x', 'padding-y', 'radius']) {
       if (variables.some((v) => v.id === prop)) continue;
       variable(`layout-${prop}`, 'lo', prop === 'radius' ? 'radius/none' : 'spacing/none', 'FLOAT', 0);
-      variable(prop, 'c', `${nom}/Size/md/${prop}`, 'FLOAT', alias(`layout-${prop}`));
+      variable(prop, 'c', `${nom}/Size/Medium/${prop}`, 'FLOAT', alias(`layout-${prop}`));
     }
     const n = calque(`v${variantes.length}`, 'COMPONENT', {
       name: nomVariant, key: `cle-v${variantes.length}`, variantProperties: valeurs, componentPropertyDefinitions: {},
@@ -234,7 +234,7 @@ for (const { nom, axes, couches } of COMPOSANTS) {
         // L'état Hover pose un contour lié au token de bordure de cet état.
         const hover = b.token('border', noir, suffix);
         b.variable('layout-stroke', 'lo', 'stroke/sm', 'FLOAT', 1);
-        b.variable('stroke-width', 'c', 'TextField/Size/md/border-width', 'FLOAT', alias('layout-stroke'));
+        b.variable('stroke-width', 'c', 'TextField/Size/Medium/border-width', 'FLOAT', alias('layout-stroke'));
         b.variant(valeurs, couches(b, valeurs, suffix), {
           strokes: [b.paint(hover)], strokeAlign: 'INSIDE', strokeWeight: 1,
           boundVariables: { itemSpacing: alias('gap'), paddingLeft: alias('padding-x'), paddingRight: alias('padding-x'), paddingTop: alias('padding-y'), paddingBottom: alias('padding-y'), cornerRadius: alias('radius'), strokeWeight: alias('stroke-width') },

@@ -2,9 +2,9 @@
  * L'opérateur V de F5 : les valeurs d'axe, leur forme et leur casse (C7 à C13) sur P0. V1 renomme une valeur dans les variants, V2
  * en ajoute une, V3 change la casse d'un côté, V4 écrit une forme tolérée, V5 oppose une écriture attestée à son token UCM.
  *
- * Selon Q-F5-6, les variants de P0 écrivent les tailles en toutes lettres (`Small`, `Medium`, `Large`) et ses tokens par leur identifiant
- * (`sm`, `md`, `lg`). V4 écrit donc ses trois tailles tolérées `small`, `medium` et `large` dans le token : C10 les ramène à `sm`, `md`
- * et `lg`. V5 oppose les écritures attestées d'une taille (`S`, `Extra Large`, `Middle`) à ce que le token écrit.
+ * Les variants de P0 écrivent les tailles en toutes lettres (`Small`, `Medium`, `Large`, Q-F5-6), et les dossiers de ses tokens aussi
+ * (`small`, `medium`, `large`). V4 écrit donc les abréviations `sm`, `md` et `lg` dans le dossier : C10 les ramène à `small`, `medium`
+ * et `large`. V5 oppose les écritures attestées d'une taille (`S`, `Extra Large`, `Middle`) à ce que le token écrit.
  */
 import { c8, c10, casDegrade, Numerotation, type CasDeVariants, type Degradation } from './cas.js';
 import { AXES_DE_P0 } from './composantDeBase.js';
@@ -83,7 +83,7 @@ const ETATS_TOLERES: readonly EtatToleree[] = [
   { token: 'normal', valeur: 'default', canonique: 'default' },
 ];
 
-const TAILLES_TOLEREES: readonly (readonly [valeur: string, ecrite: string, canonique: string])[] = [['Small', 'small', 'sm'], ['Medium', 'medium', 'md'], ['Large', 'large', 'lg']];
+const TAILLES_TOLEREES: readonly (readonly [valeur: string, ecrite: string, canonique: string])[] = [['Small', 'sm', 'small'], ['Medium', 'md', 'medium'], ['Large', 'lg', 'large']];
 const FAMILLES_TOLEREES = ['Colors', 'Colour', 'Colours'] as const;
 const PALETTES_TOLEREES = ['error', 'critical'] as const;
 
@@ -101,7 +101,7 @@ function formeToleree(base: ComposantDeBase, numero: Numerotation): CasDeVariant
   }));
   const taillesDansLeToken = TAILLES_TOLEREES.map(([valeur, ecrite, canonique]) => casDegrade(base, {
     id: numero.prochain('V4'), operateur: 'V4',
-    description: `Size : les tokens de ${valeur} s'écrivent ${ecrite} au lieu de ${canonique}, l'abréviation du token`,
+    description: `Size : les tokens de ${valeur} s'écrivent ${ecrite} au lieu de ${canonique}, le mot entier du dossier`,
     zones: [{ axe: 'Size', valeur }], degrader: (d) => d.reecrireLeSegment('Size', valeur, () => ecrite),
     attendus: [c10(ecrite, canonique)],
   }));
@@ -133,9 +133,9 @@ function formeToleree(base: ComposantDeBase, numero: Numerotation): CasDeVariant
 interface TailleAttestee { readonly valeur: string; readonly attestee: string; readonly token: string }
 
 /**
- * Q-F5-6 : un variant écrit une taille en toutes lettres, un token par son identifiant. `S`, `M`, `L`, `XL` et `Middle` dans un variant
- * reçoivent une correction vers le mot entier ; `s`, `m`, `l`, `extra-large` et `middle` dans un token reçoivent C10 vers l'identifiant.
- * `xl` est l'identifiant, donc le token `xl` est tenu. L'oracle vient du modèle de référence.
+ * Q-F5-6 : un variant écrit une taille en toutes lettres, un dossier de token aussi. `S`, `M`, `L`, `XL` et `Middle` dans un variant
+ * reçoivent une correction vers le mot entier. `xl` n'a pas de mot entier de dossier, donc le token `xl` est tenu. L'oracle vient du
+ * modèle de référence.
  */
 const TAILLES_ATTESTEES: readonly TailleAttestee[] = [
   { valeur: 'Small', attestee: 'S', token: 's' },

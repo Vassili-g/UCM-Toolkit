@@ -562,8 +562,8 @@ export function* controlerNommageParEtapes(releve: ReleveDeComposant, catalogue:
       const registre = axe === 'etat' ? REGISTRE_ETATS : axe === 'taille' ? REGISTRE_TAILLES : axe === 'palette' ? REGISTRE_PALETTES_COMPOSANT : null;
       const terme = registre ? termeReconnu(registre, segment) : undefined;
       const categorie = categorieDuSegment(nomDeVariable(variable, segments), rang);
-      // Le token écrit une taille par son identifiant (`sm`), non par le mot entier que prend un dossier de Nomenclature (Q-F5-6).
-      const ecrit = terme ? (axe === 'taille' ? terme.id : termePourCategorie(terme, categorie).id) : undefined;
+      // Un dossier écrit la taille en toutes lettres (`Size/Large/radius`), la variable par son identifiant (`radius/lg`) : `TAILLES_RETENUES`.
+      const ecrit = terme ? termePourCategorie(terme, categorie).id : undefined;
       if (terme && ecrit !== undefined && formeReconnue(segment) !== formeReconnue(ecrit)) {
         formeToleree(axe === 'taille' ? 'C10' : 'C8', segment, ecritureAttendue(ecrit, segments, rang, categorie), variable.nom);
         continue;
