@@ -175,4 +175,4 @@ Faille : F44.
 
 ## 5. Après la séance
 
-Les réponses retenues cochent les cases 0.1 à 0.15 du plan, avec le hash du commit. Les lots de code commencent ensuite, dans l'ordre du plan ; la case 2.3 peut partir dès que ses textes sont validés, puisqu'elle ne change pas le contrat.
+Les réponses retenues cochent les cases 0.1 à 0.15 du plan, avec le hash du commit. Les lots de code commencent ensuite, dans l'ordre du plan ; la case 2.3 ne change pas le contrat, mais elle attend P33, qui décide quels diagnostics l'Exporter garde.

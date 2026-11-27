@@ -1439,7 +1439,7 @@
         "P34"
       ],
       "complexite": "m",
-      "raisonComplexite": "Il faut d'abord relever chaque contrôle de l'Exporter et le comparer à celui d'Architect ; un contrôle qu'Architect ne tient pas reste dans l'Exporter ou passe dans Architect avant le retrait.",
+      "raisonComplexite": "Il faut d'abord relever chaque contrôle de l'Exporter et le comparer à celui d'Architect ; un contrôle qu'Architect ne tient pas reste dans l'Exporter ou passe dans Architect avant le retrait. Le lot 2.3 de P22, qui réécrit des diagnostics de l'Exporter, attend cette piste.",
       "coutHumain": "Valider la liste des contrôles retirés, gardés ou déplacés.",
       "porteur": "mainteneur",
       "promesse": "R",
@@ -1465,12 +1465,11 @@
         "Aucun contrôle du composant ne vit à la fois dans l'Exporter et dans Architect."
       ],
       "questions": [
-        "L'Exporter reste agnostique par option (deux périmètres) : dans un fichier où Architect ne tourne pas, qui juge le composant ?",
-        "Le lot 2.3 de P22 réécrit les diagnostics de l'Exporter : faut-il attendre cette piste avant de le faire ?",
+        "En agnostique, l'Exporter n'exige pas de sceau (P34) : garde-t-il dans ce cas les contrôles retirés en full UCM, ou exporte-t-il le composant sans jugement ?",
         "Quels contrôles l'Exporter garde-t-il parce qu'ils portent sur le contrat écrit et non sur le dessin ?"
       ],
       "risques": [
-        "Un composant exporté sans passage par Architect sort sans aucun jugement tant que le sceau de P34 ne bloque pas l'export."
+        "Un composant exporté sans passage par Architect sort sans aucun jugement, en agnostique toujours, et en full UCM tant que le sceau de P34 ne bloque pas l'export."
       ]
     },
     {
@@ -1478,14 +1477,14 @@
       "titre": "UCM Architect pose un sceau de validation daté, et UCM Exporter refuse un composant sans sceau valide",
       "titreCourt": "Sceau de validation",
       "sujet": "Plugin Architect",
-      "resume": "Ce qu'il fait : quand le composant passe tous ses contrôles, UCM Architect écrit sur lui un sceau daté avec l'empreinte de ce qu'il a contrôlé. Toute modification faite ensuite dans Figma change l'empreinte et invalide le sceau. UCM Exporter relit le sceau, recalcule l'empreinte et, si le sceau manque ou ne correspond plus, bloque l'export avec « Fiabilisez le composant avec UCM Architect avant de l'exporter. ». Où : `packages/plugin-architect/`, `packages/plugin-exporter/` et l'empreinte partagée dans `packages/kit/`. Pourquoi : l'Exporter peut alors laisser le jugement à Architect (P33) sans laisser passer un composant modifié après sa validation.",
+      "resume": "Ce qu'il fait : quand le composant passe tous ses contrôles, UCM Architect écrit sur lui un sceau daté avec l'empreinte de ce qu'il a contrôlé. Toute modification faite ensuite dans Figma change l'empreinte et invalide le sceau. UCM Exporter relit le sceau, recalcule l'empreinte et, si le sceau manque ou ne correspond plus, bloque l'export avec « Fiabilisez le composant avec UCM Architect avant de l'exporter. ». En agnostique, l'Exporter n'exige pas de sceau et ne bloque rien. Où : `packages/plugin-architect/`, `packages/plugin-exporter/` et l'empreinte partagée dans `packages/kit/`. Pourquoi : l'Exporter peut alors laisser le jugement à Architect (P33) sans laisser passer un composant modifié après sa validation.",
       "importance": "moyenne",
       "raisonImportance": "Sans sceau, rien ne prouve à l'export que le composant publié est celui qu'Architect a validé.",
       "prio": 4,
       "dependances": [],
       "complexite": "l",
       "raisonComplexite": "L'API de Figma ne date pas la modification d'un nœud : l'invalidation repose sur une empreinte calculée de la même façon par les deux plugins. Les données d'un plugin sont privées : le sceau passe par les données partagées (`setSharedPluginData`).",
-      "coutHumain": "Décider ce que l'empreinte couvre, puis essayer le blocage sur un composant modifié après validation.",
+      "coutHumain": "Valider la définition de l'empreinte issue de la recherche, puis essayer le blocage sur un composant modifié après validation.",
       "porteur": "mainteneur",
       "promesse": "R",
       "points": [
@@ -1508,11 +1507,11 @@
       "criteresDeFin": [
         "Un composant validé par Architect puis exporté sans retouche passe.",
         "Une retouche faite dans Figma après la validation, même d'un seul calque, bloque l'export avec le message qui renvoie à Architect.",
+        "Dans un fichier agnostique, l'Exporter exporte sans sceau et ne bloque aucun export.",
         "L'Exporter n'écrit rien dans le document : il lit seulement le sceau."
       ],
       "questions": [
-        "Que couvre l'empreinte : variantes, calques, liaisons, propriétés, descriptions ? Une retouche sans effet sur le contrat (déplacer le composant sur la page) doit-elle invalider le sceau ?",
-        "Le blocage vaut-il aussi en agnostique, alors que l'Exporter y fonctionne aujourd'hui sans Architect ?",
+        "Que couvre l'empreinte : variantes, calques, liaisons, propriétés, descriptions ? Une retouche sans effet sur le contrat (déplacer le composant sur la page) doit-elle invalider le sceau ? Le mainteneur demande de le rechercher puis de le définir.",
         "Le sceau d'un composant de library survit-il à la publication et à l'import dans un autre fichier ?"
       ],
       "risques": [
