@@ -822,3 +822,7 @@ Six points techniques sont tranchés dans ce document sans remonter.
 - L'échantillon d'une occurrence s'écrit en écarts, comme FORMAT.md §9 le fait déjà pour une dépendance, dans le seul champ non normatif (§2.10).
 - Les pertes de P22 prennent le code `UCM_PORTABLE_PROJECTION_WARNING`, car le moteur n'a que deux codes, et une perte rend la couverture partielle (§2.11).
 - `.Ring` publie `props.property1`, car l'entrée décrit ce que Figma déclare, et D5 ne décide que des règles d'usage (§2.2).
+
+### Réponses du mainteneur
+
+Le mainteneur retient les trois réponses recommandées. `structure.sizes` sort du contrat, et la décision E4 devient sans objet : chaque vue exacte porte ses dimensions. Le contrat d'`Icon` ne dit rien de l'hôte, et FORMAT.md écrit la règle de remplacement au slot de la dépendance. Une couleur de pièce du cas 3 se signale dans Architect seul, et le contrat n'écrit rien dans `meta.diagnostics`, qui ne porte que les pertes.
