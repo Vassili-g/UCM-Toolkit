@@ -253,6 +253,10 @@ Le mainteneur retient les recommandations des questions 1, 2 et 3. Une source re
 
 La passe finale tranche la question 4 sur délégation du mainteneur. La forme garde la vérification du transfert à l'export et la perte ciblée, sur le contre-exemple de `_local/p22/codex/etats-final-resultats.json` (voir [Règle des états](#règle-des-états)).
 
+### Réponses du mainteneur à la passe finale
+
+Le mainteneur retient les trois recommandations de la passe finale. Les pertes répétées par variante se regroupent par propriétaire, adresse et propriété. La première de deux instances exposées à la même clé garde la clé, sous réserve de la confrontation avec la contre-expertise d'Opus, qui propose un préfixe par slot. La preuve de transfert ne s'étend aux visibilités et aux échanges qu'après le rejeu dans `StressTest`.
+
 ## Ce qui reste
 
 Les quatre questions de la première passe sont tranchées. Les trois questions de la fin de ce document attendent le mainteneur. Le validateur de production devra reprendre les contrôles 14.0 et le schéma, en plus des preuves de ce lot.
