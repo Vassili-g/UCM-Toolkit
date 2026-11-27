@@ -177,9 +177,9 @@ Faille : F44.
 
 Le mainteneur valide la réponse recommandée de Choix 1, Choix 3, D2, D3, D4, D6, D7, Choix 5, Parité, D10 et 2.3c.
 
-D1 reste ouverte. Le critère de l'exposition est refusé : un designer peut oublier la case, et le mainteneur ne l'a pas cochée sur un autre composant. La description fidèle sans classement n'est pas validée non plus. Une étude doit comparer les options et leurs effets, puis recommander celle qui ne repose sur aucune devinette ni sur un geste que le designer peut oublier. Le mainteneur valide une partie de la question : l'API de l'hôte contient exactement les propriétés que Figma montre sur l'hôte. Le mainteneur corrige aussi la section 1 : la taille de `.sizeWrapperButton` se choisit sur une instance de Button (Small, Medium, Large), sans valeur libre, et le Button règle le texte et les couleurs du wrapper. L'[étude de D1](./ETUDE-D1-WRAPPER-ET-PIECE.md) compare les options et recommande la description fidèle (option E).
+D1 est tranchée par l'[étude de D1](./ETUDE-D1-WRAPPER-ET-PIECE.md). Le mainteneur retient l'option E, la description fidèle sans classement, et ses cinq réponses recommandées (E1 à E7, avec L6). Toute instance préfixée qui n'est pas une dépendance est une pièce, et la sorte `wrapper-de-dimensions` disparaît. L'exposition ne classe rien : elle remplit l'API de l'hôte, qui contient exactement les propriétés que Figma montre sur l'hôte. Le critère de l'exposition est refusé, parce qu'un designer peut oublier la case. La taille de `.sizeWrapperButton` se choisit sur une instance de Button (Small, Medium, Large), sans valeur libre, et le Button règle le texte et les couleurs du wrapper.
 
-Q5 est validée : `Icon` est une dépendance de la pièce `.sizeWrapperButton`, et se range dans l'entrée de la pièce. D5 attend la confirmation du mainteneur. D8 attend la maquette de P31.
+Q5 est validée : `Icon` est une dépendance de la pièce `.sizeWrapperButton`, et se range dans l'entrée de la pièce. D5 est validée, avec la précision E5 de l'étude : les props d'une pièce exposée se documentent dans le bloc de l'hôte, et une pièce dont tous les choix sont exposés n'a pas de bloc à elle. D8 attend la maquette de P31.
 
 ## 6. Après la séance
 
