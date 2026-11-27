@@ -339,6 +339,7 @@ export const EXCLUSIONS_DE_PISTES: Readonly<Record<string, string>> = {
   P31: 'à montrer : la construction d\'un composant (variants, collection et liaisons) étend le mode Composant de la carte UCM Architect.',
   P32: 'à montrer : la synchronisation des icônes FontAwesome alimente la carte Composants.',
   P33: 'à montrer : le retrait des contrôles du composant allège la carte UCM Exporter, qui laisse le jugement à la carte UCM Architect.',
+  P35: 'Banc de test du moteur sur des kits publics, un outil du dépôt qui n\'est pas une brique de la chaîne.',
   P34: 'à montrer : le sceau de validation relie la carte UCM Architect à la carte UCM Exporter, qui refuse un composant sans sceau valide.',
 };
 

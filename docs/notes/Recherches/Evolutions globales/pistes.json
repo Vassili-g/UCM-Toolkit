@@ -1520,6 +1520,44 @@
         "Une empreinte trop étroite laisse passer une modification que l'Exporter publie.",
         "Un point ignoré pour poser le sceau reste une perte du contrat : il doit rester dans `meta.diagnostics`."
       ]
+    },
+    {
+      "id": "P35",
+      "titre": "Un corpus de composants Figma tirés de kits publics sert de banc de test au moteur du contrat",
+      "titreCourt": "Corpus de composants",
+      "sujet": "Format du contrat",
+      "recherche": "docs/notes/Recherches/Corpus de composants/RECHERCHE-CORPUS-DE-COMPOSANTS.md",
+      "resume": "Ce qu'il fait : un script capture tous les composants de trois kits UI publics, gratuits et complets, puis le moteur de l'Exporter et d'Architect les rejoue hors de Figma. Pour chaque composant, le banc garde la capture, le contrat attendu et les constats attendus ; un changement du moteur ou du format se voit comme un écart à relire sur tout le corpus. Où : un plugin ou un mode de capture, un banc de rejeu, et les captures dans le dépôt si la licence des kits le permet, sinon dans `_local/`. Pourquoi : une décision comme D1 de P22 se juge aujourd'hui sur trois composants, alors que chaque design system construit ses composants à sa façon.",
+      "importance": "haute",
+      "raisonImportance": "Une règle de lecture juste sur trois composants peut classer faux un composant construit autrement, et rien ne le montre avant un export réel.",
+      "prio": 2,
+      "dependances": [],
+      "complexite": "l",
+      "raisonComplexite": "La capture actuelle relève seulement ce que le code lit et pèse 5,5 Mo pour un Button ; un corpus de plusieurs centaines de composants demande un format plus complet, compressé, et une méthode pour écrire les attentes sans les relire une à une.",
+      "coutHumain": "Dupliquer les trois kits dans Figma, lancer la capture sur chacun, puis relire les écarts que le banc signale.",
+      "porteur": "mainteneur",
+      "promesse": "R",
+      "points": [
+        {
+          "chemin": "docs/notes/Recherches/ (dossier de la piste)",
+          "action": "créer",
+          "quoi": "Choix des kits, licences, format de capture, méthode des attentes et plan."
+        },
+        {
+          "chemin": "packages/plugin-architect/src/sandbox/capture.ts",
+          "action": "modifier",
+          "quoi": "Capture complète de tous les composants d'un fichier, ou nouveau plugin de capture, à décider."
+        }
+      ],
+      "criteresDeFin": [
+        "Les composants de trois kits publics sont capturés et rejoués hors de Figma par le moteur de l'Exporter et par Architect.",
+        "Chaque composant du corpus a un contrat attendu et des constats attendus, relus au moins une fois.",
+        "Un changement du moteur qui modifie un contrat du corpus fait échouer le banc et nomme l'écart."
+      ],
+      "risques": [
+        "Un kit gratuit à l'usage peut interdire la redistribution : ses captures restent alors dans `_local/`, hors du CI.",
+        "Une capture qui relève seulement ce que le code lit aujourd'hui devient incomplète dès que le moteur lit une propriété de plus."
+      ]
     }
   ]
 }
