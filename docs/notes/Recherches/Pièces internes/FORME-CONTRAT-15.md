@@ -2,7 +2,7 @@
 
 Ce document fixe la forme du contrat de composant que P22 introduit en 15.0. Il part des décisions de l'étape 0 du [plan](./PLAN-P22.md), de l'[étude de D1](./ETUDE-D1-WRAPPER-ET-PIECE.md) et de l'[audit](./AUDIT-CONCEPTION-P22.md), et il sert d'entrée au plan d'implémentation, puis à la réécriture de [FORMAT.md](../../../format/FORMAT.md), de `packages/kit/src/format/types.ts` et du schéma.
 
-La simulation indépendante mesure 48 275 octets UTF-8 sans espaces pour Button et 78 799 pour Groupe. Elle décrit les trois variantes de `.sizeWrapperButton`, `.Ring` et les 90 variantes de `.Segment`, dont Groupe pose 9 variantes. Les limites des simulations sont au §5.1. Le [stress test](./STRESS-TEST-CONTRAT-15.md) porte les preuves des corrections et les limites du moteur qui restent à mesurer.
+La simulation indépendante mesure 48 942 octets UTF-8 sans espaces pour Button et 186 125 pour Groupe, métadonnées recalculées comprises. Elle décrit les trois variantes de `.sizeWrapperButton`, `.Ring` et les 90 variantes de `.Segment`, dont Groupe pose 9 variantes. Les limites des simulations sont au §5.1. Le [stress test](./STRESS-TEST-CONTRAT-15.md) porte les preuves des corrections et les limites du moteur qui restent à mesurer.
 
 ## 1. Les cinq changements de forme
 
@@ -15,6 +15,8 @@ La simulation indépendante mesure 48 275 octets UTF-8 sans espaces pour Button 
 ## 2. La forme, champ par champ
 
 Les champs que la 14.0 publie et que ce document ne cite pas gardent leur forme et leur sens définis dans [FORMAT.md](../../../format/FORMAT.md). Les types hérités portent les noms de `packages/kit/src/format/types.ts`. Ce document fixe les changements de la 15.0, pas une seconde copie des champs inchangés. « Requis » vaut pour un contrat 15.0 valide. « Absence » donne le seul sens d'un champ absent.
+
+Un propriétaire est l’hôte ou une entrée de pièce. Une adresse est un tableau ordonné de clés de slots depuis la racine d’une vue. L’adresse vide désigne cette racine. Une occurrence est l’instance d’une pièce à cette adresse dans un variant. Une variante est une entrée de `variants`, identifiée par `nodeId`. Les coordonnées sont ses valeurs d’axes, distinctes de son identité. Une feuille est l’objet `tokens` ou `strokes` d’une variante ou d’un renvoi, au sens de FORMAT.md. Un écart est une différence entre le renvoi et la variante qu’il cite, à une adresse et pour un champ.
 
 ### 2.1 Racine du contrat
 
@@ -70,7 +72,7 @@ Une pièce sans choix (D5) reçoit son entrée sans `intent`. `.Ring` publie `pr
 |---|---|---|---|---|---|
 | `piece` | `string` | non | ce slot ne pose aucune pièce | clé d'une entrée de `pieces` ; exclusif de `composes` et de `children` | Choix 1, étude R6 §5 |
 
-Le slot d'une pièce porte seulement `slot`, `figmaLayer`, `piece` et les champs qui disent comment le parent place l'instance : `optional`, `visibilityProp`, `visibilityTargets`, `alignSelf`, `flexGrow`, `size`, `structuralSize`, `bounds`, `position`, `constraints`, `inset`, la place en grille, `rotation` et `opacity`. Il ne porte aucun champ de flux intérieur (`layout`, `justifyContent`, `alignItems`, `wrap`, `gap`, `rowGap`, `columnGap`, `padding`, `radius`, pistes de grille) : la racine de la vue de l'occurrence les porte. `visibilityProp` nomme une prop de l'hôte.
+Le slot d'une pièce porte seulement `slot`, `figmaLayer`, `piece` et les champs qui disent comment le parent place l'instance : `optional`, `visibilityProp`, `visibilityTargets`, `alignSelf`, `flexGrow`, `size`, `structuralSize`, `bounds`, `position`, `constraints`, `inset`, la place en grille, `rotation` et `opacity`. Il ne porte aucun champ de flux intérieur (`layout`, `justifyContent`, `alignItems`, `wrap`, `gap`, `rowGap`, `columnGap`, `padding`, `radius`, pistes de grille) : la racine de la vue de l'occurrence les porte. `visibilityProp` nomme une prop du propriétaire du slot.
 
 Le nom du slot suit la règle d'un slot de dépendance, qui prend le nom du calque normalisé, ici sans préfixe (F29). `.sizeWrapperButton` donne `sizewrapperbutton`, `.Ring` donne `ring`, et trois `.Segment` sous un même parent donnent `segment`, `segment-2` et `segment-3`. Le slot de `.sizeWrapperButton` s'appelait `label` en 14.0, parce que la pièce contient un texte.
 
@@ -95,7 +97,7 @@ La règle diffère de celle d'une dépendance, dont l'instance ne publie `opacit
 | `slotPath` | `string[]` | oui | sans objet | chemin du slot `piece` dans l'arbre de la vue du composant qui pose ; unique dans la liste | étude R6 §5 |
 | `nodeId` | `string` | oui | sans objet | identifiant Figma de l'instance posée | §5.2, R2 |
 | `variant` | `string` | oui | sans objet | `nodeId` d'une variante de l'entrée que nomme le slot | D4, Q4 |
-| `values` | `Record<string, string \| boolean>` | non | la pièce n'a aucune propriété `BOOLEAN` ni `INSTANCE_SWAP` hors de son API exposée | une clé par propriété `BOOLEAN` ou `INSTANCE_SWAP` non exposée de la pièce, aux clés publiques de la pièce ; un `INSTANCE_SWAP` vaut le nom du composant placé | F10, D4 |
+| `values` | `Record<string, string \| boolean>` | non | la pièce n'a aucune propriété `BOOLEAN` ni `INSTANCE_SWAP` hors de celles que le propriétaire expose à ce slot | une clé par propriété `BOOLEAN` ou `INSTANCE_SWAP` de la pièce que le propriétaire n'expose pas à ce slot, aux clés publiques de la pièce ; un `INSTANCE_SWAP` vaut le nom du composant placé | F10, D4 |
 | `view` | `string` | oui | sans objet | clé de `variantViews` : la vue exacte de l'occurrence, adresses relatives à la racine de la pièce | D4 |
 | `tokens` | `SlotTokens` | non | l'occurrence ne peint aucune couleur | feuille effective complète à cet endroit ; ses clés égalent celles que `paintPlacements` de la vue place en `fills` | D4, F6 |
 | `strokes` | `SlotStrokes` | non | l'occurrence ne peint aucun contour | même règle, côté `strokes` | D4, F6 |
@@ -121,8 +123,6 @@ Les clés de couleur d'un renvoi appartiennent à l'entrée de la pièce. `color
 |---|---|---|---|---|---|
 | `source` | `PieceSource` | non | le propriétaire déclare lui-même cette prop | chemin relatif au propriétaire courant ; cible `piece` ou `composes` ; type et valeurs égaux à ceux de la propriété publique ciblée | E2, D1, réponses 1 et 3 du stress test |
 
-Un propriétaire est l’hôte ou une entrée de pièce. Une adresse est un tableau ordonné de clés de slots depuis la racine d’une vue. L’adresse vide désigne cette racine. Une occurrence est l’instance d’une pièce à cette adresse dans un variant. Une variante est une entrée de `variants`, identifiée par `nodeId`. Les coordonnées sont ses valeurs d’axes, distinctes de son identité.
-
 | Champ de `PieceSource` | Type | Requis | Absence | Invariant |
 |---|---|---|---|---|
 | `slotPath` | `string[]` | oui | sans objet | adresse relative au propriétaire courant, stable entre les variants qui publient l’instance |
@@ -133,13 +133,13 @@ Une propriété de pièce peut elle-même porter `source`. Résoudre successivem
 
 Une source vers une dépendance se lit avec son contrat autonome. Le contrat de l’hôte ne recopie ni les calques ni les propriétés privées de la dépendance. Le validateur du graphe compare la clé publique, le type et les valeurs à ce contrat. Une dépendance non disponible produit un résultat de validation incomplet, jamais une validation réussie de cette source.
 
-La prop de l'hôte reste complète : `type`, `values`, `default` et la documentation lue dans le bloc de l'hôte (E5). La propriété propre de l’entrée garde la forme que la pièce déclare. Une propriété issue d’une instance intérieure garde sa source relative. Sa documentation suit le bloc de règles du propriétaire qui la présente (§2.2, E5). Une référence interne de la copie, comme `visibilityProp`, emploie les clés de l'hôte.
+La prop de l'hôte reste complète : `type`, `values`, `default` et la documentation lue dans le bloc de l'hôte (E5). La propriété propre de l’entrée garde la forme que la pièce déclare. Une propriété issue d’une instance intérieure garde sa source relative. Sa documentation suit le bloc de règles du propriétaire qui la présente (§2.2, E5). Une référence interne de la prop de l'hôte, comme `visibilityProp`, emploie les clés de l'hôte.
 
 Une prop d'icône synthétique (`iconLeftName`) suit sa règle `@icons`. Pour une pièce exposée, la règle vient du bloc de l'hôte. L'entrée de la pièce reçoit la définition d'icône et la prop synthétique, et l'hôte reçoit la même prop avec `source`. Button garde donc `iconLeftName` et `iconRightName`.
 
 Une prop `VARIANT` exposée choisit la variante de la pièce (E3, §2.12). Une prop `BOOLEAN`, `TEXT` ou `INSTANCE_SWAP` exposée décide de ce que la pièce rend à la place de `renvoi.values`. Les liaisons natives de ces props vivent dans `variants[].bindings` de l'entrée, avec un `figmaPath` relatif à la pièce. Une prop de l'hôte reliée à un calque intérieur d'une pièce garde sa liaison dans les `bindings` de l'hôte, avec son `figmaPath` complet (F8).
 
-Une clé exposée déjà prise par l'hôte reste refusée par le diagnostic de collision. Figma montre alors deux propriétés distinctes, et le contrat ne peut pas publier les deux sous une clé. Une instance exposée dans une partie des variants seulement publie ses props, et une perte nomme les variants sans exposition (L6).
+Une clé exposée déjà prise par l'hôte reste refusée par le diagnostic de collision. Figma montre alors deux propriétés distinctes, et le contrat ne peut pas publier les deux sous une clé. La même règle vaut entre deux instances exposées qui présentent la même clé, deux occurrences du même set comprises. La première instance dans l'ordre de l'arbre publié garde la clé et sa `source`. Pour l'autre, la propriété se lit comme non exposée à son slot : sa valeur vient de `renvoi.values`, de la variante citée ou de l'échantillon, et une perte vise `props.<clé>` en nommant ce slot (§2.11). Une instance exposée dans une partie des variants seulement publie ses props, et une perte nomme les variants sans exposition (L6).
 
 ### 2.6 Dimensions par taille
 
@@ -191,9 +191,9 @@ L'échantillon d'une occurrence suit la règle d'une dépendance (FORMAT.md, §9
 
 ### 2.11 Pertes dans `meta.diagnostics`
 
-Une perte signifie qu’une donnée du dessin ou de sa résolution manque au contrat portable. Les pertes prennent le code `UCM_PORTABLE_PROJECTION_WARNING` et rendent `meta.coverage.portable` égal à `partial`. Chaque perte porte `contractPath`, le chemin du champ concerné dans le JSON publié. Son message nomme la propriété manquante et le variant concerné. Les pertes restent dans le contrat quand l’interface de l’Exporter cesse de les montrer (P33).
+Une perte signifie qu’une donnée du dessin ou de sa résolution manque au contrat portable. Les pertes prennent le code `UCM_PORTABLE_PROJECTION_WARNING` et rendent `meta.coverage.portable` égal à `partial`. Chaque perte porte `contractPath`. Il vaut le chemin du variant ou du renvoi dans le JSON publié, ou celui du champ de catalogue quand la donnée manque à un catalogue partagé, comme `effectStyles.<clé>.effects[0].color`. Son message nomme la propriété de l’API Figma manquante et l’adresse du calque dans son propriétaire. Les pertes restent dans le contrat quand l’interface de l’Exporter cesse de les montrer (P33). Les notes d’export (`UCM_EXPORT_NOTICE`) gardent la règle de la 14.0 et ne changent pas `coverage`.
 
-Le moteur rassemble les pertes de l’hôte, de chaque pièce et de chaque occurrence. Il analyse toutes les variantes des pièces, posées ou non. Une perte du maître porte par exemple `pieces.Segment.variants[4]`. Une perte propre à une occurrence porte `variants[2].pieces[0]`. Une perte de maître n’est pas recopiée sur chaque occurrence qui la pose. Le moteur dédoublonne seulement deux constats qui décrivent la même perte au même chemin et au même variant. Les erreurs de collision corrigées par D1 et les visibilités corrigées par F22 ne sont pas des pertes résiduelles.
+Le moteur rassemble les pertes de l’hôte, de chaque pièce et de chaque occurrence. Il analyse toutes les variantes des pièces, posées ou non. Une perte du maître porte par exemple `pieces.Segment.variants[4]`. Une perte propre à une occurrence porte `variants[2].pieces[0]`. Une occurrence reçoit une perte seulement si sa valeur effective diffère de celle de la variante citée ; une perte de maître n’est donc pas recopiée sur chaque occurrence qui la pose. La racine d’une occurrence se juge sur la boîte de son slot (§2.3). Une dimension que deux insets fixent sous une contrainte `scale` ou `stretch` n’est pas une perte de dimension. Le moteur dédoublonne seulement deux constats qui décrivent la même perte au même chemin et au même variant. Les erreurs de collision corrigées par D1 et les visibilités corrigées par F22 ne sont pas des pertes résiduelles. Un constat du contrat 14.0 autonome d’une pièce que la 15.0 rend faux n’est pas publié : le conflit de rôle d’une couleur d’aperçu (D2), et le tracé vectoriel sans règle `@icons` quand la règle de l’hôte le nomme (§2.5).
 
 | Cas | `contractPath` | Fondement |
 |---|---|---|
@@ -201,6 +201,7 @@ Le moteur rassemble les pertes de l’hôte, de chaque pièce et de chaque occur
 | le transfert d’une surcharge lors du choix d’une autre variante n’est pas prouvé, ou une adresse manque dans la cible | le renvoi | règle des états, §2.12 |
 | une instance sans préfixe ni règles, dont le composant laisse un choix, est décrite à plat | le slot | E6 |
 | une instance est exposée dans une partie des variants seulement | la propriété | L6 |
+| deux instances exposées présentent la même clé publique | la propriété de l’hôte, avec le slot non relié nommé dans le message | §2.5, collision |
 | la source d’une propriété exposée change de chemin selon le variant, ou sa cible ne peut pas être lue | la propriété | E2, source relative |
 | l’hôte remplit un `SLOT` de pièce | le renvoi et le slot nommé dans le message | D6 |
 | un `INSTANCE_SWAP` non exposé ne se nomme pas | le renvoi | F10 |
@@ -217,8 +218,8 @@ Deux pièces de même identifiant de code bloquent l’export (F29). Un cycle ou
 2. Trouver le renvoi dont `slotPath` égale le chemin du slot `piece`. Trouver V par `renvoi.variant`, dans l’entrée ciblée. Sans changement d’axes ni d’état, rendre le renvoi complet, même si ses feuilles sont absentes. Ne pas compléter son rendu avec V.
 3. Résoudre les propriétés exposées selon §2.5, puis former les coordonnées demandées à partir de celles de V. Remplacer les axes exposés réglés par l’hôte. Le code applicatif choisit l’état dans `stateModel` de la pièce, exposée ou non, puis remplace seulement cet axe. Le contrat décrit les états possibles ; il ne commande aucun événement.
 4. Chercher toutes les variantes aux coordonnées demandées. Zéro ou plusieurs résultats donnent une sélection non résolue et une perte ciblée (§2.11). Ne choisir aucun variant arbitraire, même si deux rendus semblent identiques. Un appel qui désigne explicitement un `nodeId` reste une sélection par identité.
-5. Pour une cible unique V′ différente de V, prendre sa vue et ses feuilles. Déduire les seuls écarts de l’occurrence en comparant V au renvoi, par adresse et par champ. Comparer les peintures par leurs placements, pas par le seul nom des clés. Transférer seulement les écarts dont la conservation est prouvée. Une suppression de peinture est un écart. Une occurrence sans surcharge prend les couleurs de V′, jamais celles de V figées dans son renvoi. Les mêmes règles valent pour les renvois imbriqués et les valeurs natives.
-6. Le moteur vérifie le transfert avant de supprimer les données d’aperçu. L’existence de l’adresse dans V′ ne suffit pas. Pour une surcharge de couleur, les valeurs initiales des variantes doivent aussi autoriser sa conservation dans Figma. Une structure, une typographie, une visibilité, un échange ou un effet changé sans preuve de transfert produit une perte. La branche concernée reste non résolue ; le lecteur ne l’annonce pas fidèle. Les textes suivent la conservation propre aux textes documentée par Figma. Leur contenu demeure indicatif sous `samples`.
+5. Pour une cible unique V′ différente de V, prendre sa vue et ses feuilles. Déduire les seuls écarts de l’occurrence en comparant V au renvoi, par adresse et par champ. Comparer les peintures par leurs placements, pas par le seul nom des clés. Transférer les écarts quand aucune perte de transfert ne vise le renvoi : le moteur les a prouvés à l’export (étape 6). Le lecteur ne refait pas la preuve, que les couleurs d’aperçu absentes du contrat (D2) empêcheraient. Une suppression de peinture est un écart. Une occurrence sans surcharge prend les couleurs de V′, jamais celles de V figées dans son renvoi. Les mêmes règles valent pour les renvois imbriqués et les valeurs natives.
+6. Une variante V′ est atteignable depuis un renvoi quand ses coordonnées s’obtiennent en changeant, depuis V, les axes exposés de la pièce à ce slot ou l’axe de son `stateModel`. Le moteur vérifie le transfert de chaque écart vers chaque V′ atteignable, à l’export, quand il connaît encore le dessin. L’existence de l’adresse dans V′ ne suffit pas. Un écart de couleur est prouvé quand V et V′ portent la même valeur initiale à cette adresse et dans ce champ : c’est la condition que Figma documente pour garder une surcharge. Un écart dans un renvoi imbriqué suit la même règle, entre la variante que V y pose et celle que V′ y pose. Un écart de structure, de typographie, de visibilité, d’échange ou d’effet n’a pas de preuve en 15.0 et produit une perte. Une perte vise le renvoi entier : le lecteur laisse non résolues toutes ses coordonnées, même celles dont l’écart se prouve, et ne les annonce pas fidèles. Les textes suivent la conservation propre aux textes documentée par Figma. Leur contenu demeure indicatif sous `samples`.
 7. Un booléen ou un échange exposé prend la valeur transmise par la chaîne de sources. Sinon, il prend `renvoi.values`. Une propriété transmise n’est pas répétée dans cette feuille. Un slot piloté par un booléen faux ne se rend pas. Un calque statiquement masqué est déjà sorti de la vue. Le contenu indicatif se lit selon §2.10.
 8. Appliquer la boîte du slot selon §2.3. Chercher le fond d’une peinture au chemin vide de la pièce dans l’hôte, au plus long préfixe du chemin déplié, selon FORMAT.md §2.
 9. Garder la pile des entrées ouvertes. Refuser un cycle avant de descendre. Compter la profondeur sur le chemin déplié, hôte et cadres compris, avec une borne de 12 niveaux.
@@ -234,7 +235,7 @@ La vérification des transitions est conservée. La [règle officielle de Figma]
 3. Un variant dont les renvois ne couvrent pas exactement les slots `piece` de son arbre publié, ou dont deux renvois ont le même `slotPath`.
 4. Un `renvoi.variant` absent des variantes de l'entrée ; une `renvoi.view` absente de `variantViews`.
 5. Des clés de `renvoi.tokens` ou `renvoi.strokes` qui ne correspondent pas aux clés placées par la vue du renvoi.
-6. Une clé de `renvoi.values` qui n'est pas une prop `boolean` ou `instance-swap` non exposée de la pièce, ou une telle prop sans clé. Un `INSTANCE_SWAP` que l'export ne peut pas nommer reste absent si une perte vise ce renvoi et rend la couverture partielle (§2.11). Cette exception ne vaut pas pour un booléen manquant.
+6. Une clé de `renvoi.values` qui n'est pas une prop `boolean` ou `instance-swap` de la pièce que le propriétaire n'expose pas à ce slot, ou une telle prop sans clé. Un `INSTANCE_SWAP` que l'export ne peut pas nommer reste absent si une perte vise ce renvoi et rend la couverture partielle (§2.11). Cette exception ne vaut pas pour un booléen manquant.
 7. Une `source` dont le chemin ne cible ni `piece` ni `composes`, dont la clé publique manque, ou dont le type et les valeurs diffèrent. Pour `composes`, `component` doit égaler le contrat ciblé ; pour `piece`, il est interdit. Chaque source est relative à son propriétaire. Une boucle de sources est refusée. La vérification d’une dépendance non disponible reste incomplète.
 8. Une clé de `pieces` différente de `codeIdentifier(name)`, égale à celle de l'hôte ou d'une autre entrée.
 9. Un cycle dans le graphe des pièces, ou un chemin déplié de plus de 12 niveaux.
@@ -252,7 +253,7 @@ Les propriétés d’éditeur, comme le verrouillage et le repli des calques, ne
 | Donnée | Champ déjà disponible | Ce que la 15.0 exige du moteur |
 |---|---|---|
 | largeur uniforme ou par côté d’un contour | `StrokeTokens.width`, référence ou côtés tokenisés | publier chaque côté lié ; une valeur non tokenisée manquante reçoit une perte nommant `strokeWeight` ou le côté concerné ; ne pas inventer une largeur de 1 px |
-| couleur d’une ombre | `effectStyles.*.effects[].color` | publier la référence liée ; une couleur absente reçoit une perte sur chaque variante concernée, y compris celles jamais posées |
+| couleur d’une ombre | `effectStyles.*.effects[].color` | publier la référence liée ; une couleur absente reçoit une perte au chemin de cette couleur dans `effectStyles`, une fois par style, que la variante qui l’emploie soit posée ou non |
 | proportions d’une contrainte `scale` | `constraints` et `inset` ne suffisent pas aux proportions | déclarer la perte des proportions ; ne pas présenter les seuls offsets en pixels comme une reconstruction exacte |
 | variables liées et styles | feuilles, `textStyles`, `effectStyles`, catalogues de vues | conserver les références ; une partie du style non représentée reçoit une perte nommant son champ API |
 | modes de variables forcés par calque | aucun champ de mode par calque | déclarer la perte de `explicitVariableModes` ; la référence de token seule ne dit pas ce forçage |
@@ -260,10 +261,12 @@ Les propriétés d’éditeur, comme le verrouillage et le repli des calques, ne
 | peinture non unie, image, vidéo, motif, peintures superposées | aucune représentation générale de ces peintures | nommer le type et les sous-champs perdus, comme `gradientStops`, `imageTransform` ou `blendMode` ; une couleur unie restante ne couvre pas toute la pile |
 | géométrie vectorielle ou booléenne et contours particuliers | icône nommée si une règle la désigne | nommer les tracés, réseaux, arcs, opération booléenne, lissage, pointes, tirets, jonctions et largeur variable non représentés ; aucun tracé propriétaire ne se publie |
 | typographie par plage | `viewTypographies` et `textStyles` pour les parties représentées | relever les plages ; nommer les espacements de paragraphes, listes, liens, décorations, césures et options de police qui n’ont pas de champ |
-| grilles de mise en page et modes de dimensionnement | pistes, gaps, ancrages, spans, alignements, `size` et `bounds` | nommer les pistes automatiques, proportions ou règles de placement non représentées ; les guides de dessin ne sont pas des pistes de layout |
-| transformations 3D, scènes, animations et réactions | aucun champ général | déclarer les pertes de `transform3d`, `scene3d`, `animations`, `manualKeyframeTracks`, `timelines` et `reactions` présentes |
+| grilles de mise en page et modes de dimensionnement | pistes, gaps, ancrages, spans, alignements, `size` et `bounds` | nommer les pistes automatiques, proportions ou règles de placement non représentées ; `layoutGrids` ne devient jamais une piste de layout, et une contrainte d’enfant relative à ses colonnes reçoit une perte nommant `layoutGrids` |
+| transformation 2D autre qu’une rotation, instance agrandie ou réduite | `rotation`, `inset` | nommer `relativeTransform` pour un miroir ou un cisaillement ; nommer `scaleFactor` différent de 1 sur une instance, car les tokens de la vue citée ne valent plus la taille rendue |
+| effet sans représentation | `effectStyles` pour les ombres et les flous représentés | nommer le type et les sous-champs perdus d’un bruit, d’une texture ou d’un flou progressif (`NoiseEffect`, `TextureEffect`, `blurType`) |
+| transformations 3D, scènes, animations et réactions | aucun champ général | déclarer les pertes de `transform3d`, `scene3d`, `animations`, `manualKeyframeTracks`, `timelines`, `reactions` et `numberOfFixedChildren` présentes |
 
-Les 99 largeurs de contour, 18 usages d’ombre sans couleur et 2 formes de contrainte relevés par la reconstruction sont des limites du moteur et des données 14.0 rejouées. Les deux premiers champs existent déjà. La 15.0 exige leur publication quand la liaison existe, ou la perte ciblée de la valeur non publiée. Elle n’introduit pas de valeurs brutes dans les champs réservés aux tokens. Les proportions de `scale` restent une perte déclarée. Ces 119 manques ne deviennent pas des données retrouvées par le seul changement de version.
+Les 99 largeurs de contour, 18 usages d’ombre sans couleur et 2 formes de contrainte relevés par la reconstruction sont des limites du moteur et des données 14.0 rejouées. Les deux premiers champs existent déjà. La 15.0 exige leur publication quand la liaison existe, ou la perte ciblée de la valeur non publiée. Elle n’introduit pas de valeurs brutes dans les champs réservés aux tokens. Les proportions de `scale` restent une perte déclarée. Ces 119 manques ne deviennent pas des données retrouvées par le seul changement de version. Sur Groupe, le recalcul publie 90 pertes de largeur, une par variante de `.Segment`. Les 9 occurrences gardent la largeur de leur variante et n’en reçoivent aucune (§2.11). L’ombre sans couleur donne une seule perte, sur son style.
 
 ## 3. Exemples
 
@@ -271,12 +274,14 @@ Les deux exemples sont réduits, et chaque renvoi y résout. Les valeurs viennen
 
 ### 3.1 Button
 
-Réductions : deux couleurs et deux états, deux variants de Button sur 90, l'icône de gauche seule, `meta`, `rendering.roles` et `textStyles` abrégés. Les icônes y sont des instances d'`Icon`, l'état que l'essai 1.2 du plan produira : la capture de Button a des tracés à leur place. Les noms de calques `arrow-left-long` et `Suivant` sont ceux de la capture.
+Réductions : deux couleurs et deux états, deux variants de Button sur 90, l'icône de gauche seule, `meta`, `rendering.roles` et `textStyles` abrégés. `meta.diagnostics` garde une des 3 pertes de `.Ring`, dont la racine n'a pas d'auto layout. Les icônes y sont des instances d'`Icon`, l'état que l'essai 1.2 du plan produira : la capture de Button a des tracés à leur place. Les noms de calques `arrow-left-long` et `Suivant` sont ceux de la capture.
 
 ```json
 {
   "name": "Button",
-  "meta": { "contractVersion": "15.0", "exportedAt": "…", "coverage": { "portable": "complete" },
+  "meta": { "contractVersion": "15.0", "exportedAt": "…", "coverage": { "portable": "partial" },
+            "diagnostics": [{ "code": "UCM_PORTABLE_PROJECTION_WARNING", "severity": "warning",
+                              "message": "height manque à l'adresse []. …", "contractPath": "pieces.Ring.variants[0]" }],
             "figma": { "fileName": "…", "nodeId": "3:122" } },
   "props": {
     "color": { "type": "enum", "values": ["primary", "secondary"] },
@@ -669,7 +674,7 @@ Ce que l'exemple montre :
 | 4 | DECISIONS-P22.md, §2 à §4, recommande l'exposition comme critère et définit « Wrapper » ; son §5 retient E. | Ajouter en tête du §4 de D1 que l'option E l'a remplacée, et retirer « Wrapper » du vocabulaire. |
 | 5 | RECHERCHE-PIECES-INTERNES.md §7 et `_local/p22/LISEZMOI.md` écrivent que la couleur d'`Icon` dans `.Segment` vient de son axe `Color`. F19 et la mesure disent l'inverse : le glyphe porte le token du texte voisin dans les 90 variantes. | Corriger la phrase du §7 de la recherche ; le fichier local suit. |
 | 6 | La recherche §7, DECISIONS (D1, « 0 sur 15 »), l'étude de D1 et F15 comptent 15 instances de `.Segment` montrant 10 variantes. Les 3 variants de Groupe en posent 9, qui montrent 9 variantes ; F23 compte bien 9. | Écrire 9 instances et 9 variantes dans les variants de Groupe. Les 6 instances de plus ne vivent pas dans ses variants. |
-| 7 | L'étude de D1 estime le contrat de Button à +8 à +11 ko. La simulation indépendante donne −1 388 octets UTF-8, avec `sizes` retiré. L'estimation n'a pas compté le départ des 270 liaisons de l'hôte vers les 3 variantes de la pièce. | Remplacer le chiffre de l'étude par celui du §5.1. |
+| 7 | L'étude de D1 estime le contrat de Button à +8 à +11 ko. La simulation indépendante donne −721 octets UTF-8, avec `sizes` retiré et les pertes recalculées. L'estimation n'a pas compté le départ des 270 liaisons de l'hôte vers les 3 variantes de la pièce. | Remplacer le chiffre de l'étude par celui du §5.1. |
 | 8 | E3 comparait les vues sans traiter séparément les placements de peinture et les états internes non exposés. | Appliquer la vérification de transfert du §2.12, avec une perte quand sa fidélité n’est pas prouvée. Une différence de placements seule ne constitue pas une perte. |
 | 9 | F23 et la case 4.2 traitent « l'axe propagé d'un wrapper ». Sans wrapper, une pièce non exposée ne collisionne plus, et une clé exposée égale à une clé de l'hôte est une vraie collision, puisque Figma montre deux propriétés. | Retirer la case 4.2 ; garder le diagnostic de collision pour une pièce exposée. |
 | 10 | D2 écrit « l'Exporter avertit » pour le cas 3. Le critère de P33 veut qu'aucun contrôle du composant ne vive à la fois dans l'Exporter et dans Architect, et la case 8.2 porte ce constat dans Architect. | Architect seul, réponse 3 du mainteneur. |
@@ -684,13 +689,16 @@ Ce que l'exemple montre :
 
 Les tailles sont celles de `Buffer.byteLength(JSON.stringify(contrat), "utf8")`. Compter `JSON.stringify(contrat).length` mesure des unités UTF-16, ce qui donnait 49 608 pour Button 14.0 et 13 099 pour Groupe 14.0. Les caractères accentués expliquent l'écart avec les octets.
 
-Le constructeur indépendant `_local/p22/codex/constructeur15.cjs` part des contrats 14.0 rejoués et prend les identifiants d'instance dans les captures. Il retire `sizes`, garde les dimensions dans chaque vue et corrige F22. La simulation garde un détail intérieur de `.Segment` aplati. Elle conserve aussi les métadonnées de l'hôte 14.0 sans recalculer les diagnostics de toutes les variantes des pièces. Ces mesures chiffrent les données 14.0 transformées. Le moteur 15.0 devra les refaire avec ses diagnostics complets.
+Le constructeur indépendant `_local/p22/codex/constructeur15.cjs` part des contrats 14.0 rejoués et prend les identifiants d'instance dans les captures. Il retire `sizes`, garde les dimensions dans chaque vue et corrige F22. La simulation garde un détail intérieur de `.Segment` aplati. `_local/p22/codex/meta-relais.cjs` recalcule ensuite les pertes de l'hôte, de chaque variante de pièce et de chaque occurrence selon le §2.11, et les confronte aux pertes des contrats 14.0 autonomes des pièces. Le recalcul ne compte que les pertes, sans les notes d'export. Ces mesures chiffrent les données 14.0 transformées. Le moteur 15.0 devra les refaire.
 
 | Contrat | 14.0 | 15.0 | Écart |
 |---|---|---|---|
-| Button | 49 663 | 48 275 | −1 388, soit −2,8 % |
-| Groupe | 13 205 | 78 799 | +65 594, soit ×6,0 |
-| Groupe et `.Segment` sans ses métadonnées, ensemble | 83 824 | 78 799 | −5 025 |
+| Button | 49 663 | 48 942 | −721, soit −1,5 % |
+| Groupe | 13 205 | 186 125 | +172 920, soit ×14,1 |
+| Groupe et `.Segment`, chacun avec ses métadonnées | 89 375 | 186 125 | +96 750, soit ×2,1 |
+| Groupe et `.Segment`, sans métadonnées | 80 927 | 75 902 | −5 025 |
+
+Les métadonnées expliquent l'écart de Groupe. Ses 475 pertes pèsent 109 966 octets, car §2.11 publie une perte par variante de `.Segment` : la largeur du contour de `Cadre` manque 90 fois. Le contrat 14.0 autonome de la pièce dit ses manques en 16 constats, sans les contraintes `scale` que la 15.0 ajoute. Regroupées par propriétaire et par message, les 475 pertes tiennent en 22 entrées et 5 055 octets. La liste des variantes touchées ne se retrouve pas toujours depuis le contrat, puisqu'une opacité non publiée n'y laisse aucune trace. Button porte 3 pertes, toutes sur la variante de `.Ring` : racine sans auto layout, hauteur fixe sans variable, gap et padding non transmis.
 
 | Poste de Button 15.0 | Octets |
 |---|---|
@@ -709,7 +717,7 @@ Le constructeur indépendant `_local/p22/codex/constructeur15.cjs` part des cont
 
 Les 270 liaisons de Button deviennent 9 liaisons dans la pièce. Groupe décrit les 81 variantes de `.Segment` qu'il ne pose pas. Le temps d'analyse reste à mesurer dans le moteur, selon la case 1.5.
 
-La simulation précédente de Button pèse 49 305 octets UTF-8. Le retrait de `sizes` la ramène à 48 180. Le constructeur indépendant ajoute 95 octets à décision identique, soit 0,2 %. Les vues dépliées des 90 variantes sont identiques. Pour Groupe, l'écart entre les simulations vaut −434 octets, dont −477 dans les structures après correction de F22, +36 dans les variants et +7 dans l'entrée de la pièce.
+La simulation précédente de Button pèse 49 305 octets UTF-8. Le retrait de `sizes` la ramène à 48 180. Avant le recalcul des pertes, le constructeur indépendant ajoutait 95 octets à décision identique, soit 0,2 %. Les vues dépliées des 90 variantes sont identiques. Pour Groupe, l'écart entre les simulations vaut −434 octets, dont −477 dans les structures après correction de F22, +36 dans les variants et +7 dans l'entrée de la pièce.
 
 ### 5.2 Factorisations retenues
 

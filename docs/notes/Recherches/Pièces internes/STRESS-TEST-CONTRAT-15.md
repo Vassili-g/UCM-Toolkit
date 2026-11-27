@@ -1,6 +1,6 @@
 # Stress test du contrat 15.0
 
-La forme ne suffit pas encore à reconstruire tous les cas. Les épreuves ont trouvé des erreurs corrigées dans [FORME-CONTRAT-15.md](./FORME-CONTRAT-15.md) et quatre questions de résolution. L'égalité des vues simulées ne prouve pas la sortie du futur moteur.
+La première passe a trouvé des erreurs corrigées dans [FORME-CONTRAT-15.md](./FORME-CONTRAT-15.md) et quatre questions de résolution, tranchées depuis. Le tableau qui suit donne ses verdicts. La [passe finale](#passe-finale) relance les huit épreuves sur la version finale de la forme. L'égalité des vues simulées ne prouve pas la sortie du futur moteur.
 
 | Épreuve | Verdict |
 |---|---|
@@ -155,7 +155,92 @@ La correction C8 ajoute aussi `packages/cli/aides/composant.md`, `packages/cli/a
 
 `packages/kit/src/lecteurs/caracteristiques.mjs` doit relever les peintures, contours, icônes, états, focus et dépendances dans les entrées et les renvois. Les lecteurs récursifs de références de tokens couvrent déjà ces branches, en excluant `meta` et le catalogue global `samples`. La prise des modules ne reçoit aucun nouveau nom dans ce lot.
 
-## Questions au mainteneur
+## Passe finale
+
+Codex a fait les points 0, 1, 3 et 5 de sa consigne, puis s'est arrêté sur sa limite d'usage. Un relais d'Opus a fini les points 2, 4, 6, 7 et 8, sans ouvrir la contre-expertise indépendante. Les journaux sont `_local/p22/codex/JOURNAL-CODEX-FINAL-1.txt`, `_local/p22/codex/JOURNAL-CODEX-FINAL-2.txt` et `_local/p22/codex/JOURNAL-RELAIS-OPUS.txt`.
+
+| Épreuve | Verdict sur la version finale |
+|---|---|
+| 1. Dérivation | 14 règles de `derivation-aveugle.md` et de la première passe comparées à la forme finale, 0 écart non justifié |
+| 2. Aller-retour | 0 écart de vue sur les 90 variants de Button et les 3 de Groupe ; les métadonnées recalculées portent 3 pertes pour Button et 475 pour Groupe, et chaque perte des contrats 14.0 autonomes des pièces s'y retrouve ou reçoit sa justification |
+| 3. Absences | 28 paires, avec les sens de la première passe |
+| 4. Mutations | 41 refus sur les 43 mutations de la première passe, et 2 altérations que seul le producteur peut refuser avant publication ; 15 mutations des réponses 1 à 3 refusées |
+| 5. Cas limites | 17 cas de la première passe et 5 cas des réponses 1 à 3 acceptés ; 5 assertions de sens passent |
+| 6. Reconstruction | 5 composants compilent en mode strict ; 363 rendus et 45 états d'occurrence passent avec la règle de lecture des états |
+| 7. Taille | Button 48 942 octets, Groupe 186 125, dont 109 966 de pertes répétées par variante ; 0 entrée de catalogue dupliquée sur 5 000 contrats générés |
+| 8. Lecteurs | 74 fichiers dans 24 groupes ; les règles nouvelles de la passe touchent le moteur et `variant-views.mjs`, déjà au §6.1 |
+
+### Règle des états
+
+Le point 0 a éprouvé la proposition de la question 4 avant de l'intégrer. `_local/p22/codex/etats-final.cjs` confronte 7 cas à la [règle de Figma](https://help.figma.com/hc/en-us/articles/360039150733-Apply-changes-to-instances). Deux cas divergent. Dans le premier, l'hôte impose une couleur à une pièce dont les états ont des couleurs initiales différentes. Dans le second, les états posent des instances initiales différentes. Figma abandonne alors la surcharge, et la règle par adresse seule la garde. La génération en masse compte 12 594 bascules où la règle par adresse seule rend une autre couleur que Figma.
+
+La forme garde donc la vérification à l'export et la perte ciblée (§2.12, étape 6). Le mainteneur avait confié ce choix à Codex. Pour un renvoi sans perte, la lecture reste celle de la proposition : ce que l'hôte change vaut, à la même adresse, pour la variante que l'état choisit. Une preuve documentaire ne remplace pas un rejeu dans Figma, que la liste pour `StressTest` prépare.
+
+### Corrections et preuves
+
+| Auteur | Correction | Preuve |
+|---|---|---|
+| Codex | sources relatives successives, `source.component` pour une dépendance, sélection nulle ou double avec perte (réponses 1 à 3) | `_local/p22/codex/cas/verifier-final.cjs`, 5 cas acceptés et 15 mutations refusées |
+| Codex | vérification du transfert et perte ciblée gardées pour les états | `_local/p22/codex/etats-final.cjs`, 2 divergences sur 7 cas |
+| Codex | largeur de contour et couleur d'ombre portées par les champs existants, perte ciblée sinon (§2.14) | `_local/p22/codex/reconstruction/releve.json` |
+| relais | le recalcul des pertes omettait les 3 pertes de `.Ring` et ajoutait 72 pertes de dimension que deux insets couvrent ; le §2.11 décrit maintenant la règle simulée | `_local/p22/codex/meta-relais.cjs`, 0 perte 14.0 manquante |
+| relais | miroir, cisaillement, instance agrandie ou réduite (`scaleFactor`), effets de bruit, de texture et de flou progressif, et `layoutGrids` reçoivent leur ligne au §2.14 | `_local/p22/codex/couverture-relais.cjs`, 3 trous sur 100 sous-champs sans ligne |
+| relais | deux instances exposées qui présentent la même clé : la première garde la clé, l'autre se lit comme non exposée, avec une perte (§2.5) | `_local/p22/codex/fuzz/generer-relais.cjs`, 593 hôtes à deux instances exposées |
+| relais | définitions en tête du §2, `visibilityProp` relatif au propriétaire, preuve de transfert définie, lecteur sans seconde preuve, exemple de Button à couverture partielle | relecture de la forme entière |
+| relais | le contrôle local des états exigeait la couleur d'un calque masqué | `_local/p22/codex/verifier-reconstruction-finale.tsx`, 45 états passent |
+
+### Génération en masse
+
+Le générateur de Codex, `_local/p22/codex/fuzz/generer.cjs`, rend 5 000 tirages sans échec, avec une seule pièce par niveau. Les 5 fichiers `_local/p22/codex/cas/fuzz-echec-*.json` viennent d'un tirage antérieur à la correction de ce générateur. Aucun ne montre un défaut de la forme.
+
+Le relais a écrit `_local/p22/codex/fuzz/generer-relais.cjs`, qui sépare trois rôles. Un modèle tiré d'une graine dit ce que Figma rend, sans lire de contrat. Un constructeur projette ce modèle selon la forme, pertes comprises. Un lecteur applique le §2.12 au seul contrat. Les tirages couvrent 1 à 11 pièces imbriquées, une dépendance dans chaque pièce, des expositions chaînées jusqu'à la dépendance et deux instances exposées du même set. Ils couvrent aussi des matrices pleines, clairsemées et à coordonnées répétées, des `SLOT` d'hôte et de pièce, des surcharges de couleur, de texte, de visibilité et d'échange, et des surcharges dans une pièce de pièce. S'y ajoutent les états d'une pièce non exposée, une prop d'axe exposée qui bascule, des modes forcés, des styles et des variables mêlés, et des ombres avec ou sans couleur.
+
+| Mesure sur 5 000 tirages | Valeur |
+|---|---|
+| tirages sans échec | 5 000 |
+| bascules résolues par le lecteur, toutes égales à Figma | 3 375 |
+| coordonnées non résolues sous une perte | 26 051, dont 3 129 prouvables |
+| bascules où la règle par adresse seule diverge de Figma | 12 594 |
+| octets des contrats | 202 976 535, dont 25,9 % de `meta` |
+| recopie admise par D4, feuilles et vues de renvoi égales à la variante citée | 2,0 % |
+| type et valeurs recopiés dans les props à `source` (§5.3) | 0,25 % |
+| entrées de catalogue dupliquées | 0 |
+
+Aucun tirage n'a échoué, donc aucune graine n'a été réduite. `_local/p22/codex/fuzz/temoins-relais.cjs` prouve que le harnais voit un défaut. Une perte de transfert, de sélection ou de calque masqué retirée est refusée, et une couleur de renvoi altérée change le dépliage. Les 3 129 coordonnées prouvables restent non résolues parce qu'une perte vise le renvoi entier (§2.12, étape 6). La recopie la plus lourde est la répétition des pertes par variante, objet de la question 1.
+
+### Couverture de Figma
+
+Les deux agents de Codex ont classé l'API Plugin chacun de son côté. L'agent 1 a lu 1 313 propriétés de nœud dans les types publiés, l'agent 2 en a lu 1 284 dans la version 1.138.0 installée. Le consolidé `_local/p22/codex/couverture-figma.json` porte 2 038 propriétés et sous-champs. Son compte de propriétés non couvertes valait 0 par construction, sans calcul.
+
+`_local/p22/codex/couverture-relais.cjs` compare les deux classements. 32 propriétés diffèrent, et le consolidé les couvre toutes par un champ, avec une perte si le champ est incomplet. 100 sous-champs classés en perte n'avaient aucune ligne du §2.14 qui nomme leur famille de propriétés. Trois trous étaient réels et ont reçu leur ligne. Les 97 autres tombent dans une ligne existante (peintures, effets, vecteurs, typographie, grilles, prototype), sauf 20 métadonnées de styles et de variables, qui relèvent de la traçabilité.
+
+### Limites qui ne se lèvent qu'avec le moteur
+
+- Le temps d'analyse et le réexport des captures restent à mesurer dans le moteur 15.0 (case 1.5).
+- Les simulations recalculent les pertes, pas les notes d'export.
+- Les preuves de transfert s'appuient sur la règle documentée de Figma, sans rejeu.
+- Le prototype de validation ne remplace ni le schéma ni les contrôles 14.0.
+- La reconstruction rend du HTML sans CSS des tokens, sans contrat autonome d'`Icon` et sans comparaison visuelle.
+- Deux faits de Figma restent à établir : si l'hôte présente la prop `SLOT` d'une instance exposée, et si une instance dont `scaleFactor` diffère de 1 garde ses liaisons de variables.
+
+### Constructions à ajouter à `StressTest`
+
+Le composant `StressTest` d'UCM-Playground ne pose aucune pièce préfixée. Ces constructions ancreraient dans une capture réelle ce que la passe a prouvé sur des cas inventés :
+
+1. Une pièce `.Cellule` à deux axes, taille et état, dont la matrice manque une combinaison et en répète une autre avec deux couleurs.
+2. Deux instances de `.Cellule` exposées dans le même variant, pour la collision de clés et l'ordre de l'arbre.
+3. Une pièce `.Puce` posée dans `.Cellule`, que `.Cellule` expose, avec une couleur que `StressTest` impose sur `.Puce` à travers `.Cellule`.
+4. Sur une occurrence de `.Cellule`, une couleur imposée sur un calque dont les états ont des couleurs initiales différentes, et une autre sur un calque dont les états partagent la couleur, puis un changement d'état rejoué dans Figma.
+5. Sur une occurrence, un calque masqué sans propriété, un texte saisi et une instance échangée sans propriété.
+6. Un mode de variable forcé sur une occurrence (`explicitVariableModes`).
+7. Le `SLOT` de `.Cellule` rempli par `StressTest`, et une prop `SLOT` d'une instance exposée.
+8. Une instance de `.Cellule` agrandie par l'outil d'échelle de Figma (`scaleFactor` différent de 1), et un calque en miroir dans `.Cellule`.
+9. Un variant de `.Cellule` à racine sans auto layout et à hauteur fixe sans variable, comme `.Ring`.
+10. Une ombre sans variable de couleur, un effet de bruit et un flou progressif dans `.Cellule`.
+11. Une instance de `Button` exposée dans `StressTest`, pour une source vers une dépendance.
+12. Une instance exposée dans une partie des variants seulement.
+
+## Questions tranchées
 
 1. Une pièce peut-elle porter `source` pour une propriété exposée par une pièce intérieure ? Le §2.2 l'interdit, alors que E2 et le cas d'exposition à deux niveaux demandent cette provenance. Recommandation, autoriser une source relative dans chaque propriétaire et résoudre les sources successives. Le témoin est `_local/p22/codex/cas/Q-source-deux-niveaux.json`.
 2. Que rend une prop exposée quand la combinaison visée n'a aucun variant ou en a plusieurs de rendus différents ? La 14.0 admet les matrices clairsemées et les coordonnées répétées. Le §2.12.4 choisit pourtant une seule V′ sans règle de départage. Recommandation, conserver ces matrices et publier une perte ciblée quand la sélection n'est pas unique. Ne pas choisir le premier variant. Le témoin à deux variantes est `_local/p22/codex/cas/Q-variante-double.json`.
@@ -166,13 +251,15 @@ La correction C8 ajoute aussi `packages/cli/aides/composant.md`, `packages/cli/a
 
 Le mainteneur retient les recommandations des questions 1, 2 et 3. Une source relative se résout de propriétaire en propriétaire. Une sélection qui ne désigne pas une seule variante publie une perte ciblée, sans choisir. Une propriété d'une dépendance exposée cite le contrat de la dépendance et ses clés publiques. La question 4 n'est pas tranchée. Le mainteneur remarque que le contrat doit décrire les parties, et que le changement d'état relève du code. Une proposition en découle, à éprouver par la passe finale avant toute décision : le contrat décrit la pièce avec toutes ses variantes et chaque renvoi par adresse, et il écrit une règle de lecture, selon laquelle ce que l'hôte change sur une occurrence vaut à la même adresse pour la variante que l'état choisit. La proposition retire la vérification du transfert par l'Exporter et la perte de la recommandation initiale. La passe finale dit si ce retrait perd une information sur un cas réel ou inventé.
 
+La passe finale tranche la question 4 sur délégation du mainteneur. La forme garde la vérification du transfert à l'export et la perte ciblée, sur le contre-exemple de `_local/p22/codex/etats-final-resultats.json` (voir [Règle des états](#règle-des-états)).
+
 ## Ce qui reste
 
-Les quatre questions de résolution restent ouvertes. Les simulations doivent ensuite recalculer les métadonnées de l'hôte et de toutes les pièces, avec les pertes des variantes non posées. Le validateur de production devra reprendre les contrôles 14.0 et le schéma, en plus des preuves de ce lot.
+Les quatre questions de la première passe sont tranchées. Les trois questions de la fin de ce document attendent le mainteneur. Le validateur de production devra reprendre les contrôles 14.0 et le schéma, en plus des preuves de ce lot.
 
 Le temps d'analyse, le traitement complet du détail intérieur aplati et le réexport Figma restent à mesurer avec le moteur 15.0. La reconstruction reste sans comparaison visuelle et sans contrôle `ucm check` compatible. Aucun paquet publiable n'a changé.
 
-Les journaux et les preuves exécutables restent dans `_local/p22/codex/`, hors des fichiers suivis. Les 15 tests documentaires passent. `npm run agents:diff` réussit et ne désigne aucun document lié à relire. Il signale l'inventaire comme vue à régénérer. Ce lot reste limité aux deux documents autorisés.
+Les journaux et les preuves exécutables restent dans `_local/p22/codex/`, hors des fichiers suivis.
 
 ## Effets sur le plan d'implémentation
 
@@ -180,14 +267,22 @@ Les journaux et les preuves exécutables restent dans `_local/p22/codex/`, hors 
 
 | Lots | Modification attendue |
 |---|---|
+| 2.3 | regrouper ou non les pertes répétées par variante, selon la question 1 et P33 |
 | 3.1 et 3.3 | retirer `sizes`, refuser les clés JSON répétées avant décodage, borner l'exception d'échange illisible |
-| 3.2 | prêter la version de lecture, garder les rôles partagés, joindre les identifiants avec un seul `I`, résoudre les questions 1 à 4 |
-| 3.3 | ajouter les axes transitifs des dépendances de pièces et les adresses récursives d'échantillon |
-| 4.1 et 4.2 | retirer le wrapper élu et le traitement d'axe propagé devenu sans objet ; garder les collisions réelles |
-| 5.2 et 5.3 | reprendre les 17 attentes manuscrites, les identifiants imbriqués, les refus et le transfert par adresse |
-| 5.1, 5.4 et 5.6 | agréger les pertes réelles de chaque pièce et retirer les diagnostics devenus faux |
+| 3.2 | prêter la version de lecture, garder les rôles partagés, joindre les identifiants avec un seul `I`, résoudre les sources de propriétaire en propriétaire, refuser de choisir une sélection nulle ou double, transférer les écarts d'un renvoi sans perte sans seconde preuve |
+| 3.3 | ajouter les axes transitifs des dépendances de pièces et les adresses récursives d'échantillon ; juger `values` sur l'exposition au slot |
+| 4.1 et 4.2 | retirer le wrapper élu et le traitement d'axe propagé devenu sans objet ; garder les collisions réelles, entre l'hôte et une instance exposée comme entre deux instances exposées |
+| 5.2 et 5.3 | reprendre les 22 attentes manuscrites, les identifiants imbriqués, les refus, et la preuve de transfert vers chaque variante atteignable (§2.12, étape 6) |
+| 5.1, 5.4 et 5.6 | agréger les pertes de chaque pièce selon le §2.11 : occurrence jugée contre sa variante, racine d'occurrence jugée sur la boîte du slot, dimension couverte par deux insets, constats 14.0 que D2 ou la règle `@icons` de l'hôte rendent faux retirés |
+| moteur, lots 5 | publier ou déclarer les lignes nouvelles du §2.14 : `relativeTransform` en miroir, `scaleFactor`, effets de bruit, de texture et de flou progressif, `layoutGrids`, `numberOfFixedChildren` |
 | 7.1 | compter les dépendances après dépliage, avec le cas Aurore répété |
 | 9.1 | réécrire les aides oubliées et les règles d'absence par propriétaire |
-| 10.1 et 10.2 | rejouer les attentes avec le moteur, mesurer les octets UTF-8 et les diagnostics complets |
+| 10.1 et 10.2 | rejouer les attentes et `_local/p22/codex/fuzz/generer-relais.cjs` avec le moteur, mesurer les octets UTF-8 et les diagnostics complets, capturer `StressTest` avec les constructions de la passe finale |
 
 Les tests permanents devront fabriquer leurs contrats depuis les cas inventés. Les fichiers issus des captures restent dans `_local/`. Les lois du moteur devront vérifier les occurrences masquées, les effacements, la boîte prioritaire, la cardinalité, les chaînes d'identifiants et les pertes des variantes de pièce non posées.
+
+## Questions au mainteneur
+
+1. Faut-il regrouper les pertes répétées sur les variantes d'une pièce ? Le §2.11 publie une perte par variante. Sur Groupe, les 475 pertes pèsent 109 966 octets, soit 59 % du contrat, et tiennent en 22 messages distincts. Le contrat 14.0 autonome de `.Segment` dit ses manques en 16 constats, sans les contraintes `scale` que la 15.0 ajoute. Recommandation, publier une perte par propriétaire, adresse et propriété de l'API, avec `contractPath` sur `pieces.<P>.variants` et le nombre de variantes dans le message, comme le moteur 14.0 regroupe déjà des variants dans un constat. La liste des variantes reste dans le rapport de l'Exporter, selon P33. Le regroupement ramène ces pertes à 5 055 octets.
+2. Deux instances exposées présentent la même clé : laquelle la garde ? Le §2.5 donne la clé à la première dans l'ordre de l'arbre publié, et l'autre se lit comme non exposée, avec une perte. Recommandation, garder cette règle, qui prolonge la collision de la 14.0, où le set exporté garde sa clé. Ne publier aucune des deux retirerait au code une propriété que Figma montre.
+3. Faut-il étendre la preuve de transfert aux visibilités et aux échanges après un rejeu dans Figma ? Le §2.12 ne prouve en 15.0 que les couleurs. Sur 5 000 tirages, 3 129 coordonnées restent non résolues alors que la règle de Figma les prouverait. Recommandation, garder la perte jusqu'à la capture de `StressTest` (constructions 4 et 5), puis étendre la preuve par égalité des valeurs initiales si le rejeu confirme la règle documentée.
