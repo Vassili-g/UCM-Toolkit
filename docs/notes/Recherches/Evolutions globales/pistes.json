@@ -1505,6 +1505,7 @@
         }
       ],
       "criteresDeFin": [
+        "Architect pose le sceau seulement quand aucun constat à corriger ou à vérifier ne reste ouvert ; un point « à vérifier » que le designer ignore ne retient plus le sceau.",
         "Un composant validé par Architect puis exporté sans retouche passe.",
         "Une retouche faite dans Figma après la validation, même d'un seul calque, bloque l'export avec le message qui renvoie à Architect.",
         "Dans un fichier agnostique, l'Exporter exporte sans sceau et ne bloque aucun export.",
@@ -1516,7 +1517,8 @@
       ],
       "risques": [
         "Une empreinte trop large invalide le sceau à chaque retouche sans effet, et le designer repasse par Architect pour rien.",
-        "Une empreinte trop étroite laisse passer une modification que l'Exporter publie."
+        "Une empreinte trop étroite laisse passer une modification que l'Exporter publie.",
+        "Un point ignoré pour poser le sceau reste une perte du contrat : il doit rester dans `meta.diagnostics`."
       ]
     }
   ]

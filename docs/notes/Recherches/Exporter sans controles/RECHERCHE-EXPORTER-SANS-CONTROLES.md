@@ -52,8 +52,8 @@ Liaison manquante, couleur en dur, calque masqué sans pilote, état mal écrit,
 
 Ces constats peuvent quitter l'interface de l'Exporter. Une liaison absente reste vraie dans le contrat (le token manque), donc `meta.diagnostics` peut aussi les garder sans coût.
 
-## Questions au mainteneur
+## Décisions du mainteneur
 
-1. Les pertes du contrat quittent l'interface de l'Exporter mais restent dans `meta.diagnostics` et dans le corps de la demande de fusion, pour le développeur. Recommandation : oui, sinon le contrat devient faux sans le dire.
-2. Le sceau de P34 se pose-t-il sur un composant qui garde des C42 « à vérifier » ? Plusieurs pertes du contrat arrivent en C42 dans Architect : un sceau qui les accepte laisse partir un contrat incomplet, mais signalé dans `meta.diagnostics`.
-3. Quels constats l'Exporter garde-t-il dans son interface en plus des huit du tableau ? Recommandation : aucun, la liste de `meta.diagnostics` reste lisible dans la demande de fusion.
+1. Les pertes du contrat quittent l'interface de l'Exporter et restent dans `meta.diagnostics` et dans le corps de la demande de fusion, pour le développeur.
+2. Le sceau de P34 ne se pose pas tant qu'un point « à vérifier » reste ouvert. Le designer écarte un point « à vérifier » avec Ignorer, et le sceau se pose ensuite. Ignorer existe déjà dans un fichier full UCM (`packages/plugin-architect/src/ecriture/ignores.ts`). Un point ignoré reste dans `meta.diagnostics`, puisque le contrat garde ses pertes.
+3. L'Exporter ne garde dans son interface que les huit constats du tableau.
