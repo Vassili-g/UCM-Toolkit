@@ -10,8 +10,8 @@ Ce plan suit la piste P31 de `docs/notes/Recherches/Evolutions globales/pistes.j
 
 ## Étape 1. Mesure et conception
 
-- [ ] 1.1 Mesurer la Préparation sur la capture du Button de `_local/recettes/` : variables proposées, cible de chaque valeur d'axe, questions, valeurs restées en dur, liaisons que le designer poserait encore à la main.
-- [ ] 1.1b Refaire la mesure sur un composant dessiné en dur : le Button capturé est déjà relié (section 6 de la recherche).
+- [x] 1.1 Mesurer la Préparation sur la capture du Button de `_local/recettes/` : variables proposées, cible de chaque valeur d'axe, questions, valeurs restées en dur, liaisons que le designer poserait encore à la main. (section 6, 382caf7b)
+- [x] 1.1b Refaire la mesure sur un composant dessiné en dur : le Button capturé est déjà relié (section 6 de la recherche). (382caf7b)
 - [ ] 1.2 Note de conception de l'expérience « Relier le composant » (sections 7 à 9 de la recherche), commune au full UCM et à l'agnostique : création du jeu de variants, question par emplacement, token de chaque variante, aperçu, d'après 1.1 et les réponses aux questions.
 - [ ] 1.3 (mainteneur). Répondre aux questions de la recherche et valider la note.
 
