@@ -308,7 +308,6 @@ Le prompt [PROMPT-AUDIT-ET-PLAN.md](./PROMPT-AUDIT-ET-PLAN.md) confie à un agen
 ## Questions au mainteneur
 
 - [Choix 1. Où le contrat range-t-il les pièces internes ?](#choix-1-où-le-contrat-range-t-il-les-pièces-internes)
-- [Décidé. Comment l'obligation de règles d'une pièce s'applique](#décidé-comment-lobligation-de-règles-dune-pièce-sapplique)
 - [Choix 3. Une pièce posée dans une autre pièce se décrit-elle à plat ?](#choix-3-une-pièce-posée-dans-une-autre-pièce-se-décrit-elle-à-plat)
 - [Choix 4. Quels tokens une pièce cite-t-elle ?](#choix-4-quels-tokens-une-pièce-cite-t-elle)
 - [Choix 6. À qui appartiennent les couleurs d'une pièce et d'une dépendance posées dans l'hôte ?](#choix-6-à-qui-appartiennent-les-couleurs-dune-pièce-et-dune-dépendance-posées-dans-lhôte)

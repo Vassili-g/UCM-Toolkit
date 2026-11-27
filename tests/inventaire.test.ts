@@ -249,7 +249,7 @@ test("les questions d'une piste qui a une recherche viennent de sa section « Qu
   assert.equal(questions('P23').length, 10);
   assert.equal(questions('P23')[0], "Q1. La forme de la bascule de l'Exporter.");
   assert.equal(questions('P20').length, 14);
-  assert.equal(questions('P22').length, 5);
+  assert.equal(questions('P22').length, 4);
   assert.deepEqual(questions('P18'), [], "P18 n'a pas de section de questions");
   // Une piste sans recherche garde les questions de pistes.json.
   assert.deepEqual(questions('P17'), pistes().find((piste) => piste.id === 'P17')!.questions);
