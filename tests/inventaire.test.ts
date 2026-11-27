@@ -252,7 +252,7 @@ test("les questions d'une piste qui a une recherche viennent de sa section « Qu
   assert.equal(questions('P22').length, 5);
   assert.deepEqual(questions('P18'), [], "P18 n'a pas de section de questions");
   // Une piste sans recherche garde les questions de pistes.json.
-  assert.equal(questions('P17').length, 3);
+  assert.deepEqual(questions('P17'), pistes().find((piste) => piste.id === 'P17')!.questions);
 });
 
 test('la page porte les pistes à suivre dans PISTES et les pistes terminées dans TERMINEES', async () => {

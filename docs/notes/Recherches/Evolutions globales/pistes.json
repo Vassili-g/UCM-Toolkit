@@ -16,8 +16,8 @@
       },
       "dependances": [],
       "complexite": "s",
-      "raisonComplexite": "Le travail est un réglage GitHub et un fichier `CODEOWNERS` ; le coût est la décision sur l'offre GitHub de l'organisation.",
-      "coutHumain": "Décider de l'offre GitHub de l'organisation, régler la règle de la branche `main` et désigner les propriétaires de code.",
+      "raisonComplexite": "La bibliothèque a déjà un jeu de règles actif sur trois branches, sur l'offre Team de l'organisation : il manque la règle de contrôle obligatoire et le fichier `CODEOWNERS`. Seul un administrateur de l'organisation peut les poser ; le mainteneur a le droit `maintain`.",
+      "coutHumain": "Demander à un administrateur de l'organisation d'ajouter le check `contrats` obligatoire au jeu de règles, et désigner les propriétaires de code.",
       "porteur": "mainteneur",
       "promesse": "R",
       "points": [
@@ -53,7 +53,6 @@
         "La ligne de VALIDATIONS-MVP.md sur les protections de branche est mise à jour ou retirée."
       ],
       "questions": [
-        "L'offre GitHub de l'organisation permet-elle la protection de branche sur un dépôt privé, et qui en est administrateur ?",
         "Qui sont les propriétaires de code de `src/components/**` ?",
         "Un administrateur garde-t-il le droit de contourner la règle ?"
       ],
@@ -67,14 +66,14 @@
       "titre": "Contrats réels dans intencial-library",
       "titreCourt": "Contrats réels",
       "sujet": "Bibliothèque de production",
-      "resume": "Exporter 3 ou 4 composants en contrat 14.0 dans intencial-library, passer son workflow de la CLI 0.1.48 à 0.1.150 et rejouer la recette externe.",
+      "resume": "Exporter les trois composants du pilote de P30 (Tag, Button, Alert) dans intencial-library, dans la version du contrat que le plugin publie à ce moment, et rejouer la recette externe. Le CI de la bibliothèque n'épingle plus la CLI 0.1.48.",
       "importance": "critique",
       "raisonImportance": "Le dépôt n'a aucun dossier `src/components` ni contrat, et aucun contrat 14.0 n'existe nulle part : un module n'aurait rien contre quoi coder ni tester.",
       "prio": 0,
       "dependances": [],
       "complexite": "m",
-      "raisonComplexite": "Les exports et les pins tiennent en un lot ; la recette compte une heure et demie, et RECETTE.md est écrit pour UCM-Playground.",
-      "coutHumain": "Exporter 3 ou 4 composants depuis Figma, relire leurs pull requests et rejouer la recette d'une heure et demie.",
+      "raisonComplexite": "Les exports suivent le pilote de P30 ; la recette compte une heure et demie, et RECETTE.md est écrit pour UCM-Playground.",
+      "coutHumain": "Exporter Tag, Button et Alert depuis Figma, relire leurs pull requests et rejouer la recette d'une heure et demie.",
       "porteur": "mainteneur",
       "promesse": "C",
       "points": [
@@ -110,18 +109,15 @@
         }
       ],
       "criteresDeFin": [
-        "Trois contrats au moins portent `\"contractVersion\": \"14.0\"` dans `../intencial-library/src/components/` et sont arrivés par des pull requests du plugin.",
-        "`npx --yes @ucm-kit/cli@0.1.150 check --report ci-report.md` sort en 0 dans intencial-library.",
-        "`grep 0.1.48 ../intencial-library/.github/workflows/ucm.yml` ne rend rien.",
+        "Les contrats de Tag, Button et Alert sont dans `../intencial-library/src/components/` et sont arrivés par des pull requests du plugin.",
+        "`npx ucm check --report ci-report.md`, avec la CLI épinglée par la bibliothèque, sort en 0 dans intencial-library.",
         "Les sept critères de l'étape 7 de RECETTE.md sont consignés."
       ],
       "questions": [
-        "Quels composants : Button, Alert, TileLink, et quel composé ?",
         "La recette se joue-t-elle sur intencial-library ou reste-t-elle sur UCM-Playground ?"
       ],
       "risques": [
-        "Sans `package.json` ni lockfile, `ucm.yml` saute `npm ci` : l'adaptateur TypeScript ne se charge pas et la parité reste muette.",
-        "Le passage de 0.1.48 à 0.1.150 change le texte des rapports déjà publiés sur les pull requests."
+        "Si P22 n'est pas livrée avant le pilote, les trois contrats sortent en 14.0 et se réexportent en 15.0 ensuite."
       ]
     },
     {
@@ -131,7 +127,7 @@
       "sujet": "Bibliothèque de production",
       "recherche": "docs/notes/Recherches/Socle intencial-library/PLAN-SOCLE-INTENCIAL-LIBRARY.md",
       "plan": "docs/notes/Recherches/Socle intencial-library/PLAN-SOCLE-INTENCIAL-LIBRARY.md",
-      "resume": "Créer `package.json`, lockfile, `tsconfig.json` et `src/components/` dans intencial-library, et installer la CLI et l'adaptateur. Le repository n'a pas besoin des tokens.",
+      "resume": "Le socle d'intencial-library existe : TypeScript, React 19 en dépendance pair, CLI et adaptateur épinglés. Il reste à lancer `tsc` dans le job `contrats`, à mettre à jour les versions épinglées, et à charger l'adaptateur sur les contrats du pilote. Le repository n'a pas besoin des tokens.",
       "importance": "critique",
       "raisonImportance": "Le dépôt ne contient que `tokens.json` : sans lockfile, `ucm.yml` saute `npm ci`, l'adaptateur ne se charge pas et aucun module n'a de projet où s'exécuter.",
       "prio": 1,
@@ -140,7 +136,7 @@
         "P19"
       ],
       "complexite": "m",
-      "raisonComplexite": "Un projet React et TypeScript standard, plus les lignes qu'`ucm init` demande d'ajouter.",
+      "raisonComplexite": "Un projet React et TypeScript standard ; la parité ne se mesure qu'avec les contrats du pilote (P1).",
       "coutHumain": "Aucun geste. intencial-library reste une bibliothèque seule, privée et non publiée pour l'instant.",
       "porteur": "développeurs",
       "promesse": "R",
@@ -182,7 +178,8 @@
         "intencial-library épingle la CLI qui contient P19, en version exacte."
       ],
       "risques": [
-        "L'adaptateur cherche une interface nommée d'après le composant (`nomInterfaceAttendue`). Une interface nommée autrement que `ButtonProps` donne le seul écart « interface absente », et aucune prop n'est comparée."
+        "L'adaptateur cherche une interface nommée d'après le composant (`nomInterfaceAttendue`). Une interface nommée autrement que `ButtonProps` donne le seul écart « interface absente », et aucune prop n'est comparée.",
+        "La v2 exporte 38 types et interfaces que le contrat ne décrit pas : l'adaptateur génère seulement les unions de chaînes. Ces interfaces s'écrivent à la main dans la bibliothèque."
       ]
     },
     {
@@ -308,8 +305,8 @@
       "prio": 1,
       "dependances": [],
       "complexite": "l",
-      "raisonComplexite": "Le format du contrat change (nouvelle version majeure), avec le moteur d'extraction du socle, les types et le schéma du kit, les lecteurs, la validation et la parité.",
-      "coutHumain": "Décider la forme du bloc des pièces internes et l'endroit où le designer écrit ses règles d'usage ; réexporter les composants qui en ont.",
+      "raisonComplexite": "Le format du contrat change (version majeure 15.0), avec le moteur d'extraction du socle, les types et le schéma du kit, les lecteurs, la validation et la parité. La forme est arrêtée et éprouvée (`FORME-CONTRAT-15.md`, huit épreuves, 5 000 tirages) ; un banc de test se construit avant le moteur.",
+      "coutHumain": "Valider la conception du banc de test de la 15.0 et le plan d'implémentation, enrichir et capturer `StressTest` dans Figma, puis réexporter les composants qui ont des pièces.",
       "porteur": "mainteneur",
       "promesse": "C",
       "points": [
@@ -391,8 +388,9 @@
         "Un réexport réel d'un composant avec une pièce interne (par exemple un Button avec `.Ring`) passe `ucm check`."
       ],
       "risques": [
-        "Une pièce à beaucoup de variantes alourdit chaque contrat qui l'embarque : la décrire une fois par hôte, pas une fois par instance.",
-        "Un changement de version du contrat demande un réexport de tous les composants et une sortie coordonnée du kit, de la CLI et de l'Exporter."
+        "Une pièce à beaucoup de variantes alourdit le contrat de son hôte : mesuré, Button passe de 49 663 à 48 942 octets, Groupe de 13 205 à environ 80 000 avec les 90 variantes de `.Segment`, pertes regroupées.",
+        "Un changement de version du contrat demande un réexport de tous les composants et une sortie coordonnée du kit, de la CLI et de l'Exporter.",
+        "Les épreuves reposent sur un modèle de Figma : une capture réelle de `StressTest` enrichi l'ancre avant le moteur."
       ]
     },
     {
@@ -1324,8 +1322,8 @@
         "P22"
       ],
       "complexite": "xl",
-      "raisonComplexite": "Deux versions sources, près d'une centaine de noms importés par les applications, une partie posée sur Ant Design, que le nouveau code n'emploiera plus : le designer dessine aussi ce qu'Ant Design dessinait. Les marques actives passent d'abord par UCM Palettes.",
-      "coutHumain": "Trancher les décisions de la carte, obtenir des développeurs la liste des marques actives, lancer le plugin de relevé de la library Figma, valider le cahier de chaque composant, le reconcevoir dans Figma et l'exporter.",
+      "raisonComplexite": "Deux versions sources, près d'une centaine de noms importés par les applications, une partie posée sur Ant Design, que le nouveau code n'emploiera plus : le designer dessine aussi ce qu'Ant Design dessinait. Deux marques restent à gérer, et une marque change aussi les rôles de couleur de trois composants, pas seulement leurs valeurs.",
+      "coutHumain": "Trancher les décisions de la carte, calculer dans UCM Palettes les palettes des deux marques, valider le cahier de chaque composant, le reconcevoir dans Figma et l'exporter.",
       "porteur": "mainteneur",
       "promesse": "C",
       "points": [
@@ -1359,14 +1357,14 @@
       "sujet": "Plugin Architect",
       "recherche": "docs/notes/Recherches/Construction des composants/RECHERCHE-CONSTRUCTION-DES-COMPOSANTS.md",
       "plan": "docs/notes/Recherches/Construction des composants/PLAN-P31.md",
-      "resume": "Ce qu'il fait : une seule expérience, « Relier le composant », identique en full UCM et dans un fichier non UCM. Le designer dit, pour chaque emplacement coloré (calques, icônes, pièces internes), par quel mot se termine son token ; Architect en déduit le token de chaque variante (nom construit par la grammaire UCM, ou token voisin de celui d'un autre calque), le montre sur des variantes contrastées, puis relie. En full UCM, il crée aussi le jeu de variants et les tokens manquants ; en agnostique, le designer désigne une fois la collection et le dossier des composants, et Architect relie seulement les tokens existants. Où : `packages/plugin-architect/` et `packages/kit/src/controles/`. Pourquoi : relier les variants à la main prend des heures par composant, et une couleur restée en dur dans une instance (icône, pièce interne) n'est aujourd'hui signalée par aucun contrôle.",
+      "resume": "Ce qu'il fait : un composant neuf se génère depuis sa description, un contrat 15.0 partiel écrit avant Figma avec le mainteneur, par un mode d'Architect qui crée les variables, puis le jeu de variants déjà relié ; une relance complète sans réécrire ce qui existe. Un composant existant ou un fichier non UCM passe par « Relier le composant » : le designer dit, pour chaque emplacement coloré (calques, icônes, pièces internes), par quel mot se termine son token, et Architect en déduit le token de chaque variante. En agnostique, le designer désigne une fois la collection et le dossier des composants, et Architect relie seulement les tokens existants. Où : `packages/plugin-architect/` et `packages/kit/src/controles/`. Pourquoi : relier les variants à la main prend des heures par composant ; mesuré sur un Button dessiné en dur, la Préparation actuelle rétablit 42 couleurs sur 360, et 270 sont peintes dans des instances qu'aucun contrôle ne voit.",
       "importance": "haute",
       "raisonImportance": "Chaque composant demande des centaines de liaisons posées à la main ; une mesure sur un Button relié montre qu'Architect ne propose aucune des 764 liaisons de couleur une fois retirées, dont 612 posées dans des instances.",
       "prio": 1,
       "dependances": [],
       "complexite": "xl",
-      "raisonComplexite": "Une nouvelle expérience qui unifie la Préparation, les corrections de liaison et la propagation, un mode agnostique qui rouvre l'analyse dans un fichier non déclaré, et un contrôle des couleurs peintes dans les instances.",
-      "coutHumain": "Valider la maquette de « Relier le composant », puis essayer la construction sur le Button du pilote de P30 et la liaison dans un fichier non UCM.",
+      "raisonComplexite": "Aucun plugin du dépôt n'a encore créé de composant ni de jeu de variants : une mesure dans Figma précède tout lot de code. S'y ajoutent l'expérience qui unifie la Préparation, les corrections de liaison et la propagation, le mode agnostique, et un contrôle des couleurs peintes dans les instances.",
+      "coutHumain": "Dresser la description du composant avec l'agent, lancer le plugin d'essai dans Figma, valider la note de conception et la maquette, publier la library entre les deux passes de la génération, puis essayer sur le Button du pilote de P30.",
       "porteur": "mainteneur",
       "promesse": "R",
       "points": [

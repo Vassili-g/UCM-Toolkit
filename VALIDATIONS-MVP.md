@@ -59,7 +59,7 @@ implémentés des pistes ouvertes. Aucun contrôle de contrat ne compare le rend
 | La comparaison du rendu avec Figma n'est consignée nulle part | Le projet n'a aucune preuve visuelle écrite. C'est l'objet de la [recette externe](./docs/guides/RECETTE.md) |
 | Aucun contrat existant ne publie de `SLOT` ni de propriété `INSTANCE_SWAP` native | Ces deux chemins du moteur ne sont éprouvés que par des tests synthétiques |
 | Le corpus tient à quatre composants | La généralité du moteur se mesure sur ses invariants, pas sur ce corpus |
-| Les protections de branche sont indisponibles sur le plan GitHub actuel | La CI détecte l'écart sans empêcher la fusion. Une pull request rouge reste fusionnable |
+| Le jeu de règles d'intencial-library n'exige pas le check `contrats` | L'offre Team de l'organisation porte déjà un jeu de règles actif sur trois branches, sans contrôle obligatoire. La CI détecte l'écart sans empêcher la fusion, donc une pull request rouge reste fusionnable. Seul un administrateur de l'organisation peut ajouter la règle (P17) |
 | Le manifeste du plugin ne déclare que `api.github.com` et `gitlab.com` | Une équipe sur une instance GitLab auto-hébergée ne publie pas depuis Figma. Sa CI, elle, fonctionne |
 | La version 1 du format de tokens n'est éprouvée qu'en sRGB | Un export Figma réel la produit, déposé par le plugin de la Community, et le CSS du consommateur ne bouge pas d'un bit. Le Display P3 n'a pas d'export réel : un écran qui ne le rend pas prive Figma du réglage de profil |
 | Aucun cas mesuré de mode fixé dans un composant ne change une valeur publiée | Le contrat ne décrit pas encore un mode fixé sur un calque. Un cas réel doit montrer une perte avant l'ajout d'un champ |
