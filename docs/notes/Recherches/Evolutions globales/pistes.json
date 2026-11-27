@@ -1425,6 +1425,100 @@
         "La licence Pro doit couvrir des composants d'icônes partagés dans une library d'équipe.",
         "Le réseau d'un plugin se limite aux domaines de son manifeste : la source des tracés fixe le domaine à ouvrir."
       ]
+    },
+    {
+      "id": "P33",
+      "titre": "UCM Exporter retire ses contrôles du composant et laisse UCM Architect les tenir",
+      "titreCourt": "Exporter sans contrôles",
+      "sujet": "Plugin Exporter",
+      "resume": "Ce qu'il fait : UCM Exporter ne juge plus la structure, les liaisons ni les noms du composant, puisque UCM Architect les contrôle et les corrige mieux. L'Exporter garde la lecture du composant, l'écriture du contrat et la publication, et lit le sceau de P34 pour savoir si le composant est fiable. Où : `packages/plugin-exporter/`, et `packages/kit/` si une règle n'a plus qu'un lecteur. Pourquoi : deux plugins qui jugent le même composant donnent deux verdicts à tenir d'accord, et le designer corrige seulement dans Architect.",
+      "importance": "moyenne",
+      "raisonImportance": "Un contrôle tenu en double finit par diverger, et le designer reçoit dans l'Exporter un constat qu'il ne peut pas corriger sur place.",
+      "prio": 4,
+      "dependances": [
+        "P34"
+      ],
+      "complexite": "m",
+      "raisonComplexite": "Il faut d'abord relever chaque contrôle de l'Exporter et le comparer à celui d'Architect ; un contrôle qu'Architect ne tient pas reste dans l'Exporter ou passe dans Architect avant le retrait.",
+      "coutHumain": "Valider la liste des contrôles retirés, gardés ou déplacés.",
+      "porteur": "mainteneur",
+      "promesse": "R",
+      "points": [
+        {
+          "chemin": "packages/plugin-exporter/",
+          "action": "modifier",
+          "quoi": "Retirer les contrôles qu'Architect tient, garder la lecture, le contrat et la publication."
+        },
+        {
+          "chemin": "packages/plugin-exporter/invariants/diagnostics.md",
+          "action": "modifier",
+          "quoi": "Retirer les diagnostics supprimés."
+        },
+        {
+          "chemin": "packages/plugin-exporter/SPEC.md",
+          "action": "modifier",
+          "quoi": "Dire que le jugement du composant appartient à Architect."
+        }
+      ],
+      "criteresDeFin": [
+        "Chaque contrôle de l'Exporter est retiré, gardé ou déplacé dans Architect, avec sa raison écrite.",
+        "Aucun contrôle du composant ne vit à la fois dans l'Exporter et dans Architect."
+      ],
+      "questions": [
+        "L'Exporter reste agnostique par option (deux périmètres) : dans un fichier où Architect ne tourne pas, qui juge le composant ?",
+        "Le lot 2.3 de P22 réécrit les diagnostics de l'Exporter : faut-il attendre cette piste avant de le faire ?",
+        "Quels contrôles l'Exporter garde-t-il parce qu'ils portent sur le contrat écrit et non sur le dessin ?"
+      ],
+      "risques": [
+        "Un composant exporté sans passage par Architect sort sans aucun jugement tant que le sceau de P34 ne bloque pas l'export."
+      ]
+    },
+    {
+      "id": "P34",
+      "titre": "UCM Architect pose un sceau de validation daté, et UCM Exporter refuse un composant sans sceau valide",
+      "titreCourt": "Sceau de validation",
+      "sujet": "Plugin Architect",
+      "resume": "Ce qu'il fait : quand le composant passe tous ses contrôles, UCM Architect écrit sur lui un sceau daté avec l'empreinte de ce qu'il a contrôlé. Toute modification faite ensuite dans Figma change l'empreinte et invalide le sceau. UCM Exporter relit le sceau, recalcule l'empreinte et, si le sceau manque ou ne correspond plus, bloque l'export avec « Fiabilisez le composant avec UCM Architect avant de l'exporter. ». Où : `packages/plugin-architect/`, `packages/plugin-exporter/` et l'empreinte partagée dans `packages/kit/`. Pourquoi : l'Exporter peut alors laisser le jugement à Architect (P33) sans laisser passer un composant modifié après sa validation.",
+      "importance": "moyenne",
+      "raisonImportance": "Sans sceau, rien ne prouve à l'export que le composant publié est celui qu'Architect a validé.",
+      "prio": 4,
+      "dependances": [],
+      "complexite": "l",
+      "raisonComplexite": "L'API de Figma ne date pas la modification d'un nœud : l'invalidation repose sur une empreinte calculée de la même façon par les deux plugins. Les données d'un plugin sont privées : le sceau passe par les données partagées (`setSharedPluginData`).",
+      "coutHumain": "Décider ce que l'empreinte couvre, puis essayer le blocage sur un composant modifié après validation.",
+      "porteur": "mainteneur",
+      "promesse": "R",
+      "points": [
+        {
+          "chemin": "packages/plugin-architect/",
+          "action": "modifier",
+          "quoi": "Écrire le sceau daté et son empreinte quand le composant passe tous les contrôles."
+        },
+        {
+          "chemin": "packages/plugin-exporter/src/code.ts",
+          "action": "modifier",
+          "quoi": "Relire le sceau, recalculer l'empreinte et bloquer l'export si elle diffère."
+        },
+        {
+          "chemin": "packages/plugin-architect/SPEC.md",
+          "action": "modifier",
+          "quoi": "Forme du sceau et contenu de l'empreinte."
+        }
+      ],
+      "criteresDeFin": [
+        "Un composant validé par Architect puis exporté sans retouche passe.",
+        "Une retouche faite dans Figma après la validation, même d'un seul calque, bloque l'export avec le message qui renvoie à Architect.",
+        "L'Exporter n'écrit rien dans le document : il lit seulement le sceau."
+      ],
+      "questions": [
+        "Que couvre l'empreinte : variantes, calques, liaisons, propriétés, descriptions ? Une retouche sans effet sur le contrat (déplacer le composant sur la page) doit-elle invalider le sceau ?",
+        "Le blocage vaut-il aussi en agnostique, alors que l'Exporter y fonctionne aujourd'hui sans Architect ?",
+        "Le sceau d'un composant de library survit-il à la publication et à l'import dans un autre fichier ?"
+      ],
+      "risques": [
+        "Une empreinte trop large invalide le sceau à chaque retouche sans effet, et le designer repasse par Architect pour rien.",
+        "Une empreinte trop étroite laisse passer une modification que l'Exporter publie."
+      ]
     }
   ]
 }

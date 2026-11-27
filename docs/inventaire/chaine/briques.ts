@@ -338,6 +338,8 @@ export const EXCLUSIONS_DE_PISTES: Readonly<Record<string, string>> = {
   P30: 'Recrée les composants de la bibliothèque d\'un client, un chantier sur la carte Composants ; devient une pièce de cette carte si son outillage devient un produit.',
   P31: 'à montrer : la construction d\'un composant (variants, collection et liaisons) étend le mode Composant de la carte UCM Architect.',
   P32: 'à montrer : la synchronisation des icônes FontAwesome alimente la carte Composants.',
+  P33: 'à montrer : le retrait des contrôles du composant allège la carte UCM Exporter, qui laisse le jugement à la carte UCM Architect.',
+  P34: 'à montrer : le sceau de validation relie la carte UCM Architect à la carte UCM Exporter, qui refuse un composant sans sceau valide.',
 };
 
 export const JAUGES: readonly Jauge[] = [
