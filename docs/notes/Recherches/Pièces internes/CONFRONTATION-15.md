@@ -258,4 +258,4 @@ Tout est dans `_local/p22/confrontation/` : le journal `JOURNAL.txt`, `lab-b.cjs
 
 ## Réponses du mainteneur
 
-Le mainteneur retient les décisions 4 à 9 et 11, qui corrigent les défauts prouvés, puis les décisions 2, 3 et 10 : la première de deux instances exposées garde sa clé et les suivantes prennent le préfixe de leur slot, le renvoi reste complet (D4), et les pertes répétées se regroupent. La décision 1, règle des états, attend une explication.
+Le mainteneur retient les décisions 4 à 9 et 11, qui corrigent les défauts prouvés, puis les décisions 2, 3 et 10 : la première de deux instances exposées garde sa clé et les suivantes prennent le préfixe de leur slot, le renvoi reste complet (D4), et les pertes répétées se regroupent. Le mainteneur retient aussi la décision 1, option 3 (paire `BXID`), sur ce principe : le contrat ne dit jamais une chose fausse, et il écrit une perte quand il ne peut pas prouver ce que Figma rendrait.
