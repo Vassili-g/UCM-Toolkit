@@ -22,8 +22,8 @@ Ce plan suit la piste P22 de `docs/notes/Recherches/Evolutions globales/pistes.j
 - [x] 0.3 (mainteneur). Choix 6 précisé par D2 : une définition du token du composant (F13), jugement par emplacement (F14), cas sans instance (F15), Exporter sans dossier désigné (F17). Le choix 4 option A ne vaut plus pour les couleurs. (733c30ee)
 - [x] 0.4 (mainteneur). Choix 5 : garder `.` et `_`. L'audit confirme la recommandation. (733c30ee)
 - [x] 0.5 (mainteneur). Parité : `<Pièce>Props` facultative, « pièce non comparée » sinon, avec F27 à F29. (733c30ee)
-- [ ] 0.6 (mainteneur). D1 et Q1 : critère du wrapper et de la pièce (F1, F4).
-- [ ] 0.7 (mainteneur). D5 et Q2 : définition d'une propriété pour l'obligation de règles (F33), entrée d'une pièce sans propriété.
+- [x] 0.6 (mainteneur). D1 et Q1 : critère du wrapper et de la pièce (F1, F4). Option E de l'étude de D1. (d8a99844)
+- [x] 0.7 (mainteneur). D5 et Q2 : définition d'une propriété pour l'obligation de règles (F33), entrée d'une pièce sans propriété. (d8a99844)
 - [x] 0.8 (mainteneur). D4, Q3 et Q4 : renvoi complet, parties entières, variante citée par `nodeId` (F6). (733c30ee)
 - [x] 0.9 (mainteneur). Q5 : dépendances rangées dans leur entrée, avec le comptage de F27. (11bc5902)
 - [x] 0.10 (mainteneur). D6 et Q6 : contenu par défaut d'un `SLOT` de l'hôte, `SLOT` d'une pièce rempli par l'hôte (F12). (733c30ee)
