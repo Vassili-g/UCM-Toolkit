@@ -255,3 +255,7 @@ Le tirage sans doublon laisse 5 graines fausses à B (365, 1794, 3763, 4364, 501
 ## Fichiers
 
 Tout est dans `_local/p22/confrontation/` : le journal `JOURNAL.txt`, `lab-b.cjs`, `run-b.cjs`, `analyse-b.cjs` (tirages), `adverses-b.cjs` (assemblages), `cas15.cjs` et `cas/` (cas au format de Codex), `graines.cjs`, `reduire-residus-b.cjs`, `collisions.cjs`, `tailles.cjs`, `pertes-regroupees.cjs`, `couverture-rapprochement.cjs` et `sorties/`.
+
+## Réponses du mainteneur
+
+Le mainteneur retient les décisions 4 à 9 et 11, qui corrigent les défauts prouvés, puis les décisions 2, 3 et 10 : la première de deux instances exposées garde sa clé et les suivantes prennent le préfixe de leur slot, le renvoi reste complet (D4), et les pertes répétées se regroupent. La décision 1, règle des états, attend une explication.
