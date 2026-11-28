@@ -1,74 +1,20 @@
 /** Chaque propriété de l'API Plugin de Figma installée a un classement du §2.14 de la forme 15.0, et chaque classement vise une propriété qui existe. */
 import assert from 'node:assert/strict';
-import fs from 'node:fs';
 import test from 'node:test';
 
-import ts from 'typescript';
-
+import { classement, interfacesDeLAlias, proprietesDeLEntree, proprietesDuType, typesDeLEntree, typesDeNoeud } from './couvertureFigma.lecture';
 import { RACINES_DE_SOUS_STRUCTURES, TABLE, type Entree } from './couvertureFigma.table';
 
-const fichierDesTypages = require.resolve('@figma/plugin-typings/plugin-api.d.ts');
-const source = ts.createSourceFile(fichierDesTypages, fs.readFileSync(fichierDesTypages, 'utf8'), ts.ScriptTarget.Latest, true);
-const interfaces = new Map<string, ts.InterfaceDeclaration>();
-const alias = new Map<string, ts.TypeAliasDeclaration>();
-for (const instruction of source.statements) {
-  if (ts.isInterfaceDeclaration(instruction)) interfaces.set(instruction.name.text, instruction);
-  else if (ts.isTypeAliasDeclaration(instruction)) alias.set(instruction.name.text, instruction);
-}
-
-/** Propriétés d'une interface et de celles qu'elle étend ; les méthodes n'en sont pas. */
-function proprietesDe(nom: string, vus: readonly string[] = []): Set<string> {
-  const declaration = interfaces.get(nom);
-  const proprietes = new Set<string>();
-  if (!declaration || vus.includes(nom)) return proprietes;
-  for (const clause of declaration.heritageClauses ?? []) {
-    for (const parent of clause.types) {
-      for (const propriete of proprietesDe(parent.expression.getText(source), [...vus, nom])) proprietes.add(propriete);
-    }
-  }
-  for (const membre of declaration.members) {
-    if (ts.isPropertySignature(membre)) proprietes.add(membre.name.getText(source).replace(/^['"]|['"]$/g, ''));
-  }
-  return proprietes;
-}
-
-/** Interfaces nommées par l'union d'un alias, en descendant dans les alias qu'elle cite. */
-function interfacesDeLAlias(nom: string): string[] {
-  const type = alias.get(nom)?.type;
-  const noms: string[] = [];
-  const parcourir = (noeud: ts.TypeNode): void => {
-    if (ts.isUnionTypeNode(noeud)) noeud.types.forEach(parcourir);
-    else if (ts.isParenthesizedTypeNode(noeud)) parcourir(noeud.type);
-    else if (ts.isTypeReferenceNode(noeud)) {
-      const cible = noeud.typeName.getText(source);
-      if (alias.has(cible)) noms.push(...interfacesDeLAlias(cible));
-      else if (interfaces.has(cible)) noms.push(cible);
-    }
-  };
-  if (type) parcourir(type);
-  return noms;
-}
-
-const typesDeNoeud = interfacesDeLAlias('SceneNode');
 const typesDeSousStructure = [
   ...RACINES_DE_SOUS_STRUCTURES.alias.flatMap(interfacesDeLAlias),
   ...RACINES_DE_SOUS_STRUCTURES.interfaces,
 ];
 const proprietesParType = new Map<string, Set<string>>(
-  [...typesDeNoeud, ...typesDeSousStructure].map((type) => [type, proprietesDe(type)]),
+  [...typesDeNoeud, ...typesDeSousStructure].map((type) => [type, new Set(proprietesDuType(type))]),
 );
-
-const typesDeLEntree = (entree: Entree): readonly string[] => (entree.types === 'noeuds' ? typesDeNoeud : entree.types);
-const proprietesDeLEntree = (entree: Entree, type: string): readonly string[] =>
-  entree.proprietes === '*' ? [...(proprietesParType.get(type) ?? [])] : entree.proprietes;
 
 const resume = (entree: Entree): string =>
   `${entree.types === 'noeuds' ? 'noeuds' : entree.types.join('+')} : ${entree.proprietes === '*' ? '*' : entree.proprietes.join(', ')}`;
-
-/** La première entrée de la table qui reconnaît la paire, comme le dit l'en-tête de la table. */
-function classement(type: string, propriete: string): number {
-  return TABLE.findIndex((entree) => typesDeLEntree(entree).includes(type) && proprietesDeLEntree(entree, type).includes(propriete));
-}
 
 const instruction =
   'Classer la propriété dans packages/plugin-socle/tests/couvertureFigma.table.ts selon le §2.14 de la forme 15.0 ' +

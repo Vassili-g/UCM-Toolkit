@@ -40,6 +40,15 @@ export const PROPRIETES_DE_NOEUD: readonly string[] = [
   'textAlignHorizontal', 'textAlignVertical', 'textAutoResize', 'textTruncation', 'maxLines', 'openTypeFeatures', 'listSpacing',
   'hangingList', 'hangingPunctuation', 'paragraphIndent', 'paragraphSpacing', 'hasMissingFont',
   'variantProperties', 'componentProperties', 'componentPropertyDefinitions', 'componentPropertyReferences', 'overrides', 'exposedInstances', 'isExposedInstance', 'preferredValues', 'slotSettings',
+  // Ce que la table de couverture de l'API de Figma (`plugin-socle/tests/couvertureFigma.table.ts`) classe portable, perte ou
+  // prototype : le contrat 15.0 les publie ou signale leur perte, donc la capture doit les porter. `capture.test.ts` calcule la différence.
+  'backgrounds', 'backgroundStyleId', 'variantGroupProperties', 'primaryAxisSizingMode', 'counterAxisSizingMode', 'horizontalPadding', 'verticalPadding',
+  'scaleFactor', 'maskType', 'clipsContent', 'itemReverseZIndex', 'strokesIncludedInLayout',
+  'strokeCap', 'strokeJoin', 'strokeMiterLimit', 'variableWidthStrokeProperties', 'complexStrokeProperties', 'cornerSmoothing',
+  'booleanOperation', 'vectorNetwork', 'vectorPaths', 'handleMirroring', 'pointCount', 'innerRadius', 'arcData', 'textPathStartData', 'hyperlink',
+  'gridStyleId', 'gridAutoTracks', 'gridItemsPositioning', 'constrainProportions', 'targetAspectRatio',
+  'reactions', 'overflowDirection', 'overlayPositionType', 'overlayBackground', 'overlayBackgroundInteraction', 'animations', 'animationStyles',
+  'manualKeyframeTracks', 'timelines', 'numberOfFixedChildren', 'transformModifiers',
 ];
 
 /** Les propriétés d'un nœud que le scan des règles de la page lit sur les nœuds qu'il ne descend pas. */

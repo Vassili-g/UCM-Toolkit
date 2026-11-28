@@ -16,6 +16,8 @@ import {
 } from '../src/sandbox/capture';
 import { enregistrerLesImports, mesurerLePortDeLecture } from '../src/lecture';
 import { captureActive, estUneCapture, recevoirLaCapture } from '../src/ui/capture';
+import { classement, proprietesDuType, typesDeNoeud } from '../../plugin-socle/tests/couvertureFigma.lecture';
+import { TABLE, TYPES_HORS_COMPOSANT } from '../../plugin-socle/tests/couvertureFigma.table';
 import { capturerLAnalyse } from './parite';
 import { doubleDepuisCapture } from './outils/capture';
 import { fabriquerLeMonde, noeud, type NoeudFabrique } from './outils/mondeFabrique';
@@ -278,4 +280,58 @@ test('une capture prise après une analyse porte les textes des pages des propri
   assert.deepEqual(capture.pages['page-autre'].criteres.TEXT, [{ $: 'noeud', id: 'nom-w' }]);
   assert.equal(capture.noeuds['nom-w'].proprietes.characters, '.sizeWrapperButton');
   assert.equal(capture.noeuds['regles-autres'].superficiel, undefined, 'le conteneur de règles de la page du propriétaire se capture entier');
+});
+
+/** Les propriétés que la table de couverture classe pour les types de nœud d'un composant, par les typages installés de Figma. */
+function proprietesClasseesParLaTable(): Map<string, string[]> {
+  const hors = new Set<string>(TYPES_HORS_COMPOSANT);
+  const classes = new Set(['portable', 'perte', 'prototype']);
+  const rendues = new Map<string, string[]>();
+  for (const type of typesDeNoeud.filter((candidat) => !hors.has(candidat))) {
+    for (const propriete of proprietesDuType(type)) {
+      const entree = TABLE[classement(type, propriete)];
+      if (!entree || !classes.has(entree.classe)) continue;
+      rendues.set(propriete, [...(rendues.get(propriete) ?? []), type]);
+    }
+  }
+  return rendues;
+}
+
+/** Lues autrement que par la liste : `mainComponent` par `getMainComponentAsync` (champ `maitre`). */
+const LUES_A_PART = new Set(['mainComponent']);
+
+test('chaque propriété que la table de couverture classe portable, perte ou prototype est dans la liste de capture', () => {
+  const absentes = [...proprietesClasseesParLaTable()].filter(([propriete]) => !PROPRIETES_DE_NOEUD.includes(propriete) && !LUES_A_PART.has(propriete)).map(([propriete, types]) => `${propriete} (${types.slice(0, 3).join(', ')})`);
+  assert.deepEqual(absentes, [], 'Ajouter chaque propriété à PROPRIETES_DE_NOEUD dans packages/plugin-architect/src/sandbox/capture.ts.');
+});
+
+test('chaque propriété ajoutée à la capture pour la table de couverture fait l’aller-retour, valeur, erreur de lecture et absence comprises', async () => {
+  const AJOUTEES = ['scaleFactor', 'animations', 'animationStyles', 'manualKeyframeTracks', 'timelines', 'reactions', 'overflowDirection', 'overlayPositionType', 'overlayBackground', 'overlayBackgroundInteraction', 'numberOfFixedChildren', 'transformModifiers', 'vectorPaths', 'vectorNetwork', 'textPathStartData', 'booleanOperation', 'handleMirroring', 'pointCount', 'innerRadius', 'arcData', 'hyperlink', 'strokeCap', 'strokeJoin', 'strokeMiterLimit', 'variableWidthStrokeProperties', 'complexStrokeProperties', 'cornerSmoothing', 'maskType', 'clipsContent', 'itemReverseZIndex', 'strokesIncludedInLayout', 'constrainProportions', 'targetAspectRatio', 'gridStyleId', 'gridAutoTracks', 'gridItemsPositioning', 'backgrounds', 'backgroundStyleId', 'horizontalPadding', 'verticalPadding', 'primaryAxisSizingMode', 'counterAxisSizingMode', 'variantGroupProperties'];
+  for (const propriete of AJOUTEES) assert.ok(PROPRIETES_DE_NOEUD.includes(propriete), `${propriete} est capturée`);
+  const valeur = (propriete: string) => [{ propriete, rang: 1 }];
+  const champs: Record<string, unknown> = {};
+  for (const propriete of AJOUTEES) champs[propriete] = valeur(propriete);
+  champs.scaleFactor = 2;
+  champs.numberOfFixedChildren = 3;
+  const lit = { ...champs };
+  const fixe = noeud('sujet-rond', 'FRAME', lit);
+  const leve = noeud('sujet-leve', 'FRAME', { reactions: undefined });
+  Object.defineProperty(leve, 'transformModifiers', { enumerable: true, get() { throw new Error('Lecture refusée'); } });
+  const sans = noeud('sujet-sans', 'FRAME', {});
+  const monde = fabriquerLeMonde();
+  const jeu = monde.jeu as NoeudFabrique;
+  for (const enfant of [fixe, leve, sans]) { enfant.parent = jeu; }
+  jeu.children = [...(jeu.children ?? []), fixe, leve, sans];
+  const capture = JSON.parse(JSON.stringify(await capturerLeComposant(monde.figma as unknown as PluginAPI, { jeu: monde.jeu, page: monde.page }))) as CaptureArchitect;
+  for (const propriete of AJOUTEES) assert.deepEqual(capture.noeuds['sujet-rond'].proprietes[propriete], champs[propriete], propriete);
+  assert.deepEqual(capture.noeuds['sujet-leve'].proprietes.transformModifiers, { $: 'erreur', message: 'Lecture refusée' });
+  assert.deepEqual(capture.noeuds['sujet-leve'].proprietes.reactions, { $: 'indefini' });
+  assert.ok(!('scaleFactor' in capture.noeuds['sujet-sans'].proprietes), 'une propriété que le nœud n’expose pas reste absente');
+  const rejoue = doubleDepuisCapture(capture);
+  const rond = rejoue.noeud('sujet-rond') as Record<string, unknown>;
+  for (const propriete of AJOUTEES) assert.deepEqual(rond[propriete], champs[propriete], propriete);
+  assert.notEqual(rond.reactions, rond.reactions, 'le double rend une copie neuve');
+  assert.throws(() => (rejoue.noeud('sujet-leve') as Record<string, unknown>).transformModifiers, /Lecture refusée/);
+  assert.equal((rejoue.noeud('sujet-leve') as Record<string, unknown>).reactions, undefined);
+  assert.ok(!('scaleFactor' in (rejoue.noeud('sujet-sans') as Record<string, unknown>)));
 });
