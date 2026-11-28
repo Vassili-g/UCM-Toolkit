@@ -697,6 +697,52 @@ test('un slot qui enveloppe une dépendance reprend aussi sa visibilité', async
   assert.equal(warnings.some((warning) => warning.includes('action-size')), false);
 });
 
+/** Un cadre qui range une icône dépendance (prop `iconLeft`) et un label. */
+async function extraireCadreIconeEtLabel(nom: string, references?: { visible: string }) {
+  const icone = instance('ico', 'Icon', 'Icon', {
+    componentPropertyReferences: { visible: 'iconLeft#9:1' },
+    layoutSizingHorizontal: 'HUG',
+    layoutSizingVertical: 'HUG',
+  });
+  const label = {
+    type: 'TEXT', id: 'lbl', name: 'Label', characters: 'Valider', boundVariables: {},
+    layoutSizingHorizontal: 'HUG', layoutSizingVertical: 'HUG',
+  };
+  const cadre = {
+    type: 'FRAME',
+    id: 'cadre',
+    name: nom,
+    layoutMode: 'HORIZONTAL',
+    boundVariables: {},
+    ...(references ? { componentPropertyReferences: references } : {}),
+    layoutSizingHorizontal: 'HUG',
+    layoutSizingVertical: 'HUG',
+    children: [icone, label],
+    findAll: (predicat: (node: unknown) => boolean) => [icone, label].filter(predicat),
+  };
+  const warnings: string[] = [];
+  const layout = await extractLayout(
+    racine('hote', 'Size=M', [cadre]),
+    { resolve: async () => null },
+    warnings,
+    new Map([['ico', { component: 'Icon', figmaLayer: 'Icon', visibilityProp: 'iconLeft' }]]),
+  );
+  return { slot: layout.children.find((child) => child.figmaLayer === nom), warnings };
+}
+
+test('un cadre qui range une icône dépendance et un label ne prend pas la visibilité de l’icône (F22)', async () => {
+  const { slot } = await extraireCadreIconeEtLabel('Cadre');
+  assert.ok(slot);
+  assert.equal(slot.visibilityProp, undefined);
+  assert.equal(slot.optional, undefined);
+});
+
+test('un slot lié à une prop de l’hôte qui contient une icône à sa propre prop ne déclenche pas « deux propriétés » (F22)', async () => {
+  const { slot, warnings } = await extraireCadreIconeEtLabel('Middle', { visible: 'showMiddle#9:2' });
+  assert.equal(warnings.some((w) => w.includes('deux propriétés')), false);
+  assert.equal(slot?.visibilityProp, 'showMiddle');
+});
+
 test('scanComposedMatrix n’invente pas un slot absent du variant de référence', async () => {
   const sansAction = racine('info', 'Severity=Info', []);
   const avecAction = racine(

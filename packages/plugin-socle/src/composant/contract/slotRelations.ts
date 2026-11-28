@@ -40,6 +40,28 @@ export function* composedSlotDependenciesParEtapes(child: SceneNode, composed: C
   return resultat;
 }
 
+/**
+ * La dépendance qui est l'unique contenu du slot, ou `undefined`.
+ *
+ * Seule une dépendance qui occupe tout le cadre peut lui prêter sa visibilité :
+ * tout autre calque rendable (texte, forme, seconde dépendance) lui appartient
+ * et ne disparaît pas avec elle. Le slot qui est l'instance elle-même la
+ * possède.
+ */
+export function soleSlotDependency(
+  child: SceneNode,
+  composed: ComposedInstances,
+): ComposedDependency | undefined {
+  const direct = composed.get(child.id);
+  if (direct) return direct;
+  const dependencies = composedSlotDependencies(child, composed);
+  if (dependencies.length !== 1) return undefined;
+  const nodes = getAllNodes(child, [], composed);
+  const instance = nodes.find((node) => node !== child && composed.get(node.id) === dependencies[0]);
+  if (!instance) return undefined;
+  return occupeToutLeSlot(child, nodes, instance) ? dependencies[0] : undefined;
+}
+
 /** Vrai si `node` appartient au sous-arbre de `ancestor`, racine comprise. */
 function belongsTo(node: SceneNode, ancestor: SceneNode): boolean {
   let current: BaseNode | null | undefined = node;
@@ -48,6 +70,11 @@ function belongsTo(node: SceneNode, ancestor: SceneNode): boolean {
     current = champDuNoeud<BaseNode | null>(current, 'parent');
   }
   return false;
+}
+
+/** Vrai si `cible` est le seul contenu du slot : chaque autre calque du slot est sous elle ou au-dessus d'elle. */
+function occupeToutLeSlot(child: SceneNode, nodes: readonly SceneNode[], cible: SceneNode): boolean {
+  return nodes.filter((node) => node !== child).every((node) => belongsTo(node, cible) || belongsTo(cible, node));
 }
 
 /**
@@ -104,12 +131,10 @@ export function nestedSlotVisibility(
 
   if (targets.length === 1 && !slotIsOptional) {
     const target = targets[0];
-    const controlsWholeSlot = nodes
-      // Une instance composée reste un contenu visible du slot, même si son
-      // propre sous-arbre est élagué. L'ignorer ferait croire qu'un autre
-      // descendant contrôle à lui seul la visibilité du slot entier.
-      .filter((node) => node !== child)
-      .every((node) => belongsTo(node, target) || belongsTo(target, node));
+    // Une instance composée reste un contenu visible du slot, même si son
+    // propre sous-arbre est élagué. L'ignorer ferait croire qu'un autre
+    // descendant contrôle à lui seul la visibilité du slot entier.
+    const controlsWholeSlot = occupeToutLeSlot(child, nodes, target);
     if (controlsWholeSlot) {
       return {
         visibilityProp: normalizePropKey(champDuNoeud<SceneNode['componentPropertyReferences']>(target, 'componentPropertyReferences')!.visible!),

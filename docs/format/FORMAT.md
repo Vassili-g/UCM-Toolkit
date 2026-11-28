@@ -1478,9 +1478,10 @@ Un cadre à un seul enfant ne publie pas de `gap` : il n'espace rien, et réclam
 une variable pour lui enverrait le designer relier une valeur qui ne se voit
 pas.
 
-Une seule dépendance peut prêter sa `visibilityProp` au slot du cadre. À
-plusieurs, la retenir masquerait les autres avec elle : le cadre n'en prend
-alors aucune, et chaque branche publie la sienne.
+Une dépendance ne prête sa `visibilityProp` au slot du cadre que si elle en est
+l'unique contenu. Avec une seconde dépendance, un texte ou un dessin à côté, la
+retenir masquerait aussi ce qu'elle ne contrôle pas : le cadre n'en prend alors
+aucune, et chaque branche publie la sienne.
 
 ```json
 { "slot": "action", "alignSelf": "stretch", "figmaLayer": "Action",

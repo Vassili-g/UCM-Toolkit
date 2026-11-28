@@ -36,7 +36,7 @@ import {
 } from './nodeBindings';
 import { normalizePropKey } from './parsers';
 import { isIconLayer } from './slotNames';
-import { composedSlotDependencies, nestedSlotVisibility } from './slotRelations';
+import { composedSlotDependencies, nestedSlotVisibility, soleSlotDependency } from './slotRelations';
 import {
   calqueDeDessinANommer,
   depthLimitWarning,
@@ -512,13 +512,13 @@ async function describeNode(
 
   // ---- Visibilités -------------------------------------------------------
   const directVisibility = champDuNoeud<SceneNode['componentPropertyReferences']>(child, 'componentPropertyReferences')?.visible;
-  // Une seule dépendance peut prêter sa visibilité au slot. À plusieurs, la
-  // retenir en masquerait les autres : chaque branche publie alors la sienne.
-  const dependencyVisibility = dependencies.length === 1
-    ? dependencies[0].visibilityProp
-    : undefined;
+  // Une dépendance ne prête sa visibilité au slot que si elle en est l'unique
+  // contenu : sinon la retenir masquerait aussi ce que le cadre range à côté
+  // (autres dépendances, textes, dessins), qui gardent leur propre visibilité.
+  const soleDependency = soleSlotDependency(child, composed);
+  const dependencyVisibility = soleDependency?.visibilityProp;
   if (directVisibility) {
-    for (const dependency of dependencies) {
+    for (const dependency of soleDependency ? [soleDependency] : []) {
       if (!dependency.visibilityProp) continue;
       if (normalizePropKey(directVisibility) === dependency.visibilityProp) continue;
       pousserLocalise(warnings, 'Layer', child, {
