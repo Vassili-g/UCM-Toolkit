@@ -59,7 +59,7 @@ Le banc reprend sous une forme permanente les outils des laboratoires du stress 
 Les lanceurs de tests des paquets ne découvrent que les fichiers `*.test.ts` et `*.test.mjs` posés directement sous `tests/`. Chaque module du banc rangé dans un sous-dossier (`tests/generateur/`, `tests/banc/`) est importé par un test découvert.
 
 - [x] 1.0 Note de conception du banc de test, [CONCEPTION-BANC-DE-TEST.md](./CONCEPTION-BANC-DE-TEST.md), validée par le mainteneur avec ses trois réponses. (05b89221)
-- [ ] 1.1 Le build de capture d'Architect oublie l'index des règles avant de capturer (F43).
+- [x] 1.1 Le build de capture d'Architect oublie l'index des règles avant de capturer (F43). (cf9dc9a5)
   - Fichiers : `packages/plugin-architect/src/sandbox/capture.ts`, son test.
   - Test d'abord : une capture prise après une analyse contient les textes des pages des propriétaires rencontrés.
   - Fin : le rejeu de `_local/p22/scripts/exporter.ts` sur une nouvelle capture passe sans `REGLES`.
@@ -86,7 +86,7 @@ Les lanceurs de tests des paquets ne découvrent que les fichiers `*.test.ts` et
   - Fin : les tests du générateur d'Architect passent à l'identique, et `stress:composant` rend les mêmes résultats sur la même graine.
   - Commandes : `npm run test:paquet -- architect`, `npm run test:paquet -- socle`.
   - Dépend de : rien. Agent : `implementeur`.
-- [ ] 1.8 Le double fait tourner l'export sur un document généré.
+- [x] 1.8 Le double fait tourner l'export sur un document généré. (a58e6191)
   - Objectif : `handleExportComponent` lit un document généré par le double du socle. Le double reçoit ce qui lui manque pour les pièces : `exposedInstances` converti en calques, `componentProperties` avec leurs valeurs effectives, `overrides` (effacement, visibilité, opacité, texte, échange, surcharge héritée du maître intermédiaire), le type `SLOT` parmi les calques à enfants, `explicitVariableModes` et `resolvedVariableModes`, des maîtres multiples d'un même set et des maîtres introuvables, l'ordre et le nombre des chargements de pages, et la règle de `skipInvisibleInstanceChildren` sur les recherches.
   - Fichiers : le double du socle, un test d'export dans `packages/plugin-exporter/tests/`.
   - Test d'abord : un composant généré sans pièce s'exporte, et la sortie passe `verifierLesLois`, `verifierLeSchema` et `verifierLeLecteur` ; une instance exposée à deux niveaux se lit comme un calque ; une recherche sous une instance écarte un calque masqué quand le drapeau le demande. L'essai de la revue (`_local/p22/revue-plan/essais/double-export.ts`) montre le point de départ.
@@ -107,19 +107,24 @@ Les lanceurs de tests des paquets ne découvrent que les fichiers `*.test.ts` et
   - Fichiers : `packages/kit/tests/banc/`, un test découvert du kit qui l'importe.
   - Commandes : `npm run test --workspace @ucm-kit/core`.
   - Dépend de : rien. Agent : `implementeur`.
-- [ ] 1.12 Table de couverture de l'API de Figma et son test sur les typages.
+- [x] 1.12 Table de couverture de l'API de Figma et son test sur les typages. (db8623fd)
   - Objectif : chaque propriété de `@figma/plugin-typings` classée en champ portable, perte, éditeur ou traçabilité ; le test échoue sur une propriété non classée, donc à chaque montée des typages.
   - Fichiers : `packages/plugin-socle/tests/couvertureFigma.test.ts` et sa table.
   - Commandes : `npm run test:paquet -- socle`.
   - Dépend de : 1.7 (même paquet, jamais en même temps). Agent : `implementeur`.
+- [ ] 1.13 Fidélité du double du générateur, après la capture de `StressTest`.
+  - Objectif : chaque construction de `StressTest` est aussi décrite dans la langue du générateur (les cas nommés de 1.10). Pour chaque champ que l'Exporter lit, la réponse du double du générateur égale celle du double des captures (`doubleDepuisCapture`) sur la capture de 1.3. Un écart corrige le double du générateur, jamais l'attente. Le double du générateur est ainsi calé sur des réponses réelles de Figma avant les 5 200 tirages.
+  - Fichiers : un test découvert dans `packages/plugin-exporter/tests/`, la capture de `StressTest` entrée dans le dépôt (réponse 1 du mainteneur sur le banc).
+  - Commandes : `npm run test:paquet -- socle`, `npm run test:paquet -- exporter`.
+  - Dépend de : 1.3, 1.8, 1.10. Agent : `implementeur-exigeant`.
 
 ## Étape 2. Préalables sur le moteur 14.0
 
-- [ ] 2.1 Figer le corpus 14.0 avant tout changement du moteur (F37).
+- [x] 2.1 Figer le corpus 14.0 avant tout changement du moteur (F37). (e234386e)
   - Objectif : un corpus N-1 pour la fenêtre 14.0 et 15.0.
   - Fichiers : `packages/kit/fixtures/contrats/14.0/` (contrats produits par le moteur courant sur les captures du Playground de `_local/recettes/`, Button et Alert, et sur toute autre capture du Playground que le mainteneur fournit), son `README.md` avec les empreintes SHA-256.
   - Invariants respectés : `packages/kit/invariants/corpus-de-test.md` (jamais rafraîchi, jamais comparé au moteur, non publié).
-  - Fin : le dossier existe, ses empreintes correspondent, aucun test ne le lit encore.
+  - Fin : le dossier existe, ses empreintes correspondent ; `tests/refus-enregistres.test.mjs` le mesure avec les autres jeux figés, et `tests/fenetre-de-lecture.test.mjs` ne le lit qu'au lot 5.9.
   - Dépend de : rien. Agent : `implementeur`.
 - [ ] 2.2 Un cadre n'emprunte la visibilité d'une dépendance que si elle est son unique contenu (F22).
   - Fichiers : `packages/plugin-socle/src/composant/contract/extractLayout.ts`, `slotRelations.ts`, leurs tests dans `packages/plugin-exporter/tests/`.
@@ -254,6 +259,7 @@ Les lanceurs de tests des paquets ne découvrent que les fichiers `*.test.ts` et
 - [ ] 5.11 Données de rendu et couverture de l'API de Figma (§2.14), en six sous-lots, un par appel.
   - Tests d'abord : la table de couverture du banc ; chaque propriété classée « perte » dans la table produit sa perte sur un double qui la porte.
   - Commandes : `npm run test:paquet -- socle`, `npm run test:paquet -- exporter`.
+  - À vérifier contre le moteur, d'après le lot 1.12 : `visible`, `opacity` et `blendMode` d'une peinture unie, et `visible` d'un effet, d'une peinture ou d'une grille, sont classés en perte ; `transform3d` et `scene3d` manquent aux typages 1.138.0.
   - Dépend de : 1.12, 5.10. Agent : `implementeur`.
   - [ ] 5.11a Contours et ombres : chaque côté lié publié, perte nommant `strokeWeight` ou le côté pour une valeur non liée, sans largeur inventée ; couleur d'ombre absente, une perte par style.
   - [ ] 5.11b Modes forcés : perte de `explicitVariableModes` quand une variable liée sous le calque, dans une variante atteinte, appartient à la collection forcée ; aucune perte sans variable liée.
