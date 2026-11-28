@@ -259,3 +259,132 @@ Tout est dans `_local/p22/confrontation/` : le journal `JOURNAL.txt`, `lab-b.cjs
 ## Réponses du mainteneur
 
 Le mainteneur retient les décisions 4 à 9 et 11, qui corrigent les défauts prouvés, puis les décisions 2, 3 et 10 : la première de deux instances exposées garde sa clé et les suivantes prennent le préfixe de leur slot, le renvoi reste complet (D4), et les pertes répétées se regroupent. Le mainteneur retient aussi la décision 1, option 3 (paire `BXID`), sur ce principe : le contrat ne dit jamais une chose fausse, et il écrit une perte quand il ne peut pas prouver ce que Figma rendrait.
+
+## Intégration
+
+Les décisions 2 à 11 et la correction d'A13b sont intégrées à la [forme](./FORME-CONTRAT-15.md). La décision 1 y reste écrite comme la paire `BXID`. L'[étude de la règle des états](./ETUDE-REGLE-DES-ETATS.md) la remplace par la convention d'UCM, que la forme n'a pas encore reçue. Le laboratoire, reconstruit sur la forme intégrée (paire `F15`), ne donne aucun écart silencieux sur toutes les épreuves rejouées.
+
+### Les épreuves rejouées
+
+| Épreuve | Résultat |
+|---|---|
+| 5 200 tirages complets, règles `identite` et `valeurInitiale` | 0 tirage faux ; 46 690 coordonnées non résolues sur 101 202 (46,1 %) |
+| 5 200 tirages sans exposition double, deux règles | 0 tirage faux ; 30 004 non résolues sur 78 024 (38,5 %) |
+| 5 200 tirages à modes forcés, chaque mode actif | 0 tirage faux ; 3 562 modes forcés, 3 562 pertes de mode |
+| 5 200 tirages à modes forcés, mode actif sur sa seule collection | 0 tirage faux ; 3 562 modes forcés, 2 354 pertes de mode |
+| 25 assemblages : A01, A02, A04, A06, A07, A09, A11 à A21, et A01b, A04b, A07b, A13b, A20b, E01b, E01c, E07 | 0 écart sous les deux règles ; A09 refusé (F29) ; A11 publie `size` et `pSize` ; A04b, A13b et A21 par une perte |
+| 45 cas de `_local/p22/codex/cas/` et de `cas/`, récrits dans la forme intégrée | 45 conformes, dont A05 et E09 refusés comme attendu |
+| 22 mutations des règles nouvelles | 22 refusées |
+| 58 mutations de la passe finale, rejouées sur les cas récrits | 58 conformes |
+| vérifications de la passe finale, sans l'option `integree` | 5 cas acceptés et 15 mutations refusées ; 9 mutations d'échantillons refusées ; 30 mutations sur 32 refusées, 2 indécidables connues |
+| 5 graines réduites d'Opus et 7 résidus de B | 0 écart sous les deux règles |
+| clés préfixées sur 5 200 tirages | 0 refus, 0 doublon ; 20 332 clés préfixées dans 2 879 tirages, dont 15 395 sur l'hôte dans 1 953 |
+| Button, bascules de taille des 90 renvois de `.sizeWrapperButton` | 180 bascules, 180 décrites, 0 perte de transfert |
+| Groupe, bascules d'état des 9 renvois de `.Segment` | 36 bascules, 36 décrites |
+| témoin, couleur initiale de la variante `large` changée | 90 bascules perdues, la preuve les voit |
+| modes des captures | Button 94 modes forcés, 0 actif ; Groupe 0 |
+| `TextPathNode` et `TransformGroupNode` | classés en perte, 0 propriété propre sans classement |
+
+Le validateur `valider15.cjs`, avec l'option `integree` et les constats du dessin, voit l'absence d'une perte obligatoire. Une perte de mode retirée donne `mode-force-sans-perte`, une perte de `SLOT` retirée `slot-rempli-sans-perte`, des clés préfixées retirées `cle-exposee-absente`. Il refuse aussi une perte de mode sur un mode inerte, une perte de transfert retirée (A13b, A13c, exposition partielle, E05), une perte de sélection retirée, une valeur posée retirée (E07), une perte d'échange retirée (A04b) et une perte regroupée incohérente.
+
+### Les décisions dans la forme
+
+| Décision | Section de la forme |
+|---|---|
+| 1, paire `BXID` | identité de calque au §2 ; étapes 5 et 6 du §2.12 ; ligne 2 du tableau du §2.11 ; §2.13.14 ; à réécrire selon la convention d'UCM |
+| 2, première clé gardée, préfixe de slot ensuite | §2.5, ordre des clés ; §2.11, ni perte ni refus ; §6.1, génération des types ; §6.3, classe 2 |
+| 3, renvoi complet | §2.4 ; §5.3 |
+| 4, valeur posée par variant | §2.4, table et paragraphe de la valeur posée ; étape 7 du §2.12 ; §2.13.6 ; §5.4 |
+| 5, aperçu jugé sur les variantes atteintes | §2.7 |
+| 6, mode forcé actif seulement | ligne des modes du §2.11 ; ligne des modes et dernier paragraphe du §2.14 ; §3.1 |
+| 7, perte d'exposition | étape 6 du §2.12 ; ligne 2 du tableau du §2.11 ; §2.13.14 |
+| 8, refus de F29 et préfixe pour A11 | §2.11 ; §2.13.8 ; §2.5 |
+| 9, `TextPathNode` et `TransformGroupNode` | deux lignes du §2.14 |
+| 10, pertes de maître regroupées | §2.11, classe, champs et liste des variantes ; §2.13.15 ; §5.1 ; §5.2 ; §6.2 ; §6.3, classes 2 et 4 |
+| 11, échange exposé vers une pièce | dernier paragraphe du §2.5 ; ligne du §2.11 |
+| A13b, aucun transfert entre deux noms | étape 6 du §2.12 |
+
+La décision 4 porte la valeur posée d'un booléen ou d'un échange dans `renvoi.values`. Celle d'un axe exposé vit dans les coordonnées de `renvoi.variant`, et dans celles du renvoi imbriqué pour une pièce de pièce. Une copie de l'axe dans `values` répéterait une valeur que la variante citée donne déjà.
+
+### Mesures et tailles
+
+Les tailles comptent les octets UTF-8 de `JSON.stringify`, sans espaces. Groupe se mesure sur la simulation aux noms de la capture, dont seuls les chiffres sortent de `_local/`.
+
+| Contrat | 14.0 | Passe finale | Forme intégrée |
+|---|---|---|---|
+| Button | 49 663 | 48 942 | 54 072 |
+| Groupe | 13 205 | 186 125 | 83 258 |
+| Groupe aux noms inventés | sans objet | 179 564 | 78 189 |
+
+Button gagne 5 130 octets sur la passe finale, le prix des valeurs posées de `label`, `iconLeft` et `iconRight` dans ses 90 renvois. Ses 108 renvois pèsent 30 865 octets, et ses 3 pertes restent sur `.Ring`. Groupe perd 102 867 octets sur la passe finale, parce que ses 475 pertes deviennent 21 classes et une perte de catalogue. Son `meta` passe de 110 215 à 7 348 octets. Ses 9 renvois pèsent 3 933 octets, dont 2 523 de feuilles recopiées par D4 et 591 de valeurs posées. Le détail est au §5.1 de la forme.
+
+### Constructions à ajouter à `StressTest`
+
+Cette liste fusionne celles de la contre-expertise d'Opus, de la passe finale du stress test et de cette confrontation. Elle se construit dans le composant `StressTest` d'UCM-Playground, avec trois pièces préfixées. `StressTest` expose les propriétés de `.Cellule`. Il n'expose pas `.Pastille`, qui a une propriété `État` (Default, Hover). `.Puce` est posée dans `.Cellule`.
+
+| # | Construction dans Figma | Règle vérifiée |
+|---|---|---|
+| 1 | Donner à `.Cellule` deux propriétés de variante, `Taille` et `Selected`, avec un fond différent pour chaque valeur de `Selected`, puis basculer `Selected` sur l'occurrence. | une bascule sans surcharge prend les couleurs de la variante atteinte (§2.12, étape 5 ; E01, A15) |
+| 2 | Retirer une combinaison de `.Cellule` et en dessiner une autre deux fois, avec deux couleurs, puis choisir ces deux combinaisons depuis `StressTest`. | sélection non résolue et perte, jamais un choix arbitraire (§2.12, étape 4 ; A18, A19) |
+| 3 | Poser deux instances de `.Cellule` exposées dans le même variant. | la première garde la clé, la seconde reçoit le préfixe de son slot (§2.5 ; A12, décision 2) |
+| 4 | Ajouter à `StressTest` sa propre propriété `Size`, et renommer `Size` la propriété `Taille` exposée de `.Cellule`. | la clé de l'hôte reste `size`, la clé exposée reçoit le préfixe (§2.5 ; A11, décision 8) |
+| 5 | Dans un variant, montrer une valeur différente du défaut pour un booléen exposé de `.Cellule`, et poser `.Cellule` dans une `Taille` différente selon le variant. | valeur posée dans `renvoi.values` et dans `renvoi.variant` (§2.4 ; E07, décision 4) |
+| 6 | Poser `.Puce` dans `.Cellule`, l'exposer dans `.Cellule`, et lui imposer une couleur depuis `StressTest` à travers `.Cellule` ; ajouter un troisième niveau d'exposition. | sources de propriétaire en propriétaire et renvoi imbriqué (§2.5 ; A01, A16, E06) |
+| 7 | Exposer `.Puce` dans une partie des variantes de `.Cellule` seulement, et une instance de `.Cellule` dans une partie des variants de `StressTest` seulement. | perte L6 et perte de transfert (§2.12, étape 6 ; décision 7) |
+| 8 | Sur une occurrence de `.Pastille`, imposer une couleur sur un calque dont Default et Hover ont des couleurs différentes, et une autre sur un calque dont ils partagent la couleur, puis passer l'occurrence en Hover dans Figma. | écart entre ce que Figma garde et la convention d'UCM (§2.12 ; étude de la règle des états) |
+| 9 | Dans la variante Hover de `.Pastille`, ajouter un calque, retirer le texte `Sous-titre`, et imposer une couleur au cadre depuis l'hôte. | perte de transfert quand le calque manque à la variante atteinte (A06, A07, A13) |
+| 10 | Dans la variante Hover de `.Pastille`, remplacer le texte `Titre` par un texte `Sous-titre` à la même place et de même couleur, avec une couleur imposée sur `Titre`. | aucun transfert entre deux calques de noms différents (§2.12, étape 6 ; A13b) |
+| 11 | Dans `.Pastille`, poser deux calques frères de même nom, dont un reçoit une couleur imposée. | appariement ambigu, perte (§2.12, étape 6 ; A13c) |
+| 12 | Dans la variante Hover de `.Pastille`, dessiner un calque gris que la première occurrence, posée en Hover, recolore, et poser une seconde occurrence en Default qui ne le recolore pas. | couleur d'aperçu jugée sur les variantes atteintes (§2.7 ; A21, décision 5) |
+| 13 | Sur une occurrence, imposer une couleur égale à celle du maître. | surcharge égale au maître, que le renvoi complet ne montre pas |
+| 14 | Donner à l'icône de `.Pastille` un glyphe différent en Hover. | glyphe échangé entre deux états (A14) |
+| 15 | Sur une occurrence, masquer un calque sans propriété, saisir un texte et échanger une instance sans propriété. | écarts sans preuve, perte ; texte indicatif sous `samples` (§2.10, §2.12) |
+| 16 | Forcer un mode de variable sur une occurrence, une fois sur la collection d'une variable liée sous elle, une fois sur une collection sans variable liée. | perte de mode pour le seul mode actif (§2.14 ; A20, A20b, décision 6) |
+| 17 | Remplir depuis `StressTest` le `SLOT` de `.Cellule` avec une pièce, et exposer une propriété `SLOT` d'une instance. | perte de `SLOT` (§2.9 ; A03, D6) |
+| 18 | Exposer un échange d'instance dont une valeur préférée est une pièce, et poser un échange non exposé vers une pièce. | perte nommant la pièce (§2.5 ; A04, A04b, décision 11) |
+| 19 | Poser deux composants `.Item`, rangés dans deux dossiers. | refus de l'export (F29 ; A09, décision 8) |
+| 20 | Poser une instance de `Button` exposée dans `StressTest`. | source vers une dépendance (§2.5 ; A02) |
+| 21 | Agrandir une instance de `.Cellule` à l'outil d'échelle, et retourner un calque en miroir dans `.Cellule`. | pertes de `scaleFactor` et de `relativeTransform` (§2.14) |
+| 22 | Dessiner une variante de `.Cellule` sans auto layout, à hauteur fixe sans variable, comme `.Ring`. | pertes de la racine (§2.11) |
+| 23 | Dans `.Cellule`, appliquer une ombre sans variable de couleur, un effet de bruit et un flou progressif. | pertes d'effet, une fois par style pour l'ombre (§2.14) |
+| 24 | Dans `.Cellule`, poser un texte sur un tracé et un groupe de transformation à répétition. | pertes de `TEXT_PATH` et de `TRANSFORM_GROUP` (§2.14 ; décision 9) |
+| 25 | Dans toutes les variantes de `.Cellule`, dessiner un contour à épaisseurs par côté sans variable. | une perte regroupée, avec `slotPath` et le nombre de variantes (§2.11 ; décision 10) |
+
+La boucle indirecte (A05) ne se construit pas, car Figma refuse d'imbriquer un composant dans lui-même.
+
+### Passages que touche la décision 1
+
+Le passage à la convention d'UCM touche ces passages de la forme :
+
+- le §2, définitions de l'identité d'un calque et de l'écart ;
+- le §2.5, phrase « Une prop `VARIANT` exposée choisit la variante de la pièce (E3, §2.12) » ;
+- le §2.7, jugement d'aperçu par l'axe d'états et par un axe exposé, et A21 ;
+- le §2.11, ligne 2 du tableau (transfert non prouvé, exposition qui diffère) ;
+- le §2.12, phrase d'attente en tête, étapes 3, 5 et 6, et le paragraphe sur la règle de Figma qui suit la liste ;
+- le §2.13, refus 14, et le contrôle des constats qui compare une perte de transfert au dessin ;
+- le §2.14, ligne des modes forcés (« une variante que l'occurrence peut montrer ») ;
+- le §3.1, troisième point de « Ce que l'exemple montre » (180 bascules de taille) ;
+- le §3.2, quatrième point (36 bascules d'état) ;
+- le §4.2, lignes des décisions 1 et 7 ; le §4.3, contradiction 8 ;
+- le §5.1, phrase des bascules et du témoin ;
+- le §6.1, lignes Résolution des vues et Validation ; le §6.2, section « Pièces internes » de FORMAT.md, et POUR-LES-DESIGNERS.md si la convention est retenue ;
+- le §7, paragraphe qui suit la table et dernier paragraphe des réponses du mainteneur.
+
+Dans le laboratoire, la perte `P-transfert` (47 464 sur le tirage complet) et les coordonnées non résolues (46,1 % et 38,5 %) en dépendent. Les cas A07, A13, A13b, A13c, E01b, E05, M-E02 et l'exposition partielle changeraient d'attendu.
+
+### Ce qui reste non prouvé
+
+| Point | État |
+|---|---|
+| Règle des états | aucun rejeu dans Figma ; `identite` et `valeurInitiale` donnent toutes deux 0 faux, sans dire laquelle Figma applique ; la convention d'UCM retenue n'a pas été rejouée dans ce laboratoire |
+| Moteur 15.0 | il n'existe pas ; seuls le laboratoire et des simulations tirées des données 14.0 exécutent les règles |
+| Constats du dessin | le contrat seul ne dit ni un mode forcé, ni un `SLOT` rempli, ni une instance exposée ; le validateur voit leur absence par les constats du moteur, et 2 mutations restent indécidables sans eux (identifiant hors instance, clé exposée prise par l'hôte) |
+| Regroupement des pertes | les tirages ne produisent aucune perte de maître regroupable ; la règle est éprouvée sur Groupe (21 classes) et sur le cas D10 |
+| Surcharge égale au maître | invisible dans un renvoi complet, aucun cas |
+| Glyphe échangé entre deux états (A14) | le laboratoire n'apparie pas deux glyphes |
+| Composant préfixé à règles (A10) | accepté sans perte, le contrat propre de la pièce est ignoré |
+| `TextPathNode`, `TransformGroupNode` | classés sur le papier, aucun moteur ne les lit |
+| Coût | 46,1 % des coordonnées non résolues sur le tirage complet, 38,5 % sans exposition double |
+| Limites du laboratoire | ni auto layout ni pixels ; la règle de valeur initiale vaut aussi pour les textes |
+
+Les sorties sont dans `_local/p22/confrontation/sorties/`, préfixées `final-`, avec `postes-finales.json` et `cas-integres.json`. Le journal est `JOURNAL-INTEGRATION.txt`.
