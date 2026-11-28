@@ -305,8 +305,8 @@
       "prio": 1,
       "dependances": [],
       "complexite": "l",
-      "raisonComplexite": "Le format du contrat change (version majeure 15.0), avec le moteur d'extraction du socle, les types et le schéma du kit, les lecteurs, la validation et la parité. La forme est arrêtée et éprouvée (`FORME-CONTRAT-15.md`, huit épreuves, 5 000 tirages) ; un banc de test se construit avant le moteur.",
-      "coutHumain": "Valider la conception du banc de test de la 15.0 et le plan d'implémentation, enrichir et capturer `StressTest` dans Figma, puis réexporter les composants qui ont des pièces.",
+      "raisonComplexite": "Le format du contrat change (version majeure 15.0), avec le moteur d'extraction du socle, les types et le schéma du kit, les lecteurs, la validation et la parité. La forme est arrêtée et éprouvée (`FORME-CONTRAT-15.md`). Le banc de test est construit et juge juste sur le moteur 14.0 : 5 200 tirages, aucun écart non couvert (`npm run banc:pieces`).",
+      "coutHumain": "Construire et capturer `StressTest` (25 constructions, dont une dans `StressTestRefus`) et un Button avec `Icon` dans `.sizeWrapperButton`, puis réexporter les composants qui ont des pièces et faire la recette sur UCM-Playground.",
       "porteur": "mainteneur",
       "promesse": "C",
       "points": [
@@ -348,7 +348,7 @@
         {
           "chemin": "packages/kit/src/referentiel/composition.ts",
           "action": "vérifier",
-          "quoi": "`sorteDeLImbrique` : la pièce interne reste reconnue par son préfixe, après la dépendance et le wrapper de dimensions."
+          "quoi": "`sorteDeLImbrique` : une instance préfixée qui n'est pas une dépendance est une pièce, sans tri du wrapper de dimensions (décision 0.6, option E)."
         },
         {
           "chemin": "packages/plugin-socle/src/composant/contract/imbriques.ts",
@@ -376,9 +376,24 @@
           "quoi": "Ce que l'Exporter lit d'une pièce interne et ce qu'il publie."
         },
         {
-          "chemin": "packages/kit/fixtures/contrats/",
+          "chemin": "packages/kit/tests/banc/",
           "action": "créer",
-          "quoi": "Un contrat de fixture avec une pièce interne à plusieurs variantes, dont une que l'hôte n'emploie pas."
+          "quoi": "Fabriques de contrats 15.0, contrats attendus des cas et table des mutations, sans fixture commitée (F37)."
+        },
+        {
+          "chemin": "packages/plugin-socle/tests/generateur/",
+          "action": "modifier",
+          "quoi": "Banc de test : générateur commun, double de Figma, modèle de vérité de la convention d'UCM, comparateur et réduction."
+        },
+        {
+          "chemin": "docs/guides/POUR-LES-DESIGNERS.md",
+          "action": "modifier",
+          "quoi": "Chapitre « Préparer un composant » : une couleur posée sur une pièce vaut pour tous ses états."
+        },
+        {
+          "chemin": "packages/plugin-architect/",
+          "action": "modifier",
+          "quoi": "Relevé des pièces, couleurs d'aperçu et couleurs du cas 3, que seul Architect signale."
         }
       ],
       "criteresDeFin": [
@@ -390,7 +405,7 @@
       "risques": [
         "Une pièce à beaucoup de variantes alourdit le contrat de son hôte : mesuré, Button passe de 49 663 à 48 942 octets, Groupe de 13 205 à environ 80 000 avec les 90 variantes de `.Segment`, pertes regroupées.",
         "Un changement de version du contrat demande un réexport de tous les composants et une sortie coordonnée du kit, de la CLI et de l'Exporter.",
-        "Les épreuves reposent sur un modèle de Figma : une capture réelle de `StressTest` enrichi l'ancre avant le moteur."
+        "Le banc repose sur un double de Figma : la capture réelle de `StressTest` le cale sur les réponses de Figma (case 1.13) avant les tirages de la 15.0."
       ]
     },
     {
