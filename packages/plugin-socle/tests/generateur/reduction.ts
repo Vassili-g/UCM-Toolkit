@@ -30,14 +30,18 @@ function nettoyer(d:DocumentGenere){
  let change=true;while(change){const n=utilisees.size;for(const v of d.variables)if(utilisees.has(v.id))lire(v.valuesByMode);change=n!==utilisees.size;}
  d.variables=d.variables.filter(v=>utilisees.has(v.id));actualiserInventaires(d);d.oracle=dresserCarte(d,d.oracle.attendus,d.oracle.infos);
 }
-/** `analyserDocument` est la fonction de jugement du plugin : la réduction relit l'analyse sans la connaître. */
-export async function reduire(document:DocumentGenere,temoin:any,analyserDocument:Analyseur){
+/**
+ * La réduction, quel que soit le jugement : retire calques, sous-arbres et variables un à un tant que `juger` garde le candidat. Le
+ * garde du document (`verifierDocument` par défaut) passe avant : un candidat incohérent ne se juge pas. `reduire` juge par l'analyse d'Architect,
+ * `reductionDuBanc.ts` par la comparaison du banc.
+ */
+export async function reduireSelon(document:DocumentGenere,juger:(candidat:DocumentGenere)=>Promise<boolean>,garde:(candidat:DocumentGenere)=>readonly unknown[]=verifierDocument){
  let courant=copie(document),essais=0,refus=0,analyses=0,passes=0;
- const cle=signatureEcart(temoin);const taillesAvant=compter(courant);
+ const taillesAvant=compter(courant);
  const conserver=async(candidat:DocumentGenere)=>{
   essais++;try{actualiserInventaires(candidat);candidat.oracle=dresserCarte(candidat,candidat.oracle.attendus,candidat.oracle.infos);}catch{refus++;return false;}
-  if(verifierDocument(candidat).length){refus++;return false;}
-  analyses++;const r=await analyserDocument(candidat);return r.statut!=='arretee'&&r.constats.some((c:any)=>memeEcart(c,temoin));
+  if(garde(candidat).length){refus++;return false;}
+  analyses++;return juger(candidat);
  };
  let propre=copie(courant);nettoyer(propre);if(await conserver(propre))courant=propre;
  let change=true;
@@ -54,5 +58,10 @@ export async function reduire(document:DocumentGenere,temoin:any,analyserDocumen
   }
  }
  propre=copie(courant);nettoyer(propre);if(await conserver(propre))courant=propre;
- return {document:courant,signature:cle,avant:taillesAvant,apres:compter(courant),essais,refus,analyses,passes,minimum:'aucune suppression individuelle de calque, sous-arbre, variant ou variable ne conserve cette signature avec un document accepté par le garde'};
+ return {document:courant,avant:taillesAvant,apres:compter(courant),essais,refus,analyses,passes};
+}
+/** `analyserDocument` est la fonction de jugement du plugin : la réduction relit l'analyse sans la connaître. */
+export async function reduire(document:DocumentGenere,temoin:any,analyserDocument:Analyseur){
+ const r=await reduireSelon(document,async candidat=>{const a=await analyserDocument(candidat);return a.statut!=='arretee'&&a.constats.some((c:any)=>memeEcart(c,temoin));});
+ return {document:r.document,signature:signatureEcart(temoin),avant:r.avant,apres:r.apres,essais:r.essais,refus:r.refus,analyses:r.analyses,passes:r.passes,minimum:'aucune suppression individuelle de calque, sous-arbre, variant ou variable ne conserve cette signature avec un document accepté par le garde'};
 }

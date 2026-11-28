@@ -4,23 +4,21 @@
  *
  * Un écart est une différence pour une identité de calque et un champ (`rendu.ts`). Un calque que le contrat ne porte pas, ou porte en
  * trop, est un écart de champ `calque`. Le texte est le seul champ non normatif : le contrat le publie en échantillon, à titre
- * indicatif.
+ * indicatif. Une occurrence que l'un des deux côtés ne résout pas est un écart de champ `resolution`, à la racine.
  *
- * Couverture par les pertes : le sous-lot 1.9a n'en admet aucune, `ecartsNonCouverts` rend donc tous les écarts. Le sous-lot 1.9b y
- * met la règle du plan de P22 (un écart passe seulement si une perte du §2.11 ou du §2.14, par son chemin et son objet, le couvre).
+ * Couverture par les pertes (`pertes.ts`) : un écart passe seulement si une perte prévue au §2.11 ou au §2.14, publiée dans
+ * `meta.diagnostics`, le couvre par son chemin et son objet. Les seules pertes de résolution admises sont la sélection non unique et
+ * l'appariement ambigu, et seulement quand le modèle de vérité ne résout pas non plus l'occurrence, pour la même cause.
  */
-import { CHAMPS_DE_RENDU, egaux, type ChampDeRendu, type RenduNormalise } from './rendu';
+import { perteCouvre, type Diagnostic, type Lieu } from './pertes';
+import { CHAMPS_DE_RENDU, RACINE, egaux, type ChampDeRendu, type RenduNormalise } from './rendu';
 
-/** Une entrée de `meta.diagnostics`, que le contrat publie : seul `code` est garanti. */
-export interface Diagnostic {
-  code: string;
-  [cle: string]: unknown;
-}
+export type { Diagnostic } from './pertes';
 
 export interface Ecart {
   variant: string;
   identite: string;
-  champ: ChampDeRendu | 'calque';
+  champ: ChampDeRendu | 'calque' | 'resolution';
   attendu: unknown;
   lu: unknown;
   /** Faux pour un champ que le contrat ne publie qu'à titre indicatif (le texte). */
@@ -31,8 +29,11 @@ const INDICATIFS: ReadonlySet<string> = new Set<ChampDeRendu>(['texte']);
 
 /** Tous les écarts entre le rendu attendu et le rendu lu, couverts ou non. */
 export function ecartsDeRendu(attendu: RenduNormalise, lu: RenduNormalise): Ecart[] {
-  const ecarts: Ecart[] = [];
   const variant = attendu.variant;
+  if (attendu.nonResolu || lu.nonResolu) {
+    return [{ variant, identite: RACINE, champ: 'resolution', attendu: attendu.nonResolu ?? 'résolu', lu: lu.nonResolu ?? 'résolu', normatif: true }];
+  }
+  const ecarts: Ecart[] = [];
   for (const identite of new Set([...Object.keys(attendu.calques), ...Object.keys(lu.calques)])) {
     const a = attendu.calques[identite];
     const b = lu.calques[identite];
@@ -47,13 +48,12 @@ export function ecartsDeRendu(attendu: RenduNormalise, lu: RenduNormalise): Ecar
   return ecarts;
 }
 
-/** Les écarts qu'aucune perte du contrat ne couvre. Sous-lot 1.9a : aucune perte n'est admise, tout écart reste. */
-export function ecartsNonCouverts(ecarts: readonly Ecart[], pertes: readonly Diagnostic[]): Ecart[] {
-  void pertes;
-  return [...ecarts];
+/** Les écarts qu'aucune perte du contrat ne couvre, là où `lieu` les lit. */
+export function ecartsNonCouverts(ecarts: readonly Ecart[], pertes: readonly Diagnostic[], lieu: Lieu = {}): Ecart[] {
+  return ecarts.filter((ecart) => !pertes.some((perte) => perteCouvre(perte, ecart, lieu)));
 }
 
 /** Le comparateur : le rendu attendu, le rendu lu et les diagnostics du contrat (`meta.diagnostics`) rendent les écarts non couverts. */
 export function comparer(attendu: RenduNormalise, lu: RenduNormalise, pertes: readonly Diagnostic[]): Ecart[] {
-  return ecartsNonCouverts(ecartsDeRendu(attendu, lu), pertes);
+  return ecartsNonCouverts(ecartsDeRendu(attendu, lu), pertes, { cheminDuContrat: lu.cheminDuContrat, adresses: lu.adresses });
 }

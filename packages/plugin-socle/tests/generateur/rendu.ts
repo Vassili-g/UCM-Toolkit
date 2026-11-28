@@ -87,10 +87,23 @@ export interface RenduDeCalque {
 export const CHAMPS_DE_RENDU = ['visible', 'couleurs', 'contours', 'texte', 'compose', 'icone', 'boite', 'flux', 'typographie', 'effets'] as const;
 export type ChampDeRendu = (typeof CHAMPS_DE_RENDU)[number];
 
-/** Le rendu d'un variant : `variant` est l'identifiant du calque Figma du variant, `calques` se range par identité. */
+/** Les deux seules causes pour lesquelles une occurrence reste sans rendu (§2.12, étapes 4 et 6 de la forme du contrat 15.0). */
+export type CauseDeNonResolution = 'selection-non-unique' | 'appariement-ambigu';
+
+/**
+ * Le rendu d'un variant ou d'une occurrence : `variant` est l'identifiant du calque Figma du variant de l'hôte, `calques` se range par
+ * identité. Une occurrence se range depuis sa racine de pièce (`RACINE`).
+ *
+ * `nonResolu` dit qu'aucune variante n'a été choisie : `calques` est alors vide. `cheminDuContrat` et `adresses` ne viennent que de
+ * la lecture du contrat : le chemin du variant ou du renvoi (`variants[2]`, `variants[2].pieces[0]`) et, par identité, l'adresse de
+ * slot du calque. Le comparateur les emploie pour la couverture par les pertes ; le modèle de vérité ne les connaît pas.
+ */
 export interface RenduNormalise {
   variant: string;
   calques: Record<string, RenduDeCalque>;
+  nonResolu?: CauseDeNonResolution;
+  cheminDuContrat?: string;
+  adresses?: Record<string, string[]>;
 }
 
 const estVide = (v: unknown): boolean => v === undefined || v === null || (Array.isArray(v) && v.length === 0) || (typeof v === 'object' && v !== null && !Array.isArray(v) && Object.keys(v).length === 0);

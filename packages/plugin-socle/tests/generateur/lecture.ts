@@ -79,7 +79,9 @@ export function renduLu(contrat: any, variant: string): RenduNormalise {
   });
 
   const calques: Record<string, RenduDeCalque> = {};
+  const adresses: Record<string, string[]> = {};
   const visiter = (slot: any, slotPath: string[], chemin: string[], estRacine: boolean) => {
+    adresses[identiteDe(chemin)] = slotPath;
     const pilote = typeof slot.visibilityProp === 'string';
     if (!estRacine && pilote && proprietes[slot.visibilityProp]?.default === false) {
       calques[identiteDe(chemin)] = { visible: false };
@@ -102,5 +104,5 @@ export function renduLu(contrat: any, variant: string): RenduNormalise {
     for (const enfant of slot.children ?? []) visiter(enfant, [...slotPath, enfant.slot], [...chemin, nomAvecRang(enfant.figmaLayer ?? enfant.slot, vus)], false);
   };
   visiter(vue.structure, [], [], true);
-  return { variant, calques };
+  return { variant, calques, cheminDuContrat: `variants[${(contrat.variants ?? []).indexOf(donnee)}]`, adresses };
 }
