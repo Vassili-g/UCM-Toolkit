@@ -186,7 +186,7 @@ export function collectionFigma(id: string, name: string, modes: string[], varia
 const LECTURES_DE_CALQUE = ['getStyledTextSegments', 'getMainComponentAsync', 'exportAsync', 'findAll', 'findOne', 'findChildren', 'findAllWithCriteria'];
 
 /** Les types de calque qui portent des enfants et donc les méthodes de recherche : un texte, un tracé ou une forme n'ont pas `findAll`. */
-const TYPES_A_ENFANTS: ReadonlySet<string> = new Set(['DOCUMENT', 'PAGE', 'COMPONENT_SET', 'COMPONENT', 'INSTANCE', 'FRAME', 'GROUP', 'SECTION', 'BOOLEAN_OPERATION']);
+const TYPES_A_ENFANTS: ReadonlySet<string> = new Set(['DOCUMENT', 'PAGE', 'COMPONENT_SET', 'COMPONENT', 'INSTANCE', 'FRAME', 'GROUP', 'SECTION', 'BOOLEAN_OPERATION', 'SLOT']);
 
 /**
  * Les recherches de Figma sur un calque à enfants, dans l'ordre du document : `findAll` et `findAllWithCriteria` parcourent tous les
@@ -194,13 +194,20 @@ const TYPES_A_ENFANTS: ReadonlySet<string> = new Set(['DOCUMENT', 'PAGE', 'COMPO
  * L'atelier ne les pose que sur demande (`recherches`) : un test qui ne les écrit pas garde un moteur qui ne voit que la racine des
  * variants, et plusieurs tests (`chasseComposants.test.ts`) comptent sur cette vue.
  */
-function recherchesDeCalque<N extends NoeudDeFigma>(enfantsDe: () => readonly N[]) {
-  const descendants = (enfants: readonly N[]): N[] => enfants.flatMap((enfant) => [enfant, ...descendants((enfant.children ?? []) as readonly N[])]);
+function recherchesDeCalque<N extends NoeudDeFigma>(enfantsDe: () => readonly N[], estUneInstance: boolean, ignorerLesInvisibles: () => boolean) {
+  // Même règle que le chargeur de capture d'Architect : avec `skipInvisibleInstanceChildren`, une recherche écarte, sous une instance,
+  // les calques masqués et leurs descendants. `visible` ne se lit que dans ce cas, et `findChildren` ne la subit pas.
+  const descendants = (enfants: readonly N[], sousUneInstance: boolean): N[] =>
+    enfants.flatMap((enfant) => {
+      if (sousUneInstance && ignorerLesInvisibles() && (enfant as { visible?: boolean }).visible === false) return [];
+      return [enfant, ...descendants((enfant.children ?? []) as readonly N[], sousUneInstance || enfant.type === 'INSTANCE')];
+    });
+  const tous = () => descendants(enfantsDe(), estUneInstance);
   return {
-    findAll: (filtre: (noeud: N) => boolean = () => true) => descendants(enfantsDe()).filter(filtre),
-    findOne: (filtre: (noeud: N) => boolean) => descendants(enfantsDe()).find(filtre) ?? null,
+    findAll: (filtre: (noeud: N) => boolean = () => true) => tous().filter(filtre),
+    findOne: (filtre: (noeud: N) => boolean) => tous().find(filtre) ?? null,
     findChildren: (filtre: (noeud: N) => boolean = () => true) => [...enfantsDe()].filter(filtre),
-    findAllWithCriteria: ({ types }: { types: readonly string[] }) => descendants(enfantsDe()).filter((noeud) => types.includes(noeud.type)),
+    findAllWithCriteria: ({ types }: { types: readonly string[] }) => tous().filter((noeud) => types.includes(noeud.type)),
   };
 }
 
@@ -224,9 +231,10 @@ const MUTATIONS_DE_CALQUE = {
  * seule. `journal` relève chaque méthode appelée : il ne contient que des
  * lectures quand le code lu n'a rien écrit. Avec `recherches`, chaque calque à enfants porte `findAll`, `findOne`, `findChildren` et
  * `findAllWithCriteria`, et répond vrai à `'findAll' in calque`. `permises` ajoute des méthodes de lecture que l'atelier laisse appeler
- * (`getSharedPluginData`, `loadAsync`).
+ * (`getSharedPluginData`, `loadAsync`). `ignorerLesInvisibles` rend l'état de `figma.skipInvisibleInstanceChildren` au moment de chaque
+ * recherche ; sans lui, les recherches voient tous les calques.
  */
-export function atelierDeCalques<N extends NoeudDeFigma = NoeudDeFigma, StyleLu = StyleDeFigma, PortDuComposant = PortDuCalque<N, StyleLu>>(options: { readonly recherches?: boolean; readonly permises?: readonly string[] } = {}) {
+export function atelierDeCalques<N extends NoeudDeFigma = NoeudDeFigma, StyleLu = StyleDeFigma, PortDuComposant = PortDuCalque<N, StyleLu>>(options: { readonly recherches?: boolean; readonly permises?: readonly string[]; readonly ignorerLesInvisibles?: () => boolean } = {}) {
   const lecturesPermises = [...LECTURES_DE_CALQUE, ...(options.permises ?? [])];
   const journal: string[] = [];
   const noeuds = new Map<string, N>();
@@ -241,7 +249,7 @@ export function atelierDeCalques<N extends NoeudDeFigma = NoeudDeFigma, StyleLu 
     /** Un calque ; ses enfants reçoivent ce calque pour parent. Son nom est `Calque <id>` sauf `name` dans `champs`. */
     calque(id: string, type: string, champs: Record<string, unknown> = {}, enfants: readonly N[] = []): N {
       // Les descripteurs sont copiés tels quels : un accesseur qui lève ne lève qu'à la lecture du code testé.
-      const recherches: Partial<ReturnType<typeof recherchesDeCalque<N>>> = options.recherches && TYPES_A_ENFANTS.has(type) ? recherchesDeCalque((): readonly N[] => enfants) : {};
+      const recherches: Partial<ReturnType<typeof recherchesDeCalque<N>>> = options.recherches && TYPES_A_ENFANTS.has(type) ? recherchesDeCalque((): readonly N[] => enfants, type === 'INSTANCE', options.ignorerLesInvisibles ?? (() => false)) : {};
       const brut = Object.defineProperties({ id, name: `Calque ${id}`, type, parent: null as N | null, ...MUTATIONS_DE_CALQUE, ...recherches, children: enfants }, Object.getOwnPropertyDescriptors(champs));
       const fige = enLectureSeule(brut, lecturesPermises, journal) as unknown as N;
       bruts.set(fige, brut);

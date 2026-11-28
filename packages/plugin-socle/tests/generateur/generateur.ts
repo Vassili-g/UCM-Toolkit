@@ -2,7 +2,7 @@ import {mulberry32,choisir,entier,echantillon} from '../../../kit/tests/stress/c
 import {ECHELLES_DE_REFERENCE,NOMS_D_AXES,NOMS_D_AXES_GENERIQUES,REGISTRE_ETATS,REGISTRE_PALETTES_COMPOSANT,REGISTRE_TAILLES} from '@ucm-kit/core/referentiel';
 import {lireLesDialectes} from './dialectes';
 import type {Attendu,DocumentGenere,Noeud,Spec,Rgba} from './types';
-import {alias,copie,dresserCarte,actualiserInventaires,valeur,modesDuNoeud} from './modele';
+import {alias,copie,dresserCarte,actualiserInventaires,valeur,modesDuNoeud,resoudreLesModes,actualiserLesCouleurs} from './modele';
 
 /**
  * Les constructions que le tirage évite parce qu'elles provoquent un écart que le produit ne corrige pas encore (questions rendues au
@@ -193,9 +193,8 @@ export function generer(graine:number,spec:Spec):DocumentGenere{
   for(const old of ids){const source=doc.noeuds.find(n=>n.id===old)!;const x=copie(source);x.id=renoms.get(old)!;x.parent=renoms.get(x.parent!)??x.parent;x.children=x.children.map(id=>renoms.get(id)!);x.props=changer(x.props);if(old===variantId){x.props.variantProperties.Configuration='B';x.name=Object.entries(x.props.variantProperties).map(([k,v])=>k+'='+v).join(', ');}x.props.absoluteBoundingBox.x+=250;doc.noeuds.push(x);if(doc.spec.proprietaires[old])doc.spec.proprietaires[x.id]=doc.spec.proprietaires[old];if(doc.spec.origines[old])doc.spec.origines[x.id]=doc.spec.origines[old];if(doc.spec.roles[old])doc.spec.roles[x.id]=doc.spec.roles[old];}
   doc.noeuds.find(n=>n.id==='jeu')!.children.push(renoms.get(variantId)!);
  }
- const resoudreModes=(id:string,parentModes:Record<string,string>)=>{const node=doc.noeuds.find(n=>n.id===id)!;node.props.resolvedVariableModes={...parentModes,...node.props.explicitVariableModes};for(const c of node.children)resoudreModes(c,node.props.resolvedVariableModes);};
- resoudreModes('document',Object.fromEntries(doc.collections.map(c=>[c.id,c.defaultModeId])));
- for(const node of doc.noeuds){const actualiser=(ps:any[])=>{for(const p of ps??[])if(p.boundVariables?.color?.id){const c=valeur(doc,p.boundVariables.color.id,node.props.resolvedVariableModes);p.color={r:c.r,g:c.g,b:c.b};p.opacity=c.a??1;}};actualiser(node.props.fills);actualiser(node.props.strokes);for(const seg of node.props.segments??[])actualiser(seg.fills);}
+ resoudreLesModes(doc);
+ actualiserLesCouleurs(doc);
  doc.oracle.infos=informationsPrevues(doc);
  actualiserInventaires(doc);doc.oracle=dresserCarte(doc,attendusDeStructure(doc),doc.oracle.infos);
  return doc;

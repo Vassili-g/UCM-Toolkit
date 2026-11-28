@@ -2,6 +2,8 @@ import type {Attendu,CarteOracle,DocumentGenere,LiaisonOracle,Noeud,Variable} fr
 
 export const alias=(id:string)=>({type:'VARIABLE_ALIAS',id});
 export const copie=<T>(x:T):T=>structuredClone(x);
+/** Une référence à un calque dans les props d'un nœud : le double la lit comme le calque (`exposedInstances: [ref('x')]`). */
+export const ref=(id:string)=>({ref:id});
 export function valeur(doc:DocumentGenere,id:string,modes:Record<string,string>={},vus=new Set<string>()):any {
  if(vus.has(id))throw new Error('cycle '+id);
  const v=doc.variables.find(v=>v.id===id);if(!v)throw new Error('variable absente '+id);
@@ -14,6 +16,15 @@ export function modesDuNoeud(doc:DocumentGenere,n:Noeud):Record<string,string>{
  const chaine:Noeud[]=[];let x:Noeud|undefined=n;const vus=new Set<string>();
  while(x&&!vus.has(x.id)){vus.add(x.id);chaine.unshift(x);x=doc.noeuds.find(n=>n.id===x?.parent);}
  return Object.assign({},...chaine.map(n=>n.props.resolvedVariableModes??{}),...chaine.map(n=>n.props.explicitVariableModes??{}));
+}
+/** Chaque calque reçoit les modes de son parent, que ses propres modes forcés recouvrent ; la racine part des modes par défaut des collections. */
+export function resoudreLesModes(doc:DocumentGenere){
+ const descendre=(id:string,modesDuParent:Record<string,string>)=>{const noeud=doc.noeuds.find(n=>n.id===id)!;noeud.props.resolvedVariableModes={...modesDuParent,...noeud.props.explicitVariableModes};for(const c of noeud.children)descendre(c,noeud.props.resolvedVariableModes);};
+ descendre(doc.noeuds.find(n=>n.parent===null)!.id,Object.fromEntries(doc.collections.map(c=>[c.id,c.defaultModeId])));
+}
+/** La couleur et l'opacité de chaque peinture liée se recalculent dans les modes résolus de son calque. */
+export function actualiserLesCouleurs(doc:DocumentGenere){
+ for(const node of doc.noeuds){const actualiser=(ps:any[])=>{for(const p of ps??[])if(p.boundVariables?.color?.id){const c=valeur(doc,p.boundVariables.color.id,node.props.resolvedVariableModes);p.color={r:c.r,g:c.g,b:c.b};p.opacity=c.a??1;}};actualiser(node.props.fills);actualiser(node.props.strokes);for(const seg of node.props.segments??[])actualiser(seg.fills);}
 }
 export function actualiserInventaires(doc:DocumentGenere){
  for(const c of doc.collections)c.variableIds=doc.variables.filter(v=>v.variableCollectionId===c.id).map(v=>v.id);
