@@ -258,11 +258,11 @@ Tout est dans `_local/p22/confrontation/` : le journal `JOURNAL.txt`, `lab-b.cjs
 
 ## Réponses du mainteneur
 
-Le mainteneur retient les décisions 4 à 9 et 11, qui corrigent les défauts prouvés, puis les décisions 2, 3 et 10 : la première de deux instances exposées garde sa clé et les suivantes prennent le préfixe de leur slot, le renvoi reste complet (D4), et les pertes répétées se regroupent. Le mainteneur retient aussi la décision 1, option 3 (paire `BXID`), sur ce principe : le contrat ne dit jamais une chose fausse, et il écrit une perte quand il ne peut pas prouver ce que Figma rendrait.
+Le mainteneur retient les décisions 4 à 9 et 11, qui corrigent les défauts prouvés, puis les décisions 2, 3 et 10 : la première de deux instances exposées garde sa clé et les suivantes prennent le préfixe de leur slot, le renvoi reste complet (D4), et les pertes répétées se regroupent. Le mainteneur retient aussi la décision 1, option 3 (paire `BXID`), sur ce principe : le contrat ne dit jamais une chose fausse, et il écrit une perte quand il ne peut pas prouver ce que Figma rendrait. Il l'a remplacée ensuite par la convention d'UCM de l'[étude de la règle des états](./ETUDE-REGLE-DES-ETATS.md), écrite dans la forme (sous-section « Convention des états »).
 
 ## Intégration
 
-Les décisions 2 à 11 et la correction d'A13b sont intégrées à la [forme](./FORME-CONTRAT-15.md). La décision 1 y reste écrite comme la paire `BXID`. L'[étude de la règle des états](./ETUDE-REGLE-DES-ETATS.md) la remplace par la convention d'UCM, que la forme n'a pas encore reçue. Le laboratoire, reconstruit sur la forme intégrée (paire `F15`), ne donne aucun écart silencieux sur toutes les épreuves rejouées.
+Les décisions 2 à 11 et la correction d'A13b sont intégrées à la [forme](./FORME-CONTRAT-15.md). La décision 1 y était écrite comme la paire `BXID`. L'[étude de la règle des états](./ETUDE-REGLE-DES-ETATS.md) la remplace par la convention d'UCM, que la forme a reçue ensuite (sous-section « Convention des états », en fin de section). Les tables qui suivent donnent les résultats de la paire `F15`, avant la convention. Le laboratoire, reconstruit sur la forme intégrée, ne donne aucun écart silencieux sur toutes les épreuves rejouées.
 
 ### Les épreuves rejouées
 
@@ -291,13 +291,13 @@ Le validateur `valider15.cjs`, avec l'option `integree` et les constats du dessi
 
 | Décision | Section de la forme |
 |---|---|
-| 1, paire `BXID` | identité de calque au §2 ; étapes 5 et 6 du §2.12 ; ligne 2 du tableau du §2.11 ; §2.13.14 ; à réécrire selon la convention d'UCM |
+| 1, paire `BXID` | remplacée par la convention d'UCM (« Convention des états ») : définitions du §2 ; étapes 3, 5 et 6 du §2.12 ; ligne 2 du tableau du §2.11 ; §2.13.14 |
 | 2, première clé gardée, préfixe de slot ensuite | §2.5, ordre des clés ; §2.11, ni perte ni refus ; §6.1, génération des types ; §6.3, classe 2 |
 | 3, renvoi complet | §2.4 ; §5.3 |
 | 4, valeur posée par variant | §2.4, table et paragraphe de la valeur posée ; étape 7 du §2.12 ; §2.13.6 ; §5.4 |
 | 5, aperçu jugé sur les variantes atteintes | §2.7 |
 | 6, mode forcé actif seulement | ligne des modes du §2.11 ; ligne des modes et dernier paragraphe du §2.14 ; §3.1 |
-| 7, perte d'exposition | étape 6 du §2.12 ; ligne 2 du tableau du §2.11 ; §2.13.14 |
+| 7, perte d'exposition | retirée avec la décision 1 (« Convention des états ») ; elle prolongeait la preuve de transfert |
 | 8, refus de F29 et préfixe pour A11 | §2.11 ; §2.13.8 ; §2.5 |
 | 9, `TextPathNode` et `TransformGroupNode` | deux lignes du §2.14 |
 | 10, pertes de maître regroupées | §2.11, classe, champs et liste des variantes ; §2.13.15 ; §5.1 ; §5.2 ; §6.2 ; §6.3, classes 2 et 4 |
@@ -354,7 +354,7 @@ La boucle indirecte (A05) ne se construit pas, car Figma refuse d'imbriquer un c
 
 ### Passages que touche la décision 1
 
-Le passage à la convention d'UCM touche ces passages de la forme :
+Le passage à la convention d'UCM a touché ces passages de la forme, réécrits dans « Convention des états » :
 
 - le §2, définitions de l'identité d'un calque et de l'écart ;
 - le §2.5, phrase « Une prop `VARIANT` exposée choisit la variante de la pièce (E3, §2.12) » ;
@@ -370,13 +370,13 @@ Le passage à la convention d'UCM touche ces passages de la forme :
 - le §6.1, lignes Résolution des vues et Validation ; le §6.2, section « Pièces internes » de FORMAT.md, et POUR-LES-DESIGNERS.md si la convention est retenue ;
 - le §7, paragraphe qui suit la table et dernier paragraphe des réponses du mainteneur.
 
-Dans le laboratoire, la perte `P-transfert` (47 464 sur le tirage complet) et les coordonnées non résolues (46,1 % et 38,5 %) en dépendent. Les cas A07, A13, A13b, A13c, E01b, E05, M-E02 et l'exposition partielle changeraient d'attendu.
+Dans le laboratoire, la perte `P-transfert` (47 464 sur le tirage complet) et les coordonnées non résolues (46,1 % et 38,5 %) en dépendaient. Les cas A07, A13, A13b, A13c, E01b, E05, M-E02 et l'exposition partielle ont changé d'attendu.
 
 ### Ce qui reste non prouvé
 
 | Point | État |
 |---|---|
-| Règle des états | aucun rejeu dans Figma ; `identite` et `valeurInitiale` donnent toutes deux 0 faux, sans dire laquelle Figma applique ; la convention d'UCM retenue n'a pas été rejouée dans ce laboratoire |
+| Règle des états | aucun rejeu dans Figma ; `identite` et `valeurInitiale` donnent toutes deux 0 faux, sans dire laquelle Figma applique ; la convention d'UCM est rejouée dans « Convention des états » |
 | Moteur 15.0 | il n'existe pas ; seuls le laboratoire et des simulations tirées des données 14.0 exécutent les règles |
 | Constats du dessin | le contrat seul ne dit ni un mode forcé, ni un `SLOT` rempli, ni une instance exposée ; le validateur voit leur absence par les constats du moteur, et 2 mutations restent indécidables sans eux (identifiant hors instance, clé exposée prise par l'hôte) |
 | Regroupement des pertes | les tirages ne produisent aucune perte de maître regroupable ; la règle est éprouvée sur Groupe (21 classes) et sur le cas D10 |
@@ -384,7 +384,116 @@ Dans le laboratoire, la perte `P-transfert` (47 464 sur le tirage complet) et le
 | Glyphe échangé entre deux états (A14) | le laboratoire n'apparie pas deux glyphes |
 | Composant préfixé à règles (A10) | accepté sans perte, le contrat propre de la pièce est ignoré |
 | `TextPathNode`, `TransformGroupNode` | classés sur le papier, aucun moteur ne les lit |
-| Coût | 46,1 % des coordonnées non résolues sur le tirage complet, 38,5 % sans exposition double |
+| Coût | 46,1 % des coordonnées non résolues sur le tirage complet, 38,5 % sans exposition double, avant la convention (17,6 % et 15,0 % avec elle) |
 | Limites du laboratoire | ni auto layout ni pixels ; la règle de valeur initiale vaut aussi pour les textes |
 
 Les sorties sont dans `_local/p22/confrontation/sorties/`, préfixées `final-`, avec `postes-finales.json` et `cas-integres.json`. Le journal est `JOURNAL-INTEGRATION.txt`.
+
+### Convention des états
+
+La [forme](./FORME-CONTRAT-15.md) écrit la convention d'UCM de l'[étude de la règle des états](./ETUDE-REGLE-DES-ETATS.md) à la place des décisions 1 et 7 (paire `BXID`, perte d'exposition). Une valeur que l'hôte impose à une occurrence vaut dans tous les états et toutes les variantes que l'occurrence peut prendre. Le contrat n'écrit aucune perte de transfert, et aucun plugin ne contrôle l'écart avec Figma. Le laboratoire `F15` est rejoué avec l'option `convention`. Le journal est `JOURNAL-CONVENTION.txt`, les sorties sont préfixées `conv-`.
+
+#### Passages réécrits
+
+| Passage de la forme | Réécriture |
+|---|---|
+| §2, définitions | un écart se lit contre la variante citée, un renvoi imbriqué contre la variante qu'il cite ; une valeur imposée est un écart, une valeur de `renvoi.values` ou un axe imbriqué qui diffère de celui de V |
+| §2.5 | l'axe exposé choisit la variante quand le code le règle ; sans réglage, le renvoi cite la variante posée, qui n'est pas imposée |
+| §2.7 | la valeur imposée s'étend aux variantes atteintes ; A21 reste juste |
+| §2.11, ligne 2 | seule la perte d'appariement ambigu reste |
+| §2.12 | phrase d'attente retirée ; étape 3 (seuls les axes que le code règle remplacent ceux de V) ; étape 5 (chaque écart va au calque de même identité, sans condition) ; étape 6 (aucune perte de transfert, deux pertes restent) ; paragraphe sur la règle de Figma (le contrat ne la lit pas) |
+| §2.13, refus 14 | seul l'appariement ambigu sans perte est refusé |
+| §2.14, ligne des modes | la perte vise les variantes atteintes par l'état ou par un axe exposé |
+| §3.1, §3.2, §5.1 | les bascules sont décrites sans preuve ; le témoin laisse le contrat inchangé |
+| §4.2, §4.3 | décision 1 remplacée, décision 7 retirée, contradiction 8 |
+| §6.1, §6.2 | lecteurs ; contenu de FORMAT.md et de POUR-LES-DESIGNERS.md, repris de l'étude |
+| §7 | paragraphe après la table et dernier paragraphe des réponses du mainteneur |
+
+#### Modèle de vérité et lecteur
+
+Le modèle de vérité du contrat applique la convention. Une surcharge de l'hôte suit l'identité du calque, sans condition sur la valeur initiale (conservation `identite` du laboratoire). Une surcharge égale à la valeur que la variante citée porte déjà n'est pas une valeur imposée. Ce point ne change aucun tirage et change l'assemblage A22d. Le modèle `valeurInitiale`, qui suit la règle documentée de Figma, sert de comparaison.
+
+Les pertes de transfert cachaient trois défauts du lecteur du laboratoire, que la convention a rendus visibles. Avec la seule suppression de la perte, 15 tirages sur 300 étaient faux.
+
+- `values` portait aussi les axes (par `_args`), alors que le §2.4 le limite aux booléens et aux échanges.
+- La valeur posée d'un axe exposé se réimposait à la variante atteinte, alors que cette coordonnée est la variante citée.
+- Les écarts d'un renvoi imbriqué se lisaient contre le renvoi de V et non contre la variante qu'il cite, donc une différence de variante passait pour un écart.
+
+Les étapes 3 et 5 du §2.12 écrivent les trois corrections.
+
+#### Épreuves rejouées
+
+| Épreuve | Résultat |
+|---|---|
+| 5 200 tirages complets, trois modèles de Figma (`convention`, `identite`, `valeurInitiale`) | 0 tirage faux contre la convention et contre `identite` ; 17 830 coordonnées non résolues sur 101 202 (17,6 %), toutes par sélection non unique ; 0 perte de transfert (47 464 avant) |
+| 5 200 tirages sans exposition double | 0 tirage faux ; 11 698 non résolues sur 78 024 (15,0 %) |
+| 5 200 tirages à modes forcés, mode actif sur sa seule collection | 0 tirage faux ; 3 562 modes forcés, 2 354 pertes de mode |
+| 5 200 tirages à modes forcés, chaque mode actif | 0 tirage faux ; 3 562 modes forcés, 3 562 pertes de mode |
+| 30 assemblages : les 25 de la section précédente, plus A13c, A22, A22b, A22c, A22d | 0 écart contre la convention ; A09 refusé (F29) ; pertes restantes A13c (appariement), A18 et A19 (sélection), A04b (échange), A20 et A20b (mode) |
+| 45 cas de `_local/p22/codex/cas/` et de `cas/`, récrits sans perte de transfert | 45 conformes, dont A05 et E09 refusés comme attendu ; A13c garde sa perte d'appariement |
+| 15 mutations des règles nouvelles | 15 refusées (22 avant : 7 mutations de transfert retirées, car le contrat sans perte est juste) |
+| 58 mutations de la passe finale, rejouées sur les cas récrits | 58 conformes |
+| vérifications de la passe finale, sans l'option `convention` | 5 cas acceptés et 15 mutations refusées ; 9 mutations d'échantillons refusées ; 30 mutations sur 32 refusées, 2 indécidables connues ; limites et épreuve des pertes inchangées |
+| 5 graines réduites d'Opus et 7 résidus de B | 0 écart sous les trois modèles |
+| clés préfixées sur 5 200 tirages | inchangées : 20 332 clés dans 2 879 tirages, 0 refus, 0 doublon |
+| Button, bascules de taille des 90 renvois de `.sizeWrapperButton` | 180 bascules décrites, 0 perte, 0 couleur qui diverge de la règle documentée |
+| Groupe, bascules d'état des 9 renvois de `.Segment` | 36 bascules décrites, 0 perte, 0 couleur qui diverge |
+| témoin, couleur initiale de la variante `large` changée | contrat inchangé, 0 perte ; 90 bascules divergent de la règle documentée |
+
+La validation (`valider15.cjs`, option `convention`) n'exige plus de perte de transfert. Elle exige encore la perte de sélection et la perte d'appariement ambigu.
+
+#### Attendus qui changent
+
+| Cas | Paire `F15` | Convention |
+|---|---|---|
+| A07, M-E02 à valeurs différentes | perte de transfert, coordonnées non résolues | la couleur de l'hôte reste sur `Cadre` au survol, aucune perte ; la règle documentée de Figma l'abandonne (1 divergence) |
+| A13 | perte de transfert | `Titre` n'existe pas au survol, la valeur n'a pas d'objet ; `Sous-titre` garde sa couleur ; aucune perte |
+| A13b | perte de transfert | aucun transfert entre deux noms, aucune perte |
+| A13c | perte de transfert et d'appariement | perte d'appariement seule |
+| E01b | perte de transfert | la surcharge reste, aucune perte ; la règle documentée de Figma l'abandonne (1 divergence) |
+| E05, A21 | perte d'adresse ou de transfert | aucune perte ; le `Halo` du maître est publié |
+| exposition partielle | perte de transfert | aucune perte ; la pièce exposée n'existe plus au survol (A22) |
+| A06 | perte de transfert | aucune perte |
+| A22b | perte de transfert | aucune perte ; sans réglage de l'hôte, la variante exposée de l'état d'arrivée reste la sienne |
+| A22c | perte de transfert | aucune perte ; l'axe que l'hôte règle sur une valeur autre que la pose vaut dans les deux états |
+| A22d | perte de transfert | aucune perte ; un axe réglé sur la valeur de la pose n'est pas une valeur imposée |
+
+#### Écart avec le modèle de Figma
+
+La mesure compte, sur 56 253 bascules (31 729 couples de variant et de pièce), celles où le contrat dit autre chose que le modèle `valeurInitiale`, sans perte déclarée. Le contrat de la convention n'a aucun écart contre son propre modèle.
+
+| Contrat | Bascules divergentes | Couples | Composants |
+|---|---|---|---|
+| convention, telle qu'écrite | 7 497 (13,3 %) | 4 482 sur 31 729 (14,1 %) | 2 215 sur 5 200 (42,6 %) |
+| convention avec la perte d'exposition de l'étude | 2 844 (5,1 %) | 1 695 (5,3 %) | 978 (18,8 %) |
+| étude, `R-UCM` (58 364 bascules) | 3 041 (5,2 %) | 1 757 (5,4 %) | 1 054 (20,3 %) |
+
+Le 5,2 % de l'étude tient à la perte d'exposition : elle déclarait 41 890 renvois, dont beaucoup couvraient des bascules que la règle documentée traite autrement. En la retirant, l'écart visible monte à 13,3 %, et le contrat n'en dit pas plus faux, puisque la convention décide du sens. La divergence porte sur la couleur dans 6 981 bascules, sur la boîte dans 486 et sur le style de texte dans 221. Le générateur pose 0 à 3 surcharges au hasard sur chaque occurrence, donc ce taux surestime les fichiers réels. Sur Button et Groupe, aucune couleur ne diverge.
+
+#### Pertes qui restent
+
+| Perte | Pourquoi elle reste | Fréquence |
+|---|---|---|
+| sélection non unique | aucun variant ou plusieurs aux coordonnées voulues ; ce n'est pas un transfert | 22 529 pertes sur 5 200 tirages ; cause de toutes les coordonnées non résolues |
+| appariement ambigu | l'identité d'un calque est son nom et son rang parmi les frères ; deux frères de même nom ne donnent pas le calque qui reçoit la valeur dans V′ | 0 dans les 5 200 tirages, 1 dans A13c ; aucune dans Button, une structure de Groupe sur 13 a deux frères de même nom, sans écart de l'hôte |
+| L6, `SLOT` rempli, mode forcé, échange vers une pièce, données de rendu | ne viennent pas de la règle des états | inchangées |
+
+Le contrat a encore besoin d'un appariement par nom pour situer une adresse dans une autre variante, car le seul autre repère est l'adresse de slot, qui change quand un calque est renommé ou retiré (A13, A13b). L'appariement ambigu reste donc une perte du contrat. Il ne vient pas de la règle de Figma. Le départager par le rang serait une seconde convention, que le designer ne voit pas.
+
+#### Interprétation à confirmer
+
+La décision 4 est lue comme dans la passe précédente. La valeur posée d'un booléen ou d'un échange va dans `renvoi.values`. Celle d'un axe exposé reste dans les coordonnées de `renvoi.variant`, sans copie dans `values`. La convention en tire deux conséquences que la lecture n'imposait pas. La coordonnée d'un axe exposé est la variante citée et non une valeur imposée, sauf quand un renvoi imbriqué la règle autrement que le renvoi de V. Le contrat ne dit pas si l'hôte a réglé un axe sur la valeur que V pose déjà, donc ce réglage n'est pas lu comme imposé (A22d). Le mainteneur confirme cette lecture ou demande que le renvoi porte aussi les champs que l'API de Figma dit surchargés.
+
+#### Limites
+
+- Le modèle de Figma du laboratoire ne calcule ni auto layout ni pixels. Les surcharges de dimensions y sont des choix du designer, alors que Button montre des dimensions que l'auto layout calcule (étude, mesures sur Button). La convention les exclut dans son texte, et le contrat ne publie pas ces dimensions comme écarts.
+- Aucun rejeu dans Figma. La règle documentée `valeurInitiale` ne sert que de comparaison.
+- Une valeur égale à celle de la variante citée est invisible dans un renvoi complet (A22d).
+
+#### Questions au mainteneur
+
+1. Faut-il départager deux frères de même nom par leur rang plutôt que de garder la perte d'appariement ? Recommandation : garder la perte. Elle ne se produit dans aucun tirage ni dans Button, et le rang est une convention que le designer ne voit pas.
+2. Faut-il garder une perte quand la variante atteinte pose autrement une instance exposée (perte d'exposition de l'étude) ? Recommandation : non. Elle ne protège pas le contrat, qui est exact contre la convention, et elle cache 4 653 des 7 497 bascules où Figma documenté ferait autre chose.
+3. Faut-il que l'Exporter publie les champs que l'API de Figma dit surchargés, pour lire une valeur imposée égale à celle de la variante citée ? Recommandation : non. Le renvoi resterait complet (D4), et le cas n'apparaît ni dans Button ni dans Groupe.
+
+Les outils sont dans `_local/p22/confrontation/` : `lab-b.cjs` (option `convention`), `analyse-f15.cjs` (paire `CONV`), `lancer-conv.sh`, `lancer-conv-mesures.sh`, `mesurer-conv.cjs`, `causes-conv.cjs`, `adverses-b.cjs` (assemblages A13c et A22 à A22d), `graines-conv.cjs`, `cas-conv.cjs` (fabriqué par `fabriquer-cas-conv.cjs`), `mesures-conv.cjs`, `patch-valider15-conv.cjs` et `sorties/conv-*.json`.
