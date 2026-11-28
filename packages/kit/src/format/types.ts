@@ -11,7 +11,21 @@
  * renommée par la couche sémantique (ex. `size` ← `Button-Construc-Type`).
  * Permet de toujours retrouver la propriété dans Figma.
  */
-type PropMeta = { figmaName?: string };
+type PropMeta = {
+  figmaName?: string;
+  /** Source relative de la prop exposée. Absence : le propriétaire déclare lui-même cette prop. */
+  source?: PieceSource;
+};
+
+/** Propriété publique d'une instance exposée, relative au propriétaire courant. */
+export type PieceSource = {
+  /** Adresse du slot ciblé dans le propriétaire courant. Absence : sans objet. */
+  slotPath: string[];
+  /** Clé publique de la propriété ciblée. Absence : sans objet. */
+  prop: string;
+  /** Identifiant public de la dépendance ciblée. Absence : la cible est une pièce. */
+  component?: string;
+};
 
 /** Prop à choix multiples (issue d'un axe de variantes Figma). */
 export type EnumProp = PropMeta & {
@@ -205,7 +219,9 @@ export type ColorKeyRoles = {
  * `roles[keyRoles[côté][clé] ?? clé]`.
  */
 export type RenderingSemantics = {
+  /** Vocabulaire commun à l'hôte et aux pièces. Absence : sans objet. */
   roles: Record<string, RenderingRole>;
+  /** Rôles des clés de l'hôte. Absence : toutes les clés de l'hôte nomment leur rôle. */
   keyRoles?: ColorKeyRoles;
 };
 
@@ -552,6 +568,8 @@ export type ChildStructure = {
    * dans chaque combinaison d'axes.
    */
   figmaLayer?: string;
+  /** Clé d'une entrée de `Contract.pieces`. Absence : ce slot ne pose aucune pièce. */
+  piece?: string;
   /** Vrai pour les calques graphiques et pour tout slot qu'une prop peut masquer. */
   optional?: boolean;
   /** Prop BOOLEAN Figma liée nativement à `visible` sur ce calque, si elle existe. */
@@ -898,9 +916,9 @@ export type ContractStructure = {
   /** Alignement Figma sur l'axe secondaire, absent hors auto-layout linéaire. */
   alignItems?: AlignItems;
   /**
-   * Rotation du calque qui porte le flux du composant, à la règle de
-   * `ChildStructure.rotation`. Rare, mais un wrapper de dimensions tourné est
-   * une décision de design comme une autre, et rien d'autre ne la porterait.
+   * Rotation de la racine du composant ou de la pièce, à la règle de
+   * `ChildStructure.rotation`. À une occurrence de pièce, le slot de l'hôte
+   * porte la rotation et fait autorité sur cette racine.
    */
   rotation?: `${number}deg`;
   /** Opacité du composant, à la règle de `ChildStructure.opacity`. */
@@ -1010,15 +1028,14 @@ export type ContractVariantView = {
  * Projection de référence du composant : un renvoi, plus ce qui n'appartient
  * qu'au niveau global.
  *
- * Le renvoi est inconditionnel. Quand la projection ne correspond à aucune
- * structure déjà cataloguée (notamment lorsque l'élection du node de layout
- * saute un wrapper de dimensions) sa structure possède sa propre entrée. Le
- * consommateur résout toujours un arbre par le même catalogue.
+ * Le renvoi est inconditionnel pour l'hôte comme pour une pièce. Les dimensions
+ * de chaque combinaison vivent dans sa vue exacte en 15.0. Le consommateur
+ * résout toujours un arbre par le même catalogue partagé.
  */
 export type ContractReferenceStructure = {
   /** Clé d'une entrée de `Contract.viewStructures`. */
   view: string;
-  /** Dimensions par taille, quand le composant expose un axe de tailles. */
+  /** Dimensions par taille en 14.0. Interdites en 15.0, qui les porte dans les vues exactes. */
   sizes?: Record<string, SizeDimensions>;
   /**
    * Clés publiques des axes de variantes, dans l'ordre de la matrice. Absentes
@@ -1143,6 +1160,31 @@ export type ContractVariant = {
    * montre rien que le contrat sache capturer.
    */
   sample?: string;
+  /** Renvois complets des pièces posées. Absence : l'arbre publié de ce variant ne contient aucun slot `piece`. */
+  pieces?: PieceReference[];
+};
+
+/** Occurrence entière d'une pièce, sans héritage de la variante citée. */
+export type PieceReference = {
+  /** Chemin du slot `piece` dans la vue du propriétaire. Absence : sans objet. */
+  slotPath: string[];
+  /** Identifiant Figma de l'instance posée. Absence : sans objet. */
+  nodeId: string;
+  /** `nodeId` d'une variante de la pièce ciblée. Absence : sans objet. */
+  variant: string;
+  /**
+   * Valeurs posées des booléens et échanges aux clés publiques de la pièce.
+   * Absence : l'API de la pièce n'a aucune propriété `BOOLEAN` ni `INSTANCE_SWAP`.
+   */
+  values?: Record<string, string | boolean>;
+  /** Clé de `variantViews`, adresses relatives à la pièce. Absence : sans objet. */
+  view: string;
+  /** Feuille complète des couleurs de l'occurrence. Absence : l'occurrence ne peint aucune couleur. */
+  tokens?: SlotTokens;
+  /** Feuille complète des contours de l'occurrence. Absence : l'occurrence ne peint aucun contour. */
+  strokes?: SlotStrokes;
+  /** Renvois complets relatifs à la pièce. Absence : la vue de l'occurrence ne contient aucun slot `piece`. */
+  pieces?: PieceReference[];
 };
 
 /**
@@ -1217,8 +1259,9 @@ export type SampleSwap = {
  *
  * `args` emploie les clés publiques du contrat de la dépendance et vaut pour un
  * SOUS-ENSEMBLE : une clé absente ne signifie pas que la maquette ne la pose
- * pas. Sa surface est fermée : owner direct, puis unique wrapper élu et exposé,
- * sans repli sur une clé brute ni valeur de `slot`. Il porte aussi la valeur de
+ * pas. Sa surface est l'API publique de la dépendance, propriétés des instances
+ * exposées comprises, sans repli sur une clé brute ni valeur de `slot`.
+ * Il porte aussi la valeur de
  * l'axe d'états, sous la clé de cet axe, pour
  * qu'il puisse se rapprocher des `variants[].values` de ce contrat-là.
  */
@@ -1269,6 +1312,22 @@ export type ContractSample = {
   text?: SampleText[];
   /** Usage de chaque dépendance, dans l'ordre de l'arbre publié. */
   composes?: SampleInstance[];
+  /** Écarts indicatifs des pièces posées. Absence : aucune occurrence ne change le contenu indicatif de sa variante citée. */
+  pieces?: PieceSample[];
+};
+
+/** Écarts indicatifs d'une occurrence par rapport à l'échantillon de sa variante. */
+export type PieceSample = {
+  /** Adresse d'un renvoi du même variant. Absence : sans objet. */
+  slotPath: string[];
+  /** Textes des propriétés `TEXT` non exposées que l'occurrence change. Absence : l'occurrence garde les textes de propriété `TEXT` de la variante citée. */
+  args?: Record<string, string>;
+  /** Textes sans propriété que l'occurrence change. Absence : l'occurrence garde les textes de la variante citée. */
+  text?: SampleText[];
+  /** Usages des dépendances que l'occurrence change. Absence : les dépendances de l'occurrence gardent l'usage de la variante citée. */
+  composes?: SampleInstance[];
+  /** Écarts des occurrences intérieures. Absence : aucune occurrence imbriquée ne change. */
+  pieces?: PieceSample[];
 };
 
 export type ContractDiagnostic = {
@@ -1305,6 +1364,8 @@ export type ContractDiagnostic = {
    * un constat qui porte sur l'export plutôt que sur une valeur publiée.
    */
   contractPath?: string;
+  /** Adresse relative au propriétaire d'une perte regroupée. Absence : le constat ne regroupe pas plusieurs variantes. */
+  slotPath?: string[];
 };
 
 export type ContractCoverage = {
@@ -1353,6 +1414,32 @@ export type ContractMeta = {
   };
 };
 
+/** Pièce interne sans métadonnées ni catalogues, qui lit les catalogues de l'hôte. */
+export type PieceEntry = {
+  /** Nom Figma exact, préfixe compris. Absence : sans objet. */
+  name: string;
+  /** Identifiant Figma du component set ou du composant seul. Absence : sans objet. */
+  nodeId: string;
+  /** Propriétés propres et exposées, sources relatives à la pièce. Absence : la pièce ne déclare aucune propriété. */
+  props?: Record<string, ContractProp>;
+  /** Étiquettes des axes de la pièce. Absence : chaque variante porte son nom Figma selon la règle commune. */
+  figmaVariantLabels?: FigmaVariantLabels;
+  /** Toutes les variantes du set, posées ou non. Absence : sans objet. */
+  variants: ContractVariant[];
+  /** Renvoi vers le catalogue commun des structures. Absence : sans objet. */
+  structure: ContractReferenceStructure;
+  /** Déclencheurs et priorité des états de la pièce. Absence : la pièce n'a pas d'axe d'états. */
+  stateModel?: StateModel;
+  /** Rôles des clés de la pièce et de ses renvois. Absence : toutes les clés de la pièce nomment leur rôle. */
+  rendering?: { keyRoles: ColorKeyRoles };
+  /** Icônes de l'arbre de la pièce. Absence : aucune icône déclarée dans la pièce. */
+  icons?: Record<string, IconDefinition>;
+  /** Dépendances directement posées par la pièce. Absence : la pièce ne pose aucune dépendance. */
+  composes?: ComposedDependency[];
+  /** Intention lue dans les règles de la pièce. Absence : aucune intention d'usage déclarée par `@usage`. */
+  intent?: Intent;
+};
+
 /** Le contrat de composant complet : sortie de la commande « Export composant ». */
 export type Contract = {
   /** Nom Figma exact, lisible ; le nom de fichier porte l'identifiant de code canonique. */
@@ -1368,29 +1455,29 @@ export type Contract = {
   /** Étiquettes Figma des axes ; absentes quand chaque variant porte son nom. */
   figmaVariantLabels?: FigmaVariantLabels;
   /**
-   * Catalogue des arbres de slots. `variantViews[].structure` et
-   * `structure.view` y renvoient tous les deux.
+   * Catalogue commun des arbres de l'hôte et des pièces. `variantViews[].structure`
+   * et `structure.view` y renvoient tous les deux. Absence : sans objet.
    */
   viewStructures: Record<string, VariantStructure>;
-  /** Catalogue des applications de text styles. */
+  /** Catalogue des applications de text styles. Absence : aucun usage typographique. */
   viewTypographies?: Record<string, TextStyleUse[]>;
-  /** Catalogue des dépendances placées. */
+  /** Catalogue des dépendances placées. Absence : aucune dépendance placée. */
   viewComposes?: Record<string, ComposedDependency[]>;
-  /** Catalogue des emplacements d'icônes. */
+  /** Catalogue des emplacements d'icônes. Absence : aucune icône placée. */
   viewIcons?: Record<string, Record<string, VariantIconPlacement>>;
-  /** Catalogue des emplacements de peintures et de contours. */
+  /** Catalogue des emplacements de peintures et de contours. Absence : aucune peinture placée. */
   viewPaintPlacements?: Record<string, VariantPaintPlacements>;
-  /** Catalogue des applications d'effect styles. */
+  /** Catalogue des applications d'effect styles. Absence : aucun usage d'effet. */
   viewEffects?: Record<string, EffectStyleUse[]>;
-  /** Vues exactes : six renvois vers les catalogues ci-dessus. */
+  /** Vues exactes de l'hôte et des pièces, résolues dans les catalogues communs. Absence : sans objet. */
   variantViews: Record<string, ContractVariantView>;
-  /** Définitions stables des liaisons natives, réutilisées par les variants. */
+  /** Définitions stables des liaisons natives, réutilisées par les variants. Absence : aucune liaison native. */
   propertyBindingDefinitions?: Record<string, PropertyBindingDefinition>;
   /** Combinaisons exactes : aucune matrice cartésienne n'est inventée. */
   variants: ContractVariant[];
   /**
-   * Projection de référence : un renvoi vers `viewStructures`, plus les
-   * dimensions par taille et les axes de la matrice.
+   * Projection de référence : un renvoi vers `viewStructures` et les axes de
+   * la matrice. La 14.0 y garde aussi les dimensions par taille.
    *
    * Les données exactes de matrice vivent dans `variants` et `variantViews`,
    * sans seconde copie susceptible de diverger.
@@ -1400,15 +1487,15 @@ export type Contract = {
   stateModel?: StateModel;
   /** Vocabulaire de rendu des rôles (`background`, `foreground`, `icon`, `border`, `ring`…). */
   rendering: RenderingSemantics;
-  /** Icônes qualifiées par les règles Figma, indexées par leur nom normalisé. */
+  /** Icônes qualifiées par les règles Figma, indexées par leur nom normalisé. Absence : aucune icône déclarée dans l'arbre de l'hôte. */
   icons?: Record<string, IconDefinition>;
-  /** Text styles réellement utilisés, liés à leurs tokens DTCG. */
+  /** Text styles réellement utilisés, liés à leurs tokens DTCG. Absence : aucun style de texte utilisé. */
   textStyles?: Record<string, TextStyleDefinition>;
-  /** Effect styles réellement utilisés, liés à leurs tokens DTCG. */
+  /** Effect styles réellement utilisés, liés à leurs tokens DTCG. Absence : aucun style d'effet utilisé. */
   effectStyles?: Record<string, EffectStyleDefinition>;
   /**
-   * Les composants unifiés que celui-ci embarque. Absent pour un composant
-   * simple ; présent, il fait de ce contrat celui d'un composé.
+   * Dépendances directement posées par l'hôte. Absence : l'hôte ne pose
+   * lui-même aucune dépendance.
    */
   composes?: ComposedDependency[];
   /**
@@ -1417,8 +1504,11 @@ export type Contract = {
    *
    * C'est l'unique propriétaire du non normatif : retirer `samples` et les
    * `variants[].sample` redonne un contrat strictement normatif.
+   * Absence : aucun contenu indicatif publié.
    */
   samples?: Record<string, ContractSample>;
   /** Intention d'usage, absente quand aucune règle `@usage` ne la déclare. */
   intent?: Intent;
+  /** Pièces internes décrites une fois dans le contrat. Absence : l'hôte ne pose aucune pièce. */
+  pieces?: Record<string, PieceEntry>;
 };

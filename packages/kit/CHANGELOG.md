@@ -4,6 +4,14 @@ Ce journal note chaque changement de `@ucm-kit/core/modules`, la seule porte du 
 
 Une entrée a un genre (`ajout`, `déprécié` ou `rupture`), nomme les noms touchés entre accents graves, dit le geste à faire dans un module, et se termine par « Décidé par ... ». Les règles sont dans `invariants/versionnage.md`.
 
+## 0.18.9
+
+### ajout
+
+- `Contract` décrit aussi les pièces internes, leurs occurrences, leurs propriétés exposées et leurs échantillons. Geste dans un module : aucun, le moteur et le schéma servi restent en 14.0.
+
+Décidé par le mainteneur (P22, lot 3.1).
+
 ## 0.18.1
 
 ### ajout

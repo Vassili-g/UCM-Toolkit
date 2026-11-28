@@ -105,7 +105,7 @@ export function contrat15(champs = {}) {
  */
 export function contratDeBase15() {
   return contrat15({
-    props: { visible: { type: "boolean", source: { slotPath: ["volet"], prop: "visible" } } },
+    props: { visible: { type: "boolean", default: false, source: { slotPath: ["volet"], prop: "visible" } } },
     viewStructures: {
       h: boite([slotPiece("volet", undefined, "Volet")]),
       p: boite([{ slot: "texte", visibilityProp: "visible" }]),
@@ -118,7 +118,7 @@ export function contratDeBase15() {
     ],
     pieces: {
       Volet: entree(".Volet", "2:0", { view: "p" }, [variante("2:1", undefined, "p")], {
-        props: { visible: { type: "boolean" } },
+        props: { visible: { type: "boolean", default: false } },
       }),
     },
   });
@@ -202,13 +202,13 @@ export function contratRiche15() {
           renvoi(["segment"], "1:2", "2:1", "s", {
             values: { selected: true },
             tokens: { background: "{groupe.segment.fond}" },
-            strokes: { border: { width: "{groupe.segment.contour}" } },
+            strokes: { border: { color: "{groupe.segment.bordure}", width: "{groupe.segment.contour}" } },
             pieces: [renvoi(["pastille"], "I1:2;2:3", "3:1", "q")],
           }),
           renvoi(["segment-2"], "1:3", "2:1", "s", {
             values: { selected: false },
             tokens: { background: "{groupe.segment.fond.repos}" },
-            strokes: { border: { width: "{groupe.segment.contour}" } },
+            strokes: { border: { color: "{groupe.segment.bordure.repos}", width: "{groupe.segment.contour}" } },
             pieces: [renvoi(["pastille"], "I1:3;2:3", "3:1", "q")],
           }),
         ],
@@ -230,12 +230,12 @@ export function contratRiche15() {
         [
           variante("2:1", { state: "default" }, "s", {
             tokens: { background: "{groupe.segment.fond}" },
-            strokes: { border: { width: "{groupe.segment.contour}" } },
+            strokes: { border: { color: "{groupe.segment.bordure}", width: "{groupe.segment.contour}" } },
             pieces: [renvoi(["pastille"], "2:3", "3:1", "q")],
           }),
           variante("2:2", { state: "hover" }, "s", {
             tokens: { background: "{groupe.segment.fond.survol}" },
-            strokes: { border: { width: "{groupe.segment.contour}" } },
+            strokes: { border: { color: "{groupe.segment.bordure.survol}", width: "{groupe.segment.contour}" } },
             pieces: [renvoi(["pastille"], "2:4", "3:1", "q")],
           }),
         ],

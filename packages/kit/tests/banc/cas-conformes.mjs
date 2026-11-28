@@ -793,8 +793,8 @@ export const CAS_CONFORMES = [
       textStyles: {
         accent: {
           figmaName: "Accent",
-          tokens: { fontFamily: "{typography.body.family}" },
-          literals: { fontSize: "13px" },
+          tokens: { fontFamily: "{typography.body.family}", fontSize: "{typography.body.size}" },
+          literals: { textTransform: "uppercase" },
         },
       },
     }),
@@ -889,8 +889,8 @@ export const CAS_CONFORMES = [
       textStyles: {
         accent: {
           figmaName: "Accent",
-          tokens: { fontFamily: "{typography.body.family}" },
-          literals: { fontSize: "13px" },
+          tokens: { fontFamily: "{typography.body.family}", fontSize: "{typography.body.size}" },
+          literals: { textTransform: "uppercase" },
         },
       },
       pertes: [
@@ -1002,8 +1002,8 @@ export const CAS_CONFORMES = [
       textStyles: {
         accent: {
           figmaName: "Accent",
-          tokens: { fontFamily: "{typography.body.family}" },
-          literals: { fontSize: "13px" },
+          tokens: { fontFamily: "{typography.body.family}", fontSize: "{typography.body.size}" },
+          literals: { textTransform: "uppercase" },
         },
       },
     }),
@@ -1102,8 +1102,8 @@ export const CAS_CONFORMES = [
       textStyles: {
         accent: {
           figmaName: "Accent",
-          tokens: { fontFamily: "{typography.body.family}" },
-          literals: { fontSize: "13px" },
+          tokens: { fontFamily: "{typography.body.family}", fontSize: "{typography.body.size}" },
+          literals: { textTransform: "uppercase" },
         },
       },
       pertes: [
@@ -1220,8 +1220,8 @@ export const CAS_CONFORMES = [
       textStyles: {
         accent: {
           figmaName: "Accent",
-          tokens: { fontFamily: "{typography.body.family}" },
-          literals: { fontSize: "13px" },
+          tokens: { fontFamily: "{typography.body.family}", fontSize: "{typography.body.size}" },
+          literals: { textTransform: "uppercase" },
         },
       },
       pertes: [
@@ -1334,8 +1334,8 @@ export const CAS_CONFORMES = [
       textStyles: {
         accent: {
           figmaName: "Accent",
-          tokens: { fontFamily: "{typography.body.family}" },
-          literals: { fontSize: "13px" },
+          tokens: { fontFamily: "{typography.body.family}", fontSize: "{typography.body.size}" },
+          literals: { textTransform: "uppercase" },
         },
       },
     }),
@@ -1438,8 +1438,8 @@ export const CAS_CONFORMES = [
       textStyles: {
         accent: {
           figmaName: "Accent",
-          tokens: { fontFamily: "{typography.body.family}" },
-          literals: { fontSize: "13px" },
+          tokens: { fontFamily: "{typography.body.family}", fontSize: "{typography.body.size}" },
+          literals: { textTransform: "uppercase" },
         },
       },
     }),
@@ -1534,8 +1534,8 @@ export const CAS_CONFORMES = [
       textStyles: {
         accent: {
           figmaName: "Accent",
-          tokens: { fontFamily: "{typography.body.family}" },
-          literals: { fontSize: "13px" },
+          tokens: { fontFamily: "{typography.body.family}", fontSize: "{typography.body.size}" },
+          literals: { textTransform: "uppercase" },
         },
       },
     }),
@@ -1630,8 +1630,8 @@ export const CAS_CONFORMES = [
       textStyles: {
         accent: {
           figmaName: "Accent",
-          tokens: { fontFamily: "{typography.body.family}" },
-          literals: { fontSize: "13px" },
+          tokens: { fontFamily: "{typography.body.family}", fontSize: "{typography.body.size}" },
+          literals: { textTransform: "uppercase" },
         },
       },
     }),
@@ -1755,8 +1755,8 @@ export const CAS_CONFORMES = [
       textStyles: {
         accent: {
           figmaName: "Accent",
-          tokens: { fontFamily: "{typography.body.family}" },
-          literals: { fontSize: "13px" },
+          tokens: { fontFamily: "{typography.body.family}", fontSize: "{typography.body.size}" },
+          literals: { textTransform: "uppercase" },
         },
       },
     }),
@@ -1851,8 +1851,8 @@ export const CAS_CONFORMES = [
       textStyles: {
         accent: {
           figmaName: "Accent",
-          tokens: { fontFamily: "{typography.body.family}" },
-          literals: { fontSize: "13px" },
+          tokens: { fontFamily: "{typography.body.family}", fontSize: "{typography.body.size}" },
+          literals: { textTransform: "uppercase" },
         },
       },
       pertes: [
@@ -1957,8 +1957,8 @@ export const CAS_CONFORMES = [
       textStyles: {
         accent: {
           figmaName: "Accent",
-          tokens: { fontFamily: "{typography.body.family}" },
-          literals: { fontSize: "13px" },
+          tokens: { fontFamily: "{typography.body.family}", fontSize: "{typography.body.size}" },
+          literals: { textTransform: "uppercase" },
         },
       },
     }),
@@ -2146,8 +2146,8 @@ export const CAS_CONFORMES = [
       textStyles: {
         accent: {
           figmaName: "Accent",
-          tokens: { fontFamily: "{typography.body.family}" },
-          literals: { fontSize: "13px" },
+          tokens: { fontFamily: "{typography.body.family}", fontSize: "{typography.body.size}" },
+          literals: { textTransform: "uppercase" },
         },
       },
     }),

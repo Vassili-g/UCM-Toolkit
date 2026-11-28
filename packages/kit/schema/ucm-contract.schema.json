@@ -33,7 +33,7 @@
           "additionalProperties": {
             "$ref": "#/definitions/VariantStructure"
           },
-          "description": "Catalogue des arbres de slots. `variantViews[].structure` et `structure.view` y renvoient tous les deux."
+          "description": "Catalogue commun des arbres de l'hôte et des pièces. `variantViews[].structure` et `structure.view` y renvoient tous les deux. Absence : sans objet."
         },
         "viewTypographies": {
           "type": "object",
@@ -43,7 +43,7 @@
               "$ref": "#/definitions/TextStyleUse"
             }
           },
-          "description": "Catalogue des applications de text styles."
+          "description": "Catalogue des applications de text styles. Absence : aucun usage typographique."
         },
         "viewComposes": {
           "type": "object",
@@ -53,7 +53,7 @@
               "$ref": "#/definitions/ComposedDependency"
             }
           },
-          "description": "Catalogue des dépendances placées."
+          "description": "Catalogue des dépendances placées. Absence : aucune dépendance placée."
         },
         "viewIcons": {
           "type": "object",
@@ -63,14 +63,14 @@
               "$ref": "#/definitions/VariantIconPlacement"
             }
           },
-          "description": "Catalogue des emplacements d'icônes."
+          "description": "Catalogue des emplacements d'icônes. Absence : aucune icône placée."
         },
         "viewPaintPlacements": {
           "type": "object",
           "additionalProperties": {
             "$ref": "#/definitions/VariantPaintPlacements"
           },
-          "description": "Catalogue des emplacements de peintures et de contours."
+          "description": "Catalogue des emplacements de peintures et de contours. Absence : aucune peinture placée."
         },
         "viewEffects": {
           "type": "object",
@@ -80,21 +80,21 @@
               "$ref": "#/definitions/EffectStyleUse"
             }
           },
-          "description": "Catalogue des applications d'effect styles."
+          "description": "Catalogue des applications d'effect styles. Absence : aucun usage d'effet."
         },
         "variantViews": {
           "type": "object",
           "additionalProperties": {
             "$ref": "#/definitions/ContractVariantView"
           },
-          "description": "Vues exactes : six renvois vers les catalogues ci-dessus."
+          "description": "Vues exactes de l'hôte et des pièces, résolues dans les catalogues communs. Absence : sans objet."
         },
         "propertyBindingDefinitions": {
           "type": "object",
           "additionalProperties": {
             "$ref": "#/definitions/PropertyBindingDefinition"
           },
-          "description": "Définitions stables des liaisons natives, réutilisées par les variants."
+          "description": "Définitions stables des liaisons natives, réutilisées par les variants. Absence : aucune liaison native."
         },
         "variants": {
           "type": "array",
@@ -105,7 +105,7 @@
         },
         "structure": {
           "$ref": "#/definitions/ContractReferenceStructure",
-          "description": "Projection de référence : un renvoi vers `viewStructures`, plus les dimensions par taille et les axes de la matrice.\n\nLes données exactes de matrice vivent dans `variants` et `variantViews`, sans seconde copie susceptible de diverger."
+          "description": "Projection de référence : un renvoi vers `viewStructures` et les axes de la matrice. La 14.0 y garde aussi les dimensions par taille.\n\nLes données exactes de matrice vivent dans `variants` et `variantViews`, sans seconde copie susceptible de diverger."
         },
         "stateModel": {
           "$ref": "#/definitions/StateModel",
@@ -120,35 +120,35 @@
           "additionalProperties": {
             "$ref": "#/definitions/IconDefinition"
           },
-          "description": "Icônes qualifiées par les règles Figma, indexées par leur nom normalisé."
+          "description": "Icônes qualifiées par les règles Figma, indexées par leur nom normalisé. Absence : aucune icône déclarée dans l'arbre de l'hôte."
         },
         "textStyles": {
           "type": "object",
           "additionalProperties": {
             "$ref": "#/definitions/TextStyleDefinition"
           },
-          "description": "Text styles réellement utilisés, liés à leurs tokens DTCG."
+          "description": "Text styles réellement utilisés, liés à leurs tokens DTCG. Absence : aucun style de texte utilisé."
         },
         "effectStyles": {
           "type": "object",
           "additionalProperties": {
             "$ref": "#/definitions/EffectStyleDefinition"
           },
-          "description": "Effect styles réellement utilisés, liés à leurs tokens DTCG."
+          "description": "Effect styles réellement utilisés, liés à leurs tokens DTCG. Absence : aucun style d'effet utilisé."
         },
         "composes": {
           "type": "array",
           "items": {
             "$ref": "#/definitions/ComposedDependency"
           },
-          "description": "Les composants unifiés que celui-ci embarque. Absent pour un composant simple ; présent, il fait de ce contrat celui d'un composé."
+          "description": "Dépendances directement posées par l'hôte. Absence : l'hôte ne pose lui-même aucune dépendance."
         },
         "samples": {
           "type": "object",
           "additionalProperties": {
             "$ref": "#/definitions/ContractSample"
           },
-          "description": "Échantillons de maquette dédupliqués ; chaque entrée de `variants` en référence une par `sample`.\n\nC'est l'unique propriétaire du non normatif : retirer `samples` et les `variants[].sample` redonne un contrat strictement normatif."
+          "description": "Échantillons de maquette dédupliqués ; chaque entrée de `variants` en référence une par `sample`.\n\nC'est l'unique propriétaire du non normatif : retirer `samples` et les `variants[].sample` redonne un contrat strictement normatif. Absence : aucun contenu indicatif publié."
         },
         "intent": {
           "$ref": "#/definitions/Intent",
@@ -618,7 +618,7 @@
         },
         "rotation": {
           "type": "string",
-          "description": "Rotation du calque qui porte le flux du composant, à la règle de `ChildStructure.rotation`. Rare, mais un wrapper de dimensions tourné est une décision de design comme une autre, et rien d'autre ne la porterait."
+          "description": "Rotation de la racine du composant ou de la pièce, à la règle de `ChildStructure.rotation`. À une occurrence de pièce, le slot de l'hôte porte la rotation et fait autorité sur cette racine."
         },
         "opacity": {
           "type": "string",
@@ -1493,7 +1493,7 @@
           "additionalProperties": {
             "$ref": "#/definitions/SizeDimensions"
           },
-          "description": "Dimensions par taille, quand le composant expose un axe de tailles."
+          "description": "Dimensions par taille en 14.0. Interdites en 15.0, qui les porte dans les vues exactes."
         },
         "variantAxes": {
           "type": "array",
@@ -1507,7 +1507,7 @@
         "view"
       ],
       "additionalProperties": false,
-      "description": "Projection de référence du composant : un renvoi, plus ce qui n'appartient qu'au niveau global.\n\nLe renvoi est inconditionnel. Quand la projection ne correspond à aucune structure déjà cataloguée (notamment lorsque l'élection du node de layout saute un wrapper de dimensions) sa structure possède sa propre entrée. Le consommateur résout toujours un arbre par le même catalogue."
+      "description": "Projection de référence du composant : un renvoi, plus ce qui n'appartient qu'au niveau global.\n\nLe renvoi est inconditionnel pour l'hôte comme pour une pièce. Les dimensions de chaque combinaison vivent dans sa vue exacte en 15.0. Le consommateur résout toujours un arbre par le même catalogue partagé."
     },
     "SizeDimensions": {
       "type": "object",
@@ -1585,10 +1585,12 @@
           "type": "object",
           "additionalProperties": {
             "$ref": "#/definitions/RenderingRole"
-          }
+          },
+          "description": "Vocabulaire commun à l'hôte et aux pièces. Absence : sans objet."
         },
         "keyRoles": {
-          "$ref": "#/definitions/ColorKeyRoles"
+          "$ref": "#/definitions/ColorKeyRoles",
+          "description": "Rôles des clés de l'hôte. Absence : toutes les clés de l'hôte nomment leur rôle."
         }
       },
       "required": [
@@ -1986,7 +1988,7 @@
         "component"
       ],
       "additionalProperties": false,
-      "description": "L'usage exact d'une dépendance dans la maquette.\n\n`args` emploie les clés publiques du contrat de la dépendance et vaut pour un SOUS-ENSEMBLE : une clé absente ne signifie pas que la maquette ne la pose pas. Sa surface est fermée : owner direct, puis unique wrapper élu et exposé, sans repli sur une clé brute ni valeur de `slot`. Il porte aussi la valeur de l'axe d'états, sous la clé de cet axe, pour qu'il puisse se rapprocher des `variants[].values` de ce contrat-là."
+      "description": "L'usage exact d'une dépendance dans la maquette.\n\n`args` emploie les clés publiques du contrat de la dépendance et vaut pour un SOUS-ENSEMBLE : une clé absente ne signifie pas que la maquette ne la pose pas. Sa surface est l'API publique de la dépendance, propriétés des instances exposées comprises, sans repli sur une clé brute ni valeur de `slot`. Il porte aussi la valeur de l'axe d'états, sous la clé de cet axe, pour qu'il puisse se rapprocher des `variants[].values` de ce contrat-là."
     },
     "SampleOverride": {
       "type": "object",
