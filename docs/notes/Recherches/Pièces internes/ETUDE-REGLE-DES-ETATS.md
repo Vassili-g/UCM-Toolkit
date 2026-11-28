@@ -223,3 +223,7 @@ La seconde commande du plugin, « Lire la sélection », lit une instance déjà
 ## Fichiers
 
 Tout est dans `_local/p22/regles/` : `JOURNAL.txt`, `lab/` (`lab-b.cjs`, `mesurer.cjs`, `sortie-token.cjs`, `comptes-pertes.cjs`), `mesure-button.cjs`, `mesure-groupe.cjs`, `sorties/` (`complet-total.json`, `r3-total.json`, `token-5200.json`, `comptes-pertes.json`, `button-mesure.json`, `groupe-mesure.json`) et `essai-figma/`.
+
+## Réponses du mainteneur
+
+Le mainteneur retient la convention d'UCM et les trois recommandations. La convention couvre seulement ce que le designer choisit, sans les dimensions que l'auto layout calcule. Le contrat n'écrit aucune perte quand Figma abandonnerait une valeur. La convention s'écrit sans attendre l'essai dans Figma. Elle remplace la décision 1 de `CONFRONTATION-15.md`.
