@@ -8,6 +8,7 @@ Ce que les plugins partagent : ucm-plugin-socle, privé, lu en source.
 - tests/ : build, manifest, fenêtre, banc et loi des styles, pour un plugin quelconque
 - tests/couvertureFigma.table.ts et couvertureFigma.test.ts : la table qui classe chaque propriété de l'API Plugin (34 types de nœud et leurs sous-structures) selon le §2.14 de la forme 15.0, et le test qui la compare aux typages installés de `@figma/plugin-typings` ; une propriété ajoutée ou retirée par une montée des typages le fait échouer
 - tests/generateur/ : le générateur commun de composants (modèle, tirage, opérateurs, oracle, réduction, dialectes) et les doubles de Figma neutres (`atelierDeCalques.ts`, `double.ts`) et les écritures de modèle que le tirage n'emploie pas encore (`capacites.ts` : instances, propriétés effectives, surcharges, jeux de variantes, modes forcés) ; l’analyse à juger se passe en paramètre (`Analyseur`), le socle n’importe aucun plugin ; le lanceur ne découvre que les `*.test.ts` de `tests/`, pas ce dossier
+- tests/generateur/ (suite) : le banc des pièces, que `plugin-exporter/tests/bancDesPieces.test.ts` fait tourner : `verite.ts` (rendu attendu d'un variant selon la convention d'UCM, sans le format du contrat), `lecture.ts` (rendu que le kit résout sur le contrat), `rendu.ts` (la langue commune : identité de calque, jetons, champs) et `comparateur.ts` (écarts non couverts par les pertes)
 
 ## build/
 - inline-ui.cjs : du bundle et des feuilles de style à un HTML autonome

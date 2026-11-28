@@ -9,49 +9,15 @@
  */
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { handleExportComponent } from 'ucm-plugin-socle/src/composant/contract/exportComponent';
-import { oublierLIndexDuDocument } from 'ucm-plugin-socle/src/composant/contract/composedComponents';
-import { generer, tirerSpec } from '../../plugin-socle/tests/generateur/generateur';
 import { doubleDuDocument } from '../../plugin-socle/tests/generateur/double';
 import { alias, modesDuNoeud, ref, valeur } from '../../plugin-socle/tests/generateur/modele';
 import { ajouterUnJeu, calqueDe, echanger, forcerUnMode, idDeCopie, instancier, poserUnCalque, poserUnePropriete, surcharger, viderUnCalque } from '../../plugin-socle/tests/generateur/capacites';
 import type { DocumentGenere } from '../../plugin-socle/tests/generateur/types';
+import { composantDuBanc, exporterLeDocument } from './aides/documentDuBanc';
 import { verifierLeLecteur, verifierLeSchema, verifierLesLois } from './lois';
 
-type Anatomie = 'texte' | 'icone';
-
-/** Un composant généré, fixé : même graine, même spec, quelle que soit l'ordre des tests. */
-function composant(anatomie: Anatomie[], construction: string[] = ['direct']): DocumentGenere {
-  const spec = tirerSpec(4242, 1);
-  spec.nom = 'Compose';
-  spec.anatomie = anatomie;
-  spec.construction = construction;
-  spec.variantes = 1;
-  spec.profondeur = 1;
-  if (construction.some((c) => c.startsWith('wrapper'))) {
-    spec.axes = spec.axes.filter((axe) => axe.role !== 'taille');
-    spec.wrapperTaille = { nom: 'Size', valeur: 'Medium', commun: false };
-  } else {
-    spec.axes = [{ nom: 'Size', role: 'taille', valeurs: ['Small', 'Large'] }];
-    spec.wrapperTaille = undefined;
-  }
-  return generer(4242, spec);
-}
-
-/** Monte le double sur `globalThis.figma`, exporte, et rend l'état d'avant. */
-async function exporter(doc: DocumentGenere) {
-  const double = doubleDuDocument(doc);
-  const precedent = (globalThis as { figma?: unknown }).figma;
-  (globalThis as { figma?: unknown }).figma = double.figma;
-  oublierLIndexDuDocument();
-  try {
-    const sortie = await handleExportComponent();
-    return { double, sortie, contrat: JSON.parse(sortie.content) };
-  } finally {
-    (globalThis as { figma?: unknown }).figma = precedent;
-    oublierLIndexDuDocument();
-  }
-}
+const composant = composantDuBanc;
+const exporter = exporterLeDocument;
 
 /** Le dessin de l'icône du composant généré : le maître, son tracé, l'instance et son tracé copié. */
 function icone(doc: DocumentGenere) {
