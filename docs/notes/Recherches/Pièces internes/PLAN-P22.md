@@ -133,7 +133,7 @@ Les lanceurs de tests des paquets ne découvrent que les fichiers `*.test.ts` et
   - Invariants respectés : `packages/kit/invariants/corpus-de-test.md` (jamais rafraîchi, jamais comparé au moteur, non publié).
   - Fin : le dossier existe, ses empreintes correspondent ; `tests/refus-enregistres.test.mjs` le mesure avec les autres jeux figés, et `tests/fenetre-de-lecture.test.mjs` ne le lit qu'au lot 5.9.
   - Dépend de : rien. Agent : `implementeur`.
-- [ ] 2.2 Un cadre n'emprunte la visibilité d'une dépendance que si elle est son unique contenu (F22).
+- [x] 2.2 Un cadre n'emprunte la visibilité d'une dépendance que si elle est son unique contenu (F22). (94a23fae)
   - Fichiers : `packages/plugin-socle/src/composant/contract/extractLayout.ts`, `slotRelations.ts`, leurs tests dans `packages/plugin-exporter/tests/`.
   - Tests d'abord : un cadre « icône dépendance et label » ne porte aucune `visibilityProp` de l'icône ; un `SLOT` lié à une prop de l'hôte qui contient une pièce dont l'icône a sa propre prop ne produit pas le diagnostic « deux propriétés différentes » ; le cas « Action » de l'Alert garde sa visibilité.
   - Invariants : `packages/plugin-exporter/invariants/composition.md` (cadre de dépendance), à préciser.
