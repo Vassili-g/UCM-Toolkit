@@ -381,7 +381,7 @@
   }
   function ligneDeLot(l, groupe) {
     return (groupe ? '<li class="gr">' + esc(groupe) + '</li>' : '') + '<li class="' + (l.fait ? 'fait' : classeDuLot(l)) + '"><span class="lots"><i class="' + classeDuLot(l) + '"></i></span><span class="num">' + esc(l.numero) + '</span>' +
-      '<span class="txt">' + txt(l.texte) + (l.marque === 'mainteneur' ? ' <span class="attend toi">décision en attente</span>' : l.marque ? ' <span class="attend piste">' + esc(l.marque) + '</span>' : '') + '</span><span class="h">' + esc(l.hash || '') + '</span></li>';
+      '<span class="txt">' + txt(l.texte) + (l.fait ? '' : l.marque === 'mainteneur' ? ' <span class="attend toi">décision en attente</span>' : l.marque ? ' <span class="attend piste">' + esc(l.marque) + '</span>' : '') + '</span><span class="h">' + esc(l.hash || '') + '</span></li>';
   }
   function blocDeLots(lots) {
     var g = null;

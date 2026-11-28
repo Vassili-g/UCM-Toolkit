@@ -80,7 +80,7 @@ Les lanceurs de tests des paquets ne découvrent que les fichiers `*.test.ts` et
   - Fin : un tableau des chiffres et du protocole remis à la conversation principale, qui l'écrit au §5.1 de la forme.
   - Dépend de : 1.1. Agent : `implementeur`.
 - [ ] 1.6 (attend 1.3). Trancher la valeur imposée égale à celle de la variante citée (A22d, §7 de la forme) d'après la construction 13. Si Figma liste le champ dans `overrides`, la forme reçoit le champ que l'Exporter publie, et la case 5.12 s'ouvre avec ses types, son schéma, sa résolution et sa sortie du moteur. Sinon, la case 5.12 se retire, et le plan l'écrit. Les cases 3.1 et 3.2 n'attendent pas 1.6 : un champ ajouté passe par 5.12. Conversation principale ; le mainteneur valide.
-- [ ] 1.7 Le générateur d'Architect passe dans le socle, sans changer ce qu'il génère.
+- [x] 1.7 Le générateur d'Architect passe dans le socle, sans changer ce qu'il génère. (99305e37)
   - Objectif : le modèle, la génération, les opérateurs, les dialectes, le tirage, la réduction et le double de calques vont dans `packages/plugin-socle/tests/generateur/`, avec l'atelier de calques qu'il emploie. Le raccord à l'analyse d'Architect (`analyserDocument`, `traiterAvec`, `LECTEURS_DE_FIGMA`) reste dans Architect. Le tirage et la réduction reçoivent la fonction de jugement en paramètre. Le socle n'importe rien d'Architect, et Architect importe le générateur par un chemin relatif ; le `package.json` du socle n'exporte pas `tests`.
   - Fichiers : `packages/plugin-architect/tests/generateur/`, `packages/plugin-architect/tests/figmaDeTest.ts`, les tests `generateur*.test.ts` d'Architect, `packages/plugin-architect/scripts/stress/generateur/executer.ts`, le nouveau dossier du socle.
   - Fin : les tests du générateur d'Architect passent à l'identique, et `stress:composant` rend les mêmes résultats sur la même graine.
@@ -102,7 +102,7 @@ Les lanceurs de tests des paquets ne découvrent que les fichiers `*.test.ts` et
   - Objectif : les familles du générateur (exposition, états, échanges, `SLOT`, modes forcés, frères de même nom, sélection double ou absente, imbrication jusqu'à la borne) ; un cas nommé par construction de `StressTest` (25, dont le refus de la 19 isolé), par cas des épreuves (45), par assemblage (30) et par attente manuscrite (22). Les attentes suivent la forme arrêtée et la section « Convention des états » de la confrontation, jamais une perte de transfert retirée : la construction 7 attend la seule perte L6, la 9 aucun transfert sur un calque absent, la 15 les écarts par identité avec un texte indicatif. Le cas 13 se prépare avant 1.6, et son attente s'achève après. Les mutations que seuls les constats du dessin tranchent (mode forcé, `SLOT` rempli, clé exposée, perte d'échange, perte de maître, identifiant hors instance) se jouent ici, contre les constats du modèle.
   - Commandes : `npm run test:paquet -- socle`, `npm run test:paquet -- exporter`.
   - Dépend de : 1.9. Agent : `implementeur-exigeant`, un sous-lot par appel.
-- [ ] 1.11 Fabriques de contrats 15.0 et table des mutations, dans le kit.
+- [x] 1.11 Fabriques de contrats 15.0 et table des mutations, dans le kit. (f7a859a3)
   - Objectif : des fabriques qui écrivent un contrat 15.0 en quelques lignes, le contrat attendu de chaque cas nommé, et une table des 73 mutations (58 du stress test et de la contre-expertise, 15 de la confrontation) qui donne pour chacune le refus attendu et son autorité : le kit seul, ou les constats du dessin (lot 1.10).
   - Fichiers : `packages/kit/tests/banc/`, un test découvert du kit qui l'importe.
   - Commandes : `npm run test --workspace @ucm-kit/core`.
@@ -156,8 +156,8 @@ Les lanceurs de tests des paquets ne découvrent que les fichiers `*.test.ts` et
   - Tests d'abord : chaque mutation de la table de 1.11 dont l'autorité est le kit est refusée ou admise comme la forme le dit ; les entrées orphelines se comptent sur tout le contrat. Les mutations dont l'autorité est le dessin restent aux lots 1.10 et 5.8.
   - Commandes : `npm run test --workspace @ucm-kit/core`, `node scripts/run-tests.cjs`.
   - Dépend de : 3.2. Agent : `implementeur-exigeant`.
-  - [ ] 3.3a Forme et analyse du texte : les refus 1 à 8, 10, 11 et 14 à 16 du §2.13 dans `validation-contrat.mjs`, et la clé répétée lue avant `JSON.parse` (point 13).
-  - [ ] 3.3b Échantillons : `samples[].pieces` adressé par le `slotPath` d'un renvoi, dans `validation-echantillons.mjs`.
+  - [ ] 3.3a Forme et analyse du texte : les refus 1 à 8, 10, 11 et 14 à 16 du §2.13 dans `validation-contrat.mjs`, et la clé répétée lue avant `JSON.parse` (point 13). Une sélection non unique sans sa perte est refusée aussi, bien que le §2.13 ne la numérote pas (la table de 1.11 la rattache au point 14).
+  - [ ] 3.3b Échantillons : `samples[].pieces` adressé par le `slotPath` d'un renvoi, dans `validation-echantillons.mjs`, avec les invariants du §2.10, que le §2.13 ne numérote pas (la table de 1.11 les rattache au point 3).
   - [ ] 3.3c Graphe et sources : union des `composes` de l'hôte et de ses entrées, cycle de `pieces` et profondeur (point 9), identifiants imbriqués (point 12), source vers une dépendance validée contre son contrat public, avec un résultat incomplet si ce contrat manque, dans `validation-graphe-contrats.mjs`.
   - [ ] 3.3d Modes : les axes de modes transitifs des dépendances de pièces, dans `modes-tokens.mjs`.
   - [ ] 3.3e Contrastes, caractéristiques et listes : le fond au chemin déplié et `keyRoles` de l'entrée (`diagnostic-contrastes.mjs`), la table des champs vers les aides (`caracteristiques.mjs`), les champs nouveaux dans la table L3 (`controle-du-code-listes.mjs`), et `schema-contrat.mjs`.
@@ -346,6 +346,7 @@ Les lanceurs de tests des paquets ne découvrent que les fichiers `*.test.ts` et
 - [ ] 11.3 Construire les plugins Exporter et Architect par `npm run build:plugin -- exporter` et `npm run build:plugin -- architect`. Agent : `verificateur`.
 - [ ] 11.4 (mainteneur). Réexporter les composants du Playground, dont Button avec `.Ring` et ses icônes `Icon`, et `StressTest`, avec le plugin construit en 11.3.
 - [ ] 11.5 (mainteneur). Recette sur UCM-Playground selon `docs/guides/RECETTE.md` : monter la CLI épinglée, adapter le code aux props retirées, et vérifier que `ucm check` passe sur le Button réexporté (critère de fin 4).
+- [ ] 11.7 Mettre à jour la page d'inventaire (`INVENTAIRE-UCM.html`) : la piste P22 et ses décisions dans `pistes.json` et `decisions.json`, la chaîne UCM (`docs/inventaire/chaine/`) pour les pièces internes et le contrat 15.0, et la roadmap. Puis `npm run vues`. Conversation principale.
 - [ ] 11.6 Archiver le sujet avec la skill `archiver-un-sujet`. Conversation principale.
 
 ## Couverture

@@ -103,6 +103,16 @@ test("le script de l'inventaire exclut la chaîne de l'étiquetage des produits"
   assert.match(/var HORS_ETIQUETTE = '([^']*)'/.exec(script)![1], /(^|, )\.chaine(,|$)/);
 });
 
+test("un lot fait n'affiche aucune attente, même marqué pour le mainteneur", () => {
+  const script = readFileSync(path.join(racine, 'docs', 'inventaire', 'page.js'), 'utf8');
+  const source = /function ligneDeLot\(l, groupe\) \{[\s\S]*?\n  \}/.exec(script)![0];
+  const ligneDeLot = new Function('esc', 'txt', 'classeDuLot', `${source}; return ligneDeLot;`)(String, String, () => '') as (lot: object, groupe: string) => string;
+  const lot = { numero: '0.1', texte: 'Choix', hash: 'abc', groupe: 'Étape 0' };
+  assert.doesNotMatch(ligneDeLot({ ...lot, fait: true, marque: 'mainteneur' }, ''), /attend/);
+  assert.doesNotMatch(ligneDeLot({ ...lot, fait: true, marque: 'attend P31' }, ''), /attend/);
+  assert.match(ligneDeLot({ ...lot, fait: false, marque: 'mainteneur' }, ''), /décision en attente/);
+});
+
 test("la page de l'inventaire dit qu'elle est générée", async () => {
   assert.match(await generee(), /^<!doctype html>\n<!-- Généré par docs\/inventaire\/generer-inventaire\.ts ; ne pas modifier à la main\. -->/);
 });
