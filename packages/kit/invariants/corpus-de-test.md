@@ -1,6 +1,6 @@
 # Corpus de test
 
-- **Le lecteur de contrats se teste sur un corpus figé, `fixtures/contrats/`, de la version précédente : quatre contrats 13.0.** Ce corpus est nécessaire : la fenêtre de lecture à deux versions n'est observable qu'à partir de contrats que le moteur ne produit plus. L'immobilité, défaut de l'instantané côté moteur, est ici la propriété recherchée.
+- **Le lecteur de contrats se teste sur un corpus figé, `fixtures/contrats/`, de la version précédente : quatre contrats 13.0, et deux contrats 14.0 figés d'avance pour la fenêtre 14.0 et 15.0.** Ce corpus est nécessaire : la fenêtre de lecture à deux versions n'est observable qu'à partir de contrats que le moteur ne produit plus. L'immobilité, défaut de l'instantané côté moteur, est ici la propriété recherchée.
 - **Le corpus n'est jamais comparé à une sortie du moteur.** Un tel test serait ce que la règle « le moteur ne se teste sur aucun contrat commité » interdit (`tests-du-moteur.md`).
 - **Le corpus n'est jamais rafraîchi.** Un réexport le rendrait inutile, puisqu'il cesserait d'être N-1. Ses empreintes SHA-256, dans le README voisin, empêchent de le croire frais.
 - **Le corpus disparaît quand la fenêtre de lecture se referme au-dessus de sa version, en même temps que le code de compatibilité qu'il couvre, jamais avant.**
