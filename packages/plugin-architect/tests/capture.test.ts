@@ -18,7 +18,7 @@ import { enregistrerLesImports, mesurerLePortDeLecture } from '../src/lecture';
 import { captureActive, estUneCapture, recevoirLaCapture } from '../src/ui/capture';
 import { capturerLAnalyse } from './parite';
 import { doubleDepuisCapture } from './outils/capture';
-import { fabriquerLeMonde } from './outils/mondeFabrique';
+import { fabriquerLeMonde, noeud, type NoeudFabrique } from './outils/mondeFabrique';
 
 const globale = globalThis as { figma?: unknown };
 
@@ -257,4 +257,25 @@ test('la capture n’importe aucune variable : elle ne reprend que les imports q
   assert.deepEqual(Object.keys(avec.libraries?.imports ?? {}), ['cle-lib-v', 'inconnue']);
   assert.equal((avec.libraries?.imports['cle-lib-v'] as { key: string }).key, 'cle-lib-v');
   assert.deepEqual(avec.libraries?.imports.inconnue, { $: 'erreur', message: 'Clé absente de la bibliothèque' });
+});
+
+test('une capture prise après une analyse porte les textes des pages des propriétaires rencontrés (F43)', async () => {
+  const monde = fabriquerLeMonde({ avecWrapper: true });
+  const jeuDeWrapper = monde.jeuDeWrapper as NoeudFabrique;
+  const nomDuTexte = noeud('nom-w', 'TEXT', { name: 'component-name', characters: '.sizeWrapperButton' });
+  const reglesAutres = noeud('regles-autres', 'INSTANCE', { name: '.componentRules', getMainComponentAsync: async () => null }, [noeud('cadre-w', 'FRAME', {}, [nomDuTexte])]);
+  const autrePage = noeud('page-autre', 'PAGE', { name: 'Autres', selection: [], loadAsync: async () => {}, on() {}, off() {} }, [jeuDeWrapper, reglesAutres]);
+  const racine = monde.page.parent as NoeudFabrique;
+  racine.children = [...(racine.children ?? []), autrePage];
+  autrePage.parent = racine;
+  (monde.page.children as NoeudFabrique[]).splice((monde.page.children as NoeudFabrique[]).indexOf(jeuDeWrapper), 1);
+  const supplementaires = new Map<string, NoeudFabrique>([[autrePage.id, autrePage], [reglesAutres.id, reglesAutres], ['cadre-w', reglesAutres.children![0]], [nomDuTexte.id, nomDuTexte]]);
+  const lire = monde.figma.getNodeByIdAsync;
+  monde.figma.getNodeByIdAsync = async (id: string) => supplementaires.get(id) ?? lire(id);
+
+  await analyserSur(monde.figma);
+  const capture = JSON.parse(JSON.stringify(await capturerLeComposant(monde.figma as unknown as PluginAPI, { jeu: monde.jeu, page: monde.page }))) as CaptureArchitect;
+  assert.deepEqual(capture.pages['page-autre'].criteres.TEXT, [{ $: 'noeud', id: 'nom-w' }]);
+  assert.equal(capture.noeuds['nom-w'].proprietes.characters, '.sizeWrapperButton');
+  assert.equal(capture.noeuds['regles-autres'].superficiel, undefined, 'le conteneur de règles de la page du propriétaire se capture entier');
 });

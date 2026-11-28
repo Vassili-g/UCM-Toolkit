@@ -242,6 +242,7 @@ export async function capturerLeComposant(figma: PluginAPI, options: OptionsDeCa
   const { encoder, rencontres } = creerLEncodeur(api.mixed);
   const noeuds: Record<string, CaptureDeNoeud> = {};
   const pages: Record<string, CaptureDePage> = {};
+  const pagesVives = new Map<string, LectureNoeud>();
   const aVisiter: { noeud: LectureNoeud; complet: boolean }[] = [];
   const limites = { noeudsTronques: false, textesDePageTronques: false };
   let depuisLaCession = 0;
@@ -266,6 +267,7 @@ export async function capturerLeComposant(figma: PluginAPI, options: OptionsDeCa
     const proprietes: Record<string, unknown> = {};
     for (const propriete of ['id', 'type', 'name']) lire(page, propriete, (valeur) => { proprietes[propriete] = valeur; });
     pages[page.id] = { id: page.id, proprietes, selection: [], criteres: {} };
+    pagesVives.set(page.id, page);
   };
 
   /** Lit un nœud : ses propriétés, puis ses plages, son maître et ses enfants si `complet`. */
@@ -326,38 +328,54 @@ export async function capturerLeComposant(figma: PluginAPI, options: OptionsDeCa
   for (const noeud of [jeu, ...selectionDeLaPage]) demander(noeud, true);
   await viderLaFile();
 
-  // Le scan des règles de la page du sujet : les textes, puis les instances, composants et jeux de variants que le moteur parcourt.
-  const pageDuSujet = page as LecturePage;
-  const criteres = pages[pageDuSujet.id].criteres;
-  const lireLesCriteres = (types: string[]): readonly LectureNoeud[] | null => {
-    const cle = types.join(',');
-    try {
-      if (typeof pageDuSujet.findAllWithCriteria !== 'function') { criteres[cle] = { $: 'indefini' }; return null; }
-      const trouves = pageDuSujet.findAllWithCriteria({ types });
-      criteres[cle] = trouves.map((noeud) => ({ $: 'noeud', id: noeud.id }));
-      return trouves;
-    } catch (erreur) {
-      criteres[cle] = erreurCapturee(erreur);
-      return null;
-    }
-  };
-  const textes = lireLesCriteres(['TEXT']) ?? [];
-  const candidats = lireLesCriteres(['INSTANCE', 'COMPONENT', 'COMPONENT_SET']) ?? [];
-  const conteneurs = new Set<string>();
-  for (const texte of textes) {
-    try {
-      if (!porteLeNom(texte as unknown as { name: string }, CALQUES_DU_KIT_DE_REGLES.nomDuComposant)) continue;
-      let parent = texte.parent as LectureNoeud | null;
-      while (parent && parent !== (pageDuSujet as unknown)) {
-        if (parent.type === 'INSTANCE') conteneurs.add(parent.id);
-        parent = parent.parent as LectureNoeud | null;
+  // Le scan des règles d'une page : les textes, puis les instances, composants et jeux de variants que le moteur parcourt.
+  // Une autre page rencontrée (celle d'un propriétaire) ne livre que ses textes et leurs instances : l'index des règles
+  // d'usage ne lit rien d'autre, et le rejeu le consulte sur une session neuve.
+  const scannerLaPage = async (pageLive: LecturePage, avecCandidats: boolean): Promise<void> => {
+    const criteres = pages[pageLive.id].criteres;
+    const lireLesCriteres = (types: string[]): readonly LectureNoeud[] | null => {
+      const cle = types.join(',');
+      try {
+        if (typeof pageLive.findAllWithCriteria !== 'function') { criteres[cle] = { $: 'indefini' }; return null; }
+        const trouves = pageLive.findAllWithCriteria({ types });
+        criteres[cle] = trouves.map((noeud) => ({ $: 'noeud', id: noeud.id }));
+        return trouves;
+      } catch (erreur) {
+        criteres[cle] = erreurCapturee(erreur);
+        return null;
       }
-    } catch { /* un nom ou un parent illisible : le moteur le saute aussi */ }
+    };
+    const textes = lireLesCriteres(['TEXT']) ?? [];
+    const candidats = avecCandidats ? lireLesCriteres(['INSTANCE', 'COMPONENT', 'COMPONENT_SET']) ?? [] : [];
+    const conteneurs = new Map<string, LectureNoeud>();
+    for (const texte of textes) {
+      try {
+        if (!porteLeNom(texte as unknown as { name: string }, CALQUES_DU_KIT_DE_REGLES.nomDuComposant)) continue;
+        let parent = texte.parent as LectureNoeud | null;
+        while (parent && parent !== (pageLive as unknown)) {
+          if (parent.type === 'INSTANCE') conteneurs.set(parent.id, parent);
+          parent = parent.parent as LectureNoeud | null;
+        }
+      } catch { /* un nom ou un parent illisible : le moteur le saute aussi */ }
+    }
+    textes.slice(0, PLAFOND_DE_TEXTES_DE_PAGE).forEach((texte) => demander(texte, false));
+    if (textes.length > PLAFOND_DE_TEXTES_DE_PAGE) limites.textesDePageTronques = true;
+    for (const candidat of candidats) demander(candidat, conteneurs.has(candidat.id));
+    if (!avecCandidats) for (const conteneur of conteneurs.values()) demander(conteneur, true);
+    await viderLaFile();
+  };
+  // Aucun `loadAsync` ici (loi d'écriture) : l'analyse a chargé ces pages, et une page non chargée donne une erreur encodée.
+  const pageDuSujet = page as LecturePage;
+  await scannerLaPage(pageDuSujet, true);
+  const pagesScannees = new Set<string>([pageDuSujet.id]);
+  for (;;) {
+    const restantes = [...pagesVives.entries()].filter(([id]) => !pagesScannees.has(id));
+    if (restantes.length === 0) break;
+    for (const [id, pageLive] of restantes) {
+      pagesScannees.add(id);
+      await scannerLaPage(pageLive as LecturePage, false);
+    }
   }
-  textes.slice(0, PLAFOND_DE_TEXTES_DE_PAGE).forEach((texte) => demander(texte, false));
-  if (textes.length > PLAFOND_DE_TEXTES_DE_PAGE) limites.textesDePageTronques = true;
-  for (const candidat of candidats) demander(candidat, conteneurs.has(candidat.id));
-  await viderLaFile();
 
   // Les identifiants que les surcharges nomment et que l'arbre capturé ne contient pas.
   const noeudsParIdentifiant: Record<string, unknown> = {};
